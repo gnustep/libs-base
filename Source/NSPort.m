@@ -27,6 +27,7 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
 #include <Foundation/NSPortNameServer.h>
+#include <Foundation/NSRunLoop.h>
 #include <Foundation/NSAutoreleasePool.h>
 
 NSString*	NSPortDidBecomeInvalidNotification
@@ -137,14 +138,14 @@ NSString *NSPortTimeoutException
              toRunLoop: (NSRunLoop*)aLoop
                forMode: (NSString*)aMode
 {
-  [self subclassResponsibility: _cmd];
+  [aLoop addPort: self forMode: aMode];
 }
 
 - (void) removeConnection: (NSConnection*)aConnection
               fromRunLoop: (NSRunLoop*)aLoop
                   forMode: (NSString*)aMode
 {
-  [self subclassResponsibility: _cmd];
+  [aLoop removePort: self forMode: aMode];
 }
 
 - (unsigned) reservedSpaceLength

@@ -171,14 +171,14 @@ typedef enum {
 		  forMode: (NSString*)mode;
 @end
 
-@interface GSTcpPort : NSPort <GCFinalization>
+@interface GSTcpPort : NSPort <GCFinalization, RunLoopEvents>
 {
   NSRecursiveLock	*myLock;
   NSHost		*host;		/* OpenStep host for this port.	*/
   NSString		*address;	/* Forced internet address.	*/
   gsu16			portNum;	/* TCP port in host byte order.	*/
   int			listener;	/* Descriptor to listen on.	*/
-  NSMapTable		*handles;	/* Handles indexed by port.	*/
+  NSMapTable		*handles;	/* Handles indexed by socket.	*/
 }
 
 + (GSTcpPort*) existingPortWithNumber: (gsu16)number
@@ -187,14 +187,21 @@ typedef enum {
 		       onHost: (NSHost*)host
 		 forceAddress: (NSString*)addr;
 
-- (void) addHandle: (GSTcpHandle*)handle forPort: (GSTcpPort*)other;
+- (void) addHandle: (GSTcpHandle*)handle;
 - (NSString*) address;
 - (void) getFds: (int*)fds count: (int*)count;
 - (GSTcpHandle*) handleForPort: (GSTcpPort*)recvPort beforeDate: (NSDate*)when;
 - (void) handlePortMessage: (NSPortMessage*)m;
 - (NSHost*) host;
 - (gsu16) portNumber;
+- (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+		 extra: (void*)extra
+	       forMode: (NSString*)mode;
 - (void) removeHandle: (GSTcpHandle*)h;
+- (NSDate*) timedOutEvent: (void*)data
+		     type: (RunLoopEventType)type
+		  forMode: (NSString*)mode;
 @end
 
 
@@ -336,10 +343,13 @@ static NSMapTable	*tcpHandleTable = 0;
       handle->desc = d;
       handle->wMsgs = [NSMutableArray new];
       NSMapInsert(tcpHandleTable, (void*)(gsaddr)d, (void*)handle);
-      RELEASE(handle);
+    }
+  else
+    {
+      RETAIN(handle);
     }
   [tcpHandleLock unlock];
-  return handle;
+  return AUTORELEASE(handle);
 }
 
 - (void) close
@@ -565,9 +575,13 @@ static NSMapTable	*tcpHandleTable = 0;
       res = read(desc, bytes + rLength, want - rLength);
       if (res <= 0)
 	{
-	  NSLog(@"read attempt failed - %s", strerror(errno));
-	  [self invalidate];
-	  return;
+	  if (res == 0 || errno != EINTR)
+	    {
+	      NSLog(@"read attempt failed - %s", strerror(errno));
+	      [self invalidate];
+	      return;
+	    }
+	  res = 0;	/* Interrupted - continue	*/
 	}
       rLength += res;
       if (rLength == want)
@@ -660,8 +674,8 @@ static NSMapTable	*tcpHandleTable = 0;
 		       */
 		      state = GS_H_CONNECTED;
 		      [self setSendPort: p];
-		      [[self recvPort] addHandle: self forPort: p];
-		      [p addHandle: self forPort: [self recvPort]];
+		      [[self recvPort] addHandle: self];
+		      [p addHandle: self];
 		    }
 		  else
 		    {
@@ -735,7 +749,12 @@ static NSMapTable	*tcpHandleTable = 0;
 	  res = write(desc, b + wLength,  l - wLength);
 	  if (res <= 0)
 	    {
-	      NSLog(@"write attempt failed - %s", strerror(errno));
+	      if (res == 0 || errno != EINTR)
+		{
+		  NSLog(@"write attempt failed - %s", strerror(errno));
+		  [self invalidate];
+		  return;
+		}
 	    }
 	  else
 	    {
@@ -952,7 +971,7 @@ static NSMapTable	*tcpPortMap = 0;
       port->host = RETAIN(aHost);
       port->address = [addr copy];
       port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
-	NSNonRetainedObjectMapValueCallBacks, 0);
+	NSObjectMapValueCallBacks, 0);
       port->myLock = [NSRecursiveLock new];
 
       if ([thisHost isEqual: aHost] == YES)
@@ -1086,10 +1105,10 @@ static NSMapTable	*tcpPortMap = 0;
   return port;
 }
 
-- (void) addHandle: (GSTcpHandle*)handle forPort: (GSTcpPort*)other
+- (void) addHandle: (GSTcpHandle*)handle
 {
   [myLock lock];
-  NSMapInsert(handles, (void*)handle, (void*)other);
+  NSMapInsert(handles, (void*)(gsaddr)[handle descriptor], (void*)handle);
   [myLock unlock];
 }
 
@@ -1191,8 +1210,8 @@ static NSMapTable	*tcpPortMap = 0;
 	{
 	  [handle setSendPort: self];
 	  [handle setRecvPort: recvPort];
-	  NSMapInsert(handles, (void*)handle, (void*)recvPort);
-	  NSMapInsert(recvPort->handles, (void*)handle, (void*)self);
+	  [recvPort addHandle: handle];
+	  NSMapInsert(handles, (void*)(gsaddr)sock, (void*)handle);
 	}
     }
   [myLock unlock];
@@ -1303,6 +1322,32 @@ static NSMapTable	*tcpPortMap = 0;
 - (gsu16) portNumber
 {
   return portNum;
+}
+
+- (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+		 extra: (void*)extra
+	       forMode: (NSString*)mode
+{
+  int		desc = (int)(gsaddr)extra;
+
+  if (desc == listener)
+    {
+    }
+  else
+    {
+      GSTcpHandle	*handle;
+
+      handle = [GSTcpHandle handleWithDescriptor: desc];
+      if (handle == nil)
+	{
+	  NSLog(@"No handle for event on descriptor %d", desc);
+	}
+      else
+	{
+	  [handle receivedEvent: data type: type extra: extra forMode: mode];
+	}
+    }
 }
 
 /*
@@ -1441,6 +1486,13 @@ static NSMapTable	*tcpPortMap = 0;
 			 from: receivingPort
 		     reserved: length
 			msgId: GS_CONNECTION_MSG];
+}
+
+- (NSDate*) timedOutEvent: (void*)data
+		     type: (RunLoopEventType)type
+		  forMode: (NSString*)mode
+{
+  return nil;
 }
 
 @end
