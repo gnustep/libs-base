@@ -5,6 +5,13 @@
 	* Source/NSIndexSet.m: ([getIndexes:maxCount:inIndexRange:]) accept
 	null pointer for index range.  Consistent with undocumented MacOS-X
 	feature (but we document it).
+	* Headers/Additions/GNUstepBase/DistributedObjects.h:
+	* Source/NSConnection.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m: Use new ([-conversation:]) method to
+	obtain handle for specific network link in use by a connection,
+	and invalidate it when the connection is iunvaliodated.
+	Fixes bug #9798
 
 2004-08-23 Richard Frith-Macdonald <rfm@gnu.org>
 
