@@ -60,7 +60,7 @@ _NSLog_standard_printf_handler (NSString* message)
 # ifdef	LOG_ERROR
       mask = LOG_ERROR;
 # else
-#include <Help, I can't find a logging levl for syslog>
+#   error "Help, I can't find a logging level for syslog"
 # endif
 #endif
 
