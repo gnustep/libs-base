@@ -122,6 +122,263 @@
   va_end (ap);
 }
 
+- (NSString*) parseDeclaratorInto: (NSMutableArray*)a
+{
+  while ([self skipWhiteSpace] < length)
+    {
+      while (buffer[pos] == '*')
+	{
+	  [a addObject: @"*"];
+	  pos++;
+	}
+      if (buffer[pos] == '(')
+	{
+	  NSString	*result;
+
+	  [a addObject: @"("];
+	  pos++;
+	  result = [self parseDeclaratorInto: a];
+	  if ([self skipWhiteSpace] < length && buffer[pos] == ')')
+	    {
+	      [a addObject: @")"];
+	      pos++;
+	      return result;
+	    }
+	  else
+	    {
+	      [self log: @"missing ')' in declarator."];
+	      return nil;
+	    }
+	}
+      else
+	{
+	  NSString	*s;
+
+	  s = [self parseIdentifier];
+	  if ([s isEqualToString: @"const"] || [s isEqualToString: @"volatile"])
+	    {
+	      [a addObject: s];
+	    }
+	  else
+	    {
+	      return s;	// Parsed all asterisks, consts, and volatiles
+	    }
+	}
+    }
+  return nil;
+}
+
+- (NSMutableDictionary*) parseDeclIsSource: (BOOL)isSource
+{
+  CREATE_AUTORELEASE_POOL(arp);
+  static NSSet		*qualifiers = nil;
+  NSString		*baseType = nil;
+  NSString		*declName = nil;
+  NSMutableArray	*a1;
+  NSMutableArray	*a2;
+  NSString		*s;
+  BOOL			isTypedef = NO;
+
+  if (qualifiers == nil)
+    {
+      qualifiers = [NSSet setWithObjects:
+	@"auto",
+	@"const",
+	@"extern",
+	@"inline",
+	@"long",
+	@"register",
+	@"short",
+	@"signed",
+	@"static",
+	@"typedef",
+	@"unsigned",
+	@"volatile",
+	nil];
+      RETAIN(qualifiers);
+    }
+
+  a1 = [NSMutableArray array];
+  a2 = [NSMutableArray array];
+  while ((s = [self parseIdentifier]) != nil)
+    {
+      if ([s isEqualToString: @"GS_EXTERN"] == YES)
+	{
+	  s = @"extern";
+	}
+      if ([qualifiers member: s] == nil)
+	{
+	  break;
+	}
+      else
+	{
+	  if ([s isEqualToString: @"typedef"] == YES)
+	    {
+	      isTypedef = YES;
+	    }
+	  [a1 addObject: s];
+	}
+    }
+
+  baseType = s;
+  if (baseType == nil)
+    {
+      /*
+       * If there is no identifier here, the line must have been
+       * something like 'unsigned *length' so we must set the default
+       * base type of 'int'
+       */
+      baseType = @"int";
+    }
+
+  /**
+   * We handle struct, union, and enum declarations by skipping the
+   * stuff enclosed in curly braces.  If there was an identifier
+   * after the keyword we use it as the struct name, otherwise we
+   * use '...' to denote a nameless type.
+   */
+  if ([s isEqualToString: @"struct"] == YES
+    || [s isEqualToString: @"union"] == YES
+    || [s isEqualToString: @"enum"] == YES)
+    {
+      s = [self parseIdentifier];
+      if (s == nil)
+	{
+	  baseType = [NSString stringWithFormat: @"%@ ...", baseType];
+	}
+      else
+	{
+	  baseType = [NSString stringWithFormat: @"%@ %@", baseType, s];
+	}
+      if ([self skipWhiteSpace] < length && buffer[pos] == '{')
+	{
+	  [self skipBlock];
+	}
+    }
+
+  /*
+   * FIXME ... the next code should cope with bracketing and with
+   * pointers to functions etc.  It doesn't!
+   */
+  while ([self skipWhiteSpace] < length)
+    {
+      while (buffer[pos] == '*')
+	{
+	  [a2 addObject: @"*"];
+	  pos++;
+	}
+      if (buffer[pos] == '(')
+	{
+	}
+      s = [self parseIdentifier];
+      if ([s isEqualToString: @"const"] || [s isEqualToString: @"volatile"])
+	{
+	  [a2 addObject: s];
+	}
+      else
+	{
+	  break;	// Parsed all asterisks, consts, and volatiles
+	}
+    }
+
+  declName = s;
+  if (declName == nil)
+    {
+      /*
+       * If there is no identifier here, the line must have been
+       * something like 'unsigned length' and we assumed that 'length'
+       * was the base type rather than the declared name.
+       * The fix is to set the base type to be 'int' and use the value
+       * we had as the declaration name.
+       */
+      declName = baseType;
+      baseType = @"int";
+    }
+
+  [a1 addObject: baseType];
+  [a1 addObjectsFromArray: a2];
+
+  if ([self skipWhiteSpace] < length)
+    {
+      if (buffer[pos] == ';')
+	{
+	  [self skipStatement];
+	}
+      else if (buffer[pos] == '[')
+	{
+	  [self log: @"ignoring array variable ... not supported yet"];
+	  [self skipStatement];
+	}
+      else if (buffer[pos] == '(')
+	{
+	  [self log: @"parse function '%@' of type '%@'",
+	    declName, [a1 componentsJoinedByString: @" "]];
+	  [self skipStatement];
+	  RELEASE(arp);
+	  return nil;
+	}
+      else if (buffer[pos] == ',')
+	{
+	  [self log: @"ignoring multiple comma separated declarations"];
+	  [self skipStatement];
+	}
+      else if (buffer[pos] == '=')
+	{
+	  [self skipStatement];
+	}
+      else
+	{
+	  [self log: @"unexpected char (%c) parsing declaration", buffer[pos]];
+	  goto fail;
+	}
+
+      /*
+       * Read in any comment on the same line in case it
+       * contains documentation for the declaration.
+       */
+      if ([self skipSpaces] < length && buffer[pos] == '/')
+	{
+	  [self skipComment];
+	}
+
+      if (inInstanceVariables == YES)
+	{
+	  NSMutableDictionary	*d;
+	  NSString		*t;
+
+	  t = [a1 componentsJoinedByString: @" "];
+	  d = [[NSMutableDictionary alloc] initWithCapacity: 4];
+	  [d setObject: declName forKey: @"Name"];
+	  [d setObject: t forKey: @"Type"];
+	  if (comment != nil)
+	    {
+	      [d setObject: comment forKey: @"Comment"];
+	      DESTROY(comment);
+	    }
+	  RELEASE(arp);
+	  return AUTORELEASE(d);
+	}
+      else if (isTypedef == YES)
+	{
+	  [self log: @"parse typedef '%@' of type '%@'",
+	    declName, [a1 componentsJoinedByString: @" "]];
+	}
+      else
+	{
+	  [self log: @"parse variable/constant '%@' of type '%@'",
+	    declName, [a1 componentsJoinedByString: @" "]];
+	}
+    }
+  else
+    {
+      [self log: @"unexpected end of data parsing declaration"];
+    }
+fail:
+  DESTROY(comment);
+  RELEASE(arp);
+  return nil;
+}
+
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource
 {
   NSString	*token;
@@ -481,59 +738,6 @@ fail:
   return nil;
 }
 
-/*
-- (NSString*) parseType
-{
-  NSMutableString	*m;
-  NSString		*s;
-  BOOL			hadName = NO;
-
-  s = [self parseIdentifier];
-  if (s == nil)
-    {
-      return nil;
-    }
-  m = [NSMutableString string];
-  [m appendString: s];
-  if ([qualifiers member: s] == nil)
-    {
-      hadName = YES;
-    }
-  [self skipWhiteSpace];
-  while (pos < length)
-    {
-      unsigned	saved;
-      BOOL	hadStar = NO;
-
-      while (pos < length && buffer[pos] == '*')
-	{
-	  if (hadStar == NO)
-	    {
-	      [m appendString: @" "];
-	      hadStar = YES;
-	    }
-	  [m appendString: @"*"];
-	  pos++;
-	  [self skipWhiteSpace];
-	}
-      saved = pos;
-      s = [self parseIdentifier];
-      if ([qualifiers member: s] == nil)
-	{
-	  if (hadName == YES)
-	    {
-	      pos = saved;
-	      break;
-	    }
-	  hadName = YES;
-	}
-      [m appendString: @" "];
-      [m appendString: s];
-    }
-  return m;
-}
-*/
-
 - (NSString*) parseIdentifier
 {
   unsigned	start;
@@ -558,10 +762,13 @@ fail:
 
 - (NSMutableDictionary*) parseInstanceVariables
 {
-  enum { IsPrivate, IsProtected, IsPublic } visibility = IsPrivate;
+  NSString		*visibility = @"private";
   NSMutableDictionary	*ivars;
+  BOOL			shouldDocument = documentAllInstanceVariables;
 
   DESTROY(comment);
+
+  inInstanceVariables = YES;
 
   ivars = [NSMutableDictionary dictionaryWithCapacity: 8];
   pos++;
@@ -576,24 +783,27 @@ fail:
 	    || [self skipWhiteSpace] >= length)
 	    {
 	      [self log: @"interface with bad visibility directive"];
-	      return nil;
+	      goto fail;
 	    }
 	  if ([token isEqual: @"private"] == YES)
 	    {
-	      visibility = IsPrivate;
+	      ASSIGN(visibility, token);
+	      shouldDocument = documentAllInstanceVariables;
 	    }
 	  else if ([token isEqual: @"protected"] == YES)
 	    {
-	      visibility = IsProtected;
+	      ASSIGN(visibility, token);
+	      shouldDocument = YES;
 	    }
 	  else if ([token isEqual: @"public"] == YES)
 	    {
-	      visibility = IsPublic;
+	      ASSIGN(visibility, token);
+	      shouldDocument = YES;
 	    }
 	  else
 	    {
 	      [self log: @"interface with bad visibility (%@)", token];
-	      return nil;
+	      goto fail;
 	    }
 	}
       else if (buffer[pos] == '#')
@@ -601,11 +811,24 @@ fail:
 	  [self skipPreprocessor];	// Ignore preprocessor directive.
 	  DESTROY(comment);
 	}
+      else if (shouldDocument == YES)
+	{
+	  NSMutableDictionary	*iv = [self parseDeclIsSource: NO];
+
+	  if (iv != nil)
+	    {
+	      [iv setObject: visibility forKey: @"Visibility"];
+	      [ivars setObject: iv forKey: [iv objectForKey: @"Name"]];
+	    }
+	}
       else
 	{
-	  [self skipStatement];	/* FIXME - currently we ignore ivars */
+	  [self skipStatement];
 	}
     }
+
+  inInstanceVariables = NO;
+
   if (pos >= length)
     {
       [self log: @"interface with bad instance variables"];
@@ -613,6 +836,10 @@ fail:
     }
   pos++;	// Step past closing bracket.
   return ivars;
+fail:
+  DESTROY(comment);
+  inInstanceVariables = NO;
+  return nil;
 }
 
 - (NSMutableDictionary*) parseMethodIsDeclaration: (BOOL)flag
@@ -1272,6 +1499,17 @@ fail:
 - (void) setDeclared: (NSString*)name
 {
   ASSIGN(declared, name);
+}
+
+/**
+ * This method is used to enable (or disable) documentation of all
+ * instance variables.  If it is turned off, only those instance
+ * variables that are explicitly declared 'public' or 'protected'
+ * will be documented.
+ */
+- (void) setDocumentAllInstanceVariables: (BOOL)flag
+{
+  documentAllInstanceVariables = flag;
 }
 
 /**

@@ -193,11 +193,25 @@ static NSMutableSet	*textNodes = nil;
     }
   else if (u == nil)
     {
-      u = unit;
+      if (category == nil)
+	{
+	  u = unit;
+	}
+      else
+	{
+	  u = classname;
+	}
       s = [localRefs unitRef: r type: t unit: &u];
       if (s == nil)
 	{
-	  u = unit;
+	  if (category == nil)
+	    {
+	      u = unit;
+	    }
+	  else
+	    {
+	      u = classname;
+	    }
 	  s = [globalRefs unitRef: r type: t unit: &u];
 	}
     }
@@ -264,65 +278,127 @@ static NSMutableSet	*textNodes = nil;
 	       title: (NSString*)title
 		  to: (NSMutableString*)buf
 {
-  NSDictionary	*dict = [localRefs refs];
+  NSDictionary	*refs = [localRefs refs];
+  NSDictionary	*dict;
+  NSArray	*a;
+  unsigned	c;
+  unsigned	i;
 
   if (globalRefs != nil && [scope isEqual: @"global"] == YES)
     {
-      dict = [globalRefs refs];
+      refs = [globalRefs refs];
     }
   else if (projectRefs != nil && [scope isEqual: @"project"] == YES)
     {
-      dict = [projectRefs refs];
+      refs = [projectRefs refs];
     }
 
-  dict = [dict objectForKey: type];
-  if ([dict count] > 1
-    || ([dict count] > 0 && [type isEqual: @"title"] == NO))
+  if ([type isEqualToString: @"method"] == YES)
     {
-      NSArray		*a = [dict allKeys];
-      unsigned		c = [a count];
-      NSMutableSet	*unitNames = nil;
-      unsigned		i;
+      if (unit == nil)
+	{
+	  refs = nil;	// Can't index methods outside a unit.
+	}
+      dict = [refs objectForKey: @"unitmethods"];
+      dict = [dict objectForKey: unit];
+    }
+  else if ([type isEqualToString: @"ivariable"] == YES)
+    {
+      if (unit == nil)
+	{
+	  refs = nil;	// Can't index instance variables outside a class.
+	}
+      dict = [refs objectForKey: @"classvars"];
+      dict = [dict objectForKey: unit];
+    }
+  else
+    {
+      dict = [refs objectForKey: type];
+    }
+
+  if ([dict count] > 1 && [type isEqual: @"title"] == YES)
+    {
+      [buf appendString: indent];
+      [buf appendFormat: @"<b>%@</b>\n", title];
+      [buf appendString: indent];
+      [buf appendString: @"<ul>\n"];
+      [self incIndent];
+
+      a = [dict allKeys];
+      a = [a sortedArrayUsingSelector: @selector(compare:)];
+      c = [a count];
+
+      for (i = 0; i < c; i++)
+	{
+	  NSString	*ref = [a objectAtIndex: i];
+	  NSString	*text = [dict objectForKey: ref];
+	  NSString	*file = ref;
+
+	  if ([file isEqual: base] == YES)
+	    {
+	      continue;	// Don't list current file.
+	    }
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<li><a rel=\"gsdoc\" href="];
+	  [buf appendFormat: @"\"%@.html#%@$%@\">%@</a></li>\n",
+	    file, type, ref, text];
+	}
+
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</ul>\n"];
+    }
+  else if ([dict count] > 0)
+    {
       NSString		*sep = @"";
+      NSString		*u = unit;
       BOOL		isInUnit = NO;
 
-      if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
+      if (unit != nil)
 	{
-	  isInUnit = YES;
-	  if ([type isEqual: @"ivariable"])
+	  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
 	    {
-	      sep = @"*";
-	    }
-	  else if (unit != nil)
-	    {
-	      /*
-	       * Create a mutable set containing the unit name.
-	       */
-	      unitNames = [NSMutableSet setWithObject: unit];
-	      /*
-	       * if the unit is a class, add all its categories to the set.
-	       */	
-	      if ([unit hasSuffix: @")"] == NO)
+	      isInUnit = YES;
+	      if ([type isEqual: @"ivariable"])
 		{
-		  NSArray	*categoryNames;
-		  unsigned	l = [unit length];
+		  sep = @"*";		// List ivars in class
+		}
+	      else if (category != nil)
+		{
+		  u = classname;	// List methods in category
+		}
+	      else if (classname != nil)
+		{
+		  NSArray	*catNames;
 
-		  categoryNames = [[dict objectForKey: @"category"] allKeys];
-		  i = [categoryNames count];
-		  while (i-- > 0)
+		  /*
+		   * For a clss, we want to list methods in any associated
+		   * categories as well as those of the class itsself.
+		   */
+		  catNames = [[[refs objectForKey: @"categories"]
+		    objectForKey: classname] allKeys];
+		  if ((c = [catNames count]) > 0)
 		    {
-		      NSString	*n = [categoryNames objectAtIndex: i];
+		      NSMutableDictionary	*m = [dict mutableCopy];
+		      NSDictionary		*unitDict;
 
-		      if ([n hasPrefix: unit] == YES && [n length] > l
-			&& [n characterAtIndex: i] == '(')
+		      unitDict = [refs objectForKey: @"unitmethods"];
+		      for (i = 0; i < c; i++)
 			{
-			  [unitNames addObject: n];
+			  NSString	*catName = [catNames objectAtIndex: i];
+			  NSDictionary	*catDict;
+
+			  catName = [classname stringByAppendingFormat: @"(%@)",
+			    catName];
+			  catDict = [unitDict objectForKey: catName];
+			  [m addEntriesFromDictionary: catDict];
 			}
+		      dict = AUTORELEASE(m);
 		    }
 		}
 	    }
 	}
-      a = [a sortedArrayUsingSelector: @selector(compare:)];
 
       [buf appendString: indent];
       [buf appendFormat: @"<b>%@</b>\n", title];
@@ -330,75 +406,25 @@ static NSMutableSet	*textNodes = nil;
       [buf appendString: @"<ul>\n"];
       [self incIndent];
 
+      a = [dict allKeys];
+      a = [a sortedArrayUsingSelector: @selector(compare:)];
+      c = [a count];
+
       for (i = 0; i < c; i++)
 	{
+	  NSString	*ref = [a objectAtIndex: i];
+	  NSString	*file = [dict objectForKey: ref];
+	  NSString	*text = ref;
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<li><a rel=\"gsdoc\" href="];
 	  if (isInUnit == YES)
 	    {
-	      NSString		*ref = [a objectAtIndex: i];
-	      NSDictionary	*units = [dict objectForKey: ref];
-	      NSMutableArray	*b = [[units allKeys] mutableCopy];
-	      unsigned		j;
-
-	      if (unitNames != nil)
-		{
-		  /*
-		   * Remove any listing for methods not in the
-		   * current unit or in categories of the current class.
-		   */
-		  for (j = 0; j < [b count]; j++)
-		    {
-		      NSString	*u = [b objectAtIndex: j];
-
-		      if ([unitNames member: u] == NO)
-			{
-			  [b removeObjectAtIndex: j--];
-			}
-		    }
-		}
-	      [b sortUsingSelector: @selector(compare:)];
-	      for (j = 0; j < [b count]; j++)
-		{
-		  NSString	*u = [b objectAtIndex: j];
-		  NSString	*file = [units objectForKey: u];
-
-		  [buf appendString: indent];
-		  [buf appendFormat: @"<li><a rel=\"gsdoc\" href="];
-		  [buf appendFormat: @"\"%@.html#%@$%@%@%@\">",
-		    file, type, u, sep, ref];
-		  if ([u isEqual: unit] == YES)
-		    {
-		      [buf appendFormat: @"%@</a></li>\n", ref];
-		    }
-		  else
-		    {
-		      [buf appendFormat: @"%@</a> in %@</li>\n", ref, u];
-		    }
-		}
-	      RELEASE(b);
+	      [buf appendFormat: @"\"%@.html#%@$%@%@%@\">%@</a></li>\n",
+		file, type, u, sep, ref, text];
 	    }
 	  else
 	    {
-	      NSString	*ref = [a objectAtIndex: i];
-	      NSString	*file = [dict objectForKey: ref];
-	      NSString	*text = ref;
-
-	      /*
-	       * Special case ... title listings are done 
-	       * with the name of the file being the unique key
-	       * and the value being the title string.
-	       */
-	      if ([type isEqual: @"title"] == YES)
-		{
-		  text = file;
-		  file = ref;
-		  if ([file isEqual: base] == YES)
-		    {
-		      continue;	// Don't list current file.
-		    }
-		}
-
-	      [buf appendString: indent];
-	      [buf appendString: @"<li><a rel=\"gsdoc\" href="];
 	      [buf appendFormat: @"\"%@.html#%@$%@\">%@</a></li>\n",
 		file, type, ref, text];
 	    }
@@ -466,20 +492,22 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"category"] == YES)
 	{
-	  NSString	*name = [prop objectForKey: @"name"];
-	  NSString	*cls = [prop objectForKey: @"class"];
 	  NSString	*s;
 
+	  category = [prop objectForKey: @"name"];
+	  classname = [prop objectForKey: @"class"];
+	  unit = [NSString stringWithFormat: @"%@(%@)", classname, category];
 	  [buf appendString: indent];
 	  [buf appendString: @"<h2>"];
-	  [buf appendString: [self typeRef: cls]];
+	  [buf appendString: [self typeRef: classname]];
 	  [buf appendString: @"("];
-	  unit = [NSString stringWithFormat: @"%@(%@)", cls, name];
-	  s = [self makeAnchor: unit ofType: @"category" name: name];
+	  s = [self makeAnchor: unit ofType: @"category" name: category];
 	  [buf appendString: s];
 	  [buf appendString: @")</h2>\n"];
 	  [self outputUnit: node to: buf];
 	  unit = nil;
+	  classname = nil;
+	  category = nil;
 	}
       else if ([name isEqual: @"chapter"] == YES)
 	{
@@ -492,14 +520,14 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"class"] == YES)
 	{
-	  NSString	*name = [prop objectForKey: @"name"];
 	  NSString	*sup = [prop objectForKey: @"super"];
 
-	  unit = name;
+	  classname = [prop objectForKey: @"name"];
+	  unit = classname;
 	  [buf appendString: indent];
 	  [buf appendString: @"<h2>"];
 	  [buf appendString:
-	    [self makeAnchor: name ofType: @"class" name: name]];
+	    [self makeAnchor: classname ofType: @"class" name: classname]];
 	  sup = [self typeRef: sup];
 	  if (sup != nil)
 	    {
@@ -509,6 +537,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"</h2>\n"];
 	  [self outputUnit: node to: buf];
 	  unit = nil;
+	  classname = nil;
 	}
       else if ([name isEqual: @"code"] == YES)
 	{
@@ -919,9 +948,50 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"ivariable"] == YES)
 	{
-	  NSString	*tmp = [prop objectForKey: @"name"];
+	  NSString	*n = [prop objectForKey: @"name"];
+	  NSString	*t = [prop objectForKey: @"type"];
+	  NSString	*v = [prop objectForKey: @"validity"];
+	  NSString	*s;
+	  GSXMLNode	*tmp = children;
 
-	  NSLog(@"Element '%@' not implemented", name); 	    // FIXME
+	  [buf appendString: indent];
+	  [buf appendString: @"<h3>"];
+	  s = [self makeLink: n ofType: @"ivariable" inUnit: nil isRef: NO];
+	  if (s != nil)
+	    {
+	      [buf appendString: s];
+	      [buf appendString: n];
+	      [buf appendString: @"</a>"];
+	    }
+	  else
+	    {
+	      [buf appendString: n];
+	    }
+	  [buf appendString: @"</h3>\n"];
+	  if (v == nil)
+	    {
+	      v = @"public";
+	    }
+	  [buf appendFormat: @"%@@%@ %@ <b>%@</b>;<br />\n", indent, v, t, n];
+
+	  if ([[children name] isEqual: @"desc"] == YES)
+	    {
+	      children = [children next];
+	    }
+	  /*
+	   * List standards with which method complies
+	   */
+	  if ([[children name] isEqual: @"standards"])
+	    {
+	      [self outputNode: children to: buf];
+	    }
+	  if ([[tmp name] isEqual: @"desc"])
+	    {
+	      [self outputNode: tmp to: buf];
+	    }
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
 	}
       else if ([name isEqual: @"label"] == YES)	// %anchor
 	{
@@ -1531,8 +1601,8 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 
 - (void) outputUnit: (GSXMLNode*)node to: (NSMutableString*)buf
 {
-  GSXMLNode		*t;
-  NSMutableArray	*a;
+  GSXMLNode	*t;
+  NSArray	*a;
 
   node = [node children];
   if (node != nil && [[node name] isEqual: @"declared"] == YES)
@@ -1607,6 +1677,19 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       node = [node next];
     }
 
+  if (node != nil && [[node name] isEqual: @"ivariable"] == YES)
+    {
+      [buf appendString: indent];
+      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+      [buf appendString: indent];
+      [buf appendString: @"<h3>Instance variables</h3>\n"];
+      while (node != nil && [[node name] isEqual: @"ivariable"] == YES)
+	{
+	  [self outputNode: node to: buf];
+	  node = [node next];
+	}
+    }
+
   a = [localRefs methodsInUnit: unit];
   if ([a count] > 0)
     {
@@ -1614,12 +1697,13 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 		  scope: @"global"
 		  title: @"Method summary"
 		     to: buf];
+      [buf appendString: indent];
       [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
-    }
-  while (node != nil && [[node name] isEqual: @"method"] == YES)
-    {
-      [self outputNode: node to: buf];
-      node = [node next];
+      while (node != nil && [[node name] isEqual: @"method"] == YES)
+	{
+	  [self outputNode: node to: buf];
+	  node = [node next];
+	}
     }
 }
 

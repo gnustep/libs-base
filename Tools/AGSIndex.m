@@ -133,7 +133,6 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
  * The references are held in a tree consisting of dictionaries
  * with strings at the leaves -<br />
  * method method-name class-name file-name<br />
- * method method-name category-name file-name<br />
  * method method-name protocol-name file-name<br />
  * ivariable variable-name class-name file-name<br />
  * class class-name file-name<br />
@@ -147,6 +146,9 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
  * label label-name file-name ref<br />
  * contents ref text<br />
  * super class-name superclass-name<br />
+ * categories class-name category-name file-name<br />
+ * unitmethods unit-name method-name<br />
+ * classvars class-name variables-name<br />
  * title file-name text<br />
  */
 @implementation	AGSIndex
@@ -202,9 +204,14 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       if ([name isEqual: @"category"] == YES)
 	{
 	  newUnit = YES;
-	  unit = [NSString stringWithFormat: @"%@(%@)",
-	    [prop objectForKey: @"class"], [prop objectForKey: @"name"]];
-
+	  classname = [prop objectForKey: @"class"];
+	  category = [prop objectForKey: @"name"];
+	  unit = classname;
+	  /*
+	   * Add this category to the list of those for the class.
+	   */
+	  [self setUnitRef: category type: @"categories"];
+	  unit = [NSString stringWithFormat: @"%@(%@)", classname, category];
 	  [self setGlobalRef: unit type: @"category"];
 	}
       else if ([name isEqual: @"chapter"] == YES)
@@ -219,20 +226,12 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	  NSString	*tmp;
 
 	  newUnit = YES;
-	  unit = [prop objectForKey: @"name"];
+	  classname = [prop objectForKey: @"name"];
+	  unit = classname;
 	  tmp = [prop objectForKey: @"super"];
 	  if (tmp != nil)
 	    {
-	      NSMutableDictionary	*t;
-
-	      t = [refs objectForKey: @"super"];
-	      if (t == nil)
-		{
-		  t = [NSMutableDictionary new];
-		  [refs setObject: t forKey: @"super"];
-		  RELEASE(t);
-		}
-	      [t setObject: tmp forKey: unit];
+	      [self setRelationship: @"super" from: unit to: tmp];
 	    }
 	  [self setGlobalRef: unit type: @"class"];
 	}
@@ -267,7 +266,8 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	{
 	  NSString	*tmp = [prop objectForKey: @"name"];
 
-	  [self setUnitRef: tmp type: name];
+	  [self setUnitRef: tmp type: @"ivariable"];
+	  [self setUnitRef: tmp type: @"classvars"];
 	}
       else if ([name isEqual: @"entry"] || [name isEqual: @"label"])
 	{
@@ -348,7 +348,8 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	    }
 	  if ([sel length] > 1)
 	    {
-	      [self setUnitRef: sel type: name];
+	      [self setUnitRef: sel type: @"method"];
+	      [self setUnitRef: sel type: @"unitmethods"];
 	    }
 	}
       else if ([name isEqual: @"protocol"] == YES)
@@ -413,6 +414,8 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   if (newUnit == YES)
     {
       unit = nil;
+      category = nil;
+      classname = nil;
     }
   if (next != nil)
     {
@@ -430,23 +433,12 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   mergeDictionaries(refs, more, flag);
 }
 
-- (NSMutableArray*) methodsInUnit: (NSString*)aUnit
+- (NSArray*) methodsInUnit: (NSString*)aUnit
 {
-  NSDictionary		*d = [refs objectForKey: @"method"];
-  NSEnumerator		*e = [d keyEnumerator];
-  NSMutableArray	*a = [NSMutableArray array];
-  NSString		*k;
+  NSDictionary		*d = [refs objectForKey: @"unitmethods"];
 
-  while ((k = [e nextObject]) != nil)
-    {
-      NSDictionary	*m = [d objectForKey: k];
-
-      if ([m objectForKey: aUnit] != nil)
-	{
-	  [a addObject: k];
-	}
-    }
-  return a;
+  d = [d objectForKey: aUnit];
+  return [d allKeys];
 }
 
 - (NSMutableDictionary*) refs
@@ -486,12 +478,49 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   [t setObject: base forKey: ref];
 }
 
+- (void) setRelationship: (NSString*)r from: (NSString*)from to: (NSString*)to
+{
+  NSMutableDictionary	*dict;
+
+  dict = [refs objectForKey: r];
+  if (dict == nil)
+    {
+      dict = [NSMutableDictionary new];
+      [refs setObject: dict forKey: r];
+      RELEASE(dict);
+    }
+  [dict setObject: to forKey: from];
+}
+
+/**
+ * Set up a reference for something inside a unit (class, category or protocol)
+ * We store 'method' and 'ivariable' by ref then unit (class),
+ * but we store 'unitmethods' * and 'classvars' by unit then ref.
+ */
 - (void) setUnitRef: (NSString*)ref
 	       type: (NSString*)type
 {
   NSMutableDictionary	*t;
   NSMutableDictionary	*r;
+  NSString		*u = unit;
   NSString		*old;
+
+  if ([type isEqualToString: @"method"] || [type isEqualToString: @"ivariable"])
+    {
+      if (category != nil)
+	{
+	  u = classname;	// Store category methods by classname.
+	}
+      // type ... ref ... unit ... file
+    }
+  else
+    {
+      NSString	*tmp = ref;
+
+      ref = u;
+      u = tmp;
+      // type ... unit ... ref ... file
+    }
 
   t = [refs objectForKey: type];
   if (t == nil)
@@ -507,13 +536,13 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       [t setObject: r forKey: ref];
       RELEASE(r);
     }
-  old = [r objectForKey: unit];
+  old = [r objectForKey: u];
   if (old != nil && [old isEqual: base] == NO)
     {
       NSLog(@"Warning ... %@ %@ %@ appears in %@ and %@ ... using the latter",
-	type, ref, unit, old, base);
+	type, ref, u, old, base);
     }
-  [r setObject: base forKey: unit];
+  [r setObject: base forKey: u];
 }
 
 /**

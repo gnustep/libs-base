@@ -41,6 +41,7 @@
 	       output: (NSMutableString*)buf;
 - (NSString*) output: (NSDictionary*)d;
 - (BOOL) output: (NSDictionary*)d file: (NSString*)name;
+- (void) outputInstanceVariable: (NSDictionary*)d to: (NSMutableString*)str;
 - (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str;
 - (void) outputUnit: (NSDictionary*)d to: (NSMutableString*)str;
 - (unsigned) reformat: (NSString*)str

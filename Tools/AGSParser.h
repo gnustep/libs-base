@@ -43,10 +43,10 @@
   /*
    * The following items are used for logging/debug purposes.
    */
-  NSString	*fileName;	// Not retained - file being parsed.
-  NSString	*unitName;	// Not retained - unit being parsed.
-  NSString	*itemName;	// Not retained - item being parsed.
-  NSArray	*lines;		// Not retained - line number mapping.
+  NSString	*fileName;	/** Not retained - file being parsed. */
+  NSString	*unitName;	/** Not retained - unit being parsed. */
+  NSString	*itemName;	/** Not retained - item being parsed. */
+  NSArray	*lines;		/** Not retained - line number mapping. */
 
   /*
    * The next few ivars represent the data currently being parsed.
@@ -56,20 +56,23 @@
   unsigned	pos;
   BOOL		commentsRead;
   BOOL		haveSource;
-  NSString		*declared;	// Where classes were declared.
-  NSMutableArray	*ifStack;	// track preprocessor conditionals.
+  BOOL		inInstanceVariables;
+  BOOL		documentAllInstanceVariables;
+  NSString		*declared;	/** Where classes were declared. */
+  NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */
 
-  NSString		*comment;	// Documentation accumulator.
-  NSMutableDictionary	*info;		// All information parsed.
-  NSMutableArray	*source;	// Names of source files.
-  NSCharacterSet	*identifier;	// Legit char in identifier
-  NSCharacterSet	*identStart;	// Legit initial char of identifier
-  NSCharacterSet	*spaces;	// All blank characters
-  NSCharacterSet	*spacenl;	// Blanks excluding newline
+  NSString		*comment;	/** Documentation accumulator. */
+  NSMutableDictionary	*info;		/** All information parsed. */
+  NSMutableArray	*source;	/** Names of source files. */
+  NSCharacterSet	*identifier;	/** Legit char in identifier */
+  NSCharacterSet	*identStart;	/** Legit initial char of identifier */
+  NSCharacterSet	*spaces;	/** All blank characters */
+  NSCharacterSet	*spacenl;	/** Blanks excluding newline */
 }
 
 - (NSMutableDictionary*) info;
 - (id) init;	/** <init> Simple initialiser */
+- (NSMutableDictionary*) parseDeclIsSource: (BOOL)isSource;
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource;
 - (NSString*) parseIdentifier;
 - (NSMutableDictionary*) parseImplementation;
@@ -82,6 +85,7 @@
 - (NSMutableArray*) parseProtocolList;
 - (void) reset;
 - (void) setDeclared: (NSString*)name;
+- (void) setDocumentAllInstanceVariables: (BOOL)flag;
 - (void) setGenerateStandards: (BOOL)flag;
 - (void) setStandards: (NSMutableDictionary*)dict;
 - (void) setupBuffer;

@@ -27,8 +27,10 @@
 @interface AGSIndex : NSObject
 {
   NSMutableDictionary	*refs;
-  NSString		*base;	// Not retained
-  NSString		*unit;	// Not retained
+  NSString		*base;		// Not retained
+  NSString		*unit;		// Not retained
+  NSString		*classname;	// Not retained
+  NSString		*category;	// Not retained
   unsigned		chap;
   unsigned		sect;
   unsigned		ssect;
@@ -37,10 +39,11 @@
 - (NSString*) globalRef: (NSString*)ref type: (NSString*)type;
 - (void) makeRefs: (GSXMLNode*)node;
 - (void) mergeRefs: (NSDictionary*)more override: (BOOL)flag;
-- (NSMutableArray*) methodsInUnit: (NSString*)aUnit;
+- (NSArray*) methodsInUnit: (NSString*)aUnit;
 - (NSMutableDictionary*) refs;
 - (void) setDirectory: (NSString*)path;
 - (void) setGlobalRef: (NSString*)ref type: (NSString*)type;
+- (void) setRelationship: (NSString*)r from: (NSString*)from to: (NSString*)to;
 - (void) setUnitRef: (NSString*)ref type: (NSString*)type;
 - (NSDictionary*) unitRef: (NSString*)ref type: (NSString*)type;
 - (NSString*) unitRef: (NSString*)ref type: (NSString*)type unit: (NSString**)u;

@@ -174,11 +174,12 @@
       <br />eg. [ NSObject-init],
       will create a reference to the init method of NSObject, while
       <br />[ (NSCopying)-copyWithZone:], creates a
-      reference to a method in the NSCopyIng protocol, and
-      <br />[ NSObject(TimedPerformers)-performSelector:withObject:afterDelay:],
-      creates a reference to a method in the TimedPerformers category.
+      reference to a method in the NSCopyIng protocol.
       <br />Note that no spaces must appear between the square brackets
       in these specifiers.
+      <br />Protocol namnes are enclosed in round brackets rather than
+      the customary angle brackets, because gsdoc is an XML language, and
+      XML treats angle brackets specially.
     </item>
   </list>
   <p>
@@ -198,6 +199,11 @@
       when generating documentation for the GNUstep base library.  This
       would result in the documentation saying that NSString is declared
       in <code>Foundation/NSString.h</code>
+    </item>
+    <item><strong>DocumentAllInstanceVariables</strong>
+      This flag permits you to generate documentation for all instance
+      variables.  Normally, only those explicitly declared 'public' or
+      'protected' will be documented.
     </item>
     <item><strong>DocumentationDirectory</strong>
       May be used to specify the directory in which generated
@@ -479,6 +485,10 @@ main(int argc, char **argv, char **env)
       if ([defs boolForKey: @"Standards"] == YES)
 	{
 	  [parser setGenerateStandards: YES];
+	}
+      if ([defs boolForKey: @"DocumentAllInstanceVariables"] == YES)
+	{
+	  [parser setDocumentAllInstanceVariables: YES];
 	}
 
       for (i = 0; i < count; i++)

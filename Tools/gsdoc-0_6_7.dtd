@@ -273,21 +273,16 @@
 <!ATTLIST variable
   name CDATA #REQUIRED
   type CDATA #REQUIRED
-  posttype CDATA #REQUIRED
   value CDATA #IMPLIED
-  role (except|defaults|notify|key) #IMPLIED
 >
 
 <!-- Ivariable definition.
-  VALUE may be set for a constant or a default value
 -->
-<!ELEMENT ivariable (declared?, desc?, standards?)>
+<!ELEMENT ivariable (desc?, standards?)>
 <!ATTLIST ivariable
   name CDATA #REQUIRED
   type CDATA #REQUIRED
-  posttype CDATA #REQUIRED
-  value CDATA #IMPLIED
-  role (except|defaults|notify|key) #IMPLIED
+  validity (public|protected|private) "public"
 >
 
 <!-- Constant definition.
@@ -296,6 +291,7 @@
 <!ELEMENT constant (declared?, desc?, standards?)>
 <!ATTLIST constant
   name CDATA #REQUIRED
+  type CDATA #REQUIRED
   value CDATA #IMPLIED
   role (except|defaults|notify|key) #IMPLIED
 >
