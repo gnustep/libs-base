@@ -834,7 +834,7 @@ AC_ARG_WITH(openssl-library,
   [  --with-openssl-library=PATH  library path for openssl libraries],
   openssl_libdir="$withval", openssl_libdir="no")
 
-cppflags_temp=$CFLAGS
+cppflags_temp=$CPPFLAGS
 libs_temp=$LIBS
 
 if test "$openssl_incdir" != "no"; then
