@@ -126,7 +126,7 @@ typeSize(const char* type)
   size = (unsigned)typeSize(objctype);
   if (size > 0)
     {
-      if (value != 0)
+      if (value == 0)
 	{
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Cannot copy value into NULL buffer"];
