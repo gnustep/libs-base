@@ -1,3 +1,8 @@
+2005-01-29 03:46 Matt Rice <ratmice@yahoo.com>
+	
+	* Source/NSUndoManager.m (-registerUndoWithTarget:selector:object:):
+	Have the invocation to retain it's arguments. (Fixes bug #4692.)
+
 2005-01-21 22:08 Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSUndoManager.m: [NSUndoManager redo] and 

@@ -686,8 +686,8 @@
  * You invoke this method with the target of the
  * undo action providing the selector which can perform the undo with
  * the provided object.  The object is often a dictionary of the
- * identifying the attribute and thier values before the change.
- * The invocation will added to the current grouping.<br />
+ * identifying the attribute and their values before the change. The object
+ * will be retained. The invocation will added to the current grouping.<br />
  * If the registrations have been disabled through [-disableUndoRegistration],
  * this method does nothing.<br />
  * Unless the reciever implicitly 
@@ -726,6 +726,7 @@
       g = _group;
       sig = [target methodSignatureForSelector: aSelector];
       inv = [NSInvocation invocationWithMethodSignature: sig];
+      [inv retainArguments];
       [inv setTarget: target];
       [inv setSelector: aSelector];
       [inv setArgument: &anObject atIndex: 2];
