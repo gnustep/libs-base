@@ -546,7 +546,7 @@ fi
 #   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
 #--------------------------------------------------------------------
-# Use config.guess, config.sub and install.sh provided by gnustep-make
+# Use config.guess, config.sub and install-sh provided by gnustep-make
 #--------------------------------------------------------------------
 ac_aux_dir=
 for ac_dir in $GNUSTEP_SYSTEM_ROOT/Makefiles $srcdir/$GNUSTEP_SYSTEM_ROOT/Makefiles; do
