@@ -327,13 +327,16 @@ stdobjects.m: objects/stdobjects.h
 
 version.texi: Makefile
 	rm -f $(srcdir)/version.texi
-	echo '@set OBJECTS_VERSION' $(OBJECTS_VERSION) > $(srcdir)/version.texi
+	echo '@set OBJECTS_VERSION' $(OBJECTS_VERSION) \
+		> $(srcdir)/version.texi
 	echo '@set OBJECTS_GCC_VERSION' $(OBJECTS_GCC_VERSION) \
 		>> $(srcdir)/version.texi
-	echo '@set OBJECTS_FTP_MACHINE $(OBJECTS_FTP_MACHINE) \
-		>> $(srcdir)/version.texi
-	echo '@set OBJECTS_FTP_DIRECTORY $(OBJECTS_FTP_DIRECTORY) \
-		>> $(srcdir)/version.texi
+	if [ $(OBJECTS_FTP_MACHINE) ]; then \
+		echo '@set OBJECTS_FTP_MACHINE' $(OBJECTS_FTP_MACHINE) \
+		>> $(srcdir)/version.texi; fi
+	if [ $(OBJECTS_FTP_DIRECTORY) ]; then \
+		echo '@set OBJECTS_FTP_DIRECTORY' $(OBJECTS_FTP_DIRECTORY) \
+		>> $(srcdir)/version.texi; fi
 
 info: libobjects.info TODO INSTALL NEWS README ANNOUNCE
 dvi: libobjects.texi version.texi
