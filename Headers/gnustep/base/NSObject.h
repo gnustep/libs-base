@@ -1,5 +1,5 @@
 /* Interface for NSObject for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -23,6 +23,17 @@
 
 #ifndef __NSObject_h_GNUSTEP_BASE_INCLUDE
 #define __NSObject_h_GNUSTEP_BASE_INCLUDE
+
+/*
+ *	Check consistency of definitions for system compatibility.
+ */
+#if	defined(STRICT_OpenStep)
+#define	NO_GNUSTEP	1
+#elif	defined(STRICT_MacOS_X)
+#define	NO_GNUSTEP	1
+#else
+#undef	NO_GNUSTEP
+#endif
 
 #include <objc/objc.h>
 #include <objc/Protocol.h>
@@ -122,11 +133,6 @@
 
 @end
 
-/* Global lock to be used by classes when operating on any global
-   data that invoke other methods which also access global; thus,
-   creating the potential for deadlock. */
-extern NSRecursiveLock *gnustep_global_lock;
-
 NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
 void NSDeallocateObject(NSObject *anObject);
 NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
@@ -143,16 +149,18 @@ NSComparisonResult;
 
 enum {NSNotFound = 0x7fffffff};
 
-@interface NSObject (GNUstep)
-
-@end
-
 @interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;
 - notImplemented:(SEL)aSel;
 /* - (const char *) name;
    Removed because OpenStep has -(NSString*)name; */
 @end
+
+#ifndef	NO_GNUSTEP
+/* Global lock to be used by classes when operating on any global
+   data that invoke other methods which also access global; thus,
+   creating the potential for deadlock. */
+extern NSRecursiveLock *gnustep_global_lock;
 
 @interface NSObject (GNU)
 - (int) compare: anObject;
@@ -165,6 +173,7 @@ enum {NSNotFound = 0x7fffffff};
 - read: (TypedStream*)aStream;
 - write: (TypedStream*)aStream;
 @end
+#endif
 
 #include <Foundation/NSDate.h>
 @interface NSObject (TimedPerformers)
