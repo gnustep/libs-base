@@ -339,11 +339,7 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
     [NSException raise: NSRangeException format: @"Invalid location+length."];
 
   oLength = GSEQ_OLEN;
-  if (aRange.length == 0)
-    {
-      return NSOrderedSame;
-    }
-  else if (sLength - aRange.location == 0)
+  if (sLength - aRange.location == 0)
     {
       if (oLength == 0)
 	{
