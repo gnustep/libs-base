@@ -201,8 +201,7 @@ static NSLock			*urlLock = nil;
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
   NSDictionary		*dict = [not userInfo];
   NSData		*d;
-  NSString		*str;
-  NSRange range;
+  GSMimeParser		*p = [GSMimeParser new];
 
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
 
@@ -210,21 +209,28 @@ static NSLock			*urlLock = nil;
     {
       [dat appendData: d];
     }
-  str = [NSString alloc];
-  str = [str initWithData: dat encoding: NSASCIIStringEncoding];
-  range = [str rangeOfString: @"\n\n" 
-	             options: NSCaseInsensitiveSearch];
-  if (range.length == 0)
+  [p parse: dat];
+  if ([p isInBody] == YES)
     {
-      range = [str rangeOfString: @"\r\n\r\n" 
-			 options: NSCaseInsensitiveSearch];
-      if (range.length == 0)
-	{
-	  range = [str rangeOfString: @"\r\r" 
-			     options: NSCaseInsensitiveSearch];
-	}
+      NSDictionary	*info = [[p document] headerNamed: @"http"];
+      NSString		*val;
+
+      val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
+      if (val != nil)
+	[pageInfo setObject: val forKey: NSHTTPPropertyServerHTTPVersionKey];
+      val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+      if (val != nil)
+	[pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
+      val = [info objectForKey: NSHTTPPropertyStatusReasonKey];
+      if (val != nil)
+	[pageInfo setObject: val forKey: NSHTTPPropertyStatusReasonKey];
+      [nc removeObserver: self
+	            name: NSFileHandleReadCompletionNotification
+                  object: sock];
+      [dat setLength: 0];
+      tunnel = NO;
     }
-  if ([d length] == 0 || range.length > 0)
+  else if ([d length] == 0)
     {
       [nc removeObserver: self
 	            name: NSFileHandleReadCompletionNotification
@@ -235,7 +241,7 @@ static NSLock			*urlLock = nil;
     {
       [sock readInBackgroundAndNotify];
     }
-  RELEASE(str);
+  RELEASE(p);
 }
 
 - (void) loadInBackground
@@ -382,10 +388,12 @@ static NSLock			*urlLock = nil;
   if ([[url scheme] isEqualToString: @"https"]
     && [[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0)
     {
-      NSRunLoop	*loop = [NSRunLoop currentRunLoop];
-      NSString	*cmd;
+      NSRunLoop		*loop = [NSRunLoop currentRunLoop];
+      NSString		*cmd;
       NSTimeInterval	last = 0.0;
       NSTimeInterval	limit = 0.01;
+      NSDate		*when;
+      NSString		*status;
 
       if ([url port] == nil)
 	{
@@ -398,24 +406,41 @@ static NSLock			*urlLock = nil;
 	    [url host], [url port], httpVersion];
 	}
       
-      [sock writeInBackgroundAndNotify: 
-	[cmd dataUsingEncoding: NSASCIIStringEncoding]];
+      /*
+       * Set up default status for if connection is lost.
+       */
+      [pageInfo setObject: @"1.0" forKey: NSHTTPPropertyServerHTTPVersionKey];
+      [pageInfo setObject: @"503" forKey: NSHTTPPropertyStatusCodeKey];
+      [pageInfo setObject: @"Connection dropped by proxy server"
+		   forKey: NSHTTPPropertyStatusReasonKey];
 
       tunnel = YES;
       [nc addObserver: self
 	     selector: @selector(bgdWrite:)
                  name: GSFileHandleWriteCompletionNotification
                object: sock];
+
+      [sock writeInBackgroundAndNotify: 
+	[cmd dataUsingEncoding: NSASCIIStringEncoding]];
+
+      when = [NSDate alloc];
       while (tunnel == YES)
 	{
-	  NSDate		*when;
 	  NSTimeInterval	tmp = limit;
 
 	  limit += last;
 	  last = tmp;
-          when = [[NSDate alloc] initWithTimeIntervalSinceNow: limit];
+          when = [when initWithTimeIntervalSinceNow: limit];
 	  [loop runUntilDate: when];
-	  RELEASE(when);
+	}
+      RELEASE(when);
+
+      status = [pageInfo objectForKey: NSHTTPPropertyStatusCodeKey];
+      if ([status isEqual: @"200"] == NO)
+	{
+	  [self endLoadInBackground];
+	  [self backgroundLoadDidFailWithReason: @"Failed proxy tunneling"];
+	  return;
 	}
     }
   if ([[url scheme] isEqualToString: @"https"])
