@@ -28,6 +28,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSCoder.h>
 #include <netdb.h>
 /* #include <libc.h> */
 
@@ -207,6 +208,37 @@ static NSMutableDictionary *_hostCache = nil;
   [_hostCacheLock lock];
   [_hostCache removeAllObjects];
   [_hostCacheLock unlock];
+}
+
+/* Methods for encoding/decoding */
+- (Class) classForPortCoder
+{
+  return [self class];
+}
+- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+{
+    return self;
+}
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+    [super encodeWithCoder: aCoder];
+    [aCoder encodeObject: [self address]];
+}
+/*	GNUstep specific method for more efficient decoding. */
++ (id) newWithCoder: (NSCoder*)aCoder
+{
+    NSString	*address = [aCoder decodeObject];
+    return [NSHost hostWithAddress: address];
+}
+/*	OpenStep method for decoding (not used) */
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+    NSString	*address;
+
+    [super initWithCoder: aCoder];
+    address = [aCoder decodeObject];
+    [self dealloc];
+    return [NSHost hostWithAddress: address];
 }
 
 - (BOOL)isEqualToHost:(NSHost *)aHost

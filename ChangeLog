@@ -1,6 +1,22 @@
+Wed Mar  4 17:11:23 1998  Adam Fedor  <fedor@doc.com>
+
+	* Version: Version 0.5.0;
+
+Wed Mar  4 21:06:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSConnection.m: Changed some objects to be OpenStep rather than
+	old libobjects types.  Using NSMutableArray rather than Queue for the
+	message queues seems to fixes bug with queue corruption under heavy
+	load.
+	
+	* src/NSHost.m: Added methods for archiving NSHost objects and
+	sending them bycopy over DO at all times.
+
+	* src/NSRunLoop.m: ([-runUntilDate:forMode:]) modified to exit
+	promptly if there are no more input sources for the run loop.
+
 Mon Mar  2 10:04:57 1998  Adam Fedor  <fedor@doc.com>
 
-	* Version: Version 0.5.0.
 	* ANNOUNCE, NEWS, GNUstep-HOWTO: Update.
 	* doc/faq.tmpl.texi, doc/gnustep-howto.tmpl.texi,
 	doc/news.tmpl.texi: Likewise.
