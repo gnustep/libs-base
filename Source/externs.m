@@ -138,6 +138,7 @@ NSString *NSMonthNameArray;
 NSString *NSShortMonthNameArray;
 NSString *NSTimeFormatString;
 NSString *NSDateFormatString;
+NSString *NSShortDateFormatString;
 NSString *NSTimeDateFormatString;
 NSString *NSShortTimeDateFormatString;
 NSString *NSCurrencySymbol;
@@ -145,6 +146,8 @@ NSString *NSDecimalSeparator;
 NSString *NSThousandsSeparator;
 NSString *NSInternationalCurrencyString;
 NSString *NSCurrencyString;
+NSString *NSNegativeCurrencyFormatString;
+NSString *NSPositiveCurrencyFormatString;
 NSString *NSDecimalDigits;
 NSString *NSAMPMDesignation;
 
@@ -157,6 +160,11 @@ NSString *NSNextDayDesignations;
 NSString *NSNextNextDayDesignations;
 NSString *NSPriorDayDesignations;
 NSString *NSDateTimeOrdering;
+
+/* These are in OPENSTEP 4.2 */
+NSString *NSLanguageCode;
+NSString *NSLanguageName;
+NSString *NSFormalName;
 
 /*
  * Keys for the NSDictionary returned by [NSConnection -statistics]
@@ -283,6 +291,8 @@ GSBuildStrings()
 	= [[NSString alloc] initWithCString: "NSFileTypeSymbolicLink"];
       NSFileTypeUnknown
 	= [[NSString alloc] initWithCString: "NSFileTypeUnknown"];
+      NSFormalName
+        = [[NSString alloc] initWithCString: "NSFormalName"];
       NSGenericException
 	= [[NSString alloc] initWithCString: "NSGenericException"];
       NSGlobalDomain
@@ -298,6 +308,10 @@ GSBuildStrings()
 	= [[NSString alloc] initWithCString: "NSInternationalCurrencyString"];
       NSInvalidArgumentException
 	= [[NSString alloc] initWithCString: "NSInvalidArgumentException"];
+      NSLanguageCode
+        = [[NSString alloc] initWithCString: "NSLanguageCode"];
+      NSLanguageName
+        = [[NSString alloc] initWithCString: "NSLanguageName"];
       NSLaterTimeDesignations
 	= [[NSString alloc] initWithCString: "NSLaterTimeDesignations"];
       NSLoadedClasses
@@ -306,6 +320,8 @@ GSBuildStrings()
 	= [[NSString alloc] initWithCString: "NSMallocException"];
       NSMonthNameArray
 	= [[NSString alloc] initWithCString: "NSMonthNameArray"];
+      NSNegativeCurrencyFormatString
+        = [[NSString alloc] initWithCString: "NSNegativeCurrencyFormatString"];
       NSNextDayDesignations
 	= [[NSString alloc] initWithCString: "NSNextDayDesignations"];
       NSNextNextDayDesignations
@@ -315,12 +331,16 @@ GSBuildStrings()
 	"NSPortDidBecomeInvalidNotification"];
       NSPortTimeoutException
 	= [[NSString alloc] initWithCString: "NSPortTimeoutException"];
+      NSPositiveCurrencyFormatString
+        = [[NSString alloc] initWithCString: "NSPositiveCurrencyFormatString"];
       NSPriorDayDesignations
 	= [[NSString alloc] initWithCString: "NSPriorDayDesignations"];
       NSRangeException
 	= [[NSString alloc] initWithCString: "NSRangeException"];
       NSRegistrationDomain
 	= [[NSString alloc] initWithCString: "NSRegistrationDomain"];
+      NSShortDateFormatString
+        = [[NSString alloc] initWithCString: "NSShortDateFormatString"];
       NSShortMonthNameArray
 	= [[NSString alloc] initWithCString: "NSShortMonthNameArray"];
       NSShortTimeDateFormatString
