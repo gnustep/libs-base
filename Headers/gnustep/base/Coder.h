@@ -147,10 +147,6 @@
 /* These methods here temporarily until ObjC runtime category bug fixed */
 - classForConnectedCoder:aRmc;
 + (void) encodeObject: anObject withConnectedCoder: aRmc;
-- (id) retain;
-- (void) release;
-- (void) dealloc;
-- (unsigned) retainCount;
 - (BOOL) isProxy;
 
 @end

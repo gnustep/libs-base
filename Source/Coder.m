@@ -1264,29 +1264,6 @@ exc_return_null(arglist_t f)
 }
 
 
-/* @implementation Object (Retaining) */
-
-- (id) retain
-{
-  return self;
-}
-
-- (oneway void) release
-{
-  /* Do nothing */
-}
-
-- (void) dealloc
-{
-  /* Do nothing */
-}
-
-- (unsigned) retainCount
-{
-  return 0;
-}
-
-
 /* @implementation Object (IsProxy) */
 
 - (BOOL) isProxy
