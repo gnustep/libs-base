@@ -1,3 +1,9 @@
+Wed Oct 15 11:23:43 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/Makefile.postamble: Removed rules to rebuild object files
+	depending on headers included.  gnustep-make does it automatically
+	without the need of keeping lists updated.
+
 2003-10-14  Bruno Haible  <bruno@clisp.org>
 
 	* Source/NSString.m (parseQuotedString): Fix interpretation of
