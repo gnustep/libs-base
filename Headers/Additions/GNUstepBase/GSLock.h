@@ -29,6 +29,8 @@
 
 #include	<Foundation/NSLock.h>
 
+@class NSNotification;
+
 @interface	GSLazyLock : NSLock
 {
   int	locked;

@@ -1563,13 +1563,8 @@ GSPrintf (FILE *fptr, NSString* format, ...)
 
   if (stringClass == 0)
     {
-      [gnustep_global_lock lock];
-      if (stringClass == 0)
-        {
-          stringClass = [NSString class];
-          enc = [stringClass defaultCStringEncoding];
-        }
-      [gnustep_global_lock unlock];
+      stringClass = [NSString class];
+      enc = [stringClass defaultCStringEncoding];
     }
   message = [stringClass allocWithZone: NSDefaultMallocZone()];
   va_start (ap, format);
