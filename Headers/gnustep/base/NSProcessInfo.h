@@ -1,5 +1,5 @@
 /* Interface for NSProcessInfo for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev, EMBL & Academia Naturalis, 
                 Heidelberg, Germany
@@ -26,7 +26,7 @@
 #ifndef __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE
 #define __NSProcessInfo_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObject.h>
+#include <gnustep/base/preface.h>
 
 @class NSArray;
 @class NSMutableArray;
