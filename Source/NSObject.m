@@ -530,7 +530,7 @@ static BOOL double_release_check_enabled = NO;
 - free
 {
   [NSException raise: NSGenericException
-	       format: @"Use `dealloc' instead of `free'."];
+	       format: @"Use `dealloc' instead of `free' for %@.", self];
   return nil;
 }
 
@@ -1078,7 +1078,7 @@ static BOOL double_release_check_enabled = NO;
 {
   [NSException
     raise: NSGenericException
-    format: @"method %s not implemented", sel_get_name(aSel)];
+    format: @"method %s not implemented in %s", sel_get_name(aSel), object_get_class_name(self)];
   return nil;
 }
 
@@ -1189,7 +1189,7 @@ static BOOL double_release_check_enabled = NO;
 {
   [NSException
     raise: NSGenericException
-    format: @"subclass should override %s", sel_get_name(aSel)];
+    format: @"subclass %s should override %s", object_get_class_name(self), sel_get_name(aSel)];
   return nil;
 }
 
