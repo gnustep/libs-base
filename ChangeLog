@@ -1,5 +1,12 @@
 2004-01-24 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* wHeaders/Foundation/NSKeyedArchiver.h:
+	* Source/NSKeyedArchiver.m:
+	Add keyed version of geometry encoding methods as pointed out by
+	Fred Kiefer.
+
+2004-01-24 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSKeyedArchiver.m:
 	* Source/NSKeyedUnarchiver.m:
 	Added NSPoint, NSRect, and NSSize coding methods.
