@@ -2,7 +2,8 @@
 
 	* Source/NSURLHandle.m: ([-availableResourceData]) remove condition
 	that returns nil while resource is loading.  Fix typo in method
-	description.
+	description.  Return copy a of internal variable rather than the
+	actuyal mutable data object.
 
 2004-01-12  Adam Fedor  <fedor@gnu.org>
 

@@ -247,7 +247,7 @@ static Class		NSURLHandleClass = 0;
  */
 - (NSData*) availableResourceData
 {
-  return _data;
+  return AUTORELEASE([_data copy]);
 }
 
 /**
