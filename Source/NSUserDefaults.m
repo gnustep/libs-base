@@ -70,9 +70,9 @@ static Class	NSDictionaryClass;
 static Class	NSMutableDictionaryClass;
 static Class	NSStringClass;
 
-static NSUserDefaults    *sharedDefaults = nil;
-static NSMutableString   *processName = nil;
-static NSMutableArray    *userLanguages = nil;
+static NSUserDefaults	*sharedDefaults = nil;
+static NSMutableString	*processName = nil;
+static NSMutableArray	*userLanguages = nil;
 static NSRecursiveLock	*classLock = nil;
 
 /*
@@ -1393,11 +1393,11 @@ GSUserDefaultsDictionaryRepresentation()
 {
   NSDictionary	*defs;
 
-  [classLock lock];
   if (sharedDefaults == nil)
     {
       [NSUserDefaults standardUserDefaults];
     }
+  [classLock lock];
   defs = [sharedDefaults dictionaryRepresentation];
   [classLock unlock];
   return defs;
