@@ -2161,29 +2161,32 @@ handle_printf_atsign (FILE *stream,
  */
 - (unsigned int) hash
 {
-  unsigned ret = 0;
+  unsigned	ret = 0;
+  unsigned	len = [self length];
 
-  int len = [self length];
-
-  if (len > NSHashStringLength)
-    {
-      len = NSHashStringLength;
-    }
   if (len > 0)
     {
-      unichar		buf[len * MAXDEC + 1];
-      GSeqStruct	s = { buf, len, len * MAXDEC, 0 };
+      unichar		buf[64];
+      unichar		*ptr = (len <= 64) ? buf :
+	NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
       unichar		*p;
       unsigned		char_count = 0;
 
-      [self getCharacters: buf range: NSMakeRange(0,len)];
-      GSeq_normalize(&s);
+      [self getCharacters: ptr range: NSMakeRange(0,len)];
 
-      p = buf;
+      p = ptr;
 
-      while (*p && char_count++ < NSHashStringLength)
+      while (char_count++ < len)
 	{
-	  ret = (ret << 5) + ret + *p++;
+	  unichar	c = *p++;
+
+	  // FIXME ... should normalize composed character sequences.
+	  ret = (ret << 5) + ret + c;
+	}
+
+      if (ptr != buf)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), ptr);
 	}
 
       /*
@@ -2191,13 +2194,19 @@ handle_printf_atsign (FILE *stream,
        * an empty cache value, so we MUST NOT return a hash of zero.
        */
       if (ret == 0)
-	ret = 0x0fffffff;
+	{
+	  ret = 0x0fffffff;
+	}
       else
-	ret &= 0x0fffffff;
+	{
+	  ret &= 0x0fffffff;
+	}
       return ret;
     }
   else
-    return 0x0ffffffe;	/* Hash for an empty string.	*/
+    {
+      return 0x0ffffffe;	/* Hash for an empty string.	*/
+    }
 }
 
 // Getting a Shared Prefix
