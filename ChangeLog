@@ -2,6 +2,7 @@
 
 	* Source/NSObject.m: Fix a few errors which crept in to the map
 	table based reference counting.
+	* Examples/GNUmakefile: Permit local makefile to be missing.
 
 2002-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 
