@@ -361,7 +361,6 @@
 		case '\v':
 		case '\f':
 		case '\\':
-		case '\'' :
 		case '"' :
 		    length += 2;
 		    break;
@@ -395,7 +394,6 @@
 		    case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
 		    case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
 		    case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
-		    case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
 		    case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
 
 		    default:
