@@ -175,10 +175,10 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 - (NSString*) description
 {
   if (e_info)
-    return [NSString stringWithFormat: "%@ NAME:%@ REASON:%@ INFO:%@",
+    return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@ INFO:%@",
 	[super description], e_name, e_reason, e_info];
   else
-    return [NSString stringWithFormat: "%@ NAME:%@ REASON:%@",
+    return [NSString stringWithFormat: @"%@ NAME:%@ REASON:%@",
 	[super description], e_name, e_reason];
 }
 
