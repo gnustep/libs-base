@@ -1224,42 +1224,47 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
 - (NSString*) parseDesc: (xmlNodePtr)node
 {
+  NSMutableString	*text = [NSMutableString string];
+
   node = node->childs;
   if (node == 0)
     {
       return @"";
     }
-
-  if (strcmp(node->name, "list") == 0
-    || strcmp(node->name, "enum") == 0
-    || strcmp(node->name, "deflist") == 0
-    || strcmp(node->name, "qalist") == 0)
+  while (node != 0)
     {
-      return [self parseList: node];
-    }
-
-  if (strcmp(node->name, "p") == 0)
-    {
-      NSString	*elem = [self parseText: node->childs];
-
-      if (elem == nil)
+      if (strcmp(node->name, "list") == 0
+	|| strcmp(node->name, "enum") == 0
+	|| strcmp(node->name, "deflist") == 0
+	|| strcmp(node->name, "qalist") == 0)
 	{
-	  return nil;
+	  [text appendString: [self parseList: node]];
 	}
-      return [NSString stringWithFormat: @"<p>\r\n%@</p>\r\n", elem];
-    }
+      else if (strcmp(node->name, "p") == 0)
+	{
+	  NSString	*elem = [self parseText: node->childs];
 
-  if (strcmp(node->name, "example") == 0)
-    {
-      return [self parseExample: node];
-    }
+	  if (elem != nil)
+	    {
+	      [text appendFormat:  @"<p>\r\n%@</p>\r\n", elem];
+	    }
+	}
+      else if (strcmp(node->name, "example") == 0)
+	{
+	  [text appendString: [self parseExample: node]];
+	}
+      else if (strcmp(node->name, "embed") == 0)
+	{
+	  [text appendString: [self parseEmbed: node]];
+	}
+      else
+	{
+	  [text appendString: [self parseText: node]];
+	}
 
-  if (strcmp(node->name, "embed") == 0)
-    {
-      return [self parseEmbed: node];
+      node = node->next;
     }
-
-  return [self parseText: node];
+  return text;
 }
 
 - (NSString*) parseDocument
@@ -1484,18 +1489,18 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       [text appendFormat: @"<p>Date: %@</p>\r\n", date];
     }
 
-  if (node != 0 && strcmp(node->name, "copy") == 0)
-    {
-      copyright = [self parseText: node->childs];
-      node = node->next;
-      [text appendFormat: @"<p>Copyright: %@</p>\r\n", copyright];
-    }
-
   if (node != 0 && strcmp(node->name, "abstract") == 0)
     {
       abstract = [self parseText: node->childs];
       node = node->next;
       [text appendFormat: @"<blockquote>%@</blockquote>\r\n", abstract];
+    }
+
+  if (node != 0 && strcmp(node->name, "copy") == 0)
+    {
+      copyright = [self parseText: node->childs];
+      node = node->next;
+      [text appendFormat: @"<p>Copyright: %@</p>\r\n", copyright];
     }
 
   return text;
