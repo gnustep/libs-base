@@ -24,7 +24,7 @@ int main()
   {
     id o, e = [set objectEnumerator];
     while ((o = [e nextObject]))
-      printf("%@\n", o);    
+      printf("%s\n", [o cStringNoCopy]);    
   }
 
   /* Write it to a file */
@@ -50,7 +50,7 @@ int main()
   {
     id o, e = [set objectEnumerator];
     while ((o = [e nextObject]))
-      printf("%@\n", o);    
+      printf("%s\n", [o cStringNoCopy]);    
   }
 
   /* Do the autorelease. */

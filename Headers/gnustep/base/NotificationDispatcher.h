@@ -61,6 +61,7 @@
 #include <gnustep/base/Array.h>
 #include <Foundation/NSMapTable.h>
 #include <gnustep/base/NSString.h>
+#include <Foundation/NSLock.h>
 
 @interface NotificationDispatcher : NSObject
 {
@@ -78,6 +79,9 @@
   /* The keys are observers; the values are Array's containing all
      NotificationInvocation objects associated with the observer key. */
   NSMapTable *_observer_2_nr_array;
+
+  /* A mutex lock for making the ivars thread-safe. */
+  NSRecursiveLock *_lock;
 }
 
 

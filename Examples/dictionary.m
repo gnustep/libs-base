@@ -1,49 +1,40 @@
 /* A simple demonstration of the GNU Dictionary object.
    In this example the Dictionary holds int's which are keyed by strings. */
 
-#include <gnustep/base/all.h>
 #include <gnustep/base/Dictionary.h>
+#include <Foundation/NSValue.h>
+#include <Foundation/NSString.h>
 
-#warning This file has not been updated for the new collection classes
-
-#if 0
 int main()
 {
   id d;
 
-  /* Create a Dictionary object that will store int's with string keys */
-  d = [[Dictionary alloc] 
-       initWithType:@encode(int)
-       keyType:@encode(char*)];
+  /* Create a Dictionary object. */
+  d = [[Dictionary alloc] initWithCapacity: 32];
 
   /* Load the dictionary with some items */
-  [d putElement:1 atKey:"one"];
-  [d putElement:2 atKey:"two"];
-  [d putElement:3 atKey:"three"];
-  [d putElement:4 atKey:"four"];
-  [d putElement:5 atKey:"five"];
-  [d putElement:6 atKey:"six"];
+  [d putObject: [NSNumber numberWithInt: 1] atKey: @"one"];
+  [d putObject: [NSNumber numberWithInt: 2] atKey: @"two"];
+  [d putObject: [NSNumber numberWithInt: 3] atKey: @"three"];
+  [d putObject: [NSNumber numberWithInt: 4] atKey: @"four"];
+  [d putObject: [NSNumber numberWithInt: 5] atKey: @"five"];
+  [d putObject: [NSNumber numberWithInt: 6] atKey: @"six"];
   
   printf("There are %u elements stored in the dictionary\n",
 	 [d count]);
 
   printf("Element %d is stored at \"%s\"\n", 
-	 [d elementAtKey:"three"].int_u, "three");
+	 [[d objectAtKey: @"three"] intValue],
+	 "three");
 
   printf("Removing element stored at \"three\"\n");
-  [d removeElementAtKey:"three"];
+  [d removeObjectAtKey: @"three"];
 
   printf("Removing element 2\n");
-  [d removeElement:2];
+  [d removeObject: [NSNumber numberWithInt: 2]];
 
   printf("Now there are %u elements stored in the dictionary\n",
 	 [d count]);
 
   exit(0);
 }
-#else
-int main()
-{
-  exit (0);
-}
-#endif  /* 0 */

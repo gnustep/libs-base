@@ -159,7 +159,7 @@ clean: mostlyclean
 distclean: clean
 	rm -f Makefile 
 
-realclean: distclean
+maintainer-clean: distclean
 	rm -f gnustep-base.info version.texi \
 		README TODO INSTALL NEWS ANNOUNCE
 

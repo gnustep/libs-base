@@ -29,6 +29,7 @@
 #include <objc/thr.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSAutoreleasePool.h> // for struct autorelease_thread_vars
 
 typedef enum
 {
@@ -39,10 +40,10 @@ typedef enum
 
 @interface NSThread : NSObject
 {
-@private
+@public
    _objc_thread_t _thread_id;
    NSMutableDictionary *_thread_dictionary;
-   id _thread_autorelease_pool;
+   struct autorelease_thread_vars _autorelease_vars;
 }
 
 + (NSThread*) currentThread;

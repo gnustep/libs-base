@@ -392,6 +392,7 @@ NSThread.m \
 NSTimer.m \
 NSTimeZone.m \
 NSUser.m \
+NSUserDefaults.m \
 NSValue.m \
 NSZone.m
 
@@ -461,6 +462,7 @@ include/NSSet.h \
 include/NSString.h \
 include/NSThread.h \
 include/NSTimer.h \
+include/NSUserDefaults.h \
 include/NSUtilities.h \
 include/NSValue.h \
 include/NSZone.h \
@@ -472,8 +474,9 @@ OBJS_INSTALL = @OBJS_INSTALL@
 OBJS_INSTALL_PIC = $(OBJS_INSTALL:${OEXT}=_pic${OEXT})
 
 DIST_FILES = \
-        Makefile.in AUTHORS \
+        Makefile.in AUTHORS Makefile.sed.nt\
         include/config.h.in include/preface.h.in \
+	include/config-win32.h include/config-win32.sed \
         $(GNU_MFILES) \
         $(GNU_CFILES) \
         $(GNU_HEADERS) \
@@ -509,6 +512,7 @@ lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL)
 
 # Local links to the include files
 gnustep/base:
+	rm -f gnustep base
 	ln -s . gnustep
 	ln -s ./include base
 	# Make necessary links to source headers if compiling in seperate dir
@@ -546,7 +550,6 @@ install: installdirs all
 	done
 	$(INSTALL_DATA) include/config.h $(includedir)/gnustep/base/config.h
 	cd $(includedir); rm -f Foundation; ln -s ./gnustep/base ./Foundation
-	cd $(includedir); rm -f objc; ln -s ./gnustep/base ./objc
 	cd $(includedir)/objc; rm -f README; ln -s ../include/README .
 
 installdirs:

@@ -94,7 +94,8 @@ nstimer.m \
 coder.m \
 cstream.m \
 fref.m \
-basic.m
+basic.m \
+release.m
 
 tcpport: FORCE
 	(cd ../src; $(MAKE))
@@ -168,7 +169,7 @@ clean: mostlyclean
 distclean: clean
 	rm -f Makefile config.status
 
-realclean: distclean
+maintainer-clean: distclean
 	rm -f TAGS
 
 copy-dist: $(DIST_FILES)

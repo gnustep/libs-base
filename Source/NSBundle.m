@@ -24,7 +24,7 @@
 
 #include <assert.h>
 
-#ifndef WIN32
+#ifndef __WIN32__
 #include <unistd.h>
 #include <sys/param.h>		/* Needed by sys/stat */
 #endif

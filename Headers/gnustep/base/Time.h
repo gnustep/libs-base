@@ -29,10 +29,10 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Magnitude.h>
 
-#ifndef WIN32
+#ifndef __WIN32__
 #include <sys/time.h>
 #include <sys/resource.h>
-#endif
+#endif /* !__WIN32__ */
 
 #ifdef _SEQUENT_
 /* Include needed for getclock() in our replacement for gettimeofday() */

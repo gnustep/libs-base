@@ -21,7 +21,7 @@ with which I compiled the program:
  gcc NSExceptionTest.m -L/usr/local/lib -lobjects -lobjc -L/usr/ucblib -lucb -lm
 
 Apparently, there are some serious bugs in the ucblib files.  I
-changed the lin\ e to
+changed the line to
 
  gcc NSExceptionTest.m -L/usr/local/lib -lobjects -lobjc -lm -lnsl
 

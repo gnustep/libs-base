@@ -50,9 +50,13 @@ int main ()
 	  [[o description] cString],
 	  [[(id)NSMapGet (mt, o) description] cString]);
   NSMapRemove (mt, o);
-  printf ("after removing: value for key %s is %s\n",
-	  [[o description] cString],
-	  [[(id)NSMapGet (mt, o) description] cString]);
+  if (NSMapGet (mt, o))
+    printf ("after removing: value for key %s is %s\n",
+	    [[o description] cString],
+	    [[(id)NSMapGet (mt, o) description] cString]);
+  else
+    printf ("after removing: no value for key %s\n",
+	    [[o description] cString]);
 
   me = NSEnumerateMapTable (mt);
   while (NSNextMapEnumeratorPair (&me, &k, &v))

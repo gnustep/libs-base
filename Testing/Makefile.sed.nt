@@ -11,6 +11,8 @@ s/OEXT = .o/OEXT = .obj/
 s/LIBEXT = .a/LIBEXT = .lib/
 s/@DEFS@/-DSTDC_HEADERS=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_TIMES=1 -DHAVE_VSPRINTF=1 -Dvm_page_size=4096/
 /%: %$(OEXT)/,/$(CC) $(ALL_CFLAGS) $@$(OEXT)/c\
-LINK_CMD = nm $@$(OEXT) | grep "  __GLOBAL_" > tmpinit.c \& collect tmpinit.c init_$@ \& $(CC) -c init_$@.c \& rm tmpinit.c \& ld $@$(OEXT) init_$@$(OEXT) -o $@$(EXEEXT) $(ALL_LDFLAGS)\
+LINK_CMD = nm $@$(OEXT) | grep "  __GLOBAL_" > tmpinit.c \& collect tmpinit.c $@_init_runtime \& $(CC) -c $@_init_runtime.c \& rm tmpinit.c \& ld $@$(OEXT) $@_init_runtime$(OEXT) -o $@$(EXEEXT) $(ALL_LDFLAGS)\
 %: %$(OEXT) ../src/lib$(LIBRARY_NAME)$(LIBEXT)\
 	$(LINK_CMD)
+s/clean: mostlyclean/clean: mostlyclean\
+	rm *_init_runtime.*/

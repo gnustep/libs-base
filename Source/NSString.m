@@ -44,6 +44,7 @@
 #include <gnustep/base/String.h>
 #include <gnustep/base/behavior.h>
 #include <limits.h>
+#include <string.h>		// for strstr()
 
 @implementation NSString
 
@@ -100,9 +101,13 @@ static Class NSMutableString_c_concrete_class;
 #include <printf.h>
 #include <stdarg.h>
 
-/* <sattler@volker.cs.Uni-Magdeburg.DE>, with libc-5.3.9 thinks this
-   should be 0, but for me, with libc-5.0.9, it crashes.  -mccallum */
-#define PRINTF_ATSIGN_VA_LIST 1
+/* <sattler@volker.cs.Uni-Magdeburg.DE>, with libc-5.3.9 thinks this 
+   flag PRINTF_ATSIGN_VA_LIST should be 0, but for me, with libc-5.0.9, 
+   it crashes.  -mccallum */ 
+#define PRINTF_ATSIGN_VA_LIST			\
+       (defined(_LINUX_C_LIB_VERSION_MINOR)	\
+	&& _LINUX_C_LIB_VERSION_MAJOR <= 5	\
+	&& _LINUX_C_LIB_VERSION_MINOR < 2)
 
 #if ! PRINTF_ATSIGN_VA_LIST
 static int
@@ -112,7 +117,7 @@ arginfo_func (const struct printf_info *info,
   *argtypes = PA_POINTER;
   return 1;
 }
-#endif
+#endif /* !PRINTF_ATSIGN_VA_LIST */
 
 static int
 handle_printf_atsign (FILE *stream, 
@@ -135,7 +140,7 @@ handle_printf_atsign (FILE *stream,
 #if PRINTF_ATSIGN_VA_LIST
   string_object = va_arg (*ap_pointer, id);
 #else
-  string_object = *((id *) ptr);
+  string_object = *((id*) ptr);
 #endif
   len = fprintf(stream, "%*s",
 		(info->left ? - info->width : info->width),
@@ -297,21 +302,64 @@ handle_printf_atsign (FILE *stream,
 
 /* xxx Change this when we have non-CString classes */
 - (id) initWithFormat: (NSString*)format
-   arguments: (va_list)argList
+   arguments: (va_list)arg_list
 {
 #if HAVE_VSPRINTF
-#define BUFFER_EXTRA 1024
   const char *format_cp = [format cStringNoCopy];
   int format_len = strlen (format_cp);
-  char buf[format_len + BUFFER_EXTRA]; /* xxx horrible disgusting, fix this! */
-  int printed_len;
+  /* xxx horrible disgusting BUFFER_EXTRA arbitrary limit; fix this! */
+  #define BUFFER_EXTRA 1024
+  char buf[format_len + BUFFER_EXTRA];
+  int printed_len = 0;
 
-  printed_len = vsprintf (buf, format_cp, argList);
-  /* Signal error if we overran our buffer. */
+#if ! HAVE_REGISTER_PRINTF_FUNCTION
+  /* If the available libc doesn't have `register_printf_function()', then
+     the `%@' printf directive isn't available with printf() and friends.
+     Here we make a feable attempt to handle it. */
+  {
+    /* We need a local copy since we change it.  (Changing and undoing
+       the change doesn't work because some format strings are constant
+       strings, placed in a non-writable section of the executable, and 
+       can't be written to.) */ 
+    char format_cp_copy[format_len+1];
+    char *atsign_pos;
+    char *format_to_go = format_cp_copy;
+    strcpy (format_cp_copy, format_cp);
+    /* Loop once for each `%@' in the format string. */
+    while ((atsign_pos = strstr (format_to_go, "%@")))
+      {
+	const char *cstring;
+	/* If there is a "%%@", then do the right thing: print it literally. */
+	if ((*(atsign_pos-1) == '%')
+	    && atsign_pos != format_cp_copy)
+	  continue;
+	/* Temporarily terminate the string before the `%@'. */
+	*atsign_pos = '\0';
+	/* Print the part before the '%@' */
+	printed_len = vsprintf (buf, format_cp_copy, arg_list);
+	/* Get a C-string (char*) from the String object, and print it. */
+	cstring = [(id) va_arg (arg_list, id) cStringNoCopy];
+	strcat (buf+printed_len, cstring);
+	printed_len += strlen (cstring);
+	/* Put back the `%' we removed when we terminated mid-string. */
+	*atsign_pos = '%';
+	/* Skip over this `%@', and look for another one. */
+	format_to_go = atsign_pos + 2;
+      }
+    /* Print the rest of the string after the last `%@'. */
+    printed_len += vsprintf (buf+printed_len, format_to_go, arg_list);
+  }
+#else
+  /* The available libc has `register_printf_function()', so the `%@' 
+     printf directive is handled by printf and friends. */
+  printed_len = vsprintf (buf, format_cp, arg_list);
+#endif /* !HAVE_REGISTER_PRINTF_FUNCTION */
+
+  /* Raise an exception if we overran our buffer. */
   NSParameterAssert (printed_len < format_len + BUFFER_EXTRA - 1);
   return [self initWithCString:buf];
-#else
-  [self notImplemented:_cmd];
+#else /* HAVE_VSPRINTF */
+  [self notImplemented: _cmd];
   return self;
 #endif
 }

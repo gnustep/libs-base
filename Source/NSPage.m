@@ -22,10 +22,16 @@
    */ 
 
 #include <gnustep/base/preface.h>
+#ifndef __WIN32__
 #include <unistd.h>
+#endif
 #include <stdio.h>
 #if __mach__
 #include <mach.h>
+#endif
+
+#ifdef __WIN32__
+#define getpagesize() vm_page_size
 #endif
 
 /* Cache the size of a memory page here, so we don't have to make the

@@ -25,31 +25,27 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <gnustep/base/objc-malloc.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSThread.h>
 #include <limits.h>
 
 /* TODO:
    Doesn't work multi-threaded.
    */
 
-/* The current, default NSAutoreleasePool; the one that will hold
-   objects that are arguments to [NSAutoreleasePool +addObject:]. */
-static NSAutoreleasePool *current_pool = nil;
-
 /* When this is `NO', autoreleased objects are never actually recorded
    in an NSAutoreleasePool, and are not sent a `release' message.
    Thus memory for objects use grows, and grows, and... */
 static BOOL autorelease_enabled = YES;
 
-/* When the _released_count of the current pool gets over this value,
-   we raise an exception.  This can be adjusted with -setPoolCountThreshhold */
+/* When the _released_count of a pool gets over this value, we raise
+   an exception.  This can be adjusted with -setPoolCountThreshhold */
 static unsigned pool_count_warning_threshhold = UINT_MAX;
-
-/* The total number of objects autoreleased since the program was
-   started, or since -resetTotalAutoreleasedObjects was called. */
-static unsigned total_autoreleased_objects_count = 0;
 
 /* The size of the first _released array. */
 #define BEGINNING_POOL_SIZE 32
+
+/* Easy access to the thread variables belonging to NSAutoreleasePool. */
+#define ARP_THREAD_VARS (&([NSThread currentThread]->_autorelease_vars))
 
 
 @interface NSAutoreleasePool (Private)
@@ -61,28 +57,37 @@ static unsigned total_autoreleased_objects_count = 0;
 - (void) _setChildPool: pool;
 @end
 
-/* A cache of NSAutoreleasePool's already alloc'ed.  Caching old pools
-   instead of deallocating and re-allocating them will save time. */
-static id *autorelease_pool_cache;
-static int autorelease_pool_cache_size = 32;
-static int autorelease_pool_cache_count = 0;
+
+/* Functions for managing a per-thread cache of NSAutoreleasedPool's
+   already alloc'ed.  The cache is kept in the autorelease_thread_var 
+   structure, which is an ivar of NSThread. */
+
+static inline void
+init_pool_cache (struct autorelease_thread_vars *tv)
+{
+  tv->pool_cache_size = 32;
+  tv->pool_cache_count = 0;
+  OBJC_MALLOC (tv->pool_cache, id, tv->pool_cache_size);
+}
 
 static void
-push_pool_to_cache (id p)
+push_pool_to_cache (struct autorelease_thread_vars *tv, id p)
 {
-  if (autorelease_pool_cache_count == autorelease_pool_cache_size)
+  if (!tv->pool_cache)
+    init_pool_cache (tv);
+  else if (tv->pool_cache_count == tv->pool_cache_size)
     {
-      autorelease_pool_cache_size *= 2;
-      OBJC_REALLOC (autorelease_pool_cache, id, autorelease_pool_cache_size);
+      tv->pool_cache_size *= 2;
+      OBJC_REALLOC (tv->pool_cache, id, tv->pool_cache_size);
     }
-  autorelease_pool_cache[autorelease_pool_cache_count++] = p;
+  tv->pool_cache[tv->pool_cache_count++] = p;
 }
 
 static id
-pop_pool_from_cache ()
+pop_pool_from_cache (struct autorelease_thread_vars *tv)
 {
-  assert (autorelease_pool_cache_count);
-  return autorelease_pool_cache[--autorelease_pool_cache_count];
+  assert (tv->pool_cache_count);
+  return tv->pool_cache[--(tv->pool_cache_count)];
 }
 
 
@@ -91,17 +96,18 @@ pop_pool_from_cache ()
 + (void) initialize
 {
   if (self == [NSAutoreleasePool class])
-    OBJC_MALLOC (autorelease_pool_cache, id, autorelease_pool_cache_size);
+    ;				// Anything to put here?
 }
 
-+ allocWithZone: (NSZone*)z
++ allocWithZone: (NSZone*)zone
 {
   /* If there is an already-allocated NSAutoreleasePool available,
      save time by just returning that, rather than allocating a new one. */
-  if (autorelease_pool_cache_count)
-    return pop_pool_from_cache ();
+  struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
+  if (tv->pool_cache_count)
+    return pop_pool_from_cache (tv);
 
-  return NSAllocateObject (self, 0, z);
+  return NSAllocateObject (self, 0, zone);
 }
 
 - init
@@ -130,10 +136,13 @@ pop_pool_from_cache ()
   _released_count = 0;
 
   /* Install ourselves as the current pool. */
-  _parent = current_pool;
-  _child = nil;
-  [current_pool _setChildPool: self];
-  current_pool = self;
+  {
+    struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
+    _parent = tv->current_pool;
+    _child = nil;
+    [tv->current_pool _setChildPool: self];
+    tv->current_pool = self;
+  }
 
   return self;
 }
@@ -181,10 +190,12 @@ pop_pool_from_cache ()
 }
 
 /* This method not in OpenStep */
+/* xxx This count should be made for *all* threads, but currently is 
+   only madefor the current thread! */
 + (unsigned) autoreleaseCountForObject: anObject
 {
   unsigned count = 0;
-  id pool = current_pool;
+  id pool = ARP_THREAD_VARS->current_pool;
   while (pool)
     {
       count += [pool autoreleaseCountForObject: anObject];
@@ -195,12 +206,12 @@ pop_pool_from_cache ()
 
 + currentPool
 {
-  return current_pool;
+  return ARP_THREAD_VARS->current_pool;
 }
 
 + (void) addObject: anObj
 {
-  [current_pool addObject: anObj];
+  [ARP_THREAD_VARS->current_pool addObject: anObj];
 }
 
 - (void) addObject: anObj
@@ -246,7 +257,7 @@ pop_pool_from_cache ()
 
   /* Keep track of the total number of objects autoreleased across all
      pools. */
-  total_autoreleased_objects_count++;
+  ARP_THREAD_VARS->total_objects_count++;
 
   /* Keep track of the total number of objects autoreleased in this pool */
   _released_count++;
@@ -303,13 +314,32 @@ pop_pool_from_cache ()
       }
   }
 
-  /* Uninstall ourselves as the current pool; install our parent pool. */
-  current_pool = _parent;
-  if (current_pool)
-    current_pool->_child = nil;
+  {
+    struct autorelease_thread_vars *tv;
+    NSAutoreleasePool **cp;
 
-  /* Don't deallocate ourself, just save us for later use. */
-  push_pool_to_cache (self);
+    /* Uninstall ourselves as the current pool; install our parent pool. */
+    tv = ARP_THREAD_VARS;
+    cp = &(tv->current_pool);
+    *cp = _parent;
+    if (*cp)
+      (*cp)->_child = nil;
+
+    /* Don't deallocate ourself, just save us for later use. */
+    push_pool_to_cache (tv, self);
+  }
+}
+
+- (void) reallyDealloc
+{
+  struct autorelease_array_list *a;
+  for (a = _released_head; a; )
+    {
+      void *n = a->next;
+      (*objc_free) (a);
+      a = n;
+    }
+  [super dealloc];
 }
 
 - autorelease
@@ -321,12 +351,12 @@ pop_pool_from_cache ()
 
 + (void) resetTotalAutoreleasedObjects
 {
-  total_autoreleased_objects_count = 0;
+  ARP_THREAD_VARS->total_objects_count = 0;
 }
 
 + (unsigned) totalAutoreleasedObjects
 {
-  return total_autoreleased_objects_count;
+  return ARP_THREAD_VARS->total_objects_count;
 }
 
 + (void) enableRelease: (BOOL)enable

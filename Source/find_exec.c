@@ -32,7 +32,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifdef WIN32
+#ifdef __WIN32__
 #include <limits.h>
 #define S_IFLNK 0120000
 int readlink(char *path, char *buf, int bufsiz) { return (-1); }
@@ -42,7 +42,7 @@ int lstat(char *path, struct stat *buf) { return (-1); }
 #include <sys/file.h>
 #include <sys/param.h>
 #include <unistd.h>
-#endif /* WIN32 */
+#endif /* __WIN32__ */
 
 #include <stdlib.h>
 #include <string.h>

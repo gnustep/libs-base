@@ -54,14 +54,14 @@
  #include <objc/objc-api.h>
  #include <objc/encoding.h>
  #include <objc/sarray.h>
- #include <objc/objc-list.h>
+ /* #include <objc/objc-list.h> */
 #endif
 
 #include <Foundation/NSObject.h>
 #include <gnustep/base/objc-malloc.h>
 @class String;
 
-/* The following group of lines are maintained by the libobjects Makefile */
+/* The following group of lines maintained by the gstep-base src/Makefile */
 #define @VERSION@
 #define @MAJOR_VERSION@
 #define @MINOR_VERSION@

@@ -31,8 +31,10 @@
 #endif
 
 #if HAVE_TIMES
+#ifndef __WIN32__
 #include <sys/times.h> 
-#endif 
+#endif /* !__WIN32__ */
+#endif /* HAVE_TIMES */
 
 /* There are several places where I need to deal with tz more intelligently */
 /* I should allow customization of a strftime() format string for printing. */
@@ -63,6 +65,37 @@ int gettimeofday(tvp, tzp)
   }
 }
 #endif /* _SEQUENT_ */
+
+#ifdef __WIN32__
+/* Win32 does not provide gettimeofday() */
+int gettimeofday(tvp, tzp)
+  struct timeval *tvp;
+  struct timezone *tzp;
+{
+  TIME_ZONE_INFORMATION sys_time_zone;
+  SYSTEMTIME sys_time;
+
+  // Get the time zone information
+  GetTimeZoneInformation(&sys_time_zone);
+
+  // Get the local time
+  GetLocalTime(&sys_time);
+
+  tvp->tv_usec = sys_time.wMilliseconds;
+  tvp->tv_sec = sys_time.wSecond;
+  tvp->tv_sec = tvp->tv_sec + (sys_time.wMinute * 60);
+  tvp->tv_sec = tvp->tv_sec + (sys_time.wHour * 60 * 60);
+  tvp->tv_sec = tvp->tv_sec + (sys_time.wDay * 60 * 60 * 24);
+  return 0;
+}
+
+/* Win32 does not provide times() */
+int times(struct tms *atms)
+{
+  return 0;
+}
+
+#endif /* __WIN32__ */
 
 /* tmp for passing to gettimeofday() */
 static struct timeval _Time_tv;

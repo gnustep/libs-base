@@ -27,7 +27,7 @@ int main (int argc, char *argv[])
 			   onHost: @"localhost"];
   else
     out_port = [TcpOutPort newForSendingToRegisteredName: @"tcpport-test"
-			   onHost: @"localhost"];
+			   onHost: nil];
 
   in_port = [TcpInPort newForReceiving];
 

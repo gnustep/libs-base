@@ -21,6 +21,16 @@ thread-safe features to the GNU Objective C runtime.
 are sent back to the client.  Ungracefully closed connections are
 gracefully handled.
 
+@item NSUserDefaults has been implemented, thanks to Georg Tuparev
+<tuparev@@NMR.EMBL-Heidelberg.DE>.
+
+@item Preliminary thread-safety work has been done.  NSObject and
+NSAutoreleasePool should be thread-safe.
+
+@item The "%@@" printf directive now works on systems without GNU libc.
+
+@item The NS*Page* functions have been implemented.
+
 @item The mframe and behavior functions have been overhauled and
 better commented.
 

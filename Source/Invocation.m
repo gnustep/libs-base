@@ -244,7 +244,7 @@
 
 - (void) dealloc
 {
-  if (*return_type == _C_ID)
+  if (return_retained && *return_type == _C_ID)
     [*(id*)return_value release];
   OBJC_FREE(return_type);
   [super dealloc];
@@ -457,7 +457,7 @@ my_method_get_next_argument (arglist_t argframe,
   while ((datum = my_method_get_next_argument(argframe, &tmptype)))
     {
       tmptype = objc_skip_type_qualifiers (tmptype);
-      if (*tmptype == _C_ID)
+      if (args_retained && *tmptype == _C_ID)
 	[*(id*)datum release];
     }
   [self _deallocArgframe];

@@ -48,6 +48,7 @@ static o_map_t thread_id_2_nsthread;
 /* Flag indicating whether the objc runtime ever went multi-threaded. */
 static BOOL entered_multi_threaded_state;
 
+
 @implementation NSThread
 
 // Class initialization
@@ -72,8 +73,8 @@ static BOOL entered_multi_threaded_state;
   [super init];
 
   /* initialize our ivars. */
-  _thread_dictionary = [NSMutableDictionary dictionary];
-  _thread_autorelease_pool = nil;
+  _thread_dictionary = nil;	// Initialize this later only when needed
+  init_autorelease_thread_vars (&_autorelease_vars);
 
   /* Make it easy and fast to get this NSThread object from the thread. */
   objc_thread_set_data (self);
@@ -137,6 +138,8 @@ static BOOL entered_multi_threaded_state;
 
 - (NSMutableDictionary*) threadDictionary
 {
+  if (!_thread_dictionary)
+    _thread_dictionary = [NSMutableDictionary dictionary];
   return _thread_dictionary;
 }
 
