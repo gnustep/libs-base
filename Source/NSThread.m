@@ -71,15 +71,22 @@ GSCurrentThreadDictionary()
 
 void gnustep_base_thread_callback()
 {
-  /* Post a notification if this is the first new thread to be created.
-     Won't work properly if threads are not all created by this class.
-     */
+  /*
+   * Post a notification if this is the first new thread to be created.
+   * Won't work properly if threads are not all created by this class,
+   * but it's better than nothing.
+   */
   if (!entered_multi_threaded_state)
     {
+      NSNotification	*n;
+
       entered_multi_threaded_state = YES;
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSWillBecomeMultiThreadedNotification
-	object: nil];
+      n = [NSNotification alloc];
+      n = [n initWithName: NSWillBecomeMultiThreadedNotification
+		   object: nil
+		 userInfo: nil];
+      [[NSNotificationCenter defaultCenter] postNotification: n];
+      RELEASE(n);
     }
 }
 
@@ -92,6 +99,12 @@ void gnustep_base_thread_callback()
   if (self == [NSThread class])
     {
       entered_multi_threaded_state = NO;
+      /*
+       * The objc runtime calls this callback AFTER creating a new thread -
+       * which is not correct for us, but does at least mean that we can tell
+       * if we have become multi-threaded due to a call to the runtime directly
+       * rather than via the NSThread class.
+       */
       objc_set_thread_callback(gnustep_base_thread_callback);
     }
 }
@@ -113,7 +126,7 @@ void gnustep_base_thread_callback()
   /* initialize our ivars. */
   _thread_dictionary = nil;	// Initialize this later only when needed
   _exception_handler = NULL;
-  init_autorelease_thread_vars (&_autorelease_vars);
+  init_autorelease_thread_vars(&_autorelease_vars);
 
   return self;
 }
@@ -130,7 +143,13 @@ void gnustep_base_thread_callback()
 		        toTarget: (id)aTarget
                       withObject: (id)anArgument
 {
-  // Have the runtime detach the thread
+  /*
+   * Make sure the notification is posted BEFORE the new thread starts.
+   */
+  gnustep_base_thread_callback();
+  /*
+   * Have the runtime detach the thread
+   */
   if (objc_thread_detach (aSelector, aTarget, anArgument) == NULL)
     {
       /* This should probably be an exception */
@@ -208,15 +227,19 @@ void gnustep_base_thread_callback()
 // What happens if the thread doesn't call +exit?
 + (void) exit
 {
-  NSThread *t;
+  NSThread		*t;
+  NSNotification	*n;
 
   // the current NSThread
   t = GSCurrentThread();
 
   // Post the notification
-  [[NSNotificationCenter defaultCenter]
-    postNotificationName: NSThreadWillExitNotification
-    object: t];
+  n = [NSNotification alloc];
+  n = [n initWithName: NSThreadWillExitNotification
+	       object: t
+	     userInfo: nil];
+  [[NSNotificationCenter defaultCenter] postNotification: n];
+  RELEASE(n);
 
   /*
    * Release anything in our autorelease pools
