@@ -201,7 +201,13 @@ static Class NSMutableSet_concrete_class;
 
 - anyObject
 {
-  return [self notImplemented:_cmd];
+  if ([self count] == 0)
+    return nil;
+  else
+    {
+      id e = [self objectEnumerator];
+      return [e nextObject];
+    }
 }
 
 - (BOOL) containsObject: anObject
