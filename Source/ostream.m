@@ -323,9 +323,8 @@ ostream_close_memory (ostream *s, int option)
 {
   if (s->flags & OSTREAM_ISBUFFER)
     {
-      /* Here's the extra release that allows MemoryStream to dealloc itself */
       if (option == OSTREAM_FREEBUFFER)
-	[(id)s->stream_obj release];
+	[(MemoryStream*)s->stream_obj setFreeWhenDone: NO];
     }
   ostream_close(s);
 }
