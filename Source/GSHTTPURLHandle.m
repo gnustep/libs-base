@@ -737,17 +737,19 @@ static void debugWrite(NSData *data)
 	}
       else if ([array count] == 1)
 	{
-	  result = [[array objectAtIndex: 0] objectForKey: @"BaseValue"];
+	  GSMimeHeader	*hdr = [array objectAtIndex: 0];
+
+	  result = [hdr value];
 	}
       else
 	{
 	  NSEnumerator	*enumerator = [array objectEnumerator];
-	  NSDictionary	*val;
+	  GSMimeHeader	*val;
 
 	  result = [NSMutableArray arrayWithCapacity: [array count]];
 	  while ((val = [enumerator nextObject]) != nil)
 	    {
-	      [result addObject: [val objectForKey: @"BaseValue"]];
+	      [result addObject: [val value]];
 	    }
 	}
     }
