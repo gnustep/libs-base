@@ -17,30 +17,30 @@
 }
 
 - (void) addPort: port
-         forMode: (id <String>)mode;
+         forMode: (NSString*)mode;
 - (void) removePort: port
-            forMode: (id <String>)mode;
+            forMode: (NSString*)mode;
 
-- (void) addTimer: timer forMode: (id <String>)mode;
+- (void) addTimer: timer forMode: (NSString*)mode;
 
-- limitDateForMode: (id <String>)mode;
-- (void) acceptInputForMode: (id <String>)mode
+- limitDateForMode: (NSString*)mode;
+- (void) acceptInputForMode: (NSString*)mode
                  beforeDate: date;
-- (id <String>) currentMode;
+- (NSString*) currentMode;
 
 - (void) run;
 - (void) runUntilDate: limit_date;
 - (BOOL) runOnceBeforeDate: date;
-- (BOOL) runOnceBeforeDate: date forMode: (id <String>)mode;
+- (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode;
 
 + (void) run;
 + (void) runUntilDate: date;
-+ (void) runUntilDate: date forMode: (id <String>)mode;
++ (void) runUntilDate: date forMode: (NSString*)mode;
 + (BOOL) runOnceBeforeDate: date;
-+ (BOOL) runOnceBeforeDate: date forMode: (id <String>)mode;
++ (BOOL) runOnceBeforeDate: date forMode: (NSString*)mode;
 
 + currentInstance;
-+ (id <String>) currentMode;
++ (NSString*) currentMode;
 
 @end
 
@@ -64,16 +64,16 @@ extern id RunLoopDefaultMode;
    message whenever the descriptor (fd) is readable. */
 - (void) addReadDescriptor: (int)fd
 		    object: (id <FdListening>)listener
-		   forMode: (id <String>)mode;
+		   forMode: (NSString*)mode;
 /* Register an object (speaker) to receive 'readyForWritingOnFileDescriptor:'
    message whenever the descriptor (fd) is writable. */
 - (void) addWriteDescriptor: (int)fd
 		    object: (id <FdSpeaking>)speaker
-		   forMode: (id <String>)mode;
+		   forMode: (NSString*)mode;
 - (void) removeReadDescriptor: (int)fd
-		   forMode: (id <String>)mode;
+		   forMode: (NSString*)mode;
 - (void) removeWriteDescriptor: (int)fd
-		   forMode: (id <String>)mode;
+		   forMode: (NSString*)mode;
 @end
 
 /* xxx This interface will probably change. */

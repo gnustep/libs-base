@@ -51,7 +51,7 @@ static BOOL debug_textcoder = NO;
 
 - (void) encodeValueOfCType: (const char*) type 
          at: (const void*) d 
-         withName: (id <String>) name;
+         withName: (NSString*) name;
 {
   assert(type);
   assert(*type != '@');
@@ -186,7 +186,7 @@ if (debug_textcoder) \
 
 - (void) decodeValueOfCType: (const char*) type 
          at: (void*) d 
-         withName: (id <String> *) namePtr;
+         withName: (NSString* *) namePtr;
 {
   char *tmpname;
 
@@ -372,7 +372,7 @@ if (debug_textcoder) \
 		 format: @"bad unindent format, got \"%s\"", line];
 }
 
-- (void) encodeName: (id <String>) n
+- (void) encodeName: (NSString*) n
 {
   if (n)
     [stream writeFormat:@"%*s<%s>\n", indentation, "", [n cStringNoCopy]];
@@ -380,7 +380,7 @@ if (debug_textcoder) \
     [stream writeFormat:@"%*s<NULL>\n", indentation, ""];
 }
 
-- (void) decodeName: (id <String> *) name
+- (void) decodeName: (NSString* *) name
 {
   const char *n;
   if (name)

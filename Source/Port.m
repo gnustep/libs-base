@@ -117,7 +117,7 @@
   return self;
 }
 
-+ newForReceivingFromRegisteredName: (id <String>)name
++ newForReceivingFromRegisteredName: (NSString*)name
 {
   [self subclassResponsibility:_cmd];
   return nil;
@@ -140,12 +140,12 @@
   _packet_invocation = invocation;
 }
 
-- (void) addToRunLoop: run_loop forMode: (id <String>)mode
+- (void) addToRunLoop: run_loop forMode: (NSString*)mode
 {
   [self subclassResponsibility:_cmd];
 }
 
-- (void) removeFromRunLoop: run_loop forMode: (id <String>)mode
+- (void) removeFromRunLoop: run_loop forMode: (NSString*)mode
 {
   [self subclassResponsibility:_cmd];
 }
@@ -155,8 +155,8 @@
 
 @implementation OutPort
 
-+ newForSendingToRegisteredName: (id <String>)name 
-                         onHost: (id <String>)hostname
++ newForSendingToRegisteredName: (NSString*)name 
+                         onHost: (NSString*)hostname
 {
   [self subclassResponsibility:_cmd];
   return nil;

@@ -81,14 +81,14 @@ static int debug_coder = 0;
   return new_coder;
 }
 
-+ newReadingFromFile: (id <String>) filename
++ newReadingFromFile: (NSString*) filename
 {
   return [self newReadingFromStream: 
 		 [StdioStream streamWithFilename: filename 
 			      fmode: "r"]];
 }
 
-+ decodeObjectWithName: (id <String> *) name
++ decodeObjectWithName: (NSString* *) name
 	    fromStream: (id <Streaming>)stream;
 {
   id c, o;
@@ -98,8 +98,8 @@ static int debug_coder = 0;
   return [o autorelease];
 }
 
-+ decodeObjectWithName: (id <String> *) name
-	      fromFile: (id <String>) filename;
++ decodeObjectWithName: (NSString* *) name
+	      fromFile: (NSString*) filename;
 {
   return [self decodeObjectWithName: name
 	       fromStream:
@@ -297,7 +297,7 @@ static int debug_coder = 0;
 
 - (void) decodeValueOfCType: (const char*)type
    at: (void*)d 
-   withName: (id <String> *)namePtr
+   withName: (NSString* *)namePtr
 {
   [cstream decodeValueOfCType:type
 	   at:d
@@ -306,7 +306,7 @@ static int debug_coder = 0;
 
 - (void) decodeBytes: (void *)b
    count: (unsigned)c
-   withName: (id <String> *) name
+   withName: (NSString* *) name
 {
   int actual_count;
   /* xxx Is this what we want?  
@@ -396,7 +396,7 @@ static int debug_coder = 0;
   return ret;
 }
 
-- (const char *) decodeAtomicStringWithName: (id <String> *) name
+- (const char *) decodeAtomicStringWithName: (NSString* *) name
 {
   char *s;
   /* xxx Add repeat-string-ptr checking here */
@@ -405,7 +405,7 @@ static int debug_coder = 0;
   return s;
 }
 
-- (SEL) decodeSelectorWithName: (id <String> *) name
+- (SEL) decodeSelectorWithName: (NSString* *) name
 {
   char tag;
   SEL ret = NULL;
@@ -529,7 +529,7 @@ static int debug_coder = 0;
   [self _coderPopRootObjectTable];
 }
 
-- (void) _decodeRootObjectAt: (id*)ret withName: (id <String> *) name
+- (void) _decodeRootObjectAt: (id*)ret withName: (NSString* *) name
 {
   [self startDecodingInterconnectedObjects];
   [self decodeObjectAt:ret withName:name];
@@ -539,7 +539,7 @@ static int debug_coder = 0;
 
 - (void) decodeValueOfObjCType: (const char*)type
    at: (void*)d 
-   withName: (id <String> *)namePtr
+   withName: (NSString* *)namePtr
 {
   switch (*type)
     {
@@ -570,7 +570,7 @@ static int debug_coder = 0;
 }
 
 /* This is the designated (and one-and-only) object decoder */
-- (void) decodeObjectAt: (id*) anObjPtr withName: (id <String> *) name
+- (void) decodeObjectAt: (id*) anObjPtr withName: (NSString* *) name
 {
   unsigned char tag;
   unsigned fref = 0;
@@ -698,7 +698,7 @@ static int debug_coder = 0;
 }
 
 
-- (void) decodeWithName: (id <String> *)name
+- (void) decodeWithName: (NSString* *)name
    valuesOfObjCTypes: (const char *)types, ...
 {
   va_list ap;
@@ -717,7 +717,7 @@ static int debug_coder = 0;
 
 - (void) decodeValueOfObjCTypes: (const char *)types
    at: (void *)d
-   withName: (id <String> *)name
+   withName: (NSString* *)name
 {
   [self decodeName:name];
   while (*types)
@@ -732,7 +732,7 @@ static int debug_coder = 0;
 - (void) decodeArrayOfObjCType: (const char *)type
    count: (unsigned)c
    at: (void *)d
-   withName: (id <String> *) name
+   withName: (NSString* *) name
 {
   int i;
   int offset = objc_sizeof_type(type);
@@ -758,7 +758,7 @@ static int debug_coder = 0;
   [cstream decodeUnindent];
 }
 
-- (void) decodeName: (id <String> *)n
+- (void) decodeName: (NSString* *)n
 {
   [cstream decodeName: n];
 }

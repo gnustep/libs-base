@@ -92,7 +92,7 @@ static int debug_binary_coder = 0;
 
 - (void) encodeValueOfCType: (const char*)type 
    at: (const void*)d 
-   withName: (id <String>) name
+   withName: (NSString*) name
 {
   /* Make sure we're not being asked to encode an "ObjC" type. */
   assert(type);
@@ -319,7 +319,7 @@ static int debug_binary_coder = 0;
 
 - (void) decodeValueOfCType: (const char*)type
    at: (void*)d 
-   withName: (id <String> *)namePtr
+   withName: (NSString* *)namePtr
 {
   char encoded_type;
 
@@ -488,14 +488,14 @@ static int debug_binary_coder = 0;
 
 /* Encoding and decoding names. */
 
-- (void) encodeName: (id <String>) name
+- (void) encodeName: (NSString*) name
 {
   if (debug_binary_coder)
     [[[self class] debugStderrCoder]
      encodeName:name];
 }
 
-- (void) decodeName: (id <String> *)n
+- (void) decodeName: (NSString* *)n
 {
 #if 1
   if (n)

@@ -182,7 +182,7 @@ static BOOL debug_memory_stream = NO;
   return l;
 }
 
-- (id <String>) readLine
+- (NSString*) readLine
 {
   char *nl = memchr(buffer+prefix+position, '\n', eof_position-position);
   char *ret = NULL;
@@ -224,7 +224,7 @@ void unchar_func(void *s, int c)
 }
 
 #if HAVE_VSPRINTF
-- (int) writeFormat: (id <String>)format
+- (int) writeFormat: (NSString*)format
 	  arguments: (va_list)arg
 {
   int ret;
@@ -256,7 +256,7 @@ void unchar_func(void *s, int c)
 }
 #endif
 
-- (int) readFormat: (id <String>)format, ...
+- (int) readFormat: (NSString*)format, ...
 {
   int ret;
   va_list ap;

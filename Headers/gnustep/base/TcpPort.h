@@ -72,7 +72,7 @@
 }
 
 + newForSendingToPortNumber: (unsigned short)n 
-		     onHost: (id <String>)hostname;
+		     onHost: (NSString*)hostname;
 - (int) portNumber;
 
 @end

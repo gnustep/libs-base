@@ -30,7 +30,7 @@
 #include <gnustep/base/NotificationDispatcher.h>
 
 @protocol Notifying
-- (id <String>) name;
+- (NSString*) name;
 - object;
 - userInfo;
 @end
@@ -46,10 +46,10 @@
   id _info;
 }
 
-+ notificationWithName: (id <String>)name
++ notificationWithName: (NSString*)name
 		object: object;
 
-+ notificationWithName: (id <String>)name
++ notificationWithName: (NSString*)name
 		object: object
 	      userInfo: info;
 

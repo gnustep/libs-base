@@ -39,14 +39,14 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 
 - (void) encodeValueOfCType: (const char*) type 
          at: (const void*) d 
-         withName: (id <String>) name;
+         withName: (NSString*) name;
 {
   [self subclassResponsibility:_cmd];
 }
 
 - (void) decodeValueOfCType: (const char*) type 
          at: (void*) d 
-         withName: (id <String> *) namePtr;
+         withName: (NSString* *) namePtr;
 {
   [self subclassResponsibility:_cmd];
 }
@@ -140,7 +140,7 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
   return [new_cstream autorelease];
 }
 
-+ cStreamReadingFromFile: (id <String>) filename
++ cStreamReadingFromFile: (NSString*) filename
 {
   return [self cStreamReadingFromStream:
 		 [StdioStream streamWithFilename: filename fmode: "r"]];
@@ -162,7 +162,7 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 	       withFormatVersion: [[self class] defaultFormatVersion]];
 }
 
-- initForWritingToFile: (id <String>) file
+- initForWritingToFile: (NSString*) file
 {
   return [self initForWritingToStream: 
 		 [StdioStream streamWithFilename: file fmode: "w"]];
@@ -174,7 +174,7 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 	   autorelease];
 }
 
-+ cStreamWritingToFile: (id <String>) filename;
++ cStreamWritingToFile: (NSString*) filename;
 {
   return [[[self alloc] initForWritingToFile: filename]
 	   autorelease];
@@ -183,7 +183,7 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 
 /* Encoding/decoding indentation */
 
-- (void) encodeWithName: (id <String>) name
+- (void) encodeWithName: (NSString*) name
 	 valuesOfCTypes: (const char *) types, ...
 {
   va_list ap;
@@ -200,7 +200,7 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
   va_end (ap);
 }
 
-- (void) decodeWithName: (id <String> *)name
+- (void) decodeWithName: (NSString* *)name
 	 valuesOfCTypes: (const char *)types, ...
 {
   va_list ap;
@@ -237,12 +237,12 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
   /* Do nothing */
 }
 
-- (void) encodeName: (id <String>) n
+- (void) encodeName: (NSString*) n
 {
   /* Do nothing */
 }
 
-- (void) decodeName: (id <String> *) name
+- (void) decodeName: (NSString* *) name
 {
   /* Do nothing */
 }

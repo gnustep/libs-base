@@ -180,7 +180,7 @@ static NSMapTable *port_number_2_in_port = NULL;
   return p;
 }
 
-+ newForReceivingFromRegisteredName: (id <String>)name
++ newForReceivingFromRegisteredName: (NSString*)name
 {
   int n;
 
@@ -372,7 +372,7 @@ static Array *udp_out_port_array;
 
 
 + newForSendingToPortNumber: (unsigned short)n 
-		     onHost: (id <String>)hostname
+		     onHost: (NSString*)hostname
 {
   struct hostent *hp;
   const char *host_cstring;
@@ -425,7 +425,7 @@ static Array *udp_out_port_array;
   return (int) ntohs (_address.sin_port);
 }
 
-- (id <String>) hostname
+- (NSString*) hostname
 {
   [self notImplemented: _cmd];
   return nil;

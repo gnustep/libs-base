@@ -64,10 +64,10 @@
   unsigned fref_counter;            /* Keep track of unused fref numbers */
 }
 
-- initForWritingToFile: (id <String>) filename;
-- initForWritingToFile: (id <String>) filename
+- initForWritingToFile: (NSString*) filename;
+- initForWritingToFile: (NSString*) filename
       withCStreamClass: (Class) cStreamClass;
-- initForWritingToFile: (id <String>) filename
+- initForWritingToFile: (NSString*) filename
      withFormatVersion: (int) version
           cStreamClass: (Class)scc
   cStreamFormatVersion: (int) cStreamFormatVersion;
@@ -81,10 +81,10 @@
     cStreamFormatVersion: (int) cStreamFormatVersion;
 
 + (BOOL) encodeRootObject: anObject 
-  	         withName: (id <String>) name
-                   toFile: (id <String>) filename;
+  	         withName: (NSString*) name
+                   toFile: (NSString*) filename;
 + (BOOL) encodeRootObject: anObject 
-  	         withName: (id <String>) name
+  	         withName: (NSString*) name
 		 toStream: (id <Streaming>)stream;
 
 /* Defaults */
@@ -118,12 +118,12 @@
    header of the file or stream determines which subclass of Decoder
    is created. */
 
-+ newReadingFromFile: (id <String>) filename;
++ newReadingFromFile: (NSString*) filename;
 + newReadingFromStream: (id <Streaming>)stream;
 
-+ decodeObjectWithName: (id <String> *) name
-	      fromFile: (id <String>) filename;
-+ decodeObjectWithName: (id <String> *) name
++ decodeObjectWithName: (NSString* *) name
+	      fromFile: (NSString*) filename;
++ decodeObjectWithName: (NSString* *) name
 	    fromStream: (id <Streaming>)stream;
 
 @end
