@@ -71,7 +71,7 @@
   return [self initWithBytesNoCopy:buf length:length];
 }
 
-/* This is one of the designated initializer for NSData */
+/* This is one of the designated initializers for NSData */
 - (id) initWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
@@ -125,7 +125,8 @@
 - (void)getBytes: (void*)buffer
    range: (NSRange)aRange
 {
-  [self notImplemented:_cmd];
+  /* xxx need to do range checking */
+  memcpy(buffer, [self bytes] + aRange.location, aRange.length);
 }
 
 - (NSData*) subdataWithRange: (NSRange)aRange
@@ -134,6 +135,12 @@
   return nil;
 }
 
+- (BOOL) isEqual: anObject
+{
+  if ([anObject isKindOf:[NSData class]])
+    return [self isEqualToData:anObject];
+  return NO;
+}
 
 // Querying a Data Object
 - (BOOL) isEqualToData: (NSData*)other;
