@@ -411,6 +411,8 @@ static NCTable *newNCTable(void)
   t->array = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIArray_t));
   GSIArrayInitWithZoneAndCapacity(t->array, NSDefaultMallocZone(), 16);
 
+  // t->_lock = [GSLazyRecursiveLock new];
+  t->_lock = [NSRecursiveLock new];
   return t;
 }
 
@@ -588,7 +590,6 @@ static NSNotificationCenter *default_center = nil;
   if ((self = [super init]) != nil)
     {
       TABLE = newNCTable();
-      TABLE->_lock = [GSLazyRecursiveLock new];
     }
   return self;
 }
