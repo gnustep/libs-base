@@ -31,6 +31,7 @@
 @class NSDictionary;
 @class NSString;
 
+#ifndef	STRICT_OPENSTEP
 
 @interface NSObject (NSKeyValueCoding)
 
@@ -51,5 +52,6 @@
 
 @end
 
+#endif
 #endif
 
