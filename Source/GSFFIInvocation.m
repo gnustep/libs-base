@@ -23,6 +23,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSDistantObject.h>
+#include <Foundation/NSData.h>
 #include <base/GSInvocation.h>
 #include <config.h>
 #include <objc/objc-api.h>
@@ -146,6 +147,7 @@ static IMP gs_objc_msg_forward (SEL sel)
   const char		*sel_type;
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
+  NSMutableData         *amemory;
 
   NSMethodSignature     *sig;
 
@@ -169,8 +171,9 @@ static IMP gs_objc_msg_forward (SEL sel)
      where it becomes owned by the callback invocation, so we don't have to
      worry about freeing it */
   cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
-  /* FIXME: But how to we free this? */
-  cclosure = NSZoneCalloc(NSDefaultMallocZone(), sizeof(ffi_closure), 1);
+  /* Free the closure through NSData */
+  amemory = [NSMutableData dataWithLength: sizeof(ffi_closure)];
+  cclosure = [amemory mutableBytes];
   if (cframe == NULL || cclosure == NULL)
     {
       [NSException raise: NSMallocException format: @"Allocating closure"];
