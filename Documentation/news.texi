@@ -21,6 +21,13 @@ and linked lists of C-type variables.
 @item NSThread and NSLock classes have been implemented, thanks to Scott
 Christley <scottc@@net-community.com>.
 
+@item A RunLoop class has been implemented, and is used for listening to
+Port objects.  It is used for Distributed Objects.  The class is not
+finished, and its interfaces may be changed in the near future.
+
+@item The NSTimer class has been implemented, although its use with
+RunLoops is currently disabled.
+
 @item The Notification mechanism has been implemented.  It makes good
 use of hash tables and linked lists in order to be fast.
 
