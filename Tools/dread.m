@@ -49,7 +49,7 @@ main(int argc, char** argv)
 
     args = [proc arguments];
 
-    for (i = 0; i < [args count]; i++) {
+    for (i = 1; i < [args count]; i++) {
 	if ([[args objectAtIndex: i] isEqual: @"--help"]) {
 	    printf(
 "\nThe 'dread' command lets you to read a user's defaults database.\n"
@@ -83,7 +83,7 @@ main(int argc, char** argv)
 	}
     }
 
-    i = 0;
+    i = 1;
     if ([args count] <= i) {
 	NSLog(@"too few arguments supplied!\n");
 	[pool release];
