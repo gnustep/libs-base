@@ -66,15 +66,15 @@ static Class NSMutableSet_concrete_class;
 
 + set
 {
-  return [[[[self _concreteClass] alloc] init] 
+  return [[[self alloc] init] 
 	  autorelease];
 }
 
 + setWithObjects: (id*)objects 
 	   count: (unsigned)count
 {
-  return [[[[self _concreteClass] alloc] initWithObjects:objects
-					 count:count]
+  return [[[self alloc] initWithObjects:objects
+			count:count]
 	  autorelease];
 }
 
@@ -82,14 +82,14 @@ static Class NSMutableSet_concrete_class;
 {
   /* xxx Only works because NSArray also responds to objectEnumerator
      and nextObject. */
-  return [[[[self _concreteClass] alloc] initWithSet:(NSSet*)objects]
+  return [[[self alloc] initWithSet:(NSSet*)objects]
 	  autorelease];
 }
 
 + setWithObject: anObject
 {
-  return [[[[self _concreteClass] alloc] initWithObjects:&anObject
-					 count:1]
+  return [[[self alloc] initWithObjects:&anObject
+			count:1]
 	  autorelease];
 }
 
@@ -125,7 +125,7 @@ static Class NSMutableSet_concrete_class;
 {
   va_list ap;
   va_start(ap, firstObject);
-  self = [[[self _concreteClass] alloc] initWithObjects:firstObject rest:ap];
+  self = [[self alloc] initWithObjects:firstObject rest:ap];
   va_end(ap);
   return [self autorelease];
 }
@@ -319,7 +319,7 @@ static Class NSMutableSet_concrete_class;
 
 + setWithCapacity: (unsigned)numItems
 {
-  return [[[[self _mutableConcreteClass] alloc] initWithCapacity:numItems]
+  return [[[self alloc] initWithCapacity:numItems]
 	  autorelease];
 }
 
