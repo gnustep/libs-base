@@ -119,24 +119,46 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
     proxy_target = (unsigned int)_object;
 
     if (encoder_connection == _connection) {
-	/*
-	 *	This proxy is a local object on the other side.
-	 */
-	proxy_tag = PROXY_LOCAL_FOR_RECEIVER;
+	if (_isLocal) {
+	    /*
+	     *	This proxy is a local to us, remote to other side.
+	     */
+	    proxy_tag = PROXY_LOCAL_FOR_SENDER;
 
-	if (debug_proxy)
-	    fprintf(stderr, "Sending a proxy, will be local 0x%x "
-		    "connection 0x%x\n",
-		    (unsigned)_object,
-		    (unsigned)_connection);
+	    if (debug_proxy)
+		fprintf(stderr, "Sending a proxy, will be remote 0x%x "
+			"connection 0x%x\n",
+			(unsigned)_object,
+			(unsigned)_connection);
 
-	[aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
-			      at: &proxy_tag
-			withName: @"Proxy is local for receiver"];
+	    [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
+				  at: &proxy_tag
+			    withName: @"Proxy is local for sender"];
 
-	[aRmc encodeValueOfCType: @encode(typeof(proxy_target))
-			      at: &proxy_target
-			withName: @"Proxy target"];
+	    [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
+				  at: &proxy_target
+			    withName: @"Proxy target"];
+	}
+	else {
+	    /*
+	     *	This proxy is a local object on the other side.
+	     */
+	    proxy_tag = PROXY_LOCAL_FOR_RECEIVER;
+
+	    if (debug_proxy)
+		fprintf(stderr, "Sending a proxy, will be local 0x%x "
+			"connection 0x%x\n",
+			(unsigned)_object,
+			(unsigned)_connection);
+
+	    [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
+				  at: &proxy_tag
+			    withName: @"Proxy is local for receiver"];
+
+	    [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
+				  at: &proxy_target
+			    withName: @"Proxy target"];
+	}
     }
     else {
 	/*
@@ -426,104 +448,6 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
     }
     /* Not reached. */
     return nil;
-}
-
-- (void) encodeWithCoder: aRmc
-{
-    unsigned int	proxy_target;
-    unsigned char	proxy_tag;
-    NSConnection	*encoder_connection;
-
-    if ([aRmc class] != [PortEncoder class])
-	[NSException raise: NSGenericException
-format: @"NSDistantObject objects only encode with PortEncoder class"];
-
-    encoder_connection = [aRmc connection];
-    assert (encoder_connection);
-    if (![encoder_connection isValid])
-	[NSException
-	    raise: NSGenericException
-	   format: @"Trying to encode to an invalid Connection.\n"
-      @"You should request NSConnectionDidDieNotification's and\n"
-      @"release all references to the proxy's of invalid Connections."];
-
-    proxy_target = (unsigned int)_object;
-
-    if (encoder_connection == _connection) {
-	if (_isLocal) {
-	    /*
-	     *	This proxy is a local to us, remote to other side.
-	     */
-	    proxy_tag = PROXY_LOCAL_FOR_SENDER;
-
-	    if (debug_proxy)
-		fprintf(stderr, "Sending a proxy, will be remote 0x%x "
-			"connection 0x%x\n",
-			(unsigned)_object,
-			(unsigned)_connection);
-
-	    [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
-				  at: &proxy_tag
-			    withName: @"Proxy is local for sender"];
-
-	    [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
-				  at: &proxy_target
-			    withName: @"Proxy target"];
-	}
-	else {
-	    /*
-	     *	This proxy is a local object on the other side.
-	     */
-	    proxy_tag = PROXY_LOCAL_FOR_RECEIVER;
-
-	    if (debug_proxy)
-		fprintf(stderr, "Sending a proxy, will be local 0x%x "
-			"connection 0x%x\n",
-			(unsigned)_object,
-			(unsigned)_connection);
-
-	    [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
-				  at: &proxy_tag
-			    withName: @"Proxy is local for receiver"];
-
-	    [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
-				  at: &proxy_target
-			    withName: @"Proxy target"];
-	}
-    }
-    else {
-	/*
-	 *	This proxy will still be remote on the other side
-	 */
-	NSPort *proxy_connection_out_port = [_connection sendPort];
-
-	assert (proxy_connection_out_port);
-	assert ([proxy_connection_out_port isValid]);
-	assert (proxy_connection_out_port != [encoder_connection sendPort]);
-
-	proxy_tag = PROXY_REMOTE_FOR_BOTH;
-
-	if (debug_proxy)
-	    fprintf(stderr, "Sending triangle-connection proxy 0x%x "
-		"proxy-conn 0x%x to-conn 0x%x\n",
-		(unsigned)_object,
-		(unsigned)_connection, (unsigned)encoder_connection);
-
-	/*
-	 *	It's remote here, so we need to tell other side where to form
-	 *	triangle connection to
-	 */
-	[aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
-			      at: &proxy_tag
-	    withName: @"Proxy is remote for both sender and receiver"];
-
-	[aRmc encodeValueOfCType: @encode(typeof(proxy_target))
-			      at: &proxy_target
-			withName: @"Proxy target"];
-
-	[aRmc encodeBycopyObject: proxy_connection_out_port
-			withName: @"Proxy outPort"];
-    }
 }
 
 - (const char *) selectorTypeForProxy: (SEL)selector

@@ -480,24 +480,6 @@ enum
 @end
 
 
-@implementation NSObject (ForProxy)
-- (const char *) selectorTypeForProxy: (SEL)selector
-{
-#if NeXT_runtime
-  {
-    Method m = class_get_instance_method(isa, selector);
-    if (m)
-      return m->method_types;
-    else
-      return NULL;
-  }
-#else
-  return sel_get_type (selector);
-#endif
-}
-@end
-
-
 @implementation Protocol (RemoteSelfCoding)
 
 /* Perhaps Protocol's should be sent bycopy? */
