@@ -249,6 +249,7 @@ static unsigned local_object_counter = 0;
 /* class defaults */
 static NSTimer		*timer;
 
+static BOOL cacheCoders = NO;
 static int debug_connection = 0;
 
 static NSHashTable	*connection_table;
@@ -748,8 +749,11 @@ static BOOL	multi_threaded = NO;
   /*
    * These arrays cache NSPortCoder objects
    */
-  _cachedDecoders = [NSMutableArray new];
-  _cachedEncoders = [NSMutableArray new];
+  if (cacheCoders == YES)
+    {
+      _cachedDecoders = [NSMutableArray new];
+      _cachedEncoders = [NSMutableArray new];
+    }
 
   /*
    * This is used to queue up incoming NSPortMessages representing requests
@@ -2432,7 +2436,10 @@ static BOOL	multi_threaded = NO;
     {
       NSLog(@"done rmc 0x%x", c);
     }
-  [_cachedDecoders addObject: c];
+  if (cacheCoders == YES && _cachedDecoders != nil)
+    {
+      [_cachedDecoders addObject: c];
+    }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
   M_UNLOCK(_refGate);
@@ -2445,16 +2452,17 @@ static BOOL	multi_threaded = NO;
 - (void) _failInRmc: (NSPortCoder*)c
 {
   M_LOCK(_refGate);
-  if ([_cachedDecoders indexOfObjectIdenticalTo: c] == NSNotFound)
+  if (cacheCoders == YES && _cachedDecoders != nil
+    && [_cachedDecoders indexOfObjectIdenticalTo: c] == NSNotFound)
     {
-      if (debug_connection > 5)
-	{
-	  NSLog(@"fail rmc 0x%x", c);
-	}
       [_cachedDecoders addObject: c];
-      [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
-      RELEASE(c);
     }
+  if (debug_connection > 5)
+    {
+      NSLog(@"fail rmc 0x%x", c);
+    }
+  [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
+  RELEASE(c);
   M_UNLOCK(_refGate);
 }
 
@@ -2465,12 +2473,13 @@ static BOOL	multi_threaded = NO;
 - (void) _failOutRmc: (NSPortCoder*)c
 {
   M_LOCK(_refGate);
-  if ([_cachedEncoders indexOfObjectIdenticalTo: c] == NSNotFound)
+  if (cacheCoders == YES && _cachedEncoders != nil
+    && [_cachedEncoders indexOfObjectIdenticalTo: c] == NSNotFound)
     {
       [_cachedEncoders addObject: c];
-      [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
-      RELEASE(c);
     }
+  [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
+  RELEASE(c);
   M_UNLOCK(_refGate);
 }
 
@@ -2482,8 +2491,8 @@ static BOOL	multi_threaded = NO;
   NSParameterAssert(_isValid);
 
   M_LOCK(_refGate);
-  count = [_cachedDecoders count];
-  if (count > 0)
+  if (cacheCoders == YES && _cachedDecoders != nil
+    && (count = [_cachedDecoders count]) > 0)
     {
       coder = [_cachedDecoders objectAtIndex: --count];
       RETAIN(coder);
@@ -2536,8 +2545,8 @@ static BOOL	multi_threaded = NO;
   /*
    * Locate or create an rmc
    */
-  count = [_cachedEncoders count];
-  if (count > 0)
+  if (cacheCoders == YES && _cachedEncoders != nil
+    && (count = [_cachedEncoders count]) > 0)
     {
       coder = [_cachedEncoders objectAtIndex: --count];
       RETAIN(coder);
@@ -2632,7 +2641,10 @@ static BOOL	multi_threaded = NO;
    * We replace the code we have just used in the cache, and tell it not to
    * retain this connection any more.
    */
-  [_cachedEncoders addObject: c];
+  if (cacheCoders == YES && _cachedEncoders != nil)
+    {
+      [_cachedEncoders addObject: c];
+    }
   [c dispatch];	/* Tell NSPortCoder to release the connection.	*/
   RELEASE(c);
   M_UNLOCK(_refGate);

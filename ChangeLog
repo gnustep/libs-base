@@ -1,3 +1,8 @@
+2001-06-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Control caching of port coders by a simple
+	boolean, and disable it by default.
+
 2001-06-07  Adam Fedor  <fedor@gnu.org>
 
 	* aclocal.m4: Add special case for cygwin in CON_AUTOLOAD.
