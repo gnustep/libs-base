@@ -1,3 +1,8 @@
+2002-09-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Added ([-previousElement]) to match the
+	[(-nextElement]) method.
+
 Wed Sep 25 02:46:28 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Tools/make_strings/make_strings.m (main): Remove "" languages

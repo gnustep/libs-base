@@ -133,6 +133,7 @@
 - (NSString*) objectForKey: (NSString*)key;
 - (GSXMLNode*) parent;
 - (GSXMLNode*) previous;
+- (GSXMLNode*) previousElement;
 - (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:
   (SEL)keyTransformSel;
 - (void) setObject: (NSString*)value forKey:(NSString*)key;
