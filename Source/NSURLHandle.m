@@ -31,6 +31,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSConcreteNumber.h>
+#include <Foundation/NSLock.h>
 #include <Foundation/NSURLHandle.h>
 #include <Foundation/NSURL.h>
 #include <Foundation/NSMapTable.h>
@@ -39,7 +40,9 @@
 
 @implementation NSURLHandle
 
+static NSLock		*registryLock = nil;
 static NSMutableArray	*registry = nil;
+static Class		NSURLHandleClass = 0;
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)url
 {
@@ -47,11 +50,18 @@ static NSMutableArray	*registry = nil;
    * Each subclass is supposed to do its own caching, so we must
    * find the correct subclass and ask it for its cached handle.
    */
-  if (self == [NSURLHandle class])
+  if (self == NSURLHandleClass)
     {
       Class	c = [self URLHandleClassForURL: url];
 
-      return [c cachedHandleForURL: url];
+      if (c == self || c == 0)
+	{
+	  return nil;
+	}
+      else
+	{
+	  return [c cachedHandleForURL: url];
+	}
     }
   else
     {
@@ -72,7 +82,9 @@ static NSMutableArray	*registry = nil;
 {
   if (self == [NSURLHandle class])
     {
+      NSURLHandleClass = self;
       registry = [NSMutableArray new];
+      registryLock = [NSLock new];
       [self registerURLHandleClass: [GSFileURLHandle class]];
     }
 }
@@ -84,13 +96,18 @@ static NSMutableArray	*registry = nil;
    * Re-adding a class moves it to the end of the registry - so it will
    * be used in preference to any class added earlier.
    */
+  [registryLock lock];
   [registry removeObjectIdenticalTo: urlHandleSubclass];
   [registry addObject: urlHandleSubclass];
+  [registryLock unlock];
 }
 
 + (Class) URLHandleClassForURL: (NSURL*)url
 {
-  unsigned	count = [registry count];
+  unsigned	count;
+
+  [registryLock lock];
+  count = [registry count];
 
   /*
    * Find a class to handle the URL, try most recently registered first.
@@ -101,9 +118,11 @@ static NSMutableArray	*registry = nil;
 
       if ([found canInitWithURL: url] == YES)
 	{
+	  [registryLock unlock];
 	  return (Class)found;
 	}
     }
+  [registryLock unlock];
   return 0;
 }
 
@@ -245,17 +264,16 @@ static NSMutableArray	*registry = nil;
 
 - (id) init
 {
-  _status = NSURLHandleNotLoaded;
-  _clients = [NSMutableArray new];
-  _data = [NSMutableData new];
-  return self;
+  return [self initWithURL: nil cached: NO];
 }
 
 - (id) initWithURL: (NSURL*)url
 	    cached: (BOOL)cached
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  _status = NSURLHandleNotLoaded;
+  _clients = [NSMutableArray new];
+  _data = [NSMutableData new];
+  return self;
 }
 
 - (void) loadInBackground
@@ -394,14 +412,13 @@ static NSMutableDictionary	*fileCache = nil;
 	  return self;
 	}
     }
-  self = [super init];
-  if (self != nil)
+
+  if ((self = [super initWithURL: url cached: cached]) != nil)
     {
       _path = [path copy];
       if (cached == YES)
 	{
 	  [fileCache setObject: self forKey: _path];
-	  RELEASE(self);
 	}
     }
   return self;

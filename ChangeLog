@@ -1,3 +1,8 @@
+2000-10-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLHandle.m: Make class registration thread safe.
+	Tidy initialisation to use designated initialiser.
+
 2000-10-27  Adam Fedor  <fedor@gnu.org>
 
 	* Added localization support

@@ -591,7 +591,6 @@ NSString	*NSURLPartKey_query = @"query";
   NSLog(@"*_baseURL: %@", [[url baseURL] description]);
 }
 
-//-----------------------------------------------------------------------------
 - (void) loadResourceDataNotifyingClient: (id)client
 			      usingCache: (BOOL)shouldUseCache
 {
@@ -635,7 +634,6 @@ NSString	*NSURLPartKey_query = @"query";
   return data;
 }
 
-//-----------------------------------------------------------------------------
 - (NSURLHandle*) URLHandleUsingCache: (BOOL)shouldUseCache
 {
   NSURLHandle	*handle = nil;
@@ -657,15 +655,13 @@ NSString	*NSURLPartKey_query = @"query";
   return handle;
 }
 
-//-----------------------------------------------------------------------------
 - (BOOL) setResourceData: (NSData*)data
 {
   NSURLHandle	*handle = [self URLHandleUsingCache: YES];
 
-  return [handle writeData: data];
+  return (handle == nil) ? NO : [handle writeData: data];
 }
 
-//-----------------------------------------------------------------------------
 - (id) propertyForKey: (NSString*)propertyKey
 {
   NSURLHandle	*handle = [self URLHandleUsingCache: YES];
@@ -673,7 +669,6 @@ NSString	*NSURLPartKey_query = @"query";
   return [handle propertyForKey: propertyKey];
 }
 
-//-----------------------------------------------------------------------------
 - (BOOL) setProperty: (id)property
 	      forKey: (NSString*)propertyKey;
 {
