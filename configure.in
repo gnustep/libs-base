@@ -775,6 +775,12 @@ AC_SUBST(WITH_FFI)
 #--------------------------------------------------------------------
 # Check recent libxml for Properytlists, GSXML, GSDoc etc.
 #--------------------------------------------------------------------
+
+# Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
+# of the success of the macro.
+saved_LIBS="$LIBS"
+saved_CFLAGS="$CFLAGS"
+
 AM_PATH_XML(2.2.3, enable_libxml=yes, enable_libxml=no)
 if test $enable_libxml = yes; then
   CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
@@ -783,6 +789,9 @@ if test $enable_libxml = yes; then
   AC_DEFINE(HAVE_LIBXML)
 else
   HAVE_LIBXML=0
+  # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
+  LIBS="$saved_LIBS"
+  CFLAGS="$saved_CFLAGS"
 fi
 AC_SUBST(HAVE_LIBXML)
 
