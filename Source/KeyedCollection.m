@@ -465,15 +465,15 @@
   const char *ke = [self keyType];
   void archiveKeyAndContent(elt key, elt content)
     {
-      [aCoder encodeValueOfType:ke
+      [aCoder encodeValueOfObjCType:ke
 	      at:elt_get_ptr_to_member(ke, &key)
 	      withName:"KeyedCollection key element"];
-      [aCoder encodeValueOfType:ce
+      [aCoder encodeValueOfObjCType:ce
 	      at:elt_get_ptr_to_member(ce, &content)
 	      withName:"KeyedCollection content element"];
     }
 
-  [aCoder encodeValueOfSimpleType:@encode(unsigned)
+  [aCoder encodeValueOfCType:@encode(unsigned)
 	  at:&count
 	  withName:"Collection element count"];
   [self withKeyElementsAndContentElementsCall:archiveKeyAndContent];
@@ -486,15 +486,15 @@
   const char *ce = [self contentType];
   const char *ke = [self keyType];
 
-  [aCoder decodeValueOfSimpleType:@encode(unsigned)
+  [aCoder decodeValueOfCType:@encode(unsigned)
 	  at:&count
 	  withName:NULL];
   for (i = 0; i < count; i++)
     {
-      [aCoder decodeValueOfType:ke
+      [aCoder decodeValueOfObjCType:ke
 	      at:elt_get_ptr_to_member(ke, &newKey)
 	      withName:NULL];
-      [aCoder decodeValueOfType:ce
+      [aCoder decodeValueOfObjCType:ce
 	      at:elt_get_ptr_to_member(ce, &newContent)
 	      withName:NULL];
       [self putElement:newContent atKey:newKey];

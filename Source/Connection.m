@@ -241,7 +241,7 @@ static int messagesReceivedCount;
 	    [op encodeObject:*(id*)datum withName:ENCODED_ARGNAME];
 	  break;
 	default:
-	  [op encodeValueOfType:type at:datum withName:ENCODED_ARGNAME];
+	  [op encodeValueOfObjCType:type at:datum withName:ENCODED_ARGNAME];
 	}
     }
 
@@ -269,7 +269,7 @@ static int messagesReceivedCount;
        exactly what qualifiers we're using.
        If all selectors included qualifiers and I could make sel_types_match() 
        work the way I wanted, we wouldn't need to do this. */
-    [op encodeValueOfSimpleType:@encode(char*) 
+    [op encodeValueOfCType:@encode(char*) 
 	at:&type 
 	withName:"selector type"];
 
@@ -289,7 +289,7 @@ static int messagesReceivedCount;
 	  assert(ip != (id)-1);
 	  if (!ip)
 	    ip = [self newReceivedReplyRmcWithSequenceNumber:seq_num];
-	  [ip decodeValueOfType:type at:datum withName:NULL];
+	  [ip decodeValueOfObjCType:type at:datum withName:NULL];
 	  if (argnum == last_argnum)
 	    {
 	      /* this must be here to avoid trashing alloca'ed retframe */
@@ -315,7 +315,7 @@ static int messagesReceivedCount;
 
   void decoder (int argnum, void *datum, const char *type)
     {
-      [aRmc decodeValueOfType:type
+      [aRmc decodeValueOfObjCType:type
 	    at:datum
 	    withName:NULL];
       /* We need this "dismiss" to happen here and not later so that Coder
@@ -338,7 +338,7 @@ static int messagesReceivedCount;
 	    [op encodeObject:*(id*)datum withName:ENCODED_RETNAME];
 	  break;
 	default:
-	  [op encodeValueOfType:type at:datum withName:ENCODED_RETNAME];
+	  [op encodeValueOfObjCType:type at:datum withName:ENCODED_RETNAME];
 	}
     }
 
@@ -349,7 +349,7 @@ static int messagesReceivedCount;
      exactly what qualifiers the forwarder used.
      If all selectors included qualifiers and I could make sel_types_match() 
      work the way I wanted, we wouldn't need to do this. */
-  [aRmc decodeValueOfSimpleType:@encode(char*) 
+  [aRmc decodeValueOfCType:@encode(char*) 
 	at:&forward_type 
 	withName:NULL];
 
@@ -665,15 +665,15 @@ static int messagesReceivedCount;
 	newEncodingWithConnection:self
 	sequenceNumber:seq_num
 	identifier:METHODTYPE_REQUEST];
-  [op encodeValueOfType:":"
+  [op encodeValueOfObjCType:":"
       at:&sel
       withName:NULL];
-  [op encodeValueOfSimpleType:@encode(unsigned) 
+  [op encodeValueOfCType:@encode(unsigned) 
       at:&target
       withName:NULL];
   [op dismiss];
   ip = [self newReceivedReplyRmcWithSequenceNumber:seq_num];
-  [ip decodeValueOfSimpleType:@encode(char*) 
+  [ip decodeValueOfCType:@encode(char*) 
       at:&type
       withName:NULL];
   [ip dismiss];
@@ -695,10 +695,10 @@ static int messagesReceivedCount;
 	sequenceNumber:[rmc sequenceNumber]
 	identifier:METHODTYPE_REPLY];
 
-  [rmc decodeValueOfType:":"
+  [rmc decodeValueOfObjCType:":"
        at:&sel
        withName:NULL];
-  [rmc decodeValueOfSimpleType:@encode(unsigned)
+  [rmc decodeValueOfCType:@encode(unsigned)
        at:&target
        withName:NULL];
   /* xxx We should make sure that TARGET is a valid object. */
@@ -711,7 +711,7 @@ static int messagesReceivedCount;
     type = m->method_types;
   else
     type = "";
-  [op encodeValueOfSimpleType:@encode(char*)
+  [op encodeValueOfCType:@encode(char*)
       at:&type
       withName:"Requested Method Type for Target"];
   [op dismiss];

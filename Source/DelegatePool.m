@@ -53,7 +53,7 @@
 
 - (void) encodeWithCoder: anEncoder
 {
-  [anEncoder encodeValueOfSimpleType:@encode(unsigned char)
+  [anEncoder encodeValueOfCType:@encode(unsigned char)
 	     at:&_send_behavior
 	     withName:"DelegatePool Send Behavior"];
   [anEncoder encodeObject:_list
@@ -65,7 +65,7 @@
   /* xxx Should be:
      DelegatePool *n = NSAllocateObject(self, 0, [aDecoder objectZone]); */
   DelegatePool *n = (id) NSAllocateObject(self, 0, NS_NOZONE);
-  [aDecoder decodeValueOfSimpleType:@encode(unsigned char)
+  [aDecoder decodeValueOfCType:@encode(unsigned char)
 	    at:&(n->_send_behavior)
 	    withName:NULL];
   [aDecoder decodeObjectAt:&(n->_list)

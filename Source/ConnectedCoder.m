@@ -60,10 +60,10 @@ static BOOL debug_connected_coder = NO;
   newsp->connection = c;
   newsp->sequence_number = n;
   newsp->identifier = i;
-  [newsp encodeValueOfSimpleType:@encode(typeof(newsp->sequence_number))
+  [newsp encodeValueOfCType:@encode(typeof(newsp->sequence_number))
 	 at:&(newsp->sequence_number)
 	 withName:"ConnectedCoder sequence number"];
-  [newsp encodeValueOfSimpleType:@encode(typeof(newsp->identifier))
+  [newsp encodeValueOfCType:@encode(typeof(newsp->identifier))
 	 at:&(newsp->identifier)
 	 withName:"ConnectedCoder identifier"];
   return newsp;
@@ -113,10 +113,10 @@ static BOOL debug_connected_coder = NO;
   newsp->connection = [Connection newForInPort:inPort
 				  outPort:newsp->remotePort
 				  ancestorConnection:c];
-  [newsp decodeValueOfSimpleType:@encode(typeof(newsp->sequence_number))
+  [newsp decodeValueOfCType:@encode(typeof(newsp->sequence_number))
 	 at:&(newsp->sequence_number)
 	 withName:NULL];
-  [newsp decodeValueOfSimpleType:@encode(typeof(newsp->identifier))
+  [newsp decodeValueOfCType:@encode(typeof(newsp->identifier))
 	 at:&(newsp->identifier)
 	 withName:NULL];
 

@@ -51,7 +51,7 @@
 - (void) encodeValueOfObjCType: (const char*)type
    at: (const void*)address;
 {
-  [self encodeValueOfType:type at:address 
+  [self encodeValueOfObjCType:type at:address 
 	withName:NULL];
 }
 
@@ -85,7 +85,7 @@
 - (void) decodeValueOfObjCType: (const char*)type
    at: (void*)address
 {
-  [self decodeValueOfType:type at:address 
+  [self decodeValueOfObjCType:type at:address 
 	withName:NULL];
 }
 

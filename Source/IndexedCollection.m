@@ -1064,12 +1064,12 @@
   const char *encoding = [self contentType];
   void archiveElement(elt e)
     {
-      [coder encodeValueOfType:encoding
+      [coder encodeValueOfObjCType:encoding
 	     at:elt_get_ptr_to_member(encoding, &e)
 	     withName:"IndexedCollection Element"];
     }
 
-  [coder encodeValueOfSimpleType:@encode(unsigned int)
+  [coder encodeValueOfCType:@encode(unsigned int)
 	 at:&count
 	 withName:"IndexedCollection Contents Count"];
   [self withElementsCall:archiveElement];
@@ -1081,12 +1081,12 @@
   elt newElement;  
   const char *encoding = [self contentType];
 
-  [coder decodeValueOfSimpleType:@encode(unsigned int)
+  [coder decodeValueOfCType:@encode(unsigned int)
 	 at:&count
 	 withName:NULL];
   for (i = 0; i < count; i++)
     {
-      [coder decodeValueOfType:encoding
+      [coder decodeValueOfObjCType:encoding
 	     at:elt_get_ptr_to_member(encoding, &newElement)
 	     withName:NULL];
       [self appendElement:newElement];
