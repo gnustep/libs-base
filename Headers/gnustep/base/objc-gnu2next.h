@@ -230,6 +230,12 @@ list_free(struct objc_list* list)
     }
 }
 
+/* GNU Object.[hm] defines -compare:, NeXT doesn't, libobjects needs it. */
+@interface Object (GNUExtensions)
+- (int)compare:anotherObject;
+- shouldNotImplement:(SEL)op;
+@end
+
 #endif /* NeXT_runtime */
 
 #endif /* __objc_gnu2next_h_INCLUDE_GNU */
