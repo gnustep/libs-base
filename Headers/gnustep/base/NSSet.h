@@ -1,5 +1,5 @@
 /* Interface for NSSet, NSMutableSet, NSCountedSet for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Created: Sep 1995
@@ -36,7 +36,7 @@
 + setWithObject: anObject;
 + setWithObjects: (NSArray*)objects, ...;
 - initWithArray: (NSArray*)array;
-- initWithObjects: (NSArray*)objects, ...;
+- initWithObjects: (id)objects, ...;
 - initWithObjects: (id*)objects
 	    count: (unsigned)count;
 - initWithSet: (NSSet*)otherSet;
