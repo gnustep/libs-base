@@ -1,3 +1,15 @@
+Tue Jun 25 13:31:12 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Tools/AGSHtml.m: Tidy up autorelease pool macros so that it
+	compiles with gc=yes and old compilers.
+	* Tools/AGSParser.m: Idem.
+	* Tools/AGSOutput.m: Idem.
+	* Tools/HTMLLinker.m: Idem.
+	* Tools/autogsdoc.m: Idem.
+	* Tools/gdnc.m: Idem.
+	* Tools/gsdoc.m: Idem.
+	* Tools/make_strings/make_strings.m: Idem.	
+
 Tue Jun 25 13:13:00 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/Additions/GSMime.m ([-rawMimeData:]): Create the
