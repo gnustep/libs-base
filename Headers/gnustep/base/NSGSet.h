@@ -27,6 +27,7 @@
 #include <objects/stdobjects.h>
 #include <Foundation/NSSet.h>
 #include <objects/Set.h>
+#include <objects/Bag.h>
 #include <objects/elt.h>
 
 @interface NSGSet : NSSet
@@ -41,12 +42,24 @@
 
 @interface NSGMutableSet : NSMutableSet
 {
-  /* For now, these must match the instance variables in objects/Array.h.
+  /* For now, these must match the instance variables in objects/Set.h.
      This will change. */
   coll_cache_ptr _contents_hash;	// a hashtable to hold the contents;
   int (*_comparison_function)(elt,elt);
 }
 
 @end
+
+@interface NSGCountedSet : NSCountedSet
+{
+  /* For now, these must match the instance variables in objects/Bag.h.
+     This will change. */
+  coll_cache_ptr _contents_hash;	// a hashtable to hold the contents;
+  int (*_comparison_function)(elt,elt);
+  unsigned int count;
+}
+
+@end
+
 
 #endif /* __NSGSet_h_OBJECTS_INCLUDE */
