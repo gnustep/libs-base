@@ -316,12 +316,14 @@ _itowa_word (unsigned long value, unichar *buflim,
 static unichar *
 _i18n_number_rewrite (unichar *w, unichar *rear_ptr, NSString *locale_digits)
 {
-  unichar *src, *s;
+  unichar	*src;
+  unichar	*s;
+  unichar	buf[10];
+  unichar	*ld = 0;
 
   /* Copy existing string so that nothing gets overwritten.  */
   src = (unichar *) alloca ((rear_ptr - w) * sizeof (unichar));
-  s = (unichar *) memcpy (src, w,
-			    (rear_ptr - w) * sizeof (unichar));
+  s = (unichar *) memcpy (src, w, (rear_ptr - w) * sizeof (unichar));
   w = rear_ptr;
 
   /* Process all characters in the string.  */
@@ -329,12 +331,21 @@ _i18n_number_rewrite (unichar *w, unichar *rear_ptr, NSString *locale_digits)
     {
       if (*s >= '0' && *s <= '9')
 	{
-	    if (!locale_digits || ![locale_digits length] == 10) locale_digits = @"0123456789";
-
-	    *--w = [locale_digits characterAtIndex: *s - '0'];
+	  if (ld == 0)
+	    {
+	      if (!locale_digits || [locale_digits length] != 10)
+		{
+		  locale_digits = @"0123456789";
+		}
+	      [locale_digits getCharacters: buf];
+	      ld = buf;
+	    }
+	  *--w = ld[*s - '0'];
 	}
       else
-	*--w = *s;
+	{
+	  *--w = *s;
+	}
     }
 
   return w;
@@ -1247,7 +1258,8 @@ NSDictionary *locale)
 				       thousands_sep);
 
 	      if (use_outdigits && base == 10)
-		string = _i18n_number_rewrite (string, workend, [locale objectForKey: NSDecimalDigits]);
+		string = _i18n_number_rewrite
+		  (string, workend, [locale objectForKey: NSDecimalDigits]);
 	    }
 	  /* Simplify further test for num != 0.  */
 	  number.word = number.longlong != 0;
@@ -1293,7 +1305,8 @@ NSDictionary *locale)
 				       thousands_sep);
 
 	      if (use_outdigits && base == 10)
-		string = _i18n_number_rewrite (string, workend, [locale objectForKey: NSDecimalDigits]);
+		string = _i18n_number_rewrite
+		  (string, workend, [locale objectForKey: NSDecimalDigits]);
 	    }
 	}
 
@@ -1453,11 +1466,22 @@ NSDictionary *locale)
 	 */
 	if (decimal_sep != nil)
 	  {
-	    NSDictionary	*def = GSDomainFromDefaultLocale();
-	    NSString		*sep = [def objectForKey: NSDecimalSeparator];
+	    static NSString	*sep = nil;
 
 	    if (sep == nil)
-	      sep = @".";
+	      {
+		char	buf[32];
+		char	*from = buf;
+		char	*to;
+
+		sprintf(buf, "%g", 1.2);
+		if (*from == '1') from++;
+		to = from;
+		while (*to != '\0' && *to != '2')
+		  to++;
+		*to = '\0';
+		sep = [[NSString alloc] initWithCString: from];
+	      }
 	    if ([decimal_sep isEqual: sep] == NO && [sep length] == 1)
 	      {
 		unichar	m = [sep characterAtIndex: 0];

@@ -1,3 +1,9 @@
+2005-02-21 20:30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFormat.m: Modified code to rewrite output to use correct
+	decimal separator for locale (hopefully).  Also made a small
+	performance improvement in processing digits for output.
+
 2005-02-21 14:30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFormat.m:
