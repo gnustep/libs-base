@@ -420,7 +420,8 @@ static Class	runLoopClass;
 
       if (addrNum >= [addrs count])
 	{
-	  NSLog(@"run out of addresses to try (tried %d)", addrNum);
+	  NSLog(@"run out of addresses to try (tried %d) for port %@",
+	    addrNum, aPort);
 	  return NO;
 	}
       addr = [[addrs objectAtIndex: addrNum++] cString];
@@ -1095,7 +1096,7 @@ static Class		tcpPortClass;
   if (multi_threaded == NO)
     {
       NSMapEnumerator	pEnum;
-      GSTcpPort		*p;
+      NSMapTable	*m;
       void		*dummy;
 
       multi_threaded = YES;
@@ -1104,21 +1105,31 @@ static Class		tcpPortClass;
 	  tcpPortLock = [NSRecursiveLock new];
 	}
       pEnum = NSEnumerateMapTable(tcpPortMap);
-      while (NSNextMapEnumeratorPair(&pEnum, &dummy, (void**)&p))
+      while (NSNextMapEnumeratorPair(&pEnum, &dummy, (void**)&m))
 	{
-	  NSMapEnumerator	hEnum;
-	  GSTcpHandle		*h;
+	  NSMapEnumerator	mEnum;
+	  GSTcpPort		*p;
 
-	  if (p->myLock == nil)
+	  mEnum = NSEnumerateMapTable(m);
+	  while (NSNextMapEnumeratorPair(&mEnum, &dummy, (void**)&p))
 	    {
-	      p->myLock = [NSRecursiveLock new];
-	    }
-	  hEnum = NSEnumerateMapTable(p->handles);
-	  while (NSNextMapEnumeratorPair(&hEnum, &dummy, (void**)&h))
-	    {
-	      if (h->myLock == nil)
+	      if ([p isValid] == YES)
 		{
-		  h->myLock = [NSRecursiveLock new];
+		  NSMapEnumerator	hEnum;
+		  GSTcpHandle		*h;
+
+		  if (p->myLock == nil)
+		    {
+		      p->myLock = [NSRecursiveLock new];
+		    }
+		  hEnum = NSEnumerateMapTable(p->handles);
+		  while (NSNextMapEnumeratorPair(&hEnum, &dummy, (void**)&h))
+		    {
+		      if ([h isValid] == YES && h->myLock == nil)
+			{
+			  h->myLock = [NSRecursiveLock new];
+			}
+		    }
 		}
 	    }
 	}
@@ -1135,7 +1146,7 @@ static Class		tcpPortClass;
     {
       tcpPortClass = self;
       tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
-			NSNonOwnedPointerMapValueCallBacks, 0);
+	NSNonOwnedPointerMapValueCallBacks, 0);
 
       if ([NSThread isMultiThreaded])
 	{
