@@ -469,7 +469,7 @@ dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(DYNAMIC_LINKER)-load.h dynamic-load.h
 
-objects/stdobjects.h: Makefile.in objects/stdobjects.h.in
+objects/stdobjects.h: $(srcdir)/../Version objects/stdobjects.h.in
 	rm -f $(srcdir)/objects/stdobjects.h
 	sed -e 's/@OBJECTS_VERSION@/$(OBJECTS_VERSION)/' \
 	< $(srcdir)/objects/stdobjects.h.in | \
@@ -494,7 +494,9 @@ AUTHORS: Makefile.in
 	@echo 'For the legal record, here is a list of who wrote what:'>AUTHORS
 	@for a in $(FILE_AUTHORS) \
 	; do \
-		echo "\n\n$${a}:\n" >>AUTHORS; \
+		echo >>AUTHORS; \
+		echo >>AUTHORS; \
+		echo "$${a}:" >>AUTHORS; \
 		egrep -l "((Written by)|(Author)).*$${a}" \
 			$(DIST_FILES) >>AUTHORS; \
 	done
