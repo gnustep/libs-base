@@ -239,15 +239,15 @@ AC_CHECK_LIB(nsl, main)
 # Make a shared library?
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(shared, "Build libobjects as a shared library",
-        LIBOBJECTS_A_OR_SO=libobjects.so
-	SHAREDLIB_CFLAGS=-fPIC
-	SHAREDLIB_ARFLAGS=-shared,
-        LIBOBJECTS_A_OR_SO=libobjects.a
-	SHAREDLIB_CFLAGS=
-	SHAREDLIB_ARFLAGS=)
+        LIBOBJECTS_A_OR_SO='libobjects.so.$(OBJECTS_VERSION)'
+	USING_SHAREDLIB_CFLAGS='$(SHAREDLIB_CFLAGS)'
+	USING_SHAREDLIB_ARFLAGS='$(SHAREDLIB_ARFLAGS)',
+    LIBOBJECTS_A_OR_SO=libobjects.a
+    USING_SHAREDLIB_CFLAGS=
+    USING_SHAREDLIB_ARFLAGS=)
 AC_SUBST(LIBOBJECTS_A_OR_SO)
-AC_SUBST(SHAREDLIB_CFLAGS)
-AC_SUBST(SHAREDLIB_ARFLAGS)
+AC_SUBST(USING_SHAREDLIB_CFLAGS)
+AC_SUBST(USING_SHAREDLIB_ARFLAGS)
 
 
 #--------------------------------------------------------------------
