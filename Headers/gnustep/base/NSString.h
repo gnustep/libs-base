@@ -282,6 +282,14 @@ enum {
 @protocol NSMutableString <NSString>
 
 // Creating Temporary Strings
++ (id) string;
++ (id) stringWithCharacters: (const unichar*)chars
+		     length: (unsigned int)length;
++ (id) stringWithCString: (const char*)byteString
+		  length: (unsigned int)length;
++ (id) stringWithCString: (const char*) byteString;
++ (id) stringWithFormat: (NSString*)format,...;
++ (id) stringWithContentsOfFile:(NSString *)path;
 + (NSMutableString*) stringWithCapacity: (unsigned)capacity;
 
 // Initializing Newly Allocated Strings
