@@ -6,6 +6,10 @@
 	* Source/NSConcreteNumber.m: ditto
 	* Source/GSFormat.m: Fix bug in formatting short integers - was trying
 	to treat them as full sized.
+	* headers/Foundation/NSString.h: Fix error in initWithFormat:locale:,...
+	* Source/NSString.m: ditto ... was missing varargs
+	* Documentation/gsdoc/NSNumber.gsdoc: document changes.
+	* Documentation/gsdoc/NSString.gsdoc: document changes.
 
 2001-11-09  Richard Frith-Macdonald <rfm@gnu.org>
 

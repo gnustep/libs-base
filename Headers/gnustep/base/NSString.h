@@ -123,7 +123,7 @@ enum {
 	        length: (unsigned int)length;
 - (id) initWithCString: (const char*)byteString;
 - (id) initWithString: (NSString*)string;
-- (id) initWithFormat: (NSString*)format,...;
+- (id) initWithFormat: (NSString*)format, ...;
 - (id) initWithFormat: (NSString*)format
 	    arguments: (va_list)argList;
 - (id) initWithData: (NSData*)data
@@ -252,7 +252,7 @@ enum {
 + (id) stringWithContentsOfURL: (NSURL*)anURL;
 + (id) stringWithUTF8String: (const char*)bytes;
 - (id) initWithFormat: (NSString*)format
-	       locale: (NSDictionary*)dictionary;
+	       locale: (NSDictionary*)dictionary, ...;
 - (id) initWithFormat: (NSString*)format
 	       locale: (NSDictionary*)dictionary
 	    arguments: (va_list)argList;
