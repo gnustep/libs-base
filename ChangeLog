@@ -1,3 +1,12 @@
+Mon Sep 15 21:27:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSHData.m: Fixed a couple of bugs occurring when allocation of
+	shared memory segments failed.  Also added class methods to query
+	and set the size of the blocks in which shared memory is allocated.
+
+	* src/include/NSHData.h: Added class methods for query and set of size
+	of shared memory allocation blocks.
+
 Sat Sep 13 10:05:57 1997  Scott Christley  <scottc@net-community.com>
 
 	* The GNU tools for building a DLL on Windows only allow functions

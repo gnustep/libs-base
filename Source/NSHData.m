@@ -111,12 +111,11 @@ o_vscanf (void *stream,
  *	is set from nsdata_vm_threshold when the object is created.
  *	This can be modified by using the [-setVMThreshold:] method.
  *
- *	Shared memory is allocated in LARGE chunks.  Perhapos the chunk size
- *	should be a class variable?
+ *	Shared memory is allocated in LARGE chunks.  This size can be adjusted
+ *	using the [+setVMChunk:] method.
  */
 static int	nsdata_vm_threshold = 2048; /* Use shared mem for big buffer. */
-
-#define	VM_CHUNK	262144	/* 256 Kbyte chunks	*/
+static int	nsdata_vm_chunk = 262144;
 
 /* Making these nested functions (which is what I'd like to do) is
    crashing the va_arg stuff in vscanf().  Why? */
@@ -782,9 +781,36 @@ static void unchar_func(void *s, int c)
 /*
  *	GNUstep extensions to NSData (for Streaming)
  */
-+ (void) setVMThreshold:(unsigned int)s
++ (void) setVMChunk:(int)newValue
 {
-  nsdata_vm_threshold = s;
+  if (newValue < 256)
+    {
+      newValue = 256;
+    }
+  if (newValue % 256)
+    {
+      newValue = ((newValue >> 8) + 1) << 8;
+    }
+  nsdata_vm_chunk = newValue;
+}
+
++ (void) setVMThreshold:(int)newValue
+{
+  if (newValue < 256)
+    {
+      newValue = 256;
+    }
+  nsdata_vm_threshold = newValue;
+}
+
++ (int)vmChunk
+{
+  return nsdata_vm_chunk;
+}
+
++ (int)vmThreshold
+{
+  return nsdata_vm_threshold;
 }
 
 - (void) close
@@ -875,6 +901,7 @@ static void unchar_func(void *s, int c)
 		close(fd);
 		if (buffer == MAP_FAILED)
 		  {
+		    buffer = 0;
 		    [self dealloc];
 		    return nil;
 		  }
@@ -892,8 +919,8 @@ static void unchar_func(void *s, int c)
 		struct shmid_ds	buf;
 
 		if ([self isWritable])
-		  if (s % VM_CHUNK)
-		    s = ((s / VM_CHUNK) + 1) * VM_CHUNK;
+		  if (s % nsdata_vm_chunk)
+		    s = ((s / nsdata_vm_chunk) + 1) * nsdata_vm_chunk;
 		m = shmget(IPC_PRIVATE, s, IPC_CREAT|VM_ACCESS);
 		if (m == -1)			/* Created memory? */
 		  {
@@ -902,8 +929,9 @@ static void unchar_func(void *s, int c)
 		  }
 		buffer = shmat(m, 0, 0);
 		shmctl(m, IPC_RMID, &buf);	/* Mark for later deletion. */
-		if ((int)buffer == -1)		/* Attached memory? */
+		if (buffer == (char*)-1)
 		  {
+		    buffer = 0;
 		    [self dealloc];
 		    return nil;
 		  }
@@ -926,8 +954,9 @@ static void unchar_func(void *s, int c)
 		    return nil;
 		  }
 		buffer = shmat(m, 0, 0);
-		if (buffer == 0)
+		if (buffer == (char*)-1)
 		  {
+		    buffer = 0;
 		    [self dealloc];	/* Unable to attach to memory. */
 		    return nil;
 		  }
@@ -1136,7 +1165,12 @@ static void unchar_func(void *s, int c)
   return position;
 }
 
-- (unsigned int)vmThreshold
+- (void)setVMThreshold: (int)size
+{
+  // Do nothing.
+}
+
+- (int)vmThreshold
 {
   return nsdata_vm_threshold;
 }
@@ -1518,7 +1552,8 @@ static void unchar_func(void *s, int c)
 	  int		shmid;
 	  char*		b;
 
-	  if (s % VM_CHUNK) s = ((s / VM_CHUNK) + 1) * VM_CHUNK;
+	  if (s % nsdata_vm_chunk)
+	    s = ((s / nsdata_vm_chunk) + 1) * nsdata_vm_chunk;
 	  shmid = shmget(IPC_PRIVATE, s, IPC_CREAT|VM_ACCESS);
 	  if (shmid == -1)			/* Created memory? */
 	    [NSException raise:NSMallocException
@@ -1556,8 +1591,10 @@ static void unchar_func(void *s, int c)
   [super setStreamEofPosition:i];
 }
 
-- (void) setVMThreshold:(unsigned int)s
+- (void) setVMThreshold:(int)s
 {
+  if (s < 256)
+    s = 256;
   vm_threshold = s;
   /* Force change in memory allocation if appropriate.	*/
   [self setStreamBufferCapacity:size];
@@ -1568,7 +1605,7 @@ static void unchar_func(void *s, int c)
   return buffer;
 }
 
-- (unsigned int)vmThreshold
+- (int)vmThreshold
 {
   return vm_threshold;
 }
