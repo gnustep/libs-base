@@ -4625,7 +4625,7 @@ nodeToObject(GSXMLNode* node)
       return nil;
     }
   name = [node name];
-  children = [node children];
+  children = [node firstChild];
   content = [children content];
   children = elementNode(children);
 
@@ -4917,7 +4917,7 @@ GSPropertyList(NSString *string)
 	    [[[parser document] root] name]];
 	  return nil;
 	}
-      pl = RETAIN(nodeToObject([[[parser document] root] children]));
+      pl = RETAIN(nodeToObject([[[parser document] root] firstChild]));
       return AUTORELEASE(pl);
     }
 #endif

@@ -1,3 +1,10 @@
+2002-05-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: Fix a few errors in last changes.
+	* Source/NSString.m: Updates for GSXML changes.
+	* Tools/AGSHtml.m: Updates for GSXML changes.
+	* Tools/AGSIndex.m: Updates for GSXML changes.
+
 2002-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSXML.h: Add _parent ivars
