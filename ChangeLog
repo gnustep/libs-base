@@ -1,4 +1,11 @@
-2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
+2002-02-26  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
+
+	* Source/NSUnarchiver.m 
+	([NSUnarchiver +classNameDecodedForArchiveClassName:]): 
+	([NSUnarchiver -classNameDecodedForArchiveClassName:]): 
+	return nil if the class name is not present.
+
+2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m: Fixes to work on mingw.
 	* Source/NSHost.m: Update for current winsock on mingw.
@@ -7,7 +14,7 @@
 	* Tools/gdomap.c: many changes ... several fixes to work on mingw
 	rewrite some clumsy inefficient code, make variables and functions
 	local. etc.
-	* Source/NSUnarchiver.m: ([versionForClassNameL]) return NSNotFound
+	* Source/NSUnarchiver.m: ([versionForClassName:]) return NSNotFound
 	if the class name was not present.
 
 Mon Feb 25 15:26:38 2002  Nicola Pero  <nicola@brainstorm.co.uk>

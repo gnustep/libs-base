@@ -1037,8 +1037,13 @@ static Class NSDataMallocClass;
 + (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive
 {
   NSUnarchiverClassInfo	*info = [clsDict objectForKey: nameInArchive];
-  NSString		*alias = info->name;
+  NSString		*alias;
 
+  if (info == nil)
+    {
+      return nil;
+    }
+  alias = info->name;
   if (alias)
     {
       return alias;
@@ -1074,8 +1079,13 @@ static Class NSDataMallocClass;
 - (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive
 {
   NSUnarchiverObjectInfo	*info = [objDict objectForKey: nameInArchive];
-  NSString			*alias = mapClassName(info);
+  NSString			*alias;
 
+  if (info == nil)
+    {
+      return nil;
+    }
+  alias = mapClassName(info);
   if (alias)
     {
       return alias;
