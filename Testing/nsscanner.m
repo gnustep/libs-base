@@ -170,6 +170,138 @@ testScanInt (void)
 
 /*
  ************************************************************************
+ *                         scanRadixUnsignedInt:                        *
+ ************************************************************************
+ */
+
+/*
+ * Test a valid scanRadixUnsignedInt operation
+ */
+void
+testScanRadixUnsignedIntFinish (NSString *string, BOOL expectValue, unsigned int expectedValue, unsigned int expectedScanLocation)
+{
+    NSScanner *scanner;
+    unsigned int value;
+
+    scanner = [NSScanner scannerWithString:string];
+    if ([scanner scanRadixUnsignedInt:&value]) {
+	if (!expectValue)
+	    printf ("scanRadixUnsignedInt of `%s' succeeded.\n", [string cString]);
+	else if (value != expectedValue)
+	    printf ("scanRadixUnsignedInt of `%s' returned value %u (%#x).\n", [string cString], value, value);
+    }
+    else {
+	if (expectValue)
+	    printf ("scanRadixUnsignedInt of `%s' failed.\n", [string cString]);
+    }
+    if (expectedScanLocation != [scanner scanLocation])
+	printf ("scanRadixUnsignedInt of `%s' moved scan location to %lu (expected %lu)\n", [scanner scanLocation], expectedScanLocation);
+    [scanner release];
+}
+
+/*
+ * Test a valid scanRadixUnsignedInt operation
+ */
+void
+testScanRadixUnsignedIntGood (NSString *format, unsigned int i)
+{
+    NSString *string;
+
+    if (format == nil) {
+	testScanRadixUnsignedIntGood (@"%u", i);
+	testScanRadixUnsignedIntGood (@"0%o", i);
+	testScanRadixUnsignedIntGood (@"0x%x", i);
+	testScanRadixUnsignedIntGood (@"0X%X", i);
+	return;
+    }
+    string = [NSString stringWithFormat:format, i];
+    testScanRadixUnsignedIntFinish (string, YES, i, [string length]);
+    [string release];
+}
+
+/*
+ * Verify that scanRadixUnsignedInt handles overflow
+ */
+void
+testScanRadixUnsignedIntOverflow (double d)
+{
+    NSString *string;
+    NSScanner *scanner;
+    unsigned int value;
+
+    string = [NSString stringWithFormat:@"%.0f", d];
+    scanner = [NSScanner scannerWithString:string];
+    if (![scanner scanRadixUnsignedInt:&value])
+	printf ("scanRadixUnsignedInt of `%s' failed.\n", [string cString]);
+    else if (value != UINT_MAX)
+	printf ("scanRadixUnsignedInt of `%s' didn't overflow, returned %u (%#x).\n", [string cString], value, value);
+    testFullScan ("scanRadixUnsignedInt", string, scanner);
+    [string release];
+    [scanner release];
+}
+
+/*
+ * Test scanRadixUnsignedInt operation
+ */
+void
+testScanRadixUnsignedInt (void)
+{
+    unsigned int i;
+
+    /*
+     * I added this check so I can use the same test program on
+     * NEXTSTEP/OPENSTEP which doesn't have the scanRadixUnsignedInt:
+     * method.
+     */
+    if (![NSScanner instancesRespondTo:@selector(scanRadixUnsignedInt:)]) {
+	printf ("NSScanner objects do not respond to scanRadixUnsignedInt:\n");
+	return;
+    }
+	
+    /*
+     * Check values within range
+     */
+    i = UINT_MAX-32;
+    for (;;) {
+	testScanRadixUnsignedIntGood (nil, i);
+	if (i == UINT_MAX)
+		break;
+	i++;
+    }
+    for (i = 0 ; i <= 32 ; i++)
+	testScanRadixUnsignedIntGood (nil, i);
+
+    /*
+     * Check overflow values
+     */
+    for (i = 1 ; i <= 32 ; i++) {
+	testScanRadixUnsignedIntOverflow ((double)UINT_MAX + i);
+	testScanRadixUnsignedIntOverflow ((2.0 * (double)UINT_MAX) + i);
+	testScanRadixUnsignedIntOverflow ((2.0 * (double)UINT_MAX) - i);
+	testScanRadixUnsignedIntOverflow ((10.0 * (double)UINT_MAX) + i);
+	testScanRadixUnsignedIntOverflow ((10.0 * (double)UINT_MAX) - i);
+    }
+
+    /*
+     * Check that non-digits terminate the scan
+     */
+    testScanRadixUnsignedIntFinish (@"1234FOO", YES, 1234, 4);
+    testScanRadixUnsignedIntFinish (@"01234FOO", YES, 01234, 5);
+    testScanRadixUnsignedIntFinish (@"0x1234FOO", YES, 0x1234F, 7);
+    testScanRadixUnsignedIntFinish (@"0X1234FOO", YES, 0x1234F, 7);
+    testScanRadixUnsignedIntFinish (@"012348FOO", YES, 01234, 5);
+    testScanRadixUnsignedIntFinish (@"012349FOO", YES, 01234, 5);
+
+    /*
+     * Check that non-digits don't move the scan location
+     */
+    testScanRadixUnsignedIntFinish (@"FOO", NO, 0, 0);
+    testScanRadixUnsignedIntFinish (@"  FOO", NO, 0, 0);
+    testScanRadixUnsignedIntFinish (@"  0x ", NO, 0, 0);
+}
+
+/*
+ ************************************************************************
  *                          scanLongLong:                               *
  ************************************************************************
  */
@@ -737,6 +869,7 @@ main (int argc, char **argv)
 	}
 
     testScanInt ();
+    testScanRadixUnsignedInt ();
 #if defined (LONG_LONG_MAX)
     testScanLongLong ();
 #endif
