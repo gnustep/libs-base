@@ -1,3 +1,14 @@
+Thu Mar 21 19:27:56 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/BinaryCStream.m: Overhauled to use htonl() and friends.  New
+ 	format is incompatible with the old.
+
+	* checks/Makefile.in (SRCS): Add coder.m and cstream.m.
+
+Wed Mar 20 13:21:16 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (CC): Added -pipe.
+
 Tue Mar 19 12:10:44 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* checks/server.m: Use new RunLoop mechanism, and new Array method
