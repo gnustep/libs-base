@@ -503,7 +503,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 		}
 	      p = NSZoneRealloc(NSDefaultMallocZone(), b, size);
 	      s = (NSString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
-	      s = (*csInitImp)(s, csInitSel, b, size-1, YES);
+	      s = (*csInitImp)(s, csInitSel, p, size, YES);
 	    }
 	  else
 	    {
