@@ -1,3 +1,8 @@
+2001-06-26  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSUserDefaults.m (+userLanguages): On MingW systems, check
+	locale for language name.
+
 2001-06-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSerializer.m: While deserializing, check strings to see
