@@ -2,6 +2,9 @@
 
 	* Source/NSDate.m: Implement -hash for abstract class and for the
 	concrete subclasses as suggested by Marcus Muller.
+	* Headers/Foundation/NSDebug.h: Add GSOnceFLog() and GSOnceMLog()
+	to log messages the first time the code is executed ... typical
+	usage is to log warnings about deprecated features.
 
 2004-05-21  Adam Fedor  <fedor@gnu.org>
 
