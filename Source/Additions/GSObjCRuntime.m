@@ -2140,6 +2140,8 @@ NSArray *GSObjCAllSubclassesOfClass(Class cls)
 #ifdef GNU_RUNTIME
       for (aClass = cls->subclass_list; aClass; aClass=aClass->sibling_class)
 	{
+	  if (CLS_ISMETA(aClass))
+	    continue;
 	  [result addObject:aClass];
 	  [result addObjectsFromArray: GSObjCAllSubclassesOfClass(aClass)];
 	}
@@ -2166,6 +2168,8 @@ NSArray *GSObjCDirectSubclassesOfClass(Class cls)
 #ifdef GNU_RUNTIME
       for (aClass = cls->subclass_list;aClass;aClass=aClass->sibling_class)
 	{
+	  if (CLS_ISMETA(aClass))
+	    continue;
 	  [result addObject:aClass];
 	}
 #else
