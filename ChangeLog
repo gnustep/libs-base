@@ -1,5 +1,10 @@
 2001-01-10  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Unicode.m: Fix bug in checking possible default string
+	encodings . reported by Stefan Urbanek
+
+2001-01-10  Richard Frith-Macdonald <rfm@gnu.org>
+
 	Tidyup by removing 'NonCore' categories.
 
 2001-01-09  Richard Frith-Macdonald <rfm@gnu.org>
