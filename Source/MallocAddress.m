@@ -33,8 +33,9 @@ static NSMapTable* mallocAddresses;
 {
   if (self == [MallocAddress class])
     {
-      mallocAddresses = NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
-					  NSObjectMapValueCallBacks, 0);
+      mallocAddresses = 
+	NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
+			  NSNonRetainedObjectMapValueCallBacks, 0);
     }
 }
 
