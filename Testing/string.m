@@ -1,10 +1,42 @@
-#include "objects/String.h"
+#include <foundation/NSString.h>
+
+/* For demo of Strings as Collections of char's. */
+#include <objects/NSString.h>
+
+void
+print_string(NSString* s)
+{
+  printf("The string [%s], length %d\n", [s cString], [s length]);
+}
 
 int main()
 {
   id s = @"This is a test string";
   id s2;
 
-  printf("The string [%s], length %d\n", [s cString], [s length]);
+  print_string(s);
+
+  s2 = [s stringByAppendingString:@" with something added"];
+  print_string(s2);
+
+  s2 = [s mutableCopy];
+  [s2 replaceCharactersInRange:((NSRange){10,4})
+      withString:@"changed"];
+  print_string(s2);
+
+  /* An example of treating a string like a Collection:  
+     Increment each char. */
+  {
+    id s3;
+    void rot13(elt c)
+      {
+	[s3 appendElement:(char)(c.char_u + 1)];
+      }
+
+    s3 = [NSMutableString stringWithCapacity:[s2 length]];
+    [s2 withElementsCall:rot13];
+    print_string(s3);
+  }
+  
   exit(0);
 }
