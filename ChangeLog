@@ -1,5 +1,11 @@
 2001-08-21  Adam Fedor  <fedor@gnu.org>
 
+	* Resources/English.lproj/Localizable.strings: New file
+	* Resources/German.lproj/Localizable.strings: Likewise.
+	* Resources/French.lproj/Localizable.strings: Likewise.
+	* Resources/GNUmakefile: Install them. (files from 
+	michael.scheibler@onevision.de)
+	
 	* config/config.loadtest.m: Make Test inheret from Object 
 	(Darwin objc checks that classes implement forward::).
 	* config/config.objc.m: Likewise.

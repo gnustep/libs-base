@@ -31,15 +31,18 @@ include $(GNUSTEP_MAKEFILES)/common.make
 resourcedir = $(GNUSTEP_RESOURCES)
 languagedir = $(GNUSTEP_RESOURCES)/Languages
 
-LANGUAGES = \
+LANGUAGES = English German French
+
+LOCALIZED_RESOURCE_FILES = Localizable.strings
+
+LANGUAGE_FILES = \
 Languages/Dutch \
 Languages/English \
 Languages/French  \
 Languages/German  \
 Languages/Italian
 
-
-LANGUAGE_INSTALL_FILES = $(LANGUAGES) Languages/Locale.aliases
+LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases
 
 -include GNUmakefile.local
 
@@ -48,3 +51,4 @@ LANGUAGE_INSTALL_FILES = $(LANGUAGES) Languages/Locale.aliases
 include $(GNUSTEP_MAKEFILES)/rules.make
 
 -include GNUmakefile.postamble
+
