@@ -178,31 +178,47 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     {
       free(_gnu_arg_zero);
     }
-  _gnu_arg_zero = (char*)malloc(strlen(argv[0]) + 1);
-  strcpy(_gnu_arg_zero, argv[0]);
+
+  if (argv)
+      {
+      _gnu_arg_zero = (char*)malloc(strlen(argv[0]) + 1);
+      strcpy(_gnu_arg_zero, argv[0]);
+      }
+  else
+      {
+      _gnu_arg_zero = (char*)malloc(1);
+      _gnu_arg_zero[0] = '\0';
+      }
 
   /* Getting the process name */
   IF_NO_GC(RELEASE(_gnu_processName));
-  _gnu_processName = [[NSString stringWithCString: argv[0]] lastPathComponent];
+  _gnu_processName = [[NSString stringWithCString: _gnu_arg_zero] lastPathComponent];
   IF_NO_GC(RETAIN(_gnu_processName));
 
 
   /* Copy the argument list */
   {
+    NSString            *str;
     NSMutableSet	*mySet;
     id			obj_argv[argc];
-    int			added = 0;
+    int			added = 1;
 
     mySet = [NSMutableSet new];
-    for (i = 0; i < argc; i++) 
+
+    /* Copy the zero'th argument to the argument list */
+    str = [NSString stringWithCString: _gnu_arg_zero];
+    obj_argv[0] = str;
+    
+    for (i = 1; i < argc; i++) 
       {
-	NSString	*str = [NSString stringWithCString: argv[i]];
+	str = [NSString stringWithCString: argv[i]];
 
 	if ([str hasPrefix: @"--GNU-Debug="])
 	  [mySet addObject: [str substringFromIndex: 12]];
 	else
           obj_argv[added++] = str;
       }
+
     IF_NO_GC(RELEASE(_gnu_arguments));
     _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
     IF_NO_GC(RELEASE(_debug_set));

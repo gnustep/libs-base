@@ -1,3 +1,8 @@
+2003-02-18  Tom Koelman <tkoelman@xs4all.nl>
+
+	* Source/NSProcessInfo.m (_gnu_process_args): If argv is 0 (e.g.
+	on MingW) set executable name to empty string.
+
 2003-02-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: (fillHole) fix memory overrun (read only) and
