@@ -33,6 +33,8 @@
 #include	<Foundation/GSMime.h>
 #include	<string.h>
 
+static	NSCharacterSet	*specials = nil;
+
 /*
  *	Name -		decodebase64()
  *	Purpose -	Convert 4 bytes in base64 encoding to 3 bytes raw data.
@@ -186,112 +188,9 @@ parseCharacterSet(NSString *token)
   return NSASCIIStringEncoding;
 }
 
-
-/*
- *	Name -		scanValue()
- *	Purpose -	Get a mime field value - token or quoted string.
- */
-static NSString*
-scanValue(NSScanner *scanner)
-{
-  if ([scanner scanString: @"\"" intoString: 0] == YES)
-    {
-      NSString	*string = [scanner string];
-      unsigned	length = [string length];
-      unsigned	start = [scanner scanLocation];
-      NSRange	r = NSMakeRange(start, length - start);
-      BOOL	done = NO;
-
-      while (done == NO)
-	{
-	  r = [string rangeOfString: @"\""
-			    options: NSLiteralSearch
-			      range: r];
-	  if (r.length == 0)
-	    {
-	      NSLog(@"Parsing header value - found unterminated quoted string");
-	      return nil;
-	    }
-	  if ([string characterAtIndex: r.location - 1] == '\\')
-	    {
-	      r.location++;
-	      r.length = length - r.location;
-	    }
-	  else
-	    {
-	      done = YES;
-	    }
-	}
-      [scanner setScanLocation: r.length + 1];
-      length = r.location - start;
-      if (length == 0)
-	{
-	  return [NSString string];
-	}
-      else
-	{
-	  unichar	buf[length];
-	  unichar	*src = buf;
-	  unichar	*dst = buf;
-
-	  [string getCharacters: buf range: NSMakeRange(start, length)];
-	  while (src < &buf[length])
-	    {
-	      if (*src == '\\')
-		{
-		  src++;
-		}
-	      *dst++ = *src++;
-	    }
-	  return [NSString stringWithCharacters: buf length: dst - buf];
-	}
-    }
-  else
-    {
-      static NSCharacterSet	*specials = nil;
-      NSCharacterSet		*skip;
-      NSString			*value;
-
-      if (specials == nil)
-	{
-	  NSMutableCharacterSet	*m = [[NSMutableCharacterSet alloc] init];
-
-	  [m formUnionWithCharacterSet:
-	    [NSCharacterSet characterSetWithCharactersInString:
-	    @"()<>@,;:/[]?=\"\\"]];
-	  [m formUnionWithCharacterSet:
-	    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-	  [m formUnionWithCharacterSet:
-	    [NSCharacterSet controlCharacterSet]];
-	  [m formUnionWithCharacterSet:
-	    [NSCharacterSet illegalCharacterSet]];
-	  specials = [m copy];
-	}
-
-      /*
-       * Move past white space.
-       */
-      skip = RETAIN([scanner charactersToBeSkipped]);
-      [scanner setCharactersToBeSkipped: nil];
-      [scanner scanCharactersFromSet: skip intoString: 0];
-      [scanner setCharactersToBeSkipped: skip];
-      RELEASE(skip);
-
-      /*
-       * Scan value.
-       */
-      if ([scanner scanUpToCharactersFromSet: specials
-				  intoString: &value] == NO)
-	{
-	  return nil;
-	}
-      return value;
-    }
-}
-
 @interface GSMimeParser (Private)
+- (BOOL) _decodeBody: (NSData*)boundary;
 - (NSString*) _decodeHeader;
-- (BOOL) _parseBody;
 - (BOOL) _unfoldHeader;
 @end
 
@@ -305,6 +204,7 @@ scanValue(NSScanner *scanner)
 - (void) dealloc
 {
   RELEASE(data);
+  RELEASE(child);
   RELEASE(document);
   [super dealloc];
 }
@@ -342,6 +242,8 @@ scanValue(NSScanner *scanner)
     }
   if ([d length] > 0)
     {
+      NSData	*boundary;
+
       [data appendBytes: [d bytes] length: [d length]];
       bytes = (unsigned char*)[data mutableBytes];
       dataEnd = [data length];
@@ -366,6 +268,16 @@ scanValue(NSScanner *scanner)
 		}
 	    }
 	}
+
+      /*
+       * If we have a multipart document, we must feed the data to
+       * a child parser to decode the subsidiary parts.
+       */
+      boundary = [document boundary];
+      if (boundary != nil)
+	{
+	  [self _decodeBody: boundary];
+	}
       return YES;	/* Want more data for body */
     }
   else
@@ -374,7 +286,7 @@ scanValue(NSScanner *scanner)
 
       if (inBody == YES)
 	{
-	  result = [self _parseBody];
+	  result = [self _decodeBody: [document boundary]];
 	}
       else
 	{
@@ -544,10 +456,8 @@ scanValue(NSScanner *scanner)
   return hdr;
 }
 
-- (BOOL) _parseBody
+- (BOOL) _decodeBody: (NSData*)boundary
 {
-  NSData	*boundary = [document boundary];
-
   if (boundary == nil)
     {
       NSDictionary	*typeInfo;
@@ -558,6 +468,7 @@ scanValue(NSScanner *scanner)
       if ([type isEqualToString: @"multipart"] == YES)
 	{
 	  NSLog(@"multipart decode attempt without boundary");
+	  return NO;
 	}
       else
 	{
@@ -701,7 +612,10 @@ scanValue(NSScanner *scanner)
 	      decoded = data;
 	    }
 
-	  if ([type isEqualToString: @"text"] == YES)
+	  /*
+	   * If no content type is supplied, we assume text.
+	   */
+	  if (type == nil || [type isEqualToString: @"text"] == YES)
 	    {
 	      NSDictionary	*params;
 	      NSString		*charset;
@@ -722,69 +636,115 @@ scanValue(NSScanner *scanner)
 	  else
 	    {
 	      /*
-	       * Assume that content type is best represented as NSData.
+	       * Assume that any non-text content type is best
+	       * represented as NSData.
 	       */
 	      decoded = [decoded copy]; /* Ensure it's immutable */
 	      [document setContent: decoded];
 	      RELEASE(decoded);
 	    }
+	  return YES;
 	}
     }
   else
     {
       unsigned	int	bLength = [boundary length];
       unsigned char	*bBytes = (unsigned char*)[boundary bytes];
+      BOOL		done = NO;
 
-      /*
-       * Search our data for the initial boundary.
-       */
-      while (dataEnd - lineStart < bLength)
+      while (done == NO)
 	{
-	  if (memcmp(&bytes[lineStart], bBytes, bLength) == 0)
+	  /*
+	   * Search our data for the next boundary.
+	   */
+	  while (dataEnd - lineStart < bLength)
 	    {
-	      if (lineStart == 0 || bytes[lineStart-1] == '\r'
-		|| bytes[lineStart-1] == '\n')
+	      if (memcmp(&bytes[lineStart], bBytes, bLength) == 0)
 		{
-		  lineEnd = lineStart + bLength;
-		  break;
+		  if (lineStart == 0 || bytes[lineStart-1] == '\r'
+		    || bytes[lineStart-1] == '\n')
+		    {
+		      lineEnd = lineStart + bLength;
+		      break;
+		    }
 		}
+	      lineStart++;
 	    }
-	  lineStart++;
-	}
-      if (dataEnd - lineStart < bLength)
-	{
-	  return NO;	/* Needs more data.	*/
-	} 
+	  if (dataEnd - lineStart < bLength)
+	    {
+	      done = YES;	/* Needs more data.	*/
+	    } 
+	  else if (child == nil)
+	    {
+	      /*
+	       * Found boundary at the start of the first section.
+	       * Set sectionStart to point immediately after boundary.
+	       */
+	      lineStart += bLength;
+	      sectionStart = lineStart;
+	      child = [GSMimeParser new];
+	    }
+	  else
+	    {
+	      NSData		*d;
 
-      if (sectionStart == 0)
-	{
-	  /*
-	   * Found boundary at the start of a section.
-	   * Set sectionStart to point immediately after boundary.
-           */
-	  lineStart += bLength;
-	  sectionStart = lineStart;
-	}
-      else
-	{
-	  NSData	*d;
+	      /*
+	       * Found boundary at the end of a section.
+	       * Skip past line terminator for boundary at start of section.
+	       */
+	      if (bytes[sectionStart] == '\r')
+		sectionStart++;
+	      if (bytes[sectionStart] == '\n')
+		sectionStart++;
 
-	  /*
-	   * Found boundary at the end of a section.
-	   * Skip past line terminator four boundary at start of section.
-           */
-	  if (bytes[sectionStart] == '\r')
-	    sectionStart++;
-	  if (bytes[sectionStart] == '\n')
-	    sectionStart++;
-	  d = [NSData dataWithBytes: &bytes[sectionStart]
-			     length: lineStart - sectionStart];
-/*
- * FIXME - get subsidiary parser to parse the section
- */
-	  lineStart += bLength;
-	  sectionStart = lineStart;
+	      /*
+	       * Create data object for this section and pass it to the
+	       * child parser to deal with.
+	       */
+	      d = [NSData dataWithBytes: &bytes[sectionStart]
+				 length: lineStart - sectionStart];
+	      if ([child parse: d] == YES && [child parse: nil] == YES)
+		{
+		  NSMutableArray	*a;
+
+		  /*
+		   * Store the document produced by the child, and
+		   * create anew parser for the next section.
+	           */
+		  a = [document content];
+		  if (a == nil)
+		    {
+		      a = [NSMutableArray new];
+		      [document setContent: a];
+		      RELEASE(a);
+		    }
+		  [a addObject: [child document]];
+		  RELEASE(child);
+		  child = [GSMimeParser new];
+		}
+	      else
+		{
+		  /*
+		   * Section failed to decode properly!
+		   */
+		  NSLog(@"Failed to decode section of multipart");
+		  RELEASE(child);
+		  child = [GSMimeParser new];
+		}
+
+	      /*
+	       * Update parser data.
+	       */
+	      lineStart += bLength;
+	      sectionStart = lineStart;
+	      memcpy(bytes, &bytes[sectionStart], dataEnd - sectionStart);
+	      [data setLength: dataEnd];
+	      bytes = (unsigned char*)[data mutableBytes];
+	      lineStart -= sectionStart;
+	      sectionStart = 0;
+	    }
 	}
+      return YES;
     }
   return NO;
 }
@@ -1136,6 +1096,25 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
 
 @implementation	GSMimeDocument
 
++ (void) initialize
+{
+  if (self == [GSMimeDocument class])
+    {
+      NSMutableCharacterSet	*m = [[NSMutableCharacterSet alloc] init];
+
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet characterSetWithCharactersInString:
+	@"()<>@,;:/[]?=\"\\"]];
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet controlCharacterSet]];
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet illegalCharacterSet]];
+      specials = [m copy];
+    }
+}
+
 + (GSMimeDocument*) mimeDocument
 {
   return AUTORELEASE([[self alloc] init]);
@@ -1213,6 +1192,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   desc = [NSMutableString stringWithFormat: @"GSMimeDocument <%0x> -\n", self];
   locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   [desc appendString: [headers descriptionWithLocale: locale]];
+  [desc appendFormat: @"\nDocument content -\n%@", content];
   return desc;
 }
 
@@ -1286,7 +1266,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
    */
   if ([name isEqualToString: @"mime-version"] == YES)
     {
-      value = scanValue(scanner);
+      value = [self scanToken: scanner];
       if ([value length] == 0)
 	{
 	  NSLog(@"Bad value for mime-version header");
@@ -1295,7 +1275,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
     }
   else if ([name isEqualToString: @"content-transfer-encoding"] == YES)
     {
-      value = scanValue(scanner);
+      value = [self scanToken: scanner];
       if ([value length] == 0)
 	{
 	  NSLog(@"Bad value for content-transfer-encoding header");
@@ -1308,7 +1288,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
       NSString	*type;
       NSString	*subtype = nil;
 
-      type = scanValue(scanner);
+      type = [self scanToken: scanner];
       if ([type length] == 0)
 	{
 	  NSLog(@"Invalid Mime content-type");
@@ -1318,7 +1298,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
       [info setObject: type forKey: @"Type"];
       if ([scanner scanString: @"/" intoString: 0] == YES)
 	{
-	  subtype = scanValue(scanner);
+	  subtype = [self scanToken: scanner];
 	  if ([subtype length] == 0)
 	    {
 	      NSLog(@"Invalid Mime content-type (subtype)");
@@ -1337,7 +1317,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
 	{
 	  NSString	*paramName;
 
-	  paramName = scanValue(scanner);
+	  paramName = [self scanToken: scanner];
 	  if ([paramName length] == 0)
 	    {
 	      NSLog(@"Invalid Mime content-type (parameter name)");
@@ -1347,7 +1327,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
 	    {
 	      NSString	*paramValue;
 
-	      paramValue = scanValue(scanner);
+	      paramValue = [self scanToken: scanner];
 	      if (paramValue == nil)
 		{
 		  paramValue = @"";
@@ -1367,14 +1347,14 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
     }
   else if ([name isEqualToString: @"content-disposition"] == YES)
     {
-      value = scanValue(scanner);
+      value = [self scanToken: scanner];
       value = [value lowercaseString];
       /*
        *	Concatenate slash separated parts of field.
        */
       while ([scanner scanString: @"/" intoString: 0] == YES)
 	{
-	  NSString	*sub = scanValue(scanner);
+	  NSString	*sub = [self scanToken: scanner];
 
 	  if ([sub length] > 0)
 	    {
@@ -1390,7 +1370,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
 	{
 	  NSString	*paramName;
 
-	  paramName = scanValue(scanner);
+	  paramName = [self scanToken: scanner];
 	  if ([paramName length] == 0)
 	    {
 	      NSLog(@"Invalid Mime content-type (parameter name)");
@@ -1400,7 +1380,7 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
 	    {
 	      NSString	*paramValue;
 
-	      paramValue = scanValue(scanner);
+	      paramValue = [self scanToken: scanner];
 	      if (paramValue == nil)
 		{
 		  paramValue = @"";
@@ -1429,6 +1409,121 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
       [info setObject: parameters forKey: @"Parameters"];
     }
   return YES;
+}
+
+- (NSString*) scanSpecial: (NSScanner*)scanner
+{
+  NSCharacterSet	*skip;
+  unsigned		location;
+  unichar		c;
+
+  /*
+   * Move past white space.
+   */
+  skip = RETAIN([scanner charactersToBeSkipped]);
+  [scanner setCharactersToBeSkipped: nil];
+  [scanner scanCharactersFromSet: skip intoString: 0];
+  [scanner setCharactersToBeSkipped: skip];
+  RELEASE(skip);
+
+  /*
+   * Now return token delimiter (may be whitespace)
+   */
+  location = [scanner scanLocation];
+  c = [[scanner string] characterAtIndex: location];
+
+  if ([specials characterIsMember: c] == YES)
+    {
+      [scanner setScanLocation: location + 1];
+      return [NSString stringWithCharacters: &c length: 1];
+    }
+  else
+    {
+      return @" ";
+    }
+}
+
+/*
+ *	Get a mime field value - token or quoted string.
+ */
+- (NSString*) scanToken: (NSScanner*)scanner
+{
+  if ([scanner scanString: @"\"" intoString: 0] == YES)		// Quoted
+    {
+      NSString	*string = [scanner string];
+      unsigned	length = [string length];
+      unsigned	start = [scanner scanLocation];
+      NSRange	r = NSMakeRange(start, length - start);
+      BOOL	done = NO;
+
+      while (done == NO)
+	{
+	  r = [string rangeOfString: @"\""
+			    options: NSLiteralSearch
+			      range: r];
+	  if (r.length == 0)
+	    {
+	      NSLog(@"Parsing header value - found unterminated quoted string");
+	      return nil;
+	    }
+	  if ([string characterAtIndex: r.location - 1] == '\\')
+	    {
+	      r.location++;
+	      r.length = length - r.location;
+	    }
+	  else
+	    {
+	      done = YES;
+	    }
+	}
+      [scanner setScanLocation: r.length + 1];
+      length = r.location - start;
+      if (length == 0)
+	{
+	  return nil;
+	}
+      else
+	{
+	  unichar	buf[length];
+	  unichar	*src = buf;
+	  unichar	*dst = buf;
+
+	  [string getCharacters: buf range: NSMakeRange(start, length)];
+	  while (src < &buf[length])
+	    {
+	      if (*src == '\\')
+		{
+		  src++;
+		}
+	      *dst++ = *src++;
+	    }
+	  return [NSString stringWithCharacters: buf length: dst - buf];
+	}
+    }
+  else							// Token
+    {
+      NSCharacterSet		*skip;
+      NSString			*value;
+
+      /*
+       * Move past white space.
+       */
+      skip = RETAIN([scanner charactersToBeSkipped]);
+      [scanner setCharactersToBeSkipped: nil];
+      [scanner scanCharactersFromSet: skip intoString: 0];
+      [scanner setCharactersToBeSkipped: skip];
+      RELEASE(skip);
+
+      /*
+       * Scan value terminated by any special character.
+       */
+      if ([scanner scanUpToCharactersFromSet: specials
+				  intoString: &value] == NO)
+	{
+	  return nil;
+	}
+      return value;
+    }
 }
 
 - (BOOL) setContent: (id)newContent
@@ -1508,7 +1603,11 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   /*
    * Position scanner after colon and any white space.
    */
-  [scanner scanString: @":" intoString: 0];
+  if ([scanner scanString: @":" intoString: 0] == NO)
+    {
+      NSLog(@"No colon terminating name in header (%@)", [scanner string]);
+      return nil;
+    }
   skip = RETAIN([scanner charactersToBeSkipped]);
   [scanner setCharactersToBeSkipped: nil];
   [scanner scanCharactersFromSet: skip intoString: 0];
@@ -1519,13 +1618,14 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
    * Set remainder of header as a default value.
    */
   scanLocation = [scanner scanLocation];
-  value = scanValue(scanner);
-  while ((token = scanValue(scanner)) != nil)
+  [info setObject: [[scanner string] substringFromIndex: scanLocation]
+	   forKey: @"BaseValue"];
+  value = [self scanToken: scanner];
+  while ((token = [self scanToken: scanner]) != nil)
     {
       value = [value stringByAppendingFormat: @" %@", token];
     }
   [scanner setScanLocation: scanLocation];
-  [info setObject: value forKey: @"BaseValue"];
   value = [value lowercaseString];
   [info setObject: value forKey: @"Value"];
 

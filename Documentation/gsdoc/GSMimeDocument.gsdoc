@@ -59,6 +59,7 @@
 	    Create an empty MIME document.
           </desc>
         </method>
+
         <method type="BOOL">
           <sel>addHeader:</sel>
           <arg type="NSString*">aHeader</arg>
@@ -69,6 +70,7 @@
 	    added after all other headers in the document.
           </desc>
         </method>
+
         <method type="NSData*">
           <sel>boundary</sel>
           <desc>
@@ -77,6 +79,7 @@
 	    Otherwise, return nil.
           </desc>
         </method>
+
         <method type="id">
           <sel>content</sel>
           <desc>
@@ -92,6 +95,7 @@
 	    </deflist>
           </desc>
         </method>
+
         <method type="void">
           <sel>deleteHeader:</sel>
           <arg type="NSString*">aHeader</arg>
@@ -100,6 +104,7 @@
 	    exactly matches the supplied string.
 	  </desc>
 	</method>
+
         <method type="void">
           <sel>deleteHeaderNamed:</sel>
           <arg type="NSString*">aName</arg>
@@ -108,6 +113,7 @@
 	    matches the supplied string.
 	  </desc>
 	</method>
+
         <method type="NSArray">
           <sel>infoForAllHeaders</sel>
           <desc>
@@ -115,6 +121,7 @@
 	    represent all the headers of the document.
 	  </desc>
 	</method>
+
         <method type="NSDictionary*">
           <sel>infoForHeaderNamed:</sel>
           <arg type="NSString*">aName</arg>
@@ -123,6 +130,7 @@
 	    whose name equals the supplied argument.
 	  </desc>
 	</method>
+
         <method type="NSArray*">
           <sel>infoForHeadersNamed:</sel>
           <arg type="NSString*">aName</arg>
@@ -131,6 +139,7 @@
 	    whose names equal the supplied argument.
 	  </desc>
 	</method>
+
         <method type="BOOL">
           <sel>parseHeader:</sel>
           <arg type="NSScanner*">aScanner</arg>
@@ -157,6 +166,33 @@
 	    </p>
 	  </desc>
 	</method>
+
+        <method type="NSString*">
+          <sel>scanSpecial:</sel>
+          <arg type="NSScanner*">aScanner</arg>
+          <desc>
+	    A convenience method to use a scanner (that is set up to scan a
+	    header line) to scan in a special character that terminated a
+	    token previously scanned.  If the token was terminated by
+	    whitespace and no other special character, the string returned
+	    will contain a single space character.
+	  </desc>
+	</method>
+
+        <method type="NSString*">
+          <sel>scanToken:</sel>
+          <arg type="NSScanner*">aScanner</arg>
+          <desc>
+	    A convenience method to use a scanner (that is set up to scan a
+	    header line) to scan a header token - either a quoted string or
+	    a simple word.
+	    <list>
+	      <item>Leading whitespace is ignored.</item>
+	      <item>Backslash escapes in quoted text are converted</item>
+	    </list>
+	  </desc>
+	</method>
+
         <method type="BOOL">
           <sel>setContent:</sel>
           <arg type="id">newContent</arg>
@@ -164,6 +200,7 @@
 	    Sets a new value for the content of the document.
 	  </desc>
 	</method>
+
         <method type="BOOL">
           <sel>setHeader:</sel>
           <arg type="NSString*">aHeader</arg>
@@ -176,6 +213,7 @@
 	    the document.
           </desc>
         </method>
+
       </class>
     </chapter>
   </body>

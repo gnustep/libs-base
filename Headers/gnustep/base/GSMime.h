@@ -27,11 +27,17 @@
 #ifndef __GSMIME_H__
 #define __GSMIME_H__
 
-#include	<Foundation/NSArray.h>
-#include	<Foundation/NSData.h>
-#include	<Foundation/NSDictionary.h>
-#include	<Foundation/NSString.h>
-#include	<Foundation/NSScanner.h>
+#include	<Foundation/NSObject.h>
+
+@class	NSArray;
+@class	NSMutableArray;
+@class	NSData;
+@class	NSMutableData;
+@class	NSDictionary;
+@class	NSMutableDictionary;
+@class	NSScanner;
+@class	NSString;
+@class	NSMutableString;
 
 @interface	GSMimeDocument : NSObject
 {
@@ -53,6 +59,8 @@
 - (BOOL) parseHeader: (NSScanner*)aScanner
 	       named: (NSString*)name
 		inTo: (NSMutableDictionary*)info;
+- (NSString*) scanSpecial: (NSScanner*)aScanner;
+- (NSString*) scanToken: (NSScanner*)aScanner;
 - (BOOL) setContent: (id)newContent;
 - (BOOL) setHeader: (NSString*)aHeader;
 
@@ -69,6 +77,7 @@
   unsigned		input;
   BOOL			inBody;
   GSMimeDocument	*document;
+  GSMimeParser		*child;
 }
 
 + (GSMimeParser*) mimeParser;

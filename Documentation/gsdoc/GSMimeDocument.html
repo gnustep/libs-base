@@ -80,8 +80,10 @@
 <li><a href ="GSMimeDocument.html#method-7">-infoForHeaderNamed:</a>
 <li><a href ="GSMimeDocument.html#method-8">-infoForHeadersNamed:</a>
 <li><a href ="GSMimeDocument.html#method-9">-parseHeader:named:inTo:</a>
-<li><a href ="GSMimeDocument.html#method-10">-setContent:</a>
-<li><a href ="GSMimeDocument.html#method-11">-setHeader:</a>
+<li><a href ="GSMimeDocument.html#method-10">-scanSpecial:</a>
+<li><a href ="GSMimeDocument.html#method-11">-scanToken:</a>
+<li><a href ="GSMimeDocument.html#method-12">-setContent:</a>
+<li><a href ="GSMimeDocument.html#method-13">-setHeader:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">mimeDocument</a></h3>
@@ -186,13 +188,36 @@
 
 	  
  <hr>
-<h3><a name ="method-10">setContent:</a></h3>
+<h3><a name ="method-10">scanSpecial:</a></h3>
+- (NSString*) <b>scanSpecial:</b> (NSScanner*)aScanner;<br>
+
+	    A convenience method to use a scanner (that is set up to scan a
+	    header line) to scan in a special character that terminated a
+	    token previously scanned.  If the token was terminated by
+	    whitespace and no other special character, the string returned
+	    will contain a single space character.
+	  
+ <hr>
+<h3><a name ="method-11">scanToken:</a></h3>
+- (NSString*) <b>scanToken:</b> (NSScanner*)aScanner;<br>
+
+	    A convenience method to use a scanner (that is set up to scan a
+	    header line) to scan a header token - either a quoted string or
+	    a simple word.
+	    <ul>
+<li>Leading whitespace is ignored.
+<li>Backslash escapes in quoted text are converted
+</ul>
+
+	  
+ <hr>
+<h3><a name ="method-12">setContent:</a></h3>
 - (BOOL) <b>setContent:</b> (id)newContent;<br>
 
 	    Sets a new value for the content of the document.
 	  
  <hr>
-<h3><a name ="method-11">setHeader:</a></h3>
+<h3><a name ="method-13">setHeader:</a></h3>
 - (BOOL) <b>setHeader:</b> (NSString*)aHeader;<br>
 
 	    This method may be called to set a header in the document.
