@@ -89,8 +89,6 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 
 GNU_MFILES = \
 Array.m \
-AutoreleasePool.m \
-AutoreleaseStack.m \
 Bag.m \
 BinaryCoder.m \
 BinaryTree.m \
@@ -120,7 +118,6 @@ MappedCollector.m \
 MemoryStream.m \
 MutableCString.m \
 MutableString.m \
-ObjectRetaining.m \
 Port.m \
 Proxy.m \
 Queue.m \
@@ -180,8 +177,6 @@ GNUSTEP_OBJS =  $(GNUSTEP_MFILES:.m=.o) $(GNUSTEP_CFILES:.c=.o)
 
 GNU_HEADERS = \
 objects/Array.h \
-objects/AutoreleasePool.h \
-objects/AutoreleaseStack.h \
 objects/ArrayPrivate.h \
 objects/Bag.h \
 objects/BinaryCoder.h \
@@ -220,7 +215,6 @@ objects/Locking.h \
 objects/Magnitude.h \
 objects/MappedCollector.h \
 objects/MemoryStream.h \
-objects/ObjectRetaining.h \
 objects/Ordering.h \
 objects/Port.h \
 objects/Proxy.h \
