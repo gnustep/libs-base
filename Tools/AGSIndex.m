@@ -353,6 +353,25 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   mergeDictionaries(refs, more, flag);
 }
 
+- (NSMutableArray*) methodsInUnit: (NSString*)aUnit
+{
+  NSDictionary		*d = [refs objectForKey: @"method"];
+  NSEnumerator		*e = [d keyEnumerator];
+  NSMutableArray	*a = [NSMutableArray array];
+  NSString		*k;
+
+  while ((k = [e nextObject]) != nil)
+    {
+      NSDictionary	*m = [d objectForKey: k];
+
+      if ([m objectForKey: aUnit] != nil)
+	{
+	  [a addObject: k];
+	}
+    }
+  return a;
+}
+
 - (NSMutableDictionary*) refs
 {
   return refs;
