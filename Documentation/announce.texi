@@ -66,6 +66,8 @@ to write a test suite using dejagnu.
   i386-unknown-linux
   i386-sun-solaris2.4
   i386-unknown-sysv4.0
+  Ultrix 4.2
+  HP/UX 9.01
 @end smallexample
 
 It is known not to work with:
