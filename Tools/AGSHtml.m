@@ -455,10 +455,11 @@ static NSString		*mainFont = nil;
           [buf appendFormat: @"<b>%@</b>\n", title];
         }
       [buf appendString: indent];
-      if (!isBareStyle) {
-        [buf appendString: @"<ul>"];
-        [self incIndent];
-      }
+      if (!isBareStyle)
+	{
+	  [buf appendString: @"<ul>"];
+	  [self incIndent];
+	}
       [buf appendString: @"\n"];
 
       a = [dict allKeys];
@@ -526,11 +527,12 @@ static NSString		*mainFont = nil;
 
 	}
 
-      if (!isBareStyle) {
-        [self decIndent];
-        [buf appendString: indent];
-        [buf appendString: @"</ul>"];
-      }
+      if (!isBareStyle)
+	{
+	  [self decIndent];
+	  [buf appendString: indent];
+	  [buf appendString: @"</ul>"];
+	}
       [buf appendString: @"\n"];
     }
 }
@@ -2329,27 +2331,29 @@ static NSString		*mainFont = nil;
 
   if (node != nil && [[node name] isEqual: @"ivariable"] == YES)
     {
+      NSMutableString	*ibuf = buf;
+
       /*
        * If want instance variables at end, throw it all into an alternate
        * buffer and just put a link here; later alt buf must be appended.
        */
-      NSMutableString *ibuf = buf;
-      if (ivarsAtEnd) {
-        ibuf = ivarBuf;
-        [buf appendString: indent];
-        [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
-        [buf appendString: indent];
-        [buf appendFormat: @"<a href=\"#_%@_ivars\">Instance Variables</a>\n",
-                           classname];
-        [buf appendString: indent];
-        [buf appendString: @"<br/><br/>\n"];
-        [ibuf appendFormat: @"<a name=\"_%@_ivars\"/>"];
-      }
+      if (ivarsAtEnd)
+	{
+	  ibuf = ivarBuf;
+	  [buf appendString: indent];
+	  [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+	  [buf appendString: indent];
+	  [buf appendFormat: @"<a href=\"#_%@_ivars\">Instance Variables</a>\n",
+			     classname];
+	  [buf appendString: indent];
+	  [buf appendString: @"<br/><br/>\n"];
+	  [ibuf appendFormat: @"<a name=\"_%@_ivars\"/>", classname];
+	}
       [ibuf appendString: indent];
       [ibuf appendString: @"<br/><hr width=\"50%\" align=\"left\" />\n"];
       [ibuf appendString: indent];
       [ibuf appendFormat: @"<h2>Instance Variables for %@ Class</h2>\n",
-            classname];
+	classname];
       while (node != nil && [[node name] isEqual: @"ivariable"] == YES)
 	{
 	  [self outputNode: node to: ibuf];

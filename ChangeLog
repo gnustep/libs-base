@@ -1,3 +1,7 @@
+2004-07-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.h: Fix printf missing argument bug.
+
 2004-07-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: GSToUnicode() be strict about converting ASCII
