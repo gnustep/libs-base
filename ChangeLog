@@ -1,3 +1,10 @@
+2003-08-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: nodeToObject() fix error in handling escape
+	sequences in strings ... only treat a backslash specially when it
+	is immediately followed by 'U' or 'u' and four hexadecimal digits.
+	* Tools/plist-0_9.dtd: document unicode escapes.
+
 2003-08-02  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSProxy.m: Fix limit.h -> limits.h

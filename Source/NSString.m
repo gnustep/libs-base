@@ -5025,23 +5025,13 @@ nodeToObject(GSXMLNode* node)
 		{
 		  if (++pos < len)
 		    {
-		      if (buf[pos] == '/')
-			{
-			  len--;
-			  memcpy(&buf[pos], &buf[pos+1],
-			    (len - pos) * sizeof(unichar));
-			}
-		      else if (buf[pos] == 'u' || buf[pos] == 'U')
+		      if ((buf[pos] == 'u' || buf[pos] == 'U')
+			&& (len >= pos + 4))
 			{
 			  unichar	val = 0;
 			  unsigned	i;
+			  BOOL		ok = YES;
 
-			  if (len < pos + 4)
-			    {
-			      [NSException raise:
-				NSInternalInconsistencyException
-				format: @"Short escape sequence"];
-			    }
 			  for (i = 1; i < 5; i++)
 			    {
 			      unichar	c = buf[pos + i];
@@ -5060,60 +5050,21 @@ nodeToObject(GSXMLNode* node)
 				}
 			      else
 				{
-				  [NSException raise:
-				    NSInternalInconsistencyException
-				    format: @"bad hex escape sequence"];
+				  ok = NO;
 				}
 			    }
-			  len -= 5;
-			  memcpy(&buf[pos], &buf[pos+5],
-			    (len - pos) * sizeof(unichar));
-			  buf[pos - 1] = val;
-			}
-		      else if (buf[pos] >= '0' && buf[pos] <= '7')
-			{
-			  unichar	val = 0;
-			  unsigned	i;
-
-			  if (len < pos + 2)
+			  if (ok == YES)
 			    {
-			      [NSException raise: NSInternalInconsistencyException
-					  format: @"Short escape sequence"];
+			      len -= 5;
+			      memcpy(&buf[pos], &buf[pos+5],
+				(len - pos) * sizeof(unichar));
+			      buf[pos - 1] = val;
 			    }
-			  for (i = 0; i < 3; i++)
-			    {
-			      unichar	c = buf[pos + i];
-
-			      if (c >= '0' && c <= '7')
-				{
-				  val = (val << 3) + c - '0';
-				}
-			      else
-				{
-				  [NSException raise:
-				    NSInternalInconsistencyException
-				    format: @"bad octal escape sequence"];
-				}
-			    }
-			  len -= 3;
-			  memcpy(&buf[pos], &buf[pos+3],
-			    (len - pos) * sizeof(unichar));
-			  buf[pos - 1] = val;
-			}
-		      else
-			{
-			  [NSException raise: NSInternalInconsistencyException
-				      format: @"Short escape sequence"];
 			}
 		      while (pos < len && buf[pos] != '\\')
 			{
 			  pos++;
 			}
-		    }
-		  else
-		    {
-		      [NSException raise: NSInternalInconsistencyException
-				  format: @"Short escape sequence"];
 		    }
 		}
 	      content = [NSString stringWithCharacters: buf length: len];
