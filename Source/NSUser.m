@@ -259,9 +259,25 @@ NSHomeDirectoryForUser(NSString *loginName)
   if ([loginName isEqual: NSUserName()] == YES)
     {
       [gnustep_global_lock lock];
-      /* The environment variable USERPROFILE holds the home directory
-	 for the user on more modern versions of windoze. */
-      s = GSStringFromWin32EnvironmentVariable("USERPROFILE");
+      /*
+       * The environment variable HOMEPATH holds the home directory
+       * for the user on Windows NT; Win95 has no concept of home.
+       * For OPENSTEP compatibility (and because USERPROFILE is usually
+       * unusable because it contains spaces), we use HOMEPATH in
+       * preference to USERPROFILE.
+       */
+      s = GSStringFromWin32EnvironmentVariable("HOMEPATH");
+      if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
+	{
+	  s = [GSStringFromWin32EnvironmentVariable("HOMEDRIVE")
+	    stringByAppendingString: s];
+	}
+      if (s == nil)
+	{
+	  /* The environment variable USERPROFILE holds the home directory
+	     for the user on more modern versions of windoze. */
+	  s = GSStringFromWin32EnvironmentVariable("USERPROFILE");
+	}
       if (s != nil)
 	{
 	  const char	*str = [s cString];
@@ -270,21 +286,10 @@ NSHomeDirectoryForUser(NSString *loginName)
 	    {
 	      if (isspace(*str))
 		{
-		  s = nil;	// Whitespace not permitted in USERPROFILE
+		  s = nil;	// Whitespace not permitted in home directory
 		  break;
 		}
 	      str++;
-	    }
-	}
-      if (s == nil)
-	{
-	  /* The environment variable HOMEPATH holds the home directory
-	     for the user on Windows NT; Win95 has no concept of home. */
-	  s = GSStringFromWin32EnvironmentVariable("HOMEPATH");
-	  if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
-	    {
-	      s = [GSStringFromWin32EnvironmentVariable("HOMEDRIVE")
-		stringByAppendingString: s];
 	    }
 	}
       [gnustep_global_lock unlock];
