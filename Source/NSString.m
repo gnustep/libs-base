@@ -2478,7 +2478,7 @@ handle_printf_atsign (FILE *stream,
 
   if (fm == nil)
     {
-      fm = [NSFileManager defaultManager];
+      fm = RETAIN([NSFileManager defaultManager]);
     }
   
   return [fm fileSystemRepresentationWithPath: self];
@@ -2507,17 +2507,25 @@ handle_printf_atsign (FILE *stream,
 
   range = [self rangeOfCharacterFromSet: pathSeps() options: NSBackwardsSearch];
   if (range.length == 0)
-    substring = AUTORELEASE([self copy]);
+    {
+      substring = AUTORELEASE([self copy]);
+    }
   else if (range.location == ([self length] - 1))
     {
       if (range.location == 0)
-	substring = @"";
+	{
+	  substring = @"";
+	}
       else
-	substring = [[self substringToIndex: range.location] 
-		      lastPathComponent];
+	{
+	  substring = [[self substringToIndex: range.location] 
+	    lastPathComponent];
+	}
     }
   else
-    substring = [self substringFromIndex: range.location + 1];
+    {
+      substring = [self substringFromIndex: range.location + 1];
+    }
 
   return substring;
 }
@@ -2533,19 +2541,28 @@ handle_printf_atsign (FILE *stream,
 
   range = [self rangeOfString: @"." options: NSBackwardsSearch];
   if (range.length == 0) 
-    substring = nil;
+    {
+      substring = nil;
+    }
   else
     {
       NSRange range2 = [self rangeOfCharacterFromSet: pathSeps()
 					     options: NSBackwardsSearch];
+
       if (range2.length > 0 && range.location < range2.location)
-	substring = nil;
+	{
+	  substring = nil;
+	}
       else
-	substring = [self substringFromIndex: range.location + 1];
+	{
+	  substring = [self substringFromIndex: range.location + 1];
+	}
     }
 
-  if (!substring)
-    substring = @"";
+  if (substring == nil)
+    {
+      substring = @"";
+    }
   return substring;
 }
 
@@ -2947,13 +2964,19 @@ handle_printf_atsign (FILE *stream,
 	  r.location++;
 	}
       if ((r.length = [s length]) > r.location)
-	r.length -= r.location;
+	{
+	  r.length -= r.location;
+	}
       else
-	break;
+	{
+	  break;
+	}
     }
 
   if ([s isAbsolutePath] == NO)
-    return s;
+    {
+      return s;
+    }
 
   /* Remove `/private' */
   if ([s hasPrefix: @"/private"])
@@ -2996,11 +3019,18 @@ handle_printf_atsign (FILE *stream,
 	  [s deleteCharactersInRange: r];
 	}
       else
-	r.location++;
+	{
+	  r.location++;
+	}
+
       if ((r.length = [s length]) > r.location)
-	r.length -= r.location;
+	{
+	  r.length -= r.location;
+	}
       else
-	break;
+	{
+	  break;
+	}
     }
 
   return s;
@@ -3040,10 +3070,14 @@ handle_printf_atsign (FILE *stream,
 
   c = [components count];
   if (c == 0)
-    return @"";
+    {
+      return @"";
+    }
   s = [components objectAtIndex: 0];
   if ([s length] == 0 || [s isEqualToString: pathSepString] == YES)
-    s = rootPath;
+    {
+      s = rootPath;
+    }
   for (i = 1; i < c; i++)
     {
       s = [s stringByAppendingPathComponent: [components objectAtIndex: i]];
@@ -3061,6 +3095,7 @@ handle_printf_atsign (FILE *stream,
   if ([self indexOfString: @":"] == NSNotFound)
     {
       const char *cpath = [self fileSystemRepresentation];
+
       if (isalpha(cpath[0]) && cpath[1] == ':')
 	{
 	  return YES;

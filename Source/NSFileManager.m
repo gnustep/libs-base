@@ -1311,39 +1311,39 @@ static NSFileManager* defaultManager = nil;
 {
 #ifdef __MINGW__
   /*
-   * If path is in Unix format, transmorgrify it so Windows functions
+   * If path is in Unix format, transmogrify it so Windows functions
    * can handle it
    */  
   NSString	*newpath = path;
   const char	*c_path = [path cString];
-  int		len = [path length];
+  int		l = [path length];
 
   if (c_path == 0)
     {
       return 0;
     }
-  if (len >= 3 && c_path[0] == '/' && c_path[1] == '/' && isalpha(c_path[2]))
+  if (l >= 3 && c_path[0] == '/' && c_path[1] == '/' && isalpha(c_path[2]))
     {
-      if (len == 3 || c_path[3] == '/')
+      if (l == 3 || c_path[3] == '/')
         {
           /* Cygwin "//c/" type absolute path */
           newpath = [NSString stringWithFormat: @"%c:%s", c_path[2],
 	    &c_path[3]];
-          newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
         }
       else
         {
 	  /* Windows absolute UNC path "//name/" */
-          newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
+          newpath = path;
         }
     }
   else if (isalpha(c_path[0]) && c_path[1] == ':')
     {
-      /* Unix absolute path */
-      newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
+      /* Windows absolute path */
+      newpath = path;
     }
   else if (c_path[0] == '/')
     {
+#ifdef	__CYGWIN__
       NSDictionary	*env;
       NSString		*cyghome;
 
@@ -1354,10 +1354,29 @@ static NSFileManager* defaultManager = nil;
           /* FIXME: Find cygwin drive? */
 	  newpath = cyghome;
           newpath = [newpath stringByAppendingPathComponent: path];
-          newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
         }
+      else
+	{
+	  newpath = path;
+	}
+#else
+      if (l >= 3 && c_path[0] == '/' && c_path[2] == '/' && isalpha(c_path[1]))
+	{
+	  /* Mingw /drive/... format */
+          newpath = [NSString stringWithFormat: @"%c:%s", c_path[1],
+	    &c_path[3]];
+	}
+      else
+	{
+	  newpath = path;
+	}
+#endif
     }
-  /* FIXME: Should we translate relative paths? */
+  else
+    {
+      newpath = path;
+    }
+  newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
   return [newpath cString];
 #else
   return [path cString];

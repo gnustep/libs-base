@@ -1,6 +1,8 @@
 2002-04-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: re-order headers so config.h is used on windoze
+	* Source/NSFileManager.m: ([-fileSystemRepresentationWithPath:])
+	modified to handle MSYS paths with '/drive/' prefix.
 
 2002-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 
