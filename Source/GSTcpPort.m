@@ -462,10 +462,27 @@ static Class	runLoopClass;
     self, GSCurrentThread(), when);
   if (state != GS_H_UNCON)
     {
-      NSLog(@"attempting connect on connected handle");
+      BOOL	result;
+
+      if (state == GS_H_CONNECTED)	/* Already connected.	*/
+	{
+	  NSLog(@"attempting connect on connected handle");
+	  result = YES;
+	}
+      else if (state == GS_H_ACCEPT)	/* Impossible.	*/
+	{
+	  NSLog(@"attempting connect with accepting handle");
+	  result = NO;
+	}
+      else				/* Already connecting.	*/
+	{
+	  NSLog(@"attempting connect while connecting");
+	  result = NO;
+	}
       DO_UNLOCK(myLock);
-      return YES;	/* Already connected.	*/
+      return result;
     }
+
   if (recvPort == nil || aPort == nil)
     {
       NSLog(@"attempting connect with port(s) unset");
