@@ -103,7 +103,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 			  userInfo: (NSDictionary*)userInfo
 {
   return AUTORELEASE([[self alloc] initWithName: name reason: reason
-		      userInfo: userInfo]);
+				   userInfo: userInfo]);
 }
 
 + (void) raise: (NSString*)name
