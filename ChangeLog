@@ -1,3 +1,9 @@
+2004-11-11  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/Foundation/NSBundle.h (builtInPlugInsPath): New method.
+	* Source/NSBundle (builtInPlugInsPath): Imeplement (based on patch 
+	#3483).
+
 2004-11-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Retain the notification center we use.

@@ -261,6 +261,9 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Returns the absolute path to the resources directory of the bundle.  */
 - (NSString*) resourcePath;
 
+/** Returns the full path to the plug-in subdirectory of the bundle.  */
+- (NSString *)builtInPlugInsPath;
+
 /** Returns the bundle identifier, as defined by the CFBundleIdentifier
     key in the infoDictionary */
 - (NSString *)bundleIdentifier;
