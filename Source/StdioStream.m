@@ -196,6 +196,12 @@ stdio_unchar_func(void *s, int c)
   fclose(fp);
 }
 
+- (BOOL) isClosed
+{
+  /* xxx Ideas about a better way to do this? */
+  return (fstat(fp) == 0);
+}
+
 /* xxx Add "- (BOOL) isOpen" method? */
 
 - (void) rewindStream
