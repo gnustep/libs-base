@@ -229,7 +229,7 @@
 - (NSConnection*) connection: ancestor didConnect: newConn
 {
   printf("%s\n", sel_get_name(_cmd));
-  [NSNotificationCenter
+  [[NSNotificationCenter defaultCenter]
     addObserver: self
     selector: @selector(connectionBecameInvalid:)
     name: NSConnectionDidDieNotification
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 		    withRootObject:l];
   else
     c = [NSConnection newRegisteringAtName:@"test2server" withRootObject:l];
-  [NSNotificationCenter
+  [[NSNotificationCenter defaultCenter]
     addObserver: l
     selector: @selector(connectionBecameInvalid:)
     name: NSConnectionDidDieNotification

@@ -8,9 +8,9 @@ id announce_new_connection (id notification)
 {
   id in_port = [notification object];
   id out_port = [notification userInfo];
-  printf ("{%@}\n\tconnected to\n\t{%@}\n",
+  NSLog (@"{%@}\n\tconnected to\n\t{%@}\n",
 	  [out_port description], [in_port description]);
-  printf ("Now servicing %d connection(s).\n",
+  NSLog (@"Now servicing %d connection(s).\n",
 	  [in_port numberOfConnectedOutPorts]);
   return nil;
 }
@@ -19,9 +19,9 @@ id announce_broken_connection (id notification)
 {
   id in_port = [notification object];
   id out_port = [notification userInfo];
-  printf ("{%@}\n\tdisconnected from\n\t{%@}\n",
+  NSLog (@"{%@}\n\tdisconnected from\n\t{%@}\n",
 	  [out_port description], [in_port description]);
-  printf ("Now servicing %d connection(s).\n",
+  NSLog (@"Now servicing %d connection(s).\n",
 	  [in_port numberOfConnectedOutPorts]);
   return nil;
 }
@@ -58,12 +58,12 @@ int main (int argc, char *argv[])
   else
     port = [TcpInPort newForReceivingFromRegisteredName: @"tcpport-test"];
 
-  [NotificationDispatcher
+  [NSNotificationCenter
     addInvocation: [[ObjectFunctionInvocation alloc] 
 		     initWithObjectFunction: announce_broken_connection]
     name: InPortClientBecameInvalidNotification
     object: port];
-  [NotificationDispatcher
+  [NSNotificationCenter
     addInvocation: [[ObjectFunctionInvocation alloc] 
 		     initWithObjectFunction: announce_new_connection]
     name: InPortAcceptedClientNotification
