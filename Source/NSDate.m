@@ -33,6 +33,7 @@
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSScanner.h>
+#include <base/behavior.h>
 #include <base/fast.x>
 #ifndef __WIN32__
 #include <time.h>
@@ -57,10 +58,24 @@
 #define DISTANT_FUTURE	(DISTANT_YEARS * 365.0 * 24 * 60 * 60)
 #define DISTANT_PAST	(-DISTANT_FUTURE)
 
+
+
 static BOOL	debug = NO;
 static Class	abstractClass = nil;
 static Class	concreteClass = nil;
 static Class	calendarClass = nil;
+
+@interface	GSDateSingle : NSGDate
+@end
+
+@interface	GSDatePast : GSDateSingle
+@end
+
+@interface	GSDateFuture : GSDateSingle
+@end
+
+static NSDate	*_distantPast = nil;
+static NSDate	*_distantFuture = nil;
 
 
 static NSString*
@@ -833,18 +848,16 @@ GSTimeNow()
 
 + (id) distantFuture
 {
-  static id df = nil;
-  if (!df)
-    df = [[self alloc] initWithTimeIntervalSinceReferenceDate: DISTANT_FUTURE];
-  return df;
+  if (_distantFuture == nil)
+    return [GSDateFuture allocWithZone: 0];
+  return _distantFuture;
 }
 
 + (id) distantPast
 {
-  static id dp = nil;
-  if (!dp)
-    dp = [[self alloc] initWithTimeIntervalSinceReferenceDate: DISTANT_PAST];
-  return dp;
+  if (_distantPast == nil)
+    return [GSDatePast allocWithZone: 0];
+  return _distantPast;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -1177,4 +1190,123 @@ GSTimeNow()
 }
 
 @end
+
+
+
+/*
+ *	This abstract class represents a date of which there can be only
+ *	one instance.
+ */
+@implementation GSDateSingle
+
++ (void) initialize
+{
+  if (self == [GSDateSingle class])
+    {
+      [self setVersion: 1];
+      behavior_class_add_class(self, [NSGDate class]);
+    }
+}
+
+- (Class) classForPortCoder
+{
+  return [self class];
+}
+
+- replacementObjectForPortCoder: aRmc
+{
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder*)coder
+{
+}
+
+- (id) initWithCoder: (NSCoder*)coder
+{
+  return self;
+}
+
+- (void) autorelease
+{
+}
+
+- (void) release
+{
+}
+
+- (id) retain
+{
+  return self;
+}
+
+- (id) allocWithZone: (NSZone*)z
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"Attempt to allocate fixed date"];
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return self;
+}
+
+- (void) dealloc
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"Attempt to deallocate fixed date"];
+}
+
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
+{
+  return self;
+}
+
+@end
+
+
+
+@implementation GSDatePast
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (_distantPast == nil)
+    {
+      id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
+
+      _distantPast = [obj init];
+    }
+  return _distantPast;
+}
+
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
+{
+  seconds_since_ref = DISTANT_PAST;
+  return self;
+}
+
+@end
+
+
+@implementation GSDateFuture
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (_distantFuture == nil)
+    {
+      id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
+
+      _distantFuture = [obj init];
+    }
+  return _distantFuture;
+}
+
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
+{
+  seconds_since_ref = DISTANT_FUTURE;
+  return self;
+}
+
+@end
+
 
