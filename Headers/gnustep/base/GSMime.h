@@ -147,10 +147,13 @@
   unsigned		input;
   unsigned		expect;
   unsigned		rawBodyLength;
-  BOOL			inBody;
-  BOOL			isHttp;
-  BOOL			complete;
-  BOOL			hadErrors;
+  struct {
+    unsigned int	inBody:1;
+    unsigned int	isHttp:1;
+    unsigned int	complete:1;
+    unsigned int	hadErrors:1;
+    unsigned int	buggyQuotes:1;
+  } flags;
   NSData		*boundary;
   GSMimeDocument	*document;
   GSMimeParser		*child;
@@ -179,6 +182,7 @@
 - (BOOL) scanPastSpace: (NSScanner*)scanner;
 - (NSString*) scanSpecial: (NSScanner*)scanner;
 - (NSString*) scanToken: (NSScanner*)scanner;
+- (void) setBuggyQuotes: (BOOL)flag;
 - (void) setIsHttp;
 @end
 

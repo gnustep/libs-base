@@ -951,18 +951,18 @@ wordData(NSString *word)
 	      data = ctxt->data;
 	      bytes = (unsigned char*)[data mutableBytes];
 	      dataEnd = [data length];
-	      inBody = NO;
+	      flags.inBody = 0;
 
 	      /*
 	       * Duplicate the normal header parsing process for our footers.
 	       */
-	      while (inBody == NO)
+	      while (flags.inBody == 0)
 		{
 		  if ([self _unfoldHeader] == NO)
 		    {
 		      break;
 		    }
-		  if (inBody == NO)
+		  if (flags.inBody == 0)
 		    {
 		      NSString		*header;
 
@@ -973,7 +973,7 @@ wordData(NSString *word)
 			}
 		      if ([self parseHeader: header] == NO)
 			{
-			  hadErrors = YES;
+			  flags.hadErrors = 1;
 			  break;
 			}
 		    }
@@ -986,7 +986,7 @@ wordData(NSString *word)
 	      data = old;
 	      bytes = (unsigned char*)[data mutableBytes];
 	      dataEnd = [data length];
-	      inBody = YES;
+	      flags.inBody = 1;
 	    }
 	}
       /*
@@ -1042,9 +1042,9 @@ wordData(NSString *word)
  */
 - (void) expectNoHeaders
 {
-  if (complete == NO)
+  if (flags.complete == 0)
     {
-      inBody = YES;
+      flags.inBody = 1;
     }
 }
 
@@ -1055,11 +1055,11 @@ wordData(NSString *word)
  */
 - (BOOL) isComplete
 {
-  if (hadErrors == YES)
+  if (flags.hadErrors == 1)
     {
       return NO;
     }
-  return complete;
+  return (flags.complete == 1) ? YES : NO;
 }
 
 /**
@@ -1068,7 +1068,7 @@ wordData(NSString *word)
  */
 - (BOOL) isHttp
 {
-  return isHttp;
+  return (flags.isHttp == 1) ? YES : NO;
 }
 
 /**
@@ -1077,7 +1077,7 @@ wordData(NSString *word)
  */
 - (BOOL) isInBody
 {
-  return inBody;
+  return (flags.inBody == 1) ? YES : NO;
 }
 
 /**
@@ -1086,9 +1086,9 @@ wordData(NSString *word)
  */
 - (BOOL) isInHeaders
 {
-  if (inBody == YES)
+  if (flags.inBody == 1)
     return NO;
-  if (complete == YES)
+  if (flags.complete == 1)
     return NO;
   return YES;
 }
@@ -1149,26 +1149,26 @@ wordData(NSString *word)
 {
   unsigned	l = [d length];
 
-  if (complete == YES)
+  if (flags.complete == 1)
     {
       return NO;	/* Already completely parsed! */
     }
   if (l > 0)
     {
       NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
-      if (inBody == NO)
+      if (flags.inBody == 0)
 	{
 	  [data appendBytes: [d bytes] length: [d length]];
 	  bytes = (unsigned char*)[data mutableBytes];
 	  dataEnd = [data length];
 
-	  while (inBody == NO)
+	  while (flags.inBody == 0)
 	    {
 	      if ([self _unfoldHeader] == NO)
 		{
 		  return YES;	/* Needs more data to fill line.	*/
 		}
-	      if (inBody == NO)
+	      if (flags.inBody == 0)
 		{
 		  NSString		*header;
 
@@ -1179,7 +1179,7 @@ wordData(NSString *word)
 		    }
 		  if ([self parseHeader: header] == NO)
 		    {
-		      hadErrors = YES;
+		      flags.hadErrors = 1;
 		      return NO;	/* Header not parsed properly.	*/
 		    }
 		}
@@ -1201,7 +1201,7 @@ wordData(NSString *word)
 	   * continuation header(s), in which case, we must start parsing
 	   * headers again.
 	   */
-	  if (inBody == YES)
+	  if (flags.inBody == 1)
 	    {
 	      NSDictionary	*info;
 
@@ -1222,7 +1222,7 @@ wordData(NSString *word)
 			   * to restart the parsing operation!
 			   */
 			  NSDebugMLLog(@"GSMime", @"Parsed http continuation");
-			  inBody = NO;
+			  flags.inBody = 0;
 			}
 		    }
 		}
@@ -1231,7 +1231,7 @@ wordData(NSString *word)
 
       if ([d length] > 0)
 	{
-	  if (inBody == YES)
+	  if (flags.inBody == 1)
 	    {
 	      /*
 	       * We can't just re-call -parse: ...
@@ -1251,7 +1251,7 @@ wordData(NSString *word)
     {
       BOOL	result;
 
-      if (inBody == YES)
+      if (flags.inBody == 1)
 	{
 	  result = [self _decodeBody: d];
 	}
@@ -1263,8 +1263,8 @@ wordData(NSString *word)
            */
 	  result = [self parse: [NSData dataWithBytes: @"\r\n\r\n" length: 4]];
 	}
-      inBody = NO;
-      complete = YES;	/* Finished parsing	*/
+      flags.inBody = 0;
+      flags.complete = 1;	/* Finished parsing	*/
       return result;
     }
 }
@@ -1739,7 +1739,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
   [self scanPastSpace: scanner];
 
-  if (isHttp == YES)
+  if (flags.isHttp == 1)
     {
       specials = rfc822Specials;
     }
@@ -1843,6 +1843,10 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		{
 		  src++;
 		}
+	      if (flags.buggyQuotes == 1 && *src != '\\' && *src != '"')
+		{
+		  *dst++ = '\\';	// Buggy use of escape in quotes.
+		}
 	      *dst++ = *src++;
 	    }
 	  return [NSString stringWithCharacters: buf length: dst - buf];
@@ -1853,7 +1857,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       NSCharacterSet		*specials;
       NSString			*value;
 
-      if (isHttp == YES)
+      if (flags.isHttp == 1)
 	{
 	  specials = rfc822Specials;
 	}
@@ -1880,6 +1884,26 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 }
 
 /**
+ * Method to inform the parser that the data it is parsing is likely to
+ * contain fields with buggy use of backslash quotes ... and it should
+ * try to be tolerant of them and treat them as is they were escaped
+ * backslashes.  This is for use with things like microsoft internet
+ * explorer, which puts the backslashes used as file path separators
+ * in parameters without quoting them.
+ */
+- (void) setBuggyQuotes: (BOOL)flag
+{
+  if (flag == YES)
+    {
+      flags.buggyQuotes = 1;
+    }
+  else
+    {
+      flags.buggyQuotes = 0;
+    }
+}
+
+/**
  * Method to inform the parser that the data it is parsing is an HTTP
  * document rather than true MIME.  This method is called internally
  * if the parser detects an HTTP response line at the start of the
@@ -1887,7 +1911,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  */
 - (void) setIsHttp
 {
-  isHttp = YES;
+  flags.isHttp = 1;
 }
 @end
 
@@ -2090,8 +2114,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
   if ([context atEnd] == YES)
     {
-      inBody = NO;
-      complete = YES;
+      flags.inBody = 0;
+      flags.complete = 1;
       if ([d length] > 0)
 	{
 	  NSLog(@"Additional data (%*.*s) ignored after parse complete",
@@ -2109,8 +2133,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       if ([type isEqualToString: @"multipart"] == YES)
 	{
 	  NSLog(@"multipart decode attempt without boundary");
-	  inBody = NO;
-	  complete = YES;
+	  flags.inBody = 0;
+	  flags.complete = 1;
 	  result = NO;
 	}
       else
@@ -2123,8 +2147,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  if ([context atEnd] == YES
 	    || (expect > 0 && rawBodyLength >= expect))
 	    {
-	      inBody = NO;
-	      complete = YES;
+	      flags.inBody = 0;
+	      flags.complete = 1;
 
 	      NSDebugMLLog(@"GSMime", @"Parse body complete");
 	      /*
@@ -2321,8 +2345,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
        */
       if (endedFinalPart == YES || (expect > 0 && rawBodyLength >= expect))
 	{
-	  complete = YES;
-	  inBody = NO;
+	  flags.complete = 1;
+	  flags.inBody = 0;
 	  result = NO;
 	}
       else
@@ -2429,12 +2453,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      lineStart = 0;
 	      lineEnd = 0;
 	      input = 0;
-	      inBody = YES;
+	      flags.inBody = 1;
 	    }
 	}
     }
   NSDebugMLLog(@"GSMimeH", @"exit: inBody:%d unwrappingComplete: %d "
-    @"input:%u dataEnd:%u lineStart:%u '%*.*s'", inBody, unwrappingComplete,
+    @"input:%u dataEnd:%u lineStart:%u '%*.*s'", flags.inBody,
+    unwrappingComplete,
     input, dataEnd, lineStart, lineEnd - lineStart, lineEnd - lineStart,
     &bytes[lineStart]);
   return unwrappingComplete;
