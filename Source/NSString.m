@@ -2011,6 +2011,13 @@ else
 
 // xxx Sould we use NSScanner here ?
 
+- (BOOL) boolValue
+{
+    if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame) 
+	return YES;
+    return [self intValue] != 0 ? YES : NO;
+}
+
 - (double) doubleValue
 {
   return atof([self cString]);

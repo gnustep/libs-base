@@ -29,7 +29,6 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPortCoder.h>
-#include <gnustep/base/Coding.h>
 
 
 #define	FAST_MAP_RETAIN_VAL(X)	X
@@ -106,31 +105,18 @@
 {
     unsigned    count = map.nodeCount;
     FastMapNode node = map.firstNode;
+    SEL		sel1 = @selector(encodeObject:);
+    IMP		imp1 = [aCoder methodForSelector: sel1];
+    SEL		sel2 = @selector(encodeValueOfObjCType:at:);
+    IMP		imp2 = [aCoder methodForSelector: sel2];
+    const char	*type = @encode(unsigned);
 
-    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
-                                          at: &count
-                                    withName: @"Set content count"];
+    (*imp2)(aCoder, sel2, type, &count);
 
-    if ([aCoder isKindOfClass: [NSPortCoder class]] &&
-        [(NSPortCoder*)aCoder isBycopy]) {
-        while (node != 0) {
-            [(id<Encoding>)aCoder encodeBycopyObject: node->key.o
-                                            withName: @"Set value"];
-	    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
-						  at: &node->value.I
-					    withName: @"Set value count"];
-            node = node->nextInMap;
-        }
-    }
-    else {
-        while (node != 0) {
-            [(id<Encoding>)aCoder encodeObject: node->key.o
-                                      withName: @"Set content"];
-	    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
-						  at: &node->value.I
-					    withName: @"Set value count"];
-            node = node->nextInMap;
-        }
+    while (node != 0) {
+	(*imp1)(aCoder, sel1, node->key.o);
+	(*imp2)(aCoder, sel2, type, &node->value.I);
+	node = node->nextInMap;
     }
 }
 
@@ -139,17 +125,17 @@
     unsigned    count;
     id          value;
     unsigned	valcnt;
+    SEL		sel = @selector(decodeValueOfObjCType:at:);
+    IMP		imp = [aCoder methodForSelector: sel];
+    const char	*utype = @encode(unsigned);
+    const char	*otype = @encode(id);
 
-    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-                                          at: &count
-                                    withName: NULL];
+    (*imp)(aCoder, sel, utype, &count);
 
     FastMapInitWithZoneAndCapacity(&map, [self zone], count);
     while (count-- > 0) {
-        [(id<Decoding>)aCoder decodeObjectAt: &value withName: NULL];
-	[(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-					      at: &valcnt
-					withName: NULL];
+	(*imp)(aCoder, sel, otype, &value);
+	(*imp)(aCoder, sel, utype, &valcnt);
         FastMapAddPairNoRetain(&map, (FastMapItem)value, (FastMapItem)valcnt);
     }
 

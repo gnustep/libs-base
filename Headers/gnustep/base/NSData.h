@@ -112,8 +112,16 @@
  *	object - or they will find it's buffer disappearing unexpectedly.
  *	Once you have used this method, you own the malloced data and are
  *	responsible for freeing it.
+ *	NB. While this buffer is guaranteed to be freeable by NSZoneFree(),
+ *	it's not necessarily safe to pass it to free()/objc_free() and
+ *	friends.  If you wish to pass the buffer to code that might use
+ *	free() or realloc(), you should use the
+ *	-relinquishAllocatedBytesFromZone: method instead - this method
+ *	will only relinquich the buffer if it was allocated from the
+ *	specified zone (a zone of 0 disables this checking).
  */
 - (void*) relinquishAllocatedBytes;
+- (void*) relinquishAllocatedBytesFromZone: (NSZone*)aZone;
 @end
 
 
