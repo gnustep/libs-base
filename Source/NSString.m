@@ -748,14 +748,17 @@ handle_printf_atsign (FILE *stream,
 
 /* xxx FIXME */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-    options: (unsigned int)mask
-    range: (NSRange)aRange
+			    options: (unsigned int)mask
+			      range: (NSRange)aRange
 {
   int i, start, stop, step;
   NSRange range;
 
-  /* xxx check to make sure aRange is within self; raise NSStringBoundsError */
-  assert(NSMaxRange(aRange) <= [self length]);
+  i = [self length];
+  if (aRange.location > i)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (i - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
 
   if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
     {
@@ -1977,8 +1980,12 @@ else
 {
   int len, count;
 
-  /* xxx check to make sure aRange is within self; raise NSStringBoundsError */
-  assert(NSMaxRange(aRange) <= [self cStringLength]);
+  len = [self cStringLength];
+  if (aRange.location > len)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (len - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+
   if (maxLength < aRange.length)
     {
       len = maxLength;
@@ -2151,15 +2158,19 @@ else
 // Manipulating File System Paths
 
 - (unsigned int) completePathIntoString: (NSString**)outputName
-   caseSensitive: (BOOL)flag
-   matchesIntoArray: (NSArray**)outputArray
-   filterTypes: (NSArray*)filterTypes
+			  caseSensitive: (BOOL)flag
+		       matchesIntoArray: (NSArray**)outputArray
+			    filterTypes: (NSArray*)filterTypes
 {
   NSString * base_path = [self stringByDeletingLastPathComponent];
   NSString * last_compo = [self lastPathComponent];
   NSString * tmp_path;
   NSDirectoryEnumerator * e;
+  NSMutableArray	*op;
   int match_count = 0;
+
+  if (outputArray != 0)
+    op = (NSMutableArray*)[NSMutableArray array];
 
   if (outputName != NULL) *outputName = nil;
 
@@ -2189,12 +2200,14 @@ else
       /* Found a completion */
       match_count++;
       if (outputArray != NULL)
-	[*outputArray addObject: tmp_path];
+	[*op addObject: tmp_path];
       
       if ((outputName != NULL) && 
-	  ((*outputName == nil) || (([*outputName length] < [tmp_path length]))))
+	((*outputName == nil) || (([*outputName length] < [tmp_path length]))))
 	*outputName = tmp_path;
     }
+  if (outputArray != NULL)
+    *outputArray = [[op copy] autorelease];
   return match_count;
 }
 
