@@ -87,7 +87,9 @@
 }
 
 + (NSData*) decodeBase64: (NSData*)source;
++ (NSString*) decodeBase64String: (NSString*)source;
 + (NSData*) encodeBase64: (NSData*)source;
++ (NSString*) encodeBase64String: (NSString*)source;
 
 - (void) addContent: (id)newContent;
 - (void) addHeader: (GSMimeHeader*)info;

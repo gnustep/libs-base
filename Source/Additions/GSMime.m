@@ -2678,19 +2678,28 @@ static NSCharacterSet	*tokenSet = nil;
  */
 + (NSData*) decodeBase64: (NSData*)source
 {
-  int		length = [source length];
-  int		declen = ((length + 3) * 3)/4;
-  const signed char	*src = (const char*)[source bytes];
-  const signed char	*end = &src[length];
+  int		length;
+  int		declen ;
+  const signed char	*src;
+  const signed char	*end;
   unsigned char *result;
   unsigned char	*dst;
   unsigned char	buf[4];
   unsigned	pos = 0;
 
+  if (source == nil)
+    {
+      return nil;
+    }
+  length = [source length];
   if (length == 0)
     {
       return [NSData data];
     }
+  declen = ((length + 3) * 3)/4;
+  src = (const char*)[source bytes];
+  end = &src[length];
+
   result = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), declen);
   dst = result;
 
@@ -2758,21 +2767,46 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Converts the base64 encoded data in source to a decoded ASCII string
+ * using the +decodeBase64: method.  If the encoded data does not represent
+ * an ASCII string, you should use the +decodeBase64: method directly.
+ */
++ (NSString*) decodeBase64String: (NSString*)source
+{
+  NSData	*d = [source dataUsingEncoding: NSASCIIStringEncoding];
+  NSString	*r = nil;
+
+  d = [self decodeBase64: d];
+  if (d != nil)
+    {
+      r = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
+      AUTORELEASE(r);
+    }
+  return r;
+}
+
+/**
  * Encode the source data to base64 encoding and return the result.
  */
 + (NSData*) encodeBase64: (NSData*)source
 {
-  int		length = [source length];
-  int		destlen = 4 * ((length - 1) / 3) + 5;
+  int		length;
+  int		destlen;
   unsigned char *sBuf;
   unsigned char *dBuf;
   int		sIndex = 0;
   int		dIndex = 0;
 
+  if (source == nil)
+    {
+      return nil;
+    }
+  length = [source length];
   if (length == 0)
     {
       return [NSData data];
     }
+  destlen = 4 * ((length - 1) / 3) + 5;
   sBuf = (unsigned char*)[source bytes];
   dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
   dBuf[destlen - 1] = '\0';
@@ -2807,6 +2841,25 @@ static NSCharacterSet	*tokenSet = nil;
 
   return AUTORELEASE([[NSData allocWithZone: NSDefaultMallocZone()]
     initWithBytesNoCopy: dBuf length: dIndex]);
+}
+
+/**
+ * Converts the ASCII string source into base64 encoded data using the
+ * +encodeBase64: method.  If the original data is not an ASCII string,
+ * you should use the +encodeBase64: method directly.
+ */
++ (NSString*) encodeBase64String: (NSString*)source
+{
+  NSData	*d = [source dataUsingEncoding: NSASCIIStringEncoding];
+  NSString	*r = nil;
+
+  d = [self encodeBase64: d];
+  if (d != nil)
+    {
+      r = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
+      AUTORELEASE(r);
+    }
+  return r;
 }
 
 + (void) initialize

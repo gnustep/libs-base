@@ -6,6 +6,8 @@
 	Patch by e.sammer <eric@linuxstep.org>
 	* Source/NSObject.m: Added some compatibility methods in a
 	categpory of Object.
+	* Source/Additions/GSMime.m: Add a couple of convenience methods.
+	* Source/GSHTTPURLHandle.m: Use one of them.
 
 2002-06-13  Richard Frith-Macdonald <rfm@gnu.org>
 
