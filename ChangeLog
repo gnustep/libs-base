@@ -1,3 +1,11 @@
+2004-08-17  David Ayers  <d.ayers@inode.at>
+
+	* Testing/GNUmakefile: Reactivate nsinvocation test.
+	* Testing/nsmethodsignature.m
+	(large/smallStruct_id:uchar:ushort:uint...): Correct name.
+	(void_float:double:): New test.
+	(void_double:float:): New test.
+
 2004-08-17 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPort.m, Source/NSPortNameServer.m: Fix port type

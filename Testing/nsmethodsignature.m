@@ -94,6 +94,8 @@ typedef struct _MySmallStruct MySmallStruct;
 -(void)void_largeStruct:(MyLargeStruct)_str;
 -(void)void_smallStruct:(MySmallStruct)_str;
 
+-(void)void_float:(float)_float double:(double)_double;
+-(void)void_double:(double)_double float:(float)_float;
 
 -(MyLargeStruct)largeStruct_id:(id)_id
 			  char:(char)_char
@@ -104,7 +106,7 @@ typedef struct _MySmallStruct MySmallStruct;
 			double:(double)_double
 		   largeStruct:(MyLargeStruct)_lstr
 		   smallStruct:(MySmallStruct)_sstr;
--(MySmallStruct)largeStruct_id:(id)_id
+-(MySmallStruct)smallStruct_id:(id)_id
 			 uchar:(unsigned char)_uchar
 			ushort:(unsigned short)_ushort
 			  uint:(unsigned int)_uint
@@ -168,6 +170,9 @@ typedef struct _MySmallStruct MySmallStruct;
 -(void)void_largeStruct:(MyLargeStruct)_str {}
 -(void)void_smallStruct:(MySmallStruct)_str {}
 
+-(void)void_float:(float)_float double:(double)_double {}
+-(void)void_double:(double)_double float:(float)_float {}
+
 
 -(MyLargeStruct)largeStruct_id:(id)_id
 			  char:(char)_char
@@ -179,7 +184,7 @@ typedef struct _MySmallStruct MySmallStruct;
 		   largeStruct:(MyLargeStruct)_lstr
 		   smallStruct:(MySmallStruct)_sstr { return _lstr; }
 
--(MySmallStruct)largeStruct_id:(id)_id
+-(MySmallStruct)smallStruct_id:(id)_id
 			 uchar:(unsigned char)_uchar
 			ushort:(unsigned short)_ushort
 			  uint:(unsigned int)_uint
