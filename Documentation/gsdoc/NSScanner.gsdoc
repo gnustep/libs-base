@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
-<gsdoc base="NSScanner" prev="NSRunLoop.html" next="NSSerializer.html" up="Base.html">
+<gsdoc base="NSScanner" prev="NSRunLoop" next="NSSerializer" up="Base">
   <head>
     <title>NSScanner</title>
     <author name="Richard Frith-Macdonald">
@@ -35,8 +35,9 @@
           <arg type="NSString*">aString</arg>
           <desc>
 	    Returns an NSScanner instance set up to scan aString
-	    (using initWithString:) and with a locale set the default locale
-	    (using setLocale:).
+	    (using <ref id="initWithString:">initWithString:</ref>)
+	    and with a locale set the default locale
+	    (using <ref id="setLocale:">setLocale:</ref>).
           </desc>
         </method>
         <method type="id" factory="yes">
@@ -44,7 +45,8 @@
           <arg type="NSString*">aString</arg>
           <desc>
 	    Returns an NSScanner instance set up to scan aString
-	    (using initWithString:) and with no locale set.
+	    (using <ref id="initWithString:">initWithString:</ref>)
+	    and with no locale set.
           </desc>
         </method>
         <method type="BOOL">
@@ -69,7 +71,7 @@
 	    The default for this is the whitespaceAndNewlineCharacterSet.
           </desc>
         </method>
-        <method type="id">
+        <method init="yes" type="id" id="initWithString:">
           <sel>initWithString:</sel>
           <arg type="NSString*">aString</arg>
           <desc>
@@ -288,7 +290,7 @@
 	    The default for this is the whitespaceAndNewlineCharacterSet.
           </desc>
         </method>
-        <method type="void">
+        <method type="void" id="setLocale:">
           <sel>setLocale:</sel>
           <arg type="NSDictionary*">aLocale</arg>
           <desc>

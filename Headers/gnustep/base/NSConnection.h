@@ -86,6 +86,8 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
   NSRecursiveLock	*_refGate;
   NSMutableArray	*_cachedDecoders;
   NSMutableArray	*_cachedEncoders;
+  NSString		*_registeredName;
+  NSPortNameServer	*_nameServer;
 }
 
 + (NSArray*) allConnections;

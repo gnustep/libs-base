@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
-<gsdoc base="NSMutableSet" prev="NSMutableDictionary.html" next="NSMutableString.html" up="Base.html">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="NSMutableSet" prev="NSMutableDictionary" next="NSMutableString" up="Base">
   <head>
     <title>NSMutableSet</title>
     <author name="Richard Frith-Macdonald">
