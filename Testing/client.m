@@ -205,7 +205,12 @@ printf("oneway %d\n", _F_ONEWAY);
 
   {
     NSDate	*d = [NSDate date];
+    NSData	*sen = [NSMutableData data];
+    id		rep;
 
+    [sen setLength: 100000];
+    rep = [p echoObject: sen];
+    NSLog(@"Send: 0x%x, Reply: 0x%x, Length: %d", sen, rep, [rep length]);
     [NSConnection setDebug: 0];
     [NSDistantObject setDebug: 0];
     [NSPort setDebug: 0];
