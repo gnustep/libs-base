@@ -202,6 +202,8 @@
 - (NSString*) scanToken: (NSScanner*)scanner;
 - (void) setBuggyQuotes: (BOOL)flag;
 - (void) setDefaultCharset: (NSString*)aName;
+- (void) setDefaultEncoding: (NSStringEncoding)encoding;
+
 - (void) setIsHttp;
 @end
 
