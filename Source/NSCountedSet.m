@@ -28,7 +28,6 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
-#include <assert.h>
 
 @class	NSSetNonCore;
 @class	NSMutableSetNonCore;

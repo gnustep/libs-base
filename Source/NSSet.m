@@ -28,7 +28,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
-#include <assert.h>
+#include <Foundation/NSException.h>
 
 @interface NSSetNonCore : NSSet
 @end
@@ -305,9 +305,7 @@ static Class NSMutableSet_concrete_class;
   for (i = 0; i < c; i++)
     {
       k[i] = [e nextObject];
-      assert(k[i]);
     }
-  assert(![e nextObject]);
   return [[[NSArray alloc] initWithObjects:k count:c]
 	  autorelease];
 }

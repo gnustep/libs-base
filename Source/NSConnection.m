@@ -47,7 +47,6 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSNotification.h>
-#include <assert.h>
 
 NSString* NSConnectionReplyMode = @"NSConnectionReplyMode";
 
@@ -1272,7 +1271,7 @@ static int messages_received_count;
 	 this is done is in this function DECODER().  IP will be nil
 	 if mframe_build_return() never called DECODER(), i.e. when
 	 we are just returning (void).*/
-      assert (ip == (id)-1 || ip == nil);
+      NSAssert(ip == (id)-1 || ip == nil, NSInternalInconsistencyException);
       rep_in_count++;	/* received a reply */
       return retframe;
     }

@@ -24,7 +24,6 @@
 #include <config.h>
 #include <objc/Storage.h>
 #include <gnustep/base/preface.h>
-#include <assert.h>
 /* memcpy() and memcmp() are gcc builtin's */
 
 /* Deal with bzero: */
@@ -129,7 +128,6 @@ static inline void _makeRoomForAnotherIfNecessary(Storage *self)
 {
   if (self->numElements == self->maxElements) 
     {
-      assert(self->maxElements);
       self->maxElements *= 2;
       self->dataPtr = (void*) 
 	objc_realloc (self->dataPtr, self->maxElements*self->elementSize);

@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <gnustep/base/Array.h>
 #include <gnustep/base/NSString.h>
+#include <Foundation/NSException.h>
 
 
 @implementation OrderedCollection
@@ -86,7 +87,7 @@
 {
   id o;
 
-  assert (aCollection != self);
+  NSAssert(aCollection != self, NSInvalidArgumentException);
   /* xxx Could be more efficient. */
   FOR_COLLECTION(aCollection, o)
     {
@@ -99,7 +100,7 @@
 {
   id o;
 
-  assert (aCollection != self);
+  NSAssert(aCollection != self, NSInvalidArgumentException);
   if ([(id)aCollection conformsTo: @protocol(IndexedCollecting)])
     {
       FOR_INDEXED_COLLECTION_REVERSE(self, o)

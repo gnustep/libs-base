@@ -123,7 +123,7 @@
 
 - (void) removeObject: oldObject
 {
-  assert ([oldObject linkedList] == self);
+  NSAssert([oldObject linkedList] == self, NSInternalInconsistencyException);
   if (_first_link == oldObject)
     {
       if (_count > 1)
@@ -152,10 +152,10 @@
 - (void) insertObject: newObject after: oldObject
 {
   /* Make sure we actually own the oldObject. */
-  assert ([oldObject linkedList] == self);
+  NSAssert([oldObject linkedList] == self, NSInternalInconsistencyException);
 
   /* Make sure no one else already owns the newObject. */
-  assert ([newObject linkedList] == NO_OBJECT);
+  NSAssert([newObject linkedList] == NO_OBJECT, NSInternalInconsistencyException);
 
   /* Claim ownership of the newObject. */
   [newObject retain];
@@ -185,10 +185,10 @@
 - (void) insertObject: newObject before: oldObject
 {
   /* Make sure we actually own the oldObject. */
-  assert ([oldObject linkedList] == self);
+  NSAssert([oldObject linkedList] == self, NSInternalInconsistencyException);
 
   /* Make sure no one else already owns the newObject. */
-  assert ([newObject linkedList] == NO_OBJECT);
+  NSAssert([newObject linkedList] == NO_OBJECT, NSInternalInconsistencyException);
 
   /* Claim ownership of the newObject. */
   [newObject retain];
@@ -218,10 +218,10 @@
 - (void) replaceObject: oldObject with: newObject
 {
   /* Make sure we actually own the oldObject. */
-  assert ([oldObject linkedList] == self);
+  NSAssert([oldObject linkedList] == self, NSInternalInconsistencyException);
 
   /* Make sure no one else already owns the newObject. */
-  assert ([newObject linkedList] == NO_OBJECT);
+  NSAssert([newObject linkedList] == NO_OBJECT, NSInternalInconsistencyException);
 
   /* Claim ownership of the newObject. */
   [newObject retain];
@@ -248,7 +248,7 @@
 - (void) appendObject: newObject
 {
   /* Make sure no one else already owns the newObject. */
-  assert ([newObject linkedList] == NO_OBJECT);
+  NSAssert([newObject linkedList] == NO_OBJECT, NSInternalInconsistencyException);
 
   /* Insert it. */
   if (_count == 0)
@@ -271,7 +271,7 @@
 - (void) prependObject: newObject
 {
   /* Make sure no one else already owns the newObject. */
-  assert ([newObject linkedList] == NO_OBJECT);
+  NSAssert([newObject linkedList] == NO_OBJECT, NSInternalInconsistencyException);
 
   /* Insert it. */
   if (_count == 0)
@@ -296,7 +296,7 @@
   CHECK_INDEX_RANGE_ERROR(index, (_count+1));
 
   /* Make sure no one else already owns the newObject. */
-  assert ([newObject linkedList] == NO_OBJECT);
+  NSAssert([newObject linkedList] == NO_OBJECT, NSInternalInconsistencyException);
 
   /* Insert it. */
   if (_count == 0)
@@ -356,7 +356,7 @@
 - successorOfObject: oldObject
 {
   /* Make sure we actually own the oldObject. */
-  assert ([oldObject linkedList] == self);
+  NSAssert([oldObject linkedList] == self, NSInternalInconsistencyException);
 
   return [oldObject nextLink];
 }
@@ -364,7 +364,7 @@
 - predecessorOfObject: oldObject
 {
   /* Make sure we actually own the oldObject. */
-  assert ([oldObject linkedList] == self);
+  NSAssert([oldObject linkedList] == self, NSInternalInconsistencyException);
 
   return [oldObject prevLink];
 }

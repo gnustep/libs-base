@@ -31,8 +31,8 @@
 #include <gnustep/base/RNGBerkeley.h>
 #include <gnustep/base/Time.h>
 #include <gnustep/base/Coder.h>
+#include <Foundation/NSException.h>
 #include <limits.h>
-#include <assert.h>
 
 typedef union {
   float f;
@@ -57,8 +57,8 @@ static id defaultRNG = nil;
   if (self == [Random class])
     {
       defaultRNG = [RNGBerkeley class];
-      assert(sizeof(double) == 2 * sizeof(long));
-      assert(sizeof(float) == sizeof(long));
+      NSAssert(sizeof(double) == 2 * sizeof(long), NSInternalInconsistencyException);
+      NSAssert(sizeof(float) == sizeof(long), NSInternalInconsistencyException);
       
       /* Following taken from libg++ */
       
@@ -238,7 +238,7 @@ static id defaultRNG = nil;
   result.f = 1.0;
   result.i |= ([rng nextRandom] & singleMantissa.u);
   result.f -= 1.0;
-  assert(result.f < 1.0 && result.f >= 0);
+  NSAssert(result.f < 1.0 && result.f >= 0, NSInternalInconsistencyException);
   return result.f;
 }
 
@@ -262,7 +262,7 @@ static id defaultRNG = nil;
   result.u[0] |= ([rng nextRandom] & doubleMantissa.u[0]);
   result.u[1] |= ([rng nextRandom] & doubleMantissa.u[1]);
   result.d -= 1.0;
-  assert(result.d < 1.0 && result.d >= 0);
+  NSAssert(result.d < 1.0 && result.d >= 0, NSInternalInconsistencyException);
   return result.d;
 }
 

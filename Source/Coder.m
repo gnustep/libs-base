@@ -48,7 +48,6 @@
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSAutoreleasePool.h>
-#include <assert.h>
 
 
 /* Exception strings */

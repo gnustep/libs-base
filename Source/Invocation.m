@@ -618,7 +618,7 @@ my_method_get_next_argument (arglist_t argframe,
   /* xxx Perhaps we could speed things up by making this an ivar,
      and caching it. */
   imp = get_imp (cl, sel);
-  assert(imp);
+  NSAssert(imp, NSInternalInconsistencyException);
   ret = __builtin_apply((void(*)(void))imp,
 			argframe, 
 			types_get_size_of_stack_arguments(return_type));

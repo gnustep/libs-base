@@ -39,7 +39,6 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSAutoreleasePool.h>
 
-#include <assert.h>
 #include <sys/stat.h>
 
 #ifndef __WIN32__
@@ -203,7 +202,7 @@ _bundle_path_for_name(NSString* path, NSString* name)
 void
 _bundle_load_callback(Class theClass, Category *theCategory)
 {
-  assert(_loadingBundle);
+  NSCAssert(_loadingBundle, NSInternalInconsistencyException);
   /* Don't store categories */
   if (!theCategory)
     [(NSMutableArray *)[_loadingBundle _bundleClasses] addObject: (id)theClass];
@@ -266,7 +265,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       
       path = [[NSProcessInfo processInfo] processName];
       output = objc_find_executable([path cString]);
-      assert(output);
+      NSAssert(output, NSInternalInconsistencyException);
       path = [NSString stringWithCString: output];
       OBJC_FREE(output);
 

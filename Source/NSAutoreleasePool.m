@@ -87,7 +87,6 @@ push_pool_to_cache (struct autorelease_thread_vars *tv, id p)
 static id
 pop_pool_from_cache (struct autorelease_thread_vars *tv)
 {
-  assert (tv->pool_cache_count);
   return tv->pool_cache[--(tv->pool_cache_count)];
 }
 
@@ -150,7 +149,6 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 
 - (void) _setChildPool: pool
 {
-  assert (!_child);
   _child = pool;
 }
 

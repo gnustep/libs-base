@@ -113,10 +113,10 @@
   [cstream release];
   cstream = saved_cstream;
   /* Reset ourselves, except for object_2_fref. */
-  assert (!in_progress_table);
+  NSAssert(!in_progress_table, NSInternalInconsistencyException);
   NSResetMapTable (object_2_xref);
   NSResetMapTable (const_ptr_2_xref);
-  assert (fref_counter == 0);
+  NSAssert(fref_counter == 0, NSInternalInconsistencyException);
 
   /* Then encode everything "for real". */
   [self encodeName: @"Root Object"];

@@ -154,7 +154,7 @@ static id nilBinaryTreeNode;
   id tmp;
 
   /* Make sure we actually own the anObject. */
-  assert ([anObject binaryTree] == self);
+  NSAssert([anObject binaryTree] == self, NSInternalInconsistencyException);
 
   // here tmp is the right node;
   if ((tmp = [anObject rightNode]) != [self nilNode])
@@ -179,7 +179,7 @@ static id nilBinaryTreeNode;
   id tmp;
 
   /* Make sure we actually own the anObject. */
-  assert ([anObject binaryTree] == self);
+  NSAssert([anObject binaryTree] == self, NSInternalInconsistencyException);
 
   // here tmp is the left node;
   if ((tmp = [anObject leftNode]) != [self nilNode])
@@ -202,7 +202,7 @@ static id nilBinaryTreeNode;
   id parentNode;
 
   /* Make sure we actually own the aNode. */
-  assert ([aNode binaryTree] == self);
+  NSAssert([aNode binaryTree] == self, NSInternalInconsistencyException);
 
   while ((parentNode = [aNode parentNode]) != [self nilNode])
     aNode = parentNode;
@@ -215,7 +215,7 @@ static id nilBinaryTreeNode;
   unsigned count = 0;
   
   /* Make sure we actually own the aNode. */
-  assert ([aNode binaryTree] == self);
+  NSAssert([aNode binaryTree] == self, NSInternalInconsistencyException);
 
   if (aNode == nil || aNode == [self nilNode])
     [self error:"in %s, Can't find depth of nil node", sel_get_name(_cmd)];
@@ -234,7 +234,7 @@ static id nilBinaryTreeNode;
   id tmpNode;
 
   /* Make sure we actually own the aNode. */
-  assert ([aNode binaryTree] == self);
+  NSAssert([aNode binaryTree] == self, NSInternalInconsistencyException);
 
   if (aNode == nil || aNode == [self nilNode])
     {
@@ -262,7 +262,7 @@ static id nilBinaryTreeNode;
   unsigned count = 0;
 
   /* Make sure we actually own the aNode. */
-  assert ([aNode binaryTree] == self);
+  NSAssert([aNode binaryTree] == self, NSInternalInconsistencyException);
 
   if ([aNode leftNode] != [self nilNode])
     count += 1 + [self nodeCountUnderNode:[aNode leftNode]];
@@ -276,7 +276,7 @@ static id nilBinaryTreeNode;
   id y;
 
   /* Make sure we actually own the aNode. */
-  assert ([aNode binaryTree] == self);
+  NSAssert([aNode binaryTree] == self, NSInternalInconsistencyException);
 
   y = [aNode rightNode];
   if (y == [self nilNode])
@@ -304,7 +304,7 @@ static id nilBinaryTreeNode;
   id y;
 
   /* Make sure we actually own the aNode. */
-  assert ([aNode binaryTree] == self);
+  NSAssert([aNode binaryTree] == self, NSInternalInconsistencyException);
 
   y = [aNode leftNode];
   if (y == [self nilNode])
@@ -344,7 +344,7 @@ static id nilBinaryTreeNode;
   id theParent, tmpChild;
 
   /* Make sure no one else already owns the newObject. */
-  assert ([newObject binaryTree] == NO_OBJECT);
+  NSAssert([newObject binaryTree] == NO_OBJECT, NSInternalInconsistencyException);
 
   /* Claim ownership of the newObject. */
   [newObject retain];
@@ -386,7 +386,7 @@ static id nilBinaryTreeNode;
   id x, y;
 
   /* Make sure we actually own the aNode. */
-  assert ([oldObject binaryTree] == self);
+  NSAssert([oldObject binaryTree] == self, NSInternalInconsistencyException);
 
   /* Extract the oldObject and sew up the cut. */
   if ([oldObject leftNode] == [self nilNode] 
@@ -508,7 +508,7 @@ static id nilBinaryTreeNode;
   id tmp;
 
   /* Make sure no one else already owns the newObject. */
-  assert ([newObject linkedList] == NO_OBJECT);
+  NSAssert([newObject linkedList] == NO_OBJECT, NSInternalInconsistencyException);
 
   /* Claim ownership of the newObject. */
   [newObject retain];
@@ -542,7 +542,7 @@ static id nilBinaryTreeNode;
   id tmp;
 
   /* Make sure no one else already owns the newObject. */
-  assert ([newObject linkedList] == NO_OBJECT);
+  NSAssert([newObject linkedList] == NO_OBJECT, NSInternalInconsistencyException);
 
   /* Claim ownership of the newObject. */
   [newObject retain];
@@ -588,7 +588,7 @@ static id nilBinaryTreeNode;
   if (_count == 0)
     {
       /* Make sure no one else already owns the newObject. */
-      assert ([newObject linkedList] == NO_OBJECT);
+      NSAssert([newObject linkedList] == NO_OBJECT, NSInternalInconsistencyException);
 
       /* Claim ownership of the newObject. */
       [newObject retain];

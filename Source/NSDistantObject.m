@@ -63,7 +63,7 @@ enum
 {
     NSDistantObject	*new_proxy;
 
-    assert ([aConnection isValid]);
+    NSAssert([aConnection isValid], NSInternalInconsistencyException);
     if ((new_proxy = [aConnection localForTarget: anObject])) {
         return new_proxy;
     }
@@ -76,7 +76,7 @@ enum
 {
     NSDistantObject	*new_proxy;
 
-    assert ([aConnection isValid]);
+    NSAssert([aConnection isValid], NSInternalInconsistencyException);
     if ((new_proxy = [aConnection proxyForTarget: anObject])) {
         return new_proxy;
     }
@@ -121,7 +121,7 @@ enum
 format: @"NSDistantObject objects only encode with PortEncoder class"];
 
     encoder_connection = [aRmc connection];
-    assert (encoder_connection);
+    NSAssert(encoder_connection, NSInternalInconsistencyException);
     if (![encoder_connection isValid])
 	[NSException
 	    raise: NSGenericException
@@ -177,9 +177,9 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 	 */
 	NSPort *proxy_connection_out_port = [_connection sendPort];
 
-	assert (proxy_connection_out_port);
-	assert ([proxy_connection_out_port isValid]);
-	assert (proxy_connection_out_port != [encoder_connection sendPort]);
+	NSAssert(proxy_connection_out_port, NSInternalInconsistencyException);
+	NSAssert([proxy_connection_out_port isValid], NSInternalInconsistencyException);
+	NSAssert(proxy_connection_out_port != [encoder_connection sendPort], NSInternalInconsistencyException);
 
 	proxy_tag = PROXY_REMOTE_FOR_BOTH;
 
@@ -232,7 +232,7 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 {
     NSDistantObject	*new_proxy;
 
-    assert ([aConnection isValid]);
+    NSAssert([aConnection isValid], NSInternalInconsistencyException);
 
     /*
      *	If there already is a local proxy for this target/connection
@@ -268,7 +268,7 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 {
     NSDistantObject	*new_proxy;
 
-    assert ([aConnection isValid]);
+    NSAssert([aConnection isValid], NSInternalInconsistencyException);
 
     /*
      *	If there already is a proxy for this target/connection combination,
@@ -395,7 +395,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 format: @"NSDistantObject objects only decode with PortDecoder class"];
 
     decoder_connection = [aRmc connection];
-    assert (decoder_connection);
+    NSAssert(decoder_connection, NSInternalInconsistencyException);
 
     /* First get the tag, so we know what values need to be decoded. */
     [aRmc decodeValueOfCType: @encode(typeof(proxy_tag))
@@ -478,7 +478,7 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 	    [aRmc decodeObjectAt: &proxy_connection_out_port
 		        withName: NULL];
 
-	    assert (proxy_connection_out_port);
+	    NSAssert(proxy_connection_out_port, NSInternalInconsistencyException);
 	    /* xxx - if there already exists a connection for talking to the
 	     * out port, we use that one rather than creating a new one from
 	     * our listening port. 
@@ -508,8 +508,8 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 	        NSLog(@"Receiving a triangle-connection proxy 0x%x "
 		  @"connection 0x%x\n", target, (unsigned)proxy_connection);
 
-	    assert (proxy_connection != decoder_connection);
-	    assert ([proxy_connection isValid]);
+	    NSAssert(proxy_connection != decoder_connection, NSInternalInconsistencyException);
+	    NSAssert([proxy_connection isValid], NSInternalInconsistencyException);
 
 	    /*
 	     *	If we don't already have a proxy for the object on the

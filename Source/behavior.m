@@ -51,7 +51,6 @@
 #include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/behavior.h>
-#include <assert.h>
 #include <Foundation/NSException.h>
 
 static int behavior_debug = 0;
@@ -80,8 +79,8 @@ behavior_class_add_class (Class class, Class behavior)
 {
   Class behavior_super_class = class_get_super_class(behavior);
 
-  assert(CLS_ISCLASS(class));
-  assert(CLS_ISCLASS(behavior));
+  NSCAssert(CLS_ISCLASS(class), NSInvalidArgumentException);
+  NSCAssert(CLS_ISCLASS(behavior), NSInvalidArgumentException);
 
   __objc_send_initialize(class);
   __objc_send_initialize(behavior);
@@ -89,7 +88,7 @@ behavior_class_add_class (Class class, Class behavior)
   /* If necessary, increase instance_size of CLASS. */
   if (class->instance_size < behavior->instance_size)
     {
-      NSCAssert (!class->subclass_list,
+      NSCAssert(!class->subclass_list,
 		 @"The behavior-addition code wants to increase the\n"
 		 @"instance size of a class, but it cannot because you\n"
 		 @"have subclassed the class.  There are two solutions:\n"
@@ -255,7 +254,7 @@ class_add_behavior_method_list (Class class, MethodList_t list)
     initialize_sel = sel_register_name ("initialize");
 
   /* Passing of a linked list is not allowed.  Do multiple calls.  */
-  assert (!list->method_next);
+  NSCAssert(!list->method_next, NSInvalidArgumentException);
 
   /* Check for duplicates.  */
   for (i = 0; i < list->method_count; ++i)
@@ -327,8 +326,8 @@ search_for_method_in_list (MethodList_t list, SEL op)
 static void __objc_send_initialize(Class class)
 {
   /* This *must* be a class object */
-  assert(CLS_ISCLASS(class));
-  assert(!CLS_ISMETA(class));
+  NSCAssert(CLS_ISCLASS(class), NSInvalidArgumentException);
+  NSCAssert(!CLS_ISMETA(class), NSInvalidArgumentException);
 
   if (!CLS_ISINITIALIZED(class))
     {
@@ -383,10 +382,6 @@ __objc_init_protocols (struct objc_protocol_list* protos)
       unclaimed_proto_list = list_cons (protos, unclaimed_proto_list);
       return;
     }
-
-#if 0
-  assert (protos->next == 0);   /* only single ones allowed */
-#endif
 
   for(i = 0; i < protos->count; i++)
     {
@@ -450,7 +445,7 @@ check_class_methods(Class class)
           Method_t method = &(mlist->method_list[counter]);
 	  IMP imp = sarray_get(class->dtable, 
 			       (size_t)method->method_name->sel_id);
-	  assert((imp == method->method_imp));
+	  NSCAssert((imp == method->method_imp), NSInvalidArgumentException);
 	  sarray_at_put_safe (class->dtable,
 			      (sidx) method->method_name->sel_id,
 			      method->method_imp);

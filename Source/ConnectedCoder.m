@@ -30,7 +30,7 @@
 #include <gnustep/base/MemoryStream.h>
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSProxy.h>
-#include <assert.h>
+#include <Foundation/NSException.h>
 
 #define PTR2LONG(P) (((char*)(P))-(char*)0)
 #define LONG2PTR(L) (((char*)0)+(L))
@@ -276,14 +276,14 @@ static BOOL debug_connected_coder = NO;
      "anObj"s are Proxies! */
   if (is_decoding)
     {
-      assert([anObj isProxy]);
-      assert([anObj targetForProxy] == xref);
+      NSAssert([anObj isProxy], NSInternalInconsistencyException);
+      NSAssert([anObj targetForProxy] == xref, NSInternalInconsistencyException);
       /* This gets done in Proxy +newForRemote:connection:
 	 [connection addProxy:anObj]; */
     }
   else
     {
-      assert(PTR2LONG(anObj) == xref);
+      NSAssert(PTR2LONG(anObj) == xref, NSInternalInconsistencyException);
       [connection addLocalObject:anObj];
     }
 }

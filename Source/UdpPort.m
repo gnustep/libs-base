@@ -29,7 +29,7 @@
 #include <gnustep/base/ConnectedCoder.h>
 #include <gnustep/base/Array.h>
 #include <Foundation/NSLock.h>
-#include <assert.h>
+#include <Foundation/NSException.h>
 #ifndef __WIN32__
 #include <unistd.h>
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
@@ -105,7 +105,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 {
   UdpInPort* p;
 
-  assert (n > IPPORT_USERRESERVED);
+  NSAssert(n > IPPORT_USERRESERVED, NSInvalidArgumentException);
 
   [udp_port_gate lock];
 
@@ -139,7 +139,7 @@ static NSMapTable *port_number_2_in_port = NULL;
          Fix this.  Perhaps there is a better way of getting the address
 	 of the local host. */
       hp = gethostbyname ("localhost");
-    assert (hp);
+    NSAssert(hp, NSInternalInconsistencyException);
     /* Use host's address, and not INADDR_ANY, so that went we
        encode our _address for a D.O. operation, they get
        our unique host address that can identify us across the network. */
@@ -172,7 +172,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 	  perror ("[UdpInPort +newForReceivingFromPortNumber] getsockname()");
 	  abort ();
 	}
-      assert (p->_address.sin_port);
+      NSAssert(p->_address.sin_port, NSInternalInconsistencyException);
     }
 
   /* Record it in UdpInPort's map table. */
@@ -418,7 +418,7 @@ static Array *udp_out_port_array;
   id reply_port = [packet replyPort];
   int len = [packet streamEofPosition];
 
-  assert (len < MAX_PACKET_SIZE);
+  NSAssert(len < MAX_PACKET_SIZE, NSInternalInconsistencyException);
 
   if ( ! [reply_port isKindOfClass: [UdpInPort class]])
     [self error:"Trying to send to a port that is not a UdpInPort"];

@@ -25,6 +25,7 @@
 #include <gnustep/base/Port.h>
 #include <gnustep/base/Coder.h>	/* for Coding protocol in Object category */
 #include <gnustep/base/NotificationDispatcher.h>
+#include <Foundation/NSException.h>
 
 @implementation Port
 
@@ -113,7 +114,7 @@
 
 - (void) setReceivedPacketInvocation: (id <Invoking>)invocation
 {
-  assert (!_packet_invocation);
+  NSAssert(!_packet_invocation, NSInternalInconsistencyException);
   _packet_invocation = invocation;
 }
 
@@ -158,8 +159,8 @@
   self = [super initWithCapacity: c prefix: 0];
   if (self)
     {
-      assert ([op isValid]);
-      assert (!ip || [ip isValid]);
+      NSAssert([op isValid], NSInternalInconsistencyException);
+      NSAssert(!ip || [ip isValid], NSInternalInconsistencyException);
       _reply_out_port = op;
       _receiving_in_port = ip;
     }
@@ -188,7 +189,7 @@
   self = [super initWithCapacity: c prefix: [[self class] prefixSize]];
   if (self)
     {
-      assert ([ip isValid]);
+      NSAssert([ip isValid], NSInternalInconsistencyException);
       _reply_in_port = ip;
     }
   return self;

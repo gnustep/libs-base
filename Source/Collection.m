@@ -686,7 +686,6 @@
 	  array[i++] = o;
 	}
       [self freeEnumState: &es];
-      assert (c == i);
       for (i = 0; i < c; i++)
 	[array[i] release];
     }
