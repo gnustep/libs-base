@@ -24,6 +24,9 @@
 	* Headers/gnustep/base/NSRange.h:
 	* Headers/gnustep/base/NSSet.h:
 	Modify comments to include gsdoc documentation for autogsdoc.
+	This completes the transfer of all gsdoc documentation into
+	the source code.
+	* Documentation/gsdoc:  All obsolete files removed.
 
 2002-08-19  Richard Frith-Macdonald <rfm@gnu.org>
 
