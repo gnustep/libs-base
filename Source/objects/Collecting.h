@@ -39,7 +39,7 @@
 #include <objects/Invoking.h>
 #include <objects/Enumerating.h>
 
-@protocol ConstantCollecting
+@protocol ConstantCollecting <NSObject>
 
 // INITIALIZING;
 - init;
