@@ -185,6 +185,12 @@ typedef enum _NSGNUstepStringEncoding
 - (NSString*) hexadecimalRepresentation;
 - (id) initWithHexadecimalRepresentation: (NSString*)string;
 - (NSData*) md5Digest;
+- (BOOL) uudecodeInto: (NSMutableData*)decoded
+		 name: (NSString**)namePtr
+		 mode: (int*)modePtr;
+- (BOOL) uuencodeInto: (NSMutableData*)encoded
+		 name: (NSString*)name
+		 mode: (int)mode;
 @end
 
 @interface NSString (GSCategories)

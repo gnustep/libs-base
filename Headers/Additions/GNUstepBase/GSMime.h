@@ -96,13 +96,11 @@
 }
 
 + (NSString*) charsetFromEncoding: (NSStringEncoding)enc;
-+ (NSData*) decode: (NSData*)uuencoded UUName: (NSString**)namePtr;
 + (NSData*) decodeBase64: (NSData*)source;
 + (NSString*) decodeBase64String: (NSString*)source;
 + (GSMimeDocument*) documentWithContent: (id)newContent
 				   type: (NSString*)type
 				   name: (NSString*)name;
-+ (NSData*) encode: (NSData*)data UUName: (NSString*)name;
 + (NSData*) encodeBase64: (NSData*)source;
 + (NSString*) encodeBase64String: (NSString*)source;
 + (NSStringEncoding) encodingFromCharset: (NSString*)charset;

@@ -505,6 +505,254 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   return [NSData dataWithBytes: digest length: 16];
 }
 
+/**
+ * Decodes the source data from uuencoded and return the result.<br />
+ * Returns the encoded file name in namePtr if it is not null.
+ * Returns the encoded file mode in modePtr if it is not null.
+ */
+- (BOOL) uudecodeInto: (NSMutableData*)decoded
+		 name: (NSString**)namePtr
+		 mode: (int*)modePtr
+{
+  const unsigned char	*bytes = (const unsigned char*)[self bytes];
+  unsigned		length = [self length];
+  unsigned		decLength = [decoded length];
+  unsigned		pos = 0;
+  NSString		*name = nil;
+
+  if (namePtr != 0)
+    {
+      *namePtr = nil;
+    }
+  if (modePtr != 0)
+    {
+      *modePtr = 0;
+    }
+
+#define DEC(c)	(((c) - ' ') & 077)
+
+  for (pos = 0; pos < length; pos++)
+    {
+      if (bytes[pos] == '\n')
+	{
+	  if (name != nil)
+	    {
+	      unsigned		i = 0;
+	      int		lineLength;
+	      unsigned char	*decPtr;
+
+	      lineLength = DEC(bytes[i++]);
+	      if (lineLength <= 0)
+		{
+		  break;	// Got line length zero or less.
+		}
+
+	      [decoded setLength: decLength + lineLength];
+	      decPtr = [decoded mutableBytes];
+
+	      while (lineLength > 0)
+		{
+		  unsigned char	tmp[4];
+		  int	c;
+
+		  /*
+		   * In case the data is corrupt, we need to copy into
+		   * a temporary buffer avoiding buffer overrun in the
+		   * main buffer.
+		   */
+		  tmp[0] = bytes[i++];
+		  if (i < pos)
+		    {
+		      tmp[1] = bytes[i++];
+		      if (i < pos)
+			{
+			  tmp[2] = bytes[i++];
+			  if (i < pos)
+			    {
+			      tmp[3] = bytes[i++];
+			    }
+			  else
+			    {
+			      tmp[3] = 0;
+			    }
+			}
+		      else
+			{
+			  tmp[2] = 0;
+			  tmp[3] = 0;
+			}
+		    }
+		  else
+		    {
+		      tmp[1] = 0;
+		      tmp[2] = 0;
+		      tmp[3] = 0;
+		    }
+		  if (lineLength >= 1)
+		    {
+		      c = DEC(tmp[0]) << 2 | DEC(tmp[1]) >> 4;
+		      decPtr[decLength++] = (unsigned char)c;
+		    }
+		  if (lineLength >= 2)
+		    {
+		      c = DEC(tmp[1]) << 4 | DEC(tmp[2]) >> 2;
+		      decPtr[decLength++] = (unsigned char)c;
+		    }
+		  if (lineLength >= 3)
+		    {
+		      c = DEC(tmp[2]) << 6 | DEC(tmp[3]);
+		      decPtr[decLength++] = (unsigned char)c;
+		    }
+		  lineLength -= 3;
+		}
+	    }
+	  else if (pos > 6 && strncmp(bytes, "begin ", 6) == 0)
+	    {
+	      unsigned	off = 6;
+	      unsigned	end = pos;
+	      int	mode = 0;
+	      NSData	*d;
+
+	      if (end > off && bytes[end-1] == '\r')
+		{
+		  end--;
+		} 
+	      while (off < end && bytes[off] >= '0' && bytes[off] <= '7')
+		{
+		  mode *= 8;
+		  mode += bytes[off] - '0';
+		  off++;
+		}
+	      if (modePtr != 0)
+		{
+		  *modePtr = mode;
+		}
+	      while (off < end && bytes[off] == ' ')
+		{
+		  off++;
+		}
+	      d = [NSData dataWithBytes: &bytes[off] length: end - off];
+	      name = [[NSString alloc] initWithData: d
+					   encoding: NSASCIIStringEncoding];
+	      AUTORELEASE(name);
+	      if (namePtr != 0)
+		{
+		  *namePtr = name;
+		}
+	    }
+	  pos++;
+	  bytes += pos;
+	  length -= pos;
+	}
+    }
+  if (name == nil)
+    {
+      return NO;
+    }
+  return YES;
+}
+
+/**
+ * Encode the source data to uuencoded.<br />
+ * Uses the supplied name as the filename in the encoded data,
+ * and says that the file mode is as specified.<br />
+ * If no name is supplied, uses <code>untitled</code> as the name.
+ */
+- (BOOL) uuencodeInto: (NSMutableData*)encoded
+		 name: (NSString*)name
+		 mode: (int)mode
+{
+  const unsigned char	*bytes = (const unsigned char*)[self bytes];
+  int			length = [self length];
+  unsigned char		buf[64];
+  unsigned		i;
+
+  name = [name stringByTrimmingSpaces];
+  if ([name length] == 0)
+    {
+      name = @"untitled";
+    }
+  /*
+   * The header is a line of the form 'begin mode filename'
+   */
+  sprintf(buf, "begin %03o ", mode);
+  [encoded appendBytes: buf length: strlen(buf)];
+  [encoded appendData: [name dataUsingEncoding: NSASCIIStringEncoding]];
+  [encoded appendBytes: "\n" length: 1];
+
+#define ENC(c) ((c) > 0 ? ((c) & 077) + ' ': '`')
+
+  while (length > 0)
+    {
+      int	count;
+      unsigned	pos;
+
+      /*
+       * We want up to 45 bytes in a line ... and we record the
+       * number of bytes as the initial output character.
+       */
+      count = length;
+      if (count > 45)
+	{
+	  count = 45;
+	}
+      i = 0;
+      buf[i++] = ENC(count);
+
+      /*
+       * Now we encode the actual data for the line.
+       */
+      for (pos = 0; count > 0; count -= 3)
+	{
+	  unsigned char	tmp[3];
+	  int		c;
+
+	  /*
+	   * Copy data into a temporary buffer ensuring we don't
+	   * overrun the end of the original buffer risking access
+	   * violation.
+	   */
+	  tmp[0] = bytes[pos++];
+	  if (pos < length)
+	    {
+	      tmp[1] = bytes[pos++];
+	      if (pos < length)
+		{
+		  tmp[2] = bytes[pos++];
+		}
+	      else
+		{
+		  tmp[2] = 0;
+		}
+	    }
+	  else
+	    {
+	      tmp[1] = 0;
+	      tmp[2] = 0;
+	    }
+
+	  c = tmp[0] >> 2;
+	  buf[i++] = ENC(c);
+	  c = ((tmp[0] << 4) & 060) | ((tmp[1] >> 4) & 017);
+	  buf[i++] = ENC(c);
+	  c = ((tmp[1] << 2) & 074) | ((tmp[2] >> 6) & 03);
+	  buf[i++] = ENC(c);
+	  c = tmp[2] & 077;
+	  buf[i++] = ENC(c);
+	}
+      bytes += pos;
+      length -= pos;
+      buf[i++] = '\n';
+      [encoded appendBytes: buf length: i];
+    }
+
+  /*
+   * Encode a line of length zero followed by 'end' as the terminator.
+   */
+  [encoded appendBytes: "`\n" length: 4];
+  [encoded appendBytes: "end\n" length: 4];
+  return YES;
+}
 @end
 
 /**
