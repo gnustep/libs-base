@@ -1,5 +1,20 @@
 2004-06-22  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Fix typos in GSdoc
+	that were causing errors when autogsdoc is run.
+	* Headers/Foundation/*.h
+	* Source/*.m
+	* Source/Additions/GSCategories.m
+	* Source/Additions/Unicode.m: Add GSdoc comments to many files.  When
+	a class had no documentation at all, or existing documentation was in
+	the header file, comments were added in the header file.  When a class
+	had all or most of its documentation in the source file, comments were
+	added there.  (Maybe a policy should be decided for this at some
+	point?)
+	* Source/DocMakefile: Add "NSIndexSet.h" to list to generate GSdoc for.
+
+2004-06-22  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
 	* Documentation/HtmlNav: Add top-level documentation HTML page, that
 	goes in System/Library/Documentation.
 	* Documentation/Makefile.postamble: Install this.
