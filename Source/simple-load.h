@@ -15,6 +15,9 @@
 #ifndef __sunos_load_h_INCLUDE
 #define __sunos_load_h_INCLUDE
 
+#ifndef __USE_GNU
+#define __USE_GNU
+#endif
 #include <dlfcn.h>
 
 /* This is the GNU name for the CTOR list */
