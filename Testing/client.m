@@ -97,9 +97,6 @@ printf("oneway %d\n", _F_ONEWAY);
   [p getLong:&i];
   [p getLong:&i];
   [p outputStats:localObj];
-  type = [c typeForSelector:sel_get_any_uid("name") 
-	    remoteTarget:[p targetForProxy]];
-  printf(">>type = %s\n", type);
   printf(">>list proxy's hash is 0x%x\n", 
 	 (unsigned)[p hash]);
   printf(">>list proxy's self is 0x%x = 0x%x\n", 
