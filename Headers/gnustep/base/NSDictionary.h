@@ -26,7 +26,7 @@
 
 #include <Foundation/NSObject.h>
 
-@class NSArray, NSString, NSEnumerator;
+@class NSArray, NSString, NSEnumerator, NSURL;
 
 @interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
 + (id) dictionary;
@@ -66,10 +66,10 @@
 - (id) objectForKey: (id)aKey;					// Primitive
 - (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)anObject;
 
-- (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
-
-/* Accessing file attributes is a catagory declared in NSFileManager.h*/
-
+- (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxilliaryFile;
+#ifndef	STRICT_OPENSTEP
+- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxilliaryFile;
+#endif
 @end
 
 @interface NSMutableDictionary: NSDictionary

@@ -1,3 +1,9 @@
+2001-07-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m: Added ([writeToURL:atomically:]) for
+	MacOS-X compatibility
+	* Source/NSDictionary.m: ditto
+
 2001-07-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m: Added -processIdentifier for compatibility
