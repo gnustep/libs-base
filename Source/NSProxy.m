@@ -37,7 +37,7 @@
 
 #ifdef	HAVE_LIMITS_H
 /* For UINT_MAX */
-#include <limit.h>
+#include <limits.h>
 #endif
 
 @class	NSDistantObject;
