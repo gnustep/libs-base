@@ -491,7 +491,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     return [self initWithCStringNoCopy: buf length: length fromZone: z];
 }
 
-- (void) descriptionTo: (NSMutableString*)output
+- (void) descriptionTo: (id<GNUDescriptionDestination>)output
 {
   if (_count == 0)
     {

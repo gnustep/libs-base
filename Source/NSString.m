@@ -2679,7 +2679,7 @@ else
   return [d writeToFile: filename atomically: useAuxiliaryFile];
 }
 
-- (void) descriptionTo: (NSMutableString*)output
+- (void) descriptionTo: (id<GNUDescriptionDestination>)output
 {
   static NSCharacterSet	*quotables = nil;
 
