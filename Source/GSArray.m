@@ -320,9 +320,9 @@ static Class	GSInlineArrayClass;
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector
 {
-  unsigned i = _count;
+  unsigned i;
 
-  while (i-- > 0)
+  for (i = 0; i < _count; i++)
     {
       [_contents_array[i] performSelector: aSelector];
     }
@@ -330,9 +330,9 @@ static Class	GSInlineArrayClass;
 
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
 {
-  unsigned i = _count;
+  unsigned i;
 
-  while (i-- > 0)
+  for (i = 0; i < _count; i++)
     {
       [_contents_array[i] performSelector: aSelector withObject: argument];
     }
