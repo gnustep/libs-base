@@ -1,3 +1,8 @@
+2004-03-01    <woudshoo@agilisys.com>
+
+	* Source/NSThread.m ([GSPerformHolder +initialize]): #ifdef'ed out 
+	code that does not work on MinGW.
+
 2003-02-29 Sheldon Gill <sheldon@iinet.net.au>
 
 	* Source/NSTimeZone.m: Added capability on Win32. NSTimeZone now
