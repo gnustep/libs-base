@@ -84,6 +84,11 @@ if test $DYNAMIC_LINKER = null; then
   AC_CHECK_HEADER(dld/defs.h, DYNAMIC_LINKER=dld)
 fi
 
+if test $DYNAMIC_LINKER = simple; then
+  AC_TRY_LINK([#include <dlfcn.h>], dladdr(0,0);, 
+	      AC_DEFINE(HAVE_DLADDR))
+fi
+
 AC_SUBST(DYNAMIC_LINKER)dnl
 ])
 

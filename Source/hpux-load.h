@@ -81,4 +81,11 @@ __objc_dynamic_list_undefined_symbols(void)
     return NULL;
 }
 
+// TODO: search for an hp-ux equivalent of dladdr() */
+static char *
+__objc_dynamic_get_symbol_path(dl_handle_t handle, dl_symbol_t symbol)
+{
+  return NULL;
+}
+
 #endif /* __hpux_load_h_INCLUDE */

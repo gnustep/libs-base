@@ -45,6 +45,7 @@ GS_EXPORT NSString* NSLoadedClasses;
   unsigned	_bundleType;
   BOOL		_codeLoaded;
   unsigned	_version;
+  NSString      *_frameworkVersion;
 }
 
 + (NSArray*) allBundles;

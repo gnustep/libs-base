@@ -132,6 +132,9 @@
 /* Define if you have the vsprintf function.  */
 #undef HAVE_VSPRINTF
 
+/* Define if you have the dladdr function.  */
+#undef HAVE_DLADDR
+
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
 
