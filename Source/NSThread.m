@@ -585,10 +585,12 @@ gnustep_base_thread_callback(void)
 }
 
 /**
- * Returns a flag to say whether the application is multi-threaded or not.
+ * Returns a flag to say whether the application is multi-threaded or not.<br />
  * An application is considered to be multi-threaded if any thread other
  * than the main thread has been started, irrespective of whether that
- * thread has since terminated.
+ * thread has since terminated.<br />
+ * NB. This method returns YES if called within a handler processing
+ * <code>NSWillBecomeMultiThreadedNotification</code>
  */
 + (BOOL) isMultiThreaded
 {
