@@ -141,7 +141,7 @@ static void setupQuotables()
       NSData *bitmap;
 
       s = [[NSCharacterSet characterSetWithCharactersInString:
-	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$._"]
+	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$./_"]
 	mutableCopy];
       [s invert];
       quotables = [s copy];
@@ -3166,7 +3166,8 @@ handle_printf_atsign (FILE *stream,
     {
       setupQuotables();
     }
-  if ([self rangeOfCharacterFromSet: quotables].length > 0)
+  if ([self rangeOfCharacterFromSet: quotables].length > 0
+    || [self characterAtIndex: 0] == '/')
     {
       unichar	tmp[length <= 1024 ? length : 0];
       unichar	*ustring;
