@@ -55,6 +55,8 @@
     NXOpenTypedStreamForFile
 #define objc_close_typed_stream NXCloseTypedStream
 
+#define class_pointer isa
+
 #define class_create_instance(CLASS) class_createInstance(CLASS, 0)
 #define sel_get_name(ASEL) sel_getName(ASEL)
 #define sel_get_uid(METHODNAME) sel_getUid(METHODNAME)

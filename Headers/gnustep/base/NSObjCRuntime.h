@@ -93,7 +93,7 @@ GS_EXPORT BOOL GSSetInstanceVariable(id obj, NSString *name, const void* data);
 FOUNDATION_STATIC_INLINE Class
 GSObjCClass(id obj)
 {
-  return object_get_class(obj);
+  return obj->class_pointer;
 }
 
 /*
@@ -103,7 +103,7 @@ GSObjCClass(id obj)
 FOUNDATION_STATIC_INLINE BOOL
 GSObjCIsInstance(id obj)
 {
-  return CLS_ISCLASS(object_get_class(obj));
+  return CLS_ISCLASS(obj->class_pointer);
 }
 
 /*
