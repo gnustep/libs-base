@@ -109,7 +109,7 @@ typedef unsigned short Character;
 
 @end
 
-@protocol MutableString <ValueHolding>
+@protocol MutableString <ValueSetting>
 
 + (MutableString*) stringWithCapacity: (unsigned)capacity;
 - initWithCapacity: (unsigned)capacity;
@@ -142,7 +142,7 @@ typedef unsigned short Character;
 
 @interface MutableCString : MutableString
 {
-  char * _contents_chars;
+  char *_contents_chars;
   int _count;
   int _capacity;
 }
