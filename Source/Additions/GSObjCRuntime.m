@@ -1354,6 +1354,7 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
     {
       GSObjCAddClassBehavior (receiver, behavior_super_class);
     }
+  GSFlushMethodCacheForClass (receiver);
 }
 
 
