@@ -1,3 +1,10 @@
+Tue Jun 25 13:13:00 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/Additions/GSMime.m ([-rawMimeData:]): Create the
+	autorelease pool after the other variables, so that it compiles
+	with gc=yes and gcc < 3.x.
+	* Source/NSLog.m (NSLogv): Idem.
+	
 2002-06-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSFileHandle.h: add async read of specific length.
