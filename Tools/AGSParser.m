@@ -1964,7 +1964,7 @@ try:
 
 - (NSMutableDictionary*) parseInstanceVariables
 {
-  NSString		*visibility = @"private";
+  NSString		*validity = @"private";
   NSMutableDictionary	*ivars;
   BOOL			shouldDocument = documentAllInstanceVariables;
 
@@ -1984,27 +1984,27 @@ try:
 	  if ((token = [self parseIdentifier]) == nil
 	    || [self parseSpace] >= length)
 	    {
-	      [self log: @"interface with bad visibility directive"];
+	      [self log: @"interface with bad validity directive"];
 	      goto fail;
 	    }
 	  if ([token isEqual: @"private"] == YES)
 	    {
-	      ASSIGN(visibility, token);
+	      ASSIGN(validity, token);
 	      shouldDocument = documentAllInstanceVariables;
 	    }
 	  else if ([token isEqual: @"protected"] == YES)
 	    {
-	      ASSIGN(visibility, token);
+	      ASSIGN(validity, token);
 	      shouldDocument = YES;
 	    }
 	  else if ([token isEqual: @"public"] == YES)
 	    {
-	      ASSIGN(visibility, token);
+	      ASSIGN(validity, token);
 	      shouldDocument = YES;
 	    }
 	  else
 	    {
-	      [self log: @"interface with bad visibility (%@)", token];
+	      [self log: @"interface with bad validity (%@)", token];
 	      goto fail;
 	    }
 	}
@@ -2019,7 +2019,7 @@ try:
 
 	  if (iv != nil)
 	    {
-	      if ([visibility isEqual: @"private"] == NO)
+	      if ([validity isEqual: @"private"] == NO)
 		{
 		  NSString	*n = [iv objectForKey: @"Name"];
 
@@ -2035,7 +2035,7 @@ try:
 		      [self appendComment: c to: iv];
 		    }
 		}
-	      [iv setObject: visibility forKey: @"Visibility"];
+	      [iv setObject: validity forKey: @"Validity"];
 	      [ivars setObject: iv forKey: [iv objectForKey: @"Name"]];
 	    }
 	}
