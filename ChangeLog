@@ -1,3 +1,16 @@
+2003-03-31  Stephane Corthesy <stephane@sente.ch>
+
+	* Source/Additions/GCArray.m: Replace retain/release by 
+	RETAIN/RELEASE macros.
+	* Source/Additions/GCDictionary.m: Idem.
+
+	* Source/Additions/GSCompatibility.h: Add NSBundle category.
+	* Source/Additions/GSCompatibility.m (GSEncodingName): New.
+	Add -[NSBundle pathForGNUstepResource:ofType:inDirectory:].
+
+	* Source/Additions/GSObjCRuntime.m: Include GNUstep.h.
+	(GSObjCMethodNames): Cast method_name to const char *.
+
 2003-03-31  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/Foundation.h: Add GSCategories.h

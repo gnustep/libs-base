@@ -163,6 +163,12 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
 @end
 
+@interface NSBundle(GSCompatibility)
++ (NSString *) pathForGNUstepResource: (NSString *)name
+                               ofType: (NSString *)ext
+                          inDirectory: (NSString *)bundlePath;
+@end
+
 @interface NSDistantObject (GSCompatibility)
 + (void) setDebug: (int)val;
 @end

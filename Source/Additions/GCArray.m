@@ -35,6 +35,7 @@
 
 #include <gnustep/base/GSObjCRuntime.h>
 #include <gnustep/base/GCObject.h>
+#include <gnustep/base/GNUstep.h>
 
 @implementation GCArray
 
@@ -79,7 +80,7 @@ static Class	gcClass = 0;
 	{
 	  if (_isGCObject[c] == NO)
 	    {
-	      [_contents[c] release];
+	      DESTROY(_contents[c]);
 	    }
 	}
     }
@@ -87,7 +88,7 @@ static Class	gcClass = 0;
     {
       while (c-- > 0)
 	{
-	  [_contents[c] release];
+	  DESTROY(_contents[c]);
 	}
     }
 
@@ -139,7 +140,7 @@ static Class	gcClass = 0;
   _count = 0;
   while (_count < count)
     {
-      _contents[_count] = [objects[_count] retain];
+      _contents[_count] = RETAIN(objects[_count]);
       if (_contents[_count] == nil)
 	{
 	  [self release];
@@ -164,7 +165,7 @@ static Class	gcClass = 0;
   _count = 0;
   while (_count < count)
     {
-      _contents[_count] = [[anotherArray objectAtIndex: _count] retain];
+      _contents[_count] = RETAIN([anotherArray objectAtIndex: _count]);
       _isGCObject[_count] = [_contents[_count] isKindOfClass: gcClass];
       _count++;
     }
@@ -250,7 +251,7 @@ static Class	gcClass = 0;
     {
       while (_count < count)
 	{
-	  _contents[_count] = [[anotherArray objectAtIndex: _count] retain];
+	  _contents[_count] = RETAIN([anotherArray objectAtIndex: _count]);
 	  _isGCObject[_count] = [_contents[_count] isKindOfClass: gcClass];
 	  _count++;
 	}
@@ -279,7 +280,7 @@ static Class	gcClass = 0;
     {
       while (_count < count)
 	{
-	  _contents[_count] = [objects[_count] retain];
+	  _contents[_count] = RETAIN(objects[_count]);
 	  if (_contents[_count] == nil)
 	    {
 	      [self release];
@@ -337,7 +338,7 @@ static Class	gcClass = 0;
       _contents[i] = _contents[i - 1];
       _isGCObject[i] = _isGCObject[i - 1];
     }
-  _contents[index] = [anObject retain];
+  _contents[index] = RETAIN(anObject);
   _isGCObject[index] = [anObject isKindOfClass: gcClass];
   _count++;
 }
@@ -375,7 +376,7 @@ static Class	gcClass = 0;
     }
   for (i = range.location; i < NSMaxRange(range); i++)
     {
-      [_contents[i] release];
+      RELEASE(_contents[i]);
     }
   for (i = NSMaxRange(range); i < _count; i++, range.location++)
     {
@@ -399,9 +400,7 @@ static Class	gcClass = 0;
 		  format: @"[%@-%@]: bad index %u",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), index];
     }
-  [anObject retain];
-  [_contents[index] release];
-  _contents[index] = anObject;
+  ASSIGN(_contents[index], anObject);
   _isGCObject[index] = [anObject isKindOfClass: gcClass];
 }
 

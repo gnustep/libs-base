@@ -61,7 +61,7 @@ typedef struct {
 - (void) dealloc
 {
   NSEndMapTableEnumeration(&enumerator);
-  [dict release];
+  DESTROY(dict);
   [super dealloc];
 }
 - (id) nextObject
@@ -104,7 +104,7 @@ _GCRetainObjects(NSMapTable *table, const void *ptr)
 {
   GCInfo	*objectStruct = (GCInfo*)ptr;
 
-  [objectStruct->object retain];
+  RETAIN(objectStruct->object);
 }
 
 static void
@@ -116,12 +116,12 @@ _GCReleaseObjects(NSMapTable *table, const void *ptr)
     {
       if (objectStruct->isGCObject == NO)
 	{
-	  [objectStruct->object release];
+	  DESTROY(objectStruct->object);
 	}
     }
   else
     {
-      [objectStruct->object release];
+      DESTROY(objectStruct->object);
     }
   NSZoneFree(NSDefaultMallocZone(), objectStruct);
 }
@@ -316,7 +316,7 @@ static Class	gcClass = 0;
   e = [_GCDictionaryKeyEnumerator alloc];
   e->dict = [self retain];
   e->enumerator = NSEnumerateMapTable(_map);
-  return [e autorelease];
+  return AUTORELEASE(e);
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -326,7 +326,7 @@ static Class	gcClass = 0;
   e = [_GCDictionaryObjectEnumerator alloc];
   e->dict = [self retain];
   e->enumerator = NSEnumerateMapTable(_map);
-  return [e autorelease];
+  return AUTORELEASE(e);
 }
 
 - (id) mutableCopyWithZone: (NSZone*)zone

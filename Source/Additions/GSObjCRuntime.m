@@ -45,7 +45,9 @@
 #include <Foundation/Foundation.h>
 #endif
 #include <gnustep/base/GSObjCRuntime.h>
+#include "gnustep/base/GNUstep.h"
 #include <string.h>
+
 
 @class	NSNull;
 
@@ -151,7 +153,7 @@ GSObjCMethodNames(id obj)
 		  NSString	*name;
 
 		  name = [[NSString alloc] initWithUTF8String:
-		    method->method_name];
+		    (const char *)method->method_name];
 		  [set addObject: name];
 		  RELEASE(name);
 		}
@@ -831,8 +833,6 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 #ifndef NeXT_Foundation_LIBRARY
 #include	<Foundation/NSValue.h>
 #include	<Foundation/NSKeyValueCoding.h>
-#else
-#include <Foundation/Foundation.h>
 #endif
 
 /**  Deprecated ... use GSObjCGetValue() */
