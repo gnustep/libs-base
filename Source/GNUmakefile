@@ -409,6 +409,8 @@ Foundation/NSData.h \
 Foundation/NSDate.h \
 Foundation/NSDateFormatter.h \
 Foundation/NSDebug.h \
+Foundation/NSDecimal.h \
+Foundation/NSDecimalNumber.h \
 Foundation/NSDictionary.h \
 Foundation/NSDistantObject.h \
 Foundation/NSDistributedLock.h \
