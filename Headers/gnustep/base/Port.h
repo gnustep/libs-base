@@ -1,5 +1,5 @@
 /* Interface for abstract superclass port for use with Connection
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -31,7 +31,7 @@
 
 @class Connection;
 
-@interface Port : RetainingNotifier <Coding>
+@interface Port : RetainingNotifier
 
 /* xxx These will probably change */
 + newRegisteredPortWithName: (id <String>)n;
