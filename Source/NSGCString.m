@@ -780,9 +780,13 @@ typedef struct {
 } NSGMutableCStringStruct;
 
 static inline void
-stringGrowBy(NSGMutableCStringStruct *self, unsigned size)
+stringGrowBy(NSGMutableCStringStruct *self, unsigned want)
 {
-  self->_capacity = MAX(self->_capacity*2, self->_count+size+1);
+  want += self->_count + 1;
+  if (want > self->_capacity)
+    self->_capacity += self->_capacity/2;
+  if (want > self->_capacity)
+    self->_capacity = want;
   self->_contents_chars
     = NSZoneRealloc(self->_zone, self->_contents_chars, self->_capacity);
 }
@@ -1011,7 +1015,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
     {
       _capacity = length+1;
       _contents_chars =
-		NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
+		NSZoneRealloc(_zone, _contents_chars, _capacity);
     }
   [aString getCString: _contents_chars];
   _count = length;
@@ -1068,7 +1072,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
     {
       _capacity *= 2;
       _contents_chars =
-		NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
+		NSZoneRealloc(_zone, _contents_chars, _capacity);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, 1);
   _contents_chars[index] = [newObject charValue];
@@ -1084,8 +1088,9 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 {
   char	*ptr;
 
-  stringGrowBy((NSGMutableCStringStruct *)self, len);
-  ptr = _contents_chars + _count;
+  if (len > 0)
+    stringGrowBy((NSGMutableCStringStruct *)self, len);
+  ptr = &_contents_chars[_count];
   _count += len;
   _hash = 0;
   return ptr;
