@@ -27,7 +27,7 @@ AC_INIT(Source/Collection.m)
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
-AC_CONFIG_HEADER(Source/include/config.h)
+AC_CONFIG_HEADER(Headers/gnustep/base/config.h)
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
@@ -561,7 +561,7 @@ AC_CONFIG_SUBDIRS(Source/mframe)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(config.mak Source/include/GSConfig.h)
+AC_OUTPUT(config.mak Headers/gnustep/base/GSConfig.h)
 
 dnl Local Variables:
 dnl comment-start: "dnl "

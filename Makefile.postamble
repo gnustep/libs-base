@@ -36,7 +36,7 @@
 #
 
 # Things to do before compiling
-# before-all::
+before-all:: header-links
 
 # Things to do after compiling
 # after-all::
@@ -65,12 +65,17 @@
 # Things to do after distcleaning
 after-distclean::
 	rm -f config.status config.log config.cache TAGS config.mak
+	cd Headers; rm -f Foundation
 
 # Things to do before checking
 # before-check::
 
 # Things to do after checking
 # after-check::
+
+header-links: $(HEADER_LINK_DEPENDS)
+	-rm -f Headers/Foundation
+	$(LN_S) gnustep/base Headers/Foundation
 
 configure: configure.in
 	autoconf

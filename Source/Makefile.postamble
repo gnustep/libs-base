@@ -50,7 +50,7 @@ before-all:: gnustep/base Foundation $(GENERATED_HFILES)
 # to the source we must install the GNU header manually
 after-install::
 	for file in $(GNU_HEADERS); do \
-	  $(INSTALL_DATA) ./include/$$file \
+	  $(INSTALL_DATA) ../Headers/gnustep/base/$$file \
 	    $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
 	done
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h \
@@ -96,8 +96,8 @@ after-uninstall::
 
 # Things to do after distcleaning
 after-distclean::
-	rm -f include/config.h include/GSConfig.h include/dynamic-load.h \
-		include/mframe.h Foundation base \
+	rm -f Foundation/config.h Foundation/GSConfig.h Foundation/dynamic-load.h \
+		mframe/mframe.h Foundation base \
 		NSNumber[0-9]*.m NSValue[0-9]*.m o_*_bas.m
 	rm -rf $(GNUSTEP_TARGET_CPU)
 
@@ -108,21 +108,8 @@ after-distclean::
 # after-check::
 
 # Local links to the include files
-gnustep/base: FORCE
-	if [ ! -h base ]; then \
-	  $(LN_S) include base; \
-	fi
-	# Make necessary links to source headers if compiling in seperate dir
-	# These are separate directories because one contains the .h files
-	# generated during the build; the other contains the unchanged sources.
-	if [ ! -r ./srcdir-include/Foundation/NSObject.h ]; then \
-	  mkdir srcdir-include; \
-	  (cd srcdir-include; $(LN_S) ../$(srcdir)/include ./base) ; \
-	  (cd srcdir-include; $(LN_S) ../$(srcdir)/include ./Foundation) ; \
-	fi
-
 Foundation: 
-	$(LN_S) $(srcdir)/include Foundation
+	$(LN_S) $(srcdir)/../Headers/gnustep/base Foundation
 
 # Creation of NSValue and NSNumber concrete classes from templates
 $(NSVALUE_MFILES) : NSCTemplateValue.m
@@ -140,10 +127,10 @@ dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
 
-include/preface.h: $(srcdir)/include/preface.h.in ../Version
+Foundation/preface.h: $(srcdir)/Foundation/preface.h.in ../Version
 	rm -f $@
 	sed -e "s/@VERSION@/$(LIBRARY_VAR)_VERSION $(VERSION)/" \
-	< $(srcdir)/include/preface.h.in | \
+	< $(srcdir)/Foundation/preface.h.in | \
 	sed -e "s/@MAJOR_VERSION@/$(LIBRARY_VAR)_MAJOR_VERSION $(MAJOR_VERSION)/" | \
 	sed -e "s/@MINOR_VERSION@/$(LIBRARY_VAR)_MINOR_VERSION $(MINOR_VERSION)/" | \
 	sed -e "s/@SUBMINOR_VERSION@/$(LIBRARY_VAR)_SUBMINOR_VERSION $(SUBMINOR_VERSION)/" | \
@@ -151,43 +138,43 @@ include/preface.h: $(srcdir)/include/preface.h.in ../Version
 	sed -e "s/@LIBRARY_NAME@/$(LIBRARY_VAR)_LIBRARY_NAME $(LIBRARY_NAME)/" | \
 	sed -e "s/@PACKAGE_NAME@/$(LIBRARY_VAR)_PACKAGE_NAME $(PACKAGE_NAME)/" \
 	> $@
-$(GNUSTEP_OBJ_DIR)/preface${OEXT}: include/preface.h
+$(GNUSTEP_OBJ_DIR)/preface${OEXT}: Foundation/preface.h
 
 #
 # The config.h file is specific to a target
 #
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-mv include/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-mv Foundation/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-mv include/GSConfig.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-mv Foundation/GSConfig.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h: mframe/config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-mv include/mframe.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-mv mframe/mframe.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
-include/o_%_bas.h: include/o_x_bas.h.in
+Foundation/o_%_bas.h: Foundation/o_x_bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@
 
-include/o_%_cbs.h: include/o_x_cbs.h.in
+Foundation/o_%_cbs.h: Foundation/o_x_cbs.h.in
 	sed -e "s/@YY@/$*/g" $< > $@
 
-o_%_bas.m: o_x_bas.m.in include/o_%.h
+o_%_bas.m: o_x_bas.m.in Foundation/o_%.h
 	sed -e "s/@XX@/$*/g" $< > $@
 
-o_%_cbs.m: o_x_cbs.m.in include/o_%.h
+o_%_cbs.m: o_x_cbs.m.in Foundation/o_%.h
 	sed -e "s/@YY@/$*/g" $< > $@
 
-$(GNUSTEP_OBJ_DIR)/o_array.o: o_array.m include/o_array.h
-include/o_array.h: include/o_array_bas.h include/o_array_cbs.h include/o_hash.h
-$(GNUSTEP_OBJ_DIR)/o_hash.o: o_hash.m include/o_hash.h
-include/o_hash.h: include/o_hash_bas.h include/o_hash_cbs.h
-$(GNUSTEP_OBJ_DIR)/o_list.o: o_list.m include/o_list.h
-include/o_list.h: include/o_list_bas.h include/o_list_cbs.h include/o_array.h include/o_hash.h
-$(GNUSTEP_OBJ_DIR)/o_map.o: o_map.m include/o_map.h
-include/o_map.h: include/o_map_bas.h include/o_map_cbs.h include/o_hash.h
+$(GNUSTEP_OBJ_DIR)/o_array.o: o_array.m Foundation/o_array.h
+Foundation/o_array.h: Foundation/o_array_bas.h Foundation/o_array_cbs.h Foundation/o_hash.h
+$(GNUSTEP_OBJ_DIR)/o_hash.o: o_hash.m Foundation/o_hash.h
+Foundation/o_hash.h: Foundation/o_hash_bas.h Foundation/o_hash_cbs.h
+$(GNUSTEP_OBJ_DIR)/o_list.o: o_list.m Foundation/o_list.h
+Foundation/o_list.h: Foundation/o_list_bas.h Foundation/o_list_cbs.h Foundation/o_array.h Foundation/o_hash.h
+$(GNUSTEP_OBJ_DIR)/o_map.o: o_map.m Foundation/o_map.h
+Foundation/o_map.h: Foundation/o_map_bas.h Foundation/o_map_cbs.h Foundation/o_hash.h
 
 #
 #	Files that include mframe.h will need a rebuild if it is changed.
@@ -218,7 +205,7 @@ $(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
 $(GNUSTEP_OBJ_DIR)/NSRunLoop.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
-	: include/GSIArray.h include/GSUnion.h
+	: Foundation/GSIArray.h Foundation/GSUnion.h
 
 #
 #	Files that include GSIMap.h will need a rebuild if it is changed.
@@ -229,7 +216,7 @@ $(GNUSTEP_OBJ_DIR)/NSGDictionary.o \
 $(GNUSTEP_OBJ_DIR)/NSGSet.o \
 $(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
-	: include/GSIMap.h include/GSUnion.h
+	: Foundation/GSIMap.h Foundation/GSUnion.h
 
 #
 #	Files that include fast.x will need a rebuild if it is changed.
@@ -246,7 +233,7 @@ $(GNUSTEP_OBJ_DIR)/NSObject.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSString.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
-        : include/fast.x
+        : Foundation/fast.x
 
 #
 #	Files that include propList.h will need a rebuild if it is changed.
@@ -268,7 +255,7 @@ $(GNUSTEP_OBJ_DIR)/NSGCString.o \
 #	NSGeometry.m needs a recompile if NSGeometry.h is changed.
 #
 $(GNUSTEP_OBJ_DIR)/NSGeometry.o \
-	: include/NSGeometry.h
+	: Foundation/NSGeometry.h
 
 TAGS: $(DIST_FILES)
 	etags $(DIST_FILES)
@@ -288,22 +275,5 @@ AUTHORS: GNUmakefile
 
 regenerate: $(DIST_FILES)
 	mv AUTHORS ..
-
-copy-dist: $(DIST_FILES)
-	mkdir ../snap/Source
-	mkdir ../snap/Source/include
-	mkdir ../snap/Source/Foundation
-	mkdir ../snap/Source/objc
-	mkdir ../snap/Source/unicode
-	for file in $(DIST_FILES); do \
-	  ln $$file ../snap/Source/$$file ; \
-	done
-	for file in $(GNU_HEADERS); do \
-	  ln ./include/$$file ../snap/Source/include/$$file ; \
-	done
-	for file in $(BASE_HEADERS); do \
-	  ln $$file ../snap/Source/include/`basename $$file` ; \
-	done
-	ln AUTHORS ../snap
 
 FORCE:
