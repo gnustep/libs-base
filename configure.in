@@ -224,6 +224,11 @@ AC_CHECK_FUNCS(valloc)
 AC_CHECK_FUNCS(times)
 
 #--------------------------------------------------------------------
+# This function needed by NSString for handling of %@ printf directive.
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(register_printf_function)
+
+#--------------------------------------------------------------------
 # These libraries needed by the check programs for distributed objects
 # on Solaris where the socket/network code isn't the regular place.  Yuck!
 # I'm assuming that if the socket/network code is in the regular place,
