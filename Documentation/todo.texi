@@ -52,12 +52,12 @@ a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @itemize @bullet
 
-@item Make a GNU analogue to NSException; (by putting in Muller's
-patch).
+@item Reorganize some of the Categories to make a minimal NSObject-using
+program smaller.  Currently it is huge becuase it pulls in archiving and
+therefore many of the collection classes.
 
 @item Make my NS... classes raise the NSExceptions they are supposed to.
-
-@item In remote object messaging, send exceptions back to the requestor.
+Change many NSParameterAssert()'s into NSAssert()'s with explanations.
 
 @item Do low-level frobbing of TCP to reduce delays.
 
@@ -80,12 +80,6 @@ malloced buffers should autorelease those buffers, (like readFormat:).
 source.
 
 @item Add Coding methods to all the collection classes.
-
-@item Clean up the behavior code.  Make sure that classes with behavior
-added can be subclassed properly... accounting for size.
-
-@item Clean and comment mframe.m.  Make sure all malloc'ed pieces get
-free'd somewhere.
 
 @item Finish Collection heirarchy clean ups.  We need non-mutable
 version for many of the classes.
@@ -110,9 +104,6 @@ completely reimplemented.  ...and a lot more...
 
 @item
 Fix all the subclassResponsibility comments in objects/*.h
-
-@c @item
-@c Look at __gcc_bcmp in libgcc2.c.
 
 @item
 I will finish libobjects documentation.
