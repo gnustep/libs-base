@@ -465,9 +465,8 @@ NSAllMapTableKeys(NSMapTable *table)
 NSArray *
 NSAllMapTableValues(NSMapTable *table)
 {
-  NSMutableArray *array;
   NSMapEnumerator enumerator;
-  id valueArray;
+  NSMutableArray *valueArray;
   id value;
 
   /* Create our mutable value array. */
@@ -481,7 +480,7 @@ NSAllMapTableValues(NSMapTable *table)
     [valueArray addObject:value];
 
   /* FIXME: Should ARRAY returned be `autorelease'd? */
-  return [array autorelease];
+  return [valueArray autorelease];
 }
 
 /** Adding items to an NSMapTable **/
