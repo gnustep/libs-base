@@ -517,7 +517,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       if (env)
 	{
           NSArray		*paths;
-	  NSMutableString	*system;
+	  NSMutableString	*system = nil;
 	  NSString		*str;
 
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
@@ -541,7 +541,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
           paths = NSSearchPathForDirectoriesInDomains(GSLibrariesDirectory,
                                                       NSSystemDomainMask, YES);
           if ((paths != nil) && ([paths count] > 0))
-            system = RETAIN([paths objectAtIndex: 0]);
+	    system = RETAIN([paths objectAtIndex: 0]);
 
 	  _executable_path = nil;
 #ifdef PROCFS_EXE_LINK
