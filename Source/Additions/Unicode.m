@@ -67,11 +67,16 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 
 /*
  * The whole of the GNUstep code stores UNICODE in internal byte order,
- * so we do the same. This should be UCS-2-INTERNAL for libiconv
+ * so we do the same. We have switched to using UTF16 so the defines here
+ * recognise this. We try the generic UTF16 first, followed by the endian
+ * specifi versions. If not we try the original defines and then back to
+ * UCS-2-INTERNAL.
  */
 #ifdef WORDS_BIGENDIAN
+#define UNICODE_UTF16 "UTF-16BE"
 #define UNICODE_INT "UNICODEBIG"
 #else
+#define UNICODE_UTF16 "UTF-16LE"
 #define UNICODE_INT "UNICODELITTLE"
 #endif
 
@@ -84,6 +89,23 @@ static const char *
 internal_unicode_enc(void)
 {
   iconv_t conv;
+  unicode_enc = "UTF-16";
+  conv = iconv_open(unicode_enc, "ASCII");
+  if (conv != (iconv_t)-1)
+    {
+      iconv_close(conv);
+      return unicode_enc;
+    }
+  unicode_enc = UNICODE_UTF16;
+  conv = iconv_open(unicode_enc, "ASCII");
+  if (conv != (iconv_t)-1)
+    {
+      iconv_close(conv);
+      return unicode_enc;
+    }
+  NSLog(@"Could not initialise iconv() for UTF16, using UCS-2");
+  NSLog(@"Using characters outside 16 bits may give incorrect results");
+
   unicode_enc = UNICODE_INT;
   conv = iconv_open(unicode_enc, "ASCII");
   if (conv != (iconv_t)-1)
@@ -805,6 +827,13 @@ uni_cop(unichar u)
 BOOL
 uni_isnonsp(unichar u)
 {
+  /*
+   * Treating upper surrogates as non-spacing is a convenient solution
+   * to a number of issues with UTF-16
+   */
+  if ((u >= 0xdc00) && (u <= 0xdfff))
+    return YES;
+
 // FIXME check is uni_cop good for this
   if (uni_cop(u))
     return YES;
@@ -1053,96 +1082,89 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	{
 	  while (spos < slen)
 	    {
-	      unsigned char	c = src[spos++];
-	      unichar		u = c;
+	      unsigned char	c = src[spos];
+	      unsigned long	u = c;
 
 	      if (c > 0x7f)
+                {
+                  int i, sle = 0;
+
+		  /* calculated the expected sequence length */
+                  while (c & 0x80)
+                    {
+                      c = c << 1;
+                      sle++;
+                    }
+
+		  /* legal ? */
+		  if ((sle < 2) || (sle > 6))
+                    {
+	               result = NO;
+		       break;
+	            }
+
+		  /* do we have enough bytes ? */
+		  if ((spos + sle) > slen)
+                    {
+	               result = NO;
+		       break;
+	            }
+
+		  /* get the codepoint */
+		  for (i = 1; i < sle; i++)
+		    {
+		      u = (u << 6) | (src[spos + i] & 0x3f);
+		    }
+	          u = u & ~(0xffffffff << ((5 * sle) + 1));
+		  spos += sle;
+                }
+              else
 		{
-		  unsigned char	c1;
-
-		  if (spos == slen)
-		    {
-		      result = NO;	// Second byte is missing.
-		      break;
-		    }
-		  if (c < 0xe0)
-		    {
-		      if (c < 0xc1)
-			{
-			  /*
-			   * Either we are inside a multibyte sequence or
-			   * we have a bad multibyte character count.
-			   */
-			  result = NO;
-			  break;
-			}
-		      c1 = src[spos++];
-		      if ((c1 ^ 0x80) >= 0x40)
-			{
-			  /*
-			   * Second byte in sequence is not a legal
-			   * continuation.
-			   */
-			  result = NO;
-			  break;
-			}
-		      u = ((c & 0x1f) << 6) | (c1 & 0x3f);
-		    }
-		  else if (c < 0xf0)
-		    {
-		      unsigned char	c1;
-		      unsigned char	c2;
-
-		      c1 = src[spos++];
-		      if (spos == slen)
-			{
-			  result = NO;	// Third byte is missing.
-			  break;
-			}
-		      c2 = src[spos++];
-		      if (((c1 ^ 0x80) >= 0x40) || ((c2 ^ 0x80) >= 0x40)
-			|| (c == 0xe0 && c1 == 0x80))
-			{
-			  result = NO;	// Invalid sequence.
-			  break;
-			}
-		      u = ((c & 0x0f) << 12) | ((c1 & 0x3f) << 6)
-			| (c2 & 0x3f);
-
-		      if (u >= 0xd800 && u <= 0xdfff)
-			{
-			  /*
-			   * Sequence not legal ... in utf-16 surrogates.
-			   */
-			  result = NO;
-			  break;
-			}
-		      if (u >= 0xfffe)
-			{
-			  /*
-			   * Sequence not legal ... in utf-16 surrogates.
-			   */
-			  result = NO;
-			  break;
-			}
-		    }
-		  else
-		    {
-		      /*
-		       * Sequence not legal or too long for conversion to
-		       * two byte unicode.
-		       */
-		      result = NO;
-		      break;
-		    }
+		  spos++;
 		}
+
+	      /*
+	       * Add codepoint as either a single unichar for BMP
+	       * or as a pair of surrogates for codepoints over 16 bits.
+	       * We also discard invalid codepoints here.
+	       */
+
+	      if ((u >= 0xd800) && (u <= 0xdfff))
+                {
+	          result = NO;
+		  break;
+	        }
+
+	      if (u > 0x10ffff)
+                {
+	          result = NO;
+		  break;
+	        }
 
 	      if (dpos >= bsize)
 		{
 		  GROW();
 		}
 
-	      ptr[dpos++] = u;
+	      if (u < 0x10000)
+	        {
+	          ptr[dpos++] = u;
+	        }
+	      else
+	        {
+                  unichar ul, uh;
+
+                  u -= 0x10000;
+                  ul = u & 0x3ff;
+                  uh = (u >> 10) & 0x3ff;
+
+	          ptr[dpos++] = uh + 0xd800;
+	          if (dpos >= bsize)
+		    {
+		      GROW();
+		    }
+	          ptr[dpos++] = ul + 0xdc00;
+	        }
 	    }
 	}
 	break;
@@ -1607,47 +1629,103 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	{
 	  while (spos < slen)
 	    {
-	      unichar	u = src[spos++];
-	      unsigned	multi;
+	      unichar 		u1, u2;
+	      unsigned long	u;
+	      int		sl = 0;
 
+	      /* get first unichar */
+	      u1 = src[spos++];
 	      if (swapped == YES)
 		{
-		  u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
+		  u1 = ((u1 & 0xff00 >> 8) + ((u1 & 0x00ff) << 8));
 		}
 
-	      if (u < 0x0080)
+	      /* possibly get second character and caculate 'u' */
+	      if ((u1 >= 0xd800) && (u1 < 0xdc00))
+                {
+	  	  if (spos >= slen)
+                    {
+		      result = NO;
+		      break;
+                    }
+
+	          /* get second unichar */
+	          u2 = src[spos++];
+	          if (swapped == YES)
+		    {
+		      u2 = ((u1 & 0xff00 >> 8) + ((u1 & 0x00ff) << 8));
+		    }
+
+	          if ((u2 < 0xdc00) && (u2 > 0xdfff))
+                    {
+		      result = NO;
+		      break;
+                    }
+
+                  /* make the full value */
+		  u = ((unsigned long)(u1 - 0xd800) * 0x400)
+		    + (u2 - 0xdc00) + 0x10000;
+                }
+              else
 		{
-		  multi = 0;
-		}
-	      else if (u < 0x0800)
-		{
-		  multi = 1;
-		}
-	      else
-		{
-		  multi = 2;
+		  u = u1;
 		}
 
-	      if (dpos + multi >= bsize)
+              /* calculate the sequence length */
+              if (u <= 0x7f)
+		{
+		  sl = 1;
+		}
+              else if (u <= 0x7ff)
+		{
+		  sl = 2;
+		}
+              else if (u <= 0xffff)
+		{
+		  sl = 3;
+		}
+              else if (u <= 0x1fffff)
+		{
+		  sl = 4;
+		}
+              else if (u <= 0x3ffffff)
+		{
+		  sl = 5;
+		}
+              else
+		{
+		  sl = 6;
+		}
+
+              /* make sure we have enough space for it */
+	      while (dpos + sl >= bsize)
 		{
 		  GROW();
 		}
 
-	      if (u < 0x80)
-		{
-		  ptr[dpos++] = u;
-		}
-	      else if (u < 0x800)
-	        {
-		  ptr[dpos++] = (u >> 6) | 0xc0;
-		  ptr[dpos++] = (u & 0x3f) | 0x80;
-		}
-	      else
-		{
-		  ptr[dpos++] = (u >> 12) | 0xe0;
-		  ptr[dpos++] = ((u >> 6) & 0x3f) | 0x80;
-		  ptr[dpos++] = (u & 0x3f) | 0x80;
-	        }
+	      if (sl == 1)
+                {
+	          ptr[dpos++] = u & 0x7f;
+                }
+              else
+                {
+                  unsigned	i;
+                  unsigned char	reversed[8];
+
+                  /* split value into reversed array */
+                  for (i = 0; i < sl; i++)
+                    {
+                      reversed[i] = (u & 0x3f);
+                      u = u >> 6;
+                    }
+
+	          ptr[dpos++] = reversed[sl-1] | ((0xff << (8-sl)) & 0xff);
+                  /* add bytes into the output sequence */
+                  for (i = sl - 2; i >= 0; i--)
+		    {
+		      ptr[dpos++] = reversed[i] | 0x80;
+		    }
+                }
 	    }
         }
         break;
