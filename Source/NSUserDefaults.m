@@ -86,6 +86,7 @@ static void updateCache(NSUserDefaults *self)
   if (self == sharedDefaults)
     {
       NSArray	*debug;
+      NSString	*s;
 
       /**
        * If there is an array NSUserDefault called GNU-Debug,
@@ -105,6 +106,7 @@ static void updateCache(NSUserDefaults *self)
 	      [s addObject: level];
 	    }
 	}
+
       flags[GSMacOSXCompatible]
 	= [self boolForKey: @"GSMacOSXCompatible"];
       flags[GSOldStyleGeometry]

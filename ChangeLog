@@ -1,7 +1,9 @@
 2002-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSLog.m: Lots of documentation added.
 	* Tools/GNUmakefile: build autogsdoc documentation automatically
 	if possible.
+	* Tools/AGSOutput.m: Make automatic cross references for functions.
 
 2002-10-08  Richard Frith-Macdonald <rfm@gnu.org>
 
