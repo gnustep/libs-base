@@ -1,3 +1,8 @@
+2002-05-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Unicode.m: Rationalise so that all conversion operations
+	go through the two new functions.  Gets rid of a load of old code.
+
 2002-05-10  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Additions/GSXML.m: Change libxml strings to UTF8
