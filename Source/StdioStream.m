@@ -191,6 +191,13 @@ stdio_unchar_func(void *s, int c)
   fflush(fp);
 }
 
+- (void) closeStream
+{
+  fclose(fp);
+}
+
+/* xxx Add "- (BOOL) isOpen" method? */
+
 - (void) rewindStream
 {
   rewind(fp);
