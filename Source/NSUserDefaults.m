@@ -1244,8 +1244,10 @@ static BOOL isPlistObject(id o)
 }
 
 /**
- * Replaces the persistent-domain specified by domainname with
+ * Replaces the persistent-domain specified by domainName with
  * domain ... a dictionary containing keys and defaults values.
+ * <br />Raises an NSInvalidArgumentException if domainName already
+ * exists as a volatile-domain.
  * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
  * if this is the first change to a persistent-domain since the
  * last -synchronize.
@@ -1253,7 +1255,16 @@ static BOOL isPlistObject(id o)
 - (void) setPersistentDomain: (NSDictionary*)domain
 		     forName: (NSString*)domainName
 {
+  NSDictionary	*dict;
+
   [_lock lock];
+  dict = [_tempDomains objectForKey: domainName];
+  if (dict != nil)
+    {
+      [_lock unlock];
+      [NSException raise: NSInvalidArgumentException
+		  format: @"a volatile domain called %@ exists", domainName];
+    }
   domain = [domain mutableCopy];
   [_persDomains setObject: domain forKey: domainName];
   RELEASE(domain);
@@ -1492,10 +1503,10 @@ static BOOL isPlistObject(id o)
 }
 
 /**
- * Sets the volatile-domain specified by domainname to
- * domain ... a dictionary containing keys and defaults values.
- * <br />Raises an NSInvalidArgumentException if the named
- * volatile-domain already exists.
+ * Sets the volatile-domain specified by domainName to
+ * domain ... a dictionary containing keys and defaults values.<br />
+ * Raises an NSInvalidArgumentException if domainName already
+ * exists as either a volatile-domain or a persistent-domain.
  */
 - (void) setVolatileDomain: (NSDictionary*)domain
 		   forName: (NSString*)domainName
@@ -1503,21 +1514,26 @@ static BOOL isPlistObject(id o)
   id	dict;
 
   [_lock lock];
-  dict = [_tempDomains objectForKey: domainName];
-  if (dict)
+  dict = [_persDomains objectForKey: domainName];
+  if (dict != nil)
     {
       [_lock unlock];
       [NSException raise: NSInvalidArgumentException
-		  format: @"Volatile domain %@ already exists", domainName];
+		  format: @"a persistent domain called %@ exists", domainName];
     }
-  else
+  dict = [_tempDomains objectForKey: domainName];
+  if (dict != nil)
     {
-      DESTROY(_dictionaryRep);
-      domain = [domain mutableCopy];
-      [_tempDomains setObject: domain forKey: domainName];
-      RELEASE(domain);
       [_lock unlock];
+      [NSException raise: NSInvalidArgumentException
+		  format: @"the volatile domain %@ already exists", domainName];
     }
+
+  DESTROY(_dictionaryRep);
+  domain = [domain mutableCopy];
+  [_tempDomains setObject: domain forKey: domainName];
+  RELEASE(domain);
+  [_lock unlock];
 }
 
 /**
