@@ -1131,8 +1131,8 @@ init_ports()
   /*
    *	Set up masks to say we are interested in these descriptors.
    */
-  FD_ZERO(&read_fds);
-  FD_ZERO(&write_fds);
+  memset(&read_fds, '\0', sizeof(read_fds));
+  memset(&write_fds, '\0', sizeof(write_fds));
   FD_SET(tcp_desc, &read_fds);
   FD_SET(udp_desc, &read_fds);
 
@@ -1511,7 +1511,7 @@ handle_io()
 	       *	Remove descriptor from bitmask and close it.
 	       *	If the error is on the listener socket we die.
 	       */
-	      FD_ZERO(&efds);
+	      memset(&efds, '\0', sizeof(efds));
 	      for (i = 0; i < FD_SETSIZE; i++)
 		{
 		  if (FD_ISSET(i, &rfds) || FD_ISSET(i, &wfds))
@@ -2309,7 +2309,7 @@ tryRead(int desc, int tim, unsigned char* dat, int len)
   for (;;)
     {
       to = &timeout;
-      FD_ZERO(&fds);
+      memset(&fds, '\0', sizeof(fds));
       FD_SET(desc, &fds);
 
       rval = select(FD_SETSIZE, &fds, 0, 0, to);
@@ -2409,7 +2409,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
   for (;;)
     {
       to = &timeout;
-      FD_ZERO(&fds);
+      memset(&fds, '\0', sizeof(fds));
       FD_SET(desc, &fds);
 
       rval = select(FD_SETSIZE, 0, &fds, 0, to);
