@@ -63,8 +63,10 @@ typedef enum
 @end
 
 /* Notification Strings. */
-extern NSString *NSBecomingMultiThreaded;
-extern NSString *NSThreadExiting;
+extern NSString	*NSWillBecomeMultiThreadedNotification;
+#define	NSBecomingMultiThreaded NSWillBecomeMultiThreadedNotification
+extern NSString	*NSThreadWillExitNotification;
+#define NSThreadExiting NSThreadWillExitNotification
 
 #ifndef	NO_GNUSTEP
 /*

@@ -78,7 +78,7 @@ void gnustep_base_thread_callback()
     {
       entered_multi_threaded_state = YES;
       [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSBecomingMultiThreaded
+	postNotificationName: NSWillBecomeMultiThreadedNotification
 	object: nil];
     }
 }
@@ -215,7 +215,7 @@ void gnustep_base_thread_callback()
 
   // Post the notification
   [[NSNotificationCenter defaultCenter]
-    postNotificationName: NSThreadExiting
+    postNotificationName: NSThreadWillExitNotification
     object: t];
 
   /*
