@@ -399,10 +399,14 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 	  new = NSZoneMalloc(zone, size);
 	  NSLog(@"No garbage collection information for '%s'", aClass->name);
 	}
-      else
+      else if ([aClass requiresTypedMemory])
 	{
 	  new = GC_CALLOC_EXPLICTLY_TYPED(1, size, gc_type);
         }
+      else
+	{
+	  new = NSZoneMalloc(zone, size);
+	}
     }
 
   if (new != nil)
@@ -591,6 +595,13 @@ static BOOL double_release_check_enabled = NO;
     }
 }
 
+#if	GS_WITH_GC
++ (BOOL) requiresTypedMemory
+{
+  return NO;
+}
+#endif
+
 + (void) initialize
 {
   if (self == [NSObject class])
@@ -770,12 +781,22 @@ static BOOL deallocNotifications = NO;
   
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-  struct objc_method* mth =
-	    (object_is_instance(self) ?
-		  class_get_instance_method(self->isa, aSelector)
-		: class_get_class_method(self->isa, aSelector));
-  return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
-    : nil;
+  const char	*types = aSelector->sel_types;
+
+  if (types == 0)
+    {
+      struct objc_method *mth;
+
+      mth = (object_is_instance(self)
+	? class_get_instance_method(self->isa, aSelector)
+	: class_get_class_method(self->isa, aSelector));
+      if (mth == 0)
+	{
+	  return nil;
+	}
+      types = mth->method_types;
+    }
+  return [NSMethodSignature signatureWithObjCTypes: types];
 }
 
 - (NSString*) description
