@@ -1,3 +1,10 @@
+2001-08-21  Willem Rein Oudshoorn  <woudshoo@xs4all.nl>
+
+	* Source/GSFFCallInvocation.m: Clearified comments
+	(gs_method_for_receiver_and_selector) added 
+	(GSInvocationCallback): Check if forwardInvocation: is
+	implemented to avoid infinite recursion bug.
+
 Fri Aug 24 12:34:56 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/NSUserDefaults.m ([-__createArgumentDictionary]): Make

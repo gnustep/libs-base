@@ -34,6 +34,7 @@
 #define INLINE inline
 #endif
 
+
 typedef struct _NSInvocation_t {
   @defs(NSInvocation)
 } NSInvocation_t;
@@ -194,6 +195,37 @@ gs_splittable (const char *type)
   return result;
 }
 
+
+
+/*
+ * If we are using the GNU ObjC runtime we could
+ * simplify this function quite a lot because this
+ * function is already present in the ObjC runtime.
+ * However, it is not part of the public API, so
+ * we work around it.
+ */
+
+static INLINE Method_t
+gs_method_for_receiver_and_selector (id receiver, SEL sel)
+{
+  if (receiver)
+    {
+      if (object_is_instance (receiver))
+        {
+          return class_get_instance_method (object_get_class
+                                              (receiver), sel);
+        }
+      else if (object_is_meta_class (receiver))
+        {
+          return class_get_class_method (object_get_meta_class
+                                           (receiver), sel);
+        }
+    }
+
+  return METHOD_NULL;
+}
+
+        
 /* 
  * Selectors are not unique, and not all selectors have
  * type information.  This method tries to find the
@@ -205,9 +237,9 @@ gs_splittable (const char *type)
  * name, except if we can access the 
  * internal data structures of the runtime.
  * 
- * This has the additional advantage that
- * we can check if we check for incompatible
- * return types.
+ * If we can access the private data structures
+ * we can also check for incompatible
+ * return types between all equivalent selectors.
  */
 
 static INLINE SEL 
@@ -229,8 +261,13 @@ gs_find_best_typed_sel (SEL sel)
 
 /*
  * Take the receiver into account for finding the best
- * selector.  If no receiver is given fallback
- * to gs_find_best_typed_sel
+ * selector.  That is, we look if the receiver
+ * implements the selector and the implementation
+ * selector has type info.  If both conditions
+ * are satisfied, return this selector.
+ *
+ * In all other cases fallback
+ * to gs_find_best_typed_sel ().
  */  
 static INLINE SEL
 gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
@@ -240,23 +277,16 @@ gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
 
   if (receiver)
     {
-      Method_t method = 0;
+      Method_t method;
 
-      if (object_is_instance (receiver))
-	{
-	  method = class_get_instance_method (object_get_class
-	    (receiver), sel);
-	}
-      else if (object_is_meta_class (receiver))
-	{
-	  method = class_get_class_method (object_get_meta_class
-	    (receiver), sel);
-	}
-      
+      method = gs_method_for_receiver_and_selector (receiver, sel);
       /* CHECKME:  Can we assume that:
 	 (a) method_name is a selector (compare libobjc header files)
 	 (b) this selector IS really typed?
 	 At the moment I assume (a) but not (b)
+         not assuming (b) is the reason for
+         calling gs_find_best_typed_sel () even
+         if we have an implementation.
       */
       if (method)
 	sel = method->method_name;
@@ -700,6 +730,8 @@ GSInvocationCallback (void *callback_data, va_alist args)
   NSArgumentInfo	*info;
   GSFFCallInvocation	*invocation;
   NSMethodSignature	*sig;
+  Method_t               fwdInvMethod;
+  
     
   typeinfo = (vacallReturnTypeInfo *) callback_data;
     
@@ -714,8 +746,18 @@ GSInvocationCallback (void *callback_data, va_alist args)
     }
 
   obj      = va_arg_ptr(args, id);
-  selector = va_arg_ptr(args, SEL);
 
+  fwdInvMethod = gs_method_for_receiver_and_selector
+    (obj, @selector (forwardInvocation:));
+  
+  if (!fwdInvMethod)
+    {
+      NSCAssert1 (0, @"GSFFCallInvocation: Class '%s' does not respond"
+                  @" to forwardInvocation:",
+                  object_get_class_name (obj));
+    }
+       
+  selector = va_arg_ptr(args, SEL);
   selector = gs_find_by_receiver_best_typed_sel (obj, selector);
 
   sig = nil;
@@ -815,10 +857,17 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	}
     }
   
-  /* Now do it */
-  [obj forwardInvocation: invocation];
+  /*
+   * Now do it.
+   * The next line is equivalent to
+   *
+   *   [obj forwardInvocation: invocation];
+   *
+   * but we have already the Method_t for forwardInvocation
+   * so the line below is somewhat faster. */
+  fwdInvMethod->method_imp (obj, fwdInvMethod->method_name, invocation);
 
-  /* Return the proper type */
+  /* Return the proper type */  
   retval = [invocation returnFrame: NULL];
 
 #undef CASE_TYPE
