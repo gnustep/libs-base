@@ -176,7 +176,7 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
    * make room for it at the end of the cifframe so we
    * only need to do a single malloc.
    */
-  if (rtype && rtype->size > 0)
+  if (rtype && (rtype->size > 0 || rtype->elements != NULL))
     {
       unsigned	full = size;
       unsigned	pos;
