@@ -280,14 +280,13 @@ setupPathNames()
       NS_DURING
 	{
 	  BOOL	warned = NO;
-	  NSDictionary	*env;
+	  NSDictionary	*env = [[NSProcessInfo processInfo] environment];
 	  
 	  [gnustep_global_lock lock];
 
 	  /* Double-Locking Pattern */
 	  if (gnustep_system_root == nil)
 	    {
-	      env = [[NSProcessInfo processInfo] environment];
 	      /* Any of the following might be nil */
 	      gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
 	      TEST_RETAIN (gnustep_system_root);

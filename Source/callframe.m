@@ -47,7 +47,7 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
 {
   unsigned      size = sizeof(callframe_t);
   unsigned      align = __alignof(double);
-  unsigned      offset;
+  unsigned      offset = 0;
   void          *buf;
   int           i;
   callframe_t   *cframe;
