@@ -141,6 +141,9 @@ objc_load_module(
         if (objc_initialize_loading(errorStream))
             return 1;
 
+    _objc_load_load_callback = loadCallback;
+    _objc_load_callback = objc_load_callback;
+
     /* Link in the object file */
 #ifdef DEBUG
     printf("Debug (objc-load): Linking file %s\n", filename);
@@ -159,6 +162,7 @@ objc_load_module(
 	return 1;
     }
 
+#ifndef __ELF__
     /* Get the constructor list and load in the objects */
     ctor_list = (void_fn *)__objc_dynamic_find_symbol(handle, CTOR_LIST);
     if (!ctor_list) {
@@ -167,8 +171,6 @@ objc_load_module(
 	return 1;
     }
 
-    _objc_load_load_callback = loadCallback;
-    _objc_load_callback = objc_load_callback;
 #ifdef DEBUG
     printf("Debug (objc-load): %d modules\n", (int)ctor_list[0]);
 #endif
@@ -178,6 +180,8 @@ objc_load_module(
 #endif
 	ctor_list[i]();
     }
+#endif /* not __ELF__ */
+
     _objc_load_callback = 0;
     _objc_load_load_callback = 0;
     return 0;
