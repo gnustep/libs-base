@@ -1,9 +1,11 @@
-#define QUOTED 257
-#define LABEL 258
-#define SEMICOLEN 259
-#define EQUALS 260
-#define ERROR 261
 typedef union {
 	id obj;
 } YYSTYPE;
+#define	QUOTED	258
+#define	LABEL	259
+#define	SEMICOLEN	260
+#define	EQUALS	261
+#define	ERROR	262
+
+
 extern YYSTYPE sflval;

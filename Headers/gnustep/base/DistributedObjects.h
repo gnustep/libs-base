@@ -61,7 +61,7 @@ enum {
  METHODTYPE_REQUEST,	/* these two only needed with NeXT runtime */
  METHODTYPE_REPLY,	/* these two only needed with NeXT runtime */
  PROXY_RELEASE,
- PROXY_RETAIN
+ PROXY_RETAIN,
 };
 
 

@@ -96,6 +96,17 @@ static int debug_tcp_port = 0;
 @end
 
 
+@interface NSPort (Debug)
++ (void) setDebug: (int)val;
+@end
+
+@implementation NSPort (Debug)
++ (void) setDebug: (int)val
+{
+    debug_tcp_port = val;
+}
+@end
+
 
 /* Private interfaces */
 
@@ -997,10 +1008,8 @@ static NSMapTable* port_number_2_port;
       [self _addClientOutPort: op];
       [op release];
       if (debug_tcp_port)
-	fprintf (stderr, 
-		 "%s: Accepted connection from\n %s.\n",
-		 object_get_class_name (self),
-		 [[op description] cString]);
+	NSLog(@"%s: Accepted connection from\n %@.\n",
+		 object_get_class_name (self), [op description]);
       [NotificationDispatcher
 	postNotificationName: InPortAcceptedClientNotification
 	object: self
@@ -1074,6 +1083,9 @@ static NSMapTable* port_number_2_port;
 	     the packet is complete; return it. */
 	  assert (packet && [packet class]);
           NSMapRemove(_client_sock_2_packet, (void*)fd_index);
+	  if (debug_tcp_port > 1)
+	    NSLog(@"%s: Read from socket %d\n",
+		object_get_class_name (self), fd_index);
 	  return packet;
 	}
     }
@@ -1161,10 +1173,8 @@ assert(type == ET_RPORT);
 
   assert (is_valid);
   if (debug_tcp_port)
-    fprintf (stderr, 
-	     "%s: Closed connection from\n %s\n",
-	     object_get_class_name (self),
-	     [[p description] cString]);
+    NSLog(@"%s: Closed connection from\n %@\n",
+	     object_get_class_name (self), [p description]);
 
   packet = NSMapGet (_client_sock_2_packet, (void*)s);
   if (packet)
@@ -1453,8 +1463,8 @@ static NSMapTable *out_port_bag = NULL;
 		      sockaddr,
 		      sizeof (p->_remote_in_port_address));
 	      if (debug_tcp_port)
-		printf ("TcpOutPort setting remote address\n%s\n",
-			[[self description] cString]);
+		NSLog(@"TcpOutPort setting remote address\n%@\n",
+			[self description]);
 	    }
 	}
       if (p)
@@ -1803,7 +1813,7 @@ static NSMapTable *out_port_bag = NULL;
 	  count: sizeof (_remote_in_port_address.sin_addr.s_addr)
 	  withName: @"inet address"];
   if (debug_tcp_port)
-    printf ("TcpOutPort encoded port %hd host %s\n",
+    NSLog(@"TcpOutPort encoded port %hd host %s\n",
 	    ntohs (_remote_in_port_address.sin_port),
 	    inet_ntoa (_remote_in_port_address.sin_addr));
 }
@@ -1820,7 +1830,7 @@ static NSMapTable *out_port_bag = NULL;
 	  count: sizeof (addr.sin_addr.s_addr)
 	  withName: NULL];
   if (debug_tcp_port)
-    printf ("TcpOutPort decoded port %hd host %s\n",
+    NSLog(@"TcpOutPort decoded port %hd host %s\n",
 	    ntohs (addr.sin_port),
 	    inet_ntoa (addr.sin_addr));
   return [TcpOutPort newForSendingToSockaddr: &addr
@@ -1937,6 +1947,9 @@ static NSMapTable *out_port_bag = NULL;
                 timeout: (NSTimeInterval)timeout
 {
   int c;
+
+  if (debug_tcp_port > 1)
+    NSLog(@"%s: Write to socket %d\n", object_get_class_name (self), s);
 
   /* Put the packet size in the first four bytes of the packet. */
   assert (prefix == PREFIX_SIZE);

@@ -1,7 +1,9 @@
-#define NSSTRING 257
-#define NSDATA 258
-#define ERROR 259
 typedef union {
         id obj;
 } YYSTYPE;
+#define	NSSTRING	258
+#define	NSDATA	259
+#define	ERROR	260
+
+
 extern YYSTYPE pllval;

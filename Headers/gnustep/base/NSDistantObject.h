@@ -35,6 +35,7 @@
     NSConnection*	_connection;
     id			_object;
     BOOL		_isLocal;
+    BOOL		_isVended;
     id			_protocol;
 }
 
