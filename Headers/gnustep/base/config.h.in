@@ -54,6 +54,9 @@
 /* Define if using the ffcall library for invocations */
 #undef USE_FFCALL
 
+/* Define if the libxml header files are in libxml2 */
+#undef LIBXML2
+
 /* The number of bytes in a double.  */
 #undef SIZEOF_DOUBLE
 
@@ -141,8 +144,8 @@
 /* Define if you have the vsprintf function.  */
 #undef HAVE_VSPRINTF
 
-/* Define if you have the <callback> header file.  */
-#undef HAVE_CALLBACK
+/* Define if you have the <callback.h> header file.  */
+#undef HAVE_CALLBACK_H
 
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
@@ -158,9 +161,6 @@
 
 /* Define if you have the <langinfo.h> header file.  */
 #undef HAVE_LANGINFO_H
-
-/* Define if you have the <libxml/xmlversion.h> header file.  */
-#undef HAVE_LIBXML_XMLVERSION_H
 
 /* Define if you have the <locale.h> header file.  */
 #undef HAVE_LOCALE_H
