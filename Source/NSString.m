@@ -3118,7 +3118,7 @@ handle_printf_atsign (FILE *stream,
 	}
       else
 	{
-	  ustring = NSZoneMalloc(NSDefaultMallocZone(), length);
+	  ustring = NSZoneMalloc(NSDefaultMallocZone(), length*sizeof(unichar));
 	}
       end = &ustring[length];
       [self getCharacters: ustring];

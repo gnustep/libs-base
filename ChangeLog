@@ -2,6 +2,8 @@
 
 	* Tools/gdomap.c: Fixes to last modifications - provided by
 	Chris B Vetter.
+	* Source/NSString.m: Fix memory allocation of a unichar buffer to
+	correct size.
 
 2001-05-04  Nicola Pero  <n.pero@mi.flashnet.it>
 
