@@ -338,6 +338,7 @@ main()
 
   {
     // Replacing objects
+    c = [[c mutableCopy] autorelease];
     printf("Method -replaceObjectAtIndex: 2 withObject:[NSString class]\n");
     enumerator = [c objectEnumerator];
     while ((i = [enumerator nextObject]))
