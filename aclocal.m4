@@ -123,11 +123,14 @@ int main()
 }
 EOF
 ${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.constructor.$ac_ext $LIBS 1>&5
-if test -n "`nm conftest${ac_exeext} | grep global_ctors`"; then 
-  objc_cv_con_autoload=yes
-else
-  objc_cv_con_autoload=no
-fi
+case "$target_os" in
+    cygwin*)	objc_cv_con_autoload=yes;;
+    *)	if test -n "`nm conftest${ac_exeext} | grep global_ctors`"; then 
+  	  objc_cv_con_autoload=yes
+	else
+  	  objc_cv_con_autoload=no 
+	fi ;;
+esac
 ])
 if test $objc_cv_con_autoload = yes; then
   AC_MSG_RESULT(yes)
