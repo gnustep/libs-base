@@ -1375,7 +1375,7 @@ handle_printf_atsign (FILE *stream,
    go away. */
 - copy
 {
-  return [self copyWithZone: NS_NOZONE];
+  return [self copyWithZone: NSDefaultMallocZone ()];
 }
 
 - mutableCopyWithZone: (NSZone*)zone
