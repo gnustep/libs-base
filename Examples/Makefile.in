@@ -51,7 +51,7 @@ NEXT_NEXT_INCLUDES = -I/usr/include
 GNU_NEXT_INCLUDES = -I$(srcdir)/../src
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
-ALL_CPPFLAGS = -I../src -I$../src/includes $(NEXT_INCLUDES) $(CPPFLAGS)
+ALL_CPPFLAGS = -I../src -I$../src/srcdir-include $(NEXT_INCLUDES) $(CPPFLAGS)
 ALL_CFLAGS = $(CFLAGS)
 ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
 ALL_LDFLAGS = $(LDFLAGS) $(LIBS)
