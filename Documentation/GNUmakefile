@@ -30,6 +30,7 @@ include ../config.mak
 
 MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi
+TEXI2HTML = texi2html
 
 TEXI_FILES = \
 announce.texi \
@@ -49,12 +50,16 @@ version.texi \
 NSZone.texi
 
 TEXT_FILES = \
-TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE ADVERTISEMENT
+TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE ADVERTISEMENT \
+GNUstep-FAQ
+INFO_FILES = gnustep-base.info
+PS_FILES = gnustep-base.dvi
+HTML_FILES =
+DVI_FILES = gnustep-base.dvi objective-c.dvi
 
 TOP_DOC_FILES = README INSTALL NEWS
 RCS_FILES =  $(TEXI_FILES) Makefile Makefile.postamble
-DIST_FILES = $(RCS_FILES) texinfo.tex \
-        $(TOP_DOC_FILES) ANNOUNCE ADVERTISEMENT TODO
+DIST_FILES = $(RCS_FILES) texinfo.tex $(TEXT_FILES)
 
 -include Makefile.preamble
 
@@ -63,3 +68,7 @@ DIST_FILES = $(RCS_FILES) texinfo.tex \
 include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/rules.make
 
 -include Makefile.postamble
+
+
+
+

@@ -15,60 +15,20 @@ without any extension.
 The NSBundle class provided with GNUstep Base Library is meant to run
 on a variety of systems.  However, some set-up is required to use it.
 Currently it has been tested on only a few systems that support
-dynamic linking -- SunOS, Solaris.  It configures for HP, but I
-haven't been able to get it to work yet. There are unconfirmed reports
-it work on Linux systems.
-
-NSBundle set-up:
-
-To compile NSBundle into your programs, you need to make sure that the
-GNUstep Base Library was configured correctly for the dynamic linking
-system on your machine.  This is done automatically in the configure
-script that comes with the Base Library, but it is possible that the
-configuration is incorrect for your system (especially if it is not
-one of the systems listed above). In particular, the Makefile variable
-DYNAMIC_LINKER is set to link in the proper header file that prvides
-the dynamic linking for the system.
-
-You also need to configure your own program to take advantage of
-NSBundle, and also configure the compilation of any "bundles" you want
-to link into your program. Most likely you will accomplish this
-through you own customized configure script.  The examples directory
-contains an example configure.example.in and Makefile.example.in which
-you can use as a template for configuring your system for compiling so
-that you can dynamically load object files into your running program.
-You will need the file aclocal.m4 that comes with the Base Library 
-distribution in order to use configure.example.in in your system.
-In particular, the example configure script sets the following
-Makefile variables:
-
-    DYNAMIC_BUNDLER_LINKER - The program that is used to link your bundle so
-    it can be loaded into a running program (e.g. "gcc -Xlinker -r").
-
-    DYNAMIC_LDFLAGS - Flags needed to link the main program so it can 
-    accept dynamically loaded bundles.
-
-    DYNAMIC_CFLAGS - Flags needed to compile the sources in the bundle so 
-    they can be loaded into the main program (e.g. "-fPIC").
-
-The configure script also determines which libraries need to be linked
-in with the main program for the system to perform dynamic linking and
-adds these to the LIBS variable in Makefile. 
-
-Also, look at the nsbundle program in the checks directory for an
-example of how to use bundles.
+dynamic linking -- Linux, SunOS, Solaris.  It should work on HP, but I
+haven't been able to get it to work yet. 
 
 NSBundle problems:
 
-As stated previously, NSBundle does not necessarily work on all systems.
-You cannot link in bundles on systems that do not support dynamic linking,
-although you can use the other facilities of NSBundle, such as locating
-data files within a bundle.
+NSBundle does not necessarily work on all systems.  You cannot link in
+bundles on systems that do not support dynamic linking, although you
+can use the other facilities of NSBundle, such as locating data files
+within a bundle.
 
 If NSBundle does not work on systems that do support dynamic linking,
-it is likely that the Makefile variable DYNAMIC_BUNDLER_LINKER is not
-set-up correctly, or that the GNUstep Base Library did not link in the
-correct header file to use dynamic linking. Diagnosing and fixing
-these problems is not trivial and requires some knowledge of dynamic
-linking, object file formats and the Objective-C runtime. Contact Adam
-Fedor <fedor@doc.com> for help.
+it is likely that the Makefile package has not been configured to make
+bundles on your system and/or that the GNUstep Base Library did not
+link in the correct header file to use dynamic linking. Diagnosing and
+fixing these problems is not trivial and requires some knowledge of
+dynamic linking, object file formats and the Objective-C
+runtime. Contact Adam Fedor <fedor@gnu.org> for help.

@@ -150,6 +150,7 @@ extern NSString *NSHomeDirectoryForUser(NSString * userName);
 
 /* Returning the Search List */
 - (NSMutableArray *)searchList;
+- (void)setSearchList:(NSArray*)newList;
 
 /* Maintaining Persistent Domains */
 - (NSDictionary *)persistentDomainForName:(NSString *)domainName;

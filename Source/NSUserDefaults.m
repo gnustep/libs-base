@@ -1,4 +1,4 @@
-/* Implementation for NSUserDefaults for GNUStep
+/* Implementation for NSUserDefaults for GNUstep
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev, EMBL & Academia Naturalis, 
@@ -52,8 +52,8 @@
 #define _MAX_COUNT 5          /* Max 10 sec. */
 
 /* User's Defauls database */
-static NSString* GNU_UserDefaultsDatabese = @"./GNUStep/.GNUstepDefaults";
-static NSString* GNU_UserDefaultsDatabeseLock = @"./GNUStep/.GNUstepUDLock";
+static NSString* GNU_UserDefaultsDatabase = @"GNUstep/.GNUstepDefaults";
+static NSString* GNU_UserDefaultsDatabaseLock = @"GNUstep/.GNUstepUDLock";
 
 /*************************************************************************
  *** Local method definitions
@@ -165,7 +165,7 @@ static NSMutableString   *processName = nil;
       [self release];		/* xxx really? -mccallum. */
       return nil;
     }
-  filename = [userHome stringByAppendingString: GNU_UserDefaultsDatabese];
+  filename = [userHome stringByAppendingString: GNU_UserDefaultsDatabase];
   return [self initWithContentsOfFile: filename];
 }
 
@@ -180,10 +180,12 @@ static NSMutableString   *processName = nil;
     {
       defaultsDatabase =
 	[[NSMutableString stringWithFormat:@"%@/%@",
-			  NSUserName(), GNU_UserDefaultsDatabese] retain];
+			  NSHomeDirectoryForUser(NSUserName()),
+			  GNU_UserDefaultsDatabase] retain];
       defaultsDatabaseLock =
 	[[NSMutableString stringWithFormat:@"%@/%@",
-			  NSUserName(), GNU_UserDefaultsDatabeseLock] retain];
+			  NSHomeDirectoryForUser(NSUserName()),
+			  GNU_UserDefaultsDatabaseLock] retain];
       processName = [[[NSProcessInfo processInfo] processName] retain];
 #if 0
       processName = [[NSMutableString stringWithFormat:@"TestApp"] retain];
@@ -195,7 +197,12 @@ static NSMutableString   *processName = nil;
 	
   // Initialize persDomains from the archived user defaults (persistent)
   persDomains = [[NSMutableDictionary dictionaryWithCapacity:10] retain];
-  [self synchronize];
+  if ([self synchronize] == NO)
+    {
+      NSLog(@"unable to load defaults - %s", strerror(errno));
+      [self dealloc];
+      return self = nil;
+    }
 	
   // Check and if not existent add the Application and the Global domains
   if (![persDomains objectForKey:processName])
@@ -405,6 +412,12 @@ static NSMutableString   *processName = nil;
   return searchList;
 }
 
+- (void)setSearchList:(NSArray*)newList
+{
+  [searchList release];
+  searchList = [newList mutableCopy];
+}
+
 /*************************************************************************
  *** Maintaining Persistent Domains
  *************************************************************************/
@@ -452,18 +465,16 @@ static NSMutableString   *processName = nil;
   tickingTimer = NO;
 
   // Get file lock
-  if (mkdir([defaultsDatabase cString],0755) == -1)
+  if (mkdir([defaultsDatabaseLock cString],0755) == -1)
     return NO;
 	
   // Read the persistent data from the stored database
   newDict = [[NSMutableDictionary allocWithZone:[self zone]]
 	      initWithContentsOfFile:defaultsDatabase];
   if (!newDict)
-    {
-      rmdir([defaultsDatabaseLock cString]);  // release file lock 
-      return NO;
-    }
-	
+    newDict = [[NSMutableDictionary allocWithZone:[self zone]]
+		initWithCapacity:1];
+
   if (changedDomains)
     {           // Synchronize bpth dictionaries
       NSEnumerator *enumerator = [changedDomains objectEnumerator];

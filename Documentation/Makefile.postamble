@@ -81,8 +81,13 @@ after-clean::
 
 srcdir=.
 
-info: version.texi $(TEXT_FILES)
-dvi: gnustep-base.dvi objective-c.dvi
+all:: text
+
+text: $(TEXT_FILES)
+info: version.texi $(INFO_FILES)
+ps: $(PS_FILES)
+html: $(HTML_FILES)
+dvi: $(DVI_FILES)
 
 version.texi: $(srcdir)/../Version
 	rm -f version.texi
@@ -116,7 +121,7 @@ TODO: todo.texi version.texi
 INSTALL: install.texi version.texi
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o INSTALL -D INSTALL_ONLY \
 	--no-header --no-split $(srcdir)/install.texi
-CODING-STANDARDS: codign-standards.texi version.texi
+CODING-STANDARDS: coding-standards.texi version.texi
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o CODING-STANDARDS -D CODING_ONLY \
 	--no-header --no-split $(srcdir)/coding-standards.texi
 README: readme.texi version.texi
