@@ -1,7 +1,7 @@
 /* Zone memory management.
    Copyright (C) 1995  Free Software Foundation, Inc.
  
-   Author: Mark Lakata
+   Author: Mark Lakata <lakata@sseos.lbl.gov>
    Date: January 1995
  
    This file is part of the GNU Objective C Class Library.
