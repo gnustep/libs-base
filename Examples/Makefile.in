@@ -1,6 +1,6 @@
 #
 #  Examples makefile for Objective-C Class Library
-#  Copyright (C) 1993, 1995, 1996 Free Software Foundation, Inc.
+#  Copyright (C) 1993, 1995, 1996, 1997 Free Software Foundation, Inc.
 #
 #  Written by:	Andrew Kachites McCallum <mccallum@cs.rochester.edu>
 #  Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
@@ -69,7 +69,7 @@ textcoding.m \
 first-server.m \
 first-client.m \
 second-server.m \
-second-client.m 
+second-client.m
 
 HDRS = \
 first-server.h \
@@ -100,7 +100,8 @@ uninstall:
 
 RCS_FILES = $(SRCS) $(HDRS) Makefile.in \
 Makefile.example.in \
-configure.example.in
+configure.example.in \
+custom-zone.m
 
 DIST_FILES = $(RCS_FILES)
 
