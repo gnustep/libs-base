@@ -55,6 +55,7 @@
   unsigned	length;
   unsigned	pos;
   BOOL		commentsRead;
+  BOOL		haveOutput;
   BOOL		haveSource;
   BOOL		inInstanceVariables;
   BOOL		inArgList;
@@ -75,6 +76,7 @@
 
 - (NSMutableDictionary*) info;
 - (id) init;	/** <init> Simple initialiser */
+- (NSMutableArray*) outputs;
 - (NSMutableDictionary*) parseDeclaration;
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource;
 - (NSString*) parseIdentifier;
@@ -105,6 +107,6 @@
 - (unsigned) skipStatementLine;
 - (unsigned) skipUnit;
 - (unsigned) skipWhiteSpace;
-- (NSArray*) source;
+- (NSMutableArray*) sources;
 @end
 #endif

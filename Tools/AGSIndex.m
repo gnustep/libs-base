@@ -466,6 +466,21 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   return [d allKeys];
 }
 
+/**
+ * Return a list of output files for the header
+ */
+- (NSMutableArray*) outputsForHeader: (NSString*)h
+{
+  NSDictionary	*dict = [refs objectForKey: @"output"];
+  NSArray	*array = [dict objectForKey: h];
+
+  if (array == nil)
+    {
+      return [NSMutableArray arrayWithCapacity: 2];
+    }
+  return AUTORELEASE([array mutableCopy]);
+}
+
 - (NSMutableDictionary*) refs
 {
   return refs;
@@ -501,6 +516,23 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	type, ref, old, base);
     }
   [t setObject: base forKey: ref];
+}
+
+/**
+ * Set up an array listing the output files for a particular header.
+ */
+- (void) setOutputs: (NSArray*)a forHeader: (NSString*)h
+{
+  NSMutableDictionary	*dict;
+
+  dict = [refs objectForKey: @"output"];
+  if (dict == nil)
+    {
+      dict = [NSMutableDictionary new];
+      [refs setObject: dict forKey: @"output"];
+      RELEASE(dict);
+    }
+  [dict setObject: a forKey: h];
 }
 
 - (void) setRelationship: (NSString*)r from: (NSString*)from to: (NSString*)to
@@ -585,13 +617,18 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 }
 
 /**
- * Return a list of source files for the header (or nil)
+ * Return a list of source files for the header.
  */
 - (NSArray*) sourcesForHeader: (NSString*)h
 {
   NSDictionary	*dict = [refs objectForKey: @"source"];
+  NSArray	*array = [dict objectForKey: h];
 
-  return [dict objectForKey: h];
+  if (array == nil)
+    {
+      return [NSMutableArray arrayWithCapacity: 2];
+    }
+  return AUTORELEASE([array mutableCopy]);
 }
 
 /**

@@ -74,18 +74,6 @@ static BOOL snuggleStart(NSString *t)
  */
 @implementation	AGSOutput
 
-+ (void) initialize
-{
-  NSUserDefaults	*ud = [NSUserDefaults standardUserDefaults];
-
-  [ud registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
-    @"TypesAndConstants", @"ConstantsTemplate",
-    @"Functions", @"FunctionsTemplate",
-    @"TypesAndConstants", @"TypedefsTemplate",
-    @"TypesAndConstants", @"VariablesTemplate",
-    nil]];
-}
-
 - (void) dealloc
 {
   DESTROY(identifier);

@@ -391,6 +391,10 @@ main(int argc, char **argv, char **env)
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
     @"Untitled", @"Project",
+    @"TypesAndConstants", @"ConstantsTemplate",
+    @"Functions", @"FunctionsTemplate",
+    @"TypesAndConstants", @"TypedefsTemplate",
+    @"TypesAndConstants", @"VariablesTemplate",
     nil]];
 
   verbose = [defs boolForKey: @"Verbose"];
@@ -540,14 +544,14 @@ main(int argc, char **argv, char **env)
 
       for (i = 0; i < count; i++)
 	{
-	  NSString	*hfile = [sFiles objectAtIndex: i];
-	  NSString	*gsdocfile;
-	  NSString	*file;
-	  NSArray	*a;
-	  NSDictionary	*attrs;
-	  NSDate	*sDate = nil;
-	  NSDate	*gDate = nil;
-	  unsigned	i;
+	  NSString		*hfile = [sFiles objectAtIndex: i];
+	  NSString		*gsdocfile;
+	  NSString		*file;
+	  NSMutableArray	*a;
+	  NSDictionary		*attrs;
+	  NSDate		*sDate = nil;
+	  NSDate		*gDate = nil;
+	  unsigned		j;
 
 	  if (pool != nil)
 	    {
@@ -557,7 +561,7 @@ main(int argc, char **argv, char **env)
 
 	  /*
 	   * Note the name of the header file without path or extension.
-	   * This will be used to generate the outut file.
+	   * This will be used to generate the output file.
 	   */
 	  file = [hfile stringByDeletingPathExtension];
 	  file = [file lastPathComponent];
@@ -586,22 +590,16 @@ main(int argc, char **argv, char **env)
 	    {
 	      NSDate	*d;
 
-	      attrs = [mgr fileAttributesAtPath: hfile
-				   traverseLink: YES];
-	      d = [attrs objectForKey: NSFileModificationDate];
-	      if (sDate == nil || [d earlierDate: sDate] == sDate)
-		{
-		  sDate = d;
-		  AUTORELEASE(RETAIN(sDate));
-		}
 	      /*
 	       * Ask existing project info (.gsdoc file) for dependency
-	       * information.  Then check the dates on the source files.
+	       * information.  Then check the dates on the source files
+	       * and the header file.
 	       */
 	      a = [projectRefs sourcesForHeader: hfile];
-	      for (i = 0; i < [a count]; i++)
+	      [a insertObject: hfile atIndex: 0];
+	      for (j = 0; j < [a count]; j++)
 		{
-		  NSString	*sfile = [a objectAtIndex: i];
+		  NSString	*sfile = [a objectAtIndex: j];
 
 		  attrs = [mgr fileAttributesAtPath: sfile
 				       traverseLink: YES];
@@ -612,10 +610,37 @@ main(int argc, char **argv, char **env)
 		      AUTORELEASE(RETAIN(sDate));
 		    }
 		}
+	      if (verbose == YES)
+		{
+		  NSLog(@"Sources for %@ are %@ ... %@", hfile, a, sDate);
+		}
 
-	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
-	      gDate = [attrs objectForKey: NSFileModificationDate];
-	      AUTORELEASE(RETAIN(gDate));
+	      /*
+	       * Ask existing project info (.gsdoc file) for dependency
+	       * information.  Then check the dates on the output files.
+	       * If none are set, assume the defualt.
+	       */
+	      a = [projectRefs outputsForHeader: hfile];
+	      if ([a count] == 0)
+		{
+		  [a insertObject: gsdocfile atIndex: 0];
+		}
+	      for (j = 0; j < [a count]; j++)
+		{
+		  NSString	*ofile = [a objectAtIndex: j];
+
+		  attrs = [mgr fileAttributesAtPath: ofile traverseLink: YES];
+		  d = [attrs objectForKey: NSFileModificationDate];
+		  if (gDate == nil || [d laterDate: gDate] == gDate)
+		    {
+		      gDate = d;
+		      AUTORELEASE(RETAIN(gDate));
+		    }
+		}
+	      if (verbose == YES)
+		{
+		  NSLog(@"Outputs for %@ are %@ ... %@", hfile, a, gDate);
+		}
 	    }
 
 	  if (gDate == nil || [sDate earlierDate: gDate] == gDate)
@@ -647,18 +672,38 @@ main(int argc, char **argv, char **env)
 		}
 	      [parser parseFile: hfile isSource: NO];
 
-	      a = [parser source];
 	      /*
 	       * Record dependency information.
 	       */
+	      a = [parser outputs];
+	      if ([a count] > 0)
+		{
+		  /*
+		   * Adjust the location of the output files to be in the
+		   * documentation directory.
+		   */
+		  for (j = 0; j < [a count]; j++)
+		    {
+		      NSString	*s = [a objectAtIndex: j];
+
+		      if ([s isAbsolutePath] == NO)
+			{
+			  s = [documentationDirectory
+			    stringByAppendingPathComponent: s];
+			  [a replaceObjectAtIndex: j withObject: s];
+			}
+		    }
+		  [projectRefs setOutputs: a forHeader: hfile];
+		}
+	      a = [parser sources];
 	      if ([a count] > 0)
 		{
 		  [projectRefs setSources: a forHeader: hfile];
 		}
 
-	      for (i = 0; i < [a count]; i++)
+	      for (j = 0; j < [a count]; j++)
 		{
-		  NSString	*sfile = [a objectAtIndex: i];
+		  NSString	*sfile = [a objectAtIndex: j];
 
 		  /*
 		   * If we can read a source file, parse it for any
@@ -769,9 +814,9 @@ main(int argc, char **argv, char **env)
 	  /*
 	   * Now we try to process the gsdoc data to make index info
 	   * unless the project index is already more up to date than
-	   * this file.
+	   * this file (or the gsdoc file does not exist of course).
 	   */
-	  if (gDate == nil || [gDate earlierDate: rDate] == rDate)
+	  if (gDate != nil && [gDate earlierDate: rDate] == rDate)
 	    {
 	      if (showDependencies == YES)
 		{

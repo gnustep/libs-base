@@ -171,6 +171,73 @@
   inArgList = wasInArgList;
 }
 
+/**
+ * Return the list of known output files depending on this source/header.
+ */
+- (NSMutableArray*) outputs
+{
+  NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+  NSMutableArray	*output = [NSMutableArray arrayWithCapacity: 6];
+  NSString		*basic = [info objectForKey: @"Header"];
+  NSString		*names[4] = { @"Functions", @"Typedefs", @"Variables",
+    @"Constants" };
+  unsigned		i;
+
+  basic = [basic lastPathComponent];
+  basic = [basic stringByDeletingPathExtension];
+  basic = [basic stringByAppendingPathExtension: @"gsdoc"];
+
+  /**
+   * If there are any classes, categories, or protocols, there will be
+   * an output file for them whose name is based on the name of the header.
+   */
+  if ([[info objectForKey: @"Classes"] count] > 0
+    || [[info objectForKey: @"Categories"] count] > 0
+    || [[info objectForKey: @"Protocols"] count] > 0)
+    {
+      [output addObject: basic];
+    }
+
+  /**
+   * If there are any constants, variables, typedefs or functions, there
+   * will either be a shared output file for them (defined by a template
+   * name set in the user defaults system), or they will go in the same
+   * file as classes etc.
+   */
+  for (i = 0; i < sizeof(names) / sizeof(NSString*); i++)
+    {
+      NSString		*base = names[i];
+
+      if ([[info objectForKey: base] count] > 0)
+	{
+	  NSString	*file;
+
+	  base = [base stringByAppendingString: @"Template"];
+	  file = [defs stringForKey: base];
+	  if ([file length] == 0)
+	    {
+	      if ([output containsObject: basic] == NO)
+		{
+		  [output addObject: basic];
+		}
+	    }
+	  else
+	    {
+	      if ([[file pathExtension] isEqual: @"gsdoc"] == NO)
+		{
+		  file = [file stringByAppendingPathExtension: @"gsdoc"];
+		}
+	      if ([output containsObject: file] == NO)
+		{
+		  [output addObject: file];
+		}
+	    }
+	}
+    }
+
+  return output;
+}
+
 - (void) parseDeclaratorInto: (NSMutableDictionary*)d
 {
   NSMutableString	*p = nil;
@@ -722,6 +789,7 @@ fail:
   [source removeAllObjects];
   if (isSource == NO)
     {
+      [info setObject: fileName forKey: @"Header"];
       [source removeAllObjects];
       [source addObject:
 	[[[fileName lastPathComponent] stringByDeletingPathExtension]
@@ -1900,6 +1968,7 @@ fail:
 {
   [source removeAllObjects];
   [info removeAllObjects];
+  haveOutput = NO;
   haveSource = NO;
   DESTROY(declared);
   DESTROY(comment);
@@ -3038,9 +3107,9 @@ fail:
   return pos;
 }
 
-- (NSArray*) source
+- (NSMutableArray*) sources
 {
-  return AUTORELEASE([source copy]);
+  return AUTORELEASE([source mutableCopy]);
 }
 @end
 
