@@ -2,6 +2,8 @@
 
 	* Source/GSArray.m: Make perform methods enumerate forwards.
 	* Source/Additions/GSXML.m: ([nodeAtIndex:]) fix memory leak.
+	* Source/GSHTTPURLHandle.m: Re-instate change to try to provide
+	better support for connections kept alive.
 
 2004-09-22 Richard Frith-Macdonald <rfm@gnu.org>
 
