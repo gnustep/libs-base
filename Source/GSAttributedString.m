@@ -825,23 +825,8 @@ SANITY();
 	}
       else
 	{
-	  if (arrayIndex != 0)
-	    {
-	      REMOVEAT(arrayIndex);
-	      arraySize--;
-	    }
-	  else
-	    {
-	      NSDictionary	*d = blank;
-
-	      unCacheAttributes(info->attrs);
-	      DESTROY(info->attrs);
-	      d = cacheAttributes(d);
-	      info->attrs = d;
-	      /* set location so it will be correct after being modified
-	      below */
-	      info->loc = NSMaxRange(range);
-	    }
+	  REMOVEAT(arrayIndex);
+	  arraySize--;
 	}
     }
 
@@ -860,7 +845,7 @@ SANITY();
 	&& effectiveRange.length == range.length)
 	{
 	  arrayIndex--;
-	  if (arrayIndex!=0)
+	  if (arrayIndex!=0 || arraySize > 1)
 	    {
 	      REMOVEAT(arrayIndex);
 	      arraySize--;
