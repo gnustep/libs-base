@@ -30,6 +30,8 @@ EXPORTS
 GSEncodingForRegistry
 GSEncodingFromLocale
 GSFromUnicode 
+GSObjCFindVariable
+GSObjCSetVariable
 GSToUnicode
 GetAvailableEncodings 
 GetDefEncoding
