@@ -1,0 +1,15 @@
+s/@configure_input@/ Generated from Makefile.in by configure.bat/
+s/@srcdir@/./
+/%-subdirs:/,/done/c\
+%-subdirs: \
+	for %i in ( $(SUBDIRS) ) do \\\
+		( cd %i & \\\
+		$(MAKE) - $(MAKEFLAGS) $(MAKEDEFINES) $* & \\\
+		cd .. )
+/install uninstall TAGS:/,/done/c\
+install uninstall TAGS: \
+	for %i in ( $(SUBDIRS) ) do \\\
+		( cd %i & \\\
+		$(MAKE) - $(MAKEFLAGS) $(MAKEDEFINES) $@ & \\\
+		cd .. )
+
