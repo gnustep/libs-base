@@ -1,5 +1,5 @@
 /* Interface for Objective C NeXT-compatible NXStringTable object 
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1997 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <adam@bastille.rmnug.org>
 
@@ -46,8 +46,12 @@
 
 @end
 
+#if 0
 static inline const char *STRVAL(NXStringTable *table, const char *key) {
     return [table valueForStringKey:key];
 }
+#else
+#define STRVAL(TABLE,KEY) ([TABLE valueForStringKey: KEY])
+#endif
 
 #endif /* __NXStringTable_h_INCLUDE_GNU */
