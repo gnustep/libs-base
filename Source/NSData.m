@@ -243,12 +243,27 @@ static Class NSMutableData_concrete_class;
 
 - (NSString*) description
 {
-  /* xxx worry about escaping, NSString does that? */
-  /* FIXME: Well, according to the docs, this is suppossed to create a
-   * string which has a hexadecimal representation of the data
-   * contained in the NSData object.  NSString certainly won't do
-   * *that* all on its own.  Hmmm. */
-  return [NSString stringWithCString:[self bytes] length:[self length]];
+  const char *src = [self bytes];
+  char *dest;
+  int length = [self length];
+  int i,j;
+
+#define num2char(num) ((num) < 0xa ? ((num)+'0') : ((num)+0x57))
+
+  /* we can just build a cString and convert it to an NSString */
+  dest = (char*) malloc (2*length+length/4+3);
+  dest[0] = '<';
+  for (i=0,j=1; i<length; i++,j++)
+    {
+      dest[j++] = num2char((src[i]>>4) & 0x0f);
+      dest[j] = num2char(src[i] & 0x0f);
+      if((i&0x3) == 3)
+	/* if we've just finished a 32-bit int, print a space */
+	dest[++j] = ' ';
+    }
+  dest[j++] = '>';
+  dest[j] = '\0';
+  return [NSString stringWithCString: dest];
 }
 
 - (void)getBytes: (void*)buffer
