@@ -1,7 +1,7 @@
 #ifndef second_server_h
 #define second_server_h
 
-#include <objc/NSObject.h>
+#include <Foundation/NSObject.h>
 #include <objects/Array.h>
 #include <objects/InvalidationListening.h>
 
