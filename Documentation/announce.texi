@@ -53,15 +53,15 @@ The library has been successfully compiled and tested with the following
 configurations:
 @smallexample
   mips-sgi-irix5.2
-  sparc-sun-sunos4.1.3
-  m68k-next-nextstep3.0
-  rs6000-ibm-aix3.2
-  sparc-sun-solaris2.3
 @end smallexample
 
 Some previous snapshots of the library worked with these configurations,
 but they haven't been tested recently:
 @smallexample
+  sparc-sun-sunos4.1.3
+  m68k-next-nextstep3.0
+  rs6000-ibm-aix3.2
+  sparc-sun-solaris2.3
   i386-unknown-linux
   i386-sun-solaris2.4
   i386-unknown-sysv4.0
