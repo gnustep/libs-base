@@ -1,3 +1,13 @@
+2004-04-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSArchiver.h: New ivar in unarchiver.
+	* Source/NSUnarchiver.m: Simpler scheme to ensure that objects
+	persist until the end of unarchiving ... just store them in an
+	array.
+	* Source/NSNumber.m: Don't deallocate self in initialisers when
+	replacing with cached object ... use release instead in case
+	something else has retained us.
+
 2004-04-09 Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSUnarchiver.m: Temporary rollback of previous fix.

@@ -635,7 +635,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithBool: (BOOL)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value == NO)
     {
       self = boolN;
@@ -649,7 +649,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithChar: (signed char)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -662,7 +662,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithDouble: (double)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   self = (NSNumber*)NSAllocateObject(doubleNumberClass, 0,
     NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
@@ -671,7 +671,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithFloat: (float)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   self = (NSNumber*)NSAllocateObject(floatNumberClass, 0,
     NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
@@ -680,7 +680,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithInt: (signed int)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -693,7 +693,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithLong: (signed long)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -706,7 +706,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithLongLong: (signed long long)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -719,7 +719,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithShort: (signed short)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -732,7 +732,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithUnsignedChar: (unsigned char)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -745,7 +745,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithUnsignedInt: (unsigned int)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -758,7 +758,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithUnsignedLong: (unsigned long)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -771,7 +771,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithUnsignedLongLong: (unsigned long long)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -784,7 +784,7 @@ static Class	doubleNumberClass;
 
 - (id) initWithUnsignedShort: (unsigned short)value
 {
-  NSDeallocateObject(self);
+  RELEASE(self);
   if (value <= GS_SMALL)
     {
       return RETAIN(smallIntegers[value + GS_SMALL]);
@@ -2524,8 +2524,7 @@ static Class	doubleNumberClass;
       case 'f':	self = [self initWithFloat: data.f]; break;
       case 'd':	self = [self initWithDouble: data.d]; break;
       default:
-	[self dealloc];
-	self = nil;
+	DESTROY(self);
 	NSLog(@"Attempt to decode number with unknown ObjC type");
     }
   return self;

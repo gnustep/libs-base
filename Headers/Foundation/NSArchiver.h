@@ -31,7 +31,7 @@
 
 #include <Foundation/NSCoder.h>
 
-@class NSMutableDictionary, NSMutableData, NSData, NSString;
+@class NSMutableArray, NSMutableDictionary, NSMutableData, NSData, NSString;
 
 @interface NSArchiver : NSCoder
 {
@@ -163,6 +163,7 @@
   unsigned		version;	/* Version of archiver used.	*/
   NSZone		*zone;		/* Zone for allocating objs.	*/
   NSMutableDictionary	*objDict;	/* Class information store.	*/
+  NSMutableArray	*objSave;
 }
 
 /* Initializing an unarchiver */
