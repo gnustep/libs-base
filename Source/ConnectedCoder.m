@@ -228,7 +228,7 @@ static BOOL debug_connected_coder = NO;
 
 #if CONNECTION_WIDE_OBJECT_REFERENCES
 
-/* We need to think carefully about reference counts, bycopy and
+/* xxx We need to think carefully about reference counts, bycopy and
    remote objects before we do this. */
 
 /* Some notes:
@@ -247,7 +247,9 @@ static BOOL debug_connected_coder = NO;
    +encodeObject:withConnectedCoder because we avoid having
    to keep around the local proxies.  */
 
-- (BOOL) _coderHasObjectReference: (unsigned)xref
+#warning These names need to be updated for the new xref scheme.
+
+- (BOOL) _coderReferenceForObject: xref
 {
   if (is_decoding)
     return [connection includesProxyForTarget:xref];
