@@ -2,23 +2,23 @@
 #include <gnustep/base/SocketPort.h>
 
 #define MSG "Hello back to you, from a server SocketPort"
-#define BUFFER_SIZE 80
 
 int main()
 {
-  char b[BUFFER_SIZE];
-  int l;
-  id p = [SocketPort newLocalWithNumber:3];
+  id packet;
+  id p = [TcpPort newLocalWithNumber:3];
   id rp;
+  int len;
+  char *buf;
 
   for (;;)
     {
-      l = [p receivePacket:b length:BUFFER_SIZE
-	     fromPort:&rp
-	     timeout:-1];
-      if (l >= 0 && l < 32)
-	b[l] = '\0';
-      printf("(length %d): %s\n", l, b);
+      packet = [p receivePacketWithTimeout: -1];
+      len = [p streamBufferLength];
+      buf = [p streamBuffer];
+      if (len >= 0 && len < 32)
+	buf[l] = '\0';
+      printf("(length %d): %s\n", len, buf);
 
       [p sendPacket:MSG length:strlen(MSG)
 	 toPort:rp
