@@ -63,48 +63,51 @@ static BOOL debug_textcoder = NO;
   switch (*type)
     {
     case _C_LNG:
-      [stream writeFormat:@"%*s<%@> (long) = %ld\n", 
-	      indentation, "", name, *(long*)d];
+      [stream writeFormat:@"%*s<%s> (long) = %ld\n", 
+	      indentation, "", [name cStringNoCopy], *(long*)d];
       break;
     case _C_ULNG:
-      [stream writeFormat:@"%*s<%@> (unsigned long) = %lu\n", 
-	      indentation, "", name, *(unsigned long*)d];
+      [stream writeFormat:@"%*s<%s> (unsigned long) = %lu\n", 
+	      indentation, "", [name cStringNoCopy], *(unsigned long*)d];
       break;
     case _C_INT:
-      [stream writeFormat:@"%*s<%@> (int) = %d\n", 
-	      indentation, "", name, *(int*)d];
+      [stream writeFormat:@"%*s<%s> (int) = %d\n", 
+	      indentation, "", [name cStringNoCopy], *(int*)d];
       break;
     case _C_UINT:
-      [stream writeFormat:@"%*s<%@> (unsigned int) = %u\n", 
-	      indentation, "", name, *(unsigned int*)d];
+      [stream writeFormat:@"%*s<%s> (unsigned int) = %u\n", 
+	      indentation, "", [name cStringNoCopy], *(unsigned int*)d];
       break;
     case _C_SHT:
-      [stream writeFormat:@"%*s<%@> (short) = %d\n", 
-	      indentation, "", name, (int)*(short*)d];
+      [stream writeFormat:@"%*s<%s> (short) = %d\n", 
+	      indentation, "", [name cStringNoCopy], (int)*(short*)d];
       break;
     case _C_USHT:
-      [stream writeFormat:@"%*s<%@> (unsigned short) = %u\n", 
-	      indentation, "", name, (unsigned)*(unsigned short*)d];
+      [stream writeFormat:@"%*s<%s> (unsigned short) = %u\n", 
+	      indentation, "", [name cStringNoCopy],
+	      (unsigned)*(unsigned short*)d];
       break;
     case _C_CHR:
-      [stream writeFormat:@"%*s<%@> (char) = %c (0x%x)\n", 
-	      indentation, "", name, *(char*)d, (unsigned)*(char*)d];
+      [stream writeFormat:@"%*s<%s> (char) = %c (0x%x)\n", 
+	      indentation, "", [name cStringNoCopy],
+	      *(char*)d, (unsigned)*(char*)d];
       break;
     case _C_UCHR:
-      [stream writeFormat:@"%*s<%@> (unsigned char) = 0x%x\n", 
-	      indentation, "", name, (unsigned)*(unsigned char*)d];
+      [stream writeFormat:@"%*s<%s> (unsigned char) = 0x%x\n", 
+	      indentation, "", [name cStringNoCopy],
+	      (unsigned)*(unsigned char*)d];
       break;
     case _C_FLT:
-      [stream writeFormat:@"%*s<%@> (float) = %g\n",
-	      indentation, "", name, *(float*)d];
+      [stream writeFormat:@"%*s<%s> (float) = %g\n",
+	      indentation, "", [name cStringNoCopy], *(float*)d];
       break;
     case _C_DBL:
-      [stream writeFormat:@"%*s<%@> (double) = %g\n",
-	      indentation, "", name, *(double*)d];
+      [stream writeFormat:@"%*s<%s> (double) = %g\n",
+	      indentation, "", [name cStringNoCopy], *(double*)d];
       break;
     case _C_CHARPTR:
-      [stream writeFormat:@"%*s<%@> (char*) = \"%s\"\n", 
-	      indentation, "", name, *(char**)d];
+      [stream writeFormat:@"%*s<%s> (char*) = \"%s\"\n", 
+	      indentation, "", [name cStringNoCopy], *(char**)d];
       break;
     case _C_ARY_B:
       {
@@ -372,7 +375,7 @@ if (debug_textcoder) \
 - (void) encodeName: (id <String>) n
 {
   if (n)
-    [stream writeFormat:@"%*s<%@>\n", indentation, "", n];
+    [stream writeFormat:@"%*s<%s>\n", indentation, "", [n cStringNoCopy]];
   else
     [stream writeFormat:@"%*s<NULL>\n", indentation, ""];
 }
