@@ -10,7 +10,7 @@ main()
   id objects, keys;
   id key;
 
-  set_behavior_debug(0);
+  behavior_set_debug(0);
 
   objects = [NSArray arrayWithObjects:
 		     @"vache", @"poisson", @"cheval", @"poulet", nil];

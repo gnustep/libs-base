@@ -80,7 +80,7 @@ int main()
   id f = [Foo new];
 
   [f encodeWithCoder:nil];
-  set_behavior_debug(1);
+  behavior_set_debug(1);
 
   [f foo2];
   [[f class] foo2Class];
