@@ -41,7 +41,15 @@
 
 #include <sys/signal.h>
 #include <sys/types.h>
+#include <sys/param.h>
 #include <sys/wait.h>
+
+/*
+ *	If we don't have NFILE, default to 256 open descriptors.
+ */
+#ifndef	NOFILE
+#define	NOFILE	256
+#endif
 
 NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 
@@ -490,6 +498,19 @@ extern char *objc_find_executable(const char *name);
     }
   if (pid == 0)
     {
+      int	i;
+
+      /*
+       * Make sure the task gets default signal setup.
+       */
+      for (i = 0; i < 32; i++)
+	{
+	  signal(i, SIG_DFL);
+	}
+
+      /*
+       * Make sure task is run in it's own process group.
+       */
 #if     HAVE_SETPGRP
       setpgrp();
 #else
@@ -498,6 +519,7 @@ extern char *objc_find_executable(const char *name);
       setpgid(pid, pid);
 #endif
 #endif
+
       /*
        * Set up stdin, stdout and stderr by duplicating descriptors as
        * necessary and closing the originals (to ensure we won't have a
@@ -506,24 +528,21 @@ extern char *objc_find_executable(const char *name);
       if (idesc != 0)
 	{
 	  dup2(idesc, 0);
-          if (idesc != odesc && idesc != edesc)
-            {
-              (void) close(idesc);
-            }
 	}
       if (odesc != 1)
 	{
 	  dup2(odesc, 1);
-          if (odesc != edesc)
-            {
-              (void) close(odesc);
-            }
 	}
       if (edesc != 2)
 	{
 	  dup2(edesc, 2);
-          (void) close(edesc);
 	}
+
+      for (i = 3; i < NOFILE; i++)
+	{
+	  (void) close(i);
+	}
+
       chdir(path);
       execve(executable, args, envl);
       exit(-1);
