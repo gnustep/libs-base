@@ -1,3 +1,9 @@
+2002-04-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Fix locking bug with NSZombie ... was not
+	locking when adding/removing zombies.
+	* Tools/ctvenc.m: new tool for converting string encodings.
+
 2002-03-28  Manuel Guesdon <mguesdon@orange-concept.com>
 
 	* Tools/gsdoc.m: corrected inversed test for missing entities
