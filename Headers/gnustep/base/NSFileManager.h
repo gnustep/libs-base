@@ -130,14 +130,18 @@
 @end /* NSDirectoryEnumerator */
 
 /* File Attributes */
+GS_EXPORT NSString* const NSFileAppendOnly;
 GS_EXPORT NSString* const NSFileCreationDate;
 GS_EXPORT NSString* const NSFileDeviceIdentifier;
+GS_EXPORT NSString* const NSFileExtensionHidden;
+GS_EXPORT NSString* const NSFileGroupOwnerAccountID;
 GS_EXPORT NSString* const NSFileGroupOwnerAccountName;
-GS_EXPORT NSString* const NSFileGroupOwnerAccountNumber;
-GS_EXPORT NSString* const NSFileDeviceIdentifier;
+GS_EXPORT NSString* const NSFileHFSCreatorCode;
+GS_EXPORT NSString* const NSFileHFSTypeCode;
+GS_EXPORT NSString* const NSFileImmutable;
 GS_EXPORT NSString* const NSFileModificationDate;
+GS_EXPORT NSString* const NSFileOwnerAccountID;
 GS_EXPORT NSString* const NSFileOwnerAccountName;
-GS_EXPORT NSString* const NSFileOwnerAccountNumber;
 GS_EXPORT NSString* const NSFilePosixPermissions;
 GS_EXPORT NSString* const NSFileReferenceCount;
 GS_EXPORT NSString* const NSFileSize;
@@ -166,19 +170,22 @@ GS_EXPORT NSString* const NSFileSystemFreeNodes;
 /* Easy access to attributes in a dictionary */
 
 @interface NSDictionary(NSFileAttributes)
+- (NSDate*) fileCreationDate;
+- (BOOL) fileExtensionHidden;
+- (int) fileHFSCreatorCode;
+- (int) fileHFSTypeCode;
+- (BOOL) fileIsAppendOnly;
+- (BOOL) fileIsImmutable;
 - (unsigned long long) fileSize;
 - (NSString*) fileType;
+- (unsigned long) fileOwnerAccountID;
 - (NSString*) fileOwnerAccountName;
+- (unsigned long) fileGroupOwnerAccountID;
 - (NSString*) fileGroupOwnerAccountName;
 - (NSDate*) fileModificationDate;
 - (unsigned long) filePosixPermissions;
 - (unsigned long) fileSystemNumber;
 - (unsigned long) fileSystemFileNumber;
-
-#ifndef	STRICT_MACOS_X
-- (unsigned long) fileOwnerAccountNumber;
-- (unsigned long) fileGroupOwnerAccountNumber;
-#endif
 @end
 
 #endif

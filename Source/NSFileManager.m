@@ -41,6 +41,9 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSEnumerator.h>
+#include <Foundation/NSSet.h>
 
 #include <stdio.h>
 
@@ -154,6 +157,34 @@
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSFileManager.h>
 
+/**
+ * GSAttrDictionary is a private NSDictionary subclass used to
+ * handle file attributes efficiently ...  using lazy evaluation
+ * to ensure that we only do the minimum work necessary at any time.
+ */
+@interface	GSAttrDictionary : NSDictionary
+{
+#ifdef	__MINGW__
+  const char	*name;
+#endif
+  struct stat	statbuf;
+}
++ (NSDictionary*) attributesAt: (const char*)cpath traverseLink: (BOOL)traverse;
+@end
+
+/**
+ * We also need a special enumerator class to enumerate the dictionary.
+ */
+@interface	GSAttrDictionaryEnumerator : NSEnumerator
+{
+  NSDictionary	*dictionary;
+  NSEnumerator	*enumerator;
+}
++ (NSEnumerator*) enumeratorFor: (NSDictionary*)d;
+@end
+
+
+
 @interface NSFileManager (PrivateMethods)
 
 /* Copies the contents of source file to destination file. Assumes source
@@ -167,15 +198,7 @@
 	    toPath: (NSString*)destination
 	   handler: (id)handler;
 
-- (NSDictionary*) _attributesAtPath: (NSString*)path
-		       traverseLink: (BOOL)traverse
-			    forCopy: (BOOL)copy;
 @end /* NSFileManager (PrivateMethods) */
-
-@interface NSDirectoryEnumerator (PrivateMethods)
-- (NSDictionary*) _attributesForCopy;
-@end
-
 
 /*
  * NSFileManager implementation
@@ -278,12 +301,12 @@ static NSFileManager* defaultManager = nil;
    * If there is no file owner specified, and we are running setuid to
    * root, then we assume we need to change ownership to correct user.
    */
-  if ([attributes objectForKey: NSFileOwnerAccountName] == nil 
-    && [attributes objectForKey: NSFileOwnerAccountNumber] == nil 
+  if ([attributes objectForKey: NSFileOwnerAccountID] == nil 
+    && [attributes objectForKey: NSFileOwnerAccountName] == nil 
     && geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
     {
       needChown = [NSDictionary dictionaryWithObjectsAndKeys: 
-			NSFileOwnerAccountName, NSUserName(), nil];
+	NSFileOwnerAccountName, NSUserName(), nil];
     }
 
   cpath = [self fileSystemRepresentationWithPath: path];
@@ -341,7 +364,7 @@ static NSFileManager* defaultManager = nil;
 	      return NO;
 	    }
 	  // if last directory and attributes then change
-	  if (cur == len && attributes)
+	  if (cur == len && attributes != nil)
 	    {
 	      if ([self changeFileAttributes: attributes 
 		atPath: [self stringWithFileSystemRepresentation: dirpath
@@ -395,17 +418,11 @@ static NSFileManager* defaultManager = nil;
 	   toPath: (NSString*)destination
 	  handler: handler
 {
-  BOOL		fileExists;
   NSDictionary	*attrs;
   NSString	*fileType;
 
-  attrs = [self _attributesAtPath: source traverseLink: NO forCopy: YES];
+  attrs = [self fileAttributesAtPath: source traverseLink: NO];
   if (attrs == nil)
-    {
-      return NO;
-    }
-  fileExists = [self fileExistsAtPath: destination];
-  if (fileExists)
     {
       return NO;
     }
@@ -495,11 +512,6 @@ static NSFileManager* defaultManager = nil;
     {
       return NO;
     }
-  fileExists = [self fileExistsAtPath: destination];
-  if (fileExists)
-    {
-      return NO;
-    }
 
   /* Check to see if the source and destination's parent are on the same
      physical device so we can perform a rename syscall directly. */
@@ -524,11 +536,10 @@ static NSFileManager* defaultManager = nil;
 
       if ([self copyPath: source toPath: destination handler: handler])
 	{
-	  NSDictionary* attributes;
+	  NSDictionary	*attributes;
 
-	  attributes = [self _attributesAtPath: source
-				  traverseLink: NO
-				       forCopy: YES];
+	  attributes = [self fileAttributesAtPath: source
+				     traverseLink: NO];
 	  [self changeFileAttributes: attributes atPath: destination];
 	  return [self removeFileAtPath: source handler: handler];
 	}
@@ -758,16 +769,16 @@ static NSFileManager* defaultManager = nil;
    * If there is no file owner specified, and we are running setuid to
    * root, then we assume we need to change ownership to correct user.
    */
-  if ([attributes objectForKey: NSFileOwnerAccountName] == nil 
-    && [attributes objectForKey: NSFileOwnerAccountNumber] == nil 
+  if ([attributes objectForKey: NSFileOwnerAccountID] == nil 
+    && [attributes objectForKey: NSFileOwnerAccountName] == nil 
     && geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
     {
       attributes = [NSDictionary dictionaryWithObjectsAndKeys: 
-			NSFileOwnerAccountName, NSUserName(), nil];
+	NSFileOwnerAccountName, NSUserName(), nil];
       if (![self changeFileAttributes: attributes atPath: path])
 	{
 	  NSLog(@"Failed to change ownership of '%@' to '%@'",
-		path, NSUserName());
+	    path, NSUserName());
 	}
     }
 
@@ -1016,7 +1027,11 @@ static NSFileManager* defaultManager = nil;
 
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path traverseLink: (BOOL)flag
 {
-  return [self _attributesAtPath: path traverseLink: flag forCopy: NO];
+  const char	*cpath = [self fileSystemRepresentationWithPath: path];
+  NSDictionary	*d;
+
+  d = [GSAttrDictionary attributesAt: cpath traverseLink: flag];
+  return d;
 }
 
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
@@ -1104,23 +1119,35 @@ static NSFileManager* defaultManager = nil;
 #endif /* MINGW */
 }
 
+/**
+ * Change the attributes of the file at path to those specified.<br />
+ * Returns YES if all requested changes were made (or if the dictionary
+ * was nil or empty, so no changes were requested), NO otherwise.<br />
+ * On failure, some fo the requested changes may have taken place.<br />
+ */
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
 {
-  const char	*cpath = [self fileSystemRepresentationWithPath: path];
-  NSNumber	*num;
+  const char	*cpath;
+  unsigned long	num;
   NSString	*str;
   NSDate	*date;
   BOOL		allOk = YES;
 
-#ifndef __MINGW__
-  num = [attributes objectForKey: NSFileOwnerAccountNumber];
-  if (num)
+  if (attributes == nil)
     {
-      if (chown(cpath, [num intValue], -1) != 0)
+      return YES;
+    }
+  cpath = [self fileSystemRepresentationWithPath: path];
+#ifndef __MINGW__
+  num = [attributes fileOwnerAccountID];
+  if (num != NSNotFound)
+    {
+      if (chown(cpath, num, -1) != 0)
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileOwnerAccountNumber to '%@'", num];
+	    @"Unable to change NSFileOwnerAccountID to '%u' - %s",
+	    num, GSLastErrorStr(errno)];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -1132,7 +1159,7 @@ static NSFileManager* defaultManager = nil;
 #ifdef HAVE_PWD_H	
 	  struct passwd *pw = getpwnam([str cString]);
 
-	  if (pw)
+	  if (pw != 0)
 	    {
 	      ok = (chown(cpath, pw->pw_uid, -1) == 0);
 	      chown(cpath, -1, pw->pw_gid);
@@ -1142,20 +1169,22 @@ static NSFileManager* defaultManager = nil;
 	    {
 	      allOk = NO;
 	      str = [NSString stringWithFormat:
-		@"Unable to change NSFileOwnerAccountName to '%@'", str];
+		@"Unable to change NSFileOwnerAccountName to '%@' - %s",
+		str, GSLastErrorStr(errno)];
 	      ASSIGN(_lastError, str);
 	    }
 	}
     }
 
-  num = [attributes objectForKey: NSFileGroupOwnerAccountNumber];
-  if (num)
+  num = [attributes fileGroupOwnerAccountID];
+  if (num != NSNotFound)
     {
-      if (chown(cpath, -1, [num intValue]) != 0)
+      if (chown(cpath, -1, num) != 0)
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileGroupOwnerAccountNumber to '%@'", num];
+	    @"Unable to change NSFileGroupOwnerAccountID to '%u' - %s",
+	    num, GSLastErrorStr(errno)];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -1175,26 +1204,28 @@ static NSFileManager* defaultManager = nil;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileGroupOwnerAccountName to '%@'", str];
+	    @"Unable to change NSFileGroupOwnerAccountName to '%@' - %s",
+	    str, GSLastErrorStr(errno)];
 	  ASSIGN(_lastError, str);
 	}
     }
 #endif	/* __MINGW__ */
 
-  num = [attributes objectForKey: NSFilePosixPermissions];
-  if (num)
+  num = [attributes filePosixPermissions];
+  if (num != NSNotFound)
     {
-      if (chmod(cpath, [num intValue]) != 0)
+      if (chmod(cpath, num) != 0)
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFilePosixPermissions to '%o'", [num intValue]];
+	    @"Unable to change NSFilePosixPermissions to '%o' - %s",
+	    num, GSLastErrorStr(errno)];
 	  ASSIGN(_lastError, str);
 	}
     }
     
   date = [attributes objectForKey: NSFileModificationDate];
-  if (date)
+  if (date != nil)
     {
       BOOL	ok = NO;
       struct stat sb;
@@ -1230,7 +1261,8 @@ static NSFileManager* defaultManager = nil;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileModificationDate to '%@'", date];
+	    @"Unable to change NSFileModificationDate to '%@' - %s",
+	    date, GSLastErrorStr(errno)];
 	  ASSIGN(_lastError, str);
 	}
     }
@@ -1409,12 +1441,11 @@ static NSFileManager* defaultManager = nil;
   path = [path stringByStandardizingPath];
   newpath = path;
   c_path = [path cString];
-  l = strlen(c_path);
-
   if (c_path == 0)
     {
       return 0;
     }
+  l = strlen(c_path);
   if (l >= 2 && c_path[0] == '~' && isalpha(c_path[1])
     && (l == 2 || c_path[2] == '/'))
     {
@@ -1754,7 +1785,7 @@ static SEL swfsSel = 0;
 				  strlen(_top_path));
 
   return [defaultManager fileAttributesAtPath: topPath
-			 traverseLink: _flags.isFollowing];
+				 traverseLink: _flags.isFollowing];
 }
 
 - (NSDictionary*) fileAttributes
@@ -1766,7 +1797,7 @@ static SEL swfsSel = 0;
 					  strlen(_current_file_path));
 
   return [defaultManager fileAttributesAtPath: currentFilePath
-			 traverseLink: _flags.isFollowing];
+				 traverseLink: _flags.isFollowing];
 }
 
 // Skipping subdirectories
@@ -1898,74 +1929,174 @@ static SEL swfsSel = 0;
 
 @end /* NSDirectoryEnumerator */
 
-@implementation NSDirectoryEnumerator (PrivateMethods)
-- (NSDictionary*) _attributesForCopy
-{
-  NSString *currentFilePath;
-  
-  currentFilePath = _stringWithFileSysImp(defaultManager, swfsSel, 
-					  _current_file_path, 
-					  strlen(_current_file_path));
-
-  return [defaultManager _attributesAtPath: currentFilePath
-			 traverseLink: _flags.isFollowing
-			 forCopy: YES];
-}
-@end
-
 /*
  * Attributes dictionary access
  */
 
 @implementation NSDictionary(NSFileAttributes)
-- (unsigned long long) fileSize
+
+/**
+ * Return the file creation date attribute (or nil if not found).
+ */
+- (NSDate*) fileCreationDate
 {
-  return [[self objectForKey: NSFileSize] unsignedLongLongValue];
+  return [self objectForKey: NSFileCreationDate];
 }
 
+/**
+ * Return the file extension hidden attribute (or NO if not found).
+ */
+- (BOOL) fileExtensionHidden
+{
+  return [[self objectForKey: NSFileExtensionHidden] boolValue];
+}
+
+- (int) fileHFSCreatorCode
+{
+  return [[self objectForKey: NSFileHFSCreatorCode] intValue];
+}
+
+- (int) fileHFSTypeCode
+{
+  return [[self objectForKey: NSFileHFSTypeCode] intValue];
+}
+
+/**
+ * Return the file append only attribute (or NO if not found).
+ */
+- (BOOL) fileIsAppendOnly
+{
+  return [[self objectForKey: NSFileAppendOnly] boolValue];
+}
+
+/**
+ * Return the file immutable attribute (or NO if not found).
+ */
+- (BOOL) fileIsImmutable
+{
+  return [[self objectForKey: NSFileImmutable] boolValue];
+}
+
+/**
+ * Return the size of the file, or NSNotFound if the file size attribute
+ * is not found in the dictionary.
+ */
+- (unsigned long long) fileSize
+{
+  NSNumber	*n = [self objectForKey: NSFileSize];
+
+  if (n == nil)
+    {
+      return NSNotFound;
+    }
+  return [n unsignedLongLongValue];
+}
+
+/**
+ * Return the file type attribute or nil if not present.
+ */
 - (NSString*) fileType
 {
   return [self objectForKey: NSFileType];
 }
 
+/**
+ * Return the file owner account name attribute or nil if not present.
+ */
 - (NSString*) fileOwnerAccountName
 {
   return [self objectForKey: NSFileOwnerAccountName];
 }
 
-- (unsigned long) fileOwnerAccountNumber
+/**
+ * Return the numeric value of the NSFileOwnerAccountID attribute
+ * in the dictionary, or NSNotFound if the attribute is not present.
+ */
+- (unsigned long) fileOwnerAccountID
 {
-  return [[self objectForKey: NSFileOwnerAccountNumber] unsignedIntValue];
+  NSNumber	*n = [self objectForKey: NSFileOwnerAccountID];
+
+  if (n == nil)
+    {
+      return NSNotFound;
+    }
+  return [n unsignedIntValue];
 }
 
+/**
+ * Return the file group owner account name attribute or nil if not present.
+ */
 - (NSString*) fileGroupOwnerAccountName
 {
   return [self objectForKey: NSFileGroupOwnerAccountName];
 }
 
-- (unsigned long) fileGroupOwnerAccountNumber
+/**
+ * Return the numeric value of the NSFileGroupOwnerAccountID attribute
+ * in the dictionary, or NSNotFound if the attribute is not present.
+ */
+- (unsigned long) fileGroupOwnerAccountID
 {
-  return [[self objectForKey: NSFileGroupOwnerAccountNumber] unsignedIntValue];
+  NSNumber	*n = [self objectForKey: NSFileGroupOwnerAccountID];
+
+  if (n == nil)
+    {
+      return NSNotFound;
+    }
+  return [n unsignedIntValue];
 }
 
+/**
+ * Return the file modification date attribute (or nil if not found)
+ */
 - (NSDate*) fileModificationDate
 {
   return [self objectForKey: NSFileModificationDate];
 }
 
+/**
+ * Return the file posix permissions attribute (or NSNotFound if
+ * the attribute is not present in the dictionary).
+ */
 - (unsigned long) filePosixPermissions
 {
-  return [[self objectForKey: NSFilePosixPermissions] unsignedLongValue];
+  NSNumber	*n = [self objectForKey: NSFilePosixPermissions];
+
+  if (n == nil)
+    {
+      return NSNotFound;
+    }
+  return [n unsignedLongValue];
 }
 
+/**
+ * Return the file system number attribute (or NSNotFound if
+ * the attribute is not present in the dictionary).
+ */
 - (unsigned long) fileSystemNumber
 {
-  return [[self objectForKey: NSFileSystemNumber] unsignedLongValue];
+  NSNumber	*n = [self objectForKey: NSFileSystemNumber];
+
+  if (n == nil)
+    {
+      return NSNotFound;
+    }
+  return [n unsignedLongValue];
 }
 
+/**
+ * Return the file system file identification number attribute 
+ * or NSNotFound if the attribute is not present in the dictionary).
+ */
 - (unsigned long) fileSystemFileNumber
 {
-  return [[self objectForKey: NSFileSystemFileNumber] unsignedLongValue];
+  NSNumber	*n = [self objectForKey: NSFileSystemFileNumber];
+
+  if (n == nil)
+    {
+      return NSNotFound;
+    }
+  return [n unsignedLongValue];
 }
 @end
 
@@ -2012,7 +2143,7 @@ static SEL swfsSel = 0;
   NSAssert1 ([self fileExistsAtPath: source],
     @"source file '%@' does not exist!", source);
 
-  attributes = [self _attributesAtPath: source traverseLink: NO forCopy: YES];
+  attributes = [self fileAttributesAtPath: source traverseLink: NO];
   NSAssert1 (attributes, @"could not get the attributes for file '%@'",
     source);
 
@@ -2132,7 +2263,7 @@ static SEL swfsSel = 0;
       NSString		*destinationFile;
       NSDictionary	*attributes;
 
-      attributes = [enumerator _attributesForCopy];
+      attributes = [enumerator fileAttributes];
       fileType = [attributes objectForKey: NSFileType];
       sourceFile = [source stringByAppendingPathComponent: dirEntry];
       destinationFile
@@ -2219,312 +2350,462 @@ static SEL swfsSel = 0;
   return YES;
 }
 
+@end /* NSFileManager (PrivateMethods) */
+
+
+
+@implementation	GSAttrDictionary
+
+static NSSet	*fileKeys = nil;
+
++ (NSDictionary*) attributesAt: (const char*)cpath traverseLink: (BOOL)traverse
+{
+  GSAttrDictionary	*d;
+
+  d = (GSAttrDictionary*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+#ifdef	__MINGW__
+  d->name = NSZoneMalloc(NSDefaultMallocZone(), strlen(cpath)+1);
+  strcpy(d->name, cpath);
+#endif
+#if defined(S_IFLNK) && !defined(__MINGW__)
+  if (traverse == NO)
+    {
+      if (lstat(cpath, &d->statbuf) != 0)
+	{
+	  DESTROY(d);
+	}
+    }
+  else
+#endif
+  if (stat(cpath, &d->statbuf) != 0)
+    {
+      DESTROY(d);
+    }
+  return AUTORELEASE(d);  
+}
+
++ (void) initialize
+{
+  if (fileKeys == nil)
+    {
+      fileKeys = [NSSet setWithObjects:
+	NSFileAppendOnly,
+	NSFileCreationDate,
+	NSFileDeviceIdentifier,
+	NSFileExtensionHidden,
+	NSFileGroupOwnerAccountName,
+	NSFileGroupOwnerAccountID,
+	NSFileHFSCreatorCode,
+	NSFileHFSTypeCode,
+	NSFileImmutable,
+	NSFileModificationDate,
+	NSFileOwnerAccountName,
+	NSFileOwnerAccountID,
+	NSFilePosixPermissions,
+	NSFileReferenceCount,
+	NSFileSize,
+	NSFileSystemFileNumber,
+	NSFileSystemNumber,
+	NSFileType,
+	nil];
+      RETAIN(fileKeys);
+    }
+}
+
+- (unsigned int) count
+{
+  return [fileKeys count];
+}
+
+- (void) dealloc
+{
+#ifdef	__MINGW__
+  if (name != 0)
+    NSZoneFree(name);
+#endif
+  [super dealloc];
+}
+
+- (NSDate*) fileCreationDate
+{
+  /*
+   * FIXME ... not sure there is any way to get a creation date :-(
+   * Use the earlier of ctime or mtime
+   */
+  if (statbuf.st_ctime < statbuf.st_mtime)
+    return [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
+  else
+    return [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
+}
+
+- (BOOL) fileExtensionHidden
+{
+  return NO;
+}
+
+- (unsigned long) fileGroupOwnerAccountID
+{
+  return statbuf.st_gid;
+}
+
 #if (defined(sparc) && defined(DEBUG))
 static int sparc_warn = 0;
 #endif
 
-- (NSDictionary*) _attributesAtPath: (NSString*)path
-		       traverseLink: (BOOL)traverse
-			    forCopy: (BOOL)copy
+- (NSString*) fileGroupOwnerAccountName
 {
-  struct stat statbuf;
-  const char* cpath = [self fileSystemRepresentationWithPath: path];
-  int mode;
-  int count;
-  id values[13];
-  id keys[13] = {
-    NSFileSize,
-    NSFileCreationDate,
-    NSFileModificationDate,
-    NSFileReferenceCount,
-    NSFileSystemNumber,
-    NSFileSystemFileNumber,
-    NSFileDeviceIdentifier,
-    NSFilePosixPermissions,
-    NSFileType,
-    NSFileOwnerAccountName,
-    NSFileGroupOwnerAccountName,
-    NSFileOwnerAccountNumber,
-    NSFileGroupOwnerAccountNumber
-  };
+  NSString	*result = @"UnknownGroup";
+#if defined(HAVE_GRP_H) && !(defined(sparc) && defined(DEBUG))
+  struct group	*gp;
 
-#if defined(__MINGW__)
-  if (stat(cpath, &statbuf) != 0)
+  gp = getgrgid(statbuf.st_gid);
+  if (gp != 0)
     {
-      return nil;
+      result = [NSString stringWithCString: gp->gr_name];
     }
-#else /* !(__MINGW__) */
-  if (traverse)
+#else
+#if (defined(sparc) && defined(DEBUG))
+  if (sparc_warn == 0)
     {
-      if (stat(cpath, &statbuf) != 0)
-	{
-	  return nil;
-	}
+      sparc_warn = 1;
+      /* Can't be NSLog - causes recursion in [NSUser -synchronize] */
+      fprintf(stderr, "WARNING (NSFileManager): Disabling group enums (setgrent, etc) since this crashes gdb on sparc machines\n");
     }
-#ifdef S_IFLNK
-  else
-    {
-      if (lstat(cpath, &statbuf) != 0)
-	{
-	  return nil;
-	}
-    }
-#endif /* (S_IFLNK) */
-#endif /* (__MINGW__) */
-    
-  values[0] = [NSNumber numberWithUnsignedLongLong: statbuf.st_size];
-  values[1] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
-  values[2] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
-  values[3] = [NSNumber numberWithUnsignedInt: statbuf.st_nlink];
-  values[4] = [NSNumber numberWithUnsignedLong: statbuf.st_dev];
-  values[5] = [NSNumber numberWithUnsignedLong: statbuf.st_ino];
-  values[6] = [NSNumber numberWithUnsignedInt: statbuf.st_dev];
-  values[7] = [NSNumber numberWithUnsignedInt: statbuf.st_mode];
-  
-  mode = statbuf.st_mode & S_IFMT;
-
-  if (mode == S_IFREG)
-    values[8] = NSFileTypeRegular;
-  else if (mode == S_IFDIR)
-    values[8] = NSFileTypeDirectory;
-  else if (mode == S_IFCHR)
-    values[8] = NSFileTypeCharacterSpecial;
-  else if (mode == S_IFBLK)
-    values[8] = NSFileTypeBlockSpecial;
-#ifdef S_IFLNK
-  else if (mode == S_IFLNK)
-    values[8] = NSFileTypeSymbolicLink;
 #endif
-  else if (mode == S_IFIFO)
-    values[8] = NSFileTypeFifo;
-#ifdef S_IFSOCK
-  else if (mode == S_IFSOCK)
-    values[8] = NSFileTypeSocket;
 #endif
-  else
-    values[8] = NSFileTypeUnknown;
+  return result;
+}
 
-  if (copy == NO)
-    {
+- (int) fileHFSCreatorCode
+{
+  return 0;
+}
+
+- (int) fileHFSTypeCode
+{
+  return 0;
+}
+
+- (BOOL) fileIsAppendOnly
+{
+  return 0;
+}
+
+- (BOOL) fileIsImmutable
+{
+  return 0;
+}
+
+- (NSDate*) fileModificationDate
+{
+  return [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
+}
+
+- (unsigned long) filePosixPermissions
+{
+  return (statbuf.st_mode & ~S_IFMT);
+}
+
+- (unsigned long) fileOwnerAccountID
+{
+  return statbuf.st_uid;
+}
+
+- (NSString*) fileOwnerAccountName
+{
+  NSString	*result = @"UnknownUser";
 #ifdef __MINGW_NOT_AVAILABLE_YET
+{
+  DWORD		dwRtnCode = 0;
+  PSID		pSidOwner;
+  BOOL		bRtnBool = TRUE;
+  LPTSTR	AcctName;
+  LPTSTR	DomainName;
+  DWORD		dwAcctName = 1;
+  DWORD		dwDomainName = 1;
+  SID_NAME_USE	eUse = SidTypeUnknown;
+  HANDLE	hFile;
+  PSECURITY_DESCRIPTOR pSD;
 
-      {
-	DWORD dwRtnCode = 0;
-	PSID pSidOwner;
-	BOOL bRtnBool = TRUE;
-	LPTSTR AcctName, DomainName;
-	DWORD dwAcctName = 1, dwDomainName = 1;
-	SID_NAME_USE eUse = SidTypeUnknown;
-	HANDLE hFile;
-	PSECURITY_DESCRIPTOR pSD;
+  // Get the handle of the file object.
+  hFile = CreateFile(
+		    "myfile.txt",
+		    GENERIC_READ,
+		    FILE_SHARE_READ,
+		    NULL,
+		    OPEN_EXISTING,
+		    FILE_ATTRIBUTE_NORMAL,
+		    NULL);
 
-	// Get the handle of the file object.
-	hFile = CreateFile(
-			  "myfile.txt",
-			  GENERIC_READ,
-			  FILE_SHARE_READ,
-			  NULL,
-			  OPEN_EXISTING,
-			  FILE_ATTRIBUTE_NORMAL,
-			  NULL);
+  // Check GetLastError for CreateFile error code.
+  if (hFile == INVALID_HANDLE_VALUE) {
+	    DWORD dwErrorCode = 0;
 
-	// Check GetLastError for CreateFile error code.
-	if (hFile == INVALID_HANDLE_VALUE) {
-		  DWORD dwErrorCode = 0;
+	    dwErrorCode = GetLastError();
+	    _tprintf(TEXT("CreateFile error = %d\n"), dwErrorCode);
+	    return -1;
+  }
 
-		  dwErrorCode = GetLastError();
-		  _tprintf(TEXT("CreateFile error = %d\n"), dwErrorCode);
-		  return -1;
-	}
+  // Allocate memory for the SID structure.
+  pSidOwner = (PSID)GlobalAlloc(
+	    GMEM_FIXED,
+	    sizeof(PSID));
 
-	// Allocate memory for the SID structure.
-	pSidOwner = (PSID)GlobalAlloc(
-		  GMEM_FIXED,
-		  sizeof(PSID));
+  // Allocate memory for the security descriptor structure.
+  pSD = (PSECURITY_DESCRIPTOR)GlobalAlloc(
+	    GMEM_FIXED,
+	    sizeof(PSECURITY_DESCRIPTOR));
 
-	// Allocate memory for the security descriptor structure.
-	pSD = (PSECURITY_DESCRIPTOR)GlobalAlloc(
-		  GMEM_FIXED,
-		  sizeof(PSECURITY_DESCRIPTOR));
+  // Get the owner SID of the file.
+  dwRtnCode = GetSecurityInfo(
+		    hFile,
+		    SE_FILE_OBJECT,
+		    OWNER_SECURITY_INFORMATION,
+		    &pSidOwner,
+		    NULL,
+		    NULL,
+		    NULL,
+		    &pSD);
 
-	// Get the owner SID of the file.
-	dwRtnCode = GetSecurityInfo(
-			  hFile,
-			  SE_FILE_OBJECT,
-			  OWNER_SECURITY_INFORMATION,
-			  &pSidOwner,
-			  NULL,
-			  NULL,
-			  NULL,
-			  &pSD);
+  // Check GetLastError for GetSecurityInfo error condition.
+  if (dwRtnCode != ERROR_SUCCESS) {
+	    DWORD dwErrorCode = 0;
 
-	// Check GetLastError for GetSecurityInfo error condition.
-	if (dwRtnCode != ERROR_SUCCESS) {
-		  DWORD dwErrorCode = 0;
+	    dwErrorCode = GetLastError();
+	    _tprintf(TEXT("GetSecurityInfo error = %d\n"), dwErrorCode);
+	    return -1;
+  }
 
-		  dwErrorCode = GetLastError();
-		  _tprintf(TEXT("GetSecurityInfo error = %d\n"), dwErrorCode);
-		  return -1;
-	}
+  // First call to LookupAccountSid to get the buffer sizes.
+  bRtnBool = LookupAccountSid(
+		    NULL,           // local computer
+		    pSidOwner,
+		    AcctName,
+		    (LPDWORD)&dwAcctName,
+		    DomainName,
+		    (LPDWORD)&dwDomainName,
+		    &eUse);
 
-	// First call to LookupAccountSid to get the buffer sizes.
-	bRtnBool = LookupAccountSid(
-			  NULL,           // local computer
-			  pSidOwner,
-			  AcctName,
-			  (LPDWORD)&dwAcctName,
-			  DomainName,
-			  (LPDWORD)&dwDomainName,
-			  &eUse);
+  // Reallocate memory for the buffers.
+  AcctName = (char *)GlobalAlloc(
+	    GMEM_FIXED,
+	    dwAcctName);
 
-	// Reallocate memory for the buffers.
-	AcctName = (char *)GlobalAlloc(
-		  GMEM_FIXED,
-		  dwAcctName);
+  // Check GetLastError for GlobalAlloc error condition.
+  if (AcctName == NULL) {
+	    DWORD dwErrorCode = 0;
 
-	// Check GetLastError for GlobalAlloc error condition.
-	if (AcctName == NULL) {
-		  DWORD dwErrorCode = 0;
+	    dwErrorCode = GetLastError();
+	    _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
+	    return -1;
+  }
 
-		  dwErrorCode = GetLastError();
-		  _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
-		  return -1;
-	}
+      DomainName = (char *)GlobalAlloc(
+	     GMEM_FIXED,
+	     dwDomainName);
 
-	    DomainName = (char *)GlobalAlloc(
-		   GMEM_FIXED,
-		   dwDomainName);
+      // Check GetLastError for GlobalAlloc error condition.
+      if (DomainName == NULL) {
+	    DWORD dwErrorCode = 0;
 
-	    // Check GetLastError for GlobalAlloc error condition.
-	    if (DomainName == NULL) {
-		  DWORD dwErrorCode = 0;
+	    dwErrorCode = GetLastError();
+	    _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
+	    return -1;
 
-		  dwErrorCode = GetLastError();
-		  _tprintf(TEXT("GlobalAlloc error = %d\n"), dwErrorCode);
-		  return -1;
-
-	    }
-
-	    // Second call to LookupAccountSid to get the account name.
-	    bRtnBool = LookupAccountSid(
-		  NULL,                          // name of local or remote computer
-		  pSidOwner,                     // security identifier
-		  AcctName,                      // account name buffer
-		  (LPDWORD)&dwAcctName,          // size of account name buffer 
-		  DomainName,                    // domain name
-		  (LPDWORD)&dwDomainName,        // size of domain name buffer
-		  &eUse);                        // SID type
-
-	    // Check GetLastError for LookupAccountSid error condition.
-	    if (bRtnBool == FALSE) {
-		  DWORD dwErrorCode = 0;
-
-		  dwErrorCode = GetLastError();
-
-		  if (dwErrorCode == ERROR_NONE_MAPPED)
-		      _tprintf(TEXT("Account owner not found for specified SID.\n"));
-		  else 
-		      _tprintf(TEXT("Error in LookupAccountSid.\n"));
-		  return -1;
-
-	    } else if (bRtnBool == TRUE) 
-
-		// Print the account name.
-		_tprintf(TEXT("Account owner = %s\n"), AcctName);
-
-	    return 0;
       }
 
+      // Second call to LookupAccountSid to get the account name.
+      bRtnBool = LookupAccountSid(
+	    NULL,                          // name of local or remote computer
+	    pSidOwner,                     // security identifier
+	    AcctName,                      // account name buffer
+	    (LPDWORD)&dwAcctName,          // size of account name buffer 
+	    DomainName,                    // domain name
+	    (LPDWORD)&dwDomainName,        // size of domain name buffer
+	    &eUse);                        // SID type
+
+      // Check GetLastError for LookupAccountSid error condition.
+      if (bRtnBool == FALSE) {
+	    DWORD dwErrorCode = 0;
+
+	    dwErrorCode = GetLastError();
+
+	    if (dwErrorCode == ERROR_NONE_MAPPED)
+		_tprintf(TEXT("Account owner not found for specified SID.\n"));
+	    else 
+		_tprintf(TEXT("Error in LookupAccountSid.\n"));
+	    return -1;
+
+      } else if (bRtnBool == TRUE) 
+
+	  // Print the account name.
+	  _tprintf(TEXT("Account owner = %s\n"), AcctName);
+
+      return 0;
+}
 
 #endif
 #ifdef HAVE_PWD_H	
-      {
-	struct passwd *pw;
+  struct passwd *pw;
 
-	pw = getpwuid(statbuf.st_uid);
+  pw = getpwuid(statbuf.st_uid);
 
-	if (pw)
-	  {
-	    values[9] = [NSString stringWithCString: pw->pw_name];
-	  }
-	else
-	  {
-	    values[9] = @"UnknownUser";
-	  }
-      }
-#else
-      values[9] = @"UnknownUser";
-#endif /* HAVE_PWD_H */
-
-#if defined(HAVE_GRP_H) && !(defined(sparc) && defined(DEBUG))
-      {
-	struct group *gp;
-
-	setgrent();
-	while ((gp = getgrent()) != 0)
-	  {
-	    if (gp->gr_gid == statbuf.st_gid)
-	      {
-		break;
-	      }
-	  }
-	if (gp)
-	  {
-	    values[10] = [NSString stringWithCString: gp->gr_name];
-	  }
-	else
-	  {
-	    values[10] = @"UnknownGroup";
-	  }
-	endgrent();
-      }
-#else
-#if (defined(sparc) && defined(DEBUG))
-      if (sparc_warn == 0)
-	{
-	  sparc_warn = 1;
-	  /* Can't be NSLog - causes recursion in [NSUser -synchronize] */
-          fprintf(stderr, "WARNING (NSFileManager): Disabling group enums (setgrent, etc) since this crashes gdb on sparc machines\n");
-	}
-#endif
-      values[10] = @"UnknownGroup";
-#endif
-      values[11] = [NSNumber numberWithUnsignedInt: statbuf.st_uid];
-      values[12] = [NSNumber numberWithUnsignedInt: statbuf.st_gid];
-      count = 13;
-    }
-  else
+  if (pw != 0)
     {
-      NSString	*u = NSUserName();
-
-      count = 9;	/* No ownership details needed.	*/
-      /*
-       * If we are running setuid to root - we need to specify the user
-       * to be the owner of copied files.
-       */
-#ifdef HAVE_GETEUID
-      if (geteuid() == 0 && [@"root" isEqualToString: u] == NO)
-	{
-	  values[count++] = u;
-	}
-#endif
+      result = [NSString stringWithCString: pw->pw_name];
     }
-
-  return [NSDictionary dictionaryWithObjects: values
-				     forKeys: keys
-				       count: count];
+#endif /* HAVE_PWD_H */
+  return result;
 }
 
-@end /* NSFileManager (PrivateMethods) */
+- (unsigned long long) fileSize
+{
+  return statbuf.st_size;
+}
 
+- (unsigned long) fileSystemFileNumber
+{
+  return statbuf.st_ino;
+}
 
+- (unsigned long) fileSystemNumber
+{
+  return statbuf.st_dev;
+}
+
+- (NSString*) fileType
+{
+  switch (statbuf.st_mode & S_IFMT)
+    {
+      case S_IFREG: return NSFileTypeRegular;
+      case S_IFDIR: return NSFileTypeDirectory;
+      case S_IFCHR: return NSFileTypeCharacterSpecial;
+      case S_IFBLK: return NSFileTypeBlockSpecial;
+#ifdef S_IFLNK
+      case S_IFLNK: return NSFileTypeSymbolicLink;
+#endif
+      case S_IFIFO: return NSFileTypeFifo;
+#ifdef S_IFSOCK
+      case S_IFSOCK: return NSFileTypeSocket;
+#endif
+      default: return NSFileTypeUnknown;
+    }
+}
+
+- (NSEnumerator*) keyEnumerator
+{
+  return [fileKeys objectEnumerator];
+}
+
+- (NSEnumerator*) objectEnumerator
+{
+  return [GSAttrDictionaryEnumerator enumeratorFor: self];
+}
+
+- (id) objectForKey: (NSString*)key
+{
+  int	count = 0;
+
+  while (key != 0 && count < 2)
+    {
+      if (key == NSFileAppendOnly)
+	return [NSNumber numberWithBool: [self fileIsAppendOnly]];
+      if (key == NSFileCreationDate)
+	return [self fileCreationDate];
+      if (key == NSFileDeviceIdentifier)
+	return [NSNumber numberWithUnsignedInt: statbuf.st_dev];
+      if (key == NSFileExtensionHidden)
+	return [NSNumber numberWithBool: [self fileExtensionHidden]];
+      if (key == NSFileGroupOwnerAccountName)
+	return [self fileGroupOwnerAccountName];
+      if (key == NSFileGroupOwnerAccountID)
+	return [NSNumber numberWithInt: [self fileGroupOwnerAccountID]];
+      if (key == NSFileHFSCreatorCode)
+	return [NSNumber numberWithInt: [self fileHFSCreatorCode]];
+      if (key == NSFileHFSTypeCode)
+	return [NSNumber numberWithInt: [self fileHFSTypeCode]];
+      if (key == NSFileImmutable)
+	return [NSNumber numberWithBool: [self fileIsImmutable]];
+      if (key == NSFileModificationDate)
+	return [self fileModificationDate];
+      if (key == NSFileOwnerAccountName)
+	return [self fileOwnerAccountName];
+      if (key == NSFileOwnerAccountID)
+	return [NSNumber numberWithInt: [self fileOwnerAccountID]];
+      if (key == NSFilePosixPermissions)
+	return [NSNumber numberWithUnsignedInt: [self filePosixPermissions]];
+      if (key == NSFileReferenceCount)
+	return [NSNumber numberWithUnsignedInt: statbuf.st_nlink];
+      if (key == NSFileSize)
+	return [NSNumber numberWithUnsignedLongLong: [self fileSize]];
+      if (key == NSFileSystemFileNumber)
+	return [NSNumber numberWithUnsignedInt: [self fileSystemFileNumber]];
+      if (key == NSFileSystemNumber)
+	return [NSNumber numberWithUnsignedInt: [self fileSystemNumber]];
+      if (key == NSFileType)
+	return [self fileType];
+
+      /*
+       * Now, if we didn't get an exact pointer match, check for
+       * string equalities and ensure we get an exact match next
+       * time round the loop.
+       */
+      count++;
+      key = [fileKeys member: key];
+    }
+  if (count >= 2)
+    {
+      NSLog(@"Warning ... key '%@' not handled", key);
+    }
+  return nil;
+}
+
+@end	/* GSAttrDictionary */
+
+@implementation	GSAttrDictionaryEnumerator
++ (NSEnumerator*) enumeratorFor: (NSDictionary*)d
+{
+  GSAttrDictionaryEnumerator	*e;
+
+  e = (GSAttrDictionaryEnumerator*)
+    NSAllocateObject(self, 0, NSDefaultMallocZone());
+  e->dictionary = RETAIN(d);
+  e->enumerator = RETAIN([fileKeys objectEnumerator]);
+  return AUTORELEASE(e);
+}
+
+- (void) dealloc
+{
+  RELEASE(enumerator);
+  RELEASE(dictionary);
+  [super dealloc];
+}
+
+- (id) nextObject
+{
+  NSString	*key = [enumerator nextObject];
+  id		val = nil;
+
+  if (key != nil)
+    {
+      val = [dictionary objectForKey: key];
+    }
+  return val;
+}
+@end
+
+NSString * const NSFileAppendOnly = @"NSFileAppendOnly";
 NSString * const NSFileCreationDate = @"NSFileCreationDate";
 NSString * const NSFileDeviceIdentifier = @"NSFileDeviceIdentifier";
+NSString * const NSFileExtensionHidden = @"NSFileExtensionHidden";
+NSString * const NSFileGroupOwnerAccountID = @"NSFileGroupOwnerAccountID";
 NSString * const NSFileGroupOwnerAccountName = @"NSFileGroupOwnerAccountName";
-NSString * const NSFileGroupOwnerAccountNumber = @"NSFileGroupOwnerAccountNumber";
+NSString * const NSFileHFSCreatorCode = @"NSFileHFSCreatorCode";
+NSString * const NSFileHFSTypeCode = @"NSFileHFSTypeCode";
+NSString * const NSFileImmutable = @"NSFileImmutable";
 NSString * const NSFileModificationDate = @"NSFileModificationDate";
+NSString * const NSFileOwnerAccountID = @"NSFileOwnerAccountID";
 NSString * const NSFileOwnerAccountName = @"NSFileOwnerAccountName";
-NSString * const NSFileOwnerAccountNumber = @"NSFileOwnerAccountNumber";
 NSString * const NSFilePosixPermissions = @"NSFilePosixPermissions";
 NSString * const NSFileReferenceCount = @"NSFileReferenceCount";
 NSString * const NSFileSize = @"NSFileSize";
@@ -2543,3 +2824,5 @@ NSString * const NSFileTypeRegular = @"NSFileTypeRegular";
 NSString * const NSFileTypeSocket = @"NSFileTypeSocket";
 NSString * const NSFileTypeSymbolicLink = @"NSFileTypeSymbolicLink";
 NSString * const NSFileTypeUnknown = @"NSFileTypeUnknown";
+
+
