@@ -1,3 +1,12 @@
+Mon Jul 26 21:22:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Fix cStrings to use unsigned char throughout - to avoid problems
+	with character sets other than ascii.  Suggested by Kai Henningsen.
+	* Headers/Foundation/NSGCString.h: Use unsigned chars.
+	* Source/NSGCString.m: Use unsigned chars.
+	* Source/GSeq.h: Use unsigned chars.
+	* Source/propList.h: Use unsigned chars.
+
 Fri Jul 23 22:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/UnixFileHandle.m: Tidy a little and make sure that

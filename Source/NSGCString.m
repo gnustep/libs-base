@@ -70,13 +70,13 @@
 #define	GSPLUNI	0
 #include "propList.h"
 
-static	SEL	csInitSel = @selector(initWithCStringNoCopy:length:fromZone:);
+static	SEL	csInitSel = @selector(initWithCStringNoCopy: length: fromZone:);
 static	SEL	msInitSel = @selector(initWithCapacity:);
 static	IMP	csInitImp;	/* designated initialiser for cString	*/
 static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 @interface NSGMutableCString (GNUDescription)
-- (char*) _extendBy: (unsigned)len;
+- (unsigned char*) _extendBy: (unsigned)len;
 @end
 
 @implementation NSGCString
@@ -132,7 +132,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 		    fromZone: (NSZone*)zone
 {
   _count = length;
-  _contents_chars = byteString;
+  _contents_chars = (unsigned char*)byteString;
   _zone = byteString ? zone : 0;
   return self;
 }
@@ -200,26 +200,26 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_count];
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count > 0)
     {
-      [aCoder encodeArrayOfObjCType:@encode(unsigned char)
-			      count:_count
-				 at:_contents_chars];
+      [aCoder encodeArrayOfObjCType: @encode(unsigned char)
+			      count: _count
+				 at: _contents_chars];
     }
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [aCoder decodeValueOfObjCType:@encode(unsigned)
-			     at:&_count];
+  [aCoder decodeValueOfObjCType: @encode(unsigned)
+			     at: &_count];
   if (_count > 0)
     {
       _zone = fastZone(self);
       _contents_chars = NSZoneMalloc(_zone, _count);
-      [aCoder decodeArrayOfObjCType:@encode(unsigned char)
-			      count:_count
-				 at:_contents_chars];
+      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
+			      count: _count
+				 at: _contents_chars];
     }
   return self;
 }
@@ -231,7 +231,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   if (NSShouldRetainWithZone(self, z) == NO)
     {
       NSGCString	*obj;
-      char		*tmp;
+      unsigned char	*tmp;
 
       obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
       if (_count)
@@ -262,7 +262,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   if (NSShouldRetainWithZone(self, z) == NO)
     {
       NSGCString	*obj;
-      char		*tmp;
+      unsigned char	*tmp;
 
       obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
       if (_count)
@@ -331,11 +331,11 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (const char *) cString
 {
-  char *r = (char*)_fastMallocBuffer(_count+1);
+  unsigned char	*r = (unsigned char*)_fastMallocBuffer(_count+1);
 
   memcpy(r, _contents_chars, _count);
   r[_count] = '\0';
-  return r;
+  return (const char*)r;
 }
 
 - (void) getCString: (char*)buffer
@@ -407,7 +407,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (void) getCharacters: (unichar*)buffer
 {
-  int i;
+  unsigned	i;
 
   for (i = 0; i < _count; i++)
     buffer[i] = chartouni(((unsigned char *)_contents_chars)[i]);
@@ -415,7 +415,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
 {
-  int e, i;
+  unsigned	e, i;
 
   GS_RANGE_CHECK(aRange, _count);
   e = aRange.location + aRange.length;
@@ -432,7 +432,8 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (NSStringEncoding) fastestEncoding
 {
-  if(([NSString defaultCStringEncoding]==NSASCIIStringEncoding)  || ([NSString defaultCStringEncoding]==NSISOLatin1StringEncoding))
+  if (([NSString defaultCStringEncoding] == NSASCIIStringEncoding)
+    || ([NSString defaultCStringEncoding] == NSISOLatin1StringEncoding))
     return [NSString defaultCStringEncoding];
   else
     return NSUnicodeStringEncoding;
@@ -543,7 +544,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 {
   unsigned	length = [string cStringLength];
   NSZone	*z;
-  char		*buf;
+  unsigned char	*buf;
 
   if (length > 0)
     {
@@ -576,7 +577,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
       for (i = 0; i < _count; i++)
 	{
-	  char	val = _contents_chars[i];
+	  unsigned char	val = _contents_chars[i];
 
 	  if (isalnum(val))
 	    {
@@ -584,19 +585,19 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 	    }
 	  switch (val)
 	    {
-	      case '\a':
-	      case '\b':
-	      case '\t':
-	      case '\r':
-	      case '\n':
-	      case '\v':
-	      case '\f':
-	      case '\\':
-	      case '"' :
+	      case '\a': 
+	      case '\b': 
+	      case '\t': 
+	      case '\r': 
+	      case '\n': 
+	      case '\v': 
+	      case '\f': 
+	      case '\\': 
+	      case '"' : 
 		length += 1;
 		break;
 
-	      default:
+	      default: 
 		if (val == ' ' || isprint(val))
 		  {
 		    needQuote = YES;
@@ -613,8 +614,8 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 	{
 	  Class		c = fastClass(output);
 	  NSZone	*z = NSDefaultMallocZone();
-	  char		*buf;
-	  char		*ptr;
+	  unsigned char	*buf;
+	  unsigned char	*ptr;
 
 	  length += 2;
 	  if (c == _fastCls._NSGMutableCString)
@@ -629,21 +630,21 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 	  *ptr++ = '"';
 	  for (i = 0; i < _count; i++)
 	    {
-	      char	val = _contents_chars[i];
+	      unsigned char	val = _contents_chars[i];
 
 	      switch (val)
 		{
-		  case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
-		  case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
-		  case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
-		  case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
-		  case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
-		  case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
-		  case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
-		  case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
-		  case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
+		  case '\a': 	*ptr++ = '\\'; *ptr++ = 'a';  break;
+		  case '\b': 	*ptr++ = '\\'; *ptr++ = 'b';  break;
+		  case '\t': 	*ptr++ = '\\'; *ptr++ = 't';  break;
+		  case '\r': 	*ptr++ = '\\'; *ptr++ = 'r';  break;
+		  case '\n': 	*ptr++ = '\\'; *ptr++ = 'n';  break;
+		  case '\v': 	*ptr++ = '\\'; *ptr++ = 'v';  break;
+		  case '\f': 	*ptr++ = '\\'; *ptr++ = 'f';  break;
+		  case '\\': 	*ptr++ = '\\'; *ptr++ = '\\'; break;
+		  case '"' : 	*ptr++ = '\\'; *ptr++ = '"';  break;
 
-		  default:
+		  default: 
 		    if (isprint(val) || val == ' ')
 		      {
 			*ptr++ = val;
@@ -728,7 +729,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex
 {
   if (anIndex >= _count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
+    [NSException raise: NSRangeException format: @"Invalid location."];
   return NSMakeRange(anIndex, 1);
 }
 
@@ -815,8 +816,9 @@ stringIncrementCountAndMakeHoleAt(NSGMutableCStringStruct *self,
 {
 #ifndef STABLE_MEMCPY
   {
-    int i;
-    for (i = self->_count; i >= index; i--)
+    unsigned i = self->_count;
+
+    while (i-- > index)
       self->_contents_chars[i+size] = self->_contents_chars[i];
   }
 #else
@@ -869,7 +871,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
     {
       _count = length;
       _capacity = length;
-      _contents_chars = byteString;
+      _contents_chars = (unsigned char*)byteString;
       _zone = byteString ? zone : 0;
     }
   return self;
@@ -901,7 +903,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (id) copy
 {
-  char		*tmp;
+  unsigned char	*tmp;
   NSGCString	*obj;
   NSZone	*z = NSDefaultMallocZone();
 
@@ -928,7 +930,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (id) copyWithZone: (NSZone*)z
 {
-  char		*tmp;
+  unsigned char	*tmp;
   NSGCString	*obj;
 
   obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
@@ -999,14 +1001,15 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 - (void) replaceCharactersInRange: (NSRange)range
 		       withString: (NSString*)aString
 {
-  [self deleteCharactersInRange:range];
-  [self insertString:aString atIndex:range.location];
+  [self deleteCharactersInRange: range];
+  [self insertString: aString atIndex: range.location];
 }
 
-- (void) insertString: (NSString*)aString atIndex:(unsigned)index
+- (void) insertString: (NSString*)aString atIndex: (unsigned)index
 {
   unsigned c = [aString cStringLength];
-  char	save;
+  unsigned char	save;
+
   if (_count + c >= _capacity)
     stringGrowBy((NSGMutableCStringStruct *)self, c);
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, c);
@@ -1076,8 +1079,8 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 {
   unsigned cap;
   
-  [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap];
-  [self initWithCapacity:cap];
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &cap];
+  [self initWithCapacity: cap];
   _count = cap;
   if (_count > 0)
     {
@@ -1119,9 +1122,9 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, index, 1);
 }
 
-- (char*) _extendBy: (unsigned)len
+- (unsigned char*) _extendBy: (unsigned)len
 {
-  char	*ptr;
+  unsigned char	*ptr;
 
   if (len > 0)
     stringGrowBy((NSGMutableCStringStruct *)self, len);
@@ -1161,7 +1164,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (const char*) cString
 {
-  return _contents_chars;
+  return (const char*) _contents_chars;
 }
 
 - (id) retain
@@ -1179,12 +1182,12 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return self;
 }
 
-- copy
+- (id) copy
 {
   return self;
 }
 
-- copyWithZone: (NSZone*)z
+- (id) copyWithZone: (NSZone*)z
 {
   return self;
 }

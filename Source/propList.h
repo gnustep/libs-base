@@ -131,7 +131,7 @@ typedef	struct	{
 #if	GSPLUNI
   const unichar	*ptr;
 #else
-  const char	*ptr;
+  const unsigned char	*ptr;
 #endif
   unsigned	end;
   unsigned	pos;
@@ -286,7 +286,7 @@ static inline id parseQuotedString(pldata* pld)
 #if	GSPLUNI
       unichar	chars[pld->pos - start - shrink];
 #else
-      char	chars[pld->pos - start - shrink];
+      unsigned char	chars[pld->pos - start - shrink];
 #endif
       unsigned	j;
       unsigned	k;

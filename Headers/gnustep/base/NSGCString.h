@@ -36,20 +36,20 @@
 
 @interface NSGCString : NSString
 {
-  char * _contents_chars;
-  int _count;
-  NSZone *_zone;
-  unsigned _hash;
+  unsigned char	*_contents_chars;
+  unsigned	_count;
+  NSZone	*_zone;
+  unsigned	_hash;
 }
 @end
 
 @interface NSGMutableCString : NSMutableString
 {
-  char * _contents_chars;
-  int _count;
-  NSZone *_zone;
-  unsigned _hash;
-  int _capacity;
+  unsigned char	* _contents_chars;
+  unsigned	_count;
+  NSZone	*_zone;
+  unsigned	_hash;
+  unsigned	_capacity;
 }
 @end
 
