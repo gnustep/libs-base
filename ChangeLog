@@ -1,3 +1,13 @@
+2004-01-25  Adam Fedor  <fedor@gnu.org>
+
+	* base.make.in: Move LIBXML variable outside gnu-foundation check.
+
+	* Documentation/GNUmakefile (SUBPROJECTS): Add General
+	* Documentation/General/GNUmakefile: New file.
+	* Documentation/General/Degbugging.gsdoc: Moved to here.
+	* Documentation/General/OpenStepCompliance.gsdoc: Idem.
+	* Source/DocMakefile: Remove OpenStepCompliance.gsdoc
+
 2004-01-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Fix bug in encoding integers as xml.
