@@ -43,7 +43,7 @@ static Class NSArchiver_concrete_class;
 
 + (void) initialize
 {
-  if (self = [NSArchiver class])
+  if (self == [NSArchiver class])
     NSArchiver_concrete_class = [NSGArchiver class];
 }
 
