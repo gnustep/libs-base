@@ -1,3 +1,8 @@
+2003-09-10  Pete French <pete@twisted.org.uk>
+
+	* Source/Additions/Unicode.m: patch to use UTF16 rather than
+	UCS2 internally.
+
 2003-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m:
