@@ -774,6 +774,9 @@ NSStandardLibraryPaths(void)
 /**
  * Returns the name of a directory in which temporary files can be stored.
  * Under GNUstep this is a location which is not readable by other users.
+ * <br />
+ * If a suitable directory can't be found or created, this function raises an
+ * NSGenericException.
  */
 NSString *
 NSTemporaryDirectory(void)
@@ -783,6 +786,8 @@ NSTemporaryDirectory(void)
   NSString	*baseTempDirName = nil;
   NSDictionary	*attr;
   int		perm;
+  int		owner;
+  int		uid;
   BOOL		flag;
 #if	defined(__WIN32__)
   char buffer[1024];
@@ -830,19 +835,32 @@ NSTemporaryDirectory(void)
   if ([manager fileExistsAtPath: tempDirName isDirectory: &flag] == NO
     || flag == NO)
     {
-      NSLog(@"Temporary directory (%@) does not seem to exist", tempDirName);
-      return nil;
+      [NSException raise: NSGenericException
+		  format: @"Temporary directory (%@) does not exist",
+			  tempDirName];
+      return nil; /* Not reached. */
     }
 
   /*
-   * Check that the directory owner (presumably us) has access to it,
-   * and nobody else.  If other people have access, try to create a
-   * secure subdirectory.
+   * Check that we are the directory owner, and that we, and nobody else,
+   * have access to it. If other people have access, try to create a secure
+   * subdirectory.
    */
   attr = [manager fileAttributesAtPath: tempDirName traverseLink: YES];
+  owner = [[attr objectForKey: NSFileOwnerAccountID] intValue];
   perm = [[attr objectForKey: NSFilePosixPermissions] intValue];
   perm = perm & 0777;
-  if (perm != 0700 && perm != 0600)
+
+#if	defined(__MINGW__)
+  uid = owner;
+#else
+#ifdef HAVE_GETEUID
+  uid = geteuid();
+#else
+  uid = getuid();
+#endif /* HAVE_GETEUID */
+#endif
+  if ((perm != 0700 && perm != 0600) || owner != uid)
     {
       /*
       NSLog(@"Temporary directory (%@) may be insecure ... attempting to "
@@ -860,16 +878,35 @@ NSTemporaryDirectory(void)
 	  if ([manager createDirectoryAtPath: tempDirName
 				  attributes: attr] == NO)
 	    {
-	      tempDirName = baseTempDirName;
-	      NSLog(@"Temporary directory (%@) may be insecure", tempDirName);
+	      [NSException raise: NSGenericException
+			  format: @"Attempt to create a secure temporary directory (%@) failed.",
+				  tempDirName];
+	      return nil; /* Not reached. */
 	    }
+	}
+
+      /*
+       * Check that the new directory is really secure.
+       */
+      attr = [manager fileAttributesAtPath: tempDirName traverseLink: YES];
+      owner = [[attr objectForKey: NSFileOwnerAccountID] intValue];
+      perm = [[attr objectForKey: NSFilePosixPermissions] intValue];
+      perm = perm & 0777;
+      if ((perm != 0700 && perm != 0600) || owner != uid)
+	{
+	  [NSException raise: NSGenericException
+		      format: @"Attempt to create a secure temporary directory (%@) failed.",
+			      tempDirName];
+	  return nil; /* Not reached. */
 	}
     }
 
   if ([manager isWritableFileAtPath: tempDirName] == NO)
     {
-      NSLog(@"Temporary directory (%@) is not writable", tempDirName);
-      return nil;
+      [NSException raise: NSGenericException
+		  format: @"Temporary directory (%@) is not writable",
+			  tempDirName];
+      return nil; /* Not reached. */
     }
   return tempDirName;
 }

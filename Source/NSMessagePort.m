@@ -39,6 +39,9 @@
 #include "Foundation/NSConnection.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSProcessInfo.h"
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
@@ -1186,19 +1189,27 @@ static unsigned	wordAlign;
 + (id) new
 {
 static int unique_index = 0;
-  NSString *path;
+  NSString	*path;
+  NSNumber	*p = [NSNumber numberWithInt: 0700];
+  NSDictionary	*attr;
+
+  attr = [NSDictionary dictionaryWithObject: p
+				     forKey: NSFilePosixPermissions];
 
   path = NSTemporaryDirectory();
 
   path = [path stringByAppendingPathComponent: @"NSMessagePort"];
-  mkdir([path fileSystemRepresentation], 0700);
+  [[NSFileManager defaultManager] createDirectoryAtPath: path
+				  attributes: attr];
 
   path = [path stringByAppendingPathComponent: @"ports"];
-  mkdir([path fileSystemRepresentation], 0700);
+  [[NSFileManager defaultManager] createDirectoryAtPath: path
+				  attributes: attr];
 
   M_LOCK(messagePortLock);
   path = [path stringByAppendingPathComponent:
-	   [NSString stringWithFormat: @"%i.%i", getpid(), unique_index++]];
+   [NSString stringWithFormat: @"%i.%i",
+	[[NSProcessInfo processInfo] processIdentifier], unique_index++]];
   M_UNLOCK(messagePortLock);
 
   return RETAIN([self _portWithName: [path fileSystemRepresentation]
