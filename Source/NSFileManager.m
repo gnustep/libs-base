@@ -106,7 +106,9 @@
 #endif
 
 #include <fcntl.h>
-
+#if HAVE_PWD_H
+#include <pwd.h>     /* For struct passwd */
+#endif
 #if HAVE_UTIME_H
 # include <utime.h>
 #endif
@@ -600,7 +602,9 @@ static NSFileManager* defaultManager = nil;
 {
     struct stat statbuf;
     const char* cpath = [self fileSystemRepresentationWithPath:path];
+#if HAVE_PWD_H
     struct passwd *pw;
+#endif
     int mode;
     int count = 10;
 		
@@ -652,7 +656,7 @@ static NSFileManager* defaultManager = nil;
 #endif
     else
 	values[8] = NSFileTypeUnknown;
-	
+#if HAVE_PWD_H	
 	pw = getpwuid(statbuf.st_uid);
 	
 	if(pw)
@@ -660,6 +664,7 @@ static NSFileManager* defaultManager = nil;
 		values[9] = [NSString stringWithCString:pw->pw_name];
 	}
 	else
+#endif /* HAVE_PWD_H */
 	{
 		count = 9;
 	}

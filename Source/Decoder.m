@@ -154,7 +154,7 @@ static id dummyObject;
 
 - _coderObjectAtReference: (unsigned)xref
 {
-  assert (xref_2_object);
+  NSParameterAssert (xref_2_object);
   return [xref_2_object objectAtIndex: xref];
 }
 
@@ -172,7 +172,7 @@ static id dummyObject;
 
 - (void) _coderPopRootObjectTable
 {
-  assert (xref_2_object_root);
+  NSParameterAssert (xref_2_object_root);
   if (!interconnect_stack_height)
     {
       [xref_2_object_root release];
@@ -197,7 +197,7 @@ static id dummyObject;
 
 - _coderTopRootObjectTable
 {
-  assert (xref_2_object_root);
+  NSParameterAssert (xref_2_object_root);
   return xref_2_object_root;
 }
 
@@ -226,7 +226,7 @@ static id dummyObject;
 
 - (const void*) _coderConstPtrAtReference: (unsigned)xref;
 {
-  assert (xref_2_const_ptr);
+  NSParameterAssert (xref_2_const_ptr);
   return NSMapGet (xref_2_const_ptr, (void*)xref);
 }
 
@@ -248,7 +248,7 @@ static id dummyObject;
 
 - (void) _coderPopForwardObjectTable
 {
-  assert (address_2_fref);
+  NSParameterAssert (address_2_fref);
   if (!interconnect_stack_height)
     {
       NSFreeMapTable (address_2_fref);
@@ -258,7 +258,7 @@ static id dummyObject;
 
 - (void) _coderSatisfyForwardReference: (unsigned)fref withObject: anObj
 {
-  assert (address_2_fref);
+  NSParameterAssert (address_2_fref);
   if (!fref_2_object)
     /* xxx Or should this be NSObjectMapValueCallBacks, so we make
        sure the object doesn't get released before we can resolve
@@ -266,7 +266,8 @@ static id dummyObject;
     fref_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
 				      NSNonOwnedPointerMapValueCallBacks, 0);
   /* There should only be one object for each fref. */
-  assert (!NSMapGet (fref_2_object, (void*)fref));
+  NSAssert (!NSMapGet (fref_2_object, (void*)fref), 
+    @"Should have only been one object for each fref");
   NSMapInsert (fref_2_object, (void*)fref, anObj);
 }
 
@@ -275,9 +276,9 @@ static id dummyObject;
 {
   /* Register ADDR as associated with FREF; later we will put id 
      associated with FREF at ADDR. */
-  assert (address_2_fref);
+  NSParameterAssert (address_2_fref);
   /* There should not be duplicate addresses */
-  assert (!NSMapGet (address_2_fref, addr));
+  NSAssert (!NSMapGet (address_2_fref, addr), @"Duplicate addresses");
   NSMapInsert (address_2_fref, addr, (void*)fref);
 }
 
@@ -341,7 +342,8 @@ static id dummyObject;
      It won't be cleanly readable in TextCStream's. */
   [cstream decodeName: name];
   actual_count = [[cstream stream] readBytes: b length: c];
-  assert (actual_count == c);
+  NSAssert2 (actual_count == c,
+    @"expected to read %d bytes, read %d bytes",c,actual_count);
 }
 
 - (unsigned char) decodeTag
@@ -518,7 +520,7 @@ static id dummyObject;
 
 - (void) finishDecodingInterconnectedObjects
 {
-  assert (interconnect_stack_height);
+  NSParameterAssert (interconnect_stack_height);
 
   /* xxx This might not be the right thing to do; perhaps we should do
      this finishing up work at the end of each nested call, not just

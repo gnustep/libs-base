@@ -27,6 +27,7 @@
 #include <gnustep/base/MemoryStream.h>
 #include <gnustep/base/StdioStream.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSException.h>
 
 #define OSTREAM_EOF EOF
 
@@ -107,7 +108,10 @@ int
 ostream_read (ostream* s, void* buf, int count)
 {
   int r = 0;
-  assert(buf); /* xxxFIXME: should be an exception ? */
+
+  if (!buf) 
+    [NSException raise:NSInvalidArgumentException format:@"buf is NULL"];
+
   if (s->flags & OSTREAM_READFLAG)
     r =  [(id <Streaming>)s->stream_obj readBytes: buf length: count];
   if (r == 0)
@@ -120,7 +124,9 @@ char* ostream_gets (ostream* s, char* buf, int count)
   char r, c;
   int i = 0;
     
-  assert(buf); /* xxxFIXME: should be an exception ? */
+  if (!buf) 
+    [NSException raise:NSInvalidArgumentException format:@"buf is NULL"];
+
   if (!(s->flags & OSTREAM_READFLAG))
     return NULL;
   while (i < count-1) {
@@ -139,7 +145,9 @@ char* ostream_gets (ostream* s, char* buf, int count)
 int  
 ostream_write (ostream* s, const void* buf, int count)
 {
-  assert(buf); /* xxxFIXME: should be an exception ? */
+  if (!buf) 
+    [NSException raise:NSInvalidArgumentException format:@"buf is NULL"];
+
   if (s->flags & OSTREAM_WRITEFLAG)
     return [(id <Streaming>)s->stream_obj writeBytes: buf length: count];
   return OSTREAM_EOF;

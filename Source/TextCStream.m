@@ -54,10 +54,12 @@ static BOOL debug_textcoder = NO;
          at: (const void*) d 
          withName: (NSString*) name;
 {
-  assert(type);
-  assert(*type != '@');
-  assert(*type != '^');
-  assert(*type != ':');
+  if (!type)
+    [NSException raise:NSInvalidArgumentException format:@"type is NULL"];
+
+  NSAssert(*type != '@', @"tried to encode an \"ObjC\" type");
+  NSAssert(*type != '^', @"tried to encode an \"ObjC\" type");
+  NSAssert(*type != ':', @"tried to encode an \"ObjC\" type");
 
   if (!name || [name length] == 0)
     name = @"Anonymous";
@@ -191,11 +193,14 @@ if (debug_textcoder) \
 {
   char *tmpname;
 
-  assert(type);
-  assert(*type != '@');
-  assert(*type != '^');
-  assert(*type != ':');
-  assert (d);
+  if (!type) 
+    [NSException raise:NSInvalidArgumentException format:@"type is NULL"];
+  if (!d) 
+    [NSException raise:NSInvalidArgumentException format:@"d is NULL"];
+
+  NSAssert(*type != '@', @"tried to decode an \"ObjC\" type");
+  NSAssert(*type != '^', @"tried to decode an \"ObjC\" type");
+  NSAssert(*type != ':', @"tried to decode an \"ObjC\" type");
 
   switch (*type)
     {

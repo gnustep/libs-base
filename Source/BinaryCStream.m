@@ -67,7 +67,8 @@
 {
   if (self == [BinaryCStream class])
     /* Make sure that we don't overrun memory when reading _C_CHARPTR. */
-    assert (sizeof(unsigned) >= NUM_BYTES_STRING_LENGTH);
+    NSAssert (sizeof(unsigned) >= NUM_BYTES_STRING_LENGTH,
+	@"_C_CHARPTR overruns memory");
 }
 
 
@@ -131,11 +132,13 @@ static int debug_binary_coder = 0;
    at: (const void*)d 
    withName: (NSString*) name
 {
+  if (!type)
+    [NSException raise:NSInvalidArgumentException format:@"type is NULL"];
+
   /* Make sure we're not being asked to encode an "ObjC" type. */
-  assert(type);
-  assert(*type != '@');
-  assert(*type != '^');
-  assert(*type != ':');
+  NSAssert(*type != '@', @"tried to encode an \"ObjC\" type");
+  NSAssert(*type != '^', @"tried to encode an \"ObjC\" type");
+  NSAssert(*type != ':', @"tried to encode an \"ObjC\" type");
 
   if (debug_binary_coder)
     {
@@ -174,7 +177,7 @@ static int debug_binary_coder = 0;
 	  {							\
 	    tmp = _CONV_FUNC (- *(_TYPE*)_PTR);			\
             memcpy (buffer, &tmp, sizeof(_TYPE));		\
-            assert (!(buffer[0] & 0x80));			\
+	    NSAssert(!(buffer[0] & 0x80), @"high bit set");	\
 	    buffer[0] |= 0x80;					\
 	  }							\
 	else							\
@@ -203,8 +206,8 @@ static int debug_binary_coder = 0;
 	  char buffer[size];					\
 	  int read_size;					\
 	  read_size = [stream readBytes: buffer length: size];	\
-	  assert (read_size == size);				\
-	  assert (size == sizeof(_TYPE));		  	\
+	  NSAssert (read_size == size, @"expected more input");	\
+	  NSAssert (size == sizeof(_TYPE), @"inconsistent size");\
 	  *(unsigned _TYPE*)_PTR =				\
 	    _CONV_FUNC (*(unsigned _TYPE*)buffer);		\
 	  if (sign)						\
@@ -219,9 +222,9 @@ static int debug_binary_coder = 0;
 	int read_size;						\
         int sign;						\
 	read_size = [stream readBytes: buffer length: size];	\
-	assert (read_size == size);				\
+	NSAssert (read_size == size, @"expected more input");	\
 	/* xxx Remove this next requirement eventually */	\
-	assert (size == sizeof(_TYPE));				\
+	NSAssert (size == sizeof(_TYPE), @"inconsistent size");	\
         sign = buffer[0] & 0x80;				\
         buffer[0] &= ~0x80;					\
 	*(unsigned _TYPE*)_PTR =				\
@@ -275,8 +278,8 @@ static int debug_binary_coder = 0;
 	  char buffer[size];					\
 	  int read_size;					\
 	  read_size = [stream readBytes: buffer length: size];	\
-	  assert (read_size == size);				\
-	  assert (size == sizeof(_TYPE));			\
+	  NSAssert (read_size == size, @"expected more input");	\
+	  NSAssert (size == sizeof(_TYPE), @"inconsistent size");\
 	  *(_TYPE*)_PTR =					\
 	    _CONV_FUNC (*(_TYPE*)buffer);			\
 	}							\
@@ -288,9 +291,9 @@ static int debug_binary_coder = 0;
 	char buffer[size];					\
 	int read_size;						\
 	read_size = [stream readBytes: buffer length: size];	\
-	assert (read_size == size);				\
+	NSAssert (read_size == size, @"expected more input");	\
 	/* xxx Remove this next requirement eventually */	\
-	assert (size == sizeof(unsigned _TYPE));		\
+	NSAssert (size == sizeof(_TYPE), @"inconsistent size");	\
 	*(unsigned _TYPE*)_PTR =				\
 	  _CONV_FUNC (*(unsigned _TYPE*)buffer);		\
       }
@@ -364,7 +367,8 @@ static int debug_binary_coder = 0;
 	/* Get the mantissa. */
 	value *= FLOAT_FACTOR;
 	mantissa = value;
-	assert (value - mantissa == 0);
+	NSAssert (value - mantissa == 0,
+	  @"mantissa and value should be the same");
 	/* Encode the value as its two integer components. */
 	WRITE_SIGNED_TYPE (&exponent_encoded, short, htons);
 	WRITE_SIGNED_TYPE (&mantissa, int, htonl);
@@ -388,7 +392,8 @@ static int debug_binary_coder = 0;
 	value -= mantissa1;
 	value *= FLOAT_FACTOR;
 	mantissa2 = value;
-	assert (value - mantissa2 == 0);
+	NSAssert (value - mantissa2 == 0,
+	  @"mantissa2 and value should be the same");
 	/* Encode the value as its three integer components. */
 	WRITE_SIGNED_TYPE (&exponent_encoded, short, htons);
 	WRITE_SIGNED_TYPE (&mantissa1, int, htonl);
@@ -451,10 +456,12 @@ static int debug_binary_coder = 0;
 {
   char encoded_type;
 
-  assert(type);
-  assert(*type != '@');
-  assert(*type != '^');
-  assert(*type != ':');
+  if (!type)
+    [NSException raise:NSInvalidArgumentException format:@"type is NULL"];
+
+  NSAssert(*type != '@', @"tried to decode an \"ObjC\" type");
+  NSAssert(*type != '^', @"tried to decode an \"ObjC\" type");
+  NSAssert(*type != ':', @"tried to decode an \"ObjC\" type");
 
   [stream readByte: &encoded_type];
   if (encoded_type != *type 
@@ -472,12 +479,15 @@ static int debug_binary_coder = 0;
 	unsigned read_count;
 	read_count = [stream readBytes: &length
 			     length: NUM_BYTES_STRING_LENGTH];
-	assert (read_count == NUM_BYTES_STRING_LENGTH);
+	NSAssert2 (read_count == NUM_BYTES_STRING_LENGTH,
+          @"expected %d bytes of input, got %d",
+          NUM_BYTES_STRING_LENGTH,read_count);
 	length = ntohl (length);
 	OBJC_MALLOC (*(char**)d, char, length+1);
 	read_count = [stream readBytes: *(char**)d 
 			     length: length];
-	assert (read_count == length);
+	NSAssert2 (read_count == length,
+          @"expected %d bytes of input, got %d",length,read_count);
 	(*(char**)d)[length] = '\0';
 	/* Autorelease the newly malloc'ed pointer?  Grep for (*objc_free)
 	   to see the places the may have to be changed

@@ -116,7 +116,6 @@ static BOOL entered_multi_threaded_state;
      start-up, and for thread's created by calling
      objc_thread_detach() directly.) */
   t = [[NSThread alloc] init];
-  objc_thread_set_data (t);
   return t;
 }
 
@@ -196,9 +195,8 @@ static BOOL entered_multi_threaded_state;
 {
   NSThread *t;
 
-  // the the current NSThread
-  t = objc_thread_get_data ();
-  assert (t);
+  // the current NSThread
+  t = [NSThread currentThread];
 
   // Post the notification
   [NotificationDispatcher
