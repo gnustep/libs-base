@@ -64,15 +64,17 @@ a list of the claimed and unclaimed GNUStep classes.
 @item Resolve the method type conflicts between GNUStep and the
 Collection classes.
 
+@item Fix many memory allocation inconsistencies.  Methods that return
+malloced buffers should autorelease those buffers, (like readFormat:).
+
+@item Remove (Stream*) types on args.
+
 @item Many code fixes and cleanups, indicated with @samp{xxx} in the source.
 
 @item In remote object messaging, send exceptions back to the requestor.
 I'm waiting for gcc 2.7 exceptions.
 
 @item Add Coding methods to all the other collection classes.
-
-@item Find method for detecting NeXT vs GNU runtime.  Put it in
-@samp{configure.in} and define @samp{NeXT_runtime}.
 
 @item
 The LAMBDA macro doesn't work on all systems.  Request a change to gcc
