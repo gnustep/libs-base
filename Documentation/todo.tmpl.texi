@@ -26,8 +26,6 @@ NSRecycleZone (to tramsfer 'live' objects to the default zone). [4] (980805).
 
 @item   Implement [NSSerialiser - serializeObjectAt:ofObjCType:fromData:] [1] (980712)
 
-@item   Implement [NSSet - description] and [descriptionWithLocale:] [1] (980712)
-
 @item   Improve initWithFormat releated methods for NSString and find out how to implemente the locale stuff [4 OPENSTEP/Rhapsody]  (980712)
 
 @item   Finish implementing the filesystem related NSString methods [3] (980712)
