@@ -294,8 +294,9 @@ static Class NSMutableArray_concrete_class;
 - lastObject
 {
   int count = [self count];
-  assert(count);		/* xxx should raise an NSException instead */
-  return [self objectAtIndex:count-1];
+  if (count == 0)
+    return nil;
+  return [self objectAtIndex: count-1];
 }
 
 - (void) makeObjectsPerform: (SEL)aSelector
@@ -495,7 +496,9 @@ static Class NSMutableArray_concrete_class;
 - (void) removeLastObject
 {
   int count = [self count];
-  assert(count);		/* xxx should raise an NSException instead */
+  if (count == 0)
+    [NSException raise: NSRangeException
+		 format: @"Trying to remove from an empty array."];
   [self removeObjectAtIndex:count-1];
 }
 
