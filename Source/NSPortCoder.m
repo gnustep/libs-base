@@ -48,8 +48,8 @@ static BOOL debug_connected_coder = NO;
 /*
  *	The PortEncoder class is essentially the old ConnectedEncoder class
  *	with a name change.
- *	It uses the OPENSTEP method [-classForPortCoder] rather than the
- *	[-classForConnectedCoder] method to ask an object what class to encode.
+ *	It uses the OPENSTEP method [-classForPortCoder] to ask an object
+ *	what class to encode.
  */
 @interface PortEncoder : Encoder
 {

@@ -70,7 +70,6 @@ FILE_AUTHORS = \
 
 GNU_MFILES = \
 BinaryCStream.m \
-ConnectedCoder.m \
 Coder.m \
 CStream.m \
 Decoder.m \
@@ -137,7 +136,6 @@ BinaryCStream.h \
 Coder.h \
 CoderPrivate.h \
 Coding.h \
-ConnectedCoder.h \
 CStream.h \
 CStreaming.h \
 Enumerating.h \

@@ -27,12 +27,11 @@
 /*
  *	Changes from GNU DO to OPENSTEP style DO
  *
- *	Classes should implement [-classForPortCoder] instead of the old
- *	[-classForConnectedCoder] to return the class that should be sent
- *	over the wire.
+ *	Classes should implement [-classForPortCoder] to return the class
+ *	that should be sent over the wire.
  *
- *	Classes should implement [-replacementObjectForPortCoder:] instead of
- *	[+encodeObject:withConnectedCoder:] to encode objects.
+ *	Classes should implement [-replacementObjectForPortCoder:] to encode
+ *	objects.
  *	The default action is to send a proxy.
  */
 

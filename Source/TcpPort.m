@@ -915,15 +915,10 @@ static NSMapTable* port_number_2_port;
 	   _port_socket];
 }
 
-- (Class) classForConnectedCoder: aRmc
+- (Class) classForPortCoder
 {
   /* Make sure that Connection's always send us bycopy, not a Proxy class.
      Also, encode a "send right" (ala Mach), not the "receive right". */
-  return [TcpOutPort class];
-}
-
-- (Class) classForPortCoder
-{
   return [TcpOutPort class];
 }
 - replacementObjectForPortCoder: aRmc
