@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <unistd.h>		/* for gethostname() */
 #ifndef __MINGW__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
@@ -55,9 +56,39 @@
 #include <sys/socket.h>
 #include <sys/file.h>
 #include "config.h"
+#ifdef	HAVE_TIMR_H
+#include <time.h>
+#endif
 #ifdef	HAVE_PWD_H
 #include <pwd.h>
 #endif
+
+#ifdef	HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
+
+#ifdef HAVE_SYSLOG
+int log_perror = 0;
+#else
+int log_perror = 1;
+#endif
+
+#ifndef	LOG_CRIT
+#define	LOG_CRIT	0
+#endif
+#ifndef	LOG_DEBUG
+#define	LOG_DEBUG	0
+#endif
+#ifndef	LOG_ERR
+#define	LOG_ERR	0
+#endif
+#ifndef	LOG_INFO
+#define	LOG_INFO	0
+#endif
+#ifndef	LOG_WARNING
+#define	LOG_WARNING	0
+#endif
+
 
 /*
  *	Stuff for setting the sockets into non-blocking mode.
@@ -258,6 +289,89 @@ getopt(int argc, char **argv, char *options)
 
 
 /*
+ *	syslog helpers, taken from the dhcp source
+ */
+
+int log_priority = 0;
+static char fbuf[2048], mbuf[2048];
+
+/* Find %m in the input string and substitute an error message string. */
+
+static void do_percentm (char *obuf, char *ibuf)
+{
+  char *s = ibuf;
+  char *p = obuf;
+  int infmt = 0;
+  char *m;
+
+  while (*s)
+    {
+      if (infmt)
+	{
+	  if (*s == 'm')
+	    {
+#ifndef __CYGWIN32__
+	      m = strerror (errno);
+#else
+	      m = pWSAError ();
+#endif
+	      if (!m)
+		m = "<unknown error>";
+	      strcpy (p - 1, m);
+	      p += strlen (p);
+	      ++s;
+	    }
+	  else
+	    *p++ = *s++;
+	  infmt = 0;
+	}
+      else
+	{
+	    if (*s == '%')
+	      infmt = 1;
+	    *p++ = *s++;
+	}
+    }
+  *p = 0;
+}
+
+int log (int prio, char *fmt, ...)
+{
+  va_list list;
+
+  do_percentm (fbuf, fmt);
+
+  va_start (list, fmt);
+  vsnprintf (mbuf, sizeof mbuf, fbuf, list);
+  va_end (list);
+
+#ifdef	HAVE_SYSLOG
+  syslog (log_priority | prio, mbuf);
+#endif
+
+  /* Also log it to stderr? */
+  if (log_perror || nofork)
+    {
+      write (2, mbuf, strlen (mbuf));
+      write (2, "\n", 1);
+    }
+
+  if (prio == LOG_CRIT)
+    {
+#ifdef	HAVE_SYSLOG
+      syslog (LOG_CRIT, "exiting.");
+#endif
+      if (log_perror || nofork)
+     	{
+	  fprintf (stderr, "exiting.\n");
+	  fflush (stderr);
+	}
+      exit (1);
+    }
+  return 0;
+}
+
+/*
  *	Structure for linked list of addresses to probe rather than
  *	probing entire network.
  */
@@ -387,8 +501,9 @@ void del_r_info(int s)
     }
   if (i == _r_info_count)
     {
-      fprintf(stderr, "ERROR: %s requested unallocated r_info struct "
-	"(socket %d)\n", __FUNCTION__, s);
+      log(LOG_ERR,
+	  "%s requested unallocated r_info struct (socket %d)",
+	  __FUNCTION__, s);
       return;
     }
   if (_r_info_count-1) /* Something to do? */
@@ -430,8 +545,8 @@ r_info_t *r_info(int s)
     }
   if (i == _r_info_count)
     {
-      fprintf(stderr, "ERROR: %s requested unallocated r_info struct "
-	"(socket %d)\n", __FUNCTION__, s);
+      log(LOG_ERR, "%s requested unallocated r_info struct (socket %d)",
+	  __FUNCTION__, s);
       return NULL;
     }
   return &(_r_info[i]);
@@ -497,8 +612,8 @@ void del_w_info(int s)
     }
   if (i == _w_info_count)
     {
-      fprintf(stderr, "ERROR: %s requested unallocated w_info struct "
-	"(socket %d)\n", __FUNCTION__, s);
+      log(LOG_ERR, "%s requested unallocated w_info struct (socket %d)",
+	  __FUNCTION__, s);
       return;
     }
   if (_w_info_count-1) /* Something to do? */
@@ -540,8 +655,8 @@ w_info_t *w_info(int s)
     }
   if (i == _w_info_count)
     {
-      fprintf(stderr, "ERROR: %s requested unallocated w_info struct "
-	"(socket %d)\n", __FUNCTION__, s);
+      log(LOG_ERR, "%s requested unallocated w_info struct (socket %d)",
+	  __FUNCTION__, s);
       return NULL;
     }
   return &(_w_info[i]);
@@ -705,7 +820,7 @@ map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
   map_used++;
   if (debug > 2)
     {
-      fprintf(stderr, "Added port %d to map for %.*s\n",
+      log(LOG_DEBUG, "Added port %d to map for %.*s",
 		m->port, m->size, m->name);
     }
   return m;
@@ -724,7 +839,7 @@ map_by_name(uptr n, int s)
 
   if (debug > 2)
     {
-      fprintf(stderr, "Searching map for %.*s\n", s, n);
+      log(LOG_DEBUG, "Searching map for %.*s", s, n);
     }
   for (index = upper/2; upper != lower; index = lower + (upper - lower)/2)
     {
@@ -747,13 +862,13 @@ map_by_name(uptr n, int s)
     {
       if (debug > 2)
 	{
-	  fprintf(stderr, "Found port %d for %.*s\n", map[index]->port, s, n);
+	  log(LOG_DEBUG, "Found port %d for %.*s", map[index]->port, s, n);
 	}
       return map[index];
     }
   if (debug > 2)
     {
-      fprintf(stderr, "Failed to find map entry for %.*s\n", s, n);
+      log(LOG_DEBUG, "Failed to find map entry for %.*s", s, n);
     }
   return 0;
 }
@@ -769,7 +884,7 @@ map_by_port(unsigned p, unsigned char t)
 
   if (debug > 2)
     {
-      fprintf(stderr, "Searching map for %u:%x\n", p, t);
+      log(LOG_DEBUG, "Searching map for %u:%x", p, t);
     }
   for (index = 0; index < map_used; index++)
     {
@@ -784,14 +899,14 @@ map_by_port(unsigned p, unsigned char t)
     {
       if (debug > 2)
 	{
-	  fprintf(stderr, "Found port %d with name %s\n",
+	  log(LOG_DEBUG, "Found port %d with name %s",
 		map[index]->port, map[index]->name);
 	}
       return map[index];
     }
   if (debug > 2)
     {
-      fprintf(stderr, "Failed to find map entry for %u:%x\n", p, t);
+      log(LOG_DEBUG, "Failed to find map entry for %u:%x", p, t);
     }
   return 0;
 }
@@ -808,7 +923,7 @@ map_del(map_ent* e)
 
   if (debug > 2)
     {
-      fprintf(stderr, "Removing port %d from map for %.*s\n",
+      log(LOG_DEBUG, "Removing port %d from map for %.*s",
 		e->port, e->size, e->name);
     }
   for (i = 0; i < map_used; i++)
@@ -1027,12 +1142,12 @@ dump_stats()
 	  tcp_pending++;
 	}
     }
-  fprintf(stderr, "tcp messages waiting for send - %d\n", tcp_pending);
-  fprintf(stderr, "udp messages waiting for send - %d\n", udp_pending);
-  fprintf(stderr, "size of name-to-port map - %d\n", map_used);
-  fprintf(stderr, "number of known name servers - %ld\n", prb_used);
-  fprintf(stderr, "TCP %d read, %d sent\n", tcp_read, tcp_sent);
-  fprintf(stderr, "UDP %d read, %d sent\n", udp_read, udp_sent);
+  log(LOG_INFO, "tcp messages waiting for send - %d", tcp_pending);
+  log(LOG_INFO, "udp messages waiting for send - %d", udp_pending);
+  log(LOG_INFO, "size of name-to-port map - %d", map_used);
+  log(LOG_INFO, "number of known name servers - %ld", prb_used);
+  log(LOG_INFO, "TCP %d read, %d sent", tcp_read, tcp_sent);
+  log(LOG_INFO, "UDP %d read, %d sent", udp_read, udp_sent);
 }
 
 static void
@@ -1058,7 +1173,7 @@ dump_tables()
 	  for (i = 0; i < prb_used; i++)
 	    {
 	      fprintf(fptr, "%16s %s\n",
-		inet_ntoa(prb[i]->sin), ctime(&prb[i]->when));
+		inet_ntoa(prb[i]->sin), (const char*)ctime(&prb[i]->when));
 	    }
 	}
 
@@ -1067,7 +1182,7 @@ dump_tables()
     }
   else
     {
-      perror("failed to open gdomap.dump for write");
+      log(LOG_ERR, "failed to open gdomap.dump for write: %m");
     }
 }
 
@@ -1123,11 +1238,15 @@ init_iface()
     {
       int	res = errno;
 
-      perror("SIOCGIFCONF for init_iface found no active interfaces");
+      log(LOG_ERR,
+	"SIOCGIFCONF for init_iface found no active interfaces; %m");
+
       if (res == EINVAL)
 	{
-	  fprintf(stderr,
-"Your system is buggy, thus you need to use the '-a' command line flag for\n"
+	  log(LOG_INFO,
+"Either you have too many network interfaces on your machine (in which case\n"
+"you need to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or\n"
+"your system is buggy, and you need to use the '-a' command line flag for\n"
 "gdomap to manually set the interface addresses and masks to be used.\n");
 	}
 #ifdef __MINGW__
@@ -1162,7 +1281,8 @@ init_iface()
 
       if (ioctl(desc, SIOCGIFFLAGS, (char *)&ifreq) < 0)
         {
-          perror("SIOCGIFFLAGS");
+          // SYSLOG
+          log(LOG_ERR, "SIOCGIFFLAGS: %m");
         }
       else if (ifreq.ifr_flags & IFF_UP)
         {  /* interface is up */
@@ -1188,17 +1308,17 @@ init_iface()
 #endif
           if (ioctl(desc, SIOCGIFADDR, (char *)&ifreq) < 0)
             {
-              perror("SIOCGIFADDR");
+              log(LOG_ERR, "SIOCGIFADDR: %m");
             }
           else if (ifreq.ifr_addr.sa_family == AF_INET)
             {	/* IP interface */
 	      if (interfaces >= MAX_IFACE)
 	        {
-	          fprintf(stderr,
+	          log(LOG_INFO,
 "You have too many network interfaces on your machine (in which case you need\n"
 "to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or your\n"
 "system is buggy, and you need to use the '-a' command line flag for\n"
-"gdomap to manually set the interface addresses and masks to be used.\n");
+"gdomap to manually set the interface addresses and masks to be used.");
 #ifdef __MINGW__
 		  closesocket(desc);
 #else
@@ -1214,7 +1334,7 @@ init_iface()
 		{
 		  if (ioctl(desc, SIOCGIFDSTADDR, (char*)&ifreq) < 0)
 		    {
-		      perror("SIOCGIFDSTADDR");
+		      log(LOG_ERR, "SIOCGIFADDR: %m");
 		      bcok[interfaces] = 0;
 		    }
 		  else
@@ -1229,7 +1349,7 @@ init_iface()
 		  if (!loopback &&
                       ioctl(desc, SIOCGIFBRDADDR, (char*)&ifreq) < 0)
 		    {
-		      perror("SIOCGIFBRDADDR");
+		      log(LOG_ERR, "SIOCGIFBRDADDR: %m");
 		      bcok[interfaces] = 0;
 		    }
 		  else
@@ -1240,7 +1360,7 @@ init_iface()
 		}
 	      if (ioctl(desc, SIOCGIFNETMASK, (char *)&ifreq) < 0)
 	        {
-	          perror("SIOCGIFNETMASK");
+		  log(LOG_ERR, "SIOCGIFNETMASK: %m");
 		  /*
 		   *	If we can't get a netmask - assume a class-c
 		   *	network.
@@ -1270,7 +1390,7 @@ init_iface()
       close(desc);
 #endif /* __MINGW__ */
 #else
-  fprintf(stderr, "I can't find the SIOCGIFCONF ioctl on this platform -\r\nuse the '-a' flag to load interface details from a file instead.\r\n");
+  log(LOG_CRIT, "I can't find the SIOCGIFCONF ioctl on this platform - use the '-a' flag to load interface details from a file instead.");
   exit(1);
 #endif
 }
@@ -1289,7 +1409,7 @@ load_iface(const char* from)
 
   if (fptr == 0)
     {
-      fprintf(stderr, "Unable to open address config - '%s'\n", from);
+      log(LOG_CRIT, "Unable to open address config - '%s'", from);
       exit(1);
     }
 
@@ -1342,7 +1462,7 @@ load_iface(const char* from)
 
   if (num_iface == 0)
     {
-      fprintf(stderr, "No address mask pairs found in file.\n");
+      log(LOG_CRIT, "No address mask pairs found in file.");
       exit(1);
     }
   num_iface++;
@@ -1434,11 +1554,11 @@ load_iface(const char* from)
 	}
       if (addr[interfaces].s_addr == -1)
 	{
-	  fprintf(stderr, "'%s' is not as valid address\n", buf);
+	  log(LOG_ERR, "'%s' is not as valid address", buf);
 	}
       else if (mask[interfaces].s_addr == -1)
 	{
-	  fprintf(stderr, "'%s' is not as valid netmask\n", ptr);
+	  log(LOG_ERR, "'%s' is not as valid netmask", ptr);
 	}
       else
 	{
@@ -1468,9 +1588,8 @@ init_my_port()
   my_port = htons(GDOMAP_PORT);
   if ((sp = getservbyname("gdomap", "tcp")) == 0)
     {
-      fprintf(stderr, "Warning - unable to find service 'gdomap'\n");
-      fprintf(stderr, "on a unix host it should be in /etc/services\n");
-      fprintf(stderr, "as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
+      log(LOG_WARNING, "Unable to find service 'gdomap'");
+      log(LOG_INFO, "On a unix host it should be in /etc/services as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
 		GDOMAP_PORT, GDOMAP_PORT);
     }
   else
@@ -1479,19 +1598,18 @@ init_my_port()
 
       if ((sp = getservbyname("gdomap", "udp")) == 0)
 	{
-	  fprintf(stderr, "Warning - unable to find service 'gdomap'\n");
-	  fprintf(stderr, "on a unix host it should be in /etc/services\n");
-	  fprintf(stderr, "as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
+	  log(LOG_WARNING, "Unable to find service 'gdomap'");
+	  log(LOG_INFO, "On a unix host it should be in /etc/services as 'gdomap %d/tcp' and 'gdomap %d/udp'\n",
 		    GDOMAP_PORT, GDOMAP_PORT);
 	}
       else if (sp->s_port != tcp_port)
 	{
-	  fprintf(stderr, "Warning - UDP and TCP service entries differ\n");
-	  fprintf(stderr, "Warning - I will use the TCP entry for both!\n");
+	  log(LOG_WARNING,
+	      "UDP and TCP service entries differ. Using the TCP entry for both!");
 	}
       if (tcp_port != my_port)
 	{
-	  fprintf(stderr, "Warning - gdomap not running on normal port\n");
+	  log(LOG_WARNING, "gdomap not running on normal port");
 	}
       my_port = tcp_port;
     }
@@ -1519,13 +1637,13 @@ init_ports()
 
   if ((udp_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
     {
-      fprintf(stderr, "Unable to create UDP socket\n");
+      log(LOG_CRIT, "Unable to create UDP socket");
       exit(1);
     }
   r = 1;
   if ((setsockopt(udp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
     {
-      fprintf(stderr, "Warning - unable to set 're-use' on UDP socket\n");
+      log(LOG_WARNING, "Unable to set 're-use' on UDP socket");
     }
   if (nobcst == 0)
     {
@@ -1533,14 +1651,14 @@ init_ports()
       if ((setsockopt(udp_desc,SOL_SOCKET,SO_BROADCAST,(char*)&r,sizeof(r)))<0)
 	{
 	  nobcst++;
-	  fprintf(stderr, "Warning - unable to use 'broadcast' for probes\n");
+	  log(LOG_WARNING, "Unable to use 'broadcast' for probes");
 	}
     }
 #ifdef __MINGW__
   dummy = 1;
   if (ioctlsocket(udp_desc, FIONBIO, &dummy) < 0)
     {
-      fprintf(stderr, "Unable to handle UDP socket non-blocking\n");
+      log(LOG_CRIT, "Unable to handle UDP socket non-blocking");
       exit(1);
     }
 #else /* !__MINGW__ */
@@ -1549,13 +1667,13 @@ init_ports()
       r |= NBLK_OPT;
       if (fcntl(udp_desc, F_SETFL, r) < 0)
 	{
-	  fprintf(stderr, "Unable to set UDP socket non-blocking\n");
+	  log(LOG_CRIT, "Unable to set UDP socket non-blocking");
 	  exit(1);
 	}
     }
   else
     {
-      fprintf(stderr, "Unable to handle UDP socket non-blocking\n");
+      log(LOG_CRIT, "Unable to handle UDP socket non-blocking");
       exit(1);
     }
 #endif
@@ -1569,12 +1687,12 @@ init_ports()
   sa.sin_port = my_port;
   if (bind(udp_desc, (void*)&sa, sizeof(sa)) < 0)
     {
-      fprintf(stderr, "Unable to bind address to UDP socket\n");
+      log(LOG_ERR, "Unable to bind address to UDP socket");
       if (errno == EACCES)
 	{
-	  fprintf(stderr, "You probably need to run gdomap as root,\n");
-	  fprintf(stderr, "or run the nameserver on a non-standard\n");
-	  fprintf(stderr, "port that does not require root privilege.\n");
+	  log(LOG_INFO, "You probably need to run gdomap as root, "
+	      "or run the nameserver on a non-standard "
+	      "port that does not require root privilege.");
 	}
       exit(1);
     }
@@ -1584,19 +1702,19 @@ init_ports()
    */
 if ((tcp_desc = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     {
-      fprintf(stderr, "Unable to create TCP socket\n");
+      log(LOG_CRIT, "Unable to create TCP socket");
       exit(1);
     }
   r = 1;
   if ((setsockopt(tcp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
     {
-      fprintf(stderr, "Warning - unable to set 're-use' on TCP socket\n");
+      log(LOG_WARNING, "Unable to set 're-use' on TCP socket");
     }
 #ifdef __MINGW__
   dummy = 1;
   if (ioctlsocket(tcp_desc, FIONBIO, &dummy) < 0)
     {
-      fprintf(stderr, "Unable to handle TCP socket non-blocking\n");
+      log(LOG_CRIT, "Unable to handle TCP socket non-blocking");
       exit(1);
     }
 #else /* !__MINGW__ */
@@ -1605,13 +1723,13 @@ if ((tcp_desc = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
       r |= NBLK_OPT;
       if (fcntl(tcp_desc, F_SETFL, r) < 0)
 	{
-	  fprintf(stderr, "Unable to set TCP socket non-blocking\n");
+	  log(LOG_CRIT, "Unable to set TCP socket non-blocking");
 	  exit(1);
 	}
     }
   else
     {
-      fprintf(stderr, "Unable to handle TCP socket non-blocking\n");
+      log(LOG_CRIT, "Unable to handle TCP socket non-blocking");
       exit(1);
     }
 #endif /* __MINGW__ */
@@ -1622,18 +1740,18 @@ if ((tcp_desc = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
   sa.sin_port = my_port;
   if (bind(tcp_desc, (void*)&sa, sizeof(sa)) < 0)
     {
-      fprintf(stderr, "Unable to bind address to TCP socket\n");
+      log(LOG_ERR, "Unable to bind address to UDP socket");
       if (errno == EACCES)
 	{
-	  fprintf(stderr, "You probably need to run gdomap as root,\n");
-	  fprintf(stderr, "or run the nameserver on a non-standard\n");
-	  fprintf(stderr, "port that does not require root privilege.\n");
+	  log(LOG_INFO, "You probably need to run gdomap as root, "
+	      "or run the nameserver on a non-standard "
+	      "port that does not require root privilege.");
 	}
       exit(1);
     }
   if (listen(tcp_desc, QUEBACKLOG) < 0)
     {
-      fprintf(stderr, "Unable to listen for connections on TCP socket\n");
+      log(LOG_CRIT, "Unable to listen for connections on TCP socket");
       exit(1);
     }
 
@@ -1728,7 +1846,7 @@ init_probe()
     }
   if (debug > 2)
     {
-      fprintf(stderr, "Initiating probe requests.\n");
+      log(LOG_DEBUG, "Initiating probe requests.");
     }
 
   /*
@@ -1801,8 +1919,9 @@ init_probe()
 		  if ((mask[iface].s_addr | class_c_mask.s_addr)
 			!= mask[iface].s_addr)
 		    {
-		      fprintf(stderr, "gdomap - warning - netmask %s will be " 
-			    "treated as 255.255.255.0 for %s\n",
+                      // SYSLOG
+		      log(LOG_WARNING, "netmask %s will be "
+			  "treated as 255.255.255.0 for %s",
 			    inet_ntoa(mask[iface]), inet_ntoa(addr[iface]));
 		      hm |= ~255;
 		    }
@@ -1942,7 +2061,7 @@ init_probe()
 
   if (debug > 2)
     {
-      fprintf(stderr, "Probe requests initiated.\n");
+      log(LOG_DEBUG, "Probe requests initiated.");
     }
   last_probe = time(0);
 }
@@ -1978,7 +2097,7 @@ handle_accept()
 
       if (debug)
 	{
-	  fprintf(stderr, "accept from %s(%d) to chan %d\n",
+	  log(LOG_DEBUG, "accept from %s(%d) to chan %d",
 		inet_ntoa(sa.sin_addr), ntohs(sa.sin_port), desc);
 	}
       /*
@@ -1990,7 +2109,7 @@ handle_accept()
 	{
 	  if (debug)
 	    {
-	      fprintf(stderr, "failed to set chan %d non-blocking\n", desc);
+	      log(LOG_DEBUG, "failed to set chan %d non-blocking", desc);
 	    }
 	  clear_chan(desc);
 	}
@@ -2002,7 +2121,7 @@ handle_accept()
 	    {
 	      if (debug)
 		{
-		  fprintf(stderr, "failed to set chan %d non-blocking\n", desc);
+		  log(LOG_DEBUG, "failed to set chan %d non-blocking", desc);
 		}
 	      clear_chan(desc);
 	    }
@@ -2011,7 +2130,7 @@ handle_accept()
 	{
 	  if (debug)
 	    {
-	      fprintf(stderr, "failed to set chan %d non-blocking\n", desc);
+	      log(LOG_DEBUG, "failed to set chan %d non-blocking", desc);
 	    }
 	  clear_chan(desc);
 	}
@@ -2019,7 +2138,7 @@ handle_accept()
     }
   else if (debug)
     {
-      fprintf(stderr, "accept failed - errno %d\n",
+      log(LOG_DEBUG, "accept failed - errno %d",
 #ifdef __MINGW__
 	      WSAGetLastError());
 #else
@@ -2095,7 +2214,7 @@ handle_io()
 			  clear_chan(i);
 			  if (i == tcp_desc)
 			    {
-			      fprintf(stderr, "Fatal error on socket.\n");
+			      log(LOG_CRIT, "Fatal error on socket.");
 			      exit(1);
 			    }
 			}
@@ -2112,7 +2231,7 @@ handle_io()
 	    }
 	  else
 	    {
-	      fprintf(stderr, "Interrupted in select.\n");
+	      log(LOG_CRIT, "Interrupted in select.");
 	      exit(1);
 	    }
 	}
@@ -2285,13 +2404,13 @@ handle_recv()
       r_info(udp_desc)->pos = GDO_REQ_SIZE;
       if (debug)
 	{
-	  fprintf(stderr, "recvfrom %s\n", inet_ntoa(addr->sin_addr));
+	  log(LOG_DEBUG, "recvfrom %s", inet_ntoa(addr->sin_addr));
 	}
       if (is_local_host(addr->sin_addr) == 1)
 	{
 	  if (debug)
 	    {
-	      fprintf(stderr, "recvfrom packet from self discarded\n");
+	      log(LOG_DEBUG, "recvfrom packet from self discarded");
 	    }
 	  return;
 	}
@@ -2301,11 +2420,11 @@ handle_recv()
     {
       if (debug)
 	{
-	  fprintf(stderr, "recvfrom returned %d - ", r);
+	  log(LOG_DEBUG, "recvfrom returned %d - "
 #ifdef __MINGW__
-	  fprintf(stderr, "WSAGetLastError() = %d\n", WSAGetLastError());
+	      "WSAGetLastError() = %d\n", r, WSAGetLastError());
 #else
-	  perror("");
+	      "%m", r);
 #endif	  
 	}
       clear_chan(udp_desc);
@@ -2346,20 +2465,20 @@ handle_request(int desc)
     {
       if (desc == udp_desc)
 	{
-	  fprintf(stderr, "request type '%c' on UDP chan", type);
+	  log(LOG_DEBUG, "request type '%c' on UDP chan", type);
 	}
       else
 	{
-	  fprintf(stderr, "request type '%c' from chan %d", type, desc);
+	  log(LOG_DEBUG, "request type '%c' from chan %d", type, desc);
 	}
       if (type == GDO_PROBE || type == GDO_PREPLY || type == GDO_SERVERS
 	|| type == GDO_NAMES)
 	{
-	  fprintf(stderr, "\n");
+	  /* fprintf(stderr, "\n"); */
 	}
       else
 	{
-	  fprintf(stderr, " - name: '%.*s' port: %ld\n", size, buf, port);
+	  log(LOG_DEBUG, "  name: '%.*s' port: %ld", size, buf, port);
 	}
     }
 
@@ -2371,7 +2490,7 @@ handle_request(int desc)
 	{
 	  if (debug)
 	    {
-	      fprintf(stderr, "Illegal port type in request\n");
+	      log(LOG_DEBUG, "Illegal port type in request");
 	    }
 	  clear_chan(desc);
 	  return;
@@ -2396,7 +2515,7 @@ handle_request(int desc)
        */
       if (is_local_host(r_info(desc)->addr.sin_addr) == 0)
 	{
-	  fprintf(stderr, "Illegal attempt to register!\n");
+	  log(LOG_ERR, "Illegal attempt to register!");
 	  clear_chan(desc);		/* Only local progs may register. */
 	  return;
 	}
@@ -2473,7 +2592,7 @@ handle_request(int desc)
 		    {
 		      if (debug > 1)
 			{
-			  fprintf(stderr, "re-register from %d to %ld\n",
+			  log(LOG_DEBUG, "re-register from %d to %ld",
 				m->port, port);
 			}
 		      m->port = port;
@@ -2492,7 +2611,7 @@ handle_request(int desc)
 	}
       else if (port == 0)
 	{	/* Port not provided!	*/
-	  fprintf(stderr, "port not provided in request\n");
+	  log(LOG_ERR, "port not provided in request");
 	}
       else
 	{		/* Use port provided in request.	*/
@@ -2508,7 +2627,7 @@ handle_request(int desc)
 	{
 	  if (debug > 1)
 	    {
-	      fprintf(stderr, "requested service is of wrong type\n");
+	      log(LOG_DEBUG, "requested service is of wrong type");
 	    }
 	  m = 0;	/* Name exists but is of wrong type.	*/
 	}
@@ -2591,7 +2710,7 @@ handle_request(int desc)
 	{		/* Not found.			*/
 	  if (debug > 1)
 	    {
-	      fprintf(stderr, "requested service not found\n");
+	      log(LOG_DEBUG, "requested service not found");
 	    }
 	  *(unsigned short*)w_info(desc)->buf = 0;
 	}
@@ -2603,7 +2722,7 @@ handle_request(int desc)
        */
       if (is_local_host(r_info(desc)->addr.sin_addr) == 0)
 	{
-	  fprintf(stderr, "Illegal attempt to un-register!\n");
+	  log(LOG_ERR, "Illegal attempt to un-register!");
 	  clear_chan(desc);
 	  return;
 	}
@@ -2616,7 +2735,7 @@ handle_request(int desc)
 		{
 		  if (debug)
 		    {
-		      fprintf(stderr, "Attempted unregister with wrong type\n");
+		      log(LOG_DEBUG, "Attempted unregister with wrong type");
 		    }
 		}
 	      else
@@ -2629,7 +2748,7 @@ handle_request(int desc)
 	    {
 	      if (debug > 1)
 		{
-		  fprintf(stderr, "requested service not found\n");
+		  log(LOG_DEBUG, "requested service not found");
 		}
 	    }
 	}
@@ -2714,7 +2833,7 @@ handle_request(int desc)
 	  memcpy(&sin, r_info(desc)->buf.r.name, IASIZE);
 	  if (debug > 2)
 	    {
-	      fprintf(stderr, "Probe from '%s'\n", inet_ntoa(sin));
+	      log(LOG_DEBUG, "Probe from '%s'", inet_ntoa(sin));
 	    }
 #ifdef __MINGW__
 	  if (IN_CLASSA(sin.s_addr))
@@ -2740,7 +2859,7 @@ handle_request(int desc)
 	    {
 	      if (debug > 2)
 		{
-		  fprintf(stderr, "Add server '%s'\n", inet_ntoa(*ptr));
+		  log(LOG_DEBUG, "Add server '%s'", inet_ntoa(*ptr));
 		}
 	      prb_add(ptr);
 	      ptr++;
@@ -2780,8 +2899,8 @@ handle_request(int desc)
 	  mcopy(&laddr, rbuf+IASIZE, IASIZE);
 	  if (debug > 2)
 	    {
-	      fprintf(stderr, "Probe sent remote '%s'\n", inet_ntoa(raddr));
-	      fprintf(stderr, "Probe sent local  '%s'\n", inet_ntoa(laddr));
+	      log(LOG_DEBUG, "Probe sent remote '%s'", inet_ntoa(raddr));
+	      log(LOG_DEBUG, "Probe sent local  '%s'", inet_ntoa(laddr));
 	    }
 	
 	  mcopy(wbuf+IASIZE, &raddr, IASIZE);
@@ -2847,7 +2966,7 @@ handle_request(int desc)
 	  memcpy(&sin, &r_info(desc)->buf.r.name, IASIZE);
 	  if (debug > 2)
 	    {
-	      fprintf(stderr, "Probe reply from '%s'\n", inet_ntoa(sin));
+	      log(LOG_DEBUG, "Probe reply from '%s'", inet_ntoa(sin));
 	    }
 #ifdef __MINGW__
 	  if (IN_CLASSA(sin.s_addr))
@@ -2873,7 +2992,7 @@ handle_request(int desc)
 	    {
 	      if (debug > 2)
 		{
-		  fprintf(stderr, "Add server '%s'\n", inet_ntoa(*ptr));
+		  log(LOG_DEBUG, "Add server '%s'", inet_ntoa(*ptr));
 		}
 	      prb_add(ptr);
 	      ptr++;
@@ -2895,7 +3014,7 @@ handle_request(int desc)
     }
   else
     {
-      fprintf(stderr, "Illegal operation code received!\n");
+      log(LOG_ERR, "Illegal operation code received!");
       clear_chan(desc);
       return;
     }
@@ -2957,7 +3076,7 @@ handle_send()
 	    {
 	      if (debug)
 		{
-		  fprintf(stderr, "failed sendto for %s\n",
+		  log(LOG_DEBUG, "failed sendto for %s",
 			    inet_ntoa(entry->addr.sin_addr));
 		}
 	      queue_pop();
@@ -2968,7 +3087,7 @@ handle_send()
 	  udp_sent++;
 	  if (debug > 1)
 	    {
-	      fprintf(stderr, "performed sendto for %s\n",
+	      log(LOG_DEBUG, "performed sendto for %s",
 				inet_ntoa(entry->addr.sin_addr));
 	    }
 	  /*
@@ -3011,7 +3130,7 @@ handle_write(int desc)
     {
       if (debug > 1)
 	{
-	  fprintf(stderr, "Failed write on chan %d - closing\n", desc);
+	  log(LOG_DEBUG, "Failed write on chan %d - closing", desc);
 	}
       /*	
        *	Failure - close connection silently.
@@ -3026,7 +3145,7 @@ handle_write(int desc)
 	  tcp_sent++;
 	  if (debug > 1)
 	    {
-	      fprintf(stderr, "Completed write on chan %d - closing\n", desc);
+	      log(LOG_DEBUG, "Completed write on chan %d - closing", desc);
 	    }
 	  /*	
 	   *	Success - written all information.
@@ -3459,7 +3578,7 @@ int ptype, struct sockaddr_in* addr, unsigned short* p, uptr*v)
 	}
       if ((port & 0xffff) != port)
 	{
-	  fprintf(stderr, "Insanely large number of registered names");
+	  log(LOG_ERR, "Insanely large number of registered names");
 	  port = 0;
 	}
       *v = b;
@@ -3487,16 +3606,16 @@ nameFail(int why)
     {
       case 0:	break;
       case 1:
-	fprintf(stderr, "failed to contact name server - socket - %s",
+	log(LOG_ERR, "failed to contact name server - socket - %s",
 	  strerror(errno));
       case 2:
-	fprintf(stderr, "failed to contact name server - socket - %s",
+	log(LOG_ERR, "failed to contact name server - socket - %s",
 	  strerror(errno));
       case 3:
-	fprintf(stderr, "failed to contact name server - socket - %s",
+	log(LOG_ERR, "failed to contact name server - socket - %s",
 	  strerror(errno));
       case 4:
-	fprintf(stderr, "failed to contact name server - socket - %s",
+	log(LOG_ERR, "failed to contact name server - socket - %s",
 	      strerror(errno));
     }
 }
@@ -3530,12 +3649,12 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 
   if (len == 0)
     {
-      fprintf(stderr, "no name specified.\n");
+      log(LOG_ERR, "no name specified.");
       return -1;
     }
   if (len > 0xffff)
     {
-      fprintf(stderr, "name length to large.\n");
+      log(LOG_ERR, "name length to large.");
       return -1;
     }
 
@@ -3569,7 +3688,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 
       if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
 	{
-	  fprintf(stderr, "gethostname() failed: %s", strerror(errno));
+	  log(LOG_ERR, "gethostname() failed: %s", strerror(errno));
 	  return -1;
 	}
       first_dot = strchr(local_hostname, '.');
@@ -3581,12 +3700,12 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
     }
   if ((hp = gethostbyname(host)) == 0)
     {
-      fprintf(stderr, "gethostbyname() failed: %s", strerror(errno));
+      log(LOG_ERR, "gethostbyname() failed: %s", strerror(errno));
       return -1;
     }
   if (hp->h_addrtype != AF_INET)
     {
-      fprintf(stderr, "non-internet network not supported for %s\n", host);
+      log(LOG_ERR, "non-internet network not supported for %s", host);
       return -1;
     }
 
@@ -3608,7 +3727,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       rval = tryHost(GDO_SERVERS, 0, 0, ptype, &sin, &num, (uptr*)&b);
       if (rval != 0 && host == local_hostname)
 	{
-	  fprintf(stderr, "failed to contact gdomap (%s)\n", strerror(errno));
+	  log(LOG_ERR, "failed to contact gdomap (%s)\n", strerror(errno));
 	  return -1;
 	}
       if (rval == 0)
@@ -3660,7 +3779,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       rval = tryHost(op, len, name, ptype, &sin, &port, 0);
       if (rval != 0 && host == local_hostname)
 	{
-	  fprintf(stderr, "failed to contact gdomap (%s)\n", strerror(errno));
+	  log(LOG_ERR, "failed to contact gdomap (%s)", strerror(errno));
 	  return -1;
 	}
       nameFail(rval);
@@ -3670,7 +3789,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
     {
       if (port == 0 || (pnum != 0 && port != pnum))
 	{
-	  fprintf(stderr, "service already registered.\n");
+	  log(LOG_ERR, "service already registered.");
 	  return -1;
 	}
     }
@@ -3695,12 +3814,12 @@ lookup(const char *name, const char *host, int ptype)
   found = nameServer(name, host, GDO_LOOKUP, ptype, sin, 0, 100);
   for (i = 0; i < found; i++)
     {
-      printf("Found %s on '%s' port %d\n", name,
+      log(LOG_INFO, "Found %s on '%s' port %d", name,
 		inet_ntoa(sin[i].sin_addr), ntohs(sin[i].sin_port));
     }
   if (found == 0)
     {
-      printf("Unable to find %s.\n", name);
+      log(LOG_INFO, "Unable to find %s.", name);
     }
 }
 
@@ -3742,7 +3861,7 @@ donames()
 
   if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
     {
-      fprintf(stderr, "gethostname() failed: %s", strerror(errno));
+      log(LOG_ERR, "gethostname() failed: %s", strerror(errno));
       return;
     }
   first_dot = strchr(local_hostname, '.');
@@ -3753,12 +3872,12 @@ donames()
   host = local_hostname;
   if ((hp = gethostbyname(host)) == 0)
     {
-      fprintf(stderr, "gethostbyname() failed: %s", strerror(errno));
+      log(LOG_ERR, "gethostbyname() failed: %s", strerror(errno));
       return;
     }
   if (hp->h_addrtype != AF_INET)
     {
-      fprintf(stderr, "non-internet network not supported for %s\n", host);
+      log(LOG_ERR, "non-internet network not supported for %s", host);
       return;
     }
 
@@ -3770,25 +3889,25 @@ donames()
   rval = tryHost(GDO_NAMES, 0, 0, 0, &sin, &num, (uptr*)&b);
   if (rval != 0)
     {
-      fprintf(stderr, "failed to contact gdomap (%s)\n", strerror(errno));
+      log(LOG_ERR, "failed to contact gdomap (%s)", strerror(errno));
       return;
     }
   if (num == 0)
     {
-      printf("No names currently registered with gdomap\n");
+      log(LOG_INFO, "No names currently registered with gdomap");
     }
   else
     {
       uptr	p = b;
 
-      printf("Registered names are -\n");
+      log(LOG_INFO, "Registered names are -");
       while (num-- > 0)
 	{
 	  char	buf[256];
 
 	  memcpy(buf, &p[2], p[0]);
 	  buf[p[0]] = '\0';
-	  printf("%s\n", buf);
+	  log(LOG_INFO, "  %s", buf);
 	  p += 2 + p[0];
 	}
     }
@@ -3805,12 +3924,12 @@ doregister(const char *name, int port, int ptype)
   found = nameServer(name, 0, GDO_REGISTER, ptype, &sin, port, 1);
   for (i = 0; i < found; i++)
     {
-      printf("Registered %s on '%s' port %d\n", name,
+      log(LOG_INFO, "Registered %s on '%s' port %d", name,
 		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
     }
   if (found == 0)
     {
-      printf("Unable to register %s on port %d.\n", name, port);
+      log(LOG_ERR, "Unable to register %s on port %d.", name, port);
     }
 }
 
@@ -3824,12 +3943,12 @@ unregister(const char *name, int port, int ptype)
   found = nameServer(name, 0, GDO_UNREG, ptype, &sin, port, 1);
   for (i = 0; i < found; i++)
     {
-      printf("Unregistered %s on '%s' port %d\n", name,
+      log(LOG_INFO, "Unregistered %s on '%s' port %d", name,
 		inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
     }
   if (found == 0)
     {
-      printf("Unable to unregister %s.\n", name);
+      log(LOG_INFO, "Unable to unregister %s.", name);
     }
 }
 
@@ -3842,6 +3961,16 @@ main(int argc, char** argv)
   int		ptype = GDO_TCP_GDO;
   int		port = 0;
   const char	*machine = 0;
+
+#ifdef	HAVE_SYSLOG
+  /* Initially, log errors to stderr as well as to syslogd. */
+#ifdef SYSLOG_4_2
+  openlog ("gdomap", LOG_NDELAY);
+  log_priority = LOG_DAEMON;
+#else
+  openlog ("gdomap", LOG_NDELAY, LOG_DAEMON);
+#endif
+#endif
 
 #ifdef __MINGW__
   WORD wVersionRequested;
@@ -3892,7 +4021,7 @@ main(int argc, char** argv)
 	    printf("-U name		unregister name locally then quit.\n");
 	    printf("-a file		use config file for interface list.\n");
 	    printf("-c file		use config file for probe.\n");
-	    printf("-d		extra debug logging.\n");
+	    printf("-d		extra debug logging (normally via syslog).\n");
 	    printf("-f		avoid fork() to make debugging easy\n");
 	    printf("-i seconds	re-probe at this interval (roughly), min 60\n");
 	    printf("-p		disable probing for other servers\n");
@@ -4170,7 +4299,7 @@ printf(
 	  default:
 	    if (debug)
 	      {
-		fprintf(stderr, "gdomap - initialisation complete.\n");
+		log(LOG_DEBUG, "initialisation complete.");
 	      }
 	    exit(0);
 	}
@@ -4183,7 +4312,7 @@ printf(
 
       if (fptr == 0)
 	{
-	  fprintf(stderr, "Unable to open pid file - '%s'\n", pidfile);
+	  log(LOG_CRIT, "Unable to open pid file - '%s'", pidfile);
 	  exit(1);
 	}
       fprintf(fptr, "%d\n", (int) getpid());
@@ -4213,22 +4342,22 @@ printf(
 
   if (!is_local_host(loopback))
     {
-      fprintf(stderr, "I can't find the loopback interface on this machine.\n");
-      fprintf(stderr,
-"Perhaps you should correct your machine configuration or use the -a flag.\n");
+      log(LOG_ERR, "I can't find the loopback interface on this machine.");
+      log(LOG_INFO,
+"Perhaps you should correct your machine configuration or use the -a flag.");
       if (interfaces < MAX_IFACE)
 	{
 	  addr[interfaces].s_addr = loopback.s_addr;
 	  mask[interfaces] = class_c_mask;
 	  interfaces++;
-	  fprintf(stderr, "I am assuming loopback interface on 127.0.0.1\n");
+	  log(LOG_INFO, "I am assuming loopback interface on 127.0.0.1");
 	}
       else
 	{
-	  fprintf(stderr,
-"You have too many network interfaces to add the loopback interface on\n"
-"127.0.0.1 - you need to change the 'MAX_IFACE' constant in gdomap.c and\n"
-"rebuild it.\n");
+	    log(LOG_CRIT,
+"You have too many network interfaces to add the loopback interface on "
+"127.0.0.1 - you need to change the 'MAX_IFACE' constant in gdomap.c and "
+"rebuild it.");
 	  exit(1);
 	}
     }
@@ -4276,7 +4405,7 @@ printf(
   
   if (debug)
     {
-      fprintf(stderr, "gdomap - entering main loop.\n");
+      log(LOG_DEBUG, "entering main loop.\n");
     }
   handle_io();
   return 0;
@@ -4296,16 +4425,16 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
 
   if (debug > 2)
     {
-      fprintf(stderr, "Probing for server on '%s'", inet_ntoa(*to));
-      fprintf(stderr, " from '%s'\n", inet_ntoa(*from));
+      log(LOG_DEBUG, "Probing for server on '%s' from '%s'",
+	  inet_ntoa(*to), inet_ntoa(*from));
       if (l > 0)
 	{
 	  int	i;
 
-	  fprintf(stderr, " %d additional local addresses sent -\n", l);
+	  log(LOG_DEBUG, " %d additional local addresses sent -", l);
 	  for (i = 0; i < l; i++)
 	    {
-	      fprintf(stderr, " '%s'\n", inet_ntoa(e[i]));
+	      log(LOG_DEBUG, " '%s'", inet_ntoa(e[i]));
 	    }
 	}
     }
@@ -4337,4 +4466,3 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
   
   queue_msg(&sin, (uptr)&msg, GDO_REQ_SIZE);
 }
-

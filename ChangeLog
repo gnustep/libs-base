@@ -2,6 +2,10 @@
 
 	* Source/NSTask.m: Removed NSLogs() accidantally left in after
 	debugging. Reported by Fred Kiefer.
+	* Tools/gdomap.c: Use syslog for logging ... modification of patch by
+	Matthias Klose <doko@cs.tu-berlin.de>
+	* configure.in: Minor additions for time header/functions
+	* configure: regenerated
 
 2002-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
