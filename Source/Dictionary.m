@@ -121,7 +121,19 @@
 
 - (void) removeObject: oldObject
 {
-  [self notImplemented: _cmd];
+  int count = [self count];
+  id keys_to_remove[count];
+  int num_keys_to_remove = 0;
+  id o, k;
+  NSMapEnumerator me = NSEnumerateMapTable (_contents_hash);
+
+  /* Find all the keys with corresponding objects that equal oldObject. */
+  while (NSNextMapEnumeratorPair (&me, (void**)&k, (void**)&o))
+    if ([oldObject isEqual: o])
+      keys_to_remove[num_keys_to_remove++] = k;
+  /* Remove them. */
+  while (num_keys_to_remove--)
+    [self removeObjectAtKey: keys_to_remove[num_keys_to_remove]];
 }
 
 
