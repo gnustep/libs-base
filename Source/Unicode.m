@@ -64,8 +64,11 @@ typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
 
 #ifdef HAVE_ICONV
-// FIXME: We should check dynamically which encodings are found on this computer,
-// as different implementation of iconv will support different encodings. 
+/*
+ * FIXME: We should check dynamically which encodings are found on this
+ * computer as different implementation of iconv will support different
+ * encodings. 
+ */
 static NSStringEncoding _availableEncodings[] = {
     NSASCIIStringEncoding,
     NSNEXTSTEPStringEncoding,
@@ -335,7 +338,8 @@ iconv_stringforencoding(NSStringEncoding enc)
 }
 
 int
-iconv_strtoustr(unichar *u2, int size2, const char *s1, int size1, NSStringEncoding enc)
+iconv_cstrtoustr(unichar *u2, int size2, const char *s1, int size1,
+  NSStringEncoding enc)
 {
   iconv_t conv;
   int usize = sizeof(unichar)*size2;
@@ -356,12 +360,12 @@ iconv_strtoustr(unichar *u2, int size2, const char *s1, int size1, NSStringEncod
       return 0;
     }
 
-  return u1 - (char*)u2;
+  return (u1 - (char*)u2)/sizeof(unichar);	// Num unicode chars produced.
 }
 
 int
-iconv_ustrtostr(char *s2, int size2, const unichar *u1, int size1,
-NSStringEncoding enc)
+iconv_ustrtocstr(char *s2, int size2, const unichar *u1, int size1,
+  NSStringEncoding enc)
 {
   iconv_t	conv;
   int		usize = sizeof(unichar)*size1;
@@ -432,7 +436,7 @@ encode_chartouni(char c, NSStringEncoding enc)
       {
 	unichar u;
 	
-	if (iconv_strtoustr(&u, 1, &c, 1, enc) > 0)
+	if (iconv_cstrtoustr(&u, 1, &c, 1, enc) > 0)
 	  return u;
 	else
 	  return 0;
@@ -516,7 +520,7 @@ encode_unitochar(unichar u, NSStringEncoding enc)
 #ifdef HAVE_ICONV
       {
 	char c[4];
-	int r = iconv_ustrtostr(c, 4, &u, 1, enc);
+	int r = iconv_ustrtocstr(c, 4, &u, 1, enc);
 
 	if (r > 0)
 	  return c[0];
@@ -604,7 +608,7 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
 #ifdef HAVE_ICONV
       {
 	unsigned char c[4];
-	int r = iconv_ustrtostr(c, 4, &u, 1, enc);
+	int r = iconv_ustrtocstr(c, 4, &u, 1, enc);
 
 	if (r == 2)
 #ifdef WORDS_BIGENDIAN
@@ -912,7 +916,7 @@ int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
 
 	  default:
 #ifdef HAVE_ICONV
-	    return iconv_ustrtostr(dst, dl, src, sl, enc);
+	    return iconv_ustrtocstr(dst, dl, src, sl, enc);
 #else
 	    return 0;
 #endif 
@@ -1050,7 +1054,7 @@ int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
 	  default:
 #ifdef HAVE_ICONV
 	    // FIXME: The non-strict encoding is still missing
-	    return iconv_ustrtostr(dst, dl, src, sl, enc);
+	    return iconv_ustrtocstr(dst, dl, src, sl, enc);
 #else
 	    return 0;
 #endif 
@@ -1137,7 +1141,7 @@ int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl,
 
       default:
 #ifdef HAVE_ICONV
-	return iconv_strtoustr(dst, dl, src, sl, enc);
+	return iconv_cstrtoustr(dst, dl, src, sl, enc);
 #else 
 	return 0;
 #endif 
