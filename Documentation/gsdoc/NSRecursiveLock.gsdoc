@@ -3,8 +3,8 @@
 <gsdoc base="NSRecursiveLock" prev="NSProxy" next="NSRunLoop" up="Base">
   <head>
     <title>NSRecursiveLock</title>
-    <author name="Richard Frith-Macdonald">
-      <email address="rfm@gnu.org"/>
+    <author name="Adam Fedor">
+      <email address="fedor@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
     <version>$Revision$</version>
@@ -17,15 +17,26 @@
         <declared>Foundation/NSLock.h</declared>
         <conform>NSLocking</conform>
           <desc>
+	  See NSLock for more information about what a lock is. A recursive
+	  lock extends NSLock in that you can lock a recursive lock multiple
+	  times. Each lock must be balanced by a cooresponding unlock, and the
+	  lock is not released for another thread to aquire until the last
+	  unlock call is made (cooresponding to the fist lock message). 
           </desc>
         <method type="BOOL">
           <sel>lockBeforeDate:</sel>
           <arg type="NSDate*">limit</arg>
           <desc>
+	  Attempts to aquire a lock before the date limit passes. It returns 
+	  YES if it can. It returns NO if it cannot
+	  (but it waits until the time limit is up before returning NO).
           </desc>
         </method>
         <method type="BOOL">
           <sel>tryLock</sel>
+	  Attempts to aquire a lock, but returns NO immediately if the lock
+	  cannot be aquired. It returns YES if the lock is aquired. Can be
+	  called multiple times to make nested locks.
           <desc>
           </desc>
         </method>

@@ -32,7 +32,9 @@
 #define _GNUstep_H_NSLock
 
 #include <Foundation/NSObject.h>
+#ifndef NeXT_RUNTIME
 #include <objc/thr.h>
+#endif
 
 /*
  * NSLocking protocol

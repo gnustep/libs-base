@@ -1,3 +1,13 @@
+2001-04-12  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSLock.h: Don't include thr.h if NeXT_RUNTIME.
+	* Headers/gnustep/base/NSThread.h: Likewise.
+	* Headers/gnustep/base/NSObjCRuntime: Include objc-gnu2next if
+	NeXT_RUNTIME, usr common objc functions for compatibility.
+	* Headers/gnustep/base/objc-gnu2next.h: Update, simplify.
+
+	* Documentation/gsdoc/NSRecursiveLock.gsdoc: Update.
+
 2001-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: For efficiency, use _DefaultStringEncoding

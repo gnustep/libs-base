@@ -111,14 +111,8 @@ if test "$NeXTCC" != yes; then
       ac_ext=$saved_ac_ext
       if test $NeXT_runtime = 1; then
         AC_MSG_RESULT(no: NeXT runtime)
-	echo "Sorry GNUstep does not yet work with the NeXT runtime."
-	echo "Type \"setenv CC gcc -fgnu-runtime\", and run ./configure again."
-	echo "If you are interested in having GNUstep work with the NeXT"
-	echo "runtime, contact Andrew McCallum <mccallum@gnu.ai.mit.edu>."
-	AC_MSG_ERROR(Unsupported Objective C runtime.)
-	# Not reached, for now...
 	LIBOBJC=''
-        CC="$CC -fnext-runtime"
+        CC="$CC -fnext-runtime -DNeXT_RUNTIME"
         # Make sure that we get NeXTs objc/*.h files
         NEXT_INCLUDES='$(NEXT_NEXT_INCLUDES)'
         OBJS_INSTALL='$(GNU_OBJS)'
