@@ -448,6 +448,7 @@ include/NSCharacterSet.h \
 include/NSCoder.h \
 include/NSConcreteNumber.h \
 include/NSConcreteValue.h \
+include/NSConnection.h \
 include/NSData.h \
 include/NSDate.h \
 include/NSDictionary.h \
