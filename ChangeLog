@@ -1,3 +1,20 @@
+2005-02-28 17:10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSproxy.m:
+	Damn ... when I ran the testsuite for the stuff I did at fosdem, it
+	all worked ... but now I find that it was linking to an older version
+	of the base library and actually the changes were broken.
+	The new modifications should (hopefully) fix all breakage.
+	The changes exposed rare bugs in the existing code ...
+	NSCharacterSet was returning immutable copies of the standard
+	character sets when it should return mutable ones, it was also
+	being a bit bad about allocating new instances.  NSProxy was
+	failing to implement instanceMethodForSelector:, and NSAutoreleasePool
+	had a bug which could mess up a bit if the objects being deallocated
+	by it autoreleased anything.
+
 2005-02-28  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSPropertyList.m (OAppend): Attempt to transform
