@@ -68,7 +68,8 @@
 
 + (GSTcpPort*) portWithNumber: (gsu16)number
 		       onHost: (NSHost*)host
-		 forceAddress: (NSString*)addr;
+		 forceAddress: (NSString*)addr
+		     listener: (BOOL)shouldListen;
 @end
 
 /*
@@ -797,7 +798,8 @@ typedef enum {
 	  host = [NSHost hostWithAddress: addr];
 	  return (NSPort*)[GSTcpPort portWithNumber: portNum
 					     onHost: host
-				       forceAddress: addr];
+				       forceAddress: addr
+					   listener: NO];
 	}
       else
 	{
