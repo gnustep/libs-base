@@ -444,7 +444,7 @@ static NSMutableSet	*textNodes = nil;
   if ([node type] == XML_ELEMENT_NODE)
     {
       NSString		*name = [node name];
-      NSDictionary	*prop = [node propertiesAsDictionary];
+      NSDictionary	*prop = [node attributes];
 
       if ([name isEqual: @"back"] == YES)
 	{
@@ -826,7 +826,7 @@ static NSMutableSet	*textNodes = nil;
 			  str = [str stringByAppendingString: @", "];
 			}
 
-		      s = [[tmp propertiesAsDictionary] objectForKey: @"type"];
+		      s = [[tmp attributes] objectForKey: @"type"];
 		      s = [self typeRef: s];
 		      str = [str stringByAppendingString: s];
 
@@ -1004,16 +1004,16 @@ static NSMutableSet	*textNodes = nil;
 	      if (url == nil)
 		{
 		  [buf appendString: @"<dt>"];
-		  [buf appendString: [[author propertiesAsDictionary]
+		  [buf appendString: [[author attributes]
 		    objectForKey: @"name"]];
 		}
 	      else
 		{
 		  [buf appendString: @"<dt><a href=\""];
-		  [buf appendString: [[url propertiesAsDictionary]
+		  [buf appendString: [[url attributes]
 		    objectForKey: @"url"]];
 		  [buf appendString: @"\">"];
-		  [buf appendString: [[author propertiesAsDictionary]
+		  [buf appendString: [[author attributes]
 		    objectForKey: @"name"]];
 		  [buf appendString: @"</a>"];
 		}
@@ -1223,7 +1223,7 @@ static NSMutableSet	*textNodes = nil;
 		      GSXMLNode	*t = [tmp firstChild];
 		      NSString	*s;
 
-		      s = [[tmp propertiesAsDictionary] objectForKey: @"type"];
+		      s = [[tmp attributes] objectForKey: @"type"];
 		      s = [self typeRef: s];
 		      str = [str stringByAppendingFormat: @" (%@)", s];
 		      while (t != nil)
