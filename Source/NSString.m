@@ -111,7 +111,7 @@ static Class	plDictionary;
 static id	(*plSet)(id, SEL, id, id) = 0;
 
 static id	(*plAlloc)(Class, SEL, NSZone*) = 0;
-static id	(*plInit)(id, SEL, unichar*, unsigned) = 0;
+static id	(*plInit)(id, SEL, unichar*, unsigned int) = 0;
 
 static SEL	plSel;
 static SEL	cMemberSel = 0;
@@ -455,7 +455,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 + (id) stringWithCharacters: (const unichar*)chars
-		     length: (unsigned)length
+		     length: (unsigned int)length
 {
   NSString	*obj;
 
@@ -475,7 +475,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 + (id) stringWithCString: (const char*)byteString
-		  length: (unsigned)length
+		  length: (unsigned int)length
 {
   NSString	*obj;
 
@@ -538,7 +538,7 @@ handle_printf_atsign (FILE *stream,
 
 /* This is the designated initializer. */
 - (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned)length
+			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
   [self subclassResponsibility: _cmd];
@@ -546,7 +546,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithCharacters: (const unichar*)chars
-		   length: (unsigned)length
+		   length: (unsigned int)length
 {
   if (length > 0)
     {
@@ -603,7 +603,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned)length
+		      length: (unsigned int)length
 		freeWhenDone: (BOOL)flag
 {
   unichar	*buf;
@@ -619,7 +619,7 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-- (id) initWithCString: (const char*)byteString  length: (unsigned)length
+- (id) initWithCString: (const char*)byteString  length: (unsigned int)length
 {
   if (length > 0)
     {
@@ -1234,7 +1234,7 @@ handle_printf_atsign (FILE *stream,
 
 // Getting a String's Length
 
-- (unsigned) length
+- (unsigned int) length
 {
   [self subclassResponsibility: _cmd];
   return 0;
@@ -1242,7 +1242,7 @@ handle_printf_atsign (FILE *stream,
 
 // Accessing Characters
 
-- (unichar) characterAtIndex: (unsigned)index
+- (unichar) characterAtIndex: (unsigned int)index
 {
   [self subclassResponsibility: _cmd];
   return (unichar)0;
@@ -1261,7 +1261,7 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	l = [self length];
   unsigned	i;
-  unichar	(*caiImp)(NSString*, SEL, unsigned);
+  unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
   GS_RANGE_CHECK(aRange, l);
 
@@ -1335,12 +1335,12 @@ handle_printf_atsign (FILE *stream,
   return array;
 }
 
-- (NSString*) substringFromIndex: (unsigned)index
+- (NSString*) substringFromIndex: (unsigned int)index
 {
   return [self substringWithRange: ((NSRange){index, [self length]-index})];
 }
 
-- (NSString*) substringToIndex: (unsigned)index
+- (NSString*) substringToIndex: (unsigned int)index
 {
   return [self substringWithRange: ((NSRange){0,index})];;
 }
@@ -1379,7 +1379,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (unsigned)mask
+			    options: (unsigned int)mask
 {
   NSRange all = NSMakeRange(0, [self length]);
 
@@ -1389,7 +1389,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-			    options: (unsigned)mask
+			    options: (unsigned int)mask
 			      range: (NSRange)aRange
 {
   int		i;
@@ -1397,7 +1397,7 @@ handle_printf_atsign (FILE *stream,
   int		stop;
   int		step;
   NSRange	range;
-  unichar	(*cImp)(id, SEL, unsigned);
+  unichar	(*cImp)(id, SEL, unsigned int);
   BOOL		(*mImp)(id, SEL, unichar);
 
   i = [self length];
@@ -1414,7 +1414,7 @@ handle_printf_atsign (FILE *stream,
   range.location = NSNotFound;
   range.length = 0;
 
-  cImp = (unichar(*)(id,SEL,unsigned)) [self methodForSelector: caiSel];
+  cImp = (unichar(*)(id,SEL,unsigned int)) [self methodForSelector: caiSel];
   mImp = (BOOL(*)(id,SEL,unichar))
     [aSet methodForSelector: cMemberSel];
 
@@ -1442,7 +1442,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSRange) rangeOfString: (NSString*)string
-		  options: (unsigned)mask
+		  options: (unsigned int)mask
 {
   NSRange	all = NSMakeRange(0, [self length]);
 
@@ -1452,7 +1452,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSRange) rangeOfString: (NSString *) aString
-		  options: (unsigned) mask
+		  options: (unsigned int) mask
 		    range: (NSRange) aRange
 {
   if (aString == nil)
@@ -1468,7 +1468,8 @@ handle_printf_atsign (FILE *stream,
   return range.length ? range.location : NSNotFound;
 }
 
-- (unsigned int) indexOfString: (NSString*)substring fromIndex: (unsigned)index
+- (unsigned int) indexOfString: (NSString*)substring
+		     fromIndex: (unsigned int)index
 {
   NSRange range = {index, [self length] - index};
 
@@ -1478,13 +1479,13 @@ handle_printf_atsign (FILE *stream,
 
 // Determining Composed Character Sequences
 
-- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex
 {
   unsigned	start;
   unsigned	end;
   unsigned	length = [self length];
   unichar	ch;
-  unichar	(*caiImp)(NSString*, SEL, unsigned);
+  unichar	(*caiImp)(NSString*, SEL, unsigned int);
   NSCharacterSet *nbSet = [NSCharacterSet nonBaseCharacterSet];
 
   if (anIndex >= length)
@@ -1515,7 +1516,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSComparisonResult) compare: (NSString*)aString	
-		       options: (unsigned)mask
+		       options: (unsigned int)mask
 {
   return [self compare: aString options: mask 
 		 range: ((NSRange){0, [self length]})];
@@ -1523,7 +1524,7 @@ handle_printf_atsign (FILE *stream,
 
 // xxx Should implement full POSIX.2 collate
 - (NSComparisonResult) compare: (NSString*)aString
-		       options: (unsigned)mask
+		       options: (unsigned int)mask
 			 range: (NSRange)aRange
 {
   if (aString == nil)
@@ -1584,7 +1585,7 @@ handle_printf_atsign (FILE *stream,
  * for other purposes in a bitfield in the concrete string subclasses, so we
  * must not use the full unsigned integer.
  */
-- (unsigned) hash
+- (unsigned int) hash
 {
   unsigned ret = 0;
 
@@ -1628,7 +1629,7 @@ handle_printf_atsign (FILE *stream,
 // Getting a Shared Prefix
 
 - (NSString*) commonPrefixWithString: (NSString*)aString
-			     options: (unsigned)mask
+			     options: (unsigned int)mask
 {
   if (mask & NSLiteralSearch)
     {
@@ -1669,12 +1670,12 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      unichar	(*scImp)(NSString*, SEL, unsigned);
-      unichar	(*ocImp)(NSString*, SEL, unsigned);
+      unichar	(*scImp)(NSString*, SEL, unsigned int);
+      unichar	(*ocImp)(NSString*, SEL, unsigned int);
       void	(*sgImp)(NSString*, SEL, unichar*, NSRange) = 0;
       void	(*ogImp)(NSString*, SEL, unichar*, NSRange) = 0;
-      NSRange	(*srImp)(NSString*, SEL, unsigned) = 0;
-      NSRange	(*orImp)(NSString*, SEL, unsigned) = 0;
+      NSRange	(*srImp)(NSString*, SEL, unsigned int) = 0;
+      NSRange	(*orImp)(NSString*, SEL, unsigned int) = 0;
       BOOL	gotRangeImps = NO;
       BOOL	gotFetchImps = NO;
       NSRange	sRange;
@@ -1773,14 +1774,14 @@ handle_printf_atsign (FILE *stream,
   return NSMakeRange(startIndex, lineEndIndex - startIndex);
 }
 
-- (void) getLineStart: (unsigned *)startIndex
-                  end: (unsigned *)lineEndIndex
-          contentsEnd: (unsigned *)contentsEndIndex
+- (void) getLineStart: (unsigned int *)startIndex
+                  end: (unsigned int *)lineEndIndex
+          contentsEnd: (unsigned int *)contentsEndIndex
 	     forRange: (NSRange)aRange
 {
   unichar	thischar;
   unsigned	start, end, len;
-  unichar	(*caiImp)(NSString*, SEL, unsigned);
+  unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
   len = [self length];
   GS_RANGE_CHECK(aRange, len);
@@ -1950,7 +1951,7 @@ handle_printf_atsign (FILE *stream,
   unichar	*s;
   unsigned	count;
   unsigned	len = [self length];
-  unichar	(*caiImp)(NSString*, SEL, unsigned);
+  unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
   if (len == 0)
     {
@@ -1972,7 +1973,7 @@ handle_printf_atsign (FILE *stream,
   unichar	*s;
   unsigned	count;
   unsigned	len = [self length];
-  unichar	(*caiImp)(NSString*, SEL, unsigned);
+  unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
   if (len == 0)
     {
@@ -2042,7 +2043,7 @@ handle_printf_atsign (FILE *stream,
   return (const char*)[m bytes];
 }
 
-- (unsigned) cStringLength
+- (unsigned int) cStringLength
 {
   NSData	*d;
 
@@ -2059,7 +2060,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (void) getCString: (char*)buffer
-	  maxLength: (unsigned)maxLength
+	  maxLength: (unsigned int)maxLength
 {
   [self getCString: buffer maxLength: maxLength 
 	     range: ((NSRange){0, [self length]})
@@ -2067,13 +2068,13 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (void) getCString: (char*)buffer
-	  maxLength: (unsigned)maxLength
+	  maxLength: (unsigned int)maxLength
 	      range: (NSRange)aRange
      remainingRange: (NSRange*)leftoverRange
 {
   unsigned	len;
   unsigned	count;
-  unichar	(*caiImp)(NSString*, SEL, unsigned);
+  unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
   len = [self cStringLength];
   GS_RANGE_CHECK(aRange, len);
@@ -2188,7 +2189,7 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned int	count = 0;
   unsigned int	len = [self length];
-  unichar	(*caiImp)(NSString*, SEL, unsigned);
+  unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
   if (len == 0)
     {
@@ -2376,7 +2377,7 @@ handle_printf_atsign (FILE *stream,
 
 // Manipulating File System Paths
 
-- (unsigned) completePathIntoString: (NSString**)outputName
+- (unsigned int) completePathIntoString: (NSString**)outputName
 		      caseSensitive: (BOOL)flag
 		   matchesIntoArray: (NSArray**)outputArray
 			filterTypes: (NSArray*)filterTypes
@@ -2445,7 +2446,8 @@ handle_printf_atsign (FILE *stream,
   return [fm fileSystemRepresentationWithPath: self];
 }
 
-- (BOOL) getFileSystemRepresentation: (char*)buffer maxLength: (unsigned)size
+- (BOOL) getFileSystemRepresentation: (char*)buffer
+			   maxLength: (unsigned int)size
 {
   const char* ptr = [self fileSystemRepresentation];
   if (strlen(ptr) > size)
@@ -2865,7 +2867,7 @@ handle_printf_atsign (FILE *stream,
 {
   NSMutableString	*s;
   NSRange		r;
-  unichar		(*caiImp)(NSString*, SEL, unsigned);
+  unichar		(*caiImp)(NSString*, SEL, unsigned int);
 
   /* Expand `~' in the path */
   s = AUTORELEASE([[self stringByExpandingTildeInPath] mutableCopy]);
@@ -2978,7 +2980,7 @@ handle_printf_atsign (FILE *stream,
   if (len > 0)
     {
       int	count = 0;
-      unichar	(*caiImp)(NSString*, SEL, unsigned);
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (count < len)
@@ -3153,7 +3155,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSComparisonResult) compare: (NSString *)string 
-		       options: (unsigned)mask 
+		       options: (unsigned int)mask 
 			 range: (NSRange)compareRange 
 			locale: (NSDictionary *)dict
 {
@@ -3207,7 +3209,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (void) descriptionWithLocale: (NSDictionary*)aLocale
-			indent: (unsigned)level
+			indent: (unsigned int)level
 			    to: (id<GNUDescriptionDestination>)output
 {
   unsigned	length;
@@ -3357,7 +3359,7 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	count = [self length];
 
-  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+  [aCoder encodeValueOfObjCType: @encode(unsigned int) at: &count];
   if (count > 0)
     {
       NSStringEncoding	enc = NSUnicodeStringEncoding;
@@ -3378,7 +3380,7 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	count;
 
-  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+  [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &count];
 
   if (count > 0)
     {
@@ -3498,7 +3500,7 @@ handle_printf_atsign (FILE *stream,
     NSDefaultMallocZone()] initWithCapacity: 0]);
 }
 
-+ (NSMutableString*) stringWithCapacity: (unsigned)capacity
++ (NSMutableString*) stringWithCapacity: (unsigned int)capacity
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCapacity: capacity]);
@@ -3506,7 +3508,7 @@ handle_printf_atsign (FILE *stream,
 
 /* Inefficient. */
 + (NSString*) stringWithCharacters: (const unichar*)characters
-			    length: (unsigned)length
+			    length: (unsigned int)length
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCharacters: characters length: length]);
@@ -3525,7 +3527,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
-			 length: (unsigned)length
+			 length: (unsigned int)length
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
@@ -3541,14 +3543,14 @@ handle_printf_atsign (FILE *stream,
 }
 
 // Designated initialiser 
-- (id) initWithCapacity: (unsigned)capacity
+- (id) initWithCapacity: (unsigned int)capacity
 {
   [self subclassResponsibility: _cmd];
   return self;
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned)length
+			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
   if ((self = [self initWithCapacity: length]) != nil && length > 0)
@@ -3566,7 +3568,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithCStringNoCopy: (char*)chars
-		      length: (unsigned)length
+		      length: (unsigned int)length
 		freeWhenDone: (BOOL)flag
 {
   if ((self = [self initWithCapacity: length]) != nil && length > 0)
@@ -3618,7 +3620,7 @@ handle_printf_atsign (FILE *stream,
   [self replaceCharactersInRange: range withString: nil];
 }
 
-- (void) insertString: (NSString*)aString atIndex: (unsigned)loc
+- (void) insertString: (NSString*)aString atIndex: (unsigned int)loc
 {
   NSRange range = {loc, 0};
   [self replaceCharactersInRange: range withString: aString];
@@ -3649,7 +3651,7 @@ handle_printf_atsign (FILE *stream,
   if (length > 0)
     {
       unsigned	location = 0;
-      unichar	(*caiImp)(NSString*, SEL, unsigned);
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (location < length && isspace((*caiImp)(self, caiSel, location)))
@@ -3671,7 +3673,7 @@ handle_printf_atsign (FILE *stream,
   if (length > 0)
     {
       unsigned	location = length;
-      unichar	(*caiImp)(NSString*, SEL, unsigned);
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
         
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (location > 0)
@@ -3697,7 +3699,7 @@ handle_printf_atsign (FILE *stream,
     {
       unsigned	start = 0;
       unsigned	end = length;
-      unichar	(*caiImp)(NSString*, SEL, unsigned);
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (start < length && isspace((*caiImp)(self, caiSel, start)))
@@ -3733,7 +3735,7 @@ handle_printf_atsign (FILE *stream,
   if (length > 0)
     {
       unsigned	location = 0;
-      unichar	(*caiImp)(NSString*, SEL, unsigned);
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (location < length && isspace((*caiImp)(self, caiSel, location)))
@@ -3754,7 +3756,7 @@ handle_printf_atsign (FILE *stream,
   if (length > 0)
     {
       unsigned	location = length;
-      unichar	(*caiImp)(NSString*, SEL, unsigned);
+      unichar	(*caiImp)(NSString*, SEL, unsigned int);
         
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (location > 0)
@@ -4648,7 +4650,7 @@ setupPl()
 #endif
   plAlloc = (id (*)(id, SEL, NSZone*))
     [NSStringClass methodForSelector: @selector(allocWithZone:)];
-  plInit = (id (*)(id, SEL, unichar*, unsigned))
+  plInit = (id (*)(id, SEL, unichar*, unsigned int))
     [NSStringClass instanceMethodForSelector: plSel];
 
   plArray = [GSMutableArray class];

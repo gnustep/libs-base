@@ -100,7 +100,7 @@ enum {
   NSOpenStepUnicodeReservedBase = 0xF400
 };
 
-@protocol NSString  <NSCoding, NSCopying, NSMutableCopying>
+@interface NSString :NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 // Creating Temporary Strings
 + (id) string;
@@ -226,7 +226,8 @@ enum {
 		       matchesIntoArray: (NSArray**)outputArray
 			    filterTypes: (NSArray*)filterTypes;
 - (const char*) fileSystemRepresentation;
-- (BOOL) getFileSystemRepresentation: (char*)buffer maxLength: (unsigned int)l;
+- (BOOL) getFileSystemRepresentation: (char*)buffer
+			   maxLength: (unsigned int)size;
 - (NSString*) lastPathComponent;
 - (NSString*) pathExtension;
 - (NSString*) stringByAbbreviatingWithTildeInPath;
@@ -251,19 +252,19 @@ enum {
 + (id) stringWithFormat: (NSString*)format
 	      arguments: (va_list)argList;
 + (id) stringWithString: (NSString*) aString;
-+ (id) stringWithContentsOfURL: (NSURL*)anURL;
++ (id) stringWithContentsOfURL: (NSURL*)url;
 + (id) stringWithUTF8String: (const char*)bytes;
 - (id) initWithFormat: (NSString*)format
-	       locale: (NSDictionary*)dictionary, ...;
+	       locale: (NSDictionary*)locale, ...;
 - (id) initWithFormat: (NSString*)format
-	       locale: (NSDictionary*)dictionary
-	    arguments: (va_list)argList;
+	       locale: (NSDictionary*)locale
+	    arguments: (va_list)arg_list;
 - (id) initWithUTF8String: (const char *)bytes;
-- (id) initWithContentsOfURL: (NSURL*)anURL;
+- (id) initWithContentsOfURL: (NSURL*)url;
 - (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
 - (NSComparisonResult)compare:(NSString *)string 
-		      options:(unsigned)mask 
+		      options:(unsigned int)mask 
 			range:(NSRange)compareRange 
 		       locale:(NSDictionary *)dict;
 - (NSComparisonResult)localizedCompare:(NSString *)string;
@@ -284,45 +285,37 @@ enum {
 #endif
 
 #ifndef NO_GNUSTEP
++ (Class) constantStringClass;
 - (BOOL) boolValue;
 #endif /* NO_GNUSTEP */
 
 @end
 
-@interface NSString : NSObject <NSString>
-+ (Class) constantStringClass;
-@end
-
-@class NSMutableString;
-
-@protocol NSMutableString <NSString>
+@interface NSMutableString : NSString
 
 // Creating Temporary Strings
 + (id) string;
-+ (id) stringWithCharacters: (const unichar*)chars
++ (id) stringWithCharacters: (const unichar*)characters
 		     length: (unsigned int)length;
 + (id) stringWithCString: (const char*)byteString
 		  length: (unsigned int)length;
 + (id) stringWithCString: (const char*) byteString;
 + (id) stringWithFormat: (NSString*)format,...;
-+ (id) stringWithContentsOfFile:(NSString *)path;
-+ (NSMutableString*) stringWithCapacity: (unsigned)capacity;
++ (id) stringWithContentsOfFile: (NSString*)path;
++ (NSMutableString*) stringWithCapacity: (unsigned int)capacity;
 
 // Initializing Newly Allocated Strings
-- (id) initWithCapacity: (unsigned)capacity;
+- (id) initWithCapacity: (unsigned int)capacity;
 
 // Modify A String
 - (void) appendFormat: (NSString*)format, ...;
 - (void) appendString: (NSString*)aString;
 - (void) deleteCharactersInRange: (NSRange)range;
-- (void) insertString: (NSString*)aString atIndex:(unsigned)index;
+- (void) insertString: (NSString*)aString atIndex: (unsigned int)loc;
 - (void) replaceCharactersInRange: (NSRange)range 
 		       withString: (NSString*)aString;
 - (void) setString: (NSString*)aString;
 
-@end
-
-@interface NSMutableString : NSString <NSMutableString>
 @end
 
 /**
