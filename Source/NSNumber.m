@@ -41,6 +41,33 @@
 
 #include "NSConcreteNumber.h"
 
+@interface GSCachedBool : NSBoolNumber
+@end
+@interface GSCachedInt : NSIntNumber
+@end
+@implementation GSCachedBool
+- (id) copyWithZone: (NSZone*)zone
+{
+  return RETAIN(self);
+}
+- (void) dealloc
+{
+  [NSException raise: NSGenericException
+	      format: @"Attempt to deallocate bool number owned by cache"];
+}
+@end
+@implementation GSCachedInt
+- (id) copyWithZone: (NSZone*)zone
+{
+  return RETAIN(self);
+}
+- (void) dealloc
+{
+  [NSException raise: NSGenericException
+	      format: @"Attempt to deallocate int number owned by cache"];
+}
+@end
+
 @implementation NSNumber
 
 static NSMapTable	*numberMap;
@@ -204,12 +231,12 @@ static Class	doubleNumberClass;
       /*
        * cache bool values.
        */
-      boolN = (NSNumber*)NSAllocateObject(boolNumberClass, 0,
+      boolN = (NSNumber*)NSAllocateObject([GSCachedBool class], 0,
 	NSDefaultMallocZone());
       boolean = NO;
       boolN = [boolN initWithBytes: &boolean objCType: NULL];
 
-      boolY = (NSNumber*)NSAllocateObject(boolNumberClass, 0,
+      boolY = (NSNumber*)NSAllocateObject([GSCachedBool class], 0,
 	NSDefaultMallocZone());
       boolean = YES;
       boolY = [boolY initWithBytes: &boolean objCType: NULL];
@@ -221,7 +248,7 @@ static Class	doubleNumberClass;
 	{
 	  NSNumber	*num;
 
-	  num = (NSNumber*)NSAllocateObject(intNumberClass, 0,
+	  num = (NSNumber*)NSAllocateObject([GSCachedInt class], 0,
 	    NSDefaultMallocZone());
 	  num = [num initWithBytes: &integer objCType: NULL];
 	  smallIntegers[integer + GS_SMALL] = num;
