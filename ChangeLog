@@ -1,3 +1,8 @@
+Mon Jan 21 17:08:42 2002  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/Makefile.postamble (after-uninstall): Removed GSConfig.h 
+	and mframe.h when uninstalling.
+
 2002-01-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Wrap code in exception handlers to reset current
