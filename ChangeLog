@@ -1,3 +1,7 @@
+2004-03-02  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSCalendarDate.m (dayOfCommonEra): Make non-static.
+
 2004-03-01    <woudshoo@agilisys.com>
 
 	* Headers/Additions/GNUstepBase/GSIMap.h: Added increment ivar to GSIMapTable

@@ -179,7 +179,10 @@ absoluteGregorianDay(int day, int month, int year)
      + (year - 1)/400);   // ...plus prior years divisible by 400
 }
 
-static int dayOfCommonEra(NSTimeInterval when)
+/* Should be static, but temporarily changed to non-static until
+   WIndows fixes are done.  */
+int 
+dayOfCommonEra(NSTimeInterval when)
 {
   double a;
   int r;
