@@ -295,6 +295,7 @@ objects/Time.h \
 objects/ValueHolding.h \
 objects/abort.h \
 objects/allocs.h \
+objects/array.h \
 objects/behavior.h \
 objects/callbacks.h \
 objects/data.h \
