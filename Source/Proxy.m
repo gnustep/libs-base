@@ -281,7 +281,7 @@ enum
 	    at: &target 
 	    withName: NULL];
       if (debug_proxy)
-	fprintf(stderr, "Recieving a proxy for local object 0x%x "
+	fprintf(stderr, "Receiving a proxy for local object 0x%x "
 		"connection 0x%x\n", target, (unsigned)decoder_connection);
       if (![[decoder_connection class] includesLocalObject: (id)target])
 	[NSException raise: @"ProxyDecodedBadTarget"
