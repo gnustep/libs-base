@@ -256,8 +256,14 @@ con_messages (id prx)
 
 #ifdef	_F_BYREF
   [prx sendByref: obj];
-  [prx sendByref:@"hello"];
-  [prx sendByref:[NSDate date]];
+  [prx sendByref: @"hello"];
+  [prx sendByref: [NSDate date]];
+  {
+    NSMutableString	*str = [NSMutableString string];
+
+    [prx modifyByref: str];
+    printf("  Modified '%s'\n", [str lossyCString]);
+  }
 #endif
   printf("  ok\n");
 

@@ -367,6 +367,13 @@
   fflush(stdout);
   return self;
 }
+- modifyByref: (byref NSMutableString *)o
+{
+  printf("  >> byref class is %s\n", object_get_class_name (o));
+  fflush(stdout);
+  [o appendString: @"hello"];
+  return self;
+}
 #endif
 
 - manyArgs: (int)i1 : (int)i2 : (int)i3 : (int)i4 : (int)i5 : (int)i6
