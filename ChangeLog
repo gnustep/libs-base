@@ -1,3 +1,7 @@
+Thu Jun 24 22:05:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSData.m: Added [NSMutableData +data]
+
 Fri Jun 19 13:37:37 1998  Adam Fedor  <fedor@doc.com>
 
 	* NSObject (+isKindOfClass:): New method (patch from Bruce Ide
