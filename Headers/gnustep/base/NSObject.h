@@ -129,7 +129,8 @@ enum {NSNotFound = 0x7fffffff};
 @interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;
 - notImplemented:(SEL)aSel;
-- (const char *) name;
+/* - (const char *) name;
+   Removed because OpenStep has -(NSString*)name; */
 @end
 
 @interface NSObject (GNU)
