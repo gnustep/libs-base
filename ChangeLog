@@ -1,3 +1,9 @@
+2004-03-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSCategories.m:
+	* Source/Additions/GSMime.m: New uuencode/uudecode moved from
+	GSMime to a category of NSData and renamed.
+
 Fri Mar 12 13:35:25 2004  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* SSL/GNUmakefile: Set GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES before
