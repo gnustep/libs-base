@@ -504,7 +504,7 @@ int main(int argc, char *argv[], char *env[])
   /* This memcpy has to be done before the first message is sent to any
      constant string object. See Apple Radar 2870817 */
   memcpy(&_NSConstantStringClassReference,
-         objc_getClass("NSConstantString"),
+         objc_getClass(STRINGIFY(NXConstantString)),
          sizeof(_NSConstantStringClassReference));
 #endif
 

@@ -244,6 +244,9 @@ getopt(int argc, char **argv, char *options)
 
 static char	ebuf[2048];
 
+/* Avoid conflict with syslog function */
+#define log gdomap_log
+
 #ifdef HAVE_SYSLOG
 
 int	log_perror = 0;
