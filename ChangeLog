@@ -1,3 +1,10 @@
+2002-06-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimer.m: Retain target and user info on initialisation
+	Release them on invalidation.  Ensure timer is invalidated on
+	deallocation.
+	Changes based on bug report by Andy Ruder <aeruder@yahoo.com>
+
 2002-06-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFTPURLHandle.m: simple implementation added
