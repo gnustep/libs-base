@@ -1553,7 +1553,7 @@ else
   while (*p && char_count++ < NSHashStringLength)
     {
       ret ^= *p++ << ctr;
-      ctr = (ctr + 1) % sizeof (void*);
+      ctr = (ctr + 4) % 20;
     }
   return ret;
   }
