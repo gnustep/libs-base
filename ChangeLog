@@ -1,3 +1,8 @@
+2001-06-09  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* configure.in (VERSION): Output a message saying that we are
+	checking for the version, and which version we find.
+
 2001-06-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Control caching of port coders by a simple
