@@ -69,7 +69,7 @@ const char *objc_executable_location( void );
 static BOOL	dynamic_loaded;
 
 /* Our current callback function */
-void (*_objc_load_load_callback)(Class, Category*) = 0;
+void (*_objc_load_load_callback)(Class, struct objc_category *) = 0;
 
 /* List of modules we have loaded (by handle) */
 #ifndef NeXT_RUNTIME
@@ -139,7 +139,7 @@ objc_initialize_loading(FILE *errorStream)
    Do what we need to do and call our own callback.
 */
 static void 
-objc_load_callback(Class class, Category* category)
+objc_load_callback(Class class, struct objc_category * category)
 {
     /* Invalidate the dtable, so it will be rebuilt correctly */
     if (class != 0 && category != 0) {
@@ -155,7 +155,7 @@ long
 objc_load_module(
 	const char *filename,
 	FILE *errorStream,
-	void (*loadCallback)(Class, Category*),
+	void (*loadCallback)(Class, struct objc_category *),
 	void **header,
 	char *debugFilename)
 
@@ -223,7 +223,7 @@ objc_load_module(
 long 
 objc_unload_module(
 	FILE *errorStream,
-	void (*unloadCallback)(Class, Category*))
+	void (*unloadCallback)(Class, struct objc_category *))
 {
     if (!dynamic_loaded)
         return 1;
@@ -234,7 +234,7 @@ objc_unload_module(
 }
 
 long objc_load_modules(char *files[],FILE *errorStream,
-	void (*callback)(Class,Category*),
+	void (*callback)(Class,struct objc_category *),
 	void **header,
 	char *debugFilename)
 {
@@ -250,7 +250,7 @@ long objc_load_modules(char *files[],FILE *errorStream,
 long 
 objc_unload_modules(
 	FILE *errorStream,
-	void (*unloadCallback)(Class, Category*))
+	void (*unloadCallback)(Class, struct objc_category *))
 {
     if (!dynamic_loaded)
         return 1;
