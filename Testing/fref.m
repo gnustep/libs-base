@@ -10,24 +10,35 @@
 #include <Foundation/NSAutoreleasePool.h>
 #endif
 
+/* Beginning of some parameters to vary. */
+/* Both 1 works; both 0 works.  0 and 1 crash, as does NeXT's */
+
 /* Use GNU Archiving features, if they are available. */
 #define TRY_GNU_ARCHIVING 1
 
-/* The -initWithCoder methods substitutes another object for self. */
-static int decode_substitutes;
+/* In the forward self-reference test, -initWithCoder substitutes
+   another object for self. */
+#define SELF_REF_DECODE_SUBSTITUTES 1
+
+/* End of some parameters to vary. */
+
 
 #define GNU_ARCHIVING \
 (TRY_GNU_ARCHIVING && defined(GNUSTEP_BASE_MAJOR_VERSION))
 
 #if GNU_ARCHIVING
 #include <gnustep/base/Archiver.h>
-/* Use text coding instead of binary coding */
-#define TEXTCSTREAM 0
+#endif /* GNU_ARCHIVING */
+
+/* Set to 1 to use text coding instead of binary coding */
+#define TEXTCSTREAM 1
 #if TEXTCSTREAM
 #include <gnustep/base/Archiver.h>
 #include <gnustep/base/TextCStream.h>
 #endif
-#endif /* GNU_ARCHIVING */
+
+/* The -initWithCoder methods substitutes another object for self. */
+static int decode_substitutes;
 
 /* This object encodes an -encodeConditionalObject: reference to a Foo. */
 @interface SubFoo : NSObject
@@ -183,7 +194,11 @@ test_fref ()
   [array addObject: foo];
   [array insertObject: sub_foo atIndex: 0];
 
+#if GNU_ARCHIVING
+  [Archiver archiveRootObject: array toFile: @"fref.dat"];
+#else
   [NSArchiver archiveRootObject: array toFile: @"fref.dat"];
+#endif
   printf ("Encoded:  ");
   [sub_foo print];
   [foo release];
@@ -203,14 +218,18 @@ test_self_fref ()
 {
   id foo, sub_foo;
   printf ("\nTest encoding of self-referential forward references\n");
-  decode_substitutes = 1;
+  decode_substitutes = SELF_REF_DECODE_SUBSTITUTES;
 
   foo = [[Foo alloc] init];
   [foo setLabel: 4];
   sub_foo = [[SubFoo alloc] initWithSuperFoo: foo label: 3];
   [foo setSubFoo: sub_foo];
 
+#if GNU_ARCHIVING
+  [Archiver archiveRootObject: foo toFile: @"fref.dat"];
+#else
   [NSArchiver archiveRootObject: foo toFile: @"fref.dat"];
+#endif
   printf ("Encoded:  ");
   [sub_foo print];
   [foo release];
