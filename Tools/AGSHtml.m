@@ -150,17 +150,18 @@ static NSMutableSet	*textNodes = nil;
 {
   NSString	*s;
   NSString	*kind = (f == YES) ? @"href" : @"name";
+  NSString	*hash = (f == YES) ? @"#" : @"";
 
   if (f == NO || (s = [localRefs globalRef: r type: t]) != nil)
     {
-      s = [NSString stringWithFormat: @"<a %@=\"#%@$%@\">",
-	kind, t, r];
+      s = [NSString stringWithFormat: @"<a %@=\"%@%@$%@\">",
+	kind, hash, t, r];
     }
   else if ((s = [globalRefs globalRef: r type: t]) != nil)
     {
       s = [s stringByAppendingPathExtension: @"html"];
-      s = [NSString stringWithFormat: @"<a %@=\"%@#%@$%@\">",
-	kind, s, t, r];
+      s = [NSString stringWithFormat: @"<a %@=\"%@%@%@$%@\">",
+	kind, s, hash, t, r];
     }
   return s;
 }
@@ -183,6 +184,7 @@ static NSMutableSet	*textNodes = nil;
   NSString	*s = nil;
   BOOL		isLocal = YES;
   NSString	*kind = (f == YES) ? @"href" : @"name";
+  NSString	*hash = (f == YES) ? @"#" : @"";
 
   /*
    * No unit specified ... try to infer it.
@@ -255,14 +257,14 @@ static NSMutableSet	*textNodes = nil;
     {
       if (isLocal == YES)
 	{
-	  s = [NSString stringWithFormat: @"<a %@=\"#%@%@\">",
-	    kind, u, r];
+	  s = [NSString stringWithFormat: @"<a %@=\"%@%@%@\">",
+	    kind, hash, u, r];
 	}
       else
 	{
 	  s = [s stringByAppendingPathExtension: @"html"];
-	  s = [NSString stringWithFormat: @"<a %@=\"%@#%@%@\">",
-	    kind, s, u, r];
+	  s = [NSString stringWithFormat: @"<a %@=\"%@%@%@%@\">",
+	    kind, s, hash, u, r];
 	}
     }
   return s;
