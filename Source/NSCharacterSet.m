@@ -36,13 +36,13 @@
 #include "Foundation/NSThread.h"
 #include "Foundation/NSNotification.h"
 
-static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
+static NSString *NSCharacterSet_PATH = @"NSCharacterSets";
 
 /* A simple array for caching standard bitmap sets */
 #define MAX_STANDARD_SETS 15
-static NSCharacterSet* cache_set[MAX_STANDARD_SETS];
-static NSLock* cache_lock = nil;
-Class	abstract = nil;
+static NSCharacterSet *cache_set[MAX_STANDARD_SETS];
+static NSLock *cache_lock = nil;
+static Class abstractClass = nil;
 
 @implementation NSCharacterSet
 
@@ -64,13 +64,7 @@ Class	abstract = nil;
 
   if (one_time == NO)
     {
-      unsigned	i;
-
-      abstract = [NSCharacterSet class];
-      for (i = 0; i < MAX_STANDARD_SETS; i++)
-	{
-	  cache_set[i] = 0;
-	}
+      abstractClass = [NSCharacterSet class];
       one_time = YES;
     }
   if ([NSThread isMultiThreaded])
@@ -90,7 +84,10 @@ Class	abstract = nil;
 /* Provide a default object for allocation */
 + (id) allocWithZone: (NSZone*)zone
 {
-  return NSAllocateObject([NSBitmapCharSet self], 0, zone);
+  if (self == abstractClass)
+    return NSAllocateObject([NSBitmapCharSet self], 0, zone);
+  else
+    return NSAllocateObject(self, 0, zone);
 }
 
 // Creating standard character sets
@@ -152,7 +149,7 @@ Class	abstract = nil;
 
   [cache_lock unlock];
 
-  if (self != abstract && self != [set class])
+  if (self != abstractClass && self != [set class])
     {
       NSData	*data;
 
