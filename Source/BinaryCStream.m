@@ -324,8 +324,9 @@ static BOOL debug_binary_coder;
 			     length: length];
 	assert (read_count == length);
 	(*(char**)d)[length] = '\0';
-	/* Autorelease the newly malloc'ed pointer. */
-	[MallocAddress autoreleaseMallocAddress: *(char**)d];
+	/* Autorelease the newly malloc'ed pointer?  Grep for (*objc_free)
+	   to see the places the may have to be changed
+	   [MallocAddress autoreleaseMallocAddress: *(char**)d]; */
 	break;
       }
 
@@ -373,13 +374,13 @@ static BOOL debug_binary_coder;
     case _C_DBL:
       {
 	int exp, mantissa1, mantissa2;
-	double value;
+	volatile double value;
 	/* Decode the exponent and the two pieces of the mantissa. */
 	READ_SIGNED_TYPE (&exp, int, ntohl);
 	READ_SIGNED_TYPE (&mantissa1, int, ntohl);
 	READ_SIGNED_TYPE (&mantissa2, int, ntohl);
 	/* Assemble them into a double */
-	value = ((mantissa2 / FLOAT_FACTOR) + mantissa2) / FLOAT_FACTOR;
+	value = ((mantissa2 / FLOAT_FACTOR) + mantissa1) / FLOAT_FACTOR;
 	value = ldexp (value, exp);
 	/* Put the double into the requested memory location. */
 	*(double*)d = value;
