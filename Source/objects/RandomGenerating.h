@@ -1,8 +1,8 @@
 /* Protocol for Objective-C objects that generate random bits
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -26,10 +26,7 @@
 
 #include <objects/stdobjects.h>
 
-@protocol RandomGenerating
-
-+ alloc;
-- init;
+@protocol RandomGenerating <NSObject, NSCoding>
 
 - (void) setRandomSeed: (long)seed;
 - (long) nextRandom;
