@@ -194,7 +194,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     {
       GSIArrayClear(_array);
       NSZoneFree([self zone], _array);
-      _array = 0;
+      _data = 0;
     }
   [super dealloc];
 }
@@ -402,7 +402,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	}
       else
 	{
-	  _array = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
+	  _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
 	  GSIArrayInitWithZoneAndCapacity(_array, [self zone], 1);
 	  GSIArrayAddItem(_array, (GSIArrayItem)aRange);
 	}
@@ -424,7 +424,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	{
 	  unsigned	i;
 
-	  _array = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
+	  _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
 	  GSIArrayInitWithZoneAndCapacity(_array, [self zone], count);
 	  for (i = 0; i < count; i++)
 	    {
@@ -551,7 +551,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 {
   if (_array == 0)
     {
-      _array = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
+      _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(_array, [self zone], 1);
     }
   if (GSIArrayCount(_array) == 0)
