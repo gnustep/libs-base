@@ -1,3 +1,9 @@
+2005-02-28  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSPropertyList.m (OAppend): Attempt to transform
+	description of non-proporty-list objects into property list
+	before recursing for OPENSTEP compatibility.
+	
 2005-02-27 13:20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m:
