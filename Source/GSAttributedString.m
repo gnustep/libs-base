@@ -303,11 +303,15 @@ _setAttributesFrom(
    */
   [_infoArray removeAllObjects];
 
-  if (aRange.length <= 0)
-    return;
-
-  attr = [attributedString attributesAtIndex: aRange.location
-			      effectiveRange: &range];
+  if (aRange.length == 0)
+    {
+      attr = [NSDictionary dictionary];
+    }
+  else
+    {
+      attr = [attributedString attributesAtIndex: aRange.location
+				  effectiveRange: &range];
+    }
   attr = cacheAttributes(attr);
   info = NEWINFO(z, attr, 0);
   ADDOBJECT(info);
@@ -447,9 +451,11 @@ _attributesAtIndexEffectiveRange(
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
     {
       NSAttributedString	*as = (NSAttributedString*)aString;
+      unsigned			len;
 
       aString = [as string];
-      _setAttributesFrom(as, NSMakeRange(0, [aString length]), _infoArray);
+      len = [aString length];
+      _setAttributesFrom(as, NSMakeRange(0, len), _infoArray);
     }
   else
     {
@@ -546,7 +552,6 @@ _attributesAtIndexEffectiveRange(
 
       aString = [as string];
       _setAttributesFrom(as, NSMakeRange(0, [aString length]), _infoArray);
-SANITY();
     }
   else
     {
@@ -565,6 +570,7 @@ SANITY();
     _textChars = [[NSMutableString allocWithZone: z] init];
   else
     _textChars = [aString mutableCopyWithZone: z];
+SANITY();
   return self;
 }
 
@@ -800,6 +806,7 @@ SANITY();
 
   moveLocations = [aString length] - range.length;
   if (effectiveRange.location == range.location
+    && effectiveRange.length == range.length
     && (moveLocations + range.length) == 0)
     {
       /*
@@ -812,7 +819,6 @@ SANITY();
       arraySize--;
     }
 
-SANITY();
   /*
    * Now adjust the positions of the ranges following the one we are using.
    */
@@ -822,7 +828,6 @@ SANITY();
       info->loc += moveLocations;
       arrayIndex++;
     }
-SANITY();
   [_textChars replaceCharactersInRange: range withString: aString];
 finish:
 SANITY();
