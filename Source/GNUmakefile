@@ -233,7 +233,6 @@ UnixFileHandle.h \
 ValueHolding.h \
 behavior.h \
 fake-main.h \
-mframe.h \
 numbers.h \
 ostream.h \
 o_array.h \
@@ -492,6 +491,7 @@ include/o_array.h \
 include/o_hash.h \
 include/o_list.h \
 include/o_map.h \
+$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h
 

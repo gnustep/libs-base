@@ -24,7 +24,7 @@
 #include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/fast.x>
-#include <gnustep/base/mframe.h>
+#include <mframe.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>

@@ -26,7 +26,7 @@
 #include <gnustep/base/fast.x>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/mframe.h>
+#include <mframe.h>
 
 NSString *
 NSStringFromSelector(SEL aSelector)
