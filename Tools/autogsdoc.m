@@ -678,40 +678,92 @@ main(int argc, char **argv, char **env)
       NSEnumerator	*enumerator;
       NSArray		*outputNames;
       NSMutableSet	*allPaths;
+      NSMutableSet	*templates = nil;
       NSSet		*preserve = nil;
       NSString		*path;
+      NSArray	*keys = [NSArray arrayWithObjects:
+	@"Constants",
+	@"Functions",
+	@"Macros",
+	@"Typedefs",
+	@"Variables",
+	nil];
+
+      /*
+       * Build a set of all template files.
+       */
+      templates = AUTORELEASE([NSMutableSet new]);
+      enumerator = [keys objectEnumerator];
+      while ((path = [enumerator nextObject]) != nil)
+	{
+	  path = [path stringByAppendingString: @"Template"];
+	  path = [defs stringForKey: path];
+	  if (path != nil)
+	    {
+	      path = [path stringByAppendingPathExtension: @"gsdoc"];
+	      if ([path isAbsolutePath] == NO)
+		{
+		  path = [documentationDirectory
+		    stringByAppendingPathComponent: path];
+		}
+	      [templates addObject: path];
+	    }
+	}
 
       /*
        * Unless we are supposed to clean templates, we preserve any
-       * template gsdoc files.
+       * template gsdoc files, but remove any generated content.
        */
       if ([defs boolForKey: @"CleanTemplates"] == NO)
 	{
-	  NSArray	*keys = [NSArray arrayWithObjects:
-	    @"ConstantsTemplate",
-	    @"FunctionsTemplate",
-	    @"MacrosTemplate",
-	    @"TypesTemplate",
-	    @"VariablesTemplate",
-	    nil];
-	  NSMutableSet	*s = [NSMutableSet new];
-	
-	  enumerator = [keys objectEnumerator];
+	  preserve = templates;
+	  enumerator = [templates objectEnumerator];
 	  while ((path = [enumerator nextObject]) != nil)
 	    {
-	      path = [defs stringForKey: path];
-	      if (path != nil)
+	      if ([mgr isReadableFileAtPath: path] == YES)
 		{
-		  path = [path stringByAppendingPathExtension: @"gsdoc"];
-		  if ([path isAbsolutePath] == NO)
+		  NSMutableString	*ms;
+		  NSEnumerator		*e = [keys objectEnumerator];
+		  NSString		*k;
+		  unsigned		length;
+
+		  ms = [[NSMutableString alloc] initWithContentsOfFile: path];
+		  if (ms == nil)
 		    {
-		      path = [documentationDirectory
-			stringByAppendingPathComponent: path];
+		      NSLog(@"Cleaning ... failed to read '%@'", path);
+		      continue;
 		    }
-		  [s addObject: path];
+		  length = [ms length];
+		  while ((k = [e nextObject]) != nil)
+		    {
+		      NSString	*ss;
+		      NSString	*es;
+		      NSRange	sr;
+		      NSRange	er;
+
+		      ss = [NSString stringWithFormat: @"<!--Start%@-->", k];
+		      sr = [ms rangeOfString: ss];
+		      es = [NSString stringWithFormat: @"<!--End%@-->", k];
+		      er = [ms rangeOfString: es];
+		      if (sr.length > 0 && er.length > 0
+			&& er.location > sr.location)
+			{
+			  NSRange	r;
+
+			  r.location = sr.location;
+			  r.length = NSMaxRange(er) - r.location;
+			  [ms replaceCharactersInRange: r withString: @""];
+			}
+		    }
+		  if ([ms length] != length)
+		    {
+		      if ([ms writeToFile: path atomically: YES] == NO)
+			{
+			  NSLog(@"Cleaning ... failed to write '%@'", path);
+			}
+		    }
 		}
 	    }
-	  preserve = AUTORELEASE(s);
 	}
 
       /*
@@ -720,7 +772,7 @@ main(int argc, char **argv, char **env)
        */
       output = [[projectRefs refs] objectForKey: @"output"];
       enumerator = [output objectEnumerator];
-      allPaths = [NSMutableSet new];
+      allPaths = [[NSMutableSet alloc] initWithSet: templates];
       while ((outputNames = [enumerator nextObject]) != nil)
 	{
 	  [allPaths addObjectsFromArray: outputNames];
@@ -756,9 +808,12 @@ main(int argc, char **argv, char **env)
       /*
        * Remove the project index file.
        */
-      if ([mgr removeFileAtPath: refsFile handler: nil] == NO)
+      if ([mgr fileExistsAtPath: refsFile] == YES)
 	{
-	  NSLog(@"Cleaning ... failed to remove %@", refsFile);
+	  if ([mgr removeFileAtPath: refsFile handler: nil] == NO)
+	    {
+	      NSLog(@"Cleaning ... failed to remove %@", refsFile);
+	    }
 	}
 
       /*
