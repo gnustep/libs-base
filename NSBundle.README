@@ -1,11 +1,6 @@
    
 NSBundle problems:
 
-   It requires a small but important change in the objc runtime (see 
-   gcc-dynamic.patch for info. It may be possible to work around this, but it
-   is hard.  I already submitted this to gcc-bug, but don't know the
-   status.
-
    It requires that the global variable NSArgv be defined and set to the
    value of argv in main() in order to find the executable location.
 
