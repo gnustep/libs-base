@@ -8,6 +8,8 @@
 	has now implemented an equivalent for the GNUstep method.
 	* Source/NSPortNameServer.m: When removing a port, remove from
 	internal name tables even if gdomap reports no name to unregister.
+	In ([-removePort:]) retain set of names for duration of operation -
+	fix suggested by Gerrit Van Dyk
 
 2001-11-12  Richard Frith-Macdonald <rfm@gnu.org>
 
