@@ -1,3 +1,8 @@
+2005-01-08  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSCalendarDate.m: fix time zone for %z format with 
+	only 2 digits in -initWithString:calendarFormat:locale:	
+
 2005-01-07  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSTimeZone.m (+abbreviationDictionary): Retain	dictionary

@@ -1103,11 +1103,11 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  if (found > 0)
 		    {
 		      sourceIdx += found;
+		      zone = atoi(tmpStr);
 		      if (found == 2)
 			{
 			  zone *= 100;	// Convert 2 digits to 4
 			}
-		      zone = atoi(tmpStr);
 		      tz = [NSTimeZone timeZoneForSecondsFromGMT: 
 			sign * ((zone / 100) * 60 + (zone % 100)) * 60];
 		    }
