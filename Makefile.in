@@ -353,7 +353,7 @@ INSTALL: install.texi version.texi
 README: readme.texi version.texi
 	$(MAKEINFO) -o README -D README_ONLY \
 	--no-header --no-split $(srcdir)/readme.texi
-ANNOUNCE: announce.texi version.texi
+ANNOUNCE: announce.texi version.texi news.texi
 	$(MAKEINFO) -o ANNOUNCE -D ANNOUNCE_ONLY \
 	--no-header --no-split $(srcdir)/announce.texi
 NEWS: news.texi version.texi
