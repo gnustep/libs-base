@@ -94,7 +94,7 @@
 - (unsigned) parsePreprocessor;
 - (NSMutableDictionary*) parseProtocol;
 - (NSMutableArray*) parseProtocolList;
-- (unsigned) parseSpace: (NSCharacterSet*)spaces;
+- (unsigned) parseSpace: (NSCharacterSet*)spaceSet;
 - (unsigned) parseSpace;
 - (void) reset;
 - (void) setDeclared: (NSString*)name;

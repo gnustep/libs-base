@@ -78,6 +78,9 @@ autogsdoc_AGSDOC_FILES = autogsdoc.m \
 	AGSParser.h AGSOutput.h AGSIndex.h AGSHtml.h
 autogsdoc_DOC_INSTALL_DIR = Developer/Tools
 
+# Use local version of autogsdoc in case it is not installed
+AUTOGSDOC=./obj/autogsdoc
+
 SOURCES = gdomap.c gdnc.m defaults.m dread.m dremove.m dwrite.m \
 	autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
 
@@ -95,7 +98,7 @@ include $(GNUSTEP_MAKEFILES)/tool.make
 include $(GNUSTEP_MAKEFILES)/ctool.make
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 
-ifeq ($(doc),yes)
+ifeq ($(GNUSTEP_BASE_HAVE_LIBXML),1)
 include $(GNUSTEP_MAKEFILES)/documentation.make
 endif
 
