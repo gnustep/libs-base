@@ -167,12 +167,6 @@ It is known not to work with:
   alpha-dec-osf
 @end smallexample
 
-@section Now and Future
-
-The current version is @value{OBJECTS_VERSION} the low number indicates
-that the library is still in flux.  A version coming soon will include
-String objects and better allocation/deallocation conventions.
-
 @section GNUStep
 
 The @samp{libobjects} library already contains many of the GNUStep
