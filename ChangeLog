@@ -1,3 +1,12 @@
+2004-03-07  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Add HAVE_DLADDR define
+	* Source/simple-load.h (__objc_dynamic_get_symbol_path): Readd
+	ifdefs for dladdr.
+
+	* Tools/defaults.m: Exit with non-zero status when command is not
+	successful.
+	
 Sat Mar  6 13:54:28 2004  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* SSL/GNUmakefile: Include common.make before everything else so
