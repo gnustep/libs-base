@@ -164,6 +164,7 @@ NSAutoreleasePool.m \
 NSBundle.m \
 NSCoder.m \
 NSCopyObject.m \
+NSConcreteArray.m \
 NSConcreteValue.m \
 NSCString.m \
 NSDeallocateObject.m \
@@ -305,8 +306,9 @@ foundation/NSAutoreleasePool.h \
 foundation/NSBundle.h \
 foundation/NSCString.h \
 foundation/NSCoder.h \
-foundation/NSConcreteValue.h \
+foundation/NSConcreteArray.h \
 foundation/NSConcreteNumber.h \
+foundation/NSConcreteValue.h \
 foundation/NSDictionary.h \
 foundation/NSException.h \
 foundation/NSGeometry.h \
