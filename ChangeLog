@@ -2,6 +2,11 @@ Wed Mar  11 17:11:23 1998  Adam Fedor  <fedor@doc.com>
 
 	* Version: Version 0.5.0;
 
+Wed Mar 11 11:02:49 1998  Scott Christley  <scottc@net-community.com>
+
+	* doc/gnustep-howto.tmpl.texi: Update.
+	* GNUstep-HOWTO: Regenerate.
+
 Tue Mar 10  9:40:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* Tools/gdomap.c: Changes to permit configuration of gdomap so that

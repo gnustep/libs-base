@@ -3,12 +3,12 @@ Installation
 
    GNUstep-HOWTO
 
-   Last Update: 2 March 1998
+   Last Update: 11 March 1998
 
    This document explains how to build the different components
    of GNUstep.
 
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996 - 1998 Free Software Foundation, Inc.
 
    Authors:  Pascal Forget <pascal@wsc.com>,
              Ovidiu Predescu <ovidiu@net-community.com>,
@@ -22,14 +22,15 @@ Introduction
 This document explains how to build the GNUstep project along with all
 the tools required to develop applications with it.
 
-In order to easily compile and debug GNUstep projects, you will need a
-modified version of the GNU C compiler gcc and of the GNU debugger gdb.
+In order to easily compile and debug GNUstep projects, you will need the
+latest GNU ObjC compiler `GCC' and a modified version of the GNU
+debugger `GDB'.
 
 You will need at least 80Mb of hard disk space in order to compile the
 GNUstep project.  Luckily, you can delete the object files and the
 uncompressed source code after each piece of the project has been
 successfully built and installed in order to save some space.  The
-biggest offender is the gcc compiler, which eats up 50Mb of hard disk
+biggest offender is the GCC compiler, which eats up 50Mb of hard disk
 space while it compiles.
 
 Summary
@@ -37,27 +38,28 @@ Summary
 
 Currently, you pretty much need to get and install the latest versions
 of the following packages:
-     gcc or egcs
-     gdb and patch to make it work with better Objective-C
+     GCC or egcs
+     GDB and patch to make it work with better Objective-C
      GNU make
-     tiff library
+     TIFF library
      DGS or Adobe DPS
-     gstep-make
-     gstep-base or libFoundation
-     gstep-gui
-     gstep-xpds
-     FoundationExt.
+     gstep-core which is composed of the individual packages:
+       gstep-make
+       gstep-base or libFoundation
+       gstep-gui
+       gstep-xdps
+       FoundationExt
 
 Getting the files
 =================
 
 Most of the files needed by GNUstep are available from the following ftp
-sites. Except for gcc, gdb, make and libtiff, alpha.gnu.org and
+sites. Except for GCC, GDB, GNU make and TIFF, alpha.gnu.org and
 ftp.gnustep.org should contain the latest versions of all the required
 packages.
 
 `ftp://ftp.gnu.org/pub/gnu'
-     gcc, gdb, and other GNU tools, and GNUstep public releases
+     GCC, GDB, and other GNU tools, and GNUstep public releases
 
 `ftp://ftp.sgi.com/graphics/tiff'
      TIFF library
@@ -75,7 +77,7 @@ version, in order to compile GNUstep.
        ftp://ftp.gnu.org/pub/gnu or from other GNU mirror sites.
        You can also use egcs-1.0.1.tar.gz, from ftp://ftp.cygnus.com/pub/egcs
      
-     gdb-4.16.tar.gz (The gdb debugger)
+     gdb-4.16.tar.gz (The GDB debugger)
      make-3.75.tar.gz (You need GNU make to compile GNUstep).
        ftp://ftp.gnu.org/pub/gnu or from other GNU mirror sites.
      
@@ -163,28 +165,41 @@ Compiling GCC
 -------------
 
 The following commands assume that all the aforementioned files have
-been copied to the /usr/src directory on your machine.
+been copied to the /usr/src directory on your machine.  If you already
+have GCC 2.8.0 installed on your system then there is no need to compile
+it again, just set up your PATH so that the new GCC is used for
+compiling GNUstep.
 
-1. Uncompress gcc:
+Special note for Solaris users.  GNUstep works on Solaris/Intel systems;
+however, GCC 2.8.0 has problems, so you must use the older patched GCC
+2.7.2 instead.  GCC 2.8.0 has also induced a problem on Solaris/Sparc
+systems; however, there is a patch to fix this in the contrib directory
+on the ftp sites.
+
+1. Uncompress GCC:
        cd /usr/src
        tar fvxz gcc-2.8.0.tar.gz
 
-2. Configure the gcc compiler's makefile for your machine:
+2. Configure the GCC compiler's makefile for your machine:
        ./configure
 
-     If you are using the GNUstep makefile package and wish gcc to be
-     installed with the GNUstep directory structure; then you should
-     specify the   GNUstep system root as the prefix when you configure
-     the package.
+     If you are using the GNUstep makefile package and wish GCC to be
+     installed within the GNUstep directory structure; then you should
+     specify the GNUstep system root as the prefix when you configure
+     the package.  This setup requires that you compile and install the
+     GNUstep Makefile Package before configuring GCC.
+
+       ./configure --prefix=$GNUSTEP_SYSTEM_ROOT
 
      To enable multiple threads in the Objective-C library use the
-     -ENABLE-THREADS=LIB argument to configure, where LIB is the
-     thread library to use or -DISABLE-THREADS   to use a
-     single-threaded Objective-C runtime.
+     --ENABLE-THREADS=LIB argument to configure, where LIB is the
+     thread library to use or --DISABLE-THREADS to use a
+     single-threaded Objective-C runtime.  If your system has a native
+     threads library, like Solaris or SGI, then the --ENABLE-THREADS
+     parameter without the LIB specification will use that native
+     threads library.
 
-     ./configure --prefix=$GNUSTEP_SYSTEM_ROOT
-
-4. Compile gcc
+4. Compile GCC
      make bootstrap
 
 5. Wait
@@ -194,11 +209,11 @@ been copied to the /usr/src directory on your machine.
        If you have a 486, go watch the news.
        If you have a 386, come back tomorrow.
 
-6. Install gcc
+6. Install GCC
        su root
        make install
 
-7. Delete the gcc directory if you're low on disk space
+7. Delete the GCC directory if you're low on disk space
        rm -rf /usr/src/gcc-2.8.0
 
 Patching and Compiling GDB
@@ -211,28 +226,29 @@ Uncompress GDB, and patch it:
        cd gdb-4.16
        patch -p1 < ../gdb-4.16-objc-971112.diff
 
-Configure, compile and install gdb:
+Configure, compile and install GDB:
        cd /usr/src/gdb-4.16
        ./configure
        make
        su root
        make install
 
-     If you are using the GNUstep makefile package and wish gdb to be
+     If you are using the GNUstep makefile package and wish GDB to be
      installed with the GNUstep directory structure; then you should
-     specify the   GNUstep system root as the prefix when you configure
-     the package.
+     specify the GNUstep system root as the prefix when you configure
+     the package.  This setup requires that you compile and install the
+     GNUstep Makefile Package before configuring GCC.
 
        ./configure --prefix=$GNUSTEP_SYSTEM_ROOT
 
-4. Make sure gdb is where you think it is
-     On Linux/GNU, gdb should be installed in /usr/bin, whereas   on
-     other systems, the default installation path is   usually
-     /usr/local/bin.  If you have a Linux/GNU box,   you can do this:
+4. Make sure GDB is where you think it is
+     On Linux/GNU, GDB should be installed in /usr/bin, whereas on other
+     systems, the default installation path is usually /usr/local/bin.
+     If you have a Linux/GNU box, you can do this:
 
        ln -s /usr/local/bin/gdb /usr/bin/gdb
 
-     Note that this is only a suggestion, you are free to do   whatever
+     Note that this is only a suggestion, you are free to do whatever
      you want.
 
 Installing the GNUstep libraries
@@ -252,11 +268,11 @@ argument to configure. If you don't choose a location, the default is
 /usr/GNUstep.  The example below shows how to configure the packages
 for installation in /usr/local/GNUstep.
 
-If you don't have libtiff or DPS, first make and install the Makefile
-package, the TIFF library and DGS, as shown in the following three
-sections.
+If you don't have the TIFF library or DPS, first make and install the
+Makefile package, the TIFF library and DGS, as shown in the following
+three sections.
 
-After you have libtiff and DPS/DGS installed, make the core libraries:
+After you have TIFF and DPS/DGS installed, make the core libraries:
 
      tar fvxz gstep-core-XXXXX.tar.gz
      cd gstep-core-XXXX
@@ -305,18 +321,18 @@ change the `GNUstep.sh' script so it will work with csh. Read the
 `README' for more info.
 
 GNUstep packages will automatically install in this directory
-structure. You can install other packages (such as gcc) in the same
+structure. You can install other packages (such as GCC) in the same
 structure if you specify the GNUstep system root as the prefix when you
 configure the package.
 
      ./configure --prefix=$GNUSTEP_SYSTEM_ROOT
 
-Compiling libtiff
------------------
+Compiling the TIFF library
+--------------------------
 
-You don't need a customized version of libtiff, or necessarily even the
-newest one, but the customized version located at the GNUstep ftp sites
-will install in the GNUstep directory structure.
+You don't need a customized version of the TIFF library, or necessarily
+even the newest one, but the customized version located at the GNUstep
+ftp sites will install in the GNUstep directory structure.
 
        cd /usr/src
        tar fvxz tiff-XXXXX.tar.gz
@@ -334,7 +350,7 @@ you don't necessarily need DGS. Linux/GNU michines need DGS.  You can
 also read the file DGS-HOWTO located at the ftp machines listed above.
 
        tar fvxz dgs-XXXXXX.tar.gz
-       cd dgs-XXXXXX
+       cd dgs-XXXXXX/dgs
        ./configure
        make
        su root
