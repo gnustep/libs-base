@@ -382,6 +382,13 @@ gnustep_base_thread_callback(void)
       [gnustep_global_lock lock];
       if (entered_multi_threaded_state == NO)
 	{
+	  /*
+	   * For apple compatibility ... and to make things easier for
+	   * code called indirectly within a will-become-multi-threaded
+	   * notification handler, we set the flag to say we are multi
+	   * threaded BEFORE sending the notifications.
+	   */
+	  entered_multi_threaded_state = YES;
 	  NS_DURING
 	    {
 	      [GSPerformHolder class];	// Force initialization
@@ -408,7 +415,6 @@ gnustep_base_thread_callback(void)
 	      fflush(stderr);
 	    }
 	  NS_ENDHANDLER
-	  entered_multi_threaded_state = YES;
 	}
       [gnustep_global_lock unlock];
     }

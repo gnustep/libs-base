@@ -3,6 +3,9 @@
 	* Source/Additions/GSCategories.m:
 	* Source/Additions/GSMime.m: New uuencode/uudecode moved from
 	GSMime to a category of NSData and renamed.
+	* Source/NSThread.m: Set flag to saay we are multithreaded before
+	we send out the notifications.  Fixes bug in lazy locking and is
+	more compatible with macos-x
 
 Fri Mar 12 13:35:25 2004  Nicola Pero  <n.pero@mi.flashnet.it>
 
