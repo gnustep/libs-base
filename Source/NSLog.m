@@ -284,6 +284,7 @@ NSLogv (NSString* format, va_list args)
  * <p>This function is recommended for printing general log messages.
  * For debug messages use NSDebugLog() and friends.  For error logging
  * use NSLog(), and for warnings you might consider NSWarnLog().
+ * </p>
  */
 BOOL 
 GSPrintf (FILE *fptr, NSString* format, ...)

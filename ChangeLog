@@ -7,6 +7,16 @@
 	* Tools/plmerge.m: ditto
 	* Tools/plparse.m: ditto
 	* Tools/sfparse.m: ditto
+	* Documentation/Base.gsdoc: Bump gsdoc version to 1.0.0
+	* Documentation/Functions.gsdoc: ditto
+	* Documentation/TypesAndConstants.gsdoc: ditto
+	* Source/NSLog.m: Fix typo in comment.
+	* Tools/AGSOutput.m: Bump gsdoc version to 1.0.0
+	* Tools/GNUmakefile: Add gsdoc 1.0.0 dtd
+	* Tools/autogsdoc.m: Bump gsdoc version to 1.0.0
+	* Tools/gsdoc-0_6_7.dtd: Revert to earlier version
+	* Tools/gsdoc-1_0_0.dtd: New from latest update to 0.6.7
+	I think the documentation dtd is pretty complete now.
 
 2002-10-09  Richard Frith-Macdonald <rfm@gnu.org>
 
