@@ -144,7 +144,8 @@ pathSeps()
       myPathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
 #endif
       RETAIN(myPathSeps);
-      sepMember = [myPathSeps methodForSelector: @selector(characterIsMember:)];
+      sepMember = (BOOL (*)(NSCharacterSet*, SEL, unichar))
+	[myPathSeps methodForSelector: @selector(characterIsMember:)];
     }
   return myPathSeps;
 }

@@ -1012,21 +1012,18 @@ static NSNotificationCenter *default_center = nil;
 	   * Post the notification to all the observers that specified neither
 	   * NAME nor OBJECT.
 	   */
-	  if (o != ENDOBS)
+	  for (o = WILDCARD; o != ENDOBS; o = o->next)
 	    {
-	      for (o = WILDCARD; o != ENDOBS; o = o->next)
-		{
-		  GSIArrayAddItem(a, (GSIArrayItem)o);
-		}
-	      count = GSIArrayCount(a);
-	      while (count-- > arrayBase)
-		{
-		  o = GSIArrayItemAtIndex(a, count).ext;
-		  if (o->next != 0) 
-		    (*o->method)(o->observer, o->selector, notification);
-		}
-	      GSIArrayRemoveItemsFromIndex(a, arrayBase);
+	      GSIArrayAddItem(a, (GSIArrayItem)o);
 	    }
+	  count = GSIArrayCount(a);
+	  while (count-- > arrayBase)
+	    {
+	      o = GSIArrayItemAtIndex(a, count).ext;
+	      if (o->next != 0) 
+		(*o->method)(o->observer, o->selector, notification);
+	    }
+	  GSIArrayRemoveItemsFromIndex(a, arrayBase);
 
 	  /*
 	   * Post the notification to all the observers that specified OBJECT,
