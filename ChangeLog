@@ -2,8 +2,8 @@
 
 	* Source/NSObject.m: Change NSDecrementExtraRefCountWasZero() to
 	refrain from decrementing when the count is zero.  Documented
-	the retain/release/retainCopunt methods.
-	* headers/Foundation/NSObject.h: Documented extra ref count functions.
+	the retain/release/retainCount methods (and others).
+	* Headers/Foundation/NSObject.h: Documented extra ref count functions.
 
 2002-05-28  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -758,31 +758,51 @@ static BOOL double_release_check_enabled = NO;
   return;
 }
 
+/**
+ * Simply calls the +allocWithZone: method passing it
+ * NSDefaultMallocZone() as an argument.
+ */
 + (id) alloc
 {
   return [self allocWithZone: NSDefaultMallocZone()];
 }
 
+/**
+ * Creates a new instance of a class by calling NSAllocateObject()
+ */
 + (id) allocWithZone: (NSZone*)z
 {
   return NSAllocateObject (self, 0, z);
 }
 
+/**
+ * Returns the receiver.
+ */
 + (id) copyWithZone: (NSZone*)z
 {
   return self;
 }
 
+/**
+ * Creates and returns a new instance by calling +alloc and -init
+ */
 + (id) new
 {
   return [[self alloc] init];
 }
 
+/**
+ * Creates and returns a copy of the reciever by calling -copyWithZone:
+ * passing NSDefaultMallocZone()
+ */
 - (id) copy
 {
-  return [(id)self copyWithZone: NULL];
+  return [(id)self copyWithZone: NSDefaultMallocZone()];
 }
 
+/**
+ * Deallocates the receiver by calling NSDeallocateObject()
+ */
 - (void) dealloc
 {
   NSDeallocateObject (self);
@@ -795,26 +815,46 @@ static BOOL double_release_check_enabled = NO;
   return nil;
 }
 
+/**
+ * Initialises the receiver ... the NSObject implementation simply returns self.
+ */
 - (id) init
 {
   return self;
 }
 
+/**
+ * Creates and rturns a mutable copy of the receiver by calling
+ * -mutableCopyWithZone: passing NSDefaultMallocZone().
+ */
 - (id) mutableCopy
 {
-  return [(id)self mutableCopyWithZone: NULL];
+  return [(id)self mutableCopyWithZone: NSDefaultMallocZone()];
 }
 
+/**
+ * Returns the super class from which the recevier was derived.
+ */
 + (Class) superclass
 {
   return class_get_super_class (self);
 }
 
+/**
+ * Returns the super class from which the receviers class was derived.
+ */
 - (Class) superclass
 {
   return object_get_super_class (self);
 }
 
+/**
+ * Returns a flag to say if instances of the receiver class will
+ * respond to the specified selector.  This ignores situations
+ * where a subclass implements -forwardInvocation: to respond to
+ * selectors not normally handled ... in these cases the subclass
+ * may override this method to handle it.
+ */
 + (BOOL) instancesRespondToSelector: (SEL)aSelector
 {
 #if 0
@@ -824,6 +864,9 @@ static BOOL double_release_check_enabled = NO;
 #endif
 }
 
+/**
+ * Returns a flag to say whether the receiving class conforms to aProtocol
+ */
 + (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
   struct objc_protocol_list* proto_list;
@@ -853,9 +896,13 @@ static BOOL double_release_check_enabled = NO;
     }
 }
 
+/**
+ * Returns a flag to say whether the class of the receiver conforms
+ * to aProtocol.
+ */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-  return [[self class] conformsToProtocol:aProtocol];
+  return [[self class] conformsToProtocol: aProtocol];
 }
 
 + (IMP) instanceMethodForSelector: (SEL)aSelector
@@ -866,6 +913,10 @@ static BOOL double_release_check_enabled = NO;
   return get_imp((Class)self, aSelector);
 }
 
+/**
+ * Returns a pointer to the C function implementing the method used
+ * to respond to messages with aSelector.
+ */
 - (IMP) methodForSelector: (SEL)aSelector
 {
   /*
@@ -877,6 +928,11 @@ static BOOL double_release_check_enabled = NO;
   return get_imp(GSObjCClass(self), aSelector);
 }
 
+/**
+ * Returns a pointer to the C function implementing the method used
+ * to respond to messages with aSelector whihc are sent to instances
+ * of the receiving class.
+ */
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
 {
   struct objc_method* mth = class_get_instance_method(self, aSelector);
@@ -884,6 +940,10 @@ static BOOL double_release_check_enabled = NO;
     : nil;
 }
   
+/**
+ * Returns the method signature describing how the receiver would handle
+ * a message with aSelector.
+ */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
   const char	*types;
@@ -915,17 +975,29 @@ static BOOL double_release_check_enabled = NO;
   return [NSMethodSignature signatureWithObjCTypes: types];
 }
 
+/**
+ * Returns a string describing the receiver.  The default implementation
+ * gives the class and memory location of the rceiver.
+ */
 - (NSString*) description
 {
   return [NSString stringWithFormat: @"<%s: %lx>",
     object_get_class_name(self), (unsigned long)self];
 }
 
+/**
+ * Returns a string describing the receiving class.  The default implementation
+ * gives the name of the class by calling NSStringFromClass().
+ */
 + (NSString*) description
 {
-  return [NSString stringWithCString: object_get_class_name(self)];
+  return NSStringFromClass(self);
 }
 
+/**
+ * Sets up the ObjC runtime so that the receiver is used wherever code
+ * calls for aClassObject to be used.
+ */
 + (void) poseAsClass: (Class)aClassObject
 {
   class_pose_as(self, aClassObject);
@@ -935,31 +1007,45 @@ static BOOL double_release_check_enabled = NO;
    */
 }
 
+/**
+ * Raises an invalid argument exception providing infomration about
+ * the receivers inability to handle aSelector.
+ */
 - (void) doesNotRecognizeSelector: (SEL)aSelector
 {
   [NSException raise: NSInvalidArgumentException
-	       format: @"%s(%s) does not recognize %s",
+	      format: @"%s(%s) does not recognize %s",
 	       object_get_class_name(self), 
 	       GSObjCIsInstance(self) ? "instance" : "class",
 	       sel_get_name(aSelector)];
 }
 
-- (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
+- (retval_t) forward: (SEL)aSel : (arglist_t)argFrame
 {
   NSInvocation *inv;
 
   inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
-				       selector: aSel]);
-  [self forwardInvocation:inv];
+						  selector: aSel]);
+  [self forwardInvocation: inv];
   return [inv returnFrame: argFrame];
 }
 
+/**
+ * This method is called automatically to handle a message sent to
+ * the receiver for which the receivers class has no method.<br />
+ * The default implemnentation calls -doesNotRecognizeSelector:
+ */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
-  [self doesNotRecognizeSelector:[anInvocation selector]];
+  [self doesNotRecognizeSelector: [anInvocation selector]];
   return;
 }
 
+/**
+ * Called after the receiver has been created by decoding some sort
+ * of archive.  Returns self.  Subclasses may override this to perform
+ * some special initialisation upon being decoded.
+ */
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder
 {
   return self;
@@ -1024,6 +1110,11 @@ static BOOL double_release_check_enabled = NO;
 
 /* NSObject protocol */
 
+/**
+ * Adds the receiver to the current autorelease pool, so that it will be
+ * sent a -release message when the pool is destroyed.<br />
+ * Returns the receiver.
+ */
 - (id) autorelease
 {
 #if	GS_WITH_GC == 0
@@ -1044,31 +1135,57 @@ static BOOL double_release_check_enabled = NO;
   return self;
 }
 
+/**
+ * Dummy method returning the receiver.
+ */
 + (id) autorelease
 {
   return self;
 }
 
+/**
+ * Returns the receiver.
+ */
 + (Class) class
 {
   return self;
 }
 
+/**
+ * returns the class of which the receiver is an instance.
+ */
 - (Class) class
 {
   return object_get_class(self);
 }
 
+/**
+ * Returns the hash of the receiver.  Subclasses should ensure that their
+ * implementations of this method obey the rule that if the -isEqual: method
+ * returns YES for two instances of the class, the -hash method returns the
+ * same value fro both instances.<br />
+ * The default implementation returns the address of the instance.
+ */
 - (unsigned) hash
 {
   return (unsigned)self;
 }
 
+/**
+ * Tests anObject and the receiver for equality.  The default implementation
+ * considers two objects to be equal only if they are the same object
+ * (ie occupy the same memory location).<br />
+ * If a subclass overrides this method, it should also override the -hash
+ * method so that if two objects are equal they both have the same hash.
+ */
 - (BOOL) isEqual: (id)anObject
 {
   return (self == anObject);
 }
 
+/**
+ * Returns YES if aClass is the NSObject class
+ */
 + (BOOL) isKindOfClass: (Class)aClass
 {
   if (aClass == [NSObject class])
@@ -1076,6 +1193,10 @@ static BOOL double_release_check_enabled = NO;
   return NO;
 }
 
+/**
+ * Returns YES if the class of the receiver is either the same as aClass
+ * or is derived from (a subclass of) aClass.
+ */
 - (BOOL) isKindOfClass: (Class)aClass
 {
   Class class = GSObjCClass(self);
@@ -1083,21 +1204,38 @@ static BOOL double_release_check_enabled = NO;
   return GSObjCIsKindOf(class, aClass);
 }
 
+/**
+ * Returns YES if aClass is the same as the receiving class.
+ */
 + (BOOL) isMemberOfClass: (Class)aClass
 {
   return (self == aClass) ? YES : NO;
 }
 
+/**
+ * Returns YES if the class of the receiver is aClass
+ */
 - (BOOL) isMemberOfClass: (Class)aClass
 {
   return (GSObjCClass(self) == aClass) ? YES : NO;
 }
 
+/**
+ * Returns a flag to differnetiate between 'true' objects, and objects
+ * which are proxies for other objects (ie they forward messages to the
+ * other objects).<br />
+ * The default implementation returns NO.
+ */
 - (BOOL) isProxy
 {
   return NO;
 }
 
+/**
+ * Causes the receiver to execute the method implementation corresponding
+ * to aSelector and returns the result.<br />
+ * The method must be one which takes no arguments and returns an object.
+ */
 - (id) performSelector: (SEL)aSelector
 {
   IMP msg;
@@ -1119,6 +1257,11 @@ static BOOL double_release_check_enabled = NO;
   return (*msg)(self, aSelector);
 }
 
+/**
+ * Causes the receiver to execute the method implementation corresponding
+ * to aSelector and returns the result.<br />
+ * The method must be one which takes one argument and returns an object.
+ */
 - (id) performSelector: (SEL)aSelector withObject: (id) anObject
 {
   IMP msg;
@@ -1141,6 +1284,11 @@ static BOOL double_release_check_enabled = NO;
   return (*msg)(self, aSelector, anObject);
 }
 
+/**
+ * Causes the receiver to execute the method implementation corresponding
+ * to aSelector and returns the result.<br />
+ * The method must be one which takes two arguments and returns an object.
+ */
 - (id) performSelector: (SEL)aSelector
 	    withObject: (id) object1
 	    withObject: (id) object2
@@ -1204,6 +1352,13 @@ static BOOL double_release_check_enabled = NO;
   return;
 }
 
+/**
+ * Returns a flag to say if the receiver will
+ * respond to the specified selector.  This ignores situations
+ * where a subclass implements -forwardInvocation: to respond to
+ * selectors not normally handled ... in these cases the subclass
+ * may override this method to handle it.
+ */
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
   return __objc_responds_to(self, aSelector);
@@ -1256,31 +1411,53 @@ static BOOL double_release_check_enabled = NO;
   return UINT_MAX;
 }
 
+/**
+ * Returns the reciever.
+ */
 - (id) self
 {
   return self;
 }
 
+/**
+ * Returns the memory allocation zone in which the receiver is located.
+ */
 - (NSZone*) zone
 {
   return GSObjCZone(self);
 }
 
+/**
+ * Called to encode the instance variables of the receiver to aCoder.<br />
+ * Subclasses should call the superclass method at the start of their
+ * own implementation.
+ */
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   return;
 }
 
+/**
+ * Called to intialise instance variables of the receiver from aDecoder.<br />
+ * Subclasses should call the superclass method at the start of their
+ * own implementation.
+ */
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
   return self;
 }
 
+/**
+ * Returns the version number of the receiving class.
+ */
 + (int) version
 {
   return class_get_version(self);
 }
 
+/**
+ * Sets the version number of the receiving class.
+ */
 + (id) setVersion: (int)aVersion
 {
   if (aVersion < 0)
@@ -1298,7 +1475,7 @@ static BOOL double_release_check_enabled = NO;
 
 /* NEXTSTEP Object class compatibility */
 
-- error: (const char *)aString, ...
+- (id) error: (const char *)aString, ...
 {
 #define FMT "error: %s (%s)\n%s\n"
   char fmt[(strlen((char*)FMT)+strlen((char*)object_get_class_name(self))
@@ -1316,10 +1493,12 @@ static BOOL double_release_check_enabled = NO;
 #undef FMT
 }
 
+/*
 - (const char *) name
 {
   return object_get_class_name(self);
 }
+*/
 
 - (BOOL) isKindOf: (Class)aClassObject
 {
@@ -1419,22 +1598,39 @@ static BOOL double_release_check_enabled = NO;
 
 /* GNU Object class compatibility */
 
+/**
+ * Called to change the class used for autoreleasing objects.
+ */
 + (void) setAutoreleaseClass: (Class)aClass
 {
   autorelease_class = aClass;
   autorelease_imp = [self instanceMethodForSelector: autorelease_sel];
 }
 
+/**
+ * returns the class used to autorelease objects.
+ */
 + (Class) autoreleaseClass
 {
   return autorelease_class;
 }
 
+/**
+ * Enables runtime checking of retain/release/autorelease operations.<br />
+ * Whenever either -autorelease or -release is called, the contents of any
+ * autorelease pools will be checked to see if there are more outstanding
+ * release operations than the objects retain count.  In which case an
+ * exception is raised to say that the object is released too many times.
+ */
 + (void) enableDoubleReleaseCheck: (BOOL)enable
 {
   double_release_check_enabled = enable;
 }
 
+/**
+ * Compare the receiver with anObject to see which is greater.
+ * The default implementation orders by memory location.
+ */
 - (int) compare: (id)anObject
 {
   if (anObject == self)
@@ -1502,11 +1698,21 @@ static BOOL double_release_check_enabled = NO;
     [(id)self descriptionWithLocale: aLocale indent: level]];
 }
 
+/**
+ * Returns a flag to say whether dealloc notifications should be done.<br />
+ * See the -setDeallocNotificationsActive: method.
+ */
 - (BOOL) deallocNotificationsActive
 {
   return deallocNotifications;
 }
 
+/**
+ * Sets a flag to indicate whether dealloc notifications should be done.<br />
+ * If this flag is set, when an object is to be deallocated the -_dealloc
+ * method will be called first to notify the object that it is about to be
+ * deallocated.
+ */
 - (void) setDeallocNotificationsActive: (BOOL)flag
 {
   deallocNotifications = flag;
