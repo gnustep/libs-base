@@ -104,6 +104,7 @@ BaseAdditions_AGSDOC_FILES = \
 GSCategories.h \
 GSIArray.h \
 GSIMap.h \
+GSLock.h \
 GSMime.h \
 GSObjCRuntime.h \
 GSUnion.h \

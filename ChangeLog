@@ -1,3 +1,8 @@
+Mon Oct 27 13:24:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GNUmakefile: build new lock classes
+	* Source/DocMakefile: document new lock classes.
+
 Sun Oct 26 14:45:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSLock.m: New lazy locking classes as discussed
