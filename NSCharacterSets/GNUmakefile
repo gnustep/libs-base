@@ -40,6 +40,7 @@ decomposableCharSet.dat \
 illegalCharSet.dat \
 lettercharCharSet.dat \
 nonbaseCharSet.dat \
+punctuationCharSet.dat \
 uppercaseCharSet.dat \
 whitespaceCharSet.dat \
 whitespaceandnlCharSet.dat
