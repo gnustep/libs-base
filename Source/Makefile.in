@@ -512,10 +512,13 @@ gnustep/base:
 	ln -s . gnustep
 	ln -s ./include base
 	# Make necessary links to source headers if compiling in seperate dir
+	# These are separate directories because one contains the .h files
+	# generated during the build; the other contains the unchanged sources.
 	if [ ! -r ./include/Collection.h ]; then \
 	  mkdir srcdir-include; \
-	  ln -s ../$(srcdir)/include ./srcdir-include/base; \
-	  (cd srcdir-include; ln -s . gnustep); \
+	  mkdir srcdir-include/gnustep; \
+	  ln -s $(srcdir)/include ./srcdir-include/gnustep/base; \
+	  ln -s $(srcdir)/include ./srcdir-include/Foundation; \
 	fi
 # This deletion is necessary, because the CVS repository contains
 # an emtpy `Foundation' directory that used to hold the OpenStep headers.
