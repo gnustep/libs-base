@@ -205,3 +205,7 @@ GetDefEncoding.m
 Unicode.m
 NSGSequence.m
 NSGString.m
+
+
+Mike Kienenberger:
+NSProtocolChecker.m

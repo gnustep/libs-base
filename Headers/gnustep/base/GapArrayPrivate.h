@@ -61,7 +61,7 @@ gapMoveGapTo (GapArray* self, unsigned index)
     {
 #ifndef STABLE_MEMCPY
       for(i = self->_gap_start; i != index; i++)
-	self->_contents_array[i] = self->_contents_array[i - self->_gap_size];
+	self->_contents_array[i] = self->_contents_array[i + self->_gap_size];
 #else
       memcpy (self->_contents_array + self->_gap_start,
 	      self->_contents_array + self->_gap_start + self->_gap_size,
