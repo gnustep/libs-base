@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
   int j,k;
   foo f = {99, "cow", 9876543};
   foo f2;
+  small_struct ss;
   foo *fp;
   const char *n;
   int a3[3] = {66,77,88};
@@ -99,10 +100,17 @@ int main(int argc, char *argv[])
   [p sendSmallStruct:small];
   [p sendStructArray:ma];
 #if 1
-  /* returning structures isn't working yet. */
   f2 = [p returnStruct];
   printf(">>returned foo: i=%d s=%s l=%lu\n",
 	 f2.i, f2.s, f2.l);
+  ss = [p returnSmallStruct];
+  printf(">>returned ss: %d\n", ss.z);
+
+  f2 = [p returnSetStruct: 99];
+  printf(">>returned foo: i=%d s=%s l=%lu\n",
+	 f2.i, f2.s, f2.l);
+  ss = [p returnSetSmallStruct: 99];
+  printf(">>returned ss: %d\n", ss.z);
 #endif
   {
     float f = 98.6f;

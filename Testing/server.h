@@ -36,6 +36,9 @@ struct myarray {
 - sendStruct: (foo)f;
 - sendSmallStruct: (small_struct)small;
 - (foo) returnStruct;
+- (foo) returnSetStruct: (int)x;
+- (small_struct) returnSmallStruct;
+- (small_struct) returnSetSmallStruct: (int)x;
 - sendArray: (int[3])a;
 - sendStructArray: (struct myarray)ma;
 - sendDouble: (double)d andFloat: (float)f;

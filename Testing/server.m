@@ -116,10 +116,26 @@
   printf(">>small value struct: z=%d\n", small.z);
   return self;
 }
-/* Doesn't work.  GCC __builtin_return doesn't let you return structs? */
 - (foo) returnStruct
 {
   foo f = {1, "horse", 987654};
+  return f;
+}
+- (small_struct) returnSmallStruct
+{
+  small_struct f = {22};
+  return f;
+}
+- (foo) returnSetStruct: (int)x
+{
+  foo f = {1, "horse", 987654};
+  f.l = x;
+  return f;
+}
+- (small_struct) returnSetSmallStruct: (int)x
+{
+  small_struct f = {22};
+  f.z = x;
   return f;
 }
 /* Doesn't work because GCC generates the wrong encoding: "@0@+8:+12^i+16" */
