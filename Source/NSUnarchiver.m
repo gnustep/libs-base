@@ -410,10 +410,17 @@ static Class NSDataMallocClass;
   [super dealloc];
 }
 
+- (id) init
+{
+  self = [self initForReadingWithData: nil];
+  return self;
+}
+
 - (id) initForReadingWithData: (NSData*)anObject
 {
   if (anObject == nil)
     {
+      DESTROY(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"nil data passed to initForReadingWithData:"];
     }
