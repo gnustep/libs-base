@@ -1143,4 +1143,21 @@ compareIt(id o1, id o2, void* context)
       [self setObject: value forKey: key];
     }
 }
+
+/**
+ * Default implementation for this class is equivalent to the
+ * -setObject:forKey: method unless value is nil, in which case
+ * it is equivalent to -removeObjectForKey:
+ */
+- (void) setValue: (id)value forKey: (NSString*)key
+{
+  if (value == nil)
+    {
+      [self removeObjectForKey: key];
+    }
+  else
+    {
+      [self setObject: value forKey: key];
+    }
+}
 @end

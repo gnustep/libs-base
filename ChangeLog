@@ -1,3 +1,9 @@
+2004-02-24 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/Foundation/NSDictionary.h: 
+	* Source/NSDictionary.m: (-setValue:forKey:)
+	Added MacOSX method with same implementation as takeValue:forKey:
+
 2004-02-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFormat.m: Fix buffer overrun by strlen() when printing
