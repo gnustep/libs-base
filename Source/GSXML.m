@@ -552,6 +552,11 @@ static NSMapTable	*nodeNames = 0;
 
 - (NSMutableDictionary*) propertiesAsDictionary
 {
+  return [self propertiesAsDictionaryWithKeyTransformationSel:NULL];
+};
+
+- (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:(SEL)keyTransformSel
+{
   xmlAttrPtr		prop;
   NSMutableDictionary	*d = [NSMutableDictionary dictionary];
 
@@ -560,16 +565,19 @@ static NSMapTable	*nodeNames = 0;
   while (prop != NULL)
     {
       const void	*name = prop->name;
+      NSString*key=UTF8Str(name);
+      if (keyTransformSel)
+        key=[key performSelector:keyTransformSel];
 
       if (prop->children != NULL)
 	{
 	   const void	*content = prop->children->content;
 
-	   [d setObject: UTF8Str(content) forKey: UTF8Str(name)];
+	   [d setObject: UTF8Str(content) forKey: key];
 	}
       else
 	{
-	   [d setObject: @"" forKey: UTF8Str(name)];
+	   [d setObject: @"" forKey: key];
 	}
       prop = prop->next;
   }

@@ -1,3 +1,9 @@
+2000-11-01  Manuel Guesdon <mguesdon@orange-concept.com>
+	* Headers/Foundation/GSXML.h: added GSXMLNode 
+		propertiesAsDictionaryWithKeyTransformationSel:
+	* Source/GSXML.m: added GSXMLNode 
+		propertiesAsDictionaryWithKeyTransformationSel:
+
 2000-11-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Fixed uninitialised variable bug.
