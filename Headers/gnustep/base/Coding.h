@@ -25,9 +25,9 @@
 #define __Coding_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <objects/String.h>
 
-/* xxx Think about trying to get <String> back in types,
+/* #include <objects/String.h>
+   xxx Think about trying to get <String> back in types,
    but now there is a circular dependancy in the include files. */
 
 @protocol CommonCoding
@@ -38,6 +38,10 @@
 @protocol Encoding <CommonCoding>
 
 - (void) encodeValueOfObjCType: (const char*)type 
+   at: (const void*)d 
+   withName: (id /*<String>*/)name;
+
+- (void) encodeValueOfCType: (const char*)type 
    at: (const void*)d 
    withName: (id /*<String>*/)name;
 
@@ -82,6 +86,10 @@
 @protocol Decoding <CommonCoding>
 
 - (void) decodeValueOfObjCType: (const char*)type
+   at: (void*)d 
+   withName: (id /*<String>*/ *) namePtr;
+
+- (void) decodeValueOfCType: (const char*)type
    at: (void*)d 
    withName: (id /*<String>*/ *) namePtr;
 
