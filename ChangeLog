@@ -1,3 +1,10 @@
+2002-08-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/GNUmakefile: Added -lgnustep-base and -lobjc to SSL_BUNDLE_LIBS
+	So that bundle is linked with a dependency on these libraries ... to
+	ensure that dynamic linkage works when the bundle is loaded in from
+	java via jigs.
+
 2002-08-15  Adam Fedor  <fedor@gnu.org>
 
 	* SSL/configure.ac: Simplified check for libraries. Added socket
