@@ -223,6 +223,25 @@
   return _contents_array[index];
 }
 
+- (void) makeObjectsPerformSelector: (SEL)aSelector
+{
+  unsigned i = _count;
+
+  while (i-- > 0)
+    {
+      [_contents_array[i] performSelector: aSelector];
+    }
+}
+
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject:argument
+{
+  unsigned i = _count;
+
+  while (i-- > 0)
+    {
+      [_contents_array[i] performSelector: aSelector withObject: argument];
+    }
+}
 
 - (void) getObjects: (id*)aBuffer
 {

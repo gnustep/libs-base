@@ -450,30 +450,29 @@ static Class NSMutableArray_concrete_class;
   return [self objectAtIndex: count-1];
 }
 
-- (void) makeObjectsPerform: (SEL)aSelector
+- (void) makeObjectsPerformSelector: (SEL)aSelector
 {
   unsigned i = [self count];
   while (i-- > 0)
     [[self objectAtIndex:i] performSelector:aSelector];
 }
 
-- (void) makeObjectsPerformSelector: (SEL)aSelector
+- (void) makeObjectsPerform: (SEL)aSelector
 {
-   [self makeObjectsPerform: aSelector];
+   [self makeObjectsPerformSelector: aSelector];
 }
 
-- (void) makeObjectsPerform: (SEL)aSelector withObject:argument
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject:argument
 {
   unsigned i = [self count];
   while (i-- > 0)
     [[self objectAtIndex:i] performSelector:aSelector withObject:argument];
 }
 
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject:argument
+- (void) makeObjectsPerform: (SEL)aSelector withObject:argument
 {
-   [self makeObjectsPerform: aSelector withObject:argument];
+   [self makeObjectsPerformSelector: aSelector withObject:argument];
 }
-
 
 - (NSArray*) sortedArrayUsingSelector: (SEL)comparator
 {
