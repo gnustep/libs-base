@@ -79,6 +79,7 @@
 
 @end
 
+#ifndef	NO_GNUSTEP
 @interface NSInvocation (GNUstep)
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector;
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
@@ -86,7 +87,7 @@
 - (id) initWithTarget: target selector: (SEL)aSelector, ...;
 - (void*)returnFrame: (arglist_t)argFrame;
 @end
-
+#endif
 
 /* -initWithTarget:selector:, a method used in the macros
    is come from the MethodInvocation behavior.

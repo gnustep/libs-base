@@ -45,9 +45,11 @@
 - (void) removePortForName: (NSString*)name;
 @end
 
+#ifndef	NO_GNUSTEP
 @interface	NSPortNameServer (GNUstep)
 - (void) removePort: (NSPort*)port;		/* remove all names for port */
 @end
+#endif
 
 #endif
 

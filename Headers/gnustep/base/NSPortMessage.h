@@ -30,7 +30,6 @@
 @interface	NSPortMessage : NSObject
 {
     unsigned		msgid;
-    unsigned		sequence;
     NSMutableArray	*components;
 }
 - (id) initWithMachMessage: (void*)buffer;
@@ -43,11 +42,6 @@
 - (NSPort*) receivePort;
 - (void) setMsgid: (unsigned)anId;
 - (unsigned) msgid;
-@end
-
-@interface	NSPortMessage (GNUstep)
-- (void) setSequence: (unsigned)seq;
-- (unsigned) sequence;
 @end
 
 #endif

@@ -28,6 +28,7 @@
 
 #include <Foundation/NSObject.h>
 
+#ifndef	STRICT_MACOS_X
 /*
  *	Info about layout of arguments.
  *	Extended from the original OpenStep version to let us know if the
@@ -39,22 +40,31 @@ typedef struct	{
   int		offset;
   unsigned	size;
   const char	*type;
+#ifndef	NO_GNUSTEP
   unsigned	align;
   unsigned	qual;
   BOOL		isReg;
+#endif
 } NSArgumentInfo;
+#endif
 
 @interface NSMethodSignature : NSObject
 {
     const char		*methodTypes;
     unsigned		argFrameLength;
     unsigned		numArgs;
+#ifdef	STRICT_MACOS_X
+    void		*dummy;
+#else
     NSArgumentInfo	*info;
+#endif
 }
 
 + (NSMethodSignature*) signatureWithObjCTypes: (const char*)types;
 
+#ifndef	STRICT_MACOS_X
 - (NSArgumentInfo) argumentInfoAtIndex: (unsigned)index;
+#endif
 - (unsigned) frameLength;
 - (const char*) getArgumentTypeAtIndex: (unsigned)index;
 - (BOOL) isOneway;
@@ -64,8 +74,11 @@ typedef struct	{
 
 @end
 
-@interface NSMethodSignature(GNU)
+#ifndef	NO_GNUSTEP
+@interface NSMethodSignature(GNUstep)
 - (NSArgumentInfo*) methodInfo;
 - (const char*) methodType;
 @end
+#endif
+
 #endif /* __NSMethodSignature_h_GNUSTEP_BASE_INCLUDE */

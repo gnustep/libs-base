@@ -98,15 +98,3 @@
 }
 @end
 
-@implementation	NSPortMessage (GNUstep)
-- (void) setSequence: (unsigned)seq
-{
-    sequence = seq;
-}
-
-- (unsigned) sequence
-{
-    return sequence;
-}
-@end
-

@@ -76,6 +76,7 @@
 
 @end
 
+#ifndef	NO_GNUSTEP
 @interface NSNotificationCenter (GNUstep)
 
 /* Getting the default NotificationCenter */
@@ -103,5 +104,6 @@
 		       object: object
 		     userInfo: (NSDictionary*)user_info;
 @end
+#endif
 
 #endif /*__NSNotification_h_GNUSTEP_BASE_INCLUDE */
