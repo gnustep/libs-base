@@ -53,6 +53,8 @@
 #include "Foundation/NSValue.h"
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSLocale.h"
+#include "GNUstepBase/GSLock.h"
+
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -80,6 +82,7 @@ static Class	NSStringClass;
 static NSUserDefaults	*sharedDefaults = nil;
 static NSMutableString	*processName = nil;
 static NSMutableArray	*userLanguages = nil;
+static BOOL		invalidatedLanguages = NO;
 static NSRecursiveLock	*classLock = nil;
 
 /*
@@ -127,7 +130,6 @@ static void updateCache(NSUserDefaults *self)
  *** Local method definitions
  *************************************************************************/
 @interface NSUserDefaults (__local_NSUserDefaults)
-- (void) __createStandardSearchList;
 - (NSDictionary*) __createArgumentDictionary;
 - (void) __changePersistentDomain: (NSString*)domainName;
 @end
@@ -211,8 +213,6 @@ static void updateCache(NSUserDefaults *self)
  */
 @implementation NSUserDefaults: NSObject
 
-static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
-
 + (void) initialize
 {
   if (self == [NSUserDefaults class])
@@ -230,7 +230,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       NSNumberClass = [NSNumber class];
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
-      classLock = [NSRecursiveLock new];
+      classLock = [GSLazyRecursiveLock new];
     }
 }
 
@@ -251,9 +251,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       [sharedDefaults synchronize];	// Ensure changes are written.
       regDefs = RETAIN([sharedDefaults->_tempDomains
 	objectForKey: NSRegistrationDomain]);
-      setSharedDefaults = NO;
-      AUTORELEASE(sharedDefaults);	// Let tother threads keep it.
-      sharedDefaults = nil;
+      DESTROY(sharedDefaults);
       if (regDefs != nil)
 	{
 	  [self standardUserDefaults];
@@ -388,20 +386,39 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   NSArray *uL;
   NSEnumerator *enumerator;
 
+  /*
+   * Calling +standardUserDefaults and +userLanguages is horribly interrelated.
+   * Messing with the order of assignments and calls within these methods can
+   * break things very easily ... take care.
+   *
+   * If +standardUserDefaults is called first, it sets up initial information
+   * in sharedDefaults then calls +userLanguages to get language information.
+   * +userLanguages then calls +standardUserDefaults to read NSLanguages
+   * and returns the language information.
+   * +standardUserDefaults then sets up language domains and loads localisation
+   * information before returning.
+   *
+   * If +userLanguages is called first, it calls +standardUserDefaults
+   * to obtain the NSLanguages array.
+   * +standardUserDefaults loads basic information initialising the
+   * sharedDefaults variable, then calls back to +userLanguages to set up
+   * its search list.
+   * +userLanguages calls +standardUserDefaults again to get NSLanguages.
+   * +standardUserDefaults returns the partially initialised sharedDefaults.
+   * +userLanguages uses this to create and return the user languages.
+   * +standardUserDefaults uses the languages to update the search list
+   * and load in localisation information then returns sharedDefaults.
+   * +userLanguages uses this to rebuild language information and return it.
+   */
+
   [classLock lock];
-  if (setSharedDefaults)
+  if (sharedDefaults != nil)
     {
       RETAIN(sharedDefaults);
       [classLock unlock];
       return AUTORELEASE(sharedDefaults);
     }
-  setSharedDefaults = YES;
-  /*
-   * Get the user languages *before* setting up sharedDefaults, to avoid
-   * the userLanguages method trying to look up languages in a partially
-   * constructed user defaults object.
-   */
-  uL = [[self class] userLanguages];
+
   // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
   sharedDefaults = [[self alloc] init];
   if (sharedDefaults == nil)
@@ -411,7 +428,26 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       return nil;
     }
 
-  [sharedDefaults __createStandardSearchList];
+  /*
+   * Set up search list (excluding language list, which we don't know yet)
+   */
+  [sharedDefaults->_searchList addObject: NSArgumentDomain];
+  [sharedDefaults->_searchList addObject: processName];
+  [sharedDefaults->_searchList addObject: NSGlobalDomain];
+  [sharedDefaults->_searchList addObject: NSRegistrationDomain];
+
+  /*
+   * Look up user languages list and insert language specific domains
+   * into search list before NSRegistrationDomain
+   */
+  uL = [self userLanguages];
+  enumerator = [uL objectEnumerator];
+  while ((lang = [enumerator nextObject]))
+    {
+      unsigned	index = [sharedDefaults->_searchList count] - 1;
+
+      [sharedDefaults->_searchList insertObject: lang atIndex: index];
+    }
 
   /* Set up language constants */
   added_locale = NO;
@@ -419,16 +455,19 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   enumerator = [uL objectEnumerator];
   while ((lang = [enumerator nextObject]))
     {
-      NSString *path;
-      NSDictionary *dict;
-      NSBundle *gbundle;
+      NSString		*path;
+      NSDictionary	*dict;
+      NSBundle		*gbundle;
+
       gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
       path = [gbundle pathForResource: lang
 		               ofType: nil
 		          inDirectory: @"Languages"];
       dict = nil;
-      if (path)
-	dict = [NSDictionary dictionaryWithContentsOfFile: path];
+      if (path != nil)
+	{
+	  dict = [NSDictionary dictionaryWithContentsOfFile: path];
+	}
       if (dict)
 	{
 	  [sharedDefaults setVolatileDomain: dict forName: lang];
@@ -485,7 +524,33 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 + (NSArray*) userLanguages
 {
   NSArray	*currLang = nil;
+  NSArray	*result;
   NSString	*locale = nil;
+
+  /*
+   * Calling +standardUserDefaults and +userLanguages is horribly interrelated.
+   * Messing with the order of assignments and calls within these methods can
+   * break things very easily ... take care.
+   *
+   * If +standardUserDefaults is called first, it sets up initial information
+   * in sharedDefaults then calls +userLanguages to get language information.
+   * +userLanguages then calls +standardUserDefaults to read NSLanguages
+   * and returns the language information.
+   * +standardUserDefaults then sets up language domains and loads localisation
+   * information before returning.
+   *
+   * If +userLanguages is called first, it calls +standardUserDefaults
+   * to obtain the NSLanguages array.
+   * +standardUserDefaults loads basic information initialising the
+   * sharedDefaults variable, then calls back to +userLanguages to set up
+   * its search list.
+   * +userLanguages calls +standardUserDefaults again to get NSLanguages.
+   * +standardUserDefaults returns the partially initialised sharedDefaults.
+   * +userLanguages uses this to create and return the user languages.
+   * +standardUserDefaults uses the languages to update the search list
+   * and load in localisation information then returns sharedDefaults.
+   * +userLanguages uses this to rebuild language information and return it.
+   */
 
 #ifdef HAVE_LOCALE_H
 #ifdef LC_MESSAGES
@@ -493,94 +558,68 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 #endif
 #endif
   [classLock lock];
-  if (userLanguages != nil)
+  if (invalidatedLanguages == YES)
     {
-      RETAIN(userLanguages);
-      [classLock unlock];
-      return AUTORELEASE(userLanguages);
+      invalidatedLanguages = NO;
+      DESTROY(userLanguages);
     }
-  userLanguages = RETAIN([NSMutableArray arrayWithCapacity: 5]);
-  if (sharedDefaults == nil)
+  if (userLanguages == nil)
     {
-      /* Create our own defaults to get "NSLanguages" since sharedDefaults
-	 depends on us */
-      NSUserDefaults	*tempDefaults;
+      currLang = [[NSUserDefaults standardUserDefaults]
+	stringArrayForKey: @"NSLanguages"];
 
-      tempDefaults = [[self alloc] init];
-      if (tempDefaults != nil)
+      userLanguages = [[NSMutableArray alloc] initWithCapacity: 5];
+
+      if (currLang == nil && locale != nil && GSLanguageFromLocale(locale))
 	{
-	  NSMutableArray	*sList;
-
-	  /*
-	   * Can't use the standard method to set up a search list,
-	   * it would cause mutual recursion as it includes languages.
-	   */
-	  sList = [[NSMutableArray alloc] initWithCapacity: 4];
-	  [sList addObject: NSArgumentDomain];
-	  [sList addObject: processName];
-	  [sList addObject: NSGlobalDomain];
-	  [sList addObject: NSRegistrationDomain];
-	  [tempDefaults setSearchList: sList];
-	  RELEASE(sList);
-	  currLang = [tempDefaults stringArrayForKey: @"NSLanguages"];
-	  AUTORELEASE(RETAIN(currLang));
-	  RELEASE(tempDefaults);
+	  currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
 	}
-    }
-  else
-    {
-      currLang
-	= [[self standardUserDefaults] stringArrayForKey: @"NSLanguages"];
-    }
-  if (currLang == nil && locale != nil && GSLanguageFromLocale(locale))
-    {
-      currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
-    }
 #ifdef __MINGW__
-  if (currLang == nil && locale != nil)
-    {
-      /* Check for language as the first part of the locale string */
-      NSRange under = [locale rangeOfString: @"_"];
-      if (under.location)
-        currLang = [NSArray arrayWithObject:
-	             [locale substringToIndex: under.location]];
-    }
+      if (currLang == nil && locale != nil)
+	{
+	  /* Check for language as the first part of the locale string */
+	  NSRange under = [locale rangeOfString: @"_"];
+	  if (under.location)
+	    currLang = [NSArray arrayWithObject:
+			 [locale substringToIndex: under.location]];
+	}
 #endif
-  if (currLang == nil)
-    {
-      const char	*env_list;
-      NSString		*env;
-
-      env_list = getenv("LANGUAGES");
-      if (env_list != 0)
+      if (currLang == nil)
 	{
-	  env = [NSStringClass stringWithCString: env_list];
-	  currLang = [env componentsSeparatedByString: @";"];
+	  const char	*env_list;
+	  NSString	*env;
+
+	  env_list = getenv("LANGUAGES");
+	  if (env_list != 0)
+	    {
+	      env = [NSStringClass stringWithCString: env_list];
+	      currLang = [env componentsSeparatedByString: @";"];
+	    }
+	}
+
+      if (currLang != nil)
+	{
+	  if ([currLang containsObject: @""] == YES)
+	    {
+	      NSMutableArray	*a = [currLang mutableCopy];
+
+	      [a removeObject: @""];
+	      currLang = (NSArray*)AUTORELEASE(a);
+	    }
+	  [userLanguages addObjectsFromArray: currLang];
+	}
+
+      /* Check if "English" is included. We do this to make sure all the
+	 required language constants are set somewhere if they aren't set
+	 in the default language */
+      if ([userLanguages containsObject: @"English"] == NO)
+	{
+	  [userLanguages addObject: @"English"];
 	}
     }
-
-  if (currLang != nil)
-    {
-      if ([currLang containsObject: @""] == YES)
-	{
-	  NSMutableArray	*a = [currLang mutableCopy];
-
-	  [a removeObject: @""];
-	  currLang = (NSArray*)AUTORELEASE(a);
-	}
-      [userLanguages addObjectsFromArray: currLang];
-    }
-
-  /* Check if "English" is included. We do this to make sure all the
-     required language constants are set somewhere if they aren't set
-     in the default language */
-  if ([userLanguages containsObject: @"English"] == NO)
-    {
-      [userLanguages addObject: @"English"];
-    }
-  RETAIN(userLanguages);
+  result = RETAIN(userLanguages);
   [classLock unlock];
-  return AUTORELEASE(userLanguages);
+  return AUTORELEASE(result);
 }
 
 /**
@@ -793,7 +832,7 @@ BOOL read_only = NO;
       _fileLock = [[NSDistributedLock alloc] initWithPath:
 	[_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
     }
-  _lock = [NSRecursiveLock new];
+  _lock = [GSLazyRecursiveLock new];
 
   // Create an empty search list
   _searchList = [[NSMutableArray alloc] initWithCapacity: 10];
@@ -1233,6 +1272,7 @@ static BOOL isPlistObject(id o)
 {
   [_lock lock];
   DESTROY(_dictionaryRep);
+  if (self == sharedDefaults) invalidatedLanguages = YES;
   RELEASE(_searchList);
   _searchList = [newList mutableCopy];
   [_lock unlock];
@@ -1424,6 +1464,7 @@ static BOOL isPlistObject(id o)
 		      traverseLink: YES];
 
   DESTROY(_dictionaryRep);
+  if (self == sharedDefaults) invalidatedLanguages = YES;
 
   // Read the persistent data from the stored database
   if (attr == nil)
@@ -1577,6 +1618,7 @@ static BOOL isPlistObject(id o)
 {
   [_lock lock];
   DESTROY(_dictionaryRep);
+  if (self == sharedDefaults) invalidatedLanguages = YES;
   [_tempDomains removeObjectForKey: domainName];
   [_lock unlock];
 }
@@ -1609,6 +1651,7 @@ static BOOL isPlistObject(id o)
     }
 
   DESTROY(_dictionaryRep);
+  if (self == sharedDefaults) invalidatedLanguages = YES;
   domain = [domain mutableCopy];
   [_tempDomains setObject: domain forKey: domainName];
   RELEASE(domain);
@@ -1706,6 +1749,7 @@ static BOOL isPlistObject(id o)
       [_tempDomains setObject: regDefs forKey: NSRegistrationDomain];
     }
   DESTROY(_dictionaryRep);
+  if (self == sharedDefaults) invalidatedLanguages = YES;
   [regDefs addEntriesFromDictionary: newVals];
   [_lock unlock];
 }
@@ -1713,37 +1757,6 @@ static BOOL isPlistObject(id o)
 /*************************************************************************
  *** Accessing the User Defaults database
  *************************************************************************/
-- (void) __createStandardSearchList
-{
-  NSArray	*uL;
-  NSEnumerator	*enumerator;
-  id		object;
-
-  [_lock lock];
-  // Note: The search list should exist!
-
-  // 1. NSArgumentDomain
-  [_searchList addObject: NSArgumentDomain];
-
-  // 2. Application
-  [_searchList addObject: processName];
-
-  // 3. NSGlobalDomain
-  [_searchList addObject: NSGlobalDomain];
-
-  // 4. User's preferred languages
-  uL = [[self class] userLanguages];
-  enumerator = [uL objectEnumerator];
-  while ((object = [enumerator nextObject]))
-    {
-      [_searchList addObject: object];
-    }
-
-  // 5. NSRegistrationDomain
-  [_searchList addObject: NSRegistrationDomain];
-
-  [_lock unlock];
-}
 
 - (NSDictionary*) __createArgumentDictionary
 {
@@ -1838,6 +1851,7 @@ static BOOL isPlistObject(id o)
 {
   [_lock lock];
   DESTROY(_dictionaryRep);
+  if (self == sharedDefaults) invalidatedLanguages = YES;
   if (_changedDomains == nil)
     {
       _changedDomains = [[NSMutableArray alloc] initWithObjects: &domainName

@@ -1,3 +1,14 @@
+2004-04-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Invalidate  userLanguages cache with every
+	update to standard defaults, so setting it should work.
+	Use lazy locking for improved performance when single threaded.
+	Reorganise interaction between +standardUserDefaults and
+	+userLanguages for improved startup performance and simplification
+	(only load the database once on startup).
+	Add large comments about the (still messy) interaction between the
+	two methods.
+
 2004-04-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSArchiver.h: New ivar in unarchiver.
