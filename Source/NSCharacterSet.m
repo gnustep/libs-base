@@ -329,7 +329,7 @@ static NSLock* cache_lock = nil;
   if (NSShouldRetainWithZone(self, zone))
       return [self retain];
   else
-      return [super copyWithZone:zone];
+      return NSCopyObject (self, 0, zone);
 }
 
 - (id)mutableCopyWithZone:(NSZone *)zone
