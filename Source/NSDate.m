@@ -264,30 +264,30 @@ GSTimeNow()
    */
   if (hadDay == NO)
     {
-      NSString	*tdd = [locale objectForKey: NSThisDayDesignations];
-      NSString	*ndd = [locale objectForKey: NSNextDayDesignations];
-      NSString	*pdd = [locale objectForKey: NSPriorDayDesignations];
-      NSString	*nndd = [locale objectForKey: NSNextNextDayDesignations];
+      NSArray	*tdd = [locale objectForKey: NSThisDayDesignations];
+      NSArray	*ndd = [locale objectForKey: NSNextDayDesignations];
+      NSArray	*pdd = [locale objectForKey: NSPriorDayDesignations];
+      NSArray	*nndd = [locale objectForKey: NSNextNextDayDesignations];
 
       for (index = 0; hadDay == NO && index < [words count]; index++)
 	{
 	  tmp = [words objectAtIndex: index];
 
-	  if ([tmp caseInsensitiveCompare: tdd] == NSOrderedSame)
+	  if (findInArray(tdd, 0 ,tmp) != nil)
 	    {
 	      hadDay = YES;
 	    }
-	  else if ([tmp caseInsensitiveCompare: ndd] == NSOrderedSame)
+	  else if (findInArray(ndd, 0 ,tmp) != nil)
 	    {
 	      modDay++;
 	      hadDay = YES;
 	    }
-	  else if ([tmp caseInsensitiveCompare: nndd] == NSOrderedSame)
+	  else if (findInArray(nndd, 0 ,tmp) != nil)
 	    {
 	      modDay += 2;
 	      hadDay = YES;
 	    }
-	  else if ([tmp caseInsensitiveCompare: pdd] == NSOrderedSame)
+	  else if (findInArray(pdd, 0 ,tmp) != nil)
 	    {
 	      modDay--;
 	      hadDay = YES;
