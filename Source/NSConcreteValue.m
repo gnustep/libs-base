@@ -35,47 +35,19 @@
    methods here (like pointValue) even though most likely, other concrete
    subclasses were created to handle these types */
 
-#define NS_RAISE_MALLOC \
-	[NSException raise: NSMallocException \
-	    format: @"No memory left to allocate"]
-
-#define NS_CHECK_MALLOC(ptr) \
-	if (!ptr) {NS_RAISE_MALLOC;}
-
 @implementation NSConcreteValue
-
-// NSCopying
-- (id) deepen
-{
-  void	*old_ptr;
-  char	*old_typ;
-  int	size;
-
-  size = objc_sizeof_type(objctype);
-  old_ptr = data;
-  data = (void *)NSZoneMalloc(fastZone(self), size);
-  NS_CHECK_MALLOC(data)
-  memcpy(data, old_ptr, size);
-
-  old_typ = objctype;
-  objctype = (char *)NSZoneMalloc(fastZone(self), strlen(old_typ)+1);
-  NS_CHECK_MALLOC(objctype)
-  strcpy(objctype, old_typ);
-
-  return self;
-}
 
 // Allocating and Initializing 
 
-- (id) initValue: (const void *)value
-      withObjCType: (const char *)type
+- (id) initWithBytes: (const void *)value
+	    objCType: (const char *)type
 {
   int	size;
   
   if (!value || !type) 
     {
       NSLog(@"Tried to create NSValue with NULL value or NULL type");
-      [self release];
+      RELEASE(self);
       return nil;
     }
 
@@ -87,16 +59,14 @@
   if (size <= 0) 
     {
       NSLog(@"Tried to create NSValue with invalid Objective-C type");
-      [self release];
+      RELEASE(self);
       return nil;
     }
 
   data = (void *)NSZoneMalloc(fastZone(self), size);
-  NS_CHECK_MALLOC(data)
   memcpy(data, value, size);
 
   objctype = (char *)NSZoneMalloc(fastZone(self), strlen(type)+1);
-  NS_CHECK_MALLOC(objctype)
   strcpy(objctype, type);
   return self;
 }
@@ -183,8 +153,8 @@
 
 - (NSString *) description
 {
-  int size;
-  NSData *rep;
+  unsigned	size;
+  NSData	*rep;
 
   size = objc_sizeof_type(objctype);
   rep = [NSData dataWithBytes: data length: size];
@@ -194,17 +164,27 @@
 // NSCoding
 - (void) encodeWithCoder: (NSCoder *)coder
 {
-  [super encodeWithCoder: coder];
-  // FIXME: Do we need to check for encoding void, void * or will
-  // NSCoder do this for us?
-  [coder encodeValueOfObjCType: @encode(char *) at: &objctype];
-  [coder encodeValueOfObjCType: objctype at: &data];
+  unsigned	size;
+
+  size = strlen(objctype)+1;
+  [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
+  [coder encodeArrayOfObjCType: @encode(char) count: size at: objctype];
+  size = objc_sizeof_type(objctype);
+  [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
+  [coder encodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
 }
 
 - (id) initWithCoder: (NSCoder *)coder
 {
-  [NSException raise: NSInconsistentArchiveException
-      format: @"Cannot unarchive class - Need NSValueDecoder."];
+  unsigned	size;
+
+  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
+  objctype = (void *)NSZoneMalloc(fastZone(self), size);
+  [coder decodeArrayOfObjCType: @encode(char) count: size at: objctype];
+  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
+  data = (void *)NSZoneMalloc(fastZone(self), size);
+  [coder decodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
+
   return self;
 }
 

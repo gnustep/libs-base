@@ -31,142 +31,208 @@
 
 @implementation NSNumber
 
+static Class	abstractClass;
+static Class	boolNumberClass;
+static Class	charNumberClass;
+static Class	uCharNumberClass;
+static Class	shortNumberClass;
+static Class	uShortNumberClass;
+static Class	intNumberClass;
+static Class	uIntNumberClass;
+static Class	longNumberClass;
+static Class	uLongNumberClass;
+static Class	longLongNumberClass;
+static Class	uLongLongNumberClass;
+static Class	floatNumberClass;
+static Class	doubleNumberClass;
+
++ (void) initialize
+{
+  if (self == [NSNumber class])
+    {
+      abstractClass = self;
+
+      boolNumberClass = [NSBoolNumber class];
+      charNumberClass = [NSCharNumber class];
+      uCharNumberClass = [NSUCharNumber class];
+      shortNumberClass = [NSShortNumber class];
+      uShortNumberClass = [NSUShortNumber class];
+      intNumberClass = [NSIntNumber class];
+      uIntNumberClass = [NSUIntNumber class];
+      longNumberClass = [NSLongNumber class];
+      uLongNumberClass = [NSULongNumber class];
+      longLongNumberClass = [NSLongLongNumber class];
+      uLongLongNumberClass = [NSULongLongNumber class];
+      floatNumberClass = [NSFloatNumber class];
+      doubleNumberClass = [NSDoubleNumber class];
+    }
+}
+
 /* Returns the concrete class associated with the type encoding. Note 
    that we don't allow NSNumber to instantiate any class but its own
    concrete subclasses (see check at end of method) */
-+ (Class)valueClassWithObjCType:(const char *)type
++ (Class)valueClassWithObjCType: (const char *)type
 {
-    Class theClass = Nil;
+  Class theClass = Nil;
 
-    switch (*type) {
-    case _C_CHR:
-	theClass = [NSCharNumber class];
-	break;
-    case _C_UCHR:
-	theClass = [NSUCharNumber class];
-	break;
-    case _C_SHT:
-	theClass = [NSShortNumber class];
-	break;
-    case _C_USHT:
-	theClass = [NSUShortNumber class];
-	break;
-    case _C_INT:
-	theClass = [NSIntNumber class];
-	break;
-    case _C_UINT:
-	theClass = [NSUIntNumber class];
-	break;
-    case _C_LNG:
-	theClass = [NSLongNumber class];
-	break;
-    case _C_ULNG:
-	theClass = [NSULongNumber class];
-	break;
-    case 'q':
-	theClass = [NSLongLongNumber class];
-	break;
-    case 'Q':
-	theClass = [NSULongLongNumber class];
-	break;
-    case _C_FLT:
-	theClass = [NSFloatNumber class];
-	break;
-    case _C_DBL:
-	theClass = [NSDoubleNumber class];
-	break;
-    default:
+  switch (*type)
+    {
+      case _C_CHR: 	return charNumberClass;
+      case _C_UCHR: 	return uCharNumberClass;
+      case _C_SHT: 	return shortNumberClass;
+      case _C_USHT: 	return uShortNumberClass;
+      case _C_INT: 	return intNumberClass;
+      case _C_UINT:	return uIntNumberClass;
+      case _C_LNG:	return longNumberClass;
+      case _C_ULNG:	return uLongNumberClass;
+#ifdef	_C_LNGLNG
+      case _C_LNGLNG:
+#else
+      case 'q':
+#endif
+	return longLongNumberClass;
+#ifdef	_C_ULNGLNG
+      case _C_ULNGLNG:
+#else
+      case 'Q':
+#endif
+	return uLongLongNumberClass;
+      case _C_FLT:	return floatNumberClass;
+      case _C_DBL:	return doubleNumberClass;
+      default: 
 	break;
     }
 
-    if (theClass == Nil && self == [NSNumber class]) {
-	[NSException raise:NSInvalidArgumentException
-		format:@"Invalid number type"];
+  if (theClass == Nil && self == abstractClass)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Invalid number type"];
 	/* NOT REACHED */
-    } else if (theClass == Nil)
-    	theClass = [super valueClassWithObjCType:type];
+    }
+  else if (theClass == Nil)
+    theClass = [super valueClassWithObjCType: type];
 
-    return theClass;
+  return theClass;
 }
 
-+ (NSNumber *)numberWithBool:(BOOL)value
++ (NSNumber *)numberWithBool: (BOOL)value
 {
-    return [[[NSBoolNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [boolNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithChar:(char)value
++ (NSNumber *)numberWithChar: (char)value
 {
-    return [[[NSCharNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [charNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithDouble:(double)value
++ (NSNumber *)numberWithDouble: (double)value
 {
-    return [[[NSDoubleNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [doubleNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithFloat:(float)value
++ (NSNumber *)numberWithFloat: (float)value
 {
-    return [[[NSFloatNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [floatNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithInt:(int)value
++ (NSNumber *)numberWithInt: (int)value
 {
-    return [[[NSIntNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [intNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithLong:(long)value
++ (NSNumber *)numberWithLong: (long)value
 {
-    return [[[NSLongNumber alloc] initValue:&value withObjCType:NULL] autorelease];
+  NSNumber	*theObj;
+
+  theObj = [longNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithLongLong:(long long)value
++ (NSNumber *)numberWithLongLong: (long long)value
 {
-    return [[[NSLongLongNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [longLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithShort:(short)value
++ (NSNumber *)numberWithShort: (short)value
 {
-    return [[[NSShortNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [shortNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithUnsignedChar:(unsigned char)value
++ (NSNumber *)numberWithUnsignedChar: (unsigned char)value
 {
-    return [[[NSUCharNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [uCharNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithUnsignedInt:(unsigned int)value
++ (NSNumber *)numberWithUnsignedInt: (unsigned int)value
 {
-    return [[[NSUIntNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [uIntNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithUnsignedLong:(unsigned long)value
++ (NSNumber *)numberWithUnsignedLong: (unsigned long)value
 {
-    return [[[NSULongNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [uLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithUnsignedLongLong:(unsigned long long)value
++ (NSNumber *)numberWithUnsignedLongLong: (unsigned long long)value
 {
-    return [[[NSULongLongNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [uLongLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ (NSNumber *)numberWithUnsignedShort:(unsigned short)value
++ (NSNumber *)numberWithUnsignedShort: (unsigned short)value
 {
-    return [[[NSUShortNumber alloc] initValue:&value withObjCType:NULL] 
-	autorelease];
+  NSNumber	*theObj;
+
+  theObj = [uShortNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &value objCType: NULL];
+  return AUTORELEASE(theObj);
 }
 
-+ valueFromString: (NSString *)string
++ (NSValue*)valueFromString: (NSString *)string
 {
   /* FIXME: implement this better */
   const char *str;
@@ -182,223 +248,243 @@
   return [NSNumber numberWithInt: 0];
 }
 
-- (id)initWithBool:(BOOL)value
+- (id)initWithBool: (BOOL)value
 {
-    [self dealloc];
-    return self=[[NSBoolNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [boolNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithChar:(char)value
+- (id)initWithChar: (char)value
 {
-    [self dealloc];
-    return self=[[NSCharNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [charNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithDouble:(double)value
+- (id)initWithDouble: (double)value
 {
-    [self dealloc];
-    return self=[[NSDoubleNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [doubleNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithFloat:(float)value
+- (id)initWithFloat: (float)value
 {
-    [self dealloc];
-    return self=[[NSFloatNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [floatNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithInt:(int)value
+- (id)initWithInt: (int)value
 {
-    [self dealloc];
-    return self=[[NSIntNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [intNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithLong:(long)value
+- (id)initWithLong: (long)value
 {
-    [self dealloc];
-    return self=[[NSLongNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [longNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithLongLong:(long long)value
+- (id)initWithLongLong: (long long)value
 {
-    [self dealloc];
-    return self=[[NSLongLongNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [longLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithShort:(short)value
+- (id)initWithShort: (short)value
 {
-    [self dealloc];
-    return self=[[NSShortNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [shortNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithUnsignedChar:(unsigned char)value
+- (id)initWithUnsignedChar: (unsigned char)value
 {
-    [self dealloc];
-    return self=[[NSUCharNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [uCharNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithUnsignedInt:(unsigned int)value
+- (id)initWithUnsignedInt: (unsigned int)value
 {
-    [self dealloc];
-    return self=[[NSUIntNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [uIntNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithUnsignedLong:(unsigned long)value
+- (id)initWithUnsignedLong: (unsigned long)value
 {
-    [self dealloc];
-    return self=[[NSULongNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [uLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithUnsignedLongLong:(unsigned long long)value
+- (id)initWithUnsignedLongLong: (unsigned long long)value
 {
-    [self dealloc];
-    return self=[[NSULongLongNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [uLongLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
-- (id)initWithUnsignedShort:(unsigned short)value
+- (id)initWithUnsignedShort: (unsigned short)value
 {
-    [self dealloc];
-    return self=[[NSUShortNumber alloc] initValue:&value withObjCType:NULL];
+  RELEASE(self);
+  self = [uShortNumberClass allocWithZone: NSDefaultMallocZone()];
+  self = [self initWithBytes: &value objCType: NULL];
+  return self;
 }
 
 - (id) copy
 {
-    return [self retain];
+  return RETAIN(self);
 }
 
-- copyWithZone: (NSZone*)zone
+- (id) copyWithZone: (NSZone*)zone
 {
-    if (NSShouldRetainWithZone(self, zone)) {
-        return [self retain];
-    }
-    else {
-        return NSCopyObject(self, 0, zone);
-    }
+  return RETAIN(self);
 }
 
 - (NSString*) description
 {
-    return [self descriptionWithLocale: nil];
+  return [self descriptionWithLocale: nil];
 }
 
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
-    [self subclassResponsibility:_cmd];
-    return nil;
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 /* All the rest of these methods must be implemented by a subclass */
 - (BOOL)boolValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (char)charValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (double)doubleValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (float)floatValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (int)intValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (long long)longLongValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (long)longValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (short)shortValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (NSString *)stringValue
 {
-    return [self descriptionWithLocale: nil];
+  return [self descriptionWithLocale: nil];
 }
 
 - (unsigned char)unsignedCharValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (unsigned int)unsignedIntValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (unsigned long long)unsignedLongLongValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (unsigned long)unsignedLongValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (unsigned short)unsignedShortValue
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
-- (NSComparisonResult)compare:(NSNumber *)otherNumber
+- (NSComparisonResult)compare: (NSNumber *)otherNumber
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
 - (unsigned) hash
 {
-    [self subclassResponsibility:_cmd];
-    return 0;
+  [self subclassResponsibility: _cmd];
+  return 0;
 }
 
-- (BOOL)isEqualToNumber:(NSNumber *)otherNumber
+- (BOOL)isEqualToNumber: (NSNumber *)otherNumber
 {
-    [self subclassResponsibility:_cmd];
-    return NO;
+  [self subclassResponsibility: _cmd];
+  return NO;
 }
 
 // NSCoding (done by subclasses)
-- (void)encodeWithCoder:(NSCoder *)coder
+- (void)encodeWithCoder: (NSCoder *)coder
 {
-    [super encodeWithCoder:coder];
+  [self subclassResponsibility: _cmd];
 }
 
-- (id)initWithCoder:(NSCoder *)coder
+- (id)initWithCoder: (NSCoder *)coder
 {
-    [NSException raise:NSInconsistentArchiveException
-	format:@"Cannot unarchive from NSNumber class - Need NSValueDecoder."];
-    return self;
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 @end

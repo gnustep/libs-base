@@ -58,8 +58,8 @@
 
 // Allocating and Initializing 
 
-- (id) initValue: (const void *)value
-    withObjCType: (const char *)type
+- (id) initWithBytes: (const void *)value
+	    objCType: (const char *)type
 {
   typedef _dt = data;
   self = [super init];
@@ -198,17 +198,20 @@
 // NSCoding
 - (void) encodeWithCoder: (NSCoder *)coder
 {
-  const char *type;
-  [super encodeWithCoder: coder];
-  type = [self objCType];
-  [coder encodeValueOfObjCType: @encode(char *) at: &type];
-  [coder encodeValueOfObjCType: type at: &data];
+#if	TYPE_ORDER == 0
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"Attempt to encode a non-retained object"];
+#elif	TYPE_ORDER == 2
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"Attempt to encode a pointer to void object"];
+#else
+  [coder encodeValueOfObjCType: @encode(TYPE_NAME) at: &data];
+#endif
 }
 
 - (id) initWithCoder: (NSCoder *)coder
 {
-  [NSException raise: NSInconsistentArchiveException
-	      format: @"Cannot unarchive class - Need NSValueDecoder."];
+  [coder decodeValueOfObjCType: @encode(TYPE_NAME) at: &data];
   return self;
 }
 
