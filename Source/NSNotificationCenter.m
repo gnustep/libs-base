@@ -1060,7 +1060,9 @@ static NSNotificationCenter *default_center = nil;
 	  (*o->method)(o->observer, o->selector, notification);
 	}
     }
+  lockNCTable(TABLE);
   GSIArrayEmpty(a);
+  unlockNCTable(TABLE);
 
 #if 0
   NS_HANDLER
@@ -1068,7 +1070,9 @@ static NSNotificationCenter *default_center = nil;
       /*
        *    If we had a problem - release memory before going on.
        */
+      lockNCTable(TABLE);
       GSIArrayEmpty(a);
+      unlockNCTable(TABLE);
       RELEASE(notification);
       [localException raise];
     }
