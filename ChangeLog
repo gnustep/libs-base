@@ -5,6 +5,7 @@
 	explicitly byref.
 	Use placeholder class for newly created objects - to improve
 	eficiency of selection of classes in cluster.
+	Updated to use MacOS-X initialisation methods.
 
 2001-01-30  Michael Hanni  <mhanni@sprintmail.com>
 

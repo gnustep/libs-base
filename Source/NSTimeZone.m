@@ -49,6 +49,7 @@
 #include <string.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSException.h>
@@ -111,7 +112,7 @@ static NSMapTable		*placeholderMap;
 /* Temporary structure for holding time zone details. */
 struct ttinfo
 {
-  int offset; // Seconds east of UTC
+  char offset[4]; // Seconds east of UTC
   BOOL isdst; // Daylight savings time?
   char abbr_idx; // Index into time zone abbreviations string
 };
@@ -349,167 +350,207 @@ decode (const void *ptr)
 {
   NSTimeZone	*zone;
 
+  /*
+   * Quick return if it's the local timezone.
+   */
   if ([name isEqual: @"NSLocalTimeZone"])
     {
-      zone = RETAIN(localTimeZone);
+      return [self initWithName: name data: nil];
+    }
+
+  /*
+   * Return a chached time zone if possible.
+   */
+  if (zone_mutex != nil)
+    {
+      [zone_mutex lock];
+    }
+  zone = [zoneDictionary objectForKey: name];
+  if (zone != nil)
+    {
+      IF_NO_GC(RETAIN(zone));
+      if (zone_mutex != nil)
+	{
+	  [zone_mutex unlock];
+	}
+      return zone;
+    }
+
+  /*
+   * Now return an absolute time zone or load one from file.
+   */
+  if ([name hasPrefix: @"NSAbsoluteTimeZone:"] == YES)
+    {
+      int	i = [[name substringFromIndex: 19] intValue];
+
+      zone = [[NSConcreteAbsoluteTimeZone alloc] initWithOffset: i];
     }
   else
     {
-      static NSString	*fileException = @"fileException";
-      static NSString	*errMess = @"File read error in NSTimeZone.";
-      id transArray, detailsArray;
-      int i, n_trans, n_types, names_size;
-      id *abbrevsArray;
-      char *trans, *type_idxs, *zone_abbrevs;
-      struct tzhead header;
-      struct ttinfo *types; // Temporary array for details
-      FILE *file = NULL;
-      NSString *fileName;
+      NSString	*fileName;
+      NSData	*data;
+      unsigned	length;
 
-      if (zone_mutex != nil)
-	{
-	  [zone_mutex lock];
-	}
-      zone = [zoneDictionary objectForKey: name];
-      if (zone != nil)
-	{
-	  IF_NO_GC(RETAIN(zone));
-	  if (zone_mutex != nil)
-	    {
-	      [zone_mutex unlock];
-	    }
-	  return zone;
-	}
-
-      i = [name length];
-      if (i == 0)
+      length = [name length];
+      if (length == 0)
 	{
 	  NSLog(@"Disallowed null time zone name");
-	  if (zone_mutex != nil)
-	    {
-	      [zone_mutex unlock];
-	    }
 	  return nil;
 	}
       else
 	{
 	  const char	*str = [name lossyCString];
 
-	  if ([name hasPrefix: @"NSAbsoluteTimeZone:"] == YES)
-	    {
-	      i = atoi(&str[19]);
-	      if (zone_mutex != nil)
-		{
-		  [zone_mutex unlock];
-		}
-	      zone = [[NSConcreteAbsoluteTimeZone alloc] initWithOffset: i];
-	      return zone;
-	    }
-
 	  /* Make sure that only time zone files are accessed.
 	     FIXME: Make this more robust. */
 	  if ((str)[0] == '/' || strchr(str, '.') != NULL)
 	    {
 	      NSLog(@"Disallowed time zone name `%@'.", name);
-	      if (zone_mutex != nil)
-		{
-		  [zone_mutex unlock];
-		}
 	      return nil;
 	    }
 	}
 
+      fileName = [NSTimeZoneClass getTimeZoneFile: name];
+      if (fileName == nil)
+	{
+	  NSLog(@"Unknown time zone name `%@'.", name);
+	  return nil;
+	}
+      data = [NSData dataWithContentsOfFile: fileName];
+      zone = [self initWithName: name data: data];
+    }
+  return zone;
+}
+
+- (id) initWithName: (NSString*)name data: (NSData*)data
+{
+  NSTimeZone	*zone;
+
+  if ([name isEqual: @"NSLocalTimeZone"])
+    {
+      zone = RETAIN(localTimeZone);
+    }
+  else if ([name hasPrefix: @"NSAbsoluteTimeZone:"] == YES)
+    {
+      int	i = [[name substringFromIndex: 19] intValue];
+
+      zone = [[NSConcreteAbsoluteTimeZone alloc] initWithOffset: i];
+    }
+  else
+    {
+      static NSString	*fileException = @"fileException";
+      static NSString	*errMess = @"File read error in NSTimeZone.";
+
+      zone = nil;
       NS_DURING
 	{
-	  zone = [NSConcreteTimeZone alloc];
+	  const void	*bytes = [data bytes];
+	  unsigned	length = [data length];
+	  unsigned	pos = 0;
+	  id		transArray;
+	  id		detailsArray;
+	  int		i, n_trans, n_types, names_size;
+	  id		*abbrevsArray;
+	  char		*trans;
+	  char		*type_idxs;
+	  char		*zone_abbrevs;
+	  struct tzhead	*header;
+	  struct ttinfo	*types; // Temporary array for details
 
-	  /* Open file. */
-	  fileName = [NSTimeZoneClass getTimeZoneFile: name];
-      #if	defined(__WIN32__)
-	  file = fopen([fileName fileSystemRepresentation], "rb");
-      #else
-	  file = fopen([fileName fileSystemRepresentation], "r");
-      #endif
-	  if (file == NULL)
-	    [NSException raise: fileException format: errMess];
+	  if (length < sizeof(struct tzhead))
+	    {
+	      [NSException raise: fileException format: errMess];
+	    }
+	  header = (struct tzhead *)(bytes + pos);
+	  pos += sizeof(struct tzhead);
 
-	  /* Read header. */
-	  if (fread(&header, sizeof(struct tzhead), 1, file) != 1)
-	    [NSException raise: fileException format: errMess];
-
-	  n_trans = decode(header.tzh_timecnt);
-	  n_types = decode(header.tzh_typecnt);
-	  names_size = decode(header.tzh_charcnt);
+	  n_trans = decode(header->tzh_timecnt);
+	  n_types = decode(header->tzh_typecnt);
+	  names_size = decode(header->tzh_charcnt);
 
 	  /* Read in transitions. */
-	  trans = NSZoneMalloc(NSDefaultMallocZone(), 4*n_trans);
-	  type_idxs = NSZoneMalloc(NSDefaultMallocZone(), n_trans);
-	  if (fread(trans, 4, n_trans, file) != n_trans
-	      || fread(type_idxs, 1, n_trans, file) != n_trans)
-	    [NSException raise: fileException format: errMess];
+	  trans = (char*)(bytes + pos);
+	  pos += 4*n_trans;
+	  type_idxs = (char*)(bytes + pos);
+	  pos += n_trans;
+	  if (pos > length)
+	    {
+	      [NSException raise: fileException format: errMess];
+	    }
 	  transArray = [NSMutableArray arrayWithCapacity: n_trans];
 	  for (i = 0; i < n_trans; i++)
-	    [transArray
-	      addObject: [[NSInternalTimeTransition alloc]
+	    {
+	      [transArray
+		addObject: [[NSInternalTimeTransition alloc]
 			   initWithTime: decode(trans+(i*4))
 			   withIndex: type_idxs[i]]];
-	  NSZoneFree(NSDefaultMallocZone(), trans);
-	  NSZoneFree(NSDefaultMallocZone(), type_idxs);
+	    }
 
 	  /* Read in time zone details. */
-	  types =
-	    NSZoneMalloc(NSDefaultMallocZone(), sizeof(struct ttinfo)*n_types);
-	  for (i = 0; i < n_types; i++)
+	  types = (struct ttinfo*)(bytes + pos);
+	  pos += n_types*sizeof(struct ttinfo);
+	  if (pos > length)
 	    {
-	      unsigned char x[4];
-
-	      if (fread(x, 1, 4, file) != 4
-		  || fread(&types[i].isdst, 1, 1, file) != 1
-		  || fread(&types[i].abbr_idx, 1, 1, file) != 1)
-		[NSException raise: fileException format: errMess];
-	      types[i].offset = decode(x);
+	      [NSException raise: fileException format: errMess];
 	    }
 
 	  /* Read in time zone abbreviation strings. */
-	  zone_abbrevs = NSZoneMalloc(NSDefaultMallocZone(), names_size);
-	  if (fread(zone_abbrevs, 1, names_size, file) != names_size)
-	    [NSException raise: fileException format: errMess];
+	  zone_abbrevs = (char*)(bytes + pos);
+	  pos += names_size;
+	  if (pos > length)
+	    {
+	      [NSException raise: fileException format: errMess];
+	    }
 	  abbrevsArray = NSZoneMalloc(NSDefaultMallocZone(),
 	    sizeof(id)*names_size);
 	  memset(abbrevsArray, '\0', sizeof(id)*names_size);
 	  for (i = 0; i < n_types; i++)
 	    {
-	      int	pos = types[i].abbr_idx;
+	      struct ttinfo	*inf = types + i;
+	      int		loc = inf->abbr_idx;
 
-	      if (abbrevsArray[pos] == nil)
+	      if (abbrevsArray[loc] == nil)
 		{
-		  abbrevsArray[pos]
-		    = [NSString stringWithCString: zone_abbrevs+pos];
+		  abbrevsArray[loc]
+		    = [NSString stringWithCString: zone_abbrevs+loc];
 		}
 	    }
-	  NSZoneFree(NSDefaultMallocZone(), zone_abbrevs);
+
+	  zone = [NSConcreteTimeZone alloc];
 
 	  /* Create time zone details. */
 	  detailsArray = [NSMutableArray arrayWithCapacity: n_types];
 	  for (i = 0; i < n_types; i++)
 	    {
 	      NSConcreteTimeZoneDetail	*detail;
+	      struct ttinfo		*inf = types + i;
+	      int			off = decode(inf->offset);
+	      BOOL			dst = (inf->isdst > 0) ? YES : NO;
+	      int			idx = inf->abbr_idx;
+	      id			abr = abbrevsArray[idx];
 
 	      detail = [[NSConcreteTimeZoneDetail alloc]
 			      initWithTimeZone: zone
-				    withAbbrev: abbrevsArray[(int)types[i].abbr_idx]
-				    withOffset: types[i].offset
-				       withDST: (types[i].isdst > 0)];
+				    withAbbrev: abr
+				    withOffset: off
+				       withDST: dst];
 	      [detailsArray addObject: detail];
 	      RELEASE(detail);
 	    }
 	  NSZoneFree(NSDefaultMallocZone(), abbrevsArray);
-	  NSZoneFree(NSDefaultMallocZone(), types);
 
 	  zone = [(id)zone initWithName: name
 			withTransitions: transArray
 			    withDetails: detailsArray];
+	  if (zone_mutex != nil)
+	    {
+	      [zone_mutex lock];
+	    }
 	  [zoneDictionary setObject: zone forKey: (NSString*)[zone name]];
+	  if (zone_mutex != nil)
+	    {
+	      [zone_mutex unlock];
+	    }
 	}
       NS_HANDLER
 	{
@@ -520,14 +561,6 @@ decode (const void *ptr)
 	}
       NS_ENDHANDLER
 
-      if (file != NULL)
-	{
-	  fclose(file);
-	}
-      if (zone_mutex != nil)
-	{
-	  [zone_mutex unlock];
-	}
     }
   return zone;
 }
@@ -703,15 +736,19 @@ static NSMapTable	*absolutes = 0;
     }
   else
     {
-      [super init];
-      name = [[NSString alloc] initWithFormat: @"NSAbsoluteTimeZone:%d",
-	anOffset];
-      detail = [[NSConcreteTimeZoneDetail alloc]
-        initWithTimeZone: self withAbbrev: name
-	  withOffset: anOffset withDST: NO];
-      offset = anOffset;
-      z = self;
-      NSMapInsert(absolutes, (void*)(gsaddr)anOffset, (void*)z);
+      self = [super init];
+      if (self != nil)
+	{
+	  name = [[NSString alloc] initWithFormat: @"NSAbsoluteTimeZone:%d",
+	    anOffset];
+	  detail = [[NSConcreteTimeZoneDetail alloc]
+	    initWithTimeZone: self withAbbrev: name
+	      withOffset: anOffset withDST: NO];
+	  offset = anOffset;
+	  z = self;
+	  NSMapInsert(absolutes, (void*)(gsaddr)anOffset, (void*)z);
+	  [zoneDictionary setObject: self forKey: (NSString*)name];
+	}
     }
   if (zone_mutex != nil)
     [zone_mutex unlock];
