@@ -1,3 +1,11 @@
+2002-05-10  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Additions/GSXML.m: Change libxml strings to UTF8
+	(makeText:) New.
+	Add GSXMLDummy for MinGW
+	* Source/Additions/libgnustep-base.def: Remove GSXMLHandler.
+	(patch from Kai Henningsen).
+
 2002-05-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdnc.m: Make gdnc log to syslog by default, and close

@@ -39,7 +39,6 @@
 
 @class GSXMLAttribute;
 @class GSXMLDocument;
-@class GSXMLHandler;
 @class GSXMLNamespace;
 @class GSXMLNode;
 @class GSSAXHandler;
@@ -127,6 +126,7 @@
 - (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
 				 name: (NSString*)name
 			      content: (NSString*)content;
+- (GSXMLNode*) makeText: (NSString*)content;
 - (GSXMLNode*) makeComment: (NSString*)content;
 - (GSXMLNode*) makePI: (NSString*)name
 	      content: (NSString*)content;
