@@ -70,6 +70,13 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
 
+#ifdef HAVE_LIBXSLT
+#include <libxslt/xslt.h>
+#include <libxslt/xsltInternals.h>
+#include <libxslt/transform.h>
+#include <libxslt/xsltutils.h>
+#endif /* HAVE_LIBXSLT */
+
 extern int xmlGetWarningsDefaultValue;
 
 /*
@@ -3818,6 +3825,241 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 - (GSXMLDocument*) doc { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self document]; }
 @end
 
+@implementation GSXMLDocument (XSLT)
+#ifdef HAVE_LIBXSLT
+/**
+ * Performs an XSLT transformation on the specified file using the
+ * sytelsheet provided.<br />
+ *
+ * Returns an autoreleased GSXMLDocument containing the transformed
+ * XML, or nil on failure.
+ */
++ (GSXMLDocument*) xsltTransformFile: (NSString*)xmlFile
+                          stylesheet: (NSString*)xsltStylesheet
+{
+  return [GSXMLDocument xsltTransformFile: xmlFile
+                               stylesheet: xsltStylesheet
+			           params: nil];
+}
+
+/**
+ * Performs an XSLT transformation on the specified file using the
+ * sytelsheet and parameters provided. See the libxslt documentation
+ * for details of the supported parameters.<br />
+ *
+ * Returns an autoreleased GSXMLDocument containing the transformed
+ * XML, or nil on failure.
+ */
++ (GSXMLDocument*) xsltTransformFile: (NSString*)xmlFile
+                          stylesheet: (NSString*)xsltStylesheet
+		              params: (NSDictionary*)params
+{
+  GSXMLDocument	*newdoc;
+  
+  NS_DURING
+    {
+      NSData	*xml;
+      NSData	*ss;
+
+      xml = [NSData dataWithContentsOfFile: xmlFile];
+      ss = [NSData dataWithContentsOfFile: xsltStylesheet];
+      if (xml == nil || ss == nil)
+	{
+	  newdoc = nil;
+	}
+      else
+	{
+	  newdoc = [GSXMLDocument xsltTransformXml: xml 
+					stylesheet: ss
+					    params: params];
+	}
+    }
+  NS_HANDLER
+    {
+      newdoc = nil;
+    }
+  NS_ENDHANDLER
+  
+  return newdoc;
+}
+/**
+ * Performs an XSLT transformation on the specified file using the
+ * sytelsheet provided.<br />
+ *
+ * Returns an autoreleased GSXMLDocument containing the transformed
+ * XML, or nil on failure.
+ */
++ (GSXMLDocument*) xsltTransformXml: (NSData*)xmlData
+                         stylesheet: (NSData*)xsltStylesheet
+{
+  return [GSXMLDocument xsltTransformXml: xmlData
+                              stylesheet: xsltStylesheet
+			          params: nil];
+}
+			  
+/**
+ * Performs an XSLT transformation on the specified file using the
+ * sytelsheet and parameters provided.See the libxslt documentation
+ * for details of the supported parameters.<br />
+ *
+ * Returns an autoreleased GSXMLDocument containing the transformed
+ * XML, or nil on failure.
+ */
++ (GSXMLDocument*) xsltTransformXml: (NSData*)xmlData
+                         stylesheet: (NSData*)xsltStylesheet
+		             params: (NSDictionary*)params
+{
+  GSXMLDocument	*newdoc;
+  
+  NS_DURING
+    {
+      GSXMLParser	*xmlParser;
+      GSXMLDocument	*xml;
+      GSXMLParser	*ssParser;
+      GSXMLDocument	*ss;
+
+      xmlParser = [GSXMLParser parserWithData: xmlData];
+      [xmlParser parse];
+      xml = [xmlParser document];
+      ssParser = [GSXMLParser parserWithData: xsltStylesheet];
+      [ssParser parse];
+      ss = [ssParser document];
+      newdoc = [xml xsltTransform: ss params: params];
+    }
+  NS_HANDLER
+    {
+      newdoc = nil;
+    }
+  NS_ENDHANDLER
+  
+  return newdoc;
+}
+
+/**
+ * Performs an XSLT transformation on the current document using the
+ * supplied stylesheet.<br />
+ *
+ * Returns an autoreleased GSXMLDocument containing the transformed
+ * XML, or nil on failure.
+ */
+- (GSXMLDocument*) xsltTransform: (GSXMLDocument*)xsltStylesheet
+{
+  return [self xsltTransform: xsltStylesheet params: nil];
+}
+
+/**
+ * Performs an XSLT transformation on the current document using the
+ * supplied stylesheet and paramaters (parameters may be nil).
+ * See the libxslt documentation for details of the supported parameters.<br />
+ *
+ * Returns an autoreleased GSXMLDocument containing the transformed
+ * XML, or nil on failure.
+ */
+- (GSXMLDocument*) xsltTransform: (GSXMLDocument*)xsltStylesheet
+                          params: (NSDictionary*)params
+{
+  GSXMLDocument		*newdoc = nil;  
+
+  NS_DURING
+    {
+      xsltStylesheetPtr ss = NULL;
+      xmlDocPtr		ssXml = (xmlDocPtr)[xsltStylesheet lib];
+      int		pSize = params == nil ? 1 : ([params count] * 2) + 1;
+      int		pNum = 0;
+      const char	*parameters[pSize];
+
+      if (params != nil)
+	{
+	  NSEnumerator	*keys = [params keyEnumerator];
+	  if (keys != nil)
+	    {
+	      NSString	*key = [keys nextObject];
+	      while (key != nil)
+		{
+		  NSString	*value = [params objectForKey: key];
+		  parameters[pNum++] = [key cString];
+		  parameters[pNum++] = [value cString];
+		  key = [keys nextObject];
+		}
+	    }
+	}
+      parameters[pNum] = NULL;
+      
+      ss = xsltParseStylesheetDoc(ssXml);
+      if (xsltStylesheet != NULL)
+	{
+	  xmlDocPtr	res = NULL;
+
+	  res = xsltApplyStylesheet(ss, lib, parameters);
+	  if (res != NULL)
+	    {
+	      newdoc = [GSXMLDocument alloc];
+	      newdoc = [newdoc _initFrom: res
+				  parent: self 
+				 ownsLib: YES];
+	      AUTORELEASE(newdoc);
+	    }
+	}
+      /*
+       * N.B. We don't want to call xsltFreeStylesheet() to free the 
+       * stylesheet xmlDocPtr because that will destroy the lib which 
+       * is owned by the xsltStylesheet object.
+       */
+      xsltCleanupGlobals();
+    }
+  NS_HANDLER
+    {
+      newdoc=  nil;
+    }
+  NS_ENDHANDLER
+  return newdoc;
+}
+#else /* HAVE_LIBXSLT */
++ (GSXMLDocument*) xsltTransformFile: (NSString*)xmlFile
+                          stylesheet: (NSString*)xsltStylesheet
+		              params: (NSDictionary*)params
+{
+  NSLog(@"libxslt is not available");
+  return nil;
+}
+			  
++ (GSXMLDocument*) xsltTransformFile: (NSString*)xmlFile
+                          stylesheet: (NSString*)xsltStylesheet
+{
+  NSLog(@"libxslt is not available");
+  return nil;
+}
+			  
++ (GSXMLDocument*) xsltTransformXml: (NSData*)xmlData
+                         stylesheet: (NSData*)xsltStylesheet
+		             params: (NSDictionary*)params
+{
+  NSLog(@"libxslt is not available");
+  return nil;
+}
+
++ (GSXMLDocument*) xsltTransformXml: (NSData*)xmlData
+                         stylesheet: (NSData*)xsltStylesheet
+{
+  NSLog(@"libxslt is not available");
+  return nil;
+}
+			     
+- (GSXMLDocument*) xsltTransform: (GSXMLDocument*)xsltStylesheet
+                          params: (NSDictionary*)parameters
+{
+  NSLog(@"libxslt is not available");
+  return nil;
+}
+
+- (GSXMLDocument*) xsltTransform: (GSXMLDocument*)xsltStylesheet
+{
+  NSLog(@"libxslt is not available");
+  return nil;
+}
+#endif /* HAVE_LIBXSLT */
+@end
+
 #else
 
 #ifndef NeXT_Foundation_LIBRARY
@@ -3887,6 +4129,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 @end
 @implementation GSXMLAttribute
 @end
+
 #endif
 
 
