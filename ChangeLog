@@ -2,6 +2,8 @@
 
 	* Source/GSFFCallInvocation.m: attempt to guess type signature
 	when compiler gives us an untyped selector.
+	* Headers/Foundation/NSObject.h: ASSIGN(), ASSIGNCOPY(), minor
+	reordering to make these macros thread-safe.
 
 2001-07-30  Adam Fedor  <fedor@gnu.org>
 
