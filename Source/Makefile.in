@@ -161,6 +161,7 @@ Stream.m \
 String.m \
 TcpPort.m \
 TextCStream.m \
+UdpPort.m \
 atoz.m \
 callbacks-id.m \
 stdobjects.m \
@@ -299,6 +300,7 @@ objects/String.h \
 objects/TcpPort.h \
 objects/TextCStream.h \
 objects/Time.h \
+objects/UdpPort.h \
 objects/ValueHolding.h \
 objects/abort.h \
 objects/allocs.h \
