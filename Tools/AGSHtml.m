@@ -1234,16 +1234,19 @@ static NSMutableSet	*textNodes = nil;
 	      [buf appendString: @"<b>Standards:</b>"];
 	      while (tmp != nil)
 		{
-		  if (first == YES)
+		  if ([tmp type] == XML_ELEMENT_NODE)
 		    {
-		      first = NO;
-		      [buf appendString: @" "];
+		      if (first == YES)
+			{
+			  first = NO;
+			  [buf appendString: @" "];
+			}
+		      else
+			{
+			  [buf appendString: @", "];
+			}
+		      [buf appendString: [tmp name]];
 		    }
-		  else
-		    {
-		      [buf appendString: @", "];
-		    }
-		  [buf appendString: [tmp name]];
 		  tmp = [tmp next];
 		}
 	      [buf appendString: @"<br />\n"];
@@ -1657,10 +1660,13 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       [self incIndent];
       while (t != nil)
 	{
-	  [buf appendString: indent];
-	  [buf appendString: @"<li>"];
-	  [buf appendString: [t name]];
-	  [buf appendString: @"</li>\n"];
+	  if ([t type] == XML_ELEMENT_NODE)
+	    {
+	      [buf appendString: indent];
+	      [buf appendString: @"<li>"];
+	      [buf appendString: [t name]];
+	      [buf appendString: @"</li>\n"];
+	    }
 	  t = [t next];
 	}
       [self decIndent];
@@ -1699,9 +1705,12 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 		     to: buf];
       [buf appendString: indent];
       [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
-      while (node != nil && [[node name] isEqual: @"method"] == YES)
+      while (node != nil)
 	{
-	  [self outputNode: node to: buf];
+	  if([[node name] isEqual: @"method"] == YES)
+	    {
+	      [self outputNode: node to: buf];
+	    }
 	  node = [node next];
 	}
     }
