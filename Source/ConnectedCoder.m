@@ -108,7 +108,8 @@ static BOOL debug_connected_coder = NO;
 	eofPosition:len-2
 	prefix:2
 	position:0];
-  newsp = [[self alloc] initForReadingFromStream:ms];
+  newsp = [[self coderReadingFromStream: ms] 
+	    retain];
   newsp->remotePort = rp;
   newsp->connection = [Connection newForInPort:inPort
 				  outPort:newsp->remotePort
