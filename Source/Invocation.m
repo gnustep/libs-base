@@ -44,6 +44,8 @@
 /* memory.h and strings.h conflict on some systems.  */
 #endif /* not STDC_HEADERS and not HAVE_STRING_H */
 
+/* xxx Perhaps make this an ivar. */
+#define return_retained 1
 
 @implementation Invocation
 
@@ -142,8 +144,16 @@
 - (void) setReturnValue: (void*)addr
 {
   if (return_value)
-    memcpy (return_value, addr, return_size);
-  /* xxx retain, if necessary. */
+    {
+      if (return_retained && *return_type == _C_ID)
+	{
+	  [*(id*)return_value release];
+	  *(id*)return_value = *(id*)addr;
+	  [*(id*)return_value retain];
+	}
+      else
+	memcpy (return_value, addr, return_size);
+    }
 }
 
 - objectReturnValue
@@ -284,6 +294,7 @@ my_method_get_next_argument (arglist_t argframe,
 - (void) _retainArguments
 {
   const char *tmptype;
+  void *datum;
 
   tmptype = return_type;
   while ((datum = my_method_get_next_argument (argframe, &tmptype)))
@@ -470,6 +481,13 @@ my_method_get_next_argument (arglist_t argframe,
 }
 
 /* This is the designated initializer */
+- initWithArgframe: (arglist_t)frame type: (const char*)t
+{
+  [super initWithArgframe: frame type: t];
+  [self _initTargetAndSelPointers];
+  return self;
+}
+
 - initWithArgframe: (arglist_t)frame selector: (SEL)sel
 {
   const char *sel_type;
@@ -477,7 +495,8 @@ my_method_get_next_argument (arglist_t argframe,
   if (! (sel_type = sel_get_type (sel)) )
     sel_type = sel_get_type ( sel_get_any_typed_uid (sel_get_name (sel)));
   [self initWithArgframe: frame type: sel_type];
-  [self _initTargetAndSelPointers];
+  if (!frame)
+    *sel_pointer = sel;
   return self;
 }
 
@@ -772,7 +791,7 @@ my_method_get_next_argument (arglist_t argframe,
   r = (*function) (anObject);
   if (*(id*)return_value != r)
     {
-      if (args_retained)
+      if (return_retained)
 	{
 	  [*(id*)return_value release];
 	  [r retain];
