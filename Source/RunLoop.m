@@ -52,6 +52,7 @@
    Alternate names for Notification classes: Dispatcher, EventDistributor, */
 
 #include <gnustep/base/preface.h>
+#include <gnustep/base/Bag.h>
 #include <gnustep/base/RunLoop.h>
 #include <gnustep/base/Heap.h>
 #include <Foundation/NSMapTable.h>
@@ -69,6 +70,161 @@
    Just define it to use memset(). */
 #define bzero(PTR, LEN) memset (PTR, 0, LEN)
 
+
+/* Local class to hold information about file descriptors to be watched
+   and the objects to which messages are to be sent when the descriptors
+   are readable or writable. */
+
+
+@interface FdInfo: NSObject
+{
+    int		fd;
+    id		receiver;
+}
+-(int)getFd;
+-setFd:(int)desc;
+-getReceiver;
+-setReceiver:anObj;
+-initWithFd:(int)desc andReceiver:anObj;
+@end
+
+@implementation FdInfo
+-(int)getFd {
+    return fd;
+}
+- setFd: (int)desc {
+    fd = desc;
+    return self;
+}
+-getReceiver {
+    return receiver;
+}
+-setReceiver: anObj {
+    if (receiver != nil) {
+	[receiver release];
+    }
+    receiver = [anObj retain];
+    return self;
+}
+-initWithFd:(int)desc andReceiver:anObj {	/* Designated initializer */
+    [super init];
+    [self setFd: desc];
+    return [self setReceiver: anObj];
+}
+-init {
+    return [self initWithFd:-1 andReceiver:nil];
+}
+-(void)dealloc {
+    if (receiver != nil) {
+        [receiver release];
+    }
+    [super dealloc];
+}
+@end
+
+
+/* Adding and removing file descriptors. */
+
+@implementation RunLoop(GNUstepExtensions)
+
+- (void) addReadDescriptor: (int)fd
+		    object: (id <FdListening>)listener
+		   forMode: (id <String>)mode
+{
+  Bag		*fd_listeners;
+  FdInfo	*info;
+
+  /* Remove any existing handler for the specified descriptor. */
+  [self removeReadDescriptor: fd forMode: mode];
+
+  /* Create new object to hold information. */
+  info = [[FdInfo alloc] initWithFd: fd andReceiver: listener];
+
+  /* Ensure we have a bag to put it in. */
+  fd_listeners = NSMapGet (_mode_2_fd_listeners, mode);
+  if (!fd_listeners)
+    {
+      fd_listeners = [Bag new];
+      NSMapInsert (_mode_2_fd_listeners, mode, fd_listeners);
+      [fd_listeners release];
+    }
+
+  /* Add our new handler information to the bag. */
+  [fd_listeners addObject: info];
+  [info release];
+}
+
+- (void) addWriteDescriptor: (int)fd
+		    object: (id <FdSpeaking>)speaker
+		   forMode: (id <String>)mode
+{
+  Bag		*fd_speakers;
+  FdInfo	*info;
+
+  /* Remove any existing handler for the specified descriptor. */
+  [self removeWriteDescriptor: fd forMode: mode];
+
+  /* Create new object to hold information. */
+  info = [[FdInfo alloc] initWithFd: fd andReceiver: speaker];
+
+  /* Ensure we have a bag to put it in. */
+  fd_speakers = NSMapGet (_mode_2_fd_speakers, mode);
+  if (!fd_speakers)
+    {
+      fd_speakers = [Bag new];
+      NSMapInsert (_mode_2_fd_speakers, mode, fd_speakers);
+      [fd_speakers release];
+    }
+
+  /* Add our new handler information to the bag. */
+  [fd_speakers addObject: info];
+  [info release];
+}
+
+- (void) removeReadDescriptor: (int)fd 
+		      forMode: (id <String>)mode
+{
+  Bag*	fd_listeners;
+
+  fd_listeners = NSMapGet (_mode_2_fd_listeners, mode);
+  if (fd_listeners)
+    {
+      void*	es = [fd_listeners newEnumState];
+      id	info;
+
+      while ((info=[fd_listeners nextObjectWithEnumState: &es])!=NO_OBJECT)
+        {
+	  if ([info getFd] == fd)
+            {
+	      [fd_listeners removeObject: info];
+	    }
+	}
+    }
+}
+
+- (void) removeWriteDescriptor: (int)fd 
+		      forMode: (id <String>)mode
+{
+  Bag*	fd_speakers;
+
+  fd_speakers = NSMapGet (_mode_2_fd_speakers, mode);
+  if (fd_speakers)
+    {
+      void*	es = [fd_speakers newEnumState];
+      id	info;
+
+      while ((info=[fd_speakers nextObjectWithEnumState: &es])!=NO_OBJECT)
+        {
+	  if ([info getFd] == fd)
+            {
+	      [fd_speakers removeObject: info];
+	    }
+	}
+    }
+}
+@end
+
+
 static int debug_run_loop = 0;
 
 @implementation RunLoop
@@ -92,54 +248,14 @@ static RunLoop *current_run_loop;
 				       NSObjectMapValueCallBacks, 0);
   _mode_2_fd_listeners = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
 					   NSObjectMapValueCallBacks, 0);
+  _mode_2_fd_speakers = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
+					 NSObjectMapValueCallBacks, 0);
   return self;
 }
 
 - (id <String>) currentMode
 {
   return _current_mode;
-}
-
-
-/* Adding and removing file descriptors. */
-
-- (void) addFileDescriptor: (int)fd
-		    object: listener
-		   forMode: (id <String>)mode
-{
-  /* xxx Perhaps this should be a Bag instead. */
-  Array *fd_listeners;
-
-  /* xxx We need to keep track of the FD too!
-     Perhaps I'll make a FileDescriptor class to hold all this;
-     it will be more analogous the Port object. */
-  [self notImplemented: _cmd];
-
-  fd_listeners = NSMapGet (_mode_2_fd_listeners, mode);
-  if (!fd_listeners)
-    {
-      fd_listeners = [Array new];
-      NSMapInsert (_mode_2_fd_listeners, mode, fd_listeners);
-      [fd_listeners release];
-    }
-  [fd_listeners addObject: listener];
-}
-
-- (void) removeFileDescriptor: (int)fd 
-		      forMode: (id <String>)mode
-{
-#if 1
-  [self notImplemented: _cmd];
-#else
-  Array *fd_listeners;
-
-  fd_listeners = NSMapGet (_mode_2_fd_listeners, mode);
-  if (!fd_listeners)
-    /* xxx Careful, this is only suppose to "undo" one -addPort:.
-       If we change the -removeObject implementation later to remove
-       all instances of port, we'll have to change this code here. */
-    [fd_listeners removeObject: port];
-#endif
 }
 
 
@@ -252,13 +368,11 @@ static RunLoop *current_run_loop;
   fd_set fds;			/* The file descriptors we will listen to. */
   fd_set read_fds;		/* Copy for listening to read-ready fds. */
   fd_set exception_fds;		/* Copy for listening to exception fds. */
+  fd_set write_fds;		/* Copy for listening for write-ready fds. */
   int select_return;
+  int fd_index;
   NSMapTable *fd_2_object;
   id saved_mode;
-  id ports;
-  int num_of_ports;
-  int port_fd_count = 128; // xxx #define this constant
-  int port_fd_array[port_fd_count];
 
   assert (mode);
   saved_mode = _current_mode;
@@ -316,74 +430,82 @@ static RunLoop *current_run_loop;
      an empty map for keeping track of which object is associated
      with which file descriptor. */
   FD_ZERO (&fds);
+  FD_ZERO (&write_fds);
   fd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  NSObjectMapValueCallBacks, 0);
 
-  /* If a port is invalid, remove it from this mode. */
-  ports = NSMapGet (_mode_2_in_ports, mode);
-  {
-    id port;
-    int i;
-    for (i = [ports count]-1; i >= 0; i--)
-      {
-	port = [ports objectAtIndex: i];
-	if (![port isValid])
-	  [ports removeObjectAtIndex: i];
-      }
-  }
-  num_of_ports = 0;
 
   /* Do the pre-listening set-up for the file descriptors of this mode. */
   {
+      Bag*	fdInfo;
+
+      fdInfo = NSMapGet (_mode_2_fd_speakers, mode);
+      if (fdInfo) {
+	  void*	es = [fdInfo newEnumState];
+	  id	info;
+
+	  while ((info=[fdInfo nextObjectWithEnumState: &es])!=NO_OBJECT) {
+	      int	fd = [info getFd];
+
+	      FD_SET (fd, &write_fds);
+	      NSMapInsert (fd_2_object, (void*)fd, [info getReceiver]);
+	  }
+      }
+      fdInfo = NSMapGet (_mode_2_fd_listeners, mode);
+      if (fdInfo) {
+	  void*	es = [fdInfo newEnumState];
+	  id	info;
+
+	  while ((info=[fdInfo nextObjectWithEnumState: &es])!=NO_OBJECT) {
+	      int	fd = [info getFd];
+
+	      FD_SET (fd, &fds);
+	      NSMapInsert (fd_2_object, (void*)fd, [info getReceiver]);
+	  }
+      }
   }
 
   /* Do the pre-listening set-up for the ports of this mode. */
   {
+    id ports = NSMapGet (_mode_2_in_ports, mode);
     if (ports)
       {
 	id port;
 	int i;
-	int fd_count = port_fd_count;
-	int fd_array[port_fd_count];
 
-	/* Ask our ports for the list of file descriptors they
-	   want us to listen to; add these to FD_LISTEN_SET. 
-	   Save the list of ports for later use. */
+	/* If a port is invalid, remove it from this mode. */
 	for (i = [ports count]-1; i >= 0; i--)
 	  {
 	    port = [ports objectAtIndex: i];
+	    if (![port isValid])
+	      [ports removeObjectAtIndex: i];
+	  }
+
+	/* Ask our ports for the list of file descriptors they
+	   want us to listen to; add these to FD_LISTEN_SET. */
+	for (i = [ports count]-1; i >= 0; i--)
+	  {
+	    int port_fd_count = 128; // xxx #define this constant
+	    int port_fd_array[port_fd_count];
+	    port = [ports objectAtIndex: i];
 	    if ([port respondsTo: @selector(getFds:count:)])
-	      [port getFds: fd_array count: &fd_count];
-	    else
-	      fd_count = 0;
+	      [port getFds: port_fd_array count: &port_fd_count];
 	    if (debug_run_loop)
-	      printf("\tRunLoop listening to %d sockets\n", fd_count);
-	    num_of_ports += fd_count;
-	    if (num_of_ports > port_fd_count)
+	      printf("\tRunLoop listening to %d sockets\n", port_fd_count);
+	    while (port_fd_count--)
 	      {
-		/* xxx Uh oh our array isn't big enough */
-		perror ("RunLoop attempt to listen to too many ports\n");
-		abort ();
-	      }
-	    while (fd_count--)
-	      {
-		int j = num_of_ports - fd_count - 1;
-		port_fd_array[j] = fd_array[fd_count];
-		FD_SET (port_fd_array[j], &fds);
+		FD_SET (port_fd_array[port_fd_count], &fds);
 		NSMapInsert (fd_2_object, 
-			     (void*)port_fd_array[j], 
-			     port);
+			     (void*)port_fd_array[port_fd_count], port);
 	      }
 	  }
       }
   }
-  if (debug_run_loop)
-    printf("\tRunLoop listening to %d total ports\n", num_of_ports);
 
   /* Wait for incoming data, listening to the file descriptors in _FDS. */
   read_fds = fds;
   exception_fds = fds;
-  select_return = select (FD_SETSIZE, &read_fds, NULL, &exception_fds,
+  select_return = select (FD_SETSIZE, &read_fds, &write_fds, &exception_fds,
 			  select_timeout);
 
   if (debug_run_loop)
@@ -405,25 +527,21 @@ static RunLoop *current_run_loop;
   
   /* Look at all the file descriptors select() says are ready for reading;
      notify the corresponding object for each of the ready fd's. */
-  {
-    if (ports)
-      {
-	int i;
-
-	for (i = num_of_ports - 1; i >= 0; i--)
-	  {
-	    if (FD_ISSET (port_fd_array[i], &read_fds))
-	      {
-		id fd_object = (id) NSMapGet (fd_2_object, 
-					      (void*)port_fd_array[i]);
-		assert (fd_object);
-		[fd_object readyForReadingOnFileDescriptor: 
-			     port_fd_array[i]];
-	      }
-	  }
-      }
-  }
-
+  for (fd_index = 0; fd_index < FD_SETSIZE; fd_index++)
+    {
+      if (FD_ISSET (fd_index, &write_fds))
+        {
+	  id fd_object = (id) NSMapGet (fd_2_object, (void*)fd_index);
+	  assert (fd_object);
+	  [fd_object readyForWritingOnFileDescriptor: fd_index];
+        }
+      if (FD_ISSET (fd_index, &read_fds))
+        {
+	  id fd_object = (id) NSMapGet (fd_2_object, (void*)fd_index);
+	  assert (fd_object);
+	  [fd_object readyForReadingOnFileDescriptor: fd_index];
+        }
+    }
   /* Clean up before returning. */
   NSFreeMapTable (fd_2_object);
   _current_mode = saved_mode;
@@ -607,3 +725,4 @@ id RunLoopDefaultMode = @"RunLoopDefaultMode";
 	      withAttender: (id <FileDescriptorAttending>)object
 
 #endif
+
