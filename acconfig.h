@@ -7,6 +7,7 @@
 #undef NeXT_runtime
 
 #undef VSPRINTF_RETURNS_LENGTH
+#undef VASPRINTF_RETURNS_LENGTH
 
 /* The number of bytes in a int.  */
 #undef SIZEOF_INT

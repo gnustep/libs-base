@@ -22,6 +22,7 @@
 #undef NeXT_runtime
 
 #undef VSPRINTF_RETURNS_LENGTH
+#undef VASPRINTF_RETURNS_LENGTH
 
 /* Define if you have the register_printf_function function.  */
 #undef HAVE_REGISTER_PRINTF_FUNCTION
@@ -103,6 +104,9 @@
 
 /* Define if you have the valloc function.  */
 #undef HAVE_VALLOC
+
+/* Define if you have the vasprintf function.  */
+#undef HAVE_VASPRINTF
 
 /* Define if you have the vsprintf function.  */
 #undef HAVE_VSPRINTF
