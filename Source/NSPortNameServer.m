@@ -163,14 +163,14 @@ static NSPortNameServer	*defaultServer = nil;
   if (name == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to register port with nil name"]; 
+		  format: @"attempt to lookup port with nil name"]; 
     }
 
   len = [name cStringLength];
   if (len == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to register port with no name"]; 
+		  format: @"attempt to lookup port with no name"]; 
     }
   if (len > GDO_NAME_MAX_LEN)
     {
@@ -179,7 +179,19 @@ static NSPortNameServer	*defaultServer = nil;
 			GDO_NAME_MAX_LEN]; 
     }
 
-  if (host != nil && [host isEqual: @"*"])
+  if (host == nil || [host isEqual: @""])
+    {
+      /*
+       *	Query a single nameserver - on the local host.
+       */
+      numSvrs = 1;
+#ifndef HAVE_INET_ATON
+      svrs->s_addr = inet_addr("127.0.0.1");
+#else
+      inet_aton("127.0.0.1", (struct in_addr *)&svrs->s_addr);
+#endif
+    }
+  else if ([host isEqual: @"*"])
     {
       NSMutableData	*tmp;
       unsigned	bufsiz;
@@ -281,14 +293,19 @@ static NSPortNameServer	*defaultServer = nil;
     }
   else
     {
+      NSHost	*h;
+
       /*
-       *	Query a single nameserver - on the local host.
+       *	Query a single nameserver - on the specified host.
        */
       numSvrs = 1;
+      h = [NSHost hostWithName: host];
+      if (h)
+	host = [h address];
 #ifndef HAVE_INET_ATON
-      svrs->s_addr = inet_addr("127.0.0.1");
+      svrs->s_addr = inet_addr([host cString]);
 #else
-      inet_aton("127.0.0.1", (struct in_addr *)&svrs->s_addr);
+      inet_aton([host cString], (struct in_addr *)&svrs->s_addr);
 #endif
     }
 

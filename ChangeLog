@@ -1,7 +1,9 @@
-Fri Jul 23 21:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Fri Jul 23 22:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/UnixFileHandle.m: Tidy a little and make sure that
 	non-blocking mode is reset when a descriptor is closed.
+	* Source/NSPortNameServer.mL Fixed error in lookup when host name
+	is specified.
 
 Thu Jul 22 13:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
