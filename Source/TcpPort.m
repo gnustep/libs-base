@@ -63,8 +63,8 @@
 
 #define	GDOMAP	1	/* 1 = Use name server.	*/
 #define	stringify_it(X)	#X
-#define	make_gdomap_cmd(X)	stringify_it(X) "/bin/gdomap &"
-#define	make_gdomap_err(X)	"check that " stringify_it(X) "/bin/gdomap is running and owned by root."
+#define	make_gdomap_cmd(X)	stringify_it(X) "/Tools/gdomap &"
+#define	make_gdomap_err(X)	"check that " stringify_it(X) "/Tools/gdomap is running and owned by root."
 
 #endif /* !__WIN32__ */
 #include <string.h>		/* for memset() and strchr() */
@@ -145,7 +145,7 @@ static int debug_tcp_port = 0;
 /*
  *	Code to contact distributed objects name server.
  */
-#include	"gdomap.h"
+#include	"../Tools/gdomap.h"
 
 extern	int	errno;	/* For systems where it is not in the include	*/
 

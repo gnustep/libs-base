@@ -32,7 +32,7 @@
  *	The communications protocol is identical for both TCP and UDP and
  *	consists of a simple request-response sequence.
  *
- *	Each request is a single 264 byte message consisting of -
+ *	Each request is a single message consisting of -
  *		a single byte request type,
  *		a single byte giving name length,
  *		a single byte specifying the type of port being registered
@@ -40,13 +40,13 @@
  *		a single nul byte.
  *		a four byte port number in network byte order must be
  *		present for register operations, otherwise this is zero.
- *		a service name of 0 to 255 bytes (or an IP address in
- *		network byte order for probe operations)
- *		0 to 254 nul bytes padding the service name to 255.
+ *		a service name of 0 to GDO_NAME_MAX_LEN bytes (or an IP
+ *		address in network byte order for probe operations)
+ *		0 to GDO_NAME_MAX_LEN nul bytes padding the service name to its
+ *		full size.
  *		a terminating nul byte.
- *		The total is always sent in a packet of 262 bytes with
- *		everything after the service name (except the final byte)
- *		cleared to nul bytes.
+ *		The total is always sent in a packet with everything after the
+ *		service name (except the final byte) cleared to nul bytes.
  *
  *	Each response consists of at least 4 bytes and depends on the
  *	corresponding request type and where it came from as follows -
@@ -65,8 +65,7 @@
  *
  *	GDO_UNREG	Un-register the server name and return old port number.
  *			This service is only available to a process on the
- *			same host as this name server and which sent the
- *			request from the port associated with the name.
+ *			same host as this name server.
  *			Response is the old port number in network byte order,
  *			or zero if the name could not be un-registered.
  *
@@ -136,6 +135,14 @@
  *	    Things are never perfect though - if a name server dies, the
  *	    other name servers won't know, and will continute to tell
  *	    applications that it is there.
+ *
+ *	3.  Port type codes - these are used to say what the port is for so
+ *	    that clients can look up only the names that are relevant to them.
+ *	    This is to permit the name server to be used for multiple
+ *	    communications protocols (at the moment, tcp or udp) and for
+ *	    different systems (distributed objects or others).
+ *	    This guarantees that if one app is using DO over UDP, its services
+ *	    will not be found by an app which is using DO over TCP.
  */
 
 #define	GDOMAP_PORT	(538)	/* The well-known port for name server.	*/
@@ -153,22 +160,39 @@
 /*
  *	Port type codes
  */
-#define	GDO_TCP_GDO	'T'	/* tcp/ip distributed object server.	*/
-#define	GDO_UDP_GDO	'U'	/* udp/ip distributed object server.	*/
-#define	GDO_TCP_FOREIGN	't'	/* tcp/ip simple socket connection.	*/
-#define	GDO_UDP_FOREIGN	'u'	/* udp/ip simple socket connection.	*/
+#define	GDO_NET_MASK	0x70	/* Network protocol of port.		*/
+#define	GDO_NET_TCP	0x10
+#define	GDO_NET_UDP	0x10
+#define	GDO_SVC_MASK	0x0f	/* High level protocol of port.		*/
+#define	GDO_SVC_GDO	0x01
+#define	GDO_SVC_FOREIGN	0x02
+
+/* tcp/ip distributed object server.	*/
+#define	GDO_TCP_GDO	(GDO_NET_TCP|GDO_SVC_GDO)
+
+/* udp/ip distributed object server.	*/
+#define	GDO_UDP_GDO	(GDO_NET_UDP|GDO_SVC_GDO)
+
+/* tcp/ip simple socket connection.	*/
+#define	GDO_TCP_FOREIGN	(GDO_NET_TCP|GDO_SVC_FOREIGN)
+
+/* udp/ip simple socket connection.	*/
+#define	GDO_UDP_FOREIGN	(GDO_NET_UDP|GDO_SVC_FOREIGN)
+
+
+#define	GDO_NAME_MAX_LEN	255	/* Max length registered name.	*/
 
 /*
  *	Structure to hold a request.
  */
 typedef	struct	{
-    unsigned char	rtype;
-    unsigned char	nsize;
-    unsigned char	ptype;
+    unsigned char	rtype;		/* Type of request being made.	*/
+    unsigned char	nsize;		/* Length of the name to use.	*/
+    unsigned char	ptype;		/* Type of port registered.	*/
     unsigned char	dummy;
     unsigned int	port;
-    char		name[256];
+    char		name[GDO_NAME_MAX_LEN+1];
 } gdo_req;
 
-#define	GDO_REQ_SIZE	264	/* The size of a request packet.	*/
+#define	GDO_REQ_SIZE	sizeof(gdo_req)	/* Size of a request packet.	*/
 

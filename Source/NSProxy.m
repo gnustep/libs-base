@@ -39,9 +39,6 @@
 + (id) allocWithZone: (NSZone*)z
 {
     NSProxy*	ob = (NSProxy*) NSAllocateObject (self, 0, z);
-    if (ob) {
-	[ob retain];
-    }
     return ob;
 }
 
@@ -217,7 +214,7 @@
 
 - (void) release
 {
-    if (_retain_count-- == 1) {
+    if (_retain_count-- == 0) {
 	[self dealloc];
     }
 }
@@ -247,7 +244,12 @@
 
 - (unsigned int) retainCount
 {
-    return _retain_count;
+    return _retain_count + 1;
+}
+
++ (unsigned) retainCount
+{
+  return UINT_MAX;
 }
 
 - self

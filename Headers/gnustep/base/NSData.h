@@ -28,7 +28,7 @@
 #include <Foundation/NSRange.h>
 #include <Foundation/NSSerialization.h>
 
-@interface NSData : NSObject <NSCopying, NSMutableCopying>
+@interface NSData : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 // Allocating and Initializing a Data Object
 

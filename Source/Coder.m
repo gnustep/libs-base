@@ -45,6 +45,7 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <assert.h>
 
 
@@ -262,7 +263,8 @@ static BOOL debug_coder = NO;
 {
   id ret = [[self class] newReadingFromStream:
 		[MemoryStream streamWithData:data]];
-  if ([self retainCount] == 0)
+  if ([self retainCount]
+	- [[[self class] autoreleaseClass] autoreleaseCountForObject:self] == 0)
     [ret autorelease];
   else
     [self release];

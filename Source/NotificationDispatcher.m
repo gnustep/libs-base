@@ -85,13 +85,13 @@
 
 - (oneway void) release
 {
-  if (!_retain_count--)
+  if (_retain_count-- == 0)
     [self dealloc];
 }
 
 - (unsigned) retainCount
 {
-  return _retain_count;
+  return _retain_count + 1;
 }
 
 - (void) dealloc

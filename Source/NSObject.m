@@ -320,7 +320,7 @@ extraRefCount (id anObject)
   if (double_release_check_enabled)
     {
       unsigned release_count;
-      unsigned retain_count = extraRefCount(self);
+      unsigned retain_count = [self retainCount];
       release_count = [autorelease_class autoreleaseCountForObject:self];
       if (release_count > retain_count)
         [NSException
@@ -421,9 +421,9 @@ extraRefCount (id anObject)
   if (double_release_check_enabled)
     {
       unsigned release_count;
-      unsigned retain_count = extraRefCount(self);
+      unsigned retain_count = [self retainCount];
       release_count = [autorelease_class autoreleaseCountForObject:self];
-      if (release_count > retain_count)
+      if (release_count >= retain_count)
         [NSException raise: NSGenericException
 		     format: @"Release would release object too many times."];
     }
@@ -458,11 +458,7 @@ extraRefCount (id anObject)
 
 - (unsigned) retainCount
 {
-  unsigned release_count;
-  unsigned retain_count = extraRefCount(self) + 1;
-  release_count = [autorelease_class autoreleaseCountForObject:self];
-
-  return retain_count - release_count;
+  return extraRefCount(self) + 1;
 }
 
 + (unsigned) retainCount
