@@ -27,6 +27,23 @@
 ;
 LIBRARY libgnustep-base
 EXPORTS
+GSEncodingForRegistry
+GSEncodingFromLocale
+GSFromUnicode 
+GSToUnicode
+GetAvailableEncodings 
+GetDefEncoding
+GetEncodingName
+chartouni
+encode_chartouni
+encode_unitochar
+encode_unitochar_strict
+uni_cop
+uni_is_decomp
+uni_isnonsp
+uni_tolower
+uni_toupper
+unitochar
 __objc_class_name_GSArray
 __objc_class_name_GSArrayEnumerator
 __objc_class_name_GSArrayEnumeratorReverse
