@@ -1,3 +1,7 @@
+2002-10-01 02:21  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSUserDefaults.m (-synchronize): Handle lockDate being nil.
+
 2002-09-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: Updated to latest information.

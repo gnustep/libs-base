@@ -1184,10 +1184,18 @@ static NSString	*pathForUser(NSString *user)
   while ([_fileLock tryLock] == NO)
     {
       CREATE_AUTORELEASE_POOL(arp);
-      NSDate	*when;
+      NSDate	*when, *lockDate;
 
+      lockDate = [_fileLock lockDate];
+      /* If the lock has already been released, lockDate will be nil. If
+      so, just try again. */
+      if (!lockDate)
+	{
+	  RELEASE(arp);
+	  continue;
+	}
       when = [NSDate dateWithTimeIntervalSinceNow: 0.1];
-      if ([when timeIntervalSinceDate: [_fileLock lockDate]] > 5.0)
+      if ([when timeIntervalSinceDate: lockDate] > 5.0)
 	{
 	  [_fileLock breakLock];
 	}
