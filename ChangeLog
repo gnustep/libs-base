@@ -1,10 +1,12 @@
 2001-11-23  Laurent Julliard  <laurent@julliard-online.org>
 
-	* Source/NSNumberFormatter.m (-encodeWithCoder:, -initWithCode:): fixed buggy encoder and decoder and code cleanup. 
+	* Source/NSNumberFormatter.m (-encodeWithCoder:, -initWithCode:):
+	fixed buggy encoder and decoder and code cleanup.
 
 2001-11-22  Laurent Julliard  <Laurent.Julliard@xrce.xerox.com>
 
-	* Headers/gnustep/base/Foundation.h: Fixed NSNumberFormatter.h missing.
+	* Headers/gnustep/base/Foundation.h: Fixed NSNumberFormatter.h
+	missing.
 
 Thu Nov 22 00:52:57 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
