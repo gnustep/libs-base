@@ -1,3 +1,7 @@
+Fri Sep 22 09:50:52 2017  Scott Christley  <scottc@net-community.com>
+
+	* src/NSArray (initWithObjects:rest:): Fix count.
+
 Tue Sep 16 15:50:39 1997  Adam Fedor  <fedor@doc.com>
 
 	* src/Dictionary.m ([Dictionary -descriptionWithIndent:]): Rewrite
