@@ -360,6 +360,9 @@
 	element (or if that does not exist, immediately before the end
 	of the <em>body</em> element) in the template.
       </item>
+      <item><strong>MakeDependencies</strong>
+	A filename to be used to output dependency information for make
+      </item>
       <item><strong>Project</strong>
 	May be used to specify the name of this project ... determines the
 	name of the index reference file produced as part of the documentation
@@ -1726,6 +1729,33 @@ main(int argc, char **argv, char **env)
 #endif
     }
 
+  if ([defs stringForKey: @"MakeDependencies"] != nil)
+    {
+      NSString		*stamp = [defs stringForKey: @"MakeDependencies"];
+      NSMutableSet	*mset = [NSMutableSet setWithCapacity: 128];
+      NSDictionary	*files = [[projectRefs  refs] objectForKey: @"source"];
+      NSEnumerator	*enumerator = [files keyEnumerator];
+      NSString		*file;
+      NSMutableString	*depend;
+
+      /*
+       * Build set of all header and source files used in project.
+       */
+      while ((file = [enumerator nextObject]) != nil)
+	{
+	  [mset addObject: file];
+	  [mset addObjectsFromArray: [files objectForKey: file]];
+	}
+
+      enumerator = [mset objectEnumerator];
+      depend = [NSMutableString stringWithFormat: @"%@:", stamp];
+      while ((file = [enumerator nextObject]) != nil)
+	{
+	  [depend appendFormat: @" \\\n\t%@", file];
+	}
+
+      [depend writeToFile: stamp atomically: YES];
+    }
   RELEASE(outer);
   return 0;
 }
