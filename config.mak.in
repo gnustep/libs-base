@@ -19,3 +19,9 @@ ifeq ($(shared),yes)
   CONFIG_SYSTEM_LIBS += @LIBS@
 endif
 
+# Default to building only -baseadd
+# on non *-gnu-* library combos
+ifneq ($(FOUNDATION_LIB),gnu)
+add=yes
+base=no
+endif
