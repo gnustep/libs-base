@@ -837,7 +837,7 @@ static BOOL	multi_threaded = NO;
 
   /* Preferred MacOS-X version, which just allows the returning of BOOL */
   del = [parent delegate];
-  if ([del respondsTo: @selector(connection:shouldMakeNewConnection:)])
+  if ([del respondsToSelector: @selector(connection:shouldMakeNewConnection:)])
     {
       if ([del connection: parent shouldMakeNewConnection: self] == NO)
 	{
@@ -847,7 +847,7 @@ static BOOL	multi_threaded = NO;
 	}
     }
   /* Deprecated OpenStep version, which just allows the returning of BOOL */
-  if ([del respondsTo: @selector(makeNewConnection:sender:)])
+  if ([del respondsToSelector: @selector(makeNewConnection:sender:)])
     {
       if (![del makeNewConnection: self sender: parent])
 	{
@@ -859,7 +859,7 @@ static BOOL	multi_threaded = NO;
   /* Here is the GNUstep version, which allows the delegate to specify
      a substitute.  Note: The delegate is responsible for freeing
      newConn if it returns something different. */
-  if ([del respondsTo: @selector(connection:didConnect:)])
+  if ([del respondsToSelector: @selector(connection:didConnect:)])
     self = [del connection: parent didConnect: self];
 
   /* Register ourselves for invalidation notification when the

@@ -1,3 +1,9 @@
+2001-05-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Use respondsToSelector rather than respondsTo
+	* Source/NSRunLoop.m: ditto ... and tidy up categories to avoid
+	compiler warnings.
+
 2001-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Fixes to last modifications - provided by
