@@ -481,11 +481,13 @@ GSEncodingFromLocale(const char *clocale)
   else
     {
       /* Look up the locale in our table of encodings */
+      NSBundle *gbundle;
       NSString *table;
 
-      table = [NSBundle pathForGNUstepResource: @"Locale"
-		                        ofType: @"encodings"
-		                   inDirectory: @"Resources/Languages"];  
+      gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+      table = [gbundle pathForResource: @"Locale"
+		                ofType: @"encodings"
+		           inDirectory: @"Languages"];  
       if (table != nil)
 	{
 	  int count;

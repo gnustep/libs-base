@@ -198,6 +198,15 @@ decode (const void *ptr)
 #endif /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
 }
 
+/* Return path to a TimeZone directory file */
+static NSString *_time_zone_path(NSString *subpath)
+{
+  NSBundle *gbundle;
+  gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+  return [gbundle pathForResource: subpath 
+		           ofType: @"" 
+		      inDirectory: TIME_ZONE_DIR];
+}
 
 /* Object enumerator for NSInternalAbbrevDict. */
 @interface NSInternalAbbrevDictObjectEnumerator : NSEnumerator
@@ -1107,11 +1116,7 @@ static NSMapTable	*absolutes = 0;
 	  /*
 	   * Try to get timezone from LOCAL_TIME_FILE.
 	   */
-	  NSString	*f;
-
-	  f = [NSBundle pathForGNUstepResource: LOCAL_TIME_FILE
-					ofType: @""
-				   inDirectory: TIME_ZONE_DIR];
+	  NSString	*f = _time_zone_path(LOCAL_TIME_FILE);
 	  if (f != nil)
 	    {
 	      localZoneString = [NSString stringWithContentsOfFile: f];
@@ -1487,26 +1492,20 @@ static NSMapTable	*absolutes = 0;
 
 + (NSString*) getAbbreviationFile
 {
-  return [NSBundle pathForGNUstepResource: ABBREV_DICT
-				   ofType: @""
-			      inDirectory: TIME_ZONE_DIR];
+  return _time_zone_path (ABBREV_DICT);
 }
 
 + (NSString*) getRegionsFile
 {
-  return [NSBundle pathForGNUstepResource: REGIONS_FILE
-				   ofType: @""
-			      inDirectory: TIME_ZONE_DIR];
+  return _time_zone_path (REGIONS_FILE);
 }
 
 + (NSString*) getTimeZoneFile: (NSString *)name
 {
   NSString	*dir;
-  NSString	*path;
 
-  dir = [NSString stringWithFormat: @"%@/%@", TIME_ZONE_DIR, ZONES_DIR];
-  path = [NSBundle pathForGNUstepResource: name ofType: @"" inDirectory: dir];
-  return path;
+  dir= _time_zone_path (ZONES_DIR);
+  return [dir stringByAppendingPathComponent: name];
 }
 
 @end

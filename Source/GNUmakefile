@@ -25,8 +25,6 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
-
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
@@ -125,6 +123,7 @@ GSLocale.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \
+objc-load.h \
 preface.h
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
@@ -321,9 +320,7 @@ NSUndoManager.h \
 NSUserDefaults.h \
 NSUtilities.h \
 NSValue.h \
-NSZone.h \
-objc-load.h
-
+NSZone.h
 
 UNICODE_HEADERS = \
 unicode/caseconv.h \

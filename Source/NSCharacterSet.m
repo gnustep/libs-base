@@ -70,10 +70,8 @@ static NSLock* cache_lock = nil;
 + (NSCharacterSet*) _bitmapForSet: (NSString*)setname number: (int)number
 {
   NSCharacterSet *set;
-  NSArray *paths;
-  NSString *bundle_path, *set_path;
+  NSString *set_path;
   NSBundle *bundle;
-  NSEnumerator *enumerator;
 
   if (!cache_lock)
     cache_lock = [NSLock new];
@@ -84,27 +82,20 @@ static NSLock* cache_lock = nil;
     {
       NS_DURING
 
-        paths = NSSearchPathForDirectoriesInDomains(GSLibrariesDirectory,
-                                                    NSAllDomainsMask, YES);
-        enumerator = [paths objectEnumerator];
-        while ((set == nil) && (bundle_path = [enumerator nextObject]))
-          {
-            bundle = [NSBundle bundleWithPath: bundle_path];
-
-            set_path = [bundle pathForResource: setname
-                                        ofType: @"dat"
-                                   inDirectory: NSCharacterSet_PATH];
-            if (set_path != nil)
-              {
-                NS_DURING
-                  /* Load the character set file */
-                  set = [self characterSetWithBitmapRepresentation:
-                                [NSData dataWithContentsOfFile: set_path]];
-                NS_HANDLER
-                  NSLog(@"Unable to read NSCharacterSet file %@", set_path);
-                  set = nil;
-                NS_ENDHANDLER
-              }
+	bundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+        set_path = [bundle pathForResource: setname
+                                    ofType: @"dat"
+                               inDirectory: NSCharacterSet_PATH];
+	if (set_path != nil)
+	  {
+	    NS_DURING
+	      /* Load the character set file */
+	      set = [self characterSetWithBitmapRepresentation:
+			    [NSData dataWithContentsOfFile: set_path]];
+	    NS_HANDLER
+	      NSLog(@"Unable to read NSCharacterSet file %@", set_path);
+	    set = nil;
+	    NS_ENDHANDLER
           }
 
 	/* If we didn't load a set then raise an exception */

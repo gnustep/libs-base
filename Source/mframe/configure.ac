@@ -26,7 +26,7 @@ AC_CONFIG_SRCDIR([mframe.head])
 #--------------------------------------------------------------------
 # Use config.guess, config.sub and install-sh provided by gnustep-make
 #--------------------------------------------------------------------
-AC_CONFIG_AUX_DIR($GNUSTEP_SYSTEM_ROOT/Makefiles)
+AC_CONFIG_AUX_DIR($GNUSTEP_MAKEFILES)
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems

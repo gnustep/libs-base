@@ -235,13 +235,15 @@ GSLanguageFromLocale(NSString *locale)
 {
   NSString	*language = nil;
   NSString	*aliases = nil;
+  NSBundle      *gbundle;
 
   if (locale == nil || [locale isEqual: @"C"] || [locale isEqual: @"POSIX"])
     return @"English";
 
-  aliases = [NSBundle pathForGNUstepResource: @"Locale"
-		                      ofType: @"aliases"
-		                 inDirectory: @"Resources/Languages"];  
+  gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+  aliases = [gbundle pathForResource: @"Locale"
+		              ofType: @"aliases"
+		         inDirectory: @"Languages"];  
   if (aliases != nil)
     {
       NSDictionary	*dict;

@@ -1,7 +1,7 @@
 %post
 if [ $1 = 1 ]; then
 #  if [ -z "$GNUSTEP_SYSTEM_ROOT" ]; then
-#     . %{gs_root}/Makefiles/GNUstep.sh 
+#     . %{gs_root}/Library/Makefiles/GNUstep.sh 
 #  fi
 
 #==============================================================
@@ -24,7 +24,7 @@ fi
 %postun
 if [ $1 = 0 ]; then
 #  if [ -z "$GNUSTEP_SYSTEM_ROOT" ]; then
-#     . %{gs_root}/Makefiles/GNUstep.sh 
+#     . %{gs_root}/Library/Makefiles/GNUstep.sh 
 #  fi
 
 #=========================================

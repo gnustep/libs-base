@@ -421,9 +421,11 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     {
       NSString *path;
       NSDictionary *dict;
-      path = [NSBundle pathForGNUstepResource: lang
-		                       ofType: nil
-		                  inDirectory: @"Resources/Languages"];
+      NSBundle *gbundle;
+      gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+      path = [gbundle pathForResource: lang
+		               ofType: nil
+		          inDirectory: @"Languages"];
       dict = nil;
       if (path)
 	dict = [NSDictionary dictionaryWithContentsOfFile: path];

@@ -1721,7 +1721,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return _gnustep_bundle;
 }
 
-+ (NSString *) pathForGNUstepResource: (NSString *)name
++ (NSString *) pathForLibraryResource: (NSString *)name
 			       ofType: (NSString *)ext	
 			  inDirectory: (NSString *)bundlePath
 {
@@ -1732,7 +1732,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSEnumerator	*enumerator;
 
   /* Gather up the paths */
-  paths = NSSearchPathForDirectoriesInDomains(GSLibrariesDirectory,
+  paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
                                               NSAllDomainsMask, YES);
 
   enumerator = [paths objectEnumerator];
@@ -1745,6 +1745,16 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   return path;
+}
+
++ (NSString *) pathForGNUstepResource: (NSString *)name
+			       ofType: (NSString *)ext	
+			  inDirectory: (NSString *)bundlePath
+{
+  NSLog(@"Warninig: Depreciated %@ called. Use +pathForLibraryResource:ofType:inDirectory: or +bundleForLibrary: instead",
+	NSStringFromSelector(_cmd));
+  return [self pathForLibraryResource: name ofType: ext 
+	                  inDirectory: bundlePath];
 }
 
 + (NSString*) _gnustep_target_cpu

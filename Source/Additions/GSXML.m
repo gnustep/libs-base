@@ -2280,7 +2280,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctx)
 					 range: r];
 	    }
 
-	  found = [NSBundle pathForGNUstepResource: name
+	  found = [NSBundle pathForLibraryResource: name
 					    ofType: @"dtd"
 				       inDirectory: @"DTDs"];
 	  if (found == nil)
@@ -2303,7 +2303,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctx)
 					    inDirectory: @"DTDs"];
 	  if (file == nil)
 	    {
-	      file = [NSBundle pathForGNUstepResource: local
+	      file = [NSBundle pathForLibraryResource: local
 					       ofType: @""
 					  inDirectory: @"DTDs"];
 	    }

@@ -23,17 +23,15 @@
 
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
-
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
-resourcedir = $(GNUSTEP_RESOURCES)
-languagedir = $(GNUSTEP_RESOURCES)/Languages
-
-LANGUAGES = English German French Italian
-
-LOCALIZED_RESOURCE_FILES = Localizable.strings
+RESOURCE_SET_NAME = base-resources
+base-resources_RESOURCE_FILES_INSTALL_DIR = gnustep-base
+base-resources_LANGUAGES = English German French Italian
+base-resources_LOCALIZED_RESOURCE_FILES = Localizable.strings
+base-resources_RESOURCE_DIRS = Languages
+base-resources_RESOURCE_FILES = $(LANGUAGE_INSTALL_FILES)
 
 LANGUAGE_FILES = \
 Languages/Dutch \
@@ -50,9 +48,7 @@ LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases \
 
 -include GNUmakefile.local
 
-# We don't actually build anything in this directory so
-# just include the common makefile rules
-include $(GNUSTEP_MAKEFILES)/rules.make
+include $(GNUSTEP_MAKEFILES)/resource-set.make
 
 -include GNUmakefile.postamble
 

@@ -23,8 +23,6 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
-
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
@@ -79,7 +77,7 @@ ANNOUNCE_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 # file using the make file ../Source/DocMakefile.  If headers are added to the
 # library, you need to modify that file to get the autogsdoc tool to use them.
 #
-REF_DOC_INSTALL_DIR = $(GNUSTEP_INSTALLATION_DIR)/Documentation/Developer
+REF_DOC_INSTALL_DIR = $(GNUSTEP_DOCUMENTATION)/Developer
 
 -include Makefile.preamble
 
