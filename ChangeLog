@@ -1,3 +1,9 @@
+2004-09-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDateFormatter.m:
+	* Source/NSNumberFormatter.m:
+	Tolerate being given null pointers to return values in.
+
 2004-09-13  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
 	* Tools/gsdoc-1_0_1.rnc: Added usage information.

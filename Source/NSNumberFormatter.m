@@ -131,6 +131,7 @@
   [encoder encodeObject: _attributesForPositiveValues];
   [encoder encodeObject: _attributesForNegativeValues];
 }
+
 - (NSString*) format
 {
   if (_attributedStringForZero != nil)
@@ -149,20 +150,15 @@
 	      forString: (NSString*)string
        errorDescription: (NSString**)error
 {
-  if (anObject == NULL)
-    {
-      [NSException raise: NSInvalidArgumentException
-		   format: @"NULL Object pointer to NSNumberFormatter"];
-      /* NO RETURN. */
-      return NO;
-    }
-
   /* FIXME: This is just a quick hack implementation.  */
   NSLog(@"NSNumberFormatter-getObjectValue:forString:... not implemented");
   if (_positiveFormat == nil &&  _negativeFormat == nil)
     {
       /* Just assume nothing else has been setup and do a simple conversion. */
-      *anObject = [NSDecimalNumber decimalNumberWithString: string]; 
+      if (anObject)
+	{
+	  *anObject = [NSDecimalNumber decimalNumberWithString: string]; 
+	}
       return YES;
     }
   return NO;
@@ -220,7 +216,13 @@
 	     errorDescription: (NSString**)error
 {
   if (newString != NULL)
-    *newString = partialString;
+    {
+      *newString = partialString;
+    }
+  if (error)
+    {
+      error = nil;
+    }
 
   return YES;
 }

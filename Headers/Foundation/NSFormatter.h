@@ -62,7 +62,7 @@
  */
 - (NSString*) editingStringForObjectValue: (id)anObject;
 
-/**
+/** <override-subclass />
  *  Primary method for converting a string to an object through parsing.
  *  anObject and error are output parameters; you should allocate memory for
  *  one pointer each for the variables passed into these methods.  The
@@ -106,7 +106,7 @@
              errorDescription: (NSString**)error;
 
 
-/**
+/** <override-subclass />
  *  Primary method for converting an object to a string through formatting.
  *  Object will be converted to string according to the formatter's
  *  implementation and init parameters.  There is no default handling if the
