@@ -79,6 +79,16 @@
   return self;
 }
 
+- (id) echoObject: (id)obj
+{
+  static	BOOL	debugging = YES;
+
+  if (debugging)
+    {
+      [BinaryCStream setDebugging:NO];
+    }
+  return obj;
+}
 - (void) outputStats:obj
 {
   id	c = [obj connectionForProxy];

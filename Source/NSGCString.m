@@ -101,7 +101,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   return NSAllocateObject(self, 0, NSDefaultMallocZone());
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   if (_zone)
     {
@@ -114,9 +114,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 - (unsigned) hash
 {
   if (_hash == 0)
-    {
-      _hash = _fastImp._NSString_hash(self, @selector(hash));
-    }
+    _hash = _fastImp._NSString_hash(self, @selector(hash));
   return _hash;
 }
 
@@ -1276,7 +1274,35 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (unsigned) hash
 {
-  return _fastImp._NSString_hash(self, @selector(hash));
+  unsigned ret = 0;
+
+  int len = _count;
+
+  if (len > NSHashStringLength)
+    len = NSHashStringLength;
+  if (len)
+    {
+      const unsigned char	*p;
+      unsigned	char_count = 0;
+
+      p = _contents_chars;
+      while (*p && char_count++ < NSHashStringLength)
+	{
+	  ret = (ret << 5) + ret + *p++;
+	}
+
+      /*
+       * The hash caching in our concrete string classes uses zero to denote
+       * an empty cache value, so we MUST NOT return a hash of zero.
+       */
+      if (ret == 0)
+	ret = 0xffffffff;
+    }
+  else
+    {
+      ret = 0xfffffffe;	/* Hash for an empty string.	*/
+    }
+  return ret;
 }
 
 - (BOOL) isEqual: (id)anObject

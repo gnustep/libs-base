@@ -202,9 +202,11 @@ static unsigned local_object_counter = 0;
 - (void) handlePortMessage: (NSPortMessage*)msg;
 
 - _getReplyRmc: (int)n;
-- (NSPortCoder*) _makeRmc: (int)sequence;
+- (void) _doneInRmc: (NSPortCoder*)c;
+- (NSPortCoder*) _makeInRmc: (NSMutableArray*)components;
+- (NSPortCoder*) _makeOutRmc: (int)sequence;
 - (int) _newMsgNumber;
-- (void) _sendRmc: (NSPortCoder*)c type: (int)msgid;
+- (void) _sendOutRmc: (NSPortCoder*)c type: (int)msgid;
 
 - (void) _service_forwardForProxy: (NSPortCoder*)rmc;
 - (void) _service_release: (NSPortCoder*)rmc;
@@ -1010,11 +1012,12 @@ static int messages_received_count;
   NSParameterAssert(_isValid);
 
   seq_num = [self _newMsgNumber];
-  op = [self _makeRmc: seq_num];
-  [self _sendRmc: op type: ROOTPROXY_REQUEST];
+  op = [self _makeOutRmc: seq_num];
+  [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
 
   ip = [self _getReplyRmc: seq_num];
   [ip decodeValueOfObjCType: @encode(id) at: &newProxy];
+  DESTROY(ip);
   return AUTORELEASE(newProxy);
 }
 
@@ -1187,6 +1190,9 @@ static int messages_received_count;
       _replyMap = 0;
     }
 
+  DESTROY(_cachedDecoder);
+  DESTROY(_cachedEncoder);
+
   DESTROY(_refGate);
   RELEASE(arp);
 }
@@ -1250,7 +1256,7 @@ static int messages_received_count;
     NSParameterAssert(*type);
 
     seq_num = [self _newMsgNumber];
-    op = [self _makeRmc: seq_num];
+    op = [self _makeOutRmc: seq_num];
 
     if (debug_connection > 4)
       NSLog(@"building packet seq %d", seq_num);
@@ -1268,7 +1274,7 @@ static int messages_received_count;
        won't be right for this machine! */
     out_parameters = mframe_dissect_call (argframe, type, encoder);
 
-    [self _sendRmc: op type: METHOD_REQUEST];
+    [self _sendOutRmc: op type: METHOD_REQUEST];
 
     if (debug_connection > 1)
       NSLog(@"Sent message to 0x%x", (gsaddr)self);
@@ -1284,8 +1290,10 @@ static int messages_received_count;
 	    {
 	      if (ip != nil)
 		{
+		  DESTROY(ip);
 		  /* this must be here to avoid trashing alloca'ed retframe */
 		  ip = (id)-1;
+		  _repInCount++;	/* received a reply */
 		}
 	      return;
 	    }
@@ -1308,6 +1316,7 @@ static int messages_received_count;
 		  /* Decode the exception object, and raise it. */
 		  id exc;
 		  [ip decodeValueOfObjCType: @encode(id) at: &exc];
+		  DESTROY(ip);
 		  ip = (id)-1;
 		  /* xxx Is there anything else to clean up in
 		     dissect_method_return()? */
@@ -1332,7 +1341,6 @@ static int messages_received_count;
 	 if mframe_build_return() never called DECODER(), i.e. when
 	 we are just returning (void).*/
       NSAssert(ip == (id)-1 || ip == nil, NSInternalInconsistencyException);
-      _repInCount++;	/* received a reply */
       return retframe;
     }
   }
@@ -1347,12 +1355,13 @@ static int messages_received_count;
   NSParameterAssert(_receivePort);
   NSParameterAssert (_isValid);
   seq_num = [self _newMsgNumber];
-  op = [self _makeRmc: seq_num];
+  op = [self _makeOutRmc: seq_num];
   [op encodeValueOfObjCType: ":" at: &sel];
   [op encodeValueOfObjCType: @encode(unsigned) at: &target];
-  [self _sendRmc: op type: METHODTYPE_REQUEST];
+  [self _sendOutRmc: op type: METHODTYPE_REQUEST];
   ip = [self _getReplyRmc: seq_num];
   [ip decodeValueOfObjCType: @encode(char*) at: &type];
+  DESTROY(ip);
   return type;
 }
 
@@ -1440,9 +1449,8 @@ static int messages_received_count;
 	}
     }
 
-  rmc = [NSPortCoder portCoderWithReceivePort: rp
-				     sendPort: sp
-				   components: components];
+  rmc = [conn _makeInRmc: components];
+
   switch (type)
     {
       case ROOTPROXY_REQUEST: 
@@ -1486,12 +1494,10 @@ static int messages_received_count;
 	while (conn->_requestDepth == 0 && [conn->_requestQueue count] > 0)
 	  {
 	    rmc = [conn->_requestQueue objectAtIndex: 0];
-	    RETAIN(rmc);
 	    [conn->_requestQueue removeObjectAtIndex: 0];
 	    M_UNLOCK(conn->_queueGate);
 	    [conn _service_forwardForProxy: rmc];
 	    M_LOCK(conn->_queueGate);
-	    RELEASE(rmc);
 	  }
 	M_UNLOCK(conn->_queueGate);
 	break;
@@ -1554,6 +1560,7 @@ static int messages_received_count;
 	 "-awake..." methods will get sent before the __builtin_apply! */
       if (argnum == -1 && datum == 0 && type == 0)
 	{
+	  [self _doneInRmc: aRmc];
 	  return;
 	}
 
@@ -1579,7 +1586,7 @@ static int messages_received_count;
 	     back to the remote application!	*/
 	  if (!_isValid)
 	    return;
-	  op = [self _makeRmc: reply_sequence_number];
+	  op = [self _makeOutRmc: reply_sequence_number];
 	  [op encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
 	}
       switch (*type)
@@ -1621,7 +1628,7 @@ static int messages_received_count;
       mframe_do_call (forward_type, decoder, encoder);
       if (op != nil)
 	{
-	  [self _sendRmc: op type: METHOD_REPLY];
+	  [self _sendOutRmc: op type: METHOD_REPLY];
 	}
     }
 
@@ -1635,11 +1642,11 @@ static int messages_received_count;
 	{
 	  NS_DURING
 	    {
-	      op = [self _makeRmc: reply_sequence_number];
+	      op = [self _makeOutRmc: reply_sequence_number];
 	      [op encodeValueOfObjCType: @encode(BOOL)
 				     at: &is_exception];
 	      [op encodeBycopyObject: localException];
-	      [self _sendRmc: op type: METHOD_REPLY];
+	      [self _sendOutRmc: op type: METHOD_REPLY];
 	    }
 	  NS_HANDLER
 	    {
@@ -1667,9 +1674,10 @@ static int messages_received_count;
   NSParameterAssert([rmc connection] == self);
 
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
-  op = [self _makeRmc: sequence];
+  [self _doneInRmc: rmc];
+  op = [self _makeOutRmc: sequence];
   [op encodeObject: rootObject];
-  [self _sendRmc: op type: ROOTPROXY_REPLY];
+  [self _sendOutRmc: op type: ROOTPROXY_REPLY];
 }
 
 - (void) _service_release: (NSPortCoder*)rmc
@@ -1702,6 +1710,7 @@ static int messages_received_count;
 	NSLog(@"releasing object with target (0x%x) on (0x%x) - nothing to do",
 		target, (gsaddr)self);
     }
+  [self _doneInRmc: rmc];
 }
 
 - (void) _service_retain: (NSPortCoder*)rmc
@@ -1713,9 +1722,10 @@ static int messages_received_count;
   NSParameterAssert (_isValid);
 
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
-  op = [self _makeRmc: sequence];
+  op = [self _makeOutRmc: sequence];
 
   [rmc decodeValueOfObjCType: @encode(typeof(target)) at: &target];
+  [self _doneInRmc: rmc];
 
   if (debug_connection > 3)
     NSLog(@"looking to retain local object with target (0x%x) on (0x%x)",
@@ -1773,7 +1783,7 @@ static int messages_received_count;
 		target, self);
     }
 
-  [self _sendRmc: op type: RETAIN_REPLY];
+  [self _sendOutRmc: op type: RETAIN_REPLY];
 }
 
 - (void) shutdown
@@ -1782,13 +1792,14 @@ static int messages_received_count;
 
   NSParameterAssert(_receivePort);
   NSParameterAssert (_isValid);
-  op = [self _makeRmc: [self _newMsgNumber]];
-  [self _sendRmc: op type: CONNECTION_SHUTDOWN];
+  op = [self _makeOutRmc: [self _newMsgNumber]];
+  [self _sendOutRmc: op type: CONNECTION_SHUTDOWN];
 }
 
 - (void) _service_shutdown: (NSPortCoder*)rmc
 {
   NSParameterAssert (_isValid);
+  [self _doneInRmc: rmc];
   [self invalidate];
   [NSException raise: NSGenericException
 	      format: @"connection waiting for request was shut down"];
@@ -1809,10 +1820,11 @@ static int messages_received_count;
   NSParameterAssert (_isValid);
 
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
-  op = [self _makeRmc: sequence];
+  op = [self _makeOutRmc: sequence];
 
   [rmc decodeValueOfObjCType: ":" at: &sel];
   [rmc decodeValueOfObjCType: @encode(unsigned) at: &target];
+  [self _doneInRmc: rmc];
   p = [self includesLocalTarget: target];
   o = [p localForProxy];
 
@@ -1827,7 +1839,7 @@ static int messages_received_count;
   else
     type = "";
   [op encodeValueOfObjCType: @encode(char*) at: &type];
-  [self _sendRmc: op type: METHODTYPE_REPLY];
+  [self _sendOutRmc: op type: METHODTYPE_REPLY];
 }
 
 
@@ -1869,21 +1881,13 @@ static int messages_received_count;
 	}
       M_LOCK(_queueGate);
     }
+  if (rmc != nil)
+    {
+      RETAIN(rmc);
+      NSMapRemove(_replyMap, (void*)sn);
+    }
   M_UNLOCK(_queueGate);
   return rmc;
-}
-
-- (NSPortCoder*) _makeRmc: (int)sequence
-{
-  NSPortCoder		*coder;
-
-  NSParameterAssert(_isValid);
-
-  coder = [NSPortCoder portCoderWithReceivePort: [self receivePort]
-				       sendPort: [self sendPort]
-				     components: nil];
-  [coder encodeValueOfObjCType: @encode(int) at: &sequence];
-  return coder;
 }
 
 - (int) _newMsgNumber
@@ -1897,9 +1901,74 @@ static int messages_received_count;
   return n;
 }
 
-- (void) _sendRmc: (NSPortCoder*)c type: (int)msgid
+- (void) _doneInRmc: (NSPortCoder*)c
+{
+  M_LOCK(_refGate);
+  if (_cachedDecoder == nil)
+    {
+      _cachedDecoder = c;
+      [c dispatch];		/* make coder release connection */
+    }
+  else
+    {
+      RELEASE(c);
+    }
+  M_UNLOCK(_refGate);
+}
+
+- (NSPortCoder*) _makeInRmc: (NSMutableArray*)components
+{
+  NSPortCoder		*coder;
+
+  NSParameterAssert(_isValid);
+
+  M_LOCK(_refGate);
+  if (_cachedDecoder == nil)
+    {
+      coder = [NSPortCoder allocWithZone: NSDefaultMallocZone()];
+    }
+  else
+    {
+      coder = _cachedDecoder;
+      _cachedDecoder = nil;
+    }
+  M_UNLOCK(_refGate);
+
+  coder = [coder initWithReceivePort: _receivePort
+			    sendPort: _sendPort
+			  components: components];
+  return coder;
+}
+
+- (NSPortCoder*) _makeOutRmc: (int)sequence
+{
+  NSPortCoder		*coder;
+
+  NSParameterAssert(_isValid);
+
+  M_LOCK(_refGate);
+  if (_cachedEncoder == nil)
+    {
+      coder = [NSPortCoder allocWithZone: NSDefaultMallocZone()];
+    }
+  else
+    {
+      coder = _cachedEncoder;
+      _cachedEncoder = nil;
+    }
+  M_UNLOCK(_refGate);
+
+  coder = [coder initWithReceivePort: _receivePort
+			    sendPort: _sendPort
+			  components: nil];
+  [coder encodeValueOfObjCType: @encode(int) at: &sequence];
+  return coder;
+}
+
+- (void) _sendOutRmc: (NSPortCoder*)c type: (int)msgid
 {
   NSDate		*limit;
+  BOOL			sent = NO;
   BOOL			raiseException = NO;
   NSMutableArray	*components = [c _components];
 
@@ -1910,17 +1979,32 @@ static int messages_received_count;
       d = [[self delegate] authenticationDataForComponents: components];
       if (d == nil)
 	{
+	  RELEASE(c);
 	  [NSException raise: NSGenericException
 		      format: @"Bad authentication data provided by delegate"];
 	}
       [components addObject: d];
     }
   limit = [NSDate dateWithTimeIntervalSinceNow: [self requestTimeout]];
-  if ([_sendPort sendBeforeDate: limit
-			  msgid: msgid
-		     components: components
-			   from: _receivePort
-		       reserved: [_sendPort reservedSpaceLength]] == NO)
+  sent = [_sendPort sendBeforeDate: limit
+			     msgid: msgid
+			components: components
+			      from: _receivePort
+			  reserved: [_sendPort reservedSpaceLength]];
+
+  M_LOCK(_refGate);
+  if (_cachedEncoder == nil)
+    {
+      _cachedEncoder = c;
+      [c dispatch];		/* make coder release connection */
+    }
+  else
+    {
+      RELEASE(c);
+    }
+  M_UNLOCK(_refGate);
+
+  if (sent == NO)
     {
       NSString	*text;
 
@@ -2115,7 +2199,7 @@ static int messages_received_count;
 	  unsigned 	i;
 	  int		sequence = [self _newMsgNumber];
 
-	  op = [self _makeRmc: sequence];
+	  op = [self _makeOutRmc: sequence];
 
 	  [op encodeValueOfObjCType: @encode(unsigned) at: &number];
 
@@ -2127,7 +2211,7 @@ static int messages_received_count;
 		      list[i], (gsaddr)self);
 	    }
 
-	  [self _sendRmc: op type: PROXY_RELEASE];
+	  [self _sendOutRmc: op type: PROXY_RELEASE];
 	}
     }
   NS_HANDLER
@@ -2153,12 +2237,13 @@ static int messages_received_count;
 	  id	result;
 	  int	seq_num = [self _newMsgNumber];
 
-	  op = [self _makeRmc: seq_num];
+	  op = [self _makeOutRmc: seq_num];
 	  [op encodeValueOfObjCType: @encode(typeof(target)) at: &target];
-	  [self _sendRmc: op type: PROXY_RETAIN];
+	  [self _sendOutRmc: op type: PROXY_RETAIN];
 
 	  ip = [self _getReplyRmc: seq_num];
 	  [ip decodeValueOfObjCType: @encode(id) at: &result];
+	  DESTROY(ip);
 	  if (result != nil)
 	    NSLog(@"failed to retain target - %@", result);
 	}

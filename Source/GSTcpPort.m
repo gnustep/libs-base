@@ -254,7 +254,7 @@ decodePort(NSData *data)
 }
 
 static NSData*
-encodePort(GSTcpPort *port)
+newDataWithEncodedPort(GSTcpPort *port)
 {
   GSPortItemHeader	*pih;
   GSPortInfo		*pi;
@@ -288,7 +288,7 @@ encodePort(GSTcpPort *port)
 	}
     }
   plen = [addr cStringLength] + 3;
-  data = [NSMutableData dataWithLength: sizeof(GSPortItemHeader) + plen];
+  data = [[NSMutableData alloc] initWithLength: sizeof(GSPortItemHeader)+plen];
   pih = (GSPortItemHeader*)[data mutableBytes];
   pih->type = GSSwapHostI32ToBig(GSP_PORT);
   pih->length = GSSwapHostI32ToBig(plen);
@@ -488,13 +488,15 @@ encodePort(GSTcpPort *port)
 {
   NSPortMessage	*pm;
 
-  pm = [[NSPortMessage alloc] initWithSendPort: [self sendPort]
-				   receivePort: [self recvPort]
-				    components: rItems];
+  pm = [NSPortMessage allocWithZone: NSDefaultMallocZone()];
+  pm = [pm initWithSendPort: [self sendPort]
+		receivePort: [self recvPort]
+		 components: rItems];
   [pm setMsgid: rId];
   rId = 0;
   DESTROY(rItems);
-  [[self recvPort] handlePortMessage: AUTORELEASE(pm)];
+  [[self recvPort] handlePortMessage: pm];
+  RELEASE(pm);
 }
 
 - (void) gcFinalize
@@ -596,7 +598,7 @@ encodePort(GSTcpPort *port)
 	      [self invalidate];
 	      return;
 	    }
-	  else if (errno != EINTR)
+	  else if (errno != EINTR && errno != EAGAIN)
 	    {
 	      NSLog(@"read attempt failed - %s", strerror(errno));
 	      [self invalidate];
@@ -634,6 +636,8 @@ encodePort(GSTcpPort *port)
 		    }
 		  else if (rType == GSP_DATA && l == 0)
 		    {
+		      NSData	*d;
+
 		      /*
 		       * For a zero-length data chunk, we create an empty
 		       * data object and add it to the current message.
@@ -644,7 +648,9 @@ encodePort(GSTcpPort *port)
 			  memcpy(bytes, bytes + rWant, rLength);
 			}
 		      rWant = sizeof(GSPortItemHeader);
-		      [rItems addObject: [NSData data]];
+		      d = [NSData new];
+		      [rItems addObject: d];
+		      RELEASE(d);
 		      if (nItems == [rItems count])
 			{
 			  [self dispatch];
@@ -799,7 +805,7 @@ encodePort(GSTcpPort *port)
 	    }
 	  else
 	    {
-	      NSData	*d = encodePort([self recvPort]);
+	      NSData	*d = newDataWithEncodedPort([self recvPort]);
 
 	      len = write(desc, [d bytes], [d length]);
 	      if (len == [d length])
@@ -812,6 +818,7 @@ encodePort(GSTcpPort *port)
 		  state = GS_H_UNCON;
 		  NSLog(@"connect write attempt failed - %s", strerror(errno));
 		}
+	      RELEASE(d);
 	    }
 	}
       else
@@ -840,7 +847,7 @@ encodePort(GSTcpPort *port)
 	  res = write(desc, b + wLength,  l - wLength);
 	  if (res < 0)
 	    {
-	      if (errno != EINTR)
+	      if (errno != EINTR && errno != EAGAIN)
 		{
 		  NSLog(@"write attempt failed - %s", strerror(errno));
 		  [self invalidate];
@@ -1631,7 +1638,7 @@ static NSMapTable	*tcpPortMap = 0;
 		  NSMutableData	*d;
 
 		  pack = NO;
-		  d = [NSMutableData dataWithLength: l + h];
+		  d = [[NSMutableData alloc] initWithLength: l + h];
 		  b = [d mutableBytes];
 		  pih = (GSPortItemHeader*)b;
 		  memcpy(b+h, [o bytes], l);
@@ -1639,11 +1646,12 @@ static NSMapTable	*tcpPortMap = 0;
 		  pih->length = GSSwapHostI32ToBig(l);
 		  [components replaceObjectAtIndex: i
 					withObject: d];
+		  RELEASE(d);
 		}
 	    }
 	  else if ([o isKindOfClass: [GSTcpPort class]])
 	    {
-	      NSData	*d = encodePort(o);
+	      NSData	*d = newDataWithEncodedPort(o);
 	      unsigned	dLength = [d length];
 
 	      if (pack == YES && hLength + dLength <= NETBLOCK)
@@ -1663,6 +1671,7 @@ static NSMapTable	*tcpPortMap = 0;
 		  pack = NO;
 		  [components replaceObjectAtIndex: i withObject: d];
 		}
+	      RELEASE(d);
 	    }
 	}
 

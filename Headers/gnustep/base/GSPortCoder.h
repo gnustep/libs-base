@@ -1,4 +1,4 @@
-/* Interface for GSPortCoder object for distributed objects
+/* Interface for NSPortCoder object for distributed objects
    Copyright (C) 2000 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -21,15 +21,15 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */
 
-#ifndef __GSPortCoder_h
-#define __GSPortCoder_h
+#ifndef __NSPortCoder_h
+#define __NSPortCoder_h
 
 #include <Foundation/NSCoder.h>
 
 @class NSConnection;
 @class NSPort;
 
-@interface GSPortCoder : NSCoder
+@interface NSPortCoder : NSCoder
 {
 @private
   NSMutableArray	*_comp;
@@ -72,10 +72,10 @@
 #ifndef	_IN_PORT_CODER_M
 #undef	GSIArray
 #endif
+  NSMutableArray	*_cInfo;	/* Class version information.	*/
   unsigned		_cursor;	/* Position in data buffer.	*/
   unsigned		_version;	/* Version of archiver used.	*/
   NSZone		*_zone;		/* Zone for allocating objs.	*/
-  NSMutableDictionary	*_cInfo;	/* Class information store.	*/
 }
 
 + (NSPortCoder*) portCoderWithReceivePort: (NSPort*)recv
@@ -99,4 +99,4 @@
 @end
 
 
-#endif /* __GSPortCoder_h */
+#endif /* __NSPortCoder_h */

@@ -234,7 +234,6 @@ NSPipe.m \
 NSPort.m \
 GSTcpPort.m \
 NSPortCoder.m \
-GSPortCoder.m \
 NSPortMessage.m \
 NSPortNameServer.m \
 NSProcessInfo.m \
@@ -330,7 +329,6 @@ Foundation/NSObject.h \
 Foundation/NSPathUtilities.h \
 Foundation/NSPort.h \
 Foundation/NSPortCoder.h \
-Foundation/GSPortCoder.h \
 Foundation/NSPortMessage.h \
 Foundation/NSPortNameServer.h \
 Foundation/NSProcessInfo.h \

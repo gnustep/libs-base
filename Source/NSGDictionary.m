@@ -63,7 +63,14 @@ myHash(id obj)
 	}
       else if (c == _fastCls._NXConstantString)
 	{
-	  return _fastImp._NSString_hash(obj, @selector(hash));
+	  static unsigned (*myImp)(id,SEL) = 0;
+
+	  if (myImp == 0)
+	    {
+	      myImp = (unsigned (*)(id,SEL))
+		[obj methodForSelector: @selector(hash)];
+	    }
+	  return (*myImp)(obj, @selector(hash));
 	}
     }
   return [obj hash];

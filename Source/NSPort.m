@@ -35,17 +35,22 @@
 
 @implementation NSPort
 
+Class	_abstractClass;
 Class	_concreteClass;
 
 + (id) allocWithZone: (NSZone*)aZone
 {
-  return [super allocWithZone: aZone];
+  if (self == _abstractClass)
+    return NSAllocateObject(_concreteClass, 0, aZone);
+  else
+    return [super allocWithZone: aZone];
 }
 
 + (void) initialize
 {
   if (self == [NSPort class])
     {
+      _abstractClass = self;
       _concreteClass = [GSTcpPort class];
     }
 }
@@ -148,7 +153,7 @@ Class	_concreteClass;
 - (void) setDelegate: (id) anObject
 {
   NSAssert([anObject respondsToSelector: @selector(handlePortMessage:)],
-	NSInvalidArgumentException);
+    NSInvalidArgumentException);
   _delegate = anObject;
 }
 
