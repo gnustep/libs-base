@@ -498,6 +498,17 @@ static BOOL double_release_check_enabled = NO;
 {
   if (self == [NSObject class])
     {
+#ifdef __FreeBSD__
+      // Manipulate the FPU to add the exception mask. (Fixes SIGFPE
+      // problems on *BSD)
+
+      volatile short cw;
+
+      __asm__ volatile ("fstcw (%0)" : : "g" (&cw));
+      cw |= 1; /* Mask 'invalid' exception */
+      __asm__ volatile ("fldcw (%0)" : : "g" (&cw));
+#endif
+
       // Create the global lock
       gnustep_global_lock = [[NSRecursiveLock alloc] init];
       autorelease_class = [NSAutoreleasePool class];
