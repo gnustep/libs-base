@@ -58,7 +58,12 @@ void	_fastBuildCache()
    *	Cache some classes for quick access later.
    */
 
+  _fastCls._NSArray = [NSArray class];
+  _fastCls._NSMutableArray = [NSMutableArray class];
+  _fastCls._NSDictionary = [NSDictionary class];
+  _fastCls._NSMutableDictionary = [NSMutableDictionary class];
   _fastCls._NSString = [NSString class];
+  _fastCls._NSMutableString = [NSMutableString class];
   _fastCls._NSGString = [NSGString class];
   _fastCls._NSGMutableString = [NSGMutableString class];
   _fastCls._NSGCString = [NSGCString class];
