@@ -157,6 +157,9 @@
 /* Define to 1 if you have the `poll' function. */
 #undef HAVE_POLL
 
+/* Define if poll is NOT emulated via select */
+#undef HAVE_POLL_F
+
 /* Define to 1 if you have the <poll.h> header file. */
 #undef HAVE_POLL_H
 
