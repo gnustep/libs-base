@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.0//EN" "http://www.gnustep.org/gsdoc-1_0_0.xml">
+<gsdoc base="OpenStepCompliance" up="Base">
+  <head>
+    <title>OpenStep Compliance</title>
+    <author name="Adam Fedor"></author>
+  </head>
+  <body>
+    <front>
+      <chapter>
+	<heading>Classes</heading>
+	<p>
+	This file documents the complance of all the classes in the
+	GNUstep Base library. Note that the following is just a best guess
+	as to the compliance of the classes. Each class was checked to make
+	sure it implemented all the documented OpenStep methods and functions.
+	In addition, extensive testing has been performed on the GNUstep Base
+	Library, and it is believed, to the best of our knowledge, that it
+	operates according to the OpenStep specification, with the caveat that
+	there are always bugs in any implementation and there are most likely
+	bugs in the current implementation that we are not aware of.
+	</p>
+	<p>
+	The following classes conform to the OpenStep specification
+	</p>
+	<list>
+	  <item>NSArchiver</item>
+	  <item>Array</item>
+	  <item>AssertionHandler</item>
+	  <item>AutoreleasePool</item>
+	  <item>Bundle</item>
+	  <item>CalendarDate</item>
+	  <item>CharacterSet</item>
+	  <item>Coder</item>
+	  <item>ConditionLock</item>
+	  <item>Connection</item>
+	  <item>CountedSet</item>
+	  <item>Data</item>
+	  <item>Date</item>
+	  <item>Deserializer</item>
+	  <item>Dictionary</item>
+	  <item>DistantObject</item>
+	  <item>Enumerator</item>
+	  <item>Exception</item>
+	  <item>Lock</item>
+	  <item>MethodSignature</item>
+	  <item>MutableArray</item>
+	  <item>MutableCharacterSet</item>
+	  <item>MutableData</item>
+	  <item>MutableDictionary</item>
+	  <item>MutableSet</item>
+	  <item>MutableString</item>
+	  <item>Notification</item>
+	  <item>NotificationCenter</item>
+	  <item>NotificationQueue</item>
+	  <item>Number</item>
+	  <item>ProcessInfo</item>
+	  <item>Proxy</item>
+	  <item>RecursiveLock</item>
+	  <item>RunLoop</item>
+	  <item>Scanner</item>
+	  <item>Serializer</item>
+	  <item>Set</item>
+	  <item>String</item>
+	  <item>Thread</item>
+	  <item>Timer</item>
+	  <item>TimeZone</item>
+	  <item>TimeZoneDetail</item>
+	  <item>Unarchiver</item>
+	  <item>UserDefaults</item>
+	  <item>Value</item>
+	  <item>All Protocols</item>
+	  <item>All Functions</item>
+	</list>
+	<p>
+	The following classes do NOT conform to the OpenStep specification.
+	</p>
+	<list>
+	  <item>NSInvocation. NS_MESSAGE and NS_INVOCATION not defined</item>
+	  <item>NSObject. 
+	  +cancelPreviousPerformRequestsWithTarget:selector:object: missing.
+	  </item>
+	</list>
+	<p>
+	The following OpenStep classes are not implemented. The usefulness
+	of these classes it marginal so it is likely that we will never
+	implement these classes.
+	</p>
+	<list>
+	  <item>NSBTreeBlock</item>
+	  <item>NSBTreeCursor</item>
+	  <item>NSByteStore</item>
+	  <item>NSByteStoreFile</item>
+	</list>
+
+      </chapter>
+    </front>
+  </body>
+</gsdoc>
+

@@ -169,6 +169,7 @@ include $(GNUSTEP_MAKEFILES)/documentation.make
 #
 before-all::	../Documentation/Base \
 	../Documentation/Base/Functions.gsdoc \
+	../Documentation/Base/OpenStepCompliance.gsdoc \
 	../Documentation/Base/TypesAndConstants.gsdoc \
 	../Documentation/BaseAdditions \
 	../Documentation/BaseAdditions/Functions.gsdoc \
@@ -181,6 +182,10 @@ before-all::	../Documentation/Base \
 
 ../Documentation/Base/Functions.gsdoc: ../Documentation/Functions.gsdoc
 	cp ../Documentation/Functions.gsdoc ../Documentation/Base
+
+../Documentation/Base/OpenStepCompliance.gsdoc: \
+	../Documentation/OpenStepCompliance.gsdoc
+	cp ../Documentation/OpenStepCompliance.gsdoc ../Documentation/Base
 
 ../Documentation/Base/TypesAndConstants.gsdoc: \
 	../Documentation/TypesAndConstants.gsdoc

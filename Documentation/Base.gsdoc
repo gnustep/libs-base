@@ -29,7 +29,9 @@
 	  deviates from the OpenStep API, GNUstep generally attempts to
 	  support both versions.  In some cases the newer MacOS APIs are
 	  incompatible with OpenStep, and GNUstep usually supports the richer
-	  version.
+	  version. See the
+	  <uref url="OpenStepCompliance">OpenStep Compliance</uref> section
+	  for more information on OpenStep Compliance.
 	</p>
 	<p>
 	  In order to deal with compatiblity issues, GNUstep uses two
