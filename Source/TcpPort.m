@@ -752,9 +752,31 @@ static NSMapTable* port_number_2_port;
 	      sizeof (p->_listening_address)) 
 	< 0)
       {
-	[NSException raise: NSInternalInconsistencyException
-	  format: @"[TcpInPort +newForReceivingFromPortNumber:] bind(): %s",
-	  strerror(errno)];
+	BOOL	ok = NO;
+	/* bind() sometimes seems to fail when given a port of zero - this
+	 * should really never happen, so we retry a few times in case the
+	 * kernel has had a temporary brainstorm.
+	 */
+	if (n == 0) {
+	  int	count;
+
+	  for (count = 0; count < 10; count++) {
+	    memset(&p->_listening_address, 0, sizeof(p->_listening_address));
+	    p->_listening_address.sin_addr.s_addr = htonl (INADDR_ANY);
+	    p->_listening_address.sin_family = AF_INET;
+	    if (bind (p->_port_socket,
+	      (struct sockaddr*) &(p->_listening_address),
+	      sizeof (p->_listening_address)) == 0) {
+	      ok = YES;
+	      break;
+	    }
+	  }
+	}
+	if (ok == NO) {
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"[TcpInPort +newForReceivingFromPortNumber:] bind(): %s",
+	    strerror(errno)];
+	}
       }
 
     /* If the caller didn't specify a port number, it was chosen for us.
