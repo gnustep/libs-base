@@ -1,7 +1,11 @@
-Tue Jul 17 09:59:41 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+Tue Jul 17 15:00:52 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 
-	* Makefile.postamble (after-distclean): Do not abort if 
-	we can not remove Foundation.
+	* Makefile.postamble (after-distclean): Depend on
+	remove-header-links; do not remove links here.
+	(remove-header-links): New target removing header links; different
+	implementation on mingw32 and on non-migw32.  Do not remove
+	Source/Foundation.
+	(.PHONY): Added, with header-links and remove-header-links.
 
 2001-07-16  Adam Fedor  <fedor@gnu.org>
 
