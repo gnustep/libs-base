@@ -1,3 +1,7 @@
+2002-12-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	*  Source/Additions/Unicode.m: Tidied and optimised binary searches.
+
 2002-12-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Fix bug handling repeated opeing braces.

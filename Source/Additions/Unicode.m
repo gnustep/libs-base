@@ -413,7 +413,7 @@ GSEncodingForRegistry (NSString *registry, NSString *encoding)
         return NSBIG5StringEncoding;
     }
   else if ([registry isEqualToString:@"utf8"]
-	   || [registry isEqualToString:@"utf-8"] )
+    || [registry isEqualToString:@"utf-8"] )
     {
       return NSUTF8StringEncoding;
     }
@@ -439,7 +439,7 @@ GSEncodingFromLocale(const char *clocale)
   NSString *encodstr;
 
   if (clocale == NULL || strcmp(clocale, "C") == 0 
-      || strcmp(clocale, "POSIX") == 0) 
+    || strcmp(clocale, "POSIX") == 0) 
     {
       /* Don't make any assumptions. Let caller handle that */
       return GSUndefinedEncoding;
@@ -698,51 +698,53 @@ uni_toupper(unichar ch)
 unsigned char
 uni_cop(unichar u)
 {
-  unichar	count, first, last, comp;
-  BOOL		notfound;
-
-  first = 0;
-  last = uni_cop_table_size;
-  notfound = YES;
-  count = 0;
-
-  if (u > (unichar)0x0080)  // no nonspacing in ascii
+  if (u < uni_cop_table[0].code)
     {
-      while (notfound && (first <= last))
+      return 0;	// Special case for latin1
+    }
+  else
+    {
+      unichar	code;
+      unichar	count = 0;
+      unichar	first = 0;
+      unichar	last = uni_cop_table_size;
+
+      while (first <= last)
 	{
 	  if (first != last)
 	    {
 	      count = (first + last) / 2;
-	      comp = uni_cop_table[count].code;
-	      if (comp < u)
+	      code = uni_cop_table[count].code;
+	      if (code < u)
 		{
 		  first = count+1;
 		}
+	      else if (code > u)
+		{
+		  last = count-1;
+		}
 	      else
 		{
-		  if (comp > u)
-		    last = count-1;
-		  else
-		    notfound = NO;
+		  return uni_cop_table[count].cop;
 		}
 	    }
 	  else  /* first == last */
 	    {
 	      if (u == uni_cop_table[first].code)
-		return uni_cop_table[first].cop;
+		{
+		  return uni_cop_table[first].cop;
+		}
 	      return 0;
-	    } /* else */
-	} /* while notfound ...*/
-      return notfound ? 0 : uni_cop_table[count].cop;
+	    }
+	}
+      return 0;
     }
-  else /* u is ascii */
-    return 0;
 }
 
 BOOL
 uni_isnonsp(unichar u)
 {
-// check is uni_cop good for this
+// FIXME check is uni_cop good for this
   if (uni_cop(u))
     return YES;
   else
@@ -752,43 +754,47 @@ uni_isnonsp(unichar u)
 unichar*
 uni_is_decomp(unichar u)
 {
-  unichar	count, first, last, comp;
-  BOOL		notfound;
-
-  first = 0;
-  last = uni_dec_table_size;
-  notfound = YES;
-  count = 0;
-
-  if (u > (unichar)0x0080)  // no composites in ascii
+  if (u < uni_dec_table[0].code)
     {
-      while (notfound && (first <= last))
+      return 0;		// Special case for latin1
+    }
+  else
+    {
+      unichar	code;
+      unichar	count = 0;
+      unichar	first = 0;
+      unichar	last = uni_dec_table_size;
+
+      while (first <= last)
 	{
-	  if (!(first == last))
+	  if (first != last)
 	    {
 	      count = (first + last) / 2;
-	      comp = uni_dec_table[count].code;
-	      if (comp < u)
-		first = count+1;
+	      code = uni_dec_table[count].code;
+	      if (code < u)
+		{
+		  first = count+1;
+		}
+	      else if (code > u)
+		{
+		  last = count-1;
+		}
 	      else
 		{
-		  if (comp > u)
-		    last = count-1;
-		  else
-		    notfound = NO;
+		  return uni_dec_table[count].decomp;
 		}
 	    }
 	  else  /* first == last */
 	    {
 	      if (u == uni_dec_table[first].code)
-		return uni_dec_table[first].decomp;
+		{
+		  return uni_dec_table[first].decomp;
+		}
 	      return 0;
-	    } /* else */
-	} /* while notfound ...*/
-      return notfound ? 0 : uni_dec_table[count].decomp;
+	    }
+	}
+      return 0;
     }
-  else /* u is ascii */
-    return 0;
 }
 
 
