@@ -264,7 +264,7 @@ int main(int argc, char *argv[], char *env[])
   _gnu_process_args(argc, argv, env);
 
   /* Call the user defined main function */
-  return gnustep_base_user_main (argc,argv);
+  return gnustep_base_user_main (argc, argv, env);
 }
 #endif
 
