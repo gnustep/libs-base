@@ -230,7 +230,7 @@ static RunLoop *current_run_loop;
 	}
     }
   if (debug_run_loop)
-    printf ("\tlimit date %f\n", 
+    printf ("\tRunLoop limit date %f\n", 
 	    [[min_timer fireDate] timeIntervalSinceReferenceDate]);
 
   _current_mode = saved_mode;
@@ -271,13 +271,13 @@ static RunLoop *current_run_loop;
       && ((ti = [limit_date timeIntervalSinceNow]) < LONG_MAX))
     {
       if (debug_run_loop)
-	printf ("\taccept input before %f (seconds from now %f)\n", 
+	printf ("\tRunLoop accept input before %f (seconds from now %f)\n", 
 		[limit_date timeIntervalSinceReferenceDate], ti);
       /* If LIMIT_DATE has already past, return immediately. */
       if (ti < 0)
 	{
 	  if (debug_run_loop)
-	    printf ("\tlimit date past, returning\n");
+	    printf ("\tRunLoop limit date past, returning\n");
 	  return;
 	}
 
@@ -288,7 +288,7 @@ static RunLoop *current_run_loop;
   else
     {
       if (debug_run_loop)
-	printf ("\taccept input waiting forever\n");
+	printf ("\tRunLoop accept input waiting forever\n");
       select_timeout = NULL;
     }
 
@@ -330,6 +330,8 @@ static RunLoop *current_run_loop;
 	    port = [ports objectAtIndex: i];
 	    if ([port respondsTo: @selector(getFds:count:)])
 	      [port getFds: port_fd_array count: &port_fd_count];
+	    if (debug_run_loop)
+	      printf("\tRunLoop listening to %d sockets\n", port_fd_count);
 	    while (port_fd_count--)
 	      {
 		FD_SET (port_fd_array[port_fd_count], &fds);
@@ -347,7 +349,7 @@ static RunLoop *current_run_loop;
 			  select_timeout);
 
   if (debug_run_loop)
-    printf ("\tselect returned %d\n", select_return);
+    printf ("\tRunLoop select returned %d\n", select_return);
 
   if (select_return < 0)
     {
@@ -386,7 +388,7 @@ static RunLoop *current_run_loop;
   if ([date timeIntervalSinceNow] < 0)
     {
       if (debug_run_loop)
-	printf ("\trun mode before date already past\n");
+	printf ("\tRunLoop run mode before date already past\n");
       return NO;
     }
 
@@ -420,7 +422,7 @@ static RunLoop *current_run_loop;
     {
       id arp = [NSAutoreleasePool new];
       if (debug_run_loop)
-	printf ("\trun until date %f seconds from now\n", ti);
+	printf ("\tRunLoop run until date %f seconds from now\n", ti);
       [self runOnceBeforeDate: date forMode: mode];
       [arp release];
       ti = [date timeIntervalSinceNow];
