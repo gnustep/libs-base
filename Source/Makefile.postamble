@@ -263,14 +263,17 @@ $(GNUSTEP_OBJ_DIR)/NSGeometry.o \
 
 
 #
-# Make list of class names for DLL exports. Edit to suit
+# Make list of class names for DLL exports. I'm not sure how to make this
+# work with the correct dependencies, so for now it should be regenerated
+# by hand when new classes get added. Then mv libgnustep-base.def.new to
+# libgnustep-base.def
 #
-libgnustep-base.def: $(GNUSTEP_OBJ_DIR)/*o
-	rm -f libgnustep-base.def
+libgnustep-base.def.new: $(GNUSTEP_OBJ_DIR)/*o
+	rm -f $@
 	rm -f _tmp.def
-	cat win32-def.top > libgnustep-base.def
+	cat win32-def.top > $@
 	nm $^ | grep '^........ [T] _' | sed 's/[^_]*_//' > _tmp.def
-	cat _tmp.def | grep "_class_name_" >> libgnustep-base.def
+	cat _tmp.def | grep "_class_name_" >> $@
 	rm -rf _tmp.def
 
 
