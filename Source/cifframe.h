@@ -26,8 +26,8 @@
 #define cifframe_h_INCLUDE
 
 #include <ffi.h>
-#include <Foundation/NSMethodSignature.h>
-#include <base/DistributedObjects.h>
+#include "Foundation/NSMethodSignature.h"
+#include "gnustep/base/DistributedObjects.h"
 
 typedef struct _cifframe_t {
   ffi_cif cif;

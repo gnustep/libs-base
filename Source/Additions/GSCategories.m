@@ -24,7 +24,7 @@
 #include "config.h"
 #include <string.h>
 #include <Foundation/Foundation.h>
-#include <gnustep/base/GSCategories.h>
+#include "gnustep/base/GSCategories.h"
 #include "GSCompatibility.h"
 
 /**

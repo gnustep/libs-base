@@ -24,27 +24,27 @@
    $Date$ $Revision$
    */ 
 
-#include <config.h>
-#include <base/preface.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
 #include <stdarg.h>
-#include <Foundation/NSObject.h>
+#include "Foundation/NSObject.h"
 #include <objc/Protocol.h>
-#include <Foundation/NSMethodSignature.h>
-#include <Foundation/NSInvocation.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSDistantObject.h>
-#include <Foundation/NSZone.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSMapTable.h>
+#include "Foundation/NSMethodSignature.h"
+#include "Foundation/NSInvocation.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSDistantObject.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSMapTable.h"
 #include <limits.h>
-#include <Foundation/GSLocale.h>
+#include "gnustep/base/GSLocale.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -206,7 +206,7 @@ typedef	struct obj_layout *obj;
 #define GSI_MAP_VTYPES  GSUNION_INT
 #define	GSI_MAP_NOCLEAN	1
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 static GSIMapTable_t	retain_counts = {0};
 

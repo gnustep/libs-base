@@ -24,12 +24,12 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
+#include "config.h"
 #include <string.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSZone.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSByteOrder.h>
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSByteOrder.h"
 
 /*
  *	Setup for inline operation of arrays.
@@ -38,17 +38,17 @@
 #define	GSI_ARRAY_RELEASE(A, X)	
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_PTR
 
-#include <base/GSIArray.h>
+#include "gnustep/base/GSIArray.h"
 
 #define	_IN_NSUNARCHIVER_M
-#include <Foundation/NSArchiver.h>
+#include "Foundation/NSArchiver.h"
 #undef	_IN_NSUNARCHIVER_M
 
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSString.h>
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSString.h"
 
 static const char*
 typeToName1(char type)

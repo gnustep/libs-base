@@ -24,19 +24,19 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSPortNameServer.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSZone.h>
+#include "config.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSPort.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSPortNameServer.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSZone.h"
 
 #ifndef __MINGW__
 #include <arpa/inet.h>

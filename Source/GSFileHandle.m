@@ -22,24 +22,24 @@
    */
 
 
-#include <config.h>
+#include "config.h"
 
-#include <base/preface.h>
-#include <Foundation/NSObject.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSFileHandle.h>
-#include <Foundation/GSFileHandle.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSByteOrder.h>
-#include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSDebug.h>
+#include "gnustep/base/preface.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSFileHandle.h"
+#include "Foundation/GSFileHandle.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSDebug.h"
 
 #include "../Tools/gdomap.h"
 

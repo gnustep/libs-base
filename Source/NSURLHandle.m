@@ -26,18 +26,18 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSConcreteNumber.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSURLHandle.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSFileManager.h>
+#include "config.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSEnumerator.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSConcreteNumber.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSURLHandle.h"
+#include "Foundation/NSURL.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSFileManager.h"
 
 @class	GSFileURLHandle;
 @class	GSFTPURLHandle;

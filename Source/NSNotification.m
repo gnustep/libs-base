@@ -24,10 +24,10 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSString.h>
+#include "config.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSString.h"
 
 @implementation NSNotification
 

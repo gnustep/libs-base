@@ -29,7 +29,7 @@
    */ 
 
 #include "config.h"
-#include <gnustep/base/preface.h>
+#include "gnustep/base/preface.h"
 #ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSArray.h>
 #include <Foundation/NSAutoreleasePool.h>
@@ -44,7 +44,7 @@
 #else
 #include <Foundation/Foundation.h>
 #endif
-#include <gnustep/base/GSObjCRuntime.h>
+#include "gnustep/base/GSObjCRuntime.h"
 #include "gnustep/base/GNUstep.h"
 #include <string.h>
 

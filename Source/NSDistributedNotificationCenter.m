@@ -24,21 +24,21 @@
    $Date$ $Revision$
    */
 
-#include	<config.h>
-#include	<base/preface.h>
-#include	<Foundation/NSObject.h>
-#include	<Foundation/NSConnection.h>
-#include	<Foundation/NSDistantObject.h>
-#include	<Foundation/NSException.h>
-#include	<Foundation/NSArchiver.h>
-#include	<Foundation/NSNotification.h>
-#include	<Foundation/NSDate.h>
-#include	<Foundation/NSPathUtilities.h>
-#include	<Foundation/NSRunLoop.h>
-#include	<Foundation/NSTask.h>
-#include	<Foundation/NSDistributedNotificationCenter.h>
-#include	<Foundation/NSUserDefaults.h>
-#include	<Foundation/NSHost.h>
+#include	"config.h"
+#include	"gnustep/base/preface.h"
+#include	"Foundation/NSObject.h"
+#include	"Foundation/NSConnection.h"
+#include	"Foundation/NSDistantObject.h"
+#include	"Foundation/NSException.h"
+#include	"Foundation/NSArchiver.h"
+#include	"Foundation/NSNotification.h"
+#include	"Foundation/NSDate.h"
+#include	"Foundation/NSPathUtilities.h"
+#include	"Foundation/NSRunLoop.h"
+#include	"Foundation/NSTask.h"
+#include	"Foundation/NSDistributedNotificationCenter.h"
+#include	"Foundation/NSUserDefaults.h"
+#include	"Foundation/NSHost.h"
 
 #include	"../Tools/gdnc.h"
 

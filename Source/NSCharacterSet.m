@@ -24,15 +24,15 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSBitmapCharSet.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSDictionary.h>
+#include "config.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSBitmapCharSet.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSDictionary.h"
 
 static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
 

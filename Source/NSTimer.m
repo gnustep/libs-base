@@ -26,12 +26,12 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <Foundation/NSTimer.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSInvocation.h>
+#include "config.h"
+#include "Foundation/NSTimer.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSInvocation.h"
 
 @class	NSGDate;
 static Class	NSDate_class;

@@ -31,12 +31,12 @@
 /* Remove `inline' nested functions if they crash your compiler */
 //#define inline 
 
-#include <config.h>
-#include <base/preface.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
 #include <mframe.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSException.h>
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSException.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>

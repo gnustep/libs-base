@@ -24,7 +24,7 @@
 
 #include "config.h"
 #include <stdio.h>
-#include <gnustep/base/preface.h>
+#include "gnustep/base/preface.h"
 #ifndef ROUND
 #define ROUND(V, A) \
   ({ typeof(V) __v=(V); typeof(A) __a=(A); \

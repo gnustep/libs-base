@@ -26,16 +26,16 @@
    $Date$ $Revision$
   */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSSet.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSDebug.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSDebug.h"
 
 #if defined(__MINGW__)
 #include <winsock2.h>

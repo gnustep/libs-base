@@ -24,8 +24,8 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <Foundation/NSFormatter.h>
+#include "config.h"
+#include "Foundation/NSFormatter.h"
 
 @implementation NSFormatter
 

@@ -30,25 +30,25 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/objc-load.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSValue.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/objc-load.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSValue.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

@@ -29,13 +29,13 @@
 
 /**** Included Headers *******************************************************/
 
-#include <config.h>
-#include <Foundation/NSZone.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSHashTable.h>
-#include <Foundation/NSDebug.h>
+#include "config.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSHashTable.h"
+#include "Foundation/NSDebug.h"
 #include "NSCallBacks.h"
 
 
@@ -56,7 +56,7 @@
  (M->extra.retain)((NSHashTable*)M, X.ptr)
 #define GSI_MAP_ENUMERATOR	NSHashEnumerator
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 /**
  * Returns an array of all the objects in the table.

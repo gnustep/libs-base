@@ -24,7 +24,7 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
+#include "config.h"
 /*
  *	Setup for inline operation of pointer map tables.
  */
@@ -36,18 +36,18 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).uint == (Y).uint)
 #define	GSI_MAP_NOCLEAN	1
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 #define	_IN_NSARCHIVER_M
-#include <Foundation/NSArchiver.h>
+#include "Foundation/NSArchiver.h"
 #undef	_IN_NSARCHIVER_M
 
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSString.h>
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSString.h"
 
 typedef	unsigned char	uchar;
 

@@ -25,9 +25,9 @@
    $Date$ $Revision$
    */
 
-#include <Foundation/NSException.h>
-#include <Foundation/NSDecimal.h>
-#include <Foundation/NSDecimalNumber.h>
+#include "Foundation/NSException.h"
+#include "Foundation/NSDecimal.h"
+#include "Foundation/NSDecimalNumber.h"
 #include "GSPrivate.h"
 
 static NSDecimalNumberHandler *handler;

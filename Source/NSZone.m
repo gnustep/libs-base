@@ -85,15 +85,15 @@
 
 #define IN_NSZONE_M 1
 
-#include <config.h>
-#include <base/preface.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
 #include <stddef.h>
 #include <string.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSZone.h>
-#include <Foundation/NSLock.h>
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSLock.h"
 
 /*
  * Try to get more memory - the normal process has failed.

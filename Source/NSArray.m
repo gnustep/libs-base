@@ -29,20 +29,20 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSRange.h>
+#include "config.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSRange.h"
 #include <limits.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSDebug.h>
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSDebug.h"
 #include "gnustep/base/GSCategories.h"
 #include "GSPrivate.h"
 

@@ -21,14 +21,14 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */
 
-#include <config.h>
-#include <Foundation/NSSet.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSDebug.h>
+#include "config.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSDebug.h"
 
 
 #define	GSI_MAP_RETAIN_VAL(M, X)	
@@ -36,7 +36,7 @@
 #define GSI_MAP_KTYPES	GSUNION_OBJ
 #define GSI_MAP_VTYPES	GSUNION_INT
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 @interface GSCountedSet : NSCountedSet
 {

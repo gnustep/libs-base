@@ -21,11 +21,11 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */
-#include <config.h>
-#include <base/GSLocale.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSLock.h>
+#include "config.h"
+#include "gnustep/base/GSLocale.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSLock.h"
 
 #ifdef HAVE_LOCALE_H
 
@@ -33,8 +33,8 @@
 #ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
 #endif
-#include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSBundle.h>
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSBundle.h"
 
 /*
  * Function called by [NSObject +initialize] to setup locale information

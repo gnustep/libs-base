@@ -21,9 +21,9 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
 
-#include <config.h>
-#include <Foundation/Foundation.h>
-#include <Foundation/NSDebug.h>
+#include "config.h"
+#include "Foundation/Foundation.h"
+#include "Foundation/NSDebug.h"
 
 #include "GSPrivate.h"
 
@@ -56,8 +56,8 @@ BOOL GSMacOSXCompatiblePropertyLists(void)
 }
 
 #include <math.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSString.h>
+#include "Foundation/NSValue.h"
+#include "Foundation/NSString.h"
 
 static char base64[]
   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

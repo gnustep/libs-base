@@ -20,11 +20,11 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
-#include <Foundation/NSException.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSDistantObject.h>
-#include <Foundation/NSData.h>
-#include <base/GSInvocation.h>
+#include "Foundation/NSException.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSDistantObject.h"
+#include "Foundation/NSData.h"
+#include "gnustep/base/GSInvocation.h"
 #include <config.h>
 #include <objc/objc-api.h>
 #include "cifframe.h"

@@ -33,13 +33,13 @@
 
 /**** Included Headers *******************************************************/
 
-#include <config.h>
+#include "config.h"
 #include <math.h>
-#include <base/preface.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSGeometry.h>
-#include <Foundation/NSScanner.h>
-#include <Foundation/NSNotification.h>
+#include "gnustep/base/preface.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSGeometry.h"
+#include "Foundation/NSScanner.h"
+#include "Foundation/NSNotification.h"
 
 extern BOOL	GSMacOSXCompatibleGeometry(void);	// Compatibility mode
 

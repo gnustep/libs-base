@@ -21,24 +21,24 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSByteOrder.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSPortMessage.h>
-#include <Foundation/NSPortNameServer.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSConnection.h>
-#include <Foundation/NSDebug.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSPortMessage.h"
+#include "Foundation/NSPortNameServer.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSConnection.h"
+#include "Foundation/NSDebug.h"
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef	HAVE_SYS_SIGNAL_H

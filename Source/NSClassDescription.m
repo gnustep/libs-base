@@ -24,10 +24,10 @@
    $Date$ $Revision$
 */
 
-#include <Foundation/NSClassDescription.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSNotification.h>
+#include "Foundation/NSClassDescription.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSNotification.h"
 
 
 @implementation NSClassDescription

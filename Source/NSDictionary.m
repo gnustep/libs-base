@@ -25,19 +25,19 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSValue.h>
+#include "config.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSValue.h"
 #include "gnustep/base/GSCategories.h"
 #include "GSPrivate.h"
 

@@ -27,21 +27,21 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
+#include "config.h"
 #include <math.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSCalendarDate.h>
-#include <Foundation/NSTimeZone.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSDebug.h>
-#include <base/GSObjCRuntime.h>
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSCalendarDate.h"
+#include "Foundation/NSTimeZone.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSDebug.h"
+#include "gnustep/base/GSObjCRuntime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>

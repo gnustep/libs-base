@@ -32,28 +32,28 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSCharacterSet.h>
-#include <Foundation/NSRange.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <base/GSFormat.h>
-#include <base/GSObjCRuntime.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSCharacterSet.h"
+#include "Foundation/NSRange.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "gnustep/base/GSFormat.h"
+#include "gnustep/base/GSObjCRuntime.h"
 #include <limits.h>
 
 #include "GSPrivate.h"
 
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
-#include <base/Unicode.h>
+#include "gnustep/base/Unicode.h"
 
 #ifdef NeXT_RUNTIME
 /* Used by the Darwin/NeXT ObjC Runtime
@@ -171,37 +171,37 @@ typedef struct {
 #define	GSEQ_STRRANGE	strRangeUsNs
 #define	GSEQ_O	GSEQ_NS
 #define	GSEQ_S	GSEQ_US
-#include <GSeq.h>
+#include "GSeq.h"
 
 #define	GSEQ_STRCOMP	strCompUsUs
 #define	GSEQ_STRRANGE	strRangeUsUs
 #define	GSEQ_O	GSEQ_US
 #define	GSEQ_S	GSEQ_US
-#include <GSeq.h>
+#include "GSeq.h"
 
 #define	GSEQ_STRCOMP	strCompUsCs
 #define	GSEQ_STRRANGE	strRangeUsCs
 #define	GSEQ_O	GSEQ_CS
 #define	GSEQ_S	GSEQ_US
-#include <GSeq.h>
+#include "GSeq.h"
 
 #define	GSEQ_STRCOMP	strCompCsNs
 #define	GSEQ_STRRANGE	strRangeCsNs
 #define	GSEQ_O	GSEQ_NS
 #define	GSEQ_S	GSEQ_CS
-#include <GSeq.h>
+#include "GSeq.h"
 
 #define	GSEQ_STRCOMP	strCompCsUs
 #define	GSEQ_STRRANGE	strRangeCsUs
 #define	GSEQ_O	GSEQ_US
 #define	GSEQ_S	GSEQ_CS
-#include <GSeq.h>
+#include "GSeq.h"
 
 #define	GSEQ_STRCOMP	strCompCsCs
 #define	GSEQ_STRRANGE	strRangeCsCs
 #define	GSEQ_O	GSEQ_CS
 #define	GSEQ_S	GSEQ_CS
-#include <GSeq.h>
+#include "GSeq.h"
 
 static Class NSDataClass = 0;
 static Class NSStringClass = 0;

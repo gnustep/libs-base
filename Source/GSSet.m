@@ -22,22 +22,22 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */
 
-#include <config.h>
-#include <Foundation/NSSet.h>
-#include <base/GSObjCRuntime.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSObjCRuntime.h>
+#include "config.h"
+#include "Foundation/NSSet.h"
+#include "gnustep/base/GSObjCRuntime.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSObjCRuntime.h"
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 static SEL	memberSel;
 

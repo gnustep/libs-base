@@ -48,35 +48,35 @@
 
    FIXME?: use leap seconds? */
 
-#include <config.h>
-#include <base/preface.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSObject.h>
-#include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSZone.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSTimeZone.h>
-#include <Foundation/NSByteOrder.h>
-#include <Foundation/NSDebug.h>
+#include "Foundation/NSArray.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSTimeZone.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSDebug.h"
 #include "gnustep/base/GSCategories.h"
-#include <GSConfig.h>
+#include "GSConfig.h"
 
 
 #define NOID

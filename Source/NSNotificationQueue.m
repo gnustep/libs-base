@@ -49,15 +49,15 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSThread.h>
+#include "config.h"
+#include "base/preface.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSThread.h"
 
 /* NotificationQueueList by Richard Frith-Macdonald
    These objects are used to maintain lists of NSNotificationQueue objects.

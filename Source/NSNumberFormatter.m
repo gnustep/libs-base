@@ -26,11 +26,11 @@
    $Date$ $Revision$
    */
 
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSAttributedString.h>
-#include <Foundation/NSDecimalNumber.h>
-#include <Foundation/NSNumberFormatter.h>
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSAttributedString.h"
+#include "Foundation/NSDecimalNumber.h"
+#include "Foundation/NSNumberFormatter.h"
 
 
 @implementation NSNumberFormatter

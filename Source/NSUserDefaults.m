@@ -26,33 +26,33 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
-#include <base/preface.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
 
-#include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSArchiver.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSDistributedLock.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSSet.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSTimer.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSDebug.h>
-#include <base/GSLocale.h>
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSArchiver.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSDistributedLock.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSTimer.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSDebug.h"
+#include "gnustep/base/GSLocale.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif

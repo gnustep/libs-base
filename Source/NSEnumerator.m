@@ -24,10 +24,10 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSArray.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSArray.h"
 
 @implementation NSEnumerator
 

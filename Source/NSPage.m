@@ -24,10 +24,10 @@
    $Date$ $Revision$
    */ 
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSZone.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSZone.h"
 #include <string.h>
 #ifdef __WIN32__
 #include <malloc.h>
