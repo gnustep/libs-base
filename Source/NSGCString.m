@@ -1,7 +1,7 @@
 /* Implementation for GNUStep of NSStrings with C-string backing
    Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
 
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
 
    This file is part of the Gnustep Base Library.

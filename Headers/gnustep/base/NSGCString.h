@@ -1,7 +1,7 @@
 /* Interface to NSString implementation with C-string backing
    Copyright (C) 1995 Free Software Foundation, Inc.
 
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
 
    This file is part of the Gnustep Base Library.

@@ -1,7 +1,7 @@
 /* Abstract class for writing objects to a stream
    Copyright (C) 1996 Free Software Foundation, Inc.
    
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: February 1996, with core from Coder, created 1994.
    
    This file is part of the Gnustep Base Library.

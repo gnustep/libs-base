@@ -1,7 +1,7 @@
 /* Protocol for GNU Objective C byte streams
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: April 1995
    
    This file is part of the Gnustep Base Library.

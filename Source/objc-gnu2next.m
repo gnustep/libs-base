@@ -2,7 +2,7 @@
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
 
    Author: Kresten Krab Thorup
-   Modified by: R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Modified by: Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: Sep 1994
 
    This file is part of the Gnustep Base Library.

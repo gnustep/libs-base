@@ -1,7 +1,7 @@
 /* Interface for GNU Objective-C text stream object for use serializing
    Copyright (C) 1996 Free Software Foundation, Inc.
    
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Written: Jan 1996
    
    This file is part of the Gnustep Base Library.

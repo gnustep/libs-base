@@ -1,7 +1,7 @@
 /* Interface for Objective-C Ordered Collection object.
    Copyright (C) 1996 Free Software Foundation, Inc.
 
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: February 1996
 
    This file is part of the Gnustep Base Library.

@@ -1,7 +1,7 @@
 /* GapArray definitions for the use of subclass implementations
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
 
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
    Copyright (C) 1993,1994 Kresten Krab Thorup <krab@iesd.auc.dk>
    Dept. of Mathematics and Computer Science, Aalborg U., Denmark

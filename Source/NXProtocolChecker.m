@@ -1,7 +1,7 @@
 /* Implementation of Objective-C NeXT-compatible NXProtocolChecker object
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
    
-   Written by:  R. Andrew McCallum <mccallum@cs.rochester.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@cs.rochester.edu>
    Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
    
    This file is part of the Gnustep Base Library.

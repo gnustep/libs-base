@@ -1,6 +1,6 @@
 /* Implementation of Berkeley random()-compatible generation for Objective-C
 
-   Reworked by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Reworked by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
 
    This file is part of the Gnustep Base Library.
@@ -41,7 +41,7 @@
  * This is derived from the Berkeley source:
  *	@(#)random.c	5.5 (Berkeley) 7/6/88
  * It was reworked for the GNU C Library by Roland McGrath.
- * It was reworked for the GNU Objective-C Library by R. Andrew McCallum
+ * It was reworked for the GNU Objective-C Library by Andrew Kachites McCallum
  */
 
 #include <gnustep/base/RNGBerkeley.h>

@@ -67,7 +67,7 @@ Free Software Foundation instead of in the original English.
 @c @subtitle last updated Oct 26, 1993
 @subtitle Version @value{OBJECTS_VERSION}
 @subtitle (for use with @samp{gcc} version @value{GCC_VERSION})
-@author R. Andrew McCallum (mccallum@@gnu.ai.mit.edu)
+@author Andrew Kachites McCallum (mccallum@@gnu.ai.mit.edu)
 @page
 @vskip 0pt plus 1filll
 Copyright @copyright{} 1993 Free Software Foundation, Inc.

@@ -1,6 +1,6 @@
 /* Implementation of vfscanf for Gnustep Base Library
    
-   Reworked by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Reworked by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
    
    This file is part of the Gnustep Base Library.

@@ -7,7 +7,7 @@ Wed Apr 17 08:56:09 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	<objects/*.h>                   ->  <gnustep/base/*.h>
 	OBJECTS_*                       ->  GNUSTEP_BASE_*
 	objects_*()                     ->  o_*()
-	R. Andrew McCallum              ->  Andrew Kachites McCallum
+	Andrew Kachites McCallum              ->  Andrew Kachites McCallum
 	(my pre-marriage name)              (my post-marriage name)
 	...and more...
 
@@ -5275,7 +5275,7 @@ Fri Jul 22 11:41:32 1994  Andrew McCallum  (mccallum@vein.cs.rochester.edu)
 	* Makefile.in (dist): Makefile.depend and Makefile.local forced to
 	be empty files by touch.
 
-Sat Jul 16 13:18:10 1994  R. Andrew McCallum  (mccallum@ngoma)
+Sat Jul 16 13:18:10 1994  Andrew Kachites McCallum  (mccallum@ngoma)
 
 	* configure.in: Define NXcc if using NeXT's cc.  Sources
 	#ifdef'ing (NeXT) don't	distinguish between NeXT cc and gcc on a

@@ -1,7 +1,7 @@
 /* NSArray - Array object to hold other objects.
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
    Created: March 1995
    

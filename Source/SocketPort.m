@@ -1,7 +1,7 @@
 /* Implementation of socket-based port object for use with Connection
    Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
-   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
    
    This file is part of the Gnustep Base Library.

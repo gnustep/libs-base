@@ -3,7 +3,7 @@
 #  src makefile for GNU Objective-C Class library
 #  Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 #
-#  Written by:	R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+#  Written by:	Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
 #
 #  This file is part of the GNU Objective-C Class library.
 #
@@ -68,7 +68,7 @@ include $(srcdir)/../Version
 
 # Grep for these names to build the legally-required "AUTHORS" file.
 FILE_AUTHORS = \
-"R. Andrew McCallum" \
+"Andrew Kachites McCallum" \
 "Kresten Krab Thorup" \
 "Adam Fedor" \
 "Mark Lakata" \
