@@ -64,7 +64,7 @@ infodir = $(prefix)/info
 OBJECTS_GCC_VERSION = 2.6.1
 
 # The version number of this release.
-OBJECTS_VERSION = 0.1.1
+OBJECTS_VERSION = 0.1.2
 OBJECTS_FTP_MACHINE = alpha.gnu.ai.mit.edu
 OBJECTS_FTP_DIRECTORY = pub/gnu
 
