@@ -1536,16 +1536,19 @@ failure:
   unsigned	size = [self length];
   unsigned	need = NSMaxRange(aRange);
 
-  if (aRange.location >= size)
+  if (aRange.location > size)
     {
       [NSException raise: NSRangeException
 		  format: @"location bad in replaceByteInRange:withBytes:"];
     }
-  if (need > size)
+  if (aRange.length > 0)
     {
-      [self setLength: need];
+      if (need > size)
+	{
+	  [self setLength: need];
+	}
+      memcpy([self mutableBytes] + aRange.location, bytes, aRange.length);
     }
-  memcpy([self mutableBytes] + aRange.location, bytes, aRange.length);
 }
 
 - (void) resetBytesInRange: (NSRange)aRange
@@ -2702,17 +2705,20 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   unsigned	need = NSMaxRange(aRange);
 
-  if (aRange.location >= length)
+  if (aRange.location > length)
     {
       [NSException raise: NSRangeException
 		  format: @"location bad in replaceByteInRange:withBytes:"];
     }
-  if (need > length)
+  if (aRange.length > 0)
     {
-      [self setCapacity: need];
-      length = need;
+      if (need > length)
+	{
+	  [self setCapacity: need];
+	  length = need;
+	}
+      memcpy(bytes + aRange.location, moreBytes, aRange.length);
     }
-  memcpy(bytes + aRange.location, moreBytes, aRange.length);
 }
 
 - (void) serializeDataAt: (const void*)data
