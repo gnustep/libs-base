@@ -203,9 +203,9 @@
   OBJC_MALLOC(keys, id, count);
   for (i = 0; i < count; i++)
     {
-      [aCoder decodeObjectAt: &(objs[i])
-	      withName: NULL];
       [aCoder decodeObjectAt: &(keys[i])
+	      withName: NULL];
+      [aCoder decodeObjectAt: &(objs[i])
 	      withName: NULL];
     }
   [self initWithObjects: objs forKeys: keys count: count];
