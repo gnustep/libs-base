@@ -9,11 +9,15 @@ The currently released version of the library is
 @itemize @bullet
 
 @item Improvements to the NSInvocation class, from  Masatake Yamato  
-@email{masata-y@aist-nara.ac.jp}.
+@email{masata-y@@aist-nara.ac.jp}.
 
 @item Implemented several new OpenStep methods and classes (e.g. NSTask)
 and speed improvements for others (NSArray, NSData, NSString),
-from  Richard Frith-Macdonald  @email{richard@brainstorm.co.uk}.
+from  Richard Frith-Macdonald  @email{richard@@brainstorm.co.uk}.
+
+@item gdomap now handles subnet addressing and machines with multiple
+IP addresses
+from  Richard Frith-Macdonald  @email{richard@@brainstorm.co.uk}.
 
 @end itemize
 
