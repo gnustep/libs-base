@@ -729,11 +729,11 @@ can be opened on a Mach port, where available.  Using the generalized
 underlying mechanism, it is straightforward to also implement the
 standard @i{FILE*} opened on a UNIX file descriptor.
 
-For example, the GNUstep NSArray class is implemented in much the same
-way.  GNUstep has a generalized collection class hierarchy with a deep
-structure that provides common super classes in which a programmer can
-add new functionality across all collection classes at once.  It also
-provides a simple powerful way to ensure uniformity of method names and
+The GNUstep NSArray class, (for example), is implemented in much the
+same way.  GNUstep has a generalized collection class hierarchy with a
+deep structure that provides common super classes in which a programmer
+can add new functionality across all collection classes at once.  It
+also simply and powerfully ensures uniformity of method names and
 semantics across all collection class methods.  It also provides more
 efficient code sharing between classes.  The @i{Array} class is part of
 the GNUstep collection classes hierarchy; implementing @i{NSArray} in
