@@ -367,8 +367,8 @@ NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
      * information.  Not difficult to do, just something for a later
      * date. */
     [NSException raise:NSInvalidArgumentException
-                 format:@"NSHashTable: illegal reinsertion of: %@",
-                 NSHT_DESCRIBE(table, element)];
+                 format:@"NSHashTable: illegal reinsertion of: %s",
+                 [NSHT_DESCRIBE(table, element) cStringNoCopy]];
   }
   else
   {
@@ -421,7 +421,8 @@ NSStringFromHashTable(NSHashTable *table)
   /* Iterate over the elements of TABLE, appending the description of
    * each to the mutable string STRING. */
   while ((pointer = NSNextHashEnumeratorItem(&enumerator)) != 0)
-    [string appendFormat:@"%@;\n", NSHT_DESCRIBE(table, pointer)];
+    [string appendFormat:@"%s;\n", 
+	    [NSHT_DESCRIBE(table, pointer) cStringNoCopy]];
 
   /* STRING is already autoreleased. */
   return (NSString *) string;
