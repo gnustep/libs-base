@@ -11,8 +11,8 @@
 <dt><a href="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
 <dd>
 </dl>
-<p>Version: 0.1</p>
-<p>Date: 28 February, 2000</p>
+<p>Version: 0.2</p>
+<p>Date: 18 April, 2000</p>
 <h2><a name="cont-0">NSDeserializer</a></h2>
 <h2><a name="NSDeserializer">NSDeserializer</a></h2>
 <p><b>Declared in:</b> Foundation/NSSerialization.h</p>
@@ -26,6 +26,7 @@
 <li><a href="NSDeserializer.html#method-0">+deserializePropertyListFromData:atCursor:mutableContainers:</a>
 <li><a href="NSDeserializer.html#method-1">+deserializePropertyListFromData:mutableContainers:</a>
 <li><a href="NSDeserializer.html#method-2">+deserializePropertyListLazilyFromData:atCursor:length:mutableContainers:</a>
+<li><a href="NSDeserializer.html#method-3">+uniquing:</a>
 </ul>
 <hr>
 <h2><a name="method-0">deserializePropertyListFromData:atCursor:mutableContainers:</a></h2>
@@ -41,6 +42,16 @@
 <h2><a name="method-2">deserializePropertyListLazilyFromData:atCursor:length:mutableContainers:</a></h2>
 + (id) <b>deserializePropertyListLazilyFromData:</b> (NSData*)data <b>atCursor:</b> (unsigned int*)cursor <b>length:</b> (unsigned int)length <b>mutableContainers:</b> (BOOL)mutable<br>
 
+          
+<hr>
+<h2><a name="method-3">uniquing:</a></h2>
++ (void) <b>uniquing:</b> (BOOL)flag<br>
+Standards: GNUstep NotOpenStep NotMacOS-X<br>
+
+	    This method turns on/off uniquing of strings as they are
+	    deserialized from data objects.  The uniquing mechanism
+	    employs the GNUstep-specific functions documented with
+            the NSCountedSet class.
           
 <hr>
 </body>

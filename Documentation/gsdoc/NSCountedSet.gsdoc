@@ -7,8 +7,8 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <version>0.1</version>
-    <date>28 February, 2000</date>
+    <version>1.0</version>
+    <date>18 April, 2000</date>
   </head>
   <body>
     <chapter>
@@ -17,59 +17,165 @@
         <declared>Foundation/NSSet.h</declared>
         <conform>NSCoding</conform>
           <desc>
+	    <p>
+	      The NSCountedSet class is used to maintain a set of objects where
+	      the number of times each object has been added (wiithout a
+	      corresponding removal) is kept track of.
+	    </p>
+	    <p>
+	      In GNUstep, extra methods are provided to make use of a counted
+	      set for <em>uniquing</em> objects easier.
+	    </p>
           </desc>
         <method type="void">
           <sel>addObject:</sel>
           <arg type="id">anObject</arg>
           <desc>
+	    Adds an object to the set.  If the set already contains an object
+	    equal to the specified object (as determined by the [-isEqual:]
+	    method) then the count for that object is incremented rather
+	    than the new object being added.
           </desc>
         </method>
         <method type="NSArray*">
           <sel>allObjects</sel>
           <desc>
+	    Returns an array containing all the objects stored in the set.
           </desc>
         </method>
         <method type="unsigned int">
           <sel>count</sel>
           <desc>
+	    Returns the number of objects stored in the set.
           </desc>
         </method>
         <method type="unsigned int">
           <sel>countForObject:</sel>
           <arg type="id">anObject</arg>
           <desc>
+	    Returns the number of times that an object that is equal to the
+	    specified object (as determined byt the [-isEqual:] method) has
+	    been added to the set and not removed from it.
           </desc>
         </method>
         <method type="id">
           <sel>initWithArray:</sel>
           <arg type="NSArray*">anArray</arg>
           <desc>
+	    Initialises a newly allocated set by adding all the objects
+	    in the supplied array to the set.  Each object is added to
+	    the set as many times as it occurs in the array.
           </desc>
         </method>
         <method type="id">
           <sel>initWithCapacity:</sel>
           <arg type="unsigned int">numItems</arg>
           <desc>
+	    Initialises a newly allocated set to contain no objects but
+	    to have space available to hold the specified number of items.
           </desc>
         </method>
         <method type="id">
           <sel>initWithSet:</sel>
           <arg type="NSSet*">aSet</arg>
           <desc>
+	    Initialises a newly allocated set by adding all the objects
+	    in the supplied set.
           </desc>
         </method>
         <method type="NSEnumerator*">
           <sel>objectEnumerator</sel>
           <desc>
+	    Returns an NSEnumerator object able to step through all the
+	    objects in the set.
           </desc>
+        </method>
+        <method type="void">
+          <sel>purge:</sel>
+          <arg type="int">count</arg>
+          <desc>
+	    <p>
+	      This method removes from the set all objects whose count is
+	      less than or equal to the specified value.
+	    </p>
+	    <p>
+	      This is useful where a counted set is used for uniquing objects.
+	      The set can be periodically purged of objects that have only
+	      been added once - and are therefore simply wasting space.
+	    </p>
+          </desc>
+	  <standards><NotOpenStep/><NotMacOS-X/></standards>
         </method>
         <method type="void">
           <sel>removeObject:</sel>
           <arg type="id">anObject</arg>
           <desc>
+	    Decrements the count of the number of times that the specified
+	    object (or an object qequal to it as determined by the
+	    [-isEqual:] method) has been added to the set.  If the count
+	    becomes zero, the object is removed from the set.
           </desc>
         </method>
+        <method type="id">
+          <sel>unique:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+	    <p>
+	      If the supplied object (or one equal to it as determined by
+	      the [-isEqual:] method) is already present in the set, the
+	      count for that object is incremented, the supplied object
+	      is released, and the object in the set is retained and returned.
+	      Otherwise, the supplied object is added to the set and returned.
+	    </p>
+	    <p>
+	      This method is useful for uniquing objects - the init method of
+	      a class need simply end with -
+	      <code>
+	        return [myUniquingSet unique: self];
+	      </code>
+	    </p>
+          </desc>
+	  <standards><NotOpenStep/><NotMacOS-X/></standards>
+        </method>
       </class>
+    </chapter>
+    <chapter>
+      <heading>NSCountedSet related functions</heading>
+      <p>
+	GNUstep provides some functions that may be using to maintain a
+	global NSCountedSet object for usin in uniquing objects.  In a
+        multi-threaded application, accesses to this global set are
+	automatically protected by locks.
+      </p>
+      <function name="GSUniquing" type="void">
+	<arg type="BOOL">flag</arg>
+	<desc>
+	  This function sets the state of a flag that determines the
+	  behavior of the GSUnique() function.  If the flag is on,
+	  uniquing is performed, if it is off the function has no effect.
+	  The default is for uniquing to be turned off.
+	</desc>
+	<standards><GNUstep/><NotOpenStep/><NotMacOS-X/></standards>
+      </function>
+      <function name="GSUnique" type="id">
+	<arg type="id">anObject</arg>
+	<desc>
+	  This function <em>uniques</em> the supplied argument, returning
+	  the result.  It works by using the [-unique:] method of a global
+	  NSCountedSet object.  It handles locking as necessary.
+	  If uniquing is turned off, it simply returns its argument.
+	</desc>
+	<standards><GNUstep/><NotOpenStep/><NotMacOS-X/></standards>
+      </function>
+      <function name="GSUPurge" type="void">
+	<arg type="int">count</arg>
+	<desc>
+	  This function purges the global NSCountedSet object used for
+	  uniquing.  It handles locking as necessary.  It can be used to
+          purge the set even when uniquing is turned off.
+	</desc>
+	<standards><GNUstep/><NotOpenStep/><NotMacOS-X/></standards>
+      </function>
     </chapter>
   </body>
 </gsdoc>

@@ -94,8 +94,35 @@
 
 #ifndef NO_GNUSTEP
 
+/*
+ * Utility methods for using a counted set to handle uniquing of objects.
+ */
+@interface NSCountedSet (GNU_Uniquing)
+- (void) purge: (int)level;
+- (id) unique: (id)anObject;
+@end
+
+/*
+ * Functions for managing a global uniquing set.
+ *
+ * GSUniquing() turns on/off the action of the GSUnique() function.
+ * if uniquing is turned off, GSUnique() simply returns its argument.
+ *
+ * GSUnique() returns an object that is equal to the one passed to it.
+ * If the returned object is not the same object as the object passed in,
+ * the original object is released and the returned object is retained.
+ * Thus, an -init metod that wants to implement uniquing simply needs
+ * to end with 'return GSUnique(self);'
+ */
+void	GSUniquing(BOOL flag);	
+id	GSUnique(id anObject);
+
+/*
+ * Management functions -
+ */
+void	GSUPurge(int count);	/* Purge infrequently referenced objs	*/
+
 #include <base/KeyedCollecting.h>
-#include <Foundation/NSSet.h>
 
 /* Eventually we'll make a Constant version of this protocol. */
 @interface NSSet (GNU) <Collecting>

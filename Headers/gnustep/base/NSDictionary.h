@@ -40,7 +40,6 @@
 
 @interface NSDictionary (NonCore)
 
-+ (id) allocWithZone: (NSZone*)zone;
 + (id) dictionary;
 + (id) dictionaryWithContentsOfFile: (NSString*)path;
 + (id) dictionaryWithDictionary: (NSDictionary*)aDict;
@@ -85,7 +84,6 @@
 
 @interface NSMutableDictionary (NonCore)
 
-+ (id) allocWithZone: (NSZone*)zone;
 + (id) dictionaryWithCapacity: (unsigned)numItems;
 
 - (void) removeAllObjects;

@@ -112,7 +112,7 @@ typedef struct {
   void		(*serImp)();		// Serialize integer.
   void		(*setImp)();		// Set length of data.
   unsigned	count;			// String counter.
-  GSIMapTable_t	map;		// For uniquing.
+  GSIMapTable_t	map;			// For uniquing.
   BOOL		shouldUnique;		// Do we do uniquing?
 } _NSSerializerInfo;
 
@@ -348,14 +348,9 @@ static BOOL	shouldBeCompact = NO;
 
 
 /*
- *	Class variables for uniquing incoming strings.
- */
-static NSRecursiveLock	*uniqueLock = nil;
-static NSMutableSet	*uniqueSet = nil;
-
-/*
  *	Variables to cache class information.
  */
+static BOOL	uniquing = NO;	/* Make incoming strings unique	*/
 static Class	IACls = 0;	/* Immutable Array	*/
 static Class	MACls = 0;	/* Mutable Array	*/
 static Class	DCls = 0;	/* Data			*/
@@ -439,22 +434,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  /*
 	   * If we are supposed to be doing uniquing of strings, handle it.
 	   */
-	  if (uniqueSet != nil)
-	    {
-	      id	uniqued;
-
-	      if (uniqueLock != nil)
-		[uniqueLock lock];
-	      [uniqueSet addObject: s];
-	      uniqued = [uniqueSet member: s];
-	      if (uniqueLock != nil)
-		[uniqueLock unlock];
-	      if (uniqued != s)
-		{
-		  RELEASE(s);
-		  s = RETAIN(uniqued);
-		}
-	    }
+	  if (uniquing == YES)
+	    s = GSUnique(s);
 
 	  /*
            * If uniquing was done on serialisation, store the string for
@@ -477,22 +458,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  /*
 	   * If we are supposed to be doing uniquing of strings, handle it.
 	   */
-	  if (uniqueSet != nil)
-	    {
-	      id	uniqued;
-
-	      if (uniqueLock != nil)
-		[uniqueLock lock];
-	      [uniqueSet addObject: s];
-	      uniqued = [uniqueSet member: s];
-	      if (uniqueLock != nil)
-		[uniqueLock unlock];
-	      if (uniqued != s)
-		{
-		  RELEASE(s);
-		  s = RETAIN(uniqued);
-		}
-	    }
+	  if (uniquing == YES)
+	    s = GSUnique(s);
 
 	  /*
            * If uniquing was done on serialisation, store the string for
@@ -701,18 +668,6 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       maInitImp = [MACls instanceMethodForSelector: maInitSel];
       idInitImp = [IDCls instanceMethodForSelector: idInitSel];
       mdInitImp = [MDCls instanceMethodForSelector: mdInitSel];
-      if ([NSThread isMultiThreaded])
-	{
-	  [self _becomeThreaded: nil];
-	}
-      else
-	{
-	  [[NSNotificationCenter defaultCenter]
-	    addObserver: self
-	       selector: @selector(_becomeThreaded:)
-		   name: NSWillBecomeMultiThreadedNotification
-		 object: nil];
-	}
     }
 }
 
@@ -780,57 +735,12 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 }
 @end
 
-@implementation	NSDeserializer (GNUstep)
-/*
- * If we are multi-threaded, we must guard access to the uniquing set.
- */
-+ (void) _becomeThreaded: (id)notification
-{
-  uniqueLock = [NSRecursiveLock new];
-}
-
-+ (NSMutableSet*) uniqueSet
-{
-  return uniqueSet;
-}
-
-+ (NSString*) unique: (NSString*)str
-{
-  if (uniqueSet)
-    {
-      if (uniqueLock != nil)
-	[uniqueLock lock];
-      [uniqueSet addObject: str];
-      str = [uniqueSet member: str];
-      if (uniqueLock != nil)
-	[uniqueLock unlock];
-    }
-  return str;
-}
-
-/*
- * Turn uniquing of deserialized strings on/off
- */
+@implementation NSDeserializer (GNUstep)
 + (void) uniquing: (BOOL)flag
 {
-  if (uniqueLock != nil)
-    [uniqueLock lock];
-  if (flag)
-    {
-      if (uniqueSet == nil)
-	{
-	  uniqueSet = [NSMutableSet new];
-	}
-    }
-  else
-    {
-      if (uniqueSet != nil)
-	{
-	  DESTROY(uniqueSet);
-	}
-    }
-  if (uniqueLock != nil)
-    [uniqueLock unlock];
+  if (flag == YES)
+    GSUniquing(YES);
+  uniquing = flag;
 }
 @end
 
