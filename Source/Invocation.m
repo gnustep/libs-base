@@ -577,11 +577,19 @@ my_method_get_next_argument (arglist_t argframe,
 	  CASE_TYPE(_C_ULNG, unsigned long);
 	  CASE_TYPE(_C_INT, int);
 	  CASE_TYPE(_C_UINT, unsigned int);
-	  CASE_TYPE(_C_SHT, short);
-	  CASE_TYPE(_C_USHT, unsigned short);
-	  CASE_TYPE(_C_CHR, char);
-	  CASE_TYPE(_C_UCHR, unsigned char);
-	  CASE_TYPE(_C_FLT, float);
+	  case _C_SHT:
+	    *(short*)datum = (short)va_arg(ap, int);
+	    break;
+	  case _C_USHT:
+	    *(unsigned short*)datum = (unsigned short)va_arg(ap, int);
+	    break;
+	  CASE_TYPE(_C_CHR, int);
+	  case _C_UCHR:
+	    *(unsigned char*)datum = (unsigned char)va_arg(ap, int);
+	    break;
+	  case _C_FLT:
+	    *(float*)datum = (float)va_arg(ap, int);
+	    break;
 	  CASE_TYPE(_C_DBL, double);
 	  CASE_TYPE(_C_CHARPTR, char*);
 	  CASE_TYPE(_C_PTR, void*);
@@ -589,9 +597,7 @@ my_method_get_next_argument (arglist_t argframe,
 	  {
 	    int copysize;
 	    copysize = objc_sizeof_type(tmptype);
-	    memcpy(datum, 
-		   va_arg(ap, typeof(char[copysize])),
-		   copysize);
+	    memcpy(datum, (char)va_arg(ap, int), copysize);
 	  } /* default */
 	}
       datum = my_method_get_next_argument (argframe, &tmptype);
