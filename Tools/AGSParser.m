@@ -1635,7 +1635,7 @@ fail:
 
 - (NSMutableDictionary*) parseImplementation
 {
-  NSString		*tmp = nil;
+  NSString		*nc = nil;
   NSString		*name;
   NSString		*base = nil;
   NSString		*category = nil;
@@ -1647,7 +1647,7 @@ fail:
   /*
    * Record any class documentation for this class
    */
-  tmp = AUTORELEASE(comment);
+  nc = AUTORELEASE(comment);
   comment = nil;
 
   if ((name = [self parseIdentifier]) == nil
@@ -1710,11 +1710,17 @@ fail:
     }
   else
     {
+      NSString	*oc = [dict objectForKey: @"Comment"];
+
       [dict setObject: @"YES" forKey: @"Implemented"];
       /*
-       * Append any comment we have for this
+       * Append any comment we have for this ... if it's not just a copy
+       * because we've parsed the same file twice.
        */
-      [self appendComment: tmp to: dict];
+      if ([oc isEqual: nc] == NO)
+	{
+	  [self appendComment: nc to: dict];
+	}
       /*
        * Update base class if necessary.
        */
