@@ -782,15 +782,8 @@ static BOOL double_release_check_enabled = NO;
 
 + (BOOL) isKindOfClass: (Class)aClass
 {
-  Class class;
-
-  for (class = self; 
-       class != Nil;
-       class = class_get_super_class (class))
-    {
-      if (class == aClass)
-	return YES;
-    }
+  if (aClass == [NSObject class])
+    return YES;
   return NO;
 }
 
