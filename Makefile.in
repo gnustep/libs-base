@@ -290,6 +290,7 @@ NSCopyObject.m \
 NSConcreteArray.m \
 NSConcreteValue.m \
 NSCString.m \
+NSDate.m \
 NSDeallocateObject.m \
 NSDictionary.m \
 NSEnumerator.m \
@@ -341,6 +342,7 @@ foundation/NSCoder.h \
 foundation/NSConcreteArray.h \
 foundation/NSConcreteNumber.h \
 foundation/NSConcreteValue.h \
+foundation/NSDate.h \
 foundation/NSDictionary.h \
 foundation/NSException.h \
 foundation/NSGeometry.h \
