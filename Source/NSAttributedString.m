@@ -618,6 +618,7 @@ static Class NSMutableAttributedString_concrete_class;
 
       setImp = [self methodForSelector: setSel];
 
+      [self beginEditing];
       while (effectiveRange.location < NSMaxRange(aRange))
 	{
 	  effectiveRange = NSIntersectionRange(aRange, effectiveRange);
@@ -639,6 +640,7 @@ static Class NSMutableAttributedString_concrete_class;
 		&effectiveRange);
 	    }
 	}
+      [self endEditing];
     }
 }
 
@@ -673,6 +675,7 @@ static Class NSMutableAttributedString_concrete_class;
 
       setImp = [self methodForSelector: setSel];
 
+      [self beginEditing];
       while (effectiveRange.location < NSMaxRange(aRange))
 	{
 	  effectiveRange = NSIntersectionRange(aRange,effectiveRange);
@@ -694,6 +697,7 @@ static Class NSMutableAttributedString_concrete_class;
 		&effectiveRange);
 	    }
 	}
+      [self endEditing];
     }
 }
 
@@ -717,6 +721,7 @@ static Class NSMutableAttributedString_concrete_class;
 
       setImp = [self methodForSelector: setSel];
 
+      [self beginEditing];
       while (effectiveRange.location < NSMaxRange(aRange))
 	{
 	  effectiveRange = NSIntersectionRange(aRange,effectiveRange);
@@ -738,6 +743,7 @@ static Class NSMutableAttributedString_concrete_class;
 		&effectiveRange);
 	    }
 	}
+      [self endEditing];
     }
 }
 
@@ -768,6 +774,7 @@ static Class NSMutableAttributedString_concrete_class;
       return;
     }
 
+  [self beginEditing];
   tmpStr = [attributedString string];
   [self replaceCharactersInRange: aRange withString: tmpStr];
   max = [tmpStr length];
@@ -793,6 +800,7 @@ static Class NSMutableAttributedString_concrete_class;
 	  loc = NSMaxRange(effectiveRange);
 	}
     }
+  [self endEditing];
 }
 
 - (void) replaceCharactersInRange: (NSRange)aRange
