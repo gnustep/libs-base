@@ -4,6 +4,9 @@
 	version of concrete classes to be that of the abstract class which
 	actually performs encoding/decoding ... should correct archiving.
 	Problem reported by Gerrit Van Dyk
+	* Tools/GSIndex.m: tidied a little
+	* Tools/GSParser.m: mark when things are implemented.
+	* Tools/GSOutput.m: warn about unimplemented items.
 
 2002-02-26  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
 

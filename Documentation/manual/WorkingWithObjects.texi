@@ -121,9 +121,9 @@ The Target-Action paradigm is used a great deal in the GNUstep GUI,
 but infrequently in other code,  it is most applicable when building
 a network of related objects that can interact relatively simply.
 
-The idea is that an object may have a @b{target} ... an instance
+The idea is that an object may have a @b{target} @dots{} an instance
 variable of type @code{id} which refers to a target object, and
-an @b{action} ... an instance variable of type @code{SEL}.
+an @b{action} @dots{} an instance variable of type @code{SEL}.
 
 When the object is told to perform its action, it asks the @b{target}
 to perform the @b{action}, passing itsself as the argument.
@@ -201,7 +201,7 @@ is not known to implement the @code{alert:} message:
 @end example
 
 In this case, the compiler will not issue a warning, because it only knows
-that @code{anObject} is of type @code{id} ... so it doesn't know what
+that @code{anObject} is of type @code{id} @dots{} so it doesn't know what
 methods the object implements.
 
 At runtime, the Objective-C runtime library will fail to find a
@@ -398,11 +398,11 @@ methods of that class.@*
 For instance, the method may return a @b{placeholder} object that
 will be replaced by another object depending on the initialisation
 method that is sent to it.@*
-NB. exception ... it is permitted to return nil on allocation failure.
+NB. exception @dots{} it is permitted to return nil on allocation failure.
 
 @item
 When an object is initialised, the return value of the initialiser
-is the new value of the object (or @b{nil}) ... the initialiser is
+is the new value of the object (or @b{nil}) @dots{} the initialiser is
 permitted to replace one object with another.
 This behavior enables a class to 
 share objects (and do other tricky things) -
@@ -432,7 +432,7 @@ share objects (and do other tricky things) -
 
 In the above example, the @code{initWithLevel:} method is used to
 create a crown discovered in a random treasure store.  If certain
-conditions are met, the system returns a special object ... only
+conditions are met, the system returns a special object @dots{} only
 one of which may exist and be owned by a character.
 
 In this case, the initialiser for a crown expects a character level
@@ -446,11 +446,11 @@ to @code{self} before initialising instance variables and returning
 @code{self}.
 
 This is necessary because, unlike in C++ or Java, the Objective-C
-language does not enforce initialisation ... so it's up to you as
+language does not enforce initialisation @dots{} so it's up to you as
 the programmer to ensure that superclasses are permitted to
 perform their object initialisation code before the subclass
 performs its initialisation (actually, this gives you the flexibility
-to change how things are initialised ... but you should obey the
+to change how things are initialised @dots{} but you should obey the
 conventions unless you are sure you know what you are doing).
 
 An initialiser of any class intended for re-use/subclassing should
@@ -463,10 +463,10 @@ subclass receives another object from the superclass initialiser, the
 new object needs to have enough memory allocated, and the same
 initial instance variable layout, as the original object, or assigning
 values into it may overwrite memory that's not part of the initialised
-object ... causing a crash or other runtime problems.
+object @dots{} causing a crash or other runtime problems.
 
 So, to correct our example, we should only return the special object if
-it is a subclass of the original object  ...
+it is a subclass of the original object  @dots{}
 
 @example
   if (level > wizardLevel && [crownOfTheEmperor isOwned] == NO
@@ -479,7 +479,7 @@ it is a subclass of the original object  ...
 @end example
 
 The @code{isKindOfClass:} method is used to test that the object we
-are intending to return is legitimate ... a subclass of whatever
+are intending to return is legitimate @dots{} a subclass of whatever
 class the original item (@code{self}) allocated was.
 
 @item
@@ -494,7 +494,7 @@ Since the @code{init} method is defined in the root class
 (@code{NSObject}), it's quite likely that any class could be initialised
 by calling this method.  If @code{init} is not the designated initialiser
 for your class, you should therefore write an implementation of
-@code{init} which @b{does} call the designated initialiser ...
+@code{init} which @b{does} call the designated initialiser @dots{}
 
 @example
 - (id) init
@@ -515,7 +515,7 @@ More sophisticated methods combine allocation, initialisation, and
 autoreleasing of objects.  These methods return objects which have
 been added to the current autorelease pool (see later in this chapter
 for details).  By convention, these methods have names beginning with
-something like the name of the class ...
+something like the name of the class @dots{}
 
 @example
 + (Crown*) crown
@@ -530,7 +530,7 @@ something like the name of the class ...
 @item
 You handle deallocation of your objects by writing a @code{dealloc}
 method.  The last thing that this method needs to do is call the
-@code{dealloc} method of the superclass ... since it is normally
+@code{dealloc} method of the superclass @dots{} since it is normally
 the deallocation method of the root class that actually frees the
 memory used by the object.
 
@@ -568,7 +568,7 @@ will do.
 
 @section Protocols
 
-We use tweo types of protocol in Objective-C ... @b{informal} protocols,
+We use tweo types of protocol in Objective-C @dots{} @b{informal} protocols,
 where we document methods to which objects will respond, and specify
 how they should behave, and @b{formal} protocols, where we provide a
 list of methods that an object will support in a format where the
@@ -589,7 +589,7 @@ can chjeck that an object conforms to a protocol at runtime.  Protocols
 form an inheritance hierarchy much like that of classes.
 
 A particularly important use of protocols is in defining the methods
-that an object in a remote process can respond to ... by setting the
+that an object in a remote process can respond to @dots{} by setting the
 protocol used by a local proxy object, you can avoid having to send
 messages to the remote process to check what methods are available -
 you can simply check the local protocol object.
@@ -686,10 +686,10 @@ in following simple rules.  It's pretty efficient.
 
 @item Garbage collection@*
 You build the GNUstep base library with garbage collection, and link
-with the Boehm GC library ... then never bother about
+with the Boehm GC library @dots{} then never bother about
 releasing/deallocating memory.  This requires a slightly different
-approach to programming ... you need to take care about what happens
-when objects are deallocated ... but don't need to worry about
+approach to programming @dots{} you need to take care about what happens
+when objects are deallocated @dots{} but don't need to worry about
 deallocating them.
 @end itemize
 
@@ -721,7 +721,7 @@ object gets deallocated.
 @end example
 
 @item
-A simple retain/release mechanism is not very interesting ... so it's
+A simple retain/release mechanism is not very interesting @dots{} so it's
 spiced up with autorelease pools.  You can use the @code{AUTORELEASE}
 macro to call the @code{autorelease} method, which adds an object to
 the current autorelease pool.  An autorelease pool simply maintains

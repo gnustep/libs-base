@@ -809,6 +809,31 @@ this:@*
 @code{- changeValue: (@b{inout} int *)number;}
 @end example
 
+Passing of arguments by reference is very restricted in Objective-C.
+it applies only to pointers to C data types, not to objects, and except
+for the special case of a pointer to a nul terminated C string (@b{char*})
+the pointer is assumed to refer to a single data item of the specified
+type.
+
+@example
+/*
+ * A method passing an unsigned short integer by reference.
+ */
+@code{- updateCounter: (@b{inout} unsigned shortn *)value;}
+
+/*
+ * A method passing a structure by reference.
+ */
+@code{- updateState: (@b{inout} struct stateInfo *)value;}
+
+/*
+ * As a special case, a char (or equivalent typedef) passed by reference
+ * is assumed to be a nul terminated string ... there is no way to pass
+ * a single character by reference:
+ */
+@code{- updateBuffer: (@b{inout} char *)str;}
+
+@end example
 
 @item The @b{bycopy} and @b{byref} qualifiers can be used in a protocol
 when the argument or return type is an object.@*@*
@@ -913,13 +938,13 @@ connection itself.
 
 @subsection The Connection Fails
 You can register an observer object to receive a notification, in the
-form of a @code{connectionDidDie} message, when a registered connection
+form of a @code{connectionDidDie:} message, when a registered connection
 fails. The argument to this message will be an @code{NSNotification}
 object that returns the failed connection when it receives an
 @code{object} message.
 
 To receive this 'notification' the observer must implement the
-@code{connectionDidDie} method, but can be an instance of any class. The
+@code{connectionDidDie:} method, but can be an instance of any class. The
 observer can then handle the failure gracefully, by releasing any
 references to the failed connection and releasing proxies that used the
 connection. Registering an object to receive this notification is
