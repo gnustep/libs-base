@@ -1138,7 +1138,7 @@ static unsigned	urlAlign;
       [clientsLock lock];
       if (_clients == 0)
 	{
-	  _clients = NSCreateMapTable (NSNonRetainedObjectMapKeyCallBacks,
+	  _clients = NSCreateMapTable (NSObjectMapKeyCallBacks,
 	    NSNonRetainedObjectMapValueCallBacks, 0);
 	}
       NSMapInsert((NSMapTable*)_clients, (void*)handle, (void*)client);
@@ -1566,6 +1566,8 @@ static unsigned	urlAlign;
 {
   id	c = clientForHandle(_clients, sender);
 
+  RETAIN(self);
+  [sender removeClient: self];
   if (c != nil)
     {
       if ([c respondsToSelector: @selector(URLResourceDidFinishLoading:)])
@@ -1576,7 +1578,7 @@ static unsigned	urlAlign;
       NSMapRemove((NSMapTable*)_clients, (void*)sender);
       [clientsLock unlock];
     }
-  [sender removeClient: self];
+  RELEASE(self);
 }
 
 @end
