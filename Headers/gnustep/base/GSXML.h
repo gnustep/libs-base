@@ -295,6 +295,15 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (void) warning: (NSString*)e;
 - (void) error: (NSString*)e;
 - (void) fatalError: (NSString*)e;
+- (void) warning: (NSString*)e
+       colNumber: (int)colNumber
+      lineNumber: (int)lineNumber;
+- (void) error: (NSString*)e
+     colNumber: (int)colNumber
+    lineNumber: (int)lineNumber;
+- (void) fatalError: (NSString*)e
+          colNumber: (int)colNumber
+         lineNumber: (int)lineNumber;
 
 @end
 
