@@ -1245,12 +1245,15 @@ static NSFileManager* defaultManager = nil;
     }
   else if (c_path[0] == '/')
     {
-      NSDictionary  *env;
+      NSDictionary	*env;
+      NSString		*cyghome;
+
       env = [[NSProcessInfo processInfo] environment];
-      if ([env objectForKey: @"CYGWIN"])
+      cyghome = [env objectForKey: @"CYGWIN_HOME"];
+      if (cyghome != nil)
         {
           /* FIXME: Find cygwin drive? */
-	  newpath = @"c:/cygwin";
+	  newpath = cyghome;
           newpath = [newpath stringByAppendingPathComponent: path];
           newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
         }

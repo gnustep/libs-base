@@ -147,7 +147,16 @@ NSHomeDirectoryForUser(NSString *login_name)
       s = [NSString stringWithCString: buf];
     }
   else
-    s = nil;
+    {
+      s = nil;
+    }
+
+  if (s != nil)
+    {
+      n = GetEnvironmentVariable("HOMEDRIVE", buf, 1024);
+      buf[n] = '\0';
+      s = [[NSString stringWithCString: buf] stringByAppendingString: s];
+    }
   [gnustep_global_lock unlock];
   return s;
 #endif
