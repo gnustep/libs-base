@@ -1174,3 +1174,142 @@ mframe_build_return (arglist_t argframe,
     return mframe_build_return_opts(argframe,type,out_parameters,decoder,NO);
 }
 
+BOOL
+mframe_decode_return (const char *type, void* buffer, void* retframe)
+{
+  int	size = 0;
+
+  type = objc_skip_type_qualifiers(type);
+  NSGetSizeAndAlignment(type, &size, 0);
+
+  switch (*type)
+    {
+    case _C_ID:
+      {
+	inline id retframe_id(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(id*)buffer = retframe_id(retframe);
+	break;
+      }
+
+    case _C_CLASS:
+      {
+	inline Class retframe_Class(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(Class*)buffer = retframe_Class(retframe);
+	break;
+      }
+
+    case _C_SEL:
+      {
+	inline SEL retframe_SEL(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(SEL*)buffer = retframe_SEL(retframe);
+	break;
+      }
+
+    case _C_CHR:
+    case _C_UCHR:
+      {
+	inline unsigned char retframe_char(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(unsigned char*)buffer = retframe_char(retframe);
+	break;
+      }
+
+    case _C_SHT:
+    case _C_USHT:
+      {
+	inline unsigned short retframe_short(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(unsigned short*)buffer = retframe_short(retframe);
+	break;
+      }
+
+    case _C_INT:
+    case _C_UINT:
+      {
+	inline unsigned int retframe_int(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(unsigned int*)buffer = retframe_int(retframe);
+	break;
+      }
+
+    case _C_LNG:
+    case _C_ULNG:
+      {
+	inline unsigned long retframe_long(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(unsigned long*)buffer = retframe_long(retframe);
+	break;
+      }
+
+    case _C_FLT:
+      {
+	inline float retframe_float(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(float*)buffer = retframe_float(retframe);
+	break;
+      }
+
+    case _C_DBL:
+      {
+	inline double retframe_double(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(double*)buffer = retframe_double(retframe);
+	break;
+      }
+
+    case _C_PTR:
+    case _C_ATOM:
+    case _C_CHARPTR:
+      {
+	inline char* retframe_pointer(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(char**)buffer = retframe_pointer(retframe);
+	break;
+      }
+
+    case _C_ARY_B:
+    case _C_STRUCT_B:
+    case _C_UNION_B:
+      {
+	typedef struct {
+	  char	val[size];
+	} block;
+	inline block retframe_block(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(block*)buffer = retframe_block(retframe);
+	break;
+      }
+
+    case _C_VOID:
+      break;
+
+    default:
+      return NO;		/* Unknown type.	*/
+    }
+  return YES;
+}
