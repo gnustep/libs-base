@@ -209,6 +209,7 @@ static Class GSUnicodeInlineStringClass = 0;
 static Class GSMutableStringClass = 0;
 static Class NSConstantStringClass = 0;
 
+static SEL	cMemberSel;
 static SEL	convertSel;
 static BOOL	(*convertImp)(id, SEL, NSStringEncoding);
 static SEL	equalSel;
@@ -220,7 +221,7 @@ static NSStringEncoding defEnc = 0;
 
 /*
  * The setup() function is called when any concrete string class is
- * initialized, and cached classes and some method implementations.
+ * initialized, and caches classes and some method implementations.
  */
 static void
 setup()
@@ -254,6 +255,7 @@ setup()
        * cases where we want to use the implementation
        * provided in the abstract rolot cllass of the cluster.
        */
+      cMemberSel = @selector(characterIsMember:);
       convertSel = @selector(canBeConvertedToEncoding:);
       convertImp = (BOOL (*)(id, SEL, NSStringEncoding))
 	[NSStringClass instanceMethodForSelector: convertSel];
@@ -1311,6 +1313,96 @@ rangeOfSequence_u(ivars self, unsigned anIndex)
 }
 
 static inline NSRange
+rangeOfCharacter_c(ivars self, NSCharacterSet *aSet, unsigned mask,
+  NSRange aRange)
+{
+  int		i;
+  int		start;
+  int		stop;
+  int		step;
+  NSRange	range;
+  BOOL		(*mImp)(id, SEL, unichar);
+
+  if (aSet == nil)
+    [NSException raise: NSInvalidArgumentException format: @"range of nil"];
+  i = self->_count;
+
+  if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+    {
+      start = NSMaxRange(aRange)-1; stop = aRange.location-1; step = -1;
+    }
+  else
+    {
+      start = aRange.location; stop = NSMaxRange(aRange); step = 1;
+    }
+  range.location = NSNotFound;
+  range.length = 0;
+
+  mImp = (BOOL(*)(id,SEL,unichar))
+    [aSet methodForSelector: cMemberSel];
+
+  for (i = start; i != stop; i += step)
+    {
+      unichar letter = self->_contents.c[i];
+
+      if (letter > 127)
+	{
+	  letter = encode_chartouni(letter, defEnc);
+	}
+      if ((*mImp)(aSet, cMemberSel, letter))
+	{
+	  range = NSMakeRange(i, 1);
+	  break;
+	}
+    }
+
+  return range;
+}
+
+static inline NSRange
+rangeOfCharacter_u(ivars self, NSCharacterSet *aSet, unsigned mask,
+  NSRange aRange)
+{
+  int		i;
+  int		start;
+  int		stop;
+  int		step;
+  NSRange	range;
+  BOOL		(*mImp)(id, SEL, unichar);
+
+  if (aSet == nil)
+    [NSException raise: NSInvalidArgumentException format: @"range of nil"];
+  i = self->_count;
+
+  if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+    {
+      start = NSMaxRange(aRange)-1; stop = aRange.location-1; step = -1;
+    }
+  else
+    {
+      start = aRange.location; stop = NSMaxRange(aRange); step = 1;
+    }
+  range.location = NSNotFound;
+  range.length = 0;
+
+  mImp = (BOOL(*)(id,SEL,unichar))
+    [aSet methodForSelector: cMemberSel];
+
+  for (i = start; i != stop; i += step)
+    {
+      unichar letter = self->_contents.u[i];
+
+      if ((*mImp)(aSet, cMemberSel, letter))
+	{
+	  range = NSMakeRange(i, 1);
+	  break;
+	}
+    }
+
+  return range;
+}
+
+static inline NSRange
 rangeOfString_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 {
   Class	c;
@@ -1766,6 +1858,14 @@ transmute(ivars self, NSString *aString)
   return rangeOfSequence_c((ivars)self, anIndex);
 }
 
+- (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
+			    options: (unsigned)mask
+			      range: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, _count);
+  return rangeOfCharacter_c((ivars)self, aSet, mask, aRange);
+}
+
 - (NSRange) rangeOfString: (NSString*)aString
 		  options: (unsigned)mask
 		    range: (NSRange)aRange
@@ -2060,6 +2160,14 @@ transmute(ivars self, NSString *aString)
   return rangeOfSequence_u((ivars)self, anIndex);
 }
 
+- (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
+			    options: (unsigned)mask
+			      range: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, _count);
+  return rangeOfCharacter_u((ivars)self, aSet, mask, aRange);
+}
+
 - (NSRange) rangeOfString: (NSString*)aString
 		  options: (unsigned)mask
 		    range: (NSRange)aRange
@@ -2162,7 +2270,7 @@ transmute(ivars self, NSString *aString)
  * The GSMutableStrinc class shares a common initial ivar layout with
  * the GSString class, but adds a few of its own.  It uses _flags.wide
  * to determine whether it should use 8-bit or 16-bit characters and
- * is caapable of changing that flag (and its underlying storage) to
+ * is capable of changing that flag (and its underlying storage) to
  * move from an 8-bit to a 16-bit representation is that should be
  * necessary because wide characters have been placed in the string.
  */
@@ -2602,6 +2710,17 @@ transmute(ivars self, NSString *aString)
     return rangeOfSequence_c((ivars)self, anIndex);
 }
 
+- (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
+			    options: (unsigned)mask
+			      range: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, _count);
+  if (_flags.wide == 1)
+    return rangeOfCharacter_u((ivars)self, aSet, mask, aRange);
+  else
+    return rangeOfCharacter_c((ivars)self, aSet, mask, aRange);
+}
+
 - (NSRange) rangeOfString: (NSString*)aString
 		  options: (unsigned)mask
 		    range: (NSRange)aRange
@@ -2834,6 +2953,336 @@ transmute(ivars self, NSString *aString)
   else
     return _count;
 } 
+
+@end
+
+
+
+@interface	NSImmutableString: NSString
+{
+  id	_parent;
+}
+- (id) initWithString: (NSString*)parent;
+@end
+
+@interface	GSImmutableString: NSImmutableString
+@end
+
+@implementation NSImmutableString
+
+- (BOOL) canBeConvertedToEncoding: (NSStringEncoding)enc
+{
+  return [_parent canBeConvertedToEncoding: enc];
+}
+
+- (unichar) characterAtIndex: (unsigned int)index
+{
+  return [_parent characterAtIndex: index];
+}
+
+- (NSComparisonResult) compare: (NSString*)aString
+		       options: (unsigned int)mask
+			 range: (NSRange)aRange
+{
+  return [_parent compare: aString options: mask range: aRange];
+}
+
+- (const char *) cString
+{
+  return [_parent cString];
+}
+
+- (unsigned int) cStringLength
+{
+  return [_parent cStringLength];
+}
+
+- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
+	 allowLossyConversion: (BOOL)flag
+{
+  return [_parent dataUsingEncoding: encoding allowLossyConversion: flag];
+}
+
+- (void) dealloc
+{
+  RELEASE(_parent);
+  [super dealloc];
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  [_parent encodeWithCoder: aCoder];
+}
+
+- (NSStringEncoding) fastestEncoding
+{
+  return [_parent fastestEncoding];
+}
+
+- (void) getCharacters: (unichar*)buffer
+{
+  return [_parent getCharacters: buffer];
+}
+
+- (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
+{
+  return [_parent getCharacters: buffer range: aRange];
+}
+
+- (void) getCString: (char*)buffer
+{
+  [_parent getCString: buffer];
+}
+
+- (void) getCString: (char*)buffer
+	  maxLength: (unsigned int)maxLength
+{
+  [_parent getCString: buffer maxLength: maxLength];
+}
+
+- (void) getCString: (char*)buffer
+	  maxLength: (unsigned int)maxLength
+	      range: (NSRange)aRange
+     remainingRange: (NSRange*)leftoverRange
+{
+  [_parent getCString: buffer
+	    maxLength: maxLength
+		range: aRange
+       remainingRange: leftoverRange];
+}
+
+- (unsigned) hash
+{
+  return [_parent hash];
+}
+
+- (id) initWithString: (NSString*)parent
+{
+  _parent = RETAIN(parent);
+  return self;
+}
+
+- (BOOL) isEqual: (id)anObject
+{
+  return [_parent isEqual: anObject];
+}
+
+- (BOOL) isEqualToString: (NSString*)anObject
+{
+  return [_parent isEqualToString: anObject];
+}
+
+- (unsigned int) length
+{
+  return [_parent length];
+}
+
+- (const char*) lossyCString
+{
+  return [_parent lossyCString];
+}
+
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex
+{
+  return [_parent rangeOfComposedCharacterSequenceAtIndex: anIndex];
+}
+
+- (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
+			    options: (unsigned)mask
+			      range: (NSRange)aRange
+{
+  return [_parent rangeOfCharacterFromSet: aSet options: mask range: aRange];
+}
+
+- (NSRange) rangeOfString: (NSString*)aString
+		  options: (unsigned)mask
+		    range: (NSRange)aRange
+{
+  return [_parent rangeOfString: aString options: mask range: aRange];
+}
+
+- (NSStringEncoding) smallestEncoding
+{
+  return [_parent smallestEncoding];
+}
+
+@end
+
+
+@implementation GSImmutableString
+
++ (void) initialize
+{
+  setup();
+}
+
+- (BOOL) canBeConvertedToEncoding: (NSStringEncoding)enc
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return canBeConvertedToEncoding_u((ivars)_parent, enc);
+  else
+    return canBeConvertedToEncoding_c((ivars)_parent, enc);
+}
+
+- (unichar) characterAtIndex: (unsigned int)index
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return characterAtIndex_u((ivars)_parent, index);
+  else
+    return characterAtIndex_c((ivars)_parent, index);
+}
+
+- (NSComparisonResult) compare: (NSString*)aString
+		       options: (unsigned int)mask
+			 range: (NSRange)aRange
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return compare_u((ivars)_parent, aString, mask, aRange);
+  else
+    return compare_c((ivars)_parent, aString, mask, aRange);
+}
+
+- (const char *) cString
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return cString_u((ivars)_parent);
+  else
+    return cString_c((ivars)_parent);
+}
+
+- (unsigned int) cStringLength
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return cStringLength_u((ivars)_parent);
+  else
+    return cStringLength_c((ivars)_parent);
+}
+
+- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
+	 allowLossyConversion: (BOOL)flag
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return dataUsingEncoding_u((ivars)_parent, encoding, flag);
+  else
+    return dataUsingEncoding_c((ivars)_parent, encoding, flag);
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  [_parent encodeWithCoder: aCoder];
+}
+
+- (NSStringEncoding) fastestEncoding
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return NSUnicodeStringEncoding;
+  else
+    return defEnc;
+}
+
+- (void) getCharacters: (unichar*)buffer
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    {
+      getCharacters_u((ivars)_parent, buffer,
+	(NSRange){0, ((ivars)_parent)->_count});
+    }
+  else
+    {
+      getCharacters_c((ivars)_parent, buffer,
+	(NSRange){0, ((ivars)_parent)->_count});
+    }
+}
+
+- (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, ((ivars)_parent)->_count);
+  if (((ivars)_parent)->_flags.wide == 1)
+    {
+      getCharacters_u((ivars)_parent, buffer, aRange);
+    }
+  else
+    {
+      getCharacters_c((ivars)_parent, buffer, aRange);
+    }
+}
+
+- (unsigned) hash
+{
+  if (((ivars)_parent)->_flags.hash == 0)
+    {
+      ((ivars)_parent)->_flags.hash = (*hashImp)((id)_parent, hashSel);
+    }
+  return ((ivars)_parent)->_flags.hash;
+}
+
+- (BOOL) isEqual: (id)anObject
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return isEqual_u((ivars)_parent, anObject);
+  else
+    return isEqual_c((ivars)_parent, anObject);
+}
+
+- (BOOL) isEqualToString: (NSString*)anObject
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return isEqual_u((ivars)_parent, anObject);
+  else
+    return isEqual_c((ivars)_parent, anObject);
+}
+
+- (unsigned int) length
+{
+  return ((ivars)_parent)->_count;
+}
+
+- (const char*) lossyCString
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return lossyCString_u((ivars)_parent);
+  else
+    return lossyCString_c((ivars)_parent);
+}
+
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return rangeOfSequence_u((ivars)_parent, anIndex);
+  else
+    return rangeOfSequence_c((ivars)_parent, anIndex);
+}
+
+- (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
+			    options: (unsigned)mask
+			      range: (NSRange)aRange
+{
+  GS_RANGE_CHECK(aRange, ((ivars)_parent)->_count);
+  if (((ivars)_parent)->_flags.wide == 1)
+    return rangeOfCharacter_u((ivars)_parent, aSet, mask, aRange);
+  else
+    return rangeOfCharacter_c((ivars)_parent, aSet, mask, aRange);
+}
+
+- (NSRange) rangeOfString: (NSString*)aString
+		  options: (unsigned)mask
+		    range: (NSRange)aRange
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    return rangeOfString_u((ivars)_parent, aString, mask, aRange);
+  else
+    return rangeOfString_c((ivars)_parent, aString, mask, aRange);
+}
+
+- (NSStringEncoding) smallestEncoding
+{
+  if (((ivars)_parent)->_flags.wide == 1)
+    {
+      return NSUnicodeStringEncoding;
+    }
+  else
+    return defEnc;
+}
 
 @end
 

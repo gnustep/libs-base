@@ -75,6 +75,7 @@
 {
   NSMutableString	*_textChars;
   NSMutableArray	*_infoArray;
+  NSString		*_textProxy;
 }
 
 - (id) initWithString: (NSString*)aString
@@ -580,7 +581,11 @@ SANITY();
 
 - (NSString*) string
 {
-  return _textChars;
+  if (_textProxy == nil)
+    {
+      _textProxy = RETAIN([_textChars immutableProxy]);
+    }
+  return _textProxy;
 }
 
 - (NSDictionary*) attributesAtIndex: (unsigned)index
@@ -845,6 +850,7 @@ SANITY();
 
 - (void) dealloc
 {
+  TEST_RELEASE(_textProxy);
   RELEASE(_textChars);
   RELEASE(_infoArray);
   [super dealloc];
