@@ -49,7 +49,7 @@ enum DelegatePoolSendBehavior {SEND_TO_ALL = 0,
 + alloc;
 + new;
 - init;
-- free;
+- (void) dealloc;
 
 // MANIPULATING COLLECTION OF DELEGATES;
 - delegatePoolAddObject: anObject;

@@ -50,7 +50,7 @@ static Class NXConnectionProxyClass;
       [aList addObject:c];
     }
   [cs withObjectsCall:add_to_aList];
-  [cs free];
+  [cs release];
   return self;
 }
 
@@ -176,7 +176,7 @@ static Class NXConnectionProxyClass;
       [aList addObject:c];
     }
   [cs withObjectsCall:add_to_aList];
-  [cs free];
+  [cs release];
   return aList;
 }
 
@@ -189,7 +189,7 @@ static Class NXConnectionProxyClass;
       [aList addObject:c];
     }
   [cs withObjectsCall:add_to_aList];
-  [cs free];
+  [cs release];
   return aList;
 }
 

@@ -56,10 +56,10 @@
   return self;
 }
 
-- free
+- (void) dealloc
 {
   OBJC_FREE(table);
-  return [super free];
+  [super dealloc];
 }
 
 - init

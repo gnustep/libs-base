@@ -200,10 +200,10 @@ stdio_unchar_func(void *s, int c)
     return NO;
 }
 
-- free
+- (void) dealloc
 {
   fclose(fp);
-  return [super free];
+  [super dealloc];
 }
 
 - (void) encodeWithCoder: (Coder*)anEncoder

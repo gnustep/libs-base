@@ -241,10 +241,10 @@ void unchar_func(void *s, int c)
   return position;
 }
 
-- free
+- (void) dealloc
 {
   OBJC_FREE(buffer);
-  return [super free];
+  [super dealloc];
 }
 
 - (BOOL) streamEof

@@ -25,6 +25,9 @@
    This object is just temporary.  Eventually, we should separate 
    reference counting functionality from notification functionality */
 
+/* xxx March 1995:  Now that we have a root object that handles retaining, 
+   we should create a plain Notifier class. */
+
 #ifndef __RetainingNotifier_h
 #define __RetainingNotifier_h
 
@@ -42,9 +45,7 @@
   int retain_count;
 }
 
-+ initialize;
 - init;
-- free;
 - (unsigned) retainCount;
 - registerForInvalidationNotification:  (id <InvalidationListening>)anObject;
 - unregisterForInvalidationNotification: (id <InvalidationListening>)anObject;

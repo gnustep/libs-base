@@ -296,12 +296,6 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 
 /* xxx Clean up all this junk below */
 
-- free
-{
-  [self release];
-  return self;
-}
-
 - (oneway void) release
 {
   if (!retain_count--)

@@ -417,7 +417,7 @@ static int messagesReceivedCount;
   id newPort = [default_port_class newPort];
   id newConn = 
     [Connection newForInPort:newPort outPort:nil ancestorConnection:nil];
-  [self free];
+  [self release];
   return newConn;
 }
 
@@ -590,10 +590,10 @@ static int messagesReceivedCount;
       }
     [proxiesHashGate lock];
     [remote_proxies withElementsCall:deallocObj];
-    [remote_proxies free];
-    [local_targets free];
-    [incoming_const_ptrs free];
-    [outgoing_const_ptrs free];
+    [remote_proxies release];
+    [local_targets release];
+    [incoming_const_ptrs release];
+    [outgoing_const_ptrs release];
     [proxiesHashGate unlock];
   }
   [super dealloc];
