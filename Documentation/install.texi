@@ -25,7 +25,7 @@ must apply three patches that come with libobjects.
 NEXTSTEP.  @file{gcc-string.patch} adds @@""-style constant strings to
 gcc (thanks to Pieter Schoenmakers <tiggr@@es.ele.tue.nl>).
 @file{gcc-dynamic.patch} adds some support that helps with dynamic
-linking.
+linking (thanks to Adam Fedor <fedor@@boulder.colorado.edu>).
 
 @example
 cd gcc-2.6.3/objc
