@@ -737,6 +737,8 @@ static NSString	*pathForUser(NSString *user)
   return [self initWithContentsOfFile: path];
 }
 
+BOOL read_only = NO;
+
 /**
  * <init />
  * Initializes defaults for the specified path. Returns an object with
@@ -768,6 +770,7 @@ static NSString	*pathForUser(NSString *user)
     {
       NSWarnMLog(@"Path '%@' is not writable - making user defaults for '%@' "
 	@" read-only\n", path, _defaultsDatabase);
+
     }
   else if ([mgr fileExistsAtPath: path isDirectory: &flag] == NO && flag == NO)
     {
@@ -1441,14 +1444,31 @@ static BOOL isPlistObject(id o)
         initWithContentsOfFile: _defaultsDatabase];
       if (newDict == nil)
 	{
-	  NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
-	  if (wasLocked == NO)
+	  if (_fileLock == nil)
 	    {
-	      [_fileLock unlock];
-	      isLocked = NO;
+	      /*
+	       * Running with no readable user defaults ... but we were
+	       * initialised that way (possibly on a read-only filesystem)
+	       * so we just continue as best we can.
+	       */
+	      newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
+		initWithCapacity: 4];
 	    }
-	  [_lock unlock];
-	  return NO;
+	  else
+	    {
+	      /*
+	       * The defaults system has become unreadable singe we started...
+	       * probably a severe error of some sort
+	       */
+	      NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
+	      if (wasLocked == NO)
+		{
+		  [_fileLock unlock];
+		  isLocked = NO;
+		}
+	      [_lock unlock];
+	      return NO;
+	    }
 	}
     }
 

@@ -1,3 +1,9 @@
+2004-04-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Modified to operate on a read-only
+	filesystem where the defaults database is missing.  Application
+	defaults and command line settings should still work.
+
 2004-04-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Fix error parsing sequence of protocol names
