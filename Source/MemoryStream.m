@@ -237,7 +237,8 @@ void unchar_func(void *s, int c)
   if (size - (prefix + position) < 128)
     [self setStreamBufferCapacity:size*2];
 
-  ret = vsprintf(buffer+prefix+position, [format cStringNoCopy], arg);
+  ret = VSPRINTF_LENGTH (vsprintf(buffer+prefix+position,
+				  [format cStringNoCopy], arg));
   position += ret;
   /* xxx Make sure we didn't overrun our buffer.
      As per above kludge, this would happen if we happen to have more than
