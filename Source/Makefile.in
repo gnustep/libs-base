@@ -85,7 +85,7 @@ NEXT_NEXT_INCLUDES = -I/usr/include
 GNU_NEXT_INCLUDES = -I$(srcdir)
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
-ALL_INCLUDE_FLAGS = -I. $(NEXT_INCLUDES) $(INCLUDEFLAGS)
+ALL_INCLUDE_FLAGS = -I. -I./srcdir-include $(NEXT_INCLUDES) $(INCLUDEFLAGS)
 ALL_CPPFLAGS = $(ALL_INCLUDE_FLAGS) $(CPPFLAGS)
 ALL_CFLAGS = $(CFLAGS)
 ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
@@ -516,8 +516,9 @@ gnustep/base:
 	ln -s ./include base
 	# Make necessary links to source headers if compiling in seperate dir
 	if [ ! -r ./include/Collection.h ]; then \
-	  ln -s ../$(srcdir)/include ./include/base; \
-	  (cd include; ln -s . gnustep); \
+	  mkdir srcdir-include; \
+	  ln -s ../$(srcdir)/include ./srcdir-include/base; \
+	  (cd srcdir-include; ln -s . gnustep); \
 	fi
 # This deletion is necessary, because the CVS repository contains
 # an emtpy `Foundation' directory that used to hold the OpenStep headers.
