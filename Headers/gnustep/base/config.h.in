@@ -64,6 +64,9 @@
 /* Define if you have this header */
 #undef HAVE_GICONV_H
 
+/* Define if you have this function */
+#undef HAVE_ICONV
+
 /* The number of bytes in a double.  */
 #undef SIZEOF_DOUBLE
 
@@ -172,6 +175,9 @@
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
 
+/* Define if you have the <float.h> header file.  */
+#undef HAVE_FLOAT_H
+
 /* Define if you have the <getopt.h> header file.  */
 #undef HAVE_GETOPT_H
 
@@ -279,9 +285,6 @@
 
 /* Define if you have the <utime.h> header file.  */
 #undef HAVE_UTIME_H
-
-/* Define if you have the <values.h> header file.  */
-#undef HAVE_VALUES_H
 
 /* Define if you have the <wchar.h> header file.  */
 #undef HAVE_WCHAR_H

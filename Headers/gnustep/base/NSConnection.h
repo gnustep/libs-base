@@ -232,8 +232,6 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 
 @end
 
-#define CONNECTION_DEFAULT_TIMEOUT   15.0 /* in seconds */
-
 /*
  *	NSRunLoop mode, NSNotification name and NSException strings.
  */
