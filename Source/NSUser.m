@@ -576,6 +576,7 @@ userDirectory(NSString *name, BOOL defaults)
       [localException raise];
     }
   NS_ENDHANDLER
+  [gnustep_global_lock unlock];
   return path;
 }
 
