@@ -34,53 +34,71 @@
           <sel>addObject:</sel>
           <arg type="id">anObject</arg>
           <desc>
+	    Adds the specified object to the receiver.
+	    The object is retained by the set.
           </desc>
         </method>
         <method type="void">
           <sel>addObjectsFromArray:</sel>
           <arg type="NSArray*">anArray</arg>
           <desc>
+	    Adds all the objects in the array to the receiver.
           </desc>
         </method>
         <method type="id">
           <sel>initWithCapacity:</sel>
           <arg type="unsigned int">numItems</arg>
           <desc>
+	    Initialises the receiver to be ready to have the specified number
+	    of items added to it.  Additions of items to a set initialised
+	    with an appropriate capacity will be more efficient than addition
+	    of items otherwise.
           </desc>
         </method>
         <method type="void">
           <sel>intersectSet:</sel>
           <arg type="NSSet*">otherSet</arg>
           <desc>
+	    Removes from the receiver all the objects it contains
+	    which are not also in otherSet.
           </desc>
         </method>
         <method type="void">
           <sel>minusSet:</sel>
           <arg type="NSSet*">otherSet</arg>
           <desc>
+	    Removes from the receiver all the objects that are in
+	    otherSet.
           </desc>
         </method>
         <method type="void">
           <sel>removeAllObjects</sel>
           <desc>
+	    Removes all objects from the receiver.
           </desc>
         </method>
         <method type="void">
           <sel>removeObject:</sel>
           <arg type="id">anObject</arg>
           <desc>
+	    Removes the specified object from the receiver.
           </desc>
         </method>
         <method type="void">
           <sel>setSet:</sel>
           <arg type="NSSet*">otherSet</arg>
           <desc>
+	    Removes all objects from the receiver then adds the
+	    objects from otherSet.  If the receiver <em>is</em>
+	    otherSet, the method has no effect.
           </desc>
+	  <standards><GNUstep/><MacOS-X/><NotOpenStep/></standards>
         </method>
         <method type="void">
           <sel>unionSet:</sel>
           <arg type="NSSet*">otherSet</arg>
           <desc>
+	    Adds all the objects from etherSet to the receiver.
           </desc>
         </method>
       </class>
