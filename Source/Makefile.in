@@ -140,6 +140,7 @@ MappedCollector.m \
 MemoryStream.m \
 MutableCString.m \
 MutableString.m \
+OrderedCollection.m \
 Port.m \
 Proxy.m \
 Queue.m \
@@ -275,6 +276,8 @@ objects/NSDictionary.h \
 objects/NSSet.h \
 objects/NSString.h \
 objects/Ordering.h \
+objects/OrderedCollecting.h \
+objects/OrderedCollection.h \
 objects/Port.h \
 objects/Proxy.h \
 objects/Queue.h \
