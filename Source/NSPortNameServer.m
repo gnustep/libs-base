@@ -181,7 +181,7 @@ typedef enum {
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
     {
-      NSLog(@"NSPortNameServer failed connect to gdomap on %@- %@",
+      NSDebugMLLog(@"NSPortNameServer", @"failed connect to gdomap on %@ - %@",
 	[[notification object] socketAddress], e); 
       /*
        * Remove our file handle, then either retry or fail.
@@ -192,14 +192,18 @@ typedef enum {
 	  NSRunLoop	*loop = [NSRunLoop currentRunLoop];
 	  NSTimer	*timer;
 
-	  NSLog(@"NSPortNameServer attempting to start gdomap on local host"); 
+	  NSLog(@"NSPortNameServer attempting to start gdomap on local host\n"
+@"This will take a few seconds.\n"
+@"It is recommended that you start up gdomap at login time or (better) when\n"
+@"your computer is started instead."); 
 	  [NSTask launchedTaskWithLaunchPath: launchCmd arguments: nil];
 	  timer = [NSTimer timerWithTimeInterval: 5.0
 				      invocation: nil
 					 repeats: NO];
 	  [loop addTimer: timer forMode: [loop currentMode]];
 	  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 5.0]];
-	  NSLog(@"NSPortNameServer retrying local connection to gdomap"); 
+	  NSDebugMLLog(@"NSPortNameServer",
+	    @"retrying local connection to gdomap"); 
 	  state = GSPC_RETRY;
 	  [self open: nil];
 	}
