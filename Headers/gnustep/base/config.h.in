@@ -90,6 +90,10 @@
 /* Define if you have the <string.h> header file.  */
 #undef HAVE_STRING_H
 
+/* Define if you have the <syslog.h> header file.  */
+#undef HAVE_SYSLOG_H
+#undef HAVE_SYSLOG
+
 /* Define if you have the <sys/dir.h> header file.  */
 #undef HAVE_SYS_DIR_H
 
