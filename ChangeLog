@@ -1,3 +1,7 @@
+2000-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: ([+defaultConnection]) create receive port.
+
 2000-04-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHost.m: Improve logging of host/net configuration errors

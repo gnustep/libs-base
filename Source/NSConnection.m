@@ -303,6 +303,7 @@ static int messages_received_count;
       NSPort	*newPort;
 
       c = [self alloc];
+      newPort = [default_receive_port_class newForReceiving];
       c = [c initWithReceivePort: newPort sendPort: nil];
       RELEASE(newPort);
       return c;
