@@ -599,6 +599,8 @@
   [self _skipToNextField];
   range.location = scanLocation;
   range.length = [aString length];
+  if (range.location + range.length > len)
+    return NO;
   range = [string rangeOfString:aString
 		  options:caseSensitive ? 0 : NSCaseInsensitiveSearch
 		  range:range];
