@@ -376,7 +376,6 @@ handle_printf_atsign (FILE *stream,
       NSStringClass = self;
       [self setVersion: 1];
       NSMutableStringClass = [NSMutableString class];
-      NSConstantStringClass = [NXConstantString class];
       NSDataClass = [NSData class];
       GSPlaceholderStringClass = [GSPlaceholderString class];
       GSStringClass = [GSString class];
@@ -462,8 +461,16 @@ handle_printf_atsign (FILE *stream,
     }
 }
 
+/**
+ * Return the class used to dtore constant strings (those ascii strings
+ * placed in ythe source code using the @"this is a string" syntax.
+ */
 + (Class) constantStringClass
 {
+  if (NSConstantStringClass == 0)
+    {
+      NSConstantStringClass = [NXConstantString class];
+    }
   return NSConstantStringClass;
 }
 
