@@ -53,14 +53,19 @@ function may be incorrect
 
 NSString	*NSURLFileScheme = @"file";
 
+/*
+ * Structure describing a URL.
+ * All the char* fields may be NULL pointers, except path, which
+ * is *always* non-null (though it may be an empty string).
+ */
 typedef struct {
-  id	absolute;
+  id	absolute;		// Cache absolute string or nil
   char	*scheme;
   char	*user;
   char	*password;
   char	*host;
   char	*port;
-  char	*path;
+  char	*path;			// May never be NULL
   char	*parameters;
   char	*query;
   char	*fragment;
@@ -580,7 +585,8 @@ static void unescape(const char *from, char * to)
 		      *ptr = tolower(*ptr);
 		    }
 		}
-	      if (base != 0 && strcmp(base->scheme, buf->scheme) != 0)
+	      if (base != 0 && base->scheme != 0
+		&& strcmp(base->scheme, buf->scheme) != 0)
 		{
 		  [NSException raise: NSGenericException format:
 		    @"scheme of base and relative parts does not match"];
