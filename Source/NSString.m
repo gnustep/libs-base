@@ -528,7 +528,7 @@ handle_printf_atsign (FILE *stream,
         *atsign_pos = '\0';
         /* Print the part before the '%@' */
         printed_local_len = VASPRINTF_LENGTH (vasprintf (&buf_l,
-                                                         format_to_go, arg_list));
+	  format_to_go, arg_list));
         if(buf_l)
           {
             if(avail_len < printed_local_len+1)
@@ -536,7 +536,7 @@ handle_printf_atsign (FILE *stream,
                 NS_DURING
                   {
                     buf = NSZoneRealloc(z, buf,
-                                        printed_len+printed_local_len+_PRINTF_BUF_LEN);
+		      printed_len+printed_local_len+_PRINTF_BUF_LEN);
                     avail_len += _PRINTF_BUF_LEN;
                   }
                 NS_HANDLER
@@ -554,7 +554,7 @@ handle_printf_atsign (FILE *stream,
         else
           {
             [NSException raise: NSMallocException
-                         format: @"No available memory"];
+                        format: @"No available memory"];
           }
         /* Skip arguments used in last vsprintf(). */
         while ((formatter_pos = strchr(format_to_go, '%')))
@@ -621,7 +621,7 @@ handle_printf_atsign (FILE *stream,
       }
     /* Print the rest of the string after the last `%@'. */
     printed_local_len = VASPRINTF_LENGTH (vasprintf (&buf_l,
-                                                     format_to_go, arg_list));
+      format_to_go, arg_list));
     if(buf_l)
       {
         if(avail_len < printed_local_len+1)
@@ -629,7 +629,7 @@ handle_printf_atsign (FILE *stream,
             NS_DURING
               {
                 buf = NSZoneRealloc(z, buf,
-                                    printed_len+printed_local_len+_PRINTF_BUF_LEN);
+		  printed_len+printed_local_len+_PRINTF_BUF_LEN);
                 avail_len += _PRINTF_BUF_LEN;
               }
             NS_HANDLER

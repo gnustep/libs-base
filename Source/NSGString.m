@@ -388,14 +388,6 @@
     }
 }
 
-// FOR IndexedCollection SUPPORT;
-
-- objectAtIndex: (unsigned)index
-{
-  CHECK_INDEX_RANGE_ERROR(index, _count);
-  return [NSNumber numberWithChar: unitochar(_contents_chars[index])];
-}
-
 - (id) propertyList
 {
   id		result;
