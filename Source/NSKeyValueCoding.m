@@ -122,9 +122,15 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 
 - (void) setNilValueForKey: (NSString*)aKey
 {
+  static IMP	o = 0;
+
   /* Backward compatibility hack */
-  if ([self methodForSelector: @selector(unableToSetNilForKey:)]
-    == [NSObject instanceMethodForSelector: @selector(unableToSetNilForKey:)])
+  if (o == 0)
+    {
+      o = [NSObject instanceMethodForSelector:
+	@selector(unableToSetNilForKey:)];
+    }
+  if ([self methodForSelector: @selector(unableToSetNilForKey:)] != o)
     {
       [self unableToSetNilForKey: aKey];
     }
@@ -231,11 +237,15 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 {
   NSDictionary	*dict;
   NSException	*exp; 
+  static IMP	o = 0;
 
   /* Backward compatibility hack */
-  if ([self methodForSelector: @selector(handleTakeValue:forUnboundKey:)]
-    == [NSObject instanceMethodForSelector:
-    @selector(handleTakeValue:forUnboundKey:)])
+  if (o == 0)
+    {
+      o = [NSObject instanceMethodForSelector:
+	@selector(handleTakeValue:forUnboundKey:)];
+    }
+  if ([self methodForSelector: @selector(handleTakeValue:forUnboundKey:)] != o)
     {
       [self handleTakeValue: anObject forUnboundKey: aKey];
     }
@@ -669,11 +679,15 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 {
   NSDictionary	*dict;
   NSException	*exp;
+  static IMP	o = 0;
 
   /* Backward compatibility hack */
-  if ([self methodForSelector: @selector(handleQueryWithUnboundKey:)]
-    == [NSObject instanceMethodForSelector:
-    @selector(handleQueryWithUnboundKey:)])
+  if (o == 0)
+    {
+      o = [NSObject instanceMethodForSelector:
+	@selector(handleQueryWithUnboundKey:)];
+    }
+  if ([self methodForSelector: @selector(handleQueryWithUnboundKey:)] != o)
     {
       return [self handleQueryWithUnboundKey: aKey];
     }
