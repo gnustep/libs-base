@@ -517,8 +517,8 @@ gnustep/base:
 	if [ ! -r ./include/Collection.h ]; then \
 	  mkdir srcdir-include; \
 	  mkdir srcdir-include/gnustep; \
-	  ln -s $(srcdir)/include ./srcdir-include/gnustep/base; \
-	  ln -s $(srcdir)/include ./srcdir-include/Foundation; \
+	  (cd srcdir-include/gnustep; ln -s ../../$(srcdir)/include ./base) ; \
+	  (cd srcdir-include; ln -s ../$(srcdir)/include ./Foundation) ; \
 	fi
 # This deletion is necessary, because the CVS repository contains
 # an emtpy `Foundation' directory that used to hold the OpenStep headers.
