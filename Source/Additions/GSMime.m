@@ -2166,8 +2166,20 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	}
       else
 	{
+	  unsigned	dLength = [d length];
+
+	  if (expect > 0 && rawBodyLength > expect)
+	    {
+	      NSData	*excess;
+
+	      dLength -= (rawBodyLength - expect);
+	      rawBodyLength = expect;
+	      excess = [d subdataWithRange:
+		NSMakeRange([d length] - dLength, dLength)];
+	      NSLog(@"Excess data ignored: %@", excess);
+	    }
 	  [self decodeData: d
-		 fromRange: NSMakeRange(0, [d length])
+		 fromRange: NSMakeRange(0, dLength)
 		  intoData: data
 	       withContext: context];
 

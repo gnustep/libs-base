@@ -1,3 +1,15 @@
+2004-05-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSMime.m: When extraneous data is encountered in the input,
+	ignore it (and log a warning) rather than adding it to the message
+	body.  Not sure this is right ... perhaps should raise an exception
+	or extend the api toi return the extra data.  Anyway, it's better
+	than the previous behavior of adding the bad data to the parsed body.
+	* configure.ac: Set some variables for presnece of stdint.h
+	* Headers/Foundation/NSCoder.h: Remove defines of types in stdint.h
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: either include stdint.h
+	or define alternatives for types used in new MacOS-X coding methods.
+
 2004-05-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSIndexSet.m: ([addIndexesInRange:]) fix bug finding insertion

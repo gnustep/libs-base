@@ -169,5 +169,13 @@ typedef	@GS_ADDR@ gsaddr;
  */
 #define NXConstantString	@NX_CONST_STRING_CLASS@
 
+/*
+ * Ensure some standard types are defined.
+ */
+@INCLUDE_STDINT@
+@DEFINE_UINT8_T@
+@DEFINE_INT32_T@
+@DEFINE_INT64_T@
+
 #endif	/* included_GSConfig_h */
 
