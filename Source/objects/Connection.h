@@ -76,7 +76,7 @@
    or registered for invalidation notification */
 
 + (Connection*) newWithRootObject: anObj;
-+ (Connection*) newRegisteringAtName: (const char*)n withRootObject: anObj;
++ (Connection*) newRegisteringAtName: (String*)n withRootObject: anObj;
 /* Registering your server object on the network.
    These methods create a new connection object that must be "run" in order
    to start handling requests from clients. 
@@ -89,8 +89,8 @@
    it's unclear if we're connecting to another Connection that already
    registered with that name. */
 
-+ (Proxy*) rootProxyAtName: (const char*)name onHost: (const char*)host;
-+ (Proxy*) rootProxyAtName: (const char*)name;
++ (Proxy*) rootProxyAtName: (String*)name onHost: (String*)host;
++ (Proxy*) rootProxyAtName: (String*)name;
 + (Proxy*) rootProxyAtPort: (Port*)anOutPort;
 + (Proxy*) rootProxyAtPort: (Port*)anOutPort withInPort: (Port*)anInPort;
 /* Get a proxy to a remote server object.
