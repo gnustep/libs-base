@@ -131,8 +131,11 @@ DIST_FILES = $(RCS_FILES)
 all: $(EXCS)
 
 # This works for GNU make, but not others.
-%: %$(OEXT) $(srcdir)/../src/lib$(LIBRARY_NAME)(LIBEXT)
+%: %$(OEXT) ../src/lib$(LIBRARY_NAME)$(LIBEXT)
 	$(CC) $(ALL_CFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
+
+foo:
+	echo $(OEXT)
 
 install:
 uninstall:

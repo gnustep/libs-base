@@ -1,4 +1,4 @@
-#include <gnustep/base/stdall.h>
+#include <gnustep/base/preface.h>
 #include <stdio.h>
 #include <gnustep/base/SocketPort.h>
 #include <gnustep/base/BinaryCStream.h>
