@@ -122,7 +122,7 @@ static Class NSMutableArray_concrete_class;
 {
   va_list ap;
   va_start(ap, firstObject);
-  self = [[[self _concreteClass alloc] initWithObjects:firstObject rest:ap];
+  self = [[[self _concreteClass] alloc] initWithObjects:firstObject rest:ap];
   va_end(ap);
   return [self autorelease];
 }
