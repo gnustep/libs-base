@@ -2869,7 +2869,7 @@ handle_printf_atsign (FILE *stream,
 - (NSString*) pathExtension
 {
   NSRange	range;
-  NSString	*substring;
+  NSString	*substring = @"";
   unsigned int	length = [self length];
 
   /*
@@ -2880,16 +2880,31 @@ handle_printf_atsign (FILE *stream,
       length--;
     }
   range = NSMakeRange(0, length);
+
+  /*
+   * Look for a dot in the path ... if there isn't one, there is no extension.
+   */
   range = [self rangeOfString: @"." options: NSBackwardsSearch range: range];
-  if (range.length == 0)
+  if (range.length > 0)
     {
-      substring = @"";
-    }
-  else
-    {
+      NSRange	sepRange;
+
+      /*
+       * Found a dot, so we determine the range of the (possible)
+       * path extension, then cvheck to see if we have a path
+       * separator within it ... if we have a path separator then
+       * the dot is inside the last path component and there is
+       * thereofore no extension.
+       */
       range.location++;
       range.length = length - range.location;
-      substring = [self substringFromRange: range];
+      sepRange = [self rangeOfCharacterFromSet: pathSeps()
+				       options: NSBackwardsSearch
+				         range: range];
+      if (sepRange.length == 0)
+	{
+	  substring = [self substringFromRange: range];
+	}
     }
 
   return substring;

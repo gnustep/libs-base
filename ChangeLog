@@ -1,3 +1,9 @@
+2003-09-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Fix pathExtension bug reported by Roland
+	Schwingel.  Was failing to handle the case when a dot appears 
+	inside a path component properly.
+
 2003-09-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Fix obscure bug releasing in-progress
