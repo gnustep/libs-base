@@ -318,7 +318,7 @@ con_statistics (id prx)
   [prx outputStats: localObj];
   printf("  >>list proxy's hash is 0x%d\n", [prx hash]);
   printf("  >>list proxy's self is 0x%p = 0x%p\n", [prx self], prx);
-  printf("  >>proxy's name is (%s)\n", [prx name]);
+  printf("  >>proxy's description is (%s)\n", [[prx description] lossyCString]);
 
   cobj = [prx connectionForProxy];
   o = [cobj statistics];
