@@ -779,7 +779,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 			}
 		    }
 		  myIndex += sRange.length;
-		  if (myIndex >= myEndIndex)
+		  if (myIndex > myEndIndex)
 		    break;
 		}
 	    }
@@ -852,7 +852,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 			    }
 			}
 		    }
-		  if (myIndex <= myEndIndex)
+		  if (myIndex < myEndIndex)
 		    break;
 		  myIndex--;
 		  while (uni_isnonsp(GSEQ_SGETC(myIndex))
@@ -922,7 +922,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 			    }
 			}
 		    }
-		  if (myIndex <= myEndIndex)
+		  if (myIndex < myEndIndex)
 		    break;
 		  myIndex--;
 		  while (uni_isnonsp(GSEQ_SGETC(myIndex))
@@ -994,7 +994,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 			}
 		    }
 		  myIndex += sRange.length;
-		  if (myIndex >= myEndIndex)
+		  if (myIndex > myEndIndex)
 		    break;
 		}
 	    }
