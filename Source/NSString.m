@@ -1713,11 +1713,27 @@ handle_printf_atsign (FILE *stream,
     [NSException raise: NSGenericException
 	     format: @"attempt to append illegal path extension"];
 
+/* This is contrary to the Foundation docs, which say explicitely that:
+ *
+ * Returns a string made by appending to the receiver an extension
+ * separator followed by aString. The following table illustrates the
+ * effect of this method on a variety of different paths, assuming that
+ * aString is supplied as @"tiff":
+ *  Receiver's String Value	Resulting String
+ *  "/tmp/scratch.old"		"/tmp/scratch.old.tiff"
+ *  "/tmp/scratch."		"/tmp/scratch..tiff"
+ *  "/tmp/"			"/tmp/.tiff"
+ *  "scratch"			"scratch.tiff"
+ */
+#if 0
   range = [self rangeOfString: @"." options: NSBackwardsSearch];
   if (range.length == 0 || range.location != [self length] - 1)
-      newstring = [self stringByAppendingString: @"."];
+#endif
+    newstring = [self stringByAppendingString: @"."];
+#if 0
   else
-      newstring = self;
+    newstring = self;
+#endif
 
   return [newstring stringByAppendingString: aString];
 }

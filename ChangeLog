@@ -1,3 +1,9 @@
+Tue Jun 29 17:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Patches by Hai Henningsen
+	* Source/NSString.m: Fix for stringByAppendingPathExtension
+	* Source/Unicode.m: Several bugfixes in AND logic.
+
 Mon Jun 28 11:48:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/NSConnection.h: Fixed spelling error reported by 
