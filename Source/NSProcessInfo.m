@@ -241,7 +241,7 @@ static void _gnu_noobjc_free_vars(void)
 	_gnu_noobjc_env = 0;
 }
 
-static void * __gnustep_base_subinit_args__
+void * __gnustep_base_subinit_args__
 __attribute__ ((section ("__libc_subinit"))) = &(_gnu_process_noobjc_args);
 
 + (void)initialize {
