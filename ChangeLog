@@ -1,3 +1,8 @@
+Sat Dec  1 09:29:43 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Makefile.postamble (base.make): New target.
+	(config.mak): New target.
+
 2001-11-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSScanner.m: Fix memory leak when initialised with something
