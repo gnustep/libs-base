@@ -53,9 +53,20 @@ after-install::
 	  $(INSTALL_DATA) ./include/$$file \
 	    $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
 	done
-	if [ "`fgrep gdomap /etc/services`" = "" ]; then \
-	    echo "gdomap 538/tcp # GNUstep distrib objects" >> /etc/services; \
-	    echo "gdomap 538/udp # GNUstep distrib objects" >> /etc/services; \
+	if [ "$(INSTALL_ROOT_DIR)" = "" ]; then \
+	  if [ "`whoami`" != root ]; then \
+	    echo "WARNING: Please add the following lines yourself"; \
+	  fi; \
+	  services=/etc/services; \
+	else \
+	  mkdir -p $(INSTALL_ROOT_DIR)/etc; \
+	  services=$(INSTALL_ROOT_DIR)/etc/services.add; \
+	  echo "GNUstep addons for /etc/services written to $$services"; \
+	fi; \
+	if [ "`fgrep gdomap $$services >/dev/null`" = "" ]; then \
+	    set -x; \
+	    echo "gdomap 538/tcp # GNUstep distrib objects" >> $$services; \
+	    echo "gdomap 538/udp # GNUstep distrib objects" >> $$services; \
 	fi
 
 # Things to do before uninstalling
