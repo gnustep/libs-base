@@ -154,8 +154,8 @@ struct _nfree_block_struct
 };
 
 struct _ffree_block_unpadded {
-    size_t	size;
-    struct _ffree_block_struct *next;
+  size_t	size;
+  struct _ffree_block_struct *next;
 };
 #define	FFCPAD	sizeof(struct _ffree_block_unpadded)
 
@@ -169,20 +169,20 @@ struct _ffree_block_struct
 
 struct _ffree_free_link_unpadded
 {
-    size_t	size;
-    ff_link	*prev;
-    ff_link	*next;
-    size_t	back;	/* Back link at end of 'dead' block.	*/
+  size_t	size;
+  ff_link	*prev;
+  ff_link	*next;
+  size_t	back;	/* Back link at end of 'dead' block.	*/
 };
 #define	FFDPAD	sizeof(struct _ffree_free_link_unpadded)
 
 struct _ffree_free_link
 {
-    size_t	size;
-    ff_link	*prev;
-    ff_link	*next;
-    size_t	back;
-    char	padding[ALIGN - ((FFDPAD % ALIGN) ? (FFDPAD % ALIGN) : ALIGN)];
+  size_t	size;
+  ff_link	*prev;
+  ff_link	*next;
+  size_t	back;
+  char	padding[ALIGN - ((FFDPAD % ALIGN) ? (FFDPAD % ALIGN) : ALIGN)];
 };
 
 /* NSZone structure for freeable zones. */
@@ -220,123 +220,124 @@ roundupto (size_t n, size_t base)
 static inline void*
 chunkToPointer(ff_block *chunk)
 {
-    return (void*)(&chunk[1]);
+  return (void*)(&chunk[1]);
 }
 
 static inline ff_block*
 pointerToChunk(void* ptr)
 {
-    return &(((ff_block*)ptr)[-1]);
+  return &(((ff_block*)ptr)[-1]);
 }
 
 static inline size_t
 chunkIsLive(ff_block* ptr)
 {
-    return ptr->size & LIVE;
+  return ptr->size & LIVE;
 }
 
 static inline size_t
 chunkIsInUse(ff_block* ptr)
 {
-    return ptr->size & INUSE;
+  return ptr->size & INUSE;
 }
 
 static inline size_t
 chunkIsPrevInUse(ff_block* ptr)
 {
-    return ptr->size & PREVUSE;
+  return ptr->size & PREVUSE;
 }
 
 static inline size_t
 chunkSize(ff_block* ptr)
 {
-    return ptr->size & ~SIZE_BITS;
+  return ptr->size & ~SIZE_BITS;
 }
 
 static inline void
 chunkClrInUse(ff_block* ptr)
 {
-    ptr->size &= ~INUSE;
+  ptr->size &= ~INUSE;
 }
 
 static inline size_t
 chunkClrLive(ff_block* ptr)
 {
-    return ptr->size &= ~LIVE;
+  return ptr->size &= ~LIVE;
 }
 
 static inline void
 chunkClrPrevInUse(ff_block* ptr)
 {
-    ptr->size &= ~PREVUSE;
+  ptr->size &= ~PREVUSE;
 }
 
 static inline void
 chunkSetInUse(ff_block* ptr)
 {
-    ptr->size |= INUSE;
+  ptr->size |= INUSE;
 }
 
 static inline size_t
 chunkSetLive(ff_block* ptr)
 {
-    return ptr->size |= LIVE;
+  return ptr->size |= LIVE;
 }
 
 static inline void
 chunkSetPrevInUse(ff_block* ptr)
 {
-    ptr->size |= PREVUSE;
+  ptr->size |= PREVUSE;
 }
 
 static inline void
 chunkSetSize(ff_block* ptr, size_t size)
 {
-    ptr->size = size;
+  ptr->size = size;
 }
 
 static inline ff_block*
 chunkNext(ff_block *ptr)
 {
-    return (ff_block*) ((void*)ptr+chunkSize(ptr));
+  return (ff_block*) ((void*)ptr+chunkSize(ptr));
 }
 
 static inline void
 chunkMakeLink(ff_block *ptr)
 {
-    NSAssert(!chunkIsInUse(ptr), NSInternalInconsistencyException);
-    NSAssert(!chunkIsLive(ptr), NSInternalInconsistencyException);
-    (&(chunkNext(ptr)->size))[-1] = chunkSize(ptr);
+  NSAssert(!chunkIsInUse(ptr), NSInternalInconsistencyException);
+  NSAssert(!chunkIsLive(ptr), NSInternalInconsistencyException);
+  (&(chunkNext(ptr)->size))[-1] = chunkSize(ptr);
 }
 
 static inline ff_block*
 chunkChop(ff_block *ptr, size_t size)
 {
-    ff_block	*remainder;
-    size_t	left = chunkSize(ptr)-size;
+  ff_block	*remainder;
+  size_t	left = chunkSize(ptr)-size;
 
-    NSAssert((chunkSize(ptr) % MINCHUNK) == 0, NSInternalInconsistencyException);
-    NSAssert(chunkSize(ptr) > size, NSInternalInconsistencyException);
-    remainder = (ff_block*)((void*)ptr+size);
-    chunkSetSize(remainder, left | PREVUSE);
-    chunkMakeLink(remainder);
-    chunkSetSize(ptr, size | chunkIsPrevInUse(ptr) | INUSE);
-    return remainder;
+  NSAssert((chunkSize(ptr) % MINCHUNK) == 0, NSInternalInconsistencyException);
+  NSAssert(chunkSize(ptr) > size, NSInternalInconsistencyException);
+  remainder = (ff_block*)((void*)ptr+size);
+  chunkSetSize(remainder, left | PREVUSE);
+  chunkMakeLink(remainder);
+  chunkSetSize(ptr, size | chunkIsPrevInUse(ptr) | INUSE);
+  return remainder;
 }
 
 static inline ff_block*
 chunkPrev(ff_block *ptr)
 {
-    size_t	offset;
-    ff_block	*prev;
+  size_t	offset;
+  ff_block	*prev;
 
-    NSAssert(!chunkIsPrevInUse(ptr), NSInternalInconsistencyException);
-    offset = (&(ptr->size))[-1];
-    NSAssert(offset > 0 && (offset % MINCHUNK) == 0, NSInternalInconsistencyException);
-    prev = (ff_block*)((void*)ptr-offset);
-    NSAssert(chunkSize(prev) == offset, NSInternalInconsistencyException);
-    NSAssert(!chunkIsInUse(prev), NSInternalInconsistencyException);
-    return prev;
+  NSAssert(!chunkIsPrevInUse(ptr), NSInternalInconsistencyException);
+  offset = (&(ptr->size))[-1];
+  NSAssert(offset > 0 && (offset % MINCHUNK) == 0,
+    NSInternalInconsistencyException);
+  prev = (ff_block*)((void*)ptr-offset);
+  NSAssert(chunkSize(prev) == offset, NSInternalInconsistencyException);
+  NSAssert(!chunkIsInUse(prev), NSInternalInconsistencyException);
+  return prev;
 }
 
 /* NSZone structure for nonfreeable zones. */
@@ -412,21 +413,23 @@ static NSZone	*zone_list = 0;
 inline NSZone*
 NSZoneFromPointer(void *ptr)
 {
-    NSZone	*zone;
+  NSZone	*zone;
 
-    if (ptr == 0) return 0;
+  if (ptr == 0) return 0;
 
-    /*
-     *	See if we can find the zone in our list of all zones.
-     */
-    [gnustep_global_lock lock];
-    for (zone = zone_list; zone != 0; zone = zone->next) {
-	if ((zone->lookup)(zone, ptr) == YES) {
-	    break;
+  /*
+   *	See if we can find the zone in our list of all zones.
+   */
+  [gnustep_global_lock lock];
+  for (zone = zone_list; zone != 0; zone = zone->next)
+    {
+      if ((zone->lookup)(zone, ptr) == YES)
+	{
+	  break;
 	}
     }
-    [gnustep_global_lock unlock];
-    return (zone == 0) ? __nszone_private_hidden_default_zone : zone;
+  [gnustep_global_lock unlock];
+  return (zone == 0) ? __nszone_private_hidden_default_zone : zone;
 }
 
 static inline void
@@ -463,17 +466,19 @@ default_realloc (NSZone *zone, void *ptr, size_t size)
 {
   void *mem;
 
-  if (size == 0) {
-    objc_free(ptr);
-    return NULL;
-  }
-  if (ptr == 0) {
-    mem = objc_malloc(size);
-    if (mem == NULL)
-      [NSException raise: NSMallocException
-                   format: @"Default zone has run out of memory"];
-    return mem;
-  }
+  if (size == 0)
+    {
+      objc_free(ptr);
+      return NULL;
+    }
+  if (ptr == 0)
+    {
+      mem = objc_malloc(size);
+      if (mem == NULL)
+	[NSException raise: NSMallocException
+		     format: @"Default zone has run out of memory"];
+      return mem;
+    }
   mem = objc_realloc(ptr, size);
   if (mem == NULL)
     [NSException raise: NSMallocException
@@ -492,7 +497,7 @@ default_recycle (NSZone *zone)
 {
   /* Recycle the default zone?  Thou hast got to be kiddin'. */
   [NSException raise: NSGenericException
-               format: @"Trying to recycle default zone"];
+              format: @"Trying to recycle default zone"];
 }
 
 static BOOL
@@ -500,7 +505,7 @@ default_check (NSZone *zone)
 {
   /* We can't check memory managed by objc_malloc(). */
   [NSException raise: NSGenericException
-		format: @"No checking for default zone"];
+	      format: @"No checking for default zone"];
   return NO;
 }
 
@@ -518,7 +523,7 @@ default_stats (NSZone *zone)
   
   /* We can't obtain statistics from the memory managed by objc_malloc(). */
   [NSException raise: NSGenericException
-		format: @"No statistics for default zone"];
+	      format: @"No statistics for default zone"];
   return dummy;
 }
  
@@ -559,7 +564,8 @@ fmalloc (NSZone *zone, size_t size)
           ptr_buf[i] = ptr_buf[bufsize];
 
           NSAssert(chunkIsInUse(chunkhead), NSInternalInconsistencyException);
-          NSAssert((chunkSize(chunkhead) % MINCHUNK) == 0, NSInternalInconsistencyException);
+          NSAssert((chunkSize(chunkhead) % MINCHUNK) == 0,
+	    NSInternalInconsistencyException);
         }
       else
         {
@@ -583,16 +589,18 @@ fmalloc (NSZone *zone, size_t size)
           objc_mutex_unlock(zptr->lock);
           if (zone->name != nil)
             [NSException raise: NSMallocException
-                         format: @"Zone %s has run out of memory",
+                        format: @"Zone %s has run out of memory",
                          [zone->name cString]];
           else
             [NSException raise: NSMallocException
-                         format: @"Out of memory"];
+                        format: @"Out of memory"];
         }
 
       NSAssert(chunkIsInUse(chunkhead), NSInternalInconsistencyException);
-      NSAssert(chunkIsPrevInUse(chunkNext(chunkhead)), NSInternalInconsistencyException);
-      NSAssert((chunkSize(chunkhead) % MINCHUNK) == 0, NSInternalInconsistencyException);
+      NSAssert(chunkIsPrevInUse(chunkNext(chunkhead)),
+	NSInternalInconsistencyException);
+      NSAssert((chunkSize(chunkhead) % MINCHUNK) == 0,
+	NSInternalInconsistencyException);
     }
   chunkhead->next = (ff_block*)(chunkToPointer(chunkhead)+size);
   *((char*)chunkhead->next) = (char)42;
@@ -617,7 +625,8 @@ frealloc (NSZone *zone, void *ptr, size_t size)
   ff_block *chunkhead, *slack;
   void *result;
 
-  NSAssert(ptr == NULL || NSZoneFromPointer(ptr) == zone, NSInternalInconsistencyException);
+  NSAssert(ptr == NULL || NSZoneFromPointer(ptr) == zone,
+    NSInternalInconsistencyException);
   if (ptr == NULL)
     return fmalloc(zone, size);
   chunkhead = pointerToChunk(ptr);
@@ -680,11 +689,11 @@ frealloc (NSZone *zone, void *ptr, size_t size)
               objc_mutex_unlock(zptr->lock);
               if (zone->name != nil)
                 [NSException raise: NSMallocException
-                             format: @"Zone %s has run out of memory",
+                            format: @"Zone %s has run out of memory",
                              [zone->name cString]];
               else
                 [NSException raise: NSMallocException
-                             format: @"Out of memory"];
+                            format: @"Out of memory"];
             }
           memcpy((void*)(&newchunk[1]), (void*)(&chunkhead[1]), realsize-FBSZ);
           add_buf(zptr, chunkhead);
@@ -900,19 +909,21 @@ inconsistent: // Jump here if an inconsistency was found.
 static BOOL
 flookup (NSZone *zone, void *ptr)
 {
-    ffree_zone *zptr = (ffree_zone*)zone;
-    ff_block *block;
-    BOOL found = NO;
-  
-    objc_mutex_lock(zptr->lock);
-    for (block = zptr->blocks; block != NULL; block = block->next) {
-	if (ptr >= (void*)block && ptr < (void*)chunkNext(block)) {
-	    found = YES;
-	    break;
+  ffree_zone	*zptr = (ffree_zone*)zone;
+  ff_block	*block;
+  BOOL		found = NO;
+
+  objc_mutex_lock(zptr->lock);
+  for (block = zptr->blocks; block != NULL; block = block->next)
+    {
+      if (ptr >= (void*)block && ptr < (void*)chunkNext(block))
+	{
+	  found = YES;
+	  break;
 	}
     }
-    objc_mutex_unlock(zptr->lock);
-    return found;
+  objc_mutex_unlock(zptr->lock);
+  return found;
 }
 
 /* Obtain statistics about the zone.  Doesn't have to be particularly
@@ -1071,7 +1082,8 @@ get_chunk (ffree_zone *zone, size_t size)
 
           NSAssert(!chunkIsInUse(chunk), NSInternalInconsistencyException);
           NSAssert(size < chunkSize(chunk), NSInternalInconsistencyException);
-          NSAssert((chunkSize(chunk) % MINCHUNK) == 0, NSInternalInconsistencyException);
+          NSAssert((chunkSize(chunk) % MINCHUNK) == 0,
+	    NSInternalInconsistencyException);
           
           take_chunk(zone, chunk);
 	  slack = chunkChop(chunk, size);
@@ -1088,7 +1100,8 @@ get_chunk (ffree_zone *zone, size_t size)
       NSAssert((chunksize % MINCHUNK) == 0, NSInternalInconsistencyException);
       NSAssert(!chunkIsInUse(chunk), NSInternalInconsistencyException);
       NSAssert(chunkIsPrevInUse(chunk), NSInternalInconsistencyException);
-      NSAssert(chunkIsInUse(chunkNext(chunk)), NSInternalInconsistencyException);
+      NSAssert(chunkIsInUse(chunkNext(chunk)),
+	NSInternalInconsistencyException);
       
       take_chunk(zone, chunk);
       if (chunksize > size)
@@ -1103,14 +1116,16 @@ get_chunk (ffree_zone *zone, size_t size)
           ff_block *nextchunk = chunkNext(chunk);
 
           NSAssert(!chunkIsInUse(chunk), NSInternalInconsistencyException);
-          NSAssert(!chunkIsPrevInUse(nextchunk), NSInternalInconsistencyException);
+          NSAssert(!chunkIsPrevInUse(nextchunk),
+	    NSInternalInconsistencyException);
           NSAssert(chunksize == size, NSInternalInconsistencyException);
 	  chunkSetInUse(chunk);
 	  chunkSetPrevInUse(nextchunk);
         }
     }
   NSAssert(chunkIsInUse(chunk), NSInternalInconsistencyException);
-  NSAssert(chunkIsPrevInUse(chunkNext(chunk)), NSInternalInconsistencyException);
+  NSAssert(chunkIsPrevInUse(chunkNext(chunk)),
+    NSInternalInconsistencyException);
   return chunk;
 }
 
@@ -1156,7 +1171,8 @@ put_chunk (ffree_zone *zone, ff_block *chunk)
   size_t class = segindex(size);
   ff_link *links = (ff_link*)chunk;
 
-  NSAssert((chunkSize(chunk) % MINCHUNK) == 0, NSInternalInconsistencyException);
+  NSAssert((chunkSize(chunk) % MINCHUNK) == 0,
+    NSInternalInconsistencyException);
   NSAssert(!chunkIsInUse(chunk), NSInternalInconsistencyException);
   NSAssert(chunkIsPrevInUse(chunk), NSInternalInconsistencyException);
   NSAssert(chunkIsInUse(chunkNext(chunk)), NSInternalInconsistencyException);
@@ -1164,7 +1180,8 @@ put_chunk (ffree_zone *zone, ff_block *chunk)
   chunkMakeLink(chunk);
   if (zone->segtaillist[class] == NULL)
     {
-      NSAssert(zone->segheadlist[class] == NULL, NSInternalInconsistencyException);
+      NSAssert(zone->segheadlist[class] == NULL,
+	NSInternalInconsistencyException);
       
       zone->segheadlist[class] = zone->segtaillist[class] = links;
       links->prev = links->next = NULL;
@@ -1173,7 +1190,8 @@ put_chunk (ffree_zone *zone, ff_block *chunk)
     {
       ff_link *prevlink = zone->segtaillist[class];
       
-      NSAssert(zone->segheadlist[class] != NULL, NSInternalInconsistencyException);
+      NSAssert(zone->segheadlist[class] != NULL,
+	NSInternalInconsistencyException);
 
       links->next = NULL;
       links->prev = prevlink;
@@ -1192,7 +1210,8 @@ add_buf (ffree_zone *zone, ff_block *chunk)
 
   NSAssert(bufsize < BUFFER, NSInternalInconsistencyException);
   NSAssert(chunkIsInUse(chunk), NSInternalInconsistencyException);
-  NSAssert((chunkSize(chunk) % MINCHUNK) == 0, NSInternalInconsistencyException);
+  NSAssert((chunkSize(chunk) % MINCHUNK) == 0,
+    NSInternalInconsistencyException);
   NSAssert(chunkSize(chunk) >= MINCHUNK, NSInternalInconsistencyException);
   
   zone->bufsize++;
@@ -1238,8 +1257,10 @@ flush_buf (ffree_zone *zone)
         {
           size_t nextsize = chunkSize(nextchunk);
 
-	  NSAssert(chunkIsPrevInUse(nextchunk), NSInternalInconsistencyException);
-          NSAssert((nextsize % MINCHUNK) == 0, NSInternalInconsistencyException);
+	  NSAssert(chunkIsPrevInUse(nextchunk),
+	    NSInternalInconsistencyException);
+          NSAssert((nextsize % MINCHUNK) == 0,
+	    NSInternalInconsistencyException);
           size += nextsize;
           take_chunk(zone, nextchunk);
 	  nextchunk = chunkNext(nextchunk);
@@ -1249,7 +1270,8 @@ flush_buf (ffree_zone *zone)
       chunkClrPrevInUse(nextchunk);
       NSAssert(chunkNext(chunk) == nextchunk, NSInternalInconsistencyException);
       NSAssert(chunkPrev(nextchunk) == chunk, NSInternalInconsistencyException);
-      NSAssert((chunkSize(chunk) % MINCHUNK) == 0, NSInternalInconsistencyException);
+      NSAssert((chunkSize(chunk) % MINCHUNK) == 0,
+	NSInternalInconsistencyException);
       NSAssert(!chunkIsInUse(chunk), NSInternalInconsistencyException);
       NSAssert(chunkIsPrevInUse(chunk), NSInternalInconsistencyException);
       NSAssert(chunkIsInUse(nextchunk), NSInternalInconsistencyException);
@@ -1291,7 +1313,7 @@ nmalloc (NSZone *zone, size_t size)
       /* First, get the block list in decreasing free size order. */
       preblock = NULL;
       while ((block->next != NULL)
-             && (freesize < block->next->size-block->next->top))
+        && (freesize < block->next->size-block->next->top))
         {
           preblock = block;
           block = block->next;
@@ -1313,11 +1335,11 @@ nmalloc (NSZone *zone, size_t size)
               objc_mutex_unlock(zptr->lock);
               if (zone->name != nil)
                 [NSException raise: NSMallocException
-                             format: @"Zone %s has run out of memory",
+                            format: @"Zone %s has run out of memory",
                              [zone->name cString]];
               else
                 [NSException raise: NSMallocException
-                             format: @"Out of memory"];
+                            format: @"Out of memory"];
             }
           block->next = zptr->blocks;
           block->size = blocksize;
@@ -1476,19 +1498,21 @@ ncheck (NSZone *zone)
 static BOOL
 nlookup (NSZone *zone, void *ptr)
 {
-    nfree_zone *zptr = (nfree_zone*)zone;
-    nf_block *block;
-    BOOL found = NO;
-  
-    objc_mutex_lock(zptr->lock);
-    for (block = zptr->blocks; block != NULL; block = block->next) {
-	if (ptr >= (void*)block &&  ptr < ((void*)block)+block->size) {
-	    found = YES;
-	    break;
+  nfree_zone *zptr = (nfree_zone*)zone;
+  nf_block *block;
+  BOOL found = NO;
+
+  objc_mutex_lock(zptr->lock);
+  for (block = zptr->blocks; block != NULL; block = block->next)
+    {
+      if (ptr >= (void*)block &&  ptr < ((void*)block)+block->size)
+	{
+	  found = YES;
+	  break;
 	}
     }
-    objc_mutex_unlock(zptr->lock);
-    return found;
+  objc_mutex_unlock(zptr->lock);
+  return found;
 }
 
 /* Return statistics for a nonfreeable zone.  Doesn't have to
