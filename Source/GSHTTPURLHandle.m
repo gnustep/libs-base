@@ -566,8 +566,16 @@ static void debugWrite(NSData *data)
   if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0
     && [[url scheme] isEqualToString: @"https"] == NO)
     {
-      s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@", 
-	method, [url host], [url path]];
+      if ([url port] == nil)
+	{
+	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@", 
+	    method, [url host], [url path]];
+	}
+      else
+	{
+	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@:%@%@", 
+	    method, [url host], [url port], [url path]];
+	}
     }
   else    // no proxy
     {

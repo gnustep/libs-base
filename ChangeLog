@@ -1,3 +1,8 @@
+2002-05-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Insert port information to URL passed
+	to proxy.
+
 2002-05-09  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSBundle.m
@@ -7,7 +12,7 @@
 2002-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: When launching under windoze, don't forget to
-	use the fileSystemrepresentation of the program name.
+	use the fileSystemRepresentation of the program name.
 
 2002-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
