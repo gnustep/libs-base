@@ -158,7 +158,7 @@ GSObjCVersion(Class this)
  * Return the zone in which an object belongs, without using the zone method
  */
 #include	<Foundation/NSZone.h>
-NSZone	*GSObjCZone(NSObject *obj);
+GS_EXPORT NSZone *GSObjCZone(NSObject *obj);
 
 /*
  * Quickly return autoreleased data.

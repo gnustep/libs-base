@@ -38,6 +38,9 @@
 #ifndef __MINGW__
 #define __MINGW__
 #endif
+#ifndef __WIN32__
+#define __WIN32__
+#endif
 #endif
 
 #if defined(__WIN32__)

@@ -175,7 +175,7 @@ enum {NSNotFound = 0x7fffffff};
 /* Global lock to be used by classes when operating on any global
    data that invoke other methods which also access global; thus,
    creating the potential for deadlock. */
-extern NSRecursiveLock *gnustep_global_lock;
+GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 /*
  * The GNUDescriptionDestination protocol declares methods used to

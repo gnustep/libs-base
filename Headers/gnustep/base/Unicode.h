@@ -31,25 +31,28 @@
 
 #include <Foundation/NSString.h>	/* For string encodings */
 
-NSStringEncoding *GetAvailableEncodings();
-NSStringEncoding GetDefEncoding();
-NSString* GetEncodingName(NSStringEncoding encoding);
+GS_EXPORT NSStringEncoding *GetAvailableEncodings();
+GS_EXPORT NSStringEncoding GetDefEncoding();
+GS_EXPORT NSString* GetEncodingName(NSStringEncoding encoding);
 
-unichar chartouni(char c);
-char unitochar(unichar u);
-unichar encode_chartouni(char c, NSStringEncoding enc);
-char encode_unitochar(unichar u, NSStringEncoding enc);
-unsigned encode_unitochar_strict(unichar u, NSStringEncoding enc);
-int strtoustr(unichar * u1,const char *s1,int size);
-int ustrtostr(char *s2,unichar *u1,int size);
-int encode_strtoustr(unichar* u1,const char*s1,int size, NSStringEncoding enc);
-int encode_ustrtostr(char *s2, unichar *u1, int size, NSStringEncoding enc);
-int encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc);
+GS_EXPORT unichar chartouni(char c);
+GS_EXPORT char unitochar(unichar u);
+GS_EXPORT unichar encode_chartouni(char c, NSStringEncoding enc);
+GS_EXPORT char encode_unitochar(unichar u, NSStringEncoding enc);
+GS_EXPORT unsigned encode_unitochar_strict(unichar u, NSStringEncoding enc);
+GS_EXPORT int strtoustr(unichar * u1,const char *s1,int size);
+GS_EXPORT int ustrtostr(char *s2,unichar *u1,int size);
+GS_EXPORT int encode_strtoustr(unichar* u1,const char*s1,int size, 
+		NSStringEncoding enc);
+GS_EXPORT int encode_ustrtostr(char *s2, unichar *u1, int size, 
+		NSStringEncoding enc);
+GS_EXPORT int encode_ustrtostr_strict(char *s2, unichar *u1, int size, 
+		NSStringEncoding enc);
 
-unichar uni_tolower(unichar ch);
-unichar uni_toupper(unichar ch);
-unsigned char uni_cop(unichar u);
-BOOL uni_isnonsp(unichar u);
-unichar *uni_is_decomp(unichar u);
+GS_EXPORT unichar uni_tolower(unichar ch);
+GS_EXPORT unichar uni_toupper(unichar ch);
+GS_EXPORT unsigned char uni_cop(unichar u);
+GS_EXPORT BOOL uni_isnonsp(unichar u);
+GS_EXPORT unichar *uni_is_decomp(unichar u);
 
 #endif /* __Unicode_h_OBJECTS_INCLUDE */
