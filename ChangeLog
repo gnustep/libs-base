@@ -1,3 +1,10 @@
+2003-05-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.8.gz: Added man page adapted from internal docs by
+	martin@mb-itconsulting.com
+	* Tools/GNUmakefile: Declare man pages to be installed
+	* Tools/Makefile.postamble: Install man pages
+
 2003-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/xmlparse.m: new utility to parse/validate xml, for testing

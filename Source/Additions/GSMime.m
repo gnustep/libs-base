@@ -3993,7 +3993,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  if ([v isEqual: [type parameterForKey: @"type"]] == NO)
 	    {
 	      [NSException raise: NSInvalidArgumentException
-		format: @"mutipart/related 'type' (%@) does not match "
+		format: @"multipart/related 'type' (%@) does not match "
 		@"that of the 'start' part (%@)",
 		[type parameterForKey: @"type"], v];
 	    }
