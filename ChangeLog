@@ -5,6 +5,11 @@
 	* Source/NSString.m: ([-hash]) include full string length in the hash.
 	* Source/GSString.m: ditto
 	Disambiguates long strings with a common prefix.
+	* Headers/Additions/GNUstepBase/GSIArray.h: add support for an array
+	with statically allocated memory, which grows by using the heap.
+	* Source/NSNotificationCenter.m: Rewrite posting so that we don't hold
+	a lock on the center while actually posting ... should prevent
+	possible deadlock in multithreaded programs.
 
 2004-03-30  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
