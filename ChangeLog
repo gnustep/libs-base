@@ -1,3 +1,8 @@
+Tue Feb  2 11:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/mframe/alpha/linux-gnu: First 'real' port to alpha.
+	* Source/mframe/alpha/generic: ditto
+
 1999-02-01  Adam Fedor  <fedor@gnu.org>
 
 	* Source/UnixFileHandle.m: Switch include of netinet/in.h.
