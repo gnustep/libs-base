@@ -451,6 +451,7 @@ include/NSConcreteValue.h \
 include/NSData.h \
 include/NSDate.h \
 include/NSDictionary.h \
+include/NSDistantObject.h \
 include/NSException.h \
 include/NSFileManager.h \
 include/NSGeometry.h \
