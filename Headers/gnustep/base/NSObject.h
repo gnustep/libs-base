@@ -1,5 +1,5 @@
 /* Interface for NSObject for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -104,9 +104,7 @@
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
 
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
-- (Class) classForArchiver;
 - (Class) classForCoder;
-- (id) replacementObjectForArchiveer: (NSArchiver*)anArchiver;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
 
 @end
