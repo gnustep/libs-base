@@ -31,7 +31,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 resourcedir = $(GNUSTEP_RESOURCES)
 languagedir = $(GNUSTEP_RESOURCES)/Languages
 
-LANGUAGES = English German French
+LANGUAGES = English German French Italian
 
 LOCALIZED_RESOURCE_FILES = Localizable.strings
 
