@@ -52,6 +52,8 @@
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
 
+#include <sys/param.h>		/* for MAXHOSTNAMELEN */
+
 #ifdef NeXT
 #ifdef SCITOOLS
 #import <basekit/LibobjectsMain.h>
@@ -78,13 +80,6 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSProcessInfo.h>
 #endif  /* NeXT */
-
-
-
-/* This is the longest max host name allowed for all different systems
- * I had a chance to read the man pages. 
- */
-#define _GNU_MAX_HOST_NAMELEN    256
 
 /* This error message should be called only if the private main function
  * was not executed successfully. This may heppen ONLY if onother library
@@ -153,11 +148,13 @@ const char **NSArgv;
  *************************************************************************/
 
 static void 
-_gnu_process_args(int argc, char **argv, char *env[])
+_gnu_process_args(int argc, char *argv[], char *env[])
 {
   int i;
 
-  NSArgv = argv;
+  OBJC_MALLOC(NSArgv, const char*, argc);
+  for (i = 0; i < argc; i++)
+       NSArgv[i] = argv[i];
 	
   /* Getting the process name */
   _gnu_processName = [[NSString alloc] initWithCString:argv[0]];
@@ -327,9 +324,9 @@ int main(int argc, char *argv[], char *env[])
 {
   if (!_gnu_hostName) 
     {
-      char hn[_GNU_MAX_HOST_NAMELEN];
+      char hn[MAXHOSTNAMELEN];
 
-      gethostname(hn, _GNU_MAX_HOST_NAMELEN);
+      gethostname(hn, MAXHOSTNAMELEN);
       _gnu_hostName = [[NSString alloc] initWithCString:hn];
     }
   return _gnu_hostName;
