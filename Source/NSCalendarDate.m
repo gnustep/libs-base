@@ -136,8 +136,8 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
 + (id) dateWithString: (NSString *)description
        calendarFormat: (NSString *)format
 {
-  NSCalendarDate *d = [[NSCalendarDate alloc] initWithString: description
-					      calendarFormat: format];
+  NSCalendarDate *d = [[self alloc] initWithString: description
+				    calendarFormat: format];
   return AUTORELEASE(d);
 }
 
@@ -145,9 +145,9 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
        calendarFormat: (NSString *)format
 	       locale: (NSDictionary *)dictionary
 {
-  NSCalendarDate *d = [[NSCalendarDate alloc] initWithString: description
-					      calendarFormat: format
-						      locale: dictionary];
+  NSCalendarDate *d = [[self alloc] initWithString: description
+				    calendarFormat: format
+				    locale: dictionary];
   return AUTORELEASE(d);
 }
 
@@ -159,13 +159,13 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
 	     second: (unsigned int)second
 	   timeZone: (NSTimeZone *)aTimeZone
 {
-  NSCalendarDate *d = [[NSCalendarDate alloc] initWithYear: year
-						     month: month
-						       day: day
-						      hour: hour
-						    minute: minute
-						    second: second
-						  timeZone: aTimeZone];
+  NSCalendarDate *d = [[self alloc] initWithYear: year
+				    month: month
+				    day: day
+				    hour: hour
+				    minute: minute
+				    second: second
+				    timeZone: aTimeZone];
   return AUTORELEASE(d);
 }
 
