@@ -1643,6 +1643,14 @@ static NSString	*endMarker = @"At end of incremental parse";
 }
 
 /**
+ * Initialises by calling -initWithSAXHandler: with a nil argument.
+ */
+- (id) init
+{
+  return [self initWithSAXHandler: nil];
+}
+
+/**
  * <p>
  *   Initialisation of a new Parser with SAX handler (if not nil).
  * </p>
