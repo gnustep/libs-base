@@ -2,6 +2,8 @@
 
 	* Source/NSNumber.m: Raise exception if user code incorrectly tries
 	to deallocate a cached small number.
+	* Source/NSUser.m: Use geteuid() to determine name of current user
+	under unix.
 
 2003-11-25 Richard Frith-Macdonald <rfm@gnu.org>
 
