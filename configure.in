@@ -925,7 +925,7 @@ if test $ac_cv_func_iconv = no; then
       AC_DEFINE(HAVE_ICONV)
     fi
   fi
-  CPPFLAGS="$cppflag_temp"
+  CPPFLAGS="$cppflags_temp"
 fi
 
 AC_SUBST(SYSTEM_DEFS)

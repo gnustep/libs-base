@@ -1,3 +1,7 @@
+2001-09-25  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Typo in saving CPPFLAGS during iconv test.
+
 2001-09-21  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Typo in iconv cached value.

@@ -5523,7 +5523,7 @@ EOF
 
     fi
   fi
-  CPPFLAGS="$cppflag_temp"
+  CPPFLAGS="$cppflags_temp"
 fi
 
 
