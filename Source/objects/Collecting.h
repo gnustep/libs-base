@@ -180,12 +180,6 @@
 - withElementsTransformedByCalling: (elt(*)(elt))transFunc
     call: (void(*)(elt))destFunc;
 
-
-// BE SURE WE HAVE THESE METHODS NORMALLY PROVIDED BY NSObject;
-+ alloc;
-- (BOOL) respondsToSelector: (SEL)aSel;
-- (BOOL) conformsToProtocol: aProtocolObject;
-
 @end
 
 #endif /* __Collecting_h_INCLUDE_GNU */
