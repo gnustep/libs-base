@@ -1,8 +1,14 @@
 2001-04-23  Adam Fedor  <fedor@gnu.org>
 
+	* configure.in: Simplify NeXT checks.
 	* Headers/gnustep/base/NSLock.h: Fix NeXT_RUNTIME typo.
 	* Headers/gnustep/base/objc-gnu2next.h: Change *_EXPORT to extern
 	* Source/o_vscanf.c: include objc-gnu2next.h
+	* Source/NSConnection.m: Fix test for NeXT_RUNTIME define.
+	* Source/NSDistantObject.m: Likewise.
+	* Source/callframe.m: Likewise.
+	* Source/cifframe.m: Likewise.
+	* Source/mframe.m: Likewise.
 
 2001-04-24   Nicola Pero  <n.pero@mi.flashnet.it>
 

@@ -1448,7 +1448,7 @@ static BOOL	multi_threaded = NO;
   NSParameterAssert (_isValid);
 
   /* get the method types from the selector */
-#if NeXT_runtime
+#if NeXT_RUNTIME
   [NSException
     raise: NSGenericException
     format: @"Sorry, distributed objects does not work with NeXT runtime"];
