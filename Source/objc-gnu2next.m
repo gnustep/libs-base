@@ -259,7 +259,7 @@ objc_promoted_size (const char* type)
   occuring in method prototype encodings.
 */
 
-inline const char*
+const char*
 objc_skip_type_qualifiers (const char* type)
 {
   while (*type == _C_CONST

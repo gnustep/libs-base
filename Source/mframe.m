@@ -34,7 +34,9 @@
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 /* Deal with strrchr: */
 #if STDC_HEADERS || HAVE_STRING_H
