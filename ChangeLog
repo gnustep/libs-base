@@ -12,6 +12,13 @@
 	Mostly, changes to make methods which were intended to be private
 	really private, and lots of modifications to make mathod names
 	consistent with OpenStep usage ... suggestions made by many people.
+	* configure.ac: Use better names for GMP and ZLIB flags
+	* configure: regenerate
+	* Headers/gnustep/base/GSConfig.h.in: GMP and ZLIB update
+	* Headers/gnustep/base/NSDecimal.h: GMP update
+	* Headers/gnustep/base/UnixFileHandle.h: ZLIB update
+	* Source/NSDecimal.m: GMP update
+	* Source/UnixFileHandle.m: ZLIB update
 
 2002-05-15  Richard Frith-Macdonald <rfm@gnu.org>
 

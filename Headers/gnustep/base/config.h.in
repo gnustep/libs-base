@@ -6,7 +6,7 @@
 /* Define if SO_REUSEADDR is broken on this system */
 #undef BROKEN_SO_REUSEADDR
 
-/* Define if your system terminates the final argument in /proc/11416/cmdline */
+/* Define if your system terminates the final argument in /proc/10983/cmdline */
 #undef CMDLINE_TERMINATED
 
 /* Define if constructors are automatically loaded */
