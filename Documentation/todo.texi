@@ -52,6 +52,12 @@ a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @itemize @bullet
 
+@item Separate core and non-core code in NSDictionary, NSSet, etc, the
+same way I did for NSArray.
+
+@item Separate Constant and non-Constant collections for the rest of the
+GNU connection classes the same way I did for Array.
+
 @item Make sure the GNU Archiver/Unarchiver handle
 -encodeConditionalObject: and -decodeObject: correctly.
 
