@@ -80,7 +80,7 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
-ifneq ($(LN_S), ln -s) 
+ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 header-links: $(HEADER_LINK_DEPENDS)
 	-rm -rf Headers/Foundation
 	-mkdir Headers/Foundation
