@@ -57,6 +57,7 @@ CHECKABLE_TOOLS = \
 		nsmaptable \
 		nsmethodsignature \
 		nsnotification \
+		nspathutilities \
 		nsprocessinfo \
 		nsscanner \
 		nsset \
@@ -115,6 +116,7 @@ nsinvocation_OBJC_FILES = nsinvocation.m
 nsmaptable_OBJC_FILES = nsmaptable.m
 nsmethodsignature_OBJC_FILES = nsmethodsignature.m
 nsnotification_OBJC_FILES = nsnotification.m
+nspathutilities_OBJC_FILES = nspathutilities.m
 nsprocessinfo_OBJC_FILES = nsprocessinfo.m
 nsscanner_OBJC_FILES = nsscanner.m
 nsset_OBJC_FILES = nsset.m

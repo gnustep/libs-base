@@ -20,7 +20,7 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
  
-   AutogsdocSource:	NSUser.m
+   AutogsdocSource:	NSPathUtilities.m
    */ 
 
 #ifndef __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
@@ -34,15 +34,22 @@
  * LOGNAME environment variable.  Using it will almost certainly cause
  * trouble if the process does not posess the file access priviliges of the
  * new name.  This is provided primarily for use by processes that run as
- * system-manager and need to act as particular users.  If uses the
+ * system-manager and need to act as particular users.  It uses the
  * [NSUserDefaults +resetUserDefaults] extension to reset the defaults system
  * to use the defaults belonging to the new user.
  */
-GS_EXPORT void	GSSetUserName(NSString *name);
+GS_EXPORT void  GSSetUserName(NSString *name);
+
+/** 
+ * Try to locate file/directory (aName).(anExtension) in paths.
+ * Will return the first found or nil if nothing is found.
+ */
+//GS_EXPORT NSString *GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension);
 
 GS_EXPORT NSString *GSDefaultsRootForUser(NSString *userName);
-GS_EXPORT NSString *GSSystemRootDirectory(void);
-GS_EXPORT NSArray  *GSStandardPathPrefixes(void);
+
+GS_EXPORT NSString *GSSystemRootDirectory(void)  GS_ATTRIB_DEPRECATED;
+GS_EXPORT NSArray  *GSStandardPathPrefixes(void) GS_ATTRIB_DEPRECATED;
 #endif
 GS_EXPORT NSString *NSUserName(void);
 GS_EXPORT NSString *NSHomeDirectory(void);
@@ -82,24 +89,37 @@ typedef enum
   NSDeveloperDirectory,
   NSUserDirectory,
   NSDocumentationDirectory,
+  
+/* Apple Reserved Directory Identifiers */
+
   NSAllApplicationsDirectory,
   NSAllLibrariesDirectory,
+
+/*  GNUstep Directory Identifiers */
+
+  //GSApplicationSupportDirectory = 150,
+  //GSFontsDirectory,
+  //GSFrameworksDirectory,
   GSLibrariesDirectory,
   GSToolsDirectory,
   GSApplicationSupportDirectory,
-} NSSearchPathDirectory;
+  GSPreferencesDirectory
+  
+ } NSSearchPathDirectory;
 
 /**
  * Mask type for NSSearchPathForDirectoriesInDomains() function.  A bitwise OR
  * of one or more of <code>NSUserDomainMask, NSLocalDomainMask,
  * NSNetworkDomainMask, NSSystemDomainMask, NSAllDomainsMask</code>.
  */
-typedef unsigned int NSSearchPathDomainMask;
-#define NSUserDomainMask	0x00000001
-#define NSLocalDomainMask	0x00000002
-#define NSNetworkDomainMask	0x00000004
-#define NSSystemDomainMask	0x00000008
-#define NSAllDomainsMask	0xffffffff
+typedef enum
+{
+  NSUserDomainMask = 1,
+  NSLocalDomainMask = 2,
+  NSNetworkDomainMask = 4,
+  NSSystemDomainMask = 8,
+  NSAllDomainsMask = 0xffffffff,
+} NSSearchPathDomainMask;
 
 GS_EXPORT NSArray *NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey, NSSearchPathDomainMask domainMask, BOOL expandTilde);
 GS_EXPORT NSString *NSFullUserName(void);
