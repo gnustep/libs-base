@@ -69,19 +69,35 @@ static BOOL debug_memory_stream = NO;
 
 /* xxx This interface will change */
 - _initOnMallocBuffer: (char*)b
-   size: (unsigned)s		/* size of malloc'ed buffer */
-   eofPosition: (unsigned)l	/* length of buffer with data for reading */
-   prefix: (unsigned)p		/* never read/write before this position */
-   position: (unsigned)i	/* current position for reading/writing */
+	 freeWhenDone: (BOOL)f
+		 size: (unsigned)s /* size of malloc'ed buffer */
+	  eofPosition: (unsigned)l /* length of buffer with data for reading */
+	       prefix: (unsigned)p /* never read/write before this position */
+	     position: (unsigned)i /* current position for reading/writing */
 {
   [super init];
   buffer = b;
   size = s;
   prefix = p;
   position = i;
-  eofPosition = l;
+  eof_position = l;
+  free_when_done = f;
   type = MALLOC_MEMORY_STREAM;
   return self;
+}
+
+- _initOnMallocBuffer: (char*)b
+		 size: (unsigned)s /* size of malloc'ed buffer */
+	  eofPosition: (unsigned)l /* length of buffer with data for reading */
+	       prefix: (unsigned)p /* never read/write before this position */
+	     position: (unsigned)i /* current position for reading/writing */
+{
+  return [self _initOnMallocBuffer: b
+	       freeWhenDone: YES
+	       size: s
+	       eofPosition: l
+	       prefix: p
+	       position: i]
 }
 
 /* xxx This method will disappear. */
@@ -91,8 +107,12 @@ static BOOL debug_memory_stream = NO;
 {
   char *b;
   OBJC_MALLOC(b, char, s);
-  return [self _initOnMallocBuffer:b size:s eofPosition:i
-	       prefix:p position:i];
+  return [self _initOnMallocBuffer:b 
+	       freeWhenDone: YES
+	       size: s
+	       eofPosition: i
+	       prefix: p
+	       position: i];
 }
 
 - initWithCapacity: (unsigned)capacity
@@ -143,15 +163,15 @@ static BOOL debug_memory_stream = NO;
     }
   memcpy(buffer+prefix+position, b, l);
   position += l;
-  if (position > eofPosition)
-    eofPosition = position;
+  if (position > eof_position)
+    eof_position = position;
   return l;
 }
 
 - (int) readBytes: (void*)b length: (int)l
 {
-  if (position+l > eofPosition)
-    l = eofPosition-position;
+  if (position+l > eof_position)
+    l = eof_position-position;
   memcpy(b, buffer+prefix+position, l);
   position += l;
   return l;
@@ -159,7 +179,7 @@ static BOOL debug_memory_stream = NO;
 
 - (id <String>) readLine
 {
-  char *nl = memchr(buffer+prefix+position, '\n', eofPosition-position);
+  char *nl = memchr(buffer+prefix+position, '\n', eof_position-position);
   char *ret = NULL;
   if (nl)
     {
@@ -219,8 +239,8 @@ void unchar_func(void *s, int c)
      128 bytes left in the buffer and we try to write a string longer than
      the num bytes left in the buffer. */
   assert(prefix + position <= size);
-  if (position > eofPosition)
-    eofPosition = position;
+  if (position > eof_position)
+    eof_position = position;
   if (debug_memory_stream)
     {
       *(buffer+prefix+position) = '\0';
@@ -253,7 +273,7 @@ void unchar_func(void *s, int c)
       position += i;
       break;
     case STREAM_SEEK_FROM_END:
-      position = eofPosition + i;
+      position = eof_position + i;
       break;
     }
 }
@@ -270,13 +290,14 @@ void unchar_func(void *s, int c)
 
 - (void) dealloc
 {
-  OBJC_FREE(buffer);
+  if (free_when_done)
+    OBJC_FREE(buffer);
   [super dealloc];
 }
 
 - (BOOL) streamEof
 {
-  if (position == eofPosition)
+  if (position == eof_position)
     return YES;
   else
     return NO;
@@ -294,7 +315,7 @@ void unchar_func(void *s, int c)
 
 - (void) setStreamBufferCapacity: (unsigned)s
 {
-  if (s > prefix + eofPosition)
+  if (s > prefix + eof_position)
     {
       buffer = objc_realloc (buffer, s);
       size = s;
@@ -303,13 +324,13 @@ void unchar_func(void *s, int c)
 
 - (unsigned) streamEofPosition
 {
-  return eofPosition;
+  return eof_position;
 }
 
 - (void) setStreamEofPosition: (unsigned)i
 {
   if (i < size)
-    eofPosition = i;
+    eof_position = i;
 }  
 
 - (unsigned) streamBufferPrefix
@@ -319,7 +340,7 @@ void unchar_func(void *s, int c)
 
 - (unsigned) streamBufferLength
 {
-  return prefix + eofPosition;
+  return prefix + eof_position;
 }
 
 @end
