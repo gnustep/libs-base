@@ -2175,7 +2175,7 @@ static void retEncoder (DOContext *ctxt)
 	  {
 	    conn->_requestDepth++;
 	    M_UNLOCK(conn->_queueGate);
-	    [conn _service_forwardForProxy: rmc];
+	    [conn _service_forwardForProxy: rmc];	// Catches exceptions
 	    M_LOCK(conn->_queueGate);
 	    conn->_requestDepth--;
 	  }
@@ -2192,7 +2192,7 @@ static void retEncoder (DOContext *ctxt)
 	    rmc = [conn->_requestQueue objectAtIndex: 0];
 	    [conn->_requestQueue removeObjectAtIndex: 0];
 	    M_UNLOCK(conn->_queueGate);
-	    [conn _service_forwardForProxy: rmc];
+	    [conn _service_forwardForProxy: rmc];	// Catches exceptions
 	    M_LOCK(conn->_queueGate);
 	  }
 	M_UNLOCK(conn->_queueGate);
@@ -2696,7 +2696,7 @@ static void callEncoder (DOContext *ctxt)
       else
 	{
 	  /*
-	   * Normal operation - wait for data to be recieved or for a timeout.
+	   * Normal operation - wait for data to be received or for a timeout.
 	   */
 	  if ([runLoop runMode: NSConnectionReplyMode
 		    beforeDate: timeout_date] == NO)
@@ -3093,8 +3093,8 @@ static void callEncoder (DOContext *ctxt)
   node = GSIMapNodeForKey(_localObjects, (GSIMapKey)anObj);
   if (node == 0)
     {
-      M_LOCK(global_proxies_gate);
-      M_LOCK(_proxiesGate);
+      M_UNLOCK(_proxiesGate);
+      M_UNLOCK(global_proxies_gate);
       [NSException raise: NSInternalInconsistencyException
       		  format: @"Attempt to remove non-existent local %@", anObj];
     }
