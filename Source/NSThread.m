@@ -247,8 +247,10 @@ GSCurrentThread()
       t = (NSThread*)objc_thread_get_data();
       if (t == nil)
 	{
-	  fprintf(stderr, "ALERT ... GSCurrentThread() ... the "
-	    "objc_thread_get_data() call returned nil!");
+	  fprintf(stderr,
+"ALERT ... GSCurrentThread() ... objc_thread_get_data() call returned nil!\r\n"
+"Your application MUST call GSRegisterCurrentThread() before attempting to\r\n"
+"use any GNUstep code from a thread other than the main GNUstep thread.\r\n");
 	  fflush(stderr);	// Needed for windoze
 	}
     }
@@ -397,6 +399,10 @@ gnustep_base_thread_callback()
 	    }
 	  NS_HANDLER
 	    {
+	      fprintf(stderr,
+"ALERT ... exception while becoming multi-threaded ... system may not be\r\n"
+"properly initialised.\r\n");
+	      fflush(stderr);
 	    }
 	  NS_ENDHANDLER
 	  entered_multi_threaded_state = YES;
