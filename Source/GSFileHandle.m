@@ -58,7 +58,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <signal.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/fcntl.h>
@@ -249,25 +248,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       sin->sin_port = sp->s_port;
       return YES;
-    }
-}
-
-+ (void) initialize
-{
-  if (self == [GSFileHandle class])
-    {
-#if	!defined(__MINGW__)
-      void	(*handler)(int);
-      /*
-       * If SIGPIPE is not handled or ignored, we will abort on any attempt
-       * to write to a pipe/socket that has been closed by the other end!
-       */
-      handler = signal(SIGPIPE, SIG_IGN);
-      if (handler != SIG_DFL)
-	{
-	  signal(SIGPIPE, handler);
-	}
-#endif
     }
 }
 

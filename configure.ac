@@ -621,21 +621,6 @@ AC_CHECK_FUNCS(shmctl)
 AC_CHECK_FUNCS(mmap)
 
 #--------------------------------------------------------------------
-# These used by UnixFileHandle.m
-#--------------------------------------------------------------------
-AC_CHECK_FUNCS(inet_aton)
-USE_ZLIB=0
-AC_CHECK_HEADERS(zlib.h)
-if test $ac_cv_header_zlib_h = yes; then
-  AC_CHECK_LIB(z, gzseek, zlib_ok=yes, zlib_ok=no)
-  if test "$zlib_ok" = yes; then
-    LIBS="$LIBS -lz"
-    USE_ZLIB=1
-  fi
-fi
-AC_SUBST(USE_ZLIB)
-
-#--------------------------------------------------------------------
 # These functions needed by NSTask.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(killpg setpgrp setpgid)
@@ -654,6 +639,21 @@ AC_SUBST(HAVE_PTS_STREAM_MODULES)
 AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
 	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h dnl
 	sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
+
+#--------------------------------------------------------------------
+# These used by GSFileHandle.m and distributed objects
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(inet_aton sigaction)
+USE_ZLIB=0
+AC_CHECK_HEADERS(zlib.h)
+if test $ac_cv_header_zlib_h = yes; then
+  AC_CHECK_LIB(z, gzseek, zlib_ok=yes, zlib_ok=no)
+  if test "$zlib_ok" = yes; then
+    LIBS="$LIBS -lz"
+    USE_ZLIB=1
+  fi
+fi
+AC_SUBST(USE_ZLIB)
 
 #--------------------------------------------------------------------
 # One of these function needed by NSThread.m
