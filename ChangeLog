@@ -1,3 +1,9 @@
+2004-12-09  Matt Rice  <ratmice@yahoo.com>
+
+	* Source/NSUndoManager.m 
+	([-forwardInvocation,-registerUndoWithTarget:selector:object:): Don't
+	clear the redo stack if redoing.
+	
 2004-12-07  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Test for objc forwarding by compiling a program.
