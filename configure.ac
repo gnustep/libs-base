@@ -516,7 +516,7 @@ AC_CHECK_HEADERS(sys/stat.h sys/vfs.h sys/statfs.h sys/statvfs.h pwd.h grp.h)
 AC_CHECK_HEADERS(sys/mount.h sys/types.h windows.h locale.h langinfo.h)
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(m, main)
-AC_CHECK_FUNCS(statvfs symlink readlink geteuid getlogin getpwnam getpwuid rint)
+AC_CHECK_FUNCS(statvfs symlink readlink geteuid getlogin getpwnam getpwuid getgrgid rint)
 LIBS="$saved_LIBS"
 
 #--------------------------------------------------------------------
