@@ -1,3 +1,12 @@
+2003-07-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSPort.h: Tweak for mingw and correct conditional
+	compilation to only include NSSocketPort for MacOS-X
+	* Source/GSFileHandle.m: Incorporate S.J.Chuns mingw fixes with huge
+	simplification to avoid lots of conditional compilation.
+	* Source/GSTcpPort.m: ditto.
+	* Source/NSSocketPort.m: ditto.
+
 2003-07-11 02:33  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSAssertionHandler.m: Use the correct key to store the

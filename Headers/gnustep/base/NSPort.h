@@ -34,6 +34,7 @@
 #include	<wininet.h>
 #else
 #include	<sys/socket.h>
+#define	SOCKET	int
 #endif
 
 @class	NSMutableArray;
@@ -85,12 +86,9 @@ GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 
 #ifndef	NO_GNUSTEP
 @interface NSPort (GNUstep)
-
 - (void) close;
-
 + (Class) outPacketClass;
 - (Class) outPacketClass;
-
 @end
 #endif
 
@@ -98,8 +96,9 @@ GS_EXPORT	NSString*	NSPortDidBecomeInvalidNotification;
 
 #define	PortBecameInvalidNotification NSPortDidBecomeInvalidNotification
 
-#ifndef STRICT_OPENSTEP
-typedef int NSSocketNativeHandle;
+#ifndef	STRICT_OPENSTEP
+
+typedef SOCKET NSSocketNativeHandle;
 
 @interface NSSocketPort : NSPort  <NSCoding, NSCopying>
 {

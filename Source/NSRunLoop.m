@@ -702,13 +702,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  GSCheckTasks();
 	  poll_return = 0;
 	}
-#ifdef __MINGW__
       else if (errno == 0)
 	{
-	  /* MinGW often returns an errno == 0. Not sure why */
+	  /* Some systems returns an errno == 0. Not sure why */
 	  poll_return = 0;
 	}
-#endif
       else
 	{
 	  /* Some exceptional condition happened. */
@@ -984,7 +982,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		  {
 		    fd = port_fd_array[port_fd_count];
 		    FD_SET (port_fd_array[port_fd_count], &read_fds);
-		    if (fd > fdEnd)
+	            if (fd > fdEnd)
 		      fdEnd = fd;
 		    NSMapInsert(_rfdMap, 
 		      (void*)port_fd_array[port_fd_count], info);
@@ -1023,13 +1021,11 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  GSCheckTasks();
 	  select_return = 0;
 	}
-#ifdef __MINGW__
       else if (errno == 0)
 	{
-	  /* MinGW often returns an errno == 0. Not sure why */
-	    select_return = 0;
+	  /* Some systems return an errno == 0. Not sure why */
+	  select_return = 0;
 	}
-#endif
       else
 	{
 	  /* Some exceptional condition happened. */
