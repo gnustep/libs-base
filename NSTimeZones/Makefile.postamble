@@ -41,11 +41,8 @@
 # Things to do after compiling
 # after-all::
 
-$(timezonedir):
-	$(MKDIRS) $(timezonedir)
-
 # Things to do before installing
-before-install:: $(timezonedir)
+# before-install::
 
 # Things to do after installing
 after-install::
