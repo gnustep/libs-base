@@ -573,8 +573,6 @@ static BOOL double_release_check_enabled = NO;
       extern void		GSBuildStrings();	// See externs.m
       extern const char*	GSSetLocaleC();		// See GSLocale.m
 
-      GSSetLocaleC("");		// Set up locale from environment.
-
 #ifdef __MINGW__
       // See libgnustep-base-entry.m
       extern void gnustep_base_socket_init();	
@@ -593,6 +591,8 @@ static BOOL double_release_check_enabled = NO;
 	__asm__ volatile ("fldcw (%0)" : : "g" (&cw));
       }
 #endif
+
+      GSSetLocaleC("");		// Set up locale from environment.
 
       // Create the global lock
       gnustep_global_lock = [[NSRecursiveLock alloc] init];

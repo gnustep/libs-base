@@ -1,3 +1,9 @@
+2001-05-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject: ([+initialize]) Move GSSetLocale() after platform
+	specific code with conditionally compiled variable declarations.
+	Should make this work on BSD and MINGW again.
+
 2001-05-02  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSObject.m ([NSObject +initialize]): fixed a FreeBSD specific
