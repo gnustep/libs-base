@@ -1,8 +1,9 @@
-The people responsible for testing the various ports to different
-machines.
+The testers of the various ports to different machines:
 
 sparc-sun-sunos4.1.3	mccallum@cs.rochester.edu (Andrew McCallum)
 
+sparc-sun-solaris2.3	pkr@kom.auc.dk (Peter Kristensen)
+
 i386-unknown-linux	jbettis@cse.unl.edu (Jeremy Bettis)
 
-?-next-nextstep3.3p1	jbettis@cse.unl.edu (Jeremy Bettis)
+m68k-next-nextstep3.3p1	jbettis@cse.unl.edu (Jeremy Bettis)
