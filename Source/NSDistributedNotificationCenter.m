@@ -1,5 +1,5 @@
-/** Implementation of NSDistributedNotificationCenter class
-   Copyright (C) 1998 Free Software Foundation, Inc.
+/**
+   Copyright (C) 1998-2003 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
@@ -482,6 +482,67 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 
 @end
 
+/*
+ * The following dummy class is here solely as a workaround for pre 3.3
+ * versions of gcc where protocols didn't work properly unless implemented
+ * in the source where the '@protocol()' directiver is used.
+ */
+@interface NSDistributedNotificationCenterDummy : NSObject <GDNCProtocol>
+- (void) addObserver: (unsigned long)anObserver
+	    selector: (NSString*)aSelector
+	        name: (NSString*)notificationname
+	      object: (NSString*)anObject
+  suspensionBehavior: (NSNotificationSuspensionBehavior)suspensionBehavior
+		 for: (id<GDNCClient>)client;
+- (oneway void) postNotificationName: (NSString*)notificationName
+			      object: (NSString*)anObject
+			    userInfo: (NSData*)d
+		  deliverImmediately: (BOOL)deliverImmediately
+			         for: (id<GDNCClient>)client;
+- (void) registerClient: (id<GDNCClient>)client;
+- (void) removeObserver: (unsigned long)anObserver
+		   name: (NSString*)notificationname
+		 object: (NSString*)anObject
+		    for: (id<GDNCClient>)client;
+- (void) setSuspended: (BOOL)flag
+		  for: (id<GDNCClient>)client;
+- (void) unregisterClient: (id<GDNCClient>)client;
+@end
+
+@implementation NSDistributedNotificationCenterDummy
+- (void) addObserver: (unsigned long)anObserver
+	    selector: (NSString*)aSelector
+	        name: (NSString*)notificationname
+	      object: (NSString*)anObject
+  suspensionBehavior: (NSNotificationSuspensionBehavior)suspensionBehavior
+		 for: (id<GDNCClient>)client
+{
+}
+- (oneway void) postNotificationName: (NSString*)notificationName
+			      object: (NSString*)anObject
+			    userInfo: (NSData*)d
+		  deliverImmediately: (BOOL)deliverImmediately
+			         for: (id<GDNCClient>)client
+{
+}
+- (void) registerClient: (id<GDNCClient>)client
+{
+}
+- (void) removeObserver: (unsigned long)anObserver
+		   name: (NSString*)notificationname
+		 object: (NSString*)anObject
+		    for: (id<GDNCClient>)client
+{
+}
+- (void) setSuspended: (BOOL)flag
+		  for: (id<GDNCClient>)client
+{
+}
+- (void) unregisterClient: (id<GDNCClient>)client
+{
+}
+@end
+
 @implementation	NSDistributedNotificationCenter (Private)
 
 /**
@@ -575,11 +636,9 @@ static NSDistributedNotificationCenter	*netCenter = nil;
       if (_remote != nil)
 	{
 	  NSConnection	*c = [_remote connectionForProxy];
-#if 0	// When all compilers support this
 	  Protocol	*p = @protocol(GDNCProtocol);
 
 	  [_remote setProtocolForProxy: p];
-#endif
 	  
 	  /*
            * Ensure that this center can be used safely from different
