@@ -1,0 +1,35 @@
+%post
+if [ -z "$GNUSTEP_SYSTEM_ROOT" ]; then
+   . %{gsr}/Makefiles/GNUstep.sh 
+fi
+grep -q '^gdomap' /etc/services || (echo "gdomap 538/tcp # GNUstep distrib objects" >> /etc/services && echo "gdomap 538/udp # GNUstep distrib objects" >> /etc/services)
+%ifos Linux
+grep -q '%{gsr}/Libraries/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/gnu-gnu-gnu-xgps' /etc/ld.so.conf || echo "%{gsr}/Libraries/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/%{libcombo}" >> /etc/ld.so.conf
+/sbin/ldconfig
+/sbin/chkconfig --add gnustep
+%endif
+
+%preun
+if [ -z "$GNUSTEP_SYSTEM_ROOT" ]; then
+   . %{gsr}/Makefiles/GNUstep.sh 
+fi
+if [ $1 = 0 ]; then
+    /sbin/chkconfig --del gnustep
+    mv -f /etc/services /etc/services.orig
+    grep -v "^gdomap 538" /etc/services.orig > /etc/services
+    rm -f /etc/services.orig
+fi
+
+
+%postun
+if [ -z "$GNUSTEP_SYSTEM_ROOT" ]; then
+   . %{gsr}/Makefiles/GNUstep.sh 
+fi
+if [ $1 = 0 ]; then
+%ifos Linux
+    mv -f /etc/ld.so.conf /etc/ld.so.conf.orig
+    grep -v "^%{gsr}/Libraries/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/%{libcombo}$" /etc/ld.so.conf.orig > /etc/ld.so.conf
+    rm -f /etc/ld.so.conf.orig
+    /sbin/ldconfig
+%endif
+fi
