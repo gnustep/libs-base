@@ -2002,3 +2002,4 @@ group_number (unichar *w, unichar *rear_ptr, const char *grouping,
     }
   return w;
 }
+

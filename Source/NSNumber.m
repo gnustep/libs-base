@@ -646,6 +646,10 @@ static Class	doubleNumberClass;
     return NSCopyObject(self, 0, zone);
 }
 
+/**
+ * Returns the string representation of this number using a non-localised
+ * conversion (decimal point is '.' irrespective of the locale).
+ */
 - (NSString*) description
 {
   return [self descriptionWithLocale: nil];

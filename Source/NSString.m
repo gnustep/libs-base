@@ -2425,14 +2425,40 @@ handle_printf_atsign (FILE *stream,
   return [self intValue] != 0 ? YES : NO;
 }
 
+extern BOOL GSScanDouble(unichar*, unsigned, double*);
+
+/**
+ * Returns the strings content as a double.  Skips leading whitespace.<br />
+ * Conversion is not localised (ie uses '.' as the decimal separator).<br />
+ * Returns 0.0 on underflow or if the string does not contain a number.
+ */
 - (double) doubleValue
 {
-  return atof([self lossyCString]);
+  unichar	buf[32];
+  unsigned	len = [self length];
+  double	d = 0.0;
+
+  if (len > 32) len = 32;
+  [self getCharacters: buf range: NSMakeRange(0, len)];
+  GSScanDouble(buf, len, &d);
+  return d;
 }
 
+/**
+ * Returns the strings content as a double.  Skips leading whitespace.<br />
+ * Conversion is not localised (ie uses '.' as the decimal separator).<br />
+ * Returns 0.0 on underflow or if the string does not contain a number.
+ */
 - (float) floatValue
 {
-  return (float) atof([self lossyCString]);
+  unichar	buf[32];
+  unsigned	len = [self length];
+  double	d = 0.0;
+
+  if (len > 32) len = 32;
+  [self getCharacters: buf range: NSMakeRange(0, len)];
+  GSScanDouble(buf, len, &d);
+  return (float)d;
 }
 
 - (int) intValue
