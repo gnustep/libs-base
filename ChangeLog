@@ -1,3 +1,11 @@
+2002-07-20  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSDecimal.m: ifdef for compiling on Darwin (report
+	from Carl Eugen).
+	* Source/NSInvocation.m ([-initWithSelector:): Rewrite to use
+	designated initializer.
+	(-initWithTarget:selector:): Idem.
+
 2002-07-18  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/gdomap.c (main): Write the pidfile before switching away

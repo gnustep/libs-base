@@ -631,19 +631,44 @@ _arg_addr(NSInvocation *inv, int index)
 
 - (id) initWithSelector: (SEL)aSelector
 {
-  return [self initWithArgframe: 0 selector: aSelector];
+  const char *types;
+  NSMethodSignature *newSig;
+
+  types = sel_get_type(aSelector);
+  if (types == 0)
+    {
+      types = sel_get_type(sel_get_any_typed_uid(sel_get_name(aSelector)));
+    }
+  if (types == 0)
+    {
+      NSLog(@"Couldn't find encoding type for selector %s.",
+	   sel_get_name(aSelector));
+      return nil;
+    }
+  newSig = [NSMethodSignature signatureWithObjCTypes: types];
+  return [self initWithMethodSignature: newSig];
 }
 
 - (id) initWithTarget: anObject selector: (SEL)aSelector, ...
 {
-  va_list	ap;
+  va_list	     ap;
+  NSMethodSignature *newSig;
 
-  self = [self initWithArgframe: 0 selector: aSelector];
+  if (anObject)
+    {
+      newSig = [anObject methodSignatureForSelector: aSelector];
+      self = [self initWithMethodSignature: newSig];
+    }
+  else
+    {
+      self = [self initWithSelector: aSelector];
+    }
   if (self)
     {
       int	i;
 
       [self setTarget: anObject];
+      [self setSelector: aSelector];
       va_start (ap, aSelector);
       for (i = 3; i <= _numArgs; i++)
 	{
@@ -758,22 +783,7 @@ _arg_addr(NSInvocation *inv, int index)
 
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
 {
-  const char		*types;
-  NSMethodSignature	*newSig;
-
-  types = sel_get_type(aSelector);
-  if (types == 0)
-    {
-      types = sel_get_type(sel_get_any_typed_uid(sel_get_name(aSelector)));
-    }
-  if (types == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Couldn't find encoding type for selector %s.",
-			 sel_get_name(aSelector)];
-    }
-  newSig = [NSMethodSignature signatureWithObjCTypes: types];
-  self = [self initWithMethodSignature: newSig];
+  self = [self initWithSelector: aSelector];
   if (self)
     {
       [self setSelector: aSelector];
