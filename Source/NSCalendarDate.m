@@ -1182,7 +1182,7 @@
 	}
     }
   else
-    while (day < 0)
+    while (day < 1)
       {
         if (month == 1)
 	  {
@@ -1207,6 +1207,20 @@
     }
 
   year += years;
+
+  /*
+   * Special case - we adjusted to the correct day for the month in the
+   * starting date - but our month and year adjustment may have made that
+   * invalid for the final month and year - in which case we may have to
+   * advance to the next month.
+   */
+  if (day > 28 && day > [self lastDayOfGregorianMonth: month year: year])
+    {
+      day -= [self lastDayOfGregorianMonth: month year: year];
+      month++;
+      if (month > 12)
+	year++;
+    }
 
   return [NSCalendarDate dateWithYear: year
 			        month: month
