@@ -187,6 +187,7 @@ objects/CollectionPrivate.h \
 objects/ConnectedCoder.h \
 objects/Connection.h \
 objects/CStream.h \
+objects/CStreaming.h \
 objects/DelegatePool.h \
 objects/Dictionary.h \
 objects/EltNodeCollector.h \
