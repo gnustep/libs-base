@@ -3509,7 +3509,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 @implementation GSTreeSAXHandler
 
 /**
-: Cal]led when a warning message needs to be output.<br />
+ * Called when a warning message needs to be output.<br />
  * See [GSXMLParser-setErrors:] for the mechanism implemented by this.
  */
 - (void) warning: (NSString*)e
