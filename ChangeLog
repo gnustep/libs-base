@@ -1,3 +1,8 @@
+Wed Jul 20 21:25:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/Decoder.m: ([-decodeClass]) modified to ensure correct decoding
+	instances of classes relying on multiple inheritance.
+
 Tue Jul 14 16:26:36 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/Makefile.postamble (gnustep/base): Fixup dir creation.
