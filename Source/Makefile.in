@@ -168,6 +168,7 @@ UdpPort.m \
 array.m \
 array-bas.m \
 array-cbs.m \
+behavior.m \
 callbacks.m \
 cbs-char-p.m \
 cbs-id.m \
@@ -188,7 +189,6 @@ mframe.m \
 objc-gnu2next.m
 
 GNU_CFILES = \
-behavior.c \
 md5.c \
 numbers.c \
 objc-malloc.c \
