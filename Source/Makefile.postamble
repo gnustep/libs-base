@@ -185,6 +185,18 @@ include/o_list.h: include/o_list_bas.h include/o_list_cbs.h include/o_array.h in
 o_map.o: o_map.m include/o_map.h
 include/o_map.h: include/o_map_bas.h include/o_map_cbs.h include/o_hash.h
 
+#
+#	Files that include mframe.h will need a rebuild if it is changed.
+#
+mframe.m NSConnection.m NSInvocation.m NSMethodSignature.m NSObjCRuntime.m : include/mframe.h
+	touch $@
+
+#
+#	Files that include Fastmap.x will need a rebuild if it is changed.
+#
+NSArchiver.m NSGCountedSet.m NSGDictionary.m NSGSet.m :	FastMap.x
+	touch $@
+
 TAGS: $(DIST_FILES)
 	etags $(DIST_FILES)
 
