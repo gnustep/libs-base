@@ -1,3 +1,40 @@
+2000-12-08  Adam Fedor  <fedor@gnu.org>
+
+	* Set up DO and NSInvocation to use foreign-function interface
+	library.
+	* configure.in: Add check for --enable-ffcall
+	* Documentation/gnustep-base.texi: Update
+	* Documentation/install.texi: Likewise.
+	* Documentation/readme.texi: Likewise.
+	* Documentation/gsdoc/NSTimeZone.gsdoc: Update.
+
+	* Headers/gnustep/base/NSConnection.h: New forward method.
+	* Headers/gnustep/base/NSInvocation.h: New frame ivar.
+	* Source/GNUmakefile: Conditionally compile in FFI classes if
+	enabled.
+	* Source/NSConnection.m (-forwardInvocation:forProxy:): New method.
+	(_service_forwardForProxy:): For FFCALL don't autorelease memory,
+	call proper forwarding function.
+	* Source/NSDistantObject.m (forwardInvocation:): Implement.
+	(methodSignatureForSelector:): For FFCALL, forward through
+	invocation.
+	(conformsToProtocol:): Likewise.
+	(respondsToSelector:): Likewise.
+	* Source/NSInvocation.m: Convert to abstract class with subclasses
+	based on FFI interface.
+	(_get_arg, _set_arg, _arg_addr): New functions based on FFI interface.
+	(+allocWithZone:): Alloc proper concrete class.
+	(+initialize): Set proper concrete class.
+	(-initWithCoder:): Replace self with proper concrete class.
+	(initWithArgframe:selector:): Make subclassResponsibility.
+	(initWithMethodSignature:): Likewise.
+	(returnFrame:): Likewise.
+	Implement GSFrameInvocation
+	* Source/GSFFCallInvocation: New file.
+	* Source/GSFFIInvocation: Likewise.
+	* Source/cifframe.[hm]: Likewise.
+	* Source/callframe.[hm]: Likewise.
+
 2000-12-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSGSet.m: renamed to GSSet.m for consistency, tidied.

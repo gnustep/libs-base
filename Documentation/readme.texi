@@ -11,8 +11,8 @@ Here is some introductory info to get you started:
 
 The file @samp{NEWS} has the library's feature history.
 
-The file @samp{GNUstep-HOWTO} 
-give instructions for installing the library.
+The files @samp{INSTALL} or @samp{GNUstep-HOWTO} (from the core package)
+gives instructions for installing the library.
 
 @section How can you help?
 

@@ -88,7 +88,7 @@ int con_data (id prx)
   printf(send, var);							\
   varr = [prx msg1 var];						\
   printf(got, varr);							\
-  if (varr != var+ADD_CONST)						\
+  if (varr != (var+ADD_CONST))					\
     printf(" *** ERROR ***\n");						\
   else									\
     printf(" ...ok\n");							\
@@ -96,20 +96,37 @@ int con_data (id prx)
   printf(sendp, varr);							\
   [prx msg2 &varr];							\
   printf(got, varr);							\
-  if (varr != var+ADD_CONST)						\
+  if (varr != (var+ADD_CONST))					\
     printf(" *** ERROR ***\n");						\
   else									\
     printf(" ...ok\n");
 
-  TEST_CALL("UChar:\n", "  sending %x", " got %x", "  sending ptr to %x",
+#define TEST_FCALL(test, send, got, sendp, var, varr, val, msg1, msg2)	\
+  printf(test);								\
+  var = val;								\
+  printf(send, var);							\
+  varr = [prx msg1 var];						\
+  printf(got, varr);							\
+  if (varr - (var+ADD_CONST) > 1e-3)					\
+    printf(" *** ERROR ***\n");						\
+  else									\
+    printf(" ...ok\n");							\
+  varr = var = val+1;							\
+  printf(sendp, varr);							\
+  [prx msg2 &varr];							\
+  printf(got, varr);							\
+  if (varr - (var+ADD_CONST) > 1e-3)					\
+    printf(" *** ERROR ***\n");						\
+  else									\
+    printf(" ...ok\n");
+
+  TEST_CALL("UChar:\n", "  sending %d", " got %d", "  sending ptr to %d",
 	    uc, ucr, 23, sendUChar:, getUChar:)
-  printf("    (should get error returning ptr)\n");
 
-  TEST_CALL("Char:\n", "  sending %x", " got %x", "  sending ptr to %x",
+  TEST_CALL("Char:\n", "  sending %d", " got %d", "  sending ptr to %d",
 	    c, cr, 23, sendChar:, getChar:)
-  printf("    (should get error returning ptr)\n");
 
-  TEST_CALL("Short:\n", "  sending %d", " got %d", "  sending ptr to %d",
+  TEST_CALL("Short:\n", "  sending %hd", " got %hd", "  sending ptr to %hd",
 	    s, sr, 23, sendShort:, getShort:)
 
   TEST_CALL("Int:\n", "  sending %d", " got %d", "  sending ptr to %d",
@@ -118,10 +135,10 @@ int con_data (id prx)
   TEST_CALL("Long:\n", "  sending %ld", " got %ld", "  sending ptr to %ld",
 	    l, lr, 23, sendLong:, getLong:)
 
-  TEST_CALL("Float:\n", "  sending %f", " got %f", "  sending ptr to %f",
+  TEST_FCALL("Float:\n", "  sending %f", " got %f", "  sending ptr to %f",
 	    flt, fltr, 23.2, sendFloat:, getFloat:)
 
-  TEST_CALL("Double:\n", "  sending %g", " got %g", "  sending ptr to %g",
+  TEST_FCALL("Double:\n", "  sending %g", " got %g", "  sending ptr to %g",
 	    dbl, dblr, 23.2, sendDouble:, getDouble:)
 
   flt = 2.718;

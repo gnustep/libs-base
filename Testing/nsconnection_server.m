@@ -74,7 +74,7 @@
 
 - (BOOL) sendBoolean: (BOOL)b
 {
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), b, !b);
+  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), (int)b, (int)(!b));
   fflush(stdout);
   return !b;
 }
@@ -82,16 +82,18 @@
 /* This causes problems, because the runtime encodes this as "*", a string! */
 - (void) getBoolean: (BOOL*)bp
 {
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), *bp, !(*bp));
+  BOOL rbp = !(*bp);
+  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), 
+	 (int)*bp, (int)rbp);
   fflush(stdout);
-  *bp = !(*bp);
+  *bp = rbp;
 }
 
-/* This causes problems, because the runtime encodes this as "*", a string! */
 - (unsigned char) sendUChar: (unsigned char)num
 {
   unsigned char rnum = num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), num, rnum);
+  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), 
+	 (int)num, (int)rnum);
   fflush(stdout);
   return rnum;
 }
@@ -100,7 +102,8 @@
 - (void) getUChar: (unsigned char *)num
 {
   unsigned char rnum = *num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), *num, rnum);
+  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), 
+	 (int)(*num), (int)rnum);
   *num = rnum;
   fflush(stdout);
 }
@@ -108,7 +111,8 @@
 - (char) sendChar: (char)num
 {
   char rnum = num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), num, rnum);
+  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd),
+	 (int)num, (int)rnum);
   fflush(stdout);
   return rnum;
 }
@@ -116,7 +120,8 @@
 - (void) getChar: (char *)num
 {
   char rnum = *num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), *num, rnum);
+  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), 
+	 (int)(*num), (int)rnum);
   *num = rnum;
   fflush(stdout);
 }
@@ -124,7 +129,8 @@
 - (short) sendShort: (short)num
 {
   short rnum = num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), num, rnum);
+  printf("(%s) got %hd, returning %hd\n", sel_get_name(_cmd),
+	 num, rnum);
   fflush(stdout);
   return rnum;
 }
@@ -132,7 +138,8 @@
 - (void) getShort: (short *)num
 {
   short rnum = *num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), *num, rnum);
+  printf("(%s) got %hd, returning %hd\n", sel_get_name(_cmd), 
+	 (*num), rnum);
   *num = rnum;
   fflush(stdout);
 }

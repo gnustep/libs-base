@@ -114,47 +114,6 @@ site @url{http://www.gnustep.org/information}.
 Documentation for individual classes is included in gsdoc (and html) format
 in the gsdoc directory.
 
-@node Configuration, Classes, Overview, Top
-@chapter Configuration
-
-Configuration is performed by running the @file{configure} program at a
-shell prompt. You may want to use some of the optional arguments to the
-@file{configure} program. Type @code{configure --help}
-for a list of these. It is not likely that you will need to use the
-@code{--prefix} option, since gstep-base will automatically install in
-the directory specified by the @code{GNUSTEP_SYSTEM_ROOT} environment
-variable (specified when you installed gstep-make).
-
-The only feature you may want to use is the
-@code{--enable-pass-arguments} or the @code{--enable-fake-main}
-option(s). Normally, the configure script will determine if a program
-can read process information directly from the system (for use by the
-class NSProcessInfo) and enable or disable the fake-main hack
-automatically, but if you find that configure is not doing this
-correctly, you can force the fake-main hack to be used, which will
-always work. Note that if the fake-main hack is enabled, you need to
-include the header file GSConfig.h in you main program -- this is done
-by default if you include NSObject.h or Foundation.h. If you want to
-avoid the whole idea of the fake-main hack, you can use the
-pass-arguments option. In this case you will be forced to call the
-NSProcessInfo initializeWithArguments method to pass the program
-arguments to NSProcessInfo (This would be done automatically if you use
-the NSApplicationMain function in a gui application).
-
-Most other important configuration options are already set when you
-configure the gstep-make package.
-
-@node Classes, Tools, Configuration, Top
-@chapter Special Features of gstep-base Classes
-
-@node Tools, Installation, Classes, Top
-@chapter Special Tools Included with gstep-base
-
-@node Installation, Implementation, Tools, Top
-@chapter Installing GNU Objective-C Class Library
-
-Type @code{make install} to install the libraries and programs
-
 @node Implementation, Concept Index, Installation, Top
 @chapter Implementation Details
 
@@ -241,42 +200,5 @@ so you don't need to worry about releasing it yourself.  However, if you wish
 to store the object for any length of time, you will need to send it a retain
 message, and then send it a release when you have finished with it.
 
-@node Garbage Collection, Time Zone, Reference Counting, Implementation
-@section Garbage Collection
-
-
-@node Time Zone,  , Garbage Collection, Implementation
-@section Time Zones
-
-If the GNUstep time zone datafiles become too out of date, one can
-download an updated database from @url{ftp://elsie.nci.nih.gov/pub/} and
-compile it as specified in the README file in the NSTimeZones
-directory.  (In fact, I believe it's about time they're updated.)
-
-@example
-    Time zone names in NSDates should be GMT, MET etc. not
-    Europe/Berlin, America/Washington etc.
-@end example
-
-The problem with this is that various time zones may use the same
-abbreviation (e.g. Australia/@{Brisbane,...@} and America/@{New_York,...@}
-both use EST), and some time zones may have different rules for
-daylight saving time even if the abbreviation and offsets from UTC are
-the same.
-
-The problems with depending on the OS for providing time zone info are
-that some methods for the NSTimeZone classes might be difficult to
-implement, and also that time zone names may vary wildly between OSes
-(this could be a big problem when archiving is used between different
-systems).
-
-
-
-@node Concept Index,  , Implementation, Top
-@unnumbered Concept Index
-@printindex cp
-
-@summarycontents
-@contents
 
 @bye

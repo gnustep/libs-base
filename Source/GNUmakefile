@@ -234,6 +234,15 @@ ifeq ($(HAVE_LIBXML),1)
 BASE_MFILES += GSXML.m
 endif
 
+ifeq ($(WITH_FFI),libffi)
+GNU_MFILES += cifframe.m
+BASE_MFILES += GSFFIInvocation.m
+endif
+ifeq ($(WITH_FFI),ffcall)
+GNU_MFILES += callframe.m
+BASE_MFILES += GSFFCallInvocation.m
+endif
+
 NSVALUE_MFILES = \
 	NSValue0.m NSValue1.m NSValue2.m NSValue3.m \
 	NSValue4.m

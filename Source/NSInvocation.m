@@ -22,18 +22,114 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
 
-#include "config.h"
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSInvocation.h>
+#include <base/GSInvocation.h>
 #include <config.h>
 #include <mframe.h>
+#if defined(USE_LIBFFI)
+#include "cifframe.h"
+#elif defined(USE_FFCALL)
+#include "callframe.h"
+#endif
+
+
+static Class   NSInvocation_abstract_class;
+static Class   NSInvocation_concrete_class;
 
 @implementation NSInvocation
 
+#ifdef USE_LIBFFI
+static inline void
+_get_arg(NSInvocation *inv, int index, void *buffer)
+{
+  cifframe_get_arg((cifframe_t *)inv->_cframe, index, buffer);
+}
+
+static inline void
+_set_arg(NSInvocation *inv, int index, void *buffer)
+{
+  cifframe_set_arg((cifframe_t *)inv->_cframe, index, buffer);
+}
+
+static inline void *
+_arg_addr(NSInvocation *inv, int index)
+{
+  return cifframe_arg_addr((cifframe_t *)inv->_cframe, index);
+}
+
+#elif defined(USE_FFCALL)
+static inline void
+_get_arg(NSInvocation *inv, int index, void *buffer)
+{
+  callframe_get_arg((callframe_t *)inv->_cframe, index, buffer,
+		    inv->_info[index+1].size);
+}
+
+static inline void
+_set_arg(NSInvocation *inv, int index, void *buffer)
+{
+  callframe_set_arg((callframe_t *)inv->_cframe, index, buffer,
+		    inv->_info[index+1].size);
+}
+
+static inline void *
+_arg_addr(NSInvocation *inv, int index)
+{
+  return callframe_arg_addr((callframe_t *)inv->_cframe, index);
+}
+
+#else
+_get_arg(NSInvocation *inv, int index, void *buffer)
+{
+  mframe_get_arg(inv->_argframe, &inv->_info[index+1], &buffer);
+}
+
+static inline void
+_set_arg(NSInvocation *inv, int index, void *buffer)
+{
+  mframe_set_arg(inv->_argframe, &inv->_info[index+1], buffer);
+}
+
+static inline void *
+_arg_addr(NSInvocation *inv, int index)
+{
+  return mframe_arg_addr(inv->_argframe, &inv->_info[index+1]);
+}
+
+#endif
+
++ (id) allocWithZone: (NSZone*)aZone
+{
+  if (self == NSInvocation_abstract_class)
+    {
+      return NSAllocateObject(NSInvocation_concrete_class, 0, aZone);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, aZone);
+    }
+}
+
++ (void) initialize
+{
+  if (self == [NSInvocation class])
+    {
+      NSInvocation_abstract_class = self;
+#if defined(USE_LIBFFI)
+      NSInvocation_concrete_class = [GSFFIInvocation class];
+#elif defined(USE_FFCALL)
+      NSInvocation_concrete_class = [GSFFCallInvocation class];
+#else
+      NSInvocation_concrete_class = [GSFrameInvocation class];
+#endif
+    }
+}
+
 + (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)_signature
 {
-  return AUTORELEASE([[NSInvocation alloc]
+  return AUTORELEASE([[NSInvocation_concrete_class alloc]
     initWithMethodSignature: _signature]);
 }
 
@@ -53,19 +149,28 @@
 		{
 		  char	*str;
 
-		  mframe_get_arg(_argframe, &_info[i], &str);
+		  _get_arg(self, i-1, &str);
 		  NSZoneFree(NSDefaultMallocZone(), str);
 		}
 	      else if (*_info[i].type == _C_ID)
 		{
 		  id	obj;
 
-		  mframe_get_arg(_argframe, &_info[i], &obj);
+		  _get_arg(self, i-1, &obj);
 		  RELEASE(obj);
 		}
 	    }
 	}
     }
+#ifdef USE_LIBFFI
+  if (_cframe)
+    cifframe_free((cifframe_t *)_cframe);
+#else
+#ifdef USE_FFCALL
+  if (_cframe)
+    callframe_free((callframe_t *)_cframe);
+#endif
+#endif
   if (_argframe)
     {
       mframe_destroy_argframe([_sig methodType], _argframe);
@@ -100,8 +205,7 @@
     }
   else
     {
-      index++;	/* Allow offset for return type _info.	*/
-      mframe_get_arg(_argframe, &_info[index], buffer);
+      _get_arg(self, index, buffer);
     }		
 }
 
@@ -160,8 +264,8 @@
 	    {
 	      id	old;
 
-	      mframe_get_arg(_argframe, &_info[i], &old);
-	      mframe_set_arg(_argframe, &_info[i], buffer);
+	      _get_arg(self, index, &old);
+	      _set_arg(self, index, buffer);
 	      IF_NO_GC(RETAIN(*(id*)buffer));
 	      if (old != nil)
 		{
@@ -173,10 +277,10 @@
 	      char	*oldstr;
 	      char	*newstr = *(char**)buffer;
 
-	      mframe_get_arg(_argframe, &_info[i], &oldstr);
+	      _get_arg(self, index, &oldstr);
 	      if (newstr == 0)
 		{
-		  mframe_set_arg(_argframe, &_info[i], buffer);
+		  _set_arg(self, index, buffer);
 		}
 	      else
 		{
@@ -184,7 +288,7 @@
 
 		  tmp = NSZoneMalloc(NSDefaultMallocZone(), strlen(newstr)+1);
 		  strcpy(tmp, newstr);
-		  mframe_set_arg(_argframe, &_info[i], tmp);
+		  _set_arg(self, index, tmp);
 		}
 	      if (oldstr != 0)
 		{
@@ -194,7 +298,7 @@
 	}
       else
 	{
-	  mframe_set_arg(_argframe, &_info[i], buffer);
+	  _set_arg(self, index, buffer);
 	}
     }		
 }
@@ -270,7 +374,7 @@
 		{
 		  id	old;
 
-		  mframe_get_arg(_argframe, &_info[i], &old);
+		  _get_arg(self, i-1, &old);
 		  if (old != nil)
 		    {
 		      IF_NO_GC(RETAIN(old));
@@ -280,14 +384,14 @@
 		{
 		  char	*str;
 
-		  mframe_get_arg(_argframe, &_info[i], &str);
+		  _get_arg(self, i-1, &str);
 		  if (str != 0)
 		    {
 		      char	*tmp;
 
 		      tmp = NSZoneMalloc(NSDefaultMallocZone(), strlen(str)+1);
 		      strcpy(tmp, str);
-		      mframe_set_arg(_argframe, &_info[i], &tmp);
+		      _set_arg(self, i-1, &tmp);
 		    }
 		}
 	    }
@@ -329,9 +433,8 @@
   old_target = RETAIN(_target);
   [self setTarget: anObject];
 
-  mframe_set_arg(_argframe, &_info[1], &_target);
-
-  mframe_set_arg(_argframe, &_info[2], &_selector);
+  _set_arg(self, 0, &_target);
+  _set_arg(self, 1, &_selector);
 
   imp = method_get_imp(object_is_instance(_target) ?
 	      class_get_instance_method(
@@ -349,11 +452,20 @@
 
   stack_argsize = [_sig frameLength];
 
+#ifdef USE_LIBFFI
+  ffi_call(&((cifframe_t *)_cframe)->cif, (void(*)(void))imp, _retval,
+	   ((cifframe_t *)_cframe)->values);
+  if (_info[0].size)
+    {
+      cifframe_decode_return(_info[0].type, _retval);
+    }
+#else
   returned = __builtin_apply((void(*)(void))imp, _argframe, stack_argsize);
   if (_info[0].size)
     {
       mframe_decode_return(_info[0].type, _retval, returned);
     }
+#endif
   _validReturn = YES;
 }
 
@@ -402,17 +514,19 @@
       const char	*type = _info[i].type;
       void		*datum;
 
-      datum = mframe_arg_addr(_argframe, &_info[i]);
+      datum = _arg_addr(self, i-1);
 
       if (*type == _C_ID)
 	{
 	  [aCoder encodeObject: *(id*)datum];
 	}
+#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
 #if     MFRAME_STRUCT_BYREF
       else if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B)
         {
 	  [aCoder encodeValueOfObjCType: type at: *(void**)datum];
         }
+#endif
 #endif
       else
 	{
@@ -439,7 +553,10 @@
   [aCoder decodeValueOfObjCType: @encode(char*) at: &types];
   newSig = [NSMethodSignature signatureWithObjCTypes: types];
   NSZoneFree(NSDefaultMallocZone(), (void*)types);
-  self = [self initWithMethodSignature: newSig];
+
+  RELEASE(self);
+  self  = [NSInvocation invocationWithMethodSignature: newSig];
+  RETAIN(self);
  
   [aCoder decodeValueOfObjCType: @encode(id) at: &_target];
 
@@ -447,7 +564,8 @@
 
   for (i = 3; i <= _numArgs; i++)
     {
-      datum = mframe_arg_addr(_argframe, &_info[i]);
+      datum = _arg_addr(self, i-1);
+#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
 #if     MFRAME_STRUCT_BYREF
       {
         const char      *t = _info[i].type;
@@ -457,6 +575,7 @@
             datum = *(void**)datum;
           }
       }
+#endif
 #endif
       [aCoder decodeValueOfObjCType: _info[i].type at: datum];
     }
@@ -472,11 +591,143 @@
   return self;
 }
 
-
-
 @end
 
 @implementation NSInvocation (GNUstep)
+
+- (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+/*
+ *	This is the de_signated initialiser.
+ */
+- (id) initWithMethodSignature: (NSMethodSignature*)aSignature
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (id) initWithSelector: (SEL)aSelector
+{
+  return [self initWithArgframe: 0 selector: aSelector];
+}
+
+- (id) initWithTarget: anObject selector: (SEL)aSelector, ...
+{
+  va_list	ap;
+
+  self = [self initWithArgframe: 0 selector: aSelector];
+  if (self)
+    {
+      int	i;
+
+      [self setTarget: anObject];
+      va_start (ap, aSelector);
+      for (i = 3; i <= _numArgs; i++)
+	{
+	  const char	*type = _info[i].type;
+	  unsigned	size = _info[i].size;
+	  void		*datum;
+
+#ifdef USE_LIBFFI
+	  size = ((cifframe_t *)_cframe)->args[i-1]->size;
+#endif
+	  datum = _arg_addr(self, i-1);
+
+#define CASE_TYPE(_C,_T) case _C: *(_T*)datum = va_arg (ap, _T); break
+	  switch (*type)
+	    {
+	      case _C_ID:
+		*(id*)datum = va_arg (ap, id);
+		if (_argsRetained)
+		  {
+		    IF_NO_GC(RETAIN(*(id*)datum));
+		  }
+		break;
+	      case _C_CHARPTR:
+		*(char**)datum = va_arg (ap, char*);
+		if (_argsRetained)
+		  {
+		    char	*old = *(char**)datum;
+
+		    if (old != 0)
+		      {
+			char	*tmp;
+
+			tmp = NSZoneMalloc(NSDefaultMallocZone(),strlen(old)+1);
+			strcpy(tmp, old);
+			*(char**)datum = tmp;
+		      }
+		  }
+		break;
+	      CASE_TYPE(_C_CLASS, Class);
+	      CASE_TYPE(_C_SEL, SEL);
+	      CASE_TYPE(_C_LNG, long);
+	      CASE_TYPE(_C_ULNG, unsigned long);
+	      CASE_TYPE(_C_INT, int);
+	      CASE_TYPE(_C_UINT, unsigned int);
+	      case _C_SHT:
+		*(short*)datum = (short)va_arg(ap, int);
+		break;
+	      case _C_USHT:
+		*(unsigned short*)datum = (unsigned short)va_arg(ap, int);
+		break;
+	      case _C_CHR:
+		*(char*)datum = (char)va_arg(ap, int);
+		break;
+	      case _C_UCHR:
+		*(unsigned char*)datum = (unsigned char)va_arg(ap, int);
+		break;
+	      case _C_FLT:
+		*(float*)datum = (float)va_arg(ap, double);
+		break;
+	      CASE_TYPE(_C_DBL, double);
+	      CASE_TYPE(_C_PTR, void*);
+	      case _C_STRUCT_B:
+	      default:
+#if !defined(USE_LIBFFI) && !defined(USE_FFCALL)
+#if defined(sparc) || defined(powerpc)
+		/* FIXME: This only appears on sparc and ppc machines so far.
+		structures appear to be aligned on word boundaries. 
+		Hopefully there is a more general way to figure this out */
+		size = (size<sizeof(int))?4:size;
+#endif
+#endif
+	      NSLog(@"Unsafe handling of type of %d argument.", i-1);
+	      memcpy(datum, ap, size);
+	      {
+		struct {
+		  char	x[size];
+		} dummy;
+		dummy = va_arg(ap, typeof(dummy));
+	      }
+	      break;
+	    }
+	}
+    }
+  return self;
+}
+
+- (void*) returnFrame: (arglist_t)argFrame
+{
+  [self subclassResponsibility: _cmd];
+  return NULL;
+}
+@end
+
+@implementation NSInvocation (BackwardCompatibility)
+
+- (void) invokeWithObject: (id)obj
+{
+  [self invokeWithTarget: (id)obj];
+}
+
+@end
+
+@implementation GSFrameInvocation
 
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
 {
@@ -532,114 +783,8 @@
   return self;
 }
 
-- (id) initWithSelector: (SEL)aSelector
-{
-  return [self initWithArgframe: 0 selector: aSelector];
-}
-
-- (id) initWithTarget: anObject selector: (SEL)aSelector, ...
-{
-  va_list	ap;
-
-  self = [self initWithArgframe: 0 selector: aSelector];
-  if (self)
-    {
-      int	i;
-
-      [self setTarget: anObject];
-      va_start (ap, aSelector);
-      for (i = 3; i <= _numArgs; i++)
-	{
-	  const char	*type = _info[i].type;
-	  unsigned	size = _info[i].size;
-	  void		*datum;
-
-	  datum = mframe_arg_addr(_argframe, &_info[i]);
-
-#define CASE_TYPE(_C,_T) case _C: *(_T*)datum = va_arg (ap, _T); break
-	  switch (*type)
-	    {
-	      case _C_ID:
-		*(id*)datum = va_arg (ap, id);
-		if (_argsRetained)
-		  {
-		    IF_NO_GC(RETAIN(*(id*)datum));
-		  }
-		break;
-	      case _C_CHARPTR:
-		*(char**)datum = va_arg (ap, char*);
-		if (_argsRetained)
-		  {
-		    char	*old = *(char**)datum;
-
-		    if (old != 0)
-		      {
-			char	*tmp;
-
-			tmp = NSZoneMalloc(NSDefaultMallocZone(),strlen(old)+1);
-			strcpy(tmp, old);
-			*(char**)datum = tmp;
-		      }
-		  }
-		break;
-	      CASE_TYPE(_C_CLASS, Class);
-	      CASE_TYPE(_C_SEL, SEL);
-	      CASE_TYPE(_C_LNG, long);
-	      CASE_TYPE(_C_ULNG, unsigned long);
-	      CASE_TYPE(_C_INT, int);
-	      CASE_TYPE(_C_UINT, unsigned int);
-	      case _C_SHT:
-		*(short*)datum = (short)va_arg(ap, int);
-		break;
-	      case _C_USHT:
-		*(unsigned short*)datum = (unsigned short)va_arg(ap, int);
-		break;
-	      case _C_CHR:
-		*(char*)datum = (char)va_arg(ap, int);
-		break;
-	      case _C_UCHR:
-		*(unsigned char*)datum = (unsigned char)va_arg(ap, int);
-		break;
-	      case _C_FLT:
-		*(float*)datum = (float)va_arg(ap, double);
-		break;
-	      CASE_TYPE(_C_DBL, double);
-	      CASE_TYPE(_C_PTR, void*);
-	      case _C_STRUCT_B:
-	      default:
-#if defined(sparc) || defined(powerpc)
-		/* FIXME: This only appears on sparc and ppc machines so far.
-		structures appear to be aligned on word boundaries. 
-		Hopefully there is a more general way to figure this out */
-		size = (size<sizeof(int))?4:size;
-#endif
-	      NSLog(@"Unsafe handling of type of %d argument.", i-1);
-	      memcpy(datum, ap, size);
-	      {
-		struct {
-		  char	x[size];
-		} dummy;
-		dummy = va_arg(ap, typeof(dummy));
-	      }
-	      break;
-	    }
-	}
-    }
-  return self;
-}
-
 - (void*) returnFrame: (arglist_t)argFrame
 {
   return mframe_handle_return(_info[0].type, _retval, argFrame);
 }
 @end
-
-@implementation NSInvocation (BackwardCompatibility)
-
-- (void) invokeWithObject: (id)obj
-{
-  [self invokeWithTarget: (id)obj];
-}
-
-@end
-

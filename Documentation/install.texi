@@ -5,17 +5,129 @@
 @c set the vars GNUSTEP_BASE_VERSION and GNUSTEP_BASE_GCC_VERSION
 @include version.texi
 
-@ifset TEXT_ONLY
-This file documents the installation of the GNUstep Base Library,
-@samp{libgnustep-base}.  Copyright (C) 1993, 1994, 1996, 1997 Free Software 
-Foundation, Inc.  You may copy, distribute, and modify it freely as long
-as you preserve this copyright notice and permission notice.
-@chapter Installing @samp{libgnustep-base}
-@end ifset
+@node Top, Introduction, (dir), (dir)
 
-Read the file GNUstep-HOWTO for instructions on how to install the
-entire GNUstep package (including the base library).
-GNUstep-HOWTO comes with this distribution and also 
-is located at the same ftp sites as this library.
+@menu
+* Introduction::                
+* Configuration::               
+* Reading Command-Line Arguments::  
+* FFI Library::                 
+* Compilation::                 
+@end menu
+
+@node Introduction, Configuration, Top, Top
+@section Introduction
+
+If you are installing this package as part of the GNUstep core
+libraries, read the file GNUstep-HOWTO for more complete instructions on
+how to install the entire GNUstep package (including this library).
+GNUstep-HOWTO comes with the core distribution and also is located at the
+same ftp sites as this library.
+
+If you are instsalling the GNUstep libraries individually, make sure you
+have installed the GNUstep Makefile package (gstep-make) already. Most of
+the installation instructions for gstep-make also apply to this
+library. When you configure this library, make sure you use the same
+configuration options as with gstep-make. Some additional options to
+configure are described below.
+
+@node Configuration, Reading Command-Line Arguments, Introduction, Top
+@section Configuration
+
+Configuration is performed by running the @file{configure} program at a
+shell prompt. You may want to use some of the optional arguments to the
+@file{configure} program. Type @code{configure --help}
+for a list of these. It is not likely that you will need to use the
+@code{--prefix} option, since gstep-base will automatically install in
+the directory specified by the @code{GNUSTEP_SYSTEM_ROOT} environment
+variable (specified when you installed gstep-make).
+
+Many configuration options for the base library need to be specified
+when configuring the gstep-make package. In most cases, it is a good
+idea to specify the same configuration options when configuring both
+packages, just to make sure.
+
+Also make sure you've read the machine-specific instructions for your
+particular operating system and CPU. These instructions come with the
+core libraries and are also located at the GNUstep web site at
+@url{http://www.gnustep.org}.
+
+@menu
+* Reading Command-Line Arguments::  
+* FFI Library::                 
+@end menu
+
+@node Reading Command-Line Arguments, FFI Library, Configuration, Top
+@section Reading Command-Line Arguments
+
+There are two features that change how GNUstep gets access to 
+command-line arguments and environment variables (normally passed to
+the program in the @code{main()} function. These features are
+@code{--enable-pass-arguments} and the @code{--enable-fake-main}
+option(s). 
+
+The fake-main option @emph{secretly} renames the @code{main()} function
+and substitutes it's own function which stores the command line
+arguments before calling the real main.
+
+The pass-arguments option absolves GNUstep of any effort to get the
+command-line arguments and instead forces the developer to insert the
+line
+
+@example
+  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+@end example
+
+in the @code{main()} function of their program.
+
+Normally, the configure script will determine if a program
+can read process information directly from the system (for use by the
+class NSProcessInfo) and enable or disable the fake-main hack
+automatically, but if you find that configure is not doing this
+correctly, you can force the fake-main hack to be used, which will
+always work. Note that if the fake-main hack is enabled, you need to
+include the header file GSConfig.h in you main program -- this is done
+by default if you include NSObject.h or Foundation.h. If you want to
+avoid the whole idea of the fake-main hack, you can use the
+pass-arguments option. In this case you will be forced to call the
+NSProcessInfo initializeWithArguments method to pass the program
+arguments to NSProcessInfo (This would be done automatically if you use
+the NSApplicationMain function in a gui application).
+
+@node FFI Library, Compilation, Reading Command-Line Arguments, Top
+@section FFI Library
+
+GNUstep's NSInvocations and Distributed Objects code involves detailed
+manipulation of function (method) calls, which does not work on all
+machine architectures. A more robust and portable solution is to use a
+library that implements a Foreign-Function Interface (FFI), such as the
+ffcall libraries. If you use a non-x86 machine, you should seriously
+consider enabling this option using @code{--enable-ffcall}.
+
+For this to work, you need to have the ffcall libraries, which you can
+get from @url{ftp://ftp.santafe.edu/pub/gnu/} or
+@url{http://clisp.cons.org/~haible/}. You also need to have a special
+version of the Objective-C library (as of gcc 2.95.x the required hooks
+are not in the standard library). You can get this library from
+@url{ftp://www.gnustep.org/pub/gnustep/contrib/libobjc-hh.tar.gz} or
+patch the standard library with the patch at
+@url{ftp://www.gnustep.org/pub/gnustep/contrib/libobjc-ffi.patch}.
+
+Make sure you specify this option when configuring gstep-make also.
+
+@node Compilation,  , FFI Library, Top
+@section Compilation
+
+To compile this library, type make. After this is complete, type make
+install (make sure you are the root user). Some additional options you
+can use with make are @samp{debug=yes} to make a debugging version of
+the library and @samp{shared=no} to make a static version of the
+library. See the gstep-make package for more information on these options.
+
 
 @bye
+
+
+
+
+
