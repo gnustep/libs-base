@@ -1132,6 +1132,10 @@ static Class NSDataMallocClass;
   NSUnarchiverObjectInfo	*info;
 
   info = [objDict objectForKey: className];
+  if (info == nil)
+    {
+      return NSNotFound;
+    }
   return info->version;
 }
 

@@ -7,6 +7,8 @@
 	* Tools/gdomap.c: many changes ... several fixes to work on mingw
 	rewrite some clumsy inefficient code, make variables and functions
 	local. etc.
+	* Source/NSUnarchiver.m: ([versionForClassNameL]) return NSNotFound
+	if the class name was not present.
 
 Mon Feb 25 15:26:38 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 
