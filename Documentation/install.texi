@@ -18,7 +18,7 @@ To compile and install @samp{libobjects}:
 Here is a quick-and-dirty example of installation commands:
 
 @example
-./configure --enable-shared --prefix=/usr/local
+./configure --prefix=/usr/local
 make
 make install
 @end example
