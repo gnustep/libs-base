@@ -1238,8 +1238,25 @@ static NSFileManager* defaultManager = nil;
   return allOk;
 }
 
-// Discovering directory contents
+/**
+ * Returns an array of path components suitably modified for display
+ * to the end user.  This modification may render the returned strings
+ * unusable for path manipulation, so you should work with two arrays ...
+ * one returned by this method (for display tio the user), and a
+ * parallel one returned by [NSString-pathComponents] (for path
+ * manipulation).
+ */
+- (NSArray*) componentsToDisplayForPath: (NSString*)path
+{
+  return [path pathComponents];
+}
 
+/**
+ * Returns an array of the contents of the specified directory.<br />
+ * The listing does <strong>not</strong> recursively list subdirectories.<br />
+ * The special files '.' and '..' are not listed.<br />
+ * Returns nil if path is not a directory (or it can't be read for some reason).
+ */
 - (NSArray*) directoryContentsAtPath: (NSString*)path
 {
   NSDirectoryEnumerator	*direnum;
@@ -1275,6 +1292,20 @@ static NSFileManager* defaultManager = nil;
   RELEASE(direnum);
 
   return content;
+}
+
+/**
+ * Returns the name of the file or directory at path.  Converts it into
+ * a format for display to an end user.  This may render it unusable as
+ * part of a file/path name.<br />
+ * For instance, if a user has elected not to see file extensions, this
+ * method may return filenames with the extension removed.<br />
+ * The default operation is to return the result of calling
+ * [NSString-lastPathComponent] on the path.
+ */
+- (NSString*) displayNameAtPath: (NSString*)path
+{
+  return [path lastPathComponent];
 }
 
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path

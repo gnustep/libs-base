@@ -47,65 +47,51 @@
   NSString	*_lastError;
 }
 
-// Getting the default manager
 + (NSFileManager*) defaultManager;
 
-// Directory operations
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path;
+- (BOOL) changeFileAttributes: (NSDictionary*)attributes
+		       atPath: (NSString*)path;
+- (NSArray*) componentsToDisplayForPath: (NSString*)path;
+- (NSData*) contentsAtPath: (NSString*)path;
+- (BOOL) contentsEqualAtPath: (NSString*)path1
+		     andPath: (NSString*)path2;
+- (BOOL) copyPath: (NSString*)source
+	   toPath: (NSString*)destination
+	  handler: (id)handler;
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes;
+- (BOOL) createFileAtPath: (NSString*)path
+		 contents: (NSData*)contents
+	       attributes: (NSDictionary*)attributes;
+- (BOOL) createSymbolicLinkAtPath: (NSString*)path
+		      pathContent: (NSString*)otherPath;
 - (NSString*) currentDirectoryPath;
-
-// File operations
-- (BOOL) copyPath: (NSString*)source
+- (NSArray*) directoryContentsAtPath: (NSString*)path;
+- (NSString*) displayNameAtPath: (NSString*)path;
+- (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
+- (NSDictionary*) fileAttributesAtPath: (NSString*)path
+			  traverseLink: (BOOL)flag;
+- (BOOL) fileExistsAtPath: (NSString*)path;
+- (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
+- (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
+- (const char*) fileSystemRepresentationWithPath: (NSString*)path;
+- (BOOL) isExecutableFileAtPath: (NSString*)path;
+- (BOOL) isDeletableFileAtPath: (NSString*)path;
+- (BOOL) isReadableFileAtPath: (NSString*)path;
+- (BOOL) isWritableFileAtPath: (NSString*)path;
+- (BOOL) linkPath: (NSString*)source
 	   toPath: (NSString*)destination
 	  handler: (id)handler;
 - (BOOL) movePath: (NSString*)source
 	   toPath: (NSString*)destination 
 	  handler: (id)handler;
-- (BOOL) linkPath: (NSString*)source
-	   toPath: (NSString*)destination
-	  handler: (id)handler;
+- (NSString*) pathContentOfSymbolicLinkAtPath: (NSString*)path;
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: (id)handler;
-- (BOOL) createFileAtPath: (NSString*)path
-		 contents: (NSData*)contents
-	       attributes: (NSDictionary*)attributes;
-
-// Getting and comparing file contents	
-- (NSData*) contentsAtPath: (NSString*)path;
-- (BOOL) contentsEqualAtPath: (NSString*)path1
-		     andPath: (NSString*)path2;
-
-// Detemining access to files
-- (BOOL) fileExistsAtPath: (NSString*)path;
-- (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
-- (BOOL) isReadableFileAtPath: (NSString*)path;
-- (BOOL) isWritableFileAtPath: (NSString*)path;
-- (BOOL) isExecutableFileAtPath: (NSString*)path;
-- (BOOL) isDeletableFileAtPath: (NSString*)path;
-
-// Getting and setting attributes
-- (NSDictionary*) fileAttributesAtPath: (NSString*)path
-			  traverseLink: (BOOL)flag;
-- (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
-- (BOOL) changeFileAttributes: (NSDictionary*)attributes
-		       atPath: (NSString*)path;
-
-// Discovering directory contents
-- (NSArray*) directoryContentsAtPath: (NSString*)path;
-- (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
-- (NSArray*) subpathsAtPath: (NSString*)path;
-
-// Symbolic-link operations
-- (BOOL) createSymbolicLinkAtPath: (NSString*)path
-		      pathContent: (NSString*)otherPath;
-- (NSString*) pathContentOfSymbolicLinkAtPath: (NSString*)path;
-
-// Converting file-system representations
-- (const char*) fileSystemRepresentationWithPath: (NSString*)path;
 - (NSString*) stringWithFileSystemRepresentation: (const char*)string
 					  length: (unsigned int)len;
+- (NSArray*) subpathsAtPath: (NSString*)path;
 
 @end /* NSFileManager */
 
@@ -132,17 +118,13 @@
   } _flags;
 }
 
-// Initializing
 - (id) initWithDirectoryPath: (NSString*)path 
    recurseIntoSubdirectories: (BOOL)recurse
               followSymlinks: (BOOL)follow
                 justContents: (BOOL)justContents;
 
-// Getting attributes
 - (NSDictionary*) directoryAttributes;
 - (NSDictionary*) fileAttributes;
-
-// Skipping subdirectories
 - (void) skipDescendents;
 
 @end /* NSDirectoryEnumerator */
