@@ -391,6 +391,13 @@ CPPFLAGS="$CPPFLAGS -x objective-c"
 if test x"$ac_cv_objc_threaded" != x""; then
   LIBS="$LIBS $ac_cv_objc_threaded"
 fi
+extra_LIBS=""
+case "${target_os}" in
+  solaris*)
+	extra_LIBS="-lposix4"
+	;;
+esac
+LIBS="$LIBS $extra_LIBS"
 AC_MSG_CHECKING(if +load method is executed before main)
 AC_CACHE_VAL(objc_load_method_worked,
   AC_TRY_RUN([#include "$srcdir/config/config.loadtest.m"],
