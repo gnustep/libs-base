@@ -30,7 +30,25 @@
 
 @implementation KeyEnumerator
 
-/* xxx What should be here? */
+- initWithCollection: coll
+{
+  collection = [coll retain];
+  enum_state = [coll newEnumState];
+  return self;
+}
+
+- nextObject
+{
+  id k;
+  [collection nextObjectAndKey: &k withEnumState: &enum_state];
+  return k;
+}
+
+- (void) dealloc
+{
+  [collection freeEnumState: &enum_state];
+  [collection release];
+}
 
 @end
 
