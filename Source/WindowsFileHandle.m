@@ -43,11 +43,14 @@
 #include <fcntl.h>
 
 #include <sys/file.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include <io.h>
+#include <stdio.h>
 #include <errno.h>
 
 // Maximum data in single I/O operation
@@ -170,7 +173,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       [self setNonBlocking: wasNonBlocking];
       if (closeOnDealloc == YES)
 	{
-	  close(descriptor);
+	  if (isStandardFile)
+	    {
+	      (void)_close(descriptor);
+	    }
+	  else
+	    {
+	      (void)closesocket(descriptor);
+	    }
 	  descriptor = -1;
 	}
     }
@@ -326,7 +336,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       NSLog(@"unable to bind to port %s:%d - %s",
 	inet_ntoa(sin.sin_addr),
 	GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
-      (void) close(net);
+      (void) closesocket(net);
       [self release];
       return nil;
     }
@@ -334,7 +344,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (listen(net, 5) < 0)
     {
       NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
-      (void) close(net);
+      (void) closesocket(net);
       [self release];
       return nil;
     }
@@ -342,7 +352,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
     {
       NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
-      (void) close(net);
+      (void) closesocket(net);
       [self release];
       return nil;
     }
@@ -360,7 +370,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id) initForReadingAtPath: (NSString*)path
 {
-  int	d = open([path fileSystemRepresentation], O_RDONLY|O_BINARY);
+  int	d = _open([path fileSystemRepresentation], O_RDONLY|O_BINARY);
 
   if (d < 0)
     {
@@ -378,7 +388,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id) initForWritingAtPath: (NSString*)path
 {
-  int	d = open([path fileSystemRepresentation], O_WRONLY|O_BINARY);
+  int	d = _open([path fileSystemRepresentation], O_WRONLY|O_BINARY);
 
   if (d < 0)
     {
@@ -396,7 +406,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id) initForUpdatingAtPath: (NSString*)path
 {
-  int	d = open([path fileSystemRepresentation], O_RDWR|O_BINARY);
+  int	d = _open([path fileSystemRepresentation], O_RDWR|O_BINARY);
 
   if (d < 0)
     {
@@ -465,47 +475,48 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id) initWithNullDevice
 {
-  self = [self initWithFileDescriptor: open("/dev/null", O_RDWR|O_BINARY)
-		       closeOnDealloc: YES];
-  if (self)
-    {
-      isNullDevice = YES;
-    }
+  isNullDevice = YES;
+  isStandardFile = YES;
+  descriptor = -1;
   return self;
 }
 
 - (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
 {
-  unsigned long dummy;
   self = [super init];
   if (self)
     {
-#if 0
-      struct stat sbuf;
+      struct _stat sbuf;
 
-// FIXME
-      if (fstat(desc, &sbuf) < 0)
+      if (_fstat(desc, &sbuf) < 0)
 	{
-          NSLog(@"unable to get status of descriptor - %s",
-	    GSLastErrorStr(errno));
-	  [self release];
-	  return nil;
+	  isStandardFile = NO;
 	}
-      if (S_ISREG(sbuf.st_mode))
-        isStandardFile = YES;
       else
-        isStandardFile = NO;
-#else
-      isStandardFile = NO;
-#endif
+	{
+	  if (S_ISREG(sbuf.st_mode))
+	    isStandardFile = YES;
+	  else
+	    isStandardFile = NO;
+	}
 
-      dummy = 0;
-      if (ioctlsocket(desc, FIONBIO, &dummy) < 0)
-        {
-          NSLog(@"unable to get blocking mode - %s", GSLastErrorStr(errno));
+      if (isStandardFile == NO)
+	{
+	  unsigned long dummy = 0;
+
+	  /*
+	   * This is probably a socket ... try
+	   * using a socket specific call and see if that fails.
+	   */
+	  if (ioctlsocket(desc, FIONBIO, &dummy) < 0)
+	    {
+	      NSLog(@"unable to get status/type of descriptor - %s",
+		GSLastErrorStr(errno));
+	      [self release];
+	      return nil;
+	    }
 	  wasNonBlocking = (dummy == 0) ? NO : YES;
-	  ioctlsocket(desc, FIONBIO, &dummy);	// Reset
-        }
+	}
 
       isNonBlocking = wasNonBlocking;
       descriptor = desc;
@@ -522,12 +533,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id) initWithNativeHandle: (void*)hdl
 {
-  return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: NO];
+  return [self initWithFileDescriptor: _open_osfhandle(hdl, 0)
+		       closeOnDealloc: NO];
 }
 
 - (id) initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
-  return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: flag];
+  return [self initWithFileDescriptor: _open_osfhandle(hdl, 0)
+		       closeOnDealloc: flag];
 }
 
 - (void) checkAccept
@@ -632,7 +645,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void*) nativeHandle
 {
-  return (void*)0;
+  return _get_osfhandle(descriptor);
 }
 
 // Synchronous I/O operations
@@ -864,7 +877,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   off_t	result = -1;
 
   if (isStandardFile && descriptor >= 0)
-    result = lseek(descriptor, 0, SEEK_CUR);
+    result = _lseek(descriptor, 0, SEEK_CUR);
   if (result < 0)
     {
       [NSException raise: NSFileHandleOperationException
@@ -879,7 +892,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   off_t	result = -1;
 
   if (isStandardFile && descriptor >= 0)
-    result = lseek(descriptor, 0, SEEK_END);
+    {
+      result = _lseek(descriptor, 0, SEEK_END);
+    }
   if (result < 0)
     {
       [NSException raise: NSFileHandleOperationException
@@ -894,7 +909,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   off_t	result = -1;
 
   if (isStandardFile && descriptor >= 0)
-    result = lseek(descriptor, (off_t)pos, SEEK_SET);
+    result = _lseek(descriptor, (off_t)pos, SEEK_SET);
   if (result < 0)
     {
       [NSException raise: NSFileHandleOperationException
@@ -916,7 +931,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self ignoreWriteDescriptor];
 
   [self setNonBlocking: wasNonBlocking];
-  (void)close(descriptor);
+  if (isStandardFile)
+    {
+      (void)_close(descriptor);
+    }
+  else
+    {
+      (void)closesocket(descriptor);
+    }
   descriptor = -1;
   acceptOK = NO;
   connectOK = NO;
@@ -951,7 +973,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void) truncateFileAtOffset: (unsigned long long)pos
 {
-  [self seekToFileOffset: pos];
+  _chsize(descriptor, pos);
 }
 
 - (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes

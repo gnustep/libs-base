@@ -7,6 +7,8 @@
 	not automatically flushed!
 	* Source/GSWindowsFileHandle.m: watch for exceptional conditions
 	so we can handle socket connection failures in mingw32.
+	Added code to try to cope with standard files properly, not just
+	network sockets.
 	* Source/GSTcpPort.m: ditto.
 	* Source/Unicode.m: GSToUnicode(), GSFromUnicode(), if terminate
 	option is specified, always produce output with a nul terminator
