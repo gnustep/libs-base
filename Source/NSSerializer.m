@@ -37,6 +37,7 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSValue.h>
 
 #include "GSPrivate.h"
 
@@ -82,6 +83,8 @@
 #define ST_DICT		5
 #define ST_MDICT	6
 #define ST_DATA		7
+#define ST_DATE		8
+#define ST_NUMBER	9
 
 static char	st_xref = (char)ST_XREF;
 static char	st_cstring = (char)ST_CSTRING;
@@ -91,6 +94,8 @@ static char	st_marray = (char)ST_MARRAY;
 static char	st_dict = (char)ST_DICT;
 static char	st_mdict = (char)ST_MDICT;
 static char	st_data = (char)ST_DATA;
+static char	st_date = (char)ST_DATE;
+static char	st_number = (char)ST_NUMBER;
 
 
 
@@ -100,11 +105,13 @@ static char	st_data = (char)ST_DATA;
 static Class	ArrayClass = 0;
 static Class	MutableArrayClass = 0;
 static Class	DataClass = 0;
+static Class	DateClass = 0;
 static Class	DictionaryClass = 0;
 static Class	MutableDictionaryClass = 0;
 static Class	CStringClass = 0;
 static Class	MStringClass = 0;
 static Class	StringClass = 0;
+static Class	NumberClass = 0;
 
 typedef struct {
   @defs(GSString)
@@ -296,6 +303,24 @@ serializeToInfo(id object, _NSSerializerInfo* info)
       (*info->serImp)(info->data, serSel, [object length]);
       (*info->appImp)(info->data, appSel, [object bytes], [object length]);
     }
+  else if (GSObjCIsKindOf(c, DateClass))
+    {
+      NSTimeInterval	ti = [object timeIntervalSinceReferenceDate];
+
+      (*info->appImp)(info->data, appSel, &st_date, 1);
+      [info->data serializeDataAt: &ti
+		       ofObjCType: @encode(NSTimeInterval)
+			  context: nil];
+    }
+  else if (GSObjCIsKindOf(c, NumberClass))
+    {
+      double	d = [object doubleValue];
+
+      (*info->appImp)(info->data, appSel, &st_number, 1);
+      [info->data serializeDataAt: &d
+		       ofObjCType: @encode(double)
+			  context: nil];
+    }
   else
     {
       [NSException raise: NSInvalidArgumentException
@@ -322,6 +347,8 @@ static BOOL	shouldBeCompact = NO;
       ArrayClass = [NSArray class];
       MutableArrayClass = [NSMutableArray class];
       DataClass = [NSData class];
+      DateClass = [NSDate class];
+      NumberClass = [NSNumber class];
       DictionaryClass = [NSDictionary class];
       MutableDictionaryClass = [NSMutableDictionary class];
       StringClass = [NSString class];
@@ -647,6 +674,28 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	      d = (*dInitImp)(d, dInitSel, 0, 0);
 	    }
 	  return d;
+	}
+
+      case ST_DATE:
+	{
+	  NSTimeInterval	ti;
+
+	  [info->data deserializeDataAt: &ti
+			     ofObjCType: @encode(NSTimeInterval)
+			       atCursor: info->cursor
+				context: nil];
+	  return [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: ti];
+	}
+
+      case ST_NUMBER:
+	{
+	  double	d;
+
+	  [info->data deserializeDataAt: &d
+			     ofObjCType: @encode(double)
+			       atCursor: info->cursor
+				context: nil];
+	  return [[NSNumber alloc] initWithDouble: d];
 	}
 
       default:
