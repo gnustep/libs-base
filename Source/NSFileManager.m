@@ -842,7 +842,7 @@ static NSFileManager* defaultManager = nil;
 	{
 	  if (GetCurrentDirectory(len, wpath)>0)
 	    {
-	      currentDilr = [self openStepPathFromLocal:
+	      currentDir = [self openStepPathFromLocal:
 		[NSString stringWithCharacters: wpath length: len]];
 	    }
 	  free(wpath);
