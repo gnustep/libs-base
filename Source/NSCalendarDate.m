@@ -524,7 +524,6 @@
   const char *f = [format cString];
   int lf = strlen(f);
   BOOL mtag = NO, dtag = NO, ycent = NO;
-  char ms[80] = "", ds[80] = "";
   int yd = 0, md = 0, dd = 0, hd = 0, mnd = 0, sd = 0;
   int i, j, k;
 
@@ -592,8 +591,12 @@
 	    case 'm':
 	      ++i;
 	      if (mtag)
-		// +++ Translate to locale character string
-		k = sprintf(&(buf[j]), "");
+		{
+		  // +++ Translate to locale character string
+		  /* was: k = sprintf(&(buf[j]), ""); */
+		  buf[j] = '\0';
+		  k = 0;
+		}
 	      else
 		k = sprintf(&(buf[j]), "%02d", md);
 	      j += k;
@@ -608,8 +611,12 @@
 	    case 'w':
 	      ++i;
 	      if (dtag)
-		// +++ Translate to locale character string
-		k = sprintf(&(buf[j]), "");
+		{
+		  // +++ Translate to locale character string
+		  /* Was: k = sprintf(&(buf[j]), ""); */
+		  buf[j] = '\0';
+		  k = 0;
+		}
 	      else
 		k = sprintf(&(buf[j]), "%02d", dd);
 	      j += k;
