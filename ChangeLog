@@ -1,5 +1,7 @@
 Mon Sep  2 10:00:05 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
+	* Version (SUBMINOR_VERSION): Version 0.2.7.
+
 	* src/NSString.m ([NSString -substringFromRange:]): Fix bug in
  	references to string length.
 
@@ -7,8 +9,6 @@ Mon Sep  2 10:00:05 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* src/NSCharacterSet.m ([NSCharacterSet +_bitmapForSet:number:]):
  	Add an abort() after raising the exception, to avoid gcc warning.
-
-	* Version (SUBMINOR_VERSION): Version 0.2.7.
 
 	* Makefile.in (clean): Fix dependancies so we actually clean-top,
  	not mostlyclean-top.
