@@ -29,6 +29,7 @@
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSLock.h>
 
+@class	NSNotification;
 @class	NSString;
 
 typedef enum {
