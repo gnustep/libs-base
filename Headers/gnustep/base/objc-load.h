@@ -42,6 +42,6 @@ extern long objc_unload_modules(
 
 extern NSString *objc_get_symbol_path(
 	Class theClass,
-	Category *theCategory);
+	struct objc_category *theCategory);
 
 #endif /* __objc_load_h_INCLUDE */

@@ -900,7 +900,8 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 #if NeXT_RUNTIME
   /* This isn't what we want, unless the remote machine has
      the same architecture as us. */
-  t = [_connection typeForSelector:selector remoteTarget:target];
+  const char *t;
+  t = [_connection typeForSelector: selector remoteTarget: _handle];
   return t;
 #else /* NeXT_runtime */
   return sel_get_type (selector);

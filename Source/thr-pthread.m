@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.  */
    covered by the GNU General Public License.  */
 
 #include <pthread.h>
+#include <stdarg.h>
 #include <base/objc-gnu2next.h>
 #include <base/thr-mach.h>
 
@@ -85,6 +86,9 @@ struct __objc_thread_start_state
   id object;
   id argument;
 };
+
+objc_thread_t
+__objc_thread_detach(void (*func)(void *arg), void *arg);
 
 static volatile void
 __objc_thread_detach_function(struct __objc_thread_start_state *istate)
