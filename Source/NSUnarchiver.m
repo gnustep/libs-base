@@ -309,9 +309,10 @@ mapClassName(NSUnarchiverObjectInfo *info)
   NSUnarchiver	*unarchiver;
   id		obj;
 
-  unarchiver = [[self alloc] initForReadingWithData: anObject];
+  unarchiver = [self allocWithZone: NSDefaultMallocZone()];
   NS_DURING
     {
+      unarchiver = [unarchiver initForReadingWithData: anObject];
       obj = [unarchiver decodeObject];
     }
   NS_HANDLER
