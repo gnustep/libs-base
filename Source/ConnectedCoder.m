@@ -302,3 +302,22 @@ exc_return_null(arglist_t f)
 }
 
 @end
+
+
+@implementation Object (ConnectedCoderCallbacks)
+
+/* By default, Object's encode themselves as proxies across Connection's */
+- classForConnectedCoder:aRmc
+{
+  return [[aRmc connection] proxyClass];
+}
+
+/* But if any object overrides the above method to return [Object class]
+   instead, the Object implementation of the coding method will actually
+   encode the object itself, not a proxy */
++ (void) encodeObject: anObject withConnectedCoder: aRmc
+{
+  [anObject encodeWithCoder:aRmc];
+}
+
+@end
