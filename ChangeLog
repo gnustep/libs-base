@@ -1,3 +1,19 @@
+2004-05-06  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h/m
+	(GSAllocateMutexAt): New function.
+	(_GSObjCRuntimeInitializer): Define local support class.
+
+	* Headers/Additions/GNUstepBase/objc-gnu2next.h: Fixed minor
+	whitespace issues.
+	(objc_mutex_t, objc_mutex_allocate, objc_mutex_deallocate)
+	(objc_mutex_lock, objc_mutex_unlock, objc_mutex_trylock): Declare
+	for the NeXT runtime.
+	* Source/Additions/GSNextRuntime.m 
+	(objc_mutex_allocate, objc_mutex_deallocate)
+	(objc_mutex_lock, objc_mutex_unlock, objc_mutex_trylock):
+	Implement for NeXT runtime.
+	
 2004-05-06 Mateu Batle
 
 	* Tools/gdomap.c: mingw fixes.
