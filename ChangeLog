@@ -1,3 +1,9 @@
+2003-11-09  Frederic De Jaeger  <dejaeger@free.fr>
+
+	* Source/GSFileHandle.m ([GSFileHandle
+	-initAsClientInBackgroundAtAddress:service:protocol:forModes:]):
+	the boolean 'beenHere' must be declared static.  Fixing it.
+
 2003-11-06  David Ayers  <d.ayers@inode.at>
 
 	* Source/GSPrivate.h (GS_REPLACE_CONSTANT_STRING): New macro.
