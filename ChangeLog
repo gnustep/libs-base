@@ -1,3 +1,9 @@
+2000-11-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m ([NSCalendarDate -initWithString:
+	calendarFormat:locale:]): try getting timezone by name before
+	attempting by abbreviation - thus preserving exact name isf possible.
+
 2000-11-03  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSCalendarDate.m ([NSCalendarDate -initWithString:
