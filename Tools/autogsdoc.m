@@ -277,8 +277,8 @@
   </section>
 </chapter>
 <back>
+  <index type="title" scope="project" />
   <index type="class" scope="project" />
-  <index type="method" scope="project" />
 </back>
    */
 

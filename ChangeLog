@@ -1,10 +1,11 @@
 2001-12-18  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Tools/gsdoc-0_6_7.dtd: add scope to index element
+	* Tools/gsdoc-0_6_7.dtd: added 'scope' to index element and
+	added a 'title' type to list files in a project.
 	* Tools/AGSHtml.h:
 	* Tools/AGSHtml.m: Output tidyups and general format improvements.
 	Add links to other documents in project.  Add support for 'index'
-	element with bioth file and project scope.
+	element with both file and project scope.
 	* Tools/autogsdoc.m: Clean up a little and handle gsdoc files
 	listed as source files better .... now looks for them in the
 	source directory.

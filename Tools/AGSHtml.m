@@ -761,9 +761,10 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      dict = [projectRefs refs];
 	    }
-	  
+
 	  dict = [dict objectForKey: type];
-	  if ([dict count] > 0)
+	  if ([dict count] > 1
+	    || ([dict count] > 0 && [type isEqual: @"title"] == NO))
 	    {
 	      NSArray	*a = [dict allKeys];
 	      unsigned	c = [a count];
@@ -805,6 +806,23 @@ static NSMutableSet	*textNodes = nil;
 		    {
 		      NSString	*ref = [a objectAtIndex: i];
 		      NSString	*file = [dict objectForKey: ref];
+
+		      /*
+		       * Special case ... title listings are done in reverse
+		       * order, with the name of the file being the unique key
+		       * and the value being the title string.
+		       */
+		      if ([type isEqual: @"title"] == YES)
+			{
+			  NSString	*tmp = ref;
+
+			  ref = file;
+			  file = tmp;
+			  if ([file isEqual: base] == YES)
+			    {
+			      continue;	// Don't list current file.
+			    }
+			}
 
 		      [buf appendString: indent];
 		      [buf appendFormat:

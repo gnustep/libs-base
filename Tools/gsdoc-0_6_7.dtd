@@ -485,11 +485,18 @@
 <!-- Table of contents. -->
 <!ELEMENT contents EMPTY>
 
-<!-- Index  ... generates an index of the specified type of elements. -->
+<!-- Index  ... generates an index of the specified type of elements.
+  'scope' determines whether the index is generated for the current file
+  or for the whole of the current project ... if the document is
+  processed in a standalone manner, the scope if always project.
+  'type' determines the type of entry listed in the index.  The 'title'
+  type really only makes sense for a project scope index as it produces
+  a list of the files in the project (by title).
+-->
 <!ELEMENT index EMPTY>
 <!ATTLIST index
-  type (class | protocol | method | ivariable | function | type | macro | variable | constant | label) "label"
-  scope (file | project) "file"
+  type (class | protocol | method | ivariable | function | type | macro | variable | constant | label | title) "label"
+  scope (title | project) "file"
 >
 
 
