@@ -1,3 +1,10 @@
+2002-03-07  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
+
+	* Source/NSRunLoop.m ([NSRunLoop -limitDateForMode:]): 
+	added a _checkPerformes: call to solve minor issue.
+	(performers would only be called after an event was received)
+	(credits to Alexander Malmberg)
+
 2002-03-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/Makefile.posramble: store config.h in system specific subdir.
