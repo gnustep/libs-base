@@ -233,7 +233,8 @@
  * make use of the objects stored in the 'C' array.<br />
  * When this code is called the unsigned integer '__count' will contain the
  * number of objects unpacked, and the pointer '__objects' will point to
- * the unpacked objects.
+ * the unpacked objects, ie. firstObject followed by the vararg arguments
+ * up to (but not including) the first nil.
  * </p>
  */
 #define GS_USEIDLIST(firstObject, code...) ({\
@@ -245,7 +246,10 @@
   va_start(__ap, firstObject); \
   while (__count < __max) \
     { \
-      __objects[__count] = va_arg(__ap, id); \
+      if (__count) \
+	__objects[__count] = va_arg(__ap, id); \
+      else \
+	__objects[__count] = firstObject; \
       if (__objects[__count] == nil) \
 	{ \
 	  break; \
@@ -266,7 +270,8 @@
       unsigned int	__tmp; \
       __objects = (id*)objc_malloc(__count*sizeof(id)); \
       va_start(__ap, firstObject); \
-      for (__tmp = 0; __tmp < __count; __tmp++) \
+      __objects[0] = firstObject; \
+      for (__tmp = 1; __tmp < __count; __tmp++) \
 	{ \
 	  __objects[__tmp] = va_arg(__ap, id); \
 	} \
