@@ -94,6 +94,8 @@
  * Only copies index values present in aRange and copies them in order.<br />
  * Returns the number of index values placed in aVuffer.<br />
  * Modifies aRange to start after the last index value copied.<br />
+ * If aRange is a null pointer, this method attempts to get <em>all</em>
+ * index values from the set (and of course no range can be returned in it).
  */
 - (unsigned int) getIndexes: (unsigned int*)aBuffer
 		   maxCount: (unsigned int)aCount

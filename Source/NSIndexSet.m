@@ -280,14 +280,20 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   unsigned	pos;
   unsigned	i = 0;
   NSRange	r;
+  NSRange	fullRange;
 
-  if (aBuffer == 0 || aRange == 0)
+  if (aBuffer == 0)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@-%@]: nul pointer argument",
         NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  if (NSNotFound - aRange->length < aRange->location)
+  if (aRange == 0)
+    {
+      fullRange = (NSRange){0, NSNotFound};
+      aRange = &fullRange;
+    }
+  else if (NSNotFound - aRange->length < aRange->location)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@-%@]: Bad range",
