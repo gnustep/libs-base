@@ -253,6 +253,13 @@ static BOOL GSEncodingSupported(NSStringEncoding enc)
 	  encodingTable[enc]->iconv = UNICODE_ENC;
 	  encodingTable[enc]->supported = 1;
 	}
+      else if (encodingTable[enc]->iconv[0] == 0)
+        {
+	  /* explicitly check for empty encoding name since some systems
+	   * have buggy iconv_open() code which succeeds on an empty name.
+	   */
+	  encodingTable[enc]->supported = -1;
+	}
       else
 	{
 	  iconv_t	c;
@@ -1067,6 +1074,9 @@ tables:
 	  iconv_t	cd;
 	  const char	*estr = iconv_stringforencoding(enc);
 
+	  /* explicitly check for empty encoding name since some systems
+	   * have buggy iconv_open() code which succeeds on an empty name.
+	   */
 	  if (estr == 0)
 	    {
 	      NSLog(@"No iconv for encoding x%02x", enc);
@@ -1576,6 +1586,9 @@ tables:
 	  size_t	rval;
 	  const char	*estr = iconv_stringforencoding(enc);
 
+	  /* explicitly check for empty encoding name since some systems
+	   * have buggy iconv_open() code which succeeds on an empty name.
+	   */
 	  if (estr == 0)
 	    {
 	      NSLog(@"No iconv for encoding x%02x", enc);
