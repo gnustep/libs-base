@@ -2721,7 +2721,7 @@ static void callEncoder (DOContext *ctxt)
 	       */
 	      if ([runLoop runMode: NSConnectionReplyMode
 			beforeDate: timeout_date] == NO
-		|| [timeout_data timeIntervalSinceNow] <= 0.0)
+		|| [timeout_date timeIntervalSinceNow] <= 0.0)
 		{
 		  M_LOCK(_queueGate); isLocked = YES;
 		  node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
