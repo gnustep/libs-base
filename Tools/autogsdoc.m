@@ -323,6 +323,7 @@
 #include "AGSIndex.h"
 #include "AGSHtml.h"
 
+
 int
 main(int argc, char **argv, char **env)
 {
@@ -340,8 +341,8 @@ main(int argc, char **argv, char **env)
   NSString		*refsFile;
   NSString		*systemProjects;
   NSString		*localProjects;
-  AGSIndex		*prjRefs;
-  AGSIndex		*indexer;
+  AGSIndex		*projectRefs;
+  AGSIndex		*globalRefs;
   AGSParser		*parser;
   AGSOutput		*output;
   id			obj;
@@ -350,7 +351,6 @@ main(int argc, char **argv, char **env)
   BOOL			showDependencies = NO;
   BOOL			autoIndex = NO;
   BOOL			modifiedRefs = NO;
-  BOOL			standards = NO;
   NSDate		*rDate = nil;
   NSMutableArray	*files = nil;
   CREATE_AUTORELEASE_POOL(outer);
@@ -375,7 +375,6 @@ main(int argc, char **argv, char **env)
     nil]];
 
   autoIndex = [defs boolForKey: @"AutoIndex"];
-  standards = [defs boolForKey: @"Standards"];
   ignoreDependencies = [defs boolForKey: @"IgnoreDependencies"];
   showDependencies = [defs boolForKey: @"ShowDependencies"];
   if (ignoreDependencies == YES)
@@ -478,15 +477,20 @@ main(int argc, char **argv, char **env)
 
   mgr = [NSFileManager defaultManager];
 
-  prjRefs = [AGSIndex new];
-  indexer = [AGSIndex new];
+  globalRefs = [AGSIndex new];
   parser = [AGSParser new];
-  [parser setGenerateStandards: standards];
+  if ([defs boolForKey: @"Standards"] == YES)
+    {
+      [parser setGenerateStandards: YES];
+    }
   output = [AGSOutput new];
 
   /*
-   * Load any old project indexing information.
+   * Load any old project indexing information and determine when the
+   * indexing information was last updated (never ==> distant past)
    */
+  projectRefs = [AGSIndex new];
+  rDate = [NSDate distantPast];
   if ([mgr isReadableFileAtPath: refsFile] == YES)
     {
       NSDictionary	*dict;
@@ -498,134 +502,12 @@ main(int argc, char **argv, char **env)
 	}
       else
 	{
-	  [prjRefs mergeRefs: dict override: NO];
+	  [projectRefs mergeRefs: dict override: NO];
 	  RELEASE(dict);
 	  dict = [mgr fileAttributesAtPath: refsFile traverseLink: YES];
 	  rDate = [dict objectForKey: NSFileModificationDate];
 	}
     }
-  if (rDate == nil)
-    {
-      rDate = [NSDate distantPast];
-    }
-
-  /*
-   * Merge any external project references into the
-   * main cross reference index.
-   */
-
-  pool = [NSAutoreleasePool new];
-  if ([systemProjects caseInsensitiveCompare: @"None"] != NSOrderedSame)
-    {
-      NSString	*base = [NSSearchPathForDirectoriesInDomains(
-	NSDocumentationDirectory, NSSystemDomainMask, NO) lastObject];
-
-      base = [base stringByStandardizingPath];
-      if (base != nil)
-	{
-	  NSDirectoryEnumerator *enumerator = [mgr enumeratorAtPath: base];
-	  NSString		*file;
-
-	  if ([systemProjects isEqual: @""] == YES)
-	    {
-	      systemProjects = base;	// Absolute path
-	    }
-	  while ((file = [enumerator nextObject]) != nil)
-	    {
-	      NSString	*ext = [file pathExtension];
-
-	      if ([ext isEqualToString: @"igsdoc"] == YES)
-		{
-		  NSString	*key;
-		  NSString	*val;
-
-		  if (projects == nil)
-		    {
-		      projects = [NSMutableDictionary dictionary];
-		    }
-		  key = [base stringByAppendingPathComponent: file];
-		  val = [file stringByDeletingLastPathComponent];
-		  val = [systemProjects stringByAppendingPathComponent: val];
-		  [projects setObject: val forKey: key];
-		}
-	    }
-	}
-    }
-
-  if ([localProjects caseInsensitiveCompare: @"None"] != NSOrderedSame)
-    {
-      NSString	*base = [NSSearchPathForDirectoriesInDomains(
-	NSDocumentationDirectory, NSLocalDomainMask, NO) lastObject];
-
-      base = [base stringByStandardizingPath];
-      if (base != nil)
-	{
-	  NSDirectoryEnumerator *enumerator = [mgr enumeratorAtPath: base];
-	  NSString		*file;
-
-	  if ([localProjects isEqual: @""] == YES)
-	    {
-	      localProjects = base;	// Absolute path
-	    }
-	  while ((file = [enumerator nextObject]) != nil)
-	    {
-	      NSString	*ext = [file pathExtension];
-
-	      if ([ext isEqualToString: @"igsdoc"] == YES)
-		{
-		  NSString	*key;
-		  NSString	*val;
-
-		  if (projects == nil)
-		    {
-		      projects = [NSMutableDictionary dictionary];
-		    }
-		  key = [base stringByAppendingPathComponent: file];
-		  val = [file stringByDeletingLastPathComponent];
-		  val = [localProjects stringByAppendingPathComponent: val];
-		  [projects setObject: val forKey: key];
-		}
-	    }
-	}
-    }
-
-  if (projects != nil)
-    {
-      NSEnumerator	*e = [projects keyEnumerator];
-      NSString		*k;
-
-      while ((k = [e nextObject]) != nil)
-	{
-	  NSDictionary	*dict;
-
-	  if ([mgr isReadableFileAtPath: k] == NO
-	    || (dict = [[NSDictionary alloc] initWithContentsOfFile: k]) == nil)
-	    {
-	      NSLog(@"Unable to read project file '%@'", k);
-	    }
-	  else
-	    {
-	      AGSIndex		*tmp;
-	      NSString		*p;
-
-	      tmp = [AGSIndex new];
-	      [tmp mergeRefs: dict override: NO];
-	      RELEASE(dict);
-	      /*
-	       * Adjust path to external project files ...
-	       */
-	      p = [projects objectForKey: k];
-	      if ([p isEqual: @""] == YES)
-		{
-		  p = [k stringByDeletingLastPathComponent];
-		}
-	      [tmp setDirectory: p];
-	      [indexer mergeRefs: [tmp refs] override: YES];
-	      RELEASE(tmp);
-	    }
-	}
-    }
-  RELEASE(pool);
 
   pool = [NSAutoreleasePool new];
   for (i = 0; i < [files count]; i++)
@@ -850,7 +732,7 @@ main(int argc, char **argv, char **env)
 	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)
 	    {
 	      GSXMLParser	*parser;
-	      AGSIndex		*locRefs;
+	      AGSIndex		*localRefs;
 
 	      parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
 	      [parser substituteEntities: NO];
@@ -867,13 +749,13 @@ main(int argc, char **argv, char **env)
 		  return 1;
 		}
 
-	      locRefs = AUTORELEASE([AGSIndex new]);
-	      [locRefs makeRefs: [[parser doc] root]];
+	      localRefs = AUTORELEASE([AGSIndex new]);
+	      [localRefs makeRefs: [[parser doc] root]];
 
 	      /*
 	       * accumulate index info in project references
 	       */
-	      [prjRefs mergeRefs: [locRefs refs] override: NO];
+	      [projectRefs mergeRefs: [localRefs refs] override: NO];
 	      modifiedRefs = YES;
 	    }
 	  else if (isDocumentation)
@@ -939,7 +821,7 @@ main(int argc, char **argv, char **env)
    */
   if (modifiedRefs == YES)
     {
-      if ([[prjRefs refs] writeToFile: refsFile atomically: YES] == NO)
+      if ([[projectRefs refs] writeToFile: refsFile atomically: YES] == NO)
 	{
 	  NSLog(@"Sorry unable to write %@", refsFile);
 	}
@@ -955,9 +837,137 @@ main(int argc, char **argv, char **env)
       pool = [NSAutoreleasePool new];
 
       /*
+       * Merge any external project references into the
+       * main cross reference index.
+       */
+      if ([systemProjects caseInsensitiveCompare: @"None"] != NSOrderedSame)
+	{
+	  NSString	*base = [NSSearchPathForDirectoriesInDomains(
+	    NSDocumentationDirectory, NSSystemDomainMask, NO) lastObject];
+
+	  base = [base stringByStandardizingPath];
+	  if (base != nil)
+	    {
+	      NSDirectoryEnumerator *enumerator = [mgr enumeratorAtPath: base];
+	      NSString		*file;
+
+	      if ([systemProjects isEqual: @""] == YES)
+		{
+		  systemProjects = base;	// Absolute path
+		}
+	      while ((file = [enumerator nextObject]) != nil)
+		{
+		  NSString	*ext = [file pathExtension];
+
+		  if ([ext isEqualToString: @"igsdoc"] == YES)
+		    {
+		      NSString	*key;
+		      NSString	*val;
+
+		      if (projects == nil)
+			{
+			  projects = [NSMutableDictionary dictionary];
+			}
+		      key = [base stringByAppendingPathComponent: file];
+		      val = [file stringByDeletingLastPathComponent];
+		      val
+			= [systemProjects stringByAppendingPathComponent: val];
+		      [projects setObject: val forKey: key];
+		    }
+		}
+	    }
+	}
+
+      if ([localProjects caseInsensitiveCompare: @"None"] != NSOrderedSame)
+	{
+	  NSString	*base = [NSSearchPathForDirectoriesInDomains(
+	    NSDocumentationDirectory, NSLocalDomainMask, NO) lastObject];
+
+	  base = [base stringByStandardizingPath];
+	  if (base != nil)
+	    {
+	      NSDirectoryEnumerator	*enumerator;
+	      NSString			*file;
+
+	      enumerator = [mgr enumeratorAtPath: base];
+	      if ([localProjects isEqual: @""] == YES)
+		{
+		  localProjects = base;	// Absolute path
+		}
+	      while ((file = [enumerator nextObject]) != nil)
+		{
+		  NSString	*ext = [file pathExtension];
+
+		  if ([ext isEqualToString: @"igsdoc"] == YES)
+		    {
+		      NSString	*key;
+		      NSString	*val;
+
+		      if (projects == nil)
+			{
+			  projects = [NSMutableDictionary dictionary];
+			}
+		      key = [base stringByAppendingPathComponent: file];
+		      val = [file stringByDeletingLastPathComponent];
+		      val = [localProjects stringByAppendingPathComponent: val];
+		      [projects setObject: val forKey: key];
+		    }
+		}
+	    }
+	}
+
+      if (projects != nil)
+	{
+	  NSEnumerator	*e = [projects keyEnumerator];
+	  NSString	*k;
+
+	  while ((k = [e nextObject]) != nil)
+	    {
+	      if ([mgr isReadableFileAtPath: k] == NO)
+		{
+		  NSLog(@"Unable to read project file '%@'", k);
+		}
+	      else
+		{
+		  NSDictionary	*dict;
+
+		  dict = [[NSDictionary alloc] initWithContentsOfFile: k];
+
+		  if (dict == nil)
+		    {
+		      NSLog(@"Unable to read project file '%@'", k);
+		    }
+		  else
+		    {
+		      AGSIndex		*tmp;
+		      NSString		*p;
+
+		      tmp = [AGSIndex new];
+		      [tmp mergeRefs: dict override: NO];
+		      RELEASE(dict);
+		      /*
+		       * Adjust path to external project files ...
+		       */
+		      p = [projects objectForKey: k];
+		      if ([p isEqual: @""] == YES)
+			{
+			  p = [k stringByDeletingLastPathComponent];
+			}
+		      [tmp setDirectory: p];
+		      [globalRefs mergeRefs: [tmp refs] override: YES];
+		      RELEASE(tmp);
+		    }
+		}
+	    }
+	}
+
+      /*
        * Accumulate project index info into global index
        */
-      [indexer mergeRefs: [prjRefs refs] override: YES];
+      [globalRefs mergeRefs: [projectRefs refs] override: YES];
+
+      RELEASE(pool);
+      pool = [NSAutoreleasePool new];
 
       for (i = 0; i < [files count]; i++)
 	{
@@ -1024,8 +1034,8 @@ main(int argc, char **argv, char **env)
 	      if (hDate == nil || [gDate earlierDate: hDate] == hDate)
 		{
 		  GSXMLParser	*parser;
-		  AGSIndex		*locRefs;
-		  AGSHtml		*html;
+		  AGSIndex	*localRefs;
+		  AGSHtml	*html;
 
 		  if (showDependencies == YES)
 		    {
@@ -1047,16 +1057,16 @@ main(int argc, char **argv, char **env)
 		      return 1;
 		    }
 
-		  locRefs = AUTORELEASE([AGSIndex new]);
-		  [locRefs makeRefs: [[parser doc] root]];
+		  localRefs = AUTORELEASE([AGSIndex new]);
+		  [localRefs makeRefs: [[parser doc] root]];
 
 		  /*
 		   * We perform final output
 		   */
 		  html = AUTORELEASE([AGSHtml new]);
-		  [html setGlobalRefs: indexer];
-		  [html setProjectRefs: prjRefs];
-		  [html setLocalRefs: locRefs];
+		  [html setGlobalRefs: globalRefs];
+		  [html setProjectRefs: projectRefs];
+		  [html setLocalRefs: localRefs];
 		  generated = [html outputDocument: [[parser doc] root]];
 		  if ([generated writeToFile: htmlfile atomically: YES] == NO)
 		    {
