@@ -61,10 +61,10 @@ after-install::
 	  $(INSTALL_DATA) ../Headers/gnustep/$$file \
 	    $(GNUSTEP_HEADERS)/gnustep/$$file ; \
 	done
-	$(INSTALL_DATA) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h \
-	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	$(INSTALL_DATA) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h \
-	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GSConfig.h \
+	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
+	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/mframe.h \
+	    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
 	if [ "$(INSTALL_ROOT_DIR)" = "" ]; then \
 	  services=/etc/services; \
 	else \
@@ -109,6 +109,9 @@ after-uninstall::
 after-distclean::
 	rm -f mframe/mframe.h Foundation \
 		NSNumber[0-9]*.m NSValue[0-9]*.m o_*_bas.m
+	rm -rf $(GNUSTEP_TARGET_DIR)/config.h
+	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
+	rm -rf $(GNUSTEP_TARGET_DIR)/GSConfig.h
 	rm -rf $(GNUSTEP_TARGET_CPU)
 
 # Things to do before checking
@@ -138,20 +141,20 @@ $(GNUSTEP_OBJ_DIR)/preface${OEXT}: $(HEADER_DIR)/preface.h
 #
 # The config.h file is specific to a target
 #
-$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h: ../config.status
-	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-mv $(HEADER_DIR)/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-touch $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h
+$(GNUSTEP_TARGET_DIR)/config.h: ../config.status
+	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
+	-mv $(HEADER_DIR)/config.h $(GNUSTEP_TARGET_DIR)
+	-touch $(GNUSTEP_TARGET_DIR)/config.h
 
-$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h: ../config.status
-	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-mv $(HEADER_DIR)/GSConfig.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-touch $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h
+$(GNUSTEP_TARGET_DIR)/GSConfig.h: ../config.status
+	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
+	-mv $(HEADER_DIR)/GSConfig.h $(GNUSTEP_TARGET_DIR)
+	-touch $(GNUSTEP_TARGET_DIR)/GSConfig.h
 
-$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h: mframe/config.status
-	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-mv mframe/mframe.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-	-touch $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h
+$(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status
+	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
+	-mv mframe/mframe.h $(GNUSTEP_TARGET_DIR)
+	-touch $(GNUSTEP_TARGET_DIR)/mframe.h
 
 $(HEADER_DIR)/o_%_bas.h: $(HEADER_DIR)/o_x_bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@
@@ -182,7 +185,7 @@ $(GNUSTEP_OBJ_DIR)/NSConnection.o \
 $(GNUSTEP_OBJ_DIR)/NSInvocation.o \
 $(GNUSTEP_OBJ_DIR)/NSMethodSignature.o \
 $(GNUSTEP_OBJ_DIR)/NSObjCRuntime.o \
-	: $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h
+	: $(GNUSTEP_TARGET_DIR)/mframe.h
 
 #
 #       Files where optimisation breaks the code!
@@ -207,7 +210,7 @@ $(GNUSTEP_OBJ_DIR)/NSInvocation.o \
 $(GNUSTEP_OBJ_DIR)/NSMethodSignature.o \
 $(GNUSTEP_OBJ_DIR)/NSProcessInfo.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
-	: $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h 
+	: $(GNUSTEP_TARGET_DIR)/GSConfig.h 
 
 #
 #	Files that include GSIArray.h will need a rebuild if it is changed.

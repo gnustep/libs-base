@@ -352,9 +352,9 @@ $(HEADER_DIR)/o_array.h \
 $(HEADER_DIR)/o_hash.h \
 $(HEADER_DIR)/o_list.h \
 $(HEADER_DIR)/o_map.h \
-$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h \
-$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h \
-$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h
+$(GNUSTEP_TARGET_DIR)/mframe.h \
+$(GNUSTEP_TARGET_DIR)/config.h \
+$(GNUSTEP_TARGET_DIR)/GSConfig.h
 
 # The C source files to be compiled
 libgnustep-base_C_FILES = $(GNU_CFILES)
