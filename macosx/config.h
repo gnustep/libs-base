@@ -1,0 +1,64 @@
+/*
+ config.h.in
+
+ Copyright (C) 2002 Free Software Foundation, Inc.
+
+ Author: Mirko Viviani <mirko.viviani@rccr.cremona.it>
+ Date: September 2002
+
+ This file is part of the GNUstep Database Library.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
+
+ You should have received a copy of the GNU Library General Public
+ License along with this library; see the file COPYING.LIB.
+ If not, write to the Free Software Foundation,
+ 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#ifndef __config_h__
+#define __config_h__
+
+/* Define if Foundation implements KeyValueCoding.  */
+#define FOUNDATION_HAS_KVC 1
+
+#ifndef GS_WITH_GC
+#define GS_WITH_GC 0
+#endif
+
+#ifndef HAVE_LIBC_H
+#define HAVE_LIBC_H 1
+#endif
+
+#ifndef NeXT_RUNTIME
+#define NeXT_RUNTIME 1
+#endif
+
+#ifndef NeXT_Foundation_LIBRARY
+#define NeXT_Foundation_LIBRARY 1
+#endif
+
+#ifndef HAVE_STRERROR
+#define HAVE_STRERROR 1
+#endif
+
+//#define HAVE_LIBXML 1
+//#define HAVE_ICONV 1
+//#define HAVE_GICONV_H 1
+
+#ifndef RCS_ID
+#define RCS_ID(name) \
+static const char rcsId[] = name; \
+static const char *__rcsId_hack() {__rcsId_hack(); return rcsId;}
+#endif
+
+
+#endif /* __config_h__ */

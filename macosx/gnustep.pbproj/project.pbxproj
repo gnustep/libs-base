@@ -1,0 +1,902 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 38;
+	objects = {
+		014CEA440018CDF011CA2923 = {
+			buildRules = (
+			);
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				OPTIMIZATION_CFLAGS = "-O0";
+			};
+			isa = PBXBuildStyle;
+			name = Development;
+		};
+		014CEA450018CDF011CA2923 = {
+			buildRules = (
+			);
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+			};
+			isa = PBXBuildStyle;
+			name = Deployment;
+		};
+//010
+//011
+//012
+//013
+//014
+//030
+//031
+//032
+//033
+//034
+		034768DFFF38A50411DB9C8B = {
+			children = (
+				034768E0FF38A50411DB9C8B,
+			);
+			isa = PBXGroup;
+			name = Products;
+			refType = 4;
+		};
+		034768E0FF38A50411DB9C8B = {
+			isa = PBXFrameworkReference;
+			path = gnustep.framework;
+			refType = 3;
+		};
+//030
+//031
+//032
+//033
+//034
+//080
+//081
+//082
+//083
+//084
+		0867D690FE84028FC02AAC07 = {
+			buildStyles = (
+				014CEA440018CDF011CA2923,
+				014CEA450018CDF011CA2923,
+			);
+			hasScannedForEncodings = 1;
+			isa = PBXProject;
+			mainGroup = 0867D691FE84028FC02AAC07;
+			productRefGroup = 034768DFFF38A50411DB9C8B;
+			projectDirPath = "";
+			targets = (
+				0867D69CFE84028FC02AAC07,
+			);
+		};
+		0867D691FE84028FC02AAC07 = {
+			children = (
+				55F7D7E003E49D7700000001,
+				556FFDF103EC37C700000001,
+				08FB77AEFE84172EC02AAC07,
+				32C88DFF0371C24200C91783,
+				089C1665FE841158C02AAC07,
+				0867D69AFE84028FC02AAC07,
+				034768DFFF38A50411DB9C8B,
+				55F7D7D803E49C1000000001,
+				55F7D7D903E49C1000000001,
+				55F7D7DA03E49C1000000001,
+				55F7D7DB03E49C1000000001,
+				55F7D7DC03E49C1000000001,
+				55F7D7DD03E49C1000000001,
+				55F7D7DE03E49C1000000001,
+				55F7D7DF03E49C1000000001,
+			);
+			isa = PBXGroup;
+			name = gnustep;
+			refType = 4;
+		};
+		0867D69AFE84028FC02AAC07 = {
+			children = (
+				1058C7B0FEA5585E11CA2CBB,
+				1058C7B2FEA5585E11CA2CBB,
+			);
+			isa = PBXGroup;
+			name = "External Frameworks and Libraries";
+			refType = 4;
+		};
+		0867D69BFE84028FC02AAC07 = {
+			isa = PBXFrameworkReference;
+			name = Foundation.framework;
+			path = /System/Library/Frameworks/Foundation.framework;
+			refType = 0;
+		};
+		0867D69CFE84028FC02AAC07 = {
+			buildPhases = (
+				0867D69DFE84028FC02AAC07,
+				55CF467D03E3694000000001,
+				0867D69EFE84028FC02AAC07,
+				0867D69FFE84028FC02AAC07,
+				0867D6A0FE84028FC02AAC07,
+				0867D6A2FE84028FC02AAC07,
+			);
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_VERSION = 1.5.1;
+				HEADER_SEARCH_PATHS = "\"${SOURCE_ROOT}/../Headers/gnustep\" \"${SOURCE_ROOT}/../Headers\" /sw/include";
+				INSTALL_PATH = /Library/Frameworks;
+				LIBRARY_SEARCH_PATHS = /sw/lib;
+				OTHER_LDFLAGS = "-seg1addr 0x58000000";
+				PRECOMPILE_PREFIX_HEADER = YES;
+				PREFIX_HEADER = config.h;
+				PRODUCT_NAME = gnustep;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+				WRAPPER_EXTENSION = framework;
+			};
+			dependencies = (
+			);
+			isa = PBXFrameworkTarget;
+			name = gnustep;
+			productInstallPath = /Library/Frameworks;
+			productName = gnustep;
+			productReference = 034768E0FF38A50411DB9C8B;
+			productSettingsXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>gnustep</string>
+	<key>CFBundleIconFile</key>
+	<string></string>
+	<key>CFBundleIdentifier</key>
+	<string></string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>FMWK</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.5.1</string>
+	<key>NSPrincipalClass</key>
+	<string></string>
+</dict>
+</plist>
+";
+		};
+		0867D69DFE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+				55F7D7E303E49D7700000001,
+				556FFD2303EC2ECE00000001,
+				556FFD2403EC2ECE00000001,
+				556FFD2503EC2ECE00000001,
+				556FFD2603EC2ECE00000001,
+				556FFD2703EC2ECE00000001,
+				556FFD2803EC2ECE00000001,
+				556FFD2903EC2ECE00000001,
+				556FFD2A03EC2ECE00000001,
+				556FFD2B03EC2ECE00000001,
+				556FFD9203EC36E500000001,
+				556FFD9703EC36E500000001,
+				556FFD9803EC36E500000001,
+				556FFD9903EC36E500000001,
+				556FFDA103EC36E500000001,
+				556FFDA203EC36E500000001,
+				556FFDA403EC36E500000001,
+				556FFDE903EC36E500000001,
+				556FFDEB03EC36E500000001,
+				556FFDEE03EC36E500000001,
+				555FEDB803EC450500000001,
+			);
+			isa = PBXHeadersBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0867D69EFE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+				089C1668FE841158C02AAC07,
+			);
+			isa = PBXResourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0867D69FFE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+				55CF466B03E367A500000001,
+				55F7D5D003E4072000000001,
+				55F7D5D403E47F9300000001,
+				55F7D5D603E48A2800000001,
+				55F7D5D703E48A7500000001,
+				55F7D5D903E48B8600000001,
+				55F7D5DA03E48B8700000001,
+				55F7D5DD03E48BDD00000001,
+				55F7D5E003E48C8300000001,
+				55F7D5E303E48D0A00000001,
+			);
+			isa = PBXSourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0867D6A0FE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+				55CF467E03E369AE00000001,
+			);
+			isa = PBXFrameworksBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0867D6A2FE84028FC02AAC07 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXRezBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		089C1665FE841158C02AAC07 = {
+			children = (
+				089C1666FE841158C02AAC07,
+			);
+			isa = PBXGroup;
+			name = Resources;
+			refType = 4;
+		};
+		089C1666FE841158C02AAC07 = {
+			children = (
+				089C1667FE841158C02AAC07,
+			);
+			isa = PBXVariantGroup;
+			name = InfoPlist.strings;
+			refType = 4;
+		};
+		089C1667FE841158C02AAC07 = {
+			fileEncoding = 10;
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		089C1668FE841158C02AAC07 = {
+			fileRef = 089C1666FE841158C02AAC07;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		08FB77AEFE84172EC02AAC07 = {
+			children = (
+				55CF465F03E367A500000001,
+				55CF466003E367A500000001,
+				55CF466103E367A500000001,
+				55CF466203E367A500000001,
+				55CF466303E367A500000001,
+				55CF466503E367A500000001,
+				55CF466603E367A500000001,
+				55CF466703E367A500000001,
+				55CF466803E367A500000001,
+				55CF466903E367A500000001,
+				55CF466A03E367A500000001,
+			);
+			isa = PBXGroup;
+			name = Classes;
+			refType = 4;
+		};
+//080
+//081
+//082
+//083
+//084
+//100
+//101
+//102
+//103
+//104
+		1058C7B0FEA5585E11CA2CBB = {
+			children = (
+				0867D69BFE84028FC02AAC07,
+				556FFD2C03EC331600000001,
+				556FFD2D03EC331600000001,
+			);
+			isa = PBXGroup;
+			name = "Linked Frameworks";
+			refType = 4;
+		};
+		1058C7B2FEA5585E11CA2CBB = {
+			children = (
+			);
+			isa = PBXGroup;
+			name = "Other Frameworks";
+			refType = 4;
+		};
+//100
+//101
+//102
+//103
+//104
+//320
+//321
+//322
+//323
+//324
+		32C88DFF0371C24200C91783 = {
+			children = (
+			);
+			isa = PBXGroup;
+			name = "Other Sources";
+			refType = 4;
+		};
+//320
+//321
+//322
+//323
+//324
+//550
+//551
+//552
+//553
+//554
+		555FEDB703EC450500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GSCompatibility.h;
+			path = /Users/dave/Developer/gnustep/core/base/Source/Additions/GSCompatibility.h;
+			refType = 0;
+		};
+		555FEDB803EC450500000001 = {
+			fileRef = 555FEDB703EC450500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFD1903EC2ECE00000001 = {
+			children = (
+				556FFD1A03EC2ECE00000001,
+				556FFD1B03EC2ECE00000001,
+				556FFD1C03EC2ECE00000001,
+				556FFD1D03EC2ECE00000001,
+				556FFD1E03EC2ECE00000001,
+				556FFD1F03EC2ECE00000001,
+				556FFD2003EC2ECE00000001,
+				556FFD2103EC2ECE00000001,
+				556FFD2203EC2ECE00000001,
+			);
+			isa = PBXGroup;
+			name = unicode;
+			path = ../Headers/gnustep/unicode;
+			refType = 2;
+		};
+		556FFD1A03EC2ECE00000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = caseconv.h;
+			refType = 4;
+		};
+		556FFD1B03EC2ECE00000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = cop.h;
+			refType = 4;
+		};
+		556FFD1C03EC2ECE00000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = cyrillic.h;
+			refType = 4;
+		};
+		556FFD1D03EC2ECE00000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = decomp.h;
+			refType = 4;
+		};
+		556FFD1E03EC2ECE00000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = gsm0338.h;
+			refType = 4;
+		};
+		556FFD1F03EC2ECE00000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = latin2.h;
+			refType = 4;
+		};
+		556FFD2003EC2ECE00000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = latin9.h;
+			refType = 4;
+		};
+		556FFD2103EC2ECE00000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = nextstep.h;
+			refType = 4;
+		};
+		556FFD2203EC2ECE00000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = thai.h;
+			refType = 4;
+		};
+		556FFD2303EC2ECE00000001 = {
+			fileRef = 556FFD1A03EC2ECE00000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		556FFD2403EC2ECE00000001 = {
+			fileRef = 556FFD1B03EC2ECE00000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		556FFD2503EC2ECE00000001 = {
+			fileRef = 556FFD1C03EC2ECE00000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		556FFD2603EC2ECE00000001 = {
+			fileRef = 556FFD1D03EC2ECE00000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		556FFD2703EC2ECE00000001 = {
+			fileRef = 556FFD1E03EC2ECE00000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		556FFD2803EC2ECE00000001 = {
+			fileRef = 556FFD1F03EC2ECE00000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		556FFD2903EC2ECE00000001 = {
+			fileRef = 556FFD2003EC2ECE00000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		556FFD2A03EC2ECE00000001 = {
+			fileRef = 556FFD2103EC2ECE00000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		556FFD2B03EC2ECE00000001 = {
+			fileRef = 556FFD2203EC2ECE00000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		556FFD2C03EC331600000001 = {
+			isa = PBXFileReference;
+			name = libiconv.dylib;
+			path = /sw/lib/libiconv.dylib;
+			refType = 0;
+		};
+		556FFD2D03EC331600000001 = {
+			isa = PBXFileReference;
+			name = libxml.dylib;
+			path = /sw/lib/libxml.dylib;
+			refType = 0;
+		};
+		556FFD2E03EC36E500000001 = {
+			children = (
+				556FFD3103EC36E500000001,
+				556FFD3603EC36E500000001,
+				556FFD3703EC36E500000001,
+				556FFD3803EC36E500000001,
+				556FFD4003EC36E500000001,
+				556FFD4103EC36E500000001,
+				556FFD4303EC36E500000001,
+				556FFD8803EC36E500000001,
+				556FFD8A03EC36E500000001,
+				556FFD8B03EC36E500000001,
+				556FFD8D03EC36E500000001,
+				555FEDB703EC450500000001,
+			);
+			isa = PBXGroup;
+			name = base;
+			path = ../Headers/gnustep/base;
+			refType = 2;
+		};
+		556FFD3103EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = behavior.h;
+			refType = 4;
+		};
+		556FFD3603EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = GCObject.h;
+			refType = 4;
+		};
+		556FFD3703EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = GNUstep.h;
+			refType = 4;
+		};
+		556FFD3803EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = GSCategories.h;
+			refType = 4;
+		};
+		556FFD4003EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = GSMime.h;
+			refType = 4;
+		};
+		556FFD4103EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = GSObjCRuntime.h;
+			refType = 4;
+		};
+		556FFD4303EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = GSXML.h;
+			refType = 4;
+		};
+		556FFD8803EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = "objc-gnu2next.h";
+			refType = 4;
+		};
+		556FFD8A03EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = preface.h;
+			refType = 2;
+		};
+		556FFD8B03EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = preface.h.in;
+			refType = 4;
+		};
+		556FFD8D03EC36E500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = Unicode.h;
+			refType = 4;
+		};
+		556FFD9203EC36E500000001 = {
+			fileRef = 556FFD3103EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFD9703EC36E500000001 = {
+			fileRef = 556FFD3603EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFD9803EC36E500000001 = {
+			fileRef = 556FFD3703EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFD9903EC36E500000001 = {
+			fileRef = 556FFD3803EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFDA103EC36E500000001 = {
+			fileRef = 556FFD4003EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFDA203EC36E500000001 = {
+			fileRef = 556FFD4103EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFDA403EC36E500000001 = {
+			fileRef = 556FFD4303EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFDE903EC36E500000001 = {
+			fileRef = 556FFD8803EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFDEB03EC36E500000001 = {
+			fileRef = 556FFD8A03EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFDEE03EC36E500000001 = {
+			fileRef = 556FFD8D03EC36E500000001;
+			isa = PBXBuildFile;
+			settings = {
+				ATTRIBUTES = (
+					Public,
+				);
+			};
+		};
+		556FFDF103EC37C700000001 = {
+			children = (
+				556FFD2E03EC36E500000001,
+				556FFD1903EC2ECE00000001,
+			);
+			isa = PBXGroup;
+			name = Headers;
+			refType = 4;
+		};
+		55CF465F03E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = behavior.m;
+			path = ../Source/Additions/behavior.m;
+			refType = 2;
+		};
+		55CF466003E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GCArray.m;
+			path = ../Source/Additions/GCArray.m;
+			refType = 2;
+		};
+		55CF466103E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GCDictionary.m;
+			path = ../Source/Additions/GCDictionary.m;
+			refType = 2;
+		};
+		55CF466203E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GCObject.m;
+			path = ../Source/Additions/GCObject.m;
+			refType = 2;
+		};
+		55CF466303E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GSCategories.m;
+			path = ../Source/Additions/GSCategories.m;
+			refType = 2;
+		};
+		55CF466503E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GSCompatibility.m;
+			path = ../Source/Additions/GSCompatibility.m;
+			refType = 2;
+		};
+		55CF466603E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GSMime.m;
+			path = ../Source/Additions/GSMime.m;
+			refType = 2;
+		};
+		55CF466703E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GSNextRuntime.m;
+			path = ../Source/Additions/GSNextRuntime.m;
+			refType = 2;
+		};
+		55CF466803E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GSObjCRuntime.m;
+			path = ../Source/Additions/GSObjCRuntime.m;
+			refType = 2;
+		};
+		55CF466903E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GSXML.m;
+			path = ../Source/Additions/GSXML.m;
+			refType = 2;
+		};
+		55CF466A03E367A500000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = Unicode.m;
+			path = ../Source/Additions/Unicode.m;
+			refType = 2;
+		};
+		55CF466B03E367A500000001 = {
+			fileRef = 55CF465F03E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55CF467D03E3694000000001 = {
+			buildActionMask = 12;
+			files = (
+			);
+			generatedFileNames = (
+			);
+			isa = PBXShellScriptBuildPhase;
+			neededFileNames = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "myHeaderDir=\"${BUILD_ROOT}/`dirname ${INNER_PRODUCT_SUBPATH}`/Headers\"\nmkdir ${myHeaderDir}/base\ncd ${myHeaderDir}/base\ntest -f behavior.h        || ln -s ../behavior.h        .\ntest -f objc-gnu2next.h   || ln -s ../objc-gnu2next.h   .\ntest -f preface.h         || ln -s ../preface.h         .\ntest -f GCObject.h        || ln -s ../GCObject.h        .\ntest -f GNUstep.h         || ln -s ../GNUstep.h         .\ntest -f GSCategories.h    || ln -s ../GSCategories.h    .\ntest -f GSCompatibility.h || ln -s ../GSCompatibility.h .\ntest -f GSMime.h          || ln -s ../GSMime.h          .\ntest -f GSXML.h           || ln -s ../GSXML.h           .\ntest -f GSObjCRuntime.h   || ln -s ../GSObjCRuntime.h   .";
+		};
+		55CF467E03E369AE00000001 = {
+			fileRef = 0867D69BFE84028FC02AAC07;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D5D003E4072000000001 = {
+			fileRef = 55CF466703E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D5D403E47F9300000001 = {
+			fileRef = 55CF466803E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D5D603E48A2800000001 = {
+			fileRef = 55CF466203E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D5D703E48A7500000001 = {
+			fileRef = 55CF466503E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D5D903E48B8600000001 = {
+			fileRef = 55CF466003E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D5DA03E48B8700000001 = {
+			fileRef = 55CF466103E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D5DD03E48BDD00000001 = {
+			fileRef = 55CF466903E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D5E003E48C8300000001 = {
+			fileRef = 55CF466303E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D5E303E48D0A00000001 = {
+			fileRef = 55CF466603E367A500000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		55F7D7D803E49C1000000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = ANNOUNCE;
+			path = /Users/dave/Developer/gnustep/core/base/ANNOUNCE;
+			refType = 0;
+		};
+		55F7D7D903E49C1000000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = BUGS;
+			path = /Users/dave/Developer/gnustep/core/base/BUGS;
+			refType = 0;
+		};
+		55F7D7DA03E49C1000000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = ChangeLog;
+			path = /Users/dave/Developer/gnustep/core/base/ChangeLog;
+			refType = 0;
+		};
+		55F7D7DB03E49C1000000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = COPYING;
+			path = /Users/dave/Developer/gnustep/core/base/COPYING;
+			refType = 0;
+		};
+		55F7D7DC03E49C1000000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = COPYING.LIB;
+			path = /Users/dave/Developer/gnustep/core/base/COPYING.LIB;
+			refType = 0;
+		};
+		55F7D7DD03E49C1000000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = INSTALL;
+			path = /Users/dave/Developer/gnustep/core/base/INSTALL;
+			refType = 0;
+		};
+		55F7D7DE03E49C1000000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = NEWS;
+			path = /Users/dave/Developer/gnustep/core/base/NEWS;
+			refType = 0;
+		};
+		55F7D7DF03E49C1000000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = README;
+			path = /Users/dave/Developer/gnustep/core/base/README;
+			refType = 0;
+		};
+		55F7D7E003E49D7700000001 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = config.h;
+			refType = 2;
+		};
+		55F7D7E303E49D7700000001 = {
+			fileRef = 55F7D7E003E49D7700000001;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+	};
+	rootObject = 0867D690FE84028FC02AAC07;
+}
