@@ -269,6 +269,19 @@ static char	**_gnu_noobjc_env;
 #endif /* HAVE_PROGRAM_INVOCATION_NAME */
   
   // Read environment 
+
+  /* NB: This should *never* happen if your compiler tools are
+     sane.  But, if you are playing with them, you could break
+     them to the point you get here. :-) */
+  if (environ == NULL)
+    {
+      /* TODO: Try reading environment from /proc before aborting. */
+      fprintf(stderr, "Error: for some reason, environ == NULL " 
+	      "during GNUstep base initialization\n"
+	      "Please check the linking process\n");
+      abort();
+    }
+
   c = 0;
   while (environ[c] != NULL)
     c++;
