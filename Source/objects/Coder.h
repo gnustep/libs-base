@@ -80,8 +80,8 @@
 /* These are class methods because the header of the file or stream
    determines which (sub)class of Coder is created. */
 
-+ coderReadingFromFile: (id <String>) filename;
-+ coderReadingFromStream: (id <Streaming>)stream;
++ newReadingFromFile: (id <String>) filename;
++ newReadingFromStream: (id <Streaming>)stream;
 
 + decodeObjectWithName: (id <String> *) name
 	      fromFile: (id <String>) filename;
