@@ -517,9 +517,34 @@ static SEL	rlSel;
   return NSNotFound;
 }
 
+/**
+ * <p>In MacOS-X class clusters do not have designated initialisers,
+ * and there is a general rule that -init is treated as the designated
+ * initialiser of the class cluster, but that other intitialisers
+ * may not work s expected an would need to be individually overridden
+ * in any subclass.
+ * </p>
+ * <p>GNUstep tries to make it easier to subclass a class cluster,
+ * by making class clusters follow the same convention as normal
+ * classes, so the designated initialiser is the <em>richest</em>
+ * initialiser.  This means that all other initialisers call the
+ * documented designated initialiser (which calls -init only for
+ * MacOS-X compatibility), and anyone writing a subclass only needs
+ * to override that one initialiser in order to have all the other
+ * ones work.
+ * </p>
+ * <p>For MacOS-X compatibility, you may also need to override various
+ * other initialisers.  Exactly which ones, you will need to determine
+ * by trial on a MacOS-X system ... and may vary between releases of
+ * MacOS-X.  So to be safe, on MacOS-X you probably need to re-implement
+ * <em>all</em> the class cluster initialisers you might use in conjunction
+ * with your subclass.
+ * </p>
+ */
 - (id) init
 {
-  return [self initWithObjects: (id*)0 count: 0];
+  self = [super init];
+  return self;
 }
 
 /**
@@ -742,15 +767,17 @@ static SEL	rlSel;
   return self;
 }
 
-/** <init />
- * Initialize the array with count objects.<br />
+/** <init /> <override-subclass />
+ * This should initialize the array with count (may be zero) objects.<br />
  * Retains each object placed in the array.<br />
- * Like all initializers, may change the value of self before returning it.
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
  */
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  self = [self init];
+  return self;
 }
 
 /**
@@ -1281,14 +1308,17 @@ compare(id elem1, id elem2, void* context)
   return NSMutableArrayClass;
 }
 
-/** <init />
+/** <init /> <override-subclass />
  * Initialise the array with the specified capacity ... this
- * should ensure that the array can have numItems added efficiently.
+ * should ensure that the array can have numItems added efficiently.<br />
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
  */
 - (id) initWithCapacity: (unsigned)numItems
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  self = [self init];
+  return self;
 }
 
 /** <override-subclass />
@@ -1386,7 +1416,9 @@ compare(id elem1, id elem2, void* context)
     initWithCapacity: numItems]);
 }
 
-/** <init /> Override our superclass's designated initializer to go our's */
+/**
+ * Override our superclass's designated initializer to go our's
+ */
 - (id) initWithObjects: (id*)objects count: (unsigned)count
 {
   self = [self initWithCapacity: count];

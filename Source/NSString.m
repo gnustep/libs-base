@@ -520,7 +520,36 @@ handle_printf_atsign (FILE *stream,
   return ret;
 }
 
-// Initializing Newly Allocated Strings
+
+/**
+ * <p>In MacOS-X class clusters do not have designated initialisers,
+ * and there is a general rule that -init is treated as the designated
+ * initialiser of the class cluster, but that other intitialisers
+ * may not work s expected an would need to be individually overridden
+ * in any subclass.
+ * </p>
+ * <p>GNUstep tries to make it easier to subclass a class cluster,
+ * by making class clusters follow the same convention as normal
+ * classes, so the designated initialiser is the <em>richest</em>
+ * initialiser.  This means that all other initialisers call the
+ * documented designated initialiser (which calls -init only for
+ * MacOS-X compatibility), and anyone writing a subclass only needs
+ * to override that one initialiser in order to have all the other
+ * ones work.
+ * </p>
+ * <p>For MacOS-X compatibility, you may also need to override various
+ * other initialisers.  Exactly which ones, you will need to determine
+ * by trial on a MacOS-X system ... and may vary between releases of
+ * MacOS-X.  So to be safe, on MacOS-X you probably need to re-implement
+ * <em>all</em> the class cluster initialisers you might use in conjunction
+ * with your subclass.
+ * </p>
+ */
+- (id) init
+{
+  self = [super init];
+  return self;
+}
 
 /**
  * Initialises the receiver with a copy of the supplied length of bytes,
@@ -861,7 +890,7 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-/** <init />
+/** <init /> <override-subclass />
  * <p>Initialize with given unicode chars up to length, regardless of presence
  *  of null bytes.  Does not copy the string.  If flag, frees its storage when
  *  this instance is deallocated.</p>
@@ -873,7 +902,7 @@ handle_printf_atsign (FILE *stream,
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
-  [self subclassResponsibility: _cmd];
+  self = [self init];
   return self;
 }
 
@@ -1491,19 +1520,6 @@ handle_printf_atsign (FILE *stream,
     }
   return self;
 }
-
-/**
- *  Initializes as an empty string.
- */
-- (id) init
-{
-  self = [self initWithCharactersNoCopy: (unichar*)0
-				 length: 0
-			   freeWhenDone: 0];
-  return self;
-}
-
-// Getting a String's Length
 
 /**
  * Returns the number of Unicode characters in this string, including the
@@ -4724,13 +4740,15 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-// Designated initialiser
-/** <init/>
- * Constructs an empty string with initial buffer size of capacity.
+/** <init/> <override-subclass />
+ * Constructs an empty string with initial buffer size of capacity.<br />
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
  */
 - (id) initWithCapacity: (unsigned int)capacity
 {
-  [self subclassResponsibility: _cmd];
+  self = [self init];
   return self;
 }
 

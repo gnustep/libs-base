@@ -119,18 +119,50 @@ static SEL	appSel;
 }
 
 /**
+ * <p>In MacOS-X class clusters do not have designated initialisers,
+ * and there is a general rule that -init is treated as the designated
+ * initialiser of the class cluster, but that other intitialisers
+ * may not work s expected an would need to be individually overridden
+ * in any subclass.
+ * </p>
+ * <p>GNUstep tries to make it easier to subclass a class cluster,
+ * by making class clusters follow the same convention as normal
+ * classes, so the designated initialiser is the <em>richest</em>
+ * initialiser.  This means that all other initialisers call the
+ * documented designated initialiser (which calls -init only for
+ * MacOS-X compatibility), and anyone writing a subclass only needs
+ * to override that one initialiser in order to have all the other
+ * ones work.
+ * </p>
+ * <p>For MacOS-X compatibility, you may also need to override various
+ * other initialisers.  Exactly which ones, you will need to determine
+ * by trial on a MacOS-X system ... and may vary between releases of
+ * MacOS-X.  So to be safe, on MacOS-X you probably need to re-implement
+ * <em>all</em> the class cluster initialisers you might use in conjunction
+ * with your subclass.
+ * </p>
+ */
+- (id) init
+{
+  self = [super init];
+  return self;
+}
+
+/** <init /> <override-subclass />
  * Initializes contents to the given objects and keys.
  * The two arrays must have the same size.
  * The n th element of the objects array is associated with the n th
- * element of the keys array.
- * <init />
+ * element of the keys array.<br />
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
  */
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
 		 count: (unsigned)count
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  self = [self init];
+  return self;
 }
 
 /**
@@ -444,12 +476,6 @@ static SEL	appSel;
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: &object forKeys: &key count: 1]);
-}
-
-/* Override superclass's designated initializer */
-- (id) init
-{
-  return [self initWithObjects: NULL forKeys: NULL count: 0];
 }
 
 /**
@@ -1101,17 +1127,19 @@ compareIt(id o1, id o2, void* context)
   return NSMutableDictionaryClass;
 }
 
-/**
- *  Initializes an empty dictionary with memory preallocated for given number
- *  of entries.  Although memory space will be grown as needed when entries
- *  are added, this can avoid the reallocate-and-copy process if the size of
- *  the ultimate contents is known in advance.
- *  <init/>
+/** <init /> <override-subclass />
+ * Initializes an empty dictionary with memory preallocated for given number
+ * of entries.  Although memory space will be grown as needed when entries
+ * are added, this can avoid the reallocate-and-copy process if the size of
+ * the ultimate contents is known in advance.<br />
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
  */
 - (id) initWithCapacity: (unsigned)numItems
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  self = [self init];
+  return self;
 }
 
 /**

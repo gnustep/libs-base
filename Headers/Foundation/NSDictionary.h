@@ -52,6 +52,7 @@
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level;
 
+- (id) init;
 - (id) initWithContentsOfFile: (NSString*)path;
 #ifndef	STRICT_OPENSTEP
 - (id) initWithContentsOfURL: (NSURL*)aURL;

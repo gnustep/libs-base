@@ -1,3 +1,14 @@
+2004-09-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m:
+	* Source/NSDictionary.m:
+	* Source/NSSet.m:
+	* Source/NSString.m:
+	Changes to designated initiailiser stuff for MacOS-X compatibility.
+	Call -init to maintain the chain from subclasses to superclasses,
+	but document the 'designated initialisers' as being the richer methods
+	which may be used in GNUstep to make all the other initialisers work.
+
 2004-09-04  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.10.0

@@ -51,6 +51,7 @@
 - (NSString*) description;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale;
 
+- (id) init;
 - (id) initWithArray: (NSArray*)other;
 - (id) initWithObjects: (id)firstObject, ...;
 - (id) initWithObjects: (id*)objects
