@@ -1,3 +1,10 @@
+2004-03-27 Mark Allison <mark@brainstorm.co.uk>
+
+	* Headers/Additions/GNUstepBase/GSXML.h:
+	* Source/Additions/GSXML.m: Add support for stylesheet processing using
+	libxslt if it is available.
+	* configure.ac: Check for presence of libxslt
+
 2004-03-26 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSIndexSet.m: Check before each usage of _other if it is

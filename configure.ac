@@ -1010,6 +1010,20 @@ fi
 AC_SUBST(HAVE_LIBXML)
 
 #--------------------------------------------------------------------
+# Check for (optional) libxslt
+#--------------------------------------------------------------------
+AC_CHECK_LIB(xslt, xsltApplyStylesheet, xslt_ok=yes, xslt_ok=no)
+if test "$xslt_ok" = "yes"; then
+  AC_CHECK_HEADER(libxslt/xslt.h, xslthdr_ok=yes, xslthdr_ok=no)
+  if test "$xslthdr_ok" = "yes"; then
+    HAVE_LIBXSLT=1
+    AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
+    LIBS="$LIBS -lxslt"
+  fi
+fi
+AC_SUBST(HAVE_LIBXSLT)
+
+#--------------------------------------------------------------------
 # Check GMP for NSDecimal
 #--------------------------------------------------------------------
 AC_ARG_WITH(gmp-include,
