@@ -49,6 +49,7 @@
 #define stringify_it(X) #X
 #define make_gdomap_cmd(X)      stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdomap &"
 #define make_gdomap_err(X)      "check that " stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdomap is running and owned by root."
+#define	make_gdomap_port(X)	stringify_it(X)
 
 /*
  *	Private methods for internal use only.
@@ -89,6 +90,10 @@ static NSPortNameServer	*defaultServer = nil;
 	{
           serverLock = [NSRecursiveLock new];
 	  modes = [[NSArray alloc] initWithObjects: &mode count: 1];
+#ifdef	GDOMAP_PORT_OVERRIDE
+	  serverPort = [[NSString stringWithCString:
+		make_gdomap_port(GDOMAP_PORT_OVERRIDE)] retain];
+#endif
 	} 
       [gnustep_global_lock unlock];
     }
