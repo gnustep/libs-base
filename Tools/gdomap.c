@@ -4159,6 +4159,88 @@ static void do_help(int argc, char **argv, char *options)
   exit(EXIT_SUCCESS);
 }
 
+#ifdef __MINGW__
+static char*
+quoteArg(const char *arg)
+{
+  int	len = strlen(arg);
+  int	in;
+  int	out = 0;
+  int	quote = 0;
+  char	*ptr = objc_malloc(i*2+3);
+
+  /*
+   * Check for white space ... if present, must quote argument.
+   */
+  for (in = 0; in < len; in++)
+    {
+      if (isspace(arg[in]))
+	{
+	  quote = 1;
+	  break;
+	}
+    }
+
+  if (quote)
+    {
+      ptr[out++] = '"';
+    }
+
+  for (in = 0; in < len; in++)
+    {
+      if (arg[in] == '\\')
+	{
+	  int	pos = in + 1;
+
+	  // Step past any backslashes
+	  while (pos < len && ptr[pos] == '\\')
+	    {
+	      pos++;
+	    }
+	  // If backslashes precede a quote ... double them.
+	  if (pos < len && ptr[pos] == '"')
+	    {
+	      int	num = pos - in;
+
+	      while (num-- > 0)
+		{
+		  ptr[out++] = '\\';
+		}
+	    }
+	  // Copy the original backslashes
+	  while (in < pos)
+	    {
+	      ptr[out++] = '\\';
+	    }
+	  // Copy the character after the backslashes
+	  if (in < end)
+	    {
+	      ptr[out++] = arg[in];
+	    }
+	}
+      else if (arg[in] == '"')
+	{
+	  ptr[out++] = '\\';	// Escape the quote.
+	  ptr[out++] = arg[in];
+	}
+      else
+	{
+	  ptr[out++] = arg[in];
+	}
+    }
+
+
+  if (quote)
+    {
+      ptr[out++] = '"';
+    }
+
+  ptr[pos] = '\0';
+
+  return ptr;
+}
+#endif
+
 /**
  * (A dummy comment to help autogsdoc realize this is a command-line tool.)
  */
@@ -4479,11 +4561,15 @@ printf(
   if (nofork == 0)
     {
       char	**a = malloc((argc+2) * sizeof(char*));
+      int	i;
 
-      memcpy(a, argv, argc*sizeof(char*));
+      for (i = 0; i < argc; i++)
+	{
+	  a[i] = quoteArg(argv[i]);
+	}
       a[argc] = "-f";
       a[argc+1] = 0;
-      if (_spawnv(_P_NOWAIT, argv[0], a) == -1)
+      if (_spawnv(_P_NOWAIT, a[0], a) == -1)
 	{
 	  fprintf(stderr, "gdomap - spawn '%s' failed - bye.\n", argv[0]);
 	  exit(EXIT_FAILURE);
