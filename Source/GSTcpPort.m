@@ -57,7 +57,7 @@
 #include <ctype.h>		/* for strchr() */
 #include <fcntl.h>
 #ifdef __MINGW__
-#include <winsock.h>
+#include <winsock2.h>
 #include <wininet.h>
 #include <process.h>
 #include <sys/time.h>

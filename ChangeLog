@@ -1,3 +1,13 @@
+2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: Fixes to work on mingw.
+	* Source/NSHost.m: Update for current winsock on mingw.
+	* Source/NSPortNameServer.m: Update for current winsock on mingw.
+	* Source/WindowsFileHandle.m: Fix to work for basic socket I/O.
+	* Tools/gdomap.c: many changes ... several fixes to work on mingw
+	rewrite some clumsy inefficient code, make variables and functions
+	local. etc.
+
 Mon Feb 25 15:26:38 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/NSBundle.m ([-initWithPath:]): Return nil if the path

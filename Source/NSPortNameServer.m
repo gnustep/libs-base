@@ -44,7 +44,7 @@
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSDebug.h>
 #ifdef __MINGW__
-#include <winsock.h>
+#include <winsock2.h>
 #include <wininet.h>
 #else
 #include <netinet/in.h>

@@ -38,7 +38,7 @@
 #include <Foundation/NSDebug.h>
 
 #if defined(__MINGW__)
-#include <winsock.h>
+#include <winsock2.h>
 #else
 #include <netdb.h>
 #if HAVE_UNISTD_H

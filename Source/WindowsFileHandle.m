@@ -37,7 +37,7 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSByteOrder.h>
 
-#include <winsock.h>
+#include <winsock2.h>
 #include <fcntl.h>
 
 #include <sys/file.h>
@@ -202,11 +202,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   self = [self initWithFileDescriptor: net closeOnDealloc: YES];
   if (self)
     {
+      [self setNonBlocking: NO];
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 	{
 	  NSLog(@"unable to make connection to %s:%d - %s",
-		inet_ntoa(sin.sin_addr),
-		GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
+	    inet_ntoa(sin.sin_addr),
+	    GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
 	  [self release];
 	  return nil;
 	}
@@ -256,14 +257,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       [self setNonBlocking: YES];
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
-	if (WSAGetLastError() == WSAEINPROGRESS)
-	  {
-	    NSLog(@"unable to make connection to %s:%d - %s",
+	{
+	  if (WSAGetLastError() != WSAEWOULDBLOCK)
+	    {
+	      NSLog(@"unable to make connection to %s:%d - %s",
 		inet_ntoa(sin.sin_addr),
 		GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
-	    [self release];
-	    return nil;
-	  }
+	      [self release];
+	      return nil;
+	    }
+	}
 	
       info = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
       [info setObject: address forKey: NSFileHandleNotificationDataItem];
@@ -309,8 +312,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
       NSLog(@"unable to bind to port %s:%d - %s",
-		inet_ntoa(sin.sin_addr),
-		GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
+	inet_ntoa(sin.sin_addr),
+	GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
       (void) close(net);
       [self release];
       return nil;
@@ -465,11 +468,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   self = [super init];
   if (self)
     {
+#if 0
       struct stat sbuf;
 
+// FIXME
       if (fstat(desc, &sbuf) < 0)
 	{
-          NSLog(@"unable to get status of descriptor - %s", GSLastErrorStr(errno));
+          NSLog(@"unable to get status of descriptor - %s",
+	    GSLastErrorStr(errno));
 	  [self release];
 	  return nil;
 	}
@@ -477,17 +483,17 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
         isStandardFile = YES;
       else
         isStandardFile = NO;
-
-      dummy = 1;
-#if 0
-      if (ioctlsocket(desc, FIONBIO, &dummy) >= 0)
-	{
-	  if (e & NBLK_OPT)
-	    wasNonBlocking = YES;
-	  else
-	    wasNonBlocking = NO;
-	}
+#else
+      isStandardFile = NO;
 #endif
+
+      dummy = 0;
+      if (ioctlsocket(desc, FIONBIO, &dummy) < 0)
+        {
+          NSLog(@"unable to get blocking mode - %s", GSLastErrorStr(errno));
+	  wasNonBlocking = (dummy == 0) ? NO : YES;
+	  ioctlsocket(desc, FIONBIO, &dummy);	// Reset
+        }
 
       isNonBlocking = wasNonBlocking;
       descriptor = desc;
@@ -638,7 +644,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      if ((len = read(descriptor, buf, sizeof(buf))) > 0)
+      if ((len = recv(descriptor, buf, sizeof(buf), 0)) > 0)
 	{
 	  [d appendBytes: buf length: len];
 	}
@@ -1214,7 +1220,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
 	  length = [item length];
 
-	  received = read(descriptor, buf, sizeof(buf));
+	  received = recv(descriptor, buf, sizeof(buf), 0);
 	  if (received == 0)
 	    { // Read up to end of file.
 	      [self postReadNotification];
@@ -1261,7 +1267,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    {
 	      int	written;
 
-	      written = write(descriptor, (char*)ptr+writePos, length-writePos);
+	      if (isStandardFile)
+		{
+		  written = write(descriptor, (char*)ptr+writePos,
+		    length-writePos);
+		}
+	      else
+		{
+		  written = send(descriptor, (char*)ptr+writePos,
+		    length-writePos, 0);
+		}
 	      if (written <= 0)
 		{
 		  if (written < 0 && errno != EAGAIN && errno != EINTR)
@@ -1336,15 +1351,20 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (isStandardFile)
     return;
 
-  if (isNonBlocking == flag)
-    return;
-
-  dummy = 1;
   if (flag)
     {
+      dummy = 1;
       if (ioctlsocket(descriptor, FIONBIO, &dummy) < 0)
         {
           NSLog(@"unable to set non-blocking mode - %s", GSLastErrorStr(errno));
+        }
+    }
+  else
+    {
+      dummy = 0;
+      if (ioctlsocket(descriptor, FIONBIO, &dummy) < 0)
+        {
+          NSLog(@"unable to set blocking mode - %s", GSLastErrorStr(errno));
         }
     }
 }

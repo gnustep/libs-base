@@ -45,7 +45,7 @@
 #include <Foundation/NSByteOrder.h>
 
 #if defined(__MINGW__)
-#include <winsock.h>
+#include <winsock2.h>
 #else
 #include <time.h>
 #include <sys/time.h>
