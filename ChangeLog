@@ -1,3 +1,7 @@
+2005-01-15 06:17 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Undid previous change here.
+
 2005-01-15 06:13 Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSUndoManager.m: Localized undo/redo menu title.
