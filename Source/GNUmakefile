@@ -109,19 +109,21 @@ win32-entry.m \
 win32-def.top \
 libgnustep-base.def
 
-GNU_HEADERS = \
-DistributedObjects.h \
+ADD_HEADERS = \
 GCObject.h \
 GSCategories.h \
+GSObjCRuntime.h \
+Unicode.h \
+behavior.h \
+objc-gnu2next.h
+
+GNU_HEADERS = $(ADD_HEADERS) \
+DistributedObjects.h \
 GSFileHandle.h \
 GSLocale.h \
-GSObjCRuntime.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \
-Unicode.h \
-behavior.h \
-objc-gnu2next.h \
 preface.h
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)

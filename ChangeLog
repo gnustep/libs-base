@@ -1,3 +1,8 @@
+2003-03-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/objc-gnu2next.h: Added some trivial reverse
+	mappings to use gnu runtime from old next code.
+
 2003-03-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSObjCRuntime.h:
