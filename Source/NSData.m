@@ -616,6 +616,13 @@ failure:
 	  if ([mgr changeFileAttributes: att atPath: path] == NO)
 	    NSLog(@"Unable to correctly set all attributes for '%@'", path);
 	}
+      else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
+	{
+	  att = [NSDictionary dictionaryWithObjectsAndKeys:
+			NSFileOwnerAccountName, NSUserName(), nil];
+	  if ([mgr changeFileAttributes: att atPath: path] == NO)
+	    NSLog(@"Unable to correctly set ownership for '%@'", path);
+	}
     }
 
   /* success: */
