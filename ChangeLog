@@ -2,6 +2,9 @@
 
 	* Tools/plparse.m: Stefan Urbaneks patch to return 1 on failure.
 	* Tools/sfparse.m: Similar code for this tool.
+	* Source/Additions/GSObjCRuntime.m: Tidied function names
+	* Headers/gnustep/base/GSObjCRuntime.h: ditto.
+	* Source/NSKeyValueCoding.m: Use new function names.
 
 2002-11-28  Richard Frith-Macdonald <rfm@gnu.org>
 

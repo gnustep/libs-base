@@ -123,11 +123,10 @@
 	  if ([[self class] accessInstanceVariablesDirectly] == YES)
 	    {
 	      // _key
-	      if (GSObjCFindInstanceVariable(self, name, &type, &size, &off)
-		== NO)
+	      if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
 		{
 		  name = &buf[4]; // key
-		  GSObjCFindInstanceVariable(self, name, &type, &size, &off);
+		  GSObjCFindVariable(self, name, &type, &size, &off);
 		}
 	    }
 	  if (type == NULL)
@@ -198,11 +197,10 @@
 	      buf[4] = lo;
 	      buf[3] = '_';
 	      name = &buf[3];		// _key
-	      if (GSObjCFindInstanceVariable(self, name, &type, &size, &off)
-		== NO)
+	      if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
 		{
 		  name = &buf[4];	// key
-		  GSObjCFindInstanceVariable(self, name, &type, &size, &off);
+		  GSObjCFindVariable(self, name, &type, &size, &off);
 		}
 	    }
 	  if (type == NULL)
@@ -266,12 +264,10 @@
 		  buf[3] = '_';
 		  buf[4] = lo;
 		  name = &buf[3];	// _key
-		  if (GSObjCFindInstanceVariable(self, name, &type, &size, &off)
-		    == NO)
+		  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
 		    {
 		      name = &buf[4];	// key
-		      GSObjCFindInstanceVariable(self, name, &type, &size,
-			&off);
+		      GSObjCFindVariable(self, name, &type, &size, &off);
 		    }
 		}
 	    }
@@ -380,10 +376,10 @@
 	  buf[4] = lo;
 	  buf[3] = '_';
 	  name = &buf[3];	// _key
-	  if (GSObjCFindInstanceVariable(self, name, &type, &size, &off) == NO)
+	  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
 	    {
 	      name = &buf[4];	// key
-	      GSObjCFindInstanceVariable(self, name, &type, &size, &off);
+	      GSObjCFindVariable(self, name, &type, &size, &off);
 	    }
 	}
       return GSObjCGetValue(self, aKey, sel, type, size, off);
