@@ -662,8 +662,8 @@ static void
 flush_method_cache_for_class (Class class)
 {
 #if NeXT_RUNTIME
-      void _objc_flush_caches (Class cls);
-      _objc_flush_caches (cls);
+      void _objc_flush_caches (Class);
+      _objc_flush_caches (class);
 #else
       void __objc_update_dispatch_table_for_class (Class);
       __objc_update_dispatch_table_for_class (class);
