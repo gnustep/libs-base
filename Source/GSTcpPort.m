@@ -460,8 +460,7 @@ static Class	runLoopClass;
   NSRunLoop		*l;
 
   M_LOCK(myLock);
-  NSDebugMLLog(@"GSTcpHandle", @"Connecting on 0x%x in thread 0x%x before %@",
-    self, GSCurrentThread(), when);
+  NSDebugMLLog(@"GSTcpHandle", @"Connecting on 0x%x before %@", self, when);
   if (state != GS_H_UNCON)
     {
       BOOL	result;
@@ -678,8 +677,7 @@ static Class	runLoopClass;
 		    type: ET_EDESC
 		 forMode: nil
 		     all: YES];
-	  NSDebugMLLog(@"GSTcpHandle", @"invalidated 0x%x in thread 0x%x",
-	    self, GSCurrentThread());
+	  NSDebugMLLog(@"GSTcpHandle", @"invalidated 0x%x", self);
 	  [[self recvPort] removeHandle: self];
 	  [[self sendPort] removeHandle: self];
 	}
@@ -705,8 +703,8 @@ static Class	runLoopClass;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x in thread 0x%x",
-    type == ET_RPORT ? "read" : "write", self, GSCurrentThread());
+  NSDebugMLLog(@"GSTcpHandle", @"received %s event on 0x%x",
+      type == ET_RPORT ? "read" : "write", self);
   /*
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
@@ -769,8 +767,7 @@ static Class	runLoopClass;
 	{
 	  if (res == 0)
 	    {
-	      NSDebugMLLog(@"GSTcpHandle", @"read eof on 0x%x in thread 0x%x",
-		self, GSCurrentThread());
+	      NSDebugMLLog(@"GSTcpHandle", @"read eof on 0x%x", self);
 	      M_UNLOCK(myLock);
 	      [self invalidate];
 	      return;
@@ -778,16 +775,14 @@ static Class	runLoopClass;
 	  else if (errno != EINTR && errno != EAGAIN)
 	    {
 	      NSDebugMLLog(@"GSTcpHandle",
-		@"read failed - %s on 0x%x in thread 0x%x",
-		GSLastErrorStr(errno), self, GSCurrentThread());
+		@"read failed - %s on 0x%x", GSLastErrorStr(errno), self);
 	      M_UNLOCK(myLock);
 	      [self invalidate];
 	      return;
 	    }
 	  res = 0;	/* Interrupted - continue	*/
 	}
-      NSDebugMLLog(@"GSTcpHandle", @"read %d bytes on 0x%x in thread 0x%x",
-	res, self, GSCurrentThread());
+      NSDebugMLLog(@"GSTcpHandle", @"read %d bytes on 0x%x", res, self);
       rLength += res;
 
       while (valid == YES && rLength >= rWant)
@@ -1044,8 +1039,7 @@ static Class	runLoopClass;
 	      rId = 0;
 	      DESTROY(rItems);
 	      NSDebugMLLog(@"GSTcpHandle",
-		@"got message %@ on 0x%x in thread 0x%x",
-		pm, self, GSCurrentThread());
+		@"got message %@ on 0x%x", pm, self);
 	      RETAIN(rp);
 	      M_UNLOCK(myLock);
 	      NS_DURING
@@ -1091,8 +1085,7 @@ static Class	runLoopClass;
 		  defaultAddress = RETAIN([NSString stringWithCString:
 		    inet_ntoa(sockAddr.sin_addr)]);
 		  NSDebugMLLog(@"GSTcpHandle",
-		    @"wrote %d bytes on 0x%x in thread 0x%x",
-		    len, self, GSCurrentThread());
+		    @"wrote %d bytes on 0x%x", len, self);
 		  state = GS_H_CONNECTED;
 		}
 	      else
@@ -1141,8 +1134,7 @@ static Class	runLoopClass;
 	  else
 	    {
 	      NSDebugMLLog(@"GSTcpHandle",
-		@"wrote %d bytes on 0x%x in thread 0x%x",
-		res, self, GSCurrentThread());
+		@"wrote %d bytes on 0x%x", res, self);
 	      wLength += res;
 	      if (wLength == l)
 		{
@@ -1169,8 +1161,7 @@ static Class	runLoopClass;
 		       * message completed - remove from list.
 		       */
 		      NSDebugMLLog(@"GSTcpHandle",
-			@"completed 0x%x on 0x%x in thread 0x%x",
-			components, self, GSCurrentThread());
+			@"completed 0x%x on 0x%x", components, self);
 		      wData = nil;
 		      wItem = 0;
 		      [wMsgs removeObjectAtIndex: 0];
@@ -1199,8 +1190,8 @@ static Class	runLoopClass;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
   NSDebugMLLog(@"GSTcpHandle",
-    @"Sending message 0x%x %@ on 0x%x(%d) in thread 0x%x before %@",
-    components, components, self, desc, GSCurrentThread(), when);
+    @"Sending message 0x%x %@ on 0x%x(%d) before %@",
+    components, components, self, desc, when);
   M_LOCK(myLock);
   [wMsgs addObject: components];
 
@@ -1231,8 +1222,7 @@ static Class	runLoopClass;
   M_UNLOCK(myLock);
   RELEASE(self);
   NSDebugMLLog(@"GSTcpHandle",
-    @"Message send 0x%x on 0x%x in thread 0x%x status %d",
-    components, self, GSCurrentThread(), sent);
+    @"Message send 0x%x on 0x%x status %d", components, self, sent);
   return sent;
 }
 

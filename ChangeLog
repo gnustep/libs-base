@@ -6,6 +6,10 @@
 	* Source/NSLog.m:
 	* Source/NSUserDefaults.m:
 	Add GSLogThread to include thread id in NSLog() and debug output.
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Remove thread reporting in some debug statements as it can be
+	done universally using GSLogThread.
 
 2005-02-22 11:12 Richard Frith-Macdonald <rfm@gnu.org>
 

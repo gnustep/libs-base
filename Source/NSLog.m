@@ -254,7 +254,8 @@ NSLogv (NSString* format, va_list args)
     {
       if (GSUserDefaultsFlag(GSLogThread) == YES)
 	{
-	  prefix = [NSString stringWithFormat: @"[%08x] ", GSCurrentThread()];
+	  prefix = [NSString stringWithFormat: @"[thread:%x] ",
+	    GSCurrentThread()];
 	}
       else
 	{
@@ -267,7 +268,7 @@ NSLogv (NSString* format, va_list args)
       if (GSUserDefaultsFlag(GSLogThread) == YES)
 	{
 	  prefix = [NSString
-	    stringWithFormat: @"%@ %@[%d,%08x] ",
+	    stringWithFormat: @"%@ %@[%d,%x] ",
 	    [[NSCalendarDate calendarDate]
 	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
 	    [[NSProcessInfo processInfo] processName],
