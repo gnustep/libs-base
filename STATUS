@@ -46,17 +46,16 @@ Classes
 * NSCoder::			[8]
 	Missing class name substitution methods.
 
-* NSConditionLock::		[0]
+* NSConditionLock::		[8]
 
 * NSConnection::		[0]
 	But GNU Connection is there as a base.  
 	GNU Connection, however, needs:
 	 * to handle retain/release/dealloc properly
-	 * to be integrated with NSNotification's
-	 * to be integrated with NSRunLoop
 	 * to be integrated with NSInvocation
-	 * to be integrated with pending collection class fixes
-	 * to be more robust than UDP
+	 * to incorporate futzing with low-level TCP-backend for better speed
+	 * to have UDP-backend work
+	 * to cache ConnectedCoder's for better speed
 	 * Thread-safety overhaul, this is major
 
 * NSCountedSet::		[8]
@@ -80,7 +79,7 @@ Classes
 
 * NSInvocation::		[3]
 
-* NSLock::			[0]
+* NSLock::			[8]
 
 * NSMethodSignature::		[4]
 
@@ -112,7 +111,7 @@ Classes
 	But GNU Proxy is there as a base.
 	See todo's for NSConnection
 
-* NSRecursiveLock::		[0]
+* NSRecursiveLock::		[8]
 
 * NSRunLoop::			[0]
 	But Allan Clearwaters is working on it
