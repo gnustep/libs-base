@@ -7,7 +7,7 @@
   NSCurrencySymbol = "$";
   NSPositiveCurrencyFormatString = "$9,999.00";
   NSNegativeCurrencyFormatString = "$-9,999.00";
-  NSInternationalCurrencyString = "$";
+  NSInternationalCurrencyString = "USD";
 
   NSDecimalDigits = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
   NSDecimalSeparator = ".";
@@ -23,7 +23,7 @@
   NSNextDayDesignations = (tomorrow);
   NSNextNextDayDesignations = (nextday);
   NSPriorDayDesignations = (yesterday);
-  NSShortDateFormatString = "%d/%m/%Y";
+  NSShortDateFormatString = "%m/%d/%Y";
   NSShortMonthNameArray = (Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec);
   NSShortTimeDateFormatString = "%d %b, %Y %H:%M";
   NSShortWeekDayNameArray = (Sun, Mon, Tue, Wed, Thu, Fri, Sat); 
