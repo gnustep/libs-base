@@ -51,6 +51,21 @@
 @class GSXMLNode;
 @class GSSAXHandler;
 
+/**
+ * Convenience methods for managing XML escape sequences in an NSString.
+ */
+@interface	NSString (GSXML)
+/**
+ * Convert XML special characters in the receiver (like '&amp;' and '&quot;')
+ * to their escaped equivalents, and return the escaped string.
+ */
+- (NSString*) stringByEscapingXML;
+/**
+ * Convert XML escape sequences (like '&amp;'amp; and '&amp;quot;')
+ * to their unescaped equivalents, and return the unescaped string.
+ */
+- (NSString*) stringByUnescapingXML;
+@end
 
 @interface GSXMLDocument : NSObject <NSCopying>
 {
