@@ -357,15 +357,15 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 			  t = [t next];
 			}
 		    }
-		  else if ([[tmp name] isEqual: @"arg"] == NO)
-		    {
-		      children = tmp;
-		      break;
-		    }
 		  else if ([[tmp name] isEqual: @"vararg"] == YES)
 		    {
 		      sel = [sel stringByAppendingString: @",..."];
 		      children = [tmp next];
+		      break;
+		    }
+		  else if ([[tmp name] isEqual: @"arg"] == NO)
+		    {
+		      children = tmp;
 		      break;
 		    }
 		}

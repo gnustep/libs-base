@@ -1,3 +1,7 @@
+2002-12-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSIndex.m: Fix error indexing vararg methods.
+
 2002-12-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSDistributedNotificationCenter.h: add type
