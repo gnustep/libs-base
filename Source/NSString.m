@@ -99,20 +99,32 @@
  0
     };
 
+static Class	NSString_class;	/* For speed	*/
 
+static unichar		pathSepChar = (unichar)'/';
+static NSString		*pathSepString = @"/";
+
+/*
+ *	We can't have a 'pathSeps' variable initialized in the  +initialize
+ *	method 'cos that would cause recursion.
+ */
+static NSCharacterSet*
+pathSeps()
+{
+  static NSCharacterSet	*pathSeps = nil;
+
+  if (pathSeps == nil)
+    {
 #if defined(__WIN32__) || defined(_WIN32)
-
-#define PATH_COMPONENT @"\\"
-#define PATH_COMPONENT_LEN 1
-#define PATH_COMPONENT2 @"/"
-#define PATH_COMPONENT_LEN2 1
-
+      pathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
 #else
+      pathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
+#endif
+      [pathSeps retain];
+    }
+  return pathSeps;
+}
 
-#define PATH_COMPONENT @"/"
-#define PATH_COMPONENT_LEN 1
-
-#endif /* Path components */
 
 @implementation NSString
 
@@ -231,6 +243,7 @@ handle_printf_atsign (FILE *stream,
   if (self == [NSString class])
     {
       _DefaultStringEncoding = GetDefEncoding();
+      NSString_class = self;
       NSString_concrete_class = [NSGString class];
       NSString_c_concrete_class = [NSGCString class];
       NSMutableString_concrete_class = [NSGMutableString class];
@@ -1456,7 +1469,7 @@ else
 	Class c = fastClassOfInstance(anObject);
 
 	if (c != nil) {
-	    if (fastClassIsKindOfClass(c, _fastCls._NSString)) {
+	    if (fastClassIsKindOfClass(c, NSString_class)) {
 		return [self isEqualToString: anObject];
 	    }
 	}
@@ -2246,10 +2259,10 @@ else
   NSRange range;
   NSString *substring = nil;
 
-  range = [self rangeOfString: PATH_COMPONENT options:NSBackwardsSearch];
+  range = [self rangeOfCharacterFromSet: pathSeps() options: NSBackwardsSearch];
   if (range.length == 0)
     substring = [[self copy] autorelease];
-  else if (range.location == ([self length] - PATH_COMPONENT_LEN))
+  else if (range.location == ([self length] - 1))
     {
       if (range.location == 0)
 	substring = [[NSString new] autorelease];
@@ -2258,28 +2271,7 @@ else
 		      lastPathComponent];
     }
   else
-    substring = [self substringFromIndex:range.location + PATH_COMPONENT_LEN];
-
-#ifdef PATH_COMPONENT2
-  if (substring == self)
-    {
-      NSRange range2 = [self rangeOfString: PATH_COMPONENT2
-			     options:NSBackwardsSearch];
-      if (range2.length == 0)
-	substring = [[self copy] autorelease];
-      else if (range2.location == ([self length] - PATH_COMPONENT_LEN2))
-	{
-	  if (range2.location == 0)
-	    substring = [[NSString new] autorelease];
-	  else
-	    substring = [[self substringToIndex:range2.location] 
-			  lastPathComponent];
-	}
-      else
-	substring = [self substringFromIndex:
-			    range2.location + PATH_COMPONENT_LEN2];
-    }
-#endif /* PATH_COMPONENT2 */
+    substring = [self substringFromIndex:range.location + 1];
 
   return substring;
 }
@@ -2295,24 +2287,11 @@ else
 
   range = [self rangeOfString:@"." options:NSBackwardsSearch];
   if (range.length == 0 
-      || range.location < ([self rangeOfString: PATH_COMPONENT
-				 options:NSBackwardsSearch]).location)
+      || range.location < ([self rangeOfCharacterFromSet: pathSeps()
+				 options: NSBackwardsSearch]).location)
     substring = nil;
   else
-    substring = [self substringFromIndex:range.location + PATH_COMPONENT_LEN];
-
-#ifdef PATH_COMPONENT2
-  if (!substring)
-    {
-      if (range.length == 0 
-	  || range.location < ([self rangeOfString: PATH_COMPONENT2
-				     options:NSBackwardsSearch]).location)
-	substring = nil;
-      else
-	substring = [self substringFromIndex:
-			    range.location + PATH_COMPONENT_LEN2];
-    }
-#endif
+    substring = [self substringFromIndex:range.location + 1];
 
   if (!substring)
     substring = [[NSString new] autorelease];
@@ -2331,19 +2310,19 @@ else
   if ([aString length] == 0)
       return [[self copy] autorelease];
 
-  range = [aString rangeOfString:@"/"];
+  range = [aString rangeOfCharacterFromSet: pathSeps()];
   if (range.length != 0 && range.location == 0)
       [NSException raise: NSGenericException
 		     format: @"attempt to append illegal path component"];
 
-  range = [self rangeOfString:@"/" options:NSBackwardsSearch];
+  range = [self rangeOfCharacterFromSet: pathSeps() options: NSBackwardsSearch];
   if ((range.length == 0 || range.location != [self length] - 1) && [self length] > 0)
 
-      newstring = [self stringByAppendingString:@"/"];
+      newstring = [self stringByAppendingString: pathSepString];
   else
       newstring = self;
 
-  return [newstring stringByAppendingString:aString];
+  return [newstring stringByAppendingString: aString];
 }
 
 /* Returns a new string with the path extension given in aString
@@ -2379,17 +2358,17 @@ else
   NSRange range;
   NSString *substring;
 
-  range = [self rangeOfString:[self lastPathComponent] 
-			options:NSBackwardsSearch];
+  range = [self rangeOfString: [self lastPathComponent] 
+		      options: NSBackwardsSearch];
 
   if (range.length == 0)
     substring = [[self copy] autorelease];
   else if (range.location == 0)
     substring = [[NSString new] autorelease];
   else if (range.location > 1)
-      substring = [self substringToIndex:range.location-1];
+    substring = [self substringToIndex:range.location-1];
   else
-      substring = PATH_COMPONENT;
+    substring = pathSepString;
   return substring;
 }
 
@@ -2402,9 +2381,9 @@ else
 
   range = [self rangeOfString:[self pathExtension] options:NSBackwardsSearch];
   if (range.length != 0)
-      substring = [self substringToIndex:range.location-1];
+    substring = [self substringToIndex:range.location-1];
   else
-      substring = [[self copy] autorelease];
+    substring = [[self copy] autorelease];
   return substring;
 }
 
@@ -2419,7 +2398,7 @@ else
   if ([self characterAtIndex: 0] != 0x007E)
     return [[self copy] autorelease];
 
-  first_slash_range = [self rangeOfString: @"/"];
+  first_slash_range = [self rangeOfString: pathSepString];
 
   if (first_slash_range.location != 1)
     {
@@ -2453,7 +2432,7 @@ else
   if (![self hasPrefix: homedir])
     return [[self copy] autorelease];
 
-  return [NSString stringWithFormat: @"~/%@",
+  return [NSString stringWithFormat: @"~%c%@", (char)pathSepChar,
 		   [self substringFromIndex: [homedir length] + 1]];
 }
 
@@ -2507,9 +2486,10 @@ else
 
       /* BREAK CONDITION */
       if ([first_half length] == 0) break;
-      else if ([first_half isEqual: @"/"])
+      else if ([first_half length] == 1
+	&& [pathSeps() characterIsMember: [first_half characterAtIndex: 0]])
 	{
-	  second_half = [@"/" stringByAppendingPathComponent: second_half];
+	  second_half = [pathSepString stringByAppendingPathComponent: second_half];
 	  break;
 	}
     }
@@ -2530,28 +2510,41 @@ else
     [s deleteCharactersInRange: ((NSRange){0,7})];
 
   /* Condense `//' */
-  while ((r = [s rangeOfString: @"//"]).length)
+  while ((r = [s rangeOfCharacterFromSet: pathSeps()]).length
+      && r.location + r.length < [s length]
+      && [pathSeps() characterIsMember: [s characterAtIndex: r.location + 1]])
     [s deleteCharactersInRange: r];
 
   /* Condense `/./' */
-  while ((r = [s rangeOfString: @"/./"]).length)
+  while ((r = [s rangeOfCharacterFromSet: pathSeps()]).length
+      && r.location + r.length < [s length] + 1
+      && [s characterAtIndex: r.location + 1] == (unichar)'.'
+      && [pathSeps() characterIsMember: [s characterAtIndex: r.location + 2]])
     {
-      r.length--;
+      r.length++;
       [s deleteCharactersInRange: r];
     }
 
   /* Condense `/../' */
-  while ((r = [s rangeOfString: @"/../"]).length)
+  while ((r = [s rangeOfCharacterFromSet: pathSeps()]).length
+      && r.location + r.length < [s length] + 2
+      && [s characterAtIndex: r.location + 1] == (unichar)'.'
+      && [s characterAtIndex: r.location + 2] == (unichar)'.'
+      && [pathSeps() characterIsMember: [s characterAtIndex: r.location + 3]])
     {
-      NSRange r2 = {0, r.length-1};
-      r = [s rangeOfString: @"/" 
-	     options: NSBackwardsSearch
-	     range: r2];
-      r.length += 4;		/* Add the `/../' */
+      if (r.location > 0)
+	{
+	  NSRange r2 = {0, r.location};
+	  r = [s rangeOfCharacterFromSet: pathSeps()
+				 options: NSBackwardsSearch
+				   range: r2];
+	  if (r.length == 0)
+	    r = r2;
+	  r.length += 4;		/* Add the `/../' */
+	}
       [s deleteCharactersInRange: r];
     }
 
-  /* xxx Should we not return a mutable string? */
   return s;
 }
 

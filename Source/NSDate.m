@@ -104,13 +104,9 @@ static BOOL	debug = NO;
 
   return interval;
 #else
-  TIME_ZONE_INFORMATION sys_time_zone;
   SYSTEMTIME sys_time;
   NSCalendarDate *d;
   NSTimeInterval t;
-
-  // Get the time zone information
-  GetTimeZoneInformation(&sys_time_zone);
 
   // Get the system time
   GetLocalTime(&sys_time);
@@ -123,10 +119,10 @@ static BOOL	debug = NO;
      hour: sys_time.wHour
      minute: sys_time.wMinute
      second: sys_time.wSecond
-     timeZone: [NSTimeZone defaultTimeZone]];
+     timeZone: [NSTimeZone localTimeZone]];
   t = [d timeIntervalSinceReferenceDate];
   [d release];
-  return t;
+  return t + sys_time.wMilliseconds / 1000.0;
 #endif /* __WIN32__ */
 }
 
