@@ -1,3 +1,7 @@
+2001-12-13  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/pl2link.m: New file (from FredKiefer@gmx.de).
+
 2001-12-12  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/NSDebug.h: Include NSDebugLog functions
