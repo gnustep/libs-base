@@ -33,6 +33,7 @@
 #include <Foundation/NSDebug.h>
 
 static SEL	eqSel;
+static SEL	oaiSel;
 
 static Class	GSInlineArrayClass;
 
@@ -75,6 +76,7 @@ static Class	GSInlineArrayClass;
     {
       [self setVersion: 1];
       eqSel = @selector(isEqual:);
+      oaiSel = @selector(objectAtIndex:);
       GSInlineArrayClass = [GSInlineArray class];
     }
 }
@@ -224,6 +226,33 @@ static Class	GSInlineArrayClass;
 	}
     }
   return NSNotFound;
+}
+
+- (BOOL) isEqualToArray: (NSArray*)otherArray
+{
+  unsigned i;
+ 
+  if (self == (id)otherArray)
+    {
+      return YES;
+    }
+  if (_count != [otherArray count])
+    {
+      return NO;
+    }
+  if (_count > 0)
+    {
+      IMP	get1 = [otherArray methodForSelector: oaiSel];
+
+      for (i = 0; i < _count; i++)
+	{
+	  if (![_contents_array[i] isEqual: (*get1)(otherArray, oaiSel, i)])
+	    {
+	      return NO;
+	    }
+	}
+    }
+  return YES;
 }
 
 - (id) lastObject

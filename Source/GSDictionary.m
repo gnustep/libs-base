@@ -244,6 +244,42 @@ static SEL	objSel;
   return self;
 }
 
+- (BOOL) isEqualToDictionary: (NSDictionary*)other
+{
+  unsigned	count;
+
+  if (other == self)
+    {
+      return YES;
+    }
+  count = map.nodeCount;
+  if (count == [other count])
+    {
+      if (count > 0)
+	{
+	  GSIMapEnumerator_t	enumerator;
+	  GSIMapNode		node;
+	  IMP			otherObj = [other methodForSelector: objSel];
+
+	  enumerator = GSIMapEnumeratorForMap(&map);
+	  while ((node = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+	    {
+	      id o1 = node->value.obj;
+	      id o2 = (*otherObj)(other, objSel, node->key.obj);
+
+	      if (o1 != o2 && [o1 isEqual: o2] == NO)
+		{
+		  GSIMapEndEnumerator(&enumerator);
+		  return NO;
+		}
+	    }
+	  GSIMapEndEnumerator(&enumerator);
+	}
+      return YES;
+    }
+  return NO;
+}
+
 - (NSEnumerator*) keyEnumerator
 {
   return AUTORELEASE([[GSDictionaryKeyEnumerator allocWithZone:
