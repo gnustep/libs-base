@@ -1,9 +1,18 @@
+2001-01-19  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* config/config.loadtest.m: Added dummy NXConstStr implementation 
+	for libobjc which do not include it. 
+	* configure.in: Simplified check for thread flags.  gnustep-make
+	already gets them - simply get them from config.make here.
+	* configure: Regenerated.
+	* config/config_thread.m: Removed.
+	
 2001-01-17  Adam Fedor  <fedor@gnu.org>
 
 	* Version: Prerelease version 0.9.0
 	* configure.in: Change check for installed libobjc to match gstep-make
 
-Thu Jan 18 15:53:41 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+2001-01-18  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/GNUmakefile: Simplified name to gnustep-base.
 	* gnustep-base.spec.in: Changed Group to Development/Libraries.
