@@ -1,5 +1,10 @@
 2000-09-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSGString.m: Removed obsolete methods and added range checks.
+	* Source/NSGCString.m: ditto.
+
+2000-09-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSRunLoop.m: ([-_checkPerformers:]) When a loop executes the
 	method to deal with a ([-performSelector:target:argument:order:modes]),
 	we cancel the request rather than leaving it to be actioned again next

@@ -762,6 +762,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 
 - (void) deleteCharactersInRange: (NSRange)range
 {
+  GS_RANGE_CHECK(range, _count);
   stringDecrementCountAndFillHoleAt((NSGMutableStringStruct*)self, 
 				    range.location, range.length);
 }
@@ -828,12 +829,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
   _hash = 0;
 }
 
-- (void) removeRange: (NSRange)range
-{
-  stringDecrementCountAndFillHoleAt((NSGMutableStringStruct*)self, 
-				    range.location, range.length);
-}
-
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned cap;
@@ -854,33 +849,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
   return unitochar(_contents_chars[index]);
-}
-
-
-
-// FOR IndexedCollection and OrderedCollection SUPPORT;
-
-- (void) insertObject: newObject atIndex: (unsigned)index
-{
-  CHECK_INDEX_RANGE_ERROR(index, _count+1);
-  // one for the next char, one for the '\0';
-  if (_count >= _capacity)
-    {
-      _capacity = _count;
-      if (_capacity < 2)
-	_capacity = 2;
-      _contents_chars =
-	NSZoneRealloc(_zone, _contents_chars, sizeof(unichar)*_capacity);
-    }
-  stringIncrementCountAndMakeHoleAt((NSGMutableStringStruct*)self, index, 1);
-  _contents_chars[index] = [newObject charValue];
-}
-
-
-- (void) removeObjectAtIndex: (unsigned)index
-{
-  CHECK_INDEX_RANGE_ERROR(index, _count);
-  stringDecrementCountAndFillHoleAt((NSGMutableStringStruct*)self, index, 1);
 }
 
 @end
