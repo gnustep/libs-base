@@ -1283,7 +1283,7 @@ rm -f conftest*
       if test $NeXT_runtime = 1; then
         echo "$ac_t""no: NeXT runtime" 1>&6
 	LIBOBJC=''
-        CC="$CC -fnext-runtime"
+        CC="$CC -fnext-runtime -DNeXT_RUNTIME"
         # Make sure that we get NeXTs objc/*.h files
         NEXT_INCLUDES='$(NEXT_NEXT_INCLUDES)'
         OBJS_INSTALL='$(GNU_OBJS)'
@@ -4442,8 +4442,8 @@ fi
 
 if test "$enable_pass_arguments" = "no"; then
   case "$target_os" in
-    freebsdelf*) ;;
-    freebsd*)	enable_fake_main=yes;;
+    freebsd2*)	enable_fake_main=yes;;
+    freebsd*)	;;
     netbsd*)	enable_fake_main=yes;;
     openbsd*)	enable_fake_main=yes;;
     *sysv*)	enable_fake_main=yes;;
