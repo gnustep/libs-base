@@ -5,7 +5,7 @@
    Written by: Michael Pakhantsov  <mishel@berest.dp.ua> on behalf of
    Brainstorm computer solutions.
    Date: Jule 2000
-   
+
    Integration by Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: September 2000
 
@@ -15,7 +15,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -130,6 +130,20 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 /**
  * Create a new document with the specified version.
+ * <example>
+ *
+ * id d = [GSXMLDocument documentWithVersion: @"1.0"];
+ *
+ * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
+ * [[d root] setProp: @"version" value: @"0.9"];
+ * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
+ * [n1 makeComment: @" this is a comment "];
+ * [n1 makePI: @"pi1" content: @"this is a process instruction"];
+ * [n1 makeChildWithNamespace: nil name: @"key" content: @"Year Of Birth"];
+ * [n1 makeChildWithNamespace: nil name: @"integer" content: @"65"];
+ * [n1 makeChildWithnamespace: nil name: @"key" content: @"Pets Names"];
+ *
+ * </example>
  */
 + (GSXMLDocument*) documentWithVersion: (NSString*)version
 {
@@ -157,8 +171,8 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 }
 
 /**
- * Returns a string representation of the document or nil if the
- * document does not have reasonable contents.
+ * Returns a string representation of the document (ie the XML)
+ * or nil if the document does not have reasonable contents.
  */
 - (NSString*) description
 {
@@ -176,6 +190,19 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   return string;
 }
 
+/**
+ * Returns the name of the encoding for this document.
+ */
+- (NSString*) encoding
+{
+  return [NSString_class stringWithCString: ((xmlDocPtr)(lib))->encoding];
+}
+
+- (unsigned) hash
+{
+  return (unsigned)lib;
+}
+
 - (id) init
 {
   NSLog(@"GSXMLDocument: calling -init is not legal");
@@ -184,6 +211,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 }
 
 /**
+ * <init />
  * Initialise a new document object using raw libxml data.
  * The resulting document does not 'own' the data, and will not free it.
  */
@@ -228,6 +256,50 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   return self;
 }
 
+- (BOOL) isEqualTo: (id)other
+{
+  if ([other isKindOfClass: [self class]] == YES
+    && [other lib] == lib)
+    {
+      return YES;
+    }
+  else
+    {
+      return NO;
+    }
+}
+
+/**
+ * Returns a pointer to the raw libxml data used by this document.
+ */
+- (void*) lib
+{
+  return lib;
+}
+
+/**
+ * Creates a new node within the document.
+ * <example>
+ *
+ * GSXMLNode *n1, *n2;
+ * GSXMLDocument *d;
+ *
+ * d = [GSXMLDocument documentWithVersion: @"1.0"];
+ * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
+ * [[d root] setProp: @"version" value: @"0.9"];
+ * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
+ *
+ * </example>
+ */
+- (GSXMLNode*) makeNodeWithNamespace: (GSXMLNamespace*)ns
+				name: (NSString*)name
+			     content: (NSString*)content
+{
+  return [GSXMLNode nodeFrom:
+    xmlNewDocNode(lib, [ns lib], [name lossyCString],
+    [content lossyCString])];
+}
+
 /**
  * Returns the root node of the document.
  */
@@ -238,7 +310,8 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 /**
  * Sets the root node of the document.  This takes ownership of the
- * underlying data in the supplied node.
+ * underlying data in the supplied node. <br />
+ * returns the old root of the document (or nil).
  */
 - (GSXMLNode*) setRoot: (GSXMLNode*)node
 {
@@ -258,72 +331,9 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 }
 
 /**
- * Returns the name of the encoding for this document.
+ * Uses the -description method to produce a string representation of
+ * the document and writes that to filename.
  */
-- (NSString*) encoding
-{
-  return [NSString_class stringWithCString: ((xmlDocPtr)(lib))->encoding];
-}
-
-/**
- * Returns a pointer to the raw libxml data used by this document.
- */
-- (void*) lib
-{
-  return lib;
-}
-
-- (unsigned) hash
-{
-  return (unsigned)lib;
-}
-
-- (BOOL) isEqualTo: (id)other
-{
-  if ([other isKindOfClass: [self class]] == YES
-    && [other lib] == lib)
-    return YES;
-  else
-    return NO;
-}
-
-- (GSXMLNode*) makeNodeWithNamespace: (GSXMLNamespace*)ns
-				name: (NSString*)name
-			     content: (NSString*)content
-{
-  return [GSXMLNode nodeFrom: 
-    xmlNewDocNode(lib, [ns lib], [name lossyCString],
-    [content lossyCString])];
-}
-
-/**
- * Saves the document to filename.
- */
-- (void) save: (NSString*)filename
-{
-  xmlSaveFile([filename lossyCString], lib);
-}
-
-/**
- * Returns a string representation of the document.
- */
-- (NSString*) stringValue
-{
-  NSString	*string = nil;
-  xmlChar	*buf = NULL;
-  int		length;
-
-  xmlDocDumpMemory(lib, &buf, &length);
-
-  if (buf != 0 && length > 0)
-    {
-      string = [NSString_class stringWithCString: buf length: length];
-      xmlFree(buf);
-    }
-
-  return string;
-}
-
 - (BOOL) writeToFile: (NSString*)filename atomically: (BOOL)useAuxilliaryFile
 {
   NSString	*s = [self description];
@@ -335,6 +345,10 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   return [s writeToFile: filename atomically: useAuxilliaryFile];
 }
 
+/**
+ * Uses the -description method to produce a string representation of
+ * the document and writes that to url.
+ */
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxilliaryFile
 {
   NSString	*s = [self description];
@@ -352,6 +366,16 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 static NSMapTable	*nsNames = 0;
 
+/**
+ * Return the string representation of the specified numeric type.
+ */
++ (NSString*) descriptionFromType: (int)type
+{
+  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)[self type]);
+
+  return desc;
+}
+
 + (void) initialize
 {
   if (self == [GSXMLNamespace class])
@@ -365,6 +389,60 @@ static NSMapTable	*nsNames = 0;
     }
 }
 
+/**
+ * Create a namespace from raw libxml data
+ */
++ (GSXMLNamespace*) namespaceFrom: (void*)data
+{
+  return AUTORELEASE([[self alloc] initFrom: data]);
+}
+
+/**
+ * Creates a new Namespace.<br />
+ * This method will refuse to create a namespace
+ * with the same prefix as an existing one present
+ * in this node.
+ * <example>
+ *  ....
+ *  GSXMLNamespace *ns1, *ns2;
+ *  GSXMLNode *node1, *node2;
+ *  NSString *prefix = @"mac-os-property";
+ *  NSString *href   = @"http://www.gnustep.org/some/location";
+ *
+ *  ns = [GSXMLNamespace namespaceWithNode: nil
+ *                                    href: href
+ *                                  prefix: prefix];
+ *  node1 = [GSXMLNode nodeWithNamespace: ns name: @"node1"];
+ *
+ *  node2 = [GSXMLNode nodeWithNamespace: nil name: @"node2"];
+ *  ns2 = [GSXMLNamespace namespaceWithNode: node2
+ *                                     href: href
+ *                                   prefix: prefix];
+ *
+ *  Result:
+ *
+ *  node1   &lt;mac-os-property:node1/&gt;
+ *  node2   &lt;node2 xmlns="mac-os-property"/&gt;
+ *  </example>
+ */
++ (GSXMLNamespace*) namespaceWithNode: (GSXMLNode*)node
+				 href: (NSString*)href
+			       prefix: (NSString*)prefix
+{
+  return AUTORELEASE([[self alloc] initWithNode: node
+					   href: href
+				 	 prefix: prefix]);
+}
+
+/**
+ * Return the numeric constant value for the namespace
+ * type named.  This method is inefficient, so the returned
+ * value should be saved for re-use later.  The possible
+ * values are -
+ * <list>
+ *   <item>XML_LOCAL_NAMESPACE</item>
+ * </list>
+ */
 + (int) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
@@ -382,31 +460,44 @@ static NSMapTable	*nsNames = 0;
   return -1;
 }
 
-+ (NSString*) descriptionFromType: (int)type
-{
-  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)[self type]);
-
-  return desc;
-}
-
-/* This is the initializer of this class */
-+ (GSXMLNamespace*) namespaceWithNode: (GSXMLNode*)node
-				 href: (NSString*)href
-			       prefix: (NSString*)prefix
-{
-  return AUTORELEASE([[self alloc] initWithNode: node
-					   href: href
-				 	 prefix: prefix]);
-}
-
 - (id) copyWithZone: (NSZone*)z
 {
   return RETAIN(self);
 }
 
+- (void) dealloc
+{
+  if (native == YES && lib != NULL)
+    {
+      xmlFreeNs(lib);
+      lib = NULL;
+    }
+  [super dealloc];
+}
+
+- (unsigned) hash
+{
+  return (unsigned)lib;
+}
+
 /**
- * Initialise a new document object using raw libxml data.
- * The resulting document does not 'own' the data, and will not free it.
+ * Returns the namespace reference
+ */
+- (NSString*) href
+{
+  return UTF8Str(((xmlNsPtr)(lib))->href);
+}
+
+- (id) init
+{
+  NSLog(@"GSXMLNamespace: calling -init is not legal");
+  RELEASE(self);
+  return nil;
+}
+
+/**
+ * Initialise a new namespace object using raw libxml data.
+ * The resulting namespace does not 'own' the data, and will not free it.
  */
 - (id) initFrom: (void*)data
 {
@@ -426,6 +517,11 @@ static NSMapTable	*nsNames = 0;
   return self;
 }
 
+/**
+ * Creation of a new Namespace. This function will refuse to create
+ * a namespace with a similar prefix than an existing one present on
+ * this node.
+ */
 - (id) initWithNode: (GSXMLNode*)node
 	       href: (NSString*)href
 	     prefix: (NSString*)prefix
@@ -462,63 +558,25 @@ static NSMapTable	*nsNames = 0;
   return self;
 }
 
-+ (GSXMLNamespace*) namespaceFrom: (void*)data
+- (BOOL) isEqualTo: (id)other
 {
-  return AUTORELEASE([[self alloc] initFrom: data]);
+  if ([other isKindOfClass: [self class]] == YES && [other lib] == lib)
+    return YES;
+  else
+    return NO;
 }
 
-- (id) init
-{
-  NSLog(@"GSXMLNamespace: calling -init is not legal");
-  RELEASE(self);
-  return nil;
-}
-
-/* return pointer to xmlNs struct */
+/**
+ * return the raw libxml data.
+ */
 - (void*) lib
 {
   return lib;
 }
 
-- (void) dealloc
-{
-  if (native == YES && lib != NULL)
-    {
-      xmlFreeNs(lib);
-      lib = NULL;
-    }
-  [super dealloc];
-}
-
-/* return the namespace prefix  */
-- (NSString*) prefix
-{
-  return UTF8Str(((xmlNsPtr)(lib))->prefix);
-}
-
-/* the namespace reference */
-- (NSString*) href
-{
-  return UTF8Str(((xmlNsPtr)(lib))->href);
-}
-
-/* type of namespace */
-- (int) type
-{
-  return (int)((xmlNsPtr)(lib))->type;
-}
-
-- (NSString*) typeDescription
-{
-  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)[self type]);
-
-  if (desc == nil)
-    {
-      desc = @"Unknown namespace type";
-    }
-  return desc;
-}
-
+/**
+ * return the next namespace.
+ */
 - (GSXMLNamespace*) next
 {
   if (((xmlNsPtr)(lib))->next != NULL)
@@ -531,17 +589,34 @@ static NSMapTable	*nsNames = 0;
     }
 }
 
-- (unsigned) hash
+/**
+ * Return the namespace prefix.
+ */
+- (NSString*) prefix
 {
-  return (unsigned)lib;
+  return UTF8Str(((xmlNsPtr)(lib))->prefix);
 }
 
-- (BOOL) isEqualTo: (id)other
+/**
+ * Return type of namespace
+ */
+- (int) type
 {
-  if ([other isKindOfClass: [self class]] == YES && [other lib] == lib)
-    return YES;
-  else
-    return NO;
+  return (int)((xmlNsPtr)(lib))->type;
+}
+
+/**
+ * Return string representation of the type of the namespace.
+ */
+- (NSString*) typeDescription
+{
+  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)[self type]);
+
+  if (desc == nil)
+    {
+      desc = @"Unknown namespace type";
+    }
+  return desc;
 }
 
 @end
@@ -558,6 +633,16 @@ static NSMapTable	*nsNames = 0;
 @implementation GSXMLNode: NSObject
 
 static NSMapTable	*nodeNames = 0;
+
+/**
+ * Return the string constant value for the node type given.
+ */
++ (NSString*) descriptionFromType: (int)type
+{
+  NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)[self type]);
+
+  return desc;
+}
 
 + (void) initialize
 {
@@ -604,6 +689,37 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
+/**
+ * Create node from raw libxml data.
+ */
++ (GSXMLNode*) nodeFrom: (void*)data
+{
+  return AUTORELEASE([[self alloc] initFrom: data]);
+}
+
+/**
+ * Creation of a new Node. This function will refuse to create a Node
+ * with a similar prefix than an existing one present on this node.
+ * <example>
+ *    ...
+ *    GSXMLNamespace *ns1;
+ *    GSXMLNode *node1, *node2;
+ *    NSString *prefix = @"mac-os-property";
+ *    NSString *href   = @"http://www.gnustep.org/some/location";
+ *
+ *    ns = [GSXMLNamespace namespaceWithNode: nil
+ *                                      href: href
+ *                                    prefix: prefix];
+ *    node1 = [GSXMLNode nodeWithNamespace: ns name: @"node1"];
+ *    node2 = [GSXMLNode nodeWithNamespace: nil name: @"node2"];
+ *    ...
+ * </example>
+ */
++ (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
+{
+  return AUTORELEASE([[self alloc] initWithNamespace: ns name: name]);
+}
+
 + (int) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
@@ -621,16 +737,40 @@ static NSMapTable	*nodeNames = 0;
   return -1;
 }
 
-+ (NSString*) descriptionFromType: (int)type
+/**
+ * Return the children of this node
+ * <example>
+ *    - (GSXMLNode*) nextElement: (GSXMLNode*)node
+ *    {
+ *      while (node != nil)
+ *        {
+ *          if ([node type] == XML_ELEMENT_NODE)
+ *            {
+ *              return node;
+ *            }
+ *          if ([node children] != nil)
+ *            {
+ *              node = [self nextElement: [node children]];
+ *            }
+ *          else
+ *            {
+ *              node = [node next];
+ *            }
+ *        }
+ *      return node;
+ *    }
+ *  </example>
+ */
+- (GSXMLNode*) children
 {
-  NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)[self type]);
-
-  return desc;
-}
-
-+ (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
-{
-  return AUTORELEASE([[self alloc] initWithNamespace: ns name: name]);
+  if (((xmlNodePtr)(lib))->children != NULL)
+    {
+      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->children];
+    }
+  else
+    {
+      return nil;
+    }
 }
 
 - (id) copyWithZone: (NSZone*)z
@@ -638,6 +778,74 @@ static NSMapTable	*nodeNames = 0;
   return RETAIN(self);
 }
 
+/*
+ * Return node content.
+ */
+- (NSString*) content
+{
+  if (lib != NULL && ((xmlNodePtr)lib)->content!=NULL)
+    {
+      return UTF8Str(((xmlNodePtr)lib)->content);
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+- (void) dealloc
+{
+  if (native == YES && lib != NULL)
+    {
+      xmlFreeNode(lib);
+    }
+  [super dealloc];
+}
+
+/**
+ * Return the document which owns this node.
+ */
+- (GSXMLDocument*) doc
+{
+  if (((xmlNodePtr)(lib))->doc != NULL)
+    {
+      return [GSXMLDocument documentFrom: ((xmlNodePtr)(lib))->doc];
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+- (unsigned) hash
+{
+  return (unsigned)lib;
+}
+
+/**
+ * Initialise from raw libxml data
+ */
+- (id) initFrom: (void*)data
+{
+  self = [super init];
+  if (self != nil)
+    {
+      if (data == NULL)
+        {
+          NSLog(@"%@ - no data for initialization",
+	    NSStringFromClass([self class]));
+	  DESTROY(self);
+          return nil;
+        }
+      lib = data;
+      native = NO;
+    }
+  return self;
+}
+
+/**
+ * initialisae node
+ */
 - (id) initWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
 {
   self = [super init];
@@ -663,56 +871,106 @@ static NSMapTable	*nodeNames = 0;
   return self;
 }
 
-- (void) dealloc
+- (BOOL) isEqualTo: (id)other
 {
-  if (native == YES && lib != NULL)
+  if ([other isKindOfClass: [self class]] == YES
+    && [other lib] == lib)
     {
-      xmlFreeNode(lib);
+      return YES;
     }
-  [super dealloc];
-
-}
-
-+ (GSXMLNode*) nodeFrom: (void*)data
-{
-  return AUTORELEASE([[self alloc] initFrom: data]);
-}
-
-- (id) initFrom: (void*)data
-{
-  self = [super init];
-  if (self != nil)
+  else
     {
-      if (data == NULL)
-        {
-          NSLog(@"%@ - no data for initialization",
-	    NSStringFromClass([self class]));
-	  DESTROY(self);
-          return nil;
-        }
-      lib = data;
-      native = NO;
+      return NO;
     }
-  return self;
 }
 
+/**
+ * Return raw libxml data
+ */
 - (void*) lib
 {
   return lib;
 }
 
-- (NSString*) content
+/**
+ * <p>
+ *   Creation of a new child element, added at the end of
+ *   parent children list.
+ *   ns and content parameters are optional (may be nil).
+ *   If content is non nil, a child list containing the
+ *   TEXTs and ENTITY_REFs node will be created.
+ *   Return previous node.
+ * </p>
+ * <example>
+ *
+ * GSXMLNode *n1, *n2;
+ * GSXMLDocument *d, *d1;
+ *
+ * d = [GSXMLDocument documentWithVersion: @"1.0"];
+ * [d setRoot: [d makeNodeWithNamespace: nil
+ *                                 name: @"plist"
+ *                              content: nil]];
+ * [[d root] setProp: @"version" value: @"0.9"];
+ * n1 = [[d root] makeChildWithNamespace: nil
+ *                                  name: @"dict"
+ *                               content: nil];
+ * [n1 makeChildWithNamespace: nil name: @"key" content: @"Year Of Birth"];
+ * [n1 makeChildWithNamespace: nil name: @"integer" content: @"65"];
+ *
+ * [n1 makeChildWithNamespace: nil name: @"key" content: @"Pets Names"];
+ * [n1 makeChildWithNamespace: nil name: @"array" content: nil];
+ *
+ * </example>
+ */
+- (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
+				 name: (NSString*)name
+			      content: (NSString*)content
 {
-  if (lib != NULL && ((xmlNodePtr)lib)->content!=NULL)
-    {
-      return UTF8Str(((xmlNodePtr)lib)->content);
-    }
-  else
-    {
-      return nil;
-    }
+  return [GSXMLNode nodeFrom:
+    xmlNewChild(lib, [ns lib], [name lossyCString], [content lossyCString])];
 }
 
+/**
+ * Creation of a new comment element, added at the end of
+ * parent children list.
+ * <example>
+ * d = [GSXMLDocument documentWithVersion: @"1.0"];
+ *
+ * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
+ * [[d root] setProp: @"version" value: @"0.9"];
+ * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
+ * [n1 makeComment: @" this is a comment "];
+ * </example>
+ */
+- (GSXMLNode*) makeComment: (NSString*)content
+{
+  return [GSXMLNode nodeFrom: xmlAddChild((xmlNodePtr)lib,
+    xmlNewComment([content lossyCString]))];
+}
+
+/**
+ * Creation of a new process instruction element,
+ * added at the end of parent children list.
+ * <example>
+ * d = [GSXMLDocument documentWithVersion: @"1.0"];
+ *
+ * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
+ * [[d root] setProp: @"version" value: @"0.9"];
+ * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
+ * [n1 makeComment: @" this is a comment "];
+ * [n1 makePI: @"pi1" content: @"this is a process instruction"];
+ * </example>
+ */
+- (GSXMLNode*) makePI: (NSString*)name content: (NSString*)content
+{
+  return [GSXMLNode nodeFrom:
+    xmlAddChild((xmlNodePtr)lib, xmlNewPI([name lossyCString],
+    [content lossyCString]))];
+}
+
+/**
+ * Return the node-name
+ */
 - (NSString*) name
 {
   if (lib != NULL && ((xmlNodePtr)lib)->name!=NULL)
@@ -725,6 +983,24 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
+/**
+ * return the next node at this level.
+ */
+- (GSXMLNode*) next
+{
+  if (((xmlNodePtr)(lib))->next != NULL)
+    {
+      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->next];
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+/**
+ * Return the namespace of the node.
+ */
 - (GSXMLNamespace*) ns
 {
   if (lib != NULL && ((xmlNodePtr)(lib))->ns != NULL)
@@ -737,6 +1013,9 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
+/**
+ * Return namespace definitions for the node
+ */
 - (GSXMLNamespace*) nsDef
 {
   if (lib != NULL && ((xmlNodePtr)lib)->nsDef != NULL)
@@ -749,11 +1028,105 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
+/**
+ * Return the parent of this node.
+ */
+- (GSXMLNode*) parent
+{
+  if (((xmlNodePtr)(lib))->parent != NULL)
+    {
+      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->parent];
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+/**
+ * Return the previous node at this level.
+ */
+- (GSXMLNode*) prev
+{
+  if (((xmlNodePtr)(lib))->prev != NULL)
+    {
+      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->prev];
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+/**
+ * Return the properties of the node.
+ * <example>
+ *
+ *   GSXMLNode *n1;
+ *   GSXMLAttribute *a;
+ *
+ *   n1 = [GSXMLNode nodeWithNamespace: nil name: nodeName];
+ *   [n1 setProp: @"prop1" value: @"value1"];
+ *   [n1 setProp: @"prop2" value: @"value2"];
+ *   [n1 setProp: @"prop3" value: @"value3"];
+ *
+ *   a = [n1 properties];
+ *   NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+ *   while ((a = [a next]) != nil)
+ *     {
+ *       NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+ *     }
+ *
+ *  </example>
+ */
+- (GSXMLNode*) properties
+{
+  if (((xmlNodePtr)(lib))->properties != NULL)
+    {
+      return [GSXMLAttribute attributeFrom: ((xmlNodePtr)(lib))->properties];
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+/**
+ * Return attributes and values as a dictionary.
+ * <example>
+ *
+ * GSXMLNode *n1;
+ * NSMutableDictionary *prop;
+ * NSEnumerator *e;
+ * id key;
+ *
+ * prop = [n1 propertiesAsDictionary];
+ * e = [prop keyEnumerator];
+ * while ((key = [e nextObject]) != nil)
+ *   {
+ *     NSLog(@"property name - %@ value - %@", key,
+ *     [prop objectForKey: key]);
+ *   }
+ * </example>
+*/
 - (NSMutableDictionary*) propertiesAsDictionary
 {
   return [self propertiesAsDictionaryWithKeyTransformationSel: NULL];
 }
 
+/**
+ * <p>
+ *   Return attributes and values as a dictionary, but applies
+ *   the specified selector to each key before adding the
+ *   key and value to the dictionary.  The selector must be a
+ *   method of NSString taking no arguments and returning an
+ *   object suitable for use as a dictionary key.
+ * </p>
+ * <p>
+ *   This method exists for the use of GSWeb ... it is probably
+ *   not of much use elsewhere.
+ * </p>
+ */
 - (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:
   (SEL)keyTransformSel
 {
@@ -787,11 +1160,32 @@ static NSMapTable	*nodeNames = 0;
   return d;
 }
 
+/**
+ * Set (or reset) an attribute carried by a node.
+ * <example>
+ * id n1 = [GSXMLNode nodeWithNamespace: nil name: nodeName];
+ * [n1 setProp: @"prop1" value: @"value1"];
+ * [n1 setProp: @"prop2" value: @"value2"];
+ * [n1 setProp: @"prop3" value: @"value3"];
+ * </example>
+ */
+- (GSXMLAttribute*) setProp: (NSString*)name value: (NSString*)value
+{
+  return [GSXMLAttribute attributeFrom:
+    xmlSetProp(lib, [name lossyCString], [value lossyCString])];
+}
+
+/**
+ * Return node-type.
+ */
 - (int) type
 {
   return (int)((xmlNodePtr)(lib))->type;
 }
 
+/**
+ * Return node type as a string.
+ */
 - (NSString*) typeDescription
 {
   NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)[self type]);
@@ -801,120 +1195,6 @@ static NSMapTable	*nodeNames = 0;
       desc = @"Unknown node type";
     }
   return desc;
-}
-
-- (GSXMLNode*) properties
-{
-  if (((xmlNodePtr)(lib))->properties != NULL)
-    {
-      return [GSXMLAttribute attributeFrom: ((xmlNodePtr)(lib))->properties];
-    }
-  else
-    {
-      return nil;
-    }
-}
-
-- (GSXMLDocument*) doc
-{
-  if (((xmlNodePtr)(lib))->doc != NULL)
-    {
-      return [GSXMLDocument documentFrom: ((xmlNodePtr)(lib))->doc];
-    }
-  else
-    {
-      return nil;
-    }
-}
-
-- (GSXMLNode*) children
-{
-  if (((xmlNodePtr)(lib))->children != NULL)
-    {
-      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->children];
-    }
-  else
-    {
-      return nil;
-    }
-}
-
-- (GSXMLNode*) parent
-{
-  if (((xmlNodePtr)(lib))->parent != NULL)
-    {
-      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->parent];
-    }
-  else
-    {
-      return nil;
-    }
-}
-
-- (GSXMLNode*) next
-{
-  if (((xmlNodePtr)(lib))->next != NULL)
-    {
-      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->next];
-    }
-  else
-    {
-      return nil;
-    }
-}
-
-- (GSXMLNode*) prev
-{
-  if (((xmlNodePtr)(lib))->prev != NULL)
-    {
-      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->prev];
-    }
-  else
-    {
-      return nil;
-    }
-}
-
-- (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
-				 name: (NSString*)name
-			      content: (NSString*)content
-{
-  return [GSXMLNode nodeFrom: 
-    xmlNewChild(lib, [ns lib], [name lossyCString], [content lossyCString])];
-}
-
-- (GSXMLAttribute*) setProp: (NSString*)name value: (NSString*)value
-{
-  return [GSXMLAttribute attributeFrom: 
-    xmlSetProp(lib, [name lossyCString], [value lossyCString])];
-}
-
-
-- (GSXMLNode*) makeComment: (NSString*)content
-{
-  return [GSXMLNode nodeFrom: xmlAddChild((xmlNodePtr)lib,
-    xmlNewComment([content lossyCString]))];
-}
-
-- (GSXMLNode*) makePI: (NSString*)name content: (NSString*)content
-{
-  return [GSXMLNode nodeFrom: 
-    xmlAddChild((xmlNodePtr)lib, xmlNewPI([name lossyCString],
-    [content lossyCString]))];
-}
-
-- (unsigned) hash
-{
-  return (unsigned)lib;
-}
-
-- (BOOL) isEqualTo: (id)other
-{
-  if ([other isKindOfClass: [self class]] == YES
-    && [other lib] == lib)
-    return YES;
-  else
-    return NO;
 }
 
 @end
@@ -1070,42 +1350,25 @@ static NSMapTable	*attrNames = 0;
   return lib;
 }
 
+/**
+ * Return the attribute-name
+ */
 - (NSString*) name
 {
   return[NSString_class stringWithCString: ((xmlAttrPtr)(lib))->name];
 }
 
-- (GSXMLNamespace*) ns
-{
-  return [GSXMLNamespace namespaceFrom: ((xmlAttrPtr)(lib))->ns];
-}
-
-- (int) type
-{
-  return (int)((xmlAttrPtr)(lib))->atype;
-}
-
-- (NSString*) typeDescription
-{
-  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
-
-  if (desc == nil)
-    {
-      desc = @"Unknown attribute type";
-    }
-  return desc;
-}
-
-- (NSString*) value
-{
-  if (((xmlNodePtr)lib)->children != NULL
-    && ((xmlNodePtr)lib)->children->content != NULL)
-    {
-      return UTF8Str(((xmlNodePtr)(lib))->children->content);
-    }
-  return nil;
-}
-
+/**
+ * Return next attribute.
+ * <example>
+ * id a = [node properties];
+ * NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+ * while ((a = [a next]) != nil)
+ *   {
+ *     NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);          *   }
+ *
+ * </example>
+ */
 - (GSXMLAttribute*) next
 {
   if (((xmlAttrPtr)(lib))->next != NULL)
@@ -1118,6 +1381,17 @@ static NSMapTable	*attrNames = 0;
     }
 }
 
+/**
+ * Return the namespace of this attribute.
+ */
+- (GSXMLNamespace*) ns
+{
+  return [GSXMLNamespace namespaceFrom: ((xmlAttrPtr)(lib))->ns];
+}
+
+/**
+ * Return previous attribute.
+ */
 - (GSXMLAttribute*) prev
 {
   if (((xmlAttrPtr)(lib))->prev != NULL)
@@ -1130,9 +1404,61 @@ static NSMapTable	*attrNames = 0;
     }
 }
 
+/**
+ * Return the numeric type code for this attribute.
+ */
+- (int) type
+{
+  return (int)((xmlAttrPtr)(lib))->atype;
+}
+
+/**
+ * Return the string type code for this attribute.
+ */
+- (NSString*) typeDescription
+{
+  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
+
+  if (desc == nil)
+    {
+      desc = @"Unknown attribute type";
+    }
+  return desc;
+}
+
+/**
+ * Return a value of this attribute.
+ */
+- (NSString*) value
+{
+  if (((xmlNodePtr)lib)->children != NULL
+    && ((xmlNodePtr)lib)->children->content != NULL)
+    {
+      return UTF8Str(((xmlNodePtr)(lib))->children->content);
+    }
+  return nil;
+}
+
 @end
 
 
+/**
+ * <p>
+ *   The XML parser object is the pivotal part of parsing an XML
+ *   document - it will either build a tree representing the
+ *   document (if initialized without a GSSAXHandler), or will
+ *   cooperate with a GSSAXHandler object to provide parsing
+ *   without the overhead of building a tree.
+ * </p>
+ * <p>
+ *   The parser may be initialized with an input source (in which
+ *   case it will expect to be asked to parse the entire input in
+ *   a single operation), or without.  If it is initialised without
+ *   an input source, incremental parsing can be done by feeding
+ *   successive parts of the XML document into the parser as
+ *   NSData objects.
+ * </p>
+ */
 @implementation GSXMLParser : NSObject
 
 static NSString	*endMarker = @"At end of incremental parse";
@@ -1144,40 +1470,121 @@ static NSString	*endMarker = @"At end of incremental parse";
   xmlSetExternalEntityLoader((xmlExternalEntityLoader)loadEntityFunction);
 }
 
+/**
+ * <p>
+ *   This method controls the loading of external entities into
+ *   the system.  If it returns an empty string, the entity is not
+ *   loaded.  If it returns a filename, the entity is loaded from
+ *   that file.  If it returns nil, the default entity loading
+ *   mechanism is used.
+ * </p>
+ * <p>
+ *   The default entity loading mechanism is to construct a file
+ *   name from the locationURL, by replacing all path separators
+ *   with underscores, then attempt to locate that file in the DTDs
+ *   resource directory of the main bundle, and all the standard
+ *   system locations.
+ * </p>
+ * <p>
+ *   As a special case, the default loader examines the publicID
+ *   and if it is a GNUstep DTD, the loader constructs a special
+ *   name from the ID (by replacing dots with underscores and
+ *   spaces with hyphens) and looks for a file with that name
+ *   and a '.dtd' extension in the GNUstep bundles.
+ * </p>
+ * <p>
+ *   NB. This method will only be called if there is no SAX
+ *   handler in use, or if the corresponding method in the
+ *   SAX handler returns nil.
+ * </p>
+ */
 + (NSString*) loadEntity: (NSString*)publicId
 		      at: (NSString*)location
 {
   return nil;
 }
 
+/**
+ * Creation of a new Parser (for incremental parsing)
+ * by calling -initWithSAXHandler:
+ */
 + (GSXMLParser*) parser
 {
   return AUTORELEASE([[self alloc] initWithSAXHandler: nil]);
 }
 
+/**
+ * Creation of a new Parser by calling
+ * -initWithSAXHandler:withContentsOfFile:
+ * <example>
+ * GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile: @"macos.xml"];
+ *
+ * if ([p parse])
+ *   {
+ *     [[p doc] dump];
+ *   }
+ * else
+ *   {
+ *     printf("error parse file\n");
+ *   }
+ * </example>
+ */
 + (GSXMLParser*) parserWithContentsOfFile: (NSString*)path
 {
   return AUTORELEASE([[self alloc] initWithSAXHandler: nil
 				   withContentsOfFile: path]);
 }
 
+/**
+ * Creation of a new Parser by calling
+ * -initWithSAXHandler:withContentsOfURL:
+ */
 + (GSXMLParser*) parserWithContentsOfURL: (NSURL*)url
 {
   return AUTORELEASE([[self alloc] initWithSAXHandler: nil
 				    withContentsOfURL: url]);
 }
 
+/**
+ * Creation of a new Parser by calling
+ * -initWithSAXHandler:withData:
+ */
 + (GSXMLParser*) parserWithData: (NSData*)data
 {
   return AUTORELEASE([[self alloc] initWithSAXHandler: nil
 					     withData: data]);
 }
 
+/**
+ * <p>
+ *   Creation of a new Parser by calling -initWithSAXHandler:
+ * </p>
+ * <p>
+ *   If the handler object supplied is nil, the parser will build
+ *   a tree representing the parsed file rather than attempting
+ *   to get the handler to deal with the parsed elements and entities.
+ * </p>
+ */
 + (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
 {
   return AUTORELEASE([[self alloc] initWithSAXHandler: handler]);
 }
 
+/**
+ * Creation of a new Parser by calling
+ * -initWithSAXHandler:withContentsOfFile:
+ * <example>
+ * CREATE_AUTORELEASE_POOL(arp);
+ * GSSAXHandler *h = [GSDebugSAXHandler handler];
+ * GSXMLParser  *p = [GSXMLParser parserWithSAXHandler: h
+ *                                  withContentsOfFile: @"macos.xml"];
+ * if ([p parse])
+ *   {
+ *      printf("ok\n");
+ *   }
+ * RELEASE(arp);
+ * </example>
+ */
 + (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
 		   withContentsOfFile: (NSString*)path
 {
@@ -1185,6 +1592,10 @@ static NSString	*endMarker = @"At end of incremental parse";
 				   withContentsOfFile: path]);
 }
 
+/**
+ * Creation of a new Parser by calling
+ * -initWithSAXHandler:withContentsOfURL:
+ */
 + (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
 		    withContentsOfURL: (NSURL*)url
 {
@@ -1192,6 +1603,10 @@ static NSString	*endMarker = @"At end of incremental parse";
 				    withContentsOfURL: url]);
 }
 
+/**
+ * Creation of a new Parser by calling
+ * -initWithSAXHandler:withData:
+ */
 + (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
 			     withData: (NSData*)data
 {
@@ -1199,6 +1614,10 @@ static NSString	*endMarker = @"At end of incremental parse";
 					     withData: data]);
 }
 
+/**
+ * Return the name of the string encoding (for XML) to use for the
+ * specified OpenStep encoding.
+ */
 + (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding
 {
   NSString	*xmlEncodingString = nil;
@@ -1260,6 +1679,70 @@ static NSString	*endMarker = @"At end of incremental parse";
   return xmlEncodingString;
 }
 
+- (void) dealloc
+{
+  RELEASE(src);
+  RELEASE(saxHandler);
+  if (lib != NULL)
+    {
+      xmlFreeDoc(((xmlParserCtxtPtr)lib)->myDoc);
+      xmlFreeParserCtxt(lib);
+    }
+  [super dealloc];
+}
+
+/**
+ * Sets whether the document needs to be validated.
+ */
+- (BOOL) doValidityChecking: (BOOL)yesno
+{
+  int	oldVal;
+  int	newVal = (yesno == YES) ? 1 : 0;
+
+  xmlGetFeature((xmlParserCtxtPtr)lib, "validate", (void*)&oldVal);
+  xmlSetFeature((xmlParserCtxtPtr)lib, "validate", (void*)&newVal);
+  return (oldVal == 1) ? YES : NO;
+}
+
+/**
+ * Return the document produced as a result of parsing data.
+ */
+- (GSXMLDocument*) doc
+{
+  return [GSXMLDocument documentFrom: ((xmlParserCtxtPtr)lib)->myDoc];
+}
+
+/**
+ * Return error code for last parse operation.
+ */
+- (int) errNo
+{
+  return ((xmlParserCtxtPtr)lib)->errNo;
+}
+
+/**
+ * Sets whether warnings are generated.
+ */
+- (BOOL) getWarnings: (BOOL)yesno
+{
+  return !(xmlGetWarningsDefaultValue = yesno);
+}
+
+/**
+ * <p>
+ *   Initialisation of a new Parser with SAX handler (if not nil).
+ * </p>
+ * <p>
+ *   If the handler object supplied is nil, the parser will build
+ *   a tree representing the parsed file rather than attempting
+ *   to get the handler to deal with the parsed elements and entities.
+ * </p>
+ * <p>
+ *   The source for the parsing process is not specified - so
+ *   parsing must be done incrementally by feeding data to the
+ *   parser.
+ * </p>
+ */
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 {
   if (handler != nil && [handler isKindOfClass: [GSSAXHandler class]] == NO)
@@ -1278,6 +1761,17 @@ static NSString	*endMarker = @"At end of incremental parse";
   return self;
 }
 
+/**
+ * <p>
+ *   Initialisation of a new Parser with SAX handler (if not nil)
+ *   by calling -initWithSAXHandler:
+ * </p>
+ * <p>
+ *   Sets the input source for the parser to be the specified file -
+ *   so parsing of the entire file will be performed rather than
+ *   incremental parsing.
+ * </p>
+ */
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
        withContentsOfFile: (NSString*)path
 {
@@ -1295,6 +1789,17 @@ static NSString	*endMarker = @"At end of incremental parse";
   return self;
 }
 
+/**
+ * <p>
+ *   Initialisation of a new Parser with SAX handler (if not nil)
+ *   by calling -initWithSAXHandler:
+ * </p>
+ * <p>
+ *   Sets the input source for the parser to be the specified URL -
+ *   so parsing of the entire document will be performed rather than
+ *   incremental parsing.
+ * </p>
+ */
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 	withContentsOfURL: (NSURL*)url
 {
@@ -1312,6 +1817,17 @@ static NSString	*endMarker = @"At end of incremental parse";
   return self;
 }
 
+/**
+ * <p>
+ *   Initialisation of a new Parser with SAX handler (if not nil)
+ *   by calling -initWithSAXHandler:
+ * </p>
+ * <p>
+ *   Sets the input source for the parser to be the specified data
+ *   object (which must contain an XML document), so parsing of the
+ *   entire document will be performed rather than incremental parsing.
+ * </p>
+ */
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 		 withData: (NSData*)data
 {
@@ -1329,6 +1845,38 @@ static NSString	*endMarker = @"At end of incremental parse";
   return self;
 }
 
+/**
+ * Set and return the previous value for blank text nodes support.
+ * ignorableWhitespace() are only generated when running
+ * the parser in validating mode and when the current element
+ * doesn't allow CDATA or mixed content.
+ */
+- (BOOL) keepBlanks: (BOOL)yesno
+{
+  int	oldVal;
+  int	newVal = (yesno == YES) ? 1 : 0;
+
+  xmlGetFeature((xmlParserCtxtPtr)lib, "keep blanks", (void*)&oldVal);
+  xmlSetFeature((xmlParserCtxtPtr)lib, "keep blanks", (void*)&newVal);
+  return (oldVal == 1) ? YES : NO;
+}
+
+/**
+ * Parse source. Return YES if parsed, otherwise NO.
+ * This method should be called once to parse the entire document.
+ * <example>
+ * GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile:@"macos.xml"];
+ *
+ * if ([p parse])
+ *   {
+ *     [[p doc] dump];
+ *   }
+ * else
+ *   {
+ *     printf("error parse file\n");
+ *   }
+ * </example>
+ */
 - (BOOL) parse
 {
   id	tmp;
@@ -1387,6 +1935,30 @@ static NSString	*endMarker = @"At end of incremental parse";
     return NO;
 }
 
+/**
+ * <p>
+ *   Pass data to the parser for incremental parsing.  This method
+ *   should be called many times, with each call passing another
+ *   block of data from the same document.  After the whole of the
+ *   document has been parsed, the method should be called with
+ *   an empty or nil data object to indicate end of parsing.
+ *   On this final call, the return value indicates whether the
+ *   document was valid or not.
+ * </p>
+ * <example>
+ * GSXMLParser       *p = [GSXMLParser parserWithSAXHandler: nil source: nil];
+ *
+ * while ((data = getMoreData()) != nil)
+ *   {
+ *     if ([p parse: data] == NO)
+ *       {
+ *         NSLog(@"parse error");
+ *       }
+ *   }
+ *   // Do something with document parsed
+ * [p parse: nil];  // Completed parsing of document.
+ * </example>
+ */
 - (BOOL) parse: (NSData*)data
 {
   if (src == endMarker)
@@ -1427,24 +1999,11 @@ static NSString	*endMarker = @"At end of incremental parse";
     }
 }
 
-- (GSXMLDocument*) doc
-{
-  return [GSXMLDocument documentFrom: ((xmlParserCtxtPtr)lib)->myDoc];
-}
-
-- (void) dealloc
-{
-  RELEASE(src);
-  RELEASE(saxHandler);
-  if (lib != NULL)
-    {
-      xmlFreeDoc(((xmlParserCtxtPtr)lib)->myDoc);
-      xmlFreeParserCtxt(lib);
-    }
-  [super dealloc];
-}
-
-
+/**
+ * Set and return the previous value for entity support.
+ * Initially the parser always keeps entity references instead
+ * of substituting entity values in the output.
+ */
 - (BOOL) substituteEntities: (BOOL)yesno
 {
   int	oldVal;
@@ -1455,44 +2014,13 @@ static NSString	*endMarker = @"At end of incremental parse";
   return (oldVal == 1) ? YES : NO;
 }
 
-- (BOOL) keepBlanks: (BOOL)yesno
-{
-  int	oldVal;
-  int	newVal = (yesno == YES) ? 1 : 0;
-
-  xmlGetFeature((xmlParserCtxtPtr)lib, "keep blanks", (void*)&oldVal);
-  xmlSetFeature((xmlParserCtxtPtr)lib, "keep blanks", (void*)&newVal);
-  return (oldVal == 1) ? YES : NO;
-}
-
-- (BOOL) doValidityChecking: (BOOL)yesno
-{
-  int	oldVal;
-  int	newVal = (yesno == YES) ? 1 : 0;
-
-  xmlGetFeature((xmlParserCtxtPtr)lib, "validate", (void*)&oldVal);
-  xmlSetFeature((xmlParserCtxtPtr)lib, "validate", (void*)&newVal);
-  return (oldVal == 1) ? YES : NO;
-}
-
-- (BOOL) getWarnings: (BOOL)yesno
-{
-  return !(xmlGetWarningsDefaultValue = yesno);
-}
-
-- (int) errNo
-{
-  return ((xmlParserCtxtPtr)lib)->errNo;
-}
-
-
 /*
  * Private methods - internal use only.
  */
 
 - (BOOL) _initLibXML
 {
-  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, ".");  
+  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, ".");
   if (lib == NULL)
     {
       NSLog(@"Failed to create libxml parser context");
@@ -1501,7 +2029,7 @@ static NSString	*endMarker = @"At end of incremental parse";
   else
     {
       /*
-       * Put saxHandler address in _private member, so we can retrieve 
+       * Put saxHandler address in _private member, so we can retrieve
        * the GSXMLHandler to use in our SAX C Functions.
        */
       ((xmlParserCtxtPtr)lib)->_private=saxHandler;
@@ -1531,7 +2059,7 @@ static NSString	*endMarker = @"At end of incremental parse";
   else
     {
       /*
-       * Put saxHandler address in _private member, so we can retrieve 
+       * Put saxHandler address in _private member, so we can retrieve
        * the GSXMLHandler to use in our SAX C Functions.
        */
       ((htmlParserCtxtPtr)lib)->_private = saxHandler;
@@ -1985,7 +2513,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   NSCAssert(ctx, @"No Context");
   lineNumber=getLineNumber(ctx);
   colNumber=getColumnNumber(ctx);
-  [HANDLER fatalError: UTF8Str(allMsg)           
+  [HANDLER fatalError: UTF8Str(allMsg)
            colNumber:colNumber
            lineNumber:lineNumber];
 }

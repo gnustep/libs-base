@@ -51,6 +51,7 @@
 + (GSXMLDocument*) documentFrom: (void*)data;
 + (GSXMLDocument*) documentWithVersion: (NSString*)version;
 
+- (NSString*) description;
 - (NSString*) encoding;
 
 - (id) initFrom: (void*)data;
