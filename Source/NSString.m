@@ -605,7 +605,13 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithUTF8String: (const char *)bytes
 {
-  unsigned	length = strlen(bytes);
+  unsigned	length = 0;
+  if (bytes==NULL)
+    {
+      NSDebugMLog(@"bytes is NULL");
+    }
+  else
+    length=strlen(bytes);
 
   if (length > 0)
     {

@@ -531,7 +531,7 @@ static NSMapTable	*nodeNames = 0;
 
 - (NSString*) content
 {
-  if (((xmlNodePtr)lib)->content != NULL)
+  if (lib != NULL && ((xmlNodePtr)lib)->content!=NULL)
     {
       return UTF8Str(((xmlNodePtr)lib)->content);
     }
@@ -543,7 +543,7 @@ static NSMapTable	*nodeNames = 0;
 
 - (NSString*) name
 {
-  if (lib != NULL)
+  if (lib != NULL && ((xmlNodePtr)lib)->name!=NULL)
     {
       return UTF8Str(((xmlNodePtr)lib)->name);
     }
@@ -555,7 +555,7 @@ static NSMapTable	*nodeNames = 0;
 
 - (GSXMLNamespace*) ns
 {
-  if (((xmlNodePtr)(lib))->ns != NULL)
+  if (lib != NULL && ((xmlNodePtr)(lib))->ns != NULL)
     {
       return [GSXMLNamespace namespaceFrom: ((xmlNodePtr)(lib))->ns];
     }
@@ -567,7 +567,7 @@ static NSMapTable	*nodeNames = 0;
 
 - (GSXMLNamespace*) nsDef
 {
-  if (((xmlNodePtr)lib)->nsDef != NULL)
+  if (lib != NULL && ((xmlNodePtr)lib)->nsDef != NULL)
     {
       return [GSXMLNamespace namespaceFrom: ((xmlNodePtr)lib)->nsDef];
     }
