@@ -61,10 +61,14 @@ static id tmp_kludge_protocol = nil;
 {
   Proxy *new_proxy;
 
+  assert ([connection isValid]);
+
   /* If there already is a proxy for this target/connection combination,
      don't create a new one, just return the old one. */
   if ((new_proxy = [connection proxyForTarget: target]))
-    return new_proxy;
+    {
+      return new_proxy;
+    }
 
   /* There isn't one already created; make a new proxy object, 
      and set its ivars. */
@@ -116,7 +120,8 @@ static id tmp_kludge_protocol = nil;
 
 - (void) invalidateProxy
 {
-  /* What should go here? */
+  /* xxx Who calls this? */
+  /* xxx What should go here? */
   [_connection removeProxy: self];
 }
 
@@ -127,6 +132,7 @@ static id tmp_kludge_protocol = nil;
 
 - (void) encodeWithCoder: aRmc
 {
+  assert ([_connection isValid]);
   [[self classForConnectedCoder: aRmc] 
    encodeObject: self withConnectedCoder: aRmc];
 }
@@ -167,6 +173,7 @@ enum
 
   encoder_connection = [aRmc connection];
   assert (encoder_connection);
+  assert ([encoder_connection isValid]);
 
   /* Find out if anObject is a proxy or not. */
   if (class_is_kind_of (object_get_class (anObject), self))
@@ -321,10 +328,11 @@ enum
 			     newForInPort: [decoder_connection inPort]
 			     outPort: proxy_connection_out_port
 			     ancestorConnection: decoder_connection];
-	assert (proxy_connection != decoder_connection);
 	if (debug_proxy)
 	  fprintf(stderr, "Receiving a triangle-connection proxy 0x%x "
 		  "connection 0x%x\n", target, (unsigned)proxy_connection);
+	assert (proxy_connection != decoder_connection);
+	assert ([proxy_connection isValid]);
 	return [self newForRemoteTarget: target 
 		     connection: proxy_connection];
       }
