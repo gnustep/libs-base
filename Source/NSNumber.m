@@ -2159,6 +2159,9 @@ static Class	doubleNumberClass;
 
 - (NSComparisonResult) compare: (NSNumber*)other
 {
+  double	otherValue;
+  double	myValue;
+
   if (other == self)
     {
       return NSOrderedSame;
@@ -2168,26 +2171,21 @@ static Class	doubleNumberClass;
       [NSException raise: NSInvalidArgumentException
 		  format: @"nil argument for compare:"];
     }
+
+  myValue = [self doubleValue];
+  otherValue = [other doubleValue];
+
+  if (myValue == otherValue)
+    {
+      return NSOrderedSame;
+    }
+  else if (myValue < otherValue)
+    {
+      return  NSOrderedAscending;
+    }
   else
     {
-      double	otherValue;
-      double	myValue;
-
-      myValue = [self doubleValue];
-      otherValue = [other doubleValue];
-
-      if (myValue == otherValue)
-	{
-	  return NSOrderedSame;
-	}
-      else if (myValue < otherValue)
-	{
-	  return  NSOrderedAscending;
-	}
-      else
-	{
-	  return NSOrderedDescending;
-	}
+      return NSOrderedDescending;
     }
 }
 
