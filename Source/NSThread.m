@@ -52,6 +52,94 @@
 static Class threadClass = Nil;
 static NSNotificationCenter *nc = nil;
 
+/**
+ * Sleep until the current date/time is the specified time interval
+ * past the reference date/time.<br />
+ * Implemented as a function taking an NSTimeInterval argument in order
+ * to avoid objc messaging and object allocation/deallocation (NSDate)
+ * overheads.<br />
+ * Used to implement [NSThread+sleepUntilDate:]
+ */
+void
+GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
+{
+  extern NSTimeInterval	GSTimeNow();
+  NSTimeInterval delay;
+
+  // delay is always the number of seconds we still need to wait
+  delay = when - GSTimeNow();
+
+#ifdef	HAVE_NANOSLEEP
+  // Avoid any possibility of overflow by sleeping in chunks.
+  while (delay > 32768)
+    {
+      struct timespec request;
+
+      request.tv_sec = (time_t)32768;
+      request.tv_nsec = (long)0;
+      nanosleep(&request, 0);
+      delay = when - GSTimeNow();
+    }
+  if (delay > 0)
+    {
+      struct timespec request;
+      struct timespec remainder;
+
+      request.tv_sec = (time_t)delay;
+      request.tv_nsec = (long)((delay - request.tv_sec) * 1000000000);
+      remainder.tv_sec = 0;
+      remainder.tv_nsec = 0;
+
+      /*
+       * With nanosleep, we can restart the sleep after a signal by using
+       * the remainder information ... so we can be sure to sleep to the
+       * desired limit without having to re-generate the delay needed.
+       */
+      while (nanosleep(&request, &remainder) < 0
+	&& (remainder.tv_sec > 0 || remainder.tv_nsec > 0))
+	{
+	  request.tv_sec = remainder.tv_sec;
+	  request.tv_nsec = remainder.tv_nsec;
+	  remainder.tv_sec = 0;
+	  remainder.tv_nsec = 0;
+	}
+    }
+#else
+
+  /*
+   * Avoid integer overflow by breaking up long sleeps.
+   */
+  while (delay > 30.0*60.0)
+    {
+      // sleep 30 minutes
+#if defined(__MINGW__)
+      Sleep (30*60*1000);
+#else
+      sleep (30*60);
+#endif
+      delay = when - GSTimeNow();
+    }
+
+  /*
+   * sleeping may return early because of signals, so we need to re-calculate
+   * the required delay and check to see if we need to sleep again.
+   */
+  while (delay > 0)
+    {
+#ifdef	HAVE_USLEEP
+      usleep ((int)(delay*1000000));
+#else
+#if defined(__MINGW__)
+      Sleep (delay*1000);
+#else
+      sleep ((int)delay);
+#endif
+#endif
+      delay = when - GSTimeNow();
+    }
+#endif
+}
+
 static NSArray *
 commonModes()
 {
@@ -488,47 +576,9 @@ gnustep_base_thread_callback()
  */
 + (void) sleepUntilDate: (NSDate*)date
 {
-  NSTimeInterval delay;
-
-  // delay is always the number of seconds we still need to wait
-  delay = [date timeIntervalSinceNow];
-
-  // Avoid integer overflow by breaking up long sleeps
-  // We assume usleep can accept a value at least 31 bits in length
-  while (delay > 30.0*60.0)
-    {
-      // sleep 30 minutes
-#if defined(__MINGW__)
-      Sleep (30*60*1000);
-#else
-      sleep (30*60);
-#endif
-      delay = [date timeIntervalSinceNow];
-    }
-
-  // sleeping may return early because of signals
-  while (delay > 0)
-    {
-#ifdef	HAVE_NANOSLEEP
-      struct timespec req;
-
-      req.tv_sec = (time_t)delay;
-      req.tv_nsec = (long)((delay - req.tv_sec) * 1000000000);
-      nanosleep(&req, 0);
-#else
-#ifdef	HAVE_USLEEP
-      usleep ((int)(delay*1000000));
-#else
-#if defined(__MINGW__)
-      Sleep (delay*1000);
-#else
-      sleep ((int)delay);
-#endif
-#endif
-#endif
-      delay = [date timeIntervalSinceNow];
-    }
+  GSSleepUntilIntervalSinceReferenceDate([date timeIntervalSinceReferenceDate]);
 }
+
 
 /**
  * Return the priority of the current thread.

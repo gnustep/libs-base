@@ -1,3 +1,12 @@
+2003-07-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Separate out sleeping into a more efficient
+	function and improve use of nanosleep
+	* Source/NSLock.m: Use new private sleeping function from NSThread.m
+	and rewrite code to be more responsive, especially for cases where
+	locks are heavily used for rapid interaction between threads.
+	* Tools/thread.m: Test lockBeforeDate
+
 2003-07-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: ([-acceptInputForMode:beforeDate:]) use the
