@@ -77,6 +77,8 @@
 #include <Foundation/NSTask.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSTimer.h>
+#include <Foundation/NSURL.h>
+#include <Foundation/NSURLHandle.h>
 #include <Foundation/NSUndoManager.h>
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSValue.h>

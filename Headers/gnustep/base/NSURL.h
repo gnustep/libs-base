@@ -1,7 +1,7 @@
 /* NSURL.h - Class NSURL
    Copyright (C) 1999 Free Software Foundation, Inc.
    
-   Written by:	Manuel Guesdon <mguesdon@sbuilders.com>
+   Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
    Date: 		Jan 1999
    
    This file is part of the GNUstep Library.
@@ -22,104 +22,106 @@
 */
 
 #ifndef _NSURL_h__
-	#define _NSURL_h__
+#define _NSURL_h__
+
+#include	<Foundation/NSURLHandle.h>
 
 @class NSURLHandle;
 @class NSURL;
 
 extern NSString* NSURLFileScheme; //file
 
-//===================================================================================
+//============================================================================
 @interface NSURL: NSObject <NSCoding, NSCopying, NSURLHandleClient>
 {
-    NSString *urlString;
-    NSURL *baseURL;
-    void *clients;
-};
+  NSString	*urlString;
+  NSURL		*baseURL;
+  void		*clients;
+}
         
-+(id)fileURLWithPath:(NSString*)path;
-+(id)URLWithString:(NSString*)URLString;
-+(id)URLWithString:(NSString*)URLString
-	 relativeToURL:(NSURL*)baseURL;
++ (id) fileURLWithPath: (NSString*)path;
++ (id) URLWithString: (NSString*)URLString;
++ (id) URLWithString: (NSString*)URLString
+       relativeToURL: (NSURL*)baseURL;
 
--(id)initWithScheme:(NSString*)_scheme
-			   host:(NSString*)_host
-			   path:(NSString*)_path;
+- (id) initWithScheme: (NSString*)_scheme
+		 host: (NSString*)_host
+		 path: (NSString*)_path;
 
 //Non Standard Function
--(id)initWithScheme:(NSString*)_scheme
-			   host:(NSString*)_host
-			   port:(NSNumber*)_port
-			   path:(NSString*)_path;
+- (id) initWithScheme: (NSString*)_scheme
+		 host: (NSString*)_host
+		 port: (NSNumber*)_port
+		 path: (NSString*)_path;
 
-//Do a initWithScheme:NSFileScheme host:nil path:_path
--(id)initFileURLWithPath:(NSString*)_path;
+//Do a initWithScheme: NSFileScheme host: nil path: _path
+- (id) initFileURLWithPath: (NSString*)_path;
 
 // urlString is escaped
--(id)initWithString:(NSString*)URLString;
+- (id) initWithString: (NSString*)URLString;
 
 //URLString!=nil !
 // urlString is escaped
--(id)initWithString:(NSString*)URLString
-	  relativeToURL:(NSURL*)baseURL;
+- (id) initWithString: (NSString*)URLString
+	relativeToURL: (NSURL*)baseURL;
 
--(NSString*)description;
--(NSString*)absoluteString;
--(NSString*)relativeString;
+- (NSString*) description;
+- (NSString*) absoluteString;
+- (NSString*) relativeString;
 
--(NSURL*)baseURL;
--(NSURL*)absoluteURL;
+- (NSURL*) baseURL;
+- (NSURL*) absoluteURL;
 
--(NSString*)scheme;
--(NSString*)resourceSpecifier;
+- (NSString*) scheme;
+- (NSString*) resourceSpecifier;
 
--(NSString*)host;
--(NSNumber*)port;
--(NSString*)user;
--(NSString*)password;
--(NSString*)path;
--(NSString*)fragment;
--(NSString*)parameterString;
--(NSString*)query;
--(NSString*)relativePath;
+- (NSString*) host;
+- (NSNumber*) port;
+- (NSString*) user;
+- (NSString*) password;
+- (NSString*) path;
+- (NSString*) fragment;
+- (NSString*) parameterString;
+- (NSString*) query;
+- (NSString*) relativePath;
 
--(BOOL)isFileURL;
+- (BOOL) isFileURL;
 
--(NSURL*)standardizedURL;
+- (NSURL*) standardizedURL;
 
 //FIXME: delete these fn when NSURL will be validated
-+(void)test;
-+(void)testPrint:(NSURL*)_url;
++ (void) test;
++ (void) testPrint: (NSURL*)_url;
 
 @end
 
-//===================================================================================
+//=============================================================================
 @interface NSURL (NSURLLoading)
--(NSData*)resourceDataUsingCache:(BOOL)shouldUseCache;
+- (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache;
 
--(void)loadResourceDataNotifyingClient:(id)client
-							usingCache:(BOOL)shouldUseCache;
+- (void) loadResourceDataNotifyingClient: (id)client
+			      usingCache: (BOOL)shouldUseCache;
 
--(NSURLHandle*)URLHandleUsingCache:(BOOL)shouldUseCache;
+- (NSURLHandle*)URLHandleUsingCache: (BOOL)shouldUseCache;
 
--(BOOL)setResourceData:(NSData*)data;
+- (BOOL) setResourceData: (NSData*)data;
 
--(id)propertyForKey:(NSString*)propertyKey;
--(BOOL)setProperty:(id)property
-			forKey:(NSString*)propertyKey;
+- (id) propertyForKey: (NSString*)propertyKey;
+- (BOOL) setProperty: (id)property
+	      forKey: (NSString*)propertyKey;
 
 @end
 
-//===================================================================================
+//=============================================================================
 @interface NSObject (NSURLClient)
--(void)							URL:(NSURL*)sender
-	 resourceDataDidBecomeAvailable:(NSData*)newBytes;
+- (void) URL: (NSURL*)sender
+  resourceDataDidBecomeAvailable: (NSData*)newBytes;
 
--(void)URLResourceDidFinishLoading:(NSURL*)sender;
--(void)URLResourceDidCancelLoading:(NSURL*)sender;
+- (void) URLResourceDidFinishLoading: (NSURL*)sender;
+- (void) URLResourceDidCancelLoading: (NSURL*)sender;
 
--(void)							URL:(NSURL*)sender
-   resourceDidFailLoadingWithReason:(NSString*)reason;
+- (void) URL: (NSURL*)sender
+  resourceDidFailLoadingWithReason: (NSString*)reason;
 @end
 
 #endif //_NSUrl_h__
