@@ -834,7 +834,7 @@ if test "$HAVE_LIBXML" = "0"; then
 fi
 
 #--------------------------------------------------------------------
-# Check OpenSSL for HTTPS support in future.
+# Check OpenSSL for HTTPS support.
 #--------------------------------------------------------------------
 echo "Checking for OpenSSL"
 AC_ARG_WITH(openssl-include,
@@ -881,6 +881,55 @@ if test "$HAVE_LIBCRYPTO" = "0"; then
   CPPFLAGS="$cppflags_temp";
   LIBS="$libs_temp";
 fi
+
+
+#--------------------------------------------------------------------
+# Check GMP for NSDecimal
+#--------------------------------------------------------------------
+echo "Checking for GMP"
+AC_ARG_WITH(gmp-include,
+  [  --with-gmp-include=PATH  include path for gmp headers],
+  gmp_incdir="$withval", gmp_incdir="no")
+
+AC_ARG_WITH(gmp-library,
+  [  --with-gmp-library=PATH  library path for gmp libraries],
+  gmp_libdir="$withval", gmp_libdir="no")
+
+cppflags_temp=$CFLAGS
+libs_temp=$LIBS
+
+if test "$gmp_incdir" != "no"; then
+  CPPFLAGS="$CPPFLAGS -I$gmp_incdir"
+fi
+if test "$gmp_libdir" != "no"; then
+  LIBS="$LIBS -L$gmp_libdir"
+fi
+
+HAVE_GMP=0
+AC_CHECK_HEADERS(gmp.h)
+if test $ac_cv_header_gmp_h = no; then
+  echo "Could not find gmp headers"
+  echo "Check to make sure you have gmp installed"
+  AC_MSG_WARN(Could not find gmp headers)
+else
+  AC_CHECK_LIB(gmp, mpf_abs, gmp_ok=yes, gmp_ok=no)
+  if test "$gmp_ok" = yes; then
+    base_libs="$LIBS"
+    LIBS="$LIBS -lgmp"
+    AC_SUBST(LIBS)
+    HAVE_GMP=1
+  else
+    echo "Could not find gmp library" 
+    echo "Check to make sure you have gmp installed"
+    AC_MSG_WARN(Could not find gmp library)
+  fi
+fi
+
+if test "$HAVE_GMP" = "0"; then
+  CPPFLAGS="$cppflags_temp";
+  LIBS="$libs_temp";
+fi
+AC_SUBST(HAVE_GMP)
 
 
 
