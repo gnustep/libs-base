@@ -1701,18 +1701,18 @@ main(int argc, char **argv, char **env)
 
       // skeleton for table of contents files
       [tocSkel setString: @"<?xml version=\"1.0\"?>\n"
-"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
-"<gsdoc base=\"[typeU]\" stylesheeturl=\"gsdoc_contents\">\n"
-"  <head>\n"
-"    <title>[typeU]</title>\n"
-"  </head>\n"
-"  <body>\n"
-"    <chapter>\n"
-"      <index type=\"[typeL]\" scope=\"project\" target=\"mainFrame\"\n"
-"             style=\"bare\" />\n"
-"    </chapter>\n"
-"  </body>\n"
-"</gsdoc>\n"];
+@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
+@"<gsdoc base=\"[typeU]\" stylesheeturl=\"gsdoc_contents\">\n"
+@"  <head>\n"
+@"    <title>[typeU]</title>\n"
+@"  </head>\n"
+@"  <body>\n"
+@"    <chapter>\n"
+@"      <index type=\"[typeL]\" scope=\"project\" target=\"mainFrame\"\n"
+@"             style=\"bare\" />\n"
+@"    </chapter>\n"
+@"  </body>\n"
+@"</gsdoc>\n"];
       [tocSkel replaceOccurrencesOfString: @"[prjName]" withString: project
                                   options: 0
                                     range: NSMakeRange(0, [tocSkel length])];
@@ -1720,26 +1720,26 @@ main(int argc, char **argv, char **env)
       // file for top-left frame (header only; rest appended below)
       idxIndexFile = [@"MainIndex" stringByAppendingPathExtension: @"html"];
       [idxIndex setString: @"<HTML>\n  <BODY>\n"
-"    <FONT FACE=\"sans\" SIZE=\"+1\"><B>Index</B></FONT><BR/><BR/>\n"
-"    <FONT FACE=\"sans\" SIZE=\"-1\">"];
+@"    <FONT FACE=\"sans\" SIZE=\"+1\"><B>Index</B></FONT><BR/><BR/>\n"
+@"    <FONT FACE=\"sans\" SIZE=\"-1\">"];
 
       // this becomes index.html
       framesetFile = [@"index" stringByAppendingPathExtension: @"html"];
       [frameset setString: @"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"\"http://www.w3.org/TR/REC-html40/loose.dtd\">\n"
-"<HTML>\n"
-"  <HEAD>\n"
-"  <TITLE>\n"
-"    Autogsdoc-generated Documentation for [prjName]\n"
-"  </TITLE>\n"
-"  </HEAD>\n"
-"  <FRAMESET cols=\"20%,80%\">\n"
-"    <FRAMESET rows=\"30%,70%\">\n"
-"      <FRAME src=\"MainIndex.html\" name=\"packageListFrame\">\n"
-"      <FRAME src=\"ClassesTOC.html\" name=\"packageFrame\">\n"
-"    </FRAMESET>\n"
-"    <FRAME src=\"[prjName].html\" name=\"mainFrame\">\n"
-"  </FRAMESET>\n"
-"</HTML>\n"];
+@"<HTML>\n"
+@"  <HEAD>\n"
+@"  <TITLE>\n"
+@"    Autogsdoc-generated Documentation for [prjName]\n"
+@"  </TITLE>\n"
+@"  </HEAD>\n"
+@"  <FRAMESET cols=\"20%,80%\">\n"
+@"    <FRAMESET rows=\"30%,70%\">\n"
+@"      <FRAME src=\"MainIndex.html\" name=\"packageListFrame\">\n"
+@"      <FRAME src=\"ClassesTOC.html\" name=\"packageFrame\">\n"
+@"    </FRAMESET>\n"
+@"    <FRAME src=\"[prjName].html\" name=\"mainFrame\">\n"
+@"  </FRAMESET>\n"
+@"</HTML>\n"];
       [frameset replaceOccurrencesOfString: @"[prjName]" withString: project
                                    options: 0
                                      range: NSMakeRange(0, [frameset length])];
@@ -1809,25 +1809,25 @@ main(int argc, char **argv, char **env)
       if (i == [gFiles count])
         {
           NSLog(@"\n\nNOTE: Generating a simple introductory page for your"
-" project.\nTo replace this with a custom version, edit the gsdoc file \n"
-"named %@ in the documentation output directory.\n"
-"Then include this file in the arguments to autogsdoc.\n\n", prjFile);
+@" project.\nTo replace this with a custom version, edit the gsdoc file \n"
+@"named %@ in the documentation output directory.\n"
+@"Then include this file in the arguments to autogsdoc.\n\n", prjFile);
           NSMutableString 	*prjFileContents =
             [NSMutableString stringWithCapacity: cap];
           [prjFileContents setString: @"<?xml version=\"1.0\"?>\n"
-"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
-"<gsdoc base=\"[prjName]\">\n"
-"  <head>\n"
-"    <title>The [prjName] Project</title>\n"
-"  </head>\n"
-"  <body>\n"
-"    <chapter>\n"
-"      <p>The index below lists the major components of the [prjName] \n"
-"         documentation.<br/></p>\n"
-"      <index type=\"title\" scope=\"project\" target=\"mainFrame\" />\n"
-"    </chapter>\n"
-"  </body>\n"
-"</gsdoc>\n"];
+@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.1//EN\" \"http://www.gnustep.org/gsdoc-1_0_1.xml\">\n"
+@"<gsdoc base=\"[prjName]\">\n"
+@"  <head>\n"
+@"    <title>The [prjName] Project</title>\n"
+@"  </head>\n"
+@"  <body>\n"
+@"    <chapter>\n"
+@"      <p>The index below lists the major components of the [prjName] \n"
+@"         documentation.<br/></p>\n"
+@"      <index type=\"title\" scope=\"project\" target=\"mainFrame\" />\n"
+@"    </chapter>\n"
+@"  </body>\n"
+@"</gsdoc>\n"];
           [prjFileContents replaceOccurrencesOfString: @"[prjName]"
                                            withString: project
                                               options: 0
