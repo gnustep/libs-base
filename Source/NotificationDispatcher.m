@@ -465,7 +465,6 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
                  object: object
 {
   Array *observer_nr_array;
-  NotificationRequest *nr;
 
   /* If both NAME and OBJECT are nil, this call is the same as 
      -removeObserver:, so just call it. */
@@ -490,7 +489,6 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   {
     NotificationRequest *nr;
     int count = [observer_nr_array count];
-    unsigned matching_nr_indices[count];
     int i;
 
     for (i = count-1; i >= 0; i--)
