@@ -919,7 +919,7 @@ tables:
 	   */
 	  r = _fastMallocBuffer(bytes);
 	  memcpy(r, ptr, bytes);
-	  if (ptr != buf && ptr != *dst)
+	  if (ptr != buf && (dst == 0 || ptr != *dst))
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
@@ -951,7 +951,7 @@ tables:
 	}
       *dst = ptr;
     }
-  else if (ptr != buf && (dst == 0 || ptr != *dst))
+  else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
@@ -1456,7 +1456,7 @@ tables:
 	   */
 	  r = _fastMallocBuffer(bytes);
 	  memcpy(r, ptr, bytes);
-	  if (ptr != buf && ptr != *dst)
+	  if (ptr != buf && (dst == 0 || ptr != *dst))
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
@@ -1488,7 +1488,7 @@ tables:
 	}
       *dst = ptr;
     }
-  else if (ptr != buf && (dst == 0 || ptr != *dst))
+  else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
