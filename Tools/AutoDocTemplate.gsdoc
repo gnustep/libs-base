@@ -9,6 +9,8 @@ base="[[mainInterface.className]]+[[mainInterface.categoryName]]"
       [[else]]
 	  [[if mainInterface.interfaceTitle == Protocol]]
 base="[[mainInterface.protocolName]]Protocol"
+      [[else]]
+base=""
 	  [[endif Protocol]]
 	  [[endif Category]]
 	  [[endif Class]]
@@ -46,7 +48,9 @@ stylesheeturl="[[infoDictionary.stylesheeturl]]">
 	  </front>
 
 	
-	     <chapter>
+[[if hasMainInterface == 1]]
+	     <chapter id="#">
+[[endif hasMainInterface == 1]]
  
 [[if hasMainInterface == 1]]
   	  <heading>[[mainTitle]]</heading>
@@ -57,7 +61,7 @@ stylesheeturl="[[infoDictionary.stylesheeturl]]">
 	  <category name="[[mainInterface.categoryName]]" class="[[mainInterface.className]]">
       [[else]]
 	  [[if mainInterface.interfaceTitle == Protocol]]
-	  <protocol name="[[mainInterface.protocolName]]Protocol">
+	  <protocol name="[[mainInterface.protocolName]]">
 	  [[endif Protocol]]
 	  [[endif Category]]
 	  [[endif Class]]
@@ -157,13 +161,16 @@ stylesheeturl="[[infoDictionary.stylesheeturl]]">
 	  [[endif Category]]
 	  [[endif Class]]
 [[endif hasMainInterface]]
-	</chapter>
+
+[[if hasMainInterface == 1]]
+	     </chapter>
+[[endif hasMainInterface == 1]]
 
 
 
 
 [[if typedefArray.count > 0]]
-	  <chapter>
+	  <chapter id="#">
 	  <heading>Defined Types</heading>
 
 		[[foreach group typedefGroupArray group4]]
@@ -184,7 +191,7 @@ stylesheeturl="[[infoDictionary.stylesheeturl]]">
 
 
 [[if constantArray.count > 0]]
-	  <chapter>
+	  <chapter id="#">
 	  <heading>Symbolic Constants</heading>
 		[[foreach group constantGroupArray group5]]
 			  [[foreach constant group.itemArray constant1]]
@@ -201,7 +208,7 @@ stylesheeturl="[[infoDictionary.stylesheeturl]]">
 
 
 [[if macroArray.count > 0]]
-	  <chapter>
+	  <chapter id="#">
 	  <heading>Macro Definitions</heading>
 	[[foreach group macroGroupArray group2]]
 		[[foreach macro group.itemArray macro1]]
@@ -210,7 +217,7 @@ stylesheeturl="[[infoDictionary.stylesheeturl]]">
 		[[if group.comment.commentString.length > 0]]
 		<desc>[[group.comment.formattedCommentString]]</desc>
 		[[endif commentLength]]
-
+</macro>
 		[[endforeach macro1]]
 	[[endforeach group2]]
 </chapter>
@@ -218,16 +225,16 @@ stylesheeturl="[[infoDictionary.stylesheeturl]]">
 
 
 [[if functionArray.count > 0]]
-	  <chapter>
+	  <chapter id="#">
 	  <heading>Functions</heading>
 	[[foreach group functionGroupArray group3]]
 		[[foreach function group.itemArray function1]]
 [[comment <uref url="//apple_ref/c/func/[[function.name]]">[[function.name]]</uref>]]
 <function name="[[function.name]]" type="[[function.formattedType]]">
-<desc>[[function.formattedParameterString]]<br>
+<desc><p>[[function.formattedParameterString]]</p>
 		[[if group.comment.commentString.length > 0]]
-[[group.comment.formattedCommentString]]
-		[[endif commentLength]]
+<p>[[group.comment.formattedCommentString]]</p>
+		[[endif commentLength]]</desc></function>
 		[[endforeach function1]]
 	[[endforeach group3]]
 </chapter>
@@ -235,16 +242,16 @@ stylesheeturl="[[infoDictionary.stylesheeturl]]">
 
 
 [[if inlineFunctionArray.count > 0]]
-	  <chapter>
+	  <chapter id="#">
 	  <heading>Static Inline Functions</heading>
 	[[foreach group inlineFunctionGroupArray group3]]
 		[[foreach function group.itemArray function1]]
 [[comment <uref url="//apple_ref/c/func/[[function.name]]">[[function.name]]</uref>]]
 <function name="[[function.name]]" type="[[function.formattedType]]">
-<desc>[[function.formattedParameterString]]<br>
+<desc><p>[[function.formattedParameterString]]<</p>
 		[[if group.comment.commentString.length > 0]]
-[[group.comment.formattedCommentString]]
-		[[endif commentLength]]
+<p>[[group.comment.formattedCommentString]]</p>
+		[[endif commentLength]]</desc></function>
 		[[endforeach function1]]
 	[[endforeach group3]]
 </chapter>
@@ -252,7 +259,7 @@ stylesheeturl="[[infoDictionary.stylesheeturl]]">
 
 
 [[if variableArray.count > 0]]
-    <chapter>
+    <chapter id="#">
 	<heading>Global Variables</heading>
 	[[foreach group variableGroupArray group6]]
 		[[foreach global group.itemArray global1]]

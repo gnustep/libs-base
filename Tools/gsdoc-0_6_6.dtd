@@ -322,7 +322,7 @@
 >
 
 <!-- Category definition. -->
-<!ELEMENT category (declared?, desc?, method*, standards?)>
+<!ELEMENT category (declared?, conform*, desc?, method*, standards?)>
 <!ATTLIST category
   id CDATA #IMPLIED
   name CDATA #REQUIRED

@@ -1,4 +1,3 @@
-
 /* This tool converts documentation in gsdoc format to another format
    At present (and for the forseeable future), the only format supported
    is HTML.
@@ -296,7 +295,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  baseName = [self getProp: "base" fromNode: cur];
 	  if (baseName == nil)
 		{
-		  baseName = @"gsdoc";
+		  //baseName = @"gsdoc";
+		  ASSIGN(baseName,[fileName stringByDeletingPathExtension]);
 		}
 	  else
 		{
@@ -351,13 +351,18 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   unsigned		labelIndex;
   unsigned		footnoteIndex;
   unsigned		contentsIndex;
+  NSString*		projectName;					// ProjectName
   NSMutableDictionary* fileReferences;			// References for the current file (constructed when parsing this file)
   NSMutableDictionary* generalReferences;		// General References (coming from documentations References)
   NSMutableDictionary* variablesDictionary;		// "User Variables"
   NSString*     currentClassName;				// Currently Parsed Class Name if any
   NSString*     currentCategoryName;			// Currently Parsed Category Name if any
   NSString*     currentProtocolName;			// Currently Parsed Protocol Name if any
+  NSArray*		typesTypes;						// Types for Types
+  NSArray*		classesTypes;					// Types for Classes
+  NSArray*		protocolsTypes;					// Types for Protocols
   BOOL writeFlag;								// YES if we'll write the result
+  BOOL processFileReferencesFlag;				// YES if we'll add references to file references
 }
 - (id)init;
 - (NSString*) addLink: (NSString*)ref withText: (NSString*)text;
@@ -393,12 +398,15 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 -(NSDictionary*)fileReferences;
 -(void)setGeneralReferences:(NSDictionary*)dict;
 -(void)setVariablesDictionary:(NSDictionary*)dict;
--(NSString*)linkedTypeWithType:(NSString*)type;
--(NSString*)linkedClassWithClass:(NSString*)class_;
--(NSDictionary*)findSymbolForKey:(NSString*)key_;
+-(NSString*)linkedItem:(NSString*)item
+			   ofTypes:(NSArray*)types;
+-(NSDictionary*)findSymbolForKey:(NSString*)key_
+						 ofTypes:(NSArray*)types;
 -(NSString*)linkForSymbol:(NSDictionary*)symbol
 				 withText:(NSString*)text;
 -(void)setWriteFlag:(BOOL)flag;
+-(void)setProcessFileReferencesFlag:(BOOL)flag;
+-(void)setProjectName:(NSString*)projectName_;
 @end
 
 // ====================================================================
@@ -409,6 +417,13 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   if ((self=[super init]))
 	{
 	  writeFlag=YES;
+	  processFileReferencesFlag=YES;
+	  typesTypes=[NSArray arrayWithObjects:@"type",@"class",@"define",nil];
+	  RETAIN(typesTypes);
+	  classesTypes=[NSArray arrayWithObjects:@"class",@"define",nil];
+	  RETAIN(classesTypes);
+	  protocolsTypes=[NSArray arrayWithObjects:@"protocol",@"define",nil];
+	  RETAIN(protocolsTypes);
 	};
   return self;
 };
@@ -498,12 +513,16 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 {
   DESTROY(contents);
   DESTROY(footnotes);
+  DESTROY(projectName);
   DESTROY(fileReferences);
   DESTROY(generalReferences);
   DESTROY(variablesDictionary);
   DESTROY(currentClassName);
   DESTROY(currentCategoryName);
   DESTROY(currentProtocolName);
+  DESTROY(typesTypes);
+  DESTROY(classesTypes);
+  DESTROY(protocolsTypes);
   [super dealloc];
 }
 
@@ -832,10 +851,10 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       h = "h5";
     }
 
-  if (nodeId)
+  if (!nodeId || ([nodeId length]>0 && ![nodeId isEqual:@"#"]))
 	{
 	  [self setEntry:head
-			withExternalCompleteRef:[NSString stringWithFormat:@"%@##%@",currName,head]
+			withExternalCompleteRef:[NSString stringWithFormat:@"%@##%@##%@",projectName,currName,head]
 			withExternalRef:head
 			withRef: ref
 			inIndexOfType:[NSString stringWithCString:type]];
@@ -998,17 +1017,22 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       if (superName != nil)
 	{
 	  [text appendFormat: @"<p><b>Inherits from:</b> %@</p>\r\n",
-	    superName];
+			[self linkedItem:superName
+				  ofTypes:classesTypes]];
 	}
       if ([conform count] > 0)
 	{
 	  unsigned	i;
 
-	  [text appendFormat: @"<p><b>Conforms to:</b> %@\r\n",
-	    [conform objectAtIndex: 0]];
-	  for (i = 1; i < [conform count]; i++)
+	  [text appendString: @"<p><b>Conforms to:</b>"];
+	  for (i=0;i<[conform count];i++)
 	    {
-	      [text appendFormat: @", %@\r\n", [conform objectAtIndex: i]];
+		  NSString* conformItem=[conform objectAtIndex: i];
+		  conformItem=[self linkedItem:conformItem
+							ofTypes:protocolsTypes];
+	      [text appendFormat: @"%@ %@\r\n",
+				(i>0 ? @"," : @""),
+				conformItem];
 	    }
 	  [text appendString: @"</p>\r\n"];
 	}
@@ -1078,6 +1102,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSString	*ref = [self getProp: "id" fromNode: node];
       NSString	*declared = nil;
       NSString	*desc = nil;
+      NSMutableArray	*conform = [NSMutableArray array];
       NSMutableArray	*factoryMethods = [NSMutableArray array];
       NSMutableArray	*instanceMethods = [NSMutableArray array];
       NSMutableArray	*standards = [NSMutableArray array];
@@ -1088,14 +1113,15 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 	  NSLog(@"Missing category or class name");
 	  return nil;
 	}
-      name = [NSString stringWithFormat: @"%@ (%@)", catName, className];
+      name = [NSString stringWithFormat: @"%@ (%@)",className,catName];
       if (ref == nil)
 	{
 	  ref = name;
 	}
 
-	  // We works on a category
-	  ASSIGN(currentCategoryName,([NSString stringWithFormat: @"%@(%@)",className,catName]));
+	  // We works on a class & category
+	  ASSIGN(currentClassName,className);
+	  ASSIGN(currentCategoryName,catName);
       /*
        * Clear the methods index so it will contain only values from this class.
        */
@@ -1105,6 +1131,16 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       if (node != 0 && strcmp(node->name, "declared") == 0)
 	{
 	  declared = [self parseText: node->children];
+	  node = node->next;
+	}
+      while (node != 0 && strcmp(node->name, "conform") == 0)
+	{
+	  NSString	*s = [self parseText: node->children];
+
+	  if (s != nil)
+	    {
+	      [conform addObject: s];
+	    }
 	  node = node->next;
 	}
       if (node != 0 && strcmp(node->name, "desc") == 0)
@@ -1146,12 +1182,29 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 			inIndexOfType: @"category"];
 
       [text appendFormat: @"<h2>%@ <a name=\"%@\">(%@)</a></h2>\r\n",
-			[self linkedClassWithClass:className],
+			[self linkedItem:className
+				  ofTypes:classesTypes],
 			ref,
 			catName];
       if (declared != nil)
 	{
 	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
+	}
+      if ([conform count] > 0)
+	{
+	  unsigned	i;
+
+	  [text appendString: @"<p><b>Conforms to:</b>\r\n"];
+	  for (i=0;i<[conform count];i++)
+	    {
+		  NSString* conformItem=[conform objectAtIndex: i];
+		  conformItem=[self linkedItem:conformItem
+							ofTypes:protocolsTypes];
+	      [text appendFormat: @"%@ %@\r\n",
+				(i>0 ? @"," : @""),
+				conformItem];
+	    }
+	  [text appendString: @"</p>\r\n"];
 	}
       if ([standards count] > 0)
 	{
@@ -1195,7 +1248,8 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 	      [text appendString: [instanceMethods objectAtIndex: i]];
 	    }
 	}
-	  // We've finished working on this category
+	  // We've finished working on this class/category
+	  ASSIGN(currentClassName,nil);
 	  ASSIGN(currentCategoryName,nil);
       return text;
     }
@@ -1209,14 +1263,14 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       NSMutableArray	*standards = [NSMutableArray array];
 
       if (protName == nil)
-	{
-	  NSLog(@"Missing protocol name");
-	  return nil;
-	}
+		{
+		  NSLog(@"Missing protocol name");
+		  return nil;
+		}
       if (ref == nil)
-	{
-	  ref = protName;
-	}
+		{
+		  ref = protName;
+		}
 
 	  // Works on "protName"
 	  ASSIGN(currentProtocolName,protName);
@@ -1227,44 +1281,44 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 
       node = node->children;
       if (node != 0 && strcmp(node->name, "declared") == 0)
-	{
-	  declared = [self parseText: node->children];
-	  node = node->next;
-	}
+		{
+		  declared = [self parseText: node->children];
+		  node = node->next;
+		}
 
       if (node != 0 && strcmp(node->name, "desc") == 0)
-	{
-	  desc = [self parseDesc: node];
-	  node = node->next;
-	}
+		{
+		  desc = [self parseDesc: node];
+		  node = node->next;
+		}
       while (node != 0 && strcmp(node->name, "method") == 0)
-	{
-	  NSString	*s = [self parseMethod: node];
-
-	  if (s != nil)
-	    {
-	      [methods addObject: s];
-	    }
-	  node = node->next;
-	}
+		{
+		  NSString	*s = [self parseMethod: node];
+		  
+		  if (s != nil)
+			{
+			  [methods addObject: s];
+			}
+		  node = node->next;
+		}
 
       while (node != 0 && strcmp(node->name, "standard") == 0)
-	{
-	  NSString	*s = [self parseText: node->children];
-
-	  if (s != nil)
-	    {
-	      [standards addObject: s];
-	    }
-	  node = node->next;
-	}
+		{
+		  NSString	*s = [self parseText: node->children];
+		  
+		  if (s != nil)
+			{
+			  [standards addObject: s];
+			}
+		  node = node->next;
+		}
 
       [self setEntry: protName
 			withExternalCompleteRef:protName
 			withExternalRef:protName
 			withRef: ref
 			inIndexOfType: @"protocol"];
-      [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n",
+      [text appendFormat: @"<h2><a name=\"%@\">%@ Protocol</a></h2>\r\n",
 			ref, protName];
       if (declared != nil)
 	{
@@ -1572,7 +1626,8 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   //Avoid ((xxx))
   else if ([type hasPrefix:@"("] && [type hasSuffix:@")"])
 	type =[[type stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
-  type=[self linkedTypeWithType:type];
+  type=[self linkedItem:type
+			 ofTypes:typesTypes];
 
   node = node->children;
   while (node != 0 && strcmp(node->name, "arg") == 0)
@@ -1593,7 +1648,8 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 		  //Avoid ((xxx))
 		  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
 			typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
-		  typ=[self linkedTypeWithType:typ];
+		  typ=[self linkedItem:typ
+					ofTypes:typesTypes];
 		  [args appendString: typ];
 		  [args appendString: @" "];
 		}
@@ -1674,7 +1730,6 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
     }
   [text appendFormat: @"<head>\r\n<title>%@</title>\r\n", title];
 
-      NSLog(@"currName=%@",currName);
   [self setEntry:title
 		withExternalCompleteRef:currName
 		withExternalRef:currName
@@ -1847,7 +1902,6 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
       node = node->children;
       while (node != 0 && strcmp(node->name, "item") == 0)
 	{
-  NSDebugMLog(@"parseList node=%p node->name=%s node->content=%s",node, node ? node->name : NULL,node ? node->content : NULL);//MG
 	  [text appendFormat: @"<li>%@\r\n", [self parseItem: node]];
 	  node = node->next;
 	}
@@ -1918,8 +1972,8 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSString	*declared = nil;
   NSString	*desc = nil;
   NSMutableArray	*standards = [NSMutableArray array];
-  NSString  *completeRefName=nil;//MG
-
+  NSString  *completeRefName=nil;
+  NSString* linkedType=nil;
   if (name == nil)
 	{
 	  NSLog(@"Missing variable/constant name");
@@ -1931,7 +1985,11 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 	  NSLog(@"Missing variable type");
 	  return nil;
 	}
-  
+
+  if (type)
+	linkedType=[self linkedItem:type
+					 ofTypes:typesTypes];
+
   if (ref == nil)
 	{
 	  ref = name;
@@ -2009,12 +2067,19 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   
   if (value == nil)
 	{
-	  [text appendFormat: @"%@ <b>%@</b>%@<br>\r\n", type ? type : @"", name, (posttype ? posttype : @"")];//MG
+	  [text appendFormat: @"%@ <b>%@</b>%@<br>\r\n",
+			linkedType ? linkedType : @"",
+			name,
+			(posttype ? posttype : @"")];
 	}
   else
 	{
-	  [text appendFormat: @"%@ <b>%@</b>%@ = %@<br>\r\n", type ? type : @"", name, (posttype ? posttype : @""), value];//MG
-	}
+	  [text appendFormat: @"%@ <b>%@</b>%@ = %@<br>\r\n",
+			linkedType ? linkedType : @"",
+			name,
+			(posttype ? posttype : @""),
+			value];
+	};
   
   if (desc != nil)
 	{
@@ -2163,33 +2228,30 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   NSString	*desc = nil;
   NSArray	*standards = nil;
   NSString  *methodBlockName=nil;
-  NSString  *methodCompleteBlockName=nil;
 
-  if (currentClassName)
+  if (currentCategoryName)
 	{
+	  NSAssert(currentClassName,@"No Class Name");
 	  methodBlockName=currentClassName;
-	  methodCompleteBlockName=currentClassName;
 	}
-  else if (currentCategoryName)
+  else if (currentClassName)
 	{
 	  methodBlockName=currentClassName;
-	  methodCompleteBlockName=currentCategoryName;
 	}
   else if (currentProtocolName)
 	{
 	  methodBlockName=currentProtocolName;
-	  methodCompleteBlockName=currentProtocolName;
 	}
   else	
 	{
 	  methodBlockName=@"unknown";
-	  methodCompleteBlockName=methodBlockName;
 	};
+  NSAssert(methodBlockName,@"No methodBlockName");
 
   if (ref == nil)
     {
       ref = [NSString stringWithFormat: @"method-%u",
-	labelIndex++];
+					  labelIndex++];
     }
   if (isJava)
     {
@@ -2206,7 +2268,8 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 	  //Avoid ((xxx))
 	  else if ([type hasPrefix:@"("] && [type hasSuffix:@")"])
 		type =[[type stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
-	  type=[self linkedTypeWithType:type];
+	  type=[self linkedItem:type
+				 ofTypes:typesTypes];
       [decl appendString: type];
       [decl appendString: @" "];
 
@@ -2227,7 +2290,8 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 		  //Avoid ((xxx))
 		  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
 			typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
-		  typ=[self linkedTypeWithType:typ];
+		  typ=[self linkedItem:typ
+					ofTypes:typesTypes];
 	      [args appendString: typ];
 	      [args appendString: @" "];
 	    }
@@ -2273,7 +2337,8 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 	  //Avoid ((xxx))
 	  else if ([type hasPrefix:@"("] && [type hasSuffix:@")"])
 		type =[[type stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
-	  type=[self linkedTypeWithType:type];
+	  type=[self linkedItem:type
+				 ofTypes:typesTypes];
 
       [lText appendString: type];
       [lText appendString: @")"];
@@ -2299,7 +2364,8 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 			  //Avoid ((xxx))
 			  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
 				typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
-			  typ=[self linkedTypeWithType:typ];
+			  typ=[self linkedItem:typ
+						ofTypes:typesTypes];
 			  [lText appendFormat: @" (%@)%@", typ, arg];
 			}
 	      else
@@ -2336,7 +2402,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
   if (isJava)
     {
       [self setEntry: sText
-			withExternalCompleteRef:[NSString stringWithFormat:@"%@::%@",methodCompleteBlockName,sText]
+			withExternalCompleteRef:[NSString stringWithFormat:@"%@::%@",methodBlockName,sText]
 			withExternalRef:[NSString stringWithFormat:@"%@::%@",methodBlockName,sText]
 			withRef: ref
 			inIndexOfType: @"method"];
@@ -2347,7 +2413,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 	{
 	  NSString	*s = [@"+" stringByAppendingString: sText];
 	  [self setEntry: s
-			withExternalCompleteRef:[NSString stringWithFormat:@"+%@::%@",methodCompleteBlockName,sText]
+			withExternalCompleteRef:[NSString stringWithFormat:@"+%@::%@",methodBlockName,sText]
 			withExternalRef:[NSString stringWithFormat:@"+%@::%@",methodBlockName,sText]
 			withRef: ref
 			inIndexOfType: @"method"];
@@ -2356,7 +2422,7 @@ withExternalCompleteRef: (NSString*)externalCompleteRef
 	{
 	  NSString	*s = [@"-" stringByAppendingString: sText];
 	  [self setEntry: s
-			withExternalCompleteRef:[NSString stringWithFormat:@"-%@::%@",methodCompleteBlockName,sText]
+			withExternalCompleteRef:[NSString stringWithFormat:@"-%@::%@",methodBlockName,sText]
 			withExternalRef:[NSString stringWithFormat:@"-%@::%@",methodBlockName,sText]
 			withRef: ref
 			inIndexOfType: @"method"];
@@ -2549,29 +2615,40 @@ withExternalCompleteRef:(NSString*)externalCompleteRef
 		  withRef: (NSString*)ref
     inIndexOfType: (NSString*)type
 {
-  NSMutableDictionary	*index = [self indexForType: type];
+  NSMutableDictionary* index = nil;
   NSAssert(entry,@"No entry");
-  NSAssert(ref,@"No ref");
+  NSAssert1(ref,@"No ref for %@",entry);
+  NSAssert1(type,@"No type for %@",entry);
+  index=[self indexForType: type];
   [index setObject: entry forKey: ref];
   [refToFile setObject: currName forKey: ref];
 
-  if (externalCompleteRef && externalRef)
+  if (processFileReferencesFlag && externalCompleteRef && externalRef)
   {
-	NSMutableDictionary* thisEntry=nil;
-	thisEntry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-									   entry, @"title",
-									 externalRef, @"ref",
-									 externalCompleteRef,@"completeRef",
-									 ref, @"fragment",
-									 type, @"type",
-									 currName, @"fileName",
-									 nil];
+	NSMutableDictionary* typeDict=[fileReferences objectForKey:type];
 	if (!fileReferences)
 	  {
 		fileReferences=[NSMutableDictionary new];
 	  };
-	[fileReferences setObject:thisEntry 
-					forKey:externalCompleteRef];
+	if (!typeDict)
+	  {
+		typeDict=[NSMutableDictionary dictionary];
+		[fileReferences setObject:typeDict
+						forKey:type];
+	  };
+	if (![typeDict objectForKey:externalCompleteRef])
+	  {
+		NSMutableDictionary* thisEntry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+																entry, @"title",
+															  externalRef, @"ref",
+															  externalCompleteRef,@"completeRef",
+															  ref, @"fragment",
+															  type, @"type",
+															  currName, @"fileName",
+															  nil];
+		[typeDict setObject:thisEntry 
+				  forKey:externalCompleteRef];
+	  };
   };
 };
 
@@ -2596,62 +2673,62 @@ withExternalCompleteRef:(NSString*)externalCompleteRef
   variablesDictionary=[dict mutableCopy];
 };
 
--(NSString*)linkedClassWithClass:(NSString*)class_
-{
-  //TODO
-  return [self linkedTypeWithType:class_];
-};
-
-//Return a link for type (something like: <A HREF="TheFile.html#fragment">TheType</A>)
--(NSString*)linkedTypeWithType:(NSString*)type
+//Return a link for item (something like: <A HREF="TheFile.html#fragment">TheItem</A>) of type types
+-(NSString*)linkedItem:(NSString*)item
+			   ofTypes:(NSArray*)types
 {
   NSString* linked=nil;
-  NSRange foundRange=[type rangeOfCharacterFromSet:[NSCharacterSet alphanumericCharacterSet]];
+  NSRange foundRange=[item rangeOfCharacterFromSet:[NSCharacterSet alphanumericCharacterSet]];
   if (foundRange.length>0)
 	{
-	  NSString* goodType=nil;
+	  NSString* goodItem=nil;
 	  NSDictionary* symbol=nil;
 	  NSRange goodRange=NSMakeRange(foundRange.location,1);
-	  while (foundRange.length>0 && foundRange.location+foundRange.length<[type length])
+	  while (foundRange.length>0 && foundRange.location+foundRange.length<[item length])
 		{
-		  foundRange=[type rangeOfCharacterFromSet:[NSCharacterSet alphanumericCharacterSet]
+		  foundRange=[item rangeOfCharacterFromSet:[NSCharacterSet alphanumericCharacterSet]
 						   options:0
 						   range:NSMakeRange(foundRange.location+1,1)];
 		  if (foundRange.length>0)
 			goodRange.length++;
 		};
-	  goodType=[type substringWithRange:goodRange];
-	  symbol=[self findSymbolForKey:goodType];
+	  goodItem=[item substringWithRange:goodRange];
+	  symbol=[self findSymbolForKey:goodItem
+				   ofTypes:types];
 	  if (symbol)
 		{
 		  linked=[self linkForSymbol:symbol
-					   withText:goodType];
+					   withText:goodItem];
 		  if (goodRange.location>0)
 			{
 			  linked=[NSString stringWithFormat:@"%@%@",
-							   [type substringWithRange:NSMakeRange(0,goodRange.location-1)],
+							   [item substringWithRange:NSMakeRange(0,goodRange.location-1)],
 							   linked];
 			};
-		  if (goodRange.location+goodRange.length<[type length])
+		  if (goodRange.location+goodRange.length<[item length])
 			{
 			  linked=[NSString stringWithFormat:@"%@%@",
 							   linked,
-							   [type substringWithRange:NSMakeRange(goodRange.location+goodRange.length,
-																	[type length]-(goodRange.location+goodRange.length))]];
+							   [item substringWithRange:NSMakeRange(goodRange.location+goodRange.length,
+																	[item length]-(goodRange.location+goodRange.length))]];
 			};
 		};
 	};
   if (!linked)
-	linked=type;
+	linked=item;
   return linked;
 };
 
 
 //Return the symbol for key
 -(NSDictionary*)findSymbolForKey:(NSString*)key_
+						 ofTypes:(NSArray*)types
 {
   NSDictionary* symbol=nil;
-  symbol=[generalReferences objectForKey:key_];
+  int i=0;
+  for(i=0;!symbol && i<[types count];i++)	
+	symbol=[[generalReferences objectForKey:[types objectAtIndex:i]]
+							   objectForKey:key_];
   return symbol;
 };
 
@@ -2661,28 +2738,42 @@ withExternalCompleteRef:(NSString*)externalCompleteRef
 				 withText:(NSString*)text
 {
   NSString* symbolLocation=[[symbol objectForKey:@"projectInfo"] objectForKey:@"location"];  
+  NSString* locationTmp=location;
   NSString* common=nil;
   NSString* prefix=@"";
-  if (location)
+  if ([locationTmp length]>0)
 	{
 	  //Equal: no prefix
-	  if (![location isEqual:symbolLocation])
+	  if (![locationTmp isEqual:symbolLocation])
 		{
+		  if (![locationTmp hasSuffix:@"/"])
+			locationTmp=[locationTmp stringByAppendingString:@"/"];
+		  if ([symbolLocation length]>0 && ![symbolLocation hasSuffix:@"/"])
+			symbolLocation=[symbolLocation stringByAppendingString:@"/"];
 		  common=[symbolLocation commonPrefixWithString:location
 								 options:0];
 		  if ([common length]>0)
 			{
-			  NSString* tmp=[location stringWithoutPrefix:common];
-			  NSString* previous=nil;
-			  symbolLocation=[symbolLocation stringWithoutPrefix:common];
-			  while([tmp length]>0 && ![tmp isEqual:previous])
+			  int i=0;
+			  NSMutableArray* locationParts=[[[locationTmp componentsSeparatedByString:@"/"] mutableCopy] autorelease];
+			  NSMutableArray* symbolLocationParts=[[[symbolLocation componentsSeparatedByString:@"/"] mutableCopy] autorelease];
+			  [locationParts removeLastObject];
+			  [symbolLocationParts removeLastObject];
+			  while([locationParts count]>0
+					&& [symbolLocationParts count]>0
+					&& [[locationParts objectAtIndex:0] isEqual:[symbolLocationParts objectAtIndex:0]])
 				{
-				  previous=tmp;
-				  tmp=[tmp stringByDeletingLastPathComponent];
-				  symbolLocation=[@".." stringByAppendingPathComponent:symbolLocation];
+				  [locationParts removeObjectAtIndex:0];
+				  [symbolLocationParts removeObjectAtIndex:0];
 				};
-			};
-		  prefix=symbolLocation;
+			  prefix=[NSString string];
+			  for(i=0;i<[locationParts count];i++)
+				  prefix=[@".." stringByAppendingPathComponent:prefix];
+			  for(i=0;i<[symbolLocationParts count];i++)
+				  prefix=[prefix stringByAppendingPathComponent:[symbolLocationParts objectAtIndex:i]];
+			}
+		  else
+			prefix=symbolLocation;
 		};
 	}
   else
@@ -2699,60 +2790,34 @@ withExternalCompleteRef:(NSString*)externalCompleteRef
   writeFlag=flag;
 };
 
-@end
-
-
-//--------------------------------------------------------------------
-//Return a dictionary of sybols classified by types
-//
-// symbols:
-// {
-//	  	"NSString" = { type = "class"; ...};
-//		"NSArray" = { type = "class"; ... };
-// };
-//
-// Return:
-// {
-//		class = {
-//					"NSString" = { ...};
-//					"NSArray" = { ... };
-//				};
-//		function = {
-//						...
-//				};
-// ...
-// };
-NSDictionary* SymbolsReferencesByType(NSDictionary* symbols)
+-(void)setProcessFileReferencesFlag:(BOOL)flag
 {
-  NSMutableDictionary* symbolsByType=[[NSMutableDictionary new] autorelease];
-  NSEnumerator* symbolsEnumerator = [symbols keyEnumerator];
-  id symbolKey=nil;          
-  while ((symbolKey = [symbolsEnumerator nextObject]))
-	{
-	  NSDictionary* symbol=[symbols objectForKey:symbolKey];
-	  id symbolType=[symbol objectForKey:@"type"];
-	  NSMutableDictionary* typeDict=[symbolsByType objectForKey:symbolType];
-	  NSCAssert1(symbolType,@"No symbol type in symbol %@",symbol);
-	  if (!typeDict)
-		{
-		  typeDict=[[NSMutableDictionary new] autorelease];
-		  [symbolsByType setObject:typeDict
-						 forKey:symbolType];
-		};
-	  [typeDict setObject:symbol
-				forKey:symbolKey];
-	};			  
-  return symbolsByType;
+  processFileReferencesFlag=flag;
 };
+
+-(void)setProjectName:(NSString*)projectName_
+{
+  ASSIGN(projectName,projectName_);
+};
+
+@end
 
 //--------------------------------------------------------------------
 // Return files list of files in symbols
 //
 // symbols:
 // {
-//	  	"NSString" = { fileName = "NSString.gsdoc"; ...};
-//		"NSArray" = { fileName = "NSArray.gsdoc"; ... };
-// }
+// 		class=	
+// 			 		{
+//					  	"NSString" = { fileName = "NSString.gsdoc"; ...};
+//						"NSArray" = { fileName = "NSArray.gsdoc"; ... };
+//						...
+// 					};
+//		type=		{
+//						...
+// 					};
+//		...
+//	}
 //
 // Return:
 // ( NSString.gsdoc, NSArray.gsdoc, ... )
@@ -2760,14 +2825,20 @@ NSArray* FilesFromSymbols(NSDictionary* symbols)
 {
   NSArray* sortedFiles=nil;
   NSMutableArray* files=[[NSMutableArray new] autorelease];
-  NSEnumerator* symbolsEnumerator = [symbols keyEnumerator];
-  id symbolKey=nil;          
-  while ((symbolKey = [symbolsEnumerator nextObject]))
+  NSEnumerator* typesEnumerator = [symbols keyEnumerator];
+  id typeKey=nil;
+  while ((typeKey = [typesEnumerator nextObject]))
 	{
-	  NSDictionary* symbol=[symbols objectForKey:symbolKey];
-	  id file=[symbol objectForKey:@"fileName"];
-	  if (![files containsObject:file])
-		[files addObject:file];	  
+	  NSDictionary* type=[symbols objectForKey:typeKey];
+	  NSEnumerator* symbolsEnumerator = [type keyEnumerator];
+	  id symbolKey=nil;          
+	  while ((symbolKey = [symbolsEnumerator nextObject]))
+		{
+		  NSDictionary* symbol=[type objectForKey:symbolKey];
+		  id file=[symbol objectForKey:@"fileName"];
+		  if (![files containsObject:file])
+			[files addObject:file];
+		};
 	};
   sortedFiles=[files sortedArrayUsingSelector:@selector(compare:)];
   return sortedFiles;
@@ -2784,31 +2855,82 @@ NSArray* FilesInPathWithExtension(NSString* dir,NSString* extension)
   while ((file = [enumerator nextObject]))
 	{
 	  BOOL isDirectory=NO;
-	  if ([fm fileExistsAtPath:file isDirectory:&isDirectory] && !isDirectory && [[file pathExtension] isEqualToString:extension])
-		[files addObject:file];
+	  file=[dir stringByAppendingPathComponent:file];
+	  if ([[file pathExtension] isEqual:extension])
+		{
+		  if ([fm fileExistsAtPath:file isDirectory:&isDirectory])
+			{
+			  if (!isDirectory)
+				{
+				  [files addObject:file];
+				};
+			};
+		};
 	};
   return files;
 };
 
-void AddSymbolsToReferencesWithProjectInfo(NSDictionary* symbols,NSMutableDictionary* references,NSDictionary* projectInfo)
+//--------------------------------------------------------------------
+void AddSymbolsToReferencesWithProjectInfo(NSDictionary* symbols,
+										   NSMutableDictionary* references,
+										   NSDictionary* projectInfo,
+										   BOOL override)
 {
-  NSEnumerator* symbolsEnumerator = [symbols keyEnumerator];			  
-  id symbolKey=nil;          
-  while ((symbolKey = [symbolsEnumerator nextObject]))
-	{					  
-	  NSDictionary* symbol=[symbols objectForKey:symbolKey];
-	  NSMutableDictionary* symbolNew=[NSMutableDictionary dictionaryWithDictionary:symbol];
-	  if (verbose>=4)
+  NSEnumerator* typesEnumerator = nil;
+  id typeKey=nil;
+  NSCAssert1([symbols isKindOfClass:[NSDictionary class]],
+			@"%@ is not a dictionary",
+			symbols);
+  typesEnumerator = [symbols keyEnumerator];
+  while ((typeKey = [typesEnumerator nextObject]))
+	{
+	  NSDictionary* type=[symbols objectForKey:typeKey];
+	  if (![type isKindOfClass:[NSDictionary class]])
 		{
-		  NSLog(@"Project %@ Processing reference %@",
-				[projectInfo objectForKey:@"projectName"],
-				symbolKey);
+		  NSLog(@"Warning: Type %@ is not a dictionary",type);
+		}
+	  else
+		{
+		  NSEnumerator* symbolsEnumerator = [type keyEnumerator]; 
+		  id symbolKey=nil;
+		  NSMutableDictionary* referencesType=[references objectForKey:typeKey];
+		  if (!referencesType)
+			{
+			  referencesType=[NSMutableDictionary dictionary];
+			  [references setObject:referencesType
+						  forKey:typeKey];
+			};
+		  while ((symbolKey = [symbolsEnumerator nextObject]))
+			{					  
+			  NSDictionary* symbol=[type objectForKey:symbolKey];
+			  if (![symbol isKindOfClass:[NSDictionary class]])
+				{
+				  NSLog(@"Warning: Symbol %@ is not a dictionary",symbol);
+				}
+			  else
+				{
+				  NSMutableDictionary* symbolNew=[NSMutableDictionary dictionaryWithDictionary:symbol];
+				  if (verbose>=4)
+					{
+					  NSLog(@"Project %@ Processing reference %@",
+							[projectInfo objectForKey:@"projectName"],
+							symbolKey);
+					};
+				  if (projectInfo)
+					[symbolNew setObject:projectInfo
+							   forKey:@"projectInfo"];
+				  NSCAssert(symbolKey,@"No symbolKey");
+				  
+				  if (override || ![referencesType objectForKey:symbolKey])
+					[referencesType setObject:symbolNew
+									forKey:symbolKey];
+				  NSCAssert1([symbolNew objectForKey:@"ref"],@"No ref for symbol %@",symbolKey);
+				  if (override || ![referencesType objectForKey:[symbolNew objectForKey:@"ref"]])
+					[referencesType setObject:symbolNew
+									forKey:[symbolNew objectForKey:@"ref"]];
+				};
+			};
 		};
-	  [symbolNew setObject:projectInfo forKey:@"projectInfo"];
-	  NSCAssert(symbolKey,@"No symbolKey");
-	  [references setObject:symbolNew forKey:symbolKey];
-	  NSCAssert1([symbolNew objectForKey:@"ref"],@"No ref for symbol %@",symbolKey);
-	  [references setObject:symbolNew forKey:[symbolNew objectForKey:@"ref"]];
 	};
 };
 
@@ -2832,6 +2954,7 @@ int main(int argc, char **argv, char **env)
   NSDictionary* variablesDictionary=nil;		// variables dictionary
   NSMutableDictionary* projectInfo=nil;			// Information On Project
   BOOL goOn=YES;
+  NSFileManager* fileManager=nil;
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
@@ -2849,6 +2972,7 @@ int main(int argc, char **argv, char **env)
 	  goOn=NO;
     };
 
+  fileManager=[NSFileManager defaultManager];
   if (goOn)
 	{
 	  args = [proc arguments];
@@ -2914,7 +3038,11 @@ int main(int argc, char **argv, char **env)
 				{
 				  NSCAssert1(value,@"No value for %@",key);
 				  verbose=[value intValue];
-				  NSLog(@"Verbose=%d %@",verbose,value);
+				  if (verbose>0)
+					{
+					  NSMutableSet* debugSet=[proc debugSet];
+					  [debugSet addObject:@"dflt"];
+					};
 				}
 			  // Location
 			  else if ([key hasPrefix:@"location"])
@@ -2943,7 +3071,29 @@ int main(int argc, char **argv, char **env)
 			{
 			  if (!files)
 				files=[NSMutableArray array];
-			  [files addObject:arg];
+			  //FIXME
+			  //Dirty Hack to handle *.gsdoc and *
+			  //We need this because sometimes, there is too much files for commande line 
+			  if ([[arg lastPathComponent] hasSuffix:[NSString stringWithFormat:@"*.%@",PathExtension_GSDoc]]
+				  || [[arg lastPathComponent]hasSuffix:@"*"])
+				{
+				  NSArray* dirContent=nil;
+				  int ifile=0;
+				  arg=[arg stringByDeletingLastPathComponent];
+				  if ([arg length]==0)
+					arg=[fileManager currentDirectoryPath];
+				  dirContent=[fileManager directoryContentsAtPath:arg];
+				  for(ifile=0;ifile<[dirContent count];ifile++)
+					{
+					  NSString* file=[dirContent objectAtIndex:ifile];
+					  if ([[file pathExtension] isEqual:PathExtension_GSDoc])
+						{
+						  [files addObject:file];						  
+						};
+					};
+				}
+			  else
+				[files addObject:arg];
 			};
 		};
 	};
@@ -2953,7 +3103,6 @@ int main(int argc, char **argv, char **env)
 	{
 	  if (!projectName)
 		projectName=@"unknown";
-
 	  if ([makeRefsFileName length]==0)
 		  makeRefsFileName=[projectName stringByAppendingPathExtension:PathExtension_GSDocRefs];
 	};
@@ -2966,14 +3115,37 @@ int main(int argc, char **argv, char **env)
   // Construct project references
   if (goOn)
 	{
+	  NSDictionary* previousProjectReferences=nil;
 	  projectReferences=[[NSMutableDictionary new] autorelease];
-	  [projectReferences setObject:[[NSMutableDictionary new] autorelease] forKey:@"symbols"];
+	  [projectReferences setObject:[[NSMutableDictionary new] autorelease]
+						 forKey:@"symbols"];
 	  projectInfo=[NSMutableDictionary dictionaryWithObjectsAndKeys:
 										 projectName, @"projectName",
 									   nil];
 	  if (location)
 		[projectInfo setObject:location
 					 forKey:@"location"];
+
+	  //Read project existing references
+	  if (makeRefsFileName)
+		{
+		  BOOL isDirectory=NO;
+		  if ([fileManager fileExistsAtPath:makeRefsFileName
+						   isDirectory:&isDirectory])
+			{
+			  if (!isDirectory)
+				{
+				  previousProjectReferences=[NSDictionary dictionaryWithContentsOfFile:makeRefsFileName];
+				  if (previousProjectReferences && [previousProjectReferences objectForKey:@"symbols"])
+					{
+					  AddSymbolsToReferencesWithProjectInfo([previousProjectReferences objectForKey:@"symbols"],
+															[projectReferences objectForKey:@"symbols"],
+															nil,
+															NO);
+					};
+				};
+			};
+		};
 	};
 
   // Process references (construct a dictionary of all references)
@@ -2982,14 +3154,15 @@ int main(int argc, char **argv, char **env)
 	  generalReferences=[[NSMutableDictionary new] autorelease];
 	  if ([references count]>0)
 		{
-		  NSFileManager* fileManager=[NSFileManager defaultManager];
-		  for (i=0;goOn && i<[references count];i++)
+		  // From last to first so references are taken in first to last priority
+		  while(goOn && [references count])
 			{
-			  NSString* file = [references objectAtIndex: i];
+			  NSString* file = [references lastObject];
 			  BOOL isDirectory=NO;
 			  if (![fileManager fileExistsAtPath:file isDirectory:&isDirectory])
 				{
 				  NSLog(@"Index File %@ doesn't exist",file);				  
+				  [references removeLastObject];
 				}
 			  else
 				{
@@ -3000,6 +3173,7 @@ int main(int argc, char **argv, char **env)
 						{
 						  NSLog(@"Processing references directory %@",file);
 						};
+					  [references removeLastObject];
 					  [references addObjectsFromArray:tmpReferences];
 					}
 				  else
@@ -3021,14 +3195,18 @@ int main(int argc, char **argv, char **env)
 						  NSDictionary* symbols=[generalIndexTmp objectForKey:@"symbols"];
 						  NSCAssert1(fileProjectInfo,@"No Project Info in %@",file);
 						  NSCAssert1(symbols,@"No symbols %@",file);
-						  AddSymbolsToReferencesWithProjectInfo(symbols,generalReferences,fileProjectInfo);
+						  AddSymbolsToReferencesWithProjectInfo(symbols,
+																generalReferences,
+																fileProjectInfo,
+																YES);
 						};
+					  [references removeLastObject];
 					};
 				};
 			};
 		};
 	};
-	  //Variables
+  //Variables
   if (goOn)
 	{		  
 	  NSMutableDictionary* variablesMutableDictionary=[NSMutableDictionary dictionary];
@@ -3077,7 +3255,6 @@ int main(int argc, char **argv, char **env)
 		}
 	  else
 		{
-		  NSFileManager* fileManager=[NSFileManager defaultManager];
 		  NSMutableArray* tmpNewFiles=[NSMutableArray array];
 		  for (i=0;goOn && i<[files count];i++)
 			{
@@ -3102,6 +3279,7 @@ int main(int argc, char **argv, char **env)
 				};
 			};
 		  files=tmpNewFiles;
+		  files=(NSMutableArray*)[files sortedArrayUsingSelector:@selector(compare:)];
 		};
 	};
 
@@ -3110,23 +3288,32 @@ int main(int argc, char **argv, char **env)
 	  int pass=0;
 	  //1st pass: don't write file, just parse them and construct project references
 	  //2nd pass: parse and write files
-	  for (pass=0;goOn && pass<=2;pass++)
+	  for (pass=0;goOn && pass<2;pass++)
 		{
 		  for (i=0;goOn && i<[files count];i++)
 			{
 			  NSString* file = [files objectAtIndex: i];
+			  NSAutoreleasePool* arp=[NSAutoreleasePool new];
 			  if ([file isEqual:makeIndexFileName])//Don't process generated index file
 				{
 				  if (verbose>=1)
 					{
-					  NSLog(@"Ignoring Index File %@ (Process it later)",file);
+					  NSLog(@"Pass %d/2 File %d/%d - Ignoring Index File %@ (Process it later)",
+							(pass+1),
+							(i+1),
+							[files count],
+							file);
 					};
 				}
 			  else
 				{
 				  if (verbose>=1)
 					{
-					  NSLog(@"Processing %@",file);
+					  NSLog(@"Pass %d/2 File %d/%d - Processing %@",
+							(pass+1),
+							(i+1),
+							[files count],
+							file);
 					};
 				  NS_DURING
 					{
@@ -3139,6 +3326,7 @@ int main(int argc, char **argv, char **env)
 						  NSString* nextFile=(((i+1)<[files count]) ? [files objectAtIndex:i+1] : @"");
 						  NSMutableDictionary* variablesMutableDictionary=nil;
 						  NSString	*result = nil;
+						  [p setProjectName:projectName];
 						  [p setGeneralReferences:generalReferences];
 						  variablesMutableDictionary=[variablesDictionary mutableCopy];
 						  [variablesMutableDictionary setObject:[previousFile stringByDeletingPathExtension]
@@ -3150,31 +3338,55 @@ int main(int argc, char **argv, char **env)
 														forKey:@"[[up]]"];
 						  [p setVariablesDictionary:variablesMutableDictionary];
 						  [p setWriteFlag:(pass==1)];
+						  [p setProcessFileReferencesFlag:(pass==0)];
 						  result=[p parseDocument];				  
 						  if (result == nil)
 							{
-							  NSLog(@"Error parsing %@", file);
+							  NSLog(@"Pass %d/2 File %d/%d - Error parsing %@",
+									(pass+1),
+									(i+1),
+									[files count],
+									file);
 							  goOn=NO;
 							}
 						  else
 							{
 							  if (verbose>=1)
 								{
-								  NSLog(@"Parsed %@ - OK", file);
+								  NSLog(@"Pass %d/2 File %d/%d - Parsed %@ - OK",
+										(pass+1),
+										(i+1),
+										[files count],
+										file);
 								};
-							  [[projectReferences objectForKey:@"symbols"]addEntriesFromDictionary:[p fileReferences]];
-							  AddSymbolsToReferencesWithProjectInfo([p fileReferences],generalReferences,projectInfo);
+							  if (pass==0)
+								{
+								  AddSymbolsToReferencesWithProjectInfo([p fileReferences],
+																		[projectReferences objectForKey:@"symbols"],
+																		nil,
+																		NO);
+								  AddSymbolsToReferencesWithProjectInfo([p fileReferences],
+																		generalReferences,
+																		projectInfo,
+																		YES);
+								};
 							};
 						  RELEASE(p);
 						}
 					}
 				  NS_HANDLER
 					{
-					  NSLog(@"Parsing '%@' - %@", file, [localException reason]);
+					  NSLog(@"Pass %d/2 File %d/%d - Parsing '%@' - %@",
+							(pass+1),
+							(i+1),
+							[files count],
+							file,
+							[localException reason]);
 					  goOn=NO;
 					}
 				  NS_ENDHANDLER
 					}
+			  DESTROY(arp);
 			};
 		};
 	};
@@ -3220,7 +3432,7 @@ int main(int argc, char **argv, char **env)
 		  NSMutableDictionary* variablesMutableDictionary=nil;
 		  NSString* typeTitle=nil;
 		  NSString* finalText=nil;
-		  NSDictionary* symbolsByType=SymbolsReferencesByType([projectReferences objectForKey:@"symbols"]);
+		  NSDictionary* symbolsByType=[projectReferences objectForKey:@"symbols"];
 		  NSString* firstFileName=nil;
 		  NSEnumerator* typesEnumerator = [symbolsByType keyEnumerator];
 		  id typeKey=nil;    
@@ -3313,7 +3525,7 @@ int main(int argc, char **argv, char **env)
 				  id symbolKey=nil;
 				  NSDictionary* typeDict=[symbolsByType objectForKey:typeKey];
 				  [text appendFormat:@"<section>\n<heading>%@</heading>\n<list>\n",typeTitle];
-				  symbolKeys = [typeDict keysSortedByValueUsingSelector: @selector(compare:)];
+				  symbolKeys = [[typeDict allKeys] sortedArrayUsingSelector:@selector(compare:)];
 				  symbolsEnumerator = [symbolKeys objectEnumerator];
 				  while ((symbolKey = [symbolsEnumerator nextObject]))
 					{

@@ -1,3 +1,11 @@
+2000-08-16  Manuel Guesdon <mguesdon@orange-concept.com>
+
+	* Tools/gsdoc-0_6_6.dtd: added conform for category
+	* Tools/gsdoc.m: correct bugs and added inter/intra-projects 
+		link generations
+	* Tools/AutoDocTemplate.gsdoc: correct problems
+	* Tools/indextemplate.gsdoc: correct problems
+	
 2000-08-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDebug.m: Fix memory leak when adding new class to array
@@ -5,7 +13,7 @@
 
 2000-08-13  Manuel Guesdon <mguesdon@orange-concept.com>
 
-	* Tools/gsdoc.gsdoc: aded examples on how to use AutoDoc and GSDoc.
+	* Tools/gsdoc.gsdoc: added examples on how to use AutoDoc and GSDoc.
 	
 2000-08-13  Manuel Guesdon <mguesdon@orange-concept.com>
 
@@ -13,7 +21,7 @@
 	* Tools/Makefile.postamble: added DocTemplates
 	* Tools/indextemplate.gsdoc: New file. Use it as template for 
 		gsdoc index generation
-	* Tools/AutoDocTemplate.gsdoc: New File: Use it as templae for AutoDoc
+	* Tools/AutoDocTemplate.gsdoc: New File: Use it as template for AutoDoc
 		source-to-documentation generation.
 	
 2000-08-13  Manuel Guesdon <mguesdon@orange-concept.com>
