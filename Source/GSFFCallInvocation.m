@@ -97,15 +97,9 @@ gs_splittable(const char *type)
 
 @implementation GSFFCallInvocation
 
-static IMP gs_objc_msg_lookup (id self, SEL _cmd)
+static IMP gs_objc_msg_forward (SEL sel)
 {
-  callback_sel = _cmd;
-  return ff_callback;
-}
-
-static IMP gs_class_get_method (Class class, SEL _cmd)
-{
-  callback_sel = _cmd;
+  callback_sel = sel;
   return ff_callback;
 }
 
@@ -122,8 +116,7 @@ static void gs_free_callback(void)
 {
   ff_callback = alloc_callback(&GSInvocationCallback, &callback_sel);
 
-  __objc_msg_lookup       = gs_objc_msg_lookup;
-  __objc_class_get_method = gs_class_get_method;
+  __objc_msg_forward = gs_objc_msg_forward;
 }
 
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
@@ -437,7 +430,7 @@ void GSInvocationCallback(void *callback_data, va_alist args)
     }
   if (!sig)
     {
-      NSLog(@"looking up sel %@", NSStringFromSelector(selector));
+      //NSLog(@"looking up sel %@", NSStringFromSelector(selector));
       sig = [obj methodSignatureForSelector: selector];
     }
   NSCAssert1(sig, @"No signature for selector %@", 
