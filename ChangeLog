@@ -7,6 +7,13 @@
 
 2004-08-20  David Ayers  <d.ayers@inode.at>
 
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
+	(GSFindInstanceVariable, GSGetVariable, GSSetVariable)
+	(GSGetValue, GSSetValue, GSObjCName, GSObjCSelectorName)
+	(GSObjCSelectorTypes, GSGetInstanceMethod, GSGetClassMethod)
+	(GSGetInstanceMethodNotInherited, GSGetClassMethodNotInherited):
+	Add deprecation markers.
+	
 	* Source/Additions/GSObjCRuntime.m (GSSelectorTypesMatch):
 	Ignore structure names.
 	* Testing/nsmethodsignature.m: Added test for nested structures.
