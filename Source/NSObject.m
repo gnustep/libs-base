@@ -127,7 +127,11 @@ typedef struct obj_layout_unpadded {
  *	what padding (if any) is required to get the alignment of the
  *	structure correct.
  */
+#ifdef ALIGN
+#undef ALIGN
+#endif
 #define	ALIGN __alignof__(double)
+
 struct obj_layout {
 #if	defined(REFCNT_LOCAL)
     unsigned	retained;

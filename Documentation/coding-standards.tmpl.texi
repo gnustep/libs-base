@@ -53,7 +53,6 @@ Permission is granted to copy and distribute translations of this manual
 into another language, under the above conditions for modified versions.
 @end titlepage
 
-
 @node Top, Introduction, (dir), (dir)
 @top Coding Standards
 
