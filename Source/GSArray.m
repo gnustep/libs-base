@@ -739,7 +739,8 @@ static SEL	eqSel;
  *      if it is greater, and NSOrderedSame if it is equal.
  */
 - (unsigned) insertionPosition: (id)item
-		 usingFunction: (NSComparisonResult (*)(id, id))sorter
+		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
+		       context: (void *)context
 {
   unsigned	upper = _count;
   unsigned	lower = 0;
@@ -763,7 +764,7 @@ static SEL	eqSel;
     {
       NSComparisonResult comparison;
 
-      comparison = (*sorter)(item, _contents_array[index]);
+      comparison = (*sorter)(item, _contents_array[index], context);
       if (comparison == NSOrderedAscending)
         {
           upper = index;
@@ -782,7 +783,7 @@ static SEL	eqSel;
    *	items that are equal to the new one.
    */
   while (index < _count
-    && (*sorter)(item, _contents_array[index]) != NSOrderedAscending)
+    && (*sorter)(item, _contents_array[index], context) != NSOrderedAscending)
     {
       index++;
     }

@@ -1,3 +1,10 @@
+2002-02-22  Alexander Malmberg <alexander@malmberg.org>
+
+	* Headers/gnustep/base/NSArray.h: insertion position api update.
+	* Source/NSArray.m: insertion position api update.
+	* Source/GSArray.m: insertion position api update.
+	Make insertion position api consistent with sorting api.
+
 2002-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSValue.m: Fixed bug in archiving NSValue objects ... was

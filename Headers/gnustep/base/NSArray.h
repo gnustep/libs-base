@@ -148,7 +148,8 @@
  *	the reciever is 'less than' the item in the array.
  */
 - (unsigned) insertionPosition: (id)item
-		 usingFunction: (NSComparisonResult (*)(id, id))sorter;
+		 usingFunction: (NSComparisonResult (*)(id, id, void *))sorter
+		       context: (void *)context;
 - (unsigned) insertionPosition: (id)item
 		 usingSelector: (SEL)comp;
 @end
