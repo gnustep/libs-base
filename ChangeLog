@@ -1,3 +1,9 @@
+2002-05-09  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSBundle.m
+	Use fileSystemRepresentation instead of cString to get the file 
+	name to load. 
+	
 2002-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: When launching under windoze, don't forget to
