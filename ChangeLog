@@ -1,3 +1,7 @@
+2000-06-15  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSObject.h: Add base/preface include
+
 2000-06-13  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Look for getopt.h
