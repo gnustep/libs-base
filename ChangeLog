@@ -1,3 +1,11 @@
+2004-08-02  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
+	* Headers/Foundation/*.h: Some fixes and cleanups to 2004-07-20
+	documentation changes recommended by Alexander Malmberg.
+	* Tools/AGSHtml.m: Change default doc font to 'serif': it's simple and
+	provides end viewers greater latitude for using their own preferred
+	font.
+
 2004-07-30 23:33  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSPropertyList.m (parseQuotedString): Handle utf8 data
