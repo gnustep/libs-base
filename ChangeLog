@@ -4,6 +4,7 @@
 	usePseudoTerminal method.
 	* Source/NSData.m: ([writeToFile:atomically:]) create new files
 	with permission 0644 modified by umask.
+	Init tmppath for MINGW.
 	* Tools/gsdoc.m: Use memory management macros and attempt to get
 	back to something like conformance with coding standards.
 	* Documentation/gsdoc/NSTask.gsdoc: documentation fleshed out.

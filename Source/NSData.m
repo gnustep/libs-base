@@ -661,7 +661,7 @@ failure:
   FILE		*theFile;
   int		c;
 #if defined(__MINGW__)
-  NSString	*tmppath;
+  NSString	*tmppath = path;
   HANDLE	fh;
   DWORD		wroteBytes;
 #endif
