@@ -1,4 +1,12 @@
-Tud Aug 13 21:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Sep 02 14:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/Coder.m: ([-decodeObject:]) fixed to autorelease as it should.
+	* src/NSCalendarDate.m, src/NSException.m, src/NSGAttributedString.m,
+	src/NSHost.m, src/NSLog.m, src/NSProcessInfo.m, src/NSTimeZone.m:
+	tidied coding/decoding and logging.
+	* src/NSString.m: Added implementation of [-zone] for constnat strings.
+
+Wed Sep 02 13:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSRunLoop.m: ([-cancelPerformSelector:target:argument:]) bugfix
 	supplied by masata-y@is.aist-nara.ac.jp - was incrementing loop index
