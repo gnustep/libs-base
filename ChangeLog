@@ -1,6 +1,7 @@
 2001-03-13  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Check and set EXEEXT needed by some tests.
+	* aclocal.m4: Fixes for constructor test.
 	* Makefile.postamble (header-links): Copy directory rather than link
 	if LN_S does not support symbolic links.
 
