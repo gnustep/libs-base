@@ -424,10 +424,11 @@ GSSystemRootDirectory(void)
 
 /**
  * Return the path of the defaults directory for name.<br />
- * This uses the GNUSTEP_DEFAULTS_DIRECTORY or the GNUSTEP_USER_ROOT
+ * This uses the GNUSTEP_DEFAULTS_ROOT or the GNUSTEP_USER_ROOT
  * environment variable to determine the directory.  If the user
  * has changed, the path for the new user will be based on a template
- * derived from the path for the original user.
+ * derived from the path for the original user, substituting in
+ * the values returned by NSHomeDirectory() and NSUser()
  */
 NSString*
 GSDefaultsRootForUser(NSString *userName)
@@ -481,7 +482,7 @@ userDirectory(NSString *name, BOOL defaults)
 	  if (defaults == YES)
 	    {
 	      path = [[[NSProcessInfo processInfo] environment]
-		objectForKey: @"GNUSTEP_DEFAULTS_DIRECTORY"];
+		objectForKey: @"GNUSTEP_DEFAULTS_ROOT"];
 	    }
 	  if (path == nil)
 	    {
