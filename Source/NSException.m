@@ -137,7 +137,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 }
 
 
-- (void)encodeWithCoder:(NSCoder *)aCoder
+- (void)encodeWithCoder: aCoder
 {
     [super encodeWithCoder:aCoder];
     [aCoder encodeObject:e_name]; 
@@ -145,7 +145,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
     [aCoder encodeObject:e_info]; 
 }
 
-- (id)initWithCoder:(NSCoder *)aDecoder
+- (id)initWithCoder: aDecoder
 {
     self = [super initWithCoder:aDecoder];
     e_name = [[aDecoder decodeObject] retain]; 
