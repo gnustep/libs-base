@@ -1163,6 +1163,10 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  NSLog(@"Element 'embed' not supported");
 	  return [node next];
 	}
+      else if ([textNodes member: n] != nil)
+	{
+	  return [self outputText: node to: buf];
+	}
       else
 	{
 	  NSLog(@"Non-block element '%@' in block ...", n);
