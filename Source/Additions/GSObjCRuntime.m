@@ -63,7 +63,7 @@
 #endif
 
 #define BDBGPrintf(format, args...) \
-  do { if (behavior_debug) { fprintf(stderr, (format), ## args); } } while (0)
+  do { if (behavior_debug) { fprintf(stderr, (format) , ## args); } } while (0)
 
 static objc_mutex_t local_lock = NULL;
 
