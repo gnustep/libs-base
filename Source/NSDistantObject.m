@@ -415,6 +415,7 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 	 *	inPort/outPort pair, or create a new connection if necessary.
 	 */
 	{
+	    NSDistantObject *result;
 	    NSConnection *proxy_connection;
 	    NSPort* proxy_connection_out_port = nil;
 
@@ -426,7 +427,27 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 		        withName: NULL];
 
 	    assert (proxy_connection_out_port);
+	    /* xxx - if there already exists a connection for talking to the
+	     * out port, we use that one rather than creating a new one from
+	     * our listening port. 
+	     *
+	     *	First we try for a connection from our receive port,
+	     *	Then we try any connection to the send port
+	     *	Finally we resort to creating a new connection - we don't
+	     *	release the newly created connection - it will get released
+	     *	automatically when no proxies are left on it.
+	     */
 	    proxy_connection = [[decoder_connection class]
+				connectionByInPort:
+					[decoder_connection receivePort]
+				outPort:
+					proxy_connection_out_port];
+	    if (proxy_connection == nil)
+	        proxy_connection = [[decoder_connection class]
+					connectionByOutPort:
+					proxy_connection_out_port];
+	    if (proxy_connection == nil)
+	        proxy_connection = [[decoder_connection class]
 			     newForInPort: [decoder_connection receivePort]
 				 outPort: proxy_connection_out_port
 			     ancestorConnection: decoder_connection];
@@ -438,8 +459,17 @@ format: @"NSDistantObject objects only decode with PortDecoder class"];
 	    assert (proxy_connection != decoder_connection);
 	    assert ([proxy_connection isValid]);
 
-	    return [[NSDistantObject proxyWithTarget: (id)target
+	    /*
+	     *	If we don't already have a proxy for the object on the
+	     *	remote system, we must tell the other end to retain its
+	     *	local object for our use.
+	     */
+	    if ([proxy_connection includesProxyForTarget: target] == NO)
+		[proxy_connection retainTarget: target];
+
+	    result = [[NSDistantObject proxyWithTarget: (id)target
 				          connection: proxy_connection] retain];
+	    return result;
         }
 
     default:

@@ -223,3 +223,6 @@ copy-dist: $(DIST_FILES)
 	  ln $$file ../snap/src/include/`basename $$file` ; \
 	done
 	ln AUTHORS ../snap
+
+FORCE:
+
