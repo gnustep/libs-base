@@ -1,3 +1,8 @@
+2004-05-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSIndexSet.m: ([addIndexesInRange:]) fix bug finding insertion
+	point for new range. ([description]) check for uninitialised instance.
+
 2004-05-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDate.m: Implement -hash for abstract class and for the
