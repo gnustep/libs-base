@@ -258,14 +258,14 @@
   return [self cStringCopyRange:((IndexRange){0, [self count]})];
 }
 
-- copy
+- copyWithZone: (NSZone*)z
 {
-  return [[[self class] alloc] initWithString:(NSString*)self];
+  return [[[self class] allocWithZone:z] initWithString:(NSString*)self];
 }
 
-- mutableCopy
+- mutableCopyWithZone: (NSZone*)z
 {
-  return [[MutableCString alloc] initWithString:(NSString*)self];
+  return [[MutableCString allocWithZone:z] initWithString:(NSString*)self];
 }
 
 // TESTING;
