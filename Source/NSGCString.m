@@ -45,6 +45,11 @@
   return NSAllocateObject (self, 0, z);
 }
 
++ alloc
+{
+  return NSAllocateObject (self, 0, NSDefaultMallocZone());
+}
+
 - (void)dealloc
 {
     if (_zone) {
@@ -487,6 +492,11 @@
 + allocWithZone: (NSZone*)z
 {
   return NSAllocateObject (self, 0, z);
+}
+
++ alloc
+{
+  return NSAllocateObject (self, 0, NSDefaultMallocZone());
 }
 
 + (void) initialize
