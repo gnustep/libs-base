@@ -34,10 +34,10 @@
 /* Key for thread dictionary. */
 static NSString *dict_key = @"_NSAssertionHandler";
 
-+ (NSAssertionHandler*)currentHandler
++ (NSAssertionHandler*) currentHandler
 {
-  NSMutableDictionary *dict;
-  NSAssertionHandler *handler;
+  NSMutableDictionary	*dict;
+  NSAssertionHandler	*handler;
 
   dict = GSCurrentThreadDictionary();
   handler = [dict objectForKey: dict_key];
@@ -54,8 +54,8 @@ static NSString *dict_key = @"_NSAssertionHandler";
 		      lineNumber: (int)line 
 		     description: (NSString*)format,...
 {
-  id message;
-  va_list ap;
+  id		message;
+  va_list	ap;
 
   va_start(ap, format);
   message =
@@ -65,8 +65,8 @@ static NSString *dict_key = @"_NSAssertionHandler";
   NSLogv(message, ap);
   va_end(ap);
 
-  [NSException raise:NSInternalInconsistencyException
-	       format: message arguments: ap];
+  [NSException raise: NSInternalInconsistencyException
+	      format: message arguments: ap];
   /* NOT REACHED */
 }
 
@@ -76,8 +76,8 @@ static NSString *dict_key = @"_NSAssertionHandler";
                     lineNumber: (int) line
                    description: (NSString *) format,...
 {
-  id message;
-  va_list ap;
+  id		message;
+  va_list	ap;
 
   va_start(ap, format);
   message =
@@ -88,7 +88,7 @@ static NSString *dict_key = @"_NSAssertionHandler";
   NSLogv(message, ap);
 
   [NSException raise: NSInternalInconsistencyException 
-	       format: message arguments: ap];
+	      format: message arguments: ap];
   va_end(ap);
   /* NOT REACHED */
 }

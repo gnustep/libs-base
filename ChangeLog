@@ -1,3 +1,13 @@
+2001-04-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCallInvocation.m: bugfix encoding ... pass correct
+	method type information so that the other end knows whether this
+	is a oneway message or not.  Corrects major memory leak.
+	* Source/NSConnection.m: bugfix to handle situations where the
+	other end sends a response and we are not expecting it.  Also
+	added various bits of debugging and ensured that all NSPortCoder
+	objects are cached.
+
 2001-04-10  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/preface.h.in: Correct NeXT_RUNTIME name

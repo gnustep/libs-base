@@ -222,6 +222,7 @@ callframe_do_call_opts (const char *encoded_types,
   /* Does the method have any arguments that are passed by reference?
      If so, we need to encode them, since the method may have changed them. */
   BOOL out_parameters = NO;
+  BOOL one_way = NO;
   /* A dummy invocation to pass to the function that invokes our method */
   NSInvocation_t *inv;
   /* Signature information */
@@ -439,6 +440,10 @@ callframe_do_call_opts (const char *encoded_types,
 	{
 	   int	dummy = 0;
           (*encoder) (-1, (void*)&dummy, @encode(int), 0);
+	}
+      else
+	{
+	  one_way = YES;
 	}
       /* No return value to encode; do nothing. */
       break;
