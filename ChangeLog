@@ -1,3 +1,7 @@
+2004-09-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: ([_getReplyRmc:]) improve timeout code.
+
 2004-09-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProxy.m: minor hash optimisation
