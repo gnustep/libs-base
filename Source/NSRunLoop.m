@@ -1260,6 +1260,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     }
   do
     {
+      BOOL	found = NO;
+
       if (FD_ISSET (fdIndex, &exception_fds))
         {
 	  GSRunLoopWatcher	*watcher;
@@ -1276,8 +1278,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 		(void*)(gsaddr)fdIndex, _current_mode);
 	    }
 	  GSNotifyASAP();
-	  if (--select_return == 0)
-	    break;
+	  found = YES;
         }
       if (FD_ISSET (fdIndex, &write_fds))
         {
@@ -1295,8 +1296,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 		(void*)(gsaddr)fdIndex, _current_mode);
 	    }
 	  GSNotifyASAP();
-	  if (--select_return == 0)
-	    break;
+	  found = YES;
         }
       if (FD_ISSET (fdIndex, &read_fds))
         {
@@ -1314,9 +1314,12 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 		    (void*)(gsaddr)fdIndex, _current_mode);
 	    }
 	  GSNotifyASAP();
-	  if (--select_return == 0)
-	    break;
+	  found = YES;
         }
+      if (found == YES && --select_return == 0)
+	{
+	  break;
+	}
       if (++fdIndex >= end_inputs)
 	{
 	  fdIndex = 0;
