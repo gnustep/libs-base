@@ -27,7 +27,11 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSFileHandle.h>
+#ifdef __MINGW__
+#include <Foundation/WindowsFileHandle.h>
+#else
 #include <Foundation/UnixFileHandle.h>
+#endif
 
 static Class NSFileHandle_abstract_class = nil;
 static Class NSFileHandle_concrete_class = nil;
@@ -39,7 +43,11 @@ static Class NSFileHandle_concrete_class = nil;
   if (self == [NSFileHandle class])
     {
       NSFileHandle_abstract_class = self;
+#ifdef __MINGW__
+      NSFileHandle_concrete_class = [WindowsFileHandle class];
+#else
       NSFileHandle_concrete_class = [UnixFileHandle class];
+#endif
     }
 }
 

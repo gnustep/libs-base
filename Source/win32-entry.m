@@ -23,6 +23,8 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSString.h>
 
 /* Only if using Microsoft's tools and libraries */
 #ifdef __MS_WIN32__
@@ -39,11 +41,6 @@ int _MB_init_runtime()
     return 0;
 }
 #endif /* __MS_WIN32__ */
-
-int gnustep_base_user_main(int argc, char *argv[], char *env[])
-{
-    return 0;
-}
 
 LONG APIENTRY
 gnustep_base_socket_handler(HWND hWnd, UINT message,

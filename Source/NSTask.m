@@ -42,10 +42,16 @@
 
 #include <string.h>
 #include <unistd.h>
-#include <sys/signal.h>
 #include <sys/types.h>
+#ifndef __MINGW__
+#include <sys/signal.h>
 #include <sys/param.h>
 #include <sys/wait.h>
+#endif
+
+#if HAVE_WINDOWS_H
+#  include <windows.h>
+#endif
 
 /*
  *	If we don't have NFILE, default to 256 open descriptors.
@@ -59,55 +65,45 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 static NSRecursiveLock  *tasksLock = nil;
 static NSMapTable       *activeTasks = 0;
 
-@interface NSTask (Private)
-- (void) _collectChild;
-- (void) _sendNotification;
-- (void) _terminatedChild: (int)status;
-@end
-
-@implementation NSTask
-
 static BOOL	hadChildSignal = NO;
 static void handleSignal(int sig)
 {
   hadChildSignal = YES;
 }
 
-BOOL
-GSCheckTasks()
+#ifdef __MINGW__
+@interface NSConcreteWindowsTask : NSTask
 {
-  BOOL	found = NO;
+  PROCESS_INFORMATION proc_info;
+}
+@end
+#define NSConcreteTask NSConcreteWindowsTask
+#else
+@interface NSConcreteUnixTask : NSTask
+{
+}
+@end
+#define NSConcreteTask NSConcreteUnixTask
+#endif
 
-  if (hadChildSignal)
-    {
-      int result;
-      int status;
+@interface NSTask (Private)
+- (NSString *) _fullLaunchPath;
+- (void) _sendNotification;
+- (void) _collectChild;
+- (void) _terminatedChild: (int)status;
+@end
 
-      hadChildSignal = NO;
 
-      do
-	{
-	  result = waitpid(-1, &status, WNOHANG);
-	  if (result > 0)
-	    {
-	      if (WIFEXITED(status))
-		{
-		  NSTask    *t;
+@implementation NSTask
 
-		  [tasksLock lock];
-		  t = (NSTask*)NSMapGet(activeTasks, (void*)result);
-		  [tasksLock unlock];
-		  if (t)
-		    {
-		      [t _terminatedChild: WEXITSTATUS(status)];
-		      found = YES;
-		    }
-		}
-	    }
-	}
-      while (result > 0);  
-    }
-  return found;
++ (id)allocWithZone:(NSZone*)zone
+{
+    NSTask *task;
+    if (self == [NSTask class])
+      task = (NSTask *)NSAllocateObject([NSConcreteTask class], 0, zone);
+    else
+      task = (NSTask *)NSAllocateObject(self, 0, zone);
+    return task;
 }
 
 + (void) initialize
@@ -123,7 +119,9 @@ GSCheckTasks()
         }
       [gnustep_global_lock unlock];
 
+#ifndef __MINGW__
       signal(SIGCHLD, handleSignal);
+#endif
     }
 }
 
@@ -354,16 +352,63 @@ GSCheckTasks()
       return;
     }
 
+#ifndef __MINGW__
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGINT);
 #else
   kill(-_taskId, SIGINT);
 #endif
+#endif
 }
 
 - (void) launch
 {
-  NSMutableArray	*toClose;
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) terminate
+{
+  if (_hasLaunched == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has not yet launched"];
+    }
+  if (_hasTerminated)
+    {
+      return;
+    }
+
+  _hasTerminated = YES;
+#ifndef __MINGW__
+#ifdef	HAVE_KILLPG
+  killpg(_taskId, SIGTERM);
+#else
+  kill(-_taskId, SIGTERM);
+#endif
+#endif
+}
+
+- (void) waitUntilExit
+{
+  while ([self isRunning])
+    {
+      NSDate	*limit;
+
+      /*
+       *	Poll at 0.1 second intervals.
+       */
+      limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 0.1];
+      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
+			       beforeDate: limit];
+      RELEASE(limit);
+    }
+}
+@end
+
+@implementation	NSTask (Private)
+
+- (NSString *) _fullLaunchPath
+{
   NSFileManager	*mgr = [NSFileManager defaultManager];
   NSString	*libs = [NSBundle _library_combo];
   NSString	*arch = [NSBundle _gnustep_target_dir];
@@ -372,26 +417,6 @@ GSCheckTasks()
   NSString	*base_path;
   NSString	*arch_path;
   NSString	*full_path;
-  int		pid;
-  const char	*executable;
-  const char	*path;
-  int		idesc;
-  int		odesc;
-  int		edesc;
-  NSDictionary	*e = [self environment];
-  NSArray	*k = [e allKeys];
-  NSArray	*a = [self arguments];
-  int		ec = [e count];
-  int		ac = [a count];
-  const char	*args[ac+2];
-  const char	*envl[ec+1];
-  id		hdl;
-  int		i;
-
-  if (_hasLaunched)
-    {
-      return;
-    }
 
   if (_launchPath == nil)
     {
@@ -453,6 +478,245 @@ GSCheckTasks()
     }
   lpath = [lpath stringByStandardizingPath];
 
+  return lpath;
+}
+
+- (void) _sendNotification
+{
+  if (_hasNotified == NO)
+    {
+      NSNotification	*n;
+
+      _hasNotified = YES;
+      n = [NSNotification notificationWithName: NSTaskDidTerminateNotification
+					object: self
+				      userInfo: nil];
+
+      [[NSNotificationQueue defaultQueue] enqueueNotification: n
+		    postingStyle: NSPostASAP
+		    coalesceMask: NSNotificationNoCoalescing
+			forModes: nil];
+    }
+}
+
+- (void) _collectChild
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) _terminatedChild: (int)status
+{
+  [tasksLock lock];
+  NSMapRemove(activeTasks, (void*)_taskId);
+  [tasksLock unlock];
+  _terminationStatus = status;
+  _hasCollected = YES;
+  _hasTerminated = YES;
+  if (_hasNotified == NO)
+    {
+      [self _sendNotification];
+    }
+}
+
+@end
+
+#ifdef __MINGW__
+@implementation NSConcreteWindowsTask
+
+BOOL
+GSCheckTasks()
+{
+  /* FIXME: Implement */
+  return YES;
+}
+
+- (void) gcFinalize
+{
+  [super gcFinalize];
+  if (proc_info.hProcess != NULL)
+    CloseHandle(proc_info.hProcess);
+  if (proc_info.hThread != NULL)
+    CloseHandle(proc_info.hThread);
+}
+
+- (void) interrupt
+{
+}
+
+- (void) terminate
+{
+  if (_hasLaunched == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has not yet launched"];
+    }
+  if (_hasTerminated)
+    {
+      return;
+    }
+
+  _hasTerminated = YES;
+  TerminateProcess(proc_info.hProcess, 10);
+}
+
+- (void) launch
+{
+  STARTUPINFO start_info;
+  NSString      *lpath;
+  NSString      *arg;
+  NSEnumerator  *arg_enum;
+  NSMutableString *args;
+  char *c_args;
+  int result;
+
+  if (_hasLaunched)
+    {
+      return;
+    }
+
+  lpath = [self _fullLaunchPath];
+  args = [lpath mutableCopy];
+  arg_enum = [[self arguments] objectEnumerator];
+  while ((arg = [arg_enum nextObject]))
+    {
+      [args appendString: @" "];
+      [args appendString: arg];
+    }
+  c_args = objc_malloc([args cStringLength]+1);
+  [args getCString: c_args];
+
+  memset (&start_info, 0, sizeof(start_info));
+  start_info.cb = sizeof(start_info);
+  start_info.dwFlags |= STARTF_USESTDHANDLES;
+  start_info.hStdInput  = GetStdHandle(STD_INPUT_HANDLE);
+  start_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+  start_info.hStdError  = GetStdHandle(STD_ERROR_HANDLE);
+
+  result = CreateProcess([lpath cString],
+			 c_args,
+			 NULL,      /* proc attrs */
+			 NULL,      /* thread attrs */
+			 1,         /* inherit handles */
+			 0,         /* creation flags */
+			 NULL,      /* env block */
+			 [[self currentDirectoryPath] cString],
+			 &start_info,
+			 &proc_info);
+  objc_free(c_args);
+  if (result == 0)
+    {
+      NSLog(@"Error launching task: %@", lpath);
+      return;
+    }
+  _taskId = proc_info.dwProcessId;
+  _hasLaunched = YES;
+  ASSIGN(_launchPath, lpath);	// Actual path used.
+
+  [tasksLock lock];
+  NSMapInsert(activeTasks, (void*)_taskId, (void*)self);
+  [tasksLock unlock];
+}
+
+- (void) _collectChild
+{
+  if (_hasCollected == NO)
+    {
+      /* FIXME: Implement */
+    }
+}
+
+- (int) terminationStatus
+{
+  DWORD exit_code;
+  int result;
+
+  [super terminationStatus];
+  result = GetExitCodeProcess(proc_info.hProcess, &exit_code);
+  _terminationStatus = exit_code;
+  if (result == 0)
+    {
+      NSLog(@"Error getting exit code");
+      return -1;
+    }
+  return exit_code;
+}
+
+- (void) waitUntilExit
+{
+  DWORD result;
+
+  result = WaitForSingleObject(proc_info.hProcess, INFINITE);
+}
+  
+@end
+
+#else /* !MINGW */
+
+@implementation NSConcreteUnixTask
+
+BOOL
+GSCheckTasks()
+{
+  BOOL	found = NO;
+
+  if (hadChildSignal)
+    {
+      int result;
+      int status;
+
+      hadChildSignal = NO;
+
+      do
+	{
+	  result = waitpid(-1, &status, WNOHANG);
+	  if (result > 0)
+	    {
+	      if (WIFEXITED(status))
+		{
+		  NSTask    *t;
+
+		  [tasksLock lock];
+		  t = (NSTask*)NSMapGet(activeTasks, (void*)result);
+		  [tasksLock unlock];
+		  if (t)
+		    {
+		      [t _terminatedChild: WEXITSTATUS(status)];
+		      found = YES;
+		    }
+		}
+	    }
+	}
+      while (result > 0);  
+    }
+  return found;
+}
+
+- (void) launch
+{
+  NSMutableArray	*toClose;
+  NSString      *lpath;
+  int		pid;
+  const char	*executable;
+  const char	*path;
+  int		idesc;
+  int		odesc;
+  int		edesc;
+  NSDictionary	*e = [self environment];
+  NSArray	*k = [e allKeys];
+  NSArray	*a = [self arguments];
+  int		ec = [e count];
+  int		ac = [a count];
+  const char	*args[ac+2];
+  const char	*envl[ec+1];
+  id		hdl;
+  int		i;
+
+  if (_hasLaunched)
+    {
+      return;
+    }
+
+  lpath = [self _fullLaunchPath];
   executable = [lpath cString];
   args[0] = executable;
 
@@ -600,45 +864,6 @@ GSCheckTasks()
     }
 }
 
-- (void) terminate
-{
-  if (_hasLaunched == NO)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has not yet launched"];
-    }
-  if (_hasTerminated)
-    {
-      return;
-    }
-
-  _hasTerminated = YES;
-#ifdef	HAVE_KILLPG
-  killpg(_taskId, SIGTERM);
-#else
-  kill(-_taskId, SIGTERM);
-#endif
-}
-
-- (void) waitUntilExit
-{
-  while ([self isRunning])
-    {
-      NSDate	*limit;
-
-      /*
-       *	Poll at 0.1 second intervals.
-       */
-      limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 0.1];
-      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
-			       beforeDate: limit];
-      RELEASE(limit);
-    }
-}
-@end
-
-@implementation	NSTask (Private)
-
 - (void) _collectChild
 {
   if (_hasCollected == NO)
@@ -677,37 +902,5 @@ GSCheckTasks()
     }
 }
 
-- (void) _sendNotification
-{
-  if (_hasNotified == NO)
-    {
-      NSNotification	*n;
-
-      _hasNotified = YES;
-      n = [NSNotification notificationWithName: NSTaskDidTerminateNotification
-					object: self
-				      userInfo: nil];
-
-      [[NSNotificationQueue defaultQueue] enqueueNotification: n
-		    postingStyle: NSPostASAP
-		    coalesceMask: NSNotificationNoCoalescing
-			forModes: nil];
-    }
-}
-
-- (void) _terminatedChild: (int)status
-{
-  [tasksLock lock];
-  NSMapRemove(activeTasks, (void*)_taskId);
-  [tasksLock unlock];
-  _terminationStatus = status;
-  _hasCollected = YES;
-  _hasTerminated = YES;
-  if (_hasNotified == NO)
-    {
-      [self _sendNotification];
-    }
-}
-
 @end
-
+#endif /* !MINGW */

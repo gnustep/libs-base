@@ -478,11 +478,7 @@ _gnu_noobjc_free_vars(void)
 #else /* !HAVE_PROC_FS || !HAVE_LOAD_METHOD */
 
 #ifdef __MINGW__
-/* For WindowsAPI Library, we know the global variables */
-extern int __argc;
-extern char** __argv;
-extern char** _environ;
-
+/* For WindowsAPI Library, we know the global variables (argc, etc) */
 + (void) initialize
 {
   if (self == [NSProcessInfo class])

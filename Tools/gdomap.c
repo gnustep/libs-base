@@ -22,6 +22,11 @@
    */
 
 /* Ported to mingw 07/12/00 by Björn Giesler <Bjoern.Giesler@gmx.de> */
+#ifdef __MINGW32__
+#ifndef __MINGW__
+#define __MINGW__
+#endif
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
