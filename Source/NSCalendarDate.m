@@ -587,6 +587,7 @@ static inline int getDigits(const char *from, char *to, int limit)
     }
   else
     {
+      int		milliseconds = 0;
       int		year = 0, month = 1, day = 1;
       int		hour = 0, min = 0, sec = 0;
       NSTimeZone	*tz = nil;
@@ -732,8 +733,6 @@ static inline int getDigits(const char *from, char *to, int limit)
 
       //
       // WARNING:
-      //   %F, does NOT work.
-      //    and the underlying call has granularity to the second.
       //   -Most locale stuff is dubious at best.
       //   -Long day and month names depend on a non-alpha character after the
       //    last digit to work.
@@ -925,7 +924,8 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    break;
 
 		  case 'F':
-		    NSLog(@"%F format ignored when creating date");
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3);
+		    milliseconds = atoi(tmpStr);
 		    break;
 
 		  case 'I': // fall through
@@ -1155,13 +1155,18 @@ static inline int getDigits(const char *from, char *to, int limit)
 	  had |= hadD;
 	}
 
-      return [self initWithYear: year
+      self = [self initWithYear: year
 			  month: month
 			    day: day
 			   hour: hour
 			 minute: min
 			 second: sec
 		       timeZone: tz];
+      if (self != nil)
+	{
+	  _seconds_since_ref += ((float)milliseconds) / 1000.0;
+	}
+      return self;
     }
 }
 
