@@ -1,5 +1,13 @@
 2002-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/gnustep/base/GSXML.h: Add _parent ivars
+	* Source/Additions/GSXML.m: Implement memory mangement so that the
+	underlying libxml data is not freed unless all objects derived from
+	it have been deallocated.  Remove comments warning about original
+	memory management scheme.
+
+2002-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSeq.h: Fix bug matching sequences with zero length range.
 	* Headers/gnustep/base/GSMime.h: Tell autogsdoc where to look for source
 	* Headers/gnustep/base/GSXML.h: Updates for consistency etc.
