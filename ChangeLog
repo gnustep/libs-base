@@ -1,3 +1,11 @@
+Mon Nov  9 11:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/externs.m: fixed error in hashtable constants.
+	* src/NSDistributedNotificationCenter.m: pugfix in check for
+	posting of notification.  Changed to pass selectors as strings.
+	* Tools/gdnc.h: Pass selectors as strings. make posting oneway
+	* Tools/gdnc.m: Pass selectors as strings, plus many bugfixes.
+
 Mon Nov  2 17:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Tidied header files for NO_GNUSTEP/STRICT_OPENSTEP stuff.
