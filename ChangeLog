@@ -1,7 +1,19 @@
+2001-04-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/config.proccmd.c: New test for behavior of /proc cmdline
+	* acconfig.h: New CMDLINE_TERMINATED constant
+	* configure.in: Use test to set CMDLINE_TERMINATED
+	* configure: regenerated
+	* Headers/Foundation/config.h.in: regenerated
+	* Source/NSProcessInfo.m : ([+load]) modified to use CMDLINE_TERMINATED
+	to decide how to use /proc/$$/cmdline when determining process args.
+	Should now work 100% on all linux versions I hope.
+
 2001-04-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m ([NSMutableDataMalloc
 	-replaceBytesInRange:withBytes:]): Check length, not capacity!
+	Conform to documentation, and avoid possibility of 'hole' in data.
 	* Source/NSInvocation.m: _get_arg() indirection fix suggested by
 	Michael Scheibler.
 

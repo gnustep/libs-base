@@ -27,6 +27,9 @@
 /* Define if you have the dladdr function.  */
 #undef HAVE_DLADDR
 
+/* Define if your system terminates the final argument in /proc/$$/cmdline */
+#undef CMDLINE_TERMINATED
+
 /* Define if your system needs to have short/int word aligned */
 #undef NEED_WORD_ALIGNMENT
 
