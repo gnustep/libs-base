@@ -51,7 +51,9 @@
    for releasing the packet. */
 - receivePacketWithTimeout: (int)milliseconds;
 
+- (int) portNumber;
 - (id <Collecting>) connectedOutPorts;
+- (unsigned) numberOfConnectedOutPorts;
 
 - (void) checkConnection;
 
@@ -70,7 +72,11 @@
                          onHost: (id <String>)hostname;
 - (BOOL) sendPacket: packet withTimeout: (int)milliseconds;
 
+- (int) portNumber;
+
 @end
+
+extern NSString *InPortClientBecameInvalidNotification;
 
 #endif /* __TcpPort_h__OBJECTS_INCLUDE */
 
