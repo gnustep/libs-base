@@ -68,6 +68,11 @@ getpagesize(void)
 #define getpagesize vm_page_size
 #endif
 
+#if __BEOS__
+#include <kernel/OS.h>
+#define getpagesize()  B_PAGE_SIZE
+#endif
+
 /* Cache the size of a memory page here, so we don't have to make the
    getpagesize() system call repeatedly. */
 static unsigned ns_page_size = 0;
