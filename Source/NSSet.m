@@ -24,13 +24,15 @@
 #include <config.h>
 #include <base/behavior.h>
 #include <Foundation/NSSet.h>
-#include <Foundation/NSGSet.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSObjCRuntime.h>
+
+@class	GSSet;
+@class	GSMutableSet;
 
 @interface NSSetNonCore : NSSet
 @end
@@ -44,14 +46,26 @@ static Class NSMutableSet_abstract_class;
 static Class NSSet_concrete_class;
 static Class NSMutableSet_concrete_class;
 
++ (id) allocWithZone: (NSZone*)z
+{
+  if (self == NSSet_abstract_class)
+    {
+      return NSAllocateObject(NSSet_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
+}
+
 + (void) initialize
 {
   if (self == [NSSet class])
     {
       NSSet_abstract_class = [NSSet class];
       NSMutableSet_abstract_class = [NSMutableSet class];
-      NSSet_concrete_class = [NSGSet class];
-      NSMutableSet_concrete_class = [NSGMutableSet class];
+      NSSet_concrete_class = [GSSet class];
+      NSMutableSet_concrete_class = [GSMutableSet class];
       behavior_class_add_class(self, [NSSetNonCore class]);
     }
 }
@@ -59,13 +73,6 @@ static Class NSMutableSet_concrete_class;
 + (id) set
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
-}
-
-+ (id) setWithObjects: (id*)objects 
-	        count: (unsigned)count
-{
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: objects count: count]);
 }
 
 + (id) setWithArray: (NSArray*)objects
@@ -78,6 +85,13 @@ static Class NSMutableSet_concrete_class;
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: &anObject count: 1]);
+}
+
++ (id) setWithObjects: (id*)objects 
+	        count: (unsigned)count
+{
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithObjects: objects count: count]);
 }
 
 + (id) setWithObjects: firstObject, ...
@@ -97,24 +111,33 @@ static Class NSMutableSet_concrete_class;
     initWithSet: aSet]);
 }
 
-+ (id) allocWithZone: (NSZone*)z
+- (Class) classForCoder
 {
-  if (self == NSSet_abstract_class)
-    {
-      return NSAllocateObject(NSSet_concrete_class, 0, z);
-    }
-  else
-    {
-      return NSAllocateObject(self, 0, z);
-    }
+  return NSSet_abstract_class;
 }
 
-/* This is the designated initializer */
-- (id) initWithObjects: (id*)objects
-		 count: (unsigned)count
+- (id) copyWithZone: (NSZone*)z
+{
+  return RETAIN(self);
+}
+
+- (unsigned) count
 {
   [self subclassResponsibility: _cmd];
   return 0;
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  unsigned	count = [self count];
+  NSEnumerator	*e = [self objectEnumerator];
+  id		o;
+
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+  while ((o = [e nextObject]) != nil)
+    {
+      [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+    }
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -148,28 +171,12 @@ static Class NSMutableSet_concrete_class;
   }
 }
 
-- (Class) classForCoder
-{
-  return NSSet_abstract_class;
-}
-
-- (unsigned) count
+/* This is the designated initializer */
+- (id) initWithObjects: (id*)objects
+		 count: (unsigned)count
 {
   [self subclassResponsibility: _cmd];
   return 0;
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  unsigned	count = [self count];
-  NSEnumerator	*e = [self objectEnumerator];
-  id		o;
-
-  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
-  while ((o = [e nextObject]) != nil)
-    {
-      [aCoder encodeValueOfObjCType: @encode(id) at: &o];
-    }
 }
 
 - (id) member: (id)anObject
@@ -178,19 +185,14 @@ static Class NSMutableSet_concrete_class;
   return 0;  
 }
 
-- (NSEnumerator*) objectEnumerator
-{
-  return [self subclassResponsibility: _cmd];
-}
-
-- (id) copyWithZone: (NSZone*)z
-{
-  return RETAIN(self);
-}
-
 - (id) mutableCopyWithZone: (NSZone*)z
 {
   return [[NSMutableSet_concrete_class allocWithZone: z] initWithSet: self];
+}
+
+- (NSEnumerator*) objectEnumerator
+{
+  return [self subclassResponsibility: _cmd];
 }
 
 @end
@@ -329,11 +331,6 @@ static Class NSMutableSet_concrete_class;
       id e = [self objectEnumerator];
       return [e nextObject];
     }
-}
-
-- (Class) classForCoder
-{
-  return NSSet_abstract_class;
 }
 
 - (BOOL) containsObject: (id)anObject
@@ -486,6 +483,11 @@ static Class NSMutableSet_concrete_class;
     {
       return NSAllocateObject(self, 0, z);
     }
+}
+
+- (Class) classForCoder
+{
+  return NSMutableSet_concrete_class;
 }
 
 - (id) copyWithZone: (NSZone*)z

@@ -144,8 +144,10 @@ preface.h
 # GNUStep source files
 
 BASE_MFILES = \
+GSCountedSet.m \
 GSHTTPURLHandle.m \
 GSMime.m \
+GSSet.m \
 GSString.m \
 NSAttributedString.m \
 NSArchiver.m \
@@ -181,9 +183,7 @@ NSFormatter.m \
 NSGeometry.m \
 NSGArray.m \
 NSGAttributedString.m \
-NSGCountedSet.m \
 NSGDictionary.m \
-NSGSet.m \
 NSHashTable.m \
 NSHost.m \
 NSInvocation.m \
@@ -289,7 +289,6 @@ NSFormatter.h \
 NSGeometry.h \
 NSGArray.h \
 NSGAttributedString.h \
-NSGSet.h \
 NSHashTable.h \
 NSHost.h \
 NSInvocation.h \
