@@ -252,7 +252,10 @@ if (debug_textcoder) \
 
 - (void) encodeName: (const char*)n
 {
-  [stream writeFormat:"%*s<%s>\n", indentation, "", n];
+  if (n)
+    [stream writeFormat:"%*s<%s>\n", indentation, "", n];
+  else
+    [stream writeFormat:"%*s<NULL>\n", indentation, "", n];
 }
 
 /* Buffer is malloc'ed */
