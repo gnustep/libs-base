@@ -184,11 +184,5 @@ libgnustep-base.def: libgnustep-base.def.in
 	sed -e 's/NXConstantString/NSConstantString/' < $<  > $@
 endif
 
-TAGS: $(DIST_FILES)
-	etags $(DIST_FILES)
-
-regenerate: $(DIST_FILES)
-	mv AUTHORS ..
-
 
 FORCE:
