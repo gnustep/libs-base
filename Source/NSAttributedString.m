@@ -117,20 +117,73 @@ static Class NSMutableAttributedString_concrete_class;
     return NSAllocateObject(self, 0, z);
 }
 
+- (Class) classForCoder
+{
+  return NSAttributedString_abstract_class;
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
+  NSRange		r = NSMakeRange(0, 0);
+  unsigned		index = NSMaxRange(r);
+  unsigned		length = [self length];
+  NSString		*string = [self string];
+  NSDictionary		*attrs;
+
+  [aCoder encodeObject: string];
+  while (index < length)
+    {
+      attrs = [self attributesAtIndex: index effectiveRange: &r];
+      index = NSMaxRange(r);
+      [aCoder encodeValueOfObjCType: @encode(unsigned int) at: &index];
+      [aCoder encodeObject: attrs];
+    }
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
-}
+  NSString	*string = [aDecoder decodeObject];
+  unsigned	length = [string length];
 
-- (Class) classForPortCoder
-{
-  return [self class];
+  if (length == 0)
+    {
+      self = [self initWithString: string attributes: nil];
+    }
+  else
+    {
+      unsigned		index;
+      NSDictionary	*attrs;
+
+      [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
+      attrs = [aDecoder decodeObject];
+      if (index == length)
+	{
+	  self = [self initWithString: string attributes: attrs];
+	}
+      else
+	{
+	  NSRange	r = NSMakeRange(0, index);
+	  unsigned	last = index;
+	  NSMutableAttributedString	*m;
+
+	  m = [NSMutableAttributedString alloc];
+	  m = [m initWithString: string attributes: nil];
+	  [m setAttributes: attrs range: r];
+	  while (index < length);
+	    {
+	      [aDecoder decodeValueOfObjCType: @encode(unsigned int)
+					   at: &index];
+	      attrs = [aDecoder decodeObject];
+	      r = NSMakeRange(last, index - last);
+	      [m setAttributes: attrs range: r];
+	      last = index;
+	    }
+	  RELEASE(self);
+	  self = [m copy];
+	  RELEASE(m);
+	}
+    }
+  return self;
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
@@ -473,12 +526,58 @@ static Class NSMutableAttributedString_concrete_class;
 
 @implementation NSMutableAttributedString
 
-+ allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   if (self == NSMutableAttributedString_abstract_class)
     return NSAllocateObject(NSMutableAttributedString_concrete_class, 0, z);
   else
     return NSAllocateObject(self, 0, z);
+}
+
+- (Class) classForCoder
+{
+  return NSMutableAttributedString_abstract_class;
+}
+
+- (id) initWithCoder: (NSCoder*)aDecoder
+{
+  NSString	*string = [aDecoder decodeObject];
+  unsigned	length = [string length];
+
+  if (length == 0)
+    {
+      self = [self initWithString: string attributes: nil];
+    }
+  else
+    {
+      unsigned		index;
+      NSDictionary	*attrs;
+
+      [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
+      attrs = [aDecoder decodeObject];
+      if (index == length)
+	{
+	  self = [self initWithString: string attributes: attrs];
+	}
+      else
+	{
+	  NSRange	r = NSMakeRange(0, index);
+	  unsigned	last = index;
+
+	  self = [self initWithString: string attributes: nil];
+	  [self setAttributes: attrs range: r];
+	  while (index < length);
+	    {
+	      [aDecoder decodeValueOfObjCType: @encode(unsigned int)
+					   at: &index];
+	      attrs = [aDecoder decodeObject];
+	      r = NSMakeRange(last, index - last);
+	      [self setAttributes: attrs range: r];
+	      last = index;
+	    }
+	}
+    }
+  return self;
 }
 
 //Retrieving character information

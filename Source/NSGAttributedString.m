@@ -33,7 +33,7 @@
 /* Warning -	[-initWithString:attributes:] is the designated initialiser,
  *		but it doesn't provide any way to perform the function of the
  *		[-initWithAttributedString:] initialiser.
- *		In order to work youd this, the string argument of the
+ *		In order to work round this, the string argument of the
  *		designated initialiser has been overloaded such that it
  *		is expected to accept an NSAttributedString here instead of
  *		a string.  If you create an NSAttributedString subclass, you
@@ -87,29 +87,6 @@
 {
   return [NSString stringWithFormat: @"Attributes at %u are - %@",
     loc, attrs];
-}
-
-- (Class) classForPortCoder
-{
-  return [self class];
-}
-
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
-{
-  return self;
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &loc];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &attrs];
-}
-
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &loc];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &attrs];
-  return self;
 }
 
 @end
@@ -289,29 +266,6 @@ _attributesAtIndexEffectiveRange(
   _setup();
 }
 
-- (Class) classForPortCoder
-{
-  return [self class];
-}
-
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
-{
-  return self;
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  [aCoder encodeValueOfObjCType: @encode(id) at: &_textChars];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &_infoArray];
-}
-
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  [aCoder decodeValueOfObjCType: @encode(id) at: &_textChars];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &_infoArray];
-  return self;
-}
-
 - (id) initWithString: (NSString*)aString
 	   attributes: (NSDictionary*)attributes
 {
@@ -394,29 +348,6 @@ _attributesAtIndexEffectiveRange(
 + (void) initialize
 {
   _setup();
-}
-
-- (Class) classForPortCoder
-{
-  return [self class];
-}
-
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
-{
-  return self;
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  [aCoder encodeValueOfObjCType: @encode(id) at: &_textChars];
-  [aCoder encodeValueOfObjCType: @encode(id) at: &_infoArray];
-}
-
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  [aCoder decodeValueOfObjCType: @encode(id) at: &_textChars];
-  [aCoder decodeValueOfObjCType: @encode(id) at: &_infoArray];
-  return self;
 }
 
 - (id) initWithString: (NSString*)aString

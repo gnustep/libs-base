@@ -137,6 +137,11 @@ static SEL	rlSel = @selector(removeLastObject);
 
 /* The NSCoding Protocol */
 
+- (Class) classForCoder
+{
+  return NSArray_abstract_class;
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   unsigned	count = [self count];
@@ -800,6 +805,11 @@ static NSString	*indentStrings[] = {
     {
       return NSAllocateObject(self, 0, z);
     }
+}
+
+- (Class) classForCoder
+{
+  return NSMutableArray_abstract_class;
 }
 
 /* The NSCopying Protocol */
