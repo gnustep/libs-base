@@ -65,11 +65,30 @@
   return self;
 }
 
+- (void) _safeWithElementsCallNoRetain: (void(*)(elt))aFunc
+{
+  int c = [self count];
+  elt *elts = (elt*) alloca(c * sizeof(elt));
+  int i = 0;
+  void fill_elts(elt e)
+    {
+      elts[i++] = e;
+    }
+  [self withElementsCall:fill_elts];
+  for (i = 0; i < c; i++)
+    aFunc(elts[i]);
+}
+
+static void
+send_release(elt e)
+{
+  [e.id_u release];
+}
+
 - (void) dealloc
 {
   if (CONTAINS_OBJECTS)
-    [self makeObjectsPerform:@selector(release)];
-  /* xxx This used to be "safeMakeObjectsPerform:" */
+    [self _safeWithElementsCallNoRetain:send_release];
   [self _collectionDealloc];
   [super dealloc];
 }
@@ -78,8 +97,7 @@
 - empty
 {
   if (CONTAINS_OBJECTS)
-    [self makeObjectsPerform:@selector(release)];
-  /* xxx This used to be "safeMakeObjectsPerform:" */
+    [self _safeWithElementsCallNoRetain:send_release];
   [self _empty];
   return self;
 }
