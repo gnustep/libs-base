@@ -1,3 +1,7 @@
+2003-03-31  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/Foundation.h: Add GSCategories.h
+
 2003-03-30  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/NSString.h: (stringByTrimmingLeadSpaces,
@@ -12,6 +16,7 @@
 	NSDistantObject, NSFileHandle category, GSCurrentThreadDictionary().
 	* Source/Additions/GSCompatibility.m: Add GSCurrentThreadDictionary
 	NSDistantObject, and NSFileHandle methods.
+	* Headers/gnustep/base/Foundation.h: Add GSCategories include.
 
 2003-03-28 20:48  Alexander Malmberg <alexander@malmberg.org>
 
