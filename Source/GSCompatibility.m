@@ -623,7 +623,17 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  NSString		*plists[count];
 	  unsigned		i;
 
-	  [obj getObjects: plists];
+	  if ([obj isProxy] == YES)
+	    {
+	      for (i = 0; i < count; i++)
+		{
+		  plists[i] = [obj objectAtIndex: i];
+		}
+	    }
+	  else
+	    {
+	      [obj getObjects: plists];
+	    }
 
 	  if (loc == nil)
 	    {
@@ -713,8 +723,6 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	}
       else
 	{
-	  SEL		objSel = @selector(objectForKey:);
-	  IMP		myObj = [obj methodForSelector: objSel];
 	  unsigned	i;
 	  NSArray	*keyArray = [obj allKeys];
 	  unsigned	numKeys = [keyArray count];
@@ -722,8 +730,19 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  NSString	*keys[numKeys];
 	  BOOL		canCompare = YES;
 	  Class		lastClass = 0;
+	  BOOL		isProxy = [obj isProxy];
 
-	  [keyArray getObjects: keys];
+	  if (isProxy == YES)
+	    {
+	      for (i = 0; i < numKeys; i++)
+		{
+		  keys[i] = [keyArray objectAtIndex: i];
+		}
+	    }
+	  else
+	    {
+	      [keyArray getObjects: keys];
+	    }
 
 	  for (i = 0; i < numKeys; i++)
 	    {
@@ -819,9 +838,22 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	      #endif
 	    }
 
-	  for (i = 0; i < numKeys; i++)
+	  if (isProxy == YES)
 	    {
-	      plists[i] = (*myObj)(obj, objSel, keys[i]);
+	      for (i = 0; i < numKeys; i++)
+		{
+		  plists[i] = [obj objectForKey: keys[i]];
+		}
+	    }
+	  else
+	    {
+	      SEL	objSel = @selector(objectForKey:);
+	      IMP	myObj = [obj methodForSelector: objSel];
+
+	      for (i = 0; i < numKeys; i++)
+		{
+		  plists[i] = (*myObj)(obj, objSel, keys[i]);
+		}
 	    }
 
 	  if (loc == nil)
