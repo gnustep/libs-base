@@ -412,22 +412,22 @@ static Class NSMutableArray_concrete_class;
 
 - (void) addObject: anObject
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: anObject
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) insertObject: anObject atIndex: (unsigned)index
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) removeObjectAtIndex: (unsigned)index
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) removeLastObject
@@ -453,7 +453,7 @@ static Class NSMutableArray_concrete_class;
 
 - (void) removeAllObjects
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) addObjectsFromArray: (NSArray*)otherArray
