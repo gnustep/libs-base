@@ -26,6 +26,7 @@
 #include <objects/behavior.h>
 #include <objects/Array.h>
 #include <objects/ArrayPrivate.h>
+#include <Foundation/NSException.h>
 
 @implementation NSGArray
 
@@ -43,6 +44,12 @@
 /* This is the designated initializer for NSArray. */
 - initWithObjects: (id*)objects count: (unsigned)count
 {
+  int i;
+
+  for (i = 0; i < count; i++)
+    if (objects[i] == nil)
+      [NSException raise:NSInvalidArgumentException
+		   format:@"Tried to add nil"];
   /* "super" call into IndexedCollection */
 #if 1
   CALL_METHOD_IN_CLASS([IndexedCollection class], initWithType:,
@@ -76,7 +83,9 @@
 
 - objectAtIndex: (unsigned)index
 {
-  assert(index < _count);	/* xxx should raise NSException instead */
+  if (index < _count)
+    [NSException raise:NSRangeException
+		 format:@"Index out of bounds"];
   return _contents_array[index].id_u;
 }
 
