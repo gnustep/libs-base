@@ -32,6 +32,8 @@
 
 - (void) run;
 - (void) runUntilDate: limit_date;
+- (BOOL) runOnceBeforeDate: date
+		   forMode: (id <String>)mode;
 - (BOOL) runMode: (id <String>)mode 
       beforeDate: limit_date;
 
