@@ -1,3 +1,10 @@
+Wed Oct 15 11:36:49 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Examples/GNUmakefile: Removed HDRS, SRCS, DIST_FILES variables.
+	Do not set GNUSTEP_INSTALLATION_DIR.
+	* Examples/Makefile.postamble: Removed regenerate and copy-dist
+	rules.
+	
 Wed Oct 15 11:23:43 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/Makefile.postamble: Removed rules to rebuild object files
