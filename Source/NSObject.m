@@ -1192,7 +1192,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  */
 - (Class) superclass
 {
-  return object_get_super_class (self);
+  return GSObjCSuper(GSObjCClass(self));
 }
 
 /**
@@ -2126,7 +2126,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
 - (BOOL) isClass
 {
-  return GSObjCIsClass(self);
+  return GSObjCIsClass((Class)self);
 }
 
 - (BOOL) isInstance
