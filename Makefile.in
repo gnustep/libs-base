@@ -68,7 +68,7 @@ install uninstall TAGS:
 info dvi:
 	cd doc; $(MAKE) $(MAKEDEFINES) $@
 
-check: libobjects.a
+check: 
 	cd checks; $(MAKE) $(MAKEDEFINES)
 
 Makefile: Makefile.in config.status
@@ -104,7 +104,7 @@ snap: $(DIST_FILES)
 snapshot: snap
 	ln README.first snap
 	rm -f .name
-	echo libobjects-`date +%y%m%d` >.name
+	echo $(PACKAGE_NAME)-`date +%y%m%d` >.name
 	rm -rf `cat .name`
 	mv snap `cat .name`
 	tar -chvf `cat .name`.tar `cat .name`
@@ -113,20 +113,11 @@ snapshot: snap
 	rm -rf `cat .name`
 
 dist: snap
-	mv snap libobjects-$(OBJECTS_VERSION)
-	tar -chvf libobjects-$(OBJECTS_VERSION).tar \
-		libobjects-$(OBJECTS_VERSION)
-	rm -f libobjects-$(OBJECTS_VERSION).tar.gz
-	gzip -9 libobjects-$(OBJECTS_VERSION).tar
-	rm -rf libobjects-$(OBJECTS_VERSION)
-
-rcs-list-locked: 
-	@echo "===."
-	@rlog -L -R $(RCS_FILES)
-	@for i in $(SUBDIRS); do \
-	  echo "===$$i"; \
-	  (cd $$i; \
-	   $(MAKE) -s $(MAKEDEFINES) rcs-list-locked); \
-	done
+	mv snap $(PACKAGE_NAME)-$(VERSION)
+	tar -chvf $(PACKAGE_NAME)-$(VERSION).tar \
+		$(PACKAGE_NAME)-$(VERSION)
+	rm -f $(PACKAGE_NAME)-$(VERSION).tar.gz
+	gzip -9 $(PACKAGE_NAME)-$(VERSION).tar
+	rm -rf $(PACKAGE_NAME)-$(VERSION)
 
 FORCE:

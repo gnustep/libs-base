@@ -55,7 +55,7 @@ if test $NeXTCC = 0; then
       echo "aborting"
       echo
       echo "The GCC 'nested functions' feature does not seem to be working on"
-      echo "this machine. Libobjects makes extensive use of nested functions."
+      echo "this machine. $(LIBRARY_NAME) makes extensive use of nested functions."
       echo "Read the bug-report instructions in the GCC texinfo manual"
       echo "and submit a bug report."
       echo "The program this configure script used to test nested functions"
@@ -77,7 +77,7 @@ if test $NeXTCC = 0; then
       AC_MSG_RESULT(no)
       OBJS_INSTALL='$(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS)'
       HEADERS_INSTALL='$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)'
-      NEXT_INCLUDES='$(OBJECTS_NEXT_INCLUDES)'
+      NEXT_INCLUDES='$(GNU_NEXT_INCLUDES)'
       NeXT_runtime=0
       NeXT_cc=0
     else
@@ -104,8 +104,8 @@ if test $NeXTCC = 0; then
         AC_MSG_RESULT(yes)
         LIBOBJC='-lobjc'
         CC="$CC -fgnu-runtime"
-        # Get objc/List.h, etc. files from libobjects.
-        NEXT_INCLUDES='$(OBJECTS_NEXT_INCLUDES)'
+        # Get objc/List.h, etc. files from this library.
+        NEXT_INCLUDES='$(GNU_NEXT_INCLUDES)'
         OBJS_INSTALL='$(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS)'
         HEADERS_INSTALL='$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)'
         NeXT_cc=0
@@ -132,7 +132,7 @@ if test $NeXTCC = 0; then
 else
 
     AC_MSG_RESULT(yes)
-    AC_MSG_ERROR(Sorry, libobjects does not currently work with NeXT's cc; use gcc)
+    AC_MSG_ERROR(Sorry, $(LIBRARY_NAME) does not currently work with NeXT's cc; use gcc)
     #----------------------------------------------------------------
     # Find out if we have NEXTSTEP 3.2 or lower
     #----------------------------------------------------------------
@@ -144,8 +144,8 @@ else
       echo "aborting"
       echo
       echo "It looks like your compiler is NEXTSTEP 3.2 or earlier."
-      echo "Libobjects makes extensive use of nested functions.  In 3.2,"
-      echo "NeXT's cc did not support nested functions.  To compile libobjects"
+      echo "$(LIBRARY_NAME) makes extensive use of nested functions.  In 3.2,"
+      echo "NeXT's cc did not support nested functions.  To compile $(LIBRARY_NAME)"
       echo "you can either (1) use gcc instead of NeXT's cc (no loss, since"
       echo "gcc can compile AppKit programs without problems), or (2) upgrade"
       echo "to the later release of NEXTSTEP when it is available."
@@ -235,7 +235,7 @@ AC_CHECK_FUNCS(register_printf_function)
 # we won't find these libraries, or if we do find them, they aren't
 # something weird I wouldn't want to link with.
 # It's just for the programs in "checks" and "examples" anyway; it 
-# doesn't affect the compilation of libobjects.
+# doesn't affect the compilation of the library.
 #--------------------------------------------------------------------
 AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(nsl, main)
@@ -243,10 +243,10 @@ AC_CHECK_LIB(nsl, main)
 #--------------------------------------------------------------------
 # Make a shared library?
 #--------------------------------------------------------------------
-AC_ARG_ENABLE(shared, Build libobjects as a shared library,
-        LIBOBJECTS_SO='libobjects.so.$(OBJECTS_VERSION)',
-    LIBOBJECTS_SO=)
-AC_SUBST(LIBOBJECTS_SO)
+AC_ARG_ENABLE(shared, Build the library as a shared library,
+        SHARED_LIBRARY='$(LIBRARY_NAME).so.$(VERSION)',
+    SHARED_LIBRARY=)
+AC_SUBST(SHARED_LIBRARY)
 
 
 #--------------------------------------------------------------------
