@@ -271,8 +271,7 @@
 
 - description
 {
-  /* xxx This could be better integrated into concrete subclasses. */
-  return [NSString stringWithFormat: @"%d", [self intValue]];
+  return [self stringValue];
 }
 
 @end

@@ -23,6 +23,7 @@
 
 #include <Foundation/NSConcreteValue.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSZone.h>
@@ -136,6 +137,16 @@
 - (NSPoint)pointValue
 {
     return *((NSPoint *)data);
+}
+
+- (NSString *) description
+{
+  int size;
+  NSData *rep;
+
+  size = objc_sizeof_type([objctype cString]);
+  rep = [NSData dataWithBytes: data length: size];
+  return [NSString stringWithFormat: @"(%@) %@", objctype, [rep description]];
 }
 
 // NSCoding

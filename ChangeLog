@@ -1,3 +1,11 @@
+Tue Aug 26 15:47:54 1997  Adam Fedor  <fedor@doc.com>
+
+        * src/NSCTemplateValue.m ([NSCTemplateValue -description]): New
+        method.
+        * src/NSConcreteValue.m ([NSConcreteValue -description]):
+        Likewise.
+        * src/NSNumber.m ([NSNumber -description]): use -stringValue.
+
 Fri Aug 29 13:25:51 1997  Adam Fedor  <fedor@doc.com>
 
 	* src/Makefile.in: Add LIBS macro.

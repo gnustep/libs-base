@@ -86,7 +86,25 @@
 {
     return data;
 }
- 
+
+- (NSString *) description
+{
+#if TYPE_ORDER == 0
+  return [NSString stringWithFormat: @"{object = %@}", [data description]];
+#elif TYPE_ORDER == 1
+  return [NSString stringWithFormat: @"{x = %g; y = %g}", data.x, data.y];
+#elif TYPE_ORDER == 2
+  return [NSString stringWithFormat: @"{pointer = %p}", data];
+#elif TYPE_ORDER == 3
+  return [NSString stringWithFormat: 
+    @"{x = %g; y = %g; width = %g; height = %g}", NSMinX(data), NSMinY(data),
+    NSWidth(data), NSHeight(data)];
+#elif TYPE_ORDER == 4
+  return [NSString stringWithFormat: @"{width = %g; height = %g}",
+    data.width, data.height];
+#endif
+}
+
 // NSCoding
 - (void)encodeWithCoder:(NSCoder *)coder
 {
