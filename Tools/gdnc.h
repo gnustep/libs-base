@@ -24,26 +24,26 @@
 #define	GDNC_SERVICE	@"GDNCServer"
 
 @protocol	GDNCClient
-- (void) postNotificationName: (NSString*)name
-		       object: (NSString*)object
-		     userInfo: (NSData*)info
-		     selector: (SEL)aSelector
-			   to: (unsigned long)observer;
+- (oneway void) postNotificationName: (NSString*)name
+			      object: (NSString*)object
+			    userInfo: (NSData*)info
+			    selector: (NSString*)aSelector
+				  to: (unsigned long)observer;
 @end
 
 @protocol	GDNCProtocol
 - (void) addObserver: (unsigned long)anObserver
-	    selector: (SEL)aSelector
+	    selector: (NSString*)aSelector
 	        name: (NSString*)notificationname
 	      object: (NSString*)anObject
   suspensionBehavior: (NSNotificationSuspensionBehavior)suspensionBehavior
 		 for: (id<GDNCClient>)client;
 
-- (void) postNotificationName: (NSString*)notificationName
-		       object: (NSString*)anObject
-		     userInfo: (NSData*)d
-	   deliverImmediately: (BOOL)deliverImmediately
-			  for: (id<GDNCClient>)client;
+- (oneway void) postNotificationName: (NSString*)notificationName
+			      object: (NSString*)anObject
+			    userInfo: (NSData*)d
+		  deliverImmediately: (BOOL)deliverImmediately
+			         for: (id<GDNCClient>)client;
 
 - (void) registerClient: (id<GDNCClient>)client;
 
