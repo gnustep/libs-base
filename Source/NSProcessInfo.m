@@ -438,6 +438,8 @@ BOOL GSDebugSet(NSString *val)
 	}
       debugImp = [_debug_set methodForSelector: debugSel];
     }
-  return ((*debugImp)(_debug_set, debugSel, val) == val) ? YES : NO;
+  if ((*debugImp)(_debug_set, debugSel, val) == nil)
+    return NO;
+  return YES;
 }
 
