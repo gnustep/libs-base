@@ -263,7 +263,7 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
       NSFreeMapTable((NSMapTable*)n->value.ptr);
       n = n->nextInMap;
     }
-  FastMapEmpty(f);
+  FastMapEmptyMap(f);
   NSZoneFree(f->zone, named);
 
   /*
