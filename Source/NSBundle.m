@@ -790,13 +790,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       theClass = NSClassFromString(className);
       j = [_bundleClasses count];
 
-      fprintf (stderr, "Number of classes in bundle: %d\n", j);
-
       for (i = 0; i < j  &&  found == NO; i++)
 	{
 	  Class c = [[_bundleClasses objectAtIndex: i] nonretainedObjectValue];
-
-	  fprintf (stderr, "Considering class %s\n", c->name);
 
 	  if (c == theClass) 
 	    {
