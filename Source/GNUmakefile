@@ -178,6 +178,8 @@ NSGeometry.m \
 NSHashTable.m \
 NSHost.m \
 NSInvocation.m \
+NSKeyedArchiver.m \
+NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
 NSLock.m \
 NSLog.m \
@@ -198,6 +200,7 @@ NSPortCoder.m \
 NSPortMessage.m \
 NSPortNameServer.m \
 NSProcessInfo.m \
+NSPropertyList.m \
 NSProtocolChecker.m \
 NSProxy.m \
 NSRange.m \
@@ -291,6 +294,7 @@ NSGeometry.h \
 NSHashTable.h \
 NSHost.h \
 NSInvocation.h \
+NSKeyedArchiver.h \
 NSKeyValueCoding.h \
 NSLock.h \
 NSMapTable.h \
@@ -307,6 +311,7 @@ NSPortCoder.h \
 NSPortMessage.h \
 NSPortNameServer.h \
 NSProcessInfo.h \
+NSPropertyList.h \
 NSProtocolChecker.h \
 NSProxy.h \
 NSRange.h \

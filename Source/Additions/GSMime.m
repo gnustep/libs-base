@@ -108,7 +108,6 @@ encodebase64(char *dst, const unsigned char *src, int length)
        dst[dIndex - 1] = '=';
        dst[dIndex - 2] = '=';
      }
-  dst[dIndex] = '\0';
   return dIndex;
 }
 
@@ -3155,10 +3154,9 @@ static NSCharacterSet	*tokenSet = nil;
     {
       return [NSData data];
     }
-  destlen = 4 * ((length - 1) / 3) + 5;
+  destlen = 4 * ((length + 2) / 3);
   sBuf = (unsigned char*)[source bytes];
   dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
-  dBuf[destlen - 1] = '\0';
 
   destlen = encodebase64(dBuf, sBuf, length);
 
@@ -4539,7 +4537,7 @@ static NSCharacterSet	*tokenSet = nil;
  * and parameters as found after the colon in a mime Content-Type header.
  * </p>
  */
-- (void) setContentType: (id)newType
+- (void) setContentType: (NSString *)newType
 {
   CREATE_AUTORELEASE_POOL(arp);
   GSMimeHeader	*hdr = nil;
