@@ -1,0 +1,138 @@
+\input texinfo              @c -*-texinfo-*-
+
+@c %**start of header
+@setfilename manual.info
+@settitle Objective-C, Programming Manual
+@c %**end of header
+
+@ifinfo
+@format
+START-INFO-DIR-ENTRY
+* GNUstepBase:         Objective C Language and GNUstep Base Library
+END-INFO-DIR-ENTRY
+@end format
+@end ifinfo
+
+@ifinfo
+Copyright @copyright{} 2001 Free Software Foundation
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end ifinfo
+
+@setchapternewpage odd
+@titlepage
+
+@title Objective-C Language 
+@title and GNUstep Base Library
+@title Programming Manual
+
+@author Francis Botto (Brainstorm)
+@author Richard Frith-Macdonald (Brainstorm)
+@author Nicola Pero (Brainstorm)
+@page
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2001 Free Software Foundation
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end titlepage
+
+@contents
+
+@iftex
+@c Foreword
+@include foreword.texi
+@end iftex
+
+@ifinfo
+@c **Top node and master menu
+@node Top
+@top Objective-C Programming Manual
+
+@include foreword.texi
+
+@menu
+* Introduction::	 An introduction to object-oriented programming
+* Objective-C::		 An introduction to the Objective-C language
+* Classes::              How to create a new class
+* Objects::              Working with objects
+* Distributed Objects::  Working with distributed objects 
+* Advanced Topics::      Topics that take you deeper into Objective-C
+
+* Glossary::             Glossary of Terms
+* Examples::             Examples of Objective-C code
+* Make::                 The GNUstep Make package
+* Obj-C and Java::       Differences and similarities between Objective-C and Java
+* Java and Guile::       Programming GNUstep in Java and Guile
+@end menu
+@c **end Top node and master menu
+@end ifinfo
+
+@page
+
+@c Chapter 1, Introduction
+@include Introduction.texi 
+
+@c Chapter 2, The Objective-C Language
+@include ObjcLanguage.texi 
+
+@c Chapter 3, Writing New Classes
+@include WritingNewClasses.texi 
+
+@c Chapter 4, Working with Objects
+@include WorkingWithObjects.texi 
+
+@c Chapter 5, Distributed Objects
+@include DistributedObjects.texi
+
+@c Chapter 6, Advanced Topics
+@include AdvancedTopics.texi
+
+@c Appendix A: Glossary of Terms
+@include Glossary.texi
+
+@c Appendix B: Example Code
+@include ExampleCode.texi
+
+@c Appendix C: Using the GNUstep make package
+@include GNUstepMake.texi
+
+@c Appendix D: Comparison between Objective-C and Java
+@include ObjcAndJava.texi
+
+@c Appendix E: Programming GNUstep in Java and Guile
+@include JavaAndGuile.texi
+
+
+@unnumbered Concept Index
+@printindex cp
+
+@bye
+
+
+
+
+
+
+
+

@@ -1,0 +1,33 @@
+@c Foreword
+@unnumbered Foreword
+
+The aim of this document is to provide a GNUstep/Objective-C programming
+manual (primarily tutorial in style) for the language, the GNUstep
+base library, and the GNUstep makefiles package.
+
+The manual does not cover installation instructions as these vary from
+system to system, and are documented fairly well in the GNUstep HOWTO (http://www.gnustep.org).
+
+What we want is a manual to tell programmers how to use the system,
+particularly how to program with the base library in Objective-C,
+but also to some extent from Java and Guile.
+
+The target audience for this manual is the C, C++, or Java programmer
+that wishes to learn to use Objective-C effectively.  We assume that,
+while the reader is able to understand English, it is quite possibly
+not their native language.
+
+For detailed class reference documentation the reader is directed to the GNUstep Base Library documentation (http://www.gnustep.org), and to the Apple Cocoa Objective-C Foundation documentation (http://www.apple.com).
+
+Other reference documentation is -
+@itemize @bullet
+@item GNUstep-Java interface (documented as part of JIGS)
+@item GNUstep-Guile interface (documented as part of gstep-guile)
+@item Installation/configuration (documented in GNUstep HOWTO)
+@end itemize
+
+
+
+
+
+

@@ -1,0 +1,442 @@
+@paragraphindent 0
+
+@node Classes
+@chapter Writing New Classes
+@cindex writing new classes
+
+@emph{Would you add Hands-on coding examples at the marked points, and perhaps any additional pertinent examples? Francis}@*
+
+@section Interface 
+@cindex interface
+
+A class interface declares instance variables, methods and
+the superclass name, while the implementation file holds the
+operational code that implements those methods. The interface
+is included in the source using @code{#include}:
+
+@example
+#include "baseclass.h"
+@end example
+
+Typically the Interface and Implementation are held in separate files,
+using the .h and .m extensions, respectively. They may, however,
+be merged into one file, and a single file may implement many classes.
+
+To ensure that a Header file is included only once, it is usual to
+protect it with pre-compiler defines:
+
+@example
+#ifndef _MY_CLASS_H_INCLUDED
+#define _MY_CLASS_H_INCLUDED
+
+/* HEADER FILE */
+#endif
+@end example
+
+This is the standard C technique to protect header files from
+being included more than once.
+
+@comment The role of the interface
+@subsection Interface Capabilities
+
+The interface file declares new classes that can be used by
+source code, holding all the information necessary to use the
+classes from other Objective-C code. Firstly, the file reveals
+to the programmer the position of the class in the class hierarchy
+by defining exactly which is the superclass. Secondly, it informs
+programmers of what variables are inherited when they create subclasses.
+Finally, the interface file may inform other software entities
+of the messages that can be sent to the class object and to the
+instances of the class. 
+
+
+@comment Writing an interface (syntax)
+The syntax of a class interface is of the form:
+
+@emph{I would like a better example interface than this? So would you create something more real?}@*
+
+@example
+// Need something here.
+@end example
+
+
+@itemize @bullet
+@item
+The interface is enclosed between the compiler directives
+@code{@@interface} and @code{@@end}.
+
+@item
+@code{@@interface ThisClass : ThisClassSuperClass} names the class
+and links it to the superclass. If no superclass is named, and the
+directive is without a colon, the compiler assumes that a root class
+is being created.
+
+@item
+Braces enclose declared instance variables, each class' instance will
+have all theses instance variables including instance variables
+inherited from the superclass, and from the superclass of the
+superclass, extending to the root class.
+
+@item
+Method declarations that begin with a "+" sign are class methods, and
+are defined for the class object. 
+A class object inherits class methods from superclasses.
+
+@item
+Method declarations that begin with a "-" sign are instance methods,
+and are defined for class instances. Class instances inherit instance
+methods from superclasses.
+
+@item
+A method may share the name of an instance variable. 
+
+@item
+A method return type is declared using the standard C syntax:
+@example
+- (float) scale;
+@end example
+which is a method returning a float.
+
+@item
+Argument types can be declared in the same way as method return types:
+@example
+- (void) setRadius: (float)aRadius;
+@end example
+which is a method that returns nothing, and takes a single float as
+its argument.
+
+Note. The default type for methods and messages (@code{id}) is assumed
+when a return or argument type is not explicitly declared.
+For example, @code{-name;} implicitly means a method returning @code{id}
+(i.e. an object). It is usually better to avoid this and use
+explicit typing as in
+@example
+- (NSString*) name;
+@end example
+
+@end itemize
+
+@subsection Including Interfaces
+Source modules (including Objective-C listings and interface files)
+may integrate interfaces using @code{#include}. Thereafter the source
+module may utilize the classes in those interfaces so as to:
+
+@itemize @bullet
+@item
+Make instances of them.
+
+@item
+Send messages to invoke methods declared for them.
+
+@item
+Refer to instance variables in them.
+
+@end itemize
+
+With the exception of the root class, all working interfaces
+integrate a superclass using either @code{#include} - as was
+seen in the previous simplified interface file example.
+As a result the vast majority of class files begin with a
+standard form that includes their superclasses, and thus
+places them in the class hierarchy:
+
+@emph{ Here I have another example - would you replace it with something more meaningful?}
+
+@example
+#include "Superclass.h"
+@@interface InterfaceName : InterfaceSuperclass
+@{
+  // instance variables
+@}
+Declared methods
+@end example
+
+@subsection Referring to Classes - @@class
+It is possible for a source module to refer to classes without
+including their interface files. This is useful when you just
+need to tell the compiler that a certain word is a class name,
+but you want to avoid the overhead of including the whole interface
+file for that class. 
+
+If you are implementing a new class, you always need to include
+the interface of the superclass using @code{#include};
+@code{@@class} cannot be used in this case because the compiler
+needs to know the details of the superclass and its instance
+variables etc., so as to create a fully working new class.
+If you try using @@class in this case, compilation will abort.
+
+@b{Note. When you need to send methods to an object, it's better
+to include the full class interface. Even in that case - it's
+better *only* because it allows better type checking -
+which is good of course - but not essential.  And - to say it
+all - if you use @@class that way, the compiler complains as soon
+as you try to send a message to an object of a class declared
+using @@class, so that you know you need to include the
+interface for full type checking.  This means it's a good idea
+to always try with @@class if possible and only include the
+interface if the compiler complains that it can't type-check
+without the full interface.}
+
+To inform the compiler that @b{Border} and @b{Square} are classes without including their full interface file, the following syntax is used:
+
+@code{@@class Border, Square;}
+
+Class names may also appear in interface files at times when
+instance variables, return values and arguments are statically typed:
+
+- (void) set
+
+
+@emph{Another example of a class interface is required here, and perhaps an example of a class cluster would be useful as this is mentioned in chapter 1.}@*
+a simple example of a class interface <fixme: what example ?>
+
+@section Implementation 
+An interface file declares a class, while an implementation file
+implements it. The separation between the interface and
+implementation file yields a black box concept where the programmer
+using the class need only be concerned with the interface and its
+declared methods, superclasses, and instance variables.
+The implementation of classes is transparent to the programmer
+who may use them without detailed knowledge of their structures. 
+
+In the C programming language C structures are singular entities
+that encapsulate multiple data elements. The fields therein reside
+in @b{name spaces} so they do not interfere with alike named
+entities that are outside the structure. So the name spaces
+define another partition.
+
+Such C structures relate to C functions that provide the
+application logic or defined mechanisms. Within a C structure
+data elements may be local to a function, and are protected in
+their name space.
+
+@subsection Writing an Implementation
+An implementation file contents are encapsulated between
+@@implementation and @@end directives:
+
+@example
+#include "ClassTitle .h"
+@@implementation ClassName :Superclass
+@{
+  // instance variables
+@}
+// methods
+@@end
+@end example
+
+The Implementation file uses @code{#include} to include a named
+interface file holding all declarations. Thereafter, the
+implementation need not declare instance variables, rather it
+may be dedicated to defining methods that may include a number
+of arguments; these are declared in the same way as the interface
+file but without the semicolon:
+
+@comment - Could you add something more meaningful here?
+
+@example
+@end example
+
+
+@subsection Referring to Instance Variables
+
+When an instance method of a certain object is called, the method can
+refer to the object's instance variables directly by name.  
+
+The following example illustrates how a method definition refers to the
+receiving object's @b{instance variable} called @code{line}.
+
+@example
+- (void) setLine: (BOOL)flag
+@{
+  line = flag;
+@}
+@end example
+
+You can access instance variables of other instances of the same class by using the operator @code{->}. 
+
+@emph{Example here.}
+
+The following code fragment demonstrates how the GPRS class may declare a statically typed object as an instance variable called qosfive:
+
+@example
+@@interface GPRS :NSObject
+@{
+    Connect *qosfive;
+    int frequency;
+    struct features *chargeband;
+@}
+@end example
+
+Because qosfive is typed to the same class, the instance variables of the statically typed class are in the scope of the class. So the Connect method may set them directly:
+
+@example
+-makeAnotherQosfive
+@{
+    if (!qosfive) @{
+        qosfive =[[Connect alloc ] init ];
+        qosfive->frequency =frequency;
+        qosfive->chargeband =chargeband;
+    @}
+    return qosfive;
+@}
+@end example
+
+@b{Note. When the object is not a receiver, it is necessary that the object be @b{statically typed} in the class declaration.}
+ 
+@c {the scope of instance variables (@@public, @@protected, @@private)}
+
+@subsection Instance Variable Scope
+
+In Objective-C instance variable have three types of @b{scope} or accessibility:
+@itemize @bullet
+@item
+@code{@@private} restricts the instance variable to the declaring class, and not to inheriting classes.
+
+@item
+@code{@@protected} restricts the instance variable to the declaring class and inheriting
+classes - this is the default scope.
+
+@item
+@code{@@public} globalises the instance variable, removing all the aforementioned restrictions.
+
+@end itemize
+
+
+@subsection Accessing Object Data Structures
+The instance variables or data structures of objects are accessed by sending the object messages. An Objective-C object's instance variables may be changed to a @b{public} scope by converting them into a C structure. 
+
+
+The @code{@@defs(className)} directive produces a declaration list, where @code{public} is used as a pointer to the structure that approximates an instance of @code{Gprschannel}:
+
+@example
+struct gprschannelDef @{
+    @@defs(Gprschannel)
+@}*public;
+@end example
+
+An object's instance variables may be given @b{public scope} through a @code{Gprschannel id} assigned to the pointer:
+@example
+id aGprschannel;
+aWorker =[[Gprschannel alloc ] init ];
+public =(struct gprschannelDef *)aGprschannel;
+public->boss =nil;
+@end example
+
+
+@comment examples, with messages to self and super
+
+@comment Messages to Self and Super 
+
+
+@subsection Super and Self  
+
+In the implementation of an Objective-C method, you may use the two reserved words @b{self} and @b{super}
+
+@emph{example here}
+.
+In Objective-C some control over messaging is provided by @b{self} and @b{super}. @b{Self} searches for the 
+method implementation in the receiving object's class. 
+
+@b{Super} begins searching for the method implementation in the superclass of the class that defines the method with super.
+
+A method implementation may refer to the target object as @b{self} or @b{super}, where 
+control is provided over which object performs the method. 
+
+To demonstrate the difference between @b{self} and @b{super} consider three classes:
+
+@itemize @bullet
+@item
+One
+
+@item
+Two - One's superclass
+
+@item
+Three - Two's superclass
+@end itemize
+
+All three classes define a method called @b{traffic}, while Two defines a method called @b{Alert} that depends on @b{traffic}.
+
+Sending a message to the One object to invoke the @b{Alert} method, causes the @b{Alert} method to send a @b{traffic} message to the same One object.  
+
+The following source code would search for the traffic method defined in One (or self's class).
+
+@example
+-Alert
+@{
+[self traffic ];
+...
+@}
+@end example
+
+
+When Two’s source code calls this object super, the messaging routine will find the version of traffic defined in Three (the @b{superclass} of Two).
+
+@example
+-Alert
+@{
+[super traffic ];
+...
+@}
+@end example
+
+
+@b{Self} is a variable name that may be assigned new values particularly in definitions 
+of class methods that often focus on class instances as opposed to class objects. For example, 
+a method might combine allocation and initialization of an instance:
+
+@example
+
++(id)newRect
+@{
+    return [[self alloc ] init ];
+@}
+
+@end example
+
+
+When in class methods self refers to class objects, and when in instance methods self 
+refers to instances. @b{self} and @b{super} focus on the receiver that is the object 
+being stimulated by a message. 
+
+
+@emph{Nicola/Richard add an example for self and super here - or two examples?}
+
+implementation of the example class interface
+
+@section Categories
+A category may serve to replace a subclass; when adding methods to an existing declared class, and not to a new class, a @b{category name} is used. 
+An interface file may declare methods under a category name that is also used in the implementation file for the definitions of those methods.  
+Category methods are added to the class, and instances of the class will have the methods as part of their behaviour. As is the case with other methods, category methods are inherited by all the class' subclasses.
+
+@subsection Adding to Classes
+
+A category interface has the form: 
+
+@example
+#include "ClassTitle .h"
+@@interface ClassTitle (CategoryTitle )
+     declared methods
+@@end
+@end example
+
+The category may include a interface, so as to allow its methods to access the instance variables of named classes.
+
+A category implementation file has the form:
+
+@example
+#include "CategoryTitle .h"
+@@implementation ClassTitle (CategoryTitle )
+    definitions of methods 
+@@end
+@end example
+
+Category methods may replace the conventional methods inherited by the class.
+
+@b{Note. A category should not be considered a substitute for a subclass. }
+
+@subsection Using Categories
+Categories are useful for extending existing classes, so as to add new methods to frameworks. Categories are often used to separate the implementation of a new class into a number of source files. The obvious benefits of this program development strategy include: grouping subject-oriented methods; incremental compilation for large classes; help to logically divide the class when being created by a number of developers; and, permit configuration-specific classes targeting particular applications.
+
+
+@page

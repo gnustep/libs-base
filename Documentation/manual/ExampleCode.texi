@@ -1,0 +1,185 @@
+@paragraphindent 0
+
+@node Examples
+@appendix Example Objective-C Code
+@cindex example Objective-C code
+
+@c /* Add example code to this file as it becomes available */
+
+
+@section A Simple Telephone Directory
+
+In the 'Distributed Objects' chapter, it was left as an exercise to
+prepare code for a simple client/server telephone directory. Below is
+one implementation that you can compare with your own version.
+
+If you are reading the on-screen version of this manual, then you can
+copy and paste the code to suitably named files, and then make and run
+each program. The directory only stores the telephone numbers of two
+people: Jack and Jill.
+
+To use the telephone directory first run the server and then the client,
+passing either Jack or Jill as a command line argument. If you pass any
+other name then the number will be displayed as 'Number not found'.
+
+@subsection The Makefiles
+
+@example
+# The Client makefile, saved as GNUmakefile 
+include $(GNUSTEP_MAKEFILES)/common.make
+
+TOOL_NAME = RunClient
+RunClient_OBJC_FILES = Client.m
+
+include $(GNUSTEP_MAKEFILES)/tool.make
+# End of client makefile 
+
+# The Server makefile, saved as GNUmakefile 
+include $(GNUSTEP_MAKEFILES)/common.make
+
+TOOL_NAME = RunServer
+RunServer_OBJC_FILES = Server.m
+
+include $(GNUSTEP_MAKEFILES)/tool.make
+# End of server makefile 
+@end example
+
+@subsection The Protocol Header File
+
+@example
+ /*
+ * TelephoneDirectory protocol, saved as TelephoneDirectory.h.
+ * This file must be included at both client and server.
+ */
+@@protocol TelephoneDirectory 
+- (char *) teleNumber: (char *)personName;
+@@end
+@end example
+
+@subsection Code at the Client
+
+@example
+/* 
+ * This #include line is generally present in all Objective-C
+ * source files that use GNUstep.  The Foundation.h header file
+ * includes all the other standard header files you need.
+ */
+#include <Foundation/Foundation.h>
+
+/* Include the TelephoneDirectory protocol header file */
+#include "TelephoneDirectory.h"
+
+/*
+ * The main() function: Get the telephone number for 
+ * 'personName' from the server registered as 'DirectoryServer'.
+ */
+int main(int argc, char *argv[])
+@{
+  char *personName = argv[1];
+  char *returnedNumber;
+  id<TelephoneDirectory> proxyForDirectory;
+  CREATE_AUTORELEASE_POOL(pool);
+  
+  proxyForDirectory = (id<TelephoneDirectory>) [NSConnection 
+                       rootProxyForConnectionWithRegisteredName: 
+                       @@"DirectoryServer" 
+		       host: @@"*"];	       
+
+  if(proxyForDirectory == nil) 
+    printf("\n** WARNING: NO CONNECTION TO SERVER **\n");
+  else printf("\n** Connected to server **\n");
+  
+  if(argc == 2) // Command line name entered
+  @{
+    returnedNumber = (char *)[proxyForDirectory teleNumber: personName];
+    printf("\n%s%s%s%s%s\n", "** (In client) The telephone number for ",
+           personName, " is:",
+           returnedNumber, "  **");
+  @}
+  else printf("\n** No name entered **\n");
+  printf("\n%s\n\n", "** End of client program **");
+  RELEASE(pool);
+  return 0;
+@}
+@end example
+
+@subsection Code at the Server
+
+@example
+#include <Foundation/Foundation.h>
+
+/* Include the TelephoneDirectory protocol header file */
+#include "TelephoneDirectory.h"
+
+/*
+ * Declare the TelephoneDirectory class that 
+ * implements the 'teleNumber' instance method.
+ */
+@@interface TelephoneDirectory : NSObject <TelephoneDirectory>
+@@end
+
+/*
+ * Define the TelephoneDirectory class 
+ * and the instance method (teleNumber).
+ */
+@@implementation TelephoneDirectory : NSObject
+- (char *) teleNumber: (char *) personName
+@{
+  if (strcmp(personName, "Jack") == 0) return " 0123 456";
+  else if (strcmp(personName, "Jill") == 0) return " 0456 789";
+  else return " Number not found";
+@}
+@@end
+
+/*
+ * The main() function: Set up the program 
+ * as a 'Distibuted Objects Server'.
+ */
+int main(void)
+@{
+  CREATE_AUTORELEASE_POOL(pool);
+  
+  /* Declare and define the telephoneDirectory object */
+  TelephoneDirectory *teleDirectory = [[TelephoneDirectory alloc] init];
+  
+  /* 
+   * Get the default NSConnection object, 
+   * or create a new one if none exists. 
+   */
+  NSConnection *connXion = [NSConnection defaultConnection];
+  
+  /*
+   * Set the responding server object to be
+   * the root object for this connection.
+   */
+  [connXion setRootObject: teleDirectory];
+  
+  /* 
+   * Try to register a name for the NSConnection,
+   * and report an error if this is not possible.
+   */
+  if ([connXion registerName: @@"DirectoryServer"] == NO) 
+  @{
+    NSLog(@@"Unable to register as 'DirectoryServer'");
+    NSLog(@@"Perhaps another copy of this program is running?");
+    exit(1);
+  @} 
+  else NSLog(@@"\n** Managed to register connection as 'DirectoryServer' **\n");
+  
+  /* Start the current runloop. */
+  [[NSRunLoop currentRunLoop] run];
+  
+  RELEASE(pool);
+  return 0;
+@}
+@end example
+
+
+@section GameServer with Error Checking
+
+In the 'Distributed Objects' chapter, code was listed at the client and
+server for an example GameServer. The code is reproduced here, but with
+additional error checking for: failure to vend the server object,
+exceptions raised at run-time, and failure of the network connection.
+
+*** Code to be added here ***

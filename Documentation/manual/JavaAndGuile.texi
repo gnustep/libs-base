@@ -1,0 +1,8 @@
+@node Java and Guile
+@appendix Programming GNUstep in Java and Guile
+@cindex Java and Guile, programming GNUstep
+
+Other appendices might explain how to use GNUstep from Java and from
+guile, with examples but without becoming a full reference about it.
+For that, more complete documentation should be/is bundled with the
+interfaces.
