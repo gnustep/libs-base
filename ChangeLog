@@ -1,6 +1,8 @@
 2003-03-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSSet.h: Added a few non-openstep declarations
+	* Source/GSCompatibility.m: OAppend() sort dictionary keys even if
+	locale is nil.
 
 2003-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
