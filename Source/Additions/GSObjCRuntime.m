@@ -48,7 +48,6 @@
 #include "gnustep/base/GNUstep.h"
 #include <string.h>
 
-
 @class	NSNull;
 
 /**  Deprecated ... use GSObjCFindVariable() */
@@ -420,7 +419,7 @@ GSObjCAddClasses(NSArray *classes)
 void
 GSObjCAddClasses(NSArray *classes)
 {
-  void	__objc_exec_class (Module_t module);
+  void	__objc_exec_class (void* module);
   void	__objc_resolve_class_links ();
   Module_t	module;
   Symtab_t	symtab;
@@ -834,6 +833,7 @@ GSObjCAddClassBehavior(Class receiver, Class behavior)
 #include	<Foundation/NSValue.h>
 #include	<Foundation/NSKeyValueCoding.h>
 #endif
+
 
 /**  Deprecated ... use GSObjCGetValue() */
 id

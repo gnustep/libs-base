@@ -1806,6 +1806,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (void) dealloc
 {
+  RELEASE(messages);
   RELEASE(src);
   RELEASE(saxHandler);
   if (lib != NULL)
@@ -1864,14 +1865,15 @@ static NSString	*endMarker = @"At end of incremental parse";
   return [self initWithSAXHandler: nil];
 }
 
-/**
+/** <init />
  * <p>
- *   Initialisation of a new Parser with SAX handler (if not nil).
+ *   Initialisation of a new Parser with SAX handler.
  * </p>
  * <p>
- *   If the handler object supplied is nil, the parser will build
- *   a tree representing the parsed file rather than attempting
- *   to get the handler to deal with the parsed elements and entities.
+ *   If the handler object supplied is nil, the parser will use
+ *   an instance of [GSTreeSAXHandler] to build a tree representing
+ *   the parsed file.  This tree will then be available (via the -document
+ *   method) as a [GSXMLDocument] on completion of parsing.
  * </p>
  * <p>
  *   The source for the parsing process is not specified - so
@@ -1881,13 +1883,20 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 {
-  if (handler != nil && [handler isKindOfClass: [GSSAXHandler class]] == NO)
+  if (handler == nil)
+    {
+      saxHandler = [GSTreeSAXHandler new];
+    }
+  else if ([handler isKindOfClass: [GSSAXHandler class]] == YES)
+    {
+      saxHandler = RETAIN(handler);
+    }
+  else
     {
       NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
       RELEASE(self);
       return nil;
     }
-  saxHandler = RETAIN(handler);
   [saxHandler _setParser: self];
   if ([self _initLibXML] == NO)
     {
@@ -1970,6 +1979,15 @@ static NSString	*endMarker = @"At end of incremental parse";
   src = [data copy];
   self = [self initWithSAXHandler: handler];
   return self;
+}
+
+/**
+ * Returns the string into which warning and error messages are saved,
+ * or nil if they are being written to stderr.
+ */
+- (NSMutableString*) messages
+{
+  return messages;
 }
 
 /**
@@ -2123,6 +2141,25 @@ static NSString	*endMarker = @"At end of incremental parse";
     {
       [self _parseChunk: data];
       return YES;
+    }
+}
+
+/**
+ * Sets up (or removes) a mutable string to which error and warning
+ * messages are saved.  Using an argument of NO will cause these messages
+ * to be written to stderr (the default).<br />
+ * NB. A SAX handler which overrides the error and warning logging
+ * messages may stop this mechanism operating.
+ */
+- (void) saveMessages: (BOOL)yesno
+{
+  if (yesno == YES)
+    {
+      ASSIGN(messages, [NSMutableString stringWithCapacity: 256]);
+    }
+  else
+    {
+      DESTROY(messages);
     }
 }
 
@@ -2918,6 +2955,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  */
 - (void) warning: (NSString*)e
 {
+  GSPrintf(stderr, @"%@", e);
 }
 
 /**
@@ -2925,6 +2963,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  */
 - (void) error: (NSString*)e
 {
+  GSPrintf(stderr, @"%@", e);
 }
 
 /**
@@ -2932,6 +2971,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  */
 - (void) fatalError: (NSString*)e
 {
+  GSPrintf(stderr, @"%@", e);
 }
 
 /**
@@ -3028,7 +3068,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
     }
   else
     {
-      memcpy(lib, &xmlDefaultSAXHandler, sizeof(htmlSAXHandler));
+      memcpy(lib, &xmlDefaultSAXHandler, sizeof(xmlSAXHandler));
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
       LIB->internalSubset         = (void*) internalSubsetFunction;
@@ -3066,6 +3106,91 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   parser = value;
 }
 @end
+
+
+/**
+ * The default handler for parsing documents ... this will build a
+ * GSXMLDocument for you. This handler may not currently be subclassed,
+ * though that capability may be added at a later date.
+ */
+@implementation GSTreeSAXHandler
+
+/**
+ * Called when a warning message needs to be output.<br />
+ * See [GSXMLParser-setErrors:] for the mechanism implemented by this.
+ */
+- (void) warning: (NSString*)e
+{
+  NSMutableString	*m = [parser messages];
+
+  if (m == nil)
+    {
+      GSPrintf(stderr, @"%@", e);
+    }
+  else
+    {
+      [m appendString: e];
+    }
+}
+
+/**
+ * Called when an error message needs to be output.<br />
+ * See [GSXMLParser-setErrors:] for the mechanism implemented by this.
+ */
+- (void) error: (NSString*)e
+{
+  NSMutableString	*m = [parser messages];
+
+  if (m == nil)
+    {
+      GSPrintf(stderr, @"%@", e);
+    }
+  else
+    {
+      [m appendString: e];
+    }
+}
+
+/**
+ * Called when a fatal error message needs to be output.<br />
+ * See [GSXMLParser-setErrors:] for the mechanism implemented by this.
+ */
+- (void) fatalError: (NSString*)e
+{
+  NSMutableString	*m = [parser messages];
+
+  if (m == nil)
+    {
+      GSPrintf(stderr, @"%@", e);
+    }
+  else
+    {
+      [m appendString: e];
+    }
+}
+
+- (BOOL) _initLibXML
+{
+  lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
+  if (lib == NULL)
+    {
+      return NO;
+    }
+  else
+    {
+      memcpy(lib, &xmlDefaultSAXHandler, sizeof(xmlSAXHandler));
+
+#define	LIB	((xmlSAXHandlerPtr)lib)
+      LIB->warning                = (void*) warningFunction;
+      LIB->error                  = (void*) errorFunction;
+      LIB->fatalError             = (void*) fatalErrorFunction;
+#undef	LIB
+      return YES;
+    }
+}
+@end
+
+
 
 /**
  * You may create a subclass of this class to handle incremental parsing

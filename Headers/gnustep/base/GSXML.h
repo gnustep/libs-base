@@ -154,9 +154,10 @@
 
 @interface GSXMLParser : NSObject
 {
-   id             src;                  /* source for parsing   */
-   void          *lib;                  /* parser context       */
-   GSSAXHandler  *saxHandler;
+   id			src;		/* source for parsing	*/
+   void			*lib;		/* parser context	*/
+   GSSAXHandler		*saxHandler;	/* handler for parsing	*/
+   NSMutableString	*messages;	/* append messages here	*/
 }
 + (NSString*) loadEntity: (NSString*)publicId at: (NSString*)location;
 + (GSXMLParser*) parser;
@@ -185,8 +186,10 @@
 		 withData: (NSData*)data;
 
 - (BOOL) keepBlanks: (BOOL)yesno;
+- (NSMutableString*) messages;
 - (BOOL) parse;
 - (BOOL) parse: (NSData*)data;
+- (void) saveMessages: (BOOL)yesno;
 - (BOOL) substituteEntities: (BOOL)yesno;
 
 @end
@@ -271,6 +274,9 @@
        colNumber: (int)colNumber
       lineNumber: (int)lineNumber;
 
+@end
+
+@interface GSTreeSAXHandler : GSSAXHandler
 @end
 
 @interface GSHTMLSAXHandler : GSSAXHandler
