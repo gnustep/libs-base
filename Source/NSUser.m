@@ -265,8 +265,9 @@ NSTemporaryDirectory(void)
   if ([manager fileExistsAtPath: tempDirName] == NO)
     {
       NSDictionary *attr;
+
       attr = [NSDictionary dictionaryWithObject: [NSNumber numberWithInt: 0700]
-			   forKey: NSFilePosixPermissions];
+					 forKey: NSFilePosixPermissions];
       if ([manager createDirectoryAtPath: tempDirName attributes: attr] == NO)
 	tempDirName = baseTempDirName;
     }
@@ -277,10 +278,10 @@ NSTemporaryDirectory(void)
 NSString *
 NSOpenStepRootDirectory(void)
 {
-  NSString* root = [[[NSProcessInfo processInfo] environment]
-		     objectForKey:@"GNUSTEP_SYSTEM_ROOT"];
+  NSString	*root = [[[NSProcessInfo processInfo] environment]
+		     objectForKey: @"GNUSTEP_ROOT"];
 
-  if (!root)
+  if (root == nil)
 #if	defined(__WIN32__)
     root = @"C:\\";
 #else
