@@ -34,7 +34,7 @@
 + set;
 + setWithArray: (NSArray*)array;
 + setWithObject: anObject;
-+ setWithObjects: (NSArray*)objects, ...;
++ setWithObjects: anObject, ...;
 - initWithArray: (NSArray*)array;
 - initWithObjects: (id)objects, ...;
 - initWithObjects: (id*)objects

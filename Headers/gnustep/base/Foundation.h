@@ -43,6 +43,7 @@
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSSet.h>
+#include <Foundation/NSTimer.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSUserDefaults.h>
 
