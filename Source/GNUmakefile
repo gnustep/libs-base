@@ -96,7 +96,7 @@ mframe.m \
 objc-gnu2next.m
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
-#GNU_MFILES +=
+GNU_MFILES += WindowsFileHandle.m
 else
 GNU_MFILES += UnixFileHandle.m 
 endif
