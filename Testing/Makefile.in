@@ -101,7 +101,8 @@ nsscanner.m \
 nsdate.m \
 awake.m \
 thread-except.m \
-nscharacterset.m
+nscharacterset.m \
+NSData-test.m
 
 tcpport: FORCE
 	(cd ../src; $(MAKE))
