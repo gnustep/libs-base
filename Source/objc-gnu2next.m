@@ -449,7 +449,7 @@ sel_types_match (const char* t1, const char* t2)
 id next_objc_msg_sendv(id object, SEL op, void* frame)
 {
   arglist_t  argFrame = __builtin_apply_args();
-  Method     *m       = class_get_instance_method(object->class_pointer, op);
+  struct objc_method *m = class_get_instance_method(object->class_pointer, op);
   const char *type;
   void       *result;
 
