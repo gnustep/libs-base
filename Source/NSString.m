@@ -58,6 +58,8 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSURL.h>
+#include <Foundation/NSMapTable.h>
+#include <Foundation/NSLock.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -71,10 +73,8 @@
 #include <base/Unicode.h>
 
 @class	GSString;
-@class	GSMString;
-@class	GSUString;
-@class	GSCInlineString;
-@class	GSUInlineString;
+@class	GSMutableString;
+@class	GSPlaceholderString;
 @class	NSGMutableArray;
 @class	NSGMutableDictionary;
 
@@ -87,10 +87,12 @@ static Class	NSStringClass;
 static Class	NSMutableStringClass;
 
 static Class	GSStringClass;
-static Class	GSMStringClass;
-static Class	GSUStringClass;
-static Class	GSCInlineStringClass;
-static Class	GSUInlineStringClass;
+static Class	GSMutableStringClass;
+static Class	GSPlaceholderStringClass;
+
+static GSPlaceholderString	*defaultPlaceholderString;
+static NSMapTable		*placeholderMap;
+static NSLock			*placeholderLock;
 
 static Class	plArray;
 static id	(*plAdd)(id, SEL, id) = 0;
@@ -184,7 +186,7 @@ static NSString		*rootPath = @"/";
 static BOOL (*sepMember)(NSCharacterSet*, SEL, unichar) = 0;
 static NSCharacterSet	*myPathSeps = nil;
 /*
- *	We can't have a 'pathSeps' variable initialized in the  +initialize
+ *	We can't have a 'pathSeps' variable initialized in the +initialize
  *	method 'cos that would cause recursion.
  */
 static NSCharacterSet*
@@ -289,11 +291,18 @@ handle_printf_atsign (FILE *stream,
       [self setVersion: 1];
       NSMutableStringClass = [NSMutableString class];
       NSDataClass = [NSData class];
+      GSPlaceholderStringClass = [GSPlaceholderString class];
       GSStringClass = [GSString class];
-      GSMStringClass = [GSMString class];
-      GSUStringClass = [GSUString class];
-      GSCInlineStringClass = [GSCInlineString class];
-      GSUInlineStringClass = [GSUInlineString class];
+      GSMutableStringClass = [GSMutableString class];
+
+      /*
+       * Set up infrastructure for placeholder strings.
+       */
+      defaultPlaceholderString = (GSPlaceholderString*)
+	NSAllocateObject(GSPlaceholderStringClass, 0, NSDefaultMallocZone());
+      placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonRetainedObjectMapValueCallBacks, 0);
+      placeholderLock = [NSLock new];
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
       if (register_printf_function ('@', 
@@ -313,10 +322,55 @@ handle_printf_atsign (FILE *stream,
 {
   if (self == NSStringClass)
     {
-      return NSAllocateObject (GSStringClass, 0, z);
+      /*
+       * For a constant string, we return a placeholder object that can
+       * be converted to a real object when its initialisation method
+       * is called.
+       */
+      if (z == NSDefaultMallocZone() || z == 0)
+	{
+	  /*
+	   * As a special case, we can return a placeholder for a string
+	   * in the default malloc zone extremely efficiently.
+	   */
+	  return defaultPlaceholderString;
+	}
+      else
+	{
+	  id	obj;
+
+	  /*
+	   * For anything other than the default zone, we need to
+	   * locate the correct placeholder in the (lock protected)
+	   * table of placeholders.
+	   */
+	  [placeholderLock lock];
+	  obj = (id)NSMapGet(placeholderMap, (void*)z);
+	  if (obj == nil)
+	    {
+	      /*
+	       * There is no placeholder object for this zone, so we
+	       * create a new one and use that.
+	       */
+	      obj = (id)NSAllocateObject(GSPlaceholderStringClass, 0, z);
+	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
+	    }
+	  [placeholderLock unlock];
+	  return obj;
+	}
+    }
+  else if (GSObjCIsKindOf(self, GSStringClass) == YES)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Called +allocWithZone: on private string class"];
+      return nil;	/* NOT REACHED */
     }
   else
     {
+      /*
+       * For user provided strings, we simply allocate an object of
+       * the given class.
+       */
       return NSAllocateObject (self, 0, z);
     }
 }
@@ -330,8 +384,11 @@ handle_printf_atsign (FILE *stream,
 
 + (id) stringWithString: (NSString*)aString
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithString: aString]);
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithString: aString];
+  return AUTORELEASE(obj);
 }
 
 + (id) stringWithCharacters: (const unichar*)chars
@@ -339,8 +396,7 @@ handle_printf_atsign (FILE *stream,
 {
   NSString	*obj;
 
-  obj = (NSString*)NSAllocateObject(GSUInlineStringClass, length*2,
-    NSDefaultMallocZone());
+  obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithCharacters: chars length: length];
   return AUTORELEASE(obj);
 }
@@ -350,8 +406,7 @@ handle_printf_atsign (FILE *stream,
   NSString	*obj;
   unsigned	length = strlen(byteString);
 
-  obj = (NSString*)NSAllocateObject(GSCInlineStringClass, length,
-    NSDefaultMallocZone());
+  obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithCString: byteString length: length];
   return AUTORELEASE(obj);
 }
@@ -361,28 +416,36 @@ handle_printf_atsign (FILE *stream,
 {
   NSString	*obj;
 
-  obj = (NSString*)NSAllocateObject(GSCInlineStringClass, length,
-    NSDefaultMallocZone());
+  obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithCString: byteString length: length];
   return AUTORELEASE(obj);
 }
 
 + (id) stringWithUTF8String: (const char *)bytes
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithUTF8String: bytes]);
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithUTF8String: bytes];
+  return AUTORELEASE(obj);
 }
 
 + (id) stringWithContentsOfFile: (NSString *)path
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfFile: path]);
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfFile: path];
+  return AUTORELEASE(obj);
 }
 
 + (id) stringWithContentsOfURL: (NSURL *)url
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfURL: url]);
+  NSString	*obj;
+
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithContentsOfURL: url];
+  return AUTORELEASE(obj);
 }
 
 + (id) stringWithFormat: (NSString*)format,...
@@ -1097,7 +1160,7 @@ handle_printf_atsign (FILE *stream,
 
   [self getCharacters: s];
   [aString getCharacters: s + len];
-  tmp = [[GSStringClass allocWithZone: z] initWithCharactersNoCopy: s
+  tmp = [[NSStringClass allocWithZone: z] initWithCharactersNoCopy: s
     length: len + otherLength freeWhenDone: YES];
   return AUTORELEASE(tmp);
 }
@@ -1161,7 +1224,7 @@ handle_printf_atsign (FILE *stream,
     return @"";
   buf = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*aRange.length);
   [self getCharacters: buf range: aRange];
-  ret = [[GSStringClass allocWithZone: NSDefaultMallocZone()]
+  ret = [[NSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: buf length: aRange.length freeWhenDone: YES];
   return AUTORELEASE(ret);
 }
@@ -1739,7 +1802,7 @@ handle_printf_atsign (FILE *stream,
     {
       s[count] = uni_tolower((*caiImp)(self, caiSel, count));
     }
-  return AUTORELEASE([[GSStringClass allocWithZone: NSDefaultMallocZone()]
+  return AUTORELEASE([[NSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
 }
 
@@ -1760,7 +1823,7 @@ handle_printf_atsign (FILE *stream,
     {
       s[count] = uni_toupper((*caiImp)(self, caiSel, count));
     }
-  return AUTORELEASE([[GSStringClass allocWithZone: NSDefaultMallocZone()]
+  return AUTORELEASE([[NSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
 }
 
@@ -2859,14 +2922,14 @@ handle_printf_atsign (FILE *stream,
 {
   if ([self isKindOfClass: [NSMutableString class]] ||
     NSShouldRetainWithZone(self, zone) == NO)
-    return [[GSStringClass allocWithZone: zone] initWithString: self];
+    return [[NSStringClass allocWithZone: zone] initWithString: self];
   else
     return RETAIN(self);
 }
 
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  return [[GSMStringClass allocWithZone: zone] initWithString: self];
+  return [[GSMutableStringClass allocWithZone: zone] initWithString: self];
 }
 
 /* NSCoding Protocol */
@@ -2998,7 +3061,7 @@ handle_printf_atsign (FILE *stream,
 {
   if (self == NSMutableStringClass)
     {
-      return NSAllocateObject(GSMStringClass, 0, z);
+      return NSAllocateObject(GSMutableStringClass, 0, z);
     }
   else
     {
@@ -3010,13 +3073,13 @@ handle_printf_atsign (FILE *stream,
 
 + (NSMutableString*) string
 {
-  return AUTORELEASE([[GSMStringClass allocWithZone:
+  return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCapacity: 0]);
 }
 
 + (NSMutableString*) stringWithCapacity: (unsigned)capacity
 {
-  return AUTORELEASE([[GSMStringClass allocWithZone:
+  return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCapacity: capacity]);
 }
 
@@ -3024,26 +3087,26 @@ handle_printf_atsign (FILE *stream,
 + (NSString*) stringWithCharacters: (const unichar*)characters
 			    length: (unsigned)length
 {
-  return AUTORELEASE([[GSMStringClass allocWithZone:
+  return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCharacters: characters length: length]);
 }
 
 + (id) stringWithContentsOfFile: (NSString *)path
 {
-  return AUTORELEASE([[GSMStringClass allocWithZone:
+  return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithContentsOfFile: path]);
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
 {
-  return AUTORELEASE([[GSMStringClass allocWithZone:
+  return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString]);
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
 			 length: (unsigned)length
 {
-  return AUTORELEASE([[GSMStringClass allocWithZone:
+  return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
 }
 

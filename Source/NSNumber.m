@@ -57,7 +57,7 @@ GSNumberInfoFromObject(NSNumber *o)
   GSNumberInfo	*info;
 
   if (o == nil)
-    return nil;
+    return 0;
   c = GSObjCClass(o);
   info = (GSNumberInfo*)NSMapGet (numberMap, (void*)c);
   if (info == 0)

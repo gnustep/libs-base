@@ -35,14 +35,16 @@
 @implementation NSScanner
 
 @class	GSCString;
-@class	GSUString;
-@class	GSMString;
+@class	GSUnicodeString;
+@class	GSMutableString;
+@class	GSPlaceholderString;
 
-static Class		NSString_class;
-static Class		GSCString_class;
-static Class		GSUString_class;
-static Class		GSMString_class;
-static Class		NXConstantString_class;
+static Class		NSStringClass;
+static Class		GSCStringClass;
+static Class		GSUnicodeStringClass;
+static Class		GSMutableStringClass;
+static Class		GSPlaceholderStringClass;
+static Class		NXConstantStringClass;
 static NSCharacterSet	*defaultSkipSet;
 static SEL		memSel;
 
@@ -77,11 +79,12 @@ typedef struct {
       memSel = @selector(characterIsMember:);
       defaultSkipSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
       IF_NO_GC(RETAIN(defaultSkipSet));
-      NSString_class = [NSString class];
-      GSCString_class = [GSCString class];
-      GSUString_class = [GSUString class];
-      GSMString_class = [GSMString class];
-      NXConstantString_class = [NXConstantString class];
+      NSStringClass = [NSString class];
+      GSCStringClass = [GSCString class];
+      GSUnicodeStringClass = [GSUnicodeString class];
+      GSMutableStringClass = [GSMutableString class];
+      GSPlaceholderStringClass = [GSPlaceholderString class];
+      NXConstantStringClass = [NXConstantString class];
     }
 }
 
@@ -127,42 +130,42 @@ typedef struct {
     }
 
   c = GSObjCClass(aString);
-  if (c == GSUString_class)
+  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
     {
       _isUnicode = YES;
       _string = RETAIN(aString);
     }
-  else if (c == GSCString_class)
+  else if (GSObjCIsKindOf(c, GSCStringClass) == YES)
     {
       _isUnicode = NO;
       _string = RETAIN(aString);
     }
-  else if (c == GSMString_class)
+  else if (GSObjCIsKindOf(c, GSMutableStringClass) == YES)
     {
+      _string = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
       if (((ivars)aString)->_flags.wide == 1)
 	{
 	  _isUnicode = YES;
-	  _string = [GSUString_class allocWithZone: NSDefaultMallocZone()];
 	  _string = [_string initWithCharacters: ((ivars)aString)->_contents.u
 					 length: ((ivars)aString)->_count];
 	}
       else
 	{
 	  _isUnicode = NO;
-	  _string = [GSCString_class allocWithZone: NSDefaultMallocZone()];
 	  _string = [_string initWithCString: ((ivars)aString)->_contents.c
 				      length: ((ivars)aString)->_count];
 	}
     }
-  else if (c == NXConstantString_class)
+  else if (c == NXConstantStringClass)
     {
       _isUnicode = NO;
       _string = RETAIN(aString);
     }
-  else if ([aString isKindOfClass: NSString_class])
+  else if ([aString isKindOfClass: NSStringClass])
     {
       _isUnicode = YES;
-      _string = [[GSUString_class alloc] initWithString: aString];
+      _string = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
+      _string = [_string initWithString: aString];
     }
   else
     {

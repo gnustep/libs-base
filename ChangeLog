@@ -1,3 +1,8 @@
+2000-11-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Update for placeholder class.
+	* Source/GSString.m: Updates for optimisations using placeholder class.
+
 2000-11-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSXML.m: External entity loader revisions completed.
