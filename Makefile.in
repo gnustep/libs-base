@@ -159,10 +159,10 @@ objc-malloc.c \
 o_vscanf.c
 
 NEXTSTEP_CFILES = \
-NXStringTable_scan.c \
-zone.c
+NXStringTable_scan.c
 
-GNUSTEP_CFILES =
+GNUSTEP_CFILES = \
+NSZone.c
 
 GNU_OTHER_SRCFILES = 
 
