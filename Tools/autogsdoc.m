@@ -1740,6 +1740,7 @@ main(int argc, char **argv, char **env)
       int cap = 1360;
       NSArray		*idxTypes = [NSArray arrayWithObjects:
                                                @"class",
+                                             @"protocol",
                                              @"constant",
                                              @"function",
                                              @"macro",
