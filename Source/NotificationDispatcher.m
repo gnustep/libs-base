@@ -558,7 +558,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
 - (void) postNotification: notification
 {
-  id notification_name = [notification name];
+  id notification_name = [(NSNotification *)notification name];
   id notification_object = [notification object];
   id nr;
   LinkedList *nr_list;

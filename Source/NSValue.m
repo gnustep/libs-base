@@ -90,7 +90,7 @@
 
 - (id)copy
 {
-    return [self copyWithZone: NSDefaultMallocZone()];
+    return [self retain];
 }
 
 - (id)copyWithZone:(NSZone *)zone
@@ -98,7 +98,7 @@
     if (NSShouldRetainWithZone(self, zone))
     	return [self retain];
     else
-    	return [[super copyWithZone:zone] deepen];
+    	return [NSCopyObject(self, 0, zone) deepen];
 }
 
 /* Returns the concrete class associated with the type encoding */
