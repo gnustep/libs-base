@@ -96,7 +96,7 @@ GS_EXPORT BOOL GSRegisterCurrentThread (void);
  * `+exit', but does not exit the thread - just destroys all objects
  * associated with the thread.  Warning: using any GNUstep code after
  * this method call is not safe.  Posts an NSThreadWillExit
- * notification. x*/
+ * notification.  */
 GS_EXPORT void GSUnregisterCurrentThread (void);
 #endif
 
