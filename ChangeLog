@@ -1,3 +1,8 @@
+2002-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Don't write to pidfile until *after* setuid away
+	from root. Bug reported by James Kehl <mkehl@gil.com.au>
+
 2002-07-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Correct test for multipart content when

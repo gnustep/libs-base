@@ -4466,7 +4466,7 @@ printf(
 	}
     }
 
-  if (pidfile) {
+  if (pidfile)
     {
       FILE	*fptr = fopen(pidfile, "at");
 
@@ -4479,7 +4479,6 @@ printf(
       fprintf(fptr, "%d\n", (int) getpid());
       fclose(fptr);
     }
-  }
 
   /*
    *	Ensure we don't have any open file descriptors which may refer
@@ -4574,6 +4573,21 @@ printf(
       setuid (uid);
     }
 #endif /* __MINGW__ */
+
+  if (pidfile)
+    {
+      FILE	*fptr = fopen(pidfile, "at");
+
+      if (fptr == 0)
+	{
+	  sprintf(ebuf, "Unable to open pid file - '%s'", pidfile);
+	  gdomap_log(LOG_CRIT);
+	  exit(1);
+	}
+      fprintf(fptr, "%d\n", (int) getpid());
+      fclose(fptr);
+    }
+
 #if	!defined(__svr4__)
   /*
    * As another level of paranoia - restrict this process to /tmp
