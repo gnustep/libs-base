@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.6.0, is now available.
+The GNUstep Base Library, version 1.7.0, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -23,25 +23,27 @@ portion of the OpenStep standard (the Foundation library).
 number, y, in x.y.z) are unstable releases (like 1.5.2), which even
 minor release numbers (1.4.1) are stable releases.
 
-Noteworthy changes in version `1.6.0'
+Noteworthy changes in version `1.7.0'
 =====================================
 
-   * More MinGW support
+   See gnustep-make for comments on the filesystem change. Some
+components of gnustep-base are now stored in different directories and
+in some cases you should use different methods to look for them. Use
++pathForLibraryResource:ofType:inDirectory: instead of
++pathForGNUstepResource:. Also try using +bundleForLibrary:.
 
-   * New MacOSX compatible methods.
+   gnustep-base is now documentated as OpenStep complient. Other
+changes:
 
-   * The Base Additions library compiles on native OSX.
+   * Add GSApplicationSupportDirectory for
+     NSSearchPathForDirectoriesInDomains.
 
-   * autogsdoc produces better, cleaner docs.
-
-   * Built-in garbage collecting classes.
-
-   * Any many many bug fixes and minor improvements.
+   * Added man page for gdomap
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.6.0.tar.gz distribution file has been placed on
+   The gnustep-base-1.7.0.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    Please log bug reports on the GNUstep project page

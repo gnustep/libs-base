@@ -113,28 +113,6 @@ objc_check_undefineds(FILE *errorStream)
   return 0;
 }
 
-/* Invalidate the dtable so it will be rebuild when a message is sent to
-   the object */
-static void
-objc_invalidate_dtable(Class class)
-{
-#ifndef NeXT_RUNTIME
-  Class s;
-  
-  if (class->dtable == objc_get_uninstalled_dtable()) 
-    {
-      return;
-    }
-  
-  sarray_free(class->dtable);
-  __objc_install_premature_dtable(class);
-  for (s = class->subclass_list; s; s = s->sibling_class) 
-    {
-      objc_invalidate_dtable(s);
-    }
-#endif
-}
-
 /* Initialize for dynamic loading */
 static int 
 objc_initialize_loading(FILE *errorStream)
@@ -171,13 +149,6 @@ objc_initialize_loading(FILE *errorStream)
 static void 
 objc_load_callback(Class class, struct objc_category * category)
 {
-  /* Invalidate the dtable, so it will be rebuilt correctly */
-  if (class != 0 && category != 0) 
-    {
-      objc_invalidate_dtable(class);
-      objc_invalidate_dtable(class->class_pointer);
-    }
-
   if (_objc_load_load_callback)
     {
       _objc_load_load_callback(class, category);

@@ -48,6 +48,7 @@
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
+#include <signal.h>
 
 #include "GSPrivate.h"
 
@@ -55,6 +56,16 @@
 #ifndef NeXT_RUNTIME
 extern BOOL __objc_responds_to(id, SEL);
 #endif
+
+static void
+GSAtExit(void)
+{
+  int s = 0;
+  
+  /*  Re-set ALL signals before we exit */
+  for (s = 0; s < NSIG; s++)
+    signal(s, SIG_DFL);
+}
 
 #if GS_WITH_GC
 
@@ -791,6 +802,8 @@ static BOOL double_release_check_enabled = NO;
 #ifdef HAVE_LOCALE_H
       GSSetLocaleC(LC_ALL, "");		// Set up locale from environment.
 #endif
+
+      atexit(GSAtExit);
 
       // Create the global lock
       gnustep_global_lock = [NSRecursiveLock new];

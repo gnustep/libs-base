@@ -9,6 +9,25 @@ The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.7.0}
+
+See gnustep-make for comments on the filesystem change. Some components
+of gnustep-base are now stored in different directories and in some cases
+you should use different methods to look for them. Use
++pathForLibraryResource:ofType:inDirectory: instead of
++pathForGNUstepResource:. Also try using +bundleForLibrary:.
+
+gnustep-base is now documentated as OpenStep complient. Other changes:
+
+@itemize @bullet
+@item Add GSApplicationSupportDirectory for 
+NSSearchPathForDirectoriesInDomains.
+@item Added man page for gdomap
+@end itemize
+
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.6.0}
 
 @itemize @bullet
@@ -19,8 +38,6 @@ The currently released version of the library is
 @item Built-in garbage collecting classes.
 @item Any many many bug fixes and minor improvements.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.5.1}
 
