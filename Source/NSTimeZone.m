@@ -122,11 +122,14 @@
    Expected in Resources directory for library bundle. */
 #define TIME_ZONE_DIR @"NSTimeZones"
 
-/* Location of time zone abbreviation dictionary.  It is a text file
+/* Name of time zone abbreviation (plist) dictionary.  */
+#define ABBREV_DICT @"abbreviations"
+
+/* Name of time zone abbreviation map.  It is a text file
    with each line comprised of the abbreviation, a whitespace, and the
    name.  Neither the abbreviation nor the name can contain
    whitespace, and each line must not be longer than 80 characters. */
-#define ABBREV_DICT @"abbreviations"
+#define ABBREV_MAP @"abbreviations"
 
 /* File holding regions grouped by latitude.  It is a text file with
    each line comprised of the latitude region, whitespace, and the
@@ -218,8 +221,10 @@ static NSTimeZone	*systemTimeZone = nil;
    name. */
 static NSMutableDictionary *zoneDictionary;
 
-/* Fake one-to-one abbreviation to time zone name dictionary. */
-static NSDictionary *fake_abbrev_dict;
+/* one-to-one abbreviation to time zone name dictionary. */
+static NSMutableDictionary *abbreviationDictionary = nil;
+/* one-to-many abbreviation to time zone name dictionary. */
+static NSMutableDictionary *abbreviationMap = nil;
 
 /* Lock for creating time zones. */
 static NSRecursiveLock *zone_mutex = nil;
@@ -253,30 +258,17 @@ decode (const void *ptr)
 }
 
 /* Return path to a TimeZone directory file */
-static NSString *_time_zone_path(NSString *subpath)
+static NSString *_time_zone_path(NSString *subpath, NSString *type)
 {
   NSBundle *gbundle;
+  if (type == nil)
+    type = @"";
   gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
   return [gbundle pathForResource: subpath 
-		           ofType: @"" 
+		           ofType: type
 		      inDirectory: TIME_ZONE_DIR];
 }
 
-/* Object enumerator for NSInternalAbbrevDict. */
-@interface NSInternalAbbrevDictObjectEnumerator : NSEnumerator
-{
-  NSEnumerator *dict_enum;
-}
-
-- (id) initWithDict: (NSDictionary*)aDict;
-@end
-
-
-/* Front end that actually uses [NSTimeZone abbrebiationMap]. */
-@interface NSInternalAbbrevDict : NSDictionary
-@end
-  
-  
 @interface GSPlaceholderTimeZone : NSTimeZone
 @end
   
@@ -318,72 +310,7 @@ static NSString *_time_zone_path(NSString *subpath)
   
 /* Private methods for obtaining resource file names. */
 @interface NSTimeZone (Private)
-+ (NSString*) getAbbreviationFile;
-+ (NSString*) getRegionsFile;
 + (NSString*) getTimeZoneFile: (NSString*)name;
-@end
-
-
-@implementation NSInternalAbbrevDictObjectEnumerator
-
-- (void) dealloc
-{
-  RELEASE(dict_enum);
-}
-
-- (id) initWithDict: (NSDictionary*)aDict
-{
-  dict_enum = RETAIN([aDict objectEnumerator]);
-  return self;
-}
-
-- (id) nextObject
-{
-  id object;
-
-  object = [dict_enum nextObject];
-  if (object != nil)
-    return [object objectAtIndex: 0];
-  else
-    return nil;
-}
-
-@end
-
-
-@implementation NSInternalAbbrevDict
-
-+ (id) allocWithZone: (NSZone*)zone
-{
-  return NSAllocateObject(self, 0, zone);
-}
-
-- (id) init
-{
-  return self;
-}
-
-- (unsigned) count
-{
-  return [[NSTimeZone abbreviationMap] count];
-}
-
-- (NSEnumerator*) keyEnumerator
-{
-  return [[NSTimeZone abbreviationMap] keyEnumerator];
-}
-
-- (NSEnumerator*) objectEnumerator
-{
-  return AUTORELEASE([[NSInternalAbbrevDictObjectEnumerator alloc]
-	    initWithDict: [NSTimeZone abbreviationMap]]);
-}
-  
-- (id) objectForKey: (NSString*)key
-{
-  return [[[NSTimeZone abbreviationMap] objectForKey: key] objectAtIndex: 0];
-}
-  
 @end
 
 
@@ -937,53 +864,71 @@ static NSMapTable	*absolutes = 0;
 @implementation NSTimeZone
 
 /**
- * DEPRECATED.
+ * Returns a dictionary containing time zone abbreviations and their
+ * corresponding time zone names. More than one time zone may be associated
+ * with a single abbreviation. In this case, the dictionary contains only
+ * one (usually the most common) time zone name for the abbreviation.  
  */
 + (NSDictionary*) abbreviationDictionary
 {
-  return fake_abbrev_dict;
+  NSString *path;
+  if (abbreviationDictionary != nil)
+    return abbreviationDictionary;
+
+  path = _time_zone_path (ABBREV_DICT, @"plist");
+  if (path == NULL)
+    {
+      [NSException
+	raise: NSInternalInconsistencyException
+	format: @"Failed to open time zone abbreviation dictionary."];
+    }
+  abbreviationDictionary = 
+    [[NSString stringWithContentsOfFile: path] propertyList];
+  abbreviationDictionary = 
+    [abbreviationDictionary makeImmutableCopyOnFail: NO];
+  return abbreviationDictionary;
 }
 
 /**
- * Returns an abbreviation to time zone map which is quite large.
+ * Returns a dictionary that maps abbreviations to the array
+ * containing all the time zone names that use the abbreviation.
  */
 + (NSDictionary*) abbreviationMap
 {
-  static NSMutableDictionary *abbreviationDictionary = nil;
   FILE *file; // For the file containing the abbreviation dictionary
   char abbrev[80], name[80];
-  NSString *fileName;
+  NSString *path;
 
   /* Instead of creating the abbreviation dictionary when the class is
      initialized, we create it when we first need it, since the
      dictionary can be potentially very large, considering that it's
      almost never used. */
-  if (abbreviationDictionary != nil)
-    return abbreviationDictionary;
+  if (abbreviationMap != nil)
+    return abbreviationMap;
 
   /* Read dictionary from file. */
-  abbreviationDictionary = [[NSMutableDictionary alloc] init];
-  fileName = [NSTimeZone getAbbreviationFile];
+  abbreviationMap = [[NSMutableDictionary alloc] init];
+  path = _time_zone_path (ABBREV_MAP, nil);
 #if	defined(__WIN32__)
-  file = fopen([fileName fileSystemRepresentation], "rb");
+  file = fopen([path fileSystemRepresentation], "rb");
 #else
-  file = fopen([fileName fileSystemRepresentation], "r");
+  file = fopen([path fileSystemRepresentation], "r");
 #endif
   if (file == NULL)
     [NSException
       raise: NSInternalInconsistencyException
-      format: @"Failed to open time zone abbreviation dictionary."];
+      format: @"Failed to open time zone abbreviation map."];
   while (fscanf(file, "%79s %79s", abbrev, name) == 2)
     {
       id a, the_name, the_abbrev;
 
       the_name = [NSString stringWithCString: name];
       the_abbrev = [NSString stringWithCString: abbrev];
-      a = [abbreviationDictionary objectForKey: the_abbrev];
+      a = [abbreviationMap objectForKey: the_abbrev];
       if (a == nil)
 	{
 	  a = AUTORELEASE([NSMutableArray new]);
-	  [abbreviationDictionary setObject: a forKey: the_abbrev];
+	  [abbreviationMap setObject: a forKey: the_abbrev];
 	}
       [a addObject: the_name];
     }
@@ -993,17 +938,17 @@ static NSMapTable	*absolutes = 0;
   {
     id array;
     id the_abbrev = [systemTimeZone abbreviation];
-    array = [abbreviationDictionary objectForKey: the_abbrev];
+    array = [abbreviationMap objectForKey: the_abbrev];
     if (array == nil)
       {
 	array = AUTORELEASE([NSMutableArray new]);
-	[abbreviationDictionary setObject: array forKey: the_abbrev];
+	[abbreviationMap setObject: array forKey: the_abbrev];
       }
     if ([array containsObject: [systemTimeZone timeZoneName]] == NO)
       [array addObject: [systemTimeZone timeZoneName]];
   }
 
-  return abbreviationDictionary;
+  return abbreviationMap;
 }
 
 /**
@@ -1137,7 +1082,6 @@ static NSMapTable	*absolutes = 0;
 
       localTimeZone = [[NSLocalTimeZone alloc] init];
 
-      fake_abbrev_dict = [[NSInternalAbbrevDict alloc] init];
       zone_mutex = [GSLazyRecursiveLock new];
     }
 }
@@ -1233,7 +1177,7 @@ static NSMapTable	*absolutes = 0;
        */
       if (localZoneString == nil)
 	{
-	  NSString	*f = _time_zone_path(LOCAL_TIME_FILE);
+	  NSString	*f = _time_zone_path(LOCAL_TIME_FILE, nil);
 	  if (f != nil)
 	    {
 	      localZoneString = [NSString stringWithContentsOfFile: f];
@@ -1384,7 +1328,7 @@ static NSMapTable	*absolutes = 0;
   for (i = 0; i < 24; i++)
     temp_array[i] = [NSMutableArray array];
 
-  fileName = [NSTimeZoneClass getRegionsFile];
+  fileName = _time_zone_path (REGIONS_FILE, nil);
 #if	defined(__WIN32__)
   file = fopen([fileName fileSystemRepresentation], "rb");
 #else
@@ -1711,19 +1655,6 @@ static NSMapTable	*absolutes = 0;
 
 @implementation NSTimeZone (Private)
 
-+ (NSString*) getAbbreviationFile
-{
-  return _time_zone_path (ABBREV_DICT);
-}
-
-/**
- * Returns the path to the Regions file.
- */
-+ (NSString*) getRegionsFile
-{
-  return _time_zone_path (REGIONS_FILE);
-}
-
 /**
  * Returns the path to the named zone info file.
  */
@@ -1737,7 +1668,7 @@ static NSMapTable	*absolutes = 0;
   	[tzdir stringByAppendingPathComponent: name]] == NO)
     dir = nil;
   if (dir == nil)
-    dir= _time_zone_path (ZONES_DIR);
+    dir= _time_zone_path (ZONES_DIR, nil);
   return [dir stringByAppendingPathComponent: name];
 }
 

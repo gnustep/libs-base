@@ -45,8 +45,6 @@ Additions_OBJC_FILES += GSNextRuntime.m
 endif
 ifneq ($(FOUNDATION_LIB), gnu)
 Additions_OBJC_FILES += GSCompatibility.m
-else
-Additions_OBJC_FILES += Unicode.m
 endif
 Additions_OBJC_FILES += Unicode.m
 
