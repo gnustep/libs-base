@@ -1,5 +1,5 @@
 /* Implementation of connection object for remote object messaging
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -584,12 +584,17 @@ static int messagesReceivedCount;
   [in_port release];
   [out_port release];
   {
+/* xxx What was I thinking here? */
+#if 0
     void deallocObj (elt o)
       {
 	[o.id_u dealloc];
       }
+#endif
     [proxiesHashGate lock];
+#if 0
     [remote_proxies withElementsCall:deallocObj];
+#endif
     [remote_proxies release];
     [local_targets release];
     [incoming_const_ptrs release];
