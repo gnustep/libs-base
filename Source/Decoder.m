@@ -518,7 +518,7 @@ static int debug_coder = 0;
   /* xxx fix the use of _coderPopForwardObjectTable and
      _coderPopRootObjectTable. */
 
-#if 0
+#if 0   /* Actually, we do this below in -decodeObjectAt:withName: */
   /* Send "-awakeAfterUsingCoder:" to all the objects that were read */
   {
     SEL awake_sel = sel_get_any_uid("awakeAfterUsingCoder:");
@@ -666,7 +666,7 @@ static int debug_coder = 0;
 	  }
 
 	/* Send -awakeAfterUsingCoder: */
-	/* xxx Unknown whether -awakeUsingCoder: should be sent here, or
+	/* xxx Unknown whether -awakeAfterUsingCoder: should be sent here, or
 	   when Decoder is deallocated, or after a root object is finished
 	   decoding. */
 	/* NOTE: Use of this with the NeXT archiving methods is
