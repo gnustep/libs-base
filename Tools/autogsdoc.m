@@ -834,6 +834,7 @@ main(int argc, char **argv, char **env)
 		}
 	      if ([mgr isReadableFileAtPath: gsdocfile] == YES)
 		{
+		  GSXMLNode	*root;
 		  GSXMLParser	*parser;
 		  AGSIndex	*localRefs;
 
@@ -845,15 +846,16 @@ main(int argc, char **argv, char **env)
 		    {
 		      NSLog(@"WARNING %@ is not a valid document", gsdocfile);
 		    }
-		  if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
+		  root = [[parser document] root];
+		  if (![[root name] isEqualToString: @"gsdoc"])
 		    {
 		      NSLog(@"not a gsdoc document - because name node is %@",
-			[[[parser doc] root] name]);
+			[root name]);
 		      return 1;
 		    }
 
 		  localRefs = AUTORELEASE([AGSIndex new]);
-		  [localRefs makeRefs: [[parser doc] root]];
+		  [localRefs makeRefs: root];
 
 		  /*
 		   * accumulate index info in project references
@@ -1108,6 +1110,7 @@ main(int argc, char **argv, char **env)
 	    {
 	      if (hDate == nil || [gDate earlierDate: hDate] == hDate)
 		{
+		  GSXMLNode	*root;
 		  GSXMLParser	*parser;
 		  AGSIndex	*localRefs;
 		  AGSHtml	*html;
@@ -1125,15 +1128,16 @@ main(int argc, char **argv, char **env)
 		    {
 		      NSLog(@"WARNING %@ is not a valid document", gsdocfile);
 		    }
-		  if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
+		  root = [[parser document] root];
+		  if (![[root name] isEqualToString: @"gsdoc"])
 		    {
 		      NSLog(@"not a gsdoc document - because name node is %@",
-			[[[parser doc] root] name]);
+			[root name]);
 		      return 1;
 		    }
 
 		  localRefs = AUTORELEASE([AGSIndex new]);
-		  [localRefs makeRefs: [[parser doc] root]];
+		  [localRefs makeRefs: root];
 
 		  /*
 		   * We perform final output
@@ -1142,7 +1146,7 @@ main(int argc, char **argv, char **env)
 		  [html setGlobalRefs: globalRefs];
 		  [html setProjectRefs: projectRefs];
 		  [html setLocalRefs: localRefs];
-		  generated = [html outputDocument: [[parser doc] root]];
+		  generated = [html outputDocument: root];
 		  if ([generated writeToFile: htmlfile atomically: YES] == NO)
 		    {
 		      NSLog(@"Sorry unable to write %@", htmlfile);

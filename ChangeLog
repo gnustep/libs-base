@@ -1,6 +1,17 @@
 2002-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSeq.h: Fix bug matching sequences with zero length range.
+	* Headers/gnustep/base/GSMime.h: Tell autogsdoc where to look for source
+	* Headers/gnustep/base/GSXML.h: Updates for consistency etc.
+	* Source/Additions/GSXML.m: ditto
+	* Tools/AGSHtml.m: Modified for changed GSXML
+	* Tools/AGSIndex.m: ditto
+	* Tools/AGSParser.m: ditto
+	* Tools/autogsdoc.m: ditto
+	* Tools/defaults.m: Fixed typo
+	Mostly, changes to make methods which were intended to be private
+	really private, and lots of modifications to make mathod names
+	consistent with OpenStep usage ... suggestions made by many people.
 
 2002-05-15  Richard Frith-Macdonald <rfm@gnu.org>
 

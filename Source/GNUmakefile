@@ -39,10 +39,13 @@ LIBRARY_VAR = GNUSTEP_BASE
 
 # The library to be compiled
 
+LIBRARY_NAME=
 ifeq ($(add),yes)
-LIBRARY_NAME=libgnustep-baseadd libgnustep-base
-else
-LIBRARY_NAME=libgnustep-base
+LIBRARY_NAME += libgnustep-baseadd
+endif
+
+ifneq ($(base),no)
+LIBRARY_NAME += libgnustep-base
 endif
 
 libgnustep-base_SUBPROJECTS=Additions

@@ -109,14 +109,24 @@ setupCache()
 static xmlParserInputPtr
 loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 
-/* Internal interfaces */
+@interface GSXMLDocument (GSPrivate)
++ (GSXMLDocument*) _documentFrom: (void*)data;
+- (id) _initFrom: (void*)data ownsLib: (BOOL)f;
+@end
 
 @interface GSXMLNamespace (GSPrivate)
-- (void) _native: (BOOL)value;
++ (GSXMLNamespace*) _namespaceFrom: (void*)data;
+- (id) _initFrom: (void*)data;
+- (id) _initWithNode: (GSXMLNode*)node
+		href: (NSString*)href
+	      prefix: (NSString*)prefix;
 @end
 
 @interface GSXMLNode (GSPrivate)
-- (void) _native: (BOOL)value;
++ (GSXMLNode*) _nodeFrom: (void*)data;
+- (id) _initFrom: (void*)data;
+- (id) _initWithNamespace: (GSXMLNamespace*)ns
+		     name: (NSString*)name;
 @end
 
 @interface GSXMLParser (Private)
@@ -130,16 +140,129 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 @end
 
 
-@implementation GSXMLDocument : NSObject
+@implementation GSXMLAttribute : GSXMLNode
+
+static NSMapTable	*attrNames = 0;
+
++ (void) initialize
+{
+  if (self == [GSXMLAttribute class])
+    {
+      if (cacheDone == NO)
+	setupCache();
+      attrNames = NSCreateMapTable(NSIntMapKeyCallBacks,
+	NSNonRetainedObjectMapValueCallBacks, 0);
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_CDATA, (void*)@"XML_ATTRIBUTE_CDATA");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_ID, (void*)@"XML_ATTRIBUTE_ID");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_IDREF, (void*)@"XML_ATTRIBUTE_IDREF");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_IDREFS, (void*)@"XML_ATTRIBUTE_IDREFS");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_ENTITY, (void*)@"XML_ATTRIBUTE_ENTITY");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_ENTITIES, (void*)@"XML_ATTRIBUTE_ENTITIES");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_NMTOKEN, (void*)@"XML_ATTRIBUTE_NMTOKEN");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_NMTOKENS, (void*)@"XML_ATTRIBUTE_NMTOKENS");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_ENUMERATION, (void*)@"XML_ATTRIBUTE_ENUMERATION");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_NOTATION, (void*)@"XML_ATTRIBUTE_NOTATION");
+    }
+}
+
++ (int) typeFromDescription: (NSString*)desc
+{
+  NSMapEnumerator	enumerator;
+  NSString		*val;
+  int			key;
+
+  enumerator = NSEnumerateMapTable(attrNames);
+  while (NSNextMapEnumeratorPair(&enumerator, (void**)&key, (void**)&val))
+    {
+      if ([desc isEqual: val] == YES)
+	{
+	  return key;
+	}
+    }
+  return -1;
+}
+
++ (NSString*) descriptionFromType: (int)type
+{
+  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
+
+  return desc;
+}
+
+- (int) type
+{
+  return (int)((xmlAttrPtr)(lib))->atype;
+}
+
+- (NSString*) typeDescription
+{
+  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
+
+  if (desc == nil)
+    {
+      desc = @"Unknown attribute type";
+    }
+  return desc;
+}
+
+- (GSXMLNode*) next
+{
+  if (((xmlAttrPtr)(lib))->next != NULL)
+    {
+      return AUTORELEASE([[GSXMLAttribute alloc]
+        _initFrom: ((xmlAttrPtr)(lib))->next]);
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+- (GSXMLNode*) previous
+{
+  if (((xmlAttrPtr)(lib))->prev != NULL)
+    {
+      return AUTORELEASE([[GSXMLAttribute alloc]
+        _initFrom: ((xmlAttrPtr)(lib))->prev]);
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+- (NSString*) value
+{
+  if (((xmlNodePtr)lib)->children != NULL
+    && ((xmlNodePtr)lib)->children->content != NULL)
+    {
+      return UTF8Str(((xmlNodePtr)(lib))->children->content);
+    }
+  return nil;
+}
+
+@end
 
 /**
- * Return document created using raw libxml data.
- * The resulting document does not 'own' the data, and will not free it.
+ * A GSXML document wraps the document structure of the underlying
+ * libxml library.  It does not own that underlying data (except in
+ * the special case of a document created using the +documentWithVersion:
+ * method).  The underlying data is owned by the GSXMLParser object, and
+ * will be destroyed when the parser is destroyed ... at which point any
+ * GSXMLDocument owned by the parser becomes invalid, whether you have
+ * retained it or not.
  */
-+ (GSXMLDocument*) documentFrom: (void*)data
-{
-  return AUTORELEASE([[self alloc] initFrom: data]);
-}
+@implementation GSXMLDocument : NSObject
 
 /**
  * Create a new document with the specified version.
@@ -147,7 +270,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
  * id d = [GSXMLDocument documentWithVersion: @"1.0"];
  *
  * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
- * [[d root] setProp: @"version" value: @"0.9"];
+ * [[d root] setObject: @"0.9" forKey: @"version"];
  * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
  * [n1 makeComment: @" this is a comment "];
  * [n1 makePI: @"pi1" content: @"this is a process instruction"];
@@ -158,7 +281,14 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
  */
 + (GSXMLDocument*) documentWithVersion: (NSString*)version
 {
-  return AUTORELEASE([[self alloc] initWithVersion: version]);
+  void	*data = xmlNewDoc([version UTF8String]);
+
+  if (data == 0)
+    {
+      NSLog(@"Can't create GSXMLDocument object");
+      DESTROY(self);
+    }
+  return [self _initFrom: data ownsLib: YES];
 }
 
 + (void) initialize
@@ -174,7 +304,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 
 - (void) dealloc
 {
-  if ((native) && lib != NULL)
+  if (ownsLib == YES && lib != NULL)
     {
       xmlFreeDoc(lib);
     }
@@ -222,66 +352,8 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 }
 
 /**
- * <init />
- * Initialise a new document object using raw libxml data.
- * The resulting document does not 'own' the data, and will not free it.
- */
-- (id) initFrom: (void*)data
-{
-  self = [super init];
-  if (self != nil)
-    {
-      if (data == NULL)
-        {
-          NSLog(@"%@ - no data for initialization",
-	    NSStringFromClass([self class]));
-	  DESTROY(self);
-          return nil;
-        }
-      lib = data;
-      native = NO;
-    }
-  return self;
-}
-
-/**
- * Initialise a new document with the specified version.<br />
- * Generates the raw data and passes it to -initFrom: to
- * perform basic initialisation, then takes ownership of
- * of the underlying data so it will be freed when this
- * object is deallocated.
- */
-- (id) initWithVersion: (NSString*)version
-{
-  void	*data = xmlNewDoc([version UTF8String]);
-
-  if (data == 0)
-    {
-      NSLog(@"Can't create GSXMLDocument object");
-      DESTROY(self);
-    }
-  else if ((self = [self initFrom: data]) != nil)
-    {
-      native = YES;
-    }
-  return self;
-}
-
-- (BOOL) isEqual: (id)other
-{
-  if ([other isKindOfClass: [self class]] == YES
-    && [other lib] == lib)
-    {
-      return YES;
-    }
-  else
-    {
-      return NO;
-    }
-}
-
-/**
- * Returns a pointer to the raw libxml data used by this document.
+ * Returns a pointer to the raw libxml data used by this document.<br />
+ * Only for use by libxml experts!
  */
 - (void*) lib
 {
@@ -296,7 +368,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
  *
  * d = [GSXMLDocument documentWithVersion: @"1.0"];
  * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
- * [[d root] setProp: @"version" value: @"0.9"];
+ * [[d root] setObject: @"0.9" forKey: @"version"];
  * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
  * </example>
  */
@@ -304,7 +376,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 				name: (NSString*)name
 			     content: (NSString*)content
 {
-  return [GSXMLNode nodeFrom:
+  return [GSXMLNode _nodeFrom:
     xmlNewDocNode(lib, [ns lib], [name UTF8String],
     [content UTF8String])];
 }
@@ -314,7 +386,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
  */
 - (GSXMLNode*) root
 {
-  return [GSXMLNode nodeFrom: xmlDocGetRootElement(lib)];
+  return [GSXMLNode _nodeFrom: xmlDocGetRootElement(lib)];
 }
 
 /**
@@ -327,8 +399,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
   void  *nodeLib = [node lib];
   void  *oldRoot = xmlDocSetRootElement(lib, nodeLib);
 
-  [node _native: NO];
-  return oldRoot == NULL ? nil : [GSXMLNode nodeFrom: nodeLib];
+  return oldRoot == NULL ? nil : [GSXMLNode _nodeFrom: nodeLib];
 }
 
 /**
@@ -371,6 +442,43 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 
 @end
 
+@implementation GSXMLDocument (GSPrivate)
+/**
+ * Return document created using raw libxml data.
+ * The resulting document does not 'own' the data, and will not free it.
+ */
++ (GSXMLDocument*) _documentFrom: (void*)data
+{
+  return AUTORELEASE([[self alloc] _initFrom: data ownsLib: NO]);
+}
+/**
+ * <init />
+ * Initialise a new document object using raw libxml data.
+ * The resulting document does not 'own' the data, and will not free it.
+ */
+- (id) _initFrom: (void*)data ownsLib: (BOOL)f
+{
+  if (data == NULL)
+    {
+      NSLog(@"%@ - no data for initialization",
+	NSStringFromClass([self class]));
+      DESTROY(self);
+      return nil;
+    }
+  lib = data;
+  ownsLib = f;
+  return self;
+}
+@end
+
+/**
+ * A GSXMLNamespace object wraps part of the document structure of
+ * the underlying libxml library.  It does not own that underlying data.
+ * The underlying data is owned by a GSXMLParser object (or occasionally
+ * by a GSXMLDocument object), and will be destroyed when the parser is
+ * destroyed ... at which point any GSXMLNamespace owned by the parser
+ * becomes invalid, whether you have retained it or not.
+ */
 @implementation GSXMLNamespace : NSObject
 
 static NSMapTable	*nsNames = 0;
@@ -396,51 +504,6 @@ static NSMapTable	*nsNames = 0;
       NSMapInsert(nsNames,
 	(void*)XML_LOCAL_NAMESPACE, (void*)@"XML_LOCAL_NAMESPACE");
     }
-}
-
-/**
- * Create a namespace from raw libxml data
- */
-+ (GSXMLNamespace*) namespaceFrom: (void*)data
-{
-  return AUTORELEASE([[self alloc] initFrom: data]);
-}
-
-/**
- * Creates a new Namespace.<br />
- * This method will refuse to create a namespace
- * with the same prefix as an existing one present
- * in this node.
- * <example>
- *  ....
- *  GSXMLNamespace *ns1, *ns2;
- *  GSXMLNode *node1, *node2;
- *  NSString *prefix = @"mac-os-property";
- *  NSString *href   = @"http://www.gnustep.org/some/location";
- *
- *  ns = [GSXMLNamespace namespaceWithNode: nil
- *                                    href: href
- *                                  prefix: prefix];
- *  node1 = [GSXMLNode nodeWithNamespace: ns name: @"node1"];
- *
- *  node2 = [GSXMLNode nodeWithNamespace: nil name: @"node2"];
- *  ns2 = [GSXMLNamespace namespaceWithNode: node2
- *                                     href: href
- *                                   prefix: prefix];
- *
- *  Result:
- *
- *  node1   &lt;mac-os-property:node1/&gt;
- *  node2   &lt;node2 xmlns="mac-os-property"/&gt;
- *  </example>
- */
-+ (GSXMLNamespace*) namespaceWithNode: (GSXMLNode*)node
-				 href: (NSString*)href
-			       prefix: (NSString*)prefix
-{
-  return AUTORELEASE([[self alloc] initWithNode: node
-					   href: href
-				 	 prefix: prefix]);
 }
 
 /**
@@ -474,16 +537,6 @@ static NSMapTable	*nsNames = 0;
   return RETAIN(self);
 }
 
-- (void) dealloc
-{
-  if (native == YES && lib != NULL)
-    {
-      xmlFreeNs(lib);
-      lib = NULL;
-    }
-  [super dealloc];
-}
-
 - (unsigned) hash
 {
   return (unsigned)lib;
@@ -504,69 +557,6 @@ static NSMapTable	*nsNames = 0;
   return nil;
 }
 
-/**
- * Initialise a new namespace object using raw libxml data.
- * The resulting namespace does not 'own' the data, and will not free it.
- */
-- (id) initFrom: (void*)data
-{
-  self = [super init];
-  if (self != nil)
-    {
-      if (data == NULL)
-        {
-          NSLog(@"%@ - no data for initialization",
-	    NSStringFromClass([self class]));
-	  DESTROY(self);
-          return nil;
-        }
-      lib = data;
-      native = NO;
-    }
-  return self;
-}
-
-/**
- * Creation of a new Namespace. This function will refuse to create
- * a namespace with a similar prefix than an existing one present on
- * this node.
- */
-- (id) initWithNode: (GSXMLNode*)node
-	       href: (NSString*)href
-	     prefix: (NSString*)prefix
-{
-  void	*data;
-
-  if (node != nil)
-    {
-      data = xmlNewNs((xmlNodePtr)[node lib], [href UTF8String],
-	[prefix UTF8String]);
-      if (data == NULL)
-        {
-          NSLog(@"Can't create GSXMLNamespace object");
-	  RELEASE(self);
-          return nil;
-        }
-      self = [self initFrom: data];
-    }
-  else
-    {
-      data = xmlNewNs(NULL, [href UTF8String], [prefix UTF8String]);
-      if (data == NULL)
-        {
-          NSLog(@"Can't create GSXMLNamespace object");
-	  RELEASE(self);
-          return nil;
-        }
-      self = [self initFrom: data];
-      if (self != nil)
-	{
-	  native = YES;
-	}
-    }
-  return self;
-}
-
 - (BOOL) isEqual: (id)other
 {
   if ([other isKindOfClass: [self class]] == YES && [other lib] == lib)
@@ -576,7 +566,8 @@ static NSMapTable	*nsNames = 0;
 }
 
 /**
- * return the raw libxml data.
+ * Returns a pointer to the raw libxml data used by this document.<br />
+ * Only for use by libxml experts!
  */
 - (void*) lib
 {
@@ -590,7 +581,7 @@ static NSMapTable	*nsNames = 0;
 {
   if (((xmlNsPtr)(lib))->next != NULL)
     {
-      return [GSXMLNamespace namespaceFrom: ((xmlNsPtr)(lib))->next];
+      return [GSXMLNamespace _namespaceFrom: ((xmlNsPtr)(lib))->next];
     }
   else
     {
@@ -632,13 +623,65 @@ static NSMapTable	*nsNames = 0;
 
 
 @implementation GSXMLNamespace (GSPrivate)
-- (void) _native: (BOOL)value
+/**
+ * Create a namespace from raw libxml data
+ */
++ (GSXMLNamespace*) _namespaceFrom: (void*)data
 {
-  /*NSAssert(native != value, NSInternalInconsistencyException);*/
-  native = value;
+  return AUTORELEASE([[self alloc] _initFrom: data]);
 }
+
+/**
+ * Initialise a new namespace object using raw libxml data.
+ * The resulting namespace does not 'own' the data, and will not free it.
+ */
+- (id) _initFrom: (void*)data
+{
+  if (data == NULL)
+    {
+      NSLog(@"%@ - no data for initialization",
+	NSStringFromClass([self class]));
+      DESTROY(self);
+      return nil;
+    }
+  lib = data;
+  return self;
+}
+
+/**
+ * Creation of a new Namespace. This function will refuse to create
+ * a namespace with a similar prefix than an existing one present on
+ * this node.
+ */
+- (id) _initWithNode: (GSXMLNode*)node
+		href: (NSString*)href
+	      prefix: (NSString*)prefix
+{
+  void	*data;
+
+  NSCAssert(node != nil, @"No Node for namespace");
+  data = xmlNewNs((xmlNodePtr)[node lib], [href UTF8String],
+    [prefix UTF8String]);
+  if (data == NULL)
+    {
+      NSLog(@"Can't create GSXMLNamespace object");
+      RELEASE(self);
+      return nil;
+    }
+  self = [self _initFrom: data];
+  return self;
+}
+
 @end
 
+/**
+ * A GSXMLNode object wraps part of the document structure of the
+ * underlying libxml library.  It does not own that underlying data.
+ * The underlying data is owned by a GSXMLParser object (or occasionally
+ * by a GSXMLDocument object), and will be destroyed when the parser is
+ * destroyed ... at which point any GSXMLNode owned by the parser
+ * becomes invalid, whether you have retained it or not.
+ */
 @implementation GSXMLNode: NSObject
 
 static NSMapTable	*nodeNames = 0;
@@ -698,37 +741,6 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
-/**
- * Create node from raw libxml data.
- */
-+ (GSXMLNode*) nodeFrom: (void*)data
-{
-  return AUTORELEASE([[self alloc] initFrom: data]);
-}
-
-/**
- * Creation of a new Node. This function will refuse to create a Node
- * with a similar prefix than an existing one present on this node.
- * <example>
- *    ...
- *    GSXMLNamespace *ns1;
- *    GSXMLNode *node1, *node2;
- *    NSString *prefix = @"mac-os-property";
- *    NSString *href   = @"http://www.gnustep.org/some/location";
- *
- *    ns = [GSXMLNamespace namespaceWithNode: nil
- *                                      href: href
- *                                    prefix: prefix];
- *    node1 = [GSXMLNode nodeWithNamespace: ns name: @"node1"];
- *    node2 = [GSXMLNode nodeWithNamespace: nil name: @"node2"];
- *    ...
- * </example>
- */
-+ (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
-{
-  return AUTORELEASE([[self alloc] initWithNamespace: ns name: name]);
-}
-
 + (int) typeFromDescription: (NSString*)desc
 {
   NSMapEnumerator	enumerator;
@@ -747,59 +759,36 @@ static NSMapTable	*nodeNames = 0;
 }
 
 /**
- * Return the first child element of this node.  If you wish to step
- * through all children of the node (including non-element nodes)
- * you should use the -children method instead.
+ * <p>
+ *   Return attributes and values as a dictionary
+ * </p>
  */
-- (GSXMLNode*) childElement
+- (NSDictionary*) attributes
 {
-  xmlNodePtr	ptr = ((xmlNodePtr)lib)->children;
+  xmlAttrPtr		prop;
+  NSMutableDictionary	*d = [NSMutableDictionary dictionary];
 
-  while (ptr != NULL)
+  prop = ((xmlNodePtr)(lib))->properties;
+
+  while (prop != NULL)
     {
-      if (ptr->type == XML_ELEMENT_NODE)
+      const void	*name = prop->name;
+      NSString		*key = UTF8Str(name);
+
+      if (prop->children != NULL)
 	{
-	  return [GSXMLNode nodeFrom: ptr];
-	}
-      ptr = ptr->next;
-    }
-  return nil;
-}
+	   const void	*content = prop->children->content;
 
-/**
- * Return the first child node of this node.
- * <example>
- *    - (GSXMLNode*) elementRecursive: (GSXMLNode*)node
- *    {
- *      while (node != nil)
- *        {
- *          if ([node type] == XML_ELEMENT_NODE)
- *            {
- *              return node;
- *            }
- *          if ([node children] != nil)
- *            {
- *              node = [self elementRecursive: [node children]];
- *            }
- *          else
- *            {
- *              node = [node next];
- *            }
- *        }
- *      return node;
- *    }
- *  </example>
- */
-- (GSXMLNode*) children
-{
-  if (((xmlNodePtr)(lib))->children != NULL)
-    {
-      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->children];
-    }
-  else
-    {
-      return nil;
-    }
+	   [d setObject: UTF8Str(content) forKey: key];
+	}
+      else
+	{
+	   [d setObject: @"" forKey: key];
+	}
+      prop = prop->next;
+  }
+
+  return d;
 }
 
 - (id) copyWithZone: (NSZone*)z
@@ -822,23 +811,86 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
-- (void) dealloc
-{
-  if (native == YES && lib != NULL)
-    {
-      xmlFreeNode(lib);
-    }
-  [super dealloc];
-}
-
 /**
- * Return the document which owns this node.
+ * Return the document in which this node exists.
  */
-- (GSXMLDocument*) doc
+- (GSXMLDocument*) document
 {
   if (((xmlNodePtr)(lib))->doc != NULL)
     {
-      return [GSXMLDocument documentFrom: ((xmlNodePtr)(lib))->doc];
+      return [GSXMLDocument _documentFrom: ((xmlNodePtr)(lib))->doc];
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+/**
+ * Return the first attribute in this node.
+ */
+- (GSXMLAttribute*) firstAttribute
+{
+  if (((xmlNodePtr)(lib))->properties != NULL)
+    {
+      return AUTORELEASE([[GSXMLAttribute alloc]
+        _initFrom: ((xmlNodePtr)(lib))->properties]);
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+/**
+ * Return the first child element of this node.  If you wish to step
+ * through all children of the node (including non-element nodes)
+ * you should use the -firstChild method instead.
+ */
+- (GSXMLNode*) firstChildElement
+{
+  xmlNodePtr	ptr = ((xmlNodePtr)lib)->children;
+
+  while (ptr != NULL)
+    {
+      if (ptr->type == XML_ELEMENT_NODE)
+	{
+	  return [GSXMLNode _nodeFrom: ptr];
+	}
+      ptr = ptr->next;
+    }
+  return nil;
+}
+
+/**
+ * Return the first child node of this node.
+ * <example>
+ *    - (GSXMLNode*) elementRecursive: (GSXMLNode*)node
+ *    {
+ *      while (node != nil)
+ *        {
+ *          if ([node type] == XML_ELEMENT_NODE)
+ *            {
+ *              return node;
+ *            }
+ *          if ([node firstChild] != nil)
+ *            {
+ *              node = [self elementRecursive: [node firstChild]];
+ *            }
+ *          else
+ *            {
+ *              node = [node next];
+ *            }
+ *        }
+ *      return node;
+ *    }
+ *  </example>
+ */
+- (GSXMLNode*) firstChild
+{
+  if (((xmlNodePtr)(lib))->children != NULL)
+    {
+      return [GSXMLNode _nodeFrom: ((xmlNodePtr)(lib))->children];
     }
   else
     {
@@ -851,53 +903,11 @@ static NSMapTable	*nodeNames = 0;
   return (unsigned)lib;
 }
 
-/**
- * Initialise from raw libxml data
- */
-- (id) initFrom: (void*)data
+- (id) init
 {
-  self = [super init];
-  if (self != nil)
-    {
-      if (data == NULL)
-        {
-          NSLog(@"%@ - no data for initialization",
-	    NSStringFromClass([self class]));
-	  DESTROY(self);
-          return nil;
-        }
-      lib = data;
-      native = NO;
-    }
-  return self;
-}
-
-/**
- * initialise node
- */
-- (id) initWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
-{
-  self = [super init];
-  if (self != nil)
-    {
-      if (ns != nil)
-        {
-          [ns _native: NO];
-          lib = xmlNewNode((xmlNsPtr)[ns lib], [name UTF8String]);
-        }
-      else
-        {
-          lib = xmlNewNode(NULL, [name UTF8String]);
-        }
-      if (lib == NULL)
-        {
-          NSLog(@"Can't create GSXMLNode object");
-          return nil;
-        }
-
-      native = YES;
-    }
-  return self;
+  NSLog(@"GSXMLNode: calling -init is not legal");
+  RELEASE(self);
+  return nil;
 }
 
 - (BOOL) isEqual: (id)other
@@ -914,11 +924,25 @@ static NSMapTable	*nodeNames = 0;
 }
 
 /**
- * Return raw libxml data
+ * Returns a pointer to the raw libxml data used by this document.<br />
+ * Only for use by libxml experts!
  */
 - (void*) lib
 {
   return lib;
+}
+
+/**
+ * Create and return an attribute (unless the named attribute already exists,
+ * in which case we update them value of the existing attribute and return it.
+ */
+- (GSXMLAttribute*) makeAttributeWithName: (NSString*)name
+				    value: (NSString*)value
+{
+  void	*l;
+
+  l = xmlNewProp((xmlNodePtr)[self lib], [name cString], [value cString]);
+  return AUTORELEASE([[GSXMLAttribute alloc] _initFrom: l]);
 }
 
 /**
@@ -939,7 +963,7 @@ static NSMapTable	*nodeNames = 0;
  * [d setRoot: [d makeNodeWithNamespace: nil
  *                                 name: @"plist"
  *                              content: nil]];
- * [[d root] setProp: @"version" value: @"0.9"];
+ * [[d root] setObject: @"0.9" forKey: @"version"];
  * n1 = [[d root] makeChildWithNamespace: nil
  *                                  name: @"dict"
  *                               content: nil];
@@ -955,7 +979,7 @@ static NSMapTable	*nodeNames = 0;
 				 name: (NSString*)name
 			      content: (NSString*)content
 {
-  return [GSXMLNode nodeFrom:
+  return [GSXMLNode _nodeFrom:
     xmlNewTextChild(lib, [ns lib], [name UTF8String], [content UTF8String])];
 }
 
@@ -966,14 +990,14 @@ static NSMapTable	*nodeNames = 0;
  * d = [GSXMLDocument documentWithVersion: @"1.0"];
  *
  * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
- * [[d root] setProp: @"version" value: @"0.9"];
+ * [[d root] setObject: @"0.9" forKey: @"version"];
  * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
  * [n1 makeText: @" this is a text "];
  * </example>
  */
 - (GSXMLNode*) makeText: (NSString*)content
 {
-  return [GSXMLNode nodeFrom: xmlAddChild((xmlNodePtr)lib,
+  return [GSXMLNode _nodeFrom: xmlAddChild((xmlNodePtr)lib,
     xmlNewText([content UTF8String]))];
 }
 
@@ -984,15 +1008,26 @@ static NSMapTable	*nodeNames = 0;
  * d = [GSXMLDocument documentWithVersion: @"1.0"];
  *
  * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
- * [[d root] setProp: @"version" value: @"0.9"];
+ * [[d root] setObject: @"0.9" forKey: @"version"];
  * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
  * [n1 makeComment: @" this is a comment "];
  * </example>
  */
 - (GSXMLNode*) makeComment: (NSString*)content
 {
-  return [GSXMLNode nodeFrom: xmlAddChild((xmlNodePtr)lib,
+  return [GSXMLNode _nodeFrom: xmlAddChild((xmlNodePtr)lib,
     xmlNewComment([content UTF8String]))];
+}
+
+/**
+ * Create a namespace attached to this node.
+ */
+- (GSXMLNamespace*) makeNamespaceHref: (NSString*)href
+			       prefix: (NSString*)prefix
+{
+  return AUTORELEASE([[GSXMLNamespace alloc] _initWithNode: self
+						      href: href
+						    prefix: prefix]);
 }
 
 /**
@@ -1002,7 +1037,7 @@ static NSMapTable	*nodeNames = 0;
  * d = [GSXMLDocument documentWithVersion: @"1.0"];
  *
  * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
- * [[d root] setProp: @"version" value: @"0.9"];
+ * [[d root] setObject: @"0.9" forKey: @"version"];
  * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
  * [n1 makeComment: @" this is a comment "];
  * [n1 makePI: @"pi1" content: @"this is a process instruction"];
@@ -1010,7 +1045,7 @@ static NSMapTable	*nodeNames = 0;
  */
 - (GSXMLNode*) makePI: (NSString*)name content: (NSString*)content
 {
-  return [GSXMLNode nodeFrom:
+  return [GSXMLNode _nodeFrom:
     xmlAddChild((xmlNodePtr)lib, xmlNewPI([name UTF8String],
     [content UTF8String]))];
 }
@@ -1040,7 +1075,7 @@ static NSMapTable	*nodeNames = 0;
 {
   if (((xmlNodePtr)(lib))->next != NULL)
     {
-      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->next];
+      return [GSXMLNode _nodeFrom: ((xmlNodePtr)(lib))->next];
     }
   else
     {
@@ -1062,7 +1097,7 @@ static NSMapTable	*nodeNames = 0;
       ptr = ptr->next;
       if (ptr->type == XML_ELEMENT_NODE)
 	{
-	  return [GSXMLNode nodeFrom: ptr];
+	  return [GSXMLNode _nodeFrom: ptr];
 	}
     }
   return nil;
@@ -1071,11 +1106,11 @@ static NSMapTable	*nodeNames = 0;
 /**
  * Return the namespace of the node.
  */
-- (GSXMLNamespace*) ns
+- (GSXMLNamespace*) namespace
 {
   if (lib != NULL && ((xmlNodePtr)(lib))->ns != NULL)
     {
-      return [GSXMLNamespace namespaceFrom: ((xmlNodePtr)(lib))->ns];
+      return [GSXMLNamespace _namespaceFrom: ((xmlNodePtr)(lib))->ns];
     }
   else
     {
@@ -1086,16 +1121,46 @@ static NSMapTable	*nodeNames = 0;
 /**
  * Return namespace definitions for the node
  */
-- (GSXMLNamespace*) nsDef
+- (GSXMLNamespace*) namespaceDefinitions
 {
   if (lib != NULL && ((xmlNodePtr)lib)->nsDef != NULL)
     {
-      return [GSXMLNamespace namespaceFrom: ((xmlNodePtr)lib)->nsDef];
+      return [GSXMLNamespace _namespaceFrom: ((xmlNodePtr)lib)->nsDef];
     }
   else
     {
       return nil;
     }
+}
+
+/**
+ * Return the attribute value for the specified key.
+ */
+- (NSString*) objectForKey: (NSString*)key
+{
+  NSString	*value = nil;
+  xmlAttrPtr	prop;
+
+  prop = ((xmlNodePtr)(lib))->properties;
+  while (prop != NULL)
+    {
+      const void	*name = prop->name;
+      NSString		*n = UTF8Str(name);
+
+      if ([key isEqualToString: n] == YES)
+        {
+	  if (prop->children != NULL)
+	    {
+	       const void	*content = prop->children->content;
+
+	       value = UTF8Str(content);
+	    }
+	  break;
+	}
+      prop = prop->next;
+  }
+
+  return value;
 }
 
 /**
@@ -1105,7 +1170,7 @@ static NSMapTable	*nodeNames = 0;
 {
   if (((xmlNodePtr)(lib))->parent != NULL)
     {
-      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->parent];
+      return [GSXMLNode _nodeFrom: ((xmlNodePtr)(lib))->parent];
     }
   else
     {
@@ -1116,11 +1181,11 @@ static NSMapTable	*nodeNames = 0;
 /**
  * Return the previous node at this level.
  */
-- (GSXMLNode*) prev
+- (GSXMLNode*) previous
 {
   if (((xmlNodePtr)(lib))->prev != NULL)
     {
-      return [GSXMLNode nodeFrom: ((xmlNodePtr)(lib))->prev];
+      return [GSXMLNode _nodeFrom: ((xmlNodePtr)(lib))->prev];
     }
   else
     {
@@ -1128,61 +1193,6 @@ static NSMapTable	*nodeNames = 0;
     }
 }
 
-/**
- * Return the properties of the node.
- * <example>
- *
- *   GSXMLNode *n1;
- *   GSXMLAttribute *a;
- *
- *   n1 = [GSXMLNode nodeWithNamespace: nil name: nodeName];
- *   [n1 setProp: @"prop1" value: @"value1"];
- *   [n1 setProp: @"prop2" value: @"value2"];
- *   [n1 setProp: @"prop3" value: @"value3"];
- *
- *   a = [n1 properties];
- *   NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
- *   while ((a = [a next]) != nil)
- *     {
- *       NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
- *     }
- *
- *  </example>
- */
-- (GSXMLAttribute*) properties
-{
-  if (((xmlNodePtr)(lib))->properties != NULL)
-    {
-      return [GSXMLAttribute attributeFrom: ((xmlNodePtr)(lib))->properties];
-    }
-  else
-    {
-      return nil;
-    }
-}
-
-/**
- * Return attributes and values as a dictionary.
- * <example>
- *
- * GSXMLNode *n1;
- * NSMutableDictionary *prop;
- * NSEnumerator *e;
- * id key;
- *
- * prop = [n1 propertiesAsDictionary];
- * e = [prop keyEnumerator];
- * while ((key = [e nextObject]) != nil)
- *   {
- *     NSLog(@"property name - %@ value - %@", key,
- *     [prop objectForKey: key]);
- *   }
- * </example>
-*/
-- (NSMutableDictionary*) propertiesAsDictionary
-{
-  return [self propertiesAsDictionaryWithKeyTransformationSel: NULL];
-}
 
 /**
  * <p>
@@ -1233,16 +1243,14 @@ static NSMapTable	*nodeNames = 0;
 /**
  * Set (or reset) an attribute carried by a node.
  * <example>
- * id n1 = [GSXMLNode nodeWithNamespace: nil name: nodeName];
- * [n1 setProp: @"prop1" value: @"value1"];
- * [n1 setProp: @"prop2" value: @"value2"];
- * [n1 setProp: @"prop3" value: @"value3"];
+ *   [n1 setObject: @"prop1" forKey: @"name1"];
+ *   [n1 setObject: @"prop2" forKey: @"name2"];
+ *   [n1 setObject: @"prop3" forKey: @"name3"];
  * </example>
  */
-- (GSXMLAttribute*) setProp: (NSString*)name value: (NSString*)value
+- (void) setObject: (NSString*)value forKey: (NSString*)key
 {
-  return [GSXMLAttribute attributeFrom:
-    xmlSetProp(lib, [name UTF8String], [value UTF8String])];
+  xmlSetProp(lib, [key UTF8String], [value UTF8String]);
 }
 
 /**
@@ -1270,247 +1278,44 @@ static NSMapTable	*nodeNames = 0;
 @end
 
 @implementation GSXMLNode (GSPrivate)
-- (void) _native: (BOOL)value
-{
-  /*NSAssert(native != value, NSInternalInconsistencyException);*/
-  native = value;
-}
-@end
-
-
-
-@implementation GSXMLAttribute : GSXMLNode
-
-static NSMapTable	*attrNames = 0;
-
 /**
- * Create attribute from underlying libxml data ... you probably don't need
- * to use this yourself.
+ * Create node from raw libxml data.
  */
-+ (GSXMLAttribute*) attributeFrom: (void*)data
++ (GSXMLNode*) _nodeFrom: (void*)data
 {
-  return AUTORELEASE([[self alloc] initFrom: data]);
+  return AUTORELEASE([[self alloc] _initFrom: data]);
 }
-
 /**
- * Create a new property carried by a node.
+ * Initialise from raw libxml data
  */
-+ (GSXMLAttribute*) attributeWithNode: (GSXMLNode*)node
-				 name: (NSString*)name
-				value: (NSString*)value
+- (id) _initFrom: (void*)data
 {
-  return AUTORELEASE([[self alloc] initWithNode: node name: name value: value]);
-}
-
-/**
- * Return the string constant value for the attribute
- * type given.
- */
-+ (NSString*) descriptionFromType: (int)type
-{
-  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
-
-  return desc;
-}
-
-+ (void) initialize
-{
-  if (self == [GSXMLAttribute class])
+  if (data == NULL)
     {
-      if (cacheDone == NO)
-	setupCache();
-      attrNames = NSCreateMapTable(NSIntMapKeyCallBacks,
-	NSNonRetainedObjectMapValueCallBacks, 0);
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_CDATA, (void*)@"XML_ATTRIBUTE_CDATA");
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_ID, (void*)@"XML_ATTRIBUTE_ID");
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_IDREF, (void*)@"XML_ATTRIBUTE_IDREF");
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_IDREFS, (void*)@"XML_ATTRIBUTE_IDREFS");
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_ENTITY, (void*)@"XML_ATTRIBUTE_ENTITY");
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_ENTITIES, (void*)@"XML_ATTRIBUTE_ENTITIES");
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_NMTOKEN, (void*)@"XML_ATTRIBUTE_NMTOKEN");
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_NMTOKENS, (void*)@"XML_ATTRIBUTE_NMTOKENS");
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_ENUMERATION, (void*)@"XML_ATTRIBUTE_ENUMERATION");
-      NSMapInsert(attrNames,
-	(void*)XML_ATTRIBUTE_NOTATION, (void*)@"XML_ATTRIBUTE_NOTATION");
+      NSLog(@"%@ - no data for initialization",
+	NSStringFromClass([self class]));
+      DESTROY(self);
+      return nil;
     }
-}
+  lib = data;
 
+  return self;
+}
 /**
- * <p>
- *   Return the numeric constant value for the attribute
- *   type named.  This method is inefficient, so the returned
- *   value should be saved for re-use later.  The possible
- *   values are -
- * </p>
- * <list>
- *   <item>XML_ATTRIBUTE_CDATA</item>
- *   <item>XML_ATTRIBUTE_ID</item>
- *   <item>XML_ATTRIBUTE_IDREF	</item>
- *   <item>XML_ATTRIBUTE_IDREFS</item>
- *   <item>XML_ATTRIBUTE_ENTITY</item>
- *   <item>XML_ATTRIBUTE_ENTITIES</item>
- *   <item>XML_ATTRIBUTE_NMTOKEN</item>
- *   <item>XML_ATTRIBUTE_NMTOKENS</item>
- *   <item>XML_ATTRIBUTE_ENUMERATION</item>
- *   <item>XML_ATTRIBUTE_NOTATION</item>
- * </list>
+ * initialise node
  */
-+ (int) typeFromDescription: (NSString*)desc
+- (id) _initWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
 {
-  NSMapEnumerator	enumerator;
-  NSString		*val;
-  int			key;
-
-  enumerator = NSEnumerateMapTable(attrNames);
-  while (NSNextMapEnumeratorPair(&enumerator, (void**)&key, (void**)&val))
+  NSCAssert(ns != nil, @"No namespace for node");
+  lib = xmlNewNode((xmlNsPtr)[ns lib], [name UTF8String]);
+  if (lib == NULL)
     {
-      if ([desc isEqual: val] == YES)
-	{
-	  return key;
-	}
-    }
-  return -1;
-}
-
-- (id) copyWithZone: (NSZone*)z
-{
-  return RETAIN(self);
-}
-
-- (id) init
-{
-  NSLog(@"GSXMLNode: calling -init is not legal");
-  RELEASE(self);
-  return nil;
-}
-
-/**
- * Generates the raw data for an attribute node and calls -initFrom:
- * to initialise this instance.
- */
-- (id) initWithNode: (GSXMLNode*)node
-	       name: (NSString*)name
-	      value: (NSString*)value
-{
-  void	*data = (void*)xmlNewProp((xmlNodePtr)[node lib], [name UTF8String],
-      [value UTF8String]);
-
-  self = [self initFrom: data];
-  if (self != nil)
-    {
-      native = YES;
+      NSLog(@"Can't create GSXMLNode object");
+      return nil;
     }
   return self;
 }
-
-/**
- * Returns underlying raw data associated with this node.
- */
-- (void*) lib
-{
-  return lib;
-}
-
-/**
- * Return the attribute-name
- */
-- (NSString*) name
-{
-  return UTF8Str(((xmlAttrPtr)(lib))->name);
-}
-
-/**
- * Return next attribute.
- * <example>
- * id a = [node properties];
- * NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
- * while ((a = [a next]) != nil)
- *   {
- *     NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
- *   }
- * </example>
- */
-- (GSXMLAttribute*) next
-{
-  if (((xmlAttrPtr)(lib))->next != NULL)
-    {
-      return [GSXMLAttribute attributeFrom: ((xmlAttrPtr)(lib))->next];
-    }
-  else
-    {
-      return nil;
-    }
-}
-
-/**
- * Return the namespace of this attribute.
- */
-- (GSXMLNamespace*) ns
-{
-  return [GSXMLNamespace namespaceFrom: ((xmlAttrPtr)(lib))->ns];
-}
-
-/**
- * Return previous attribute.
- */
-- (GSXMLAttribute*) prev
-{
-  if (((xmlAttrPtr)(lib))->prev != NULL)
-    {
-      return [GSXMLAttribute attributeFrom: ((xmlAttrPtr)(lib))->prev];
-    }
-  else
-    {
-      return nil;
-    }
-}
-
-/**
- * Return the numeric type code for this attribute.
- */
-- (int) type
-{
-  return (int)((xmlAttrPtr)(lib))->atype;
-}
-
-/**
- * Return the string type code for this attribute.
- */
-- (NSString*) typeDescription
-{
-  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
-
-  if (desc == nil)
-    {
-      desc = @"Unknown attribute type";
-    }
-  return desc;
-}
-
-/**
- * Return a value of this attribute.
- */
-- (NSString*) value
-{
-  if (((xmlNodePtr)lib)->children != NULL
-    && ((xmlNodePtr)lib)->children->content != NULL)
-    {
-      return UTF8Str(((xmlNodePtr)(lib))->children->content);
-    }
-  return nil;
-}
-
 @end
-
 
 /**
  * <p>
@@ -1777,9 +1582,9 @@ static NSString	*endMarker = @"At end of incremental parse";
 /**
  * Return the document produced as a result of parsing data.
  */
-- (GSXMLDocument*) doc
+- (GSXMLDocument*) document
 {
-  return [GSXMLDocument documentFrom: ((xmlParserCtxtPtr)lib)->myDoc];
+  return [GSXMLDocument _documentFrom: ((xmlParserCtxtPtr)lib)->myDoc];
 }
 
 /**
@@ -2621,7 +2426,8 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 }
 
 /**
- * Return pointer to xmlSAXHandler structure.
+ * Returns a pointer to the raw libxml data used by this document.<br />
+ * Only for use by libxml experts!
  */
 - (void*) lib
 {
@@ -3010,6 +2816,25 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @implementation GSXMLDummy
 @end
 
+
+@implementation GSXMLNode (Deprecated)
+- (GSXMLNode*) childElement { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self firstChildElement]; }
+- (GSXMLNode*) children { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self firstChild]; }
+- (GSXMLDocument*) doc { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self document]; }
+- (GSXMLNamespace*) ns { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self namespace]; }
+- (GSXMLNamespace*) nsDefs { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self namespaceDefinitions]; }
+- (GSXMLNode*) prev { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self previous]; }
+- (NSMutableDictionary*) propertiesAsDictionary
+{
+static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); }
+  return [self propertiesAsDictionaryWithKeyTransformationSel: NULL];
+}
+
+@end
+@implementation GSXMLParser (Deprecated)
+- (GSXMLDocument*) doc { static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use of deprecated method ... [%@ -%@]", NSStringFromClass([self class]), NSStringFromSelector(_cmd)); } return [self document]; }
+@end
+
 #else
 
 #include	<Foundation/NSObjCRuntime.h>
@@ -3019,8 +2844,6 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  * Build dummy implementations of the classes if libxml is not available
  */
 @interface GSXMLDummy : NSObject
-@end
-@interface GSXMLAttribute : GSXMLDummy
 @end
 @interface GSXMLDocument : GSXMLDummy
 @end
@@ -3061,8 +2884,6 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   return nil;
 }
 @end
-@implementation GSXMLAttribute
-@end
 @implementation GSXMLDocument
 @end
 @implementation GSXMLNamespace
@@ -3074,4 +2895,6 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @implementation GSXMLParser
 @end
 #endif
+
+
 

@@ -1,4 +1,4 @@
-/* Interface for XML parsing classes
+/** Interface for XML parsing classes
 
    Copyright (C) 2000 Free Software Foundation, Inc.
 
@@ -25,6 +25,9 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+   AutogsdocSource: Additions/GSXML.m
+
 */
 
 #ifndef __GSXML_H__
@@ -46,17 +49,13 @@
 
 @interface GSXMLDocument : NSObject <NSCopying>
 {
-  void	*lib;            // pointer to xmllib pointer of xmlDoc struct
-  BOOL	native;
+  void	*lib;	// pointer to xmllib pointer of xmlDoc struct
+  BOOL	ownsLib;
 }
-+ (GSXMLDocument*) documentFrom: (void*)data;
 + (GSXMLDocument*) documentWithVersion: (NSString*)version;
 
 - (NSString*) description;
 - (NSString*) encoding;
-
-- (id) initFrom: (void*)data;
-- (id) initWithVersion: (NSString*)version;
 
 - (void*) lib;
 
@@ -79,21 +78,12 @@
 @interface GSXMLNamespace : NSObject <NSCopying>
 {
   void	*lib;          /* pointer to struct xmlNs in the gnome xmllib */
-  BOOL	native;
 }
 
 + (NSString*) descriptionFromType: (int)type;
-+ (GSXMLNamespace*) namespaceFrom: (void*)data;
-+ (GSXMLNamespace*) namespaceWithNode: (GSXMLNode*)node
-				 href: (NSString*)href
-			       prefix: (NSString*)prefix;
 + (int) typeFromDescription: (NSString*)desc;
 
 - (NSString*) href;
-- (id) initFrom: (void*)data;
-- (id) initWithNode: (GSXMLNode*)node
-	       href: (NSString*)href
-	     prefix: (NSString*)prefix;
 
 - (void*) lib;
 - (GSXMLNamespace*) next;
@@ -108,24 +98,25 @@
 @interface GSXMLNode : NSObject <NSCopying>
 {
   void  *lib;      /* pointer to struct xmlNode from libxml */
-  BOOL  native;
 }
 
 + (NSString*) descriptionFromType: (int)type;
-+ (GSXMLNode*) nodeFrom: (void*) data;
-+ (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
 + (int) typeFromDescription: (NSString*)desc;
 
-- (GSXMLNode*) childElement;
-- (GSXMLNode*) children;
+- (NSDictionary*) attributes;
 - (NSString*) content;
-- (GSXMLDocument*) doc;
-- (id) initFrom: (void*) data;
-- (id) initWithNamespace: (GSXMLNamespace*)ns name: (NSString*)name;
+- (GSXMLAttribute*) firstAttribute;
+- (GSXMLNode*) firstChild;
+- (GSXMLNode*) firstChildElement;
+- (GSXMLDocument*) document;
 - (void*) lib;
+- (GSXMLAttribute*) makeAttributeWithName: (NSString*)name
+				    value: (NSString*)value;
 - (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
 				 name: (NSString*)name
 			      content: (NSString*)content;
+- (GSXMLNamespace*) makeNamespaceHref: (NSString*)href
+			       prefix: (NSString*)prefix;
 - (GSXMLNode*) makeText: (NSString*)content;
 - (GSXMLNode*) makeComment: (NSString*)content;
 - (GSXMLNode*) makePI: (NSString*)name
@@ -133,47 +124,22 @@
 - (NSString*) name;
 - (GSXMLNode*) next;
 - (GSXMLNode*) nextElement;
-- (GSXMLNamespace*) ns;
-- (GSXMLNamespace*) nsDef;  /* namespace definitions on this node */
+- (GSXMLNamespace*) namespace;
+- (GSXMLNamespace*) namespaceDefinitions;
+- (NSString*) objectForKey: (NSString*)key;
 - (GSXMLNode*) parent;
-- (GSXMLNode*) prev;
-- (GSXMLAttribute*) properties;
-- (NSMutableDictionary*) propertiesAsDictionary;
+- (GSXMLNode*) previous;
 - (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:
   (SEL)keyTransformSel;
-- (GSXMLAttribute*) setProp: (NSString*)name
-		      value: (NSString*)value;
+- (void) setObject: (NSString*)value forKey:(NSString*)key;
 - (int) type;
 - (NSString*) typeDescription;
 
 @end
 
-/* Attribute */
-
-@interface GSXMLAttribute : GSXMLNode <NSCopying>
-{
-}
-
-+ (GSXMLAttribute*) attributeFrom: (void*)data;
-+ (GSXMLAttribute*) attributeWithNode: (GSXMLNode*)node
-				 name: (NSString*)name
-				value: (NSString*)value;
-+ (NSString*) descriptionFromType: (int)type;
-+ (int) typeFromDescription: (NSString*)desc;
-
-- (id) initWithNode: (GSXMLNode*)node
-	       name: (NSString*)name
-	      value: (NSString*)value;
-
-- (NSString*) name;
-- (GSXMLNamespace*) ns;
-- (GSXMLAttribute*) next;
-- (GSXMLAttribute*) prev;
-- (int) type;
-- (NSString*) typeDescription;
+@interface GSXMLAttribute : GSXMLNode
 - (NSString*) value;
 @end
-
 
 @interface GSXMLParser : NSObject
 {
@@ -195,7 +161,7 @@
 			     withData: (NSData*)data;
 + (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding;
 
-- (GSXMLDocument*) doc;
+- (GSXMLDocument*) document;
 - (BOOL) doValidityChecking: (BOOL)yesno;
 - (int) errNo;
 - (BOOL) getWarnings: (BOOL)yesno;

@@ -439,7 +439,7 @@ static NSMutableSet	*textNodes = nil;
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf
 {
   CREATE_AUTORELEASE_POOL(arp);
-  GSXMLNode	*children = [node children];
+  GSXMLNode	*children = [node firstChild];
 
   if ([node type] == XML_ELEMENT_NODE)
     {
@@ -703,7 +703,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"<dt><b>Declared in:</b></dt>\n"];
 	  [buf appendString: indent];
 	  [buf appendString: @"<dd>"];
-	  [self outputText: [node children] to: buf];
+	  [self outputText: [node firstChild] to: buf];
 	  [buf appendString: @"</dd>\n"];
 	  [self decIndent];
 	  [buf appendString: indent];
@@ -744,7 +744,7 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      [buf appendFormat: @"<a href=\"mailto:%@\"><code>", ename];
 	    }
-	  [self outputText: [node children] to: buf];
+	  [self outputText: [node firstChild] to: buf];
 	  if (ename == nil)
 	    {
 	      [buf appendString: @"</code>"];
@@ -818,7 +818,7 @@ static NSMutableSet	*textNodes = nil;
 		{
 		  if ([[tmp name] isEqual: @"arg"] == YES)
 		    {
-		      GSXMLNode		*t = [tmp children];
+		      GSXMLNode		*t = [tmp firstChild];
 		      NSString		*s;
 
 		      if (hadArg == YES)
@@ -934,7 +934,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: indent];
 	  [buf appendString: @"<title>"];
 	  [self incIndent];
-	  [self outputText: [children children] to: buf];
+	  [self outputText: [children firstChild] to: buf];
 	  [self decIndent];
 	  [buf appendString: @"</title>\n"];
 	  [self decIndent];
@@ -964,7 +964,7 @@ static NSMutableSet	*textNodes = nil;
 
 	  [buf appendString: indent];
 	  [buf appendFormat: @"<h1><a name=\"title$%@\">", base];
-	  [self outputText: [children children] to: buf];
+	  [self outputText: [children firstChild] to: buf];
 	  [buf appendString: @"</a></h1>\n"];
 
 	  [buf appendString: indent];
@@ -983,7 +983,7 @@ static NSMutableSet	*textNodes = nil;
 
 	      children = [children nextElement];
 
-	      tmp = [author childElement];
+	      tmp = [author firstChildElement];
 	      if ([[tmp name] isEqual: @"email"] == YES)
 		{
 		  email = tmp;
@@ -1045,7 +1045,7 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      [buf appendString: indent];
 	      [buf appendString: @"<p><b>Version:</b> "];
-	      [self outputText: [children children] to: buf];
+	      [self outputText: [children firstChild] to: buf];
 	      [buf appendString: @"</p>\n"];
 	      children = [children nextElement];
 	    }
@@ -1053,13 +1053,13 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      [buf appendString: indent];
 	      [buf appendString: @"<p><b>Date:</b> "];
-	      [self outputText: [children children] to: buf];
+	      [self outputText: [children firstChild] to: buf];
 	      [buf appendString: @"</p>\n"];
 	      children = [children nextElement];
 	    }
 	  if ([[children name] isEqual: @"abstract"] == YES)
 	    {
-	      GSXMLNode	*tmp = [children children];
+	      GSXMLNode	*tmp = [children firstChild];
 
 	      [buf appendString: indent];
 	      [buf appendString: @"<blockquote>\n"];
@@ -1077,7 +1077,7 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      [buf appendString: indent];
 	      [buf appendString: @"<p><b>Copyright:</b> (C) "];
-	      [self outputText: [children children] to: buf];
+	      [self outputText: [children firstChild] to: buf];
 	      [buf appendString: @"</p>\n"];
 	      children = [children nextElement];
 	    }
@@ -1198,7 +1198,7 @@ static NSMutableSet	*textNodes = nil;
 		{
 		  if ([[tmp name] isEqual: @"sel"] == YES)
 		    {
-		      GSXMLNode	*t = [tmp children];
+		      GSXMLNode	*t = [tmp firstChild];
 
 		      str = [str stringByAppendingString: @"<b>"];
 		      while (t != nil)
@@ -1220,7 +1220,7 @@ static NSMutableSet	*textNodes = nil;
 		    }
 		  else if ([[tmp name] isEqual: @"arg"] == YES)
 		    {
-		      GSXMLNode	*t = [tmp children];
+		      GSXMLNode	*t = [tmp firstChild];
 		      NSString	*s;
 
 		      s = [[tmp propertiesAsDictionary] objectForKey: @"type"];
@@ -1325,7 +1325,7 @@ static NSMutableSet	*textNodes = nil;
 	{
 	  NSString	*type = [prop objectForKey: @"type"];
 	  NSString	*r = [prop objectForKey: @"id"];
-	  GSXMLNode	*tmp = [node children];
+	  GSXMLNode	*tmp = [node firstChild];
 	  NSString	*s;
 
 	  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
@@ -1401,7 +1401,7 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"standards"])
 	{
-	  GSXMLNode	*tmp = [node children];
+	  GSXMLNode	*tmp = [node firstChild];
 	  BOOL		first = YES;
 
 	  if (tmp != nil)
@@ -1635,7 +1635,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  [buf appendString: indent];
 	  [buf appendString: @"<p>\n"];
 	  [self incIndent];
-	  [self outputText: [node children] to: buf];
+	  [self outputText: [node firstChild] to: buf];
 	  [self decIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"</p>\n"];
@@ -1650,7 +1650,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       else if ([n isEqual: @"example"] == YES)
 	{
 	  [buf appendString: @"<pre>\n"];
-	  [self outputText: [node children] to: buf];
+	  [self outputText: [node firstChild] to: buf];
 	  [buf appendString: @"\n</pre>\n"];
 	  return [node nextElement];
 	}
@@ -1691,7 +1691,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 - (GSXMLNode*) outputList: (GSXMLNode*)node to: (NSMutableString*)buf
 {
   NSString	*name = [node name];
-  GSXMLNode	*children = [node childElement];
+  GSXMLNode	*children = [node firstChildElement];
 
   if ([name isEqual: @"list"] == YES)
     {
@@ -1700,7 +1700,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       [self incIndent];
       while (children != nil)
 	{
-	  GSXMLNode	*tmp = [children children];
+	  GSXMLNode	*tmp = [children firstChild];
 
 	  [buf appendString: indent];
 	  [buf appendString: @"<li>\n"];
@@ -1725,7 +1725,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       [self incIndent];
       while (children != nil)
 	{
-	  GSXMLNode	*tmp = [children children];
+	  GSXMLNode	*tmp = [children firstChild];
 
 	  [buf appendString: indent];
 	  [buf appendString: @"<li>\n"];
@@ -1754,13 +1754,13 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 
 	  [buf appendString: indent];
 	  [buf appendString: @"<dt>"];
-	  [self outputText: [children children] to: buf];
+	  [self outputText: [children firstChild] to: buf];
 	  [buf appendString: @"</dt>\n"];
 	  children = [children nextElement];
 	  [buf appendString: indent];
 	  [buf appendString: @"<dd>\n"];
 	  [self incIndent];
-	  tmp = [children children];
+	  tmp = [children firstChild];
 	  while (tmp != nil)
 	    {
 	      tmp = [self outputBlock: tmp to: buf inPara: NO];
@@ -1785,13 +1785,13 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 
 	  [buf appendString: indent];
 	  [buf appendString: @"<dt>"];
-	  [self outputText: [children children] to: buf];
+	  [self outputText: [children firstChild] to: buf];
 	  [buf appendString: @"</dt>\n"];
 	  children = [children nextElement];
 	  [buf appendString: indent];
 	  [buf appendString: @"<dd>\n"];
 	  [self incIndent];
-	  tmp = [children children];
+	  tmp = [children firstChild];
 	  while (tmp != nil)
 	    {
 	      tmp = [self outputBlock: tmp to: buf inPara: NO];
@@ -1858,7 +1858,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
   GSXMLNode	*t;
   NSArray	*a;
 
-  node = [node childElement];
+  node = [node firstChildElement];
   if (node != nil && [[node name] isEqual: @"declared"] == YES)
     {
       [self outputNode: node to: buf];
@@ -1877,7 +1877,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       [buf appendString: @"<dt><b>Conforms to:</b></dt>\n"];
       while (node != nil && [[node name] isEqual: @"conform"] == YES)
 	{
-	  NSString	*text = [[node children] content];
+	  NSString	*text = [[node firstChild] content];
 
 	  [buf appendString: indent];
 	  [buf appendString: @"<dd>"];
@@ -1898,9 +1898,9 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
     {
       t = [t nextElement];
     }
-  if (t != nil && [t children] != nil)
+  if (t != nil && [t firstChild] != nil)
     {
-      t = [t children];
+      t = [t firstChild];
       [buf appendString: indent];
       [buf appendString: @"<blockquote>\n"];
       [self incIndent];
