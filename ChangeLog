@@ -2,6 +2,8 @@
 
 	* Source/NSString.m: adocument property list stuff.
 	* Source/NSUserDefaults.m: set integers, floats and bools as NSNumber
+	Bugfix ([-setVolatileDomain:forName:]) was checking wrong list of
+	domains.  Tidied.
 
 2002-11-10  Richard Frith-Macdonald <rfm@gnu.org>
 

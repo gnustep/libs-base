@@ -575,7 +575,6 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   [[self standardUserDefaults]
     setPersistentDomain: globDict forName: NSGlobalDomain];
   RELEASE(globDict);
-  return;
 }
 
 /*************************************************************************
@@ -988,7 +987,6 @@ static NSString	*pathForUser(NSString *user)
       [self __changePersistentDomain: processName];
     }
   [_lock unlock];
-  return;
 }
 
 /**
@@ -1001,7 +999,6 @@ static NSString	*pathForUser(NSString *user)
   NSNumber	*n = [NSNumber numberWithBool: value];
 
   [self setObject: n forKey: defaultName];
-  return;
 }
 
 /**
@@ -1013,7 +1010,6 @@ static NSString	*pathForUser(NSString *user)
   NSNumber	*n = [NSNumber numberWithFloat: value];
 
   [self setObject: n forKey: defaultName];
-  return;
 }
 
 /**
@@ -1025,7 +1021,6 @@ static NSString	*pathForUser(NSString *user)
   NSNumber	*n = [NSNumber numberWithInt: value];
 
   [self setObject: n forKey: defaultName];
-  return;
 }
 
 static BOOL isPlistObject(id o)
@@ -1173,6 +1168,12 @@ static BOOL isPlistObject(id o)
 /*************************************************************************
  *** Returning the Search List
  *************************************************************************/
+
+/**
+ * Returns an array listing the domains searched in order to look up
+ * a value in the defaults system.  The order of the names in the
+ * array is the order in which the domains are searched.
+ */
 - (NSArray*) searchList
 {
   NSArray	*copy;
@@ -1183,6 +1184,12 @@ static BOOL isPlistObject(id o)
   return AUTORELEASE(copy);
 }
 
+/**
+ * Sets the list of the domains searched in order to look up
+ * a value in the defaults system.  The order of the names in the
+ * array is the order in which the domains are searched.<br />
+ * On lookup, the first match is used.
+ */
 - (void) setSearchList: (NSArray*)newList
 {
   [_lock lock];
@@ -1234,7 +1241,6 @@ static BOOL isPlistObject(id o)
       [self __changePersistentDomain: domainName];
     }
   [_lock unlock];
-  return;
 }
 
 /**
@@ -1247,23 +1253,12 @@ static BOOL isPlistObject(id o)
 - (void) setPersistentDomain: (NSDictionary*)domain
 		     forName: (NSString*)domainName
 {
-  id	dict;
-
   [_lock lock];
-  dict = [_tempDomains objectForKey: domainName];
-  if (dict)
-    {
-      [_lock unlock];
-      [NSException raise: NSInvalidArgumentException
-		   format: @"Persistant domain %@ already exists", domainName];
-      return;
-    }
   domain = [domain mutableCopy];
   [_persDomains setObject: domain forKey: domainName];
   RELEASE(domain);
   [self __changePersistentDomain: domainName];
   [_lock unlock];
-  return;
 }
 
 /**
@@ -1484,9 +1479,10 @@ static BOOL isPlistObject(id o)
 }
 
 
-/*************************************************************************
- *** Maintaining Volatile Domains
- *************************************************************************/
+/**
+ * Removes the volatile domain specified by domainName from the
+ * user defaults.
+ */
 - (void) removeVolatileDomainForName: (NSString*)domainName
 {
   [_lock lock];
@@ -1495,28 +1491,38 @@ static BOOL isPlistObject(id o)
   [_lock unlock];
 }
 
+/**
+ * Sets the volatile-domain specified by domainname to
+ * domain ... a dictionary containing keys and defaults values.
+ * <br />Raises an NSInvalidArgumentException if the named
+ * volatile-domain already exists.
+ */
 - (void) setVolatileDomain: (NSDictionary*)domain
 		   forName: (NSString*)domainName
 {
   id	dict;
 
   [_lock lock];
-  dict = [_persDomains objectForKey: domainName];
+  dict = [_tempDomains objectForKey: domainName];
   if (dict)
     {
       [_lock unlock];
       [NSException raise: NSInvalidArgumentException
 		  format: @"Volatile domain %@ already exists", domainName];
-      return;
     }
-  DESTROY(_dictionaryRep);
-  domain = [domain mutableCopy];
-  [_tempDomains setObject: domain forKey: domainName];
-  RELEASE(domain);
-  [_lock unlock];
-  return;
+  else
+    {
+      DESTROY(_dictionaryRep);
+      domain = [domain mutableCopy];
+      [_tempDomains setObject: domain forKey: domainName];
+      RELEASE(domain);
+      [_lock unlock];
+    }
 }
 
+/**
+ * Returns the volatile domain specified by domainName.
+ */
 - (NSDictionary*) volatileDomainForName: (NSString*)domainName
 {
   NSDictionary	*copy;
@@ -1642,7 +1648,6 @@ static BOOL isPlistObject(id o)
   [_searchList addObject: NSRegistrationDomain];
 
   [_lock unlock];
-  return;
 }
 
 - (NSDictionary*) __createArgumentDictionary
@@ -1752,7 +1757,6 @@ static BOOL isPlistObject(id o)
       [_changedDomains addObject: domainName];
     }
   [_lock unlock];
-  return;
 }
 
 - (void) __timerTicked: (NSTimer*)tim
