@@ -426,9 +426,7 @@ static NSMutableDictionary	*fileCache = nil;
 
 - (BOOL) writeData: (NSData*)data
 {
-  /* FIXME */
-  [self notImplemented: _cmd];
-  return NO;
+  return [data writeToFile: _path atomically: YES]; 
 }
 
 - (BOOL) writeProperty: (id)propertyValue
