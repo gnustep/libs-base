@@ -104,7 +104,7 @@
 
 @end
 
-
+#ifndef	NO_GNUSTEP
 @interface NSCalendarDate (GregorianDate)
 
 - (int) lastDayOfGregorianMonth: (int)month year: (int)year;
@@ -116,6 +116,15 @@
 
 @end
 
+void
+GSBreakTime(NSTimeInterval when, int *year, int *month, int *day, int *hour,
+  int *minute, int *second, int *mil);
+NSTimeInterval
+GSTime(int day, int month, int year, int hour, int minute, int second, int mil);
+
+#endif
+
+#ifndef	STRICT_MACOS_X
 @interface NSCalendarDate (OPENSTEP)
 
 - (NSCalendarDate*) dateByAddingYears: (int)years
@@ -133,13 +142,6 @@
        seconds: (int*)seconds
      sinceDate: (NSDate*)date;
 @end
-
-#ifndef	NO_GNUSTEP
-void
-GSBreakTime(NSTimeInterval when, int *year, int *month, int *day, int *hour,
-  int *minute, int *second, int *mil);
-NSTimeInterval
-GSTime(int day, int month, int year, int hour, int minute, int second, int mil);
 #endif
 
 #endif  /* __NSCalendarDate_h_GNUSTEP_BASE_INCLUDE*/
