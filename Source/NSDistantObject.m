@@ -766,6 +766,17 @@ enum
   return get_imp(GSObjCClass((id)self), aSelector);
 }
 
+/**
+ * <p>Returns the method signature describing the arguments and return
+ * types of the method in the object referred to by the receiver
+ * which implements the aSelecto message.
+ * </p>
+ * <p>This method may need to refer to another process (causing relatively
+ * slow network communication) and apprximately double the time taken for
+ * sending a distributed objects message, so you are advised to use the
+ * -setProtocolForProxy: method to avoid this occurring.
+ * </p>
+ */
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
   if (_object != nil)
@@ -864,6 +875,29 @@ enum
     }
 }
 
+/**
+ * <p>A key method for Distributed Objects performance.  This sets the
+ * a protocol that the distant object referred to by the proxy should
+ * conform to.  When messages in that protocol are sent to the proxy,
+ * the proxy knows that it does not need to ask the remote object for
+ * the method siagnature in order to send the message to it, but can
+ * send the message straight away based on the local method signature
+ * information obtained from the protocol.
+ * </p>
+ * <example>
+ *   if ([anObj isProxy] == YES)
+ *     {
+ *       [anObj setProtocolForProxy: @protocol(MyProtocol)];
+ *     }
+ * </example>
+ * <p>It is <em>highly recommended</em> that you make use of this facility,
+ * but you must beware that versions of the compiler prior to 3.3 suffer a
+ * serious bug with respect to the @protocol directive.  If the protocol
+ * referred to is not declared and implemented in the file where @protocol
+ * is used to refer to the protocol by name, a runtime error will occur
+ * when you try to use it.
+ * </p>
+ */
 - (void) setProtocolForProxy: (Protocol*)aProtocol
 {
   _protocol = aProtocol;
