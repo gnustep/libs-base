@@ -105,7 +105,7 @@
   ret = _contents_array[basicIndex];
   circularFillHoleAt(self, basicIndex);
   decrementCount(self);
-  return ret;
+  return AUTORELEASE_ELT(ret);
 }
 
 - (elt) removeFirstElement
@@ -115,7 +115,7 @@
   ret = _contents_array[_start_index];
   _start_index = (_start_index + 1) % _capacity;
   decrementCount(self);
-  return ret;
+  return AUTORELEASE_ELT(ret);
 }
 
 - (elt) removeLastElement
@@ -126,7 +126,7 @@
     NO_ELEMENT_FOUND_ERROR();
   ret = _contents_array[CIRCULAR_TO_BASIC(_count-1)];
   decrementCount(self);
-  return ret;
+  return AUTORELEASE_ELT(ret);
 }
 
 - (elt) elementAtIndex: (unsigned)index
@@ -138,6 +138,7 @@
 - appendElement: (elt)newElement
 {
   incrementCount(self);
+  RETAIN_ELT(newElement);
   _contents_array[CIRCULAR_TO_BASIC(_count-1)] = newElement;
   return self;
 }
@@ -145,6 +146,7 @@
 - prependElement: (elt)newElement
 {
   incrementCount(self);
+  RETAIN_ELT(newElement);
   _start_index = (_capacity + _start_index - 1) % _capacity;
   _contents_array[_start_index] = newElement;
   return self;
@@ -156,6 +158,7 @@
 
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
   incrementCount(self);
+  RETAIN_ELT(newElement);
   basicIndex = CIRCULAR_TO_BASIC(index);
   circularMakeHoleAt(self, basicIndex);
   _contents_array[basicIndex] = newElement;
@@ -168,10 +171,11 @@
   unsigned basicIndex;
 
   CHECK_INDEX_RANGE_ERROR(index, _count);
+  RETAIN_ELT(newElement);
   basicIndex = CIRCULAR_TO_BASIC(index);
   ret = _contents_array[basicIndex];
   _contents_array[basicIndex] = newElement;
-  return ret;
+  return AUTORELEASE_ELT(ret);
 }
 
 - swapAtIndeces: (unsigned)index1 : (unsigned)index2
