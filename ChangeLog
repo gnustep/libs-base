@@ -1,3 +1,8 @@
+2002-03-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/GNUmakefile: Remove -lobjc and -lgnustep-base from bundle
+	libraries ... it should not need them.
+
 2002-03-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: Ensure property-list read/write uses UTF8
