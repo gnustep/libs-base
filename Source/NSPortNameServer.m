@@ -60,11 +60,11 @@
  *	Macros to build text to start name server and to give an error
  *	message about it - they include installation path information.
  */
-#define MAKE_GDOMAP_CMD   [GSSystemRootDirectory() \
-			     stringByAppendingPathComponent: @"Tools/gdomap"]
+#define MAKE_GDOMAP_CMD   [[GSSystemRootDirectory() \
+  stringByAppendingPathComponent: @"Tools"] \
+  stringByAppendingPathComponent: @"gdomap"]
 #define MAKE_GDOMAP_ERR   [NSString stringWithFormat: \
-				    @"check that %@/Tools/gdomap is running", \
-				    GSSystemRootDirectory()]
+  @"check that %@/Tools/gdomap is running", GSSystemRootDirectory()]
 
 #define stringify_it(X) #X
 #define	make_gdomap_port(X)	stringify_it(X)
