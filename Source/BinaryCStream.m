@@ -106,20 +106,23 @@ static int debug_binary_coder = 0;
 
   [stream writeByte: *type];
 
-#define WRITE_SIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)			 \
-      {									 \
-	char buffer[1+sizeof(_TYPE)];					 \
-	buffer[0] = sizeof (_TYPE);					 \
-	if (*(_TYPE*)_PTR < 0)						 \
-	  {								 \
-	    buffer[0] |= 0x80;						 \
-	    *(_TYPE*)(buffer+1) = _CONV_FUNC (- *(_TYPE*)_PTR);		 \
-	  }								 \
-	else								 \
-	  {								 \
-	    *(_TYPE*)(buffer+1) = _CONV_FUNC (*(_TYPE*)_PTR);		 \
-	  }								 \
-	[stream writeBytes: buffer length: 1+sizeof(_TYPE)];		 \
+#define WRITE_SIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
+      {								\
+        _TYPE tmp;						\
+	char buffer[1+sizeof(_TYPE)];				\
+	buffer[0] = sizeof (_TYPE);				\
+	if (*(_TYPE*)_PTR < 0)					\
+	  {							\
+	    buffer[0] |= 0x80;					\
+	    tmp = _CONV_FUNC (- *(_TYPE*)_PTR);			\
+            memcpy (buffer+1, &tmp, sizeof(_TYPE));		\
+	  }							\
+	else							\
+	  {							\
+	    tmp = _CONV_FUNC (*(_TYPE*)_PTR);			\
+            memcpy (buffer+1, &tmp, sizeof(_TYPE));		\
+	  }							\
+	[stream writeBytes: buffer length: 1+sizeof(_TYPE)];	\
       }
 
 #define READ_SIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
@@ -145,9 +148,11 @@ static int debug_binary_coder = 0;
 
 #define WRITE_UNSIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
       {								\
+        _TYPE tmp;						\
 	char buffer[1+sizeof(_TYPE)];				\
 	buffer[0] = sizeof (_TYPE);				\
-	*(_TYPE*)(buffer+1) = _CONV_FUNC (*(_TYPE*)_PTR);	\
+        tmp = _CONV_FUNC (*(_TYPE*)_PTR);			\
+	memcpy (buffer+1, &tmp, sizeof(_TYPE));			\
 	[stream writeBytes: buffer length: (1+sizeof(_TYPE))];	\
       }
 
