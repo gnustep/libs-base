@@ -3,6 +3,7 @@
 	* Source/NSString.m: Implemented
 	([-initWithCharactersNoCopy:length:freeWhenDone:]) and
 	([-initWithCStringNoCopy:length:freeWhenDone:]) for NSMutableString.
+	([-initWithCStringNoCopy:length:freeWhenDone:]) for NSString.
 
 2000-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
