@@ -47,7 +47,7 @@ DIST_FILES = \
 #
 # The list of subproject directories
 #
-SUBPROJECTS = src Tools doc NSCharacterSets NSTimeZones admin 
+SUBPROJECTS = Source Tools NSCharacterSets NSTimeZones Admin 
 
 -include Makefile.preamble
 
