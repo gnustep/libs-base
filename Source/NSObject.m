@@ -148,7 +148,8 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 
 - free
 {
-  [self error:"Use `dealloc' instead of `free'."];
+  [NSException raise: NSGenericException
+	       format: @"Use `dealloc' instead of `free'."];
   return nil;
 }
 
@@ -244,8 +245,9 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 
 - (void) doesNotRecognizeSelector: (SEL)aSelector
 {
-  [self error:"%s does not recognize %s",
-	object_get_class_name(self), sel_get_name(aSelector)];
+  [NSException raise: NSGenericException
+	       format: @"%s does not recognize %s",
+	       object_get_class_name(self), sel_get_name(aSelector)];
 }
 
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
@@ -299,7 +301,9 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
       unsigned retain_count = [self retainCount];
       release_count = [autorelease_class autoreleaseCountForObject:self];
       if (release_count > retain_count)
-        [self error:"Autorelease would release object too many times.\n"
+        [NSException
+	  raise: NSGenericException
+	  format: @"Autorelease would release object too many times.\n"
 	  "%d release(s) versus %d retain(s)", release_count, retain_count];
     }
 
@@ -351,7 +355,9 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 {
   IMP msg = objc_msg_lookup(self, aSelector);
   if (!msg)
-    return [self error:"invalid selector passed to %s", sel_get_name(_cmd)];
+    return [NSException
+	     raise: NSGenericException
+	     format: @"invalid selector passed to %s", sel_get_name(_cmd)];
   return (*msg)(self, aSelector);
 }
 
@@ -359,7 +365,9 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 {
   IMP msg = objc_msg_lookup(self, aSelector);
   if (!msg)
-    return [self error:"invalid selector passed to %s", sel_get_name(_cmd)];
+    return [NSException
+	     raise: NSGenericException
+	     format: @"invalid selector passed to %s", sel_get_name(_cmd)];
   return (*msg)(self, aSelector, anObject);
 }
 
@@ -367,7 +375,9 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 {
   IMP msg = objc_msg_lookup(self, aSelector);
   if (!msg)
-    return [self error:"invalid selector passed to %s", sel_get_name(_cmd)];
+    return [NSException
+	     raise: NSGenericException
+	     format: @"invalid selector passed to %s", sel_get_name(_cmd)];
   return (*msg)(self, aSelector, object1, object2);
 }
 
@@ -379,7 +389,8 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
       unsigned retain_count = [self retainCount];
       release_count = [autorelease_class autoreleaseCountForObject:self];
       if (release_count > retain_count)
-        [self error:"Release would release object too many times."];
+        [NSException raise: NSGenericException
+		     format: @"Release would release object too many times."];
     }
 
   if (NSDecrementExtraRefCountWasZero(self))
@@ -534,13 +545,16 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 
 - notImplemented:(SEL)aSel
 {
-  return [self error:"method %s not implemented", sel_get_name(aSel)];
+  return [NSException
+	   raise: NSGenericException
+	   format: @"method %s not implemented", sel_get_name(aSel)];
 }
 
 - doesNotRecognize:(SEL)aSel
 {
-  return [self error:"%s does not recognize %s",
-                     object_get_class_name(self), sel_get_name(aSel)];
+  return [NSException raise: NSGenericException
+		      format: @"%s does not recognize %s",
+		      object_get_class_name(self), sel_get_name(aSel)];
 }
 
 - perform: (SEL)sel with: anObject
@@ -637,13 +651,17 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 
 - subclassResponsibility:(SEL)aSel
 {
-  return [self error:"subclass should override %s", sel_get_name(aSel)];
+  return [NSException
+	   raise: NSGenericException
+	   format: @"subclass should override %s", sel_get_name(aSel)];
 }
 
 - shouldNotImplement:(SEL)aSel
 {
-  return [self error:"%s should not implement %s", 
-	             object_get_class_name(self), sel_get_name(aSel)];
+  return [NSException
+	   raise: NSGenericException
+	   format: @"%s should not implement %s", 
+	   object_get_class_name(self), sel_get_name(aSel)];
 }
 
 + (int)streamVersion: (TypedStream*)aStream

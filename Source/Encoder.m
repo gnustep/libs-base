@@ -454,10 +454,12 @@ my_object_is_class(id object)
 	    sel_types = 
 	      sel_get_type (sel_get_any_typed_uid (sel_get_name (sel)));
 #endif
-	  if (!sel_name) [self error:"ObjC runtime didn't provide SEL name"];
-	  if (!*sel_name) [self error:"ObjC runtime didn't provide SEL name"];
-	  if (!sel_types) [self error:"ObjC runtime didn't provide SEL type"];
-	  if (!*sel_types) [self error:"ObjC runtime didn't provide SEL type"];
+	  if (!sel_name || !*sel_name)
+	    [NSException raise: NSGenericException
+			 format: @"ObjC runtime didn't provide SEL name"];
+	  if (!sel_types || !*sel_types)
+	    [NSException raise: NSGenericException
+			 format: @"ObjC runtime didn't provide SEL type"];
 
 	  [self _coderCreateReferenceForConstPtr: sel];
 	  [self encodeValueOfCType: @encode(char*) 

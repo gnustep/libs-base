@@ -341,8 +341,10 @@
 	      withName: NULL];
 	ret = (id) [self _coderConstPtrAtReference: xref];
 	if (!ret)
-	  [self error:"repeated class cross-reference number %u not found",
-		xref];
+	  [NSException 
+	    raise: NSGenericException
+	    format: @"repeated class cross-reference number %u not found",
+	    xref];
 	break;
       }
     case CODER_CLASS:
@@ -359,10 +361,13 @@
 
 	ret = objc_lookup_class (class_name);
 	if (ret == Nil)
-	  [self error:"Couldn't find class `%s'", class_name];
+	  [NSException raise: NSGenericException
+		       format: @"Couldn't find class `%s'", class_name];
 	if (class_get_version(ret) != class_version)
-	  [self error:"Class version mismatch, executable %d != encoded %d",
-		class_get_version(ret), class_version];
+	  [NSException 
+	    raise: NSGenericException
+	    format: @"Class version mismatch, executable %d != encoded %d",
+	    class_get_version(ret), class_version];
 
 	{
 	  unsigned xref;
@@ -374,7 +379,8 @@
 	break;
       }
     default:
-      [self error:"unrecognized class tag = %d", (int)tag];
+      [NSException raise: NSGenericException
+		   format: @"unrecognized class tag = %d", (int)tag];
     }
   [self decodeUnindent];
   return ret;
@@ -409,7 +415,9 @@
 	      withName: NULL];
 	ret = (SEL) [self _coderConstPtrAtReference: xref];
 	if (!ret)
-	  [self error:"repeated selector cross-reference number %u not found",
+	  [NSException 
+	    raise: NSGenericException
+	    format: @"repeated selector cross-reference number %u not found",
 		xref];
 	break;
       }
@@ -433,12 +441,15 @@
 	  ret = sel_get_typed_uid(sel_name, sel_types);
 #endif
 	if (!ret)
-	  [self error:"Could not find selector (%s) with types [%s]",
-		sel_name, sel_types];
+	  [NSException raise: NSGenericException
+		       format: @"Could not find selector (%s) with types [%s]",
+		       sel_name, sel_types];
 #if ! NeXT_runtime
 	if (strcmp(sel_types, NO_SEL_TYPES)
 	    && !(sel_types_match(sel_types, ret->sel_types)))
-	  [self error:"ObjC runtime didn't provide SEL with matching type"];
+	  [NSException 
+	    raise: NSGenericException
+	    format: @"ObjC runtime didn't provide SEL with matching type"];
 #endif
 	{
 	  unsigned xref;
@@ -451,7 +462,8 @@
 	break;
       }
     default:
-      [self error:"unrecognized selector tag = %d", (int)tag];
+      [NSException raise: NSGenericException
+		   format: @"unrecognized selector tag = %d", (int)tag];
     }
   [self decodeUnindent];
   return ret;
@@ -563,8 +575,10 @@
 	unsigned fref;
 
 	if (!DOING_ROOT_OBJECT)
-	  [self error:"can't decode forward reference when not decoding "
-		"a root object"];
+	  [NSException 
+	    raise: NSGenericException
+	    format: @"can't decode forward reference when not decoding "
+	    "a root object"];
 	[self decodeValueOfCType: @encode(unsigned)
 	      at: &fref 
 	      withName: NULL];
@@ -637,12 +651,15 @@
 	      withName: NULL];
 	*anObjPtr = [self _coderObjectAtReference: xref];
 	if (!*anObjPtr)
-	  [self error: "repeated object cross-reference number %u not found",
-		xref];
+	  [NSException 
+	    raise: NSGenericException
+	    format: @ "repeated object cross-reference number %u not found",
+	    xref];
 	break;
       }
     default:
-      [self error:"unrecognized object tag = %d", (int)tag];
+      [NSException raise: NSGenericException
+		   format: @"unrecognized object tag = %d", (int)tag];
     }
   [self decodeUnindent];
 }

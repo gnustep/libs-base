@@ -41,9 +41,7 @@ static NSAutoreleasePool *current_pool = nil;
    `release' message.  Memory use grows, and grows, and... */
 static BOOL autorelease_enabled = YES;
 
-/* When the released_count gets over this value, we call error:.
-   In the future, I may change this to raise an exception or call 
-   a function instead. */
+/* When the released_count gets over this value, we raise an exception. */
 static unsigned pool_count_warning_threshhold = UINT_MAX;
 
 #define DEFAULT_SIZE 64
@@ -103,7 +101,8 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
     return;
 
   if (released_count >= pool_count_warning_threshhold)
-    [self error:"AutoreleasePool count threshhold exceeded."];
+    [NSException raise: NSGenericException
+format: @"AutoreleasePool count threshhold exceeded."];
 
   if (released_count == released_size)
     {
@@ -126,7 +125,8 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 
 - (id) retain
 {
-  [self error:"Don't call `-retain' on a NSAutoreleasePool"];
+  [NSException raise: NSGenericException
+format: @"Don't call `-retain' on a NSAutoreleasePool"];
   return self;
 }
 
@@ -148,7 +148,11 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
     {
       id anObject = released[i];
       if (object_get_class(anObject) == (void*) 0xdeadface)
-	[self error:"Autoreleasing deallocated object. Debug after setting [NSObject enableDoubleReleaseCheck:YES] to check for release errors."];
+	[NSException 
+	  raise: NSGenericException
+	  format: @"Autoreleasing deallocated object.\n"
+	  @"Suggest you debug after setting [NSObject "
+	  @"enableDoubleReleaseCheck:YES]\nto check for release errors."];
       released[i]=0;
       [anObject release];
     }
@@ -159,7 +163,8 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 
 - autorelease
 {
-  [self error:"Don't call `-autorelease' on a NSAutoreleasePool"];
+  [NSException raise: NSGenericException
+	       format: @"Don't call `-autorelease' on a NSAutoreleasePool"];
   return self;
 }
 
