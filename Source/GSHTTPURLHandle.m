@@ -308,7 +308,10 @@ static void debugWrite(NSData *data)
    * Don't start a load if one is in progress.
    */
   if (connectionState != idle)
-    return;
+    {
+      NSLog(@"Attempt to load an http handle which is not idle ... ignored");
+      return;
+    }
 
   [dat setLength: 0];
   RELEASE(document);
@@ -316,8 +319,11 @@ static void debugWrite(NSData *data)
   parser = [GSMimeParser new];
   document = RETAIN([parser document]);
   [self beginLoadInBackground];
-  [sock closeFile];
-  DESTROY(sock);
+  if (sock != nil)
+    {
+      [sock closeFile];
+      DESTROY(sock);
+    }
   contentLength = 0;
   if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] == 0)
     {

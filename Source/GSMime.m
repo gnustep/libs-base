@@ -2077,10 +2077,12 @@ parseCharacterSet(NSString *token)
 
 - (BOOL) _unfoldHeader
 {
-  char		c = 0;
+  char		c;
   BOOL		unwrappingComplete = NO;
 
   lineStart = lineEnd;
+  NSDebugMLLog(@"GSMime", @"entry: input:%u dataEnd:%u lineStart:%u '%*.*s'",
+    input, dataEnd, lineStart, dataEnd - input, dataEnd - input, &bytes[input]);
   /*
    * RFC822 lets header fields break across lines, with continuation
    * lines beginning with whitespace.  This is called folding - and the
@@ -2099,7 +2101,7 @@ parseCharacterSet(NSString *token)
 	    }
 	  if (pos == dataEnd)
 	    {
-	      return NO;	/* need more data */
+	      break;	/* need more data */
 	    }
 	  pos++;
 	  if (c == '\r' && pos < dataEnd && bytes[pos] == '\n')
@@ -2108,7 +2110,7 @@ parseCharacterSet(NSString *token)
 	    }
 	  if (pos == dataEnd)
 	    {
-	      return NO;	/* need more data */
+	      break;	/* need more data */
 	    }
 	  /*
 	   * Copy data up to end of line, and skip past end.
@@ -2163,6 +2165,9 @@ parseCharacterSet(NSString *token)
 	    }
 	}
     }
+  NSDebugMLLog(@"GSMime", @"exit: inBody:%d unwrappingComplete: %d "
+    @"input:%u dataEnd:%u lineStart:%u '%*.*s'", inBody, unwrappingComplete,
+    input, dataEnd, lineStart, dataEnd - input, dataEnd - input, &bytes[input]);
   return unwrappingComplete;
 }
 @end
