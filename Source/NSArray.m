@@ -363,8 +363,21 @@ static Class NSMutableArray_concrete_class;
 
 - (NSString*) description
 {
-  [self notImplemented:_cmd];
-  return nil;
+  id desc;
+  int count = [self count];
+  int i;
+
+  desc = [NSMutableString stringWithCapacity: 2];
+  [desc appendString: @"("];
+  if (count > 0)
+    [desc appendString: [[self objectAtIndex: 0] description]];
+  for (i=1; i<count; i++)
+    {
+      [desc appendString: @", "];
+      [desc appendString: [[self objectAtIndex: i] description]];
+    }
+  [desc appendString: @")"];
+  return desc;
 }
 
 - (NSString*) descriptionWithIndent: (unsigned)level
