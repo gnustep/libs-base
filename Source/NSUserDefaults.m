@@ -181,20 +181,20 @@ static NSMutableString   *processName = nil;
   return [self initWithUser:NSUserName()];
 }
 
+/* Initializes defaults for the specified user calling initWithFile:. */
 - (id)initWithUser:(NSString *)userName
-  /* Initializes defaults for the specified user calling initWithFile:. */
 {
-  NSMutableString* userHome = NSHomeDirectoryForUser(userName);
+  NSString* userHome = NSHomeDirectoryForUser(userName);
+  NSString *filename;
 	
   // Either userName is empty or it's wrong
   if (!userHome)
     {  
-      [self release];
+      [self release];		/* xxx really? -mccallum. */
       return nil;
     }
-  [userHome appendString:GNU_UserDefaultsDatabese];
-	
-  return [self initWithContentsOfFile:userHome];
+  filename = [userHome stringByAppendingString: GNU_UserDefaultsDatabese];
+  return [self initWithContentsOfFile: filename];
 }
 
 - (id)initWithContentsOfFile:(NSString *)path
