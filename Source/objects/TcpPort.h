@@ -26,6 +26,7 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Port.h>
+#include <objects/RunLoop.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -41,6 +42,9 @@
   fd_set active_fd_set;
   NSMapTable *client_sock_2_out_port;
   NSMapTable *client_sock_2_packet;
+  /* The RunLoop with which our file descriptors are registered. */
+  id _run_loop;
+  id _run_loop_mode;
 }
 
 + newForReceivingFromPortNumber: (unsigned short)n;
