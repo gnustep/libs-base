@@ -673,7 +673,7 @@ static Class	doubleNumberClass;
  *   <term> long</term>
  *   <desc>%li</desc>
  *   <term> long long</term>
- *   <desc>%li</desc>
+ *   <desc>%lli</desc>
  *   <term> unsigned char</term>
  *   <desc>%u</desc>
  *   <term> unsigned short</term>
@@ -683,7 +683,7 @@ static Class	doubleNumberClass;
  *   <term> unsigned long</term>
  *   <desc>%lu</desc>
  *   <term> unsigned long long</term>
- *   <desc>%lu</desc>
+ *   <desc>%llu</desc>
  *   <term> float</term>
  *   <desc>%0.7g</desc>
  *   <term> double</term>

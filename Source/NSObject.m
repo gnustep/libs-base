@@ -716,7 +716,7 @@ GSDescriptionForInstanceMethod(pcl self, SEL aSel)
     {
       for (i = 0; i < p_list->count; i++)
 	{
-	  result = GSDescriptionForInstanceMethod(p_list->list[i], aSel);
+	  result = GSDescriptionForInstanceMethod((pcl)p_list->list[i], aSel);
 	  if (result)
 	    {
 	      return result;
@@ -747,7 +747,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     {
       for (i = 0; i < p_list->count; i++)
 	{
-	  result = GSDescriptionForClassMethod(p_list->list[i], aSel);
+	  result = GSDescriptionForClassMethod((pcl)p_list->list[i], aSel);
 	  if (result)
 	    {
 	      return result;
