@@ -1,7 +1,10 @@
-Wed Sep 30  9:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Sep 30 14:35:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Removed MallocAddress class -
 	    use ([NSData +dataWithBytesNoCopy:length:]) instead.
+	* src/NSConnection.m: ([-forwardForProxy:selector:argFrame:])
+	    modifield to cope better when passed a selector without types.
+	* src/Encoder.m: Modified to encode selector without type if needed.
 	* Tools/dwrite.m: Removed references to cStringNoCopy
 	* src/BinaryTree.m: Removed references to cStringNoCopy
 	* src/Collection.m: Removed references to cStringNoCopy
