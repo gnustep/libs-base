@@ -39,28 +39,54 @@ how it should work...
 //=============================================================================
 @implementation NSURLHandle
 
-//-----------------------------------------------------------------------------
-+ (void) registerURLHandleClass: (Class)_urlHandleSubclass
+static NSMutableArray	*registry = nil;
+
++ (void) initialize
 {
-  //FIXME
-  [self notImplemented: _cmd];
+  if (self == [NSURLHandle class])
+    {
+      registry = [NSMutableArray new];
+    }
 }
 
-//-----------------------------------------------------------------------------
-+ (Class)URLHandleClassForURL: (NSURL*)_url
++ (void) registerURLHandleClass: (Class)_urlHandleSubclass
 {
-  //FIXME
-  [self notImplemented: _cmd];
+  if ([registry indexOfObjectIdenticalTo: _urlHandleSubclass] != NSNotFound)
+    {
+      [registry addObject: _urlHandleSubclass];
+    }
+}
+
++ (Class) URLHandleClassForURL: (NSURL*)_url
+{
+  unsigned	count = [registry count];
+
+  while (count-- > 0)
+    {
+      id	found = [registry objectAtIndex: count];
+
+      if ([found canInitWithURL: _url] == YES)
+	{
+	  return (Class)found;
+	}
+    }
   return 0;
 }
 
-//-----------------------------------------------------------------------------
 - (id) initWithURL: (NSURL*)_url
-		  cached: (BOOL)_cached
+	    cached: (BOOL)_cached
 {
-  //FIXME
-  [self notImplemented: _cmd];
-  return nil;
+  Class		concreteSubclass = [NSURLHandle URLHandleClassForURL: _url];
+  NSURLHandle	*instance;
+
+  if (concreteSubclass == 0)
+    {
+      NSLog(@"Attempt to init NSURLHandle with unsupported URL schema");
+      RELEASE(self);
+    }
+  RELEASE(self);
+  instance = [concreteSubclass alloc];
+  return [instance initWithURL: _url cached: _cached];
 }
 
 //-----------------------------------------------------------------------------
