@@ -2148,6 +2148,11 @@ handle_request(int desc)
 
 	  mcopy(&raddr, rbuf, IASIZE);
 	  mcopy(&laddr, rbuf+IASIZE, IASIZE);
+	  if (debug > 2)
+	    {
+	      fprintf(stderr, "Probe sent remote '%s'\n", inet_ntoa(raddr));
+	      fprintf(stderr, "Probe sent local  '%s'\n", inet_ntoa(laddr));
+	    }
 	
 	  mcopy(wbuf+IASIZE, &raddr, IASIZE);
 	  /*
