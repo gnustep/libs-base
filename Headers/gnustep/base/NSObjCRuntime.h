@@ -79,6 +79,15 @@ GS_EXPORT void			NSLogv (NSString* format, va_list args);
  * Get the type encoding for a named ivar,
  * and copy a value into an ivar.
  */
+GS_EXPORT BOOL GSFindInstanceVariable(id obj, const char *name,
+  const char **type, unsigned int *size, int *offset);
+GS_EXPORT void GSGetVariable(id obj, int offset, unsigned int size, void *data);
+GS_EXPORT void GSSetVariable(id obj, int offset, unsigned int size,
+  const void *data);
+
+/*
+ * The following three functions are deprecated and will be removed in future
+ */
 GS_EXPORT BOOL GSInstanceVariableInfo(id obj, NSString *iVarName,
   const char **type, unsigned *size, unsigned *offset);
 GS_EXPORT BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
@@ -124,23 +133,149 @@ GSObjCIsKindOf(Class this, Class other)
   return NO;
 }
 
+/** <deprecated />
+ */
 FOUNDATION_STATIC_INLINE const char*
 GSObjCName(Class this)
 {
   return class_get_class_name(this);
 }
 
+/** <deprecated />
+ */
 FOUNDATION_STATIC_INLINE const char*
 GSObjCSelectorName(SEL this)
 {
+  if (this == 0)
+    return 0;
   return sel_get_name(this);
 }
 
+/** <deprecated />
+ */
 FOUNDATION_STATIC_INLINE const char*
 GSObjCSelectorTypes(SEL this)
 {
   return sel_get_type(this);
 }
+
+
+
+
+/**
+ * Given a class name, return the corresponding class or
+ * a nul pointer if the class cannot be found. <br />
+ * If the argument is nil, return a nul pointer.
+ */
+FOUNDATION_STATIC_INLINE Class
+GSClassFromName(const char *name)
+{
+  if (name == 0)
+    return 0;
+  return objc_lookup_class(name);
+}
+
+/**
+ * Return the name of the supplied class, or a nul pointer if no class
+ * was supplied.
+ */
+FOUNDATION_STATIC_INLINE const char*
+GSNameFromClass(Class this)
+{
+  if (this == 0)
+    return 0;
+  return class_get_class_name(this);
+}
+
+/**
+ * Return the name of the supplied selector, or a nul pointer if no selector
+ * was supplied.
+ */
+FOUNDATION_STATIC_INLINE const char*
+GSNameFromSelector(SEL this)
+{
+  if (this == 0)
+    return 0;
+  return sel_get_name(this);
+}
+
+/**
+ * Return a selector matching the specified name, or nil if no name is
+ * supplied.  The returned selector could be any one with the name.<br />
+ * If no selector already exists, creates one.
+ */
+FOUNDATION_STATIC_INLINE SEL
+GSSelectorFromName(const char *name)
+{
+  if (name == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      SEL	s = sel_get_any_uid(name);
+
+      if (s == 0)
+	{
+	  s = sel_get_uid(name);
+	}
+      return s;
+    }
+}
+
+/**
+ * Return the selector for the specified name and types.  Returns a nul
+ * pointer if the name is nul.  Uses any available selector if the types
+ * argument is nul.  Creates a new selector if necessary.
+ */
+FOUNDATION_STATIC_INLINE SEL
+GSSelectorFromNameAndTypes(const char *name, const char *types)
+{
+  if (name == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      SEL	s;
+
+      if (types == 0)
+	{
+	  s = sel_get_any_typed_uid(name);
+	}
+      else
+	{
+	  s = sel_get_typed_uid(name, types);
+	}
+      if (s == 0)
+	{
+	  if (types == 0)
+	    {
+	      s = sel_register_name(name);
+	    }
+	  else
+	    {
+	      s = sel_register_typed_name(name, types);
+	    }
+	}
+      return s;
+    }
+
+}
+
+/**
+ * Return the type information from the specified selector.
+ * May return a nul pointer if the selector was a nul pointer or if it
+ * was not typed.
+ */
+FOUNDATION_STATIC_INLINE const char*
+GSTypesFromSelector(SEL this)
+{
+  if (this == 0)
+    return 0;
+  return sel_get_type(this);
+}
+
 
 FOUNDATION_STATIC_INLINE Class
 GSObjCSuper(Class this)

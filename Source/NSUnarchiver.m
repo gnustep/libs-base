@@ -292,7 +292,6 @@ mapClassName(NSUnarchiverObjectInfo *info)
 @implementation	NSUnarchiverObjectInfo
 @end
 
-
 @implementation NSUnarchiver
 
 @class NSDataMalloc;
@@ -543,6 +542,11 @@ static Class NSDataMallocClass;
 		    }
 		  (*dValImp)(self, dValSel, @encode(Class), &c);
 
+		  if (c == 0)
+		    {
+		      [NSException raise: NSInternalInconsistencyException
+				  format: @"decoded nil class"];
+		    }
 		  obj = [c allocWithZone: zone];
 		  GSIArrayAddItem(objMap, (GSIArrayItem)obj);
 
@@ -590,7 +594,8 @@ static Class NSDataMallocClass;
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"class crossref missing - %d", xref];
 		}
-	      classInfo = (NSUnarchiverObjectInfo*)GSIArrayItemAtIndex(clsMap, xref).obj;
+	      classInfo = (NSUnarchiverObjectInfo*)
+		GSIArrayItemAtIndex(clsMap, xref).obj;
 	      *(Class*)address = mapClassObject(classInfo);
 	      return;
 	    }
@@ -608,14 +613,19 @@ static Class NSDataMallocClass;
 	      (*desImp)(src, desSel, &cver, @encode(unsigned), &cursor, nil);
 	      if (c == 0)
 		{
-		  [NSException raise: NSInternalInconsistencyException
-			      format: @"decoded nil class"];
+		  NSLog(@"[%s %s] decoded nil class",
+		    GSNameFromClass([self class]), GSNameFromSelector(_cmd));
+		  className = @"_NSUnarchiverUnknownClass";
 		}
-	      className = NSStringFromClass(c);
+	      else
+		{
+		  className = NSStringFromClass(c);
+		}
 	      classInfo = [objDict objectForKey: className];
 	      if (classInfo == nil)
 		{
-		  classInfo = [NSUnarchiverObjectInfo newWithName: className];
+		  classInfo = [NSUnarchiverObjectInfo
+		    newWithName: className];
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
 		  RELEASE(classInfo);
@@ -1041,7 +1051,7 @@ static Class NSDataMallocClass;
 {
   Class	c;
 
-  c = objc_get_class([trueName cString]);
+  c = GSClassFromName([trueName cString]);
   if (c == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -1079,7 +1089,7 @@ static Class NSDataMallocClass;
 {
   Class	c;
 
-  c = objc_get_class([trueName cString]);
+  c = GSClassFromName([trueName cString]);
   if (c == 0)
     {
       [NSException raise: NSInvalidArgumentException

@@ -1145,11 +1145,12 @@ failure:
 			      length: ni
 			    atCursor: cursor];
 	      name[ni] = '\0';
-	      c = objc_get_class(name);
+	      c = GSClassFromName(name);
 	      if (c == 0)
 		{
-		  [NSException raise: NSInternalInconsistencyException
-			      format: @"can't find class - %s", name];
+		  NSLog(@"[%s %s] can't find class - %s",
+		    GSNameFromClass([self class]),
+		    GSNameFromSelector(_cmd), name);
 		}
 	      *(Class*)data = c;
 	    }
@@ -1783,7 +1784,7 @@ failure:
 	}
       case _C_CLASS:
 	{
-	  const char  *name = *(Class*)data?GSObjCName(*(Class*)data):"";
+	  const char  *name = *(Class*)data?GSNameFromClass(*(Class*)data):"";
 	  gsu16	ln = (gsu16)strlen(name);
 	  gsu16	ni;
 
@@ -1797,9 +1798,9 @@ failure:
 	}
       case _C_SEL:
 	{
-	  const char  *name = *(SEL*)data?GSObjCSelectorName(*(SEL*)data):"";
+	  const char  *name = *(SEL*)data?GSNameFromSelector(*(SEL*)data):"";
 	  gsu16	ln = (name == 0) ? 0 : (gsu16)strlen(name);
-	  const char  *types = *(SEL*)data?GSObjCSelectorTypes(*(SEL*)data):"";
+	  const char  *types = *(SEL*)data?GSTypesFromSelector(*(SEL*)data):"";
 	  gsu16	lt = (types == 0) ? 0 : (gsu16)strlen(types);
 	  gsu16	ni;
 
@@ -2242,11 +2243,12 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 	      getBytes((void*)name, bytes, ni, length, cursor);
 	      name[ni] = '\0';
-	      c = objc_get_class(name);
+	      c = GSClassFromName(name);
 	      if (c == 0)
 		{
-		  [NSException raise: NSInternalInconsistencyException
-			      format: @"can't find class - %s", name];
+		  NSLog(@"[%s %s] can't find class - %s",
+		    GSNameFromClass([self class]),
+		    GSNameFromSelector(_cmd), name);
 		}
 	      *(Class*)data = c;
 	    }
@@ -2973,7 +2975,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_CLASS:
 	{
-	  const char  *name = *(Class*)data?GSObjCName(*(Class*)data):"";
+	  const char  *name = *(Class*)data?GSNameFromClass(*(Class*)data):"";
 	  gsu16	ln = (gsu16)strlen(name);
 	  gsu16	minimum = length + ln + sizeof(gsu16);
 	  gsu16	ni;
@@ -2994,9 +2996,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       case _C_SEL:
 	{
-	  const char  *name = *(SEL*)data?GSObjCSelectorName(*(SEL*)data):"";
+	  const char  *name = *(SEL*)data?GSNameFromSelector(*(SEL*)data):"";
 	  gsu16	ln = (name == 0) ? 0 : (gsu16)strlen(name);
-	  const char  *types = *(SEL*)data?GSObjCSelectorTypes(*(SEL*)data):"";
+	  const char  *types = *(SEL*)data?GSTypesFromSelector(*(SEL*)data):"";
 	  gsu16	lt = (types == 0) ? 0 : (gsu16)strlen(types);
 	  gsu16	minimum = length + ln + lt + 2*sizeof(gsu16);
 	  gsu16	ni;
