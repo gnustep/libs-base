@@ -1,3 +1,12 @@
+Wed Dec 15 18:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSHost.m: Update again - record current host name for duration
+	of process and cache hosts keyed on the name under which they were
+	created.  This can result in multiple cache entries for the same host,
+	but this seems to be necessary as DNS name <--> address mappings can
+	be asymmetric.
+	Thanks to dan@services.iiruc.ro for pointing this out.
+
 Wed Dec 15 17:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/Foundation/NSObject.h: dealloc notification stuff for Helge
