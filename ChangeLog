@@ -1,3 +1,8 @@
+2002-11-27  Manuel Guesdon <mguesdon@orange-concept.com>
+
+	* Source/Additions/GSObjCRuntime.m: fixed type call typo 
+	in GSFindInstanceVariable
+	
 2002-11-27  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac (INCLUDE_FLAGS): New for holding flags needed for

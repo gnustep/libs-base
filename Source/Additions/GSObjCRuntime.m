@@ -42,7 +42,7 @@ BOOL
 GSFindInstanceVariable(id obj, const char *name,
   const char **type, unsigned int *size, int *offset)
 {
-  return GSFindInstanceVariable(obj, name, type, size, offset);
+  return GSObjCFindInstanceVariable(obj, name, type, size, offset);
 }
 
 /**
