@@ -216,7 +216,6 @@ typedef enum {
 + (GSTcpHandle*) handleWithDescriptor: (int)d;
 - (BOOL) connectToPort: (GSTcpPort*)aPort beforeDate: (NSDate*)when;
 - (int) descriptor;
-- (void) dispatch;
 - (void) invalidate;
 - (BOOL) isValid;
 - (void) receivedEvent: (void*)data
@@ -661,41 +660,6 @@ static Class	runLoopClass;
   return desc;
 }
 
-/*
- * Method to pass an incoming message to the receiving port.
- * Our lock must be locked on entry to this method, and we
- * unlock it temporarily while actually sending the message.
- */ 
-- (void) dispatch
-{
-  NSPortMessage	*pm;
-  GSTcpPort	*rp = [self recvPort];
-
-  pm = [portMessageClass allocWithZone: NSDefaultMallocZone()];
-  pm = [pm initWithSendPort: [self sendPort]
-		receivePort: rp
-		 components: rItems];
-  [pm setMsgid: rId];
-  rId = 0;
-  DESTROY(rItems);
-  NSDebugMLLog(@"GSTcpHandle", @"got message %@ on 0x%x in thread 0x%x",
-    pm, self, GSCurrentThread());
-  RETAIN(rp);
-  M_UNLOCK(myLock);
-  NS_DURING
-    {
-      [rp handlePortMessage: pm];
-    }
-  NS_HANDLER
-    {
-      NSLog(@"Problem handling port message: %@", localException);
-    }
-  NS_ENDHANDLER
-  M_LOCK(myLock);
-  RELEASE(pm);
-  RELEASE(rp);
-}
-
 - (void) gcFinalize
 {
   [self invalidate];
@@ -844,6 +808,8 @@ static Class	runLoopClass;
 
       while (valid == YES && rLength >= rWant)
 	{
+	  BOOL	shouldDispatch = NO;
+
 	  switch (rType)
 	    {
 	      case GSP_NONE:
@@ -896,8 +862,7 @@ static Class	runLoopClass;
 			  RELEASE(d);
 			  if (nItems == [rItems count])
 			    {
-			      [self dispatch];
-			      bytes = [rData mutableBytes];
+			      shouldDispatch = YES;
 			    }
 			}
 		      else
@@ -994,8 +959,7 @@ static Class	runLoopClass;
 		      rWant = sizeof(GSPortItemHeader);
 		      if (nItems == 1)
 			{
-			  [self dispatch];
-			  bytes = [rData mutableBytes];
+			  shouldDispatch = YES;
 			}
 		    }
 		  else
@@ -1030,8 +994,7 @@ static Class	runLoopClass;
 		  rWant = sizeof(GSPortItemHeader);
 		  if (nItems == [rItems count])
 		    {
-		      [self dispatch];
-		      bytes = [rData mutableBytes];
+		      shouldDispatch = YES;
 		    }
 		}
 		break;
@@ -1077,12 +1040,46 @@ static Class	runLoopClass;
 		      [rItems addObject: p];
 		      if (nItems == [rItems count])
 			{
-			  [self dispatch];
-			  bytes = [rData mutableBytes];
+			  shouldDispatch = YES;
 			}
 		    }
 		}
 		break;
+	    }
+
+	  if (shouldDispatch == YES)
+	    {
+	      NSPortMessage	*pm;
+	      GSTcpPort		*rp = [self recvPort];
+
+	      pm = [portMessageClass allocWithZone: NSDefaultMallocZone()];
+	      pm = [pm initWithSendPort: [self sendPort]
+			    receivePort: rp
+			     components: rItems];
+	      [pm setMsgid: rId];
+	      rId = 0;
+	      DESTROY(rItems);
+	      NSDebugMLLog(@"GSTcpHandle",
+		@"got message %@ on 0x%x in thread 0x%x",
+		pm, self, GSCurrentThread());
+	      RETAIN(rp);
+	      M_UNLOCK(myLock);
+	      NS_DURING
+		{
+		  [rp handlePortMessage: pm];
+		}
+	      NS_HANDLER
+		{
+		  M_LOCK(myLock);
+		  RELEASE(pm);
+		  RELEASE(rp);
+		  [localException raise];
+		}
+	      NS_ENDHANDLER
+	      M_LOCK(myLock);
+	      RELEASE(pm);
+	      RELEASE(rp);
+	      bytes = [rData mutableBytes];
 	    }
 	}
     }
