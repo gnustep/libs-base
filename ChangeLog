@@ -1,3 +1,109 @@
+Fri Apr 19 18:11:30 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Make NSArchiver do object forward references the same way OpenStep
+ 	does, so that -encodeConditionalObject: and -decodeObject will
+ 	work as users expect.  The OpenStep-style of forward referencing
+ 	is actually broken in that it cannot handle cases in which
+ 	-initWithCoder: deallocates self and substitutes another object
+ 	for self---this is supposed to be allowed.  The GNU-style of
+ 	forward references robustly handles this case, as well as all the
+ 	cases that OpenStep handles; the GNU code works through alternate
+ 	methods: -encodeObjectReference: and -decodeObjectAt:withName:.
+  	It is recommended that programmers use the GNU archiving methods.
+
+	Before these changes, the gnustep-base code that tried to handle
+ 	the OpenStep-style `-encodeConditionalObject:' and `-decodeObject'
+ 	did not have the same behavior as NeXT's implementation---in fact
+ 	it did not to forward references at all.  Users' OpenStep code
+ 	that used the OpenStep methods would have failed badly.  These
+ 	changes implement the OpenStep-style forward references.  Now
+ 	NSArchiver implements OpenStep-style forward references, and
+ 	Archiver implements GNU-style forward references.  Be warned: by
+ 	necessity, because of limitations of the OpenStep method
+ 	interface, NSArchiver has the same bug as NeXT's NSArchiver.
+
+	* src/NSGArchiver.m (USE_OPENSTEP_STYLE_FORWARD_REFERENCES): New
+ 	macro.
+	(NSGArchiverNullCStream): New class, interface and implementation.
+	([NSGArchiverNullCStream -decodeValueOfCType:at:withName:]): New
+	method. 
+	([NSGArchiverNullCStream -decodeValueOfCType:at:withName:]): New
+	method. 
+	([NSGArchiver -encodeRootObject:withName:]): New method.
+	([NSGArchiver -encodeConditionalObject:]): New method.
+	([NSGArchiver -_coderCreateReferenceForObject:]): New method.
+	([NSGArchiver -_coderCreateForwardReferenceForObject:]): New method.
+	([NSGArchiver -_coderForwardReferenceForObject:]): New method.
+	([NSGArchiver -_objectWillBeInProgress:]): New method.
+	([NSGArchiver -_objectNoLongerInProgress:]): New method.
+	([NSGArchiver -defaultDecoderClassname]): New method.
+	([NSGUnarchiver -_createReferenceBeforeInit]): New method.
+
+	* src/NSArchiver.m ([NSUnarchiver +initialize]): Test self against
+ 	NSUnarchiver class.
+
+	* src/Encoder.m (debug_coder): Make it a static var instead of a
+ 	#define.
+	([Encoder -_objectWillBeInProgress:]): New method.  
+	([Encoder -_objectNoLongerInProgress:]): New method.  Depending on
+	whether we are doing GNU or OpenStep style forward references one
+ 	of these two methods will create a backward reference to the
+ 	object by calling -_coderInternalCreateReferenceForObject:.  This
+ 	will effect whether encoding make forward or backward references
+ 	to objects in progress.  GNU uses forward references, which is
+ 	robust even when the object's -initWithCoder substitutes another
+ 	object for self.
+	([Encoder -_encodeObject:withName:isBycopy:isForwardReference:]): Use
+	new methods.  Don't call -_coderInternalCreateReferenceForObject
+ 	here, let one of the ...InProgress methods do it.
+
+	* src/Decoder.m (debug_coder): Make it a static var instead of a
+ 	#define.
+	([Decoder -_coderCreateReferenceForObject:]): Add a debugging message.
+	([Decoder -_coderCreateReferenceForInterconnectedObject:]):
+	Autorelease the placeholder object.
+	([Decoder -_createReferenceBeforeInit]): New method.  By default
+	return NO, for the GNU-style forward references.
+	([Decoder -decodeObjectAt:anObjPtr:name]): [CODER_OBJECT]: Use new
+	method; if it returns true, then we are using non-GNU,
+ 	OpenStep-style forward references.  In this case: (1) don't try to
+ 	decode the object by sending +newWithCoder:, in fact, raise an
+ 	error if the object wanted to be decoded that way; (2) call
+ 	_coderInternalCreateReferenceForObject before sending
+ 	-initWithCoder, not after; unfortunately this means that
+ 	-initWithCoder methods cannot substitute another object for self.
+  	If it returns false, use the more robust GNU style forward
+ 	references.  The NSGUnarchiver overrides this method to use the
+ 	OpenStep style.
+
+	* src/include/Coder.h (Coder): Make ivars public, so NSGArchiver
+ 	can get at them.
+	(Encoder): Likewise.
+
+	* src/TextCStream.m ([TextCStream
+ 	-encodeValueOfCType:at:withName:]): If name is nil or zero-length,
+ 	make it "Anonymous".
+	(DECODE_ERROR): Add next stream contents to error message.
+
+	* src/Coder.m: Include gnustep/base/Archiver.h.
+	([Coder +archivedDataWithRootObject:]): Use Archiver class, not
+	NSArchiver, it matters because now the two classes handle forward
+ 	references differently.
+
+	* src/include/NSGArchiver.h: NSGUnarchiver inherits from
+ 	NSUnarchiver, not NSArchiver!
+
+	* checks/fref.m: Use Archiver, not NSArchiver, if GNU_ARCHIVING is
+ 	true.
+	(SELF_REF_DECODE_SUBSTITUTES): New macro.
+
+Thu Apr 18 08:31:53 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/fref.m: Updated to work on NS3.3.
+
+	* src/Makefile.in (Foundation): Fix dependancy to force proper
+ 	handling after a cvs checkout.
+
 Wed Apr 17 08:56:09 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	Major renaming!
