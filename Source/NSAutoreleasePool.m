@@ -30,10 +30,6 @@
 
 /* TODO:
    Doesn't work multi-threaded.
-
-   This class should be made more efficient, especially:
-   [[NSAutorelease alloc] init]
-   [current_pool addObject:o] (REALLOC-case)
    */
 
 /* The current, default NSAutoreleasePool; the one that will hold
@@ -46,7 +42,7 @@ static NSAutoreleasePool *current_pool = nil;
 static BOOL autorelease_enabled = YES;
 
 /* When the _released_count of the current pool gets over this value,
-   we raise an exception. */
+   we raise an exception.  This can be adjusted with -setPoolCountThreshhold */
 static unsigned pool_count_warning_threshhold = UINT_MAX;
 
 /* The total number of objects autoreleased since the program was
