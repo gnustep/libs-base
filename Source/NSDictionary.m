@@ -31,14 +31,43 @@
 
 @implementation NSDictionary 
 
+static Class NSDictionary_concrete_class;
+static Class NSMutableDictionary_concrete_class;
+
++ (void) _setConcreteClass: (Class)c
+{
+  NSDictionary_concrete_class = c;
+}
+
++ (void) _setMutableConcreteClass: (Class)c
+{
+  NSMutableDictionary_concrete_class = c;
+}
+
++ (Class) _concreteClass
+{
+  return NSDictionary_concrete_class;
+}
+
++ (Class) _mutableConcreteClass
+{
+  return NSMutableDictionary_concrete_class;
+}
+
++ (void) initialize
+{
+  NSDictionary_concrete_class = [NSGDictionary class];
+  NSMutableDictionary_concrete_class = [NSGMutableDictionary class];
+}
+
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([NSGDictionary class], 0, z);
+  return NSAllocateObject([self _concreteClass], 0, z);
 }
 
 + dictionary
 {
-  return [[[NSGDictionary alloc] init] 
+  return [[[[self _concreteClass] alloc] init] 
 	  autorelease];
 }
 
@@ -46,9 +75,9 @@
 		forKeys: (NSString**)keys
 		  count: (unsigned)count
 {
-  return [[[NSGDictionary alloc] initWithObjects:objects
-				 forKeys:keys
-				 count:count]
+  return [[[[self _concreteClass] alloc] initWithObjects:objects
+					 forKeys:keys
+					 count:count]
 	  autorelease];
 }
 
@@ -69,7 +98,7 @@
 
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
-  return [[[NSGDictionary alloc] initWithObjects:objects forKeys:keys]
+  return [[[[self _concreteClass] alloc] initWithObjects:objects forKeys:keys]
 	  autorelease];
 }
 
@@ -220,12 +249,30 @@
 
 - copyWithZone: (NSZone*)z
 {
-  return [[NSGDictionary alloc] initWithDictionary:self];
+  /* a deep copy */
+  int count = [self count];
+  id objects[count];
+  NSString *keys[count];
+  id enumerator = [self keyEnumerator];
+  id key;
+  int i;
+
+  for (i = 0; (key = [enumerator nextObject]); i++)
+    {
+      keys[i] = [key copyWithZone:z];
+      objects[i] = [[self objectForKey:key] copyWithZone:z];
+    }
+  return [[[[self class] _concreteClass] alloc] 
+	  initWithObjects:objects
+	  forKeys:keys
+	  count:count];
 }
 
 - mutableCopyWithZone: (NSZone*)z
 {
-  return [[NSGMutableDictionary alloc] initWithDictionary:self];
+  /* a shallow copy */
+  return [[[[[self class] _mutableConcreteClass] _mutableConcreteClass] alloc] 
+	  initWithDictionary:self];
 }
 
 @end
@@ -234,12 +281,12 @@
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([NSGMutableDictionary class], 0, z);
+  return NSAllocateObject([self _mutableConcreteClass], 0, z);
 }
 
 + dictionaryWithCapacity: (unsigned)numItems
 {
-  return [[[NSGDictionary alloc] initWithCapacity:numItems]
+  return [[[[self _mutableConcreteClass] alloc] initWithCapacity:numItems]
 	  autorelease];
 }
 
