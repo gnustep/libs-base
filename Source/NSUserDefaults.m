@@ -779,11 +779,6 @@ static NSString	*pathForUser(NSString *user)
 {
   NSString	*path = pathForUser(userName);
 
-  if (path == nil)
-    {
-      RELEASE(self);
-      return nil;
-    }
   return [self initWithContentsOfFile: path];
 }
 
