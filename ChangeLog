@@ -1,3 +1,9 @@
+2001-02-21  Adam Fedor  <fedor@gnu.org>
+
+	* Documenation/install.texi: Update.
+	* Documenation/news.texi: Likewise.
+	* INSTALL, NEWS: Regen.
+
 2001-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix memory leak reported by thoran@free.fr
