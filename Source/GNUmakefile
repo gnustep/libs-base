@@ -483,6 +483,10 @@ DIST_FILES = \
 GENERATED_HFILES = \
 dynamic-load.h \
 include/preface.h \
+include/o_array.h \
+include/o_hash.h \
+include/o_list.h \
+include/o_map.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h
 
 # The C source files to be compiled
