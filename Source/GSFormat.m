@@ -67,8 +67,12 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <fcntl.h>
-#include <wchar.h>
 #include <stdio.h>
+#ifdef HAVE_WCHAR_H
+#include <wchar.h>
+#else
+typedef gsu32 wint_t;
+#endif
 #ifdef HAVE_UINTMAX_T
 #include <stdint.h>
 #else
