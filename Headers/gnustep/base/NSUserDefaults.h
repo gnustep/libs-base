@@ -35,6 +35,7 @@
 @class NSData;
 @class NSTimer;
 @class NSRecursiveLock;
+@class NSDistributedLock;
 
 /* Standard domains */
 GS_EXPORT NSString* const NSArgumentDomain;
@@ -125,6 +126,7 @@ GS_EXPORT NSString* const NSLocale;
   NSDate		*_lastSync;
   NSTimer		*_tickingTimer;   // for synchronization
   NSRecursiveLock	*_lock;
+  NSDistributedLock   *_fileLock;
 }
 
 /* Getting the Shared Instance */

@@ -33,21 +33,23 @@
 #include <errno.h>
 
 #include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSUtilities.h>
 #include <Foundation/NSArchiver.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSBundle.h>
+#include <Foundation/NSDate.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSDistributedLock.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSFileManager.h>
+#include <Foundation/NSLock.h>
 #include <Foundation/NSNotification.h>
-#include <Foundation/NSTimer.h>
+#include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSRunLoop.h>
-#include <Foundation/NSBundle.h>
+#include <Foundation/NSThread.h>
+#include <Foundation/NSTimer.h>
+#include <Foundation/NSUtilities.h>
 #include <Foundation/NSValue.h>
-#include <Foundation/NSLock.h>
 #include <base/GSLocale.h>
 
 #include "GSPrivate.h"
@@ -217,6 +219,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     {
       NSDictionary	*regDefs;
 
+      [sharedDefaults synchronize];	// Ensure changes are written.
       regDefs = RETAIN([sharedDefaults->_tempDomains
 	objectForKey: NSRegistrationDomain]);
       setSharedDefaults = NO;
@@ -712,6 +715,9 @@ static NSString	*pathForUser(NSString *user)
     {
       _defaultsDatabase = [pathForUser(NSUserName()) copy];
     }
+  _fileLock = [[NSDistributedLock alloc] initWithPath:
+    [_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
+  _lock = [NSRecursiveLock new];
 
   // Create an empty search list
   _searchList = [[NSMutableArray alloc] initWithCapacity: 10];
@@ -765,20 +771,22 @@ static NSString	*pathForUser(NSString *user)
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
 
-  _lock = [NSRecursiveLock new];
   return self;
 }
 
 - (void) dealloc
 {
-  if (_tickingTimer)
-    [_tickingTimer invalidate];
+  if (_tickingTimer != nil)
+    {
+      [_tickingTimer invalidate];
+    }
   RELEASE(_lastSync);
   RELEASE(_searchList);
   RELEASE(_persDomains);
   RELEASE(_tempDomains);
   RELEASE(_changedDomains);
   RELEASE(_dictionaryRep);
+  RELEASE(_fileLock);
   RELEASE(_lock);
   [super dealloc];
 }
@@ -811,14 +819,22 @@ static NSString	*pathForUser(NSString *user)
 
 /**
  * Looks up a value for a specified default using -objectForKey:
- * and checks that it is a boolean.  Returns NO if it is not.
+ * and returns its boolean representation.<br />
+ * Returns NO if it is not a boolean.<br />
+ * The text 'yes' or 'true' or any non zero numeric value is considered
+ * to be a boolean YES.  Other string values are NO.<br />
+ * NB. This differs slightly from the documented behavior for MacOS-X
+ * (August 2002) in that the GNUstep version accepts the string 'TRUE'
+ * as equivalent to 'YES'.
  */
 - (BOOL) boolForKey: (NSString*)defaultName
 {
   id	obj = [self stringForKey: defaultName];
 
   if (obj != nil)
-    return [obj boolValue];
+    {
+      return [obj boolValue];
+    }
   return NO;
 }
 
@@ -944,8 +960,9 @@ static NSString	*pathForUser(NSString *user)
 }
 
 /**
- * Sets a boolean value for defaultName in the application domain.
- * <br />Calls -setObject:forKey: to make the change.
+ * Sets a boolean value for defaultName in the application domain.<br />
+ * The boolean value is stored as a string - either YES or NO.
+ * Calls -setObject:forKey: to make the change.
  */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
@@ -1159,8 +1176,27 @@ static NSString	*pathForUser(NSString *user)
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSMutableDictionary	*newDict;
   NSDictionary		*attr;
+  unsigned long		desired;
+  unsigned long		attributes;
 
   [_lock lock];
+
+  while ([_fileLock tryLock] == NO)
+    {
+      CREATE_AUTORELEASE_POOL(arp);
+      NSDate	*when;
+
+      when = [NSDate dateWithTimeIntervalSinceNow: 0.1];
+      if ([when timeIntervalSinceDate: [_fileLock lockDate]] > 5.0)
+	{
+	  [_fileLock breakLock];
+	}
+      else
+	{
+	  [NSThread sleepUntilDate: when];
+	}
+      RELEASE(arp);
+    }
 
   if (_tickingTimer == nil)
     {
@@ -1177,7 +1213,7 @@ static NSString	*pathForUser(NSString *user)
    */
   attr = [mgr fileAttributesAtPath: _defaultsDatabase
 		      traverseLink: YES];
-  if (_changedDomains == NO)
+  if (_changedDomains == nil)
     {
       BOOL		wantRead = NO;
 
@@ -1204,6 +1240,7 @@ static NSString	*pathForUser(NSString *user)
 	}
       if (wantRead == NO)
 	{
+	  [_fileLock unlock];
 	  [_lock unlock];
 	  return YES;
 	}
@@ -1212,87 +1249,70 @@ static NSString	*pathForUser(NSString *user)
   DESTROY(_dictionaryRep);
 
   // Read the persistent data from the stored database
-  if (attr != nil)
+  if (attr == nil)
     {
-      unsigned long desired;
-      unsigned long attributes;
-
+      newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
+		  initWithCapacity: 1];
+      NSLog(@"Creating defaults database file %@", _defaultsDatabase);
+      [newDict writeToFile: _defaultsDatabase atomically: YES];
+      attr = [mgr fileAttributesAtPath: _defaultsDatabase
+			  traverseLink: YES];
+    }
+  else
+    {
       newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
         initWithContentsOfFile: _defaultsDatabase];
       if (newDict == nil)
 	{
 	  NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
+	  [_fileLock unlock];
 	  [_lock unlock];
 	  return NO;
 	}
-
-      attributes = [attr filePosixPermissions];
-      // We enforce the permission mode 0600 on the defaults database
-#if	!(defined(S_IRUSR) && defined(S_IWUSR))
-      desired = 0600;
-#else
-      desired = (S_IRUSR|S_IWUSR);
-#endif
-      if (attributes != desired)
-	{
-	  NSMutableDictionary	*enforced_attributes;
-	  NSNumber		*permissions;
-
-	  enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
-	    [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
-
-	  permissions = [NSNumber numberWithUnsignedLong: desired];
-	  [enforced_attributes setObject: permissions
-				  forKey: NSFilePosixPermissions];
-
-	  [mgr changeFileAttributes: enforced_attributes
-			     atPath: _defaultsDatabase];
-	}
     }
-  else
+
+  /*
+   * We enforce the permission mode 0600 on the defaults database
+   */
+  attributes = [attr filePosixPermissions];
+#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+  desired = 0600;
+#else
+  desired = (S_IRUSR|S_IWUSR);
+#endif
+  if (attributes != desired)
     {
-      unsigned long	desired;
-      NSNumber		*permissions;
+      NSMutableDictionary	*enforced_attributes;
+      NSNumber			*permissions;
 
-      // We enforce the permission mode 0600 on the defaults database
-#if	!(defined(S_IRUSR) && defined(S_IWUSR))
-      desired = 0600;
-#else
-      desired = (S_IRUSR|S_IWUSR);
-#endif
+      enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
+	[mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
+
       permissions = [NSNumber numberWithUnsignedLong: desired];
-      attr = [NSDictionary dictionaryWithObjectsAndKeys:
-	NSUserName(), NSFileOwnerAccountName,
-	permissions, NSFilePosixPermissions,
-	nil];
-      NSLog(@"Creating defaults database file %@", _defaultsDatabase);
-      [mgr createFileAtPath: _defaultsDatabase
-		   contents: nil
-		 attributes: attr];
-      newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
-		  initWithCapacity: 1];
-      [newDict writeToFile: _defaultsDatabase atomically: YES];
+      [enforced_attributes setObject: permissions
+			      forKey: NSFilePosixPermissions];
+
+      [mgr changeFileAttributes: enforced_attributes
+			 atPath: _defaultsDatabase];
     }
 
-  if (_changedDomains)
+  if (_changedDomains != nil)
     {           // Synchronize both dictionaries
       NSEnumerator	*enumerator = [_changedDomains objectEnumerator];
-      IMP		nextImp;
-      IMP		pImp;
-      id		obj, dict;
+      NSString		*domainName;
+      NSDictionary	*domain;
 
-      nextImp = [enumerator methodForSelector: nextObjectSel];
-      pImp = [_persDomains methodForSelector: objectForKeySel];
-      while ((obj = (*nextImp)(enumerator, nextObjectSel)) != nil)
+      DESTROY(_changedDomains);	// Retained by enumerator.
+      while ((domainName = [enumerator nextObject]) != nil)
 	{
-	  dict = (*pImp)(_persDomains, objectForKeySel, obj);
-	  if (dict)       // Domain was added or changed
+	  domain = [_persDomains objectForKey: domainName];
+	  if (domain != nil)	// Domain was added or changed
 	    {
-	      [newDict setObject: dict forKey: obj];
+	      [newDict setObject: domain forKey: domainName];
 	    }
-	  else            // Domain was removed
+	  else			// Domain was removed
 	    {
-	      [newDict removeObjectForKey: obj];
+	      [newDict removeObjectForKey: domainName];
 	    }
 	}
       RELEASE(_persDomains);
@@ -1300,6 +1320,7 @@ static NSString	*pathForUser(NSString *user)
       // Save the changes
       if (![_persDomains writeToFile: _defaultsDatabase atomically: YES])
 	{
+	  [_fileLock unlock];
 	  [_lock unlock];
 	  return NO;
 	}
@@ -1323,6 +1344,7 @@ static NSString	*pathForUser(NSString *user)
 	}
     }
 
+  [_fileLock unlock];
   [_lock unlock];
   return YES;
 }
@@ -1580,32 +1602,21 @@ static NSString	*pathForUser(NSString *user)
 
 - (void) __changePersistentDomain: (NSString*)domainName
 {
-  NSEnumerator	*enumerator = nil;
-  IMP		nImp;
-  id		obj;
-
   [_lock lock];
   DESTROY(_dictionaryRep);
-  if (!_changedDomains)
+  if (_changedDomains == nil)
     {
-      _changedDomains = [[NSMutableArray alloc] initWithCapacity: 5];
+      _changedDomains = [[NSMutableArray alloc] initWithObjects: &domainName
+							  count: 1];
       updateCache(self);
       [[NSNotificationCenter defaultCenter]
 	postNotificationName: NSUserDefaultsDidChangeNotification
 		      object: self];
     }
-
-  enumerator = [_changedDomains objectEnumerator];
-  nImp = [enumerator methodForSelector: nextObjectSel];
-  while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
+  else if ([_changedDomains containsObject: domainName] == NO)
     {
-      if ([obj isEqualToString: domainName])
-	{
-	  [_lock unlock];
-	  return;
-	}
+      [_changedDomains addObject: domainName];
     }
-  [_changedDomains addObject: domainName];
   [_lock unlock];
   return;
 }

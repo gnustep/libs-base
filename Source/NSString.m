@@ -1840,7 +1840,7 @@ handle_printf_atsign (FILE *stream,
 	     forRange: (NSRange)aRange
 {
   unichar	thischar;
-  unsigned	start, end, len;
+  unsigned	start, end, len, termlen;
   unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
   len = [self length];
@@ -1903,10 +1903,14 @@ handle_printf_atsign (FILE *stream,
 
   if (lineEndIndex || contentsEndIndex)
     {
-      end = aRange.location + aRange.length;
+      BOOL found = NO;
+      end = aRange.location;
+      if(aRange.length)
+        {
+          end += (aRange.length - 1);
+        }
       while (end < len)
 	{
-	   BOOL done = NO;
 
 	   thischar = (*caiImp)(self, caiSel, end);
 	   switch (thischar)
@@ -1915,22 +1919,24 @@ handle_printf_atsign (FILE *stream,
 	       case (unichar)0x000D:
 	       case (unichar)0x2028:
 	       case (unichar)0x2029:
-		 done = YES;
+		 found = YES;
 		 break;
 	       default:
 		 break;
 	     }
 	   end++;
-	   if (done)
+	   if (found)
 	     break;
 	}
+      termlen = 1;
       if (lineEndIndex)
 	{
 	  if (end < len
-	    && ((*caiImp)(self, caiSel, end) == (unichar)0x000D)
-	    && ((*caiImp)(self, caiSel, end+1) == (unichar)0x000A))
+	    && ((*caiImp)(self, caiSel, end-1) == (unichar)0x000D)
+	    && ((*caiImp)(self, caiSel, end) == (unichar)0x000A))
 	    {
 	      *lineEndIndex = end+1;
+	      termlen = 2;
 	    }
 	  else
 	    {
@@ -1939,9 +1945,9 @@ handle_printf_atsign (FILE *stream,
 	}
       if (contentsEndIndex)
 	{
-	  if (end < len)
+	  if (found)
 	    {
-	      *contentsEndIndex = end-1;
+	      *contentsEndIndex = end-termlen;
 	    }
 	  else
 	    {

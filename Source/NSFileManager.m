@@ -255,7 +255,9 @@ static NSFileManager* defaultManager = nil;
 	  const char *cpath;
 	  cpath = [self fileSystemRepresentationWithPath: completePath];
 	  if (CreateDirectory(cpath, NULL) == FALSE)
-	    return NO;
+	    {
+	      return NO;
+	    }
         }
     }
 
@@ -487,11 +489,14 @@ static NSFileManager* defaultManager = nil;
 
   fileExists = [self fileExistsAtPath: source isDirectory: &sourceIsDir];
   if (!fileExists)
-    return NO;
-
+    {
+      return NO;
+    }
   fileExists = [self fileExistsAtPath: destination];
   if (fileExists)
-    return NO;
+    {
+      return NO;
+    }
 
   /* Check to see if the source and destination's parent are on the same
      physical device so we can perform a rename syscall directly. */
@@ -591,18 +596,24 @@ static NSFileManager* defaultManager = nil;
 
       res = GetFileAttributes(cpath);
       if (res == WIN32ERR)
-	return NO;
-
+	{
+	  return NO;
+	}
       if (res & FILE_ATTRIBUTE_DIRECTORY)
-	is_dir = YES;
+	{
+	  is_dir = YES;
+	}
       else
-	is_dir = NO;
+	{
+	  is_dir = NO;
+	}
 #else
       struct stat statbuf;
 
       if (lstat(cpath, &statbuf) != 0)
-	return NO;
-    
+	{
+	  return NO;
+   	} 
       is_dir = ((statbuf.st_mode & S_IFMT) == S_IFDIR);
 #endif /* MINGW */
     }
@@ -631,11 +642,15 @@ static NSFileManager* defaultManager = nil;
 	      RELEASE(info);
 	    }
 	  else
-	    result = NO;
+	    {
+	      result = NO;
+	    }
 	  return result;
 	}
       else
-	return YES;
+	{
+	  return YES;
+	}
     }
   else
     {
@@ -655,7 +670,9 @@ static NSFileManager* defaultManager = nil;
 	  result = [self removeFileAtPath: next handler: handler];
 	  RELEASE(arp);
 	  if (result == NO)
-	    return NO;
+	    {
+	      return NO;
+	    }
 	}
 
       if (rmdir([path fileSystemRepresentation]) < 0)
@@ -676,11 +693,15 @@ static NSFileManager* defaultManager = nil;
 	      RELEASE(info);
 	    }
 	  else
-	    result = NO;
+	    {
+	      result = NO;
+	    }
 	  return result;
 	}
       else
-	return YES;
+	{
+	  return YES;
+	}
     }
 }
 
@@ -892,14 +913,18 @@ static NSFileManager* defaultManager = nil;
   const char* cpath = [self fileSystemRepresentationWithPath: path];
 
   if (cpath == 0 || *cpath == '\0')
-    return NO;
+    {
+      return NO;
+    }
   else
     {
 #if defined(__MINGW__)
       DWORD res= GetFileAttributes(cpath);
 
       if (res == WIN32ERR)
-        return NO;
+	{
+	  return NO;
+	}
       return YES;
 #else
       return (access(cpath, R_OK) == 0);
@@ -912,14 +937,17 @@ static NSFileManager* defaultManager = nil;
   const char* cpath = [self fileSystemRepresentationWithPath: path];
 
   if (cpath == 0 || *cpath == '\0')
-    return NO;
+    {
+      return NO;
+    }
   else
     {
 #if defined(__MINGW__)
       DWORD res= GetFileAttributes(cpath);
 
       if (res == WIN32ERR)
-        return NO;
+	{
+	  return NO;
       return (res & FILE_ATTRIBUTE_READONLY) ? NO : YES;
 #else
       return (access(cpath, W_OK) == 0);
@@ -959,7 +987,9 @@ static NSFileManager* defaultManager = nil;
   const char* cpath = [self fileSystemRepresentationWithPath: path];
 
   if (cpath == 0 || *cpath == '\0')
-    return NO;
+    {
+      return NO;
+    }
   else
     {
       // TODO - handle directories
@@ -967,7 +997,9 @@ static NSFileManager* defaultManager = nil;
       DWORD res= GetFileAttributes(cpath);
 
       if (res == WIN32ERR)
-        return NO;
+	{
+	  return NO;
+	}
       return (res & FILE_ATTRIBUTE_READONLY) ? NO : YES;
 #else
       cpath = [self fileSystemRepresentationWithPath: 
@@ -1216,8 +1248,9 @@ static NSFileManager* defaultManager = nil;
    * See if this is a directory (don't follow links).
    */
   if ([self fileExistsAtPath: path isDirectory: &is_dir] == NO || is_dir == NO)
-    return nil;
-
+    {
+      return nil;
+    }
   /* We initialize the directory enumerator with justContents == YES, 
      which tells the NSDirectoryEnumerator code that we only enumerate 
      the contents non-recursively once, and exit.  NSDirectoryEnumerator 
@@ -1232,8 +1265,9 @@ static NSFileManager* defaultManager = nil;
   addImp = [content methodForSelector: @selector(addObject:)];
 
   while ((path = (*nxtImp)(direnum, @selector(nextObject))) != nil)
-    (*addImp)(content, @selector(addObject:), path);
-
+    {
+      (*addImp)(content, @selector(addObject:), path);
+    }
   RELEASE(direnum);
 
   return content;
@@ -1257,8 +1291,9 @@ static NSFileManager* defaultManager = nil;
   IMP			addImp;
   
   if (![self fileExistsAtPath: path isDirectory: &isDir] || !isDir)
-    return nil;
-
+    {
+      return nil;
+    }
   direnum = [[NSDirectoryEnumerator alloc] initWithDirectoryPath: path 
 					   recurseIntoSubdirectories: YES
 					   followSymlinks: NO
@@ -1301,9 +1336,13 @@ static NSFileManager* defaultManager = nil;
   int   llen = readlink(cpath, lpath, PATH_MAX-1);
     
   if (llen > 0)
-    return [self stringWithFileSystemRepresentation: lpath length: llen];
+    {
+      return [self stringWithFileSystemRepresentation: lpath length: llen];
+    }
   else
-    return nil;
+    {
+      return nil;
+    }
 #else
   return nil;
 #endif
@@ -1414,7 +1453,12 @@ static NSFileManager* defaultManager = nil;
   newpath = [newpath stringByReplacingString: @"/" withString: @"\\"];
   return [newpath cString];
 #else
-  return [[path stringByStandardizingPath] cString];
+  /*
+   * NB ... Don't standardize path, since that would automatically
+   * follow symbolic links ... and mess up any code wishing to
+   * examine the link itsself.
+   */
+  return [path cString];
 #endif
 }
 

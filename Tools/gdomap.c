@@ -35,6 +35,7 @@
 #ifndef __MINGW__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
 #endif /* !__MINGW__ */
@@ -62,6 +63,9 @@
 #endif
 #ifdef	HAVE_PWD_H
 #include <pwd.h>
+#endif
+#ifdef	HAVE_GRP_H
+#include <grp.h>
 #endif
 
 #if HAVE_GETOPT_H
@@ -4531,6 +4535,34 @@ printf(
 	}
     }
 
+  /* Write the pidfile, but only if the user is root. This allows us
+     to write to restricted directories without allowing normal users
+     to mess it up. */
+  if (pidfile)
+    {
+      FILE	*fptr;
+
+      if (getuid () == 0)
+	{
+	  fptr = fopen(pidfile, "at");
+
+	  if (fptr == 0)
+	    {
+	      sprintf(ebuf, "Unable to open pid file - '%s'", pidfile);
+	      gdomap_log(LOG_CRIT);
+	      exit(1);
+	    }
+	  fprintf(fptr, "%d\n", (int) getpid());
+	  fclose(fptr);
+	  chmod(pidfile, 0644);
+	}
+      else
+	{
+	  sprintf(ebuf, "Only root user can write to pid file\n");
+	  gdomap_log(LOG_WARNING);
+	}
+    }
+
 #ifndef __MINGW__
   /*
    * Try to become a 'safe' user now that we have
@@ -4542,10 +4574,12 @@ printf(
        * Try to be the user who launched us ... so they can kill us too.
        */
       setuid (getuid ());
+      setgid (getgid ());
     }
   else
     {
       int	uid = -2;
+      int	gid = -2;
 #ifdef	HAVE_PWD_H
 #ifdef	HAVE_GETPWNAM
       struct passwd *pw = getpwnam("nobody");
@@ -4553,26 +4587,15 @@ printf(
       if (pw != 0)
 	{
 	  uid = pw->pw_uid;
+	  gid = pw->pw_gid;
 	}
 #endif
 #endif
       setuid (uid);
+      setgid (gid);
+      setgroups (0, 0);	/* Empty additional groups list */
     }
 #endif /* __MINGW__ */
-
-  if (pidfile)
-    {
-      FILE	*fptr = fopen(pidfile, "at");
-
-      if (fptr == 0)
-	{
-	  sprintf(ebuf, "Unable to open pid file - '%s'", pidfile);
-	  gdomap_log(LOG_CRIT);
-	  exit(1);
-	}
-      fprintf(fptr, "%d\n", (int) getpid());
-      fclose(fptr);
-    }
 
 #if	!defined(__svr4__)
   /*

@@ -1296,6 +1296,11 @@ static NSMapTable	*nodeNames = 0;
   return desc;
 }
 
+- (void) setNamespace: (GSXMLNamespace *)space
+{
+  xmlSetNs (lib, [space lib]);   
+}
+
 @end
 
 @implementation GSXMLNode (GSPrivate)

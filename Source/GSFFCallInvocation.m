@@ -469,6 +469,11 @@ static IMP gs_objc_msg_forward (SEL sel)
  */
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature
 {
+  if (aSignature == nil)
+    {
+      RELEASE(self);
+      return nil;
+    }
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];

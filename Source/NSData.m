@@ -1,5 +1,5 @@
-/** Stream of bytes class for serialization and persistance in GNUStep
-   Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
+/**
+   Copyright (C) 1995, 1996, 1997, 2000, 2002 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -856,7 +856,6 @@ failure:
 	  att = [[mgr fileAttributesAtPath: path
 			      traverseLink: YES] mutableCopy];
 	  IF_NO_GC(TEST_AUTORELEASE(att));
- 	  [mgr removeFileAtPath: path handler: nil];
 	}
 
       c = rename(thePath, theRealPath);
@@ -867,7 +866,7 @@ failure:
           goto failure;
         }
 
-      if (att)
+      if (att != nil)
 	{
 	  /*
 	   * We have created a new file - so we attempt to make it's
