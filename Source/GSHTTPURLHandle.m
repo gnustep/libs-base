@@ -442,10 +442,6 @@ static void debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    {
 	      complete = NO;	// Read chunked body data
 	    }
-	  else if (ver >= 1.0 && [len intValue] == 0)
-	    {
-	      complete = YES;	// No content
-	    }
 	  else
 	    {
 	      complete = NO;	// No
