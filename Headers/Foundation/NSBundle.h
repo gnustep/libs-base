@@ -171,11 +171,21 @@ GS_EXPORT NSString* const NSLoadedClasses;
 		  withVersion: (int)version;
 
 /** <init />
- * Init the bundle for reading resources from path.  path must be an
- * absolute path to a directory on disk.  If path is nil or doesn't
- * exist, initWithPath: returns nil.  If a bundle for that path
- * already existed, it is returned in place of the receiver (and the
- * receiver is deallocated).
+ * Init the bundle for reading resources from path.<br />
+ * The MacOS-X documentation says that the path must be a full path to
+ * a directory on disk.  However, it (in MacOS-X) version 10.3 at least)
+ * actually accepts relative paths too.<br />
+ * The GNUstep behavior is similar in that it accepts a relative path,
+ * but GNUstep converts it to an absolute path by referring to the
+ * current working directory when the is initialised, so an absolute
+ * path is then used and a warning message is printed.<br />
+ * On MacOS-X using a bundle initialised with a relative path will cause
+ * a crash if the current working directory is changed between the point
+ * at which the bundle was initialised and that at which it is used.<br />
+ * If path is nil or can't be accessed, initWithPath: reallocates the
+ * receiver and returns nil.<br />
+ * If a bundle for that path already existed, it is returned in place
+ * of the receiver (and the receiver is deallocated).
  */
 - (id) initWithPath: (NSString*)path;
 
