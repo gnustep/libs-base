@@ -659,65 +659,19 @@ search_for_method_in_class (Class class, SEL op)
 
 #endif /* NeXT runtime */
 
-static void
-flush_method_cache_for_class (Class class)
+/* See header for documentation. */
+GSMethod
+GSGetInstanceMethodNotInherited (Class class, SEL sel)
 {
-#if NeXT_RUNTIME
-      void _objc_flush_caches (Class);
-      _objc_flush_caches (class);
-#else
-      void __objc_update_dispatch_table_for_class (Class);
-      __objc_update_dispatch_table_for_class (class);
-#endif
+  return search_for_method_in_class (class, sel);
 }
 
-IMP
-GSObjCGetMethod (Class class, SEL sel)
+/* See header for documentation. */
+GSMethod
+GSGetClassMethodNotInhertited (Class class, SEL sel)
 {
-  struct objc_method *method;
-  IMP imp;
-
-  imp = NULL;
-  method = search_for_method_in_class (class, sel);
-
-  if (method != NULL)
-    {
-      imp = method->method_imp;
-    }
-
-  return imp;
+  return search_for_method_in_class (class->class_pointer, sel);
 }
-
-IMP
-GSObjCReplaceMethod (Class class, SEL sel, IMP imp)
-{
-  struct objc_method *method;
-  IMP oImp; 
-
-  oImp = NULL;
-  method = search_for_method_in_class (class, sel);
-  if (method != NULL)
-    {
-      oImp = method->method_imp;
-      method->method_imp = imp;
-      flush_method_cache_for_class(class);
-      if (behavior_debug)
-	{
-	  fprintf(stderr, "replaced implementation for %s in %s.\n",
-		  sel_get_name(sel), class->name); 
-	}
-    }
-  else
-    {
-      if (behavior_debug)
-	{
-	  fprintf(stderr, "could not replaced implementation for %s in %s.\n",
-		  sel_get_name(sel), class != NULL ? class->name : "<NULL>"); 
-	}
-    }
-  return oImp;
-}
-
 
 
 /**
