@@ -1,3 +1,9 @@
+Wed Aug 12 14:55:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSBundle: ([+initialize]) modified to take account of the
+	environment variables GNUSTEP_TARGET_DIR, GNUSTEP_TARGET_CPU,
+	GNUSTEP_TARGET_OS, and LIBRARY_COMBO to override the defaults.
+
 Fri Aug  4 10:55:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/GNUmakefile: Removed NSAllocateObject.m and

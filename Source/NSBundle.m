@@ -215,9 +215,32 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 {
   if (self == [NSBundle class])
     {
+      NSDictionary	*env;
+
       /* Need to make this recursive since both mainBundle and initWithPath:
 	 want to lock the thread */
       load_lock = [NSRecursiveLock new];
+      env = [[NSProcessInfo processInfo] environment];
+      if (env)
+	{
+	  NSString	*str;
+
+	  str = [env objectForKey: @"GNUSTEP_TARGET_DIR"];
+	  if (str)
+	    gnustep_target_dir = [str retain];
+	
+	  str = [env objectForKey: @"GNUSTEP_TARGET_CPU"];
+	  if (str)
+	    gnustep_target_cpu = [str retain];
+	
+	  str = [env objectForKey: @"GNUSTEP_TARGET_OS"];
+	  if (str)
+	    gnustep_target_os = [str retain];
+	
+	  str = [env objectForKey: @"LIBRARY_COMBO"];
+	  if (str)
+	    library_combo = [str retain];
+	}
     }
 }
 
