@@ -4378,7 +4378,7 @@ else
 #line 4379 "configure"
 #include "confdefs.h"
 #include "libxml/xmlversion.h"
-    #if LIBXML_VERSION < 20000
+    #if LIBXML_VERSION < 20203
     #error
     #endif
 EOF
@@ -4397,8 +4397,8 @@ else
 fi
 rm -f conftest*
   if test $libxml2plus = 0; then
-    echo "libxml version older than 2.0.0"
-    echo "configure: warning: libxml version older than 2.0.0" 1>&2
+    echo "libxml version older than 2.2.3"
+    echo "configure: warning: libxml version older than 2.2.3" 1>&2
     HAVE_LIBXML=0
   else
     HAVE_LIBXML=1

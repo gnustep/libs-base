@@ -789,12 +789,12 @@ if test $ac_cv_header_libxml_xmlversion_h = no; then
   HAVE_LIBXML=0
 else
   AC_TRY_CPP([#include "libxml/xmlversion.h"
-    #if LIBXML_VERSION < 20000
+    #if LIBXML_VERSION < 20203
     #error
     #endif], libxml2plus=1, libxml2plus=0)
   if test $libxml2plus = 0; then
-    echo "libxml version older than 2.0.0"
-    AC_MSG_WARN(libxml version older than 2.0.0)
+    echo "libxml version older than 2.2.3"
+    AC_MSG_WARN(libxml version older than 2.2.3)
     HAVE_LIBXML=0
   else
     HAVE_LIBXML=1
