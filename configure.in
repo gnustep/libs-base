@@ -578,6 +578,17 @@ AC_CHECK_FUNCS(inet_aton)
 AC_CHECK_FUNCS(killpg setpgrp setpgid)
 AC_FUNC_SETPGRP
 
+HAVE_PTS_STREAM_MODULES=0
+case "${target}" in
+  *-sysv-*)
+    HAVE_PTS_STREAM_MODULES=1
+    ;;
+esac
+AC_DEFINE_UNQUOTED(HAVE_PTS_STREAM_MODULES, $HAVE_PTS_STREAM_MODULES)
+AC_SUBST(HAVE_PTS_STREAM_MODULES)
+
+AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h sys/file.h sys/fcntl.h sys/ioctl.h sys/stropts.h unistd.h utime.h libguile.h)
+
 #--------------------------------------------------------------------
 # This function needed by NSThread.m
 #--------------------------------------------------------------------
