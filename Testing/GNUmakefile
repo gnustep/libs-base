@@ -34,55 +34,50 @@ include ../config.mak
 
 # The tools to be compiled
 TEST_TOOL_NAME = \
+awake \
+basic \
 benchmark \
-test01 \
-test02 \
-heap \
-prepend \
-pipes \
-server \
+containers \
+cstream \
 client \
-string \
-values \
+diningPhilosophers \
+fref \
 gstcpport-server \
 gstcpport-client \
-nsarray \
-nsattributedstring \
-nsbundle \
-nsdata \
-nsdictionary \
-nsfilehandle \
-nshost \
-nsinvocation \
-nsset \
-nsprocessinfo \
-nsarchiver \
 invocation \
 invocation_int \
 invocation_char \
 invocation_short \
 invocation_long \
-diningPhilosophers \
-nsmaptable \
+nsarray \
+nsarchiver \
+nsattributedstring \
+nsbundle \
+nscharacterset \
+nsdata \
+NSData-test \
+nsdate \
+nsdictionary \
+nsfilehandle \
 nshashtable \
-tcpport-server \
-tcpport-client \
+nshost \
+nsinvocation \
+nsmaptable \
 nsnotification \
+nsprocessinfo \
+nsscanner \
+nsset \
 nstask \
 nstimer \
-coder \
-cstream \
-fref \
-basic \
-release \
-nsscanner \
-nsdate \
-awake \
-thread-except \
-nscharacterset \
-NSData-test \
-containers \
 nstimezone \
+pipes \
+release \
+server \
+string \
+tcpport-server \
+tcpport-client \
+thread-except \
+values \
 create-abbrevs \
 create-regions
 
@@ -177,7 +172,7 @@ DIST_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
 
 -include GNUmakefile.local
 
-include $(GNUSTEP_MAKEFILES)/test-tool.make
+#include $(GNUSTEP_MAKEFILES)/test-tool.make
 include $(GNUSTEP_MAKEFILES)/bundle.make
 
 -include Makefile.postamble

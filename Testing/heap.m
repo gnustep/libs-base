@@ -9,10 +9,6 @@
 #if defined(__svr4__) || defined(__hpux) || defined(_SEQUENT_)
 long lrand48();
 #define random lrand48
-#else
-#if _WIN32 || __WIN32__
-#define random rand
-#endif
 #endif
 
 int main()

@@ -8,13 +8,14 @@
 
 */
 #include "MyCategory.h"
+#include <Foundation/NSString.h>
 
 @implementation NSObject(MyCategory)
 
 - printMyName
 {
-	printf("Class %s had MyCategory added to it\n", [self name]);
-	return self;
+  printf("Class %s had MyCategory added to it\n", [[self description] cString]);
+  return self;
 }
 
 @end

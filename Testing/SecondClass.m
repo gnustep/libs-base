@@ -8,6 +8,7 @@
 
 */
 #include "SecondClass.h"
+#include <Foundation/NSString.h>
 
 @implementation SecondClass 
 
@@ -21,8 +22,8 @@
 - printName
 
 {
-    printf("Hi my name is %s\n", [self name]);
-    return self;
+  printf("Hi my name is %s\n", [[self description] cString]);
+  return self;
 }
 
 @end

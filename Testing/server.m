@@ -6,7 +6,6 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSRunLoop.h>
-#include <base/Coder.h>
 #include <base/BinaryCStream.h>
 #include    <Foundation/NSAutoreleasePool.h>
 #include "server.h"

@@ -1,3 +1,15 @@
+2000-06-13  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Look for getopt.h
+	* Source/NSBundle.m (+_absolutePathOfExecutable:): Add '.' if not
+	already in path.
+	* Source/NSPage.m: Use malloc if no valloc.
+
+	* Testing/GNUmakefile: Remove non-OpenStep tests.
+
+	* Tools/gdomap.c: Change WIN32 to MINGW. Check if IFF_POINTOPOINT
+	is defined.
+
 2000-06-11  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/preface.h.in: Define MINGW if MINW32.
