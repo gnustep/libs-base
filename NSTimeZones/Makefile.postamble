@@ -45,7 +45,15 @@
 # before-install::
 
 # Things to do after installing
-after-install::
+
+# This directory is created by NSCharacterSets/GNUmakefile, but in
+# case the order is somewhat messed up and that GNUmakefile has not
+# been executed, we include here rules to create the directory if it's
+# not there yet.
+$(resourcedir):
+	$(MKINSTALLDIRS) $(resourcedir)
+
+after-install:: $(resourcedir)
 	cp $(TIMEZONE_ARCHIVE) $(resourcedir); \
 	cd $(resourcedir); \
 	if [ -f NSTimeZones/localtime ]; then \
