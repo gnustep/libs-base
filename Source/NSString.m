@@ -2144,66 +2144,73 @@ else
 
 // xxx incomplete
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
-   allowLossyConversion: (BOOL)flag
+	 allowLossyConversion: (BOOL)flag
 {
   int count=0;
   int len = [self length];
 
   if ((encoding==NSASCIIStringEncoding)
-  || (encoding==NSISOLatin1StringEncoding)
-  || (encoding==NSNEXTSTEPStringEncoding)
-  || (encoding==NSNonLossyASCIIStringEncoding)
-  || (encoding==NSSymbolStringEncoding)
-  || (encoding==NSCyrillicStringEncoding))
-  {
-    char t;
-    unsigned char *buff;
+    || (encoding==NSISOLatin1StringEncoding)
+    || (encoding==NSNEXTSTEPStringEncoding)
+    || (encoding==NSNonLossyASCIIStringEncoding)
+    || (encoding==NSSymbolStringEncoding)
+    || (encoding==NSCyrillicStringEncoding))
+    {
+      char t;
+      unsigned char *buff;
 
-    buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
-    if (!flag)
-      for(count=0; count<len; count++)
-        if ((t = encode_unitochar([self characterAtIndex: count], encoding)))
-          buff[count] = t;
-        else
-          {
-            NSZoneFree(NSDefaultMallocZone(), buff);
-            return nil;
-          }
-    else /* lossy */
-      for(count=0; count<len; count++)
-        if ((t = encode_unitochar([self characterAtIndex: count], encoding)))
-          buff[count] = t;
-        else
-        {
-          t=[[NSGSequence sequenceWithString: self
-          range:
-          [self rangeOfComposedCharacterSequenceAtIndex: count]]
-           baseCharacter];
-          if ((t = encode_unitochar([self characterAtIndex: count], encoding)))
-            buff[count] = t;
-          else
-  /* xxx should handle decomposed characters */
- /* OpenStep documentation is unclear on what to do if there is no
-    simple replacement for character */
-            buff[count] = '*';
-        };
-      buff[count]=0;
-      return [NSData dataWithBytesNoCopy: buff length: count+1];
+      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len);
+      if (!flag)
+	{
+	  for (count = 0; count < len; count++)
+	    {
+	      t = encode_unitochar([self characterAtIndex: count], encoding);
+	      if (t)
+		{
+		  buff[count] = t;
+		}
+	      else
+		{
+		  NSZoneFree(NSDefaultMallocZone(), buff);
+		  return nil;
+		}
+	    }
+	}
+      else /* lossy */
+	{
+	  for (count = 0; count < len; count++)
+	    {
+	      t = encode_unitochar([self characterAtIndex: count], encoding);
+	      if (t)
+		{
+		  buff[count] = t;
+		}
+	      else
+		{
+		  /* xxx should handle decomposed characters */
+		  /* OpenStep documentation is unclear on what to do
+		   * if there is no simple replacement for character
+		   */
+		  buff[count] = '*';
+		}
+	    }
+	  return [NSData dataWithBytesNoCopy: buff length: count];
+	}
     }
-    else
-      if (encoding==NSUnicodeStringEncoding)
-      {
-        unichar *buff;
+  else if (encoding == NSUnicodeStringEncoding)
+    {
+      unichar *buff;
 
-        buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), 2*(len+2));
-        buff[0]=0xFEFF;
-        for(count=0; count<len; count++)
-          buff[count+1]=[self characterAtIndex: count];
-        buff[count+1]= (unichar)0;
-        return [NSData dataWithBytesNoCopy: buff length: 2*(len+2)];
-      }
-      else /* UTF8 or EUC */
-        [self notImplemented:_cmd];
+      buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), 2*len+2);
+      buff[0]=0xFEFF;
+      for (count = 0; count < len; count++)
+	buff[count+1] = [self characterAtIndex: count];
+      return [NSData dataWithBytesNoCopy: buff length: 2*len+2];
+    }
+  else /* UTF8 or EUC */
+    {
+      [self notImplemented:_cmd];
+    }
   return nil;
 }
 
