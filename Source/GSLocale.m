@@ -33,7 +33,9 @@
 /*
  * Define __USE_GNU to get YESSTR and NOSTR in glibc-2.2.2
  */
+#ifndef	__USE_GNU
 #define	__USE_GNU
+#endif
 #include <langinfo.h>
 #endif
 #include <Foundation/NSUserDefaults.h>
