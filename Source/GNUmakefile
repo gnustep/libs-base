@@ -190,6 +190,7 @@ NSMethodSignature.m \
 NSNotification.m \
 NSNotificationCenter.m \
 NSNotificationQueue.m \
+NSNull.m \
 NSNumber.m \
 NSNumberFormatter.m \
 NSObjCRuntime.m \
@@ -291,6 +292,7 @@ NSMapTable.h \
 NSMethodSignature.h \
 NSNotification.h \
 NSNotificationQueue.h \
+NSNull.h \
 NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
