@@ -255,16 +255,18 @@ static NSLock			*urlLock = nil;
   document = RETAIN([parser document]);
   [self beginLoadInBackground];
   [sock closeFile];
-  RELEASE(sock);
+  DESTROY(sock);
   contentLength = 0;
   if ([request objectForKey: GSHTTPPropertyProxyHostKey] == nil)
     {
       if ([[url scheme] isEqualToString: @"https"])
 	{
+#ifndef __MINGW__
 	  sock = [GSUnixSSLHandle 
 	    fileHandleAsClientInBackgroundAtAddress: [url host]
 					    service: [url scheme]
 					   protocol: @"tcp"];
+#endif
 	}
       else
 	{
@@ -282,12 +284,14 @@ static NSLock			*urlLock = nil;
 	}
       if ([[url scheme] isEqualToString: @"https"])
 	{
+#ifndef __MINGW__
 	  sock = [GSUnixSSLHandle 
 	    fileHandleAsClientInBackgroundAtAddress: 
 	      [request objectForKey: GSHTTPPropertyProxyHostKey]
 					    service:
 	      [request objectForKey: GSHTTPPropertyProxyPortKey]
 					   protocol: @"tcp"];
+#endif
 	}
       else
 	{
