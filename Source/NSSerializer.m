@@ -30,6 +30,10 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSProxy.h>
+#include <Foundation/NSLock.h>
+#include <Foundation/NSSet.h>
+#include <Foundation/NSThread.h>
+#include <Foundation/NSNotificationQueue.h>
 
 #include <base/NSGArray.h>
 #include <base/NSGCString.h>
@@ -344,6 +348,12 @@ static BOOL	shouldBeCompact = NO;
 
 
 /*
+ *	Class variables for uniquing incoming strings.
+ */
+static NSRecursiveLock	*uniqueLock = nil;
+static NSCountedSet	*uniqueSet = nil;
+
+/*
  *	Variables to cache class information.
  */
 static Class	IACls = 0;	/* Immutable Array	*/
@@ -425,6 +435,31 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  s = (NSGCString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
 	  s = (*csInitImp)(s, csInitSel, b, size-1, NSDefaultMallocZone());
+
+	  /*
+	   * If we are supposed to be doing uniquing of strings, handle it.
+	   */
+	  if (uniqueSet != nil)
+	    {
+	      id	uniqued;
+
+	      if (uniqueLock != nil)
+		[uniqueLock lock];
+	      [uniqueSet addObject: s];
+	      uniqued = [uniqueSet member: s];
+	      if (uniqueLock != nil)
+		[uniqueLock unlock];
+	      if (uniqued != s)
+		{
+		  RELEASE(s);
+		  s = RETAIN(uniqued);
+		}
+	    }
+
+	  /*
+           * If uniquing was done on serialisation, store the string for
+	   * later reference.
+	   */
 	  if (info->didUnique)
 	    FastArrayAddItem(&info->array, (FastArrayItem)s);
 	  return s;
@@ -438,6 +473,31 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  (*info->debImp)(info->data, debSel, b, size*2, info->cursor);
 	  s = (NSGString*)NSAllocateObject(USCls, 0, NSDefaultMallocZone());
 	  s = (*usInitImp)(s, usInitSel, b, size, NSDefaultMallocZone());
+
+	  /*
+	   * If we are supposed to be doing uniquing of strings, handle it.
+	   */
+	  if (uniqueSet != nil)
+	    {
+	      id	uniqued;
+
+	      if (uniqueLock != nil)
+		[uniqueLock lock];
+	      [uniqueSet addObject: s];
+	      uniqued = [uniqueSet member: s];
+	      if (uniqueLock != nil)
+		[uniqueLock unlock];
+	      if (uniqued != s)
+		{
+		  RELEASE(s);
+		  s = RETAIN(uniqued);
+		}
+	    }
+
+	  /*
+           * If uniquing was done on serialisation, store the string for
+	   * later reference.
+	   */
 	  if (info->didUnique)
 	    FastArrayAddItem(&info->array, (FastArrayItem)s);
 	  return s;
@@ -632,6 +692,18 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       maInitImp = [MACls instanceMethodForSelector: maInitSel];
       idInitImp = [IDCls instanceMethodForSelector: idInitSel];
       mdInitImp = [MDCls instanceMethodForSelector: mdInitSel];
+      if ([NSThread isMultiThreaded])
+	{
+	  [self _becomeThreaded: nil];
+	}
+      else
+	{
+	  [NSNotificationCenter
+	    addObserver: self
+	       selector: @selector(_becomeThreaded:)
+		   name: NSWillBecomeMultiThreadedNotification
+		 object: nil];
+	}
     }
 }
 
@@ -690,6 +762,65 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 					atCursor: cursor
 					 mutable: flag];
     }
+}
+@end
+
+@implementation	NSDeserializer (GNUstep)
+/*
+ * If we are multi-threaded, we must guard access to the uniquing set.
+ */
++ (void) _becomeThreaded: (id)notification
+{
+  uniqueLock = [NSRecursiveLock new];
+}
+
+/*
+ * Remove one copy of each object in the uniquing  set, or remove all
+ * objects if the flag is YES.
+ */
++ (void) purge
+{
+  if (uniqueSet)
+    {
+      NSArray	*all;
+      id	obj;
+      unsigned	i;
+
+      if (uniqueLock != nil)
+	[uniqueLock lock];
+      all = [uniqueSet allObjects];
+      for (i = [all count]; i > 0; i--)
+	{
+	  [uniqueSet removeObject: [all objectAtIndex: i-1]];
+	}
+      if (uniqueLock != nil)
+	[uniqueLock unlock];
+    }
+}
+
+/*
+ * Turn uniquing of deserialized strings on/off
+ */
++ (void) uniquing: (BOOL)flag
+{
+  if (uniqueLock != nil)
+    [uniqueLock lock];
+  if (flag)
+    {
+      if (uniqueSet == nil)
+	{
+	  uniqueSet = [NSCountedSet new];
+	}
+    }
+  else
+    {
+      if (uniqueSet != nil)
+	{
+	  DESTROY(uniqueSet);
+	}
+    }
+  if (uniqueLock != nil)
+    [uniqueLock unlock];
 }
 @end
 
