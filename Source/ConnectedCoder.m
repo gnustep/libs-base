@@ -277,7 +277,6 @@ static BOOL debug_connected_coder = NO;
   if (is_decoding)
     {
       NSAssert([anObj isProxy], NSInternalInconsistencyException);
-      NSAssert([anObj targetForProxy] == xref, NSInternalInconsistencyException);
       /* This gets done in Proxy +newForRemote:connection:
 	 [connection addProxy:anObj]; */
     }

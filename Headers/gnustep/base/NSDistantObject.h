@@ -58,15 +58,10 @@
 
 @interface NSDistantObject(GNUstepExtensions)
 
-+ newForRemoteTarget: (unsigned)target connection: (NSConnection*)conn;
-
 - awakeAfterUsingCoder: aDecoder;
 - classForPortCoder;
-+ newWithCoder: aRmc;
 - (const char *) selectorTypeForProxy: (SEL)selector;
 - forward: (SEL)aSel :(arglist_t)frame;
-- (id) localForProxy;
-- (unsigned) targetForProxy;
 @end
 
 #endif /* __NSDistantObject_h_GNUSTEP_BASE_INCLUDE */
