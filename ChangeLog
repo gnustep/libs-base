@@ -1,3 +1,9 @@
+2004-02-07  Adam Fedor  <fedor@gnu.org>
+
+	* Source/simple-load.h (__objc_dynamic_get_symbol_path): Remove
+	ifdefs since dladdr is assured to be present. Set handle to default
+	if not specified.
+
 2004-02-04 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m: (GSBinaryPLParser -objectAtIndex:)
