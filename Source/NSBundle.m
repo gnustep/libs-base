@@ -619,17 +619,20 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
              non-yet-installed tool.  */
 	  isApplication = NO;
 	}
-      
+
       if (isApplication == YES)
-	{
-	  s = [path lastPathComponent];
-	  if (([s hasSuffix: @".app"]  == NO)
-	      && ([s hasSuffix: @".debug"] == NO)
-	      && ([s hasSuffix: @".profile"] == NO))
-	    {
-	      isApplication = NO;
-	    }
-	}
+    {
+      s = [path lastPathComponent];
+          
+      if ((([s hasSuffix: @".app"]  == NO)
+          && ([s hasSuffix: @".debug"] == NO)
+          && ([s hasSuffix: @".profile"] == NO))
+          // GNUstep Web
+          && (([s hasSuffix: @".gswa"] == NO) && ([s hasSuffix: @".woa"] == NO)))
+        {
+          isApplication = NO;
+        }
+    }
       
       if (isApplication == NO)
 	{
