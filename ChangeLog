@@ -1,5 +1,11 @@
 2000-06-26  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSPortCoder.m: Rewrite of NSPortCoder - under development.
+	* Headers/gnustep/base/GSPortCoder.h: ditto
+	* Source/GNUmakefile: Build GSPortCoder
+
+2000-06-26  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSCoder.m: Use AUTORELEASE and tidy up.
 	* Source/NSArchiver.m: Fix bug in ([-replaceObject:withObject:])
 	* Source/NSObject.m: Optimise default replacementObjectForPortCoder
