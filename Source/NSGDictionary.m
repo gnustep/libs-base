@@ -39,7 +39,7 @@ typedef struct {
     Class	*isa;
     char	*_contents_chars;
     int		_count;
-    BOOL	_free_when_done;
+    NSZone	*_zone;
     unsigned	_hash;
 } *dictAccessToStringHack;
 
@@ -185,7 +185,7 @@ myEqual(NSObject *self, NSObject *other)
 					  at: &count
 				    withName: NULL];
 
-    FastMapInitWithZoneAndCapacity(&map, [self zone], count);
+    FastMapInitWithZoneAndCapacity(&map, fastZone(self), count);
     while (count-- > 0) {
 	[(id<Decoding>)aCoder decodeObjectAt: &key withName: NULL];
 	[(id<Decoding>)aCoder decodeObjectAt: &value withName: NULL];
@@ -199,7 +199,7 @@ myEqual(NSObject *self, NSObject *other)
 - (id) initWithObjects: (id*)objs forKeys: (NSObject**)keys count: (unsigned)c
 {
     int	i;
-    FastMapInitWithZoneAndCapacity(&map, [self zone], c);
+    FastMapInitWithZoneAndCapacity(&map, fastZone(self), c);
     for (i = 0; i < c; i++) {
 	FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)keys[i]);
 
@@ -251,7 +251,7 @@ myEqual(NSObject *self, NSObject *other)
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-    FastMapInitWithZoneAndCapacity(&map, [self zone], cap);
+    FastMapInitWithZoneAndCapacity(&map, fastZone(self), cap);
     return self;
 }
 

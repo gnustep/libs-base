@@ -1,11 +1,14 @@
 /* Implementation of GNUSTEP string class
-   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: January 1995
 
    Unicode implementation by Stevo Crvenkovski <stevo@btinternet.com>
    Date: February 1997
+
+   Optimisations by Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Date: October 1998
 
    This file is part of the GNUstep Base Library.
 
@@ -315,28 +318,58 @@ handle_printf_atsign (FILE *stream,
 
 /* This is the designated initializer for Unicode Strings. */
 - (id) initWithCharactersNoCopy: (unichar*)chars
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag
+			 length: (unsigned int)length
+		       fromZone: (NSZone*)zone
 {
   [self subclassResponsibility:_cmd];
   return self;
 }
 
-- (id) initWithCharacters: (const unichar*)chars
+- (id) initWithCharactersNoCopy: (unichar*)chars
    length: (unsigned int)length
+   freeWhenDone: (BOOL)flag
 {
-  unichar *s;
-  OBJC_MALLOC(s, unichar, length+1);
-  if (chars)
-    memcpy(s, chars,2*length);
-  s[length] = (unichar)0;
-  return [self initWithCharactersNoCopy:s length:length freeWhenDone:YES];
+  if (flag)
+    return [self initWithCharactersNoCopy: chars
+				   length: length
+				 fromZone: NSZoneFromPointer(chars)];
+  else
+    return [self initWithCharactersNoCopy: chars
+				   length: length
+				 fromZone: 0];
+  return self;
+}
+
+- (id) initWithCharacters: (const unichar*)chars
+		   length: (unsigned int)length
+{
+    NSZone	*z = [self zone];
+    unichar	*s = NSZoneMalloc(z, sizeof(unichar)*length);
+
+    if (chars)
+	memcpy(s, chars, sizeof(unichar)*length);
+
+    return [self initWithCharactersNoCopy:s length:length fromZone:z];
+}
+
+- (id) initWithCStringNoCopy: (char*)byteString
+		      length: (unsigned int)length
+		freeWhenDone: (BOOL)flag
+{
+  if (flag)
+    return [self initWithCStringNoCopy: byteString
+				length: length
+			      fromZone: NSZoneFromPointer(byteString)];
+  else
+    return [self initWithCStringNoCopy: byteString
+				length: length
+			      fromZone: 0];
 }
 
 /* This is the designated initializer for CStrings. */
 - (id) initWithCStringNoCopy: (char*)byteString
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag
+		      length: (unsigned int)length
+		    fromZone: (NSZone*)zone
 {
   [self subclassResponsibility:_cmd];
   return self;
@@ -344,12 +377,12 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithCString: (const char*)byteString  length: (unsigned int)length
 {
-  char *s;
-  OBJC_MALLOC(s, char, length+1);
-  if (byteString)
-    memcpy(s, byteString, length);
-  s[length] = '\0';
-  return [self initWithCStringNoCopy:s length:length freeWhenDone:YES];
+    NSZone	*z = [self zone];
+    char	*s = NSZoneMalloc(z, length);
+
+    if (byteString)
+	memcpy(s, byteString, length);
+    return [self initWithCStringNoCopy:s length:length fromZone:z];
 }
 
 - (id) initWithCString: (const char*)byteString
@@ -360,14 +393,14 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithString: (NSString*)string
 {
-  unichar *s;
-  unsigned length = [string length];
-  OBJC_MALLOC(s, unichar, length+1);
-  [string getCharacters:s];
-  s[length] = (unichar)0;
-  return [self initWithCharactersNoCopy: s
-				 length: length
-			   freeWhenDone: YES];
+    NSZone	*z = [self zone];
+    unsigned	length = [string length];
+    unichar	*s = NSZoneMalloc(z, sizeof(unichar)*length);
+
+    [string getCharacters:s];
+    return [self initWithCharactersNoCopy: s
+				   length: length
+				 fromZone: z];
 }
 
 - (id) initWithFormat: (NSString*)format,...
@@ -504,42 +537,39 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithData: (NSData*)data
    encoding: (NSStringEncoding)encoding
 {
-  if((encoding==[NSString defaultCStringEncoding])
-  || (encoding==NSASCIIStringEncoding))
-  {
-    char *s;
+  if ((encoding==[NSString defaultCStringEncoding])
+    || (encoding==NSASCIIStringEncoding))
+    {
+      NSZone *z = fastZone(self);
+      int len=[data length];
+      char *s = NSZoneMalloc(z, len+1);
 
-    int len=[data length];
-    OBJC_MALLOC(s, char, len+1);
-    [data getBytes:s];
-    s[len]=0;
-      return [self initWithCStringNoCopy:s length:len freeWhenDone:YES];
+      [data getBytes:s];
+      return [self initWithCStringNoCopy:s length:len fromZone:z];
     }
   else
-  {
-    unichar *u;
-    int count;
-
-    int len=[data length];
-    const unsigned char *b=[data bytes];
-    OBJC_MALLOC(u, unichar, len+1);
-
-    if(encoding==NSUnicodeStringEncoding)
     {
-      if((b[0]==0xFE)&(b[1]==0xFF))
-        for(count=2;count<(len-1);count+=2)
-          u[count/2 - 1]=256*b[count]+b[count+1];
-      else
-        for(count=2;count<(len-1);count+=2)
-          u[count/2 -1]=256*b[count+1]+b[count];
-      count = count/2 -1;
-    }
-    else
-      count = encode_strtoustr(u,b,len,encoding);
+      NSZone *z = fastZone(self);
+      int len=[data length];
+      unichar *u = NSZoneMalloc(z, sizeof(unichar)*(len+1));
+      int count;
+      const unsigned char *b=[data bytes];
 
-    u[count]=(unichar)0;
-     return [self initWithCharactersNoCopy:u length:count freeWhenDone:YES];
-  }
+      if(encoding==NSUnicodeStringEncoding)
+        {
+	  if((b[0]==0xFE)&(b[1]==0xFF))
+	    for(count=2;count<(len-1);count+=2)
+	      u[count/2 - 1]=256*b[count]+b[count+1];
+	  else
+	    for(count=2;count<(len-1);count+=2)
+	      u[count/2 -1]=256*b[count+1]+b[count];
+	  count = count/2 -1;
+	}
+      else
+	count = encode_strtoustr(u,b,len,encoding);
+
+      return [self initWithCharactersNoCopy:u length:count fromZone:z];
+    }
   return self;
 }
 
@@ -614,17 +644,16 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) stringByAppendingString: (NSString*)aString
 {
+  NSZone *z = fastZone(self);
   unsigned len = [self length];
   unsigned otherLength = [aString length];
-  unichar *s;
+  unichar *s = NSZoneMalloc(z, (len+otherLength)*sizeof(unichar));
   NSString *tmp;
-  OBJC_MALLOC(s, unichar, len+otherLength+1);
+
   [self getCharacters:s];
   [aString getCharacters:s+len];
-  s[len + otherLength]=(unichar) 0;
-  tmp = [[[self class] alloc] initWithCharactersNoCopy: s
-						length: len+otherLength
-					  freeWhenDone: YES];
+  tmp = [[[self class] allocWithZone:z] initWithCharactersNoCopy: s
+		    length: len+otherLength fromZone: z];
   return [tmp autorelease];
 }
 
@@ -667,6 +696,7 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
+  NSZone *z;
   unichar *buf;
   id ret;
 
@@ -676,11 +706,12 @@ handle_printf_atsign (FILE *stream,
     [NSException raise: NSRangeException format:@"Invalid location+length."];
   if (aRange.length == 0)
     return @"";
-  OBJC_MALLOC(buf, unichar, aRange.length+1);
+  z = fastZone(self);
+  buf = NSZoneMalloc(z, sizeof(unichar)*aRange.length);
   [self getCharacters:buf range:aRange];
   ret = [[[self class] alloc] initWithCharactersNoCopy: buf
 						length: aRange.length
-					  freeWhenDone: YES];
+					      fromZone: z];
   return [ret autorelease];
 }
 
@@ -1834,13 +1865,14 @@ else
 // but this will work in most cases
 - (NSString*) capitalizedString
 {
+  NSZone *z = fastZone(self);
   unichar *s;
   int count=0;
   BOOL found=YES;
   int len=[self length];
   id white = [NSCharacterSet whitespaceAndNewlineCharacterSet];
 
-  OBJC_MALLOC(s, unichar,len +1);
+  s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
   [self getCharacters:s];
   s[len] = (unichar)0;
   while(count<len)
@@ -1867,36 +1899,35 @@ else
     };
     found=NO;
   };
-  s[count] = (unichar)0;
-  return [[[NSString alloc] initWithCharactersNoCopy:s length:len freeWhenDone:YES] autorelease];
+  return [[[NSString alloc] initWithCharactersNoCopy:s length:len fromZone:z] autorelease];
 }
 
 - (NSString*) lowercaseString
 {
+  NSZone *z = fastZone(self);
   unichar *s;
   int count;
   int len=[self length];
-  OBJC_MALLOC(s, unichar,len +1);
+  s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
   for(count=0;count<len;count++)
     s[count]=uni_tolower([self characterAtIndex:count]);
-  s[len] = (unichar)0;
   return [[[[self class] alloc] initWithCharactersNoCopy: s
 						  length: len
-					    freeWhenDone: YES] autorelease];
+					        fromZone: z] autorelease];
 }
 
 - (NSString*) uppercaseString;
 {
+  NSZone *z = fastZone(self);
   unichar *s;
   int count;
   int len=[self length];
-  OBJC_MALLOC(s, unichar,len +1);
+  s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
   for(count=0;count<len;count++)
     s[count]=uni_toupper([self characterAtIndex:count]);
-  s[len] = (unichar)0;
   return [[[[self class] alloc] initWithCharactersNoCopy: s
 						  length: len
-					    freeWhenDone: YES] autorelease];
+					        fromZone: z] autorelease];
 }
 
 // Storing the String
@@ -2417,12 +2448,14 @@ else
 {
   #define MAXDEC 18
 
+  NSZone *z = fastZone(self);
   unichar *u, *upoint;
   NSRange r;
   id seq,ret;
   int len = [self length];
   int count = 0;
-  OBJC_MALLOC(u, unichar, len*MAXDEC+1);
+
+  u = NSZoneMalloc(z, sizeof(unichar)*(len*MAXDEC+1));
   upoint = u;
 
   while(count < len)
@@ -2437,7 +2470,7 @@ else
 
   ret = [[[[self class] alloc] initWithCharactersNoCopy: u
 						 length: uslen(u)
-					   freeWhenDone: YES] autorelease];
+					       fromZone: z] autorelease];
   return ret;
 }
 
@@ -2533,12 +2566,6 @@ else
 // #endif
 
 // #ifndef NO_GNUSTEP
-// This method should be removed
-- (const char *) cStringNoCopy
-{
-  [self subclassResponsibility: _cmd];
-  return NULL;
-}
 
 - (NSString*) descriptionForPropertyList
 {
@@ -2637,10 +2664,6 @@ else
     return [self retain];
 }
 
-/* xxx Temporarily put this NSObject-like implementation here, so
-   we don't get String's Collection implementation. 
-   When we separate Core from NonCore methods, this problem will
-   go away. */
 - mutableCopyWithZone: (NSZone*)zone
 {
   return [[[[self class] _mutableConcreteClass] allocWithZone:zone]

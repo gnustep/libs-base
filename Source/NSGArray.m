@@ -30,8 +30,6 @@
 #include <Foundation/NSPortCoder.h>
 #include <gnustep/base/Coding.h>
 
-#define BADREALLOC 1
-
 @interface NSGArray : NSArray
 {
     id		*_contents_array;
@@ -58,6 +56,13 @@
 	[self setVersion: 1];
         behavior_class_add_class(self, [NSArrayNonCore class]);
     }
+}
+
++ (id) allocWithZone: (NSZone*)zone
+{
+    NSGArray	*array = NSAllocateObject(self, 0, zone);
+
+    return array;
 }
 
 - (void) dealloc
@@ -88,7 +93,7 @@
 	for (i = 0; i < count; i++) {
 	    if ((_contents_array[i] = [objects[i] retain]) == nil) {
 		_count = i;
-		[self autorelease];
+		[self release];
 		[NSException raise: NSInvalidArgumentException
 			    format: @"Tried to add nil"];
 	    }
@@ -96,11 +101,6 @@
 	_count = count;
     }
     return self;
-}
-
-- (Class) classForCoder
-{
-    return [NSArray class];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -121,15 +121,17 @@
 {
     unsigned    count;
 
-    if ([aCoder systemVersion] == 0) {
-	unsigned dummy;
-	[(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-					      at: &dummy
-					withName: NULL];
-	[(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-					      at: &dummy
-					withName: NULL];
-    }
+#if 0
+    unsigned dummy;
+
+    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
+					  at: &dummy
+				    withName: NULL];
+    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
+					  at: &dummy
+				    withName: NULL];
+#endif
+
     [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
 					  at: &count
 				    withName: NULL];
@@ -208,7 +210,7 @@
     if (_count < e) {
         e = _count;
     }
-    for (i = aRange.location; i < _count; i++) {
+    for (i = aRange.location; i < e; i++) {
         aBuffer[j++] = _contents_array[i];
     }
 }
@@ -266,7 +268,7 @@
 	for (i = 0; i < count; i++) {
 	    if ((_contents_array[i] = [objects[i] retain]) == nil) {
 		_count = i;
-		[self autorelease];
+		[self release];
 		[NSException raise: NSInvalidArgumentException
 			    format: @"Tried to add nil"];
 	    }
@@ -274,11 +276,6 @@
 	_count = count;
     }
     return self;
-}
-
-- (Class) classForCoder
-{
-    return [NSMutableArray class];
 }
 
 - (void) insertObject: (id)anObject atIndex: (unsigned)index
@@ -297,21 +294,11 @@
 	id	*ptr;
 	size_t	size = (_capacity + _grow_factor)*sizeof(id);
 
-#if BADREALLOC
-	ptr = NSZoneMalloc([self zone], size);
-#else
 	ptr = NSZoneRealloc([self zone], _contents_array, size);
-#endif
 	if (ptr == 0) {
 	    [NSException raise: NSMallocException
 			format: @"Unable to grow"];
 	}
-#if BADREALLOC
-	if (_contents_array) {
-	    memcpy(ptr, _contents_array, _capacity*sizeof(id));
-	    NSZoneFree([self zone], _contents_array);
-	}
-#endif
 	_contents_array = ptr;
 	_capacity += _grow_factor;
 	_grow_factor = _capacity/2;
@@ -339,21 +326,11 @@
 	id	*ptr;
 	size_t	size = (_capacity + _grow_factor)*sizeof(id);
 
-#if BADREALLOC
-	ptr = NSZoneMalloc([self zone], size);
-#else
 	ptr = NSZoneRealloc([self zone], _contents_array, size);
-#endif
 	if (ptr == 0) {
 	    [NSException raise: NSMallocException
 			format: @"Unable to grow"];
 	}
-#if BADREALLOC
-	if (_contents_array) {
-	    memcpy(ptr, _contents_array, _capacity*sizeof(id));
-	    NSZoneFree([self zone], _contents_array);
-	}
-#endif
 	_contents_array = ptr;
 	_capacity += _grow_factor;
 	_grow_factor = _capacity/2;

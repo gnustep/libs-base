@@ -264,8 +264,13 @@ enum {
 #endif
 
 #ifndef NO_GNUSTEP
-- (const char *) cStringNoCopy;
 - (NSString*) descriptionForPropertyList;
+- (id) initWithCharactersNoCopy: (unichar*)chars
+			 length: (unsigned int)length
+		       fromZone: (NSZone*)zone;
+- (id) initWithCStringNoCopy: (char*)byteString
+		      length: (unsigned int)length
+		    fromZone: (NSZone*)zone;
 #endif /* NO_GNUSTEP */
 
 @end

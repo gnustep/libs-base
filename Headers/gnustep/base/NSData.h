@@ -95,6 +95,16 @@
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned) length;
 + (id) dataWithStaticBytes: (const void*)bytes length: (unsigned) length;
 /*
+ *	-initWithBytesNoCopy:length:fromZone:
+ *	The GNUstep designated initialiser for normal data objects - lets
+ *	the class know what zone the data comes from, so we can avoid the
+ *	overhead of an NSZoneFromPointer() call.
+ *	A zone of zero denotes static memory rather than malloced memory.
+ */
+- (id) initWithBytesNoCopy: (void*)bytes
+		    length: (unsigned)length
+		  fromZone: (NSZone*)zone;
+/*
  *	-relinquishAllocatedBytes
  *	For an NSData object with a malloced buffer, returns that buffer and
  *	removes it from the NSData object, otherwise returns a nul pointer.
