@@ -13,7 +13,7 @@ int main ()
 
   ht = NSCreateHashTable (NSIntHashCallBacks, 0);
 
-  for (i = 0; i < 16; i++)
+  for (i = 1; i < 16; i++)
     NSHashInsert (ht, (void*)i);
 
   NSHashRemove (ht, (void*)3);
