@@ -144,9 +144,9 @@ NSUserName(void)
       char buf[1024];
       DWORD n = 1024;
 
-      if (GetEnvironmentVariable("LOGNAME", buf, 1024))
+      if (GetEnvironmentVariable("LOGNAME", buf, 1024) != 0 && buf[0] != '\0')
 	loginName = buf;
-      else if (GetUserName(buf, &n))
+      else if (GetUserName(buf, &n) != 0 && buf[0] != '\0')
 	loginName = buf;
 #else
       loginName = getenv("LOGNAME");
@@ -268,8 +268,15 @@ NSHomeDirectoryForUser(NSString *loginName)
 	}
       [gnustep_global_lock unlock];
     }
+  if ([s length] == 0 && [loginName length] != 1)
+    {
+      s = nil;
+      NSLog(@"NSHomeDirectoryForUser(%@) failed", loginName);
+    }
 #endif
-  return ImportPath(s, 0);
+  s = ImportPath(s, 0);
+// NSLog(@"Home for %@ is %@", loginName, s);
+  return s;
 }
 
 /**

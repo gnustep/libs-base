@@ -1339,10 +1339,11 @@ static NSFileManager* defaultManager = nil;
     {
       return 0;
     }
-  if (l >= 3 && c_path[0] == '~' && c_path[2] == '/' && isalpha(c_path[1]))
+  if (l >= 2 && c_path[0] == '~' && isalpha(c_path[1])
+    && (l == 2 || c_path[2] == '/'))
     {
       newpath = [NSString stringWithFormat: @"%c:%s", c_path[1],
-	    &c_path[2]];
+	&c_path[2]];
     }
   else if (l >= 3 && c_path[0] == '/' && c_path[1] == '/' && isalpha(c_path[2]))
     {
@@ -1390,7 +1391,9 @@ static NSFileManager* defaultManager = nil;
 	    }
 	}
 #else
-      if (l >= 3 && c_path[0] == '/' && c_path[2] == '/' && isalpha(c_path[1]))
+      if (l >= 2 && c_path[0] == '/' && isalpha(c_path[1])
+	&& (l == 2 || c_path[2] == '/'))
+
 	{
 	  /* Mingw /drive/... format */
           newpath = [NSString stringWithFormat: @"%c:%s", c_path[1],
@@ -1425,6 +1428,7 @@ static NSFileManager* defaultManager = nil;
 					  length: (unsigned int)len
 {
 #ifdef __MINGW__
+  const char	*ptr = string;
   char		buf[len + 20];
   unsigned	i;
   unsigned	j;
@@ -1437,26 +1441,36 @@ static NSFileManager* defaultManager = nil;
     {
       return @"";
     }
-  if (len >= 2 && string[1] == ':' && isalpha(string[0]))
+  if (len >= 2 && ptr[1] == ':' && isalpha(ptr[0]))
     {
       /*
        * Convert '<driveletter>:' to '~<driveletter>/' sequences.
        */
       buf[0] = '~';
-      buf[1] = string[0];
+      buf[1] = ptr[0];
       buf[2] = '/';
-      string--;
+      ptr -= 1;
       len++;
       i = 3;
     }
 #ifdef	__CYGWIN__
-  else if (len > 9 && strncmp(string, "/cygdrive/", 10) == 0)
+  else if (len > 9 && strncmp(ptr, "/cygdrive/", 10) == 0)
     {
       buf[0] = '~';
-      string += 9;
+      ptr += 9;
       len -= 9;
       i = 1;
    }
+#else
+  else if (len >= 2 && ptr[0] == '/' && isalpha(ptr[1])
+    && (len == 2 || ptr[2] == '/'))
+    {
+      /*
+       * Convert '/<driveletter>' to '~<driveletter>' sequences.
+       */
+      buf[0] = '~';
+      i = 1;
+    }
 #endif
   else
     {
@@ -1469,7 +1483,7 @@ static NSFileManager* defaultManager = nil;
   j = i;
   while (i < len)
     {
-      if (string[i] == '\\')
+      if (ptr[i] == '\\')
 	{
 	  if (j == 0 || buf[j-1] != '/')
 	    {
@@ -1485,10 +1499,12 @@ static NSFileManager* defaultManager = nil;
 	}
       else
 	{
-	  buf[j++] = string[i];
+	  buf[j++] = ptr[i];
 	}
       i++;
     }
+  buf[j] = '\0';
+// NSLog(@"Map '%s' to '%s'", string, buf);
   return [NSString stringWithCString: buf length: j];
 #endif
   return [NSString stringWithCString: string length: len];
