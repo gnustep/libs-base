@@ -113,10 +113,12 @@
 - (NSArray*) allHeaders;
 - (id) content;
 - (id) contentByID: (NSString*)key;
+- (id) contentByLocation: (NSString*)key;
 - (id) contentByName: (NSString*)key;
 - (id) copyWithZone: (NSZone*)z;
 - (NSString*) contentFile;
 - (NSString*) contentID;
+- (NSString*) contentLocation;
 - (NSString*) contentName;
 - (NSString*) contentSubtype;
 - (NSString*) contentType;
