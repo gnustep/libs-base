@@ -89,12 +89,10 @@ void
 NSLogv (NSString* format, va_list args)
 {
   static NSRecursiveLock	*myLock = nil;
-  NSAutoreleasePool		*arp;
+  CREATE_AUTORELEASE_POOL(arp);
   NSString			*prefix;
   NSString			*message;
   int				pid;
-
-  arp = [NSAutoreleasePool new];
 
   if (_NSLog_printf_handler == NULL)
     _NSLog_printf_handler = *_NSLog_standard_printf_handler;
@@ -134,6 +132,6 @@ NSLogv (NSString* format, va_list args)
 
   [myLock unlock];
 
-  [arp release];
+  RELEASE(arp);
 }
 

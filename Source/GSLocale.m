@@ -25,6 +25,7 @@
 #include <base/GSLocale.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSLock.h>
 
 #ifdef HAVE_LOCALE_H
 
@@ -50,7 +51,7 @@ GSSetLocaleC(const char *loc)
 /* Set the locale for libc functions from the supplied string or from
    the environment if not specified. This function should be called
    as soon as possible after the start of the program. Passing
-   @"" will set the locale from the environment varialbes LC_ALL or LANG (or
+   @"" will set the locale from the environment variables LC_ALL or LANG (or
    whatever is specified by setlocale) Passing nil will just return the
    current locale. */
 NSString *
@@ -88,12 +89,16 @@ NSDictionary *
 GSDomainFromDefaultLocale(void)
 {
 #ifdef HAVE_LANGINFO_H
+  static NSDictionary	*saved = nil;
   int			i;
   struct lconv		*lconv;
   NSMutableDictionary	*dict;
   NSMutableArray	*arr;
   NSString		*str1;
   NSString		*str2;
+
+  if (saved != nil)
+    return saved;
 
   dict = [NSMutableDictionary dictionary];
 
@@ -164,17 +169,36 @@ GSDomainFromDefaultLocale(void)
       [dict setObject: [NSString stringWithCString: lconv->mon_thousands_sep]
 	       forKey: NSInternationalCurrencyString];
     }
+
+  if (lconv->decimal_point)
+    {
+      [dict setObject: [NSString stringWithCString: lconv->decimal_point]
+	       forKey: NSDecimalSeparator];
+    }
+  if (lconv->thousands_sep)
+    {
+      [dict setObject: [NSString stringWithCString: lconv->thousands_sep]
+	       forKey: NSThousandsSeparator];
+    }
+
+  
   /* FIXME: Get currency format from localeconv */
 
   str1 = GSSetLocale(nil);
-  [dict setObject: str1	forKey: NSLocale];
+  if (str1 != nil)
+    {
+      [dict setObject: str1 forKey: NSLocale];
+    }
   str2 = GSLanguageFromLocale(str1);
-  if (str2)
+  if (str2 != nil)
     {
       [dict setObject: str2 forKey: NSLanguageName];
     }
 
-  return dict;
+  [gnustep_global_lock lock];
+  saved = [dict mutableCopy];
+  [gnustep_global_lock unlock];
+  return saved;
 #else /* HAVE_LANGINFO_H */
   return nil;
 #endif
