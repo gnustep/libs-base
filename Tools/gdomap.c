@@ -655,7 +655,7 @@ map_add(uptr n, unsigned char l, unsigned int p, unsigned char t)
   m->svc = (t & GDO_SVC_MASK);
   memcpy(m->name, n, l);
 
-  if (map_used >= map_size)
+  if (map_used + 1 >= map_size)
     {
       if (map_size)
 	{
