@@ -5,6 +5,8 @@
 	classes only supported substitution if both the old and new classes
 	existed in the executable, which is not what was intended.
 	Thanks to Ludovic Marcotte for spotting this bug.
+	* Source/GSHTTPURLHandle.m: Improve debug logging and add support
+	for controlling http version in outgoing request.
 
 2004-05-30 Richard Frith-Macdonald <rfm@gnu.org>
 
