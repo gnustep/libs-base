@@ -204,6 +204,19 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
       cframe->arg_types = buf + type_offset;
       memcpy(cframe->arg_types, arg_types, sizeof(ffi_type *) * numargs);
       cframe->values = buf + offset;
+    }
+
+  if (ffi_prep_cif(&cframe->cif, FFI_DEFAULT_ABI, cframe->nargs,
+		   rtype, cframe->arg_types) != FFI_OK)
+    {
+      free(cframe);
+      cframe = NULL;
+    }
+
+  if (cframe)
+    {
+      /* Set values locations. This must be done after ffi_prep_cif so 
+         that any structure sizes get calculated first. */
       offset += numargs * sizeof(void*);
       if (offset % align != 0)
         {
@@ -220,13 +233,6 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
               offset += (align - offset % align);
             }
         }
-    }
-
-  if (ffi_prep_cif(&cframe->cif, FFI_DEFAULT_ABI, cframe->nargs,
-		   rtype, cframe->arg_types) != FFI_OK)
-    {
-      free(cframe);
-      cframe = NULL;
     }
 
   return cframe;
