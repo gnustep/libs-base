@@ -707,8 +707,6 @@ static int messages_received_count;
   NSFreeMapTable (remote_proxies);
   NSFreeMapTable (local_objects);
   NSFreeMapTable (local_targets);
-  NSFreeMapTable (incoming_xref_2_const_ptr);
-  NSFreeMapTable (outgoing_const_ptr_2_xref);
   [proxiesHashGate unlock];
 
   [arp release];
@@ -942,13 +940,6 @@ static int messages_received_count;
 
   /* This maps [proxy targetForProxy] to proxy.  The proxy's are retained. */
   newConn->remote_proxies =
-    NSCreateMapTable (NSIntMapKeyCallBacks,
-		      NSNonOwnedPointerMapValueCallBacks, 0);
-
-  newConn->incoming_xref_2_const_ptr =
-    NSCreateMapTable (NSIntMapKeyCallBacks,
-		      NSNonOwnedPointerMapValueCallBacks, 0);
-  newConn->outgoing_const_ptr_2_xref =
     NSCreateMapTable (NSIntMapKeyCallBacks,
 		      NSNonOwnedPointerMapValueCallBacks, 0);
 
@@ -2254,45 +2245,6 @@ static int messages_received_count;
   /* we might replace this with a per-Connection class. */
   return default_decoding_class;
 }
-
-
-/* Support for cross-connection const-ptr cache. */
-
-- (unsigned) _encoderCreateReferenceForConstPtr: (const void*)ptr
-{
-  unsigned xref;
-
-  NSParameterAssert (is_valid);
-  /* This must match the assignment of xref in _decoderCreateRef... */
-  xref = NSCountMapTable (outgoing_const_ptr_2_xref) + 1;
-  NSParameterAssert (! NSMapGet (outgoing_const_ptr_2_xref, (void*)xref));
-  NSMapInsert (outgoing_const_ptr_2_xref, ptr, (void*)xref);
-  return xref;
-}
-
-- (unsigned) _encoderReferenceForConstPtr: (const void*)ptr
-{
-  NSParameterAssert (is_valid);
-  return (unsigned) NSMapGet (outgoing_const_ptr_2_xref, ptr);
-}
-
-- (unsigned) _decoderCreateReferenceForConstPtr: (const void*)ptr
-{
-  unsigned xref;
-
-  NSParameterAssert (is_valid);
-  /* This must match the assignment of xref in _encoderCreateRef... */
-  xref = NSCountMapTable (incoming_xref_2_const_ptr) + 1;
-  NSMapInsert (incoming_xref_2_const_ptr, (void*)xref, ptr);
-  return xref;
-}
-
-- (const void*) _decoderConstPtrAtReference: (unsigned)xref
-{
-  NSParameterAssert (is_valid);
-  return NSMapGet (incoming_xref_2_const_ptr, (void*)xref);
-}
-
 
 
 /* Prevent trying to encode the connection itself */

@@ -1,3 +1,14 @@
+Tue Sep 12 14:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSConnection.m: Removed pointer cross-reference support as it
+	provided little performance improvement and was responsible for a few
+	bugs I've never been able to track down, and major problems if the maps
+	at either end of the link get out of sync (which is unavoidable in some
+	rare circumstances).
+	* Headers/Foundation/NSConnection.h: Removed cross-reference maps
+	* Source/ConnectedCoder.m: Removed pointer cross-reference support
+	* Source/NSPortCoder.m: Removed pointer cross-reference support
+
 Fri Sep  8 12:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* configure.in: Correct path to include file for checking thread support

@@ -75,8 +75,6 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
   Class receive_port_class;
   Class send_port_class;
   Class encoding_class;
-  NSMapTable *incoming_xref_2_const_ptr;
-  NSMapTable *outgoing_const_ptr_2_xref;
   id delegate;
   NSMutableArray *request_modes;
 }
@@ -234,10 +232,6 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
     selector: (SEL)sel 
     argFrame: (arglist_t)frame;
 - (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target;
-- (unsigned) _encoderReferenceForConstPtr: (const void*)ptr;
-- (const void*) _decoderConstPtrAtReference: (unsigned)xref;
-- (unsigned) _encoderCreateReferenceForConstPtr: (const void*)ptr;
-- (unsigned) _decoderCreateReferenceForConstPtr: (const void*)ptr;
 
 @end
 

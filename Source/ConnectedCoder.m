@@ -115,12 +115,12 @@ static BOOL debug_connected_coder = NO;
 
 - (unsigned) _coderReferenceForConstPtr: (const void*)ptr
 {
-  return [connection _encoderReferenceForConstPtr: ptr];
+  return 0;
 }
 
 - (unsigned) _coderCreateReferenceForConstPtr: (const void*)ptr
 {
-  return [connection _encoderCreateReferenceForConstPtr: ptr];
+  return 0;
 }
 
 
@@ -222,12 +222,12 @@ static BOOL debug_connected_coder = NO;
 
 - (unsigned) _coderCreateReferenceForConstPtr: (const void*)ptr
 {
-  return [connection _decoderCreateReferenceForConstPtr: ptr];
+  return 0;
 }
 
 - (const void*) _coderConstPtrAtReference: (unsigned)xref
 {
-  return [connection _decoderConstPtrAtReference: xref];
+  return 0;
 }
 
 
