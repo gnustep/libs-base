@@ -10,7 +10,7 @@
 #define __objc_load_h_INCLUDE
 
 #include <stdio.h>
-#include <objc/objc.h>
+#include <objc/objc-api.h>
 
 extern char *objc_executable_location();
 
