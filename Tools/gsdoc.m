@@ -22,6 +22,26 @@
 
    */
 
+/*
+ Before doing anything else - you need to install the Gnome xml parser library!
+
+ I build gsdoc using the 2.0.0 release of the parser.
+
+ You can find out how to get this from http://www.xmlsoft.org
+
+ Once you have installed the xml parser library, you can build gsdoc
+ and install it.
+
+ Run gsdoc giving it the name of a gsdoc file as an argument, and it will
+ produce an html output file.
+
+ This is an alpha release of the software - please send fixes and improvements
+ to rfm@gnu.org
+
+ Volunteers to write gsdoc->info or gsdoc->TeX or any other translators are
+ very welcome.
+ */
+
 #include <Foundation/Foundation.h>
 
 #if	HAVE_LIBXML
@@ -153,6 +173,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   extern int	xmlDoValidityCheckingDefaultValue;
   xmlExternalEntityLoader	ldr;
   NSString			*s;
+  NSFileManager			*m;
 
   xmlDoValidityCheckingDefaultValue = 1;
   ldr = xmlGetExternalEntityLoader();
@@ -161,6 +182,22 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       xmlSetExternalEntityLoader((xmlExternalEntityLoader)loader);
     }
 
+  /*
+   * Ensure we have a valid file name.
+   */
+  s = [name pathExtension];
+  m = [NSFileManager defaultManager];
+  if ([m fileExistsAtPath: name] == NO && [s length] == 0)
+    {
+      s = [name stringByAppendingPathExtension: @"gsdoc"];
+      if ([m fileExistsAtPath: s] == NO)
+	{
+	  NSLog(@"No such document - %@", name);
+	  [self dealloc];
+	  return nil;
+	}
+      name = s;
+    }
   fileName = [name copy];
   /*
    * Build an XML tree from the file.

@@ -36,7 +36,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-#ADDITIONAL_CPPFLAGS += 
+ADDITIONAL_CPPFLAGS += -DHAVE_LIBXML=$(HAVE_LIBXML)
 
 # Additional flags to pass to the Objective-C compiler
 #ADDITIONAL_OBJCFLAGS += 
@@ -54,6 +54,11 @@ ADDITIONAL_INCLUDE_DIRS += -I../Headers/gnustep -I../Headers \
 
 # Additional library directories the linker should search
 ADDITIONAL_LIB_DIRS += -L../Source/$(GNUSTEP_OBJ_DIR)
+
+# Additional libraries for XML parsing
+ifeq ($(HAVE_LIBXML),1)
+ADDITIONAL_TOOL_LIBS += -lxml -lz
+endif
 
 #
 # Flags dealing with installing and uninstalling
