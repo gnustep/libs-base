@@ -622,6 +622,26 @@ if test $llmax = yes; then
 else
 	AC_MSG_RESULT(no)
 fi
+
+#
+# Solaris and *BSD use LLONG_MAX instead
+#
+AC_MSG_CHECKING([whether to use LLONG_MAX instead])
+
+AC_TRY_CPP([#include <limits.h>
+	#include <machine/limits.h>
+	#if defined(LLONG_MAX)
+	#if LONG_MAX != LLONG_MAX
+	#endif
+	#endif
+	], llmax=yes, llmax=no)
+
+if test $llmax = yes; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HANDLE_LLONG_MAX)
+else
+  AC_MSG_RESULT(no)
+fi
 AC_CHECK_HEADERS(wchar.h)
 
 #--------------------------------------------------------------------
@@ -858,6 +878,12 @@ if test $enable_openssl = yes; then
         LIBS="$base_libs -lssl -lcrypto"
         AC_DEFINE(HAVE_OPENSSL)
       fi
+
+      AC_CHECK_LIB(cipher,des_setkey,cipher_ok=yes,cipher_ok=no)
+      if test "$cipher_ok" = yes; then
+        LIBS="$LIBS -lcipher"
+      fi
+
     fi
   fi
 fi

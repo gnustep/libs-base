@@ -32,6 +32,13 @@
 #include <math.h>
 #include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
 
+/* BSD and Solaris have this */
+#ifdef HANDLE_LLONG_MAX
+#define LONG_LONG_MAX LLONG_MAX
+#define LONG_LONG_MIN LLONG_MIN
+#define ULONG_LONG_MAX ULLONG_MAX
+#endif
+
 @implementation NSScanner
 
 @class	GSCString;

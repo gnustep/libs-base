@@ -56,7 +56,10 @@
 
 #undef HAVE_PTS_STREAM_MODULES
 #undef HAVE_UINTMAX_T
+
+/* Define one of the following if you have the appropriate constant */
 #undef HANDLE_LONG_LONG_MAX
+#undef HANDLE_LLONG_MAX
 
 /* Define if nested functions are broken on this compiler */
 #undef BROKEN_NESTED_FUNCTIONS
