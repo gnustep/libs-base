@@ -290,6 +290,9 @@ NSString *GSHTTPPropertyProxyHostKey;
 NSString *GSHTTPPropertyProxyPortKey;
  
 
+/* Class description notification */
+NSString *NSClassDescriptionNeededForClassNotification;
+
 
 /*
  *	Setup function called when NSString is initialised.
@@ -514,6 +517,10 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "GSHTTPPropertyProxyHostKey"];
       GSHTTPPropertyProxyPortKey
 	= [[SClass alloc] initWithCString: "GSHTTPPropertyProxyPortKey"];
+
+      NSClassDescriptionNeededForClassNotification
+        = [[SClass alloc] initWithCString:
+	"NSClassDescriptionNeededForClassNotification"];
     }
 }
 

@@ -1276,6 +1276,376 @@ static BOOL deallocNotifications = NO;
 @end
 
 
+
+#include	<Foundation/NSKeyValueCoding.h>
+#include	<Foundation/NSNull.h>
+
+
+static BOOL
+GSGetValue(id obj, NSString *iVarName, id *data)
+{
+  const char	*name = [iVarName cString];
+  Class		class;
+  struct objc_ivar_list	*ivars;
+  struct objc_ivar	*ivar = 0;
+  int		offset;
+  const char	*type;
+  unsigned int	size;
+
+  class = [obj class];
+  while (class != nil && ivar == 0)
+    {
+      ivars = class->ivars;
+      class = class->super_class;
+      if (ivars != 0)
+	{
+	  int	i;
+
+	  for (i = 0; i < ivars->ivar_count; i++)
+	    {
+	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
+		{
+		  ivar = &ivars->ivar_list[i];
+		  break;
+		}
+	    }
+	}
+    }
+  if (ivar == 0)
+    {
+      return NO;
+    }
+
+  offset = ivar->ivar_offset;
+  type = ivar->ivar_type;
+  size = objc_sizeof_type(type);
+  memcpy(data, ((void*)obj) + offset, size);
+  return YES;
+}
+
+static BOOL
+GSSetValue(id obj, NSString *iVarName, id *data)
+{
+  const	char	*name = [iVarName cString];
+  Class		class;
+  struct objc_ivar_list	*ivars;
+  struct objc_ivar	*ivar = 0;
+  int		offset;
+  const char	*type;
+  unsigned int	size;
+
+  class = [obj class];
+  while (class != nil && ivar == 0)
+    {
+      ivars = class->ivars;
+      class = class->super_class;
+      if (ivars != 0)
+	{
+	  int	i;
+
+	  for (i = 0; i < ivars->ivar_count; i++)
+	    {
+	      if (strcmp(ivars->ivar_list[i].ivar_name, name) == 0)
+		{
+		  ivar = &ivars->ivar_list[i];
+		  break;
+		}
+	    }
+	}
+    }
+  if (ivar == 0)
+    {
+      return NO;
+    }
+
+  offset = ivar->ivar_offset;
+  type = ivar->ivar_type;
+  size = objc_sizeof_type(type);
+  memcpy(((void*)obj) + offset, data, size);
+  return YES;
+}
+
+@implementation NSObject (KeyValueCoding)
+
++ (BOOL) accessInstanceVariablesDirectly
+{
+  return YES;
+}
+
++ (BOOL) useStoredAccessor
+{
+  return YES;
+}
+
+- (id) handleQueryWithUnboundKey: (NSString*)aKey
+{
+  return nil;
+}
+
+- (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey
+{
+  [NSException raise: NSGenericException
+	      format: @"Unable to find %@ in %@", aKey, anObject];
+}
+
+- (id) storedValueForKey: (NSString*)aKey
+{
+  SEL	sel;
+
+  if ([[self class] useStoredAccessor] == NO)
+    {
+      return [self valueForKey: aKey];
+    }
+
+  sel = NSSelectorFromString([NSString stringWithFormat: @"_get%@",
+    [aKey capitalizedString]]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      return [self performSelector: sel];
+    }
+  sel = NSSelectorFromString([NSString stringWithFormat: @"_%@", aKey]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      return [self performSelector: sel];
+    }
+
+  if ([[self class] accessInstanceVariablesDirectly] == YES)
+    {
+      id	v;
+
+      if (GSGetValue(self, [NSString stringWithFormat: @"_%@", aKey],
+	(void*)&v) == YES)
+	{
+	  return v;
+	}
+      if (GSGetValue(self, aKey, (void*)&v) == YES)
+	{
+	  return v;
+	}
+    }
+
+  sel = NSSelectorFromString([NSString stringWithFormat: @"get%@",
+    [aKey capitalizedString]]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      return [self performSelector: sel];
+    }
+  sel = NSSelectorFromString(aKey);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      return [self performSelector: sel];
+    }
+
+  [self handleTakeValue: nil forUnboundKey: aKey];
+  return nil;
+}
+
+- (void) takeStoredValue: (id)anObject forKey: (NSString*)aKey
+{
+  SEL	sel;
+
+  if ([[self class] useStoredAccessor] == NO)
+    {
+      [self takeValue: anObject forKey: aKey];
+      return;
+    }
+
+  sel = NSSelectorFromString([NSString stringWithFormat: @"_set%@:",
+    [aKey capitalizedString]]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      [self performSelector: sel withObject: anObject];
+      return;
+    }
+
+  if ([[self class] accessInstanceVariablesDirectly] == YES)
+    {
+      if (GSSetValue(self, [NSString stringWithFormat: @"_%@", aKey],
+	(void*)&anObject) == YES)
+	{
+	  return;
+	}
+      if (GSSetValue(self, aKey, (void*)&anObject) == YES)
+	{
+	  return;
+	}
+    }
+
+  sel = NSSelectorFromString([NSString stringWithFormat: @"set%@:",
+    [aKey capitalizedString]]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      [self performSelector: sel withObject: anObject];
+      return;
+    }
+
+  [self handleTakeValue: anObject forUnboundKey: aKey];
+}
+
+- (void) takeValue: (id)anObject forKey: (NSString*)aKey
+{
+  SEL	sel;
+
+  sel = NSSelectorFromString([NSString stringWithFormat: @"set%@:",
+    [aKey capitalizedString]]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      [self performSelector: sel withObject: anObject];
+      return;
+    }
+
+  sel = NSSelectorFromString([NSString stringWithFormat: @"_set%@:",
+    [aKey capitalizedString]]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      [self performSelector: sel withObject: anObject];
+      return;
+    }
+
+  if ([[self class] accessInstanceVariablesDirectly] == YES)
+    {
+      if (GSSetValue(self, [NSString stringWithFormat: @"_%@", aKey],
+	(void*)&anObject) == YES)
+	{
+	  return;
+	}
+      if (GSSetValue(self, aKey, (void*)&anObject) == YES)
+	{
+	  return;
+	}
+    }
+
+  [self handleTakeValue: anObject forUnboundKey: aKey];
+}
+
+- (void) takeValue: (id)anObject forKeyPath: (NSString*)aKey
+{
+  NSArray	*keys = [aKey componentsSeparatedByString: @"."];
+  id		obj = self;
+  unsigned	count = [keys count];
+  unsigned	pos;
+
+  for (pos = 0; pos + 1 < count; pos++)
+    {
+      obj = [obj valueForKey: [keys objectAtIndex: pos]];
+    }
+  if (pos < count)
+    {
+      [obj takeValue: anObject forKey: [keys objectAtIndex: pos]];
+    }
+}
+
+- (void) takeValuesFromDictionary: (NSDictionary*)aDictionary
+{
+  NSEnumerator	*enumerator = [aDictionary keyEnumerator];
+  NSNull	*null = [NSNull null];
+  NSString	*key;
+
+  while ((key = [enumerator nextObject]) != nil)
+    {
+      id	obj = [aDictionary objectForKey: key];
+
+      if (obj == null)
+	{
+	  obj = nil;
+	}
+      [self takeValue: obj forKey: key];
+    }
+}
+
+- (void) unableToSetNilForKey: (NSString*)aKey
+{
+  [NSException raise: NSInvalidArgumentException
+	      format: @"Given nil value to set for key"];
+}
+
+- (id) valueForKey: (NSString*)aKey
+{
+  SEL	sel;
+
+  sel = NSSelectorFromString([NSString stringWithFormat: @"get%@",
+    [aKey capitalizedString]]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      return [self performSelector: sel];
+    }
+  sel = NSSelectorFromString(aKey);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      return [self performSelector: sel];
+    }
+
+  sel = NSSelectorFromString([NSString stringWithFormat: @"_get%@",
+    [aKey capitalizedString]]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      return [self performSelector: sel];
+    }
+  sel = NSSelectorFromString([NSString stringWithFormat: @"_%@", aKey]);
+  if ([self respondsToSelector: sel] == YES)
+    {
+      return [self performSelector: sel];
+    }
+
+  if ([[self class] accessInstanceVariablesDirectly] == YES)
+    {
+      id	v;
+
+      if (GSGetValue(self, [NSString stringWithFormat: @"_%@", aKey],
+	(void*)&v) == YES)
+	{
+	  return v;
+	}
+      if (GSGetValue(self, aKey, (void*)&v) == YES)
+	{
+	  return v;
+	}
+    }
+
+  [self handleTakeValue: nil forUnboundKey: aKey];
+  return nil;
+}
+
+- (id) valueForKeyPath: (NSString*)aKey
+{
+  NSArray	*keys = [aKey  componentsSeparatedByString: @"."];
+  id		obj = self;
+  unsigned	count = [keys count];
+  unsigned	pos;
+
+  for (pos = 0; pos < count; pos++)
+    {
+      obj = [obj valueForKey: [keys objectAtIndex: pos]];
+    }
+  return obj;
+}
+
+- (NSDictionary*) valuesForKeys: (NSArray*)keys
+{
+  NSMutableDictionary	*dict;
+  NSNull		*null = [NSNull null];
+  unsigned		count = [keys count];
+  unsigned		pos;
+
+  dict = [NSMutableDictionary dictionaryWithCapacity: count];
+  for (pos = 0; pos < count; pos++)
+    {
+      NSString	*key = [keys objectAtIndex: pos];
+      id 	val = [self valueForKey: key];
+
+      if (val == nil)
+	{
+	  val = null;
+	}
+      [dict setObject: val forKey: key];
+    }
+  return AUTORELEASE([dict copy]);
+}
+
+@end
+
+
+
 @implementation NSObject (GNUstep)
 
 /* GNU Object class compatibility */
