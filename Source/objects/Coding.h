@@ -32,7 +32,7 @@
 
 @protocol CommonCoding
 - (BOOL) isDecoding;
-- (void) closeCoding;
+- (void) close;
 - (BOOL) isClosed;
 + (int) defaultFormatVersion;
 - cStream;
