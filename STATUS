@@ -136,8 +136,7 @@ Classes
 * NSUnarchiver::		[8]
 	See NSArchvier
 
-* NSUserDefaults::		[0]
-	But I thought Georg had something for this.
+* NSUserDefaults::		[8]
 
 * NSValue::			[9]
 
@@ -145,19 +144,11 @@ Classes
 Cross-Class Projects, or GNU-related foundations for GNUstep classes
 ====================================================================
 
-* Collection classes need overhaul for
-	* OpenStep compatibility
-	* Getting rid of function pointers so that DO will work
-	* Efficiency
-	* Integrating with new NSHashtable and NSMaptable functions
+* Finish subclasses of Port class: Ports based on UDP, pflocal
+  sockets, and shared memory.
 
-* Make new Port classes, as subclasses of Stream; make a Port class
-  based on TCP sockets instead of UDP.
+* String classes will get some organizational work.
 
-* Make some new CStream classes that work efficiently on the same
-  machine---this is especially important for efficient D.O.
-
-* Integrate changes for WinNT Makefile's
 
 Protocols
 =========
