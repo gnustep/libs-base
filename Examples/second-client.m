@@ -4,6 +4,7 @@
 #include <objects/Invocation.h>
 #include <objects/RunLoop.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSException.h>
 
 id announce_new_connection (id notification)
 {
@@ -64,6 +65,22 @@ int main(int argc, char *argv[])
 	  (*objc_free)((void*)s);
       }
   }
+
+  /* Cause an exception, and watch it return to us. */
+  NS_DURING
+    {
+      id o = [remote_array objectAtIndex: 99];
+    }
+  NS_HANDLER
+    {
+      printf("Caught our exception\n"
+	     "NAME: %@\n"
+	     "REASON: %@\n",
+	     [exception name],
+	     [exception reason]);
+      [exception release];
+    }
+  NS_ENDHANDLER
 
   /* Run, exiting as soon as there are 30 minutes with no requests */
   [RunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 30 * 60]];
