@@ -1,3 +1,9 @@
+Thu Aug 30 13:08:17 2001  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Documentation/gsdoc/NSObject.gsdoc: Added description of the
+	class; documented alloc, allocWithZone:, class, new, dealloc
+	methods.
+
 2001-08-29  Adam Fedor  <fedor@gnu.org>
 
 	* Source/objc-gnu2next.m (next_objc_msg_send): Fix incorrect def.
