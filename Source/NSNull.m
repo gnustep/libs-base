@@ -44,7 +44,7 @@ static NSNull	*null = 0;
 {
   if (null == 0)
     {
-      null = NSAllocateObject(self, 0, NSDefaultMallocZone());
+      null = (NSNull*)NSAllocateObject(self, 0, NSDefaultMallocZone());
     }
 }
 
@@ -84,7 +84,7 @@ static NSNull	*null = 0;
 - (BOOL) isEqual: (id)other
 {
   if (other == self)
-    return YES
+    return YES;
   else
     return NO;
 }
