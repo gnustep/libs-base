@@ -1012,14 +1012,30 @@ AC_SUBST(HAVE_LIBXML)
 #--------------------------------------------------------------------
 # Check for (optional) libxslt
 #--------------------------------------------------------------------
+AC_ARG_ENABLE(xslt,
+  [  --disable-xslt			Compile even if XSLT-dependency is not met],,
+  enable_xslt=no)
+
 AC_CHECK_LIB(xslt, xsltApplyStylesheet, xslt_ok=yes, xslt_ok=no)
 if test "$xslt_ok" = "yes"; then
   AC_CHECK_HEADER(libxslt/xslt.h, xslthdr_ok=yes, xslthdr_ok=no)
-  if test "$xslthdr_ok" = "yes"; then
-    HAVE_LIBXSLT=1
-    AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
-    LIBS="$LIBS -lxslt"
+  if test "$xslthdr_ok" = "no"; then
+    xslt_ok=no
   fi
+fi
+if test "$xslt_ok" = "yes"; then
+  HAVE_LIBXSLT=1
+  AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
+  LIBS="$LIBS -lxslt"
+else
+  if test $enable_xslt = yes; then
+    echo
+    echo "You most likely do not want to build base without XSLT support."
+    echo "If you really want to build -base without XSLT support, add --disable-xslt"
+    echo "to the configure arguments."
+    AC_MSG_ERROR([Missing support for XSLT functionality.])
+  fi
+  AC_MSG_WARN([Missing support for XSLT funtionality.])
 fi
 AC_SUBST(HAVE_LIBXSLT)
 
