@@ -30,10 +30,10 @@
 #endif
 
 /* To turn assertions on, comment out the following four lines */
-//#ifndef	NS_BLOCK_ASSERTIONS
-//#define	NS_BLOCK_ASSERTIONS	1
-//#define	FAST_ARRAY_BLOCKED_ASSERTIONS	1
-//#endif
+#ifndef	NS_BLOCK_ASSERTIONS
+#define	NS_BLOCK_ASSERTIONS	1
+#define	FAST_ARRAY_BLOCKED_ASSERTIONS	1
+#endif
 
 #define	FAST_ARRAY_CHECK NSCAssert(array->count <= array->cap && array->old <= array->cap && array->old >= 1, NSInternalInconsistencyException)
 
