@@ -58,6 +58,14 @@ struct _NSZone
 
 void *GSOutOfMemory(size_t size, BOOL retry);
 
+#ifdef	IN_NSZONE_M
+#define	GS_ZONE_SCOPE	extern
+#define GS_ZONE_ATTR	
+#else
+#define	GS_ZONE_SCOPE	static inline
+#define GS_ZONE_ATTR	__attribute__((unused))
+#endif
+
 /* Default zone.  Name is hopelessly long so that no one will ever
    want to use it. ;) Private variable. */
 GS_EXPORT NSZone* __nszone_private_hidden_default_zone;
@@ -71,19 +79,19 @@ GS_EXPORT NSZone* __nszone_private_hidden_default_zone;
 
 GS_EXPORT NSZone* __nszone_private_hidden_atomic_zone;
 
-GS_EXPORT inline NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree)
+GS_ZONE_SCOPE NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree)
 { return __nszone_private_hidden_default_zone; }
 
-GS_EXPORT inline NSZone* NSDefaultMallocZone (void)
+GS_ZONE_SCOPE NSZone* NSDefaultMallocZone (void)
 { return __nszone_private_hidden_default_zone; }
 
-GS_EXPORT inline NSZone* GSAtomicMallocZone (void)
+GS_ZONE_SCOPE NSZone* GSAtomicMallocZone (void)
 { return __nszone_private_hidden_atomic_zone; }
 
-GS_EXPORT inline NSZone* NSZoneFromPointer (void *ptr)
+GS_ZONE_SCOPE NSZone* NSZoneFromPointer (void *ptr)
 { return __nszone_private_hidden_default_zone; }
 
-GS_EXPORT inline void* NSZoneMalloc (NSZone *zone, size_t size)
+GS_ZONE_SCOPE void* NSZoneMalloc (NSZone *zone, size_t size)
 {
   void	*ptr;
 
@@ -97,7 +105,7 @@ GS_EXPORT inline void* NSZoneMalloc (NSZone *zone, size_t size)
   return ptr;
 }
 
-GS_EXPORT inline void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
+GS_ZONE_SCOPE void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
 {
   size_t	size = elems * bytes;
   void		*ptr;
@@ -113,7 +121,7 @@ GS_EXPORT inline void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
   return ptr;
 }
 
-GS_EXPORT inline void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
+GS_ZONE_SCOPE void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
 {
   ptr = GC_REALLOC(ptr, size);
   if (ptr == 0)
@@ -121,37 +129,37 @@ GS_EXPORT inline void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
   return ptr;
 }
 
-GS_EXPORT inline void NSRecycleZone (NSZone *zone)
+GS_ZONE_SCOPE void NSRecycleZone (NSZone *zone)
 {
 }
 
-GS_EXPORT inline void NSZoneFree (NSZone *zone, void *ptr)
+GS_ZONE_SCOPE void NSZoneFree (NSZone *zone, void *ptr)
 {
   GC_FREE(ptr);
 }
 
-GS_EXPORT inline void NSSetZoneName (NSZone *zone, NSString *name)
+GS_ZONE_SCOPE void NSSetZoneName (NSZone *zone, NSString *name)
 {
 }
 
-GS_EXPORT inline NSString* NSZoneName (NSZone *zone)
+GS_ZONE_SCOPE NSString* NSZoneName (NSZone *zone)
 {
   return nil;
 }
 
 #ifndef	NO_GNUSTEP
 
-GS_EXPORT inline void* NSZoneMallocAtomic (NSZone *zone, size_t size)
+GS_ZONE_SCOPE void* NSZoneMallocAtomic (NSZone *zone, size_t size)
 {
   return NSZoneMalloc(GSAtomicMallocZone(), size);
 }
 
-GS_EXPORT inline BOOL NSZoneCheck (NSZone *zone)
+GS_ZONE_SCOPE BOOL NSZoneCheck (NSZone *zone)
 {
   return YES;
 }
 
-GS_EXPORT inline struct NSZoneStats NSZoneStats (NSZone *zone)
+GS_ZONE_SCOPE struct NSZoneStats NSZoneStats (NSZone *zone)
 {
   struct NSZoneStats stats = { 0 };
   return stats;
@@ -162,19 +170,25 @@ GS_EXPORT inline struct NSZoneStats NSZoneStats (NSZone *zone)
 
 GS_EXPORT NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree);
 
-GS_EXPORT inline NSZone* NSDefaultMallocZone (void)
+GS_ZONE_SCOPE NSZone* NSDefaultMallocZone (void) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE NSZone* NSDefaultMallocZone (void)
 {
   return __nszone_private_hidden_default_zone;
 }
 
-GS_EXPORT inline NSZone* GSAtomicMallocZone (void)
+GS_ZONE_SCOPE NSZone* GSAtomicMallocZone (void) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE NSZone* GSAtomicMallocZone (void)
 {
   return NSDefaultMallocZone();
 }
 
 GS_EXPORT NSZone* NSZoneFromPointer (void *ptr);
 
-GS_EXPORT inline void* NSZoneMalloc (NSZone *zone, size_t size)
+GS_ZONE_SCOPE void* NSZoneMalloc (NSZone *zone, size_t size) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE void* NSZoneMalloc (NSZone *zone, size_t size)
 {
   if (!zone)
     zone = NSDefaultMallocZone();
@@ -183,21 +197,28 @@ GS_EXPORT inline void* NSZoneMalloc (NSZone *zone, size_t size)
 
 GS_EXPORT void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes);
 
-GS_EXPORT inline void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
+GS_ZONE_SCOPE void* 
+NSZoneRealloc (NSZone *zone, void *ptr, size_t size) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
 {
   if (!zone)
     zone = NSDefaultMallocZone();
   return (zone->realloc)(zone, ptr, size);
 }
 
-GS_EXPORT inline void NSRecycleZone (NSZone *zone)
+GS_ZONE_SCOPE void NSRecycleZone (NSZone *zone) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE void NSRecycleZone (NSZone *zone)
 {
   if (!zone)
     zone = NSDefaultMallocZone();
   (zone->recycle)(zone);
 }
 
-GS_EXPORT inline void NSZoneFree (NSZone *zone, void *ptr)
+GS_ZONE_SCOPE void NSZoneFree (NSZone *zone, void *ptr) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE void NSZoneFree (NSZone *zone, void *ptr)
 {
   if (!zone)
     zone = NSDefaultMallocZone();
@@ -206,7 +227,9 @@ GS_EXPORT inline void NSZoneFree (NSZone *zone, void *ptr)
 
 GS_EXPORT void NSSetZoneName (NSZone *zone, NSString *name);
 
-GS_EXPORT inline NSString* NSZoneName (NSZone *zone)
+GS_ZONE_SCOPE NSString* NSZoneName (NSZone *zone) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE NSString* NSZoneName (NSZone *zone)
 {
   if (!zone)
     zone = NSDefaultMallocZone();
@@ -214,21 +237,28 @@ GS_EXPORT inline NSString* NSZoneName (NSZone *zone)
 }
 
 #ifndef	NO_GNUSTEP
-GS_EXPORT inline void* NSZoneMallocAtomic (NSZone *zone, size_t size)
+GS_ZONE_SCOPE void* 
+NSZoneMallocAtomic (NSZone *zone, size_t size) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE void* NSZoneMallocAtomic (NSZone *zone, size_t size)
 {
   if (!zone)
     zone = NSDefaultMallocZone();
   return (zone->malloc)(zone, size);
 }
 
-GS_EXPORT inline BOOL NSZoneCheck (NSZone *zone)
+GS_ZONE_SCOPE BOOL NSZoneCheck (NSZone *zone) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE BOOL NSZoneCheck (NSZone *zone)
 {
   if (!zone)
     zone = NSDefaultMallocZone();
   return (zone->check)(zone);
 }
 
-GS_EXPORT inline struct NSZoneStats NSZoneStats (NSZone *zone)
+GS_ZONE_SCOPE struct NSZoneStats NSZoneStats (NSZone *zone) GS_ZONE_ATTR;
+
+GS_ZONE_SCOPE struct NSZoneStats NSZoneStats (NSZone *zone)
 {
   if (!zone)
     zone = NSDefaultMallocZone();

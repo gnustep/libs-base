@@ -63,7 +63,6 @@ static void __objc_class_add_protocols (Class class,
                                         struct objc_protocol_list* protos);
 #endif
 static BOOL class_is_kind_of(Class self, Class class);
-static void check_class_methods(Class class);
 
 /* xxx consider using sendmsg.c:__objc_update_dispatch_table_for_class,
    but, I think it will be slower than the current method. */
@@ -205,6 +204,7 @@ behavior_class_add_methods (Class class,
 		 the dtable sarray, but if it isn't, let 
 		 __objc_install_dispatch_table_for_class do it. */
 
+#ifdef HAVE_OBJC_GET_UNINSTALLED_DTABLE
 	      if (class->dtable != objc_get_uninstalled_dtable())
 		{
 		  sarray_at_put_safe (class->dtable,
@@ -214,6 +214,7 @@ behavior_class_add_methods (Class class,
 		    fprintf(stderr, "\tinstalled method\n");
 		}
 	      else
+#endif
 		{
 		  if (behavior_debug)
 		    fprintf(stderr, "\tappended method\n");
@@ -427,34 +428,3 @@ static BOOL class_is_kind_of(Class self, Class aClassObject)
       return YES;
   return NO;
 }
-
-void
-check_class_methods(Class class)
-{
-  int counter;
-  MethodList_t mlist;
-
-  if (class->dtable == objc_get_uninstalled_dtable())
-    return;
-
-  for (mlist = class->methods; mlist; mlist = mlist->method_next)
-    {
-      counter = mlist->method_count - 1;
-      while (counter >= 0)
-        {
-          Method_t method = &(mlist->method_list[counter]);
-	  IMP imp = sarray_get(class->dtable, 
-			       (size_t)method->method_name->sel_id);
-	  NSCAssert((imp == method->method_imp), NSInvalidArgumentException);
-	  sarray_at_put_safe (class->dtable,
-			      (sidx) method->method_name->sel_id,
-			      method->method_imp);
-          counter -= 1;
-        }
-    }
-  if (class->super_class)
-    check_class_methods(class->super_class);
-
-  (void) &check_class_methods;	/* to prevent compiler warning about unused */
-}
-

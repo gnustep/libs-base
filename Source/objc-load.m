@@ -85,8 +85,13 @@ objc_invalidate_dtable(Class class)
 {
     Class s;
 
+#ifdef HAVE_OBJC_GET_UNINSTALLED_DTABLE
     if (class->dtable == objc_get_uninstalled_dtable()) 
 	return;
+#else
+    if (class->dtable == NULL)
+	return;
+#endif
     sarray_free(class->dtable);
     __objc_install_premature_dtable(class);
     for (s=class->subclass_list; s; s=s->sibling_class) 

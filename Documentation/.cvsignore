@@ -1,5 +1,6 @@
 =*
 version.tmpl.texi
+version.texi
 gnustep-base.texi
 gnustep-zones.texi
 announce.texi
@@ -39,4 +40,6 @@ ANNOUNCE
 *.pg
 *.ps
 *.vrs
+*.cl
+*.pr
 

@@ -1,3 +1,22 @@
+2000-06-21  Adam Fedor  <fedor@gnu.org>
+
+        * Shared library (DLL) fixes on Windows
+	* configure.in: Check for alternate objc (DLL) libraries.
+	Look for objc_get_uninstalled_dtable.
+	* Source/behavior.m (behavior_class_add_methods): Don't look for
+	uninstalled_dtable if no objc_get_uninstalled_dtable.
+	(check_class_methods): Remove unused.
+	* Source/objc-load.m: Likewise.
+
+	* Headers/gnustep/base/NSObjCRuntime.h: Define GS_EXPORT
+	* Headers/gnustep/base/NSZone.h: Define functions either static
+	or extern depending on whether NSZone.m is being compiled.
+	* Source/NSZone.m: Remove duplicate functions.
+	* Source/Makefile.preamble (LIBRARIES_DEPEND_UPON): Add -lobjc
+	if on windows.
+
+	* Source/UdpPort.m: Use NSMutableArray.
+
 2000-06-19  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSBundle.m (_bundle_name_first_match): Work even when
