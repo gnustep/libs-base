@@ -105,6 +105,11 @@ static BOOL debug_memory_stream = NO;
   return [self initWithCapacity:s];
 }
 
+- init
+{
+  return [self initWithCapacity: DEFAULT_MEMORY_STREAM_SIZE];
+}
+
 - (BOOL) isWritable
 {
   return YES;
