@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective-C class for streaming C types and indentatn
-   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -103,11 +103,20 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
   return self;
 }
 
-- initForReadingFromStream: (id <Streaming>) s
-	     withFormatVersion: (int)version
+/* This is the designated initializer for reading. */
+- _initForReadingFromPostSignatureStream: (id <Streaming>)s
+		       withFormatVersion: (int)version
 {
   [self _initWithStream: s
 	formatVersion: version];
+  return self;
+}
+
+- initForReadingFromStream: (id <Streaming>) s
+	     withFormatVersion: (int)version
+{
+  [self notImplemented: _cmd];
+  /* xxx Why this condition? -mccallum */
   if ([stream streamPosition] != 0)
     {
       char name[128];		/* max class name length. */
@@ -121,6 +130,8 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 	  [NSException raise: CStreamSignatureMismatchException
 		       format: @"CStream found a mismatched signature"];
 	}
+      [self _initForReadingFromPostSignatureStream: s
+	    withFormatVersion: version];
     }
   return self;
 }
@@ -135,8 +146,8 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 	getClassname: name
 	formatVersion: &version];
   new_cstream = [[objc_lookup_class(name) alloc] 
-		  _initWithStream: s
-		  formatVersion: version];
+		  _initForReadingFromPostSignatureStream: s
+		  withFormatVersion: version];
   return [new_cstream autorelease];
 }
 
