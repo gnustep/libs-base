@@ -4,9 +4,7 @@
    (The Tcp*Port classes, however, do test the notification mechanism 
     further.) */
 
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/Foundation.h>
 
 @interface Observer : NSObject
 - (void) gotNotificationFoo: not;
@@ -77,6 +75,16 @@ int main ()
   [[NSNotificationCenter defaultCenter]
     postNotificationName: foo
     object: o1];
+
+  [[NSDistributedNotificationCenter defaultCenter]
+    addObserver: observer1
+    selector: @selector(gotNotificationFooNoObject:)
+    name: foo
+    object: nil];
+
+  [[NSDistributedNotificationCenter defaultCenter]
+    postNotificationName: foo
+    object: @"hello"];
 
   [arp release];
 
