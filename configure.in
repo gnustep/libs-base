@@ -773,11 +773,12 @@ AC_SUBST(HAVE_LIBXML)
 #--------------------------------------------------------------------
 # Check OpenSSL for HTTPS support.
 #--------------------------------------------------------------------
-echo "Checking for OpenSSL"
+AC_ARG_ENABLE(openssl,
+  [  --enable-openssl       	Enable support for openssl in URL classes],,
+  enable_openssl=no)
 AC_ARG_WITH(openssl-include,
   [  --with-openssl-include=PATH  include path for openssl headers],
   openssl_incdir="$withval", openssl_incdir="no")
-
 AC_ARG_WITH(openssl-library,
   [  --with-openssl-library=PATH  library path for openssl libraries],
   openssl_libdir="$withval", openssl_libdir="no")
@@ -792,22 +793,24 @@ if test "$openssl_libdir" != "no"; then
   LIBS="$LIBS -L$openssl_libdir"
 fi
 
-AC_CHECK_HEADERS(openssl/ssl.h)
-if test $ac_cv_header_openssl_ssl_h = no; then
-  echo "Could not find openssl headers"
-  echo "Check to make sure you have a recent version of openssl installed"
-  AC_MSG_WARN(Could not find openssl headers)
-  ssl_ok=no
-else
-  AC_CHECK_LIB(crypto, CRYPTO_malloc, ssl_ok=yes, ssl_ok=no)
-  if test "$ssl_ok" = yes; then
-    base_libs="$LIBS"
-    LIBS="$LIBS -lcrypto"
-    AC_CHECK_LIB(ssl, ssl2_clear, ssl_ok=yes, ssl_ok=no)
+if test $enable_openssl = yes; then
+  AC_CHECK_HEADERS(openssl/ssl.h)
+  if test $ac_cv_header_openssl_ssl_h = no; then
+    echo "Could not find openssl headers"
+    echo "Check to make sure you have a recent version of openssl installed"
+    AC_MSG_WARN(Could not find openssl headers)
+    ssl_ok=no
+  else
+    AC_CHECK_LIB(crypto, CRYPTO_malloc, ssl_ok=yes, ssl_ok=no)
     if test "$ssl_ok" = yes; then
-      LIBS="$base_libs -lssl -lcrypto"
-      AC_SUBST(LIBS)
-      AC_DEFINE(HAVE_OPENSSL)
+      base_libs="$LIBS"
+      LIBS="$LIBS -lcrypto"
+      AC_CHECK_LIB(ssl, ssl2_clear, ssl_ok=yes, ssl_ok=no)
+      if test "$ssl_ok" = yes; then
+        LIBS="$base_libs -lssl -lcrypto"
+        AC_SUBST(LIBS)
+        AC_DEFINE(HAVE_OPENSSL)
+      fi
     fi
   fi
 fi
@@ -820,7 +823,6 @@ fi
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal
 #--------------------------------------------------------------------
-echo "Checking for GMP"
 AC_ARG_WITH(gmp-include,
   [  --with-gmp-include=PATH  include path for gmp headers],
   gmp_incdir="$withval", gmp_incdir="no")
@@ -841,11 +843,7 @@ fi
 
 HAVE_GMP=0
 AC_CHECK_HEADERS(gmp.h)
-if test $ac_cv_header_gmp_h = no; then
-  echo "Could not find gmp headers"
-  echo "Check to make sure you have gmp installed"
-  AC_MSG_WARN(Could not find gmp headers)
-else
+if test $ac_cv_header_gmp_h = yes; then
   AC_CHECK_LIB(gmp, mpf_abs, gmp_ok=yes, gmp_ok=no)
   if test "$gmp_ok" = no; then
     AC_CHECK_LIB(gmp, __gmpf_abs, gmp_ok=yes, gmp_ok=no)
@@ -855,10 +853,6 @@ else
     LIBS="$LIBS -lgmp"
     AC_SUBST(LIBS)
     HAVE_GMP=1
-  else
-    echo "Could not find gmp library" 
-    echo "Check to make sure you have gmp installed"
-    AC_MSG_WARN(Could not find gmp library)
   fi
 fi
 
