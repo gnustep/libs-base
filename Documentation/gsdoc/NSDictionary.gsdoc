@@ -277,6 +277,15 @@
             
           </desc>
         </method>
+        <method type="BOOL">
+          <sel>writeToURL:</sel>
+          <arg type="NSURL*">url</arg>
+          <sel>atomically:</sel>
+          <arg type="BOOL">flag</arg>
+          <desc>
+            
+          </desc>
+        </method>
       </class>
     </chapter>
   </body>

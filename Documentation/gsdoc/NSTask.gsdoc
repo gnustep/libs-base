@@ -90,6 +90,13 @@
           </desc>
         </method>
 
+        <method type="int">
+          <sel>processIdentifer</sel>
+          <desc>
+	    Returns the number identifying the child process on this system.
+          </desc>
+        </method>
+
         <method type="void">
           <sel>setArguments:</sel>
           <arg type="NSArray*">arguments</arg>
@@ -200,6 +207,24 @@
           <desc>
 	    Returns the standard output stream for the task - an NSFileHandle
 	    unless an NSPipe was passed to setStandardOutput:
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>resume</sel>
+          <desc>
+	    Sends a cont signal to the receiver and any subtasks.<br />
+	    If the task has not been launched, raises an
+	    NSInvalidArgumentException.<br /> 
+          </desc>
+        </method>
+
+        <method type="BOOL">
+          <sel>suspend</sel>
+          <desc>
+	    Sends a stop signal to the receiver and any subtasks.<br />
+	    If the task has not been launched, raises an
+	    NSInvalidArgumentException.<br /> 
           </desc>
         </method>
 

@@ -53,6 +53,14 @@
           <desc>
           </desc>
         </method>
+        <method type="int">
+          <sel>processIdentifier</sel>
+          <desc>
+	    <p>
+	      Returns the number identifying this process on this system.
+	    </p>
+          </desc>
+        </method>
         <method type="NSString*">
           <sel>processName</sel>
           <desc>
