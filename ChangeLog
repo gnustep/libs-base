@@ -1,5 +1,13 @@
 2002-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/GNUmakefile: build subproject.
+	* Source/Additions/Makefile.preamble: set include flags.
+	* Source/Additions/GSXML.m: moved implementation here.
+	* Source/Additions/GSMime.m: moved implementation here.
+	* Source/GNUmakefile: build subproject.
+
+2002-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* GNUmakefile: build SSL aggregate project
 	* config.mak.in: Remove SSL info
 	* configure.in: Remove SSL configuration

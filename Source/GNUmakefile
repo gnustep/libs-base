@@ -45,6 +45,9 @@ else
 LIBRARY_NAME=libgnustep-base
 endif
 
+libgnustep-base_SUBPROJECTS=Additions
+libgnustep-baseadd_SUBPROJECTS=Additions
+
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
 # the installing person may set it on the `make' command line.
 
@@ -219,10 +222,6 @@ NSZone.m \
 externs.m \
 objc-load.m
 
-ifneq ($(add),yes)
-BASE_MFILES += GSMime.m GSXML.m
-endif
-
 ifeq ($(WITH_FFI),libffi)
 GNU_MFILES += cifframe.m
 BASE_MFILES += GSFFIInvocation.m
@@ -354,10 +353,6 @@ libgnustep-base_C_FILES = $(GNU_CFILES)
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
-
-ifeq ($(add),yes)
-libgnustep-baseadd_OBJC_FILES = GSMime.m GSXML.m
-endif
 
 # Extra DLL exports file
 libgnustep-base_DLL_DEF = libgnustep-base.def
