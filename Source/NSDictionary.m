@@ -422,14 +422,14 @@ static Class NSMutableDictionary_concrete_class;
 	  autorelease];
 }
 
-struct foo { NSDictionary *d; SEL s; };
+struct foo { NSDictionary *d; SEL s; IMP i; };
    
 static int
 compareIt(id o1, id o2, void* context)
 {
   struct foo	*f = (struct foo*)context;
-  o1 = [f->d objectForKey: o1];
-  o2 = [f->d objectForKey: o2];
+  o1 = (*f->i)(f->d, @selector(objectForKey:), o1);
+  o2 = (*f->i)(f->d, @selector(objectForKey:), o2);
   return (int)[o1 performSelector: f->s withObject: o2];
 }
 
@@ -440,6 +440,7 @@ compareIt(id o1, id o2, void* context)
 
   info.d = self;
   info.s = comp;
+  info.i = [self methodForSelector: @selector(objectForKey:)];
   k = [[self allKeys] sortedArrayUsingFunction: compareIt context: &info];
 }
 
