@@ -116,8 +116,15 @@ static Class	NSString_class;		/* For speed	*/
 #define	GSPLUNI	1
 #include "propList.h"
 
+#if defined(__WIN32__)
+static unichar		pathSepChar = (unichar)'\\';
+static NSString		*pathSepString = @"\\";
+static NSString		*rootPath = @"C:\\";
+#else
 static unichar		pathSepChar = (unichar)'/';
 static NSString		*pathSepString = @"/";
+static NSString		*rootPath = @"/";
+#endif
 
 /*
  *	We can't have a 'pathSeps' variable initialized in the  +initialize
@@ -135,7 +142,7 @@ pathSeps()
 #else
       pathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
 #endif
-      [pathSeps retain];
+      RETAIN(pathSeps);
     }
   return pathSeps;
 }
@@ -289,40 +296,39 @@ handle_printf_atsign (FILE *stream,
 
 + (NSString*) string
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()] init] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
 }
 
 + (NSString*) stringWithString: (NSString*)aString
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithString: aString] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithString: aString]);
 }
 
 + (NSString*) stringWithCharacters: (const unichar*)chars
 			    length: (unsigned int)length
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithCharacters: chars length: length]
-         autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithCharacters: chars length: length]);
 }
 
 + (NSString*) stringWithCString: (const char*) byteString
 {
-  return [[[NSString_c_concrete_class allocWithZone: NSDefaultMallocZone()]
-    initWithCString: byteString] autorelease];
+  return AUTORELEASE([[NSString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithCString: byteString]);
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
    length: (unsigned int)length
 {
-  return [[[NSString_c_concrete_class allocWithZone: NSDefaultMallocZone()]
-    initWithCString: byteString length: length] autorelease];
+  return AUTORELEASE([[NSString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithCString: byteString length: length]);
 }
 
 + (NSString*) stringWithContentsOfFile: (NSString *)path
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithContentsOfFile: path] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: path]);
 }
 
 + (NSString*) stringWithFormat: (NSString*)format,...
@@ -334,8 +340,8 @@ handle_printf_atsign (FILE *stream,
   if (format == nil)
     ret = nil;
   else
-    ret = [[[self allocWithZone: NSDefaultMallocZone()]
-      initWithFormat: format arguments: ap] autorelease];
+    ret = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+      initWithFormat: format arguments: ap]);
   va_end(ap);
   return ret;
 }
@@ -343,8 +349,8 @@ handle_printf_atsign (FILE *stream,
 + (NSString*) stringWithFormat: (NSString*)format
    arguments: (va_list)argList
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithFormat: format arguments: argList] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithFormat: format arguments: argList]);
 }
 
 
@@ -688,7 +694,7 @@ handle_printf_atsign (FILE *stream,
   [aString getCharacters: s+len];
   tmp = [[[self class] allocWithZone: z] initWithCharactersNoCopy: s
 		    length: len+otherLength fromZone: z];
-  return [tmp autorelease];
+  return AUTORELEASE(tmp);
 }
 
 // Dividing Strings into Substrings
@@ -745,7 +751,7 @@ handle_printf_atsign (FILE *stream,
   [self getCharacters: buf range: aRange];
   ret = [[[self class] allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: buf length: aRange.length fromZone: z];
-  return [ret autorelease];
+  return AUTORELEASE(ret);
 }
 
 - (NSString*) substringWithRange: (NSRange)aRange
@@ -1269,36 +1275,36 @@ handle_printf_atsign (FILE *stream,
     };
     found=NO;
   };
-  return [[[NSString allocWithZone: NSDefaultMallocZone()]
-    initWithCharactersNoCopy: s length: len fromZone: z] autorelease];
+  return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithCharactersNoCopy: s length: len fromZone: z]);
 }
 
 - (NSString*) lowercaseString
 {
-  NSZone *z = fastZone(self);
-  unichar *s;
-  int count;
-  int len=[self length];
+  NSZone	*z = fastZone(self);
+  unichar	*s;
+  unsigned	count;
+  unsigned	len = [self length];
+
   s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
-  for(count=0;count<len;count++)
-    s[count]=uni_tolower([self characterAtIndex: count]);
-  return [[[[self class] allocWithZone: NSDefaultMallocZone()]
-    initWithCharactersNoCopy: s
-						  length: len
-					        fromZone: z] autorelease];
+  for (count = 0; count < len; count++)
+    s[count] = uni_tolower([self characterAtIndex: count]);
+  return AUTORELEASE([[[self class] allocWithZone: NSDefaultMallocZone()]
+    initWithCharactersNoCopy: s length: len fromZone: z]);
 }
 
 - (NSString*) uppercaseString;
 {
-  NSZone *z = fastZone(self);
-  unichar *s;
-  int count;
-  int len=[self length];
+  NSZone	*z = fastZone(self);
+  unichar	*s;
+  unsigned	count;
+  unsigned	len = [self length];
+
   s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
-  for(count=0;count<len;count++)
-    s[count]=uni_toupper([self characterAtIndex: count]);
-  return [[[[self class] allocWithZone: NSDefaultMallocZone()]
-    initWithCharactersNoCopy: s length: len fromZone: z] autorelease];
+  for (count = 0; count < len; count++)
+    s[count] = uni_toupper([self characterAtIndex: count]);
+  return AUTORELEASE([[[self class] allocWithZone: NSDefaultMallocZone()]
+    initWithCharactersNoCopy: s length: len fromZone: z]);
 }
 
 // Storing the String
@@ -1428,7 +1434,7 @@ handle_printf_atsign (FILE *stream,
       Until we have it, just make shure that bundle
       is initialized.
 */
-  ourbundle = [NSBundle bundleWithPath: @"/"];
+  ourbundle = [NSBundle bundleWithPath: rootPath];
 
   ourname = GetEncodingName(encoding);
   return [ourbundle
@@ -1585,7 +1591,7 @@ handle_printf_atsign (FILE *stream,
 	*outputName = tmp_path;
     }
   if (outputArray != NULL)
-    *outputArray = [[op copy] autorelease];
+    *outputArray = AUTORELEASE([op copy]);
   return match_count;
 }
 
@@ -1617,11 +1623,11 @@ handle_printf_atsign (FILE *stream,
 
   range = [self rangeOfCharacterFromSet: pathSeps() options: NSBackwardsSearch];
   if (range.length == 0)
-    substring = [[self copy] autorelease];
+    substring = AUTORELEASE([self copy]);
   else if (range.location == ([self length] - 1))
     {
       if (range.location == 0)
-	substring = [[NSString new] autorelease];
+	substring = @"";
       else
 	substring = [[self substringToIndex: range.location] 
 		      lastPathComponent];
@@ -1655,7 +1661,7 @@ handle_printf_atsign (FILE *stream,
     }
 
   if (!substring)
-    substring = [[NSString new] autorelease];
+    substring = @"";
   return substring;
 }
 
@@ -1669,7 +1675,7 @@ handle_printf_atsign (FILE *stream,
   NSString *newstring;
 
   if ([aString length] == 0)
-      return [[self copy] autorelease];
+    return AUTORELEASE([self copy]);
 
   range = [aString rangeOfCharacterFromSet: pathSeps()];
   if (range.length != 0 && range.location == 0)
@@ -1677,11 +1683,11 @@ handle_printf_atsign (FILE *stream,
 		     format: @"attempt to append illegal path component"];
 
   range = [self rangeOfCharacterFromSet: pathSeps() options: NSBackwardsSearch];
-  if ((range.length == 0 || range.location != [self length] - 1) && [self length] > 0)
-
-      newstring = [self stringByAppendingString: pathSepString];
+  if ((range.length == 0 || range.location != [self length] - 1)
+    && [self length] > 0)
+    newstring = [self stringByAppendingString: pathSepString];
   else
-      newstring = self;
+    newstring = self;
 
   return [newstring stringByAppendingString: aString];
 }
@@ -1696,7 +1702,7 @@ handle_printf_atsign (FILE *stream,
   NSString *newstring;
 
   if ([aString length] == 0)
-    return [[self copy] autorelease];
+    return AUTORELEASE([self copy]);
 
   range = [aString rangeOfString: @"."];
   if (range.length != 0 && range.location == 0)
@@ -1723,9 +1729,9 @@ handle_printf_atsign (FILE *stream,
 		      options: NSBackwardsSearch];
 
   if (range.length == 0)
-    substring = [[self copy] autorelease];
+    substring = AUTORELEASE([self copy]);
   else if (range.location == 0)
-    substring = [[NSString new] autorelease];
+    substring = @"";
   else if (range.location > 1)
     substring = [self substringToIndex: range.location-1];
   else
@@ -1744,7 +1750,7 @@ handle_printf_atsign (FILE *stream,
   if (range.length != 0)
     substring = [self substringToIndex: range.location-1];
   else
-    substring = [[self copy] autorelease];
+    substring = AUTORELEASE([self copy]);
   return substring;
 }
 
@@ -1755,9 +1761,9 @@ handle_printf_atsign (FILE *stream,
   NSRange first_slash_range;
   
   if ([self length] == 0)
-    return [[self copy] autorelease];
+    return AUTORELEASE([self copy]);
   if ([self characterAtIndex: 0] != 0x007E)
-    return [[self copy] autorelease];
+    return AUTORELEASE([self copy]);
 
   first_slash_range = [self rangeOfString: pathSepString];
 
@@ -1791,7 +1797,7 @@ handle_printf_atsign (FILE *stream,
   NSString *homedir = NSHomeDirectory ();
 
   if (![self hasPrefix: homedir])
-    return [[self copy] autorelease];
+    return AUTORELEASE([self copy]);
 
   return [NSString stringWithFormat: @"~%c%@", (char)pathSepChar,
 		   [self substringFromIndex: [homedir length] + 1]];
@@ -1834,7 +1840,7 @@ handle_printf_atsign (FILE *stream,
 	  /* 
 	   * second_half is an absolute path 
 	   */
-	  if ([second_half hasPrefix: @"/"]) 
+	  if ([second_half hasPrefix: pathSepString]) 
 	    return [second_half stringByResolvingSymlinksInPath];
 
 	  /* 
@@ -1929,13 +1935,21 @@ handle_printf_atsign (FILE *stream,
 
 + (NSString*) pathWithComponents: (NSArray*)components
 {
-    NSString    *s = [components objectAtIndex: 0];
-    int		i;
+  NSString	*s;
+  unsigned	c;
+  unsigned	i;
 
-    for (i = 1; i < [components count]; i++) {
-	s = [s stringByAppendingPathComponent: [components objectAtIndex: i]];
+  c = [components count];
+  if (c == 0)
+    return @"";
+  s = [components objectAtIndex: 0];
+  if ([s length] == 0 || [s isEqualToString: pathSepString] == YES)
+    s = rootPath;
+  for (i = 1; i < c; i++)
+    {
+      s = [s stringByAppendingPathComponent: [components objectAtIndex: i]];
     }
-    return s;
+  return s;
 }
 
 - (BOOL) isAbsolutePath
@@ -1944,13 +1958,15 @@ handle_printf_atsign (FILE *stream,
     return NO;
 
 #if defined(__WIN32__)
-  if ([self indexOfString: @": "] != NSNotFound)
+  if ([self indexOfString: @":"] != NSNotFound)
     return YES;
 #else
-  if ([self characterAtIndex: 0] == (unichar)'/')
-    return YES;
-  if ([self characterAtIndex: 0] == (unichar)'~')
-    return YES;
+  {
+    unichar	c = [self characterAtIndex: 0];
+
+    if (c == (unichar)'/' || c == (unichar)'~')
+      return YES;
+  }
 #endif
   return NO;
 }
@@ -1960,7 +1976,7 @@ handle_printf_atsign (FILE *stream,
     NSMutableArray	*a;
     NSArray		*r;
 
-    a = [[self componentsSeparatedByString: @"/"] mutableCopy];
+    a = [[self componentsSeparatedByString: pathSepString] mutableCopy];
     if ([a count] > 0) {
 	int	i;
 
@@ -1969,7 +1985,7 @@ handle_printf_atsign (FILE *stream,
 	 * fed into [+pathWithComponents: ]
          */
 	if ([[a objectAtIndex: 0] length] == 0) {
-	    [a replaceObjectAtIndex: 0 withObject: @"/"];
+	    [a replaceObjectAtIndex: 0 withObject: pathSepString];
 	}
 	/* Any empty path components (except a trailing one) must be removed. */
 	for (i = [a count] - 2; i > 0; i--) {
@@ -1979,8 +1995,8 @@ handle_printf_atsign (FILE *stream,
 	}
     }
     r = [a copy];
-    [a release];
-    return [r autorelease];
+    RELEASE(a);
+    return AUTORELEASE(r);
 }
 
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths
@@ -2003,8 +2019,8 @@ handle_printf_atsign (FILE *stream,
       [a addObject: s];
     }
   r = [a copy];
-  [a release];
-  return [r autorelease];
+  RELEASE(a);
+  return AUTORELEASE(r);
 }
 
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...
@@ -2129,7 +2145,7 @@ handle_printf_atsign (FILE *stream,
     return [[[[self class] _concreteClass] allocWithZone: zone]
 	initWithString: self];
   else
-    return [self retain];
+    return RETAIN(self);
 }
 
 - mutableCopyWithZone: (NSZone*)zone
@@ -2242,8 +2258,8 @@ handle_printf_atsign (FILE *stream,
 
 + (NSMutableString*) stringWithCapacity: (unsigned)capacity
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()]
-    initWithCapacity: capacity] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: capacity]);
 }
 
 /* Inefficient. */
@@ -2253,21 +2269,20 @@ handle_printf_atsign (FILE *stream,
   id n;
   n =  [[self allocWithZone: NSDefaultMallocZone()]
     initWithCharacters: characters length: length];
-  return [n autorelease];
+  return AUTORELEASE(n);
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
 {
-  return [[[NSMutableString_c_concrete_class allocWithZone:
-    NSDefaultMallocZone()] initWithCString: byteString] autorelease];
+  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithCString: byteString]);
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
    length: (unsigned int)length
 {
-  return [[[NSMutableString_c_concrete_class allocWithZone:
-    NSDefaultMallocZone()] initWithCString: byteString length: length]
-    autorelease];
+  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithCString: byteString length: length]);
 }
 
 /* xxx Change this when we have non-CString classes */
@@ -2309,7 +2324,7 @@ handle_printf_atsign (FILE *stream,
     initWithFormat: format arguments: ap];
   va_end(ap);
   [self appendString: tmp];
-  [tmp release];
+  RELEASE(tmp);
 }
 
 - (void) deleteCharactersInRange: (NSRange)range
@@ -2338,182 +2353,192 @@ handle_printf_atsign (FILE *stream,
 @end
 
 #ifndef NO_GNUSTEP
-//==============================================================================
+
 @implementation NSString (GSTrimming)
 
-//------------------------------------------------------------------------------
--(NSString*)stringByTrimmingLeadWhiteSpaces
+- (NSString*) stringByTrimmingLeadWhiteSpaces
 {
-  NSCharacterSet *nonSPSet= [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
-  NSRange nonSPCharRange  = [self rangeOfCharacterFromSet: nonSPSet];
+  NSCharacterSet	*nonSPSet;
+  NSRange		nonSPCharRange;
+
+  nonSPSet = [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
+  nonSPCharRange = [self rangeOfCharacterFromSet: nonSPSet];
   
-  if (nonSPCharRange.length>0)
-	return [self substringFromIndex: nonSPCharRange.location];
+  if (nonSPCharRange.length > 0)
+    return [self substringFromIndex: nonSPCharRange.location];
   else
-	return [NSString string];
-};
+    return @"";
+}
 
-//------------------------------------------------------------------------------
--(NSString*)stringByTrimmingTailWhiteSpaces
+- (NSString*) stringByTrimmingTailWhiteSpaces
 {
-  NSCharacterSet *nonSPSet= [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
-  NSRange nonSPCharRange  = [self rangeOfCharacterFromSet: nonSPSet
-								  options: NSBackwardsSearch];
-  if (nonSPCharRange.length>0)
-	return [self substringToIndex: nonSPCharRange.location+1];
-  else
-	return [NSString string];
-};
+  NSCharacterSet	*nonSPSet;
+  NSRange		nonSPCharRange;
 
-//------------------------------------------------------------------------------
--(NSString*)stringByTrimmingWhiteSpaces
+  nonSPSet= [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
+  nonSPCharRange = [self rangeOfCharacterFromSet: nonSPSet
+					 options: NSBackwardsSearch];
+  if (nonSPCharRange.length > 0)
+    return [self substringToIndex: nonSPCharRange.location+1];
+  else
+    return @"";
+}
+
+- (NSString*) stringByTrimmingWhiteSpaces
 {
   return [[self stringByTrimmingLeadWhiteSpaces]
-                stringByTrimmingTailWhiteSpaces];
-};;
+    stringByTrimmingTailWhiteSpaces];
+}
 
-//------------------------------------------------------------------------------
--(NSString*)stringByTrimmingLeadSpaces
+- (NSString*) stringByTrimmingLeadSpaces
 {
-  NSMutableString* tmp = [[self mutableCopy] autorelease];
+  NSMutableString	*tmp = [self mutableCopy];
+  NSString		*str;
+
   [tmp trimLeadSpaces];
-  // Convert to immuable
-  return [[tmp copy] autorelease];
-};
+  str = AUTORELEASE([tmp copy]);
+  RELEASE(tmp);
+  return str;
+}
 
-//------------------------------------------------------------------------------
--(NSString*)stringByTrimmingTailSpaces
+- (NSString*) stringByTrimmingTailSpaces
 {
-  NSMutableString* tmp= [[self mutableCopy] autorelease];
+  NSMutableString	*tmp = [self mutableCopy];
+  NSString		*str;
+
   [tmp trimTailSpaces];
-  // Convert to immuable
-  return [[tmp copy] autorelease];
-};
+  str = AUTORELEASE([tmp copy]);
+  RELEASE(tmp);
+  return str;
+}
 
-//------------------------------------------------------------------------------
--(NSString*) stringByTrimmingSpaces
+- (NSString*) stringByTrimmingSpaces
 {
-  NSMutableString* tmp=[[self mutableCopy] autorelease];
+  NSMutableString	*tmp = [self mutableCopy];
+  NSString		*str;
+
   [tmp trimLeadSpaces];
   [tmp trimTailSpaces];
-  // Convert to immuable
-  return [[tmp copy] autorelease];
-};
+  str = AUTORELEASE([tmp copy]);
+  RELEASE(tmp);
+  return str;
+}
 
 @end
 
-
-//==============================================================================
 @implementation NSMutableString (GSTrimming)
 
-//------------------------------------------------------------------------------
--(void)trimLeadSpaces
+- (void) trimLeadSpaces
 {
-  int location = 0;
-  int length = [self length];
-  while (location<length && isspace([self characterAtIndex: location]))
-	location++;
-        
-  if (location>0)
-	  [self deleteCharactersInRange: NSMakeRange(0,location)];
-};
+  unsigned	location = 0;
+  unsigned	length = [self length];
 
-//------------------------------------------------------------------------------
--(void)trimTailSpaces
-{
-  int length = [self length];
-  int location = length-1;
+  while (location < length && isspace([self characterAtIndex: location]))
+    location++;
         
-  while (location>=0 && isspace([self characterAtIndex: location]))
-	location--;
-        
-  if (location < length-1)
-	[self deleteCharactersInRange: NSMakeRange((location == 0) ? 0 : location + 1,
-											  length - ((location == 0) ? 0 : location + 1))];
+  if (location > 0)
+    [self deleteCharactersInRange: NSMakeRange(0,location)];
 }
 
-//------------------------------------------------------------------------------
--(void)trimSpaces
+- (void) trimTailSpaces
+{
+  unsigned	length = [self length];
+
+  if (length)
+    {
+      unsigned	location = length;
+        
+      while (location > 0)
+	if (!isspace([self characterAtIndex: --location]))
+	  break;
+        
+      if (location < length-1)
+	[self deleteCharactersInRange: NSMakeRange((location == 0) ? 0
+	  : location + 1, length - ((location == 0) ? 0 : location + 1))];
+    }
+}
+
+- (void) trimSpaces
 {
   [self trimLeadSpaces];
   [self trimTailSpaces];
-};
+}
         
 @end
 
-//==============================================================================
 @implementation NSString (GSString)
 
-//------------------------------------------------------------------------------
--(NSString*)stringWithoutSuffix: (NSString*)_suffix
+- (NSString*) stringWithoutSuffix: (NSString*)_suffix
 {
-  NSCAssert2([self hasSuffix: _suffix],@"'%@' has not the suffix '%@'",self,_suffix);
+  NSCAssert2([self hasSuffix: _suffix],
+    @"'%@' has not the suffix '%@'",self,_suffix);
   return [self substringToIndex: ([self length]-[_suffix length])];
-};
+}
 
-//------------------------------------------------------------------------------
--(NSString*)stringWithoutPrefix: (NSString*)_prefix
+- (NSString*) stringWithoutPrefix: (NSString*)_prefix
 {
-  NSCAssert2([self hasPrefix: _prefix],@"'%@' has not the prefix '%@'",self,_prefix);
+  NSCAssert2([self hasPrefix: _prefix],
+    @"'%@' has not the prefix '%@'",self,_prefix);
   return [self substringFromIndex: [_prefix length]];
-};
+}
 
-//------------------------------------------------------------------------------
--(NSString*)stringByReplacingString: (NSString*)_replace
-						 withString: (NSString*)_by
+- (NSString*) stringByReplacingString: (NSString*)_replace
+			   withString: (NSString*)_by
 {
-  NSRange range=[self rangeOfString: _replace];
-  if (range.length>0)
-	{
-	  NSMutableString* tmp= [[self mutableCopy] autorelease];
-	  [tmp replaceString: _replace
-		   withString: _by];
-	  // Convert to immuable
-	  return [[tmp copy] autorelease];
-	}
+  NSRange range = [self rangeOfString: _replace];
+
+  if (range.length > 0)
+    {
+      NSMutableString	*tmp = [self mutableCopy];
+      NSString		*str;
+
+      [tmp replaceString: _replace withString: _by];
+      str = AUTORELEASE([tmp copy]);
+      RELEASE(tmp);
+      return str;
+    }
   else
-	return self;
-};
+    return self;
+}
 
 @end
 
-//==============================================================================
 @implementation NSMutableString (GSString)
-//------------------------------------------------------------------------------
--(void)removeSuffix: (NSString*)_suffix
+- (void) removeSuffix: (NSString*)_suffix
 {
-  NSCAssert2([self hasSuffix: _suffix],@"'%@' has not the suffix '%@'",self,_suffix);
-  [self deleteCharactersInRange: NSMakeRange([self length]-[_suffix length],[_suffix length])];
-};
+  NSCAssert2([self hasSuffix: _suffix],
+    @"'%@' has not the suffix '%@'",self,_suffix);
+  [self deleteCharactersInRange:
+    NSMakeRange([self length]-[_suffix length],[_suffix length])];
+}
 
-//------------------------------------------------------------------------------
--(void)removePrefix: (NSString*)_prefix;
+- (void) removePrefix: (NSString*)_prefix;
 {
-  NSCAssert2([self hasPrefix: _prefix],@"'%@' has not the prefix '%@'",self,_prefix);
+  NSCAssert2([self hasPrefix: _prefix],
+    @"'%@' has not the prefix '%@'",self,_prefix);
   [self deleteCharactersInRange: NSMakeRange(0,[_prefix length])];
-};
+}
 
-//------------------------------------------------------------------------------
--(void)replaceString: (NSString*)_replace
-		  withString: (NSString*)_by
+- (void) replaceString: (NSString*)_replace
+	    withString: (NSString*)_by
 {
   NSRange range=[self rangeOfString: _replace];
   if (range.length>0)
+    {
+      unsigned byLen=[_by length];
+      do
 	{
-	  int byLen=[_by length];
-	  do
-		{
-		  [self replaceCharactersInRange: range
-				withString: _by];
-		  range.location+=byLen;
-		  range.length=[self length]-range.location;
-		  range=[self rangeOfString: _replace
-					  options: 0
-					  range: range];
-		}
-	  while (range.length>0);
-	};
-};
+	  [self replaceCharactersInRange: range
+			      withString: _by];
+	  range.location+=byLen;
+	  range.length=[self length]-range.location;
+	  range=[self rangeOfString: _replace
+			    options: 0
+			      range: range];
+	}
+      while (range.length>0);
+    }
+}
 @end
 
 #endif /* NO_GNUSTEP */

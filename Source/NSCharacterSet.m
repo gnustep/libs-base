@@ -67,7 +67,7 @@ static NSLock* cache_lock = nil;
   NSBundle *user_bundle = nil, *local_bundle = nil, *system_bundle = nil;
   NSProcessInfo *pInfo;
   NSDictionary *env;
-  NSMutableString *user, *local, *system;
+  NSString *user, *local, *system;
 
   /*
     The path of where to search for the resource files
@@ -78,15 +78,12 @@ static NSLock* cache_lock = nil;
     */
   pInfo = [NSProcessInfo processInfo];
   env = [pInfo environment];
-  user = [[[env objectForKey: @"GNUSTEP_USER_ROOT"]
-	    mutableCopy] autorelease];
-  [user appendString: @"/Libraries"];
-  local = [[[env objectForKey: @"GNUSTEP_LOCAL_ROOT"]
-	    mutableCopy] autorelease];
-  [local appendString: @"/Libraries"];
-  system = [[[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]
-	    mutableCopy] autorelease];
-  [system appendString: @"/Libraries"];
+  user = [env objectForKey: @"GNUSTEP_USER_ROOT"];
+  user = [user stringByAppendingPathComponent: @"Libraries"];
+  local = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+  local = [local stringByAppendingPathComponent: @"Libraries"];
+  system = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+  system = [system stringByAppendingPathComponent: @"Libraries"];
 
   if (user)
     user_bundle = [NSBundle bundleWithPath: user];
@@ -171,7 +168,7 @@ static NSLock* cache_lock = nil;
 	  }
 	else
 	  /* Else cache the set */
-	  cache_set[number] = [set retain];
+	  cache_set[number] = RETAIN(set);
 
       NS_HANDLER
 	[cache_lock unlock];
@@ -256,7 +253,7 @@ static NSLock* cache_lock = nil;
 
 + (NSCharacterSet *)characterSetWithBitmapRepresentation: (NSData *)data
 {
-  return [[[NSBitmapCharSet alloc] initWithBitmap: data] autorelease];
+  return AUTORELEASE([[NSBitmapCharSet alloc] initWithBitmap: data]);
 }
 
 + (NSCharacterSet *)characterSetWithCharactersInString: (NSString *)aString
@@ -360,7 +357,7 @@ static NSLock* cache_lock = nil;
   char *bytes;
   NSMutableData *bitmap;
 
-  bitmap = [[[self bitmapRepresentation] mutableCopy] autorelease];
+  bitmap = AUTORELEASE([[self bitmapRepresentation] mutableCopy]);
   length = [bitmap length];
   bytes = [bitmap mutableBytes];
   for (i=0; i < length; i++)
@@ -371,12 +368,12 @@ static NSLock* cache_lock = nil;
 
 
 // NSCopying, NSMutableCopying
-- (id)copyWithZone: (NSZone *)zone
+- (id) copyWithZone: (NSZone *)zone
 {
   if (NSShouldRetainWithZone(self, zone))
-      return [self retain];
+    return RETAIN(self);
   else
-      return NSCopyObject (self, 0, zone);
+    return NSCopyObject (self, 0, zone);
 }
 
 - (id)mutableCopyWithZone: (NSZone *)zone
@@ -399,7 +396,7 @@ static NSLock* cache_lock = nil;
 /* Override this from NSCharacterSet to create the correct class */
 + (NSCharacterSet *)characterSetWithBitmapRepresentation: (NSData *)data
 {
-  return [[[NSMutableBitmapCharSet alloc] initWithBitmap: data] autorelease];
+  return AUTORELEASE([[NSMutableBitmapCharSet alloc] initWithBitmap: data]);
 }
 
 /* Mutable subclasses must implement ALL of these methods.  */
