@@ -28,6 +28,7 @@
 #include <objects/Connection.h>
 #include <objects/ConnectedCoder.h>
 #include <objects/eltfuncs.h>
+#include <objects/AutoreleasePool.h>
 #include <assert.h>
 
 static BOOL debugProxies = NO;
@@ -339,6 +340,13 @@ static inline BOOL class_is_kind_of(CLASS self, CLASS aClassObject)
 - (unsigned) retainCount
 {
   return retain_count;
+}
+
+- autorelease
+{
+  /* xxx Problems here if the Connection goes away? */
+  [autorelease_class addObject:self];
+  return self;
 }
 
 @end
