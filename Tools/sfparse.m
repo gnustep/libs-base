@@ -61,6 +61,7 @@ convert_unicode(NSArray *args)
 	{
 	  GSPrintf(stderr, @"Converting '%@' - %@\n", file,
 	    [localException reason]);
+	  return 1;
 	}
       NS_ENDHANDLER
     }
@@ -92,6 +93,7 @@ convert_utf8(NSArray *args)
 	{
 	  GSPrintf(stderr, @"Converting '%@' - %@\n", file,
 	    [localException reason]);
+	  return 1;
 	}
       NS_ENDHANDLER
     }
@@ -105,6 +107,7 @@ main(int argc, char** argv, char **env)
   NSProcessInfo		*proc;
   NSArray		*args;
   unsigned		i;
+  int			retval = 0;
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
@@ -115,7 +118,7 @@ main(int argc, char** argv, char **env)
     {
       GSPrintf(stderr, @"defaults: unable to get process information!\n");
       [pool release];
-      exit(0);
+      exit(1);
     }
 
   args = [proc arguments];
@@ -129,11 +132,11 @@ main(int argc, char** argv, char **env)
     }
   else if ([[args objectAtIndex: 1] isEqual: @"--unicode"])
     {
-      convert_unicode(args);
+      retval = convert_unicode(args);
     }
   else if ([[args objectAtIndex: 1] isEqual: @"--utf8"])
     {
-      convert_utf8(args);
+      retval = convert_utf8(args);
     }
   else
     {
@@ -160,10 +163,11 @@ main(int argc, char** argv, char **env)
 	    {
 	      GSPrintf(stderr, @"Parsing '%@' - %@\n", file,
 		[localException reason]);
+	      retval = 1;
 	    }
 	  NS_ENDHANDLER
 	}
     }
   [pool release];
-  return 0;
+  return retval;
 }
