@@ -192,6 +192,7 @@ NSNotification.m \
 NSNotificationCenter.m \
 NSNotificationQueue.m \
 NSNumber.m \
+NSNumberFormatter.m \
 NSObjCRuntime.m \
 NSObject.m \
 NSPage.m \
@@ -289,6 +290,7 @@ Foundation/NSMapTable.h \
 Foundation/NSMethodSignature.h \
 Foundation/NSNotification.h \
 Foundation/NSNotificationQueue.h \
+Foundation/NSNumberFormatter.h \
 Foundation/NSObjCRuntime.h \
 Foundation/NSObject.h \
 Foundation/NSPathUtilities.h \
