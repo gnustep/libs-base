@@ -36,10 +36,18 @@
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
-  assert(!flag);	/* xxx need to make a subclass to handle this. */
+  /* assert(!flag);	/* xxx need to make a subclass to handle this. */
   _count = length;
   _contents_chars = byteString;
+  _free_contents = flag;
   return self;
+}
+
+- (void) dealloc
+{
+  if (_free_contents)
+      OBJC_FREE(_contents_chars);
+  [super dealloc];
 }
 
 - (Class) classForConnectedCoder: aRmc
@@ -61,6 +69,7 @@
   [aCoder decodeValueOfType:@encode(char*) at:&_contents_chars
 	  withName:NULL];
   _count = strlen(_contents_chars);
+  _free_contents = YES;
   return self;
 }
 
@@ -180,6 +189,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   _capacity = MAX(capacity, 2);
   OBJC_MALLOC(_contents_chars, char, _capacity);
   _contents_chars[0] = '\0';
+  _free_contents = YES;
   return self;
 }
 

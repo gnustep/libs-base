@@ -153,6 +153,7 @@ typedef unsigned short Character;
 {
   char * _contents_chars;
   int _count;
+  BOOL _free_contents;
 }
 @end
 
@@ -160,6 +161,7 @@ typedef unsigned short Character;
 {
   char *_contents_chars;
   int _count;
+  BOOL _free_contents;
   int _capacity;
 }
 @end

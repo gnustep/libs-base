@@ -36,7 +36,15 @@
   OBJC_MALLOC(_contents_chars, char, _count+1);
   memcpy(_contents_chars, aCharPtr + aRange.location, _count);
   _contents_chars[_count] = '\0';
+  _free_contents = YES;
   return self;
+}
+
+- (void) dealloc 
+{
+  if (_free_contents)
+    OBJC_FREE(_contents_chars);
+  [super dealloc];
 }
 
 - (Class) classForConnectedCoder: aRmc
@@ -58,6 +66,7 @@
   [aCoder decodeValueOfType:@encode(char*) at:&_contents_chars
 	  withName:NULL];
   _count = strlen(_contents_chars);
+  _free_contents = YES;
   return self;
 }
 

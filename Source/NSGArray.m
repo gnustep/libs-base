@@ -111,8 +111,12 @@
 
 /* Comes in from Array behavior 
    - (void) addObject: anObject
-   - (void)replaceObjectAtIndex: (unsigned)index withObject: anObject
    - (void)insertObject: anObject atIndex: (unsigned)index
    */
+
+- (void) replaceObjectAtIndex: (unsigned)index withObject: anObject
+{
+    [self replaceObjectAtIndex: index with: anObject];
+}
 
 @end

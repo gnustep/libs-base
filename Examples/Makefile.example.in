@@ -1,0 +1,96 @@
+#
+#  Examples makefile example for Objective-C Class Library
+#  Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+#
+#  Written by:	Adam Fedor <fedor@boulder.colorado.edu>
+#
+#  This file is part of the GNU Objective-C Class Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+SHELL = /bin/sh
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+CC = @CC@
+     
+CFLAGS = @CFLAGS@ -Wall -Wno-implicit
+CPPFLAGS =
+LDFLAGS =
+     
+DYNAMIC_BUNDLER_LINKER=@DYNAMIC_BUNDLER_LINKER@
+DYNAMIC_LDFLAGS=@DYNAMIC_LDFLAGS@
+DYNAMIC_CFLAGS=@DYNAMIC_CFLAGS@
+DEFS = @DEFS@
+LIBS = @LIBS@
+
+#### End of system configuration section. ####
+
+ALL_CPPFLAGS = $(CPPFLAGS)
+ALL_CFLAGS = $(CFLAGS)
+ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
+ALL_LDFLAGS = $(LDFLAGS)
+
+.SUFFIXES: .m
+.m.o:
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $< -o $*.o
+.c.o:
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $< -o $*.o
+
+EXCS = myprogram
+SOURCES = myprogram.m MyObject.m
+OFILES = $(SOURCES:.m=.o)
+
+BUNDLE_NAME=LoadMe
+DYNAMIC_MFILES = 
+DYNAMIC_OFILES = $(DYNAMIC_MFILES:.m=.o)
+
+all: $(EXCS) bundles
+
+myprogram: $(OFILES)
+	$(CC) $(ALL_LDFLAGS) -o myprogram $(OFILES) $(LIBS)
+
+install:
+uninstall:
+
+# These next few lines give an example of how to compile, link and store
+# a bundle.
+bundles: $(BUNDLE_NAME).bundle/$(BUNDLE_NAME)
+
+$(DYNAMIC_OFILES): $(DYNAMIC_MFILES) $(DYNAMIC_HFILES)
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(DYNAMIC_CFLAGS) $(ALL_OBJCFLAGS) \
+		$*.m -o $*.o
+
+$(BUNDLE_NAME).bundle/$(BUNDLE_NAME): $(DYNAMIC_OFILES)
+	-mkdir $(BUNDLE_NAME).bundle
+	-mkdir $(BUNDLE_NAME).bundle/English.lproj
+	$(DYNAMIC_BUNDLER_LINKER) -o $(BUNDLE_NAME).bundle/$(BUNDLE_NAME) \
+		$(DYNAMIC_OFILES)
+
+mostlyclean:
+	rm -f core *~
+
+clean: mostlyclean
+	rm -f *.o $(EXCS)
+	rm -rf $(BUNDLE_NAME).bundle
+
+distclean: clean
+	rm -f Makefile config.status
+
+realclean: distclean
+	rm -f TAGS

@@ -1,0 +1,190 @@
+AC_INIT(configure.example.in)
+# Example configure.in for configuring projects that use libobjects.
+#
+#   Copyright (C) 1995 Free Software Foundation, Inc.
+#
+#   Written by: Adam Fedor <fedor@mode.colorado.edu>
+#   This file is part of the GNU Objective-C library.
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU Library General Public
+#   License as published by the Free Software Foundation; either
+#   version 2 of the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#   Library General Public License for more details.
+#
+#   You should have received a copy of the GNU Library General Public
+#   License along with this library; if not, write to the Free
+#   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+#--------------------------------------------------------------------
+#
+#   You should customize this file for your own project, and process it
+#   using the autoconf program (available from any GNU software site) to
+#   add automatic configuration to your project. Make sure you have copied 
+#   the file "aclocal.m4" from the libobjects distribution into the same
+#   directory as this file.  Rename this file to "configure.in" and 
+#   customize it for your own project.  Then simply type
+#   "autoconf configure.in" at the command line to create the file
+#   "configure".  You need to distribute the files "configure" and
+#   "Makefile.in" (which you have customized from Makefile.example.in).
+#   with your project so that people who use your software can configure
+#   the Makefile on their system.
+#
+#   In the first line of this file, change the filename 
+#   "configure.example.in" to any filename that exists in the top level 
+#   directory of your project. This will help configure figure out if 
+#   it is processing files in the correct directory.
+#
+
+#--------------------------------------------------------------------
+# Find the compiler and other programs
+#--------------------------------------------------------------------
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_RANLIB
+
+#--------------------------------------------------------------------
+# Check for OpenStep Foundation library (including libobjects)
+#
+# Use these tests if your project relies only on the facilities availible
+# in the OpenStep Foundation AND you want to be able to compile your
+# project with either libobjects or any other library that is OpenStep
+# complient.
+#
+#--------------------------------------------------------------------
+AC_CHECK_LIB(Foundation, main, found_foundation=yes, found_foundation=no)
+if test $found_foundation = yes; then
+    LIBC="$LIBC -lFoundation"
+fi
+if test $found_foundation = no; then
+    AC_CHECK_LIB(Foundation_s, main, found_foundation=yes, found_foundation=no)
+    if test $found_foundation = yes; then
+        LIBC="$LIBC -lFoundation_s"
+    fi
+fi
+
+#--------------------------------------------------------------------
+# Check for OpenStep Foundation library (including libobjects)
+#
+# Use this tests to make sure the user has installed libobjects on 
+# their system (also adds -lobjects to the LIBS variable in Makefile).
+#--------------------------------------------------------------------
+found_objects=no
+if test $found_foundation = no; then
+    AC_CHECK_LIB(objects, main, found_objects=yes, found_objects=no)
+fi
+if test $found_objects = yes; then
+    LIBS="$LIBS -lobjects" 
+fi
+
+if test $found_foundation = no  && test $found_objects = no; then
+    AC_MSG_WARN(Cannot find OpenStep Foundation library)
+    echo
+    echo "You need to set LIBS manually in Makefile to point"
+    echo "to the correct location of the Foundation library"
+    echo
+fi
+
+#--------------------------------------------------------------------
+# Check for OpenStep Foundation kit headers
+#
+# These tests also check for not-quite OpenStep complient Foundation
+# headers such as the ones found in NeXTStep (Release 3.3)
+#--------------------------------------------------------------------
+AC_CHECK_HEADER(Foundation/NSObject.h, found_objects_h=yes, found_objects_h=no)
+AC_CHECK_HEADER(foundation/NSObject.h, found_objects_h=yes next_foundation=yes, 
+	next_foundation=no)
+if test $found_objects_h = no; then
+    AC_MSG_WARN(Cannot find OpenStep Foundation headers)
+    echo
+    echo "You need to set CFLAGS manually in Makefile to include "
+    echo "the correct location of the Foundation header directory"
+    echo
+fi
+
+#--------------------------------------------------------------------
+# Check for other libraries we might need (like the Objective-C runtime
+# library).
+#
+#--------------------------------------------------------------------
+AC_CHECK_LIB(objc, main, found_objc=yes, found_objc=no)
+if test $found_objc = yes; then
+    LIBS="$LIBS -lobjc -lm"
+fi
+
+#--------------------------------------------------------------------
+# Libraries needed on Solaris (for NSProcessInfo and some other classes)
+#--------------------------------------------------------------------
+AC_CHECK_LIB(nsl, main)
+
+#--------------------------------------------------------------------
+# Check for non-OpenStep Foundation (from NeXT)
+#
+# Adds a definition to the DEFS line of the makefile (see the example
+# Makefile.in) the lets you know if your compiling the program using
+# the not-quite OpenStep complient NeXT Foundation.  Among other things,
+# this lets you include files from the correct directory, i.e.:
+#   
+#   #ifdef NEXT_FOUNDATION
+#   #include <foundation/NSObject.h>
+#   #else
+#   #include <Foundation/NSObject.h>
+#   #endif
+#
+#--------------------------------------------------------------------
+if test $next_foundation = yes; then
+    AC_DEFINE(NEXT_FOUNDATION)
+    AC_DEFINE(NS_BLOCK_ASSERTIONS)
+    CC="cc -traditional-cpp"
+fi
+if test $found_objects = yes; then
+    AC_DEFINE(GNU_FOUNDATION)
+fi
+
+
+#--------------------------------------------------------------------
+# Setup dynamic linking
+#
+# This test uses a custom macro found in the libobjects distribution. If
+# you plan to use dynamic linking at all, you need to copy the file
+# libobjects/aclocal.m4 into your project so that autoconf can find it.
+# Also plan to update the file whenever it changes in libobjects.  This
+# macro sets up quite a few definitions in the Makefile - see the example
+# makefile for more information.
+#--------------------------------------------------------------------
+OBJC_SYS_DYNAMIC_FLAGS()
+
+#--------------------------------------------------------------------
+# Find the header files
+#
+# This is just an example of how you can figure out if certain header
+# files exist on different systems so you can include them.  They are not
+# necessary for you project if you don't need them.
+#--------------------------------------------------------------------
+AC_HEADER_STDC
+AC_CHECK_HEADERS(string.h memory.h unistd.h)
+
+
+#--------------------------------------------------------------------
+# Check for some functions
+#
+# This is just an example of how you can figure out if certain functions
+# exist on different systems so you can use them.  They are not
+# necessary for you project if you don't need them.
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(getcwd strstr)
+
+#--------------------------------------------------------------------
+# Create the makefile
+#
+# This creates the Makefile from the Makefile.in file, substituting all
+# the keywords (between @ pairs) with the proper values determined in
+# configure.
+#--------------------------------------------------------------------
+AC_OUTPUT(Makefile.example)
+
+

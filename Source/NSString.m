@@ -173,7 +173,7 @@ static Class NSMutableString_c_concrete_class;
   OBJC_MALLOC(s, char, length+1);
   memcpy(s, byteString, length);
   s[length] = '\0';
-  return [self initWithCStringNoCopy:s length:length freeWhenDone:NO];
+  return [self initWithCStringNoCopy:s length:length freeWhenDone:YES];
 }
 
 /* This is the designated initializer for CStrings. */
@@ -469,7 +469,7 @@ static Class NSMutableString_c_concrete_class;
    options: (unsigned int)mask
 {
   return [self compare:aString options:mask 
-	       range:((NSRange){0, [self length]})];
+	       range:((NSRange){0, MAX([self length], [aString length])})];
 }
 
 - (NSComparisonResult) compare: (NSString*)aString
