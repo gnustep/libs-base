@@ -65,10 +65,14 @@
  *			or zero if the named server was already registered.
  *
  *	GDO_UNREG	Un-register the server name and return old port number.
+ *			If the server name is of length zero, and the port is
+ *			non-zero then all names for the port are unregistered.
  *			This service is only available to a process on the
  *			same host as this name server.
  *			Response is the old port number in network byte order,
  *			or zero if the name could not be un-registered.
+ *			If multiple names were unregistered the response is
+ *			the port for those names.
  *
  *	GDO_SERVERS	Return a list of the known servers on the local net.
  *			Response is an unsigned long (in network byte order)
