@@ -3752,10 +3752,19 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Return an NSData object representing the MIME document as raw data
- * ready to be sent via an email system.<br />
- * The isOuter flag denotes whether this document is the outermost
+ * <p>Return an NSData object representing the MIME document as raw data
+ * ready to be sent via an email system.
+ * </p>
+ * <p>The isOuter flag denotes whether this document is the outermost
  * part of a MIME message, or is a part of a multipart message.
+ * </p>
+ * <p>During generation of the document this method will perform some
+ * consistency checks and try to automatically generate missing header
+ * information needed to build the mime data (eg. filling in the boundary
+ * parameter in the content-type header for multipart documents).<br />
+ * However, you should not depend on automatic behaviors but should
+ * fill in as much detail as possible before generating data.
+ * </p>
  */
 - (NSMutableData*) rawMimeData: (BOOL)isOuter
 {
