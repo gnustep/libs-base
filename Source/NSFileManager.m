@@ -770,8 +770,16 @@ static NSFileManager* defaultManager = nil;
     NSFileGroupOwnerAccountName
   };
 
-  if (stat(cpath, &statbuf) != 0)
-    return nil;
+  if (flag)
+    {
+      if (stat(cpath, &statbuf) != 0)
+	return nil;
+    }
+  else
+    {
+      if (lstat(cpath, &statbuf) != 0)
+	return nil;
+    }
     
   values[0] = [NSNumber numberWithUnsignedLongLong: statbuf.st_size];
   values[1] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
