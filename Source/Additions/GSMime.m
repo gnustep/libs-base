@@ -1353,17 +1353,18 @@ selectCharacterSet(NSString *str, NSData **d)
       if ([type isEqualToString: @"text"] == YES)
 	{
 	  if (subtype == nil)
-	    subtype = @"plain";
-	}
-      else if ([type isEqualToString: @"application"] == YES)
-	{
-	  if (subtype == nil)
-	    subtype = @"octet-stream";
+	    {
+	      subtype = @"plain";
+	    }
 	}
       else if ([type isEqualToString: @"multipart"] == YES)
 	{
 	  NSString	*tmp = [info parameterForKey: @"boundary"];
 
+	  if (subtype == nil)
+	    {
+	      subtype = @"mixed";
+	    }
 	  supported = YES;
 	  if (tmp != nil)
 	    {
@@ -1379,6 +1380,13 @@ selectCharacterSet(NSString *str, NSData **d)
 	    {
 	      NSLog(@"multipart message without boundary");
 	      return NO;
+	    }
+	}
+      else
+	{
+	  if (subtype == nil)
+	    {
+	      subtype = @"octet-stream";
 	    }
 	}
 
@@ -3572,6 +3580,47 @@ static NSCharacterSet	*tokenSet = nil;
 		  format: @"[%@ -%@:] passed bad content",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
+}
+
+/**
+ * Convenience method calling -setContent:type:subType:name: to set
+ * content and type.  If the type argument contains a slash '/')
+ * then it is split into type and subtype parts, otherwise, the
+ * subtype is assumed to be nil.
+ */
+- (void) setContent: (id)newContent
+	       type: (NSString*)type
+	       name: (NSString*)name
+{
+  NSString	*subtype = nil;
+
+  if (type != nil)
+    {
+      NSRange	r;
+
+      r = [type rangeOfString: @"/"];
+      if (r.length > 0)
+	{
+	  subtype = [type substringFromIndex: NSMaxRange(r)];
+	  type = [type substringToIndex: r.location];
+	}
+      else if ([type isEqual: @"text"] == YES)
+	{
+	  subtype = @"plain";
+	}
+      else if ([type isEqual: @"multipart"] == YES)
+	{
+	  subtype = @"mixed";
+	}
+      else
+	{
+	  subtype = @"octet-stream";
+	}
+    }
+  [self setContent: newContent
+	      type: type
+	   subType: subtype
+	      name: name];
 }
 
 /**

@@ -3,6 +3,7 @@
 	* Source/NSURL.m: Cope with a URL where the path is missing.
 	Check user, password, host, port parts for illegal characters.
 	Thanks to bug report by Marco Manfredini <mldb@gmx.org>
+	* Source/GSMime.m: add convenience method for setting document type.
 
 2002-06-17  Richard Frith-Macdonald <rfm@gnu.org>
 
