@@ -1,3 +1,9 @@
+Tue Feb 26 17:35:03 2002  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSBundle.m (_bundle_load_callback): Completely ignore
+	categories.  (Suggestion by Gerrit Van Dyk
+	<GerritVD@decillion.net>).
+
 2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTemplateValue.m: Implement initialize method to set the
