@@ -69,35 +69,11 @@
 #include <base/behavior.h>
 
 #include <base/Unicode.h>
-#include <base/GetDefEncoding.h>
 #include <base/NSGString.h>
 #include <base/NSGCString.h>
 
 #include <base/fast.x>
 
-
-// Uncomment when implemented
-static NSStringEncoding _availableEncodings[] = {
-    NSASCIIStringEncoding,
-    NSNEXTSTEPStringEncoding,
-//    NSJapaneseEUCStringEncoding,
-//    NSUTF8StringEncoding,
-    NSISOLatin1StringEncoding,
-//    NSSymbolStringEncoding,
-//    NSNonLossyASCIIStringEncoding,
-//    NSShiftJISStringEncoding,
-    NSISOLatin2StringEncoding,
-    NSUnicodeStringEncoding,
-//    NSWindowsCP1251StringEncoding,
-//    NSWindowsCP1252StringEncoding,
-//    NSWindowsCP1253StringEncoding,
-//    NSWindowsCP1254StringEncoding,
-//    NSWindowsCP1250StringEncoding,
-//    NSISO2022JPStringEncoding,
-// GNUstep additions
-    NSCyrillicStringEncoding,
-    0
-};
 
 /*
  * Cache classes for speed.
@@ -1805,7 +1781,7 @@ handle_printf_atsign (FILE *stream,
 
 + (NSStringEncoding*) availableStringEncodings
 {
-  return _availableEncodings;
+  return GetAvailableEncodings();
 }
 
 + (NSString*) localizedNameOfStringEncoding: (NSStringEncoding)encoding
