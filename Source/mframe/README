@@ -58,9 +58,9 @@
 Purpose -
 
    The files in these directories are used by the configuration script to build
-   a machine/operating-system specific 'mframe.m' file containing macros used
+   a machine/operating-system specific 'mframe.h' file containing macros used
    to access stack frames.
-   The 'mframe.m' file is simply built by wrapping a system dependent file
+   The 'mframe.h' file is simply built by wrapping a system dependent file
    between mframe.head and mframe.foot
 
 Advice on porting -
