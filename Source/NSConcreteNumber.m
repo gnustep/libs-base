@@ -35,14 +35,14 @@
 #if TYPE_ORDER == 0
 #  define NumberTemplate	NSBoolNumber
 #  define TYPE_METHOD	boolValue
-#  define TYPE_FORMAT	@"%uc"
+#  define TYPE_FORMAT	@"%u"
 #  define NEXT_ORDER	4
 #  define NEXT_METHOD	shortValue
 #  define NEXT_CTYPE	short
 #elif TYPE_ORDER == 1
 #  define NumberTemplate	NSUCharNumber
 #  define TYPE_METHOD	unsignedCharValue
-#  define TYPE_FORMAT	@"%uc"
+#  define TYPE_FORMAT	@"%c"
 #  define NEXT_ORDER	4
 #  define NEXT_METHOD	shortValue
 #  define NEXT_CTYPE	short
@@ -306,7 +306,11 @@
 
 - (NSString *)descriptionWithLocale: (NSDictionary*)locale
 {
+#if TYPE_ORDER == 0
+    return (data) ? @"YES" : @"NO";
+#else
     return [NSString stringWithFormat:TYPE_FORMAT, data];
+#endif
 }
 
 // Override these from NSValue
