@@ -49,8 +49,6 @@
 - (id) initWithBytes: (const void *)value
 	    objCType: (const char *)type
 {
-  int	size;
-  
   if (!value || !type) 
     {
       NSLog(@"Tried to create NSValue with NULL value or NULL type");
@@ -59,22 +57,48 @@
     }
 
   self = [super init];
-
-  // FIXME: objc_sizeof_type will abort when it finds an invalid type, when
-  // we really want to just raise an exception
-  size = objc_sizeof_type(type);
-  if (size <= 0) 
+  if (self != nil)
     {
-      NSLog(@"Tried to create NSValue with invalid Objective-C type");
-      RELEASE(self);
-      return nil;
+      int	size;
+  
+      switch (*type)
+	{
+	  case _C_ID:		size = sizeof(id);		break;
+	  case _C_CLASS:	size = sizeof(Class);		break;
+	  case _C_SEL:		size = sizeof(SEL);		break;
+	  case _C_CHR:		size = sizeof(char);		break;
+	  case _C_UCHR:		size = sizeof(unsigned char);	break;
+	  case _C_SHT:		size = sizeof(short);		break;
+	  case _C_USHT:		size = sizeof(unsigned short);	break;
+	  case _C_INT:		size = sizeof(int);		break;
+	  case _C_UINT:		size = sizeof(unsigned int);	break;
+	  case _C_LNG:		size = sizeof(long);		break;
+	  case _C_ULNG:		size = sizeof(unsigned long);	break;
+	  case _C_LNG_LNG:	size = sizeof(long long);	break;
+	  case _C_ULNG_LNG:	size = sizeof(unsigned long long);	break;
+	  case _C_FLT:		size = sizeof(float);		break;
+	  case _C_DBL:		size = sizeof(double);		break;
+	  case _C_PTR:		size = sizeof(void*);		break;
+	  case _C_CHARPTR:	size = sizeof(char*);		break;
+	  case _C_BFLD:
+	  case _C_ARY_B:
+	  case _C_UNION_B:
+	  case _C_STRUCT_B:	size = objc_sizeof_type(type);	break;
+	  default:		size = 0;			break;
+	}
+      if (size <= 0) 
+	{
+	  NSLog(@"Tried to create NSValue with invalid Objective-C type");
+	  RELEASE(self);
+	  return nil;
+	}
+
+      data = (void *)NSZoneMalloc(GSObjCZone(self), size);
+      memcpy(data, value, size);
+
+      objctype = (char *)NSZoneMalloc(GSObjCZone(self), strlen(type)+1);
+      strcpy(objctype, type);
     }
-
-  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
-  memcpy(data, value, size);
-
-  objctype = (char *)NSZoneMalloc(GSObjCZone(self), strlen(type)+1);
-  strcpy(objctype, type);
   return self;
 }
 

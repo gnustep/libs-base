@@ -12,6 +12,7 @@
 	before any attempt is made to use locale dependent code.
 	* Source/NSString.m: ([-stringByExpandingTildeInPath:]) fix suggested
 	by David Wetzel.
+	* Source/GSValue.m: Fix abort when initialising value with illegal type.
 
 2001-04-22  Nicola Pero  <n.pero@mi.flashnet.it>
 
