@@ -529,7 +529,7 @@ LIBS="$saved_LIBS"
 dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
 
 AC_CHECK_HEADERS(time.h sys/time.h sys/rusage.h ucbinclude/sys/resource.h)
-AC_CHECK_FUNCS(time ctime)
+AC_CHECK_FUNCS(time ctime tzset)
 
 #--------------------------------------------------------------------
 # These headers/functions needed by GSTcpPort.m
