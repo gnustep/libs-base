@@ -1,8 +1,8 @@
 /* Support for general purpose definitions for libobjects.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -23,11 +23,9 @@
 
 #include <objects/stdobjects.h>
 
-#define XSTR(s) STR(s)
-#define STR(s) #s
-const char objects_version[] = XSTR(GOBJC_VERSION);
-const char objects_gcc_version[] = XSTR(GOBJC_GCC_VERSION);
+const char gnustep_base_version[] = STRINGIFY (GNUSTEP_BASE_VERSION);
+const char objects_gcc_version[] = STRINGIFY (GNUSTEP_BASE_GCC_VERSION);
 
 #if NeXT_cc
-const char objects_NeXT_cc_version[] = XSTR(NX_CURRENT_COMPILER_RELEASE);
+const char objects_NeXT_cc_version[] = STRINGIFY (NX_CURRENT_COMPILER_RELEASE);
 #endif /* NeXT_cc */
