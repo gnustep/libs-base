@@ -49,7 +49,7 @@ _NSLog_standard_printf_handler (NSString* message)
   [message getCString: buf];
   buf[len] = '\0';
 
-#ifdef	HAVE_SYSLOG_H
+#ifdef	HAVE_SYSLOG
 
   if (write(2, buf, len) != len)
     {
