@@ -34,7 +34,8 @@ include $(srcdir)/../Makeconf
 ADMIN_FILES = \
 HOWTO-patches \
 example.patch \
-volunteers
+volunteers \
+tasks
 
 RCS_FILES = Makefile.in
 DIST_FILES = $(RCS_FILES) $(ADMIN_FILES)
@@ -43,6 +44,10 @@ Makefile: $(srcdir)/Makefile.in ../config.status
 	cd ..; $(SHELL) config.status
 ../config.status:
 	cd ..; $(SHELL) configure --no-create
+tasks: ../doc/todo.texi
+	rm -f tasks
+	(cd ../doc; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES) TODO)
+	cp ../doc/TODO ./tasks
 
 mostlyclean:
 	rm -f *~
