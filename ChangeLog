@@ -1,3 +1,8 @@
+2002-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/GNUmakefile: build autogsdoc documentation automatically
+	if possible.
+
 2002-10-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSDebug.h: Make warn logs de-selectable at
