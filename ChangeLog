@@ -1,3 +1,13 @@
+2001-02-11  Manuel Guesdon <mguesdon@orange-concept.com>
+
+	* GSXML.m: testing lib!=NULL and string!=NULL before doing something in 
+                -GSXMLNode content
+                -GSXMLNode name
+                -GSXMLNode ns
+                -GSXMLNode nsDef
+	* NSString.m: handle NULL bytes in -initWithUTF8String: (Treat it as zero 
+		length string and NSDebugMLog a warning).
+
 2001-02-09  Jonathan Gapen  <jagapen@home.com>
 
 	More FreeBSD build fixes:
