@@ -1,3 +1,7 @@
+2004-02-08  Adam Fedor  <fedor@gnu.org>
+
+	* Source/simple-load.h (__USE_GNU): Define for dlfcn.
+
 2004-02-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConection.m: Simplify code by using GSLazyLock and
