@@ -38,7 +38,9 @@
 #include <netinet/in.h>		// for byte-conversion
 #endif /* !__WIN32__ */
 
-#define DEFAULT_FORMAT_VERSION 0
+#define PRE_SIZEOF_PREFIX_FORMAT_VERSION 0
+#define CURRENT_FORMAT_VERSION 1
+#define DEFAULT_FORMAT_VERSION CURRENT_FORMAT_VERSION
 
 #define ROUND(V, A) \
   ({ typeof(V) __v=(V); typeof(A) __a=(A); \
@@ -50,7 +52,7 @@
 
 /* The value by which we multiply a float or double in order to bring
    mantissa digits to the left-hand-side of the decimal point, so that
-   we can extra them by assigning the float or double to an int. */
+   we can extract them by assigning the float or double to an int. */
 #if !defined(BITSPERBYTE) && defined(NeXT)
 #include <mach/vm_param.h>
 #define BITSPERBYTE BYTE_SIZE
@@ -89,6 +91,39 @@ static int debug_binary_coder = 0;
   return c;
 }
 
+/* This is the designated initializer for reading. */
+- _initForReadingFromPostSignatureStream: (id <Streaming>)s
+		       withFormatVersion: (int)version
+{
+  [super _initForReadingFromPostSignatureStream: s
+	 withFormatVersion: version];
+  if (version > PRE_SIZEOF_PREFIX_FORMAT_VERSION)
+    {
+      /* Read the C-type sizes to expect. */
+      [s readByte: &_sizeof_long];
+      [s readByte: &_sizeof_int];
+      [s readByte: &_sizeof_short];
+      [s readByte: &_sizeof_char];
+    }
+  return self;
+}
+
+/* This is a designated initializer for writing. */
+- initForWritingToStream: (id <Streaming>) s
+       withFormatVersion: (int)version
+{
+  [super initForWritingToStream: s
+	 withFormatVersion: version];
+  if (version > PRE_SIZEOF_PREFIX_FORMAT_VERSION)
+    {
+      [s writeByte: sizeof (long)];
+      [s writeByte: sizeof (int)];
+      [s writeByte: sizeof (short)];
+      [s writeByte: sizeof (char)];
+    }
+  return self;
+}
+
 
 /* Encoding/decoding C values */
 
@@ -112,7 +147,7 @@ static int debug_binary_coder = 0;
 
   [stream writeByte: *type];
 
-#define WRITE_SIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
+#define WRITE_SIGNED_TYPE0(_PTR, _TYPE, _CONV_FUNC)		\
       {								\
         _TYPE tmp;						\
 	char buffer[1+sizeof(_TYPE)];				\
@@ -131,7 +166,34 @@ static int debug_binary_coder = 0;
 	[stream writeBytes: buffer length: 1+sizeof(_TYPE)];	\
       }
 
-#define READ_SIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
+#define WRITE_SIGNED_TYPE1(_PTR, _TYPE, _CONV_FUNC)		\
+      {								\
+        _TYPE tmp;						\
+	char buffer[sizeof(_TYPE)];				\
+	if (*(_TYPE*)_PTR < 0)					\
+	  {							\
+	    tmp = _CONV_FUNC (- *(_TYPE*)_PTR);			\
+            memcpy (buffer, &tmp, sizeof(_TYPE));		\
+            assert (!(buffer[0] & 0x80));			\
+	    buffer[0] |= 0x80;					\
+	  }							\
+	else							\
+	  {							\
+	    tmp = _CONV_FUNC (*(_TYPE*)_PTR);			\
+            memcpy (buffer, &tmp, sizeof(_TYPE));		\
+	  }							\
+	[stream writeBytes: buffer length: sizeof(_TYPE)];	\
+      }
+
+#define WRITE_SIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
+      {								\
+	if (format_version == PRE_SIZEOF_PREFIX_FORMAT_VERSION)	\
+	  WRITE_SIGNED_TYPE0 (_PTR, _TYPE, _CONV_FUNC)		\
+	else							\
+	  WRITE_SIGNED_TYPE1 (_PTR, _TYPE, _CONV_FUNC)		\
+      }
+
+#define READ_SIGNED_TYPE0(_PTR, _TYPE, _CONV_FUNC)		\
       {								\
 	char sign, size;					\
 	[stream readByte: &size];				\
@@ -150,9 +212,35 @@ static int debug_binary_coder = 0;
 	}							\
       }
 
+#define READ_SIGNED_TYPE1(_PTR, _TYPE, _CONV_FUNC)		\
+      {								\
+	int size = _sizeof_ ## _TYPE;				\
+	char buffer[size];					\
+	int read_size;						\
+        int sign;						\
+	read_size = [stream readBytes: buffer length: size];	\
+	assert (read_size == size);				\
+	/* xxx Remove this next requirement eventually */	\
+	assert (size == sizeof(_TYPE));				\
+        sign = buffer[0] & 0x80;				\
+        buffer[0] &= ~0x80;					\
+	*(unsigned _TYPE*)_PTR =				\
+	  _CONV_FUNC (*(unsigned _TYPE*)buffer);		\
+	if (sign)						\
+	  *(_TYPE*)_PTR = - *(_TYPE*)_PTR;			\
+      }
+
+#define READ_SIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
+      {								\
+	if (format_version == PRE_SIZEOF_PREFIX_FORMAT_VERSION)	\
+	  READ_SIGNED_TYPE0 (_PTR, _TYPE, _CONV_FUNC)		\
+	else							\
+	  READ_SIGNED_TYPE1 (_PTR, _TYPE, _CONV_FUNC)		\
+      }
+
 /* Reading and writing unsigned scalar types. */
 
-#define WRITE_UNSIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
+#define WRITE_UNSIGNED_TYPE0(_PTR, _TYPE, _CONV_FUNC)		\
       {								\
         _TYPE tmp;						\
 	char buffer[1+sizeof(_TYPE)];				\
@@ -162,7 +250,24 @@ static int debug_binary_coder = 0;
 	[stream writeBytes: buffer length: (1+sizeof(_TYPE))];	\
       }
 
-#define READ_UNSIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
+#define WRITE_UNSIGNED_TYPE1(_PTR, _TYPE, _CONV_FUNC)			\
+      {									\
+        unsigned _TYPE tmp;						\
+	char buffer[sizeof(unsigned _TYPE)];				\
+        tmp = _CONV_FUNC (*(unsigned _TYPE*)_PTR);			\
+	memcpy (buffer, &tmp, sizeof(unsigned _TYPE));			\
+	[stream writeBytes: buffer length: (sizeof(unsigned _TYPE))];	\
+      }
+
+#define WRITE_UNSIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
+      {								\
+	if (format_version == PRE_SIZEOF_PREFIX_FORMAT_VERSION)	\
+	  WRITE_UNSIGNED_TYPE0 (_PTR, _TYPE, _CONV_FUNC)	\
+	else							\
+	  WRITE_UNSIGNED_TYPE1 (_PTR, _TYPE, _CONV_FUNC)	\
+      }
+
+#define READ_UNSIGNED_TYPE0(_PTR, _TYPE, _CONV_FUNC)		\
       {								\
 	char size;						\
 	[stream readByte: &size];				\
@@ -175,6 +280,27 @@ static int debug_binary_coder = 0;
 	  *(_TYPE*)_PTR =					\
 	    _CONV_FUNC (*(_TYPE*)buffer);			\
 	}							\
+      }
+
+#define READ_UNSIGNED_TYPE1(_PTR, _TYPE, _CONV_FUNC)		\
+      {								\
+        int size = _sizeof_ ## _TYPE;				\
+	char buffer[size];					\
+	int read_size;						\
+	read_size = [stream readBytes: buffer length: size];	\
+	assert (read_size == size);				\
+	/* xxx Remove this next requirement eventually */	\
+	assert (size == sizeof(unsigned _TYPE));		\
+	*(unsigned _TYPE*)_PTR =				\
+	  _CONV_FUNC (*(unsigned _TYPE*)buffer);		\
+      }
+
+#define READ_UNSIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
+      {								\
+	if (format_version == PRE_SIZEOF_PREFIX_FORMAT_VERSION)	\
+	  READ_UNSIGNED_TYPE0 (_PTR, _TYPE, _CONV_FUNC)		\
+	else							\
+	  READ_UNSIGNED_TYPE1 (_PTR, _TYPE, _CONV_FUNC)		\
       }
 
   switch (*type)
@@ -202,21 +328,21 @@ static int debug_binary_coder = 0;
       WRITE_SIGNED_TYPE (d, short, htons);
       break;
     case _C_USHT:
-      WRITE_UNSIGNED_TYPE (d, unsigned short, htons);
+      WRITE_UNSIGNED_TYPE (d, short, htons);
       break;
 
     case _C_INT:
       WRITE_SIGNED_TYPE (d, int, htonl);
       break;
     case _C_UINT:
-      WRITE_UNSIGNED_TYPE (d, unsigned int, htonl);
+      WRITE_UNSIGNED_TYPE (d, int, htonl);
       break;
 
     case _C_LNG:
       WRITE_SIGNED_TYPE (d, long, htonl);
       break;
     case _C_ULNG:
-      WRITE_UNSIGNED_TYPE (d, unsigned long, htonl);
+      WRITE_UNSIGNED_TYPE (d, long, htonl);
       break;
 
     /* xxx The handling of floats and doubles could be improved.
@@ -368,21 +494,21 @@ static int debug_binary_coder = 0;
       READ_SIGNED_TYPE (d, short, ntohs);
       break;
     case _C_USHT:
-      READ_UNSIGNED_TYPE (d, unsigned short, ntohs);
+      READ_UNSIGNED_TYPE (d, short, ntohs);
       break;
 
     case _C_INT:
       READ_SIGNED_TYPE (d, int, ntohl);
       break;
     case _C_UINT:
-      READ_UNSIGNED_TYPE (d, unsigned int, ntohl);
+      READ_UNSIGNED_TYPE (d, int, ntohl);
       break;
 
     case _C_LNG:
       READ_SIGNED_TYPE (d, long, ntohl);
       break;
     case _C_ULNG:
-      READ_UNSIGNED_TYPE (d, unsigned long, ntohl);
+      READ_UNSIGNED_TYPE (d, long, ntohl);
       break;
 
     case _C_FLT:
