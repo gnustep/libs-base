@@ -546,10 +546,10 @@ fi
 #   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
 #--------------------------------------------------------------------
-# Determine the host, build, and target systems
+# Use config.guess, config.sub and install.sh provided by gnustep-make
 #--------------------------------------------------------------------
 ac_aux_dir=
-for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
+for ac_dir in $GNUSTEP_SYSTEM_ROOT/Makefiles $srcdir/$GNUSTEP_SYSTEM_ROOT/Makefiles; do
   if test -f $ac_dir/install-sh; then
     ac_aux_dir=$ac_dir
     ac_install_sh="$ac_aux_dir/install-sh -c"
@@ -561,12 +561,16 @@ for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
   fi
 done
 if test -z "$ac_aux_dir"; then
-  { echo "configure: error: can not find install-sh or install.sh in $srcdir $srcdir/.. $srcdir/../.." 1>&2; exit 1; }
+  { echo "configure: error: can not find install-sh or install.sh in $GNUSTEP_SYSTEM_ROOT/Makefiles $srcdir/$GNUSTEP_SYSTEM_ROOT/Makefiles" 1>&2; exit 1; }
 fi
 ac_config_guess=$ac_aux_dir/config.guess
 ac_config_sub=$ac_aux_dir/config.sub
 ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 
+
+#--------------------------------------------------------------------
+# Determine the host, build, and target systems
+#--------------------------------------------------------------------
 
 # Do some error checking and defaulting for the host and target type.
 # The inputs are:
@@ -595,7 +599,7 @@ else { echo "configure: error: can not run $ac_config_sub" 1>&2; exit 1; }
 fi
 
 echo $ac_n "checking host system type""... $ac_c" 1>&6
-echo "configure:599: checking host system type" >&5
+echo "configure:603: checking host system type" >&5
 
 host_alias=$host
 case "$host_alias" in
@@ -616,7 +620,7 @@ host_os=`echo $host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 echo "$ac_t""$host" 1>&6
 
 echo $ac_n "checking target system type""... $ac_c" 1>&6
-echo "configure:620: checking target system type" >&5
+echo "configure:624: checking target system type" >&5
 
 target_alias=$target
 case "$target_alias" in
@@ -634,7 +638,7 @@ target_os=`echo $target | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 echo "$ac_t""$target" 1>&6
 
 echo $ac_n "checking build system type""... $ac_c" 1>&6
-echo "configure:638: checking build system type" >&5
+echo "configure:642: checking build system type" >&5
 
 build_alias=$build
 case "$build_alias" in
