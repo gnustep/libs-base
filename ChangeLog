@@ -1,3 +1,8 @@
+2003-04-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: trivial simplification of timezone
+	handling.
+
 2003-03-31  Stephane Corthesy <stephane@sente.ch>
 
 	* Source/Additions/GCArray.m: Replace retain/release by 
