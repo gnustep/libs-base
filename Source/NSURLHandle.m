@@ -35,6 +35,7 @@
 #include <Foundation/NSURLHandle.h>
 #include <Foundation/NSURL.h>
 #include <Foundation/NSRunLoop.h>
+#include <Foundation/NSFileManager.h>
 
 @class	GSFileURLHandle;
 @class	GSHTTPURLHandle;
@@ -405,7 +406,8 @@ static Class		NSURLHandleClass = 0;
 
 @interface	GSFileURLHandle : NSURLHandle
 {
-  NSString	*_path;
+  NSString		*_path;
+  NSMutableDictionary	*_attributes;
 }
 @end
 
@@ -534,23 +536,40 @@ static NSLock			*fileLock = nil;
 
 - (id) propertyForKey: (NSString*)propertyKey
 {
-  return nil;
+  NSDictionary	*dict;
+
+  dict = [[NSFileManager defaultManager] fileAttributesAtPath: _path
+						 traverseLink: YES];
+  RELEASE(_attributes);
+  _attributes = [dict mutableCopy];
+  return [_attributes objectForKey: propertyKey];
 }
 
 - (id) propertyForKeyIfAvailable: (NSString*)propertyKey
 {
-  return nil;
+  return [_attributes objectForKey: propertyKey];
 }
 
 - (BOOL) writeData: (NSData*)data
 {
-  return [data writeToFile: _path atomically: YES]; 
+  if ([data writeToFile: _path atomically: YES] == YES)
+    {
+      ASSIGNCOPY(_data, data);
+      return YES;
+    }
+  return NO;
 }
 
 - (BOOL) writeProperty: (id)propertyValue
 		forKey: (NSString*)propertyKey
 {
-  return NO;
+  if ([self propertyForKey: propertyKey] == nil)
+    {
+      return NO;	/* Not a valid file property key.	*/
+    }
+  [_attributes setObject: propertyValue forKey: propertyKey];
+  return [[NSFileManager defaultManager] changeFileAttributes: _attributes
+						       atPath: _path];
 }
 
 @end
