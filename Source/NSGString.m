@@ -34,6 +34,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSGString.h>
 #include <Foundation/NSData.h>
+#include <Foundation/NSCoder.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
 #include <Foundation/NSValue.h>
@@ -254,24 +255,20 @@
 
 - (void) encodeWithCoder: aCoder
 {
-  [aCoder encodeValueOfObjCType:@encode(int) at:&_count
- 	  withName:@"Concrete String count"];
+  [aCoder encodeValueOfObjCType:@encode(int) at:&_count];
   [aCoder encodeArrayOfObjCType:@encode(unichar)
  	  count:_count
- 	  at:_contents_chars
-  	  withName:@"Concrete String content_chars"];
+ 	  at:_contents_chars];
 }
 
 - initWithCoder: aCoder
 {
-    [aCoder decodeValueOfObjCType:@encode(int) at:&_count
-					 withName:NULL];
+    [aCoder decodeValueOfObjCType:@encode(int) at:&_count];
     _zone = fastZone(self);
     _contents_chars = NSZoneMalloc(_zone, sizeof(unichar)*_count);
     [aCoder decodeArrayOfObjCType:@encode(unichar)
           count:_count
- 	  at:_contents_chars
- 	  withName:NULL];
+ 	  at:_contents_chars];
     return self;
 }
 
@@ -533,28 +530,23 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 
 - (void) encodeWithCoder: aCoder    //  *** changed to unichar
 {
-  [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_capacity
-	  withName:@"String capacity"];
-  [aCoder encodeValueOfObjCType:@encode(int) at:&_count
-	  withName:@"Concrete String count"];
+  [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_capacity];
+  [aCoder encodeValueOfObjCType:@encode(int) at:&_count];
   [aCoder encodeArrayOfObjCType:@encode(unichar)
 	  count:_count
-	  at:_contents_chars
-	  withName:@"Concrete String content_chars"];
+	  at:_contents_chars];
 }
 
 - initWithCoder: aCoder    //  *** changed to unichar
 {
   unsigned cap;
   
-  [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap withName:NULL];
+  [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap];
   [self initWithCapacity:cap];
-  [aCoder decodeValueOfObjCType:@encode(int) at:&_count
-	  withName:NULL];
+  [aCoder decodeValueOfObjCType:@encode(int) at:&_count];
   [aCoder decodeArrayOfObjCType:@encode(unichar)
           count:_count
-	  at:_contents_chars
-	  withName:NULL];
+	  at:_contents_chars];
   return self;
 }
 

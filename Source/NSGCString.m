@@ -143,34 +143,23 @@
 
 - (void) encodeWithCoder: aCoder
 {
-  [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_count
-		       withName:@"Concrete String count"];
+  [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_count];
   [aCoder encodeArrayOfObjCType:@encode(unsigned char)
 			  count:_count
-			     at:_contents_chars
-		       withName:@"Concrete String content_chars"];
+			     at:_contents_chars];
 }
 
 - initWithCoder: aCoder
 {
-#if 0
-    [aCoder decodeValueOfObjCType:@encode(char*) at:&_contents_chars
-          withName:NULL];
-    _count = strlen(_contents_chars);
-    _zone = NSZoneFromPointer(_contents_chars);
-#else
     [aCoder decodeValueOfObjCType:@encode(unsigned)
-			       at:&_count
-			 withName:NULL];
+			       at:&_count];
     if (_count > 0) {
 	_zone = fastZone(self);
 	_contents_chars = NSZoneMalloc(_zone, _count);
 	[aCoder decodeArrayOfObjCType:@encode(unsigned char)
 				count:_count
-				   at:_contents_chars
-			     withName:NULL];
+				   at:_contents_chars];
     }
-#endif
     return self;
 }
 
