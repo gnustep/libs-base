@@ -113,11 +113,14 @@ struct _strenc_ {
 					 * and the first 128 are identical to
 					 * the ASCII character set.
 					 */
-  BOOL			supported;	/* Is this supported?  Some encodings
+  char			supported;	/* Is this supported?  Some encodings
 					 * have builtin conversion to/from
 					 * unicode, but for others we must
 					 * check with iconv to see if it
 					 * supports them on this platform.
+					 * A one means supported.
+					 * A negative means unsupported.
+					 * A zero means not yet checked.
 					 */
 };
 
@@ -169,16 +172,15 @@ static struct _strenc_ str_encoding_table[] = {
 static struct _strenc_	**encodingTable = 0;
 static unsigned		encTableSize = 0;
 
-NSStringEncoding *GetAvailableEncodings()
+static void GSSetupEncodingTable()
 {
-  if (_availableEncodings == 0)
+  if (encodingTable == 0)
     {
       [gnustep_global_lock lock];
-      if (_availableEncodings == 0)
+      if (encodingTable == 0)
 	{
-	  NSStringEncoding	*encodings;
+	  static struct _strenc_	**encTable = 0;
 	  unsigned		count;
-	  unsigned		pos;
 	  unsigned		i;
 
 	  /*
@@ -207,8 +209,8 @@ NSStringEncoding *GetAvailableEncodings()
 		  encTableSize = tmp;
 		}
 	    }
-	  encodingTable = malloc((encTableSize+1)*sizeof(struct _strenc_ *));
-	  memset(encodingTable, 0, (encTableSize+1)*sizeof(struct _strenc_ *));
+	  encTable = malloc((encTableSize+1)*sizeof(struct _strenc_ *));
+	  memset(encTable, 0, (encTableSize+1)*sizeof(struct _strenc_ *));
 
 	  /*
 	   * Now set up the pointers at the correct location in the table.
@@ -219,65 +221,91 @@ NSStringEncoding *GetAvailableEncodings()
 
 	      if (tmp < MAX_ENCODING)
 		{
-		  encodingTable[tmp] = &str_encoding_table[i];
+		  encTable[tmp] = &str_encoding_table[i];
 		}
 	    }
+	  encodingTable = encTable;
+	}
+      [gnustep_global_lock unlock];
+    }
+}
+
+static BOOL GSEncodingSupported(NSStringEncoding enc)
+{
+  GSSetupEncodingTable();
+
+  if (enc == 0 || enc > encTableSize || encodingTable[enc] == 0)
+    {
+      return NO;
+    }
+#ifdef HAVE_ICONV
+  if (encodingTable[enc]->iconv != 0 && encodingTable[enc]->supported == 0)
+    {
+      if (enc == NSUnicodeStringEncoding)
+	{
+	  encodingTable[enc]->iconv = UNICODE_ENC;
+	  encodingTable[enc]->supported = 1;
+	}
+      else
+	{
+	  iconv_t	c;
+
+	  c = iconv_open(UNICODE_ENC, encodingTable[enc]->iconv);
+	  if (c == (iconv_t)-1)
+	    {
+	      encodingTable[enc]->supported = -1;
+	    }
+	  else
+	    {
+	      iconv_close(c);
+	      c = iconv_open(encodingTable[enc]->iconv, UNICODE_ENC);
+	      if (c == (iconv_t)-1)
+		{
+		  encodingTable[enc]->supported = -1;
+		}
+	      else
+		{
+		  iconv_close(c);
+		  encodingTable[enc]->supported = 1;
+		}
+	    }
+	}
+    }
+#endif
+  if (encodingTable[enc]->supported == 1)
+    {
+      return YES;
+    }
+  return NO;
+}
+
+NSStringEncoding *GetAvailableEncodings()
+{
+  if (_availableEncodings == 0)
+    {
+      [gnustep_global_lock lock];
+      if (_availableEncodings == 0)
+	{
+	  NSStringEncoding	*encodings;
+	  unsigned		pos;
+	  unsigned		i;
 
 	  /*
 	   * Now build up a list of supported encodings ... in the
-	   * format needed to support [NSStirng+availableStringEncodings]
+	   * format needed to support [NSString+availableStringEncodings]
 	   * Check to see what iconv support we have as we go along.
-	   * This is also the palce where we determine the name we use
+	   * This is also the place where we determine the name we use
 	   * for iconv to support unicode.
 	   */
-	  encodings = objc_malloc(sizeof(NSStringEncoding) * count);
+	  GSSetupEncodingTable();
+	  encodings = objc_malloc(sizeof(NSStringEncoding) * encTableSize);
 	  pos = 0;
-	  for (i = 0; i < count; i++)
+	  for (i = 0; i < encTableSize; i++)
 	    {
-	      NSStringEncoding	enc = str_encoding_table[i].enc;
-
-	      if (enc == 0 || enc >= MAX_ENCODING)
+	      if (GSEncodingSupported(i) == YES)
 		{
-		  continue;
+		  encodings[pos++] = i;
 		}
-#ifdef HAVE_ICONV
-	      if (enc == NSUnicodeStringEncoding)
-		{
-		  encodingTable[enc]->iconv = UNICODE_ENC;
-		  encodingTable[enc]->supported = 1;
-		}
-	      if (encodingTable[enc]->supported == 0)
-		{
-		  if (encodingTable[enc]->iconv == 0)
-		    {
-		      continue;		// Not handled by iconv.
-		    }
-		  else
-		    {
-		      iconv_t	c;
-
-		      c = iconv_open(UNICODE_ENC, encodingTable[enc]->iconv);
-		      if (c == (iconv_t)-1)
-			{
-			  continue;	// Can't convert to unicode
-			}
-		      iconv_close(c);
-		      c = iconv_open(encodingTable[enc]->iconv, UNICODE_ENC);
-		      if (c == (iconv_t)-1)
-			{
-			  continue;	// Can't convert from unicode
-			}
-		      iconv_close(c);
-		      encodingTable[enc]->supported = 1;
-		    }
-		}
-#else
-	      if (encodingTable[enc]->supported == 0)
-		{
-		  continue;
-		}
-#endif
-	      encodings[pos++] = enc;
 	    }
 	  encodings[pos] = 0;
 	  _availableEncodings = encodings;
@@ -287,6 +315,9 @@ NSStringEncoding *GetAvailableEncodings()
   return _availableEncodings;
 }
 
+/**
+ * Return the default encoding
+ */
 NSStringEncoding
 GetDefEncoding()
 {
@@ -294,7 +325,6 @@ GetDefEncoding()
     {
       char		*encoding;
       unsigned int	count;
-      NSStringEncoding	*availableEncodings;
 
       [gnustep_global_lock lock];
       if (defEnc != GSUndefinedEncoding)
@@ -303,7 +333,7 @@ GetDefEncoding()
 	  return defEnc;
 	}
 
-      availableEncodings = GetAvailableEncodings();
+      GSSetupEncodingTable();
 
       encoding = getenv("GNUSTEP_STRING_ENCODING");
       if (encoding != 0)
@@ -317,7 +347,7 @@ GetDefEncoding()
 	  if (str_encoding_table[count].enc)
 	    {
 	      defEnc = str_encoding_table[count].enc;
-	      if (str_encoding_table[count].supported == 0)
+	      if (GSEncodingSupported(defEnc) == NO)
 		{
 		  fprintf(stderr, "WARNING: %s - encoding not implemented as "
 		    "default c string encoding.\n", encoding);
@@ -350,8 +380,7 @@ GetDefEncoding()
 BOOL
 GSIsByteEncoding(NSStringEncoding encoding)
 {
-  GetAvailableEncodings();
-  if (encoding == 0 || encoding > encTableSize || encodingTable[encoding] == 0)
+  if (GSEncodingSupported(encoding) == NO)
     {
       return NO;
     }
@@ -361,8 +390,7 @@ GSIsByteEncoding(NSStringEncoding encoding)
 NSString*
 GSEncodingName(NSStringEncoding encoding)
 {
-  GetAvailableEncodings();
-  if (encoding == 0 || encoding > encTableSize || encodingTable[encoding] == 0)
+  if (GSEncodingSupported(encoding) == NO)
     {
       return @"Unknown encoding";
     }
@@ -378,8 +406,7 @@ GetEncodingName(NSStringEncoding encoding)
 static const char *
 iconv_stringforencoding(NSStringEncoding encoding)
 {
-  GetAvailableEncodings();
-  if (encoding == 0 || encoding > encTableSize || encodingTable[encoding] == 0)
+  if (GSEncodingSupported(encoding) == NO)
     {
       return "";
     }

@@ -1,3 +1,11 @@
+2002-08-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Unicode.m: Rewritten the way that iconv is used to decide
+	upon the available encodings ... lazy evaluation so that we don't
+	try to lookup an encoding until we have to.  This should improve
+	process startup time (especially in gdb) since the iconv operations
+	seem to be very slow.
+
 2002-08-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Integrated GSXPath code by Nicola Pero
