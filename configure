@@ -10547,6 +10547,53 @@ done
 
 
 #--------------------------------------------------------------------
+# Check if short and int values need to be word aligned
+#--------------------------------------------------------------------
+echo "$as_me:$LINENO: checking short/int needs to be word aligned" >&5
+echo $ECHO_N "checking short/int needs to be word aligned... $ECHO_C" >&6
+if test "$cross_compiling" = yes; then
+  NEED_WORD_ALIGNMENT=1
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+#include "$srcdir/config/config.align.c"
+_ACEOF
+rm -f conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  NEED_WORD_ALIGNMENT=0
+else
+  echo "$as_me: program exited with status $ac_status" >&5
+echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+( exit $ac_status )
+NEED_WORD_ALIGNMENT=1
+fi
+rm -f core core.* *.core conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define NEED_WORD_ALIGNMENT $NEED_WORD_ALIGNMENT
+_ACEOF
+
+if test $NEED_WORD_ALIGNMENT = 1; then
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+#--------------------------------------------------------------------
 # This function needed by NSString for handling of %@ printf directive.
 #--------------------------------------------------------------------
 echo "$as_me:$LINENO: checking for register_printf_function" >&5
@@ -10929,51 +10976,73 @@ echo "${ECHO_T}no" >&6
 fi
 
 #--------------------------------------------------------------------
-# Check if short and int values need to be word aligned
+# If /proc doesn't work, try kvm (on FreeBSD, for instance)
 #--------------------------------------------------------------------
-echo "$as_me:$LINENO: checking short/int needs to be word aligned" >&5
-echo $ECHO_N "checking short/int needs to be word aligned... $ECHO_C" >&6
-if test "$cross_compiling" = yes; then
-  NEED_WORD_ALIGNMENT=1
+
+echo "$as_me:$LINENO: checking for kvm_getenvv in -lkvm" >&5
+echo $ECHO_N "checking for kvm_getenvv in -lkvm... $ECHO_C" >&6
+if test "${ac_cv_lib_kvm_kvm_getenvv+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  cat >conftest.$ac_ext <<_ACEOF
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lkvm  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
-#include "$srcdir/config/config.align.c"
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char kvm_getenvv ();
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+kvm_getenvv ();
+  ;
+  return 0;
+}
 _ACEOF
-rm -f conftest$ac_exeext
+rm -f conftest.$ac_objext conftest$ac_exeext
 if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  NEED_WORD_ALIGNMENT=0
+  ac_cv_lib_kvm_kvm_getenvv=yes
 else
-  echo "$as_me: program exited with status $ac_status" >&5
-echo "$as_me: failed program was:" >&5
+  echo "$as_me: failed program was:" >&5
 cat conftest.$ac_ext >&5
-( exit $ac_status )
-NEED_WORD_ALIGNMENT=1
+ac_cv_lib_kvm_kvm_getenvv=no
 fi
-rm -f core core.* *.core conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
 fi
-
-cat >>confdefs.h <<_ACEOF
-#define NEED_WORD_ALIGNMENT $NEED_WORD_ALIGNMENT
+echo "$as_me:$LINENO: result: $ac_cv_lib_kvm_kvm_getenvv" >&5
+echo "${ECHO_T}$ac_cv_lib_kvm_kvm_getenvv" >&6
+if test $ac_cv_lib_kvm_kvm_getenvv = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBKVM 1
 _ACEOF
 
-if test $NEED_WORD_ALIGNMENT = 1; then
-  echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
+  LIBS="-lkvm $LIBS"
+
 fi
+
 
 #--------------------------------------------------------------------
 # Include redefinition of main () only if needed.

@@ -1,3 +1,8 @@
+2003-06-21  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Check for libkvm.
+	* configure, Headers/gnustep/base/config.h.in: Regen.
+
 2003-06-20  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/Makefile.postamble (after-clean): Remove Base

@@ -704,6 +704,22 @@ fi
 AC_CHECK_HEADERS(wchar.h)
 
 #--------------------------------------------------------------------
+# Check if short and int values need to be word aligned
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(short/int needs to be word aligned)
+AC_TRY_RUN([#include "$srcdir/config/config.align.c"],
+	NEED_WORD_ALIGNMENT=0,
+	NEED_WORD_ALIGNMENT=1,
+	NEED_WORD_ALIGNMENT=1)
+AC_DEFINE_UNQUOTED(NEED_WORD_ALIGNMENT, $NEED_WORD_ALIGNMENT,
+                   [Define if your system needs to have short/int word aligned])
+if test $NEED_WORD_ALIGNMENT = 1; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+#--------------------------------------------------------------------
 # This function needed by NSString for handling of %@ printf directive.
 #--------------------------------------------------------------------
 AC_CHECK_FUNC(register_printf_function, register_printf=1, 
@@ -770,20 +786,9 @@ else
 fi
 
 #--------------------------------------------------------------------
-# Check if short and int values need to be word aligned
+# If /proc doesn't work, try kvm (on FreeBSD, for instance)
 #--------------------------------------------------------------------
-AC_MSG_CHECKING(short/int needs to be word aligned)
-AC_TRY_RUN([#include "$srcdir/config/config.align.c"],
-	NEED_WORD_ALIGNMENT=0,
-	NEED_WORD_ALIGNMENT=1,
-	NEED_WORD_ALIGNMENT=1)
-AC_DEFINE_UNQUOTED(NEED_WORD_ALIGNMENT, $NEED_WORD_ALIGNMENT,
-                   [Define if your system needs to have short/int word aligned])
-if test $NEED_WORD_ALIGNMENT = 1; then
-  AC_MSG_RESULT(yes)
-else
-  AC_MSG_RESULT(no)
-fi
+AC_CHECK_LIB(kvm, kvm_getenvv)
 
 #--------------------------------------------------------------------
 # Include redefinition of main () only if needed.

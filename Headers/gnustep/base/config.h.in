@@ -6,7 +6,7 @@
 /* Define if SO_REUSEADDR is broken on this system */
 #undef BROKEN_SO_REUSEADDR
 
-/* Define if your system terminates the final argument in /proc/$$/cmdline */
+/* Define if your system terminates the final argument in /proc/28891/cmdline */
 #undef CMDLINE_TERMINATED
 
 /* Define if constructors are automatically loaded */
@@ -27,9 +27,6 @@
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
-
-/* Define if you have dladdr */
-#undef HAVE_DLADDR
 
 /* Define to 1 if you have the <float.h> header file. */
 #undef HAVE_FLOAT_H
@@ -82,11 +79,17 @@
 /* Define to 1 if you have the <libc.h> header file. */
 #undef HAVE_LIBC_H
 
+/* Define to 1 if you have the `dl' library (-ldl). */
+#undef HAVE_LIBDL
+
 /* Define to 1 if you have the `giconv' library (-lgiconv). */
 #undef HAVE_LIBGICONV
 
 /* Define to 1 if you have the `iconv' library (-liconv). */
 #undef HAVE_LIBICONV
+
+/* Define to 1 if you have the `kvm' library (-lkvm). */
+#undef HAVE_LIBKVM
 
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
