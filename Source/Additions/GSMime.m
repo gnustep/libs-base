@@ -61,6 +61,7 @@ static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
 static	NSCharacterSet	*rfc2045Specials = nil;
 static  NSMapTable	*charsets = 0;
+static  NSMapTable	*encodings = 0;
 static	Class		NSArrayClass = 0;
 static	Class		documentClass = 0;
 
@@ -318,7 +319,7 @@ wordData(NSString *word)
 
       [charset getCString: buf];
       md = [NSMutableData dataWithCapacity: [d length]*4/3 + len + 8];
-      d = [GSMimeDocument encodeBase64: d];
+      d = [documentClass encodeBase64: d];
       [md appendBytes: "=?" length: 2];
       [md appendBytes: buf length: len];
       [md appendBytes: "?b?" length: 3];
@@ -1956,15 +1957,6 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   _defaultEncoding = [documentClass encodingFromCharset: aName];
 }
 
-- (void) setDefaultEncoding: (NSStringEncoding)encoding
-{
-  NSString	*charset;
-
-  GSOnceMLog(@"Deprecated method ... use setDefaultCharset: instead.");
-  charset = [documentClass charsetFromEncoding: encoding];
-  [self setDefaultCharset: charset];
-}
-
 
 /**
  * Method to inform the parser that the data it is parsing is an HTTP
@@ -2664,6 +2656,10 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  NSArrayClass = [NSArray class];
 	}
+      if (documentClass == 0)
+	{
+	  documentClass = [GSMimeDocument class];
+	}
     }
 }
 
@@ -3097,49 +3093,13 @@ static NSCharacterSet	*tokenSet = nil;
  */
 + (NSString*) charsetFromEncoding: (NSStringEncoding)enc
 {
-  if (enc == NSASCIIStringEncoding)
-    return @"us-ascii";	// Default character set.
-  if (enc == NSISOLatin1StringEncoding)
-    return @"iso-8859-1";
-  if (enc == NSISOLatin2StringEncoding)
-    return @"iso-8859-2";
-  if (enc == NSISOLatin3StringEncoding)
-    return @"iso-8859-3";
-  if (enc == NSISOLatin4StringEncoding)
-    return @"iso-8859-4";
-  if (enc == NSISOCyrillicStringEncoding)
-    return @"iso-8859-5";
-  if (enc == NSISOArabicStringEncoding)
-    return @"iso-8859-6";
-  if (enc == NSISOGreekStringEncoding)
-    return @"iso-8859-7";
-  if (enc == NSISOHebrewStringEncoding)
-    return @"iso-8859-8";
-  if (enc == NSISOLatin5StringEncoding)
-    return @"iso-8859-9";
-  if (enc == NSISOLatin6StringEncoding)
-    return @"iso-8859-10";
-  if (enc == NSISOLatin7StringEncoding)
-    return @"iso-8859-13";
-  if (enc == NSISOLatin8StringEncoding)
-    return @"iso-8859-14";
-  if (enc == NSISOLatin9StringEncoding)
-    return @"iso-8859-15";
-  if (enc == NSWindowsCP1250StringEncoding)
-    return @"windows-1250";
-  if (enc == NSWindowsCP1251StringEncoding)
-    return @"windows-1251";
-  if (enc == NSWindowsCP1252StringEncoding)
-    return @"windows-1252";
-  if (enc == NSWindowsCP1253StringEncoding)
-    return @"windows-1253";
-  if (enc == NSWindowsCP1254StringEncoding)
-    return @"windows-1254";
-  if (enc == NSBIG5StringEncoding)
-    return @"big5";
-  if (enc == NSShiftJISStringEncoding)
-    return @"shift_JIS";
-  return @"utf-8";
+  NSString	*charset = (NSString*)NSMapGet(encodings, (void*)enc);
+
+  if (charset == nil)
+    {
+      charset = @"utf-8";
+    }
+  return charset;
 }
 
 /**
@@ -3354,6 +3314,10 @@ static NSCharacterSet	*tokenSet = nil;
     {
       NSMutableCharacterSet	*m = [[NSMutableCharacterSet alloc] init];
 
+      if (documentClass == 0)
+	{
+	  documentClass = [GSMimeDocument class];
+	}
       [m formUnionWithCharacterSet:
 	[NSCharacterSet characterSetWithCharactersInString:
 	@".()<>@,;:[]\"\\"]];
@@ -3423,6 +3387,55 @@ static NSCharacterSet	*tokenSet = nil;
 	  NSMapInsert(charsets, (void*)@"shift_JIS",
 	    (void*)NSShiftJISStringEncoding);
 	}
+      if (encodings == 0)
+	{
+	  encodings = NSCreateMapTable (NSIntMapKeyCallBacks,
+	    NSObjectMapValueCallBacks, 0);
+	  NSMapInsert(encodings, (void*)NSASCIIStringEncoding,
+	    (void*)@"ascii");
+	  NSMapInsert(encodings, (void*)NSISOLatin2StringEncoding,
+	    (void*)@"iso-8859-2");
+	  NSMapInsert(encodings, (void*)NSISOLatin3StringEncoding,
+	    (void*)@"iso-8859-3");
+	  NSMapInsert(encodings, (void*)NSISOLatin4StringEncoding,
+	    (void*)@"iso-8859-4");
+	  NSMapInsert(encodings, (void*)NSISOCyrillicStringEncoding,
+	    (void*)@"iso-8859-5");
+	  NSMapInsert(encodings, (void*)NSISOArabicStringEncoding,
+	    (void*)@"iso-8859-6");
+	  NSMapInsert(encodings, (void*)NSISOGreekStringEncoding,
+	    (void*)@"iso-8859-7");
+	  NSMapInsert(encodings, (void*)NSISOHebrewStringEncoding,
+	    (void*)@"iso-8859-8");
+	  NSMapInsert(encodings, (void*)NSISOLatin5StringEncoding,
+	    (void*)@"iso-8859-9");
+	  NSMapInsert(encodings, (void*)NSISOLatin6StringEncoding,
+	    (void*)@"iso-8859-10");
+	  NSMapInsert(encodings, (void*)NSISOLatin7StringEncoding,
+	    (void*)@"iso-8859-13");
+	  NSMapInsert(encodings, (void*)NSISOLatin8StringEncoding,
+	    (void*)@"iso-8859-14");
+	  NSMapInsert(encodings, (void*)NSISOLatin9StringEncoding,
+	    (void*)@"iso-8859-15");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1250StringEncoding,
+	    (void*)@"windows-1250");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1251StringEncoding,
+	    (void*)@"windows-1251");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1252StringEncoding,
+	    (void*)@"windows-1252");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1253StringEncoding,
+	    (void*)@"windows-1253");
+	  NSMapInsert(encodings, (void*)NSWindowsCP1254StringEncoding,
+	    (void*)@"windows-1254");
+	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
+	    (void*)@"iso-10646-ucs-2");
+	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
+	    (void*)@"iso-10646");
+	  NSMapInsert(encodings, (void*)NSBIG5StringEncoding,
+	    (void*)@"big5");
+	  NSMapInsert(encodings, (void*)NSShiftJISStringEncoding,
+	    (void*)@"shift_JIS");
+	}
     }
 }
 
@@ -3431,7 +3444,7 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (void) addContent: (id)newContent
 {
-  if ([newContent isKindOfClass: [GSMimeDocument class]] == NO)
+  if ([newContent isKindOfClass: documentClass] == NO)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Content to add is not a GSMimeDocument"];
@@ -3849,7 +3862,7 @@ static NSCharacterSet	*tokenSet = nil;
       NSString		*charset = [hdr parameterForKey: @"charset"];
       NSStringEncoding	enc;
 
-      enc = [GSMimeDocument encodingFromCharset: charset];
+      enc = [documentClass encodingFromCharset: charset];
       d = [content dataUsingEncoding: enc];
       if (d == nil)
 	{
@@ -3882,7 +3895,7 @@ static NSCharacterSet	*tokenSet = nil;
       NSString		*charset = [hdr parameterForKey: @"charset"];
       NSStringEncoding	enc;
 
-      enc = [GSMimeDocument encodingFromCharset: charset];
+      enc = [documentClass encodingFromCharset: charset];
       s = [[NSString alloc] initWithData: content encoding: enc];
       AUTORELEASE(s);
     }
@@ -3894,7 +3907,7 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (id) copyWithZone: (NSZone*)z
 {
-  GSMimeDocument	*c = [GSMimeDocument allocWithZone: z];
+  GSMimeDocument	*c = [documentClass allocWithZone: z];
 
   c->headers = [[NSMutableArray allocWithZone: z] initWithArray: headers
 						      copyItems: YES];
@@ -4066,6 +4079,7 @@ static NSCharacterSet	*tokenSet = nil;
 
   source = [[[NSProcessInfo processInfo] globallyUniqueString]
     dataUsingEncoding: NSUTF8StringEncoding];
+
   digest = [source md5Digest];
   memcpy(output, [digest bytes], 16);
   output[16] = (sequence >> 24) & 0xff;
@@ -4572,7 +4586,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  unsigned	len;
 	  unsigned	pos = 0;
 
-	  d = [GSMimeDocument encodeBase64: d];
+	  d = [documentClass encodeBase64: d];
 	  ptr = [d bytes];
 	  len = [d length];
 
@@ -4637,7 +4651,7 @@ static NSCharacterSet	*tokenSet = nil;
 	    {
 	      id	o = [newContent objectAtIndex: c];
 
-	      if ([o isKindOfClass: [GSMimeDocument class]] == NO)
+	      if ([o isKindOfClass: documentClass] == NO)
 		{
 		  [NSException raise: NSInvalidArgumentException
 			      format: @"Content contains non-GSMimeDocument"];

@@ -9,6 +9,8 @@
 	gnustep/unix/windows.  In the default gnustep mode we try to
 	handle paths in any format and just do the right thing.
 	Also updated handling of path extensions to match MacOSX behavior.
+	* Source/Additions/GSMime.h: Remove deprecated method.
+	Optimise a little by avoiding class lookups.
 
 2005-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
