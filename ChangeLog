@@ -1,3 +1,9 @@
+2004-08-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Destory comments after skipping units ...
+	we don't want them included as part of the documentation of the
+	next thing after the unit.
+
 2004-08-20  David Ayers  <d.ayers@inode.at>
 
 	* Source/Additions/GSObjCRuntime.m (GSSelectorTypesMatch):
