@@ -1,3 +1,8 @@
+2003-02-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: ([+attributesAt:traverseLink:]) check for
+	null pointer and return nil.  Crash reported by Tom Koelman.
+
 2003-02-10 13:56  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSRunLoop.m [HAVE_POLL] (-pollUntil:within:): Set fdEnd

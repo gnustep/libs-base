@@ -2573,6 +2573,10 @@ static NSSet	*fileKeys = nil;
 {
   GSAttrDictionary	*d;
 
+  if (cpath == 0 || *cpath == '\0')
+    {
+      return nil;
+    }
   d = (GSAttrDictionary*)NSAllocateObject(self, 0, NSDefaultMallocZone());
 #ifdef	__MINGW__
   d->name = NSZoneMalloc(NSDefaultMallocZone(), strlen(cpath)+1);
