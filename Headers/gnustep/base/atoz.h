@@ -24,6 +24,9 @@
  * 
  */ 
 
+#ifndef __atoz_h_OBJECTS_INCLUDE
+#define __atoz_h_OBJECTS_INCLUDE 1
+
 /**** Included Headers *******************************************************/
 
 #include <objects/callbacks.h>
@@ -31,9 +34,6 @@
 /**** Type, Constant, and Macro Definitions **********************************/
 
 /**** Function Implementations ***********************************************/
-
-#ifndef __???_h_OBJECTS_INCLUDE
-#define __???_h_OBJECTS_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -49,4 +49,4 @@
 objects_allocs_t
 objects_allocs_for_zone (NSZone * zone);
 
-#endif /* __???_h_OBJECTS_INCLUDE */
+#endif /* __atoz_h_OBJECTS_INCLUDE */
