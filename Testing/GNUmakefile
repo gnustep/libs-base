@@ -80,7 +80,7 @@ nscharacterset \
 NSData-test \
 nstimezone \
 create-abbrevs \
-create-regions
+create-regions 
 
 # The tool Objective-C source files to be compiled
 test01_OBJC_FILES = test01.m
