@@ -48,16 +48,36 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
  */
 @implementation NSObject (KeyValueCoding)
 
+/**
+ * Controls whether the NSKeyValueCoding methods may attempt to
+ * access instance variables directly.
+ * NSObject's implementation returns YES.
+ */
 + (BOOL) accessInstanceVariablesDirectly
 {
   return YES;
 }
 
+/**
+ * Controls whether [NSObject-storedValueForKey:] and 
+ * [NSObject-takeStoredValueForKey:] may use the stored accessor mechainsm.
+ * If not the calls get redirected to [NSObject-valueForKey:] and 
+ * [NSObject-takeValueForKey:] effectively changing the search order
+ * of private/public accessor methods and instance variables.
+ */
 + (BOOL) useStoredAccessor
 {
   return YES;
 }
 
+/**
+ * Invoked when [NSObject-valueForKey:]/[NSObject-storedValueForKey:] are
+ * called with a key, which can't be associated with an accessor method or
+ * instance variable.  Subclasses may override this method to add custom
+ * handling.  NSObject raises an NSUnknownKeyException, with a userInfo
+ * dictionary containing NSTargetObjectUserInfoKey with the receiver
+ * an NSUnknownUserInfoKey with the supplied key entries.
+ */
 - (id) handleQueryWithUnboundKey: (NSString*)aKey
 {
   NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -73,6 +93,15 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
   return nil;
 }
 
+/**
+ * Invoked when
+ * [NSObject-takeValue:forKey:]/[NSObject-takeStoredValue:forKey:] are
+ * called with a key which can't be associated with an accessor method or
+ * instance variable.  Subclasses may override this method to add custom
+ * handling.  NSObject raises an NSUnknownKeyException, with a userInfo
+ * dictionary containing NSTargetObjectUserInfoKey with the receiver
+ * an NSUnknownUserInfoKey with the supplied key entries.
+ */
 - (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey
 {
   NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -87,6 +116,35 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
   [exp raise];
 }
 
+/**
+ * Returns the value associated with the supplied key as an object.
+ * Scalar attributes are converted to corresponding objects.
+ * The storedValue-NSKeyValueCoding use the private accessors
+ * in favor of the public ones, if the receiver's class allows
+ * [NSObject+useStoredAccessor].  Otherwise this method invokes
+ * [NSObject-valueForKey:].
+ * The search order is:<\br>
+ * Private accessor methods:
+ * <list>
+ *  <item>_getKey</item>
+ *  <item>_key</item>
+ * </list>
+ * If the receiver's class allows [NSObject+accessInstanceVariablesDirectly]
+ * it continues with instance variables:
+ * <list>
+ *  <item>_key</item>
+ *  <item>key</item>
+ * </list>
+ * Public accessor methods:
+ * <list>
+ *  <item>getKey</item>
+ *  <item>key</item>
+ * </list>
+ * Invokes [NSObject-handleQueryWithUnboundKey:]
+ * if no accessor mechanism can be found
+ * and raises NSInvalidArgumentException if the accesor method takes
+ * any arguments or the type is unsupported (e.g. structs).
+ */
 - (id) storedValueForKey: (NSString*)aKey
 {
   unsigned	size;
@@ -165,6 +223,36 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
     }
 }
 
+/**
+ * Sets the value associated with the supplied in the receiver.
+ * The object is converted to the scalar attribute where applicable.
+ * The storedValue-NSKeyValueCoding use the private accessors
+ * in favor of the public ones, if the receiver's class allows
+ * [NSObject+useStoredAccessor.]
+ * Otherwise this method invokes [NSObject-takeValue:forKey:].
+ * The search order is:<\br>
+ * Private accessor methods:
+ * <list>
+ *  <item>_setKey:</item>
+ * </list>
+ * If the receiver's class allows [NSObject+accessInstanceVariablesDirectly]
+ * it continues with instance variables:
+ * <list>
+ *  <item>_key</item>
+ *  <item>key</item>
+ * </list>
+ * Public accessor methods:
+ * <list>
+ *  <item>setKey:</item>
+ * </list>
+ * Invokes [NSObject-handleTakeValue:forUnboundKey:]
+ * if no accessor mechanism can be found
+ * and raises NSInvalidArgumentException if the accesor method doesn't take
+ * exactly one argument or the type is unsupported (e.g. structs).
+ * If the receiver expects a scalar value and the value supplied
+ * is the NSNull instance or nil, this method invokes 
+ * [NSObject-unableToSetNilForKey:].
+ */
 - (void) takeStoredValue: (id)anObject forKey: (NSString*)aKey
 {
   unsigned	size;
@@ -234,6 +322,10 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
    }
 }
 
+/**
+ * Iterates over the dictionary invoking [NSObject-takeStoredValue:forKey:]
+ * on the receiver for each key-value pair, converting NSNull to nil.
+ */
 - (void) takeStoredValuesFromDictionary: (NSDictionary*)aDictionary
 {
   NSEnumerator	*enumerator = [aDictionary keyEnumerator];
@@ -252,6 +344,31 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
     }
 }
 
+/**
+ * Sets the value if the attribute associated with the key in the receiver.
+ * The object is converted to a scalar attribute where applicable.
+ * The value-NSKeyValueCoding use the public accessors
+ * in favor of the private ones.
+ * The search order is:<\br>
+ * Accessor methods:
+ * <list>
+ *  <item>setKey:</item>
+ *  <item>_setKey:</item>
+ * </list>
+ * If the receiver's class allows [NSObject+accessInstanceVariablesDirectly]
+ * it continues with instance variables:
+ * <list>
+ *  <item>key</item>
+ *  <item>_key</item>
+ * </list>
+ * Invokes [NSObject-handleTakeValue:forUnboundKey:]
+ * if no accessor mechanism can be found
+ * and raises NSInvalidArgumentException if the accesor method doesn't take
+ * exactly one argument or the type is unsupported (e.g. structs).
+ * If the receiver expects a scalar value and the value supplied
+ * is the NSNull instance or nil, this method invokes 
+ * [NSObject-unableToSetNilForKey:].
+ */
 - (void) takeValue: (id)anObject forKey: (NSString*)aKey
 {
   unsigned	size;
@@ -295,10 +412,10 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 		  buf[size+4] = '\0';
 		  buf[3] = '_';
 		  buf[4] = lo;
-		  name = &buf[3];	// _key
+		  name = &buf[4];	// key
 		  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
 		    {
-		      name = &buf[4];	// key
+		      name = &buf[3];	// _key
 		      GSObjCFindVariable(self, name, &type, &size, &off);
 		    }
 		}
@@ -308,6 +425,15 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
     }
 }
 
+/**
+ * Retrieves the object returned by invoking [NSObject-valueForKey:]
+ * on the receiver with the first key component supplied by the key path.
+ * Then invokes [NSObject-takeValue:forKeyPath:] recursively on the
+ * returned object with rest of the key path.
+ * The key components are delimated by '.'.
+ * If the key path doesn't contain any '.', this method simply
+ * invokes [NSObject-takeValue:forKey:].
+ */
 - (void) takeValue: (id)anObject forKeyPath: (NSString*)aKey
 {
   NSRange	r = [aKey rangeOfString: @"."];
@@ -325,6 +451,10 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
     }
 }
 
+/**
+ * Iterates over the dictionary invoking [NSObject-takeValue:forKey:]
+ * on the receiver for each key-value pair, converting NSNull to nil.
+ */
 - (void) takeValuesFromDictionary: (NSDictionary*)aDictionary
 {
   NSEnumerator	*enumerator = [aDictionary keyEnumerator];
@@ -343,6 +473,12 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
     }
 }
 
+/**
+ * This method is invoked by the NSKeyValueCoding mechanism when an attempt
+ * is made to set an null value for a scalar attribute.  This implementation
+ * raises an NSInvalidArgument exception.  Subclasses my override this method
+ * to do custom handling. (E.g. setting the value to the equivalent of 0.)
+ */
 - (void) unableToSetNilForKey: (NSString*)aKey
 {
   [NSException raise: NSInvalidArgumentException
@@ -350,6 +486,30 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
     NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, aKey];
 }
 
+/**
+ * Returns the value associated with the supplied key as an object.
+ * Scalar attributes are converted to corresponding objects.
+ * The value-NSKeyValueCoding use the public accessors
+ * in favor of the privat ones.
+ * The search order is:<\br>
+ * Accessor methods:
+ * <list>
+ *  <item>getKey</item>
+ *  <item>key</item>
+ *  <item>_getKey</item>
+ *  <item>_key</item>
+ * </list>
+ * If the receiver's class allows accessInstanceVariablesDirectly
+ * it continues with instance variables:
+ * <list>
+ *  <item>key</item>
+ *  <item>_key</item>
+ * </list>
+ * Invokes [NSObject-handleQueryWithUnboundKey:]
+ * if no accessor mechanism can be found
+ * and raises NSInvalidArgumentException if the accesor method takes
+ * any arguments or the type is unsupported (e.g. structs).
+ */
 - (id) valueForKey: (NSString*)aKey
 {
   unsigned	size;
@@ -407,10 +567,10 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 	{
 	  buf[4] = lo;
 	  buf[3] = '_';
-	  name = &buf[3];	// _key
+	  name = &buf[4];	// key
 	  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
 	    {
-	      name = &buf[4];	// key
+	      name = &buf[3];	// _key
 	      GSObjCFindVariable(self, name, &type, &size, &off);
 	    }
 	}
@@ -418,6 +578,14 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
     }
 }
 
+/**
+ * Retuns the object returned by invoking [NSObject-valueForKeyPath:]
+ * recursively on the object returned by invoking [NSObject-valueForKey:]
+ * on the receiver with the first key component supplied by the key path.
+ * The key components are delimated by '.'.
+ * If the key path doesn't contain any '.', this method simply
+ * invokes [NSObject-valueForKey:].
+ */
 - (id) valueForKeyPath: (NSString*)aKey
 {
   NSRange	r = [aKey rangeOfString: @"."];
@@ -437,6 +605,12 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
   return o;
 }
 
+/**
+ * Iterates over the array sending the receiver [NSObject-valueForKey:]
+ * for each object in the array and inserting the result in a dictionary.
+ * All nil values returned by [NSObject-valueForKey:] are replaced by the
+ * NSNull instance in the dictionary.
+ */
 - (NSDictionary*) valuesForKeys: (NSArray*)keys
 {
   NSMutableDictionary	*dict;
