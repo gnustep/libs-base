@@ -1,3 +1,8 @@
+2004-02-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConection.m: Simplify code by using GSLazyLock and
+	GSRecursiveLazylock.  Removed unused include of float.h
+
 2004-02-07  Adam Fedor  <fedor@gnu.org>
 
 	* Source/simple-load.h (__objc_dynamic_get_symbol_path): Remove
