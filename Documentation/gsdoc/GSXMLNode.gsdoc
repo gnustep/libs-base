@@ -23,6 +23,53 @@
           </p>
           </desc>
 
+        <method type="NSString*" factory="yes">
+          <sel>descriptionFromType:</sel>
+          <arg type="int">type</arg>
+          <desc>
+	    <p>
+	      Return the string constant value for the node
+	      type given.
+            </p>
+          </desc>
+        </method>
+
+        <method type="int" factory="yes">
+          <sel>typeFromDescription:</sel>
+          <arg type="NSString*">desc</arg>
+          <desc>
+	    <p>
+	      Return the numeric constant value for the node
+	      type named.  This method is inefficient, so the returned
+	      value should be saved for re-use later.  The possible
+	      values are -
+            </p>
+	    <list>
+	      <item>XML_ELEMENT_NODE</item>
+	      <item>XML_ATTRIBUTE_NODE</item>
+	      <item>XML_TEXT_NODE</item>
+	      <item>XML_CDATA_SECTION_NODE</item>
+	      <item>XML_ENTITY_REF_NODE</item>
+	      <item>XML_ENTITY_NODE</item>
+	      <item>XML_PI_NODE</item>
+	      <item>XML_COMMENT_NODE</item>
+	      <item>XML_DOCUMENT_NODE</item>
+	      <item>XML_DOCUMENT_TYPE_NODE</item>
+	      <item>XML_DOCUMENT_FRAG_NODE</item>
+	      <item>XML_NOTATION_NODE</item>
+	      <item>XML_HTML_DOCUMENT_NODE</item>
+	      <item>XML_DTD_NODE</item>
+	      <item>XML_ELEMENT_DECL</item>
+	      <item>XML_ATTRIBUTE_DECL</item>
+	      <item>XML_ENTITY_DECL</item>
+	      <item>XML_NAMESPACE_DECL</item>
+	      <item>XML_XINCLUDE_START</item>
+	      <item>XML_XINCLUDE_END</item>
+	      <item>XML_SGML_DOCUMENT_NODE</item>
+	    </list>
+          </desc>
+        </method>
+
         <method type="GSXMLNode*" factory="yes">
           <sel>nodeWithNamespace:</sel>
           <arg type="GSXMLNamespace*">ns</arg>
@@ -161,11 +208,11 @@
           </desc>
         </method>
 
-        <method type="NSDictionary*">
+        <method type="NSMutableDictionary*">
           <sel>propertiesAsDictionary</sel>
           <desc>
 	    <p>
-	      Return attritubes and values as a dictionary.
+	      Return attributes and values as a dictionary.
 	    </p>
 	    <example>
 
@@ -184,6 +231,24 @@
 	    </example>
           </desc>
         </method>
+
+        <method type="NSMutableDictionary*">
+          <sel>propertiesAsDictionaryWithKeyTransformationSel:</sel>
+          <arg type="SEL">keyTransformSel</arg>
+          <desc>
+	    <p>
+	      Return attributes and values as a dictionary, but applies
+	      the specified selector to each key before adding the
+	      key and value to the dictionary.  The selector must be a
+	      method of NSString taking no arguments and returning an
+	      object suitable for use as a dictionary key.
+	    </p>
+	    <p>
+	      This method exists for the use of GSWeb ... it is probably
+	      not of much use elsewhere.
+	    </p>
+	  </desc>
+	</method>
 
         <method type="GSXMLNodeType">
           <sel>type</sel>
@@ -356,6 +421,25 @@
 	    </example>
           </desc>
         </method>
+
+        <method type="int">
+          <sel>type</sel>
+	  <desc>
+	    <p>
+	      Return the numeric type code for this node.
+            </p>
+          </desc>
+        </method>
+
+        <method type="NSString*">
+          <sel>typeDescription</sel>
+	  <desc>
+	    <p>
+	      Return the string type code for this node.
+            </p>
+          </desc>
+        </method>
+
       </class>
     </chapter>
   </body>

@@ -21,6 +21,7 @@
           <desc>
              XML namespace.
           </desc>
+
         <method type="GSXMLNamespace*" factory="yes">
           <sel>namespaceWithNode:</sel>
           <arg type="GSXMLNode*">node</arg>
@@ -60,6 +61,34 @@
 
           </desc>
         </method>
+
+        <method type="NSString*" factory="yes">
+          <sel>descriptionFromType:</sel>
+          <arg type="int">type</arg>
+          <desc>
+	    <p>
+	      Return the string constant value for the namespace
+	      type given.
+            </p>
+          </desc>
+        </method>
+
+        <method type="int" factory="yes">
+          <sel>typeFromDescription:</sel>
+          <arg type="NSString*">desc</arg>
+          <desc>
+	    <p>
+	      Return the numeric constant value for the namespace
+	      type named.  This method is inefficient, so the returned
+	      value should be saved for re-use later.  The possible
+	      values are -
+            </p>
+	    <list>
+	      <item>XML_LOCAL_NAMESPACE</item>
+	    </list>
+          </desc>
+        </method>
+
         <method type="id">
           <sel>initWithNode:</sel>
           <arg type="GSXMLNode*">node</arg>
@@ -123,15 +152,6 @@
           </desc>
         </method>
 
-        <method type="GSXMLNamespaceType">
-          <sel>type</sel>
-          <desc>
-          <p>
-            Return type of namespace.
-          </p>
-          </desc>
-        </method>
-
         <method type="GSXMLNamespace*">
           <sel>next</sel>
           <desc>
@@ -140,6 +160,25 @@
           </p>
           </desc>
         </method>
+
+        <method type="int">
+          <sel>type</sel>
+          <desc>
+          <p>
+            Return numeric type code of namespace.
+          </p>
+          </desc>
+        </method>
+
+        <method type="NSString*">
+          <sel>typeDescription</sel>
+          <desc>
+          <p>
+            Return string type code of namespace.
+          </p>
+          </desc>
+        </method>
+
       </class>
     </chapter>
   </body>
