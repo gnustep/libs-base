@@ -40,6 +40,19 @@ after-install::
 	for file in $(LANGUAGE_INSTALL_FILES); do \
 	  $(INSTALL_DATA) $$file $(resourcedir)/$$file ; \
 	done
+ifneq ($(strip $(LOCALIZED_RESOURCE_FILES)),)
+	@(echo "Copying localized resources into system..."; \
+	for l in $(LANGUAGES); do \
+	  if [ ! -f $$l.lproj ]; then \
+	    $(MKDIRS) $(resourcedir)/$$l.lproj; \
+	  fi; \
+	  for f in $(LOCALIZED_RESOURCE_FILES); do \
+	    if [ -f $$l.lproj/$$f ]; then \
+	      cp -r $$l.lproj/$$f $(resourcedir)/$$l.lproj; \
+	    fi; \
+	  done; \
+	done;)
+endif
 
 # Things to do before uninstalling
 # before-uninstall::
@@ -50,6 +63,13 @@ after-uninstall::
 	  rm -f $(resourcedir)/$$file ; \
 	done
 	-rmdir $(languagedir)
+ifneq ($(strip $(LOCALIZED_RESOURCE_FILES)),)
+	@(for l in $(LANGUAGES); do \
+	  if [ ! -f $$l.lproj ]; then \
+	    rm -rf $(resourcedir)/$$l.lproj; \
+	  fi; \
+	done;)
+endif
 
 # Things to do before cleaning
 # before-clean::
