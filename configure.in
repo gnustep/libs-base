@@ -162,12 +162,15 @@ AC_TRY_RUN([#include "$srcdir/config/config.reuseaddr.c"],
 if test $reuseaddr_ok = 0; then
   AC_DEFINE(BROKEN_SO_REUSEADDR)
   echo
-  echo "The GCC 'nested functions' feature does not seem to be working on"
-  echo "this machine. "
-  echo "Read the bug-report instructions in the GCC texinfo manual"
-  echo "and submit a bug report."
-  echo "The program this configure script used to test nested functions"
-  echo "can be found in the file 'config/config.nested.c'"
+  echo "The SO_REUSEADDR socket option for controlling re-use of network"
+  echo "sockets immediately after shutdown appears to be broken on this"
+  echo "machine.  Networking code will be built without using this"
+  echo "feature."
+  echo "The effect of this lack is that when a network service is shut"
+  echo "down, it cannot be re-started on the same network port until"
+  echo "an operating-system timeout has expired."
+  echo "For servers other than gdomap, GNUstep does not normally need"
+  echo "a particular network port, so the problem is unlikely to arise."
   AC_MSG_RESULT(yes)
 else
   AC_MSG_RESULT(no)
