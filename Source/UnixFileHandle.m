@@ -23,7 +23,7 @@
 
 
 #include <config.h>
-#if	HAVE_OPENSSL_SSL_H
+#if	HAVE_OPENSSL
 #include <openssl/ssl.h>
 #endif
 #include <base/preface.h>
@@ -1418,7 +1418,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 
 
-#if	HAVE_OPENSSL_SSL_H
+#if	HAVE_OPENSSL
 @interface	GSUnixSSLHandle : UnixFileHandle <GCFinalization>
 {
   SSL_CTX	*ctx;
@@ -1958,5 +1958,5 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   NSLog(@"SSL method called on system built without OpenSSL");
 }
 @end
-#endif	/* HAVE_OPENSSL_SSL_H */
+#endif	/* HAVE_OPENSSL */
 

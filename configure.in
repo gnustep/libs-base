@@ -849,6 +849,7 @@ if test $ac_cv_header_openssl_ssl_h = no; then
   echo "Could not find openssl headers"
   echo "Check to make sure you have a recent version of openssl installed"
   AC_MSG_WARN(Could not find openssl headers)
+  ssl_ok=no
 else
   AC_CHECK_LIB(crypto, CRYPTO_malloc, ssl_ok=yes, ssl_ok=no)
   if test "$ssl_ok" = yes; then
@@ -858,15 +859,12 @@ else
     if test "$ssl_ok" = yes; then
       LIBS="$base_libs -lssl -lcrypto"
       AC_SUBST(LIBS)
+      AC_DEFINE(HAVE_OPENSSL)
     fi
   fi
 fi
 
-if test "$HAVE_LIBSSL" = "0"; then
-  CPPFLAGS="$cppflags_temp";
-  LIBS="$libs_temp";
-fi
-if test "$HAVE_LIBCRYPTO" = "0"; then
+if test "$ssl_ok" = "no"; then
   CPPFLAGS="$cppflags_temp";
   LIBS="$libs_temp";
 fi
