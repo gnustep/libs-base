@@ -1,3 +1,11 @@
+Sat Oct  3 08:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSString.m: Changed NXConstantString to inherit directly from
+	NSString and add behaviours from NSGCString.  Added ([-hash]),
+	([-isEqual:]) and ([-isEqualToString:]) methods to avoid calling
+	NSGCStrings methods which use the _hash instance variable
+	(not present in strings produced by the @"..." compiler directive).
+
 Thu Sep 30 17:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	More performance work - huge improvement in dictionary lookup and
