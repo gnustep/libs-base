@@ -27,6 +27,7 @@
    */
 
 #include "Foundation/NSDictionary.h"
+#include "Foundation/NSException.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSAttributedString.h"
 #include "Foundation/NSDecimalNumber.h"
@@ -148,7 +149,23 @@
 	      forString: (NSString*)string
        errorDescription: (NSString**)error
 {
-  return NO;	// FIXME
+  if (anObject == NULL)
+    {
+      [NSException raise: NSInvalidArgumentException
+		   format: @"NULL Object pointer to NSNumberFormatter"];
+      /* NO RETURN. */
+      return NO;
+    }
+
+  /* FIXME: This is just a quick hack implementation.  */
+  NSLog(@"NSNumberFormatter-getObjectValue:forString:... not implemented");
+  if (_positiveFormat == nil &&  _negativeFormat == nil)
+    {
+      /* Just assume nothing else has been setup and do a simple conversion. */
+      *anObject = [NSDecimalNumber decimalNumberWithString: string]; 
+      return YES;
+    }
+  return NO;
 }
 
 - (BOOL) hasThousandSeparators
