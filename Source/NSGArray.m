@@ -56,7 +56,10 @@
   _capacity = count;
   OBJC_MALLOC(_contents_array, elt, _capacity);
   while (count--)
-    _contents_array[count] = objects[count];
+    {
+      [objects[count] retain];
+      _contents_array[count] = objects[count];
+    }
   return self;
 }
 
