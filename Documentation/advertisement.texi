@@ -9,10 +9,11 @@ McCallum.  What `libg++' is to GNU's C++, `libobjects' is to GNU's
 Objective C.
 
 The library features collection objects for maintaining groups of
-objects and C types, streams for I/O to various destinations, coders for
-formating objects and C types to byte streams, ports for network packet
-transmission, distributed objects (remote object messaging),
-pseudo-random number generators, and time handling facilities.
+objects and C types, strings for handling collections of characters,
+streams for I/O to various destinations, coders for formating objects
+and C types to byte streams, ports for network packet transmission,
+distributed objects (remote object messaging), pseudo-random number
+generators, and time handling facilities.
 
 @itemize
 
@@ -27,6 +28,9 @@ MappedCollector), collections with ordered contents (Array, LinkedList,
 Stack, Queue, Heap, BinaryTree, RBTree, SplayTree, GapArray).  There is
 also a DelegatePool object that can forward messages it receives to an
 arbitrary number of delegate objects.
+
+@item
+String objects...
 
 @item
 Stream objects provide a consistent interface for reading and writing
