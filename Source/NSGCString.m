@@ -173,11 +173,12 @@ stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self,
 }
 
 /* This is the designated initializer for this class */
+/* xxx Should capacity include the '\0' terminator? */
 - initWithCapacity: (unsigned)capacity
 {
   _count = 0;
-  _capacity = capacity;
-  OBJC_MALLOC(_contents_chars, char, _capacity+1);
+  _capacity = MAX(capacity, 2);
+  OBJC_MALLOC(_contents_chars, char, _capacity);
   _contents_chars[0] = '\0';
   return self;
 }
