@@ -89,7 +89,9 @@ nsset.m \
 nsprocessinfo.m \
 nsarchiver.m \
 invocation.m \
-diningPhilosophers.m
+diningPhilosophers.m \
+nsmaptable.m \
+nshashtable.m
 
 # nsarchiving.m
 
@@ -172,7 +174,11 @@ nsarchiver: nsarchiver$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
 diningPhilosophers: diningPhilosophers$(OEXT) ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
-invocation: invocation.o ../src/libobjects.a
+invocation: invocation.o ../src/libobjects$(LIBEXT)
+	$(LINK_CMD)
+nsmaptable: nsmaptable.o ../src/libobjects$(LIBEXT)
+	$(LINK_CMD)
+nshashtable: nshashtable.o ../src/libobjects$(LIBEXT)
 	$(LINK_CMD)
 
 install:
