@@ -53,9 +53,9 @@
   return copy;
 }
 
-- (void) _collectionEmpty
+- (void) empty
 {
-  [super _collectionEmpty];
+  [super empty];
   _start_index = 0;
 }
 
