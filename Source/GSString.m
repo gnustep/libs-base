@@ -1,7 +1,7 @@
 /* Implementation for GNUStep of NSString concrete subclasses
    Copyright (C) 1997,1998,2000 Free Software Foundation, Inc.
    
-   Written by Stevo Crvenkovski <stevo@btinternet.com>
+   Base on code written by Stevo Crvenkovski <stevo@btinternet.com>
    Date: February 1997
    
    Based on NSGCString and NSString
@@ -50,6 +50,37 @@
 #include <base/Unicode.h>
 
 /*
+ * GSPlaceholderString - placeholder class for objects awaiting intialisation.
+ */
+@interface GSPlaceholderString : NSString
+{
+}
+@end
+
+/*
+ * Private concrete string classes.
+ * NB. All these concrete string classes MUST have the same initial ivar
+ * layout so that we can swap between them as necessary.
+ * The initial layout must also match that of NXConstantString (which is
+ * determined by the compiler).
+ */
+@interface GSString : NSString
+{
+  union {
+    unichar		*u;
+    unsigned char	*c;
+  } _contents;
+  unsigned int	_count;
+  struct {
+    unsigned int	wide: 1;	// 16-bit characters in string?
+    unsigned int	free: 1;	// Should free memory?
+    unsigned int	unused: 2;
+    unsigned int	hash: 28;
+  } _flags;
+}
+@end
+
+/*
  * GSCString - concrete class for strings using 8-bit character sets.
  */
 @interface GSCString : GSString
@@ -78,38 +109,47 @@
 @end
 
 /*
- * GSUString - concrete class for strings using 16-bit character sets.
+ * GSCEmptyString - concrete class for empty string
  */
-@interface GSUString : GSString
+@interface GSCEmptyString : GSCString
 {
 }
 @end
 
 /*
- * GSUInlineString - concrete subclass of GSUString, that expects the
- * characterData to appear in memory immediately after the object itsself.
+ * GSUnicodeString - concrete class for strings using 16-bit character sets.
  */
-@interface GSUInlineString : GSUString
+@interface GSUnicodeString : GSString
 {
 }
 @end
 
 /*
- * GSUSubString - concrete subclass of GSUString, that relys on the
- * data stored in a GSUString object.
+ * GSUnicodeInlineString - concrete subclass of GSUnicodeString, that
+ * expects the characterData to appear in memory immediately after the
+ * object itsself.
  */
-@interface GSUSubString : GSUString
+@interface GSUnicodeInlineString : GSUnicodeString
+{
+}
+@end
+
+/*
+ * GSUnicodeSubString - concrete subclass of GSUnicodeString, that
+ * relies on data stored in a GSUnicodeString object.
+ */
+@interface GSUnicodeSubString : GSUnicodeString
 {
 @public
-  GSUString	*_parent;
+  GSUnicodeString	*_parent;
 }
 @end
 
 /*
- * GSMString - concrete mutable string, capable of changing its storage
+ * GSMutableString - concrete mutable string, capable of changing its storage
  * from holding 8-bit to 16-bit character set.
  */
-@interface GSMString : NSMutableString
+@interface GSMutableString : NSMutableString
 {
   union {
     unichar		*u;
@@ -131,7 +171,7 @@
  * Typedef for access to internals of concrete string objects.
  */
 typedef struct {
-  @defs(GSMString)
+  @defs(GSMutableString)
 } *ivars;
 
 /*
@@ -180,10 +220,10 @@ static Class GSStringClass = 0;
 static Class GSCStringClass = 0;
 static Class GSCInlineStringClass = 0;
 static Class GSCSubStringClass = 0;
-static Class GSUStringClass = 0;
-static Class GSUSubStringClass = 0;
-static Class GSUInlineStringClass = 0;
-static Class GSMStringClass = 0;
+static Class GSUnicodeStringClass = 0;
+static Class GSUnicodeSubStringClass = 0;
+static Class GSUnicodeInlineStringClass = 0;
+static Class GSMutableStringClass = 0;
 static Class NXConstantStringClass = 0;
 
 static SEL	convertSel;
@@ -208,18 +248,27 @@ setup()
     {
       beenHere = YES;
 
+      /*
+       * Cache pointers to classes to work round misfeature in
+       * GNU compiler/runtime system where class lookup is very slow.
+       */
       NSDataClass = [NSData class];
       NSStringClass = [NSString class];
       GSStringClass = [GSString class];
       GSCStringClass = [GSCString class];
-      GSUStringClass = [GSUString class];
+      GSUnicodeStringClass = [GSUnicodeString class];
       GSCInlineStringClass = [GSCInlineString class];
-      GSUInlineStringClass = [GSUInlineString class];
+      GSUnicodeInlineStringClass = [GSUnicodeInlineString class];
       GSCSubStringClass = [GSCSubString class];
-      GSUSubStringClass = [GSUSubString class];
-      GSMStringClass = [GSMString class];
+      GSUnicodeSubStringClass = [GSUnicodeSubString class];
+      GSMutableStringClass = [GSMutableString class];
       NXConstantStringClass = [NXConstantString class];
 
+      /*
+       * Cache some selectors and method implementations for
+       * cases where we want to use the implementation
+       * provided in the abstract rolot cllass of the cluster.
+       */
       convertSel = @selector(canBeConvertedToEncoding:);
       convertImp = (BOOL (*)(id, SEL, NSStringEncoding))
 	[NSStringClass instanceMethodForSelector: convertSel];
@@ -230,21 +279,208 @@ setup()
       hashImp = (unsigned (*)(id, SEL))
 	[NSStringClass instanceMethodForSelector: hashSel];
 
+      /*
+       * Cache the default string encoding.
+       */
       defEnc = [NSString defaultCStringEncoding];
     }
 }
 
+
+
+/*
+ * The GSPlaceholderString class is used by the abstract cluster root
+ * class to provide temporary objects that will be replaced as soon
+ * as the objects are initialised.  This object tries to replace
+ * itsself with an appropriate object whose type may vary depending
+ * on the initialisation method used.
+ */
+@implementation GSPlaceholderString
++ (void) initialize
+{
+  setup();
+}
+- (id) autorelease
+{
+  return self;		// placeholders never get released.
+}
+
+- (unichar) characterAtIndex: (unsigned)index
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"attempt to use uninitialised string"];
+  return 0;
+}
+
+- (void) dealloc
+{
+  return;		// placeholders never get deallocated.
+}
+
+/*
+ * Replace self with an inline unicode string
+ */
+- (id) initWithCharacters: (const unichar*)chars
+		   length: (unsigned)length
+{
+  ivars	me;
+
+  me = (ivars)NSAllocateObject(GSUnicodeInlineStringClass,
+    length*sizeof(unichar), GSObjCZone(self));
+  me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
+  me->_count = length;
+  me->_flags.wide = 0;
+  memcpy(me->_contents.u, chars, length*sizeof(unichar));
+  return (id)me;
+}
+
+/*
+ * Replace self with a simple unicode string
+ */
+- (id) initWithCharactersNoCopy: (unichar*)chars
+			 length: (unsigned)length
+		   freeWhenDone: (BOOL)flag
+{
+  ivars	me;
+
+  me = (ivars)NSAllocateObject(GSUnicodeStringClass, 0, GSObjCZone(self));
+  me->_contents.u = chars;
+  me->_count = length;
+  me->_flags.wide = 0;
+  if (flag == YES)
+    me->_flags.free = 1;
+  return (id)me;
+}
+
+/*
+ * Replace self with an inline 'C' string
+ */
+- (id) initWithCString: (const char*)chars
+		length: (unsigned)length
+{
+  ivars	me;
+
+  me = (ivars)NSAllocateObject(GSCInlineStringClass, length, GSObjCZone(self));
+  me->_contents.c = (char*)&((GSCInlineString*)me)[1];
+  me->_count = length;
+  me->_flags.wide = 0;
+  memcpy(me->_contents.c, chars, length);
+  return (id)me;
+}
+
+/*
+ * Replace self with a simple 'C' string
+ */
+- (id) initWithCStringNoCopy: (char*)chars
+		      length: (unsigned)length
+		freeWhenDone: (BOOL)flag
+{
+  ivars	me;
+
+  me = (ivars)NSAllocateObject(GSCStringClass, 0, GSObjCZone(self));
+  me->_contents.c = chars;
+  me->_count = length;
+  me->_flags.wide = 0;
+  if (flag == YES)
+    me->_flags.free = 1;
+  return (id)me;
+}
+
+/*
+ * Replace self with an inline string matching the sort of information
+ * given.
+ */
+- (id) initWithString: (NSString*)string
+{
+  unsigned	length;
+  Class		c;
+  ivars		me;
+
+  if (string == nil)
+    [NSException raise: NSInvalidArgumentException
+		format: @"-initWithString: given nil string"];
+  c = GSObjCClass(string);
+  if (GSObjCIsKindOf(c, NSStringClass) == NO)
+    [NSException raise: NSInvalidArgumentException
+		format: @"-initWithString: given non-string object"];
+
+  length = [string length];
+  if (GSObjCIsKindOf(c, GSCStringClass) == YES || c == NXConstantStringClass
+    || (GSObjCIsKindOf(c, GSMutableStringClass) == YES
+      && ((ivars)string)->_flags.wide == 0))
+    {
+      /*
+       * For a GSCString subclass, and NXConstantString, or an 8-bit
+       * GSMutableString, we can copy the bytes directly into a GSCString.
+       */
+      me = (ivars)NSAllocateObject(GSCInlineStringClass,
+	length, GSObjCZone(self));
+      me->_contents.c = (char*)&((GSCInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 0;
+      memcpy(me->_contents.c, ((ivars)string)->_contents.c, length);
+    }
+  else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
+    || GSObjCIsKindOf(c, GSMutableStringClass) == YES)
+    {
+      /*
+       * For a GSUnicodeString subclass, or a 16-bit GSMutableString,
+       * we can copy the bytes directly into a GSUnicodeString.
+       */
+      me = (ivars)NSAllocateObject(GSUnicodeInlineStringClass,
+	length*sizeof(unichar), GSObjCZone(self));
+      me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 1;
+      memcpy(me->_contents.u, ((ivars)string)->_contents.u,
+	length*sizeof(unichar));
+    }
+  else
+    {
+      /*
+       * For a string with an unknown class, we can initialise by
+       * having the string copy its content directly into our buffer.
+       */
+      me = (ivars)NSAllocateObject(GSUnicodeInlineStringClass,
+	length*sizeof(unichar), GSObjCZone(self));
+      me->_contents.u = (unichar*)&((GSUnicodeInlineString*)me)[1];
+      me->_count = length;
+      me->_flags.wide = 1;
+      [string getCharacters: me->_contents.u];
+    }
+  return (id)me;
+}
+
+- (unsigned) length
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"attempt to use uninitialised string"];
+  return 0;
+}
+
+- (void) release
+{
+  return;		// placeholders never get released.
+}
+
+- (id) retain
+{
+  return self;		// placeholders never get retained.
+}
+@end
+
+
 
 /*
  * The following inline functions are used by the concrete string classes
  * to implement their core functionality.
  * GSCString uses the functions with the _c suffix.
  * GSCSubString and NXConstant inherit methods from GSCString.
- * GSUString uses the functions with the _u suffix.
- * GSUSubString inherits methods from GSUString.
- * GSMString uses all the functions, selecting the _c or _u versions
+ * GSUnicodeString uses the functions with the _u suffix.
+ * GSUnicodeSubString inherits methods from GSUnicodeString.
+ * GSMutableString uses all the functions, selecting the _c or _u versions
  * depending on whether its storage is 8-bit or 16-bit.
- * In addition, GSMString uses a few functions without a suffix that are
+ * In addition, GSMutableString uses a few functions without a suffix that are
  * peculiar to its memory management (shrinking, growing, and converting).
  */
 
@@ -360,12 +596,12 @@ compare_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
     return strCompCsNs((id)self, aString, mask, aRange);
 
   c = GSObjCClass(aString);
-  if (GSObjCIsKindOf(c, GSUStringClass) == YES
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
+  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
+    || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompCsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
+    || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 0))
     return strCompCsCs((id)self, aString, mask, aRange);
   else
     return strCompCsNs((id)self, aString, mask, aRange);
@@ -382,12 +618,12 @@ compare_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
     return strCompUsNs((id)self, aString, mask, aRange);
 
   c = GSObjCClass(aString);
-  if (GSObjCIsKindOf(c, GSUStringClass)
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
+  if (GSObjCIsKindOf(c, GSUnicodeStringClass)
+    || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompUsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass)
     || c == NXConstantStringClass
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
+    || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 0))
     return strCompUsCs((id)self, aString, mask, aRange);
   else
     return strCompUsNs((id)self, aString, mask, aRange);
@@ -950,7 +1186,7 @@ makeHole(ivars self, int index, int size)
 #if	GS_WITH_GC
 	      self->_zone = GSAtomicMallocZone();
 #else
-	      self->_zone = GSObjCZone((NSObject*)self);
+	      self->_zone = GSObjCZone((NSString*)self);
 #endif
 	    }
 	  if (self->_flags.wide == 1)
@@ -1058,12 +1294,12 @@ rangeOfString_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
     return strRangeCsNs((id)self, aString, mask, aRange);
 
   c = GSObjCClass(aString);
-  if (GSObjCIsKindOf(c, GSUStringClass) == YES
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
+  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
+    || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeCsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
+    || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 0))
     return strRangeCsCs((id)self, aString, mask, aRange);
   else
     return strRangeCsNs((id)self, aString, mask, aRange);
@@ -1080,12 +1316,12 @@ rangeOfString_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
     return strRangeUsNs((id)self, aString, mask, aRange);
 
   c = GSObjCClass(aString);
-  if (GSObjCIsKindOf(c, GSUStringClass) == YES
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
+  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
+    || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeUsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
-    || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 0))
+    || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 0))
     return strRangeUsCs((id)self, aString, mask, aRange);
   else
     return strRangeUsNs((id)self, aString, mask, aRange);
@@ -1096,7 +1332,8 @@ substring_c(ivars self, NSRange aRange)
 {
   GSCSubString	*sub;
 
-  sub = [GSCSubStringClass allocWithZone: NSDefaultMallocZone()];
+  sub = (GSCSubString*)NSAllocateObject(GSCSubStringClass, 0,
+    NSDefaultMallocZone());
   sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
 			    length: aRange.length
 		      freeWhenDone: NO];
@@ -1111,9 +1348,10 @@ substring_c(ivars self, NSRange aRange)
 static inline NSString*
 substring_u(ivars self, NSRange aRange)
 {
-  GSUSubString	*sub;
+  GSUnicodeSubString	*sub;
 
-  sub = [GSUSubStringClass allocWithZone: NSDefaultMallocZone()];
+  sub = (GSUnicodeSubString*)NSAllocateObject(GSUnicodeSubStringClass, 0,
+    NSDefaultMallocZone());
   sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
 			       length: aRange.length
 			 freeWhenDone: NO];
@@ -1150,8 +1388,8 @@ transmute(ivars self, NSString *aString)
        * string whose ivars we can access directly.
        */
       transmute = NO;
-      if ((c != GSMStringClass || other->_flags.wide != 1)
-	&& c != GSUStringClass)
+      if ((c != GSMutableStringClass || other->_flags.wide != 1)
+	&& c != GSUnicodeStringClass)
 	{
 	  other = 0;
 	}
@@ -1159,7 +1397,7 @@ transmute(ivars self, NSString *aString)
   else
     {
       if (c == GSCStringClass || c == NXConstantStringClass
-	|| (c == GSMStringClass && other->_flags.wide == 0))
+	|| (c == GSMutableStringClass && other->_flags.wide == 0))
 	{
 	  /*
 	   * This is a C string, but the other string is also a C string
@@ -1177,8 +1415,8 @@ transmute(ivars self, NSString *aString)
 	  transmute = NO;
 	  other = 0;
 	}
-      else if ((c == GSMStringClass && other->_flags.wide == 1)
-	|| c == GSUStringClass)
+      else if ((c == GSMutableStringClass && other->_flags.wide == 1)
+	|| c == GSUnicodeStringClass)
 	{
 	  /*
 	   * This is a C string, and the other string can not be converted
@@ -1201,9 +1439,10 @@ transmute(ivars self, NSString *aString)
   if (transmute == YES)
     {
       unichar	*tmp;
+      int	len;
 
       tmp = NSZoneMalloc(self->_zone, self->_capacity * sizeof(unichar));
-      encode_strtoustr(tmp, self->_contents.c, self->_count, defEnc);
+      len = encode_strtoustr(tmp, self->_contents.c, self->_count, defEnc);
       if (self->_flags.free == 1)
 	{
 	  NSZoneFree(self->_zone, self->_contents.c);
@@ -1214,6 +1453,7 @@ transmute(ivars self, NSString *aString)
 	}
       self->_contents.u = tmp;
       self->_flags.wide = 1;
+      self->_count = len;
     }
 
   return other;
@@ -1221,6 +1461,13 @@ transmute(ivars self, NSString *aString)
 
 
 
+/*
+ * The GSString class is actually only provided to provide a common ivar
+ * layout for all subclasses, so that they can all share the same code.
+ * We don't expect this class to ever be instantiated, but we do provide
+ * a common deallocation method, and standard initialisation methods that
+ * will try to convert an instance to a type we can really use if necessary.
+ */ 
 @implementation	GSString
 - (void) dealloc
 {
@@ -1232,44 +1479,66 @@ transmute(ivars self, NSString *aString)
   NSDeallocateObject(self);
 }
 
+/*
+ * Try to initialise a unicode string.
+ */
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
-  isa = GSUStringClass;
+  if (isa == GSStringClass)
+    {
+      isa = GSUnicodeStringClass;
+    }
+  else if (_contents.u != 0)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"re-initialisation of string"];
+    }
   _count = length;
   _contents.u = chars;
   _flags.wide = 1;
   if (flag == YES)
-    _flags.free = 1;
+    {
+      _flags.free = 1;
+    }
   return self;
 }
 
+/*
+ * Try to initialise a 'C' string.
+ */
 - (id) initWithCStringNoCopy: (char*)chars
 		      length: (unsigned int)length
 	        freeWhenDone: (BOOL)flag
 {
-  isa = GSCStringClass;
+  if (isa == GSStringClass)
+    {
+      isa = GSCStringClass;
+    }
+  else if (_contents.c != 0)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"re-initialisation of string"];
+    }
   _count = length;
   _contents.c = chars;
   _flags.wide = 0;
   if (flag == YES)
-    _flags.free = 1;
+    {
+      _flags.free = 1;
+    }
   return self;
 }
 @end
 
+
+
+/*
+ * The GSCString class is the basic implementation of a concrete
+ * 8-bit string class, storing immutable data in a single buffer.
+ */
 @implementation GSCString
-
-+ (id) alloc
-{
-  return NSAllocateObject (self, 0, NSDefaultMallocZone());
-}
-
-+ (id) allocWithZone: (NSZone*)z
-{
-  return NSAllocateObject (self, 0, z);
-}
 
 + (void) initialize
 {
@@ -1448,16 +1717,19 @@ transmute(ivars self, NSString *aString)
 
 - (id) mutableCopy
 {
-  GSMString	*obj = [GSMStringClass allocWithZone: NSDefaultMallocZone()];
+  GSMutableString	*obj;
 
+  obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0,
+    NSDefaultMallocZone());
   obj = [obj initWithCString: _contents.c length: _count];
   return obj;
 }
 
 - (id) mutableCopyWithZone: (NSZone*)z
 {
-  GSMString	*obj = [GSMStringClass allocWithZone: z];
+  GSMutableString	*obj;
 
+  obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0, z);
   obj = [obj initWithCString: _contents.c length: _count];
   return obj;
 }
@@ -1501,12 +1773,22 @@ transmute(ivars self, NSString *aString)
 
 
 
+/*
+ * The GSCInlineString class is a GSCString subclass that stores data
+ * in memory immediately after the object.  
+ */
 @implementation	GSCInlineString
 - (id) initWithCString: (const char*)chars length: (unsigned)length
 {
+  if (_contents.c != 0)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"re-initialisation of string"];
+    }
   _count = length;
   _contents.c = (unsigned char*)&self[1];
-  memcpy(_contents.c, chars, length);
+  if (_count > 0)
+    memcpy(_contents.c, chars, length);
   _flags.wide = 0;
   return self;
 }
@@ -1516,6 +1798,12 @@ transmute(ivars self, NSString *aString)
 }
 @end
 
+
+
+/*
+ * The GSCSubString class is a GSCString subclass that points into
+ * a section of a parent constant string class.
+ */
 @implementation	GSCSubString
 - (void) dealloc
 {
@@ -1526,17 +1814,7 @@ transmute(ivars self, NSString *aString)
 
 
 
-@implementation GSUString
-
-+ (id) alloc
-{
-  return NSAllocateObject (self, 0, NSDefaultMallocZone());
-}
-
-+ (id) allocWithZone: (NSZone*)z
-{
-  return NSAllocateObject (self, 0, z);
-}
+@implementation GSUnicodeString
 
 + (void) initialize
 {
@@ -1569,9 +1847,9 @@ transmute(ivars self, NSString *aString)
 {
   if (NSShouldRetainWithZone(self, NSDefaultMallocZone()) == NO)
     {
-      GSUString	*obj;
+      GSUnicodeString	*obj;
 
-      obj = (GSUString*)NSCopyObject(self, 0, NSDefaultMallocZone());
+      obj = (GSUnicodeString*)NSCopyObject(self, 0, NSDefaultMallocZone());
       if (_contents.u != 0)
 	{
 	  unichar	*tmp;
@@ -1594,7 +1872,8 @@ transmute(ivars self, NSString *aString)
     {
       NSString	*obj;
 
-      obj = (NSString*)NSAllocateObject(GSUInlineStringClass, _count*2, z);
+      obj = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
+	_count*2, z);
       obj = [obj initWithCharacters: _contents.u length: _count];
       return obj;
     }
@@ -1718,16 +1997,19 @@ transmute(ivars self, NSString *aString)
 
 - (id) mutableCopy
 {
-  GSMString	*obj = [GSMStringClass allocWithZone: NSDefaultMallocZone()];
+  GSMutableString	*obj;
 
+  obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0,
+    NSDefaultMallocZone());
   obj = [obj initWithCharacters: _contents.u length: _count];
   return obj;
 }
 
 - (id) mutableCopyWithZone: (NSZone*)z
 {
-  GSMString	*obj = [GSMStringClass allocWithZone: z];
+  GSMutableString	*obj;
 
+  obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0, z);
   obj = [obj initWithCharacters: _contents.u length: _count];
   return obj;
 }
@@ -1777,12 +2059,18 @@ transmute(ivars self, NSString *aString)
 
 
 
-@implementation	GSUInlineString
+@implementation	GSUnicodeInlineString
 - (id) initWithCharacters: (const unichar*)chars length: (unsigned)length
 {
+  if (_contents.u != 0)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"re-initialisation of string"];
+    }
   _count = length;
   _contents.u = (unichar*)&self[1];
-  memcpy(_contents.u, chars, length*sizeof(unichar));
+  if (_count > 0)
+    memcpy(_contents.u, chars, length*sizeof(unichar));
   _flags.wide = 1;
   return self;
 }
@@ -1792,7 +2080,13 @@ transmute(ivars self, NSString *aString)
 }
 @end
 
-@implementation	GSUSubString
+
+
+/*
+ * The GSUnicodeSubString class is a GSUnicodeString subclass that points
+ * into a section of a parent constant string class.
+ */
+@implementation	GSUnicodeSubString
 - (void) dealloc
 {
   RELEASE(_parent);
@@ -1802,17 +2096,15 @@ transmute(ivars self, NSString *aString)
 
 
 
-@implementation GSMString
-
-+ (id) alloc
-{
-  return NSAllocateObject (self, 0, NSDefaultMallocZone());
-}
-
-+ (id) allocWithZone: (NSZone*)z
-{
-  return NSAllocateObject (self, 0, z);
-}
+/*
+ * The GSMutableStrinc class shares a common initial ivar layout with
+ * the GSString class, but adds a few of its own.  It uses _flags.wide
+ * to determine whether it should use 8-bit or 16-bit characters and
+ * is caapable of changing that flag (and its underlying storage) to
+ * move from an 8-bit to a 16-bit representation is that should be
+ * necessary because wide characters have been placed in the string.
+ */
+@implementation GSMutableString
 
 + (void) initialize
 {
@@ -1859,12 +2151,14 @@ transmute(ivars self, NSString *aString)
 
   if (_flags.wide == 1)
     {
-      copy = [GSUStringClass allocWithZone: NSDefaultMallocZone()];
+      copy = NSAllocateObject(GSUnicodeInlineStringClass,
+	_count*sizeof(unichar), NSDefaultMallocZone());
       copy = [copy initWithCharacters: _contents.u length: _count];
     }
   else
     {
-      copy = [GSCStringClass allocWithZone: NSDefaultMallocZone()];
+      copy = NSAllocateObject(GSCInlineStringClass,
+	_count, NSDefaultMallocZone());
       copy = [copy initWithCString: _contents.c length: _count];
     }
   return copy;
@@ -1876,7 +2170,7 @@ transmute(ivars self, NSString *aString)
 
   if (_flags.wide == 1)
     {
-      copy = (NSString*)NSAllocateObject(GSUInlineStringClass,
+      copy = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
 	_count*sizeof(unichar), z);
       copy = [copy initWithCharacters: _contents.u length: _count];
     }
@@ -2157,7 +2451,10 @@ transmute(ivars self, NSString *aString)
 
 - (id) mutableCopy
 {
-  GSMString	*obj = [GSMStringClass allocWithZone: NSDefaultMallocZone()];
+  GSMutableString	*obj;
+
+  obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0,
+    NSDefaultMallocZone());
 
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
@@ -2168,7 +2465,9 @@ transmute(ivars self, NSString *aString)
 
 - (id) mutableCopyWithZone: (NSZone*)z
 {
-  GSMString	*obj = [GSMStringClass allocWithZone: z];
+  GSMutableString	*obj;
+
+  obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0, z);
 
   if (_flags.wide == 1)
     obj = [obj initWithCharacters: _contents.u length: _count];
@@ -2346,7 +2645,7 @@ transmute(ivars self, NSString *aString)
   
   if (_flags.wide == 1)
     {
-      return [GSUStringClass stringWithCharacters:
+      return [GSUnicodeStringClass stringWithCharacters:
 	self->_contents.u + aRange.location length: aRange.length];
     }
   else
@@ -2362,7 +2661,7 @@ transmute(ivars self, NSString *aString)
   
   if (_flags.wide == 1)
     {
-      return [GSUStringClass stringWithCharacters:
+      return [GSUnicodeStringClass stringWithCharacters:
 	self->_contents.u + aRange.location length: aRange.length];
     }
   else
@@ -2393,21 +2692,15 @@ transmute(ivars self, NSString *aString)
 
 
 
+/*
+ * The NXConstantString class is used by the compiler for constant
+ * strings, as such its ivar layout is determined by the compiler
+ * and consists of a pointer (_contents.c) and a character count
+ * (_count).  So, while this class inherits GSCString behavior,
+ * the code must make sure not to use any other GSCString ivars
+ * when accesssing an NXConstantString.
+ */
 @implementation NXConstantString
-
-+ (id) alloc
-{
-  [NSException raise: NSGenericException
-	      format: @"Attempt to allocate an NXConstantString"];
-  return nil;
-}
-
-+ (id) allocWithZone: (NSZone*)z
-{
-  [NSException raise: NSGenericException
-	      format: @"Attempt to allocate an NXConstantString"];
-  return nil;
-}
 
 + (void) initialize
 {
@@ -2550,7 +2843,7 @@ transmute(ivars self, NSString *aString)
 
   if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
-    || (c == GSMStringClass && ((ivars)anObject)->_flags.wide == 0))
+    || (c == GSMutableStringClass && ((ivars)anObject)->_flags.wide == 0))
     {
       ivars	other = (ivars)anObject;
 
@@ -2560,8 +2853,8 @@ transmute(ivars self, NSString *aString)
 	return NO;
       return YES;
     }
-  else if (GSObjCIsKindOf(c, GSUStringClass) == YES
-    || c == GSMStringClass)
+  else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
+    || c == GSMutableStringClass)
     {
       if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
 	return YES;
@@ -2597,7 +2890,7 @@ transmute(ivars self, NSString *aString)
 
   if (GSObjCIsKindOf(c, GSCStringClass) == YES
     || c == NXConstantStringClass
-    || (c == GSMStringClass && ((ivars)anObject)->_flags.wide == 0))
+    || (c == GSMutableStringClass && ((ivars)anObject)->_flags.wide == 0))
     {
       ivars	other = (ivars)anObject;
 
@@ -2607,8 +2900,8 @@ transmute(ivars self, NSString *aString)
 	return NO;
       return YES;
     }
-  else if (GSObjCIsKindOf(c, GSUStringClass) == YES
-    || c == GSMStringClass)
+  else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
+    || c == GSMutableStringClass)
     {
       if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
 	return YES;
@@ -2668,7 +2961,7 @@ transmute(ivars self, NSString *aString)
   unsigned	count;
 
   RELEASE(self);
-  self = [GSMString alloc];
+  self = [GSMutableString alloc];
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
   if (count > 0)
     {
@@ -2698,7 +2991,7 @@ transmute(ivars self, NSString *aString)
   unsigned	count;
 
   RELEASE(self);
-  self = [GSUString alloc];
+  self = [GSUnicodeString alloc];
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
   if (count > 0)
     {
@@ -2728,7 +3021,7 @@ transmute(ivars self, NSString *aString)
   unsigned	count;
 
   RELEASE(self);
-  self = [GSMString alloc];
+  self = [GSMutableString alloc];
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
   if (count > 0)
     {

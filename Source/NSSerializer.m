@@ -41,8 +41,8 @@
 @class	NSGMutableDictionary;
 @class	NSDataMalloc;
 @class	GSCString;
-@class	GSUString;
-@class	GSMString;
+@class	GSUnicodeString;
+@class	GSMutableString;
 
 /*
  *	Setup for inline operation of string map tables.
@@ -313,7 +313,7 @@ static BOOL	shouldBeCompact = NO;
       MutableDictionaryClass = [NSMutableDictionary class];
       StringClass = [NSString class];
       CStringClass = [GSCString class];
-      MStringClass = [GSMString class];
+      MStringClass = [GSMutableString class];
     }
 }
 
@@ -444,8 +444,9 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_CSTRING:
 	{
 	  GSCString	*s;
-	  char		*b = NSZoneMalloc(NSDefaultMallocZone(), size);
+	  char		*b;
 	
+	  b = NSZoneMalloc(NSDefaultMallocZone(), size);
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  s = (GSCString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
 	  s = (*csInitImp)(s, csInitSel, b, size-1, YES);
@@ -467,11 +468,14 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
       case ST_STRING:
 	{
-	  GSUString	*s;
-	  unichar	*b = NSZoneMalloc(NSDefaultMallocZone(), size*2);
+	  GSUnicodeString	*s;
+	  unichar		*b;
 	
-	  (*info->debImp)(info->data, debSel, b, size*2, info->cursor);
-	  s = (GSUString*)NSAllocateObject(USCls, 0, NSDefaultMallocZone());
+	  b = NSZoneMalloc(NSDefaultMallocZone(), size*sizeof(unichar));
+	  (*info->debImp)(info->data, debSel, b, size*sizeof(unichar),
+	    info->cursor);
+	  s = (GSUnicodeString*)NSAllocateObject(USCls,
+	    0, NSDefaultMallocZone());
 	  s = (*usInitImp)(s, usInitSel, b, size, YES);
 
 	  /*
@@ -695,7 +699,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       DCls = [NSDataMalloc class];
       IDCls = [NSGDictionary class];
       MDCls = [NSGMutableDictionary class];
-      USCls = [GSUString class];
+      USCls = [GSUnicodeString class];
       CSCls = [GSCString class];
       csInitImp = [CSCls instanceMethodForSelector: csInitSel];
       usInitImp = [USCls instanceMethodForSelector: usInitSel];

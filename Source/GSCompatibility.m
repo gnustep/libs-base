@@ -173,8 +173,172 @@ encodeBase64(NSData *source)
 static NSString*
 XMLString(NSString* obj)
 {
-  /* Should substitute in entities */
-  return obj;
+  static NSCharacterSet	*quotables = nil;
+  static char *hexdigits = "0123456789ABCDEF";
+  unsigned	end;
+
+  end = [obj length];
+  if (end == 0)
+    {
+      return obj;
+    }
+
+  if (quotables == nil)
+    {
+      // setupQuotables();
+    }
+
+  if ([obj rangeOfCharacterFromSet: quotables].length > 0)
+    {
+      unichar	*base;
+      unichar	*map;
+      unichar	c;
+      unsigned	len;
+      unsigned	rpos;
+      unsigned	wpos;
+
+      base = NSZoneMalloc(NSDefaultMallocZone(), end * sizeof(unichar));
+      [obj getCharacters: base];
+      for (len = rpos = 0; rpos < end; rpos++)
+	{
+	  c = base[rpos];
+	  switch (c)
+	    {
+	      case '&': 
+		len += 5;
+		break;
+	      case '<': 
+	      case '>': 
+		len += 4;
+		break;
+	      case '\'': 
+	      case '"': 
+		len += 5;
+		break;
+	      case '\\': 
+		len += 1;
+		break;
+
+	      default: 
+		if (c < 0x20)
+		  {
+		    if (c == 0x09 || c == 0x0A || c == 0x0D)
+		      {
+			len++;
+		      }
+		    else
+		      {
+			len += 4;
+		      }
+		  }
+		else if (c > 0xD7FF && c < 0xE000)
+		  {
+		    len += 6;
+		  }
+		else if (c > 0xFFFD)
+		  {
+		    len += 6;
+		  }
+		else
+		  {
+		    len++;
+		  }
+		break;
+	    }
+	}
+      map = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
+      for (wpos = rpos = 0; rpos < end; rpos++)
+	{
+	  c = base[rpos];
+	  switch (c)
+	    {
+	      case '&': 
+		map[wpos++] = '&';
+		map[wpos++] = 'a';
+		map[wpos++] = 'm';
+		map[wpos++] = 'p';
+		map[wpos++] = ';';
+		break;
+	      case '<': 
+		map[wpos++] = '&';
+		map[wpos++] = 'l';
+		map[wpos++] = 't';
+		map[wpos++] = ';';
+		break;
+	      case '>': 
+		map[wpos++] = '&';
+		map[wpos++] = 'g';
+		map[wpos++] = 't';
+		map[wpos++] = ';';
+		break;
+	      case '\'': 
+		map[wpos++] = '&';
+		map[wpos++] = 'a';
+		map[wpos++] = 'p';
+		map[wpos++] = 'o';
+		map[wpos++] = 's';
+		map[wpos++] = ';';
+		break;
+	      case '"': 
+		map[wpos++] = '&';
+		map[wpos++] = 'q';
+		map[wpos++] = 'u';
+		map[wpos++] = 'o';
+		map[wpos++] = 't';
+		map[wpos++] = ';';
+		break;
+	      case '\\': 
+		map[wpos++] = '\\';
+		map[wpos++] = '\\';
+		break;
+
+	      default: 
+		if (c < 0x20)
+		  {
+		    if (c == 0x09 || c == 0x0A || c == 0x0D)
+		      {
+			map[wpos++] = c;
+		      }
+		    else
+		      {
+			map[wpos++] = '\\';
+			map[wpos++] = hexdigits[(c>>4) & 0xff];
+			map[wpos++] = hexdigits[c & 0xff];
+			map[wpos++] = '\\';
+		      }
+		  }
+		else if (c > 0xD7FF && c < 0xE000)
+		  {
+		    map[wpos++] = '\\';
+		    map[wpos++] = hexdigits[(c>>12) & 0xff];
+		    map[wpos++] = hexdigits[(c>>8) & 0xff];
+		    map[wpos++] = hexdigits[(c>>4) & 0xff];
+		    map[wpos++] = hexdigits[c & 0xff];
+		    map[wpos++] = '\\';
+		  }
+		else if (c > 0xFFFD)
+		  {
+		    map[wpos++] = '\\';
+		    map[wpos++] = hexdigits[(c>>12) & 0xff];
+		    map[wpos++] = hexdigits[(c>>8) & 0xff];
+		    map[wpos++] = hexdigits[(c>>4) & 0xff];
+		    map[wpos++] = hexdigits[c & 0xff];
+		    map[wpos++] = '\\';
+		  }
+		else
+		  {
+		    map[wpos++] = c;
+		  }
+		break;
+	    }
+	}
+      NSZoneFree(NSDefaultMallocZone(), base);
+      return [NSString stringWithCharacters: map length: len];
+    }
+  else
+    {
+      return obj;
+    }
 }
 
 static NSString	*indentStrings[] = {
