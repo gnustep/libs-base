@@ -4654,14 +4654,14 @@ printf(
       setgid (gid);
       setgroups (0, 0);	/* Empty additional groups list */
     }
-#endif /* __MINGW__ */
-
   if (getuid() == 0)
     {
       sprintf(ebuf, "Still running as root after trying to change");
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
+
+#endif /* __MINGW__ */
 
   init_probe();	/* Probe other name servers on net.	*/
 
