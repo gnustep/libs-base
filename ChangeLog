@@ -1,3 +1,8 @@
+Tue Sep 29 13:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/include/Foundation.h: Added some missing files.
+	* src/NSDistantObject.m: Fixed ([-methodSignatureForSelector:)]
+
 Mon Sep 28 17:02:33 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/include/NSObject.h (-perform:, -perform:withObject:,
