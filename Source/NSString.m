@@ -87,6 +87,7 @@
 static Class	NSDataClass;
 static Class	NSStringClass;
 static Class	NSMutableStringClass;
+static Class	NSConstantStringClass;
 
 static Class	GSStringClass;
 static Class	GSMutableStringClass;
@@ -338,6 +339,7 @@ handle_printf_atsign (FILE *stream,
       NSStringClass = self;
       [self setVersion: 1];
       NSMutableStringClass = [NSMutableString class];
+      NSConstantStringClass = [NXConstantString class];
       NSDataClass = [NSData class];
       GSPlaceholderStringClass = [GSPlaceholderString class];
       GSStringClass = [GSString class];
@@ -421,6 +423,11 @@ handle_printf_atsign (FILE *stream,
        */
       return NSAllocateObject (self, 0, z);
     }
+}
+
++ (Class) constantStringClass
+{
+  return NSConstantStringClass;
 }
 
 // Creating Temporary Strings

@@ -319,7 +319,7 @@ static SEL	objSel;
 {
   if (aKey == nil)
     {
-      NSWarnMLog(@"attempt to remove nil key", 0);
+      NSWarnMLog(@"attempt to remove nil key");
       return;
     }
   GSIMapRemoveKey(&map, (GSIMapKey)aKey);

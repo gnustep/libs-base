@@ -159,5 +159,10 @@ typedef	@GS_ADDR@ gsaddr;
 #define	GS_GC_UNHIDE(obj)	((id)obj)
 #endif
 
+/*
+ * Define to say if we use NXConstantString or NSConstantString
+ */
+#define NXConstantString	@NXCONST@
+
 #endif	/* included_GSConfig_h */
 

@@ -204,7 +204,7 @@ static Class GSUnicodeStringClass = 0;
 static Class GSUnicodeSubStringClass = 0;
 static Class GSUnicodeInlineStringClass = 0;
 static Class GSMutableStringClass = 0;
-static Class NXConstantStringClass = 0;
+static Class NSConstantStringClass = 0;
 
 static SEL	convertSel;
 static BOOL	(*convertImp)(id, SEL, NSStringEncoding);
@@ -244,7 +244,7 @@ setup()
       GSCSubStringClass = [GSCSubString class];
       GSUnicodeSubStringClass = [GSUnicodeSubString class];
       GSMutableStringClass = [GSMutableString class];
-      NXConstantStringClass = [NXConstantString class];
+      NSConstantStringClass = [NSString constantStringClass];
 
       /*
        * Cache some selectors and method implementations for
@@ -393,12 +393,12 @@ setup()
 		format: @"-initWithString: given non-string object"];
 
   length = [string length];
-  if (GSObjCIsKindOf(c, GSCStringClass) == YES || c == NXConstantStringClass
+  if (GSObjCIsKindOf(c, GSCStringClass) == YES || c == NSConstantStringClass
     || (GSObjCIsKindOf(c, GSMutableStringClass) == YES
       && ((ivars)string)->_flags.wide == 0))
     {
       /*
-       * For a GSCString subclass, and NXConstantString, or an 8-bit
+       * For a GSCString subclass, and ??ConstantString, or an 8-bit
        * GSMutableString, we can copy the bytes directly into a GSCString.
        */
       me = (ivars)NSAllocateObject(GSCInlineStringClass,
@@ -463,7 +463,7 @@ setup()
  * The following inline functions are used by the concrete string classes
  * to implement their core functionality.
  * GSCString uses the functions with the _c suffix.
- * GSCSubString and NXConstant inherit methods from GSCString.
+ * GSCSubString and ??ConstantString inherit methods from GSCString.
  * GSUnicodeString uses the functions with the _u suffix.
  * GSUnicodeSubString inherits methods from GSUnicodeString.
  * GSMutableString uses all the functions, selecting the _c or _u versions
@@ -588,7 +588,7 @@ compare_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
     || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompCsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NXConstantStringClass
+    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 0))
     return strCompCsCs((id)self, aString, mask, aRange);
   else
@@ -610,7 +610,7 @@ compare_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
     || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompUsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass)
-    || c == NXConstantStringClass
+    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 0))
     return strCompUsCs((id)self, aString, mask, aRange);
   else
@@ -1001,7 +1001,7 @@ isEqual_c(ivars self, id anObject)
       return NO;
     }
   c = GSObjCClass(anObject);
-  if (c == NXConstantStringClass)
+  if (c == NSConstantStringClass)
     {
       ivars	other = (ivars)anObject;
       NSRange	r = {0, self->_count};
@@ -1068,7 +1068,7 @@ isEqual_u(ivars self, id anObject)
       return NO;
     }
   c = GSObjCClass(anObject);
-  if (c == NXConstantStringClass)
+  if (c == NSConstantStringClass)
     {
       ivars	other = (ivars)anObject;
       NSRange	r = {0, self->_count};
@@ -1292,7 +1292,7 @@ rangeOfString_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
     || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeCsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NXConstantStringClass
+    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 0))
     return strRangeCsCs((id)self, aString, mask, aRange);
   else
@@ -1314,7 +1314,7 @@ rangeOfString_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
     || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeUsUs((id)self, aString, mask, aRange);
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NXConstantStringClass
+    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((ivars)aString)->_flags.wide == 0))
     return strRangeUsCs((id)self, aString, mask, aRange);
   else
@@ -1390,7 +1390,7 @@ transmute(ivars self, NSString *aString)
     }
   else
     {
-      if (GSObjCIsKindOf(c, GSCStringClass) || c == NXConstantStringClass
+      if (GSObjCIsKindOf(c, GSCStringClass) || c == NSConstantStringClass
 	|| (c == GSMutableStringClass && other->_flags.wide == 0))
 	{
 	  /*
@@ -2956,7 +2956,7 @@ transmute(ivars self, NSString *aString)
   c = GSObjCClass(anObject);
 
   if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NXConstantStringClass
+    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((ivars)anObject)->_flags.wide == 0))
     {
       ivars	other = (ivars)anObject;
@@ -3003,7 +3003,7 @@ transmute(ivars self, NSString *aString)
   c = GSObjCClass(anObject);
 
   if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || c == NXConstantStringClass
+    || c == NSConstantStringClass
     || (c == GSMutableStringClass && ((ivars)anObject)->_flags.wide == 0))
     {
       ivars	other = (ivars)anObject;

@@ -288,6 +288,7 @@ enum {
 @end
 
 @interface NSString : NSObject <NSString>
++ (Class) constantStringClass;
 @end
 
 @class NSMutableString;

@@ -44,7 +44,7 @@ static Class		GSCStringClass;
 static Class		GSUnicodeStringClass;
 static Class		GSMutableStringClass;
 static Class		GSPlaceholderStringClass;
-static Class		NXConstantStringClass;
+static Class		NSConstantStringClass;
 static NSCharacterSet	*defaultSkipSet;
 static SEL		memSel;
 
@@ -84,7 +84,7 @@ typedef struct {
       GSUnicodeStringClass = [GSUnicodeString class];
       GSMutableStringClass = [GSMutableString class];
       GSPlaceholderStringClass = [GSPlaceholderString class];
-      NXConstantStringClass = [NXConstantString class];
+      NSConstantStringClass = [NSString constantStringClass];
     }
 }
 
@@ -156,7 +156,7 @@ typedef struct {
 				      length: ((ivars)aString)->_count];
 	}
     }
-  else if (c == NXConstantStringClass)
+  else if (c == NSConstantStringClass)
     {
       _isUnicode = NO;
       _string = RETAIN(aString);
