@@ -1,5 +1,25 @@
 Mon May 13 09:03:55 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
+	* src/Makefile.in (FILE_AUTHORS): Added "Scott Christley".
+
+	* src/NSString.m ([NSString -description]): Fix warnings.
+	* src/NSDictionary.m ([NSDictionary -description]): Fix warnings.
+
+	* src/Makefile.in (GNU_OTHER_SRCFILES): Added proplist.l and
+ 	proplist.y.
+	(GNU_MFILES): Added lex.pl.m and proplist.tab.m.
+	(YACC): New variable.
+	(GNU_OTHER_SRCFILES): Added proplist., proplist.tab.h and proplist.y.
+	(proplist.tab.m proplist.tab.h): New target.
+	(lex.pl.m): New target.
+	* proplist.y, proplist.l: New files from Nathan Urban.
+
+	* src/NSData.m ([NSData -description]): Implemented by Nathan Urban.
+	* src/NSArray.m ([NSArrayNonCore -description]): Likewise.
+	* src/NSDictionary.m ([NSDictionary -description]): Likewise.
+	* src/NSString.m ([NSString -description]): Likewise.
+	([NSString -propertyList]): Likewise.
+
 	* src/NSThread.m (NSBecomingMultiThreaded, NSThreadExiting):
  	Initialize the notification strings as static strings, not in
  	+initialize.
