@@ -834,6 +834,12 @@ static NSMapTable	*nodeNames = 0;
 }
 
 
+- (GSXMLNamespace*) ns
+{
+  return [GSXMLNamespace namespaceFrom: ((xmlAttrPtr)(lib))->ns];
+}
+
+
 - (NSString*) value
 {
   if (((xmlNodePtr)lib)->children != NULL
