@@ -1,3 +1,8 @@
+2004-10-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Don't expect a baody where status is 204
+	or 304
+
 2004-10-13  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSBundle.m (_bundle_name_first_match): Remove path
