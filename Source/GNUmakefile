@@ -310,7 +310,6 @@ NSCalendarDate.h \
 NSCharacterSet.h \
 NSClassDescription.h \
 NSCoder.h \
-NSConcreteNumber.h \
 NSConnection.h \
 NSData.h \
 NSDate.h \
@@ -366,6 +365,7 @@ NSZone.h
 FOUNDATION_HEADERS = \
 Foundation.h \
 NSByteOrder.h \
+NSConcreteNumber.h \
 NSKeyValueCoding.h \
 NSPathUtilities.h \
 NSSerialization.h \

@@ -1289,9 +1289,8 @@ fail:
   else if (ifStack == nil)
     {
       ifStack = [[NSMutableArray alloc] initWithCapacity: 4];
-      [ifStack addObject: @"OpenStep"];
-      [ifStack addObject: @"MacOS-X"];
-      [ifStack addObject: @"GNUstep"];
+      [ifStack addObject: [NSSet setWithObjects:
+	@"OpenStep", @"MacOS-X", @"GNUstep", nil]];
     }
 }
 
@@ -1302,65 +1301,21 @@ fail:
  */
 - (void) setStandards: (NSMutableDictionary*)dict
 {
-  unsigned		c = [ifStack count];
-  BOOL			hadG = NO;
-  BOOL			hadM = NO;
-  BOOL			hadO = NO;
+  NSSet	*set = [ifStack lastObject];
 
-  if (c > 0)
+  if ([set count] > 0)
     {
       NSMutableString	*s = nil;
-      BOOL		found = NO;
+      NSEnumerator	*e = [set objectEnumerator];
+      NSString		*name;
 
       s = [NSMutableString stringWithCString: "<standards>"];
-      while (c-- > 0)
+      while ((name = [e nextObject]) != nil)
 	{
-	  NSString	*name = [ifStack objectAtIndex: c];
-
-	  /*
-	   * We don't produce output for empty strings or
-	   * the 'NotGNUstep' string.
-	   */
-	  if ([name isEqualToString: @""] == YES
-	    || [name isEqualToString: @"NotGNUstep"] == YES)
-	    {
-	      continue;
-	    }
-	  if ([name isEqualToString: @"GNUstep"] == YES
-	    || [name isEqualToString: @"NotGNUstep"] == YES)
-	    {
-	      if (hadG == YES)
-		{
-		  continue;
-		}
-	      hadG = YES;
-	    }
-	  if ([name isEqualToString: @"OpenStep"] == YES
-	    || [name isEqualToString: @"NotOpenStep"] == YES)
-	    {
-	      if (hadO == YES)
-		{
-		  continue;
-		}
-	      hadO = YES;
-	    }
-	  if ([name isEqualToString: @"MacOS-X"] == YES
-	    || [name isEqualToString: @"NotMacOS-X"] == YES)
-	    {
-	      if (hadM == YES)
-		{
-		  continue;
-		}
-	      hadM = YES;
-	    }
-	  found = YES;
 	  [s appendFormat: @"<%@ />", name];
 	}
-      if (found == YES)
-	{
-	  [s appendString: @"</standards>"];
-	  [dict setObject: s forKey: @"Standards"];
-	}
+      [s appendString: @"</standards>"];
+      [dict setObject: s forKey: @"Standards"];
     }
 }
 
@@ -2043,71 +1998,42 @@ fail:
 
       if ([directive isEqual: @"endif"] == YES)
 	{
-	  unsigned	c = [ifStack count];
-
-	  if (c == 0)
+	  if ([ifStack count] <= 1)
 	    {
 	      [self log: @"Unexpected #endif (no matching #if)"];
 	    }
 	  else
 	    {
-	      [ifStack removeObjectAtIndex: c - 1];
+	      [ifStack removeLastObject];
 	    }
 	}
       else if ([directive isEqual: @"elif"] == YES)
 	{
-	  unsigned	c = [ifStack count];
-
-	  if (c == 0)
+	  if ([ifStack count] <= 1)
 	    {
 	      [self log: @"Unexpected #else (no matching #if)"];
 	    }
 	  else
 	    {
-	      [ifStack replaceObjectAtIndex: c - 1 withObject: @""];
+	      [ifStack removeLastObject];
+	      [ifStack addObject: [ifStack lastObject]];
 	    }
 	}
       else if ([directive isEqual: @"else"] == YES)
 	{
-	  unsigned	c = [ifStack count];
-
-	  if (c == 0)
+	  if ([ifStack count] <= 1)
 	    {
 	      [self log: @"Unexpected #else (no matching #if)"];
 	    }
 	  else
 	    {
-	      NSString	*item = [ifStack objectAtIndex: --c];
-
-	      if ([item isEqual: @"GNUstep"] == YES)
-		{
-		  [ifStack replaceObjectAtIndex: c withObject: @"NotGNUstep"];
-		}
-	      else if ([item isEqual: @"NotGNUstep"] == YES)
-		{
-		  [ifStack replaceObjectAtIndex: c withObject: @"GNUstep"];
-		}
-	      else if ([item isEqual: @"OpenStep"] == YES)
-		{
-		  [ifStack replaceObjectAtIndex: c withObject: @"NotOpenStep"];
-		}
-	      else if ([item isEqual: @"NotOpenStep"] == YES)
-		{
-		  [ifStack replaceObjectAtIndex: c withObject: @"OpenStep"];
-		}
-	      else if ([item isEqual: @"MacOS-X"] == YES)
-		{
-		  [ifStack replaceObjectAtIndex: c withObject: @"NotMacOS-X"];
-		}
-	      else if ([item isEqual: @"NotMacOS-X"] == YES)
-		{
-		  [ifStack replaceObjectAtIndex: c withObject: @"MacOS-X"];
-		}
+	      [ifStack removeLastObject];
+	      [ifStack addObject: [ifStack lastObject]];
 	    }
 	}
       else if ([directive isEqual: @"if"] == YES)
 	{
-	  [ifStack addObject: @""];
+	  [ifStack addObject: [ifStack lastObject]];
 	}
       else if ([directive hasPrefix: @"if"] == YES)
 	{
@@ -2119,43 +2045,51 @@ fail:
 	    }
 	  if (pos < length && buffer[pos] != '\n')
 	    {
-	      NSString	*arg = [self parseIdentifier];
-	      NSString	*val = @"";
+	      NSMutableSet	*set = [[ifStack lastObject] mutableCopy];
+	      NSString		*arg = [self parseIdentifier];
 
 	      if ([arg isEqual: @"NO_GNUSTEP"] == YES)
 		{
 		  if (isIfDef == YES)
 		    {
-		      val = @"NotGNUstep";
+		      [self log: @"Unexpected #ifdef NO_GNUSTEP (nonsense)"];
 		    }
 		  else
 		    {
-		      val = @"GNUstep";
+		      [set removeObject: @"MacOS-X"];
+		      [set addObject: @"NotMacOS-X"];
+		      [set removeObject: @"OpenStep"];
+		      [set addObject: @"NotOpenStep"];
 		    }
 		}
 	      else if ([arg isEqual: @"STRICT_MACOS_X"] == YES)
 		{
 		  if (isIfDef == YES)
 		    {
-		      val = @"MacOS-X";
+		      [set removeObject: @"NotMacOS-X"];
+		      [set addObject: @"MacOS-X"];
 		    }
 		  else
 		    {
-		      val = @"NotMacOS-X";
+		      [set removeObject: @"MacOS-X"];
+		      [set addObject: @"NotMacOS-X"];
 		    }
 		}
 	      else if ([arg isEqual: @"STRICT_OPENSTEP"] == YES)
 		{
 		  if (isIfDef == YES)
 		    {
-		      val = @"OpenStep";
+		      [set removeObject: @"NotOpenStep"];
+		      [set addObject: @"OpenStep"];
 		    }
 		  else
 		    {
-		      val = @"NotOpenStep";
+		      [set removeObject: @"OpenStep"];
+		      [set addObject: @"NotOpenStep"];
 		    }
 		}
-	      [ifStack addObject: val];
+	      [ifStack addObject: set];
+	      RELEASE(set);
 	    }
 	}
     }

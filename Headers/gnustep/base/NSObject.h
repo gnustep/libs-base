@@ -95,8 +95,10 @@
   Class isa;
 }
 
+#ifndef	NO_GNUSTEP
 #if	GS_WITH_GC
 + (BOOL) requiresTypedMemory;
+#endif
 #endif
 + (void) initialize;
 + (id) allocWithZone: (NSZone*)z;
@@ -164,6 +166,8 @@ NSComparisonResult;
 
 enum {NSNotFound = 0x7fffffff};
 
+#ifndef	NO_GNUSTEP
+
 @interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;
 - notImplemented:(SEL)aSel;
@@ -171,7 +175,6 @@ enum {NSNotFound = 0x7fffffff};
    Removed because OpenStep has -(NSString*)name; */
 @end
 
-#ifndef	NO_GNUSTEP
 /* Global lock to be used by classes when operating on any global
    data that invoke other methods which also access global; thus,
    creating the potential for deadlock. */
@@ -189,7 +192,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 @end
 
 @interface NSObject (GNU)
-- (int) compare: (id)anObject;
+- (NSComparisonResult) compare: (id)anObject;
 /*
  * Default description methods -
  * [descriptionWithLocale:] calls [description]

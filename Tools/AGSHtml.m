@@ -279,14 +279,48 @@ static NSMutableSet	*textNodes = nil;
   if ([dict count] > 1
     || ([dict count] > 0 && [type isEqual: @"title"] == NO))
     {
-      NSArray	*a = [dict allKeys];
-      unsigned	c = [a count];
-      unsigned	i;
-      NSString	*sep = @"";
+      NSArray		*a = [dict allKeys];
+      unsigned		c = [a count];
+      NSMutableSet	*unitNames = nil;
+      unsigned		i;
+      NSString		*sep = @"";
+      BOOL		isInUnit = NO;
 
-      if ([type isEqual: @"ivariable"])
+      if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
 	{
-	  sep = @"*";
+	  isInUnit = YES;
+	  if ([type isEqual: @"ivariable"])
+	    {
+	      sep = @"*";
+	    }
+	  else if (unit != nil)
+	    {
+	      /*
+	       * Create a mutable set containing the unit name.
+	       */
+	      unitNames = [NSMutableSet setWithObject: unit];
+	      /*
+	       * if the unit is a class, add all its categories to the set.
+	       */	
+	      if ([unit hasSuffix: @")"] == NO)
+		{
+		  NSArray	*categoryNames;
+		  unsigned	l = [unit length];
+
+		  categoryNames = [[dict objectForKey: @"category"] allKeys];
+		  i = [categoryNames count];
+		  while (i-- > 0)
+		    {
+		      NSString	*n = [categoryNames objectAtIndex: i];
+
+		      if ([n hasPrefix: unit] == YES && [n length] > l
+			&& [n characterAtIndex: i] == '(')
+			{
+			  [unitNames addObject: n];
+			}
+		    }
+		}
+	    }
 	}
       a = [a sortedArrayUsingSelector: @selector(compare:)];
 
@@ -298,33 +332,25 @@ static NSMutableSet	*textNodes = nil;
 
       for (i = 0; i < c; i++)
 	{
-	  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
+	  if (isInUnit == YES)
 	    {
 	      NSString		*ref = [a objectAtIndex: i];
 	      NSDictionary	*units = [dict objectForKey: ref];
 	      NSMutableArray	*b = [[units allKeys] mutableCopy];
 	      unsigned		j;
 
-	      if (unit != nil)
+	      if (unitNames != nil)
 		{
 		  /*
 		   * Remove any listing for methods not in the
-		   * current unit or in categories of the
-		   * current class.
+		   * current unit or in categories of the current class.
 		   */
 		  for (j = 0; j < [b count]; j++)
 		    {
 		      NSString	*u = [b objectAtIndex: j];
 
-		      if ([unit isEqual: u] == NO)
+		      if ([unitNames member: u] == NO)
 			{
-			  if ([unit hasSuffix: @")"] == NO
-			    && [u hasPrefix: unit] == YES
-			    && [u characterAtIndex: [unit length]]
-			    == '(')
-			    {
-			      continue;
-			    }
 			  [b removeObjectAtIndex: j--];
 			}
 		    }
