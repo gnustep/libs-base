@@ -234,7 +234,7 @@
    range: (NSRange)aRange
 {
   int i;
-  for (i = aRange.location + aRange.length - 1; i >= aRange.location; i++)
+  for (i = aRange.location + aRange.length - 1; i >= aRange.location; i--)
     {
       buffer[i] = [self characterAtIndex:i];
     }
