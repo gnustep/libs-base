@@ -792,16 +792,29 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   [self checkWrite];
   if (isNonBlocking == YES)
-    [self setNonBlocking: NO];
+    {
+      [self setNonBlocking: NO];
+    }
   while (pos < len)
     {
       int	toWrite = len - pos;
 
       if (toWrite > NETBUF_SIZE)
-        toWrite = NETBUF_SIZE;
+	{
+	  toWrite = NETBUF_SIZE;
+	}
       rval = write(descriptor, (char*)ptr+pos, toWrite);
       if (rval < 0)
-        break;
+	{
+	  if (errno == EAGAIN || errno == EINTR)
+	    {
+	      rval = 0;
+	    }
+	  else
+	    {
+	      break;
+	    }
+	}
       pos += rval;
     }
   if (rval < 0)
@@ -1271,7 +1284,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    }
 	  else if (received < 0)
 	    {
-	      if (errno != EAGAIN)
+	      if (errno != EAGAIN && errno != EINTR)
 		{
 		  NSString	*s;
 
@@ -1314,7 +1327,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      written = write(descriptor, (char*)ptr+writePos, length-writePos);
 	      if (written <= 0)
 		{
-		  if (errno != EAGAIN)
+		  if (written < 0 && errno != EAGAIN && errno != EINTR)
 		    {
 		      NSString	*s;
 
@@ -1662,7 +1675,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    }
 	  else if (received < 0)
 	    {
-	      if (errno != EAGAIN)
+	      if (errno != EAGAIN && errno != EINTR)
 		{
 		  NSString	*s;
 
@@ -1714,7 +1727,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		}
 	      if (written <= 0)
 		{
-		  if (errno != EAGAIN)
+		  if (written < 0 && errno != EAGAIN && errno != EINTR)
 		    {
 		      NSString	*s;
 
@@ -1907,13 +1920,17 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   [self checkWrite];
   if (isNonBlocking == YES)
-    [self setNonBlocking: NO];
+    {
+      [self setNonBlocking: NO];
+    }
   while (pos < len)
     {
       int	toWrite = len - pos;
 
       if (toWrite > NETBUF_SIZE)
-        toWrite = NETBUF_SIZE;
+	{
+	  toWrite = NETBUF_SIZE;
+	}
       if (connected)
 	{
 	  rval = SSL_write(ssl, (char*)ptr+pos, toWrite);
@@ -1923,7 +1940,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  rval = write(descriptor, (char*)ptr+pos, toWrite);
 	}
       if (rval < 0)
-        break;
+	{
+	  if (errno == EAGAIN == errno == EINTR)
+	    {
+	      rval = 0;
+	    }
+	  else
+	    {
+	      break;
+	    }
+	}
       pos += rval;
     }
   if (rval < 0)

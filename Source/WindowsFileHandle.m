@@ -731,16 +731,29 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   [self checkWrite];
   if (isNonBlocking == YES)
-    [self setNonBlocking: NO];
+    {
+      [self setNonBlocking: NO];
+    }
   while (pos < len)
     {
       int	toWrite = len - pos;
 
       if (toWrite > NETBUF_SIZE)
-        toWrite = NETBUF_SIZE;
+	{
+	  toWrite = NETBUF_SIZE;
+	}
       rval = write(descriptor, (char*)ptr+pos, toWrite);
       if (rval < 0)
-        break;
+	{
+	  if (errno == EAGAIN || errno == EINTR)
+	    {
+	      rval = 0;
+	    }
+	  else
+	    {
+	      break;
+	    }
+	}
       pos += rval;
     }
   if (rval < 0)
@@ -1206,7 +1219,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    }
 	  else if (received < 0)
 	    {
-	      if (errno != EAGAIN)
+	      if (errno != EAGAIN && errno != EINTR)
 		{
 		  NSString	*s;
 
@@ -1249,12 +1262,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      written = write(descriptor, (char*)ptr+writePos, length-writePos);
 	      if (written <= 0)
 		{
-		  if (errno != EAGAIN)
+		  if (written < 0 && errno != EAGAIN && errno != EINTR)
 		    {
 		      NSString	*s;
 
 		      s = [NSString stringWithFormat:
-				@"Write attempt failed - %s", GSLastErrorStr(errno)];
+			@"Write attempt failed - %s", GSLastErrorStr(errno)];
 		      [info setObject: s forKey: GSFileHandleNotificationError];
 		      [self postWriteNotification];
 		    }
@@ -1275,13 +1288,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  int	len = sizeof(result);
 
 	  if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
-		(char*)&result, &len) == 0 && result != 0)
+	    (char*)&result, &len) == 0 && result != 0)
 	    {
-		NSString	*s;
+	      NSString	*s;
 
-		s = [NSString stringWithFormat: @"Connect attempt failed - %s",
-			      GSLastErrorStr(result)];
-		[info setObject: s forKey: GSFileHandleNotificationError];
+	      s = [NSString stringWithFormat: @"Connect attempt failed - %s",
+		GSLastErrorStr(result)];
+	      [info setObject: s forKey: GSFileHandleNotificationError];
 	    }
 	  else
 	    {
