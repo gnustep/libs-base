@@ -37,8 +37,8 @@
  *      message about it - they include installation path information.
  */
 #define stringify_it(X) #X
-#define make_gdnc_cmd(X)      stringify_it(X) "/Tools/" GNUSTEP_TARGET_DIR "/" stringify_it(GNUSTEP_LIB_COMBO) "/gdnc &"
-#define make_gdnc_err(X)      "check that " stringify_it(X) "/Tools/" GNUSTEP_TARGET_DIR "/" stringify_it(GNUSTEP_LIB_COMBO) "/gdnc is running."
+#define make_gdnc_cmd(X)      stringify_it(X) "/Tools/" GNUSTEP_TARGET_DIR "/" LIBRARY_COMBO "/gdnc &"
+#define make_gdnc_err(X)      "check that " stringify_it(X) "/Tools/" GNUSTEP_TARGET_DIR "/" LIBRARY_COMBO "/gdnc is running."
 
 /*
  *	Global variables for distributed notification center types.
@@ -350,7 +350,7 @@ NSLog(@"Connection to GDNC server established.\n");
 	      recursion = NO;
 	      [NSException raise: NSInternalInconsistencyException
 			  format: @"unable to contact GDNC server - %s",
-			      make_gdnc_err(GNUSTEP_INSTALL_PREFIX)];
+		      make_gdnc_err(GNUSTEP_INSTALL_PREFIX)];
 	    }
 	}
     }
