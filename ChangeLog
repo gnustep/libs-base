@@ -4,6 +4,10 @@
 	change ... seemed to cause problems on some systems.
 	* Tools/gdnc.m: ditto.
 	* Source/NSDebug.m: Small thread safely fix.
+	* Source/NSThread.m: Avoid multiple copies of housekeeping timer.
+	* Source/NSConnection.m: Fix thread related memory leak leaving
+	an NSRunLoop in a connection when the connection is no longer
+	using it.
 
 2003-07-23  Richard Frith-Macdonald <rfm@gnu.org>
 

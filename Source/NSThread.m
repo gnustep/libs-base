@@ -325,8 +325,9 @@ GSRunLoopForThread(NSThread *t)
           r = [NSRunLoop new];
           [d setObject: r forKey: key];
           RELEASE(r);
-	  if (t == nil || t == defaultThread)
+	  if (housekeeper == nil && (t == nil || t == defaultThread))
 	    {
+	      CREATE_AUTORELEASE_POOL	(arp);
 	      NSNotificationCenter	*ctr;
 	      NSNotification		*not;
 	      NSInvocation		*inv;
@@ -334,7 +335,7 @@ GSRunLoopForThread(NSThread *t)
 
 	      ctr = [NSNotificationCenter defaultCenter];
 	      not = [NSNotification notificationWithName: @"GSHousekeeping"
-						  object: r
+						  object: nil
 						userInfo: nil];
 	      sel = @selector(postNotification:);
 	      inv = [NSInvocation invocationWithMethodSignature:
@@ -344,10 +345,14 @@ GSRunLoopForThread(NSThread *t)
 	      [inv setArgument: &not atIndex: 2];
 	      [inv retainArguments];
 		
-	      housekeeper = [NSTimer timerWithTimeInterval: 30.0
-						invocation: inv
-						   repeats: YES];
+	      housekeeper = [[NSTimer alloc] initWithFireDate: nil
+						     interval: 30.0
+						       target: inv
+						     selector: NULL
+						     userInfo: nil
+						      repeats: YES];
 	      [r addTimer: housekeeper forMode: NSDefaultRunLoopMode];
+	      RELEASE(arp);
 	    }
         }
     }
@@ -408,23 +413,17 @@ gnustep_base_thread_callback()
  */
 + (NSThread*) currentThread
 {
-  NSThread	*t;
+  NSThread	*t = nil;
  
   if (entered_multi_threaded_state == NO)
     {
       /*
        * The NSThread class has been initialized - so we will have a default
-       * thread set up.
+       * thread set up unless the default thread subsequently exited.
        */
       t = defaultThread;
-      if (t == nil)
-	{
-	  fprintf(stderr, "ALERT ... [NSThread +currentThread] ... the "
-	    "default thread is nil!");
-	  fflush(stderr);	// Needed for windoze
-	}
     }
-  else
+  if (t == nil)
     {
       t = (NSThread*)objc_thread_get_data();
       if (t == nil)
@@ -629,6 +628,10 @@ gnustep_base_thread_callback()
 	  NSLog(@"Oops - leak - thread dictionary is %@", _thread_dictionary);
 	  [NSAutoreleasePool _endThread: self];
 	}
+    }
+  if (self == defaultThread)
+    {
+      defaultThread = nil;
     }
   NSDeallocateObject(self);
 }

@@ -2633,122 +2633,160 @@ static void callEncoder (DOContext *ctxt)
   NSTimeInterval	delay_interval = last_interval;
   NSDate		*delay_date = nil;
   NSRunLoop		*runLoop = [runLoopClass currentRunLoop];
+  BOOL			isLocked = NO;
+  BOOL			addedRunLoop = NO;
 
-  if (debug_connection > 5)
-    NSLog(@"Waiting for reply sequence %d on %x:%x",
-      sn, self, [NSThread currentThread]);
-  M_LOCK(_queueGate);
-  while (_isValid == YES
-    && (node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn)) != 0
-    && node->value.obj == dummyObject)
+  /*
+   * If we have sent out a request on a run loop that we don't already
+   * know about, it must be on a new thread - so if we have multipleThreads
+   * enabled, we must add the run loop of the new thread so that we can
+   * get the reply in this thread.
+   */
+  if (_multipleThreads == YES
+    && [_runLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)
     {
-      M_UNLOCK(_queueGate);
-      if (timeout_date == nil)
-	{
-	  timeout_date = [dateClass allocWithZone: NSDefaultMallocZone()];
-	  timeout_date
-	    = [timeout_date initWithTimeIntervalSinceNow: _replyTimeout];
-	}
-      if (_multipleThreads == YES)
-	{
-	  NSDate		*limit_date;
-	  NSTimeInterval	next_interval;
+      [self addRunLoop: runLoop];
+      addedRunLoop = YES;
+    }
 
-	  /*
-	   * If multiple threads are using this connections, another
-	   * thread may read the reply we are waiting for - so we must
-	   * break out of the runloop frequently to check.  We do this
-	   * by setting a small delay and increasing it each time round
-	   * so that this semi-busy wait doesn't consume too much
-	   * processor time (I hope).
-	   * We set an upper limit on the delay to avoid responsiveness
-	   * problems.
-	   */
-	  RELEASE(delay_date);
-	  delay_date = [dateClass allocWithZone: NSDefaultMallocZone()];
-	  if (delay_interval < 1.0)
+  NS_DURING
+    {
+      if (debug_connection > 5)
+	NSLog(@"Waiting for reply sequence %d on %x:%x",
+	  sn, self, [NSThread currentThread]);
+      M_LOCK(_queueGate); isLocked = YES;
+      while (_isValid == YES
+	&& (node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn)) != 0
+	&& node->value.obj == dummyObject)
+	{
+	  M_UNLOCK(_queueGate); isLocked = NO;
+	  if (timeout_date == nil)
 	    {
-	      next_interval = last_interval + delay_interval;
-	      last_interval = delay_interval;
-	      delay_interval = next_interval;
+	      timeout_date = [dateClass allocWithZone: NSDefaultMallocZone()];
+	      timeout_date
+		= [timeout_date initWithTimeIntervalSinceNow: _replyTimeout];
 	    }
-	  delay_date
-	    = [delay_date initWithTimeIntervalSinceNow: delay_interval];
-
-	  /*
-	   * We must not set a delay date that is further in the future
-	   * than the timeout date for the response to be returned.
-	   */
-	  if ([timeout_date earlierDate: delay_date] == timeout_date)
+	  if (_multipleThreads == YES)
 	    {
-	      limit_date = timeout_date;
+	      NSDate		*limit_date;
+	      NSTimeInterval	next_interval;
+
+	      /*
+	       * If multiple threads are using this connections, another
+	       * thread may read the reply we are waiting for - so we must
+	       * break out of the runloop frequently to check.  We do this
+	       * by setting a small delay and increasing it each time round
+	       * so that this semi-busy wait doesn't consume too much
+	       * processor time (I hope).
+	       * We set an upper limit on the delay to avoid responsiveness
+	       * problems.
+	       */
+	      RELEASE(delay_date);
+	      delay_date = [dateClass allocWithZone: NSDefaultMallocZone()];
+	      if (delay_interval < 1.0)
+		{
+		  next_interval = last_interval + delay_interval;
+		  last_interval = delay_interval;
+		  delay_interval = next_interval;
+		}
+	      delay_date
+		= [delay_date initWithTimeIntervalSinceNow: delay_interval];
+
+	      /*
+	       * We must not set a delay date that is further in the future
+	       * than the timeout date for the response to be returned.
+	       */
+	      if ([timeout_date earlierDate: delay_date] == timeout_date)
+		{
+		  limit_date = timeout_date;
+		}
+	      else
+		{
+		  limit_date = delay_date;
+		}
+
+	      /*
+	       * If the runloop returns without having done anything, AND we
+	       * were waiting for the final timeout, then we must break out
+	       * of the loop.
+	       */
+	      if ([runLoop runMode: NSConnectionReplyMode
+			beforeDate: limit_date] == NO)
+		{
+		  if (limit_date == timeout_date)
+		    {
+		      M_LOCK(_queueGate); isLocked = YES;
+		      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
+		      break;
+		    }
+		}
 	    }
 	  else
 	    {
-	      limit_date = delay_date;
-	    }
-
-	  /*
-	   * If the runloop returns without having done anything, AND we
-	   * were waiting for the final timeout, then we must break out
-	   * of the loop.
-	   */
-	  if ([runLoop runMode: NSConnectionReplyMode
-		    beforeDate: limit_date] == NO)
-	    {
-	      if (limit_date == timeout_date)
+	      /*
+	       * Normal operation - wait for data or for a timeout.
+	       */
+	      if ([runLoop runMode: NSConnectionReplyMode
+			beforeDate: timeout_date] == NO)
 		{
-		  M_LOCK(_queueGate);
+		  M_LOCK(_queueGate); isLocked = YES;
 		  node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
 		  break;
 		}
 	    }
+	  M_LOCK(_queueGate); isLocked = YES;
+	}
+      if (node == 0)
+	{
+	  rmc = nil;
 	}
       else
 	{
-	  /*
-	   * Normal operation - wait for data to be received or for a timeout.
-	   */
-	  if ([runLoop runMode: NSConnectionReplyMode
-		    beforeDate: timeout_date] == NO)
+	  rmc = node->value.obj;
+	  GSIMapRemoveKey(_replyMap, (GSIMapKey)sn);
+	}
+      M_UNLOCK(_queueGate); isLocked = NO;
+      TEST_RELEASE(delay_date);
+      TEST_RELEASE(timeout_date);
+      if (rmc == nil)
+	{
+	  [NSException raise: NSInternalInconsistencyException
+		      format: @"no reply message available"];
+	}
+      if (rmc == dummyObject)
+	{
+	  if (_isValid == YES)
 	    {
-	      M_LOCK(_queueGate);
-	      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn);
-	      break;
+	      [NSException raise: NSPortTimeoutException
+			  format: @"timed out waiting for reply"];
+	    }
+	  else
+	    {
+	      [NSException raise: NSPortTimeoutException
+			  format: @"invalidated while awaiting reply"];
 	    }
 	}
-      M_LOCK(_queueGate);
-    }
-  if (node == 0)
-    {
-      rmc = nil;
-    }
-  else
-    {
-      rmc = node->value.obj;
-      GSIMapRemoveKey(_replyMap, (GSIMapKey)sn);
-    }
-  M_UNLOCK(_queueGate);
-  TEST_RELEASE(delay_date);
-  TEST_RELEASE(timeout_date);
-  if (rmc == nil)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"no reply message available"];
-    }
-  if (rmc == dummyObject)
-    {
-      if (_isValid == YES)
+      if (addedRunLoop == YES)
 	{
-	  [NSException raise: NSPortTimeoutException
-		      format: @"timed out waiting for reply"];
-	}
-      else
-	{
-	  [NSException raise: NSPortTimeoutException
-		      format: @"invalidated while awaiting reply"];
+	  addedRunLoop = NO;
+	  [self removeRunLoop: runLoop];
 	}
     }
+  NS_HANDLER
+    {
+      if (addedRunLoop == YES)
+	{
+	  addedRunLoop = NO;
+	  [self removeRunLoop: runLoop];
+	}
+      if (isLocked == YES)
+	{
+	  M_UNLOCK(_queueGate);
+	}
+      [localException raise];
+    }
+  NS_ENDHANDLER
+
   NSDebugMLLog(@"NSConnection", @"Consuming reply RMC %d on %x", sn, self);
   return rmc;
 }
@@ -2951,21 +2989,6 @@ static void callEncoder (DOContext *ctxt)
 			  reserved: [_sendPort reservedSpaceLength]];
 
   M_LOCK(_refGate);
-  /*
-   * If we have sent out a request on a run loop that we don't already
-   * know about, it must be on a new thread - so if we have multipleThreads
-   * enabled, we must add the run loop of the new thread so that we can
-   * get the reply in this thread.
-   */
-  if (_multipleThreads == YES && needsReply == YES)
-    {
-      NSRunLoop	*loop = [runLoopClass currentRunLoop];
-
-      if ([_runLoops indexOfObjectIdenticalTo: loop] == NSNotFound)
-	{
-	  [self addRunLoop: loop];
-	}
-    }
 
   /*
    * We replace the code we have just used in the cache, and tell it not to
