@@ -1,3 +1,13 @@
+Sat Oct  6 16:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/FastMap.x: New map table for dictionaries.
+	* src/include/fast.x: New stuff for avoiding objc message overheads.
+	* src/NSGCString.m: Hashing and comparison performance improvments
+	* src NSGDictionary.m: Optimisation
+	* src NSGString.m: Optimisation
+	* src/NSObject.m: Optimisation
+	* src/NSString.m: Optimisation
+
 Sat Oct  3 23:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSString.m: Moved NXConstantString stuff out to NSGCString.m
