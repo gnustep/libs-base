@@ -149,8 +149,16 @@ NXStringTable.m \
 Storage.m
 
 GNUSTEP_MFILES = \
+NSAllocateObject.m \
 NSAutoreleasePool.m \
+NSBundle.m \
+NSCopyObject.m \
+NSDeallocateObject.m \
+NSException.m \
+NSGeometry.m \
+NSNumber.m \
 NSObject.m \
+NSRange.m \
 NSString.m
 
 GNU_CFILES = \
@@ -259,8 +267,13 @@ objc/README
 
 GNUSTEP_HEADERS = \
 foundation/NSAutoreleasePool.h \
+foundation/NSBundle.h \
+foundation/NSException.h \
+foundation/NSGeometry.h \
+foundation/NSNumber.h \
 foundation/NSObjCRuntime.h \
 foundation/NSObject.h \
+foundation/NSRange.h \
 foundation/NSString.h \
 foundation/NSZone.h \
 foundation/README
