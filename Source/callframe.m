@@ -558,6 +558,10 @@ callframe_do_call_opts (const char *encoded_types,
 	}
     }
 
+  if (retval != 0)
+    NSZoneFree(NSDefaultMallocZone(), retval);
+  callframe_free(cframe);
+
   return;
 }
 
@@ -758,7 +762,12 @@ callframe_build_return_opts (NSInvocation *inv,
 	}
       (*decoder) (0, 0, 0, 0);	/* Tell it we have finished.	*/
     }
+
+  if (retval != 0)
+    NSZoneFree(NSDefaultMallocZone(), retval);
   callframe_free(cframe);
+
+  return;
 }
 
 void
