@@ -313,7 +313,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
 			}
 		      if (i < len - 2)
 			{
-NSLog(@"Command: %d %d", ptr[1], ptr[2]);
+// NSLog(@"Command: %d %d", ptr[1], ptr[2]);
 			  len -= 3;
 			  if (len - i > 0)
 			    {
@@ -337,7 +337,7 @@ NSLog(@"Command: %d %d", ptr[1], ptr[2]);
 		    }
 		  else
 		    {
-NSLog(@"Command: %d", ptr[1]);
+// NSLog(@"Command: %d", ptr[1]);
 		      /*
 		       * Strip unimplemented escape sequence.
 		       */
@@ -425,7 +425,7 @@ NSLog(@"Command: %d", ptr[1]);
        */
       if (toWrite != nil)
 	{
-//NSLog(@"Write - '%@'", toWrite);
+// NSLog(@"Write - '%@'", toWrite);
 	  [remote writeInBackgroundAndNotify: toWrite];
 	  DESTROY(toWrite);
 	}
@@ -519,12 +519,12 @@ static NSLock			*urlLock = nil;
   if ([[newUrl scheme] caseInsensitiveCompare: @"ftp"] == NSOrderedSame)
     {
       NSString	*page = [newUrl absoluteString];
-      //NSLog(@"Lookup for handle for '%@'", page);
+// NSLog(@"Lookup for handle for '%@'", page);
       [urlLock lock];
       obj = [urlCache objectForKey: page];
       AUTORELEASE(RETAIN(obj));
       [urlLock unlock];
-      //NSLog(@"Found handle %@", obj);
+// NSLog(@"Found handle %@", obj);
     }
   return obj;
 }
@@ -563,7 +563,7 @@ static NSLock			*urlLock = nil;
 	  [urlLock lock];
 	  [urlCache setObject: self forKey: page];
 	  [urlLock unlock];
-	  //NSLog(@"Cache handle %@ for '%@'", self, page);
+// NSLog(@"Cache handle %@ for '%@'", self, page);
 	}
     }
   return self;
@@ -583,60 +583,157 @@ static NSLock			*urlLock = nil;
   NSDictionary		*info = [n userInfo];
   NSString		*e = [info objectForKey: GSTelnetErrorKey];
   NSArray		*text;
+  NSString		*line;
 
   if (e == nil)
+    {
+      text = [info objectForKey: GSTelnetTextKey];
+      line = [text objectAtIndex: 0];
+// NSLog(@"Ctl: %@", text);
+      if (state == cConnect)
+	{
+	  if ([line hasPrefix: @"2"] == YES)
+	    {
+	      NSString	*user = [url user];
+
+	      if (user == nil)
+		{
+		  user = @"anonymous";
+		}
+	      [cHandle putTelnetLine: [@"USER " stringByAppendingString: user]];
+	      state = sentUser;
+	    }
+	  else
+	    {
+	      e = line;
+	    }
+	}
+      else if (state == sentUser)
+	{
+	  if ([line hasPrefix: @"230"] == YES)	// No password required
+	    {
+	      [cHandle putTelnetLine: @"TYPE I"];
+	      state = sentType;
+	    }
+	  else if ([line hasPrefix: @"331"] == YES)
+	    {
+	      NSString	*pass = [url password];
+
+	      if (pass == nil)
+		{
+		  pass = [url user];
+		  if (pass == nil)
+		    {
+		      pass = @"GNUstep@here";
+		    }
+		  else
+		    {
+		      pass = @"";
+		    }
+		}
+	      [cHandle putTelnetLine: [@"PASS " stringByAppendingString: pass]];
+	      state = sentPass;
+	    }
+	  else
+	    {
+	      e = line;
+	    }
+	}
+      else if (state == sentPass)
+	{
+	  if ([line hasPrefix: @"2"] == YES)
+	    {
+	      [cHandle putTelnetLine: @"TYPE I"];
+	      state = sentType;
+	    }
+	  else
+	    {
+	      e = line;
+	    }
+	}
+      else if (state == sentType)
+	{
+	  if ([line hasPrefix: @"2"] == YES)
+	    {
+	      [cHandle putTelnetLine: @"PASV"];
+	      state = sentPasv;
+	    }
+	  else
+	    {
+	      e = line;
+	    }
+	}
+      else if (state == sentPasv)
+	{
+	  if ([line hasPrefix: @"227"] == YES)
+	    {
+	      NSRange	r = [line rangeOfString: @"("];
+	      NSString	*h = nil;
+	      NSString	*p = nil;
+
+	      if (r.length > 0)
+		{
+		  unsigned	pos = NSMaxRange(r);
+
+		  r = [line rangeOfString: @")"];
+		  if (r.length > 0 && r.location > pos)
+		    {
+		      NSArray	*a;
+
+		      r = NSMakeRange(pos, r.location - pos);
+		      line = [line substringWithRange: r];
+		      a = [line componentsSeparatedByString: @","];
+		      if ([a count] == 6)
+			{
+			  h = [NSString stringWithFormat: @"%@.%@.%@.%@",
+			    [a objectAtIndex: 0], [a objectAtIndex: 1],
+			    [a objectAtIndex: 2], [a objectAtIndex: 3]];
+			  p = [NSString stringWithFormat: @"%d",
+			    [[a objectAtIndex: 4] intValue] * 256
+			    + [[a objectAtIndex: 5] intValue]];
+			}
+		    }
+		}
+	      if (h == nil)
+		{
+		  e = @"Invalid host/port information for pasv command";
+		}
+	      else
+		{
+		  NSNotificationCenter	*nc;
+
+		  dHandle = [NSFileHandle
+		    fileHandleAsClientInBackgroundAtAddress: h service: p
+		    protocol: @"tcp"];
+		  RETAIN(dHandle);
+		  nc = [NSNotificationCenter defaultCenter];
+		  [nc addObserver: self
+			 selector: @selector(_data:)
+			     name: GSFileHandleConnectCompletionNotification
+			   object: dHandle];
+		  state = data;
+		}
+	    }
+	  else
+	    {
+	      e = line;
+	    }
+	}
+      else if (state == data)
+	{
+	}
+      else
+	{
+	  e = @"Message in unknown state";
+	}
+    }
+  if (e != nil)
     {
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason: e];
-      return;
-    }
-  text = [info objectForKey: GSTelnetTextKey];
-NSLog(@"Ctl: %@", text);
-  if (state == cConnect)
-    {
-      NSString	*user = [url user];
-
-      if (user == nil)
-	{
-	  user = @"anonymous";
-	}
-      [cHandle putTelnetLine: [@"USER " stringByAppendingString: user]];
-      state = sentUser;
-    }
-  else if (state == sentUser)
-    {
-      NSString	*pass = [url password];
-
-      if (pass == nil)
-	{
-	  pass = [url user];
-	  if (pass == nil)
-	    {
-	      pass = @"GNUstep@here";
-	    }
-	  else
-	    {
-	      pass = @"";
-	    }
-	}
-      [cHandle putTelnetLine: [@"PASS " stringByAppendingString: pass]];
-      state = sentPass;
-    }
-  else if (state == sentPass)
-    {
-      [cHandle putTelnetLine: @"TYPE I"];
-      state = sentType;
-    }
-  else if (state == sentType)
-    {
-      [cHandle putTelnetLine: @"PASV"];
-      state = sentPasv;
-    }
-  else if (state == sentPasv)
-    {
     }
 }
 
@@ -647,6 +744,7 @@ NSLog(@"Ctl: %@", text);
   NSDictionary          *info = [n userInfo];
   NSString		*e = [info objectForKey: GSFileHandleNotificationError];
 
+// NSLog(@"_data: %@", n);
   [nc removeObserver: self name: name object: dHandle];
 
   /*
@@ -659,6 +757,7 @@ NSLog(@"Ctl: %@", text);
 	  NSLog(@"Unable to connect to %@:%@ via socket",
 	    [dHandle socketAddress], [dHandle socketService]);
 	}
+// NSLog(@"Fail - %@", e);
       /*
        * Tell superclass that the load failed - let it do housekeeping.
        */
@@ -670,6 +769,8 @@ NSLog(@"Ctl: %@", text);
     {
       if (wData == nil)
 	{
+	  [cHandle putTelnetLine:
+	    [NSString stringWithFormat: @"RETR %@", [url path]]];
 	  [nc addObserver: self
 		 selector: @selector(_data:)
 		     name: NSFileHandleReadCompletionNotification
@@ -678,6 +779,8 @@ NSLog(@"Ctl: %@", text);
 	}
       else
 	{
+	  [cHandle putTelnetLine:
+	    [NSString stringWithFormat: @"STOR %@", [url path]]];
 	  [nc addObserver: self
 		 selector: @selector(_data:)
 		     name: GSFileHandleWriteCompletionNotification
@@ -703,8 +806,22 @@ NSLog(@"Ctl: %@", text);
 	    }
 	  else
 	    {
-	      [self didLoadBytes: nil loadComplete: YES];
-	      [self endLoadInBackground];
+	      NSNotificationCenter	*nc;
+
+	      nc = [NSNotificationCenter defaultCenter];
+	      if (dHandle != nil)
+		{
+		  [nc removeObserver: self name: nil object: dHandle];
+		  [dHandle closeFile];
+		  DESTROY(dHandle);
+		}
+	      [nc removeObserver: self
+			    name: GSTelnetNotification
+			  object: cHandle];
+	      DESTROY(cHandle);
+	      state = idle;
+
+	      [self didLoadBytes: d loadComplete: YES];
 	    }
 	}
       else
@@ -755,12 +872,6 @@ NSLog(@"Ctl: %@", text);
     }
 
   [self beginLoadInBackground];
-  if (dHandle != nil)
-    {
-      [dHandle closeFile];
-      DESTROY(dHandle);
-    }
-
   host = [url host];
   p = [url port];
   if (p != nil)
