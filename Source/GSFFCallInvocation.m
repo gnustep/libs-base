@@ -716,6 +716,44 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 @end
 
 /*
+ * Return YES if the selector contains protocol qualifiers.
+ */
+static BOOL
+gs_protocol_selector(const char *types)
+{
+  if (types == 0)
+    {
+      return NO;
+    }
+  while (*types != '\0')
+    {
+      if (*types == '+' || isdigit(*types))
+	{
+	  types = objc_skip_offset(types);
+	}
+      while (*types == _C_CONST || *types == _C_GCINVISIBLE)
+	{
+	  types++;
+	}
+      if (*types == _C_IN
+	|| *types == _C_INOUT
+	|| *types == _C_OUT
+	|| *types == _C_BYCOPY
+	|| *types == _C_BYREF
+	|| *types == _C_ONEWAY)
+	{
+	  return YES;
+	}
+      if (*types == '\0')
+	{
+	  return NO;
+	}
+      types = objc_skip_typespec(types);
+    }
+  return NO;
+}
+
+/*
  * Wim Oudshoorn (6 aug 2001)
  *
  * The function that performs the actual forwarding
@@ -743,7 +781,6 @@ GSInvocationCallback (void *callback_data, va_alist args)
   NSMethodSignature	*sig;
   GSMethod               fwdInvMethod;
   
-    
   typeinfo = (vacallReturnTypeInfo *) callback_data;
     
   if (typeinfo->type != __VAstruct)
@@ -769,7 +806,19 @@ GSInvocationCallback (void *callback_data, va_alist args)
                   object_get_class_name (obj), sel_get_name(selector));
     }
   
-  sig = [obj methodSignatureForSelector: selector];
+  sig = nil;
+  if (gs_protocol_selector(sel_get_type(selector)) == YES)
+    {
+      /*
+       * We already have protocol information locally, so we don't need
+       * to get it from the remote system.
+       */
+      sig = [NSMethodSignature signatureWithObjCTypes: sel_get_type(selector)];
+    }
+  if (sig == nil)
+    {
+      sig = [obj methodSignatureForSelector: selector];
+    }
 
   /*
    * If we got a method signature from the receiving object,
