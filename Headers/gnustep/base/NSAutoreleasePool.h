@@ -1,5 +1,5 @@
 /* Interface for NSAutoreleasePool for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -52,12 +52,10 @@ struct autorelease_thread_vars
 };
 
 /* Initialize an autorelease_thread_vars structure for a new thread.
-   This function is called in NSThread each time an NSThread is created. */
-static inline void
-init_autorelease_thread_vars (struct autorelease_thread_vars *tv)
-{
-  memset (tv, 0, sizeof (typeof (*tv)));
-}
+   This function is called in NSThread each time an NSThread is created.
+   TV should be of type `struct autorelease_thread_vars *' */
+#define init_autorelease_thread_vars(TV)  memset (tv, 0, sizeof (typeof (*tv)))
+
 
 
 /* Each pool holds its objects-to-be-released in a linked-list of 
