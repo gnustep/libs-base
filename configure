@@ -4242,7 +4242,7 @@ cat > conftest.$ac_ext <<EOF
 #include "confdefs.h"
 #include <limits.h>
 	#if defined(LLONG_MAX)
-	#if LONG_MAX = LLONG_MAX
+	#if LONG_MAX == LLONG_MAX
 	#error long max equals long long max
 	#endif
 	#else

@@ -640,7 +640,7 @@ AC_MSG_CHECKING([whether we have LLONG_MAX])
 
 AC_TRY_CPP([#include <limits.h>
 	#if defined(LLONG_MAX)
-	#if LONG_MAX = LLONG_MAX
+	#if LONG_MAX == LLONG_MAX
 	#error long max equals long long max
 	#endif
 	#else
