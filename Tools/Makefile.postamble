@@ -15,7 +15,7 @@
 # after-all::
 
 # Things to do before installing
-before-install::	documentation
+before-install::
 
 # Things to do after installing
 after-install::

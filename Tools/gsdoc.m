@@ -2204,9 +2204,11 @@ main(int argc, char **argv)
 }
 
 #else
+int
 main()
 {
   NSLog(@"No libxml available");
+  return 0;
 }
 #endif
 
