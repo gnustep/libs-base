@@ -2,7 +2,7 @@
 
 @c %**start of header
 @setfilename manual.info
-@settitle Objective-C, Programming Manual
+@settitle Objective-C GNUstep Base Programming Manual
 @c %**end of header
 
 @ifinfo
