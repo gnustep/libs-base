@@ -1382,7 +1382,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	    if (_initialPass == NO)
 	      {
 		/*
-		 *	Special case - a nul pointer gets an xref of zero
+		 *	Special case - a null pointer gets an xref of zero
 		 */
 		(*_eTagImp)(_dst, eTagSel, _GSC_PTR | _GSC_XREF | _GSC_X_0);
 	      }
@@ -1451,7 +1451,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	if (*(Class*)buf == 0)
 	  {
 	    /*
-	     *	Special case - a nul pointer gets an xref of zero
+	     *	Special case - a null pointer gets an xref of zero
 	     */
 	    (*_eTagImp)(_dst, eTagSel, _GSC_CLASS | _GSC_XREF | _GSC_X_0);
 	  }
@@ -1519,7 +1519,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	if (*(SEL*)buf == 0)
 	  {
 	    /*
-	     *	Special case - a nul pointer gets an xref of zero
+	     *	Special case - a null pointer gets an xref of zero
 	     */
 	    (*_eTagImp)(_dst, eTagSel, _GSC_SEL | _GSC_XREF | _GSC_X_0);
 	  }
@@ -1550,7 +1550,7 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	if (*(char**)buf == 0)
 	  {
 	    /*
-	     *	Special case - a nul pointer gets an xref of zero
+	     *	Special case - a null pointer gets an xref of zero
 	     */
 	    (*_eTagImp)(_dst, eTagSel, _GSC_CHARPTR | _GSC_XREF | _GSC_X_0);
 	  }

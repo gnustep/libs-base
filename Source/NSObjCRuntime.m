@@ -81,7 +81,7 @@ NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
  * variable of obj called name.  It returns YES if the variable
  * was found, NO otherwise.  If it returns YES, then the values
  * pointed to by type, size, and offset will be set (except where
- * they are nul pointers).
+ * they are null pointers).
  */
 BOOL
 GSFindInstanceVariable(id obj, const char *name,
@@ -199,7 +199,7 @@ GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
  * supplied), or via direct access (if type, size, and offset are
  * supplied).<br />
  * Automatic conversion between NSNumber and C scalar types is performed.<br />
- * If type is nul and can't be determined from the selector, the
+ * If type is null and can't be determined from the selector, the
  * [NSObject-handleQueryWithUnboundKey:] method is called to try
  * to get a value.
  */
@@ -509,7 +509,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
  * supplied), or via direct access (if type, size, and offset are
  * supplied).<br />
  * Automatic conversion between NSNumber and C scalar types is performed.<br />
- * If type is nul and can't be determined from the selector, the
+ * If type is null and can't be determined from the selector, the
  * [NSObject-handleTakevalue:forUnboundKey:] method is called to try
  * to set a value.
  */

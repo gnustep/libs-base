@@ -2095,11 +2095,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       if (data == 0)
 	{
-	  NSLog(@"attempt to deserialize to a nul pointer");
+	  NSLog(@"attempt to deserialize to a null pointer");
 	}
       if (type == 0)
 	{
-            NSLog(@"attempt to deserialize with a nul type encoding");
+            NSLog(@"attempt to deserialize with a null type encoding");
 	}
       return;
     }
@@ -2853,11 +2853,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       if (data == 0)
 	{
-	  NSLog(@"attempt to serialize from a nul pointer");
+	  NSLog(@"attempt to serialize from a null pointer");
 	}
       if (type == 0)
 	{
-	  NSLog(@"attempt to serialize with a nul type encoding");
+	  NSLog(@"attempt to serialize with a null type encoding");
 	}
       return;
     }

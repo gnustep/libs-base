@@ -139,7 +139,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
   if (aSelector == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"nul selector"];
+		  format: @"null selector"];
     }
   if (notificationName != nil &&
 	[notificationName isKindOfClass: [NSString class]] == NO)

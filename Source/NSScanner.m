@@ -1003,7 +1003,7 @@ typedef struct {
 /**
  * Sets the case sensitivity of the scanner.
  * <br/>
- * Case sensitivity governs matrching of characters being scanned,
+ * Case sensitivity governs matching of characters being scanned,
  * but does not effect the characters in the set to be skipped.
  * <br/>
  * The default is for a scanner to <em>not</em> be case sensitive.

@@ -84,7 +84,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   /*
    *	If we were given a hostname, we use any address for that host.
    *	Otherwise we expect the given name to be an address unless it is
-   *	a nul (any address).
+   *	a null (any address).
    */
   if (name)
     {

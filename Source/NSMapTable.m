@@ -339,7 +339,7 @@ NSFreeMapTable(NSMapTable *table)
 }
 
 /**
- * Returns the value for the specified key, or a nul pointer if the
+ * Returns the value for the specified key, or a null pointer if the
  * key is not found in the table.
  */
 void *
@@ -379,7 +379,7 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
   if (table == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place key-value in nul table"];
+		  format: @"Attempt to place key-value in null table"];
     }
   if (key == t->extra.k.notAKeyMarker)
     {
@@ -417,7 +417,7 @@ NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
   if (table == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place key-value in nul table"];
+		  format: @"Attempt to place key-value in null table"];
     }
   if (key == t->extra.k.notAKeyMarker)
     {
@@ -451,7 +451,7 @@ NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
   if (table == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Attempt to place key-value in nul table"];
+		  format: @"Attempt to place key-value in null table"];
     }
   if (key == t->extra.k.notAKeyMarker)
     {
@@ -474,7 +474,7 @@ NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
  * Returns a flag to say whether the table contains the specified key.
  * Returns the original key and the value it maps to.<br />
  * The GNUstep implementation checks originalKey and value to see if
- * they are nul pointers, and only updates them if non-null.
+ * they are null pointers, and only updates them if non-null.
  */
 BOOL
 NSMapMember(NSMapTable *table, const void *key,
@@ -524,7 +524,7 @@ NSMapRemove(NSMapTable *table, const void *key)
  * Step through the map table ... return the next key-value pair and
  * return YES, or hit the end of the table and return NO.<br />
  * The GNUstep implementation permits either key or value to be a
- * nul pointer, and refrains from attempting to return the appropriate
+ * null pointer, and refrains from attempting to return the appropriate
  * result in that case.
  */
 BOOL

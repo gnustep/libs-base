@@ -293,7 +293,7 @@
 
 /**
  * Decrements the count of the number of times that the specified
- * object (or an object qequal to it as determined by the
+ * object (or an object equal to it as determined by the
  * [-isEqual:] method) has been added to the set.  If the count
  * becomes zero, the object is removed from the set.
  */

@@ -1,6 +1,28 @@
 2002-08-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSCountedSet.m:
+	* Source/GSFileHandle.m:
+	* Source/NSArchiver.m:
+	* Source/NSData.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSHashTable.m:
+	* Source/NSMapTable.m:
+	* Source/NSObjCRuntime.m:
+	* Source/NSObject.m:
+	* Source/NSPortCoder.m:
+	* Source/NSScanner.m:
+	* Source/NSString.m:
+	* Source/Unicode.m:
+	* Source/UnixFileHandle.m:
+	* Source/WindowsFileHandle.m:
+	* Source/callframe.m:
+	* Source/cifframe.m:
+	* Source/mframe.m:
+	Fix trivial typos and spelling errors pointed out by David Ayers.
+
+2002-08-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSCountedSet.m:
 	* Source/NSAutoreleasePool.m:
 	* Source/NSCharacterSet.m:
 	* Source/NSCountedSet.m:

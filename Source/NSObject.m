@@ -1,4 +1,4 @@
-/** Implementation of NSObject for GNUStep
+null Implementation of NSObject for GNUStep
    Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -913,7 +913,7 @@ static BOOL double_release_check_enabled = NO;
  *   </code>
  * </p>
  * <p>
- *   You do no normally need to override <code>new</code> in
+ *   You do not normally need to override <code>new</code> in
  *   subclasses, because if you override <code>init</code> (and
  *   optionally <code>allocWithZone:</code> if you really
  *   need), <code>new</code> will automatically use your
@@ -1502,7 +1502,7 @@ static BOOL double_release_check_enabled = NO;
   if (aSelector == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"nul selector passed to %s", sel_get_name(_cmd)];
+		  format: @"null selector passed to %s", sel_get_name(_cmd)];
       return nil;
     }
     
@@ -1528,7 +1528,7 @@ static BOOL double_release_check_enabled = NO;
   if (aSelector == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"nul selector passed to %s", sel_get_name(_cmd)];
+		  format: @"null selector passed to %s", sel_get_name(_cmd)];
       return nil;
     }
     
@@ -1557,7 +1557,7 @@ static BOOL double_release_check_enabled = NO;
   if (aSelector == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"nul selector passed to %s", sel_get_name(_cmd)];
+		  format: @"null selector passed to %s", sel_get_name(_cmd)];
       return nil;
     }
   

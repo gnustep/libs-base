@@ -280,7 +280,7 @@ NSFreeHashTable(NSHashTable *table)
 }
 
 /**
- * Returns the value for the specified element, or a nul pointer if the
+ * Returns the value for the specified element, or a null pointer if the
  * element is not found in the table.
  */
 void *
@@ -307,7 +307,7 @@ NSHashGet(NSHashTable *table, const void *element)
 /**
  * Adds the element to table.<br />
  * If an equal element is already in table, replaces it with the new one.<br />
- * If element is nul raises an NSInvalidArgumentException.
+ * If element is null raises an NSInvalidArgumentException.
  */
 void
 NSHashInsert(NSHashTable *table, const void *element)
@@ -318,12 +318,12 @@ NSHashInsert(NSHashTable *table, const void *element)
   if (table == 0)
     {
       [NSException raise: NSInvalidArgumentException
-                  format: @"Attempt to place value in nul hash table"];
+                  format: @"Attempt to place value in null hash table"];
     }
   if (element == 0)
     {
       [NSException raise: NSInvalidArgumentException
-                  format: @"Attempt to place nul in hash table"];
+                  format: @"Attempt to place null in hash table"];
     }
   n = GSIMapNodeForKey(t, (GSIMapKey)element);
   if (n == 0)
@@ -355,12 +355,12 @@ NSHashInsertIfAbsent(NSHashTable *table, const void *element)
   if (table == 0)
     {
       [NSException raise: NSInvalidArgumentException
-                  format: @"Attempt to place value in nul hash table"];
+                  format: @"Attempt to place value in null hash table"];
     }
   if (element == 0)
     {
       [NSException raise: NSInvalidArgumentException
-                  format: @"Attempt to place nul in hash table"];
+                  format: @"Attempt to place null in hash table"];
     }
   n = GSIMapNodeForKey(t, (GSIMapKey)element);
   if (n == 0)
@@ -377,7 +377,7 @@ NSHashInsertIfAbsent(NSHashTable *table, const void *element)
 /**
  * Adds the element to table and returns nul.<br />
  * If an equal element is already present, raises NSInvalidArgumentException.
- * <br />If element is nul raises an NSInvalidArgumentException.
+ * <br />If element is null raises an NSInvalidArgumentException.
  */
 void
 NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
@@ -388,12 +388,12 @@ NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
   if (table == 0)
     {
       [NSException raise: NSInvalidArgumentException
-                  format: @"Attempt to place value in nul hash table"];
+                  format: @"Attempt to place value in null hash table"];
     }
   if (element == 0)
     {
       [NSException raise: NSInvalidArgumentException
-                  format: @"Attempt to place nul in hash table"];
+                  format: @"Attempt to place null in hash table"];
     }
   n = GSIMapNodeForKey(t, (GSIMapKey)element);
   if (n == 0)
