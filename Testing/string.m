@@ -32,6 +32,7 @@ int main()
   NSString	*us2 = [NSString stringWithCharacters: u2 length: 7];
   NSMutableString	*fo = [NSMutableString stringWithString: @"abcdef"];
   NSMutableString	*f1 = [NSMutableString stringWithString: @"ab"];
+  NSStringEncoding	*encs;
 
   NS_DURING
   [fo replaceCharactersInRange: [fo rangeOfString: @"xx"] withString: us1];
@@ -98,6 +99,10 @@ int main()
   for (i = 0; i < 1000; i++)
     [base appendString: want];
   print_string(base);
+
+  encs = [NSString availableStringEncodings];
+  while (*encs != 0)
+    printf("Encoding %x\n", *encs++);
 }
   [arp release];
   exit(0);
