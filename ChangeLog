@@ -1,3 +1,10 @@
+2000-03-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/....m: include config.h
+	* Tools/*.m: Likewise.
+	* Headers/gnustep/base/preface.h.in: Implement VASPRINTF_LENGTH
+	when vasprintf does not return length.
+
 2000-03-23  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSString.m: ([-initWithFormat:arguments:]) added

@@ -43,6 +43,7 @@
  *		attributes argument and use the values from the string.
  */
 
+#include "config.h"
 #include <base/preface.h>
 #include <Foundation/NSGAttributedString.h>
 #include <Foundation/NSException.h>

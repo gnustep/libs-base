@@ -25,6 +25,7 @@
 /**** Included Headers *******************************************************/
 
 #include <stdlib.h>
+#include "config.h"
 #include <Foundation/NSString.h>
 #include <base/o_cbs.h>
 

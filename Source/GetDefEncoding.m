@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "config.h"
 #include <Foundation/NSString.h>
 #include <Foundation/NSBundle.h>
 
