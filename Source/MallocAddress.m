@@ -1,8 +1,8 @@
 /* Provides autoreleasing of malloc'ed pointers
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: January 1995
+   Created: January 1995
    
    This file is part of the GNU Objective C Class Library.
 
@@ -23,8 +23,9 @@
 
 #include <objects/MallocAddress.h>
 #include <objects/Dictionary.h>
+#include <Foundation/NSMapTable.h>
 
-static Dictionary* mallocAddresses;
+static NSMapTable* mallocAddresses;
 
 @implementation MallocAddress
 
@@ -32,24 +33,20 @@ static Dictionary* mallocAddresses;
 {
   if (self == [MallocAddress class])
     {
-      mallocAddresses = [[Dictionary alloc] initWithType:@encode(id)
-			 keyType:@encode(void*)];
+      mallocAddresses = NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
+					  NSObjectMapValueCallBacks, 0);
     }
 }
 
 + objectForAddress: (void*)addr
 {
-  elt ret_nil(arglist_t a)
-    {
-      return (elt) nil;
-    }
-  return [mallocAddresses elementAtKey:addr ifAbsentCall:ret_nil].id_u;
+  return NSMapGet (mallocAddresses, addr);
 }
 
 + autoreleaseMallocAddresss: (void*)addr
 {
   id n = [[self alloc] initWithAddress:addr];
-  [mallocAddresses putElement:n atKey:addr];
+  NSMapInsert (mallocAddresses, addr, n);
   return [n autorelease];
 }
 
@@ -62,8 +59,7 @@ static Dictionary* mallocAddresses;
 
 - (void) dealloc
 {
-  if ([[self class] objectForAddress:address])
-    [mallocAddresses removeElementAtKey:address];
+  NSMapRemove (mallocAddresses, address);
   OBJC_FREE(address);
   [super dealloc];
 }
