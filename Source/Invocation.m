@@ -314,7 +314,6 @@ my_method_get_next_argument (arglist_t argframe,
                 retainArgs: (BOOL)f
 {
   int stack_argsize, reg_argsize;
-  void *datum;
 
   /* allocate the argframe */
   stack_argsize = types_get_size_of_stack_arguments (type);
@@ -528,7 +527,6 @@ my_method_get_next_argument (arglist_t argframe,
 {
   const char *tmptype;
   void *datum;
-  void *arg_datum;
   va_list ap;
 
   [self initWithArgframe: NULL selector: s];
@@ -582,7 +580,6 @@ my_method_get_next_argument (arglist_t argframe,
   id target;
   id cl;
   SEL sel;
-  char *tmp_type = return_type;
 
   /* xxx This could be more efficient by using my_method_get_next_argument
      instead of -target and -selector.  Or, even better, caching the
@@ -634,7 +631,7 @@ my_method_get_next_argument (arglist_t argframe,
 
 - (void) invokeWithObject: anObj
 {
-  [self subclassResponsibility: _cmd];
+  [self invokeWithTarget: anObj];
 }
 
 - (SEL) selector
