@@ -1,7 +1,16 @@
+2004-12-21  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSTimeZone (NSInternalAbbrevDict): Remove class
+	(+abbreviationDictionary): Implement from new one-to-one plist.
+	* NStimeZones/NSTimeZone.tar: Added abbreviations.plist. Regenerated.
+	* Testing/nstimezone.m: New tests.
+
+	* Source/Additions/GNUmakefile: Remove duplicate Unicode.m.
+
 2004-12-21  David Wetzel <dave@turbocat.de>
 
-        * Source/Additions/GNUmakefile
-        added Additions_OBJC_FILES += Unicode.m on apple
+	* Source/Additions/GNUmakefile:
+	Added Additions_OBJC_FILES += Unicode.m on apple
 
 2004-12-18  David Wetzel <dave@turbocat.de>
 
