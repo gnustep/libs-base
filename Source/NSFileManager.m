@@ -1272,9 +1272,11 @@ static NSFileManager* defaultManager = nil;
 	      if (S_IFLNK == (S_IFMT & statbuf.st_mode)) 
 		break;
 	    }
-	  // Follow links - check for directory
-	  if (!stat(cpath, &statbuf))
-	    break;
+	  else
+	    {
+	      if (!stat(cpath, &statbuf))
+		break;
+	    }
 	  if (S_IFDIR == (S_IFMT & statbuf.st_mode))
 	    {
 	      [self recurseIntoDirectory: currentFilePath 
