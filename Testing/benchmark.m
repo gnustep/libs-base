@@ -64,6 +64,14 @@ bench_object()
   PRINT_TIMER("Baseline: method call");
 
   START_TIMER;
+  for (i = 0; i < MAX_COUNT*10; i++)
+    {
+      id i = [NSObject class];
+    }
+  END_TIMER;
+  PRINT_TIMER("Class: overhead      ");
+
+  START_TIMER;
   myZone = NSCreateZone(2048, 2048, 1);
   for (i = 0; i < MAX_COUNT; i++)
     {
