@@ -1,5 +1,5 @@
 /* Stream of bytes class for serialization and persistance in GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -236,7 +236,7 @@ static Class NSMutableData_concrete_class;
 
 - (const void*) bytes
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return NULL;
 }
 
@@ -319,7 +319,7 @@ static Class NSMutableData_concrete_class;
 - (unsigned int)length;
 {
   /* This is left to concrete subclasses to implement. */
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
@@ -429,7 +429,7 @@ static Class NSMutableData_concrete_class;
    atCursor: (unsigned int*)cursor
    context: (id <NSObjCTypeSerializationCallBack>)callback
 {
-  return;
+  [self notImplemented:_cmd];
 }
 
 
@@ -459,13 +459,13 @@ static Class NSMutableData_concrete_class;
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
@@ -518,7 +518,7 @@ static Class NSMutableData_concrete_class;
 /* This method not in OpenStep */
 - (unsigned) capacity
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsiblity:_cmd];
   return 0;
 }
 
@@ -531,12 +531,12 @@ static Class NSMutableData_concrete_class;
 
 - (void) setLength: (unsigned int)length
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void*) mutableBytes
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibilty:_cmd];
   return NULL;
 }
 
@@ -545,7 +545,7 @@ static Class NSMutableData_concrete_class;
 - (void) appendBytes: (const void*)bytes
 	      length: (unsigned int)length
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) appendData: (NSData*)other

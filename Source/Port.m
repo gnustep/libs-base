@@ -1,5 +1,5 @@
 /* Implementation of abstract superclass port for use with Connection
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -28,19 +28,19 @@
 
 + newRegisteredPortWithName: (id <String>)n
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
 + newPortFromRegisterWithName: (id <String>)n onHost: (id <String>)host
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
 + newPort
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
@@ -50,7 +50,7 @@
    toPort: (Port*) remote
    timeout: (int) milliseconds
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
@@ -64,7 +64,7 @@
    fromPort: (Port**) remote
    timeout: (int) milliseconds
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
@@ -76,19 +76,19 @@
 
 - (BOOL) isSoft
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return YES;
 }
 
 - (BOOL) isEqual: anotherPort
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return NO;
 }
 
 - (unsigned) hash
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 

@@ -1,5 +1,5 @@
 /* NSDictionary - Dictionary object to store key/value pairs
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -107,7 +107,7 @@ static Class NSMutableDictionary_concrete_class;
 	  forKeys: (NSString**)keys
 	    count: (unsigned)count
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
@@ -140,19 +140,19 @@ static Class NSMutableDictionary_concrete_class;
 
 - (unsigned) count
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
 - objectForKey: (NSString*)aKey
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
 - (NSEnumerator*) keyEnumerator
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
@@ -243,7 +243,7 @@ static Class NSMutableDictionary_concrete_class;
 
 - (NSEnumerator*) objectEnumerator
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return nil;
 }
 
@@ -293,7 +293,7 @@ static Class NSMutableDictionary_concrete_class;
 /* This is the designated initializer */
 - initWithCapacity: (unsigned)numItems
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
@@ -310,12 +310,12 @@ static Class NSMutableDictionary_concrete_class;
 
 - (void) setObject:anObject forKey:(NSString *)aKey
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) removeObjectForKey:(NSString *)aKey
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) removeAllObjects
