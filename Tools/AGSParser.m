@@ -22,6 +22,9 @@
 
 #include "AGSParser.h"
 #include "gnustep/base/GNUstep.h"
+#ifdef NeXT_Foundation_LIBRARY
+#include "gnustep/base/GSCategories.h"
+#endif
 
 @implementation	AGSParser
 
@@ -190,7 +193,7 @@
     {
       fmt = [NSString stringWithFormat: @"%@:%u %@", fileName, where, fmt];
     }
-  fmt = [NSString stringWithFormat: fmt arguments: args];
+  fmt = [[[NSString alloc] initWithFormat: fmt arguments: args] autorelease];
   if ([fmt hasSuffix: @"\n"] == NO)
     {
       fmt = [fmt stringByAppendingString: @"\n"];
