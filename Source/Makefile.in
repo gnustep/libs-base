@@ -205,7 +205,9 @@ include/x-cbs.h.in \
 md5.h \
 proplist.l \
 proplist.tab.h \
-proplist.y
+proplist.y \
+win32-entry.c \
+win32-def.top
 
 GNU_OBJS = \
 	$(GNU_MFILES:.m=${OEXT}) \
@@ -480,21 +482,8 @@ DIST_FILES = \
         $(GNUSTEP_HEADERS) \
         $(GNUSTEP_OTHER_SRCFILES)
 
-RCS_FILES = \
-        Makefile.in Makefile.sed.nt \
-        include/config.h.in include/preface.h.in \
-        $(GNU_MFILES) \
-        $(GNU_CFILES) \
-        $(GNU_HEADERS) \
-        $(GNU_OTHER_SRCFILES) \
-        $(NEXTSTEP_MFILES) \
-        $(NEXTSTEP_CFILES) \
-        $(NEXTSTEP_HEADERS) \
-        $(NEXTSTEP_OTHER_SRCFILES) \
-        $(GNUSTEP_MFILES) \
-        $(GNUSTEP_CFILES) \
-        $(GNUSTEP_HEADERS) \
-        $(GNUSTEP_OTHER_SRCFILES)
+
+# Targets
 
 all: gnustep/base Foundation lib$(LIBRARY_NAME)$(LIBEXT) @SHARED_LIBRARY@
 
