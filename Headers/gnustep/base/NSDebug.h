@@ -29,10 +29,6 @@
 
 extern int	errno;
 
-#ifndef HAVE_STRERROR
-extern const char* strerror(int eno);
-#endif
-
 
 /*
  *	Functions for debugging object allocation/deallocation
