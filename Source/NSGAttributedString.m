@@ -649,9 +649,20 @@ SANITY();
   if (info->loc >= beginRangeLoc || info->attrs == attributes)
     {
       info->loc = beginRangeLoc;
-      unCacheAttributes(info->attrs);
-      RELEASE(info->attrs);
-      info->attrs = attributes;
+      if (info->attrs == attributes)
+	{
+	  unCacheAttributes(attributes);
+	}
+      else
+	{
+	  unCacheAttributes(info->attrs);
+	  RELEASE(info->attrs);
+	  info->attrs = attributes;
+	}
+    }
+  else if (info->attrs == attributes)
+    {
+      unCacheAttributes(attributes);
     }
   else
     {
