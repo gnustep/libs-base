@@ -1,3 +1,8 @@
+Thu Nov 19 12:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSData.m: ([-encodeWithCoder:]) bugfix for case where data object
+	is of length zero.
+
 Wed Nov 18  9:20:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/make_services.m: New tool
