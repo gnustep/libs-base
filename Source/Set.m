@@ -1,5 +1,5 @@
 /* Implementation for Objective-C Set collection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -215,7 +215,7 @@
 
 // REMOVING AND REPLACING;
 
-- (elt) removeElement: (elt)oldElement ifAbsent: (elt(*)(arglist_t))excFunc
+- (elt) removeElement: (elt)oldElement ifAbsentCall: (elt(*)(arglist_t))excFunc
 {
   if (coll_hash_value_for_key(_contents_hash, oldElement).void_ptr_u == 0)
     coll_hash_remove(_contents_hash, oldElement);
