@@ -8,6 +8,8 @@
 	descriptions.
 	Also, honor NSWriteOldStylePropertyLists user default to write old
 	style property-lists rather than new style or xml style.
+	* Source/NSUser.m: Use USERPROFILE for default home directory on
+	windoze.
 
 2002-11-26  Richard Frith-Macdonald <rfm@gnu.org>
 
