@@ -4,7 +4,7 @@ Makefile
 version.texi
 
 README TODO INSTALL NEWS ANNOUNCE ADVERTISEMENT
-GNUstep-FAQ GNUstep-FAQ.html GNUstep-FAQ_toc.html
+GNUstep-FAQ GNUstep-FAQ.html GNUstep-FAQ_toc.html GNUstep-FAQ.texi
 Gnustep-FAQ Gnustep-FAQ.html Gnustep-FAQ_toc.html
 
 Coder.grammar
