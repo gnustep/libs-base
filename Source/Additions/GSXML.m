@@ -2954,7 +2954,7 @@ cdataBlockFunction(void *ctx, const unsigned char *value, int len)
 
   if (imp != treeImp)
     {
-      (*imp)(HANDLER, sel, UTF8StrLen(value, len));
+      (*imp)(HANDLER, sel, [NSData dataWithBytes: value length: len]);
     }
   else
     {
@@ -3161,9 +3161,9 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 }
 
 /**
- * Called when a pcdata block has been parsed.
+ * Called when a cdata block has been parsed.
  */
-- (void) cdataBlock: (NSString*)value
+- (void) cdataBlock: (NSData*)value
 {
 }
 
