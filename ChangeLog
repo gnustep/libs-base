@@ -1,3 +1,9 @@
+2000-05-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistantObject.m: ([-methodSignatureForSelector:])
+	Re-fix attempting to handle creation of local method signature rather
+	than returning a proxy to a remote one. Dumb error in first attempt.
+
 2000-05-10  Adam Fedor  <fedor@gnu.org>
 
 	* NSBundle.m (-classNamed:): Hacks for getting classes from 

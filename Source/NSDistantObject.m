@@ -575,10 +575,7 @@ enum
 {
   if (_object != nil)
     {
-      NSMethodSignature	*m = [_object methodSignatureForSelector: aSelector];
-      const char	*types = [m methodType];
-
-      return [NSMethodSignature signatureWithObjCTypes: types];
+      return [_object methodSignatureForSelector: aSelector];
     }
   else
     {
@@ -605,13 +602,25 @@ enum
 	}
       else
 	{
+	  id		m;
+	  const char	*types;
 	  arglist_t	args;
+	  void		*retframe;
+
+	  id retframe_id (void *rframe)
+	    {
+	      __builtin_return (rframe);
+	    }
 
 	  /*
 	   *	No protocol - so try forwarding the message.
 	   */
 	  args = __builtin_apply_args();
-	  __builtin_return([self forward: _cmd : args]);
+	  retframe = [self forward: _cmd : args];
+	  m = retframe_id(retframe);
+	  types = [m methodType];
+
+	  return [NSMethodSignature signatureWithObjCTypes: types];
 	}
     }
 }
