@@ -1,3 +1,14 @@
+2002-02-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSString.m: Additioanl method -immutableProxy
+	* Source/NSString.m: ditto
+	* Source/GSString.m: New classes for immutable proxy, one generic
+	version, and one efficient version for accessing the main GNUstep
+	mutable striong objects.
+	* Source/GSAttributedString: use immutable proxy.
+	New code to provide a proxy for a mutable string which will provide
+	read-only access to it.
+
 2002-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([-rangeOfCharacterFromSet:options:range:])

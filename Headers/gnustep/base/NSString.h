@@ -380,6 +380,7 @@ extern struct objc_class _NSConstantStringClassReference;
 @end
 
 @interface NSMutableString (GSString)
+- (NSString*) immutableProxy;
 - (void) removeSuffix: (NSString*)_suffix;
 - (void) removePrefix: (NSString*)_prefix;
 - (void) replaceString: (NSString*)_replace

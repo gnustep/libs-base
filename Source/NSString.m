@@ -3780,6 +3780,31 @@ handle_printf_atsign (FILE *stream,
 @end
 
 @implementation NSMutableString (GNUstep)
+@class	NSImmutableString;
+@class	GSImmutableString;
+/**
+ * Returns a proxy to the receiver which will allow access to the
+ * receiver as an NSString, but which will not allow any of the
+ * extra NSMutableString methods to be used.  You can use this method
+ * to provide other code with read-only access to a mutable string
+ * you own.
+ */
+- (NSString*) immutableProxy
+{
+  if ([self isKindOfClass: GSMutableStringClass])
+    {
+      return AUTORELEASE([[GSImmutableString alloc] initWithString: self]);
+    }
+  else
+    {
+      return AUTORELEASE([[NSImmutableString alloc] initWithString: self]);
+    }
+}
+
+/**
+ * Removes the specified suffix from the string.  Raises an exception
+ * if the prefix is not present.
+ */
 - (void) removeSuffix: (NSString*)_suffix
 {
   NSCAssert2([self hasSuffix: _suffix],
@@ -3788,6 +3813,10 @@ handle_printf_atsign (FILE *stream,
     NSMakeRange([self length] - [_suffix length], [_suffix length])];
 }
 
+/**
+ * Removes the specified prefx from the string.  Raises an exception
+ * if the prefix is not present.
+ */
 - (void) removePrefix: (NSString*)_prefix;
 {
   NSCAssert2([self hasPrefix: _prefix],
@@ -3795,6 +3824,10 @@ handle_printf_atsign (FILE *stream,
   [self deleteCharactersInRange: NSMakeRange(0, [_prefix length])];
 }
 
+/**
+ * Replaces all occurrances of the string replace with the string by
+ * in the receiver.
+ */
 - (void) replaceString: (NSString*)replace
 	    withString: (NSString*)by
 {
