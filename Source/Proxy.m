@@ -126,9 +126,9 @@ static id tmp_kludge_protocol = nil;
   return object_get_class(self);
 }
 
-static inline BOOL class_is_kind_of(CLASS self, CLASS aClassObject)
+static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 {
-  CLASS class;
+  Class class;
 
   for (class = self; class!=Nil; class = class_get_super_class(class))
     if (class==aClassObject)
