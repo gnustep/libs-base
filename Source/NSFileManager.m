@@ -202,11 +202,11 @@ static NSFileManager* defaultManager = nil;
 #if defined(__WIN32__)
   return CreateDirectory([self fileSystemRepresentationWithPath: path], NULL);
 #else
-  const char* cpath;
-  char dirpath[PATH_MAX+1];
-  struct stat statbuf;
-  int len, cur;
-  NSDictionary *needChown = nil;
+  const char	*cpath;
+  char		dirpath[PATH_MAX+1];
+  struct stat	statbuf;
+  int		len, cur;
+  NSDictionary	*needChown = nil;
     
   /*
    * If there is no file owner specified, and we are running setuid to
@@ -751,12 +751,6 @@ static NSFileManager* defaultManager = nil;
 {
   struct stat statbuf;
   const char* cpath = [self fileSystemRepresentationWithPath: path];
-#if HAVE_PWD_H
-  struct passwd *pw;
-#endif
-#if HAVE_GRP_H
-  struct group *gp;
-#endif
   int mode;
   int count = 12;
 		
@@ -811,34 +805,52 @@ static NSFileManager* defaultManager = nil;
 #endif
   else
     values[9] = NSFileTypeUnknown;
+
 #if HAVE_PWD_H	
-  pw = getpwuid(statbuf.st_uid);
+  {
+    struct passwd *pw;
 
-  if (pw)
-    {
-      values[10] = [NSString stringWithCString: pw->pw_name];
-    }
-  else
+    pw = getpwuid(statbuf.st_uid);
+
+    if (pw)
+      {
+	values[10] = [NSString stringWithCString: pw->pw_name];
+      }
+    else
+      {
+	values[10] = @"UnknownUser";
+      }
+  }
+#else
+  values[10] = @"UnknownUser";
 #endif /* HAVE_PWD_H */
-    {
-      values[10] = @"UnknownUser";
-    }
-#if HAVE_GRP_H
-  setgrent();
-  while ((gp = getgrent()) != 0)
-    if (gp->gr_gid == statbuf.st_uid)
-      break;
-  endgrent();
 
-  if (gp)
-    {
-      values[11] = [NSString stringWithCString: gp->gr_name];
-    }
-  else
+#if HAVE_GRP_H
+  {
+    struct group *gp;
+
+    setgrent();
+    while ((gp = getgrent()) != 0)
+      {
+	if (gp->gr_gid == statbuf.st_uid)
+	  {
+	    break;
+	  }
+      }
+    if (gp)
+      {
+	values[11] = [NSString stringWithCString: gp->gr_name];
+      }
+    else
+      {
+	values[11] = @"UnknownGroup";
+      }
+    endgrent();
+  }
+#else
+  values[11] = @"UnknownGroup";
 #endif
-    {
-      values[11] = @"UnknownGroup";
-    }
+
   return [NSDictionary dictionaryWithObjects: values
 				     forKeys: keys
 				       count: count];
@@ -1034,10 +1046,10 @@ static NSFileManager* defaultManager = nil;
   content = [NSMutableArray arrayWithCapacity: 128];
 
   nxtImp = [direnum methodForSelector: @selector(nextObject)];
-  addImp = [content methodForSelector: @selector(addObject:)];
+  addImp = [content methodForSelector: @selector(addObject: )];
 
   while ((path = (*nxtImp)(direnum, @selector(nextObject))) != nil)
-    (*addImp)(content, @selector(addObject:), path);
+    (*addImp)(content, @selector(addObject: ), path);
 
   RELEASE(direnum);
 
@@ -1072,10 +1084,10 @@ static NSFileManager* defaultManager = nil;
   content = [NSMutableArray arrayWithCapacity: 128];
     
   nxtImp = [direnum methodForSelector: @selector(nextObject)];
-  addImp = [content methodForSelector: @selector(addObject:)];
+  addImp = [content methodForSelector: @selector(addObject: )];
 
   while ((path = (*nxtImp)(direnum, @selector(nextObject))) != nil)
-    (*addImp)(content, @selector(addObject:), path);
+    (*addImp)(content, @selector(addObject: ), path);
 
   RELEASE(direnum);
 
@@ -1195,6 +1207,8 @@ static NSFileManager* defaultManager = nil;
   [pathStack removeLastObject];
   DESTROY(currentFileName);
   DESTROY(currentFilePath);
+  DESTROY(fileAttributes);
+  flags.shouldSkip = NO;
 }
 
 /*
@@ -1218,6 +1232,7 @@ static NSFileManager* defaultManager = nil;
     
   DESTROY(currentFileName);
   DESTROY(currentFilePath);
+  DESTROY(fileAttributes);
     
   while ([pathStack count])
     {
@@ -1264,14 +1279,15 @@ static NSFileManager* defaultManager = nil;
 	  [self backtrack];
 	}
     }
+  flags.shouldSkip = NO;
 }
 
 // Initializing
 
-- initWithDirectoryPath: (NSString*)path 
-  recurseIntoSubdirectories: (BOOL)recurse
-  followSymlinks: (BOOL)follow
-  prefixFiles: (BOOL)prefix
+- (id) initWithDirectoryPath: (NSString*)path 
+   recurseIntoSubdirectories: (BOOL)recurse
+	      followSymlinks: (BOOL)follow
+		 prefixFiles: (BOOL)prefix
 {
   pathStack = [NSMutableArray new];
   enumStack = [NSMutableArray new];
@@ -1292,10 +1308,10 @@ static NSFileManager* defaultManager = nil;
   RELEASE(pathStack);
   RELEASE(enumStack);
   RELEASE(topPath);
-  if (currentFileName)
-    RELEASE(currentFileName);
-  if (currentFilePath)
-    RELEASE(currentFilePath);
+  TEST_RELEASE(currentFileName);
+  TEST_RELEASE(currentFilePath);
+  TEST_RELEASE(fileAttributes);
+  TEST_RELEASE(directoryAttributes);
   [super dealloc];
 }
 
@@ -1303,16 +1319,26 @@ static NSFileManager* defaultManager = nil;
 
 - (NSDictionary*) directoryAttributes
 {
-  return [[NSFileManager defaultManager]
-	fileAttributesAtPath: currentFilePath
+  if (directoryAttributes == nil)
+    {
+      directoryAttributes = [[NSFileManager defaultManager]
+	fileAttributesAtPath: topPath
 		traverseLink: flags.isFollowing];
+      RETAIN(directoryAttributes);
+    }
+  return directoryAttributes;
 }
 
 - (NSDictionary*) fileAttributes
 {
-  return [[NSFileManager defaultManager]
+  if (fileAttributes == nil)
+    {
+      fileAttributes = [[NSFileManager defaultManager]
 	fileAttributesAtPath: currentFilePath
 		traverseLink: flags.isFollowing];
+      RETAIN(fileAttributes);
+    }
+  return fileAttributes;
 }
 
 // Skipping subdirectories
@@ -1325,7 +1351,7 @@ static NSFileManager* defaultManager = nil;
 
 // Enumerate next
 
-- nextObject
+- (id) nextObject
 {
   [self findNextFile];
   return currentFileName;
@@ -1494,75 +1520,88 @@ static NSFileManager* defaultManager = nil;
 	    toPath: (NSString*)destination
 	   handler: handler
 {
-  NSDirectoryEnumerator* enumerator;
-  NSString* dirEntry;
-  NSString* sourceFile;
-  NSString* fileType;
-  NSString* destinationFile;
-  NSDictionary* attributes;
-  NSAutoreleasePool* pool;
+  NSDirectoryEnumerator	*enumerator;
+  NSString		*dirEntry;
+  NSAutoreleasePool	*pool;
 
   pool = [NSAutoreleasePool new];
   enumerator = [self enumeratorAtPath: source];
-  while ((dirEntry = [enumerator nextObject])) {
+  while ((dirEntry = [enumerator nextObject]))
+    {
+      NSString		*sourceFile;
+      NSString		*fileType;
+      NSString		*destinationFile;
+      NSDictionary	*attributes;
+
       attributes = [enumerator fileAttributes];
       fileType = [attributes objectForKey: NSFileType];
       sourceFile = [source stringByAppendingPathComponent: dirEntry];
       destinationFile
-	      = [destination stringByAppendingPathComponent: dirEntry];
+	= [destination stringByAppendingPathComponent: dirEntry];
 
       [handler fileManager: self willProcessPath: sourceFile];
-      if ([fileType isEqual: NSFileTypeDirectory]) {
+      if ([fileType isEqual: NSFileTypeDirectory])
+	{
 	  if (![self createDirectoryAtPath: destinationFile
-		      attributes: attributes]) {
-	      if (handler) {
-		  NSDictionary* errorInfo
-		      = [NSDictionary dictionaryWithObjectsAndKeys: 
-			      destinationFile, @"Path",
-			      @"cannot create directory", @"Error",
-			      nil];
+				attributes: attributes])
+	    {
+	      if (handler)
+		{
+		  NSDictionary	*errorInfo;
+
+		  errorInfo = [NSDictionary dictionaryWithObjectsAndKeys: 
+		    destinationFile, @"Path",
+		    @"cannot create directory", @"Error", nil];
 		  if (![handler fileManager: self
-				shouldProceedAfterError: errorInfo])
-		      return NO;
-	      }
+		    shouldProceedAfterError: errorInfo])
+		    return NO;
+		}
 	      else
-		  return NO;
-	  }
-	  else {
+		return NO;
+	    }
+	  else
+	    {
 	      [enumerator skipDescendents];
-	      if (![self _copyPath: sourceFile toPath: destinationFile
-			  handler: handler])
-		  return NO;
-	  }
-      }
-      else if ([fileType isEqual: NSFileTypeRegular]) {
-	  if (![self _copyFile: sourceFile toFile: destinationFile
-		      handler: handler])
-	      return NO;
-      }
-      else if ([fileType isEqual: NSFileTypeSymbolicLink]) {
+	      if (![self _copyPath: sourceFile
+			    toPath: destinationFile
+			   handler: handler])
+		return NO;
+	    }
+	}
+      else if ([fileType isEqual: NSFileTypeRegular])
+	{
+	  if (![self _copyFile: sourceFile
+			toFile: destinationFile
+		       handler: handler])
+	    return NO;
+	}
+      else if ([fileType isEqual: NSFileTypeSymbolicLink])
+	{
 	  if (![self createSymbolicLinkAtPath: destinationFile
-		      pathContent: sourceFile]) {
-	      if (handler) {
-		  NSDictionary* errorInfo
-		      = [NSDictionary dictionaryWithObjectsAndKeys: 
+				  pathContent: sourceFile])
+	    {
+	      if (handler)
+		{
+		  NSDictionary	*errorInfo
+		    = [NSDictionary dictionaryWithObjectsAndKeys: 
 			      sourceFile, @"Path",
 			      destinationFile, @"ToPath",
 			      @"cannot create symbolic link", @"Error",
 			      nil];
 		  if (![handler fileManager: self
-				shouldProceedAfterError: errorInfo])
-		      return NO;
-	      }
+		    shouldProceedAfterError: errorInfo])
+		    return NO;
+		}
 	      else
-		  return NO;
-	  }
-      }
-      else {
+		return NO;
+	    }
+	}
+      else
+	{
 	  NSLog(@"cannot copy file '%@' of type '%@'", sourceFile, fileType);
-      }
+	}
       [self changeFileAttributes: attributes atPath: destinationFile];
-  }
+    }
   [pool release];
 
   return YES;

@@ -1,7 +1,7 @@
 /* 
    NSFileManager.h
 
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997,1999 Free Software Foundation, Inc.
 
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
@@ -45,94 +45,104 @@
 @interface NSFileManager : NSObject
 
 // Getting the default manager
-+ (NSFileManager*)defaultManager;
++ (NSFileManager*) defaultManager;
 
 // Directory operations
-- (BOOL)changeCurrentDirectoryPath:(NSString*)path;
-- (BOOL)createDirectoryAtPath:(NSString*)path
-  attributes:(NSDictionary*)attributes;
-- (NSString*)currentDirectoryPath;
+- (BOOL) changeCurrentDirectoryPath: (NSString*)path;
+- (BOOL) createDirectoryAtPath: (NSString*)path
+		    attributes: (NSDictionary*)attributes;
+- (NSString*) currentDirectoryPath;
 
 // File operations
-- (BOOL)copyPath:(NSString*)source toPath:(NSString*)destination
-  handler:handler;
-- (BOOL)movePath:(NSString*)source toPath:(NSString*)destination 
-  handler:handler;
-- (BOOL)linkPath:(NSString*)source toPath:(NSString*)destination
-  handler:handler;
-- (BOOL)removeFileAtPath:(NSString*)path
-  handler:handler;
-- (BOOL)createFileAtPath:(NSString*)path contents:(NSData*)contents
-  attributes:(NSDictionary*)attributes;
+- (BOOL) copyPath: (NSString*)source
+	   toPath: (NSString*)destination
+	  handler: (id)handler;
+- (BOOL) movePath: (NSString*)source
+	   toPath: (NSString*)destination 
+	  handler: (id)handler;
+- (BOOL) linkPath: (NSString*)source
+	   toPath: (NSString*)destination
+	  handler: (id)handler;
+- (BOOL) removeFileAtPath: (NSString*)path
+		  handler: (id)handler;
+- (BOOL) createFileAtPath: (NSString*)path
+		 contents: (NSData*)contents
+	       attributes: (NSDictionary*)attributes;
 
 // Getting and comparing file contents	
-- (NSData*)contentsAtPath:(NSString*)path;
-- (BOOL)contentsEqualAtPath:(NSString*)path1 andPath:(NSString*)path2;
+- (NSData*) contentsAtPath: (NSString*)path;
+- (BOOL) contentsEqualAtPath: (NSString*)path1
+		     andPath: (NSString*)path2;
 
 // Detemining access to files
-- (BOOL)fileExistsAtPath:(NSString*)path;
-- (BOOL)fileExistsAtPath:(NSString*)path isDirectory:(BOOL*)isDirectory;
-- (BOOL)isReadableFileAtPath:(NSString*)path;
-- (BOOL)isWritableFileAtPath:(NSString*)path;
-- (BOOL)isExecutableFileAtPath:(NSString*)path;
-- (BOOL)isDeletableFileAtPath:(NSString*)path;
+- (BOOL) fileExistsAtPath: (NSString*)path;
+- (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory;
+- (BOOL) isReadableFileAtPath: (NSString*)path;
+- (BOOL) isWritableFileAtPath: (NSString*)path;
+- (BOOL) isExecutableFileAtPath: (NSString*)path;
+- (BOOL) isDeletableFileAtPath: (NSString*)path;
 
 // Getting and setting attributes
-- (NSDictionary*)fileAttributesAtPath:(NSString*)path traverseLink:(BOOL)flag;
-- (NSDictionary*)fileSystemAttributesAtPath:(NSString*)path;
-- (BOOL)changeFileAttributes:(NSDictionary*)attributes atPath:(NSString*)path;
+- (NSDictionary*) fileAttributesAtPath: (NSString*)path
+			  traverseLink: (BOOL)flag;
+- (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path;
+- (BOOL) changeFileAttributes: (NSDictionary*)attributes
+		       atPath: (NSString*)path;
 
 // Discovering directory contents
-- (NSArray*)directoryContentsAtPath:(NSString*)path;
-- (NSDirectoryEnumerator*)enumeratorAtPath:(NSString*)path;
-- (NSArray*)subpathsAtPath:(NSString*)path;
+- (NSArray*) directoryContentsAtPath: (NSString*)path;
+- (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
+- (NSArray*) subpathsAtPath: (NSString*)path;
 
 // Symbolic-link operations
-- (BOOL)createSymbolicLinkAtPath:(NSString*)path
-  pathContent:(NSString*)otherPath;
-- (NSString*)pathContentOfSymbolicLinkAtPath:(NSString*)path;
+- (BOOL) createSymbolicLinkAtPath: (NSString*)path
+		      pathContent: (NSString*)otherPath;
+- (NSString*) pathContentOfSymbolicLinkAtPath: (NSString*)path;
 
 // Converting file-system representations
-- (const char*)fileSystemRepresentationWithPath:(NSString*)path;
-- (NSString*)stringWithFileSystemRepresentation:(const char*)string
-  length:(unsigned int)len;
+- (const char*) fileSystemRepresentationWithPath: (NSString*)path;
+- (NSString*) stringWithFileSystemRepresentation: (const char*)string
+					  length: (unsigned int)len;
 
 @end /* NSFileManager */
 
 
 @interface NSObject (NSFileManagerHandler)
-- (BOOL)fileManager:(NSFileManager*)fileManager
-  shouldProceedAfterError:(NSDictionary*)errorDictionary;
-- (void)fileManager:(NSFileManager*)fileManager
-  willProcessPath:(NSString*)path;
+- (BOOL) fileManager: (NSFileManager*)fileManager
+  shouldProceedAfterError: (NSDictionary*)errorDictionary;
+- (void) fileManager: (NSFileManager*)fileManager
+  willProcessPath: (NSString*)path;
 @end
 
 
 @interface NSDirectoryEnumerator : NSEnumerator
 {
-    NSMutableArray*	enumStack;
-    NSMutableArray*	pathStack;
-    NSString*		currentFileName;
-    NSString*		currentFilePath;
-    NSString*		topPath;
-    struct {
-	BOOL		isRecursive:1;
- 	BOOL		isFollowing:1;
+  NSMutableArray	*enumStack;
+  NSMutableArray	*pathStack;
+  NSString		*currentFileName;
+  NSString		*currentFilePath;
+  NSString		*topPath;
+  NSDictionary		*directoryAttributes;
+  NSDictionary		*fileAttributes;
+  struct {
+      BOOL		isRecursive: 1;
+      BOOL		isFollowing: 1;
+      BOOL		shouldSkip: 1;
    } flags;
 }
 
 // Initializing
-- initWithDirectoryPath:(NSString*)path 
-  recurseIntoSubdirectories:(BOOL)recurse
-  followSymlinks:(BOOL)follow
-  prefixFiles:(BOOL)prefix;
+- (id) initWithDirectoryPath: (NSString*)path 
+   recurseIntoSubdirectories: (BOOL)recurse
+	      followSymlinks: (BOOL)follow
+		 prefixFiles: (BOOL)prefix;
 
 // Getting attributes
-- (NSDictionary*)directoryAttributes;
-- (NSDictionary*)fileAttributes;
+- (NSDictionary*) directoryAttributes;
+- (NSDictionary*) fileAttributes;
 
 // Skipping subdirectories
-- (void)skipDescendents;
+- (void) skipDescendents;
 
 @end /* NSDirectoryEnumerator */
 
