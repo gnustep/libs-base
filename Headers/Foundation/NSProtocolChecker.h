@@ -25,10 +25,11 @@
 #define __NSProtocolChecker_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSProxy.h>
 
 @class Protocol;
 
-@interface NSProtocolChecker : NSObject
+@interface NSProtocolChecker : NSProxy
 {
   Protocol *_myProtocol;
   NSObject *_myTarget;
