@@ -1,3 +1,8 @@
+2003-02-11  Adam Fedor  <fedor@Eldorado.local.>
+
+	* configure (LDFLAGS): Remove extra spaces that cause problems
+	on Darwin/gcc
+
 i2003-02-11  Willem Rein Oudshoorn  <woudshoo@xs4all.nl>
 
 	* Headers/Foundation/NSFileManager.h: Added a little bit to the
