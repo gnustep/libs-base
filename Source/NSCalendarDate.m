@@ -89,6 +89,19 @@ absoluteGregorianDay(int day, int month, int year)
      + (year - 1)/400);   // ...plus prior years divisible by 400
 }
 
+static int dayOfCommonEra(NSTimeInterval when)
+{
+  double a;
+  int r;
+
+  // Get reference date in terms of days
+  a = when / 86400.0;
+  // Offset by Gregorian reference
+  a += GREGORIAN_REFERENCE;
+  r = (int)a;
+  return r;
+}
+
 static void
 gregorianDateFromAbsolute(int abs, int *day, int *month, int *year)
 {
@@ -982,7 +995,6 @@ static inline int getDigits(const char *from, char *to, int limit)
 	   timeZone: (NSTimeZone *)aTimeZone
 {
   int			c;
-  NSDate		*d;
   NSTimeInterval	s;
   NSTimeInterval	oldOffset;
   NSTimeInterval	newOffset;
@@ -1031,13 +1043,15 @@ static inline int getDigits(const char *from, char *to, int limit)
     {
       _time_zone = RETAIN(aTimeZone);
     }
+  _calendar_format = @"%Y-%m-%d %H:%M:%S %z";
+  _seconds_since_ref = s;
 
-  // Adjust date so it is correct for time zone.
-  d = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: s];
-  oldOffset = [_time_zone secondsFromGMTForDate: d];
-  RELEASE(d);
+  /*
+   * Adjust date so it is correct for time zone.
+   */
+  oldOffset = [_time_zone secondsFromGMTForDate: self];
   s -= oldOffset;
-  self = [self initWithTimeIntervalSinceReferenceDate: s];
+  _seconds_since_ref = s;
 
   /*
    * See if we need to adjust for daylight savings time
@@ -1046,61 +1060,9 @@ static inline int getDigits(const char *from, char *to, int limit)
   if (oldOffset != newOffset)
     {
       s -= (newOffset - oldOffset);
-      self = [self initWithTimeIntervalSinceReferenceDate: s];
+      _seconds_since_ref = s;
     }
 
-#if 0
-  /* Now permit up to five cycles of adjustment to allow for daylight savings.
-     NB. this depends on it being OK to call the
-      [-initWithTimeIntervalSinceReferenceDate: ] method repeatedly! */
-
-  for (c = 0; c < 5 && self != nil; c++)
-    {
-      int	y, m, d, h, mm, ss;
-
-      [self getYear: &y month: &m day: &d hour: &h minute: &mm second: &ss];
-      if (y==year && m==month && d==day && h==hour && mm==minute && ss==second)
-	return self;
-
-      /* Has the time-zone offset changed?  If so - adjust time for it,
-	 other wise -  try to adjust to the correct time. */
-      newOffset = [_time_zone secondsFromGMTForDate: self];
-      if (newOffset != oldOffset)
-	{
-	  s += newOffset - oldOffset;
-	  oldOffset = newOffset;
-	}
-      else
-	{
-	  NSTimeInterval	move;
-
-	  /* Do we need to go back or forwards in time?
-	     Shift at most two hours - we know of no daylight savings time
-	     which is an offset of more than two hours */
-	  if (y > year)
-	    move = -7200.0;
-	  else if (y < year)
-	    move = +7200.0;
-	  else if (m > (int)month)
-	    move = -7200.0;
-	  else if (m < (int)month)
-	    move = +7200.0;
-	  else if (d > (int)day)
-	    move = -7200.0;
-	  else if (d < (int)day)
-	    move = +7200.0;
-	  else if (h > (int)hour || h < (int)hour)
-	    move = ((int)hour - h)*3600.0;
-	  else if (mm > (int)minute || mm < (int)minute)
-	    move = ((int)minute - mm)*60.0;
-	  else
-	    move = ((int)second - ss);
-
-	  s += move;
-	}
-      self = [self initWithTimeIntervalSinceReferenceDate: s];
-    }
-#endif
   return self;
 }
 
@@ -1131,31 +1093,30 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 - (int) dayOfCommonEra
 {
-  double a;
-  int r;
+  NSTimeInterval	when;
 
-  // Get reference date in terms of days
-  a = (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]) / 86400.0;
-  // Offset by Gregorian reference
-  a += GREGORIAN_REFERENCE;
-  r = (int)a;
-
-  return r;
+  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  return dayOfCommonEra(when);
 }
 
 - (int) dayOfMonth
 {
   int m, d, y;
+  NSTimeInterval	when;
 
-  [self gregorianDateFromAbsolute: [self dayOfCommonEra]
-	day: &d month: &m year: &y];
+  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  gregorianDateFromAbsolute(dayOfCommonEra(when), &d, &m, &y);
 
   return d;
 }
 
 - (int) dayOfWeek
 {
-  int	d = [self dayOfCommonEra];
+  int	d;
+  NSTimeInterval	when;
+
+  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  d = dayOfCommonEra(when);
 
   /* The era started on a sunday.
      Did we always have a seven day week?
@@ -1170,9 +1131,10 @@ static inline int getDigits(const char *from, char *to, int limit)
 - (int) dayOfYear
 {
   int m, d, y, days, i;
+  NSTimeInterval	when;
 
-  [self gregorianDateFromAbsolute: [self dayOfCommonEra]
-	day: &d month: &m year: &y];
+  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  gregorianDateFromAbsolute(dayOfCommonEra(when), &d, &m, &y);
   days = d;
   for (i = m - 1;  i > 0; i--) // days in prior months this year
     days = days + lastDayOfGregorianMonth(i, y);
@@ -1183,7 +1145,11 @@ static inline int getDigits(const char *from, char *to, int limit)
 - (int) hourOfDay
 {
   int h;
-  double a, d = [self dayOfCommonEra];
+  double a, d;
+  NSTimeInterval	when;
+
+  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
   a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
@@ -1201,7 +1167,11 @@ static inline int getDigits(const char *from, char *to, int limit)
 - (int) minuteOfHour
 {
   int h, m;
-  double a, b, d = [self dayOfCommonEra];
+  double a, b, d;
+  NSTimeInterval	when;
+
+  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
   a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
@@ -1218,9 +1188,10 @@ static inline int getDigits(const char *from, char *to, int limit)
 - (int) monthOfYear
 {
   int m, d, y;
+  NSTimeInterval	when;
 
-  [self gregorianDateFromAbsolute: [self dayOfCommonEra]
-	day: &d month: &m year: &y];
+  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  gregorianDateFromAbsolute(dayOfCommonEra(when), &d, &m, &y);
 
   return m;
 }
@@ -1228,7 +1199,11 @@ static inline int getDigits(const char *from, char *to, int limit)
 - (int) secondOfMinute
 {
   int h, m, s;
-  double a, b, c, d = [self dayOfCommonEra];
+  double a, b, c, d;
+  NSTimeInterval	when;
+
+  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
   a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
@@ -1248,9 +1223,10 @@ static inline int getDigits(const char *from, char *to, int limit)
 - (int) yearOfCommonEra
 {
   int m, d, y;
+  NSTimeInterval	when;
 
-  [self gregorianDateFromAbsolute: [self dayOfCommonEra]
-	day: &d month: &m year: &y];
+  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  gregorianDateFromAbsolute(dayOfCommonEra(when), &d, &m, &y);
 
   return y;
 }
