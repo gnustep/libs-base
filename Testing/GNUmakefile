@@ -22,9 +22,6 @@
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02111, USA.
 #
 
-# Install into the system root by default
-GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
-
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
@@ -129,24 +126,8 @@ LoadMe_OBJC_FILES = LoadMe.m MyCategory.m SecondClass.m
 LoadMe_RESOURCE_FILES = English.lproj/NXStringTable.example
 LoadMe_RESOURCE_DIRS = English.lproj
 
-SRCS = $(TEST_TOOL_NAME:=.m)
-
-HDRS = \
-server.h \
-oldserver.h
-
-DYNAMIC_MFILES = \
-LoadMe.m \
-MyCategory.m \
-SecondClass.m
-
-DYNAMIC_HFILES = \
-LoadMe.h \
-MyCategory.h \
-SecondClass.h
-
-DIST_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
-	GNUmakefile Makefile.preamble Makefile.postamble
+# Manually disable installation of LoadMe bundle
+LoadMe_STANDARD_INSTALL = no
 
 -include Makefile.preamble
 
