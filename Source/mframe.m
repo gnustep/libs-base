@@ -28,8 +28,8 @@
 
 */
 
-/* Remove `inline' because they crash newer compilers */
-#define inline 
+/* Remove `inline' nested functions if they crash your compiler */
+//#define inline 
 
 #include <config.h>
 #include <base/preface.h>
