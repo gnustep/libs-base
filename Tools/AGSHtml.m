@@ -344,6 +344,10 @@ static NSMutableSet	*textNodes = nil;
       else if ([name isEqual: @"chapter"] == YES)
 	{
 	  heading = @"h1";
+	  chap++;
+	  sect = 0;
+	  ssect = 0;
+	  sssect = 0;
 	  [self outputNodeList: children to: buf];
 	}
       else if ([name isEqual: @"class"] == YES)
@@ -371,6 +375,98 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"<code>"];
 	  [self outputText: children to: buf];
 	  [buf appendString: @"</code>"];
+	}
+      else if ([name isEqual: @"contents"] == YES)
+        {
+	  NSDictionary	*dict;
+
+	  dict = [[localRefs refs] objectForKey: @"contents"];
+	  if ([dict count] > 0)
+	    {
+	      NSArray	*a;
+	      unsigned	i;
+	      unsigned	l = 0;
+
+	      [buf appendString: indent];
+	      [buf appendString: @"<hr />\n"];
+	      [buf appendString: indent];
+	      [buf appendString: @"<h3>Contents -</h3>\n"];
+
+	      a = [dict allKeys];
+	      a = [a sortedArrayUsingSelector: @selector(compare:)];
+	      for (i = 0; i < [a count]; i++)
+		{
+		  NSString	*k = [a objectAtIndex: i];
+		  NSString	*v = [dict objectForKey: k];
+		  unsigned	pos = 3;
+
+		  if ([k hasSuffix: @"000"] == YES)
+		    {
+		      pos = 2;
+		      if ([k hasSuffix: @"000000"] == YES)
+			{
+			  pos = 1;
+			  if ([k hasSuffix: @"000"] == YES)
+			    {
+			      pos = 0;
+			    }
+			}
+		      if (l == pos)
+			{
+			  [buf appendString: indent];
+			  [buf appendString: @"<ol>\n"];
+			  [self incIndent];
+			}
+		      else
+			{
+			  while (l > pos + 1)
+			    {
+			      [self decIndent];
+			      [buf appendString: indent];
+			      [buf appendString: @"</li>\n"];
+			      [self decIndent];
+			      [buf appendString: indent];
+			      [buf appendString: @"</ol>\n"];
+			      l--;
+			    }
+			  if (l == pos + 1)
+			    {
+			      [self decIndent];
+			      [buf appendString: indent];
+			      [buf appendString: @"</li>\n"];
+			      l--;
+			    }
+			}
+		    }
+		  [buf appendString: indent];
+		  [buf appendString: @"<li>\n"];
+		  [self incIndent];
+		  [buf appendString: indent];
+		  [buf appendFormat: @"<a href=\"#%@\">%@</a>\n", k, v];
+		  if (pos == 3)
+		    {
+		      [self decIndent];
+		      [buf appendString: indent];
+		      [buf appendString: @"</li>\n"];
+		    }
+		  else
+		    {
+		      l++;
+		    }
+		}
+	      while (l > 0)
+		{
+		  [self decIndent];
+		  [buf appendString: indent];
+		  [buf appendString: @"</li>\n"];
+		  [self decIndent];
+		  [buf appendString: indent];
+		  [buf appendString: @"</ol>\n"];
+		  l--;
+		}
+	      [buf appendString: indent];
+	      [buf appendString: @"<hr />\n"];
+	    }
 	}
       else if ([name isEqual: @"desc"] == YES)
 	{
@@ -609,8 +705,10 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"<"];
 	  [buf appendString: heading];
 	  [buf appendString: @">"];
+	  [buf appendFormat: @"<a name=\"%03u%03u%03u%03u\">",
+	    chap, sect, ssect, sssect];
 	  [self outputText: children to: buf];
-	  [buf appendString: @"</"];
+	  [buf appendString: @"</a></"];
 	  [buf appendString: heading];
 	  [buf appendString: @">\n"];
 	}
@@ -856,6 +954,9 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       else if ([name isEqual: @"section"] == YES)
 	{
 	  heading = @"h2";
+	  sect++;
+	  ssect = 0;
+	  sssect = 0;
 	  [self outputNodeList: children to: buf];
 	}
       else if ([name isEqual: @"site"] == YES)
@@ -873,11 +974,14 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       else if ([name isEqual: @"subsect"] == YES)
 	{
 	  heading = @"h3";
+	  ssect++;
+	  sssect = 0;
 	  [self outputNodeList: children to: buf];
 	}
       else if ([name isEqual: @"subsubsect"] == YES)
 	{
 	  heading = @"h4";
+	  sssect++;
 	  [self outputNodeList: children to: buf];
 	}
       else if ([name isEqual: @"type"] == YES)

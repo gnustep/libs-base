@@ -29,6 +29,10 @@
   NSMutableDictionary	*refs;
   NSString		*base;	// Not retained
   NSString		*unit;	// Not retained
+  unsigned		chap;
+  unsigned		sect;
+  unsigned		ssect;
+  unsigned		sssect;
 }
 - (NSString*) globalRef: (NSString*)ref type: (NSString*)type;
 - (void) makeRefs: (GSXMLNode*)node;

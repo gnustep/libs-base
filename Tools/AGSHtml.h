@@ -35,6 +35,10 @@
   NSString		*nextFile;	// Not retained
   NSString		*prevFile;	// Not retained
   NSString		*upFile;	// Not retained
+  unsigned		chap;
+  unsigned		sect;
+  unsigned		ssect;
+  unsigned		sssect;
 }
 - (void) decIndent;
 - (void) incIndent;
