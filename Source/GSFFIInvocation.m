@@ -24,6 +24,7 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSDistantObject.h"
 #include "Foundation/NSData.h"
+#include "Foundation/NSDebug.h"
 #include "gnustep/base/GSInvocation.h"
 #include <config.h>
 #include <objc/objc-api.h>
@@ -393,6 +394,20 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 	  if (selector == 0)
 	    {
 	      selector = sel_register_typed_name (runtimeName, receiverTypes);
+	    }
+	  if (runtimeTypes != 0)
+	    {
+	      /*
+	       * FIXME ... if we have a typed selector, it probably came
+	       * from the compiler, and the types of the proxied method
+	       * MUST match those that the compiler supplied on the stack
+	       * and the type it expects to retrieve from the stack.
+	       * We should therefore discriminate between signatures where
+	       * type qalifiers and sizes differ, and those where the
+	       * actual types differ.
+	       */
+	      NSWarnFLog(@"Changed type signature '%s' to '%s' for '%s'",
+		runtimeTypes, receiverTypes, runtimeName);
 	    }
 	}
     }

@@ -802,7 +802,7 @@ enum
 
 	  if (sig == nil)
 	    {
-	      sig = [NSMethodSignature signatureWithObjCTypes: "*@:"];
+	      sig = [NSMethodSignature signatureWithObjCTypes: "r*@:"];
 	      RETAIN(sig);
 	    }
 	  return sig;
