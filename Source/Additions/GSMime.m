@@ -1212,7 +1212,8 @@ wordData(NSString *word)
 			   * This is an intermediary response ... so we have
 			   * to restart the parsing operation!
 			   */
-			  NSDebugMLLog(@"GSMime", @"Parsed http continuation", "");
+			  NSDebugMLLog(@"GSMime",
+			    @"Parsed http continuation", "");
 			  flags.inBody = 0;
 			}
 		    }
@@ -1242,7 +1243,11 @@ wordData(NSString *word)
     {
       BOOL	result;
 
-      if (flags.inBody == 1)
+      if (flags.wantEndOfLine == 1)
+	{
+	  result = [self parse: [NSData dataWithBytes: @"\r\n" length: 2]];
+	}
+      else if (flags.inBody == 1)
 	{
 	  result = [self _decodeBody: d];
 	}
@@ -1254,6 +1259,7 @@ wordData(NSString *word)
            */
 	  result = [self parse: [NSData dataWithBytes: @"\r\n\r\n" length: 4]];
 	}
+      flags.wantEndOfLine = 0;
       flags.inBody = 0;
       flags.complete = 1;	/* Finished parsing	*/
       return result;
@@ -2201,6 +2207,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
       while (done == NO)
 	{
+	  BOOL	found = NO;
+
 	  /*
 	   * Search our data for the next boundary.
 	   */
@@ -2212,18 +2220,37 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  if (lineStart == 0 || bytes[lineStart-1] == '\r'
 		    || bytes[lineStart-1] == '\n')
 		    {
+		      BOOL	lastPart = NO;
+		      unsigned	eol;
+
 		      lineEnd = lineStart + bLength;
-		      if (lineEnd + 2 < dataEnd && bytes[lineEnd] == '-'
+		      eol = lineEnd;
+		      if (lineEnd + 2 <= dataEnd && bytes[lineEnd] == '-'
 			&& bytes[lineEnd+1] == '-')
 			{
-			  endedFinalPart = YES;
+			  eol += 2;
+			  lastPart = YES;
+			}
+		      if (eol < dataEnd && bytes[eol] == '\r')
+			{
+			  eol++;
+			}
+		      if (eol < dataEnd && bytes[eol] == '\n')
+			{
+			  flags.wantEndOfLine = 0;
+			  found = YES;
+			  endedFinalPart = lastPart;
+			}
+		      else
+			{
+			  flags.wantEndOfLine = 1;
 			}
 		      break;
 		    }
 		}
 	      lineStart++;
 	    }
-	  if (dataEnd - lineStart < bLength)
+	  if (found == NO)
 	    {
 	      done = YES;	/* Needs more data.	*/
 	    } 

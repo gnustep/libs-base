@@ -1,3 +1,9 @@
+2003-11-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: fix for incremental parsing so that
+	the parser insists on the crlf after the last boundary in a message
+	(hold a flag to say we are still expecting the crlf).
+
 2003-11-23 S.J.Chun <chunsj@embian.com>
 
 	* Headers/Additions/GNUstepBase/GSCategories.h: Change
