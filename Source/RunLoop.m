@@ -30,8 +30,12 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSTimer.h>
 #include <sys/time.h>
-#include <nan.h>
 #include <limits.h>
+#include <string.h>		/* for memset() */
+
+/* On some systems FD_ZERO is a macro that uses bzero().
+   Just define it to use memset(). */
+#define bzero(PTR, LEN) memset (PTR, 0, LEN)
 
 /* Alternate names: InputDemuxer, InputListener
    Alternate names for Notification classes: Dispatcher, EventDistributor, */
@@ -240,7 +244,6 @@ static RunLoop *current_run_loop;
   volatile double ti;
 
   ti = [date timeIntervalSinceNow];
-  assert (ti != NAN);
   /* Positive values are in the future. */
   while (ti > 0)
     {
