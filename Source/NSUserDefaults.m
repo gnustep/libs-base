@@ -22,6 +22,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #if 0 
 /* My Linux doesn't have <libc.h>.  Why is this necessary? 

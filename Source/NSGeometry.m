@@ -22,6 +22,7 @@
 
 /**** Included Headers *******************************************************/
 
+#include <config.h>
 #include <math.h>
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>

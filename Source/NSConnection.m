@@ -30,6 +30,7 @@
 /* RMC == Remote Method Coder, or Remote Method Call.
    It's an instance of PortEncoder or PortDecoder. */
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <Foundation/DistributedObjects.h>
 #include <gnustep/base/TcpPort.h>

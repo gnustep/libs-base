@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Invocation.h>
 #include <Foundation/DistributedObjects.h>
@@ -438,8 +439,7 @@ my_method_get_next_argument (arglist_t argframe,
   memcpy (addr, datum, objc_sizeof_type(tmptype));
 }
 
-- (void) setArgumentAtIndex: (unsigned)i 
-    toValueAt: (const void*)addr
+- (void) setArgument:(void *)addr atIndex: (unsigned)i
 {
   const char *tmptype = return_type;
   void *datum;
@@ -448,6 +448,12 @@ my_method_get_next_argument (arglist_t argframe,
     datum = my_method_get_next_argument(argframe, &tmptype);
   while (i--);
   memcpy (datum, addr, objc_sizeof_type(tmptype));
+}
+
+- (void) setArgumentAtIndex: (unsigned)i 
+    toValueAt: (const void*)addr
+{
+  [self setArgument: addr atIndex: i];
 }
 
 - (void) _deallocArgframe

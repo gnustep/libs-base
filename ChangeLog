@@ -1,3 +1,172 @@
+Wed Nov  5 16:10:32 1997  Scott Christley  <scottc@speedy.net-community.com>
+
+	* src/Invocation.m (-setArgument:atIndex:): Add OpenStep method.
+	* src/NSGSet.m (-member:): Delete method.
+	* src/Set.m (-member:): New method.
+	* src/NSMethodSignature.m (-methodReturnType): Return value.
+
+	* configure.in: Remove check for threads library.
+
+	* checks/heap.m: Don't prototype random.
+
+	* Remove dependency upon config.h by headers files and include
+	directly in source files because the config.h file is system
+	dependent and should not be installed.
+	* src/Archiver.m: Include config.h.
+	* src/Array.m: Likewise.
+	* src/Bag.m: Likewise.
+	* src/BinaryCStream.m: Likewise.
+	* src/BinaryTree.m: Likewise.
+	* src/BinaryTreeNode.m: Likewise.
+	* src/CStream.m: Likewise.
+	* src/CircularArray.m: Likewise.
+	* src/Coder.m: Likewise.
+	* src/Collection.m: Likewise.
+	* src/ConnectedCoder.m: Likewise.
+	* src/Connection.m: Likewise.
+	* src/Decoder.m: Likewise.
+	* src/DelegatePool.m: Likewise.
+	* src/Dictionary.m: Likewise.
+	* src/Encoder.m: Likewise.
+	* src/GapArray.m: Likewise.
+	* src/HashTable.m: Likewise.
+	* src/Heap.m: Likewise.
+	* src/IndexedCollection.m: Likewise.
+	* src/Invocation.m: Likewise.
+	* src/KeyedCollection.m: Likewise.
+	* src/LinkedList.m: Likewise.
+	* src/LinkedListNode.m: Likewise.
+	* src/List.m: Likewise.
+	* src/Lock.m: Likewise.
+	* src/MachPort.m: Likewise.
+	* src/Magnitude.m: Likewise.
+	* src/MallocAddress.m: Likewise.
+	* src/MappedCollector.m: Likewise.
+	* src/MemoryStream.m: Likewise.
+	* src/NSAllocateObject.m: Likewise.
+	* src/NSArchiver.m: Likewise.
+	* src/NSArray.m: Likewise.
+	* src/NSAssertionHandler.m: Likewise.
+	* src/NSAttributedString.m: Likewise.
+	* src/NSAutoreleasePool.m: Likewise.
+	* src/NSBitmapCharSet.m: Likewise.
+	* src/NSBundle.m: Likewise.
+	* src/NSCTemplateValue.m: Likewise.
+	* src/NSCalendarDate.m: Likewise.
+	* src/NSCallBacks.m: Likewise.
+	* src/NSCharacterSet.m: Likewise.
+	* src/NSCoder.m: Likewise.
+	* src/NSConcreteNumber.m: Likewise.
+	* src/NSConcreteValue.m: Likewise.
+	* src/NSConnection.m: Likewise.
+	* src/NSCopyObject.m: Likewise.
+	* src/NSCountedSet.m: Likewise.
+	* src/NSData.m: Likewise.
+	* src/NSDate.m: Likewise.
+	* src/NSDeallocateObject.m: Likewise.
+	* src/NSDebug.m: Likewise.
+	* src/NSDictionary.m: Likewise.
+	* src/NSDistantObject.m: Likewise.
+	* src/NSDistributedLock.m: Likewise.
+	* src/NSEnumerator.m: Likewise.
+	* src/NSException.m: Likewise.
+	* src/NSFileHandle.m: Likewise.
+	* src/NSFileManager.m: Likewise.
+	* src/NSGArchiver.m: Likewise.
+	* src/NSGArray.m: Likewise.
+	* src/NSGAttributedString.m: Likewise.
+	* src/NSGCString.m: Likewise.
+	* src/NSGCountedSet.m: Likewise.
+	* src/NSGDictionary.m: Likewise.
+	* src/NSGSequence.m: Likewise.
+	* src/NSGSet.m: Likewise.
+	* src/NSGString.m: Likewise.
+	* src/NSGeometry.m: Likewise.
+	* src/NSHashTable.m: Likewise.
+	* src/NSHost.m: Likewise.
+	* src/NSInvocation.m: Likewise.
+	* src/NSLock.m: Likewise.
+	* src/NSLog.m: Likewise.
+	* src/NSMapTable.m: Likewise.
+	* src/NSMethodSignature.m: Likewise.
+	* src/NSNotification.m: Likewise.
+	* src/NSNotificationCenter.m: Likewise.
+	* src/NSNotificationQueue.m: Likewise.
+	* src/NSNumber.m: Likewise.
+	* src/NSObjCRuntime.m: Likewise.
+	* src/NSObject.m: Likewise.
+	* src/NSPage.m: Likewise.
+	* src/NSPipe.m: Likewise.
+	* src/NSPort.m: Likewise.
+	* src/NSPortCoder.m: Likewise.
+	* src/NSProcessInfo.m: Likewise.
+	* src/NSProxy.m: Likewise.
+	* src/NSRange.m: Likewise.
+	* src/NSRunLoop.m: Likewise.
+	* src/NSScanner.m: Likewise.
+	* src/NSSerializer.m: Likewise.
+	* src/NSSet.m: Likewise.
+	* src/NSString.m: Likewise.
+	* src/NSThread.m: Likewise.
+	* src/NSTimeZone.m: Likewise.
+	* src/NSTimer.m: Likewise.
+	* src/NSUser.m: Likewise.
+	* src/NSUserDefaults.m: Likewise.
+	* src/NSValue.m: Likewise.
+	* src/NSZone.m: Likewise.
+	* src/NXStringTable.m: Likewise.
+	* src/Notification.m: Likewise.
+	* src/NotificationDispatcher.m: Likewise.
+	* src/OrderedCollection.m: Likewise.
+	* src/Port.m: Likewise.
+	* src/Proxy.m: Likewise.
+	* src/Queue.m: Likewise.
+	* src/RBTree.m: Likewise.
+	* src/RBTreeNode.m: Likewise.
+	* src/RNGAdditiveCongruential.m: Likewise.
+	* src/RNGBerkeley.m: Likewise.
+	* src/Random.m: Likewise.
+	* src/RawCStream.m: Likewise.
+	* src/Set.m: Likewise.
+	* src/SplayTree.m: Likewise.
+	* src/Stack.m: Likewise.
+	* src/StdioStream.m: Likewise.
+	* src/Storage.m: Likewise.
+	* src/Stream.m: Likewise.
+	* src/TcpPort.m: Likewise.
+	* src/TextCStream.m: Likewise.
+	* src/Time.m: Likewise.
+	* src/UdpPort.m: Likewise.
+	* src/Unicode.m: Likewise.
+	* src/UnixFileHandle.m: Likewise.
+	* src/behavior.m: Likewise.
+	* src/externs.m: Likewise.
+	* src/find_exec.c: Likewise.
+	* src/md5.c: Likewise.
+	* src/mframe.m: Likewise.
+	* src/o_array.m: Likewise.
+	* src/o_cbs.m: Likewise.
+	* src/o_hash.m: Likewise.
+	* src/o_list.m: Likewise.
+	* src/o_map.m: Likewise.
+	* src/o_x_bas.m.in: Likewise.
+	* src/o_x_cbs.m.in: Likewise.
+	* src/objc-gnu2next.m: Likewise.
+	* src/ostream.m: Likewise.
+	* src/preface.m: Likewise.
+	* src/win32-entry.m: Likewise.
+	* src/include/preface.h.in: Do not include config.h
+
+	* src/GNUmakefile: Don't install config.h; add target so that
+	config.h gets moved to target cpu/os dependent directory.
+	* src/Makefile.postamble: Move config.h to target directory.
+	* src/Makefile.preamble: Add target directory to include dirs.
+
+	* src/NSCalendarDate.m (-initWithString:calendarFormat:locale:):
+	Parse the time zone abbreviation and am/pm indicator.
+
+	* src/md5.c: Correct license comment.
+
 Wed Nov  5 13:36:45 1997  Adam Fedor  <fedor@doc.com>
 
 	* doc/GNUmakefile (TEXT_FILES): Add GNUstep-HOWTO

@@ -52,6 +52,8 @@
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
 
+#include <config.h>
+
 /* One of these two should have MAXHOSTNAMELEN */
 #ifndef __WIN32__
 #include <sys/param.h>

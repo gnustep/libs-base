@@ -24,6 +24,7 @@
 */ 
 
 
+#include <config.h>
 #include <gnustep/base/GapArray.h>
 #include <gnustep/base/GapArrayPrivate.h>
 

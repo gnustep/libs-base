@@ -260,8 +260,7 @@ o_map_cbs.h \
 objc-gnu2next.h \
 all.h \
 README \
-preface.h \
-config.h
+preface.h
 
 # NEXTSTEP source files
 
@@ -475,7 +474,8 @@ DIST_FILES = \
 
 GENERATED_HFILES = \
 dynamic-load.h \
-include/preface.h
+include/preface.h \
+$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h
 
 # The C source files to be compiled
 libgnustep-base_C_FILES = $(GNU_CFILES) $(NEXTSTEP_CFILES) \

@@ -86,6 +86,7 @@
 #define NDEBUG
 
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <assert.h>
 #include <stddef.h>

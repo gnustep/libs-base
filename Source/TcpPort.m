@@ -33,6 +33,7 @@
    Change so we don't wait on incoming packet prefix.
    */
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/TcpPort.h>
 #include <gnustep/base/Array.h>

@@ -24,6 +24,7 @@
 /* This class could be improved by somehow making is a subclass of
    IndexedCollection, but not OrderedCollection. */
 
+#include <config.h>
 #include <gnustep/base/Heap.h>
 #include <gnustep/base/ArrayPrivate.h>
 

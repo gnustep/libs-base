@@ -23,6 +23,7 @@
 
 /* xxx I should also look into SOCK_RDM and SOCK_SEQPACKET. */
 
+#include <config.h>
 #include <gnustep/base/UdpPort.h>
 #include <gnustep/base/Lock.h>
 #include <gnustep/base/Connection.h>

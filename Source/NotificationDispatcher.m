@@ -27,6 +27,7 @@
    I don't think GNU needs this restriction with its corresponding
    NotificationDistributor class. */
 
+#include <config.h>
 #include <gnustep/base/NotificationDispatcher.h>
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/LinkedListNode.h>

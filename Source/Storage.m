@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
+#include <config.h>
 #include <objc/Storage.h>
 #include <gnustep/base/preface.h>
 #include <assert.h>

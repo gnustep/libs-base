@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
+#include <config.h>
 #include <gnustep/base/Set.h>
 #include <gnustep/base/CollectionPrivate.h>
 #include <gnustep/base/Coder.h>
@@ -192,6 +193,11 @@
     return 1;
   else
     return 0;
+}
+
+- member: anObject
+{
+  return NSHashGet(_contents_hash, anObject);
 }
 
 

@@ -25,6 +25,7 @@
    same architecture, and you care about time and space.
    WARNING: This encoding is *not* machine-independent. */
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/RawCStream.h>
 #include <gnustep/base/NSString.h>

@@ -50,6 +50,7 @@
 
    */
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Bag.h>
 #include <gnustep/base/Heap.h>

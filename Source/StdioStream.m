@@ -23,6 +23,7 @@
 
 #define _REENTRANT
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/StdioStream.h>
 #include <gnustep/base/Coder.h>

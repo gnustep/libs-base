@@ -26,6 +26,7 @@
    RNGAdditiveCongruential nextRandom returns positive and negative numbers
 */
 
+#include <config.h>
 #include <gnustep/base/Random.h>
 #include <gnustep/base/RNGBerkeley.h>
 #include <gnustep/base/Time.h>

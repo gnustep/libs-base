@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
+#include <config.h>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSGSet.h>
 #include <Foundation/NSArray.h>
