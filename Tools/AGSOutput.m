@@ -22,17 +22,6 @@
 
 #include "AGSOutput.h"
 
-@implementation	AGSOutput
-
-- (void) dealloc
-{
-  DESTROY(identifier);
-  DESTROY(identStart);
-  DESTROY(spaces);
-  DESTROY(spacenl);
-  [super dealloc];
-}
-
 static BOOL snuggleEnd(NSString *t)
 {
   static NSCharacterSet	*set = nil;
@@ -59,6 +48,18 @@ static BOOL snuggleStart(NSString *t)
       RETAIN(set);
     }
   return [set characterIsMember: [t characterAtIndex: [t length] - 1]];
+}
+
+
+@implementation	AGSOutput
+
+- (void) dealloc
+{
+  DESTROY(identifier);
+  DESTROY(identStart);
+  DESTROY(spaces);
+  DESTROY(spacenl);
+  [super dealloc];
 }
 
 - (unsigned) fitWords: (NSArray*)a
@@ -382,8 +383,8 @@ static BOOL snuggleStart(NSString *t)
 }
 
 /**
- * Uses -split: and -reformat:withIndent:to:
- * and has fun with YES, NO, and nil.
+ * Uses -split: and -reformat:withIndent:to:.
+ * Also has fun with YES, NO, and nil.
  */
 - (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str
 {
@@ -744,7 +745,15 @@ static BOOL snuggleStart(NSString *t)
   unichar		*ptr;
   unichar		*end;
   unichar		*buf;
-  
+
+  /**
+   * Phase 1 ... we take the supplied string andcheck for white space.
+   * Any white space sequence is deleted and treated as a word separator
+   * except within xml element markup.  The format of element start and
+   * end marks is tidied for consistency.  The resulting data is made
+   * into an array of strings, each containing either an element start
+   * or end tag, or one of the whitespace separated words.
+   */
   data = [[NSMutableData alloc] initWithLength: l * sizeof(unichar)];
   ptr = buf = [data mutableBytes];
   [str getCharacters: buf];
@@ -876,12 +885,21 @@ static BOOL snuggleStart(NSString *t)
       [a addObject: tmp];
     }
 
+  /*
+   * Phase 2 ... the array of words is checked to see if a word contains
+   * a well known constant, or a method name specification.
+   * Where these special cases apply, the array of words is modified to
+   * insert extra gsdoc markup to highlight the constants and to create
+   * references to where the named methods are documented.
+   */
   for (l = 0; l < [a count]; l++)
     {
       static NSArray	*constants = nil;
       static unsigned	cCount = 0;
+      NSString		*tmp = [a objectAtIndex: l];
       unsigned		pos;
-      NSString	*tmp = [a objectAtIndex: l];
+      NSRange		r;
+      BOOL		hadMethod = NO;
 
       /*
        * Ensure that well known constants are rendered as 'code'
@@ -895,7 +913,8 @@ static BOOL snuggleStart(NSString *t)
       for (pos = 0; pos < cCount; pos++)
 	{
 	  NSString	*c = [constants objectAtIndex: pos];
-	  NSRange	r = [tmp rangeOfString: c];
+
+	  r = [tmp rangeOfString: c];
 
 	  if (r.length > 0)
 	    {
@@ -952,18 +971,228 @@ static BOOL snuggleStart(NSString *t)
 
       /*
        * Ensure that methods are rendered as references.
+       * First look for format with class name in square brackets.
        */
-      if ([tmp length] > 1 && ([tmp hasPrefix: @"-"] || [tmp hasPrefix: @"+"]))
+      r = [tmp rangeOfString: @"["];
+      if (r.length > 0)
 	{
-	  if (l == 0 || [[a objectAtIndex: l - 1] hasPrefix: @"<ref"] == NO)
-	    {
-	      NSString	*ref;
+	  unsigned	sPos = NSMaxRange(r);
 
-	      ref = [NSString stringWithFormat:
-		@"<ref type=\"method\" id=\"%@\">", tmp];
-	      [a insertObject: @"</ref>" atIndex: l + 1];
-	      [a insertObject: ref atIndex: l];
-	      l += 2;
+	  r = NSMakeRange(pos, [tmp length] - pos);
+	  r = [tmp rangeOfString: @"]" options: NSLiteralSearch range: r];
+	  if (r.length > 0)
+	    {
+	      unsigned	ePos = r.location;
+	      NSString	*cName = nil;
+	      NSString	*mName = nil;
+	      unichar	c;
+
+	      if (pos < ePos
+		&& [identStart characterIsMember:
+		  (c = [tmp characterAtIndex: pos])] == YES)
+		{
+		  pos++;
+		  while (pos < ePos)
+		    {
+		      c = [tmp characterAtIndex: pos];
+		      if ([identifier characterIsMember: c] == NO)
+			{
+			  break;
+			}
+		      pos++;
+		    }
+		  if (c == '(')
+		    {
+		      pos++;
+		      if (pos < ePos
+			&& [identStart characterIsMember:
+			  (c = [tmp characterAtIndex: pos])] == YES)
+			{
+			  while (pos < ePos)
+			    {
+			      c = [tmp characterAtIndex: pos];
+			      if ([identifier characterIsMember: c] == NO)
+				{
+				  break;
+				}
+			      pos++;
+			    }
+			  if (c == ')')
+			    {
+			      pos++;
+			      r = NSMakeRange(sPos, pos - sPos);
+			      cName = [tmp substringWithRange: r];
+			      if (pos < ePos)
+				{
+				  c = [tmp characterAtIndex: pos];
+				}
+			    }
+			}
+		      if (cName == nil)
+			{
+			  pos = ePos;	// Bad class name!
+			}
+		    }
+		  else
+		    {
+		      r = NSMakeRange(sPos, pos - sPos);
+		      cName = [tmp substringWithRange: r];
+		    }
+		}
+
+	      if (pos < ePos && (c == '+' || c == '-'))
+		{ 
+		  unsigned	mStart = pos;
+
+		  pos++;
+		  if (pos < ePos
+		    && [identStart characterIsMember:
+		      (c = [tmp characterAtIndex: pos])] == YES)
+		    {
+		      while (pos < ePos)
+			{
+			  c = [tmp characterAtIndex: pos];
+			  if (c != ':'
+			    && [identifier characterIsMember: c] == NO)
+			    {
+			      break;
+			    }
+			  pos++;
+			}
+		      /*
+		       * The end of the method name should be immediately
+		       * before the closing square bracket at 'ePos'
+		       */
+		      if (pos == ePos && pos - mStart > 1)
+			{
+			  r = NSMakeRange(mStart, pos - mStart);
+			  mName = [tmp substringWithRange: r];
+			}
+		    }
+		}
+	      if (mName != nil)
+		{
+		  NSString	*start;
+		  NSString	*end;
+		  NSString	*sub;
+		  NSString	*ref;
+
+		  if (sPos > 0)
+		    {
+		      start = [tmp substringToIndex: sPos];
+		    }
+		  else
+		    {
+		      start = nil;
+		    }
+		  if (ePos < [tmp length])
+		    {
+		      end = [tmp substringFromIndex: ePos];
+		    }
+		  else
+		    {
+		      end = nil;
+		    }
+
+		  if (start != nil || end != nil)
+		    {
+		      sub = [tmp substringWithRange:
+			NSMakeRange(sPos, ePos - sPos)];
+		    }
+		  else
+		    {
+		      sub = nil;
+		    }
+		  if (start != nil)
+		    {
+		      [a insertObject: start atIndex: l++];
+		    }
+		  if (cName == nil)
+		    {
+		      ref = [NSString stringWithFormat:
+			@"<ref type=\"method\" id=\"%@\">", mName];
+		    }
+		  else
+		    {
+		      ref = [NSString stringWithFormat:
+			@"<ref type=\"method\" id=\"%@\" class=\"%@\">",
+			mName, cName];
+		    }
+		  [a insertObject: ref atIndex: l++];
+		  if (sub != nil)
+		    {
+		      [a replaceObjectAtIndex: l withObject: sub];
+		    }
+		
+		  l++;
+		  [a insertObject: @"</ref>" atIndex: l];
+		  if (end != nil)
+		    {
+		      [a insertObject: end atIndex: ++l];
+		    }
+		  hadMethod = YES;
+		}
+	    }
+	}
+      
+      /*
+       * Now handle bare method names for current class ... outside brackets.
+       */
+      if (hadMethod == NO && ([tmp hasPrefix: @"-"] || [tmp hasPrefix: @"+"]))
+	{
+	  unsigned	ePos = [tmp length];
+	  NSString	*mName = nil;
+	  unsigned	c;
+
+	  pos = 1;
+	  if (pos < ePos
+	    && [identStart characterIsMember:
+	      (c = [tmp characterAtIndex: pos])] == YES)
+	    {
+	      while (pos < ePos)
+		{
+		  c = [tmp characterAtIndex: pos];
+		  if (c != ':'
+		    && [identifier characterIsMember: c] == NO)
+		    {
+		      break;
+		    }
+		  pos++;
+		}
+	      if (pos > 1 && (pos == ePos || c == ',' || c == '.' || c == ';'))
+		{
+		  NSString	*end;
+		  NSString	*sub;
+		  NSString	*ref;
+
+		  mName = [tmp substringWithRange: NSMakeRange(0, pos)];
+
+		  if (pos < [tmp length])
+		    {
+		      end = [tmp substringFromIndex: pos];
+		      sub = [tmp substringToIndex: pos];
+		    }
+		  else
+		    {
+		      end = nil;
+		      sub = nil;
+		    }
+
+		  ref = [NSString stringWithFormat:
+		    @"<ref type=\"method\" id=\"%@\">", mName];
+		  [a insertObject: ref atIndex: l++];
+		  if (sub != nil)
+		    {
+		      [a replaceObjectAtIndex: l withObject: sub];
+		    }
+		  l++;
+		  [a insertObject: @"</ref>" atIndex: l];
+		  if (end != nil)
+		    {
+		      [a insertObject: end atIndex: ++l];
+		    }
+		  hadMethod = YES;
+		}
 	    }
 	}
     }
