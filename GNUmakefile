@@ -50,7 +50,7 @@ PACKAGE_NAME = gnustep-base
 #
 # The list of subproject directories
 #
-SUBPROJECTS = NSCharacterSets Source SSL Tools NSTimeZones Resources
+SUBPROJECTS = Source SSL Tools NSTimeZones Resources
 
 -include Makefile.preamble
 

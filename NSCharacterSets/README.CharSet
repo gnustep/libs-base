@@ -1,3 +1,11 @@
+#############################################################################
+   THIS DIRECTORY IS OBSOLETE AND IS NO LONGER USED
+
+   The NSCharacterSetData.h file (in CVS in core/base/Source) is generated
+   using the tools in dev-apps/charsets and the library in dev-libs/ucsdata
+
+#############################################################################
+
 
    This files in this directory are CharacterSet bitmaps which contain
    a bitmap representation of the Unicode characters in the respective
@@ -6,10 +14,6 @@
    These file were generated automatically from the the latest version
    of the Unicode character set as of Feb. 27, 2001.  The Unicode character
    set can be obtained from http://www.unicode.org
-
-   The NSCharacterSetData.h file is generated from the binary bitmap
-   data in the individual .dat files, and is compiled in to the
-   NSCharacterSet class.
 
    The binary data files are no longer used at runtime.
 
