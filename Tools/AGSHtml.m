@@ -532,11 +532,14 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"<h2>"];
 	  [buf appendString:
 	    [self makeAnchor: classname ofType: @"class" name: classname]];
-	  sup = [self typeRef: sup];
 	  if (sup != nil)
 	    {
-	      [buf appendString: @" : "];
-	      [buf appendString: sup];
+	      sup = [self typeRef: sup];
+	      if (sup != nil)
+		{
+		  [buf appendString: @" : "];
+		  [buf appendString: sup];
+		}
 	    }
 	  [buf appendString: @"</h2>\n"];
 	  [self outputUnit: node to: buf];
@@ -2178,6 +2181,10 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
   NSRange		er;
   NSRange		sr;
 
+  if (end == 0)
+    {
+      return nil;
+    }
   t = str;
   while (end > 0)
     {
