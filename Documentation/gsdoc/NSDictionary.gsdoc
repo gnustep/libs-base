@@ -122,22 +122,22 @@
           <desc>
           </desc>
         </method>
-        <method type="unsignedlong">
+        <method type="unsigned long">
           <sel>filePosixPermissions</sel>
           <desc>
           </desc>
         </method>
-        <method type="unsignedlonglong">
+        <method type="unsigned long long">
           <sel>fileSize</sel>
           <desc>
           </desc>
         </method>
-        <method type="unsignedlong">
+        <method type="unsigned long">
           <sel>fileSystemFileNumber</sel>
           <desc>
           </desc>
         </method>
-        <method type="unsignedlong">
+        <method type="unsigned long">
           <sel>fileSystemNumber</sel>
           <desc>
           </desc>

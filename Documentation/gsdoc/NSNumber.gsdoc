@@ -200,7 +200,7 @@
         </method>
         <method type="id">
           <sel>initWithUnsignedLong:</sel>
-          <arg type="unsigned longint">value</arg>
+          <arg type="unsigned long int">value</arg>
           <desc>
           </desc>
         </method>

@@ -41,7 +41,9 @@
           <arg type="NSData*">data</arg>
           <sel>atCursor:</sel>
           <arg type="unsigned int*">cursor</arg>
-          <sel>length:(unsigned int)length mutableContainers:</sel>
+          <sel>length:</sel>
+	  <arg type="unsigned int">length</arg>
+	  <sel>mutableContainers:</sel>
           <arg type="BOOL">mutable</arg>
           <desc>
           </desc>
