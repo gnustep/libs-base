@@ -41,8 +41,8 @@
 - initWithDictionary: (NSDictionary*)d
 {
   [super init];
-  [dictionary retain];
   dictionary = d;
+  [dictionary retain];
   enum_state = 0;
   return self;
 }
