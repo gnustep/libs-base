@@ -1,3 +1,57 @@
+Mon Sep  2 10:00:05 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/NSString.m ([NSString -substringFromRange:]): Fix bug in
+ 	references to string length.
+
+	* src/NSGArray.m: Declare NonCore classes.
+
+	* src/NSCharacterSet.m ([NSCharacterSet +_bitmapForSet:number:]):
+ 	Add an abort() after raising the exception, to avoid gcc warning.
+
+	* Version (SUBMINOR_VERSION): Version 0.2.7.
+
+	* Makefile.in (clean): Fix dependancies so we actually clean-top,
+ 	not mostlyclean-top.
+	(distclean): Analogously.
+	(maintainer-clean): Analogously.
+
+Tue Aug 27 13:38:14 1996  Adam Fedor  <fedor@pulse.Colorado.edu>
+
+	* src/Connection.m ([Connection -_service_forwardForProxy]): Use
+ 	new exception variable name.
+	* src/NSCharacterSet.m: ([NSCharacterSet -_bitmapForSet:number:]):
+	Likewise
+
+Sat Aug 24 16:41:01 1996  Adam Fedor  <fedor@pulse.Colorado.edu>
+
+	* src/include/NSException.h (NS_HANDLER): Change local exception
+ 	variable name.
+
+Wed Jul 17 16:04:29 1996  Adam Fedor  <fedor@wave.Colorado.edu>
+
+	*  NSCharacterSet.m: Cache standard character
+	sets. ([NSCharacterSet +initialize]): New method.
+	([NSCharacterSet _bitmapForSet:number:]): Return set from cache if
+	available, otherwise find bitmap file and add to cache.  All
+	callers changed.
+
+Mon Sep  2 09:23:46 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/NSString.m ([NSString -substringFromRange:]): Raise correct
+ 	exceptions.
+
+	* src/Makefile.in (install): Make a soft link from
+ 	`$(includedir)/gnustep/base' to `$(includedir)/objc' the same way
+ 	we do for `$(includedir)/Foundation'.
+
+	* src/NSString.m ([NSString -getCharacters:range:]): Fix bug in
+ 	buffer index.
+	(Reported by Eric Norum <Eric.Norum@usask.ca>.)
+	([NSString -rangeOfString:aStringoptions:maskrange:aRange]):
+	Implemented.  (By Eric Norum.)
+
+	* src/NSUser.m: Include <Foundation/NSPathUtilities.h>.
+
 Sun Aug 25 16:12:49 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* checks/Makefile.in (SRCS): Added nsscanner.m from Eric Norum.
