@@ -450,8 +450,10 @@ int main (int argc, char *argv[], char **env)
 	exit(0);
 	break;
       default:
+#if 0
 	usage(argv[0]);
 	exit(1);
+#endif
 	break;
       }
   if (type_test == NO_TEST)
@@ -477,8 +479,7 @@ int main (int argc, char *argv[], char **env)
 	}
       else
 	prx = [NSConnection rootProxyForConnectionWithRegisteredName:
-		@"test2server" 
-			host:nil];
+		@"test2server" host: @"*"];
       if (prx == nil)
 	{
 	  printf("ERROR: Failed to connect to server\n");
