@@ -28,15 +28,21 @@
 #include <objc/objc-api.h>
 #include <stdarg.h>
 
+#ifdef GNUSTEP_WITH_DLL
+ 
 #if BUILD_libgnustep_base_DLL
 #  define GS_EXPORT  __declspec(dllexport)
 #  define GS_DECLARE __declspec(dllexport)
-#elif libgnustep_base_ISDLL
+#else
 #  define GS_EXPORT  extern __declspec(dllimport)
 #  define GS_DECLARE __declspec(dllimport)
-#else
+#endif
+ 
+#else /* GNUSTEP_WITH[OUT]_DLL */
+
 #  define GS_EXPORT extern
-#  define GS_DECLARE
+#  define GS_DECLARE 
+
 #endif
 
 @class	NSObject;
