@@ -1,3 +1,9 @@
+Tue Sep 14 11:22:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSTimer.m: minor optimisations
+	* Source/NSRunLoop.m: minor optimisations, plus bugfix for performers
+	(was removing performers after they had been fired - shouldn't).
+
 Mon Sep 13  6:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Miscellaneous minor bugfixes plus,
