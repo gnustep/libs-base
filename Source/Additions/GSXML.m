@@ -49,6 +49,7 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSURL.h>
+#include <Foundation/NSHashTable.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSBundle.h>
@@ -69,7 +70,6 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
 
-extern int xmlDoValidityCheckingDefaultValue;
 extern int xmlGetWarningsDefaultValue;
 
 /*
@@ -1643,13 +1643,21 @@ static NSMapTable	*nodeNames = 0;
  */
 @implementation GSXMLParser
 
+static NSMapTable	*warnings = 0;
+
 static NSString	*endMarker = @"At end of incremental parse";
 
 + (void) initialize
 {
-  if (cacheDone == NO)
-    setupCache();
-  xmlSetExternalEntityLoader((xmlExternalEntityLoader)loadEntityFunction);
+  static BOOL	beenHere = NO;
+
+  if (beenHere == NO)
+    {
+      beenHere = YES;
+      if (cacheDone == NO)
+	setupCache();
+      warnings = NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
+    }
 }
 
 /**
@@ -1863,6 +1871,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (void) dealloc
 {
+  NSHashRemove(warnings, self);
   RELEASE(messages);
   RELEASE(src);
   RELEASE(saxHandler);
@@ -1911,7 +1920,21 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 - (BOOL) getWarnings: (BOOL)yesno
 {
-  return !(xmlGetWarningsDefaultValue = yesno);
+  BOOL	old = YES;
+
+  if (NSHashGet(warnings, self) == nil)
+    {
+      old = NO;
+    }
+  if (yesno == YES && old == NO)
+    {
+      NSHashInsert(warnings, self);
+    }
+  else if (yesno == NO && old == YES)
+    {
+      NSHashRemove(warnings, self);
+    }
+  return old;
 }
 
 /**
@@ -2181,7 +2204,7 @@ static NSString	*endMarker = @"At end of incremental parse";
        */
       if (lib != NULL)
 	{
-	  xmlParseChunk(lib, 0, 0, 1);
+	  [self _parseChunk: nil];
 	  src = endMarker;
 	  if (((xmlParserCtxtPtr)lib)->wellFormed)
 	    return YES;
@@ -2299,10 +2322,36 @@ static NSString	*endMarker = @"At end of incremental parse";
   return messages;
 }
 
+// nil data allowed
 - (void) _parseChunk: (NSData*)data
 {
-  // nil data allowed
-  xmlParseChunk(lib, [data bytes], [data length], data == nil);
+  xmlExternalEntityLoader	oldLoader;
+  int				oldWarnings;
+
+  oldLoader = xmlGetExternalEntityLoader();
+  oldWarnings = xmlGetWarningsDefaultValue;
+  NS_DURING
+    {
+      if (NSHashGet(warnings, self) == nil)
+	{
+	  xmlGetWarningsDefaultValue = 0;
+	}
+      else
+	{
+	  xmlGetWarningsDefaultValue = 1;
+	}
+      xmlSetExternalEntityLoader((xmlExternalEntityLoader)loadEntityFunction);
+      xmlParseChunk(lib, [data bytes], [data length], data == nil);
+      xmlSetExternalEntityLoader(oldLoader);
+      xmlGetWarningsDefaultValue = oldWarnings;
+    }
+  NS_HANDLER
+    {
+      xmlSetExternalEntityLoader(oldLoader);
+      xmlGetWarningsDefaultValue = oldWarnings;
+      [localException raise];
+    }
+  NS_ENDHANDLER
 }
 
 @end
