@@ -23,7 +23,8 @@
 #ifndef __NSZone_h_GNUSTEP_BASE_INCLUDE
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
 
-#include <objc/thr.h>
+
+#include <objc/objc.h>
 
 
 @class NSString;
@@ -32,6 +33,17 @@
 typedef struct _NSZone NSZone;
 
 
+/* The members are the same as the structure mstats which is in the
+   GNU C library. */
+struct NSZoneStats
+{
+  size_t bytes_total;
+  size_t chunks_used;
+  size_t bytes_used;
+  size_t chunks_free;
+  size_t bytes_free;
+};
+
 struct _NSZone
 {
   /* Functions for zone. */
@@ -39,7 +51,9 @@ struct _NSZone
   void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
   void (*free)(struct _NSZone *zone, void *ptr);
   void (*recycle)(struct _NSZone *zone);
-
+  BOOL (*check)(struct _NSZone *zone);
+  struct NSZoneStats (*stats)(struct _NSZone *zone);
+  
   size_t gran; // Zone granularity
   NSString *name; // Name of zone (default is 'nil')
 };
@@ -78,5 +92,16 @@ extern void NSSetZoneName (NSZone *zone, NSString *name);
 
 extern inline NSString* NSZoneName (NSZone *zone)
 { return zone->name; }
+
+/* Not in OpenStep */
+extern void* NSZoneRegisterChunk (NSZone *zone, void *chunk);
+
+extern size_t NSZoneChunkOverhead (void); // Not in OpenStep
+
+extern inline BOOL NSZoneCheck (NSZone *zone) // Not in OpenStep
+{ return (zone->check)(zone); }
+
+extern inline struct NSZoneStats NSZoneStats (NSZone *zone) // Not in OpenStep
+{ return (zone->stats)(zone); }
 
 #endif /* not __NSZone_h_GNUSTEP_BASE_INCLUDE */

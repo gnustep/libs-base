@@ -3,6 +3,85 @@ Mon Mar  3 14:41:01 1997  Andrew McCallum  <mccallum@jprc.com>
 	* src/NSHost.m, src/include/NSHost.h: New files from Luke Howard
 	<lukeh@xedoc.com.au>.
 
+Thu Feb  6 09:20:05 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/NSZone.m (fcheck): Implemented.
+	(fstats): Likewise.
+	(ncheck): Likewise.
+	(nstats): Likewise.
+
+	* src/include/NSZone.h: New declarations of 'NSZoneRegisterChunk'
+	and 'NSZoneChunkOverhead'.
+	Include <objc/objc.h> instead of <objc/thr.h>.
+
+	* src/NSZone.m: Removed 'outmemstr'.  Better reasons given when
+	raising exceptions.
+	(frecycle): Use objc_free().
+	(nrecycle): Likewise.
+	(NSCreateZone): Check allocation of 'zone'.
+	(default_check): New function.
+	(default_stats): Likewise.
+	(fcheck): Likewise.
+	(fstats): Likewise.
+	(ncheck): Likewise.
+	(nstats): Likewise.
+	(NSZoneChunkOverhead): Likewise.
+	(NSZoneRegisterChunk): Likewise.
+	(NSZoneCheck): Likewise.
+	(NSZoneStats): Likewise.
+	(default_zone): Set the zone name to "default".
+
+Wed Feb  5 21:29:23 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/include/NSZone.h (struct _NSZoneStats): New structure.
+	(struct _NSZone): Added 'check' and 'stats'.
+	(NSZoneCheck): New declaration.
+	(NSZoneStats): Likewise.
+
+Tue Feb  4 22:39:50 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/NSZone.m (nmalloc): Return NULL when size is 0.
+
+Tue Feb  4 09:16:05 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/NSZone.m (NSSetDefaultMallocZone): New function.
+	(get_chunk): Use objc_malloc() to get more memory.
+	(nmalloc): Likewise.
+	(NSCreateZone): Likewise.
+	(NSSetZoneName): Removed locks.
+
+	* src/NSAutoreleasePool.m ([NSAutoreleasePool -dealloc]): Don't
+	check whether we're releasing an already deallocated object.
+
+	* src/include/NSZone.h (struct _NSZone): Removed mutex.
+	Removed NSZoneMemInUse().
+	Added NSSetDefaultMallocZone().
+
+	* src/NSZone.m: Changed comments.
+	Uses objc_malloc() and friends for default zone.
+	Moved mutex out of NSZone structure.
+	Use mutex functions even in single threaded case.
+	(NSZoneMemInUse): Removed.
+
+Fri Jan 24 19:12:18 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/NSZone.m: Spell checked comments.
+
+Tue Jan 21 13:31:11 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/NSZone.m (default_recycle): New function.
+	(nrealloc): Likewise.
+	(nfree): Likewise.
+	(default_zone): Set common.recycle to default_recycle.
+	(NSCreateZone): Set realloc and free for nonfreeable zone.
+
+	* src/include/NSThread.h: Add comments.
+
+	* src/NSThread.m ([NSThread -setExceptionHandler:]): Add comments.
+	([NSThread -exceptionHandler]): Likewise.
+	([NSThread +detachNewThreadSelector:toTarget:withObject:]): Set
+ 	entered_multi_threaded_state to YES.
+
 Tue Jan 21 11:18:32 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
 
 	* checks/thread-except.m: New file.
