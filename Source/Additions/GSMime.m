@@ -3754,6 +3754,7 @@ static NSCharacterSet	*tokenSet = nil;
   md = [[NSMutableData alloc] initWithLength: 40];
   [md setLength: encodebase64([md mutableBytes], output, 20)];
   result = [[NSString alloc] initWithData: md encoding: NSASCIIStringEncoding];
+  RELEASE(md);
   return AUTORELEASE(result);
 }
 
