@@ -116,10 +116,13 @@ extern NSString*	NSFileHandleOperationException;
 + (id)fileHandleAsClientAtAddress:(NSString*)address
 			  service:(NSString*)service
 			 protocol:(NSString*)protocol;
-+ (id)fileHandleAsClientAtAddress:(NSString*)address
-			  service:(NSString*)service
-			 protocol:(NSString*)protocol
-			 forModes:(NSArray*)modes;
++ (id)fileHandleAsClientInBackgroundAtAddress:(NSString*)address
+				      service:(NSString*)service
+				     protocol:(NSString*)protocol;
++ (id)fileHandleAsClientInBackgroundAtAddress:(NSString*)address
+				      service:(NSString*)service
+				     protocol:(NSString*)protocol
+				     forModes:(NSArray*)modes;
 - (BOOL)readInProgress;
 - (NSString*)socketAddress;
 - (NSString*)socketService;
