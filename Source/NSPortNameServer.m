@@ -584,8 +584,8 @@ typedef enum {
   return [self portForName: name onHost: nil];
 }
 
-- (NSPort*) portForName: (NSString*)name
-		 onHost: (NSString*)host
+- (BOOL) _lookupName: (NSString*)name onHost: (NSString*)host
+  intoAddress: (NSString**)addr andPort: (unsigned*)port
 {
   GSPortCom		*com = nil;
   NSRunLoop		*loop = [NSRunLoop currentRunLoop];
@@ -593,11 +593,11 @@ typedef enum {
   struct in_addr	*svrs = &singleServer;
   unsigned		numSvrs = 1;
   unsigned		count;
-  unsigned		portNum = 0;
   unsigned		len;
   NSMutableArray	*array;
   NSDate		*limit;
 
+  *port = 0;
   if (name == nil)
     {
       [NSException raise: NSInvalidArgumentException
@@ -711,7 +711,7 @@ typedef enum {
     {
       unsigned	i;
 
-      portNum = 0;
+      *port = 0;
       count = 0;
       do
 	{
@@ -740,13 +740,12 @@ typedef enum {
 	    {
 	      break;	/* No servers left to try!	*/
 	    }
-	  [loop runMode: mode
-	     beforeDate: limit];
+	  [loop runMode: mode beforeDate: limit];
 
 	  /*
 	   * Check for completed operations.
 	   */
-	  while (portNum == 0 && i-- > 0)
+	  while (*port == 0 && i-- > 0)
 	    {
 	      com = [array objectAtIndex: i];
 	      if ([com isActive] == NO)
@@ -754,9 +753,8 @@ typedef enum {
 		  [com close];
 		  if ([com state] == GSPC_DONE)
 		    {
-		      portNum
-			= GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
-		      if (portNum != 0)
+		      *port = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
+		      if (*port != 0)
 			{
 			  singleServer = [com addr];
 			}
@@ -765,7 +763,7 @@ typedef enum {
 		}
 	    }
 	}
-      while (portNum == 0 && [limit timeIntervalSinceNow] > 0);
+      while (*port == 0 && [limit timeIntervalSinceNow] > 0);
 
       /*
        * Make sure that any outstanding lookups are cancelled.
@@ -788,14 +786,32 @@ typedef enum {
   NS_ENDHANDLER
   [serverLock unlock];
 
-  if (portNum)
+  if (*port)
+    {
+      *addr = [NSString stringWithCString: inet_ntoa(singleServer)];
+      return YES;
+    }	
+  else
+    {
+      return NO;
+    }
+}
+
+- (NSPort*) portForName: (NSString*)name
+		 onHost: (NSString*)host
+{
+  NSString	*addr;
+  unsigned	portNum = 0;
+
+  if ([self _lookupName: name
+		 onHost: host
+	    intoAddress: &addr
+	        andPort: &portNum] == YES)
     {
       if (portClass == [GSTcpPort class])
 	{
-	  NSString	*addr;
 	  NSHost	*host;
 
-	  addr = [NSString stringWithCString: inet_ntoa(singleServer)];
 	  host = [NSHost hostWithAddress: addr];
 	  return (NSPort*)[GSTcpPort portWithNumber: portNum
 					     onHost: host
@@ -854,7 +870,6 @@ typedef enum {
   NS_DURING
     {
       NSMutableSet	*known = NSMapGet(_portMap, port);
-      GSPortCom		*tmp;
 
       /*
        *	If there is no set of names for this port - create one.
@@ -875,8 +890,7 @@ typedef enum {
       if ([known count] == 0)
 	{
 	  com = [GSPortCom new];
-	  [com startPortUnregistration: [port portNumber]
-			      withName: nil];
+	  [com startPortUnregistration: [port portNumber] withName: nil];
 	  while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
 	    {
 	      [loop runMode: mode
@@ -888,18 +902,14 @@ typedef enum {
 	      [NSException raise: NSPortTimeoutException
 			  format: @"timed out unregistering port"]; 
 	    }
-	  tmp = com;
-	  com = nil;
-	  RELEASE(tmp);
+	  DESTROY(com);
 	}
 
       com = [GSPortCom new];
-      [com startPortRegistration: [port portNumber]
-			withName: name];
+      [com startPortRegistration: [port portNumber] withName: name];
       while ([limit timeIntervalSinceNow] > 0 && [com isActive] == YES)
 	{
-	  [loop runMode: mode
-	     beforeDate: limit];
+	  [loop runMode: mode beforeDate: limit];
 	}
       [com close];
       if ([com state] != GSPC_DONE)
@@ -914,19 +924,53 @@ typedef enum {
 	  result = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
 	  if (result == 0)
 	    {
-	      [NSException raise: NSGenericException
-		format: @"Unable to register name '%@' for the port -\n%@\n"
+	      unsigned int	portNum;
+	      NSString		*addr;
+	      BOOL		found;
+
+	      NS_DURING
+	        {
+		  found = [self _lookupName: name
+				     onHost: @""
+				intoAddress: &addr
+				    andPort: &portNum];
+
+		}
+	      NS_HANDLER
+	        {
+		  found = NO;
+		}
+	      NS_ENDHANDLER
+
+	      if (found == YES)
+		{
+		  [NSException raise: NSGenericException
+		    format: @"Unable to register name '%@' for the port -\n%@\n"
+@"It appears that a process is already registered with this name at port\n"
+@"'%d' IP address %@\n"
+@"Perhaps this program ran before and was shut down without unregistering,\n"
+@"so another process may be running using the same network port.  If this is\n"
+@"the case, you can use -\n"
+@"gdomap -U '%@'\n"
+@"to remove the registration so that you can attempt this operation again.",
+		    name, port, portNum, addr, name];
+		}
+	      else
+	        {
+		  [NSException raise: NSGenericException
+		    format: @"Unable to register name '%@' for the port -\n%@\n"
 @"Typically, this might mean that a process is already running with the name\n"
 @"'%@' ...\n"
 @"Try the command -\n"
-@"  gdomap -L '%@'\n"
+@"  gdomap -M localhost -L '%@'\n"
 @"to find its network details.\n"
 @"Alternatively, it may have been shut down without unregistering, and\n"
 @"another process may be running using the same network port.  If this is\n"
 @"the case, you can use -\n"
 @"gdomap -U '%@'\n"
 @"to remove the registration so that you can attempt this operation again.",
-		name, port, name, name, name]; 
+		    name, port, name, name, name];
+		}
 	    }
 	  else
 	    {
@@ -938,16 +982,14 @@ typedef enum {
 	      NSMapInsert(_nameMap, name, port);
 	    }
 	}
-      tmp = com;
-      com = nil;
-      RELEASE(tmp);
+      DESTROY(com);
     }
   NS_HANDLER
     {
       /*
        *	If we had a problem - close and unlock before continueing.
        */
-      RELEASE(com);
+      DESTROY(com);
       [serverLock unlock];
       [localException raise];
     }

@@ -530,6 +530,78 @@ setup()
  * peculiar to its memory management (shrinking, growing, and converting).
  */
 
+static inline char*
+UTF8String_c(ivars self)
+{
+  unsigned char *r;
+
+  if (self->_count == 0)
+    {
+      return "";
+    }
+  if (intEnc == NSISOLatin1StringEncoding || intEnc == NSASCIIStringEncoding)
+    {
+      r = (unsigned char*)_fastMallocBuffer(self->_count+1);
+
+      if (self->_count > 0)
+	{
+	  memcpy(r, self->_contents.c, self->_count);
+	}
+      r[self->_count] = '\0';
+    }
+  else
+    {
+      unichar	*u = 0;
+      unsigned	l = 0;
+      unsigned	s = 0;
+
+      /*
+       * We must convert from internal format to unicode and then to
+       * UTF8 string encoding.
+       */
+      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
+	NSDefaultMallocZone(), 0) == NO)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert to Unicode string."];
+	}
+      if (GSFromUnicode((unsigned char**)&r, &s, u, l, NSUTF8StringEncoding,
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), u);
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert from Unicode to UTF8."];
+	}
+      NSZoneFree(NSDefaultMallocZone(), u);
+    }
+  
+  return r;
+}
+
+static inline char*
+UTF8String_u(ivars self)
+{
+  unsigned	c = self->_count;
+
+  if (c == 0)
+    {
+      return "";
+    }
+  else
+    {
+      unsigned int	l = 0;
+      unsigned char	*r = 0;
+
+      if (GSFromUnicode(&r, &l, self->_contents.u, c, NSUTF8StringEncoding,
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't get UTF8 from Unicode string."];
+	}
+      return r;
+    }
+}
+
 static inline BOOL
 boolValue_c(ivars self)
 {
@@ -1826,6 +1898,11 @@ transmute(ivars self, NSString *aString)
  * 8-bit string class, storing immutable data in a single buffer.
  */
 @implementation GSCString
+- (const char *) UTF8String
+{
+  return UTF8String_c((ivars)self);
+}
+
 - (BOOL) boolValue
 {
   return boolValue_c((ivars)self);
@@ -2124,6 +2201,11 @@ transmute(ivars self, NSString *aString)
 
 
 @implementation GSUnicodeString
+- (const char *) UTF8String
+{
+  return UTF8String_u((ivars)self);
+}
+
 - (BOOL) boolValue
 {
   return boolValue_u((ivars)self);

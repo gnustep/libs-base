@@ -506,6 +506,7 @@ static BOOL	multi_threaded = NO;
 }
 
 /**
+ * Not used in GNUstep
  */
 + (id) currentConversation
 {
@@ -1164,7 +1165,8 @@ static BOOL	multi_threaded = NO;
 }
 
 /**
- * Returns YES if the connection is invalid, NO otherwise.
+ * Returns YES if the connection is valid, NO otherwise.
+ * A connection is valid until it has been sent an -invalidate message.
  */
 - (BOOL) isValid
 {
@@ -1206,7 +1208,8 @@ static BOOL	multi_threaded = NO;
 
 /**
  * Returns YES if the connection permits multiple threads to use it to
- * send requests, NO otherwise.
+ * send requests, NO otherwise.<br />
+ * See the -enableMultipleThreads method.
  */
 - (BOOL) multipleThreadsEnabled
 {
@@ -1486,8 +1489,10 @@ static BOOL	multi_threaded = NO;
 
 /**
  * Sets the time interval that the NSConnection will wait for a
- * reply to one of its requests before raising an
- * NSPortTimeoutException.
+ * reply for one of its requests before raising an
+ * NSPortTimeoutException.<br />
+ * NB. In GNUstep you may also get such an exception if the connection
+ * becomes invalidated while waiting for a reply to a request.
  */
 - (void) setReplyTimeout: (NSTimeInterval)to
 {

@@ -3854,7 +3854,8 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       rval = tryHost(GDO_SERVERS, 0, 0, ptype, &sin, &num, (uptr*)&b);
       if (rval != 0 && host == local_hostname)
 	{
-	  sprintf(ebuf, "failed to contact gdomap (%s)\n", strerror(errno));
+	  sprintf(ebuf, "failed to contact gdomap on %s(%s) - %s",
+	    local_hostname, inet_ntoa(sin.sin_addr), strerror(errno));
 	  gdomap_log(LOG_ERR);
 	  return -1;
 	}
@@ -3907,7 +3908,8 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       rval = tryHost(op, len, name, ptype, &sin, &port, 0);
       if (rval != 0 && host == local_hostname)
 	{
-	  sprintf(ebuf, "failed to contact gdomap (%s)", strerror(errno));
+	  sprintf(ebuf, "failed to contact gdomap on %s(%s) - %s",
+	    local_hostname, inet_ntoa(sin.sin_addr), strerror(errno));
 	  gdomap_log(LOG_ERR);
 	  return -1;
 	}
@@ -3956,7 +3958,7 @@ lookup(const char *name, const char *host, int ptype)
 }
 
 static void
-donames()
+donames(const char *host)
 {
   struct sockaddr_in	sin;
   struct servent*	sp;
@@ -3966,7 +3968,6 @@ donames()
   int			rval;
   uptr			b;
   char			*first_dot;
-  const char		*host;
 #ifdef __MINGW__
   char local_hostname[INTERNET_MAX_HOST_NAME_LENGTH];
 #else
@@ -3986,23 +3987,25 @@ donames()
     }
 #endif
 
-  /*
-   *	If no host name is given, we use the name of the local host.
-   *	NB. This should always be the case for operations other than lookup.
-   */
+  if (host == 0 || *host == '\0')
+    {
+      /*
+       * If no host name is given, we use the name of the local host.
+       */
 
-  if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
-    {
-      sprintf(ebuf, "gethostname() failed: %s", strerror(errno));
-      gdomap_log(LOG_ERR);
-      return;
+      if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
+	{
+	  sprintf(ebuf, "gethostname() failed: %s", strerror(errno));
+	  gdomap_log(LOG_ERR);
+	  return;
+	}
+      first_dot = strchr(local_hostname, '.');
+      if (first_dot)
+	{
+	  *first_dot = '\0';
+	}
+      host = local_hostname;
     }
-  first_dot = strchr(local_hostname, '.');
-  if (first_dot)
-    {
-      *first_dot = '\0';
-    }
-  host = local_hostname;
   if ((hp = gethostbyname(host)) == 0)
     {
       sprintf(ebuf, "gethostbyname() failed: %s", strerror(errno));
@@ -4024,7 +4027,8 @@ donames()
   rval = tryHost(GDO_NAMES, 0, 0, 0, &sin, &num, (uptr*)&b);
   if (rval != 0)
     {
-      sprintf(ebuf, "failed to contact gdomap (%s)", strerror(errno));
+      sprintf(ebuf, "failed to contact gdomap on %s(%s) - %s",
+        local_hostname, inet_ntoa(sin.sin_addr), strerror(errno));
       gdomap_log(LOG_ERR);
       return;
     }
@@ -4099,11 +4103,13 @@ int
 main(int argc, char** argv)
 {
   extern char	*optarg;
-  char	*options = "CHI:L:M:NP:R:T:U:a:bc:dfi:p";
+  char	*options = "-CHI:L:M:NP:R:T:U:a:bc:dfi:p";
   int		c;
   int		ptype = GDO_TCP_GDO;
   int		port = 0;
   const char	*machine = 0;
+  const char	*lookupf = 0;
+  int		donamesf = 0;
 
 #ifdef	HAVE_SYSLOG
   /* Initially, gdomap_log errors to stderr as well as to syslogd. */
@@ -4154,8 +4160,8 @@ main(int argc, char** argv)
 	    printf("-H		general help\n");
 	    printf("-I		pid file to write pid\n");
 	    printf("-L name		perform lookup for name then quit.\n");
-	    printf("-M name		machine name for L (default local)\n");
-	    printf("-N		list all names registered on this host\n");
+	    printf("-M name		machine name for -L and -N\n");
+	    printf("-N		list all names registered on host\n");
 	    printf("-P number	port number required for R option.\n");
 	    printf("-R name		register name locally then quit.\n");
 	    printf("-T type		port type for L, R and U options -\n");
@@ -4220,16 +4226,16 @@ printf(
 	    exit(0);
 
 	  case 'L':
-	    lookup(optarg, machine, ptype);
-	    exit(0);
+	    lookupf = optarg;
+	    break;
 
 	  case 'M':
 	    machine = optarg;
 	    break;
 
 	  case 'N':
-	    donames();
-	    exit(0);
+	    donamesf = 1;
+	    break;
 
 	  case 'P':
 	    port = atoi(optarg);
@@ -4414,6 +4420,18 @@ printf(
 	    printf("-H	for help\n");
 	    exit(0);
 	}
+    }
+  if (donamesf || lookupf)
+    {
+      if (donamesf)
+	{
+	  donames(machine);
+	}
+      if (lookupf)
+	{
+	  lookup(lookupf, machine, ptype);
+	}
+      exit (0);
     }
 
 #ifdef __MINGW__ /* On Win32, we don't fork */

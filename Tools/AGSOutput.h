@@ -33,6 +33,7 @@
   NSCharacterSet	*spacenl;	// Blanks excluding newline
   NSArray		*args;		// Not retained.
   BOOL			verbose;
+  BOOL			warn;
 }
 
 - (NSString*) checkComment: (NSString*)comment
@@ -58,7 +59,6 @@
 - (unsigned) reformat: (NSString*)str
 	   withIndent: (unsigned)ind
 		   to: (NSMutableString*)buf;
-- (void) setVerbose: (BOOL)flag;
 - (NSArray*) split: (NSString*)str;
 @end
 #endif

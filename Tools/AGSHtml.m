@@ -519,6 +519,7 @@ static NSMutableSet	*textNodes = nil;
 	  ssect = 0;
 	  sssect = 0;
 	  [self outputNodeList: children to: buf];
+	  heading = nil;
 	}
       else if ([name isEqual: @"class"] == YES)
 	{
@@ -1086,16 +1087,23 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"heading"] == YES)
 	{
-	  [buf appendString: indent];
-	  [buf appendString: @"<"];
-	  [buf appendString: heading];
-	  [buf appendString: @">"];
-	  [buf appendFormat: @"<a name=\"%03u%03u%03u%03u\">",
-	    chap, sect, ssect, sssect];
-	  [self outputText: children to: buf];
-	  [buf appendString: @"</a></"];
-	  [buf appendString: heading];
-	  [buf appendString: @">\n"];
+	  if (heading == nil)
+	    {
+	    }
+	  else
+	    {
+	      [buf appendString: indent];
+	      [buf appendString: @"<"];
+	      [buf appendString: heading];
+	      [buf appendString: @">"];
+	      [buf appendFormat: @"<a name=\"%03u%03u%03u%03u\">",
+		chap, sect, ssect, sssect];
+	      [self outputText: children to: buf];
+	      [buf appendString: @"</a></"];
+	      [buf appendString: heading];
+	      [buf appendString: @">\n"];
+	      heading = nil;
+	    }
 	}
       else if ([name isEqual: @"index"] == YES)
         {
@@ -1394,6 +1402,7 @@ static NSMutableSet	*textNodes = nil;
 	  ssect = 0;
 	  sssect = 0;
 	  [self outputNodeList: children to: buf];
+	  heading = @"h1";
 	}
       else if ([name isEqual: @"site"] == YES)
 	{
@@ -1442,12 +1451,14 @@ static NSMutableSet	*textNodes = nil;
 	  ssect++;
 	  sssect = 0;
 	  [self outputNodeList: children to: buf];
+	  heading = @"h2";
 	}
       else if ([name isEqual: @"subsubsect"] == YES)
 	{
 	  heading = @"h4";
 	  sssect++;
 	  [self outputNodeList: children to: buf];
+	  heading = @"h3";
 	}
       else if ([name isEqual: @"type"] == YES)
 	{
@@ -1593,14 +1604,28 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
   RELEASE(arp);
 }
 
+/**
+ * Output all the nodes from this one onwards ... try to output
+ * as text first, if not possible, call the main method to output
+ * each node.
+ */
 - (void) outputNodeList: (GSXMLNode*)node to: (NSMutableString*)buf
 {
   while (node != nil)
     {
       GSXMLNode	*next = [node nextElement];
+      GSXMLNode	*tmp;
 
-      [self outputNode: node to: buf];
-      node = next;
+      tmp = [self outputText: node to: buf];
+      if (tmp == node)
+        {
+	  [self outputNode: node to: buf];
+	  node = next;
+	}
+      else
+        {
+	  node = tmp;
+        }
     }
 }
 

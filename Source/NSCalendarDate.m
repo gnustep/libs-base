@@ -216,7 +216,7 @@ gregorianDateFromAbsolute(int abs, int *day, int *month, int *year)
  * External - so NSDate and others can use it.
  */
 NSTimeInterval
-GSTime(int day, int month, int year, int h, int m, int s, int mil)
+GSTime(int day, int month, int year, int hour, int minute, int second, int mil)
 {
   NSTimeInterval	a;
 
@@ -225,9 +225,9 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
   // Calculate date as GMT
   a -= GREGORIAN_REFERENCE;
   a = (NSTimeInterval)a * 86400;
-  a += h * 3600;
-  a += m * 60;
-  a += s;
+  a += hour * 3600;
+  a += minute * 60;
+  a += second;
   a += mil/1000.0;
   return a;
 }
@@ -237,7 +237,7 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
  * elements.<br />
  * External - so NSDate and others can use it.
  */
-static void
+void
 GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   int *hour, int *minute, int *second, int *mil)
 {

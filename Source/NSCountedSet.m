@@ -317,13 +317,13 @@ static Class NSCountedSet_concrete_class;
  * purge the set even when uniquing is turned off.
  */
 void
-GSUPurge(unsigned level)
+GSUPurge(unsigned count)
 {
   if (uniqueLock != nil)
     {
       (*lockImp)(uniqueLock, @selector(lock));
     }
-  [uniqueSet purge: level];
+  [uniqueSet purge: count];
   if (uniqueLock != nil)
     {
       (*unlockImp)(uniqueLock, @selector(unlock));
@@ -339,7 +339,7 @@ GSUPurge(unsigned level)
  * alter the set even when uniquing is turned off.
  */
 id
-GSUSet(id obj, unsigned level)
+GSUSet(id anObject, unsigned count)
 {
   id		found;
   unsigned	i;
@@ -348,29 +348,29 @@ GSUSet(id obj, unsigned level)
     {
       (*lockImp)(uniqueLock, @selector(lock));
     }
-  found = [uniqueSet member: obj];
+  found = [uniqueSet member: anObject];
   if (found == nil)
     {
-      found = obj;
-      for (i = 0; i < level; i++)
+      found = anObject;
+      for (i = 0; i < count; i++)
 	{
-	  [uniqueSet addObject: obj];
+	  [uniqueSet addObject: anObject];
 	}
     }
   else
     {
       i = [uniqueSet countForObject: found];
-      if (i < level)
+      if (i < count)
 	{
-	  while (i < level)
+	  while (i < count)
 	    {
 	      [uniqueSet addObject: found];
 	      i++;
 	    }
 	}
-      else if (i > level)
+      else if (i > count)
 	{
-	  while (i > level)
+	  while (i > count)
 	    {
 	      [uniqueSet removeObject: found];
 	      i--;
@@ -391,7 +391,7 @@ GSUSet(id obj, unsigned level)
  * If uniquing is turned off, it simply returns its argument.
  */
 id
-GSUnique(id obj)
+GSUnique(id anObject)
 {
   if (uniquing == YES)
     {
@@ -399,13 +399,13 @@ GSUnique(id obj)
 	{
 	  (*lockImp)(uniqueLock, @selector(lock));
 	}
-      obj = (*uniqueImp)(uniqueSet, @selector(unique:), obj);
+      anObject = (*uniqueImp)(uniqueSet, @selector(unique:), anObject);
       if (uniqueLock != nil)
 	{
 	  (*unlockImp)(uniqueLock, @selector(unlock));
 	}
     }
-  return obj;
+  return anObject;
 }
 
 /**
