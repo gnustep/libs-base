@@ -472,16 +472,36 @@ static Class NSMutableArray_concrete_class;
 
 - (void) removeObjectIdenticalTo: anObject
 {
-  int i = [self indexOfObjectIdenticalTo:anObject];
-  if (i != NSNotFound)
-    [self removeObjectAtIndex: i];
+  unsigned index;
+
+  /* Retain the object.  Yuck, but necessary in case the array holds
+     the last reference to anObject. */
+  /* xxx Is there an alternative to this expensive retain/release? */
+  [anObject retain];
+
+  for (index = [self indexOfObjectIdenticalTo: anObject];
+       index != NO_INDEX;
+       index = [self indexOfObjectIdenticalTo: anObject])
+    [self removeObjectAtIndex: index];
+
+  [anObject release];
 }
 
 - (void) removeObject: anObject
 {
-  int i = [self indexOfObject:anObject];
-  if (i != NSNotFound)
-    [self removeObjectAtIndex:i];
+  unsigned index;
+
+  /* Retain the object.  Yuck, but necessary in case the array holds
+     the last reference to anObject. */
+  /* xxx Is there an alternative to this expensive retain/release? */
+  [anObject retain];
+
+  for (index = [self indexOfObject: anObject];
+       index != NO_INDEX;
+       index = [self indexOfObject: anObject])
+    [self removeObjectAtIndex: index];
+
+  [anObject release];
 }
 
 - (void) removeAllObjects
