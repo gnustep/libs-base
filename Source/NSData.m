@@ -704,8 +704,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
 	    NSSwappedFloat nf;
 
 	    [self deserializeBytes: &nf
-		  length: sizeof(NSSwappedFloat)
-		  atCursor: cursor];
+			    length: sizeof(NSSwappedFloat)
+			  atCursor: cursor];
 	    *(float*)data = NSSwapBigFloatToHost(nf);
 	    break;
 	}
@@ -713,8 +713,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
 	    NSSwappedDouble nd;
 
 	    [self deserializeBytes: &nd
-		  length: sizeof(NSSwappedDouble)
-		  atCursor: cursor];
+			    length: sizeof(NSSwappedDouble)
+			  atCursor: cursor];
 	    *(double*)data = NSSwapBigDoubleToHost(nd);
 	    break;
 	}
