@@ -672,7 +672,6 @@ SANITY();
   NSDictionary	*attrs;
   GSAttrInfo	*info;
   int		moveLocations;
-  NSZone	*z = GSObjCZone(self);
   unsigned	start;
 
 SANITY();
