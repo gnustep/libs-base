@@ -181,7 +181,7 @@ static Class NSMutableString_c_concrete_class;
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return self;
 }
 
@@ -197,7 +197,7 @@ static Class NSMutableString_c_concrete_class;
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return self;
 }
 
@@ -908,7 +908,7 @@ static Class NSMutableString_c_concrete_class;
 @implementation NSString (NSCStringAccess)
 - (const char *) _cStringContents
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return NULL;
 }
 @end
@@ -932,7 +932,7 @@ static Class NSMutableString_c_concrete_class;
 /* xxx This method may be removed in future. */
 - (void) setCString: (const char *)byteString length: (unsigned)length
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 
@@ -940,7 +940,7 @@ static Class NSMutableString_c_concrete_class;
 
 - initWithCapacity:(unsigned)capacity
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return self;
 }
 
@@ -1009,12 +1009,12 @@ static Class NSMutableString_c_concrete_class;
 
 - (void) deleteCharactersInRange: (NSRange)range
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) insertString: (NSString*)aString atIndex:(unsigned)loc
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 /* Inefficient. */
