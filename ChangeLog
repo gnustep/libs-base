@@ -1,3 +1,9 @@
+2002-04-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Fix error in unicode BOM handling
+	* Source/GSString.m: Fix error in length of unicode data produced.
+	* Tools/cvtenc.m: Made easy to use and added instructions.
+
 Sat Apr  6 02:42:43 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSUser.m (NSSearchPathForDirectoriesInDomains): Fixed

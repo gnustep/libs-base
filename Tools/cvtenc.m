@@ -38,6 +38,9 @@ main(int argc, char** argv, char **env)
   NSProcessInfo		*proc;
   NSArray		*args;
   unsigned		i;
+  BOOL			found = NO;
+  NSString		*n;
+  NSStringEncoding	enc = 0;
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
@@ -53,84 +56,119 @@ main(int argc, char** argv, char **env)
 
   args = [proc arguments];
 
-  if ([args count] <= 1)
+  n = [[NSUserDefaults standardUserDefaults] stringForKey: @"Encoding"];
+  if (n == nil)
     {
-      NSLog(@"No file names given to convert.");
+      enc = [NSString defaultCStringEncoding];
     }
   else
     {
-      NSString		*n;
-      NSStringEncoding	enc = 0;
+      NSStringEncoding	*e;
+      NSMutableString	*names;
 
-      n = [[NSUserDefaults standardUserDefaults] stringForKey: @"Encoding"];
-      if (n == nil)
+      names = [NSMutableString stringWithCapacity: 1024];
+      e = [NSString availableStringEncodings];
+      while (*e != 0)
 	{
-	  enc = [NSString defaultCStringEncoding];
+	  NSString	*name = [NSString localizedNameOfStringEncoding: *e];
+
+	  [names appendFormat: @"  %@\n", name];
+	  if ([n isEqual: name] == YES)
+	    {
+	      enc = *e;
+	      break;
+	    }
+	  e++;
 	}
-      else
+      if (enc == 0)
 	{
-	  NSStringEncoding	*e;
-	  NSMutableString	*names;
-
-	  names = [NSMutableString stringWithCapacity: 1024];
-	  e = [NSString availableStringEncodings];
-	  while (*e != 0)
-	    {
-	      NSString	*name = [NSString localizedNameOfStringEncoding: *e];
-
-	      [names appendFormat: @"  %@\n", name];
-	      if ([n isEqual: name] == YES)
-		{
-		  enc = *e;
-		  break;
-		}
-	      e++;
-	    }
-	  if (enc == 0)
-	    {
-	      NSLog(@"defaults: unable to find encoding '%@'!\n"
-		@"Known encoding names are -\n%@", n, names);
-	      [pool release];
-	      exit(0);
-	    }
+	  NSLog(@"defaults: unable to find encoding '%@'!\n"
+	    @"Known encoding names are -\n%@", n, names);
+	  [pool release];
+	  exit(0);
 	}
+    }
 
-      for (i = 1; i < [args count]; i++)
+  for (i = 1; found == NO && i < [args count]; i++)
+    {
+      NSString	*file = [args objectAtIndex: i];
+
+      if ([file isEqual: @"-Encoding"] == YES)
 	{
-	  NSString	*file = [args objectAtIndex: i];
+	  i++;
+	  continue;
+	}
+      found = YES;
+      NS_DURING
+	{
+	  NSData	*myData;
 
-	  if ([file isEqual: @"-Encoding"] == YES)
+	  myData = [[NSData alloc] initWithContentsOfFile: file];
+	  if (myData == nil)
 	    {
-	      i++;
-	      continue;
+	      NSLog(@"File read operation failed for %@.", file);
 	    }
-	  NS_DURING
+	  else
 	    {
-	      NSData	*myData;
-	      NSString	*myString;
+	      unsigned		l = [myData length];
+	      const unichar		*b = (const unichar*)[myData bytes];
+	      NSStringEncoding	iEnc;
+	      NSStringEncoding	oEnc;
+	      NSString		*myString;
 
-	      myString = [NSString stringWithContentsOfFile: file];
-	      myData = [myString dataUsingEncoding: enc
-			      allowLossyConversion: NO];
-	      if (myData == nil)
+	      if (l > 1 && (*b == 0xFFFE || *b == 0xFEFF))
 		{
-		  NSLog(@"Encoding conversion failed.", file);
+		  iEnc = NSUnicodeStringEncoding;
+		  oEnc = enc;
 		}
 	      else
 		{
-		  NSFileHandle	*out;
+		  iEnc = enc;
+		  oEnc = NSUnicodeStringEncoding;
+		}
+	      
+	      myString = [[NSString alloc] initWithData: myData
+					       encoding: iEnc];
+	      RELEASE(myData);
+	      if (myString == nil)
+		{
+		  NSLog(@"Encoding input conversion failed for %@.", file);
+		}
+	      else
+		{
+		  myData = [myString dataUsingEncoding: oEnc
+				  allowLossyConversion: NO];
+		  RELEASE(myString);
+		  if (myData == nil)
+		    {
+		      NSLog(@"Encoding output conversion failed for %@.",
+			file);
+		    }
+		  else
+		    {
+		      NSFileHandle	*out;
 
-		  out = [NSFileHandle fileHandleWithStandardOutput];
-		  [out writeData: myData];
-		  [out synchronizeFile];
+		      out = [NSFileHandle fileHandleWithStandardOutput];
+		      [out writeData: myData];
+		      [out synchronizeFile];
+		    }
 		}
 	    }
-	  NS_HANDLER
-	    {
-	      NSLog(@"Converting '%@' - %@", file, [localException reason]);
-	    }
-	  NS_ENDHANDLER
 	}
+      NS_HANDLER
+	{
+	  NSLog(@"Converting '%@' - %@", file, [localException reason]);
+	}
+      NS_ENDHANDLER
+    }
+
+  if (found == NO)
+    {
+      NSLog(@"\nThis utility expects a filename as an argument.\n"
+	@"It reads the file, and writes it to STDOUT after converting it\n"
+	@"to unicode from C string encoding or vice versa.\n"
+	@"You can supply a '-Encoding name' option to specify the C string\n"
+	@"encoding to be used, if you don't want to use the default.");
     }
   [pool release];
   return 0;

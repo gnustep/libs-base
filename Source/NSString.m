@@ -1166,12 +1166,12 @@ handle_printf_atsign (FILE *stream,
 
 	  b = (unsigned char*)[data bytes];
 	  uptr = (unichar*)b;
-	  if (*uptr == 0xFFFE)
+	  if (*uptr == byteOrderMark)
 	    {
 	      b = (unsigned char*)++uptr;
 	      len -= sizeof(unichar);
 	    }
-	  else if (*uptr == 0xFEFF)
+	  else if (*uptr == byteOrderMarkSwapped)
 	    {
 	      b = (unsigned char*)++uptr;
 	      len -= sizeof(unichar);
@@ -2376,7 +2376,7 @@ handle_printf_atsign (FILE *stream,
 
       buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
 	sizeof(unichar)*(len+1));
-      buff[0] = 0xFEFF;
+      buff[0] = byteOrderMark;
       [self getCharacters: &buff[1]];
       return [NSDataClass dataWithBytesNoCopy: buff
 					length: sizeof(unichar)*(len+1)];
