@@ -1,3 +1,9 @@
+2003-05-26  Adam Fedor  <fedor@gnu.org>
+
+	* Testing/Makefile.postamble (check): Define to run all
+	checkable tools (ones that exit in a finite amount of time).
+	* Testing/README: New.
+
 2003-05-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Some work towards making it possible to
