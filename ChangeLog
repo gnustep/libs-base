@@ -1,3 +1,8 @@
+Sat Jun 12 10:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSConcreteValue.m: Implemented [hash and isEqualToValue
+	* Source/NSCTemplateValue.m: Implemented hash
+
 Thu Jun  4 13:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSCharacterSet.m: prepare for GC
