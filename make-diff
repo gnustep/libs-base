@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# The directory in which to find the last snapshot
-dir=../releases
+# The directory in which to find the last snapshot; must be absolute path
+dir=/home/mccallum/gnu/releases
 
 # The email addresses of people to receive mail about the new diff
 diff_recipients=drepper
@@ -18,46 +18,46 @@ dptn="${ptn}-${yrptn}.diff"
 date=`date +%y%m%d`
 
 # Find date of the last snapshot
-lastsnap=`cd $dir; ls $ptn.tar.gz $dptn $dptn.gz 2>/dev/null |
+lastsnap=`cd $dir; ls $ptn.tar.gz 2>/dev/null |
                    sed -e "s/^.*\\(${yrptn}\\)[.a-z]*$/\\1/" |
                    sort -nr | head -1`
+
+# Find the date of the second-to-last snapshot
+secondlastsnap=`cd $dir; ls $ptn.tar.gz 2>/dev/null |
+                   sed -e "s/^.*\\(${yrptn}\\)[.a-z]*$/\\1/" |
+                   sort -nr | head -2 | tail -1`
 
 # Find the date of the last diff
 lastdiff=`cd $dir; ls $dptn $dptn.gz 2>/dev/null |
                     sed -e "s/^.*\\(${yrptn}\\)[.a-z]*$/\\1/" |
                     sort -nr | head -1`
 
-# Will we make a CVS tag for this snapshot?  An empty value means `tag it'.
-# Always disabled for now.
-notag=yes
-
-if [ $lastsnap = $date ]; then
-  if [ $lastdiff = $lastsnap ]; then
-    echo "$0: Snapshot diff for ${module}-${date} already made, skipping."
-    exit 0
-  fi
-
-  # There is already a full snapshot for this date, but no diffs.
-  # Don't re-tag, just make diffs.
-  notag=yes
-  lastsnap=$lastdiff
-fi
+echo Making diff between $secondlastsnap and $lastsnap
 
 # The name of the diff file
-diff="${module}-${lastdiff}-${date}.diff"
+diff="${module}-${secondlastsnap}-${lastsnap}.diff"
+
+if [ -f $dir/$diff ]; then
+  echo $dir/$diff already exists!  Exiting.
+  exit -1
+fi
 echo Making $diff
 
-# If $notag is empty, `cvs rtag' the repository
-#test -z "$notag" && cvs -q rtag -F snapshot-$date $module
+# Untar the old snapshot
+(cd /tmp ; tar -zvxf $dir/${module}-${secondlastsnap}.tar.gz)
+# Untar the new snapshot
+(cd /tmp ; tar -zvxf $dir/${module}-${lastsnap}.tar.gz)
+# Make the diff
+echo Diffing...
+rm -f /tmp/$diff
+(cd /tmp; diff -u -r ${module}-${secondlastsnap} ${module}-${lastsnap} > $diff)
+# Remove the snapshot dirs
+rm -rf /tmp/${module}-${secondlastsnap} /tmp/${module}-${lastsnap}
 
-# Have cvs make the diff for us.
-#cvs -q rdiff -u -r snapshot-$lastdiff -r snapshot-$date $module >$diff || exit
-cvs rdiff -u -r snapshot-$lastdiff $module > $diff || exit
-
-if [ -s $diff ]; then
+if [ -s /tmp/$diff ]; then
   # Mail a message saying the new diff is available. (Commented out for now)
   # mail -s $diff < $diff $diff_recipients
-  gzip -9 $diff && mv -f $diff.gz $dir
+  gzip -9 /tmp/$diff && mv -f /tmp/$diff.gz $dir
 else
-  rm -f $diff
+  rm -f /tmp/$diff
 fi
