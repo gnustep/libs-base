@@ -10,6 +10,7 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDate.h>
 
+typedef struct { char a; double b; char c;} tstruct;
 int main()
 {
   id set;
@@ -18,6 +19,8 @@ int main()
   id una;
   id xxx;
   id apl;
+  tstruct	ss;
+  tstruct	tt;
   
   [NSAutoreleasePool enableDoubleReleaseCheck:YES];
   
@@ -39,6 +42,19 @@ int main()
     while ((o = [e nextObject]))
       printf("%s\n", [[o description] cString]);    
   }
+
+  apl = [[NSAutoreleasePool alloc] init];
+  ss.a = 'A';
+  ss.b = 1.234;
+  ss.c = 'Z';
+  arc = [[NSArchiver new] autorelease];
+  [arc encodeValueOfObjCType: @encode(tstruct) at: &ss];
+  una = [[[NSUnarchiver alloc] initForReadingWithData: [arc archiverData]] autorelease];
+  [una decodeValueOfObjCType: @encode(tstruct) at: &tt];
+  [apl release];
+  if (ss.a != tt.a) printf("Encoded '%c' in 'a' but got '%c'\n", ss.a, tt.a);
+  if (ss.b != tt.b) printf("Encoded '%f' in 'a' but got '%f'\n", ss.b, tt.b);
+  if (ss.c != tt.c) printf("Encoded '%c' in 'a' but got '%c'\n", ss.c, tt.c);
 
   apl = [[NSAutoreleasePool alloc] init];
   arc = [[NSArchiver new] autorelease];

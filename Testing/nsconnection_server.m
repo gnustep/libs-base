@@ -244,20 +244,24 @@
 
 - (foo) sendStruct: (foo)f
 {
-  foo f2 = {1, "horse", 987654};
-  printf("(%s) got i=%d s=%s l=%lu", sel_get_name(_cmd), f.i, f.s, f.l);
+  foo f2 = {'A', 123.456, 1, "horse", 987654};
+  printf("(%s) got c='%c', d=%g, i=%d, s=%s, l=%lu",
+    sel_get_name(_cmd), f.c, f.d, f.i, f.s, f.l);
   fflush(stdout);
-  printf(" returning i=%d s=%s l=%lu\n", f2.i, f2.s, f2.l);
+  printf(" returning c='%c', d=%g, i=%d, s=%s, l=%lu\n",
+    f2.c, f2.d, f2.i, f2.s, f2.l);
   fflush(stdout);
   return f2;
 }
 
 - (void) getStruct: (foo *)f
 {
-  foo f2 = {1, "horse", 987654};
-  printf("(%s) got i=%d s=%s l=%lu,", sel_get_name(_cmd), f->i, f->s, f->l);
+  foo f2 = {'A', 123.456, 1, "horse", 987654};
+  printf("(%s) got c='%c', d=%g, i=%d, s=%s, l=%lu",
+    sel_get_name(_cmd), f->c, f->d, f->i, f->s, f->l);
   fflush(stdout);
-  printf(" returning i=%d s=%s l=%lu\n", f2.i, f2.s, f2.l);
+  printf(" returning c='%c', d=%g, i=%d, s=%s, l=%lu\n",
+    f2.c, f2.d, f2.i, f2.s, f2.l);
   fflush(stdout);
   *f = f2;
 }

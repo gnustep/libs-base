@@ -37,6 +37,25 @@ int main ()
   id	x;
   NSString	*s;
   NSArray	*a = [NSArray arrayWithObjects: @"a", @"b", nil];
+  struct aa {char a; double b; char c;} bb[2];
+  struct objc_struct_layout layout;
+  unsigned i;
+
+  printf("size = %d\n", objc_sizeof_type(@encode(struct aa)));
+  printf("pos = %d\n", (void*)&bb[1] - (void*)&bb[0]);
+
+  objc_layout_structure (@encode(struct aa), &layout);
+  while (objc_layout_structure_next_member (&layout))
+    {
+      int position, align;
+      const char *type;
+
+      objc_layout_structure_get_info (&layout, &position, &align, &type);
+      printf ("element %d has offset %d, alignment %d\n",
+              i++, position, align);
+    }
+
+
 
   o = [GCMutableArray new];
   x = [GCMutableArray new];
