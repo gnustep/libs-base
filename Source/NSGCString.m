@@ -631,7 +631,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 		  }
 		else
 		  {
-		    length += 3;
+		    length += 4;
 		  }
 		break;
 	    }
