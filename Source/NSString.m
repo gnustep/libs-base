@@ -43,11 +43,11 @@
 
 + (void) initialize
 {
-  static done = 0;
+  static int done = 0;
   if (!done)
     {
-      class_add_behavior([NSString class], [String class]);
       done = 1;
+      class_add_behavior([NSString class], [String class]);
     }
 }
 

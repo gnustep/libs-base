@@ -124,8 +124,10 @@
 
 + (void) initialize
 {
-  if ([self class] == [NSMutableCString class])
+  static int done = 0;
+  if (!done)
     {
+      done = 1;
       class_add_behavior(self, [NSCString class]);
     }
 }
