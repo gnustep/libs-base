@@ -241,20 +241,22 @@ typeSize(const char* type)
   return [NSString stringWithFormat: @"(%s) %@", objctype, [rep description]];
 }
 
-// NSCoding
 - (void) encodeWithCoder: (NSCoder *)coder
 {
-  NSMutableData	*d;
   unsigned	size;
+  NSMutableData	*d;
 
   size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
-
+  size = objc_sizeof_type(objctype);
   d = [NSMutableData new];
   [d serializeDataAt: data ofObjCType: objctype context: nil];
-  [coder encodeValueOfObjCType: @encode(id) at: &d];
+  size = [d length];
+  [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
+  [coder encodeArrayOfObjCType: @encode(unsigned char)
+			 count: size
+			    at: [d bytes]];
   RELEASE(d);
 }
-
 @end
