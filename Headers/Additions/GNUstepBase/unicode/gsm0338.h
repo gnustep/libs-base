@@ -317,7 +317,7 @@ _ucc_ GSM0338_lossy[] =
   {0x03A1,0x50},	/* Rho		*/
   {0x03A4,0x54},	/* Tau		*/
   {0x03A5,0x55},	/* Upsilon	*/
-  {0x03A7,0x58}		/* Chi		*/
+  {0x03A7,0x58},	/* Chi		*/
   {0x2019,0x27}		/* right single quote		*/
 };
 
