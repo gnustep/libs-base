@@ -1,3 +1,8 @@
+2002-12-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSerializer.m: bugfix deserialisation ... was trying to	
+	read size of date/number when these values were not being serialized.
+
 2002-12-03  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSBundle.m ([NSBundle +initialize]): check for linked

@@ -472,12 +472,12 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   unsigned int	size;
 
   (*info->debImp)(info->data, debSel, &code, 1, info->cursor);
-  size = (*info->deiImp)(info->data, deiSel, info->cursor);
 
   switch (code)
     {
       case ST_XREF:
 	{
+	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	  return RETAIN(GSIArrayItemAtIndex(&info->array, size).obj);
 	}
 
@@ -486,6 +486,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  GSCString	*s;
 	  char		*b;
 	
+	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size);
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  s = (GSCString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
@@ -512,6 +513,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	  unichar	*b;
 	  unsigned	i;
 	
+	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	  b = NSZoneMalloc(NSDefaultMallocZone(), size*sizeof(unichar));
 	  (*info->debImp)(info->data, debSel, b, size*sizeof(unichar),
 	    info->cursor);
@@ -561,6 +563,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
       case ST_ARRAY:
       case ST_MARRAY:
+	size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	{
 	  id		objects[size];
 	  id		a;
@@ -603,6 +606,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
       case ST_DICT:
       case ST_MDICT:
+	size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	{
 	  id	keys[size];
 	  id	objects[size];
@@ -661,6 +665,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	{
 	  NSData	*d;
 
+	  size = (*info->deiImp)(info->data, deiSel, info->cursor);
 	  d = (NSData*)NSAllocateObject(DCls, 0, NSDefaultMallocZone());
 	  if (size > 0)
 	    {
