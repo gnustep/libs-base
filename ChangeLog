@@ -1,11 +1,25 @@
+2000-09-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/GSXML.h:
+	* Source/GSXML.m: Revert to earlier version to remove
+	formatting/coding-standards errors and complexity adding
+	api additions.  Continued integration of Michael Pakhantsovs code.
+	Added Manuels +xmlEncodingStringForStringEncoding with tidying.
+	Added Manuels -typeDescription with rewrite for performance.
+	* Documenttion/gsdoc/GSXMLParser.gsdoc:
+	added xmlEncodingStringForStringEncoding
+	* Documenttion/gsdoc/GSXMLNode.gsdoc: 
+	added -typeDescription
+	* Documentation/gsdoc/GSSAXHandler.gsdoc: added -parser method.
+
 2000-09-19  Manuel Guesdon <mguesdon@orange-concept.com>
 	You'll need libxml2 v >= 2.2.3 to compile GSXML
 	* Source/GSXML.m & Headers/Foundation/GSXML.h:
-		corrected bugs,
-		added added non guessing construction methods in GSXMLParser
-		added -typeDescription in GSXMLNode
-		added +xmlEncodingStringForStringEncoding: in GSXMLParser
-		added inParserContext:(void*)parserContext parameter for GSSAXHandler
+	corrected bugs,
+	added added non guessing construction methods in GSXMLParser
+	added -typeDescription in GSXMLNode
+	added +xmlEncodingStringForStringEncoding: in GSXMLParser
+	added inParserContext:(void*)parserContext parameter for GSSAXHandler
 	
 2000-09-19  Richard Frith-Macdonald <rfm@gnu.org>
 

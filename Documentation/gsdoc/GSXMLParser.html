@@ -18,7 +18,7 @@
 <h2><a name="cont-0">GSXMLParser</a></h2>
 <h2><a name="GSXMLParser">GSXMLParser</a></h2>
 <p><b>Declared in:</b> GSXML.h</p>
-<p><b>Inherits from:</b> NSObject</p>
+<p><b>Inherits from:</b> <A HREF="NSObject.html#NSObject">NSObject</A></p>
 <hr>
 
              <p>
@@ -33,23 +33,24 @@ XML Parser.
 <ul>
 <li><a href="GSXMLParser.html#method-0">+parser:</a>
 <li><a href="GSXMLParser.html#method-2">+parserWithSAXHandler:source:</a>
-<li><a href="GSXMLParser.html#method-12">-doValidityChecking:</a>
-<li><a href="GSXMLParser.html#method-6">-doc</a>
-<li><a href="GSXMLParser.html#method-13">-errNo</a>
-<li><a href="GSXMLParser.html#method-11">-getWarnings:</a>
-<li><a href="GSXMLParser.html#method-4">-initWithSAXHandler:source:</a>
-<li><a href="GSXMLParser.html#method-10">-keepBlanks:</a>
-<li><a href="GSXMLParser.html#method-5">-lib</a>
-<li><a href="GSXMLParser.html#method-7">-parse</a>
-<li><a href="GSXMLParser.html#method-14">-setExternalEntityLoader</a>
-<li><a href="GSXMLParser.html#method-9">-substituteEntites:</a>
+<li><a href="GSXMLParser.html#method-4">+xmlEncodingStringForStringEncoding:</a>
+<li><a href="GSXMLParser.html#method-13">-doValidityChecking:</a>
+<li><a href="GSXMLParser.html#method-7">-doc</a>
+<li><a href="GSXMLParser.html#method-14">-errNo</a>
+<li><a href="GSXMLParser.html#method-12">-getWarnings:</a>
+<li><a href="GSXMLParser.html#method-5">-initWithSAXHandler:source:</a>
+<li><a href="GSXMLParser.html#method-11">-keepBlanks:</a>
+<li><a href="GSXMLParser.html#method-6">-lib</a>
+<li><a href="GSXMLParser.html#method-8">-parse</a>
+<li><a href="GSXMLParser.html#method-15">-setExternalEntityLoader</a>
+<li><a href="GSXMLParser.html#method-10">-substituteEntites:</a>
 </ul>
 <hr><h2>Class Methods</h2>
 <h3><a name="method-0">parser:</a></h3>
 + (<A HREF="GSXMLParser.html#GSXMLParser">GSXMLParser</A>*) <b>parser:</b> (id)source;<br>
 
 	    <p>
-Creation of a new Parser.
+Creation of a new Parser by calling initWithSAXHandler:source:
             </p>
 
 	    <p>
@@ -81,7 +82,7 @@ Creation of a new Parser.
 + (GSXMlParser*) <b>parserWithSAXHandler:</b> (<A HREF="GSSAXHandler.html#GSSAXHandler">GSSAXHandler</A>*)handler <b>source:</b> (id)source;<br>
 
 	    <p>
-Creation of a new Parser with SAX handler.
+Creation of a new Parser by calling initWithSAXHandler:source:
             </p>
 
             <a name="label-3">example</a>
@@ -104,18 +105,39 @@ Creation of a new Parser with SAX handler.
 
           
 <hr>
+<h3><a name="method-4">xmlEncodingStringForStringEncoding:</a></h3>
++ (<A HREF="NSString.html#NSString">NSString</A>*) <b>xmlEncodingStringForStringEncoding:</b> (NSStringEncoding)encoding;<br>
+
+	    Return the name of the string encoding (for XML) to use for the
+	    specified OpenStep encoding.
+          
+<hr>
 <hr><h2>Instances Methods</h2>
-<h3><a name="method-4">initWithSAXHandler:source:</a></h3>
+<h3><a name="method-5">initWithSAXHandler:source:</a></h3>
 <b>This is the designated initialiser</b><br>
 - (id) <b>initWithSAXHandler:</b> (<A HREF="GSSAXHandler.html#GSSAXHandler">GSSAXHandler</A>*)handler <b>source:</b> (id)source;<br>
 
-          <p>
-Creation of a new Parser with SAX handler.
+	    <p>
+
+	       Initialisation of a new Parser with SAX handler (if not nil).
             </p>
+
+	    <p>
+
+               The source object is intended to be any reasonable value,
+               but for initial implementation may be an NSData object
+               containing raw XML text, or the name of a file to parse.
+	    </p>
+
+	    <p>
+
+	      Future options are intended to include NSURL objects, and
+              nil objects (for incremental (data push) operation.
+	    </p>
 
           
 <hr>
-<h3><a name="method-5">lib</a></h3>
+<h3><a name="method-6">lib</a></h3>
 - (void*) <b>lib</b>;<br>
 
           <p>
@@ -124,7 +146,7 @@ Return pointer to xmlParserCtxt structure.
 
           
 <hr>
-<h3><a name="method-6">doc</a></h3>
+<h3><a name="method-7">doc</a></h3>
 - (<A HREF="GSXMLDocument.html#GSXMLDocument">GSXMLDocument</A>*) <b>doc</b>;<br>
 
           <p>
@@ -134,14 +156,14 @@ Return GSXMLDocument object.
 
           
 <hr>
-<h3><a name="method-7">parse</a></h3>
+<h3><a name="method-8">parse</a></h3>
 - (BOOL) <b>parse</b>;<br>
 
           <p>
 Parse source. Return YES if parsed, otherwise NO.
             </p>
 
-            <a name="label-8">example</a>
+            <a name="label-9">example</a>
 <pre>
 
   GSXMLParser       *p = [GSXMLParser parser:@"macos.xml"];
@@ -160,7 +182,7 @@ Parse source. Return YES if parsed, otherwise NO.
 
           
 <hr>
-<h3><a name="method-9">substituteEntites:</a></h3>
+<h3><a name="method-10">substituteEntites:</a></h3>
 - (BOOL) <b>substituteEntites:</b> (BOOL)yesno;<br>
 
           <p>
@@ -171,7 +193,7 @@ Set and return the previous value for default entity support.
 
           
 <hr>
-<h3><a name="method-10">keepBlanks:</a></h3>
+<h3><a name="method-11">keepBlanks:</a></h3>
 - (BOOL) <b>keepBlanks:</b> (BOOL)yesno;<br>
 
           <p>
@@ -182,12 +204,12 @@ Set and return the previous value for default blanks text nodes support.
 
           
 <hr>
-<h3><a name="method-11">getWarnings:</a></h3>
+<h3><a name="method-12">getWarnings:</a></h3>
 - (BOOL) <b>getWarnings:</b> (BOOL)yesno;<br>
 
           
 <hr>
-<h3><a name="method-12">doValidityChecking:</a></h3>
+<h3><a name="method-13">doValidityChecking:</a></h3>
 - (BOOL) <b>doValidityChecking:</b> (BOOL)yesno;<br>
 
           <p>
@@ -196,7 +218,7 @@ Sets whether the document needs to be validated.
 
           
 <hr>
-<h3><a name="method-13">errNo</a></h3>
+<h3><a name="method-14">errNo</a></h3>
 - (int) <b>errNo</b>;<br>
 
           <p>
@@ -205,7 +227,7 @@ Return error code.
 
           
 <hr>
-<h3><a name="method-14">setExternalEntityLoader</a></h3>
+<h3><a name="method-15">setExternalEntityLoader</a></h3>
 - (void) <b>setExternalEntityLoader</b> (void*)function;<br>
 
           <p>

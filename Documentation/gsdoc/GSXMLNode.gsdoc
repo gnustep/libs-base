@@ -188,8 +188,17 @@
         <method type="GSXMLNodeType">
           <sel>type</sel>
           <desc>
-          <p>
-            Return type of Node.
+	    <p>
+	      Return type of Node.
+            </p>
+          </desc>
+        </method>
+
+        <method type="NSString*">
+          <sel>typeDescription</sel>
+          <desc>
+	    <p>
+	      Return the name of the type of the Node.
             </p>
           </desc>
         </method>

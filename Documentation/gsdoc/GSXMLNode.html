@@ -18,7 +18,7 @@
 <h2><a name="cont-0">GSXMLNode</a></h2>
 <h2><a name="GSXMLNode">GSXMLNode</a></h2>
 <p><b>Declared in:</b> GSXML.h</p>
-<p><b>Inherits from:</b> NSObject</p>
+<p><b>Inherits from:</b> <A HREF="NSObject.html#NSObject">NSObject</A></p>
 <hr>
 
           <p>
@@ -34,29 +34,30 @@
 <ul>
 <li><a href="GSXMLNode.html#method-3">+nodeFrom:</a>
 <li><a href="GSXMLNode.html#method-0">+nodeWithNamespace:name:prefix:</a>
-<li><a href="GSXMLNode.html#method-16">-children</a>
+<li><a href="GSXMLNode.html#method-17">-children</a>
 <li><a href="GSXMLNode.html#method-7">-content</a>
-<li><a href="GSXMLNode.html#method-15">-doc</a>
+<li><a href="GSXMLNode.html#method-16">-doc</a>
 <li><a href="GSXMLNode.html#method-4">-initFrom:</a>
 <li><a href="GSXMLNode.html#method-2">-initWithNamespace:name:prefix:</a>
 <li><a href="GSXMLNode.html#method-5">-lib</a>
-<li><a href="GSXMLNode.html#method-21">-makeChild:name:content:</a>
-<li><a href="GSXMLNode.html#method-23">-makeComment:</a>
-<li><a href="GSXMLNode.html#method-25">-makePI:</a>
+<li><a href="GSXMLNode.html#method-22">-makeChild:name:content:</a>
+<li><a href="GSXMLNode.html#method-24">-makeComment:</a>
+<li><a href="GSXMLNode.html#method-26">-makePI:</a>
 <li><a href="GSXMLNode.html#method-6">-name</a>
-<li><a href="GSXMLNode.html#method-19">-next</a>
+<li><a href="GSXMLNode.html#method-20">-next</a>
 <li><a href="GSXMLNode.html#method-8">-ns</a>
 <li><a href="GSXMLNode.html#method-9">-nsDef</a>
-<li><a href="GSXMLNode.html#method-18">-parent</a>
-<li><a href="GSXMLNode.html#method-20">-prev</a>
+<li><a href="GSXMLNode.html#method-19">-parent</a>
+<li><a href="GSXMLNode.html#method-21">-prev</a>
 <li><a href="GSXMLNode.html#method-10">-properties</a>
 <li><a href="GSXMLNode.html#method-12">-propertiesAsDictionary</a>
-<li><a href="GSXMLNode.html#method-27">-setProp:value:</a>
+<li><a href="GSXMLNode.html#method-28">-setProp:value:</a>
 <li><a href="GSXMLNode.html#method-14">-type</a>
+<li><a href="GSXMLNode.html#method-15">-typeDescription</a>
 </ul>
 <hr><h2>Class Methods</h2>
 <h3><a name="method-0">nodeWithNamespace:name:prefix:</a></h3>
-+ (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>nodeWithNamespace:</b> (<A HREF="GSXMLNamespace.html#GSXMLNamespace">GSXMLNamespace</A>*)ns <b>name:</b> (NSString*)name <b>prefix:</b> (NSString*)prefix;<br>
++ (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>nodeWithNamespace:</b> (<A HREF="GSXMLNamespace.html#GSXMLNamespace">GSXMLNamespace</A>*)ns <b>name:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>prefix:</b> (<A HREF="NSString.html#NSString">NSString</A>*)prefix;<br>
 
           <p>
 
@@ -99,7 +100,7 @@
 <hr>
 <hr><h2>Instances Methods</h2>
 <h3><a name="method-2">initWithNamespace:name:prefix:</a></h3>
-- (id) <b>initWithNamespace:</b> (<A HREF="GSXMLNamespace.html#GSXMLNamespace">GSXMLNamespace</A>*)ns <b>name:</b> (NSString*)name <b>prefix:</b> (NSString*)prefix;<br>
+- (id) <b>initWithNamespace:</b> (<A HREF="GSXMLNamespace.html#GSXMLNamespace">GSXMLNamespace</A>*)ns <b>name:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>prefix:</b> (<A HREF="NSString.html#NSString">NSString</A>*)prefix;<br>
 
           <p>
 
@@ -130,7 +131,7 @@
           
 <hr>
 <h3><a name="method-6">name</a></h3>
-- (NSString*) <b>name</b>;<br>
+- (<A HREF="NSString.html#NSString">NSString</A>*) <b>name</b>;<br>
 
           <p>
 
@@ -140,7 +141,7 @@
           
 <hr>
 <h3><a name="method-7">content</a></h3>
-- (NSString*) <b>content</b>;<br>
+- (<A HREF="NSString.html#NSString">NSString</A>*) <b>content</b>;<br>
 
           <p>
 
@@ -202,7 +203,7 @@
           
 <hr>
 <h3><a name="method-12">propertiesAsDictionary</a></h3>
-- (NSDictionary*) <b>propertiesAsDictionary</b>;<br>
+- (<A HREF="NSDictionary.html#NSDictionary">NSDictionary</A>*) <b>propertiesAsDictionary</b>;<br>
 
 	    <p>
 
@@ -233,14 +234,24 @@
 <h3><a name="method-14">type</a></h3>
 - (GSXMLNodeType) <b>type</b>;<br>
 
-          <p>
+	    <p>
 
-            Return type of Node.
+	      Return type of Node.
             </p>
 
           
 <hr>
-<h3><a name="method-15">doc</a></h3>
+<h3><a name="method-15">typeDescription</a></h3>
+- (<A HREF="NSString.html#NSString">NSString</A>*) <b>typeDescription</b>;<br>
+
+	    <p>
+
+	      Return the name of the type of the Node.
+            </p>
+
+          
+<hr>
+<h3><a name="method-16">doc</a></h3>
 - (<A HREF="GSXMLDocument.html#GSXMLDocument">GSXMLDocument</A>*) <b>doc</b>;<br>
 
           <p>
@@ -249,14 +260,14 @@ Return owner of this node.
 
           
 <hr>
-<h3><a name="method-16">children</a></h3>
+<h3><a name="method-17">children</a></h3>
 - (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>children</b>;<br>
 
           <p>
 Return children of this node.
 	  </p>
 
-          <a name="label-17">example</a>
+          <a name="label-18">example</a>
 <pre>
 
               - (GSXMLNode*) nextElement: (GSXMLNode*)node
@@ -281,7 +292,7 @@ Return children of this node.
 
           
 <hr>
-<h3><a name="method-18">parent</a></h3>
+<h3><a name="method-19">parent</a></h3>
 - (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>parent</b>;<br>
 
           <p>
@@ -290,7 +301,7 @@ Return parent of this node.
 
           
 <hr>
-<h3><a name="method-19">next</a></h3>
+<h3><a name="method-20">next</a></h3>
 - (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>next</b>;<br>
 
           <p>
@@ -299,7 +310,7 @@ Return next node.
 
           
 <hr>
-<h3><a name="method-20">prev</a></h3>
+<h3><a name="method-21">prev</a></h3>
 - (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>prev</b>;<br>
 
           <p>
@@ -308,8 +319,8 @@ Return previous node.
 
           
 <hr>
-<h3><a name="method-21">makeChild:name:content:</a></h3>
-- (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>makeChild:</b> (<A HREF="GSXMLNamespace.html#GSXMLNamespace">GSXMLNamespace</A>*)ns <b>name:</b> (NSString*)name <b>content:</b> (NSString*)content;<br>
+<h3><a name="method-22">makeChild:name:content:</a></h3>
+- (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>makeChild:</b> (<A HREF="GSXMLNamespace.html#GSXMLNamespace">GSXMLNamespace</A>*)ns <b>name:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>content:</b> (<A HREF="NSString.html#NSString">NSString</A>*)content;<br>
 
 	    <p>
 
@@ -321,7 +332,7 @@ Return previous node.
 	      Return previous node.
 	    </p>
 
-	    <a name="label-22">example</a>
+	    <a name="label-23">example</a>
 <pre>
 
 
@@ -346,8 +357,8 @@ Return previous node.
 
           
 <hr>
-<h3><a name="method-23">makeComment:</a></h3>
-- (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>makeComment:</b> (NSString*)content;<br>
+<h3><a name="method-24">makeComment:</a></h3>
+- (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>makeComment:</b> (<A HREF="NSString.html#NSString">NSString</A>*)content;<br>
 
 	    <p>
 
@@ -355,7 +366,7 @@ Return previous node.
 	      parent children list.
             </p>
 
-	    <a name="label-24">example</a>
+	    <a name="label-25">example</a>
 <pre>
 
   d = [GSXMLDocument documentWithVersion: @"1.0"];
@@ -369,8 +380,8 @@ Return previous node.
 
           
 <hr>
-<h3><a name="method-25">makePI:</a></h3>
-- (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>makePI:</b> (NSString*)content;<br>
+<h3><a name="method-26">makePI:</a></h3>
+- (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*) <b>makePI:</b> (<A HREF="NSString.html#NSString">NSString</A>*)content;<br>
 
 	    <p>
 
@@ -378,7 +389,7 @@ Return previous node.
 	       added at the end of parent children list.
 	    </p>
 
-	    <a name="label-26">example</a>
+	    <a name="label-27">example</a>
 <pre>
 
   d = [GSXMLDocument documentWithVersion: @"1.0"];
@@ -393,14 +404,14 @@ Return previous node.
 
           
 <hr>
-<h3><a name="method-27">setProp:value:</a></h3>
-- (<A HREF="GSXMLAttribute.html#GSXMLAttribute">GSXMLAttribute</A>*) <b>setProp:</b> (NSString*)name <b>value:</b> (NSString*)value;<br>
+<h3><a name="method-28">setProp:value:</a></h3>
+- (<A HREF="GSXMLAttribute.html#GSXMLAttribute">GSXMLAttribute</A>*) <b>setProp:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>value:</b> (<A HREF="NSString.html#NSString">NSString</A>*)value;<br>
 
 	    <p>
 Set (or reset) an attribute carried by a node.
             </p>
 
-	    <a name="label-28">example</a>
+	    <a name="label-29">example</a>
 <pre>
 
   id n1 = [GSXMLNode nodeWithNamespace: nil name: nodeName];

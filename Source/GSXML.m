@@ -32,6 +32,8 @@
 
 #include <Foundation/GSXML.h>
 #include <Foundation/NSData.h>
+#include <Foundation/NSMapTable.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSFileManager.h>
 
 extern int xmlDoValidityCheckingDefaultValue;
@@ -54,8 +56,7 @@ setupCache()
     {
       cacheDone = YES;
       NSString_class = [NSString class];
-      csImp
-	= [NSString_class methodForSelector: csSel];
+      csImp = [NSString_class methodForSelector: csSel];
     }
 }
 
@@ -137,12 +138,12 @@ setupCache()
 
 - (NSString*) version
 {
-  return [NSString stringWithCString: ((xmlDocPtr)(lib))->version];
+  return [NSString_class stringWithCString: ((xmlDocPtr)(lib))->version];
 }
 
 - (NSString*) encoding
 {
-  return [NSString stringWithCString: ((xmlDocPtr)(lib))->encoding];
+  return [NSString_class stringWithCString: ((xmlDocPtr)(lib))->encoding];
 }
 
 - (void) dealloc
@@ -348,10 +349,51 @@ setupCache()
 
 @implementation GSXMLNode: NSObject
 
+static NSMapTable	*nodeNames = 0;
+
 + (void) initialize
 {
-  if (cacheDone == NO)
-    setupCache();
+  if (self == [GSXMLNode class])
+    {
+      if (cacheDone == NO)
+	setupCache();
+      nodeNames = NSCreateMapTable(NSIntMapKeyCallBacks,
+	NSNonRetainedObjectMapValueCallBacks, 0);
+      NSMapInsert(nodeNames,
+	(void*)XML_ELEMENT_NODE, (void*)@"XML_ELEMENT_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_ATTRIBUTE_NODE, (void*)@"XML_ATTRIBUTE_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_TEXT_NODE, (void*)@"XML_TEXT_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_CDATA_SECTION_NODE, (void*)@"XML_CDATA_SECTION_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_ENTITY_REF_NODE, (void*)@"XML_ENTITY_REF_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_ENTITY_NODE, (void*)@"XML_ENTITY_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_PI_NODE, (void*)@"XML_PI_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_COMMENT_NODE, (void*)@"XML_COMMENT_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_DOCUMENT_NODE, (void*)@"XML_DOCUMENT_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_DOCUMENT_TYPE_NODE, (void*)@"XML_DOCUMENT_TYPE_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_DOCUMENT_FRAG_NODE, (void*)@"XML_DOCUMENT_FRAG_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_NOTATION_NODE, (void*)@"XML_NOTATION_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_HTML_DOCUMENT_NODE, (void*)@"XML_HTML_DOCUMENT_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_DTD_NODE, (void*)@"XML_DTD_NODE");
+      NSMapInsert(nodeNames,
+	(void*)XML_ELEMENT_DECL, (void*)@"XML_ELEMENT_DECL");
+      NSMapInsert(nodeNames,
+	(void*)XML_ATTRIBUTE_DECL, (void*)@"XML_ATTRIBUTE_DECL");
+      NSMapInsert(nodeNames,
+	(void*)XML_ENTITY_DECL, (void*)@"XML_ENTITY_DECL");
+    }
 }
 
 + (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
@@ -500,6 +542,17 @@ setupCache()
 - (GSXMLElementType) type
 {
   return (GSXMLElementType)((xmlNodePtr)(lib))->type;
+}
+
+- (NSString*) typeDescription
+{
+  NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)[self type]);
+
+  if (desc == nil)
+    {
+      desc = @"Unknown node type";
+    }
+  return desc;
 }
 
 - (GSXMLNode*) properties
@@ -697,7 +750,7 @@ setupCache()
 
 - (NSString*) name
 {
-  return[NSString stringWithCString: ((xmlAttrPtr)(lib))->name];
+  return[NSString_class stringWithCString: ((xmlAttrPtr)(lib))->name];
 }
 
 
@@ -742,13 +795,13 @@ setupCache()
 
 /* Internal interface for GSSAXHandler */
 @interface GSSAXHandler (internal)
-- (void) native: (BOOL)value;
+- (void) parser: (GSXMLParser*)value;
 @end
 
 @implementation GSSAXHandler (Internal)
-- (void) native: (BOOL)value
+- (void) parser: (GSXMLParser*)value
 {
-   native = value;
+  parser = value;
 }
 @end
 
@@ -772,6 +825,67 @@ setupCache()
   return AUTORELEASE([[self alloc] initWithSAXHandler: handler source: source]);
 }
 
++ (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding
+{
+  NSString	*xmlEncodingString = nil;
+
+  switch (encoding)
+    {
+      case NSUnicodeStringEncoding:
+	NSLog(@"NSUnicodeStringEncoding not supported for XML");//??
+	break;
+      case NSNEXTSTEPStringEncoding:
+	NSLog(@"NSNEXTSTEPStringEncoding not supported for XML");//??
+	break;
+      case NSJapaneseEUCStringEncoding:
+	xmlEncodingString = @"EUC-JP";
+	break;
+      case NSShiftJISStringEncoding:
+	xmlEncodingString = @"Shift-JIS";
+	break;
+      case NSISO2022JPStringEncoding:
+	xmlEncodingString = @"ISO-2022-JP";
+	break;
+      case NSUTF8StringEncoding:
+	xmlEncodingString = @"UTF-8";
+	break;
+      case NSWindowsCP1251StringEncoding:
+	NSLog(@"NSWindowsCP1251StringEncoding not supported for XML");//??
+	break;
+      case NSWindowsCP1252StringEncoding:
+	NSLog(@"NSWindowsCP1252StringEncoding not supported for XML");//??
+	break;
+      case NSWindowsCP1253StringEncoding:
+	NSLog(@"NSWindowsCP1253StringEncoding not supported for XML");//??
+	break;
+      case NSWindowsCP1254StringEncoding:
+	NSLog(@"NSWindowsCP1254StringEncoding not supported for XML");//??
+	break;
+      case NSWindowsCP1250StringEncoding:
+	NSLog(@"NSWindowsCP1250StringEncoding not supported for XML");//??
+	break;
+      case NSISOLatin1StringEncoding:
+	xmlEncodingString = @"ISO-8859-1";
+	break;
+      case NSISOLatin2StringEncoding:
+	xmlEncodingString = @"ISO-8859-2";
+	break;
+      case NSSymbolStringEncoding:
+	NSLog(@"NSSymbolStringEncoding not supported for XML");//??
+	break;
+      case NSCyrillicStringEncoding:
+	NSLog(@"NSCyrillicStringEncoding not supported for XML");//??
+	break;
+      case NSNonLossyASCIIStringEncoding:
+      case NSASCIIStringEncoding:
+      case GSUndefinedEncoding:
+      default:
+	xmlEncodingString = nil;
+	break;
+    }
+  return xmlEncodingString;
+}
+
 - (id) initWithSAXHandler: (GSSAXHandler*)handler source: (id)source
 {
   self = [super init];
@@ -781,7 +895,7 @@ setupCache()
       if ([source isKindOfClass: [NSData class]])
         {
         }
-      else if ([source isKindOfClass: [NSString class]])
+      else if ([source isKindOfClass: NSString_class])
         {
         }
       else
@@ -816,7 +930,7 @@ setupCache()
           return NO;
         }
     }
-  else if ([src isKindOfClass: [NSString class]])
+  else if ([src isKindOfClass: NSString_class])
     {
       NSFileManager	*mgr = [NSFileManager defaultManager];
 
@@ -840,10 +954,11 @@ setupCache()
 
   if (saxHandler != nil)
     {
+      NSAssert([saxHandler parser] == nil, NSGenericException);
       free(((xmlParserCtxtPtr)lib)->sax);
       ((xmlParserCtxtPtr)lib)->sax = [saxHandler lib];
       ((xmlParserCtxtPtr)lib)->userData = saxHandler;
-      [saxHandler native: NO];
+      [saxHandler parser: self];
     }
 
   xmlParseDocument(lib);
@@ -914,201 +1029,221 @@ setupCache()
     setupCache();
 }
 
-void startDocumentFunction(void *ctx)
+#define	HANDLER	(GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->userData)
+
+void
+startDocumentFunction(void *ctx)
 {
-  [(GSSAXHandler*)ctx startDocument];
+  [HANDLER startDocument];
 }
 
-void endDocumentFunction(void *ctx)
+void
+endDocumentFunction(void *ctx)
 {
-  [(GSSAXHandler*)ctx endDocument];
+  [HANDLER endDocument];
 }
 
-int isStandaloneFunction(void *ctx)
+int
+isStandaloneFunction(void *ctx)
 {
-  [(GSSAXHandler*)ctx isStandalone];
-  return (0);
+  return [HANDLER isStandalone];
 }
 
-
-int hasInternalSubsetFunction(void *ctx)
+int
+hasInternalSubsetFunction(void *ctx)
 {
-  [(GSSAXHandler*)ctx hasInternalSubset];
-  return (0);
+  return [HANDLER hasInternalSubset];
 }
 
-int hasExternalSubsetFunction(void *ctx)
+int
+hasExternalSubsetFunction(void *ctx)
 {
-  [(GSSAXHandler*)ctx hasExternalSubset];
-  return (0);
+  return [HANDLER hasExternalSubset];
 }
 
-void internalSubsetFunction(void *ctx, const char *name,
-	       const xmlChar *ExternalID, const xmlChar *SystemID)
+void
+internalSubsetFunction(void *ctx, const char *name,
+  const xmlChar *ExternalID, const xmlChar *SystemID)
 {
-  [(GSSAXHandler*)ctx internalSubset: (*csImp)(NSString_class, csSel, name)
-                      externalID: (*csImp)(NSString_class, csSel, ExternalID)
-                        systemID: (*csImp)(NSString_class, csSel, SystemID)];
+  [HANDLER internalSubset: (*csImp)(NSString_class, csSel, name)
+	       externalID: (*csImp)(NSString_class, csSel, ExternalID)
+		 systemID: (*csImp)(NSString_class, csSel, SystemID)];
 }
 
-xmlParserInputPtr resolveEntityFunction(void *ctx, const char *publicId, const char *systemId)
+xmlParserInputPtr
+resolveEntityFunction(void *ctx, const char *publicId, const char *systemId)
 {
-    [(GSSAXHandler*)ctx resolveEntity: (*csImp)(NSString_class, csSel, publicId)
-                         systemID: (*csImp)(NSString_class, csSel, systemId)];
-    return(NULL);
+  return [HANDLER resolveEntity: (*csImp)(NSString_class, csSel, publicId)
+		       systemID: (*csImp)(NSString_class, csSel, systemId)];
 }
 
-xmlEntityPtr getEntityFunction(void *ctx, const char *name)
+xmlEntityPtr
+getEntityFunction(void *ctx, const char *name)
 {
-    [(GSSAXHandler*)ctx getEntity: (*csImp)(NSString_class, csSel, name)];
-    return(NULL);
+  return [HANDLER getEntity: (*csImp)(NSString_class, csSel, name)];
 }
 
-xmlEntityPtr getParameterEntityFunction(void *ctx, const char *name)
+xmlEntityPtr
+getParameterEntityFunction(void *ctx, const char *name)
 {
-    [(GSSAXHandler*)ctx getParameterEntity: (*csImp)(NSString_class, csSel, name)];
-    return(NULL);
-}
-
-
-void entityDeclFunction(void *ctx, const char *name, int type,
-          const char *publicId, const char *systemId, char *content)
-{
-  [(GSSAXHandler*)ctx entityDecl: (*csImp)(NSString_class, csSel, name)
-                        type: type
-                      public: (*csImp)(NSString_class, csSel, publicId)
-                      system: (*csImp)(NSString_class, csSel, systemId)
-                     content: (*csImp)(NSString_class, csSel, content)];
-}
-
-void attributeDeclFunction(void *ctx, const char *elem, const char *name,
-              int type, int def, const char *defaultValue,
-	      xmlEnumerationPtr tree)
-{
-  [(GSSAXHandler*)ctx attributeDecl: (*csImp)(NSString_class, csSel, elem)
-                            name: (*csImp)(NSString_class, csSel, name)
-                            type: type
-                    typeDefValue: def
-                    defaultValue: (*csImp)(NSString_class, csSel, defaultValue)];
-}
-
-void elementDeclFunction(void *ctx, const char *name, int type,
-	    xmlElementContentPtr content)
-{
-  [(GSSAXHandler*)ctx elementDecl: (*csImp)(NSString_class, csSel, name)
-                         type: type];
-
-}
-
-void notationDeclFunction(void *ctx, const char *name,
-       const char *publicId, const char *systemId)
-{
-  [(GSSAXHandler*)ctx notationDecl: (*csImp)(NSString_class, csSel, name)
-                      public: (*csImp)(NSString_class, csSel, publicId)
-                      system: (*csImp)(NSString_class, csSel, systemId)];
-}
-
-void unparsedEntityDeclFunction(void *ctx, const char *name,
-       const char *publicId, const char *systemId,
-       const char *notationName)
-{
-  [(GSSAXHandler*)ctx unparsedEntityDecl: (*csImp)(NSString_class, csSel, name)
-                              public: (*csImp)(NSString_class, csSel, publicId)
-                              system: (*csImp)(NSString_class, csSel, systemId)
-                              notationName: (*csImp)(NSString_class, csSel, notationName)];
+  return [HANDLER getParameterEntity: (*csImp)(NSString_class, csSel, name)];
 }
 
 
-void startElementFunction(void *ctx, const char *name, const char **atts)
+void
+entityDeclFunction(void *ctx, const char *name, int type,
+  const char *publicId, const char *systemId, char *content)
 {
-    int i;
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    NSString *key, *obj;
+  [HANDLER entityDecl: (*csImp)(NSString_class, csSel, name)
+		 type: type
+	       public: (*csImp)(NSString_class, csSel, publicId)
+	       system: (*csImp)(NSString_class, csSel, systemId)
+	      content: (*csImp)(NSString_class, csSel, content)];
+}
 
-    if (atts != NULL)
-      {
-        for (i = 0; (atts[i] != NULL); i++)
-          {
-            key = [NSString stringWithCString: atts[i++]];
-            obj = [NSString stringWithCString: atts[i]];
-            [dict setObject: obj forKey: key];
-          }
-      }
-    [(GSSAXHandler*)ctx startElement: (*csImp)(NSString_class, csSel, name) attributes: dict];
+void
+attributeDeclFunction(void *ctx, const char *elem, const char *name,
+  int type, int def, const char *defaultValue, xmlEnumerationPtr tree)
+{
+  [HANDLER attributeDecl: (*csImp)(NSString_class, csSel, elem)
+		    name: (*csImp)(NSString_class, csSel, name)
+		    type: type
+	    typeDefValue: def
+	    defaultValue: (*csImp)(NSString_class, csSel, defaultValue)];
+}
+
+void
+elementDeclFunction(void *ctx, const char *name, int type,
+  xmlElementContentPtr content)
+{
+  [HANDLER elementDecl: (*csImp)(NSString_class, csSel, name)
+		  type: type];
+
+}
+
+void
+notationDeclFunction(void *ctx, const char *name,
+  const char *publicId, const char *systemId)
+{
+  [HANDLER notationDecl: (*csImp)(NSString_class, csSel, name)
+		 public: (*csImp)(NSString_class, csSel, publicId)
+		 system: (*csImp)(NSString_class, csSel, systemId)];
+}
+
+void
+unparsedEntityDeclFunction(void *ctx, const char *name,
+  const char *publicId, const char *systemId, const char *notationName)
+{
+  [HANDLER unparsedEntityDecl: (*csImp)(NSString_class, csSel, name)
+		       public: (*csImp)(NSString_class, csSel, publicId)
+		       system: (*csImp)(NSString_class, csSel, systemId)
+		 notationName: (*csImp)(NSString_class, csSel, notationName)];
+}
+
+
+void
+startElementFunction(void *ctx, const char *name, const char **atts)
+{
+  int i;
+  NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+  NSString *key, *obj;
+
+  if (atts != NULL)
+    {
+      for (i = 0; (atts[i] != NULL); i++)
+	{
+	  key = [NSString_class stringWithCString: atts[i++]];
+	  obj = [NSString_class stringWithCString: atts[i]];
+	  [dict setObject: obj forKey: key];
+	}
+    }
+  [HANDLER startElement: (*csImp)(NSString_class, csSel, name)
+	     attributes: dict];
 }
 
 void endElementFunction(void *ctx, const char *name)
 {
-  [(GSSAXHandler*)ctx endElement: (*csImp)(NSString_class, csSel, name)];
+  [HANDLER endElement: (*csImp)(NSString_class, csSel, name)];
 }
 
-void charactersFunction(void *ctx, const char *ch, int len)
+void
+charactersFunction(void *ctx, const char *ch, int len)
 {
-  [(GSSAXHandler*)ctx characters: [NSString stringWithCString: ch length: len] length: len];
+  [HANDLER characters: [NSString_class stringWithCString: ch length: len]
+	       length: len];
 }
 
-void referenceFunction(void *ctx, const char *name)
+void
+referenceFunction(void *ctx, const char *name)
 {
-  [(GSSAXHandler*)ctx reference: (*csImp)(NSString_class, csSel, name)];
+  [HANDLER reference: (*csImp)(NSString_class, csSel, name)];
 }
 
-void ignorableWhitespaceFunction(void *ctx, const char *ch, int len)
+void
+ignorableWhitespaceFunction(void *ctx, const char *ch, int len)
 {
-  [(GSSAXHandler*)ctx ignoreWhitespace: (*csImp)(NSString_class, csSel, ch) length: len];
+  [HANDLER ignoreWhitespace: (*csImp)(NSString_class, csSel, ch) length: len];
 }
 
-void processInstructionFunction(void *ctx, const char *target,  const char *data)
+void
+processInstructionFunction(void *ctx, const char *target,  const char *data)
 {
-  [(GSSAXHandler*)ctx processInstruction: (*csImp)(NSString_class, csSel, target)
-                                  data: (*csImp)(NSString_class, csSel, data)];
+  [HANDLER processInstruction: (*csImp)(NSString_class, csSel, target)
+			 data: (*csImp)(NSString_class, csSel, data)];
 }
 
-void cdataBlockFunction(void *ctx, const char *value, int len)
+void
+cdataBlockFunction(void *ctx, const char *value, int len)
 {
-  [(GSSAXHandler*)ctx cdataBlock: (*csImp)(NSString_class, csSel, value) length: len];
+  [HANDLER cdataBlock: (*csImp)(NSString_class, csSel, value) length: len];
 }
 
-void commentFunction(void *ctx, const char *value)
+void
+commentFunction(void *ctx, const char *value)
 {
-  [(GSSAXHandler*)ctx comment: (*csImp)(NSString_class, csSel, value)];
+  [HANDLER comment: (*csImp)(NSString_class, csSel, value)];
 }
 
-void warningFunction(void *ctx, const char *msg, ...)
+void
+warningFunction(void *ctx, const char *msg, ...)
 {
-    char allMsg[2048];
-    va_list args;
+  char allMsg[2048];
+  va_list args;
 
-    va_start(args, msg);
-    vsprintf(allMsg, msg, args);
-    va_end(args);
+  va_start(args, msg);
+  vsprintf(allMsg, msg, args);
+  va_end(args);
 
-    [(GSSAXHandler*)ctx warning: (*csImp)(NSString_class, csSel, allMsg)];
+  [HANDLER warning: (*csImp)(NSString_class, csSel, allMsg)];
 }
 
-void errorFunction(void *ctx, const char *msg, ...)
+void
+errorFunction(void *ctx, const char *msg, ...)
 {
-    char allMsg[2048];
-    va_list args;
+  char allMsg[2048];
+  va_list args;
 
-    va_start(args, msg);
-    vsprintf(allMsg, msg, args);
-    va_end(args);
-    [(GSSAXHandler*)ctx error: (*csImp)(NSString_class, csSel, allMsg)];
-
+  va_start(args, msg);
+  vsprintf(allMsg, msg, args);
+  va_end(args);
+  [HANDLER error: (*csImp)(NSString_class, csSel, allMsg)];
 }
 
-void fatalErrorFunction(void *ctx, const char *msg, ...)
+void
+fatalErrorFunction(void *ctx, const char *msg, ...)
 {
-    char allMsg[2048];
-    va_list args;
+  char allMsg[2048];
+  va_list args;
 
-    va_start(args, msg);
-    vsprintf(allMsg, msg, args);
-    va_end(args);
-    [(GSSAXHandler*)ctx fatalError: (*csImp)(NSString_class, csSel, allMsg)];
+  va_start(args, msg);
+  vsprintf(allMsg, msg, args);
+  va_end(args);
+  [HANDLER fatalError: (*csImp)(NSString_class, csSel, allMsg)];
 }
 
+#undef	HANDLER
 
+#undef	HANDLER
 
 
 + (GSSAXHandler*) handler
@@ -1129,33 +1264,34 @@ void fatalErrorFunction(void *ctx, const char *msg, ...)
 	  return nil;
         }
      memset(lib, 0, sizeof(xmlSAXHandler));
-     native = YES;
 
-    ((xmlSAXHandlerPtr)lib)->internalSubset         = internalSubsetFunction;
-    ((xmlSAXHandlerPtr)lib)->isStandalone           = isStandaloneFunction;
-    ((xmlSAXHandlerPtr)lib)->hasInternalSubset      = hasInternalSubsetFunction;
-    ((xmlSAXHandlerPtr)lib)->hasExternalSubset      = hasExternalSubsetFunction;
-    ((xmlSAXHandlerPtr)lib)->resolveEntity          = resolveEntityFunction;
-    ((xmlSAXHandlerPtr)lib)->getEntity              = getEntityFunction;
-    ((xmlSAXHandlerPtr)lib)->entityDecl             = entityDeclFunction;
-    ((xmlSAXHandlerPtr)lib)->notationDecl           = notationDeclFunction;
-    ((xmlSAXHandlerPtr)lib)->attributeDecl          = attributeDeclFunction;
-    ((xmlSAXHandlerPtr)lib)->elementDecl            = elementDeclFunction;
-    ((xmlSAXHandlerPtr)lib)->unparsedEntityDecl     = unparsedEntityDeclFunction;
-    ((xmlSAXHandlerPtr)lib)->startDocument          = startDocumentFunction;
-    ((xmlSAXHandlerPtr)lib)->endDocument            = endDocumentFunction;
-    ((xmlSAXHandlerPtr)lib)->startElement           = startElementFunction;
-    ((xmlSAXHandlerPtr)lib)->endElement             = endElementFunction;
-    ((xmlSAXHandlerPtr)lib)->reference              = referenceFunction;
-    ((xmlSAXHandlerPtr)lib)->characters             = charactersFunction;
-    ((xmlSAXHandlerPtr)lib)->ignorableWhitespace    = ignorableWhitespaceFunction;
-    ((xmlSAXHandlerPtr)lib)->processingInstruction  = processInstructionFunction;
-    ((xmlSAXHandlerPtr)lib)->comment                = commentFunction;
-    ((xmlSAXHandlerPtr)lib)->warning                = warningFunction;
-    ((xmlSAXHandlerPtr)lib)->error                  = errorFunction;
-    ((xmlSAXHandlerPtr)lib)->fatalError             = fatalErrorFunction;
-    ((xmlSAXHandlerPtr)lib)->getParameterEntity     = getParameterEntityFunction;
-    ((xmlSAXHandlerPtr)lib)->cdataBlock             = cdataBlockFunction;
+#define	LIB	((xmlSAXHandlerPtr)lib)
+     LIB->internalSubset         = internalSubsetFunction;
+     LIB->isStandalone           = isStandaloneFunction;
+     LIB->hasInternalSubset      = hasInternalSubsetFunction;
+     LIB->hasExternalSubset      = hasExternalSubsetFunction;
+     LIB->resolveEntity          = resolveEntityFunction;
+     LIB->getEntity              = getEntityFunction;
+     LIB->entityDecl             = entityDeclFunction;
+     LIB->notationDecl           = notationDeclFunction;
+     LIB->attributeDecl          = attributeDeclFunction;
+     LIB->elementDecl            = elementDeclFunction;
+     LIB->unparsedEntityDecl     = unparsedEntityDeclFunction;
+     LIB->startDocument          = startDocumentFunction;
+     LIB->endDocument            = endDocumentFunction;
+     LIB->startElement           = startElementFunction;
+     LIB->endElement             = endElementFunction;
+     LIB->reference              = referenceFunction;
+     LIB->characters             = charactersFunction;
+     LIB->ignorableWhitespace    = ignorableWhitespaceFunction;
+     LIB->processingInstruction  = processInstructionFunction;
+     LIB->comment                = commentFunction;
+     LIB->warning                = warningFunction;
+     LIB->error                  = errorFunction;
+     LIB->fatalError             = fatalErrorFunction;
+     LIB->getParameterEntity     = getParameterEntityFunction;
+     LIB->cdataBlock             = cdataBlockFunction;
+#undef	LIB
     }
   return self;
 }
@@ -1165,34 +1301,39 @@ void fatalErrorFunction(void *ctx, const char *msg, ...)
   return lib;
 }
 
+- (GSXMLParser*) parser
+{
+  return parser;
+}
+
 - (void) dealloc
 {
-  if (native == YES && lib != NULL)
+  if (parser == nil && lib != NULL)
     {
       free(lib);
     }
   [super dealloc];
 }
 
--(void) startDocument
+- (void) startDocument
 {
 
 }
 
--(void) endDocument
+- (void) endDocument
 {
 }
 
--(void) startElement: (NSString*)elementName
-          attributes: (NSMutableDictionary*)elementAttributes;
+- (void) startElement: (NSString*)elementName
+	   attributes: (NSMutableDictionary*)elementAttributes;
 {
 }
 
--(void) endElement: (NSString*) elementName
+- (void) endElement: (NSString*) elementName
 {
 }
 
--(void) attribute: (NSString*) name value: (NSString*)value
+- (void) attribute: (NSString*) name value: (NSString*)value
 {
 }
 
@@ -1208,93 +1349,100 @@ void fatalErrorFunction(void *ctx, const char *msg, ...)
 {
 }
 
--(void) comment: (NSString*) value
+- (void) comment: (NSString*) value
 {
 }
 
--(void) cdataBlock: (NSString*)value length: (int)len
-{
-
-}
-
--(void) resolveEntity: (NSString*)publicIdEntity systemEntity: (NSString*)systemIdEntity
-{
-
-}
--(void) namespaceDecl: (NSString*) name
-                 href: (NSString*) href
-               prefix: (NSString*) prefix;
-{
-
-}
--(void) notationDecl: (NSString*)name public: (NSString*)publicId system: (NSString*)systemId
-{
-
-}
--(void) entityDecl: (NSString*) name
-        type: (int)       type
-      public: (NSString*) publicId
-      system: (NSString*) systemId
-     content: (NSString*) content;
-{
-
-}
--(void) attributeDecl: (NSString*) nameElement
-        nameAttribute: (NSString*) name
-        entityType:    (int)       type
-        typeDefValue:  (int)       defType
-        defaultValue:  (NSString*) value;
-{
-
-}
--(void) elementDecl: (NSString*) name
-        type: (int)       type;
-{
-
-}
--(void) unparsedEntityDecl: (NSString*) name
-              publicEntity: (NSString*) publicId
-              systemEntity: (NSString*) systemId
-              notationName: (NSString*) notation;
-{
-
-}
-
--(void) reference: (NSString*) name
+- (void) cdataBlock: (NSString*)value length: (int)len
 {
 }
 
--(void) globalNamespace: (NSString*) name href: (NSString*)href prefix: (NSString*) prefix
-{
-
-}
--(void) warning: (NSString*)e
-{
-}
--(void) error: (NSString*)e
-{
-}
--(void) fatalError: (NSString*)e
+- (void) resolveEntity: (NSString*)publicIdEntity
+          systemEntity: (NSString*)systemIdEntity
 {
 }
 
-
-- (void) hasInternalSubset
+- (void) namespaceDecl: (NSString*)name
+		  href: (NSString*)href
+		prefix: (NSString*)prefix
 {
 }
+
+- (void) notationDecl: (NSString*)name
+	       public: (NSString*)publicId
+	       system: (NSString*)systemId
+{
+}
+
+- (void) entityDecl: (NSString*)name
+	       type: (int)type
+	     public: (NSString*)publicId
+	     system: (NSString*)systemId
+	    content: (NSString*)content
+{
+}
+
+- (void) attributeDecl: (NSString*)nameElement
+	 nameAttribute: (NSString*)name
+	    entityType: (int)type
+	  typeDefValue: (int)defType
+	  defaultValue: (NSString*)value
+{
+}
+
+- (void) elementDecl: (NSString*)name
+		type: (int)type
+{
+}
+
+- (void) unparsedEntityDecl: (NSString*)name
+	       publicEntity: (NSString*)publicId
+	       systemEntity: (NSString*)systemId
+	       notationName: (NSString*)notation
+{
+}
+
+- (void) reference: (NSString*) name
+{
+}
+
+- (void) globalNamespace: (NSString*)name
+		    href: (NSString*)href
+		  prefix: (NSString*)prefix
+{
+}
+
+- (void) warning: (NSString*)e
+{
+}
+
+- (void) error: (NSString*)e
+{
+}
+
+- (void) fatalError: (NSString*)e
+{
+}
+
+- (int) hasInternalSubset
+{
+  return 0;
+}
+
 - (void) internalSubset: (NSString*)name
             externalID: (NSString*)externalID
-              systemID: (NSString*)systemID;
+              systemID: (NSString*)systemID
 {
 }
 
--(void) hasExternalSubset
+- (int) hasExternalSubset
 {
+  return 0;
 }
 
-
-- (void) getEntity: (NSString*)name
+- (void*) getEntity: (NSString*)name
 {
+  return 0;
 }
 
 

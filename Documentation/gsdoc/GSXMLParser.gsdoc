@@ -28,7 +28,7 @@
           <sel>parser:</sel>
           <arg type="id">source</arg>
           <desc>
-	    <p>Creation of a new Parser.
+	    <p>Creation of a new Parser by calling initWithSAXHandler:source:
             </p>
 	    <p>
 	      Source must be <code>NSString</code> or <code>NSData</code>.
@@ -56,7 +56,7 @@
           <sel>source:</sel>
           <arg type="id">source</arg>
           <desc>
-	    <p>Creation of a new Parser with SAX handler.
+	    <p>Creation of a new Parser by calling initWithSAXHandler:source:
             </p>
             <example>
   NSAutoreleasePool *arp = [[NSAutoreleasePool alloc] init];
@@ -75,14 +75,33 @@
           </desc>
         </method>
 
+        <method type="NSString*" factory="yes">
+          <sel>xmlEncodingStringForStringEncoding:</sel>
+          <arg type="NSStringEncoding">encoding</arg>
+          <desc>
+	    Return the name of the string encoding (for XML) to use for the
+	    specified OpenStep encoding.
+          </desc>
+        </method>
+
         <method type="id" init="yes">
           <sel>initWithSAXHandler:</sel>
           <arg type="GSSAXHandler*">handler</arg>
           <sel>source:</sel>
           <arg type="id">source</arg>
           <desc>
-          <p>Creation of a new Parser with SAX handler.
+	    <p>
+	       Initialisation of a new Parser with SAX handler (if not nil).
             </p>
+	    <p>
+               The source object is intended to be any reasonable value,
+               but for initial implementation may be an NSData object
+               containing raw XML text, or the name of a file to parse.
+	    </p>
+	    <p>
+	      Future options are intended to include NSURL objects, and
+              nil objects (for incremental (data push) operation.
+	    </p>
           </desc>
         </method>
 

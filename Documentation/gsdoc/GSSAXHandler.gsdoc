@@ -31,15 +31,7 @@
         <method type="GSSAXHandler*" factory="yes">
           <sel>handler</sel>
           <desc>
-          <p>Create a new SAX handler.
-            </p>
-          </desc>
-        </method>
-
-        <method type="id">
-          <sel>init</sel>
-          <desc>
-          <p>Create a new SAX handler.
+	    <p>Create a new SAX handler.
             </p>
           </desc>
         </method>
@@ -47,16 +39,27 @@
         <method type="void*">
           <sel>lib</sel>
           <desc>
-          <p>Return pointer to xmlSAXHandler structure.
+	    <p>
+	      Return pointer to xmlSAXHandler structure.
             </p>
           </desc>
         </method>
 
+        <method type="GSXMLParser*">
+          <sel>parser</sel>
+          <desc>
+	    <p>
+	      Return the parser object with which this handler is
+	      associated.  This may occasionally be useful.
+            </p>
+          </desc>
+        </method>
 
         <method type="void">
           <sel>startDocument</sel>
           <desc>
-          <p>Called when the document start being processed.
+	    <p>
+	      Called when the document start being processed.
             </p>
           </desc>
         </method>
@@ -64,15 +67,16 @@
         <method type="void">
           <sel>endDocument</sel>
           <desc>
-          <p>Called when the document end has been detected.
+	    <p>
+	      Called when the document end has been detected.
             </p>
           </desc>
         </method>
 
-        <method type="void">
+        <method type="int">
           <sel>isStandalone</sel>
           <desc>
-          <p>Called if the document is standalone.
+	    <p>Called if the document is standalone.
             </p>
           </desc>
         </method>
@@ -202,7 +206,7 @@
           </desc>
         </method>
 
-        <method type="void">
+        <method type="int">
           <sel>hasInternalSubset:</sel>
           <desc>
           <p>Callback on internal subset declaration.
@@ -210,7 +214,7 @@
           </desc>
         </method>
 
-        <method type="void">
+        <method type="int">
           <sel>hasExternalSubset:</sel>
           <desc>
           <p>Does this document have an external subset.
@@ -231,7 +235,7 @@
           </desc>
         </method>
 
-        <method type="void">
+        <method type="void*">
           <sel>resolveEntity:</sel>
           <arg type="NSString*">publicID</arg>
           <sel>systemID:</sel>
@@ -243,7 +247,7 @@
           </desc>
         </method>
 
-        <method type="void">
+        <method type="void*">
           <sel>getEntity:</sel>
           <arg type="NSString*">name</arg>
           <desc>
@@ -252,7 +256,7 @@
           </desc>
         </method>
 
-        <method type="void">
+        <method type="void*">
           <sel>getParameterEntity:</sel>
           <arg type="NSString*">name</arg>
           <desc>

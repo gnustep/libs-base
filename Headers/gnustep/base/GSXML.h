@@ -54,19 +54,11 @@ typedef xmlAttributeType 	GSXMLAttributeType;
 typedef xmlElementTypeVal 	GSXMLElementTypeVal;
 typedef xmlNsType		GSXMLNamespaceType;
 
-#ifdef GSXML_DEBUG
-#define DP(message) printf("DEBUG: %s\n", message)
-#define TEST_ALLOC_ALL  printf("test allocation\n%s", GSDebugAllocationListAll())
-#define TEST_ALLOC(msg)  printf(" %s test allocation list\n%s", msg, GSDebugAllocationList(YES))
-#endif
-
-
-
 
 @interface GSXMLDocument : NSObject
 {
-    void *lib;            // pointer to xmllib pointer of xmlDoc struct
-    BOOL native;
+  void	*lib;            // pointer to xmllib pointer of xmlDoc struct
+  BOOL	native;
 }
 + (GSXMLDocument*) documentWithVersion: (NSString*)version;
 + (GSXMLDocument*) documentFrom: (void*)data;
@@ -94,8 +86,8 @@ typedef xmlNsType		GSXMLNamespaceType;
 
 @interface GSXMLNamespace : NSObject
 {
-   void *lib;          /* pointer to struct xmlNs in the gnome xmllib */
-   BOOL native;
+  void	*lib;          /* pointer to struct xmlNs in the gnome xmllib */
+  BOOL	native;
 }
 
 + (GSXMLNamespace*) namespaceWithNode: (GSXMLNode*)node
@@ -142,6 +134,7 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (GSXMLAttribute*) properties;
 - (NSMutableDictionary*) propertiesAsDictionary;
 - (GSXMLElementType) type;
+- (NSString*) typeDescription;
 
 - (GSXMLNode*) makeChildWithNamespace: (GSXMLNamespace*)ns
 				 name: (NSString*)name
@@ -187,6 +180,7 @@ typedef xmlNsType		GSXMLNamespaceType;
 + (GSXMLParser*) parser: (id)source;
 + (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
 			       source: (id) source;
++ (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding;
 
 - (id) initWithSAXHandler: (GSSAXHandler*)handler source: (id)source;
 
@@ -205,11 +199,12 @@ typedef xmlNsType		GSXMLNamespaceType;
 
 @interface GSSAXHandler : NSObject
 {
-  void *lib;
-  BOOL native;
+  void		*lib;	// xmlSAXHandlerPtr
+  GSXMLParser	*parser;
 }
 + (GSSAXHandler*) handler;
 - (void*) lib;
+- (GSXMLParser*) parser;
 @end
 
 @interface GSSAXHandler (Callbacks)
@@ -217,7 +212,7 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (void) startDocument;
 - (void) endDocument;
 
-- (void) isStandalone;
+- (int) isStandalone;
 
 - (void) startElement: (NSString*)elementName
            attributes: (NSMutableDictionary*)elementAttributes;
@@ -235,15 +230,15 @@ typedef xmlNsType		GSXMLNamespaceType;
 	     length: (int)len;
 
 
-- (void) hasInternalSubset;
+- (int) hasInternalSubset;
 - (void) internalSubset: (NSString*)name
              externalID: (NSString*)externalID
                systemID: (NSString*)systemID;
-- (void) hasExternalSubset;
-- (void) resolveEntity: (NSString*)publicId
-	      systemID: (NSString*)systemID;
-- (void) getEntity: (NSString*)name;
-- (void) getParameterEntity: (NSString*)name;
+- (int) hasExternalSubset;
+- (void*) resolveEntity: (NSString*)publicId
+	       systemID: (NSString*)systemID;
+- (void*) getEntity: (NSString*)name;
+- (void*) getParameterEntity: (NSString*)name;
 
 - (void) namespaceDecl: (NSString*)name
 		  href: (NSString*)href
