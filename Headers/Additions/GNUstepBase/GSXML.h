@@ -191,6 +191,7 @@
 			     withData: (NSData*)data;
 + (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding;
 
+- (void) abortParsing;
 - (int) columnNumber;
 - (GSXMLDocument*) document;
 - (BOOL) doValidityChecking: (BOOL)yesno;
