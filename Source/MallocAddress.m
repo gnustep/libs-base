@@ -35,7 +35,7 @@ static NSMapTable* mallocAddresses;
     {
       mallocAddresses = 
 	NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
-			  NSNonRetainedObjectMapValueCallBacks, 0);
+			  NSNonOwnedPointerMapValueCallBacks, 0);
     }
 }
 
@@ -44,7 +44,7 @@ static NSMapTable* mallocAddresses;
   return NSMapGet (mallocAddresses, addr);
 }
 
-+ autoreleaseMallocAddresss: (void*)addr
++ autoreleaseMallocAddress: (void*)addr
 {
   id n = [[self alloc] initWithAddress:addr];
   NSMapInsert (mallocAddresses, addr, n);
