@@ -34,15 +34,14 @@
 
 + (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)signature
 {
-  return [[[NSInvocation alloc] initWithMethodSignature: signature]
-	autorelease];
+  return AUTORELEASE([[NSInvocation alloc] initWithMethodSignature: signature]);
 }
 
 - (void) dealloc
 {
   if (argsRetained)
     {
-      [target release];
+      RELEASE(target);
       argsRetained = NO;
       if (argframe && sig)
 	{
@@ -62,7 +61,7 @@
 		  id	obj;
 
 		  mframe_get_arg(argframe, &info[i], &obj);
-		  [obj release];
+		  RELEASE(obj);
 		}
 	    }
 	}
@@ -75,7 +74,7 @@
     {
       objc_free(retval);
     }
-  [sig release];
+  RELEASE(sig);
   [super dealloc];
 }
 
@@ -163,10 +162,10 @@
 
 	      mframe_get_arg(argframe, &info[i], &old);
 	      mframe_set_arg(argframe, &info[i], buffer);
-	      [*(id*)buffer retain];
+	      RETAIN(*(id*)buffer);
 	      if (old != nil)
 		{
-		  [old release];
+		  RELEASE(old);
 		}
 	    }
 	  else
@@ -227,8 +226,7 @@
 {
   if (argsRetained)
     {
-      [anObject retain];
-      [target release];
+      ASSIGN(target, anObject);
     }
   target = anObject;
 }
@@ -258,7 +256,7 @@
       int	i;
 
       argsRetained = YES;
-      [target retain];
+      RETAIN(target);
       if (argframe == 0)
 	{
 	  return;
@@ -274,7 +272,7 @@
 		  mframe_get_arg(argframe, &info[i], &old);
 		  if (old != nil)
 		    {
-		      [old retain];
+		      RETAIN(old);
 		    }
 		}
 	      else
@@ -326,7 +324,7 @@
    *	Temporarily set new target and copy it (and the selector) into the
    *	argframe.
    */
-  old_target = [target retain];
+  old_target = RETAIN(target);
   [self setTarget: anObject];
 
   mframe_set_arg(argframe, &info[1], &target);
@@ -345,7 +343,7 @@
     imp = objc_msg_lookup(target, selector);
 
   [self setTarget: old_target];
-  [old_target release];
+  RELEASE(old_target);
 
   stack_argsize = [sig frameLength];
 
@@ -520,7 +518,7 @@
  */
 - initWithMethodSignature: (NSMethodSignature*)aSignature
 {
-  sig = [aSignature retain];
+  sig = RETAIN(aSignature);
   numArgs = [aSignature numberOfArguments];
   info = [aSignature methodInfo];
   argframe = mframe_create_argframe([sig methodType], &retval);
@@ -562,7 +560,7 @@
 		*(id*)datum = va_arg (ap, id);
 		if (argsRetained)
 		  {
-		    [*(id*)datum retain];
+		    RETAIN(*(id*)datum);
 		  }
 		break;
 	      case _C_CHARPTR:

@@ -104,8 +104,8 @@ static NSPortNameServer	*defaultServer = nil;
           serverLock = [NSRecursiveLock new];
 	  modes = [[NSArray alloc] initWithObjects: &mode count: 1];
 #ifdef	GDOMAP_PORT_OVERRIDE
-	  serverPort = [[NSString stringWithCString:
-		make_gdomap_port(GDOMAP_PORT_OVERRIDE)] retain];
+	  serverPort = RETAIN([NSString stringWithCString:
+		make_gdomap_port(GDOMAP_PORT_OVERRIDE)]);
 #endif
 	} 
       [gnustep_global_lock unlock];
@@ -374,7 +374,7 @@ static NSPortNameServer	*defaultServer = nil;
       p = [TcpOutPort newForSendingToSockaddr: &sin
 			   withAcceptedSocket: 0
 				pollingInPort: nil];
-      return [p autorelease];
+      return AUTORELEASE(p);
     }
   else
     {
@@ -430,7 +430,7 @@ static NSPortNameServer	*defaultServer = nil;
 	{
 	  known = [NSMutableSet new];
 	  NSMapInsert(portMap, port, known);
-	  [known release];
+	  RELEASE(known);
 	}
 
       /*
@@ -710,7 +710,7 @@ static NSPortNameServer	*defaultServer = nil;
 		    name: GSFileHandleWriteCompletionNotification
 		  object: handle];
       [handle closeFile];
-      [handle release];
+      RELEASE(handle);
       handle = nil;
     }
 }
@@ -871,7 +871,7 @@ static NSPortNameServer	*defaultServer = nil;
       NS_ENDHANDLER
       if (handle)
 	{
-	  [serverPort release];
+	  RELEASE(serverPort);
 	  serverPort = @"538";
 	}
     }
@@ -884,7 +884,7 @@ static NSPortNameServer	*defaultServer = nil;
     }
 
   expecting = 1;
-  [handle retain];
+  RETAIN(handle);
   nc = [NSNotificationCenter defaultCenter];
   [nc addObserver: self
 	 selector: @selector(_didConnect:)

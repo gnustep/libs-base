@@ -163,7 +163,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   id a = [[NSGString allocWithZone: z] initWithCharactersNoCopy: chars
 							 length: length
 						       fromZone: z];
-  [self release];
+  RELEASE(self);
   return a;
 }
 
@@ -175,7 +175,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   id a = [[NSGString allocWithZone: z] initWithCharactersNoCopy: chars
 							 length: length
 						   freeWhenDone: flag];
-  [self release];
+  RELEASE(self);
   return a;
 }
 
@@ -253,7 +253,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     }
   else 
     {
-      return [self retain];
+      return RETAIN(self);
     }
 }
 
@@ -284,7 +284,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     }
   else 
     {
-      return [self retain];
+      return RETAIN(self);
     }
 }
 
@@ -668,7 +668,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 	      result = [[_fastCls._NSGCString allocWithZone: z]
 		initWithCStringNoCopy: buf length: length fromZone: z];
 	      [output appendString: result];
-	      [result release];
+	      RELEASE(result);
 	    }
 	}
       else
@@ -883,7 +883,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   id a = [[NSGMutableString allocWithZone: z] initWithCharactersNoCopy: chars
 							 length: length
 						       fromZone: z];
-  [self release];
+  RELEASE(self);
   return a;
 }
 
@@ -895,7 +895,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   id a = [[NSGMutableString allocWithZone: z] initWithCharactersNoCopy: chars
 							   length: length
 						     freeWhenDone: flag];
-  [self release];
+  RELEASE(self);
   return a;
 }
 
@@ -1164,7 +1164,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return _contents_chars;
 }
 
-- retain
+- (id) retain
 {
   return self;
 }
@@ -1174,7 +1174,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return;
 }
 
-- autorelease
+- (id) autorelease
 {
   return self;
 }

@@ -1,3 +1,27 @@
+Sat Jul  3 21:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSCallBacks.m: Changes for garbage collection.
+	* Source/NSDateFormatter.m: ditto.
+	* Source/NSDictionary.m: ditto.
+	* Source/NSDistributedLock.m: ditto.
+	* Source/NSDistributedNotificationCenter.m: ditto.
+	* Source/NSGArray.m: ditto.
+	* Source/NSGCString.m: ditto.
+	* Source/NSGCountedSet.m: ditto.
+	* Source/NSGDictionary.m: ditto.
+	* Source/NSGSet.m: ditto.
+	* Source/NSHost.m: ditto.
+	* Source/NSInvocation.m: ditto.
+	* Source/NSNotification.m: ditto.
+	* Source/NSProtocolChecker.m: ditto.
+	* Source/NSScanner.m: ditto.
+	* Source/NSSerializer.m: ditto.
+	* Source/NSSet.m: ditto.
+	* Source/NSData.m: ditto.
+	* Source/NSPortNameServer.m: ditto.
+	* Source/NSUndoManager.m: ditto.
+	* Source/NSURL.m: ditto.
+
 Fri Jul  2 14:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/GSeq.h: Fix boundary error when searching for string in

@@ -103,7 +103,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
     {
       [remote unregisterClient: (id<GDNCClient>)self];
     }
-  [remote release];
+  RELEASE(remote);
   [super dealloc];
 }
 
@@ -313,9 +313,10 @@ static NSDistributedNotificationCenter	*defCenter = nil;
       /*
        *	Connect to the NSDistributedNotificationCenter for this host.
        */
-      remote = [NSConnection rootProxyForConnectionWithRegisteredName:
-		GDNC_SERVICE host: @""];
-      if ((remote = [remote retain]) != nil)
+      remote = RETAIN([NSConnection rootProxyForConnectionWithRegisteredName:
+		GDNC_SERVICE host: @""]);
+
+      if (remote != nil)
 	{
 	  NSConnection	*c = [remote connectionForProxy];
 	  Protocol	*p = @protocol(GDNCProtocol);
@@ -382,7 +383,7 @@ NSLog(@"Connection to GDNC server established.\n");
 	    object: connection];
   NSAssert(connection == [remote connectionForProxy],
 		 NSInternalInconsistencyException);
-  [remote release];
+  RELEASE(remote);
   remote = nil;
 }
 

@@ -69,12 +69,14 @@
 {
   if (_contents_array)
     {
+#if	!GS_WITH_GC
       unsigned	i;
 
       for (i = 0; i < _count; i++)
 	{
 	  [_contents_array[i] release];
 	}
+#endif
       NSZoneFree([self zone], _contents_array);
     }
   [super dealloc];
@@ -90,16 +92,16 @@
       _contents_array = NSZoneMalloc([self zone], sizeof(id)*count);
       if (_contents_array == 0)
 	{
-	  [self release];
+	  RELEASE(self);
 	  return nil;
        }
 
       for (i = 0; i < count; i++)
 	{
-	  if ((_contents_array[i] = [objects[i] retain]) == nil)
+	  if ((_contents_array[i] = RETAIN(objects[i])) == nil)
 	    {
 	      _count = i;
-	      [self release];
+	      RELEASE(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to add nil"];
 	    }
@@ -318,10 +320,10 @@
 
       for (i = 0; i < count; i++)
 	{
-	  if ((_contents_array[i] = [objects[i] retain]) == nil)
+	  if ((_contents_array[i] = RETAIN(objects[i])) == nil)
 	    {
 	      _count = i;
-	      [self release];
+	      RELEASE(self);
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to add nil"];
 	    }
@@ -371,7 +373,7 @@
    */
   _contents_array[index] = nil;
   _count++;
-  _contents_array[index] = [anObject retain];
+  _contents_array[index] = RETAIN(anObject);
 }
 
 - (void) addObject: (id)anObject
@@ -396,7 +398,7 @@
       _capacity += _grow_factor;
       _grow_factor = _capacity/2;
     }
-  _contents_array[_count] = [anObject retain];
+  _contents_array[_count] = RETAIN(anObject);
   _count++;	/* Do this AFTER we have retained the object.	*/
 }
 
@@ -408,7 +410,7 @@
 		  format: @"Trying to remove from an empty array."];
     }
   _count--;
-  [_contents_array[_count] release];
+  RELEASE(_contents_array[_count]);
 }
 
 - (void) removeObjectAtIndex: (unsigned)index
@@ -428,7 +430,7 @@
       _contents_array[index] = _contents_array[index+1];
       index++;
     }
-  [obj release];	/* Adjust array BEFORE releasing object.	*/
+  RELEASE(obj);	/* Adjust array BEFORE releasing object.	*/
 }
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: (id)anObject
@@ -440,15 +442,15 @@
       [NSException raise: NSRangeException format:
 	    @"in replaceObjectAtIndex:withObject:, index %d is out of range",
 	    index];
-  }
+    }
   /*
    *	Swap objects in order so that there is always a valid object in the
    *	array in case a retain or release causes an exception.
    */
   obj = _contents_array[index];
-  [anObject retain];
+  RETAIN(anObject);
   _contents_array[index] = anObject;
-  [obj release];
+  RELEASE(anObject);
 }
 
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 

@@ -34,37 +34,37 @@
 // restrict the messages that can be sent to anObject. Returns the
 // new instance.
 
-+ (id)protocolCheckerWithTarget:(NSObject *)anObject
-			protocol:(Protocol *)aProtocol
++ (id)protocolCheckerWithTarget: (NSObject *)anObject
+			protocol: (Protocol *)aProtocol
 {
-  return [[[NSProtocolChecker alloc] initWithTarget:anObject
-				    protocol:aProtocol] autorelease];
+  return AUTORELEASE([[NSProtocolChecker alloc] initWithTarget: anObject
+				    protocol: aProtocol]);
 }
 
 // Forwards any message to the delegate if the method is declared in
 // the checker's protocol; otherwise raises an NSInvalidArgumentException.
 
-- (void)forwardInvocation:(NSInvocation *)anInvocation
+- (void)forwardInvocation: (NSInvocation *)anInvocation
 {
   unsigned int length;
   void *buffer;
   
   if ((struct objc_method_description *)NULL
-      != [self methodDescriptionForSelector:[anInvocation selector]])
-    [[NSException exceptionWithName:NSInvalidArgumentException
-		  reason:@"Method not declared in current protocol"
-		  userInfo:nil]
+      != [self methodDescriptionForSelector: [anInvocation selector]])
+    [[NSException exceptionWithName: NSInvalidArgumentException
+		  reason: @"Method not declared in current protocol"
+		  userInfo: nil]
       raise];
       
-  [anInvocation invokeWithTarget:myTarget];
+  [anInvocation invokeWithTarget: myTarget];
   
   length = [[anInvocation methodSignature] methodReturnLength];
   buffer = (void *)malloc(length);
-  [anInvocation getReturnValue:buffer];
+  [anInvocation getReturnValue: buffer];
   
   if (0 == strcmp([[anInvocation methodSignature] methodReturnType],
 		  [[anInvocation methodSignatureForSelector: 
-				  @selector(init:)] methodReturnType]) )
+				  @selector(init: )] methodReturnType]) )
     {
       if (((id)buffer) == myTarget)
    	{
@@ -77,7 +77,7 @@
 }
 
 
-- (id)init
+- (id) init
 {
   myProtocol = nil;
   myTarget = nil;
@@ -92,21 +92,13 @@
 // allowed to be freed or dereferenced by clients, the free method
 // should be included in aProtocol. Returns the new instance.
 
-- (id)initWithTarget:(NSObject *)anObject protocol:(Protocol *)aProtocol
+- (id)initWithTarget: (NSObject *)anObject protocol: (Protocol *)aProtocol
 {
   [super init];
   
-  //if (nil != myProtocol)  
-  //  [myProtocol autorelease];
   myProtocol = aProtocol;
-  //if (nil != myProtocol)  
-  //  [myProtocol retain];
   
-  if (nil != myTarget)  
-    [myTarget autorelease];
-  myTarget = anObject;
-  if (nil != myTarget)  
-    [myTarget retain];
+  ASSIGN(myTarget, anObject);
   
   return self;
 }
@@ -115,9 +107,9 @@
 // protocol, or NULL if aSelector isn't declared as an instance method
 // in the protocol.
 
-- (struct objc_method_description *)methodDescriptionForSelector:(SEL)aSelector
+- (struct objc_method_description *)methodDescriptionForSelector: (SEL)aSelector
 {
-  return [myProtocol descriptionForInstanceMethod:aSelector];
+  return [myProtocol descriptionForInstanceMethod: aSelector];
 }
 
 // Returns the protocol object the checker uses to verify whether a
@@ -127,9 +119,9 @@
 - (Protocol *)protocol
 {
   if (nil == myProtocol)
-    [[NSException exceptionWithName:NSInvalidArgumentException
-		  reason:@"No protocol specified"
-		  userInfo:nil]
+    [[NSException exceptionWithName: NSInvalidArgumentException
+		  reason: @"No protocol specified"
+		  userInfo: nil]
       raise];
   
   return myProtocol;

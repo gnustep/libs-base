@@ -45,13 +45,19 @@
 {
   NSDateFormatter	*other = (id)NSCopyObject(self, 0, zone);
 
-  [other->dateFormat retain];
+  RETAIN(other->dateFormat);
   return other;
 }
 
 - (NSString*) dateFormat
 {
   return dateFormat;
+}
+
+- (void) dealloc
+{
+  RELEASE(dateFormat);
+  [super dealloc];
 }
 
 - (NSString*) editingStringForObjectValue: (id)anObject

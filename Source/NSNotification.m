@@ -55,8 +55,8 @@
 				  object: (id)object
 			        userInfo: (id)info
 {
-  return [[[self allocWithZone: NSDefaultMallocZone()] initWithName: name 
-    object: object userInfo: info] autorelease];
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithName: name object: object userInfo: info]);
 }
 
 + (NSNotification*) notificationWithName: (NSString*)name

@@ -65,7 +65,7 @@
 - initWithSet: (NSSet*)d
 {
   [super init];
-  set = [(NSGSet*)d retain];
+  set = (NSGSet*)RETAIN(d);
   node = set->map.firstNode;
   return self;
 }
@@ -84,7 +84,7 @@
 
 - (void) dealloc
 {
-  [set release];
+  RELEASE(set);
   [super dealloc];
 }
 
@@ -164,7 +164,7 @@
 
       if (objs[i] == nil)
 	{
-	  [self autorelease];
+	  AUTORELEASE(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init set with nil value"];
 	}
@@ -193,7 +193,7 @@
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSGSetEnumerator alloc] initWithSet: self] autorelease];
+  return AUTORELEASE([[NSGSetEnumerator alloc] initWithSet: self]);
 }
 
 @end

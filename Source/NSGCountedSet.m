@@ -62,7 +62,7 @@
   self = [super init];
   if (self)
     {
-      set = [(NSGCountedSet*)d retain];
+      set = RETAIN((NSGCountedSet*)d);
       node = set->map.firstNode;
     }
   return self;
@@ -82,7 +82,7 @@
 
 - (void) dealloc
 {
-  [set release];
+  RELEASE(set);
   [super dealloc];
 }
 
@@ -170,7 +170,7 @@
 
       if (objs[i] == nil)
 	{
-	  [self autorelease];
+	  AUTORELEASE(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init counted set with nil value"];
 	}
@@ -248,8 +248,8 @@
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSGCountedSetEnumerator allocWithZone: NSDefaultMallocZone()]
-    initWithSet: self] autorelease];
+  return AUTORELEASE([[NSGCountedSetEnumerator allocWithZone:
+    NSDefaultMallocZone()] initWithSet: self]);
 }
 
 - (void) removeObject: (NSObject*)anObject

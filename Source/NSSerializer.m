@@ -424,7 +424,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     {
       case ST_XREF:
 	{
-	  return [GSIArrayItemAtIndex(&info->array, size).obj retain];
+	  return RETAIN(GSIArrayItemAtIndex(&info->array, size).obj);
 	}
 
       case ST_CSTRING:
@@ -515,10 +515,12 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	      objects[i] = deserializeFromInfo(info);
 	      if (objects[i] == nil)
 		{
+#if	!GS_WITH_GC
 		  while (i > 0)
 		    {
 		      [objects[--i] release];
 		    }
+#endif
 		  objc_free(objects);
 		  return nil;
 		}
@@ -533,11 +535,12 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	      a = NSAllocateObject(IACls, 0, NSDefaultMallocZone());
 	      a = (*iaInitImp)(a, iaInitSel, objects, size);
 	    }
-
+#if	!GS_WITH_GC
 	  for (i = 0; i < size; i++)
 	    {
 	      [objects[i] release];
 	    }
+#endif
 	  return a;
 	}
 
@@ -554,22 +557,26 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	      keys[i] = deserializeFromInfo(info);
 	      if (keys[i] == nil)
 		{
+#if	!GS_WITH_GC
 		  while (i > 0)
 		    {
 		      [keys[--i] release];
 		      [objects[i] release];
 		    }
+#endif
 		  return nil;
 		}
 	      objects[i] = deserializeFromInfo(info);
 	      if (objects[i] == nil)
 		{
+#if	!GS_WITH_GC
 		  [keys[i] release];
 		  while (i > 0)
 		    {
 		      [keys[--i] release];
 		      [objects[i] release];
 		    }
+#endif
 		  return nil;
 		}
 	    }
@@ -583,11 +590,13 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	      d = NSAllocateObject(IDCls, 0, NSDefaultMallocZone());
 	      d = (*idInitImp)(d, idInitSel, objects, keys, size);
 	    }
+#if	!GS_WITH_GC
 	  for (i = 0; i < size; i++)
 	    {
 	      [keys[i] release];
 	      [objects[i] release];
 	    }
+#endif
 	  return d;
 	}
 
@@ -627,15 +636,15 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   _NSDeserializerProxy	*proxy;
 
   proxy = (_NSDeserializerProxy*)NSAllocateObject(self,0,NSDefaultMallocZone());
-  initDeserializerInfo(&proxy->info, [d retain], c, m);
-  return [proxy autorelease];
+  initDeserializerInfo(&proxy->info, RETAIN(d), c, m);
+  return AUTORELEASE(proxy);
 }
 
 - (void) dealloc
 {
-  [info.data release];
+  RELEASE(info.data);
   endDeserializerInfo(&info);
-  [plist release];
+  RELEASE(plist);
   [super dealloc];
 }
 
@@ -644,7 +653,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   if (plist == nil && info.data != nil)
     {
       plist = deserializeFromInfo(&info);
-      [info.data release];
+      RELEASE(info.data);
       info.data = nil;
     }
   return [plist performv: aSel :frame];
@@ -663,7 +672,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   if (plist == nil && info.data != nil)
     {
       plist = deserializeFromInfo(&info);
-      [info.data release];
+      RELEASE(info.data);
       info.data = nil;
     }
   return plist;
@@ -719,8 +728,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   initDeserializerInfo(&info, data, cursor, flag);
   o = deserializeFromInfo(&info);
   endDeserializerInfo(&info);
-  [o autorelease];
-  return o;
+  return AUTORELEASE(o);
 }
 
 + (id) deserializePropertyListFromData: (NSData*)data
@@ -734,8 +742,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   initDeserializerInfo(&info, data, &cursor, flag);
   o = deserializeFromInfo(&info);
   endDeserializerInfo(&info);
-  [o autorelease];
-  return o;
+  return AUTORELEASE(o);
 }
 
 + (id) deserializePropertyListLazilyFromData: (NSData*)data
@@ -753,8 +760,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       initDeserializerInfo(&info, data, cursor, flag);
       o = deserializeFromInfo(&info);
       endDeserializerInfo(&info);
-      [o autorelease];
-      return o;
+      return AUTORELEASE(o);
     }
   else
     {
