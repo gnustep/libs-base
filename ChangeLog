@@ -1,3 +1,12 @@
+Thu Sep 30  4:40:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSAutoreleasePool: Added NSLog to ([+addObject:]) to warn when
+	an object is autoreleased without a pool being present.
+	This should avoid many mistakes by newbies who don't understand
+	the retain/release/autorelease mechanism (perhaps it'll encourage
+	them to read up about it).  It also serves as a useful reminder
+	when you DO know what you are doing.
+
 Wed Sep 30 14:35:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Removed MallocAddress class -
