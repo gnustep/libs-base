@@ -1,3 +1,8 @@
+2003-03-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSerializer.m: Fix crash when deserializing a corrupt or
+	truncated archive ... raise exception rather than segfaulting.
+
 2003-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Fix to understand __attribute__() in declaration.
