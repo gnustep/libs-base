@@ -8,8 +8,8 @@
 <dt><a href ="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
 <dd>
 </dl>
-<p>Version: 0.1</p>
-<p>Date: 28 February, 2000</p>
+<p>Version: 0.2</p>
+<p>Date: 25 January, 2001</p>
 <h2><a name ="cont-0">Base</a></h2>
 <p>
 
@@ -78,7 +78,31 @@
 	      for parsing those strings should cope with both cases anyway.
 	    
 </dl>
-<h3><a name ="cont-4">The Foundation classes</a></h3>
+<h4><a name ="cont-4">Environment variables</a></h4>
+<p>
+
+	    There are some environment variables used by GNUstep base, where
+	    there would be problems onbtaining data from the defaults asystem.
+	  </p>
+<dl>
+<dt>CRASH_ON_ABORT
+<dd>
+	      The default exception handler will either cause the program to
+	      simply terminate, or to crash - leaving a core dump.  The
+	      standard behavior is to leave a core dump if the library was
+	      built for debugging, and to simply exit if it was not.
+	      <p>
+
+		The CRASH_ON_ABORT environment variable can be used to
+		override this behavior.  If this is defined to <em>NO</em>,
+		<em>FALSE</em>, or <em>0</em> then the program will simply
+		exit when an exception occurs.  Any other value of the
+		variable will cause the program to generate a core dump.
+	      </p>
+
+	    
+</dl>
+<h3><a name ="cont-5">The Foundation classes</a></h3>
 <ul>
 <li><a href ="NSArchiver.html">NSArchiver</a>
 <li><a href ="NSArray.html">NSArray</a>
@@ -150,7 +174,7 @@
 <li><a href ="NSUserDefaults.html">NSUserDefaults</a>
 <li><a href ="NSValue.html">NSValue</a>
 </ul>
-<h3><a name ="cont-5">The GNUstep extension classes</a></h3>
+<h3><a name ="cont-6">The GNUstep extension classes</a></h3>
 <ul>
 <li><a href ="GSMime.html">GSMime</a>
 <li><a href ="GSXML.html">GSXML</a>

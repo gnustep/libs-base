@@ -30,6 +30,8 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSDictionary.h>
 
+#include <stdlib.h>		// for getenv()
+
 static void
 _preventRecursion (NSException *exception)
 {
@@ -38,6 +40,9 @@ _preventRecursion (NSException *exception)
 static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
+  const char	*c = getenv("CRASH_ON_ABORT");
+  BOOL		a;
+
   _NSUncaughtExceptionHandler = _preventRecursion;
   fprintf(stderr, "Uncaught exception %s, reason: %s\n",
     	[[exception name] lossyCString], [[exception reason] lossyCString]);
@@ -45,7 +50,47 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   NSLogError("Uncaught exception %@, reason: %@",
     	[exception name], [exception reason]);
 */
-  abort();
+
+#ifdef	DEBUG
+  a = YES;		// abort() by default.
+#else
+  a = NO;		// exit() by default.
+#endif
+  if (c != 0)
+    {
+      /*
+       * Use the CRASH_ON_ABORT environment variable ... if it's defined
+       * then we use abort(), unless it's 'no', 'false', or '0, in which
+       * case we use exit()
+       */
+      if (c[0] == '0' && c[1] == 0)
+	{
+	  a = NO;
+	}
+      else if ((c[0] == 'n' || c[0] == 'N') && (c[1] == 'o' || c[1] == 'O')
+	&& c[2] == 0)
+	{
+	  a = NO;
+	}
+      else if ((c[0] == 'f' || c[0] == 'F') && (c[1] == 'a' || c[1] == 'A')
+	&& (c[2] == 'l' || c[2] == 'L') && (c[3] == 's' || c[3] == 'S')
+	&& (c[4] == 'e' || c[4] == 'E') && c[5] == 0)
+	{
+	  a = NO;
+	}
+      else
+	{
+	  a = YES;
+	}
+    }
+  if (a == YES)
+    {
+      abort();
+    }
+  else
+    {
+      exit(1);
+    }
 }
 
 @implementation NSException

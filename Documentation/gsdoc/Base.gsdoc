@@ -7,8 +7,8 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
-    <version>0.1</version>
-    <date>28 February, 2000</date>
+    <version>0.2</version>
+    <date>25 January, 2001</date>
   </head>
   <body>
     <chapter>
@@ -77,6 +77,29 @@
 	      and NSStringFromRect()) should produce strings conforming to the
 	      OpenStep specification or to MacOS-X behavior.  The functions
 	      for parsing those strings should cope with both cases anyway.
+	    </desc>
+	  </deflist>
+	</subsect>
+	<subsect>
+	  <heading>Environment variables</heading>
+	  <p>
+	    There are some environment variables used by GNUstep base, where
+	    there would be problems onbtaining data from the defaults asystem.
+	  </p>
+	  <deflist>
+	    <term>CRASH_ON_ABORT</term>
+	    <desc>
+	      The default exception handler will either cause the program to
+	      simply terminate, or to crash - leaving a core dump.  The
+	      standard behavior is to leave a core dump if the library was
+	      built for debugging, and to simply exit if it was not.
+	      <p>
+		The CRASH_ON_ABORT environment variable can be used to
+		override this behavior.  If this is defined to <em>NO</em>,
+		<em>FALSE</em>, or <em>0</em> then the program will simply
+		exit when an exception occurs.  Any other value of the
+		variable will cause the program to generate a core dump.
+	      </p>
 	    </desc>
 	  </deflist>
 	</subsect>
