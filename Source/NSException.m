@@ -91,7 +91,7 @@ static void
 _NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
   BOOL			a;
-  extern const char*	GSArgZero();
+  extern const char*	GSArgZero(void);
 
   _NSUncaughtExceptionHandler = _preventRecursion;
 #if 1

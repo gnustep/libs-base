@@ -615,7 +615,7 @@ int main(int argc, char *argv[], char *env[])
   [gnustep_global_lock lock];
   if (host == nil)
     {
-      extern NSTimeInterval GSTimeNow();
+      extern NSTimeInterval GSTimeNow(void);
 
       pid = [self processIdentifier];
       start = (unsigned long)GSTimeNow();
@@ -869,7 +869,7 @@ GSEnvironmentFlag(const char *name, BOOL def)
  * methods/functions which might cause a recursive exception.
  */ 
 const char*
-GSArgZero()
+GSArgZero(void)
 {
   if (_gnu_arg_zero == 0)
     return "";

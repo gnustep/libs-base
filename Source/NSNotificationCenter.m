@@ -392,7 +392,7 @@ static void endNCTable(NCTable *t)
   TEST_RELEASE(t->_lock);
 }
 
-static NCTable *newNCTable()
+static NCTable *newNCTable(void)
 {
   NCTable	*t;
 

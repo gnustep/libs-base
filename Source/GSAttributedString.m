@@ -253,11 +253,11 @@ static SEL	oatSel;
 static SEL	remSel;
 
 static IMP	infImp;
-static void	(*addImp)();
-static unsigned (*cntImp)();
-static void	(*insImp)();
+static void	(*addImp)(NSMutableArray*,SEL,id);
+static unsigned (*cntImp)(NSArray*,SEL);
+static void	(*insImp)(NSMutableArray*,SEL,id,unsigned);
 static IMP	oatImp;
-static void	(*remImp)();
+static void	(*remImp)(NSMutableArray*,SEL,unsigned);
 
 #define	NEWINFO(Z,O,L)	((*infImp)(infCls, infSel, (Z), (O), (L)))
 #define	ADDOBJECT(O)	((*addImp)(_infoArray, addSel, (O)))
@@ -265,7 +265,7 @@ static void	(*remImp)();
 #define	OBJECTAT(I)	((*oatImp)(_infoArray, oatSel, (I)))
 #define	REMOVEAT(I)	((*remImp)(_infoArray, remSel, (I)))
 
-static void _setup()
+static void _setup(void)
 {
   if (infCls == 0)
     {
@@ -286,11 +286,13 @@ static void _setup()
 
       a = [NSMutableArray allocWithZone: NSDefaultMallocZone()];
       a = [a initWithCapacity: 1];
-      addImp = (void (*)())[a methodForSelector: addSel];
-      cntImp = (unsigned (*)())[a methodForSelector: cntSel];
-      insImp = (void (*)())[a methodForSelector: insSel];
+      addImp = (void (*)(NSMutableArray*,SEL,id))[a methodForSelector: addSel];
+      cntImp = (unsigned (*)(NSArray*,SEL))[a methodForSelector: cntSel];
+      insImp = (void (*)(NSMutableArray*,SEL,id,unsigned))
+	[a methodForSelector: insSel];
       oatImp = [a methodForSelector: oatSel];
-      remImp = (void (*)())[a methodForSelector: remSel];
+      remImp = (void (*)(NSMutableArray*,SEL,unsigned))
+	[a methodForSelector: remSel];
       RELEASE(a);
       d = [NSDictionary new];
       blank = cacheAttributes(d);
