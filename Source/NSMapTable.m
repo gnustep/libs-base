@@ -522,9 +522,9 @@ NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
      * information.  Not difficult to do, just something for a later
      * date. */
     [NSException raise:NSInvalidArgumentException
-                 format:@"NSMapTable: illegal reinsertion of: %@ -> %@",
-                 NSMT_DESCRIBE_KEY(table, key),
-                 NSMT_DESCRIBE_VALUE(table, value)];
+                 format:@"NSMapTable: illegal reinsertion of: %s -> %s",
+                 [NSMT_DESCRIBE_KEY(table, key) cStringNoCopy],
+                 [NSMT_DESCRIBE_VALUE(table, value) cStringNoCopy]];
   }
   else
   {
@@ -569,8 +569,9 @@ NSStringFromMapTable(NSMapTable *table)
   /* Now, just step through the elements of the table, and add their
    * descriptions to the string. */
   while (NSNextMapEnumeratorPair(&enumerator, &key, &value))
-    [string appendFormat:@"%@ = %@;", (keyCallBacks.describe)(table, key),
-     (valueCallBacks.describe)(table, value)];
+    [string appendFormat:@"%@ = %@;",
+	    [(keyCallBacks.describe)(table, key) cStringNoCopy],
+	    [(valueCallBacks.describe)(table, value) cStringNoCopy]];
 
   /* Note that this string'll need to be `retain'ed. */
   return string;
