@@ -96,14 +96,18 @@
 - initWithFormat: (id <String>)aFormatString arguments: (va_list)arg
 {
   char buf[128];		/* xxx horrible, disgusting, fix this */
-  vsprintf(buf, [aFormatString cString], arg);
+  int len;
+  len = VSPRINTF_LENGTH (vsprintf(buf, [aFormatString cString], arg));
+  assert (len < 128);
   return [self initWithCString:buf];
 }
 
 - initWithCFormat: (const char*)formatCharPtr arguments: (va_list)arg
 {
   char buf[128];		/* xxx horrible, disgusting, fix this */
-  vsprintf(buf, formatCharPtr, arg);
+  int len;
+  len = VSPRINTF_LENGTH (vsprintf(buf, formatCharPtr, arg));
+  assert (len < 128);
   return [self initWithCString:buf];
 }
 #endif /* HAVE_VSPRINTF */
