@@ -122,9 +122,9 @@ int main(int argc, char *argv[])
   dbl_ptr = [p doDoublePointer:&dbl];
   printf(">>got double %f from server\n", *dbl_ptr);
   [p sendCharPtrPtr:&string];
-  /* testing "-perform:" */
-  if (p != [p perform:sel_get_any_uid("self")])
-    [NSObject error:"trying perform:"];
+  /* testing "-performSelector:" */
+  if (p != [p performSelector:sel_get_any_uid("self")])
+    [NSObject error:"trying performSelector:"];
   /* testing "bycopy" */
   /* reverse the order on these next two and it doesn't crash,
      however, having manyArgs called always seems to crash.

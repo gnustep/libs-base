@@ -130,7 +130,7 @@ main()
   {
     int compare(id elem1, id elem2, void* context)
       {
-	return (int)[elem1 perform:@selector(compare:) withObject:elem2];
+	return (int)[elem1 performSelector:@selector(compare:) withObject:elem2];
       }
 
     // Deriving new arrays
