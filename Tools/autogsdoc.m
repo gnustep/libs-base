@@ -29,9 +29,10 @@
   <p>
     The simple way to use this is to run the command with one or more
     header file names as arguments ... the tool will automatically
-    parse corresponding source files in the same directory (or the
-    directory specified using the DocumentationDirectory default),
-    and produce gsdoc files as output.<br />
+    parse corresponding source files in the same directory as the
+    headers (or the current directory, or the directory specified
+    using the DocumentationDirectory default), and produce gsdoc
+    files as output.
   </p>
   <p>
     Even without any human assistance, this tool will produce skeleton
@@ -61,9 +62,10 @@
       multiple source files.<br />
       If a file name is absolute, it is used just as supplied.<br />
       If on the other hand, it is a relative path, the software looks for
-      the source file first relative to the direcotory in which autogsdoc
-      is running and then, if not found there, relative to the directory
-      in which the header file is located.
+      the source file first relative to the location of the header file,
+      and if not found there, relative to the current directory in which
+      autogsdoc is running, and finally relative to the directory
+      specified by the DocumentationDirectory default.
     </item>
     <item><strong>&lt;abstract&gt;</strong>
       An abstract of the content of the document ... placed in the head

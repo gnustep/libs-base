@@ -796,7 +796,8 @@ fail:
       /**
        * We initially assume that the location of a source file is the
        * same as the header, but if there is no file at that location,
-       * we expect the source to be in the current directory instead.
+       * we expect the source to be in the documentatation directory
+       * or the current directory instead.
        */
       path = [fileName stringByDeletingPathExtension];
       path = [path stringByAppendingPathExtension: @"m"];
@@ -805,7 +806,23 @@ fail:
 	  path = [path lastPathComponent];
 	  if ([mgr isReadableFileAtPath: path] == NO)
 	    {
-	      path = nil;	// No default source file found.
+	      NSUserDefaults	*defs;
+	      NSString		*ddir;
+
+	      defs = [NSUserDefaults standardUserDefaults];
+	      ddir = [defs stringForKey: @"DocumentationDirectory"];
+	      if ([ddir length] > 0)
+		{
+		  path = [ddir stringByAppendingPathComponent: path];
+		  if ([mgr isReadableFileAtPath: path] == NO)
+		    {
+		      path = nil;	// No default source file found.
+		    }
+		}
+	      else
+		{
+		  path = nil;	// No default source file found.
+		}
 	    }
 	}
       if (path != nil)
@@ -2645,36 +2662,60 @@ fail:
 			   * header.
 			   */
 			  mgr = [NSFileManager defaultManager];
-			  if ([mgr isReadableFileAtPath: line] == NO)
+			  if ([line isAbsolutePath] == YES)
 			    {
-			      if ([line isAbsolutePath] == YES)
+			      if ([mgr isReadableFileAtPath: line] == NO)
 				{
 				  [self log: @"AutogsdocSource: %@ not found!",
 				    line];
 				  line = nil;
 				}
-			      else
-				{
-				  NSString	*p;
+			    }
+			  else
+			    {
+			      NSString	*p;
 
-				  /*
-				   * Try forming a path relative to the
-				   * header file if the source file was not
-				   * found in the specified location.
-				   */
-				  p = [info objectForKey: @"Header"];
-				  p = [p stringByDeletingLastPathComponent];
-				  p = [p stringByAppendingPathComponent: line];
-				  if ([mgr isReadableFileAtPath: p] == NO)
+			      /*
+			       * Try forming a path relative to the header.
+			       */
+			      p = [info objectForKey: @"Header"];
+			      p = [p stringByDeletingLastPathComponent];
+			      p = [p stringByAppendingPathComponent: line];
+			      if ([mgr isReadableFileAtPath: p] == YES)
+				{
+				  line = p;
+				}
+			      else if ([mgr isReadableFileAtPath: line] == NO)
+				{
+				  NSUserDefaults	*defs;
+				  NSString		*ddir;
+				  NSString		*old = p;
+
+				  defs = [NSUserDefaults standardUserDefaults];
+				  ddir = [defs stringForKey:
+				    @"DocumentationDirectory"];
+				  if ([ddir length] > 0)
 				    {
-				      [self log: @"AutogsdocSource: %@ not "
-					@"found (tried %@ too)!",
-					line, p];
-				      line = nil;
+				      p = [ddir stringByAppendingPathComponent:
+					line];
+				      if ([mgr isReadableFileAtPath: p] == YES)
+					{
+					  line = p;
+					}
+				      else
+					{
+					  [self log: @"AutogsdocSource: %@ not "
+					    @"found (tried %@ and %@ too)!",
+					    line, old, p];
+					  line = nil;
+					}
 				    }
 				  else
 				    {
-				      line = p;
+				      [self log: @"AutogsdocSource: %@ not "
+					@"found (tried %@ too)!",
+					line, old];
+				      line = nil;
 				    }
 				}
 			    }
