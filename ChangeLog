@@ -1,3 +1,12 @@
+2004-03-19  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSFileManager.m (-createDirectoryAtPath:attributes:):
+	Return NO if path is nil.
+	(-createFileAtPath:contents:attributes:): Idem.
+
+	* Source/NSUser.m (NSUserName): Set initial olduid to an invalid
+	uid.
+
 2004-03-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDictionary.m: Don't use stack as temporary storage for

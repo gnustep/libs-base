@@ -151,7 +151,9 @@ NSUserName(void)
 		    format: @"Unable to determine current user name"];
     }
 #else
-  static int	olduid = 0;
+  /* Set olduid to some invalid uid that we could never start off running
+     as.  */
+  static int	olduid = -1;
 #ifdef HAVE_GETEUID
   int uid = geteuid();
 #else
