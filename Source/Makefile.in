@@ -514,7 +514,7 @@ gnustep/base:
 	ln -s $(srcdir)/include base
 # This deletion is necessary, because the CVS repository contains
 # an emtpy `Foundation' directory that used to hold the OpenStep headers.
-Foundation: ../configure.in
+Foundation: ../configure
 	rm -rf Foundation
 	ln -s $(srcdir)/include Foundation
 
