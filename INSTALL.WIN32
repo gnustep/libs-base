@@ -1,0 +1,42 @@
+Installing on Windows NT/95
+***************************
+
+The system requires that you have headers and for the WIN32 API
+and ANSI-C.  If you are have a working bash shell then
+you should run the normal Unix ./configure shell script; otherwise,
+you can follow these instructions and run the configure.bat batch file.
+
+   Quick installation instructions:
+
+        configure
+        make
+        make install
+
+   Detailled installation instructions:
+
+  1. Install `gcc'.  The library requires gcc version
+     2.7.0 or later.
+
+  2. Configure the package for your system.  Review the Makefile.sed.nt
+     files which is used to process Makefile.in to create a working
+     Makefiles.  They exist in the directories: ./ , ./checks , ./src
+     Of interest are:
+
+        'libdir'                where to install the library file
+        'includedir'            where to install the headers
+        'install'               make rules to install libobjects
+
+  4. Run 'configure.bat' to create the Makefiles, and the header configuration
+     file 'src/objects/config.h'
+
+  5. Type `make' to compile the package.  If you want, you can override
+     the `make' variables `CFLAGS' like this:
+                make CFLAGS=-O2
+
+  6. Type `make install' to install the library, data files, header
+     files, and documentation.
+
+  7. You can remove the program binaries and object files from the
+     source directory by typing `make clean'.  To also remove the
+     Makefile(s), and `config.status' (all the files that `configure'
+     created), type `make distclean'.
