@@ -1,3 +1,10 @@
+2001-03-37  Jonathan Gapen  <jagapen@home.com>
+
+	* Source/NSString.m: New private function to compute the scalar value
+	of a high-low surrogate pair.  New surrogate range class variables.
+	Optimize ([-hasPrefix]) and ([-hasSuffix]) by using NSAnchoredSearch.
+	Add UTF-8 code to ([-dataUsingEncoding:allowLossyConversion:]).
+
 2001-03-26  Jonathan Gapen  <jagapen@home.com>
 
 	* Source/Makefile.preamble: No need to define HAVE_LIBXML here.
