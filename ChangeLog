@@ -1,7 +1,9 @@
-Wed Jul 14 17:36:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Jul 14 20:19:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSThread.m: Make sure that a thread retains the target object
 	and argument of the method with which it is detached.
+	* Testing/diningPhilosophers.m: Fixed bug - was passing non NSObject
+	argument.
 
 Wed Jul 14 16:58:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

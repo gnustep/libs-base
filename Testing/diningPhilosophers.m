@@ -32,6 +32,7 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSThread.h>
 #include    <Foundation/NSAutoreleasePool.h>
+#include    <Foundation/NSValue.h>
 
 // Conditions
 #define NO_FOOD 1
@@ -50,7 +51,7 @@ id forks[5];
 }
 
 // Instance methods
-- (void)sitAtChair:(int)position;
+- (void)sitAtChair:(NSNumber*)position;
 - (int)chair;
 
 @end
@@ -58,12 +59,12 @@ id forks[5];
 @implementation Philosopher
 
 // Instance methods
-- (void)sitAtChair:(int)position
+- (void)sitAtChair:(NSNumber*)position
 {
 	int i;
 
 	// Sit down
-	chair = position;
+	chair = [position intValue];
 
 	// Its a constant battle to feed yourself
 	while (1)
@@ -131,7 +132,7 @@ int main()
 	// Have them sit at the table
 	for (i = 0;i < 5; ++i)
 		[NSThread detachNewThreadSelector:@selector(sitAtChair:)
-			toTarget:p[i] withObject: (id)i];
+			toTarget:p[i] withObject: [NSNumber numberWithInt: i]];
 
 	// Now let them all eat
 	for (i = 0;i < 5; ++i)
