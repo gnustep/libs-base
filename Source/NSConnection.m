@@ -466,7 +466,7 @@ static int messages_received_count;
   /*
    *	Don't need notifications any more - so remove self as observer.
    */
-  [NSNotificationCenter removeObserver: self];
+  [[NSNotificationCenter defaultCenter] removeObserver: self];
 
   /*
    *	We can't be the ancestor of anything if we are invalid.
@@ -511,8 +511,9 @@ static int messages_received_count;
   {
     NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
-    [NSNotificationCenter postNotificationName: NSConnectionDidDieNotification
-					object: self];
+    [[NSNotificationCenter defaultCenter]
+      postNotificationName: NSConnectionDidDieNotification
+		    object: self];
     [arp release];
   }
 }
@@ -1056,7 +1057,7 @@ static int messages_received_count;
   NSHashInsert(connection_table, (void*)newConn);
   [connection_table_gate unlock];
 
-  [NSNotificationCenter
+  [[NSNotificationCenter defaultCenter]
     postNotificationName: NSConnectionDidInitializeNotification
 		  object: newConn];
 

@@ -174,15 +174,16 @@
 
 - (void) dealloc
 {
+  NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
   NSMapEnumerator	enumerator;
   NSConnection		*connection;
   NSMapTable		*clients;
 
   if (conn)
     {
-      [NSNotificationCenter removeObserver: self
-				      name: NSConnectionDidDieNotification
-				    object: conn];
+      [nc removeObserver: self
+		    name: NSConnectionDidDieNotification
+		  object: conn];
       [conn release];
       conn = nil;
     }
@@ -195,9 +196,9 @@
   while (NSNextMapEnumeratorPair(&enumerator,
 		(void**)&connection, (void**)&clients) == YES)
     {
-      [NSNotificationCenter removeObserver: self
-				      name: NSConnectionDidDieNotification
-				    object: connection];
+      [nc removeObserver: self
+		    name: NSConnectionDidDieNotification
+		  object: connection];
       [self removeObserversForClients: clients];
       NSFreeMapTable(clients);
     }
@@ -236,10 +237,11 @@
    *	Get notifications for new connections and connection losses.
    */
   [conn setDelegate: self];
-  [NSNotificationCenter addObserver: self
-			   selector: @selector(connectionBecameInvalid:)
-			       name: NSConnectionDidDieNotification
-			     object: conn];
+  [[NSNotificationCenter defaultCenter]
+    addObserver: self
+       selector: @selector(connectionBecameInvalid:)
+	   name: NSConnectionDidDieNotification
+	 object: conn];
   return self;
 }
 
@@ -341,10 +343,11 @@
 {
   NSMapTable	*table;
 
-  [NSNotificationCenter addObserver: self
-			   selector: @selector(connectionBecameInvalid:)
-			       name: NSConnectionDidDieNotification
-			     object: newConn];
+  [[NSNotificationCenter defaultCenter]
+    addObserver: self
+       selector: @selector(connectionBecameInvalid:)
+	   name: NSConnectionDidDieNotification
+	 object: newConn];
   [newConn setDelegate: self];
   /*
    *	Create a new map table entry for this connection with a value that
@@ -361,9 +364,10 @@
 {
   id connection = [notification object];
 
-  [NSNotificationCenter removeObserver: self
-				  name: NSConnectionDidDieNotification
-				object: connection];
+  [[NSNotificationCenter defaultCenter]
+    removeObserver: self
+	      name: NSConnectionDidDieNotification
+	    object: connection];
 
   if (connection == conn)
     {
