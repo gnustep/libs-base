@@ -28,18 +28,17 @@
 #include <objects/Connection.h>
 #include <objects/Proxy.h>
 #include <objects/ConnectedCoder.h>
-#include <objects/SocketPort.h>
+#include <objects/TcpPort.h>
 #include <objects/Array.h>
 #include <objects/Dictionary.h>
 #include <objects/Queue.h>
 #include <objects/mframe.h>
 #include <objects/Notification.h>
 #include <Foundation/NSString.h>
-#include <Foundation/NSNotification.h>
 #include <assert.h>
 
 @interface Connection (GettingCoderInterface)
-- doReceivedRequestsWithTimeout: (int)to;
+- _serviceReceivedRequestsWithTimeout: (int)to;
 - newReceivedReplyRmcWithSequenceNumber: (int)n;
 - newSendingRequestRmc;
 - newSendingReplyRmcWithSequenceNumber: (int)n;
@@ -92,14 +91,15 @@ type_get_number_of_arguments (const char *type)
 }
 
 /* class defaults */
-static id default_port_class;
+static id default_in_port_class;
+static id default_out_port_class;
 static id default_proxy_class;
 static id default_encoding_class;
 static id default_decoding_class;
 static int default_in_timeout;
 static int default_out_timeout;
 
-static BOOL debug_connection = NO;
+static int debug_connection = 1;
 
 /* Perhaps this should be a hashtable, keyed by remote port.
    But we may also need to include the local port---even though 
@@ -112,6 +112,8 @@ static Lock *connection_array_gate;
 
 static Dictionary *root_object_dictionary;
 static Lock *root_object_dictionary_gate;
+
+static NSMapTable *all_connections_local_targets = NULL;
 
 /* rmc handling */
 static Queue *received_request_rmc_queue;
@@ -134,7 +136,8 @@ static int messages_received_count;
   root_object_dictionary = [[Dictionary alloc] init];
   root_object_dictionary_gate = [Lock new];
   messages_received_count = 0;
-  default_port_class = [SocketPort class];
+  default_in_port_class = [TcpInPort class];
+  default_out_port_class = [TcpOutPort class];
   default_proxy_class = [Proxy class];
   default_encoding_class = [ConnectedEncoder class];
   default_decoding_class = [ConnectedDecoder class];
@@ -145,14 +148,24 @@ static int messages_received_count;
 
 /* Getting and setting class variables */
 
-+ (void) setDefaultPortClass: (Class)aClass
++ (void) setDefaultInPortClass: (Class)aClass
 {
-  default_port_class = aClass;
+  default_in_port_class = aClass;
 }
 
-+ (Class) defaultPortClass
++ (Class) defaultInPortClass
 {
-  return default_port_class;
+  return default_in_port_class;
+}
+
++ (void) setDefaultOutPortClass: (Class)aClass
+{
+  default_out_port_class = aClass;
+}
+
++ (Class) defaultOutPortClass
+{
+  return default_out_port_class;
 }
 
 + (void) setDefaultProxyClass: (Class)aClass
@@ -233,7 +246,7 @@ static int messages_received_count;
 
 - init
 {
-  id newPort = [default_port_class newForReceiving];
+  id newPort = [default_in_port_class newForReceiving];
   id newConn = 
     [Connection newForInPort:newPort outPort:nil ancestorConnection:nil];
   [self release];
@@ -242,7 +255,7 @@ static int messages_received_count;
 
 + new
 {
-  id newPort = [default_port_class newForReceiving];
+  id newPort = [default_in_port_class newForReceiving];
   id newConn = 
     [Connection newForInPort:newPort outPort:nil ancestorConnection:nil];
   return newConn;
@@ -253,7 +266,7 @@ static int messages_received_count;
   id newPort;
   id newConn;
 
-  newPort = [default_port_class newForReceiving];
+  newPort = [default_in_port_class newForReceiving];
   newConn = [self newForInPort:newPort outPort:nil
 		  ancestorConnection:nil];
   [self setRootObject:anObj forInPort:newPort];
@@ -272,7 +285,7 @@ static int messages_received_count;
   id newPort;
   id newConn;
 
-  newPort = [default_port_class newForReceivingFromRegisteredName: n];
+  newPort = [default_in_port_class newForReceivingFromRegisteredName: n];
   newConn = [self newForInPort:newPort outPort:nil
 		  ancestorConnection:nil];
   [self setRootObject:anObj forInPort:newPort];
@@ -286,13 +299,13 @@ static int messages_received_count;
 
 + (Proxy*) rootProxyAtName: (id <String>)n onHost: (id <String>)h
 {
-  id p = [default_port_class newForSendingToRegisteredName: n onHost: h];
+  id p = [default_out_port_class newForSendingToRegisteredName: n onHost: h];
   return [self rootProxyAtPort: p];
 }
 
 + (Proxy*) rootProxyAtPort: (Port*)anOutPort
 {
-  id newInPort = [default_port_class newForReceiving];
+  id newInPort = [default_in_port_class newForReceiving];
   return [self rootProxyAtPort: anOutPort withInPort: newInPort];
 }
 
@@ -317,6 +330,8 @@ static int messages_received_count;
   Connection *newConn;
   int i, count;
   id newConnInPort, newConnOutPort;
+ 
+  assert (ip);
 
   [connection_array_gate lock];
 
@@ -338,8 +353,10 @@ static int messages_received_count;
 
   newConn = [[Connection alloc] _superInit];
   if (debug_connection)
-    printf("new connection 0x%x, inPort 0x%x outPort 0x%x\n", 
-	   (unsigned)newConn, (unsigned)ip, (unsigned)op);
+    fprintf(stderr, "Created new connection 0x%x\n\t%s\n\t%s\n", 
+	    (unsigned)newConn, 
+	    [[ip description] cStringNoCopy], 
+	    [[op description] cStringNoCopy]);
   newConn->in_port = ip;
   [ip retain];
   newConn->out_port = op;
@@ -369,9 +386,15 @@ static int messages_received_count;
   newConn->out_timeout = [self defaultOutTimeout];
   newConn->encoding_class = default_encoding_class;
   if (ancestor)
-    newConn->port_class = [ancestor portClass];
+    {
+      newConn->in_port_class = [ancestor inPortClass];
+      newConn->out_port_class = [ancestor outPortClass];
+    }
   else
-    newConn->port_class = default_port_class;
+    {
+      newConn->in_port_class = default_in_port_class;
+      newConn->out_port_class = default_out_port_class;
+    }
   newConn->delay_dialog_interruptions = YES;
   newConn->delegate = nil;
 
@@ -384,14 +407,14 @@ static int messages_received_count;
 
   /* Register outselves for invalidation notification when the 
      ports become invalid. */
-  [[NSNotification defaultCenter] addObserver: self
-				  selector: @selector(portIsInvalid:)
-				  name: PortBecameInvalidNotification
-				  object: ip];
-  [[NSNotification defaultCenter] addObserver: self
-				  selector: @selector(portIsInvalid:)
-				  name: PortBecameInvalidNotification
-				  object: op];
+  [NotificationDispatcher addObserver: newConn
+			  selector: @selector(portIsInvalid:)
+			  name: PortBecameInvalidNotification
+			  object: ip];
+  [NotificationDispatcher addObserver: newConn
+			  selector: @selector(portIsInvalid:)
+			  name: PortBecameInvalidNotification
+			  object: op];
 
   /* xxx This is weird, though.  When will newConn ever get dealloc'ed?
      connectionArray will retain it, but connectionArray will never get
@@ -400,6 +423,10 @@ static int messages_received_count;
   [connection_array addObject: newConn];
 
   [connection_array_gate unlock];
+
+  [NotificationDispatcher 
+    postNotificationName: ConnectionWasCreatedNotification
+    object: newConn];
 
   return newConn;
 }
@@ -420,8 +447,8 @@ static int messages_received_count;
 
   assert(in_port);
   rmc = [[self encodingClass] newForWritingWithConnection: self
-				     sequenceNumber: [self _newMsgNumber]
-				     identifier: METHOD_REQUEST];
+			      sequenceNumber: [self _newMsgNumber]
+			      identifier: METHOD_REQUEST];
   return rmc;
 }
 
@@ -429,8 +456,8 @@ static int messages_received_count;
 - newSendingReplyRmcWithSequenceNumber: (int)n
 {
   id rmc = [[self encodingClass] newForWritingWithConnection: self
-					sequenceNumber: n
-					identifier: METHOD_REPLY];
+				 sequenceNumber: n
+				 identifier: METHOD_REPLY];
   return rmc;
 }
 
@@ -712,7 +739,7 @@ static int messages_received_count;
 /* to < 0 will never time out */
 - (void) runConnectionWithTimeout: (int)to
 {
-  [self doReceivedRequestsWithTimeout: to];
+  [self _serviceReceivedRequestsWithTimeout: to];
 }
 
 - (int) _newMsgNumber
@@ -731,10 +758,9 @@ static int messages_received_count;
 {
   id rmc;
 
-  rmc = [[self encodingClass] newDecodingWithConnection: self
+  rmc = [[self decodingClass] newDecodingWithConnection: self
 			      timeout: to];
-  /* if (!rmc) [self error:"received timed out"]; */
-  assert((!rmc) || [rmc isDecoding]);
+  /* If this times out, rmc will be nil. */
   return rmc;
 }
 
@@ -746,8 +772,10 @@ static int messages_received_count;
 
   for (;;)
     {
+#if 0
       if (debug_connection)
 	printf("%s\n", sel_get_name(_cmd));
+#endif
 
       /* Get a rmc, either from off the queue, or from the network. */
       [received_request_rmc_queue_gate lock];
@@ -811,8 +839,8 @@ static int messages_received_count;
     }
 }
 
-/* Waiting for a reply to a request. */
-- _serviceNewReceivedReplyRmcWithSequenceNumber: (int)n
+/* waiting for a reply to a request. */
+- newReceivedReplyRmcWithSequenceNumber: (int)n
 {
   id rmc, aRmc;
   unsigned count, i;
@@ -1024,6 +1052,22 @@ static int messages_received_count;
   return ret;
 }
 
+/* Check all connections.  
+   Proxy needs to use this when decoding a local object in order to
+   make sure the target address is a valid object.  It is not enough
+   for the Proxy to check the Proxy's connection only (using
+   -includesLocalObject), because the proxy may have come from a
+   triangle connection. */
++ (BOOL) includesLocalObject: anObj
+{
+  BOOL ret;
+  assert (all_connections_local_targets);
+  [proxiesHashGate lock];
+  ret = NSMapGet (all_connections_local_targets, (void*)anObj) ? YES : NO;
+  [proxiesHashGate unlock];
+  return ret;
+}
+
 
 /* Pass nil to remove any reference keyed by aPort. */
 + (void) setRootObject: anObj forInPort: (Port*)aPort
@@ -1091,14 +1135,24 @@ static int messages_received_count;
   in_timeout = to;
 }
 
-- (Class) portClass
+- (Class) inPortClass
 {
-  return port_class;
+  return in_port_class;
 }
 
-- (void) setPortClass: (Class) aPortClass
+- (Class) outPortClass
 {
-  port_class = aPortClass;
+  return out_port_class;
+}
+
+- (void) setInPortClass: (Class) aPortClass
+{
+  in_port_class = aPortClass;
+}
+
+- (void) setOutPortClass: (Class) aPortClass
+{
+  out_port_class = aPortClass;
 }
 
 - (Class) proxyClass
@@ -1144,6 +1198,7 @@ static int messages_received_count;
 - (unsigned) _encoderCreateReferenceForConstPtr: (const void*)ptr
 {
   unsigned xref;
+  /* This must match the assignment of xref in _decoderCreateRef... */
   xref = NSCountMapTable (outgoing_const_ptr_2_xref) + 1;
   assert (! NSMapGet (outgoing_const_ptr_2_xref, (void*)xref));
   NSMapInsert (outgoing_const_ptr_2_xref, ptr, (void*)xref);
@@ -1157,7 +1212,8 @@ static int messages_received_count;
 - (unsigned) _decoderCreateReferenceForConstPtr: (const void*)ptr
 {
   unsigned xref;
-  xref = NSCountMapTable (incoming_xref_2_const_ptr);
+  /* This must match the assignment of xref in _encoderCreateRef... */
+  xref = NSCountMapTable (incoming_xref_2_const_ptr) + 1;
   NSMapInsert (incoming_xref_2_const_ptr, (void*)xref, ptr);
   return xref;
 }
@@ -1185,7 +1241,7 @@ static int messages_received_count;
 
 /* Shutting down and deallocating. */
 
-/* We register this method with NSNotification for when a port dies. */
+/* We register this method with NotificationDispatcher for when a port dies. */
 - portIsInvalid: anObj
 {
   if (anObj == in_port || anObj == out_port)
@@ -1220,7 +1276,7 @@ static int messages_received_count;
      if this is last connection */
   if (![Connection connectionsCountWithInPort:in_port])
     [Connection setRootObject:nil forInPort:in_port];
-  [[NSNotificationCenter defaultCenter] removeObserver: self];
+  [NotificationDispatcher removeObserver: self];
   [in_port release];
   [out_port release];
 
@@ -1241,3 +1297,6 @@ static int messages_received_count;
 
 NSString *ConnectionBecameInvalidNotification 
 = @"ConnectionBecameInvalidNotification";
+
+NSString *ConnectionWasCreatedNotification 
+= @"ConnectionWasCreatedNotification";
