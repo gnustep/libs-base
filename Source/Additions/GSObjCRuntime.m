@@ -468,7 +468,7 @@ GSObjCBehaviorDebug(int i)
 
 #if NeXT_RUNTIME
 
-static struct objc_method *search_for_method_in_list (Class class, SEL op);
+static struct objc_method *search_for_method_in_class (Class class, SEL op);
 
 void 
 GSObjCAddMethods (Class class, struct objc_method_list *methods)
@@ -504,7 +504,7 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
 		sel_get_name(method->method_name));
 	    }
 
-	  if (!search_for_method_in_list(class,method->method_name)
+	  if (!search_for_method_in_class(class,method->method_name)
 	    && !sel_eq(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
@@ -537,7 +537,7 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
 /* Search for the named method's method structure.  Return a pointer
    to the method's method structure if found.  NULL otherwise. */
 static struct objc_method *
-search_for_method_in_list (Class class, SEL op)
+search_for_method_in_class (Class class, SEL op)
 {
   void *iterator = 0;
   struct objc_method_list *method_list;
@@ -573,6 +573,8 @@ search_for_method_in_list (Class class, SEL op)
  */
 extern Method_t search_for_method_in_list(MethodList_t list, SEL op);
 extern void class_add_method_list(Class, MethodList_t);
+
+static Method_t search_for_method_in_class (Class class, SEL op);
 
 void
 GSObjCAddMethods (Class class, struct objc_method_list *methods)
@@ -648,7 +650,57 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
     }
 }
 
+static Method_t
+search_for_method_in_class (Class class, SEL op)
+{
+  return search_for_method_in_list(class->methods, op);
+}
+
 #endif /* NeXT runtime */
+
+static void
+flush_method_cache_for_class (Class class)
+{
+#if NeXT_RUNTIME
+      void _objc_flush_caches (Class cls);
+      _objc_flush_caches (cls);
+#else
+      void __objc_update_dispatch_table_for_class (Class);
+      __objc_update_dispatch_table_for_class (class);
+#endif
+}
+
+IMP
+GSObjCReplaceImplementation (Class class, SEL sel, IMP imp)
+{
+  struct objc_method *method;
+  IMP oImp; 
+
+  oImp = NULL;
+  method = search_for_method_in_class (class, sel);
+  if (method != NULL)
+    {
+      oImp = method->method_imp;
+      method->method_imp = imp;
+      flush_method_cache_for_class(class);
+      if (behavior_debug)
+	{
+	  fprintf(stderr, "replaced implementation for %s in %s.\n",
+		  sel_get_name(sel), class->name); 
+	}
+    }
+  else
+    {
+      if (behavior_debug)
+	{
+	  fprintf(stderr, "could not replaced implementation for %s in %s.\n",
+		  sel_get_name(sel), class->name); 
+	}
+    }
+  return oImp;
+}
+
+
 
 /**
  * <p>A Behavior can be seen as a "Protocol with an implementation" or a

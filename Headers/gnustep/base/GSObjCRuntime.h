@@ -83,6 +83,7 @@ GS_EXPORT NSArray* GSObjCMethodNames(id obj);
 GS_EXPORT NSArray* GSObjCVariableNames(id obj);
 
 GS_EXPORT void GSObjCAddClassBehavior(Class receiver, Class behavior);
+GS_EXPORT IMP GSObjCReplaceImplementation(Class class, SEL sel, IMP imp);
 
 GS_EXPORT NSValue*
 GSObjCMakeClass(NSString *name, NSString *superName, NSDictionary *iVars);

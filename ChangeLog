@@ -1,3 +1,15 @@
+2003-03-25  David Ayers  <d.ayers@inode.at>
+
+	* Headers/gnustep/base/GSObjCRuntime.h
+	* Source/Additions/GSObjCRuntime.m (GSObjCReplaceImplementation):
+	Added new function. 
+	* Source/Additions/GSObjCRuntime.m (search_for_method_in_class):
+	Renamed static function for NeXT runtime to better reflect
+	reality.
+	(GSObjCAddMethods): Updated usage.
+	(search_for_method_in_class): New static function for GNU runtime.
+	(flush_method_cache_for_class): New function.
+
 2003-03-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Completed merge of changes from 1.6.0 branch.
