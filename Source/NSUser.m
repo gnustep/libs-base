@@ -64,7 +64,7 @@ GSSetUserName(NSString* name)
  * other system-dependent sources if LOGNAME is not set.
  */
 NSString *
-NSUserName ()
+NSUserName(void)
 {
   if (theUserName == nil)
     {
@@ -104,14 +104,14 @@ NSUserName ()
 
 /* Return the caller's home directory as an NSString object. */
 NSString *
-NSHomeDirectory ()
+NSHomeDirectory(void)
 {
   return NSHomeDirectoryForUser (NSUserName ());
 }
 
 /* Return LOGIN_NAME's home directory as an NSString object. */
 NSString *
-NSHomeDirectoryForUser (NSString *login_name)
+NSHomeDirectoryForUser(NSString *login_name)
 {
 #if !defined(__WIN32__)
   struct passwd *pw;
@@ -144,7 +144,8 @@ NSHomeDirectoryForUser (NSString *login_name)
 #endif
 }
 
-NSString *NSFullUserName(void)
+NSString *
+NSFullUserName(void)
 {
 #if HAVE_PWD_H
   struct passwd	*pw;
@@ -157,19 +158,95 @@ NSString *NSFullUserName(void)
 #endif
 }
 
-NSArray *NSStandardApplicationPaths(void)
+NSArray *
+GSStandardPathPrefixes(void)
 {
-  NSLog(@"Warning: NSStandardApplicationPaths not implemented\n");
-  return [NSArray array];
+  NSDictionary	*env;
+  NSString	*prefixes;
+  NSArray	*prefixArray;
+    
+  env = [[NSProcessInfo processInfo] environment];
+  prefixes = [env objectForKey: @"GNUSTEP_PATHPREFIX_LIST"];
+  if (prefixes)
+    {
+#if	defined(__WIN32__)
+      prefixArray = [prefixes componentsSeparatedByString: @";"];
+#else
+      prefixArray = [prefixes componentsSeparatedByString: @":"];
+#endif
+    }
+  else
+    {
+      NSString	*strings[3];
+      NSString	*str;
+      unsigned	count = 0;
+
+      str = [env objectForKey: @"GNUSTEP_USER_ROOT"];
+      if (str != nil)
+	strings[count++] = str;
+
+      str = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+      if (str != nil)
+	strings[count++] = str;
+
+      str = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+      if (str != nil)
+	strings[count++] = str;
+
+      if (count)
+	prefixArray = [NSArray arrayWithObjects: strings count: count];
+      else
+	prefixArray = [NSArray array];
+    }
+  return prefixArray;
 }
 
-NSArray *NSStandardLibraryPaths(void)
+NSArray *
+NSStandardApplicationPaths(void)
 {
-  NSLog(@"Warning: NSStandardLibraryPaths not implemented\n");
-  return [NSArray array];
+  NSArray	*prefixArray = GSStandardPathPrefixes();
+  unsigned	numPrefixes = [prefixArray count];
+    
+  if (numPrefixes > 0)
+    {
+      NSString	*paths[numPrefixes];
+      unsigned	count;
+
+      [prefixArray getObjects: paths];
+      for (count = 0; count < numPrefixes; count++)
+	{
+	  paths[count]
+	    = [paths[count] stringByAppendingPathComponent: @"Apps"];
+	}
+      return [NSArray arrayWithObjects: paths count: count];
+    }
+  return prefixArray;	/* An empty array */
 }
 
-NSString *NSTemporaryDirectory(void)
+NSArray *
+NSStandardLibraryPaths(void)
+{
+  NSArray	*prefixArray = GSStandardPathPrefixes();
+  unsigned	numPrefixes = [prefixArray count];
+    
+  if (numPrefixes > 0)
+    {
+      NSString	*paths[numPrefixes];
+      unsigned	count;
+
+      [prefixArray getObjects: paths];
+      for (count = 0; count < numPrefixes; count++)
+	{
+	  paths[count]
+	    = [paths[count] stringByAppendingPathComponent: @"Library"];
+	}
+      return [NSArray arrayWithObjects: paths count: count];
+    }
+  return prefixArray;	/* An empty array */
+}
+
+NSString *
+NSTemporaryDirectory(void)
 {
   NSFileManager *manager;
   NSString *tempDirName, *baseTempDirName;
@@ -197,7 +274,8 @@ NSString *NSTemporaryDirectory(void)
   return tempDirName;
 }
 
-NSString *NSOpenStepRootDirectory(void)
+NSString *
+NSOpenStepRootDirectory(void)
 {
   NSString* root = [[[NSProcessInfo processInfo] environment]
 		     objectForKey:@"GNUSTEP_SYSTEM_ROOT"];

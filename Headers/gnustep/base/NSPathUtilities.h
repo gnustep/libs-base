@@ -38,6 +38,7 @@
  * to use the defaults belonging to the new user.
  */
 extern void	GSSetUserName(NSString *name);
+extern NSArray	*GSStandardPathPrefixes(void);
 #endif
 extern NSString *NSUserName();
 extern NSString *NSHomeDirectory();
