@@ -131,9 +131,6 @@ $(NSNUMBER_MFILES) : NSConcreteNumber.m
 	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
 	cat $(srcdir)/NSConcreteNumber.m >> $@
 
-gdomap:	gdomap.c gdomap.h
-	$(CC) $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $< $(LIBS)
-
 NXStringTable_scan.c: NXStringTable_scan.l
 	$(FLEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
 		> NXStringTable_scan.temp
@@ -200,42 +197,58 @@ o_%_bas.m: o_x_bas.m.in include/o_%.h
 o_%_cbs.m: o_x_cbs.m.in include/o_%.h
 	sed -e "s/@YY@/$*/g" $< > $@
 
-o_array.o: o_array.m include/o_array.h
+$(GNUSTEP_OBJ_DIR)/o_array.o: o_array.m include/o_array.h
 include/o_array.h: include/o_array_bas.h include/o_array_cbs.h include/o_hash.h
-o_hash.o: o_hash.m include/o_hash.h
+$(GNUSTEP_OBJ_DIR)/o_hash.o: o_hash.m include/o_hash.h
 include/o_hash.h: include/o_hash_bas.h include/o_hash_cbs.h
-o_list.o: o_list.m include/o_list.h
+$(GNUSTEP_OBJ_DIR)/o_list.o: o_list.m include/o_list.h
 include/o_list.h: include/o_list_bas.h include/o_list_cbs.h include/o_array.h include/o_hash.h
-o_map.o: o_map.m include/o_map.h
+$(GNUSTEP_OBJ_DIR)/o_map.o: o_map.m include/o_map.h
 include/o_map.h: include/o_map_bas.h include/o_map_cbs.h include/o_hash.h
 
 #
 #	Files that include mframe.h will need a rebuild if it is changed.
 #
-mframe.m NSConnection.m NSInvocation.m NSMethodSignature.m NSObjCRuntime.m \
+$(GNUSTEP_OBJ_DIR)/mframe.o \
+$(GNUSTEP_OBJ_DIR)/NSConnection.o \
+$(GNUSTEP_OBJ_DIR)/NSInvocation.o \
+$(GNUSTEP_OBJ_DIR)/NSMethodSignature.o \
+$(GNUSTEP_OBJ_DIR)/NSObjCRuntime.o \
 	: $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h
-	touch $@
 
 #
 #	Files that include FastArray.x will need a rebuild if it is changed.
 #
-NSUnarchiver.m \
+$(GNUSTEP_OBJ_DIR)/NSSerializer.o \
+$(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
 	: FastArray.x
-	touch $@
 
 #
 #	Files that include FastMap.x will need a rebuild if it is changed.
 #
-NSArchiver.m NSGCountedSet.m NSGDictionary.m NSGSet.m \
+$(GNUSTEP_OBJ_DIR)/NSArchiver.o \
+$(GNUSTEP_OBJ_DIR)/NSGCountedSet.o \
+$(GNUSTEP_OBJ_DIR)/NSGDictionary.o \
+$(GNUSTEP_OBJ_DIR)/NSGSet.o \
+$(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 	: FastMap.x
-	touch $@
 
 #
-#	Files that include FastArray.x and FastMap.x
+#	Files that include fast.x will need a rebuild if it is changed.
 #
-NSSerializer.m \
-	: FastArray.x FastMap.x
-	touch $@
+$(GNUSTEP_OBJ_DIR)/NSArchiver.o \
+$(GNUSTEP_OBJ_DIR)/NSArray.o \
+$(GNUSTEP_OBJ_DIR)/NSData.o \
+$(GNUSTEP_OBJ_DIR)/NSGCString.o \
+$(GNUSTEP_OBJ_DIR)/NSGDictionary.o \
+$(GNUSTEP_OBJ_DIR)/NSGString.o \
+$(GNUSTEP_OBJ_DIR)/NSInvocation.o \
+$(GNUSTEP_OBJ_DIR)/NSObjCRuntime.o \
+$(GNUSTEP_OBJ_DIR)/NSObject.o \
+$(GNUSTEP_OBJ_DIR)/NSSerializer.o \
+$(GNUSTEP_OBJ_DIR)/NSString.o \
+$(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
+        : include/fast.x
 
 TAGS: $(DIST_FILES)
 	etags $(DIST_FILES)
