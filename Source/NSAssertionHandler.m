@@ -85,8 +85,9 @@ static NSString *dict_key = @"_NSAssertionHandler";
   va_start(ap, format);
   message =
     [NSString
-      stringWithFormat: @"%@:%d  Assertion failed in %@, method %@.  %@",
+      stringWithFormat: @"%@:%d  Assertion failed in %@(%@), method %@.  %@",
       fileName, line, NSStringFromClass([object class]), 
+      [object isInstance] ? @"instance" : @"class",
       NSStringFromSelector(aSelector), format];
   NSLogv(message, ap);
 
