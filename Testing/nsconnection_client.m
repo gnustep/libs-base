@@ -80,7 +80,7 @@ int con_data (id prx)
     printf(" ...ok\n");
   else
     printf(" *** ERROR ***\n");
-  printf("    (should get error returning ptr)\n");
+  printf("  error is ok (due to incorrect encoding by gcc)\n");
 
 #define TEST_CALL(test, send, got, sendp, var, varr, val, msg1, msg2)	\
   printf(test);								\
@@ -122,9 +122,11 @@ int con_data (id prx)
 
   TEST_CALL("UChar:\n", "  sending %d", " got %d", "  sending ptr to %d",
 	    uc, ucr, 23, sendUChar:, getUChar:)
+  printf("  error is ok (due to incorrect encoding by gcc)\n");
 
   TEST_CALL("Char:\n", "  sending %d", " got %d", "  sending ptr to %d",
 	    c, cr, 23, sendChar:, getChar:)
+  printf("  error is ok (due to incorrect encoding by gcc)\n");
 
   TEST_CALL("Short:\n", "  sending %hd", " got %hd", "  sending ptr to %hd",
 	    s, sr, 23, sendShort:, getShort:)

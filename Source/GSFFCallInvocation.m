@@ -20,12 +20,6 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
-
-#ifdef __powerpc__
-#define __rs6000__
-#define _AIX
-#endif
-
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSDistantObject.h>
@@ -160,37 +154,37 @@ static void gs_free_callback(void)
 /* This is implemented as a function so it can be used by other
    routines (like the DO forwarding)
 */
-   
 void
 GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 {
   int      i;
   av_alist alist;
   NSInvocation_t *inv = _inv;
+  void *retval = inv->_retval;
 
   /* Do an av call starting with the return type */
 #undef CASE_TYPE
 #define CASE_TYPE(_T, _V, _F)				\
 	case _T:					\
-	  _F(alist, imp, inv->_retval);	       		\
+	  _F(alist, imp, retval);	       		\
           break;
 
   switch (*inv->_info[0].type)
     {
     case _C_ID:
-      av_start_ptr(alist, imp, id, inv->_retval);
+      av_start_ptr(alist, imp, id, retval);
       break;
     case _C_CLASS:
-      av_start_ptr(alist, imp, Class, inv->_retval);
+      av_start_ptr(alist, imp, Class, retval);
       break;
     case _C_SEL:
-      av_start_ptr(alist, imp, SEL, inv->_retval);
+      av_start_ptr(alist, imp, SEL, retval);
       break;
     case _C_PTR:
-      av_start_ptr(alist, imp, void *, inv->_retval);
+      av_start_ptr(alist, imp, void *, retval);
       break;
     case _C_CHARPTR:
-      av_start_ptr(alist, imp, char *, inv->_retval);
+      av_start_ptr(alist, imp, char *, retval);
       break;
 	
       CASE_TYPE(_C_CHR,  char, av_start_char)
@@ -211,7 +205,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	int split = 0;
 	if (inv->_info[0].size > sizeof(long) && inv->_info[0].size <= 2*sizeof(long))
 	  split = gs_splittable(inv->_info[0].type);
-	_av_start_struct(alist, imp, inv->_info[0].size, split, inv->_retval);
+	_av_start_struct(alist, imp, inv->_info[0].size, split, retval);
 	break;
       }
     case _C_VOID:
