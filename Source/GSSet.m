@@ -670,11 +670,6 @@ static Class	mutableSetClass;
 	    {
 	      GSIMapNode node;
 
-	      if (anObject == nil)
-		{
-		  [NSException raise: NSInvalidArgumentException
-			      format: @"Tried to add nil to set"];
-		}
 	      node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
 	      if (node == 0)
 		{
