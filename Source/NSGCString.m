@@ -25,17 +25,18 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSData.h>
-#include <gnustep/base/NSString.h>
+#include <gnustep/base/NSGString.h>
+#include <gnustep/base/NSGCString.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
 #include <Foundation/NSValue.h>
 #include <gnustep/base/behavior.h>
-/* memcpy(), strlen(), strcmp() are gcc builtin's */
 
-#include <gnustep/base//Unicode.h>
+#include <gnustep/base/Unicode.h>
 
 static Class	immutableClass;
 static Class	mutableClass;
+static Class	constantClass;
 
 @implementation NSGCString
 
@@ -47,6 +48,7 @@ static Class	mutableClass;
       done = 1;
       immutableClass = [NSGCString class];
       mutableClass = [NSGMutableCString class];
+      constantClass = [NXConstantString class];
     }
 }
 
@@ -272,8 +274,9 @@ static Class	mutableClass;
   Class	c;
   if (anObject == self)
     return YES;
-  c = ((NSGCString*)anObject)->isa;		/* Hack.	*/
-  if (c == immutableClass || c == mutableClass)
+  c = [anObject class];
+
+  if (c == immutableClass || c == mutableClass || c == constantClass)
     {
       NSGCString	*other = (NSGCString*)anObject;
 
@@ -299,8 +302,8 @@ static Class	mutableClass;
 {
   Class	c;
 
-  c = ((NSGCString*)aString)->isa;		/* Hack.	*/
-  if (c == immutableClass || c == mutableClass)
+  c = [aString class];
+  if (c == immutableClass || c == mutableClass || c == constantClass)
     {
       NSGCString	*other = (NSGCString*)aString;
 
@@ -554,6 +557,71 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   CHECK_INDEX_RANGE_ERROR(index, _count);
   stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, index, 1);
   _contents_chars[_count] = '\0';
+}
+
+@end
+
+@implementation NXConstantString
+
+/*
+ *	NXConstantString overrides [-dealloc] so that it is never deallocated.
+ *	If we pass an NXConstantString to another process it will never get
+ *	deallocated in the other process - causing a memory leak.  So we tell
+ *	the DO system to use the super class instead.
+ */
+- (Class)classForPortCoder
+{
+  return [self superclass];
+}
+
+- (void)dealloc
+{
+}
+
+- (const char*) cString
+{
+  return _contents_chars;
+}
+
+- retain
+{
+  return self;
+}
+
+- (oneway void) release
+{
+  return;
+}
+
+- autorelease
+{
+  return self;
+}
+
+- copyWithZone: (NSZone*)z
+{
+  return self;
+}
+
+- (NSZone*) zone
+{
+  return NSDefaultMallocZone();
+}
+
+- (NSStringEncoding) fastestEncoding
+{
+  return NSASCIIStringEncoding;
+}
+
+- (NSStringEncoding) smallestEncoding
+{
+  return NSASCIIStringEncoding;
+}
+
+- (unichar) characterAtIndex: (unsigned int)index
+{
+  CHECK_INDEX_RANGE_ERROR(index, _count);
+  return (unichar)_contents_chars[index];
 }
 
 @end
