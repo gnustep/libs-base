@@ -50,6 +50,7 @@
   #include <openssl/ssl.h>
   #undef id
 
+#include <GSConfig.h>
 #include <Foundation/Foundation.h>
 
 #include <gnustep/base/UnixFileHandle.h>

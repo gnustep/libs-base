@@ -1,3 +1,13 @@
+2002-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GNUmakefile: Include ../../base.make
+	* SSL/GNUmakefile: Include ../base.make
+	from the makefiles directory for builting standalone.
+	* Source/Unicode.m: Added some standard string handling for iconv.
+	* Source/NSString.m: ([-initWithData:encoding:]) return nil on
+	failure to handle encoding.
+	Reports by Alexander Malmberg
+
 2002-03-07  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
 
 	* Source/NSRunLoop.m ([NSRunLoop -acceptInputForMode:]): 

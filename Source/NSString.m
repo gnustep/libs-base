@@ -1066,59 +1066,60 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithData: (NSData*)data
 	   encoding: (NSStringEncoding)encoding
 {
-  if (encoding == NSASCIIStringEncoding
+  unsigned	len = [data length];
+
+  if (len == 0)
+    {
+      self = [self initWithCStringNoCopy: "" length: 0 freeWhenDone: NO];
+    }
+  else if (encoding == NSASCIIStringEncoding
     || encoding == _DefaultStringEncoding)
     {
-      unsigned	len = [data length];
+      char	*s = NSZoneMalloc(GSObjCZone(self), len);
 
-      if (len > 0)
-	{
-	  char	*s = NSZoneMalloc(GSObjCZone(self), len);
-
-	  [data getBytes: s];
-	  self = [self initWithCStringNoCopy: s length: len freeWhenDone: YES];
-	}
-      else
-	{
-	  self = [self initWithCStringNoCopy: "" length: 0 freeWhenDone: NO];
-	}
-      return self;
+      [data getBytes: s];
+      self = [self initWithCStringNoCopy: s length: len freeWhenDone: YES];
     } 
   else if (encoding == NSUTF8StringEncoding)
     {
-      unsigned		length = [data length];
       const char	*bytes = [data bytes];
       unsigned		i;
 
       /*
        * Check to see if we have in fact got an ascii string
        */
-      for (i = 0; i < length; i++)
+      for (i = 0; i < len; i++)
 	{
 	  if (((unsigned char*)bytes)[i] > 127)
 	    {
 	      break;
 	    }
 	}
-      if (i == length)
+      if (i == len)
 	{
-	  self = [self initWithCString: bytes length: length];
+	  self = [self initWithCString: bytes length: len];
 	}
       else
 	{
 	  unichar	*u;
 
-	  u = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
-	  length = encode_cstrtoustr(u, length, bytes, length,
+	  u = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
+	  len = encode_cstrtoustr(u, len, bytes, len,
 	    NSUTF8StringEncoding);
-	  self = [self initWithCharactersNoCopy: u
-					 length: length
-				   freeWhenDone: YES];
+	  if (len > 0)
+	    {
+	      self = [self initWithCharactersNoCopy: u
+					     length: len
+				       freeWhenDone: YES];
+	    }
+	  else
+	    {
+	      DESTROY(self);
+	    }
 	}
     }
   else
     {
-      unsigned	len = [data length];
       unichar	*u;
       unsigned	count;
       const unsigned char *b;
@@ -1147,13 +1148,24 @@ handle_printf_atsign (FILE *stream,
 		}
 	    }
 	  count = count/2 - 1;
+	  self = [self initWithCharactersNoCopy: u
+					 length: count
+				   freeWhenDone: YES];
 	}
       else
 	{
 	  count = encode_cstrtoustr(u, len, b, len, encoding);
+	  if (count < 1)
+	    {
+	      DESTROY(self);
+	    }
+	  else
+	    {
+	      self = [self initWithCharactersNoCopy: u
+					     length: count
+				       freeWhenDone: YES];
+	    }
 	}
-
-      self = [self initWithCharactersNoCopy: u length: count freeWhenDone: YES];
     }
   return self;
 }
