@@ -348,7 +348,7 @@ ihandler(int sig)
     }
 
   /*
-   *	Now free the connections map itsself and the table of observers.
+   *	Now free the connections map itself and the table of observers.
    */
   NSFreeMapTable(connections);
   NSFreeHashTable(allObservers);
