@@ -1,3 +1,8 @@
+Mon Aug  2  8:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/propList.h: parseQuotedString() fix for parsing octal escape
+	sequences - hope it's right now.
+
 Sun Aug  1  7:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSBundle.m: ([+localizedStringForKey:value:table:]) Fixed so
