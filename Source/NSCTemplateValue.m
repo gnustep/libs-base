@@ -61,7 +61,7 @@
 - (id) initWithBytes: (const void *)value
 	    objCType: (const char *)type
 {
-  typedef _dt = data;
+  typedef __typeof__(data) _dt;
   self = [super init];
   data = *(_dt *)value;
   return self;
@@ -90,7 +90,7 @@
 
 - (BOOL) isEqualToValue: (NSValue*)aValue
 {
-  typedef _dt = data;
+  typedef __typeof__(data) _dt;
 
   if (aValue != nil && fastInstanceIsKindOfClass(aValue, fastClass(self)))
     {
@@ -171,7 +171,7 @@
 
 - (const char *)objCType
 {
-  typedef _dt = data;
+  typedef __typeof__(data) _dt;
   return @encode(_dt);
 }
  
