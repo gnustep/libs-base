@@ -3,6 +3,11 @@
 	* Source/NSString.m: ([stringByDeletingPathExtension]) rewrite to
 	conform to MacOS-X documentation.
 	([pathComponents]) ditto.
+	* Headers/Foundation/NSInvocation.h: Added extra methods for
+	setting an invocation to invoke super implementation of method.
+	* Source/NSInvocation.m: Added extra methods for
+	setting an invocation to invoke super implementation of method.
+	* Source/GSFFCallInvocation.m: support invoke of super implementation.
 
 2001-05-14  Adam Fedor  <fedor@gnu.org>
 

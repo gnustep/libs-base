@@ -323,16 +323,30 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   callframe_set_arg((callframe_t *)_cframe, 0, &_target, _info[1].size);
   callframe_set_arg((callframe_t *)_cframe, 1, &_selector, _info[2].size);
 
-  imp = method_get_imp(object_is_instance(_target) ?
-	      class_get_instance_method(
+  if (_sendToSuper == YES)
+    {
+      Super	s;
+
+      s.self = _target;
+      if (GSObjCIsInstance(_target))
+	s.class = class_get_super_class(GSObjCClass(_target));
+      else
+	s.class = class_get_super_class((Class)_target);
+      imp = objc_msg_lookup_super(&s, _selector);
+    }
+  else
+    {
+      imp = method_get_imp(object_is_instance(_target) ?
+	class_get_instance_method(
 		    ((struct objc_class*)_target)->class_pointer, _selector)
-	    : class_get_class_method(
+	: class_get_class_method(
 		    ((struct objc_class*)_target)->class_pointer, _selector));
-  /*
-   *	If fast lookup failed, we may be forwarding or something ...
-   */
-  if (imp == 0)
-    imp = objc_msg_lookup(_target, _selector);
+      /*
+       *	If fast lookup failed, we may be forwarding or something ...
+       */
+      if (imp == 0)
+	imp = objc_msg_lookup(_target, _selector);
+    }
 
   [self setTarget: old_target];
   RELEASE(old_target);
