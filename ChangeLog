@@ -2,6 +2,8 @@
 
 	* Source/Additions/GSObjCRuntime.m: GSObjCSetValue() correct to call
 	([unableToSetNilForKey:]) when it should.
+	* Source/NSDecimalNumber.m: Override initialisers from NSNumber to
+	create NSDecimalNumber objects ... bug report by David Ayers.
 
 2003-02-21  Richard Frith-Macdonald <rfm@gnu.org>
 
