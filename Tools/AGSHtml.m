@@ -434,13 +434,26 @@ static NSMutableSet	*textNodes = nil;
 	  NSString	*text = ref;
 
 	  /*
-	   * If a reference to a method contains a leading catergory name,
-	   * we don't want it in the visiable method name.
+	   * If a reference to a method contains a leading category name,
+	   * we don't want it in the visible method name, however if it's
+	   * actually a protocol name, we need to make it look right by
+	   * changing the round brackets to angle brackets.
 	   */
 	  if ([text hasPrefix: @"("] == YES)
 	    {
 	      NSRange	r = [text rangeOfString: @")"];
-	      text = [text substringFromIndex: NSMaxRange(r)];
+
+	      if (NSMaxRange(r) == [text length])	// A protocol
+	        {
+		  text = [text stringByReplacingString: @"("
+					    withString: @"&lt;"];
+		  text = [text stringByReplacingString: @")"
+					    withString: @"&gt;"];
+		}
+	      else	// Category name in brackets followed by class name
+	        {
+		  text = [text substringFromIndex: NSMaxRange(r)];
+		}
 	    }
 
 	  [buf appendString: indent];
