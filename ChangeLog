@@ -1,3 +1,8 @@
+2003-10-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: ([GSMimeDocument-setContentType:])
+	New convenience method.
+
 2003-10-05  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/GNUmakefile: Make manual
