@@ -1377,8 +1377,8 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 }
 
 #define	GSI_NEW	1
-#define GSI_ARRAY_TYPES       0
-#define GSI_ARRAY_TEXTRA       GSEnumeratedDirectory
+#define GSI_ARRAY_TYPES	0
+#define GSI_ARRAY_TYPE	GSEnumeratedDirectory
 
 #define GSI_ARRAY_RELEASE(A, X)   gsedRelease(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)
