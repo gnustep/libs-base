@@ -632,15 +632,12 @@ main(int argc, char **argv, char **env)
 		{
 		  NSLog(@"Sorry unable to write %@", gsdocfile);
 		}
-	      else
-		{
-		  /*
-		   * Add the newly created gsdoc file to the list of
-		   * those to process.
-		   */
-		  [gFiles addObject: [gsdocfile lastPathComponent]];
-		}
 	    }
+	  /*
+	   * Add the gsdoc file corresponding to the .h file to the list of
+	   * those to process.
+	   */
+	  [gFiles addObject: [gsdocfile lastPathComponent]];
 	}
       DESTROY(pool);
       DESTROY(parser);
