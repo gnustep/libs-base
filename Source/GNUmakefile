@@ -411,7 +411,6 @@ Foundation/NSGArchiver.h \
 Foundation/NSGArray.h \
 Foundation/NSGAttributedString.h \
 Foundation/NSGCString.h \
-Foundation/NSGDictionary.h \
 Foundation/NSGSet.h \
 Foundation/NSGSequence.h \
 Foundation/NSGString.h \
