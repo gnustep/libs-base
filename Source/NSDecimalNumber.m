@@ -538,6 +538,7 @@ static NSDecimalNumber *one;
   NSDecimalNumber *dnum;
   num = [self doubleValue];
   dnum = [[NSDecimalNumber alloc] initWithBytes: &num objCType: "d"];
+  AUTORELEASE(dnum);
   return [dnum decimalValue];
 }
 @end
