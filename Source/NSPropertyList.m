@@ -1237,11 +1237,14 @@ PString(NSString *obj, NSMutableData *output)
 	{
 	  switch (*from)
 	    {
-	      case '\a':
-	      case '\b':
 	      case '\t':
 	      case '\r':
 	      case '\n':
+		len++;
+		break;
+
+	      case '\a':
+	      case '\b':
 	      case '\v':
 	      case '\f':
 	      case '\\':
@@ -1277,11 +1280,14 @@ PString(NSString *obj, NSMutableData *output)
 	{
 	  switch (*from)
 	    {
+	      case '\t':
+	      case '\r':
+	      case '\n': 
+		*ptr++ = *from;
+		break;
+
 	      case '\a': 	*ptr++ = '\\'; *ptr++ = 'a';  break;
 	      case '\b': 	*ptr++ = '\\'; *ptr++ = 'b';  break;
-	      case '\t': 	*ptr++ = '\\'; *ptr++ = 't';  break;
-	      case '\r': 	*ptr++ = '\\'; *ptr++ = 'r';  break;
-	      case '\n': 	*ptr++ = '\\'; *ptr++ = 'n';  break;
 	      case '\v': 	*ptr++ = '\\'; *ptr++ = 'v';  break;
 	      case '\f': 	*ptr++ = '\\'; *ptr++ = 'f';  break;
 	      case '\\': 	*ptr++ = '\\'; *ptr++ = '\\'; break;
