@@ -24,6 +24,7 @@
 #include <objects/String.h>
 #include <objects/IndexedCollection.h>
 #include <objects/IndexedCollectionPrivate.h>
+#include <Foundation/NSValue.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 @implementation CString
@@ -31,7 +32,6 @@
 /* These next two methods are the two designated initializers for this class */
 - initWithCString: (const char*)aCharPtr range: (IndexRange)aRange
 {
-  [super initWithType:@encode(char)];
   _count = aRange.length;
   OBJC_MALLOC(_contents_chars, char, _count+1);
   memcpy(_contents_chars, aCharPtr + aRange.location, _count);
@@ -42,18 +42,20 @@
 
 - initWithCStringNoCopy: (const char*)aCharPtr freeWhenDone: (BOOL)f
 {
-  [super initWithType:@encode(char)];
   _count = strlen(aCharPtr);
   _contents_chars = (char *) aCharPtr;
   _free_contents = f;
   return self;
 }
 
-- (void) dealloc 
+- (void) _collectionReleaseContents
+{
+}
+
+- (void) _collectionDealloc 
 {
   if (_free_contents)
     OBJC_FREE(_contents_chars);
-  [super dealloc];
 }
 
 - (Class) classForConnectedCoder: aRmc
@@ -115,12 +117,10 @@
 
 // FOR IndexedCollection SUPPORT;
 
-- (elt) elementAtIndex: (unsigned)index
+- objectAtIndex: (unsigned)index
 {
-  elt ret_elt;
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  ret_elt.char_u = _contents_chars[index];
-  return ret_elt;
+  return [NSNumber numberWithChar: _contents_chars[index]];
 }
 
 @end
