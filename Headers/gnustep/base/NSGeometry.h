@@ -26,7 +26,9 @@
 /**** Included Headers *******************************************************/
 
 #include <objc/objc.h>
+#ifdef __OBJC__
 #include <Foundation/NSString.h>
+#endif
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -204,6 +206,7 @@ NSIntersectsRect(NSRect aRect, NSRect bRect);
 
 /** Get a String Representation... **/
 
+#ifdef __OBJC__
 /* Returns an NSString of the form "{x=X; y=Y}", where
  * X and Y are the x- and y-coordinates of APOINT, respectively. */
 extern NSString *
@@ -219,5 +222,6 @@ NSStringFromRect(NSRect aRect);
  * W and H are the width and height of ASIZE, respectively. */
 extern NSString *
 NSStringFromSize(NSSize aSize);
+#endif /* __OBJC__ */
 
 #endif /* __NSGeometry_h_GNUSTEP_BASE_INCLUDE */
