@@ -51,9 +51,6 @@
 /* Define if libxml available */
 #undef HAVE_LIBXML
 
-/* Define if openssl available */
-#undef HAVE_OPENSSL
-
 #undef HAVE_PTS_STREAM_MODULES
 #undef HAVE_UINTMAX_T
 
@@ -256,8 +253,14 @@
 /* Define if you have the <sys/ndir.h> header file.  */
 #undef HAVE_SYS_NDIR_H
 
+/* Define if you have the <sys/param.h> header file.  */
+#undef HAVE_SYS_PARAM_H
+
 /* Define if you have the <sys/rusage.h> header file.  */
 #undef HAVE_SYS_RUSAGE_H
+
+/* Define if you have the <sys/signal.h> header file.  */
+#undef HAVE_SYS_SIGNAL_H
 
 /* Define if you have the <sys/socket.h> header file.  */
 #undef HAVE_SYS_SOCKET_H
@@ -282,6 +285,9 @@
 
 /* Define if you have the <sys/vfs.h> header file.  */
 #undef HAVE_SYS_VFS_H
+
+/* Define if you have the <sys/wait.h> header file.  */
+#undef HAVE_SYS_WAIT_H
 
 /* Define if you have the <syslog.h> header file.  */
 #undef HAVE_SYSLOG_H

@@ -7,6 +7,25 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{1.1.0}
+
+@itemize @bullet
+@item Removed use of distributed lock to sync defaults file.
+@item Compiles on Darwin (but does not work yet).
+@item New tool autogsdoc for inline Objective-C documentation.
+@item Some NSBundle convienience methods for associating resources with
+libraries and tools (like a lightweight framework).
+@item URL classes improved and more robust.
+@item SSL classes compiled as a separate bundle due to license problems.
+@item Better operation in MinGW environment.
+@item New localization files.
+@item XML property lists
+@end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.0.2}
 
 Mostly a bug fix release to work with the new gcc 3.0.
@@ -14,10 +33,6 @@ Mostly a bug fix release to work with the new gcc 3.0.
 @itemize @bullet
 @item Added support for special gcc 3.0 options (constant string support).
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.0.1}
 

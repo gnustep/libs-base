@@ -41,11 +41,6 @@ The gnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz distribution file has
 been placed on @samp{@value{GNUSTEP-BASE-FTP-MACHINE}} in
 @samp{@value{GNUSTEP-BASE-FTP-DIRECTORY}}.
 @end ifset
-@ifclear GNUSTEP-BASE-FTP-MACHINE
-The libgnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz distribution file has
-been placed on @samp{@value{GNUSTEP-BASE-SNAP-FTP-MACHINE}} in
-@samp{@value{GNUSTEP-BASE-SNAP-FTP-DIRECTORY}}.
-@end ifclear
 
 The library requires gcc @value{GCC-VERSION} or higher.
 See the @samp{GNUstep-HOWTO}

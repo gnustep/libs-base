@@ -32,7 +32,7 @@ include ../Version
 include ../config.mak
 
 # The documents to be generated
-DOCUMENT_NAME = coding-standards gnustep-base
+DOCUMENT_NAME = coding-standards
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
@@ -73,10 +73,6 @@ README_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 ANNOUNCE_TEXI_FILES = version.texi
 ANNOUNCE_TEXT_MAIN = announce.texi
 ANNOUNCE_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
-
-STATUS_TEXI_FILES = version.texi
-STATUS_TEXT_MAIN = status.texi
-STATUS_DOC_INSTALL_DIR = Developer/Base/ReleaseNotes/$(VERSION)
 
 -include Makefile.preamble
 

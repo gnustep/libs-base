@@ -582,7 +582,7 @@ esac
 AC_DEFINE_UNQUOTED(HAVE_PTS_STREAM_MODULES, $HAVE_PTS_STREAM_MODULES)
 AC_SUBST(HAVE_PTS_STREAM_MODULES)
 
-AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h sys/file.h sys/fcntl.h sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
+AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h sys/signal.h sys/param.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
 
 #--------------------------------------------------------------------
 # This function needed by NSThread.m
@@ -854,7 +854,7 @@ AC_SUBST(HAVE_LIBXML)
 # Check OpenSSL for HTTPS support.
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(openssl,
-  [  --enable-openssl       	Enable support for openssl in URL classes],,
+  [  --disable-openssl       	Disable support for openssl in URL classes],,
   enable_openssl=yes)
 AC_ARG_WITH(openssl-include,
   [  --with-openssl-include=PATH  include path for openssl headers],

@@ -50,14 +50,43 @@
 #ifdef __FreeBSD__
 #include <fcntl.h>
 #endif
-#ifndef __MINGW__
-#include <sys/signal.h>
-#include <sys/param.h>
-#include <sys/wait.h>
-#endif
 
 #if HAVE_WINDOWS_H
 #  include <windows.h>
+#endif
+
+#if	HAVE_SYS_SIGNAL_H
+#include <sys/signal.h>
+#endif
+#if	HAVE_SIGNAL_H
+#include <signal.h>
+#endif
+#if	HAVE_SYS_FILE_H
+#include <sys/file.h>
+#endif
+#if	HAVE_SYS_FCNTL_H
+#include <sys/fcntl.h>
+#endif
+#if	HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif
+#if	HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+#if	HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
+/*
+ *	If we are on a streams based system, we need to include stropts.h
+ *	for definitions needed to set up slave pseudo-terminal stream.
+ */
+#if	HAVE_SYS_STROPTS_H
+#include <sys/stropts.h>
+#endif
+
+#ifndef	MAX_OPEN
+#define	MAX_OPEN	64
 #endif
 
 /*
@@ -96,34 +125,6 @@ static void handleSignal(int sig)
 }
 @end
 #define NSConcreteTask NSConcreteUnixTask
-
-#if	HAVE_SIGNAL_H
-#include <signal.h>
-#endif
-#if	HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif
-#if	HAVE_SYS_FCNTL_H
-#include <sys/fcntl.h>
-#endif
-#if	HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif
-#if	HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
-
-/*
- *	If we are on a streams based system, we need to include stropts.h
- *	for definitions needed to set up slave pseudo-terminal stream.
- */
-#if	HAVE_SYS_STROPTS_H
-#include <sys/stropts.h>
-#endif
-
-#ifndef	MAX_OPEN
-#define	MAX_OPEN	64
-#endif
 
 static int
 pty_master(char* name, int len)

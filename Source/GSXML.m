@@ -2957,6 +2957,13 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
     NSStringFromClass(self), NSStringFromSelector(_cmd));
   return nil;
 }
++ (void) forwardInvocation: (NSInvocation*)anInvocation
+{
+  NSLog(@"Not built with libxml ... %@ unusable in %@",
+	NSStringFromClass([self class]), 
+	NSStringFromSelector([anInvocation selector]));
+  return;
+}
 - (id) init
 {
   NSLog(@"Not built with libxml ... %@ unusable in %@",
