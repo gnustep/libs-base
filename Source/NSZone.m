@@ -590,8 +590,7 @@ fmalloc (NSZone *zone, size_t size)
           objc_mutex_unlock(zptr->lock);
           if (zone->name != nil)
             [NSException raise: NSMallocException
-                        format: @"Zone %s has run out of memory",
-                         [zone->name cString]];
+                        format: @"Zone %@ has run out of memory", zone->name];
           else
             [NSException raise: NSMallocException
                         format: @"Out of memory"];
@@ -690,8 +689,8 @@ frealloc (NSZone *zone, void *ptr, size_t size)
               objc_mutex_unlock(zptr->lock);
               if (zone->name != nil)
                 [NSException raise: NSMallocException
-                            format: @"Zone %s has run out of memory",
-                             [zone->name cString]];
+                            format: @"Zone %@ has run out of memory",
+                             zone->name];
               else
                 [NSException raise: NSMallocException
                             format: @"Out of memory"];
@@ -1336,8 +1335,8 @@ nmalloc (NSZone *zone, size_t size)
               objc_mutex_unlock(zptr->lock);
               if (zone->name != nil)
                 [NSException raise: NSMallocException
-                            format: @"Zone %s has run out of memory",
-                             [zone->name cString]];
+                            format: @"Zone %@ has run out of memory",
+                             zone->name];
               else
                 [NSException raise: NSMallocException
                             format: @"Out of memory"];
