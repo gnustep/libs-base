@@ -90,6 +90,7 @@ struct autorelease_array_list
 
 #ifndef	NO_GNUSTEP
 + (void) enableRelease: (BOOL)enable;
++ (void) freeCache;	/* Free cache of unused pools in this thread.	*/
 + (void) setPoolCountThreshhold: (unsigned)c;
 + (unsigned) autoreleaseCountForObject: (id)anObject;
 + (void) _endThread: (NSThread*)thread; /* Don't call this directly. */

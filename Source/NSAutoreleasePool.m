@@ -56,6 +56,7 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 - (unsigned) autoreleaseCountForObject: (id)anObject;
 + (unsigned) autoreleaseCountForObject: (id)anObject;
 + (id) currentPool;
+- (void) _reallyDealloc;
 - (void) _setChildPool: (id)pool;
 @end
 
@@ -63,6 +64,25 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 /* Functions for managing a per-thread cache of NSAutoreleasedPool's
    already alloc'ed.  The cache is kept in the autorelease_thread_var 
    structure, which is an ivar of NSThread. */
+
+static id pop_pool_from_cache (struct autorelease_thread_vars *tv);
+
+static inline void
+free_pool_cache (struct autorelease_thread_vars *tv)
+{
+  while (tv->pool_cache_count)
+    {
+      NSAutoreleasePool	*pool = pop_pool_from_cache(tv);
+
+      [pool _reallyDealloc];
+    }
+
+  if (tv->pool_cache)
+    {
+      NSZoneFree(NSDefaultMallocZone(), tv->pool_cache);
+      tv->pool_cache = 0;
+    }
+}
 
 static inline void
 init_pool_cache (struct autorelease_thread_vars *tv)
@@ -77,7 +97,9 @@ static void
 push_pool_to_cache (struct autorelease_thread_vars *tv, id p)
 {
   if (!tv->pool_cache)
-    init_pool_cache (tv);
+    {
+      init_pool_cache (tv);
+    }
   else if (tv->pool_cache_count == tv->pool_cache_size)
     {
       tv->pool_cache_size *= 2;
@@ -372,7 +394,7 @@ static IMP	initImp;
   }
 }
 
-- (void) reallyDealloc
+- (void) _reallyDealloc
 {
   struct autorelease_array_list *a;
   for (a = _released_head; a; )
@@ -396,22 +418,15 @@ static IMP	initImp;
   struct autorelease_thread_vars *tv;
   id	pool;
 
-  tv = &(GSCurrentThread()->_autorelease_vars);
+  tv = ARP_THREAD_VARS;
   while (tv->current_pool)
     {
       [tv->current_pool release];
       pool = pop_pool_from_cache(tv);
-      [pool reallyDealloc];
+      [pool _reallyDealloc];
     }
 
-  while (tv->pool_cache_count)
-    {
-      pool = pop_pool_from_cache(tv);
-      [pool reallyDealloc];
-    }
-
-  if (tv->pool_cache)
-    NSZoneFree(NSDefaultMallocZone(), tv->pool_cache);
+  free_pool_cache(tv);
 }
 
 + (void) resetTotalAutoreleasedObjects
@@ -427,6 +442,11 @@ static IMP	initImp;
 + (void) enableRelease: (BOOL)enable
 {
   autorelease_enabled = enable;
+}
+
++ (void) freeCache
+{
+  free_pool_cache(ARP_THREAD_VARS);
 }
 
 + (void) setPoolCountThreshhold: (unsigned)c
