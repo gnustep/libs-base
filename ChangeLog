@@ -3,6 +3,8 @@
 	* Source/NSUserDefaults.m: ([synchronize]) fix locking to permit
 	recursive call to this method, ensuring the distributed lock is
 	only obtained once.
+	* Headers/gnustep/base/GSCategories.h: removed varargs helper macros
+	* Headers/gnustep/base/GSObjCRuntime.h: and put them here.
 
 2003-04-17  Richard Frith-Macdonald <rfm@gnu.org>
 
