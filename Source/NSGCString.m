@@ -74,6 +74,10 @@ static	SEL	msInitSel = @selector(initWithCapacity:);
 static	IMP	csInitImp;	/* designated initialiser for cString	*/
 static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
+@interface NSGMutableCString (GNUDescription)
+- (char*) _extendBy: (unsigned)len;
+@end
+
 @implementation NSGCString
 
 + (void) initialize
@@ -539,6 +543,9 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (void) descriptionTo: (id<GNUDescriptionDestination>)output
 {
+  if (output == nil)
+    return;
+
   if (_count == 0)
     {
       [output appendString: @"\"\""];
@@ -586,11 +593,21 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
       if (needQuote || length != _count)
 	{
-	  NSZone	*z = fastZone(self);
-	  char		*buf = NSZoneMalloc(z, length+3);
-	  char		*ptr = buf;
-	  NSString	*result;
+	  Class		c = fastClass(output);
+	  NSZone	*z = NSDefaultMallocZone();
+	  char		*buf;
+	  char		*ptr;
 
+	  length += 2;
+	  if (c == _fastCls._NSGMutableCString)
+	    {
+	      buf = [(NSGMutableCString*)output _extendBy: length];
+	    }
+	  else
+	    {
+	      buf = NSZoneMalloc(z, length+1);
+	    }
+	  ptr = buf;
 	  *ptr++ = '"';
 	  for (i = 0; i < _count; i++)
 	    {
@@ -626,10 +643,15 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 	    }
 	  *ptr++ = '"';
 	  *ptr = '\0';
-	  result = [[_fastCls._NSGCString allocWithZone: NSDefaultMallocZone()]
-	    initWithCStringNoCopy: buf length: length+2 fromZone: z];
-	  [output appendString: result];
-	  [result release];
+	  if (c != _fastCls._NSGMutableCString)
+	    {
+	      NSString	*result;
+
+	      result = [[_fastCls._NSGCString allocWithZone: z]
+		initWithCStringNoCopy: buf length: length fromZone: z];
+	      [output appendString: result];
+	      [result release];
+	    }
 	}
       else
 	{
@@ -756,6 +778,14 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 typedef struct {
   @defs(NSGMutableCString)
 } NSGMutableCStringStruct;
+
+static inline void
+stringGrowBy(NSGMutableCStringStruct *self, unsigned size)
+{
+  self->_capacity = MAX(self->_capacity*2, self->_count+size+1);
+  self->_contents_chars
+    = NSZoneRealloc(self->_zone, self->_contents_chars, self->_capacity);
+}
 
 static inline void
 stringIncrementCountAndMakeHoleAt(NSGMutableCStringStruct *self, 
@@ -939,10 +969,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   unsigned c = [aString cStringLength];
   char	save;
   if (_count + c >= _capacity)
-    {
-      _capacity = MAX(_capacity*2, _count+c+1);
-      _contents_chars = NSZoneRealloc(_zone, _contents_chars, _capacity);
-    }
+    stringGrowBy((NSGMutableCStringStruct *)self, c);
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, c);
   save = _contents_chars[index+c];	// getCString will put a nul here.
   [aString getCString: _contents_chars + index];
@@ -961,11 +988,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
       unsigned		l = other->_count;
 
       if (_count + l > _capacity)
-        {
-          _capacity = MAX(_capacity*2, _count+l);
-          _contents_chars =
-		    NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
-        }
+	stringGrowBy((NSGMutableCStringStruct *)self, l);
       memcpy(_contents_chars + _count, other->_contents_chars, l);
       _count += l;
       _hash = 0;
@@ -974,11 +997,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
     {
       unsigned l = [aString cStringLength];
       if (_count + l >= _capacity)
-        {
-          _capacity = MAX(_capacity*2, _count+l+1);
-          _contents_chars =
-		    NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
-        }
+	stringGrowBy((NSGMutableCStringStruct *)self, l);
       [aString getCString: _contents_chars + _count];
       _count += l;
       _hash = 0;
@@ -1061,6 +1080,16 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, index, 1);
 }
 
+- (char*) _extendBy: (unsigned)len
+{
+  char	*ptr;
+
+  stringGrowBy((NSGMutableCStringStruct *)self, len);
+  ptr = _contents_chars + _count;
+  _count += len;
+  _hash = 0;
+  return ptr;
+}
 @end
 
 @implementation NXConstantString

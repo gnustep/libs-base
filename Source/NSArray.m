@@ -39,6 +39,8 @@
 
 #include <base/fast.x>
 
+@class NSGMutableCString;
+
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
 
@@ -601,7 +603,8 @@ static Class NSMutableArray_concrete_class;
 {
   NSMutableString	*result;
 
-  result = [NSMutableString stringWithCapacity: 20*[self count]];
+  result = [[[NSGMutableCString alloc] initWithCapacity: 20*[self count]]
+    autorelease];
   [self descriptionWithLocale: locale
 		       indent: level
 			   to: (id<GNUDescriptionDestination>)result];
