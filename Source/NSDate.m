@@ -180,7 +180,7 @@
 
 - (id) initWithString: (NSString*)description
 {
-  NSTimeInterval	theTime;
+  NSTimeInterval theTime = 0;
   /* From the doc:
      Returns an calendar date object with a date and time value  
      specified by the international string-representation format:  
