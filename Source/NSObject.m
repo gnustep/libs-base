@@ -168,7 +168,8 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
     {
       for (i=0; i < proto_list->count; i++)
       {
-        if ([proto_list->list[i] conformsToProtocol: aProtocol])
+	/* xxx We should add conformsToProtocol to Protocol class. */
+        if ([proto_list->list[i] conformsTo: aProtocol])
           return YES;
       }
     }
