@@ -243,14 +243,10 @@ static Class		NSURLHandleClass = 0;
 /**
  * Returns the resource data that is currently available for the
  * handle.  This may be a partially loaded resource or may be
- * empty of no data has been loaded yet.
+ * empty if no data has been loaded yet or the last load failed.
  */
 - (NSData*) availableResourceData
 {
-  if (_status == NSURLHandleLoadInProgress)
-    {
-      return nil;
-    }
   return _data;
 }
 
