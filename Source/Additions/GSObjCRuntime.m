@@ -323,6 +323,89 @@ GSObjCSetVariable(id obj, int offset, unsigned int size, const void *data)
   memcpy(((void*)obj) + offset, data, size);
 }
 
+GS_EXPORT unsigned int
+GSClassList(Class *buffer, unsigned int max, BOOL clearCache)
+{
+#ifdef NeXT_RUNTIME
+  int num;
+
+  if (buffer != NULL)
+    {
+      memset(buffer, 0, sizeof(Class) * (max + 1));
+    }
+
+  num = objc_getClassList(buffer, max);
+  num = (num < 0) ? 0 : num;
+
+#else
+  static Class *cache = 0;
+  static unsigned cacheClassCount = 0;
+  static volatile objc_mutex_t cache_lock = NULL;
+  unsigned int num;
+
+  if (cache_lock == NULL)
+    {
+      GSAllocateMutexAt((void*)&cache_lock);
+    }
+
+  objc_mutex_lock(cache_lock);
+
+  if (clearCache)
+    {
+      if (cache)
+	{
+	  objc_free(cache);
+	  cache = NULL;
+	}
+      cacheClassCount = 0;
+    }
+
+  if (cache == NULL)
+    {
+      void *iterator = 0;
+      Class cls;
+      unsigned int i;
+
+      cacheClassCount = 0;
+      while ((cls = objc_next_class(&iterator)))
+	{
+	  cacheClassCount++;
+	}
+      cache = objc_malloc(sizeof(Class) * (cacheClassCount + 1));
+      /* Be extra careful as another thread may be loading classes.  */
+      for (i = 0, iterator = 0, cls = objc_next_class(&iterator); 
+	   i < cacheClassCount && cls != NULL; 
+	   i++, cls = objc_next_class(&iterator))
+	{
+	  cache[i] = cls;
+	}
+      cache[i] = NULL;
+    }
+
+  if (buffer == NULL)
+    {
+      num = cacheClassCount;
+    }
+  else
+    {
+      size_t       cpySize;
+      unsigned int cpyCnt;
+
+      cpyCnt = MIN(max, cacheClassCount);
+      cpySize = sizeof(Class) * cpyCnt;
+      memcpy(buffer, cache, cpySize);
+      buffer[cpyCnt] = NULL;
+
+      num = (max > cacheClassCount) ? 0 : (cacheClassCount - max);
+    }
+
+  objc_mutex_unlock(cache_lock);
+
+#endif
+
+  return num;
+}
+
 /*
  *	NOTE - OBJC_VERSION needs to be defined to be the version of the
  *	Objective-C runtime you are using.  You can find this in the file
