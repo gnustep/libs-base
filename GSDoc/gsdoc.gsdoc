@@ -108,7 +108,7 @@
 	(in the GNUstep project) need to devote a lot of time and effort
 	to maintaining documentation tools.
       </p>
-      <section>
+      <section id="gsdoc">
 	<heading>Overall document structure</heading>
 	<p>
 	  A GSDoc document consists of a <ref id="head">head</ref> and a
@@ -172,6 +172,33 @@
 	    a link between the two documents.
 	  </desc>
 	</deflist>
+      </section>
+      <section id="head">
+	<heading>The document head</heading>
+	<p>
+	  The document head contains information about the document as
+	  a whole: its title, authors, version, modification date,
+	  copyright, and perhaps an abstract of its contents.
+	  The title and at least one author are the only parts of the
+	  document head that must be present.
+	</p>
+	<deflist>
+	<term><label id="title">title</label></term>
+	<desc>
+	  The title of the document.
+	</desc>
+	</deflist>
+      </section>
+      <section id="body">
+	<heading>The document body</heading>
+	<p>
+	  The document body contains the main part of the document, it
+	  consists of an optional front part (for contents pages, overview
+	  etc), a sequence of any number of chapters, and an optional back
+	  part (for indexes, appendices etc).  Normally, each of these three
+	  parts of the document woudl be expected to have their own separate
+	  page numbering schemes.
+	</p>
       </section>
     </chapter>
 

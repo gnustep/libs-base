@@ -23,9 +23,11 @@
 </ul>
 <li><a href="#cont-2">The gsdoc DTD and what it means</a>
 <ul>
-<li><a href="#cont-3">Overall document structure</a>
+<li><a href="#gsdoc">Overall document structure</a>
+<li><a href="#head">The document head</a>
+<li><a href="#body">The document body</a>
 </ul>
-<li><a href="#cont-4">The gsdoc conversion tool</a>
+<li><a href="#cont-3">The gsdoc conversion tool</a>
 </ul>
 <h2><a name="cont-0">Introduction</a></h2>
 <p>
@@ -113,11 +115,11 @@
 	(in the GNUstep project) need to devote a lot of time and effort
 	to maintaining documentation tools.
       </p>
-<h3><a name="cont-3">Overall document structure</a></h3>
+<h3><a name="gsdoc">Overall document structure</a></h3>
 <p>
 
-	  A GSDoc document consists of a <a href="#label-head">head</a> and a
-	  <a href="#label-body">body</a> wrapped inside the overall document
+	  A GSDoc document consists of a <a href="#head">head</a> and a
+	  <a href="#body">body</a> wrapped inside the overall document
 	  framework that looks like this -
 	</p>
 <a name="label-0">example</a>
@@ -148,7 +150,7 @@
  	</p>
 <dl>
 <dt>base
-<dt>
+<dd>
 	    This is optional, but recommended - it specifies the base name
 	    for the document.  When the document is tranlated to another
 	    format, the outut file name should be based on this - eg.
@@ -156,7 +158,7 @@
 	    output for this file would be <em>foo.html</em>.
 	  
 <dt>prev
-<dt>
+<dd>
 	    This optional attribute may be used as the name of a document
 	    that precedes this one in logical reading order.  If the
 	    converted output format of the document supports some sort of
@@ -164,7 +166,7 @@
 	    a link between the two documents.
 	  
 <dt>next
-<dt>
+<dd>
 	    This optional attribute may be used as the name of a document
 	    that follows this one in logical reading order.  If the
 	    converted output format of the document supports some sort of
@@ -172,7 +174,7 @@
 	    a link between the two documents.
 	  
 <dt>up
-<dt>
+<dd>
 	    This optional attribute may be used as the name of a document
 	    that is above this document in some sort of hierarchical
 	    structure (a contents list perhaps).
@@ -181,7 +183,32 @@
 	    a link between the two documents.
 	  
 </dl>
-<h2><a name="cont-4">The gsdoc conversion tool</a></h2>
+<h3><a name="head">The document head</a></h3>
+<p>
+
+	  The document head contains information about the document as
+	  a whole: its title, authors, version, modification date,
+	  copyright, and perhaps an abstract of its contents.
+	  The title and at least one author are the only parts of the
+	  document head that must be present.
+	</p>
+<dl>
+<dt><a name="title">title</a>
+<dd>
+	  The title of the document.
+	
+</dl>
+<h3><a name="body">The document body</a></h3>
+<p>
+
+	  The document body contains the main part of the document, it
+	  consists of an optional front part (for contents pages, overview
+	  etc), a sequence of any number of chapters, and an optional back
+	  part (for indexes, appendices etc).  Normally, each of these three
+	  parts of the document woudl be expected to have their own separate
+	  page numbering schemes.
+	</p>
+<h2><a name="cont-3">The gsdoc conversion tool</a></h2>
 <p>
 
 	The gsdoc tool is written in Objective-C and uses the GNUstep base

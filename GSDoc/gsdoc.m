@@ -1591,7 +1591,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	      NSLog(@"term without desc");
 	      return nil;
 	    }
-	  [text appendFormat: @"<dt>%@\r\n", [self parseDesc: node]];
+	  [text appendFormat: @"<dd>%@\r\n", [self parseDesc: node]];
 	  node = node->next;
 	}
       [text appendString: @"</dl>\r\n"];
@@ -1899,7 +1899,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	    else if (strcmp(node->name, "ref") == 0)
 	      {
 		NSString	*elem = [self parseText: node->childs];
-		NSString	*typ = [self getProp: "type" fromNode: node];
+//		NSString	*typ = [self getProp: "type" fromNode: node];
 //		NSString	*cls = [self getProp: "class" fromNode: node];
 		NSString	*ref = [self getProp: "id" fromNode: node];
 
@@ -1907,11 +1907,6 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		  {
 		    elem = ref;
 		  }
-		if (typ == nil)
-		  {
-		    typ = @"label";
-		  }
-		ref = [NSString stringWithFormat: @"%@-%@", typ, ref];
 		[text appendString: [self addLink: ref withText: elem]];
 	      }
 	    else if (strcmp(node->name, "uref") == 0)
