@@ -44,6 +44,7 @@ static Class	distantObjectClass = 0;
  *	allocating the memory for a new instance unless absolutely necessary.
  */
 @interface	GSDistantObjectPlaceHolder
++ (id) initWithCoder: (NSCoder*)aCoder;
 + (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection;
 + (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection;
 + (void) autorelease;
@@ -72,6 +73,15 @@ static Class	distantObjectClass = 0;
     {
       distantObjectClass = [NSDistantObject class];
     }
+}
+
++ (id) initWithCoder: (NSCoder*)aCoder
+{
+  NSDistantObject	*proxy;
+
+  proxy = (NSDistantObject*)NSAllocateObject(distantObjectClass,
+	0, NSDefaultMallocZone());
+  return [proxy initWithCoder: aCoder];
 }
 
 + (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection
@@ -182,10 +192,14 @@ enum
   gsu8		proxy_tag;
   NSConnection	*encoder_connection;
 
-  if ([aRmc class] != [PortEncoder class])
-    [NSException raise: NSGenericException
-		format: @"NSDistantObject objects only "
-			@"encode with PortEncoder class"];
+/*
+  if ([aRmc isKindOfClass: [NSPortCoder class]] == NO)
+    {
+      [NSException raise: NSGenericException
+		  format: @"NSDistantObject objects only "
+			  @"encode with NSPortCoder class"];
+    }
+*/
 
   encoder_connection = [(NSPortCoder*)aRmc connection];
   NSAssert(encoder_connection, NSInternalInconsistencyException);
@@ -299,13 +313,15 @@ enum
   unsigned	target;
   id		decoder_connection;
 
-  if ([aCoder class] != [PortDecoder class])
+/*
+  if ([aCoder isKindOfClass: [NSPortCoder class]] == NO)
     {
       [self release];
       [NSException raise: NSGenericException
 		  format: @"NSDistantObject objects only decode with "
-			  @"PortDecoder class"];
+			  @"NSPortCoder class"];
     }
+*/
 
   decoder_connection = [(NSPortCoder*)aCoder connection];
   NSAssert(decoder_connection, NSInternalInconsistencyException);
@@ -734,7 +750,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
   return [self class];
 }
 
-- replacementObjectForPortCoder: (NSPortCoder*)aRmc;
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc;
 {
   if ([aRmc isBycopy])
     return self;

@@ -440,6 +440,7 @@
 
   [aCoder decodeValueOfObjCType: @encode(char*) at: &types];
   newSig = [NSMethodSignature signatureWithObjCTypes: types];
+  NSZoneFree(NSDefaultMallocZone(), (void*)types);
   self = [self initWithMethodSignature: newSig];
  
   [aCoder decodeValueOfObjCType: @encode(id) at: &_target];

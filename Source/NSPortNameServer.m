@@ -518,6 +518,7 @@ typedef enum {
       launchCmd = [NSString stringWithCString:
 	make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX)]; 
       portClass = [TcpOutPort class];
+//      portClass = [GSTcpPort class];
     }
 }
 
