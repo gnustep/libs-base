@@ -91,9 +91,9 @@ GS_EXPORT void GSSetVariable(id obj, int offset, unsigned int size,
  * scalar types of data.
  */
 GS_EXPORT id GSGetValue(NSObject *self, NSString *key, SEL sel,
-  const char *type, unsigned size, int off);
+  const char *type, unsigned size, int offset);
 GS_EXPORT void GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
-  const char *type, unsigned size, int off);
+  const char *type, unsigned size, int offset);
 
 /*
  * The following three functions are deprecated and will be removed in future
