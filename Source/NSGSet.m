@@ -81,55 +81,25 @@
     }
 }
 
-#if 0
 
 /* This is the designated initializer */
 - initWithObjects: (id*)objects
-	  forKeys: (NSString**)keys
 	    count: (unsigned)count
 {
-  char * content_encoding = @encode(id);
-  char * key_encoding = @encode(id);
-  CALL_METHOD_IN_CLASS([KeyedCollection class], initWithType:keyType:,
-		       content_encoding, key_encoding);
-  _contents_hash = 
-    coll_hash_new(POWER_OF_TWO(count),
-		  elt_get_hash_function(key_encoding),
-		  elt_get_comparison_function(key_encoding));
-  _comparison_function = elt_get_comparison_function(content_encoding);
-  while (count--)
-    {
-      [keys[count] retain];
-      [objects[count] retain];
-      coll_hash_add(&_contents_hash, keys[count], objects[count]);
-    }
-  return self;
+  return [self initWithType:@encode(id)
+	       capacity:count];
 }
 
-/* 
-   Comes from Set.m 
-   - (unsigned) count 
-   */
-
-- objectForKey: (NSString*)aKey
+- member: anObject
 {
-  elt ret_nil(arglist_t a)
-    {
-      return nil;
-    }
-  return [self elementAtKey:aKey ifAbsentCall:ret_nil].id_u;
-}
-
-- (NSEnumerator*) keyEnumerator
-{
-  return [[NSGSetKeyEnumerator alloc] initWithSet:self];
+  return coll_hash_value_for_key(_contents_hash, anObject).id_u;
 }
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[NSGSetObjectEnumerator alloc] initWithSet:self];
+  return [[[NSGSetEnumerator alloc] initWithSet:self]
+	  autorelease];
 }
-#endif
 
 @end
 
@@ -149,27 +119,26 @@
     }
 }
 
-#if 0
-
 /* This is the designated initializer */
-/* Comes from Set.m
-   - initWithCapacity: (unsigned)numItems
-   */
-
-- (void) setObject:anObject forKey:(NSString *)aKey
+- initWithCapacity: (unsigned)numItems
 {
-  [self putElement:anObject atKey:aKey];
+  return [self initWithType:@encode(id)
+	       capacity:numItems];
 }
 
-- (void) removeObjectForKey:(NSString *)aKey
+- (void) addObject: anObject
 {
-  elt do_nothing (arglist_t a)
-    {
-      return 0;
-    }
-  [self removeElementAtKey:aKey ifAbsentCall:do_nothing];
+  [self addElement:anObject];
 }
 
-#endif
+- (void) removeAllObjects
+{
+  [self empty];
+}
+
+- (void) removeObject: anObject
+{
+  [self removeElement:anObject];
+}
 
 @end
