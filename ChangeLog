@@ -1,3 +1,11 @@
+2000-04-28  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSString.m: 
+	Corrected bug in last optimization for the parsing of property
+	list. Now the bitmap representation is retained not the
+	characterset itself. This did cause undeterministic problems when
+	reading in the Info.plist.
+
 2001-04-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLog.m: Use RETAIN/RELEASE
