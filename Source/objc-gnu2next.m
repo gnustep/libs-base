@@ -302,6 +302,9 @@ objc_skip_type_qualifiers (const char* type)
 	 || *type == _C_INOUT
 	 || *type == _C_OUT 
 	 || *type == _C_BYCOPY
+#ifdef	_C_BYREF
+	 || *type == _C_BYREF
+#endif
 	 || *type == _C_ONEWAY)
     {
       type += 1;
@@ -424,6 +427,9 @@ objc_get_type_qualifiers (const char* type)
       case _C_INOUT:  res |= _F_INOUT; break;
       case _C_OUT:    res |= _F_OUT; break;
       case _C_BYCOPY: res |= _F_BYCOPY; break;
+#ifdef	_C_BYREF
+      case _C_BYREF:  res |= _F_BYREF; break;
+#endif
       case _C_ONEWAY: res |= _F_ONEWAY; break;
       default: flag = NO;
     }

@@ -126,6 +126,11 @@ int main(int argc, char *argv[])
   [p sendBycopy:callback_receiver];
   printf(">>returned float %f\n", [p returnFloat]);
   printf(">>returned double %f\n", [p returnDouble]);
+#ifdef	_F_BYREF
+  [p sendByref:callback_receiver];
+  [p sendByref:@"hello"];
+  [p sendByref:[NSDate date]];
+#endif
 
   [p addObject:localObj];
   k = [p count];

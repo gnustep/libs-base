@@ -42,6 +42,9 @@ struct myarray {
 - (double*) doDoublePointer: (double*)d;
 - sendCharPtrPtr: (char**)sp;
 - sendBycopy: (bycopy id)o;
+#ifdef	_F_BYREF
+- sendByref: (byref id)o;
+#endif
 - manyArgs: (int)i1 : (int)i2 : (int)i3 : (int)i4 : (int)i5 : (int)i6
 : (int)i7 : (int)i8 : (int)i9 : (int)i10 : (int)i11 : (int)i12;
 - (float) returnFloat;

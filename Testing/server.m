@@ -159,6 +159,13 @@
   printf(">> bycopy class is %s\n", object_get_class_name (o));
   return self;
 }
+#ifdef	_F_BYREF
+- sendByref: (ref id)o
+{
+  printf(">> byref class is %s\n", object_get_class_name (o));
+  return self;
+}
+#endif
 - manyArgs: (int)i1 : (int)i2 : (int)i3 : (int)i4 : (int)i5 : (int)i6
 : (int)i7 : (int)i8 : (int)i9 : (int)i10 : (int)i11 : (int)i12
 {

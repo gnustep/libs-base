@@ -121,6 +121,11 @@ static Class NSMutableDictionary_concrete_class;
 	  autorelease];
 }
 
++ dictionaryWithDictionary: (NSDictionary*)otherDictionary
+{
+  return [[[self alloc] initWithDictionary: otherDictionary] autorelease];
+}
+
 + dictionaryWithObjects: (id*)objects 
 		forKeys: (NSObject**)keys
 		  count: (unsigned)count

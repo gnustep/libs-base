@@ -43,7 +43,7 @@
 + allocWithZone: (NSZone*)zone;
 + dictionary;
 + dictionaryWithContentsOfFile:(NSString *)path;
-+ dictionaryWithDictionary: (NSDictionary)aDict;
++ dictionaryWithDictionary: (NSDictionary*)aDict;
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 + dictionaryWithObjects: (id*)objects forKeys: (id*)keys
 		  count: (unsigned)count;

@@ -1,3 +1,47 @@
+Fri Mar 20 11:15:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* checks/client.m: Added some tests for passing objects byref
+
+	* checks/server.h: Added ([-sendByref:]) to protocol.
+
+	* checks/server.m: Added ([-sendByref:]) for testing 'byref'.
+
+	* src/Coder.m: Added ([-encodeByrefObject:])
+
+	* src/Encoder.m: Added ([-_doEncodeByrefObject:]) and changed the
+	designated encoding method throughout from
+	([-_encodeObject:withName:isBycopy:isForwardReference:]) to
+	([-_encodeObject:withName:isBycopy:isByref:isForwardReference:])
+
+	* src/NSCoder.m: Added ([-encodeBytes:length:]),
+	([-encodeByrefObject:]) and ([-decodeBytesWithReturnedLength:])
+
+	* src/NSConnection.m:  Modified ([-forwardForProxy:selector:argFrame:])
+	and ([-_service_forwardForProxy:]) methods to handle byref flag.
+
+	* src/NSDictionary.m: Added ([+dictionaryWithDictionary:])
+
+	* src/NSPortCoder.m:  Added ([-isByref]) and ([-_doEncodeByrefObject:])
+	methods and modified ([-_doEncodeBycopyObject:]) to handle byref flag.
+
+	* src/include/Coding.h:  Added ([-encodeByrefObject:])
+
+	* src/include/NSCoder.h:  Added ([-encodeBytes:length:]),
+	([-encodeByrefObject:]) and ([-decodeBytesWithReturnedLength:])
+
+	* src/include/NSDictionary.h:  Fixed prototype for the
+	([+dictionaryWithDictionary:]) method.
+
+	* src/include/NSPortCoder.h:  Added ([-isByref])
+
+	* src/objc-gnu2next.m: Added _F_BYREF flag code
+
+Fri Mar 13 15:05:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+        * src/NSCalendarDate.m: ([-descriptionWithCalendarFormat:locale:])
+        Fixed bug in displaying time-zone - was displaying minutes and
+        seconds when should have been showing hours and minutes.
+
 Wed Mar 11 11:56:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/NSArray.m: ([-copyWithZone:]) changed to use the

@@ -60,6 +60,8 @@
    withName: (id /*<String>*/)name;
 - (void) encodeBycopyObject: anObj
    withName: (id /*<String>*/)name;
+- (void) encodeByrefObject: anObj
+   withName: (id /*<String>*/)name;
 
 - (void) encodeRootObject: anObj
    withName: (id /*<String>*/)name;
