@@ -1,3 +1,9 @@
+2000-11-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/externs.m: Removed obsolete http body key.
+	* Source/GSHTTPURLHandle.m: Removed obsolete http body key.
+	* Headers/Foundation/NSURLHandle.h: Removed obsolete http body key.
+
 2000-11-20  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSConnection.m: ([NSConnection -invalidate]) Fixed typo in

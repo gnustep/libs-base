@@ -41,7 +41,6 @@ GS_EXPORT NSString *NSHTTPPropertyErrorPageDataKey;
 GS_EXPORT NSString *GSHTTPPropertyMethodKey;
 GS_EXPORT NSString *GSHTTPPropertyProxyHostKey;
 GS_EXPORT NSString *GSHTTPPropertyProxyPortKey;
-GS_EXPORT NSString *GSHTTPBodyKey;
 #endif
 
 typedef enum
