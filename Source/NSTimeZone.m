@@ -18,7 +18,11 @@
   
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA. */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+   <title>NSTimeZone class reference</title>
+   $Date$ $Revision$
+ */
   
 /* We use a implementation independent of the system, since POSIX
    functions for time zones are woefully inadequate for implementing

@@ -20,6 +20,9 @@
    damages whatsoever resulting from loss of use, data or profits, whether in
    an action of contract, negligence or other tortious action, arising out of
    or in connection with the use or performance of this software.
+
+   <title>NSNotificationQueue class reference</title>
+   $Date$ $Revision$
 */
 
 /* Implementation for NSNotificationQueue for GNUStep
