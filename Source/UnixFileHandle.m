@@ -1,5 +1,5 @@
 /* Implementation for UnixFileHandle for GNUStep
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997-1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: 1997
@@ -96,8 +96,8 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 static BOOL
 getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
-  const char*		proto = "tcp";
-  struct servent*	sp;
+  const char		*proto = "tcp";
+  struct servent	*sp;
 
   if (pcl)
     proto = [pcl cString];
@@ -192,13 +192,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (descriptor != -1)
     {
+      if (isNonBlocking != wasNonBlocking)
+	[self setNonBlocking: wasNonBlocking];
       if (closeOnDealloc == YES)
 	{
 	  close(descriptor);
 	  descriptor = -1;
 	}
-      else if (isNonBlocking != wasNonBlocking)
-	[self setNonBlocking: wasNonBlocking];
     }
   [readInfo release];
   [writeInfo release];
@@ -207,14 +207,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 // Initializing a UnixFileHandle Object
 
-- (id)init
+- (id) init
 {
   return [self initWithNullDevice];
 }
 
-- (id)initAsClientAtAddress: a
-		    service: s
-		   protocol: p
+- (id) initAsClientAtAddress: (NSString*)a
+		     service: (NSString*)s
+		    protocol: (NSString*)p
 {
   int	net;
   struct sockaddr_in	sin;
@@ -259,10 +259,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initAsClientInBackgroundAtAddress: a
-				service: s
-			       protocol: p
-			       forModes: modes
+- (id) initAsClientInBackgroundAtAddress: (NSString*)a
+				 service: (NSString*)s
+			        protocol: (NSString*)p
+			        forModes: (NSArray*)modes
 {
   int	net;
   struct sockaddr_in	sin;
@@ -322,9 +322,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initAsServerAtAddress: a
-		    service: s
-		   protocol: p
+- (id) initAsServerAtAddress: (NSString*)a
+		     service: (NSString*)s
+		    protocol: (NSString*)p
 {
   int	status = 1;
   int	net;
@@ -384,7 +384,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initForReadingAtPath: (NSString*)path
+- (id) initForReadingAtPath: (NSString*)path
 {
   int	d = open([path fileSystemRepresentation], O_RDONLY|O_BINARY);
 
@@ -402,7 +402,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (id)initForWritingAtPath: (NSString*)path
+- (id) initForWritingAtPath: (NSString*)path
 {
   int	d = open([path fileSystemRepresentation], O_WRONLY|O_BINARY);
 
@@ -420,7 +420,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (id)initForUpdatingAtPath: (NSString*)path
+- (id) initForUpdatingAtPath: (NSString*)path
 {
   int	d = open([path fileSystemRepresentation], O_RDWR|O_BINARY);
 
@@ -435,7 +435,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (id)initWithStandardError
+- (id) initWithStandardError
 {
   if (fh_stderr)
     {
@@ -453,7 +453,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initWithStandardInput
+- (id) initWithStandardInput
 {
   if (fh_stdin)
     {
@@ -471,7 +471,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initWithStandardOutput
+- (id) initWithStandardOutput
 {
   if (fh_stdout)
     {
@@ -489,17 +489,18 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initWithNullDevice
+- (id) initWithNullDevice
 {
   self = [self initWithFileDescriptor: open("/dev/null", O_RDWR|O_BINARY)
 		       closeOnDealloc: YES];
-  if (self) {
-    isNullDevice = YES;
-  }
+  if (self)
+    {
+      isNullDevice = YES;
+    }
   return self;
 }
 
-- (id)initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
+- (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
 {
   self = [super init];
   if (self)
@@ -539,17 +540,17 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initWithNativeHandle: (void*)hdl
+- (id) initWithNativeHandle: (void*)hdl
 {
   return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: NO];
 }
 
-- (id)initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
+- (id) initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
   return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: flag];
 }
 
-- (void)checkAccept
+- (void) checkAccept
 {
   if (acceptOK == NO)
     {
@@ -573,7 +574,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (void)checkConnect
+- (void) checkConnect
 {
   if (connectOK == NO)
     {
@@ -598,7 +599,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (void)checkRead
+- (void) checkRead
 {
   if (readOK == NO)
     {
@@ -622,7 +623,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (void)checkWrite
+- (void) checkWrite
 {
   if (writeOK == NO)
     {
@@ -644,19 +645,19 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 // Returning file handles
 
-- (int)fileDescriptor
+- (int) fileDescriptor
 {
   return descriptor;
 }
 
-- (void*)nativeHandle
+- (void*) nativeHandle
 {
   return (void*)0;
 }
 
 // Synchronous I/O operations
 
-- (NSData*)availableData
+- (NSData*) availableData
 {
   char			buf[NETBUF_SIZE];
   NSMutableData*	d;
@@ -784,7 +785,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return d;
 }
 
-- (void)writeData: (NSData*)item
+- (void) writeData: (NSData*)item
 {
   int		rval = 0;
   const void*	ptr = [item bytes];
@@ -816,7 +817,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 // Asynchronous I/O operations
 
-- (void)acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes
+- (void) acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkAccept];
   readPos = 0;
@@ -827,12 +828,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self watchReadDescriptorForModes: modes];
 }
 
-- (void)acceptConnectionInBackgroundAndNotify
+- (void) acceptConnectionInBackgroundAndNotify
 {
   [self acceptConnectionInBackgroundAndNotifyForModes: nil];
 }
 
-- (void)readInBackgroundAndNotifyForModes: (NSArray*)modes
+- (void) readInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkRead];
   readPos = 0;
@@ -845,12 +846,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self watchReadDescriptorForModes: modes];
 }
 
-- (void)readInBackgroundAndNotify
+- (void) readInBackgroundAndNotify
 {
   return [self readInBackgroundAndNotifyForModes: nil];
 }
 
-- (void)readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes
+- (void) readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkRead];
   readPos = 0;
@@ -863,12 +864,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self watchReadDescriptorForModes: modes];
 }
 
-- (void)readToEndOfFileInBackgroundAndNotify
+- (void) readToEndOfFileInBackgroundAndNotify
 {
   return [self readToEndOfFileInBackgroundAndNotifyForModes: nil];
 }
 
-- (void)waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes
+- (void) waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkRead];
   readPos = 0;
@@ -881,14 +882,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self watchReadDescriptorForModes: modes];
 }
 
-- (void)waitForDataInBackgroundAndNotify
+- (void) waitForDataInBackgroundAndNotify
 {
   return [self waitForDataInBackgroundAndNotifyForModes: nil];
 }
 
 // Seeking within a file
 
-- (unsigned long long)offsetInFile
+- (unsigned long long) offsetInFile
 {
   off_t	result = -1;
 
@@ -903,7 +904,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return (unsigned long long)result;
 }
 
-- (unsigned long long)seekToEndOfFile
+- (unsigned long long) seekToEndOfFile
 {
   off_t	result = -1;
 
@@ -918,7 +919,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return (unsigned long long)result;
 }
 
-- (void)seekToFileOffset: (unsigned long long)pos
+- (void) seekToFileOffset: (unsigned long long)pos
 {
   off_t	result = -1;
 
@@ -935,7 +936,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 // Operations on file
 
-- (void)closeFile
+- (void) closeFile
 {
   if (descriptor < 0)
     [NSException raise: NSFileHandleOperationException
@@ -944,6 +945,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
+  if (isNonBlocking != wasNonBlocking)
+    [self setNonBlocking: wasNonBlocking];
   (void)close(descriptor);
   descriptor = -1;
   acceptOK = NO;
@@ -973,20 +976,20 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (void)synchronizeFile
+- (void) synchronizeFile
 {
   if (isStandardFile)
     (void)sync();
 }
 
-- (void)truncateFileAtOffset: (unsigned long long)pos
+- (void) truncateFileAtOffset: (unsigned long long)pos
 {
   if (isStandardFile && descriptor >= 0)
     (void)ftruncate(descriptor, pos);
-   [self seekToFileOffset: pos];
+  [self seekToFileOffset: pos];
 }
 
-- (void)writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
+- (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
 {
   NSMutableDictionary*	info;
 
@@ -1004,17 +1007,17 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self watchWriteDescriptor];
 }
 
-- (void)writeInBackgroundAndNotify: (NSData*)item;
+- (void) writeInBackgroundAndNotify: (NSData*)item;
 {
   [self writeInBackgroundAndNotify: item forModes: nil];
 }
 
-- (void)postReadNotification
+- (void) postReadNotification
 {
-  NSMutableDictionary*	info = readInfo;
-  NSNotification*	n;
-  NSArray*		modes;
-  NSString*		name;
+  NSMutableDictionary	*info = readInfo;
+  NSNotification	*n;
+  NSArray		*modes;
+  NSString		*name;
 
   [self ignoreReadDescriptor];
   readInfo = nil;
@@ -1031,12 +1034,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		forModes: modes];
 }
 
-- (void)postWriteNotification
+- (void) postWriteNotification
 {
-  NSMutableDictionary*	info = [writeInfo objectAtIndex: 0];
-  NSNotification*	n;
-  NSArray*		modes;
-  NSString*		name;
+  NSMutableDictionary	*info = [writeInfo objectAtIndex: 0];
+  NSNotification	*n;
+  NSArray		*modes;
+  NSString		*name;
 
   [self ignoreWriteDescriptor];
   modes = (NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
@@ -1055,21 +1058,21 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     [self watchWriteDescriptor];	/* In case of queued writes.	*/
 }
 
-- (BOOL)readInProgress
+- (BOOL) readInProgress
 {
   if (readInfo)
     return YES;
   return NO;
 }
 
-- (BOOL)writeInProgress
+- (BOOL) writeInProgress
 {
   if ([writeInfo count] > 0)
     return YES;
   return NO;
 }
 
-- (void)ignoreReadDescriptor
+- (void) ignoreReadDescriptor
 {
   NSRunLoop	*l;
   NSArray	*modes;
@@ -1102,7 +1105,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	       all: YES];
 }
 
-- (void)ignoreWriteDescriptor
+- (void) ignoreWriteDescriptor
 {
   NSRunLoop	*l;
   NSArray	*modes;
@@ -1139,7 +1142,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	       all: YES];
 }
 
-- (void)watchReadDescriptorForModes: (NSArray*)modes;
+- (void) watchReadDescriptorForModes: (NSArray*)modes;
 {
   NSRunLoop	*l;
 
@@ -1170,7 +1173,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (void)watchWriteDescriptor
+- (void) watchWriteDescriptor
 {
   if (descriptor < 0)
     return;
@@ -1207,10 +1210,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (void)receivedEvent: (void*)data
-                 type: (RunLoopEventType)type
-		extra: (void*)extra
-	      forMode: (NSString*)mode
+- (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+		 extra: (void*)extra
+	       forMode: (NSString*)mode
 {
   NSString	*operation;
 
@@ -1358,9 +1361,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-- (NSDate*)timedOutEvent: (void*)data
-		    type: (RunLoopEventType)type
-		 forMode: (NSString*)mode
+- (NSDate*) timedOutEvent: (void*)data
+		     type: (RunLoopEventType)type
+		  forMode: (NSString*)mode
 {
   return nil;		/* Don't restart timed out events	*/
 }
@@ -1375,7 +1378,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   protocol = @"tcp";
 }
 
-- (void)setNonBlocking: (BOOL)flag
+- (void) setNonBlocking: (BOOL)flag
 {
   int	e;
 
