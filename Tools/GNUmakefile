@@ -50,7 +50,7 @@ ifeq ($(add),yes)
 TOOL_NAME = autogsdoc
 else
 TOOL_NAME = autogsdoc cvtenc gdnc defaults plmerge \
-		plparse sfparse pldes plser pl2link HTMLLinker xmlparse
+		plparse sfparse pldes plser pl2link xmlparse
 CTOOL_NAME = gdomap
 
 SUBPROJECTS = make_strings
@@ -75,13 +75,9 @@ plparse_OBJC_FILES = plparse.m
 sfparse_OBJC_FILES = sfparse.m
 pl2link_OBJC_FILES = pl2link.m
 locale_alias_OBJC_FILES = locale_alias.m
-HTMLLinker_OBJC_FILES = HTMLLinker.m
 xmlparse_OBJC_FILES = xmlparse.m
 
-DOCUMENT_NAME = autogsdoc HTMLLinkerDoc
-
-HTMLLinkerDoc_DOC_INSTALL_DIR = Developer/Tools
-HTMLLinkerDoc_INSTALL_FILES = HTMLLinker.html
+DOCUMENT_NAME = autogsdoc
 
 # Documentation rules for autogsdoc
 autogsdoc_AGSDOC_FLAGS = -Up autogsdoc

@@ -1,3 +1,9 @@
+Mon Jul 21 11:03:48 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Tools/HTMLLinker.m: Removed.
+	* Tools/HTMLLinker.html: Removed.
+	* Tools/GNUmakefile: Do not compile it.
+	
 2003-07-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProxy.m: Implement essential methods for a proxy to be
