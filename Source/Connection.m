@@ -112,7 +112,7 @@ static id default_decoding_class;
 static int default_in_timeout;
 static int default_out_timeout;
 
-static int debug_connection = 1;
+static int debug_connection = 0;
 
 /* Perhaps this should be a hashtable, keyed by remote port.
    But we may also need to include the local port---even though 
