@@ -1,0 +1,408 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="gnustep">
+  <head>
+    <title>GNUstep Time Zone Reference</title>
+    <author name="Yoo C. Chung">
+      <email address="wacko@laplace.snu.ac.kr"/>
+      <url url="http://plaza.snu.ac.kr/~wacko/"/>
+      <desc>
+	A person who has very little spare time, and spends it on
+	stuff like GNUstep, anime fanfics, and games.
+      </desc>
+    </author>
+    <author name="Skuld">
+      <email address="skuld@yggdrasil.heaven.org"/>
+      <url url="http://yggdrasil.heaven.org/skuld/"/>
+      <desc>
+	The goddess of the future, who will watch and guide me in my
+	hunt for bugs.  May all bow before her divinity.
+      </desc>
+    </author>
+    <version>0.1</version>
+    <date>6 June, 1997</date>
+    <abstract>
+      This documents the interface to the time zone classes in the
+      GNUstep Base Library.
+    </abstract>
+  </head>
+
+  <body>
+    <front>
+      <contents/>
+
+      <chapter>
+	<heading>Preface</heading>
+
+	<p>
+	  This documents the interface to the time zone classes.
+	  These classes are needed for proper adjustment of the local
+	  time in each geographical region.
+	</p>
+	<p>
+	  This is also an example, as well as a test case, of the new
+	  GNUstep Documentation Markup Language (GDML).
+	</p>
+      </chapter>
+    </front>
+
+    <chapter>
+      <heading>The Time Zone Management Classes</heading>
+
+      <p>
+	The classes <code>NSTimeZone</code> and <code>NSTimeZoneDetail</code>
+	are used to manage time zones.  They are declared in
+	<file>Foundation/NSDate.h</file>.
+      </p>
+      <p>
+	<code>NSTimeZone</code> is used to specify the time zone region,
+	while <code>NSTimeZoneDetail</code> is used to actually obtain the
+	difference in seconds from UTC<footnote>Universal
+	Coordinated Time.</footnote> that a time zone has for a certain date.
+      </p>
+      <class name="NSTimeZone" super="NSObject">
+
+	<desc>
+	  <p>
+	      The world is divided into separate time zones because
+	      the sun rises at different times.  We really should all
+	      move underground and match our clocks. However,
+	      since this is currently not the case, our computers need
+	      a way to find the offset from a single agreed upon time
+	      and use that in local time calculations.
+	  </p>
+	  <p>
+	      To make things even worse, there is this evil thing
+	      called daylight saving time, which is usually used for
+	      the purpose of utilizing as much of the sun as possible
+	      while it is still up.  (Really, everyone should stay in
+	      their rooms and play with their computers, but for some
+	      reason they don't &dots;)
+	  </p>
+	  <p>
+	      Therefore we need an object that knows about a time zone
+	      so that the appropriate object that knows all about
+	      offsets from UTC and whether it's daylight saving time
+	      for a certain date can be obtained.  <code>NSTimeZone</code>
+	      is a class that can create such objects.
+	  </p>
+	</desc>
+
+	<method factory="yes" type="NSTimeZoneDetail*">
+	  <sel>defaultTimeZone</sel>
+
+	  <desc>
+	      Returns the time zone detail (see <ref type="class"
+		id="NSTimeZoneDetail"/>) for the current time.
+	  </desc>
+	</method>
+	<method factory="yes" type="NSTimeZone*">
+	  <sel>localTimeZone</sel>
+
+	  <desc>
+	    Returns the time zone for the local region.  The local
+	    region is either specified with the <code>TZ</code>
+	    environment variable, or is specified at compile time,
+	    with the former taking precedence.
+	  </desc>
+	</method>
+
+	<method factory="yes" type="NSTimeZone*">
+	  <sel>timeZoneForSecondsFromGMT:</sel>
+	  <arg type="int">seconds</arg>
+
+	  <desc>
+	    Returns a time zone which is always <var>seconds</var>
+	    seconds off from UTC.  (In OpenStep the offset is from
+	    GMT<footnote>Greenwich Mean Time.</footnote>, but using UTC makes
+	    more sense.)
+	  </desc>
+	</method>
+
+	<method factory="yes" type="NSTimeZoneDetail*">
+	  <sel>timeZoneWithAbbreviation:</sel>
+	  <arg type="NSString*">abbreviation</arg>
+
+	  <desc>
+	      Returns a time zone detail for which the time zone
+	      abbreviation is <var>abbreviation</var>.  Note that there can
+	      be many time zone details for a single abbreviation.
+	  </desc>
+	</method>
+
+	<method factory="yes" type="NSTimeZone*">
+	  <sel>timeZoneWithName:</sel>
+	  <arg type="NSString*">aTimeZoneName</arg>
+
+	  <desc>
+	      Returns a time zone for the geographical region
+	      specified by <var>aTimeZoneName</var>.
+	  </desc>
+	</method>
+
+	<method type="NSTimeZoneDetail*">
+	  <sel>timeZoneDetailForDate:</sel>
+	  <arg type="NSDate*">date</arg>
+
+	  <desc>
+	    Returns the appropriate time zone detail for the time
+	    zone and the given date <var>date</var>.
+	  </desc>
+	</method>
+
+	<method factory="yes" type="void">
+	  <sel>setDefaultTimeZone:</sel>
+	  <arg type="NSTimeZone*">aTimeZone</arg>
+
+	  <desc>
+	    Set the default time zone used for time calculation to
+	    the time zone specified by the string <var>aTimeZone</var>.
+	  </desc>
+	</method>
+
+	<method factory="yes" type="NSDictionary*">
+	  <sel>abbreviationDictionary</sel>
+
+	  <desc>
+	    Returns a dictionary that maps a time zone abbreviation
+	    to a single arbitrary time zone name.
+	  </desc>
+	</method>
+
+	<method factory="yes" type="NSDictionary*">
+	  <sel>abbreviationMap</sel>
+
+	  <desc>
+	    <p>
+	      Returns a dictionary that maps a time zone
+	      abbreviation to an array that holds all the time zone
+	      names that use the abbreviation.
+	    </p>
+	    <p>
+	      This is a GNU extension, and is not defined by
+	      OpenStep.
+	    </p>
+	  </desc>
+	</method>
+
+	<method type="NSString*">
+	  <sel>timeZoneName</sel>
+
+	  <desc>
+	    Returns the name for the time zone.
+	  </desc>
+	</method>
+
+	<method factory="yes" type="NSArray*">
+	  <sel>timeZoneArray</sel>
+
+	  <desc>
+	    <p>
+	      Returns an array containing 24 arrays that in turn
+	      contain the time zone names that are grouped according
+	      to the offset from UTC.  For example, a time zone that
+	      has an offset of 5 hours (or -19 hours) goes into the
+	      fifth array in the array.
+	    </p>
+	    <p>
+	      Note that OpenStep groups them by latitudinal region,
+	      and the exact details of the grouping is not
+	      specified.
+	    </p>
+	  </desc>
+	</method>
+
+	<method type="NSArray*">
+	  <sel>timeZoneDetailArray</sel>
+
+	  <desc>
+	    This returns an array containing all the possible time
+	    zone details for the time zone.
+	  </desc>
+	</method>
+
+	<standard>OpenStep GNU</standard>
+	
+      </class>
+
+      <class name="NSTimeZoneDetail" super="NSTimeZone">
+
+	<desc>
+	  <p>
+	    A time zone doesn't know the actual offset from UTC that
+	    a certain region has, since the offset is not always the
+	    same because of changes in time rules and such.  Since
+	    the details are different for different dates,
+	    <code>NSTimeZone</code> must return an object that details the
+	    time zone for a specific date.  <code>NSTimeZoneDetail</code>
+	    is the class for such objects.
+	  </p>
+	  <p>
+	    It is from <code>NSTimeZoneDetail</code> that we obtain the
+	    actual offsets from UTC.  In addition, we can obtain the
+	    time zone abbreviation (which is also dependent on the
+	    date) and whether the time zone uses daylight saving
+	    time for the date on which the time zone detail was
+	    created.
+	  </p>
+	</desc>
+
+	<method type="BOOL">
+	  <sel>isDaylightSavingTimeZone</sel>
+
+	  <desc>
+	    If the time zone detail describes a time zone for which
+	    the date the detail was created for is daylight saving
+	    time, return <code>YES</code>, else return <code>NO</code>.
+	  </desc>
+	</method>
+
+	<method type="NSString*">
+	  <sel>timeZoneAbbreviation</sel>
+
+	  <desc>
+	    Returns the abbreviation for the time zone detail.
+	  </desc>
+	</method>
+
+	<method type="int">
+	  <sel>timeZoneSecondsFromGMT</sel>
+
+	  <desc>
+	    <p>
+	      Returns the offset from UTC for local time in seconds.
+	    </p>
+	    <p>
+	      Note that OpenStep specifies an offset from GMT to be
+	      returned, but using UTC makes more sense.
+	    </p>
+	  </desc>
+	</method>
+
+	<standard>OpenStep GNU</standard>
+      </class>
+    </chapter>
+    <back>
+      <chapter>
+	<heading>Afterword</heading>
+	<p>
+	  Hopefully, this document shows that GDML is indeed useful
+	  for writing documentation for GNUstep.
+	</p>
+	<p>
+	  Even if it is not, it should still be useful since it
+	  documents the interface to the time zone classes, and should
+	  easily be converted to other text markup formats.
+	</p>
+	<p>
+	  Please send any questions about the DTD or this document to
+	  <email address="wacko@laplace.snu.ac.kr"/>.
+	</p>
+	<p>
+	  And by the way, I've tried out the time zone implementation
+	  in the GNUstep Base Library and it seems to work for the
+	  following time zone regions:
+	</p>
+	<list>
+	  <item>Asia/Seoul</item>
+	  <item>US/Eastern</item>
+	  <item>America/Los_Angeles</item>
+	</list>
+
+	<p>
+	  And here's a small incomplete class definition with somewhat
+	  longer method names.
+	</p>
+
+	<class name="NSObject">
+	  <conform>NSObject</conform>
+	  <conform>NSCoding</conform>
+	  <conform>NSCopying</conform>
+
+	  <desc>
+	    A superclass of all classes.
+	  </desc>
+
+	  <method>
+	    <sel>perform:</sel>
+	     <arg type="sel">aSelector </arg>
+	    <sel>withObject:</sel>
+	     <arg>object1</arg>
+	    <sel>withObject:</sel>
+             <arg>object2</arg>
+
+	    <desc>
+	      This should really go into a protocol definition, but I
+	      wanted to show a class definition with protocols.
+	    </desc>
+	  </method>
+
+	  <method type="NSString*">
+	    <sel>stringWithFormat:</sel>
+	    <arg type="NSString*">format</arg>
+	    <vararg/>
+
+	    <desc>
+	      This is not in <code>NSObject</code>, but I wanted to show the
+	      use of a variable argument list.
+	    </desc>
+	  </method>
+	</class>
+
+	<p>
+	  And here's an example:
+	</p>
+	<example>
+int
+function (void *ptr)
+{
+  return realloc(ptr, 100);
+}
+	</example>
+
+	<p>
+	  And here is a macro definition:
+	</p>
+
+	<macro name="MAX">
+	  <arg>a</arg>
+	  <arg>b</arg>
+	  <desc>
+	    Return the larger between <var>a</var> and <var>b</var>.
+	  </desc>
+	  <standard>GNU</standard>
+	</macro>
+
+	<macro name="NS_DURING">
+	  <desc>
+	    Start an exception handling domain.
+	  </desc>
+	</macro>
+
+	<p>
+	  And here is a type definition:
+	</p>
+	<type name="NSTimeInterval">
+	  <typespec>double</typespec>
+	  <desc>
+	    Used to save intervals between certain times in seconds.
+	  </desc>
+	</type>
+
+	<p>
+	  And here is a function definition:
+	</p>
+	<function name="NSZoneMalloc" type="void*">
+	  <arg type="NSZone*">zone</arg>
+	  <arg type="size_t">size</arg>
+	  <desc>
+	    Allocate <var>size</var> bytes from the dynamic memory
+	    allocation zone <var>zone</var>.
+	  </desc>
+	  <standard>OpenStep GNU</standard>
+	</function>
+      </chapter>
+      <index type="class"/>
+    </back>
+  </body>
+</gsdoc>
