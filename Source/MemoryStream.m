@@ -47,6 +47,12 @@
 /* This could be done with a set of classes instead. */
 enum {MALLOC_MEMORY_STREAM = 0, OBSTACK_MEMORY_STREAM, VM_MEMORY_STREAM};
 
+enum {
+  STREAM_READONLY = 0,
+  STREAM_READWRITE,
+  STREAM_WRITEONLY
+};
+
 #define DEFAULT_MEMORY_STREAM_SIZE 64
 
 extern int
@@ -68,7 +74,7 @@ static BOOL debug_memory_stream = YES;
    prefix: (unsigned)p		/* never read/write before this position */
    position: (unsigned)i	/* current position for reading/writing */
 {
-  [super initWithMode:STREAM_READWRITE];
+  [super init];
   buffer = b;
   size = s;
   prefix = p;
@@ -78,6 +84,7 @@ static BOOL debug_memory_stream = YES;
   return self;
 }
 
+/* xxx This method will disappear. */
 - initWithSize: (unsigned)s
    prefix: (unsigned)p
    position: (unsigned)i
@@ -88,15 +95,19 @@ static BOOL debug_memory_stream = YES;
 	       prefix:p position:i];
 }
 
-/* xxx Put mode in here */
-- initWithSize: (unsigned)s
+- initWithCapacity: (unsigned)capacity
 {
-  return [self initWithSize:s prefix:0 position:0];
+  return [self initWithSize:capacity prefix:0 position:0];
 }
 
-- initWithMode: (int)m
+- initWithSize: (unsigned)s
 {
-  return [self initWithSize: DEFAULT_MEMORY_STREAM_SIZE];
+  return [self initWithCapacity:s];
+}
+
+- (BOOL) isWritable
+{
+  return YES;
 }
 
 - (void) encodeWithCoder: anEncoder
@@ -193,7 +204,7 @@ void unchar_func(void *s, int c)
      Using GNU stdio streams would do the trick. 
      */
   if (size - (prefix + position) < 128)
-    [self setStreamBufferSize:size*2];
+    [self setStreamBufferCapacity:size*2];
 
   va_start(ap, format);
   ret = vsprintf(buffer+prefix+position, format, ap);
@@ -255,22 +266,17 @@ void unchar_func(void *s, int c)
     return NO;
 }
 
-- (unsigned) streamBufferSize
+- (unsigned) streamBufferCapacity
 {
   return size;
 }
 
-- (char *) streamBuffer
+- (char*) streamBuffer
 {
   return buffer;
 }
 
-- (unsigned) prefix
-{
-  return prefix;
-}
-
-- (void) setStreamBufferSize: (unsigned)s
+- (void) setStreamBufferCapacity: (unsigned)s
 {
   if (s > prefix + eofPosition)
     {
@@ -290,7 +296,7 @@ void unchar_func(void *s, int c)
     eofPosition = i;
 }  
 
-- (unsigned) streamPrefix
+- (unsigned) streamBufferPrefix
 {
   return prefix;
 }
@@ -299,4 +305,5 @@ void unchar_func(void *s, int c)
 {
   return prefix + eofPosition;
 }
+
 @end
