@@ -3,24 +3,24 @@
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Created: Feb 2004
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
-   */ 
+   */
 
 #include	<Foundation/NSIndexSet.h>
 #include	<Foundation/NSException.h>
@@ -71,8 +71,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
         }
     }
   /*
-   *	Now skip past any equal items so the insertion point is AFTER any
-   *	items that are equal to the new one.
+   * Now skip past any item containing no values as high as the index.
    */
   while (pos < GSIArrayCount(array)
     && index >= NSMaxRange(GSIArrayItemAtIndex(array, pos).ext))
@@ -123,12 +122,23 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (BOOL) containsIndexes: (NSIndexSet*)aSet
 {
-  if (_array == 0 || GSIArrayCount(_array) == 0)
+  unsigned	count = _other ? GSIArrayCount(_other) : 0;
+
+  if (count > 0)
     {
-      return NO;
+      unsigned	i;
+
+      for (i = 0; i < count; i++)
+	{
+	  NSRange	r = GSIArrayItemAtIndex(_other, i).ext;
+
+	  if ([self containsIndexesInRange: r] == NO)
+	    {
+	      return NO;
+	    }
+	}
     }
-  [self notImplemented:_cmd];
-  return NO;
+  return YES;
 }
 
 - (BOOL) containsIndexesInRange: (NSRange)aRange
@@ -227,7 +237,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self notImplemented:_cmd]; 
+  [self notImplemented:_cmd];
 }
 
 - (unsigned int) firstIndex
@@ -321,7 +331,6 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     {
       return anIndex;
     }
-  r = GSIArrayItemAtIndex(_array, pos).ext;
   return r.location;
 }
 
@@ -344,11 +353,6 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     {
       return anIndex;
     }
-  if (r.location > anIndex)
-    {
-      return r.location;
-    }
-  r = GSIArrayItemAtIndex(_array, pos).ext;
   return r.location;
 }
 
@@ -409,7 +413,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self notImplemented:_cmd]; 
+  [self notImplemented:_cmd];
   return self;
 }
 
@@ -585,10 +589,12 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	  [self addIndexesInRange: r];
 	}
     }
-} 
+}
 
 - (void) addIndexesInRange: (NSRange)aRange
 {
+  unsigned	pos;
+
   if (NSNotFound - aRange.length < aRange.location)
     {
       [NSException raise: NSInvalidArgumentException
@@ -604,69 +610,62 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       _data = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(_array, [self zone], 1);
     }
-  if (GSIArrayCount(_array) == 0)
+
+  pos = posForIndex(_array, aRange.location);
+  if (pos >= GSIArrayCount(_array))
     {
+      /*
+       * The start of the range to add lies beyond the existing
+       * ranges, so we can simply append it.
+       */
       GSIArrayAddItem(_array, (GSIArrayItem)aRange);
     }
   else
     {
-      unsigned	pos = posForIndex(_array, aRange.location);
+      NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
 
-      if (pos >= GSIArrayCount(_array))
+      if (NSLocationInRange(aRange.location, r))
 	{
-	  /*
-	   * The start of the range to add lies beyond the existing
-	   * ranges, so we can simply append it.
-	   */
-	  GSIArrayAddItem(_array, (GSIArrayItem)aRange);
+	  pos++;
 	}
-      else
-	{
-	  NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
+      GSIArrayInsertItem(_array, (GSIArrayItem)aRange, pos);
+    }
 
-	  if (NSLocationInRange(aRange.location, r))
-	    {
-	      pos++;
-	    }
-	  GSIArrayInsertItem(_array, (GSIArrayItem)aRange, pos);
+  /*
+   * Combine with the preceding ranges if possible.
+   */
+  while (pos > 0)
+    {
+      NSRange	r = GSIArrayItemAtIndex(_array, pos-1).ext;
+
+      if (NSMaxRange(r) < aRange.location)
+	{
+	  break;
 	}
+      r.length += (NSMaxRange(aRange) - NSMaxRange(r));
+      GSIArrayRemoveItemAtIndex(_array, pos--);
+      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+    }
 
-      /*
-       * Combine with the preceding ranges if possible.
-       */
-      while (pos > 0)
+  /*
+   * Combine with any following ranges where possible.
+   */
+  while (pos + 1 < GSIArrayCount(_array))
+    {
+      NSRange	r = GSIArrayItemAtIndex(_array, pos+1).ext;
+
+      if (NSMaxRange(aRange) < r.location)
 	{
-	  NSRange	r = GSIArrayItemAtIndex(_array, pos-1).ext;
+	  break;
+	}
+      GSIArrayRemoveItemAtIndex(_array, pos + 1);
+      if (NSMaxRange(r) > NSMaxRange(aRange))
+	{
+	  int	offset = NSMaxRange(r) - NSMaxRange(aRange);
 
-	  if (NSMaxRange(r) < aRange.location)
-	    {
-	      break;
-	    }
-	  r.length += (NSMaxRange(aRange) - NSMaxRange(r));
-	  GSIArrayRemoveItemAtIndex(_array, pos--);
+	  r = GSIArrayItemAtIndex(_array, pos).ext;
+	  r.length += offset;
 	  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
-	}
-
-      /*
-       * Combine with any following ranges where possible.
-       */
-      while (pos + 1 < GSIArrayCount(_array))
-	{
-	  NSRange	r = GSIArrayItemAtIndex(_array, pos+1).ext;
-
-	  if (NSMaxRange(aRange) < r.location)
-	    {
-	      break;
-	    }
-	  GSIArrayRemoveItemAtIndex(_array, pos + 1);
-	  if (NSMaxRange(r) > NSMaxRange(aRange))
-	    {
-	      int	offset = NSMaxRange(r) - NSMaxRange(aRange);
-
-	      r = GSIArrayItemAtIndex(_array, pos).ext;
-	      r.length += offset;
-	      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
-	    }
 	}
     }
 }
@@ -915,7 +914,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	    }
 	}
     }
-} 
+}
 
 @end
 
