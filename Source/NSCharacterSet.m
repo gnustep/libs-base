@@ -27,9 +27,8 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSLock.h>
 
-/* FIXME: Where should bitmaps go? Maybe should be defined with configure */
-#ifndef BITMAP_PATH
-#define BITMAP_PATH @"/usr/local/share/objects"
+#ifndef NSCharacterSet_PATH
+#define NSCharacterSet_PATH OBJC_STRINGIFY(GNUSTEP_INSTALL_PREFIX) @"/share"
 #endif
 
 /* A simple array for caching standard bitmap sets */
@@ -75,7 +74,7 @@ static NSLock* cache_lock = nil;
       NS_DURING
 	path = [NSBundle pathForResource:setname
 			ofType:@"dat"
-			inDirectory:BITMAP_PATH
+			inDirectory:NSCharacterSet_PATH
 			withVersion:0];
         /* This is for testing purposes */
         if (path == nil || [path length] == 0)
