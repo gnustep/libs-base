@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective-C Proxy for remote object messaging
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -366,7 +366,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 }
 @end
 
-@implementation Protocol (RemoteCoding)
+@implementation Protocol (RemoteSelfCoding)
 
 /* Perhaps Protocol's should be sent bycopy? */
 
