@@ -1,6 +1,7 @@
 #include <gnustep/base/all.h>
 #include <Foundation/NSValue.h>
 #include <gnustep/base/Invocation.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 @interface ConstantCollection (TestingExtras)
 - printCount;
@@ -27,6 +28,7 @@ void checkSameContents(id objectslist)
 int main()
 {
   int i;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   id array = [Array new];
   // id bag = [Bag new];
@@ -84,6 +86,7 @@ int main()
 
   [collections release];
 
+  [arp release];
   exit(0);
 }
 

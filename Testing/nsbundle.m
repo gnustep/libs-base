@@ -13,6 +13,7 @@
 #include "Foundation/NSBundle.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"
+#include <Foundation/NSAutoreleasePool.h>
 #include "LoadMe.h"
 #include "SecondClass.h"
 #include "MyCategory.h"
@@ -24,6 +25,7 @@ main(int ac, char *av[])
     NSBundle *bundle;
     NSString *path;
     id object;
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
     
     main = [NSBundle mainBundle];
     printf("Looking for main bundle...\n");
@@ -82,5 +84,6 @@ main(int ac, char *av[])
     [object printMyName];
     [object release];
 
+    [arp release];
     return 0;
 }

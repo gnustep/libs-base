@@ -3,9 +3,11 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 int main(int argc, char *argv[]) 
 {
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   NSProcessInfo *pi = [NSProcessInfo processInfo];
   NSString* aString;
   NSString* aKey;
@@ -28,5 +30,6 @@ int main(int argc, char *argv[])
     printf("++>%s=%s\n",[aKey cString],[[[pi environment] 
 				       objectForKey:aKey] cString]);
 
+  [arp release];
   exit(0);
 }

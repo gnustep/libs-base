@@ -8,6 +8,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSArray.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 
 int main()
@@ -17,6 +18,7 @@ int main()
     NSValue *v1, *v2;
     NSNumber *n1, *n2, *n3, *n4, *n5;
     NSArray *a1, *a2;
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
     // Numbers
     n1 = [NSNumber numberWithUnsignedShort:30];
@@ -75,5 +77,6 @@ int main()
 
     printf("Try getting a null NSValue, should get a NSLog error message:\n");
     v2 = [NSValue value:NULL withObjCType:@encode(int)];
+    [arp release];
     return 0;
 }

@@ -1,6 +1,7 @@
 #include <Foundation/NSRunLoop.h>
 #include <gnustep/base/Invocation.h>
 #include <Foundation/NSTimer.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 @interface TestDouble : NSObject
 + (double) testDouble;
@@ -30,6 +31,7 @@ void say_count ()
 
 int main()
 {
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   volatile double foo, bar;
   id inv = [[VoidFunctionInvocation alloc] initWithVoidFunction: say_count];
   id o;
@@ -53,5 +55,6 @@ int main()
 	   invocation: inv
 	   repeats: YES];
   [NSRunLoop run];
+  [arp release];
   exit (0);
 }

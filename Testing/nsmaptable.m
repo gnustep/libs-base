@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSValue.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 int main ()
 {
@@ -10,6 +11,7 @@ int main ()
   void *k;
   void *v;
   id o;
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
   /* Test with ints */
 
@@ -65,5 +67,6 @@ int main ()
 
   NSFreeMapTable (mt);
 
+  [arp release];
   exit (0);
 }

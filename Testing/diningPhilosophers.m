@@ -31,6 +31,7 @@
 
 #include <Foundation/NSLock.h>
 #include <Foundation/NSThread.h>
+#include    <Foundation/NSAutoreleasePool.h>
 
 // Conditions
 #define NO_FOOD 1
@@ -111,6 +112,7 @@ id forks[5];
 //
 int main()
 {
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 	int i;
 	id p[5];
 
