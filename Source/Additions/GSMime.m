@@ -3437,7 +3437,7 @@ static NSCharacterSet	*tokenSet = nil;
       type = [self headerNamed: @"content-type"];
     }
   enc = [self headerNamed: @"content-transfer-encoding"];
-  if ([[type parameterForKey: @"type"] isEqual: @"multipart"] == YES)
+  if ([[type objectForKey: @"Type"] isEqual: @"multipart"] == YES)
     {
       NSString	*v;
 
@@ -3458,7 +3458,7 @@ static NSCharacterSet	*tokenSet = nil;
   else if (enc == nil)
     {
       enc = [GSMimeHeader alloc];
-      if ([[type parameterForKey: @"type"] isEqual: @"text"] == YES)
+      if ([[type objectForKey: @"Type"] isEqual: @"text"] == YES)
 	{
 	  enc = [enc initWithName: @"content-transfer-encoding"
 			    value: @"8bit"
@@ -3512,7 +3512,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  NSMutableData	*part = [[content objectAtIndex: i] rawMimeData];
 
 	  [md appendData: part];
-	  [md appendBytes: "\r\n--" length: 2];
+	  [md appendBytes: "\r\n--" length: 4];
 	  [md appendData: boundary];
 	  [md appendBytes: "\r\n" length: 2];
 	  RELEASE(arp);
@@ -3648,6 +3648,8 @@ static NSCharacterSet	*tokenSet = nil;
   val = [NSString stringWithFormat: @"%@/%@", type, subType];
   hdr = [GSMimeHeader alloc];
   hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
+  [hdr setObject: type forKey: @"Type"];
+  [hdr setObject: subType forKey: @"SubType"];
   if (name != nil)
     {
       [hdr setParameter: name forKey: @"name"];
