@@ -313,6 +313,8 @@ _arg_addr(NSInvocation *inv, int index)
  * Using an index of 0 is equivalent to calling -setTarget: and using an
  * argument of 1 is equivalent to -setSelector:<br />
  * Proper arguments start at index 2.<br />
+ * NB. Unlike -setTarget: and -setSelector: the value of buffer must be
+ * <em>a pointer to</em> the argument to be set in the invocation.<br />
  * If -retainArguments was called, then any object argument set in the
  * receiver is retained by it.
  */
