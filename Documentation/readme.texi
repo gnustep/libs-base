@@ -44,47 +44,49 @@ abtract superclasses (classes which are not usable without
 subclassing) end with "Collection";
 
 @example
-   Collection <Collecting>
-       Set
-           Bag
-       KeyedCollection <KeyedCollecting>
-           Dictionary
-           MappedCollector
-           IndexedCollection <IndexedCollecting>
-               Array
-                   Stack
-                   GapArray
-                   CircularArray
-                       Queue
-                   Heap
-               LinkedList
-               BinaryTree
-               RBTree
-               EltNodeCollector
-               String
-    DelegatePool
-    LinkedListNode
-        LinkedListEltNode
-    BinaryTreeNode
-        BinaryTreeEltNode
+NSObject
+  Collection <Collecting>
+    Set
+      Bag
+    KeyedCollection <KeyedCollecting>
+      Dictionary
+        MappedCollector
+        IndexedCollection <IndexedCollecting>
+          Array
+            Stack
+            GapArray
+            CircularArray
+              Queue
+            Heap
+          LinkedList
+          BinaryTree
+          RBTree
+          EltNodeCollector
+          String
+  LinkedListNode
+    LinkedListEltNode
+  BinaryTreeNode
+    BinaryTreeEltNode
     RBTreeNode
-        RBTreeEltNode
-    Stream
-        StdioStream
-        MemoryStream
-    Coder
-        TextCoder
-        BinaryCoder
-            ConnectedCoder
+      RBTreeEltNode
+  Stream
+    StdioStream
+    MemoryStream
+  Coder
+    TextCoder
+    BinaryCoder
+      ConnectedCoder
+  RetainingNotifier
     Port
-        SocketPort
+      SocketPort
     Connection
-    Proxy
-    Magnitude
-        Time
-    Random
-    RNGBerkeley <RandomGenerating>
-    RNGAdditiveCongruential <RandomGenerating>
+  Magnitude
+    Time
+  Random
+  RNGBerkeley <RandomGenerating>
+  RNGAdditiveCongruential <RandomGenerating>
+DelegatePool
+Proxy
 @end example
 
 
