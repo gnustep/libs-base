@@ -1088,7 +1088,7 @@ static NSMapTable	*nodeNames = 0;
  *
  *  </example>
  */
-- (GSXMLNode*) properties
+- (GSXMLAttribute*) properties
 {
   if (((xmlNodePtr)(lib))->properties != NULL)
     {
