@@ -1,3 +1,16 @@
+2004-09-13  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
+	* Tools/gsdoc-1_0_1.rnc: Added usage information.
+	* Tools/GNUMakefile: Install it.
+	* Tools/gdomap.8: Refer user to HTML documentation for more info.
+	* Tools/autogsdoc.m: Be willing to parse .c files.
+	* Tools/autogsdoc.1: Document that.
+	* Tools/gdomap.c: Add comment to main so autogsdoc picks up as tool.
+	* Tools/gdomap/gsdoc: New file - docs for gsdoc are actually here,
+	taken from gdomap.h (not readily usable there by gsdoc).
+	* Tools/DocMakefile: Include gdomap in docbuild.
+	* Tools/BaseTools.gsdoc: Add gdomap to main TOC.
+
 2004-09-10  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSArray.m: Consistently terminate macros with semicolons.
