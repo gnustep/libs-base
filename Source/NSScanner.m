@@ -28,24 +28,7 @@
 #include <math.h>
 #include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
 
-/*
- * Cache the default NSCharacterSet of characters to be skipped.
- * FIXME: This would be unecessary if NSCharacterSet did the caching.
- */
-static NSCharacterSet *defaultCharactersToBeSkipped;
-
 @implementation NSScanner
-
-/*
- * Class initialization.
- * Fill in default NSCharacterSet of characters to be skipped.
- */
-+ (void)initialize
-{
-  if (defaultCharactersToBeSkipped == nil)
-    defaultCharactersToBeSkipped = 
-      [[NSCharacterSet whitespaceAndNewlineCharacterSet] retain];
-}
 
 /*
  * Create and return a scanner that scans aString.
@@ -71,7 +54,7 @@ static NSCharacterSet *defaultCharactersToBeSkipped;
   [super init];
   string = [aString copyWithZone: [self zone]];
   len = [string length];
-  charactersToBeSkipped = defaultCharactersToBeSkipped;
+  charactersToBeSkipped = [[NSCharacterSet whitespaceAndNewlineCharacterSet] retain];
   return self;
 }
 
@@ -82,8 +65,7 @@ static NSCharacterSet *defaultCharactersToBeSkipped;
 {
   [string release];
   [locale release];
-  if (charactersToBeSkipped != defaultCharactersToBeSkipped)
-    [charactersToBeSkipped release];
+  [charactersToBeSkipped release];
   [super dealloc];
 }
 
@@ -626,8 +608,7 @@ static NSCharacterSet *defaultCharactersToBeSkipped;
  */
 - (void)setCharactersToBeSkipped:(NSCharacterSet *)aSet
 {
-  if (charactersToBeSkipped != defaultCharactersToBeSkipped)
-    [charactersToBeSkipped release];
+  [charactersToBeSkipped release];
   charactersToBeSkipped = [aSet copyWithZone: [self zone]];
 }
 
