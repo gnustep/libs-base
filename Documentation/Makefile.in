@@ -43,7 +43,7 @@ TEXI_FILES = \
 advertisement.texi \
 announce.texi \
 install.texi \
-libobjects.texi \
+gnustep-base.texi \
 news.texi \
 objective-c.texi \
 readme.texi \
