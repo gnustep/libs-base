@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
+#include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSNotification.h"
 #include "Foundation/NSException.h"
@@ -96,8 +97,6 @@
 #define	INVALID_SOCKET	-1
 
 #endif /* !__MINGW__ */
-
-static	BOOL	multi_threaded = NO;
 
 /*
  * Largest chunk of data possible in DO
@@ -431,10 +430,7 @@ static Class	runLoopClass;
   handle = (GSTcpHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
-  if (multi_threaded == YES)
-    {
-      handle->myLock = [NSRecursiveLock new];
-    }
+  handle->myLock = [GSLazyRecursiveLock new];
   handle->valid = YES;
   return AUTORELEASE(handle);
 }
@@ -1277,62 +1273,6 @@ static NSRecursiveLock	*tcpPortLock = nil;
 static NSMapTable	*tcpPortMap = 0;
 static Class		tcpPortClass;
 
-/*
- *	When the system becomes multithreaded, we set a flag to say so and
- *	make sure that port and handle locking is enabled.
- */
-+ (void) _becomeThreaded: (NSNotification*)notification
-{
-  if (multi_threaded == NO)
-    {
-      NSMapEnumerator	pEnum;
-      NSMapTable	*m;
-      void		*dummy;
-
-      multi_threaded = YES;
-      if (tcpPortLock == nil)
-	{
-	  tcpPortLock = [NSRecursiveLock new];
-	}
-      pEnum = NSEnumerateMapTable(tcpPortMap);
-      while (NSNextMapEnumeratorPair(&pEnum, &dummy, (void**)&m))
-	{
-	  NSMapEnumerator	mEnum;
-	  GSTcpPort		*p;
-
-	  mEnum = NSEnumerateMapTable(m);
-	  while (NSNextMapEnumeratorPair(&mEnum, &dummy, (void**)&p))
-	    {
-	      if ([p isValid] == YES)
-		{
-		  NSMapEnumerator	hEnum;
-		  GSTcpHandle		*h;
-
-		  if (p->myLock == nil)
-		    {
-		      p->myLock = [NSRecursiveLock new];
-		    }
-		  hEnum = NSEnumerateMapTable(p->handles);
-		  while (NSNextMapEnumeratorPair(&hEnum, &dummy, (void**)&h))
-		    {
-		      if ([h isValid] == YES && h->myLock == nil)
-			{
-			  h->myLock = [NSRecursiveLock new];
-			}
-		    }
-		  NSEndMapTableEnumeration(&hEnum);
-		}
-	    }
-	  NSEndMapTableEnumeration(&mEnum);
-	}
-      NSEndMapTableEnumeration(&pEnum);
-    }
-  [[NSNotificationCenter defaultCenter]
-    removeObserver: self
-	      name: NSWillBecomeMultiThreadedNotification
-	    object: nil];
-}
-
 #if NEED_WORD_ALIGNMENT
 static unsigned	wordAlign;
 #endif
@@ -1348,18 +1288,7 @@ static unsigned	wordAlign;
       tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
-      if ([NSThread isMultiThreaded])
-	{
-	  [self _becomeThreaded: nil];
-	}
-      else
-	{
-	  [[NSNotificationCenter defaultCenter]
-	    addObserver: self
-	       selector: @selector(_becomeThreaded:)
-		   name: NSWillBecomeMultiThreadedNotification
-		 object: nil];
-	}
+      tcpPortLock = [GSLazyRecursiveLock new];
     }
 }
 
@@ -1455,10 +1384,7 @@ static unsigned	wordAlign;
       port->address = [addr copy];
       port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
-      if (multi_threaded == YES)
-	{
-	  port->myLock = [NSRecursiveLock new];
-	}
+      port->myLock = [GSLazyRecursiveLock new];
       port->_is_valid = YES;
 
       if (shouldListen == YES && [thisHost isEqual: aHost])
