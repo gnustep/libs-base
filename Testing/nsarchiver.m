@@ -49,7 +49,7 @@ int main()
   printf("\nReading:\n");
   {
     id o, e = [set objectEnumerator];
-    while (o = [e nextObject])
+    while ((o = [e nextObject]))
       printf("%@\n", o);    
   }
 
