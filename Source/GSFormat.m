@@ -1564,7 +1564,7 @@ NSDictionary *locale)
 
 	/* The string argument could in fact be `char *' or `wchar_t *'.
 	   But this should not make a difference here.  */
-	  string = (unichar *) args_value[specs[nspecs_done].data_arg].pa_wstring;
+	string = (unichar *) args_value[specs[nspecs_done].data_arg].pa_wstring;
 
 	/* Entry point for printing other strings.  */
       LABEL (print_string):
@@ -1616,6 +1616,7 @@ NSDictionary *locale)
 	    int prc;
 	    unichar *sp;
 	    wchar_t *wsp;
+
 	    len = 0;
 	    prc = prec;
 	    wsp = (wchar_t *)string;
