@@ -1,3 +1,9 @@
+2003-09-30  Derek Zhou <dzhou@chrontel.com>
+
+	* Source/NSCharacterSet.m: patch to ensure lock is created as
+	soon as the process goes multi-threaded, therefore avoiding
+	a race condition causing a rare exception.
+
 2003-09-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix pathExtension bug reported by Roland

@@ -3377,6 +3377,7 @@ static NSCharacterSet	*tokenSet = nil;
 /**
  * Search the content of this document to locate a part whose content ID
  * matches the specified key.  Recursively descend into other documents.<br />
+ * Wraps the supplied key in angle brackets if they are not present.<br />
  * Return nil if no match is found, the matching GSMimeDocument otherwise.
  */ 
 - (id) contentByID: (NSString*)key
