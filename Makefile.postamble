@@ -97,11 +97,3 @@ base.make: base.make.in
 config.mak: config.mak.in
 	./configure
 
-# Regenerate automatically generated files
-regenerate: stamp-regenerate
-
-stamp-regenerate: ChangeLog configure
-	for i in $(SUBPROJECTS); do \
-	  (cd $$i; $(MAKE) $(MAKEDEFINES) regenerate); \
-	done
-	touch stamp-regenerate
