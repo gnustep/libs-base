@@ -61,6 +61,17 @@
 	      specification are made available in the headers.
 	    </desc>
 	  </deflist>
+	  <p>
+	    <em>NB</em> These preprocessor constants are used in
+	    <em>developer code</em> (ie the code that users of GNUstep write)
+	    rather than by the GNUstep software itsself.  They permit a
+	    developer to ensure that he/she does not write code which depends
+	    upon API not present on other implementations (in practice,
+	    MacOS-X or some old OPENSTEP systems).<br />
+	    The actual GNUstep libraries are always built with the full
+	    GNUstep API in place, so that the feature set is as consistent
+	    as possible.
+	  </p>
 	</subsect>
 	<subsect>
 	  <heading>User defaults</heading>

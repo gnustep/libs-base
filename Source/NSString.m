@@ -1918,13 +1918,13 @@ handle_printf_atsign (FILE *stream,
  *   <item>U+000D (carriage return)</item>
  *   <item>U+2028 (Unicode line separator)</item>
  *   <item>U+2029 (Unicode paragraph separator)</item>
- *   <item>U+000D U+000A (CRLF</item>
+ *   <item>U+000D U+000A (CRLF)</item>
  * </list>
  * The index of the first character of the line at or before aRange is
  * returned in startIndex.<br />
  * The index of the first character of the next line after the line terminator
  * is returned in endIndex.<br />
- * The index of the last character bfore the line terminator is returned
+ * The index of the last character before the line terminator is returned
  * contentsEndIndex.<br />
  * Raises an NSRangeException if the range is invalid, but permits the index
  * arguments to be null pointers (in which case no value is returned in that
@@ -4103,7 +4103,7 @@ handle_printf_atsign (FILE *stream,
 - (NSString*) stringByRemovingSuffix: (NSString*)suffix
 {
   NSCAssert2([self hasSuffix: suffix],
-    @"'%@' has not the suffix '%@'", self, suffix);
+    @"'%@' does not have the suffix '%@'", self, suffix);
   return [self substringToIndex: ([self length] - [suffix length])];
 }
 
@@ -4114,7 +4114,7 @@ handle_printf_atsign (FILE *stream,
 - (NSString*) stringByRemovingPrefix: (NSString*)prefix
 {
   NSCAssert2([self hasPrefix: prefix],
-    @"'%@' has not the prefix '%@'", self, prefix);
+    @"'%@' does not have the prefix '%@'", self, prefix);
   return [self substringFromIndex: [prefix length]];
 }
 
@@ -4278,7 +4278,7 @@ handle_printf_atsign (FILE *stream,
 - (void) removeSuffix: (NSString*)suffix
 {
   NSCAssert2([self hasSuffix: suffix],
-    @"'%@' has not the suffix '%@'", self, suffix);
+    @"'%@' does not have the suffix '%@'", self, suffix);
   [self deleteCharactersInRange:
     NSMakeRange([self length] - [suffix length], [suffix length])];
 }
@@ -4290,7 +4290,7 @@ handle_printf_atsign (FILE *stream,
 - (void) removePrefix: (NSString*)prefix;
 {
   NSCAssert2([self hasPrefix: prefix],
-    @"'%@' has not the prefix '%@'", self, prefix);
+    @"'%@' does not have the prefix '%@'", self, prefix);
   [self deleteCharactersInRange: NSMakeRange(0, [prefix length])];
 }
 
@@ -4361,12 +4361,8 @@ handle_printf_atsign (FILE *stream,
       unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (end > 0)
+      while (end > 0 && isspace((*caiImp)(self, caiSel, end - 1)))
 	{
-	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
-	    {
-	      break;
-	    }
 	  end--;
 	}
       if (end < length)
