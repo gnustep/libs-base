@@ -53,7 +53,7 @@
   _comparison_function = elt_get_comparison_function(@encode(id));
   _grow_factor = [[self class] defaultGrowFactor];
   _count = count;
-  _capacity = count;
+  _capacity = (count < 1) ? 1 : count;
   OBJC_MALLOC(_contents_array, elt, _capacity);
   while (count--)
     {
@@ -98,7 +98,7 @@
   _comparison_function = elt_get_comparison_function(@encode(id));
   _grow_factor = [[self class] defaultGrowFactor];
   _count = 0;
-  _capacity = numItems;
+  _capacity = (numItems < 1) ? 1 : numItems;
   OBJC_MALLOC(_contents_array, elt, _capacity);
   return self;
 }
