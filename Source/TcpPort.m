@@ -194,27 +194,21 @@ static NSMapTable* port_number_2_port;
   assert (!NSMapGet (socket_2_port, (void*)p->_socket));
   NSMapInsert (socket_2_port, (void*)p->_socket, p);
   
-  /* Give the socket a name using bind(). */
+  /* Give the socket a name using bind() and INADDR_ANY for the
+     machine address in _LISTENING_ADDRESS; then put the network
+     address of this machine in _LISTENING_ADDRESS.SIN_ADDR, so
+     that when we encode the address, another machine can find us. */
   {
     struct hostent *hp;
     char hostname[MAXHOSTNAMELEN];
     int len = MAXHOSTNAMELEN;
-    if (gethostname (hostname, len) < 0)
-      {
-	perror ("[TcpInPort +newForReceivingFromPortNumber:] gethostname()");
-	abort ();
-      }
-    hp = gethostbyname (hostname);
-    if (!hp)
-      /* xxx This won't work with port connections on a network, though.
-         Fix this.  Perhaps there is a better way of getting the address
-	 of the local host. */
-      hp = gethostbyname ("localhost");
-    assert (hp);
-    /* Use host's address, and not INADDR_ANY, so that went we
-       encode our _listening_address for a D.O. operation, they get
-       our unique host address that can identify us across the network. */
-    memcpy (&(p->_listening_address.sin_addr), hp->h_addr, hp->h_length);
+
+    /* Fill in the _LISTENING_ADDRESS with the address this in port on
+       which will listen for connections.  Use INADDR_ANY so that we
+       will accept connection on any of the machine network addresses;
+       most machine will have both an Internet address, and the
+       "localhost" address (i.e. 127.0.0.1) */
+    p->_listening_address.sin_addr.s_addr = htonl (INADDR_ANY);
     p->_listening_address.sin_family = AF_INET;
     p->_listening_address.sin_port = htons (n);
     /* N may be zero, in which case bind() will choose a port number
@@ -227,6 +221,24 @@ static NSMapTable* port_number_2_port;
 	perror ("[TcpInPort +newForReceivingFromPortNumber] bind()");
 	abort ();
       }
+
+    /* Now change INADDR_ANY to the specific network address of this
+       machine so that, when we encoded our _LISTENING_ADDRESS for a
+       Distributed Objects connection to another machine, they get our
+       unique host address that can identify us across the network. */
+    if (gethostname (hostname, len) < 0)
+      {
+	perror ("[TcpInPort +newForReceivingFromPortNumber:] gethostname()");
+	abort ();
+      }
+    hp = gethostbyname (hostname);
+    if (!hp)
+      /* xxx This won't work with port connections on a network, though.
+         Fix this.  Perhaps there is a better way of getting the address
+	 of the local host. */
+      hp = gethostbyname ("localhost");
+    assert (hp);
+    memcpy (&(p->_listening_address.sin_addr), hp->h_addr, hp->h_length);
   }
 
   /* If the caller didn't specify a port number, it was chosen for us.
@@ -844,7 +856,7 @@ static NSMapTable *out_port_bag = NULL;
   else
     host_cstring = [hostname cStringNoCopy];
   hp = gethostbyname ((char*)host_cstring);
-  if (hp == 0)
+  if (!hp)
     [self error: "unknown host: \"%s\"", host_cstring];
 
   /* Get the sockaddr_in address. */
