@@ -1,4 +1,82 @@
+Sun Jan 12 13:46:38 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	Finish code necessary for versioning in CStreams and Coders.
+	Test this code by actually making a new format for BinaryCStream;
+	files created with the new format should be, on average, 4/5 the
+	size of the previous ones, and it should be faster.  This is now
+	the default format, but files created with the old format should
+	still be readable.
+
+	* src/BinaryCStream.m (PRE_SIZEOF_PREFIX_FORMAT_VERSION): New
+ 	macro for old version number.
+	(CURRENT_FORMAT_VERSION): New macro.
+	(DEFAULT_FORMAT_VERSION): Changed from 0 to 1.
+	([BinaryCStream -_initForReadingFromPostSignatureStream:
+	withFormatVersion:]): New method.
+	([BinaryCStream -initForWritingToStream:swithFormatVersion:]): New
+	method.
+	(WRITE_SIGNED_TYPE0): Renamed from WRITE_SIGNED_TYPE.
+	(WRITE_SIGNED_TYPE1): New macro.
+	(WRITE_SIGNED_TYPE): New macro for choosing between them.
+	(READ_SIGNED_TYPE0): Renamed from READ_SIGNED_TYPE.
+	(READ_SIGNED_TYPE1): New macro.
+	(READ_SIGNED_TYPE): New macro for choosing between them.
+	(WRITE_UNSIGNED_TYPE0, WRITE_UNSIGNED_TYPE1, WRITE_SIGNED_UNTYPE,
+	READ_UNSIGNED_TYPE0, READ_UNSIGNED_TYPE1, READ_UNSIGNED_TYPE):
+ 	Likewise.
+	([BinaryCStream -encodeValueOfCType:at:withName:name]): Don't use
+	`unsigned' as part of the argument to the *_UNSIGNED_TYPE macros,
+ 	because the macros now include that themselves.
+
+	* src/CStream.m ([CStream -_initForReadingFromPostSignatureStream:
+ 	withFormatVersion:]): New method.
+	([CStream +cStreamReadingFromStream:s]): Use it.
+	([CStream -initForReadingFromStream:swithFormatVersion:]): Likewise.
+
+	* src/include/BinaryCStream.h (BinaryCStream): Declare new ivars
+ 	for holding sizeof C types.
+
+	* src/include/CStream.h: Declare designated method for reading.
+
+	* src/include/NSProcessInfo.h: Include <gnustep/base/preface.h>
+
+Sat Jan 11 16:34:57 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/NSZone.m (NSCreateZone): Call initialize(), so that we won't
+ 	crash if someone tries to create an object before main() and
+ 	before initialize() gets called as a constructor.
+	(NSDefaultMallocZone): Likewise.
+	(initialize): Use a static variable to return immediately if we've
+	been run already.
+
+	* checks/string.m (main): Use NSDefaultMallocZone() instead of
+ 	NS_NO_ZONE.
+
 Thu Jan  9 10:45:10 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* checks/client.m: Include <Foundation/NSString.h> instead of
+ 	<gnustep/base/String.h>.
+	(main): Use class NSString instead of String.
+
+	* checks/server.m: Include <Foundation/NSString.h> instead of
+ 	<gnustep/base/String.h>.
+
+	* src/objc/NXStringTable.h (STRVAL): Make it a macro instead of an
+ 	inline function to avoid warning.
+
+	* src/NSPage.m (NSLogPageSize): Use NSPageSize() instead of
+ 	ns_page_size().
+	(NSRoundDownToMultipleOfPageSize): Likewise.
+	(NSRoundUpToMultipleOfPageSize): Likewise.
+
+	* src/NSString.m ([NSString -copy]): Use NSDefaultMallocZone()
+ 	instead of NS_NO_ZONE.
+
+	* src/NSCharacterSet.m ([NSCharacterSet +_bitmapForSet:number:]):
+ 	Remove last parameter from calls to [NSBundle pathForResource...].
+  	The method doesn't exist.
+
+	* src/NSBundle.m: Rearrange #include's a little.
 
 	* src/Connection.m ([Connection
  	-_getReceivedReplyRmcWithSequenceNumber:]): Break if the RunLoop
@@ -18,6 +96,14 @@ Thu Jan  9 10:45:10 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
 	* src/mframe.m (mframe_build_return): Change the way values of
  	type smaller than int are returned---don't offset into the int.
   	(Recommended by Richard Frith-Macdonald	<richard@brainstorm.co.uk>.)
+
+Thu Jan  9 17:06:00 1996  Richard frith-Macdonald  <richard@brainstorm.co.uk>
+
+        * src/NSTimer.m ([NSTimer -compare:]): Added an implementation of
+ 	'compare:' which compares timers by fire date.  This is required
+ 	for the timers to be kept in the correct order by the Heap in
+ 	Runloop.  Fixes a problem where a timer could be delayed
+ 	indefinately.
 
 Wed Dec 04 12:39:24 1996  Scott Christley  <scottc@net-community.com>
  
