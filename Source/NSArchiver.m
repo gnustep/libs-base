@@ -23,10 +23,62 @@
 
 #include <objects/stdobjects.h>
 #include <foundation/NSArchiver.h>
-#include <foundation/NSGNUArchiver.h>
+#include <foundation/NSGArchiver.h>
+#include <foundation/NSGData.h>
 #include <objects/NSCoder.h>
 
 @implementation NSArchiver
 
+// Initializing an archiver
+
+/* This is the designated initializer */
+- (id) initForWritingWithMutableData: (NSMutableData*)mdata
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+// Archiving Data
+
++ (NSData*) archivedDataWithRootObject: (id)rootObject
+{
+  /* xxx a quick kludge implementation */
+  id d = [[NSGMutableData alloc] init];
+  id a = [[NSGArchiver alloc] initForWritingWithMutableData:d];
+  [a encodeRootObject:rootObject];
+  return [d autorelease];
+}
+
++ (BOOL) archiveRootObject: (id)rootObject toFile: (NSString*)path
+{
+  /* xxx a quick kludge implementation */
+  id d = [self archivedDataWithRootObject:rootObject];
+  [d writeToFile:path atomically:NO];
+  return YES;
+}
+
+
+// Getting data from the archiver
+
+- (NSMutableData*) archiverData
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+
+// Substituting Classes
+
++ (NSString*) classNameEncodedForTrueClassName: (NSString*)trueName
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+- (void) enocdeClassName: (NSString*)trueName
+   intoClassName: (NSString*)inArchiveName
+{
+  [self notImplemented:_cmd];
+}
 
 @end
