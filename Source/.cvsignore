@@ -1,17 +1,19 @@
-Makefile
 
-AUTHORS
 
-NXStringTable_scan.c dynamic-load.h
-proplist.tab.m proplist.tab.h lex.pl.m
-stringsfile.tab.m stringsfile.tab.h lex.sf.m
-NSValue?.m NSNumber?.m NSNumber??.m
+
+
+
 
 *_bas.m *_cbs.m 
-
-errs*
-
-gnustep
+AUTHORS
 Foundation
-
+Makefile
+NSValue?.m NSNumber?.m NSNumber??.m
+NXStringTable_scan.c dynamic-load.h
+errs*
 gdomap
+gnustep
+ix86
+proplist.tab.m proplist.tab.h lex.pl.m
+shared_debug_obj
+stringsfile.tab.m stringsfile.tab.h lex.sf.m
