@@ -46,7 +46,7 @@
 #include <objects/objc-malloc.h>
 #include <assert.h>
 
-static int debug_behavior = 0;
+static int behavior_debug = 0;
 
 static Method_t search_for_method_in_list (MethodList_t list, SEL op);
 static void __objc_send_initialize(Class class);
@@ -132,7 +132,7 @@ class_add_methods_if_not_there(Class class, MethodList_t mlist)
         {
           Method_t method = &(mlist->method_list[counter]);
 
-	  if (debug_behavior)
+	  if (behavior_debug)
 	    fprintf(stderr, "processing method %s\n", 
 		    sel_get_name(method->method_name));
 
@@ -147,7 +147,7 @@ class_add_methods_if_not_there(Class class, MethodList_t mlist)
 				  method->method_imp);
 	      new_list->method_list[new_list->method_count] = *method;
 	      (new_list->method_count)++;
-	      if (debug_behavior)
+	      if (behavior_debug)
 		fprintf(stderr, "added method %s\n", 
 			sel_get_name(method->method_name));
 	    }
