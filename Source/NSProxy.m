@@ -32,7 +32,10 @@
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"
-#include <limits.h>
+#include "Foundation/NSDistantObject.h"
+#include "Foundation/NSPortCoder.h"
+
+@class	NSDistantObject;
 
 #ifndef NeXT_RUNTIME
 extern BOOL __objc_responds_to(id, SEL);
@@ -188,6 +191,14 @@ extern BOOL __objc_responds_to(id, SEL);
 #if	GS_WITH_GC == 0
   [NSAutoreleasePool addObject: self];
 #endif
+  return self;
+}
+
+/**
+ * Dummy method ... returns the receiver.
+ */
+- (id) awakeAfterUsingCoder: (NSCoder*)aDecoder
+{
   return self;
 }
 
@@ -431,6 +442,30 @@ extern BOOL __objc_responds_to(id, SEL);
       _retain_count--;
     }
 #endif
+}
+
+/**
+ * Returns the actual object to be encoded for sending over the
+ * network on a Distributed Objects connection.
+ */
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  static Class	proxyClass = 0;
+  static IMP	proxyImp = 0;
+
+  if (proxyImp == 0)
+    {
+      proxyClass = [NSDistantObject class];
+      /*
+       * use get_imp() because NSDistantObject doesn't implement
+       * methodForSelector:
+       */
+      proxyImp = get_imp(GSObjCClass((id)proxyClass),
+	@selector(proxyWithLocal:connection:));
+    }
+
+  return (*proxyImp)(proxyClass, @selector(proxyWithLocal:connection:),
+    self, [aCoder connection]);
 }
 
 /**
