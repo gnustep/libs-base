@@ -807,7 +807,7 @@ static BOOL snuggleStart(NSString *t)
 	   * recursively to format and output it.
 	   */
 	  tmp = [str substringWithRange: NSMakeRange(i, r.location - i)];
-	  [self reformat: str withIndent: ind to: buf];
+	  [self reformat: tmp withIndent: ind to: buf];
 	  i = r.location;
 	}
       /*
