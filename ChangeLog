@@ -1,5 +1,9 @@
 2000-07-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSThread.m: clarify code for getting current thread.
+
+2000-07-27  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Foundation/NSDebug.h: Bugfix reported by Frederic.De.Jaeger
 	to prevent incorrect processor handling of cases where logging format
 	string has no arguments.
