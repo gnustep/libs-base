@@ -1097,10 +1097,10 @@ quotedFromString(NSString *aString)
   memset (&start_info, 0, sizeof(start_info));
   start_info.cb = sizeof(start_info);
   start_info.dwFlags |= STARTF_USESTDHANDLES;
-  start_info.hStdInput  = GetStdHandle(STD_INPUT_HANDLE);
-  start_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-  start_info.hStdError  = GetStdHandle(STD_ERROR_HANDLE);
-
+  start_info.hStdInput = [[self standardInput] nativeHandle];
+  start_info.hStdOutput = [[self standardOutput] nativeHandle];
+  start_info.hStdError = [[self standardError] nativeHandle];
+  
   result = CreateProcess(executable,
 			 c_args,
 			 NULL,      /* proc attrs */
