@@ -480,9 +480,10 @@ int main(int argc, char *argv[], char **env)
   printf("Running...\n");
 
   if (timeout)
-    [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: timeout]];
+    [[NSRunLoop currentRunLoop] runUntilDate:
+      [NSDate dateWithTimeIntervalSinceNow: timeout]];
   else
-    [NSRunLoop run];
+    [[NSRunLoop currentRunLoop] run];
   printf("Finished\n");
 
   [arp release];

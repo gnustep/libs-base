@@ -234,7 +234,8 @@ exit(0);
   printf("%s\n", [[[c statistics] description] cString]);
 //  printf("%s\n", GSDebugAllocationList(YES));
 
-  [NSRunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 20 * 60]];
+  [[NSRunLoop currentRunLoop] runUntilDate:
+    [NSDate dateWithTimeIntervalSinceNow: 20 * 60]];
   [c invalidate];
   [arp release];
   exit(0);
