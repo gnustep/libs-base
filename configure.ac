@@ -105,14 +105,15 @@ fi
 # Miscellaneous flags
 #--------------------------------------------------------------------
 # Set location of GNUstep dirs for later use
-GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers
 if test "$GNUSTEP_FLATTENED" = yes; then
   GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries
+  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers
 else
   clean_target_os=`$GNUSTEP_MAKEFILES/clean_os.sh $target_os`
   clean_target_cpu=`$GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
   obj_dir=$clean_target_cpu/$clean_target_os
   GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries/$obj_dir
+  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers/$LIBRARY_COMBO
 fi
 
 #
