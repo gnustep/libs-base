@@ -116,6 +116,18 @@ static NSString* gnustep_target_dir =
 #else
   nil;
 #endif
+static NSString* gnustep_target_cpu = 
+#ifdef GNUSTEP_TARGET_CPU
+  @GNUSTEP_TARGET_CPU;
+#else
+  nil;
+#endif
+static NSString* gnustep_target_os = 
+#ifdef GNUSTEP_TARGET_OS
+  @GNUSTEP_TARGET_OS;
+#else
+  nil;
+#endif
 static NSString* library_combo = 
 #ifdef LIBRARY_COMBO
   @LIBRARY_COMBO;
@@ -232,7 +244,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   if ( !_mainBundle ) 
     {
       char *output;
-      NSString *path;
+      NSString *path, *s;
       
       path = [[NSProcessInfo processInfo] processName];
       output = objc_find_executable([path cString]);
@@ -242,6 +254,24 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
       /* Strip off the name of the program */
       path = [path stringByDeletingLastPathComponent];
+
+      /* The executable may not lie in the main bundle directory
+	 so we need to chop off the extra subdirectories, the library
+	 combo and the target cpu/os if they exist.  The executable and
+	 this library should match so that is why we can use the
+	 compiled-in settings. */
+      /* library combo */
+      s = [path lastPathComponent];
+      if ([s isEqual: library_combo])
+	path = [path stringByDeletingLastPathComponent];
+      /* target os */
+      s = [path lastPathComponent];
+      if ([s isEqual: gnustep_target_os])
+	path = [path stringByDeletingLastPathComponent];
+      /* target cpu */
+      s = [path lastPathComponent];
+      if ([s isEqual: gnustep_target_cpu])
+	path = [path stringByDeletingLastPathComponent];
 
 #ifdef DEBUG
       fprintf(stderr, "Debug (NSBundle): Found main in %s\n", 

@@ -1,3 +1,26 @@
+Thu Oct 30 13:38:51 1997  Scott Christley  <scottc@stetson.net-community.com>
+
+	* Makefile (GNUSTEP_INSTALLATION_DIR): Make default be system.
+	* NSCharacterSets/Makefile: Likewise.
+	* NSTimeZones/Makefile: Likewise.
+	* Tools/Makefile: Likewise.  Use objc.make instead of tool.make
+	as the file does not require the foundation library.
+	* admin/Makefile: Likewise.
+	* checks/Makefile: Likewise.  Use test.make so that
+	the programs do not get installed.
+	* doc/Makefile: Likewise.
+	* examples/Makefile: Likewise.  Use test.make so that the 
+	programs do not get installed.
+	* src/Makefile: Likewise.  Alter names to correspond with
+	the new recursive library.make.
+	* src/Makefile.postamble: Uninstall header files.
+
+	* src/NSBundle.m (+mainBundle): Strip off library combo, target
+	os and target cpu is they are part of the directory list to
+	the executable so that the bundle path is the top level dir.
+
+	* src/externs.m (NSNonRetainedObjectHashCallbacks): Correct name.
+
 Thu Oct 30 14:32:28 1997  Adam Fedor  <fedor@spanky.doc.com>
 
 	* Makefile (GNUSTEP_INSTALLATION_DIR): New variable.

@@ -22,6 +22,9 @@
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
+# Install into the system root by default
+GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
+
 include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
 
 include ../Version
@@ -39,6 +42,8 @@ LIBRARY_NAME=libgnustep-base
 DEFS= -DGNUSTEP_INSTALL_PREFIX=$(GNUSTEP_SYSTEM_ROOT) \
 	-DPLATFORM_OS=\"$(GNUSTEP_TARGET_OS)\" \
 	-DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
+	-DGNUSTEP_TARGET_CPU=\"$(GNUSTEP_TARGET_CPU)\" \
+	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \
 	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
 
 # Grep for these names to build the legally-required "AUTHORS" file.
@@ -471,12 +476,12 @@ dynamic-load.h \
 include/preface.h
 
 # The C source files to be compiled
-libgnustep-base_C_FILES = $(GNU_CFILES) $(NEXTSTEP_CFILES) $(NEXTSTEP_DERIVED_CFILES) \
-	$(BASE_CFILES)
+libgnustep-base_C_FILES = $(GNU_CFILES) $(NEXTSTEP_CFILES) \
+	$(NEXTSTEP_DERIVED_CFILES) $(BASE_CFILES)
 
 # The Objective-C source files to be compiled
-libgnustep-base_OBJC_FILES = $(GNU_MFILES) $(NEXTSTEP_MFILES) $(BASE_MFILES) \
-	$(NSVALUE_MFILES) $(NSNUMBER_MFILES)
+libgnustep-base_OBJC_FILES = $(GNU_MFILES) $(NEXTSTEP_MFILES) \
+	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 
 libgnustep-base_HEADER_FILES_DIR = .
 libgnustep-base_HEADER_FILES_INSTALL_DIR = /gnustep/base
