@@ -89,8 +89,10 @@ absoluteGregorianDay(int day, int month, int year)
      + (year - 1)/400);   // ...plus prior years divisible by 400
 }
 
-/*
- * External - so NSDate can use it.
+/**
+ * Convert a broken out time specification into a time interval
+ * since the reference date.<br />
+ * External - so NSDate and others can use it.
  */
 NSTimeInterval
 GSTime(int day, int month, int year, int h, int m, int s, int mil)
@@ -116,6 +118,8 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
 
 @end
 
+@class	NSGDate;
+
 @implementation NSCalendarDate
 
 + (void) initialize
@@ -127,9 +131,9 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
     }
 }
 
-//
-// Getting an NSCalendar Date
-//
+/**
+ * Getting an NSCalendar Date
+ */
 + (id) calendarDate
 {
   id	d = [[self alloc] init];

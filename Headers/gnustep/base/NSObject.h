@@ -387,13 +387,16 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
  *	objective-c method if the receiver is not nil.
  */
 #ifndef	TEST_RETAIN
-#define	TEST_RETAIN(object)	(object != nil ? [object retain] : nil)
+#define	TEST_RETAIN(object)	({\
+id __object = (id)(object); (__object != nil) ? [__object retain] : nil; })
 #endif
 #ifndef	TEST_RELEASE
-#define	TEST_RELEASE(object)	({ if (object) [object release]; })
+#define	TEST_RELEASE(object)	({\
+id __object = (id)(object); if (__object != nil) [__object retain]; })
 #endif
 #ifndef	TEST_AUTORELEASE
-#define	TEST_AUTORELEASE(object)	({ if (object) [object autorelease]; })
+#define	TEST_AUTORELEASE(object)	({\
+id __object = (id)(object); (__object != nil) ? [__object autorelease] : nil; })
 #endif
 
 /*
@@ -420,12 +423,12 @@ if (__value != __object) \
 #endif
 
 /*
- *	ASSIGNCOPY(object,value) assignes a copy of the value to the object with
- *	and release operations.
+ *	ASSIGNCOPY(object,value) assigns a copy of the value to the object
+ *	with release of the original.
  */
 #ifndef	ASSIGNCOPY
 #define	ASSIGNCOPY(object,value)	({\
-id __value = (value); \
+id __value = (id)(value); \
 id __object = (id)(object); \
 if (__value != __object) \
   { \

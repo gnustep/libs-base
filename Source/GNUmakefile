@@ -368,6 +368,7 @@ DOCUMENT_NAME = Base
 
 Base_HEADER_FILES_DIR = $(HEADER_DIR)
 Base_AGSDOC_FILES = Base.gsdoc $(AUTOGSDOC_HEADERS)
+Base_DOC_INSTALL_DIR = Developer
 Base_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
