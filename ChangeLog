@@ -1,3 +1,11 @@
+Tue Jun  2  5:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/TcpPort.m: Fixed to compile cleanly under cygwin.
+	* Source/UnixFileHandle.m: ditto
+	* Source/NSHost.m: ditto
+	* Source/NSProcessInfo.m: ditto
+	* Source/NSRunLoop.m: ditto
+
 Fri May 28 14:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSString.m: Fixed error on growing mutable strings - could
