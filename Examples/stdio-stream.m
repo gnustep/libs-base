@@ -2,6 +2,7 @@
    GNU StdioStream object. */
 
 #include <gnustep/base/StdioStream.h>
+#include <Foundation/NSString.h>
 
 int main()
 {
