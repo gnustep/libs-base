@@ -213,9 +213,25 @@
 	      BOOL	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
+#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT
+#define	PT (short)
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_INT
+#define	PT (int)
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG
+#define	PT (long)
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG_LONG
+#define	PT (long long)
+#else
+#define	PT (double)
+#endif
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -225,9 +241,25 @@
 	      signed char	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
+#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT
+#define	PT (short)
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_INT
+#define	PT (int)
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG
+#define	PT (long)
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG_LONG
+#define	PT (long long)
+#else
+#define	PT (double)
+#endif
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -237,9 +269,25 @@
 	      unsigned char	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
+#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT
+#define	PT (short)
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_INT
+#define	PT (int)
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG
+#define	PT (long)
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG_LONG
+#define	PT (long long)
+#else
+#define	PT (double)
+#endif
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -249,9 +297,23 @@
 	      signed short	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
+#if GS_SIZEOF_SHORT < GS_SIZEOF_INT
+#define	PT (int)
+#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG
+#define	PT (long)
+#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG_LONG
+#define	PT (long long)
+#else
+#define	PT (double)
+#endif
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -261,9 +323,23 @@
 	      unsigned short	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
+#if GS_SIZEOF_SHORT < GS_SIZEOF_INT
+#define	PT (int)
+#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG
+#define	PT (long)
+#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG_LONG
+#define	PT (long long)
+#else
+#define	PT (double)
+#endif
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -273,9 +349,21 @@
 	      signed int	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
+#if GS_SIZEOF_INT < GS_SIZEOF_LONG
+#define	PT (long)
+#elif GS_SIZEOF_INT < GS_SIZEOF_LONG_LONG
+#define	PT (long long)
+#else
+#define	PT (double)
+#endif
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -285,9 +373,21 @@
 	      unsigned int	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
+#if GS_SIZEOF_INT < GS_SIZEOF_LONG
+#define	PT (long)
+#elif GS_SIZEOF_INT < GS_SIZEOF_LONG_LONG
+#define	PT (long long)
+#else
+#define	PT (double)
+#endif
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -297,9 +397,19 @@
 	      signed long	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
+#if GS_SIZEOF_LONG < GS_SIZEOF_LONG_LONG
+#define	PT (long long)
+#else
+#define	PT (double)
+#endif
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -309,9 +419,19 @@
 	      unsigned long	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
+#if GS_SIZEOF_LONG < GS_SIZEOF_LONG_LONG
+#define	PT (long long)
+#else
+#define	PT (double)
+#endif
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -321,9 +441,15 @@
 	      signed long long	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
+#define	PT (double)
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -333,9 +459,15 @@
 	      unsigned long long	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+#undef PT
+#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
+#define	PT (double)
+#else
+#define	PT
+#endif
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -345,9 +477,9 @@
 	      float	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;
@@ -357,9 +489,9 @@
 	      double	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
-	      if (data == oData)
+	      if (PT data == PT oData)
 		return NSOrderedSame;
-	      else if (data < oData)
+	      else if (PT data < PT oData)
 		return NSOrderedAscending;
 	      else
 		return NSOrderedDescending;

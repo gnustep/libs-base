@@ -1,3 +1,9 @@
+2003-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConcreteNumber.m: ([compare:]) explicitly cast to promote
+	values to a type where comparisons can be done without loss of
+	precision.
+
 2003-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* base.make.in:
