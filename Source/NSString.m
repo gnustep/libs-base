@@ -3645,17 +3645,17 @@ handle_printf_atsign (FILE *stream,
 
   if (length > 0)
     {
-      unsigned	location = 0;
+      unsigned	start = 0;
       unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (location < length && isspace((*caiImp)(self, caiSel, location)))
+      while (start < length && isspace((*caiImp)(self, caiSel, start)))
 	{
-	  location++;
+	  start++;
 	}
-      if (location > 0)
+      if (start > 0)
 	{
-	  return [self substringFromIndex: location];
+	  return [self substringFromIndex: start];
 	}
     }
   return self;
@@ -3667,20 +3667,21 @@ handle_printf_atsign (FILE *stream,
 
   if (length > 0)
     {
-      unsigned	location = length;
+      unsigned	end = length;
       unichar	(*caiImp)(NSString*, SEL, unsigned int);
         
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (location > 0)
+      while (end > 0)
 	{
-	  if (!isspace((*caiImp)(self, caiSel, --location)))
+	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
 	    {
 	      break;
 	    }
+	  end--;
 	}
-      if (location < length-1)
+      if (end < length)
 	{
-	  return [self substringToIndex: location+1];
+	  return [self substringToIndex: end];
 	}
     }
   return self;
@@ -3703,17 +3704,23 @@ handle_printf_atsign (FILE *stream,
 	}
       while (end > start)
 	{
-	  if (!isspace((*caiImp)(self, caiSel, --end)))
+	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
 	    {
 	      break;
 	    }
+	  end--;
 	}
-      if (start > 0 || end < length-1)
+      if (start > 0 || end < length)
 	{
-          if (start<end)
-            return [self substringFromRange: NSMakeRange(start, end + 1 - start)];
+          if (start < end)
+	    {
+	      return [self substringFromRange:
+		NSMakeRange(start, end - start)];
+	    }
           else
-            return [NSStringClass string];
+	    {
+	      return [NSStringClass string];
+	    }
 	}
     }
   return self;
@@ -3729,17 +3736,17 @@ handle_printf_atsign (FILE *stream,
 
   if (length > 0)
     {
-      unsigned	location = 0;
+      unsigned	start = 0;
       unichar	(*caiImp)(NSString*, SEL, unsigned int);
 
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (location < length && isspace((*caiImp)(self, caiSel, location)))
+      while (start < length && isspace((*caiImp)(self, caiSel, start)))
 	{
-	  location++;
+	  start++;
 	}
-      if (location > 0)
+      if (start > 0)
 	{
-	  [self deleteCharactersInRange: NSMakeRange(0,location)];
+	  [self deleteCharactersInRange: NSMakeRange(0, start)];
 	}
     }
 }
@@ -3750,29 +3757,29 @@ handle_printf_atsign (FILE *stream,
 
   if (length > 0)
     {
-      unsigned	location = length;
+      unsigned	end = length;
       unichar	(*caiImp)(NSString*, SEL, unsigned int);
         
       caiImp = (unichar (*)())[self methodForSelector: caiSel];
-      while (location > 0)
+      while (end > 0)
 	{
-	  if (!isspace((*caiImp)(self, caiSel, --location)))
+	  if (!isspace((*caiImp)(self, caiSel, end - 1)))
 	    {
 	      break;
 	    }
+	  end--;
 	}
-      if (location < length-1)
+      if (end < length)
 	{
-	  [self deleteCharactersInRange: NSMakeRange((location == 0) ? 0
-	    : location + 1, length - ((location == 0) ? 0 : location + 1))];
+	  [self deleteCharactersInRange: NSMakeRange(end, length - end)];
 	}
     }
 }
 
 - (void) trimSpaces
 {
-  [self trimLeadSpaces];
   [self trimTailSpaces];
+  [self trimLeadSpaces];
 }
         
 @end

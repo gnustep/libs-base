@@ -1,5 +1,11 @@
 2002-03-14  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSString.m; Bug report by Manuel Guesdon prompted me to
+	rewrite string trimming extensions.  All the tail end trimming
+	was wrong.
+
+2002-03-14  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Tools/gdomap.c: Tidy a little ... fix non-static declarations.
 	* Source/NSString.m: ([-initWithData:encoding:]) Correct the length
 	of the string produced when unicode data is missing its 2 byte
