@@ -1,3 +1,12 @@
+Wed May 19 21:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/GSeq.h:  New file to replace NSGSequence stuff
+	* Source/NSString.m:  Rewrite all methods using sequences.
+	* Source/NSGString.m:  Remove reference to NSGSequence.
+	* Source/include/NSString.h:  Remove unused method (_normalize).
+	* Source/NSGSequence.m:  Removed
+	* Source/include/NSGSequence.h:  Removed
+
 Tue May 18  9:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSRunLoop.m:  ([-acceptInputForMode:beforeDate:]) check that
