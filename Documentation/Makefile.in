@@ -27,16 +27,17 @@ SHELL = /bin/sh
 srcdir = @srcdir@
 VPATH = @srcdir@
 
+# Installation location
+prefix = @prefix@
+infodir = $(prefix)/info
+
 MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi
 
 #### End of system configuration section. ####
 
-.SUFFIXES: .m
-.m.o:
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $< -o $*.o
-.c.o:
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $< -o $*.o
+include $(srcdir)/../Makeconf
+include $(srcdir)/../Version
 
 TEXI_FILES = \
 advertisement.texi \
@@ -46,18 +47,26 @@ libobjects.texi \
 news.texi \
 objective-c.texi \
 readme.texi \
-todo.texi \
-version.texi
+todo.texi
 
-all: info
-
+all: 
 
 info: libobjects.info objective-c.info \
-	../TODO ../INSTALL ../NEWS ../README ../ANNOUNCE ../ADVERTISEMENT
+	TODO INSTALL NEWS README ANNOUNCE ADVERTISEMENT
 dvi: libobjects.dvi objective-c.dvi
 
-version.texi: ../Makefile.in
-	cd ..; $(MAKE) doc/version.texi
+version.texi: $(srcdir)/../Version
+	rm -f version.texi
+	echo '@set OBJECTS_VERSION' $(OBJECTS_VERSION) \
+		> version.texi
+	echo '@set OBJECTS_GCC_VERSION' $(OBJECTS_GCC_VERSION) \
+		>> version.texi
+	if [ $(OBJECTS_FTP_MACHINE) ]; then \
+		echo '@set OBJECTS_FTP_MACHINE' $(OBJECTS_FTP_MACHINE) \
+		>> version.texi; fi
+	if [ $(OBJECTS_FTP_DIRECTORY) ]; then \
+		echo '@set OBJECTS_FTP_DIRECTORY' $(OBJECTS_FTP_DIRECTORY) \
+		>> version.texi; fi
 
 libobjects.dvi: libobjects.texi version.texi
 	$(TEXI2DVI) $(srcdir)/libobjects.texi
@@ -66,29 +75,35 @@ objective-c.dvi: objective-c.texi
 
 libobjects.info: libobjects.texi todo.texi version.texi
 	@echo Sorry, makeinfo does not yet support Objective C documentation.
-	:$(MAKEINFO) $(srcdir)/libobjects.texi
 objective-c.info: objective-c.texi
 	$(MAKEINFO) $(srcdir)/objective-c.texi
-../TODO: todo.texi version.texi
-	$(MAKEINFO) -o ../TODO -D TODO_ONLY \
+TODO: todo.texi version.texi
+	$(MAKEINFO) -o TODO -D TODO_ONLY \
 	--no-header --no-split $(srcdir)/todo.texi
-../INSTALL: install.texi version.texi
-	$(MAKEINFO) -o ../INSTALL -D INSTALL_ONLY \
+INSTALL: install.texi version.texi
+	$(MAKEINFO) -o INSTALL -D INSTALL_ONLY \
 	--no-header --no-split $(srcdir)/install.texi
-../README: readme.texi version.texi
-	$(MAKEINFO) -o ../README -D README_ONLY \
+README: readme.texi version.texi
+	$(MAKEINFO) -o README -D README_ONLY \
 	--no-header --no-split $(srcdir)/readme.texi
-../ANNOUNCE: announce.texi version.texi news.texi
-	$(MAKEINFO) -o ../ANNOUNCE -D ANNOUNCE_ONLY \
+ANNOUNCE: announce.texi version.texi news.texi
+	$(MAKEINFO) -o ANNOUNCE -D ANNOUNCE_ONLY \
 	--no-header --no-split $(srcdir)/announce.texi
-../NEWS: news.texi version.texi
-	$(MAKEINFO) -o ../NEWS -D NEWS_ONLY \
+NEWS: news.texi version.texi
+	$(MAKEINFO) -o NEWS -D NEWS_ONLY \
 	--no-header --no-split $(srcdir)/news.texi
-../ADVERTISEMENT: advertisement.texi version.texi
-	$(MAKEINFO) -o ../ADVERTISEMENT -D ADVERTISEMENT_ONLY \
+ADVERTISEMENT: advertisement.texi version.texi
+	$(MAKEINFO) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
 	--no-header --no-split $(srcdir)/advertisement.texi
 
-DISTFILES = $(TEXI_FILES) Makefile.in texinfo.tex
+TOP_DOC_FILES = README TODO INSTALL NEWS
+RCS_FILES =  $(TEXI_FILES) Makefile.in 
+DIST_FILES = $(RCS_FILES) texinfo.tex version.texi \
+        $(TOP_DOC_FILES) ANNOUNCE ADVERTISEMENT
+
+# In the future we'll want to install libobjects.info and objective-c.info.
+install:
+uninstall:
 
 mostlyclean:
 	rm -f *~
@@ -108,12 +123,10 @@ realclean: distclean
 	rm -f libobjects.info version.texi \
 		README TODO INSTALL NEWS ANNOUNCE
 
-TOP_FILES = ../TODO ../INSTALL ../README ../ANNOUNCE ../NEWS ../ADVERTISEMENT
-
-copy-dist: $(DISTFILES) $(TOP_FILES)
-	mkdir $(srcdir)/../`cat $(srcdir)/../.fname`/doc
-	ln $(DISTFILES) $(srcdir)/../`cat $(srcdir)/../.fname`/doc
-	ln $(TOP_FILES) $(srcdir)/../`cat $(srcdir)/../.fname`
+copy-dist: $(DIST_FILES)
+	mkdir ../snap/doc
+	ln $(DIST_FILES) ../snap/doc
+	ln $(TOP_DOC_FILES) ../snap
 
 Makefile: Makefile.in
-	cd $(srcdir)/..; $(SHELL) config.status
+	cd ..; $(SHELL) config.status
