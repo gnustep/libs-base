@@ -1,4 +1,5 @@
 #include <Foundation/Foundation.h>
+#include <gnustep/base/GCObject.h>
 #include <stdio.h>
 
 
@@ -36,6 +37,14 @@ int main ()
   id	x;
   NSString	*s;
   NSArray	*a = [NSArray arrayWithObjects: @"a", @"b", nil];
+
+  o = [GCMutableArray new];
+  x = [GCMutableArray new];
+  [o addObject: x];
+  [x addObject: o];
+  [o release];
+  [x release];
+  [GCObject gcCollectGarbage];
 
   o = [NSDictionary dictionaryWithObjectsAndKeys:
    @"test", @"one",
