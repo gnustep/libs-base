@@ -168,9 +168,12 @@ GSTimeNow(void)
 }
 
 /**
- * NSDate is the abstract base class of a cluster of date classes.<br />
- * An NSDate object encapsulates a constant date/time to a high
- * resolution represented by the NSTimeInterval typedef.
+ * An <code>NSDate</code> object encapsulates a constant date/time to a high
+ * resolution represented by the <code>NSTimeInterval</code> typedef.
+ * <code>NSDate</code> has methods relating to times and time differences in
+ * the abstract, but not calendar dates or time zones. These features are
+ * added in the [NSCalendarDate] subclass. The [NSTimeZone] class handles time
+ * zone information.
  */
 @implementation NSDate
 
@@ -1338,6 +1341,9 @@ GSTimeNow(void)
   return NO;
 }
 
+/**
+ *  Returns whether equal to other within one <code>NSTimeInterval</code> unit.
+ */
 - (BOOL) isEqualToDate: (NSDate*)other
 {
   if (other == nil)

@@ -310,6 +310,17 @@ failure:
 #endif
 
 
+
+/**
+ *  <p>Class for storing a byte array.  Methods for initializing from memory a
+ *  file, or the network are provided, as well as the ability to write to a
+ *  file or the network.  If desired, object can take over management of a
+ *  pre-allocated buffer (with malloc or similar), free'ing it when deallocated.
+ *  </p>
+ *  <p>The data buffer at any given time has a <em>capacity</em>, which is the
+ *  size of its allocated memory area, in bytes, and a <em>length</em>, which
+ *  is the length of data it is currently storing.</p>
+ */
 @implementation NSData
 
 #if NEED_WORD_ALIGNMENT
@@ -574,6 +585,11 @@ static unsigned	gsu32Align;
   return self;
 }
 
+/**
+ *  Initialize with data pointing to contents of file at path.  Bytes are
+ *  only "swapped in" as needed.  File should not be moved or deleted for
+ *  the life of this object.
+ */
 - (id) initWithContentsOfMappedFile: (NSString *)path
 {
 #ifdef	HAVE_MMAP
@@ -586,6 +602,10 @@ static unsigned	gsu32Align;
 #endif
 }
 
+/**
+ *  Initialize with data pointing to contents of URL, which will be
+ *  retrieved immediately in a blocking manner.
+ */
 - (id) initWithContentsOfURL: (NSURL*)url
 {
   NSData	*data = [url resourceDataUsingCache: YES];
@@ -593,6 +613,9 @@ static unsigned	gsu32Align;
   return [self initWithData: data];
 }
 
+/**
+ *  Initializes by copying data's bytes into a new buffer.
+ */
 - (id) initWithData: (NSData*)data
 {
   if (data == nil)
@@ -620,6 +643,9 @@ static unsigned	gsu32Align;
   return NULL;
 }
 
+/**
+ *  Returns a short description of this object.
+ */
 - (NSString*) description
 {
   extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
@@ -987,11 +1013,19 @@ failure:
 
 // Deserializing Data
 
+/**
+ *  Copies data from buffer starting from cursor.  <strong>Deprecated</strong>.
+ *  Use [-getBytes:] and related methods instead.
+ */
 - (unsigned int) deserializeAlignedBytesLengthAtCursor: (unsigned int*)cursor
 {
   return (unsigned)[self deserializeIntAtCursor: cursor];
 }
 
+/**
+ *  Copies data from buffer starting from cursor.  <strong>Deprecated</strong>.
+ *  Use [-getBytes:] and related methods instead.
+ */
 - (void) deserializeBytes: (void*)buffer
 		   length: (unsigned int)bytes
 		 atCursor: (unsigned int*)cursor
@@ -1289,6 +1323,10 @@ failure:
     }
 }
 
+/**
+ *  Retrieve an int from this data, which is assumed to be in network
+ *  (big-endian) byte order.  Cursor refers to byte position.
+ */
 - (int) deserializeIntAtCursor: (unsigned int*)cursor
 {
   unsigned ni, result;
@@ -1298,6 +1336,10 @@ failure:
   return result;
 }
 
+/**
+ *  Retrieve an int from this data, which is assumed to be in network
+ *  (big-endian) byte order.  Index refers to byte position.
+ */
 - (int) deserializeIntAtIndex: (unsigned int)index
 {
   unsigned ni, result;
@@ -1307,6 +1349,11 @@ failure:
   return result;
 }
 
+/**
+ *  Retrieve ints from intBuffer, which is assumed to be in network (big-endian)
+ *  byte order.  Count refers to number of ints, but index refers to byte
+ *  position.
+ */
 - (void) deserializeInts: (int*)intBuffer
 		   count: (unsigned int)numInts
 	        atCursor: (unsigned int*)cursor
@@ -1320,6 +1367,11 @@ failure:
     intBuffer[i] = NSSwapBigIntToHost(intBuffer[i]);
 }
 
+/**
+ *  Retrieve ints from intBuffer, which is assumed to be in network (big-endian)
+ *  byte order.  Count refers to number of ints, but index refers to byte
+ *  position.
+ */
 - (void) deserializeInts: (int*)intBuffer
 		   count: (unsigned int)numInts
 		 atIndex: (unsigned int)index
@@ -1369,7 +1421,14 @@ failure:
 
 @end
 
+/**
+ *  Provides some shared-memory extensions to [NSData].
+ */
 @implementation	NSData (GNUstepExtensions)
+
+/**
+ *  New instance with given shared memory ID.
+ */
 + (id) dataWithShmID: (int)anID length: (unsigned int)length
 {
 #ifdef	HAVE_SHMCTL
@@ -1384,6 +1443,9 @@ failure:
 #endif
 }
 
+/**
+ *  New instance with given bytes in shared memory.
+ */
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int)length
 {
   NSData	*d;
@@ -1463,6 +1525,10 @@ failure:
 @end
 
 
+/**
+ *  Mutable version of [NSData].  Methods are provided for appending and
+ *  replacing bytes in the buffer, which will be grown as needed.
+ */
 @implementation NSMutableData
 + (id) allocWithZone: (NSZone*)z
 {
@@ -1505,6 +1571,10 @@ failure:
   return AUTORELEASE(d);
 }
 
+/**
+ *  New instance with buffer of given numBytes with length of valid data set
+ *  to zero.  Note that capacity will be automatically increased as necessary.
+ */
 + (id) dataWithCapacity: (unsigned int)numBytes
 {
   NSMutableData	*d;
@@ -1552,6 +1622,12 @@ failure:
   return AUTORELEASE(d);
 }
 
+/**
+ *  New instance with buffer of capacity and valid data size equal to given
+ *  length in bytes.  The buffer contents are set to zero.  The length of
+ *  valid data is set to zero.  Note that buffer will be automatically
+ *  increased as necessary.
+ */
 + (id) dataWithLength: (unsigned int)length
 {
   NSMutableData	*d;
@@ -1590,6 +1666,11 @@ failure:
     }
 }
 
+/**
+ *  Initialize with buffer capable of holding size bytes.  The length of valid
+ *  data is initially set to zero.
+ *  <init/>
+ */
 - (id) initWithCapacity: (unsigned int)capacity
 {
   [self subclassResponsibility: _cmd];
@@ -1628,6 +1709,10 @@ failure:
   return self;
 }
 
+/**
+ *  Initialize with buffer of capacity equal to length, and with the length
+ *  of valid data set to length.  Data is set to zero.
+ */
 - (id) initWithLength: (unsigned int)length
 {
   [self subclassResponsibility: _cmd];
@@ -1635,7 +1720,10 @@ failure:
 }
 
 // Adjusting Capacity
-
+/**
+ *  Increases buffer length by given number of bytes, filling the new space
+ *  with zeros.
+ */
 - (void) increaseLengthBy: (unsigned int)extraLength
 {
   [self setLength: [self length]+extraLength];
@@ -1683,6 +1771,10 @@ failure:
 
 // Appending Data
 
+/**
+ *  Appends bufferSize bytes from aBuffer to data, increasing capacity if
+ *  necessary.
+ */
 - (void) appendBytes: (const void*)aBuffer
 	      length: (unsigned int)bufferSize
 {
@@ -1694,6 +1786,10 @@ failure:
   memcpy(buffer + oldLength, aBuffer, bufferSize);
 }
 
+/**
+ *  Copies and appends data from other to data, increasing capacity if
+ *  necessary.
+ */
 - (void) appendData: (NSData*)other
 {
   [self appendBytes: [other bytes] length: [other length]];
@@ -1784,6 +1880,9 @@ failure:
     }
 }
 
+/**
+ *  Set bytes in aRange to 0.
+ */
 - (void) resetBytesInRange: (NSRange)aRange
 {
   unsigned	size = [self length];
@@ -1792,6 +1891,10 @@ failure:
   memset((char*)[self bytes] + aRange.location, 0, aRange.length);
 }
 
+/**
+ *  Replaces contents of buffer with contents of data's buffer, increasing
+ *  or shrinking capacity to match.
+ */
 - (void) setData: (NSData*)data
 {
   NSRange	r = NSMakeRange(0, [data length]);
@@ -1802,6 +1905,10 @@ failure:
 
 // Serializing Data
 
+/**
+ *  Does not act as the name suggests.  Instead, serializes length itself
+ *  as an int into buffer.
+ */
 - (void) serializeAlignedBytesLength: (unsigned int)length
 {
   [self serializeInt: length];
@@ -1976,12 +2083,21 @@ failure:
     }
 }
 
+/**
+ * Serialize an int into this object's data buffer, swapping it to network
+ * (big-endian) byte order first.
+ */
 - (void) serializeInt: (int)value
 {
   unsigned ni = NSSwapHostIntToBig(value);
   [self appendBytes: &ni length: sizeof(unsigned)];
 }
 
+/**
+ * Serialize an int into this object's data buffer at index (replacing
+ * anything there currently), swapping it to network (big-endian) byte order
+ * first.
+ */
 - (void) serializeInt: (int)value atIndex: (unsigned int)index
 {
   unsigned ni = NSSwapHostIntToBig(value);
@@ -1990,6 +2106,10 @@ failure:
   [self replaceBytesInRange: range withBytes: &ni];
 }
 
+/**
+ * Serialize one or more ints into this object's data buffer, swapping them to
+ * network (big-endian) byte order first.
+ */
 - (void) serializeInts: (int*)intBuffer
 		 count: (unsigned int)numInts
 {
@@ -2003,6 +2123,11 @@ failure:
     }
 }
 
+/**
+ * Serialize one or more ints into this object's data buffer at index
+ * (replacing anything there currently), swapping them to network (big-endian)
+ * byte order first.
+ */
 - (void) serializeInts: (int*)intBuffer
 		 count: (unsigned int)numInts
 	       atIndex: (unsigned int)index
@@ -2019,7 +2144,15 @@ failure:
 
 @end
 
+
+/**
+ *  Provides some additional methods to [NSData].
+ */
 @implementation	NSMutableData (GNUstepExtensions)
+
+/**
+ *  New instance with given shared memory ID.
+ */
 + (id) dataWithShmID: (int)anID length: (unsigned int)length
 {
 #ifdef	HAVE_SHMCTL
@@ -2034,6 +2167,9 @@ failure:
 #endif
 }
 
+/**
+ *  New instance with given bytes in shared memory.
+ */
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned int)length
 {
   NSData	*d;
@@ -2048,18 +2184,28 @@ failure:
   return AUTORELEASE(d);
 }
 
+/**
+ *  Returns current capacity of data buffer.
+ */
 - (unsigned int) capacity
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
+/**
+ *  Sets current capacity of data buffer.  Unlike [-setLength:], this will
+ *  shrink the buffer if requested.
+ */
 - (id) setCapacity: (unsigned int)newCapacity
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
+/**
+ *  Return shared memory ID, if using one, else -1.
+ */
 - (int) shmID
 {
   return -1;
@@ -2614,6 +2760,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   [super dealloc];
 }
 
+/**
+ *  Initialize with data pointing to contents of file at path.  Bytes are
+ *  only "swapped in" as needed.  File should not be moved or deleted for
+ *  the life of this object.
+ */
 - (id) initWithContentsOfMappedFile: (NSString*)path
 {
   int	fd;
@@ -2858,8 +3009,10 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
-/*
- *	THIS IS THE DESIGNATED INITIALISER
+// THIS IS THE DESIGNATED INITIALISER
+/**
+ *  Initialize with buffer capable of holding size bytes.
+ *  <init/>
  */
 - (id) initWithCapacity: (unsigned int)size
 {
@@ -2890,6 +3043,10 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
+/**
+ *  Initialize with buffer capable of holding size bytes.  Buffer is zeroed
+ *  out.
+ */
 - (id) initWithLength: (unsigned int)size
 {
   self = [self initWithCapacity: size];

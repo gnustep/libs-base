@@ -37,7 +37,7 @@
 /*
   This file provides two implementations of the NSDecimal functions. 
   One is based on pure simple decimal mathematics, as we all learned it 
-  in school. This version is rather slow and may be inexact in the extrem 
+  in school. This version is rather slow and may be inexact in the extreme
   cases. 
   THIS IS TESTED AND WORKING.
 
@@ -48,7 +48,7 @@
 
   The data structure used for NSDecimals is a bit strange. It also does not
   correspond to the description in the OpenStep specification. But this is
-  not consistent, so a decission had to be made.
+  not consistent, so a decision had to be made.
   The mantissa part (I know D. Knuth does not like this term, but it is used 
   in the specification so we stay with it) consists of up to 38 digits, this 
   are stored as an integer (in decimal representation or limps depending on the
@@ -72,7 +72,7 @@ typedef struct {
   BOOL	isNegative;	/* Is this negative?			*/
   BOOL	validNumber;	/* Is this a valid number?		*/
   unsigned char	length;		/* digits in mantissa.			*/
-  unsigned char  cMantissa[2*NSDecimalMaxDigit]; /* Make this big enought for multiplication */
+  unsigned char  cMantissa[2*NSDecimalMaxDigit]; /* Make this big enough for multiplication */
 } GSDecimal;
 
 static NSDecimal zero = {0, NO, YES, 0, {0}};
@@ -84,6 +84,15 @@ static NSDecimal one = {0, NO, YES, 1, {1}};
 #else
 
 // Make GSDecimal a synonym of NSDecimal
+/** <code>
+typedef struct {<br/>
+  signed char	exponent;   // Signed exponent - -128 to 127<br/>
+  BOOL	isNegative;         // Is this negative?<br/>
+  BOOL	validNumber;        // Is this a valid number?<br/>
+  unsigned char	length;	    // digits in mantissa.<br/>
+  unsigned char  cMantissa[2*NSDecimalMaxDigit];<br/>
+}<br/>
+</code> */
 typedef NSDecimal GSDecimal;
 
 static NSDecimal zero = {0, NO, YES, 0, {0}};

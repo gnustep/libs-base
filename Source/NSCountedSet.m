@@ -50,13 +50,14 @@ static BOOL		uniquing = NO;
 
 /**
  * <p>
- *   The NSCountedSet class is used to maintain a set of objects where
- *   the number of times each object has been added (wiithout a
+ *   The <code>NSCountedSet</code> class is used to maintain a set of objects
+ *   where the number of times each object has been added (without a
  *   corresponding removal) is kept track of.
  * </p>
  * <p>
- *   In GNUstep, extra methods are provided to make use of a counted
- *   set for <em>uniquing</em> objects easier.
+ *   In GNUstep, the <code>purge</code> and <code>unique</code> methods
+ *   are provided to make use of a counted set for <em>uniquing</em> objects
+ *   easier.
  * </p>
  */
 @implementation NSCountedSet 
@@ -90,7 +91,7 @@ static Class NSCountedSet_concrete_class;
 
 /**
  * Returns the number of times that an object that is equal to the
- * specified object (as determined byt the [-isEqual:] method) has
+ * specified object (as determined by the [-isEqual:] method) has
  * been added to the set and not removed from it.
  */
 - (unsigned int) countForObject: (id)anObject
@@ -205,17 +206,6 @@ static Class NSCountedSet_concrete_class;
   return self;
 }
 
-/**
- * <p>
- *   This method removes from the set all objects whose count is
- *   less than or equal to the specified value.
- * </p>
- * <p>
- *   This is useful where a counted set is used for uniquing objects.
- *   The set can be periodically purged of objects that have only
- *   been added once - and are therefore simply wasting space.
- * </p>
- */
 - (void) purge: (int)level
 {
   if (level > 0)
@@ -251,22 +241,6 @@ static Class NSCountedSet_concrete_class;
     }
 }
 
-/**
- * <p>
- *   If the supplied object (or one equal to it as determined by
- *   the [-isEqual:] method) is already present in the set, the
- *   count for that object is incremented, the supplied object
- *   is released, and the object in the set is retained and returned.
- *   Otherwise, the supplied object is added to the set and returned.
- * </p>
- * <p> 
- *   This method is useful for uniquing objects - the init method of
- *   a class need simply end with -
- *   <code>
- *     return [myUniquingSet unique: self];
- *   </code>
- * </p>
- */
 - (id) unique: (id)anObject
 {
   id	o = [self member: anObject];
@@ -288,7 +262,7 @@ static Class NSCountedSet_concrete_class;
 @end
 
 /**
- * This function purges the global NSCountedSet object used for
+ * This function purges the global [NSCountedSet] object used for
  * uniquing.  It handles locking as necessary.  It can be used to
  * purge the set even when uniquing is turned off.
  */

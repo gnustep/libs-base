@@ -942,7 +942,7 @@ static NSMapTable	*absolutes = 0;
 @implementation NSTimeZone
 
 /**
- * DEPRICATED.
+ * DEPRECATED.
  */
 + (NSDictionary*) abbreviationDictionary
 {
@@ -1563,7 +1563,7 @@ static NSMapTable	*absolutes = 0;
 }
 
 /**
- * DEPRICATED:  see NSTimeZoneDetail
+ * DEPRECATED:  see NSTimeZoneDetail
  */
 - (NSArray*) timeZoneDetailArray
 {
@@ -1571,7 +1571,7 @@ static NSMapTable	*absolutes = 0;
 }
 
 /**
- * DEPRICATED:  see NSTimeZoneDetail
+ * DEPRECATED:  see NSTimeZoneDetail
  */
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
 {
@@ -1604,7 +1604,7 @@ static NSMapTable	*absolutes = 0;
 }
 
 /**
- * DEPRICATED: Class is no longer used.
+ * DEPRECATED: Class is no longer used.
  */
 - (BOOL) isDaylightSavingTimeZone
 {
@@ -1613,7 +1613,7 @@ static NSMapTable	*absolutes = 0;
 }
   
 /**
- * DEPRICATED: Class is no longer used.
+ * DEPRECATED: Class is no longer used.
  */
 - (NSString*) timeZoneAbbreviation
 {
@@ -1621,7 +1621,7 @@ static NSMapTable	*absolutes = 0;
 }
   
 /**
- * DEPRICATED: Class is no longer used.
+ * DEPRECATED: Class is no longer used.
  */
 - (int) timeZoneSecondsFromGMT
 {

@@ -284,8 +284,22 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 		  forModes: (NSArray*)modes;
 @end
 
+/**
+ * This class supports asynchronous posting of [NSNotification]s to an
+ * [NSNotificationCenter].  The method to add a notification to the queue
+ * returns immediately.  The queue will periodically post its oldest
+ * notification to the notification center.  In a multithreaded process,
+ * notifications are always sent on the thread that they are posted from.
+ */
 @implementation NSNotificationQueue
 
+
+/**
+ * Returns the default notification queue for use in this thread.  It will
+ * always post notifications to the default notification center (for the
+ * entire task, which may have multiple threads and therefore multiple
+ * notification queues).
+ */
 + (NSNotificationQueue*) defaultQueue
 {
   NotificationQueueList	*list;
@@ -309,6 +323,10 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 	  [NSNotificationCenter defaultCenter]];
 }
 
+/**
+ *  Initialize a new instance to post notifications to the given
+ *  notificationCenter (instead of the default).
+ */
 - (id) initWithNotificationCenter: (NSNotificationCenter*)notificationCenter
 {
   _zone = [self zone];
@@ -361,6 +379,17 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 
 /* Inserting and Removing Notifications From a Queue */
 
+/**
+ * Immediately remove all notifications from queue matching notification on
+ * name and/or object as specified by coalesce mask, which is an OR
+ * ('<code>|</code>') of the options
+ * <code>NSNotificationCoalescingOnName</code>,
+ * <code>NSNotificationCoalescingOnSender</code> (object), and
+ * <code>NSNotificationNoCoalescing</code> (match only the given instance
+ * exactly).  If both of the first options are specified, notifications must
+ * match on both attributes (not just either one).  Removed notifications are
+ * <em>not</em> posted.
+ */
 - (void) dequeueNotificationsMatching: (NSNotification*)notification
 			 coalesceMask: (unsigned int)coalesceMask
 {
@@ -378,6 +407,7 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
       for (item = _asapQueue->tail; item; item = next)
 	{
           next = item->next;
+          //PENDING: should object comparison be '==' instead of isEqual?!
           if ((object == item->object) && [name isEqual: item->name])
 	    {
               remove_from_queue(_asapQueue, item, _zone);
@@ -447,6 +477,12 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
     }
 }
 
+/**
+ *  Sets notification to be posted to notification center at time dependent on
+ *  postingStyle, which may be either <code>NSPostNow</code> (synchronous post),
+ *  <code>NSPostASAP</code> (post soon), or <code>NSPostWhenIdle</code> (post
+ *  when runloop is idle).
+ */
 - (void) enqueueNotification: (NSNotification*)notification
 		postingStyle: (NSPostingStyle)postingStyle	
 {
@@ -457,6 +493,17 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
 		   forModes: nil];
 }
 
+/**
+ *  Sets notification to be posted to notification center at time dependent on
+ *  postingStyle, which may be either <code>NSPostNow</code> (synchronous
+ *  post), <code>NSPostASAP</code> (post soon), or <code>NSPostWhenIdle</code>
+ *  (post when runloop is idle).  coalesceMask determines whether this
+ *  notification should be considered same as other ones already on the queue,
+ *  in which case they are removed through a call to
+ *  -dequeueNotificationsMatching:coalesceMask: .  The modes argument
+ *  determines which [NSRunLoop] mode notification may be posted in (nil means
+ *  all modes).
+ */
 - (void) enqueueNotification: (NSNotification*)notification
 		postingStyle: (NSPostingStyle)postingStyle
 		coalesceMask: (unsigned int)coalesceMask

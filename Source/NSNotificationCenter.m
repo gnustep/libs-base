@@ -37,7 +37,7 @@
 
 
 /**
- * Concrete class implementing NSNotification
+ * Concrete class implementing NSNotification.
  */
 @interface	GSNotification : NSNotification
 {
@@ -539,6 +539,24 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 
 
 
+/**
+ * <p>GNUstep provides a framework for sending messages between objects within
+ * a process called <em>notifications</em>.  Objects register with an
+ * <code>NSNotificationCenter</code> to be informed whenever other objects
+ * post [NSNotification]s to it matching certain criteria. The notification
+ * center processes notifications synchronously -- that is, control is only
+ * returned to the notification poster once every recipient of the
+ * notification has received it and processed it.  Asynchronous processing is
+ * possible using an [NSNotificationQueue].</p>
+ *
+ * <p>Obtain an instance using the +defaultCenter method.</p>
+ *
+ * <p>In a multithreaded process, notifications are always sent on the thread
+ * that they are posted from.</p>
+ *
+ * <p>Use the [NSDistributedNotificationCenter] for interprocess
+ * communications on the same machine.</p>
+ */
 @implementation NSNotificationCenter
 
 /* The default instance, most often the only one created.
@@ -564,6 +582,11 @@ static NSNotificationCenter *default_center = nil;
     }
 }
 
+/**
+ * Returns the default notification center being used for this task (process).
+ * This is used for all notifications posted by the Base library unless
+ * otherwise noted.
+ */
 + (NSNotificationCenter*) defaultCenter
 {
   return default_center;
@@ -599,6 +622,21 @@ static NSNotificationCenter *default_center = nil;
 
 /* Adding new observers. */
 
+/**
+ * <p>Registers observer to receive notifications with the name
+ * notificationName and/or containing object (one or both of these two must be
+ * non-nil; nil acts like a wildcard).  When a notification of name name
+ * containing object is posted, observer receives a selector message with this
+ * notification as the argument.  The notification center waits for the
+ * observer to finish processing the message, then informs the next registree
+ * matching the notification, and after all of this is done, control returns
+ * to the poster of the notification.  Therefore the processing in the
+ * selector implementation should be short.</p>
+ * 
+ * <p>The notification center does not retain observer or object. Therefore,
+ * you should always send removeObserver: or removeObserver:name:object: to
+ * the notification center before releasing these objects.</p>
+ */
 - (void) addObserver: (id)observer
 	    selector: (SEL)selector
                 name: (NSString*)name
@@ -710,6 +748,14 @@ static NSNotificationCenter *default_center = nil;
   unlockNCTable(TABLE);
 }
 
+/**
+ * Deregisters observer for notifications matching name and/or object.  If
+ * either or both is nil, they act like wildcards.  The observer may still
+ * remain registered for other notifications; use -removeObserver: to remove
+ * it from all.  If observer is nil, the effect is to remove all registrees
+ * for the specified notifications, unless both observer and name are nil, in
+ * which case nothing is done.
+ */
 - (void) removeObserver: (id)observer
 		   name: (NSString*)name
                  object: (id)object
@@ -866,9 +912,10 @@ static NSNotificationCenter *default_center = nil;
   unlockNCTable(TABLE);
 }
 
-/* Remove all records pertaining to OBSERVER.  For instance, this 
-   should be called before the OBSERVER is -dealloc'ed. */
-
+/**
+ * Deregisters observer from all notifications.  This should be called before
+ * the observer is deallocated.
+*/
 - (void) removeObserver: (id)observer
 {
   if (observer == nil)

@@ -1607,8 +1607,9 @@ static unsigned	urlAlign;
 
 /**
  * An informal protocol to which clients may conform if they wish to be
- * notified of the progress in loading a URL for them.  The default
- * implementations of these methods do nothing.
+ * notified of the progress in loading a URL for them.  NSURL conforms to
+ * this protocol but all methods are implemented as no-ops.  See also
+ * the [NSURLHandleClient] protocol.
  */
 @implementation NSObject (NSURLClient)
 

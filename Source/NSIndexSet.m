@@ -91,7 +91,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return AUTORELEASE(o);
 }
 
-+ (id) indexSetWithIndex: (unsigned int)anIndex;
++ (id) indexSetWithIndex: (unsigned int)anIndex
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
 
@@ -99,7 +99,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   return AUTORELEASE(o);
 }
 
-+ (id) indexSetWithIndexesInRange: (NSRange)aRange;
++ (id) indexSetWithIndexesInRange: (NSRange)aRange
 {
   id	o = [self allocWithZone: NSDefaultMallocZone()];
 

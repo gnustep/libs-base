@@ -643,7 +643,7 @@ static SEL	rlSel;
  * which must contain an array in property-list format.
  * </p>
  * <p>In GNUstep, the property-list format may be either the OpenStep
- * format (ASCII data), or the MacOS-X format (URF8 XML data) ... this
+ * format (ASCII data), or the MacOS-X format (UTF-8 XML data) ... this
  * method will recognise which it is.
  * </p>
  * <p>If there is a failure to load the file for any reason, the receiver
@@ -937,8 +937,8 @@ compare(id elem1, id elem2, void* context)
 /**
  * Returns an autoreleased array in which the objects are ordered
  * according to a sort with comparator, where the comparator function
- * is passed two objects to compare, and the copntext as the third
- * argument.
+ * is passed two objects to compare, and the context as the third
+ * argument.  The hint argument is currently ignored, and may be nil.
  */
 - (NSArray*) sortedArrayUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator 
    context: (void*)context
@@ -1243,6 +1243,10 @@ compare(id elem1, id elem2, void* context)
 @end
 
 
+/**
+ *  <code>NSMutableArray</code> is the mutable version of [NSArray].  It
+ *  provides methods for altering the contents of the array.
+ */
 @implementation NSMutableArray
 
 + (void) initialize
@@ -1412,7 +1416,7 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Removes all occurrances of anObject (found by pointer equality)
+ * Removes all occurrences of anObject (found by pointer equality)
  * from the receiver.
  */
 - (void) removeObjectIdenticalTo: (id)anObject
@@ -1447,7 +1451,7 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Removes all occurrances of anObject (found by the -isEqual: method
+ * Removes all occurrences of anObject (found by the -isEqual: method
  * of anObject) aRange in the receiver.
  */
 - (void) removeObject: (id)anObject inRange: (NSRange)aRange
@@ -1547,7 +1551,7 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Removes all occurrances of anObject (found by anObjects -isEqual: method)
+ * Removes all occurrences of anObject (found by anObjects -isEqual: method)
  * from the receiver.
  */
 - (void) removeObject: (id)anObject
@@ -1928,7 +1932,9 @@ compare(id elem1, id elem2, void* context)
 }
 @end
 
-
+/**
+ *  [NSArray] enhancements provided by GNUstep.
+ */
 @implementation	NSArray (GNUstep)
 
 /**

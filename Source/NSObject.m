@@ -781,7 +781,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 /**
  * <p>
  *   <code>NSObject</code> is the root class (a root class is
- *   a class with no superclass) of the gnustep base library
+ *   a class with no superclass) of the GNUstep base library
  *   class hierarchy, so all classes normally inherit from
  *   <code>NSObject</code>.  There is an exception though:
  *   <code>NSProxy</code> (which is used for remote messaging)
@@ -792,16 +792,16 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  *   your own classes should inherit (directly or indirectly)
  *   from <code>NSObject</code> (or in special cases from
  *   <code>NSProxy</code>).  <code>NSObject</code> provides
- *   the basic common functionality shared by all gnustep
+ *   the basic common functionality shared by all GNUstep
  *   classes and objects.
  * </p>
  * <p>
  *   The essential methods which must be implemented by all
- *   classes for their instances to be usable within gnustep
+ *   classes for their instances to be usable within GNUstep
  *   are declared in a separate protocol, which is the
  *   <code>NSObject</code> protocol.  Both
  *   <code>NSObject</code> and <code>NSProxy</code> conform to
- *   this protocol, which means all objects in a gnustep
+ *   this protocol, which means all objects in a GNUstep
  *   application will conform to this protocol (btw, if you
  *   don't find a method of <code>NSObject</code> you are
  *   looking for in this documentation, make sure you also
@@ -813,7 +813,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  *   implement a new root class.  If you do, you need to make
  *   sure that your root class conforms (at least) to the
  *   <code>NSObject</code> protocol, otherwise it will not
- *   interact correctly with the gnustep framework.  Said
+ *   interact correctly with the GNUstep framework.  Said
  *   that, I must note that I have never seen a case in which
  *   a new root class is needed.
  * </p>
@@ -848,12 +848,22 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 #if	GS_WITH_GC
+/**
+ * A utility method used when garbage collection is enabled.  Can be ignored.
+ */
 + (BOOL) requiresTypedMemory
 {
   return NO;
 }
 #endif
 
+/**
+ * This message is sent to a class once just before it is used for the first
+ * time.  If class has a superclass, its implementation of +initialize is
+ * called first.  You can implement +initialize in your own class if you need
+ * to.  NSObject's implementation handles essential root object and base
+ * library initialization.
+ */
 + (void) initialize
 {
   if (self == [NSObject class])
@@ -1194,7 +1204,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
  *   If you have allocated the memory using a non-standard mechanism, you
  *   will not call the superclass (NSObject) implementation of the method
  *   as you will need to handle the deallocation specially.<br />
- *   In some circumstances, an object may wish to prevent itsself from
+ *   In some circumstances, an object may wish to prevent itself from
  *   being deallocated, it can do this simply be refraining from calling
  *   the superclass implementation.
  * </p>
@@ -1204,6 +1214,9 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   NSDeallocateObject (self);
 }
 
+/**
+ *  This method is an anachronism.  Do not use it.
+ */
 - (id) free
 {
   [NSException raise: NSGenericException
@@ -1229,7 +1242,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 /**
- * Returns the super class from which the recevier was derived.
+ * Returns the super class from which the receiver was derived.
  */
 + (Class) superclass
 {
@@ -1237,7 +1250,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 /**
- * Returns the super class from which the receviers class was derived.
+ * Returns the super class from which the receivers class was derived.
  */
 - (Class) superclass
 {
@@ -1399,7 +1412,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   /*
    * If there are protocols that this class conforms to,
    * the method may be listed in a protocol with more
-   * detailed type information than in the class itsself
+   * detailed type information than in the class itself
    * and we must therefore use the information from the
    * protocol.
    * This is because protocols also carry information
@@ -1526,26 +1539,61 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
   return self;
 }
 
+// FIXME - should this be added (as in OS X) now that we have NSKeyedArchiver?
+// - (Class) classForKeyedArchiver
+// {
+//     return [self classForArchiver];
+// }
+
+/**
+ * Override to substitute class when an instance is being archived by an
+ * [NSArchiver].  Default implementation returns -classForCoder.
+ */
 - (Class) classForArchiver
 {
   return [self classForCoder];
 }
 
+/**
+ * Override to substitute class when an instance is being serialized by an
+ * [NSCoder].  Default implementation returns <code>[self class]</code> (no
+ * substitution).
+ */
 - (Class) classForCoder
 {
   return [self class];
 }
 
+/**
+ * Override to substitute class when an instance is being serialized by an
+ * [NSPortCoder].  Default implementation returns -classForCoder .
+ */
 - (Class) classForPortCoder
 {
   return [self classForCoder];
 }
 
+// FIXME - should this be added (as in OS X) now that we have NSKeyedArchiver?
+// - (id) replacedmentObjectForKeyedArchiver: (NSKeyedArchiver *)keyedArchiver
+// {
+//     return [self replacementObjectForCoder: (NSArchiver *)keyedArchiver];
+// }
+
+/**
+ * Override to substitute another object for this instance when being archived
+ * by given [NSArchiver].  Default implementation returns
+ * -replacementObjectForCoder:.
+ */
 - (id) replacementObjectForArchiver: (NSArchiver*)anArchiver
 {
   return [self replacementObjectForCoder: (NSCoder*)anArchiver];
 }
 
+/**
+ * Override to substitute another object for this instance when being
+ * serialized by given [NSCoder].  Default implementation returns
+ * <code>self</code>.
+ */
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder
 {
   return self;
@@ -1943,7 +1991,9 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 /**
- * Returns the version number of the receiving class.
+ *  Returns the version number of the receiving class.  This will default to
+ *  a number assigned by the Objective C compiler if [NSObject -setVersion] has
+ *  not been called.
  */
 + (int) version
 {
@@ -1951,7 +2001,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 }
 
 /**
- * Sets the version number of the receiving class.
+ * Sets the version number of the receiving class.  Should be nonnegative.
  */
 + (id) setVersion: (int)aVersion
 {
@@ -1966,10 +2016,16 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 @end
 
 
+/**
+ *  Methods for compatibility with the NEXTSTEP (pre-OpenStep) 'Object' class.
+ */
 @implementation NSObject (NEXTSTEP)
 
 /* NEXTSTEP Object class compatibility */
 
+/**
+ * Logs a message.  <em>Deprecated.</em>  Use NSLog() in new code.
+ */
 - (id) error: (const char *)aString, ...
 {
 #define FMT "error: %s (%s)\n%s\n"
@@ -2088,6 +2144,10 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 
 
 
+/**
+ * Some non-standard extensions mainly needed for backwards compatibility
+ * and internal utility reasons.
+ */
 @implementation NSObject (GNUstep)
 
 /* GNU Object class compatibility */
@@ -2263,24 +2323,37 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     return class_get_version (self);
 }
 
-// These are used to write or read the instance variables 
-// declared in this particular part of the object.  Subclasses
-// should extend these, by calling [super read/write: aStream]
-// before doing their own archiving.  These methods are private, in
-// the sense that they should only be called from subclasses.
+//NOTE: original comments included the following excerpt, however it is
+//      probably not relevant now since the implementations are stubbed out.
+//  Subclasses should extend these, by calling
+//  [super read/write: aStream] before doing their own archiving.  These
+//  methods are private, in the sense that they should only be called from
+//  subclasses.
 
+/**
+ * Originally used to read the instance variables declared in this
+ * particular part of the object from a stream.  Currently stubbed out.
+ */
 - (id) read: (TypedStream*)aStream
 {
   // [super read: aStream];  
   return self;
 }
 
+/**
+ * Originally used to write the instance variables declared in this
+ * particular part of the object to a stream.  Currently stubbed out.
+ */
 - (id) write: (TypedStream*)aStream
 {
   // [super write: aStream];
   return self;
 }
 
+/**
+ * Originally used before [NSCoder] and related classes existed.  Currently
+ * stubbed out.
+ */
 - (id) awake
 {
   // [super awake];

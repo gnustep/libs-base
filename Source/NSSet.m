@@ -40,7 +40,12 @@
 @class	GSSet;
 @class	GSMutableSet;
 
-@implementation NSSet 
+/**
+ *  <code>NSSet</code> maintains an unordered collection of unique objects
+ *  (according to [NSObject -isEqual]).  When a duplicate object is added
+ *  to the set, it replaces its old copy.
+ */
+@implementation NSSet
 
 static Class NSSet_abstract_class;
 static Class NSMutableSet_abstract_class;
@@ -70,23 +75,35 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
+/**
+ *  New autoreleased empty set.
+ */
 + (id) set
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
 }
 
+/**
+ *  New set containing (unique elements of) objects.
+ */
 + (id) setWithArray: (NSArray*)objects
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithArray: objects]);
 }
 
+/**
+ *  New set containing single object anObject.
+ */
 + (id) setWithObject: anObject
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithObjects: &anObject count: 1]);
 }
 
+/**
+ *  New set containing (unique elements of) objects.
+ */
 + (id) setWithObjects: (id*)objects 
 	        count: (unsigned)count
 {
@@ -94,6 +111,9 @@ static Class NSMutableSet_concrete_class;
     initWithObjects: objects count: count]);
 }
 
+/**
+ *  New set with objects in given nil-terminated list.
+ */
 + (id) setWithObjects: firstObject, ...
 {
   id	set;
@@ -104,6 +124,9 @@ static Class NSMutableSet_concrete_class;
   return AUTORELEASE(set);
 }
 
+/**
+ *  Copy constructor.
+ */
 + (id) setWithSet: (NSSet*)aSet
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -248,7 +271,9 @@ static Class NSMutableSet_concrete_class;
   return self;
 }
 
-/* <init />
+/**
+ *  Initialize to contain (unique elements of) objects.
+ * <init />
  */
 - (id) initWithObjects: (id*)objects
 		 count: (unsigned)count
@@ -257,6 +282,9 @@ static Class NSMutableSet_concrete_class;
   return 0;
 }
 
+/**
+ *  If anObject is in set, return it (the copy in the set).
+ */
 - (id) member: (id)anObject
 {
   return [self subclassResponsibility: _cmd];
@@ -277,11 +305,17 @@ static Class NSMutableSet_concrete_class;
   return [copy initWithSet: self copyItems: NO];
 }
 
+/**
+ *  Return enumerator over objects in set.  Order is undefined.
+ */
 - (NSEnumerator*) objectEnumerator
 {
   return [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Initialize with (unique elements of) objects in given nil-terminated list.
+ */
 - (id) initWithObjects: firstObject, ...
 {
   GS_USEIDLIST(firstObject,
@@ -343,11 +377,17 @@ static Class NSMutableSet_concrete_class;
   return self;
 }
 
+/**
+ *  Initialize with same items as other (items not copied).
+ */
 - (id) initWithSet: (NSSet*)other 
 {
   return [self initWithSet: other copyItems: NO];
 }
 
+/**
+ *  Return array of all objects in set.  Order is undefined.
+ */
 - (NSArray*) allObjects
 {
   id		e = [self objectEnumerator];
@@ -362,6 +402,9 @@ static Class NSMutableSet_concrete_class;
     initWithObjects: k count: c]);
 }
 
+/**
+ *  Return an arbitrary object from set, or nil if this is empty set.
+ */
 - (id) anyObject
 {
   if ([self count] == 0)
@@ -373,6 +416,10 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
+/**
+ *  Return whether set contains an object equal to this one according
+ *  to [NSObject -isEqual:].
+ */
 - (BOOL) containsObject: (id)anObject
 {
   return (([self member: anObject]) ? YES : NO);
@@ -383,6 +430,10 @@ static Class NSMutableSet_concrete_class;
   return [self count];
 }
 
+/**
+ *  Send each object given message (with no arguments).
+ *  Identical to [-makeObjectsPerformSelector:].
+ */
 - (void) makeObjectsPerform: (SEL)aSelector
 {
   id	o, e = [self objectEnumerator];
@@ -391,6 +442,10 @@ static Class NSMutableSet_concrete_class;
     [o performSelector: aSelector];
 }
 
+/**
+ *  Send each object given message (with no arguments).
+ *  Identical to [-makeObjectsPerform:].
+ */
 - (void) makeObjectsPerformSelector: (SEL)aSelector
 {
   id	o, e = [self objectEnumerator];
@@ -399,6 +454,10 @@ static Class NSMutableSet_concrete_class;
     [o performSelector: aSelector];
 }
 
+/**
+ *  Send each object given message with given argument.
+ *  Identical to [-makeObjectsPerform:withObject:].
+ */
 - (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
 {
   id	o, e = [self objectEnumerator];
@@ -407,6 +466,10 @@ static Class NSMutableSet_concrete_class;
     [o performSelector: aSelector withObject: argument];
 }
 
+/**
+ *  Send each object given message with given argument.
+ *  Identical to [-makeObjectsPerformSelector:withObject:].
+ */
 - (void) makeObjectsPerform: (SEL)aSelector withObject: argument
 {
   id	o, e = [self objectEnumerator];
@@ -415,6 +478,9 @@ static Class NSMutableSet_concrete_class;
     [o performSelector: aSelector withObject: argument];
 }
 
+/**
+ *  Return whether set intersection with otherSet is non-empty.
+ */
 - (BOOL) intersectsSet: (NSSet*) otherSet
 {
   id	o = nil, e = nil;
@@ -433,6 +499,9 @@ static Class NSMutableSet_concrete_class;
   return NO;
 }
 
+/**
+ *  Return whether subset of otherSet.
+ */
 - (BOOL) isSubsetOfSet: (NSSet*) otherSet
 {
   id o = nil, e = nil;
@@ -468,6 +537,9 @@ static Class NSMutableSet_concrete_class;
   return NO;
 }
 
+/**
+ *  Return whether each set is subset of the other.
+ */
 - (BOOL) isEqualToSet: (NSSet*)other
 {
   if ([self count] != [other count])
@@ -484,11 +556,17 @@ static Class NSMutableSet_concrete_class;
   return YES;
 }
 
+/**
+ *  Returns listing of objects in set.
+ */
 - (NSString*) description
 {
   return [self descriptionWithLocale: nil];
 }
 
+/**
+ *  Returns listing of objects in set.
+ */
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
   return [[self allObjects] descriptionWithLocale: locale];
@@ -496,6 +574,10 @@ static Class NSMutableSet_concrete_class;
 
 @end
 
+
+/**
+ *  Mutable version of [NSSet].
+ */
 @implementation NSMutableSet
 
 + (void) initialize
@@ -505,6 +587,9 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
+/**
+ *  New autoreleased instance with given capacity.
+ */
 + (id) setWithCapacity: (unsigned)numItems
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -661,6 +746,7 @@ static Class NSMutableSet_concrete_class;
 }
 
 /**
+
  * Adds all the objects from other to the receiver.
  */
 - (void) unionSet: (NSSet*) other

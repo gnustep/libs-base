@@ -366,6 +366,7 @@
     _thousandSeparator = 0;
 }
 
+//FIXME - not implemented !?
 - (NSString*) stringForObjectValue: (id)anObject
 {
   if (nil == anObject)

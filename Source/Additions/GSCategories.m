@@ -93,7 +93,7 @@
 
 
 /**
- * Extension methods for the NSData class
+ * Extension methods for the NSData class.
  */
 @implementation NSData (GSCategories)
 
@@ -1196,29 +1196,6 @@ newLockAt(Class self, SEL _cmd, id *location)
 
 
 @implementation NSLock (GSCategories)
-/**
- * Initializes the id pointed to by location
- * with a new instance of the receiver's class
- * in a thread safe manner, unless
- * it has been previously initialized.
- * Returns the contents pointed to by location.  
- * The location is considered unintialized if it contains nil.
- * <br/>
- * This method is used in the GS_INITIALIZED_LOCK macro
- * to initialize lock variables when it cannot be insured
- * that they can be initialized in a thread safe environment.
- * <example>
- * NSLock *my_lock = nil;
- *
- * void function (void)
- * {
- *   [GS_INITIALIZED_LOCK(my_lock, NSLock) lock];
- *   do_work ();
- *   [my_lock unlock];
- * }
- * 
- * </example>
- */
 + (id) newLockAt: (id *)location
 {
   return newLockAt(self, _cmd, location);
@@ -1226,29 +1203,6 @@ newLockAt(Class self, SEL _cmd, id *location)
 @end
 
 @implementation NSRecursiveLock (GSCategories)
-/**
- * Initializes the id pointed to by location
- * with a new instance of the receiver's class
- * in a thread safe manner, unless
- * it has been previously initialized.
- * Returns the contents pointed to by location.  
- * The location is considered unintialized if it contains nil.
- * <br/>
- * This method is used in the GS_INITIALIZED_LOCK macro
- * to initialize lock variables when it cannot be insured
- * that they can be initialized in a thread safe environment.
- * <example>
- * NSLock *my_lock = nil;
- *
- * void function (void)
- * {
- *   [GS_INITIALIZED_LOCK(my_lock, NSRecursiveLock) lock];
- *   do_work ();
- *   [my_lock unlock];
- * }
- * 
- * </example>
- */
 + (id) newLockAt: (id *)location
 {
   return newLockAt(self, _cmd, location);

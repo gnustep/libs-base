@@ -58,11 +58,11 @@ static Class   NSInvocation_concrete_class;
 
 
 /**
- * <p>The NSInvocation class implements a mechanism of constructing
- * messages (as NSInvocation instances), sending these to other
+ * <p>The <code>NSInvocation</code> class implements a mechanism of constructing
+ * messages (as <code>NSInvocation</code> instances), sending these to other
  * objects, and handling the returned values.
  * </p>
- * <p>An NSInvocation object may contain a target object to which a
+ * <p>An <code>NSInvocation</code> object may contain a target object to which a
  * message can be sent, or may send the message to an arbitrary object.<br />
  * Each message consists of a selector for that method and an argument
  * list.  Once the message has been sent, the invocation will contain
@@ -78,8 +78,8 @@ static Class   NSInvocation_concrete_class;
  * object to which it was sent.
  * </p>
  * <p>Related to the class are two convenience macros ... NS_MESSAGE()
- * and NS_INVOCATION() to allow easy construction of invocations with
- * all the arguments set up.
+ * and NS_INVOCATION() ... to allow easy construction of invocations
+ * with all the arguments set up.
  * </p>
  */
 @implementation NSInvocation
@@ -717,7 +717,7 @@ _arg_addr(NSInvocation *inv, int index)
 
 /**
  * Provides some minor extensions and some utility methods to aid
- * integration of NSInvocation with the ObjectiveC runtime.
+ * integration of <code>NSInvocation</code> with the Objective-C runtime.
  */
 @implementation NSInvocation (GNUstep)
 
@@ -903,7 +903,7 @@ _arg_addr(NSInvocation *inv, int index)
 /**
  * Sets the flag to tell the invocation that it should actually invoke a
  * method in the superclass of the target rather than the method of the
- * target itsself.<br />
+ * target itself.<br />
  * This extension permits an invocation to act like a regular method
  * call sent to <em>super</em> in the method of a class.
  */

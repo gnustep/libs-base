@@ -52,12 +52,12 @@ static Class NSFileHandle_ssl_class = nil;
 
 /**
  * <p>
- * NSFileHandler is a Class that provides a wrapper for accessing
- * system files and other connections. You can open connections to a
+ * <code>NSFileHandle</code> is a class that provides a wrapper for accessing
+ * system files and socket connections. You can open connections to a
  * file using class methods such as +fileHandleForReadingAtPath:.
  * </p>
  * <p>
- * GNUstep extends the use of this Class to allow you to create
+ * GNUstep extends the use of this class to allow you to create
  * network connections (sockets), secure connections and also allows
  * you to use compression with these files and connections (as long as
  * GNUstep Base was compiled with the zlib library).
@@ -88,7 +88,7 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Allocating and Initializing a FileHandle Object
 /** 
- * Returns an NSFileHandle object setup for reading from the
+ * Returns an <code>NSFileHandle</code> object set up for reading from the
  * file listed at path. If the file does not exist or cannot
  * be opened for some other reason, nil is returned.
  */
@@ -100,7 +100,7 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 /** 
- * Returns an NSFileHandle object setup for writing to the
+ * Returns an <code>NSFileHandle</code> object set up for writing to the
  * file listed at path. If the file does not exist or cannot
  * be opened for some other reason, nil is returned.
  */
@@ -112,7 +112,7 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 /** 
- * Returns an NSFileHandle object setup for updating (reading and
+ * Returns an <code>NSFileHandle</code> object setup for updating (reading and
  * writing) from the file listed at path. If the file does not exist
  * or cannot be opened for some other reason, nil is returned.
  */
@@ -124,9 +124,9 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 /** 
- * Returns an NSFileHandle object for the standard error descriptor.
- * The returned object is a shared instance as there can only be one
- * standard error per process.
+ * Returns an <code>NSFileHandle</code> object for the standard error
+ * descriptor.  The returned object is a shared instance as there can only be
+ * one standard error per process.
  */
 + (id) fileHandleWithStandardError
 {
@@ -136,9 +136,9 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 /** 
- * Returns an NSFileHandle object for the standard input descriptor.
- * The returned object is a shared instance as there can only be one
- * standard input per process.
+ * Returns an <code>NSFileHandle</code> object for the standard input
+ * descriptor.  The returned object is a shared instance as there can only be
+ * one standard input per process.
  */
 + (id) fileHandleWithStandardInput
 {
@@ -148,9 +148,9 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 /** 
- * Returns an NSFileHandle object for the standard output descriptor.
- * The returned object is a shared instance as there can only be one
- * standard output per process.
+ * Returns an <code>NSFileHandle</code> object for the standard output
+ * descriptor.  The returned object is a shared instance as there can only be
+ * one standard output per process.
  */
 + (id) fileHandleWithStandardOutput
 {
@@ -173,17 +173,29 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithNullDevice]);
 }
 
+/**
+ *  Initialize with desc, which can point to either a regular file or
+ *  socket connection.
+ */
 - (id) initWithFileDescriptor: (int)desc
 {
   return [self initWithFileDescriptor: desc closeOnDealloc: NO];
 }
 
+/**
+ *  Initialize with desc, which can point to either a regular file or
+ *  socket connection.  Close desc when this instance is deallocated if
+ *  flag is YES.
+ */
 - (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
+/**
+ *  Windows-Unix compatibility support.
+ */
 - (id) initWithNativeHandle: (void*)hdl
 {
   return [self initWithNativeHandle: hdl closeOnDealloc: NO];
@@ -191,6 +203,10 @@ static Class NSFileHandle_ssl_class = nil;
 
 // This is the designated initializer.
 
+/**
+ *  <init/>
+ *  Windows-Unix compatibility support.
+ */
 - (id) initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
   [self subclassResponsibility: _cmd];
@@ -199,12 +215,18 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Returning file handles
 
+/**
+ *  Return the underlying file descriptor for this instance.
+ */
 - (int) fileDescriptor
 {
   [self subclassResponsibility: _cmd];
   return -1;
 }
 
+/**
+ *  Windows-Unix compatibility support.
+ */
 - (void*) nativeHandle
 {
   [self subclassResponsibility: _cmd];
@@ -213,24 +235,41 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Synchronous I/O operations
 
+/**
+ *  Synchronously returns data available through this file or connection.
+ *  If the handle represents a file, the entire contents from current file
+ *  pointer to end are returned.  If this is a network connection, reads
+ *  what is available, blocking if nothing is available.  Raises
+ *  <code>NSFileHandleOperationException</code> if problem encountered.
+ */
 - (NSData*) availableData
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
+/**
+ *  Reads up to maximum unsigned int bytes from file or communications
+ *  channel into return data.
+ */
 - (NSData*) readDataToEndOfFile
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
+/**
+ *  Reads up to len bytes from file or communications channel into return data.
+ */
 - (NSData*) readDataOfLength: (unsigned int)len
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
+/**
+ *  Synchronously writes given data item to file or connection.
+ */
 - (void) writeData: (NSData*)item
 {
   [self subclassResponsibility: _cmd];
@@ -239,11 +278,32 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Asynchronous I/O operations
 
+/**
+ *  Asynchronously accept a stream-type socket connection and act as the
+ *  (server) end of the communications channel.  This instance should have
+ *  been created by -initWithFileDescriptor: with a stream-type socket created
+ *  by the appropriate system routine.  Posts a
+ *  <code>NSFileHandleConnectionAcceptedNotification</code> when connection
+ *  initiated, returning an <code>NSFileHandle</code> for the client side with
+ *  that notification.
+ */
 - (void) acceptConnectionInBackgroundAndNotify
 {
   [self acceptConnectionInBackgroundAndNotifyForModes: nil];
 }
 
+/**
+ *  <p>Asynchronously accept a stream-type socket connection and act as the
+ *  (server) end of the communications channel.  This instance should have
+ *  been created by -initWithFileDescriptor: with a stream-type socket created
+ *  by the appropriate system routine.  Posts a
+ *  <code>NSFileHandleConnectionAcceptedNotification</code> when connection
+ *  initiated, returning an <code>NSFileHandle</code> for the client side with
+ *  that notification.</p>
+ *
+ *  <p>The modes array specifies [NSRunLoop] modes that the notification can
+ *  be posted in.</p>
+ */
 - (void) acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];
@@ -305,18 +365,30 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Seeking within a file
 
+/**
+ *  Return current position in file, or raises exception if instance does
+ *  not represent a regular file.
+ */
 - (unsigned long long) offsetInFile
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
+/**
+ *  Position file pointer at end of file, raising exception if instance does
+ *  not represent a regular file.
+ */
 - (unsigned long long) seekToEndOfFile
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
+/**
+ *  Position file pointer at pos, raising exception if instance does
+ *  not represent a regular file.
+ */
 - (void) seekToFileOffset: (unsigned long long)pos
 {
   [self subclassResponsibility: _cmd];
@@ -325,16 +397,27 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Operations on file
 
+/**
+ *  Disallows further reading from read-access files or connections, and sends
+ *  EOF on write-access files or connections.  Descriptor is only
+ *  <em>deleted</em> when this instance is deallocated.
+ */
 - (void) closeFile
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Flush in-memory buffer to file or connection, then return.
+ */
 - (void) synchronizeFile
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Chops file beyond pos then sets file pointer to that point.
+ */
 - (void) truncateFileAtOffset: (unsigned long long)pos
 {
   [self subclassResponsibility: _cmd];
@@ -365,12 +448,19 @@ NSString * const NSFileHandleReadToEndOfFileCompletionNotification
 
 // Exceptions
 
+/**
+ * An exception used when a file error occurs.
+ */
 NSString * const NSFileHandleOperationException
   = @"NSFileHandleOperationException";
 
 
 // GNUstep class extensions
 
+/**
+ *  A set of convenience methods for utilizing the socket communications
+ *  capabilities of the [NSFileHandle] class.
+ */
 @implementation NSFileHandle (GNUstepExtensions)
 
 /**

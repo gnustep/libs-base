@@ -36,7 +36,7 @@
   return [self initWithBitmap: NULL];
 }
 
-/* Designated initializer */
+/** Designated initializer */
 - (id) initWithBitmap: (NSData*)bitmap
 {
   [super init];

@@ -429,7 +429,7 @@ gnustep_base_thread_callback(void)
  * has been carefully designed so that the internals of the base
  * library do not use threading (except for methods which explicitly
  * deal with threads of course) so that you can write applications
- * without threading.  Non-threaded applications re more efficient
+ * without threading.  Non-threaded applications are more efficient
  * (no locking is required) and are easier to debug during development.
  */
 @implementation NSThread
@@ -471,8 +471,15 @@ gnustep_base_thread_callback(void)
 }
 
 /**
- * Create a new thread - use this method rather than alloc-init
- */
+ * <p>Create a new thread - use this method rather than alloc-init.  The new
+ * thread will begin executing the message given by aSelector, aTarget, and
+ * anArgument.  This should have no return value, and must set up an
+ * autorelease pool if retain/release memory management is used.  It should
+ * free this pool before it finishes execution.</p>
+ * 
+ * <p><strong>Note</strong>, unlike in Cocoa (and perhaps OpenStep), the
+ * thread will <em>not</em> exit when the method finishes execution.  You must
+ * call [Thread +exit] yourself (from the thread) to terminate it.</p> */
 + (void) detachNewThreadSelector: (SEL)aSelector
 		        toTarget: (id)aTarget
                       withObject: (id)anArgument

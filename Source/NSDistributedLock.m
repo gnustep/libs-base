@@ -36,6 +36,11 @@
 
 static NSFileManager	*mgr = nil;
 
+/**
+ *  This class does not adopt the [NSLocking] protocol but supports locking
+ *  across processes, including processes on different machines, as long as
+ *  they can access a common filesystem.
+ */
 @implementation NSDistributedLock
 
 + (void) initialize

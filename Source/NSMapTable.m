@@ -377,7 +377,7 @@ NSMapGet(NSMapTable *table, const void *key)
 /**
  * Adds the key and value to table.<br />
  * If an equal key is already in table, replaces its mapped value
- * with the new one, without changing the key itsself.<br />
+ * with the new one, without changing the key itself.<br />
  * If key is equal to the notAKeyMarker field of the table's
  * NSMapTableKeyCallBacks, raises an NSInvalidArgumentException.
  */

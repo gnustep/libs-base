@@ -30,6 +30,7 @@
 #include "Foundation/NSDecimalNumber.h"
 #include "GSPrivate.h"
 
+// shared default behavior for NSDecimalNumber class
 static NSDecimalNumberHandler *handler;
  
 @implementation NSDecimalNumberHandler

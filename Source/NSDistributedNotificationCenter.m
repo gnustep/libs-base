@@ -62,9 +62,9 @@ NSString	*GSNetworkNotificationCenterType =
 @end
 
 /**
- * <p>The NSDistributedNotificationCenter provides a versatile yet
+ * <p>The <code>NSDistributedNotificationCenter</code> provides a versatile yet
  * simple mechanism for objects in different processes to communicate
- * effectively while knowing very little about each others internals.<br />
+ * effectively while knowing very little about each others' internals.<br />
  * A distributed notification center acts much like a normal
  * notification center, but it handles notifications on a machine-wide
  * (or local network wide) basis rather than just notifications within
@@ -76,7 +76,7 @@ NSString	*GSNetworkNotificationCenterType =
  * <p>Since posting of distributed notifications involves inter-process
  * (and sometimes inter-host) communication, it is fundamentally slower
  * than normal notifications, and should be used relatively sparingly.
- * In order to help with this, the NSDistributedNotificationCenter
+ * In order to help with this, the <code>NSDistributedNotificationCenter</code>
  * provides a notion of 'suspension', whereby a center can be suspended
  * causing notifications for observers in the process where the center
  * was suspended to cease receiving notifications.  Observers can
@@ -86,19 +86,19 @@ NSString	*GSNetworkNotificationCenterType =
  * </p>
  * <p>Distributed notifications are mediated by a server process which
  * handles all notifications for a particular center type.  In GNUstep
- * this process is the gdnc tool, and when started without special
+ * this process is the <code>gdnc</code> tool, and when started without special
  * options, a gdnc process acts as the local centre for the host it is
- * running on.  When started with the GSNetwork user default set to YES,
- * the gdnc tool acts as a local network wide server (you should only
- * run one copy of gdnc like this on your LAN).<br />
- * The gdnc process should be started at machine boot time, but GNUstep
- * will attempt to start it automatically if it can't find it.
+ * running on.  When started with the <code>GSNetwork</code> user default set
+ * to YES, the <code>gdnc</code> tool acts as a local network wide server (you
+ * should only run one copy of <code>gdnc</code> like this on your LAN).<br />
+ * The <code>gdnc</code> process should be started at machine boot time, but
+ * GNUstep will attempt to start it automatically if it can't find it.
  * </p>
  * <p>MacOS-X currently defines only a notification center for the
  * local host.  GNUstep also defines a local network center which can
  * be used from multiple hosts.  By default the system sends this to
  * any gdnc process it can find which is configured as a network-wide
- * server, but the GDNCHost user default may be used to specify a
+ * server, but the <code>GDNCHost</code> user default may be used to specify a
  * particular host to be contacted ... this may be of use where you
  * wish to have logically separate clusters of machines on a shared LAN.
  * </p>
@@ -119,7 +119,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  * Returns the default notification center ... a shared notification
  * center for the local host.  This is simply a convenience method
  * equivalent to calling +notificationCenterForType: with
- * NSLocalNotificationCenterType as its argument.
+ * <code>NSLocalNotificationCenterType</code> as its argument.
  */
 + (id) defaultCenter
 {
@@ -128,11 +128,11 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 
 /**
  * Returns a notification center of the specified type.<br />
- * The NSLocalNotificationCenterType provides a shared access to
+ * The <code>NSLocalNotificationCenterType</code> provides a shared access to
  * a notificatiuon center used by processes on the local host.<br />
- * The GSNetworkNotificationCenterType provides a shared access to
+ * The <code>GSNetworkNotificationCenterType</code> provides a shared access to
  * a notificatiuon center used by processes on the local network.<br />
- * MacOS-X supports only NSLocalNotificationCenterType.
+ * MacOS-X supports only <code>NSLocalNotificationCenterType</code>.
  */
 + (id) notificationCenterForType: (NSString*)type
 {
@@ -225,7 +225,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 /**
  * Adds an observer to the receiver.  Calls
  * -addObserver:selector:name:object:suspensionBehavior: with
- * NSNotificationSuspensionBehaviorCoalesce.
+ * <code>NSNotificationSuspensionBehaviorCoalesce</code>.
  */
 - (void) addObserver: (id)anObserver
 	    selector: (SEL)aSelector
@@ -248,23 +248,23 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  * when the process to which the notification should be delivered is
  * suspended:
  * <deflist>
- *  <term>NSNotificationSuspensionBehaviorDrop</term>
+ *  <term><code>NSNotificationSuspensionBehaviorDrop</code></term>
  *  <desc>
  *    Discards the notification if the observing process is suspended.
  *  </desc>
- *  <term>NSNotificationSuspensionBehaviorCoalesce</term>
+ *  <term><code>NSNotificationSuspensionBehaviorCoalesce</code></term>
  *  <desc>
  *    Discards previously queued notifications when the observing process
  *    is suspended, leaving only the last notification posted in the queue.
  *    Delivers this single notification when the process becomes unsuspended.
  *  </desc>
- *  <term>NSNotificationSuspensionBehaviorHold</term>
+ *  <term><code>NSNotificationSuspensionBehaviorHold</code></term>
  *  <desc>
  *    Queues notifications when the observing process is suspended,
  *    delivering all the queued notifications when the process becomes
  *    unsuspended again.
  *  </desc>
- *  <term>NSNotificationSuspensionBehaviorDeliverImmediately</term>
+ *  <term><code>NSNotificationSuspensionBehaviorDeliverImmediately</code></term>
  *  <desc>
  *    Deliver the notification immediately, even if the destination
  *    process is suspended.
@@ -547,7 +547,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 
 /**
  * Establish a connection to the server.  This method should only be called
- * when protected by the centres lock, so that it is thread-safe.
+ * when protected by the center's lock, so that it is thread-safe.
  */
 - (void) _connect
 {
@@ -577,7 +577,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	       * If we have a host specified, but it is the current host,
 	       * we do not need to ask for a host by name (nameserver lookup
 	       * can be faster) and the empty host name can be used to
-	       * indicate that we may start a gdnc server locally.
+	       * indicate that we may start a <code>gdnc</code> server locally.
 	       */
 	      h = [NSHost hostWithName: host];
 	      if (h == nil)

@@ -29,6 +29,15 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSString.h"
 
+/**
+ *  <p>Represents a notification for posting to an [NSNotificationCenter].
+ *  Consists of a name, an object, and an optional dictionary.  The
+ *  notification center will check for observers registered to receive
+ *  either notifications with the name, the object, or both and pass the
+ *  notification instance on to them.</p>
+ *  <p>This class is actually the interface for a class cluster, so instances
+ *  will be of a (private) subclass.</p>
+ */
 @implementation NSNotification
 
 static Class	abstractClass = 0;
@@ -55,8 +64,7 @@ static Class	concreteClass = 0;
 }
 
 /**
- * Create a new autoreleased notification.  Concrete subclasses override
- * this method to create actual notification objects.
+ * Create a new autoreleased notification.
  */
 + (NSNotification*) notificationWithName: (NSString*)name
 				  object: (id)object
@@ -81,8 +89,7 @@ static Class	concreteClass = 0;
 
 /**
  * The abstract class implements a copy as a simple retain ...
- * subclasses should override this to perform more intelligent
- * copy operations.
+ * subclasses override to perform more intelligent copy operations.
  */
 - (id) copyWithZone: (NSZone*)zone
 {
@@ -112,8 +119,7 @@ static Class	concreteClass = 0;
 }
 
 /**
- * Concrete subclasses of NSNotification are responsible for
- * implementing this method to return the notification name.
+ *  Returns the notification name.
  */
 - (NSString*) name
 {
@@ -122,8 +128,7 @@ static Class	concreteClass = 0;
 }
 
 /**
- * Concrete subclasses of NSNotification are responsible for
- * implementing this method to return the notification object.
+ *  Returns the notification object.
  */
 - (id) object
 {
@@ -132,8 +137,7 @@ static Class	concreteClass = 0;
 }
 
 /**
- * Concrete subclasses of NSNotification are responsible for
- * implementing this method to return the notification user information.
+ * Returns the notification user information.
  */
 - (NSDictionary*) userInfo
 {

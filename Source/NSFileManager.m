@@ -230,7 +230,11 @@
 @end /* NSFileManager (PrivateMethods) */
 
 /**
- * This is the main class for management of the local filesystem.
+ *  This is the main class for platform-independent management of the local
+ *  filesystem, which allows you to read and save files, create/list
+ *  directories, and move or delete files and directories.  In addition to
+ *  simply listing directories, you may obtain an [NSDirectoryEnumerator]
+ *  instance for recursive directory contents enumeration.
  */
 @implementation NSFileManager
 
@@ -1378,54 +1382,54 @@ static NSFileManager* defaultManager = nil;
 
 /**
  * If a file (or directory etc) exists at the specified path, and can be
- * queriesd for its attributes, this method returns a dictionary containing
+ * queried for its attributes, this method returns a dictionary containing
  * the various attributes of that file.  Otherwise nil is returned.<br />
  * If the flag is NO and the file is a symbolic link, the attributes of
- * the link itsself (rather than the file it points to) are returned.<br />
+ * the link itself (rather than the file it points to) are returned.<br />
  * <p>
  *   The dictionary keys for attributes are -
  * </p>
  * <deflist>
- *   <term>NSFileAppendOnly</term>
+ *   <term><code>NSFileAppendOnly</code></term>
  *   <desc>NSNumber ... boolean</desc>
- *   <term>NSFileCreationDate</term>
+ *   <term><code>NSFileCreationDate</code></term>
  *   <desc>NSDate when the file was created (if supported)</desc>
- *   <term>NSFileDeviceIdentifier</term>
+ *   <term><code>NSFileDeviceIdentifier</code></term>
  *   <desc>NSNumber (identifies the device on which the file is stored)</desc>
- *   <term>NSFileExtensionHidden</term>
+ *   <term><code>NSFileExtensionHidden</code></term>
  *   <desc>NSNumber ... boolean</desc>
- *   <term>NSFileGroupOwnerAccountName</term>
+ *   <term><code>NSFileGroupOwnerAccountName</code></term>
  *   <desc>NSString name of the file group</desc>
- *   <term>NSFileGroupOwnerAccountID</term>
+ *   <term><code>NSFileGroupOwnerAccountID</code></term>
  *   <desc>NSNumber ID of the file group</desc>
- *   <term>NSFileHFSCreatorCode</term>
+ *   <term><code>NSFileHFSCreatorCode</code></term>
  *   <desc>NSNumber not used</desc>
- *   <term>NSFileHFSTypeCode</term>
+ *   <term><code>NSFileHFSTypeCode</code></term>
  *   <desc>NSNumber not used</desc>
- *   <term>NSFileImmutable</term>
+ *   <term><code>NSFileImmutable</code></term>
  *   <desc>NSNumber ... boolean</desc>
- *   <term>NSFileModificationDate</term>
+ *   <term><code>NSFileModificationDate</code></term>
  *   <desc>NSDate when the file was last modified</desc>
- *   <term>NSFileOwnerAccountName</term>
+ *   <term><code>NSFileOwnerAccountName</code></term>
  *   <desc>NSString name of the file owner</desc>
- *   <term>NSFileOwnerAccountID</term>
+ *   <term><code>NSFileOwnerAccountID</code></term>
  *   <desc>NSNumber ID of the file owner</desc>
- *   <term>NSFilePosixPermissions</term>
+ *   <term><code>NSFilePosixPermissions</code></term>
  *   <desc>NSNumber posix access permissions mask</desc>
- *   <term>NSFileReferenceCount</term>
+ *   <term><code>NSFileReferenceCount</code></term>
  *   <desc>NSNumber number of links to this file</desc>
- *   <term>NSFileSize</term>
+ *   <term><code>NSFileSize</code></term>
  *   <desc>NSNumber size of the file in bytes</desc>
- *   <term>NSFileSystemFileNumber</term>
+ *   <term><code>NSFileSystemFileNumber</code></term>
  *   <desc>NSNumber the identifier for the file on the filesystem</desc>
- *   <term>NSFileSystemNumber</term>
+ *   <term><code>NSFileSystemNumber</code></term>
  *   <desc>NSNumber the filesystem on which the file is stored</desc>
- *   <term>NSFileType</term>
+ *   <term><code>NSFileType</code></term>
  *   <desc>NSString the type of file</desc>
  * </deflist>
  * <p>
- *   The NSDictionary class also has a set of accessor methods which
- *   enable you to get at file attribute information more efficiently
+ *   The [NSDictionary] class also has a set of convenience accessor methods
+ *   which enable you to get at file attribute information more efficiently
  *   than using the keys above to extract it.  You should generally
  *   use the accessor methods where they are available.
  * </p>
@@ -1461,15 +1465,15 @@ static NSFileManager* defaultManager = nil;
  * Returns a dictionary containing the filesystem attributes for the
  * specified path (or nil if the path is not valid).<br />
  * <deflist>
- *   <term>NSFileSystemSize</term>
+ *   <term><code>NSFileSystemSize</code></term>
  *   <desc>NSNumber the size of the filesystem in bytes</desc>
- *   <term>NSFileSystemFreeSize</term>
+ *   <term><code>NSFileSystemFreeSize</code></term>
  *   <desc>NSNumber the amount of unused space on the filesystem in bytes</desc>
- *   <term>NSFileSystemNodes</term>
+ *   <term><code>NSFileSystemNodes</code></term>
  *   <desc>NSNumber the number of nodes in use to store files</desc>
- *   <term>NSFileSystemFreeNodes</term>
+ *   <term><code>NSFileSystemFreeNodes</code></term>
  *   <desc>NSNumber the number of nodes available to create files</desc>
- *   <term>NSFileSystemNumber</term>
+ *   <term><code>NSFileSystemNumber</code></term>
  *   <desc>NSNumber the identifying number for the filesystem</desc>
  * </deflist>
  */
@@ -1709,11 +1713,11 @@ static NSFileManager* defaultManager = nil;
 }
 
 /**
- * Convert from OpenStep internal path format (unix-style) to a string in
+ * Convert from OpenStep internal path format (Unix-style) to a string in
  * the local filesystem format, suitable for passing to system functions.<br />
- * Under unix, this simply standardizes the path and converts to a
+ * Under Unix, this simply standardizes the path and converts to a
  * C string.<br />
- * Under windoze, this attempts to use local conventions to convert to a
+ * Under Windoze, this attempts to use local conventions to convert to a
  * windows path.  In GNUstep, the conventional unix syntax '~user/...' can
  * be used to indicate a windoze drive specification by using the drive
  * letter in place of the username, and the syntax '~@server/...' can be used
@@ -1741,7 +1745,7 @@ static NSFileManager* defaultManager = nil;
   l = strlen(c_path);
   if (l >= 2 && c_path[0] == '~' && c_path[1] == '@')
     {
-      // Conver to windows UNC path.
+      // Convert to windows UNC path.
       newpath = [NSString stringWithFormat: @"//%s", &c_path[2]];
     }
   else if (l >= 2 && c_path[0] == '~' && isalpha(c_path[1])
@@ -1820,7 +1824,7 @@ static NSFileManager* defaultManager = nil;
   /*
    * NB ... Don't standardize path, since that would automatically
    * follow symbolic links ... and mess up any code wishing to
-   * examine the link itsself.
+   * examine the link itself.
    */
   return [path cString];
 #endif
@@ -2010,14 +2014,21 @@ inline char *append_file_to_path (const char *path, const char *file)
 static SEL swfsSel = 0;
 
 /**
- * NSDirectoryEnumerator implementation<br />
+ *  <p>This is a subclass of <code>NSEnumerator</code> which provides a full
+ *  listing of all the files beneath a directory and its subdirectories.
+ *  Instances can be obtained through [NSFileManager-enumeratorAtPath:],
+ *  or through an initializer in this class.  (For compatibility with OS X,
+ *  use the <code>NSFileManager</code> method.)</p>
  *
+ *  <p>This implementation is optimized and performance should be comparable
+ *  to the speed of standard Unix tools for large directories.</p>
+ */
+@implementation NSDirectoryEnumerator
+/*
  * The Objective-C interface hides a traditional C implementation.
  * This was the only way I could get near the speed of standard unix
  * tools for big directories.
  */
-
-@implementation NSDirectoryEnumerator
 
 + (void) initialize
 {
@@ -2031,11 +2042,21 @@ static SEL swfsSel = 0;
 
 // Initializing
 
+/**
+ *  Initialize instance to enumerate contents at path, which should be a
+ *  directory and can be specified in relative or absolute, and may include
+ *  Unix conventions like '<code>~</code>' for user home directory, which will
+ *  be appropriately converted on Windoze systems.  The justContents flag, if
+ *  set, is equivalent to recurseIntoSubdirectories = NO and followSymlinks =
+ *  NO, but the implementation will be made more efficient.
+ */
 - (id) initWithDirectoryPath: (NSString*)path 
    recurseIntoSubdirectories: (BOOL)recurse
 	      followSymlinks: (BOOL)follow
 		justContents: (BOOL)justContents
 {
+//TODO: the justContents flag is currently basically useless and should be
+//      removed
   DIR *dir_pointer;
   const char *topPath;
   
@@ -2177,6 +2198,8 @@ static SEL swfsSel = 0;
 	  return_file_name = append_file_to_path(dir.path, dirbuf->d_name);
 	  
 	  /* TODO - can this one can be removed ? */
+          /* ...    seems like it can... */
+          /* also, what if justContents=YES *and* isRecursive=YES? */
 	  if (!_flags.justContents)
 	    {
 	      _current_file_path = append_file_to_path(_top_path, 
@@ -2250,10 +2273,9 @@ static SEL swfsSel = 0;
 
 @end /* NSDirectoryEnumerator */
 
-/*
- * Attributes dictionary access
+/**
+ * Convenience methods for accessing named file attributes in a dictionary.
  */
-
 @implementation NSDictionary(NSFileAttributes)
 
 /**
@@ -2272,11 +2294,17 @@ static SEL swfsSel = 0;
   return [[self objectForKey: NSFileExtensionHidden] boolValue];
 }
 
+/**
+ *  Returns HFS creator attribute (OS X).
+ */
 - (int) fileHFSCreatorCode
 {
   return [[self objectForKey: NSFileHFSCreatorCode] intValue];
 }
 
+/**
+ *  Returns HFS type code attribute (OS X).
+ */
 - (int) fileHFSTypeCode
 {
   return [[self objectForKey: NSFileHFSTypeCode] intValue];

@@ -40,7 +40,7 @@ NSString* const NSGenericException
   = @"NSGenericException";
 
 /**
- * An exception for caes where unexpected state is detected within an object
+ * An exception for cases where unexpected state is detected within an object.
  */
 NSString* const NSInternalInconsistencyException
   = @"NSInternalInconsistencyException";
@@ -53,7 +53,7 @@ NSString* const NSInvalidArgumentException
   = @"NSInvalidArgumentException";
 
 /**
- * An exception used when the system faols to allocate required memory.
+ * An exception used when the system fails to allocate required memory.
  */
 NSString* const NSMallocException
   = @"NSMallocException";
@@ -120,15 +120,16 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
 /**
    <p>
-   The NSException class helps manage errors in a program. It provides
-   a mechanism for lower-level methods to provide information about
+   The <code>NSException</code> class helps manage errors in a program. It
+   provides a mechanism for lower-level methods to provide information about
    problems to higher-level methods, which more often than not, have a
    better ability to decide what to do about the problems.
    </p>
    <p>
    Exceptions are typically handled by enclosing a sensitive section
-   of code inside the macros NS_DURING and NS_HANDLER, and then
-   handling any problems after this, up to the NS_ENDHANDLER macro:
+   of code inside the macros <code>NS_DURING</code> and <code>NS_HANDLER</code>,
+   and then handling any problems after this, up to the
+   <code>NS_ENDHANDLER</code> macro:
    </p>
    <example>
    NS_DURING
@@ -141,9 +142,9 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
    NS_ENDHANDLER
    </example>
    <p>
-   The local variable localException is the name of the exception
-   object you can use in the NS_HANDLER section.
-   The easiest way to cause an exeption is using the +raise:format:,...
+   The local variable <code>localException</code> is the name of the exception
+   object you can use in the <code>NS_HANDLER</code> section.
+   The easiest way to cause an exception is using the +raise:format:,...
    method.
    </p>
 */
@@ -248,7 +249,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   longjmp(handler->jumpState, 1);
 }
 
-/** Returns the name of the exception */
+/** Returns the name of the exception. */
 - (NSString*) name
 {
   if (_e_name != nil)
@@ -261,7 +262,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     }
 }
 
-/** Returns the exception reason */
+/** Returns the exception reason. */
 - (NSString*) reason
 {
   if (_e_reason != nil)
@@ -274,7 +275,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     }
 }
 
-/** Returns the exception userInfo dictionary */
+/** Returns the exception userInfo dictionary. */
 - (NSDictionary*) userInfo
 {
   return _e_info;

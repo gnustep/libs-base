@@ -85,7 +85,13 @@ static IMP	remDictImp;
 + (NSMutableString*) stringWithOwner: (NSMutableAttributedString*)as;
 @end
 
-
+/**
+ *  A string in which name-value pairs represented by an [NSDictionary] may
+ *  be associated to ranges of characters.  Used for text rendering by the
+ *  GUI/AppKit framework, in which fonts, sizes, etc. are stored under standard
+ *  attributes in the dictionaries.
+ *  
+ */
 @implementation NSAttributedString
 
 static Class NSAttributedStringClass;
@@ -232,16 +238,26 @@ static Class GSMutableAttributedStringClass;
   return [self initWithString: nil attributes: nil];
 }
 
+/**
+ *  Initialize to aString with no attributes.
+ */
 - (id) initWithString: (NSString*)aString
 {
   return [self initWithString: aString attributes: nil];
 }
 
+/**
+ *  Initialize to copy of attributedString.
+ */
 - (id) initWithAttributedString: (NSAttributedString*)attributedString
 {
   return [self initWithString: (NSString*)attributedString attributes: nil];
 }
 
+/**
+ *  Initialize to aString with given attributes applying over full range of
+ *  string.
+ */
 - (id) initWithString: (NSString*)aString attributes: (NSDictionary*)attributes
 {
   //This is the designated initializer
@@ -269,11 +285,17 @@ static Class GSMutableAttributedStringClass;
 }
 
 //Retrieving character information
+/**
+ *  Return length of the underlying string.
+ */
 - (unsigned int) length
 {
   return [[self string] length];
 }
 
+/**
+ *  Return the underlying string, stripped of attributes.
+ */
 - (NSString*) string
 {
   [self subclassResponsibility: _cmd];/* Primitive method! */
@@ -281,6 +303,12 @@ static Class GSMutableAttributedStringClass;
 }
 
 //Retrieving attribute information
+/**
+ *  Returns attributes and values at index, and, if effectiveRange
+ *  is non-nil, this gets filled with a range over which these attributes
+ *  and values still hold.  This may not be the maximum range, depending
+ *  on the implementation.
+ */
 - (NSDictionary*) attributesAtIndex: (unsigned int)index
 		     effectiveRange: (NSRange*)aRange
 {
@@ -288,6 +316,11 @@ static Class GSMutableAttributedStringClass;
   return nil;
 }
 
+/**
+ *  Returns attributes and values at index, and, if longestEffectiveRange
+ *  is non-nil, this gets filled with the range over which the attribute-value
+ *  set is the same as at index, clipped to rangeLimit.
+ */
 - (NSDictionary*) attributesAtIndex: (unsigned int)index
 	      longestEffectiveRange: (NSRange*)aRange
 			    inRange: (NSRange)rangeLimit
@@ -337,6 +370,11 @@ static Class GSMutableAttributedStringClass;
   return attrDictionary;
 }
 
+/**
+ *  Returns value for given attribute at index, and, if effectiveRange is
+ *  non-nil, this gets filled with a range over which this value holds.  This
+ *  may not be the maximum range, depending on the implementation.
+ */
 - (id) attribute: (NSString*)attributeName
 	 atIndex: (unsigned int)index
   effectiveRange: (NSRange*)aRange
@@ -362,6 +400,11 @@ static Class GSMutableAttributedStringClass;
   return attrValue;
 }
 
+/**
+ *  Returns value for given attribute at index, and, if longestEffectiveRange
+ *  is non-nil, this gets filled with the range over which the attribute
+ *  applies, clipped to rangeLimit.
+ */
 - (id) attribute: (NSString*)attributeName
 	 atIndex: (unsigned int)index
   longestEffectiveRange: (NSRange*)aRange
@@ -432,6 +475,10 @@ static Class GSMutableAttributedStringClass;
 }
 
 //Comparing attributed strings
+/**
+ *  Returns whether all characters and attributes are equal between this
+ *  string and otherString.
+ */
 - (BOOL) isEqualToAttributedString: (NSAttributedString*)otherString
 {
   NSRange ownEffectiveRange,otherEffectiveRange;
@@ -492,6 +539,9 @@ static Class GSMutableAttributedStringClass;
 
 
 //Extracting a substring
+/**
+ *  Returns substring with attribute information.
+ */
 - (NSAttributedString*) attributedSubstringFromRange: (NSRange)aRange
 {
   NSAttributedString	*newAttrString;
@@ -537,6 +587,9 @@ static Class GSMutableAttributedStringClass;
   return newAttrString;
 }
 
+/**
+ *  Synonym for [-attributedSubstringFromRange:].
+ */
 - (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange
 {
   return [self attributedSubstringFromRange: aRange];
@@ -544,6 +597,9 @@ static Class GSMutableAttributedStringClass;
 
 @end //NSAttributedString
 
+/**
+ *  Mutable version of [NSAttributedString].
+ */
 @implementation NSMutableAttributedString
 
 + (id) allocWithZone: (NSZone*)z
@@ -601,23 +657,35 @@ static Class GSMutableAttributedStringClass;
 }
 
 //Retrieving character information
+/**
+ *  Returns mutable version of the underlying string.
+ */
 - (NSMutableString*) mutableString
 {
   return [GSMutableAttributedStringTracker stringWithOwner: self];
 }
 
 //Changing characters
+/**
+ *  Removes characters and attributes applying to them.
+ */
 - (void) deleteCharactersInRange: (NSRange)aRange
 {
   [self replaceCharactersInRange: aRange withString: nil];
 }
 
 //Changing attributes
+/**
+ *  Sets attributes to apply over range, replacing any previous attributes.
+ */
 - (void) setAttributes: (NSDictionary*)attributes range: (NSRange)aRange
 {
   [self subclassResponsibility: _cmd];// Primitive method!
 }
 
+/**
+ *  Adds attribute applying to given range.
+ */
 - (void) addAttribute: (NSString*)name value: (id)value range: (NSRange)aRange
 {
   NSRange		effectiveRange;
@@ -664,6 +732,9 @@ static Class GSMutableAttributedStringClass;
     }
 }
 
+/**
+ *  Add attributes to apply over given range.
+ */
 - (void) addAttributes: (NSDictionary*)attributes range: (NSRange)aRange
 {
   NSRange		effectiveRange;
@@ -721,6 +792,9 @@ static Class GSMutableAttributedStringClass;
     }
 }
 
+/**
+ *  Removes given attribute from aRange.
+ */
 - (void) removeAttribute: (NSString*)name range: (NSRange)aRange
 {
   NSRange		effectiveRange;
@@ -768,12 +842,18 @@ static Class GSMutableAttributedStringClass;
 }
 
 //Changing characters and attributes
+/**
+ *  Appends attributed string to end of this one, preserving attributes.
+ */
 - (void) appendAttributedString: (NSAttributedString*)attributedString
 {
   [self replaceCharactersInRange: NSMakeRange([self length],0)
 	    withAttributedString: attributedString];
 }
 
+/**
+ *  Inserts attributed string within this one, preserving attributes.
+ */
 - (void) insertAttributedString: (NSAttributedString*)attributedString
 			atIndex: (unsigned int)index
 {
@@ -781,6 +861,9 @@ static Class GSMutableAttributedStringClass;
 	    withAttributedString: attributedString];
 }
 
+/**
+ *  Replaces substring and attributes.
+ */
 - (void) replaceCharactersInRange: (NSRange)aRange
 	     withAttributedString: (NSAttributedString*)attributedString
 {
@@ -823,12 +906,19 @@ static Class GSMutableAttributedStringClass;
   [self endEditing];
 }
 
+/**
+ *  Replaces substring; replacement is granted attributes equal to those of
+ *  the first character of the portion replaced.
+ */
 - (void) replaceCharactersInRange: (NSRange)aRange
 		       withString: (NSString*)aString
 {
   [self subclassResponsibility: _cmd];// Primitive method!
 }
 
+/**
+ *  Replaces entire contents (so this object can be reused).
+ */
 - (void) setAttributedString: (NSAttributedString*)attributedString
 {
   [self replaceCharactersInRange: NSMakeRange(0,[self length])
@@ -836,11 +926,17 @@ static Class GSMutableAttributedStringClass;
 }
 
 //Grouping changes
+/**
+ *  Call before executing a collection of changes, for optimization.
+ */
 - (void) beginEditing
 {
   //Overridden by subclasses
 }
 
+/**
+ *  Call after executing a collection of changes, for optimization.
+ */
 - (void) endEditing
 {
   //Overridden by subclasses

@@ -39,6 +39,10 @@
 
 @implementation NSPort
 
+/**
+ *  Exception raised if a timeout occurs during a port send or receive
+ *  operation.
+ */
 NSString * const NSPortTimeoutException = @"NSPortTimeoutException";
 
 Class	NSPort_abstract_class;

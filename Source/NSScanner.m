@@ -52,9 +52,9 @@
 
 /**
  * <p>
- *   The NSScanner class cluster (currently a single class in GNUstep)
- *   provides a mechanism to parse the contents of a string into number
- *   and string values by making a sequence of scan operations to
+ *   The <code>NSScanner</code> class cluster (currently a single class in
+ *   GNUstep) provides a mechanism to parse the contents of a string into
+ *   number and string values by making a sequence of scan operations to
  *   step through the string retrieving successive items.
  * </p>
  * <p>
