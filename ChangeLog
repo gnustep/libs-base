@@ -1,3 +1,9 @@
+Fri Nov 20 20:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/Makefile.postamble: Added dependencies for FastArray.x and added
+	simple stuff to append gdomap port entries to /etc/services after
+	install (if not already present).
+
 Fri Nov 20 14:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSSerializer.m: Added GNUstep specific methods for controlling
