@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective C stdio stream
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -25,6 +25,12 @@
 #include <objects/StdioStream.h>
 #include <objects/Coder.h>
 #include <stdarg.h>
+
+enum {
+  STREAM_READONLY = 0,
+  STREAM_READWRITE,
+  STREAM_WRITEONLY
+};
 
 extern int
 objects_vscanf (void *stream, 
@@ -63,25 +69,25 @@ objects_vscanf (void *stream,
 
 - initWithFilePointer: (FILE*)afp fmode: (const char *)mo
 {
-  int m;
 #if 0
   /* xxx Is this portable?  I don't think so. 
-     How do I find out if a FILE* is open for reading/writing? */
+     How do I find out if a FILE* is open for reading/writing?
+     I want to get rid of the "mode" instance variable. */
   if (afp->_flag & _IOREAD) 
-    m = STREAM_READONLY;
+    mode = STREAM_READONLY;
   else if (afp->_flag & _IOWRT) 
-    m = STREAM_WRITEONLY;
+    mode = STREAM_WRITEONLY;
   else 
-    m = STREAM_READWRITE;
+    mode = STREAM_READWRITE;
 #else
   if (!strcmp(mo, "rw"))
-    m = STREAM_READWRITE;
+    mode = STREAM_READWRITE;
   else if (*mo == 'r')
-    m = STREAM_READONLY;
+    mode = STREAM_READONLY;
   else if (*mo == 'w')
-    m = STREAM_WRITEONLY;
+    mode = STREAM_WRITEONLY;
 #endif
-  [super initWithMode:m];
+  [super init];
   fp = afp;
   return self;
 }
@@ -192,9 +198,17 @@ stdio_unchar_func(void *s, int c)
   return ftell(fp);
 }
 
-- (BOOL) streamEof
+- (BOOL) isAtEof
 {
   if (feof(fp))
+    return YES;
+  else
+    return NO;
+}
+
+- (BOOL) isWritable
+{
+  if (mode)
     return YES;
   else
     return NO;
@@ -211,7 +225,7 @@ stdio_unchar_func(void *s, int c)
   [self notImplemented:_cmd];
 }
 
-+ newWithCoder: (Coder*)aDecoder
+- initWithCoder: (Coder*)aDecoder
 {
   [self notImplemented:_cmd];
   return self;
