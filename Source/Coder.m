@@ -92,9 +92,9 @@ static BOOL debug_coder = NO;
 
 /* We must separate the idea of "closing" a coder and "deallocating"
    a coder because of delays in deallocation due to -autorelease. */
-- (void) closeCoding
+- (void) close
 {
-  [[cstream stream] closeStream];
+  [[cstream stream] close];
 }
 
 - (BOOL) isClosed
