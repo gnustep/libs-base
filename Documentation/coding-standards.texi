@@ -275,7 +275,7 @@ TEST_RELEASE(object) to release an object if it is non-nil
 @item
 TEST_AUTORELEASE(object) to autorelease an object if it is non-nil
 @item
-CREATE_AUTORELEASE_POOL(name) to create an autorelease pool wiyth the
+CREATE_AUTORELEASE_POOL(name) to create an autorelease pool with the
 specified name.
 @item IF_NO_GC(X) compile the code 'X' only if GarbageCollection is not
 in use.

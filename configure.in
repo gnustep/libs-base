@@ -180,31 +180,29 @@ AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)
 
 #--------------------------------------------------------------------
-# Check for alternate Objective-C libraries 
+# Miscellaneous flags
 #--------------------------------------------------------------------
-if test x$GNUSTEP_SYSTEM_ROOT != "x"; then
-  gnustep_obj_dir=${target_cpu}/${target_os}/${ac_cv_library_combo}
-  # May have a private version of libobj installed here
-  if test -f $GNUSTEP_SYSTEM_ROOT/Headers/objc/objc.h; then
-    CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Headers"
-    LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_ROOT/Libraries/$gnustep_obj_dir"
-    echo "Using Objective-C library from $GNUSTEP_SYSTEM_ROOT, if available"
-  fi
+# Set location of GNUstep dirs for later use
+GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Headers
+if test "$GNUSTEP_FLATTENED" = yes; then
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries
+else
+  clean_target_os=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_os.sh $target_os`
+  clean_target_cpu=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_cpu.sh $target_cpu`
+  obj_dir=$clean_target_cpu/$clean_target_os
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir
 fi
 
-#--------------------------------------------------------------------
-# Check if Objective-C is installed
-#--------------------------------------------------------------------
+# Check to see if the libobjc library is in our GNUSTEP_SYSTEM_ROOT.
+# If so, there are probably other libraries that we want there also, so
+# leave the proper includes in CPPFLAGS and LDFLAGS
 AC_MSG_CHECKING(for alternate objc library)
 AC_CACHE_VAL(gs_cv_objc_libdir,
 [dnl
 gs_cv_objc_libdir=NONE
-if test -f $GNUSTEP_SYSTEM_ROOT/Headers/objc/objc.h; then
-  clean_target_os=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_os.sh $target_os`
-  clean_target_cpu=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_cpu.sh $target_cpu`
-  obj_dir=$clean_target_cpu/$clean_target_os/$ac_cv_library_combo
-  if test -f $GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir/libobjc.a; then
-    gs_cv_objc_libdir=$GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir
+if test -f $GNUSTEP_HDIR/objc/objc.h; then
+  if test -f $GNUSTEP_LDIR/libobjc.a -o -f $GNUSTEP_LDIR/libobjc.so; then
+    gs_cv_objc_libdir=$GNUSTEP_LDIR
   else
     gs_cv_objc_libdir=NONE
   fi
@@ -213,10 +211,13 @@ fi
 AC_MSG_RESULT($gs_cv_objc_libdir)
 
 if test "$gs_cv_objc_libdir" != "NONE"; then
-  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Headers/"
-  LDFLAGS="$LDFLAGS -L$gs_cv_objc_libdir"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_ROOT/Headers"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR"
 fi
 
+#--------------------------------------------------------------------
+# Check if Objective-C is installed
+#--------------------------------------------------------------------
 AC_CHECK_HEADERS(objc/objc.h)
 if test $ac_cv_header_objc_objc_h = no; then
   echo "Could not find Objective-C headers"
