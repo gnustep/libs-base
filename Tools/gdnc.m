@@ -744,6 +744,27 @@ main()
   GDNCServer		*server;
   NSAutoreleasePool	*pool;
 
+  switch (fork())
+    {
+      case -1:
+	fprintf(stderr, "gdnc - fork failed - bye.\n");
+	exit(1);
+
+      case 0:
+	/*
+	 *	Try to run in background.
+	 */
+#ifdef	NeXT
+	setpgrp(0, getpid());
+#else
+	setsid();
+#endif
+	break;
+
+      default:
+	exit(0);
+    }
+
   pool = [NSAutoreleasePool new];
   server = [GDNCServer new];
   [pool release];
