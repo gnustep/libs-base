@@ -124,6 +124,24 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
 #define GS_STATIC_INLINE static inline
 
 /**
+ * Fills a nil terminated array of Class objects referenced by buffer
+ * with max number of classes registered with the objc runtime.  
+ * The provided buffer must be large enough to hold max + 1 Class objects.
+ * If buffer is nil, the function returns the number of Class
+ * objects that would be inserted if the buffer is large enough.
+ * Otherwise returns the number of Class objects that did not fit
+ * into the provided buffer.  This function keeps a cache of the class
+ * list for future invocations when used with the GNU runtime.  If
+ * clearCache is YES, this cache will be invalidated and rebuild.  The
+ * flag has no effect for the NeXT runtime.
+ * This function is provided as consistent API to both runtimes.  
+ * In the case of the GNU runtime it is likely more efficient to use
+ * objc_next_class() to iterate over the classes.
+ */
+GS_EXPORT unsigned int
+GSClassList(Class *buffer, unsigned int max, BOOL clearCache);
+
+/**
  * GSObjCClass() return the class of an instance.
  * Returns a nul pointer if the argument is nil.
  */
