@@ -36,8 +36,13 @@ HOWTO-patches \
 example.patch \
 volunteers
 
-RCS_FILES = Makefile
+RCS_FILES = Makefile.in
 DIST_FILES = $(RCS_FILES) $(ADMIN_FILES)
+
+Makefile: $(srcdir)/Makefile.in ../config.status
+	cd ..; $(SHELL) config.status
+../config.status:
+	cd ..; $(SHELL) configure --no-create
 
 mostlyclean:
 	rm -f *~
