@@ -45,6 +45,8 @@
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSNull.h"
+// For private method _decodeArrayOfObjectsForKey:
+#include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
 
@@ -552,29 +554,39 @@ static SEL	rlSel;
  */
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  unsigned    count;
-
-  [aCoder decodeValueOfObjCType: @encode(unsigned)
-			     at: &count];
-  if (count > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      GS_BEGINIDBUF(contents, count)
+      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						@"NS.objects"];
 
-      [aCoder decodeArrayOfObjCType: @encode(id)
-                              count: count
-                                 at: contents];
-      self = [self initWithObjects: contents count: count];
-#if GS_WITH_GC == 0
-      while (count-- > 0)
-	{
-	  [contents[count] release];
-	}
-#endif
-      GS_ENDIDBUF()
+      [self initWithArray: array];
     }
   else
     {
-      self = [self initWithObjects: 0 count: 0];
+      unsigned    count;
+
+      [aCoder decodeValueOfObjCType: @encode(unsigned)
+	                         at: &count];
+      if (count > 0)
+        {
+	  GS_BEGINIDBUF(contents, count)
+
+	      [aCoder decodeArrayOfObjCType: @encode(id)
+                                      count: count
+                                         at: contents];
+	  self = [self initWithObjects: contents count: count];
+#if GS_WITH_GC == 0
+	  while (count-- > 0)
+	    {
+	      [contents[count] release];
+	    }
+#endif
+	  GS_ENDIDBUF()
+	}
+      else
+        {
+	  self = [self initWithObjects: 0 count: 0];
+	}
     }
   return self;
 }

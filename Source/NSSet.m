@@ -33,6 +33,8 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSDebug.h"
+// For private method _decodeArrayOfObjectsForKey:
+#include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
 
 @class	GSSet;
@@ -150,7 +152,6 @@ static Class NSMutableSet_concrete_class;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  unsigned	count;
   Class		c;
 
   c = GSObjCClass(self);
@@ -167,25 +168,37 @@ static Class NSMutableSet_concrete_class;
       return [self initWithCoder: aCoder];
     }
 
-  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
-  if (count > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      id	objs[count];
-      unsigned	i;
+      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						@"NS.objects"];
 
-      for (i = 0; i < count; i++)
-	{
-	  [aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
-	}
-      self = [self initWithObjects: objs count: count];
-#if	GS_WITH_GC == 0
-      while (count-- > 0)
-	{
-	  [objs[count] release];
-	}
-#endif
+      return [self initWithArray: array];
     }
-  return self;
+  else
+    {
+      unsigned	count;
+
+      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+      if (count > 0)
+        {
+	  id	objs[count];
+	  unsigned	i;
+	  
+	  for (i = 0; i < count; i++)
+	    {
+	      [aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
+	    }
+	  self = [self initWithObjects: objs count: count];
+#if	GS_WITH_GC == 0
+	  while (count-- > 0)
+	    {
+	      [objs[count] release];
+	    }
+#endif
+	}
+      return self;
+    }
 }
 
 /* <init />

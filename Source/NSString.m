@@ -3880,77 +3880,86 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  unsigned	count;
-
-  [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &count];
-
-  if (count > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      NSStringEncoding	enc;
-      NSZone		*zone;
+      NSString *string = [aCoder decodeObjectForKey: @"NS.string"];
 
-      [aCoder decodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
-#if	GS_WITH_GC
-      zone = GSAtomicMallocZone();
-#else
-      zone = GSObjCZone(self);
-#endif
-
-      if (enc == NSUnicodeStringEncoding)
-	{
-	  unichar	*chars;
-
-	  chars = NSZoneMalloc(zone, count*sizeof(unichar));
-	  [aCoder decodeArrayOfObjCType: @encode(unichar)
-				  count: count
-				     at: chars];
-	  self = [self initWithCharactersNoCopy: chars
-					 length: count
-				   freeWhenDone: YES];
-	}
-      else if (enc == NSASCIIStringEncoding
-	|| enc == _DefaultStringEncoding)
-	{
-	  unsigned char	*chars;
-
-	  chars = NSZoneMalloc(zone, count+1);
-	  [aCoder decodeArrayOfObjCType: @encode(unsigned char)
-				  count: count
-				     at: chars];
-	  self = [self initWithCStringNoCopy: chars
-				      length: count
-				freeWhenDone: YES];
-	}
-      else if (enc == NSUTF8StringEncoding)
-	{
-	  unsigned char	*chars;
-
-	  chars = NSZoneMalloc(zone, count+1);
-	  [aCoder decodeArrayOfObjCType: @encode(unsigned char)
-				  count: count
-				     at: chars];
-	  chars[count] = '\0';
-	  self = [self initWithUTF8String: chars];
-	  NSZoneFree(zone, chars);
-	}
-      else
-	{
-	  unsigned char	*chars;
-	  NSData	*data;
-
-	  chars = NSZoneMalloc(zone, count);
-	  [aCoder decodeArrayOfObjCType: @encode(unsigned char)
-				  count: count
-				     at: chars];
-	  data = [NSDataClass allocWithZone: zone];
-	  data = [data initWithBytesNoCopy: chars length: count];
-	  self = [self initWithData: data encoding: enc];
-	  RELEASE(data);
-	}
+      self = [self initWithString: string];
     }
   else
     {
-      self = [self initWithCStringNoCopy: "" length: 0 freeWhenDone: NO];
+      unsigned	count;
+	
+      [aCoder decodeValueOfObjCType: @encode(unsigned int) at: &count];
+
+      if (count > 0)
+        {
+	  NSStringEncoding	enc;
+	  NSZone		*zone;
+	  
+	  [aCoder decodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
+#if	GS_WITH_GC
+	  zone = GSAtomicMallocZone();
+#else
+	  zone = GSObjCZone(self);
+#endif
+	  
+	  if (enc == NSUnicodeStringEncoding)
+	    {
+	      unichar	*chars;
+	      
+	      chars = NSZoneMalloc(zone, count*sizeof(unichar));
+	      [aCoder decodeArrayOfObjCType: @encode(unichar)
+		                      count: count
+		                         at: chars];
+	      self = [self initWithCharactersNoCopy: chars
+					     length: count
+				       freeWhenDone: YES];
+	    }
+	  else if (enc == NSASCIIStringEncoding
+		   || enc == _DefaultStringEncoding)
+	    {
+	      unsigned char	*chars;
+	      
+	      chars = NSZoneMalloc(zone, count+1);
+	      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
+		                      count: count
+				         at: chars];
+	      self = [self initWithCStringNoCopy: chars
+				          length: count
+				    freeWhenDone: YES];
+	    }
+	  else if (enc == NSUTF8StringEncoding)
+	    {
+	      unsigned char	*chars;
+
+	      chars = NSZoneMalloc(zone, count+1);
+	      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
+		                      count: count
+				         at: chars];
+	      chars[count] = '\0';
+	      self = [self initWithUTF8String: chars];
+	      NSZoneFree(zone, chars);
+	    }
+	  else
+	    {
+	      unsigned char	*chars;
+	      NSData	*data;
+	      
+	      chars = NSZoneMalloc(zone, count);
+	      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
+			              count: count
+				         at: chars];
+	      data = [NSDataClass allocWithZone: zone];
+	      data = [data initWithBytesNoCopy: chars length: count];
+	      self = [self initWithData: data encoding: enc];
+	      RELEASE(data);
+	    }
+	}
+      else
+        {
+	  self = [self initWithCStringNoCopy: "" length: 0 freeWhenDone: NO];
+	}
     }
   return self;
 }

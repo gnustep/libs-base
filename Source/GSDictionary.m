@@ -30,6 +30,8 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSPortCoder.h"
 #include "Foundation/NSDebug.h"
+// For private method _decodeArrayOfObjectsForKey:
+#include "Foundation/NSKeyedArchiver.h"
 
 #include "GNUstepBase/GSObjCRuntime.h"
 
@@ -125,22 +127,34 @@ static SEL	objSel;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  unsigned	count;
-  id		key;
-  id		value;
-  SEL		sel = @selector(decodeValueOfObjCType:at:);
-  IMP		imp = [aCoder methodForSelector: sel];
-  const char	*type = @encode(id);
-
-  [aCoder decodeValueOfObjCType: @encode(unsigned)
-			     at: &count];
-
-  GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
-  while (count-- > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      (*imp)(aCoder, sel, type, &key);
-      (*imp)(aCoder, sel, type, &value);
-      GSIMapAddPairNoRetain(&map, (GSIMapKey)key, (GSIMapVal)value);
+      NSArray *keys = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+					       @"NS.keys"];
+      NSArray *objects = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						  @"NS.objects"];
+
+      self = [self initWithObjects: objects forKeys: keys];
+    }
+  else
+    {
+      unsigned	count;
+      id		key;
+      id		value;
+      SEL		sel = @selector(decodeValueOfObjCType:at:);
+      IMP		imp = [aCoder methodForSelector: sel];
+      const char	*type = @encode(id);
+
+      [aCoder decodeValueOfObjCType: @encode(unsigned)
+	                         at: &count];
+
+      GSIMapInitWithZoneAndCapacity(&map, GSObjCZone(self), count);
+      while (count-- > 0)
+        {
+	  (*imp)(aCoder, sel, type, &key);
+	  (*imp)(aCoder, sel, type, &value);
+	  GSIMapAddPairNoRetain(&map, (GSIMapKey)key, (GSIMapVal)value);
+	}
     }
   return self;
 }
