@@ -29,7 +29,7 @@
 
 #include <Foundation/NSZone.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/callbacks.h>
+#include <gnustep/base/o_cbs.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

@@ -29,7 +29,7 @@
 
 #include <stdlib.h>
 #include <Foundation/NSZone.h>
-#include <gnustep/base/callbacks.h>
+#include <gnustep/base/o_cbs.h>
 #include <gnustep/base/o_hash.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
