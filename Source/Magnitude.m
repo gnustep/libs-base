@@ -30,7 +30,10 @@
 
 @implementation Magnitude
 
-/* - (int) compare: anObject; is inherited from Object */
+- (int) compare: anObject
+{
+  return [super compare:anObject];
+}
 
 - (BOOL) greaterThan: anObject
 {
