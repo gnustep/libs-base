@@ -296,12 +296,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 /*
  * States for socks connection negotiation
  */
-static NSString *	GSSOCKSConnect = @"GSSOCKSConnect";
-static NSString *	GSSOCKSSendAuth = @"GSSOCKSSendAuth";
-static NSString *	GSSOCKSRecvAuth = @"GSSOCKSRecvAuth";
-static NSString *	GSSOCKSSendConn = @"GSSOCKSSendConn";
-static NSString *	GSSOCKSRecvConn = @"GSSOCKSRecvConn";
-static NSString *	GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
+NSString * const GSSOCKSConnect = @"GSSOCKSConnect";
+NSString * const GSSOCKSSendAuth = @"GSSOCKSSendAuth";
+NSString * const GSSOCKSRecvAuth = @"GSSOCKSRecvAuth";
+NSString * const GSSOCKSSendConn = @"GSSOCKSSendConn";
+NSString * const GSSOCKSRecvConn = @"GSSOCKSRecvConn";
+NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void) _socksHandler: (NSNotification*)aNotification
 {

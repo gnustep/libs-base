@@ -8,6 +8,7 @@
 	* Source/Base/gsdoc: Dopcumented SOCKS enironemnet variables and defs.
 	* Source/NSNotification.m: Made -description more informative.
 	* Testing/call.m: Trivial test program for tcp connections.
+	* SSL/GSUnixSSLHandle.m: Updated for socks.
 
 2002-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 
