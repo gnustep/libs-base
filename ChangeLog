@@ -1,3 +1,9 @@
+Mon Jun 28 11:48:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/NSConnection.h: Fixed spelling error reported by 
+	Olivier.Saut@dptmaths.ens-cachan.fr
+	* Source/NSConnection.m: ditto
+
 Sat Jun 26  7:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSRunLoop.m: Fix error in last mod.

@@ -412,9 +412,9 @@ static int messages_received_count;
   [self notImplemented: _cmd];
 }
 
-- (BOOL) independantConversationQueueing
+- (BOOL) independentConversationQueueing
 {
-  return independant_queueing;
+  return independent_queueing;
 }
 
 - (void) enableMultipleThreads
@@ -598,9 +598,9 @@ static int messages_received_count;
   delegate = anObj;
 }
 
-- (void) setIndependantConversationQueueing: (BOOL)flag
+- (void) setIndependentConversationQueueing: (BOOL)flag
 {
-  independant_queueing = flag;
+  independent_queueing = flag;
 }
 
 - (void) setReplyTimeout: (NSTimeInterval)to
@@ -982,7 +982,7 @@ static int messages_received_count;
       newConn->receive_port_class = default_receive_port_class;
       newConn->send_port_class = default_send_port_class;
     }
-  newConn->independant_queueing = NO;
+  newConn->independent_queueing = NO;
   newConn->reply_depth = 0;
   newConn->delegate = nil;
   /*
@@ -1691,8 +1691,8 @@ static int messages_received_count;
 	 If the REPLY_DEPTH is 0, then we aren't in the middle of waiting
 	 for a reply, we are waiting for requests---so service it now.
 	 If REPLY_DEPTH is non-zero, we may still want to service it now
-	 if independant_queuing is NO. */
-      if (reply_depth == 0 || independant_queueing == NO)
+	 if independent_queuing is NO. */
+      if (reply_depth == 0 || independent_queueing == NO)
 	{
 	  [conn _service_forwardForProxy: rmc];
 	  /* Service any requests that were queued while we
