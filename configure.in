@@ -106,7 +106,7 @@ if test $NeXTCC = 0; then
         CC="$CC -fgnu-runtime"
         # Get objc/List.h, etc. files from libobjects.
         NEXT_INCLUDES='$(OBJECTS_NEXT_INCLUDES)'
-        OBJS_INSTALL='$(GNU_OBJS) $(NeXT_OBJS) $(GNUSTEP_OBJS)'
+        OBJS_INSTALL='$(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS)'
         HEADERS_INSTALL='$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)'
         NeXT_cc=0
       fi
