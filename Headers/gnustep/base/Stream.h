@@ -1,5 +1,5 @@
 /* Interface for GNU Objective C byte stream
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -27,7 +27,7 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Streaming.h>
 
-extern id<String> StreamException;
+extern NSString* StreamException;
 
 @interface Stream : NSObject <Streaming>
 
