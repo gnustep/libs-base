@@ -1,3 +1,8 @@
+Wed Jan 16 12:30:20 2002  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSBundle.m (_addFrameworkFromClass:): Fixed third argument
+	of strncmp to be 12, not 12*sizeof(char).
+
 2002-01-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Modify to have a nil current mode if the loop
