@@ -1,3 +1,8 @@
+2001-03-01  Jonathan Gapen  <jagapen@home.com>
+
+	* NSCharacterSets/whitespaceCharSet.dat,
+	NSCharacterSets/whitespaceAndNlCharSet.dat: Add tab character.
+
 2001-03-01  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* aclocal.m4 (AC_SYS_PROCFS): Reverted last change in code to detect
