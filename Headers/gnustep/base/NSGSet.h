@@ -28,7 +28,6 @@
 #include <Foundation/NSSet.h>
 #include <objects/Set.h>
 #include <objects/Bag.h>
-#include <objects/elt.h>
 
 @interface NSGSet : NSSet
 @end
