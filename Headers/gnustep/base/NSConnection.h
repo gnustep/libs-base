@@ -58,7 +58,7 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 {
 @private
   BOOL is_valid;
-  BOOL independant_queueing;
+  BOOL independent_queueing;
   unsigned reply_depth;
   NSPort *receive_port;
   NSPort *send_port;
@@ -94,7 +94,7 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (id) delegate;
 - (void) enableMultipleThreads;
 - (BOOL) multipleThreadsEnabled;
-- (BOOL) independantConversationQueueing;
+- (BOOL) independentConversationQueueing;
 - (void) invalidate;
 - (BOOL) isValid;
 - (NSArray *) remoteObjects;
@@ -106,7 +106,7 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (id) rootObject;
 - (NSDistantObject*) rootProxy;
 - (void) setDelegate: anObj;
-- (void) setIndependantConversationQueueing: (BOOL)flag;
+- (void) setIndependentConversationQueueing: (BOOL)flag;
 - (void) setReplyTimeout: (NSTimeInterval)seconds;
 - (void) setRequestMode: (NSString*)mode;
 - (void) setRequestTimeout: (NSTimeInterval)seconds;
