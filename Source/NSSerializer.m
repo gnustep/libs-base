@@ -36,12 +36,13 @@
 #include <Foundation/NSNotificationQueue.h>
 
 #include <base/NSGArray.h>
-#include <base/NSGCString.h>
-#include <base/NSGString.h>
 
 @class	NSGDictionary;
 @class	NSGMutableDictionary;
 @class	NSDataMalloc;
+@class	GSCString;
+@class	GSUString;
+@class	GSMString;
 
 /*
  *	Setup for inline operation of string map tables.
@@ -103,6 +104,13 @@ static Class	MutableArrayClass = 0;
 static Class	DataClass = 0;
 static Class	DictionaryClass = 0;
 static Class	MutableDictionaryClass = 0;
+static Class	CStringClass = 0;
+static Class	MStringClass = 0;
+static Class	StringClass = 0;
+
+typedef struct {
+  @defs(GSString)
+} *ivars;
 
 typedef struct {
   NSMutableData	*data;
@@ -160,8 +168,8 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 		  format: @"Class (%@) in property list - expected instance",
 				[c description]];
     }
-  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString ||
-	c == _fastCls._NXConstantString)
+  if (fastClassIsKindOfClass(c, CStringClass)
+    || (c == MStringClass && ((ivars)object)->_flags.wide == 0))
     {
       GSIMapNode	node;
 
@@ -190,7 +198,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  (*info->serImp)(info->data, serSel, node->value.uint);
 	}
     }
-  else if (fastClassIsKindOfClass(c, _fastCls._NSString))
+  else if (fastClassIsKindOfClass(c, StringClass))
     {
       GSIMapNode	node;
 
@@ -296,6 +304,9 @@ static BOOL	shouldBeCompact = NO;
       DataClass = [NSData class];
       DictionaryClass = [NSDictionary class];
       MutableDictionaryClass = [NSMutableDictionary class];
+      StringClass = [NSString class];
+      CStringClass = [GSCString class];
+      MStringClass = [GSMString class];
     }
 }
 
@@ -339,6 +350,7 @@ static BOOL	shouldBeCompact = NO;
   serializeToInfo(propertyList, &info);
   endSerializerInfo(&info);
 }
+
 + (void) shouldBeCompact: (BOOL)flag
 {
   shouldBeCompact = flag;
@@ -424,11 +436,11 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
       case ST_CSTRING:
 	{
-	  NSGCString	*s;
+	  GSCString	*s;
 	  char		*b = NSZoneMalloc(NSDefaultMallocZone(), size);
 	
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
-	  s = (NSGCString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
+	  s = (GSCString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
 	  s = (*csInitImp)(s, csInitSel, b, size-1, YES);
 
 	  /*
@@ -448,11 +460,11 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
       case ST_STRING:
 	{
-	  NSGString	*s;
+	  GSUString	*s;
 	  unichar	*b = NSZoneMalloc(NSDefaultMallocZone(), size*2);
 	
 	  (*info->debImp)(info->data, debSel, b, size*2, info->cursor);
-	  s = (NSGString*)NSAllocateObject(USCls, 0, NSDefaultMallocZone());
+	  s = (GSUString*)NSAllocateObject(USCls, 0, NSDefaultMallocZone());
 	  s = (*usInitImp)(s, usInitSel, b, size, YES);
 
 	  /*
@@ -667,8 +679,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       DCls = [NSDataMalloc class];
       IDCls = [NSGDictionary class];
       MDCls = [NSGMutableDictionary class];
-      USCls = [NSGString class];
-      CSCls = [NSGCString class];
+      USCls = [GSUString class];
+      CSCls = [GSCString class];
       csInitImp = [CSCls instanceMethodForSelector: csInitSel];
       usInitImp = [USCls instanceMethodForSelector: usInitSel];
       dInitImp = [DCls instanceMethodForSelector: dInitSel];

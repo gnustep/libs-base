@@ -119,7 +119,6 @@ return NO;
 #include <math.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSString.h>
-#include <Foundation/NSGCString.h>
 
 static char base64[]
   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -167,7 +166,7 @@ encodeBase64(NSData *source)
       dBuf[dIndex + 3] = '=';
     }
 
-  return [[NSGCString allocWithZone: NSDefaultMallocZone()]
+  return [[NSString allocWithZone: NSDefaultMallocZone()]
     initWithCStringNoCopy: dBuf length: destlen-1 freeWhenDone: YES];
 }
 

@@ -101,7 +101,7 @@
 - (unsigned) hash
 {
   if (_hash == 0)
-    _hash = _fastImp._NSString_hash(self, @selector(hash));
+    _hash = [super hash];
   return _hash;
 }
 
@@ -127,10 +127,8 @@
        * First see if the has is the same - if not, we can't be equal.
        */
       if (_hash == 0)
-        _hash = _fastImp._NSString_hash(self, @selector(hash));
-      if (other->_hash == 0)
-        other->_hash = _fastImp._NSString_hash(other, @selector(hash));
-      if (_hash != other->_hash)
+        _hash = [super hash];
+      if (_hash != [other hash])
 	return NO;
 
       /*
@@ -163,8 +161,7 @@
     }
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
     {
-      return _fastImp._NSString_isEqualToString_(self,
-	@selector(isEqualToString:), anObject);
+      return [super isEqualToString: anObject];
     }
   else
     {

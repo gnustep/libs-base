@@ -76,34 +76,10 @@ typedef struct {
     Class	_NSMutableArray;
     Class	_NSDictionary;
     Class	_NSMutableDictionary;
-    Class	_NSString;
-    Class	_NSMutableString;
-    Class	_NSGString;
-    Class	_NSGMutableString;
-    Class	_NSGCString;
-    Class	_NSGMutableCString;
-    Class	_NXConstantString;
     Class	_NSDataMalloc;
     Class	_NSMutableDataMalloc;
 } fastCls;
 GS_EXPORT fastCls	_fastCls;	/* Populated by _fastBuildCache()	*/
-
-/*
- *	Structure to cache method implementation information.
- *	By convention, the name of the structure element consists of an
- *	underscore followed by the name of the class, another underscore, and
- *	the name of the method (with colons replaced by underscores).
- */
-typedef struct {
-    /*
-     *	String implementations.
-     */
-    unsigned		(*_NSString_hash)();
-    BOOL		(*_NSString_isEqualToString_)();
-    BOOL		(*_NSGString_isEqual_)();
-    BOOL		(*_NSGCString_isEqual_)();
-} fastImp;
-GS_EXPORT fastImp	_fastImp;	/* Populated by _fastBuildCache()	*/
 
 /*
  *	The '_fastBuildCache()' function is called to populate the cache

@@ -1,5 +1,5 @@
 /* Text Property-List parsing code for NSString.m and NSGCString.m
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998,2000 Free Software Foundation, Inc.
    
    Written by Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: October 1998
@@ -86,7 +86,7 @@ static void setupHexdigits()
   if (hexdigits == nil)
     {
       hexdigits = [NSCharacterSet characterSetWithCharactersInString:
-	@"0123456789abcdef"];
+	@"0123456789abcdefABCDEF"];
       IF_NO_GC(RETAIN(hexdigits));
       hexdigitsImp =
 	(BOOL(*)(id,SEL,unichar)) [hexdigits methodForSelector: cMemberSel];

@@ -26,8 +26,6 @@
 #include <base/Unicode.h>
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSGString.h>
-#include <Foundation/NSGCString.h>
 #include <Foundation/NSUserDefaults.h>
 #include <float.h>
 #include <limits.h>
@@ -36,25 +34,27 @@
 
 @implementation NSScanner
 
+@class	GSCString;
+@class	GSUString;
+@class	GSMString;
+
 static Class		NSString_class;
-static Class		NSGString_class;
-static Class		NSGCString_class;
+static Class		GSCString_class;
+static Class		GSUString_class;
+static Class		GSMString_class;
+static Class		NXConstantString_class;
 static NSCharacterSet	*defaultSkipSet;
 static SEL		memSel = @selector(characterIsMember:);
 
 /*
- * Hack for direct access to internals of an NSGString object.
- * NB. layout of NSGString and NSGCString must be the same as far as _count
+ * Hack for direct access to internals of an concrete string object.
  */
 typedef struct {
-  @defs(NSGString)
-} *stringDefs;
-typedef struct {
-  @defs(NSGCString)
-} *cStringDefs;
-#define	myLength()	(((stringDefs)_string)->_count)
-#define	myUnicode(I)	(((stringDefs)_string)->_contents_chars[I])
-#define	myChar(I)	chartouni((((cStringDefs)_string)->_contents_chars[I]))
+  @defs(GSString)
+} *ivars;
+#define	myLength()	(((ivars)_string)->_count)
+#define	myUnicode(I)	(((ivars)_string)->_contents.u[I])
+#define	myChar(I)	chartouni((((ivars)_string)->_contents.c[I]))
 #define	myCharacter(I)	(_isUnicode ? myUnicode(I) : myChar(I))
 
 /*
@@ -77,8 +77,10 @@ typedef struct {
       defaultSkipSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
       IF_NO_GC(RETAIN(defaultSkipSet));
       NSString_class = [NSString class];
-      NSGString_class = [NSGString class];
-      NSGCString_class = [NSGCString class];
+      GSCString_class = [GSCString class];
+      GSUString_class = [GSUString class];
+      GSMString_class = [GSMString class];
+      NXConstantString_class = [NXConstantString class];
     }
 }
 
@@ -110,10 +112,12 @@ typedef struct {
  */
 - (id) initWithString: (NSString *)aString
 {
+  Class	c;
+
   if ((self = [super init]) == nil)
     return nil;
   /*
-   * Ensure that we have an NSGString so we can access its internals directly.
+   * Ensure that we have a known string so we can access its internals directly.
    */
   if (aString == nil)
     {
@@ -121,12 +125,35 @@ typedef struct {
       aString = @"";
     }
 
-  if (fastClass(aString) == NSGString_class)
+  c = fastClass(aString);
+  if (c == GSUString_class)
     {
       _isUnicode = YES;
       _string = RETAIN(aString);
     }
-  else if (fastClass(aString) == NSGCString_class)
+  else if (c == GSCString_class)
+    {
+      _isUnicode = NO;
+      _string = RETAIN(aString);
+    }
+  else if (c == GSMString_class)
+    {
+      if (((ivars)aString)->_flags.wide == 1)
+	{
+	  _isUnicode = YES;
+	  _string = [GSUString_class allocWithZone: NSDefaultMallocZone()];
+	  _string = [_string initWithCharacters: ((ivars)aString)->_contents.u
+					 length: ((ivars)aString)->_count];
+	}
+      else
+	{
+	  _isUnicode = NO;
+	  _string = [GSCString_class allocWithZone: NSDefaultMallocZone()];
+	  _string = [_string initWithCString: ((ivars)aString)->_contents.u
+				      length: ((ivars)aString)->_count];
+	}
+    }
+  else if (c == NXConstantString_class)
     {
       _isUnicode = NO;
       _string = RETAIN(aString);
@@ -134,7 +161,7 @@ typedef struct {
   else if ([aString isKindOfClass: NSString_class])
     {
       _isUnicode = YES;
-      _string = [[NSGString_class alloc] initWithString: aString];
+      _string = [[GSUString_class alloc] initWithString: aString];
     }
   else
     {

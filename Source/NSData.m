@@ -436,9 +436,13 @@ failure:
 - (id) initWithBytes: (const void*)aBuffer
 	      length: (unsigned)bufferSize
 {
-  void	*ptr = NSZoneMalloc(NSDefaultMallocZone(), bufferSize);
+  void	*ptr = 0;
 
-  memcpy(ptr, aBuffer, bufferSize);
+  if (bufferSize > 0)
+    {
+      ptr = NSZoneMalloc(NSDefaultMallocZone(), bufferSize);
+      memcpy(ptr, aBuffer, bufferSize);
+    }
   return [self initWithBytesNoCopy: ptr length: bufferSize];
 }
 

@@ -143,6 +143,7 @@ preface.h
 # GNUStep source files
 
 BASE_MFILES = \
+GSString.m \
 NSAttributedString.m \
 NSArchiver.m \
 NSArray.m \
@@ -177,10 +178,8 @@ NSGeometry.m \
 NSGArray.m \
 NSGAttributedString.m \
 NSGCountedSet.m \
-NSGCString.m \
 NSGDictionary.m \
 NSGSet.m \
-NSGString.m \
 NSHashTable.m \
 NSHost.m \
 NSInvocation.m \
@@ -217,14 +216,14 @@ NSTimer.m \
 NSTimeZone.m \
 NSUnarchiver.m \
 NSUndoManager.m \
+NSURL.m \
+NSURLHandle.m \
 NSUser.m \
 NSUserDefaults.m \
 NSValue.m \
 NSZone.m \
 externs.m \
-objc-load.m \
-NSURL.m \
-NSURLHandle.m
+objc-load.m
 
 ifeq ($(HAVE_LIBXML),1)
 BASE_MFILES += GSXML.m
@@ -283,9 +282,7 @@ NSFormatter.h \
 NSGeometry.h \
 NSGArray.h \
 NSGAttributedString.h \
-NSGCString.h \
 NSGSet.h \
-NSGString.h \
 NSHashTable.h \
 NSHost.h \
 NSInvocation.h \

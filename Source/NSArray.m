@@ -42,8 +42,6 @@
 
 #include <base/fast.x>
 
-@class NSGMutableCString;
-
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
 
@@ -668,7 +666,7 @@ static SEL	rlSel = @selector(removeLastObject);
     {
       NSMutableString	*result;
 
-      result = [[NSGMutableCString alloc] initWithCapacity: 20*[self count]];
+      result = [[NSMutableString alloc] initWithCapacity: 20*[self count]];
       result = AUTORELEASE(result);
       [self descriptionWithLocale: locale
 			   indent: level

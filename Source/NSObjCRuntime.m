@@ -32,8 +32,7 @@ NSString *
 NSStringFromSelector(SEL aSelector)
 {
   if (aSelector != (SEL)0)
-    return [_fastCls._NSGCString stringWithCString:
-	(char*)sel_get_name(aSelector)];
+    return [NSString stringWithCString: (char*)sel_get_name(aSelector)];
   return nil;
 }
 
@@ -57,7 +56,7 @@ NSString *
 NSStringFromClass(Class aClass)
 {
   if (aClass != (Class)0)
-    return [_fastCls._NSGCString stringWithCString: fastClassName(aClass)];
+    return [NSString stringWithCString: (char*)fastClassName(aClass)];
   return nil;
 }
 

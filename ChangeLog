@@ -1,3 +1,65 @@
+2000-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	Major rewrite of NSString.
+	There was a fundamental architectural problem in the old
+	implementation ...  if you had an NSGMutableCString object,
+	and used any method that appends (or replaces) characters in
+	that string, there was a problem in that the characters being
+	added may not be representable in the default character set.
+
+	This means that we needed the concrete mutable strring class to
+	be able to mutate itsself from an 8-bit string to a 16-bit string
+	when necessary (we can't just allocate a new object, because we
+	have no way of returning it to the caller).
+
+	We could not handle this simply by changing the class pointer in
+	the instance (and reallocating and modifying the memory actually
+	storing the characters of course).  The problem with this is that
+	the method implementations of the object may have been cached in
+	the user code (quite likely if you want high performance from a
+	mutable string) - and subsequent use of those cached implementations
+	would still try to treat the contents of the string as 8-bit characters.
+
+	The solution adopted was to make the standard mutable string class
+	contain a flag to adjust its behavior so that each method treats
+	the char data as either 8 or 16 bit.
+	This makes for ugly code, partially tidied by use of inline functions.
+
+	For most of the methods implemented for the constant strings
+	(rather than being inherited from the abstract class) we now
+	have two inline functions for 8-bit and 16-bit implementations.
+	The GSUString and GSCString objects have method implementations
+	that simply called the appropriate function.  The GSMString
+	implementation of each method tests the flag and calls the
+	appropriate inline function.
+
+	* Headers/gnustep/base/NSString.h: Remove NSGCString, NSGString,
+	NSGMutableCStrng and NSGMutableString.  Add GSString interface and
+	new version of NXConstantString interface.
+	* Headers/gnustep/base/fast.x: Remove string caching information.
+	* Source/GNUmakefile: Don't build old concrete strings or install
+	their headers. Do build new concrete string (GSString.m)
+	* Source/GSCompatibility.m: Don't use private concrete strings.
+	* Source/GSeq.h: Various modifications for new string classes.
+	* Source/NSArray.m: Don't use private concrete strings.
+	* Source/NSData.m: Don't use private concrete strings.
+	* Source/NSDictionary.m: Don't use private concrete strings.
+	* Source/NSGAttributedString.m: Don't use private concrete strings.
+	* Source/NSGCString.m: No longer used.
+	* Source/NSGDictionary.m: Don't use private concrete strings.
+	* Source/NSGString.m: No longer used.
+	* Source/NSNotificationCenter.m: Don't use private concrete strings.
+	* Source/NSObjCRuntime.m: Don't use private concrete strings.
+	* Source/NSObject.m: Don't cache string information.
+	* Source/NSScanner.m: Modified to use new concrete strings.
+	* Source/NSSerializer.m: Modified to use new concrete strings.
+	* Source/NSString.m: Modified to use new concrete strings.  Rewrote
+	various methods to work in terms of the primitive string methods.
+	Implemented encoding and decoding at this level so we don't encode
+	concrete string classes in archives.
+	* Source/externs.m: Modified to use new concrete strings.
+	* Source/propList.h: Modified to use new concrete strings.
+
 2000-10-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Makefile.preamble (ADDITIONAL_CPPFLAGS): Replace

@@ -69,11 +69,12 @@
 #include <base/behavior.h>
 
 #include <base/Unicode.h>
-#include <base/NSGString.h>
-#include <base/NSGCString.h>
 
 #include <base/fast.x>
 
+@class	GSCString;
+@class	GSMString;
+@class	GSUString;
 
 /*
  * Cache classes for speed.
@@ -213,24 +214,6 @@ handle_printf_atsign (FILE *stream,
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
 
-static NSRange
-rangeOfSequence(NSString *self, unichar (*caiImp)(NSString*, SEL, unsigned),
-  unsigned index)
-{
-  unsigned	count = [self length];
-  unsigned	start;
-  unsigned	end;
-
-  start = index;
-  while (uni_isnonsp((*caiImp)(self, caiSel, start)) && start > 0)
-    start--;
-  end = start + 1;
-  if (end < count)
-    while ((end < count) && (uni_isnonsp((*caiImp)(self, caiSel, end))))
-      end++;
-  return (NSRange){start, end-start};
-}
-
 + (void) initialize
 {
   if (self == [NSString class])
@@ -239,10 +222,10 @@ rangeOfSequence(NSString *self, unichar (*caiImp)(NSString*, SEL, unsigned),
       NSString_class = self;
       NSMutableString_class = [NSMutableString class];
       NSData_class = [NSData class];
-      NSString_concrete_class = [NSGString class];
-      NSString_c_concrete_class = [NSGCString class];
-      NSMutableString_concrete_class = [NSGMutableString class];
-      NSMutableString_c_concrete_class = [NSGMutableCString class];
+      NSString_concrete_class = [GSUString class];
+      NSString_c_concrete_class = [GSCString class];
+      NSMutableString_concrete_class = [GSMString class];
+      NSMutableString_c_concrete_class = [GSMString class];
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
       if (register_printf_function ('@', 
@@ -960,25 +943,10 @@ rangeOfSequence(NSString *self, unichar (*caiImp)(NSString*, SEL, unsigned),
   unsigned	l = [self length];
   unsigned	i;
   unichar	(*caiImp)(NSString*, SEL, unsigned);
-  NSRange	boundary;
 
   GS_RANGE_CHECK(aRange, l);
 
   caiImp = (unichar (*)())[self methodForSelector: caiSel];
-
-  /*
-   * Handle composed character sequences.
-   */
-  if (aRange.location > 0)
-    {
-      boundary = rangeOfSequence(self, caiImp, aRange.location);
-      aRange.location = boundary.location;
-    }
-  if (NSMaxRange(aRange) < l)
-    {
-      boundary = rangeOfSequence(self, caiImp, NSMaxRange(aRange));
-      aRange.length = NSMaxRange(boundary) - aRange.location;
-    }
 
   for (i = 0; i < aRange.length; i++)
     {
@@ -1753,26 +1721,11 @@ rangeOfSequence(NSString *self, unichar (*caiImp)(NSString*, SEL, unsigned),
   unsigned	len;
   unsigned	count;
   unichar	(*caiImp)(NSString*, SEL, unsigned);
-  NSRange	boundary;
 
   len = [self cStringLength];
   GS_RANGE_CHECK(aRange, len);
 
   caiImp = (unichar (*)())[self methodForSelector: caiSel];
-
-  /*
-   * Handle composed character sequences.
-   */
-  if (aRange.location > 0)
-    {
-      boundary = rangeOfSequence(self, caiImp, aRange.location);
-      aRange.location = boundary.location;
-    }
-  if (NSMaxRange(aRange) < [self length])
-    {
-      boundary = rangeOfSequence(self, caiImp, NSMaxRange(aRange));
-      aRange.length = NSMaxRange(boundary) - aRange.location;
-    }
 
   if (maxLength < aRange.length)
     {
@@ -2775,30 +2728,115 @@ rangeOfSequence(NSString *self, unichar (*caiImp)(NSString*, SEL, unsigned),
 
 /* NSCoding Protocol */
 
-- (void) encodeWithCoder: (NSCoder*)anEncoder
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
+  unsigned	count = [self length];
+
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+  if (count > 0)
+    {
+      NSStringEncoding	enc = NSUnicodeStringEncoding;
+      unichar		*chars;
+
+      [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
+
+      chars = NSZoneMalloc(NSDefaultMallocZone(), count*sizeof(unichar));
+      [self getCharacters: chars];
+      [aCoder encodeArrayOfObjCType: @encode(unichar)
+			      count: count
+				 at: chars];
+      NSZoneFree(NSDefaultMallocZone(), chars);
+    }
 }
 
-- (id) initWithCoder: (NSCoder*)aDecoder
+- (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
+  unsigned	count;
+
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+  if (count > 0)
+    {
+      NSStringEncoding	enc;
+      NSZone		*zone;
+  
+      [aCoder decodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
+#if	GS_WITH_GC
+      zone = GSAtomicMallocZone();
+#else
+      zone = fastZone(self);
+#endif
+
+      if (enc == NSUnicodeStringEncoding)
+	{
+	  unichar	*chars;
+
+	  chars = NSZoneMalloc(zone, count*sizeof(unichar));
+	  [aCoder decodeArrayOfObjCType: @encode(unichar)
+				  count: count
+				     at: chars];
+	  self = [self initWithCharactersNoCopy: chars
+					 length: count
+				   freeWhenDone: YES];
+	}
+      else if (enc == NSASCIIStringEncoding || enc == _DefaultStringEncoding)
+	{
+	  unsigned char	*chars;
+
+	  chars = NSZoneMalloc(zone, count+1);
+	  [aCoder decodeArrayOfObjCType: @encode(unsigned char)
+				  count: count
+				     at: chars];
+	  self = [self initWithCStringNoCopy: chars
+				      length: count
+				freeWhenDone: YES];
+	}
+      else if (enc == NSUTF8StringEncoding)
+	{
+	  unsigned char	*chars;
+
+	  chars = NSZoneMalloc(zone, count+1);
+	  [aCoder decodeArrayOfObjCType: @encode(unsigned char)
+				  count: count
+				     at: chars];
+	  chars[count] = '\0';
+	  self = [self initWithUTF8String: chars];
+	  NSZoneFree(zone, chars);
+	}
+      else
+	{
+	  unsigned char	*chars;
+	  NSData	*data;
+
+	  chars = NSZoneMalloc(zone, count);
+	  [aCoder decodeArrayOfObjCType: @encode(unsigned char)
+				  count: count
+				     at: chars];
+	  data = [NSData_class allocWithZone: zone];
+	  data = [data initWithBytesNoCopy: chars length: count];
+	  self = [self initWithData: data encoding: enc];
+	  RELEASE(data);
+	}
+    }
+  else
+    {
+      self = [self initWithCharactersNoCopy: 0 length: 0 freeWhenDone: NO];
+    }
   return self;
 }
 
 - (Class) classForArchiver
 {
-  return [self class];
+  return NSString_class;
 }
 
 - (Class) classForCoder
 {
-  return [self class];
+  return NSString_class;
 }
 
 - (Class) classForPortCoder
 {
-  return [self class];
+  return NSString_class;
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
@@ -2823,7 +2861,7 @@ rangeOfSequence(NSString *self, unichar (*caiImp)(NSString*, SEL, unsigned),
 
   [self getCharacters: chars];
   if (plInit == 0)
-    setupPl([NSGString class]);
+    setupPl([GSUString class]);
 
   result = parsePl(&data);
 
@@ -2850,7 +2888,7 @@ rangeOfSequence(NSString *self, unichar (*caiImp)(NSString*, SEL, unsigned),
 
   [self getCharacters: chars];
   if (plInit == 0)
-    setupPl([NSGString class]);
+    setupPl([GSUString class]);
 
   result = parseSfItem(&data);
   if (result == nil && data.err != nil)
@@ -2959,6 +2997,21 @@ rangeOfSequence(NSString *self, unichar (*caiImp)(NSString*, SEL, unsigned),
   va_end(ap);
   [self appendString: tmp];
   RELEASE(tmp);
+}
+
+- (Class) classForArchiver
+{
+  return NSMutableString_class;
+}
+
+- (Class) classForCoder
+{
+  return NSMutableString_class;
+}
+
+- (Class) classForPortCoder
+{
+  return NSMutableString_class;
 }
 
 - (void) deleteCharactersInRange: (NSRange)range
