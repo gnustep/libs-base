@@ -42,6 +42,7 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSValue.h>
 #include <unistd.h>
 #include <string.h>
@@ -515,6 +516,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       env = [[NSProcessInfo processInfo] environment];
       if (env)
 	{
+          NSArray		*paths;
 	  NSMutableString	*system;
 	  NSString		*str;
 
@@ -536,9 +538,10 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	    library_combo = RETAIN(str);
 
-	  system = AUTORELEASE([[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]
-		    mutableCopy]);
-	  [system appendString: @"/Libraries"];
+          paths = NSSearchPathForDirectoriesInDomains(GSLibrariesDirectory,
+                                                      NSSystemDomainMask, YES);
+          if ((paths != nil) && ([paths count] > 0))
+            system = RETAIN([paths objectAtIndex: 0]);
 
 	  _executable_path = nil;
 #ifdef PROCFS_EXE_LINK
@@ -1364,73 +1367,26 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 			       ofType: (NSString *)ext	
 			  inDirectory: (NSString *)bundlePath;
 {
-  NSString	*path;
-  NSBundle	*user_bundle = nil;
-  NSBundle	*local_bundle = nil;
-  NSBundle	*network_bundle = nil;
-  NSProcessInfo	*pInfo;
-  NSDictionary	*env;
-  NSMutableString	*user;
-  NSMutableString	*local;
-  NSMutableString	*network;
-
-  /*
-    The path of where to search for the resource files
-    is based upon environment variables.
-    GNUSTEP_USER_ROOT
-    GNUSTEP_LOCAL_ROOT
-    GNUSTEP_NETWORK_ROOT
-    GNUSTEP_SYSTEM_ROOT
-    */
-  pInfo = [NSProcessInfo processInfo];
-  env = [pInfo environment];
-  user = AUTORELEASE([[env objectForKey: @"GNUSTEP_USER_ROOT"] mutableCopy]);
-  [user appendString: @"/Libraries"];
-  local = AUTORELEASE([[env objectForKey: @"GNUSTEP_LOCAL_ROOT"] mutableCopy]);
-  [local appendString: @"/Libraries"];
-  network = AUTORELEASE([[env objectForKey: @"GNUSTEP_NETWORK_ROOT"]
-    mutableCopy]);
-  [network appendString: @"/Libraries"];
-
-  if (user != nil)
-    user_bundle = [NSBundle bundleWithPath: user];
-  if (local != nil)
-    local_bundle = [NSBundle bundleWithPath: local];
-  if (network != nil)
-    network_bundle = [NSBundle bundleWithPath: network];
+  NSString	*path = nil;
+  NSString	*bundle_path = nil;
+  NSArray	*paths;
+  NSBundle	*bundle;
+  NSEnumerator	*enumerator;
 
   /* Gather up the paths */
+  paths = NSSearchPathForDirectoriesInDomains(GSLibrariesDirectory,
+                                              NSAllDomainsMask, YES);
 
-  /* Search user first */
-  path = [user_bundle pathForResource: name
-			       ofType: ext
-			  inDirectory: bundlePath];
-  if (path != nil)
-    return path;
+  enumerator = [paths objectEnumerator];
+  while ((path == nil) && (bundle_path = [enumerator nextObject]))
+    {
+      bundle = [NSBundle bundleWithPath: bundle_path];
+      path = [bundle pathForResource: name
+                              ofType: ext
+                         inDirectory: bundlePath];
+    }
 
-  /* Search local second */
-  path = [local_bundle pathForResource: name
-			        ofType: ext
-			   inDirectory: bundlePath];
-  if (path != nil)
-    return path;
-
-  /* Search network third */
-  path = [network_bundle pathForResource: name
-				  ofType: ext
-			     inDirectory: bundlePath];
-  if (path != nil)
-    return path;
-
-  /* Search system last */
-  path = [_gnustep_bundle pathForResource: name
-				   ofType: ext
-			      inDirectory: bundlePath];
-  if (path != nil)
-    return path;
-
-  /* Didn't find it */
-  return nil;
+  return path;
 }
 
 + (NSString*) _gnustep_target_cpu

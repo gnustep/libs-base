@@ -1,3 +1,16 @@
+2001-03-26  Jonathan Gapen  <jagapen@home.com>
+
+	* Source/Makefile.preamble: No need to define HAVE_LIBXML here.
+	* Source/NSBundle.m: ([+initialize]) and ([+pathForGNUstepResource:
+	ofType:inDirectory:]) now use NSSearchPathForDirectoriesInDomains()
+	to find directories, rather than use env vars directly.
+	* Source/NSCharacterSet.m: Ditto for ([_-bitmapForSet:]).
+	* Source/NSDictionary.m: Make NSLog() include the filename
+	in ([-initWithContentsOfFile:]).
+	* Source/NSUser.m: Re-implement NSStandardApplicationPaths() and
+	NSStandardLibraryPaths() with NSSearchPathsForDirectoriesInDomains().
+	In latter function, support $GNUSTEP_SYSTEM_ROOT/Developer/Demos.
+
 2001-03-21  Jonathan Gapen  <jagapen@home.com>
 
 	* config/nextcc.m4, config/objc-con-autoload.m4, config/procfs.m4,
