@@ -6,6 +6,19 @@ The currently released version of the library is
 @samp{@value{OBJECTS_VERSION}}.
 @end ifset
 
+@section Noteworthy changes since version @samp{0.1.9}
+
+@itemize
+
+@item
+Renamed "foundation" include file directory to "Foundation", in
+accordance with OpenStep.
+
+@item
+Several bug fixes, including a problem with a missing file in 0.1.9.
+
+@end itemize
+
 @section Noteworthy changes since version @samp{0.1.8}
 
 @itemize
