@@ -1,3 +1,8 @@
+2003-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedNotificationCenter.m: ([_connect]) make the
+	connection to the server usable from any thread.
+
 2003-02-19  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSKeyValueCoding.m ([NSObject -handleQueryWithUnboundKey:]): 
