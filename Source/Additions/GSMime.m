@@ -3009,6 +3009,125 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Decodes the source data from uuencoded and return the result.<br />
+ * Returns the encoded filename in namePtr if it is not null.
+ */
++ (NSData*) decode: (NSData*)uuencoded UUName: (NSString**)namePtr
+{
+  const unsigned char	*bytes = (const unsigned char*)[uuencoded bytes];
+  unsigned		length = [uuencoded length];
+  NSMutableData		*dec = [NSMutableData dataWithCapacity: length];
+  unsigned		pos = 0;
+  NSString		*name = nil;
+
+#define DEC(c)	(((c) - ' ') & 077)
+
+  for (pos = 0; pos < length; pos++)
+    {
+      if (bytes[pos] == '\n')
+	{
+	  if (name != nil)
+	    {
+	      unsigned		i = 0;
+	      int		lineLength;
+	      unsigned		decLength = [dec length];
+	      unsigned char	*decPtr;
+
+	      lineLength = DEC(bytes[i++]);
+	      if (lineLength <= 0)
+		{
+		  break;	// Got line length zero or less.
+		}
+
+	      [dec setLength: decLength + lineLength];
+	      decPtr = [dec mutableBytes];
+
+	      while (lineLength > 0)
+		{
+		  unsigned char	tmp[4];
+		  int	c;
+
+		  /*
+		   * In case the data is corrupt, we need to copy into
+		   * a temporary buffer avoiding buffer overrun in the
+		   * main buffer.
+		   */
+		  tmp[0] = bytes[i++];
+		  if (i < pos)
+		    {
+		      tmp[1] = bytes[i++];
+		      if (i < pos)
+			{
+			  tmp[2] = bytes[i++];
+			  if (i < pos)
+			    {
+			      tmp[3] = bytes[i++];
+			    }
+			  else
+			    {
+			      tmp[3] = 0;
+			    }
+			}
+		      else
+			{
+			  tmp[2] = 0;
+			  tmp[3] = 0;
+			}
+		    }
+		  else
+		    {
+		      tmp[1] = 0;
+		      tmp[2] = 0;
+		      tmp[3] = 0;
+		    }
+		  if (lineLength >= 1)
+		    {
+		      c = DEC(tmp[0]) << 2 | DEC(tmp[1]) >> 4;
+		      decPtr[decLength++] = (unsigned char)c;
+		    }
+		  if (lineLength >= 2)
+		    {
+		      c = DEC(tmp[1]) << 4 | DEC(tmp[2]) >> 2;
+		      decPtr[decLength++] = (unsigned char)c;
+		    }
+		  if (lineLength >= 3)
+		    {
+		      c = DEC(tmp[2]) << 6 | DEC(tmp[3]);
+		      decPtr[decLength++] = (unsigned char)c;
+		    }
+		  lineLength -= 3;
+		}
+	    }
+	  else if (pos > 6 && strncmp(bytes, "begin ", 6) == 0)
+	    {
+	      unsigned	off = 6;
+	      NSData	*d;
+
+	      while (off < pos && bytes[off] >= '0' && bytes[off] <= '7')
+		{
+		  off++;
+		}
+	      while (off < pos && bytes[off] == ' ')
+		{
+		  off++;
+		}
+	      d = [NSData dataWithBytes: &bytes[off] length: pos - off];
+	      name = [[NSString alloc] initWithData: d
+					   encoding: NSASCIIStringEncoding];
+	      AUTORELEASE(name);
+	      if (namePtr != 0)
+		{
+		  *namePtr = name;
+		}
+	    }
+	  pos++;
+	  bytes += pos;
+	  length -= pos;
+	}
+    }
+  return dec;
+}
+/**
  * Decode the source data from base64 encoding and return the result.
  */
 + (NSData*) decodeBase64: (NSData*)source
@@ -3133,6 +3252,100 @@ static NSCharacterSet	*tokenSet = nil;
 
   [doc setContent: newContent type: type name: name];
   return doc;
+}
+
+/**
+ * Encode the source data to uuencoded and return the result.<br />
+ * Uses the supplied name as the filename in the encoded data,
+ * and says that the file mode is 644.
+ */
++ (NSData*) encode: (NSData*)data UUName: (NSString*)name
+{
+  NSMutableData	*enc = [NSMutableData dataWithCapacity: [data length]*4/3 + 60];
+  const unsigned char	*bytes = (const unsigned char*)[data bytes];
+  int			length = [data length];
+  unsigned char		buf[64];
+  unsigned		i;
+
+  /*
+   * The header is a line of the form 'begin mode filename'
+   */
+  [enc appendBytes: "begin 644 " length: 10];
+  [enc appendData: [name dataUsingEncoding: NSASCIIStringEncoding]];
+  [enc appendBytes: "\n" length: 1];
+
+#define ENC(c) ((c) > 0 ? ((c) & 077) + ' ': '`')
+
+  while (length > 0)
+    {
+      int	count;
+      unsigned	pos;
+
+      /*
+       * We want up to 45 bytes in a line ... and we record the
+       * number of bytes as the initial output character.
+       */
+      count = length;
+      if (count > 45)
+	{
+	  count = 45;
+	}
+      i = 0;
+      buf[i++] = ENC(count);
+
+      /*
+       * Now we encode the actual data for the line.
+       */
+      for (pos = 0; count > 0; count -= 3, pos += 3)
+	{
+	  unsigned char	tmp[3];
+	  int		c;
+
+	  /*
+	   * Copy data into a temporary buffer ensuring we don't
+	   * overrun the end of the original buffer risking access
+	   * violation.
+	   */
+	  tmp[0] = bytes[pos++];
+	  if (pos < length)
+	    {
+	      tmp[1] = bytes[pos++];
+	      if (pos < length)
+		{
+		  tmp[2] = bytes[pos++];
+		}
+	      else
+		{
+		  tmp[2] = 0;
+		}
+	    }
+	  else
+	    {
+	      tmp[1] = 0;
+	      tmp[2] = 0;
+	    }
+
+	  c = tmp[0] >> 2;
+	  buf[i++] = ENC(c);
+	  c = ((tmp[0] << 4) & 060) | ((tmp[1] >> 4) & 017);
+	  buf[i++] = ENC(c);
+	  c = ((tmp[1] << 2) & 074) | ((tmp[2] >> 6) & 03);
+	  buf[i++] = ENC(c);
+	  c = tmp[2] & 077;
+	  buf[i++] = ENC(c);
+	}
+      bytes += pos;
+      length -= pos;
+      buf[i++] = '\n';
+      [enc appendBytes: buf length: i];
+    }
+
+  /*
+   * Encode a line of length zero followed by 'end' as the terminator.
+   */
+  [enc appendBytes: "`\n" length: 4];
+  [enc appendBytes: "end\n" length: 4];
+  return enc;
 }
 
 /**
