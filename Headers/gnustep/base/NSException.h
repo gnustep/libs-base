@@ -59,12 +59,15 @@
 @end
 
 /* Common exceptions */
-GS_EXPORT NSString* const NSGenericException;
-GS_EXPORT NSString* const NSInternalInconsistencyException;
-GS_EXPORT NSString* const NSInvalidArgumentException;
-GS_EXPORT NSString* const NSMallocException;
-GS_EXPORT NSString* const NSRangeException;
-GS_EXPORT NSString* const NSCharacterConversionException;
+GS_EXPORT const NSString* const NSGenericException;
+GS_EXPORT const NSString* const NSInternalInconsistencyException;
+GS_EXPORT const NSString* const NSInvalidArgumentException;
+GS_EXPORT const NSString* const NSMallocException;
+GS_EXPORT const NSString* const NSRangeException;
+GS_EXPORT const NSString* const NSCharacterConversionException;
+#ifndef	STRICT_OPENSTEP
+GS_EXPORT const NSString* const NSParseErrorException;
+#endif
 
 /* Exception handler definitions */
 typedef struct _NSHandler 
