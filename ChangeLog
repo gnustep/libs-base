@@ -1,7 +1,10 @@
 Mon Jan 26 09:10:39 1998  Adam Fedor  <fedor@doc.com>
 
-	* NSPage.m (NSRealMemoryAvailable): Add implementation for
+	* src/NSPage.m (NSRealMemoryAvailable): Add implementation for
 	GNU/Linux (Patch from Matt Jenkins <mdj@arcadia.cs.rmit.EDU.AU>).
+
+	* src/Invocation.m (-setArgument:atIndex:): Make argument const.
+	* src/NSInvocation.m (-methodSignature): Make my_sel_type const.
 
 Sat Jan 24 15:14:50 1998  Masatake Yamato  <masata-y@aist-nara.ac.jp>
 
