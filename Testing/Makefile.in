@@ -83,7 +83,8 @@ nsarray.m \
 nsbundle.m \
 nsdictionary.m \
 nsset.m \
-nsprocessinfo.m
+nsprocessinfo.m \
+nsarchiver.m
 
 # nsarchiving.m
 
@@ -163,9 +164,8 @@ nsset: nsset.o ../src/libobjects.a
 	$(LINK_CMD)
 nsprocessinfo: nsprocessinfo.o ../src/libobjects.a
 	$(LINK_CMD)
-
-#nsarchiving: nsarray.o ../src/libobjects.a
-#	$(LINK_CMD)
+nsarchiver: nsarchiver.o ../src/libobjects.a
+	$(LINK_CMD)
 
 install:
 uninstall:
