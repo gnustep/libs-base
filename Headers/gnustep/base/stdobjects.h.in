@@ -62,7 +62,7 @@
 #include <objects/objc-malloc.h>
 
 /* The following two lines are maintained by the libobjects Makefile */
-#define OBJECTS_VERSION 0.1.0
+#define OBJECTS_VERSION 0.1.1
 #define OBJECTS_GCC_VERSION 2.6.1
 
 extern const char objects_version[];
