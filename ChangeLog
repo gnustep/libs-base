@@ -1,6 +1,7 @@
 2002-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Minor speedup.
+	* Tools/AGSOutput.m: Put something in place of empty descriptions.
 	* Tools/AGSParser.m: Rewrite handling of standards information to fix
 	bug in NO_GNUSTEP handling.
 	* Source/GNUmakefile: Don't document concrete number stuff ... not
