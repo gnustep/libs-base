@@ -135,7 +135,7 @@
       if ([fileManager fileExistsAtPath: lockPath isDirectory: &dir] == NO)
 	{
 	  locked = [fileManager createDirectoryAtPath: lockPath
-					   attributes: attributes];
+					   attributes: attributesToSet];
 	  if (locked == NO)
 	    {
 	      NSLog(@"Failed to create lock directory '%@' - %s",
