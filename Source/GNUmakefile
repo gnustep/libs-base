@@ -61,7 +61,8 @@ FILE_AUTHORS = \
 "Luke Howard" \
 "Yoo C. Chung" \
 "Richard Frith-Macdonald" \
-"Stevo Crvenkovski"
+"Stevo Crvenkovski" \
+"Mike Kienenberger"
 
 # The GNU source files
 
@@ -349,6 +350,7 @@ NSPipe.m \
 NSPort.m \
 NSPortCoder.m \
 NSProcessInfo.m \
+NSProtocolChecker.m \
 NSProxy.m \
 NSRange.m \
 NSRunLoop.m \
@@ -439,6 +441,7 @@ Foundation/NSPathUtilities.h \
 Foundation/NSPort.h \
 Foundation/NSPortCoder.h \
 Foundation/NSProcessInfo.h \
+Foundation/NSProtocolChecker.h \
 Foundation/NSProxy.h \
 Foundation/NSRange.h \
 Foundation/NSRunLoop.h \
