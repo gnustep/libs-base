@@ -506,6 +506,7 @@
 #include "AGSOutput.h"
 #include "AGSIndex.h"
 #include "AGSHtml.h"
+#include "gnustep/base/GNUstep.h"
 
 int
 main(int argc, char **argv, char **env)
@@ -541,7 +542,9 @@ main(int argc, char **argv, char **env)
   NSAutoreleasePool	*pool = nil;
 #endif
 
+#ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
+#endif
 
 #if GS_WITH_GC == 0
   outer = [NSAutoreleasePool new];

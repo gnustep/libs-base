@@ -21,6 +21,7 @@
    */
 
 #include "AGSParser.h"
+#include "gnustep/base/GNUstep.h"
 
 @implementation	AGSParser
 

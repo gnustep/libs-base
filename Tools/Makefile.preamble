@@ -61,3 +61,8 @@ ADDITIONAL_LIB_DIRS += -L../Source/$(GNUSTEP_OBJ_DIR)
 
 # Additional directories to be created during installation
 #ADDITIONAL_INSTALL_DIRS +=
+
+ifeq ($(add),yes)
+ADDITIONAL_TOOL_LIBS = -lgnustep-baseadd
+endif
+

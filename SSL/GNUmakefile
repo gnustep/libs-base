@@ -36,6 +36,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 srcdir = .
 PACKAGE_NAME = gnustep-base
 
+ifneq ($(base),no)
 ifeq ($(HAVE_OPENSSL), yes)
 
 # The bundles to be compiled
@@ -52,6 +53,7 @@ SSL_PRINCIPAL_CLASS = GSSSLHandle
 
 SSL_BUNDLE_LIBS = $(SSLLIBS) -lgnustep-base -lobjc
 
+endif
 endif
 
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
