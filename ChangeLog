@@ -1,3 +1,8 @@
+2001-04-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSInvocation.m: _get_arg() indirection fix suggested by
+	Michael Scheibler.
+
 2001-04-20  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSFileManager.m (NSDirectoryEnumerator): Rewritten to be
