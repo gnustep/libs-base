@@ -427,6 +427,8 @@ handle_printf_atsign (FILE *stream,
 	  }
 	/* Get a C-string (char*) from the String object, and print it. */
 	cstring = [[(id) va_arg (arg_list, id) description] cStringNoCopy];
+	if (!cstring)
+	  cstring = "<null string>";
 	strcat (buf+printed_len, cstring);
 	printed_len += strlen (cstring);
 	/* Skip over this `%@', and look for another one. */

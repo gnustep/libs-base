@@ -774,6 +774,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	  autorelease];
 #else
   return [[[NSDataMalloc alloc] initWithBytes:bytes length:length]
+	  autorelease];
 #endif
 }
 

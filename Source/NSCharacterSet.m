@@ -311,8 +311,9 @@ static NSLock* cache_lock = nil;
 {
   int   i, length;
   char *bytes;
-  NSMutableData *bitmap = [[self bitmapRepresentation] mutableCopy];
+  NSMutableData *bitmap;
 
+  bitmap = [[[self bitmapRepresentation] mutableCopy] autorelease];
   length = [bitmap length];
   bytes = [bitmap mutableBytes];
   for (i=0; i < length; i++)
