@@ -47,6 +47,7 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSDistributedLock.h>
 
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */
@@ -70,7 +71,8 @@ static NSString* GNU_UserDefaultsDatabaseLock = @"GNUstep/.GNUstepUDLock";
  *************************************************************************/
 static NSUserDefaults    *sharedDefaults = nil;
 static NSMutableString   *defaultsDatabase = nil;     
-static NSMutableString   *defaultsDatabaseLock = nil;
+static NSMutableString   *defaultsDatabaseLockName = nil;
+static NSDistributedLock *defaultsDatabaseLock = nil;
 static NSMutableString   *processName = nil;
 
 /*************************************************************************
@@ -182,10 +184,12 @@ static NSMutableString   *processName = nil;
 	[[NSMutableString stringWithFormat:@"%@/%@",
 			  NSHomeDirectoryForUser(NSUserName()),
 			  GNU_UserDefaultsDatabase] retain];
-      defaultsDatabaseLock =
+      defaultsDatabaseLockName =
 	[[NSMutableString stringWithFormat:@"%@/%@",
 			  NSHomeDirectoryForUser(NSUserName()),
 			  GNU_UserDefaultsDatabaseLock] retain];
+      defaultsDatabaseLock =
+	[[NSDistributedLock lockWithPath: defaultsDatabaseLockName] retain];
       processName = [[[NSProcessInfo processInfo] processName] retain];
 #if 0
       processName = [[NSMutableString stringWithFormat:@"TestApp"] retain];
@@ -199,7 +203,6 @@ static NSMutableString   *processName = nil;
   persDomains = [[NSMutableDictionary dictionaryWithCapacity:10] retain];
   if ([self synchronize] == NO)
     {
-      NSLog(@"unable to load defaults - %s", strerror(errno));
       [self dealloc];
       return self = nil;
     }
@@ -465,8 +468,12 @@ static NSMutableString   *processName = nil;
   tickingTimer = NO;
 
   // Get file lock
-  if (mkdir([defaultsDatabaseLock cString],0755) == -1)
-    return NO;
+  if ([defaultsDatabaseLock tryLock] == NO)
+    {
+      NSLog(@"unable to access defaults database - locked on (%@) since %@\n",
+		defaultsDatabaseLockName, [defaultsDatabaseLock lockDate]);
+      return NO;
+    }
 	
   // Read the persistent data from the stored database
   newDict = [[NSMutableDictionary allocWithZone:[self zone]]
@@ -493,7 +500,8 @@ static NSMutableString   *processName = nil;
       // Save the changes
       if (![persDomains writeToFile:defaultsDatabase atomically:YES])
 	{
-	  rmdir([defaultsDatabaseLock cString]);  // release file lock
+          NSLog(@"failed to write defaults to '%@'\n", defaultsDatabase);
+	  [defaultsDatabaseLock unlock];
 	  return NO;
 	}
     }
@@ -503,7 +511,7 @@ static NSMutableString   *processName = nil;
       persDomains = newDict;
     }
 	
-  rmdir([defaultsDatabaseLock cString]);  // release file lock
+  [defaultsDatabaseLock unlock];	// release file lock
 
   return YES;
 }

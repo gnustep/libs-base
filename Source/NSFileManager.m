@@ -27,6 +27,7 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSLock.h>
 
 /* determine directory reading files */
@@ -275,11 +276,84 @@ static NSFileManager* defaultManager = nil;
     return NO;
 }
 
-- (BOOL)removeFileAtPath:(NSString*)path
-  handler:handler
+- (BOOL)removeFileAtPath: (NSString*)path
+		 handler: handler
 {
-    // TODO
-    return NO;
+  NSArray	*contents;
+
+  if (handler)
+    [handler fileManager: self willProcessPath: path];
+
+  contents = [self directoryContentsAtPath: path];
+  if (contents == nil)
+    {
+      if (unlink([path fileSystemRepresentation]) < 0)
+	{
+	  BOOL	result;
+
+	  if (handler)
+	    {
+	      NSMutableDictionary	*info;
+
+	      info = [[NSMutableDictionary alloc] initWithCapacity: 3];
+	      [info setObject: path forKey: @"Path"];
+	      [info setObject: [NSString stringWithCString: strerror(errno)]
+		       forKey: @"Error"];
+	      result = [handler fileManager: self
+		    shouldProceedAfterError: info];
+	      [info release];
+	    }
+	  else
+	    result = NO;
+	  return result;
+	}
+      else
+	return YES;
+    }
+  else
+    {
+      int	i;
+
+      contents = [self directoryContentsAtPath: path];
+      for (i = 0; i < [contents count]; i++)
+	{
+	  NSAutoreleasePool	*arp;
+	  NSString		*item;
+	  NSString		*next;
+	  BOOL			result;
+
+	  arp = [[NSAutoreleasePool alloc] init];
+	  item = [contents objectAtIndex: i];
+	  next = [path stringByAppendingPathComponent: item];
+	  result = [self removeFileAtPath: next handler: handler];
+	  [arp release];
+	  if (result == NO)
+	    return NO;
+	}
+
+      if (rmdir([path fileSystemRepresentation]) < 0)
+	{
+	  BOOL	result;
+
+	  if (handler)
+	    {
+	      NSMutableDictionary	*info;
+
+	      info = [[NSMutableDictionary alloc] initWithCapacity: 3];
+	      [info setObject: path forKey: @"Path"];
+	      [info setObject: [NSString stringWithCString: strerror(errno)]
+		       forKey: @"Error"];
+	      result = [handler fileManager: self
+		    shouldProceedAfterError: info];
+	      [info release];
+	    }
+	  else
+	    result = NO;
+	  return result;
+	}
+      else
+	return YES;
+    }
 }
 
 - (BOOL)createFileAtPath:(NSString*)path contents:(NSData*)contents

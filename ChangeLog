@@ -1,3 +1,21 @@
+Sat Nov  1 06:45:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+        * src/NSDistributedLock: New OPENSTEP class implementation.
+	* src/GNUmakefile: Add new class to list.
+	
+        * src/NSFileManager: implemented method ([-removeFileAtPath:handler:])
+
+        * src/NSString.m: Added two new (OPENSTEP) methods -
+        ([-fileSystemRepresentation]) and
+        ([-fileSystemRepresentation:maxLength:])
+
+        * src/NSUserDefaults.m: ([-synchronize]) modified to do locking
+        using NSDistributedLock
+
+        * src/Foundation/NSDistributedLock.h: New OPENSTEP class definition.
+
+        * src/Foundation/NSString.h: Added two new (OPENSTEP) methods.
+
 Fri Oct 31 17:00:29 1997  Adam Fedor  <fedor@doc.com>
 
 	* GNUmakefile (DIST_FILES): Update files.
