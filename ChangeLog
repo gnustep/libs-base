@@ -1,3 +1,7 @@
+2001-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gsdoc.gsdoc: Tidied and fixed a few typos/spelling errors.
+
 2001-01-04  Jonathan Gapen  <jagapen@home.com>
 
 	* configure.in, aclocal.m4, acconfig.h: Replace libxml detection with
