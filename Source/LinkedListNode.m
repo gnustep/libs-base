@@ -54,22 +54,6 @@
   return n;
 }
 
-- write: (TypedStream*)aStream
-{
-  [super write:aStream];
-  objc_write_object_reference(aStream, _next);
-  objc_write_object_reference(aStream, _prev);
-  return self;
-}
-
-- read: (TypedStream*)aStream
-{
-  [super read:aStream];
-  objc_read_object(aStream, &_next);
-  objc_read_object(aStream, &_prev);
-  return self;
-}
-
 - (id <LinkedListComprising>) nextLink
 {
   return _next;
