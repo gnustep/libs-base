@@ -9,6 +9,8 @@
 	* Source/GNUmakefile: ditto
 	* Source/Additions/GNUmakefile: Build GSFunctions.m
 	* Source/Additions/GSFunctions.m: New file for extra functions.
+	* Source/NSString.m: ([stringByExpandingTildeInPath]) Improve handling
+	of paths containing mingw drives.
 
 2005-03-14  Adam Fedor  <fedor@gnu.org>
 

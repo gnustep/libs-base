@@ -723,8 +723,9 @@ static NSString	*pathForUser(NSString *user)
  */
 - (id) initWithUser: (NSString*)userName
 {
-  NSString	*path = pathForUser(userName);
+  NSString	*path;
 
+  path = pathForUser(userName);
   return [self initWithContentsOfFile: path];
 }
 
