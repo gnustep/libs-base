@@ -50,10 +50,9 @@
 #include <stdlib.h>
 #include "GSPrivate.h"
 
-/* I hope 100,000 years is distant enough. */
-#define DISTANT_YEARS 100000.0
-#define DISTANT_FUTURE	(DISTANT_YEARS * 365.0 * 24 * 60 * 60)
-#define DISTANT_PAST	(-DISTANT_FUTURE)
+/* These constants seem to be what MacOS-X uses */
+#define DISTANT_FUTURE	63113990400.0
+#define DISTANT_PAST	-63113817600.0
 
 const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
 

@@ -1742,25 +1742,37 @@ static void Grow(DescriptionInfo *info, unsigned size)
 		ycent = YES;
 	      case 'y':
 		v = info->yd;
-		if (v < 0)
-		  v = 0;
-		if (v > 9999)
-		  v = 9999;
 		if (ycent)
 		  {
-		    Grow(info, 4);
-		    info->t[info->offset+3] = (v%10) + '0';
-		    v /= 10;
-		    info->t[info->offset+2] = (v%10) + '0';
-		    v /= 10;
-		    info->t[info->offset+1] = (v%10) + '0';
-		    v /= 10;
-		    info->t[info->offset+0] = (v%10) + '0';
-		    info->offset += 4;
+		    if (v >= 0 && v <= 9999)
+		      {
+			Grow(info, 4);
+			info->t[info->offset+3] = (v%10) + '0';
+			v /= 10;
+			info->t[info->offset+2] = (v%10) + '0';
+			v /= 10;
+			info->t[info->offset+1] = (v%10) + '0';
+			v /= 10;
+			info->t[info->offset+0] = (v%10) + '0';
+			info->offset += 4;
+		      }
+		    else
+		      {
+			unsigned char	tmp[16];
+			int		idx = 0;
+
+			sprintf(tmp, "%d", v);
+			Grow(info, strlen(tmp));
+			while (tmp[idx] != '\0')
+			  {
+			    info->t[info->offset++] = tmp[idx++];
+			  }
+		      }
 		  }
 		else
 		  {
 		    Grow(info, 2);
+		    if (v < 0) v = -v;
 		    v = v % 100;
 		    info->t[info->offset+1] = (v%10) + '0';
 		    v /= 10;
