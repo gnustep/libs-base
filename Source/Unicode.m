@@ -309,7 +309,7 @@ internal_unicode_enc()
   return unicode_enc;
 }
 
-static char *
+static const char *
 iconv_stringforencoding(NSStringEncoding enc)
 {
   switch (enc)
