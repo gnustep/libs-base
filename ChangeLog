@@ -1,3 +1,8 @@
+2004-06-16  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
+
+	* Tools/gdomap.c (map_add): Fix off by one bug that causes
+	random crashes in gdomap.
+
 2004-06-14  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Fix kvm test. Define HAVE_KVM_ENV
