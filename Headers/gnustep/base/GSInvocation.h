@@ -51,4 +51,14 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp);
 extern void
 GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp);
 
+#define CLEAR_RETURN_VALUE_IF_OBJECT  do { if (_validReturn && *_info[0].type == _C_ID) \
+                                            { \
+                                            RELEASE (*(id*) _retval); \
+                                            *(id*) _retval = nil; \
+                                            _validReturn = NO; \
+                                            }\
+                                        } while (0)
+
+#define RETAIN_RETURN_VALUE do { if (*_info[0].type == _C_ID) RETAIN (*(id*) _retval);} while (0)                                         
+
 #endif

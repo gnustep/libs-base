@@ -167,6 +167,10 @@ _arg_addr(NSInvocation *inv, int index)
 	    }
 	}
     }
+
+
+  CLEAR_RETURN_VALUE_IF_OBJECT;
+  
 #if	defined(USE_LIBFFI)
   if (_cframe)
     {
@@ -319,6 +323,8 @@ _arg_addr(NSInvocation *inv, int index)
 
   type = _info[0].type;
 
+  CLEAR_RETURN_VALUE_IF_OBJECT;
+  
   if (*type != _C_VOID)
     {
       int	length = _info[0].size;
@@ -329,6 +335,8 @@ _arg_addr(NSInvocation *inv, int index)
 #endif
       memcpy(_retval, buffer, length);
     }
+
+  RETAIN_RETURN_VALUE;
   _validReturn = YES;
 }
 
@@ -425,11 +433,16 @@ _arg_addr(NSInvocation *inv, int index)
   IMP		imp;
   int		stack_argsize;
 
+
+  CLEAR_RETURN_VALUE_IF_OBJECT;
+  _validReturn = NO;
+
   /*
    *	A message to a nil object returns nil.
    */
   if (anObject == nil)
     {
+      _validReturn = YES;
       memset(_retval, '\0', _info[0].size);	/* Clear return value */
       return;
     }
@@ -485,6 +498,8 @@ _arg_addr(NSInvocation *inv, int index)
     {
       mframe_decode_return(_info[0].type, _retval, returned);
     }
+
+  RETAIN_RETURN_VALUE;
   _validReturn = YES;
 }
 
@@ -568,7 +583,7 @@ _arg_addr(NSInvocation *inv, int index)
   const char		*types;
   void			*datum;
   unsigned int		i;
-
+  
   [aCoder decodeValueOfObjCType: @encode(char*) at: &types];
   newSig = [NSMethodSignature signatureWithObjCTypes: types];
   NSZoneFree(NSDefaultMallocZone(), (void*)types);
@@ -603,9 +618,9 @@ _arg_addr(NSInvocation *inv, int index)
     {
       [aCoder decodeValueOfObjCType: @encode(BOOL) at: &_validReturn];
       if (_validReturn)
-	{
-	  [aCoder decodeValueOfObjCType: _info[0].type at: _retval];
-	}
+        {
+          [aCoder decodeValueOfObjCType: _info[0].type at: _retval];
+        }
     }
   return self;
 }

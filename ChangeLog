@@ -1,3 +1,23 @@
+2003-02-04  Willem Rein Oudshoorn  <woudshoo@xs4all.nl>
+
+	* Headers/gnustep/base/GSInvocation.h (CLEAR_RETURN_VALUE_IF_OBJECT):
+	* New macro, if invocation returns object release it.
+	(RETAIN_RETURN_VALUE): New macro, if invocation returns object
+	release it.
+	* Source/NSInvocation.m ([NSInvocation -dealloc]): Implement RELEASE
+	* return object
+	([NSInvocation -setReturnValue:]) Implement RETAIN/RELEASE on return
+	object ([NSInvocation -invokeWithTarget:]): Implement RETAIN/RELEASE
+	on return object,
+	fixed  _validReturn flag setting
+	* Source/GSFFIInvocation.m ([GSFFIInvocation -invokeWithTarget:]): 
+	Fix _validReturn flag setting, Implement RETAIN/RELEASE on return
+	object.
+	* Source/GSFFCallInvocation.m ([GSFFCallInvocation
+	* -invokeWithTarget:]): 
+	Fix _validReturn flag setting.  Implement RETAIN/RELEASE on return
+	object.
+
 2003-02-04  Adam Fedor  <fedor@Eldorado.local.>
 
 	* Headers/gnustep/base/.cvsignore: Don't include config.h.in

@@ -278,13 +278,17 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   id		old_target;
   IMP		imp;
 
+  CLEAR_RETURN_VALUE_IF_OBJECT;
+  _validReturn = NO;
+
   /*
    *	A message to a nil object returns nil.
    */
   if (anObject == nil)
     {
       if (_retval)
-	memset(_retval, '\0', _info[0].size);	/* Clear return value */
+        memset(_retval, '\0', _info[0].size);	/* Clear return value */
+      _validReturn = YES;  
       return;
     }
 
@@ -335,6 +339,8 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   /* Decode the return value */
   if (*_info[0].type != _C_VOID)
     cifframe_decode_arg(_info[0].type, _retval);
+
+  RETAIN_RETURN_VALUE;   
   _validReturn = YES;
 }
 

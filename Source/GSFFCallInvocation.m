@@ -645,15 +645,23 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   id		old_target;
   IMP		imp;
 
+  CLEAR_RETURN_VALUE_IF_OBJECT;
+  _validReturn = NO;
+  
   /*
    *	A message to a nil object returns nil.
    */
   if (anObject == nil)
     {
       memset(_retval, '\0', _info[0].size);	/* Clear return value */
+      if (*_info[0].type != _C_VOID)
+        {
+          _validReturn = YES;
+        }
       return;
     }
 
+    
   NSAssert(_selector != 0, @"you must set the selector before invoking");
 
   /*
@@ -697,6 +705,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   RELEASE(old_target);
   
   GSFFCallInvokeWithTargetAndImp(self, anObject, imp);
+
+  RETAIN_RETURN_VALUE;
   _validReturn = YES;
 }
 
