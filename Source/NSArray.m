@@ -32,7 +32,7 @@
 
 + allocWithZone: (NSZone*)z
 {
-  return [NSGArray allocWithZone:z];
+  return NSAllocateObject([NSGArray class], 0, z);
 }
 
 + array
@@ -277,7 +277,7 @@
 
 + allocWithZone: (NSZone*)z
 {
-  return [NSGMutableArray allocWithZone:z];
+  return NSAllocateObject([NSGMutableArray class], 0, z);
 }
 
 + arrayWithCapacity: (unsigned)numItems
