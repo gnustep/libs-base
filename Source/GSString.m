@@ -561,6 +561,10 @@ getCString_c(ivars self, char *buffer, unsigned int maxLength,
 {
   int len;
 
+  if (maxLength > self->_count)
+    {
+      maxLength = self->_count;
+    }
   if (maxLength < aRange.length)
     {
       len = maxLength;
@@ -590,6 +594,10 @@ getCString_u(ivars self, char *buffer, unsigned int maxLength,
 {
   int len;
 
+  if (maxLength > self->_count)
+    {
+      maxLength = self->_count;
+    }
   if (maxLength < aRange.length)
     {
       len = maxLength;
