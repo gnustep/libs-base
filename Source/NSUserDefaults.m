@@ -748,25 +748,8 @@ static NSString	*pathForUser(NSString *user)
   _persDomains = [[NSMutableDictionaryClass alloc] initWithCapacity: 10];
   if ([self synchronize] == NO)
     {
-      NSRunLoop	*runLoop = [NSRunLoop currentRunLoop];
-      BOOL	done = NO;
-      int	attempts;
-
-      // Retry for a couple of seconds in case we are locked out.
-      for (attempts = 0; done == NO && attempts < 10; attempts++)
-	{
-	  [runLoop runMode: NSDefaultRunLoopMode
-		beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.2]];
-	  if ([self synchronize] == YES)
-	    {
-	      done = YES;
-	    }
-        }
-      if (done == NO)
-	{
-          DESTROY(self);
-          return self;
-        }
+      DESTROY(self);
+      return self;
     }
 
   // Check and if not existent add the Application and the Global domains
