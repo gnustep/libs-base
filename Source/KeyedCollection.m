@@ -64,13 +64,6 @@
 	       keyType:@encode(id)];
 }
 
-- (void) dealloc
-{
-  // ?? ;
-  [super dealloc];
-}
-
-
 // ADDING OR REPLACING;
 
 - putElement: (elt)newContentElement atKey: (elt)aKey
