@@ -1,3 +1,10 @@
+2000-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSGString.h:
+	* Headers/gnustep/base/NSGCString.h:
+	* Source/NSGString.m:
+	* Source/NSGCString.m: Removed classes - no loinger used.
+
 2000-10-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLHandle.m: Wrap all locking with exception handlers to
