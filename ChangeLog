@@ -2,6 +2,9 @@
 
 	* Tools/autogsdoc.m: Minor bugfix ... any .h file processed should
 	also be processed as a .gsdoc file to produce indexes and html.
+	* Tools/AGSHtml.m: List *all* methods for a class in its method
+	summary, even if they are in categories or are documented in
+	other files.
 
 2002-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
