@@ -1,3 +1,8 @@
+2001-03-16  Manuel Guesdon <mguesdon@orange-concept.com>
+
+	* Tools/pl*.m: added #include <Foundation/Foundation.h> to avoid 
+		GNUSTEP Internal Error
+
 2001-03-14  Adam Fedor  <fedor@gnu.org>
 
 	* Source/libgnustep-base.def: Remove some classes that aren't
