@@ -2,6 +2,7 @@
 
 	* Source/Additions/GSMime.m: Fix some charset-encoding mappings.
 	Add utf-7 and utf-16.
+	Add all aliases for ascii and latin1
 	Document mapping methods better.
 
 2005-03-21  Richard Frith-Macdonald <rfm@gnu.org>
