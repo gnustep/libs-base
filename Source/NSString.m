@@ -77,27 +77,27 @@
 
 
 // Uncomment when implemented
-    static NSStringEncoding _availableEncodings[] = {
- NSASCIIStringEncoding,
-        NSNEXTSTEPStringEncoding,
-//        NSJapaneseEUCStringEncoding,
-//        NSUTF8StringEncoding,
-        NSISOLatin1StringEncoding,
-//        NSSymbolStringEncoding,
-//        NSNonLossyASCIIStringEncoding,
-//        NSShiftJISStringEncoding,
-        NSISOLatin2StringEncoding,
-        NSUnicodeStringEncoding,
-//        NSWindowsCP1251StringEncoding,
-//        NSWindowsCP1252StringEncoding,
-//        NSWindowsCP1253StringEncoding,
-//        NSWindowsCP1254StringEncoding,
-//        NSWindowsCP1250StringEncoding,
-//        NSISO2022JPStringEncoding,
+static NSStringEncoding _availableEncodings[] = {
+    NSASCIIStringEncoding,
+    NSNEXTSTEPStringEncoding,
+//    NSJapaneseEUCStringEncoding,
+//    NSUTF8StringEncoding,
+    NSISOLatin1StringEncoding,
+//    NSSymbolStringEncoding,
+//    NSNonLossyASCIIStringEncoding,
+//    NSShiftJISStringEncoding,
+    NSISOLatin2StringEncoding,
+    NSUnicodeStringEncoding,
+//    NSWindowsCP1251StringEncoding,
+//    NSWindowsCP1252StringEncoding,
+//    NSWindowsCP1253StringEncoding,
+//    NSWindowsCP1254StringEncoding,
+//    NSWindowsCP1250StringEncoding,
+//    NSISO2022JPStringEncoding,
 // GNUstep additions
-        NSCyrillicStringEncoding,
- 0
-    };
+    NSCyrillicStringEncoding,
+    0
+};
 
 static Class	NSString_class;		/* For speed	*/
 
@@ -493,14 +493,27 @@ handle_printf_atsign (FILE *stream,
 {
   va_list ap;
   va_start(ap, format);
-  self = [self initWithFormat: format arguments: ap];
+  self = [self initWithFormat: format locale: nil arguments: ap];
   va_end(ap);
   return self;
 }
 
+- (id) initWithFormat: (NSString*)format
+               locale: (NSDictionary*)locale
+{
+  return [self initWithFormat: format locale: locale arguments: NULL];
+}
+
+- (id) initWithFormat: (NSString*)format
+            arguments: (va_list)arg_list
+{
+  return [self initWithFormat: format locale: nil arguments: arg_list];
+}
+
 /* xxx Change this when we have non-CString classes */
 - (id) initWithFormat: (NSString*)format
-   arguments: (va_list)arg_list
+               locale: (NSDictionary*)locale
+            arguments: (va_list)arg_list
 {
 #if defined(HAVE_VSPRINTF) || defined(HAVE_VASPRINTF)
   const char *format_cp = [format cString];
@@ -789,21 +802,6 @@ handle_printf_atsign (FILE *stream,
   [self notImplemented: _cmd];
   return self;
 #endif
-}
-
-- (id) initWithFormat: (NSString*)format
-	       locale: (NSDictionary*)dictionary
-{
-  [self notImplemented: _cmd];
-  return self;
-}
-
-- (id) initWithFormat: (NSString*)format
-	       locale: (NSDictionary*)dictionary
-	    arguments: (va_list)argList
-{
-  [self notImplemented: _cmd];
-  return self;
 }
 
 - (id) initWithData: (NSData*)data
