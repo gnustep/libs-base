@@ -622,7 +622,21 @@ NSString	*NSURLPartKey_query = @"query";
 {
   NSURLHandle	*handle = [self URLHandleUsingCache: YES];
 
-  return (handle == nil) ? NO : [handle writeData: data];
+  if (handle == nil)
+    {
+      return NO;
+    }
+  if ([handle writeData: data] == NO)
+    {
+      return NO;
+    }
+  [self loadResourceDataNotifyingClient: self
+			     usingCache: YES];
+  if ([handle resourceData] == nil)
+    {
+      return NO;
+    }
+  return YES;
 }
 
 - (id) propertyForKey: (NSString*)propertyKey

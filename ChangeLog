@@ -5,6 +5,7 @@
 	so its behavior is consistent with ([writeProperty:forKey:]) and
 	can be used in conjunction with background loading (ie all I/O
 	is done during the load).
+	* Source/NSURL.m: load resource data after setting it to force I/O
 
 2001-12-11  Manuel Guesdon <mguesdon@orange-concept.com>
 
