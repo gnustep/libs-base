@@ -26,7 +26,7 @@
         </method>
         <method type="id" factory="yes">
           <sel>setWithCapacity:</sel>
-          <arg type="unsigned">numItems</arg>
+          <arg type="unsigned int">numItems</arg>
           <desc>
           </desc>
         </method>
@@ -44,7 +44,7 @@
         </method>
         <method type="id">
           <sel>initWithCapacity:</sel>
-          <arg type="unsigned">numItems</arg>
+          <arg type="unsigned int">numItems</arg>
           <desc>
           </desc>
         </method>

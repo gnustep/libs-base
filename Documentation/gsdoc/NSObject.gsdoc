@@ -176,7 +176,7 @@
           <desc>
           </desc>
         </method>
-        <method type="unsigned">
+        <method type="unsigned int">
           <sel>hash</sel>
           <desc>
           </desc>

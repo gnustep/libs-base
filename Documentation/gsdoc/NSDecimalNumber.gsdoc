@@ -139,13 +139,13 @@
         </method>
         <method type="NSDecimalNumber*">
           <sel>decimalNumberByRaisingToPower:</sel>
-          <arg type="unsigned">power</arg>
+          <arg type="unsigned int">power</arg>
           <desc>
           </desc>
         </method>
         <method type="NSDecimalNumber*">
           <sel>decimalNumberByRaisingToPower:</sel>
-          <arg type="unsigned">power</arg>
+          <arg type="unsigned int">power</arg>
           <sel>withBehavior:</sel>
           <arg type="id&lt;NSDecimalNumberBehaviors&gt;">behavior</arg>
           <desc>
