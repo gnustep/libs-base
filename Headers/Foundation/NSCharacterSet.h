@@ -139,9 +139,9 @@
 
 #ifndef	STRICT_MACOS_X
 /**
- *  Initializes from a bitmap.  (See [NSBitmapCharSet].)  File must have
- *  extension "<code>.bitmap</code>".  (To get around this load the file
- *  into data yourself and use
+ *  Initializes from a bitmap (4096 bytes representing 65536 values).
+ *  File must have extension "<code>.bitmap</code>".
+ *  To get around this load the file into data yourself and use
  *  [NSCharacterSet -characterSetWithBitmapRepresentation].
  */
 + (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile;
