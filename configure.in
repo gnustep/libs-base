@@ -152,6 +152,28 @@ else
 fi
 
 #--------------------------------------------------------------------
+# Check if system has buggy SO_REUSEADDR
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(whether SO_REUSADDR is broken)
+AC_TRY_RUN([#include "$srcdir/config/config.reuseaddr.c"],
+	reuseaddr_ok=1,
+	reuseaddr_ok=0,
+	reuseaddr_ok=0)
+if test $reuseaddr_ok = 0; then
+  AC_DEFINE(BROKEN_SO_REUSEADDR)
+  echo
+  echo "The GCC 'nested functions' feature does not seem to be working on"
+  echo "this machine. "
+  echo "Read the bug-report instructions in the GCC texinfo manual"
+  echo "and submit a bug report."
+  echo "The program this configure script used to test nested functions"
+  echo "can be found in the file 'config/config.nested.c'"
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
+#--------------------------------------------------------------------
 # Check for thread flags for libobjc.
 #--------------------------------------------------------------------
 #

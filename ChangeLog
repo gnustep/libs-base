@@ -1,5 +1,9 @@
 2002-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* config/config.reuseaddr.c: New test for broken SO_REUSEADDR
+	* configure.in: test for broken SO_REUSEADDR
+	* acconfig.h: Add BROKEN_SO_REUSEADDR
+	* configure: regenerated
 	* Source/NSPortNameServer.m: Improved warnings about launching
 	gdomap.
 	* Source/NSDistributedNotification.m: Improved warnings about
