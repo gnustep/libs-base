@@ -1,5 +1,7 @@
 2002-05-28  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/gnustep/base/GSMime.h: Make set... methods return void.
+	* Source//GSMime.m: Make set... methods return void.
 	* Headers/gnustep/base/GSIMap.h:
 	* Headers/gnustep/base/NSHashTable.h:
 	* Headers/gnustep/base/NSMapTable.h:
@@ -19,6 +21,9 @@
 	Fixed minor problem in patch, and added code to call functions to
 	clean up after hash and map enumerations.  Modified cleanup function
 	to clear enumerator ... for memory release on GC system.
+	Rewrote enumeration code so that it maintains the characteristic
+	that objects can safely be removed from maps after being enumerated
+	(this feature is used in several places).
 	*WARNING* This introduces a binary incompatibility in that the size
 	of the map table and hash table enumeration types has grown.
 	If you have binaries which use the NSEnumerateHashTable() or the

@@ -110,6 +110,7 @@ static SEL	objSel;
       (*imp)(aCoder, sel, node->value.obj);
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
+  GSIMapEndEnumerator(&enumerator);
 }
 
 - (unsigned) hash
@@ -350,6 +351,7 @@ static SEL	objSel;
 
 - (void) dealloc
 {
+  GSIMapEndEnumerator(&enumerator);
   RELEASE(dictionary);
   [super dealloc];
 }

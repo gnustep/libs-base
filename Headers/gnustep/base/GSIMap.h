@@ -224,17 +224,18 @@ struct	_GSIMapTable {
 #endif
 };
 
-#ifdef	GSI_MAP_ENUMERATOR
-typedef GSI_MAP_ENUMERATOR	GSIMapEnumerator_t;
-#else
-struct	_GSIMapEnumerator {
+typedef struct	_GSIMapEnumerator {
   GSIMapTable	map;		/* the map being enumerated.	*/
   GSIMapNode	node;		/* The next node to use.	*/
   size_t	bucket;		/* The next bucket to use.	*/
-};
+} *_GSIE;
+
+#ifdef	GSI_MAP_ENUMERATOR
+typedef GSI_MAP_ENUMERATOR	GSIMapEnumerator_t;
+#else
 typedef struct _GSIMapEnumerator GSIMapEnumerator_t;
 #endif
-typedef GSIMapEnumerator_t *GSIMapEnumerator;
+typedef GSIMapEnumerator_t	*GSIMapEnumerator;
 
 static INLINE GSIMapBucket
 GSIMapPickBucket(unsigned hash, GSIMapBucket buckets, size_t bucketCount)
@@ -309,10 +310,8 @@ GSIMapRemoveNodeFromMap(GSIMapTable map, GSIMapBucket bkt, GSIMapNode node)
 
 static INLINE void
 GSIMapRemangleBuckets(GSIMapTable map,
-			      GSIMapBucket old_buckets,
-			      size_t old_bucketCount,
-			      GSIMapBucket new_buckets,
-			      size_t new_bucketCount)
+  GSIMapBucket old_buckets, size_t old_bucketCount,
+  GSIMapBucket new_buckets, size_t new_bucketCount)
 {
   while (old_bucketCount-- > 0)
     {
@@ -344,7 +343,9 @@ GSIMapMoreNodes(GSIMapTable map, unsigned required)
    * the default zone
    */
   if (map->zone == GSAtomicMallocZone())
-    newArray = (GSIMapNode*)NSZoneMalloc(NSDefaultMallocZone(), arraySize);
+    {
+      newArray = (GSIMapNode*)NSZoneMalloc(NSDefaultMallocZone(), arraySize);
+    }
   else
 #endif
   newArray = (GSIMapNode*)NSZoneMalloc(map->zone, arraySize);
@@ -470,7 +471,9 @@ GSIMapNodeForKey(GSIMapTable map, GSIMapKey key)
   GSIMapNode	node;
 
   if (map->nodeCount == 0)
-    return 0;
+    {
+      return 0;
+    }
   bucket = GSIMapBucketForKey(map, key);
   node = GSIMapNodeForKeyInBucket(map, bucket, key);
   return node;
@@ -489,7 +492,9 @@ GSIMapNodeForSimpleKey(GSIMapTable map, GSIMapKey key)
   GSIMapNode	node;
 
   if (map->nodeCount == 0)
-    return 0;
+    {
+      return 0;
+    }
   bucket = map->buckets + key.uint % map->bucketCount;
   node = bucket->firstNode;
   while ((node != 0) && node->key.uint != key.uint)
@@ -513,6 +518,7 @@ GSIMapResize(GSIMapTable map, size_t new_capacity)
   while (size < new_capacity)
     {
       size_t	tmp = old;
+
       old = size;
       size += tmp;
     }
@@ -522,7 +528,9 @@ GSIMapResize(GSIMapTable map, size_t new_capacity)
    *	bucket.
    */
   if (size == 8)
-    size++;
+    {
+      size++;
+    }
 
   /*
    *	Make a new set of buckets for this map
@@ -559,21 +567,24 @@ GSIMapRightSizeMap(GSIMapTable map, size_t capacity)
 
 /** Enumerating **/
 
-/* WARNING: You should not alter a map while an enumeration is
- * in progress.  The results of doing so are reasonably unpremapable.
- * With that in mind, read the following warnings carefully.  But
- * remember, DON'T MESS WITH A MAP WHILE YOU'RE ENUMERATING IT. */
-
 /* IMPORTANT WARNING: Enumerators have a wonderous property.
  * Once a node has been returned by `GSIMapEnumeratorNextNode()', it may be
  * removed from the map without effecting the rest of the current
  * enumeration. */
 
 /* EXTREMELY IMPORTANT WARNING: The purpose of this warning is point
- * out that, at this time, various (i.e., many) functions depend on
+ * out that, various (i.e., many) functions currently depend on
  * the behaviour outlined above.  So be prepared for some serious
  * breakage when you go fudging around with these things. */
 
+/**
+ * Create an return an enumerator for the specified map.<br />
+ * You must call GSIMapEndEnumerator() when you have finished
+ * with the enumerator.<br />
+ * <strong>WARNING</strong> You should not alter a map while an enumeration
+ * is in progress.  The results of doing so are reasonably unpredictable.
+ * <br />Remember, DON'T MESS WITH A MAP WHILE YOU'RE ENUMERATING IT.
+ */
 static INLINE GSIMapEnumerator_t
 GSIMapEnumeratorForMap(GSIMapTable map)
 {
@@ -582,26 +593,77 @@ GSIMapEnumeratorForMap(GSIMapTable map)
   enumerator.map = map;
   enumerator.node = 0;
   enumerator.bucket = 0;
+  /*
+   * Locate next bucket and node to be returned.
+   */
+  while (enumerator.bucket < map->bucketCount)
+    {
+      enumerator.node = map->buckets[enumerator.bucket].firstNode;
+      if (enumerator.node != 0)
+	{
+	  break;	// Got first node, and recorded its bucket.
+	}
+      enumerator.bucket++;
+    }
 
   return enumerator;
 }
 
+/**
+ * Tidies up after map enumeration ... effectively destroys the enumerator.
+ */
+static INLINE void
+GSIMapEndEnumerator(GSIMapEnumerator enumerator)
+{
+  ((_GSIE)enumerator)->map = 0;
+  ((_GSIE)enumerator)->node = 0;
+  ((_GSIE)enumerator)->bucket = 0;
+}
+
+/**
+ * Returns the bucket from which the next node in the enumeration will
+ * come.  Once the next node has been enumerated, you can use the
+ * bucket and node to remove the node from the map using the
+ * GSIMapRemoveNodeFromMap() function.
+ */
+static INLINE GSIMapBucket 
+GSIMapEnumeratorBucket(GSIMapEnumerator enumerator)
+{
+  if (((_GSIE)enumerator)->node != 0)
+    {
+      GSIMapTable	map = ((_GSIE)enumerator)->map;
+
+      return &((map->buckets)[((_GSIE)enumerator)->bucket]);
+    }
+  return 0;
+}
+
+/**
+ * Returns the next node in the map, or a nul pointer if at the end.
+ */
 static INLINE GSIMapNode 
 GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 {
-  GSIMapNode node;
-  int bucketCount = ((GSIMapTable)enumerator->map)->bucketCount;
-  node = enumerator->node;
+  GSIMapNode	node = ((_GSIE)enumerator)->node;
 
-  while(!node && enumerator->bucket < bucketCount)
-    {
-      node = (((GSIMapTable)enumerator->map)->buckets[enumerator->bucket]).firstNode;
-      enumerator->bucket++;
-    }
   if (node != 0)
-    enumerator->node = node->nextInBucket;
+    {
+      GSIMapNode	next = node->nextInBucket;
 
-  /* Send back NODE. */
+      if (next == 0)
+	{
+	  GSIMapTable	map = ((_GSIE)enumerator)->map;
+	  size_t	bucketCount = map->bucketCount;
+	  size_t	bucket = ((_GSIE)enumerator)->bucket;
+
+	  while (next == 0 && ++bucket < bucketCount)
+	    {
+	      next = (map->buckets[bucket]).firstNode;
+	    }
+	  ((_GSIE)enumerator)->bucket = bucket;
+	}
+      ((_GSIE)enumerator)->node = next;
+    }
   return node;
 }
 
@@ -699,10 +761,14 @@ GSIMapCleanMap(GSIMapTable map)
       for (i = 0; i < map->bucketCount; i++)
 	{
 	  node = bucket->firstNode;
-	  if(prevNode)
+	  if (prevNode != 0)
+	    {
 	      prevNode->nextInBucket = node;
+	    }
 	  else
+	    {
 	      startNode = node;
+	    }
 	  while(node != 0)
 	    {
 	      GSI_MAP_RELEASE_KEY(map, node->key);
