@@ -1,8 +1,13 @@
-  /* Support functions for Unicode implementation
+/* Support functions for Unicode implementation
+   Function to determine default c string encoding for
+   GNUstep based on GNUSTEP_STRING_ENCODING environment variable.
+
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by: Stevo Crvenkovski < stevo@btinternet.com >
    Date: March 1997
+   Merged with GetDefEncoding.m and iconv by: Fred Kiefer <fredkiefer@gmx.de>
+   Date: September 2000
 
    This file is part of the GNUstep Base Library.
 
@@ -24,6 +29,8 @@
 #include <config.h>
 #include <Foundation/NSString.h>
 #include <base/Unicode.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 struct _ucc_ {unichar from; char to;};
 
@@ -46,6 +53,172 @@ struct _ucc_ {unichar from; char to;};
 #define UNICODE_ENC "UNICODELITTLE"
 #endif
 
+#endif 
+
+
+typedef	unsigned char	unc;
+static NSStringEncoding	defEnc = GSUndefinedEncoding;
+
+// Uncomment when implemented
+static NSStringEncoding _availableEncodings[] = {
+    NSASCIIStringEncoding,
+    NSNEXTSTEPStringEncoding,
+//    NSJapaneseEUCStringEncoding,
+//    NSUTF8StringEncoding,
+    NSISOLatin1StringEncoding,
+//    NSSymbolStringEncoding,
+//    NSNonLossyASCIIStringEncoding,
+//    NSShiftJISStringEncoding,
+    NSISOLatin2StringEncoding,
+    NSUnicodeStringEncoding,
+//    NSWindowsCP1251StringEncoding,
+//    NSWindowsCP1252StringEncoding,
+//    NSWindowsCP1253StringEncoding,
+//    NSWindowsCP1254StringEncoding,
+//    NSWindowsCP1250StringEncoding,
+//    NSISO2022JPStringEncoding,
+//    NSMacOSRomanStringEncoding,
+//    NSProprietaryStringEncoding,
+// GNUstep additions
+    NSCyrillicStringEncoding,
+//    NSKOI8RStringEncoding,
+//    NSISOLatin3StringEncoding,
+//    NSISOLatin4StringEncoding,
+//    NSArabicStringEncoding,
+//    NSGreekStringEncoding,
+//    NSHebrewStringEncoding,
+//    NSGB2312StringEncoding,
+    0
+};
+
+struct _strenc_ {NSStringEncoding enc; char *ename;};
+const struct _strenc_ str_encoding_table[]=
+{
+  {NSASCIIStringEncoding,"NSASCIIStringEncoding"},
+  {NSNEXTSTEPStringEncoding,"NSNEXTSTEPStringEncoding"},
+  {NSJapaneseEUCStringEncoding, "NSJapaneseEUCStringEncoding"},
+  {NSUTF8StringEncoding,"NSUTF8StringEncoding"},
+  {NSISOLatin1StringEncoding,"NSISOLatin1StringEncoding"},
+  {NSSymbolStringEncoding,"NSSymbolStringEncoding"},
+  {NSNonLossyASCIIStringEncoding,"NSNonLossyASCIIStringEncoding"},
+  {NSShiftJISStringEncoding,"NSShiftJISStringEncoding"},
+  {NSISOLatin2StringEncoding,"NSISOLatin2StringEncoding"},
+  {NSUnicodeStringEncoding, "NSUnicodeStringEncoding"},
+  {NSWindowsCP1251StringEncoding,"NSWindowsCP1251StringEncoding"},
+  {NSWindowsCP1252StringEncoding,"NSWindowsCP1252StringEncoding"},
+  {NSWindowsCP1253StringEncoding,"NSWindowsCP1253StringEncoding"},
+  {NSWindowsCP1254StringEncoding,"NSWindowsCP1254StringEncoding"},
+  {NSWindowsCP1250StringEncoding,"NSWindowsCP1250StringEncoding"},
+  {NSISO2022JPStringEncoding,"NSISO2022JPStringEncoding "},
+  {NSMacOSRomanStringEncoding, "NSMacOSRomanStringEncoding"},
+  {NSProprietaryStringEncoding, "NSProprietaryStringEncoding"},
+
+// GNUstep additions
+  {NSCyrillicStringEncoding,"NSCyrillicStringEncoding"},
+  {NSKOI8RStringEncoding, "NSKOI8RStringEncoding"},
+  {NSISOLatin3StringEncoding, "NSISOLatin3StringEncoding"},
+  {NSISOLatin4StringEncoding, "NSISOLatin4StringEncoding"},
+  {NSArabicStringEncoding, "NSArabicStringEncoding"},
+  {NSGreekStringEncoding, "NSGreekStringEncoding"},
+  {NSHebrewStringEncoding, "NSHebrewStringEncoding"},
+  {NSGB2312StringEncoding, "NSGB2312StringEncoding"},
+
+  {0, "Unknown encoding"}
+};
+
+NSStringEncoding *GetAvailableEncodings()
+{
+  // FIXME: This should check which iconv definitions are available and 
+  // add them to the availble encodings
+  return _availableEncodings;
+}
+
+NSStringEncoding GetDefEncoding()
+{
+  char *encoding;
+  unsigned int count;
+  NSStringEncoding ret,tmp;
+  NSStringEncoding *availableEncodings;
+
+  availableEncodings = GetAvailableEncodings();
+
+  encoding = getenv("GNUSTEP_STRING_ENCODING");
+  if (encoding)
+    {
+      count = 0;
+      while (str_encoding_table[count].enc &&
+	     strcmp(str_encoding_table[count].ename,encoding))
+	{
+	  count++;
+	}
+      if (str_encoding_table[count].enc)
+	{
+	  ret = str_encoding_table[count].enc;
+	  if ((ret == NSUnicodeStringEncoding) ||
+	      (ret == NSSymbolStringEncoding))
+	    {
+	      fprintf(stderr, "WARNING: %s - encoding not supported as default c string encoding.\n", encoding);
+	      fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
+	      ret = NSASCIIStringEncoding;
+	    }
+	  else /*encoding should be supported but is it implemented?*/
+	    {
+	      count = 0;
+	      tmp = 0;
+	      while ( !(availableEncodings[count] == 0) )
+		{
+		  if ( !(ret == availableEncodings[count]) )
+		    tmp = 0;
+		  else
+		    {
+		      tmp = ret;
+		      break;
+		    }
+		  count++;
+		};
+	      if (!tmp)
+		{
+		  fprintf(stderr, "WARNING: %s - encoding not yet implemented.\n", encoding);
+		  fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
+		  ret = NSASCIIStringEncoding;
+		};
+	    };
+	}
+      else /* encoding not found */
+	{
+	  fprintf(stderr, "WARNING: %s - encoding not supported.\n", encoding);
+	  fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
+	  ret = NSASCIIStringEncoding;
+	}
+    }
+  else /* environment var not found */
+    {
+      /* This shouldn't be required. It really should be in UserDefaults - asf */
+      //fprintf(stderr,"WARNING: GNUSTEP_STRING_ENCODING environment variable not found\n");
+      //fprintf(stderr, "NSASCIIStringEncoding set as default.\n");
+      ret = NSASCIIStringEncoding;
+    }
+
+  // Cache the encoding
+  defEnc = ret;
+  return ret;
+};
+
+NSString*
+GetEncodingName(NSStringEncoding encoding)
+{
+  unsigned int count=0;
+
+  while (str_encoding_table[count].enc &&
+         !(str_encoding_table[count].enc == encoding))
+    {
+      count++;
+    }
+
+  return [NSString stringWithCString: str_encoding_table[count].ename];
+};
+
+#ifdef HAVE_ICONV
 
 static char *
 iconv_stringforencoding(NSStringEncoding enc)
@@ -156,9 +329,6 @@ iconv_ustrtostr(char *s2, int size2, unichar *u1, int size1, NSStringEncoding en
 
 #endif
 
-typedef	unsigned char	unc;
-static NSStringEncoding	defEnc = GSUndefinedEncoding;
-
 unichar
 encode_chartouni(char c, NSStringEncoding enc)
 {
@@ -169,6 +339,7 @@ encode_chartouni(char c, NSStringEncoding enc)
       case NSNonLossyASCIIStringEncoding:
       case NSASCIIStringEncoding:
       case NSISOLatin1StringEncoding:
+      case NSUnicodeStringEncoding:	  
 	return (unichar)((unc)c);
 
       case NSNEXTSTEPStringEncoding:
@@ -234,6 +405,7 @@ encode_unitochar(unichar u, NSStringEncoding enc)
 	  return '*';
 
       case NSISOLatin1StringEncoding:
+      case NSUnicodeStringEncoding:	  
 	if (u < 256)
 	  return (char)u;
 	else
@@ -323,6 +495,9 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
 	  return (char)u;
 	else
 	  return 0;
+
+      case NSUnicodeStringEncoding: 
+	return u;
 
       case NSNEXTSTEPStringEncoding:
 	if (u < (unichar)Next_conv_base)
@@ -441,6 +616,7 @@ encode_strtoustr(unichar *u1, const char *s1, int size, NSStringEncoding enc)
       case NSNonLossyASCIIStringEncoding:
       case NSASCIIStringEncoding:
       case NSISOLatin1StringEncoding:
+      case NSUnicodeStringEncoding: 	  
 	for (count = 0; (count < size) && (s1[count] != 0); count++)
 	  {
 	    u1[count] = (unichar)((unc)s1[count]);
@@ -544,6 +720,7 @@ encode_ustrtostr(char *s2, unichar *u1, int size, NSStringEncoding enc)
 	return count;
 
       case NSISOLatin1StringEncoding:
+      case NSUnicodeStringEncoding: 	  
         for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
 	  {
 	    u = u1[count];
@@ -669,6 +846,7 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
 	return count;
 
       case NSISOLatin1StringEncoding:
+      case NSUnicodeStringEncoding: 	  
         for (count = 0; count < size; count++)
 	  {
 	    u = u1[count];
