@@ -114,6 +114,7 @@ GSUnion.h \
 GSIArray.h \
 GSIMap.h \
 GCObject.h \
+GSLock.h \
 GSMime.h \
 GSXML.h \
 GSLocale.h \
