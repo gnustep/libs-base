@@ -29,6 +29,9 @@
 #include	<Foundation/NSDebug.h>
 #include	<Foundation/NSFileHandle.h>
 #include	<Foundation/NSAutoreleasePool.h>
+#ifdef NeXT_Foundation_LIBRARY
+#include "GNUstepBase/GSCategories.h"
+#endif
 
 #include	<ctype.h>
 
@@ -75,7 +78,7 @@ main(int argc, char** argv, char **env)
     }
   else
     {
-      NSStringEncoding	*e;
+      const NSStringEncoding	*e;
       NSMutableString	*names;
 
       names = [NSMutableString stringWithCapacity: 1024];

@@ -47,7 +47,7 @@ MAN8_PAGES = gdomap.8
 
 # The application to be compiled
 ifeq ($(add),yes)
-TOOL_NAME = autogsdoc
+TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
 else
 TOOL_NAME = autogsdoc cvtenc gdnc defaults plmerge \
 		plparse sfparse pldes plser pl2link xmlparse

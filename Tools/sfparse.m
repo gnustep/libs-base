@@ -27,6 +27,9 @@
 #include	<Foundation/NSUserDefaults.h>
 #include	<Foundation/NSDebug.h>
 #include	<Foundation/NSAutoreleasePool.h>
+#ifdef NeXT_Foundation_LIBRARY
+#include "GNUstepBase/GSCategories.h"
+#endif
 
 int
 convert_unicode(NSArray *args)
