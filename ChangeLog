@@ -1,3 +1,11 @@
+2004-04-27  Georg Fleischmann
+	
+	* Source/NSCalendarDate.m:
+	(-initWithString:calendarFormat:locale:): avoid exception with
+ 	time zone abbreviations.
+
+	* Testing/nsdate.m: Add test for this. (<fedor@gnu.org>).
+
 2004-04-27  Adam Fedor  <fedor@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Get debugFile path using
