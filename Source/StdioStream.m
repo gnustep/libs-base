@@ -149,6 +149,7 @@ o_vscanf (void *stream,
 {
   /* xxx Check error conditions. */
   int ret = fread (b, 1, len, fp);
+#if 0  /* No.  Sometimes we don't get as much as we asked for, and that ok. */
   if (ret != len)
     {
       printf ("Read bytes differ.\n");
@@ -157,6 +158,7 @@ o_vscanf (void *stream,
 		     format: @"Tried to read from eof"];
     }
   assert (ret == len);
+#endif
   return ret;
 }
 
