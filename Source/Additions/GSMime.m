@@ -1245,7 +1245,7 @@ wordData(NSString *word)
 
       if (flags.wantEndOfLine == 1)
 	{
-	  result = [self parse: [NSData dataWithBytes: @"\r\n" length: 2]];
+	  result = [self parse: [NSData dataWithBytes: "\r\n" length: 2]];
 	}
       else if (flags.inBody == 1)
 	{
@@ -1257,7 +1257,7 @@ wordData(NSString *word)
 	   * If still parsing headers, add CR-LF sequences to terminate
 	   * the headers.
            */
-	  result = [self parse: [NSData dataWithBytes: @"\r\n\r\n" length: 4]];
+	  result = [self parse: [NSData dataWithBytes: "\r\n\r\n" length: 4]];
 	}
       flags.wantEndOfLine = 0;
       flags.inBody = 0;

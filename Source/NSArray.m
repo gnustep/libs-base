@@ -1142,7 +1142,7 @@ compare(id elem1, id elem2, void* context)
  */
 - (id) valueForKey: (NSString*)key
 {
-  id result=nil;
+  id result = nil;
 
   if ([key isEqualToString: @"count"] == YES)
     {
@@ -1150,31 +1150,33 @@ compare(id elem1, id elem2, void* context)
     }
   else
     {
-      NSMutableArray *results = nil;
-      NSNull* null=nil;
-
-      int i, count = [self count];
-      volatile id object = nil;
+      NSMutableArray	*results = nil;
+      static NSNull	*null = nil;
+      unsigned		i;
+      unsigned		count = [self count];
+      volatile id	object = nil;
       
       results = [NSMutableArray array];
       
-      for(i = 0; i < count; i++)
+      for (i = 0; i < count; i++)
         {
-          id result;
+          id	result;
           
           object = [self objectAtIndex: i];
           result = [object valueForKey: key];
-          if (!result)
+          if (result == nil)
             {
-              if (!null)
-                null=[NSNull null];
+              if (null == nil)
+		{
+		  null = RETAIN([NSNull null]);
+		}
               result = null;
             }
           
           [results addObject: result];
         }
       
-      result=results;
+      result = results;
     }
   return result;
 }
@@ -1778,14 +1780,15 @@ compare(id elem1, id elem2, void* context)
  */
 - (void) setValue: (id)value forKey: (NSString*)key
 {
-  int i, count = [self count];
-  volatile id object = nil;
+  unsigned	i;
+  unsigned	count = [self count];
+  volatile id	object = nil;
       
-  for(i = 0; i < count; i++)
+  for (i = 0; i < count; i++)
     {
       object = [self objectAtIndex: i];
       [object setValue: value
-              forKey: key];
+		forKey: key];
     }
 }
 @end
