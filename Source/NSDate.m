@@ -108,7 +108,7 @@ otherTime(NSDate* other)
 NSTimeInterval
 GSTimeNow()
 {
-#if !defined(__WIN32__)
+#if !defined(__MINGW__)
   volatile NSTimeInterval interval;
   struct timeval tp;
 
@@ -137,7 +137,7 @@ GSTimeNow()
   t = otherTime(d);
   RELEASE(d);
   return t + sys_time.wMilliseconds / 1000.0;
-#endif /* __WIN32__ */
+#endif /* __MINGW__ */
 }
 
 /* The implementation of NSDate. */

@@ -27,12 +27,12 @@
 #include <base/preface.h>
 #include <base/Port.h>
 #include <sys/types.h>
-#ifdef __WIN32__
+#ifdef __MINGW__
 # include <winsock.h>
 #else
 # include <sys/socket.h>
 # include <netinet/in.h>
-#endif /* !WIN32 */
+#endif
 
 @interface UdpInPort : InPort
 {

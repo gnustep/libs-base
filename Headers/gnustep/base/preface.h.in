@@ -35,6 +35,12 @@
 #endif
 #endif
 
+#ifdef __MINGW32__
+#ifndef __MINGW__
+#define __MINGW__
+#endif
+#endif
+
 #if defined(__WIN32__)
 #include <windows.h>
 #define GNUSTEP_BASE_SOCKET_MESSAGE (WM_USER + 1)

@@ -153,14 +153,17 @@ $(GNUSTEP_OBJ_DIR)/preface${OEXT}: Foundation/preface.h
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv Foundation/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-touch $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h
 
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv Foundation/GSConfig.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-touch $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h
 
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h: mframe/config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv mframe/mframe.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-touch $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h
 
 Foundation/o_%_bas.h: Foundation/o_x_bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@

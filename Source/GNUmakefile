@@ -335,7 +335,6 @@ NSValue.m \
 NSZone.m \
 externs.m \
 objc-load.m \
-find_exec.m \
 NSURL.m \
 NSURLHandle.m
 

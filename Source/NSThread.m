@@ -254,7 +254,7 @@ gnustep_base_thread_callback()
 #ifdef	HAVE_USLEEP
       usleep (30*60*1000000);
 #else
-#if defined(__WIN32__)
+#if defined(__MINGW__)
       Sleep (30*60*1000);
 #else
       sleep (30*60);
@@ -269,7 +269,7 @@ gnustep_base_thread_callback()
 #ifdef	HAVE_USLEEP
       usleep ((int)(delay*1000000));
 #else
-#if defined(__WIN32__)
+#if defined(__MINGW__)
       Sleep (delay*1000);
 #else
       sleep ((int)delay);

@@ -27,11 +27,13 @@
 #include <base/preface.h>
 #include <base/Port.h>
 #include <base/RunLoop.h>
-#if	!defined(__WIN32__) || defined(__CYGWIN__)
+#ifdef __MINGW__
+# include <winsock.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#endif /* !__WIN32__ */
+#endif
 #include <Foundation/NSMapTable.h>
 
 /* A concrete implementation of a Port object implemented on top of

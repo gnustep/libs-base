@@ -115,7 +115,7 @@ NSHomeDirectory(void)
 NSString *
 NSHomeDirectoryForUser(NSString *login_name)
 {
-#if !defined(__WIN32__)
+#if !defined(__MINGW__)
   struct passwd *pw;
 
   [gnustep_global_lock lock];
@@ -140,12 +140,14 @@ NSHomeDirectoryForUser(NSString *login_name)
       s = [NSString stringWithCString: nb];
       NSZoneFree(NSDefaultMallocZone(), nb);
     }
-  else
+  else if (n > 0)
     {
       /* null terminate it and return the string */
       buf[n] = '\0';
       s = [NSString stringWithCString: buf];
     }
+  else
+    s = NSOpenStepRootDirectory();
   [gnustep_global_lock unlock];
   return s;
 #endif
@@ -289,7 +291,7 @@ NSOpenStepRootDirectory(void)
 		     objectForKey: @"GNUSTEP_ROOT"];
 
   if (root == nil)
-#if	defined(__WIN32__)
+#if	defined(__MINGW__)
     root = @"C:\\";
 #else
     root = @"/";

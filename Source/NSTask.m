@@ -361,9 +361,6 @@ GSCheckTasks()
 #endif
 }
 
-/* Declaration from find_exec.c */
-extern char *objc_find_executable(const char *name);
-
 - (void) launch
 {
   NSMutableArray	*toClose;
@@ -427,28 +424,20 @@ extern char *objc_find_executable(const char *name);
 	  lpath = [base_path stringByAppendingPathComponent: prog];
 	  if ([mgr isExecutableFileAtPath: lpath] == NO)
 	    {
-	      const char	*cpath = 0;
-
 	      /*
 	       * Last resort - if the launch path was simply a program name
-	       * get objc_find_executable() to try using the PATH environment
+	       * get NSBundle to try using the PATH environment
 	       * variable to find the executable.
 	       */
 	      if ([base_path isEqualToString: @""] == YES)
 		{
-
-		  cpath = objc_find_executable([prog cString]);
+		   lpath = [NSBundle _absolutePathOfExecutable: prog];
 		}
-	      if (cpath == 0)
+	      if (lpath == nil)
 		{
 		  [NSException raise: NSInvalidArgumentException
-			      format: @"NSTask - launch path (%@) is not valid",
+			      format: @"NSTask - launch path (%@) not valid",
 				_launchPath];
-		}
-	      else
-		{
-		  lpath = [NSString stringWithCString: cpath];
-		  OBJC_FREE((void*)cpath);
 		}
 	    }
 	}
@@ -552,7 +541,7 @@ extern char *objc_find_executable(const char *name);
       setpgrp(getpid(), getpid());
 #endif
 #else
-#if defined(__WIN32__)
+#if defined(__MINGW__)
       pid = (int)GetCurrentProcessId(),
 #else
       pid = (int)getpid();

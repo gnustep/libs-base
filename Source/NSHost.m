@@ -34,15 +34,15 @@
 #include <netdb.h>
 /* #include <libc.h>*/
 
-#if	defined(__WIN32__) && !defined(__CYGWIN__)
-#include <Windows32/Sockets.h>
+#if defined(__MINGW__)
+#include <winsock.h>
 #else
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#endif /* __WIN32__*/
+#endif /* !__MINGW__*/
 
 #ifndef	INADDR_NONE
 #define	INADDR_NONE	-1

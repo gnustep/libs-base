@@ -96,9 +96,6 @@ static NSString* library_combo =
   nil;
 #endif
 
-/* Declaration from find_exec.c */
-extern char *objc_find_executable(const char *name);
-
 /* This function is provided for objc-load.c, although I'm not sure it
    really needs it (So far only needed if using GNU dld library) */
 const char *
@@ -237,7 +234,6 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	{
 	  NSMutableString	*system;
 	  NSString		*str;
-	  char			*output;
 
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
 	    gnustep_target_dir = RETAIN(str);
@@ -270,10 +266,9 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	    {
 	      _executable_path =
 		[[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
-	      output = objc_find_executable([_executable_path cString]);
-	      NSAssert(output, NSInternalInconsistencyException);
-	      _executable_path = [NSString stringWithCString: output];
-	      OBJC_FREE(output);
+	      _executable_path = 
+		[NSBundle _absolutePathOfExecutable: _executable_path];
+	      NSAssert(_executable_path, NSInternalInconsistencyException);
 	    }
 
 	  RETAIN(_executable_path);
@@ -306,6 +301,53 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 + (NSArray *) allFrameworks
 {
   return [self notImplemented: _cmd];
+}
+
++ (NSString *) _absolutePathOfExecutable: (NSString *)path
+{
+  NSFileManager *mgr;
+  NSDictionary   *env;
+  NSString *pathlist, *prefix;
+  id patharr;
+
+  path = [path stringByStandardizingPath];
+  if ([path isAbsolutePath])
+    return path;
+
+  mgr = [NSFileManager defaultManager];
+  env = [[NSProcessInfo processInfo] environment];
+  pathlist = [env objectForKey:@"PATH"];
+#if defined(__MINGW__)
+  patharr = [pathlist componentsSeparatedByString:@";"];
+#else
+  patharr = [pathlist componentsSeparatedByString:@":"];
+#endif
+  patharr = [patharr objectEnumerator];
+  while ((prefix = [patharr nextObject]))
+    {
+      if ([prefix isEqual:@"."])
+	prefix = [mgr currentDirectoryPath];
+      prefix = [prefix stringByAppendingPathComponent: path];
+      if ([mgr isExecutableFileAtPath: prefix])
+	return [prefix stringByStandardizingPath];
+#if defined(__WIN32__)
+      /* Also add common executable extensions on windows */
+      if ([path pathExtension] == nil)
+	{
+	  NSString *wpath;
+	  wpath = [prefix stringByAppendingPathExtension: @"exe"];
+	  if ([mgr isExecutableFileAtPath: wpath])
+	    return [wpath stringByStandardizingPath];
+	  wpath = [prefix stringByAppendingPathExtension: @"com"];
+	  if ([mgr isExecutableFileAtPath: wpath])
+	    return [wpath stringByStandardizingPath];
+	  wpath = [prefix stringByAppendingPathExtension: @"cmd"];
+	  if ([mgr isExecutableFileAtPath: wpath])
+	    return [wpath stringByStandardizingPath];
+	}
+#endif
+    }
+  return nil;
 }
 
 + (NSBundle *)mainBundle

@@ -61,7 +61,7 @@
 
 #define DIR_enum_state DIR
 
-#if	defined(__WIN32__)
+#if	defined(__MINGW__)
 #define	WIN32ERR	((DWORD)0xFFFFFFFF)
 #endif
 
@@ -71,7 +71,7 @@
 # include <limits.h>			/* for PATH_MAX */
 # include <utime.h>
 #else
-#ifdef __WIN32__
+#ifdef __MINGW__
 # include <limits.h>
 # include <sys/utime.h>
 #else
@@ -206,8 +206,8 @@ static NSFileManager* defaultManager = nil;
 {
   const char* cpath = [self fileSystemRepresentationWithPath: path];
     
-#if defined(__WIN32__)
-  return SetCurrentDirectory(cpath);
+#if defined(__MINGW__)
+  return SetCurrentDirectory(cpath) == TRUE ? YES : NO;
 #else
   return (chdir(cpath) == 0);
 #endif
@@ -216,7 +216,7 @@ static NSFileManager* defaultManager = nil;
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes
 {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
   BOOL	ok;
 
   ok = CreateDirectory([self fileSystemRepresentationWithPath: path], NULL);
@@ -321,14 +321,14 @@ static NSFileManager* defaultManager = nil;
   while (cur < len);
 
   return YES;
-#endif /* WIN32 */
+#endif /* !MINGW */
 }
 
 - (NSString*) currentDirectoryPath
 {
   char path[PATH_MAX];
 
-#if defined(__WIN32__)
+#if defined(__MINGW__)
   if (GetCurrentDirectory(PATH_MAX, path) > PATH_MAX)
     return nil;
 #else
@@ -339,7 +339,7 @@ static NSFileManager* defaultManager = nil;
   if (getwd(path) == NULL)
     return nil;
 #endif /* HAVE_GETCWD */
-#endif /* WIN32 */
+#endif /* !MINGW */
 
   return [self stringWithFileSystemRepresentation: path length: strlen(path)];
 }
@@ -716,7 +716,7 @@ static NSFileManager* defaultManager = nil;
     }
   else
     {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
       DWORD res;
 
       res = GetFileAttributes(cpath);
@@ -743,7 +743,7 @@ static NSFileManager* defaultManager = nil;
 	}
     
       return YES;
-#endif /* WIN32 */
+#endif /* MINGW */
     }
 }
 
@@ -755,7 +755,7 @@ static NSFileManager* defaultManager = nil;
     return NO;
   else
     {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
       DWORD res= GetFileAttributes(cpath);
 
       if (res == WIN32ERR)
@@ -775,7 +775,7 @@ static NSFileManager* defaultManager = nil;
     return NO;
   else
     {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
       DWORD res= GetFileAttributes(cpath);
 
       if (res == WIN32ERR)
@@ -795,7 +795,7 @@ static NSFileManager* defaultManager = nil;
     return NO;
   else
     {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
       DWORD res= GetFileAttributes(cpath);
       int len = strlen(cpath);
 
@@ -839,7 +839,7 @@ static NSFileManager* defaultManager = nil;
 
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
 {
-#if defined(__WIN32__)
+#if defined(__MINGW__)
   long long totalsize, freesize;
   id  values[5];
   id	keys[5] = {
@@ -912,7 +912,7 @@ static NSFileManager* defaultManager = nil;
 #else
   return nil;
 #endif
-#endif /* WIN32 */
+#endif /* MINGW */
 }
 
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
@@ -923,7 +923,7 @@ static NSFileManager* defaultManager = nil;
   NSDate	*date;
   BOOL		allOk = YES;
 
-#ifndef __WIN32__
+#ifndef __MINGW__
   num = [attributes objectForKey: NSFileOwnerAccountNumber];
   if (num)
     {
@@ -990,7 +990,7 @@ static NSFileManager* defaultManager = nil;
 	  ASSIGN(_lastError, str);
 	}
     }
-#endif	/* __WIN32__ */
+#endif	/* __MINGW__ */
 
   num = [attributes objectForKey: NSFilePosixPermissions];
   if (num)
@@ -1123,7 +1123,7 @@ static NSFileManager* defaultManager = nil;
   const char* lpath = [self fileSystemRepresentationWithPath: path];
   const char* npath = [self fileSystemRepresentationWithPath: otherPath];
     
-#ifdef __WIN32__
+#ifdef __MINGW__
   return NO;
 #else
   return (symlink(lpath, npath) == 0);
@@ -1146,7 +1146,7 @@ static NSFileManager* defaultManager = nil;
 
 - (const char*) fileSystemRepresentationWithPath: (NSString*)path
 {
-#if 0 && defined(__WIN32__)
+#if 0 && defined(__MINGW__)
   unsigned	len = [path length];
   NSMutableData	*d = [NSMutableData dataWithLength: len + 5];
   char		*fspath = (char*)[d mutableBytes];
