@@ -3366,6 +3366,25 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Convenience method to create a new header and add it to the receiver.<br />
+ * Returns the newly created header.<br />
+ * See [GSMimeHeader-initWithName:value:parameters:] and -addHeader: methods.
+ */
+- (GSMimeHeader*) addHeader: (NSString*)name
+		      value: (NSString*)value
+		 parameters: (NSDictionary*)parameters
+{
+  GSMimeHeader	*hdr;
+
+  hdr = [[GSMimeHeader alloc] initWithName: name
+				     value: value
+				parameters: parameters];
+  [self addHeader: hdr];
+  RELEASE(hdr);
+  return hdr;
+}
+
+/**
  * <p>
  *   This method returns an array containing GSMimeHeader objects
  *   representing the headers associated with the document.
@@ -3886,10 +3905,7 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Convenience method to create a new header and add it to the receiver
- * replacing any existing header of the same name.<br />
- * Returns the newly created header.<br />
- * See [GSMimeHeader-initWithName:value:parameters:] and -setHeader: methods.
+ * Deprecated ... use -setHeader:value:parameters:
  */
 - (GSMimeHeader*) makeHeader: (NSString*)name
 		       value: (NSString*)value
@@ -4582,6 +4598,26 @@ static NSCharacterSet	*tokenSet = nil;
 	}
     }
   [self addHeader: info];
+}
+
+/**
+ * Convenience method to create a new header and add it to the receiver
+ * replacing any existing header of the same name.<br />
+ * Returns the newly created header.<br />
+ * See [GSMimeHeader-initWithName:value:parameters:] and -setHeader: methods.
+ */
+- (GSMimeHeader*) setHeader: (NSString*)name
+		      value: (NSString*)value
+		 parameters: (NSDictionary*)parameters
+{
+  GSMimeHeader	*hdr;
+
+  hdr = [[GSMimeHeader alloc] initWithName: name
+				     value: value
+				parameters: parameters];
+  [self setHeader: hdr];
+  RELEASE(hdr);
+  return hdr;
 }
 
 @end

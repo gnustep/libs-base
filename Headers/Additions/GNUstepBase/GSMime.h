@@ -107,6 +107,9 @@
 
 - (void) addContent: (id)newContent;
 - (void) addHeader: (GSMimeHeader*)info;
+- (GSMimeHeader*) addHeader: (NSString*)name
+                      value: (NSString*)value
+		 parameters: (NSDictionary*)parameters;
 - (NSArray*) allHeaders;
 - (id) content;
 - (id) contentByID: (NSString*)key;
@@ -141,6 +144,9 @@
 	       name: (NSString*)name;
 - (void) setContentType: (NSString*)newType;
 - (void) setHeader: (GSMimeHeader*)info;
+- (GSMimeHeader*) setHeader: (NSString*)name
+                      value: (NSString*)value
+		 parameters: (NSDictionary*)parameters;
 
 @end
 

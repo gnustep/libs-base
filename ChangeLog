@@ -1,3 +1,8 @@
+2004-02-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.h: improve consistency of naming of
+	methods with add/set methods for new headers.
+
 2004-01-31  Manuel Guesdon <mguesdon@orange-concept.com>
 	* Source/NSNumber.m: Modified numberWithXX: methods
 	to test against abstractClass. If class is not the abstract 
