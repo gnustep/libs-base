@@ -1,3 +1,7 @@
+2003-06-19  Adam Fedor  <fedor@gnu.org>
+
+	* GNUmakefile (SUBPROJECTS): Revert last change.
+
 2003-06-19  Andrew Ruder <aeruder@yahoo.com>
 
 	* Source/Additions/Unicode.m: Increase size of table by one to
