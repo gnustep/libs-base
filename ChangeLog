@@ -1,3 +1,8 @@
+2001-12-15  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Tools/pl2link.m
+	Better handling of MIME types.
+
 2001-12-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	Many minor cleanups and bugfixes for autogsdoc.  Alpha-test support
