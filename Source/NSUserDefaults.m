@@ -86,7 +86,6 @@ static void updateCache(NSUserDefaults *self)
   if (self == sharedDefaults)
     {
       NSArray	*debug;
-      NSString	*s;
 
       /**
        * If there is an array NSUserDefault called GNU-Debug,
