@@ -1,5 +1,5 @@
 
-/* Interface for NSKeyvalueCoding for GNUStep
+/* Interface for NSKeyValueCoding for GNUStep
    Copyright (C) 2000 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
