@@ -2,6 +2,12 @@
 
 	* Source/NSFileManager.m: MacOS-X ([componentsToDisplayForPath:]) and
 	([displayNameAtPath:]) methods implemented.  Creation date added.
+	* Source/NSString.m: More alterations to GNUstep extension methods
+	to make their names consistent with other methods.
+	Q. Should we deprecate/remove them entirely?
+	* Tools/gsdoc.m: Update for changes to extension methods... though
+	this tool has been deprecated for some time now, so perhaps we
+	should remove it?
 
 2002-09-13  Adam Fedor  <fedor@gnu.org>
 

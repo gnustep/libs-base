@@ -1732,7 +1732,7 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
   //Avoid ((xxx))
   else if ([type hasPrefix: @"("] && [type hasSuffix: @")"])
     {
-      type = [[type stringWithoutPrefix: @"("] stringWithoutSuffix: @")"];
+      type = [[type stringByDeletingPrefix: @"("] stringByDeletingSuffix: @")"];
     }
   type = [self linkedItem: type ofTypes: typesTypes];
 
@@ -1755,7 +1755,8 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
 	  //Avoid ((xxx))
 	  if ([typ hasPrefix: @"("] && [typ hasSuffix: @")"])
 	    {
-	      typ = [[typ stringWithoutPrefix: @"("] stringWithoutSuffix: @")"];
+	      typ = [[typ stringByDeletingPrefix: @"("]
+		stringByDeletingSuffix: @")"];
 	    }
 	  typ = [self linkedItem: typ ofTypes: typesTypes];
 	  [args appendString: typ];
@@ -2432,7 +2433,8 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
 	  //Avoid ((xxx))
       else if ([type hasPrefix: @"("] && [type hasSuffix: @")"])
 	{
-	  type = [[type stringWithoutPrefix: @"("] stringWithoutSuffix: @")"];
+	  type = [[type stringByDeletingPrefix: @"("]
+	    stringByDeletingSuffix: @")"];
 	}
       type = [self linkedItem: type ofTypes: typesTypes];
       [decl appendString: type];
@@ -2458,8 +2460,8 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
 	      //Avoid ((xxx))
 	      if ([typ hasPrefix: @"("] && [typ hasSuffix: @")"])
 		{
-		  typ = [typ stringWithoutPrefix: @"("];
-		  typ = [typ stringWithoutSuffix: @")"];
+		  typ = [typ stringByDeletingPrefix: @"("];
+		  typ = [typ stringByDeletingSuffix: @")"];
 		}
 	      typ = [self linkedItem: typ ofTypes: typesTypes];
 	      [args appendString: typ];
@@ -2509,8 +2511,8 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
 	  //Avoid ((xxx))
       else if ([type hasPrefix: @"("] && [type hasSuffix: @")"])
 	{
-	  type = [type stringWithoutPrefix: @"("];
-	  type = [type stringWithoutSuffix: @")"];
+	  type = [type stringByDeletingPrefix: @"("];
+	  type = [type stringByDeletingSuffix: @")"];
 	}
       type = [self linkedItem: type ofTypes: typesTypes];
       [lText appendString: type];
@@ -2542,8 +2544,8 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
 		  //Avoid ((xxx))
 		  if ([typ hasPrefix: @"("] && [typ hasSuffix: @")"])
 		    {
-		      typ = [typ stringWithoutPrefix: @"("];
-		      typ = [typ stringWithoutSuffix: @")"];
+		      typ = [typ stringByDeletingPrefix: @"("];
+		      typ = [typ stringByDeletingSuffix: @")"];
 		    }
 		  typ = [self linkedItem: typ ofTypes: typesTypes];
 		  [lText appendFormat: @" (%@)%@", typ, arg];
@@ -4274,7 +4276,7 @@ main(int argc, char **argv, char **env)
 	      NSString	*key;
 	      NSArray	*parts;
 
-	      argWithoutPrefix = [arg stringWithoutPrefix: @"--"];
+	      argWithoutPrefix = [arg stringByDeletingPrefix: @"--"];
 	      parts = [argWithoutPrefix componentsSeparatedByString: @"="];
 	      key = [parts objectAtIndex: 0];
 
@@ -4366,7 +4368,7 @@ main(int argc, char **argv, char **env)
 		    }
 		  NSCAssert1(value, @"No value for %@", key);
 		  [infoDictionary setObject: value
-		    forKey: [key stringWithoutPrefix: @"define-"]];
+		    forKey: [key stringByDeletingPrefix: @"define-"]];
 		}
 	      else
 		{
