@@ -1646,6 +1646,11 @@ init_ports()
       gdomap_log(LOG_CRIT);
       exit(1);
     }
+  else if (debug)
+    {
+      sprintf(ebuf, "Opened UDP socket %d", udp_desc);
+      gdomap_log(LOG_DEBUG);
+    }
 #ifndef __MINGW__
   /*
    * Under windoze, REUSEADDR means something different from under unix.
@@ -1733,6 +1738,11 @@ init_ports()
       sprintf(ebuf, "Unable to create TCP socket");
       gdomap_log(LOG_CRIT);
       exit(1);
+    }
+  else if (debug)
+    {
+      sprintf(ebuf, "Opened TDP socket %d", tcp_desc);
+      gdomap_log(LOG_DEBUG);
     }
 #ifndef	__MINGW__
   /*
@@ -3169,8 +3179,8 @@ handle_send()
 	    {
 	      if (debug)
 		{
-		  sprintf(ebuf, "failed sendto for %s",
-		    inet_ntoa(entry->addr.sin_addr));
+		  sprintf(ebuf, "failed sendto on %d for %s - %s",
+		    udp_desc, inet_ntoa(entry->addr.sin_addr), strerror(errno));
 		  gdomap_log(LOG_DEBUG);
 		}
 	      queue_pop();
@@ -4486,8 +4496,21 @@ printf(
 	  (void)close(c);
 	}
     }
-  (void)open("/dev/null", O_RDONLY);	/* Stdin.	*/
-  (void)open("/dev/null", O_WRONLY);	/* Stdout.	*/
+  if (open("/dev/null", O_RDONLY) != 0)
+    {
+      perror("failed to open stdin from /dev/null\n");
+      exit(1);
+    }
+  if (open("/dev/null", O_WRONLY) != 1)
+    {
+      perror("failed to open stdout from /dev/null\n");
+      exit(1);
+    }
+  if (debug)
+    {
+      sprintf(ebuf, "Closed descriptors");
+      gdomap_log(LOG_DEBUG);
+    }
 
 #endif /* !__MINGW__ */
 
