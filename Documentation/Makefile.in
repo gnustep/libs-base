@@ -105,6 +105,28 @@ ADVERTISEMENT: advertisement.texi version.texi
 	$(MAKEINFO) $(MAKEINFO_FLAGS) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
 	--no-header --no-split $(srcdir)/advertisement.texi
 
+# Unused for now, but may be used in the future.
+#%: %.texi
+#	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $@ -D ${@}_ONLY \
+#	--no-header --no-split $(srcdir)/$<
+#
+#%.texi: %.www.texi
+#	rm -f $@
+#	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+#	  $(srcdir)/$< \
+#	  | sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+#	    > $@
+#
+#%.html: %.www.texi
+#	rm -f $@.texi
+#	sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
+#	  $(srcdir)/$< \
+#	  | sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
+#	  | sed -e 's,^ *$$,@br{},g' \
+#	    > $<.html.texi
+#	texi2html -expandinfo $(MAKEINFO_FLAGS) $<.html.texi
+#	mv -f $<.html.html $*.html
+
 # Make substitutions for @email{} and @url{} before passing to makeinfo.
 # These substitution scripts could be cleaned up.
 GNUstep-FAQ: gnustep-faq.texi version.texi
