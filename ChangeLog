@@ -1,3 +1,9 @@
+2002-09-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpHandle.m: ([-connectToPort:beforeDate:]) Added more
+	informative logging for problem condition reported by Nicila ...
+	perhaps it will help tracking down cause.
+
 2002-09-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFormat.m: Where a %p format prints a null pointer,
