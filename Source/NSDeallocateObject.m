@@ -27,8 +27,9 @@ void NSDeallocateObject(NSObject *anObject)
 {
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
+      NSZone z = [anObject zone];
       ((id)anObject)->class_pointer = (void*) 0xdeadface;
-      NSZoneFree ([anObject zone], anObject);
+      NSZoneFree (z, anObject);
     }
   return;
 }
