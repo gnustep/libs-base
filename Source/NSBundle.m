@@ -504,7 +504,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	   inDirectory: nil];
 }
 
-- (NSString *) pathForResource: (NSString *)name
++ (NSString *) pathForResource: (NSString *)name
 		ofType: (NSString *)ext	
 		inDirectory: (NSString *)bundlePath
 {

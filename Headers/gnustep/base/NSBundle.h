@@ -1,5 +1,5 @@
 /* Interface for NSBundle for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: 1995
@@ -55,7 +55,7 @@ extern NSString* NSLoadedClasses;
 
 - (NSArray *) pathsForResourcesOfType: (NSString *)extension
 		inDirectory: (NSString *)bundlePath;
-- (NSString *) pathForResource: (NSString *)name
++ (NSString *) pathForResource: (NSString *)name
 		ofType: (NSString *)ext	
 		inDirectory: (NSString *)bundlePath;
 - (NSString *) pathForResource: (NSString *)name
