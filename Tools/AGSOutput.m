@@ -131,6 +131,7 @@ static BOOL snuggleStart(NSString *t)
   DESTROY(identStart);
   DESTROY(spaces);
   DESTROY(spacenl);
+  DESTROY(informalProtocols);
   [super dealloc];
 }
 
@@ -231,6 +232,7 @@ static BOOL snuggleStart(NSString *t)
     @"_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
   identStart = RETAIN([NSCharacterSet characterSetWithCharactersInString:
     @"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
+  informalProtocols = [NSMutableArray new];
   verbose = [[NSUserDefaults standardUserDefaults] boolForKey: @"Verbose"];
   warn = [[NSUserDefaults standardUserDefaults] boolForKey: @"Warn"];
 
@@ -1177,6 +1179,8 @@ static BOOL snuggleStart(NSString *t)
 	    {
 	      [m setObject: @"YES" forKey: @"Implemented"];
 	    }
+
+          [informalProtocols addObject: name];
 	}
       else if (warn == YES)
 	{
@@ -2235,6 +2239,11 @@ static BOOL snuggleStart(NSString *t)
     }
 
   return a;
+}
+
+- (NSArray*) informalProtocols
+{
+  return informalProtocols;
 }
 
 @end
