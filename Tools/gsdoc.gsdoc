@@ -575,15 +575,15 @@
 	Use of the tool is trivial - just provide it with a list of gsdoc
 	file names, and it will produce a load of html output files.
       </p>
-		<section>
-		  <heading>Parameters</heading>
-		  <deflist>
-			<term><ref id="--makeRefs">--makeRefs=ReferencesFileName</ref></term>
+	  <section>
+		<heading>Parameters</heading>
+		<deflist>
+		  <term><ref id="--makeRefs">--makeRefs=ReferencesFileName</ref></term>
 		  <desc>With this option, gsdoc reads gsdoc files and create ReferencesFileName.gsdocrefs files which can be used as <ref id="">--refs</ref> to make links between elements</desc>
-			
+		  
 		  <term><ref id="--projectName">--projectName=TheProjectName</ref></term>
 		  <desc>Set the project name to "TheProjectName".It is used fo index titles,...</desc>
-			
+		  
 		  <term><ref id="--refs">--refs=ARefFile or --refs=ARefDirectory</ref></term>
 		  <desc>Use ARefFile.gsdocrefs (or files whith extensions .gsdocrefs in ARefDirectory directory) as references files. It's enable to make links bettwen documentations</desc>
 			
@@ -604,8 +604,29 @@
 			
 		  <term><ref id="files">file1 file2</ref></term>
 		  <desc>.gsdoc files</desc>
-		  </deflist>
-		</section>
+		</deflist>
+	  </section>
+	  <section>
+		<heading>Exemple</heading>
+		<subsect>
+		  <heading>AutoDoc</heading>
+		  <example>
+			autodoc -allclasses -format html -template /usr/GNUstep/System/Libraries/Resources/DocTemplates/AutoDocTemplate.gsdoc -copyright "Orange Concept" -define-author-name "Manuel Guesdon" -define-author-email "mguesdon@orange-concept.com" -define-author-desc "Developer" -define-author-url "http://www.orange-concept.com" -define-dtd-ref "/usr/GNUstep/System/Libraries/Resources/DTDs/gsdoc-0_6_6.dtd" -define-stylesheeturl "http://www.orange-concept.com/styles/default.css" -define-basetitle "MyDoc:" -define-dtd-url "http://www.gnustep.org/gsdoc-0_6_6.xml" -define-next "[[next]]" -define-prev "[[prev]]" -define-up "[[up]]" MySource.h
+		  </example>
+		  <p>
+			The above example take MySource.h and MySource.m and generate one or more gsdoc files (they have the extension .html, so please rename them with .gsdoc extension after running AutoDoc
+		  </p>
+		</subsect>
+		<subsect>
+		  <heading>GSDoc</heading>
+		  <example>
+			gsdoc MyFile1.gsdoc MyFile2.gsdoc Explanations.gsdoc --makeRefs --makeIndex --makeIndexTemplate=/usr/GNUstep/System/Libraries/Resources/DocTemplates/indextemplate.gsdoc  --projectName="MyProject" --refs=/usr/doc/gnustep --define-version=2.1 --verbose=1 --location="/usr/doc/gnustep/MyProject"
+		  </example>
+		  <p>
+			The above example will parse MyFile1.gsdoc MyFile2.gsdoc and generate MyFile1.html and MyFile2.html. It generate MyProject.gsdocrefs which will countain references of symbols found in MyFile1.gsdoc and MyFile2.gsdoc. MyFile1.html and MyFile2.html will have links to symbols found in MyProject.gsdocrefs and in .gsdocrefs founds in subdirectories of /usr/doc/gnustep. I indicate that the location of this doc will be /usr/doc/gnustep/MyProject.  It also generate an index of MyFile1.html and MyFile2.html contents with the template /usr/GNUstep/System/Libraries/Resources/DocTemplates/indextemplate.gsdoc. Index file is index.gsdoc and the resulting file index.html is automatically generated. I define "version" so the index will take this version.
+		  </p>
+		</subsect>
+	  </section>
     </chapter>
 
     <back>
