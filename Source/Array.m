@@ -1,5 +1,5 @@
 /* Implementation for Objective-C Array collection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -23,6 +23,7 @@
 
 #include <objects/Array.h>
 #include <objects/ArrayPrivate.h>
+#include <objects/NSString.h>
 
 @implementation Array
 
@@ -62,23 +63,23 @@
 
 /* Archiving must mimic the above designated initializer */
 
-- (void) _encodeCollectionWithCoder: (Coder*)coder
+- (void) _encodeCollectionWithCoder: (id <Encoding>)coder
 {
   const char *encoding = [self contentType];
 
   [super _encodeCollectionWithCoder:coder];
   [coder encodeValueOfCType:@encode(char*)
 	 at:&encoding
-	 withName:"Array Encoding Type"];
+	 withName:@"Array Encoding Type"];
   [coder encodeValueOfCType:@encode(unsigned)
 	 at:&_grow_factor
-	 withName:"Array Grow Factor"];
+	 withName:@"Array Grow Factor"];
   [coder encodeValueOfCType:@encode(unsigned)
 	 at:&_capacity
-	 withName:"Array Capacity"];
+	 withName:@"Array Capacity"];
 }
 
-- _initCollectionWithCoder: (Coder*)coder
+- _initCollectionWithCoder: (id <Decoding>)coder
 {
   char *encoding;
   [super _initCollectionWithCoder:coder];

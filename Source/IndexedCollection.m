@@ -1,5 +1,5 @@
 /* Implementation for Objective-C IndexedCollection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -25,6 +25,7 @@
 #include <objects/IndexedCollectionPrivate.h>
 #include <stdio.h>
 #include <objects/Array.h>
+#include <objects/NSString.h>
 
 @implementation IndexedCollection
 
@@ -1058,7 +1059,7 @@
   return self;
 }
 
-- (void) _encodeContentsWithCoder: (Coder*)coder
+- (void) _encodeContentsWithCoder: (id <Encoding>)coder
 {
   unsigned int count = [self count];
   const char *encoding = [self contentType];
@@ -1066,16 +1067,16 @@
     {
       [coder encodeValueOfObjCType:encoding
 	     at:elt_get_ptr_to_member(encoding, &e)
-	     withName:"IndexedCollection Element"];
+	     withName:@"IndexedCollection Element"];
     }
 
   [coder encodeValueOfCType:@encode(unsigned int)
 	 at:&count
-	 withName:"IndexedCollection Contents Count"];
+	 withName:@"IndexedCollection Contents Count"];
   [self withElementsCall:archiveElement];
 }
 
-- (void) _decodeContentsWithCoder: (Coder*)coder
+- (void) _decodeContentsWithCoder: (id <Decoding>)coder
 {
   unsigned int count, i;
   elt newElement;  
