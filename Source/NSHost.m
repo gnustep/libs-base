@@ -53,12 +53,12 @@ static BOOL			_hostCacheEnabled = YES;
 static NSMutableDictionary	*_hostCache = nil;
 
 @interface NSHost (Private)
-- (id) _initWithHostEntry: (struct hostent*)entry;
+- (id) _initWithHostEntry: (struct hostent*)entry key: (NSString*)key;
 @end
 
 @implementation NSHost (Private)
 
-- (id) _initWithHostEntry: (struct hostent*)entry
+- (id) _initWithHostEntry: (struct hostent*)entry key: (NSString*)name
 {
   int			i;
   char			*ptr;
@@ -111,6 +111,13 @@ static NSMutableDictionary	*_hostCache = nil;
       while ((key = [enumerator nextObject]) != nil)
 	{
 	  [_hostCache setObject: self forKey: key];
+	}
+      /*
+       * In addition to official names, use the name we were called with.
+       */
+      if (name != nil)
+	{
+	  [_hostCache setObject: self forKey: name];
 	}
     }
 
@@ -176,7 +183,7 @@ static NSMutableDictionary	*_hostCache = nil;
 
       h = gethostbyname((char*)[name cString]);
 
-      host = [[self alloc] _initWithHostEntry: h];
+      host = [[self alloc] _initWithHostEntry: h key: name];
       AUTORELEASE(host);
     }
   [_hostCacheLock unlock];
@@ -220,7 +227,7 @@ static NSMutableDictionary	*_hostCache = nil;
       if (addrOk == YES)
 	{
 	  h = gethostbyaddr((char*)&hostaddr, sizeof(hostaddr), AF_INET);
-	  host = [[self alloc] _initWithHostEntry: h];
+	  host = [[self alloc] _initWithHostEntry: h key: address];
 	  AUTORELEASE(host);
 	}
     }
