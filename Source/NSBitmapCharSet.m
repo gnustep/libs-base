@@ -78,7 +78,7 @@
 
 @implementation NSMutableBitmapCharSet
 
-- init
+- (id) init
 {
   return [self initWithBitmap: NULL];
 }
@@ -129,7 +129,9 @@
     }
 
   for (i = aRange.location; i < NSMaxRange(aRange); i++)
-    SETBIT(_data[i/8], i % 8);
+    {
+      SETBIT(_data[i/8], i % 8);
+    }
 }
 
 - (void) addCharactersInString: (NSString*)aString
@@ -168,7 +170,9 @@
 
   other_bytes = [[otherSet bitmapRepresentation] bytes];
   for (i = 0; i < BITMAP_SIZE; i++)
-    _data[i] = (_data[i] | other_bytes[i]);
+    {
+      _data[i] = (_data[i] | other_bytes[i]);
+    }
 }
 
 - (void) formIntersectionWithCharacterSet: (NSCharacterSet *)otherSet
@@ -178,7 +182,9 @@
 
   other_bytes = [[otherSet bitmapRepresentation] bytes];
   for (i = 0; i < BITMAP_SIZE; i++)
-    _data[i] = (_data[i] & other_bytes[i]);
+    {
+      _data[i] = (_data[i] & other_bytes[i]);
+    }
 }
 
 - (void) removeCharactersInRange: (NSRange)aRange
@@ -193,7 +199,9 @@
     }
 
   for (i = aRange.location; i < NSMaxRange(aRange); i++)
+    {
       CLRBIT(_data[i/8], i % 8);
+    }
 }
 
 - (void) removeCharactersInString: (NSString*)aString
@@ -231,7 +239,9 @@
   unsigned	i;
 
   for (i = 0; i < BITMAP_SIZE; i++)
-    _data[i] = ~_data[i];
+    {
+      _data[i] = ~_data[i];
+    }
 }
 
 @end
