@@ -46,6 +46,10 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/fcntl.h>
+#include <sys/ioctl.h>
+#ifdef	__svr4__
+#include <sys/filio.h>
+#endif
 #include <netdb.h>
 #include <string.h>
 #include <unistd.h>
@@ -169,7 +173,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  descriptor = -1;
 	}
       else if (isNonBlocking != wasNonBlocking)
-	[self setNonBlocking:wasNonBlocking];
+	[self setNonBlocking: wasNonBlocking];
     }
   [readInfo release];
   [writeInfo release];
@@ -186,27 +190,72 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (id)initAsClientAtAddress:a
 		    service:s
 		   protocol:p
-		   forModes:modes
 {
   int	net;
   struct sockaddr_in	sin;
 
   if (s == nil)
     {
-      [self dealloc];
+      [self release];
       NSLog(@"bad argument - service is nil");
       return nil;
     }
   if (getAddr(a, s, p, &sin) == NO)
     {
-      [self dealloc];
+      [self release];
       NSLog(@"bad address-service-protocol combination");
       return nil;
     }
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      [self dealloc];
+      [self release];
+      NSLog(@"unable to create socket - %s", strerror(errno));
+      return nil;
+    }
+
+  self = [self initWithFileDescriptor:net closeOnDealloc:YES];
+  if (self)
+    {
+      if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
+	{
+	  [self release];
+	  NSLog(@"unable to make connection - %s", strerror(errno));
+	  return nil;
+	}
+	
+      connectOK = NO;
+      readOK = YES;
+      writeOK = YES;
+      [self setAddr: &sin];
+    }
+  return self;
+}
+
+- (id)initAsClientInBackgroundAtAddress:a
+				service:s
+			       protocol:p
+			       forModes:modes
+{
+  int	net;
+  struct sockaddr_in	sin;
+
+  if (s == nil)
+    {
+      [self release];
+      NSLog(@"bad argument - service is nil");
+      return nil;
+    }
+  if (getAddr(a, s, p, &sin) == NO)
+    {
+      [self release];
+      NSLog(@"bad address-service-protocol combination");
+      return nil;
+    }
+
+  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+    {
+      [self release];
       NSLog(@"unable to create socket - %s", strerror(errno));
       return nil;
     }
@@ -216,11 +265,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       NSMutableDictionary*	info;
 
-      [self setNonBlocking:YES];
+      [self setNonBlocking: YES];
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
 	if (errno != EINPROGRESS)
 	  {
-	    [self dealloc];
+	    [self release];
 	    NSLog(@"unable to make connection - %s", strerror(errno));
 	    return nil;
 	  }
@@ -253,14 +302,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (getAddr(a, s, p, &sin) == NO)
     {
-      [self dealloc];
+      [self release];
       NSLog(@"bad address-service-protocol combination");
       return  nil;
     }
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      [self dealloc];
+      [self release];
       NSLog(@"unable to create socket - %s", strerror(errno));
       return nil;
     }
@@ -270,7 +319,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
       (void) close(net);
-      [self dealloc];
+      [self release];
       NSLog(@"unable to bind to port - %s", strerror(errno));
       return nil;
     }
@@ -278,7 +327,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (listen(net, 5) < 0)
     {
       (void) close(net);
-      [self dealloc];
+      [self release];
       NSLog(@"unable to listen on port - %s", strerror(errno));
       return nil;
     }
@@ -286,7 +335,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
     {
       (void) close(net);
-      [self dealloc];
+      [self release];
       NSLog(@"unable to get socket name - %s", strerror(errno));
       return nil;
     }
@@ -308,7 +357,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (d < 0)
     {
-      [self dealloc];
+      [self release];
       return nil;
     }
   else
@@ -326,7 +375,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (d < 0)
     {
-      [self dealloc];
+      [self release];
       return nil;
     }
   else
@@ -344,7 +393,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (d < 0)
     {
-      [self dealloc];
+      [self release];
       return nil;
     }
   else
@@ -358,7 +407,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (fh_stderr)
     {
       [fh_stderr retain];
-      [self dealloc];
+      [self release];
     }
   else
     {
@@ -376,7 +425,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (fh_stdin)
     {
       [fh_stdin retain];
-      [self dealloc];
+      [self release];
     }
   else
     {
@@ -394,7 +443,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   if (fh_stdout)
     {
       [fh_stdout retain];
-      [self dealloc];
+      [self release];
     }
   else
     {
@@ -427,7 +476,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       if (fstat(desc, &sbuf) < 0)
 	{
-	  [self dealloc];
+	  [self release];
           NSLog(@"unable to get status of descriptor - %s", strerror(errno));
 	  return nil;
 	}
@@ -581,6 +630,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   int			len;
 
   [self checkRead];
+  if (isNonBlocking == YES)
+    [self setNonBlocking: NO];
   d = [NSMutableData dataWithCapacity:0];
   if (isStandardFile)
     {
@@ -591,10 +642,48 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      if ((len = read(descriptor, buf, sizeof(buf))) > 0)
-        {
-	  [d appendBytes:buf length:len];
-        }
+      int	count;
+      fd_set	fds;
+      fd_set	dummy;
+      int	rval;
+
+      /*
+       *	Check that channel is readable.
+       */
+      FD_ZERO(&fds);
+      FD_ZERO(&dummy);
+      FD_SET(descriptor, &fds);
+      if (select(descriptor+1, &fds, &dummy, &dummy, 0) < 0)
+	{
+	  [NSException raise: NSFileHandleOperationException
+		      format: @"failed to use select() on descriptor - %s",
+		      strerror(errno)];
+	}
+      /*
+       *	Determine number of bytes readable on descriptor.
+       */
+      if (ioctl(descriptor, FIONREAD, (char*)&count) < 0)
+	{
+	  [NSException raise: NSFileHandleOperationException
+		      format: @"unable to use FIONREAD on descriptor - %s",
+		      strerror(errno)];
+	}
+
+      if (count == 0)
+	{
+	  len = 0;	/* End-of-file	*/
+	}
+      else
+	{
+	  if (count > sizeof(buf))
+	    {
+	      count = sizeof(buf);
+	    }
+	  if ((len = read(descriptor, buf, count)) > 0)
+	    {
+	      [d appendBytes:buf length:len];
+	    }
+	}
     }
   if (len < 0)
     {
@@ -612,6 +701,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   int			len;
 
   [self checkRead];
+  if (isNonBlocking == YES)
+    [self setNonBlocking: NO];
   d = [NSMutableData dataWithCapacity:0];
   while ((len = read(descriptor, buf, sizeof(buf))) > 0)
     {
@@ -633,6 +724,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   char			*buf;
 
   [self checkRead];
+  if (isNonBlocking == YES)
+    [self setNonBlocking: NO];
   buf = objc_malloc(len);
   d = [NSMutableData dataWithBytesNoCopy: buf length: len];
   if ((pos = read(descriptor, [d mutableBytes], len)) < 0)
@@ -653,6 +746,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   unsigned int	pos = 0;
 
   [self checkWrite];
+  if (isNonBlocking == YES)
+    [self setNonBlocking: NO];
   while (pos < len)
     {
       int	toWrite = len - pos;
@@ -970,7 +1065,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     return;
 
   l = [NSRunLoop currentRunLoop];
-  [self setNonBlocking:YES];
+  [self setNonBlocking: YES];
   if (modes && [modes count])
     {
       int		i;
@@ -1037,6 +1132,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   NSString	*operation;
 
+  if (isNonBlocking == NO)
+    [self setNonBlocking: YES];
   if (type == ET_RDESC) {
     operation = [readInfo objectForKey:NotificationKey];
     if (operation == NSFileHandleConnectionAcceptedNotification) {
@@ -1151,7 +1248,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void) setAddr: (struct sockaddr_in *)sin
 {
-    address = [NSString stringWithCString: inet_ntoa(sin->sin_addr)];
+    address = [NSString stringWithCString: (char*)inet_ntoa(sin->sin_addr)];
     [address retain];
     service = [NSString stringWithFormat: @"%d", (int)ntohs(sin->sin_port)];
     [service retain];
