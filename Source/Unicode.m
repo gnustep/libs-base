@@ -997,24 +997,24 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
     }
 }
 
+// These two functions use direct access into a two-level table to map cases.
+// The two-level table method is less space efficient (but still not bad) than
+// a single table and a linear search, but it reduces the number of
+// conditional statements to just one.
 unichar
 uni_tolower(unichar ch)
 {
-  int res;
-  int count = 0;
+  unichar result = gs_tolower_map[ch / 256][ch % 256];
 
-  while (((res = ch - t_tolower[count++][0]) > 0) && (count < t_len_tolower));
-  return res ? ch : t_tolower[--count][1];
+  return result ? result : ch;
 }
  
 unichar
 uni_toupper(unichar ch)
 {
-  int res;
-  int count = 0;
+  unichar result = gs_toupper_map[ch / 256][ch % 256];
 
-  while (((res = ch - t_toupper[count++][0]) > 0) && (count < t_len_toupper));
-  return res ? ch : t_toupper[--count][1];
+  return result ? result : ch;
 }
 
 unsigned char

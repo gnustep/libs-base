@@ -27,6 +27,10 @@
           <sel>characterSetWithBitmapRepresentation:</sel>
           <arg type="NSData*">data</arg>
           <desc>
+            <p>
+              Returns a character set containing characters as encoded in the
+              <em>data</em> object.
+            </p>
           </desc>
         </method>
         <method type="NSCharacterSet*" factory="yes">
@@ -55,16 +59,28 @@
         <method type="NSCharacterSet*" factory="yes">
           <sel>decimalDigitCharacterSet</sel>
           <desc>
+            <p>
+              Returns a character set containing characters that represent
+              the decimal digits 0 through 9.
+            </p>
           </desc>
         </method>
         <method type="NSCharacterSet*" factory="yes">
           <sel>decomposableCharacterSet</sel>
           <desc>
+            <p>
+              Returns a character set containing individual charactars that
+              can be represented also by a composed character sequence.
+            </p>
           </desc>
         </method>
         <method type="NSCharacterSet*" factory="yes">
           <sel>illegalCharacterSet</sel>
           <desc>
+            <p>
+              Returns a character set containing unassigned (illegal)
+              character values.
+            </p>
           </desc>
         </method>
         <method type="NSCharacterSet*" factory="yes">
@@ -75,6 +91,11 @@
         <method type="NSCharacterSet*" factory="yes">
           <sel>lowercaseLetterCharacterSet</sel>
           <desc>
+            <p>
+              Returns a character set that contains the lowercase characters.
+              This set does not include caseless characters, only those that
+              have corresponding characters in uppercase and/or titlecase.
+            </p>
           </desc>
         </method>
         <method type="NSCharacterSet*" factory="yes">
@@ -90,32 +111,56 @@
         <method type="NSCharacterSet*" factory="yes">
           <sel>uppercaseLetterCharacterSet</sel>
           <desc>
+            <p>
+              Returns a character set that contains the uppercase characters.
+              This set does not include caseless characters, only those that
+              have corresponding characters in lowercase and/or titlecase.
+            </p>
           </desc>
         </method>
         <method type="NSCharacterSet*" factory="yes">
           <sel>whitespaceAndNewlineCharacterSet</sel>
           <desc>
+            <p>
+              Returns a character set that contains the whitespace characters,
+              plus the newline characters, values 0x000A and 0x000D.
+            </p>
           </desc>
         </method>
         <method type="NSCharacterSet*" factory="yes">
           <sel>whitespaceCharacterSet</sel>
           <desc>
+            <p>
+              Returns a character set that contains the whitespace characters.
+            </p>
           </desc>
         </method>
         <method type="NSData*">
           <sel>bitmapRepresentation</sel>
           <desc>
+            <p>
+              Returns a bitmap representation of the receiver's character set
+              suitable for archiving or writing to a file, in an NSData object.
+            </p>
           </desc>
         </method>
         <method type="BOOL">
           <sel>characterIsMember:</sel>
           <arg type="unichar">aCharacter</arg>
           <desc>
+            <p>
+              Returns YES if the receiver contains <em>aCharacter</em>, NO if
+              it does not.
+            </p>
           </desc>
         </method>
         <method type="NSCharacterSet*">
           <sel>invertedSet</sel>
           <desc>
+            <p>
+              Returns a character set containing only characters that the
+              receiver does not contain.
+            </p>
           </desc>
         </method>
       </class>

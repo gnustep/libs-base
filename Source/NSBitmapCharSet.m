@@ -37,7 +37,16 @@
 - (id) initWithBitmap: (NSData*)bitmap
 {
   [super init];
+
+  if ([bitmap length] != BITMAP_SIZE)
+    {
+      NSLog(@"attempt to initialize character set with invalid bitmap");
+      [self dealloc];
+      return nil;
+    }
+
   [bitmap getBytes: _data length: BITMAP_SIZE];
+
   return self;
 }
 
