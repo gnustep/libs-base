@@ -275,7 +275,7 @@ handle_printf_atsign (FILE *stream,
 #endif
   len = fprintf(stream, "%*s",
 		(info->left ? - info->width : info->width),
-		[[string_object description] cString]);
+		[[string_object description] lossyCString]);
   return len;
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
