@@ -1644,9 +1644,17 @@ static Class		tcpPortClass;
 {
   NSMutableString	*desc;
 
-  desc = [NSMutableString stringWithFormat: @"Host - %@\n", host];
-  [desc appendFormat: @"Addr - %@\n", address];
-  [desc appendFormat: @"Port - %d\n", portNum];
+  desc = [NSMutableString stringWithFormat: @"NSPort on host with details -\n"
+    @"%@\n", host];
+  if (address == nil)
+    {
+      [desc appendFormat: @"  IP address - any\n"];
+    }
+  else
+    {
+      [desc appendFormat: @"  IP address - %@\n", address];
+    }
+  [desc appendFormat: @"  TCP port - %d\n", portNum];
   return desc;
 }
 
