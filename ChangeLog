@@ -3,6 +3,8 @@
 	* Source/NSProtocolChecker.m: Major rewrite ... appeared almost totally
 	non-functional.
 	* Testing/nsconnectiion_server.m: Use NSProtocolChecker as a test.
+	* Source/NSDistantObject.m: ([methodForSelector:]) moved to NSProxy.m
+	* Source/NSProxy.m: ([methodForSelector:]) implemented.
 
 2004-04-23  David Ayers  <d.ayers@inode.at>
 

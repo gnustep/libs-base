@@ -624,11 +624,6 @@ enum
   return self;
 }
 
-- (IMP) methodForSelector: (SEL)aSelector
-{
-  return get_imp(GSObjCClass((id)self), aSelector);
-}
-
 /**
  * <p>Returns the method signature describing the arguments and return
  * types of the method in the object referred to by the receiver
