@@ -1,3 +1,21 @@
+2002-11-19  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSBundle.h: More documentation. Add missing
+	MacOSX methods.
+	* Source/NSBundle.m (-executablePath): New
+	(-load): Use it.
+	(+pathsForResourcesOfType:inDirectory:): New stub.
+	(-pathsForResourcesOfType:inDirectory:forLocalization:): Idem.
+	(-pathForResource:ofType:inDirectory:forLocalization:): Idem.
+	(+preferredLocalizationsFromArray:): New method.
+	(+preferredLocalizationsFromArray:forPreferences:): Idem.
+	(-localizedInfoDictionary): Idem.
+	(-localizations): Idem.
+	(-preferredLocalizations): Idem.
+
+	* Source/cifframe.m (cifframe_from_info): Fix so that stucture
+	returns get space allocated.
+
 2002-11-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/behavior.m: Moved to Source/Additions/behavior.m
