@@ -367,7 +367,7 @@ static int messages_received_count;
     return [self rootProxyAtPort: [p autorelease]];
 }
 
-+ (void) timeout: (NSTimer*)t
++ (void) _timeout: (NSTimer*)t
 {
     NSArray	*cached_locals;
     int	i;
@@ -379,6 +379,10 @@ static int messages_received_count;
 	if ([item countdown] == NO) {
 	    NSMapRemove(all_connections_local_cached, [item obj]);
 	}
+    }
+    if ([cached_locals count] == 0) {
+	[t invalidate];
+	timer = nil;
     }
 }
 
