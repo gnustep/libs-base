@@ -1,7 +1,10 @@
 2004-09-07 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSSet.m:
+	* Source/NSSet.m: Fix possible stack overflows.
 	* Source/GSSet.m: ([allObjects]) Fix stack overflow for large sets.
+	* Source/NSTask.m: Fix error testing for task which has been lost.
+	* Source/NSArray.m: Fix possible stack overflows
+	Thanks to Andre Levey for reporting these.
 
 2004-09-07 Richard Frith-Macdonald <rfm@gnu.org>
 

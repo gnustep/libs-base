@@ -253,7 +253,7 @@ static Class NSMutableSet_concrete_class;
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
       if (count > 0)
         {
-	  id	objs[count];
+	  GS_BEGINIDBUF(objs, count);
 	  unsigned	i;
 	  
 	  for (i = 0; i < count; i++)
@@ -267,6 +267,7 @@ static Class NSMutableSet_concrete_class;
 	      [objs[count] release];
 	    }
 #endif
+	  GS_ENDIDBUF();
 	}
     }
   return self;
@@ -370,10 +371,12 @@ static Class NSMutableSet_concrete_class;
     }
   else
     {
-      id	objs[count];
+      GS_BEGINIDBUF(objs, count);
 
       [other getObjects: objs];
-      return [self initWithObjects: objs count: count];
+      self = [self initWithObjects: objs count: count];
+      GS_ENDIDBUF();
+      return self;
     }
 }
 
@@ -384,8 +387,9 @@ static Class NSMutableSet_concrete_class;
 - (id) initWithSet: (NSSet*)other copyItems: (BOOL)flag
 {
   unsigned	c = [other count];
-  id		os[c], o, e = [other objectEnumerator];
+  id		o, e = [other objectEnumerator];
   unsigned	i = 0;
+  GS_BEGINIDBUF(os, c);
 
   while ((o = [e nextObject]))
     {
@@ -401,6 +405,7 @@ static Class NSMutableSet_concrete_class;
     while (i--)
       [os[i] release];
 #endif
+  GS_ENDIDBUF();
   return self;
 }
 
