@@ -24,6 +24,10 @@
 #include        <stdio.h>
 #include	<unistd.h>
 
+#ifdef __MINGW__
+#include	"process.h"
+#endif
+
 #include	"gdnc.h"
 
 @interface	GDNCNotification : NSObject
@@ -461,7 +465,7 @@
   NSMutableArray	*byName;
   NSMutableArray	*byObject;
   unsigned		pos;
-  GDNCNotification	*notification;
+  GDNCNotification	*notification = nil;
 
   byName = [observersForNames objectForKey: notificationName];
   byObject = [observersForObjects objectForKey: notificationObject];
@@ -472,8 +476,8 @@
     {
       GDNCObserver	*obs = [byName objectAtIndex: pos - 1];
 
-      if (obs->notificationObject == nil ||
-		[obs->notificationObject isEqual: notificationObject])
+      if (obs->notificationObject == nil
+	|| [obs->notificationObject isEqual: notificationObject])
 	{
 	  [observers addObject: obs];
 	}
@@ -482,8 +486,8 @@
     {
       GDNCObserver	*obs = [byObject objectAtIndex: pos - 1];
 
-      if (obs->notificationName == nil ||
-		[obs->notificationName isEqual: notificationName])
+      if (obs->notificationName == nil
+	|| [obs->notificationName isEqual: notificationName])
 	{
 	  if ([observers indexOfObjectIdenticalTo: obs] == NSNotFound)
 	    {
@@ -792,13 +796,32 @@ main(int argc, char** argv, char** env)
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
+  if (argc > 1 && strcmp(argv[argc-1], "-f") == 0)
+    {
+      shouldFork = NO;
+    }
   str = [[NSUserDefaults standardUserDefaults] stringForKey: @"debug"];
   if (str != nil && [str caseInsensitiveCompare: @"yes"] == NSOrderedSame)
     {
       shouldFork = NO;
     }
   RELEASE(pool);
-#ifndef __MINGW__  /* Don't fork on Win32 */
+#ifdef __MINGW__
+  if (shouldFork)
+    {
+      char	**a = malloc((argc+2) * sizeof(char*));
+
+      memcpy(a, argv, argc*sizeof(char*));
+      a[argc] = "-f";
+      a[argc+1] = 0;
+      if (_spawnv(_P_NOWAIT, argv[0], a) == -1)
+	{
+	  fprintf(stderr, "gdnc - spawn failed - bye.\n");
+	  exit(1);
+	}
+      exit(0);
+    }
+#else
   if (shouldFork)
     {
       switch (fork())
