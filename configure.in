@@ -24,6 +24,10 @@ AC_INIT(src/Collection.m)
 #   License along with this library; if not, write to the Free
 #   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+#--------------------------------------------------------------------
+# Use a .h file with #define's, instead of -D command-line switches
+#--------------------------------------------------------------------
+AC_CONFIG_HEADER(src/include/config.h)
 
 #--------------------------------------------------------------------
 # Find the compiler
@@ -156,8 +160,8 @@ fi
 AC_SUBST(OBJS_INSTALL)
 AC_SUBST(HEADERS_INSTALL)
 AC_SUBST(LIBOBJC)
-AC_SUBST(NeXT_runtime)
-AC_SUBST(NeXT_cc)
+AC_DEFINE_UNQUOTED(NeXT_runtime, $NeXT_runtime)
+AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)
 
 #--------------------------------------------------------------------
@@ -258,7 +262,7 @@ AC_SUBST(CFLAGS_SHAREDLIB)
 # Write the Makefiles
 #--------------------------------------------------------------------
 AC_OUTPUT(Makefile src/Makefile checks/Makefile examples/Makefile
-doc/Makefile NSCharacterSets/Makefile admin/Makefile src/include/config.h)
+doc/Makefile NSCharacterSets/Makefile admin/Makefile)
 
 dnl Local Variables:
 dnl comment-start: "dnl "
