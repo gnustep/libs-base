@@ -33,23 +33,23 @@
 /* FIXME: Is this right?!? */
 #define _OBJECTS_NOT_A_CHAR_P_MARKER (const void *)(-1)
 
-const void *objects_not_a_char_p_marker = _OBJECTS_NOT_A_CHAR_P_MARKER;
+const void *o_not_a_char_p_marker = _OBJECTS_NOT_A_CHAR_P_MARKER;
 
-objects_callbacks_t objects_callbacks_for_char_p = 
+o_callbacks_t o_callbacks_for_char_p = 
 {
-  (objects_hash_func_t) objects_char_p_hash,
-  (objects_compare_func_t) objects_char_p_compare,
-  (objects_is_equal_func_t) objects_char_p_is_equal,
-  (objects_retain_func_t) objects_char_p_retain,
-  (objects_release_func_t) objects_char_p_release,
-  (objects_describe_func_t) objects_char_p_describe,
+  (o_hash_func_t) o_char_p_hash,
+  (o_compare_func_t) o_char_p_compare,
+  (o_is_equal_func_t) o_char_p_is_equal,
+  (o_retain_func_t) o_char_p_retain,
+  (o_release_func_t) o_char_p_release,
+  (o_describe_func_t) o_char_p_describe,
   _OBJECTS_NOT_A_CHAR_P_MARKER
 };
 
 /**** Function Implementations ***********************************************/
 
 size_t
-objects_char_p_hash(const char *cptr)
+o_char_p_hash(const char *cptr)
 {
   register const char *s = cptr;
   register size_t h = 0;
@@ -62,7 +62,7 @@ objects_char_p_hash(const char *cptr)
 }
 
 int
-objects_char_p_compare(const char *cptr, const char *dptr)
+o_char_p_compare(const char *cptr, const char *dptr)
 {
   register const char *s = (char *) cptr;
   register const char *t = (char *) dptr;
@@ -90,7 +90,7 @@ objects_char_p_compare(const char *cptr, const char *dptr)
  * internationalization here.  CPTR and DPTR are taken to be C strings
  * in the default (seven or) eight bit character encoding. */
 int
-objects_char_p_is_equal(const char *cptr, const char *dptr)
+o_char_p_is_equal(const char *cptr, const char *dptr)
 {
   register const char *s = cptr;
   register const char *t = dptr;
@@ -113,19 +113,19 @@ objects_char_p_is_equal(const char *cptr, const char *dptr)
 }
 
 const void *
-objects_char_p_retain(const char *cptr)
+o_char_p_retain(const char *cptr)
 {
   return (const void *)cptr;
 }
 
 void
-objects_char_p_release(char *cptr)
+o_char_p_release(char *cptr)
 {
   return;
 }
 
 NSString *
-objects_char_p_describe(const char *cptr)
+o_char_p_describe(const char *cptr)
 {
   /* FIXME: Code this. */
   return nil;

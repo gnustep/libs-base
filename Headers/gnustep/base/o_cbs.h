@@ -32,148 +32,148 @@
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
-typedef size_t (*objects_hash_func_t)(const void *, void *);
-typedef int (*objects_compare_func_t)(const void *, const void *, void *);
-typedef int (*objects_is_equal_func_t)(const void *, const void *, void *);
-typedef const void *(*objects_retain_func_t)(const void *, void *);
-typedef void (*objects_release_func_t)(void *, void *);
-typedef NSString *(*objects_describe_func_t)(const void *, void *);
+typedef size_t (*o_hash_func_t)(const void *, void *);
+typedef int (*o_compare_func_t)(const void *, const void *, void *);
+typedef int (*o_is_equal_func_t)(const void *, const void *, void *);
+typedef const void *(*o_retain_func_t)(const void *, void *);
+typedef void (*o_release_func_t)(void *, void *);
+typedef NSString *(*o_describe_func_t)(const void *, void *);
 
-typedef struct _objects_callbacks objects_callbacks_t;
+typedef struct _o_callbacks o_callbacks_t;
 
-struct _objects_callbacks
+struct _o_callbacks
 {
-  objects_hash_func_t hash;
-  objects_compare_func_t compare;
-  objects_is_equal_func_t is_equal;
-  objects_retain_func_t retain;
-  objects_release_func_t release;
-  objects_describe_func_t describe;
+  o_hash_func_t hash;
+  o_compare_func_t compare;
+  o_is_equal_func_t is_equal;
+  o_retain_func_t retain;
+  o_release_func_t release;
+  o_describe_func_t describe;
   const void *not_an_item_marker;
 };
 
 /** Callbacks for various types **/
 
-extern const objects_callbacks_t objects_callbacks_for_int;
-extern const objects_callbacks_t objects_callbacks_for_char_p;
-extern const objects_callbacks_t objects_callbacks_for_non_owned_void_p;
-extern const objects_callbacks_t objects_callbacks_for_owned_void_p;
-extern const objects_callbacks_t objects_callbacks_for_int_p;
-extern const objects_callbacks_t objects_callbacks_for_id;
+extern const o_callbacks_t o_callbacks_for_int;
+extern const o_callbacks_t o_callbacks_for_char_p;
+extern const o_callbacks_t o_callbacks_for_non_owned_void_p;
+extern const o_callbacks_t o_callbacks_for_owned_void_p;
+extern const o_callbacks_t o_callbacks_for_int_p;
+extern const o_callbacks_t o_callbacks_for_id;
 
 /* FIXME: I need to figure out what each of these should be.  Hmmm? */
-extern const void *objects_not_an_int_marker;
-extern const void *objects_not_a_char_p_marker;
-extern const void *objects_not_a_void_p_marker;
-extern const void *objects_not_an_int_p_marker;
-extern const void *objects_not_an_id_marker;
+extern const void *o_not_an_int_marker;
+extern const void *o_not_a_char_p_marker;
+extern const void *o_not_a_void_p_marker;
+extern const void *o_not_an_int_p_marker;
+extern const void *o_not_an_id_marker;
 
 /* Change this if you need different default callbacks. */
-extern objects_callbacks_t __objects_callbacks_standard;
+extern o_callbacks_t __o_callbacks_standard;
 
 /**** Function Prototypes ****************************************************/
 
 /** Generic callbacks **/
 
-/* Returns the programmer-alterable `__objects_callbacks_standard',
+/* Returns the programmer-alterable `__o_callbacks_standard',
  * defined above. */
-objects_callbacks_t
-objects_callbacks_standard(void);
+o_callbacks_t
+o_callbacks_standard(void);
 
 /** Standardizing callbacks **/
 
 /* Makes sure that enough of CALLBACKS is defined (i.e., non-zero)
  * to be used.  This is used, rather than local checks for usability,
  * to improve the efficiency of callback use. */
-objects_callbacks_t
-objects_callbacks_standardize(objects_callbacks_t callbacks);
+o_callbacks_t
+o_callbacks_standardize(o_callbacks_t callbacks);
 
 /** Using callbacks **/
 
 size_t
-objects_hash(objects_callbacks_t callbacks,
+o_hash(o_callbacks_t callbacks,
              const void *thing,
              void *user_data);
 
 int
-objects_compare(objects_callbacks_t callbacks,
+o_compare(o_callbacks_t callbacks,
                 const void *thing1,
                 const void *thing2,
                 void *user_data);
 
 int
-objects_is_equal(objects_callbacks_t callbacks,
+o_is_equal(o_callbacks_t callbacks,
                  const void *thing1,
                  const void *thing2,
                  void *user_data);
 
 const void *
-objects_retain(objects_callbacks_t callbacks,
+o_retain(o_callbacks_t callbacks,
                const void *thing,
                void *user_data);
 
 void
-objects_release(objects_callbacks_t callbacks,
+o_release(o_callbacks_t callbacks,
                 void *thing,
                 void *user_data);
 
 NSString *
-objects_describe(objects_callbacks_t callbacks,
+o_describe(o_callbacks_t callbacks,
                  const void *thing,
                  void *user_data);
 
 const void *
-objects_not_an_item_marker(objects_callbacks_t callbacks);
+o_not_an_item_marker(o_callbacks_t callbacks);
 
 /** Specific callback functions... **/
 
 /* For non-owned `void *' */
-size_t objects_non_owned_void_p_hash(const void *ptr);
-int objects_non_owned_void_p_compare(const void *ptr, const void *qtr);
-int objects_non_owned_void_p_is_equal(const void *ptr, const void *qtr);
-const void *objects_non_owned_void_p_retain(const void *ptr);
-void objects_non_owned_void_p_release(void *ptr);
-NSString *objects_non_owned_void_p_describe(const void *ptr);
+size_t o_non_owned_void_p_hash(const void *ptr);
+int o_non_owned_void_p_compare(const void *ptr, const void *qtr);
+int o_non_owned_void_p_is_equal(const void *ptr, const void *qtr);
+const void *o_non_owned_void_p_retain(const void *ptr);
+void o_non_owned_void_p_release(void *ptr);
+NSString *o_non_owned_void_p_describe(const void *ptr);
 
 /* For owned `void *' */
-size_t objects_owned_void_p_hash(const void *ptr);
-int objects_owned_void_p_compare(const void *ptr, const void *qtr);
-int objects_owned_void_p_is_equal(const void *ptr, const void *qtr);
-const void *objects_owned_void_p_retain(const void *ptr);
-void objects_owned_void_p_release(void *ptr);
-NSString *objects_owned_void_p_describe(const void *ptr);
+size_t o_owned_void_p_hash(const void *ptr);
+int o_owned_void_p_compare(const void *ptr, const void *qtr);
+int o_owned_void_p_is_equal(const void *ptr, const void *qtr);
+const void *o_owned_void_p_retain(const void *ptr);
+void o_owned_void_p_release(void *ptr);
+NSString *o_owned_void_p_describe(const void *ptr);
 
 /* For `int' */
-size_t objects_int_hash(int i);
-int objects_int_compare(int i, int j);
-int objects_int_is_equal(int i, int j);
-const void *objects_int_retain(int i);
-void objects_int_release(int i);
-NSString *objects_int_describe(int i);
+size_t o_int_hash(int i);
+int o_int_compare(int i, int j);
+int o_int_is_equal(int i, int j);
+const void *o_int_retain(int i);
+void o_int_release(int i);
+NSString *o_int_describe(int i);
 
 /* For `int *' */
-size_t objects_int_p_hash(const int *iptr);
-int objects_int_p_compare(const int *iptr, const int *jptr);
-int objects_int_p_is_equal(const int *iptr, const int *jptr);
-const void *objects_int_p_retain(const int *iptr);
-void objects_int_p_release(int *iptr);
-NSString *objects_int_p_describe(const int *iptr);
+size_t o_int_p_hash(const int *iptr);
+int o_int_p_compare(const int *iptr, const int *jptr);
+int o_int_p_is_equal(const int *iptr, const int *jptr);
+const void *o_int_p_retain(const int *iptr);
+void o_int_p_release(int *iptr);
+NSString *o_int_p_describe(const int *iptr);
 
 /* For `char *' */
-size_t objects_char_p_hash(const char *cptr);
-int objects_char_p_compare(const char *cptr, const char *dptr);
-int objects_char_p_is_equal(const char *cptr, const char *dptr);
-const void *objects_char_p_retain(const char *cptr);
-void objects_char_p_release(char *cptr);
-NSString *objects_char_p_describe(const char *cptr);
+size_t o_char_p_hash(const char *cptr);
+int o_char_p_compare(const char *cptr, const char *dptr);
+int o_char_p_is_equal(const char *cptr, const char *dptr);
+const void *o_char_p_retain(const char *cptr);
+void o_char_p_release(char *cptr);
+NSString *o_char_p_describe(const char *cptr);
 
 /* For `id' */
-size_t objects_id_hash(id obj);
-int objects_id_compare(id obj, id jbo);
-int objects_id_is_equal(id obj, id jbo);
-const void *objects_id_retain(id obj);
-void objects_id_release(id obj);
-NSString *objects_id_describe(id obj);
+size_t o_id_hash(id obj);
+int o_id_compare(id obj, id jbo);
+int o_id_is_equal(id obj, id jbo);
+const void *o_id_retain(id obj);
+void o_id_release(id obj);
+NSString *o_id_describe(id obj);
 
 #endif /* __callbacks_h_OBJECTS_INCLUDE */
 

@@ -34,7 +34,7 @@
 /** Background functions **/
 
 static inline void
-_objects_list_remove_node_from_its_list (objects_list_node_t * node)
+_o_list_remove_node_from_its_list (o_list_node_t * node)
 {
   if (node->list->first_node == node)
     node->list->first_node = node->next_in_list;
@@ -51,19 +51,19 @@ _objects_list_remove_node_from_its_list (objects_list_node_t * node)
   return;
 }
 
-static inline objects_list_node_t *
-_objects_list_new_node (objects_list_t *list, const void *element)
+static inline o_list_node_t *
+_o_list_new_node (o_list_t *list, const void *element)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
-  node = NSZoneMalloc(objects_list_zone(list), sizeof(objects_list_node_t));
+  node = NSZoneMalloc(o_list_zone(list), sizeof(o_list_node_t));
 
   if (node != 0)
     {
       node->list = list;
       node->next_in_list = 0;
       node->prev_in_list = 0;
-      objects_retain (objects_list_element_callbacks (list), element, list);
+      o_retain (o_list_element_callbacks (list), element, list);
       node->element = element;
     }
 
@@ -71,19 +71,19 @@ _objects_list_new_node (objects_list_t *list, const void *element)
 }
 
 void
-_objects_list_free_node (objects_list_t *list, objects_list_node_t * node)
+_o_list_free_node (o_list_t *list, o_list_node_t * node)
 {
-  objects_release (objects_list_element_callbacks (node->list), 
+  o_release (o_list_element_callbacks (node->list), 
 		   (void*)node->element, 
 		   node->list);
-  NSZoneFree(objects_list_zone(list), node);
+  NSZoneFree(o_list_zone(list), node);
   return;
 }
 
-static inline objects_list_node_t *
-_objects_list_nth_node (objects_list_t *list, long int n)
+static inline o_list_node_t *
+_o_list_nth_node (o_list_t *list, long int n)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
   if (n < 0)
     {
@@ -111,12 +111,12 @@ _objects_list_nth_node (objects_list_t *list, long int n)
   return node;
 }
 
-static inline objects_list_node_t *
-_objects_list_nth_node_for_element (objects_list_t *list,
+static inline o_list_node_t *
+_o_list_nth_node_for_element (o_list_t *list,
 				    long int n,
 				    const void *element)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
   if (n < 0)
     {
@@ -126,7 +126,7 @@ _objects_list_nth_node_for_element (objects_list_t *list,
 
       while (node != 0 && n != 0)
 	{
-	  if (objects_is_equal (objects_list_element_callbacks (list), element, node->element, list))
+	  if (o_is_equal (o_list_element_callbacks (list), element, node->element, list))
 	    ++n;
 	  if (n != 0)
 	    node = node->prev_in_list;
@@ -138,7 +138,7 @@ _objects_list_nth_node_for_element (objects_list_t *list,
 
       while (node != 0 && n != 0)
 	{
-	  if (objects_is_equal (objects_list_element_callbacks (list), element, node->element, list))
+	  if (o_is_equal (o_list_element_callbacks (list), element, node->element, list))
 	    --n;
 	  if (n != 0)
 	    node = node->next_in_list;
@@ -148,10 +148,10 @@ _objects_list_nth_node_for_element (objects_list_t *list,
   return node;
 }
 
-static inline objects_list_node_t *
-_objects_list_enumerator_next_node (objects_list_enumerator_t *enumerator)
+static inline o_list_node_t *
+_o_list_enumerator_next_node (o_list_enumerator_t *enumerator)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
   /* Remember ENUMERATOR's current node. */
   node = enumerator->node;
@@ -173,56 +173,56 @@ _objects_list_enumerator_next_node (objects_list_enumerator_t *enumerator)
 /** Gathering statistics **/
 
 size_t
-objects_list_count (objects_list_t *list)
+o_list_count (o_list_t *list)
 {
   return list->element_count;
 }
 
 size_t
-objects_list_capacity (objects_list_t *list)
+o_list_capacity (o_list_t *list)
 {
   return list->element_count;
 }
 
 int
-objects_list_check (objects_list_t *list)
+o_list_check (o_list_t *list)
 {
   return 0;
 }
 
 int
-objects_list_contains_element (objects_list_t *list, const void *element)
+o_list_contains_element (o_list_t *list, const void *element)
 {
-  objects_list_enumerator_t enumerator;
+  o_list_enumerator_t enumerator;
   const void *member;
 
-  objects_list_enumerator (list);
+  o_list_enumerator (list);
 
-  while (objects_list_enumerator_next_element (&enumerator, &member))
-    if (objects_compare (objects_list_element_callbacks (list), element, member, list))
+  while (o_list_enumerator_next_element (&enumerator, &member))
+    if (o_compare (o_list_element_callbacks (list), element, member, list))
       return 1;
 
   return 0;
 }
 
 int
-objects_list_is_empty (objects_list_t *list)
+o_list_is_empty (o_list_t *list)
 {
-  return objects_list_count (list) == 0;
+  return o_list_count (list) == 0;
 }
 
 /** Enumerating **/
 
-objects_list_enumerator_t
-objects_list_enumerator (objects_list_t *list)
+o_list_enumerator_t
+o_list_enumerator (o_list_t *list)
 {
-  return objects_list_forward_enumerator (list);
+  return o_list_forward_enumerator (list);
 }
 
-objects_list_enumerator_t
-objects_list_forward_enumerator (objects_list_t *list)
+o_list_enumerator_t
+o_list_forward_enumerator (o_list_t *list)
 {
-  objects_list_enumerator_t enumerator;
+  o_list_enumerator_t enumerator;
 
   /* Make sure ENUMERATOR knows its list. */
   enumerator.list = list;
@@ -236,10 +236,10 @@ objects_list_forward_enumerator (objects_list_t *list)
   return enumerator;
 }
 
-objects_list_enumerator_t
-objects_list_reverse_enumerator (objects_list_t *list)
+o_list_enumerator_t
+o_list_reverse_enumerator (o_list_t *list)
 {
-  objects_list_enumerator_t enumerator;
+  o_list_enumerator_t enumerator;
 
   /* Make sure ENUMERATOR knows its list. */
   enumerator.list = list;
@@ -254,14 +254,14 @@ objects_list_reverse_enumerator (objects_list_t *list)
 }
 
 int
-objects_list_enumerator_next_element (objects_list_enumerator_t *enumerator,
+o_list_enumerator_next_element (o_list_enumerator_t *enumerator,
 				      const void **element)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
   /* Try and get the next node in the enumeration represented by
    * ENUMERATOR. */
-  node = _objects_list_enumerator_next_node (enumerator);
+  node = _o_list_enumerator_next_node (enumerator);
 
   if (node != 0)
     {
@@ -276,7 +276,7 @@ objects_list_enumerator_next_element (objects_list_enumerator_t *enumerator,
     {
       /* If NODE isn't real, then we return the ``bogus'' indicator. */
       if (element != 0)
-	*element = objects_list_not_an_element_marker (enumerator->list);
+	*element = o_list_not_an_element_marker (enumerator->list);
 
       /* Indicate that the enumeration is over. */
       return 0;
@@ -286,63 +286,63 @@ objects_list_enumerator_next_element (objects_list_enumerator_t *enumerator,
 /** Searching **/
 
 const void *
-objects_list_element (objects_list_t *list, const void *element)
+o_list_element (o_list_t *list, const void *element)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
-  node = _objects_list_nth_node_for_element (list, 0, element);
+  node = _o_list_nth_node_for_element (list, 0, element);
 
   if (node != 0)
     return node->element;
   else
-    return objects_list_not_an_element_marker (list);
+    return o_list_not_an_element_marker (list);
 }
 
 const void *
-objects_list_nth_element (objects_list_t *list, long int n)
+o_list_nth_element (o_list_t *list, long int n)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
-  node = _objects_list_nth_node (list, n);
+  node = _o_list_nth_node (list, n);
 
   if (node != 0)
     return node->element;
   else
-    return objects_list_not_an_element_marker (list);
+    return o_list_not_an_element_marker (list);
 }
 
 const void *
-objects_list_first_element (objects_list_t *list)
+o_list_first_element (o_list_t *list)
 {
   if (list->first_node != 0)
     return list->first_node->element;
   else
-    return objects_list_not_an_element_marker (list);
+    return o_list_not_an_element_marker (list);
 }
 
 const void *
-objects_list_last_element (objects_list_t *list)
+o_list_last_element (o_list_t *list)
 {
   if (list->last_node != 0)
     return list->last_node->element;
   else
-    return objects_list_not_an_element_marker (list);
+    return o_list_not_an_element_marker (list);
 }
 
 /** Obtaining elements **/
 
 const void **
-objects_list_all_elements (objects_list_t *list)
+o_list_all_elements (o_list_t *list)
 {
-  objects_list_enumerator_t enumerator;
+  o_list_enumerator_t enumerator;
   const void **array;
   size_t i;
 
-  array = NSZoneCalloc(objects_list_zone(list),
-			  objects_list_count(list) + 1,
+  array = NSZoneCalloc(o_list_zone(list),
+			  o_list_count(list) + 1,
 			  sizeof(const void *));
 
-  for (i = 0; objects_list_enumerator_next_element (&enumerator, array + i); ++i);
+  for (i = 0; o_list_enumerator_next_element (&enumerator, array + i); ++i);
 
   return array;
 }
@@ -350,38 +350,38 @@ objects_list_all_elements (objects_list_t *list)
 /** Adding elements **/
 
 const void *
-objects_list_append_element (objects_list_t *list, const void *element)
+o_list_append_element (o_list_t *list, const void *element)
 {
-  return objects_list_at_index_insert_element (list, -1, element);
+  return o_list_at_index_insert_element (list, -1, element);
 }
 
 const void *
-objects_list_append_element_if_absent (objects_list_t *list, const void *element)
+o_list_append_element_if_absent (o_list_t *list, const void *element)
 {
-  return objects_list_at_index_insert_element_if_absent (list, -1, element);
+  return o_list_at_index_insert_element_if_absent (list, -1, element);
 }
 
 const void *
-objects_list_prepend_element (objects_list_t *list, const void *element)
+o_list_prepend_element (o_list_t *list, const void *element)
 {
-  return objects_list_at_index_insert_element (list, 0, element);
+  return o_list_at_index_insert_element (list, 0, element);
 }
 
 const void *
-objects_list_prepend_element_if_absent (objects_list_t *list, const void *element)
+o_list_prepend_element_if_absent (o_list_t *list, const void *element)
 {
-  return objects_list_at_index_insert_element_if_absent (list, 0, element);
+  return o_list_at_index_insert_element_if_absent (list, 0, element);
 }
 
 const void *
-objects_list_at_index_insert_element(objects_list_t *list,
+o_list_at_index_insert_element(o_list_t *list,
 				     long int n,
 				     const void *element)
 {
-  objects_list_node_t *anode, *bnode, *new_node, *node;
+  o_list_node_t *anode, *bnode, *new_node, *node;
 
-  node = _objects_list_nth_node (list, n);
-  new_node = _objects_list_new_node (list, element);
+  node = _o_list_nth_node (list, n);
+  new_node = _o_list_new_node (list, element);
 
   if (new_node == 0)
     /* FIXME: Make this a *little* more graceful, for goodness' sake! */
@@ -437,87 +437,87 @@ objects_list_at_index_insert_element(objects_list_t *list,
 }
 
 const void *
-objects_list_at_index_insert_element_if_absent (objects_list_t *list,
+o_list_at_index_insert_element_if_absent (o_list_t *list,
 						long int n,
 						const void *element)
 {
-  if (!objects_list_contains_element (list, element))
-    return objects_list_at_index_insert_element (list, n, element);
+  if (!o_list_contains_element (list, element))
+    return o_list_at_index_insert_element (list, n, element);
   else
-    return objects_list_element (list, element);
+    return o_list_element (list, element);
 }
 
 /** Removing elements **/
 
 void
-objects_list_remove_nth_occurrance_of_element (objects_list_t *list,
+o_list_remove_nth_occurrance_of_element (o_list_t *list,
 					       long int n,
 					       const void *element)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
-  node = _objects_list_nth_node_for_element (list, n, element);
+  node = _o_list_nth_node_for_element (list, n, element);
 
   if (node != 0)
     {
-      _objects_list_remove_node_from_its_list (node);
-      _objects_list_free_node (list, node);
+      _o_list_remove_node_from_its_list (node);
+      _o_list_free_node (list, node);
     }
 
   return;
 }
 
 void
-objects_list_remove_element (objects_list_t *list, const void *element)
+o_list_remove_element (o_list_t *list, const void *element)
 {
-  objects_list_remove_nth_occurrance_of_element (list, 0, element);
+  o_list_remove_nth_occurrance_of_element (list, 0, element);
   return;
 }
 
 void
-objects_list_remove_nth_element (objects_list_t *list, long int n)
+o_list_remove_nth_element (o_list_t *list, long int n)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
-  node = _objects_list_nth_node (list, n);
+  node = _o_list_nth_node (list, n);
 
   if (node != 0)
     {
-      _objects_list_remove_node_from_its_list (node);
-      _objects_list_free_node (list, node);
+      _o_list_remove_node_from_its_list (node);
+      _o_list_free_node (list, node);
     }
 
   return;
 }
 
 void
-objects_list_remove_first_element (objects_list_t *list)
+o_list_remove_first_element (o_list_t *list)
 {
-  objects_list_remove_nth_element (list, 0);
+  o_list_remove_nth_element (list, 0);
   return;
 }
 
 void
-objects_list_remove_last_element (objects_list_t *list)
+o_list_remove_last_element (o_list_t *list)
 {
-  objects_list_remove_nth_element (list, -1);
+  o_list_remove_nth_element (list, -1);
   return;
 }
 
 /** Emptying **/
 
 void
-objects_list_empty (objects_list_t *list)
+o_list_empty (o_list_t *list)
 {
-  objects_list_enumerator_t enumerator;
-  objects_list_node_t *node;
+  o_list_enumerator_t enumerator;
+  o_list_node_t *node;
 
-  enumerator = objects_list_enumerator (list);
+  enumerator = o_list_enumerator (list);
 
-  while ((node = _objects_list_enumerator_next_node (&enumerator)) != 0)
+  while ((node = _o_list_enumerator_next_node (&enumerator)) != 0)
     {
-      _objects_list_remove_node_from_its_list (node);
-      _objects_list_free_node (list, node);
+      _o_list_remove_node_from_its_list (node);
+      _o_list_free_node (list, node);
     }
 
   return;
@@ -526,19 +526,19 @@ objects_list_empty (objects_list_t *list)
 /** Replacing **/
 
 void
-objects_list_replace_nth_occurrance_of_element (objects_list_t *list,
+o_list_replace_nth_occurrance_of_element (o_list_t *list,
 						long int n,
 						const void *old_element,
 						const void *new_element)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
-  node = _objects_list_nth_node_for_element (list, n, old_element);
+  node = _o_list_nth_node_for_element (list, n, old_element);
 
   if (node != 0)
     {
-      objects_retain (objects_list_element_callbacks (list), new_element, list);
-      objects_release (objects_list_element_callbacks (list), 
+      o_retain (o_list_element_callbacks (list), new_element, list);
+      o_release (o_list_element_callbacks (list), 
 		       (void*)node->element, 
 		       list);
       node->element = new_element;
@@ -548,27 +548,27 @@ objects_list_replace_nth_occurrance_of_element (objects_list_t *list,
 }
 
 void
-objects_list_replace_element (objects_list_t *list,
+o_list_replace_element (o_list_t *list,
 			      const void *old_element,
 			      const void *new_element)
 {
-  objects_list_replace_nth_occurrance_of_element (list, 0, old_element, new_element);
+  o_list_replace_nth_occurrance_of_element (list, 0, old_element, new_element);
   return;
 }
 
 void
-objects_list_replace_nth_element (objects_list_t *list,
+o_list_replace_nth_element (o_list_t *list,
 				  long int n,
 				  const void *new_element)
 {
-  objects_list_node_t *node;
+  o_list_node_t *node;
 
-  node = _objects_list_nth_node (list, n);
+  node = _o_list_nth_node (list, n);
 
   if (node != 0)
     {
-      objects_retain (objects_list_element_callbacks (list), new_element, list);
-      objects_release (objects_list_element_callbacks (list), 
+      o_retain (o_list_element_callbacks (list), new_element, list);
+      o_release (o_list_element_callbacks (list), 
 		       (void*)node->element, 
 		       list);
       node->element = new_element;
@@ -578,105 +578,105 @@ objects_list_replace_nth_element (objects_list_t *list,
 }
 
 void
-objects_list_replace_first_element (objects_list_t *list,
+o_list_replace_first_element (o_list_t *list,
 				    const void *new_element)
 {
-  objects_list_replace_nth_element (list, 0, new_element);
+  o_list_replace_nth_element (list, 0, new_element);
   return;
 }
 
 void
-objects_list_replace_last_element (objects_list_t *list,
+o_list_replace_last_element (o_list_t *list,
 				   const void *new_element)
 {
-  objects_list_replace_nth_element (list, -1, new_element);
+  o_list_replace_nth_element (list, -1, new_element);
   return;
 }
 
 /** Creating **/
 
-objects_list_t *
-objects_list_alloc_with_zone (NSZone *zone)
+o_list_t *
+o_list_alloc_with_zone (NSZone *zone)
 {
-  objects_list_t *list;
+  o_list_t *list;
 
-  list = _objects_list_alloc_with_zone(zone);
+  list = _o_list_alloc_with_zone(zone);
 
   return list;
 }
 
-objects_list_t *
-objects_list_alloc (void)
+o_list_t *
+o_list_alloc (void)
 {
-  return objects_list_alloc_with_zone (0);
+  return o_list_alloc_with_zone (0);
 }
 
-objects_list_t *
-objects_list (void)
+o_list_t *
+o_list (void)
 {
-  return objects_list_init (objects_list_alloc ());
+  return o_list_init (o_list_alloc ());
 }
 
-objects_list_t *
-objects_list_with_zone (NSZone *zone)
+o_list_t *
+o_list_with_zone (NSZone *zone)
 {
-  return objects_list_init (objects_list_alloc_with_zone(zone));
+  return o_list_init (o_list_alloc_with_zone(zone));
 }
 
-objects_list_t *
-objects_list_with_zone_with_callbacks (NSZone *zone,
-					 objects_callbacks_t callbacks)
+o_list_t *
+o_list_with_zone_with_callbacks (NSZone *zone,
+					 o_callbacks_t callbacks)
 {
-  return objects_list_init_with_callbacks(objects_list_alloc_with_zone(zone),
+  return o_list_init_with_callbacks(o_list_alloc_with_zone(zone),
 					  callbacks);
 }
 
-objects_list_t *
-objects_list_with_callbacks (objects_callbacks_t callbacks)
+o_list_t *
+o_list_with_callbacks (o_callbacks_t callbacks)
 {
-  return objects_list_init_with_callbacks (objects_list_alloc (), callbacks);
+  return o_list_init_with_callbacks (o_list_alloc (), callbacks);
 }
 
-objects_list_t *
-objects_list_of_char_p (void)
+o_list_t *
+o_list_of_char_p (void)
 {
-  return objects_list_with_callbacks (objects_callbacks_for_char_p);
+  return o_list_with_callbacks (o_callbacks_for_char_p);
 }
 
-objects_list_t *
-objects_list_of_int (void)
+o_list_t *
+o_list_of_int (void)
 {
-  return objects_list_with_callbacks (objects_callbacks_for_int);
+  return o_list_with_callbacks (o_callbacks_for_int);
 }
 
-objects_list_t *
-objects_list_of_non_owned_void_p (void)
+o_list_t *
+o_list_of_non_owned_void_p (void)
 {
-  return objects_list_with_callbacks (objects_callbacks_for_non_owned_void_p);
+  return o_list_with_callbacks (o_callbacks_for_non_owned_void_p);
 }
 
-objects_list_t *
-objects_list_of_owned_void_p (void)
+o_list_t *
+o_list_of_owned_void_p (void)
 {
-  return objects_list_with_callbacks (objects_callbacks_for_owned_void_p);
+  return o_list_with_callbacks (o_callbacks_for_owned_void_p);
 }
 
-objects_list_t *
-objects_list_of_id (void)
+o_list_t *
+o_list_of_id (void)
 {
-  return objects_list_with_callbacks (objects_callbacks_for_id);
+  return o_list_with_callbacks (o_callbacks_for_id);
 }
 
 /** Initializing **/
 
-objects_list_t *
-objects_list_init (objects_list_t *list)
+o_list_t *
+o_list_init (o_list_t *list)
 {
-  return objects_list_init_with_callbacks (list, objects_callbacks_standard());
+  return o_list_init_with_callbacks (list, o_callbacks_standard());
 }
 
-objects_list_t *
-objects_list_init_with_callbacks (objects_list_t *list, objects_callbacks_t callbacks)
+o_list_t *
+o_list_init_with_callbacks (o_list_t *list, o_callbacks_t callbacks)
 {
   if (list != 0)
     {
@@ -690,15 +690,15 @@ objects_list_init_with_callbacks (objects_list_t *list, objects_callbacks_t call
   return list;
 }
 
-objects_list_t *
-objects_list_init_from_list (objects_list_t *list, objects_list_t *old_list)
+o_list_t *
+o_list_init_from_list (o_list_t *list, o_list_t *old_list)
 {
-  objects_list_enumerator_t enumerator;
+  o_list_enumerator_t enumerator;
   const void *element;
 
   if (list != 0)
     {
-      list->callbacks = objects_list_element_callbacks (old_list);
+      list->callbacks = o_list_element_callbacks (old_list);
       list->element_count = 0;
       list->node_count = 0;
       list->first_node = 0;
@@ -707,12 +707,12 @@ objects_list_init_from_list (objects_list_t *list, objects_list_t *old_list)
       if (old_list != 0)
 	{
 	  /* Get a forward enumerator for OLD_LIST. */
-	  enumerator = objects_list_forward_enumerator (old_list);
+	  enumerator = o_list_forward_enumerator (old_list);
 
 	  /* Walk from the beginning to the end of OLD_LIST, and add each
 	   * element to the end of LIST. */
-	  while (objects_list_enumerator_next_element (&enumerator, &element))
-	    objects_list_at_index_insert_element (list, -1, element);
+	  while (o_list_enumerator_next_element (&enumerator, &element))
+	    o_list_at_index_insert_element (list, -1, element);
 	}
     }
 
@@ -722,13 +722,13 @@ objects_list_init_from_list (objects_list_t *list, objects_list_t *old_list)
 /** Destroying **/
 
 void
-objects_list_dealloc (objects_list_t *list)
+o_list_dealloc (o_list_t *list)
 {
   /* Empty LIST out. */
-  objects_list_empty (list);
+  o_list_empty (list);
 
   /* Get rid of LIST. */
-  _objects_list_dealloc (list);
+  _o_list_dealloc (list);
 
   return;
 }
@@ -736,7 +736,7 @@ objects_list_dealloc (objects_list_t *list)
 /** Comparing **/
 
 int
-objects_list_is_equal_to_list(objects_list_t *list, objects_list_t *other_list)
+o_list_is_equal_to_list(o_list_t *list, o_list_t *other_list)
 {
   /* FIXME: Code this. */
   return 0;
@@ -744,81 +744,81 @@ objects_list_is_equal_to_list(objects_list_t *list, objects_list_t *other_list)
 
 /** Concatenating **/
 
-objects_list_t *
-objects_list_append_list (objects_list_t *base_list, objects_list_t *suffix_list)
+o_list_t *
+o_list_append_list (o_list_t *base_list, o_list_t *suffix_list)
 {
-  return objects_list_at_index_insert_list (base_list, -1, suffix_list);
+  return o_list_at_index_insert_list (base_list, -1, suffix_list);
 }
 
-objects_list_t *
-objects_list_prepend_list (objects_list_t *base_list, objects_list_t *prefix_list)
+o_list_t *
+o_list_prepend_list (o_list_t *base_list, o_list_t *prefix_list)
 {
-  return objects_list_at_index_insert_list (base_list, 0, prefix_list);
+  return o_list_at_index_insert_list (base_list, 0, prefix_list);
 }
 
 /* FIXME: I was lazy when I wrote this next one.  It can easily be
  * sped up.  Do it. */
-objects_list_t *
-objects_list_at_index_insert_list(objects_list_t *base_list,
+o_list_t *
+o_list_at_index_insert_list(o_list_t *base_list,
 				  long int n,
-				  objects_list_t *infix_list)
+				  o_list_t *infix_list)
 {
-  objects_list_enumerator_t enumerator;
+  o_list_enumerator_t enumerator;
   const void *element;
 
   if (n < 0)
-    enumerator = objects_list_forward_enumerator(infix_list);
+    enumerator = o_list_forward_enumerator(infix_list);
   else				/* (n >= 0) */
-    enumerator = objects_list_reverse_enumerator(infix_list);
+    enumerator = o_list_reverse_enumerator(infix_list);
 
-  while (objects_list_enumerator_next_element(&enumerator, &element))
-    objects_list_at_index_insert_element(base_list, n, element);
+  while (o_list_enumerator_next_element(&enumerator, &element))
+    o_list_at_index_insert_element(base_list, n, element);
 
   return base_list;
 }
 
 /** Copying **/
 
-objects_list_t *
-objects_list_copy (objects_list_t *old_list)
+o_list_t *
+o_list_copy (o_list_t *old_list)
 {
-  return objects_list_copy_with_zone (old_list, 0);
+  return o_list_copy_with_zone (old_list, 0);
 }
 
-objects_list_t *
-objects_list_copy_with_zone (objects_list_t *old_list, NSZone *zone)
+o_list_t *
+o_list_copy_with_zone (o_list_t *old_list, NSZone *zone)
 {
-  objects_list_t *list;
+  o_list_t *list;
 
   /* Allocate a new (low-level) copy of OLD_LIST. */
-  list = _objects_list_copy_with_zone(old_list, zone);
+  list = _o_list_copy_with_zone(old_list, zone);
 
   /* Fill it in. */
-  return objects_list_init_from_list (list, old_list);
+  return o_list_init_from_list (list, old_list);
 }
 
 /** Mapping **/
 
-objects_list_t *
-objects_list_map_elements(objects_list_t *list,
+o_list_t *
+o_list_map_elements(o_list_t *list,
 			  const void *(*fcn)(const void *, void *),
 			  void *user_data)
 {
-  objects_list_enumerator_t enumerator;
-  objects_list_node_t *node;
-  objects_callbacks_t callbacks;
+  o_list_enumerator_t enumerator;
+  o_list_node_t *node;
+  o_callbacks_t callbacks;
 
-  callbacks = objects_list_element_callbacks(list);
-  enumerator = objects_list_enumerator (list);
+  callbacks = o_list_element_callbacks(list);
+  enumerator = o_list_enumerator (list);
 
-  while ((node = _objects_list_enumerator_next_node (&enumerator)) != 0)
+  while ((node = _o_list_enumerator_next_node (&enumerator)) != 0)
     {
       const void *element;
       
       element = (*fcn)(node->element, user_data);
 
-      objects_retain (callbacks, element, list);
-      objects_release (callbacks, (void *)(node->element), list);
+      o_retain (callbacks, element, list);
+      o_release (callbacks, (void *)(node->element), list);
 
       node->element = element;
     }
@@ -828,16 +828,16 @@ objects_list_map_elements(objects_list_t *list,
 
 /** Creating other collections from lists **/
 
-objects_hash_t *
-objects_hash_init_from_list (objects_hash_t * hash, objects_list_t *list)
+o_hash_t *
+o_hash_init_from_list (o_hash_t * hash, o_list_t *list)
 {
   if (hash != 0)
     {
-      objects_list_enumerator_t enumerator;
+      o_list_enumerator_t enumerator;
       const void *element;
 
       /* Make a note of the callbacks for HASH. */
-      hash->callbacks = objects_list_element_callbacks (list);
+      hash->callbacks = o_list_element_callbacks (list);
 
       /* Zero out the various counts. */
       hash->node_count = 0;
@@ -849,33 +849,33 @@ objects_hash_init_from_list (objects_hash_t * hash, objects_list_t *list)
       hash->buckets = 0;
 
       /* Resize HASH to the given CAPACITY. */
-      objects_hash_resize (hash, objects_list_capacity (list));
+      o_hash_resize (hash, o_list_capacity (list));
 
       /* Get an element enumerator for LIST. */
-      enumerator = objects_list_enumerator (list);
+      enumerator = o_list_enumerator (list);
 
       /* Add LIST's elements to HASH, one at a time.  Note that if LIST
        * contains multiple elements from the same equivalence class, it
        * is indeterminate which will end up in HASH.  But this shouldn't
        * be a problem. */
-      while (objects_list_enumerator_next_element (&enumerator, &element))
-	objects_hash_add_element (hash, element);
+      while (o_list_enumerator_next_element (&enumerator, &element))
+	o_hash_add_element (hash, element);
     }
 
   /* Return the newly initialized HASH. */
   return hash;
 }
 
-// objects_chash_t *
-// objects_chash_init_from_list (objects_chash_t * chash, objects_list_t *list)
+// o_chash_t *
+// o_chash_init_from_list (o_chash_t * chash, o_list_t *list)
 // {
 //   if (chash != 0)
 //     {
-//       objects_list_enumerator_t enumerator;
+//       o_list_enumerator_t enumerator;
 //       const void *element;
 // 
 //       /* Make a note of the callbacks for CHASH. */
-//       chash->callbacks = objects_list_element_callbacks (list);
+//       chash->callbacks = o_list_element_callbacks (list);
 // 
 //       /* Zero out the various counts. */
 //       chash->node_count = 0;
@@ -887,17 +887,17 @@ objects_hash_init_from_list (objects_hash_t * hash, objects_list_t *list)
 //       chash->buckets = 0;
 // 
 //       /* Resize CHASH to the given CAPACITY. */
-//       objects_chash_resize (chash, objects_list_capacity (list));
+//       o_chash_resize (chash, o_list_capacity (list));
 // 
 //       /* Get an element enumerator for LIST. */
-//       enumerator = objects_list_enumerator (list);
+//       enumerator = o_list_enumerator (list);
 // 
 //       /* Add LIST's elements to CHASH, one at a time.  Note that if LIST
 //        * contains multiple elements from the same equivalence class, it
 //        * is indeterminate which will end up in CHASH.  But this shouldn't
 //        * be a problem. */
-//       while (objects_list_enumerator_next_element (&enumerator, &element))
-// 	objects_chash_add_element (chash, element);
+//       while (o_list_enumerator_next_element (&enumerator, &element))
+// 	o_chash_add_element (chash, element);
 //     }
 // 
 //   /* Return the newly initialized CHASH. */

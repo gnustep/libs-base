@@ -49,7 +49,7 @@ grow_released_arrays()
 }
 
 void
-objc_release_stack_objects_to_frame_address(void *frame_address)
+objc_release_stack_o_to_frame_address(void *frame_address)
 {
   assert(released_objects);
   /* xxx This assumes stack grows up */
@@ -66,7 +66,7 @@ void
 objc_release_stack_objects()
 {
   assert(released_objects);
-  objc_release_stack_objects_to_frame_address(__builtin_frame_address(1));
+  objc_release_stack_o_to_frame_address(__builtin_frame_address(1));
 }
 
 void
@@ -94,7 +94,7 @@ objc_stack_release_object(id anObj)
   s = __builtin_frame_address(3);
 
   /* Do the pending releases of other objects */
-  objc_release_stack_objects_to_frame_address(s);
+  objc_release_stack_o_to_frame_address(s);
 
   /* Queue this object for later release */
   objc_stack_release_object_with_address(anObj, s);

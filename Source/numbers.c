@@ -28,35 +28,35 @@
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
-size_t ___objects_number_allocated = 0;
-size_t ___objects_number_deallocated = 0;
-size_t ___objects_number_serialized = 0;
+size_t ___o_number_allocated = 0;
+size_t ___o_number_deallocated = 0;
+size_t ___o_number_serialized = 0;
 
 /**** Function Implementations ***********************************************/
 
 /* Returns the number of Libobjects structures allocated. */
 size_t
-_objects_number_allocated(void)
+_o_number_allocated(void)
 {
-  return ___objects_number_allocated;
+  return ___o_number_allocated;
 }
 
 /* Returns the number of Libobjects structures deallocated. */
 size_t
-_objects_number_deallocated(void)
+_o_number_deallocated(void)
 {
-  return ___objects_number_deallocated;
+  return ___o_number_deallocated;
 }
 
 /* Returns the next serial number to be handed out. */
 size_t
-_objects_number_serialized(void)
+_o_number_serialized(void)
 {
-  return ___objects_number_serialized;
+  return ___o_number_serialized;
 }
 
 size_t
-_objects_next_power_of_two(size_t bound)
+_o_next_power_of_two(size_t bound)
 {
   size_t start = 1;
   while ((start <= bound) && (start <<= 1));

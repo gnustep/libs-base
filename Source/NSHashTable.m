@@ -100,7 +100,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 /** Macros... **/
 
 #define NSHT_CALLBACKS(T) \
-  (*((NSHashTableCallBacks *)(objects_hash_extra((objects_hash_t *)(T)))))
+  (*((NSHashTableCallBacks *)(o_hash_extra((o_hash_t *)(T)))))
 
 #define NSHT_DESCRIBE(T, P) \
   (NSHT_CALLBACKS((T))).describe((T), (P))
@@ -148,14 +148,14 @@ _NSHT_describe(const void *element, const void *table)
 }
 
 /* These are wrappers for getting at the real callbacks. */
-objects_callbacks_t _NSHT_callbacks = 
+o_callbacks_t _NSHT_callbacks = 
 {
-  (objects_hash_func_t) _NSHT_hash,
-  (objects_compare_func_t) _NSHT_compare,
-  (objects_is_equal_func_t) _NSHT_is_equal,
-  (objects_retain_func_t) _NSHT_retain,
-  (objects_release_func_t) _NSHT_release,
-  (objects_describe_func_t) _NSHT_describe,
+  (o_hash_func_t) _NSHT_hash,
+  (o_compare_func_t) _NSHT_compare,
+  (o_is_equal_func_t) _NSHT_is_equal,
+  (o_retain_func_t) _NSHT_retain,
+  (o_release_func_t) _NSHT_release,
+  (o_describe_func_t) _NSHT_describe,
   0 /* Note that OpenStep decrees that '0' is the (only) forbidden value. */
 };
 
@@ -169,7 +169,7 @@ _NSHT_extra_retain (const NSHashTableCallBacks *callBacks, NSHashTable *table)
   NSHashTableCallBacks *newCallBacks;
 
   /* Set aside space for our new callbacks in the right zone. */
-  newCallBacks = (NSHashTableCallBacks *)NSZoneMalloc(objects_hash_zone(table),
+  newCallBacks = (NSHashTableCallBacks *)NSZoneMalloc(o_hash_zone(table),
                                                  sizeof(NSHashTableCallBacks));
 
   /* FIXME: Check for an invalid pointer? */
@@ -185,7 +185,7 @@ void
 _NSHT_extra_release(NSHashTableCallBacks *callBacks, NSHashTable *table)
 {
   if (callBacks != 0)
-    NSZoneFree(objects_hash_zone(table), callBacks);
+    NSZoneFree(o_hash_zone(table), callBacks);
 
   return;
 }
@@ -200,14 +200,14 @@ _NSHT_extra_describe(NSHashTableCallBacks *callBacks, NSHashTable *table)
 /* The idea here is that these callbacks ensure that the
  * NSHashTableCallbacks which are associated with a given NSHashTable
  * remain so associated throughout the life of the table and its copies. */
-objects_callbacks_t _NSHT_extra_callbacks = 
+o_callbacks_t _NSHT_extra_callbacks = 
 {
-  (objects_hash_func_t) objects_non_owned_void_p_hash,
-  (objects_compare_func_t) objects_non_owned_void_p_compare,
-  (objects_is_equal_func_t) objects_non_owned_void_p_is_equal,
-  (objects_retain_func_t) _NSHT_extra_retain,
-  (objects_release_func_t) _NSHT_extra_release,
-  (objects_describe_func_t) _NSHT_extra_describe,
+  (o_hash_func_t) o_non_owned_void_p_hash,
+  (o_compare_func_t) o_non_owned_void_p_compare,
+  (o_is_equal_func_t) o_non_owned_void_p_is_equal,
+  (o_retain_func_t) _NSHT_extra_retain,
+  (o_release_func_t) _NSHT_extra_release,
+  (o_describe_func_t) _NSHT_extra_describe,
   0
 };
 
@@ -224,17 +224,17 @@ NSCreateHashTableWithZone(NSHashTableCallBacks callBacks,
 
   /* Build the core table.  See the above for the definitions of
    * the funny callbacks. */
-  table = objects_hash_with_zone_with_callbacks(zone, _NSHT_callbacks);
+  table = o_hash_with_zone_with_callbacks(zone, _NSHT_callbacks);
 
   /* Check to make sure our allocation has succeeded. */
   if (table != 0)
   {
     /* Resize TABLE to CAPACITY. */
-    objects_hash_resize(table, capacity);
+    o_hash_resize(table, capacity);
 
     /* Add CALLBACKS to TABLE.  This takes care of everything for us. */
-    objects_hash_set_extra_callbacks(table, _NSHT_extra_callbacks);
-    objects_hash_set_extra(table, &callBacks);
+    o_hash_set_extra_callbacks(table, _NSHT_extra_callbacks);
+    o_hash_set_extra(table, &callBacks);
   }
 
   /* Yah-hoo, kid! */
@@ -255,7 +255,7 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
 {
   /* Due to the wonders of modern structure technology,
    * everything we care about is automagically and safely destroyed. */
-  return objects_hash_copy_with_zone(table, zone);
+  return o_hash_copy_with_zone(table, zone);
 }
 
 /** Destroying **/
@@ -265,7 +265,7 @@ NSFreeHashTable(NSHashTable *table)
 {
   /* Due to the wonders of modern technology,
    * everything we care about is automagically and safely destroyed. */
-  objects_hash_dealloc(table);
+  o_hash_dealloc(table);
   return;
 }
 
@@ -274,7 +274,7 @@ NSFreeHashTable(NSHashTable *table)
 void
 NSResetHashTable(NSHashTable *table)
 {
-  objects_hash_empty(table);
+  o_hash_empty(table);
   return;
 }
 
@@ -283,7 +283,7 @@ NSResetHashTable(NSHashTable *table)
 BOOL
 NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
 {
-  return (objects_hash_is_equal_to_hash(table1, table2) ? YES : NO);
+  return (o_hash_is_equal_to_hash(table1, table2) ? YES : NO);
 }
 
 /** Counting **/
@@ -291,7 +291,7 @@ NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
 unsigned int
 NSCountHashTable(NSHashTable *table)
 {
-  return (unsigned int) objects_hash_count(table);
+  return (unsigned int) o_hash_count(table);
 }
 
 /** Retrieving **/
@@ -300,7 +300,7 @@ void *
 NSHashGet(NSHashTable *table, const void *pointer)
 {
   /* Just make the call.  You know the number. */
-  return (void *) objects_hash_element(table, pointer);
+  return (void *) o_hash_element(table, pointer);
 }
 
 NSArray *
@@ -331,7 +331,7 @@ NSAllHashTableObjects (NSHashTable *table)
 NSHashEnumerator
 NSEnumerateHashTable(NSHashTable *table)
 {
-  return objects_hash_enumerator_for_hash(table);
+  return o_hash_enumerator_for_hash(table);
 }
 
 void *
@@ -340,7 +340,7 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
   const void *element;
 
   /* Grab the next element. */
-  objects_hash_enumerator_next_element(enumerator, &element);
+  o_hash_enumerator_next_element(enumerator, &element);
 
   /* Return ELEMENT. */
   return (void *) element;
@@ -352,7 +352,7 @@ void
 NSHashInsert(NSHashTable *table, const void *pointer)
 {
   /* Place POINTER in TABLE. */
-  objects_hash_add_element(table, pointer);
+  o_hash_add_element(table, pointer);
 
   /* OpenStep doesn't care for any return value, so... */
   return;
@@ -361,7 +361,7 @@ NSHashInsert(NSHashTable *table, const void *pointer)
 void
 NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
 {
-  if (objects_hash_contains_element(table, element))
+  if (o_hash_contains_element(table, element))
   {
     /* FIXME: I should make this give the user/programmer more
      * information.  Not difficult to do, just something for a later
@@ -372,7 +372,7 @@ NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
   }
   else
   {
-    objects_hash_add_element_known_absent(table, element);
+    o_hash_add_element_known_absent(table, element);
   }
 
   /* OpenStep doesn't care for any return value, so... */
@@ -385,7 +385,7 @@ NSHashInsertIfAbsent(NSHashTable *table, const void *element)
   const void *old_element;
 
   /* Place ELEMENT in TABLE. */
-  old_element = objects_hash_add_element_if_absent(table, element);
+  old_element = o_hash_add_element_if_absent(table, element);
 
   /* Return the version of ELEMENT in TABLE now. */
   return (void *) old_element;
@@ -397,7 +397,7 @@ void
 NSHashRemove(NSHashTable *table, const void *element)
 {
   /* Remove ELEMENT from TABLE. */
-  objects_hash_remove_element(table, element);
+  o_hash_remove_element(table, element);
 
   /* OpenStep doesn't care about return values here, so... */
   return;

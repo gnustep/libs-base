@@ -33,16 +33,16 @@
 /* FIXME: This isn't right.  Fix it. */
 #define _OBJECTS_NOT_AN_INT_MARKER (const void *)(-1)
 
-const void *objects_not_an_int_marker = _OBJECTS_NOT_AN_INT_MARKER;
+const void *o_not_an_int_marker = _OBJECTS_NOT_AN_INT_MARKER;
 
-objects_callbacks_t objects_callbacks_for_int = 
+o_callbacks_t o_callbacks_for_int = 
 {
-  (objects_hash_func_t) objects_int_hash,
-  (objects_compare_func_t) objects_int_compare,
-  (objects_is_equal_func_t) objects_int_is_equal,
-  (objects_retain_func_t) objects_int_retain,
-  (objects_release_func_t) objects_int_release,
-  (objects_describe_func_t) objects_int_describe,
+  (o_hash_func_t) o_int_hash,
+  (o_compare_func_t) o_int_compare,
+  (o_is_equal_func_t) o_int_is_equal,
+  (o_retain_func_t) o_int_retain,
+  (o_release_func_t) o_int_release,
+  (o_describe_func_t) o_int_describe,
   _OBJECTS_NOT_AN_INT_MARKER
 };
 
@@ -53,37 +53,37 @@ objects_callbacks_t objects_callbacks_for_int =
  * but what can I do? */
 
 size_t
-objects_int_hash(int i)
+o_int_hash(int i)
 {
   return (size_t)i;
 }
 
 int
-objects_int_compare(int i, int j)
+o_int_compare(int i, int j)
 {
   return i - j;
 }
 
 int
-objects_int_is_equal(int i, int j)
+o_int_is_equal(int i, int j)
 {
   return i == j;
 }
 
 const void *
-objects_int_retain(int i)
+o_int_retain(int i)
 {
   return (const void *)i;
 }
 
 void
-objects_int_release(int i)
+o_int_release(int i)
 {
   return;
 }
 
 NSString *
-objects_int_describe(int i)
+o_int_describe(int i)
 {
   /* FIXME: Code this. */
   return nil;

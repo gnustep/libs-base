@@ -34,21 +34,21 @@
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
-typedef struct _objects_list objects_list_t;
-typedef struct _objects_list_node objects_list_node_t;
-typedef struct _objects_list_enumerator objects_list_enumerator_t;
+typedef struct _o_list o_list_t;
+typedef struct _o_list_node o_list_node_t;
+typedef struct _o_list_enumerator o_list_enumerator_t;
 
-struct _objects_list_node
+struct _o_list_node
 {
-  objects_list_t *list;
+  o_list_t *list;
 
-  objects_list_node_t *next_in_list;
-  objects_list_node_t *prev_in_list;
+  o_list_node_t *next_in_list;
+  o_list_node_t *prev_in_list;
 
   const void *element;
 };
 
-struct _objects_list
+struct _o_list
 {
   /* Container identifiers */
   int magic_number;
@@ -56,24 +56,24 @@ struct _objects_list
   NSZone *zone;
   NSString *name;
   const void *extra;
-  objects_callbacks_t extra_callbacks;
+  o_callbacks_t extra_callbacks;
 
   /* Element callbacks */
-  objects_callbacks_t callbacks;
+  o_callbacks_t callbacks;
 
   /* Internal counters */
   size_t node_count;
   size_t element_count;
 
   /* Databanks */
-  objects_list_node_t *first_node;
-  objects_list_node_t *last_node;
+  o_list_node_t *first_node;
+  o_list_node_t *last_node;
 };
 
-struct _objects_list_enumerator
+struct _o_list_enumerator
 {
-  objects_list_t *list;
-  objects_list_node_t *node;
+  o_list_t *list;
+  o_list_node_t *node;
   size_t forward;
 };
 
@@ -87,260 +87,260 @@ struct _objects_list_enumerator
 
 /** Creating **/
 
-objects_list_t *
-objects_list_alloc(void);
+o_list_t *
+o_list_alloc(void);
 
-objects_list_t *
-objects_list_alloc_with_zone(NSZone *zone);
+o_list_t *
+o_list_alloc_with_zone(NSZone *zone);
 
-objects_list_t *
-objects_list_with_zone(NSZone *zone);
+o_list_t *
+o_list_with_zone(NSZone *zone);
 
-objects_list_t *
-objects_list_with_callbacks(objects_callbacks_t callbacks);
+o_list_t *
+o_list_with_callbacks(o_callbacks_t callbacks);
 
-objects_list_t *
-objects_list_with_zone_with_callbacks(NSZone *zone,
-                                      objects_callbacks_t callbacks);
+o_list_t *
+o_list_with_zone_with_callbacks(NSZone *zone,
+                                      o_callbacks_t callbacks);
 
-objects_list_t *
-objects_list_of_char_p(void);
+o_list_t *
+o_list_of_char_p(void);
 
-objects_list_t *
-objects_list_of_non_owned_void_p(void);
+o_list_t *
+o_list_of_non_owned_void_p(void);
 
-objects_list_t *
-objects_list_of_owned_void_p(void);
+o_list_t *
+o_list_of_owned_void_p(void);
 
-objects_list_t *
-objects_list_of_int(void);
+o_list_t *
+o_list_of_int(void);
 
-objects_list_t *
-objects_list_of_int_p(void);
+o_list_t *
+o_list_of_int_p(void);
 
-objects_list_t *
-objects_list_of_id(void);
+o_list_t *
+o_list_of_id(void);
 
 /** Initializing **/
 
-objects_list_t *
-objects_list_init(objects_list_t *list);
+o_list_t *
+o_list_init(o_list_t *list);
 
-objects_list_t *
-objects_list_init_with_callbacks(objects_list_t *list,
-                                 objects_callbacks_t callbacks);
+o_list_t *
+o_list_init_with_callbacks(o_list_t *list,
+                                 o_callbacks_t callbacks);
 
 /** Copying **/
 
-objects_list_t *
-objects_list_copy(objects_list_t *old_list);
+o_list_t *
+o_list_copy(o_list_t *old_list);
 
-objects_list_t *
-objects_list_copy_with_zone(objects_list_t *old_list,
+o_list_t *
+o_list_copy_with_zone(o_list_t *old_list,
                             NSZone *zone);
 
 /** Destroying **/
 
 void
-objects_list_dealloc(objects_list_t *list);
+o_list_dealloc(o_list_t *list);
 
 /** Comparing **/
 
 int
-objects_list_is_equal_to_list(objects_list_t *list,
-                              objects_list_t *other_list);
+o_list_is_equal_to_list(o_list_t *list,
+                              o_list_t *other_list);
 
 /** Concatenating **/
 
-objects_list_t *
-objects_list_append_list(objects_list_t *base_list,
-                         objects_list_t *suffix_list);
+o_list_t *
+o_list_append_list(o_list_t *base_list,
+                         o_list_t *suffix_list);
 
-objects_list_t *
-objects_list_prepend_list(objects_list_t *base_list,
-                          objects_list_t *prefix_list);
+o_list_t *
+o_list_prepend_list(o_list_t *base_list,
+                          o_list_t *prefix_list);
 
-objects_list_t *
-objects_list_at_index_insert_list(objects_list_t *base_list,
+o_list_t *
+o_list_at_index_insert_list(o_list_t *base_list,
                                   long int n,
-                                  objects_list_t *infix_list);
+                                  o_list_t *infix_list);
 
 /** Permuting **/
 
-objects_list_t *
-objects_list_roll_to_nth_element(objects_list_t *list, long int n);
+o_list_t *
+o_list_roll_to_nth_element(o_list_t *list, long int n);
 
-objects_list_t *
-objects_list_roll_to_element(objects_list_t *list, const void *element);
+o_list_t *
+o_list_roll_to_element(o_list_t *list, const void *element);
 
-objects_list_t *
-objects_list_roll_to_nth_occurrance_of_element(objects_list_t *list,
+o_list_t *
+o_list_roll_to_nth_occurrance_of_element(o_list_t *list,
                                                long int n,
                                                const void *element);
 
-objects_list_t *
-objects_list_invert(objects_list_t *list);
+o_list_t *
+o_list_invert(o_list_t *list);
 
-objects_list_t *
-objects_list_swap_elements_at_indices(objects_list_t *list,
+o_list_t *
+o_list_swap_elements_at_indices(o_list_t *list,
                                       long int m,
                                       long int n);
 
 /** Adding **/
 
 const void *
-objects_list_append_element(objects_list_t *list, const void *element);
+o_list_append_element(o_list_t *list, const void *element);
 
 const void *
-objects_list_append_element_if_absent(objects_list_t *list,
+o_list_append_element_if_absent(o_list_t *list,
                                       const void *element);
 
 const void *
-objects_list_prepend_element(objects_list_t *list, const void *element);
+o_list_prepend_element(o_list_t *list, const void *element);
 
 const void *
-objects_list_prepend_element_if_absent(objects_list_t *list,
+o_list_prepend_element_if_absent(o_list_t *list,
                                        const void *element);
 
 const void *
-objects_list_at_index_insert_element(objects_list_t *list,
+o_list_at_index_insert_element(o_list_t *list,
                                      long int n,
                                      const void *element);
 
 const void *
-objects_list_at_index_insert_element_if_absent(objects_list_t *list,
+o_list_at_index_insert_element_if_absent(o_list_t *list,
                                                long int n,
                                                const void *element);
 
 const void *
-objects_list_queue_push_element(objects_list_t *list, const void *element);
+o_list_queue_push_element(o_list_t *list, const void *element);
 
 const void *
-objects_list_stack_push_element(objects_list_t *list, const void *element);
+o_list_stack_push_element(o_list_t *list, const void *element);
 
 /** Replacing **/
 
 void
-objects_list_replace_nth_occurrance_of_element(objects_list_t *list,
+o_list_replace_nth_occurrance_of_element(o_list_t *list,
                                                long int n,
                                                const void *old_element,
                                                const void *new_element);
 
 void
-objects_list_replace_element(objects_list_t *list,
+o_list_replace_element(o_list_t *list,
                              const void *old_element,
                              const void *new_element);
 
 void
-objects_list_replace_nth_element(objects_list_t *list,
+o_list_replace_nth_element(o_list_t *list,
                                  long int n,
                                  const void *new_element);
 
 void
-objects_list_replace_first_element(objects_list_t *list,
+o_list_replace_first_element(o_list_t *list,
                                    const void *new_element);
 
 void
-objects_list_replace_last_element(objects_list_t *list,
+o_list_replace_last_element(o_list_t *list,
                                   const void *new_element);
 
 /** Removing **/
 
 void
-objects_list_remove_nth_occurrence_of_element(objects_list_t *list,
+o_list_remove_nth_occurrence_of_element(o_list_t *list,
                                               long int n,
                                               const void *element);
 
 void
-objects_list_remove_element(objects_list_t *list, const void *element);
+o_list_remove_element(o_list_t *list, const void *element);
 
 void
-objects_list_remove_nth_element(objects_list_t *list, long int n);
+o_list_remove_nth_element(o_list_t *list, long int n);
 
 void
-objects_list_remove_first_element(objects_list_t *list);
+o_list_remove_first_element(o_list_t *list);
 
 void
-objects_list_remove_last_element(objects_list_t *list);
+o_list_remove_last_element(o_list_t *list);
 
 void
-objects_list_queue_pop_element(objects_list_t *list);
+o_list_queue_pop_element(o_list_t *list);
 
 void
-objects_list_queue_pop_nth_element(objects_list_t *list, long int n);
+o_list_queue_pop_nth_element(o_list_t *list, long int n);
 
 void
-objects_list_stack_pop_element(objects_list_t *list);
+o_list_stack_pop_element(o_list_t *list);
 
 void
-objects_list_stack_pop_nth_element(objects_list_t *list, long int n);
+o_list_stack_pop_nth_element(o_list_t *list, long int n);
 
 /** Emptying **/
 
 void
-objects_list_empty(objects_list_t *list);
+o_list_empty(o_list_t *list);
 
 /** Searching **/
 
 int
-objects_list_contains_element(objects_list_t *list, const void *element);
+o_list_contains_element(o_list_t *list, const void *element);
 
 const void *
-objects_list_element(objects_list_t *list, const void *element);
+o_list_element(o_list_t *list, const void *element);
 
 const void *
-objects_list_nth_element(objects_list_t *list, long int n);
+o_list_nth_element(o_list_t *list, long int n);
 
 const void *
-objects_list_first_element(objects_list_t *list);
+o_list_first_element(o_list_t *list);
 
 const void *
-objects_list_last_element(objects_list_t *list);
+o_list_last_element(o_list_t *list);
 
 const void **
-objects_list_all_elements(objects_list_t *list);
+o_list_all_elements(o_list_t *list);
 
 /** Enumerating **/
 
-objects_list_enumerator_t
-objects_list_enumerator(objects_list_t *list);
+o_list_enumerator_t
+o_list_enumerator(o_list_t *list);
 
-objects_list_enumerator_t
-objects_list_forward_enumerator(objects_list_t *list);
+o_list_enumerator_t
+o_list_forward_enumerator(o_list_t *list);
 
-objects_list_enumerator_t
-objects_list_reverse_enumerator(objects_list_t *list);
+o_list_enumerator_t
+o_list_reverse_enumerator(o_list_t *list);
 
 int
-objects_list_enumerator_next_element(objects_list_enumerator_t *enumerator,
+o_list_enumerator_next_element(o_list_enumerator_t *enumerator,
                                      const void **element);
 
 /** Mapping **/
 
 /* NO WARNING: The mapping function FCN need not be one-to-one on the
  * elements of LIST.  In fact, FCN may do whatever it likes. */
-objects_list_t *
-objects_list_map_elements(objects_list_t *list,
+o_list_t *
+o_list_map_elements(o_list_t *list,
                           const void *(*fcn)(const void *, void *),
                           void *user_data);
 
 /** Statistics **/
 
 int
-objects_list_is_empty(objects_list_t *list);
+o_list_is_empty(o_list_t *list);
 
 size_t
-objects_list_count(objects_list_t *list);
+o_list_count(o_list_t *list);
 
 size_t
-objects_list_capacity(objects_list_t *list);
+o_list_capacity(o_list_t *list);
 
 int
-objects_list_check(objects_list_t *list);
+o_list_check(o_list_t *list);
 
 /** Miscellaneous **/
 
-objects_hash_t *
-objects_hash_init_from_list(objects_hash_t *hash, objects_list_t *list);
+o_hash_t *
+o_hash_init_from_list(o_hash_t *hash, o_list_t *list);
 
 #endif /* __list_h_OBJECTS_INCLUDE */

@@ -46,7 +46,7 @@
 
 /** Translating from Zones to Allocs **/
 
-objects_allocs_t
-objects_allocs_for_zone (NSZone * zone);
+o_allocs_t
+o_allocs_for_zone (NSZone * zone);
 
 #endif /* __atoz_h_OBJECTS_INCLUDE */

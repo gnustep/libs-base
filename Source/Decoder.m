@@ -211,8 +211,8 @@
 {
 #if 0
   if (!fref_stack)
-    fref_stack = objects_list_of_void_p ();
-  objects_list_append_element (fref_stack, NSCreateMap (...));
+    fref_stack = o_list_of_void_p ();
+  o_list_append_element (fref_stack, NSCreateMap (...));
 #endif
   if (!address_2_fref)
     address_2_fref = NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,

@@ -40,7 +40,7 @@
 /** Hashing **/
 
 size_t
-objects_data_hash (objects_data_t * data)
+o_data_hash (o_data_t * data)
 {
   /* FIXME: Code this. */
   return 0;
@@ -48,79 +48,79 @@ objects_data_hash (objects_data_t * data)
 
 /** Creating **/
 
-objects_data_t *
-objects_data_alloc (void)
+o_data_t *
+o_data_alloc (void)
 {
-  return objects_data_alloc_with_allocs (objects_allocs_standard ());
+  return o_data_alloc_with_allocs (o_allocs_standard ());
 }
 
-objects_data_t *
-objects_data_alloc_with_allocs (objects_allocs_t allocs)
+o_data_t *
+o_data_alloc_with_allocs (o_allocs_t allocs)
 {
-  objects_data_t *data;
+  o_data_t *data;
 
   /* Make a new data structure. */
-  data = _objects_data_alloc_with_allocs (allocs);
+  data = _o_data_alloc_with_allocs (allocs);
 
   return data;
 }
 
-objects_data_t *
-objects_data_new (void)
+o_data_t *
+o_data_new (void)
 {
-  return objects_data_new_with_allocs (objects_allocs_standard ());
+  return o_data_new_with_allocs (o_allocs_standard ());
 }
 
-objects_data_t *
-objects_data_new_with_allocs (objects_allocs_t allocs)
+o_data_t *
+o_data_new_with_allocs (o_allocs_t allocs)
 {
-  return objects_data_init (objects_data_alloc_with_allocs (allocs));
+  return o_data_init (o_data_alloc_with_allocs (allocs));
 }
 
-objects_data_t *
-_objects_data_with_allocs_with_contents_of_file (objects_allocs_t allocs,
+o_data_t *
+_o_data_with_allocs_with_contents_of_file (o_allocs_t allocs,
 						 const char *file)
 {
-  return _objects_data_init_with_contents_of_file (objects_data_alloc_with_allocs (allocs),
+  return _o_data_init_with_contents_of_file (o_data_alloc_with_allocs (allocs),
 						   file);
 }
 
-objects_data_t *
-_objects_data_with_contents_of_file (const char *file)
+o_data_t *
+_o_data_with_contents_of_file (const char *file)
 {
-  return _objects_data_with_allocs_with_contents_of_file (objects_allocs_standard (),
+  return _o_data_with_allocs_with_contents_of_file (o_allocs_standard (),
 							  file);
 }
 
-objects_data_t *
-objects_data_with_buffer_of_length (void *buffer, size_t length)
+o_data_t *
+o_data_with_buffer_of_length (void *buffer, size_t length)
 {
-  return objects_data_with_allocs_with_buffer_of_length (objects_allocs_standard (),
+  return o_data_with_allocs_with_buffer_of_length (o_allocs_standard (),
 							 buffer, length);
 }
 
-objects_data_t *
-objects_data_with_allocs_with_buffer_of_length (objects_allocs_t allocs,
+o_data_t *
+o_data_with_allocs_with_buffer_of_length (o_allocs_t allocs,
 						void *buffer,
 						size_t length)
 {
-  return objects_data_init_with_buffer_of_length (objects_data_alloc_with_allocs (allocs),
+  return o_data_init_with_buffer_of_length (o_data_alloc_with_allocs (allocs),
 						  buffer, length);
 }
 
 /** Destroying **/
 
 void
-objects_data_dealloc (objects_data_t * data)
+o_data_dealloc (o_data_t * data)
 {
   if (data != NULL)
     {
       /* Free up DATA's buffer if we've used it. */
       if (data->buffer != NULL)
-	objects_free (objects_data_allocs (data), data->buffer);
+	o_free (o_data_allocs (data), data->buffer);
 
       /* Free up DATA itself. */
-      _objects_data_dealloc (data);
+      _o_data_dealloc (data);
     }
 
   return;
@@ -128,16 +128,16 @@ objects_data_dealloc (objects_data_t * data)
 
 /** Initializing **/
 
-objects_data_t *
-objects_data_init (objects_data_t * data)
+o_data_t *
+o_data_init (o_data_t * data)
 {
-  return objects_data_init_with_buffer_of_length (data, NULL, 0);
+  return o_data_init_with_buffer_of_length (data, NULL, 0);
 }
 
-objects_data_t *
-_objects_data_init_with_contents_of_file (objects_data_t * data, const char *file)
+o_data_t *
+_o_data_init_with_contents_of_file (o_data_t * data, const char *file)
 {
-  objects_data_t *new_data;
+  o_data_t *new_data;
   void *buffer;
   FILE *f;
   long int length;
@@ -165,7 +165,7 @@ _objects_data_init_with_contents_of_file (objects_data_t * data, const char *fil
     goto failure;
 
   /* Set aside the space we'll need. */
-  buffer = objects_malloc (objects_data_allocs (data), length);
+  buffer = o_malloc (o_data_allocs (data), length);
 
   if (buffer == NULL)		/* Out of memory, I guess. */
     goto failure;
@@ -178,7 +178,7 @@ _objects_data_init_with_contents_of_file (objects_data_t * data, const char *fil
     goto failure;
 
   /* Update the change time. */
-  _objects_data_set_change_time (data);
+  _o_data_set_change_time (data);
 
   /* Now we read FILE into BUFFER one (unsigned) byte at a time.
    * FIXME: We should probably be more careful to check that we don't
@@ -189,10 +189,10 @@ _objects_data_init_with_contents_of_file (objects_data_t * data, const char *fil
     ((unsigned char *) buffer)[d] = (unsigned char) fgetc (f);
 
   /* success: */
-  new_data = objects_data_init_with_buffer_of_length (data, buffer, length);
+  new_data = o_data_init_with_buffer_of_length (data, buffer, length);
 
   /* Free up BUFFER, since we're done with it. */
-  objects_free (objects_data_allocs (data), buffer);
+  o_free (o_data_allocs (data), buffer);
 
   return new_data;
 
@@ -201,8 +201,8 @@ failure:
   return NULL;
 }
 
-objects_data_t *
-objects_data_init_with_buffer_of_length (objects_data_t * data,
+o_data_t *
+o_data_init_with_buffer_of_length (o_data_t * data,
 					 void *buffer,
 					 size_t length)
 {
@@ -212,17 +212,17 @@ objects_data_init_with_buffer_of_length (objects_data_t * data,
       data->length = 0;
       data->capacity = 0;
 
-      objects_data_set_buffer_of_length (data, buffer, length);
+      o_data_set_buffer_of_length (data, buffer, length);
     }
 
   return data;
 }
 
-objects_data_t *
-objects_data_init_with_subrange_of_data (objects_data_t * data,
+o_data_t *
+o_data_init_with_subrange_of_data (o_data_t * data,
 					 size_t location,
 					 size_t length,
-					 objects_data_t * old_data)
+					 o_data_t * old_data)
 {
   if (data != NULL)
     {
@@ -231,7 +231,7 @@ objects_data_init_with_subrange_of_data (objects_data_t * data,
       length = MIN (old_data->length - location, length);
 
       /* Copy over the contents. */
-      objects_data_init_with_buffer_of_length (data, old_data->buffer + location,
+      o_data_init_with_buffer_of_length (data, old_data->buffer + location,
 					       old_data->length);
     }
 
@@ -241,40 +241,40 @@ objects_data_init_with_subrange_of_data (objects_data_t * data,
 /** Statistics **/
 
 size_t
-objects_data_capacity (objects_data_t * data)
+o_data_capacity (o_data_t * data)
 {
   /* Update the access time. */
-  _objects_data_set_access_time (data);
+  _o_data_set_access_time (data);
 
   return data->capacity;
 }
 
 /* Obtain DATA's length. */
 size_t
-objects_data_length (objects_data_t * data)
+o_data_length (o_data_t * data)
 {
   /* Update the access time. */
-  _objects_data_set_access_time (data);
+  _o_data_set_access_time (data);
 
   return data->length;
 }
 
 /* Obtain a read-only copy of DATA's buffer. */
 const void *
-objects_data_buffer (objects_data_t * data)
+o_data_buffer (o_data_t * data)
 {
   /* Update the access time. */
-  _objects_data_set_access_time (data);
+  _o_data_set_access_time (data);
 
   return data->buffer;
 }
 
 /* Obtain DATA's capacity through reference. */
 size_t
-objects_data_get_capacity (objects_data_t * data, size_t * capacity)
+o_data_get_capacity (o_data_t * data, size_t * capacity)
 {
   /* Update the access time. */
-  _objects_data_set_access_time (data);
+  _o_data_set_access_time (data);
 
   if (capacity != NULL)
     *capacity = data->capacity;
@@ -284,10 +284,10 @@ objects_data_get_capacity (objects_data_t * data, size_t * capacity)
 
 /* Obtain DATA's length through reference. */
 size_t
-objects_data_get_length (objects_data_t * data, size_t * length)
+o_data_get_length (o_data_t * data, size_t * length)
 {
   /* Update the access time. */
-  _objects_data_set_access_time (data);
+  _o_data_set_access_time (data);
 
   if (length != NULL)
     *length = data->length;
@@ -298,24 +298,24 @@ objects_data_get_length (objects_data_t * data, size_t * length)
 /* Copy DATA's buffer into BUFFER.  It is assumed that BUFFER is large
  * enough to contain DATA's buffer. */
 size_t
-objects_data_get_buffer (objects_data_t * data, void *buffer)
+o_data_get_buffer (o_data_t * data, void *buffer)
 {
-  return objects_data_get_buffer_of_subrange (data, buffer, 0, data->length);
+  return o_data_get_buffer_of_subrange (data, buffer, 0, data->length);
 }
 
 /* Copy no more that LENGTH of DATA's buffer into BUFFER.  Returns the
  * amount actually copied. */
 size_t
-objects_data_get_buffer_of_length (objects_data_t * data, void *buffer, size_t length)
+o_data_get_buffer_of_length (o_data_t * data, void *buffer, size_t length)
 {
-  return objects_data_get_buffer_of_subrange (data, buffer, 0, length);
+  return o_data_get_buffer_of_subrange (data, buffer, 0, length);
 }
 
 /* Copy a subrange of DATA's buffer into BUFFER.  As always, it is
  * assumed that BUFFER is large enough to contain everything.  We
  * return the size of the data actually copied into BUFFER. */
 size_t
-objects_data_get_buffer_of_subrange (objects_data_t * data,
+o_data_get_buffer_of_subrange (o_data_t * data,
 				     void *buffer,
 				     size_t location,
 				     size_t length)
@@ -323,7 +323,7 @@ objects_data_get_buffer_of_subrange (objects_data_t * data,
   size_t real_length;
 
   /* Update the access time. */
-  _objects_data_set_access_time (data);
+  _o_data_set_access_time (data);
 
   /* Figure out how much we really can copy. */
   real_length = MIN (data->length - location, length);
@@ -336,20 +336,20 @@ objects_data_get_buffer_of_subrange (objects_data_t * data,
 }
 
 size_t
-objects_data_set_capacity (objects_data_t * data, size_t capacity)
+o_data_set_capacity (o_data_t * data, size_t capacity)
 {
   size_t cap;
 
   /* Update the change time. */
-  _objects_data_set_change_time (data);
+  _o_data_set_change_time (data);
 
   /* Over shoot a little. */
-  cap = objects_next_power_of_two (capacity);
+  cap = o_next_power_of_two (capacity);
 
   if (data->buffer == NULL)
-    data->buffer = objects_malloc (objects_data_allocs (data), cap);
+    data->buffer = o_malloc (o_data_allocs (data), cap);
   else				/* (data->buffer != NULL) */
-    data->buffer = objects_realloc (objects_data_allocs (data), data->buffer, cap);
+    data->buffer = o_realloc (o_data_allocs (data), data->buffer, cap);
 
   /* FIXME: Check for failure of the allocs above. */
 
@@ -363,57 +363,57 @@ objects_data_set_capacity (objects_data_t * data, size_t capacity)
 }
 
 size_t
-objects_data_increase_capacity (objects_data_t * data, size_t capacity)
+o_data_increase_capacity (o_data_t * data, size_t capacity)
 {
-  return objects_data_set_capacity (data, objects_data_capacity (data) + capacity);
+  return o_data_set_capacity (data, o_data_capacity (data) + capacity);
 }
 
 size_t
-objects_data_decrease_capacity (objects_data_t * data, size_t capacity)
+o_data_decrease_capacity (o_data_t * data, size_t capacity)
 {
-  size_t old_capacity = objects_data_capacity (data);
+  size_t old_capacity = o_data_capacity (data);
 
-  return objects_data_set_capacity (data, old_capacity - MIN (capacity,
+  return o_data_set_capacity (data, old_capacity - MIN (capacity,
 							      old_capacity));
 }
 
 size_t
-objects_data_set_length (objects_data_t * data, size_t length)
+o_data_set_length (o_data_t * data, size_t length)
 {
   /* Update the change time. */
-  _objects_data_set_change_time (data);
+  _o_data_set_change_time (data);
 
   /* The only thing we need to be careful of is that DATA's length is
    * no greater than its capacity. */
-  return data->length = MIN (length, objects_data_capacity (data));
+  return data->length = MIN (length, o_data_capacity (data));
 }
 
 size_t
-objects_data_set_buffer_of_subrange (objects_data_t * data,
+o_data_set_buffer_of_subrange (o_data_t * data,
 				     void *buffer,
 				     size_t location,
 				     size_t length)
 {
   /* Arrange for DATA to have space for LENGTH amount of information. */
-  objects_data_set_capacity (data, length);
+  o_data_set_capacity (data, length);
 
   /* Copy the stuff in BUFFER over to DATA. */
   memmove (data->buffer, buffer + location, length);
 
   /* Make sure DATA knows how much it's holding. */
-  objects_data_set_length (data, length);
+  o_data_set_length (data, length);
 
   return length;
 }
 
 size_t
-objects_data_set_buffer_of_length (objects_data_t * data, void *buffer, size_t length)
+o_data_set_buffer_of_length (o_data_t * data, void *buffer, size_t length)
 {
-  return objects_data_set_buffer_of_subrange (data, buffer, 0, length);
+  return o_data_set_buffer_of_subrange (data, buffer, 0, length);
 }
 
 void
-objects_data_get_md5_checksum (objects_data_t * data, char *buffer)
+o_data_get_md5_checksum (o_data_t * data, char *buffer)
 {
   if (buffer != NULL)
     {
@@ -431,37 +431,37 @@ objects_data_get_md5_checksum (objects_data_t * data, char *buffer)
 
 /** Copying **/
 
-objects_data_t *
-objects_data_copy (objects_data_t * data)
+o_data_t *
+o_data_copy (o_data_t * data)
 {
-  return objects_data_copy_with_allocs (data, objects_data_allocs (data));
+  return o_data_copy_with_allocs (data, o_data_allocs (data));
 }
 
-objects_data_t *
-objects_data_copy_of_subrange (objects_data_t * data, size_t location, size_t length)
+o_data_t *
+o_data_copy_of_subrange (o_data_t * data, size_t location, size_t length)
 {
-  return objects_data_copy_of_subrange_with_allocs (data, location, length,
-						objects_data_allocs (data));
+  return o_data_copy_of_subrange_with_allocs (data, location, length,
+						o_data_allocs (data));
 }
 
-objects_data_t *
-objects_data_copy_with_allocs (objects_data_t * data, objects_allocs_t allocs)
+o_data_t *
+o_data_copy_with_allocs (o_data_t * data, o_allocs_t allocs)
 {
-  return objects_data_copy_of_subrange_with_allocs (data, 0, data->length, allocs);
+  return o_data_copy_of_subrange_with_allocs (data, 0, data->length, allocs);
 }
 
-objects_data_t *
-objects_data_copy_of_subrange_with_allocs (objects_data_t * data,
+o_data_t *
+o_data_copy_of_subrange_with_allocs (o_data_t * data,
 					   size_t location,
 					   size_t length,
-					   objects_allocs_t allocs)
+					   o_allocs_t allocs)
 {
-  objects_data_t *copy;
+  o_data_t *copy;
 
   /* Make a low-level copy. */
-  copy = _objects_data_copy_with_allocs (data, allocs);
+  copy = _o_data_copy_with_allocs (data, allocs);
 
-  objects_data_init_with_subrange_of_data (copy, location, length, data);
+  o_data_init_with_subrange_of_data (copy, location, length, data);
 
   return copy;
 }
@@ -469,8 +469,8 @@ objects_data_copy_of_subrange_with_allocs (objects_data_t * data,
 /** Replacing **/
 
 /* Note that we cannot do any bounds checking on BUFFER. */
-objects_data_t *
-objects_data_replace_subrange_with_subrange_of_buffer (objects_data_t * data,
+o_data_t *
+o_data_replace_subrange_with_subrange_of_buffer (o_data_t * data,
 						       size_t location,
 						       size_t length,
 						       size_t buf_location,
@@ -478,7 +478,7 @@ objects_data_replace_subrange_with_subrange_of_buffer (objects_data_t * data,
 						       void *buffer)
 {
   /* Update the change time. */
-  _objects_data_set_change_time (data);
+  _o_data_set_change_time (data);
 
   /* Make sure we're inside DATA. */
   location = MIN (location, data->length);
@@ -487,7 +487,7 @@ objects_data_replace_subrange_with_subrange_of_buffer (objects_data_t * data,
   if (buf_length > length)
     {
       /* Increase DATA's capacity. */
-      objects_data_increase_capacity (data, buf_length - length);
+      o_data_increase_capacity (data, buf_length - length);
 
       /* Move the tail of DATA's buffer over BUF_LENGTH. */
       memmove (data->buffer + location + buf_length,
@@ -498,7 +498,7 @@ objects_data_replace_subrange_with_subrange_of_buffer (objects_data_t * data,
       memmove (data->buffer + location, buffer + buf_location, buf_length);
 
       /* Update DATA's length. */
-      objects_data_set_length (data, data->length + buf_length - length);
+      o_data_set_length (data, data->length + buf_length - length);
     }
   else
     /* (buf_length <= length) */
@@ -512,49 +512,49 @@ objects_data_replace_subrange_with_subrange_of_buffer (objects_data_t * data,
 	       data->length - location - length);
 
       /* Decrease DATA's length to accomodate BUF_LENGTH's worth of BUFFER. */
-      objects_data_decrease_capacity (data, length - buf_length);
+      o_data_decrease_capacity (data, length - buf_length);
 
       /* Update DATA's length. */
-      objects_data_set_length (data, data->length - length + buf_length);
+      o_data_set_length (data, data->length - length + buf_length);
     }
 
   return data;
 }
 
-objects_data_t *
-objects_data_replace_subrange_with_subrange_of_data (objects_data_t * data,
+o_data_t *
+o_data_replace_subrange_with_subrange_of_data (o_data_t * data,
 						     size_t location,
 						     size_t length,
 						     size_t other_location,
 						     size_t other_length,
-						objects_data_t * other_data)
+						o_data_t * other_data)
 {
   /* Update OTHER_DATA's access time. */
-  _objects_data_set_access_time (other_data);
+  _o_data_set_access_time (other_data);
 
   /* Make sure we're inside DATA. */
   other_location = MIN (other_location, other_data->length);
   other_length = MIN (other_data->length - other_location, other_length);
 
   /* Copy away. */
-  return objects_data_replace_subrange_with_subrange_of_buffer (data, location,
+  return o_data_replace_subrange_with_subrange_of_buffer (data, location,
 								length,
 							     other_location,
 								other_length,
 							other_data->buffer);
 }
 
-objects_data_t *
-objects_data_replace_subrange_with_data (objects_data_t * data,
+o_data_t *
+o_data_replace_subrange_with_data (o_data_t * data,
 					 size_t location,
 					 size_t length,
-					 objects_data_t * other_data)
+					 o_data_t * other_data)
 {
   /* Update OTHER_DATA's access time. */
-  _objects_data_set_access_time (other_data);
+  _o_data_set_access_time (other_data);
 
   /* Copy away. */
-  return objects_data_replace_subrange_with_subrange_of_buffer (data, location,
+  return o_data_replace_subrange_with_subrange_of_buffer (data, location,
 								length,
 								0,
 							 other_data->length,
@@ -563,155 +563,155 @@ objects_data_replace_subrange_with_data (objects_data_t * data,
 
 /** Appending **/
 
-objects_data_t *
-objects_data_append_data (objects_data_t * data, objects_data_t * other_data)
+o_data_t *
+o_data_append_data (o_data_t * data, o_data_t * other_data)
 {
-  return objects_data_replace_subrange_with_subrange_of_data (data,
+  return o_data_replace_subrange_with_subrange_of_data (data,
 							      data->length,
 							      0, 0,
 							 other_data->length,
 							      other_data);
 }
 
-objects_data_t *
-objects_data_append_subrange_of_data (objects_data_t * data,
+o_data_t *
+o_data_append_subrange_of_data (o_data_t * data,
 				      size_t location,
 				      size_t length,
-				      objects_data_t * other_data)
+				      o_data_t * other_data)
 {
-  return objects_data_replace_subrange_with_subrange_of_data (data, data->length,
+  return o_data_replace_subrange_with_subrange_of_data (data, data->length,
 							0, location, length,
 							      other_data);
 }
 
-objects_data_t *
-objects_data_append_data_repeatedly (objects_data_t * data,
-				     objects_data_t * other_data,
+o_data_t *
+o_data_append_data_repeatedly (o_data_t * data,
+				     o_data_t * other_data,
 				     size_t num_times)
 {
   /* FIXME: Do this more efficiently.  You know how. */
   while (num_times--)
-    objects_data_append_data (data, other_data);
+    o_data_append_data (data, other_data);
 
   return data;
 }
 
-objects_data_t *
-objects_data_append_subrange_of_data_repeatedly (objects_data_t * data,
+o_data_t *
+o_data_append_subrange_of_data_repeatedly (o_data_t * data,
 						 size_t location,
 						 size_t length,
-						 objects_data_t * other_data,
+						 o_data_t * other_data,
 						 size_t num_times)
 {
   /* FIXME: Do this more efficiently.  You know how. */
   while (num_times--)
-    objects_data_append_subrange_of_data (data, location, length, other_data);
+    o_data_append_subrange_of_data (data, location, length, other_data);
 
   return data;
 }
 
 /** Prepending **/
 
-objects_data_t *
-objects_data_prepend_data (objects_data_t * data, objects_data_t * other_data)
+o_data_t *
+o_data_prepend_data (o_data_t * data, o_data_t * other_data)
 {
-  return objects_data_replace_subrange_with_subrange_of_data (data,
+  return o_data_replace_subrange_with_subrange_of_data (data,
 							      0, 0, 0,
 							 other_data->length,
 							      other_data);
 }
 
-objects_data_t *
-objects_data_prepend_subrange_of_data (objects_data_t * data,
+o_data_t *
+o_data_prepend_subrange_of_data (o_data_t * data,
 				       size_t location,
 				       size_t length,
-				       objects_data_t * other_data)
+				       o_data_t * other_data)
 {
-  return objects_data_replace_subrange_with_subrange_of_data (data,
+  return o_data_replace_subrange_with_subrange_of_data (data,
 							      0, 0, location,
 							      length,
 							      other_data);
 }
 
-objects_data_t *
-objects_data_prepend_data_repeatedly (objects_data_t * data,
-				      objects_data_t * other_data,
+o_data_t *
+o_data_prepend_data_repeatedly (o_data_t * data,
+				      o_data_t * other_data,
 				      size_t num_times)
 {
   /* FIXME: Do this more efficiently.  You know how. */
   while (num_times--)
-    objects_data_prepend_data (data, other_data);
+    o_data_prepend_data (data, other_data);
 
   return data;
 }
 
-objects_data_t *
-objects_data_prepend_subrange_of_data_repeatedly (objects_data_t * data,
+o_data_t *
+o_data_prepend_subrange_of_data_repeatedly (o_data_t * data,
 						  size_t location,
 						  size_t length,
-						objects_data_t * other_data,
+						o_data_t * other_data,
 						  size_t num_times)
 {
   /* FIXME: Do this more efficiently.  You know how. */
   while (num_times--)
-    objects_data_prepend_subrange_of_data (data, location, length, other_data);
+    o_data_prepend_subrange_of_data (data, location, length, other_data);
 
   return data;
 }
 
 /** Concatenating **/
 
-objects_data_t *
-objects_data_concatenate_data (objects_data_t * data,
-			       objects_data_t * other_data)
+o_data_t *
+o_data_concatenate_data (o_data_t * data,
+			       o_data_t * other_data)
 {
-  return objects_data_concatenate_data_with_allocs (data, other_data,
-						objects_data_allocs (data));
+  return o_data_concatenate_data_with_allocs (data, other_data,
+						o_data_allocs (data));
 }
 
-objects_data_t *
-objects_data_concatenate_data_with_allocs (objects_data_t * data,
-					   objects_data_t * other_data,
-					   objects_allocs_t allocs)
+o_data_t *
+o_data_concatenate_data_with_allocs (o_data_t * data,
+					   o_data_t * other_data,
+					   o_allocs_t allocs)
 {
-  objects_data_t *new_data;
+  o_data_t *new_data;
 
   /* Make a copy of DATA. */
-  new_data = objects_data_copy_with_allocs (data, allocs);
+  new_data = o_data_copy_with_allocs (data, allocs);
 
   /* Append OTHER_DATA to DATA. */
-  objects_data_append_data (data, other_data);
+  o_data_append_data (data, other_data);
 
   /* Return the concatenation. */
   return new_data;
 }
 
-objects_data_t *
-objects_data_concatenate_subrange_of_data (objects_data_t * data,
+o_data_t *
+o_data_concatenate_subrange_of_data (o_data_t * data,
 					   size_t location,
 					   size_t length,
-					   objects_data_t * other_data)
+					   o_data_t * other_data)
 {
-  return objects_data_concatenate_subrange_of_data_with_allocs (data, location,
+  return o_data_concatenate_subrange_of_data_with_allocs (data, location,
 								length,
 								other_data,
-						objects_data_allocs (data));
+						o_data_allocs (data));
 }
 
-objects_data_t *
-objects_data_concatenate_subrange_of_data_with_allocs (objects_data_t * data,
+o_data_t *
+o_data_concatenate_subrange_of_data_with_allocs (o_data_t * data,
 						       size_t location,
 						       size_t length,
-						objects_data_t * other_data,
-						    objects_allocs_t allocs)
+						o_data_t * other_data,
+						    o_allocs_t allocs)
 {
-  objects_data_t *new_data;
+  o_data_t *new_data;
 
   /* Make a copy of DATA. */
-  new_data = objects_data_copy_with_allocs (data, allocs);
+  new_data = o_data_copy_with_allocs (data, allocs);
 
   /* Append the subrange of OTHER_DATA to DATA. */
-  objects_data_append_subrange_of_data (data, location, length, other_data);
+  o_data_append_subrange_of_data (data, location, length, other_data);
 
   /* Return the concatenation. */
   return new_data;
@@ -719,23 +719,23 @@ objects_data_concatenate_subrange_of_data_with_allocs (objects_data_t * data,
 
 /** Reversing **/
 
-objects_data_t *
-objects_data_reverse_with_granularity (objects_data_t * data, size_t granularity)
+o_data_t *
+o_data_reverse_with_granularity (o_data_t * data, size_t granularity)
 {
   /* Update the change time. */
-  _objects_data_set_change_time (data);
+  _o_data_set_change_time (data);
 
   if ((data->length % granularity) == 0)
     {
       size_t i;
-      objects_allocs_t allocs;
+      o_allocs_t allocs;
       void *buffer;
 
       /* Remember the allocs that DATA use. */
-      allocs = objects_data_allocs (data);
+      allocs = o_data_allocs (data);
 
       /* Create a temporary buffer for to play wif. */
-      buffer = objects_malloc (allocs, data->length);
+      buffer = o_malloc (allocs, data->length);
 
       /* FIXME: Do some checking here, good man. */
 
@@ -749,40 +749,40 @@ objects_data_reverse_with_granularity (objects_data_t * data, size_t granularity
       memcpy (data->buffer, buffer, data->length);
 
       /* Free the temporary buffer. */
-      objects_free (allocs, buffer);
+      o_free (allocs, buffer);
     }
 
   return data;
 }
 
-objects_data_t *
-objects_data_reverse_by_int (objects_data_t * data)
+o_data_t *
+o_data_reverse_by_int (o_data_t * data)
 {
-  return objects_data_reverse_with_granularity (data, sizeof (int));
+  return o_data_reverse_with_granularity (data, sizeof (int));
 }
 
-objects_data_t *
-objects_data_reverse_by_char (objects_data_t * data)
+o_data_t *
+o_data_reverse_by_char (o_data_t * data)
 {
-  return objects_data_reverse_with_granularity (data, sizeof (char));
+  return o_data_reverse_with_granularity (data, sizeof (char));
 }
 
-objects_data_t *
-objects_data_reverse_by_void_p (objects_data_t * data)
+o_data_t *
+o_data_reverse_by_void_p (o_data_t * data)
 {
-  return objects_data_reverse_with_granularity (data, sizeof (void *));
+  return o_data_reverse_with_granularity (data, sizeof (void *));
 }
 
 /** Permuting **/
 
-objects_data_t *
-objects_data_permute_with_granularity (objects_data_t * data, size_t granularity)
+o_data_t *
+o_data_permute_with_granularity (o_data_t * data, size_t granularity)
 {
   /* FIXME: Code this. */
 }
 
-objects_data_t *
-objects_data_permute_with_no_fixed_points_with_granularity (objects_data_t * data,
+o_data_t *
+o_data_permute_with_no_fixed_points_with_granularity (o_data_t * data,
 							 size_t granularity)
 {
   /* FIXME: Code this. */
@@ -791,7 +791,7 @@ objects_data_permute_with_no_fixed_points_with_granularity (objects_data_t * dat
 /** Writing **/
 
 int
-_objects_data_write_to_file (objects_data_t * data, const char *file)
+_o_data_write_to_file (o_data_t * data, const char *file)
 {
   FILE *f;
   int c;
@@ -804,7 +804,7 @@ _objects_data_write_to_file (objects_data_t * data, const char *file)
     goto failure;
 
   /* Update the access time. */
-  _objects_data_set_access_time (data);
+  _o_data_set_access_time (data);
 
   /* Now we try and write DATA's buffer to the file.  Here C is the
    * number of bytes which were successfully written to the file in
@@ -836,8 +836,8 @@ failure:
 
 /** Encoding **/
 
-objects_data_encoding_t
-objects_data_guess_data_encoding (objects_data_t * data)
+o_data_encoding_t
+o_data_guess_data_encoding (o_data_t * data)
 {
 }
 
@@ -851,8 +851,8 @@ objects_data_guess_data_encoding (objects_data_t * data)
  * prior canonicalization step in some implementations."  I think that
  * what I am doing is acceptable, but just wanted to note this
  * possible glitch for my sanity's sake. */
-objects_data_t *
-_objects_data_encode_with_base64 (objects_data_t * data)
+o_data_t *
+_o_data_encode_with_base64 (o_data_t * data)
 {
   unsigned char *buffer;
   unsigned char *d_buffer;
@@ -878,7 +878,7 @@ _objects_data_encode_with_base64 (objects_data_t * data)
   length = (blocks + ((extras + 1) / 2)) * 4;
 
   /* Make room to put the encoded information temporarily. */
-  buffer = (unsigned char *) objects_malloc (objects_data_allocs (data), length);
+  buffer = (unsigned char *) o_malloc (o_data_allocs (data), length);
   d_buffer = (unsigned char *) (data->buffer);
 
   /* Translate blocks of three eights into blocks of four sixes. */
@@ -905,15 +905,15 @@ _objects_data_encode_with_base64 (objects_data_t * data)
     }
 
   /* Copy the encoded buffer back into DATA. */
-  objects_data_set_buffer_of_length (data, buffer, length);
+  o_data_set_buffer_of_length (data, buffer, length);
 
   return data;
 }
 
-objects_data_t *
-_objects_data_encode_with_quoted_printable (objects_data_t * data)
+o_data_t *
+_o_data_encode_with_quoted_printable (o_data_t * data)
 {
-  objects_data_t *other_data;
+  o_data_t *other_data;
   unsigned char *d_buffer;
   size_t d_length, c;
 
@@ -922,7 +922,7 @@ _objects_data_encode_with_quoted_printable (objects_data_t * data)
   d_length = (data->length) / sizeof (unsigned char);
 
   /* Create another flexible buffer. */
-  other_data = objects_data_new_with_allocs (objects_data_allocs (data));
+  other_data = o_data_new_with_allocs (o_data_allocs (data));
 
   for (c = 0; c < d_length; ++c)
     {
@@ -937,38 +937,38 @@ _objects_data_encode_with_quoted_printable (objects_data_t * data)
     }
 
   /* Get rid of our temporary storage. */
-  objects_data_dealloc (other_data);
+  o_data_dealloc (other_data);
 
   /* FIXME: Finish this. */
 
   return data;
 }
 
-objects_data_t *
-_objects_data_encode_with_x_uuencode (objects_data_t * data)
+o_data_t *
+_o_data_encode_with_x_uuencode (o_data_t * data)
 {
   /* FIXME: Code this. */
   return data;
 }
 
-objects_data_t *
-objects_data_encode_with_data_encoding (objects_data_t * data, objects_data_encoding_t enc)
+o_data_t *
+o_data_encode_with_data_encoding (o_data_t * data, o_data_encoding_t enc)
 {
   switch (enc)
     {
-    case objects_data_encoding_base64:
-      return _objects_data_encode_with_base64 (data);
+    case o_data_encoding_base64:
+      return _o_data_encode_with_base64 (data);
       break;
-    case objects_data_encoding_quoted_printable:
-      return _objects_data_encode_with_quoted_printable (data);
+    case o_data_encoding_quoted_printable:
+      return _o_data_encode_with_quoted_printable (data);
       break;
-    case objects_data_encoding_x_uuencode:
-      return _objects_data_encode_with_x_uuencode (data);
+    case o_data_encoding_x_uuencode:
+      return _o_data_encode_with_x_uuencode (data);
       break;
-    case objects_data_encoding_unknown:
-    case objects_data_encoding_binary:
-    case objects_data_encoding_7bit:
-    case objects_data_encoding_8bit:
+    case o_data_encoding_unknown:
+    case o_data_encoding_binary:
+    case o_data_encoding_7bit:
+    case o_data_encoding_8bit:
     default:
       return data;
       break;
@@ -977,45 +977,45 @@ objects_data_encode_with_data_encoding (objects_data_t * data, objects_data_enco
   return data;
 }
 
-objects_data_t *
-_objects_data_decode_with_base64 (objects_data_t * data)
+o_data_t *
+_o_data_decode_with_base64 (o_data_t * data)
 {
   /* FIXME: Code this. */
   return data;
 }
 
-objects_data_t *
-_objects_data_decode_with_quoted_printable (objects_data_t * data)
+o_data_t *
+_o_data_decode_with_quoted_printable (o_data_t * data)
 {
   /* FIXME: Code this. */
   return data;
 }
 
-objects_data_t *
-_objects_data_decode_with_x_uuencode (objects_data_t * data)
+o_data_t *
+_o_data_decode_with_x_uuencode (o_data_t * data)
 {
   /* FIXME: Code this. */
   return data;
 }
 
-objects_data_t *
-objects_data_decode_with_data_encoding (objects_data_t * data, objects_data_encoding_t enc)
+o_data_t *
+o_data_decode_with_data_encoding (o_data_t * data, o_data_encoding_t enc)
 {
   switch (enc)
     {
-    case objects_data_encoding_base64:
-      return _objects_data_decode_with_base64 (data);
+    case o_data_encoding_base64:
+      return _o_data_decode_with_base64 (data);
       break;
-    case objects_data_encoding_quoted_printable:
-      return _objects_data_decode_with_quoted_printable (data);
+    case o_data_encoding_quoted_printable:
+      return _o_data_decode_with_quoted_printable (data);
       break;
-    case objects_data_encoding_x_uuencode:
-      return _objects_data_decode_with_x_uuencode (data);
+    case o_data_encoding_x_uuencode:
+      return _o_data_decode_with_x_uuencode (data);
       break;
-    case objects_data_encoding_unknown:
-    case objects_data_encoding_binary:
-    case objects_data_encoding_7bit:
-    case objects_data_encoding_8bit:
+    case o_data_encoding_unknown:
+    case o_data_encoding_binary:
+    case o_data_encoding_7bit:
+    case o_data_encoding_8bit:
     default:
       return data;
       break;

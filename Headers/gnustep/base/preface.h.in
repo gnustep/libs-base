@@ -71,10 +71,10 @@
 #define @PACKAGE_NAME@
 
 #if 0
-extern const char objects_version[];
-extern const char objects_gcc_version[];
+extern const char o_version[];
+extern const char o_gcc_version[];
 #if NeXT_cc
-extern const char objects_NeXT_cc_version[];
+extern const char o_NeXT_cc_version[];
 #endif
 #endif
 

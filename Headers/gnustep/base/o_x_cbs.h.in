@@ -41,27 +41,27 @@
 /** Callbacks **/
 
 /* Returns the callbacks associated with YY's keys. */
-objects_callbacks_t objects_@YY@_key_callbacks (objects_@YY@_t *yy);
+o_callbacks_t o_@YY@_key_callbacks (o_@YY@_t *yy);
 
 /* Returns the ``bogus'' marker associated with YY's keys. */
-const void *objects_@YY@_not_a_key_marker (objects_@YY@_t *yy);
+const void *o_@YY@_not_a_key_marker (o_@YY@_t *yy);
 
 /* Returns the callbacks associated with YY's values. */
-objects_callbacks_t
-objects_@YY@_value_callbacks (objects_@YY@_t *yy);
+o_callbacks_t
+o_@YY@_value_callbacks (o_@YY@_t *yy);
 
 /* Returns the ``bogus'' marker associated with YY's values. */
-const void *objects_@YY@_not_a_value_marker (objects_@YY@_t *yy);
+const void *o_@YY@_not_a_value_marker (o_@YY@_t *yy);
 
 #else /* !__map__ */
 
 /** Callbacks **/
 
 /* Returns the callbacks associated with YY's elements. */
-objects_callbacks_t objects_@YY@_element_callbacks (objects_@YY@_t *yy);
+o_callbacks_t o_@YY@_element_callbacks (o_@YY@_t *yy);
 
 /* Returns the ``bogus'' marker associated with YY's elements. */
-const void *objects_@YY@_not_an_element_marker (objects_@YY@_t *yy);
+const void *o_@YY@_not_an_element_marker (o_@YY@_t *yy);
 
 #endif /* __map__ */
 

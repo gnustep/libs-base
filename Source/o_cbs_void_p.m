@@ -33,38 +33,38 @@
 /* FIXME: Is this right?!? */
 #define _OBJECTS_NOT_A_VOID_P_MARKER (const void *)(-1)
 
-const void *objects_not_a_void_p_marker = _OBJECTS_NOT_A_VOID_P_MARKER;
+const void *o_not_a_void_p_marker = _OBJECTS_NOT_A_VOID_P_MARKER;
 
-objects_callbacks_t objects_callbacks_for_non_owned_void_p = 
+o_callbacks_t o_callbacks_for_non_owned_void_p = 
 {
-  (objects_hash_func_t) objects_non_owned_void_p_hash,
-  (objects_compare_func_t) objects_non_owned_void_p_compare,
-  (objects_is_equal_func_t) objects_non_owned_void_p_is_equal,
-  (objects_retain_func_t) objects_non_owned_void_p_retain,
-  (objects_release_func_t) objects_non_owned_void_p_release,
+  (o_hash_func_t) o_non_owned_void_p_hash,
+  (o_compare_func_t) o_non_owned_void_p_compare,
+  (o_is_equal_func_t) o_non_owned_void_p_is_equal,
+  (o_retain_func_t) o_non_owned_void_p_retain,
+  (o_release_func_t) o_non_owned_void_p_release,
   _OBJECTS_NOT_A_VOID_P_MARKER
 };
 
-objects_callbacks_t objects_callbacks_for_owned_void_p = 
+o_callbacks_t o_callbacks_for_owned_void_p = 
 {
-  (objects_hash_func_t) objects_owned_void_p_hash,
-  (objects_compare_func_t) objects_owned_void_p_compare,
-  (objects_is_equal_func_t) objects_owned_void_p_is_equal,
-  (objects_retain_func_t) objects_owned_void_p_retain,
-  (objects_release_func_t) objects_owned_void_p_release,
+  (o_hash_func_t) o_owned_void_p_hash,
+  (o_compare_func_t) o_owned_void_p_compare,
+  (o_is_equal_func_t) o_owned_void_p_is_equal,
+  (o_retain_func_t) o_owned_void_p_retain,
+  (o_release_func_t) o_owned_void_p_release,
   _OBJECTS_NOT_A_VOID_P_MARKER
 };
 
 /**** Function Implementations ***********************************************/
 
 size_t
-objects_non_owned_void_p_hash(register const void *cptr)
+o_non_owned_void_p_hash(register const void *cptr)
 {
   return ((size_t) cptr)/4;
 }
 
 int
-objects_non_owned_void_p_compare(register const void *cptr,
+o_non_owned_void_p_compare(register const void *cptr,
                                  register const void *dptr)
 {
   if (cptr == dptr)
@@ -76,34 +76,34 @@ objects_non_owned_void_p_compare(register const void *cptr,
 }
 
 int
-objects_non_owned_void_p_is_equal(register const void *cptr,
+o_non_owned_void_p_is_equal(register const void *cptr,
                                   register const void *dptr)
 {
   return (cptr == dptr);
 }
 
 const void *
-objects_non_owned_void_p_retain(const void *cptr)
+o_non_owned_void_p_retain(const void *cptr)
 {
   return cptr;
 }
 
 void
-objects_non_owned_void_p_release(void *cptr)
+o_non_owned_void_p_release(void *cptr)
 {
   /* We don't own CPTR, so we don't release it. */
   return;
 }
 
 NSString *
-objects_non_owned_void_p_describe(const void *cptr)
+o_non_owned_void_p_describe(const void *cptr)
 {
   /* FIXME: Code this. */
   return nil;
 }
 
 size_t
-objects_owned_void_p_hash(register const void *cptr)
+o_owned_void_p_hash(register const void *cptr)
 {
   /* We divide by 4 because many machines align
    * memory on word boundaries. */
@@ -111,7 +111,7 @@ objects_owned_void_p_hash(register const void *cptr)
 }
 
 int
-objects_owned_void_p_compare(register const void *cptr,
+o_owned_void_p_compare(register const void *cptr,
                              register const void *dptr)
 {
   if (cptr == dptr)
@@ -123,27 +123,27 @@ objects_owned_void_p_compare(register const void *cptr,
 }
 
 int
-objects_owned_void_p_is_equal(register const void *cptr, 
+o_owned_void_p_is_equal(register const void *cptr, 
 			      register const void *dptr)
 {
   return (cptr == dptr);
 }
 
 const void *
-objects_owned_void_p_retain(const void *cptr)
+o_owned_void_p_retain(const void *cptr)
 {
   return cptr;
 }
 
 void
-objects_owned_void_p_release(void *cptr)
+o_owned_void_p_release(void *cptr)
 {
   free((void *)cptr);
   return;
 }
 
 NSString *
-objects_owned_void_p_describe(const void *obj)
+o_owned_void_p_describe(const void *obj)
 {
   /* FIXME: Code this. */
   return nil;

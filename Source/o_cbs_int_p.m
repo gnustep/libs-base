@@ -33,29 +33,29 @@
 /* FIXME: Is this right?!? */
 #define _OBJECTS_NOT_AN_INT_P_MARKER (const void *)(-1)
 
-const void *objects_not_an_int_p_marker = _OBJECTS_NOT_AN_INT_P_MARKER;
+const void *o_not_an_int_p_marker = _OBJECTS_NOT_AN_INT_P_MARKER;
 
-objects_callbacks_t objects_callbacks_for_int_p = 
+o_callbacks_t o_callbacks_for_int_p = 
 {
-  (objects_hash_func_t) objects_int_p_hash,
-  (objects_compare_func_t) objects_int_p_compare,
-  (objects_is_equal_func_t) objects_int_p_is_equal,
-  (objects_retain_func_t) objects_int_p_retain,
-  (objects_release_func_t) objects_int_p_release,
-  (objects_describe_func_t) objects_int_p_describe,
+  (o_hash_func_t) o_int_p_hash,
+  (o_compare_func_t) o_int_p_compare,
+  (o_is_equal_func_t) o_int_p_is_equal,
+  (o_retain_func_t) o_int_p_retain,
+  (o_release_func_t) o_int_p_release,
+  (o_describe_func_t) o_int_p_describe,
   _OBJECTS_NOT_AN_INT_P_MARKER
 };
 
 /**** Function Implementations ***********************************************/
 
 size_t
-objects_int_p_hash(const int *iptr)
+o_int_p_hash(const int *iptr)
 {
   return (size_t)(iptr) / 4;
 }
 
 int
-objects_int_p_compare(const int *iptr, const int *jptr)
+o_int_p_compare(const int *iptr, const int *jptr)
 {
   if (iptr < jptr)
     return -1;
@@ -66,26 +66,26 @@ objects_int_p_compare(const int *iptr, const int *jptr)
 }
 
 int
-objects_int_p_is_equal(const int *iptr, const int *jptr)
+o_int_p_is_equal(const int *iptr, const int *jptr)
 {
   /* FIXME: Is this right?  If not, what else could it be? */
   return iptr == jptr;
 }
 
 const void *
-objects_int_p_retain(const int *iptr)
+o_int_p_retain(const int *iptr)
 {
   return (const void *)iptr;
 }
 
 void
-objects_int_p_release(int *iptr)
+o_int_p_release(int *iptr)
 {
   return;
 }
 
 NSString *
-objects_int_p_describe(const int *iptr)
+o_int_p_describe(const int *iptr)
 {
   /* FIXME: Code this. */
   return nil;
