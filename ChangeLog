@@ -1,3 +1,11 @@
+Wed Oct 28 11:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/gdomap.c: Added command-line options to lookup, register, and
+	unregister a name for a port - basically for debugging purposes.
+	* src/TcpPort.m: Modified port registration code to cope with the
+	case where a server dies and is restarted, and tries to use the
+	same ip port number it has before it died.
+
 Tue Oct 27 08:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Corrected all the collection classes to return the count of objects
@@ -6,29 +14,29 @@ Tue Oct 27 08:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 Mon Oct 26 10:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	src/NSGCString.m: Implemented ([-copy]) and ([-copyWithZone:]) to
+	* src/NSGCString.m: Implemented ([-copy]) and ([-copyWithZone:]) to
 	work without invoking any methods uing the runtime - much faster.
-	src/NSObject.m: Bugfix and performance improvement to the -perform...
+	* src/NSObject.m: Bugfix and performance improvement to the -perform...
 	methods.  They previously threw an exception if the method referred
 	to by the selector was not implemented (when they should have tried
 	forwarding instead) rather than when passed a nul selector.
 
 Sun Oct 25 08:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	src/NSObject.m: Cache implementation for adding object to autorelease
+	* src/NSObject.m: Cache implementation for adding object to autorelease
 	pool to avoid objc runtime messaging overhead.
-	src/NSAutoreleasePool.m: Cache implementation for adding object to
-	src/NSAutoreleasePool.m: Cache implementation for adding object to
+	* src/NSAutoreleasePool.m: Cache implementation for adding object to
+	* src/NSAutoreleasePool.m: Cache implementation for adding object to
 	autorelease pool to avoid objc runtime messaging overhead.
-	src/NSGCString.m: Implemented ([+allocWithZone:])
-	src/NSGString.m: Implemented ([+allocWithZone:])
+	* src/NSGCString.m: Implemented ([+allocWithZone:])
+	* src/NSGString.m: Implemented ([+allocWithZone:])
 
 Sat Oct 24 11:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	src/NSArchiver.m: New implementation
-	src/NSArchiver.m: New file
-	src/GNUmakefile: Added NSUnarchiver.m
-	src/include/NSArchiver.h: New version
+	* src/NSArchiver.m: New implementation
+	* src/NSArchiver.m: New file
+	* src/GNUmakefile: Added NSUnarchiver.m
+	* src/include/NSArchiver.h: New version
 	New Archiver/unarchiver - OPENSTEP complient (I think).
 	Basic functionality tested fairly thoroughly, some of the more
 	unusual bits untested so far. Mechanisms for adding other backends
@@ -38,29 +46,29 @@ Sat Oct 24 11:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 Thu Oct 22 21:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	src/NSData.m: Added support for serialisation of Class and SEL types
+	* src/NSData.m: Added support for serialisation of Class and SEL types
 	and made a more efficient version of the main deserialisation code
-	int the NSDataStatic class.
+	in the NSDataStatic class.
 
 Wed Oct 21 13:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	src/NSData.m: Reorganized and optimised.
-	src/NSGArray.m: optimised coding/decoding
-	src NSGCountedSet.m: optimised coding/decoding
-	src/NSGDictionary.m: optimised coding/decoding
-	src/NSGSet.m: optimised coding/decoding
-	src/NSObject.m: cache data classes
-	src/NSString.m: Added (nonstandard) ([-boolValue]) method
-	src/include/NSData.h: Added ([-relinquishAllocatedBytesFromZone:])
-	src/include/NSString.h: Added (nonstandard) ([-boolValue]) method
-	src/include/NSPortMessage.h: Added (as yet unused) class.
-	src/NSPortMessage.m: Added (as yet unused) skeleton implementation.
+	* src/NSData.m: Reorganized and optimised.
+	* src/NSGArray.m: optimised coding/decoding
+	* src/NSGCountedSet.m: optimised coding/decoding
+	* src/NSGDictionary.m: optimised coding/decoding
+	* src/NSGSet.m: optimised coding/decoding
+	* src/NSObject.m: cache data classes
+	* src/NSString.m: Added (nonstandard) ([-boolValue]) method
+	* src/include/NSData.h: Added ([-relinquishAllocatedBytesFromZone:])
+	* src/include/NSString.h: Added (nonstandard) ([-boolValue]) method
+	* src/include/NSPortMessage.h: Added (as yet unused) class.
+	* src/NSPortMessage.m: Added (as yet unused) skeleton implementation.
 
 Thu Oct 17 08:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	src/NSGDictionary.m: Added checks for invalid parameters.
-	src/NSGSet.m: Added checks for invalid parameters.
-	src/NSGCountedSet.m: Added checks for invalid parameters.
+	* src/NSGDictionary.m: Added checks for invalid parameters.
+	* src/NSGSet.m: Added checks for invalid parameters.
+	* src/NSGCountedSet.m: Added checks for invalid parameters.
 
 Thu Oct 15 08:13:12 1998  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
