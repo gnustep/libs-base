@@ -908,9 +908,8 @@ GSTimeNow()
   // Easiest to just have NSCalendarDate do the work for us
   NSCalendarDate	*d = [calendarClass alloc];
 
-  [d initWithString: description];
-  [self initWithTimeIntervalSinceReferenceDate:
-	otherTime(d)];
+  d = [d initWithString: description];
+  [self initWithTimeIntervalSinceReferenceDate: otherTime(d)];
   RELEASE(d);
   return self;
 }
