@@ -1,3 +1,9 @@
+Thu Apr 18 11:10:04 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Headers/gnustep/base/NSObjCRuntime.h: Updated #defines and
+	Windows DLL export/import machinery to the new gnustep-make
+	conventions.
+
 2002-04-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: re-order headers so config.h is used on windoze
