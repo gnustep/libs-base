@@ -1,5 +1,5 @@
 /* Interface for abstract superclass NSPort for use with NSConnection
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997,2002 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: August 1997
@@ -19,12 +19,22 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-   */
+
+  AutogsdocSource: NSPort.m
+  AutogsdocSource: NSSocketPort.m
+*/
 
 #ifndef __NSPort_h_GNUSTEP_BASE_INCLUDE
 #define __NSPort_h_GNUSTEP_BASE_INCLUDE
 
 #include	<Foundation/NSObject.h>
+
+#ifdef __MINGW__
+#include	<winsock2.h>
+#include	<wininet.h>
+#else
+#include	<sys/socket.h>
+#endif
 
 @class	NSMutableArray;
 @class	NSConnection;
@@ -87,5 +97,43 @@ GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 GS_EXPORT	NSString*	NSPortDidBecomeInvalidNotification;
 
 #define	PortBecameInvalidNotification NSPortDidBecomeInvalidNotification
+
+#ifndef STRICT_OPENSTEP
+typedef int NSSocketNativeHandle;
+
+@interface NSSocketPort : NSPort  <NSCoding, NSCopying>
+{
+  NSSocketNativeHandle _socket;
+  int _protocolFamily;
+  int _socketType;
+  int _protocol;
+  NSData *_remoteAddrData;
+}
+
+- (id) init;
+- (id) initWithTCPPort: (unsigned short)portNumber;
+- (id) initWithProtocolFamily: (int)family
+                   socketType: (int)type
+                     protocol: (int)protocol
+                      address: (NSData *)addressData;
+- (id) initWithProtocolFamily: (int)family
+                   socketType: (int)type
+                     protocol: (int)protocol
+                       socket: (NSSocketNativeHandle)sock;
+- (id) initRemoteWithTCPPort: (unsigned short)portNumber
+                        host: (NSString *)host;
+- (id) initRemoteWithProtocolFamily: (int)family
+                         socketType: (int)type
+                           protocol: (int)protocol
+                            address: (NSData *)addressData;
+
+- (NSData *) address;
+- (int) protocol;
+- (int) protocolFamily;
+- (NSSocketNativeHandle) socket;
+- (int) socketType;
+
+@end
+#endif
 
 #endif /* __NSPort_h_GNUSTEP_BASE_INCLUDE */
