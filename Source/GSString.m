@@ -1653,22 +1653,23 @@ transmute(ivars self, NSString *aString)
     }
   else
     {
+      /*
+       * This is a string held in the internal 8-bit encoding.
+       */
       if (GSObjCIsKindOf(c, GSCStringClass) || c == NSConstantStringClass
 	|| (c == GSMutableStringClass && other->_flags.wide == 0))
 	{
 	  /*
-	   * This is an 8-bit character string, but the other string is also
-	   * an 8-bit character string, so we don't need to transmute, and
-	   * we can use its ivars.
+	   * The other string is also held in the internal 8-bit encoding,
+	   * so we don't need to transmute, and we can use its ivars.
 	   */
 	  transmute = NO;
 	}
       else if ([aString canBeConvertedToEncoding: intEnc] == YES)
 	{
 	  /*
-	   * This is an 8-bit character string, but the other string can be
-	   * converted to an 8-bit character string, so we don't need to
-	   * transmute, but we can *not* use its ivars.
+	   * The other string can be converted to the internal 8-bit encoding,
+	   * so we don't need to transmute, but we can *not* use its ivars.
 	   */
 	  transmute = NO;
 	  other = 0;
@@ -1677,19 +1678,19 @@ transmute(ivars self, NSString *aString)
 	|| GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
 	{
 	  /*
-	   * This is an 8-bit character string, and the other string can
-	   * not be converted to an 8-bit character string, so we need to
-	   * transmute, and will then be able to use its ivars.
+	   * The other string can not be converted to the internal 8-bit
+	   * encoding, so we need to transmute, and will then be able to
+	   * use its ivars.
 	   */
 	  transmute = YES;
 	}
       else
 	{
 	  /*
-	   * This is an 8-bit character string, and the other string can
-	   * not be converted to an 8-bit character string, so we need to
-	   * transmute, but even then we will not be able to use the other
-	   * strings ivars.
+	   * The other string can not be converted to the internal 8-bit
+	   * character string, so we need to transmute, but even then we
+	   * will not be able to use the other strings ivars because that
+	   * string is not a known GSString subclass.
 	   */
 	  other = 0;
 	}
