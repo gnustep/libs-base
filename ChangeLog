@@ -2,7 +2,8 @@ Wed Feb 17   8:52:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSProcessInfo.m: Include process name in arguments list as
 	in the OPENSTEP implementation - suggested by dirk@object-factory.com
-	* Source/Tools/defaults.m: Adjust for change to NSProcessInfo
+	* Source/NSUserDefaults.m: Adjust for change to NSProcessInfo
+	* Source/Tools/defaults.m: ditto
 	* Source/Tools/dread.m: ditto.
 	* Source/Tools/dwrite.m: ditto.
 	* Source/Tools/dremove.m: ditto.
