@@ -1,3 +1,9 @@
+Sun Nov  2 15:47:10 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+	* src/NSTimeZone.m: More effecient implementation of [NSTimeZone
+	-abbreviationDictionary] object enumerator.
+	More robust error logging. Description method changes.
+
 Sat Nov  1 06:45:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
         * src/NSDistributedLock: New OPENSTEP class implementation.
