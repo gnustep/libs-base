@@ -453,25 +453,22 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 /* Some bundles should not be dealloced, such as the main bundle. So we
    keep track of our own retain count to avoid this.
    Currently, the objc runtime can't unload modules, so we actually
-   avoid deallocating any bundle */
+   avoid deallocating any bundle with code loaded */
 - (oneway void) release
 {
-  if ([self retainCount] == 0)
+  if (_codeLoaded == YES || self == _mainBundle || self == _gnustep_bundle) 
     {
-      if (self == NSMapGet(_releasedBundles, _path))
+      if ([self retainCount] == 0)
 	{
-	  [NSException raise: NSGenericException
-	    format: @"Bundle for path %@ released too many times", _path];
-	}
-  
-      /* Cache all bundles */
-      if (_bundleType == NSBUNDLE_APPLICATION
-	  || _bundleType == NSBUNDLE_LIBRARY
-	  || _bundleType == NSBUNDLE_BUNDLE)
-	{
-	  NSMapRemove(_bundles, _path);
-	  NSMapInsert(_releasedBundles, _path, self);
-	  return;
+	  if (self == NSMapGet(_releasedBundles, _path))
+	    {
+	      [NSException raise: NSGenericException
+		format: @"Bundle for path %@ released too many times", _path];
+	    }
+      
+	    NSMapRemove(_bundles, _path);
+	    NSMapInsert(_releasedBundles, _path, self);
+	    return;
 	}
     }
   [super release];
@@ -572,11 +569,13 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	}
       _codeLoaded = YES;
       _loadingBundle = nil;
+      [load_lock unlock];
       [[NSNotificationCenter defaultCenter]
         postNotificationName: NSBundleDidLoadNotification 
         object: self
         userInfo: [NSDictionary dictionaryWithObjects: &_bundleClasses
 	       forKeys: &NSLoadedClasses count: 1]];
+      return YES;
     }
   [load_lock unlock];
   return YES;
