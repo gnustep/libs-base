@@ -1,3 +1,9 @@
+Fri Sep  3 11:57:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        * Source/NSString.m: speed up path handling a bit by caching
+	method for testing for path separators - also fixed appending
+	of path extensions and components to be according to spec.
+
 Thu Sep  2  9:03:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * Source/NSTask.m: exec process with argv[0] set to full path of
