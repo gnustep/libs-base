@@ -87,8 +87,8 @@
 
 - (void) encodeObject: (id)anObject;
 {
-  [self encodeValuesOfObjCTypes:@encode(id)
-	at:&object];
+  [self encodeValueOfObjCType:@encode(id)
+	at: &anObject];
 }
 
 - (void) encodePropertyList: (id)plist;
