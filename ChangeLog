@@ -2,6 +2,8 @@
 
 	* Source/GSString.m: Allow more length when converting unicode
 	string to integer.
+	* Source/NSObject.m: ([methodSignatureForSelector:]) return nil if
+	the receiver does not implement it.
 
 2003-06-20  Adam Fedor  <fedor@gnu.org>
 
