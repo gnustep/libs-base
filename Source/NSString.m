@@ -2390,8 +2390,62 @@ else
 
 - (NSString*) stringByResolvingSymlinksInPath
 {
-  [self notImplemented:_cmd];
+#if defined(__WIN32__) || defined(_WIN32)
   return self;
+#else 
+  NSString *first_half = self, * second_half = @"";
+
+  const char * tmp_cpath;
+  const int MAX_PATH_LEN = 1024;
+  char tmp_buf[MAX_PATH_LEN];
+
+  int syscall_result;
+  struct stat tmp_stat;  
+
+  while(1)
+    {
+      tmp_cpath = [first_half cString];
+
+      syscall_result = lstat(tmp_cpath, &tmp_stat);
+      if (0 != syscall_result)  return self ;
+      
+      if ((tmp_stat.st_mode & S_IFLNK) &&
+	  ((syscall_result = readlink(tmp_cpath, tmp_buf, MAX_PATH_LEN)) != -1))
+	{
+	  /* 
+	   * first half is a path to a symbolic link.
+	   */
+	  tmp_buf[syscall_result] = '\0'; // Make a C string
+	  second_half 		  = [[NSString stringWithCString: tmp_buf]
+				      stringByAppendingPathComponent: second_half];
+	  first_half = [first_half stringByDeletingLastPathComponent];
+	}
+      else
+	{
+	  /* 
+	   * second_half is an absolute path 
+	   */
+	  if ([second_half hasPrefix: @"/"]) 
+	    return [second_half stringByResolvingSymlinksInPath];
+
+	  /* 
+	   * first half is NOT a path to a symbolic link 
+	   */
+	  second_half = [[first_half lastPathComponent]
+			  stringByAppendingPathComponent: second_half];
+	  first_half = [first_half stringByDeletingLastPathComponent];
+	}
+
+      /* BREAK CONDITION */
+      if ([first_half length] == 0) break;
+      else if ([first_half isEqual: @"/"])
+	{
+	  second_half = [@"/" stringByAppendingPathComponent: second_half];
+	  break;
+	}
+    }
+  return second_half;
+#endif  /* (__WIN32__) || (_WIN32) */  
 }
 
 - (NSString*) stringByStandardizingPath
@@ -2477,10 +2531,10 @@ else
 // #ifndef STRICT_OPENSTEP
 + (NSString*) pathWithComponents: (NSArray*)components
 {
-    NSString	*s = [self string];
+    NSString    *s = [components objectAtIndex: 0];
     int		i;
 
-    for (i = 0; i < [components count]; i++) {
+    for (i = 1; i < [components count]; i++) {
 	s = [s stringByAppendingPathComponent: [components objectAtIndex: i]];
     }
     return s;
