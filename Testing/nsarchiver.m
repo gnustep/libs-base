@@ -1,6 +1,4 @@
 /* A demonstration of writing and reading with NSArchiver */
-// Fri Oct 23 03:02:04 MET DST 1998 	dave@turbocat.de
-// cStringNoCopy -> cString
 
 #if 1
 
@@ -9,6 +7,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSUtilities.h>
+#include <Foundation/NSDate.h>
 
 int main()
 {
@@ -45,7 +44,11 @@ printf("%u\n", [arc retainCount]);
   [arc encodeRootObject: set];
   una = [[[NSUnarchiver alloc] initForReadingWithData: [arc archiverData]] autorelease];
   xxx = [una decodeObject];
+  if ([xxx isEqual: set] == NO)
+    printf("Argh\n");
+  printf("%s\n", [[xxx description] cString]);
   [apl release];
+
 
   /* Write it to a file */
   [NSArchiver archiveRootObject: set toFile: @"./nsarchiver.dat"];
@@ -71,6 +74,36 @@ printf("%u\n", [arc retainCount]);
     id o, e = [set objectEnumerator];
     while ((o = [e nextObject]))
       printf("%s\n", [o cString]);    
+  }
+
+  {
+    NSDate		*start = [NSDate date];
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+    int			i;
+    NSUnarchiver	*u = nil;
+    NSArchiver		*a = [NSArchiver new];
+
+    [NSAutoreleasePool enableDoubleReleaseCheck:NO];
+    for (i = 0; i < 10000; i++) {
+	NSMutableData	*d;
+	id	o;
+
+	[a encodeRootObject: set];
+	d = [a archiverData];
+	if (u == nil) {
+	    u = [[NSUnarchiver alloc] initForReadingWithData: d];
+	}
+	else {
+	    [u resetUnarchiverWithData: d atIndex: 0];
+	}
+	o = [u decodeObject];
+	[d setLength: 0];
+	[a resetArchiver];
+    }
+    [a release];
+    [u release];
+    [arp release];
+    printf("Time: %f\n", -[start timeIntervalSinceNow]);
   }
 
   /* Do the autorelease. */
