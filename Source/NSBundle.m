@@ -1020,31 +1020,17 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (!_codeLoaded)
     {
-      NSString       *object, *path;
+      NSString       *object;
       NSEnumerator   *classEnumerator;
       NSMutableArray *classNames;
       NSValue        *class;
 
-      object = [[self infoDictionary] objectForKey: @"NSExecutable"];
+      object = [self executablePath];
       if (object == nil || [object length] == 0)
 	{
 	  [load_lock unlock];
 	  return NO;
 	}
-      if (_bundleType == NSBUNDLE_FRAMEWORK)
-	{
-	  path = [_path stringByAppendingPathComponent:@"Versions/Current"];
-
-	  _currentFrameworkName = RETAIN(([NSString stringWithFormat:
-						      @"NSFramework_%@",
-						    object]));
-	}
-      else
-	{
-	  path = _path;
-	}
-
-      object = bundle_object_name(path, object);
       _loadingBundle = self;
       _bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
       _loadingFrameworks = RETAIN([NSMutableArray arrayWithCapacity: 2]);
@@ -1110,10 +1096,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
    constructs an array of paths, where each path is a possible location
    for a resource in the bundle.  The current algorithm for searching goes:
 
-     <main bundle>/Resources/<bundlePath>
-     <main bundle>/Resources/<bundlePath>/<language.lproj>
-     <main bundle>/<bundlePath>
-     <main bundle>/<bundlePath>/<language.lproj>
+     <rootPath>/Resources/<bundlePath>
+     <rootPath>/Resources/<bundlePath>/<language.lproj>
+     <rootPath>/<bundlePath>
+     <rootPath>/<bundlePath>/<language.lproj>
 */
 + (NSArray *) _bundleResourcePathsWithRootPath: (NSString *)rootPath
 				       subPath: (NSString *)bundlePath
@@ -1256,6 +1242,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		   withVersion: _version];
 }
 
++ (NSArray*) pathsForResourcesOfType: (NSString*)extension
+			 inDirectory: (NSString*)bundlePath
+{
+  [self notImplemented: _cmd];
+  return nil;
+}
+
 - (NSArray *) pathsForResourcesOfType: (NSString *)extension
 			  inDirectory: (NSString *)bundlePath
 {
@@ -1265,6 +1258,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSEnumerator *pathlist;
   NSFileManager	*mgr = [NSFileManager defaultManager];
     
+  /* Not sure if this is correct since it will only search in 
+     lprojs that are user preferences. FIXME. */
   pathlist = [[NSBundle _bundleResourcePathsWithRootPath: [self bundlePath]
 			subPath: bundlePath] objectEnumerator];
   resources = [NSMutableArray arrayWithCapacity: 2];
@@ -1284,6 +1279,103 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   return resources;
+}
+
+- (NSArray*) pathsForResourcesOfType: (NSString*)extension
+			 inDirectory: (NSString*)bundlePath
+		     forLocalization: (NSString*)localizationName
+{
+  [self notImplemented: _cmd];
+  return nil;
+}
+
+- (NSString*) pathForResource: (NSString*)name
+		       ofType: (NSString*)ext
+		  inDirectory: (NSString*)bundlePath
+	      forLocalization: (NSString*)localizationName
+{
+  [self notImplemented: _cmd];
+  return nil;
+}
+
++ (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray
+{
+  return [self preferredLocalizationsFromArray: localizationsArray
+	         forPreferences: [NSUserDefaults userLanguages]];
+}
+
++ (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray 
+			       forPreferences: (NSArray *)preferencesArray
+{
+  NSString *locale;
+  NSMutableArray* array;
+  NSEnumerator* enumerate;
+
+  array = [NSMutableArray arrayWithCapacity: 2];
+  enumerate = [preferencesArray objectEnumerator];
+  while ((locale = [enumerate nextObject]))
+    {
+      if ([localizationsArray indexOfObject: locale] != NSNotFound)
+	[array addObject: locale];
+    }
+  /* I guess this is arbitrary if we can't find a match? */
+  if ([array count] == 0)
+    [array addObject: [localizationsArray objectAtIndex: 0]];
+  return [array makeImmutableCopyOnFail: NO];
+}
+
+- (NSDictionary *)localizedInfoDictionary
+{
+  NSString* path;
+  NSString* locale;
+  NSDictionary *dict = nil;
+
+  locale = [[self preferredLocalizations] objectAtIndex: 0];
+  path = [self pathForResource: @"Info-gnustep" 
+                        ofType: @"plist"
+                   inDirectory: nil 
+               forLocalization: locale];
+  if (path)
+    {
+      dict = [[NSDictionary alloc] initWithContentsOfFile: path];
+    }
+  else
+    {
+      path = [self pathForResource: @"Info" 
+                            ofType: @"plist"
+                       inDirectory: nil 
+                   forLocalization: locale];
+      if (path)
+	{
+	  dict = [[NSDictionary alloc] initWithContentsOfFile: path];
+	}
+    }
+  if (dict == nil)
+    dict = [self infoDictionary];
+  return dict;
+}
+
+- (NSArray *)localizations
+{
+  NSString *locale;
+  NSArray *localizations;
+  NSEnumerator* enumerate;
+  NSMutableArray *array = [NSMutableArray arrayWithCapacity: 2];
+
+  localizations = [self pathsForResourcesOfType: @"lproj"
+	                            inDirectory: nil];
+  enumerate = [localizations objectEnumerator];
+  while ((locale = [enumerate nextObject]))
+    {
+      locale = [[locale lastPathComponent] stringByDeletingPathExtension];
+      [array addObject: locale];
+    }
+  return [array makeImmutableCopyOnFail: NO];
+}
+
+- (NSArray *)preferredLocalizations
+{
+  return [NSBundle preferredLocalizationsFromArray: [self localizations]];
 }
 
 - (NSString *) localizedStringForKey: (NSString *)key	
@@ -1377,6 +1469,31 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   _strip_after_loading = flag;
 }
 
+- (NSString *)executablePath
+{
+  NSString *object, *path;
+  object = [[self infoDictionary] objectForKey: @"NSExecutable"];
+  if (object == nil || [object length] == 0)
+    {
+      return nil;
+    }
+  if (_bundleType == NSBUNDLE_FRAMEWORK)
+    {
+      path = [_path stringByAppendingPathComponent:@"Versions/Current"];
+      
+      _currentFrameworkName = RETAIN(([NSString stringWithFormat:
+						  @"NSFramework_%@",
+						object]));
+    }
+  else
+    {
+      path = _path;
+    }
+  
+  object = bundle_object_name(path, object);
+  return object;
+}
+
 - (NSString *) resourcePath
 {
   NSString *version = _frameworkVersion;
@@ -1428,9 +1545,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return _version;
 }
 
-/* Since I don't know how version numbers should behave - the version
-   number is not used. (FIXME)
-*/
 - (void)setBundleVersion:(unsigned)version
 {
   _version = version;
