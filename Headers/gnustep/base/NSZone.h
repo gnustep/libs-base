@@ -1,9 +1,9 @@
 /* NSZone memory management.
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
-   Written by: Mark Lakata <lakata@sseos.lbl.gov>
-   Date: January 1995
- 
+   Written by: Yoo C. Chung <wacko@power1.snu.ac.kr>
+   Date: September 1996
+   
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -21,165 +21,93 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
    See NSZone.c for additional information. */
+  
+#ifndef __NSZone_h_GNUSTEP_BASE_INCLUDE
+#define __NSZone_h_GNUSTEP_BASE_INCLUDE
 
-#ifndef h_zone_NS_h
-#define h_zone_NS_h
-
+#include <objc/thr.h>
 #include <gnustep/base/config.h>
-
-#if NeXT_runtime
-
-#include <objc/zone.h>
-#define NSZone NXZone
-
-#else
-
-#include <stdio.h>
-#include <stdlib.h>
 
 @class NSString;
 
-/*
- * This the NeXTStep zone typedef.   It is nothing like the implementation
- * below.
- */
-/*
-typedef struct _NSZone {
-    void *(*realloc)(struct _NSZone *zonep, void *ptr, size_t size);
-    void *(*malloc)(struct _NSZone *zonep, size_t size);
-    void (*free)(struct _NSZone *zonep, void *ptr);
-    void (*destroy)(struct _NSZone *zonep);
-} NSZone;
-*/
+typedef _objc_mutex_t ZoneLock;
+typedef struct _NSZone NSZone;
 
-#define MAXZONENAMELENGTH 20
+struct _NSZone
+{
+  unsigned granularity;
+  void *(*malloc)(struct _NSZone *zonep, unsigned size);
+  void *(*realloc)(struct _NSZone *zonep, void *ptr, unsigned size);
+  void (*free)(struct _NSZone *zonep, void *ptr);
+  void (*recycle)(struct _NSZone *zonep);
+  ZoneLock lock;
+  NSString *name;
+  void *table, *bblocks;
+  void *sblocks; /* Block with highest address comes first. */
+};
 
-typedef struct _llist {
-    int Count,Size;
-    int ElementSize;
-    void *LList;
-} llist;
+/* Create a new zone with its own memory pool.
+   The library will automatically set the start size and/or the
+   granularity if STARTSIZE and/or GRANULARITY are zero. Also, there
+   is no advantage in setting startSize or granularity to multiples of
+   NSPageSize(). */
+extern NSZone*
+NSCreateZone(unsigned startSize, unsigned granularity, BOOL canFree);
 
-typedef struct _NSZone {
-    void *base;
-    size_t size;
-    size_t granularity;
-    int canFree;
-    char name[MAXZONENAMELENGTH+1];
-    llist heap;
-    struct _NSZone *parent;
-} NSZone;
-
-/* 
- * try to find the page size.   If these fail on your system,
- * consider some other methods used by Emacs.   See the file
- * getpagesize.h of the Emacs source code
- */
-#ifndef vm_page_size
-# include <unistd.h>
-# ifdef _SC_PAGESIZE
-#  define vm_page_size sysconf(_SC_PAGESIZE)
-# else
-#  ifdef _SC_PAGE_SIZE
-#   define vm_page_size sysconf(_SC_PAGE_SIZE)
-#  else
-/* #   ifndef HAVE_LIBC_H */
-/* suggested change by Gregor Hoffleit <flight@mathi.uni-heidelberg.DE> */
-#   if !defined(HAVE_LIBC_H) && !defined(linux)
-     int getpagesize(void);
-#   endif /* not HAVE_LIBC_H */
-#   define vm_page_size getpagesize()
-#  endif /* _SC_PAGE_SIZE */
-# endif /* _SC_PAGESIZE */
-#endif /* vm_page_size */
-
-#define NS_NOZONE  ((NSZone *)0)
-
-/*
- * Returns the default zone used by the malloc(3) calls.
- */
 extern NSZone *NSDefaultMallocZone(void);
 
-/* 
- * Create a new zone with its own memory pool.
- * If canfree is 0 the allocator will never free memory and mallocing will be fast
- */
-extern NSZone *NSCreateZone(size_t startSize, size_t granularity, int canFree);
+extern NSZone *NSZoneFromPointer(void *pointer);
 
-/*
- * Create a new zone who obtains memory from another zone.
- * Returns NS_NOZONE if the passed zone is already a child.
- */
-extern NSZone  *NSCreateChildZone(NSZone *parentZone, size_t startSize,
-                                  size_t granularity, int canFree);
+extern inline void *NSZoneMalloc(NSZone *zone, unsigned size)
+{
+  return (zone->malloc)(zone, size);
+}
 
-/*
- * The zone is destroyed and all memory reclaimed.
- */
-extern void NSDestroyZone(NSZone *zonep);
-        
-/*
- * Will merge zone with the parent zone. Malloced areas are still valid.
- * Must be an child zone.
- */
-extern void NSMergeZone(NSZone *zonep);
+extern void *NSZoneCalloc(NSZone *zone, unsigned numElems, unsigned numBytes);
 
-extern void *NSZoneMalloc(NSZone *zonep, size_t size);
+extern inline void *NSZoneRealloc(NSZone *zone, void *pointer, unsigned size)
+{
+  return (zone->realloc)(zone, pointer, size);
+}
 
-extern void *NSZoneRealloc(NSZone *zonep, void *ptr, size_t size);
-extern void NSZoneFree(NSZone *zonep, void *ptr);
+/* For a non-freeable zone, ALL memory will be returned, regardless
+   of whether there are objects in it that are still in use. */
+extern inline void NSRecycleZone(NSZone *zone)
+{
+  (zone->recycle)(zone);
+}
 
-/*
- * Calls NSZoneMalloc and then bzero.
- */
-extern void *NSZoneCalloc(NSZone *zonep, size_t numElems, size_t byteSize);
+/* Will do nothing if pointer == NULL. */
+extern inline void NSZoneFree(NSZone *zone, void *pointer)
+{
+  (zone->free)(zone, pointer);
+}
 
-/*
- * Returns the zone for a pointer.
- * NS_NOZONE if not in any zone.
- * The ptr must have been returned from a malloc or realloc call.
- */
-extern NSZone *NSZoneFromPtr(void *ptr);
+extern void NSSetZoneName (NSZone *zone, NSString *name);
 
-/*
- * Debugging Helpers.
- */
+extern NSString *NSZoneName (NSZone *zone);
+
+/* Debugging Helpers. */
  
- /*  
-  * Will print to stdout if this pointer is in the malloc heap, free status, and size.
-  */
+/* Will print to stdout if this pointer is in the malloc heap, free
+   status, and size. */
 extern void NSZonePtrInfo(void *ptr);
 
-/*
- * Will verify all internal malloc information.
- * This is what malloc_debug calls.
- */
-extern int NSMallocCheck(void);
+/* Will verify all internal malloc information.
+   This is what malloc_debug calls. */
+extern BOOL NSMallocCheck(void);
 
-/*
- * Give a zone a name.
- * The string will be copied.
- * [This function is deprecated.  Use functions below instead.]
- */
-extern void NSNameZone(NSZone *z, const char *name);
-
-extern void NSSetZoneName (NSZone *z, NSString *name);
-extern NSString *NSZoneName (NSZone *z);
-
-
 /* Memory-Page-related functions. */
 
-extern unsigned NSPageSize ();
-extern unsigned NSLogPageSize ();
-extern unsigned NSRoundUpToMultipleOfPageSize (unsigned bytes);
-extern unsigned NSRoundDownToMultipleOfPageSize (unsigned bytes);
+extern unsigned NSPageSize(void);
+extern unsigned NSLogPageSize(void);
+extern unsigned NSRoundUpToMultipleOfPageSize(unsigned bytes);
+extern unsigned NSRoundDownToMultipleOfPageSize(unsigned bytes);
 
-extern unsigned NSRealMemoryAvailable ();
+extern unsigned NSRealMemoryAvailable(void);
 
-extern void *NSAllocateMemoryPages (unsigned bytes);
-extern void NSDeallocateMemoryPages (void *ptr, unsigned bytes);
-extern void NSCopyMemoryPages (const void *source, void *dest, unsigned bytes);
+extern void *NSAllocateMemoryPages(unsigned bytes);
+extern void NSDeallocateMemoryPages(void *ptr, unsigned bytes);
+extern void NSCopyMemoryPages(const void *source, void *dest, unsigned bytes);
 
-
-#endif /* NeXT_runtime */
-#endif /* h_zone_NS_h */
+#endif /* __NSZone_h_GNUSTEP_BASE_INCLUDE */

@@ -1,8 +1,8 @@
 /* Zone memory management.
-   Copyright (C) 1995, 1996  Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997  Free Software Foundation, Inc.
  
-   Author: Mark Lakata <lakata@sseos.lbl.gov>
-   Date: January 1995
+   Author: Yoo C. Chung <wacko@power1.snu.ac.kr>
+   Date: September 1996
  
    This file is part of the GNUstep Base Library.
 
@@ -20,830 +20,986 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-   Description:
- 
-   These functions manage memory in a way similar to the c library
-   functions: malloc() and free().  Instead of allocating small chunks
-   of memory with each malloc() call, with this method one must first
-   allocate a larger "zone", and then suballocate this in smaller
-   chunks.  Many zones can be created, and within each zone, objects
-   will be "closer" in virtual memory space thus reducing the need for
-   page-swapping.  By intelligently allocating frequently used objects
-   from the same zone, you can significantly improve performance on
-   systems with paged virtual memory.
+/* This uses some GCC specific extensions. But since the library is
+   supposed to compile on GCC 2.7.2 (patched) or higher, and the only
+   other Objective-C compiler I know of (other than NeXT's) is the
+   StepStone compiler, which I haven't the foggiest idea why anyone
+   would prefer it to GCC ;), it should be OK.
+   
+   This uses it's own routines with NSDefaultMallocZone() instead of
+   using malloc() and friends.  But if that's a problem, then it's a
+   trivial problem to fix (at least it should be).
 
-   Usage:
+   THe NSZone functions should be thread-safe.  But I haven't actually
+   tested them in a multi-threaded environment.
+   
+   In a small block, every chunk has a size that is a multiple of CHUNK.
+   A free chunk in a freeable zone looks like this:
 
-   First create a zone with NSCreateZone().  Then allocate memory with
-   NSZoneMalloc().  Finally free memory with NSZoneFree(), and free a
-   zone with NSDestroyZone().
+   unsigned : front : size of chunk
+               back : 0
+   unsigned : front : position of next free chunk (0 if none)
+               back : position of previous free chunk (0 if none)
+   Unused memory
+   unsigned : front : position of previous free chunk (0 if none)
+               back : position of next free chunk (0 if none)
+   unsigned : front : size of chunk
+               back : 0
+   
+   A used chunk in a freeable zone looks like this.
 
-   A Zone is initialized with a certain memory size, but will
-   automagically grow if needed.  The incremental size of enlargement
-   is set by the granularity flag.  A good choice for the initial
-   memory size and the granularity is vm_page_size.
+   unsigned : front : size of chunk
+               back : position of this chunk in block
+   Memory that is actually used
+   unsigned : front : size of chunk
+               back : position of this chunk in block
 
-   Once of the options to NSCreateZone is the _canFree_ flag.  If this
-   is YES, then you can use the NSZoneFree() function to reclaim
-   memory.  If this is NO, then you cannot use NSZoneFree.  The only
-   way then to free the memory is to destroy the entire zone.  This
-   option allocates memory much quicker since it requires much less
-   bookkeeping.
+   All sizes and positions are in units of bytes.
 
-   NSZoneMalloc(), NSZoneCalloc() and NSZoneRealloc() each return a
-   pointer to "size" bytes from zone "zonep".  The different flavors
-   work the same as the malloc(), calloc() and realloc() c-library
-   routines.
+   The use of unsigned is probably a Bad Thing (tm).  This should
+   still work on machines where sizeof(void*) != sizof(unsigned), but
+   you wouldn't be able to allocate as much memory as you might be
+   able to in one chunk, and it's kind of unelegant.  The DEC Alpha is
+   such a machine (though in this case, a program that needs memory
+   whose size can't fit in a 32 bit integer should really think about
+   cutting down on its size, or at least divide the problem up).
+   
+   This assumes that sizeof(unsigned) is a multiple of two.  I don't
+   think I'll have to worry too much about this assumption. */
 
-   NSCreateChildZone() and NSMergeZone() are not implemented.
+#define NDEBUG /* Comment this out to turn on assertions. */
 
-   NSDefaultMemoryZone returns a NULL zone, which means the standard
-   malloc zone.  NSZoneFree() frees memory within a
-   zone. NSDestroyZone() deallocates the entire zone, including all
-   allocated memory within it.  NSZoneFromPtr() finds a zone, given a
-   pointer to memory.  The pointer must be one that was returned from
-   NSZoneMalloc, or it can be zonep->base.  BXZonePtrInfo() returns
-   debugging information for the ptr within a zone.  NSMallocCheck()
-   returns 0 if the internal memory allocation is not corrupt, a
-   positive integer otherwise. NSNameZone() assigns a name to a zone
-   (less than 20 characters.).
-  
-   */
-
-#include <gnustep/base/preface.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef __NeXT__
-# include <malloc.h>
-#endif
+#include <objc/thr.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSZone.h>
 
-#define DEFAULTLISTSIZE 10
+#define ONES (~0U)
+#define BACK (ONES << (sizeof(unsigned)*4))
+#define FRONT (ONES >> (sizeof(unsigned)*4))
+#define FREEOVERHEAD (4*sizeof(unsigned))
+#define USEDOVERHEAD (2*sizeof(unsigned))
+#define CHUNK FREEOVERHEAD /* Minimum size of chunk. */
+#define BLOCKHEAD roundupto(sizeof(BlockHeader), CHUNK)
 
-#define UNUSED    0
-#define ALLOCATED 1
-#define ZONELINK  2
+typedef struct _ZoneTable ZoneTable;
+typedef struct _BlockHeader BlockHeader;
 
-#define WORDSIZE (sizeof(double))
-
-typedef struct _chunkdesc 
+struct _ZoneTable
 {
-    void *base;
-    int  size;
-    int  type;
-} chunkdesc;
+  struct _ZoneTable *next;
+  unsigned ident; /* Identifier for zone table, starts at 1. */
+  unsigned count, size;
+  NSZone zones[0];
+};
 
-
-
-/* global variable */
-llist ZoneList={0,0,sizeof(NSZone *),NULL};
-char *memtype[]={"Unused","Allocated","Zone Link"};
-char *freeStyle[]={"NO","Yes"};
-
-/* local forward declarations. these are internal routines */
-void *addtolist(void *ptr,llist *list,int at);
-void delfromlist( llist *list, int at );
-int searchheap(llist *heap,void *ptr);
-
-/* things missing from malloc.h, so that gcc doesn't complain. */
-/* Deal with bcopy: */
-#if STDC_HEADERS || HAVE_STRING_H
-#include <string.h>
-/* An ANSI string.h and pre-ANSI memory.h might conflict.  */
-#if !STDC_HEADERS && HAVE_MEMORY_H
-#include <memory.h>
-#endif /* not STDC_HEADERS and HAVE_MEMORY_H */
-#define index strchr
-#define rindex strrchr
-#define bcopy(s, d, n) memcpy ((d), (s), (n))
-#define bcmp(s1, s2, n) memcmp ((s1), (s2), (n))
-#define bzero(s, n) memset ((s), 0, (n))
-#else /* not STDC_HEADERS and not HAVE_STRING_H */
-#include <strings.h>
-/* memory.h and strings.h conflict on some systems.  */
-#endif /* not STDC_HEADERS and not HAVE_STRING_H */
-
-#ifdef HAVE_VALLOC
-#include <stdlib.h>
-#else
-#define valloc 	malloc
-#endif
-
-/*
- * Returns the default zone used by the malloc(3) calls.
- */
-NSZone *NSDefaultMallocZone(void)
+struct _BlockHeader
 {
-#ifdef DEBUG
-    printf("entered NSDefaultMallocZone\n");
-#endif
-    return NS_NOZONE;
+  struct _BlockHeader *previous, *next;
+  
+  /* For small block, front is size, back is zone identifier, for big
+     block and free block, the whole thing is size. The size includes
+     the header. */
+  unsigned size;
+  
+  /* For freeable zone, front is size of biggest free chunk, back is
+     position of biggest free chunk (it's size of the block if none
+     available). For non-freeable zone, position of free chunk (it's
+     size of the block if none available). It's 0 for a big block. */
+  unsigned free;
+};
+
+static unsigned bsize = 0; /* Minimum block size. */
+static unsigned zunit; /* Number of zones in a zone table. */
+static ZoneLock zonelock; /* Lock for zone tables. */
+static ZoneLock blocklock; /* Lock for blocks. */
+static BlockHeader *freeBlocks = NULL; /* Higher blocks come first. */
+static BlockHeader *lastFree = NULL;
+static NSZone defaultZone;
+static ZoneTable *zones = NULL;
+static ZoneTable *endzones = NULL;
+
+static void initialize(void);
+
+/* Gets a block with size SIZE. SIZE must be a multiple of bsize.  The
+   size given includes overhead.  Returns NULL if no block can be
+   returned. */
+static BlockHeader *getBlock(unsigned size);
+
+static void releaseBlock(BlockHeader *block);
+static void *getMemInBlock(BlockHeader *block, unsigned size);
+static void insertFreeChunk(BlockHeader *block, void *chunk);
+
+/* Get previously unused zone slot. Return NULL if no zone can be returned. */
+static NSZone *getZone(void);
+
+static void releaseZone(NSZone *zone); /* Mark zone slot as unused. */
+
+/* Memory functions for freeable zones. */
+static void *fmalloc(NSZone *zone, unsigned size);
+static void *frealloc(NSZone *zone, void *ptr, unsigned size);
+static void ffree(NSZone *zone, void *ptr);
+static void frecycle(NSZone *zone);
+
+/* Memory functions for non-freeable zones. */
+static void *nmalloc(NSZone *zone, unsigned size);
+static void *nrealloc(NSZone *zone, void *ptr, unsigned size);
+static void nfree(NSZone *zone, void *ptr);
+static void nrecycle(NSZone *zone);
+
+/* Rounds N up to a multiple of BASE. */
+static inline unsigned
+roundupto(unsigned n, unsigned base)
+{
+  unsigned a = (n/base)*base;
+
+  return (n-a)? a+base: n;
 }
 
-
-/* 
- * Create a new zone with its own memory pool.
- * If canfree is 0 the allocator will never free memory and mallocing
- * will be fast.
- */
-NSZone *NSCreateZone(size_t startSize, size_t granularity, int canFree)
+/* Return front half of N. */
+static inline unsigned
+splitfront(unsigned n)
 {
-    NSZone *ptr;
-    chunkdesc temp;
-    static int unique=0;
-    
-#ifdef DEBUG
-    printf("entered NSCreateZone\n");
-#endif
-    ptr = (NSZone *) objc_malloc (sizeof(NSZone));
-    if (ptr == NULL) {
-#ifdef DEBUG
-        printf("out of memory for zone structure\n");
-#endif
-        return NS_NOZONE;
-        }
-    ptr->base        = (void *) objc_valloc (startSize);
-    if (ptr->base == NULL) {
-#ifdef DEBUG
-        printf("out of memory for zone\n");
-#endif
-        return NS_NOZONE;
-        }
-    
-    ptr->size        = startSize;
-    ptr->granularity = granularity;
-    ptr->canFree     = canFree;
-    ptr->parent      = NS_NOZONE;
-    sprintf(ptr->name,"zone%d",unique++);
-    ptr->heap.Count  = 0;
-    ptr->heap.Size   = 0;
-    ptr->heap.ElementSize = sizeof(chunkdesc);
-    ptr->heap.LList   = NULL;
-
-    temp.base   = ptr->base;
-    temp.size   = startSize;
-    temp.type   = UNUSED;
-    addtolist(&temp,&(ptr->heap),0);
-
-/* this might look funny, but I really want to pass the reference to the
-   pointer ptr, and not the ptr it self, because of the way
-   addtolist works. */
-    addtolist(&ptr,&ZoneList,ZoneList.Count);
-#ifdef DEBUG
-    printf("zone '%s' created, ptr= %lx\n",ptr->name,(long)ptr);
-#endif
-   return ptr;
+  return n & FRONT;
 }
 
-/*
- * Create a new zone who obtains memory from another zone.
- * Returns NS_NOZONE if the passed zone is already a child.
- */
-NSZone  *NSCreateChildZone(NSZone *parentZone, size_t startSize,
-                           size_t granularity, int canFree)
+/* Return back half of N. Expect this to be slower that splitfront(). */
+static inline unsigned
+splitback(unsigned n)
 {
-    NSZone *child;
-/* Unfinished.  This will appear to do what it should do, but it won't.
- * Zone's give a nice improvement over malloc, but my gut feeling is
- * that child zones won't really improve much beyond that.  So I am
- * not implementing them.
- * These routines should 100% call-compatible with the
- * NeXTStep spec.  You can use NSMergeZone() like usual.
- */    
-
-    child = NSCreateZone(startSize,granularity,canFree);
-    child->parent = parentZone;
-
-    return child;
+  return (n & BACK) >> (sizeof(unsigned)*4);
 }
 
-
-/*
- * The zone is destroyed and all memory reclaimed.
- */
-void NSDestroyZone(NSZone *zonep)
+/* Check that back half of N is not zero. If so, return non-zero number. */
+static inline unsigned
+backnonzero(unsigned n)
 {
-    int i,ok;
-    chunkdesc *lastchunk;
-    
-#ifdef DEBUG
-    printf("entered NSDestroyZone\n");
-#endif
-
-    ok = 0;
-    for (i=0;i<ZoneList.Count;i++) {
-#ifdef DEBUG
-        printf("zone p = %lx list[%d]=%lx name='%s'\n",
-               zonep,i,((NSZone **)ZoneList.LList)[i],
-               ((NSZone **)ZoneList.LList)[i]->name);
-#endif
-        if (zonep == ((NSZone **)ZoneList.LList)[i]) {
-            ok=1;
-            break;
-        }
-    }
-    
-    if (ok) {
-        lastchunk = &((chunkdesc *)zonep->heap.LList)[zonep->heap.Count-1];
-        
-        if (lastchunk->type ==  ZONELINK)
-            NSDestroyZone((NSZone*)(lastchunk->base));
-        free(zonep->base);
-        free(zonep->heap.LList);
-        delfromlist(&ZoneList,i);
-        free(zonep);
-    }
-    else {
-#ifdef DEBUG        
-        printf("*** Zone not previously allocated\n");
-#endif
-    }
-    return;
-    
+  return n & BACK;
 }
 
-/*
- * Will merge zone with the parent zone. Malloced areas are still valid.
- * Must be an child zone.
- */
-void NSMergeZone(NSZone *zonep)
+/* Set front half of n. Front must fit within half of an unsigned. */
+static inline void
+setfront(unsigned *n, unsigned front)
 {
-    /* unfinished. */
-    /* simply appends the child to the end of the list of zones from
-       the parent. Only useful for compatibility. */
-    NSZone *current;
-    chunkdesc *chunk,new;
-    int count;
+  assert(front <= FRONT);
+  
+  *n = (*n & BACK) | front;
 
-    if (zonep->parent == NS_NOZONE) return;
-
-    for(current = zonep->parent;
-        count = current->heap.Count,
-            chunk = &((chunkdesc *)current->heap.LList)[count-1],
-            chunk->type == ZONELINK;
-        current = chunk->base);
-
-    new.base = zonep;
-    new.size = 0;
-    new.type = ZONELINK;
-    addtolist(&new,&(current->heap),0);
-    
-    return;
+  assert(splitfront(*n) == front);
 }
 
-void *NSZoneMalloc(NSZone *zonep, size_t size)
+/* Set back half of n. Back half must fit in half of an unsigned.
+   Expect this to be slower than setfront(). */
+static inline void
+setback(unsigned *n, unsigned back)
 {
-    int i,pages;
-    size_t newsize,oddsize;
-    void *ptr;
-    chunkdesc temp,*chunk;
-    NSZone *newzone;
+  assert(back <= FRONT);
+  
+  *n = (*n & FRONT) | (back << (sizeof(unsigned)*4));
 
-    if (zonep == NS_NOZONE) 
-      return objc_malloc (size);
-/* round size up to the nearest word, so that all chunks are word aligned */
-    oddsize = (size % WORDSIZE);
-    newsize = size - oddsize + (oddsize?WORDSIZE:0);
-/* if the chunks in this zone can be freed, then we have to scan the whole
-   zone for chunks that have been deallocated for recycling. This requires
-   extra time, so it is not as fast as !canFree */
-    if (zonep->canFree) {
-        for (i=0;i<zonep->heap.Count;i++) {
-            chunk = &(((chunkdesc *)zonep->heap.LList)[i]);
-            
-            if (chunk->type == UNUSED) {
-                if (newsize <= chunk->size) {
-                    ptr = chunk->base;
-                    chunk->type = ALLOCATED;
-                    if (newsize < chunk->size) {
-                        temp.base = chunk->base+newsize;
-                        temp.size = chunk->size-newsize;
-                        temp.type = UNUSED;
-                        addtolist(&temp,&zonep->heap,i+1);
-                        chunk->size = newsize;
-                    }
-                    return ptr;
-                }
-            }
-            if (chunk->type == ZONELINK) {
-#ifdef DEBUG
-                printf("following link ...\n");
-#endif
-                return (NSZoneMalloc((NSZone *)(chunk->base),newsize));
-            }
-            
-        }
-    
-    }
-    else {
-        chunk = &(((chunkdesc *)zonep->heap.LList)[0]);
-        if (chunk->size > newsize) {
-            ptr = chunk->base;
-            chunk->size -=newsize;
-            return ptr;
-        }
-        if (zonep->heap.Count == 2) {
-            chunk = &(((chunkdesc *)zonep->heap.LList)[1]);
-            if (chunk->type == ZONELINK) {
-#ifdef DEBUG
-                printf("following link ...\n");
-#endif
-                return (NSZoneMalloc((NSZone *)(chunk->base),newsize));
-            }
-        }
-    }
-    
-#ifdef DEBUG        
-    printf("*** no more memory in zone, creating link to new zone\n");
-#endif                
-    pages = newsize/(zonep->granularity)+1;
-    newzone = NSCreateZone(pages*(zonep->granularity),
-                           zonep->granularity,zonep->canFree);
-    if (newzone == NS_NOZONE) {
-#ifdef DEBUG
-        printf("no memory left on system\n");
-#endif
-        return NULL;
-    }
-    
-    temp.base = (void *)newzone;
-    temp.size = 0;
-    temp.type = ZONELINK;
-    addtolist(&temp,&zonep->heap,zonep->heap.Count);
-    return  (NSZoneMalloc(newzone,newsize));
-    
+  assert(splitback(*n) == back);
 }
 
-
-void *NSZoneCalloc(NSZone *zonep, size_t numElems, size_t byteSize)
+/* Return unsigned integer such that front and back are set to the
+   given numbers. The given numbers must fit within half of an
+   unsigned. */
+static inline unsigned
+setfrontback(unsigned front, unsigned back)
 {
-    void *ptr;
-
-    ptr = NSZoneMalloc(zonep,numElems * byteSize);
-    if (ptr) bzero(ptr,numElems*byteSize);
-    return ptr;
-    
+  assert(front <= FRONT);
+  assert(back <= FRONT);
+  
+  return front | (back << (sizeof(unsigned)*4));
 }
 
-void *NSZoneRealloc(NSZone *zonep, void *ptr, size_t size)
+/* Maximum size for blocks containing small chunks. */
+static inline unsigned
+maxsblock(void)
 {
-    int i,diff;
-    void *ptr2;
-    chunkdesc temp,*chunk,*nextchunk,*priorchunk;
-    
-    if (zonep == NS_NOZONE) 
-      return objc_realloc (ptr,size);
-    
-    if (zonep->canFree) {
-        i = searchheap(&(zonep->heap),ptr);
-        
-        if (i<0) return NULL;
-        
-        chunk = &((chunkdesc *)zonep->heap.LList)[i];
-        if (chunk->type == ALLOCATED) {
-            
-            if (ptr == chunk->base) {
-/* case 1: same size */
-                if (size == chunk->size) {
-                    chunk->type = ALLOCATED;
-                    return ptr;
-                }
-                
-/* case 2: smaller size */                
-                if (size < chunk->size) {
-                    temp.base = chunk->base+size;
-                    temp.size = chunk->size-size;
-                    temp.type = ALLOCATED;          /* the trick here is to
-                                                       ALLOCATE this leftover,
-                                                       and Free it, so that
-                                                       the garbage collection
-                                                       is done.*/
-                    chunk->size = size;
-                    addtolist(&temp,&zonep->heap,i+1);
-                    NSZoneFree(zonep,temp.base);
-                    return ptr;
-                    
-                }
-/* case 3: larger size */                
-/* case 3a: larger size, but there is enough free memory immediately after */
-                if (i+1<zonep->heap.Count) {
-                    nextchunk = &((chunkdesc *)zonep->heap.LList)[i+1];
-                    if (nextchunk->type == UNUSED) 
-                        if (size <= chunk->size + nextchunk->size) {
-                            diff = size - chunk->size;
-                            chunk->size = size;
-                            if (diff != nextchunk->size) {
-                                nextchunk->base += diff;
-                                nextchunk->size -= diff;
-                            }
-                            else {
-                                delfromlist(&zonep->heap,i+1);
-                            }
-                            
-                            return ptr;
-                        }
-                }
-                
-/* case 3b: larger size, but there is enough free memory immediately before */
-                if (i-1>=0) {
-                    priorchunk = &((chunkdesc *)zonep->heap.LList)[i-1];
-                    if (priorchunk->type == UNUSED) 
-                        if (size < chunk->size + priorchunk->size) {
-                            ptr = priorchunk->base;
-                            diff = size - priorchunk->size;
-                            if (diff != chunk->size) {
-                                chunk->base += diff;
-                                chunk->size -= diff;
-                                chunk->type = UNUSED;
-                            }
-                            else {
-                                delfromlist(&zonep->heap,i-1);
-                            }
-                            priorchunk->size = size;
-                            priorchunk->type = ALLOCATED;
-                            bcopy(chunk->base,ptr,chunk->size);
-                            return ptr;
-                        }
-                }
-                
-                
-/* case 3c: larger size, but there is enough free memory immediately
-   before+after */
-                if (i+1<zonep->heap.Count && i-1>=0) {
-                    nextchunk = &((chunkdesc *)zonep->heap.LList)[i+1];
-                    priorchunk = &((chunkdesc *)zonep->heap.LList)[i-1];
-                    if (nextchunk->type == UNUSED &&
-                        priorchunk->type == UNUSED) 
-                        if (size <=
-                            chunk->size+nextchunk->size+priorchunk->size) {
-                            priorchunk->type = ALLOCATED;
-                            ptr = priorchunk->base;
-                            diff = size - chunk->size - priorchunk->size;
-                            if (diff != nextchunk->size) {
-                                
-                                chunk->base += diff;
-                                chunk->size -= diff;
-                                chunk->type  = UNUSED;
-                                delfromlist(&zonep->heap,i+1);
-                            }
-                            else {
-                                delfromlist(&zonep->heap,i+1);
-                                delfromlist(&zonep->heap,i);
-                            }
-                            
-                            priorchunk->size = size;
-                            bcopy(chunk->base,ptr,chunk->size);
-                            
-                            return ptr;
-                        }
-                }
-                
-/* case 3d: larger size, have to relocate far away */
-                ptr2 = ptr;
-                ptr = NSZoneMalloc(zonep,size);
-                bcopy(ptr2,ptr,size);
-                NSZoneFree(zonep,ptr2);
-                return ptr;
-            }
-        }
-#ifdef DEBUG
-        printf("*** original malloc info not found\n");
-#endif    
-        return NULL;
-    }
-    else {
-#ifdef DEBUG
-        printf("*** can't use NSZoneRealloc with !canFree\n");
-#endif
-        return NULL;
-    }
-    
+  return 1U << (sizeof(unsigned)*4-1);
 }
 
-void NSZoneFree(NSZone *zonep, void *ptr)
+/* Create mutex. */
+static inline ZoneLock
+makelock(void)
 {
-    int i;
-    chunkdesc *chunk,*otherchunk;
-
-    
-    if (zonep == NS_NOZONE) {
-        free(ptr);
-        return;
-    }
-    
-    if (zonep->canFree) {
-        i = searchheap(&(zonep->heap),ptr);
-        if (i<0) {
-#ifdef DEBUG
-            printf("*** block not found for NSZoneFree\n");
-            
-#endif
-            if ((zonep = NSZoneFromPtr(ptr)) == NS_NOZONE) {
-                return;
-            }
-            i = searchheap(&(zonep->heap),ptr);
-            return;
-        }
-        
-    
-        chunk = &((chunkdesc *)zonep->heap.LList)[i];
-        if (chunk->type == ALLOCATED) {
-            chunk->type = UNUSED;
-/* combine with upper free block */
-            if (i+1<zonep->heap.Count) {
-                otherchunk = &((chunkdesc *)zonep->heap.LList)[i+1];
-                if (otherchunk->type == UNUSED) {
-                    chunk->size += otherchunk->size;
-                    delfromlist(&zonep->heap,i+1);
-                }
-            }
-            
-/* combine with lower free block */
-            if (i-1>=0) {
-                otherchunk = &((chunkdesc *)zonep->heap.LList)[i-1];
-                if (otherchunk->type == UNUSED) {
-                    otherchunk->size += chunk->size;
-                    delfromlist(&zonep->heap,i);
-                }
-            }
-            
-        }
-        else
-#ifdef DEBUG
-            printf("*** original malloc info not found\n");
-#endif
-        return;
-    }
-    
-    else {
-#ifdef DEBUG
-        printf("*** can't use NSZoneFree with !canFree\n");
-#endif
-        return;
-    }
+  return objc_mutex_allocate();
 }
 
-/*
- * Returns the zone for a pointer.
- * NS_NOZONE if not in any zone.
- * The ptr must have been returned from a malloc or realloc call.
- */
-NSZone *NSZoneFromPtr(void *ptr)
+/* Destroy mutex. */
+static inline void
+destroylock(ZoneLock mutex)
 {
-    int i;
-    
-    for (i=0;i<ZoneList.Count;i++) {
-        if (searchheap(&(((NSZone **)ZoneList.LList)[i]->heap),ptr) != -1)
-            return (NSZone *) ((NSZone **)ZoneList.LList)[i];
-    }
-    return NS_NOZONE;
+  objc_mutex_deallocate(mutex);
 }
 
-/*
- * Debugging Helpers.
- */
- 
- /*  
-  * Will print to stdout information about the pointer, and all the others
-  * in the same zone.
-  */
-void NSZonePtrInfo(void *ptr)
+/* Lock with MUTEX. */
+static inline void
+lock(ZoneLock mutex)
 {
-    NSZone *tmp,*z;
-    chunkdesc *chunk;
-    int i;
-    
-    if (ZoneList.Count == 0) {
-        printf("NSZONE: No zones in memory.\n");
-        return;
-    }
-    
-    tmp = NSZoneFromPtr(ptr);
-    printf("NSZONE: pointer = %lx, zone and chunk marked with * below\n",
-           (long) ptr);
-    printf(
-        "NSZONE: ZONE  [ #] _Pointer __Parent ____Base ____Size Granular free? Name\n");
-    
-    for (i=0;i<ZoneList.Count;i++) {
-        z = ((NSZone **)ZoneList.LList)[i];
-        printf("NSZONE: ZONE %c[%2d] %8lx %8lx %8lx %8lx %8lx %-5s '%s'\n",
-               (tmp==z)?'*':' ',
-               i,
-               (long)z,
-               (long)z->parent,
-               (long)z->base,
-               (long)z->size,
-               (long)z->granularity,
-               freeStyle[z->canFree],
-               z->name);
-    }
-    
-    if (tmp != NS_NOZONE) {
-        printf("NSZONE: CHUNK - [ #] ____Base ____Size Type (Zone=%lx)\n",
-               (long)tmp);
-        for (i=0;i<tmp->heap.Count;i++) {
-            
-            chunk = &((chunkdesc *)tmp->heap.LList)[i];
-            printf("NSZONE: CHUNK %c [%2d] %8lx %8lx %s\n",
-                   (ptr==chunk->base)?'*':' ',
-                   i,
-                   (long)chunk->base,
-                   (long)chunk->size,
-                   memtype[chunk->type]);
-        }
-        
-    }
-    
-    return;
+  /* The thought of a probable system call is rather unappealing, but
+     what else can I do? */
+  objc_mutex_lock(mutex);
 }
 
-/*
- * Will verify all internal malloc information.
- * This is what malloc_debug calls.
- */
-int NSMallocCheck(void)
+/* Release the lock on MUTEX. */
+static inline void
+unlock(ZoneLock mutex)
 {
-    NSZone *tmp;
-    void *base,*currentbase,*zbase;
-    int i,j,k,lasttype,type,ok;
-    size_t size,zsize;
-    
-    
-/*    if (ZoneList == NULL) return 10; */
+  /* Like lock(), a probable system call is rather unappealing. */
+  objc_mutex_unlock(mutex);
+}
 
-    for (i=0;i<ZoneList.Count;i++) {
-        tmp = (((NSZone **)ZoneList.LList)[i]);
-    
-        if (tmp == NS_NOZONE) {
-#ifdef DEBUG
-            printf("error 1: null zone in ZoneList\n");
-#endif            
-            return 1;
-        }
-        
-        if (tmp->heap.Count < 1) {
-            
-#ifdef DEBUG
-            printf("error 2: Heap contains %d blocks\n",tmp->heap.Count);
-#endif        
-            return 2;
-        }
-
-        if (tmp->parent != NS_NOZONE) {
-            ok = 0;
-            for (k=0;k<ZoneList.Count;k++)
-                if (tmp->parent == &((NSZone *)ZoneList.LList)[k])
-                    ok = 1;
-            if (ok==0) {
-#ifdef DEBUG
-            printf("error 3: parent zone=%lx doesn't exist\n",tmp->parent);
-#endif        
-                return 3;
-            }
-        }
-        
-        zbase = tmp->base;
-        zsize = tmp->size;
-        currentbase = ((chunkdesc *)tmp->heap.LList)[0].base;
-        lasttype = ALLOCATED;
-        for (j=0;j<tmp->heap.Count;j++) {
-            base = ((chunkdesc *)tmp->heap.LList)[j].base;
-            size = ((chunkdesc *)tmp->heap.LList)[j].size;
-            type = ((chunkdesc *)tmp->heap.LList)[j].type;
-
-            if (base<zbase || base>=zbase+zsize ||
-                size>zsize || base+size>=zbase+zsize) {
-#ifdef DEBUG
-                printf("error 7: funny chunk addresses:base=%lx size=%lx\n",
-                       (long)base,(long)size);
-#endif
-                return 7;
-            }
-            
-            if (type == ZONELINK) {
-                ok = 0;
-                for (k=0;k<ZoneList.Count;k++)
-                    if (base == ((NSZone *)ZoneList.LList)[k].base)
-                        ok = 1;
-                if (ok==0) {
-#ifdef DEBUG
-            printf("error 4: zone to link=%lx doesn't exist\n",base);
-#endif        
-                    return 4;
-                }
-                continue;
-            }
-            
-            if (base != currentbase) {
-#ifdef DEBUG
-                printf("error 5: blocks are not contiguous.\n");
-#endif                
-                return 5;
-            }
-            if (lasttype == UNUSED && type == UNUSED) {
-#ifdef DEBUG
-                printf("error 6: two consecutive UNUSED blocks\n");
-                return 6;
-#endif
-            }
-            lasttype = type;
-            currentbase += ((chunkdesc *)tmp->heap.LList)[j].size;
-        }
-        
-    }
+/* Get zone identifier for given zone. */
+static inline unsigned
+getZoneIdent(NSZone *zone)
+{
+  ZoneTable *table = zone->table;
+  
+  if (zone->table == NULL)
     return 0;
+  return table->ident*zunit+(zone-table->zones);
 }
 
-/*
- * Give a zone a name.
- *
- * The string will be copied.
- */
-    void NSNameZone(NSZone *zonep, const char *name)
+static inline NSZone*
+zoneWithIdent(unsigned ident)
 {
-#ifdef DEBUG
-    printf("current name=%s changing to %s\n",zonep->name,name);
-#endif
-    if (zonep != NULL) {
-        strncpy(zonep->name,name,MAXZONENAMELENGTH);
-        zonep->name[MAXZONENAMELENGTH]=0;
+  if (ident)
+    {
+      int i, a;
+      ZoneTable *table = zones;
+
+      for (i = a = ident/zunit; i > 1; i--)
+	table = table->next;
+      return table->zones+(ident-a*zunit);
     }
-    return;
+  return &defaultZone;
+}
+
+static inline BlockHeader*
+addBBlock(BlockHeader *list, BlockHeader *block)
+{
+  block->previous = NULL;
+  block->next = list;
+  if (list != NULL)
+    list->previous = block;
+  return block;
+}
+
+static inline BlockHeader*
+addSBlock(BlockHeader *list, BlockHeader *block)
+{
+  block->previous = NULL;
+  block->next = list;
+  list->previous = block;
+  return block;
+}
+
+static inline void
+releaseSBlock(BlockHeader *block)
+{
+  if (block->next != NULL)
+    block->next->previous = block->previous;
+  if (block->previous != NULL)
+    block->previous->next = block->next;
+  block->size = splitfront(block->size);
+  releaseBlock(block);
+}
+
+static inline void
+releaseBBlock(BlockHeader *block)
+{
+  if (block->next != NULL)
+    block->next->previous = block->previous;
+  if (block->previous != NULL)
+    block->previous->next = block->next;
+  releaseBlock(block);
+}
+
+/* SIZE includes the overhead. */
+static inline void
+setFreeChunk(void *chunk, unsigned size, unsigned prev, unsigned next)
+{
+  unsigned tmp = setfrontback(size-USEDOVERHEAD, 0);
+  unsigned *intp = chunk;
+
+  assert(size%CHUNK == 0);
+  
+  *intp = tmp;
+  *(intp+1) = setfrontback(next, prev);
+  intp = (void*)intp+size;
+  *(intp-1) = tmp;
+  *(intp-2) = setfrontback(prev, next);
+}
+
+/* SIZE includes the overhead. */
+static inline void
+setUsedChunk(void *chunk, unsigned size, unsigned pos)
+{
+  unsigned n = setfrontback(size-USEDOVERHEAD, pos);
+  unsigned *intp = chunk;
+
+  assert(size%CHUNK == 0);
+  
+  *intp = n;
+  intp = (void*)intp+size;
+  *(intp-1) = n;
+  return;
+}
+
+NSZone*
+NSCreateZone(unsigned startSize, unsigned granularity, BOOL canFree)
+{
+  NSZone *zone;
+  BlockHeader *block;
+  
+  if (!bsize)
+    /* FIXME: Any way to make sure this runs only once? */
+    initialize();
+  if ((startSize == 0) || (startSize > maxsblock()))
+    startSize = bsize;
+  else
+    startSize = roundupto(startSize, bsize);
+  if ((granularity == 0) || (granularity > maxsblock()))
+    granularity = bsize;
+  zone = getZone();
+  if (zone == NULL)
+    [NSException raise: NSMallocException
+		 format: @"NSCreateZone(): Unable to obtain zone"];
+  zone->sblocks = block = getBlock(startSize);
+  if (block == NULL)
+    {
+      releaseZone(zone);
+      [NSException raise: NSMallocException
+		   format: @"NSCreateZone(): More memory unattainable"];
+    }
+  zone->granularity = roundupto(granularity, bsize);
+  zone->name = nil;
+  zone->bblocks = NULL;
+  zone->lock = makelock();
+  block->previous = block->next = NULL;
+  block->size = setfrontback(startSize, getZoneIdent(zone));
+  if (canFree)
+    {
+      zone->malloc = fmalloc;
+      zone->realloc = frealloc;
+      zone->free = ffree;
+      zone->recycle = frecycle;
+      block->free =
+	setfrontback(startSize-(BLOCKHEAD+USEDOVERHEAD), BLOCKHEAD);
+      setFreeChunk((void*)block+BLOCKHEAD, startSize-BLOCKHEAD, 0, 0);
+    }
+  else
+    {
+      zone->malloc = nmalloc;
+      zone->realloc = nrealloc;
+      zone->free = nfree;
+      zone->recycle = nrecycle;
+      block->free = BLOCKHEAD;
+    }
+  return zone;
+}
+
+NSZone*
+NSDefaultMallocZone(void)
+{
+  if (!bsize)
+    /* FIXME: Any way to make sure this runs only once? */
+    initialize();
+  return &defaultZone;
+}
+
+NSZone*
+NSZoneFromPointer(void *pointer)
+{
+  unsigned *intp;
+  BlockHeader *block;
+
+  intp = pointer-sizeof(unsigned);
+  block = (void*)intp-splitback(*intp);
+  if (block->free)
+    return zoneWithIdent(splitback(block->size));
+  else
+    {
+      BlockHeader *aBlock = defaultZone.bblocks;
+      NSZone *zone, *endzone;
+      ZoneTable *table;
+
+      while (aBlock != NULL)
+	{
+	  if (aBlock == block)
+	    return &defaultZone;
+	  aBlock = aBlock->next;
+	}
+      table = zones;
+      while (table != NULL)
+	{
+	  zone = table->zones;
+	  endzone = zone+table->size;
+	  while (zone < endzone)
+	    {
+	      if (zone->table != NULL)
+		{
+		  aBlock = zone->bblocks;
+		  while (aBlock != NULL)
+		    {
+		      if (aBlock == block)
+			return zone;
+		      aBlock = aBlock->next;
+		    }
+		}
+	      zone++;
+	    }
+	  table = table->next;
+	}
+    }
+  return NULL; /* No zone containing pointer found. */
+}
+      
+inline void*
+NSZoneMalloc(NSZone *zone, unsigned size)
+{
+  return (zone->malloc)(zone, size);
+}
+
+void*
+NSZoneCalloc(NSZone *zone, unsigned numElems, unsigned numBytes)
+{
+  return memset((zone->malloc)(zone, numElems*numBytes), 0, numElems*numBytes);
+}
+
+inline void*
+NSZoneRealloc(NSZone *zone, void *pointer, unsigned size)
+{
+  return (zone->realloc)(zone, pointer, size);
+}
+
+inline void
+NSRecycleZone(NSZone *zone)
+{
+  (zone->recycle)(zone);
+}
+
+inline void
+NSZoneFree(NSZone *zone, void *pointer)
+{
+  (zone->free)(zone, pointer);
 }
 
 void
-NSSetZoneName (NSZone *z, NSString *name)
+NSSetZoneName (NSZone *zone, NSString *name)
 {
-  /* xxx Not implemented. */
-  abort ();
+  zone->name = [name copy];
 }
 
-NSString *NSZoneName (NSZone *z)
+NSString*
+NSZoneName (NSZone *zone)
 {
-  /* xxx Not implemented. */
-  abort ();
+  return zone->name;
+}
+
+void
+NSZonePtrInfo(void *ptr)
+{
+  /* FIXME: Implement this. */
+  fprintf(stderr, "NSZonePtrInfo() not implemented yet!\n");
+}
+
+BOOL
+NSMallocCheck(void)
+{
+  /* FIXME: Implement this. */
+  fprintf(stderr, "NSMallocCheck() not implemented yet!\n");
+  abort();
+  return NO;
+}
+
+static void
+initialize(void)
+{
+  BlockHeader *block;
+  
+  bsize = NSPageSize();
+  zunit = (bsize-sizeof(ZoneTable))/sizeof(NSZone);
+  zonelock = makelock();
+  blocklock = makelock();
+  defaultZone.lock = makelock();
+  defaultZone.granularity = bsize;
+  defaultZone.malloc = fmalloc;
+  defaultZone.realloc = frealloc;
+  defaultZone.free = ffree;
+  defaultZone.recycle = NULL;
+  defaultZone.name = nil;
+  defaultZone.table = NULL;
+  defaultZone.bblocks =  NULL;
+  block = defaultZone.sblocks = getBlock(bsize);
+  if (block == NULL)
+    {
+      fprintf(stderr, "Unable to allocate memory for default zone.\n");
+      abort(); /* No point surviving if we can't even use the default zone. */
+    }
+  block->previous = block->next = NULL;
+  block->size = setfrontback(bsize, 0);
+  block->free = setfrontback(bsize-BLOCKHEAD-USEDOVERHEAD, BLOCKHEAD);
+  setFreeChunk((void*)block+BLOCKHEAD, bsize-BLOCKHEAD, 0, 0);
+}
+
+static BlockHeader*
+getBlock(unsigned size)
+{
+  BlockHeader *block;
+
+  assert(size%bsize == 0);
+  
+  lock(blocklock);
+  block = freeBlocks;
+  while ((block != NULL) && (block->size < size))
+    block = block->next;
+  if (block == NULL)
+    block = NSAllocateMemoryPages(size);
+  else if (block->size != size)
+    {
+      BlockHeader *splitblock;
+      
+      splitblock = (void*)block+size;
+      splitblock->previous = block->previous;
+      splitblock->next = block->next;
+      splitblock->size = block->size-size;
+      if (block->next != NULL)
+	block->next->previous = splitblock;
+      if (block->previous != NULL)
+	block->previous->next = splitblock;
+    }
+  unlock(blocklock);
+  return block;
+}
+
+static void
+releaseBlock(BlockHeader *block)
+{
+  BlockHeader *aBlock;
+
+  lock(blocklock);
+  aBlock = freeBlocks;
+  while ((aBlock != NULL) && (aBlock > block))
+    aBlock = aBlock->next;
+  if (aBlock == NULL)
+    {
+      if (lastFree == NULL)
+	{
+	  lastFree = freeBlocks = block;
+	  block->previous = aBlock->next = NULL;
+	}
+      else if ((void*)block+block->size == (void*)lastFree)
+	{
+	  block->size += lastFree->size;
+	  block->previous = lastFree->previous;
+	  block->next = NULL;
+	  if (block->previous != NULL)
+	    block->previous->next = block;
+	  lastFree = block;
+	}
+      else
+	{
+	  block->previous = lastFree;
+	  block->next = NULL;
+	  lastFree->next = block;
+	  lastFree = block;
+	}
+    }
+  else
+    {
+      if (aBlock->previous == NULL)
+	{
+	  freeBlocks = block;
+	  block->next = aBlock;
+	  block->previous = NULL;
+	  aBlock->previous = block;
+	}
+      else if ((void*)block+block->size == aBlock->previous)
+	{
+	  block->size += aBlock->previous->size;
+	  block->previous = aBlock->previous->previous;
+	  block->next = aBlock;
+	  if (block->previous != NULL)
+	    block->previous->next = block;
+	  aBlock->previous = block;
+	}
+      if ((void*)aBlock+aBlock->size == block)
+	aBlock->size += block->size;
+    }
+  unlock(blocklock);
+}
+
+static void*
+getMemInBlock(BlockHeader *block, unsigned size)
+{
+  unsigned chunksize = roundupto(size+USEDOVERHEAD, CHUNK);
+  unsigned *intp, *intp2;
+
+  assert(splitfront(block->free) >= size+USEDOVERHEAD);
+  
+  intp = (void*)block+splitback(block->free);
+  intp2 = (void*)block+splitfront(*(intp+1));
+  if ((void*)intp2 != (void*)block)
+    {
+      setFreeChunk(intp2, splitfront(*intp2)+USEDOVERHEAD,
+		   0, splitfront(*(intp2+1)));
+      block->free =
+	setfrontback(splitfront(*intp2), (void*)intp2-(void*)block);
+    }
+  else
+    block->free = setfrontback(0, splitfront(block->size));
+  if (splitfront(*intp)+USEDOVERHEAD != chunksize)
+    {
+      setFreeChunk((void*)intp+chunksize,
+		   (splitfront(*intp)+USEDOVERHEAD)-chunksize, 0, 0);
+      insertFreeChunk(block, (void*)intp+chunksize);
+    }
+  setUsedChunk(intp, chunksize, (void*)intp-(void*)block);
+  return intp+1;
+}
+
+static void
+insertFreeChunk(BlockHeader *block, void *chunk)
+{
+  unsigned *intp = chunk;
+
+  assert((void*)chunk < (void*)block+splitfront(block->size));
+
+  if (splitfront(block->free) == 0)
+    {
+      block->free = setfrontback(splitfront(*intp), chunk-(void*)block);
+      setFreeChunk(chunk, splitfront(*intp)+USEDOVERHEAD, 0, 0);
+    }
+  else
+    {
+      unsigned *intp2 = (void*)block+splitback(block->free);
+      unsigned *intp3 = NULL;
+
+      while (((void*)intp2 != (void*)block)
+	     && (splitfront(*intp) < splitfront(*intp2)))
+	{
+	  intp3 = intp2;
+	  intp2 = (void*)block+splitfront(*(intp2+1));
+	}
+      if (intp3 == NULL)
+	{
+	  unsigned pos = chunk-(void*)block;
+	  
+	  setFreeChunk(intp2, splitfront(*intp2)+USEDOVERHEAD,
+		       pos, splitfront(*(intp2+1)));
+	  setFreeChunk(chunk, splitfront(*intp)+USEDOVERHEAD,
+		       0, (void*)intp2-(void*)block);
+	  block->free = setfrontback(splitfront(*intp), pos);
+	}
+      else if ((void*)intp2 == (void*)block)
+	{
+	  setFreeChunk(intp3, splitfront(*intp3)+USEDOVERHEAD,
+		       splitback(*(intp3+1)), chunk-(void*)block);
+	  setFreeChunk(chunk, splitfront(*intp)+USEDOVERHEAD,
+		       (void*)intp3-(void*)block, 0);
+	}
+      else
+	{
+	  unsigned pos = chunk-(void*)block;
+	  
+	  setFreeChunk(intp2, splitfront(*intp2)+USEDOVERHEAD,
+		       pos, splitfront(*(intp2+1)));
+	  setFreeChunk(intp3, splitfront(*intp3)+USEDOVERHEAD,
+		       splitback(*(intp3+1)), pos);
+	  setFreeChunk(chunk, splitfront(*intp)+USEDOVERHEAD,
+		       (void*)intp3-(void*)block, (void*)intp2-(void*)block);
+	}
+    }
+}
+
+static NSZone*
+getZone(void)
+{
+  NSZone *zone;
+  ZoneTable *table = zones;
+
+  lock(zonelock);
+  while ((table != NULL) && (table->count == zunit))
+    table = table->next;
+  if (table == NULL)
+    {
+      table = NSAllocateMemoryPages(bsize);
+      if (table == NULL)
+	zone = NULL;
+      else
+	{
+	  table->size = table->count = 1;
+	  table->next = zones;
+	  if (zones == NULL)
+	    {
+	      zones = table;
+	      table->ident = 1;
+	    }
+	  else
+	    {
+	      endzones->next = table;
+	      table->ident = endzones->ident+1;
+	    }
+	  endzones = table;
+	  table->next = NULL;
+	  zone = table->zones;
+	}
+    }
+  else
+    {
+      if (table->size == zunit)
+	{
+	  zone = table->zones;
+	  while (zone->table != NULL)
+	    zone++;
+	}
+      else
+	{
+	  zone = table->zones+table->size;
+	  table->size++;
+	}
+      table->count++;
+    }
+  zone->table = table;
+  unlock(zonelock);
+  return zone;
+}
+
+static void
+releaseZone(NSZone *zone)
+{
+  lock(zonelock);
+  ((ZoneTable*)zone->table)->count--;
+  zone->table = NULL;
+  unlock(zonelock);
+  return;
+}
+
+static void*
+fmalloc(NSZone *zone, unsigned size)
+{
+  unsigned *intp;
+  BlockHeader *block;
+  void *ptr;
+
+  lock(zone->lock);
+  if (size+BLOCKHEAD+USEDOVERHEAD > maxsblock())
+    {
+      unsigned realSize = roundupto(size+BLOCKHEAD+USEDOVERHEAD, bsize);
+      
+      block = getBlock(realSize);
+      if (block == NULL)
+	{
+	  unlock(zone->lock);
+	  [NSException raise: NSMallocException
+		       format: @"NSZoneMalloc(): Unable to get memory"];
+	}
+      block->size = realSize;
+      block->free = 0;
+      zone->bblocks = addBBlock(zone->bblocks, block);
+      intp = (void*)block+BLOCKHEAD;
+      *intp = setfrontback(0, BLOCKHEAD);
+      ptr = intp+1;
+    }
+  else
+    {
+      block = zone->sblocks;
+      while ((block != NULL) && (splitfront(block->free) < size+USEDOVERHEAD))
+	block = block->next;
+      if (block == NULL)
+	{
+	  unsigned chunk = roundupto(size+USEDOVERHEAD, CHUNK);
+	  unsigned tmp, total;
+      
+	  total = roundupto(size+BLOCKHEAD+USEDOVERHEAD, zone->granularity);
+	  block = getBlock(total);
+	  if (block == NULL)
+	    {
+	      unlock(zone->lock);
+	      [NSException raise: NSMallocException
+			   format: @"NSZoneMalloc(): Unable to get memory"];
+	    }
+	  zone->sblocks = addSBlock(zone->sblocks, block);
+	  tmp = total-chunk-BLOCKHEAD-USEDOVERHEAD;
+	  block->size = setfrontback(total, getZoneIdent(zone));
+	  block->free = setfrontback(tmp, chunk+BLOCKHEAD);
+	  setUsedChunk((void*)block+BLOCKHEAD, chunk, BLOCKHEAD);
+	  setFreeChunk((void*)block+(chunk+BLOCKHEAD), tmp+USEDOVERHEAD, 0, 0);
+	  ptr = (void*)block+(BLOCKHEAD+sizeof(unsigned));
+	}
+      else
+	ptr = getMemInBlock(block, size);
+    }
+  unlock(zone->lock);
+  return ptr;
+}
+
+static void*
+frealloc(NSZone *zone, void *ptr, unsigned size)
+{
+  /* FIXME: Implement this properly! */
+  void *newptr;
+
+  newptr = fmalloc(zone, size);
+  memcpy(newptr, ptr, size);
+  ffree(zone, ptr);
+  return newptr;
+}
+
+static void
+ffree(NSZone *zone, void *ptr)
+{
+  unsigned *intp;
+  BlockHeader *block;
+
+  if (ptr == NULL)
+    return;
+  lock(zone->lock);
+  intp = ptr-sizeof(unsigned);
+  block = (void*)intp-splitback(*intp);
+  if (block->free)
+    insertFreeChunk(block, intp);
+  else
+    {
+      if (block->previous == NULL)
+	zone->bblocks = block->next;
+      else
+	block->previous->next = block->next;
+      if (block->next != NULL)
+	block->next->previous = block->previous;
+      releaseBBlock(block);
+    }
+  unlock(zone->lock);
+  return;
+}
+
+static void
+frecycle(NSZone *zone)
+{
+  BlockHeader *block, *nextblock;
+
+  block = zone->bblocks;
+  while (block != NULL)
+    {
+      nextblock = block->next;
+      defaultZone.bblocks = addBBlock(defaultZone.bblocks, block);
+      block = nextblock;
+    }
+  block = zone->sblocks;
+  while (block != NULL)
+    {
+      nextblock = block->next;
+      if (splitfront(block->size)
+	  == splitfront(block->free)+BLOCKHEAD+USEDOVERHEAD)
+	releaseSBlock(block);
+      else
+	defaultZone.sblocks = addSBlock(defaultZone.sblocks, block);
+      block = nextblock;
+    }
+  [zone->name release];
+  destroylock(zone->lock);
+  releaseZone(zone);
+  return;
+}
+
+static void*
+nmalloc(NSZone *zone, unsigned size)
+{
+  unsigned *intp;
+  BlockHeader *block;
+
+  lock(zone->lock);
+  if (size+BLOCKHEAD+USEDOVERHEAD > maxsblock())
+    {
+      unsigned realSize = roundupto(size+BLOCKHEAD+USEDOVERHEAD, bsize);
+
+      block = getBlock(realSize);
+      if (block == NULL)
+	{
+	  unlock(zone->lock);
+	  [NSException raise: NSMallocException
+		       format: @"NSZoneMalloc(): Unable to get memory"];
+	}
+      block->size = realSize;
+      block->free = 0;
+      zone->bblocks = addBBlock(zone->bblocks, block);
+      intp = (void*)block+BLOCKHEAD;
+      *intp = setfrontback(0, BLOCKHEAD);
+    }
+  else
+    {
+      block = zone->sblocks;
+      if (size+sizeof(unsigned) > splitfront(block->size)-block->free)
+	{
+	  unsigned newsize;
+	  BlockHeader *newblock;
+
+	  newsize =
+	    roundupto(size+USEDOVERHEAD+BLOCKHEAD, zone->granularity);
+	  newblock = getBlock(newsize);
+	  if (newblock == NULL)
+	    {
+	      unlock(zone->lock);
+	      [NSException raise: NSMallocException
+			   format: @"NSZoneMalloc(): Unable to get memory"];
+	    }
+	  newblock->size = setfrontback(newsize, getZoneIdent(zone));
+	  newblock->free = roundupto(size+sizeof(unsigned), CHUNK)+BLOCKHEAD;
+	  zone->sblocks = addSBlock(zone->sblocks, newblock);
+	  intp = (void*)newblock+BLOCKHEAD;
+	  *intp = setfrontback(0, BLOCKHEAD);
+	}
+      else
+	{
+	  intp = (void*)block+block->free;
+	  *intp = (void*)intp-(void*)block;
+	  block->free += roundupto(size+sizeof(unsigned), CHUNK);
+	}
+    }
+  unlock(zone->lock);
+  return intp+1;
+}
+
+static void*
+nrealloc(NSZone *zone, void *ptr, unsigned size)
+{
+  [NSException raise: NSGenericException
+	       format: @"Trying to reallocate memory in non-freeable zone"];
   return NULL;
 }
 
-
-/* these are internal routines, not to be called by the user.
-   They manipulate pseudo List objects, but with less overhead.
-   */
-
-void *addtolist(void *ptr,llist *list, int at)    
+static void
+nfree(NSZone *zone, void *ptr)
 {
-    void *newelement;
-    
-    /* increase allocated size for list if necessary */
-    if (list->Count>= list->Size) {
-        if (list->LList == NULL) {
-            list->Size = DEFAULTLISTSIZE;
-            list->LList = (void *)
-	      objc_malloc (list->ElementSize * list->Size);
-        }
-        else {
-            list->Size *= 2;
-            list->LList = (void *)
-	      objc_realloc (list->LList, list->ElementSize * list->Size);
-        }
-        
+  [NSException raise: NSGenericException
+	       format: @"Trying to free memory in non-freeable zone"];
+  return;
+}
+
+static void
+nrecycle(NSZone *zone)
+{
+  BlockHeader *block;
+
+  block = zone->sblocks;
+  while (block != NULL)
+    {
+      releaseSBlock(block);
+      block = block->next;
     }
-    
-    newelement = &((char *)list->LList)[at*list->ElementSize];
-    
-    /* add element to list at position at */
-    if (at != list->Count)
-        bcopy(&((char *)list->LList)[at*list->ElementSize],
-              &((char *)list->LList)[(at+1)*list->ElementSize],
-              list->ElementSize*(list->Count - at)
-            );
-    bcopy(ptr,newelement,list->ElementSize);
-    list->Count++;
-    return newelement;
-    
-}
-
-
-void delfromlist( llist *list, int at )
-{
-    if (at+1<list->Count)
-        bcopy(&((char *)list->LList)[(at+1)*list->ElementSize],
-              &((char *)list->LList)[(at  )*list->ElementSize],
-              list->ElementSize*(list->Count - at-1));
-              
-    list->Count--;
-}
-
-/* this searches the heap linearly.. someone can change this to
-   a binary search if they want. */
-
-int searchheap(llist *heap,void *ptr)
-{
-    int i;
-    
-    for (i=0;i<heap->Count;i++)
-        if (ptr == ((chunkdesc *)heap->LList)[i].base) return i;
-
-    return -1;
+  block = zone->bblocks;
+  while (block != NULL)
+    {
+      releaseBBlock(block);
+      block = block->next;
+    }
+  destroylock(zone->lock);
+  [zone->name release];
+  releaseZone(zone);
+  return;
 }
