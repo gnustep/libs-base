@@ -89,7 +89,13 @@
   return copy;
 }
 
+/* xxx This should return an autoreleased, malloc'ed copy */
 - (const char *) cString
+{
+  return _contents_chars;
+}
+
+- (const char *) cStringNoCopy
 {
   return _contents_chars;
 }
