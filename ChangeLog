@@ -1,6 +1,87 @@
-Tue Sep 17 10:33:31 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+Wed Sep 18 09:11:44 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.9.
+
+	* src/NSString.m (HAVE_REGISTER_PRINTF_FUNCTION): Temporarily set
+ 	this to 0 until I figure out when register_printf_function's
+ 	output handler function takes `va_list' and when it takes
+ 	`void**'.
+
+	* src/TcpPort.m: Use new ivar name eof_position, not old
+ 	eofPosition.
+
+	* src/include/NSZone.h: Don't include gnustep/base/config.h.
+
+Tue Sep 17 16:44:15 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/ostream.m (ostream_open_memory): Use new MemoryStream method
+ 	to specify that buffer should not be deallocated when MemoryStream
+ 	is deallocated.  Don't do the extra retain that was the previous
+ 	workaround.
+	* src/MemoryStream.m: Rename all uses of ivar eof_position.
+	([MemoryStream -_initOnMallocBuffer:freeWhenDone:size:
+	eofPosition:prefix:position:]): Method name changed to include
+ 	freeWhenDone:.  Set new ivar.
+	([MemoryStream -_initOnMallocBuffer:size:
+	eofPosition:prefix:position:]): New method (with old name) that
+ 	calls above method with `YES' for freeWhenDone:.
+	* src/include/MemoryStream.h: Declare new method.
+	(MemoryStream free_when_done): New ivar.
+	(MemoryStream eof_position): Ivar renamed from eofPosition, to
+	conform to GNU coding standards.
+
+	* src/Makefile.in (GNU_MFILES): Rename objc_streams.m to
+ 	ostream.h.
+	(GNU_HEADERS): Rename objc_streams.h to ostream.h.
+	* src/ostream.m: File renamed from src/objc_streams.m.  Fix
+	copyright date, and make minor formatting changes.
+	* src/ostream.h: File renamed from src/objc_streams.h.  Fix
+	copyright date, and make minor formatting changes.
+
+	* src/MemoryStream.m (MEMORY_CHECK): Macro deleted.  objc_malloc()
+ 	and friends take care of raising the correct exception.  All calls
+ 	removed.
+
+Tue Sep 17 11:43:23 1996  Adam Fedor  <fedor@pulse.Colorado.edu>
+
+	* src/Makefile.in (GNU_MFILES): Add new file.
+	(GNU_HEADERS): Likewise.
+
+	* src/MemoryStream.m ([MemoryStream
+	-initWithSize:prefix:position:]): Add error checking. 
+	([MemoryStream -writeBytes:length:]): Likewise. 
+	([MemoryStream -setStreamBufferCapacity:]): Likewise.  
+	* src/StdioStream.m ([StdioStream -initWithFilename:fmode]): Add
+	error checking. 
+	([StdioStream -initWithFileDescriptor:fmode]): Likewise. 
+	([StdioStream -writeBytes:length:]): Likewise.
+	([StdioStream -readBytes:length:]): Likewise.
+
+	* src/Stream.m ([Stream -writeFormat:]): Implement.
+	([Stream -setStreamPosition:]): Likewise.
+	* src/MemoryStream.m ([MemoryStream -writeFormat:arguments:]):
+ 	Implement instead of writeFormat:. ([MemoryStream
+	-setStreamPosition:seekMode:]): Implement instead of
+	-setStreamPostion:. 
+	* src/StdioStream.m ([StdioStream -writeFormat:arguments:]):
+ 	Implement instead of writeFormat:. ([StdioStream
+	-setStreamPosition:seekMode:]): Implement instead of
+	-setStreamPostion:.
+
+	* src/objc_streams.m: New file.
+	* src/base/objc_streams.h: New file.
+
+	* src/base/Stream.h: Declare new exception.
+	* src/Stream.m: Define it.
+
+	* src/base/Streaming.h: Add new enum type. Add
+	-setStreamPostion:seeMode: to protocol.
+
+Tue Sep 17 10:33:31 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* doc/install.texi: Fix typo in use of @code{}.
+
+	* src/md5.c: Don't include config.h.
 
 	* Makefile.in (DIST_FILES): Added contents of RCS_FILES.  Added
  	acconfig.h.
