@@ -1918,19 +1918,28 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 /**
  * Sets the format string associated with the receiver.<br />
+ * Providing a nil argument sets the default calendar format.<br />
  * See -descriptionWithCalendarFormat:locale: for details.
  */
 - (void) setCalendarFormat: (NSString *)format
 {
-  RELEASE(_calendar_format);
-  _calendar_format = [format copyWithZone: [self zone]];
+  if (format == nil)
+    {
+      format = cformat;
+    }
+  ASSIGNCOPY(_calendar_format, format);
 }
 
 /**
- * Sets the time zone associated with the receiver.
+ * Sets the time zone associated with the receiver.<br />
+ * Providing a nil argument sets the local time zone.
  */
 - (void) setTimeZone: (NSTimeZone *)aTimeZone
 {
+  if (aTimeZone == nil)
+    {
+      aTimeZone = localTZ;
+    }
   ASSIGN(_time_zone, aTimeZone);
 }
 

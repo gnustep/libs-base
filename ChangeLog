@@ -1,3 +1,9 @@
+Sat Oct 25 06:54:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: ([setCalendarFormat:]),([setTimeZone:])
+	make nil arguments set default values for MacOS-X compatibility.
+	Document this.
+
 2003-10-24  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Try to use libffi if ffcall not found.
