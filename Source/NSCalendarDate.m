@@ -169,48 +169,57 @@
 		       locale: nil];
 }
 
-/*
- * This function could possibly be written better
- * but it works ok; currently ignores locale
- * information and some specifiers.
- */
-- (id) initWithString: (NSString *)description
-       calendarFormat: (NSString *)format
-	       locale: (NSDictionary *)locale
-{
-  const char *d = [description cString];
-  const char *f = [format cString];
-  char *newf;
-  int lf = strlen(f);
-  BOOL mtag = NO, dtag = NO, ycent = NO;
-  BOOL fullm = NO;
-  char ms[80] = "", ds[80] = "", timez[80] = "", ampm[80] = "";
-  int tznum = 0;
-  int yd = 0, md = 0, dd = 0, hd = 0, mnd = 0, sd = 0;
-  void *pntr[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  int order;
-  int yord = 0, mord = 0, dord = 0, hord = 0, mnord = 0, sord = 0, tzord = 0;
-  int ampmord = 0;
-  int i;
-  NSTimeZone *tz;
-  BOOL zoneByAbbreviation = YES;
 
-  // If either the string or format is nil then raise exception
-  if (!description)
-    [NSException raise: NSInvalidArgumentException
-		format: @"NSCalendar date description is nil"];
+- (id) initWithString: (NSString *)description 
+       calendarFormat: (NSString *)fmt
+               locale: (NSDictionary *)locale
+{
+  int        year = 0, month = 1, day = 1, hour = 0, min = 0, sec = 0;
+  NSTimeZone *tz = [NSTimeZone localTimeZone];
+
+  int ampm = 0, twelveHrClock = 0; 
+  int julianWeeks = -1, weekStartsMonday = 0, dayOfWeek = -1;
+
+  const char *source = [description cString];
+  int        sourceLen = strlen(source);
+  const char *format = [fmt cString];
+  int        formatLen = strlen(format);
+
+  int  formatIdx = 0;
+  int  sourceIdx = 0;
+
+  char tmpStr[20];
+  int  tmpIdx;
 
   if (locale == nil)
-    locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
-  if (format == nil)
-    format = [locale objectForKey: NSTimeDateFormatString];
+   {
+     locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+   }
+  if (fmt == nil)
+   {
+      format = [[locale objectForKey: NSTimeDateFormatString] cString];
+      formatLen = strlen(format);
+   }
 
-  // The strftime specifiers
+  //
+  // WARNING:
+  //   -%c, %F, %x, %X do NOT work. (NSTimeDateFormatString isn't defined and
+  //    the underlying call has granularity to the second.
+  //   -Most locale stuff is dubious at best.
+  //   -Long day and month names depend on a non-alpha character after the last
+  //    digit to work.
+  //
+  // The strftime specifiers as used by OpenStep + %U.
+  //
+  // %%   literal % character
   // %a   abbreviated weekday name according to locale
   // %A   full weekday name according to locale
   // %b   abbreviated month name according to locale
   // %B   full month name according to locale
+  // %c   same as '%X %x'
   // %d   day of month as decimal number
+  // %e   same as %d without leading zero (you get a leading space instead)
+  // %F   milliseconds as a decimal number
   // %H   hour as a decimal number using 24-hour clock
   // %I   hour as a decimal number using 12-hour clock
   // %j   day of year as a decimal number
@@ -221,252 +230,307 @@
   // %U   week of the current year as decimal number (Sunday first day)
   // %W   week of the current year as decimal number (Monday first day)
   // %w   day of the week as decimal number (Sunday = 0)
-  // %y   year as a decimal number without century
+  // %x   date with date representation for locale
+  // %X   time with time representation for locale
+  // %y   year as a decimal number without century 
   // %Y   year as a decimal number with century
-  // %Z   time zone
-  // %%   literal % character
-
-  // Find the order of date elements
-  // and translate format string into scanf ready string
-  order = 1;
-  newf = NSZoneMalloc(NSDefaultMallocZone(), lf+1);
-  for (i = 0;i < lf; ++i)
-    {
-      newf[i] = f[i];
-
-      // Only care about a format specifier
-      if (f[i] == '%')
+  // %z   time zone offset in hours and minutes from GMT (HHMM)
+  // %Z   time zone abbreviation
+  while ( formatIdx < formatLen )
 	{
-	  // check the character that comes after
-	  switch (f[i+1])
-	    {
-	      // skip literal %
-	    case '%':
-	      ++i;
-	      newf[i] = f[i];
-	      break;
-
-	      // is it the year
-	    case 'Y':
-	      ycent = YES;
-	    case 'y':
-	      yord = order;
-	      ++order;
-	      ++i;
-	      newf[i] = 'd';
-	      pntr[yord] = (void *)&yd;
-	      break;
-
-	      // is it the month
-	    case 'B':
-	      fullm = YES;   // Full month name
-	    case 'b':
-	      mtag = YES;    // Month is character string
-	    case 'm':
-	      mord = order;
-	      ++order;
-	      ++i;
-	      if (mtag)
+	  if ( format[formatIdx] != '%' )
 		{
-		  newf[i] = 's';
-		  pntr[mord] = (void *)ms;
-		}
-	      else
-		{
-		  newf[i] = 'd';
-		  pntr[mord] = (void *)&md;
-		}
-	      break;
+		  // If it's not a format specifier, ignore it.
+		  sourceIdx++;
+		} else {
 
-	      // is it the day
-	    case 'a':
-	    case 'A':
-	      dtag = YES;   // Day is character string
-	    case 'd':
-	    case 'j':
-	    case 'w':
-	      dord = order;
-	      ++order;
-	      ++i;
-	      if (dtag)
-		{
-		  newf[i] = 's';
-		  pntr[dord] = (void *)ds;
-		}
-	      else
-		{
-		  newf[i] = 'd';
-		  pntr[dord] = (void *)&dd;
-		}
-	      break;
+		  // Skip '%'
+		  formatIdx++;
 
-	      // is it the hour
-	    case 'H':
-	    case 'I':
-	      hord = order;
-	      ++order;
-	      ++i;
-	      newf[i] = 'd';
-	      pntr[hord] = (void *)&hd;
-	      break;
+		  switch (format[formatIdx])
+			{
+			  case '%':
+				// skip literal %
+			 	sourceIdx++;
+				break;
 
-	      // is it the minute
-	    case 'M':
-	      mnord = order;
-	      ++order;
-	      ++i;
-	      newf[i] = 'd';
-	      pntr[mnord] = (void *)&mnd;
-	      break;
+			  case 'a':
+				// Are Short names three chars in all locales?????
+				tmpStr[0] = toupper( source[sourceIdx++] );
+				tmpStr[1] = tolower( source[sourceIdx++] );
+				tmpStr[2] = tolower( source[sourceIdx++] );
+				tmpStr[3] = '\0';
+				 {
+					NSString *currDay = [NSString stringWithCString: tmpStr];
+					NSArray	*dayNames = [locale objectForKey: NSShortWeekDayNameArray];
 
-	      // is it the second
-	    case 'S':
-	      sord = order;
-	      ++order;
-	      ++i;
-	      newf[i] = 'd';
-	      pntr[sord] = (void *)&sd;
-	      break;
+					for (tmpIdx = 0; tmpIdx < 7; tmpIdx++)
+					  if ([[dayNames objectAtIndex: tmpIdx] isEqual: currDay] == YES)
+						break;
+					dayOfWeek = tmpIdx; 
+				 }
+				break;
 
-	      // the time zone abbreviation
-	    case 'Z':
-	      tzord = order;
-	      ++order;
-	      ++i;
-	      newf[i] = 's';
-	      pntr[tzord] = (void *)timez;
-	      break;
+			  case 'A':
+				for ( tmpIdx = sourceIdx; tmpIdx < sourceLen; tmpIdx++ )
+				 {
+				    if ( isalpha( source[tmpIdx] ) )
+					  {
+				    	tmpStr[tmpIdx - sourceIdx] = source[tmpIdx];
+					  } else {
+						break;
+					  }
+				  }
+			    tmpStr[tmpIdx - sourceIdx] = '\0';
+			    sourceIdx += tmpIdx - sourceIdx;
+				 {
+					NSString *currDay = [NSString stringWithCString: tmpStr];
+					NSArray	*dayNames = [locale objectForKey: NSWeekDayNameArray];
 
-	      // the time zone in numeric format
-	    case 'z':
-	      tzord = order;
-	      ++order;
-	      ++i;
-	      newf[i] = 'd';
-	      pntr[tzord] = (void *)&tznum;
-	      zoneByAbbreviation = NO;
-	      break;
+					for (tmpIdx = 0; tmpIdx < 7; tmpIdx++)
+					  if ([[dayNames objectAtIndex: tmpIdx] isEqual: currDay] == YES)
+						break;
+					dayOfWeek = tmpIdx;
+				 }
+				break;
 
-	      // AM PM indicator
-	    case 'p':
-	      ampmord = order;
-	      ++order;
-	      ++i;
-	      newf[i] = 's';
-	      pntr[ampmord] = (void *)ampm;
-	      break;
+			  case 'b':
+				// Are Short names three chars in all locales?????
+				tmpStr[0] = toupper( source[sourceIdx++] );
+				tmpStr[1] = tolower( source[sourceIdx++] );
+				tmpStr[2] = tolower( source[sourceIdx++] );
+				tmpStr[3] = '\0';
+				 {
+					NSString *currMonth = [NSString stringWithCString: tmpStr];
+					NSArray	*monthNames = [locale objectForKey: NSShortMonthNameArray];
 
-	      // Anything else is an invalid format
-	    default:
-	      free(newf);
-	      [NSException raise: NSInvalidArgumentException
-			   format: @"Invalid NSCalendar date, specifier %c not recognized in format %s", f[i+1], f];
-	    }
+					for (tmpIdx = 0; tmpIdx < 12; tmpIdx++)
+					 {
+					  if ([[monthNames objectAtIndex: tmpIdx] isEqual: currMonth] == YES)
+						break;
+					 }
+					month = tmpIdx+1;
+				 }
+				break;
+
+			  case 'B':
+				for ( tmpIdx = sourceIdx; tmpIdx < sourceLen; tmpIdx++ )
+				 {
+				    if ( isalpha( source[tmpIdx] ) )
+					  {
+				    	tmpStr[tmpIdx - sourceIdx] = source[tmpIdx];
+					  } else {
+						break;
+					  }
+				  }
+			    tmpStr[tmpIdx - sourceIdx] = '\0';
+			    sourceIdx += tmpIdx - sourceIdx;
+				 {
+				  	NSString *currMonth = [NSString stringWithCString: tmpStr];
+	  				NSArray	*monthNames = [locale objectForKey: NSMonthNameArray];
+
+					for (tmpIdx = 0; tmpIdx < 12; tmpIdx++)
+					  if ([[monthNames objectAtIndex: tmpIdx] isEqual: currMonth] == YES)
+						break;
+					month = tmpIdx+1;
+
+				 }
+				break;
+
+//			  case 'c':
+//				break;
+
+			  case 'd': // fall through
+			  case 'e':
+				memcpy( tmpStr, &source[sourceIdx], 2 );
+				tmpStr[2] = '\0';
+				sourceIdx += 2;
+				day = atoi( tmpStr );
+				break;
+
+//			  case 'F':
+//				break;
+
+			  case 'I': // fall through
+				twelveHrClock = 1;
+			  case 'H':
+				memcpy( tmpStr, &source[sourceIdx], 2 );
+				tmpStr[2] = '\0';
+				sourceIdx += 2;
+				hour = atoi( tmpStr );
+				break;
+
+			  case 'j':
+				memcpy( tmpStr, &source[sourceIdx], 3 );
+				tmpStr[3] = '\0';
+				sourceIdx += 3;
+				day = atoi( tmpStr );
+				break;
+
+			  case 'm':
+				memcpy( tmpStr, &source[sourceIdx], 2 );
+				tmpStr[2] = '\0';
+				sourceIdx += 2;
+				month = atoi( tmpStr );
+				break;
+
+			  case 'M':
+				memcpy( tmpStr, &source[sourceIdx], 2 );
+				tmpStr[2] = '\0';
+				sourceIdx += 2;
+				min = atoi( tmpStr );
+				break;
+
+			  case 'p':
+				// Questionable assumption that all am/pm indicators are 2
+				// characters and in upper case....
+				tmpStr[0] = toupper( source[sourceIdx++] );
+				tmpStr[1] = toupper( source[sourceIdx++] );
+				tmpStr[2] = '\0';
+				 {
+				  	NSString *currAMPM = [NSString stringWithCString: tmpStr];
+	  				NSArray	*amPMNames = [locale objectForKey: NSAMPMDesignation];
+
+				  	/*
+					 * The time addition is handled below because this
+					 * indicator only modifies the time on a 12hour clock.
+					 */
+					if ([[amPMNames objectAtIndex: 1] isEqual: currAMPM] == YES)
+					  ampm = 1;
+
+				 }
+				break;
+
+			  case 'S':
+				memcpy( tmpStr, &source[sourceIdx], 2 );
+				tmpStr[2] = '\0';
+				sourceIdx += 2;
+				sec = atoi( tmpStr );
+				break;
+
+			  case 'w':
+				tmpStr[0] = source[sourceIdx++];
+				tmpStr[1] = '\0';
+				dayOfWeek = atoi( tmpStr );
+				break;
+
+			  case 'W': // Fall through
+				weekStartsMonday = 1;
+			  case 'U':
+				memcpy( tmpStr, &source[sourceIdx], 2 );
+				tmpStr[2] = '\0';
+				sourceIdx += 2;
+			   	julianWeeks = atoi( tmpStr );
+				break;
+
+//			  case 'x':
+//				break;
+
+//			  case 'X':
+//				break;
+
+			  case 'y':
+				memcpy( tmpStr, &source[sourceIdx], 2 );
+				tmpStr[2] = '\0';
+				sourceIdx += 2;
+				year = atoi( tmpStr );
+				if ( year >= 70 )
+				  {
+					year += 1900;
+				  } else {
+					year += 2000;
+				  }
+				break;
+
+			  case 'Y':
+				memcpy( tmpStr, &source[sourceIdx], 4 );
+				tmpStr[4] = '\0';
+				sourceIdx += 4;
+				year = atoi( tmpStr );
+				break;
+
+			  case 'z':
+				tmpStr[0] = toupper( source[sourceIdx++] );
+				tmpStr[1] = tolower( source[sourceIdx++] );
+				tmpStr[2] = tolower( source[sourceIdx++] );
+				tmpStr[3] = tolower( source[sourceIdx++] );
+				tmpStr[4] = '\0';
+				 {
+				  	int zone;
+					zone = atoi( tmpStr );
+	  				if ((tz = [NSTimeZone timeZoneForSecondsFromGMT: 
+					   (zone / 100 * 60 + (zone % 100) ) * 60] ) == nil )
+					 {
+					    tz = [NSTimeZone localTimeZone];
+					 }
+				 }
+				break;
+
+			  case 'Z':
+				for ( tmpIdx = sourceIdx; tmpIdx < sourceLen; tmpIdx++ )
+				 {
+				    if ( isalpha( source[tmpIdx] ) || source[tmpIdx] == '-' || source[tmpIdx] == '+' )
+					  {
+				    	tmpStr[tmpIdx - sourceIdx] = source[tmpIdx];
+					  } else {
+						break;
+					  }
+				 }
+			    tmpStr[tmpIdx - sourceIdx] = '\0';
+			    sourceIdx += tmpIdx - sourceIdx;
+				 {
+	  				if ( (tz = [NSTimeZone timeZoneWithAbbreviation: 
+					   [NSString stringWithCString: tmpStr]]) == nil)
+					 {
+					    tz = [NSTimeZone localTimeZone];
+					 }
+				 }
+				break;
+
+			  default:
+				[NSException raise: NSInvalidArgumentException
+					 format: @"Invalid NSCalendar date, specifier %c not recognized in format %s", 
+				             format[formatIdx], format];
+			}
+		} 
+	  formatIdx++;
 	}
-    }
-  newf[lf] = '\0';
 
-  // Have sscanf parse and retrieve the values for us
-  if (order != 1)
-    sscanf(d, newf, pntr[1], pntr[2], pntr[3], pntr[4], pntr[5], pntr[6],
-	   pntr[7], pntr[8], pntr[9]);
-  else
-    // nothing in the string?
-    ;
+  if ( twelveHrClock )
+   {
+	  if ( ampm && hour != 12 )
+	   {
+		  hour += 12;
+	   }
+   }
 
-  // Put century on year if need be
-  // +++ How do we be year 2000 compliant?
-  if (!ycent)
-    yd += 1900;
+  if ( julianWeeks != -1 )
+   {
+	  int currDay  = [[[[NSCalendarDate alloc] initWithYear: year month: 1 day: 1 hour: 0 minute: 0
+		 second: 0 timeZone: [NSTimeZone timeZoneForSecondsFromGMT: 0]] autorelease] dayOfWeek];
 
-  // Possibly convert month from string to decimal number
-  if (mtag)
-    {
-      int i;
-      NSString *m = [NSString stringWithCString: ms];
+	  /*
+	   * The julian weeks are either sunday relative or monday relative but all
+	   * of the day of week specifiers are sunday relative.  This means that if
+	   * no day of week specifier was used the week starts on monday.
+	   */
+	  if ( dayOfWeek == -1 )
+	   {
+		 if ( weekStartsMonday )
+		  {
+		     dayOfWeek = 1;
+		  } else {
+			dayOfWeek = 0;
+		  }
+	   }
+  	  day = dayOfWeek + (julianWeeks * 7 - (currDay - 1));
+   }
 
-      if (fullm)
-	{
-	  NSArray	*names = [locale objectForKey: NSMonthNameArray];
-
-	  for (i = 0;i < 12; ++i)
-	    if ([[names objectAtIndex: i] isEqual: m] == YES)
-	      break;
-	}
-      else
-	{
-	  NSArray	*names = [locale objectForKey: NSShortMonthNameArray];
-
-	  for (i = 0;i < 12; ++i)
-	    if ([[names objectAtIndex: i] isEqual: m] == YES)
-	      break;
-	}
-      md = i + 1;
-    }
-
-  // Possibly convert day from string to decimal number
-  // +++ how do we take locale into account?
-  if (dtag)
-    {
-    }
-
-  // +++ We need to take 'am' and 'pm' into account
-  if (ampmord)
-    {
-      // If its PM then we shift
-      if ((ampm[0] == 'p') || (ampm[0] == 'P'))
-	{
-	  // 12pm is 12pm not 24pm
-	  if (hd != 12)
-	    hd += 12;
-	}
-    }
-
-  // +++ then there is the time zone
-  if (tzord)
-    {
-      if (zoneByAbbreviation)
-	{
-	  tz = [NSTimeZone timeZoneWithAbbreviation:
-			     [NSString stringWithCString: timez]];
-	  if (!tz)
-	    {
-	      tz = [NSTimeZone localTimeZone];
-	    }
-	}
-      else
-	{
-	  int tzm, tzh, sign;
-
-	  if (tznum < 0)
-	    {
-	      sign = -1;
-	      tznum = -tznum;
-	    }
-	  else
-	    {
-	      sign = 1;
-	    }
-	  tzm = tznum % 100;
-	  tzh = tznum / 100;
-	  tz = [NSTimeZone timeZoneForSecondsFromGMT: (tzh*60 + tzm)*60*sign];
-	  if (!tz)
-	    {
-	      tz = [NSTimeZone localTimeZone];
-	    }
-	}
-    }
-  else
-    {
-      tz = [NSTimeZone localTimeZone];
-    }
-
-  NSZoneFree(NSDefaultMallocZone(), newf);
-
-  return [self initWithYear: yd month: md day: dd hour: hd
-	       minute: mnd second: sd
+  return [[NSCalendarDate alloc] initWithYear: year month: month day: day hour: hour
+	       minute: min second: sec
 	       timeZone: tz];
 }
+
 
 - (id) initWithYear: (int)year
 	      month: (unsigned int)month
@@ -1252,7 +1316,7 @@
 			         hour: hour
 			       minute: minute
 			       second: second
-			     timeZone: nil];
+			     timeZone: [self timeZoneDetail]];
 }
 
 - (void) years: (int*)years

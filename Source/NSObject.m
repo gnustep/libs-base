@@ -175,32 +175,42 @@ NSDecrementExtraRefCountWasZero(id anObject)
  *	depending on whether we are using local or global counting.
  */
 #if	defined(REFCNT_LOCAL)
+
 unsigned
 NSExtraRefCount(id anObject)
 {
   return ((obj)anObject)[-1].retained;
 }
 
+static objc_mutex_t retain_counts_gate = NULL;
+
 void
 NSIncrementExtraRefCount(id anObject)
 {
+  objc_mutex_lock (retain_counts_gate);
   ((obj)anObject)[-1].retained++;
+  objc_mutex_unlock (retain_counts_gate);
 }
 
-#define	NSIncrementExtraRefCount(X) \
-	((obj)(X))[-1].retained++
+#define	NSIncrementExtraRefCount(X)       \
+    objc_mutex_lock (retain_counts_gate); \
+	((obj)(X))[-1].retained++;            \
+    objc_mutex_unlock (retain_counts_gate)
 
 BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 {
+  objc_mutex_lock (retain_counts_gate);
   if (((obj)anObject)[-1].retained-- == 0)
-    return YES;
-  else
-    return NO;
+	{
+	  objc_mutex_unlock (retain_counts_gate);
+	  return YES;
+	} else {
+	  objc_mutex_unlock (retain_counts_gate);
+	  return NO;
+	}
 }
 
-#define	NSDecrementExtraRefCountWasZero(X) \
-	(((obj)(X))[-1].retained-- == 0 ? YES : NO)
 
 #define	NSExtraRefCount(X)	(((obj)(X))[-1].retained)
 
@@ -518,8 +528,12 @@ static BOOL double_release_check_enabled = NO;
 #if	!defined(REFCNT_LOCAL)
       retain_counts = o_map_with_callbacks (o_callbacks_for_non_owned_void_p,
 					    o_callbacks_for_int);
-      retain_counts_gate = objc_mutex_allocate ();
 #endif
+	  /*
+	   * retain_counts_gate is needed on SMP machines for release to work
+	   * reliably.
+	   */
+      retain_counts_gate = objc_mutex_allocate ();
       fastMallocOffset = fastMallocClass->instance_size % ALIGN;
 #else
       fastMallocOffset = 0;

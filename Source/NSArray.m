@@ -900,6 +900,11 @@ static NSString	*indentStrings[] = {
 	      if (rem == 0)
 		rem = [self methodForSelector: remSel];
 	      (*rem)(self, remSel, i);
+	      /*
+	       * Bail out now or run the risk of comparing against a garbage
+	       * pointer.
+	       */
+	      return;
 	    }
 	}
     }
@@ -939,6 +944,11 @@ static NSString	*indentStrings[] = {
 	      if (rem == 0)
 		rem = [self methodForSelector: remSel];
 	      (*rem)(self, remSel, i);
+	      /*
+	       * Bail out now or run the risk of comparing against a garbage
+	       * pointer.
+	       */
+	      return;
 	    }
 	}
     }
@@ -976,6 +986,11 @@ static NSString	*indentStrings[] = {
 	      if (rem == 0)
 		rem = [self methodForSelector: remSel];
 	      (*rem)(self, remSel, i);
+	      /*
+	       * Bail out now or run the risk of comparing against a garbage
+	       * pointer.
+	       */
+	      return;
 	    }
 	}
     }
@@ -1007,6 +1022,11 @@ static NSString	*indentStrings[] = {
 	      if (rem == 0)
 		rem = [self methodForSelector: remSel];
 	      (*rem)(self, remSel, i);
+	      /*
+	       * Bail out now or run the risk of comparing against a garbage
+	       * pointer.
+	       */
+	      return;
 	    }
 	}
     }
