@@ -200,6 +200,11 @@ _attributesAtIndexEffectiveRange(
 
   if (index >= tmpLength)
     {
+      if (index == tmpLength)
+	{
+	  *_infoArray = index;
+	  return nil;
+	}
       [NSException raise: NSRangeException
 		  format: @"index is out of range in function "
 			  @"_attributesAtIndexEffectiveRange()"];
