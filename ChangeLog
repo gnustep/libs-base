@@ -1,9 +1,9 @@
 1999-04-28  Adam Fedor  <fedor@gnu.org>
 
+	* Source/NSRunLoop.m (aSort): Redefine to take FastArrayItem as
+	arguments. 
 	* Source/include/FastArray.x (FastArrayInsertionPosition):
-	'Dereference' union object value (on PPC's at least, the union
-	address may not be the same as the address of the first type in
-	the union).
+	Fully specify sorter function for better type checking.
 	(FastArrayCheckSort): Likewise.
 
 1999-04-27  Adam Fedor  <fedor@gnu.org>

@@ -150,11 +150,6 @@ static inline BOOL timerInvalidated(NSTimer* timer)
   return ((RunLoopWatcher*)timer)->_invalidated;
 }
 
-static int aSort(RunLoopWatcher *i0, RunLoopWatcher *i1)
-{
-  return [i0->_date compare: i1->_date];
-}
-
 
 
 /*
@@ -172,6 +167,12 @@ static int aSort(RunLoopWatcher *i0, RunLoopWatcher *i1)
 #endif
 
 #include <base/FastArray.x>
+
+static NSComparisonResult aSort(FastArrayItem i0, FastArrayItem i1)
+{
+  return [((RunLoopWatcher *)(i0.obj))->_date 
+           compare: ((RunLoopWatcher *)(i1.obj))->_date];
+}
 
 
 
