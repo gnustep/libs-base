@@ -374,6 +374,28 @@ void GSInvocationCallback(void *callback_data, va_alist args)
   
   callback_sel = *(SEL *)callback_data;
   callback_type = sel_get_type(callback_sel);
+
+  /*
+   * Make a guess at what the type signature might be by asking the
+   * runtime for a selector with the same name as the untyped one we
+   * were given.
+   */
+  if (callback_type == NULL)
+    {
+      const char *name = sel_get_name(callback_sel);
+
+      if (name != NULL)
+	{
+	  SEL	sel = sel_get_any_typed_uid(name);
+
+	  if (sel != NULL)
+	    {
+	      callback_sel = sel;
+	      callback_type = sel_get_type(callback_sel);
+	    }
+	}
+    }
+
   if (callback_type == NULL)
     [NSException raise: NSInvalidArgumentException
                 format: @"Invalid selector %s (no type information)",
