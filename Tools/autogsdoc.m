@@ -254,6 +254,12 @@
       is placed in the current directory.  This directory is also
       used as a last resort to locate source files (not headers).
     </item>
+    <item><strong>Files</strong>
+      Specifies the name of a file containing a list of file names as
+      a property list array <em>(name1,name2,...)</em> format.  If this
+      is present, filenames in the program argument list are ignored and
+      the names in this file are used as the list of names to process.
+    </item>
     <item><strong>FunctionsTemplate</strong>
       Specify the name of a template document into which documentation
       about functions should be inserted from all files in the project.<br />
@@ -483,12 +489,13 @@ main(int argc, char **argv, char **env)
   NSString		*refsFile;
   id			obj;
   unsigned		count;
+  unsigned		firstFile = 1;
   BOOL			generateHtml = YES;
   BOOL			ignoreDependencies = NO;
   BOOL			showDependencies = NO;
   BOOL			verbose = NO;
   BOOL			warn = NO;
-  NSArray		*files;
+  NSArray		*files = nil;
   NSMutableArray	*sFiles = nil;	// Source
   NSMutableArray	*gFiles = nil;	// GSDOC
   NSMutableArray	*hFiles = nil;	// HTML
@@ -560,7 +567,22 @@ main(int argc, char **argv, char **env)
   /*
    * Build an array of files to be processed.
    */
-  files = [proc arguments];
+  obj = [defs stringForKey: @"Files"];
+  if (obj != nil)
+    {
+      files = [NSArray arrayWithContentsOfFile: obj];
+      if (files == nil)
+	{
+	  NSLog(@"Failed to load files from '%@'", obj);
+	  exit(1);
+	}
+      firstFile = 0;	// Not an argument list ... read from index 0
+    }
+  else
+    {
+      files = [proc arguments];
+      firstFile = 1;	// An argument list ... ignore the program name.
+    }
   sFiles = [NSMutableArray array];
   gFiles = [NSMutableArray array];
   hFiles = [NSMutableArray array];
@@ -573,7 +595,7 @@ main(int argc, char **argv, char **env)
       NSLog(@"HeaderDirectory ... %@", headerDirectory);
       NSLog(@"DocumentationDirectory ... %@", documentationDirectory);
     }
-  for (i = 1; i < count; i++)
+  for (i = firstFile; i < count; i++)
     {
       NSString *arg = [files objectAtIndex: i];
 
