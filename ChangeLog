@@ -1,6 +1,18 @@
 2001-12-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSObject.m: Make initial comment an autogsdoc comment.
 	* Tools/gsdoc-0_6_7.dtd: Fix protocol error reported by Adam
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m:
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.h:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m: Tidied initial comments to take advantage of
+	new code to parse author and copyright details.  Fixed several
+	minor bugs in various parts of the software.  Updated documentation.
 
 2001-12-15  Fred Kiefer <FredKiefer@gmx.de>
 
