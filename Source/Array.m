@@ -62,11 +62,11 @@
 
 /* Archiving must mimic the above designated initializer */
 
-- (void) _encodeCollectioinWitCoder: (Coder*)coder
+- (void) _encodeCollectionWithCoder: (Coder*)coder
 {
   const char *encoding = [self contentType];
 
-  [super encodeWithCoder:coder];
+  [super _encodeCollectionWithCoder:coder];
   [coder encodeValueOfSimpleType:@encode(char*)
 	 at:&encoding
 	 withName:"Array Encoding Type"];
@@ -81,7 +81,7 @@
 + _newCollectionWithCoder: (Coder*)coder
 {
   char *encoding;
-  Array *n = [super newWithCoder:coder];
+  Array *n = [super _newCollectionWithCoder:coder];
   [coder decodeValueOfSimpleType:@encode(char*)
 	 at:&encoding
 	 withName:NULL];
