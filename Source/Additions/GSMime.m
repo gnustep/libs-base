@@ -58,7 +58,7 @@ static unsigned		_count = 0;
 static NSString *makeUniqueString();
 
 static	NSCharacterSet	*whitespace = nil;
-static	NSCharacterSet	*httpSpecials = nil;
+static	NSCharacterSet	*rfc822Specials = nil;
 static	NSCharacterSet	*rfc2045Specials = nil;
 
 /*
@@ -1076,7 +1076,6 @@ parseCharacterSet(NSString *token)
 		      hadErrors = YES;
 		      return NO;	/* Header not parsed properly.	*/
 		    }
-		  NSDebugMLLog(@"GSMime", @"Parsed header '%@'", header);
 		}
 	      else
 		{
@@ -1221,6 +1220,7 @@ parseCharacterSet(NSString *token)
   NSString		*value;
   GSMimeHeader		*info;
 
+  NSDebugMLLog(@"GSMime", @"Parse header - '%@'", aHeader);
   info = AUTORELEASE([GSMimeHeader new]);
 
   /*
@@ -1250,8 +1250,6 @@ parseCharacterSet(NSString *token)
   [info setName: name];
   name = [info name];
   
-  [self scanPastSpace: scanner];
-
   /*
    * Break header fields out into info dictionary.
    */
@@ -1319,7 +1317,7 @@ parseCharacterSet(NSString *token)
 	      b[0] = '-';
 	      b[1] = '-';
 	      [tmp getCString: &b[2]];
-	      ASSIGN(boundary, [NSData dataWithBytesNoCopy: b length: l]);
+	      boundary = [[NSData alloc] initWithBytesNoCopy: b length: l];
 	    }
 	  else
 	    {
@@ -1336,6 +1334,8 @@ parseCharacterSet(NSString *token)
   NS_HANDLER
     return NO;
   NS_ENDHANDLER
+NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
+
   return YES;
 }
 
@@ -1423,6 +1423,8 @@ parseCharacterSet(NSString *token)
   NSString		*name = [info name];
   NSString		*value = nil;
 
+  [self scanPastSpace: scanner];
+
   /*
    *	Now see if we are interested in any of it.
    */
@@ -1499,7 +1501,7 @@ parseCharacterSet(NSString *token)
       NSString	*type;
       NSString	*subtype = nil;
 
-      type = [self scanToken: scanner];
+      type = [self scanName: scanner];
       if ([type length] == 0)
 	{
 	  NSLog(@"Invalid Mime content-type");
@@ -1509,7 +1511,7 @@ parseCharacterSet(NSString *token)
       [info setObject: type forKey: @"Type"];
       if ([scanner scanString: @"/" intoString: 0] == YES)
 	{
-	  subtype = [self scanToken: scanner];
+	  subtype = [self scanName: scanner];
 	  if ([subtype length] == 0)
 	    {
 	      NSLog(@"Invalid Mime content-type (subtype)");
@@ -1528,14 +1530,14 @@ parseCharacterSet(NSString *token)
     }
   else if ([name isEqualToString: @"content-disposition"] == YES)
     {
-      value = [self scanToken: scanner];
+      value = [self scanName: scanner];
       value = [value lowercaseString];
       /*
        *	Concatenate slash separated parts of field.
        */
       while ([scanner scanString: @"/" intoString: 0] == YES)
 	{
-	  NSString	*sub = [self scanToken: scanner];
+	  NSString	*sub = [self scanName: scanner];
 
 	  if ([sub length] > 0)
 	    {
@@ -1564,6 +1566,30 @@ parseCharacterSet(NSString *token)
     }
   
   return YES;
+}
+
+/**
+ * A convenience method to use a scanner (that is set up to scan a
+ * header line) to scan a name - a simple word.
+ * <list>
+ *   <item>Leading whitespace is ignored.</item>
+ * </list>
+ */
+- (NSString*) scanName: (NSScanner*)scanner
+{
+  NSString		*value;
+
+  [self scanPastSpace: scanner];
+
+  /*
+   * Scan value terminated by any MIME special character.
+   */
+  if ([scanner scanUpToCharactersFromSet: rfc2045Specials
+			      intoString: &value] == NO)
+    {
+      return nil;
+    }
+  return value;
 }
 
 /**
@@ -1601,7 +1627,7 @@ parseCharacterSet(NSString *token)
 
   if (isHttp == YES)
     {
-      specials = httpSpecials;
+      specials = rfc822Specials;
     }
   else
     {
@@ -1635,6 +1661,7 @@ parseCharacterSet(NSString *token)
  */
 - (NSString*) scanToken: (NSScanner*)scanner
 {
+  [self scanPastSpace: scanner];
   if ([scanner scanString: @"\"" intoString: 0] == YES)		// Quoted
     {
       NSString	*string = [scanner string];
@@ -1714,7 +1741,7 @@ parseCharacterSet(NSString *token)
 
       if (isHttp == YES)
 	{
-	  specials = httpSpecials;
+	  specials = rfc822Specials;
 	}
       else
 	{
@@ -1944,6 +1971,7 @@ parseCharacterSet(NSString *token)
     }
 
   NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'", l, l, l, [d bytes]);
+  // NSDebugMLLog(@"GSMime", @"Boundary - '%*.*s'", [boundary length], [boundary length], [boundary bytes]);
 
   if ([context atEnd] == YES)
     {
@@ -2182,7 +2210,7 @@ parseCharacterSet(NSString *token)
   BOOL		unwrappingComplete = NO;
 
   lineStart = lineEnd;
-  NSDebugMLLog(@"GSMime", @"entry: input:%u dataEnd:%u lineStart:%u '%*.*s'",
+  NSDebugMLLog(@"GSMimeH", @"entry: input:%u dataEnd:%u lineStart:%u '%*.*s'",
     input, dataEnd, lineStart, dataEnd - input, dataEnd - input, &bytes[input]);
   /*
    * RFC822 lets header fields break across lines, with continuation
@@ -2266,9 +2294,10 @@ parseCharacterSet(NSString *token)
 	    }
 	}
     }
-  NSDebugMLLog(@"GSMime", @"exit: inBody:%d unwrappingComplete: %d "
+  NSDebugMLLog(@"GSMimeH", @"exit: inBody:%d unwrappingComplete: %d "
     @"input:%u dataEnd:%u lineStart:%u '%*.*s'", inBody, unwrappingComplete,
-    input, dataEnd, lineStart, dataEnd - input, dataEnd - input, &bytes[input]);
+    input, dataEnd, lineStart, lineEnd - lineStart, lineEnd - lineStart,
+    &bytes[lineStart]);
   return unwrappingComplete;
 }
 
@@ -2279,18 +2308,18 @@ parseCharacterSet(NSString *token)
     {
       NSString	*paramName;
 
-      paramName = [self scanToken: scanner];
+      paramName = [self scanName: scanner];
       if ([paramName length] == 0)
 	{
 	  NSLog(@"Invalid Mime %@ field (parameter name)", [info name]);
 	  return NO;
 	}
+
       [self scanPastSpace: scanner];
       if ([scanner scanString: @"=" intoString: 0] == YES)
 	{
 	  NSString	*paramValue;
 
-	  [self scanPastSpace: scanner];
 	  paramValue = [self scanToken: scanner];
 	  [self scanPastSpace: scanner];
 	  if (paramValue == nil)
@@ -2649,17 +2678,17 @@ static NSCharacterSet	*tokenSet = nil;
 
       [m formUnionWithCharacterSet:
 	[NSCharacterSet characterSetWithCharactersInString:
-	@".()<>@,;:[]\"\\="]];
+	@".()<>@,;:[]\"\\"]];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet whitespaceAndNewlineCharacterSet]];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet controlCharacterSet]];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet illegalCharacterSet]];
-      httpSpecials = [m copy];
+      rfc822Specials = [m copy];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet characterSetWithCharactersInString:
-	@"/?"]];
+	@"/?="]];
       [m removeCharactersInString: @"."];
       rfc2045Specials = [m copy];
       whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
