@@ -384,7 +384,9 @@ static NSLock			*placeholderLock;
 
   [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
   objctype = (void*)NSZoneMalloc(NSDefaultMallocZone(), size);
-  [coder decodeArrayOfObjCType: @encode(signed char) count: size at: (void*)objctype];
+  [coder decodeArrayOfObjCType: @encode(signed char)
+			 count: size
+			    at: (void*)objctype];
   c = [abstractClass valueClassWithObjCType: objctype];
   o = [c alloc];
   /*
@@ -445,7 +447,9 @@ static NSLock			*placeholderLock;
 
   [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
   objctype = (void*)NSZoneMalloc(NSDefaultMallocZone(), size);
-  [coder decodeArrayOfObjCType: @encode(signed char) count: size at: (void*)objctype];
+  [coder decodeArrayOfObjCType: @encode(signed char)
+			 count: size
+			    at: (void*)objctype];
   c = [abstractClass valueClassWithObjCType: objctype];
   o = [c alloc];
   /*
