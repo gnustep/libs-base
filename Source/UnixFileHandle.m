@@ -23,9 +23,15 @@
 
 
 #include <config.h>
+
 #if	HAVE_OPENSSL
-#include <openssl/ssl.h>
+  /* Because openssl uses `id' as variable name sometime,
+     while it is an Objective-C reserved keyword. */
+  #define id id_x_
+  #include <openssl/ssl.h>
+  #undef id
 #endif
+
 #include <base/preface.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSData.h>
