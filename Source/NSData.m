@@ -132,147 +132,147 @@ static IMP	appendImp;
 static BOOL
 readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 {
-	NSString *localPath = [path localFromOpenStepPath];
+  NSString 	*localPath = [path localFromOpenStepPath];
 	
 #if defined(__MINGW__)
-	const unichar		*thePath = NULL;
+  const unichar	*thePath = NULL;
 #else
-	const char		*thePath = NULL;
+  const char	*thePath = NULL;
 #endif	
-	FILE		*theFile = 0;
-	void		*tmp = 0;
-	int			c;
-	long		fileLength;
+  FILE		*theFile = 0;
+  void		*tmp = 0;
+  int		c;
+  long		fileLength;
 	
-	#if	GS_WITH_GC == 1
-	zone = GSAtomicMallocZone();	// Use non-GC memory inside NSData
-	#endif
+#if	GS_WITH_GC == 1
+  zone = GSAtomicMallocZone();	// Use non-GC memory inside NSData
+#endif
 	
 #if defined(__MINGW__)
-	thePath = [localPath unicharString];
+  thePath = [localPath unicharString];
 #else
-        thePath = [localPath fileSystemRepresentation];
+  thePath = [localPath fileSystemRepresentation];
 #endif	
-	if (thePath == NULL)
+  if (thePath == NULL)
+    {
+      NSWarnFLog(@"Open (%@) attempt failed - bad path",localPath);
+      return NO;
+    }
+	
+#if defined(__MINGW__)
+  theFile = _wfopen(thePath, L"rb");
+#else
+  theFile = fopen(thePath, "rb");
+#endif	
+
+  if (theFile == NULL)		/* We failed to open the file. */
+    {
+      NSWarnFLog(@"Open (%@) attempt failed - %s",localPath,
+      GSLastErrorStr(errno));
+      goto failure;
+    }
+	
+  /*
+   *	Seek to the end of the file.
+   */
+  c = fseek(theFile, 0L, SEEK_END);
+  if (c != 0)
+    {
+      NSWarnFLog(@"Seek to end of file (%@) failed - %s",localPath,
+      GSLastErrorStr(errno));
+      goto failure;
+    }
+	
+  /*
+   *	Determine the length of the file (having seeked to the end of the
+   *	file) by calling ftell().
+   */
+  fileLength = ftell(theFile);
+  if (fileLength == -1)
+    {
+      NSWarnFLog(@"Ftell on %@ failed - %s",localPath,
+      GSLastErrorStr(errno));
+      goto failure;
+    }
+	
+  /*
+   *	Rewind the file pointer to the beginning, preparing to read in
+   *	the file.
+   */
+  c = fseek(theFile, 0L, SEEK_SET);
+  if (c != 0)
+    {
+      NSWarnFLog(@"Fseek to start of file (%@) failed - %s",localPath,
+      GSLastErrorStr(errno));
+      goto failure;
+    }
+	
+  if (fileLength == 0)
+    {
+      unsigned char	buf[BUFSIZ];
+      
+      /*
+       * Special case ... a file of length zero may be a named pipe or some
+       * file in the /proc filesystem, which will return us data if we read
+       * from it ... so we try reading as much as we can.
+       */
+      while ((c = fread(buf, 1, BUFSIZ, theFile)) != 0)
 	{
-		NSWarnFLog(@"Open (%@) attempt failed - bad path",localPath);
-		return NO;
+	  if (tmp == 0)
+	    {
+	      tmp = NSZoneMalloc(zone, c);
+	    }
+	  else
+	    {
+	      tmp = NSZoneRealloc(zone, tmp, fileLength + c);
+	    }
+	  if (tmp == 0)
+	    {
+	      NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath,
+		fileLength + c, GSLastErrorStr(errno));
+	      goto failure;
+	    }
+	  memcpy(tmp + fileLength, buf, c);
+	  fileLength += c;
 	}
-	
-	#if defined(__MINGW__)
-		theFile = _wfopen(thePath, L"rb");
-	#else
-		theFile = fopen(thePath, "rb");
-	#endif	
-	
-	if (theFile == NULL)		/* We failed to open the file. */
+    }
+  else
+    {
+      tmp = NSZoneMalloc(zone, fileLength);
+      if (tmp == 0)
 	{
-		NSWarnFLog(@"Open (%@) attempt failed - %s",localPath,
-		GSLastErrorStr(errno));
-		goto failure;
+	  NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath,
+	  fileLength, GSLastErrorStr(errno));
+	  goto failure;
 	}
-	
-	/*
-	*	Seek to the end of the file.
-	*/
-	c = fseek(theFile, 0L, SEEK_END);
-	if (c != 0)
+	    
+      c = fread(tmp, 1, fileLength, theFile);
+      if (c != (int)fileLength)
 	{
-		NSWarnFLog(@"Seek to end of file (%@) failed - %s",localPath,
-		GSLastErrorStr(errno));
-		goto failure;
+	  NSWarnFLog(@"read of file (%@) contents failed - %s",localPath,
+	  GSLastErrorStr(errno));
+	  goto failure;
 	}
+    }
 	
-	/*
-	*	Determine the length of the file (having seeked to the end of the
-	*	file) by calling ftell().
-	*/
-	fileLength = ftell(theFile);
-	if (fileLength == -1)
-	{
-		NSWarnFLog(@"Ftell on %@ failed - %s",localPath,
-		GSLastErrorStr(errno));
-		goto failure;
-	}
-	
-	/*
-	*	Rewind the file pointer to the beginning, preparing to read in
-	*	the file.
-	*/
-	c = fseek(theFile, 0L, SEEK_SET);
-	if (c != 0)
-	{
-		NSWarnFLog(@"Fseek to start of file (%@) failed - %s",localPath,
-		GSLastErrorStr(errno));
-		goto failure;
-	}
-	
-	if (fileLength == 0)
-	{
-		unsigned char	buf[BUFSIZ];
-		
-		/*
-		* Special case ... a file of length zero may be a named pipe or some
-		* file in the /proc filesystem, which will return us data if we read
-		* from it ... so we try reading as much as we can.
-		*/
-		while ((c = fread(buf, 1, BUFSIZ, theFile)) != 0)
-		{
-			if (tmp == 0)
-			{
-				tmp = NSZoneMalloc(zone, c);
-			}
-			else
-			{
-				tmp = NSZoneRealloc(zone, tmp, fileLength + c);
-			}
-			if (tmp == 0)
-			{
-				NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath,
-				fileLength + c, GSLastErrorStr(errno));
-				goto failure;
-			}
-			memcpy(tmp + fileLength, buf, c);
-			fileLength += c;
-		}
-	}
-	else
-	{
-		tmp = NSZoneMalloc(zone, fileLength);
-		if (tmp == 0)
-		{
-			NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath,
-			fileLength, GSLastErrorStr(errno));
-			goto failure;
-		}
-		
-		c = fread(tmp, 1, fileLength, theFile);
-		if (c != (int)fileLength)
-		{
-			NSWarnFLog(@"read of file (%@) contents failed - %s",localPath,
-			GSLastErrorStr(errno));
-			goto failure;
-		}
-	}
-	
-	*buf = tmp;
-	*len = fileLength;
-	fclose(theFile);
-	return YES;
-	
-	/*
-	*	Just in case the failure action needs to be changed.
-	*/
+  *buf = tmp;
+  *len = fileLength;
+  fclose(theFile);
+  return YES;
+  
+  /*
+   *	Just in case the failure action needs to be changed.
+   */
 failure:
-	if (tmp != 0)
-	{
-		NSZoneFree(zone, tmp);
-	}
-	if (theFile != 0)
-	{
-		fclose(theFile);
-	}
-	return NO;
+  if (tmp != 0)
+    {
+      NSZoneFree(zone, tmp);
+    }
+  if (theFile != 0)
+    {
+      fclose(theFile);
+    }
+  return NO;
 }
 
 /*
@@ -889,15 +889,15 @@ static unsigned	gsu32Align;
        * mktemp() call so that we can be sure that both files are on
        * the same filesystem and the subsequent rename() will work. */
 #if defined(__MINGW__)
-		wcscpy(wthePath, wtheRealPath);
-		wcscat(wthePath, L"XXXXXX");
-		if (_wmktemp(wthePath) == 0)
-		{
-			NSWarnMLog(@"mktemp (%@) failed - %s",
-			[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
-			GSLastErrorStr(errno));
-			goto failure;
-		}
+      wcscpy(wthePath, wtheRealPath);
+      wcscat(wthePath, L"XXXXXX");
+      if (_wmktemp(wthePath) == 0)
+	{
+	  NSWarnMLog(@"mktemp (%@) failed - %s",
+	  [NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
+	  GSLastErrorStr(errno));
+	  goto failure;
+	}
 #else
       strcpy(thePath, theRealPath);
       strcat(thePath, "XXXXXX");
@@ -912,7 +912,7 @@ static unsigned	gsu32Align;
   else
     {
 #if defined(__MINGW__)
-		wcscpy(wthePath,wtheRealPath);
+      wcscpy(wthePath,wtheRealPath);
 #else
       strcpy(thePath, theRealPath);
 #endif
@@ -920,7 +920,7 @@ static unsigned	gsu32Align;
 
   /* Open the file (whether temp or real) for writing. */
 #if defined(__MINGW__)
-	theFile = _wfopen(wthePath, L"wb");
+  theFile = _wfopen(wthePath, L"wb");
 #else
   theFile = fopen(thePath, "wb");
 #endif
@@ -931,8 +931,8 @@ static unsigned	gsu32Align;
     {
 #if defined(__MINGW__)
       NSWarnMLog(@"Open (%@) failed - %s",
-		[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
-		GSLastErrorStr(errno));
+	[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
+	GSLastErrorStr(errno));
 #else
       NSWarnMLog(@"Open (%s) failed - %s", thePath, GSLastErrorStr(errno));
 #endif
@@ -949,8 +949,8 @@ static unsigned	gsu32Align;
     {
 #if defined(__MINGW__)
       NSWarnMLog(@"Fwrite (%@) failed - %s",
-		[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
-		GSLastErrorStr(errno));
+	[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
+	GSLastErrorStr(errno));
 #else
       NSWarnMLog(@"Fwrite (%s) failed - %s", thePath, GSLastErrorStr(errno));
 #endif
@@ -966,8 +966,8 @@ static unsigned	gsu32Align;
     {
 #if defined(__MINGW__)
       NSWarnMLog(@"Fclose (%@) failed - %s",
-		[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
-		GSLastErrorStr(errno));
+	[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
+	GSLastErrorStr(errno));
 #else
       NSWarnMLog(@"Fclose (%s) failed - %s", thePath, GSLastErrorStr(errno));
 #endif
@@ -1022,9 +1022,9 @@ static unsigned	gsu32Align;
         {
 #if defined(__MINGW__)
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %s",
-			 	[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
-				[NSString stringWithCharacters:wtheRealPath length:wcslen(wtheRealPath)],
-				GSLastErrorStr(errno));
+	    [NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
+	    [NSString stringWithCharacters:wtheRealPath length:wcslen(wtheRealPath)],
+	    GSLastErrorStr(errno));
 #else
          NSWarnMLog(@"Rename ('%s' to '%s') failed - %s",
 	    thePath, theRealPath, GSLastErrorStr(errno));
