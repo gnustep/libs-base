@@ -1,3 +1,10 @@
+Wed Dec 19 02:17:09 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSThread.m (GSRegisterCurrentThread): Use @defs to 
+	access protected variables of NSThread otherwise GCC 3.1 refuses to 
+	compile it. 
+	(GSUnregisterCurrentThread): Idem.
+
 Tue Dec 18 18:02:07 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSObject.m ([+conformsToProtocol:]): Fixed - it was
