@@ -1630,16 +1630,20 @@ if (0) {
 - (void) gcFinalize
 {
 #if	HAVE_POLL
-  {
-    pollextra	*e = (pollextra*)_extra;
+  if (_extra != 0)
+    {
+      pollextra	*e = (pollextra*)_extra;
 
-    if (e->index != 0)
-      objc_free(e->index);
-    objc_free(e);
-  }
+      if (e->index != 0)
+	objc_free(e->index);
+      objc_free(e);
+    }
 #endif
   RELEASE(_contextStack);
-  NSFreeMapTable(_contextMap);
+  if (_contextMap != 0)
+    {
+      NSFreeMapTable(_contextMap);
+    }
   RELEASE(_timedPerformers);
 }
 
