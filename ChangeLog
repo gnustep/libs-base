@@ -1,10 +1,11 @@
-Wed Oct  1 14:44:17 1997  Adam Fedor  <fedor@spanky.doc.com>
+Wed Oct  1 14:44:17 1997  Adam Fedor  <fedor@doc.com>
 
 	* src/NSConnection.m ([-registerName:]): Remove
 	duplicate method.
 	* src/NSDistantObject.m ([-encodeWithCoder:]): Likewise.
 	* src/Proxy.m: ([NSObject -selectorTypeForProxy]): Likewise.
 
+	* Makefile: Add new subproject.
 	* NSTimeZones: New directory.
 	* NSTimeZones/Makefile: New file.
 	* NSTimeZones/Makefile.postamble: Likewise.
