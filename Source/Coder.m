@@ -244,7 +244,7 @@ static BOOL debug_coder = NO;
      references. */
   id o;
   [self decodeObjectAt: &o withName: NULL];
-  return o;
+  return [o autorelease];
 }
 
 - (unsigned int) systemVersion

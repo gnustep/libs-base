@@ -156,8 +156,8 @@ static id long_day[7] = {@"Sunday",
 - (id) initWithCoder: (NSCoder*)aCoder
 {
     self = [super initWithCoder: aCoder];
-    calendar_format = [aCoder decodeObject];
-    time_zone = [aCoder decodeObject];
+    [aCoder decodeValueOfObjCType: @encode(id) at: &calendar_format];
+    [aCoder decodeValueOfObjCType: @encode(id) at: &time_zone];
     return self;
 }
 

@@ -139,7 +139,7 @@ static NSMutableDictionary *_hostCache = nil;
 + (void)initialize
 {
   _hostCacheLock = [[NSConditionLock alloc] init];
-  _hostCache = [[NSMutableDictionary dictionary] retain];
+  _hostCache = [NSMutableDictionary new];
 }
 
 + (NSHost *)currentHost
@@ -246,7 +246,6 @@ static NSMutableDictionary *_hostCache = nil;
     [super initWithCoder: aCoder];
     address = [aCoder decodeObject];
     addresses = [NSArray arrayWithObject: address];
-    [address release];
     return self;
 }
 #endif

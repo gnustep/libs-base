@@ -26,6 +26,7 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSAutoreleasePool.h>
 
 #ifndef __WIN32__
 #include <unistd.h>
@@ -52,6 +53,7 @@ NSLog (NSString* format, ...)
 void 
 NSLogv (NSString* format, va_list args)
 {
+  NSAutoreleasePool *arp = [NSAutoreleasePool new];
   NSString* prefix;
   NSString* message;
 
@@ -72,5 +74,6 @@ NSLogv (NSString* format, va_list args)
 
   prefix = [prefix stringByAppendingString: message];
   _NSLog_printf_handler (prefix);
+  [arp release];
 }
 
