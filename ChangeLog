@@ -1,3 +1,11 @@
+2000-02-09  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/gnustep-base.tmpl.texi: Update.
+	* Documentation/news.tmpl.texi: Likewise.
+	* Documentation/readme.tmpl.texi:Likewise.
+
+	* Headers/gnustep/base/NSObjCRuntime.h: Include preface for stdargs.
+
 Wed Feb  9 17:44:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Headers/gnustep/base/NSObjCRuntime.h: fix for header dependencies.

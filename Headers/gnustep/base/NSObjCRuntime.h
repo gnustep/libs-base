@@ -24,6 +24,7 @@
 #ifndef __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 #define __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE
 
+#include <base/preface.h>
 #include <objc/objc.h>
 
 @class	NSString;
