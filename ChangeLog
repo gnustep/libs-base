@@ -1,3 +1,9 @@
+2004-06-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/plparse.m: Check for and report illegal (non-ascii) characters
+	in property list.  A property list should use \UXXXX escape sequences
+	for non-ascii data.
+
 2004-06-26 17:12  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSUserDefaults.m (read_only): Remove.
