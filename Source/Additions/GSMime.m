@@ -2314,7 +2314,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
   char		c;
   BOOL		unwrappingComplete = NO;
 
-  lineStart = lineEnd;
+  lineStart = lineEnd = input;
   NSDebugMLLog(@"GSMimeH", @"entry: input:%u dataEnd:%u lineStart:%u '%*.*s'",
     input, dataEnd, lineStart, dataEnd - input, dataEnd - input, &bytes[input]);
   /*
@@ -2329,6 +2329,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
       if ((c = bytes[pos]) != '\r' && c != '\n')
 	{
+	  unsigned	end;
+
 	  while (pos < dataEnd && (c = bytes[pos]) != '\r' && c != '\n')
 	    {
 	      pos++;
@@ -2337,6 +2339,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	    {
 	      break;	/* need more data */
 	    }
+	  end = pos;
 	  pos++;
 	  if (c == '\r' && pos < dataEnd && bytes[pos] == '\n')
 	    {
@@ -2347,11 +2350,18 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      break;	/* need more data */
 	    }
 	  /*
-	   * Copy data up to end of line, and skip past end.
+	   * Copy data up to end of line ... skip the copy where possible.
 	   */
-	  while (input < dataEnd && (c = bytes[input]) != '\r' && c != '\n')
+	  if (input == lineEnd)
 	    {
-	      bytes[lineEnd++] = bytes[input++];
+	      input = lineEnd = end;
+	    }
+	  else
+	    {
+	      while (input < dataEnd && (c = bytes[input]) != '\r' && c != '\n')
+		{
+		  bytes[lineEnd++] = bytes[input++];
+		}
 	    }
 	}
 

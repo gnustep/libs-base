@@ -2298,6 +2298,12 @@ handle_printf_atsign (FILE *stream,
   return [d length];
 }
 
+/**
+ * Retrieve the contents of the receiver into the buffer.<br />
+ * The buffer must be large enought to contain the CString representation
+ * of the characters in the receiver, plus a null terminator which this
+ * method adds.
+ */
 - (void) getCString: (char*)buffer
 {
   [self getCString: buffer maxLength: NSMaximumStringLength
@@ -2305,6 +2311,11 @@ handle_printf_atsign (FILE *stream,
     remainingRange: NULL];
 }
 
+/**
+ * Retrieve up to maxLength characters from the receiver into the buffer.<br />
+ * The buffer must be at least maxLength characters long, so that it has
+ * room for the null terminator that this method adds.
+ */
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
 {
