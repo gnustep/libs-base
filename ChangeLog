@@ -1,3 +1,11 @@
+2003-02-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Sourcewin32-def.top: Remove recently added external functions.
+	* Source/libgnustep-base.def.in: Regenerated to just contain
+	public classes.  The manual hacks are no longer needed as the
+	make system now handles inclusion of symbols from subprojects
+	in dlls.
+
 2003-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Sourcewin32-def.top: Manually added external functions.
