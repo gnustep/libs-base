@@ -1120,6 +1120,10 @@ static void unescape(const char *from, char * to)
  *   The specified client (if non-nil) will be set up to receive
  *   notifications of the progress of the background load process.
  * </p>
+ * <p>
+ *   The processes current run loop must be run in order for the
+ *   background load operation to operate!
+ * </p>
  */
 - (void) loadResourceDataNotifyingClient: (id)client
 			      usingCache: (BOOL)shouldUseCache
@@ -1561,7 +1565,7 @@ static void unescape(const char *from, char * to)
 
   if (c != nil)
     {
-      if ([c respondsToSelector: @selector(URLResourceDidFinishLoading:g:)])
+      if ([c respondsToSelector: @selector(URLResourceDidFinishLoading:)])
 	{
 	  [c URLResourceDidFinishLoading: self];
 	}
