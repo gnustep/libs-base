@@ -857,7 +857,6 @@ failure:
 	  att = [[mgr fileAttributesAtPath: path
 			      traverseLink: YES] mutableCopy];
 	  IF_NO_GC(TEST_AUTORELEASE(att));
- 	  [mgr removeFileAtPath: path handler: nil];
 	}
 
       c = rename(thePath, theRealPath);
@@ -868,7 +867,7 @@ failure:
           goto failure;
         }
 
-      if (att)
+      if (att != nil)
 	{
 	  /*
 	   * We have created a new file - so we attempt to make it's
