@@ -209,7 +209,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 - (NSString*) description
 {
   NSMutableString	*m;
-  unsigned		c = GSIArrayCount(_array);
+  unsigned		c = (_array == 0) ? 0 : GSIArrayCount(_array);
   unsigned		i;
 
   m = [NSMutableString stringWithFormat:
@@ -630,7 +630,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	}
       else
 	{
-	  NSRange	r = GSIArrayItemAtIndex(_array, pos-1).ext;
+	  NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
 
 	  if (NSLocationInRange(aRange.location, r))
 	    {
