@@ -1,3 +1,11 @@
+2002-09-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/DocMakefile: Specify template options
+	* Tools/autogsdoc.m: Remove hack to turn templates on by default.
+	Document the use of templates.
+	* Tools/gsdoc-0_6_7.dtd: Hack in more types for indexing ... don't
+	know if the software works for them though.
+
 2002-09-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: Restructure conversion from unicode slightly,

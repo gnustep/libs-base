@@ -194,6 +194,20 @@
     supplied as command-line arguments as usual) -
   </p>
   <list>
+    <item><strong>ConstantsTemplate</strong>
+      Specify the name of a template document into which documentation
+      about constants should be inserted from all files in the project.<br />
+      This is useful if constanr in the source code are scattered around many
+      files, and you need to group them into one place.<br />
+      You are responsible for ensuring that the basic template document
+      (into which individual constant documentation is inserted) contains
+      all the other information you want, but as a conveniencem autogsdoc
+      will generate a simple template (which you may then edit) for you
+      if the file does not exist.
+      <br />Insertion takes place immediately before the <em>back</em>
+      element (or if that does not exist, immediately before the end
+      of the <em>body</em> lement) in the template.
+    </item>
     <item><strong>Declared</strong>
       Specify where headers are to be documented as being found.<br />
       The actual name produced in the documentation is formed by appending
@@ -217,6 +231,20 @@
       documentation is to be placed.  If this is not set, output
       is placed in the current directory.  This directory is also
       used as a last resort to locate source files (not headers).
+    </item>
+    <item><strong>FunctionsTemplate</strong>
+      Specify the name of a template document into which documentation
+      about functions should be inserted from all files in the project.<br />
+      This is useful if function source code is scattered around many
+      files, and you need to group it into one place.<br />
+      You are responsible for ensuring that the basic template document
+      (into which individual function documentation is inserted) contains
+      all the other information you want, but as a conveniencem autogsdoc
+      will generate a simple template (which you may then edit) for you
+      if the file does not exist.
+      <br />Insertion takes place immediately before the <em>back</em>
+      element (or if that does not exist, immediately before the end
+      of the <em>body</em> lement) in the template.
     </item>
     <item><strong>GenerateHtml</strong>
       May be used to specify if HTML output is to be generated.
@@ -301,12 +329,40 @@
       If you wish to include such projects, you must do so explicitly
       using <em>-Projects</em>
     </item>
+    <item><strong>TypedefsTemplate</strong>
+      Specify the name of a template document into which documentation
+      about typedefs should be inserted from all files in the project.<br />
+      This is useful if typedef source code is scattered around many
+      files, and you need to group it into one place.<br />
+      You are responsible for ensuring that the basic template document
+      (into which individual typedef documentation is inserted) contains
+      all the other information you want, but as a conveniencem autogsdoc
+      will generate a simple template (which you may then edit) for you
+      if the file does not exist.
+      <br />Insertion takes place immediately before the <em>back</em>
+      element (or if that does not exist, immediately before the end
+      of the <em>body</em> lement) in the template.
+    </item>
     <item><strong>Up</strong>
       A string used to supply the name to be used in the 'up' link from
       generated gsdoc documents.  This should normally be the name of a
       file which contains an index of the contents of a project.<br />
       If this is missing or set to an empty string, then no 'up' link
       will be provided in the documents.
+    </item>
+    <item><strong>VariablesTemplate</strong>
+      Specify the name of a template document into which documentation
+      about variables should be inserted from all files in the project.<br />
+      This is useful if variable source code is scattered around many
+      files, and you need to group it into one place.<br />
+      You are responsible for ensuring that the basic template document
+      (into which individual variable documentation is inserted) contains
+      all the other information you want, but as a conveniencem autogsdoc
+      will generate a simple template (which you may then edit) for you
+      if the file does not exist.
+      <br />Insertion takes place immediately before the <em>back</em>
+      element (or if that does not exist, immediately before the end
+      of the <em>body</em> lement) in the template.
     </item>
     <item><strong>WordMap</strong>
       This value is a dictionary used to map identifiers/keywords found
@@ -410,10 +466,6 @@ main(int argc, char **argv, char **env)
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
     @"Untitled", @"Project",
-    @"TypesAndConstants", @"ConstantsTemplate",
-    @"Functions", @"FunctionsTemplate",
-    @"TypesAndConstants", @"TypedefsTemplate",
-    @"TypesAndConstants", @"VariablesTemplate",
     nil]];
 
   verbose = [defs boolForKey: @"Verbose"];
