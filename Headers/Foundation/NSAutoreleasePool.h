@@ -69,6 +69,85 @@ typedef struct autorelease_array_list
 } array_list_struct;
 
 
+
+/**
+ * <p>
+ *   The standard OpenStep system of memory management employs retain counts.
+ *   When an object is created, it has a retain count of 1.  When an object
+ *   is retained, the retain count is incremented.  When it is released the
+ *   retain count is decremented, and when the retain count goes to zero the
+ *   object gets deallocated.
+ * </p>
+ * <p>
+ *   A simple retain/release mechanism is not very interesting ...
+ *   so it's spiced up with autorelease pools.  You can use the
+ *   AUTORELEASE() macro to call the [NSObject-autorelease]
+ *   method, which adds an object to the current autorelease pool by
+ *   calling [NSAutoreleasePool+addObject:].<br />
+ *   An autorelease pool simply maintains a reference to each object
+ *   added to it, and for each addition, the autorelease pool will
+ *   call the [NSObject-release] method of the object when the pool
+ *   is released.  So doing an AUTORELEASE() is just the same as
+ *   doing a RELEASE(), but deferred until the current autorelease
+ *   pool is deallocated.
+ * </p>
+ * <p>
+ *   The NSAutoreleasePool class maintains a separate stack of
+ *   autorelease pools objects in each thread.
+ * </p>
+ * <p>
+ *   When an autorelease pool is created, it is automatically
+ *   added to the stack of pools in the thread.
+ * </p>
+ * <p>
+ *   When a pool is destroyed, it (and any pool later in
+ *   the stack) is removed from the stack.
+ * </p>
+ * <p>
+ *   This mechanism provides a simple but controllable and reasonably
+ *   efficient way of managing temporary objects.  An object can be
+ *   autoreleased and then passed around and used until the topmost 
+ *   pool in the stack is destroyed.
+ * </p>   
+ * <p>
+ *   Most methods return objects which are either owned by autorelease
+ *   pools or by the receiver of the method, so the lifetime of the
+ *   returned object can be assumed to be the shorter of the lifetime
+ *   of the current autorelease pool, or that of the receiver on which
+ *   the method was called.<br />
+ *   The exceptions to this are those object returned by -
+ * </p>
+ * <deflist>
+ *   <term>[NSObject+alloc], [NSObject+allocWithZone:]</term>
+ *   <desc>
+ *     Methods whose names begin with alloc return an uninitialised
+ *     object, owned by the caller.
+ *   </desc>
+ *   <term>[NSObject-init]</term>
+ *   <desc>
+ *     Methods whose names begin with init return an initialised
+ *     version of the receiving object, owned by the caller.<br />
+ *     NB. The returned object may not actualy be the same as the
+ *     receiver ... sometimes an init method releases the original
+ *     receiver and returns an alternative.
+ *   </desc>
+ *   <term>[NSObject+new]</term>
+ *   <desc>
+ *     Methods whose names begin with new combine the effects of
+ *     allocation and initialisation.
+ *   </desc>
+ *   <term>[NSObject-copy], [(NSCopying)-copyWithZone:]</term>
+ *   <desc>
+ *     Methods whose names begin with copy create a copy of the receiver
+ *     which is owned by the caller.
+ *   </desc>
+ *   <term>[NSObject-mutableCopy], [(NSMutableCopying)-mutableCopyWithZone:]</term>
+ *   <desc>
+ *     Methods whose names begin with mutableCopy create a copy of the receiver
+ *     which is owned by the caller.
+ *   </desc>
+ * </deflist>
+ */
 @interface NSAutoreleasePool : NSObject 
 {
   /* For re-setting the current pool when we are dealloc'ed. */
@@ -85,22 +164,120 @@ typedef struct autorelease_array_list
   void 	(*_addImp)(id, SEL, id);
 }
 
+/**
+ * Adds anObj to the current autorelease pool.<br />
+ * If there is no autorelease pool in the thread,
+ * a warning is logged and the object is leaked (ie it will not be released).
+ */
 + (void) addObject: (id)anObj;
+
+/**
+ * Allocate and return an autorelease pool instance.<br />
+ * If there is an already-allocated NSAutoreleasePool available,
+ * save time by just returning that, rather than allocating a new one.<br />
+ * The pool instance becomes the current autorelease pool for this thread.
+ */
++ (id) allocWithZone: (NSZone*)zone;
+
+/**
+ * Adds anObj to this autorelease pool.
+ */
 - (void) addObject: (id)anObj;
 
-#ifndef	NO_GNUSTEP
-+ (void) enableRelease: (BOOL)enable;
-+ (void) freeCache;	/* Free cache of unused pools in this thread.	*/
-+ (void) setPoolCountThreshhold: (unsigned)c;
-+ (unsigned) autoreleaseCountForObject: (id)anObject;
-+ (void) _endThread: (NSThread*)thread; /* Don't call this directly. */
-/*
- * The next two methods have no effect unless you define COUNT_ALL to be
- * 1 in NSAutoreleasepool.m - doing so incurs a thread lookup overhead
- * each time an object is autoreleased.
+/**
+ * Raises an exception - pools should not be autoreleased.
  */
-+ (void) resetTotalAutoreleasedObjects;
-+ (unsigned) totalAutoreleasedObjects;
+- (id) autorelease;
+
+/**
+ * Destroys the receiver (calls -dealloc).
+ */
+- (oneway void) release;
+
+/**
+ * Raises an exception ... pools should not be retained.
+ */
+- (id) retain;
+
+#ifndef	NO_GNUSTEP
+/**
+ * <p>
+ *   Counts the number of times that the specified object occurs
+ *   in autorelease pools in the current thread.
+ * </p>
+ * <p>
+ *   This method is <em>slow</em> and should probably only be
+ *   used for debugging purposes.
+ * </p>
+ */
++ (unsigned) autoreleaseCountForObject: (id)anObject;
+
+/** 
+ * Return the currently active autorelease pool.
+ */
++ (id) currentPool;
+
+/**
+ * <p>
+ *   Specifies whether objects contained in autorelease pools are to
+ *   be released when the pools are deallocated (by default YES).
+ * </p>
+ * <p>
+ *   You can set this to NO for debugging purposes.
+ * </p>
+ */
++ (void) enableRelease: (BOOL)enable;
+
+/**
+ * <p>
+ *   When autorelease pools are deallocated, the memory they used
+ *   is retained in a cache for re-use so that new polls can be
+ *   created very quickly.
+ * </p>
+ * <p>
+ *   This method may be used to empty that cache, ensuring that
+ *   the minimum memory is used by the application.
+ * </p>
+ */
++ (void) freeCache;
+
+/**
+ * <p>
+ *   Specifies a limit to the number of objects that may be added to
+ *   an autorelease pool.  When this limit is reached an exception is
+ *   raised.
+ * </p>
+ * <p>
+ *   You can set this to a smallish value to catch problems with code
+ *   that autoreleases too many objects to operate efficiently.
+ * </p>
+ * <p>
+ *   Default value is maxint.
+ * </p>
+ */
++ (void) setPoolCountThreshhold: (unsigned)c;
+
+/**
+ * Destroys all the autorelease pools in the thread.<br />
+ * You should not call this directly, it's called automatically
+ * when a thread exits.
+ */
++ (void) _endThread: (NSThread*)thread;
+
+/**
+ * Return the number of objects in this pool.
+ */
+- (unsigned) autoreleaseCount;
+
+/**
+ * Empties the current pool by releasing all the autoreleased objects
+ * in it.  Also destroys any child pools (ones created after
+ * the receiver in the same thread) causing any objects in those pools
+ * to be released.<br />
+ * This is a low cost (efficient) method which may be used to get rid of
+ * autoreleased objects in the pool, but carry on using the pool.
+ */
+- (void) emptyPool;
 #endif
 @end
 
