@@ -257,7 +257,7 @@ static NSLock			*urlLock = nil;
   [sock closeFile];
   DESTROY(sock);
   contentLength = 0;
-  if ([request objectForKey: GSHTTPPropertyProxyHostKey] == nil)
+  if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] == 0)
     {
       if ([[url scheme] isEqualToString: @"https"])
 	{
@@ -278,7 +278,7 @@ static NSLock			*urlLock = nil;
     }
   else
     {
-      if ([request objectForKey: GSHTTPPropertyProxyPortKey] == nil)
+      if ([[request objectForKey: GSHTTPPropertyProxyPortKey] length] == 0)
 	{
 	  [request setObject: @"8080" forKey: GSHTTPPropertyProxyPortKey];
 	}
@@ -380,7 +380,7 @@ static NSLock			*urlLock = nil;
    * If SSL via proxy, set up tunnel first
    */
   if ([[url scheme] isEqualToString: @"https"]
-    && [request objectForKey: GSHTTPPropertyProxyHostKey] != nil)
+    && [[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0)
     {
       NSRunLoop	*loop = [NSRunLoop currentRunLoop];
       NSString	*cmd;
@@ -437,7 +437,7 @@ static NSLock			*urlLock = nil;
 	  method = @"GET";
 	}
     }
-  if ([request objectForKey: GSHTTPPropertyProxyHostKey] != nil
+  if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0
     && [[url scheme] isEqualToString: @"https"] == NO)
     {
       s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@", 
@@ -625,11 +625,26 @@ static NSLock			*urlLock = nil;
 {
   if ([propertyKey hasPrefix: @"GSHTTPProperty"])
     {
-      [request setObject: property forKey: propertyKey];
+      if (propertyKey == nil)
+	{
+	  [request removeObjectForKey: propertyKey];
+	}
+      else
+	{
+	  [request setObject: property forKey: propertyKey];
+	}
     }
   else
     {
-      [wProperties setObject: property forKey: [propertyKey lowercaseString]];
+      if (propertyKey == nil)
+	{
+	  [wProperties removeObjectForKey: [propertyKey lowercaseString]];
+	}
+      else
+	{
+	  [wProperties setObject: property
+			  forKey: [propertyKey lowercaseString]];
+	}
     }
   return YES;
 }

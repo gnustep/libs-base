@@ -1,3 +1,8 @@
+2001-11-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPHURLHandle.m: handle writing of nil properties and
+	use of empty strings as proxy settings.
+
 2001-11-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/foundation/NSUserDefaults.h: Add _lock ivar
