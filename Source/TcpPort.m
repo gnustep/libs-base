@@ -43,6 +43,7 @@
 #include <gnustep/base/Invocation.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSPortNameServer.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -68,6 +69,7 @@
 #define NBLK_OPT     FNDELAY
 #endif
 
+#define	NSPORTNAMESERVER	1
 #define	GDOMAP	1	/* 1 = Use name server.	*/
 #define	stringify_it(X)	#X
 #define	make_gdomap_cmd(X)	stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdomap &"
@@ -317,15 +319,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
       return(-1);		/* Error in select.	*/
     }
     else if (len > 0) {
-      void	(*ifun)();
-
-      /*
-       *	Should be able to write this short a message immediately, but
-       *	if the connection is lost we will get a signal we must trap.
-       */
-      ifun = signal(SIGPIPE, (void(*)(int))SIG_IGN);
       rval = write(desc, &dat[pos], len - pos);
-      signal(SIGPIPE, ifun);
 
       if (rval <= 0) {
 	if (errno != EWOULDBLOCK) {
@@ -745,10 +739,17 @@ static NSMapTable* port_number_2_port;
 + (void) initialize
 {
   if (self == [TcpInPort class])
-    port_number_2_port = 
-      NSCreateMapTable (NSIntMapKeyCallBacks,
-			NSNonOwnedPointerMapValueCallBacks, 0);
-  init_port_socket_2_port ();
+    {
+      port_number_2_port = 
+        NSCreateMapTable (NSIntMapKeyCallBacks,
+			  NSNonOwnedPointerMapValueCallBacks, 0);
+      init_port_socket_2_port ();
+      /*
+       *	If SIGPIPE is not ignored, we will abort on any attempt to
+       *	write to a pipe/socket that has been closed by the other end!
+       */
+      signal(SIGPIPE, SIG_IGN);
+    }
 }
 
 /* This is the designated initializer. 
@@ -919,12 +920,17 @@ static NSMapTable* port_number_2_port;
   struct sockaddr_in	sin;
 
   if (p) {
+#if NSPORTNAMESERVER
+    [[NSPortNameServer defaultPortNameServer] registerPort: p
+						   forName: name];
+#else
     int	port = [p portNumber];
 
     if (nameServer([name cString], 0, GDO_REGISTER, &sin, port, 1) == 0) {
       [p release];
       return nil;
     }
+#endif
   }
   return p;
 #else
@@ -1390,6 +1396,11 @@ static NSMapTable *out_port_bag = NULL;
       init_port_socket_2_port ();
       out_port_bag = NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
 				       NSNonOwnedPointerMapValueCallBacks, 0);
+      /*
+       *	If SIGPIPE is not ignored, we will abort on any attempt to
+       *	write to a pipe/socket that has been closed by the other end!
+       */
+      signal(SIGPIPE, SIG_IGN);
     }
 }
 
@@ -1647,6 +1658,13 @@ static NSMapTable *out_port_bag = NULL;
 			 onHost: (NSString*)hostname
 {
 #ifdef	GDOMAP
+#if NSPORTNAMESERVER
+  id	c;
+
+  c = [[NSPortNameServer defaultPortNameServer] portForName: name
+						     onHost: hostname];
+  return [c retain];
+#else
   struct sockaddr_in	sin[100];
   int			found;
   int			i;
@@ -1661,6 +1679,7 @@ static NSMapTable *out_port_bag = NULL;
 		     pollingInPort: nil];
     }
   return c;
+#endif
 #else
   return [self newForSendingToPortNumber: 
 		 name_2_port_number ([name cString]) onHost: hostname];;

@@ -43,6 +43,7 @@
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
 #endif /* WIN32 */
 
 #include <sys/file.h>
@@ -101,7 +102,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
    */
   if (name)
     {
-      NSHost*		host = [NSHost hostWithName:name];
+      NSHost*		host = [NSHost hostWithName: name];
 
       if (host)
 	name = [host address];
@@ -146,12 +147,24 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-+ allocWithZone:(NSZone*)z
++ (void) initialize
+{
+  if (self == [UnixFileHandle class])
+    {
+      /*
+       *	If SIGPIPE is not ignored, we will abort on any attempt to
+       *	write to a pipe/socket that has been closed by the other end!
+       */
+      signal(SIGPIPE, SIG_IGN);
+    }
+}
+
++ (id) allocWithZone: (NSZone*)z
 {
   return NSAllocateObject ([self class], 0, z);
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   [address release];
   [service release];
@@ -186,12 +199,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)init
 {
-    return [self initWithNullDevice];
+  return [self initWithNullDevice];
 }
 
-- (id)initAsClientAtAddress:a
-		    service:s
-		   protocol:p
+- (id)initAsClientAtAddress: a
+		    service: s
+		   protocol: p
 {
   int	net;
   struct sockaddr_in	sin;
@@ -217,7 +230,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       return nil;
     }
 
-  self = [self initWithFileDescriptor:net closeOnDealloc:YES];
+  self = [self initWithFileDescriptor: net closeOnDealloc: YES];
   if (self)
     {
       if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
@@ -234,10 +247,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initAsClientInBackgroundAtAddress:a
-				service:s
-			       protocol:p
-			       forModes:modes
+- (id)initAsClientInBackgroundAtAddress: a
+				service: s
+			       protocol: p
+			       forModes: modes
 {
   int	net;
   struct sockaddr_in	sin;
@@ -263,7 +276,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       return nil;
     }
 
-  self = [self initWithFileDescriptor:net closeOnDealloc:YES];
+  self = [self initWithFileDescriptor: net closeOnDealloc: YES];
   if (self)
     {
       NSMutableDictionary*	info;
@@ -277,13 +290,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    return nil;
 	  }
 	
-      info = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
-      [info setObject:address forKey:NSFileHandleNotificationDataItem];
-      [info setObject:GSFileHandleConnectCompletionNotification
-	        forKey:NotificationKey];
+      info = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+      [info setObject: address forKey: NSFileHandleNotificationDataItem];
+      [info setObject: GSFileHandleConnectCompletionNotification
+	       forKey: NotificationKey];
       if (modes)
-        [info setObject:modes forKey:NSFileHandleNotificationMonitorModes];
-      [writeInfo addObject:info];
+        [info setObject: modes forKey: NSFileHandleNotificationMonitorModes];
+      [writeInfo addObject: info];
       [info release];
       [self watchWriteDescriptor];
       connectOK = YES;
@@ -293,9 +306,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initAsServerAtAddress:a
-		    service:s
-		   protocol:p
+- (id)initAsServerAtAddress: a
+		    service: s
+		   protocol: p
 {
   int	status = 1;
   int	net;
@@ -342,7 +355,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       return nil;
     }
 
-  self = [self initWithFileDescriptor:net closeOnDealloc:YES];
+  self = [self initWithFileDescriptor: net closeOnDealloc: YES];
   if (self)
     {
       acceptOK = YES;
@@ -353,7 +366,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initForReadingAtPath:(NSString*)path
+- (id)initForReadingAtPath: (NSString*)path
 {
   int	d = open([path fileSystemRepresentation], O_RDONLY);
 
@@ -364,14 +377,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      self = [self initWithFileDescriptor:d closeOnDealloc:YES];
+      self = [self initWithFileDescriptor: d closeOnDealloc: YES];
       if (self)
 	writeOK = NO;
       return self;
     }
 }
 
-- (id)initForWritingAtPath:(NSString*)path
+- (id)initForWritingAtPath: (NSString*)path
 {
   int	d = open([path fileSystemRepresentation], O_WRONLY);
 
@@ -382,14 +395,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      self = [self initWithFileDescriptor:d closeOnDealloc:YES];
+      self = [self initWithFileDescriptor: d closeOnDealloc: YES];
       if (self)
         readOK = NO;
       return self;
     }
 }
 
-- (id)initForUpdatingAtPath:(NSString*)path
+- (id)initForUpdatingAtPath: (NSString*)path
 {
   int	d = open([path fileSystemRepresentation], O_RDWR);
 
@@ -400,7 +413,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      return [self initWithFileDescriptor:d closeOnDealloc:YES];
+      return [self initWithFileDescriptor: d closeOnDealloc: YES];
     }
 }
 
@@ -413,7 +426,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      [self initWithFileDescriptor:2 closeOnDealloc:NO];
+      [self initWithFileDescriptor: 2 closeOnDealloc: NO];
       fh_stderr = self;
     }
   self = fh_stderr;
@@ -431,7 +444,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      [self initWithFileDescriptor:0 closeOnDealloc:NO];
+      [self initWithFileDescriptor: 0 closeOnDealloc: NO];
       fh_stdin = self;
     }
   self = fh_stdin;
@@ -449,7 +462,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      [self initWithFileDescriptor:1 closeOnDealloc:NO];
+      [self initWithFileDescriptor: 1 closeOnDealloc: NO];
       fh_stdout = self;
     }
   self = fh_stdout;
@@ -460,15 +473,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)initWithNullDevice
 {
-  self = [self initWithFileDescriptor:open("/dev/null", O_RDWR)
-		       closeOnDealloc:YES];
+  self = [self initWithFileDescriptor: open("/dev/null", O_RDWR)
+		       closeOnDealloc: YES];
   if (self) {
     isNullDevice = YES;
   }
   return self;
 }
 
-- (id)initWithFileDescriptor:(int)desc closeOnDealloc:(BOOL)flag
+- (id)initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag
 {
   self = [super init];
   if (self)
@@ -506,14 +519,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return self;
 }
 
-- (id)initWithNativeHandle:(void*)hdl
+- (id)initWithNativeHandle: (void*)hdl
 {
-    return [self initWithFileDescriptor:(int)hdl closeOnDealloc:NO];
+    return [self initWithFileDescriptor: (int)hdl closeOnDealloc: NO];
 }
 
-- (id)initWithNativeHandle:(void*)hdl closeOnDealloc:(BOOL)flag
+- (id)initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
-  return [self initWithFileDescriptor:(int)hdl closeOnDealloc:flag];
+  return [self initWithFileDescriptor: (int)hdl closeOnDealloc: flag];
 }
 
 - (void)checkAccept
@@ -525,7 +538,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   if (readInfo)
     {
-      id	operation = [readInfo objectForKey:NotificationKey];
+      id	operation = [readInfo objectForKey: NotificationKey];
 
       if (operation == NSFileHandleConnectionAcceptedNotification)
         {
@@ -549,8 +562,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   if ([writeInfo count] > 0)
     {
-      id	info = [writeInfo objectAtIndex:0];
-      id	operation = [info objectForKey:NotificationKey];
+      id	info = [writeInfo objectAtIndex: 0];
+      id	operation = [info objectForKey: NotificationKey];
 
       if (operation == GSFileHandleConnectCompletionNotification)
 	{
@@ -574,7 +587,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   if (readInfo)
     {
-      id	operation = [readInfo objectForKey:NotificationKey];
+      id	operation = [readInfo objectForKey: NotificationKey];
 
       if (operation == NSFileHandleConnectionAcceptedNotification)
         {
@@ -598,8 +611,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   if ([writeInfo count] > 0)
     {
-      id	info = [writeInfo objectAtIndex:0];
-      id	operation = [info objectForKey:NotificationKey];
+      id	info = [writeInfo objectAtIndex: 0];
+      id	operation = [info objectForKey: NotificationKey];
 
       if (operation == GSFileHandleConnectCompletionNotification)
 	{
@@ -634,12 +647,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self checkRead];
   if (isNonBlocking == YES)
     [self setNonBlocking: NO];
-  d = [NSMutableData dataWithCapacity:0];
+  d = [NSMutableData dataWithCapacity: 0];
   if (isStandardFile)
     {
       while ((len = read(descriptor, buf, sizeof(buf))) > 0)
         {
-	  [d appendBytes:buf length:len];
+	  [d appendBytes: buf length: len];
         }
     }
   else
@@ -668,7 +681,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    }
 	  if ((len = read(descriptor, buf, count)) > 0)
 	    {
-	      [d appendBytes:buf length:len];
+	      [d appendBytes: buf length: len];
 	    }
 	}
     }
@@ -690,10 +703,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self checkRead];
   if (isNonBlocking == YES)
     [self setNonBlocking: NO];
-  d = [NSMutableData dataWithCapacity:0];
+  d = [NSMutableData dataWithCapacity: 0];
   while ((len = read(descriptor, buf, sizeof(buf))) > 0)
     {
-      [d appendBytes:buf length:len];
+      [d appendBytes: buf length: len];
     }
   if (len < 0)
     {
@@ -704,7 +717,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return d;
 }
 
-- (NSData*)readDataOfLength:(unsigned int)len
+- (NSData*)readDataOfLength: (unsigned int)len
 {
   NSMutableData*	d;
   int			pos;
@@ -721,11 +734,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
                   format: @"unable to read from descriptor - %s",
                   strerror(errno)];
     }
-  [d setLength:pos];
+  [d setLength: pos];
   return d;
 }
 
-- (void)writeData:(NSData*)item
+- (void)writeData: (NSData*)item
 {
   int		rval = 0;
   const void*	ptr = [item bytes];
@@ -757,74 +770,74 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 // Asynchronous I/O operations
 
-- (void)acceptConnectionInBackgroundAndNotifyForModes:(NSArray*)modes
+- (void)acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkAccept];
   readPos = 0;
   [readInfo release];
-  readInfo = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
-  [readInfo setObject:NSFileHandleConnectionAcceptedNotification
-	       forKey:NotificationKey];
-  [self watchReadDescriptorForModes:modes];
+  readInfo = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  [readInfo setObject: NSFileHandleConnectionAcceptedNotification
+	       forKey: NotificationKey];
+  [self watchReadDescriptorForModes: modes];
 }
 
 - (void)acceptConnectionInBackgroundAndNotify
 {
-  [self acceptConnectionInBackgroundAndNotifyForModes:nil];
+  [self acceptConnectionInBackgroundAndNotifyForModes: nil];
 }
 
-- (void)readInBackgroundAndNotifyForModes:(NSArray*)modes
+- (void)readInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkRead];
   readPos = 0;
   [readInfo release];
-  readInfo = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
-  [readInfo setObject:NSFileHandleReadCompletionNotification
-	       forKey:NotificationKey];
-  [readInfo setObject:[NSMutableData dataWithCapacity:0]
-	       forKey:NSFileHandleNotificationDataItem];
-  [self watchReadDescriptorForModes:modes];
+  readInfo = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  [readInfo setObject: NSFileHandleReadCompletionNotification
+	       forKey: NotificationKey];
+  [readInfo setObject: [NSMutableData dataWithCapacity: 0]
+	       forKey: NSFileHandleNotificationDataItem];
+  [self watchReadDescriptorForModes: modes];
 }
 
 - (void)readInBackgroundAndNotify
 {
-  return [self readInBackgroundAndNotifyForModes:nil];
+  return [self readInBackgroundAndNotifyForModes: nil];
 }
 
-- (void)readToEndOfFileInBackgroundAndNotifyForModes:(NSArray*)modes
+- (void)readToEndOfFileInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkRead];
   readPos = 0;
   [readInfo release];
-  readInfo = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
-  [readInfo setObject:NSFileHandleReadToEndOfFileCompletionNotification
-	       forKey:NotificationKey];
-  [readInfo setObject:[NSMutableData dataWithCapacity:0]
-	       forKey:NSFileHandleNotificationDataItem];
-  [self watchReadDescriptorForModes:modes];
+  readInfo = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  [readInfo setObject: NSFileHandleReadToEndOfFileCompletionNotification
+	       forKey: NotificationKey];
+  [readInfo setObject: [NSMutableData dataWithCapacity: 0]
+	       forKey: NSFileHandleNotificationDataItem];
+  [self watchReadDescriptorForModes: modes];
 }
 
 - (void)readToEndOfFileInBackgroundAndNotify
 {
-  return [self readToEndOfFileInBackgroundAndNotifyForModes:nil];
+  return [self readToEndOfFileInBackgroundAndNotifyForModes: nil];
 }
 
-- (void)waitForDataInBackgroundAndNotifyForModes:(NSArray*)modes
+- (void)waitForDataInBackgroundAndNotifyForModes: (NSArray*)modes
 {
   [self checkRead];
   readPos = 0;
   [readInfo release];
-  readInfo = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
-  [readInfo setObject:NSFileHandleDataAvailableNotification
-	       forKey:NotificationKey];
-  [readInfo setObject:[NSMutableData dataWithCapacity:0]
-	       forKey:NSFileHandleNotificationDataItem];
-  [self watchReadDescriptorForModes:modes];
+  readInfo = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  [readInfo setObject: NSFileHandleDataAvailableNotification
+	       forKey: NotificationKey];
+  [readInfo setObject: [NSMutableData dataWithCapacity: 0]
+	       forKey: NSFileHandleNotificationDataItem];
+  [self watchReadDescriptorForModes: modes];
 }
 
 - (void)waitForDataInBackgroundAndNotify
 {
-  return [self waitForDataInBackgroundAndNotifyForModes:nil];
+  return [self waitForDataInBackgroundAndNotifyForModes: nil];
 }
 
 // Seeking within a file
@@ -859,7 +872,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return (unsigned long long)result;
 }
 
-- (void)seekToFileOffset:(unsigned long long)pos
+- (void)seekToFileOffset: (unsigned long long)pos
 {
   off_t	result = -1;
 
@@ -903,34 +916,34 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     (void)sync();
 }
 
-- (void)truncateFileAtOffset:(unsigned long long)pos
+- (void)truncateFileAtOffset: (unsigned long long)pos
 {
   if (isStandardFile && descriptor >= 0)
     (void)ftruncate(descriptor, pos);
-   [self seekToFileOffset:pos];
+   [self seekToFileOffset: pos];
 }
 
-- (void)writeInBackgroundAndNotify:(NSData*)item forModes:(NSArray*)modes
+- (void)writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
 {
   NSMutableDictionary*	info;
 
   [self checkWrite];
 
-  info = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
-  [info setObject:item forKey:NSFileHandleNotificationDataItem];
-  [info setObject:GSFileHandleWriteCompletionNotification
-		forKey:NotificationKey];
+  info = [[NSMutableDictionary dictionaryWithCapacity: 4] retain];
+  [info setObject: item forKey: NSFileHandleNotificationDataItem];
+  [info setObject: GSFileHandleWriteCompletionNotification
+		forKey: NotificationKey];
   if (modes)
-    [info setObject:modes forKey:NSFileHandleNotificationMonitorModes];
+    [info setObject: modes forKey: NSFileHandleNotificationMonitorModes];
 
-  [writeInfo addObject:info];
+  [writeInfo addObject: info];
   [info release];
   [self watchWriteDescriptor];
 }
 
-- (void)writeInBackgroundAndNotify:(NSData*)item;
+- (void)writeInBackgroundAndNotify: (NSData*)item;
 {
-  [self writeInBackgroundAndNotify:item forModes:nil];
+  [self writeInBackgroundAndNotify: item forModes: nil];
 }
 
 - (void)postReadNotification
@@ -942,39 +955,39 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   [self ignoreReadDescriptor];
   readInfo = nil;
-  modes = (NSArray*)[info objectForKey:NSFileHandleNotificationMonitorModes];
-  name = (NSString*)[info objectForKey:NotificationKey];
+  modes = (NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
+  name = (NSString*)[info objectForKey: NotificationKey];
 
-  n = [NSNotification notificationWithName:name object:self userInfo:info];
+  n = [NSNotification notificationWithName: name object: self userInfo: info];
 
   [info release];	/* Retained by the notification.	*/
 
-  [[NSNotificationQueue defaultQueue] enqueueNotification:n
-		postingStyle:NSPostASAP
-		coalesceMask:NSNotificationNoCoalescing
-		forModes:modes];
+  [[NSNotificationQueue defaultQueue] enqueueNotification: n
+		postingStyle: NSPostASAP
+		coalesceMask: NSNotificationNoCoalescing
+		forModes: modes];
 }
 
 - (void)postWriteNotification
 {
-  NSMutableDictionary*	info = [writeInfo objectAtIndex:0];
+  NSMutableDictionary*	info = [writeInfo objectAtIndex: 0];
   NSNotification*	n;
   NSArray*		modes;
   NSString*		name;
 
   [self ignoreWriteDescriptor];
-  modes = (NSArray*)[info objectForKey:NSFileHandleNotificationMonitorModes];
-  name = (NSString*)[info objectForKey:NotificationKey];
+  modes = (NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
+  name = (NSString*)[info objectForKey: NotificationKey];
 
-  n = [NSNotification notificationWithName:name object:self userInfo:info];
+  n = [NSNotification notificationWithName: name object: self userInfo: info];
 
   writePos = 0;
-  [writeInfo removeObjectAtIndex:0];	/* Retained by notification.	*/
+  [writeInfo removeObjectAtIndex: 0];	/* Retained by notification.	*/
 
-  [[NSNotificationQueue defaultQueue] enqueueNotification:n
-		postingStyle:NSPostASAP
-		coalesceMask:NSNotificationNoCoalescing
-		forModes:modes];
+  [[NSNotificationQueue defaultQueue] enqueueNotification: n
+		postingStyle: NSPostASAP
+		coalesceMask: NSNotificationNoCoalescing
+		forModes: modes];
   [self watchWriteDescriptor];	/* In case of queued writes.	*/
 }
 
@@ -1004,7 +1017,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   modes = nil;
 
   if (readInfo)
-    modes = (NSArray*)[readInfo objectForKey:NSFileHandleNotificationMonitorModes];
+    modes = (NSArray*)[readInfo objectForKey: NSFileHandleNotificationMonitorModes];
 
   if (modes && [modes count])
     {
@@ -1014,7 +1027,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  [l removeEvent: (void*)descriptor
 		    type: ET_RDESC
-		 forMode: [modes objectAtIndex:i]
+		 forMode: [modes objectAtIndex: i]
 		     all: YES];
         }
     }
@@ -1038,9 +1051,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if ([writeInfo count] > 0)
     {
-      NSMutableDictionary*	info = [writeInfo objectAtIndex:0];
+      NSMutableDictionary*	info = [writeInfo objectAtIndex: 0];
 
-      modes=(NSArray*)[info objectForKey:NSFileHandleNotificationMonitorModes];
+      modes=(NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
     }
 
   if (modes && [modes count])
@@ -1051,7 +1064,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  [l removeEvent: (void*)descriptor
 		    type: ET_WDESC
-		 forMode: [modes objectAtIndex:i]
+		 forMode: [modes objectAtIndex: i]
 		     all: YES];
         }
     }
@@ -1062,7 +1075,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	       all: YES];
 }
 
-- (void)watchReadDescriptorForModes:(NSArray*)modes;
+- (void)watchReadDescriptorForModes: (NSArray*)modes;
 {
   NSRunLoop	*l;
 
@@ -1080,9 +1093,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  [l addEvent: (void*)descriptor
 		 type: ET_RDESC
 	      watcher: self
-	      forMode: [modes objectAtIndex:i]];
+	      forMode: [modes objectAtIndex: i]];
         }
-      [readInfo setObject:modes forKey:NSFileHandleNotificationMonitorModes];
+      [readInfo setObject: modes forKey: NSFileHandleNotificationMonitorModes];
     }
   else
     {
@@ -1100,14 +1113,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if ([writeInfo count] > 0)
     {
-      NSMutableDictionary*	info = [writeInfo objectAtIndex:0];
+      NSMutableDictionary*	info = [writeInfo objectAtIndex: 0];
       NSRunLoop*		l = [NSRunLoop currentRunLoop];
       NSArray*			modes = nil;
 
 
-      modes = [info objectForKey:NSFileHandleNotificationMonitorModes];
+      modes = [info objectForKey: NSFileHandleNotificationMonitorModes];
 
-      [self setNonBlocking:YES];
+      [self setNonBlocking: YES];
       if (modes && [modes count])
 	{
 	  int		i;
@@ -1117,7 +1130,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      [l addEvent: (void*)descriptor
 		     type: ET_WDESC
 		  watcher: self
-		  forMode: [modes objectAtIndex:i]];
+		  forMode: [modes objectAtIndex: i]];
 	    }
 	}
       else
@@ -1139,131 +1152,166 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (isNonBlocking == NO)
     [self setNonBlocking: YES];
-  if (type == ET_RDESC) {
-    operation = [readInfo objectForKey:NotificationKey];
-    if (operation == NSFileHandleConnectionAcceptedNotification) {
-      struct sockaddr_in	buf;
-      int			desc;
-      int			blen = sizeof(buf);
-      NSFileHandle*		hdl;
+  if (type == ET_RDESC)
+    {
+      operation = [readInfo objectForKey: NotificationKey];
+      if (operation == NSFileHandleConnectionAcceptedNotification)
+	{
+	  struct sockaddr_in	buf;
+	  int			desc;
+	  int			blen = sizeof(buf);
+	  NSFileHandle*		hdl;
 
-      desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
-      if (desc < 0) {
-	NSString*	s;
+	  desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
+	  if (desc < 0)
+	    {
+	      NSString	*s;
 
-	s = [NSString stringWithFormat:@"Accept attempt failed - %s",
+	      s = [NSString stringWithFormat: @"Accept attempt failed - %s",
                       strerror(errno)];
-	[readInfo setObject:s forKey:GSFileHandleNotificationError];
-      }
-      else { // Accept attempt completed.
-	UnixFileHandle	*h;
-        struct sockaddr_in	sin;
-        int	size = sizeof(sin);
+	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
+	    }
+	  else
+	    { // Accept attempt completed.
+	      UnixFileHandle		*h;
+	      struct sockaddr_in	sin;
+	      int			size = sizeof(sin);
 
-	h = [[UnixFileHandle alloc] initWithFileDescriptor:desc];
-        getpeername(desc, (struct sockaddr*)&sin, &size);
-        [h setAddr: &sin];
-	[readInfo setObject: h forKey: NSFileHandleNotificationFileHandleItem];
-	[h release];
-      }
-      [self postReadNotification];
-    }
-    else if (operation == NSFileHandleDataAvailableNotification) {
-      [self postReadNotification];
-    }
-    else {
-      NSMutableData*	item;
-      int		length;
-      int		received = 0;
-      char		buf[NETBUF_SIZE];
+	      h = [[UnixFileHandle alloc] initWithFileDescriptor: desc];
+	      getpeername(desc, (struct sockaddr*)&sin, &size);
+	      [h setAddr: &sin];
+	      [readInfo setObject: h
+			   forKey: NSFileHandleNotificationFileHandleItem];
+	      [h release];
+	    }
+	  [self postReadNotification];
+	}
+      else if (operation == NSFileHandleDataAvailableNotification)
+	{
+	  [self postReadNotification];
+	}
+      else
+	{
+	  NSMutableData	*item;
+	  int		length;
+	  int		received = 0;
+	  char		buf[NETBUF_SIZE];
 
-      item = [readInfo objectForKey:NSFileHandleNotificationDataItem];
-      length = [item length];
+	  item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
+	  length = [item length];
 
-      received = read(descriptor, buf, sizeof(buf));
-      if (received == 0) { // Read up to end of file.
-	[self postReadNotification];
-      }
-      else if (received < 0) {
-	if (errno != EAGAIN) {
-	  NSString*	s;
+	  received = read(descriptor, buf, sizeof(buf));
+	  if (received == 0)
+	    { // Read up to end of file.
+	      [self postReadNotification];
+	    }
+	  else if (received < 0)
+	    {
+	      if (errno != EAGAIN)
+		{
+		  NSString	*s;
 
-	  s = [NSString stringWithFormat:@"Read attempt failed - %s",
+		  s = [NSString stringWithFormat: @"Read attempt failed - %s",
                           strerror(errno)];
-	  [readInfo setObject:s forKey:GSFileHandleNotificationError];
-	  [self postReadNotification];
+		  [readInfo setObject: s forKey: GSFileHandleNotificationError];
+		  [self postReadNotification];
+		}
+	    }
+	  else
+	    {
+	      [item appendBytes: buf length: received];
+	      if (operation == NSFileHandleReadCompletionNotification)
+		{
+		  // Read a single chunk of data
+		  [self postReadNotification];
+		}
+	    }
 	}
-      }
-      else {
-	[item appendBytes:buf length:received];
-	if (operation == NSFileHandleReadCompletionNotification) {
-	  // Read a single chunk of data
-	  [self postReadNotification];
-	}
-      }
     }
-  }
-  else if (type == ET_WDESC) {
-    NSMutableDictionary*	info;
+  else if (type == ET_WDESC)
+    {
+      NSMutableDictionary	*info;
 
-    info = [writeInfo objectAtIndex:0];
-    operation = [info objectForKey:NotificationKey];
-    if (operation == GSFileHandleWriteCompletionNotification) {
-      NSData*		item;
-      int		length;
-      const void*	ptr;
+      info = [writeInfo objectAtIndex: 0];
+      operation = [info objectForKey: NotificationKey];
+      if (operation == GSFileHandleWriteCompletionNotification)
+	{
+	  NSData	*item;
+	  int		length;
+	  const void	*ptr;
 
-      item = [info objectForKey:NSFileHandleNotificationDataItem];
-      length = [item length];
-      ptr = [item bytes];
-      if (writePos < length) {
-	int	written;
+	  item = [info objectForKey: NSFileHandleNotificationDataItem];
+	  length = [item length];
+	  ptr = [item bytes];
+	  if (writePos < length)
+	    {
+	      int	written;
 
-	written = write(descriptor, (char*)ptr+writePos, length - writePos);
-	if (written <= 0) {
-	  if (errno != EAGAIN) {
-	    NSString*	s;
+	      written = write(descriptor, (char*)ptr+writePos, length-writePos);
+	      if (written <= 0)
+		{
+		  if (errno != EAGAIN)
+		    {
+		      NSString	*s;
 
-	    s = [NSString stringWithFormat:@"Write attempt failed - %s",
-			      strerror(errno)];
-	    [info setObject:s forKey:GSFileHandleNotificationError];
-	    [self postWriteNotification];
-	  }
+		      s = [NSString stringWithFormat:
+				@"Write attempt failed - %s", strerror(errno)];
+		      [info setObject: s forKey: GSFileHandleNotificationError];
+		      [self postWriteNotification];
+		    }
+		}
+	      else
+		{
+		  writePos += written;
+		}
+	    }
+	  if (writePos >= length)
+	    { // Write operation completed.
+	      [self postWriteNotification];
+	    }
 	}
-	else {
-	  writePos += written;
+      else
+	{ // Connection attempt completed.
+	  int	result;
+	  int	len = sizeof(result);
+
+	  if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
+		(char*)&result, &len) == 0 && result != 0)
+	    {
+		NSString	*s;
+
+		s = [NSString stringWithFormat: @"Connect attempt failed - %s",
+			      strerror(result)];
+		[info setObject: s forKey: GSFileHandleNotificationError];
+	    }
+	  else
+	    {
+	      readOK = YES;
+	      writeOK = YES;
+	    }
+	  connectOK = NO;
+	  [self postWriteNotification];
 	}
-      }
-      if (writePos >= length) { // Write operation completed.
-	[self postWriteNotification];
-      }
     }
-    else { // Connection attempt completed.
-      connectOK = NO;
-      readOK = YES;
-      writeOK = YES;
-      [self postWriteNotification];
-    }
-  }
 }
 
 - (NSDate*)timedOutEvent: (void*)data
 		    type: (RunLoopEventType)type
 		 forMode: (NSString*)mode
 {
-    return nil;		/* Don't restart timed out events	*/
+  return nil;		/* Don't restart timed out events	*/
 }
 
 - (void) setAddr: (struct sockaddr_in *)sin
 {
-    address = [NSString stringWithCString: (char*)inet_ntoa(sin->sin_addr)];
-    [address retain];
-    service = [NSString stringWithFormat: @"%d", (int)ntohs(sin->sin_port)];
-    [service retain];
-    protocol = @"tcp";
+  address = [NSString stringWithCString: (char*)inet_ntoa(sin->sin_addr)];
+  [address retain];
+  service = [NSString stringWithFormat: @"%d", (int)ntohs(sin->sin_port)];
+  [service retain];
+  protocol = @"tcp";
 }
 
-- (void)setNonBlocking:(BOOL)flag
+- (void)setNonBlocking: (BOOL)flag
 {
   int	e;
 
@@ -1294,17 +1342,17 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (NSString*) socketAddress
 {
-    return address;
+  return address;
 }
 
 - (NSString*) socketProtocol
 {
-    return protocol;
+  return protocol;
 }
 
 - (NSString*) socketService
 {
-    return service;
+  return service;
 }
 
 @end
