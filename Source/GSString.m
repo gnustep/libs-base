@@ -2582,6 +2582,7 @@ transmute(ivars self, NSString *aString)
 - (void) replaceCharactersInRange: (NSRange)aRange
 		       withString: (NSString*)aString
 {
+  ivars		other = 0;
   int		offset;
   unsigned	length = 0;
 
@@ -2600,6 +2601,16 @@ transmute(ivars self, NSString *aString)
     }
   offset = length - aRange.length;
 
+  /*
+   * We must change into a unicode string (if necessary) *before*
+   * adjusting length and capacity, so that the transmute doesn't
+   * mess up due to any hole in the string etc.
+   */
+  if (length > 0)
+    {
+      other = transmute((ivars)self, aString);
+    }
+
   if (offset < 0)
     {
       fillHole((ivars)self, NSMaxRange(aRange) + offset, -offset);
@@ -2611,8 +2622,6 @@ transmute(ivars self, NSString *aString)
 
   if (length > 0)
     {
-      ivars	other = transmute((ivars)self, aString);
-
       if (_flags.wide == 1)
 	{
 	  if (other == 0)

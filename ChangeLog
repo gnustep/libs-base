@@ -1,3 +1,8 @@
+2001-06-05  Richard Frith-Macdonald  <rfm@gnu.uk>
+
+	* Source/GSString.m: ([replaceCharactersInRange:withString:])
+	Fix error appending unicode string to C string.
+
 2001-06-01  Richard Frith-Macdonald  <rfm@gnu.uk>
 
 	* Source/NSString.m: Patch by David Relson applied
