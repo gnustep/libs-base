@@ -234,10 +234,12 @@
 
 - (void) removeObject: (NSObject *)anObject
 {
-  if (anObject)
+  if (anObject == nil)
     {
-      GSIMapRemoveKey(&map, (GSIMapKey)anObject);
+      NSLog(@"attempt to remove nil object");
+      return;
     }
+  GSIMapRemoveKey(&map, (GSIMapKey)anObject);
 }
 
 - (void) removeAllObjects

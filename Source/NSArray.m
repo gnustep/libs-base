@@ -877,8 +877,14 @@ static NSString	*indentStrings[] = {
 
 - (void) removeObjectIdenticalTo: (id)anObject
 {
-  unsigned	i = [self count];
+  unsigned	i;
 
+  if (anObject == nil)
+    {
+      NSLog(@"attempt to remove nil object");
+      return;
+    }
+  i = [self count];
   if (i > 0)
     {
       IMP	rem = 0;
@@ -900,13 +906,22 @@ static NSString	*indentStrings[] = {
 
 - (void) removeObject: (id)anObject inRange: (NSRange)aRange
 {
-  unsigned	c = [self count];
-  unsigned	s = aRange.location;
-  unsigned	i = aRange.location + aRange.length;
+  unsigned	c;
+  unsigned	s;
+  unsigned	i;
 
+  if (anObject == nil)
+    {
+      NSLog(@"attempt to remove nil object");
+      return;
+    }
+  c = [self count];
+  s = aRange.location;
+  i = aRange.location + aRange.length;
   if (i > c)
-    i = c;
-
+    {
+      i = c;
+    }
   if (i > s)
     {
       IMP	rem = 0;
@@ -930,13 +945,22 @@ static NSString	*indentStrings[] = {
 
 - (void) removeObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange
 {
-  unsigned	c = [self count];
-  unsigned	s = aRange.location;
-  unsigned	i = aRange.location + aRange.length;
+  unsigned	c;
+  unsigned	s;
+  unsigned	i;
 
+  if (anObject == nil)
+    {
+      NSLog(@"attempt to remove nil object");
+      return;
+    }
+  c = [self count];
+  s = aRange.location;
+  i = aRange.location + aRange.length;
   if (i > c)
-    i = c;
-
+    {
+      i = c;
+    }
   if (i > s)
     {
       IMP	rem = 0;
@@ -958,8 +982,14 @@ static NSString	*indentStrings[] = {
 
 - (void) removeObject: (id)anObject
 {
-  unsigned	i = [self count];
+  unsigned	i;
 
+  if (anObject == nil)
+    {
+      NSLog(@"attempt to remove nil object");
+      return;
+    }
+  i = [self count];
   if (i > 0)
     {
       IMP	rem = 0;

@@ -421,9 +421,15 @@ static SEL	eqSel = @selector(isEqual:);
 
 - (void) removeObject: (id)anObject
 {
-  unsigned	index = _count;
+  unsigned	index;
 
-  if (index > 0 && anObject)
+  if (anObject == nil)
+    {
+      NSLog(@"attempt to remove nil object");
+      return;
+    }
+  index = _count;
+  if (index > 0)
     {
       BOOL		(*imp)(id,SEL,id);
 
@@ -470,8 +476,14 @@ static SEL	eqSel = @selector(isEqual:);
 
 - (void) removeObjectIdenticalTo: (id)anObject
 {
-  unsigned	index = _count;
+  unsigned	index;
 
+  if (anObject == nil)
+    {
+      NSLog(@"attempt to remove nil object");
+      return;
+    }
+  index = _count;
   while (index-- > 0)
     {
       if (_contents_array[index] == anObject)

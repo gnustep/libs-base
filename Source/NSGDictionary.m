@@ -381,10 +381,12 @@ myEqual(id self, id other)
 
 - (void) removeObjectForKey: (id)aKey
 {
-  if (aKey)
+  if (aKey == nil)
     {
-      GSIMapRemoveKey(&map, (GSIMapKey)aKey);
+      NSLog(@"attempt to remove nil key");
+      return;
     }
+  GSIMapRemoveKey(&map, (GSIMapKey)aKey);
 }
 
 @end
