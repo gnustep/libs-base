@@ -339,13 +339,14 @@ iconv_strtoustr(unichar *u2, int size2, const char *s1, int size1, NSStringEncod
 }
 
 int
-iconv_ustrtostr(char *s2, int size2, unichar *u1, int size1, NSStringEncoding enc)
+iconv_ustrtostr(char *s2, int size2, unichar *u1, int size1,
+NSStringEncoding enc)
 {
-  iconv_t conv;
-  int usize = sizeof(unichar)*size1;
-  char *s1 = s2;
-  const char *u2 = (const char*)u1;
-  int ret_val;
+  iconv_t	conv;
+  int		usize = sizeof(unichar)*size1;
+  char		*s1 = s2;
+  const		char *u2 = (const char*)u1;
+  int		ret_val;
 
   conv = iconv_open(iconv_stringforencoding(enc), UNICODE_ENC);
   if (conv == (iconv_t)-1)
@@ -867,7 +868,7 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
 	    if (u < 128)
 	      s2[count] = (char)u;
 	    else
-	      break;
+	      return 0;
 	  }
 	return count;
 
@@ -878,7 +879,7 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
 	    if (u < 128)
 	      s2[count] = (char)u;
 	    else
-	      break;
+	      return 0;
 	  }
 	return count;
 
@@ -890,7 +891,7 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
 	    if (u < 256)
 	      s2[count] = (char)u;
 	    else
-	      break;
+	      return 0;
 	  }
 	return count;
 
@@ -906,11 +907,11 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
 		int i = 0;
 
 		while (((res = u - Next_uni_to_char_table[i++].from) > 0)
-		       && (i < Next_uni_to_char_table_size));
+		  && (i < Next_uni_to_char_table_size));
 		if (!res)
 		  s2[count] = Next_uni_to_char_table[--i].to;
 		else
-		  break;
+		  return 0;
 	      }
 	  }
 	return count;
@@ -927,11 +928,11 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
 		int i = 0;
 
 		while (((res = u - Cyrillic_uni_to_char_table[i++].from) > 0)
-		       && (i < Cyrillic_uni_to_char_table_size));
+		  && (i < Cyrillic_uni_to_char_table_size));
 		if (!res)
 		  s2[count] = Cyrillic_uni_to_char_table[--i].to;
 		else
-		  break;
+		  return 0;
 	      }
 	  }
 	return count;
@@ -948,11 +949,11 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
 		int i = 0;
 
 		while (((res = u - Latin2_uni_to_char_table[i++].from) > 0)
-		       && (i < Latin2_uni_to_char_table_size));
+		  && (i < Latin2_uni_to_char_table_size));
 		if (!res)
 		  s2[count] = Latin2_uni_to_char_table[--i].to;
 		else
-		  break;
+		  return 0;
 	      }
 	  }
 	return count;
@@ -970,11 +971,11 @@ encode_ustrtostr_strict(char *s2, unichar *u1, int size, NSStringEncoding enc)
 		int i = 0;
 
 		while (((res = u - Symbol_uni_to_char_table[i++].from) > 0)
-		       && (i < Symbol_uni_to_char_table_size));
+		  && (i < Symbol_uni_to_char_table_size));
 		if (!res)
 		  s2[count] = Symbol_uni_to_char_table[--i].to;
 		else
-		  break;
+		  return 0;
 	      }
 	  }
 	return count;

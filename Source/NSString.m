@@ -75,17 +75,79 @@
 @class	GSString;
 @class	GSMString;
 @class	GSUString;
+@class	NSGMutableArray;
+@class	NSGMutableDictionary;
+
 
 /*
- * Cache classes for speed.
+ * Cache classes and method implementations for speed.
  */
-static Class	NSData_class;
+static Class	NSDataClass;
 static Class	NSStringClass;
 static Class	NSMutableStringClass;
 
 static Class	GSStringClass;
 static Class	GSMStringClass;
 static Class	GSUStringClass;
+
+static Class	plArray;
+static id	(*plAdd)(id, SEL, id) = 0;
+
+static Class	plDictionary;
+static id	(*plSet)(id, SEL, id, id) = 0;
+
+static id	(*plAlloc)(Class, SEL, NSZone*) = 0;
+static id	(*plInit)(id, SEL, unichar*, unsigned) = 0;
+static SEL	plSel = @selector(initWithCharacters:length:);
+
+static SEL		cMemberSel = @selector(characterIsMember:);
+
+static NSCharacterSet	*hexdigits = nil;
+static BOOL		(*hexdigitsImp)(id, SEL, unichar) = 0;
+static void setupHexdigits()
+{
+  if (hexdigits == nil)
+    {
+      hexdigits = [NSCharacterSet characterSetWithCharactersInString:
+	@"0123456789abcdefABCDEF"];
+      IF_NO_GC(RETAIN(hexdigits));
+      hexdigitsImp =
+	(BOOL(*)(id,SEL,unichar)) [hexdigits methodForSelector: cMemberSel];
+    }
+}
+
+static NSCharacterSet	*quotables = nil;
+static BOOL		(*quotablesImp)(id, SEL, unichar) = 0;
+static void setupQuotables()
+{
+  if (quotables == nil)
+    {
+      NSMutableCharacterSet	*s;
+
+      s = [[NSCharacterSet characterSetWithCharactersInString:
+	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$./_"]
+	mutableCopy];
+      [s invert];
+      quotables = [s copy];
+      RELEASE(s);
+      quotablesImp =
+	(BOOL(*)(id,SEL,unichar)) [quotables methodForSelector: cMemberSel];
+    }
+}
+
+static NSCharacterSet	*whitespce = nil;
+static BOOL		(*whitespceImp)(id, SEL, unichar) = 0;
+static void setupWhitespce()
+{
+  if (whitespce == nil)
+    {
+      whitespce = [NSCharacterSet characterSetWithCharactersInString:
+	@" \t\r\n\f\b"];
+      IF_NO_GC(RETAIN(whitespce));
+      whitespceImp =
+	(BOOL(*)(id,SEL,unichar)) [whitespce methodForSelector: cMemberSel];
+    }
+}
 
 /*
  *	Include sequence handling code with instructions to generate search
@@ -97,11 +159,9 @@ static Class	GSUStringClass;
 #define	GSEQ_S	GSEQ_NS
 #include <GSeq.h>
 
-/*
- *	Include property-list parsing code configured for unicode characters.
- */
-#define	GSPLUNI	1
-#include "propList.h"
+
+static id	GSPropertyList(NSString *string);
+static id	GSPropertyListFromStringsFormat(NSString *string);
 
 #if defined(__MINGW__)
 static unichar		pathSepChar = (unichar)'\\';
@@ -217,7 +277,7 @@ handle_printf_atsign (FILE *stream,
       _DefaultStringEncoding = GetDefEncoding();
       NSStringClass = self;
       NSMutableStringClass = [NSMutableString class];
-      NSData_class = [NSData class];
+      NSDataClass = [NSData class];
       GSStringClass = [GSString class];
       GSMStringClass = [GSMString class];
       GSUStringClass = [GSUString class];
@@ -897,7 +957,7 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithContentsOfFile: (NSString*)path
 {
   NSStringEncoding	enc;
-  NSData		*d = [NSData_class dataWithContentsOfFile: path];
+  NSData		*d = [NSDataClass dataWithContentsOfFile: path];
   const unsigned char	*test;
 
   if (d == nil)
@@ -917,7 +977,7 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithContentsOfURL: (NSURL*)url
 {
   NSStringEncoding	enc;
-  NSData		*d = [NSData_class dataWithContentsOfURL: url];
+  NSData		*d = [NSDataClass dataWithContentsOfURL: url];
   const unsigned char	*test;
 
   if (d == nil)
@@ -1684,6 +1744,7 @@ handle_printf_atsign (FILE *stream,
 - (const char*) cString
 {
   NSData	*d;
+  NSMutableData	*m;
 
   d = [self dataUsingEncoding: _DefaultStringEncoding
     allowLossyConversion: NO];
@@ -1692,26 +1753,36 @@ handle_printf_atsign (FILE *stream,
       [NSException raise: NSCharacterConversionException
 		  format: @"unable to convert to cString"];
     }
-  return (const char*)[d bytes];
+  m = [d mutableCopy];
+  [m appendBytes: "" length: 1];
+  AUTORELEASE(m);
+  return (const char*)[m bytes];
 }
 
 - (const char*) lossyCString
 {
   NSData	*d;
+  NSMutableData	*m;
 
   d = [self dataUsingEncoding: _DefaultStringEncoding
     allowLossyConversion: YES];
-  return (const char*)[d bytes];
+  m = [d mutableCopy];
+  [m appendBytes: "" length: 1];
+  AUTORELEASE(m);
+  return (const char*)[m bytes];
 }
 
 - (const char *) UTF8String
 {
   NSData	*d;
+  NSMutableData	*m;
 
-  // FIXME: This won't be NULL terminated
   d = [self dataUsingEncoding: NSUTF8StringEncoding
     allowLossyConversion: NO];
-  return (const char*)[d bytes];
+  m = [d mutableCopy];
+  [m appendBytes: "" length: 1];
+  AUTORELEASE(m);
+  return (const char*)[m bytes];
 }
 
 - (unsigned) cStringLength
@@ -1847,7 +1918,6 @@ handle_printf_atsign (FILE *stream,
   return [self dataUsingEncoding: encoding allowLossyConversion: NO];
 }
 
-// xxx incomplete
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
 	 allowLossyConversion: (BOOL)flag
 {
@@ -1857,7 +1927,7 @@ handle_printf_atsign (FILE *stream,
 
   if (len == 0)
     {
-      return [NSData_class data];
+      return [NSDataClass data];
     }
 
   caiImp = (unichar (*)())[self methodForSelector: caiSel];
@@ -1909,23 +1979,42 @@ handle_printf_atsign (FILE *stream,
 	    }
 	}
       buff[count] = '\0';
-      return [NSData_class dataWithBytesNoCopy: buff length: count];
+      return [NSDataClass dataWithBytesNoCopy: buff length: count];
     }
   else if (encoding == NSUnicodeStringEncoding)
     {
       unichar	*buff;
 
-      buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), 2*len+2);
+      buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
+	sizeof(unichar)*(len+1));
       buff[0] = 0xFEFF;
       for (count = 0; count < len; count++)
 	{
 	  buff[count+1] = (*caiImp)(self, caiSel, count);
 	}
-      return [NSData_class dataWithBytesNoCopy: buff length: 2*len+2];
+      return [NSDataClass dataWithBytesNoCopy: buff
+					length: sizeof(unichar)*(len+1)];
     }
-  else /* UTF8 or EUC */
+  else
     {
-      [self notImplemented: _cmd];
+      int		t;
+      unichar		*u;
+      unsigned char	*buff;
+
+      u = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), len*sizeof(unichar));
+      [self getCharacters: u];
+      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len);
+      if (flag == YES)
+	t = encode_ustrtostr(buff, u, len, encoding);
+      else 
+	t = encode_ustrtostr_strict(buff, u, len, encoding);
+      NSZoneFree(NSDefaultMallocZone(), u);
+      if (t == 0)
+        {
+	  NSZoneFree(NSDefaultMallocZone(), buff);
+	  return nil;
+	}
+      return [NSDataClass dataWithBytesNoCopy: buff length: t];
     }
   return nil;
 }
@@ -2832,7 +2921,7 @@ handle_printf_atsign (FILE *stream,
 	  [aCoder decodeArrayOfObjCType: @encode(unsigned char)
 				  count: count
 				     at: chars];
-	  data = [NSData_class allocWithZone: zone];
+	  data = [NSDataClass allocWithZone: zone];
 	  data = [data initWithBytesNoCopy: chars length: count];
 	  self = [self initWithData: data encoding: enc];
 	  RELEASE(data);
@@ -2859,55 +2948,12 @@ handle_printf_atsign (FILE *stream,
 
 - (id) propertyList
 {
-  unsigned	len = [self length];
-  unichar	chars[len];
-  id		result;
-  pldata	data;
-
-  data.ptr = chars;
-  data.pos = 0;
-  data.end = len;
-  data.lin = 1;
-  data.err = nil;
-
-  [self getCharacters: chars];
-  if (plInit == 0)
-    setupPl([GSUString class]);
-
-  result = parsePl(&data);
-
-  if (result == nil && data.err != nil)
-    {
-      [NSException raise: NSGenericException
-		  format: @"%@ at line %u", data.err, data.lin];
-    }
-  return AUTORELEASE(result);
+  return GSPropertyList(self);
 }
 
 - (NSDictionary*) propertyListFromStringsFileFormat
 {
-  unsigned	len = [self length];
-  unichar	chars[len];
-  id		result;
-  pldata	data;
-
-  data.ptr = chars;
-  data.pos = 0;
-  data.end = len;
-  data.lin = 1;
-  data.err = nil;
-
-  [self getCharacters: chars];
-  if (plInit == 0)
-    setupPl([GSUString class]);
-
-  result = parseSfItem(&data);
-  if (result == nil && data.err != nil)
-    {
-      [NSException raise: NSGenericException
-		  format: @"%@ at line %u", data.err, data.lin];
-    }
-  return AUTORELEASE(result);
+  return GSPropertyListFromStringsFormat(self);
 }
 
 @end
@@ -3243,4 +3289,763 @@ handle_printf_atsign (FILE *stream,
 }
 @end
 
+
+
+#if	HAVE_LIBXML
+#include	<Foundation/GSXML.h>
+
+static void
+decodeBase64Unit(const char* ptr, unsigned char *out)
+{
+  out[0] =  (ptr[0]         << 2) | ((ptr[1] & 0x30) >> 4);
+  out[1] = ((ptr[1] & 0x0F) << 4) | ((ptr[2] & 0x3C) >> 2);
+  out[2] = ((ptr[2] & 0x03) << 6) |  (ptr[3] & 0x3F);
+  out[3] = 0;
+}
+
+static NSData*
+decodeBase64(const char *source)
+{
+  int		length = strlen(source);
+  char		*sourceBuffer = objc_malloc(length+1);
+  NSMutableData	*data = [NSMutableData dataWithCapacity:0];
+  int i, j;
+  unsigned char	tmp[4];
+
+  strcpy(sourceBuffer, source);
+  j = 0;
+
+  for (i = 0; i < length; i++)
+    {
+      if (!isspace(source[i]))
+        {
+          sourceBuffer[j++] = source[i];
+        }
+    }
+
+  sourceBuffer[j] = '\0';
+  length = strlen(sourceBuffer);
+  while (length > 0 && sourceBuffer[length-1] == '=')
+    {
+      sourceBuffer[--length] = '\0';
+    }
+  for (i = 0; i < length; i += 4)
+    {
+       decodeBase64Unit(&sourceBuffer[i], tmp);
+       [data appendBytes: tmp length: strlen(tmp)];
+    }
+
+  objc_free(sourceBuffer);
+
+  return data;
+}
+
+#endif
+
+#define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
+#define char2num(ch) \
+inrange(ch,'0','9') \
+? ((ch)-0x30) \
+: (inrange(ch,'a','f') \
+? ((ch)-0x57) : ((ch)-0x37))
+
+typedef	struct	{
+  const unichar	*ptr;
+  unsigned	end;
+  unsigned	pos;
+  unsigned	lin;
+  NSString	*err;
+} pldata;
+
+/*
+ *	Property list parsing - skip whitespace keeping count of lines and
+ *	regarding objective-c style comments as whitespace.
+ *	Returns YES if there is any non-whitespace text remaining.
+ */
+static BOOL skipSpace(pldata *pld)
+{
+  unichar	c;
+
+  while (pld->pos < pld->end)
+    {
+      c = pld->ptr[pld->pos];
+
+      if ((*whitespceImp)(whitespce, cMemberSel, c) == NO)
+	{
+	  if (c == '/' && pld->pos < pld->end - 1)
+	    {
+	      /*
+	       * Check for comments beginning '/' followed by '/' or '*'
+	       */
+	      if (pld->ptr[pld->pos + 1] == '/')
+		{
+		  pld->pos += 2;
+		  while (pld->pos < pld->end)
+		    {
+		      c = pld->ptr[pld->pos];
+		      if (c == '\n')
+			break;
+		      pld->pos++;
+		    }
+		  if (pld->pos >= pld->end)
+		    {
+		      pld->err = @"reached end of string in comment";
+		      return NO;
+		    }
+		}
+	      else if (pld->ptr[pld->pos + 1] == '*')
+		{
+		  pld->pos += 2;
+		  while (pld->pos < pld->end)
+		    {
+		      c = pld->ptr[pld->pos];
+		      if (c == '\n')
+			pld->lin++;
+		      else if (c == '*' && pld->pos < pld->end - 1
+			&& pld->ptr[pld->pos+1] == '/')
+			{
+			  pld->pos++; /* Skip past '*'	*/
+			  break;
+			}
+		      pld->pos++;
+		    }
+		  if (pld->pos >= pld->end)
+		    {
+		      pld->err = @"reached end of string in comment";
+		      return NO;
+		    }
+		}
+	      else
+		return YES;
+	    }
+	  else
+	    return YES;
+	}
+      if (c == '\n')
+	pld->lin++;
+      pld->pos++;
+    }
+  pld->err = @"reached end of string";
+  return NO;
+}
+
+static inline id parseQuotedString(pldata* pld)
+{
+  unsigned	start = ++pld->pos;
+  unsigned	escaped = 0;
+  unsigned	shrink = 0;
+  BOOL		hex = NO;
+  NSString	*obj;
+
+  while (pld->pos < pld->end)
+    {
+      unichar	c = pld->ptr[pld->pos];
+
+      if (escaped)
+	{
+	  if (escaped == 1 && c == '0')
+	    {
+	      escaped = 2;
+	      hex = NO;
+	    }
+	  else if (escaped > 1)
+	    {
+	      if (escaped == 2 && c == 'x')
+		{
+		  hex = YES;
+		  shrink++;
+		  escaped++;
+		}
+	      else if (hex && (*hexdigitsImp)(hexdigits, cMemberSel, c))
+		{
+		  shrink++;
+		  escaped++;
+		}
+	      else if (c >= '0' && c <= '7')
+		{
+		  shrink++;
+		  escaped++;
+		}
+	      else
+		{
+		  pld->pos--;
+		  escaped = 0;
+		}
+	    }
+	  else
+	    {
+	      escaped = 0;
+	    }
+	}
+      else
+	{
+	  if (c == '\\')
+	    {
+	      escaped = 1;
+	      shrink++;
+	    }
+	  else if (c == '"')
+	    {
+	      break;
+	    }
+	}
+      if (c == '\n')
+	pld->lin++;
+      pld->pos++;
+    }
+  if (pld->pos >= pld->end)
+    {
+      pld->err = @"reached end of string while parsing quoted string";
+      return nil;
+    }
+  if (pld->pos - start - shrink == 0)
+    {
+      obj = @"";
+    }
+  else
+    {
+      unichar	chars[pld->pos - start - shrink];
+      unsigned	j;
+      unsigned	k;
+
+      escaped = 0;
+      hex = NO;
+      for (j = start, k = 0; j < pld->pos; j++)
+	{
+	  unichar	c = pld->ptr[j];
+
+	  if (escaped)
+	    {
+	      if (escaped == 1 && c == '0')
+		{
+		  chars[k] = 0;
+		  hex = NO;
+		  escaped++;
+		}
+	      else if (escaped > 1)
+		{
+		  if (escaped == 2 && c == 'x')
+		    {
+		      hex = YES;
+		      escaped++;
+		    }
+		  else if (hex && (*hexdigitsImp)(hexdigits, cMemberSel, c))
+		    {
+		      chars[k] <<= 4;
+		      chars[k] |= char2num(c);
+		      escaped++;
+		    }
+		  else if (c >= '0' && c <= '7')
+		    {
+		      chars[k] <<= 3;
+		      chars[k] |= (c - '0');
+		      escaped++;
+		    }
+		  else
+		    {
+		      escaped = 0;
+		      j--;
+		      k++;
+		    }
+		}
+	      else
+		{
+		  escaped = 0;
+		  switch (c)
+		    {
+		      case 'a' : chars[k] = '\a'; break;
+		      case 'b' : chars[k] = '\b'; break;
+		      case 't' : chars[k] = '\t'; break;
+		      case 'r' : chars[k] = '\r'; break;
+		      case 'n' : chars[k] = '\n'; break;
+		      case 'v' : chars[k] = '\v'; break;
+		      case 'f' : chars[k] = '\f'; break;
+		      default  : chars[k] = c; break;
+		    }
+		  k++;
+		}
+	    }
+	  else
+	    {
+	      chars[k] = c;
+	      if (c == '\\')
+		{
+		  escaped = 1;
+		}
+	      else
+		{
+		  k++;
+		}
+	    }
+	}
+      obj = (*plAlloc)(NSStringClass, @selector(allocWithZone:),
+	NSDefaultMallocZone());
+      obj = (*plInit)(obj, plSel, (void*)chars, pld->pos - start - shrink);
+    }
+  pld->pos++;
+  return obj;
+}
+
+static inline id parseUnquotedString(pldata *pld)
+{
+  unsigned	start = pld->pos;
+  id		obj;
+
+  while (pld->pos < pld->end)
+    {
+      if ((*quotablesImp)(quotables, cMemberSel, pld->ptr[pld->pos]) == YES)
+	break;
+      pld->pos++;
+    }
+  obj = (*plAlloc)(NSStringClass, @selector(allocWithZone:),
+    NSDefaultMallocZone());
+  obj = (*plInit)(obj, plSel, (void*)&pld->ptr[start], pld->pos-start);
+  return obj;
+}
+
+static id parsePlItem(pldata* pld)
+{
+  if (skipSpace(pld) == NO)
+    return nil;
+
+  switch (pld->ptr[pld->pos])
+    {
+      case '{':
+	{
+	  NSMutableDictionary	*dict;
+
+	  dict = [[plDictionary allocWithZone: NSDefaultMallocZone()]
+	    initWithCapacity: 0];
+	  pld->pos++;
+	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != '}')
+	    {
+	      id	key;
+	      id	val;
+
+	      key = parsePlItem(pld);
+	      if (key == nil)
+		return nil;
+	      if (skipSpace(pld) == NO)
+		{
+		  RELEASE(key);
+		  return nil;
+		}
+	      if (pld->ptr[pld->pos] != '=')
+		{
+		  pld->err = @"unexpected character (wanted '=')";
+		  RELEASE(key);
+		  return nil;
+		}
+	      pld->pos++;
+	      val = parsePlItem(pld);
+	      if (val == nil)
+		{
+		  RELEASE(key);
+		  return nil;
+		}
+	      if (skipSpace(pld) == NO)
+		{
+		  RELEASE(key);
+		  RELEASE(val);
+		  return nil;
+		}
+	      if (pld->ptr[pld->pos] == ';')
+		{
+		  pld->pos++;
+		}
+	      else if (pld->ptr[pld->pos] != '}')
+		{
+		  pld->err = @"unexpected character (wanted ';' or '}')";
+		  RELEASE(key);
+		  RELEASE(val);
+		  return nil;
+		}
+	      (*plSet)(dict, @selector(setObject:forKey:), val, key);
+	      RELEASE(key);
+	      RELEASE(val);
+	    }
+	  if (pld->pos >= pld->end)
+	    {
+	      pld->err = @"unexpected end of string when parsing dictionary";
+	      RELEASE(dict);
+	      return nil;
+	    }
+	  pld->pos++;
+	  return dict;
+	}
+
+      case '(':
+	{
+	  NSMutableArray	*array;
+
+	  array = [[plArray allocWithZone: NSDefaultMallocZone()]
+	    initWithCapacity: 0];
+	  pld->pos++;
+	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != ')')
+	    {
+	      id	val;
+
+	      val = parsePlItem(pld);
+	      if (val == nil)
+		{
+		  return nil;
+		}
+	      if (skipSpace(pld) == NO)
+		{
+		  RELEASE(val);
+		  return nil;
+		}
+	      if (pld->ptr[pld->pos] == ',')
+		{
+		  pld->pos++;
+		}
+	      else if (pld->ptr[pld->pos] != ')')
+		{
+		  pld->err = @"unexpected character (wanted ',' or ')')";
+		  RELEASE(val);
+		  return nil;
+		}
+	      (*plAdd)(array, @selector(addObject:), val);
+	      RELEASE(val);
+	    }
+	  if (pld->pos >= pld->end)
+	    {
+	      pld->err = @"unexpected end of string when parsing array";
+	      RELEASE(array);
+	      return nil;
+	    }
+	  pld->pos++;
+	  return array;
+	}
+
+      case '<':
+	{
+	  NSMutableData	*data;
+	  unsigned	max = pld->end - 1;
+	  unsigned char	buf[BUFSIZ];
+	  unsigned	len = 0;
+
+	  data = [[NSMutableData alloc] initWithCapacity: 0];
+	  pld->pos++;
+	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != '>')
+	    {
+	      while (pld->pos < max
+		&& (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos])
+		&& (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos+1]))
+		{
+		  unsigned char	byte;
+
+		  byte = (char2num(pld->ptr[pld->pos])) << 4; 
+		  pld->pos++;
+		  byte |= char2num(pld->ptr[pld->pos]);
+		  pld->pos++;
+		  buf[len++] = byte;
+		  if (len == sizeof(buf))
+		    {
+		      [data appendBytes: buf length: len];
+		      len = 0;
+		    }
+		}
+	    }
+	  if (pld->pos >= pld->end)
+	    {
+	      pld->err = @"unexpected end of string when parsing data";
+	      RELEASE(data);
+	      return nil;
+	    }
+	  if (pld->ptr[pld->pos] != '>')
+	    {
+	      pld->err = @"unexpected character in string";
+	      RELEASE(data);
+	      return nil;
+	    }
+	  if (len > 0)
+	    {
+	      [data appendBytes: buf length: len];
+	    }
+	  pld->pos++;
+	  return data;
+	}
+
+      case '"':
+	return parseQuotedString(pld);
+
+      default:
+	return parseUnquotedString(pld);
+    }
+}
+
+#if	HAVE_LIBXML
+static GSXMLNode*
+elementNode(GSXMLNode* node)
+{
+  while (node != nil)
+    {
+      if ([node type] == XML_ELEMENT_NODE)
+        {
+          break;
+        }
+      node = [node next];
+    }
+  return node;
+}
+
+static id
+nodeToObject(GSXMLNode* node)
+{
+  NSString	*name;
+  NSString	*content;
+  GSXMLNode	*children;
+
+  node = elementNode(node);
+  if (node == nil)
+    {
+      return nil;
+    }
+  name = [node name];
+  children = [node children];
+  content = [children content];
+  children = elementNode(children);
+
+  if ([name isEqualToString: @"string"])
+    {
+      return content;
+    }
+  else if ([name isEqualToString: @"key"])
+    {
+      return content;
+    }
+  else if ([name isEqualToString: @"true"])
+    {
+      return [NSNumber numberWithBool: YES];
+    }
+  else if ([name isEqualToString: @"false"])
+    {
+      return [NSNumber numberWithBool: NO];
+    }
+  else if ([name isEqualToString: @"integer"])
+    {
+      return [NSNumber numberWithInt: [content intValue]];
+    }
+  else if ([name isEqualToString: @"real"])
+    {
+      return [NSNumber numberWithDouble: [content doubleValue]];
+    }
+  else if ([name isEqualToString: @"date"])
+    {
+      return [NSCalendarDate dateWithString: content
+                             calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
+    }
+  else if ([name isEqualToString: @"data"])
+    {
+      return decodeBase64([content cString]);
+    }
+  // container class
+  else if ([name isEqualToString: @"array"])
+    {
+      NSMutableArray	*container = [NSMutableArray array];
+
+      while (children != nil)
+        {
+	  id	val;
+
+	  val = nodeToObject(children);
+          [container addObject: val];
+          children = elementNode([children next]);
+        }
+      return container;
+    }
+  else if ([name isEqualToString: @"dict"])
+    {
+      NSMutableDictionary	*container = [NSMutableDictionary dictionary];
+
+      while (children != nil)
+        {
+	  NSString	*key;
+	  id		val;
+
+	  key = nodeToObject(children);
+          children = elementNode([children next]);
+	  val = nodeToObject(children);
+          children = elementNode([children next]);
+          [container setObject: val forKey: key];
+        }
+      return container;
+    }
+  else
+    {
+      return nil;
+    }
+}
+#endif
+
+static void
+setupPl()
+{
+  plAlloc = (id (*)(id, SEL, NSZone*))
+    [NSStringClass methodForSelector: @selector(allocWithZone:)];
+  plInit = (id (*)(id, SEL, unichar*, unsigned))
+    [NSStringClass instanceMethodForSelector: plSel];
+
+  plArray = [NSGMutableArray class];
+  plAdd = (id (*)(id, SEL, id))
+    [plArray instanceMethodForSelector: @selector(addObject:)];
+
+  plDictionary = [NSGMutableDictionary class];
+  plSet = (id (*)(id, SEL, id, id))
+    [plDictionary instanceMethodForSelector: @selector(setObject:forKey:)];
+
+  setupHexdigits();
+  setupQuotables();
+  setupWhitespce();
+}
+
+static id
+GSPropertyList(NSString *string)
+{
+  pldata	_pld;
+  pldata	*pld = &_pld;
+  unsigned	length = [string length];
+  NSData	*d;
+#if	HAVE_LIBXML
+  unsigned	index = 0;
+
+  if (whitespce == nil)
+    setupWhitespce();
+  while (index < length)
+    {
+      unsigned	c = [string characterAtIndex: index];
+
+      if ((*whitespceImp)(whitespce, cMemberSel, c) == YES)
+	{
+	  break;
+	}
+      index++;
+    }
+  /*
+   * A string beginning with a '<?' must be an XML file
+   */
+  if (index + 1 < length && [string characterAtIndex: index] == '<'
+    && [string characterAtIndex: index+1] == '?')
+    {
+      NSData		*data;
+      GSXMLParser	*parser;
+
+      data = [string dataUsingEncoding: NSUTF8StringEncoding]; 
+      parser = [GSXMLParser parserWithData: nil];
+      [parser substituteEntities: NO];
+      if ([parser parse: data] == NO || [parser parse: nil] == NO)
+	{
+	  NSLog(@"not a property list - failed to parse as XML");
+	  return nil;
+	}
+      if (![[[[parser doc] root] name] isEqualToString: @"plist"])
+	{
+	  NSLog(@"not a property list - because name node is %@",
+	    [[[parser doc] root] name]);
+	  return nil;
+	}
+      return RETAIN(nodeToObject([[[parser doc] root] children]));
+    }
+#endif
+  d = [string dataUsingEncoding: NSUnicodeStringEncoding];
+  _pld.ptr = (unichar*)[d bytes];
+  _pld.pos = 1;
+  _pld.end = length + 1;
+  _pld.err = nil;
+  _pld.lin = 1;
+  if (plAlloc == 0)
+    setupPl();
+  return parsePlItem(pld);
+}
+
+static id
+GSPropertyListFromStringsFormat(NSString *string)
+{
+  NSMutableDictionary	*dict;
+  pldata		_pld;
+  pldata		*pld = &_pld;
+  unsigned		length = [string length];
+  NSData		*d;
+
+  d = [string dataUsingEncoding: NSUnicodeStringEncoding];
+  _pld.ptr = (unichar*)[d bytes];
+  _pld.pos = 1;
+  _pld.end = length + 1;
+  _pld.err = nil;
+  _pld.lin = 1;
+  if (plAlloc == 0)
+    setupPl();
+
+  dict = [[plDictionary allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: 0];
+  while (skipSpace(pld) == YES)
+    {
+      id	key;
+      id	val;
+
+      if (pld->ptr[pld->pos] == '"')
+	key = parseQuotedString(pld);
+      else
+	key = parseUnquotedString(pld);
+      if (key == nil)
+	return nil;
+      if (skipSpace(pld) == NO)
+	{
+	  pld->err = @"incomplete final entry (no semicolon?)";
+	  RELEASE(key);
+	  return nil;
+	}
+      if (pld->ptr[pld->pos] == ';')
+	{
+	  pld->pos++;
+	  (*plSet)(dict, @selector(setObject:forKey:), @"", key);
+	  RELEASE(key);
+	}
+      else if (pld->ptr[pld->pos] == '=')
+	{
+	  pld->pos++;
+	  if (skipSpace(pld) == NO)
+	    {
+	      RELEASE(key);
+	      return nil;
+	    }
+	  if (pld->ptr[pld->pos] == '"')
+	    val = parseQuotedString(pld);
+	  else
+	    val = parseUnquotedString(pld);
+	  if (val == nil)
+	    {
+	      RELEASE(key);
+	      return nil;
+	    }
+	  if (skipSpace(pld) == NO)
+	    {
+	      pld->err = @"missing final semicolon";
+	      RELEASE(key);
+	      RELEASE(val);
+	      return nil;
+	    }
+	  (*plSet)(dict, @selector(setObject:forKey:), val, key);
+	  RELEASE(key);
+	  RELEASE(val);
+	  if (pld->ptr[pld->pos] == ';')
+	    pld->pos++;
+	  else
+	    {
+	      pld->err = @"unexpected character (wanted ';')";
+	      RELEASE(dict);
+	      return nil;
+	    }
+	}
+      else
+	{
+	  RELEASE(key);
+	  RELEASE(dict);
+	  pld->err = @"unexpected character (wanted '=' or ';')";
+	  return nil;
+	}
+    }
+  return dict;
+}
 #endif /* NO_GNUSTEP */
