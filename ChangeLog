@@ -1,3 +1,20 @@
+Mon Sep  2 09:11:34 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/mframe.m: Use gcc's __builtin_return smarts to find location
+ 	of `char' and `short' return values; don't use my (possibly wrong)
+ 	guesses.
+	(retframe_char): New nested function.
+	(retframe_short): New nested function.
+	(mframe_do_call) [_C_CHR, _C_UCHR]: Use retframe_char.
+	[_C_SHT, _C_USHT]: Use retframe_short.
+
+	* src/NSObject.m ([NSObject -isKindOfClass:]): Fix formatting.
+
+Fri Aug 30 17:00:29 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/Dictionary.m ([Dictionary -removeObject:]): Implemented
+ 	method.  (Needs testing!)
+
 Thu Jul 11 21:12:41 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.6.
