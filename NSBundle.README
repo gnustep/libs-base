@@ -1,8 +1,8 @@
-   
 NSBundle problems:
 
    It requires that the global variable NSArgv be defined and set to the
    value of argv in main() in order to find the executable location.
+   (Actually objc-load requires this).
 
    Linking with different linkers and on different systems is different
    and may require some changes to the load flags, like -nostdlib,

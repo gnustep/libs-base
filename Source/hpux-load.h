@@ -11,6 +11,9 @@
 
 #include <dl.h>
 
+/* link flags */
+#define LINK_FLAGS	(BIND_IMMEDIATE | BIND_VERBOSE)
+
 /* Types defined appropriately for the dynamic linker */
 typedef shl_t dl_handle_t;
 typedef void* dl_symbol_t;
@@ -30,7 +33,7 @@ __objc_dynamic_init(const char* exec_path)
 static dl_handle_t
 __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 {
-    return (dl_handle_t)shl_load(module, 0, 0);
+    return (dl_handle_t)shl_load(module, LINK_FLAGS, 0L);
 }
 
 /* Return the address of a symbol given by the name 'symbol' from the module
@@ -41,7 +44,9 @@ __objc_dynamic_find_symbol(dl_handle_t handle, const char* symbol)
 {
     int ok; 
     void *value;
-    ok = shl_findsym(&handle, symbol, 0, value);
+    ok = shl_findsym(&handle, symbol, TYPE_UNDEFINED, value);
+    if (ok != 0)
+	value = 0;
     return value;
 }
 
@@ -74,4 +79,4 @@ __objc_dynamic_list_undefined_symbols(void)
     return NULL;
 }
 
-#endif /* __HPUX_LOAD_INCLUDE__ */
+#endif /* __hpux_load_h_INCLUDE */
