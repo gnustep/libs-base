@@ -704,7 +704,7 @@ static NSMapTable	*tcpHandleTable = 0;
 		  nItems = GSSwapBigI32ToHost(h->nItems);
 		  NSAssert(nItems >0, NSInternalInconsistencyException);
 		  rItems = [[NSMutableArray alloc] initWithCapacity: nItems];
-		  if (rLength > sizeof(GSPortMsgHeader))
+		  if (rWant > sizeof(GSPortMsgHeader))
 		    {
 		      NSData	*d;
 

@@ -26,7 +26,8 @@ main()
   remote = [names portForName: @"GSTcpPort"];
   [loop addPort: (NSPort*)local forMode: NSDefaultRunLoopMode];
   [remote sendBeforeDate: [NSDate dateWithTimeIntervalSinceNow: 240]
-	      components: [NSMutableArray arrayWithObject: [NSData data]]
+	      components: [NSMutableArray arrayWithObject:
+    [NSData dataWithBytes: "hello" length: 5]]
 		    from: local
 		reserved: 0];
   [loop run];
