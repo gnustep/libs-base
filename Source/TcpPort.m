@@ -53,7 +53,7 @@
    Just define it to use GCC's builtin memset(). */
 #define bzero(PTR, LEN) memset (PTR, 0, LEN)
 
-static int debug_tcp_port = 0;
+static int debug_tcp_port = 1;
 
 
 /* Private interfaces */
@@ -626,12 +626,13 @@ static NSMapTable* port_number_2_port;
      not a receive right.  
      These values must match those expected by [TcpOutPort +newWithCoder] */
   [super encodeWithCoder: aCoder];
-  [aCoder encodeValueOfCType: @encode(typeof(_listening_address.sin_port))
-	  at: &_listening_address.sin_port 
+  /* Encode these at bytes, not as C-variables, because they are
+     already in "network byte-order". */
+  [aCoder encodeBytes: &_listening_address.sin_port
+	  count: sizeof (_listening_address.sin_port)
 	  withName: @"socket number"];
-  [aCoder encodeValueOfCType:
-	    @encode(typeof(_listening_address.sin_addr.s_addr))
-	  at: &_listening_address.sin_addr.s_addr
+  [aCoder encodeBytes: &_listening_address.sin_addr.s_addr
+	  count: sizeof (_listening_address.sin_addr.s_addr)
 	  withName: @"inet address"];
 }
 
@@ -756,6 +757,9 @@ static NSMapTable *out_port_bag = NULL;
 	      memcpy (&(p->_remote_in_port_address), 
 		      sockaddr,
 		      sizeof (p->_remote_in_port_address));
+	      if (debug_tcp_port)
+		printf ("TcpOutPort setting remote address\n%s\n",
+			[[self description] cStringNoCopy]);
 	    }
 	}
       assert (p->is_valid);
@@ -796,6 +800,8 @@ static NSMapTable *out_port_bag = NULL;
 	 +newForSendingToSockaddr..  with a non-zero socket, and a
 	 non-NULL sockaddr. */
       p->_remote_in_port_address.sin_family = 0;
+      p->_remote_in_port_address.sin_port = 0;
+      p->_remote_in_port_address.sin_addr.s_addr = 0;
     }
 
   /* xxx Do I need to bind(_socket) to this address?  I don't think so. */
@@ -804,6 +810,7 @@ static NSMapTable *out_port_bag = NULL;
      already by a previous accept() call. */
   if (!sock)
     {
+      assert (p->_remote_in_port_address.sin_family);
       if (connect (p->_socket,
 		   (struct sockaddr*)&(p->_remote_in_port_address), 
 		   sizeof(p->_remote_in_port_address)) 
@@ -1014,12 +1021,13 @@ static NSMapTable *out_port_bag = NULL;
   assert (!_polling_in_port 
 	  || (ntohs (_remote_in_port_address.sin_port)
 	      != [_polling_in_port portNumber]));
-  [aCoder encodeValueOfCType: @encode(typeof(_remote_in_port_address.sin_port))
-	  at: &(_remote_in_port_address.sin_port)
+  /* Encode these at bytes, not as C-variables, because they are
+     already in "network byte-order". */
+  [aCoder encodeBytes: &_remote_in_port_address.sin_port
+	  count: sizeof (_remote_in_port_address.sin_port)
 	  withName: @"socket number"];
-  [aCoder encodeValueOfCType: 
-	    @encode(typeof(_remote_in_port_address.sin_addr.s_addr))
-	  at: &(_remote_in_port_address.sin_addr.s_addr)
+  [aCoder encodeBytes: &_remote_in_port_address.sin_addr.s_addr
+	  count: sizeof (_remote_in_port_address.sin_addr.s_addr)
 	  withName: @"inet address"];
   if (debug_tcp_port)
     printf ("TcpOutPort encoded port %hd host %s\n",
@@ -1032,11 +1040,11 @@ static NSMapTable *out_port_bag = NULL;
   struct sockaddr_in addr;
 
   addr.sin_family = AF_INET;
-  [aCoder decodeValueOfCType: @encode(typeof(addr.sin_port))
-	  at: &(addr.sin_port)
+  [aCoder decodeBytes: &addr.sin_port
+	  count: sizeof (addr.sin_port)
 	  withName: NULL];
-  [aCoder decodeValueOfCType: @encode(typeof(addr.sin_addr.s_addr))
-	  at: &(addr.sin_addr.s_addr)
+  [aCoder decodeBytes: &addr.sin_addr.s_addr
+	  count: sizeof (addr.sin_addr.s_addr)
 	  withName: NULL];
   if (debug_tcp_port)
     printf ("TcpOutPort decoded port %hd host %s\n",
