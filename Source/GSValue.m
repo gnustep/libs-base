@@ -165,7 +165,7 @@
 
   size = objc_sizeof_type(objctype);
   rep = [NSData dataWithBytes: data length: size];
-  return [NSString stringWithFormat: @"(%@) %@", objctype, [rep description]];
+  return [NSString stringWithFormat: @"(%s) %@", objctype, [rep description]];
 }
 
 // NSCoding

@@ -210,6 +210,21 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  (*info->serImp)(info->data, serSel, slen);
 	  dlen = (*info->lenImp)(info->data, lenSel);
 	  (*info->setImp)(info->data, setSel, dlen + slen*sizeof(unichar));
+#if NEED_WORD_ALIGNMENT
+	  /*
+	   * When packing data, an item may not be aligned on a
+	   * word boundary, so we work with an aligned buffer
+	   * and use memcmpy()
+	   */
+ 	  if ((dlen % __alignof__(gsu32)) != 0)
+	    {
+	      unichar buffer[slen];
+	      [object getCharacters: buffer];
+	      memcpy((*info->datImp)(info->data, datSel) + dlen, buffer, 
+		     slen*sizeof(unichar));
+	    }
+	  else
+#endif
 	  [object getCharacters: (*info->datImp)(info->data, datSel) + dlen];
 	  if (info->shouldUnique)
 	    GSIMapAddPair(&info->map,

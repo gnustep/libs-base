@@ -40,17 +40,5 @@ been placed on @samp{@value{GNUSTEP-BASE-SNAP-FTP-MACHINE}} in
 @end ifclear
 
 The library requires gcc @value{GCC-VERSION} or higher.
-Significant sections of the library do not work with the NeXT runtime,
-so we recommend using gcc instead of NeXT's cc.  See the @samp{GNUstep-HOWTO}
+See the @samp{GNUstep-HOWTO}
 file for more instructions about compiling and installing the library.
-
-The @samp{.tar} file is compressed with GNU gzip.  Gzip can be obtained by
-anonymous ftp at any of the GNU archive sites.
-
-For info about FTP via email, send email to
-@samp{ftpmail@@decwrl.dec.com} with no subject line, and two-line body
-with line one @samp{help} and line two @samp{quit}.
-
-The most recent (not necessarily tested) snapshots of the library will
-be placed on @samp{@value{GNUSTEP-BASE-SNAP-FTP-MACHINE}}.
-

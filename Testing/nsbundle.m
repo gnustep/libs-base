@@ -14,18 +14,24 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSProcessInfo.h>
 #include "LoadMe.h"
 #include "SecondClass.h"
 #include "MyCategory.h"
 
 int 
-main(int ac, char *av[]) 
+main(int argc, char *argv[], char **env) 
 {
     NSBundle *main;
     NSBundle *bundle;
     NSString *path;
     id object;
-    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+    NSAutoreleasePool	*arp;
+
+#if LIB_FOUNDATION_LIBRARY || defined(GS_PASS_ARGUMENTS)
+   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+#endif
+    arp = [NSAutoreleasePool new];
     
     main = [NSBundle mainBundle];
     printf("Looking for main bundle...\n");

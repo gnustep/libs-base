@@ -99,7 +99,7 @@ NSMakeRange(unsigned int location, unsigned int length)
 
   if (end < location || end < length)
     {
-      extern void _NSRangeExceptionRaise ();
+      GS_EXPORT void _NSRangeExceptionRaise ();
       /* NB: The implementation of _NSRangeExceptionRaise is: 
 	 [NSException raise: NSRangeException
 	             format: @"Range location + length too great"]; */

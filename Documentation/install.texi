@@ -18,10 +18,11 @@
 @node Introduction, Configuration, Top, Top
 @section Introduction
 
-If you are installing this package as part of the GNUstep core
-package, read the file GNUstep-HOWTO for more complete instructions on
-how to install the entire GNUstep package (including this library).
-GNUstep-HOWTO is located at @url{www.gnustep.org}
+If you are installing this package as part of the GNUstep core packages,
+read the file GNUstep-HOWTO for more complete instructions on how to
+install the entire GNUstep package (including this library).
+GNUstep-HOWTO is located in the gnustep-make package or at
+@url{http://www.gnustep.org}
 
 If you are installing the GNUstep libraries individually, make sure you
 have installed the GNUstep Makefile package (gnustep-make) already. 
@@ -38,10 +39,10 @@ shell prompt. You may want to use some of the optional arguments to the
 for a list of these. It is not likely that you will need to use the
 @code{--prefix} option, since gstep-base will automatically install in
 the directory specified by the @code{GNUSTEP_SYSTEM_ROOT} environment
-variable (specified when you installed gstep-make).
+variable (specified when you installed gnustep-make).
 
 Some configuration options for the base library need to be specified
-when configuring the gstep-make package. In most cases, it is a good
+when configuring the gnustep-make package. In most cases, it is a good
 idea to specify the same configuration options when configuring both
 packages, just to make sure.
 

@@ -1534,9 +1534,21 @@ failure:
 		   withBytes: (const void*)bytes
 {
   unsigned	size = [self length];
+  unsigned	need = NSMaxRange(aRange);
 
-  GS_RANGE_CHECK(aRange, size);
-  memcpy([self mutableBytes] + aRange.location, bytes, aRange.length);
+  if (aRange.location > size)
+    {
+      [NSException raise: NSRangeException
+		  format: @"location bad in replaceByteInRange:withBytes:"];
+    }
+  if (aRange.length > 0)
+    {
+      if (need > size)
+	{
+	  [self setLength: need];
+	}
+      memcpy([self mutableBytes] + aRange.location, bytes, aRange.length);
+    }
 }
 
 - (void) resetBytesInRange: (NSRange)aRange
@@ -1551,7 +1563,7 @@ failure:
 {
   NSRange	r = NSMakeRange(0, [data length]);
 
-  [self setCapacity: [data length]];
+  [self setCapacity: r.length];
   [self replaceBytesInRange: r withBytes: [data bytes]];
 }
 
@@ -2691,8 +2703,22 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)moreBytes
 {
-  GS_RANGE_CHECK(aRange, length);
-  memcpy(bytes + aRange.location, moreBytes, aRange.length);
+  unsigned	need = NSMaxRange(aRange);
+
+  if (aRange.location > capacity)
+    {
+      [NSException raise: NSRangeException
+		  format: @"location bad in replaceByteInRange:withBytes:"];
+    }
+  if (aRange.length > 0)
+    {
+      if (need > length)
+	{
+	  [self setCapacity: need];
+	  length = need;
+	}
+      memcpy(bytes + aRange.location, moreBytes, aRange.length);
+    }
 }
 
 - (void) serializeDataAt: (const void*)data
@@ -3017,15 +3043,26 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
+- (void) setData: (NSData*)data
+{
+  unsigned	l = [data length];
+
+  [self setCapacity: l];
+  length = l;
+  memcpy(bytes, [data bytes], length);
+}
+
 - (void) setLength: (unsigned)size
 {
-    if (size > capacity) {
-	[self setCapacity: size];
+  if (size > capacity)
+    {
+      [self setCapacity: size];
     }
-    if (size > length) {
-	memset(bytes + length, '\0', size - length);
+  if (size > length)
+    {
+      memset(bytes + length, '\0', size - length);
     }
-    length = size;
+  length = size;
 }
 
 @end

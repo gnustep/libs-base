@@ -21,7 +21,7 @@ main()
   id a, b, c, e;                           /* dates */
   id pool;
 
-  behavior_set_debug(0);
+  //behavior_set_debug(0);
 
   pool = [[NSAutoreleasePool alloc] init];
 

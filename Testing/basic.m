@@ -2,9 +2,10 @@
 #include <stdio.h>
 
 
-#if 0
+#if 1
 int main ()
 {
+  id	pool = [NSAutoreleasePool new];
   id o = [NSObject new];
   printf ("Hello from object at 0x%x\n", (unsigned)[o self]);
   exit (0);

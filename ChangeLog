@@ -1,8 +1,103 @@
-2001-03-21  Jonathan Gapen  <jagapen@home.com>
+2001-04-08  Adam Fedor  <fedor@gnu.org>
 
-	* config/nextcc.m4, config/objc-con-autoload.m4, config/procfs.m4,
-	config/objc-sys-dynamic.m4, config/procfs-exe-link.m4: Autoconf
-	macros used by configure.in.
+	* Version: 1.0.0
+	* NEWS: Regenerated.
+
+	* Source/NSLock.m (-tryLock): Return NO if our thread has
+	already has the lock (like OpenStep).
+	(-lockBeforeDate:): block until date if our thread already has 
+	the lock (like OpenStep).
+
+	* Source/NSData.m ([NSMutableDataMalloc
+	-replaceBytesInRange:withBytes:]): Check capacity, not length.
+
+2001-04-04  Adam Fedor  <fedor@gnu.org>
+
+	* config.guess: Update to latest version
+	* config.sub: Likewise.
+
+2001-04-01 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/GSValue.m ([-description]): Bug fix - was crashing upon
+	using %@ instead of %s for a char *.
+
+2001-03-31  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/announce.texi: Update.
+	* Documentation/install.texi: Likewise.
+
+	* Testing/Makefile.preamble: Set BUNDLE_LIBS on mingw and cygwin.
+	* Testing/nsbundle.m: add NSProcessInfo's initializeWithArguments:...
+
+2001-03-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m: ([+load]) Fix in parsing of command line
+	arguments from /proc filesystem.  On newer kernels the command line
+	arguments are terminated by a nul, on older systems they are separated
+	by a nul.  The old code would add an extra (empty) argument to all
+	processes on newer kernels.  The new code will lose a trailing empty
+	argument on older kernels :-(  I view it as the lesser of two evils
+	since the extra empty arg confuses/breaks a lot of tools.
+
+2001-03-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Fix file copying for MINGW by using
+	windows native copy function - fix by Michael Scheibler.
+	Also tidied to conform to coding standards, and fixed to use
+	O_BINARY where the system defines it.
+
+2001-03-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h: GS_EXPORT updates for MINGW
+	* Headers/Foundation/NSObCRuntime.h: ditto
+	* Headers/Foundation/NSRange.h: ditto
+	* Source/NSRange.m: ditto
+	Fixes suggested by Michael Scheibler
+	
+2001-03-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: ([-replaceBytesInRange:withBytes:]) bugfix ...
+	revert to check using '>' rather than '>=' to conform to documentation
+	and to be consistent with use of ranges in general.
+	* Documentation/gsdoc/NSMutableData.gsdoc: documented primitive methods.
+	* Documentation/gsdoc/NSFunctions.gsdoc: Some documentation for NSRange
+	added.
+
+2001-03-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSData.m: ([-replaceBytesInRange:withBytes:]) Check location
+	>= size.
+
+2001-03-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: ([-replaceBytesInRange:withBytes:]) bugfix ...
+	extend data if range has location in data, but extent beyond data.
+
+2001-03-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSSerializer.m (serializeToInfo): Use memcpy to serialize
+	strings on machines that need word alignment.
+	* Source/NSTimeZone.m (decode): For decoding, likewise.
+
+	* Testing/thread-except.m: Use autorelease pools.
+
+2001-03-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: MINGW fixes by Michael Scheibler.
+	([_attributesAtPath:traverseLink:forCopy:]) fix 'cos windows lacks
+	symbolic links.  ([-changeFileAttributes:atPath:]) workaround for
+	windows directories not having modification times.
+	([-fileSystemAttributesAtPath:]) fix for large volumes (matching
+	change for unix too ... use unsigned long long).
+
+2001-03-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: ([-methodSignatureForSelector:]) try to get a
+	valid method signature any way we can ... check for a valid method
+	first, use selector types next.  Avoid crash when given nul selector
+	as an argument.
+	* Source/NSMethodSignature.m: ([+signatureWithObjCTypes:]) don't
+	crash when given nul pointer as argument.
 
 2001-03-19  Jonathan Gapen  <jagapen@home.com>
 

@@ -1063,7 +1063,7 @@ static Class	runLoopClass;
 		}
 	      else
 		{
-		  NSLog(@"No messages to write on 0x%x.", self);
+		  // NSLog(@"No messages to write on 0x%x.", self);
 		  return;
 		}
 	    }
