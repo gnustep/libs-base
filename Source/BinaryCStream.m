@@ -43,6 +43,10 @@
 /* The value by which we multiply a float or double in order to bring
    mantissa digits to the left-hand-side of the decimal point, so that
    we can extra them by assigning the float or double to an int. */
+#if !defined(BITSPERBYTE) && defined(NeXT)
+#include <mach/vm_param.h>
+#define BITSPERBYTE BYTE_SIZE
+#endif
 #define FLOAT_FACTOR ((double)(1 << ((sizeof(int)*BITSPERBYTE)-2)))
 
 @implementation BinaryCStream
