@@ -229,6 +229,11 @@ static NSLock* cache_lock = nil;
   return [self _bitmapForSet:@"nonbaseCharSet" number: 7];
 }
 
++ (NSCharacterSet *)punctuationCharacterSet;
+{
+  return [self notImplemented: _cmd];
+}
+
 + (NSCharacterSet *)uppercaseLetterCharacterSet
 {
   return [self _bitmapForSet:@"uppercaseCharSet" number: 8];

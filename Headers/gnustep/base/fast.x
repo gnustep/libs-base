@@ -114,6 +114,7 @@ extern void	_fastBuildCache();
  *	The '_fastMallocBuffer()' function is called to get a chunk of
  *	memory that will automatically be released when the current
  *	autorelease pool goes away.
+ */
 extern void	*_fastMallocBuffer(unsigned size);
 
 /*

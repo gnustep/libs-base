@@ -55,6 +55,7 @@
 }
 
 - (BOOL)tryLock;
+- (BOOL)lockBeforeDate:(NSDate *)limit;
 
 // NSLocking protocol
 - (void)lock;
@@ -85,6 +86,10 @@
 - (void)unlockWithCondition:(int)value;
 - (BOOL)tryLock;
 - (BOOL)tryLockWhenCondition:(int)value;
+// Acquiring the lock with a date condition
+- (BOOL)lockBeforeDate:(NSDate *)limit;
+- (BOOL)lockWhenCondition:(int)condition
+               beforeDate:(NSDate *)limit;
 
 // NSLocking protocol
 - (void)lock;
@@ -107,6 +112,7 @@
 }
 
 - (BOOL)tryLock;
+- (BOOL)lockBeforeDate:(NSDate *)limit;
 
 // NSLocking protocol
 - (void)lock;

@@ -37,6 +37,7 @@
 
 @class NSDistantObject;
 @class NSPort;
+@class NSData;
 
 /*
  *	Keys for the NSDictionary returned by [NSConnection -statistics]
@@ -85,17 +86,23 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 + (NSArray*) allConnections;
 + (NSConnection*) connectionWithRegisteredName: (NSString*)n
                                           host: (NSString*)h;
++ (id)currentConversation;
 + (NSConnection*) defaultConnection;
 + (NSDistantObject*) rootProxyForConnectionWithRegisteredName: (NSString*)name
                                                          host: (NSString*)host;
 
 - (void) addRequestMode: (NSString*)mode;
+- (void) addRunLoop: (NSRunLoop *)runloop;
 - (id) delegate;
+- (void) enableMultipleThreads;
+- (BOOL) multipleThreadsEnabled;
 - (BOOL) independantConversationQueueing;
 - (void) invalidate;
 - (BOOL) isValid;
 - (BOOL) registerName: (NSString*)name;
+- (NSArray *) remoteObjects;
 - (void) removeRequestMode: (NSString*)mode;
+- (void) removeRunLoop: (NSRunLoop *)runloop;
 - (NSTimeInterval) replyTimeout;
 - (NSArray*) requestModes;
 - (NSTimeInterval) requestTimeout;
@@ -211,7 +218,12 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (void) addProxy: (NSDistantObject*)aProxy;
 - (id) includesProxyForTarget: (void*)target;
 - (void) removeProxy: (NSDistantObject*)aProxy;
-- (id <Collecting>) localObjects;
+
+// It seems to be a non pure-OPENSTEP definition...
+//- (id <Collecting>) localObjects;
+//
+// new def :
+- (NSArray *)localObjects;
 - (void) addLocalObject: anObj;
 - (id) includesLocalObject: anObj;
 - (void) removeLocalObject: anObj;
@@ -276,6 +288,12 @@ extern NSString *ConnectionBecameInvalidNotification;
  *	sent bycopy, in which case the actual object is returned.
  *	To force bycopy, an object should return itsself.
  */
+
+
+- (BOOL)authenticateComponents: (NSArray *)components
+                      withData: (NSData *)authenticationData;
+- (NSData *)authenticationDataForComponents: (NSArray *)components;
+
 @end
 
 #define CONNECTION_DEFAULT_TIMEOUT   15.0 /* in seconds */

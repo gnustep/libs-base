@@ -45,6 +45,8 @@ extern NSString* NSLoadedClasses;
     unsigned int _version;
 }
 
++ (NSArray *) allBundles;
++ (NSArray *) allFrameworks;
 + (NSBundle *) mainBundle;
 + (NSBundle *) bundleForClass: (Class)aClass;
 + (NSBundle *) bundleWithPath: (NSString *)path;

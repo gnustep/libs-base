@@ -102,6 +102,12 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     return YES;
 }
 
+- (BOOL)lockBeforeDate:(NSDate *)limit
+{
+  [self notImplemented: _cmd];
+  return NO;
+}
+
 // NSLocking protocol
 - (void) lock
 {
@@ -290,6 +296,20 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     }
 }
 
+// Acquiring the lock with a date condition
+- (BOOL)lockBeforeDate:(NSDate *)limit
+{
+  [self notImplemented: _cmd];
+  return NO;
+}
+
+- (BOOL)lockWhenCondition:(int)condition
+               beforeDate:(NSDate *)limit
+{
+  [self notImplemented: _cmd];
+  return NO;
+}
+
 // NSLocking protocol
 // These methods ignore the condition
 - (void) lock
@@ -374,6 +394,12 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     return NO;
   else
     return YES;
+}
+
+- (BOOL)lockBeforeDate:(NSDate *)limit
+{
+  [self notImplemented: _cmd];
+  return NO;
 }
 
 // NSLocking protocol
