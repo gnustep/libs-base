@@ -1,0 +1,9 @@
+The Gnustep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+collections, byte streams, typed coders, invocations, notifications,
+notification dispatchers, times, network ports, remote object messaging
+support (distributed objects), event loops, and random number generators.
+
+It provides functionality that aims to implement the non-graphical
+portion of the OpenStep standard.  In many cases, the @samp{NS*} classes
+are implemented as wrappers around more featureful GNU classes.
