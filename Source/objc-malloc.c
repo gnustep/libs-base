@@ -38,8 +38,9 @@
 void*
 __objc_malloc(size_t size)
 {
+  void* res;
   CHECK_ZERO_SIZE(size);
-  void* res = (void*) malloc(size);
+  res = (void*) malloc(size);
   if(!res)
     objc_fatal("Virtual memory exhausted\n");
   return res;
@@ -48,8 +49,9 @@ __objc_malloc(size_t size)
 void*
 __objc_valloc(size_t size)
 {
+  void* res;
   CHECK_ZERO_SIZE(size);
-  void* res = (void*) valloc(size);
+  res = (void*) valloc(size);
   if(!res)
     objc_fatal("Virtual memory exhausted\n");
   return res;
@@ -58,8 +60,9 @@ __objc_valloc(size_t size)
 void*
 __objc_realloc(void* mem, size_t size)
 {
+  void* res;
   CHECK_ZERO_SIZE(size);
-  void* res = (void*) realloc(mem, size);
+  res = (void*) realloc(mem, size);
   if(!res)
     objc_fatal("Virtual memory exhausted\n");
   return res;
@@ -68,8 +71,9 @@ __objc_realloc(void* mem, size_t size)
 void*
 __objc_calloc(size_t nelem, size_t size)
 {
+  void* res;
   CHECK_ZERO_SIZE(size);
-  void* res = (void*) calloc(nelem, size);
+  res = (void*) calloc(nelem, size);
   if(!res)
     objc_fatal("Virtual memory exhausted\n");
   return res;
