@@ -13,6 +13,7 @@
 	* Source/NSObject.m: Remove dealloc notifications hack ... the
 	dealloc method can now safely be used to refrain from deallocating
 	objects, so I don't think the hack is needed any more.
+	* Tools/gdomap.c: Tidyup patch by Matthias Klose
 
 2002-07-29  Adam Fedor  <fedor@gnu.org>
 

@@ -4478,19 +4478,30 @@ printf(
    */
   for (c = 0; c < FD_SETSIZE; c++)
     {
-      if (c != 2)
+      if (is_daemon || (c != 2))
 	{
 	  (void)close(c);
 	}
     }
   if (open("/dev/null", O_RDONLY) != 0)
     {
-      perror("failed to open stdin from /dev/null\n");
+      sprintf(ebuf, "failed to open stdin from /dev/null (%s)\n",
+	strerror(errno));
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
   if (open("/dev/null", O_WRONLY) != 1)
     {
-      perror("failed to open stdout from /dev/null\n");
+      sprintf(ebuf, "failed to open stdout from /dev/null (%s)\n",
+	strerror(errno));
+      gdomap_log(LOG_CRIT);
+      exit(1);
+    }
+  if (is_daemon && open("/dev/null", O_WRONLY) != 2)
+    {
+      sprintf(ebuf, "failed to open stderr from /dev/null (%s)\n",
+	strerror(errno));
+      gdomap_log(LOG_CRIT);
       exit(1);
     }
   if (debug)
