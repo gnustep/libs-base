@@ -750,7 +750,7 @@ static BOOL double_release_check_enabled = NO;
  */
 @implementation NSObject
 
-+ (void) _becomeMultiThreaded: (NSNotification)aNotification
++ (void) _becomeMultiThreaded: (NSNotification *)aNotification
 {
   if (allocationLock == 0)
     {
