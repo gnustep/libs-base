@@ -1,3 +1,8 @@
+2003-09-01  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (main): Move getuid call inside #ifndef MINGW
+	like the others.
+
 2003-08-31  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/gdnc.m (main): Close any open file descriptors so we can
