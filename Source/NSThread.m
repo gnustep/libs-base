@@ -39,6 +39,8 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotificationQueue.h>
+#include <Foundation/NSRunLoop.h>
+#include <Foundation/NSConnection.h>
 
 static Class threadClass = Nil;
 static NSNotificationCenter *nc = nil;
@@ -133,24 +135,60 @@ GSCurrentThread()
  * Fast access function for thread dictionary of current thread.
  */
 NSMutableDictionary*
-GSCurrentThreadDictionary()
+GSDictionaryForThread(NSThread *t)
 {
-  NSThread		*thread = GSCurrentThread();
-
-  if (thread == nil)
+  if (t == nil)
+    {
+      t = GSCurrentThread();
+    }
+  if (t == nil)
     {
       return nil;
     }
   else 
     {
-      NSMutableDictionary	*dict = thread->_thread_dictionary;
+      NSMutableDictionary	*dict = t->_thread_dictionary;
 
       if (dict == nil)
 	{
-	  dict = [thread threadDictionary];
+	  dict = [t threadDictionary];
 	}
       return dict; 
     }
+}
+
+/**
+ * Fast access function for thread dictionary of current thread.
+ */
+NSMutableDictionary*
+GSCurrentThreadDictionary()
+{
+  return GSDictionaryForThread(nil);
+}
+
+/**
+ * Returns the run loop for the specified thread (or, if t is nil,
+ * for the current thread).  Creates a new run loop if necessary.<br />
+ * Returns nil on failure.
+ */
+NSRunLoop*
+GSRunLoopForThread(NSThread *t)
+{
+  static NSString       *key = @"NSRunLoopThreadKey";
+  NSMutableDictionary   *d = GSDictionaryForThread(t);
+  NSRunLoop             *r;
+
+  r = [d objectForKey: key];
+  if (r == nil)
+    {
+      if (d != nil)
+        {
+          r = [NSRunLoop new];
+          [d setObject: r forKey: key];
+          RELEASE(r);
+        }
+    }
+  return r;
 }
 
 /*
@@ -514,6 +552,158 @@ gnustep_base_thread_callback()
 
 @end
 
+
+
+@interface GSPerformHolder : NSObject
+{
+  id		receiver;
+  id		argument;
+  SEL		selector;
+  NSLock	*lock;
+}
++ (GSPerformHolder*) newForReceiver: (id)r
+			   argument: (id)a
+			   selector: (SEL)s
+			       lock: (NSConditionLock*)l;
+- (void) fire;
+@end
+
+@implementation GSPerformHolder
+
++ (GSPerformHolder*) newForReceiver: (id)r
+			   argument: (id)a
+			   selector: (SEL)s
+			       lock: (NSConditionLock*)l
+{
+  GSPerformHolder	*h;
+
+  h = (GSPerformHolder*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+  h->receiver = RETAIN(r);
+  h->argument = RETAIN(a);
+  h->selector = s;
+  if (l != nil)
+    {
+      h->lock = RETAIN(l);
+      [h->lock lock];		// Lock until fire.
+    } 
+  return h;
+}
+
+- (void) dealloc
+{
+  DESTROY(receiver);
+  DESTROY(argument);
+  if (lock != nil)
+    {
+      [lock unlock];
+      DESTROY(lock);
+    }
+  NSDeallocateObject(self);
+}
+
+- (void) fire
+{
+  [GSRunLoopForThread(defaultThread) cancelPerformSelectorsWithTarget: self];
+  [receiver performSelector: selector withObject: argument];
+  if (lock == nil)
+    {
+      RELEASE(self);
+    }
+  else
+    {
+      [lock unlock];
+      DESTROY(lock);
+    }
+}
+@end
+
+@implementation	NSObject(NSMainThreadPerformAdditions)
+
+/**
+ * <p>This method performs aSelector on the receiver, passing anObject as
+ * an argument, but does so in the main thread of the program.  The receiver
+ * and anObject are both retained until the method is performed.
+ * </p>
+ * <p>The selector is performed when the runloop of the main thread is in
+ * one of the modes specified in anArray, or if there are no modes in
+ * anArray, the method has no effect and simply returns immediately.
+ * </p>
+ * <p>The argument aFlag specifies whether the method should wait until
+ * the selector has been performed before returning.<br />
+ * <strong>NB.</strong> This method does <em>not</em> cause the run loop of
+ * the main thread to be run ... so if the run loop is not executed by some
+ * code in the main thread, the thread waiting for the perform to complete
+ * will block forever.
+ * </p>
+ * <p>As a special case, if aFlag == YES and the current thread is the main
+ * thread, the modes array is ignord and the selector is performed immediately.
+ * This behavior is necessary to avoid the main thread being blocked by
+ * waiting for a perform which will never happen because the run loop is
+ * not executing.
+ * </p>
+ */
+- (void) performSelectorOnMainThread: (SEL)aSelector
+			  withObject: (id)anObject
+		       waitUntilDone: (BOOL)aFlag
+			       modes: (NSArray*)anArray
+{
+  NSThread	*t = GSCurrentThread();
+
+  if (aFlag == YES && (t == defaultThread))
+    {
+      [self performSelector: aSelector withObject: anObject];
+    }
+  else
+    {
+      NSRunLoop		*r = GSRunLoopForThread(defaultThread);
+      NSConditionLock	*l = nil;
+      GSPerformHolder	*h;
+
+      if (aFlag == YES)
+	{
+	  l = [NSConditionLock new];
+	}
+
+      h = [GSPerformHolder newForReceiver: self
+				 argument: anObject
+				 selector: aSelector
+				     lock: l];
+
+      [r performSelector: @selector(fire)
+		  target: h
+		argument: nil
+		   order: 0
+		   modes: anArray];
+
+      if (aFlag == YES)
+	{
+	  [l lockBeforeDate: [NSDate distantFuture]];
+	}
+      RELEASE(h);
+    }
+}
+
+/**
+ * Invokes -performSelectorOnMainThread:withObject:waitUntilDone:modes:
+ * using the supplied arguments and an array containing common modes.
+ */
+- (void) performSelectorOnMainThread: (SEL)aSelector
+			  withObject: (id)anObject
+		       waitUntilDone: (BOOL)aFlag
+{
+  static NSArray	*commonModes = nil;
+
+  if (commonModes == nil)
+    {
+      commonModes = [[NSArray alloc] initWithObjects:
+	NSDefaultRunLoopMode, NSConnectionReplyMode, nil];
+    }
+  [self performSelectorOnMainThread: aSelector
+			 withObject: anObject
+		      waitUntilDone: aFlag
+			      modes: commonModes];
+}
+@end
 typedef struct { @defs(NSThread) } NSThread_ivars;
 
 
