@@ -1,6 +1,8 @@
 2003-09-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: Fix minor errors in utf8 handling.
+	Use endian version of UTF16 to avoid iconv inserting BOM where
+	it is not wanted.
 
 2003-09-10  David Ayers  <d.ayers@inode.at>
 
