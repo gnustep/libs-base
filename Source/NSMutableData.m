@@ -21,6 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+#include <foundation/NSData.h>
+
 /* xxx Pretty messy.  Needs work. */
 
 @implementation NSMutableData
