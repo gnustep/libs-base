@@ -1,4 +1,6 @@
 /* A demonstration of writing and reading GNU Objective C objects to a file. */
+// Fri Oct 23 03:01:09 MET DST 1998 	dave@turbocat.de
+// cStringNoCopy -> cString
 
 #include <gnustep/base/Archiver.h>
 #include <gnustep/base/BinaryCStream.h>
@@ -70,14 +72,14 @@ int main(int argc, char *argv[])
   /* Read in the Array */
   [archiver decodeObjectAt: &array withName: &name];
   if (name)
-    printf ("got object named %s\n", [name cStringNoCopy]);
+    printf ("got object named %s\n", [name cString]);
   else
     printf ("got object named (unnamed)\n");
 
   /* Read in the Dictionary */
   [archiver decodeObjectAt: &dictionary withName: &name];
   if (name)
-    printf ("got object named %s\n", [name cStringNoCopy]);
+    printf ("got object named %s\n", [name cString]);
   else
     printf ("got object named (unnamed)\n");
 
