@@ -30,6 +30,11 @@
 #include <gnustep/base/objc-gnu2next.h>
 #include <gnustep/base/fake-main.h>
 
+#if defined(__WIN32__) || defined(_WIN32)
+#include <windows.h>
+#define GNUSTEP_BASE_SOCKET_MESSAGE (WM_USER + 1)
+#endif
+
 #if NeXT_runtime
  #include <objc/objc.h>
  #include <objc/objc-class.h>

@@ -7,7 +7,9 @@
    This file is part of the GNUstep Base Library.
 	    
 */
+#ifndef __MINGW32__
 #include <sys/param.h>
+#endif
 #include "Foundation/NSBundle.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"

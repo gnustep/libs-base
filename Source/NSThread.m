@@ -28,10 +28,6 @@
 #include <gnustep/base/o_map.h>
 #include <gnustep/base/Notification.h>
 
-// Notifications
-NSString *NSBecomingMultiThreaded = @"NSBecomingMultiThreadedNotification";
-NSString *NSThreadExiting = @"NSThreadExitingNotification";
-
 // Class variables
 
 #define USING_THREAD_COLLECTION 0
@@ -78,13 +74,13 @@ static BOOL entered_multi_threaded_state;
 {
   [super init];
 
+  /* Make it easy and fast to get this NSThread object from the thread. */
+  objc_thread_set_data (self);
+
   /* initialize our ivars. */
   _thread_dictionary = nil;	// Initialize this later only when needed
   _exception_handler = NULL;
   init_autorelease_thread_vars (&_autorelease_vars);
-
-  /* Make it easy and fast to get this NSThread object from the thread. */
-  objc_thread_set_data (self);
 
 #if USING_THREAD_COLLECTION
   /* Register ourselves in the maptable of all threads. */

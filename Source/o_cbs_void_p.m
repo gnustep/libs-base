@@ -28,33 +28,6 @@
 #include <Foundation/NSString.h>
 #include <gnustep/base/o_cbs.h>
 
-/**** Type, Constant, and Macro Definitions **********************************/
-
-/* FIXME: Is this right?!? */
-#define _OBJECTS_NOT_A_VOID_P_MARKER (const void *)(-1)
-
-const void *o_not_a_void_p_marker = _OBJECTS_NOT_A_VOID_P_MARKER;
-
-o_callbacks_t o_callbacks_for_non_owned_void_p = 
-{
-  (o_hash_func_t) o_non_owned_void_p_hash,
-  (o_compare_func_t) o_non_owned_void_p_compare,
-  (o_is_equal_func_t) o_non_owned_void_p_is_equal,
-  (o_retain_func_t) o_non_owned_void_p_retain,
-  (o_release_func_t) o_non_owned_void_p_release,
-  _OBJECTS_NOT_A_VOID_P_MARKER
-};
-
-o_callbacks_t o_callbacks_for_owned_void_p = 
-{
-  (o_hash_func_t) o_owned_void_p_hash,
-  (o_compare_func_t) o_owned_void_p_compare,
-  (o_is_equal_func_t) o_owned_void_p_is_equal,
-  (o_retain_func_t) o_owned_void_p_retain,
-  (o_release_func_t) o_owned_void_p_release,
-  _OBJECTS_NOT_A_VOID_P_MARKER
-};
-
 /**** Function Implementations ***********************************************/
 
 size_t

@@ -39,7 +39,7 @@ DYNAMIC_LDFLAGS=@DYNAMIC_LDFLAGS@
 DYNAMIC_CFLAGS=@DYNAMIC_CFLAGS@
 DEFS = @DEFS@
 LIBS = -L../src @whole_archive@ -l$(LIBRARY_NAME) @no_whole_archive@ \
-	@LIBOBJC@ @LIBS@ -lm
+	@LIBOBJC@ @LIBS@
 
 EXEEXT = 
 OEXT = .o

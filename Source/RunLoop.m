@@ -63,9 +63,15 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSNotificationQueue.h>
+
+#ifdef _AIX
+#include <sys/select.h>
+#endif  /* AIX */
+
 #ifndef __WIN32__
 #include <sys/time.h>
 #endif /* !__WIN32__ */
+
 #include <limits.h>
 #include <string.h>		/* for memset() */
 
@@ -335,10 +341,6 @@ static RunLoop *current_run_loop;
 {
   /* Linux doesn't always return double from methods, even though
      I'm using -lieee. */
-#if 0
-  assert (mode);
-  return nil;
-#else
   Heap *timers;
   NSTimer *min_timer = nil;
   id saved_mode;
@@ -387,15 +389,242 @@ static RunLoop *current_run_loop;
 	    [[min_timer fireDate] timeIntervalSinceReferenceDate]);
 
   return [min_timer fireDate];
-#endif
 }
 
 
-/* Listen to input sources.
-   If LIMIT_DATE is nil, then don't wait; i.e. call select() with 0 timeout */
 
-- (void) acceptInputForMode: (NSString*)mode 
-		 beforeDate: limit_date
+/*
+  Because WIN32 is so vastly different from UNIX in the way it
+  waits on file descriptors, sockets, and the event queue, I have
+  separated them out into complete separate methods.  This will make
+  it much easier to maintain and read versus if it was all jumbled
+  together into a single method.
+
+  Note that only one of the two methods will actually be compiled.
+  */
+
+#if defined(__WIN32__) || (_WIN32)
+
+/* Private method
+   Perform WIN32 style mechanism to wait on multiple inputs */
+- (void) acceptWIN32InputForMode: (NSString*)mode 
+		      beforeDate: limit_date
+{
+  DWORD wait_count = 0;
+  HANDLE handle_list[MAXIMUM_WAIT_OBJECTS - 1];
+  DWORD wait_timeout;
+  struct timeval timeout;
+  void *select_timeout;
+  fd_set fds;			/* The file descriptors we will listen to. */
+  fd_set read_fds;		/* Copy for listening to read-ready fds. */
+  fd_set exception_fds;		/* Copy for listening to exception fds. */
+  fd_set write_fds;		/* Copy for listening for write-ready fds. */
+  int select_return;
+  int fd_index;
+  NSMapTable *fd_2_object;
+  NSTimeInterval ti;
+  id saved_mode;
+  DWORD wait_return;
+  id ports;
+  int num_of_ports;
+  int port_fd_count = 128; // xxx #define this constant
+  int port_fd_array[port_fd_count];
+
+  assert (mode);
+  saved_mode = _current_mode;
+  _current_mode = mode;
+
+  /* Find out how much time we should wait, and set SELECT_TIMEOUT. */
+  if (!limit_date)
+    {
+      /* Don't wait at all. */
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 0;
+      select_timeout = &timeout;
+      wait_timeout = 0;
+    }
+  else if ((ti = [limit_date timeIntervalSinceNow]) < LONG_MAX
+	    && ti > 0.0)
+    {
+      /* Wait until the LIMIT_DATE. */
+      if (debug_run_loop)
+	printf ("\tRunLoop accept input before %f (seconds from now %f)\n", 
+		[limit_date timeIntervalSinceReferenceDate], ti);
+      /* If LIMIT_DATE has already past, return immediately. */
+      if (ti < 0)
+	{
+	  if (debug_run_loop)
+	    printf ("\tRunLoop limit date past, returning\n");
+          _current_mode = saved_mode;
+	  return;
+	}
+      timeout.tv_sec = ti;
+      timeout.tv_usec = (ti - timeout.tv_sec) * 1000000.0;
+      select_timeout = &timeout;
+      wait_timeout = ti * 1000;
+    }
+  else if (ti <= 0.0)
+    {
+      /* The LIMIT_DATE has already past; return immediately without
+	 polling any inputs. */
+      _current_mode = saved_mode;
+      return;
+    }
+  else
+    {
+      /* Wait forever. */
+      if (debug_run_loop)
+	printf ("\tRunLoop accept input waiting forever\n");
+      select_timeout = NULL;
+      wait_timeout = INFINITE;
+    }
+
+#if 1
+  /* Get ready to listen to file descriptors.
+     Initialize the set of FDS we'll pass to select(), and create
+     an empty map for keeping track of which object is associated
+     with which file descriptor. */
+  FD_ZERO (&fds);
+  FD_ZERO (&write_fds);
+  fd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
+				  NSObjectMapValueCallBacks, 0);
+
+  /* If a port is invalid, remove it from this mode. */
+  ports = NSMapGet (_mode_2_in_ports, mode);
+  {
+    id port;
+    int i;
+    for (i = [ports count]-1; i >= 0; i--)
+      {
+	port = [ports objectAtIndex: i];
+	if (![port isValid])
+	  [ports removeObjectAtIndex: i];
+      }
+  }
+  num_of_ports = 0;
+
+  /* Do the pre-listening set-up for the ports of this mode. */
+  {
+    if (ports)
+      {
+	id port;
+	int i;
+	int fd_count = port_fd_count;
+	int fd_array[port_fd_count];
+
+	/* Ask our ports for the list of file descriptors they
+	   want us to listen to; add these to FD_LISTEN_SET. 
+	   Save the list of ports for later use. */
+	for (i = [ports count]-1; i >= 0; i--)
+	  {
+	    port = [ports objectAtIndex: i];
+	    if ([port respondsTo: @selector(getFds:count:)])
+	      [port getFds: fd_array count: &fd_count];
+	    else
+	      fd_count = 0;
+	    if (debug_run_loop)
+	      printf("\tRunLoop listening to %d sockets\n", fd_count);
+	    num_of_ports += fd_count;
+	    if (num_of_ports > port_fd_count)
+	      {
+		/* xxx Uh oh our array isn't big enough */
+		perror ("RunLoop attempt to listen to too many ports\n");
+		abort ();
+	      }
+	    while (fd_count--)
+	      {
+		int j = num_of_ports - fd_count - 1;
+		port_fd_array[j] = fd_array[fd_count];
+		FD_SET (port_fd_array[j], &fds);
+		NSMapInsert (fd_2_object, 
+			     (void*)port_fd_array[j], 
+			     port);
+	      }
+	  }
+      }
+  }
+  if (debug_run_loop)
+    printf("\tRunLoop listening to %d total ports\n", num_of_ports);
+
+  /* Wait for incoming data, listening to the file descriptors in _FDS. */
+  read_fds = fds;
+  exception_fds = fds;
+  select_return = select (FD_SETSIZE, &read_fds, &write_fds, &exception_fds,
+			  select_timeout);
+
+  if (select_return < 0)
+    {
+      /* Some exceptional condition happened. */
+      /* xxx We can do something with exception_fds, instead of
+	 aborting here. */
+      perror ("[TcpInPort receivePacketWithTimeout:] select()");
+      abort ();
+    }
+  else if (select_return == 0)
+    {
+      NSFreeMapTable (fd_2_object);
+      _current_mode = saved_mode;
+      return;
+    }
+  
+  /* Look at all the file descriptors select() says are ready for reading;
+     notify the corresponding object for each of the ready fd's. */
+  if (ports)
+    {
+      int i;
+
+      for (i = num_of_ports - 1; i >= 0; i--)
+	{
+	  if (FD_ISSET (port_fd_array[i], &read_fds))
+	    {
+	      id fd_object = (id) NSMapGet (fd_2_object, 
+					    (void*)port_fd_array[i]);
+	      assert (fd_object);
+	      [fd_object readyForReadingOnFileDescriptor: 
+			   port_fd_array[i]];
+	    }
+	}
+    }
+
+  /* Clean up before returning. */
+  NSFreeMapTable (fd_2_object);
+
+#else
+
+  /* Wait for incoming data */
+  wait_return = MsgWaitForMultipleObjects(wait_count, handle_list, FALSE, 
+					  wait_timeout, QS_ALLINPUT);
+
+  if (debug_run_loop)
+    printf ("\tRunLoop MsgWaitForMultipleObjects returned %ld\n", wait_return);
+
+  if (wait_return == 0xFFFFFFFF)
+    {
+      /* Some exceptional condition happened. */
+      NSLog(@"RunLoop error, MsgWaitForMultipleObjects returned %d\n",
+	    GetLastError());
+    }
+  else if (wait_return == (WAIT_OBJECT_0 + wait_count))
+    {
+      /* Event in the event queue */
+      if (_event_queue)
+	[_event_queue readyForReadingOnEventQueue];
+    }
+  else
+    {
+      /* We handle the other wait objects here */
+    }
+#endif
+  
+  _current_mode = saved_mode;
+}
+
+#else
+
+/* Private method
+   Perform UNIX style mechanism to wait on multiple inputs */
+- (void) acceptUNIXInputForMode: (NSString*)mode 
+		     beforeDate: limit_date
 {
   NSTimeInterval ti;
   struct timeval timeout;
@@ -606,6 +835,22 @@ static RunLoop *current_run_loop;
   _current_mode = saved_mode;
 }
 
+#endif /* WIN32 */
+
+/* Listen to input sources.
+   If LIMIT_DATE is nil, then don't wait; i.e. call select() with 0 timeout */
+
+- (void) acceptInputForMode: (NSString*)mode 
+		 beforeDate: limit_date
+{
+#if defined(__WIN32__) || defined(_WIN32)
+  [self acceptWIN32InputForMode: mode beforeDate: limit_date];
+#else
+  [self acceptUNIXInputForMode: mode beforeDate: limit_date];
+#endif /* WIN32 */
+}
+
+
 
 /* Running the run loop once through for timers and input listening. */
 
@@ -711,11 +956,6 @@ static RunLoop *current_run_loop;
 }
 
 @end
-
-
-/* RunLoop mode strings. */
-
-id RunLoopDefaultMode = @"RunLoopDefaultMode";
 
 
 /* NSObject method additions. */

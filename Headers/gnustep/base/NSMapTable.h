@@ -114,6 +114,40 @@ extern const NSMapTableValueCallBacks NSObjectMapValueCallBacks;
 /* For values that are pointers with transfer of ownership upon insertion. */
 extern const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks;
 
+/* This is for keeping track of information... */     
+typedef struct _NSMT_extra _NSMT_extra_t;
+
+struct _NSMT_extra
+{
+  NSMapTableKeyCallBacks keyCallBacks;
+  NSMapTableValueCallBacks valueCallBacks;
+};
+
+/* These are to increase readabilty locally. */
+typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
+typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *,
+                                          const void *);
+typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
+typedef void (*NSMT_release_func_t)(NSMapTable *, void *);
+typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
+
+/** Macros... **/
+
+#define NSMT_EXTRA(T) \
+  ((_NSMT_extra_t *)(o_map_extra((o_map_t *)(T))))
+
+#define NSMT_KEY_CALLBACKS(T) \
+  ((NSMT_EXTRA((T)))->keyCallBacks)
+
+#define NSMT_VALUE_CALLBACKS(T) \
+  ((NSMT_EXTRA((T)))->valueCallBacks)
+
+#define NSMT_DESCRIBE_KEY(T, P) \
+  NSMT_KEY_CALLBACKS((T)).describe((T), (P))
+
+#define NSMT_DESCRIBE_VALUE(T, P) \
+  NSMT_VALUE_CALLBACKS((T)).describe((T), (P))
+
 /**** Function Prototypes ****************************************************/
 
 /** Creating an NSMapTable... **/

@@ -231,10 +231,6 @@ static Class NSUnarchiver_concrete_class;
 @end
 
 
-/* Exceptions */
-NSString *NSInconsistentArchiveException = @"NSInconsistentArchiveException";
-
-
 /* NSObject extensions for archiving */
 
 @implementation NSObject (NSArchiver)

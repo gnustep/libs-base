@@ -27,9 +27,7 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSLock.h>
 
-static NSString* NSCharacterSet_PATH = 
-OBJC_STRINGIFY(GNUSTEP_INSTALL_PREFIX) @"/share/NSCharacterSets";
-
+static NSString* NSCharacterSet_PATH = @"NSCharacterSets";
 static NSString* gnustep_libdir =
 #ifdef GNUSTEP_INSTALL_LIBDIR
   @GNUSTEP_INSTALL_LIBDIR;
@@ -79,9 +77,6 @@ static NSLock* cache_lock = nil;
   if (cache_set[number] == nil)
     {
       NS_DURING
-#if 0
-	path = nil;
-#else
 	path = [gstep_base_bundle pathForResource:setname
 				  ofType:@"dat"
 				  inDirectory:NSCharacterSet_PATH];
@@ -92,7 +87,6 @@ static NSLock* cache_lock = nil;
 				      ofType:@"dat"
 				      inDirectory:@"../NSCharacterSets"];
 	  }
-#endif
 
         if (path == nil || [path length] == 0)
 	  {

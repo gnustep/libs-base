@@ -25,7 +25,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSPathUtilities.h>
 #include <stdlib.h>		// for getenv()
-#ifndef __WIN32__
+#if !defined(__WIN32__) && !defined(_WIN32)
 #include <unistd.h>		// for getlogin()
 #include <pwd.h>		// for getpwnam()
 #endif
@@ -35,7 +35,7 @@
 NSString *
 NSUserName ()
 {
-#if __WIN32__
+#if defined(__WIN32__) || defined(_WIN32)
   /* The GetUserName function returns the current user name */
   char buf[1024];
   DWORD n = 1024;
@@ -78,7 +78,7 @@ NSHomeDirectory ()
 NSString *
 NSHomeDirectoryForUser (NSString *login_name)
 {
-#ifndef __WIN32__
+#if !defined(__WIN32__) && !defined(_WIN32)
   struct passwd *pw;
   pw = getpwnam ([login_name cStringNoCopy]);
   return [NSString stringWithCString: pw->pw_dir];

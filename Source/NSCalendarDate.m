@@ -46,6 +46,35 @@
 
 #define GREGORIAN_REFERENCE 730486
 
+//
+// Short and long month names
+// TODO: These should be localized for the language.
+//
+static id short_month[12] = {@"Jan",
+			     @"Feb",
+			     @"Mar",
+			     @"Apr",
+			     @"May",
+			     @"Jun",
+			     @"Jul",
+			     @"Aug",
+			     @"Sep",
+			     @"Oct",
+			     @"Nov",
+			     @"Dec"};
+static id long_month[12] = {@"January",
+			    @"February",
+			    @"March",
+			    @"April",
+			    @"May",
+			    @"June",
+			    @"July",
+			    @"August",
+			    @"September",
+			    @"October",
+			    @"November",
+			    @"December"};
+
 @implementation NSCalendarDate
 
 
@@ -526,7 +555,9 @@
   const char *f = [format cString];
   int lf = strlen(f);
   BOOL mtag = NO, dtag = NO, ycent = NO;
+  BOOL mname = NO;
   int yd = 0, md = 0, dd = 0, hd = 0, mnd = 0, sd = 0;
+  int nhd;
   int i, j, k;
 
   // If the format is nil then return an empty string
@@ -534,6 +565,7 @@
     return @"";
 
   [self getYear: &yd month: &md day: &dd hour: &hd minute: &mnd second: &sd];
+  nhd = hd;
 
   // The strftime specifiers
   // %a   abbreviated weekday name according to locale
@@ -588,6 +620,7 @@
 
 	      // is it the month
 	    case 'b':
+	      mname = YES;
 	    case 'B':
 	      mtag = YES;    // Month is character string
 	    case 'm':
@@ -595,9 +628,10 @@
 	      if (mtag)
 		{
 		  // +++ Translate to locale character string
-		  /* was: k = sprintf(&(buf[j]), ""); */
-		  buf[j] = '\0';
-		  k = 0;
+		  if (mname)
+		    k = sprintf(&(buf[j]), "%s", [short_month[md-1] cString]);
+		  else
+		    k = sprintf(&(buf[j]), "%s", [long_month[md-1] cString]);
 		}
 	      else
 		k = sprintf(&(buf[j]), "%02d", md);
@@ -625,10 +659,13 @@
 	      break;
 
 	      // is it the hour
-	    case 'H':
 	    case 'I':
+	      nhd = hd % 12;  // 12 hour clock
+	      if (hd == 12)
+		nhd = 12;     // 12pm not 0pm
+	    case 'H':
 	      ++i;
-	      k = sprintf(&(buf[j]), "%02d", hd);
+	      k = sprintf(&(buf[j]), "%02d", nhd);
 	      j += k;
 	      break;
 
@@ -643,6 +680,16 @@
 	    case 'S':
 	      ++i;
 	      k = sprintf(&(buf[j]), "%02d", sd);
+	      j += k;
+	      break;
+
+	      // Is it the am/pm indicator
+	    case 'p':
+	      ++i;
+	      if (hd >= 12)
+		k = sprintf(&(buf[j]), "PM");
+	      else
+		k = sprintf(&(buf[j]), "AM");
 	      j += k;
 	      break;
 

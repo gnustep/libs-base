@@ -29,15 +29,6 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSDictionary.h>
 
-NSString *NSGenericException = @"NSGenericException";
-NSString *NSInternalInconsistencyException
-	= @"NSInternalInconsistencyException";
-NSString *NSInvalidArgumentException = @"NSInvalidArgumentException";
-NSString *NSMallocException = @"NSMallocException";
-NSString *NSRangeException = @"NSRangeException";
-
-NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
-
 static volatile void
 _NSFoundationUncaughtExceptionHandler(NSException *exception)
 {
@@ -95,6 +86,17 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
     e_info = [userInfo retain];
     
     return self;
+}
+
+- (void)dealloc
+{
+  [e_name release];
+  e_name = nil;
+  [e_reason release];
+  e_reason = nil;
+  [e_info release];
+  e_info = nil;
+  [super dealloc];
 }
 
 - (volatile void)raise
