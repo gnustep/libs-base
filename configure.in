@@ -771,17 +771,19 @@ WITH_FFI=none
 if test $enable_libffi = yes; then
   AC_DEFINE(USE_LIBFFI)
   WITH_FFI=libffi
+  LIBS="$LIBS -lffi"
   AC_MSG_RESULT(libffi)
 elif test $enable_ffcall = yes; then
   AC_DEFINE(USE_FFCALL)
   WITH_FFI=ffcall
+  LIBS="$LIBS -lcallback -lavcall"
   AC_MSG_RESULT(ffcall)
 else
   AC_MSG_RESULT(none)
   AC_WARN(No ffcall interface library found)
   echo
   echo "GNUstep requires the ffcall library to do invocations and DO"
-  echo "Make sure this library is installed (see installation instructions"
+  echo "Make sure this library is installed (see installation instructions)"
   echo "Otherwise DO will not be compatible with other systems"
 fi
 AC_SUBST(WITH_FFI)
@@ -849,7 +851,6 @@ if test "$HAVE_LIBCRYPTO" = "0"; then
   LIBS="$libs_temp";
 fi
 
-
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal
 #--------------------------------------------------------------------
@@ -901,8 +902,35 @@ if test "$HAVE_GMP" = "0"; then
 fi
 AC_SUBST(HAVE_GMP)
 
+#--------------------------------------------------------------------
+# Check for iconv support (for Unicode conversion).
+#--------------------------------------------------------------------
+# Check in the glibc library
+AC_CHECK_FUNCS(iconv)
+if test $ac_cv_func_iconv = no; then
+  # Check if we have a libiconv library
+  AC_ARG_WITH(libiconv-library,
+    [  --with-libiconv-library=PATH  library path for libiconv libraries],
+    libiconv_libdir="$withval", libiconv_libdir="no")
+  libs_temp=$LIBS
 
+  if test "$libiconv_libdir" != "no"; then
+    LIBS="$LIBS -L$libiconv_libdir"
+  fi
 
+  AC_CHECK_LIB(iconv, main)
+  if test x"$av_cv_lib_iconv_main" = xyes; then
+    LIBS="$LIBS -liconv"
+    AC_SUBST(LIBS)
+    SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
+  else
+    LIBS="$libs_temp";
+  fi
+else
+  SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
+fi
+
+AC_SUBST(SYSTEM_DEFS)
 AC_SUBST(whole_archive)
 AC_SUBST(no_whole_archive)
 
@@ -923,7 +951,7 @@ AC_SUBST(GCC_VERSION)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(config.mak Headers/gnustep/base/GSConfig.h 
+AC_OUTPUT(config.mak base.make Headers/gnustep/base/GSConfig.h 
 	  Headers/gnustep/base/preface.h)
 
 dnl Local Variables:
