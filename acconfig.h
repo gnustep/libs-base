@@ -126,3 +126,6 @@
 
 /* Define if your Lib C defines program_invocation_name */
 #undef HAVE_PROGRAM_INVOCATION_NAME
+
+/* Define if your system has a /proc/self/exe symlink to the executable */
+#undef HAVE_PROC_FS_EXE_LINK

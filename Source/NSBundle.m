@@ -73,6 +73,9 @@ typedef enum {
 static NSBundle*   _mainBundle = nil;
 static NSMapTable* _bundles = NULL;
 
+/* Keep the path to the executable file for finding the main bundle. */
+static NSString *_executable_path;
+
 /*
  * An empty strings file table for use when localization files can't be found.
  */
@@ -252,6 +255,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	{
 	  NSMutableString	*system;
 	  NSString		*str;
+	  char			*output;
 
 	  if ((str = [env objectForKey: @"GNUSTEP_TARGET_DIR"]) != nil)
 	    gnustep_target_dir = RETAIN(str);
@@ -274,6 +278,18 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  system = AUTORELEASE([[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]
 		    mutableCopy]);
 	  [system appendString: @"/Libraries"];
+
+#ifdef HAVE_PROC_FS_EXE_LINK
+	  _executable_path = [[NSFileManager defaultManager]
+	    pathContentOfSymbolicLinkAtPath: @"/proc/self/exe"];
+#else
+	  _executable_path =
+		[[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
+	  output = objc_find_executable([_executable_path cString]);
+	  NSAssert(output, NSInternalInconsistencyException);
+	  _executable_path = [NSString stringWithCString: output];
+	  OBJC_FREE(output);
+#endif
 
 	  _gnustep_bundle = RETAIN([NSBundle bundleWithPath: system]);
 	}
@@ -309,17 +325,10 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   [load_lock lock];
   if ( !_mainBundle ) 
     {
-      char *output;
       NSString *path, *s;
       
-      path = [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
-      output = objc_find_executable([path cString]);
-      NSAssert(output, NSInternalInconsistencyException);
-      path = [NSString stringWithCString: output];
-      OBJC_FREE(output);
-
       /* Strip off the name of the program */
-      path = [path stringByDeletingLastPathComponent];
+      path = [_executable_path stringByDeletingLastPathComponent];
 
       /* The executable may not lie in the main bundle directory
 	 so we need to chop off the extra subdirectories, the library

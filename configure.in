@@ -652,6 +652,19 @@ else
   sys_proc_fs=no;
   AC_MSG_RESULT(no)
 fi
+# Linux (and others?) /proc contains a symlink to the executable
+# file from which the process loaded its code.  This can be used
+# by NSBundle.m to locate the main bundle.
+if test $sys_proc_fs = yes; then
+  AC_MSG_CHECKING(link to executable in /proc)
+  if test -L /proc/self/exe; then
+    AC_DEFINE(HAVE_PROC_FS_EXE_LINK)
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
+fi
+
 
 #--------------------------------------------------------------------
 # Tools for making a DLL.

@@ -1,3 +1,14 @@
+2000-04-18  Adam Fedor  <fedor@gnu.org>
+
+	* base/configure.in: add a test to see whether a symlink
+	'/proc/self/exe' exists
+        * base/Headers/gnustep/base/config.h.in: Add a definition for the
+	test result
+        * base/Source/NSBundle.m: Move the discovery of the process'
+	executable file to +initialize; add code to discover it from
+	/proc, if possible (patches from Jonathan Gapen 
+	<jagapen@whitewater.chem.wisc.edu>)
+
 2000-04-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/gsdoc/NSCountedSet.gsdoc: Method descriptions fleshed
