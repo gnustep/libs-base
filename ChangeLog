@@ -1,3 +1,11 @@
+Mon Aug 28 23:45:15 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSCalendarDate.m ([+dateWithString:calendarFormat:]):
+	Call alloc on self, rather than on the hardcoded NSCalendarDate
+	class, so it works in subclasses.
+	([+dateWithString:calendarFormat:locale:]): Idem.
+	([+dateWithYear:month:day:hour:minute:second:timeZone:]): Idem.
+	
 2001-08-28 Georg Fleischmann <georg@vhf.de>
 
 	* base/Source/NSCalendarDate.m [NSCalendarDate
