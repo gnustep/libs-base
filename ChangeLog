@@ -1,6 +1,11 @@
 2005-03-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Handle null object passed to OAppend()
+	* Source/Additions/GSMime.m: Optimise setDefaultCharset: a little
+	Add error checking to setDefaultEncoding: to make sure it sets a
+	valid characterset encoding. Should almost certainly remove this
+	method though ... as it duplicates setDefaultCharset: functionality
+	in a somewhat less useful form.
 
 2005-03-11  David Wetzel <dave@turbocat.de>
         * Source/Additions/GSMime.m:
