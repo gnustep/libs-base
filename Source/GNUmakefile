@@ -315,8 +315,7 @@ win32-load.h \
 NSCallBacks.h \
 tzfile.h
 
-FOUNDATION_HEADERS = \
-Foundation.h \
+AUTOGSDOC_HEADERS = \
 GSMime.h \
 GSXML.h \
 NSArchiver.h \
@@ -379,14 +378,16 @@ NSTask.h \
 NSThread.h \
 NSTimeZone.h \
 NSTimer.h \
+NSURL.h \
+NSURLHandle.h \
 NSUndoManager.h \
 NSUserDefaults.h \
 NSUtilities.h \
 NSValue.h \
-NSZone.h \
-objc-load.h \
-NSURL.h \
-NSURLHandle.h
+NSZone.h
+
+FOUNDATION_HEADERS = Foundation.h $(AUTOGSDOC_HEADERS) objc-load.h
+
 
 UNICODE_HEADERS = \
 unicode/caseconv.h \
@@ -428,7 +429,7 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 
 DOCUMENT_NAME = Base
 
-Base_AGSDOC_FILES = $(FOUNDATION_HEADERS)
+Base_AGSDOC_FILES = Base.gsdoc $(AUTOGSDOC_HEADERS)
 Base_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \

@@ -1,4 +1,4 @@
-/** Implementation for GSXMLDocument for GNUstep xmlparser
+/** Implementation for GSXML classes
 
    Copyright (C) 2000,2001,2002 Free Software Foundation, Inc.
 
@@ -24,6 +24,19 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+   <title>The XML and HTML parsing system</title>
+   <chapter>
+      <heading>The XML and HTML parsing system</heading>
+      <p>
+        The GNUstep XML parser is a collection Objective-C classes
+        wrapping the C XML parsing library (libxml).
+      </p>
+      <p>
+        The underlying C library handles high performance parsing, while
+	the ObjectiveC classes provide ease of use/integration.
+      </p>
+   </chapter>
 */
 
 #include <config.h>
@@ -131,7 +144,6 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 /**
  * Create a new document with the specified version.
  * <example>
- *
  * id d = [GSXMLDocument documentWithVersion: @"1.0"];
  *
  * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
@@ -142,7 +154,6 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
  * [n1 makeChildWithNamespace: nil name: @"key" content: @"Year Of Birth"];
  * [n1 makeChildWithNamespace: nil name: @"integer" content: @"65"];
  * [n1 makeChildWithnamespace: nil name: @"key" content: @"Pets Names"];
- *
  * </example>
  */
 + (GSXMLDocument*) documentWithVersion: (NSString*)version
@@ -280,7 +291,6 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 /**
  * Creates a new node within the document.
  * <example>
- *
  * GSXMLNode *n1, *n2;
  * GSXMLDocument *d;
  *
@@ -288,7 +298,6 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
  * [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
  * [[d root] setProp: @"version" value: @"0.9"];
  * n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
- *
  * </example>
  */
 - (GSXMLNode*) makeNodeWithNamespace: (GSXMLNamespace*)ns
@@ -1366,7 +1375,6 @@ static NSMapTable	*attrNames = 0;
  * while ((a = [a next]) != nil)
  *   {
  *     NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);          *   }
- *
  * </example>
  */
 - (GSXMLAttribute*) next
