@@ -1,4 +1,162 @@
+Fri Mar 29 09:47:39 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Overhaul mframe functions.
+
+	* src/mframe.m: Overhauled for memory management changes to fix
+ 	leaks, various other fixes.
+	(MFRAME_STRUCTURES_PASSED_BY_REFERENCE): Renamed from
+	CONNECTION_STRUCTURES_PASSED_BY_REFERENCE.
+	(mframe_dissect_call): Function renamed from dissect_method_call.
+	Remove some redundant if()-else clauses.  Clarify case in which
+ 	OUT_PARAMETERS is true.  Use switch statement instead of
+ 	if-else's.
+	(mframe_do_call): Function renamed from make_method_call.  Get the
+	local selector type from the target's Method, not from the
+ 	selector type; this will more reliably give the correct type
+ 	string.  Don't bother to set OBJECT twice.  Remove some redundant
+ 	if()-else clauses.  Use NSParameterAssert, not assert, so we can
+ 	catch problems, (and not crash the D.O. server).  Change the way
+ 	memory management for decoded arguments is handled to remove
+ 	memory leaks; use new scheme for DECODER functions that are
+ 	responsonsible for making sure allocated memory is eventually
+ 	freed.  Use alloca() to allocate space for _C_PTR values, struct's
+ 	and arrays.  Overhaul the way floats and doubles are extracted
+ 	from the RETFRAME; use functions with __builtin_return, instead of
+ 	fishing around the RETFRAME.  Use switch statement intead of
+ 	if-else's.  Separate cases for char's and short's.  Change some
+ 	local variable names for clarity.
+	(mframe_build_return): Function renamed from dissect_method_return.
+	Remove some redundant if()-else clauses.  Use NSParameterAssert,
+ 	not assert.  Change the way memory management for decoded
+ 	arguments is handled to remove memory leaks; use new scheme for
+ 	DECODER functions that are responsonsible for making sure
+ 	allocated memory is eventually freed.  Use alloca() to allocate
+ 	space for _C_PTR values, struct's and arrays.
+	* src/objects/mframe.h: Declare new method names, and comment.
+
+	Fixes to checks for testing new coding of float and double.
+	* checks/server.m ([Server -returnFloat]): Append float const with
+ 	`f'.  Include <objects/Proxy.h> for -connectionForProxy.
+	* checks/client.m (main): Print the float and double before
+ 	sending it.
+	* checks/cstream.m (main): Decode the float and double.
+
+	* src/BinaryCStream.m ([BinaryCStream
+ 	-encodeValueOfCType:at:withName:]): Encode the exponent as a
+ 	short, not an int.
+	([BinaryCStream -decodeValueOfCType:at:withName:]): Likewise, decoding.
+
+	* src/Connection.m ([Connection
+ 	-forwardForProxy:selector:argFrame:]): Use new mframe interface.
+  	In the nested function DECODER, autorelease any char*'s that we
+ 	decode, as required by the new memory reference scheme.
+	([Connection -_service_forwardForProxy:]): Likewise, for both.
+
+	* src/BinaryCStream.m ([BinaryCStream
+ 	-encodeValueOfCType:at:withName:]): [_C_CHARPTR]: Don't
+ 	autorelease the malloc'ed pointer here; thus the behavior is
+ 	analogous to decoding an object: it gives you a reference, it is
+ 	the callers responsibility to free it.
+	([BinaryCStream -decodeValueOfCType:at:withName:]): [_C_DBL]: Fix
+	typo.  Use mantissa1, not mantissa2 twice.
+
+	* src/Collection.m ([ConstantCollection
+ 	-_collectionReleaseContents]): Use alloca() instead of malloc()
+ 	and free().
+
+	Fix the scheme for encoding and decoding floats and doubles.  The
+	old scheme sometimes lost precision, and it was also very
+	inefficient.
+	* src/BinaryCStream.m: Include <math.h>
+	(FLOAT_FACTOR): New macro.
+	(WRITE_SIGNED_TYPE): Take new first argument, the pointer for the
+	data.
+	(READ_SIGNED_TYPE): Likewise.
+	(WRITE_UNSIGNED_TYPE): Likewise.
+	(READ_UNSIGNED_TYPE): Likewise.
+	([BinaryCStream -encodeValueOfCType:at:withName:]): [_C_FLT]: Use new
+	scheme, based on frexp() to turn a float into a series of ints.
+	[_C_DBL]: Likewise.
+	([BinaryCStream -decodeValueOfCType:at:withName:]): [_C_FLT]: Likewise
+	to match.
+	[_C_DBL]: Likewise.
+
+	* src/RunLoop.m (debug_run_loop): Changed from 1 to 0; turn off
+ 	debugging messages.
+
+Thu Mar 28 22:59:35 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/MallocAddress.m ([MallocAddress
+ 	+autoreleaseMallocAddress:]): Fix typo in method name.
+	* src/objects/MallocAddress.h: Fix typo.
+
+Tue Mar 26 14:23:13 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/MallocAddress.m ([MallocAddress +initialize]): Use
+ 	NSNonRetainedObjectMapValueCallBacks, not
+ 	NSObjectMapValueCallBacks, because otherwise the object will never
+ 	get dealloc'ed.
+
+	Send exceptions in the D.O. server back to the client.  This is
+	not finished.  We still need to address some potential memory leaks.
+
+	* examples/second-client.m (main): Add a call that causes an
+ 	exception in the server, and catch the returned exception.
+
+	* src/Connection.m: In all methods, use NSParameterAssert()
+ 	instead of assert(), so that it raises an NSException, and doesn't
+ 	abort().
+	([Connection -forwardForProxy:selector:argFrame:]): Decode the flag
+	that indicates whether the return packet hold an exception or the
+ 	return values.  If it holds an exception, decode it and raise it.
+	([Connection -_service_forwardForProxy:]): Surround the processing of
+	the method request packet with NS_DURING...NS_ENDHANDLER.  If an
+ 	exception is raised, catch it, encode in in a specially flagged
+ 	packet, and send the packet back to the client.
+
+	* src/BinaryCStream.m ([BinaryCStream
+ 	-decodeValueOfCType:at:withName:]): [_C_CHARPTR]: Autorelease the
+ 	malloc'ed char pointer.  Before memory was leaking.
+
+	* src/Connection.m: Use NSException instead of sending -error: in
+ 	all methods.
+	* src/Proxy.m: Likewise.
+	* src/NSString.m: Likewise.
+	* src/NSObject.m: Likewise.
+	* src/NSAutoreleasePool.m: Likewise.
+	* src/Encoder.m: Likewise.
+	* src/Decoder.m: Likewise.
+	* src/BinaryCStream.m: Likewise.
+
+	* src/OrderedCollection.m ([OrderedCollection
+ 	-putObject:atIndex:]): Return type changed from id to void.  Use
+ 	NSException, not error:.
+
+Mon Mar 25 19:27:06 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Fixing miscellaneous bugs that showed up with -Wall.
+
+	* src/NXStringTable_scan.l (string_buf_ptr): Init local variable.
+
+	* src/NSBundle.m ([NSBundle +setSystemLanguages:]): Comment out
+ 	unused variables.
+
+	* src/NSData.m ([NSMutableData -resetBytesInRange:]): Cast to
+ 	avoid warning.
+	([NSMutableData -initWithLength:]): Likewise.
+
+	* src/NSValue.m ([NSValueDecoder -initValue:withObjCType:]):
+ 	Return self.
+
+	* src/objc-load.c (objc_load_module): Comment out unused
+ 	variables.
+
+	* src/UdpPort.m: Include <sys/param.h> for MAXHOSTNAMELEN.
+	([UdpInPort -newPacketReceivedBeforeDate:]): Return nil.
+
 Sun Mar 24 17:04:24 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	Just a little futzing.
 
 	* src/UdpPort.m (name_2_port_number): Function renamed from
  	name_to_port_number, and changed to better use
