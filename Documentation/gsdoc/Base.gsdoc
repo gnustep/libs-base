@@ -63,14 +63,28 @@
 	</subsect>
 	<subsect>
 	  <heading>User defaults</heading>
-	  <p>
-	    Setting the user default <code>GSMacOSXCompatible</code> to
-	    <code>YES</code> will cause MacOS compatible behavior to be
-	    the default at runtime.  This default may however be overridden
-	    to provide more fine grained control of system behavior.
-	  </p>
 	  <deflist>
-	    <term>GSMacOSXCompatibleGeometry</term>
+	    <term>GSLogSyslog</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSLogSyslog</code> to
+		<code>YES</code> will cause log/debug output to be sent to
+		the syslog facility (on systems which support it), rather
+		than to the standard error stream.  This is useful in
+		environments where stderr has been re-used strangely for
+		some reason.
+	      </p>
+	    </desc>
+	    <term>GSMacOSXCompatible</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSMacOSXCompatible</code> to
+		<code>YES</code> will cause MacOS compatible behavior to be
+		the default at runtime.  This default may however be overridden
+		to provide more fine grained control of system behavior.
+	      </p>
+	    </desc>
+	    <term>GSOldStyleGeometry</term>
 	    <desc>
 	      <p>
 		Specifies whether the functions for producing strings
@@ -81,7 +95,7 @@
 		should cope with both cases anyway.
 	      </p>
 	    </desc>
-	    <term>GSMacOSXCompatiblePropertyLists</term>
+	    <term>NSWriteOldStylePropertyLists</term>
 	    <desc>
 	      <p>
 		Specifies whether text property-list output should be in
@@ -101,23 +115,6 @@
 		to escape illegal chatracters, and consequently any string
 		containing either a backslash or an illegal character will
 		be written differently to the same string on MacOS-X.
-	      </p>
-	    </desc>
-	    <term>NSWriteOldStylePropertyLists</term>
-	    <desc>
-	      <p>
-		Specifies whether text property-list output should be in
-		the default MacOS-X format (XML), or in the more human
-		readable (but less powerful) original OpenStep format.
-	      </p>
-	      <p>
-		If, GSMacOSXCompatible is YES, this default is treated
-		as being NO if it is not set, otherwise, this default
-		is treated as YES.
-	      </p>
-	      <p>
-		This default is <em>NOT</em> used if
-		GSMacOSXCompatiblePropertyLists is specified.
 	      </p>
 	    </desc>
 	  </deflist>
