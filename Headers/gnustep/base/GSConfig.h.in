@@ -23,9 +23,18 @@
 #define	GS_SIZEOF_DOUBLE	@ac_cv_sizeof_double@
 
 /*
+ *	Size information to be places in bits 5 and 6 of type encoding bytes
+ *	in archives (bits 0 to 4 are used for basic type info and bit 7 is
+ *	used to mark cross-references to previously encoded objects).
+ */
+#define	_GSC_S_SHT	@_GSC_S_SHT@
+#define	_GSC_S_INT	@_GSC_S_INT@
+#define	_GSC_S_LNG	@_GSC_S_LNG@
+#define	_GSC_S_LNG_LNG	@_GSC_S_LNG_LNG@
+
+/*
  * Type definitions for types with known sizes.
  */
-
 typedef @GS_SINT8@ gss8;
 typedef @GS_UINT8@ gsu8;
 typedef @GS_SINT16@ gss16;
