@@ -52,7 +52,7 @@ DEFS = @DEFS@
 
 # All these are optional.  You can redefine CFLAGS, CPPFLAGS and
 # INCLUDEFLAGS on the command line however you like.
-CFLAGS = -Wno-implicit -g
+CFLAGS = -Wno-implicit -g -O
 CPPFLAGS = 
 INCLUDEFLAGS =
 
@@ -72,16 +72,19 @@ FILE_AUTHORS = \
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
-SHAREDLIB_CFLAGS = @SHAREDLIB_CFLAGS@
-SHAREDLIB_ARFLAGS = @SHAREDLIB_ARFLAGS@
+SHAREDLIB_CFLAGS = -fPIC
+SHAREDLIB_ARFLAGS = -shared
+USING_SHAREDLIB_CFLAGS = @USING_SHAREDLIB_CFLAGS@
+USING_SHAREDLIB_ARFLAGS = @USING_SHAREDLIB_ARFLAGS@
+
 NEXT_NEXT_INCLUDES = -I/usr/include
 OBJECTS_NEXT_INCLUDES = -I$(srcdir)
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
 ALL_INCLUDE_FLAGS = -I$(srcdir) $(NEXT_INCLUDES) $(INCLUDEFLAGS)
 ALL_CPPFLAGS = $(ALL_INCLUDE_FLAGS) $(CPPFLAGS)
-ALL_CFLAGS = $(CFLAGS) $(SHAREDLIB_CFLAGS)
-ALL_OBJCFLAGS = $(CFLAGS) $(SHAREDLIB_CFLAGS) -Wno-protocol
+ALL_CFLAGS = $(CFLAGS) $(USING_SHAREDLIB_CFLAGS)
+ALL_OBJCFLAGS = $(CFLAGS) $(USING_SHAREDLIB_CFLAGS) -Wno-protocol
 
 # definitions to be passed to subdir Makefile's
 MAKEDEFINES = CC='$(CC)' CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' \
@@ -420,16 +423,28 @@ RCS_FILES = \
 
 all: @LIBOBJECTS_A_OR_SO@
 
-libobjects.so: objects/stdobjects.h $(OBJS_INSTALL) 
-	$(CC) $(SHAREDLIB_ARFLAGS) -o libobjects.so $(OBJS_INSTALL)
+libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL) 
+	$(CC) $(USING_SHAREDLIB_ARFLAGS) -o libobjects.so.$(OBJECTS_VERSION) \
+		$(OBJS_INSTALL) \
+		-Wl,-soname,libobjects.so.$(OBJECTS_VERSION)
+	rm -f libobjects.so
+	ln -s libobjects.so.$(OBJECTS_VERSION) libobjects.so
 
 libobjects.a: objects/stdobjects.h $(OBJS_INSTALL) 
 	$(AR) $(ARFLAGS) libobjects.a $(OBJS_INSTALL)
 	$(RANLIB) libobjects.a
 
 install: installdirs all
-	$(INSTALL_DATA) $(LIBOBJECTS_A_OR_SO) $(libdir)
-	-$(RANLIB) $(libdir)/libobjects.a
+	# Install the library
+	$(INSTALL_DATA) @LIBOBJECTS_A_OR_SO@ $(libdir)
+	if [ $USING_SHAREDLIB_CFLAGS ]; then \
+	  $(RANLIB) $(libdir)/libobjects.a; \
+	else ; \
+	  rm -f $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
+	  ln -s $(libdir)/libobjects.so.$(OBJECTS_VERSION) ; \
+		$(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
+	fi
+	# Install the headers
 	for file in $(HEADERS_INSTALL); do \
 	  $(INSTALL_DATA) $$file $(includedir)/$$file ; \
 	done
