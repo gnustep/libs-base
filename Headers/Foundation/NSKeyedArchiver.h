@@ -162,19 +162,22 @@
 @interface NSKeyedUnarchiver : NSCoder
 {
 @private
-  id			_delegate;
+  NSDictionary	*_archive;
+  id		_delegate;	/* Delegate controls operation.	*/
+  NSMapTable	*_clsMap;	/* Map classes to names.	*/
+  NSArray	*_objects;	/* All encoded objects.		*/
+  NSDictionary	*_keyMap;	/* Local object name table.	*/
+  unsigned	_cursor;	/* Position in object.		*/
+  NSString	*_archiverClass;
+  NSString	*_version;
 #ifndef	_IN_NSKEYEDUNARCHIVER_M
 #define	GSIArray	void*
 #endif
-  GSIArray		clsMap;		/* Class crossreference map.	*/
-  GSIArray		objMap;		/* Object crossreference map.	*/
-  GSIArray		ptrMap;		/* Pointer crossreference map.	*/
+  GSIArray		_objMap; /* Decoded objects.		*/
 #ifndef	_IN_NSKEYEDUNARCHIVER_M
 #undef	GSUnarchiverArray
 #endif
-  unsigned		cursor;		/* Position in data buffer.	*/
-  NSZone		*zone;		/* Zone for allocating objs.	*/
-  NSMutableDictionary	*objDict;	/* Class information store.	*/
+  NSZone	*_zone;		/* Zone for allocating objs.	*/
 }
 
 + (Class) classForClassName: (NSString*)aString;
