@@ -9,6 +9,8 @@ Wed Oct 21 13:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	src/NSString.m: Added (nonstandard) ([-boolValue]) method
 	src/include/NSData.h: Added ([-relinquishAllocatedBytesFromZone:])
 	src/include/NSString.h: Added (nonstandard) ([-boolValue]) method
+	src/include/NSPortMessage.h: Added (as yet unused) class.
+	src/NSPortMessage.m: Added (as yet unused) skeleton implementation.
 
 Thu Oct 17 08:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
