@@ -3728,15 +3728,17 @@ donames()
     }
   else
     {
+      uptr	p = b;
+
       printf("Registered names are -\n");
       while (num-- > 0)
 	{
 	  char	buf[256];
 
-	  memcpy(buf, &b[2], b[0]);
-	  buf[b[0]] = '\0';
+	  memcpy(buf, &p[2], p[0]);
+	  buf[p[0]] = '\0';
 	  printf("%s\n", buf);
-	  b += 2 + b[0];
+	  p += 2 + p[0];
 	}
     }
   free(b);
