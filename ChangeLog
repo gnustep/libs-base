@@ -1,5 +1,109 @@
 Thu Oct 31 11:54:42 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
+	* Version (SUBMINOR_VERSION): Version 0.2.11.
+
+	* src/NSString.m (HAVE_REGISTER_PRINTF_FUNCTION): Move definition
+ 	below #include's.
+
+	* checks/nsnotification.m ([Observer -gotNotificationFoo:]): Don't
+ 	use %@ inside printf().
+	([Observer -gotNotificationFooNoObject:]): Likewise.
+
+	* checks/nshashtable.m (main): Avoid adding 0 to the hashtable,
+ 	because that is currently the o_hash_not_an_element_marker.
+
+	* src/BinaryCStream.m ([BinaryCStream
+ 	-encodeValueOfCType:at:withName:name]): Use intermediate float
+ 	value.
+	([BinaryCStream -decodeValueOfCType:at:withName:]): Likewise.
+
+	* src/stringsfile.y: Remove duplicated content.
+	* src/stringsfile.l: Likewise.
+
+	* src/StdioStream.m: Fix typo.  That's HAVE_STRERROR, not
+ 	HAS_STRERROR.
+
+	* src/BinaryCStream.m ([BinaryCStream
+ 	-decodeValueOfCType:at:withName:]): Don't make float and double
+ 	`volatile'.  It conflicts with memcpy.
+	([BinaryCStream -encodeValueOfCType:at:withName:name]): Likewise.
+
+	* src/Makefile.in (DEFS): Add comment.
+
+	* src/NSDictionary.m: Include Foundation/NSException.h to get
+	NSInvalidArgumentException.
+
+	* src/NSCalendarDate.m ([NSCalendarDate
+ 	-descriptionWithCalendarFormat:locale:]): Remove unused variables
+ 	MS and DS.  Avoid warning by not trying to sprintf() a zero-length
+ 	string.
+
+	* src/include/NSZone.h: Include gnustep/base/config.h instead of
+ 	preface.h; otherwise we get a dependancy loop on the definition on
+ 	NSZone.
+	* src/o_array.m: Include gnustep/base/preface.h first.
+
+	* src/Makefile.in (HEADERS_INSTALL): Added include/config.h.
+	(install): Don't install include/config.h specially, it's now done
+	with the rest of the HEADERS_INSTALL files.
+	(ALL_CPPFLAGS): Don't pass `-include include/config.h' since
+	include/preface.h now does that.
+	* src/include/preface.h.in: Include <gnustep/base/config.h>, and
+ 	do it first.
+
+	* src/NSUser.m (NSUserName): Make is work for SOLARIS.  (Reported
+ 	by M. Decugis <mds@sepgifbr.sep.de.edf.fr>.)
+
+	* src/NSUserDefaults.m ([NSUserDefaults -initWithUser:]): Don't
+ 	try to append to a immutable string!
+	([NSUserDefautls +standardUserDefaults]): When creating a new
+	defaults, return it, not nil!  (Reported by M. Decugis
+	<mds@sepgifbr.sep.de.edf.fr>.)
+
+	* src/BinaryCStream.m ([BinaryCStream
+ 	-encodeValueOfCType:at:withName:name]): Use memcpy() instead of
+ 	assignment to get the floats and doubles from the `at:' argument.
+	([BinaryCStream -decodeValueOfCType:at:withName:]): Likewise, for
+	setting the values.  (Reported by M. Decugis
+ 	<mds@sepgifbr.sep.de.edf.fr>.)
+
+	* src/NSPage.m (getpagesize) [__SOLARIS__]: Define as macro making
+ 	proper sysconf call.  (Reported by M. Decugis
+ 	<mds@sepgifbr.sep.de.edf.fr>.)
+	(NSPageSize): Remove the dependancy on __mach__ to a #define above.
+
+	* configure.in: Use config/config.vsprintf.c to define
+ 	VSPRINTF_RETURNS_LENGTH.  Deal with different systems for which
+	vsprintf() returns either the length or the char*.
+	* Makefile.in (DIST_FILES): Added config/config.vsprintf.c.
+	* config/config.vsprintf.c: New file.
+	* src/include/preface.h.in (VSPRINTF_LENGTH): New macro;
+ 	definition depends on VSPRINTF_RETURNS_LENGTH.
+	* src/MemoryStream.m ([MemoryStream -writeFormat:arguments:]): Use
+ 	VSPRINTF_LENGTH.
+	* src/NSString.m ([NSString -initWithFormat:arguments:]): Likewise.
+	* src/String.m ([String -initWithFormat:arguments:]): Likewise.
+	([String -initWithCFormat:arguments:]): Likewise.
+	* acconfig.h: Add VS_PRINTF_RETURNS_LENGTH.
+
+	* src/RunLoop.m ([RunLoop -limitDateForMode:]): Bracket timer
+ 	firing with a retain/release of the MIN_TIMER.  (Reported by
+ 	Richard Frith-Macdonald <richard@brainstorm.co.uk>.)
+
+	* Heap.m: Fix index comparisons.  (From Richard Frith-Macdonald
+	<richard@brainstorm.co.uk>.)
+
+	* src/include/RunLoop.h (RunLoop _mode_2_fd_speakers): New ivar.
+	([RunLoop]): Added new methods for notification of readiness of file
+	descriptors for reading and writing.  Done by Richard
+ 	Frith-Macdonald <richard@brainstorm.co.uk>.
+	* src/RunLoop.m: Added implementation of new methods for
+ 	notification of readiness of file descriptors for reading and
+ 	writing.  Done by Richard Frith-Macdonald
+ 	<richard@brainstorm.co.uk>.
+	* examples/first-server.m: Added test of RunLoop FD listening.
+	Done by Richard Frith-Macdonald	<richard@brainstorm.co.uk>.
+
 	* src/mframe.m (method_types_get_next_argument): Do weird argframe
  	workaround not just on m68k, but on all NeXT systems.  (Reported
  	by Richard Frith-Macdonald <richard@brainstorm.co.uk>.)
@@ -7,6 +111,28 @@ Thu Oct 31 11:54:42 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 	* src/RunLoop.m ([RunLoop -acceptInputForMode:beforeDate:]): Fix
  	assignment of TIMEOUT.TV_USEC.  (Reported by Richard
  	Frith-Macdonald <richard@brainstorm.co.uk>.)
+
+Wed Oct 23 11:19:05 1996  Scott Christley  <scottc@net-community.com>
+ 
+	* src/Makefile.sed.nt: Link with ObjC runtime DLL library
+	when making gnustep-base a DLL.
+	* src/NSProcessInfo.m (main): Initialize network library for Win32.
+	* src/RunLoop.m (-acceptInputForMode:beforeDate:): When determining
+	which ports are ready for reading, don't assume that file
+	descriptor for FD_ISSET is an integer.  Maintain list of ports
+	we are listening to so that we check those exact ports when
+	determining which are ready for reading.
+	* src/TcpPort.m (invalidate): Use closesocket function on Win32.
+	(_getPacketSize:andReplyPort:fromSocket:inPort:): Use recv instead
+	of read for Win32 as read doesn't work for sockets.
+	(_fillFromSocket:): Likewise.
+	(_writeToSocket:withReplySockaddr:): Use send instead of write
+	for Win32 as write doesn't work for sockets.
+	* src/behavior.m: Don't directly access the ObjC runtime uninstalled
+	dtable variable, use the public function instead.
+	* src/objc-load.m: Likewise.
+	* checks/Makefile.sed.nt:  Add specific targets for tcpport-server
+	and tcpport-client.  Remove unneeded definitions.
 
 Tue Oct 15 15:29:07 1996  Adam Fedor  <fedor@wave.Colorado.edu>
 
