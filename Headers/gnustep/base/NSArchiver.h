@@ -38,16 +38,16 @@
   IMP		eObjImp;	/* Method to encode an id.	*/
   IMP		eValImp;	/* Method to encode others.	*/
 #ifndef	_IN_NSARCHIVER_M
-#define	FastMapTable	void*
+#define	GSIMapTable	void*
 #endif
-  FastMapTable	clsMap;		/* Class cross references.	*/
-  FastMapTable	cIdMap;		/* Conditionally coded.		*/
-  FastMapTable	uIdMap;		/* Unconditionally coded.	*/
-  FastMapTable	ptrMap;		/* Constant pointers.		*/
-  FastMapTable	namMap;		/* Mappings for class names.	*/
-  FastMapTable	repMap;		/* Mappings for objects.	*/
+  GSIMapTable	clsMap;		/* Class cross references.	*/
+  GSIMapTable	cIdMap;		/* Conditionally coded.		*/
+  GSIMapTable	uIdMap;		/* Unconditionally coded.	*/
+  GSIMapTable	ptrMap;		/* Constant pointers.		*/
+  GSIMapTable	namMap;		/* Mappings for class names.	*/
+  GSIMapTable	repMap;		/* Mappings for objects.	*/
 #ifndef	_IN_NSARCHIVER_M
-#undef	FastMapTable
+#undef	GSIMapTable
 #endif
   unsigned	xRefC;		/* Counter for cross-reference.	*/
   unsigned	xRefO;		/* Counter for cross-reference.	*/
@@ -159,11 +159,11 @@
   void			(*tagImp)(id, SEL, unsigned char*, unsigned*,unsigned*);
   IMP			dValImp;	/* Method to decode data with.	*/
 #ifndef	_IN_NSUNARCHIVER_M
-#define	FastArray	void*
+#define	GSIArray	void*
 #endif
-  FastArray		clsMap;		/* Class crossreference map.	*/
-  FastArray		objMap;		/* Object crossreference map.	*/
-  FastArray		ptrMap;		/* Pointer crossreference map.	*/
+  GSIArray		clsMap;		/* Class crossreference map.	*/
+  GSIArray		objMap;		/* Object crossreference map.	*/
+  GSIArray		ptrMap;		/* Pointer crossreference map.	*/
 #ifndef	_IN_NSUNARCHIVER_M
 #undef	GSUnarchiverArray
 #endif

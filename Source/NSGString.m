@@ -38,6 +38,7 @@
 #include <Foundation/NSData.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSCharacterSet.h>
+#include <Foundation/NSRange.h>
 #include <base/IndexedCollection.h>
 #include <base/IndexedCollectionPrivate.h>
 #include <Foundation/NSValue.h>
@@ -248,10 +249,7 @@
 
 - (void)getCharacters: (unichar*)buffer range: (NSRange)aRange
 {
-  if (aRange.location >= _count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (_count - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, _count);
   memcpy(buffer, _contents_chars + aRange.location, aRange.length*2);
 }
 
@@ -259,10 +257,7 @@
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  if (aRange.location > _count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (_count - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, _count);
   return [[self class] stringWithCharacters: _contents_chars + aRange.location
 		       length: aRange.length];
 }
@@ -622,10 +617,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
   int offset;
   unsigned stringLength;
 
-  if (aRange.location > _count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (_count - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, _count);
 
   stringLength = (aString == nil) ? 0 : [aString length];
   offset = stringLength - aRange.length;

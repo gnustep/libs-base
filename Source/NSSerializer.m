@@ -46,23 +46,23 @@
 /*
  *	Setup for inline operation of string map tables.
  */
-#define	FAST_MAP_RETAIN_KEY(X)	X
-#define	FAST_MAP_RELEASE_KEY(X)	
-#define	FAST_MAP_RETAIN_VAL(X)	X
-#define	FAST_MAP_RELEASE_VAL(X)	
-#define	FAST_MAP_HASH(X)	[(X).obj hash]
-#define	FAST_MAP_EQUAL(X,Y)	[(X).obj isEqualToString: (Y).obj]
+#define	GSI_MAP_RETAIN_KEY(X)	X
+#define	GSI_MAP_RELEASE_KEY(X)	
+#define	GSI_MAP_RETAIN_VAL(X)	X
+#define	GSI_MAP_RELEASE_VAL(X)	
+#define	GSI_MAP_HASH(X)	[(X).obj hash]
+#define	GSI_MAP_EQUAL(X,Y)	[(X).obj isEqualToString: (Y).obj]
 
-#include <base/FastMap.x>
+#include <base/GSIMap.h>
 
 /*
  *	Setup for inline operation of string arrays.
  */
-#define	FAST_ARRAY_RETAIN(X)	X
-#define	FAST_ARRAY_RELEASE(X)	
-#define	FAST_ARRAY_TYPES	GSUNION_OBJ
+#define	GSI_ARRAY_RETAIN(X)	X
+#define	GSI_ARRAY_RELEASE(X)	
+#define	GSI_ARRAY_TYPES	GSUNION_OBJ
 
-#include <base/FastArray.x>
+#include <base/GSIArray.h>
 
 /*
  *	Define constants for data types and variables to hold them.
@@ -112,7 +112,7 @@ typedef struct {
   void		(*serImp)();		// Serialize integer.
   void		(*setImp)();		// Set length of data.
   unsigned	count;			// String counter.
-  FastMapTable_t	map;		// For uniquing.
+  GSIMapTable_t	map;		// For uniquing.
   BOOL		shouldUnique;		// Do we do uniquing?
 } _NSSerializerInfo;
 
@@ -137,7 +137,7 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
   (*info->appImp)(d, appSel, &info->shouldUnique, 1);
   if (u)
     {
-      FastMapInitWithZoneAndCapacity(&info->map, NSDefaultMallocZone(), 16);
+      GSIMapInitWithZoneAndCapacity(&info->map, NSDefaultMallocZone(), 16);
       info->count = 0;
     }
 }
@@ -146,7 +146,7 @@ static void
 endSerializerInfo(_NSSerializerInfo* info)
 {
   if (info->shouldUnique)
-    FastMapEmptyMap(&info->map);
+    GSIMapEmptyMap(&info->map);
 }
 
 static id
@@ -163,10 +163,10 @@ serializeToInfo(id object, _NSSerializerInfo* info)
   if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString ||
 	c == _fastCls._NXConstantString)
     {
-      FastMapNode	node;
+      GSIMapNode	node;
 
       if (info->shouldUnique)
-	node = FastMapNodeForKey(&info->map, (FastMapKey)object);
+	node = GSIMapNodeForKey(&info->map, (GSIMapKey)object);
       else
 	node = 0;
       if (node == 0)
@@ -181,8 +181,8 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  (*info->setImp)(info->data, setSel, dlen + slen);
 	  [object getCString: (*info->datImp)(info->data, datSel) + dlen];
 	  if (info->shouldUnique)
-	    FastMapAddPair(&info->map,
-		(FastMapKey)object, (FastMapVal)info->count++);
+	    GSIMapAddPair(&info->map,
+		(GSIMapKey)object, (GSIMapVal)info->count++);
 	}
       else
 	{
@@ -192,10 +192,10 @@ serializeToInfo(id object, _NSSerializerInfo* info)
     }
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
     {
-      FastMapNode	node;
+      GSIMapNode	node;
 
       if (info->shouldUnique)
-	node = FastMapNodeForKey(&info->map, (FastMapKey)object);
+	node = GSIMapNodeForKey(&info->map, (GSIMapKey)object);
       else
 	node = 0;
       if (node == 0)
@@ -210,8 +210,8 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	  (*info->setImp)(info->data, setSel, dlen + slen*sizeof(unichar));
 	  [object getCharacters: (*info->datImp)(info->data, datSel) + dlen];
 	  if (info->shouldUnique)
-	    FastMapAddPair(&info->map,
-		(FastMapKey)object, (FastMapVal)info->count++);
+	    GSIMapAddPair(&info->map,
+		(GSIMapKey)object, (GSIMapVal)info->count++);
 	}
       else
 	{
@@ -371,7 +371,7 @@ typedef struct {
   BOOL		didUnique;
   void		(*debImp)();
   unsigned int	(*deiImp)();
-  FastArray_t	array;
+  GSIArray_t	array;
 } _NSDeserializerInfo;
 
 static SEL debSel = @selector(deserializeBytes:length:atCursor:);
@@ -401,14 +401,14 @@ initDeserializerInfo(_NSDeserializerInfo* info, NSData *d, unsigned *c, BOOL m)
   info->deiImp = (unsigned int (*)())[d methodForSelector: deiSel];
   (*info->debImp)(d, debSel, &info->didUnique, 1, c);
   if (info->didUnique)
-    FastArrayInitWithZoneAndCapacity(&info->array, NSDefaultMallocZone(), 16);
+    GSIArrayInitWithZoneAndCapacity(&info->array, NSDefaultMallocZone(), 16);
 }
 
 static void
 endDeserializerInfo(_NSDeserializerInfo* info)
 {
   if (info->didUnique)
-    FastArrayEmpty(&info->array);
+    GSIArrayEmpty(&info->array);
 }
 
 static id
@@ -424,7 +424,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
     {
       case ST_XREF:
 	{
-	  return [FastArrayItemAtIndex(&info->array, size).obj retain];
+	  return [GSIArrayItemAtIndex(&info->array, size).obj retain];
 	}
 
       case ST_CSTRING:
@@ -461,7 +461,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	   * later reference.
 	   */
 	  if (info->didUnique)
-	    FastArrayAddItem(&info->array, (FastArrayItem)s);
+	    GSIArrayAddItem(&info->array, (GSIArrayItem)s);
 	  return s;
 	}
 
@@ -499,7 +499,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	   * later reference.
 	   */
 	  if (info->didUnique)
-	    FastArrayAddItem(&info->array, (FastArrayItem)s);
+	    GSIArrayAddItem(&info->array, (GSIArrayItem)s);
 	  return s;
 	}
 

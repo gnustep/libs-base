@@ -96,14 +96,14 @@ myEqual(id self, id other)
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
  *	table - for maximum performance.
  */
-#define	FAST_MAP_KTYPES		GSUNION_OBJ
-#define	FAST_MAP_VTYPES		GSUNION_OBJ
-#define	FAST_MAP_HASH(X)	myHash(X.obj)
-#define	FAST_MAP_EQUAL(X,Y)	myEqual(X.obj,Y.obj)
-#define	FAST_MAP_RETAIN_KEY(X)	((id)(X).obj) = \
+#define	GSI_MAP_KTYPES		GSUNION_OBJ
+#define	GSI_MAP_VTYPES		GSUNION_OBJ
+#define	GSI_MAP_HASH(X)	myHash(X.obj)
+#define	GSI_MAP_EQUAL(X,Y)	myEqual(X.obj,Y.obj)
+#define	GSI_MAP_RETAIN_KEY(X)	((id)(X).obj) = \
 				[((id)(X).obj) copyWithZone: map->zone]
 
-#include	<base/FastMap.x>
+#include	<base/GSIMap.h>
 
 @class	NSDictionaryNonCore;
 @class	NSMutableDictionaryNonCore;
@@ -111,21 +111,21 @@ myEqual(id self, id other)
 @interface NSGDictionary : NSDictionary
 {
 @public
-  FastMapTable_t	map;
+  GSIMapTable_t	map;
 }
 @end
 
 @interface NSGMutableDictionary : NSMutableDictionary
 {
 @public
-  FastMapTable_t	map;
+  GSIMapTable_t	map;
 }
 @end
 
 @interface NSGDictionaryKeyEnumerator : NSEnumerator
 {
   NSGDictionary	*dictionary;
-  FastMapNode	node;
+  GSIMapNode	node;
 }
 @end
 
@@ -149,14 +149,14 @@ myEqual(id self, id other)
 
 - (void) dealloc
 {
-  FastMapEmptyMap(&map);
+  GSIMapEmptyMap(&map);
   [super dealloc];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   unsigned	count = map.nodeCount;
-  FastMapNode	node = map.firstNode;
+  GSIMapNode	node = map.firstNode;
   SEL		sel = @selector(encodeObject:);
   IMP		imp = [aCoder methodForSelector: sel];
 
@@ -186,12 +186,12 @@ myEqual(id self, id other)
   [aCoder decodeValueOfObjCType: @encode(unsigned)
 			     at: &count];
 
-  FastMapInitWithZoneAndCapacity(&map, fastZone(self), count);
+  GSIMapInitWithZoneAndCapacity(&map, fastZone(self), count);
   while (count-- > 0)
     {
       (*imp)(aCoder, sel, type, &key);
       (*imp)(aCoder, sel, type, &value);
-      FastMapAddPairNoRetain(&map, (FastMapKey)key, (FastMapVal)value);
+      GSIMapAddPairNoRetain(&map, (GSIMapKey)key, (GSIMapVal)value);
     }
   return self;
 }
@@ -201,10 +201,10 @@ myEqual(id self, id other)
 {
   int	i;
 
-  FastMapInitWithZoneAndCapacity(&map, fastZone(self), c);
+  GSIMapInitWithZoneAndCapacity(&map, fastZone(self), c);
   for (i = 0; i < c; i++)
     {
-      FastMapNode	node;
+      GSIMapNode	node;
 
       if (keys[i] == nil)
 	{
@@ -219,7 +219,7 @@ myEqual(id self, id other)
 		      format: @"Tried to init dictionary with nil value"];
 	}
 
-      node = FastMapNodeForKey(&map, (FastMapKey)keys[i]);
+      node = GSIMapNodeForKey(&map, (GSIMapKey)keys[i]);
       if (node)
 	{
 	  [objs[i] retain];
@@ -228,7 +228,7 @@ myEqual(id self, id other)
 	}
       else
 	{
-	  FastMapAddPair(&map, (FastMapKey)keys[i], (FastMapVal)objs[i]);
+	  GSIMapAddPair(&map, (GSIMapKey)keys[i], (GSIMapVal)objs[i]);
 	}
     }
   return self;
@@ -245,10 +245,10 @@ myEqual(id self, id other)
   unsigned	c = [other count];
   unsigned	i;
 
-  FastMapInitWithZoneAndCapacity(&map, z, c);
+  GSIMapInitWithZoneAndCapacity(&map, z, c);
   for (i = 0; i < c; i++)
     {
-      FastMapNode	node;
+      GSIMapNode	node;
       id		k = [e nextObject];
       id		o = [other objectForKey: k];
 
@@ -274,7 +274,7 @@ myEqual(id self, id other)
 		      format: @"Tried to init dictionary with nil value"];
 	}
 
-      node = FastMapNodeForKey(&map, (FastMapKey)k);
+      node = GSIMapNodeForKey(&map, (GSIMapKey)k);
       if (node)
 	{
 	  [node->value.obj release];
@@ -282,7 +282,7 @@ myEqual(id self, id other)
 	}
       else
 	{
-	  FastMapAddPairNoRetain(&map, (FastMapKey)k, (FastMapVal)o);
+	  GSIMapAddPairNoRetain(&map, (GSIMapKey)k, (GSIMapVal)o);
 	}
     }
   return self;
@@ -304,7 +304,7 @@ myEqual(id self, id other)
 {
   if (aKey != nil)
     {
-      FastMapNode	node  = FastMapNodeForKey(&map, (FastMapKey)aKey);
+      GSIMapNode	node  = GSIMapNodeForKey(&map, (GSIMapKey)aKey);
 
       if (node)
 	{
@@ -330,13 +330,13 @@ myEqual(id self, id other)
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-  FastMapInitWithZoneAndCapacity(&map, fastZone(self), cap);
+  GSIMapInitWithZoneAndCapacity(&map, fastZone(self), cap);
   return self;
 }
 
 - (void) setObject: (id)anObject forKey: (id)aKey
 {
-  FastMapNode	node;
+  GSIMapNode	node;
 
   if (aKey == nil)
     {
@@ -348,7 +348,7 @@ myEqual(id self, id other)
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to add nil value to dictionary"];
     }
-  node = FastMapNodeForKey(&map, (FastMapKey)aKey);
+  node = GSIMapNodeForKey(&map, (GSIMapKey)aKey);
   if (node)
     {
       [anObject retain];
@@ -357,20 +357,20 @@ myEqual(id self, id other)
     }
   else
     {
-      FastMapAddPair(&map, (FastMapKey)aKey, (FastMapVal)anObject);
+      GSIMapAddPair(&map, (GSIMapKey)aKey, (GSIMapVal)anObject);
     }
 }
 
 - (void) removeAllObjects
 {
-  FastMapCleanMap(&map);
+  GSIMapCleanMap(&map);
 }
 
 - (void) removeObjectForKey: (id)aKey
 {
   if (aKey)
     {
-      FastMapRemoveKey(&map, (FastMapKey)aKey);
+      GSIMapRemoveKey(&map, (GSIMapKey)aKey);
     }
 }
 
@@ -388,7 +388,7 @@ myEqual(id self, id other)
 
 - nextObject
 {
-  FastMapNode	old = node;
+  GSIMapNode	old = node;
 
   if (node == 0)
     {
@@ -410,7 +410,7 @@ myEqual(id self, id other)
 
 - nextObject
 {
-  FastMapNode	old = node;
+  GSIMapNode	old = node;
 
   if (node == 0)
     {

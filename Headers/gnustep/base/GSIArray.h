@@ -1,4 +1,4 @@
-/* A fast inline array table implementation without objc method overhead.
+/* A fast (Inline) array implementation without objc method overhead.
  * Copyright (C) 1998,1999  Free Software Foundation, Inc.
  * 
  * Author:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -32,47 +32,47 @@
 /* To turn assertions on, comment out the following four lines */
 #ifndef	NS_BLOCK_ASSERTIONS
 #define	NS_BLOCK_ASSERTIONS	1
-#define	FAST_ARRAY_BLOCKED_ASSERTIONS	1
+#define	GSI_ARRAY_BLOCKED_ASSERTIONS	1
 #endif
 
-#define	FAST_ARRAY_CHECK NSCAssert(array->count <= array->cap && array->old <= array->cap && array->old >= 1, NSInternalInconsistencyException)
+#define	GSI_ARRAY_CHECK NSCAssert(array->count <= array->cap && array->old <= array->cap && array->old >= 1, NSInternalInconsistencyException)
 
 /*
- This file should be INCLUDED in files wanting to use the FastArray
+ This file should be INCLUDED in files wanting to use the GSIArray
  *	functions - these are all declared inline for maximum performance.
  *
  *	The file including this one may predefine some macros to alter
  *	the behaviour (default macros assume the items are NSObjects
  *	that are to be retained in the array) ...
  *
- *	FAST_ARRAY_RETAIN()
+ *	GSI_ARRAY_RETAIN()
  *		Macro to retain an array item
  *
- *	FAST_ARRAY_RELEASE()
+ *	GSI_ARRAY_RELEASE()
  *		Macro to release the item.
  *
  *	The next two values can be defined in order to let us optimise
  *	even further when either retain or release operations are not needed.
  *
- *	FAST_ARRAY_NO_RELEASE
+ *	GSI_ARRAY_NO_RELEASE
  *		Defined if no release operation is needed for an item
- *	FAST_ARRAY_NO_RETAIN
+ *	GSI_ARRAY_NO_RETAIN
  *		Defined if no retain operation is needed for a an item
  */
-#ifndef	FAST_ARRAY_RETAIN
-#define	FAST_ARRAY_RETAIN(X)	[(X).obj retain]
+#ifndef	GSI_ARRAY_RETAIN
+#define	GSI_ARRAY_RETAIN(X)	[(X).obj retain]
 #endif
 
-#ifndef	FAST_ARRAY_RELEASE
-#define	FAST_ARRAY_RELEASE(X)	[(X).obj release]
+#ifndef	GSI_ARRAY_RELEASE
+#define	GSI_ARRAY_RELEASE(X)	[(X).obj release]
 #endif
 
 /*
  *	If there is no bitmask defined to supply the types that
  *	may be stored in the array, default to permitting all types.
  */
-#ifndef	FAST_ARRAY_TYPES
-#define	FAST_ARRAY_TYPES	GSUNION_ALL
+#ifndef	GSI_ARRAY_TYPES
+#define	GSI_ARRAY_TYPES	GSUNION_ALL
 #endif
 
 /*
@@ -81,7 +81,7 @@
 #ifdef	GSUNION
 #undef	GSUNION
 #endif
-#define	GSUNION	FastArrayItem
+#define	GSUNION	GSIArrayItem
 
 /*
  *	Set up the types that will be storable in the union.
@@ -90,12 +90,12 @@
 #ifdef	GSUNION_TYPES
 #undef	GSUNION_TYPES
 #endif
-#define	GSUNION_TYPES	FAST_ARRAY_TYPES
+#define	GSUNION_TYPES	GSI_ARRAY_TYPES
 #ifdef	GSUNION_EXTRA
 #undef	GSUNION_EXTRA
 #endif
-#ifdef	FAST_ARRAY_EXTRA
-#define	GSUNION_EXTRA	FAST_ARRAY_EXTRA
+#ifdef	GSI_ARRAY_EXTRA
+#define	GSUNION_EXTRA	GSI_ARRAY_EXTRA
 #endif
 
 /*
@@ -103,33 +103,33 @@
  */
 #include <base/GSUnion.h>
 
-struct	_FastArray {
-  FastArrayItem	*ptr;
+struct	_GSIArray {
+  GSIArrayItem	*ptr;
   unsigned	count;
   unsigned	cap;
   unsigned	old;
   NSZone	*zone;
 };
-typedef	struct	_FastArray	FastArray_t;
-typedef	struct	_FastArray	*FastArray;
+typedef	struct	_GSIArray	GSIArray_t;
+typedef	struct	_GSIArray	*GSIArray;
 
 static INLINE unsigned
-FastArrayCount(FastArray array)
+GSIArrayCount(GSIArray array)
 {
   return array->count;
 }
 
 static INLINE void
-FastArrayGrow(FastArray array)
+GSIArrayGrow(GSIArray array)
 {
   unsigned	next;
   unsigned	size;
-  FastArrayItem	*tmp;
+  GSIArrayItem	*tmp;
 
   next = array->cap + array->old;
-  size = next*sizeof(FastArrayItem);
+  size = next*sizeof(GSIArrayItem);
 #if	GS_WITH_GC
-  tmp = (FastArrayItem*)GC_REALLOC(size);
+  tmp = (GSIArrayItem*)GC_REALLOC(size);
 #else
   tmp = NSZoneRealloc(array->zone, array->ptr, size);
 #endif
@@ -137,7 +137,7 @@ FastArrayGrow(FastArray array)
   if (tmp == 0)
     {
       [NSException raise: NSMallocException
-		  format: @"failed to grow FastArray"];
+		  format: @"failed to grow GSIArray"];
     }
   array->ptr = tmp;
   array->old = array->cap;
@@ -145,65 +145,65 @@ FastArrayGrow(FastArray array)
 }
 
 static INLINE void
-FastArrayInsertItem(FastArray array, FastArrayItem item, unsigned index)
+GSIArrayInsertItem(GSIArray array, GSIArrayItem item, unsigned index)
 {
   unsigned	i;
 
-  FAST_ARRAY_RETAIN(item);
-  FAST_ARRAY_CHECK;
+  GSI_ARRAY_RETAIN(item);
+  GSI_ARRAY_CHECK;
   if (array->count == array->cap)
     {
-      FastArrayGrow(array);
+      GSIArrayGrow(array);
     }
   for (i = array->count++; i > index; i--)
     {
       array->ptr[i] = array->ptr[i-1];
     }
   array->ptr[i] = item;
-  FAST_ARRAY_CHECK;
+  GSI_ARRAY_CHECK;
 }
 
 static INLINE void
-FastArrayInsertItemNoRetain(FastArray array, FastArrayItem item, unsigned index)
+GSIArrayInsertItemNoRetain(GSIArray array, GSIArrayItem item, unsigned index)
 {
   unsigned	i;
 
-  FAST_ARRAY_CHECK;
+  GSI_ARRAY_CHECK;
   if (array->count == array->cap)
     {
-      FastArrayGrow(array);
+      GSIArrayGrow(array);
     }
   for (i = array->count++; i > index; i--)
     {
       array->ptr[i] = array->ptr[i-1];
     }
   array->ptr[i] = item;
-  FAST_ARRAY_CHECK;
+  GSI_ARRAY_CHECK;
 }
 
 static INLINE void
-FastArrayAddItem(FastArray array, FastArrayItem item)
+GSIArrayAddItem(GSIArray array, GSIArrayItem item)
 {
-  FAST_ARRAY_RETAIN(item);
-  FAST_ARRAY_CHECK;
+  GSI_ARRAY_RETAIN(item);
+  GSI_ARRAY_CHECK;
   if (array->count == array->cap)
     {
-      FastArrayGrow(array);
+      GSIArrayGrow(array);
     }
   array->ptr[array->count++] = item;
-  FAST_ARRAY_CHECK;
+  GSI_ARRAY_CHECK;
 }
 
 static INLINE void
-FastArrayAddItemNoRetain(FastArray array, FastArrayItem item)
+GSIArrayAddItemNoRetain(GSIArray array, GSIArrayItem item)
 {
-  FAST_ARRAY_CHECK;
+  GSI_ARRAY_CHECK;
   if (array->count == array->cap)
     {
-      FastArrayGrow(array);
+      GSIArrayGrow(array);
     }
   array->ptr[array->count++] = item;
-  FAST_ARRAY_CHECK;
+  GSI_ARRAY_CHECK;
 }
 
 /*
@@ -214,8 +214,8 @@ FastArrayAddItemNoRetain(FastArray array, FastArrayItem item)
  *      if it is greater, and NSOrderedSame if it is equal.
  */
 static INLINE unsigned
-FastArrayInsertionPosition(FastArray array, FastArrayItem item, 
-	NSComparisonResult (*sorter)(FastArrayItem, FastArrayItem))
+GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item, 
+	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned	upper = array->count;
   unsigned	lower = 0;
@@ -257,8 +257,8 @@ FastArrayInsertionPosition(FastArray array, FastArrayItem item,
 
 #ifndef	NS_BLOCK_ASSERTIONS
 static INLINE void
-FastArrayCheckSort(FastArray array, 
-	NSComparisonResult (*sorter)(FastArrayItem, FastArrayItem))
+GSIArrayCheckSort(GSIArray array, 
+	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned	i;
 
@@ -271,47 +271,47 @@ FastArrayCheckSort(FastArray array,
 #endif
 
 static INLINE void
-FastArrayInsertSorted(FastArray array, FastArrayItem item, 
-	NSComparisonResult (*sorter)(FastArrayItem, FastArrayItem))
+GSIArrayInsertSorted(GSIArray array, GSIArrayItem item, 
+	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned	index;
 
-  index = FastArrayInsertionPosition(array, item, sorter);
-  FastArrayInsertItem(array, item, index);
+  index = GSIArrayInsertionPosition(array, item, sorter);
+  GSIArrayInsertItem(array, item, index);
 #ifndef	NS_BLOCK_ASSERTIONS
-  FastArrayCheckSort(array, sorter);
+  GSIArrayCheckSort(array, sorter);
 #endif
 }
 
 static INLINE void
-FastArrayInsertSortedNoRetain(FastArray array, FastArrayItem item,
-	NSComparisonResult (*sorter)(FastArrayItem, FastArrayItem))
+GSIArrayInsertSortedNoRetain(GSIArray array, GSIArrayItem item,
+	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
 {
   unsigned	index;
 
-  index = FastArrayInsertionPosition(array, item, sorter);
-  FastArrayInsertItemNoRetain(array, item, index);
+  index = GSIArrayInsertionPosition(array, item, sorter);
+  GSIArrayInsertItemNoRetain(array, item, index);
 #ifndef	NS_BLOCK_ASSERTIONS
-  FastArrayCheckSort(array, sorter);
+  GSIArrayCheckSort(array, sorter);
 #endif
 }
 
 static INLINE void
-FastArrayRemoveItemAtIndex(FastArray array, unsigned index)
+GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
 {
-  FastArrayItem	tmp;
+  GSIArrayItem	tmp;
   NSCAssert(index < array->count, NSInvalidArgumentException);
   tmp = array->ptr[index];
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
-  FAST_ARRAY_RELEASE(tmp);
+  GSI_ARRAY_RELEASE(tmp);
 }
 
 static INLINE void
-FastArrayRemoveItemAtIndexNoRelease(FastArray array, unsigned index)
+GSIArrayRemoveItemAtIndexNoRelease(GSIArray array, unsigned index)
 {
-  FastArrayItem	tmp;
+  GSIArrayItem	tmp;
   NSCAssert(index < array->count, NSInvalidArgumentException);
   tmp = array->ptr[index];
   while (++index < array->count)
@@ -320,25 +320,25 @@ FastArrayRemoveItemAtIndexNoRelease(FastArray array, unsigned index)
 }
 
 static INLINE void
-FastArraySetItemAtIndex(FastArray array, FastArrayItem item, unsigned index)
+GSIArraySetItemAtIndex(GSIArray array, GSIArrayItem item, unsigned index)
 {
-  FastArrayItem	tmp;
+  GSIArrayItem	tmp;
   NSCAssert(index < array->count, NSInvalidArgumentException);
   tmp = array->ptr[index];
-  FAST_ARRAY_RETAIN(item);
+  GSI_ARRAY_RETAIN(item);
   array->ptr[index] = item;
-  FAST_ARRAY_RELEASE(tmp);
+  GSI_ARRAY_RELEASE(tmp);
 }
 
-static INLINE FastArrayItem
-FastArrayItemAtIndex(FastArray array, unsigned index)
+static INLINE GSIArrayItem
+GSIArrayItemAtIndex(GSIArray array, unsigned index)
 {
   NSCAssert(index < array->count, NSInvalidArgumentException);
   return array->ptr[index];
 }
 
 static INLINE void
-FastArrayClear(FastArray array)
+GSIArrayClear(GSIArray array)
 {
   if (array->ptr)
     {
@@ -353,26 +353,41 @@ FastArrayClear(FastArray array)
 }
 
 static INLINE void
-FastArrayRemoveAllItems(FastArray array)
+GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
 {
-#ifndef	FAST_ARRAY_NO_RELEASE
+  if (index < array->count)
+    {
+#ifndef	GSI_ARRAY_NO_RELEASE
+      while (array->count-- > index)
+	{
+	  GSI_ARRAY_RELEASE(array->ptr[array->count]);
+	}
+#endif
+      array->count = index;
+    }
+}
+
+static INLINE void
+GSIArrayRemoveAllItems(GSIArray array)
+{
+#ifndef	GSI_ARRAY_NO_RELEASE
   while (array->count--)
     {
-      FAST_ARRAY_RELEASE(array->ptr[array->count]);
+      GSI_ARRAY_RELEASE(array->ptr[array->count]);
     }
 #endif
   array->count = 0;
 }
 
 static INLINE void
-FastArrayEmpty(FastArray array)
+GSIArrayEmpty(GSIArray array)
 {
-  FastArrayRemoveAllItems(array);
-  FastArrayClear(array);
+  GSIArrayRemoveAllItems(array);
+  GSIArrayClear(array);
 }
 
-static INLINE FastArray
-FastArrayInitWithZoneAndCapacity(FastArray array, NSZone *zone, size_t capacity)
+static INLINE GSIArray
+GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
 {
   unsigned	size;
 
@@ -382,23 +397,23 @@ FastArrayInitWithZoneAndCapacity(FastArray array, NSZone *zone, size_t capacity)
     capacity = 2;
   array->cap = capacity;
   array->old = capacity/2;
-  size = capacity*sizeof(FastArrayItem);
+  size = capacity*sizeof(GSIArrayItem);
 #if	GS_WITH_GC
   /*
    *	If we use a nil zone, objects we point to are subject to GC
    */
   if (zone == 0)
-    array->ptr = (FastArrayItem*)GC_MALLOC_ATOMIC(size);
+    array->ptr = (GSIArrayItem*)GC_MALLOC_ATOMIC(size);
   else
-    array->ptr = (FastArrayitem)GC_MALLOC(zone, size);
+    array->ptr = (GSIArrayitem)GC_MALLOC(zone, size);
 #else
-  array->ptr = (FastArrayItem*)NSZoneMalloc(zone, size);
+  array->ptr = (GSIArrayItem*)NSZoneMalloc(zone, size);
 #endif
   return array;
 }
 
-#ifdef	FAST_ARRAY_BLOCKED_ASSERTIONS
+#ifdef	GSI_ARRAY_BLOCKED_ASSERTIONS
 #undef	NS_BLOCK_ASSERTIONS
-#undef	FAST_ARRAY_BLOCKED_ASSERTIONS
+#undef	GSI_ARRAY_BLOCKED_ASSERTIONS
 #endif
 

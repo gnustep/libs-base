@@ -31,10 +31,10 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSPortCoder.h>
 
-#define	FAST_MAP_HAS_VALUE	0
-#define	FAST_MAP_KTYPES		GSUNION_OBJ
+#define	GSI_MAP_HAS_VALUE	0
+#define	GSI_MAP_KTYPES		GSUNION_OBJ
 
-#include <base/FastMap.x>
+#include <base/GSIMap.h>
 
 @class	NSSetNonCore;
 @class	NSMutableSetNonCore;
@@ -42,21 +42,21 @@
 @interface NSGSet : NSSet
 {
 @public
-  FastMapTable_t	map;
+  GSIMapTable_t	map;
 }
 @end
 
 @interface NSGMutableSet : NSMutableSet
 {
 @public
-  FastMapTable_t	map;
+  GSIMapTable_t	map;
 }
 @end
 
 @interface NSGSetEnumerator : NSEnumerator
 {
   NSGSet	*set;
-  FastMapNode	node;
+  GSIMapNode	node;
 }
 @end
 
@@ -72,7 +72,7 @@
 
 - nextObject
 {
-  FastMapNode old = node;
+  GSIMapNode old = node;
 
   if (node == 0)
     {
@@ -108,14 +108,14 @@
 
 - (void) dealloc
 {
-  FastMapEmptyMap(&map);
+  GSIMapEmptyMap(&map);
   [super dealloc];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   unsigned	count = map.nodeCount;
-  FastMapNode	node = map.firstNode;
+  GSIMapNode	node = map.firstNode;
   SEL		sel = @selector(encodeObject:);
   IMP		imp = [aCoder methodForSelector: sel];
 
@@ -142,11 +142,11 @@
 
   (*imp)(aCoder, sel, @encode(unsigned), &count);
 
-  FastMapInitWithZoneAndCapacity(&map, [self zone], count);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
   while (count-- > 0)
     {
       (*imp)(aCoder, sel, type, &value);
-      FastMapAddKeyNoRetain(&map, (FastMapKey)value);
+      GSIMapAddKeyNoRetain(&map, (GSIMapKey)value);
     }
 
   return self;
@@ -157,10 +157,10 @@
 {
   int i;
 
-  FastMapInitWithZoneAndCapacity(&map, [self zone], c);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
   for (i = 0; i < c; i++)
     {
-      FastMapNode     node;
+      GSIMapNode     node;
 
       if (objs[i] == nil)
 	{
@@ -168,10 +168,10 @@
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init set with nil value"];
 	}
-      node = FastMapNodeForKey(&map, (FastMapKey)objs[i]);
+      node = GSIMapNodeForKey(&map, (GSIMapKey)objs[i]);
       if (node == 0)
 	{
-	  FastMapAddKey(&map, (FastMapKey)objs[i]);
+	  GSIMapAddKey(&map, (GSIMapKey)objs[i]);
         }
     }
   return self;
@@ -181,7 +181,7 @@
 {
   if (anObject)
     {
-      FastMapNode node = FastMapNodeForKey(&map, (FastMapKey)anObject);
+      GSIMapNode node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
 
       if (node)
 	{
@@ -212,23 +212,23 @@
 /* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
-  FastMapInitWithZoneAndCapacity(&map, [self zone], cap);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
 }
 
 - (void) addObject: (NSObject*)anObject
 {
-  FastMapNode node;
+  GSIMapNode node;
 
   if (anObject == nil)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to add nil to  set"];
     }
-  node = FastMapNodeForKey(&map, (FastMapKey)anObject);
+  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
   if (node == 0)
     {
-      FastMapAddKey(&map, (FastMapKey)anObject);
+      GSIMapAddKey(&map, (GSIMapKey)anObject);
     }
 }
 
@@ -236,13 +236,13 @@
 {
   if (anObject)
     {
-      FastMapRemoveKey(&map, (FastMapKey)anObject);
+      GSIMapRemoveKey(&map, (GSIMapKey)anObject);
     }
 }
 
 - (void) removeAllObjects
 {
-  FastMapCleanMap(&map);
+  GSIMapCleanMap(&map);
 }
 
 @end

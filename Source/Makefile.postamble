@@ -212,22 +212,24 @@ $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
 	: $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h 
 
 #
-#	Files that include FastArray.x will need a rebuild if it is changed.
+#	Files that include GSIArray.h will need a rebuild if it is changed.
 #
+$(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
 $(GNUSTEP_OBJ_DIR)/NSRunLoop.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
-	: include/FastArray.x include/GSUnion.h
+	: include/GSIArray.h include/GSUnion.h
 
 #
-#	Files that include FastMap.x will need a rebuild if it is changed.
+#	Files that include GSIMap.h will need a rebuild if it is changed.
 #
 $(GNUSTEP_OBJ_DIR)/NSArchiver.o \
 $(GNUSTEP_OBJ_DIR)/NSGCountedSet.o \
 $(GNUSTEP_OBJ_DIR)/NSGDictionary.o \
 $(GNUSTEP_OBJ_DIR)/NSGSet.o \
+$(GNUSTEP_OBJ_DIR)/NSNotificationCenter.o \
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \
-	: include/FastMap.x include/GSUnion.h
+	: include/GSIMap.h include/GSUnion.h
 
 #
 #	Files that include fast.x will need a rebuild if it is changed.

@@ -46,6 +46,7 @@
 #include <base/preface.h>
 #include <Foundation/NSGAttributedString.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSRange.h>
 #include <base/NSGArray.h>
 #include <base/fast.x>
 
@@ -420,12 +421,7 @@ _attributesAtIndexEffectiveRange(
   if (!attributes)
     attributes = [NSDictionary dictionary];
   tmpLength = [textChars length];
-  if (NSMaxRange(range) > tmpLength)
-    {
-      [NSException raise: NSRangeException
-		  format: @"RangeError in method -replaceCharactersInRange: "
-			  @"withString: in class NSMutableAttributedString"];
-    }
+  GS_RANGE_CHECK(range, tmpLength);
   arraySize = (*cntImp)(infoArray, cntSel);
   if (NSMaxRange(range) < tmpLength)
     {
@@ -508,12 +504,7 @@ _attributesAtIndexEffectiveRange(
   if (!aString)
     aString = @"";
   tmpLength = [textChars length];
-  if (NSMaxRange(range) > tmpLength)
-    {
-      [NSException raise: NSRangeException
-		  format: @"RangeError in method -replaceCharactersInRange: "
-			  @"withString: in class NSMutableAttributedString"];
-    }
+  GS_RANGE_CHECK(range, tmpLength);
   arraySize = (*cntImp)(infoArray, cntSel);
   if (NSMaxRange(range) < tmpLength)
     {

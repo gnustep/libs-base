@@ -252,10 +252,7 @@
 {
   unsigned i, j = 0, e = aRange.location + aRange.length;
 
-  if (aRange.location >= _count)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (_count - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, _count);
 
   for (i = aRange.location; i < e; i++)
     {

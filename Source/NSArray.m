@@ -32,6 +32,7 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGArray.h>
+#include <Foundation/NSRange.h>
 #include <limits.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSException.h>
@@ -361,10 +362,7 @@ static Class NSMutableArray_concrete_class;
 {
   unsigned i, j = 0, c = [self count], e = aRange.location + aRange.length;
 
-  if (aRange.location >= c)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (c - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, c);
 
   for (i = aRange.location; i < e; i++)
     aBuffer[j++] = [self objectAtIndex: i];
@@ -388,10 +386,7 @@ static Class NSMutableArray_concrete_class;
 {
   unsigned i, e = aRange.location + aRange.length, c = [self count];
 
-  if (aRange.location >= c)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (c - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, c);
 
   for (i = aRange.location; i < e; i++)
     if (anObject == [self objectAtIndex: i])
@@ -414,10 +409,7 @@ static Class NSMutableArray_concrete_class;
 {
   unsigned i, e = aRange.location + aRange.length, c = [self count];
 
-  if (aRange.location >= c)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (c - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, c);
 
   for (i = aRange.location; i < e; i++)
     {
@@ -565,10 +557,7 @@ static Class NSMutableArray_concrete_class;
   id na;
   unsigned c = [self count];
 
-  if (aRange.location >= c)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (c - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  GS_RANGE_CHECK(aRange, c);
 
   if (aRange.length == 0)
     return [NSArray array];
