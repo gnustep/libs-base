@@ -53,22 +53,22 @@ all: src
 
 %-subdirs:
 	for i in $(SUBDIRS); do \
-	  (cd $$i; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES) $*); \
+	  (cd $$i; $(MAKE) $(MAKEDEFINES) $*); \
 	done
 
 src doc checks examples: FORCE
-	cd $@; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES)
+	cd $@; $(MAKE) $(MAKEDEFINES)
 
 install uninstall TAGS:
 	for i in $(SUBDIRS); do \
-	  (cd $$i; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES) $@); \
+	  (cd $$i; $(MAKE) $(MAKEDEFINES) $@); \
 	done
 
 info dvi:
-	cd doc; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES) $@
+	cd doc; $(MAKE) $(MAKEDEFINES) $@
 
 check: libobjects.a
-	cd checks; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES)
+	cd checks; $(MAKE) $(MAKEDEFINES)
 
 Makefile: Makefile.in config.status
 	$(SHELL) config.status
@@ -93,7 +93,7 @@ snap: $(DIST_FILES)
 	rm -rf snap
 	mkdir snap
 	for i in $(SUBDIRS); do \
-	  (cd $$i; $(MAKE) -$(MAKEFLAGS) $(MAKEDEFINES) copy-dist); \
+	  (cd $$i; $(MAKE) $(MAKEDEFINES) copy-dist); \
 	done
 	mkdir snap/config
 	for file in $(DIST_FILES); do \
@@ -125,7 +125,7 @@ rcs-list-locked:
 	@for i in $(SUBDIRS); do \
 	  echo "===$$i"; \
 	  (cd $$i; \
-	   $(MAKE) -s -$(MAKEFLAGS) $(MAKEDEFINES) rcs-list-locked); \
+	   $(MAKE) -s $(MAKEDEFINES) rcs-list-locked); \
 	done
 
 FORCE:
