@@ -71,7 +71,7 @@ NSUserName ()
       char buf[1024];
       DWORD n = 1024;
 
-      if (GetEnvironmentVariable("LOGNAME", buf, 1024);
+      if (GetEnvironmentVariable("LOGNAME", buf, 1024))
 	login_name = buf;
       else if (GetUserName(buf, &n))
 	login_name = buf;
