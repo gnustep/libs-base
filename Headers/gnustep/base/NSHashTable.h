@@ -110,4 +110,3 @@ void NSHashRemove (NSHashTable *table, const void *pointer);
 NSString *NSStringFromHashTable (NSHashTable *table);
 
 #endif /* __NSHashTable_h_OBJECTS_INCLUDE */
-

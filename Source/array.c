@@ -77,7 +77,7 @@ _objects_array_bucket_for_index (objects_array_t * array, size_t index)
 }
 
 objects_array_bucket_t *
-_objects_array_new_bucket (objects_array_t * array, size_t index, void *element)
+_objects_array_new_bucket (objects_array_t * array, size_t index, const void *element)
 {
   objects_array_bucket_t *bucket;
 
@@ -97,7 +97,9 @@ _objects_array_free_bucket (objects_array_t * array, objects_array_bucket_t * bu
 {
   if (bucket != NULL)
     {
-      objects_release (objects_array_element_callbacks (array), bucket->element, array);
+      objects_release (objects_array_element_callbacks (array), 
+		       (void*)bucket->element, 
+		       array);
       objects_free (objects_array_allocs (array), bucket);
     }
   return;
@@ -501,7 +503,7 @@ objects_array_init_from_array (objects_array_t * array, objects_array_t * old_ar
 {
   objects_array_enumerator_t enumerator;
   size_t index;
-  void *element;
+  const void *element;
 
   /* Initialize ARRAY in the usual way. */
   objects_array_init_with_callbacks (array,
@@ -545,7 +547,7 @@ objects_array_dealloc (objects_array_t * array)
 
 /** Searching **/
 
-void *
+const void *
 objects_array_element_at_index (objects_array_t * array, size_t index)
 {
   objects_array_bucket_t *bucket = _objects_array_bucket_for_index (array, index);
@@ -559,7 +561,7 @@ objects_array_element_at_index (objects_array_t * array, size_t index)
 }
 
 size_t
-objects_array_index_of_element (objects_array_t * array, void *element)
+objects_array_index_of_element (objects_array_t * array, const void *element)
 {
   size_t i;
 
@@ -579,25 +581,25 @@ objects_array_index_of_element (objects_array_t * array, void *element)
 }
 
 int
-objects_array_contains_element (objects_array_t * array, void *element)
+objects_array_contains_element (objects_array_t * array, const void *element)
 {
   /* Note that this search is quite inefficient. */
   return objects_array_index_of_element (array, element) < (array->slot_count);
 }
 
-void **
+const void **
 objects_array_all_elements (objects_array_t * array)
 {
   objects_array_enumerator_t enumerator;
-  void **elements;
+  const void **elements;
   size_t count, i;
 
   count = objects_array_count (array);
 
   /* Set aside space to hold the elements. */
-  elements = (void **) objects_calloc (objects_array_allocs (array),
+  elements = (const void **) objects_calloc (objects_array_allocs (array),
 				       count + 1,
-				       sizeof (void *));
+				       sizeof (const void *));
 
   enumerator = objects_array_enumerator (array);
 
@@ -610,19 +612,19 @@ objects_array_all_elements (objects_array_t * array)
   return elements;
 }
 
-void **
+const void **
 objects_array_all_elements_ascending (objects_array_t * array)
 {
   objects_array_enumerator_t enumerator;
-  void **elements;
+  const void **elements;
   size_t count, i;
 
   count = objects_array_count (array);
 
   /* Set aside space to hold the elements. */
-  elements = (void **) objects_calloc (objects_array_allocs (array),
+  elements = (const void **) objects_calloc (objects_array_allocs (array),
 				       count + 1,
-				       sizeof (void *));
+				       sizeof (const void *));
 
   enumerator = objects_array_ascending_enumerator (array);
 
@@ -635,19 +637,19 @@ objects_array_all_elements_ascending (objects_array_t * array)
   return elements;
 }
 
-void **
+const void **
 objects_array_all_elements_descending (objects_array_t * array)
 {
   objects_array_enumerator_t enumerator;
-  void **elements;
+  const void **elements;
   size_t count, i;
 
   count = objects_array_count (array);
 
   /* Set aside space to hold the elements. */
-  elements = (void **) objects_calloc (objects_array_allocs (array),
+  elements = (const void **) objects_calloc (objects_array_allocs (array),
 				       count + 1,
-				       sizeof (void *));
+				       sizeof (const void *));
 
   enumerator = objects_array_descending_enumerator (array);
 
@@ -680,7 +682,7 @@ objects_array_remove_element_at_index (objects_array_t * array, size_t index)
 
 void
 objects_array_remove_element_known_present (objects_array_t * array,
-					    void *element)
+					    const void *element)
 {
   objects_array_remove_element_at_index (array,
 				      objects_array_index_of_element (array,
@@ -689,7 +691,7 @@ objects_array_remove_element_known_present (objects_array_t * array,
 }
 
 void
-objects_array_remove_element (objects_array_t * array, void *element)
+objects_array_remove_element (objects_array_t * array, const void *element)
 {
   if (objects_array_contains_element (array, element))
     objects_array_remove_element_known_present (array, element);
@@ -699,10 +701,10 @@ objects_array_remove_element (objects_array_t * array, void *element)
 
 /** Adding **/
 
-void *
+const void *
 objects_array_at_index_put_element (objects_array_t * array,
 				    size_t index,
-				    void *element)
+				    const void *element)
 {
   objects_array_bucket_t *bucket;
 
@@ -768,7 +770,7 @@ objects_array_enumerator (objects_array_t * array)
 int
 objects_array_enumerator_next_index_and_element (objects_array_enumerator_t * enumerator,
 						 size_t * index,
-						 void **element)
+						 const void **element)
 {
   objects_array_bucket_t *bucket;
 
@@ -794,7 +796,7 @@ objects_array_enumerator_next_index_and_element (objects_array_enumerator_t * en
 
 int
 objects_array_enumerator_next_element (objects_array_enumerator_t * enumerator,
-				       void **element)
+				       const void **element)
 {
   return objects_array_enumerator_next_index_and_element (enumerator,
 							  NULL,
@@ -816,7 +818,7 @@ int
 objects_array_is_equal_to_array (objects_array_t * array1, objects_array_t * array2)
 {
   size_t a, b;
-  void *m, *n;
+  const void *m, *n;
   objects_array_enumerator_t e, f;
 
   a = objects_array_count (array1);
@@ -857,8 +859,8 @@ objects_array_is_equal_to_array (objects_array_t * array1, objects_array_t * arr
 
 objects_array_t *
 objects_array_map_elements (objects_array_t * array,
-			    void *(*fcn) (void *, void *),
-			    void *user_data)
+			    const void *(*fcn) (const void *, const void *),
+			    const void *user_data)
 {
   /* FIXME: Code this. */
   return array;
@@ -870,7 +872,7 @@ objects_hash_t *
 objects_hash_init_from_array (objects_hash_t * hash, objects_array_t * array)
 {
   objects_array_enumerator_t enumerator;
-  void *element;
+  const void *element;
 
   /* NOTE: If ARRAY contains multiple elements of the same equivalence
    * class, it is indeterminate which will end up in HASH.  This
@@ -888,7 +890,7 @@ objects_hash_init_from_array (objects_hash_t * hash, objects_array_t * array)
 // objects_chash_init_from_array (objects_chash_t * chash, objects_array_t * array)
 // {
 //   objects_array_enumerator_t enumerator;
-//   void *element;
+//   const void *element;
 // 
 //   /* NOTE: If ARRAY contains multiple elements of the same equivalence
 //    * class, it is indeterminate which will end up in CHASH.  This

@@ -24,9 +24,6 @@
  * 
  */ 
 
-#ifndef __atoz_h_OBJECTS_INCLUDE
-#define __atoz_h_OBJECTS_INCLUDE 1
-
 /**** Included Headers *******************************************************/
 
 #include <objects/callbacks.h>
@@ -34,6 +31,9 @@
 /**** Type, Constant, and Macro Definitions **********************************/
 
 /**** Function Implementations ***********************************************/
+
+#ifndef __atoz_h_OBJECTS_INCLUDE
+#define __atoz_h_OBJECTS_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 

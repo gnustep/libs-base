@@ -36,25 +36,25 @@
 /** Handling Libobjects Allocs **/
 
 void *
-_objects_zone_malloc(size_t s, void *z)
+_objects_zone_malloc(size_t s, const void *z)
 {
   return NSZoneMalloc((NSZone *)z, s);
 }
 
 void *
-_objects_zone_calloc(size_t n, size_t s, void *z)
+_objects_zone_calloc(size_t n, size_t s, const void *z)
 {
   return NSZoneCalloc((NSZone *)z, n, s);
 }
 
 void *
-_objects_zone_realloc(void *p, size_t s, void *z)
+_objects_zone_realloc(void *p, size_t s, const void *z)
 {
-  return NSZoneRealloc((NSZone *)z, p, s);
+  return NSZoneRealloc ((NSZone*)z, p, s);
 }
 
 void
-_objects_zone_free(void *p, void *z)
+_objects_zone_free(void *p, const void *z)
 {
   NSZoneFree((NSZone *)z, p);
   return;
@@ -74,4 +74,3 @@ objects_allocs_for_zone(NSZone *zone)
 
   return allocs;
 }
-
