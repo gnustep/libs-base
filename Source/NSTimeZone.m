@@ -886,7 +886,7 @@ static NSMapTable	*absolutes = 0;
     [[NSString stringWithContentsOfFile: path] propertyList];
   abbreviationDictionary = 
     [abbreviationDictionary makeImmutableCopyOnFail: NO];
-  return abbreviationDictionary;
+  return RETAIN(abbreviationDictionary);
 }
 
 /**
