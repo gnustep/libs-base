@@ -194,8 +194,6 @@ static Class		NSURLHandleClass = 0;
 
 - (void) cancelLoadInBackground
 {
-  _status = NSURLHandleNotLoaded;
-  DESTROY(_data);
   [_clients makeObjectsPerformSelector:
     @selector(URLHandleResourceDidCancelLoading:)
     withObject: self];
@@ -260,6 +258,10 @@ static Class		NSURLHandleClass = 0;
 
   if (loadComplete == YES)
     {
+      id	tmp = _data;
+
+      _data = [tmp copy];
+      RELEASE(tmp);
       /*
        * Let clients know we have finished loading.
        */
@@ -272,14 +274,8 @@ static Class		NSURLHandleClass = 0;
 
 - (void) endLoadInBackground
 {
-  if (_status == NSURLHandleLoadInProgress)
-    {
-      id	tmp = _data;
-
-      _data = [tmp copy];
-      RELEASE(tmp);
-    }
   _status = NSURLHandleNotLoaded;
+  DESTROY(_data);
 }
 
 - (NSString*) failureReason
@@ -326,7 +322,6 @@ static Class		NSURLHandleClass = 0;
     {
       [self didLoadBytes: d loadComplete: YES];
     }
-  [self endLoadInBackground];
 }
 
 /*
@@ -371,6 +366,10 @@ static Class		NSURLHandleClass = 0;
   if (_status == NSURLHandleLoadSucceeded)
     {
       return [self availableResourceData];
+    }
+  else if (_status == NSURLHandleLoadInProgress)
+    {
+      return nil;
     }
   else
     {
