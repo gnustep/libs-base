@@ -268,9 +268,9 @@ my_object_is_class(id object)
     const_ptr_2_xref = 
       NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
 			NSIntMapValueCallBacks, 0);
-  else
-    assert(! NSMapGet (const_ptr_2_xref, (void*)xref));
+
   xref = NSCountMapTable (const_ptr_2_xref) + 1;
+  assert (! NSMapGet (const_ptr_2_xref, (void*)xref));
   NSMapInsert (const_ptr_2_xref, ptr, (void*)xref);
 }
 
