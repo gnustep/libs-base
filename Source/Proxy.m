@@ -203,6 +203,7 @@ enum
 	  OutPort *proxy_connection_out_port = [proxy_connection outPort];
 
 	  assert (proxy_connection_out_port);
+	  assert ([proxy_connection_out_port isValid]);
 	  assert (proxy_connection_out_port != [encoder_connection outPort]);
 	  /* xxx Remove this after debugging, because it won't be true
 	     for connections across different hosts. */
