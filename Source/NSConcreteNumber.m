@@ -214,14 +214,14 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
-#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT
+#if	(TYPE_ORDER & 1) == 1
+#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT && TYPE_ORDER < 3 
 #define	PT (short)
-#elif GS_SIZEOF_CHAR < GS_SIZEOF_INT
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_INT && TYPE_ORDER < 5
 #define	PT (int)
-#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG && TYPE_ORDER < 7
 #define	PT (long)
-#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG_LONG
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG_LONG && TYPE_ORDER < 9
 #define	PT (long long)
 #else
 #define	PT (double)
@@ -242,14 +242,14 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
-#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT
+#if	(TYPE_ORDER & 1) == 0
+#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT && TYPE_ORDER < 3
 #define	PT (short)
-#elif GS_SIZEOF_CHAR < GS_SIZEOF_INT
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_INT && TYPE_ORDER < 5
 #define	PT (int)
-#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG && TYPE_ORDER < 7
 #define	PT (long)
-#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG_LONG
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG_LONG && TYPE_ORDER < 9
 #define	PT (long long)
 #else
 #define	PT (double)
@@ -270,14 +270,14 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
-#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT
+#if	(TYPE_ORDER & 1) == 1
+#if GS_SIZEOF_CHAR < GS_SIZEOF_SHORT && TYPE_ORDER < 3
 #define	PT (short)
-#elif GS_SIZEOF_CHAR < GS_SIZEOF_INT
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_INT && TYPE_ORDER < 5
 #define	PT (int)
-#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG && TYPE_ORDER < 7
 #define	PT (long)
-#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG_LONG
+#elif GS_SIZEOF_CHAR < GS_SIZEOF_LONG_LONG && TYPE_ORDER < 9
 #define	PT (long long)
 #else
 #define	PT (double)
@@ -298,12 +298,12 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
-#if GS_SIZEOF_SHORT < GS_SIZEOF_INT
+#if	(TYPE_ORDER & 1) == 0
+#if GS_SIZEOF_SHORT < GS_SIZEOF_INT && TYPE_ORDER < 5
 #define	PT (int)
-#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG
+#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG && TYPE_ORDER < 7
 #define	PT (long)
-#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG_LONG
+#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG_LONG && TYPE_ORDER < 9
 #define	PT (long long)
 #else
 #define	PT (double)
@@ -324,12 +324,12 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
-#if GS_SIZEOF_SHORT < GS_SIZEOF_INT
+#if	(TYPE_ORDER & 1) == 1
+#if GS_SIZEOF_SHORT < GS_SIZEOF_INT && TYPE_ORDER < 5
 #define	PT (int)
-#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG
+#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG && TYPE_ORDER < 7
 #define	PT (long)
-#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG_LONG
+#elif GS_SIZEOF_SHORT < GS_SIZEOF_LONG_LONG && TYPE_ORDER < 9
 #define	PT (long long)
 #else
 #define	PT (double)
@@ -350,10 +350,10 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
-#if GS_SIZEOF_INT < GS_SIZEOF_LONG
+#if	(TYPE_ORDER & 1) == 0
+#if GS_SIZEOF_INT < GS_SIZEOF_LONG && TYPE_ORDER < 7
 #define	PT (long)
-#elif GS_SIZEOF_INT < GS_SIZEOF_LONG_LONG
+#elif GS_SIZEOF_INT < GS_SIZEOF_LONG_LONG && TYPE_ORDER < 9
 #define	PT (long long)
 #else
 #define	PT (double)
@@ -374,10 +374,10 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
-#if GS_SIZEOF_INT < GS_SIZEOF_LONG
+#if	(TYPE_ORDER & 1) == 1
+#if GS_SIZEOF_INT < GS_SIZEOF_LONG && TYPE_ORDER < 7
 #define	PT (long)
-#elif GS_SIZEOF_INT < GS_SIZEOF_LONG_LONG
+#elif GS_SIZEOF_INT < GS_SIZEOF_LONG_LONG && TYPE_ORDER < 9
 #define	PT (long long)
 #else
 #define	PT (double)
@@ -398,8 +398,8 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
-#if GS_SIZEOF_LONG < GS_SIZEOF_LONG_LONG
+#if	(TYPE_ORDER & 1) == 0
+#if GS_SIZEOF_LONG < GS_SIZEOF_LONG_LONG && TYPE_ORDER < 9
 #define	PT (long long)
 #else
 #define	PT (double)
@@ -420,8 +420,8 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
-#if GS_SIZEOF_LONG < GS_SIZEOF_LONG_LONG
+#if	(TYPE_ORDER & 1) == 1
+#if GS_SIZEOF_LONG < GS_SIZEOF_LONG_LONG && TYPE_ORDER < 9
 #define	PT (long long)
 #else
 #define	PT (double)
@@ -442,7 +442,7 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 0 && TYPE_ORDER < 11
+#if	(TYPE_ORDER & 1) == 0
 #define	PT (double)
 #else
 #define	PT
@@ -460,7 +460,7 @@
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 #undef PT
-#if	(TYPE_ORDER & 1) == 1 && TYPE_ORDER < 11
+#if	(TYPE_ORDER & 1) == 1
 #define	PT (double)
 #else
 #define	PT
@@ -477,6 +477,12 @@
 	      float	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+#undef PT
+#if TYPE_ORDER != 11
+#define	PT (double)
+#else
+#define	PT
+#endif
 	      if (PT data == PT oData)
 		return NSOrderedSame;
 	      else if (PT data < PT oData)
@@ -489,6 +495,8 @@
 	      double	oData;
 
 	      (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+#undef PT
+#define	PT (double)
 	      if (PT data == PT oData)
 		return NSOrderedSame;
 	      else if (PT data < PT oData)
