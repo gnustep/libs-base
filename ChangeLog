@@ -1,3 +1,11 @@
+2002-05-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLHandle.m: Implement ([-hash]) and ([-isEqual:]) based on
+	([-absoluteString]) rather than simple pointer comparison.
+	* Source/GSHTTPURLHandle.m: ([-bgdConnect]) set host header
+	([-loadInBackGround]) use URL port if available.
+	More fixes thanks to lcampbel via savannah
+
 2002-05-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLHandle.m: ([URLHandleClassForURL:]) Fix to return most
