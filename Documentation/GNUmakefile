@@ -32,6 +32,8 @@ include ../config.mak
 # The documents to be generated
 DOCUMENT_NAME = coding-standards
 
+SUBPROJECTS = manual
+
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
 INSTALL NEWS CODING-STANDARDS README ANNOUNCE BUGS
@@ -84,5 +86,6 @@ REF_DOC_INSTALL_DIR = $(GNUSTEP_DOCUMENTATION)/Developer
 -include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
+include $(GNUSTEP_MAKEFILES)/aggregate.make
 
 -include Makefile.postamble
