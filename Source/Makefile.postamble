@@ -225,4 +225,3 @@ copy-dist: $(DIST_FILES)
 	ln AUTHORS ../snap
 
 FORCE:
-

@@ -1,3 +1,21 @@
+Fri Nov 28 12:52:06 1997  Scott Christley  <scottc@net-community.com>
+
+	* Tools/GNUmakefile (OBJC_PROGRAM_NAME): Reverse prior change.
+	* Tools/Makefile.postamble (after-install): Install gdomap
+	from the proper directory.
+	* checks/nsattributesstring.m (NSFontAttributeName): New variable.
+	(NSForegroundColorAttributeName): New variable.
+	(NSBackgroundColorAttributeName): New variable.
+
+	* src/GNUmakefile: Install headers in gnustep not gnustep/base.
+	* src/Makefile.preamble (ADDITIONAL_INSTALL_DIRS): Likewise.
+
+	* src/NSTimeZone.m (LOCALDBKEY, ZONES_DIR): Make NSStrings.
+	(+getTimeZoneFile:): ZONES_DIR is NSString.
+
+	* src/o_map.m (INLINE): Use macro so its easy to un-inline
+	functions if debugging.
+
 Wed Nov 26 16:08:20 1997  Adam Fedor  <fedor@doc.com>
 
 	* Tools/GNUmakefile (OBJC-PROGRAM_NAME): Change from underscore.
