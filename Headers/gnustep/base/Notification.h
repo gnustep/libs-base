@@ -26,7 +26,17 @@
 #include <objects/KeyedCollecting.h>
 #include <objects/NotificationDispatcher.h>
 
-@interface Notification : NSObject
+@protocol Notifying
+- (id <String>) name;
+- object;
+- userInfo;
+@end
+
+@protocol NotificationPosting
+- (void) postNotification: (id <Notifying>)notification;
+@end
+
+@interface Notification : NSObject <Notifying>
 {
   id _name;
   id _object;
@@ -39,9 +49,5 @@
 + notificationWithName: (id <String>)name
 		object: object
 	      userInfo: info;
-
-- (id <String>) name;
-- object;
-- userInfo;
 
 @end
