@@ -4,6 +4,9 @@
 	* Source/NSKeyedUnarchiver.m:
 	Added NSPoint, NSRect, and NSSize coding methods.
 	implemented quick hack of ([decodeValueOfObCType:at:])
+	Set default property list format to xml ... The MacOS-X binary,
+	format isn't supported yet (if ever), and I'm developing using
+	the comon/portable XML format first anyway.
 	* Source/NSMSoperamulti_test.m: Sort dictionary items in xml output
 
 2004-01-23 Richard Frith-Macdonald <rfm@gnu.org>

@@ -699,6 +699,7 @@ static NSMapTable	*globalClassMap = 0;
       _obj = [NSMutableArray new];		// Array of objects.
       [_obj addObject: @"$null"];		// Placeholder.
 
+      _format = NSPropertyListXMLFormat_v1_0;	// FIXME ... should be binary.
     }
   return self;
 }
