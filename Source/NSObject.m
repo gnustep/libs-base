@@ -52,10 +52,17 @@
 extern BOOL __objc_responds_to(id, SEL);
 #endif
 
-#if GS_WITH_GC == 0
+#if GS_WITH_GC
+
+#include	<gc.h>
+#include	<gc_typed.h>
+
+#else
+
 @class	_FastMallocBuffer;
 static Class	fastMallocClass;
 static unsigned	fastMallocOffset;
+
 #endif
 
 static Class	NSConstantStringClass;
@@ -158,7 +165,6 @@ static void GSLogZombie(id o, SEL sel)
  *	Define a structure to hold information that is held locally
  *	(before the start) in each object.
  */ 
-
 typedef struct obj_layout_unpadded {
 #if	defined(REFCNT_LOCAL)
     unsigned	retained;
@@ -174,7 +180,6 @@ typedef struct obj_layout_unpadded {
  *	what padding (if any) is required to get the alignment of the
  *	structure correct.
  */
-
 struct obj_layout {
 #if	defined(REFCNT_LOCAL)
     unsigned	retained;
@@ -188,43 +193,177 @@ typedef	struct obj_layout *obj;
 
 #endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
 
-
-#if	GS_WITH_GC
-
-unsigned
-NSExtraRefCount(id anObject)
-{
-  return 0;
-}
-void
-NSIncrementExtraRefCount(id anObject)
-{
-}
-#define	NSIncrementExtraRefCount(X) 
-BOOL
-NSDecrementExtraRefCountWasZero(id anObject)
-{
-  return NO;
-}
-#define NSDecrementExtraRefCountWasZero(X)	NO
-
-#else	/* GS_WITH_GC	*/
+#if !defined(REFCNT_LOCAL)
 
 /*
- *	Now do conditional compilation of reference count functions
- *	depending on whether we are using local or global counting.
+ * Set up map table for non-local reference counts.
  */
-#if	defined(REFCNT_LOCAL)
 
-unsigned
-NSExtraRefCount(id anObject)
+#define GSI_MAP_EQUAL(M, X, Y)	(X.obj == Y.obj)
+#define GSI_MAP_HASH(M, X)	(X.uint >> 2)
+#define GSI_MAP_RETAIN_KEY(M, X)
+#define GSI_MAP_RELEASE_KEY(M, X)
+#define GSI_MAP_RETAIN_VAL(M, X)
+#define GSI_MAP_RELEASE_VAL(M, X)
+#define GSI_MAP_KTYPES  GSUNION_OBJ|GSUNION_INT
+#define GSI_MAP_VTYPES  GSUNION_INT
+#define	GSI_MAP_NOCLEAN	1
+
+#include <base/GSIMap.h>
+
+static GSIMapTable_t	retain_counts = 0;
+
+#endif	/* !defined(REFCNT_LOCAL) */
+
+
+/**
+ * Examines the extra reference count for the object and, if non-zero
+ * decrements it, otherwise leaves it unchanged.<br />
+ * Returns a flag to say whether the count was zero
+ * (and hence whether the extra refrence count was decremented).<br />
+ * This function is used by the [NSObject-release] method.
+ */
+inline BOOL
+NSDecrementExtraRefCountWasZero(id anObject)
 {
-  return ((obj)anObject)[-1].retained;
+#if	GS_WITH_GC
+  return NO;
+#else	/* GS_WITH_GC */
+#if	defined(REFCNT_LOCAL)
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+      if (((obj)anObject)[-1].retained == 0)
+	{
+	  objc_mutex_unlock(allocationLock);
+	  return YES;
+	}
+      else
+	{
+	  ((obj)anObject)[-1].retained--;
+	  objc_mutex_unlock(allocationLock);
+	  return NO;
+	}
+    }
+  else
+    {
+      if (((obj)anObject)[-1].retained == 0)
+	{
+	  return YES;
+	}
+      else
+	{
+	  ((obj)anObject)[-1].retained--;
+	  return NO;
+	}
+    }
+#else
+  GSIMapNode	node;
+
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
+	{
+	  objc_mutex_unlock(allocationLock);
+	  return YES;
+	}
+      if (node->value.uint == 0)
+	{
+	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
+	  objc_mutex_unlock(allocationLock);
+	  return YES;
+	}
+      else
+	{
+	  (node->value.uint)--;
+	}
+      objc_mutex_unlock(allocationLock);
+    }
+  else
+    {
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
+	{
+	  return YES;
+	}
+      if (node->value.uint) == 0)
+	{
+	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
+	  return YES;
+	}
+      else
+	{
+	  --(node->value.uint);
+	}
+    }
+  return NO;
+#endif
+#endif
 }
 
-void
+/**
+ * Return the extra reference count of anObject (a value in the range
+ * from 0 to the maximum unsigned integer value minus one).<br />
+ * The retain count for an object is this value plus one.
+ */
+inline unsigned
+NSExtraRefCount(id anObject)
+{
+#if	GS_WITH_GC
+  return UINT_MAX - 1;
+#else	/* GS_WITH_GC */
+#if	defined(REFCNT_LOCAL)
+  return ((obj)anObject)[-1].retained;
+#else
+  GSIMapNode	node;
+  unsigned	ret;
+
+  if (allocationLock != 0)
+    {
+      objc_mutex_lock(allocationLock);
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
+	{
+	  ret = 0;
+	}
+      else
+	{
+	  ret = node->value.uint;
+	}
+      objc_mutex_unlock(allocationLock);
+    }
+  else
+    {
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
+	{
+	  ret = 0;
+	}
+      else
+	{
+	  ret = node->value.uint;
+	}
+    }
+  return ret;
+#endif
+#endif
+}
+
+/**
+ * Increments the extra reference count for anObject.<br />
+ * The GNUstep version raises an exception if the reference count
+ * would be incremented to too large a value.<br />
+ * This is used by the [NSObject-retain] method.
+ */
+inline void
 NSIncrementExtraRefCount(id anObject)
 {
+#if	GS_WITH_GC
+  return;
+#else	/* GS_WITH_GC */
+#if	defined(REFCNT_LOCAL)
   if (allocationLock != 0)
     {
       objc_mutex_lock(allocationLock);
@@ -246,87 +385,8 @@ NSIncrementExtraRefCount(id anObject)
 	}
       ((obj)anObject)[-1].retained++;
     }
-}
-
-#define	NSIncrementExtraRefCount(X) ({ \
-  if (allocationLock != 0) \
-    { \
-      objc_mutex_lock(allocationLock); \
-      if (((obj)X)[-1].retained == UINT_MAX - 1) \
-	{ \
-	  objc_mutex_unlock (allocationLock); \
-	  [NSException raise: NSInternalInconsistencyException \
-	    format: @"NSIncrementExtraRefCount() asked to increment too far"]; \
-	} \
-      ((obj)(X))[-1].retained++;            \
-      objc_mutex_unlock(allocationLock); \
-    } \
-  else \
-    { \
-      if (((obj)X)[-1].retained == UINT_MAX - 1) \
-	{ \
-	  [NSException raise: NSInternalInconsistencyException \
-	    format: @"NSIncrementExtraRefCount() asked to increment too far"]; \
-	} \
-      ((obj)X)[-1].retained++; \
-    } \
-})
-
-BOOL
-NSDecrementExtraRefCountWasZero(id anObject)
-{
-  if (allocationLock != 0)
-    {
-      objc_mutex_lock(allocationLock);
-      if (((obj)anObject)[-1].retained == 0)
-	{
-	  objc_mutex_unlock(allocationLock);
-	  return YES;
-	}
-      else
-	{
-	  ((obj)anObject)[-1].retained--;
-	  objc_mutex_unlock(allocationLock);
-	  return NO;
-	}
-    }
-  else
-    {
-      if (((obj)anObject)[-1].retained == 0)
-	{
-	  return YES;
-	}
-      else
-	{
-	  ((obj)anObject)[-1].retained--;
-	  return NO;
-	}
-    }
-}
-
-
-#define	NSExtraRefCount(X)	(((obj)(X))[-1].retained)
-
+  return;
 #else
-
-#define GSI_MAP_EQUAL(M, X, Y)	(X.obj == Y.obj)
-#define GSI_MAP_HASH(M, X)	(X.uint >> 2)
-#define GSI_MAP_RETAIN_KEY(M, X)
-#define GSI_MAP_RELEASE_KEY(M, X)
-#define GSI_MAP_RETAIN_VAL(M, X)
-#define GSI_MAP_RELEASE_VAL(M, X)
-#define GSI_MAP_KTYPES  GSUNION_OBJ|GSUNION_INT
-#define GSI_MAP_VTYPES  GSUNION_INT
-#define	GSI_MAP_NOCLEAN	1
-
-#include <base/GSIMap.h>
-
-/* The maptable of retain counts on objects */
-static GSIMapTable_t	retain_counts;
-
-void
-NSIncrementExtraRefCount (id anObject)
-{
   GSIMapNode	node;
 
   if (allocationLock != 0)
@@ -368,92 +428,10 @@ NSIncrementExtraRefCount (id anObject)
 	  GSIMapAddPair(&retain_counts, (GSIMapKey)anObject, (GSIMapVal)1);
 	}
     }
+  return;
+#endif
+#endif
 }
-
-BOOL
-NSDecrementExtraRefCountWasZero (id anObject)
-{
-  GSIMapNode	node;
-
-  if (allocationLock != 0)
-    {
-      objc_mutex_lock(allocationLock);
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node == 0)
-	{
-	  objc_mutex_unlock(allocationLock);
-	  return YES;
-	}
-      if (node->value.uint == 0)
-	{
-	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
-	  objc_mutex_unlock(allocationLock);
-	  return YES;
-	}
-      else
-	{
-	  (node->value.uint)--;
-	}
-      objc_mutex_unlock(allocationLock);
-    }
-  else
-    {
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node == 0)
-	{
-	  return YES;
-	}
-      if (node->value.uint) == 0)
-	{
-	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
-	  return YES;
-	}
-      else
-	{
-	  --(node->value.uint);
-	  return NO;
-	}
-    }
-}
-
-unsigned
-NSExtraRefCount (id anObject)
-{
-  GSIMapNode	node;
-  unsigned	ret;
-
-  if (allocationLock != 0)
-    {
-      objc_mutex_lock(allocationLock);
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node == 0)
-	{
-	  ret = 0;
-	}
-      else
-	{
-	  ret = node->value.uint;
-	}
-      objc_mutex_unlock(allocationLock);
-    }
-  else
-    {
-      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
-      if (node == 0)
-	{
-	  ret = 0;
-	}
-      else
-	{
-	  ret = node->value.uint;
-	}
-    }
-  return ret;
-}
-
-#endif	/* defined(REFCNT_LOCAL) */
-
-#endif	/* GS_WITH_GC */
 
 
 /*
@@ -462,9 +440,6 @@ NSExtraRefCount (id anObject)
  *	the start of each object.
  */
 #if	GS_WITH_GC
-
-#include	<gc.h>
-#include	<gc_typed.h>
 
 inline NSZone *
 GSObjCZone(NSObject *object)

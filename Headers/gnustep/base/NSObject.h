@@ -206,33 +206,14 @@ NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
 GS_EXPORT BOOL
 NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
 
-/**
- * Return the extra reference count of anObject (a value in the range
- * from 0 to the maximum unsigned integer value minus one).<br />
- * The retain count
- * for an object is this value plus one.
- */
+GS_EXPORT BOOL
+NSDecrementExtraRefCountWasZero(id anObject);
+
 GS_EXPORT unsigned
 NSExtraRefCount(id anObject);
 
-/**
- * Increments the extra reference count for anObject.
- * The GNUstep version raises an exception if the reference count
- * would be incremented to too large a value.
- * This is used by the [NSObject-retain] method.
- */
 GS_EXPORT void
 NSIncrementExtraRefCount(id anObject);
-
-/**
- * Examines the extra reference count for the object and, if non-zero
- * decrements it, otherwise leaves it unchanged.<br />
- * Returns a flag to say whether the count was zero
- * (and hence whether the extra refrence count was decremented).<br />
- * This function is used by the [NSObject-release] method.
- */
-GS_EXPORT BOOL
-NSDecrementExtraRefCountWasZero(id anObject);
 
 typedef enum _NSComparisonResult 
 {
