@@ -6,6 +6,8 @@
 	* Source/NSNumber.m: Output 'YES' as boolean in description.
 	* Source/NSUserDefaults.m: Set 'YES' as boolean string.
 	* Headers/Foundation/NSObject.h: Fix v dumb memory leak.
+	* Source/GSHTTPURLHandle.m: Append crlf to separate headers from body
+	rather than just an lf.
 
 2002-08-11  Richard Frith-Macdonald <rfm@gnu.org>
 

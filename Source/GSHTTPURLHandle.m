@@ -727,7 +727,7 @@ static void debugWrite(NSData *data)
       [s appendFormat: @"%@: %@\r\n", key, [wProperties objectForKey: key]];
     }
   [wProperties removeAllObjects];
-  [s appendString: @"\n"];
+  [s appendString: @"\r\n"];
   buf = [[s dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
 
   /*
