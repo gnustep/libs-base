@@ -103,7 +103,6 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 GNU_MFILES = \
 Array.m \
 Bag.m \
-BinaryCoder.m \
 BinaryTree.m \
 BinaryTreeEltNode.m \
 BinaryTreeNode.m \
@@ -149,7 +148,6 @@ Stack.m \
 StdioStream.m \
 Stream.m \
 String.m \
-TextCoder.m \
 Time.m \
 stdobjects.m \
 mframe.m \
@@ -172,7 +170,6 @@ GNU_HEADERS = \
 objects/Array.h \
 objects/ArrayPrivate.h \
 objects/Bag.h \
-objects/BinaryCoder.h \
 objects/BinaryTree.h \
 objects/BinaryTreeEltNode.h \
 objects/BinaryTreeNode.h \
@@ -236,7 +233,6 @@ objects/StdioStream.h \
 objects/Stream.h \
 objects/Streaming.h \
 objects/String.h \
-objects/TextCoder.h \
 objects/Time.h \
 objects/ValueHolding.h \
 objects/behavior.h \
