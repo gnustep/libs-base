@@ -23,11 +23,13 @@
    */
 
 #include <Foundation/Foundation.h>
+
+#if	HAVE_LIBXML
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "parser.h"
+#include <libxml/parser.h>
 
 
 @interface	GSDocParser : NSObject
@@ -2065,4 +2067,11 @@ main(int argc, char **argv)
   [pool release];
   return 0;
 }
+
+#else
+main()
+{
+  NSLog(@"No libxml available");
+}
+#endif
 

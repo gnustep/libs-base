@@ -1,25 +1,18 @@
 
-11-Mar-2000
+20-Jun-2000
 
 GSDoc should probably be part of the 'Tools' directory of gstep-base,
-but it depends on a version of the nome XML parsing library this is
+but it depends on a version of the gnome XML parsing library that is
 probably not available on most machines.
 
 Before doing anything else - you need to install the Gnome xml parser library!
 
-I build gsdoc using the latest CVS source of version 1.8.6 of the parser.
+I build gsdoc using the 2.0.0 release of the parser.
 
-You can get this via CVS from -
-  cvs -d :pserver:anonymous@dev.w3.org:/sources/public login
-Password - 'anonymous'
-  cvs -d :pserver:anonymous@dev.w3.org:/sources/public checkout XML
+You can find out how to get this from http://www.xmlsoft.org
 
-Older versions of the library may work - but I doubt it.
-Newer versions may also fail - try using the -D 11-Mar-2000 flag with CVS
-to get the version I used.
-
-Once you have built and installed the xml parser library, you can build
-gsdoc and install it.
+Once you have installed the xml parser library, you can build gsdoc
+and install it.
 
 Run gsdoc giving it the name of a gsdoc file as an argument, and it will
 produce an html output file.
