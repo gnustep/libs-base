@@ -283,19 +283,6 @@ libgnustep-base.def.new: $(GNUSTEP_OBJ_DIR)/*o
 TAGS: $(DIST_FILES)
 	etags $(DIST_FILES)
 
-AUTHORS: GNUmakefile
-	rm -f AUTHORS
-	@echo Finding file authors...
-	@echo 'For the legal record, here is a list of who wrote what:'>AUTHORS
-	@for a in $(FILE_AUTHORS) \
-	; do \
-		echo >>AUTHORS; \
-		echo >>AUTHORS; \
-		echo "$${a}:" >>AUTHORS; \
-		egrep -l "((Written by)|(Author)|(Rewritten by)).*$${a}" \
-			$(DIST_FILES) >>AUTHORS; \
-	done
-
 regenerate: $(DIST_FILES)
 	mv AUTHORS ..
 
