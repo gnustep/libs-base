@@ -141,11 +141,7 @@ GSDebugAllocationList(BOOL difference)
 
       if (difference)
 	{
-#if 1
-	  val = the_table[i].total;
-#else
 	  val -= the_table[i].lastc;
-#endif
 	}
       if (val != 0)
 	{
@@ -188,11 +184,7 @@ GSDebugAllocationList(BOOL difference)
 
 	  if (difference)
 	    {
-#if 1
-	      val = the_table[i].total;
-#else
 	      val -= the_table[i].lastc;
-#endif
 	    }
 	  the_table[i].lastc = the_table[i].count;
 
