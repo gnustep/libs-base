@@ -572,7 +572,6 @@ static NSString	*pathForUser(NSString *user)
   NSString	*home;
   NSString	*path;
   NSString	*old;
-  NSString      *libpath;
   unsigned	desired;
   NSDictionary	*attr;
   BOOL		isDir;
@@ -634,11 +633,6 @@ static NSString	*pathForUser(NSString *user)
       return nil;
     }
 
-  /* Create this path also. The GUI/font cache depends on it being there */
-  libpath = [home stringByAppendingPathComponent: @"Library"];
-  if ([mgr fileExistsAtPath: libpath isDirectory: &isDir] == NO)
-    [mgr createDirectoryAtPath: libpath attributes: attr];
-
   path = [path stringByAppendingPathComponent: GNU_UserDefaultsDatabase];
   old = [home stringByAppendingPathComponent: GNU_UserDefaultsDatabase];
   if ([mgr fileExistsAtPath: path] == NO)
@@ -657,6 +651,22 @@ static NSString	*pathForUser(NSString *user)
       NSLog(@"Warning - ignoring old defaults database in %@", old);
     }
   
+  /*
+   * Try to create standard directory hierarchy if necessary
+   */
+  home = [NSSearchPathForDirectoriesInDomains(NSUserDirectory,
+    NSUserDomainMask, YES) lastObject];
+  if (home != nil)
+    {
+      NSString	*p;
+
+      p = [home stringByAppendingPathComponent: @"Library"];
+      if ([mgr fileExistsAtPath: p isDirectory: &isDir] == NO)
+	{
+	  [mgr createDirectoryAtPath: p attributes: attr];
+	}
+    }
+
   return path;
 }
 
