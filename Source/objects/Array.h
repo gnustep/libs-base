@@ -68,6 +68,6 @@
       ELEMENT_VAR =                                                    \
 	(((Array*)ARRAY)->_contents_array[_FOR_ARRAY_i]);
 
-#define FOR_ARRAY_END }}
+#define END_FOR_ARRAY(ARRAY) }}
 
 #endif /* __Array_h_INCLUDE_GNU */
