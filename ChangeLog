@@ -1,3 +1,11 @@
+2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Improve fetching interface info on mingw ...
+	ignore non-internet interfaces.
+	NB. The mingw winsock2.h header is buggy ... to work properly
+	you need to change the size of a struct sockaddr field from
+	sa_data[14] to sa_data[22]
+
 Tue Feb 26 18:01:26 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/NSBundle.m: Removed all _releasedBundles machinery.

@@ -1132,17 +1132,18 @@ init_iface()
 #ifdef __MINGW__
   INTERFACE_INFO InterfaceList[20];
   unsigned long nBytesReturned;
-  int i, nNumInterfaces;
-  SOCKET desc = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
+  int i, countActive, nNumInterfaces;
+  SOCKET desc = WSASocket(PF_INET, SOCK_RAW, AF_INET, 0, 0, 0);
 
-  if (desc == SOCKET_ERROR)
+  if (desc == INVALID_SOCKET)
     {
       sprintf(ebuf, "Failed to get a socket. Error %s\n", WSAGetLastError());
       log(LOG_CRIT);
       exit(1);
     }
 
-  if (WSAIoctl(desc, SIO_GET_INTERFACE_LIST, 0, 0, &InterfaceList,
+  memset((void*)InterfaceList, '\0', sizeof(InterfaceList));
+  if (WSAIoctl(desc, SIO_GET_INTERFACE_LIST, 0, 0, (void*)InterfaceList,
     sizeof(InterfaceList), &nBytesReturned, 0, 0) == SOCKET_ERROR)
     {
       sprintf(ebuf, "Failed WSAIoctl. Error %s\n", WSAGetLastError());
@@ -1153,22 +1154,38 @@ init_iface()
   nNumInterfaces = nBytesReturned / sizeof(INTERFACE_INFO);
 
   /*
+   * See how many active entries there are.
+   */
+  countActive = 0;
+  for (i = 0; i < nNumInterfaces; i++)
+    {
+      u_long	nFlags = InterfaceList[i].iiFlags;
+
+      if ((nFlags & IFF_UP)
+	&& (InterfaceList[i].iiAddress.sa_family == AF_INET))
+	{
+	  countActive++;
+	}
+    }
+
+  /*
    * Allocate enough space for all interfaces.
    */
   if (addr != 0) free(addr);
-  addr = (struct in_addr*)malloc((nNumInterfaces+1)*IASIZE);
+  addr = (struct in_addr*)malloc((countActive+1)*IASIZE);
   if (bcok != 0) free(bcok);
-  bcok = (char*)malloc((nNumInterfaces+1)*sizeof(char));
+  bcok = (char*)malloc((countActive+1)*sizeof(char));
   if (bcst != 0) free(bcst);
-  bcst = (struct in_addr*)malloc((nNumInterfaces+1)*IASIZE);
+  bcst = (struct in_addr*)malloc((countActive+1)*IASIZE);
   if (mask != 0) free(mask);
-  mask = (struct in_addr*)malloc((nNumInterfaces+1)*IASIZE);
+  mask = (struct in_addr*)malloc((countActive+1)*IASIZE);
 
   for (i = 0; i < nNumInterfaces; i++)
     {
       u_long	nFlags = InterfaceList[i].iiFlags;
 
-      if (nFlags & IFF_UP)
+      if ((nFlags & IFF_UP)
+	&& (InterfaceList[i].iiAddress.sa_family == AF_INET))
 	{
 	  int	broadcast = 0;
 	  int	pointopoint = 0;
@@ -4106,7 +4123,7 @@ main(int argc, char** argv)
   WORD wVersionRequested;
   WSADATA wsaData;
 
-  wVersionRequested = MAKEWORD(2, 0);
+  wVersionRequested = MAKEWORD(2, 2);
   WSAStartup(wVersionRequested, &wsaData);
 #endif
 
