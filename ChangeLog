@@ -1,3 +1,8 @@
+2005-03-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCharacterSet.m: Fix bug in forming union ... was using
+	wrong length.
+
 2005-03-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCharacterSetData.h: Add data outside unicode base plane.
