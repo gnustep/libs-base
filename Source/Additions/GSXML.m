@@ -1982,6 +1982,25 @@ static NSString	*endMarker = @"At end of incremental parse";
     (void*)&newVal) < 0)
     [NSException raise: NSInternalInconsistencyException
 		format: @"Unable to set substituteEntities"];
+
+  newVal = -1;
+  if (xmlGetFeature((xmlParserCtxtPtr)lib, "substitute entities",
+    (void*)&newVal) < 0)
+    [NSException raise: NSInternalInconsistencyException
+		format: @"Unable to get substituteEntities"];
+  if (yesno == YES)
+    {
+      if (newVal != 1)
+	[NSException raise: NSInternalInconsistencyException
+		    format: @"Unable to set substituteEntities to 1"];
+    }
+  else
+    {
+      if (newVal != 0)
+	[NSException raise: NSInternalInconsistencyException
+		    format: @"Unable to set substituteEntities to 0"];
+    }
+  xmlSubstituteEntitiesDefault(newVal);	// Set default too.
   return (oldVal == 1) ? YES : NO;
 }
 
