@@ -25,6 +25,23 @@
 
 @implementation NSUnarchiver 
 
+static Class NSUnarchiver_concrete_class;
+
++ (void) _setConcreteClass: (Class)c
+{
+  NSUnarchiver_concrete_class = c;
+}
+
++ (Class) _concreteClass
+{
+  return NSUnarchiver_concrete_class;
+}
+
++ (void) initialize
+{
+  // NSUnarchiver_concrete_class = [NSGUnarchiver class];
+}
+
 // Initializing an unarchiver
 
 - (id) initForReadingWithData: (NSData*)data
