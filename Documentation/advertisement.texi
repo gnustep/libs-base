@@ -142,34 +142,7 @@ mirror sites.
 The most recent (not necessarily tested) snapshots of the library will
 be placed at @samp{ftp://alpha.gnu.ai.mit.edu/gnu}.
 
-The library requires gcc @value{OBJECTS_GCC_VERSION} or higher.  The
-library does not work with the NEXTSTEP 3.2 compiler because that
-version of NeXT's cc cannot handle nested functions.  Until a later
-release from NeXT, NEXTSTEP users will have to install gcc.  Also,
-temporarily, the library does not work with the NeXT Objective C runtime
-library. 
-
-The library has been successfully compiled and tested with the following
-configurations:
-@smallexample
-  mips-sgi-irix5.2
-  sparc-sun-sunos4.1.3
-  m68k-next-nextstep3.0
-@end smallexample
-
-Some previous snapshots of the library worked with these configurations,
-but they haven't been tested recently:
-@smallexample
-  i386-unknown-linux
-  i386-sun-solaris2.4
-  i386-unknown-sysv4.0
-  sparc-sun-solaris2.3
-@end smallexample
-
-It is known not to work with:
-@smallexample
-  alpha-dec-osf
-@end smallexample
+@include machines.texi
 
 @section GNUStep
 
