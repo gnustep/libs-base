@@ -377,13 +377,24 @@ static SEL	objSel;
 
   if (aKey == nil)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Tried to add nil key to dictionary"];
+      NSException	*e;
+
+      e = [NSException exceptionWithName: NSInvalidArgumentException
+				  reason: @"Tried to add nil key to dictionary"
+				userInfo: self];
+      [e raise];
     }
   if (anObject == nil)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Tried to add nil value to dictionary"];
+      NSException	*e;
+      NSString		*s;
+
+      s = [NSString stringWithFormat:
+	@"Tried to add nil value for key '%@' to dictionary", aKey];
+      e = [NSException exceptionWithName: NSInvalidArgumentException
+				  reason: s
+				userInfo: self];
+      [e raise];
     }
   node = GSIMapNodeForKey(&map, (GSIMapKey)aKey);
   if (node)
@@ -407,7 +418,7 @@ static SEL	objSel;
 {
   if (aKey == nil)
     {
-      NSWarnMLog(@"attempt to remove nil key");
+      NSWarnMLog(@"attempt to remove nil key from dictionary %@", self);
       return;
     }
   GSIMapRemoveKey(&map, (GSIMapKey)aKey);
