@@ -23,7 +23,6 @@
 
 #include <gnustep/base/preface.h>
 #include <Foundation/NSAutoreleasePool.h>
-#include <gnustep/base/objc-malloc.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSThread.h>
 #include <limits.h>

@@ -23,7 +23,6 @@
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/MemoryStream.h>
-#include <gnustep/base/objc-malloc.h>
 #include <gnustep/base/Coder.h>
 #include <stdarg.h>
 #include <assert.h>

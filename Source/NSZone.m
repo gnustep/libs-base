@@ -78,7 +78,6 @@
 # include <malloc.h>
 #endif
 #include <Foundation/NSZone.h>
-#include <gnustep/base/objc-malloc.h>
 
 #define DEFAULTLISTSIZE 10
 
