@@ -1,4 +1,9 @@
-Tue Feb 27 05:07:24 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+2001-02-27  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSLock.m: Commented out extra token after #endif
+	directive.
+
+2001-02-27  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* configure.in (Version): source it as ./Version rather than
 	Version (suggested by Juliusz Chroboczek <jch@pps.jussieu.fr>).
