@@ -53,7 +53,9 @@
 
 @end
 
-@interface UdpPacket : Packet
+@interface UdpInPacket : InPacket
+@end
+@interface UdpOutPacket : OutPacket
 @end
 
 #endif /* __UdpPort_h_INCLUDE_GNU */
