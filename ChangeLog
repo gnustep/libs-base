@@ -2,6 +2,9 @@
 
 	* Tools/gdnc.m: If given -NSHost specification for the current host,
 	ignore it and use the standard name.
+	* Source/GSTcpPort.m: ([-invalidate]) call superclass implementation
+	at end ... so handles can find this port when they are destroying
+	themselves.  Reverses last change I made to this.
 
 2002-04-18  Richard Frith-Macdonald <rfm@gnu.org>
 
