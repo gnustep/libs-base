@@ -607,7 +607,7 @@ static NSMutableSet	*textNodes = nil;
 	  NSDictionary	*dict;
 
 	  dict = [[localRefs refs] objectForKey: @"contents"];
-	  if ([dict count] > 0)
+	  if ([dict count] > 1)
 	    {
 	      NSArray	*a;
 	      unsigned	i;

@@ -343,13 +343,15 @@ con_loop (id prx)
   id cobj;
 
   arp = [NSAutoreleasePool new];
+  [prx addObject: [NSObject new]];  // So loss of this connection is logged.
   cobj = [prx connectionForProxy];
   printf("%d\n", [cobj retainCount]);
   printf("%s\n", [[[cobj statistics] description] cString]);
   //printf("%s\n", GSDebugAllocationList(YES));
 
+  printf("loop left running idle for 30 seconds\n");
   [[NSRunLoop currentRunLoop] runUntilDate:
-    [NSDate dateWithTimeIntervalSinceNow: 2 * 60]];
+    [NSDate dateWithTimeIntervalSinceNow: 30]];
   [cobj invalidate];
   [arp release];
   return 0;
