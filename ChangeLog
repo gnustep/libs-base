@@ -1,3 +1,12 @@
+1999-08-08  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSPort.m (-sendBeforeDate:): Change return type to BOOL
+	as per the spec.  
+	* Source/NSPortMessage.m: Likewise. (patch from
+	Pedro Ivo Andrade Tavares <ptavares@iname.com>).
+
+	* configure.in: Rewrite +load method test.
+
 1999-08-08  Manuel Guesdon  <mguesdon@sbuilders.com>
 
 	* Source/NSGString.m (stringIncrementCountAndMakeHoleAt and stringDecrementCountAndFillHoleAt): 
@@ -32,7 +41,6 @@ Thu Aug  5 10:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	* Tools/gdomap.c: prb_add() maintain server info in date order.
 	prb_del() removed, bugfixes to notice when a server dies.
 
->>>>>>> 1.463.2.2
 Tue Aug  3 12:36:54 1999  Adam Fedor  <fedor@ultra.doc.com>
 
 	* Source/NSInvocation.m (-initWithTarget:selector:): Hack for

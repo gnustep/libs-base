@@ -153,12 +153,13 @@ NSString *NSPortTimeoutException
   return 0;
 }
 
-- (void) sendBeforeDate: (NSDate*)when
+- (BOOL) sendBeforeDate: (NSDate*)when
              components: (NSArray*)components
                    from: (NSPort*)receivingPort
                reserved: (unsigned) length
 {
   [self subclassResponsibility: _cmd];
+  return YES;
 }
 
 @end

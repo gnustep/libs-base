@@ -91,11 +91,11 @@
   return [components objectAtIndex: 1];
 }
 
-- (void) sendBeforeDate: (NSDate*)when
+- (BOOL) sendBeforeDate: (NSDate*)when
 {
   NSPort	*port = [self sendPort];
 
-  [port sendBeforeDate: when
+  return [port sendBeforeDate: when
 	    components: [self components]
 		  from: [self receivePort]
 	      reserved: [port reservedSpaceLength]];

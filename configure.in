@@ -384,42 +384,29 @@ OBJC_SYS_DYNAMIC_LINKER()
 # Defines HAVE_LOAD_METHOD if +load methods are called before main.
 # Needed by NSProcessInfo.m
 #--------------------------------------------------------------------
+saved_LIBS="$LIBS"
+saved_CPPFLAGS="$CPPFLAGS"
+LIBS="$LIBS -lobjc"
+CPPFLAGS="$CPPFLAGS -x objective-c"
+if test x"$ac_cv_objc_threaded" != x""; then
+  LIBS="$LIBS $ac_cv_objc_threaded"
+fi
 AC_MSG_CHECKING(if +load method is executed before main)
 AC_CACHE_VAL(objc_load_method_worked,
-[dnl Temporarily redefine m4 quote symbols 
-dnl Because in the test program we need to use ObjC [object message] syntax
-changequote(,)	
-cat > loadtest.m <<EOF
-@interface Test 
-static int test_result;
-+(void) load;
-+(int) test_result;
-@end
-
-@implementation Test
-static int test_result = 1;
-+(void) load {test_result = 0;}
-+(int) test_result {return test_result;}
-@end
-
-int main (void) {return [Test test_result];}
-EOF
-changequote([,])
-dnl FIX, -lobjc -lpthread should be substituted
-$CC -o loadtest $CFLAGS $OBJCFLAGS $LDFLAGS loadtest.m $LIBS -lobjc -lpthread >/dev/null 2>/dev/null
-rm loadtest.m
-objc_load_method_worked=no
-if (./loadtest); then	
-    objc_load_method_worked=yes
-fi
-rm loadtest >/dev/null 2>/dev/null
-])
+  AC_TRY_RUN([#include "$srcdir/config/config.loadtest.m"],
+	objc_load_method_worked=yes,
+	objc_load_method_worked=no,
+	objc_load_method_worked=no)
+)
 if test $objc_load_method_worked = yes; then
   AC_DEFINE(HAVE_LOAD_METHOD)
   AC_MSG_RESULT(yes)
 else
   AC_MSG_RESULT(no)
 fi
+
+LIBS="$saved_LIBS"
+CPPFLAGS="$saved_CPPFLAGS"
 
 #--------------------------------------------------------------------
 # Generic settings needed by NSZone.m

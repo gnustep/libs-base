@@ -36,7 +36,7 @@
 - (id) initWithSendPort: (NSPort*)aPort
 	    receivePort: (NSPort*)anotherPort
 	     components: (NSArray*)items;
-- (void) sendBeforeDate: (NSDate*)when;
+- (BOOL) sendBeforeDate: (NSDate*)when;
 - (NSArray*) components;
 - (NSPort*) sendPort;
 - (NSPort*) receivePort;

@@ -61,7 +61,7 @@ extern NSString *NSPortTimeoutException; /* OPENSTEP */
 	      fromRunLoop: (NSRunLoop*)aLoop
 		  forMode: (NSString*)aMode;
 - (unsigned) reservedSpaceLength;
-- (void) sendBeforeDate: (NSDate*)when
+- (BOOL) sendBeforeDate: (NSDate*)when
 	     components: (NSArray*)components
 		   from: (NSPort*)receivingPort
 	       reserved: (unsigned) length;
