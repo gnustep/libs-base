@@ -40,6 +40,8 @@ typedef union {
 typedef void(*apply_t)(void);   /* function pointer */
 #define TypedStream void*
 
+#define METHOD_NULL  (struct objc_method *)0
+
 #define class_pointer isa
 typedef struct objc_super Super;
 

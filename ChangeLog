@@ -1,3 +1,7 @@
+2001-08-29  Adam Fedor  <fedor@gnu.org>
+
+	* Source/objc-gnu2next.m (next_objc_msg_send): Fix incorrect def.
+
 Mon Aug 28 23:45:15 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSCalendarDate.m ([+dateWithString:calendarFormat:]):
