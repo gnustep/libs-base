@@ -1,3 +1,8 @@
+2004-09-16  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Define encoding
+	macros for the NeXT runtime.
+	
 2004-09-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDateFormatter.m:
