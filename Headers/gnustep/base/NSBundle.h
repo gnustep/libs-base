@@ -51,9 +51,18 @@ GS_EXPORT NSString* NSLoadedClasses;
 
 + (NSArray*) allBundles;
 + (NSArray*) allFrameworks;
+
+/* Return the application bundle for an application, and the tool bundle
+ * for a tool, locating it automatically on disk.   */
 + (NSBundle*) mainBundle;
+
 + (NSBundle*) bundleForClass: (Class)aClass;
+
+/* Return a bundle for the path at path.  If path doesn't exist or is
+ * not readable, return nil.  If you want the main bundle of an
+ * application or a tool, it's better if you use +mainBundle.  */
 + (NSBundle*) bundleWithPath: (NSString*)path;
+
 + (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext	
 		  inDirectory: (NSString*)bundlePath;
@@ -61,8 +70,16 @@ GS_EXPORT NSString* NSLoadedClasses;
 		       ofType: (NSString*)ext	
 		  inDirectory: (NSString*)bundlePath
 		  withVersion: (int)version;
+
+/* Init the bundle for reading resources from path.  path must be an absolute
+ * path to a directory on disk.  If path is nil or doesn't exist, this method
+ * return nil.  If a bundle for that path already existed, it is returned
+ * in place of this one (and this one is deallocated).  */
 - (id) initWithPath: (NSString*)path;
+
+/* Return the path to the bundle - an absolute path.  */
 - (NSString*) bundlePath;
+
 - (Class) classNamed: (NSString*)className;
 - (Class) principalClass;
 
