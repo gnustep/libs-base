@@ -75,7 +75,8 @@ objects_callbacks_standardize(objects_callbacks_t callbacks)
 /** Using callbacks **/
 
 size_t
-objects_hash (objects_callbacks_t callbacks, void *thing, void *user_data)
+objects_hash (objects_callbacks_t callbacks, 
+	      const void *thing, const void *user_data)
 {
   if (callbacks.hash != 0)
     return callbacks.hash(thing, user_data);
@@ -85,9 +86,9 @@ objects_hash (objects_callbacks_t callbacks, void *thing, void *user_data)
 
 int
 objects_compare (objects_callbacks_t callbacks,
-		 void *thing1,
-		 void *thing2,
-		 void *user_data)
+		 const void *thing1,
+		 const void *thing2,
+		 const void *user_data)
 {
   if (callbacks.compare != 0)
     return callbacks.compare(thing1, thing2, user_data);
@@ -99,9 +100,9 @@ objects_compare (objects_callbacks_t callbacks,
 
 int
 objects_is_equal (objects_callbacks_t callbacks,
-		  void *thing1,
-		  void *thing2,
-		  void *user_data)
+		  const void *thing1,
+		  const void *thing2,
+		  const void *user_data)
 {
   if (callbacks.is_equal != 0)
     return callbacks.is_equal(thing1, thing2, user_data);
@@ -112,7 +113,8 @@ objects_is_equal (objects_callbacks_t callbacks,
 }
 
 void *
-objects_retain (objects_callbacks_t callbacks, void *thing, void *user_data)
+objects_retain (objects_callbacks_t callbacks, 
+		const void *thing, const void *user_data)
 {
   if (callbacks.retain != 0)
     return callbacks.retain(thing, user_data);
@@ -121,17 +123,19 @@ objects_retain (objects_callbacks_t callbacks, void *thing, void *user_data)
 }
 
 void
-objects_release (objects_callbacks_t callbacks, void *thing, void *user_data)
+objects_release (objects_callbacks_t callbacks, 
+		 void *thing, const void *user_data)
 {
   if (callbacks.release != 0)
-    callbacks.release(thing, user_data);
+    callbacks.release (thing, user_data);
   else
-    objects_callbacks_standard().release(thing, user_data);
+    objects_callbacks_standard().release (thing, user_data);
   return;
 }
 
 void *
-objects_describe(objects_callbacks_t callbacks, void *thing, void *user_data)
+objects_describe(objects_callbacks_t callbacks, 
+		 const void *thing, const void *user_data)
 {
   if (callbacks.release != 0)
     return callbacks.describe(thing, user_data);

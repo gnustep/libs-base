@@ -53,41 +53,45 @@ objects_callbacks_t objects_callbacks_for_id =
  * that there was already a built-in call to do this sort of thing. */
 
 size_t
-objects_id_hash(void *obj)
+objects_id_hash(const void *obj)
 {
   return (size_t)[(id)obj hash];
 }
 
 int
-objects_id_compare(void *obj, void *jbo)
+objects_id_compare(const void *obj, const void *jbo)
 {
   return (int)[(id)obj compare:(id)jbo];
 }
 
 int
-objects_id_is_equal(void *obj, void *jbo)
+objects_id_is_equal(const void *obj, const void *jbo)
 {
   return (int)[(id)obj isEqual:(id)jbo];
 }
 
-void *
-objects_id_retain(void *obj)
+const void *
+objects_id_retain(const void *obj)
 {
   return [(id)obj retain];
 }
 
 void
-objects_id_release(void *obj)
+objects_id_release(const void *obj)
 {
   [(id)obj release];
   return;
 }
 
-void *
-objects_id_describe(void *obj)
+const void *
+objects_id_describe (const void *obj)
 {
   /* FIXME: Harrumph.  Make all of these describe functions live
    * in harmony.  Please. */
+#if 0
   return [(id)obj describe];
+#else
+  return 0;
+#endif
 }
 

@@ -45,37 +45,37 @@ objects_callbacks_t objects_callbacks_for_int =
 /**** Function Implementations ***********************************************/
 
 size_t
-objects_int_hash(void *i)
+objects_int_hash (const void *i)
 {
   return (size_t)((int)i);
 }
 
 int
-objects_int_compare(void *i, void *j)
+objects_int_compare (const void *i, const void *j)
 {
   return ((int)i) - ((int)j);
 }
 
 int
-objects_int_is_equal(void *i, void *j)
+objects_int_is_equal (const void *i, const void *j)
 {
   return ((int)i) == ((int)j);
 }
 
-void *
-objects_int_retain(void *i)
+const void *
+objects_int_retain (const void *i)
 {
   return i;
 }
 
 void
-object_int_release(void *i)
+objects_int_release (const void *i)
 {
   return;
 }
 
-void *
-objects_int_describe(void *i)
+const void *
+objects_int_describe (const void *i)
 {
   /* FIXME: Code this. */
   return 0;

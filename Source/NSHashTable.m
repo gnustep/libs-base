@@ -3,8 +3,8 @@
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:54:09 EST 1994
- * Updated: Sat Feb 10 15:59:11 EST 1996
- * Serial: 96.02.10.01
+ * Updated: Mon Feb 12 22:55:15 EST 1996
+ * Serial: 96.02.12.01
  * 
  * This file is part of the GNU Objective C Class Library.
  * 
@@ -30,6 +30,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHashTable.h>
+#include <NSCallBacks.h>
 #include <Foundation/atoz.h>
 #include <objects/hash.h>
 
@@ -37,9 +38,7 @@
 
 /* These are to increase readabilty locally. */
 typedef unsigned int (*NSHT_hash_func_t)(NSHashTable *, const void *);
-typedef BOOL (*NSHT_isEqual_func_t)(NSHashTable *,
-                                    const void *,
-                                    const void *);
+typedef BOOL (*NSHT_isEqual_func_t)(NSHashTable *, const void *, const void *);
 typedef void (*NSHT_retain_func_t)(NSHashTable *, const void *);
 typedef void (*NSHT_release_func_t)(NSHashTable *, void *);
 typedef NSString *(*NSHT_describe_func_t)(NSHashTable *, const void *);
@@ -48,65 +47,65 @@ typedef NSString *(*NSHT_describe_func_t)(NSHashTable *, const void *);
      
 const NSHashTableCallBacks NSIntHashCallBacks =
 {
-  (NSHT_hash_func_t) _NSLF_int_hash,
-  (NSHT_isEqual_func_t) _NSLF_int_is_equal,
-  (NSHT_retain_func_t) fn_null_function,
-  (NSHT_release_func_t) fn_null_function,
-  (NSHT_describe_Func_t) _NSLF_int_describe
+  (NSHT_hash_func_t) _NS_int_hash,
+  (NSHT_isEqual_func_t) _NS_int_is_equal,
+  (NSHT_retain_func_t) _NS_int_retain,
+  (NSHT_release_func_t) _NS_int_release,
+  (NSHT_describe_func_t) _NS_int_describe
 };
 
 const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks = 
 {
-  (NSHT_hash_func_t) _NSLF_void_p_hash,
-  (NSHT_isEqual_func_t) _NSLF_void_p_is_equal,
-  (NSHT_retain_func_t) fn_null_function,
-  (NSHT_release_func_t) fn_null_function,
-  (NSHT_describe_func_t) _NSLF_void_p_describe
+  (NSHT_hash_func_t) _NS_owned_void_p_hash,
+  (NSHT_isEqual_func_t) _NS_owned_void_p_is_equal,
+  (NSHT_retain_func_t) _NS_owned_void_p_retain,
+  (NSHT_release_func_t) _NS_owned_void_p_release,
+  (NSHT_describe_func_t) _NS_owned_void_p_describe
 };
 
 const NSHashTableCallBacks NSNonRetainedObjectsHashCallBacks = 
 {
-  (NSHT_hash_func_t) _NSLF_id_hash,
-  (NSHT_isEqual_func_t) _NSLF_id_is_equal,
-  (NSHT_retain_func_t) fn_null_function,
-  (NSHT_release_func_t) fn_null_function,
-  (NSHT_describe_func_t) _NSLF_id_describe
+  (NSHT_hash_func_t) _NS_non_retained_id_hash,
+  (NSHT_isEqual_func_t) _NS_non_retained_id_is_equal,
+  (NSHT_retain_func_t) _NS_non_retained_id_retain,
+  (NSHT_release_func_t) _NS_non_retained_id_release,
+  (NSHT_describe_func_t) _NS_non_retained_id_describe
 };
 
 const NSHashTableCallBacks NSObjectsHashCallBacks = 
 {
-  (NSHT_hash_func_t) _NSLF_id_hash,
-  (NSHT_isEqual_func_t) _NSLF_id_is_equal,
-  (NSHT_retain_func_t) _NSLF_id_retain,
-  (NSHT_release_func_t) _NSLF_id_object,
-  (NSHT_describe_func_t) _NSLF_id_describe
+  (NSHT_hash_func_t) _NS_id_hash,
+  (NSHT_isEqual_func_t) _NS_id_is_equal,
+  (NSHT_retain_func_t) _NS_id_retain,
+  (NSHT_release_func_t) _NS_id_release,
+  (NSHT_describe_func_t) _NS_id_describe
 };
 
 const NSHashTableCallBacks NSOwnedPointerHashCallBacks = 
 {
-  (NSHT_hash_func_t) _NSLF_void_p_hash,
-  (NSHT_isEqual_func_t) _NSLF_void_p_is_equal,
-  (NSHT_retain_func_t) fn_null_function,
-  (NSHT_release_func_t) _NSLF_void_p_release,
-  (NSHT_describe_func_t) _NSLF_void_p_describe
+  (NSHT_hash_func_t) _NS_owned_void_p_hash,
+  (NSHT_isEqual_func_t) _NS_owned_void_p_is_equal,
+  (NSHT_retain_func_t) _NS_owned_void_p_retain,
+  (NSHT_release_func_t) _NS_owned_void_p_release,
+  (NSHT_describe_func_t) _NS_owned_void_p_describe
 };
 
 const NSHashTableCallBacks NSPointerToStructHashCallBacks = 
 {
-  (NSHT_hash_func_t) _NSLF_int_p_hash,
-  (NSHT_isEqual_func_t) _NSLF_int_p_is_equal,
-  (NSHT_retain_func_t) fn_null_function,
-  (NSHT_release_func_t) fn_null_function,
-  (NSHT_describe_func_t) _NSLF_int_p_describe
+  (NSHT_hash_func_t) _NS_int_p_hash,
+  (NSHT_isEqual_func_t) _NS_int_p_is_equal,
+  (NSHT_retain_func_t) _NS_int_p_retain,
+  (NSHT_release_func_t) _NS_int_p_release,
+  (NSHT_describe_func_t) _NS_int_p_describe
 };
 
 /** Macros **/
 
 #define NSHT_ZONE(T) \
-  ((NSZone *)((fn_hash_allocs((fn_hash_t *)(T))).user_data))
+  ((NSZone *)((objects_hash_allocs((objects_hash_t *)(T))).user_data))
 
 #define NSHT_CALLBACKS(T) \
-  (*((NSHashTableCallBacks *)(__void_p__(fn_hash_extra((fn_hash_t *)(T))))))
+  (*((NSHashTableCallBacks *)(objects_hash_extra((objects_hash_t *)(T)))))
 
 #define NSHT_DESCRIBE(T, P) \
   NSHT_CALLBACKS((T)).describe((T), (P))
@@ -114,111 +113,102 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 /** Dummy callbacks **/
 
 size_t
-_NSHT_hash(fn_generic_t element, void *table)
+_NSHT_hash (const void *element, const void *table)
 {
-  return NSHT_CALLBACKS(table).hash((NSHashTable *)table,
-                                    __void_p__(element));
+  return (NSHT_CALLBACKS(table)).hash ((NSHashTable *)table, element);
 }
 
 int
-_NSHT_compare(fn_generic_t element1,
-                 fn_generic_t element2,
-                 void *table)
+_NSHT_compare (const void *element1, const void *element2, const void *table)
 {
-  return !(NSHT_CALLBACKS(table).isEqual((NSHashTable *)table,
-                                         __void_p__(element1),
-                                         __void_p__(element2)));
+  return !((NSHT_CALLBACKS(table)).isEqual ((NSHashTable *)table,
+					    element1,
+					    element2));
 }
 
 int
-_NSHT_is_equal(fn_generic_t element1,
-                  fn_generic_t element2,
-                  void *table)
+_NSHT_is_equal (const void *element1, const void *element2, const void *table)
 {
-  return NSHT_CALLBACKS(table).isEqual((NSHashTable *) table,
-                                       __void_p__(element1),
-                                       __void_p__(element2));
+  return (NSHT_CALLBACKS(table)).isEqual ((NSHashTable *) table,
+					  element1,
+					  element2);
 }
 
-fn_generic_t
-_NSHT_retain(fn_generic_t element, void *table)
+void *
+_NSHT_retain (const void *element, const void *table)
 {
-  NSHT_CALLBACKS(table).retain((NSHashTable *)table,
-                               __void_p__(element));
-  return element;
+  (NSHT_CALLBACKS(table)).retain ((NSHashTable *)table, element);
+  return (void*) element;
 }
 
 void
-_NSHT_release(fn_generic_t element, void *table)
+_NSHT_release (void *element, const void *table)
 {
-  NSHT_CALLBACKS(table).release(table, __void_p__(element));
+  (NSHT_CALLBACKS(table)).release ((NSHashTable*)table, (void*)element);
   return;
 }
 
 /* These are wrappers for getting at the real callbacks. */
-const fn_callbacks_t _NSHT_callbacks = 
+const objects_callbacks_t _NSHT_callbacks = 
 {
   _NSHT_hash,
   _NSHT_compare,
   _NSHT_is_equal,
   _NSHT_retain,
   _NSHT_release,
-  (fn_describe_func_t)fn_null_function,
+  0,
   0 
 };
 
 /** Extra, extra **/
 
 /* Make a copy of a hash table's callbacks. */
-fn_generic_t
-_NSHT_extra_retain(fn_generic_t extra, void *table)
+void *
+_NSHT_extra_retain (const void *extra, const void *table)
 {
   /* Pick out the callbacks in EXTRA. */
-  NSHashTableCallBacks *callBacks = (NSHashTableCallBacks *)__void_p__(extra);
+  NSHashTableCallBacks *callBacks = (NSHashTableCallBacks *)(extra);
 
   /* Find our zone. */
   NSZone *zone = NSHT_ZONE(table);
 
   /* A pointer to some new callbacks. */
-  NSHashTableCallbacks *newCallBacks;
+  NSHashTableCallBacks *newCallBacks;
 
   /* Set aside space for our new callbacks in the right zone. */
-  newCallBacks = (NSHashTableCallBacks *)NSZoneMalloc(zone,
-                                                      sizeof(NSHashTableCallBacks));
+  newCallBacks = (NSHashTableCallBacks *)
+    NSZoneMalloc(zone,
+		 sizeof(NSHashTableCallBacks));
 
   /* Copy CALLBACKS into NEWCALLBACKS. */
   *newCallBacks = *callBacks;
 
-  /* Stuff NEWCALLBACKS into EXTRA. */
-  __void_p__(extra) = newCallBacks;
-
   /* Return our new EXTRA. */
-  return extra;
+  return (void*) extra;
 }
 
 void
-_NSHT_extra_release(fn_generic_t extra, void *table)
+_NSHT_extra_release (void *extra, const void *table)
 {
-  void *ptr = __void_p__(extra);
   NSZone *zone = NSHT_ZONE(table);
 
-  if (ptr != NULL)
-    NSZoneFree(zone, ptr);
+  if (extra != NULL)
+    NSZoneFree(zone, (void*)extra);
 
   return;
 }
 
 /* The idea here is that these callbacks ensure that the
  * NSHashTableCallbacks which are associated with a given NSHashTable
- * remain so throughout the life of the table and its copies. */
-fn_callbacks_t _NSHT_extra_callbacks = 
+ * remain so associated throughout the life of the table and its copies. */
+objects_callbacks_t _NSHT_extra_callbacks = 
 {
-  (fn_hash_func_t) fn_generic_hash,
-  (fn_is_equal_func_t) fn_generic_is_equal,
-  (fn_compare_func_t) fn_generic_compare,
+  (objects_hash_func_t) objects_void_p_hash,
+  (objects_compare_func_t) objects_void_p_compare,
+  (objects_is_equal_func_t) objects_void_p_is_equal,
   _NSHT_extra_retain,
   _NSHT_extra_release,
-  (fn_describe_func_t) fn_null_function,
+  0,
   0
 };
 
@@ -227,35 +217,35 @@ fn_callbacks_t _NSHT_extra_callbacks =
 /** Creating NSHashTables **/
 
 NSHashTable *
-NSCreateHashTableWithZone(NSHashTableCallBacks callBacks,
-                          unsigned int capacity,
-                          NSZone *zone)
+NSCreateHashTableWithZone (NSHashTableCallBacks callBacks,
+			   unsigned int capacity,
+			   NSZone *zone)
 {
   NSHashTable *table;
-  fn_callbacks_t callbacks;
-  fn_allocs_t allocs;
+  objects_callbacks_t callbacks;
+  objects_allocs_t allocs;
 
   /* These callbacks just look in the TABLE's extra and uses the
    * callbacks there.  See above for precise definitions. */
   callbacks = _NSHT_callbacks;
-  allocs = fn_allocs_for_zone(zone);
+  allocs = objects_allocs_for_zone(zone);
 
   /* Then we build the table. */
-  table = fn_hash_with_allocs_with_callbacks(allocs, callbacks);
+  table = objects_hash_with_allocs_with_callbacks(allocs, callbacks);
 
   if (table != NULL)
   {
-    fn_generic_t extra;
+    const void *extra;
 
     /* Resize TABLE to CAPACITY. */
-    fn_hash_resize(table, capacity);
+    objects_hash_resize(table, capacity);
 
     /* Set aside space for the NSHashTableExtra. */
-    __void_p__(extra) = &callBacks;
+    extra = &callBacks;
 
     /* Add EXTRA to TABLE.  This takes care of everything for us. */
-    fn_hash_set_extra_callbacks(table, _NSHT_extra_callbacks);
-    fn_hash_set_extra(table, extra);
+    objects_hash_set_extra_callbacks(table, _NSHT_extra_callbacks);
+    objects_hash_set_extra(table, extra);
   }
 
   /* Wah-hoo! */
@@ -263,8 +253,8 @@ NSCreateHashTableWithZone(NSHashTableCallBacks callBacks,
 }
 
 NSHashTable *
-NSCreateHashTable(NSHashTableCallBacks callBacks,
-                  unsigned int capacity)
+NSCreateHashTable (NSHashTableCallBacks callBacks,
+		   unsigned int capacity)
 {
   return NSCreateHashTableWithZone(callBacks, capacity, NULL);
 }
@@ -272,15 +262,15 @@ NSCreateHashTable(NSHashTableCallBacks callBacks,
 /** Copying **/
 
 NSHashTable *
-NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
+NSCopyHashTableWithZone (NSHashTable *table, NSZone *zone)
 {
-  fn_allocs_t allocs;
+  objects_allocs_t allocs;
   NSHashTable *new_table;
 
   /* Due to the wonders of modern Libfn technology, everything we care
    * about is automagically transferred. */
-  allocs = fn_allocs_for_zone(zone);
-  new_table = fn_hash_copy_with_allocs(table, allocs);
+  allocs = objects_allocs_for_zone(zone);
+  new_table = objects_hash_copy_with_allocs(table, allocs);
 
   return new_table;
 }
@@ -288,95 +278,66 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
 /** Destroying **/
 
 void
-NSFreeHashTable(NSHashTable *table)
+NSFreeHashTable (NSHashTable *table)
 {
-  /* Due to the wonders of modern Libfn technology, everything we care
-   * about is automagically and safely destroyed. */
-  fn_hash_dealloc(table);
+  /* Due to the wonders of modern Libobjects structure technology,
+   * everything we care about is automagically and safely destroyed. */
+  objects_hash_dealloc(table);
   return;
 }
 
 /** Resetting **/
 
 void
-NSResetHashTable(NSHashTable *table)
+NSResetHashTable (NSHashTable *table)
 {
-  fn_hash_empty(table);
+  objects_hash_empty(table);
   return;
 }
 
 /** Comparing **/
 
 BOOL
-NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
+NSCompareHashTables (NSHashTable *table1, NSHashTable *table2)
 {
-  return (fn_hash_is_equal_to_hash(table1, table2) ? YES : NO);
+  return (objects_hash_is_equal_to_hash(table1, table2) ? YES : NO);
 }
 
 /** Counting **/
 
 unsigned int
-NSCountHashTable(NSHashTable *table)
+NSCountHashTable (NSHashTable *table)
 {
-  return (unsigned int) fn_hash_count(table);
+  return (unsigned int) objects_hash_count(table);
 }
 
 /** Retrieving **/
 
 void *
-NSHashGet(NSHashTable *table, const void *pointer)
+NSHashGet (NSHashTable *table, const void *pointer)
 {
-  fn_generic_t element;
-  fn_generic_t member;
-
-  /* Stuff POINTER into (the `void *' facet of) ELEMENT. */
-  __void_p__(element) = pointer;
-
-  /* Look up ELEMENT in TABLE. */
-  member = fn_hash_element(table, element);
-
-  /* Return the `void *' facet of MEMBER. */
-  return __void_p__(member);
+  /* Just make the call.  You know the number. */
+  return (void*) objects_hash_element (table, pointer);
 }
 
 NSArray *
-NSAllHashTableObjects(NSHashTable *table)
+NSAllHashTableObjects (NSHashTable *table)
 {
-  NSArray *array;
-  fn_generic_t *elements;
-  id *objects;
-  unsigned int count;
+  NSMutableArray *array;
+  NSHashEnumerator enumerator;
+  id element;
 
   /* FIXME: We should really be locking TABLE somehow, to insure
    * the thread-safeness of this method. */
 
-  /* Get an array of the (generically-typed) elements of TABLE. */
-  elements = fn_hash_all_elements(table);
+  /* Get us a mutable array with plenty of space. */
+  array = [NSMutableArray arrayWithCapacity:NSCountHashTable(table)];
 
-  /* How many thing are in TABLE? */
-  count = NSCountHashTable(table);
+  /* Get an enumerator for TABLE. */
+  enumerator = NSEnumerateHashTable(table);
 
-  /* Make enough room for our array of `id's together with a
-   * terminating `nil' that we add below. */
-  objects = fn_calloc(fn_hash_allocs(table), count + 1, sizeof(id));
-
-  /* Step through the generic array and copy the `id' facet of each
-   * into the corresponding member of the objects array.  Remember
-   * that this function is only suppossed to be called when TABLE
-   * contains objects.  Otherwise, everything goes to hell remarkably
-   * quickly. */
-  for (i = 0; i < count; ++i)
-    objects[i] = __id__(elements[i]);
-
-  /* `nil' terminate OBJECTS. */
-  objects[i] = nil;
-
-  /* Build the NSArray to return. */
-  array = [[NSArray alloc] initWithObjects:objects count:count];
-
-  /* Free up all the space we allocated here. */
-  fn_free(fn_hash_allocs(table), elements);
-  fn_free(fn_hash_allocs(table), objects);
+  while ((element = NSNextHashEnumeratorItem(&enumerator)) != 0)
+    [array addObject:element];
 
   /* FIXME: Should ARRAY returned be `autorelease'd? */
   return [array autorelease];
@@ -385,91 +346,76 @@ NSAllHashTableObjects(NSHashTable *table)
 /** Enumerating **/
 
 NSHashEnumerator
-NSEnumerateHashTable(NSHashTable *table)
+NSEnumerateHashTable (NSHashTable *table)
 {
-  return fn_hash_enumerator(table);
+  return objects_hash_enumerator (table);
 }
 
 void *
-NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
+NSNextHashEnumeratorItem (NSHashEnumerator *enumerator)
 {
-  fn_generic_t element;
+  const void *element;
 
   /* Grab the next element. */
-  fn_hash_enumerator_next_element(enumerator, &element);
+  objects_hash_enumerator_next_element (enumerator, &element);
 
-  /* Return ELEMENT's `void *' facet. */
-  return __void_p__(element);
+  /* Return ELEMENT. */
+  return (void*) element;
 }
 
 /** Adding **/
 
 void
-NSHashInsert(NSHashTable *table, const void *pointer)
+NSHashInsert (NSHashTable *table, const void *pointer)
 {
-  fn_generic_t element;
+  /* Place POINTER in TABLE. */
+  objects_hash_add_element (table, pointer);
 
-  /* Stuff POINTER into ELEMENT. */
-  __void_p__(element) = (void *)pointer;
-
-  /* Place ELEMENT in TABLE. */
-  fn_hash_add_element(table, element);
-
+  /* OpenStep doesn't care for any return value, so... */
   return;
 }
 
 void
-NSHashInsertKnownAbsent(NSHashTable *table, const void *pointer)
+NSHashInsertKnownAbsent (NSHashTable *table, const void *element)
 {
-  fn_generic_t element;
-
-  __void_p__(element) = pointer;
-
-  if (fn_hash_contains_element(table, element))
+  if (objects_hash_contains_element(table, element))
   {
     /* FIXME: I should make this give the user/programmer more
      * information.  Not difficult to do, just something for a later
      * date. */
     [NSException raise:NSInvalidArgumentException
                  format:@"Attempted reinsertion of \"%@\" into a hash table.",
-                 NSHT_DESCRIBE(table, pointer)];
+                 NSHT_DESCRIBE(table, element)];
   }
   else
   {
-    fn_hash_add_element_known_absent(table, element);
+    objects_hash_add_element_known_absent(table, element);
   }
 
   return;
 }
 
 void *
-NSHashInsertIfAbsent(NSHashTable *table, const void *pointer)
+NSHashInsertIfAbsent (NSHashTable *table, const void *element)
 {
-  fn_generic_t element;
-
-  /* Stuff POINTER into ELEMENT. */
-  __void_p__(element) = (void *)pointer;
+  const void *old_element;
 
   /* Place ELEMENT in TABLE. */
-  element = fn_hash_add_element_if_absent(table, element);
+  old_element = objects_hash_add_element_if_absent(table, element);
 
-  /* Return the `void *' facet of ELEMENT. */
-  return __void_p__(element);
+  /* Return the version of ELEMENT in TABLE now. */
+  return (void*) old_element;
 }
 
 /** Removing **/
 
 void
-NSHashRemove(NSHashTable *table, const void *pointer)
+NSHashRemove (NSHashTable *table, const void *element)
 {
-  fn_generic_t element;
-
-  /* Stuff POINTER into ELEMENT. */
-  __void_p__(element) = pointer;
-
   /* Remove ELEMENT from TABLE. */
-  fn_hash_remove_element(table, element);
+  objects_hash_remove_element(table, element);
 
+  /* OpenStep doesn't care about return values here, so... */
   return;
 }
 
@@ -479,25 +425,24 @@ NSHashRemove(NSHashTable *table, const void *pointer)
  * If somebody has a clear idea of what this string should look like,
  * please tell me, and I'll make it happen. */
 NSString *
-NSStringFromHashTable(NSHashTable *table)
+NSStringFromHashTable (NSHashTable *table)
 {
-  NSString *string;
+  NSMutableString *string;
   NSHashEnumerator enumerator;
-  void *pointer;
+  const void *pointer;
 
   /* This will be our string. */
-  string = [NSMutableString string];
+  string = [NSMutableString stringWithCapacity:0];
 
   /* Get an enumerator for TABLE. */
   enumerator = NSEnumerateHashTable(table);
 
   /* Iterate over the elements of TABLE, appending the description of
    * each to the mutable string STRING. */
-  while ((pointer = NSNextHashEnumeratorItem(&enumerator)) != NULL)
+  while ((pointer = NSNextHashEnumeratorItem(&enumerator)) != 0)
     [string appendFormat:@"%@;", NSHT_DESCRIBE(table, pointer)];
 
   /* Note that this string'll need to be `retain'ed. */
   /* FIXME: Should I `autorelease' STRING?  I think so. */
-  return [string autorelease];
+  return (NSString *)[string autorelease];
 }
-

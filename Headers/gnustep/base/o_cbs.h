@@ -33,12 +33,14 @@
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
-typedef size_t (*objects_hash_func_t) (void *, void *);
-typedef int (*objects_compare_func_t) (void *, void *, void *);
-typedef int (*objects_is_equal_func_t) (void *, void *, void *);
-typedef void *(*objects_retain_func_t) (void *, void *);
-typedef void (*objects_release_func_t) (void *, void *);
-typedef void *(*objects_describe_func_t) (void *, void *);
+typedef size_t (*objects_hash_func_t) (const void *, const void *);
+typedef int (*objects_compare_func_t) (const void *, const void *, 
+				       const void *);
+typedef int (*objects_is_equal_func_t) (const void *, const void *, 
+					const void *);
+typedef void *(*objects_retain_func_t) (const void *, const void *);
+typedef void (*objects_release_func_t) (void *, const void *);
+typedef void *(*objects_describe_func_t) (const void *, const void *);
 
 typedef struct _objects_callbacks objects_callbacks_t;
 
@@ -50,7 +52,7 @@ struct _objects_callbacks
   objects_retain_func_t retain;
   objects_release_func_t release;
   objects_describe_func_t describe;
-  void *not_an_item_marker;
+  const void *not_an_item_marker;
 };
 
 /** Callbacks for various types **/
@@ -88,85 +90,85 @@ objects_callbacks_standardize (objects_callbacks_t callbacks);
 /** Using callbacks **/
 
 size_t objects_hash (objects_callbacks_t callbacks,
-                     void *thing,
-                     void *user_data);
+                     const void *thing,
+                     const void *user_data);
 
 int objects_compare (objects_callbacks_t callbacks,
-                     void *thing1,
-                     void *thing2,
-                     void *user_data);
+                     const void *thing1,
+                     const void *thing2,
+                     const void *user_data);
 
 int objects_is_equal (objects_callbacks_t callbacks,
-                      void *thing1,
-                      void *thing2,
-                      void *user_data);
+                      const void *thing1,
+                      const void *thing2,
+                      const void *user_data);
 
 void *objects_retain (objects_callbacks_t callbacks,
-                      void *thing,
-                      void *user_data);
+                      const void *thing,
+                      const void *user_data);
 
 void objects_release (objects_callbacks_t callbacks,
                       void *thing,
-                      void *user_data);
+                      const void *user_data);
 
 /* FIXME: Decide what to do with this describe stuff.  We'd really like
  * them to return Strings?  Or would we rather they be `char *'s?
  * Or something else? */
 void *objects_describe (objects_callbacks_t callbacks,
-                        void *thing,
-                        void *user_data);
+                        const void *thing,
+                        const void *user_data);
 
-void *objects_not_an_item_marker (objects_callbacks_t);
+const void *objects_not_an_item_marker (objects_callbacks_t);
 
 /** Specific callback functions **/
 
 /* For `void *' */
-size_t objects_void_p_hash(void *ptr);
-int objects_void_p_compare(void *ptr, void *qtr);
-int objects_void_p_is_equal(void *ptr, void *qtr);
-void *objects_void_p_retain(void *ptr);
-void objects_void_p_release(void *ptr);
-void *objects_void_p_describe(void *ptr);
+size_t objects_void_p_hash(const void *ptr);
+int objects_void_p_compare(const void *ptr, const void *qtr);
+int objects_void_p_is_equal(const void *ptr, const void *qtr);
+const void *objects_void_p_retain(const void *ptr);
+void objects_void_p_release(const void *ptr);
+const void *objects_void_p_describe(const void *ptr);
 
 /* For `void *' */
-size_t objects_owned_void_p_hash(void *ptr);
-int objects_owned_void_p_compare(void *ptr, void *qtr);
-int objects_owned_void_p_is_equal(void *ptr, void *qtr);
-void *objects_owned_void_p_retain(void *ptr);
-void objects_owned_void_p_release(void *ptr);
-void *objects_owned_void_p_describe(void *ptr);
+size_t objects_owned_void_p_hash(const void *ptr);
+int objects_owned_void_p_compare(const void *ptr, const void *qtr);
+int objects_owned_void_p_is_equal(const void *ptr, const void *qtr);
+const void *objects_owned_void_p_retain(const void *ptr);
+void objects_owned_void_p_release(const void *ptr);
+const void *objects_owned_void_p_describe(const void *ptr);
 
 /* For `int' */
-size_t objects_int_hash(void *i);
-int objects_int_compare(void *i, void *j);
-int objects_int_is_equal(void *i, void *j);
-void *objects_int_retain(void *i);
-void objects_int_release(void *i);
-void *objects_int_describe(void *i);
+size_t objects_int_hash(const void *i);
+int objects_int_compare(const void *i, const void *j);
+int objects_int_is_equal(const void *i, const void *j);
+const void *objects_int_retain(const void *i);
+void objects_int_release(const void *i);
+const void *objects_int_describe(const void *i);
 
 /* For `int *' */
-size_t objects_int_p_hash(void *iptr);
-int objects_int_p_compare(void *iptr, void *jptr);
-int objects_int_p_is_equal(void *iptr, void *jptr);
-void *objects_int_p_retain(void *iptr);
-void objects_int_p_release(void *iptr);
-void *objects_int_p_describe(void *iptr);
+size_t objects_int_p_hash(const void *iptr);
+int objects_int_p_compare(const void *iptr, const void *jptr);
+int objects_int_p_is_equal(const void *iptr, const void *jptr);
+const void *objects_int_p_retain(const void *iptr);
+void objects_int_p_release(const void *iptr);
+const void *objects_int_p_describe(const void *iptr);
 
 /* For `char *' */
-size_t objects_char_p_hash(void *cptr);
-int objects_char_p_compare(void *cptr, void *dptr);
-int objects_char_p_is_equal(void *cptr, void *dptr);
-void *objects_char_p_retain(void *cptr);
-void objects_char_p_release(void *cptr);
-void *objects_char_p_describe(void *cptr);
+size_t objects_char_p_hash(const void *cptr);
+int objects_char_p_compare(const void *cptr, const void *dptr);
+int objects_char_p_is_equal(const void *cptr, const void *dptr);
+const void *objects_char_p_retain(const void *cptr);
+void objects_char_p_release(const void *cptr);
+const void *objects_char_p_describe(const void *cptr);
 
 /* For `id' */
-size_t objects_id_hash(void *obj);
-int objects_id_compare(void *obj, void *jbo);
-int objects_id_is_equal(void *obj, void *jbo);
-void *objects_id_retain(void *obj);
-void objects_id_release(void *obj);
-void *objects_id_describe(void *obj);
+size_t objects_id_hash(const void *obj);
+int objects_id_compare(const void *obj, const void *jbo);
+int objects_id_is_equal(const void *obj, const void *jbo);
+const void *objects_id_retain(const void *obj);
+void objects_id_release(const void *obj);
+const void *objects_id_describe(const void *obj);
 
 #endif /* __callbacks_h_OBJECTS_INCLUDE */
 

@@ -33,10 +33,10 @@
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
-typedef void *(*objects_malloc_func_t) (size_t, void *);
-typedef void *(*objects_calloc_func_t) (size_t, size_t, void *);
-typedef void *(*objects_realloc_func_t) (void *, size_t, void *);
-typedef void (*objects_free_func_t) (void *, void *);
+typedef void *(*objects_malloc_func_t) (size_t, const void *);
+typedef void *(*objects_calloc_func_t) (size_t, size_t, const void *);
+typedef void *(*objects_realloc_func_t) (void *, size_t, const void *);
+typedef void (*objects_free_func_t) (void *, const void *);
 
 typedef struct _objects_allocs objects_allocs_t;
 
@@ -46,7 +46,7 @@ struct _objects_allocs
     objects_calloc_func_t calloc;
     objects_realloc_func_t realloc;
     objects_free_func_t free;
-    void *user_data;
+    const void *user_data;
   };
 
 /* Shorthand macros. */
@@ -71,10 +71,10 @@ void *
   objects_calloc (objects_allocs_t allocs, size_t n, size_t s);
 
 void *
-  objects_realloc (objects_allocs_t allocs, void *p, size_t s);
+  objects_realloc (objects_allocs_t allocs, const void *p, size_t s);
 
 void
-  objects_free (objects_allocs_t allocs, void *p);
+  objects_free (objects_allocs_t allocs, const void *p);
 
 size_t
 objects_next_power_of_two (size_t start);
