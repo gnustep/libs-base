@@ -2,7 +2,7 @@
  * Copyright (C) 1995 Free Software Foundation, Inc.
  * 
  * Written by:  Adam Fedor <fedor@boulder.colorado.edu>
- * Date: 1995
+ * Date: 1995,199
  * 
  * This file is part of the GNUstep Base Library.
  * 
@@ -31,6 +31,18 @@
 #endif
 
 /**** Type, Constant, and Macro Definitions **********************************/
+
+#ifndef MAX
+#define MAX(a,b) \
+       ({typeof(a) _MAX_a = (a); typeof(b) _MAX_b = (b);  \
+         _MAX_a > _MAX_b ? _MAX_a : _MAX_b; })
+#endif
+
+#ifndef MIN
+#define MIN(a,b) \
+       ({typeof(a) _MIN_a = (a); typeof(b) _MIN_b = (b);  \
+         _MIN_a < _MIN_b ? _MIN_a : _MIN_b; })
+#endif
 
 /* Point definition. */
 typedef struct _NSPoint NSPoint;
