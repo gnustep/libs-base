@@ -1,3 +1,10 @@
+2000-10-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Makefile.preamble (ADDITIONAL_CPPFLAGS): Replace
+	DEFS (lost in last change) to set default paths for NSBundle etc.
+	* Source/NSString.m: Minor range fixes.
+	* Source/NSGString.m: initialisation fixes.
+
 2000-10-04  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Makefile.preamble (ADDITIONAL_CPPFLAGS): Add
