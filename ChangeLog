@@ -1,3 +1,10 @@
+Fri Jan  8  9:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        * src/NSObject.m: Cache a few more classes.
+        * src/include/fast.x: Add a few more classes to cache.
+        * checks/benchmark.m: Benchmark classname lookup overhead.
+        * src/Makefile.postamble: Improve dependencies.
+
 Wed Jan  6 22:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * src/UnixFileHandle.m: Fixed error in last change to ([-closeFile])
