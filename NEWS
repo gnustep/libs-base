@@ -1,7 +1,21 @@
 News
 ****
 
-The currently released version of the library is `0.6.0'.
+The currently released version of the library is `0.6.5'.
+
+Noteworthy changes in version `0.6.5'
+=====================================
+
+   * Better debugging information.
+
+   * Timezone information rewritten to work more like GNUstep wants it
+     rather than strict Posix.
+
+   * Added support for FreeBSD native POSIX threads
+
+   * Better garbage collection support.
+
+   * Lots of optimizations and bug fixes.
 
 Noteworthy changes in version `0.6.0'
 =====================================
@@ -17,6 +31,7 @@ and installations, and is considered to be fairly stable.
    * Better localization support in NSBundle.
 
    * Performance boosts in many classes.
+
 
 Noteworthy changes in version `0.5.5'
 =====================================
@@ -36,11 +51,13 @@ Noteworthy changes in version `0.5.5'
    * There are several new tools for handling services, defaults, and
      pasteboards.
 
+
 Noteworthy changes in version `0.5.1'
 =====================================
 
    * Additional runtime functions for interaction with Guile and
      ObjC-Guile library.
+
 
 Noteworthy changes in version `0.5.0'
 =====================================
@@ -55,6 +72,7 @@ Noteworthy changes in version `0.5.0'
    * gdomap now handles subnet addressing and machines with multiple IP
      addresses from  Richard Frith-Macdonald
      <richard@brainstorm.co.uk>.
+
 
 Noteworthy changes in version `0.4.0'
 =====================================
@@ -89,6 +107,7 @@ Noteworthy changes in version `0.4.0'
      <scottc@net-community.com>
 
    * Many, many, many, many bug fixes and new classes.
+
 
 Noteworthy changes since version `0.1.19'
 =========================================
@@ -191,6 +210,7 @@ Noteworthy changes since version `0.1.19'
 
    * ...and many bug fixes.
 
+
 Noteworthy changes since version `0.1.14'
 =========================================
 
@@ -225,6 +245,7 @@ Noteworthy changes since version `0.1.14'
    * Bug fixes in NSString, NSDictionary, NSArray, NSGeometry and other
      places.
 
+
 Noteworthy changes since version `0.1.13'
 =========================================
 
@@ -239,6 +260,7 @@ Noteworthy changes since version `0.1.13'
 
    * Many bug fixes.
 
+
 Noteworthy changes since version `0.1.12'
 =========================================
 
@@ -246,6 +268,7 @@ Noteworthy changes since version `0.1.12'
      NSArray, NSDictionary, NSData, NSArchiver, NSUnarchiver concrete
      class configurability; NSString -getCharacter:range:. See the
      ChangeLog for more details.
+
 
 Noteworthy changes since version `0.1.10'
 =========================================
@@ -264,6 +287,7 @@ Noteworthy changes since version `0.1.10'
 
    * And several bug fixes.  See the ChangeLog for details.
 
+
 Noteworthy changes since version `0.1.9'
 ========================================
 
@@ -272,6 +296,7 @@ Noteworthy changes since version `0.1.9'
 
    * Several bug fixes, including a problem with a missing file in
      0.1.9.
+
 
 Noteworthy changes since version `0.1.8'
 ========================================
@@ -309,6 +334,7 @@ Noteworthy changes since version `0.1.8'
      in Collection.m; typo in BinaryTree.m; put -write: and -read:
      implementations back in Collection.m.
 
+
 Noteworthy changes since version `0.1.7'
 ========================================
 
@@ -329,6 +355,7 @@ Noteworthy changes since version `0.1.7'
 
    * Several bug fixes, including two serious ones in Collection
      deallocation and behavior adding.  See the ChangeLog for details.
+
 
 Noteworthy changes since version `0.1.5'
 ========================================
@@ -357,6 +384,7 @@ Noteworthy changes since version `0.1.5'
    * Several bug fixes.  Thanks to those who reported them.  Credits
      are in the ChangeLog.
 
+
 Noteworthy changes since version `0.1.3'
 ========================================
 
@@ -383,6 +411,7 @@ made on GNUSTEP.
    * Entire library converted to use `retain', `release',
      `autorelease', `dealloc' instead of `free'.
 
+
 Noteworthy changes since version `0.1.0'
 ========================================
 
@@ -391,6 +420,7 @@ Noteworthy changes since version `0.1.0'
 
    * Bug fixes: Install next-includes properly.  New instructions in
      README.ULTRIX.  Time.m patched for Solaris 2.4.  test12.m free fix.
+
 
 Noteworthy changes in version `0.1.0'
 =====================================
@@ -425,6 +455,7 @@ Noteworthy changes in version `0.1.0'
      in List and HashTable.  New files zone.[hc] containing dummy stubs
      for NeXT-compatible zone functions.
 
+
 Noteworthy changes in verion `940524'
 =====================================
 
@@ -450,6 +481,7 @@ Noteworthy changes in verion `940524'
      leaks by unfinished enumerations: `-newEnumState' and
      `-freeEnumState:'.  Several bug fixes in List and Storage; changes
      for better NeXT-compability.  And more.
+
 
 Noteworthy changes in version `931026'
 ======================================
@@ -489,6 +521,7 @@ Noteworthy changes in version `931026'
    * Many bug fixes.
 
    * ...and more.
+
 
    Also see the `ChangeLog' file for more detail.
 

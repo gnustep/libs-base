@@ -1224,7 +1224,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      struct sockaddr_in	sin;
 	      int			size = sizeof(sin);
 
-	      h = [[UnixFileHandle alloc] initWithFileDescriptor: desc];
+	      h = [[UnixFileHandle alloc] initWithFileDescriptor: desc
+						  closeOnDealloc: YES];
 	      getpeername(desc, (struct sockaddr*)&sin, &size);
 	      [h setAddr: &sin];
 	      [readInfo setObject: h

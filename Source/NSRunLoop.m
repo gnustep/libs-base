@@ -1011,6 +1011,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 - (void) acceptInputForMode: (NSString*)mode 
 		 beforeDate: limit_date
 {
+  extern BOOL	GSCheckTasks();
   NSTimeInterval ti;
   struct timeval timeout;
   void *select_timeout;
@@ -1053,6 +1054,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
       /* The LIMIT_DATE has already past; return immediately without
 	 polling any inputs. */
       [self _checkPerformers];
+      GSNotifyASAP();
       if (debug_run_loop)
 	printf ("\tNSRunLoop limit date past, returning\n");
       _current_mode = saved_mode;
@@ -1147,9 +1149,12 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   read_fds = fds;
   exception_fds = fds;
 
-  /* Detect if the NSRunLoop is idle, and if necessary - dispatch the
-     notifications from NSNotificationQueue's idle queue? */
-  if (num_inputs == 0 && GSNotifyMore())
+  /*
+   * If there are notifications in the 'idle' queue, we try an instantaneous
+   * select so that, if there is no input pending, we can service the queue.
+   * Similarly, if a task has completed, we need to deliver it's notifications.
+   */
+  if (GSCheckTasks() || GSNotifyMore())
     {
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
@@ -1168,6 +1173,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     {
       if (errno == EINTR)
 	{
+	  GSCheckTasks();
 	  select_return = 0;
 	}
       else

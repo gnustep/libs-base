@@ -33,7 +33,7 @@
 /* Key for thread dictionary. */
 static NSString *dict_key = @"_NSAssertionHandler";
 
-+ (NSAssertionHandler *)currentHandler
++ (NSAssertionHandler*)currentHandler
 {
   NSMutableDictionary *dict;
   NSAssertionHandler *handler;
@@ -48,10 +48,10 @@ static NSString *dict_key = @"_NSAssertionHandler";
   return handler;
 }
 
-- (void)handleFailureInFunction:(NSString *)functionName 
-   file:(NSString *)fileName 
-   lineNumber:(int)line 
-   description:(NSString *)format,...
+- (void) handleFailureInFunction: (NSString*)functionName 
+			    file: (NSString*)fileName 
+		      lineNumber: (int)line 
+		     description: (NSString*)format,...
 {
   id message;
   va_list ap;
@@ -59,8 +59,8 @@ static NSString *dict_key = @"_NSAssertionHandler";
   va_start(ap, format);
   message =
     [NSString
-      stringWithFormat: @"Assertion failed in %@, file %@:%d. %@",
-      functionName, fileName, line, format];
+      stringWithFormat: @"%@:%d  Assertion failed in %@.  %@",
+      fileName, line, functionName, format];
   NSLogv(message, ap);
   va_end(ap);
 
@@ -81,9 +81,9 @@ static NSString *dict_key = @"_NSAssertionHandler";
   va_start(ap, format);
   message =
     [NSString
-      stringWithFormat: @"Assertion failed in %s, method %s, file %@:%d. %@",
-      object_get_class_name(object), sel_get_name(aSelector),
-      fileName, line, format];
+      stringWithFormat: @"%@:%d  Assertion failed in %s, method %s.  %@",
+      fileName, line, object_get_class_name(object), sel_get_name(aSelector),
+      format];
   NSLogv(message, ap);
 
   [NSException raise: NSInternalInconsistencyException 

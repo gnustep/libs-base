@@ -67,6 +67,17 @@
  /* #include <objc/objc-list.h> */
 #endif
 
+/*
+ * Hack for older compiler versions that don't have all defines
+ * needed in  objc-api.h
+ */
+#ifndef	_C_LNG_LNG
+#define	_C_LNG_LNG	'q'
+#endif
+#ifndef	_C_ULNG_LNG
+#define	_C_ULNG_LNG	'Q'
+#endif
+
 #ifndef __WIN32__
 #include <sys/param.h> /* Hack to get rid of warning in GNU libc 2.0.3. */
 #endif

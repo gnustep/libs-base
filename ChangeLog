@@ -1,3 +1,113 @@
+2000-02-17  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 0.6.5 released.
+
+2000-02-16  Adam Fedor  <fedor@gnu.org>
+
+	* gnustep-base.spec: Newfile
+
+Wed Feb 16 06:28:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSAssertionHandler.m: Applied patch by David relson to change
+	output format for function assertions, fixed error in format string,
+	 and made similar changes for method assertions.
+
+2000-02-14  Adam Fedor  <fedor@gnu.org>
+
+	* Version: Update version number
+	* Documentation/announce.tmpl.texi: Update
+	* Documentation/readme.tmpl.texi: Likewise.
+	* Documentation/news.tmpl.texi: Likewise.
+	* Documentation/todo.tmpl.texi: Likewise.
+	* ANNOUNCE, BUGS, NEWS, README: Regenerate
+
+Fri Feb 11 06:27:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSZone.m: Tidied indentation etc to GNU style.
+
+Thu Feb 10 23:01:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSDebug.m: Patch by David Relson to change memory allocation
+	report and add thread-safety.  Modified by me to automatically use
+	locking if necessary, to tidy up, and to fix a couple of bugs in
+	lock/unlock sequencing.  All new stuff - but since the previous
+	version was completely unusable in a multithreaded environment I
+	don't think we are running any risk by adding this here.
+
+Thu Feb 10 15:00:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Changes to fix possible crashes where task completion notifications
+	are sent at inappropriate times due to SIGCHLD.
+	* Source/NSTask.m: Move signal handler code to GSChecktasks() and
+	have the signal handler simply set a flag to say work needs doing.
+	* Source/NSRunLoop.m: Add calls to GSCheckTasks() so that we notice
+	the death of a child.
+
+Thu Feb 10 14:13:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/UnixFileHandle.m: ([-receivedEvent:type:extra: forMode:])
+	fix so that incoming connections are closed when their file handle
+	is deallocated.
+
+Thu Feb 10  9:34:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Headers/gnustep/base/preface.h.in: Added tests to see if _C_LNG_LNG
+	and _C_ULNG_LNG are defined in the objc compiler headers and, if not,
+	define them.  Long long support was added in gcc 2.8 (minimum
+	compiler version recommended for GNUstep), but the defines were
+	missing from the headers :-(
+	* Source/NSArchiver.m: Remove conditional compile for long long stuff.
+	* Source/NSData.m: ditto
+	* Source/NSUnarchiver.m: ditto
+	* Source/mframe.m: ditto
+
+2000-02-09  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/gnustep-base.tmpl.texi: Update.
+	* Documentation/news.tmpl.texi: Likewise.
+	* Documentation/readme.tmpl.texi:Likewise.
+
+	* Headers/gnustep/base/NSObjCRuntime.h: Include preface for stdargs.
+
+Wed Feb  9 17:44:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Headers/gnustep/base/NSObjCRuntime.h: fix for header dependencies.
+	* Headers/gnustep/base/Unicode.h: ditto
+	* Source/NSDebug.m: ditto
+
+Tue Feb  8 23:00:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSRunLoop.m: ([acceptInputForMode:beforeDate:]) fix handling
+	of notifications in idle queue.
+
+2000-02-08  Adam Fedor  <fedor@gnu.org>
+
+	* config.guess: New version
+	* config.sub: Likewise.
+
+Tue Feb  8 23:00:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSArray.m: Move ([writeToFile:atomically:]) from mutable
+	array to array code.
+
+Tue Feb  8 12:44:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/Foundation/HSConfig.h.in: Added some GC macros
+	* Source/NSData.m: Attempt to remove temporary file if an atomic
+	write attempt fails.
+
+Sat Feb  5  8:47:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/Foundation/NSDebug.h: Add missing function prototype -
+	Patch by David Relson <relson@expressgate.net>
+
+2000-01-27  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (init_iface): Check to see if an
+	interface is up (using SIOCGIFFLAGS), and then get the address
+	information before checking whether the address is in the AF_INET
+	family (patch from Jonathan Gapen <jagapen@whitewater.chem.wisc.edu>).
+	
 Sun Jan 16  9:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Moved objc-load.c to objc-load.m and filnd-exec.c to find-exec.m

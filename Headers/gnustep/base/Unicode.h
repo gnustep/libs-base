@@ -17,13 +17,14 @@
    Library General Public License for more details.
 
    You should have received a copy of the GNU Library General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA,
-USA.
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */
 
 #ifndef __Unicode_h_OBJECTS_INCLUDE
 #define __Unicode_h_OBJECTS_INCLUDE
+
+#include <Foundation/NSString.h>	/* For string encodings */
 
 unichar encode_chartouni(char c, NSStringEncoding enc);
 char encode_unitochar(unichar u, NSStringEncoding enc);
