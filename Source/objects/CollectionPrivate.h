@@ -42,6 +42,18 @@
 - (void) _decodeContentsWithCoder: (Coder*)aCoder;
 @end
 
+@interface Collection (DeallocationHelpers)
+
+/* Empty the internals of a collection after the contents have
+   already been released. */
+- _empty;
+
+/* Deallocate the internals of a collection after the contents 
+   have already been released. */
+- (void) _collectionDealloc;
+
+@end
+
   
 /* To be used inside methods for getting the element comparison function.
    This macro could be redefined when the comparison function is an
@@ -74,7 +86,7 @@
 
 /* Used inside a method for sending "-autorelease" if necessary */
 #define AUTORELEASE_ELT(ELT) \
-  ({if (CONTAINS_OBJECTS) ((elt)[ELT.id_u autorelease]) else ELT;})
+  ((CONTAINS_OBJECTS) ? ((elt)[ELT.id_u autorelease]) : ELT)
 
 
 /* Error Handling */
