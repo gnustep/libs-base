@@ -1,5 +1,11 @@
 2002-09-19  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSTcpHandle.m: Check port for invalidation while looping
+	on write events, so we can fail if we become invalid while sending
+	or connecting, before the port timeout expires.
+	* Source/NSConnection.m: Check connection for invalidation while
+	looping waiting for a reply, so we can fail if we become invalid
+	before the timeout expires.
 	* Source/DocMakefile: Specify template options
 	* Tools/autogsdoc.m: Remove hack to turn templates on by default.
 	Document the use of templates.

@@ -2655,7 +2655,7 @@ static void callEncoder (DOContext *ctxt)
 - _getReplyRmc: (int)sn
 {
   NSPortCoder		*rmc;
-  GSIMapNode		node;
+  GSIMapNode		node = 0;
   NSDate		*timeout_date = nil;
   NSTimeInterval	last_interval = 0.0001;
   NSTimeInterval	delay_interval = last_interval;
@@ -2666,7 +2666,8 @@ static void callEncoder (DOContext *ctxt)
     NSLog(@"Waiting for reply sequence %d on %x:%x",
       sn, self, [NSThread currentThread]);
   M_LOCK(_queueGate);
-  while ((node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn)) != 0
+  while (_isValid == YES
+    && (node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn)) != 0
     && node->value.obj == dummyObject)
     {
       M_UNLOCK(_queueGate);
@@ -2765,8 +2766,16 @@ static void callEncoder (DOContext *ctxt)
     }
   if (rmc == dummyObject)
     {
-      [NSException raise: NSPortTimeoutException
-		  format: @"timed out waiting for reply"];
+      if (_isValid == YES)
+	{
+	  [NSException raise: NSPortTimeoutException
+		      format: @"timed out waiting for reply"];
+	}
+      else
+	{
+	  [NSException raise: NSPortTimeoutException
+		      format: @"invalidated while awaiting reply"];
+	}
     }
   NSDebugMLLog(@"NSConnection", @"Consuming reply RMC %d on %x", sn, self);
   return rmc;
