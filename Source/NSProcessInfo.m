@@ -61,6 +61,8 @@
 #include <netdb.h>
 #endif /* !__WIN32__ */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
@@ -191,7 +193,8 @@ static char **_gnu_noobjc_argv;
 static char **_gnu_noobjc_env;
 
 static void 
-_gnu_process_noobjc_args(int argc, char *argv[], char *env[]) {
+_gnu_process_noobjc_args(int argc, char *argv[], char *env[])
+{
 	int i;
 
 	/* We have to copy these in case the main() modifies their values
@@ -202,12 +205,14 @@ _gnu_process_noobjc_args(int argc, char *argv[], char *env[]) {
 	i=0;
 	while(argv[i])
 		i++;
-	_gnu_noobjc_argv =
-	  NSZoneMalloc(NSDefaultMallocZone(),sizeof(char *)*(i+1));
+	_gnu_noobjc_argv = malloc(sizeof(char *)*(i+1));
+	if (_gnu_noobjc_argv == NULL)
+		goto error;
 	i=0;
 	while(*argv) {
-	  _gnu_noobjc_argv[i] =
-	    NSZoneMalloc(NSDefaultMallocZone(),strlen(*argv)+1);
+	  _gnu_noobjc_argv[i] = malloc(strlen(*argv)+1);
+	  if (_gnu_noobjc_argv[i] == NULL)
+	  	goto error;
 	  strcpy(_gnu_noobjc_argv[i],*argv);
 	  argv++;
 	  i++;
@@ -216,18 +221,24 @@ _gnu_process_noobjc_args(int argc, char *argv[], char *env[]) {
 	i=0;
 	while(env[i])
 		i++;
-	_gnu_noobjc_env =
-	  NSZoneMalloc(NSDefaultMallocZone(),sizeof(char *)*(i+1));
+	_gnu_noobjc_env = malloc(sizeof(char *)*(i+1));
+	if (_gnu_noobjc_env == NULL)
+		goto error;
 	i=0;
 	while(*env) {
-	        _gnu_noobjc_env[i] =
-		  NSZoneMalloc(NSDefaultMallocZone(),strlen(*env)+1);
+		_gnu_noobjc_env[i] = malloc(strlen(*env)+1);
+		if (_gnu_noobjc_env[i] == NULL)
+			goto error;
 		strcpy(_gnu_noobjc_env[i],*env);
 		env++;
 		i++;
 	}
 	_gnu_noobjc_env[i] = 0;
+	return;
 
+ error:
+	fputs("malloc() error when starting gstep-base\n", stderr);
+	abort();
 }
 
 static void _gnu_noobjc_free_vars(void)
@@ -236,18 +247,18 @@ static void _gnu_noobjc_free_vars(void)
 
 	p = _gnu_noobjc_argv;
 	while (*p) {
-		NSZoneFree(NSDefaultMallocZone(),*p);
+		free(*p);
 		p++;
 	}
-	NSZoneFree(NSDefaultMallocZone(),_gnu_noobjc_argv);
+	free(_gnu_noobjc_argv);
 	_gnu_noobjc_argv = 0;
 
 	p = _gnu_noobjc_env;
 	while (*p) {
-		NSZoneFree(NSDefaultMallocZone(),*p);
+		free(*p);
 		p++;
 	}
-	NSZoneFree(NSDefaultMallocZone(),_gnu_noobjc_env);
+	free(_gnu_noobjc_env);
 	_gnu_noobjc_env = 0;
 }
 

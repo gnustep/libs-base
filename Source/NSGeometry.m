@@ -27,6 +27,7 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGeometry.h>
+#include <Foundation/NSScanner.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -423,5 +424,73 @@ NSStringFromSize(NSSize aSize)
 {
   return [NSString stringWithFormat:@"{width=%f; height=%f}",
                    aSize.width, aSize.height];
+}
+
+NSPoint	NSPointFromString(NSString* string)
+{
+  NSScanner* scanner = [NSScanner scannerWithString:string];
+  NSPoint point;
+
+  if ([scanner scanString:@"{" intoString:NULL]
+      && [scanner scanString:@"x" intoString:NULL]
+      && [scanner scanString:@"=" intoString:NULL]
+      && [scanner scanFloat:&point.x]
+      && [scanner scanString:@";" intoString:NULL]
+      && [scanner scanString:@"y" intoString:NULL]
+      && [scanner scanString:@"=" intoString:NULL]
+      && [scanner scanFloat:&point.y]
+      && [scanner scanString:@"}" intoString:NULL])
+    return point;
+  else
+    return NSMakePoint(0, 0);
+}
+
+NSSize NSSizeFromString(NSString* string)
+{
+  NSScanner* scanner = [NSScanner scannerWithString:string];
+  NSSize size;
+  
+  if ([scanner scanString:@"{" intoString:NULL]
+      && [scanner scanString:@"width" intoString:NULL]
+      && [scanner scanString:@"=" intoString:NULL]
+      && [scanner scanFloat:&size.width]
+      && [scanner scanString:@";" intoString:NULL]
+      && [scanner scanString:@"height" intoString:NULL]
+      && [scanner scanString:@"=" intoString:NULL]
+      && [scanner scanFloat:&size.height]
+      && [scanner scanString:@"}" intoString:NULL])
+    return size;
+  else
+    return NSMakeSize(0, 0);
+}
+
+NSRect NSRectFromString(NSString* string)
+{
+  NSScanner* scanner = [NSScanner scannerWithString:string];
+  NSRect rect;
+  
+  if ([scanner scanString:@"{" intoString:NULL]
+      && [scanner scanString:@"x" intoString:NULL]
+      && [scanner scanString:@"=" intoString:NULL]
+      && [scanner scanFloat:&rect.origin.x]
+      && [scanner scanString:@";" intoString:NULL]
+      
+      && [scanner scanString:@"y" intoString:NULL]
+      && [scanner scanString:@"=" intoString:NULL]
+      && [scanner scanFloat:&rect.origin.y]
+      && [scanner scanString:@";" intoString:NULL]
+      
+      && [scanner scanString:@"width" intoString:NULL]
+      && [scanner scanString:@"=" intoString:NULL]
+      && [scanner scanFloat:&rect.size.width]
+      && [scanner scanString:@";" intoString:NULL]
+      
+      && [scanner scanString:@"height" intoString:NULL]
+      && [scanner scanString:@"=" intoString:NULL]
+      && [scanner scanFloat:&rect.size.height]
+      && [scanner scanString:@"}" intoString:NULL])
+    return rect;
+  else
+    return NSMakeRect(0, 0, 0, 0);
 }
 

@@ -35,6 +35,19 @@ static int debug_coder = 0;
 
 @implementation Decoder
 
+static id dummyObject;
+
++ (void)initialize
+{
+  BOOL	beenHere = NO;
+
+  if (beenHere == NO)
+    {
+      beenHere = YES;
+      dummyObject = [NSObject new];
+    }
+}
+
 
 /* Signature Handling. */
 
@@ -123,8 +136,7 @@ static int debug_coder = 0;
       xref_2_object = [Array new];
       /* Append an object so our xref numbers are in sync with the 
 	 Encoders, which start at 1. */
-      /* xxx Change this to make it more efficient. */
-      [xref_2_object appendObject: [[NSObject new] autorelease]];
+      [xref_2_object appendObject: dummyObject];
     }
   if (debug_coder)
     fprintf (stderr, "Decoder registering object xref %u\n",
@@ -175,7 +187,7 @@ static int debug_coder = 0;
       xref_2_object_root = [Array new];
       /* Append an object so our xref numbers are in sync with the 
 	 Encoders, which start at 1. */
-      [xref_2_object_root appendObject: [[NSObject new] autorelease]];
+      [xref_2_object_root appendObject: dummyObject];
     }
   [xref_2_object_root appendObject: anObj];
   /* This return value should be the same as the index of anObj 

@@ -135,7 +135,7 @@ NSOffsetRect(NSRect aRect, float dx, float dy);
 
 /* Divides ARECT into two rectangles (namely SLICE and REMAINDER) by
  * "cutting" ARECT---parallel to, and a distance AMOUNT from the edge
- * of ARECT determined by EDGE.  You may pass 0 in as either of SLICE or
+v * of ARECT determined by EDGE.  You may pass 0 in as either of SLICE or
  * REMAINDER to avoid obtaining either of the created rectangles. */
 extern void
 NSDivideRect(NSRect aRect,
@@ -222,6 +222,11 @@ NSStringFromRect(NSRect aRect);
  * W and H are the width and height of ASIZE, respectively. */
 extern NSString *
 NSStringFromSize(NSSize aSize);
+
+extern NSPoint	NSPointFromString(NSString* string);
+extern NSSize	NSSizeFromString(NSString* string);
+extern NSRect	NSRectFromString(NSString* string);
+
 #endif /* __OBJC__ */
 
 #endif /* __NSGeometry_h_GNUSTEP_BASE_INCLUDE */
