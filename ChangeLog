@@ -1,3 +1,7 @@
+2003-08-02  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSProxy.m: Fix limit.h -> limits.h
+
 2003-08-02  Yen-Ju Chen <yjchenx@hotmail.com>
 
 	* Resources/Languages/TraditionalChinese,
