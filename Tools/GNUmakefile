@@ -65,9 +65,10 @@ locale_alias_OBJC_FILES = locale_alias.m
 
 DOCUMENT_NAME = autogsdoc
 
-# Files to be documented
+# Documentation rules for autogsdoc
 autogsdoc_AGSDOC_FILES = autogsdoc.m \
 	AGSParser.h AGSOutput.h AGSIndex.h AGSHtml.h
+autogsdoc_DOC_INSTALL_DIR = Developer/Tools
 
 SOURCES = gdomap.c gdnc.m defaults.m dread.m dremove.m dwrite.m \
 	autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
