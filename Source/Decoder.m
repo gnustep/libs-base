@@ -299,7 +299,10 @@
    count: (unsigned*)c
    withName: (id <String> *) name
 {
-  [self notImplemented:_cmd];
+  /* xxx Is this what we want?  
+     It won't be cleanly readable in TextCStream's. */
+  [cstream decodeName: name];
+  [[cstream stream] readBytes: b length: c];
 }
 
 - (unsigned char) decodeTag
