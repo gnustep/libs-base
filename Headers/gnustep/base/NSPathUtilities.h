@@ -29,6 +29,14 @@
 
 extern NSString *NSUserName ();
 extern NSString *NSHomeDirectory ();
-extern NSString *NSHomeDirectoryForUser (NSString *login_name);
+extern NSString *NSHomeDirectoryForUser (NSString *userName);
+
+#ifndef STRICT_OPENSTEP
+extern NSString *NSFullUserName(void);
+extern NSArray *NSStandardApplicationPaths(void);
+extern NSArray *NSStandardLibraryPaths(void);
+extern NSString *NSTemporaryDirectory(void);
+extern NSString *NSOpenStepRootDirectory(void);
+#endif /* !STRICT_OPENSTEP */
 
 #endif /* __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE */
