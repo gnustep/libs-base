@@ -1,3 +1,9 @@
+2003-06-11  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSNumberFormatter.m
+	(-getObjectValue:forString:errorDescription:): Simple
+	implementation.
+
 2003-06-08  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSString.m
