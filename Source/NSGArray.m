@@ -530,13 +530,18 @@ static SEL	eqSel = @selector(isEqual:);
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
 #define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
                         // 3 is a fairly good choice (Sedgewick)
-  unsigned c,d, stride;
-  BOOL found;
-  int count = _count;
+  unsigned	c,d, stride;
+  BOOL		found;
+  int		count = _count;
+#ifdef	GSWARN
+  BOOL		badComparison = NO;
+#endif
 
   stride = 1;
   while (stride <= count)
-    stride = stride * STRIDE_FACTOR + 1;
+    {
+      stride = stride * STRIDE_FACTOR + 1;
+    }
     
   while (stride > (STRIDE_FACTOR - 1))
     {
@@ -546,26 +551,52 @@ static SEL	eqSel = @selector(isEqual:);
 	{
 	  found = NO;
 	  if (stride > c)
-	    break;
-	  d = c - stride;
-	  while (!found)
 	    {
-	      // move to left until correct place
-	      id a = _contents_array[d + stride];
-	      id b = _contents_array[d];
-	      if ((*compare)(a, b, context) == NSOrderedAscending)
+	      break;
+	    }
+	  d = c - stride;
+	  while (!found)	/* move to left until correct place */
+	    {
+	      id			a = _contents_array[d + stride];
+	      id			b = _contents_array[d];
+	      NSComparisonResult	r;
+
+	      r = (*compare)(a, b, context);
+	      if (r < 0)
 		{
+#ifdef	GSWARN
+		  if (r != NSOrderedAscending)
+		    {
+		      badComparison = YES;
+		    }
+#endif
 		  _contents_array[d+stride] = b;
 		  _contents_array[d] = a;
 		  if (stride > d)
-		    break;
+		    {
+		      break;
+		    }
 		  d -= stride;		// jump by stride factor
 		}
 	      else
-		found = YES;
+		{
+#ifdef	GSWARN
+		  if (r != NSOrderedDescending && r != NSOrderedSame)
+		    {
+		      badComparison = YES;
+		    }
+#endif
+		  found = YES;
+		}
 	    }
 	}
     }
+#ifdef	GSWARN
+  if (badComparison == YES)
+    {
+      NSWarnMLog(@"Detected bad return value from comparison", 0);
+    }
+#endif
 }
 
 - (NSEnumerator*) objectEnumerator

@@ -1144,18 +1144,23 @@ static NSString	*indentStrings[] = {
 }
 
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 
-   context: (void*)context
+		   context: (void*)context
 {
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
 #define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
                         // 3 is a fairly good choice (Sedgewick)
-  unsigned c,d, stride;
-  BOOL found;
-  int count = [self count];
+  unsigned	c,d, stride;
+  BOOL		found;
+  int		count = [self count];
+#ifdef	GSWARN
+  BOOL		badComparison = NO;
+#endif
 
   stride = 1;
   while (stride <= count)
-    stride = stride * STRIDE_FACTOR + 1;
+    {
+      stride = stride * STRIDE_FACTOR + 1;
+    }
     
   while(stride > (STRIDE_FACTOR - 1))
     {
@@ -1165,27 +1170,54 @@ static NSString	*indentStrings[] = {
 	{
 	  found = NO;
 	  if (stride > c)
-	    break;
-	  d = c - stride;
-	  while (!found)
 	    {
-	      // move to left until correct place
-	      id a = [self objectAtIndex: d + stride];
-	      id b = [self objectAtIndex: d];
-	      if ((*compare)(a, b, context) == NSOrderedAscending)
+	      break;
+	    }
+	  d = c - stride;
+	  while (!found)	/* move to left until correct place */
+	    {
+	      id			a = [self objectAtIndex: d + stride];
+	      id			b = [self objectAtIndex: d];
+	      NSComparisonResult	r;
+
+	      r = (*compare)(a, b, context);
+	      if (r < 0)
 		{
+#ifdef	GSWARN
+		  if (r != NSOrderedAscending)
+		    {
+		      badComparison = YES;
+		    }
+#endif
 		  IF_NO_GC(RETAIN(a));
 		  [self replaceObjectAtIndex: d + stride withObject: b];
 		  [self replaceObjectAtIndex: d withObject: a];
 		  RELEASE(a);
 		  if (stride > d)
-		    break;
+		    {
+		      break;
+		    }
 		  d -= stride;		// jump by stride factor
 		}
-	      else found = YES;
+	      else
+		{
+#ifdef	GSWARN
+		  if (r != NSOrderedDescending && r != NSOrderedSame)
+		    {
+		      badComparison = YES;
+		    }
+#endif
+		  found = YES;
+		}
 	    }
 	}
     }
+#ifdef	GSWARN
+  if (badComparison == YES)
+    {
+      NSWarnMLog(@"Detected bad return value from comparison", 0);
+    }
+#endif
 }
 
 @end
