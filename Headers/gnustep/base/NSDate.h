@@ -97,18 +97,7 @@ typedef double NSTimeInterval;
 @end
 
 #ifndef	NO_GNUSTEP
-/*
-*	Our concrete base class - NSCalendar date must share the ivar layout.
-*/
-@interface NSGDate : NSDate
-{
-@public
-  NSTimeInterval _seconds_since_ref;
-}
-@end
-
 NSTimeInterval GSTimeNow();	/* Get time since reference date*/
-NSTimeInterval GSTime(int d, int m, int y, int hh, int mm, int ss, int mil);
 #endif
 
 #endif  /* __NSDate_h_GNUSTEP_BASE_INCLUDE*/

@@ -134,4 +134,8 @@
      sinceDate: (NSDate*)date;
 @end
 
+#ifndef	NO_GNUSTEP
+NSTimeInterval GSTime(int d, int m, int y, int hh, int mm, int ss, int mil);
+#endif
+
 #endif  /* __NSCalendarDate_h_GNUSTEP_BASE_INCLUDE*/

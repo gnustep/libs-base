@@ -71,6 +71,16 @@ static Class	abstractClass = nil;
 static Class	concreteClass = nil;
 static Class	calendarClass = nil;
 
+/**
+ * Our concrete base class - NSCalendar date must share the ivar layout.
+ */
+@interface NSGDate : NSDate
+{
+@public
+  NSTimeInterval _seconds_since_ref;
+}
+@end
+
 @interface	GSDateSingle : NSGDate
 @end
 
@@ -117,6 +127,9 @@ otherTime(NSDate* other)
     return [other timeIntervalSinceReferenceDate];
 }
 
+/**
+ * Returns the current time (seconds since reference date) as an NSTimeInterval.
+ */
 NSTimeInterval
 GSTimeNow()
 {
