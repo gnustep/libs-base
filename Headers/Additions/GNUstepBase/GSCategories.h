@@ -300,7 +300,7 @@ typedef enum _NSGNUstepStringEncoding
    The implementations for gnustep-base reside in the
    corresponding source files of -base.
 */
-GS_EXPORT NSArray *NSStandardLibraryPaths();
+GS_EXPORT NSArray *NSStandardLibraryPaths(void);
 GS_EXPORT void NSDecimalFromComponents(NSDecimal *result, 
 				       unsigned long long mantissa,
 				       short exponent, BOOL negative);
@@ -310,7 +310,7 @@ GS_EXPORT BOOL GSDebugSet(NSString *level);
 GS_EXPORT NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
 GS_EXPORT NSString *GSEncodingName(NSStringEncoding availableEncodingValue);
 
-GS_EXPORT NSMutableDictionary *GSCurrentThreadDictionary();
+GS_EXPORT NSMutableDictionary *GSCurrentThreadDictionary(void);
 
 GS_EXPORT NSString *GSDebugMethodMsg(id obj, SEL sel, const char *file, 
 				     int line, NSString *fmt);
