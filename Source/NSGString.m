@@ -66,6 +66,7 @@
   _count = length;
   _contents_chars = chars;
   _free_contents = flag;
+  [super init];
   return self;
 }
 
@@ -89,6 +90,14 @@
    freeWhenDone: flag];
   [self release];
   return a;
+}
+
+- (id) init
+{
+  unichar *u;
+  OBJC_MALLOC(u, unichar,1);
+  u[0]=(unichar)0;
+  return [self initWithCharactersNoCopy:u length:0 freeWhenDone: YES];
 }
 
 // Getting a String's Length
@@ -325,6 +334,14 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 				    range.location, range.length);
 }
 
+// xxx This should be primitive method
+- (void) replaceCharactersInRange: (NSRange)range
+   withString: (NSString*)aString
+{
+  [self deleteCharactersInRange:range];
+  [self insertString:aString atIndex:range.location];
+}
+
 //  xxx Check this
 - (void) insertString: (NSString*)aString atIndex:(unsigned)index
 {
@@ -372,15 +389,37 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
   _count = length;
 }
 
-// xxx This should not be in this class
 /* Override NSString's designated initializer for CStrings. */
 - (id) initWithCStringNoCopy: (char*)byteString
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
-  [self initWithCapacity:length];
-  [self setCString:byteString length:length];
+  id a = [[NSGMutableCString alloc] initWithCStringNoCopy: byteString
+   length: length
+   freeWhenDone: flag];
+  [self release];
+  return a;
+}
+
+/* Override NSString's designated initializer for Unicode Strings. */
+- (id) initWithCharactersNoCopy: (unichar*)chars
+   length: (unsigned int)length
+   freeWhenDone: (BOOL)flag
+{
+  _count = length;
+  _capacity = length+1;
+  _contents_chars = chars;
+  _free_contents = flag;
+  [super init];
   return self;
+}
+
+- (id) init
+{
+  unichar *u;
+  OBJC_MALLOC(u, unichar,1);
+  u[0]=(unichar)0;
+  return [self initWithCharactersNoCopy:u length:0 freeWhenDone: YES];
 }
 
 /* For IndexedCollecting Protocol and other GNU libobjects conformity. */

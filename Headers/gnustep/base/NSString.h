@@ -202,6 +202,7 @@ typedef enum _NSStringEncoding
 - (NSString*) _normalizedString;
 
 #ifndef STRICT_OPENSTEP
++ (NSString*) stringWithString: (NSString*) aString;
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...;
 + (NSString*) stringWithFormat: (NSString*)format
    arguments: (va_list)argList;
@@ -210,6 +211,7 @@ typedef enum _NSStringEncoding
 - (id) initWithFormat: (NSString*)format
    locale: (NSDictionary*)dictionary
    arguments: (va_list)argList;
+- (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
 - (BOOL) writeToFile: (NSString*)filename
    atomically: (BOOL)useAuxiliaryFile;

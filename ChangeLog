@@ -1,3 +1,68 @@
+Sun Dec 7 23:22:07 1997  Stevo Crvenkovski <stevo@btinternet.com>
+	
+	* src/NSGCString.m ([NSGMutableCString
+ 	-initWithCharactersNoCopy:length:freeWhenDone:]): Changed to
+ 	invoke instance of NSGMutableString.
+ 	* src/NSGString.m ([NSGMutableString
+ 	-initWithCStringNoCopy:length:freeWhenDone:]): Changed to invoke
+ 	instance of NSGMutableCString.
+
+ 	* src/NSGString.m ([NSGMutableString
+ 	-initWithCharactersNoCopy:length:freeWhenDone:]): Method
+ 	implemented. Based on code by Richard Frith-Macdonald
+ 	<richard@brainstorm.co.uk>
+
+ 	* src/NSGCString.m ([NSGMutableCString
+ 	-initWithCStringNoCopy:length:freeWhenDone:]): Changed to fix
+ 	memory leak in this method.  Code by Richard Frith-Macdonald
+ 	<richard@brainstorm.co.uk>
+
+ 	* src/NSGCString.m ([NSGCString -dealoc]): Changed to avoid
+ 	compiler warning.
+ 	* src/NSGCString.m ([NSGCString -initWithCStringNoCopy: length:
+ 	freeWhenDone:]): Changed to conform with class cluster definition.
+ 	* src/NSGString.m ([NSGString -initWithCharactersNoCopy: length:
+ 	freeWhenDone:]): Idem.
+ 	* src/NSGCString.m ([NSGMutableCString -initWithCapacity]): Idem.
+ 	* src/NSString.m ([NSString -init]): Idem.
+ 	* src/NSGCString.m ([NSGCString -init]): Method implemented to
+ 	conform with class cluster definition.
+ 	* src/NSGCString.m ([NSGMutableCString -init]): Idem.
+ 	* src/NSGString.m ([NSGString -init]): Idem.
+ 	* src/NSGString.m ([NSGMutableString -init]): Idem.
+
+ 	* src/NSString.m ([NSString -replaceCharactersInRange:
+ 	withString:]): Change to be subclass responsibillty.  This should
+ 	be pimitive method.
+
+ 	* src/NSGString.m ([NSGString -replaceCharactersInRange:
+ 	withString:]): Move implementation from NSString here.
+ 	* src/NSGCString.m ([NSGCString -replaceCharactersInRange:
+ 	withString:]): Idem.
+
+ 	* src/NSString.m ([NSString +stringWithString]): New OPENSTEP
+ 	method implemented.
+ 	* src/NSString.m ([NSString -substringFromRange]): Method
+ 	implemented
+ 	* src/NSString.m ([NSString -substringWithRange]): New OPENSTEP
+ 	method implemented.
+ 	* src/NSString.m ([NSString -hash]): Remove C String
+ 	implementation as Unicode implementation now works.
+ 	* src/NSString.m ([NSString -getFileSystemRepresentation]) Correct
+ 	name of method.
+ 	* src/NSString.m ([NSString -_normalizedString]):Bug fixed.
+ 	* src/NSString.m ([NSString -mutableCopy]): Implemented to avoid
+ 	compiler warning. Why is this warning anyway?  Method should be
+ 	inherited from NSObject.
+ 	* src/NSString.m ([NSString -deleteCharactersInRange:]): Method
+ 	implemented.
+ 	* src/NSString.m ([NSString -insertString: atIndex:]): Method
+ 	implemented.
+ 	* src/NSString.m ([NSString -setString:]): Method implemented.
+ 	* src/NSString.h ([NSString +stringWithString:]): Method declared.
+ 	* src/NSString.h ([NSString -substringWithRange:]): Method
+ 	declared.
+
 Fri Nov 28 12:52:06 1997  Scott Christley  <scottc@net-community.com>
 
 	* Tools/GNUmakefile (OBJC_PROGRAM_NAME): Reverse prior change.
