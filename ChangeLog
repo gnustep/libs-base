@@ -1,3 +1,17 @@
+2001-10-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/GNUmakefile: Addend new files.
+	* Tools/AGSOutput.h: Support class for autogsdoc
+	* Tools/AGSOutput.m: ditto
+	* Tools/AGSParser.h: ditto
+	* Tools/AGSParser.m: ditto
+	* Tools/autogsdoc.m: New tool to generate gsdoc files from ObjC
+	header and source files.  Uses comments with a '/**' prefix
+	(like javadoc) to provide nice information about classes and/or
+	methods.
+	This is very much an initial/alpha version but it is already
+	quite useful.
+
 2001-10-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Increase default timeouts to max value.
