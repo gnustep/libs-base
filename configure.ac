@@ -157,7 +157,7 @@ fi
 #--------------------------------------------------------------------
 # Check if system has buggy SO_REUSEADDR
 #--------------------------------------------------------------------
-AC_MSG_CHECKING(whether SO_REUSADDR is broken)
+AC_MSG_CHECKING(whether SO_REUSEADDR is broken)
 AC_TRY_RUN([#include "$srcdir/config/config.reuseaddr.c"],
 	reuseaddr_ok=1,
 	reuseaddr_ok=0,
