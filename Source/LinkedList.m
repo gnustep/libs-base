@@ -138,6 +138,7 @@
     {
       _first_link = newObject;
       _last_link = newObject;
+      _count = 1;
       [newObject setNextLink: NO_OBJECT];
       [newObject setPrevLink: NO_OBJECT];
     }
@@ -170,6 +171,7 @@
     {
       _first_link = newObject;
       _last_link = newObject;
+      _count = 1;
       [newObject setNextLink: NO_OBJECT];
       [newObject setPrevLink: NO_OBJECT];
     }
@@ -220,15 +222,17 @@
   /* Make sure no one else already owns the newObject. */
   assert ([newObject linkedList] == NO_OBJECT);
 
-  /* Claim ownership of the newObject. */
-  [newObject retain];
-  [newObject setLinkedList: self];
-
   /* Insert it. */
   if (_count == 0)
     {
+      /* Claim ownership of the newObject. */
+      [newObject retain];
+      [newObject setLinkedList: self];
+
+      /* Put it in as the only node. */
       _first_link = newObject;
       _last_link = newObject;
+      _count = 1;
       [newObject setNextLink: NO_OBJECT];
       [newObject setPrevLink: NO_OBJECT];
     }
@@ -236,20 +240,22 @@
     [self insertObject: newObject after: _last_link];
 }
 
-- prependElement: newObject
+- prependObject: newObject
 {
   /* Make sure no one else already owns the newObject. */
   assert ([newObject linkedList] == NO_OBJECT);
 
-  /* Claim ownership of the newObject. */
-  [newObject retain];
-  [newObject setLinkedList: self];
-
   /* Insert it. */
   if (_count == 0)
     {
+      /* Claim ownership of the newObject. */
+      [newObject retain];
+      [newObject setLinkedList: self];
+
+      /* Put it in as the only node. */
       _first_link = newObject;
       _last_link = newObject;
+      _count = 1;
       [newObject setNextLink: NO_OBJECT];
       [newObject setPrevLink: NO_OBJECT];
     }
@@ -257,22 +263,24 @@
     [self insertObject: newObject before: _first_link];
 }
 
-- insertElement: newObject atIndex: (unsigned)index
+- insertObject: newObject atIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, (_count+1));
 
   /* Make sure no one else already owns the newObject. */
   assert ([newObject linkedList] == NO_OBJECT);
 
-  /* Claim ownership of the newObject. */
-  [newObject retain];
-  [newObject setLinkedList: self];
-
   /* Insert it. */
   if (_count == 0)
     {
+      /* Claim ownership of the newObject. */
+      [newObject retain];
+      [newObject setLinkedList: self];
+
+      /* Put it in as the only node. */
       _first_link = newObject;
       _last_link = newObject;
+      _count = 1;
       [newObject setNextLink: NO_OBJECT];
       [newObject setPrevLink: NO_OBJECT];
     }
@@ -334,31 +342,32 @@
   return [oldObject prevLink];
 }
 
+- (void*) newEnumState
+{
+  return _first_link;
+}
+
 - nextObjectWithEnumState: (void**)enumState
 {
-  /* *enumState points to the next object to be returned. */
   id ret;
 
-  if (*enumState == _first_link)
-    return NO_OBJECT;
-  else if (!(*enumState))
-    *enumState = _first_link;
-  ret = (id) *enumState;
+  if (!*enumState)
+    return nil;
+  ret = *enumState;
   *enumState = [(id)(*enumState) nextLink];
+  /* *enumState points to the next object to be returned. */
   return ret;
 }
 
 - prevObjectWithEnumState: (void**)enumState
 {
-  id ret;
-
-  if (*enumState == _last_link)
-    return NO_OBJECT;
-  else if (!(*enumState))
-    *enumState = _last_link;
-  ret = (id) *enumState;
-  *enumState = [(id)(*enumState) prevLink];
-  return ret;
+  /* *enumState points to the object returned last time. */
+  if (!*enumState)
+    return nil;
+  if (*enumState == _first_link)
+    /* enumState was just initialized from -newEnumState. */
+    return *enumState = _last_link;
+  return (id) *enumState = [(id)(*enumState) prevLink];
 }
 
 - (unsigned) count
