@@ -4535,6 +4535,34 @@ printf(
 	}
     }
 
+  /* Write the pidfile, but only if the user is root. This allows us
+     to write to restricted directories without allowing normal users
+     to mess it up. */
+  if (pidfile)
+    {
+      FILE	*fptr;
+
+      if (getuid () == 0)
+	{
+	  fptr = fopen(pidfile, "at");
+
+	  if (fptr == 0)
+	    {
+	      sprintf(ebuf, "Unable to open pid file - '%s'", pidfile);
+	      gdomap_log(LOG_CRIT);
+	      exit(1);
+	    }
+	  fprintf(fptr, "%d\n", (int) getpid());
+	  fclose(fptr);
+	  chmod(pidfile, 0644);
+	}
+      else
+	{
+	  sprintf(ebuf, "Only root user can write to pid file\n");
+	  gdomap_log(LOG_WARNING);
+	}
+    }
+
 #ifndef __MINGW__
   /*
    * Try to become a 'safe' user now that we have
@@ -4568,21 +4596,6 @@ printf(
       setgroups (0, 0);	/* Empty additional groups list */
     }
 #endif /* __MINGW__ */
-
-  if (pidfile)
-    {
-      FILE	*fptr = fopen(pidfile, "at");
-
-      if (fptr == 0)
-	{
-	  sprintf(ebuf, "Unable to open pid file - '%s'", pidfile);
-	  gdomap_log(LOG_CRIT);
-	  exit(1);
-	}
-      fprintf(fptr, "%d\n", (int) getpid());
-      fclose(fptr);
-      chmod(pidfile, 0644);
-    }
 
 #if	!defined(__svr4__)
   /*

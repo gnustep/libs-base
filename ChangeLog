@@ -1,3 +1,8 @@
+2002-07-18  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (main): Write the pidfile before switching away
+	from root, but only if the user is root.
+
 2002-07-17  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSString.m (-getLineStart:end:contentsEnd:forRange:): Fix
