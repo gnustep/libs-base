@@ -1,7 +1,7 @@
 /** Implementation of NSInvocation for GNUStep
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998,2003 Free Software Foundation, Inc.
    
-   Written:     Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Author:     Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: August 1998
    Based on code by: Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    
@@ -54,6 +54,33 @@ static Class   NSInvocation_concrete_class;
 @interface GSMessageProxy : GSInvocationProxy
 @end
 
+
+
+/**
+ * <p>The NSInvocation class implements a mechanism of constructing
+ * messages (as NSInvocation instances), sending these to other
+ * objects, and handling the returned values.
+ * </p>
+ * <p>An NSInvocation object may contain a target object to which a
+ * message can be sent, or may send the message to an arbitrary object.<br />
+ * Each message consists of a selector for that method and an argument
+ * list.  Once the message has been sent, the invocation will contain
+ * a return value whose contents may be copied out of it.
+ * </p>
+ * <p>The target, selector, and arguments of an instance be constructed
+ * dynamically, providing a great deal of power/flexibility.
+ * </p>
+ * <p>The sending of the message to the target object (using the -invoke
+ * or -invokeWithTarget: method) can be done at any time, but a standard
+ * use of this is by the [NSObject-forwardInvocation:] method which is
+ * called whenever a method is not implemented by the class of the
+ * object to which it was sent.
+ * </p>
+ * <p>Related to the class are two convenience macros ... NS_MESSAGE()
+ * and NS_INVOCATION() to allow easy construction of invocations with
+ * all the arguments set up.
+ * </p>
+ */
 @implementation NSInvocation
 
 #ifdef USE_LIBFFI
@@ -244,6 +271,11 @@ _arg_addr(NSInvocation *inv, int index)
     }		
 }
 
+/**
+ * Copies the invocations return value to the location pointed to by buffer
+ * if a return value has been set (see the -setReturnValue: method).<br />
+ * If there isn't a return value then this method raises an exception.
+ */
 - (void) getReturnValue: (void*)buffer
 {
   const char	*type;
@@ -267,11 +299,23 @@ _arg_addr(NSInvocation *inv, int index)
     }
 }
 
+/**
+ * Returns the selector of the invocation (the argument at index 1)
+ */
 - (SEL) selector
 {
   return _selector;
 }
 
+/**
+ * Sets the argument identified by index from the memory location specified
+ * by the buffer argument.<br />
+ * Using an index of 0 is equivalent to calling -setTarget: and using an
+ * argument of 1 is equivalent to -setSelector:<br />
+ * Proper arguments start at index 2.<br />
+ * If -retainArguments was called, then any object argument set in the
+ * receiver is retained by it.
+ */
 - (void) setArgument: (void*)buffer
 	     atIndex: (int)index
 {
@@ -338,6 +382,9 @@ _arg_addr(NSInvocation *inv, int index)
     }		
 }
 
+/**
+ * Sets the return value of the invocation to the item that buffer points to.
+ */
 - (void) setReturnValue: (void*)buffer
 {
   const char	*type;
@@ -361,11 +408,18 @@ _arg_addr(NSInvocation *inv, int index)
   _validReturn = YES;
 }
 
+/**
+ * Sets the selector for the invocation.
+ */
 - (void) setSelector: (SEL)aSelector
 {
   _selector = aSelector;
 }
 
+/**
+ * Sets the target object for the invocation.<br />
+ * If -retainArguments was called, then the target is retained.
+ */
 - (void) setTarget: (id)anObject
 {
   if (_argsRetained)
@@ -375,20 +429,27 @@ _arg_addr(NSInvocation *inv, int index)
   _target = anObject;
 }
 
+/**
+ * Returns the target object of the invocation.
+ */
 - (id) target
 {
   return _target;
 }
 
-/*
- *      Managing arguments.
+/**
+ * Returns a flag to indicate whether object arguments of the invocation
+ * (including its target) are retained by the invocation.
  */
-
 - (BOOL) argumentsRetained
 {
   return _argsRetained;
 }
 
+/**
+ * Instructs the invocation to retain its object arguments (including the
+ * target).  The default is not to retain them.
+ */
 - (void) retainArguments
 {
   if (_argsRetained)
@@ -438,15 +499,17 @@ _arg_addr(NSInvocation *inv, int index)
     }		
 }
 
-/*
- *      Dispatching an Invocation.
+/**
+ * Sends the message encapsulated in the invocation to its target.
  */
-
 - (void) invoke
 {
   [self invokeWithTarget: _target];
 }
 
+/**
+ * Sends the message encapsulated in the invocation to anObject.
+ */
 - (void) invokeWithTarget: (id)anObject
 {
   id		old_target;
@@ -524,10 +587,9 @@ _arg_addr(NSInvocation *inv, int index)
   _validReturn = YES;
 }
 
-/*
- *      Getting the method _signature.
+/**
+ * Returns the method signature of the invocation.
  */
-
 - (NSMethodSignature*) methodSignature
 {
   return _sig;
@@ -648,8 +710,19 @@ _arg_addr(NSInvocation *inv, int index)
 
 @end
 
+/**
+ * Provides some minor extensions and some utility methods to aid
+ * integration of NSInvocation with the ObjectiveC runtime.
+ */
 @implementation NSInvocation (GNUstep)
 
+/**
+ * Internal use.<br />
+ * Initialises the receiver with a known selector and argument list
+ * as supplied to the forward:: method by the ObjectiveC runtime
+ * when it is unable to locate an implementation for mthe selector
+ * in a class.
+ */
 - (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector
 {
   [self subclassResponsibility: _cmd];
@@ -694,6 +767,10 @@ _arg_addr(NSInvocation *inv, int index)
   return [self initWithMethodSignature: newSig];
 }
 
+/**
+ * Initialises the reciever with the specified target, selector, and
+ * a variable number of arguments.
+ */
 - (id) initWithTarget: anObject selector: (SEL)aSelector, ...
 {
   va_list	     ap;
@@ -797,23 +874,44 @@ _arg_addr(NSInvocation *inv, int index)
   return self;
 }
 
+/**
+ * Internal use.<br />
+ * Provides a return frame that the ObjectiveC runtime can use to
+ * return the result of an invocation to a calling function.
+ */
 - (void*) returnFrame: (arglist_t)argFrame
 {
   [self subclassResponsibility: _cmd];
   return NULL;
 }
 
+/**
+ * Returns the status of the flag set by -setSendsToSuper:
+ */
 - (BOOL) sendsToSuper
 {
   return _sendToSuper;
 }
 
+/**
+ * Sets the flag to tell the invocation that it should actually invoke a
+ * method in the superclass of the target rather than the method of the
+ * target itsself.<br />
+ * This extension permits an invocation to act like a regular method
+ * call sent to <em>super</em> in the method of a class.
+ */
 - (void) setSendsToSuper: (BOOL)flag
 {
   _sendToSuper = flag;
 }
+@end
 
-/* These next three are for internal use only ... not public API */
+/**
+ * These methods are for internal use only ... not public API<br />
+ * They are used by the NS_INVOCATION() and NS_MESSAGE() macros to help
+ * create invocations.
+ */
+@implementation NSInvocation (MacroSetup)
 + (id) _newProxyForInvocation: (id)target
 {
   return [GSInvocationProxy _newWithTarget: target];
