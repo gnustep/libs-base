@@ -57,7 +57,7 @@ LIBEXT = .a
 
 # All these are optional.  You can redefine CFLAGS, CPPFLAGS and
 # INCLUDEFLAGS on the command line however you like.
-CFLAGS = -g -O -Wall
+CFLAGS = -g -O -Wall -Wno-implicit
 CPPFLAGS = 
 INCLUDEFLAGS =
 
