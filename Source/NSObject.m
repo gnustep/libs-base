@@ -443,7 +443,11 @@ static BOOL double_release_check_enabled = NO;
 
 + (BOOL) instancesRespondToSelector: (SEL)aSelector
 {
+#if 0
   return (class_get_instance_method(self, aSelector) != METHOD_NULL);
+#else
+  return __objc_responds_to(self, aSelector);
+#endif
 }
 
 + (BOOL) conformsToProtocol: (Protocol*)aProtocol
@@ -774,10 +778,14 @@ static BOOL double_release_check_enabled = NO;
 
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
+#if 0
   if (fastIsInstance(self))
     return (class_get_instance_method(fastClass(self), aSelector)!=METHOD_NULL);
   else
     return (class_get_class_method(fastClass(self), aSelector)!=METHOD_NULL);
+#else
+  return __objc_responds_to(fastClass(self), aSelector);
+#endif
 }
 
 - retain
