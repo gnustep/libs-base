@@ -67,7 +67,7 @@ static Class NSMutableDictionary_concrete_class;
 
 + dictionary
 {
-  return [[[[self _concreteClass] alloc] init] 
+  return [[[self alloc] init] 
 	  autorelease];
 }
 
@@ -75,9 +75,9 @@ static Class NSMutableDictionary_concrete_class;
 		forKeys: (NSString**)keys
 		  count: (unsigned)count
 {
-  return [[[[self _concreteClass] alloc] initWithObjects:objects
-					 forKeys:keys
-					 count:count]
+  return [[[self alloc] initWithObjects:objects
+			forKeys:keys
+			count:count]
 	  autorelease];
 }
 
@@ -98,7 +98,7 @@ static Class NSMutableDictionary_concrete_class;
 
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
-  return [[[[self _concreteClass] alloc] initWithObjects:objects forKeys:keys]
+  return [[[self alloc] initWithObjects:objects forKeys:keys]
 	  autorelease];
 }
 
@@ -286,7 +286,7 @@ static Class NSMutableDictionary_concrete_class;
 
 + dictionaryWithCapacity: (unsigned)numItems
 {
-  return [[[[self _mutableConcreteClass] alloc] initWithCapacity:numItems]
+  return [[[self alloc] initWithCapacity:numItems]
 	  autorelease];
 }
 
