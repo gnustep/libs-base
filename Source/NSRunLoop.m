@@ -72,10 +72,6 @@
 #include <limits.h>
 #include <string.h>		/* for memset() */
 
-/* On some systems FD_ZERO is a macro that uses bzero().
-   Just define it to use memset(). */
-#define bzero(PTR, LEN) memset (PTR, 0, LEN)
-
 static int debug_run_loop = 0;
 
 /*
@@ -1089,8 +1085,8 @@ static int debug_run_loop = 0;
      Initialize the set of FDS we'll pass to select(), and create
      an empty map for keeping track of which object is associated
      with which file descriptor. */
-  FD_ZERO (&fds);
-  FD_ZERO (&write_fds);
+  memset(&fds, '\0', sizeof(fds));
+  memset(&write_fds, '\0', sizeof(write_fds));
   rfd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  NSObjectMapValueCallBacks, 0);
   wfd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
