@@ -404,7 +404,10 @@ static Class NSMutableArray_concrete_class;
 + (void) initialize
 {
   if (self == [NSMutableArray class])
-    behavior_class_add_class (self, [NSMutableArrayNonCore class]);
+    {
+      behavior_class_add_class (self, [NSMutableArrayNonCore class]);
+      behavior_class_add_class (self, [NSArrayNonCore class]);
+    }
 }
 
 + allocWithZone: (NSZone*)z
