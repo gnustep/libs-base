@@ -1,3 +1,12 @@
+2003-03-28 20:48  Alexander Malmberg <alexander@malmberg.org>
+
+	* configure.ac: Fail the configure if neither ffcall nor ffi is
+	available unless --disable-do is passed to configure. Add a message
+	about why a user most likely does not want to build with ffcall and
+	ffi, and with a link to the build guide.
+
+	* configure: Regenerate.
+
 2003-03-27  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSBundle.m ([NSBundle -bundleIdentifier]): New.

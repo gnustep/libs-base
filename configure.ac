@@ -858,6 +858,10 @@ AC_ARG_ENABLE(ffcall,
   [  --enable-ffcall  		Enable use of ffcall library],,
   enable_ffcall=yes)
 
+AC_ARG_ENABLE(do,
+  [  --disable-do			Compile even if DO-dependencies are not met],,
+  enable_do=yes)
+
 AC_CHECK_HEADER(ffi.h, , enable_libffi=no)
 
 AC_MSG_CHECKING("for forwarding callback in runtime")
@@ -881,11 +885,22 @@ elif test $enable_ffcall = yes; then
   AC_MSG_RESULT(ffcall)
 else
   AC_MSG_RESULT(none)
-  AC_MSG_WARN([No ffcall interface library found])
   echo
-  echo "GNUstep requires the ffcall library to do invocations and DO"
-  echo "Make sure this library is installed (see installation instructions)"
-  echo "Otherwise DO will not be compatible with other systems"
+  echo "GNUstep requires the ffcall library to do invocations and DO."
+  echo "Make sure this library is installed (see installation instructions)."
+  echo "Otherwise DO will not be compatible with other systems, and you will not"
+  echo "be able to use gnustep-gui."
+  if test $enable_do = yes; then
+    echo
+    echo "You most likely do not want to build -base without DO support. Many"
+    echo "things, including all applications, won't work at all without DO."
+    echo "If you really want to build -base without DO support, add --disable-do"
+    echo "to the configure arguments."
+    echo "For more information, read the GNUstep build guide, ffcall section:"
+    echo "http://documents.made-it.com/GNUstep/buildguide.html"
+    AC_MSG_ERROR([No ffcall interface library found.])
+  fi
+  AC_MSG_WARN([No ffcall interface library found])
 fi
 AC_SUBST(WITH_FFI)
 
