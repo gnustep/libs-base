@@ -82,6 +82,8 @@ main(int argc, char** argv)
 
   for (index = 0; index < [args count]; index++)
     {
+      if ([[args objectAtIndex: index] isEqual: @"--verbose"])
+	verbose = YES;
       if ([[args objectAtIndex: index] isEqual: @"--help"])
 	{
 	  printf(
@@ -95,6 +97,7 @@ main(int argc, char** argv)
 	}
       if ([[args objectAtIndex: index] isEqual: @"--test"])
 	{
+	  verbose = YES;
 	  while (++index < [args count])
 	    {
 	      NSString		*file = [args objectAtIndex: index];
@@ -532,6 +535,8 @@ validateService(NSDictionary *service, NSString *path, unsigned pos)
 	}
       if (used == NO)
 	{
+	  if (verbose)
+	    NSLog(@"Ignoring entry %u in %@ -\n%@\n", pos, path, result);
 	  return nil;	/* Ignore - already got service with this name	*/
 	}
     }
@@ -593,6 +598,8 @@ validateService(NSDictionary *service, NSString *path, unsigned pos)
 	}
       if (used == NO)
 	{
+	  if (verbose)
+	    NSLog(@"Ignoring entry %u in %@ -\n%@\n", pos, path, result);
 	  return nil;	/* Ignore - already got filter for types.	*/
 	}
     }
@@ -632,6 +639,8 @@ validateService(NSDictionary *service, NSString *path, unsigned pos)
 	}
       if (used == NO)
 	{
+	  if (verbose)
+	    NSLog(@"Ignoring entry %u in %@ -\n%@\n", pos, path, result);
 	  return nil;	/* Ignore - already got filter with this name	*/
 	}
     }
@@ -663,6 +672,8 @@ validateService(NSDictionary *service, NSString *path, unsigned pos)
 	}
       if (used == NO)
 	{
+	  if (verbose)
+	    NSLog(@"Ignoring entry %u in %@ -\n%@\n", pos, path, result);
 	  return nil;	/* Ignore - already got speller with language.	*/
 	}
     }
