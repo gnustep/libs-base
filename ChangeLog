@@ -1,3 +1,19 @@
+Wed Jan  9 11:55:54 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* configure.in: Set AC_CONFIG_AUX_DIR to
+	$GNUSTEP_SYSTEM_ROOT/Makefiles so that gnustep-make's
+	config.guess, config.sub and install.sh are used.
+	* configure: Regenerated.
+	* config.guess: Removed.
+	* config.sub: Removed.
+	* install-sh: Removed.
+	* mkinstalldirs: Removed.
+	* Source/mframe/configure.in: Set AC_CONFIG_AUX_DIR to
+	$GNUSTEP_SYSTEM_ROOT/Makefiles.
+	* Source/mframe/configure: Regenerated.
+	* Source/mframe/config.guess: Removed.
+	* Source/mframe/config.sub: Removed.
+	
 Wed Jan  9 11:08:57 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* config.guess: Updated to latest version.
