@@ -7,6 +7,8 @@
    Author: Mirko Viviani <mirko.viviani@rccr.cremona.it>
    Date: October 2000  Added frameworks support
 
+   Author: Nicola Pero <nicola@brainstorm.co.uk>
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -543,37 +545,96 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return array;
 }
 
+/* For an application, returns the main bundle of the application.
+   For a tool, returns the main bundle associated with the tool (this
+   is experimental and not yet supported by gnustep-make, but will
+   soon be).
+   
+   For an application, the structure is as follows - 
+   
+   The executable is Gomoku.app/ix86/linux-gnu/gnu-gnu-gnu/Gomoku
+   and the main bundle directory is Gomoku.app/.
+   
+   For a tool, the structure is as follows - 
+   
+   The executable is xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control
+   and the main bundle directory is xxx/Tools/Resources/Control.
+   
+   (when the tool has not yet been installed, it's similar - 
+   xxx/shared_obj/ix86/linux-gnu/gnu-gnu-gnu/Control
+   and the main bundle directory is xxx/Resources/Control).
+   
+   (For a flattened structure, the structure is the same without the
+   ix86/linux-gnu/gnu-gnu-gnu directories).  */
 + (NSBundle *)mainBundle
 {
   [load_lock lock];
-  if ( !_mainBundle ) 
+  if (!_mainBundle) 
     {
+      /* We figure out the main bundle directory by examining the location
+	 of the executable on disk.  */
       NSString *path, *s;
-      
+
+      /* We don't know at the beginning if it's a tool or an application.  */
+      BOOL isApplication = YES;
+
+      /* If it's a tool, we will need the tool name.  Since we don't
+         know yet if it's a tool or an application, we always store
+         the executable name here - just in case it turns out it's a
+         tool.  */
+      NSString *toolName = [_executable_path lastPathComponent];
+
       /* Strip off the name of the program */
       path = [_executable_path stringByDeletingLastPathComponent];
 
-      /* The executable may not lie in the main bundle directory
-	 so we need to chop off the extra subdirectories, the library
-	 combo and the target cpu/os if they exist.  The executable and
-	 this library should match so that is why we can use the
+      /* We now need to chop off the extra subdirectories, the library
+	 combo and the target cpu/os if they exist.  The executable
+	 and this library should match so that is why we can use the
 	 compiled-in settings. */
       /* library combo */
       s = [path lastPathComponent];
       if ([s isEqual: library_combo])
-	path = [path stringByDeletingLastPathComponent];
+	{
+	  path = [path stringByDeletingLastPathComponent];
+	}
       /* target os */
       s = [path lastPathComponent];
       if ([s isEqual: gnustep_target_os])
-	path = [path stringByDeletingLastPathComponent];
+	{
+	  path = [path stringByDeletingLastPathComponent];
+	}
       /* target cpu */
       s = [path lastPathComponent];
       if ([s isEqual: gnustep_target_cpu])
-	path = [path stringByDeletingLastPathComponent];
+	{
+	  path = [path stringByDeletingLastPathComponent];
+	}
       /* object dir */
       s = [path lastPathComponent];
       if ([s hasSuffix: @"_obj"])
-	path = [path stringByDeletingLastPathComponent];
+	{
+	  path = [path stringByDeletingLastPathComponent];
+	  /* if it has an object dir it can only be a
+             non-yet-installed tool.  */
+	  isApplication = NO;
+	}
+      
+      if (isApplication == YES)
+	{
+	  s = [path lastPathComponent];
+	  if (([s hasSuffix: @".app"]  == NO)
+	      && ([s hasSuffix: @".debug"] == NO)
+	      && ([s hasSuffix: @".profile"] == NO))
+	    {
+	      isApplication = NO;
+	    }
+	}
+      
+      if (isApplication == NO)
+	{
+	  path = [path stringByAppendingPathComponent: @"Resources"];
+	  path = [path stringByAppendingPathComponent: toolName];
+	}
 
       NSDebugMLLog(@"NSBundle", @"Found main in %@\n", path);
       /* We do alloc and init separately so initWithPath: knows
@@ -1239,10 +1300,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 @implementation NSBundle (GNUstep)
 
-/* These are convenience methods for searching for resource files
-   within the GNUstep directory structure specified by the environment
-   variables. */
-
 /** Return a bundle which accesses the first existing directory from the list 
    GNUSTEP_USER_ROOT/Libraries/Resources/libraryName/
    GNUSTEP_NETWORK_ROOT/Libraries/Resources/libraryName/
@@ -1263,45 +1320,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
   
   tail = [@"Resources" stringByAppendingPathComponent: libraryName];
-
-  paths = NSSearchPathForDirectoriesInDomains (GSLibrariesDirectory,
-					       NSAllDomainsMask, YES);
-  
-  enumerator = [paths objectEnumerator];
-  while ((path = [enumerator nextObject]))
-    {
-      BOOL isDir;
-      path = [path stringByAppendingPathComponent: tail];
-      
-      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
-	{
-	  return [NSBundle bundleWithPath: path];
-	}
-    }
-  
-  return nil;
-}
-
-/** Return a bundle which accesses the first existing directory from the list 
-   GNUSTEP_USER_ROOT/Libraries/Resources/toolName/
-   GNUSTEP_NETWORK_ROOT/Libraries/Resources/toolName/
-   GNUSTEP_LOCAL_ROOT/Libraries/Resources/toolName/
-   GNUSTEP_SYSTEM_ROOT/Libraries/Resources/toolName/
- */
-+ (NSBundle *) bundleForTool: (NSString *)toolName
-{
-  NSArray *paths;
-  NSEnumerator *enumerator;
-  NSString *path;
-  NSString *tail;
-  NSFileManager *fm = [NSFileManager defaultManager];
-  
-  if (toolName == nil)
-    {
-      return nil;
-    }
-  
-  tail = [@"Resources" stringByAppendingPathComponent: toolName];
 
   paths = NSSearchPathForDirectoriesInDomains (GSLibrariesDirectory,
 					       NSAllDomainsMask, YES);
