@@ -8,6 +8,7 @@
 #ifndef __null_load_h_INCLUDE
 #define __null_load_h_INCLUDE
 
+#define CTOR_LIST ""
 
 /* Types defined appropriately for the dynamic linker */
 typedef void* dl_handle_t;

@@ -1,3 +1,10 @@
+Tue Oct  6 16:35:48 1998  Adam Fedor  <fedor@doc.com>
+
+	* aclocal.m4: Add win32 test
+	* configure.in: Use DYNAMIC_LINKER test.
+	* src/GNUmakefile: Add win32-load.h
+	* src/win32-load.h: New file.
+
 Sat Oct  6 16:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/FastMap.x: New map table for dictionaries.
