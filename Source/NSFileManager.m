@@ -541,9 +541,16 @@ static NSFileManager* defaultManager = nil;
   BOOL		is_dir;
   const char	*cpath;
 
-  if (handler != nil)
-    [handler fileManager: self willProcessPath: path];
+  if ([path isEqualToString: @"."] || [path isEqualToString: @".."])
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to remove illegal path"];
+    }
 
+  if (handler != nil)
+    {
+      [handler fileManager: self willProcessPath: path];
+    }
   cpath = [self fileSystemRepresentationWithPath: path];
   if (cpath == 0 || *cpath == '\0')
     {
