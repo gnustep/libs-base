@@ -17,7 +17,7 @@
         id obj;
 }
 
-%type <obj> root object array objlist dictionary keyval_list keyval_pair
+%type <obj> root object array objlist dictionary keyval_list
 
                 /* rules section */
 %%
@@ -57,8 +57,7 @@ objlist:                objlist ',' object
                                 }
                 |       object
                                 {
-                                  $$ = [[[NSMutableArray alloc]
-initWithCapacity:1] autorelease];
+                                  $$ = [NSMutableArray arrayWithCapacity: 1];
                                   [$$ addObject:$1];
                                 }
                 ;
@@ -70,24 +69,16 @@ dictionary:     '{' keyval_list '}'
                 |       '{' '}'
                                 {$$ = [NSDictionary dictionary];}
                 ;
-keyval_list:    keyval_list ';' keyval_pair
+keyval_list:    keyval_list ';' NSSTRING '=' object
                                 {
                                   $$ = $1;
-                                  [$$ addEntriesFromDictionary:$3];
-				  [$3 release];
+                                  [$$ setObject:$5 forKey:$3];
                                 }
-                |       keyval_pair
+                |       NSSTRING '=' object
 				{
-                                  $$ = $1;
-				  [$$ autorelease];
-				}
-                ;
-keyval_pair:    NSSTRING '=' object
-                                {
-                                  $$ = [[NSMutableDictionary alloc]
-initWithCapacity:1];
+                                  $$ = [NSMutableDictionary dictionaryWithCapacity:1];
                                   [$$ setObject:$3 forKey:$1];
-                                }
+				}
                 ;
 %%
 

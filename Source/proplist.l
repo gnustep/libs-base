@@ -51,7 +51,7 @@ hexdata \<{wsnl}*({hexword}{wsnl}*)*({hexnum}{wsnl}*)*\>
 <QUOTE>{qstring}        {
                                   if(plleng==1) {
                                     BEGIN INITIAL;
-				    pllval.obj=[NSString stringWithCString:""];
+				    pllval.obj=@"";
 				    return NSSTRING;
                                   }
                                   if(pltext[plleng-2] == '\\') {
@@ -168,7 +168,7 @@ unescstr (char *src)
 
   *dest_ptr = '\0';     /* terminate dest */
 
-  return [[[NSString alloc] initWithCStringNoCopy: dest
-					   length: dest_ptr - dest
-				     freeWhenDone: YES] autorelease];
+  return [[[NSGCString alloc] initWithCStringNoCopy: dest
+					     length: dest_ptr - dest
+				       freeWhenDone: YES] autorelease];
 }

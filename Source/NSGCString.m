@@ -339,6 +339,88 @@
   return [self initWithCString:[string cString]];
 }
 
+- (NSString*) descriptionForPropertyList
+{
+    if (_count == 0) {
+	return @"\"\"";
+    }
+    else {
+	unsigned	i;
+	unsigned	length = _count;
+	BOOL		needQuote = NO;
+
+	for (i = 0; i < _count; i++) {
+	    char	val = _contents_chars[i];
+
+	    switch (val) {
+		case '\a':
+		case '\b':
+		case '\t':
+		case '\r':
+		case '\n':
+		case '\v':
+		case '\f':
+		case '\\':
+		case '\'' :
+		case '"' :
+		    length += 2;
+		    break;
+
+		default:
+		    if (val == ' ') {
+			needQuote = YES;
+		    }
+		    else if (isprint(val) == 0) {
+			length += 4;
+		    }
+		    break;
+	    }
+	}
+
+	if (needQuote || length != _count) {
+	    char	*buf = objc_malloc(length+3);
+	    char	*ptr = buf;
+	    NSString	*result;
+
+	    *ptr++ = '"';
+	    for (i = 0; i < _count; i++) {
+		char	val = _contents_chars[i];
+
+		switch (val) {
+		    case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
+		    case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
+		    case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
+		    case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
+		    case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
+		    case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
+		    case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
+		    case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
+		    case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
+		    case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
+
+		    default:
+			if (isprint(val) || val == ' ') {
+			    *ptr++ = val;
+			}
+			else {
+			    *ptr++ = '\\';
+			    *ptr++ = '0';
+			    *ptr++ = ((val&0700)>>6)+'0';
+			    *ptr++ = ((val&070)>>3)+'0';
+			    *ptr++ = (val&07)+'0';
+			}
+			break;
+		}
+	    }
+	    *ptr++ = '"';
+	    *ptr = '\0';
+	    result = [[[_fastCls._NSGCString alloc] initWithCStringNoCopy: buf
+			length: length+2 freeWhenDone: YES] autorelease];
+	    return result;
+	}
+	return self;
+    }
+}
 @end
 
 
