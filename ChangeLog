@@ -1,3 +1,10 @@
+2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTemplateValue.m: Implement initialize method to set the
+	version of concrete classes to be that of the abstract class which
+	actually performs encoding/decoding ... should correct archiving.
+	Problem reported by Gerrit Van Dyk
+
 2002-02-26  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
 
 	* Source/NSUnarchiver.m 
@@ -5,7 +12,7 @@
 	([NSUnarchiver -classNameDecodedForArchiveClassName:]): 
 	return nil if the class name is not present.
 
-2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
+2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m: Fixes to work on mingw.
 	* Source/NSHost.m: Update for current winsock on mingw.
