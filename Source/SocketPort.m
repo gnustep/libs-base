@@ -1,5 +1,5 @@
 /* Implementation of socket-based port object for use with Connection
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -266,12 +266,40 @@ s1.sin_addr.s_addr == s2.sin_addr.s_addr)
   return [self newForSockPort:remote_addr];
 }
 
+#if 0
+
+Notes for new interface:
+
+- (int) sendPacket: (const char *)b length: (int)l
+   toPort: (Port*)remote
+   resendTimeout: (int) milliseconds
+#if foo
+   failTimeout: (int) milliseconds
+#else
+   retriesBeforeFailure: (int) tries
+#endif
+- (int) receivePacket: (char*)b length: (int)l
+   fromPort: (Port**) remote
+   failTimeout: (int) milliseconds
+
+or
+
+- (int) sendPacket: (const char *)b length: (int)l
+   toPort: (Port*)remote
+   timeout: (int) milliseconds
+- (int) receivePacket: (char*)b length: (int)l
+   inResponseToPacket: (char*)b2 length: (int)l2
+   fromPort: (Port**) remote
+   failTimeout: (int) milliseconds
+
+#endif /* 0 */
+
 
 /* This currently ignores the timeout parameter */
 
 - (int) sendPacket: (const char *)b length: (int)l
    toPort: (Port*)remote
-   timeout: (int) milliseconds;
+   timeout: (int) milliseconds
 {
   int r;
   sockport_t a;
@@ -297,7 +325,7 @@ s1.sin_addr.s_addr == s2.sin_addr.s_addr)
 
 - (int) receivePacket: (char*)b length: (int)l
    fromPort: (Port**) remote
-   timeout: (int) milliseconds;
+   timeout: (int) milliseconds
 {
   int r;
   struct sockaddr_in remote_addr;
