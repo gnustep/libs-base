@@ -100,9 +100,8 @@
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;
-    unsigned int	ascii: 1;
     unsigned int	free: 1;
-    unsigned int	unused: 1;
+    unsigned int	unused: 2;
     unsigned int	hash: 28;
   } _flags;
   NSZone	*_zone;
@@ -286,16 +285,10 @@ canBeConvertedToEncoding_c(ivars self, NSStringEncoding enc)
 {
   if (enc == defEnc)
     return YES;
-  else if (self->_flags.ascii == 1)
-    return YES;
   else
     {
       BOOL	result = (*convertImp)((id)self, convertSel, enc);
 
-      if (enc == NSASCIIStringEncoding)
-	{
-	  self->_flags.ascii = 1;
-	}
       return result;
     }
 }
@@ -303,18 +296,9 @@ canBeConvertedToEncoding_c(ivars self, NSStringEncoding enc)
 static inline BOOL
 canBeConvertedToEncoding_u(ivars self, NSStringEncoding enc)
 {
-  if (self->_flags.ascii == 1)
-    return YES;
-  else
-    {
-      BOOL	result = (*convertImp)((id)self, convertSel, enc);
+  BOOL	result = (*convertImp)((id)self, convertSel, enc);
 
-      if (enc == NSASCIIStringEncoding)
-	{
-	  self->_flags.ascii = 1;
-	}
-      return result;
-    }
+  return result;
 }
 
 static inline unichar
@@ -450,9 +434,14 @@ dataUsingEncoding_c(ivars self, NSStringEncoding encoding, BOOL flag)
       return [NSDataClass data];
     }
 
-  if (encoding == defEnc)
+  if ((encoding == defEnc)
+    || ((defEnc == NSASCIIStringEncoding) 
+    && ((encoding == NSISOLatin1StringEncoding)
+    || (encoding == NSISOLatin2StringEncoding)
+    || (encoding == NSNEXTSTEPStringEncoding)
+    || (encoding == NSNonLossyASCIIStringEncoding))))
     {
-      unsigned char	*buff;
+      unsigned char *buff;
 
       buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len);
       memcpy(buff, self->_contents.c, len);
@@ -467,20 +456,6 @@ dataUsingEncoding_c(ivars self, NSStringEncoding encoding, BOOL flag)
       buff[0] = 0xFEFF;
       t = encode_strtoustr(buff+1, self->_contents.c, len, defEnc);
       return [NSDataClass dataWithBytesNoCopy: buff length: t+2];
-    }
-  else if ((encoding == defEnc)
-    || ((defEnc == NSASCIIStringEncoding) 
-    && ((encoding == NSISOLatin1StringEncoding)
-    || (encoding == NSISOLatin2StringEncoding)
-    || (encoding == NSNEXTSTEPStringEncoding)
-    || (encoding == NSNonLossyASCIIStringEncoding))))
-    {
-      unsigned char *buff;
-
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
-      memcpy(buff, self->_contents.c, len);
-      buff[len] = '\0';
-      return [NSDataClass dataWithBytesNoCopy: buff length: len];
     }
   else
     {
@@ -497,7 +472,7 @@ dataUsingEncoding_c(ivars self, NSStringEncoding encoding, BOOL flag)
 	t = encode_ustrtostr_strict(buff, ubuff, t, encoding);
       buff[t] = '\0';
       NSZoneFree(NSDefaultMallocZone(), ubuff);
-      if (t != 0)
+      if (t != len)
         {
 	  NSZoneFree(NSDefaultMallocZone(), buff);
 	  return nil;
@@ -1095,17 +1070,6 @@ transmute(ivars self, NSString *aString)
   other = (ivars)aString;
   transmute = YES;
 
-  /*
-   * Unless we are sure that the other string we are going to insert into
-   * this one contains only ascii characters, we clear the flag that says
-   * we contain only ascii.
-   */
-  if (fastClassIsKindOfClass(c, GSStringClass) == NO
-    || c == NXConstantStringClass || other->_flags.ascii == 0)
-    {
-      self->_flags.ascii = 0;
-    }
-
   if (self->_flags.wide == 1)
     {
       /*
@@ -1168,7 +1132,14 @@ transmute(ivars self, NSString *aString)
 
       tmp = NSZoneMalloc(self->_zone, self->_capacity * sizeof(unichar));
       encode_strtoustr(tmp, self->_contents.c, self->_count, defEnc);
-      NSZoneFree(self->_zone, self->_contents.c);
+      if (self->_flags.free == 1)
+	{
+	  NSZoneFree(self->_zone, self->_contents.c);
+	}
+      else
+	{
+	  self->_flags.free = 1;
+	}
       self->_contents.u = tmp;
       self->_flags.wide = 1;
     }
@@ -1456,8 +1427,6 @@ transmute(ivars self, NSString *aString)
   if (sub != nil)
     {
       sub->_parent = RETAIN(self);
-      if (_flags.ascii == 1)
-	((ivars)sub)->_flags.ascii = 1;
       AUTORELEASE(sub);
     }
   return sub;
@@ -1726,8 +1695,6 @@ transmute(ivars self, NSString *aString)
   if (sub != nil)
     {
       sub->_parent = RETAIN(self);
-      if (_flags.ascii == 1)
-	((ivars)sub)->_flags.ascii = 1;
       AUTORELEASE(sub);
     }
   return sub;
@@ -2281,10 +2248,7 @@ transmute(ivars self, NSString *aString)
 {
   if (_flags.wide == 1)
     {
-      if (_flags.ascii == 1)
-	return NSASCIIStringEncoding;
-      else
-	return NSUnicodeStringEncoding;
+      return NSUnicodeStringEncoding;
     }
   else
     return defEnc;

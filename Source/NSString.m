@@ -72,7 +72,7 @@
 
 #include <base/fast.x>
 
-@class	GSCString;
+@class	GSString;
 @class	GSMString;
 @class	GSUString;
 
@@ -80,8 +80,12 @@
  * Cache classes for speed.
  */
 static Class	NSData_class;
-static Class	NSString_class;
-static Class	NSMutableString_class;
+static Class	NSStringClass;
+static Class	NSMutableStringClass;
+
+static Class	GSStringClass;
+static Class	GSMStringClass;
+static Class	GSUStringClass;
 
 /*
  *	Include sequence handling code with instructions to generate search
@@ -144,14 +148,6 @@ pathSepMember(unichar c)
 
 
 @implementation NSString
-
-/* For unichar strings. */
-static Class NSString_concrete_class;
-static Class NSMutableString_concrete_class;
-
-/* For CString's */
-static Class NSString_c_concrete_class;
-static Class NSMutableString_c_concrete_class;
 
 static NSStringEncoding _DefaultStringEncoding;
 
@@ -219,13 +215,12 @@ handle_printf_atsign (FILE *stream,
   if (self == [NSString class])
     {
       _DefaultStringEncoding = GetDefEncoding();
-      NSString_class = self;
-      NSMutableString_class = [NSMutableString class];
+      NSStringClass = self;
+      NSMutableStringClass = [NSMutableString class];
       NSData_class = [NSData class];
-      NSString_concrete_class = [GSUString class];
-      NSString_c_concrete_class = [GSCString class];
-      NSMutableString_concrete_class = [GSMString class];
-      NSMutableString_c_concrete_class = [GSMString class];
+      GSStringClass = [GSString class];
+      GSMStringClass = [GSMString class];
+      GSUStringClass = [GSUString class];
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
       if (register_printf_function ('@', 
@@ -243,9 +238,9 @@ handle_printf_atsign (FILE *stream,
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if (self == NSString_class)
+  if (self == NSStringClass)
     {
-      return NSAllocateObject (NSString_concrete_class, 0, z);
+      return NSAllocateObject (GSStringClass, 0, z);
     }
   else
     {
@@ -275,15 +270,15 @@ handle_printf_atsign (FILE *stream,
 
 + (id) stringWithCString: (const char*) byteString
 {
-  return AUTORELEASE([[NSString_c_concrete_class allocWithZone:
-    NSDefaultMallocZone()] initWithCString: byteString]);
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithCString: byteString]);
 }
 
 + (id) stringWithCString: (const char*)byteString
 		  length: (unsigned)length
 {
-  return AUTORELEASE([[NSString_c_concrete_class allocWithZone:
-    NSDefaultMallocZone()] initWithCString: byteString length: length]);
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithCString: byteString length: length]);
 }
 
 + (id) stringWithUTF8String: (const char *)bytes
@@ -1009,8 +1004,8 @@ handle_printf_atsign (FILE *stream,
 
   [self getCharacters: s];
   [aString getCharacters: s + len];
-  tmp = [[NSString_concrete_class allocWithZone: z] initWithCharactersNoCopy: s
-		    length: len + otherLength freeWhenDone: YES];
+  tmp = [[GSStringClass allocWithZone: z] initWithCharactersNoCopy: s
+    length: len + otherLength freeWhenDone: YES];
   return AUTORELEASE(tmp);
 }
 
@@ -1073,7 +1068,7 @@ handle_printf_atsign (FILE *stream,
     return @"";
   buf = NSZoneMalloc(fastZone(self), sizeof(unichar)*aRange.length);
   [self getCharacters: buf range: aRange];
-  ret = [[NSString_concrete_class allocWithZone: NSDefaultMallocZone()]
+  ret = [[GSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: buf length: aRange.length freeWhenDone: YES];
   return AUTORELEASE(ret);
 }
@@ -1252,7 +1247,7 @@ handle_printf_atsign (FILE *stream,
 
       if (c != nil)
 	{
-	  if (fastClassIsKindOfClass(c, NSString_class))
+	  if (fastClassIsKindOfClass(c, NSStringClass))
 	    {
 	      return [self isEqualToString: anObject];
 	    }
@@ -1651,8 +1646,7 @@ handle_printf_atsign (FILE *stream,
     {
       s[count] = uni_tolower((*caiImp)(self, caiSel, count));
     }
-  return AUTORELEASE([[NSString_concrete_class
-    allocWithZone: NSDefaultMallocZone()]
+  return AUTORELEASE([[GSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
 }
 
@@ -1673,8 +1667,7 @@ handle_printf_atsign (FILE *stream,
     {
       s[count] = uni_toupper((*caiImp)(self, caiSel, count));
     }
-  return AUTORELEASE([[NSString_concrete_class
-    allocWithZone: NSDefaultMallocZone()]
+  return AUTORELEASE([[GSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len freeWhenDone: YES]);
 }
 
@@ -1939,14 +1932,12 @@ handle_printf_atsign (FILE *stream,
 
 - (NSStringEncoding) fastestEncoding
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  return NSUnicodeStringEncoding;
 }
 
 - (NSStringEncoding) smallestEncoding
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  return NSUnicodeStringEncoding;
 }
 
 
@@ -2123,7 +2114,7 @@ handle_printf_atsign (FILE *stream,
 	  aLength--;
 	}
     }
-  return [NSString_class stringWithCharacters: buf length: length];
+  return [NSStringClass stringWithCharacters: buf length: length];
 }
 
 /* Returns a new string with the path extension given in aString
@@ -2205,7 +2196,7 @@ handle_printf_atsign (FILE *stream,
       homedir = NSHomeDirectory ();
     }
   
-  return [NSString_class stringWithFormat: @"%@%@", homedir, 
+  return [NSStringClass stringWithFormat: @"%@%@", homedir, 
     [self substringFromIndex: first_slash_range.location]];
 }
 
@@ -2216,7 +2207,7 @@ handle_printf_atsign (FILE *stream,
   if (![self hasPrefix: homedir])
     return AUTORELEASE([self copy]);
 
-  return [NSString_class stringWithFormat: @"~%c%@", (char)pathSepChar,
+  return [NSStringClass stringWithFormat: @"~%c%@", (char)pathSepChar,
     [self substringFromIndex: [homedir length] + 1]];
 }
 
@@ -2730,7 +2721,7 @@ handle_printf_atsign (FILE *stream,
 	  }
 	*ptr++ = '"';
 	*ptr = '\0';
-	[output appendString: [NSString_class stringWithCString: buf]];
+	[output appendString: [NSStringClass stringWithCString: buf]];
       }
     }
   else
@@ -2745,17 +2736,15 @@ handle_printf_atsign (FILE *stream,
 - (id) copyWithZone: (NSZone*)zone
 {
   if ([self isKindOfClass: [NSMutableString class]] ||
-	NSShouldRetainWithZone(self, zone) == NO)
-    return [[NSString_concrete_class allocWithZone: zone]
-	initWithString: self];
+    NSShouldRetainWithZone(self, zone) == NO)
+    return [[GSStringClass allocWithZone: zone] initWithString: self];
   else
     return RETAIN(self);
 }
 
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  return [[NSMutableString_concrete_class allocWithZone: zone]
-	  initWithString: self];
+  return [[GSMStringClass allocWithZone: zone] initWithString: self];
 }
 
 /* NSCoding Protocol */
@@ -2858,7 +2847,7 @@ handle_printf_atsign (FILE *stream,
 
 - (Class) classForCoder
 {
-  return NSString_class;
+  return NSStringClass;
 }
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
@@ -2928,9 +2917,9 @@ handle_printf_atsign (FILE *stream,
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if (self == NSMutableString_class)
+  if (self == NSMutableStringClass)
     {
-      return NSAllocateObject(NSMutableString_concrete_class, 0, z);
+      return NSAllocateObject(GSMStringClass, 0, z);
     }
   else
     {
@@ -2942,13 +2931,13 @@ handle_printf_atsign (FILE *stream,
 
 + (NSMutableString*) string
 {
-  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+  return AUTORELEASE([[GSMStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCapacity: 0]);
 }
 
 + (NSMutableString*) stringWithCapacity: (unsigned)capacity
 {
-  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+  return AUTORELEASE([[GSMStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCapacity: capacity]);
 }
 
@@ -2956,26 +2945,26 @@ handle_printf_atsign (FILE *stream,
 + (NSString*) stringWithCharacters: (const unichar*)characters
 			    length: (unsigned)length
 {
-  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+  return AUTORELEASE([[GSMStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCharacters: characters length: length]);
 }
 
 + (id) stringWithContentsOfFile: (NSString *)path
 {
-  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+  return AUTORELEASE([[GSMStringClass allocWithZone:
     NSDefaultMallocZone()] initWithContentsOfFile: path]);
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
 {
-  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+  return AUTORELEASE([[GSMStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString]);
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
 			 length: (unsigned)length
 {
-  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+  return AUTORELEASE([[GSMStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
 }
 
@@ -3023,7 +3012,7 @@ handle_printf_atsign (FILE *stream,
 
 - (Class) classForCoder
 {
-  return NSMutableString_class;
+  return NSMutableStringClass;
 }
 
 - (void) deleteCharactersInRange: (NSRange)range
@@ -3177,7 +3166,7 @@ handle_printf_atsign (FILE *stream,
         
 @end
 
-@implementation NSString (GSString)
+@implementation NSString (GNUstep)
 
 - (NSString*) stringWithoutSuffix: (NSString*)_suffix
 {
@@ -3214,7 +3203,7 @@ handle_printf_atsign (FILE *stream,
 
 @end
 
-@implementation NSMutableString (GSString)
+@implementation NSMutableString (GNUstep)
 - (void) removeSuffix: (NSString*)_suffix
 {
   NSCAssert2([self hasSuffix: _suffix],

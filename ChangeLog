@@ -1,3 +1,15 @@
+2000-10-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([-fastestEncoding]), ([-smallestEncoding])
+	implemented to return NSUnicodeStringEncoding.  Use new string
+	classes more effectively - let GSString turn itsself into either
+	GSCString or GSUstring when initialised.
+	* Source/GSString.m: ([-dataUsingEncoding:allowLossyConversion:])
+	bugfixes for cString reported by Freed Kiefer
+	Removed 'ascii' flag - more trouble than a minor optimisation is
+	worth.
+	Fixed transmute() to be careful about freeing old string.
+
 2000-10-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSNull.h: New placeholder class.
