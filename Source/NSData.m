@@ -826,15 +826,12 @@ failure:
 	  else
 	    {
 	      unsigned	len = (length+1)*sizeof(char);
-	      NSZone	*z = [self zone];
-	      NSData	*d;
 
-	      *(char**)data = (char*)NSZoneMalloc(z, len);
-	      d = [dataMalloc allocWithZone: z];
-	      d = [d initWithBytesNoCopy: *(void**)data
-				  length: len
-			        fromZone: z];
-	      IF_NO_GC(AUTORELEASE(d));
+#if	GS_WITH_GC == 0
+	      *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
+#else
+	      *(char**)data = (char*)NSZoneMalloc(NSAtomicMallocZone(), len);
+#endif
 	    }
 
 	  [self deserializeBytes: *(char**)data
@@ -896,15 +893,12 @@ failure:
       case _C_PTR:
 	{
 	  unsigned	len = objc_sizeof_type(++type);
-	  NSZone	*z = [self zone];
-	  NSData	*d;
 
-	  *(char**)data = (char*)NSZoneMalloc(z, len);
-	  d = [dataMalloc allocWithZone: z];
-	  d = [d initWithBytesNoCopy: *(void**)data
-			      length: len
-			    fromZone: z];
-	  IF_NO_GC(AUTORELEASE(d));
+#if	GS_WITH_GC == 0
+	  *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
+#else
+	  *(char**)data = (char*)NSZoneMalloc(NSAtomicMallocZone(), len);
+#endif
 	  [self deserializeDataAt: *(char**)data
 		       ofObjCType: type
 			 atCursor: cursor
@@ -1937,14 +1931,10 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    }
 	  else
 	    {
-	      NSZone	*z = [self zone];
-
-	      *(char**)data = (char*)NSZoneMalloc(z, len+1);
-#if !GS_WITH_GC
-	      [[[dataMalloc allocWithZone: z]
-			   initWithBytesNoCopy: *(void**)data
-					length: len+1
-				      fromZone: z] autorelease];
+#if	GS_WITH_GC == 0
+	      *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
+#else
+	      *(char**)data = (char*)NSZoneMalloc(NSAtomicMallocZone(), len+1);
 #endif
 	    }
 	  getBytes(*(void**)data, bytes, len, length, cursor);
@@ -2004,14 +1994,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       case _C_PTR:
 	{
 	  unsigned	len = objc_sizeof_type(++type);
-	  NSZone	*z = [self zone];
 
-	  *(char**)data = (char*)NSZoneMalloc(z, len);
-#if !GS_WITH_GC
-	  [[[dataMalloc allocWithZone: z]
-			 initWithBytesNoCopy: *(void**)data
-				      length: len
-				    fromZone: z] autorelease];
+#if	GS_WITH_GC == 0
+	  *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
+#else
+	  *(char**)data = (char*)NSZoneMalloc(NSAtomicMallocZone(), len);
 #endif
 	  [self deserializeDataAt: *(char**)data
 		       ofObjCType: type

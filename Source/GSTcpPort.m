@@ -1521,15 +1521,20 @@ static NSMapTable	*tcpPortMap = 0;
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
+		  msgid: (int)msgId
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
                reserved: (unsigned)length
-		  msgId: (int)msgId
 {
   BOOL		sent = NO;
   GSTcpHandle	*h;
   unsigned	rl = [self reservedSpaceLength];
 
+  if ([components count] == 0)
+    {
+      NSLog(@"empty components sent");
+      return NO;
+    }
   /*
    * If the reserved length in the first data object is wrong - we have to
    * fail, unless it's zero, in which case we can insert a data object for
@@ -1667,18 +1672,6 @@ static NSMapTable	*tcpPortMap = 0;
       sent = [h sendMessage: components beforeDate: when];
     }
   return sent;
-}
-
-- (BOOL) sendBeforeDate: (NSDate*)when
-             components: (NSMutableArray*)components
-                   from: (NSPort*)receivingPort
-               reserved: (unsigned)length
-{
-  return [self sendBeforeDate: (NSDate*)when
-		   components: components
-			 from: receivingPort
-		     reserved: length
-			msgId: GS_CONNECTION_MSG];
 }
 
 - (NSDate*) timedOutEvent: (void*)data

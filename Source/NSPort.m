@@ -31,11 +31,28 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSAutoreleasePool.h>
 
+@class	GSTcpPort;
+
 @implementation NSPort
+
+Class	_concreteClass;
+
++ (id) allocWithZone: (NSZone*)aZone
+{
+  return [super allocWithZone: aZone];
+}
+
++ (void) initialize
+{
+  if (self == [NSPort class])
+    {
+      _concreteClass = [GSTcpPort class];
+    }
+}
 
 + (NSPort*) port
 {
-  return AUTORELEASE([self new]);
+  return AUTORELEASE([_concreteClass new]);
 }
 
 + (NSPort*) portWithMachPort: (int)machPort
@@ -159,6 +176,19 @@
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
                reserved: (unsigned) length
+{
+  return [self sendBeforeDate: when
+			msgid: 0
+		   components: components
+			 from: receivingPort
+		     reserved: length];
+}
+
+- (BOOL) sendBeforeDate: (NSDate*)when
+		  msgid: (int)msgid
+             components: (NSMutableArray*)components
+                   from: (NSPort*)receivingPort
+               reserved: (unsigned)length
 {
   [self subclassResponsibility: _cmd];
   return YES;

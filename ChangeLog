@@ -1,3 +1,17 @@
+2000-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSConnection.m: Implementation almost complete
+	* Source/GSPortCoder.m: Completed
+	* Source/GSTcpPort.m: tidied for MacOS-X compatibility
+	* Source/NSArchiver.m: Bugfix encoding structures containing arrays
+	* Source/NSData.m: minor tidy
+	* Source/NSDistantObject.m: update for new implementation
+	* Source/NSInvocation.m: bugfix decoding
+	* Source/NSPort.m: update for MacOS-X complience
+	* Source/NSPortNameServer.m: tidied
+	* Testing/client.m: Update
+	* Testing/server.m: update
+
 2000-06-30  Adam Fedor  <fedor@gnu.org>
 
 	libgstep-base now compiles (and links) into a DLL on Cygwin.

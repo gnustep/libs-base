@@ -8,12 +8,9 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSDebug.h>
-#include <base/BinaryCStream.h>
 #include <assert.h>
 #include "server.h"
 
-@class	TcpInPort;
-@class	PortDecoder;
 
 int main (int argc, char *argv[])
 {
@@ -43,9 +40,7 @@ int main (int argc, char *argv[])
 GSDebugAllocationActive(YES);
   [NSConnection setDebug: 10];
   [NSDistantObject setDebug: 10];
-  [TcpInPort setDebug: 10];
-
-  [BinaryCStream setDebugging:YES];
+  [NSPort setDebug: 10];
 
 #if NeXT_runtime
   [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
@@ -54,29 +49,25 @@ printf("oneway %d\n", _F_ONEWAY);
   if (argc > 1)
     {
       if (argc > 2)
-	p = [NSConnection rootProxyAtName: [NSString stringWithCString: argv[2]]
-			onHost: [NSString stringWithCString:argv[1]]];
+	p = [NSConnection rootProxyForConnectionWithRegisteredName: [NSString stringWithCString: argv[2]]
+			host: [NSString stringWithCString:argv[1]]];
       else
-	p = [NSConnection rootProxyAtName:@"test2server"
-			onHost:[NSString stringWithCString:argv[1]]];
+	p = [NSConnection rootProxyForConnectionWithRegisteredName:@"test2server"
+			host:[NSString stringWithCString:argv[1]]];
     }
   else
-    p = [NSConnection rootProxyAtName:@"test2server" 
-		    onHost:nil];
+    p = [NSConnection rootProxyForConnectionWithRegisteredName:@"test2server" 
+		    host:nil];
   c = [p connectionForProxy];
   [c setRequestTimeout:180.0];
   [c setReplyTimeout:180.0];
   localObj = [[NSObject alloc] init];
   [p outputStats:localObj];
-fprintf(stderr, "XXXXXXXXXXXXXXXXA %d\n", GSDebugAllocationCount([PortDecoder class]));
   [p getLong:&i];
-fprintf(stderr,"XXXXXXXXXXXXXXXXB %d\n", GSDebugAllocationCount([PortDecoder class]));
   [p getLong:&i];
   [p outputStats:localObj];
-fprintf(stderr,"XXXXXXXXXXXXXXXXC %d\n", GSDebugAllocationCount([PortDecoder class]));
   type = [c typeForSelector:sel_get_any_uid("name") 
 	    remoteTarget:[p targetForProxy]];
-printf("XXXXXXXXXXXXXXXXD %d\n", GSDebugAllocationCount([PortDecoder class]));
   printf(">>type = %s\n", type);
   printf(">>list proxy's hash is 0x%x\n", 
 	 (unsigned)[p hash]);

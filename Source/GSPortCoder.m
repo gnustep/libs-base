@@ -43,7 +43,6 @@
 #include <Foundation/NSPort.h>
 #include <Foundation/NSString.h>
 
-#include <Foundation/DistributedObjects.h>
 #include <base/fast.x>
 
 /*
@@ -72,6 +71,8 @@
 #define	_IN_PORT_CODER_M
 #include <Foundation/GSPortCoder.h>
 #undef	_IN_PORT_CODER_M
+
+#include <Foundation/DistributedObjects.h>
 
 static BOOL debug_port_coder = NO;
 
@@ -266,7 +267,7 @@ typeCheck(char t1, char t2)
 
 
 
-@interface	GSPortCoder (Private)
+@interface	NSPortCoder (Private)
 - (void) _deserializeHeaderAt: (unsigned*)pos
 		      version: (unsigned*)v
 		      classes: (unsigned*)c
@@ -282,7 +283,7 @@ typeCheck(char t1, char t2)
 @end
 
 
-@implementation GSPortCoder
+@implementation NSPortCoder
 
 + (NSPortCoder*) portCoderWithReceivePort: (NSPort*)recv
 				 sendPort: (NSPort*)send
@@ -1216,7 +1217,7 @@ typeCheck(char t1, char t2)
 	    }
 
 	  obj = [anObject replacementObjectForPortCoder: self];
-	  cls = [anObject classForPortCoder];
+	  cls = [obj classForPortCoder];
 
 	  (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.uint);
 	  (*_eValImp)(self, eValSel, @encode(Class), &cls);
@@ -1292,6 +1293,11 @@ typeCheck(char t1, char t2)
 	  while (isdigit(*type))
 	    {
 	      type++;
+	    }
+
+	  if (_initialPass == NO)
+	    {
+	      (*_eTagImp)(_dst, eTagSel, _GSC_ARY_B);
 	    }
 
 	  [self encodeArrayOfObjCType: type count: count at: buf];
@@ -1668,7 +1674,7 @@ typeCheck(char t1, char t2)
 
 
 
-@implementation	GSPortCoder (Private)
+@implementation	NSPortCoder (Private)
 
 - (NSMutableArray*) _components
 {
@@ -1752,7 +1758,7 @@ typeCheck(char t1, char t2)
       /*
        *	Read header including version and crossref table sizes.
        */
-      _cursor = [[_conn sendPort] reservedSpaceLength];
+      _cursor = 0;
       [self _deserializeHeaderAt: &_cursor
 			 version: &_version
 			 classes: &sizeC

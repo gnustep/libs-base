@@ -30,9 +30,9 @@
 #include <mframe.h>
 
 #include <Foundation/GSConnection.h>
-#include <Foundation/DistributedObjects.h>
 #include <Foundation/GSPortCoder.h>
-#include <Foundation/GSConnection.h>
+#include <Foundation/DistributedObjects.h>
+
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSData.h>
@@ -49,6 +49,12 @@
 #include <Foundation/NSPortMessage.h>
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSNotification.h>
+#include <Foundation/NSDebug.h>
+
+#define F_LOCK(X) {NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}
+#define F_UNLOCK(X) {NSDebugFLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
+#define M_LOCK(X) {NSDebugMLLog(@"GSConnection",@"Lock %@",X);[X lock];}
+#define M_UNLOCK(X) {NSDebugMLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
 
 static NSString*
 stringFromMsgType(int type)
@@ -231,7 +237,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
   NSHashEnumerator	enumerator;
   NSConnection		*c;
 
-  [connection_table_gate lock];
+  F_LOCK(connection_table_gate);
   enumerator = NSEnumerateHashTable(connection_table);
   while ((c = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
     {
@@ -246,7 +252,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
 	  break;
 	}
     }
-  [connection_table_gate unlock];
+  F_UNLOCK(connection_table_gate);
   return c;
 }
 
@@ -258,9 +264,9 @@ rootObjectForInPort(NSPort *aPort)
 {
   id	rootObject;
 
-  [root_object_map_gate lock];
+  F_LOCK(root_object_map_gate);
   rootObject = (id)NSMapGet(root_object_map, (void*)(gsaddr)aPort);
-  [root_object_map_gate unlock];
+  F_UNLOCK(root_object_map_gate);
   return rootObject;
 }
 
@@ -270,7 +276,7 @@ setRootObjectForInPort(id anObj, NSPort *aPort)
 {
   id	oldRootObject;
 
-  [root_object_map_gate lock];
+  F_LOCK(root_object_map_gate);
   oldRootObject = (id)NSMapGet(root_object_map, (void*)(gsaddr)aPort);
   if (oldRootObject != anObj)
     {
@@ -284,7 +290,7 @@ setRootObjectForInPort(id anObj, NSPort *aPort)
 	  NSMapRemove(root_object_map, (void*)(gsaddr)aPort);
 	}
     }
-  [root_object_map_gate unlock];
+  F_UNLOCK(root_object_map_gate);
 }
 
 static NSMapTable *all_connections_local_objects = NULL;
@@ -318,7 +324,7 @@ static int messages_received_count;
   if (c == nil)
     {
       c = [self allocWithZone: NSDefaultMallocZone()];
-      c = [self initWithReceivePort: r sendPort: s];
+      c = [c initWithReceivePort: r sendPort: s];
       AUTORELEASE(c);
     }
   return c;
@@ -496,7 +502,7 @@ static int messages_received_count;
 
 - (void) addRequestMode: (NSString*)mode
 {
-  [_refGate lock];
+  M_LOCK(_refGate);
   if ([self isValid] == YES)
     {
       if ([_requestModes containsObject: mode] == NO)
@@ -512,12 +518,12 @@ static int messages_received_count;
 	  [_requestModes addObject: mode];
 	}
     }
-  [_refGate unlock];
+  M_UNLOCK(_refGate);
 }
 
 - (void) addRunLoop: (NSRunLoop*)loop
 {
-  [_refGate lock];
+  M_LOCK(_refGate);
   if ([self isValid] == YES)
     {
       if ([_runLoops indexOfObjectIdenticalTo: loop] == NSNotFound)
@@ -533,7 +539,7 @@ static int messages_received_count;
 	  [_runLoops addObject: loop];
 	}
     }
-  [_refGate unlock];
+  M_UNLOCK(_refGate);
 }
 
 - (void) dealloc
@@ -600,18 +606,16 @@ static int messages_received_count;
       s = r;
     }
 
-  [connection_table_gate lock];
+  conn = existingConnection(r, s);
 
   /*
    * If the send and receive ports match an existing connection
    * deallocate the new one and retain and return the old one.
    */
-  conn = existingConnection(r, s);
   if (conn != nil)
     {
       RELEASE(self);
       self = RETAIN(conn);
-      [connection_table_gate unlock];
       if (debug_connection > 2)
 	{
 	  NSLog(@"Found existing connection (0x%x) for \n\t%@\n\t%@",
@@ -620,11 +624,20 @@ static int messages_received_count;
       return self;
     }
 
+  /*
+   * The parent connection is the one whose send and receive ports are
+   * both the same as our receive port.
+   */
+  parent = existingConnection(r, r);
+
   if (debug_connection)
     {
-      NSLog(@"Initialising new connection 0x%x\n\t%@\n\t%@",
-	(gsaddr)self, r, s);
+      NSLog(@"Initialising new connection with parent 0x%x, 0x%x\n\t%@\n\t%@",
+	(gsaddr)parent, (gsaddr)self, r, s);
     }
+
+  M_LOCK(connection_table_gate);
+
   _isValid = YES;
   _receivePort = RETAIN(r);
   _sendPort = RETAIN(s);
@@ -674,7 +687,6 @@ static int messages_received_count;
   /*
    * Some attributes are inherited from the parent if possible.
    */
-  parent = existingConnection(r, r);
   if (parent != nil)
     {
       _independentQueueing = parent->_independentQueueing;
@@ -710,7 +722,7 @@ static int messages_received_count;
     {
       if ([del connection: parent shouldMakeNewConnection: self] == NO)
 	{
-	  [connection_table_gate unlock];
+	  M_UNLOCK(connection_table_gate);
 	  RELEASE(self);
 	  return nil;
 	}
@@ -720,7 +732,7 @@ static int messages_received_count;
     {
       if (![del makeNewConnection: self sender: parent])
 	{
-	  [connection_table_gate unlock];
+	  M_UNLOCK(connection_table_gate);
 	  RELEASE(self);
 	  return nil;
 	}
@@ -730,6 +742,15 @@ static int messages_received_count;
      newConn if it returns something different. */
   if ([del respondsTo: @selector(connection:didConnect:)])
     self = [del connection: parent didConnect: self];
+
+  /*
+   * If we have no parent, we must handle incoming packets on our
+   * receive port ourself - so we set ourself up as the port delegate.
+   */
+  if (parent == nil)
+    {
+      [_receivePort setDelegate: self];
+    }
 
   /* Register ourselves for invalidation notification when the
      ports become invalid. */
@@ -748,7 +769,7 @@ static int messages_received_count;
      implementation of [-release] to automatically remove the connection
      from this array when it is the only thing retaining it. */
   NSHashInsert(connection_table, (void*)self);
-  [connection_table_gate unlock];
+  M_UNLOCK(connection_table_gate);
 
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSConnectionDidInitializeNotification
@@ -761,10 +782,10 @@ static int messages_received_count;
 {
   BOOL	wasValid;
 
-  [_refGate lock];
+  M_LOCK(_refGate);
   wasValid = _isValid;
   _isValid = NO;
-  [_refGate unlock];
+  M_UNLOCK(_refGate);
 
   if (wasValid == NO)
     {
@@ -814,7 +835,7 @@ static int messages_received_count;
     NSArray *targets;
     unsigned 	i;
 
-    [_proxiesGate lock];
+    M_LOCK(_proxiesGate);
     targets = NSAllMapTableValues(_localTargets);
     IF_NO_GC(RETAIN(targets));
     for (i = 0; i < [targets count]; i++)
@@ -824,7 +845,7 @@ static int messages_received_count;
 	[self removeLocalObject: t];
       }
     [targets release];
-    [_proxiesGate unlock];
+    M_UNLOCK(_proxiesGate);
   }
 
   RELEASE(self);
@@ -840,9 +861,9 @@ static int messages_received_count;
   NSArray	*c;
 
   /* Don't assert (_isValid); */
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   c = NSAllMapTableValues(_localObjects);
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
   return c;
 }
 
@@ -913,15 +934,15 @@ static int messages_received_count;
   NSArray	*c;
 
   /* Don't assert (_isValid); */
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   c = NSAllMapTableValues(_remoteProxies);
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
   return c;
 }
 
 - (void) removeRequestMode: (NSString*)mode
 {
-  [_refGate lock];
+  M_LOCK(_refGate);
   if ([_requestModes containsObject: mode])
     {
       unsigned	c = [_runLoops count];
@@ -934,14 +955,14 @@ static int messages_received_count;
 	}
       [_requestModes removeObject: mode];
     }
-  [_refGate unlock];
+  M_UNLOCK(_refGate);
 }
 
 - (void) removeRunLoop: (NSRunLoop*)loop
 {
   unsigned	pos;
 
-  [_refGate lock];
+  M_LOCK(_refGate);
   pos = [_runLoops indexOfObjectIdenticalTo: loop];
   if (pos != NSNotFound)
     {
@@ -955,7 +976,7 @@ static int messages_received_count;
 	}
       [_runLoops removeObjectAtIndex: pos];
     }
-  [_refGate unlock];
+  M_UNLOCK(_refGate);
 }
 
 - (NSTimeInterval) replyTimeout
@@ -1028,7 +1049,7 @@ static int messages_received_count;
 
 - (void) setRequestMode: (NSString*)mode
 {
-  [_refGate lock];
+  M_LOCK(_refGate);
   while ([_requestModes count] > 0 && [_requestModes objectAtIndex: 0] != mode)
     {
       [self removeRequestMode: [_requestModes objectAtIndex: 0]];
@@ -1041,7 +1062,7 @@ static int messages_received_count;
     {
       [self addRequestMode: mode];
     }
-  [_refGate unlock];
+  M_UNLOCK(_refGate);
 }
 
 - (void) setRequestTimeout: (NSTimeInterval)to
@@ -1061,7 +1082,7 @@ static int messages_received_count;
 
   d = [NSMutableDictionary dictionaryWithCapacity: 8];
 
-  [_refGate lock];
+  M_LOCK(_refGate);
 
   /*
    *	These are in OPENSTEP 4.2
@@ -1082,12 +1103,12 @@ static int messages_received_count;
   [d setObject: o forKey: NSConnectionLocalCount];
   o = [NSNumber numberWithUnsignedInt: NSCountMapTable(_remoteProxies)];
   [d setObject: o forKey: NSConnectionProxyCount];
-  [received_request_rmc_queue_gate lock];
+  M_LOCK(received_request_rmc_queue_gate);
   o = [NSNumber numberWithUnsignedInt: [received_request_rmc_queue count]];
-  [received_request_rmc_queue_gate unlock];
+  M_UNLOCK(received_request_rmc_queue_gate);
   [d setObject: o forKey: @"Pending packets"];
 
-  [_refGate unlock];
+  M_UNLOCK(_refGate);
 
   return d;
 }
@@ -1106,11 +1127,11 @@ static int messages_received_count;
     NSLog(@"finalising 0x%x", (gsaddr)self);
 
   [self invalidate];
-  [connection_table_gate lock];
+  M_LOCK(connection_table_gate);
   NSHashRemove(connection_table, self);
   [timer invalidate];
   timer = nil;
-  [connection_table_gate unlock];
+  M_UNLOCK(connection_table_gate);
 
   /* Remove rootObject from root_object_map if this is last connection */
   if (_receivePort != nil && existingConnection(_receivePort, nil) == nil)
@@ -1124,11 +1145,24 @@ static int messages_received_count;
   DESTROY(_requestModes);
   DESTROY(_runLoops);
 
-  /* Finished with ports - releasing them may generate a notification */
+  /*
+   * Finished with ports - releasing them may generate a notification
+   * If we are the receive port delagate, try to shift responsibility.
+   */
+  if ([_receivePort delegate] == self)
+    {
+      NSConnection	*root = existingConnection(_receivePort, _receivePort);
+
+      if (root == nil)
+	{
+	  root =  existingConnection(_receivePort, nil);
+	}
+      [_receivePort setDelegate: root];
+    }
   DESTROY(_receivePort);
   DESTROY(_sendPort);
 
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   if (_remoteProxies != 0)
     {
       NSFreeMapTable(_remoteProxies);
@@ -1144,7 +1178,7 @@ static int messages_received_count;
       NSFreeMapTable(_localTargets);
       _localTargets = 0;
     }
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
 
   DESTROY(_requestQueue);
   if (_replyMap != 0)
@@ -1246,14 +1280,15 @@ static int messages_received_count;
 
       void decoder(int argnum, void *datum, const char *type, int flags)
 	{
-	  if (type == 0) {
-	    if (ip) {
-	      /* this must be here to avoid trashing alloca'ed retframe */
-	      [ip dismiss]; 	
-	      ip = (id)-1;
+	  if (type == 0)
+	    {
+	      if (ip != nil)
+		{
+		  /* this must be here to avoid trashing alloca'ed retframe */
+		  ip = (id)-1;
+		}
+	      return;
 	    }
-	    return;
-	  }
 	  /* If we didn't get the reply packet yet, get it now. */
 	  if (!ip)
 	    {
@@ -1273,7 +1308,6 @@ static int messages_received_count;
 		  /* Decode the exception object, and raise it. */
 		  id exc;
 		  [ip decodeValueOfObjCType: @encode(id) at: &exc];
-		  [ip dismiss];
 		  ip = (id)-1;
 		  /* xxx Is there anything else to clean up in
 		     dissect_method_return()? */
@@ -1285,14 +1319,13 @@ static int messages_received_count;
 	     for char*'s.  We need to make sure it gets freed eventually
 	     so we don't have a memory leak.  Request here that it be
 	     autorelease'ed. Also autorelease created objects. */
-	  if (*type == _C_CHARPTR)
+	  if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
 	    [NSData dataWithBytesNoCopy: *(void**)datum length: 1];
           else if (*type == _C_ID)
-            [*(id*)datum autorelease];
+            AUTORELEASE(*(id*)datum);
 	}
 
-      retframe = mframe_build_return (argframe, type, out_parameters,
-				      decoder);
+      retframe = mframe_build_return (argframe, type, out_parameters, decoder);
       /* Make sure we processed all arguments, and dismissed the IP.
          IP is always set to -1 after being dismissed; the only places
 	 this is done is in this function DECODER().  IP will be nil
@@ -1342,7 +1375,7 @@ static int messages_received_count;
   NSHashEnumerator	enumerator;
   NSConnection		*o;
 
-  [connection_table_gate lock];
+  M_LOCK(connection_table_gate);
   enumerator = NSEnumerateHashTable(connection_table);
   while ((o = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
     {
@@ -1351,7 +1384,7 @@ static int messages_received_count;
 	  count++;
 	}
     }
-  [connection_table_gate unlock];
+  M_UNLOCK(connection_table_gate);
 
   return count;
 }
@@ -1371,18 +1404,16 @@ static int messages_received_count;
   NSMutableArray	*components = [msg _components];
   NSPort		*rp = [msg receivePort];
   NSPort		*sp = [msg sendPort];
-  NSConnection		*conn = existingConnection(rp, sp);
+  NSConnection		*conn;
 
   if (debug_connection > 4)
     {
       NSLog(@"handling packet of type %d (%@)", type, stringFromMsgType(type));
     }
+  conn = [NSConnection connectionWithReceivePort: rp sendPort: sp];
   if (conn == nil)
     {
-      if (debug_connection)
-	{
-	  NSLog(@"received port message for unknown connection - %@", msg);
-	}
+      NSLog(@"received port message for unknown connection - %@", msg);
       return;
     }
   else if ([conn isValid] == NO)
@@ -1435,13 +1466,13 @@ static int messages_received_count;
 	 * If REPLY_DEPTH is non-zero, we may still want to service it now
 	 * if independent_queuing is NO.
 	 */
-	[conn->_queueGate lock];
+	M_LOCK(conn->_queueGate);
 	if (conn->_requestDepth == 0 || conn->_independentQueueing == NO)
 	  {
 	    conn->_requestDepth++;
-	    [conn->_queueGate unlock];
+	    M_UNLOCK(conn->_queueGate);
 	    [conn _service_forwardForProxy: rmc];
-	    [conn->_queueGate lock];
+	    M_LOCK(conn->_queueGate);
 	    conn->_requestDepth--;
 	  }
 	else
@@ -1457,12 +1488,12 @@ static int messages_received_count;
 	    rmc = [conn->_requestQueue objectAtIndex: 0];
 	    RETAIN(rmc);
 	    [conn->_requestQueue removeObjectAtIndex: 0];
-	    [conn->_queueGate unlock];
+	    M_UNLOCK(conn->_queueGate);
 	    [conn _service_forwardForProxy: rmc];
-	    [conn->_queueGate lock];
+	    M_LOCK(conn->_queueGate);
 	    RELEASE(rmc);
 	  }
-	[conn->_queueGate unlock];
+	M_UNLOCK(conn->_queueGate);
 	break;
 
       /*
@@ -1478,9 +1509,9 @@ static int messages_received_count;
 	  int	sequence;
 
 	  [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
-	  [conn->_queueGate lock];
+	  M_LOCK(conn->_queueGate);
 	  NSMapInsert(conn->_replyMap, (void*)sequence, rmc);
-	  [conn->_queueGate unlock];
+	  M_UNLOCK(conn->_queueGate);
 	}
 	break;
 
@@ -1523,7 +1554,6 @@ static int messages_received_count;
 	 "-awake..." methods will get sent before the __builtin_apply! */
       if (argnum == -1 && datum == 0 && type == 0)
 	{
-	  [aRmc dismiss];
 	  return;
 	}
 
@@ -1532,10 +1562,10 @@ static int messages_received_count;
 	 for char*'s.  We need to make sure it gets freed eventually
 	 so we don't have a memory leak.  Request here that it be
 	 autorelease'ed. Also autorelease created objects. */
-      if (*type == _C_CHARPTR)
+      if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
 	[NSData dataWithBytesNoCopy: *(void**)datum length: 1];
       else if (*type == _C_ID)
-        [*(id*)datum autorelease];
+        AUTORELEASE(*(id*)datum);
     }
 
   void encoder (int argnum, void *datum, const char *type, int flags)
@@ -1554,18 +1584,18 @@ static int messages_received_count;
 	}
       switch (*type)
 	{
-	case _C_ID: 
-	  if (flags & _F_BYCOPY)
-	    [op encodeBycopyObject: *(id*)datum];
+	  case _C_ID: 
+	    if (flags & _F_BYCOPY)
+	      [op encodeBycopyObject: *(id*)datum];
 #ifdef	_F_BYREF
-	  else if (flags & _F_BYREF)
-	    [op encodeByrefObject: *(id*)datum];
+	    else if (flags & _F_BYREF)
+	      [op encodeByrefObject: *(id*)datum];
 #endif
-	  else
-	    [op encodeObject: *(id*)datum];
-	  break;
-	default: 
-	  [op encodeValueOfObjCType: type at: datum];
+	    else
+	      [op encodeObject: *(id*)datum];
+	    break;
+	  default: 
+	    [op encodeValueOfObjCType: type at: datum];
 	}
     }
 
@@ -1589,7 +1619,10 @@ static int messages_received_count;
         NSLog(@"Handling message from 0x%x", (gsaddr)self);
       _reqInCount++;	/* Handling an incoming request. */
       mframe_do_call (forward_type, decoder, encoder);
-      [self _sendRmc: op type: METHOD_REPLY];
+      if (op != nil)
+	{
+	  [self _sendRmc: op type: METHOD_REPLY];
+	}
     }
 
   /* Make sure we pass all exceptions back to the requestor. */
@@ -1604,7 +1637,7 @@ static int messages_received_count;
 	    {
 	      op = [self _makeRmc: reply_sequence_number];
 	      [op encodeValueOfObjCType: @encode(BOOL)
-				  at: &is_exception];
+				     at: &is_exception];
 	      [op encodeBycopyObject: localException];
 	      [self _sendRmc: op type: METHOD_REPLY];
 	    }
@@ -1617,9 +1650,10 @@ static int messages_received_count;
 	}
     }
   NS_ENDHANDLER;
-
-  if (forward_type)
-    objc_free (forward_type);
+  if (forward_type != 0)
+    {
+      NSZoneFree(NSDefaultMallocZone(), forward_type);
+    }
 }
 
 - (void) _service_rootObject: (NSPortCoder*)rmc
@@ -1633,6 +1667,7 @@ static int messages_received_count;
   NSParameterAssert([rmc connection] == self);
 
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
+  op = [self _makeRmc: sequence];
   [op encodeObject: rootObject];
   [self _sendRmc: op type: ROOTPROXY_REPLY];
 }
@@ -1690,7 +1725,7 @@ static int messages_received_count;
     {
       GSLocalCounter	*counter;
 
-      [global_proxies_gate lock];
+      M_LOCK(global_proxies_gate);
       counter = NSMapGet (all_connections_local_targets, (void*)target);
       if (counter == nil)
 	{
@@ -1713,7 +1748,7 @@ static int messages_received_count;
 		NSLog(@"target (0x%x) moved from cache", target);
 	    }
 	}
-      [global_proxies_gate unlock];
+      M_UNLOCK(global_proxies_gate);
       if (counter == nil)
 	{
 	  [op encodeObject: @"target not found anywhere"];
@@ -1818,23 +1853,23 @@ static int messages_received_count;
   NSPortCoder	*rmc;
   NSDate	*timeout_date = nil;
 
-  [_queueGate lock];
+  M_LOCK(_queueGate);
   while ((rmc = (NSPortCoder*)NSMapGet(_replyMap, (void*)sn)) == nil)
     {
       if (timeout_date == nil)
 	{
 	  timeout_date = [NSDate dateWithTimeIntervalSinceNow: _replyTimeout];
 	}
-      [_queueGate unlock];
+      M_UNLOCK(_queueGate);
       if ([NSRunLoop runOnceBeforeDate: timeout_date
 			       forMode: NSConnectionReplyMode] == NO)
 	{
 	  [NSException raise: NSPortTimeoutException
 		      format: @"timed out waiting for reply"];
 	}
-      [_queueGate lock];
+      M_LOCK(_queueGate);
     }
-  [_queueGate unlock];
+  M_UNLOCK(_queueGate);
   return rmc;
 }
 
@@ -1844,7 +1879,7 @@ static int messages_received_count;
 
   NSParameterAssert(_isValid);
 
-  coder = [GSPortCoder portCoderWithReceivePort: [self receivePort]
+  coder = [NSPortCoder portCoderWithReceivePort: [self receivePort]
 				       sendPort: [self sendPort]
 				     components: nil];
   [coder encodeValueOfObjCType: @encode(int) at: &sequence];
@@ -1856,9 +1891,9 @@ static int messages_received_count;
   int n;
 
   NSParameterAssert (_isValid);
-  [sequenceNumberGate lock];
+  M_LOCK(sequenceNumberGate);
   n = _messageCount++;
-  [sequenceNumberGate unlock];
+  M_UNLOCK(sequenceNumberGate);
   return n;
 }
 
@@ -1945,8 +1980,8 @@ static int messages_received_count;
   GSLocalCounter	*counter;
 
   NSParameterAssert (_isValid);
-  [_proxiesGate lock];
-  [global_proxies_gate lock];
+  M_LOCK(_proxiesGate);
+  M_LOCK(global_proxies_gate);
   /* xxx Do we need to check to make sure it's not already there? */
   /* This retains object. */
   NSMapInsert(_localObjects, (void*)object, anObj);
@@ -1974,8 +2009,8 @@ static int messages_received_count;
     NSLog(@"add local object (0x%x) target (0x%x) "
 	  @"to connection (0x%x) (ref %d)",
 		(gsaddr)object, target, (gsaddr) self, counter->ref);
-  [global_proxies_gate unlock];
-  [_proxiesGate unlock];
+  M_UNLOCK(global_proxies_gate);
+  M_UNLOCK(_proxiesGate);
 }
 
 - (NSDistantObject*) localForObject: (id)object
@@ -1983,9 +2018,9 @@ static int messages_received_count;
   NSDistantObject *p;
 
   /* Don't assert (_isValid); */
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   p = NSMapGet (_localObjects, (void*)object);
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
   NSParameterAssert(!p || [p connectionForProxy] == self);
   return p;
 }
@@ -2010,8 +2045,8 @@ static int messages_received_count;
   GSLocalCounter	*counter;
   unsigned		val = 0;
 
-  [global_proxies_gate lock];
-  [_proxiesGate lock];
+  M_LOCK(global_proxies_gate);
+  M_LOCK(_proxiesGate);
 
   prox = NSMapGet(_localObjects, (void*)anObj);
   target = [prox targetForProxy];
@@ -2061,8 +2096,8 @@ static int messages_received_count;
 	@"from connection (0x%x) (ref %d)",
 		(gsaddr)anObj, target, (gsaddr)self, val);
 
-  [_proxiesGate unlock];
-  [global_proxies_gate unlock];
+  M_UNLOCK(_proxiesGate);
+  M_UNLOCK(global_proxies_gate);
 }
 
 - (void) _release_targets: (unsigned*)list count: (unsigned)number
@@ -2126,7 +2161,6 @@ static int messages_received_count;
 	  [ip decodeValueOfObjCType: @encode(id) at: &result];
 	  if (result != nil)
 	    NSLog(@"failed to retain target - %@", result);
-	  [ip dismiss];
 	}
     }
   NS_HANDLER
@@ -2141,10 +2175,10 @@ static int messages_received_count;
   unsigned target = [aProxy targetForProxy];
 
   /* Don't assert (_isValid); */
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   /* This also releases aProxy */
   NSMapRemove(_remoteProxies, (void*)target);
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
 
   /*
    *	Tell the remote application that we have removed our proxy and
@@ -2158,9 +2192,9 @@ static int messages_received_count;
   NSDistantObject *p;
 
   /* Don't assert (_isValid); */
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   p = NSMapGet(_remoteProxies, (void*)target);
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
   NSParameterAssert(!p || [p connectionForProxy] == self);
   return p;
 }
@@ -2172,15 +2206,15 @@ static int messages_received_count;
   NSParameterAssert (_isValid);
   NSParameterAssert(aProxy->isa == [NSDistantObject class]);
   NSParameterAssert([aProxy connectionForProxy] == self);
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   if (NSMapGet(_remoteProxies, (void*)target))
     {
-      [_proxiesGate unlock];
+      M_UNLOCK(_proxiesGate);
       [NSException raise: NSGenericException
 		  format: @"Trying to add the same proxy twice"];
     }
   NSMapInsert(_remoteProxies, (void*)target, aProxy);
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
 }
 
 - (id) includesProxyForTarget: (unsigned)target
@@ -2188,9 +2222,9 @@ static int messages_received_count;
   NSDistantObject	*ret;
 
   /* Don't assert (_isValid); */
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   ret = NSMapGet (_remoteProxies, (void*)target);
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
   return ret;
 }
 
@@ -2199,9 +2233,9 @@ static int messages_received_count;
   NSDistantObject	*ret;
 
   /* Don't assert (_isValid); */
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   ret = NSMapGet(_localObjects, (void*)anObj);
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
   return ret;
 }
 
@@ -2210,9 +2244,9 @@ static int messages_received_count;
   NSDistantObject	*ret;
 
   /* Don't assert (_isValid); */
-  [_proxiesGate lock];
+  M_LOCK(_proxiesGate);
   ret = NSMapGet(_localTargets, (void*)target);
-  [_proxiesGate unlock];
+  M_UNLOCK(_proxiesGate);
   return ret;
 }
 
@@ -2227,9 +2261,9 @@ static int messages_received_count;
   id ret;
 
   /* Don't assert (_isValid); */
-  [global_proxies_gate lock];
+  M_LOCK(global_proxies_gate);
   ret = NSMapGet(all_connections_local_targets, (void*)target);
-  [global_proxies_gate unlock];
+  M_UNLOCK(global_proxies_gate);
   return ret;
 }
 

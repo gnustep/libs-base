@@ -251,12 +251,15 @@ int main(int argc, char *argv[])
 #if NeXT_runtime
   [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
 #endif
+
+  c = [NSConnection defaultConnection];
+  [c setRootObject: l];
+
   if (argc > 1)
-    c = [NSConnection newRegisteringAtName: 
-		      [NSString stringWithCString: argv[1]]
-		    withRootObject:l];
+    [c registerName: [NSString stringWithCString: argv[1]]];
   else
-    c = [NSConnection newRegisteringAtName:@"test2server" withRootObject:l];
+    [c registerName: @"test2server"];
+
   [[NSNotificationCenter defaultCenter]
     addObserver: l
     selector: @selector(connectionBecameInvalid:)

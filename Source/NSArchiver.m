@@ -261,6 +261,11 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	      type++;
 	    }
 
+	  if (_initialPass == NO)
+	    {
+	      (*_tagImp)(_dst, tagSel, _GSC_ARY_B);
+	    }
+
 	  [self encodeArrayOfObjCType: type count: count at: buf];
 	}
 	return;
@@ -762,7 +767,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    }
 
 	  obj = [anObject replacementObjectForArchiver: self];
-	  cls = [anObject classForArchiver];
+	  cls = [obj classForArchiver];
 
 	  (*_xRefImp)(_dst, xRefSel, _GSC_ID, node->value.uint);
 	  if (_namMap->nodeCount)
