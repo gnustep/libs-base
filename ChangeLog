@@ -1,3 +1,12 @@
+Sun Nov 21  6:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSNotificationQueue.m: Applied patch by Dan Pascu to fix bug
+	in removal of notificatiosn from queues.  Also tidied indentation etc
+	to conform to GNU standards.
+	* Source/UnixFileHandle.m: ([-availableData]) fixed to block when no
+	data is availabvle on a comms channel - as per spec.  This bug was
+	also reported by Dan <dan@services.iirux.ro>
+
 1999-11-18  Adam Fedor  <fedor@gnu.org>
 
 	* Source/GNUmakefile: Install unicode headers.

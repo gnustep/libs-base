@@ -687,20 +687,13 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		      strerror(errno)];
 	}
 
-      if (count == 0)
+      if (count > sizeof(buf))
 	{
-	  len = 0;	/* End-of-file	*/
+	  count = sizeof(buf);
 	}
-      else
+      if ((len = read(descriptor, buf, count)) > 0)
 	{
-	  if (count > sizeof(buf))
-	    {
-	      count = sizeof(buf);
-	    }
-	  if ((len = read(descriptor, buf, count)) > 0)
-	    {
-	      [d appendBytes: buf length: len];
-	    }
+	  [d appendBytes: buf length: len];
 	}
     }
   if (len < 0)
