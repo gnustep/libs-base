@@ -33,12 +33,14 @@
 
 /* Eventually we'll make a Constant version of this protocol. */
 @interface NSSet (GNU) <Collecting>
-@end
-
-@interface NSMutableSet (GNU)
+/* These methods will be moved to NSMutableSet as soon as GNU's
+   collection objects are separated by mutability. */
 + (unsigned) defaultCapacity;
 - initWithType: (const char *)contentEncoding
     capacity: (unsigned)aCapacity;
+@end
+
+@interface NSMutableSet (GNU)
 @end
 
 @interface NSCountedSet (GNU) <Collecting>
