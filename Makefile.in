@@ -99,8 +99,10 @@ BinaryTreeNode.m \
 CircularArray.m \
 Coder.m \
 Collection.m \
+CString.m \
 ConnectedCoder.m \
 Connection.m \
+ConstantString.m \
 DelegatePool.m \
 Dictionary.m \
 EltNodeCollector.m \
@@ -116,6 +118,8 @@ Lock.m \
 Magnitude.m \
 MappedCollector.m \
 MemoryStream.m \
+MutableCString.m \
+MutableString.m \
 ObjectRetaining.m \
 Port.m \
 Proxy.m \
@@ -133,6 +137,7 @@ SplayTree.m \
 Stack.m \
 StdioStream.m \
 Stream.m \
+String.m \
 TextCoder.m \
 Time.m \
 stdobjects.m \
@@ -140,32 +145,38 @@ mframe.m \
 objc-gnu2next.m \
 eltfuncs.m
 
-NeXT_MFILES = \
+NEXTSTEP_MFILES = \
 HashTable.m \
 List.m \
-NSObject.m \
 NXStringTable.m \
 Storage.m
 
 GNUSTEP_MFILES = \
-NSArray.m
+NSAutoreleasePool.m \
+NSObject.m \
+NSString.m
 
 GNU_CFILES = \
 collhash.c \
 objc-malloc.c \
 o_vscanf.c
 
-NeXT_CFILES = \
+NEXTSTEP_CFILES = \
 NXStringTable_scan.c \
 zone.c
 
+GNUSTEP_CFILES =
+
 GNU_OTHER_SRCFILES = 
 
-NeXT_OTHER_SRCFILES = \
+NEXTSTEP_OTHER_SRCFILES = \
 NXStringTable_scan.l 
 
+GNUSTEP_OTHER_SRCFILES =
+
 GNU_OBJS = $(GNU_MFILES:.m=.o) $(GNU_CFILES:.c=.o)
-NeXT_OBJS = $(NeXT_MFILES:.m=.o) $(NeXT_CFILES:.c=.o)
+NEXTSTEP_OBJS = $(NEXTSTEP_MFILES:.m=.o) $(NEXTSTEP_CFILES:.c=.o)
+GNUSTEP_OBJS =  $(GNUSTEP_MFILES:.m=.o) $(GNUSTEP_CFILES:.c=.o)
 
 GNU_HEADERS = \
 objects/Array.h \
@@ -229,6 +240,7 @@ objects/SplayTree.h \
 objects/Stack.h \
 objects/StdioStream.h \
 objects/Stream.h \
+objects/String.h \
 objects/TextCoder.h \
 objects/Time.h \
 objects/ValueHolding.h \
@@ -252,7 +264,10 @@ objc/zone.h \
 objc/README
 
 GNUSTEP_HEADERS = \
+foundation/NSAutoreleasePool.h \
+foundation/NSObjCRuntime.h \
 foundation/NSObject.h \
+foundation/NSString.h \
 foundation/NSZone.h \
 foundation/README
 
@@ -273,10 +288,10 @@ mkinstalldirs install-sh \
 version.texi \
 libobjects.info libobjects.texi \
 texinfo.tex \
-$(GNU_MFILES) $(NeXT_MFILES) \
-$(GNU_CFILES) $(NeXT_CFILES) \
+$(GNU_MFILES) $(NEXTSTEP_MFILES) $(GNUSTEP_MFILES) \
+$(GNU_CFILES) $(NEXTSTEP_CFILES) $(GNUSTEP_CFILES) \
 $(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS) \
-$(GNU_OTHER_SRCFILES) $(NeXT_OTHER_SRCFILES) 
+$(GNU_OTHER_SRCFILES) $(NEXTSTEP_OTHER_SRCFILES) 
 
 all: libobjects.a
 
