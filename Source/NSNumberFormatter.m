@@ -221,7 +221,7 @@
     }
   if (error)
     {
-      error = nil;
+      *error = nil;
     }
 
   return YES;
