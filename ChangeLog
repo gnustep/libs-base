@@ -1,3 +1,10 @@
+2004-07-01  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Foundation/NSMethodSignature.h
+	* Source/NSMethodSignature.m
+	* Source/GSFFCallInvocation.m
+	* Source/GSFFIInvocation.m: Revert last mframe patch.
+	
 2004-07-02 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSTimeZone.m: Define structure ttinfo as packed to get it

@@ -28,8 +28,7 @@
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
-#include "mframe.h"
-#include <string.h>
+#include <mframe.h>
 
 #include "Foundation/NSMethodSignature.h"
 #include "Foundation/NSException.h"
@@ -38,15 +37,6 @@
 
 @implementation NSMethodSignature
 
-/**
- * Returns a method signature with the corresponding ObjC types.  This
- * type string must correspond to a type string recognized by the
- * runtime which is a platform independent representation.  Internally
- * this is transformed to a platform specific representation used 
- * to generate the NSArgumentInfo structures.  You should never need 
- * to access this internal representation and it should not be passed
- * to this method.
- */
 + (NSMethodSignature*) signatureWithObjCTypes: (const char*)t
 {
   NSMethodSignature *newMs;
@@ -56,10 +46,8 @@
       return nil;
     }
   newMs = AUTORELEASE([NSMethodSignature alloc]);
-  newMs->_methodTypes = NSZoneMalloc(NSDefaultMallocZone(), strlen(t) + 1);
-  strcpy ((char *)newMs->_methodTypes, t);
-  newMs->_internalMethodTypes 
-    = mframe_build_signature(t, &newMs->_argFrameLength, &newMs->_numArgs, 0); 
+  newMs->_methodTypes = mframe_build_signature(t, &newMs->_argFrameLength,
+    &newMs->_numArgs, 0); 
 
   return newMs;
 }
@@ -133,8 +121,6 @@
 {
   if (_methodTypes)
     NSZoneFree(NSDefaultMallocZone(), (void*)_methodTypes);
-  if (_internalMethodTypes)
-    NSZoneFree(NSDefaultMallocZone(), (void*)_internalMethodTypes);
   if (_info)
     NSZoneFree(NSDefaultMallocZone(), (void*)_info);
   [super dealloc];
@@ -182,7 +168,7 @@
 {
   if (_info == 0)
     {
-      const char	*types = _internalMethodTypes;
+      const char	*types = _methodTypes;
       unsigned int	i;
 
       _info = NSZoneMalloc(NSDefaultMallocZone(),

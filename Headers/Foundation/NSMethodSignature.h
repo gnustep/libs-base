@@ -81,7 +81,6 @@ typedef struct	{
 #else
   NSArgumentInfo	*_info;
 #endif
-  const char		*_internalMethodTypes;
 }
 
 /**
