@@ -4229,7 +4229,7 @@ printf(
     }
   else
     {
-      int	uid = -1;
+      int	uid = -2;
 #ifdef	HAVE_PWD
 #ifdef	HAVE_GETPWNAM
       struct passwd *pw = getpwnam("nobody");

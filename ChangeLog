@@ -3,7 +3,8 @@
 	* Source/NSDate.m: GSTimeNow() remove volatile typespec and move
 	initialisation of interval in the hope of fixing a problem with
 	float operations.  In any case, the code is tidier.
-	* Tools/gdomap.c: If started as root, try to become user nobody.
+	* Tools/gdomap.c: If started as root, try to become user nobody
+	before resorting to uid -2 (like NFS).
 
 2001-05-03  Adam Fedor  <fedor@gnu.org>
 
