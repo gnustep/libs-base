@@ -1,3 +1,11 @@
+Wed May 26 18:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/NSSerialization.h: include NSObject.h
+	* Source/NSSerializer.m: Deserialization optimisation (15%)
+	* Source/NSArray.m: write descriptions to cstrings.
+	* Source/NSDictionary.m: write descriptions to cstrings.
+	* Source/NSGCString.m: description optimisation (15%).
+
 Wed May 26 12:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSUnarchiver.m: Fixed libobjects compatibility methods to
