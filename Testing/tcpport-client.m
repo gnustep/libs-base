@@ -31,7 +31,7 @@ int main (int argc, char *argv[])
 
   in_port = [TcpInPort newForReceiving];
 
-  [in_port setPacketInvocation:
+  [in_port setReceivedPacketInvocation:
 	     [[[ObjectFunctionInvocation alloc]
 		initWithObjectFunction: handle_incoming_packet]
 	       autorelease]];
@@ -40,10 +40,10 @@ int main (int argc, char *argv[])
   
   for (i = 0; i < 10; i++)
     {
-      packet = [[TcpPacket alloc] initForSendingWithCapacity: 100
-				  replyPort: in_port];
+      packet = [[TcpOutPacket alloc] initForSendingWithCapacity: 100
+				     replyInPort: in_port];
       [packet writeFormat: @"Here is message number %d", i];
-      [out_port sendPacket: packet withTimeout: 20 * 1000];
+      [out_port sendPacket: packet];
       [packet release];
 
       [RunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
