@@ -130,6 +130,7 @@ NSString *
 Win32GetUserProfileDirectory(NSString *loginName)
 {
   NSString *s;
+
   if ([loginName isEqual: NSUserName()] == YES)
     {
       [gnustep_global_lock lock];
@@ -161,7 +162,8 @@ Win32GetUserProfileDirectory(NSString *loginName)
   else
     {
       s = nil;
-      NSLog(@"Not implemented! Can't determine other user home directories in Win32.");    
+      NSLog(@"Trying to get home for '%@' when user is '%@'", loginName, NSUserName());    
+      NSLog(@"Can't determine other user home directories in Win32.");    
     }
   
   if ([s length] == 0 && [loginName length] != 1)

@@ -3586,10 +3586,23 @@ static NSFileManager *fm = nil;
   first_slash_range = [self rangeOfCharacterFromSet: pathSeps()
 					    options: NSLiteralSearch
 					      range: ((NSRange){0, length})];
+  if (first_slash_range.length == 0)
+    {
+      first_slash_range.location = length;
+    }
+
+  /*
+   * Anything beginning '~' followed by a single letter is assumed
+   * to be a windows drive specification.
+   */
+  if (first_slash_range.location == 2 && isalpha([self characterAtIndex: 1]))
+    {
+      return IMMUTABLE(self);
+    }
 
   if (first_slash_range.location != 1)
     {
-      /* It is of the form `~username/blah/...' */
+      /* It is of the form `~username/blah/...' or '~username' */
       int	uname_len;
       NSString	*uname;
 
@@ -3608,13 +3621,21 @@ static NSFileManager *fm = nil;
     }
   else
     {
-      /* It is of the form `~/blah/...' */
+      /* It is of the form `~/blah/...' or is '~' */
       homedir = NSHomeDirectory ();
     }
+
   if (homedir != nil)
     {
-      return [homedir stringByAppendingPathComponent:
-	[self substringFromIndex: first_slash_range.location]];
+      if (first_slash_range.location < length)
+	{
+	  return [homedir stringByAppendingPathComponent:
+	    [self substringFromIndex: first_slash_range.location]];
+	}
+      else
+	{
+	  return IMMUTABLE(homedir);
+	}
     }
   else
     {
