@@ -33,9 +33,11 @@
 #ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSArray.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSEnumerator.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSLock.h>
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSSet.h>
@@ -1512,4 +1514,51 @@ GSLastErrorStr(long error_id)
 #else
   return strerror(error_id);
 #endif
+}
+
+
+
+BOOL
+GSPrintf (FILE *fptr, NSString* format, ...)
+{
+  static Class                  stringClass = 0;
+  static NSStringEncoding       enc;
+  CREATE_AUTORELEASE_POOL(arp);
+  va_list       ap;
+  NSString      *message;
+  NSData        *data;
+  BOOL          ok = NO;
+
+  if (stringClass == 0)
+    {
+      [gnustep_global_lock lock];
+      if (stringClass == 0)
+        {
+          stringClass = [NSString class];
+          enc = [stringClass defaultCStringEncoding];
+        }
+      [gnustep_global_lock unlock];
+    }
+  message = [stringClass allocWithZone: NSDefaultMallocZone()];
+  va_start (ap, format);
+  message = [message initWithFormat: format locale: nil arguments: ap];
+  va_end (ap);
+  data = [message dataUsingEncoding: enc];
+  if (data == nil)
+    {
+      data = [message dataUsingEncoding: NSUTF8StringEncoding];
+    }
+  RELEASE(message);
+
+  if (data != nil)
+    {
+      unsigned int      length = [data length];
+
+      if (length == 0 || fwrite([data bytes], 1, length, fptr) == length)
+        {
+          ok = YES;
+        }
+    }
+  RELEASE(arp);
+  return ok;
 }
