@@ -676,7 +676,7 @@ static Class GSMutableAttributedStringClass;
 			  @"in class NSMutableAtrributedString"];
     }
   tmpLength = [self length];
-  if (aRange.location <= 0 || NSMaxRange(aRange) > tmpLength)
+  if (NSMaxRange(aRange) > tmpLength)
     {
       [NSException raise: NSRangeException
 		  format: @"RangeError in method -addAttribute:value:range: "

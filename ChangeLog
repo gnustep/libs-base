@@ -1,3 +1,8 @@
+2001-07-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAttributedString.m: ([addAttributes:range:]) corrected
+	bogus range check (report by Michael Scheibler)
+
 2001-07-11  Adam Fedor  <fedor@gnu.org>
 
 	* Source/objc-load.m: Include objc-load.h on NeXT systems.
