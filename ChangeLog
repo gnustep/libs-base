@@ -1,6 +1,8 @@
 Thu Dec 17 16:12:18 1998  Matthias Klose  <doko@cs.tu-berlin.de>
 
-        * {,*}/GNUmakefile: Include Version and GNUmakefile.in where missing.
+        * {,*}/GNUmakefile: Include Version and GNUmakefile.local where
+ 	missing.
+	* configure: Add links to GNUmakefile.local
 
 Thu Dec 17 14:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

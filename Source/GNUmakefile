@@ -509,6 +509,8 @@ libgnustep-base_HEADER_FILES = $(BASE_HEADERS)
 
 -include Makefile.preamble
 
+-include GNUmakefile.local
+
 include $(GNUSTEP_MAKEFILES)/library.make
 
 -include Makefile.postamble
