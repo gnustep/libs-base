@@ -1,3 +1,8 @@
+Tue Feb  2 15:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSZone.m: nrecycle() bugfix - was persisting after memory
+	had actually been returned to system malloc.
+
 Tue Feb  2 11:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/mframe/alpha/linux-gnu: First 'real' port to alpha.
