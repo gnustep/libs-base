@@ -91,6 +91,24 @@ static Class NSMutableString_c_concrete_class;
   return NSMutableString_c_concrete_class;
 }
 
+#if HAVE_REGISTER_PRINTF_FUNCTION
+int handle_printf_atsign (FILE *stream, const struct printf_info *info,
+			  va_list *ap_pointer)
+{
+  id string_object;
+  int len;
+
+  /* xxx This implementation may not pay pay attention to as much 
+     of printf_info as it should. */
+
+  string_object = va_arg (*ap_pointer, void*);
+  len = fprintf(stream, "%*s",
+		(info->left ? - info->width : info->width),
+		[string_object cStringNoCopy]);
+  return len;
+}
+#endif /* HAVE_REGISTER_PRINTF_FUNCTION */
+
 + (void) initialize
 {
   static int done = 0;
@@ -102,6 +120,11 @@ static Class NSMutableString_c_concrete_class;
       NSString_c_concrete_class = [NSGCString class];
       NSMutableString_concrete_class = [NSGMutableCString class];
       NSMutableString_c_concrete_class = [NSGMutableCString class];
+
+#if HAVE_REGISTER_PRINTF_FUNCTION
+      if (register_printf_function ('@', handle_printf_atsign, NULL))
+	[self error: "register printf handling of %%@ failed"];
+#endif /* HAVE_REGISTER_PRINTF_FUNCTION */
     }
 }
 
