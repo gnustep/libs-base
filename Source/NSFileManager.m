@@ -1,7 +1,7 @@
 /** 
    NSFileManager.m
 
-   Copyright (C) 1997-1999 Free Software Foundation, Inc.
+   Copyright (C) 1997-2002 Free Software Foundation, Inc.
 
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
@@ -11,6 +11,10 @@
    Author: Nicola Pero <n.pero@mi.flashnet.it>
    Date: Apr 2001
    Rewritten NSDirectoryEnumerator
+
+   Author: Richard frith-Macdonald <rfm@gnu.org>
+   Date: Sep 2002
+   Rewritten attribute handling code
 
    This file is part of the GNUstep Base Library.
 
