@@ -2376,106 +2376,73 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
    */
   while (input < dataEnd && unwrappingComplete == NO)
     {
-      unsigned	pos = input;
-
-      if ((c = bytes[pos]) != '\r' && c != '\n')
-	{
-	  unsigned	end;
-
-	  while (pos < dataEnd && (c = bytes[pos]) != '\r' && c != '\n')
-	    {
-	      pos++;
-	    }
-	  if (pos == dataEnd)
-	    {
-	      break;	/* need more data */
-	    }
-	  end = pos;
-	  pos++;
-	  if (c == '\r' && pos < dataEnd && bytes[pos] == '\n')
-	    {
-	      pos++;
-	    }
-	  if (pos == dataEnd)
-	    {
-	      break;	/* need more data */
-	    }
-	  /*
-	   * Copy data up to end of line ... skip the copy where possible.
-	   */
-	  if (input == lineEnd)
-	    {
-	      input = lineEnd = end;
-	    }
-	  else
-	    {
-	      while (input < dataEnd && (c = bytes[input]) != '\r' && c != '\n')
-		{
-		  bytes[lineEnd++] = bytes[input++];
-		}
-	    }
-	}
-
-      /*
-       * Eat a newline that is part of a cr-lf sequence.
-       */
-      if (input < dataEnd)
+      if ((c = bytes[input]) != '\r' && c != '\n')
         {
-	  /*
-	   * If we had an end-of-line with nothing else, we must have
-	   * finished unwrapping at the final boundary.
-	   */
-	  if (input == lineStart)
-	    {
-	      unwrappingComplete = YES;
-	    }
 	  input++;
-	  if (c == '\r' && input < dataEnd && bytes[input] == '\n')
+	}
+      else
+        {
+	  lineEnd = input++;
+	  if (input < dataEnd && c == '\r' && bytes[input] == '\n')
 	    {
 	      input++;
 	    }
-	}
-
-      /*
-       * See if we have a wrapped line.
-       */
-      if (input < dataEnd
-	&& ((c = bytes[input]) == '\r' || c == '\n' || isspace(c) == 0))
-	{
-	  unwrappingComplete = YES;
-	}
-
-      if (unwrappingComplete == YES)
-        {
-	  bytes[lineEnd] = '\0';
-	  /*
-	   * If this is a zero-length line, we have reached the end of
-	   * the headers.
-	   */
-	  if (lineEnd == lineStart)
+	  if (input < dataEnd)
 	    {
-	      unsigned		lengthRemaining;
+	      unsigned	length = lineEnd - lineStart;
 
-	      /*
-	       * Overwrite the header data with the body, ready to start
-	       * parsing the body data.
-	       */
-	      lengthRemaining = dataEnd - input;
-	      if (lengthRemaining > 0)
-		{
-		  memcpy(bytes, &bytes[input], lengthRemaining);
+	      if (length == 0)
+	        {
+		  /* An empty line cannot be folded.	*/
+		  unwrappingComplete = YES;
 		}
-	      dataEnd = lengthRemaining;
-	      [data setLength: lengthRemaining];
-	      bytes = (unsigned char*)[data mutableBytes];
-	      sectionStart = 0;
-	      lineStart = 0;
-	      lineEnd = 0;
-	      input = 0;
-	      flags.inBody = 1;
+	      else if ((c = bytes[input]) != '\r' && c != '\n' && isspace(c))
+	        {
+		  unsigned	diff = input - lineEnd;
+
+		  memmove(&bytes[lineStart + diff], &bytes[lineStart], length);
+		  lineStart += diff;
+		  lineEnd += diff;
+		}
+	      else
+	        {
+		  /* No folding ... done.	*/
+		  unwrappingComplete = YES;
+		}
 	    }
 	}
     }
+
+  if (unwrappingComplete == YES)
+    {
+      if (lineEnd == lineStart)
+	{
+	  unsigned		lengthRemaining;
+
+	  /*
+	   * Overwrite the header data with the body, ready to start
+	   * parsing the body data.
+	   */
+	  lengthRemaining = dataEnd - input;
+	  if (lengthRemaining > 0)
+	    {
+	      memcpy(bytes, &bytes[input], lengthRemaining);
+	    }
+	  dataEnd = lengthRemaining;
+	  [data setLength: lengthRemaining];
+	  bytes = (unsigned char*)[data mutableBytes];
+	  sectionStart = 0;
+	  lineStart = 0;
+	  lineEnd = 0;
+	  input = 0;
+	  flags.inBody = 1;
+	}
+    }
+  else
+    {
+      input = lineStart;	/* Reset to try again with more data.	*/
+    }
+
   NSDebugMLLog(@"GSMimeH", @"exit: inBody:%d unwrappingComplete: %d "
     @"input:%u dataEnd:%u lineStart:%u '%*.*s'", flags.inBody,
     unwrappingComplete,
