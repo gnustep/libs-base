@@ -1,6 +1,18 @@
-Tue Sep 24 11:20:06 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+Wed Sep 25 08:47:33 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.10.
+
+	* src/NSString.m ([NSString -initWithFormat:arguments:]): Fix bug
+ 	whereby multiple %@'s in the same format string created incorrect
+ 	output.
+
+	* examples/second-client.m: Don't pass %@ directives to printf();
+ 	use %s and -cStringNoCopy instead.
+	* examples/second-server.m: Likewise.
+
+	* doc/install.texi: Add the installation step.
+
+Tue Sep 24 11:20:06 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Makefile.in (mostlyclean, clean, distclean, maintainer-clean):
  	Reverse order of subdir-cleaning and topdir-cleaning so that we
