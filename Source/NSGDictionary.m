@@ -44,7 +44,7 @@ typedef struct {
   unsigned	_hash;
 } *dictAccessToStringHack;
 
-static INLINE unsigned
+static inline unsigned
 myHash(id obj)
 {
   if (fastIsInstance(obj))
@@ -68,7 +68,7 @@ myHash(id obj)
   return [obj hash];
 }
 
-static INLINE BOOL
+static inline BOOL
 myEqual(id self, id other)
 {
   if (self == other)

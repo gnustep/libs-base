@@ -29,9 +29,10 @@
 #include <Foundation/NSZone.h>
 #include <limits.h>
 
-/* TODO:
-   Doesn't work multi-threaded.
-   */
+/*
+ * Set to 1 to count all autoreleases
+ */
+#define	COUNT_ALL	0
 
 /* When this is `NO', autoreleased objects are never actually recorded
    in an NSAutoreleasePool, and are not sent a `release' message.
@@ -46,7 +47,7 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 #define BEGINNING_POOL_SIZE 32
 
 /* Easy access to the thread variables belonging to NSAutoreleasePool. */
-#define ARP_THREAD_VARS (&([NSThread currentThread]->_autorelease_vars))
+#define ARP_THREAD_VARS (&(GSCurrentThread()->_autorelease_vars))
 
 
 @interface NSAutoreleasePool (Private)
@@ -280,9 +281,11 @@ static IMP	initImp;
   _released->objects[_released->count] = anObj;
   (_released->count)++;
 
+#if	COUNT_ALL
   /* Keep track of the total number of objects autoreleased across all
      pools. */
   ARP_THREAD_VARS->total_objects_count++;
+#endif
 
   /* Keep track of the total number of objects autoreleased in this pool */
   _released_count++;

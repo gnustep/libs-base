@@ -38,7 +38,7 @@ static NSString *dict_key = @"_NSAssertionHandler";
   NSMutableDictionary *dict;
   NSAssertionHandler *handler;
 
-  dict = [[NSThread currentThread] threadDictionary];
+  dict = GSCurrentThreadDictionary();
   handler = [dict objectForKey: dict_key];
   if (handler == nil)
     {

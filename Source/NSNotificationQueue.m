@@ -81,7 +81,7 @@ static	NSString*	tkey = @"NotificationQueueListThreadKey";
   NotificationQueueList*	list;
   NSThread*			t;
 
-  t = [NSThread currentThread];
+  t = GSCurrentThread();
   list = (NotificationQueueList*)[[t threadDictionary] objectForKey:tkey];
   if (list == nil)
     {
@@ -129,7 +129,7 @@ static	NSString*	tkey = @"NotificationQueueListThreadKey";
     {
       NSThread*	t;
 
-      t = [NSThread currentThread];
+      t = GSCurrentThread();
       if (list->next)
         {
 	  NotificationQueueList*	tmp = list->next;

@@ -52,6 +52,10 @@ extern int	errno;
  *		If 'changeFlag' is YES then the list gives the number
  *		of instances allocated/deallocated sine the function
  *		was last called.
+ *	GSDebugAllocationListAll()
+ *		Returns a newline separated list of the classes which
+ *		have had instances allocated at any point, and the total
+ *		count of the number of instances allocated.
  */
 
 #ifndef	NDEBUG

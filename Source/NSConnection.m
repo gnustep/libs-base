@@ -297,7 +297,7 @@ static int messages_received_count;
   NSConnection*	c;
   NSThread*	t;
 
-  t = [NSThread currentThread];
+  t = GSCurrentThread();
   c = (NSConnection*)[[t threadDictionary] objectForKey:tkey];
   if (c != nil && [c isValid] == NO) {
     /*

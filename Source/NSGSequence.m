@@ -51,6 +51,16 @@
 
 @implementation NSGSequence
 
+static	Class	seqClass;
+
++ (void) initialize
+{
+  if (self == [NSGSequence class])
+    {
+      seqClass = self;
+    }
+}
+
 // Creating Temporary Sequences
 
 + (NSGSequence*) sequenceWithString: (NSString*) aString 
@@ -194,11 +204,15 @@
 - (void) getCharacters: (unichar*)buffer
    range: (NSRange)aRange
 {
+#if 0
   int i;
   for (i = 0; i < aRange.length; i++)
     {
       buffer[i] = [self characterAtIndex: aRange.location+i];
     }
+#else
+  memcpy(buffer, &_contents_chars[aRange.location], aRange.length*2);
+#endif
 }
 
 //for debuging
@@ -357,7 +371,7 @@
   for(count=0;count<len;count++)
     s[count]=uni_tolower(_contents_chars[count]);
   s[len] = (unichar)0;
-  return [NSGSequence sequenceWithCharactersNoCopy:s length:len freeWhenDone:YES];
+  return [seqClass sequenceWithCharactersNoCopy:s length:len freeWhenDone:YES];
 }
 
 - (NSGSequence*) uppercase
@@ -369,7 +383,7 @@
   for(count=0;count<len;count++)
     s[count]=uni_toupper(_contents_chars[count]);
   s[len] = (unichar)0;
-  return [NSGSequence sequenceWithCharactersNoCopy:s length:len freeWhenDone:YES];
+  return [seqClass sequenceWithCharactersNoCopy:s length:len freeWhenDone:YES];
 }
 
 - (NSGSequence*) titlecase
@@ -397,8 +411,15 @@
     end=seqLength;
   for (i = 0; i < end; i ++)
   {
+#if 0
     if ([self characterAtIndex:i] < [aSequence characterAtIndex:i]) return NSOrderedAscending;
     if ([self characterAtIndex:i] > [aSequence characterAtIndex:i]) return NSOrderedDescending;
+#else
+    if (_contents_chars[i] < aSequence->_contents_chars[i])
+      return NSOrderedAscending;
+    if (_contents_chars[i] > aSequence->_contents_chars[i])
+      return NSOrderedDescending;
+#endif
   }
   if(myLength<seqLength)
     return NSOrderedAscending;
