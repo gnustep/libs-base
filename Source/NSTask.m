@@ -1073,7 +1073,7 @@ quotedFromString(NSString *aString)
   wchar_t	*w_args;
   int		result;
   const wchar_t	*wexecutable;
-  LPVOID	envp = 0;
+  const LPVOID	envp = 0;
   
   if (_hasLaunched)
     {

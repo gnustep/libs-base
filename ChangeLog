@@ -1,3 +1,7 @@
+2005-02-15 08:00 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Fix incorrect version comitted.
+
 2005-02-14 08:00 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: Pass environment settings for mingw based on
