@@ -941,7 +941,7 @@ static id long_day[7] = {@"Sunday",
 	    case 'Z':
 	      ++i;
 	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
-			  [[time_zone timeZoneAbbreviation] cStringNoCopy]));
+			  [[time_zone timeZoneAbbreviation] cString]));
 	      j += k;
 	      break;
 

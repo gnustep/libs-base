@@ -82,7 +82,7 @@ NSHomeDirectoryForUser (NSString *login_name)
 {
 #if !defined(__WIN32__) && !defined(_WIN32)
   struct passwd *pw;
-  pw = getpwnam ([login_name cStringNoCopy]);
+  pw = getpwnam ([login_name cString]);
   return [NSString stringWithCString: pw->pw_dir];
 #else
   /* Then environment variable HOMEPATH holds the home directory

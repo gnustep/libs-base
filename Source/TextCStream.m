@@ -67,50 +67,50 @@ static BOOL debug_textcoder = NO;
     {
     case _C_LNG:
       [stream writeFormat:@"%*s<%s> (long) = %ld\n", 
-	      indentation, "", [name cStringNoCopy], *(long*)d];
+	      indentation, "", [name cString], *(long*)d];
       break;
     case _C_ULNG:
       [stream writeFormat:@"%*s<%s> (unsigned long) = %lu\n", 
-	      indentation, "", [name cStringNoCopy], *(unsigned long*)d];
+	      indentation, "", [name cString], *(unsigned long*)d];
       break;
     case _C_INT:
       [stream writeFormat:@"%*s<%s> (int) = %d\n", 
-	      indentation, "", [name cStringNoCopy], *(int*)d];
+	      indentation, "", [name cString], *(int*)d];
       break;
     case _C_UINT:
       [stream writeFormat:@"%*s<%s> (unsigned int) = %u\n", 
-	      indentation, "", [name cStringNoCopy], *(unsigned int*)d];
+	      indentation, "", [name cString], *(unsigned int*)d];
       break;
     case _C_SHT:
       [stream writeFormat:@"%*s<%s> (short) = %d\n", 
-	      indentation, "", [name cStringNoCopy], (int)*(short*)d];
+	      indentation, "", [name cString], (int)*(short*)d];
       break;
     case _C_USHT:
       [stream writeFormat:@"%*s<%s> (unsigned short) = %u\n", 
-	      indentation, "", [name cStringNoCopy],
+	      indentation, "", [name cString],
 	      (unsigned)*(unsigned short*)d];
       break;
     case _C_CHR:
       [stream writeFormat:@"%*s<%s> (char) = %c (0x%x)\n", 
-	      indentation, "", [name cStringNoCopy],
+	      indentation, "", [name cString],
 	      *(char*)d, (unsigned)*(char*)d];
       break;
     case _C_UCHR:
       [stream writeFormat:@"%*s<%s> (unsigned char) = 0x%x\n", 
-	      indentation, "", [name cStringNoCopy],
+	      indentation, "", [name cString],
 	      (unsigned)*(unsigned char*)d];
       break;
     case _C_FLT:
       [stream writeFormat:@"%*s<%s> (float) = %g\n",
-	      indentation, "", [name cStringNoCopy], *(float*)d];
+	      indentation, "", [name cString], *(float*)d];
       break;
     case _C_DBL:
       [stream writeFormat:@"%*s<%s> (double) = %g\n",
-	      indentation, "", [name cStringNoCopy], *(double*)d];
+	      indentation, "", [name cString], *(double*)d];
       break;
     case _C_CHARPTR:
       [stream writeFormat:@"%*s<%s> (char*) = \"%s\"\n", 
-	      indentation, "", [name cStringNoCopy], *(char**)d];
+	      indentation, "", [name cString], *(char**)d];
       break;
     case _C_ARY_B:
       {
@@ -176,7 +176,7 @@ static BOOL debug_textcoder = NO;
   [NSException raise: NSGenericException				\
 	       format: @"bad format decoding " ATXSTR(TYPE) @".\n"	\
                        @"Looking at %s\n.",				\
-	               [line cStringNoCopy]];				\
+	               [line cString]];				\
 }
   
 
@@ -361,7 +361,7 @@ if (debug_textcoder) \
   const char *lp;
 
   line = [stream readLine];
-  lp = [line cStringNoCopy];
+  lp = [line cString];
   while (*lp == ' ') lp++;
   if (*lp != '{')
     [NSException raise: NSGenericException
@@ -374,7 +374,7 @@ if (debug_textcoder) \
   const char *lp;
 
   line = [stream readLine];
-  lp = [line cStringNoCopy];
+  lp = [line cString];
   while (*lp == ' ') lp++;
   if (*lp != '}')
     [NSException raise: NSGenericException
@@ -384,7 +384,7 @@ if (debug_textcoder) \
 - (void) encodeName: (NSString*) n
 {
   if (n)
-    [stream writeFormat:@"%*s<%s>\n", indentation, "", [n cStringNoCopy]];
+    [stream writeFormat:@"%*s<%s>\n", indentation, "", [n cString]];
   else
     [stream writeFormat:@"%*s<NULL>\n", indentation, ""];
 }

@@ -89,7 +89,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   struct servent*	sp;
 
   if (pcl)
-    proto = [pcl cStringNoCopy];
+    proto = [pcl cString];
 
   memset(sin, '\0', sizeof(*sin));
   sin->sin_family = AF_INET;
@@ -107,9 +107,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	name = [host address];
 
 #ifndef	HAVE_INET_ATON
-      sin->sin_addr.s_addr = inet_addr([name cStringNoCopy]);
+      sin->sin_addr.s_addr = inet_addr([name cString]);
 #else
-      if (inet_aton([name cStringNoCopy], &sin->sin_addr) == 0)
+      if (inet_aton([name cString], &sin->sin_addr) == 0)
 	return NO;
 #endif
     }
@@ -121,9 +121,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       sin->sin_port = 0;
       return YES;
     }
-  else if ((sp = getservbyname([svc cStringNoCopy], proto)) == 0)
+  else if ((sp = getservbyname([svc cString], proto)) == 0)
     {
-      const char*     ptr = [svc cStringNoCopy];
+      const char*     ptr = [svc cString];
       int             val = atoi(ptr);
 
       while (isdigit(*ptr))

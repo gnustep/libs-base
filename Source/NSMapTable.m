@@ -398,8 +398,8 @@ NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
      * date. */
     [NSException raise:NSInvalidArgumentException
                  format:@"NSMapTable: illegal reinsertion of: %s -> %s",
-                 [NSMT_DESCRIBE_KEY(table, key) cStringNoCopy],
-                 [NSMT_DESCRIBE_VALUE(table, value) cStringNoCopy]];
+                 [NSMT_DESCRIBE_KEY(table, key) cString],
+                 [NSMT_DESCRIBE_VALUE(table, value) cString]];
   }
   else
   {
@@ -445,8 +445,8 @@ NSStringFromMapTable(NSMapTable *table)
    * descriptions to the string. */
   while (NSNextMapEnumeratorPair(&enumerator, &key, &value))
     [string appendFormat:@"%@ = %@;",
-	    [(keyCallBacks.describe)(table, key) cStringNoCopy],
-	    [(valueCallBacks.describe)(table, value) cStringNoCopy]];
+	    [(keyCallBacks.describe)(table, key) cString],
+	    [(valueCallBacks.describe)(table, value) cString]];
 
   /* Note that this string'll need to be `retain'ed. */
   return string;

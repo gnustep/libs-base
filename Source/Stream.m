@@ -91,7 +91,7 @@
 
 - (void) writeLine: (NSString*)l
 {
-  const char *s = [l cStringNoCopy];
+  const char *s = [l cString];
   [self writeBytes:s length:strlen(s)];
   [self writeBytes:"\n" length:1];
 }

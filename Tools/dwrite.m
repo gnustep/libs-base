@@ -223,7 +223,7 @@ main(int argc, char** argv)
 		}
 	    }
 	    value = [args objectAtIndex: ++i];
-	    text = [value cStringNoCopy];
+	    text = [value cString];
 	    if (*text == '(' || *text == '{' || *text == '<') {
 		obj = [value propertyList];
 	    }
@@ -263,7 +263,7 @@ main(int argc, char** argv)
 		}
 	    }
 	    value = [args objectAtIndex: ++i];
-	    text = [value cStringNoCopy];
+	    text = [value cString];
 	    if (*text == '(' || *text == '{' || *text == '<') {
 		obj = [value propertyList];
 	    }

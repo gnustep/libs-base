@@ -116,7 +116,7 @@ static BOOL debug_connected_coder = NO;
     if (debug_connected_coder)
       fprintf(stderr, "dismiss 0x%x: #=%d i=%d write failed - %s\n",
 	        (unsigned)self, sequence_number, identifier,
-		[[localException reason] cStringNoCopy]);
+		[[localException reason] cString]);
     if ([[connection sendPort] isValid])
       [[connection sendPort] invalidate];
   }

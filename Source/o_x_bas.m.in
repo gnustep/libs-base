@@ -256,8 +256,8 @@ _o_@XX@_description(o_@XX@_t *xx)
 	   @"name = %s;\nextra = %s;\nzone = %s;\n",
 	   o_@XX@_magic_number(xx),
 	   o_@XX@_serial_number(xx),
-	   [o_@XX@_name(xx) cStringNoCopy],
+	   [o_@XX@_name(xx) cString],
 	   [o_describe(o_@XX@_extra_callbacks(xx), o_@XX@_extra(xx), xx)
-		      cStringNoCopy],
-	   [NSZoneName(o_@XX@_zone(xx)) cStringNoCopy]];
+		      cString],
+	   [NSZoneName(o_@XX@_zone(xx)) cString]];
 }

@@ -4,7 +4,7 @@
    Written by Stevo Crvenkovski <stevo@btinternet.com>
    Date: February 1997
    
-   Based on NSGCSting and NSString
+   Based on NSGCString and NSString
    Written by:  Andrew Kachites McCallum
    <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -29,12 +29,10 @@
 #include <config.h>
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/NSString.h>
 #include <Foundation/NSGString.h>
-#include <gnustep/base/NSGString.h>
+#include <Foundation/NSData.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
-#include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSValue.h>
 #include <gnustep/base/behavior.h>
 #include <gnustep/base/NSGSequence.h>
@@ -156,7 +154,7 @@
   if (_count > 0)
     ustrtostr(r,_contents_chars, _count);
   r[_count] = '\0';
-  [[[MallocAddress alloc] initWithAddress:r] autorelease];
+  [NSData dataWithBytesNoCopy: r length: _count+1];
   return r;
 }
 
@@ -199,7 +197,7 @@
   OBJC_MALLOC(r, char, _count+1);
   ustrtostr(r,_contents_chars, _count);
   r[_count] = '\0';
-  [[[MallocAddress alloc] initWithAddress:r] autorelease];
+  [NSData dataWithBytesNoCopy: r length: _count+1];
   return r;
 }
 // #endif /* NO_GNUSTEP */
@@ -436,21 +434,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 }
 
 // ************ Stuff from NSGCString *********
-
-/* xxx This method may be removed in future. */
-- (void) setCString: (const char *)byteString length: (unsigned)length
-{
-  if (_capacity < length)
-    {
-      _capacity = length;
-      if (_capacity < 2)
-	_capacity = 2;
-      OBJC_REALLOC(_contents_chars, unichar, _capacity);
-    }
-  strtoustr(_contents_chars, byteString, length);
-  _count = length;
-  _hash = 0;
-}
 
 /* Override NSString's designated initializer for CStrings. */
 - (id) initWithCStringNoCopy: (char*)byteString

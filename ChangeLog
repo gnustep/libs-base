@@ -1,3 +1,34 @@
+Wed Sep 30  9:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/dwrite.m: Removed references to cStringNoCopy
+	* src/BinaryTree.m: Removed references to cStringNoCopy
+	* src/Collection.m: Removed references to cStringNoCopy
+	* src/Encoder.m: Removed references to cStringNoCopy
+	* src/KeyedCollection.m: Removed references to cStringNoCopy
+	* src/MemoryStream.m: Removed references to cStringNoCopy
+	* src/NSCalendarDate.m: Removed references to cStringNoCopy
+	* src/NSData.m: Removed references to cStringNoCopy
+	* src/NSGCString.m: Removed references to cStringNoCopy
+	* src/NSGString.m: Removed references to cStringNoCopy
+	* src/NSHashTable.m: Removed references to cStringNoCopy
+	* src/NSLog.m: Removed references to cStringNoCopy
+	* src/NSMapTable.m: Removed references to cStringNoCopy
+	* src/NSPortCoder.m: Removed references to cStringNoCopy
+	* src/NSString.m: Removed references to cStringNoCopy
+	* src/NSTimeZone.m: Removed references to cStringNoCopy
+	* src/NSUser.m: Removed references to cStringNoCopy
+	* src/NSZone.m: Removed references to cStringNoCopy
+	* src/StdioStream.m: Removed references to cStringNoCopy
+	* src/Stream.m: Removed references to cStringNoCopy
+	* src/TextCStream.m: Removed references to cStringNoCopy
+	* src/UdpPort.m: Removed references to cStringNoCopy
+	* src/UnixFileHandle.m: Removed references to cStringNoCopy
+	* src/lex.pl.m: Removed references to cStringNoCopy
+	* src/lex.sf.m: Removed references to cStringNoCopy
+	* src/mframe.m: Removed references to cStringNoCopy
+	* src/o_hash.m: Removed references to cStringNoCopy
+	* src/o_x_base.m.in: Removed references to cStringNoCopy
+
 Tue Sep 29 13:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/include/Foundation.h: Added some missing files.

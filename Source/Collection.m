@@ -589,7 +589,7 @@
   id o;
   FOR_COLLECTION(self, o)
     {
-      printf("%s ", [[o description] cStringNoCopy]);
+      printf("%s ", [[o description] cString]);
     }
   END_FOR_COLLECTION(self);
   printf(": %s\n", object_get_class_name (self));

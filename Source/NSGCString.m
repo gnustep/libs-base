@@ -24,10 +24,10 @@
 #include <config.h>
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSData.h>
 #include <gnustep/base/NSString.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
-#include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSValue.h>
 #include <gnustep/base/behavior.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
@@ -144,7 +144,7 @@ static Class	mutableClass;
   OBJC_MALLOC(r, char, _count+1);
   memcpy(r, _contents_chars, _count);
   r[_count] = '\0';
-  [[[MallocAddress alloc] initWithAddress:r] autorelease];
+  [NSData dataWithBytesNoCopy:r length: _count+1];
   return r;
 }
 
@@ -303,7 +303,7 @@ static Class	mutableClass;
 
 - (id) initWithString: (NSString*)string
 {
-  return [self initWithCString:[string cStringNoCopy]];
+  return [self initWithCString:[string cString]];
 }
 
 @end
@@ -399,7 +399,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
       OBJC_REALLOC(_contents_chars, char, _capacity+1);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, c);
-  memcpy(_contents_chars + index, [aString cStringNoCopy], c);
+  [aString getCString: _contents_chars + index];
   _contents_chars[_count] = '\0';
 }
 
@@ -411,7 +411,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
       _capacity = MAX(_capacity*2, _count+c);
       OBJC_REALLOC(_contents_chars, char, _capacity+1);
     }
-  memcpy(_contents_chars + _count, [aString cStringNoCopy], c);
+  [aString getCString: _contents_chars + _count];
   _count += c;
   _contents_chars[_count] = '\0';
   _hash = 0;
@@ -419,28 +419,13 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (void) setString: (NSString*)aString
 {
-  const char *s = [aString cStringNoCopy];
-  unsigned length = strlen(s);
+  unsigned length = [aString cStringLength];
   if (_capacity < length)
     {
       _capacity = length;
       OBJC_REALLOC(_contents_chars, char, _capacity+1);
     }
-  memcpy(_contents_chars, s, length);
-  _contents_chars[length] = '\0';
-  _count = length;
-  _hash = 0;
-}
-
-/* xxx This method may be removed in future. */
-- (void) setCString: (const char *)byteString length: (unsigned)length
-{
-  if (_capacity < length)
-    {
-      _capacity = length;
-      OBJC_REALLOC(_contents_chars, char, _capacity+1);
-    }
-  memcpy(_contents_chars, byteString, length);
+  [aString getCString: _contents_chars];
   _contents_chars[length] = '\0';
   _count = length;
   _hash = 0;

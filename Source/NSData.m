@@ -141,7 +141,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
       goto failure;
     }
 
-  tmp = malloc(fileLength);
+  tmp = objc_malloc(fileLength);
   if (tmp == 0)
     {
       NSLog(@"Malloc failed for file of length %d- %s",
@@ -173,7 +173,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   /* Just in case the failure action needs to be changed. */
  failure:
   if (tmp)
-    free(tmp);
+    objc_free(tmp);
   if (theFile)
     fclose(theFile);
   return NO;
@@ -394,7 +394,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 		format: @"Range: (%u, %u) Size: %d",
 			aRange.location, aRange.length, l];
 
-  buffer = malloc(aRange.length);
+  buffer = objc_malloc(aRange.length);
   if (buffer == 0)
     [NSException raise:NSMallocException
 		format:@"No memory for subdata of NSData object"];
@@ -797,7 +797,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
 - (void*) relinquishAllocatedBytes
 {
-    return 0;	/* No data from malloc - return nul pointer	*/
+    return 0;	/* No data from objc_malloc - return nul pointer	*/
 }
 @end
 
@@ -1186,7 +1186,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   if (bytes)
     {
-      free(bytes);
+      objc_free(bytes);
       bytes = 0;
       length = 0;
     }
@@ -1210,7 +1210,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
   if (aBuffer != 0 && bufferSize > 0)
     {
-      tmp = malloc(bufferSize);
+      tmp = objc_malloc(bufferSize);
       if (tmp == 0)
 	{
 	  NSLog(@"[NSDataMalloc -initWithBytes:length:] unable to allocate %lu bytes", bufferSize);
@@ -1238,7 +1238,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
     }
   else
     if (aBuffer)
-      free(aBuffer);
+      objc_free(aBuffer);
   return self;
 }
 
@@ -1248,7 +1248,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   void*		b;
 
   [aCoder decodeValueOfObjCType:"I" at: &l];
-  b = malloc(l);
+  b = objc_malloc(l);
   if (b == 0)
     {
       NSLog(@"[NSDataMalloc -initWithCode:] unable to allocate %lu bytes", l);
@@ -1544,7 +1544,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   if (bytes)
     {
-      free(bytes);
+      objc_free(bytes);
       bytes = 0;
       length = 0;
       capacity = 0;
@@ -1592,7 +1592,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
     }
   else
     if (aBuffer)
-      free(aBuffer);
+      objc_free(aBuffer);
   return self;
 }
 
@@ -1606,7 +1606,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
     {
       if (size)
         {
-          bytes = malloc(size);
+          bytes = objc_malloc(size);
 	  if (bytes == 0)
             {
 	      NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory for %u bytes - %s", size, strerror(errno));
@@ -1696,9 +1696,9 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
       void*	tmp;
 
       if (bytes)
-        tmp = realloc(bytes, size);
+        tmp = objc_realloc(bytes, size);
       else
-        tmp = malloc(size);
+        tmp = objc_malloc(size);
 
       if (tmp == 0)
 	[NSException raise:NSMallocException
