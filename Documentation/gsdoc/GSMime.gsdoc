@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="GSMime" up="Base">
+  <head>
+    <title>GNUstep MIME parser</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>26 Ovctober, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>Mime Parser</heading>
+      <p>
+        The GNUstep Mime parser.  This is collection Objective-C classes
+	for representing MIME (and HTTP) documents and managing conversions
+	to and from convenient internal formats.
+      </p>
+      <section>
+          <heading>The classes</heading>
+          <list>
+            <item><uref url="GSXMLDocument.html">GSXMLDocument</uref></item>
+            <item><uref url="GSXMLParser.html">GSXMParser</uref></item>
+          </list>
+      </section>
+    </chapter>
+  </body>
+</gsdoc>
+

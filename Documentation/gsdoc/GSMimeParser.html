@@ -1,0 +1,76 @@
+<html><head>
+ <title>GSMimeParser</title>
+</head>
+<body>
+<a href ="GSMimeDocument.html">[Previous]</a>
+<a href ="GSMime.html">[Up]</a>
+<h1>GSMimeParser</h1>
+<h3>Authors </h3>
+ <dl>
+<dt><a href ="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
+<dd>
+</dl>
+<p>Version: 0.1</p>
+<p>Date: 26 October, 2000</p>
+<h2><a name ="cont-0">GSMimeParser</a></h2>
+<h2><a name ="GSMimeParser">GSMimeParser</a></h2>
+<p><b>Declared in: </b> Foundation/GSMime.h</p>
+<p><b>Inherits from: </b> NSObject</p>
+<p><b>Conforms to: </b> NSObject
+</p>
+<hr>
+
+	  <p>
+
+	    This class provides support for parsing MIME messages
+	    into GSMimeDocument objects.  It is imtimately related
+	    to the GSMimeDocument class and relys on that class for
+	    aspects of the parsing operation.
+	  </p>
+
+	
+<h2>Instance Variables </h2>
+<ul>
+</ul>
+<h2>Methods </h2>
+<ul>
+<li><a href ="GSMimeParser.html#method-0">+mimeParser</a>
+<li><a href ="GSMimeParser.html#method-2">-document</a>
+<li><a href ="GSMimeParser.html#method-1">-parse:</a>
+<li><a href ="GSMimeParser.html#method-3">-parsingHeaders</a>
+</ul>
+<hr><h2>Class Methods </h2>
+<h3><a name ="method-0">mimeParser</a></h3>
++ (GSMimeParser*) <b>mimeParser</b>;<br>
+
+	    Create a parser.
+          
+ <hr>
+<hr><h2>Instances Methods </h2>
+<h3><a name ="method-1">parse:</a></h3>
+- (BOOL) <b>parse:</b> (NSData*)rawData;<br>
+
+	    This method is called repeatedly to pass raw mime data into
+	    the parser.  It should be called with a nil argument at the
+	    end of the data - to inform the parser that it has been given
+	    all the available information.
+          
+ <hr>
+<h3><a name ="method-2">document</a></h3>
+- (GSMimeDocument*) <b>document</b>;<br>
+
+	    Returns the object into which raw mime data is being parsed.
+          
+ <hr>
+<h3><a name ="method-3">parsingHeaders</a></h3>
+- (BOOL) <b>parsingHeaders</b>;<br>
+
+	    Returns YES if the parser is expecting to read mime headers,
+	    Returns NO is the parser has already been passed all the
+	    data containing headers, and is now waiting for the body of
+            trhe mime message (or has been passed all data).
+          
+ <hr>
+</body>
+
+ </html>

@@ -229,6 +229,7 @@ objc-load.m
 ifeq ($(HAVE_LIBXML),1)
 BASE_MFILES += GSXML.m
 endif
+BASE_MFILES += GSMime.m
 
 NSVALUE_MFILES = \
 	NSValue0.m NSValue1.m NSValue2.m NSValue3.m \
