@@ -33,6 +33,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSObjCRuntime.h>
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
@@ -249,7 +250,7 @@ static Class	mutableSetClass;
     return NO;
 
   // Loop for all members in otherSet
-  c = fastClass(otherSet);
+  c = GSObjCClassOfObject(otherSet);
   if (c == setClass || c == mutableSetClass)
     {
       GSIMapNode	node = ((NSGSet*)otherSet)->map.firstNode;
@@ -319,7 +320,7 @@ static Class	mutableSetClass;
     }
   else
     {
-      Class	c = fastClass(other);
+      Class	c = GSObjCClassOfObject(other);
 
       if (c == setClass || c == mutableSetClass)
 	{

@@ -33,6 +33,7 @@
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSScanner.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <base/preface.h>
 #include <base/behavior.h>
 #include <base/fast.x>
@@ -97,8 +98,13 @@ findInArray(NSArray *array, unsigned pos, NSString *str)
 static inline NSTimeInterval
 otherTime(NSDate* other)
 {
-  Class	c = fastClass(other);
+  Class	c;
 
+  if (other == nil)
+    [NSException raise: NSInvalidArgumentException format: @"other time nil"];
+  if (fastIsInstance(other) == NO)
+    [NSException raise: NSInvalidArgumentException format: @"other time bad"];
+  c = GSObjCClassOfObject(other);
   if (c == concreteClass || c == calendarClass)
     return ((NSGDate*)other)->_seconds_since_ref;
   else

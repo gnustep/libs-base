@@ -1,5 +1,5 @@
 /* Interface to ObjC runtime for GNUStep
-   Copyright (C) 1995, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997, 2000 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -38,21 +38,22 @@
 
 @class	NSString;
 
-GS_EXPORT NSString *NSStringFromSelector(SEL aSelector);
-GS_EXPORT SEL NSSelectorFromString(NSString *aSelectorName);
-GS_EXPORT Class NSClassFromString(NSString *aClassName);
-GS_EXPORT NSString *NSStringFromClass(Class aClass);
-GS_EXPORT const char *NSGetSizeAndAlignment(const char *typePtr, unsigned int *sizep, unsigned int *alignp);
+GS_EXPORT NSString	*NSStringFromSelector(SEL aSelector);
+GS_EXPORT SEL		NSSelectorFromString(NSString *aSelectorName);
+GS_EXPORT Class		NSClassFromString(NSString *aClassName);
+GS_EXPORT NSString	*NSStringFromClass(Class aClass);
+GS_EXPORT const char	*NSGetSizeAndAlignment(const char *typePtr,
+  unsigned int *sizep, unsigned int *alignp);
 
 /* Logging */
 /* OpenStep spec states that log messages go to stderr, but just in case
    someone wants them to go somewhere else, they can implement a function
    like this */
 typedef void NSLog_printf_handler (NSString* message);
-GS_EXPORT NSLog_printf_handler *_NSLog_printf_handler;
+GS_EXPORT NSLog_printf_handler	*_NSLog_printf_handler;
 
-GS_EXPORT void NSLog (NSString* format, ...);
-GS_EXPORT void NSLogv (NSString* format, va_list args);
+GS_EXPORT void			NSLog (NSString* format, ...);
+GS_EXPORT void			NSLogv (NSString* format, va_list args);
 
 #ifndef YES
 #define YES		1
@@ -64,12 +65,23 @@ GS_EXPORT void NSLogv (NSString* format, va_list args);
 #define nil		0
 #endif nil
 
+#define FOUNDATION_EXPORT
+#define FOUNDATION_STATIC_INLINE static inline
+
 #ifndef	NO_GNUSTEP
 GS_EXPORT BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
 GS_EXPORT BOOL GSSetInstanceVariable(id obj, NSString *name, const void* data);
-#endif
 
-#define FOUNDATION_EXPORT
-#define FOUNDATION_STATIC_INLINE static inline
+/*
+ * GSObjCClassOfInstance() return the class of an instance.
+ * The argument to this function must NOT be nil.
+ */
+FOUNDATION_STATIC_INLINE Class
+GSObjCClassOfObject(id obj)
+{
+  return obj->class_pointer;
+}
+
+#endif
 
 #endif /* __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */

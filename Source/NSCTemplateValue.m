@@ -27,6 +27,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <base/preface.h>
 #include <base/fast.x>
 
@@ -81,7 +82,8 @@
 
 - (BOOL) isEqual: (id)other
 {
-  if (other != nil && fastInstanceIsKindOfClass(other, fastClass(self)))
+  if (other != nil
+    && fastInstanceIsKindOfClass(other, GSObjCClassOfObject(self)))
     {
       return [self isEqualToValue: other];
     }
@@ -92,7 +94,8 @@
 {
   typedef __typeof__(data) _dt;
 
-  if (aValue != nil && fastInstanceIsKindOfClass(aValue, fastClass(self)))
+  if (aValue != nil
+    && fastInstanceIsKindOfClass(aValue, GSObjCClassOfObject(self)))
     {
       _dt	val = [aValue TYPE_METHOD];
 #if TYPE_ORDER == 0

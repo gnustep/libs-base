@@ -30,6 +30,7 @@
 #include <Foundation/NSPort.h>
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSObjCRuntime.h>
 
 static int	debug_proxy = 0;
 static Class	placeHolder = 0;
@@ -742,7 +743,7 @@ enum
 
 - (IMP) methodForSelector: (SEL)aSelector
 {
-  return get_imp(fastClass((id)self), aSelector);
+  return get_imp(GSObjCClassOfObject((id)self), aSelector);
 }
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector

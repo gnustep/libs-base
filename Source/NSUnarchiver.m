@@ -27,6 +27,7 @@
 #include <Foundation/NSZone.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSByteOrder.h>
+#include <Foundation/NSObjCRuntime.h>
 
 /*
  *	Setup for inline operation of arrays.
@@ -294,6 +295,9 @@ mapClassName(NSUnarchiverObjectInfo *info)
 
 @implementation NSUnarchiver
 
+@class NSDataMalloc;
+static Class NSDataMallocClass;
+
 + (void) initialize
 {
   if ([self class] == [NSUnarchiver class])
@@ -302,6 +306,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
       tagSel = @selector(deserializeTypeTag:andCrossRef:atCursor:);
       dValSel = @selector(decodeValueOfObjCType:at:);
       clsDict = [[NSMutableDictionary alloc] initWithCapacity: 200];
+      NSDataMallocClass = [NSDataMalloc class];
     }
 }
 
@@ -328,7 +333,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 
 + (id) unarchiveObjectWithFile: (NSString*)path
 {
-  NSData	*d = [_fastCls._NSDataMalloc dataWithContentsOfFile: path];
+  NSData	*d = [NSDataMallocClass dataWithContentsOfFile: path];
 
   if (d != nil)
     {
@@ -1144,7 +1149,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 
       TEST_RELEASE(data);
       data = RETAIN(anObject);
-      c = fastClass(data);
+      c = GSObjCClassOfObject(data);
       if (src != self)
 	{
 	  src = data;

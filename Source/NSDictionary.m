@@ -35,6 +35,7 @@
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSObjCRuntime.h>
 
 @interface NSDictionaryNonCore : NSDictionary
 @end
@@ -779,14 +780,14 @@ static NSString	*indentStrings[] = {
 
       for (i = 0; i < numKeys; i++)
 	{
-	  if (fastClass(keys[i]) == lastClass)
+	  if (GSObjCClassOfObject(keys[i]) == lastClass)
 	    continue;
 	  if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
 	    {
 	      canCompare = NO;
 	      break;
 	    }
-	  lastClass = fastClass(keys[i]);
+	  lastClass = GSObjCClassOfObject(keys[i]);
 	}
 
       if (canCompare == YES)
@@ -830,7 +831,7 @@ static NSString	*indentStrings[] = {
 		      Class			x;
 		      NSComparisonResult	r;
 
-		      x = fastClass(a);
+		      x = GSObjCClassOfObject(a);
 		      if (x != lastClass)
 			{
 			  lastClass = x;
