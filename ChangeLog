@@ -1,3 +1,8 @@
+Mon Nov 23 22:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/Tools/GNUmakefile: removed make_services
+	* src/Tools/make_services.m: Removed - moved to gui library.
+
 Fri Nov 20 20:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/Makefile.postamble: Added dependencies for FastArray.x and added
