@@ -20,65 +20,11 @@ defaults read [ domain [ key] ]
 read the named default from the specified domain.
 If no 'key' is given - read all defaults from the domain.
 If no 'domain' is given - read all defaults from all domains.
-.PP
-defaults readkey key
-.IP
-read the named default from all domains.
-.PP
-defaults write domain key value
-.IP
-write 'value' as default 'key' in the specified domain.
-\&'value' must be a property list in single quotes.
-.PP
-defaults write domain dictionary
-.IP
-write 'dictionary' as a replacement for the specified domain.
-\&'dictionary' must be a property list in single quotes.
-.PP
-defaults write
-.IP
-reads standard input for defaults in the format produced by
-\&'defaults read' and writes them to the database.
-.PP
-defaults delete [ domain [ key] ]
-.IP
-remove the specified default(s) from the domain.
-If no 'key' is given - delete the entire domain.
-.PP
-defaults delete
-.IP
-read standard input for a series of lines containing pairs of domains
-and keys for defaults to be deleted.
-.PP
-defaults domains
-.IP
-lists the domains in the database (one per line)
-.PP
-defaults find word
-.IP
-searches domain names, default names, and default value strings for
-those equal to the specified word and lists them on standard output.
-.PP
-defaults plist
-.IP
-output some information about property lists
-.PP
-defaults help
-.IP
-list options fo the defaults command.
-.PP
-This program replaces the old NeXTstep style dread, dwrite, and dremove
-programs.
-.PP
-If you have access to another user's defaults database, you may include
-\&'-u username' before any other options to use that user's database rather
-than your own.
-.PP
-defaults read [ domain [ key] ]
-.IP
-read the named default from the specified domain.
-If no 'key' is given - read all defaults from the domain.
-If no 'domain' is given - read all defaults from all domains.
+A domain is either an application name, or "NSGlobalDomain", for system level
+defauts.  (Running programs can access two other domains,
+"NSArgumentDomain", for command line arguments, "NSRegistrationDomain", a
+second-chance domain in which "defaults for defaults" can be registered, and
+possibly domains for specific locales.)
 .PP
 defaults readkey key
 .IP
