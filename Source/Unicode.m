@@ -99,9 +99,11 @@ struct _strenc_ {
   NSStringEncoding	enc;		// Constant representing the encoding.
   const char		*ename;		// ASCII string representation of name.
   const char		*iconv;		/* Iconv name of encoding.  If this
-					 * is nul, we cannot use iconv to
-					 * perform conversions to/from this
-					 * encoding.
+					 * is the empty string, we cannot use
+					 * iconv perform conversions to/from
+					 * this encoding.
+					 * NB. do not put a nul pointer in this
+					 * field in the table, use "" instread.
 					 */
   BOOL			eightBit;	/* Flag to say whether this encoding
 					 * can be stored in a byte array ...
@@ -128,11 +130,11 @@ static struct _strenc_ str_encoding_table[] = {
   {NSJapaneseEUCStringEncoding, "NSJapaneseEUCStringEncoding","EUC-JP",0,0},
   {NSUTF8StringEncoding,"NSUTF8StringEncoding","UTF-8",0,0},
   {NSISOLatin1StringEncoding,"NSISOLatin1StringEncoding","ISO-8859-1",1,1},
-  {NSSymbolStringEncoding,"NSSymbolStringEncoding",0,0,0},
-  {NSNonLossyASCIIStringEncoding,"NSNonLossyASCIIStringEncoding",0,1,1},
+  {NSSymbolStringEncoding,"NSSymbolStringEncoding","",0,0},
+  {NSNonLossyASCIIStringEncoding,"NSNonLossyASCIIStringEncoding","",1,1},
   {NSShiftJISStringEncoding,"NSShiftJISStringEncoding","SHIFT-JIS",0,0},
   {NSISOLatin2StringEncoding,"NSISOLatin2StringEncoding","ISO-8859-2",1,1},
-  {NSUnicodeStringEncoding, "NSUnicodeStringEncoding",0,0,1},
+  {NSUnicodeStringEncoding, "NSUnicodeStringEncoding","",0,1},
   {NSWindowsCP1251StringEncoding,"NSWindowsCP1251StringEncoding","CP1251",0,0},
   {NSWindowsCP1252StringEncoding,"NSWindowsCP1252StringEncoding","CP1252",0,0},
   {NSWindowsCP1253StringEncoding,"NSWindowsCP1253StringEncoding","CP1253",0,0},
@@ -140,7 +142,7 @@ static struct _strenc_ str_encoding_table[] = {
   {NSWindowsCP1250StringEncoding,"NSWindowsCP1250StringEncoding","CP1250",0,0},
   {NSISO2022JPStringEncoding,"NSISO2022JPStringEncoding","ISO-2022-JP",0,0},
   {NSMacOSRomanStringEncoding, "NSMacOSRomanStringEncoding","MACINTOSH",0,0},
-  {NSProprietaryStringEncoding, "NSProprietaryStringEncoding",0,0,0},
+  {NSProprietaryStringEncoding, "NSProprietaryStringEncoding","",0,0},
 
 // GNUstep additions
   {NSISOCyrillicStringEncoding,"NSISOCyrillicStringEncoding","ISO-8859-5",0,1},
@@ -155,12 +157,12 @@ static struct _strenc_ str_encoding_table[] = {
   {NSISOLatin7StringEncoding, "NSISOLatin7StringEncoding","ISO-8859-13",0,0},
   {NSISOLatin8StringEncoding, "NSISOLatin8StringEncoding","ISO-8859-14",0,0},
   {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding","ISO-8859-15",0,0},
-  {NSUTF7StringEncoding, "NSUTF7StringEncoding",0,0,0},
+  {NSUTF7StringEncoding, "NSUTF7StringEncoding","",0,0},
   {NSGB2312StringEncoding, "NSGB2312StringEncoding","EUC-CN",0,0},
-  {NSGSM0338StringEncoding, "NSGSM0338StringEncoding",0,0,1},
+  {NSGSM0338StringEncoding, "NSGSM0338StringEncoding","",0,1},
   {NSBIG5StringEncoding, "NSBIG5StringEncoding","BIG5",0,0},
 
-  {0,"Unknown encoding",0,0,0}
+  {0,"Unknown encoding","",0,0}
 };
 
 static struct _strenc_	**encodingTable = 0;
@@ -348,7 +350,7 @@ BOOL
 GSIsByteEncoding(NSStringEncoding encoding)
 {
   GetAvailableEncodings();
-  if (encoding == 0 || encoding >= encTableSize || encodingTable[encoding] == 0)
+  if (encoding == 0 || encoding > encTableSize || encodingTable[encoding] == 0)
     {
       return NO;
     }
@@ -359,7 +361,7 @@ NSString*
 GSEncodingName(NSStringEncoding encoding)
 {
   GetAvailableEncodings();
-  if (encoding == 0 || encoding >= encTableSize || encodingTable[encoding] == 0)
+  if (encoding == 0 || encoding > encTableSize || encodingTable[encoding] == 0)
     {
       return @"Unknown encoding";
     }
@@ -376,7 +378,7 @@ static const char *
 iconv_stringforencoding(NSStringEncoding encoding)
 {
   GetAvailableEncodings();
-  if (encoding == 0 || encoding >= encTableSize || encodingTable[encoding] == 0)
+  if (encoding == 0 || encoding > encTableSize || encodingTable[encoding] == 0)
     {
       return "";
     }
@@ -1625,7 +1627,6 @@ tables:
 	      if (rval == (size_t)-1 && errno != E2BIG)
 		{
 		  result = NO;
-		  iconv_close(cd);
 		  break;
 		}
 	      dpos = (bsize * sizeof(unichar) - outbytesleft) / sizeof(unichar);
@@ -1896,7 +1897,7 @@ bases:
 		  {
 		    GROW();
 		  }
-		if (u < 128)
+		if (u < base)
 		  {
 		    ptr[dpos++] = (char)u;
 		  }
@@ -1920,7 +1921,7 @@ bases:
 		  {
 		    GROW();
 		  }
-		if (u < 128)
+		if (u < base)
 		  {
 		    ptr[dpos++] = (char)u;
 		  }

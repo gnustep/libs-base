@@ -1630,6 +1630,7 @@ transmute(ivars self, NSString *aString)
       self->_contents.u = tmp;
       self->_flags.wide = 1;
       self->_count = len;
+      self->_capacity = len;
     }
 
   return other;

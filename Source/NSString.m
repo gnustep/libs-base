@@ -1215,8 +1215,7 @@ handle_printf_atsign (FILE *stream,
       unsigned		l = 0;
 
       b = (unsigned char*)[data bytes];
-      if (GSToUnicode(&u, &l, b, len, NSUTF8StringEncoding, GSObjCZone(self),
-	0) == NO)
+      if (GSToUnicode(&u, &l, b, len, encoding, GSObjCZone(self), 0) == NO)
 	{
 	  DESTROY(self);
 	}
