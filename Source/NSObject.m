@@ -83,6 +83,11 @@ static objc_mutex_t retain_counts_gate = NULL;
 #define	CACHE_ZONE	0
 #endif
 
+#ifdef ALIGN
+#undef ALIGN
+#endif
+#define	ALIGN __alignof__(double)
+
 #if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
 
 /*
@@ -105,10 +110,6 @@ typedef struct obj_layout_unpadded {
  *	what padding (if any) is required to get the alignment of the
  *	structure correct.
  */
-#ifdef ALIGN
-#undef ALIGN
-#endif
-#define	ALIGN __alignof__(double)
 
 struct obj_layout {
 #if	defined(REFCNT_LOCAL)
@@ -265,7 +266,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
 	  objc_mutex_unlock(retain_counts_gate);
 	  return YES;
 	}
-      NSAssert((int)(node->value) > 0, NSInternalInconsistencyException);
+      NSCAssert((int)(node->value) > 0, NSInternalInconsistencyException);
       if (!--((int)(node->value)))
 	{
 	  o_map_remove_node (node);
@@ -279,7 +280,7 @@ NSDecrementExtraRefCountWasZero (id anObject)
 	{
 	  return YES;
 	}
-      NSAssert((int)(node->value) > 0, NSInternalInconsistencyException);
+      NSCAssert((int)(node->value) > 0, NSInternalInconsistencyException);
       if (!--((int)(node->value)))
 	{
 	  o_map_remove_node (node);

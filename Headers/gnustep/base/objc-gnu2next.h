@@ -33,6 +33,14 @@
 #include <ctype.h>
 #include <stdio.h>
 
+/* Disable builtin functions for gcc < 3.x since it triggers a bad bug (even some 3.x versions may have this
+   bug) */
+#if __GNUC__ < 3
+#define __builtin_apply(a,b,c) 0
+#define __builtin_apply_args() 0
+#define __builtin_return(a)  0
+#endif
+
 typedef union {
   char *arg_ptr;
   char arg_regs[sizeof (char*)];
