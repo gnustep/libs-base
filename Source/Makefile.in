@@ -191,6 +191,7 @@ objects/InvalidationListening.h \
 objects/Invocation.h \
 objects/KeyedCollecting.h \
 objects/KeyedCollection.h \
+objects/LibobjectsMain.h \
 objects/LinkedList.h \
 objects/LinkedListEltNode.h \
 objects/LinkedListNode.h \
