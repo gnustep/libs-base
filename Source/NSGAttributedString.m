@@ -494,7 +494,7 @@ _attributesAtIndexEffectiveRange(
 - (void) replaceCharactersInRange: (NSRange)range
 		       withString: (NSString*)aString
 {
-  unsigned	tmpLength, arrayIndex, arraySize, cnt, location, moveLocations;
+  unsigned	tmpLength, arrayIndex, arraySize, cnt, moveLocations;
   NSRange	effectiveRange;
   NSDictionary	*attrs;
   unsigned	afterRangeLoc;

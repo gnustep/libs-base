@@ -192,8 +192,8 @@ GSTimeNow()
 
 + (id) dateWithNaturalLanguageString: (NSString*)string
 {
-  [self dateWithNaturalLanguageString: string
-			       locale: nil];
+  return [self dateWithNaturalLanguageString: string
+				      locale: nil];
 }
 
 + (id) dateWithNaturalLanguageString: (NSString*)string
@@ -222,7 +222,6 @@ GSTimeNow()
   int			modYear = 0;
   int			modDay = 0;
   int			D, M, Y;
-  int			modWeek;
   int			h = 12;
   int			m = 0;
   int			s = 0;
@@ -366,7 +365,6 @@ GSTimeNow()
       unsigned	c = [ymw count];
       NSString	*yname = [ymw objectAtIndex: 0];
       NSString	*mname = c > 1 ? [ymw objectAtIndex: 1] : nil;
-      NSString	*wname = c > 2 ? [ymw objectAtIndex: 2] : nil;
       NSArray	*early = [locale objectForKey: NSEarlierTimeDesignations];
       NSArray	*later = [locale objectForKey: NSLaterTimeDesignations];
 
@@ -1242,10 +1240,11 @@ GSTimeNow()
   return self;
 }
 
-- (id) allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   [NSException raise: NSInternalInconsistencyException
 	      format: @"Attempt to allocate fixed date"];
+  return nil;
 }
 
 - (id) copyWithZone: (NSZone*)z

@@ -26,6 +26,7 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <unistd.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSString.h>

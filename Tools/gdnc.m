@@ -31,6 +31,8 @@
 #include	<Foundation/NSUserDefaults.h>
 #include	<Foundation/NSDistributedNotificationCenter.h>
 
+#include	<unistd.h>
+
 #include	"gdnc.h"
 
 @interface	GDNCNotification : NSObject
@@ -390,6 +392,7 @@
 	}
       NSMapRemove(connections, connection);
     }
+  return nil;
 }
 
 - (void) registerClient: (id<GDNCClient>)client

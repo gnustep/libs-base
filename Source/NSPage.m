@@ -98,6 +98,10 @@ NSRoundUpToMultipleOfPageSize (unsigned bytes)
   return ((bytes % a) ? ((bytes / a + 1) * a) : bytes);
 }
 
+#if __linux__
+#include	<sys/sysinfo.h>
+#endif
+
 unsigned
 NSRealMemoryAvailable ()
 {

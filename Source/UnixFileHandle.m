@@ -519,10 +519,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
         isStandardFile = NO;
 
       if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
-        if (e & NBLK_OPT)
-	  wasNonBlocking = YES;
-	else
-	  wasNonBlocking = NO;
+	{
+	  if (e & NBLK_OPT)
+	    wasNonBlocking = YES;
+	  else
+	    wasNonBlocking = NO;
+	}
 
       isNonBlocking = wasNonBlocking;
       descriptor = desc;
@@ -1222,7 +1224,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  struct sockaddr_in	buf;
 	  int			desc;
 	  int			blen = sizeof(buf);
-	  NSFileHandle*		hdl;
 
 	  desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
 	  if (desc < 0)

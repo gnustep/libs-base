@@ -104,8 +104,6 @@
 
 - (BOOL) isEqualToValue: (NSValue*)aValue
 {
-  const char*	type;
-
   if (fastClass(aValue) != fastClass(self))
     return NO;
   if (strcmp(objctype, ((NSConcreteValue*)aValue)->objctype) != 0)

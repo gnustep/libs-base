@@ -751,7 +751,7 @@
   BOOL mtag = NO, dtag = NO, ycent = NO;
   BOOL mname = NO, dname = NO;
   double s;
-  int yd = 0, md = 0, dd = 0, mnd = 0, sd = 0, dom = -1, dow = -1, doy = -1;
+  int yd = 0, md = 0, mnd = 0, sd = 0, dom = -1, dow = -1, doy = -1;
   int hd = 0, nhd;
   int i, j, k, z;
 

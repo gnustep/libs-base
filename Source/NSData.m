@@ -1028,6 +1028,7 @@ failure:
 		  fromZone: (NSZone*)zone
 {
   [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (void) deserializeTypeTag: (unsigned char*)tag
@@ -2261,8 +2262,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) initWithBytes: (const void*)aBuffer length: (unsigned)bufferSize
 {
-  struct shmid_ds	buf;
-
   shmid = -1;
   if (aBuffer && bufferSize)
     {
@@ -2453,7 +2452,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned	l;
-  void		*b;
 
   [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
   if (l)
@@ -2929,8 +2927,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) initWithCapacity: (unsigned)bufferSize
 {
-  struct shmid_ds	buf;
-  int			e;
+  int	e;
 
   shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_ACCESS);
   if (shmid == -1)			/* Created memory? */
@@ -2992,9 +2989,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (size != capacity)
     {
-      void		*tmp;
-      struct shmid_ds	buf;
-      int		newid;
+      void	*tmp;
+      int	newid;
 
       newid = shmget(IPC_PRIVATE, size, IPC_CREAT|VM_ACCESS);
       if (newid == -1)			/* Created memory? */

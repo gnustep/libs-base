@@ -42,6 +42,8 @@
 
 #include <base/fast.x>
 
+extern BOOL __objc_responds_to(id, SEL);
+
 fastCls	_fastCls;	/* Structure to cache classes.	*/
 fastImp	_fastImp;	/* Structure to cache methods.	*/
 
@@ -352,6 +354,9 @@ fastZone(NSObject *object)
 inline NSObject *
 NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 {
+#ifndef	NDEBUG
+  extern void GSDebugAllocationAdd(Class);
+#endif
   id new = nil;
   int size = aClass->instance_size + extraBytes + sizeof(struct obj_layout);
   if (CLS_ISCLASS (aClass))
@@ -378,6 +383,9 @@ NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 inline void
 NSDeallocateObject(NSObject *anObject)
 {
+#ifndef	NDEBUG
+  extern void GSDebugAllocationRemove(Class);
+#endif
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
       obj	o = &((obj)anObject)[-1];

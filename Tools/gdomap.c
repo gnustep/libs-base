@@ -33,6 +33,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>		/* for strchr() */
+#include <ctype.h>		/* for strchr() */
 #ifndef __WIN32__
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -451,7 +452,7 @@ map_by_port(unsigned p, unsigned char t)
     {
       if (debug > 2)
 	{
-	  fprintf(stderr, "Found port %d with name %.*s\n",
+	  fprintf(stderr, "Found port %d with name %s\n",
 		map[index]->port, map[index]->name);
 	}
       return map[index];
@@ -700,7 +701,7 @@ dump_stats()
   fprintf(stderr, "tcp messages waiting for send - %d\n", tcp_pending);
   fprintf(stderr, "udp messages waiting for send - %d\n", udp_pending);
   fprintf(stderr, "size of name-to-port map - %d\n", map_used);
-  fprintf(stderr, "number of known name servers - %d\n", prb_used);
+  fprintf(stderr, "number of known name servers - %ld\n", prb_used);
   fprintf(stderr, "TCP %d read, %d sent\n", tcp_read, tcp_sent);
   fprintf(stderr, "UDP %d read, %d sent\n", udp_read, udp_sent);
 }
@@ -1544,7 +1545,6 @@ handle_io()
       else if (rval == 0)
 	{
 	  long		now = time(0);
-	  int		i;
 
 	  /*
 	   *	Let's handle a timeout.
@@ -1706,7 +1706,7 @@ handle_request(int desc)
 	{
 	  fprintf(stderr, "request type '%c' from chan %d", type, desc);
 	}
-      fprintf(stderr, " - name: '%.*s' port: %d\n", size, buf, port);
+      fprintf(stderr, " - name: '%.*s' port: %ld\n", size, buf, port);
     }
 
   if (ptype != GDO_TCP_GDO && ptype != GDO_TCP_FOREIGN &&
@@ -1819,7 +1819,7 @@ handle_request(int desc)
 		    {
 		      if (debug > 1)
 			{
-			  fprintf(stderr, "re-register from %d to %d\n",
+			  fprintf(stderr, "re-register from %d to %ld\n",
 				m->port, port);
 			}
 		      m->port = port;
@@ -2970,7 +2970,7 @@ printf(
 		fprintf(stderr, "Registration will take place locally.\n");
 	      }
 	    doregister(optarg, port, ptype);
-	    return;
+	    return 0;
 
 	  case 'T':
 	    if (strcmp(optarg, "tcp_gdo") == 0)

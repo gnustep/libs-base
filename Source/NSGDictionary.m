@@ -30,6 +30,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
 
+#include <base/behavior.h>
 #include <base/fast.x>
 
 /*

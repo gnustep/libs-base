@@ -616,11 +616,9 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithContentsOfFile: (NSString*)path
 {
-  unsigned char *buff;
   NSStringEncoding enc;
   id d = [NSData dataWithContentsOfFile: path];
   const unsigned char *test=[d bytes];
-  unsigned len = [d length];
 
   if (d == nil) return nil;
   if (test && (((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE))))
@@ -1130,7 +1128,6 @@ handle_printf_atsign (FILE *stream,
 	    forRange: (NSRange)aRange
 {
   unichar	thischar;
-  BOOL		done;
   unsigned	start, end, len;
 
   len = [self length];
@@ -1139,50 +1136,54 @@ handle_printf_atsign (FILE *stream,
   start = aRange.location;
 
   if (startIndex)
-    if (start==0)
-      *startIndex=0;
-    else
-      {
-	start--;
-	while (start > 0)
-	  {
-	    BOOL	done = NO;
+    {
+      if (start==0)
+	{
+	  *startIndex=0;
+	}
+      else
+	{
+	  start--;
+	  while (start > 0)
+	    {
+	      BOOL	done = NO;
 
-	    thischar = [self characterAtIndex: start];
-	    switch(thischar)
-	      {
-		case (unichar)0x000A: 
-		case (unichar)0x000D: 
-		case (unichar)0x2028: 
-		case (unichar)0x2029: 
-		  done = YES;
-		  break;
-		default: 
-		  start--;
-		  break;
-	      };
-	    if (done)
-	      break;
-	  };
-	if (start == 0)
-	  {
-	     thischar = [self characterAtIndex: start];
-	     switch(thischar)
-	       {
-		 case (unichar)0x000A: 
-		 case (unichar)0x000D: 
-		 case (unichar)0x2028: 
-		 case (unichar)0x2029: 
-		   start++;
-		   break;
-		 default: 
-		   break;
-	       };
-	  }
-	else
-	  start++;
-	*startIndex = start;
-      };
+	      thischar = [self characterAtIndex: start];
+	      switch(thischar)
+		{
+		  case (unichar)0x000A: 
+		  case (unichar)0x000D: 
+		  case (unichar)0x2028: 
+		  case (unichar)0x2029: 
+		    done = YES;
+		    break;
+		  default: 
+		    start--;
+		    break;
+		};
+	      if (done)
+		break;
+	    };
+	  if (start == 0)
+	    {
+	       thischar = [self characterAtIndex: start];
+	       switch(thischar)
+		 {
+		   case (unichar)0x000A: 
+		   case (unichar)0x000D: 
+		   case (unichar)0x2028: 
+		   case (unichar)0x2029: 
+		     start++;
+		     break;
+		   default: 
+		     break;
+		 };
+	    }
+	  else
+	    start++;
+	  *startIndex = start;
+	}
+    }
 
   if (lineEndIndex || contentsEndIndex)
     {
@@ -1759,7 +1760,6 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) stringByExpandingTildeInPath
 {
-  unichar *s;
   NSString *homedir;
   NSRange first_slash_range;
   

@@ -97,7 +97,7 @@ currentList()
 
 @implementation	NotificationQueueList
 
-+ (void)registerQueue: (NSNotificationQueue*)q
++ (void) registerQueue: (NSNotificationQueue*)q
 {
   NotificationQueueList*	list;
   NotificationQueueList*	elem;
@@ -116,7 +116,8 @@ currentList()
   if (list->queue == q)
     return;			/* Queue already registered.	*/
 
-  elem = NSAllocateObject(self, 0, NSDefaultMallocZone());
+  elem = (NotificationQueueList*)NSAllocateObject(self, 0,
+    NSDefaultMallocZone());
   elem->queue = q;
   list->next = elem;
 }

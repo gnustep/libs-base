@@ -199,8 +199,6 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // Acquiring and release the lock
 - (void) lockWhenCondition: (int)value
 {
-  int result;
-
   CHECK_RECURSIVE_CONDITION_LOCK (mutex);
 
   if (objc_mutex_lock (mutex) == -1)

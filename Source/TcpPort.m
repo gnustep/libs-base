@@ -57,6 +57,7 @@
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <netinet/in.h>		/* for inet_ntoa() */
 #include <fcntl.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/file.h>
 
@@ -1207,7 +1208,7 @@ static NSMapTable* port_number_2_port;
 #ifndef HAVE_INET_ATON
 	p->_listening_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 #else
-	inet_aton("127.0.0.1", &p->_listening_address.sin_addr.s_addr);
+	inet_aton("127.0.0.1", &p->_listening_address.sin_addr);
 #endif
       }
     else
@@ -1247,7 +1248,6 @@ static NSMapTable* port_number_2_port;
 			   fromPort: (int)portn
 {
   TcpInPort*		p = [self newForReceivingFromPortNumber: portn];
-  struct sockaddr_in	sin;
 
   if (p) {
     [[NSPortNameServer defaultPortNameServer] registerPort: p
@@ -1808,7 +1808,7 @@ static NSMapTable *out_port_bag = NULL;
 		  || (p->_remote_in_port_address.sin_addr.s_addr
 		      != sockaddr->sin_addr.s_addr))
 		{
-	          NSString *od = [p description];
+//	          NSString *od = [p description];
 
 	          NSMapRemove (out_port_bag, (void*)p);
 	          memcpy (&(p->_remote_in_port_address), 

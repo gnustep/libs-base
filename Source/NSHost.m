@@ -39,6 +39,7 @@
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #endif /* __WIN32__ */
 
 static NSLock *_hostCacheLock = nil;

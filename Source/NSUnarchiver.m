@@ -30,7 +30,7 @@
 /*
  *	Setup for inline operation of arrays.
  */
-#define	GSI_ARRAY_RETAIN(X)	X
+#define	GSI_ARRAY_RETAIN(X)	
 #define	GSI_ARRAY_RELEASE(X)	
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_STR
 
@@ -718,7 +718,6 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	  else
 	    {
 	      unsigned	size;
-	      NSData	*dat;
 
 	      if (GSIArrayCount(ptrMap) != xref)
 		{
@@ -744,8 +743,6 @@ mapClassName(NSUnarchiverObjectInfo *info)
 
       case _GSC_CHARPTR:
 	{
-	  char		*str;
-
 	  typeCheck(*type, _GSC_CHARPTR);
 	  /*
 	   *	Special case - a zero crossref value size is a nil pointer.
@@ -766,8 +763,6 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	    }
 	  else
 	    {
-	      int	length;
-
 	      if (xref != GSIArrayCount(ptrMap))
 		{
 		  [NSException raise: NSInternalInconsistencyException
@@ -970,8 +965,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	[NSException raise: NSInternalInconsistencyException
 		    format: @"Decoding data object with unknown type"];
     }
-  else
-    return [NSData data];
+  return [NSData data];
 }
 
 /*

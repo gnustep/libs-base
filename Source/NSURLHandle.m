@@ -1,7 +1,7 @@
 /* NSURLHandle.h - Class NSURLHandle
    Copyright (C) 1999 Free Software Foundation, Inc.
    
-   Written by:	Manuel Guesdon <mguesdon@sbuilders.com>
+   Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
    Date: 		Jan 1999
    
    This file is part of the GNUstep Library.
@@ -22,7 +22,7 @@
 */
 
 /*
-Note from Manuel Guesdon:
+Note from Manuel Guesdon: 
 * functions are not implemented. If someone has documentation or ideas on 
 how it should work...
 */
@@ -36,171 +36,184 @@ how it should work...
 #include <Foundation/NSURLHandle.h>
 #include <Foundation/NSURL.h>
 
-//===================================================================================
+//=============================================================================
 @implementation NSURLHandle
 
-//-----------------------------------------------------------------------------------
-+(void)registerURLHandleClass:(Class)_urlHandleSubclass
+//-----------------------------------------------------------------------------
++ (void) registerURLHandleClass: (Class)_urlHandleSubclass
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
-//-----------------------------------------------------------------------------------
-+(Class)URLHandleClassForURL:(NSURL*)_url
+//-----------------------------------------------------------------------------
++ (Class)URLHandleClassForURL: (NSURL*)_url
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return 0;
+}
 
-//-----------------------------------------------------------------------------------
--(id)initWithURL:(NSURL*)_url
-		  cached:(BOOL)_cached
+//-----------------------------------------------------------------------------
+- (id) initWithURL: (NSURL*)_url
+		  cached: (BOOL)_cached
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return nil;
+}
 
-//-----------------------------------------------------------------------------------
--(NSURLHandleStatus)status
+//-----------------------------------------------------------------------------
+- (NSURLHandleStatus) status
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return (NSURLHandleStatus)0;
+}
 
-//-----------------------------------------------------------------------------------
--(NSString*)failureReason
+//-----------------------------------------------------------------------------
+- (NSString*) failureReason
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return nil;
+}
 
-//-----------------------------------------------------------------------------------
--(void)addClient:(id <NSURLHandleClient>)_client
+//-----------------------------------------------------------------------------
+- (void) addClient: (id <NSURLHandleClient>)_client
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
-//-----------------------------------------------------------------------------------
--(void)removeClient:(id <NSURLHandleClient>)_client
+//-----------------------------------------------------------------------------
+- (void) removeClient: (id <NSURLHandleClient>)_client
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
-//-----------------------------------------------------------------------------------
--(void)loadInBackground
+//-----------------------------------------------------------------------------
+- (void) loadInBackground
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
-//-----------------------------------------------------------------------------------
--(void)cancelLoadInBackground
+//-----------------------------------------------------------------------------
+- (void) cancelLoadInBackground
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
-//-----------------------------------------------------------------------------------
--(NSData*)resourceData
+//-----------------------------------------------------------------------------
+- (NSData*) resourceData
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return nil;
+}
 
-//-----------------------------------------------------------------------------------
--(NSData*)availableResourceData
+//-----------------------------------------------------------------------------
+- (NSData*) availableResourceData
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return nil;
+}
 
-//-----------------------------------------------------------------------------------
--(void)flushCachedData
+//-----------------------------------------------------------------------------
+- (void) flushCachedData
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
-//-----------------------------------------------------------------------------------
--(void)backgroundLoadDidFailWithReason:(NSString*)reason
+//-----------------------------------------------------------------------------
+- (void) backgroundLoadDidFailWithReason: (NSString*)reason
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
-//-----------------------------------------------------------------------------------
--(void)didLoadBytes:(NSData*)newData
-	   loadComplete:(BOOL)_loadComplete
+//-----------------------------------------------------------------------------
+- (void) didLoadBytes: (NSData*)newData
+	   loadComplete: (BOOL)_loadComplete
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
-//-----------------------------------------------------------------------------------
-+(BOOL)canInitWithURL:(NSURL*)_url
+//-----------------------------------------------------------------------------
++ (BOOL) canInitWithURL: (NSURL*)_url
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return NO;
+}
 
-//-----------------------------------------------------------------------------------
-+(NSURLHandle*)cachedHandleForURL:(NSURL*)_url
+//-----------------------------------------------------------------------------
++ (NSURLHandle*) cachedHandleForURL: (NSURL*)_url
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return nil;
+}
 
-//-----------------------------------------------------------------------------------
--(id)propertyForKey:(NSString*)propertyKey
+//-----------------------------------------------------------------------------
+- (id) propertyForKey: (NSString*)propertyKey
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return nil;
+}
 
-//-----------------------------------------------------------------------------------
--(id)propertyForKeyIfAvailable:(NSString*)propertyKey
+//-----------------------------------------------------------------------------
+- (id) propertyForKeyIfAvailable: (NSString*)propertyKey
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return nil;
+}
 
-//-----------------------------------------------------------------------------------
--(BOOL)writeProperty:(id)propertyValue
-			  forKey:(NSString*)propertyKey
+//-----------------------------------------------------------------------------
+- (BOOL) writeProperty: (id)propertyValue
+			  forKey: (NSString*)propertyKey
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return NO;
+}
 
-//-----------------------------------------------------------------------------------
--(BOOL)writeData:(NSData*)data
+//-----------------------------------------------------------------------------
+- (BOOL) writeData: (NSData*)data
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return NO;
+}
 
-//-----------------------------------------------------------------------------------
--(NSData*)loadInForeground
+//-----------------------------------------------------------------------------
+- (NSData*) loadInForeground
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+  return nil;
+}
 
-//-----------------------------------------------------------------------------------
--(void)beginLoadInBackground
+//-----------------------------------------------------------------------------
+- (void) beginLoadInBackground
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
-//-----------------------------------------------------------------------------------
--(void)endLoadInBackground
+//-----------------------------------------------------------------------------
+- (void) endLoadInBackground
 {
   //FIXME
   [self notImplemented: _cmd];
-};
+}
 
 @end
