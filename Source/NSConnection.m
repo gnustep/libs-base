@@ -396,6 +396,9 @@ static BOOL	multi_threaded = NO;
 			    usingNameServer: s];
 }
 
+/*
+ * Create a connection to a remote server.
+ */
 + (NSConnection*) connectionWithRegisteredName: (NSString*)n
 					  host: (NSString*)h
 			       usingNameServer: (NSPortNameServer*)s
@@ -411,6 +414,15 @@ static BOOL	multi_threaded = NO;
 	  NSPort	*recvPort;
 
 	  recvPort = [[self defaultConnection] receivePort];
+	  if (recvPort == sendPort)
+	    {
+	      /*
+	       * If the receive and send port are the same, the server
+	       * must be in this process - so we need to create a new
+	       * connection to talk to it.
+	       */
+	      recvPort = [NSPort port];
+	    }
 	  con = existingConnection(recvPort, sendPort);
 	  if (con == nil)
 	    {
@@ -1161,6 +1173,14 @@ static BOOL	multi_threaded = NO;
   NSParameterAssert(_receivePort);
   NSParameterAssert(_isValid);
 
+  /*
+   * If this is a server connection without a remote end, its root proxy
+   * is the same as its root object.
+   */
+  if (_receivePort == _sendPort)
+    {
+      return [self rootObject];
+    }
   op = [self _makeOutRmc: 0 generate: &seq_num reply: YES];
   [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
 
@@ -1626,6 +1646,10 @@ static BOOL	multi_threaded = NO;
 	}
       return;
     }
+  if (debug_connection > 4)
+    {
+      NSLog(@"  connection is %x", conn);
+    }
 
   if (conn->_authenticateIn == YES
     && (type == METHOD_REQUEST || type == METHOD_REPLY))
@@ -1716,7 +1740,8 @@ static BOOL	multi_threaded = NO;
 	  node = GSIMapNodeForKey(conn->_replyMap, (GSIMapKey)sequence);
 	  if (node == 0)
 	    {
-	      NSDebugMLLog(@"NSConnection", @"Ignoring RMC %d", sequence);
+	      NSDebugMLLog(@"NSConnection", @"Ignoring RMC %d on %x",
+		sequence, conn);
 	      RELEASE(rmc);
 	    }
 	  else if (node->value.obj == dummyObject)
@@ -1725,7 +1750,8 @@ static BOOL	multi_threaded = NO;
 	    }
 	  else
 	    {
-	      NSDebugMLLog(@"NSConnection", @"Replace RMC %d", sequence);
+	      NSDebugMLLog(@"NSConnection", @"Replace RMC %d on %x",
+		sequence, conn);
 	      RELEASE(node->value.obj);
 	      node->value.obj = rmc;
 	    }
@@ -2076,6 +2102,8 @@ static BOOL	multi_threaded = NO;
   GSIMapNode	node;
   NSDate	*timeout_date = nil;
 
+  if (debug_connection > 5)
+    NSLog(@"Waiting for reply sequence %d on %x", sn, self);
   M_LOCK(_queueGate);
   while ((node = GSIMapNodeForKey(_replyMap, (GSIMapKey)sn)) != 0
     && node->value.obj == dummyObject)
@@ -2255,6 +2283,9 @@ static BOOL	multi_threaded = NO;
 	raiseException = YES;
 	break;
     }
+
+  if (debug_connection > 5)
+    NSLog(@"Sending %@ on %x", stringFromMsgType(msgid), self);
 
   limit = [dateClass dateWithTimeIntervalSinceNow: _requestTimeout];
   sent = [_sendPort sendBeforeDate: limit
