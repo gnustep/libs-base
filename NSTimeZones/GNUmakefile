@@ -23,15 +23,13 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
-
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
 include ../Version
 include ../config.mak
 
-resourcedir = $(GNUSTEP_RESOURCES)
+resourcedir = $(GNUSTEP_RESOURCES)/gnustep-base
 
 TIMEZONE_ARCHIVE = \
 NSTimeZones.tar

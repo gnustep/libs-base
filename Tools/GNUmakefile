@@ -23,8 +23,6 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
-
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
@@ -32,7 +30,7 @@ include ../Version
 include ../config.mak
 
 # DTDs to install
-dtddir = $(GNUSTEP_RESOURCES)/DTDs
+dtddir = $(GNUSTEP_LIBRARY)/DTDs
 DTD_FILES = plist-0_9.dtd \
 	gsdoc-0_6_5.dtd \
 	gsdoc-0_6_6.dtd \
@@ -40,7 +38,7 @@ DTD_FILES = plist-0_9.dtd \
 	gsdoc-1_0_0.dtd
 
 # DocTemplates to install
-doctemplatesdir = $(GNUSTEP_RESOURCES)/DocTemplates
+doctemplatesdir = $(GNUSTEP_LIBRARY)/DocTemplates
 DOCTEMPLATES_FILES = indextemplate.gsdoc AutoDocTemplate.gsdoc
 
 # The application to be compiled

@@ -37,7 +37,7 @@ fi
 #--------------------------------------------------------------------
 # Use config.guess, config.sub and install-sh provided by gnustep-make
 #--------------------------------------------------------------------
-AC_CONFIG_AUX_DIR($GNUSTEP_SYSTEM_ROOT/Makefiles)
+AC_CONFIG_AUX_DIR($GNUSTEP_MAKEFILES)
 
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
@@ -105,14 +105,14 @@ fi
 # Miscellaneous flags
 #--------------------------------------------------------------------
 # Set location of GNUstep dirs for later use
-GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Headers
+GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers
 if test "$GNUSTEP_FLATTENED" = yes; then
-  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries
 else
-  clean_target_os=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_os.sh $target_os`
-  clean_target_cpu=`$GNUSTEP_SYSTEM_ROOT/Makefiles/clean_cpu.sh $target_cpu`
+  clean_target_os=`$GNUSTEP_MAKEFILES/clean_os.sh $target_os`
+  clean_target_cpu=`$GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
   obj_dir=$clean_target_cpu/$clean_target_os
-  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Libraries/$obj_dir
+  GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries/$obj_dir
 fi
 
 #
@@ -186,7 +186,7 @@ AC_MSG_CHECKING(for objc threading flags)
 #
 # Get them from gnustep-make which contains the real code to get them
 #
-objc_threaded=`grep objc_threaded: $GNUSTEP_SYSTEM_ROOT/Makefiles/$obj_dir/config.make | sed -e 's/objc_threaded:=//'`
+objc_threaded=`grep objc_threaded: $GNUSTEP_MAKEFILES/$obj_dir/config.make | sed -e 's/objc_threaded:=//'`
 #
 AC_MSG_RESULT($objc_threaded)
 

@@ -23,15 +23,15 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
-GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
-
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
-include ../Version
-include ../config.mak
-
-charsetdir = $(GNUSTEP_RESOURCES)/NSCharacterSets
+RESOURCE_SET_NAME = base-resources
+base-resources_RESOURCE_FILES_INSTALL_DIR = gnustep-base/NSCharacterSets
+base-resources_LANGUAGES =
+base-resources_LOCALIZED_RESOURCE_FILES =
+base-resources_RESOURCE_DIRS =
+base-resources_RESOURCE_FILES = $(CHARSET_FILES)
 
 CHARSET_FILES = \
 alphanumericCharSet.dat \
@@ -48,14 +48,8 @@ uppercaseLetterCharSet.dat \
 whitespaceAndNlCharSet.dat \
 whitespaceCharSet.dat
 
-RCS_FILES = GNUmakefile Makefile.postamble
-DIST_FILES = $(RCS_FILES) $(CHARSET_FILES) README.CharSet
-INSTALL_FILES = $(CHARSET_FILES) README.CharSet
-
 -include Makefile.preamble
 
-# We don't actually build anything in this directory so
-# just include the common makefile rules
-include $(GNUSTEP_MAKEFILES)/rules.make
+include $(GNUSTEP_MAKEFILES)/resource-set.make
 
 -include Makefile.postamble

@@ -24,8 +24,6 @@
 
 MAKEFILE_NAME = DocMakefile
 
-GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
-
 include $(GNUSTEP_MAKEFILES)/common.make
 
 DOCUMENT_NAME = Base BaseAdditions

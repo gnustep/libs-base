@@ -1,3 +1,40 @@
+2003-04-27  Adam Fedor  <fedor@gnu.org>
+
+	* Updates for filesystem change.
+	* GNUmakefile (GNUSTEP_MAKEFILES): Remove
+	* Documentation/GNUmakefile, Examples/GNUmakefile,
+	NSTimeZones/GNUmakefile, SSL/GNUmakefile, SSL/configure.ac,
+	Source/DocMakefile, Source/GNUmakefile,
+	Source/Additions/GNUmakefile, Testing/GNUmakefile,
+	Tools/GNUmakefile: Idem.
+	* configure.ac: Replace $GNUSTEP_SYSTEM_ROOT/Makefiles with
+	$GNUSTEP_MAKEFILES.  Replace Libraries with Library/Libraries.
+	Replace Headers with Library/Headers.
+	* Source/mframe/configure.ac: Idem.
+	* NSCharacterSets/GNUmakefile: Use resource-set.make.
+	* Resources/GNUmakefile: Idem.
+	* Resources/GNUmakefile.postamble: Remove before/after install cmds.
+
+	* Source/NSBundle (+pathForLibraryResource:ofType:inDirectory:): 
+	New method.
+	(+pathForGNUstepResource:...): Depreciate.
+	* Source/Additions/GSXML.m: Use it to find DTDs.
+
+	* Source/GSLocale.m (GSLanguageFromLocale): Use +bundleForLibrary
+	to locate resources.
+	* Source/NSCharacterSet.m (+_bitmapForSet:number:): Idem.
+	* Source/NSUserDefaults.m (+standardUserDefaults): Idem.
+	* Source/Additions/Unicode.m (GSEncodingFromLocale): Idem.
+	* Source/NSTimeZone.m (_time_zone_path): New function.
+	(+systemTimeZone, +getAbbreviationFile, +getRegionsFile,
+	+getTimeZoneFile): Use it.
+
+	* Source/NSUser.m (NSSearchPathForDirectoriesInDomains): Change
+	libsDir to "Library/Libraries", docDir to "Library/Documentation".
+
+	* Source/Additions/GSCompatibility.[hm]: Change 
+	+pathForGNUstepResource:...  to +pathForLibraryResource:...
+
 2003-04-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: ([synchronize]) fix locking to permit

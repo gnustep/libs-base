@@ -437,40 +437,30 @@ selector ? sel_get_name(selector) : "(null)",
 @implementation NSBundle(GSCompatibility)
 
 // In NSBundle.m
-+ (NSString *) pathForGNUstepResource: (NSString *)name
-                                        ofType: (NSString *)ext
-                                   inDirectory: (NSString *)bundlePath
++ (NSString *) pathForLibraryResource: (NSString *)name
+			       ofType: (NSString *)ext
+			  inDirectory: (NSString *)bundlePath
 {
-    NSString	*path = nil;
-    NSString	*bundle_path = nil;
-    NSArray	*paths;
-    NSBundle	*bundle;
-    NSEnumerator	*enumerator;
+  NSString	*path = nil;
+  NSString	*bundle_path = nil;
+  NSArray	*paths;
+  NSBundle	*bundle;
+  NSEnumerator	*enumerator;
 
-    /* Gather up the paths */
-    // Originally, looks up in GSLibrariesDirectory, i.e. "Libraries"
-    paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-                                                NSAllDomainsMask, YES);
+  /* Gather up the paths */
+  paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+                                              NSAllDomainsMask, YES);
 
-    enumerator = [paths objectEnumerator];
-    while ((path == nil) && (bundle_path = [enumerator nextObject]))
+  enumerator = [paths objectEnumerator];
+  while ((path == nil) && (bundle_path = [enumerator nextObject]))
     {
-        bundle = [self bundleWithPath: bundle_path];
-        path = [bundle pathForResource: name
-                                ofType: ext
-                           inDirectory: bundlePath];
+      bundle = [self bundleWithPath: bundle_path];
+      path = [bundle pathForResource: name
+                              ofType: ext
+                         inDirectory: bundlePath];
     }
 
-    // New for OSX: looks in gnustep framework
-    if(path == nil){
-        if([bundlePath hasPrefix:@"Resources/"])
-            bundlePath = [bundlePath substringFromIndex:10];
-        path = [[NSBundle bundleForClass:[GCObject class]] pathForResource: name
-                                ofType: ext
-                           inDirectory: bundlePath];
-    }
-
-    return path;
+  return path;
 }
 
 @end

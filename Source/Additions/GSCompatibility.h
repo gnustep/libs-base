@@ -164,7 +164,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 @end
 
 @interface NSBundle(GSCompatibility)
-+ (NSString *) pathForGNUstepResource: (NSString *)name
++ (NSString *) pathForLibraryResource: (NSString *)name
                                ofType: (NSString *)ext
                           inDirectory: (NSString *)bundlePath;
 @end

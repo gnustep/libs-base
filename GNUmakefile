@@ -36,8 +36,6 @@ PACKAGE_NEEDS_CONFIGURE = YES
 
 CVS_MODULE_NAME = base
 
-GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
-
 #
 # Include local (new) configuration - this will prevent the old one 
 # (if any) from $(GNUSTEP_MAKEFILES)/Additional/base.make to be included

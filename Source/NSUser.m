@@ -942,9 +942,9 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSString		*demosDir = @"Demos";
   NSString		*devDir = @"Developer";
   NSString		*libraryDir = @"Library";
-  NSString		*libsDir = @"Libraries";
+  NSString		*libsDir = @"Library/Libraries";
   NSString		*toolsDir = @"Tools";
-  NSString		*docDir = @"Documentation";
+  NSString		*docDir = @"Library/Documentation";
   NSMutableArray	*paths = [NSMutableArray new];
   NSString		*path;
   unsigned		i;

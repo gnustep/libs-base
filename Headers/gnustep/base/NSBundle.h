@@ -300,7 +300,17 @@ GS_EXPORT NSString* NSLoadedClasses;
 + (NSString*) _gnustep_target_dir;
 + (NSString*) _gnustep_target_os;
 + (NSString*) _library_combo;
+
+/** Find a resource in the "Library" directory */
++ (NSString*) pathForLibraryResource: (NSString*)name
+			      ofType: (NSString*)ext
+			 inDirectory: (NSString*)bundlePath;
+
+/** Depreciated. Use +bundleForLibrary: instead. */
 + (NSBundle*) gnustepBundle;
+
+/** Depreciated. Use +pathForLibraryResource:ofType:inDirectory: 
+    or +bundleForLibrary: instead. */
 + (NSString*) pathForGNUstepResource: (NSString*)name
 			      ofType: (NSString*)ext
 			 inDirectory: (NSString*)bundlePath;
