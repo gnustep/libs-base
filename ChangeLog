@@ -1,6 +1,8 @@
 Mon Sep 13  6:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	Miscellaneous minor bugfixes plyus,
+	Miscellaneous minor bugfixes plus,
+	* Source/NSDate.m: Year 2001 bug fixed - had silly assertion in
+	generation of time interval since reference date for current time.
 	* Source/NSScanner.m: optimised (well, mostly).
 	* Headers/Foundation/NSScanner.h: update for optimisatio).
 

@@ -118,10 +118,6 @@ GSTimeNow()
   gettimeofday (&tp, NULL);
   interval += tp.tv_sec;
   interval += (double)tp.tv_usec / 1000000.0;
-
-  /* There seems to be a problem with bad double arithmetic... */
-  NSCAssert(interval < 0, NSInternalInconsistencyException);
-
   return interval;
 #else
   SYSTEMTIME sys_time;
