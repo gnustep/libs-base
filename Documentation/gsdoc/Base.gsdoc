@@ -117,6 +117,14 @@
 		be written differently to the same string on MacOS-X.
 	      </p>
 	    </desc>
+	    <term>NSLanguages</term>
+	    <desc>
+              <p>
+              An array of strings that lists the users prefered languages,
+              in order or preference. If not found the default is just 
+              English.
+              </p>
+	    </desc>
 	  </deflist>
 	</subsect>
 	<subsect>

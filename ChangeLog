@@ -1,3 +1,7 @@
+2001-11-28  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/gsdoc/Base.gsdoc: Add NSLanguages summary.
+
 2001-11-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Put a limit of around a second on how long
