@@ -191,7 +191,7 @@ static Class		NSURLHandleClass = 0;
 
 /**
  * Returns the most recently registered NSURLHandle subclass that
- * responds to -canInitWithURL: with YES.
+ * responds to +canInitWithURL: with YES.
  * If there is no such subclass, returns nil.
  */
 + (Class) URLHandleClassForURL: (NSURL*)url

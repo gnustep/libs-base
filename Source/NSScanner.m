@@ -625,7 +625,7 @@ typedef struct {
  * placing it in <em>doubleValue</em> if that is not null.
  * Returns YES if anything is scanned, NO otherwise.
  * <br/>
- * On overflow, HUGE_VAL or -HUGE_VAL is put into <em>doubleValue</em>
+ * On overflow, HUGE_VAL or - HUGE_VAL is put into <em>doubleValue</em>
  * <br/>
  * On underflow, 0.0 is put into <em>doubleValue</em>
  * <br/>
@@ -750,7 +750,7 @@ typedef struct {
  * placing it in <em>floatValue</em> if that is not null.
  * Returns YES if anything is scanned, NO otherwise.
  * <br/>
- * On overflow, HUGE_VAL or -HUGE_VAL is put into <em>floatValue</em>
+ * On overflow, HUGE_VAL or - HUGE_VAL is put into <em>floatValue</em>
  * <br/>
  * On underflow, 0.0 is put into <em>floatValue</em>
  * <br/>

@@ -183,7 +183,7 @@ static NSMutableSet	*textNodes = nil;
   NSString	*kind = (f == YES) ? @"rel=\"gsdoc\" href" : @"name";
   NSString	*hash = (f == YES) ? @"#" : @"";
 
-  if (f == YES)
+  if (f == NO)
     {
       if (u == nil)
 	{
