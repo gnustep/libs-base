@@ -42,6 +42,28 @@
 #include <base/fast.x>
 
 /*
+ *	Include sequence handling code with instructions to generate search
+ *	and compare functions for NSString objects.
+ */
+#define	GSEQ_STRCOMP	strCompCsNs
+#define	GSEQ_STRRANGE	strRangeCsNs
+#define	GSEQ_O	GSEQ_NS
+#define	GSEQ_S	GSEQ_CS
+#include <GSeq.h>
+
+#define	GSEQ_STRCOMP	strCompCsUs
+#define	GSEQ_STRRANGE	strRangeCsUs
+#define	GSEQ_O	GSEQ_US
+#define	GSEQ_S	GSEQ_CS
+#include <GSeq.h>
+
+#define	GSEQ_STRCOMP	strCompCsCs
+#define	GSEQ_STRRANGE	strRangeCsCs
+#define	GSEQ_O	GSEQ_CS
+#define	GSEQ_S	GSEQ_CS
+#include <GSeq.h>
+
+/*
  *	Include property-list parsing code configured for ascii characters.
  */
 #define	GSPLUNI	0
@@ -418,7 +440,8 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     return NO;
   c = fastClassOfInstance(anObject);
 
-  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString || c == _fastCls._NXConstantString)
+  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+    || c == _fastCls._NXConstantString)
     {
       NSGCString	*other = (NSGCString*)anObject;
 
@@ -433,6 +456,12 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
 	return NO;
       return YES;
+    }
+  else if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+    {
+      if (strCompCsUs(self, anObject, 0, (NSRange){0,_count}) == NSOrderedSame)
+	return YES;
+      return NO;
     }
   else if (c == nil)
     return NO;
@@ -452,7 +481,8 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   if (aString == nil)
     return NO;
   c = fastClassOfInstance(aString);
-  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString || c == _fastCls._NXConstantString)
+  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+    || c == _fastCls._NXConstantString)
     {
       NSGCString	*other = (NSGCString*)aString;
 
@@ -467,6 +497,12 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
 	return NO;
       return YES;
+    }
+  else if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+    {
+      if (strCompCsUs(self, aString, 0, (NSRange){0,_count}) == NSOrderedSame)
+	return YES;
+      return NO;
     }
   else if (c == nil)
     return NO;
@@ -656,6 +692,35 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   return NSMakeRange(anIndex, 1);
 }
 
+- (NSComparisonResult) compare: (NSString*)aString
+		       options: (unsigned int)mask
+			 range: (NSRange)aRange
+{
+  Class	c = fastClass(aString);
+
+  if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+    return strCompCsUs(self, aString, mask, aRange);
+  else if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+    || c == _fastCls._NXConstantString)
+    return strCompCsCs(self, aString, mask, aRange);
+  else
+    return strCompCsNs(self, aString, mask, aRange);
+}
+
+- (NSRange) rangeOfString: (NSString *) aString
+		  options: (unsigned int) mask
+		    range: (NSRange) aRange
+{
+  Class	c = fastClass(aString);
+
+  if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+    return strRangeCsUs(self, aString, mask, aRange);
+  else if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+    || c == _fastCls._NXConstantString)
+    return strRangeCsCs(self, aString, mask, aRange);
+  else
+    return strRangeCsNs(self, aString, mask, aRange);
+}
 
 @end
 

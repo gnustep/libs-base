@@ -258,6 +258,8 @@ $(GNUSTEP_OBJ_DIR)/NSGCString.o \
 #	Files that include GSeq.h will need a rebuild if it is changed.
 #
 $(GNUSTEP_OBJ_DIR)/NSString.o \
+$(GNUSTEP_OBJ_DIR)/NSGString.o \
+$(GNUSTEP_OBJ_DIR)/NSGCString.o \
 	: GSeq.h
 
 #
