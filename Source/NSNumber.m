@@ -31,6 +31,12 @@
 #include <Foundation/NSConcreteNumber.h>
 #include <Foundation/NSCoder.h>
 
+@interface NSNumber (Private)
+- (int)_nextOrder;
+- (NSComparisonResult) _promotedCompare: (NSNumber*)other;
+- (int)_typeOrder;
+@end
+
 @implementation NSNumber
 
 static Class	abstractClass;
@@ -522,6 +528,27 @@ static Class	doubleNumberClass;
 {
   [self subclassResponsibility: _cmd];
   return nil;
+}
+
+- (int)_nextOrder
+{
+  return 12;
+}
+- (NSComparisonResult) _promotedCompare: (NSNumber*)other
+{
+  double	v0, v1;
+
+  v0 = [self doubleValue];
+  v1 = [other doubleValue];
+
+  if (v0 == v1)
+    return NSOrderedSame;
+  else
+    return (v0 < v1) ?  NSOrderedAscending : NSOrderedDescending;
+}
+- (int)_typeOrder
+{
+  return 12;
 }
 
 @end
