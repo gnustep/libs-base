@@ -26,6 +26,8 @@
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSCalendarDate.h>
+#include <Foundation/NSTimeZone.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>

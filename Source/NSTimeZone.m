@@ -65,6 +65,7 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSPortCoder.h>
+#include <Foundation/NSTimeZone.h>
 #include <Foundation/NSDebug.h>
 
 #define NOID

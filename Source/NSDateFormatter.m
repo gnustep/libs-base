@@ -23,6 +23,8 @@
 
 #include <config.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSCalendarDate.h>
+#include <Foundation/NSTimeZone.h>
 #include <Foundation/NSFormatter.h>
 #include <Foundation/NSDateFormatter.h>
 #include <Foundation/NSString.h>

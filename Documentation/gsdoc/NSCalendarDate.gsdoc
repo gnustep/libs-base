@@ -14,7 +14,7 @@
     <chapter>
       <heading>NSCalendarDate</heading>
       <class name="NSCalendarDate" super="NSDate">
-        <declared>Foundation/NSDate.h</declared>
+        <declared>Foundation/NSCalendarDate.h</declared>
         <conform>NSCoding</conform>
           <desc>
           </desc>

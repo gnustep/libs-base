@@ -276,6 +276,7 @@ NSAutoreleasePool.h \
 NSBitmapCharSet.h \
 NSBundle.h \
 NSByteOrder.h \
+NSCalendarDate.h \
 NSCharacterSet.h \
 NSClassDescription.h \
 NSCoder.h \
@@ -326,6 +327,7 @@ NSSet.h \
 NSString.h \
 NSTask.h \
 NSThread.h \
+NSTimeZone.h \
 NSTimer.h \
 NSUndoManager.h \
 NSUserDefaults.h \
