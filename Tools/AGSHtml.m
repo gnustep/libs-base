@@ -1877,7 +1877,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       [buf appendString: @"<dt><b>Conforms to:</b></dt>\n"];
       while (node != nil && [[node name] isEqual: @"conform"] == YES)
 	{
-	  NSString	*text = [[node childElement] content];
+	  NSString	*text = [[node children] content];
 
 	  [buf appendString: indent];
 	  [buf appendString: @"<dd>"];
