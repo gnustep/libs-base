@@ -1,5 +1,5 @@
 /* archiving class for serialization and persistance.
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -59,7 +59,6 @@ static Class NSArchiver_concrete_class;
 
 + (NSData*) archivedDataWithRootObject: (id)rootObject
 {
-  /* xxx a quick kludge implementation */
   id d = [[NSMutableData alloc] init];
   id a = [[NSArchiver alloc] initForWritingWithMutableData:d];
   [a encodeRootObject:rootObject];
@@ -68,7 +67,7 @@ static Class NSArchiver_concrete_class;
 
 + (BOOL) archiveRootObject: (id)rootObject toFile: (NSString*)path
 {
-  /* xxx a quick kludge implementation */
+  /* xxx fix this return value */
   id d = [self archivedDataWithRootObject:rootObject];
   [d writeToFile:path atomically:NO];
   return YES;
