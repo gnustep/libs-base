@@ -1536,7 +1536,7 @@ failure:
   unsigned	size = [self length];
   unsigned	need = NSMaxRange(aRange);
 
-  if (aRange.location > size)
+  if (aRange.location >= size)
     {
       [NSException raise: NSRangeException
 		  format: @"location bad in replaceByteInRange:withBytes:"];
