@@ -81,14 +81,6 @@
 #endif
 #include <errno.h>
 
-// Maximum data in single I/O operation
-#define	NETBUF_SIZE	4096
-
-// Key to info dictionary for operation mode.
-static NSString*        NotificationKey = @"NSFileHandleNotificationKey";
-
-
-
 @interface	GSSSLHandle : GSFileHandle <GCFinalization>
 {
   SSL_CTX	*ctx;
