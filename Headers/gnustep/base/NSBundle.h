@@ -92,7 +92,6 @@ GS_EXPORT NSString* NSLoadedClasses;
 @interface NSBundle (GNUstep)
 
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName;
-+ (NSBundle *) bundleForTool: (NSString *)toolName;
 
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
 + (NSString*) _gnustep_target_cpu;
