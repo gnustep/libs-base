@@ -25,12 +25,12 @@ extern long objc_unload_module(
 extern long objc_load_modules(
 	char *files[],
 	FILE *errorStream,
-        void (*callback)(Class*,Category*),
+        void (*callback)(Class,Category*),
         void **header,
         char *debugFilename);
 
 extern long objc_unload_modules(
 	FILE *errorStream,
-	void (*unloadCallback)(Class*, Category*));
+	void (*unloadCallback)(Class, Category*));
 
 #endif /* __objc_load_h_INCLUDE */

@@ -210,7 +210,7 @@ objc_unload_module(
     return 0;
 }
 
-long objc_loadModules(char *files[],FILE *errorStream,
+long objc_load_modules(char *files[],FILE *errorStream,
 	void (*callback)(Class,Category*),
 	void **header,
 	char *debugFilename)
@@ -225,7 +225,7 @@ long objc_loadModules(char *files[],FILE *errorStream,
 }
 
 long 
-objc_unloadModules(
+objc_unload_modules(
 	FILE *errorStream,
 	void (*unloadCallback)(Class, Category*))
 {
