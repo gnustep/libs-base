@@ -70,7 +70,8 @@ test12.m \
 test13.m \
 pipes.m \
 server.m \
-client.m
+client.m \
+string.m
 
 HDRS = \
 server.h
@@ -119,6 +120,8 @@ pipes: pipes.o $(srcdir)/../libobjects.a
 server: server.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 client: client.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+string: string.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 
 echo-excs:
