@@ -61,13 +61,11 @@
 @end
 
 @protocol NSCopying
-- copyWithZone: (NSZone *)zone;
-- copy;
+- (id) copyWithZone: (NSZone *)zone;
 @end
 
 @protocol NSMutableCopying
-- mutableCopyWithZone:(NSZone *)zone;
-- mutableCopy;
+- (id) mutableCopyWithZone: (NSZone *)zone;
 @end
 
 @protocol NSCoding
@@ -76,7 +74,7 @@
 @end
 
 
-@interface NSObject <NSObject, NSCoding, NSCopying>
+@interface NSObject <NSObject>
 {
   Class isa;
 }
