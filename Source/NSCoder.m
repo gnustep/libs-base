@@ -1,5 +1,5 @@
 /* NSCoder - coder object for serialization and persistance.
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -29,6 +29,36 @@
 
 @implementation NSCoder
 
+- (void) encodeValueOfObjCType: (const char*)type
+   at: (const void*)address;
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (void) decodeValueOfObjCType: (const char*)type
+   at: (void*)address
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (void) encodeDataObject: (NSData*)data;
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (NSData*) decodeDataObject;
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+- (unsigned int) versionForClassName: (NSString*)className;
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
+
 // Encoding Data
 
 - (void) encodeArrayOfObjCType: (const char*)type
@@ -55,14 +85,10 @@
   [self encodeObject:anObject];
 }
 
-- (void) encodeDataObject: (NSData*)data;
-{
-  [self notImplemented:_cmd];
-}
-
 - (void) encodeObject: (id)anObject;
 {
-  [self notImplemented:_cmd];
+  [self encodeValuesOfObjCTypes:@encode(id)
+	at:&object];
 }
 
 - (void) encodePropertyList: (id)plist;
@@ -91,12 +117,6 @@
 {
   [self encodeValueOfObjCType:@encode(NSSize)
 	at:&size];
-}
-
-- (void) encodeValueOfObjCType: (const char*)type
-   at: (const void*)address;
-{
-  [self notImplemented:_cmd];
 }
 
 - (void) encodeValuesOfObjCTypes: (const char*)types,...;
@@ -130,16 +150,12 @@
 	  at:where];
 }
 
-- (NSData*) decodeDataObject;
-{
-  [self notImplemented:_cmd];
-  return nil;
-}
-
 - (id) decodeObject;
 {
-  [self notImplemented:_cmd];
-  return nil;
+  id o;
+  [self decodeValueOfObjCType:@encode(id)
+	at:&o];
+  return [o autorelease];
 }
 
 - (id) decodePropertyList
@@ -172,12 +188,6 @@
   return size;
 }
 
-- (void) decodeValueOfObjCType: (const char*)type
-   at: (void*)address
-{
-  [self notImplemented:_cmd];
-}
-
 - (void) decodeValuesOfObjCTypes: (const char*)types,...;
 {
   va_list ap;
@@ -195,13 +205,12 @@
 
 - (NSZone*) objectZone;
 {
-  [self notImplemented:_cmd];
-  return (NSZone*)0;
+  return NSDefaultMallocZone();
 }
 
 - (void) setObjectZone: (NSZone*)zone;
 {
-  [self notImplemented:_cmd];
+  ;
 }
 
 
@@ -209,14 +218,7 @@
 
 - (unsigned int) systemVersion;
 {
-  [self notImplemented:_cmd];
-  return 0;
-}
-
-- (unsigned int) versionForClassName: (NSString*)className;
-{
-  [self notImplemented:_cmd];
-  return 0;
+  return 1000;
 }
 
 @end
