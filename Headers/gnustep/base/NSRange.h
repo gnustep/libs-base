@@ -27,6 +27,9 @@
 
 #include <Foundation/NSObject.h>
 
+@class NSException;
+@class NXConstantString;
+
 /**** Type, Constant, and Macro Definitions **********************************/
 
 #ifndef MAX
@@ -56,7 +59,7 @@ struct _NSRange
  *      All but the most complex functions are declared static inline in this
  *      header file so that they are maximally efficient.  In order to provide
  *      true functions (for code modules that don't have this header) this
- *      header is included in NSGeometry.m where the functions are no longer
+ *      header is included in NSRange.m where the functions are no longer
  *      declared inline.
  */
 #ifdef  IN_NSRANGE_M
@@ -85,9 +88,31 @@ NSLocationInRange(unsigned location, NSRange range)
   return (location >= range.location) && (location < NSMaxRange(range));
 }
 
-/* Create an NSRange having the specified LOCATION and LENGTH. */
-GS_EXPORT NSRange
-NSMakeRange(unsigned int location, unsigned int length);
+GS_RANGE_SCOPE NSRange
+NSMakeRange(unsigned int location, unsigned int length) GS_RANGE_ATTR;
+
+GS_RANGE_SCOPE NSRange
+NSMakeRange(unsigned int location, unsigned int length)
+{
+  NSRange range;
+  unsigned int end = location + length;
+
+  if (end < location || end < length)
+    {
+      extern void _NSRangeExceptionRaise ();
+      /* NB: The implementation of _NSRangeExceptionRaise is: 
+	 [NSException raise: NSRangeException
+	             format: @"Range location + length too great"]; */
+
+      /* _NSRangeExceptionRaise is defined in NSRange.m so that this
+	 file (NSRange.h) can be included without problems in the
+	 implementation of the base classes themselves. */
+      _NSRangeExceptionRaise ();
+    }
+  range.location = location;
+  range.length   = length;
+  return range;
+}
 
 GS_RANGE_SCOPE BOOL
 NSEqualRanges(NSRange range1, NSRange range2) GS_RANGE_ATTR;

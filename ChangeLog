@@ -1,3 +1,8 @@
+2000-12-13  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Headers/gnustep/base/NSRange.h, Source/NSRange.m: Inlined 
+	NSMakeRange.
+
 2000-12-12  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSDebug.m (table_entry): Added peak field.
