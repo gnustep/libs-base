@@ -1,3 +1,10 @@
+2003-12-23 23:33  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSCharacterSet.m: Rename 'abstract' to 'abstractClass' and
+	make it static.
+	(+allocWithZone:): Allocate an instance of self if self isn't the
+	abstract class.
+
 2003-12-23 18:38  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSThread.m: Don't use '\r\n' in printf strings (stdio/libc
