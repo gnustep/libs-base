@@ -43,6 +43,9 @@ make
 make install
 @end example
 
+If you have trouble with the Makefile, it may be that our makefiles use
+features that your @code{make} does not support; use GNU make.
+
 Here are more detailed instructions.
 
 @enumerate
