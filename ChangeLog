@@ -1,4 +1,41 @@
+Sat May 11 20:38:10 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/include/NSAutoreleasePool.h (struct autorelease_cache): New
+ 	data type.
+	* src/include/NSThread.h (NSThread _thread_autorelease_pool): New
+ 	ivar.
+	* src/NSThread.m: Preparation for thread-safety.
+	([NSThread -init]): Initialize new ivar.
+	* src/NSAutoreleasePool.m: Comment changes, and preparation for
+ 	thread-safety.
+
+Fri May 10 09:55:40 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/BinaryCStream.m: #include <values.h> to get BITSPERBYTE on
+ 	Solaris.  (Reported by M. Decugis <mds@sepgifbr.sep.de.edf.fr>.)
+
+Wed May  8 10:53:07 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/objc-load.c (objc_load_module): Uncomment local vars when
+ 	needed.  (Provided by Bill Bumgarner <bbum@friday.com>.)
+
+	* src/BinaryCStream.m (BITSPERBYTE): Define if not defined and on
+ 	NeXT.  (Provided by Bill Bumgarner <bbum@friday.com>.)
+
 Tue May  7 10:55:11 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/include/o-map.h: Prepend `o-' in #include.
+	* src/include/o-list.h: Likewise.
+	* src/include/o-hash.h: Likewise.
+	* src/include/o-array.h: Likewise.
+	* src/include/x-cbs.h.in: Likewise.
+
+	* src/NSCoder.m: Separate implemented, non-core methods into
+ 	separate class, in preparation for avoiding the duplication of
+ 	these methods in Coder.m.
+	([NSCoder +initialize]): New method.
+	(NSCoderNonCore): New class.
+	* src/include/NSCoder.h: Declare new NSCoderNonCore class.
 
 	* Makefile.in (snapshot-rtag): New target.
 	(dist-rtag): New target.
