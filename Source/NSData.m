@@ -507,7 +507,7 @@ failure:
 
       strcpy(thePath, theRealPath);
       strcat(thePath, "XXXXXX");
-      if ((desc = mktemp(thePath)) < 0)
+      if ((desc = mkstemp(thePath)) < 0)
 	{
           NSLog(@"mkstemp (%s) failed - %s", thePath, strerror(errno));
           goto failure;
