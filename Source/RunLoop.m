@@ -359,8 +359,7 @@ static RunLoop *current_run_loop;
       [min_timer fire];
       if ([min_timer isValid])
 	{
-	  if ([[min_timer fireDate] timeIntervalSinceNow] > 0)
-	    [timers addObject: min_timer];
+	  [timers addObject: min_timer];
 	}
       [min_timer release];
       min_timer = nil;

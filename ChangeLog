@@ -33,6 +33,24 @@ Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
  	Use NSBundle's pathForResource:ofType:inDirectory method properly.
   	(Reported by Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>.)
 
+Thu Apr 24 10:30:00 1997  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/Makefile.in: Added stuff to build and install the name
+ 	server (gdomap).
+
+	* src/RunLoop.m: Minor change to ensure that repeated timers are
+ 	not lost.
+
+	* src/TcpPort.m: Major changes to support use of a name server for
+ 	handling TCP port numbers and fix a few bugs.
+
+	* src/gdomap.c: This is the name server source.
+
+	* src/gdomap.h: This is the name server header file.
+
+	* src/include/NSRunLoop.h: Added methods for monitoring file
+ 	descriptors.
+
 Sat Mar 29 00:43:18 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
 
 	* src/NSZone.m: New e-mail address.  Default default zone
