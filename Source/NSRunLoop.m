@@ -40,7 +40,6 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSDebug.h>
-#include <Foundation/NSDebug.h>
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>

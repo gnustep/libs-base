@@ -71,7 +71,7 @@ NSAllHashTableObjects(NSHashTable *table)
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return nil;
     }
 
@@ -107,12 +107,12 @@ NSCompareHashTables(NSHashTable *table1, NSHashTable *table2)
     }
   if (t1 == 0)
     {
-      NSWarnLog(@"Nul first argument supplied");
+      NSWarnFLog(@"Nul first argument supplied");
       return NO;
     }
   if (t2 == 0)
     {
-      NSWarnLog(@"Nul second argument supplied");
+      NSWarnFLog(@"Nul second argument supplied");
       return NO;
     }
 
@@ -147,7 +147,7 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return 0;
     }
 
@@ -172,7 +172,7 @@ NSCountHashTable(NSHashTable *table)
 {
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return 0;
     }
   return ((GSIMapTable)table)->nodeCount;
@@ -232,7 +232,7 @@ NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
 {
   if (enumerator == 0)
     {
-      NSWarnLog(@"Nul enumerator argument supplied");
+      NSWarnFLog(@"Nul enumerator argument supplied");
     }
 }
 
@@ -247,7 +247,7 @@ NSEnumerateHashTable(NSHashTable *table)
     {
       NSHashEnumerator	v = { 0, 0 };
 
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return v;
     }
   else
@@ -264,7 +264,7 @@ NSFreeHashTable(NSHashTable *table)
 {
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
     }
   else
     {
@@ -286,7 +286,7 @@ NSHashGet(NSHashTable *table, const void *element)
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return 0;
     }
   n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)element);
@@ -398,7 +398,7 @@ NSHashRemove(NSHashTable *table, const void *element)
 {
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
     }
   else
     {
@@ -417,7 +417,7 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
  
   if (enumerator == 0)
     {
-      NSWarnLog(@"Nul enumerator argument supplied");
+      NSWarnFLog(@"Nul enumerator argument supplied");
       return 0;
     }
   n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
@@ -439,7 +439,7 @@ NSResetHashTable(NSHashTable *table)
 {
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
     }
   else
     {
@@ -463,7 +463,7 @@ NSStringFromHashTable(NSHashTable *table)
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return nil;
     }
 
