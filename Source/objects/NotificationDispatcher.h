@@ -207,6 +207,8 @@
 		       object: object
 		     userInfo: info;
 
++ defaultInstance;
+
 @end
 
 @interface NotificationDispatcher (OpenStepCompat)
