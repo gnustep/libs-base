@@ -35,6 +35,7 @@
 #include "GNUstepBase/GSIArray.h"
 
 #define	_array	((GSIArray)(self->_data))
+#define	_other	((GSIArray)(aSet->_data))
 
 /*
  * Returns the position in the array at which the index should be inserted.
@@ -109,17 +110,15 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 - (BOOL) containsIndex: (unsigned int)anIndex
 {
   unsigned	pos;
+  NSRange	r;
 
-  if (_array == 0 || GSIArrayCount(_array) == 0)
+  if (_array == 0 || GSIArrayCount(_array) == 0
+    || (pos = posForIndex(_array, anIndex)) >= GSIArrayCount(_array))
     {
       return NO;
     }
-  pos = posForIndex(_array, anIndex);
-  if (pos >= GSIArrayCount(_array))
-    {
-      return NO;
-    }
-  return NSLocationInRange(anIndex, GSIArrayItemAtIndex(_array, pos).ext);
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  return NSLocationInRange(anIndex, r);
 }
 
 - (BOOL) containsIndexes: (NSIndexSet*)aSet
@@ -135,8 +134,10 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 - (BOOL) containsIndexesInRange: (NSRange)aRange
 {
   unsigned	pos;
+  NSRange	r;
 
-  if (_array == 0 || GSIArrayCount(_array) == 0)
+  if (_array == 0 || GSIArrayCount(_array) == 0
+    || (pos = posForIndex(_array, aRange.location)) >= GSIArrayCount(_array))
     {
       return NO;	// Empty ... contains no indexes.
     }
@@ -144,13 +145,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     {
       return YES;	// No indexes needed.
     }
-  pos = posForIndex(_array, aRange.location);
-  if (pos >= GSIArrayCount(_array))
-    {
-      return NO;
-    }
-  if (NSLocationInRange(aRange.location, GSIArrayItemAtIndex(_array, pos).ext)
-    && NSLocationInRange(NSMaxRange(aRange)-1, GSIArrayItemAtIndex(_array, pos).ext))
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  if (NSLocationInRange(aRange.location, r)
+    && NSLocationInRange(NSMaxRange(aRange)-1, r))
     {
       return YES;
     }
@@ -270,93 +267,105 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 - (unsigned int) indexGreaterThanIndex: (unsigned int)anIndex
 {
   unsigned	pos;
+  NSRange	r;
 
-  if (_array == 0 || GSIArrayCount(_array) == 0)
+  if (anIndex++ == NSNotFound)
     {
       return NSNotFound;
     }
-  pos = posForIndex(_array, anIndex + 1);
-  if (pos >= GSIArrayCount(_array))
+  if (_array == 0 || GSIArrayCount(_array) == 0
+    || (pos = posForIndex(_array, anIndex)) >= GSIArrayCount(_array))
     {
       return NSNotFound;
     }
-  if (NSLocationInRange(anIndex + 1, GSIArrayItemAtIndex(_array, pos).ext))
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  if (NSLocationInRange(anIndex, r))
     {
-      return anIndex + 1;
+      return anIndex;
     }
-  return GSIArrayItemAtIndex(_array, pos+1).ext.location;
+  if (++pos >= GSIArrayCount(_array))
+    {
+      return NSNotFound;
+    }
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  return r.location;
 }
 
 - (unsigned int) indexGreaterThanOrEqualToIndex: (unsigned int)anIndex
 {
   unsigned	pos;
+  NSRange	r;
 
-  if (_array == 0 || GSIArrayCount(_array) == 0)
+  if (anIndex == NSNotFound)
     {
       return NSNotFound;
     }
-  pos = posForIndex(_array, anIndex);
-  if (pos >= GSIArrayCount(_array))
+  if (_array == 0 || GSIArrayCount(_array) == 0
+    || (pos = posForIndex(_array, anIndex)) >= GSIArrayCount(_array))
     {
       return NSNotFound;
     }
-  if (NSLocationInRange(anIndex, GSIArrayItemAtIndex(_array, pos).ext))
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  if (NSLocationInRange(anIndex, r))
     {
       return anIndex;
     }
-  return GSIArrayItemAtIndex(_array, pos+1).ext.location;
+  if (++pos >= GSIArrayCount(_array))
+    {
+      return NSNotFound;
+    }
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  return r.location;
 }
 
 - (unsigned int) indexLessThanIndex: (unsigned int)anIndex
 {
   unsigned	pos;
+  NSRange	r;
 
-  if (anIndex == 0)
+  if (anIndex-- == 0)
     {
       return NSNotFound;
     }
-  if (_array == 0 || GSIArrayCount(_array) == 0)
+  if (_array == 0 || GSIArrayCount(_array) == 0
+    || (pos = posForIndex(_array, anIndex)) >= GSIArrayCount(_array))
     {
       return NSNotFound;
     }
-  pos = posForIndex(_array, anIndex - 1);
-  if (pos >= GSIArrayCount(_array))
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  if (NSLocationInRange(anIndex, r))
+    {
+      return anIndex;
+    }
+  if (pos-- == 0)
     {
       return NSNotFound;
     }
-  if (NSLocationInRange(anIndex - 1, GSIArrayItemAtIndex(_array, pos).ext))
-    {
-      return anIndex - 1;
-    }
-  if (pos == 0)
-    {
-      return NSNotFound;
-    }
-  return NSMaxRange(GSIArrayItemAtIndex(_array, pos).ext) - 1;
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  return NSMaxRange(r) - 1;
 }
 
 - (unsigned int) indexLessThanOrEqualToIndex: (unsigned int)anIndex
 {
   unsigned	pos;
+  NSRange	r;
 
-  if (_array == 0 || GSIArrayCount(_array) == 0)
+  if (_array == 0 || GSIArrayCount(_array) == 0
+    || (pos = posForIndex(_array, anIndex)) >= GSIArrayCount(_array))
     {
       return NSNotFound;
     }
-  pos = posForIndex(_array, anIndex);
-  if (pos >= GSIArrayCount(_array))
-    {
-      return NSNotFound;
-    }
-  if (NSLocationInRange(anIndex, GSIArrayItemAtIndex(_array, pos).ext))
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  if (NSLocationInRange(anIndex, r))
     {
       return anIndex;
     }
-  if (pos == 0)
+  if (pos-- == 0)
     {
       return NSNotFound;
     }
-  return NSMaxRange(GSIArrayItemAtIndex(_array, pos).ext) - 1;
+  r = GSIArrayItemAtIndex(_array, pos).ext;
+  return NSMaxRange(r) - 1;
 }
 
 - (id) init
@@ -403,7 +412,26 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (id) initWithIndexSet: (NSIndexSet*)aSet
 {
-  [self notImplemented:_cmd]; 
+  if (aSet == nil || [aSet isKindOfClass: [NSIndexSet class]] == NO)
+    {
+      DESTROY(self);
+    }
+  else
+    {
+      unsigned	count = GSIArrayCount(_other);
+
+      if (count > 0)
+	{
+	  unsigned	i;
+
+	  _array = (GSIArray)NSZoneMalloc([self zone], sizeof(GSIArray_t));
+	  GSIArrayInitWithZoneAndCapacity(_array, [self zone], count);
+	  for (i = 0; i < count; i++)
+	    {
+	      GSIArrayAddItem(_array, GSIArrayItemAtIndex(_other, i));
+	    }
+	}
+    }
   return self;
 }
 
@@ -449,8 +477,28 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (BOOL) isEqualToIndexSet: (NSIndexSet*)aSet
 {
-  [self notImplemented:_cmd];
-  return NO;
+  unsigned	count = GSIArrayCount(_other);
+
+  if (count != GSIArrayCount(_array))
+    {
+      return NO;
+    }
+  if (count > 0)
+    {
+      unsigned	i;
+
+      for (i = 0; i < count; i++)
+	{
+	  NSRange	rself = GSIArrayItemAtIndex(_array, i).ext;
+	  NSRange	rother = GSIArrayItemAtIndex(_other, i).ext;
+
+	  if (NSEqualRanges(rself, rother) == NO)
+	    {
+	      return NO;
+	    }
+	}
+    }
+  return YES;
 }
 
 - (unsigned int) lastIndex
@@ -474,6 +522,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 @implementation	NSMutableIndexSet
 
+#undef	_other
+#define	_other	((GSIArray)(((NSMutableIndexSet*)aSet)->_data))
+
 - (void) addIndex: (unsigned int)anIndex
 {
   [self addIndexesInRange: NSMakeRange(anIndex, 1)];
@@ -481,7 +532,19 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) addIndexes: (NSIndexSet*)aSet
 {
-  [self notImplemented:_cmd];
+  unsigned	count = GSIArrayCount(_other);
+
+  if (count > 0)
+    {
+      unsigned	i;
+
+      for (i = 0; i < count; i++)
+	{
+	  NSRange	r = GSIArrayItemAtIndex(_other, i).ext;
+
+	  [self addIndexesInRange: r];
+	}
+    }
 } 
 
 - (void) addIndexesInRange: (NSRange)aRange
