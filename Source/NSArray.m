@@ -1029,18 +1029,20 @@ static int compare(id elem1, id elem2, void* context)
 {
   NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
   NSString	*desc = nil;
+  NSData	*data;
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);
+      data = [desc dataUsingEncoding: NSUTF8StringEncoding];
     }
   else
     {
       GSPropertyListMake(self, loc, NO, NO, 2, &desc);
+      data = [desc dataUsingEncoding: NSASCIIStringEncoding];
     }
 
-  return [[desc dataUsingEncoding: NSUTF8StringEncoding]
-    writeToFile: path atomically: useAuxiliaryFile];
+  return [data writeToFile: path atomically: useAuxiliaryFile];
 }
 
 /**
@@ -1053,18 +1055,20 @@ static int compare(id elem1, id elem2, void* context)
 {
   NSDictionary	*loc = GSUserDefaultsDictionaryRepresentation();
   NSString	*desc = nil;
+  NSData	*data;
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       GSPropertyListMake(self, loc, YES, NO, 2, &desc);
+      data = [desc dataUsingEncoding: NSUTF8StringEncoding];
     }
   else
     {
       GSPropertyListMake(self, loc, NO, NO, 2, &desc);
+      data = [desc dataUsingEncoding: NSASCIIStringEncoding];
     }
 
-  return [[desc dataUsingEncoding: NSUTF8StringEncoding]
-    writeToURL: url atomically: useAuxiliaryFile];
+  return [data writeToURL: url atomically: useAuxiliaryFile];
 }
 
 @end
