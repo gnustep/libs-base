@@ -1222,7 +1222,7 @@ if (0) {
 
 /**
  * Cancels any perform operations set up for the specified target
- * in the current loop, but only if the vaslue of aSelector and argument
+ * in the current loop, but only if the value of aSelector and argument
  * with which the performs were set up exactly match those supplied.
  */
 + (void) cancelPreviousPerformRequestsWithTarget: (id)target
@@ -2156,7 +2156,7 @@ if (0) {
 
 /**
  * Cancels any perform operations set up for the specified target
- * in the receiver, but only if the vaslue of aSelector and argument
+ * in the receiver, but only if the value of aSelector and argument
  * with which the performs were set up exactly match those supplied.
  */
 - (void) cancelPerformSelector: (SEL)aSelector
