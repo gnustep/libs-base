@@ -1,3 +1,7 @@
+2001-10-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: Updated to latest info.
+
 2001-10-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLog.m: _NSLog_standard_printf_handler() modified to output
