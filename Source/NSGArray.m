@@ -252,10 +252,11 @@
 {
   unsigned i, j = 0, e = aRange.location + aRange.length;
 
-  if (_count < e)
-    {
-      e = _count;
-    }
+  if (aRange.location >= _count)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (_count - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+
   for (i = aRange.location; i < e; i++)
     {
       aBuffer[j++] = _contents_array[i];
