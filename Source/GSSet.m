@@ -167,19 +167,26 @@ static Class	mutableSetClass;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  unsigned		count = map.nodeCount;
-  SEL			sel = @selector(encodeObject:);
-  IMP			imp = [aCoder methodForSelector: sel];
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-
-  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
-  while (node != 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      (*imp)(aCoder, sel, node->key.obj);
-      node = GSIMapEnumeratorNextNode(&enumerator);
+      [super encodeWithCoder: aCoder];
     }
-  GSIMapEndEnumerator(&enumerator);
+  else
+    {
+      unsigned			count = map.nodeCount;
+      SEL			sel = @selector(encodeObject:);
+      IMP			imp = [aCoder methodForSelector: sel];
+      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
+
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+      while (node != 0)
+	{
+	  (*imp)(aCoder, sel, node->key.obj);
+	  node = GSIMapEnumeratorNextNode(&enumerator);
+	}
+      GSIMapEndEnumerator(&enumerator);
+    }
 }
 
 - (unsigned) hash
@@ -191,10 +198,7 @@ static Class	mutableSetClass;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
-						@"NS.objects"];
-
-      return [self initWithArray: array];
+      self = [super initWithCoder: aCoder];
     }
   else
     {
@@ -212,9 +216,8 @@ static Class	mutableSetClass;
 	  (*imp)(aCoder, sel, type, &value);
 	  GSIMapAddKeyNoRetain(&map, (GSIMapKey)value);
 	}
-      
-      return self;
     }
+  return self;
 }
 
 /* Designated initialiser */

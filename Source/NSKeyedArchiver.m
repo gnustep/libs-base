@@ -151,6 +151,12 @@ static NSDictionary *makeReference(unsigned ref)
     }
   [_enc setObject: o forKey: aKey];
 }
+
+- (void) _encodePropertyList: (id)anObject forKey: (NSString*)aKey
+{
+  CHECKKEY
+  [_enc setObject: anObject forKey: aKey];
+}
 @end
 
 @implementation	NSKeyedArchiver (Private)

@@ -215,9 +215,11 @@
 
 @interface	NSKeyedArchiver (Internal)
 - (void) _encodeArrayOfObjects: (NSArray*)anArray forKey: (NSString*)aKey;
+- (void) _encodePropertyList: (id)anObject forKey: (NSString*)aKey;
 @end
 @interface	NSKeyedUnarchiver (Internal)
 - (id) _decodeArrayOfObjectsForKey: (NSString*)aKey;
+- (id) _decodePropertyListForKey: (NSString*)aKey;
 @end
 
 

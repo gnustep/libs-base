@@ -180,25 +180,68 @@ static SEL	appSel;
 {
   unsigned	count = [self count];
 
-  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
-  if (count > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      NSEnumerator	*enumerator = [self keyEnumerator];
-      id		key;
-      IMP		enc;
-      IMP		nxt;
-      IMP		ofk;
-
-      nxt = [enumerator methodForSelector: @selector(nextObject)];
-      enc = [aCoder methodForSelector: @selector(encodeObject:)];
-      ofk = [self methodForSelector: @selector(objectForKey:)];
-
-      while ((key = (*nxt)(enumerator, @selector(nextObject))) != nil)
+      if (count > 0)
 	{
-	  id	val = (*ofk)(self, @selector(objectForKey:), key);
+	  NSEnumerator	*enumerator = [self keyEnumerator];
+	  id		key;
 
-	  (*enc)(aCoder, @selector(encodeObject:), key);
-	  (*enc)(aCoder, @selector(encodeObject:), val);
+	  if ([aCoder class] == [NSKeyedArchiver class])
+	    {
+	      NSArray	*keys = [self allKeys];
+	      id	objects = [NSMutableArray arrayWithCapacity: count];
+	      unsigned	i;
+
+	      for (i = 0; i < count; i++)
+		{
+		  key = [keys objectAtIndex: i];
+		  [objects addObject: [self objectForKey: key]];
+		}
+	      [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: keys
+						       forKey: @"NS.keys"];
+	      [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: objects
+						       forKey: @"NS.objects"];
+	    }
+	  else
+	    {
+	      unsigned	i = 0;
+
+	      while ((key = [enumerator nextObject]) != nil)
+		{
+		  NSString	*s;
+
+		  s = [NSString stringWithFormat: @"NS.key.%u", i];
+		  [aCoder encodeObject: key forKey: s];
+		  s = [NSString stringWithFormat: @"NS.object.%u", i];
+		  [aCoder encodeObject: [self objectForKey: key] forKey: s];
+		  i++;
+		}
+	    }
+	}
+    }
+  else
+    {
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+      if (count > 0)
+	{
+	  NSEnumerator	*enumerator = [self keyEnumerator];
+	  id		key;
+	  IMP		enc;
+	  IMP		nxt;
+	  IMP		ofk;
+
+	  nxt = [enumerator methodForSelector: @selector(nextObject)];
+	  enc = [aCoder methodForSelector: @selector(encodeObject:)];
+	  ofk = [self methodForSelector: @selector(objectForKey:)];
+
+	  while ((key = (*nxt)(enumerator, @selector(nextObject))) != nil)
+	    {
+	      id	val = (*ofk)(self, @selector(objectForKey:), key);
+
+	      (*enc)(aCoder, @selector(encodeObject:), key);
+	      (*enc)(aCoder, @selector(encodeObject:), val);
+	    }
 	}
     }
 }
@@ -207,11 +250,35 @@ static SEL	appSel;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSArray *keys = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
-					       @"NS.keys"];
-      NSArray *objects = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
-						  @"NS.objects"];
+      id	keys;
+      id	objects;
 
+      keys = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+					       @"NS.keys"];
+      objects = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						  @"NS.objects"];
+      if (keys == nil)
+	{
+	  unsigned	i = 0;
+	  NSString	*key;
+	  id		val;
+
+	  keys = [NSMutableArray arrayWithCapacity: 2];
+	  objects = [NSMutableArray arrayWithCapacity: 2];
+	  key = [NSString stringWithFormat: @"NS.object.%u", i];
+	  val = [(NSKeyedUnarchiver*)aCoder decodeObjectForKey: key];
+
+	  while (val != nil)
+	    {
+	      [objects addObject: val];
+	      key = [NSString stringWithFormat: @"NS.key.%u", i];
+	      val = [(NSKeyedUnarchiver*)aCoder decodeObjectForKey: key];
+	      [keys addObject: val];
+	      i++;
+	      key = [NSString stringWithFormat: @"NS.object.%u", i];
+	      val = [(NSKeyedUnarchiver*)aCoder decodeObjectForKey: key];
+	    }
+	}
       self = [self initWithObjects: objects forKeys: keys];
     }
   else

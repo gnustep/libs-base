@@ -139,14 +139,42 @@ static Class NSMutableSet_concrete_class;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  unsigned	count = [self count];
-  NSEnumerator	*e = [self objectEnumerator];
-  id		o;
-
-  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
-  while ((o = [e nextObject]) != nil)
+  if ([aCoder allowsKeyedCoding])
     {
-      [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+      /* HACK ... MacOS-X seems to code differently if the coder is an
+       * actual instance of NSKeyedArchiver
+       */
+      if ([aCoder class] == [NSKeyedArchiver class])
+	{
+	  [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: [self allObjects]
+						   forKey: @"NS.objects"];
+	}
+      else
+	{
+	  unsigned	i = 0;
+	  NSEnumerator	*e = [self objectEnumerator];
+	  id		o;
+
+	  while ((o = [e nextObject]) != nil)
+	    {
+	      NSString	*key;
+
+	      key = [NSString stringWithFormat: @"NS.object.%u", i++];
+	      [(NSKeyedArchiver*)aCoder encodeObject: o forKey: key];
+	    }
+	}
+    }
+  else
+    {
+      unsigned		count = [self count];
+      NSEnumerator	*e = [self objectEnumerator];
+      id		o;
+
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+      while ((o = [e nextObject]) != nil)
+	{
+	  [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+	}
     }
 }
 
@@ -170,10 +198,29 @@ static Class NSMutableSet_concrete_class;
 
   if ([aCoder allowsKeyedCoding])
     {
-      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
-						@"NS.objects"];
+      id	array;
 
-      return [self initWithArray: array];
+      array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						@"NS.objects"];
+      if (array == nil)
+	{
+	  unsigned	i = 0;
+	  NSString	*key;
+	  id		val;
+
+	  array = [NSMutableArray arrayWithCapacity: 2];
+	  key = [NSString stringWithFormat: @"NS.object.%u", i];
+	  val = [(NSKeyedUnarchiver*)aCoder decodeObjectForKey: key];
+
+	  while (val != nil)
+	    {
+	      [array addObject: val];
+	      i++;
+	      key = [NSString stringWithFormat: @"NS.object.%u", i];
+	      val = [(NSKeyedUnarchiver*)aCoder decodeObjectForKey: key];
+	    }
+	}
+      self = [self initWithArray: array];
     }
   else
     {
@@ -197,8 +244,8 @@ static Class NSMutableSet_concrete_class;
 	    }
 #endif
 	}
-      return self;
     }
+  return self;
 }
 
 /* <init />
