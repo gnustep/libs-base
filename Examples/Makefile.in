@@ -110,7 +110,10 @@ port: port-server port-client
 install:
 uninstall:
 
-RCS_FILES = $(SRCS) $(HDRS) Makefile.in
+RCS_FILES = $(SRCS) $(HDRS) Makefile.in \
+Makefile.example.in \
+configure.example.in
+
 DIST_FILES = $(RCS_FILES)
 
 mostlyclean:

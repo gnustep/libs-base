@@ -299,10 +299,10 @@ NSIsEmptyRect(NSRect aRect)
 BOOL 	
 NSMouseInRect(NSPoint aPoint, NSRect aRect, BOOL flipped)
 {
-    return ((aPoint.x >= NSMinX(aRect))
-	        && (aPoint.y >= NSMinY(aRect))
-		&& (aPoint.x <= NSMaxX(aRect))
-		&& (aPoint.y <= NSMaxY(aRect)));
+    return ((aPoint.x > NSMinX(aRect))
+	        && (aPoint.y > NSMinY(aRect))
+		&& (aPoint.x < NSMaxX(aRect))
+		&& (aPoint.y < NSMaxY(aRect)));
 }
 
 BOOL 	

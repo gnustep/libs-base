@@ -76,7 +76,15 @@ stringDecrementCountAndFillHoleAt(MutableCStringStruct *self,
   _capacity = capacity;
   OBJC_MALLOC(_contents_chars, char, _capacity+1);
   _contents_chars[0] = '\0';
+  _free_contents = YES;
   return self;
+}
+
+- (void) dealloc
+{
+  if (_free_contents)
+    OBJC_FREE(_contents_chars);
+  [super dealloc];
 }
 
 /* xxx This should be made to return void, but we need to change
@@ -128,6 +136,7 @@ stringDecrementCountAndFillHoleAt(MutableCStringStruct *self,
 	  withName:NULL];
   _count = strlen(_contents_chars);
   _capacity = cap;
+  _free_contents = YES;
   return n;
 }
 
