@@ -218,13 +218,50 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 }
 
 @interface NSBundle (Private)
-+ (BOOL) _addFrameworkFromClass:(Class)frameworkClass;
++ (void) _addFrameworkFromClass:(Class)frameworkClass;
 - (NSArray *) _bundleClasses;
 @end
 
 @implementation NSBundle (Private)
 
-+ (BOOL) _addFrameworkFromClass:(Class)frameworkClass
+/* Nicola:
+
+   Frameworks can be used in an application in two different ways:
+
+   () the framework is dynamically/manually loaded, as if it were a
+   bundle.  This is the easier case, because we already have the
+   bundle setup with the correct path (it's the programmer's
+   responsibility to find the framework bundle on disk); we get all
+   information from the bundle dictionary, such as the version; we
+   also create the class list when loading the bundle, as for any
+   other bundle.
+
+   () the framework was linked into the application.  This is much
+   more difficult, because without using tricks, we have no way of
+   knowing where the framework bundle (needed eg for resources) is on
+   disk, and we have no way of knowing what the class list is, or the
+   version.  So the trick we use in this case to work around those
+   problems is that gnustep-make generates a 'NSFramework_xxx' class
+   and compiles it into each framework.  By asking the class, we can
+   get the version information, the list of classes which were
+   compiled into the framework, and the path were the framework bundle
+   was supposed to be installed (this is not completely reliable as
+   the programmer might change it later on by specifying a different
+   GNUSTEP_INSTALLATION_DIR when installing ... (TODO - modify
+   gnustep-make so that it issues a warning if you do that, suggesting
+   you to recompile before installing!)). (FIXME/TODO: If the linker
+   supports it, we should be asking the path on disk to the shared
+   object containing the NSFramework_xxx class ... and we can very
+   reliably guess the framework path from that path!!!!).
+
+   So at startup, we scan all classes which were compiled into the
+   application.  For each NSFramework_ class, we call the following
+   function, which records the name of the framework, the version,
+   the classes belonging to it, and tries to determine the path
+   on disk to the framework bundle.
+
+*/
++ (void) _addFrameworkFromClass:(Class)frameworkClass
 {
   NSBundle	 *bundle;
   NSString	**fmClasses;
@@ -233,29 +270,45 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 
   if (frameworkClass == Nil)
     {
-      return NO;
+      return;
+    }
+
+  /* This should NEVER happen.  Please read the description above to
+     convince yourself that if we are loading from a bundle, we
+     shouldn't be calling this function.  */
+  if (_loadingBundle != nil)
+    {
+      return;
     }
   
-  len = strlen(frameworkClass->name);
+  len = strlen (frameworkClass->name);
   
   if (len > 12 * sizeof(char)
       && !strncmp("NSFramework_", frameworkClass->name, 12))
     {
       NSString *varEnv, *path, *name;
-
+      
+      /* The name of the framework.  */
       name = [NSString stringWithCString: &frameworkClass->name[12]];
+      
+      /* Create the framework bundle if the bundle was linked into the 
+	 application.  */
+
+      /* NICOLA: I think if we could get the path to the NSFramework_
+	 class from the linker, then we could build the framework path
+	 reliably.  I consider the following only a hack.  */
 
       /* varEnv is something like GNUSTEP_LOCAL_ROOT.  */
       varEnv = [frameworkClass frameworkEnv];
       if (varEnv != nil  &&  [varEnv length] > 0)
 	{
-	  /* I don't think we should be reading it from the
-             environment directly!  */
+	  /* FIXME - I don't think we should be reading it from
+	     the environment directly!  */
 	  bundlePath = [[[NSProcessInfo processInfo] environment]
 			 objectForKey: varEnv];
 	}
       
-      /* path is something like ?.  */
+      /* FIXME - path is something like ?.  */
       path = [frameworkClass frameworkPath];
       if (path && [path length])
 	{
@@ -275,10 +328,24 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	}
       
       bundlePath = [bundlePath stringByAppendingPathComponent:
-				 [NSString stringWithFormat: @"%@.framework", 
+				 [NSString stringWithFormat: 
+					     @"%@.framework", 
 					   name]];
       
+      /* Try creating the bundle.  */
       bundle = [[NSBundle alloc] initWithPath: bundlePath];
+      
+      if (bundle == nil)
+	{
+	  /* TODO: We couldn't locate the framework in the expected
+	     location.  NICOLA: We should be trying to locate it in
+	     some other obvious location, iterating over
+	     user/network/local/system dirs ...  TODO.  */
+	  NSLog (@"Problem locating framework locating for framework %@",
+		 name);
+	  return;
+	}
+      
       bundle->_bundleType = NSBUNDLE_FRAMEWORK;
       bundle->_codeLoaded = YES;
       /* frameworkVersion is something like 'A'.  */
@@ -286,42 +353,21 @@ _bundle_name_first_match(NSString* directory, NSString* name)
       bundle->_bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
       
       /* A NULL terminated list of class names - the classes contained
-         in the framework.  */
+	 in the framework.  */
       fmClasses = [frameworkClass frameworkClasses];
-
+      
       while (*fmClasses != NULL)
 	{
 	  NSValue *value;
 	  Class    class = NSClassFromString(*fmClasses);
-
+	  
 	  value = [NSValue valueWithNonretainedObject: class];
-
+	  
 	  [(NSMutableArray *)[bundle _bundleClasses] addObject: value];
-
-	  if (_loadingBundle)
-	    {
-	      NSEnumerator *classEnum;
-	      NSValue      *obj;
-
-	      classEnum = [_loadingBundle->_bundleClasses objectEnumerator];
-	      while ((obj = [classEnum nextObject]))
-		{
-		  if ([obj nonretainedObjectValue] == class)
-		    {
-		      [(NSMutableArray *)_loadingBundle->_bundleClasses
-					 removeObject: obj];
-		      break;
-		    }
-		}
-	    }
 	  
 	  fmClasses++;
 	}
-
-      return YES;
     }
-
-  return NO;
 }
 
 - (NSArray *) _bundleClasses
@@ -331,193 +377,23 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 
 @end
 
-static NSString *lastSymbolPath = nil;
-static NSString *lastFrameworkName = nil;
-static NSBundle *lastFrameworkBundle = nil;
-
 void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
-  NSBundle	*bundle = nil;
-  NSString	*className;
-#if	LINKER_GETSYMBOL
-  NSString	*path;
-  NSString	*bundlePath = nil;
-  NSString	*lastComponent;
-  NSString	*libName;
-  NSString	*frameworkVersion = nil;
-  BOOL		isFramework = NO;
-#endif
-
   NSCAssert(_loadingBundle, NSInternalInconsistencyException);
 
-  if (theClass != 0)
+  /* Don't store the internal NSFramework_xxx class into the list of
+     bundle classes.  */
+  if (strlen (theClass->name) > 12
+      &&  !strncmp("NSFramework_", theClass->name, 12))
     {
-      className = NSStringFromClass(theClass);
-    }
-  else
-    {
-      className = [NSString stringWithCString: theCategory->class_name];
-    }
-
-  NSLog (@"objc bundle load callback for %@", className);
-
-#if	LINKER_GETSYMBOL
-  path = objc_get_symbol_path(theClass, theCategory);
-
-  if (lastSymbolPath && [lastSymbolPath isEqual: path] == YES)
-    {
-      isFramework = YES;
-    }
-  else
-    {
-      NSString *s;
-
-      DESTROY(lastSymbolPath);
-      DESTROY(lastFrameworkBundle);
-      DESTROY(lastFrameworkName);
-
-      /*
-       * Check for framework dirs
-       *
-       * <path_to>/Library/Frameworks/
-       * <path_to>/Library/Libraries/
-       */
-
-      libName = [path lastPathComponent];
-      s = [path stringByDeletingLastPathComponent]; // remove lib name
-      s = [s stringByDeletingLastPathComponent]; // remove library-combo
-      s = [s stringByDeletingLastPathComponent]; // remove system name
-      s = [s stringByDeletingLastPathComponent]; // remove processor
-
-      lastComponent = [s lastPathComponent];
-
-      // is in <path_to>/Library/Libraries ?
-      if ([lastComponent isEqual: @"Libraries"] == YES)
-	{
-	  s = [s stringByDeletingLastPathComponent]; // remove Libraries
-
-	  if ([[s lastPathComponent] isEqual: @"Library"] == YES)
-	    {
-	      const char *cString;
-	      int i, len;
-
-	      s = [s stringByAppendingPathComponent: @"Frameworks"];
-
-	      cString = [libName cString];
-	      len = [libName length];
-
-	      if (len > 3)
-		{
-		  for (i = 3; i < len; i++)
-		    {
-		      if (cString[i] == '.')
-			{
-			  break;
-			}
-		    }
-
-		  if (i > 3)
-		    {
-		      NSString *name;
-
-		      name = [NSString stringWithCString: &cString[3]
-				       length: i-3];
-
-		      bundlePath = [s stringByAppendingPathComponent:
-			[NSString stringWithFormat: @"%@.framework", name]];
-
-		      name = [NSString stringWithFormat: @"NSFramework_%@",
-			name];
-
-		      ASSIGN(lastFrameworkName, name);
-		      ASSIGN(lastSymbolPath, path);
-
-		      isFramework = YES;
-		    }
-		}
-	    }
-	}
-      else
-	{
-	  // if there is an extension it is not a framework
-	  if ([[lastComponent pathExtension] length] == 0)
-	    {
-	      frameworkVersion = lastComponent;
-	      /*
-	       * remove version and version directory.
-	       */
-	      s = [s stringByDeletingLastPathComponent];
-	      bundlePath = [s stringByDeletingLastPathComponent];
-
-	      if ([[bundlePath pathExtension] isEqual: @"framework"] == YES)
-		{
-		  ASSIGN(lastSymbolPath, path);
-		  isFramework = YES;
-		}
-	    }
-	}
-
-      if (isFramework == YES)
-	{
-	  if (_bundles != nil) 
-	    {
-	      bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
-	    }
-	  if (bundle != nil && _releasedBundles != 0)
-	    {
-	      bundle = (NSBundle *)NSMapGet(_releasedBundles, bundlePath);
-
-	      if (bundle != nil)
-		{
-		  NSMapInsert(_bundles, bundlePath, bundle);
-		  NSMapRemove(_releasedBundles, bundlePath);
-		}
-	    }
-
-	  if (bundle != nil)
-	    {
-	      bundle = [NSBundle bundleWithPath: bundlePath];
-	      bundle->_bundleType = NSBUNDLE_FRAMEWORK;
-	      bundle->_codeLoaded = YES;
-	      bundle->_frameworkVersion = RETAIN(frameworkVersion);
-	      bundle->_bundleClasses
-		= RETAIN([NSMutableArray arrayWithCapacity: 2]);
-	    }
-
-	  ASSIGN(lastFrameworkBundle, bundle);
-	}
+      return; 
     }
 
-  if (isFramework == YES)
-    {
-      bundle = lastFrameworkBundle;
-
-      if (lastFrameworkName != nil)
-	{
-	  if ([className isEqual: lastFrameworkName] == YES)
-	    {
-	      bundle->_frameworkVersion = RETAIN([theClass frameworkVersion]);
-	      DESTROY(lastFrameworkName);
-	    }
-	}
-    }
-  else
-    {
-      bundle = _loadingBundle;
-    }
-#else
-  if ([NSBundle _addFrameworkFromClass: theClass] == YES)
-    {
-      return;
-    }
-  bundle = _loadingBundle;
-#endif
-
-  /* Don't store categories */
+  /* Store classes, but don't store categories */
   if (theCategory == 0)
     {
-      [(NSMutableArray *)[bundle _bundleClasses] addObject:
+      [(NSMutableArray *)[_loadingBundle _bundleClasses] addObject:
 			   [NSValue valueWithNonretainedObject: (id)theClass]];
     }
 }
@@ -1014,10 +890,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  [load_lock unlock];
 	  return NO;
 	}
-      DESTROY(lastSymbolPath);
-      DESTROY(lastFrameworkName);
-      DESTROY(lastFrameworkBundle);
-      
       _codeLoaded = YES;
       _loadingBundle = nil;
       
