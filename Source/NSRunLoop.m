@@ -36,6 +36,7 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSDebug.h>
 
 #include <sys/types.h>
 #if	!defined(__WIN32__) || defined(__CYGWIN__)
@@ -51,13 +52,13 @@ static NSDate	*theFuture = nil;
 
 
 /*
- *	The 'RunLoopWatcher' class was written to permit the (relatively)
+ *	The 'GSRunLoopWatcher' class was written to permit the (relatively)
  *	easy addition of new events to be watched for in the runloop.
  *
  *	To add a new type of event, the 'RunLoopEventType' enumeration must be
  *	extended, and the methods must be modified to handle the new type.
  *
- *	The internal variables if the RunLoopWatcher are used as follows -
+ *	The internal variables if the GSRunLoopWatcher are used as follows -
  *
  *	The '_date' variable contains a date after which the event is useless
  *	and the watcher can be removed from the runloop.
@@ -76,7 +77,7 @@ static NSDate	*theFuture = nil;
  *	NSRunLoops [-acceptInputForMode: beforeDate: ] method MUST contain
  *	code to watch for events of each type.
  *
- *	To set this variable, the method adding the RunLoopWatcher to the
+ *	To set this variable, the method adding the GSRunLoopWatcher to the
  *	runloop must ask the 'receiver' (or its delegate) to supply a date
  *	using the '[-limitDateForMode: ]' message.
  *
@@ -85,7 +86,7 @@ static NSDate	*theFuture = nil;
  
 static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
 
-@interface RunLoopWatcher: NSObject
+@interface GSRunLoopWatcher: NSObject
 {
 @public
   NSDate		*_date;		/* First to match layout of NSTimer */
@@ -96,12 +97,12 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
   RunLoopEventType	type;
   unsigned 		count;
 }
-- initWithType: (RunLoopEventType)type
-      receiver: (id)anObj
-          data: (void*)data;
+- (id) initWithType: (RunLoopEventType)type
+	   receiver: (id)anObj
+	       data: (void*)data;
 @end
 
-@implementation	RunLoopWatcher
+@implementation	GSRunLoopWatcher
 
 - (void) dealloc
 {
@@ -137,17 +138,17 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
 
 /*
  *	Two optimisation functions that depend on a hack that the layout of
- *	the NSTimer class is known to be the same as RunLoopWatcher for the
+ *	the NSTimer class is known to be the same as GSRunLoopWatcher for the
  *	first two elements.
  */
 static inline NSDate* timerDate(NSTimer* timer)
 {
-  return ((RunLoopWatcher*)timer)->_date;
+  return ((GSRunLoopWatcher*)timer)->_date;
 }
 
 static inline BOOL timerInvalidated(NSTimer* timer)
 {
-  return ((RunLoopWatcher*)timer)->_invalidated;
+  return ((GSRunLoopWatcher*)timer)->_invalidated;
 }
 
 
@@ -170,9 +171,57 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 
 static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 {
-  return [((RunLoopWatcher *)(i0.obj))->_date 
-           compare: ((RunLoopWatcher *)(i1.obj))->_date];
+  return [((GSRunLoopWatcher *)(i0.obj))->_date 
+    compare: ((GSRunLoopWatcher *)(i1.obj))->_date];
 }
+
+
+
+/*
+ *	The GSRunLoopPerformer class is used to hold information about
+ *	messages which are due to be sent to objects once each runloop
+ *	iteration has passed.
+ */
+@interface GSRunLoopPerformer: NSObject
+{
+@public
+  SEL		selector;
+  id		target;
+  id		argument;
+  unsigned	order;
+}
+
+- (void) fire;
+- (id) initWithSelector: (SEL)aSelector
+		 target: (id)target
+	       argument: (id)argument
+		  order: (unsigned int)order;
+@end
+
+@implementation GSRunLoopPerformer
+
+- (void) fire
+{
+  [target performSelector: selector withObject: argument];
+}
+
+- (id) initWithSelector: (SEL)aSelector
+		 target: (id)aTarget
+	       argument: (id)anArgument
+		  order: (unsigned int)theOrder
+{
+  self = [super init];
+  if (self)
+    {
+      selector = aSelector;
+      target = aTarget;
+      argument = anArgument;
+      order = theOrder;
+    }
+  return self;
+}
+
+@end
 
 
 
@@ -188,68 +237,53 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 @end
 
 /*
- *	The RunLoopPerformer class is used to hold information about
- *	messages which are due to be sent to objects once a particular
- *	runloop iteration has passed.
+ *	The GSTimedPerformer class is used to hold information about
+ *	messages which are due to be sent to objects at a particular time.
  */
-@interface RunLoopPerformer: NSObject <GCFinalization>
+@interface GSTimedPerformer: NSObject <GCFinalization>
 {
 @public
   SEL		selector;
   id		target;
   id		argument;
-  unsigned	order;
-  NSArray	*modes;
   NSTimer	*timer;
 }
 
 - (void) fire;
-- initWithSelector: (SEL)aSelector
-	    target: (id)target
-          argument: (id)argument
-             order: (unsigned int)order
-             modes: (NSArray*)modes;
-- (BOOL) matchesSelector: (SEL)aSelector
-		  target: (id)aTarget
-		argument: (id)anArgument;
-- (NSArray*) modes;
-- (unsigned int) order;
-- (void) setTimer: (NSTimer*)timer;
+- (id) initWithSelector: (SEL)aSelector
+		 target: (id)target
+	       argument: (id)argument
+		  delay: (NSTimeInterval)delay;
 @end
 
-@implementation RunLoopPerformer
+@implementation GSTimedPerformer
 
 - (void) dealloc
 {
   [self gcFinalize];
   RELEASE(target);
   RELEASE(argument);
-  RELEASE(modes);
   [super dealloc];
 }
 
 - (void) fire
 {
-  if (timer != nil)
-    {
-      timer = nil;
-      AUTORELEASE(RETAIN(self));
-      [[[NSRunLoop currentInstance] _timedPerformers]
-		removeObjectIdenticalTo: self];
-    }
+  timer = nil;
   [target performSelector: selector withObject: argument];
+  [[[NSRunLoop currentInstance] _timedPerformers]
+	    removeObjectIdenticalTo: self];
 }
 
 - (void) gcFinalize
 {
-  [timer invalidate];
+  if (timer != nil)
+    [timer invalidate];
 }
 
 - (id) initWithSelector: (SEL)aSelector
 		 target: (id)aTarget
 	       argument: (id)anArgument
-		  order: (unsigned int)theOrder
-		  modes: (NSArray*)theModes
+		  delay: (NSTimeInterval)delay
 {
   self = [super init];
   if (self)
@@ -257,42 +291,13 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
       selector = aSelector;
       target = RETAIN(aTarget);
       argument = RETAIN(anArgument);
-      order = theOrder;
-      modes = [theModes copy];
+      timer = [NSTimer timerWithTimeInterval: delay
+				      target: self
+				    selector: @selector(fire)
+				    userInfo: nil
+				     repeats: NO];
     }
   return self;
-}
-
-- (BOOL) matchesSelector: (SEL)aSelector
-		  target: (id)aTarget
-		argument: (id)anArgument
-{
-  if (selector == aSelector)
-    {
-      if (target == aTarget)
-	{
-	  if ([argument isEqual: anArgument])
-	    {
-	      return YES;
-	    }
-	}
-    }
-  return NO;
-}
-
-- (NSArray*) modes
-{
-  return modes;
-}
-
-- (unsigned int) order
-{
-  return order;
-}
-
-- (void) setTimer: (NSTimer*)t
-{
-  timer = t;
 }
 @end
 
@@ -302,46 +307,45 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 					selector: (SEL)aSelector
 					  object: (id)arg
 {
-  NSMutableArray	*array;
-  unsigned		i;
+  NSMutableArray	*perf = [[NSRunLoop currentInstance] _timedPerformers];
+  unsigned		count = [perf count];
 
-  RETAIN(target);
-  RETAIN(arg);
-  array = [[NSRunLoop currentInstance] _timedPerformers];
-  i = [array count];
-  while (i-- > 0)
+  if (count > 0)
     {
-      if ([[array objectAtIndex: i] matchesSelector: aSelector
-					     target: target
-					   argument: arg])
+      GSTimedPerformer	*array[count];
+
+      RETAIN(target);
+      RETAIN(arg);
+      [perf getObjects: array];
+      while (count-- > 0)
 	{
-	  [array removeObjectAtIndex: i];
+	  GSTimedPerformer	*p = array[count];
+
+	  if (p->selector == aSelector && p->target == target
+	    && [p->argument isEqual: arg])
+	    {
+	      [perf removeObjectAtIndex: count];
+	    }
 	}
+      RELEASE(arg);
+      RELEASE(target);
     }
-  RELEASE(arg);
-  RELEASE(target);
 }
 
 - (void) performSelector: (SEL)aSelector
 	      withObject: (id)argument
 	      afterDelay: (NSTimeInterval)seconds
 {
-  NSMutableArray	*array;
-  RunLoopPerformer	*item;
+  NSRunLoop		*loop = [NSRunLoop currentInstance];
+  GSTimedPerformer	*item;
 
-  array = [[NSRunLoop currentInstance] _timedPerformers];
-  item = [[RunLoopPerformer alloc] initWithSelector: aSelector
+  item = [[GSTimedPerformer alloc] initWithSelector: aSelector
 					     target: self
 					   argument: argument
-					      order: 0
-					      modes: nil];
-  [array addObject: item];
-  [item setTimer: [NSTimer scheduledTimerWithTimeInterval: seconds
-						   target: item
-						 selector: @selector(fire)
-						 userInfo: nil
-						  repeats: NO]];
+					      delay: seconds];
+  [[loop _timedPerformers] addObject: item];
   RELEASE(item);
+  [loop addTimer: item->timer forMode: NSDefaultRunLoopMode];
 }
 
 - (void) performSelector: (SEL)aSelector
@@ -349,48 +353,41 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 	      afterDelay: (NSTimeInterval)seconds
 		 inModes: (NSArray*)modes
 {
-  NSRunLoop		*loop;
-  NSMutableArray	*array;
-  RunLoopPerformer	*item;
-  NSTimer		*timer;
-  int			i;
+  unsigned	count = [modes count];
 
-  if (modes == nil || [modes count] == 0)
+  if (count > 0)
     {
-      return;
-    }
-  loop = [NSRunLoop currentInstance];
-  array = [loop _timedPerformers];
-  item = [[RunLoopPerformer alloc] initWithSelector: aSelector
-					     target: self
-					   argument: argument
-					      order: 0
-					      modes: nil];
-  [array addObject: item];
-  timer = [NSTimer timerWithTimeInterval: seconds
-				  target: item
-				selector: @selector(fire)
-				userInfo: nil
-				 repeats: NO];
-  [item setTimer: timer];
-  RELEASE(item);
-  for (i = 0; i < [modes count]; i++)
-    {
-      [loop addTimer: timer forMode: [modes objectAtIndex: i]];
+      NSRunLoop		*loop = [NSRunLoop currentInstance];
+      NSString		*marray[count];
+      GSTimedPerformer	*item;
+      unsigned		i;
+
+      item = [[GSTimedPerformer alloc] initWithSelector: aSelector
+						 target: self
+					       argument: argument
+						  delay: seconds];
+      [[loop _timedPerformers] addObject: item];
+      RELEASE(item);
+      [modes getObjects: marray];
+      for (i = 0; i < count; i++)
+	{
+	  [loop addTimer: item->timer forMode: marray[i]];
+	}
     }
 }
 
 @end
+
 
 
 @interface NSRunLoop (Private)
 
-- (void) _addWatcher: (RunLoopWatcher*)item
+- (void) _addWatcher: (GSRunLoopWatcher*)item
 	     forMode: (NSString*)mode;
 - (void) _checkPerformers;
-- (RunLoopWatcher*) _getWatcher: (void*)data
-			   type: (RunLoopEventType)type
-		        forMode: (NSString*)mode;
+- (GSRunLoopWatcher*) _getWatcher: (void*)data
+			     type: (RunLoopEventType)type
+			  forMode: (NSString*)mode;
 - (NSMutableArray*) _performers;
 - (void) _removeWatcher: (void*)data
 		   type: (RunLoopEventType)type
@@ -402,7 +399,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 
 /* Add a watcher to the list for the specified mode.  Keep the list in
    limit-date order. */
-- (void) _addWatcher: (RunLoopWatcher*) item forMode: (NSString*)mode
+- (void) _addWatcher: (GSRunLoopWatcher*) item forMode: (NSString*)mode
 {
   GSIArray	watchers;
   id		obj;
@@ -448,30 +445,26 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 
 - (void) _checkPerformers
 {
-  unsigned		count = [_performers count];
+  GSIArray	performers = NSMapGet(_mode_2_performers, _current_mode);
+  unsigned	count;
 
-  if (count > 0)
+  if (performers != 0 && (count = GSIArrayCount(performers)) > 0)
     {
-      RunLoopPerformer	*array[count];
-      unsigned		i;
+      GSRunLoopPerformer	*array[count];
+      unsigned			i;
 
-      [_performers getObjects: array];
-/*
- * Retain performers in case firing them makes them get removed.
- */
-#if	GS_WITH_GC == 0
+      /*
+       * Copy the array - so we don't get messed up by any changes caused
+       * by 'fire'ing the performers.
+       */
       for (i = 0; i < count; i++)
-	[array[i] retain];
-#endif
+	{
+	  array[i] = RETAIN(GSIArrayItemAtIndex(performers, i).obj);
+	}
 
       for (i = 0; i < count; i++)
 	{
-	  RunLoopPerformer	*item = array[i];
-
-	  if ([item->modes containsObject: _current_mode])
-	    {
-	      [item fire];
-	    }
+	  [array[i] fire];
 	  RELEASE(array[i]);
 	}
     }
@@ -520,7 +513,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
           watcher: (id<RunLoopEvents>)watcher
           forMode: (NSString*)mode
 {
-  RunLoopWatcher	*info;
+  GSRunLoopWatcher	*info;
 
   if (mode == nil)
     {
@@ -540,7 +533,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
       [self _removeWatcher: data type: type forMode: mode];
 
       /* Create new object to hold information. */
-      info = [[RunLoopWatcher alloc] initWithType: type
+      info = [[GSRunLoopWatcher alloc] initWithType: type
 					 receiver: watcher
 					     data: data];
       /* Add the object to the array for the mode. */
@@ -585,7 +578,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
     }
   else
     {
-      RunLoopWatcher	*info;
+      GSRunLoopWatcher	*info;
 
       info = [self _getWatcher: data type: type forMode: mode];
   
@@ -704,8 +697,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
 #if	GS_WITH_GC == 0
-      wRelImp = [[RunLoopWatcher class] instanceMethodForSelector: wRelSel];
-      wRetImp = [[RunLoopWatcher class] instanceMethodForSelector: wRetSel];
+      wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
+      wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
 #endif
     }
 }
@@ -736,7 +729,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 				     ArrayMapValueCallBacks, 0);
   _mode_2_watchers = NSCreateMapTable (NSObjectMapKeyCallBacks,
 					   ArrayMapValueCallBacks, 0);
-  _performers = [[NSMutableArray alloc] initWithCapacity: 8];
+  _mode_2_performers = NSCreateMapTable (NSObjectMapKeyCallBacks,
+					   ArrayMapValueCallBacks, 0);
   _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
   _rfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  WatcherMapValueCallBacks, 0);
@@ -748,7 +742,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 - (void) dealloc
 {
   [self gcFinalize];
-  RELEASE(_performers);
   RELEASE(_timedPerformers);
   [super dealloc];
 }
@@ -757,6 +750,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 {
   NSFreeMapTable(_mode_2_timers);
   NSFreeMapTable(_mode_2_watchers);
+  NSFreeMapTable(_mode_2_performers);
   NSFreeMapTable(_rfdMap);
   NSFreeMapTable(_wfdMap);
 }
@@ -798,7 +792,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   GSIArray		timers;
   GSIArray		watchers;
   NSTimer		*min_timer = nil;
-  RunLoopWatcher	*min_watcher = nil;
+  GSRunLoopWatcher	*min_watcher = nil;
 
   saved_mode = _current_mode;
   _current_mode = mode;
@@ -948,9 +942,9 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   return when;
 }
 
-- (RunLoopWatcher*) _getWatcher: (void*)data
-			   type: (RunLoopEventType)type
-		        forMode: (NSString*)mode
+- (GSRunLoopWatcher*) _getWatcher: (void*)data
+			     type: (RunLoopEventType)type
+			  forMode: (NSString*)mode
 {
   GSIArray		watchers;
 
@@ -966,7 +960,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
       while (i-- > 0)
 	{
-	  RunLoopWatcher	*info;
+	  GSRunLoopWatcher	*info;
 
 	  info = GSIArrayItemAtIndex(watchers, i).obj;
 	  if (info->type == type && info->data == data)
@@ -996,7 +990,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
       while (i-- > 0)
 	{
-	  RunLoopWatcher	*info;
+	  GSRunLoopWatcher	*info;
 
 	  info = GSIArrayItemAtIndex(watchers, i).obj;
 	  if (info->type == type && info->data == data)
@@ -1097,7 +1091,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 	while (i-- > 0)
 	  {
-	    RunLoopWatcher	*info;
+	    GSRunLoopWatcher	*info;
 	    int			fd;
 
 	    info = GSIArrayItemAtIndex(watchers, i).obj;
@@ -1207,7 +1201,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     {
       if (FD_ISSET (fd_index, &write_fds))
         {
-	  RunLoopWatcher	*watcher;
+	  GSRunLoopWatcher	*watcher;
 
 	  watcher = NSMapGet(_wfdMap, (void*)fd_index);
 	  if (watcher != nil && watcher->_invalidated == NO)
@@ -1234,9 +1228,9 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
         }
       if (FD_ISSET (fd_index, &read_fds))
         {
-	  RunLoopWatcher	*watcher;
+	  GSRunLoopWatcher	*watcher;
 
-	  watcher = (RunLoopWatcher*)NSMapGet(_rfdMap, (void*)fd_index);
+	  watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)fd_index);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      /*
@@ -1348,26 +1342,27 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 			target: (id) target
 		      argument: (id) argument
 {
-  unsigned	count = [_performers count];
+  NSMapEnumerator	enumerator;
+  GSIArray		performers;
+  void			*mode;
 
-  if (count > 0)
+  enumerator = NSEnumerateMapTable(_mode_2_performers);
+
+  while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&performers))
     {
-      RunLoopPerformer	*array[count];
+      unsigned	count = GSIArrayCount(performers);
 
-      [_performers getObjects: array];
-      RETAIN(target);
-      RETAIN(argument);
       while (count--)
 	{
-	  if ([array[count] matchesSelector: aSelector
-				     target: target
-				   argument: argument] == YES)
+	  GSRunLoopPerformer	*p;
+
+	  p = GSIArrayItemAtIndex(performers, count).obj;
+	  if (p->selector == aSelector && p->target == target
+	    && p->argument == argument)
 	    {
-	      [_performers removeObjectAtIndex: count];
+	      GSIArrayRemoveItemAtIndex(performers, count);
 	    }
 	}
-      RELEASE(argument);
-      RELEASE(target);
     }
 }
 
@@ -1382,39 +1377,54 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 		   order: (unsigned int)order
 		   modes: (NSArray*)modes
 {
-  RunLoopPerformer	*item;
-  int			count = [_performers count];
+  unsigned		count = [modes count];
 
-  item = [[RunLoopPerformer alloc] initWithSelector: aSelector
-					     target: target
-					   argument: argument
-					      order: order
-					      modes: modes];
-  /* Add new item to list - reverse ordering */
-  if (count == 0)
+  if (count > 0)
     {
-      [_performers addObject: item];
-    }
-  else
-    {
-      RunLoopPerformer	*array[count];
-      unsigned		i;
+      NSString			*array[count];
+      GSRunLoopPerformer	*item;
 
-      [_performers getObjects: array];
-      for (i = 0; i < count; i++)
+      item = [[GSRunLoopPerformer alloc] initWithSelector: aSelector
+						   target: target
+						 argument: argument
+						    order: order];
+
+      [modes getObjects: array];
+      while (count-- > 0)
 	{
-	  if (array[i]->order <= order)
+	  NSString	*mode = array[count];
+	  GSIArray	performers = NSMapGet(_mode_2_performers, mode);
+	  unsigned	end;
+	  unsigned	i;
+
+	  if (performers == 0)
 	    {
-	      [_performers insertObject: item atIndex: i];
-	      break;
+	      NSZone	*z = [self zone];
+
+	      performers = NSZoneMalloc(z, sizeof(GSIArray_t));
+	      GSIArrayInitWithZoneAndCapacity(performers, z, 8);
+	      NSMapInsert(_mode_2_performers, mode, performers);
+	    }
+
+	  end = GSIArrayCount(performers);
+	  for (i = 0; i < end; i++)
+	    {
+	      GSRunLoopPerformer	*p;
+
+	      p = GSIArrayItemAtIndex(performers, i).obj;
+	      if (p->order <= order)
+		{
+		  GSIArrayInsertItem(performers, (GSIArrayItem)item, i);
+		  break;
+		}
+	    }
+	  if (i == end)
+	    {
+	      GSIArrayInsertItem(performers, (GSIArrayItem)item, i);
 	    }
 	}
-      if (i == count)
-	{
-	  [_performers addObject: item];
-	}
+      RELEASE(item);
     }
-  RELEASE(item);
 }
 
 - (void) removePort: (NSPort*)port

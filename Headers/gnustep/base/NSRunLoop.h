@@ -38,7 +38,7 @@ extern id NSDefaultRunLoopMode;
   id		_current_mode;
   NSMapTable	*_mode_2_timers;
   NSMapTable	*_mode_2_watchers;
-  NSMutableArray *_performers;
+  NSMapTable	*_mode_2_performers;
   NSMutableArray *_timedPerformers;
   NSMapTable	*_rfdMap;
   NSMapTable	*_wfdMap;
