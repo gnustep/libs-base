@@ -1,3 +1,17 @@
+Fri Jun 25 20:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/TcpPort.m: Improved debug code and added method to turn it on -
+	([+setDebug:])
+	* src/NSConnection.m: Changed code so that if a process sends us a
+	'release' for an object local to us, which it vended to a third
+	party, we retain the object for 30 seconds before releasing it in
+	order to give the third party time to connect to us and retain it.
+	Improved debug code and added method to turn it on - ([+setDebug:])
+	* src/NSDistributedObject.m: Added flag to say whether an object has
+	been vended to a third party.
+	Improved debug code and added method to turn it on - ([+setDebug:])
+	* src/include/NSDistantObject.h: Added flag.
+
 Thu Jun 24 22:05:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/proplist.y: Make parser more tolerant - permit a comma after
