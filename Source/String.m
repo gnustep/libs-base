@@ -51,7 +51,9 @@
   if (self == [String class])
     {
       [self setVersion:0];	/* beta release */
-      /* xxx eventually: class_add_behavior_category(NSStringStuff) */
+      /* xxx eventually: class_add_behavior_category(NSStringStuff),
+         but we'll have to be careful about these methods overriding
+	 the ones inherited in NSCString from NSString!  */
     }
 }
 
