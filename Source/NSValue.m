@@ -98,7 +98,7 @@
     if (NSShouldRetainWithZone(self, zone))
     	return [self retain];
     else
-    	return [NSCopyObject(self, 0, zone) deepen];
+    	return [(NSValue*)NSCopyObject(self, 0, zone) deepen];
 }
 
 /* Returns the concrete class associated with the type encoding */

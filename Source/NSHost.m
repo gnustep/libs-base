@@ -114,7 +114,7 @@ static NSMutableDictionary *_hostCache = nil;
       memcpy((void *)&in.s_addr, (const void *)ptr,  
 	      entry->h_length);
       [addresses addObject:[NSString  
-			     stringWithCString:inet_ntoa(in)]];
+			     stringWithCString:(char*)inet_ntoa(in)]];
     }
 
   [_hostCacheLock lock];

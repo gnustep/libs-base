@@ -632,11 +632,6 @@ static Class NSMutableArray_concrete_class;
 
 /* The NSCopying Protocol */
 
-- (id) copy
-{
-    return [self copyWithZone:NSDefaultMallocZone()];
-}
-
 - copyWithZone: (NSZone*)zone
 {
   /* a deep copy */

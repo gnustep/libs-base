@@ -743,9 +743,4 @@
   return n;
 }
 
-- copy
-{
-  return [self copyWithZone: [self zone]];
-}
-
 @end

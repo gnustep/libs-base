@@ -93,7 +93,7 @@ gnustep/base: FORCE
 	# Make necessary links to source headers if compiling in seperate dir
 	# These are separate directories because one contains the .h files
 	# generated during the build; the other contains the unchanged sources.
-	if [ ! -r ./include/Collection.h ]; then \
+	if [ ! -r ./srcdir-include/Foundation/NSObject.h ]; then \
 	  mkdir srcdir-include; \
 	  mkdir srcdir-include/gnustep; \
 	  (cd srcdir-include/gnustep; $(LN_S) ../../$(srcdir)/include ./base) ; \

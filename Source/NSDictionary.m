@@ -365,11 +365,6 @@ compareIt(id o1, id o2, void* context)
   return [[self description] writeToFile:path atomically:useAuxiliaryFile];
 }
 
-- copy
-{
-  return [self copyWithZone: [self zone]];
-}
-
 - copyWithZone: (NSZone*)z
 {
   /* a deep copy */

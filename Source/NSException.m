@@ -166,7 +166,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
     if (NSShouldRetainWithZone(self, zone))
     	return [self retain];
     else
-    	return [NSCopyObject(self, 0, zone) deepen];
+    	return [(NSException*)NSCopyObject(self, 0, zone) deepen];
 }
 
 

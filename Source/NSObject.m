@@ -157,7 +157,7 @@ extraRefCount (id anObject)
 
 - (id) copy
 {
-  return [(id)self copyWithZone: NSDefaultMallocZone()];
+  return [(id)self copyWithZone: NULL];
 }
 
 - (void) dealloc
@@ -179,7 +179,7 @@ extraRefCount (id anObject)
 
 - (id) mutableCopy
 {
-  return [(id)self mutableCopyWithZone: NSDefaultMallocZone()];
+  return [(id)self mutableCopyWithZone: NULL];
 }
 
 + (Class) superclass

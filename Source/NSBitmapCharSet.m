@@ -24,6 +24,7 @@
 #include <config.h>
 #include <Foundation/NSBitmapCharSet.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSCoder.h>
 
 @implementation NSBitmapCharSet
 
@@ -48,6 +49,20 @@
 - (BOOL)characterIsMember:(unichar)aCharacter
 {
   return ISSET(data[aCharacter/8], aCharacter % 8);
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+    [aCoder encodeObject: [self bitmapRepresentation]];
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+    NSData	*rep;
+
+    rep = [aCoder decodeObject];
+    self = [self initWithBitmap: rep];
+    return self;
 }
 
 @end

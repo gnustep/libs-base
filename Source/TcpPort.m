@@ -1967,7 +1967,7 @@ static NSMapTable *out_port_bag = NULL;
 
   /* Write the packet on the socket. */
 #ifdef	GDOMAP
-  c = tryWrite (s, (int)timeout, [data bytes], prefix + eof_position);
+  c = tryWrite (s, (int)timeout, (unsigned char*)[data bytes], prefix + eof_position);
 #else
 #ifdef	__WIN32__
   c = send (s, [data bytes], prefix + eof_position, 0);
