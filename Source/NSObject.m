@@ -337,7 +337,7 @@ GSFinalize(void* object, void* data)
 {
   [(id)object gcFinalize];
 #ifndef	NDEBUG
-  GSDebugAllocationRemove(((id)object)->class_pointer);
+  GSDebugAllocationRemove(((id)object)->class_pointer, (id)object);
 #endif
   ((id)object)->class_pointer = (void*)0xdeadface;
 }
@@ -385,7 +385,7 @@ NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 	   *	finalised - for other objects we have no way of decrementing
 	   *	the count when the object is collected.
 	   */
-	  GSDebugAllocationAdd(aClass);
+	  GSDebugAllocationAdd(aClass, new);
 #endif
 	  GC_REGISTER_FINALIZER (new, GSFinalize, NULL, NULL, NULL);
 	}
@@ -428,7 +428,7 @@ inline NSObject *
 NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 {
 #ifndef	NDEBUG
-  extern void GSDebugAllocationAdd(Class);
+  extern void GSDebugAllocationAdd(Class c, id o);
 #endif
   id new = nil;
   int size = aClass->instance_size + extraBytes + sizeof(struct obj_layout);
@@ -447,7 +447,7 @@ NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
       new = (id)&((obj)new)[1];
       new->class_pointer = aClass;
 #ifndef	NDEBUG
-      GSDebugAllocationAdd(aClass);
+      GSDebugAllocationAdd(aClass, new);
 #endif
     }
   return new;
@@ -457,7 +457,7 @@ inline void
 NSDeallocateObject(NSObject *anObject)
 {
 #ifndef	NDEBUG
-  extern void GSDebugAllocationRemove(Class);
+  extern void GSDebugAllocationRemove(Class c, id o);
 #endif
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
@@ -465,7 +465,7 @@ NSDeallocateObject(NSObject *anObject)
       NSZone	*z = GSObjCZone(anObject);
 
 #ifndef	NDEBUG
-      GSDebugAllocationRemove(((id)anObject)->class_pointer);
+      GSDebugAllocationRemove(((id)anObject)->class_pointer, (id)anObject);
 #endif
       ((id)anObject)->class_pointer = (void*) 0xdeadface;
       NSZoneFree(z, o);
@@ -495,7 +495,7 @@ NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
       memset (new, 0, size);
       new->class_pointer = aClass;
 #ifndef	NDEBUG
-      GSDebugAllocationAdd(aClass);
+      GSDebugAllocationAdd(aClass, new);
 #endif
     }
   return new;
@@ -509,7 +509,7 @@ NSDeallocateObject(NSObject *anObject)
       NSZone	*z = [anObject zone];
 
 #ifndef	NDEBUG
-      GSDebugAllocationRemove(((id)anObject)->class_pointer);
+      GSDebugAllocationRemove(((id)anObject)->class_pointer, (id)anObject);
 #endif
       ((id)anObject)->class_pointer = (void*) 0xdeadface;
       NSZoneFree(z, anObject);

@@ -3,6 +3,8 @@
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: August 1997
+   Extended by: Nicola Pero <n.pero@mi.flashnet.it>
+   Date: December 2000, April 2001
 
    This file is part of the GNUstep Base Library.
 
@@ -68,11 +70,29 @@ extern int	errno;
  *		Returns a newline separated list of the classes which
  *		have had instances allocated at any point, and the total
  *		count of the number of instances allocated.
- */
+ *
+ * When the previous functions have allowed you to find a memory leak,
+ * and you know that you are leaking objects of class XXX, but you are
+ * hopeless about actually finding out where the leak is, the
+ * following functions could come handy as they allow you to find
+ * exactly *what* objects you are leaking (warning! these functions
+ * could slow down your system appreciably - use them only temporarily
+ * and only in debugging systems):
+ *
+ *  GSDebugAllocationStartRecordingObjects()
+ *              Starts recording all allocated objects of a certain class
+ *
+ *  GSDebugAllocationListRecordedObjects() 
+ *              Returns an array containing all the allocated objects
+ *              of a certain class which have been recorded.
+ *              Presumably, you will immediately call -description on
+ *              them to find out the objects you are leaking.
+ *              Warning - the objects are put in an array, so until
+ *              the array is autoreleased, the objects are not released.  */
 
 #ifndef	NDEBUG
-GS_EXPORT void		GSDebugAllocationAdd(Class c);
-GS_EXPORT void		GSDebugAllocationRemove(Class c);
+GS_EXPORT void		GSDebugAllocationAdd(Class c, id o);
+GS_EXPORT void		GSDebugAllocationRemove(Class c, id o);
 
 GS_EXPORT BOOL		GSDebugAllocationActive(BOOL active);
 GS_EXPORT int		GSDebugAllocationCount(Class c);
@@ -81,6 +101,9 @@ GS_EXPORT int		GSDebugAllocationTotal(Class c);
 GS_EXPORT Class*        GSDebugAllocationClassList();
 GS_EXPORT const char*	GSDebugAllocationList(BOOL changeFlag);
 GS_EXPORT const char*	GSDebugAllocationListAll();
+
+GS_EXPORT void     GSDebugAllocationActiveRecordingObjects(Class c);
+GS_EXPORT NSArray *GSDebugAllocationListRecordedObjects(Class c);
 
 GS_EXPORT NSString*	GSDebugFunctionMsg(const char *func, const char *file,
 				int line, NSString *fmt);
