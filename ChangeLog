@@ -1,3 +1,15 @@
+2005-03-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSKeyValueCoding.h:
+	* Source/NSArray.m:
+	* Source/NSKeyValueCoding.m:
+	* Source/Additions/GSObjCRuntime.m:
+	On the way back from FOSDEM I updated tje key-value-coding stuff to
+	match the lastest version from Apple/MacOS-X panther.
+	I don't use KVC in my code, and have not testcases for it, so would
+	appreciate it if anyone who does could try this out and get bug
+	reports back to me ASAP.
+
 2005-03-01  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSBundle.m (+gnustepBundle, 

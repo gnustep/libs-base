@@ -1511,7 +1511,7 @@ GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
     }
   if (type == NULL)
     {
-      return [self handleQueryWithUnboundKey: key];
+      return [self valueForUndefinedKey: key];
     }
   else
     {
@@ -1834,11 +1834,11 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
     }
   if (type == NULL)
     {
-      [self handleTakeValue: val forUnboundKey: key];
+      [self setValue: val forUndefinedKey: key];
     }
   else if ((val == nil || val == null) && *type != _C_ID && *type != _C_CLASS)
     {
-      [self unableToSetNilForKey: key];
+      [self setNilValueForKey: key];
     }
   else
     {
