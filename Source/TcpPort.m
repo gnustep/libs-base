@@ -723,7 +723,7 @@ static NSMapTable *out_port_bag = NULL;
 	    }
 	}
     }
-  /* xxx When the AcceptedSocket-style OutPort get's it's 
+  /* xxx When the AcceptedSocket-style OutPort gets its 
      _remote_in_port_address set, we should make sure that there isn't
      already an OutPort with that address. */
 
@@ -1021,6 +1021,10 @@ static NSMapTable *out_port_bag = NULL;
 	    @encode(typeof(_remote_in_port_address.sin_addr.s_addr))
 	  at: &(_remote_in_port_address.sin_addr.s_addr)
 	  withName: @"inet address"];
+  if (debug_tcp_port)
+    printf ("TcpOutPort encoded port %hd host %s\n",
+	    ntohs (_remote_in_port_address.sin_port),
+	    inet_ntoa (_remote_in_port_address.sin_addr));
 }
 
 + newWithCoder: aCoder
@@ -1034,6 +1038,10 @@ static NSMapTable *out_port_bag = NULL;
   [aCoder decodeValueOfCType: @encode(typeof(addr.sin_addr.s_addr))
 	  at: &(addr.sin_addr.s_addr)
 	  withName: NULL];
+  if (debug_tcp_port)
+    printf ("TcpOutPort decoded port %hd host %s\n",
+	    ntohs (addr.sin_port),
+	    inet_ntoa (addr.sin_addr));
   return [TcpOutPort newForSendingToSockaddr: &addr
 		     withAcceptedSocket: 0
 		     pollingInPort: nil];
