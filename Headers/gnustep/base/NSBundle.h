@@ -1,8 +1,11 @@
-/* Interface for NSBundle for GNUStep   -*-objc-*-
-   Copyright (C) 1995, 1997, 1999, 2001 Free Software Foundation, Inc.
+/** Interface for NSBundle for GNUStep   -*-objc-*-
+   Copyright (C) 1995, 1997, 1999, 2001, 2002 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: 1995
+
+   Updates by various authors.
+   Documentation by Nicola Pero <n.pero@mi.flashnet.it>
   
    This file is part of the GNUstep Base Library.
 
@@ -49,20 +52,53 @@ GS_EXPORT NSString* NSLoadedClasses;
   NSString      *_frameworkVersion;
 }
 
+/** Return an array enumerating all the bundles in the application.  This
+ *  does not include frameworks.  */
 + (NSArray*) allBundles;
+
+/** Return an array enumerating all the frameworks in the application.  This
+ *  does not include normal bundles.  */
 + (NSArray*) allFrameworks;
 
-/* Return the application bundle for an application, and the tool bundle
- * for a tool, locating it automatically on disk.   */
+/** Return the bundle containing the resources for the executable.  If
+ * the executable is an application, this is the main application
+ * bundle (the xxx.app directory); if the executable is a tool, this
+ * is a bundle 'naturally' associated with the tool: if the tool
+ * executable is xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control then the
+ * tool's main bundle directory is xxx/Tools/Resources/Control.
+ *
+ * NB: traditionally tools didn't have a main bundle -- this is a recent
+ * GNUstep extension, but it's quite nice and it's here to stay.
+ *
+ * The main bundle is where the application should put all of its
+ * resources, such as support files (images, html, rtf, txt, ...),
+ * localization tables, .gorm (.nib) files, etc.  gnustep-make
+ * (/ProjectCenter) allows you to easily specify the resource files to
+ * put in the main bundle when you create an application or a tool.
+ */
 + (NSBundle*) mainBundle;
 
+/** Return the bundle to which aClass belongs.  If aClass was loaded
+ * from a bundle, return the bundle; if it belongs to a framework
+ * (either a framework linked into the application, or loaded
+ * dynamically), return the framework; in all other cases, return the
+ * main bundle.
+ *
+ * Please note that GNUstep supports plain shared libraries, while the
+ * openstep standard, and other openstep-like systems, do not; the
+ * behaviour when aClass belongs to a plain shared library is at the
+ * moment still under investigation -- you should consider it
+ * undefined since it might be changed. :-)
+ */
 + (NSBundle*) bundleForClass: (Class)aClass;
 
-/* Return a bundle for the path at path.  If path doesn't exist or is
+/** Return a bundle for the path at path.  If path doesn't exist or is
  * not readable, return nil.  If you want the main bundle of an
  * application or a tool, it's better if you use +mainBundle.  */
 + (NSBundle*) bundleWithPath: (NSString*)path;
 
+/** Search for a file with name 'name' and extension 'ext' in the bundle
+ * rooted at 'bundlePath'.  */
 + (NSString*) pathForResource: (NSString*)name
 		       ofType: (NSString*)ext
 		  inDirectory: (NSString*)bundlePath;
@@ -71,13 +107,15 @@ GS_EXPORT NSString* NSLoadedClasses;
 		  inDirectory: (NSString*)bundlePath
 		  withVersion: (int)version;
 
-/* Init the bundle for reading resources from path.  path must be an absolute
- * path to a directory on disk.  If path is nil or doesn't exist, this method
- * return nil.  If a bundle for that path already existed, it is returned
- * in place of this one (and this one is deallocated).  */
+/** Init the bundle for reading resources from path.  path must be an
+ * absolute path to a directory on disk.  If path is nil or doesn't
+ * exist, initWithPath: returns nil.  If a bundle for that path
+ * already existed, it is returned in place of the receiver (and the
+ * receiver is deallocated).
+ */
 - (id) initWithPath: (NSString*)path;
 
-/* Return the path to the bundle - an absolute path.  */
+/** Return the path to the bundle - an absolute path.  */
 - (NSString*) bundlePath;
 
 - (Class) classNamed: (NSString*)className;
@@ -108,6 +146,12 @@ GS_EXPORT NSString* NSLoadedClasses;
 #ifndef	 NO_GNUSTEP
 @interface NSBundle (GNUstep)
 
+/** The following method is an experimental GNUstep extension, and
+ *  might change.  At the moment, search on the standard GNUstep
+ *  directories (starting from GNUSTEP_USER_ROOT, and going on to
+ *  GNUSTEP_SYSTEM_ROOT) for a directory
+ *  Libraries/Resources/'libraryName'/.
+ */
 + (NSBundle *) bundleForLibrary: (NSString *)libraryName;
 
 + (NSString *) _absolutePathOfExecutable: (NSString *)path;
@@ -122,7 +166,7 @@ GS_EXPORT NSString* NSLoadedClasses;
 
 @end
 
-/* Warning - the following should never be used.  */
+/** Warning - the following should never be used.  */
 #define GSLocalizedString(key, comment) \
   [[NSBundle gnustepBundle] localizedStringForKey:(key) value:@"" table:nil]
 #define GSLocalizedStringFromTable(key, tbl, comment) \
