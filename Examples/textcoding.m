@@ -42,11 +42,11 @@ int main()
      want human-readable "Text"-style, instead of "Binary"-style
      coding. */
   archiver = [[Archiver alloc] initForWritingToFile: @"./textcoding.txt"
-	    withCStreamClass: [TextCStream class]];
+			       withCStreamClass: [TextCStream class]];
   [archiver encodeObject: array 
-	    withName:@"Test Array"];
+	    withName: @"Test Array"];
   [archiver encodeObject: dictionary
-	    withName:@"Test Dictionary"];
+	    withName: @"Test Dictionary"];
 
   /* Release the objects that were coded */
   [array release];
@@ -56,7 +56,7 @@ int main()
      We must separate the idea of "closing" a stream and
      "deallocating" a stream because of delays in deallocation due to
      -autorelease. */
-  [archiver closeCoding];
+  [archiver close];
   [archiver release];
 
 
