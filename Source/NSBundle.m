@@ -117,7 +117,8 @@ static NSString	*library_combo =
 const char *
 objc_executable_location (void)
 {
-  return [[_executable_path stringByDeletingLastPathComponent] cString];
+  return [[_executable_path stringByDeletingLastPathComponent] 
+	     fileSystemRepresentation];
 }
 
 static BOOL
@@ -896,10 +897,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	{
 	  path = _path;
 	}
+
       object = bundle_object_name(path, object);
       _loadingBundle = self;
       _bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
-      if (objc_load_module([object cString], 
+      if (objc_load_module([object fileSystemRepresentation], 
 			   stderr, _bundle_load_callback, NULL, NULL))
 	{
 	  [load_lock unlock];
