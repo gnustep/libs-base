@@ -291,7 +291,6 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	info->align = __alignof__(unsigned long);
 	break;
 
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
 	info->size = sizeof(long long);
 	info->align = __alignof__(long long);
@@ -302,7 +301,6 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	info->align = __alignof__(unsigned long long);
 	break;
 
-#endif
       case _C_FLT:
 	info->size = sizeof(float);
 	info->align = __alignof__(float);
@@ -1653,7 +1651,6 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
 	break;
       }
 
-#ifdef	_C_LNG_LNG
     case _C_LNG_LNG:
     case _C_ULNG_LNG:
       {
@@ -1664,7 +1661,6 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
 	*(unsigned long long*)buffer = retframe_longlong(retframe);
 	break;
       }
-#endif
 
     case _C_FLT:
       {

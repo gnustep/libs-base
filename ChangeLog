@@ -1,3 +1,15 @@
+Thu Feb 10  9:34:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Headers/gnustep/base/preface.h.in: Added tests to see if _C_LNG_LNG
+	and _C_ULNG_LNG are defined in the objc compiler headers and, if not,
+	define them.  Long long support was added in gcc 2.8 (minimum
+	compiler version recommended for GNUstep), but the defines were
+	missing from the headers :-(
+	* Source/NSArchiver.m: Remove conditional compile for long long stuff.
+	* Source/NSData.m: ditto
+	* Source/NSUnarchiver.m: ditto
+	* Source/mframe.m: ditto
+
 2000-02-09  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/gnustep-base.tmpl.texi: Update.

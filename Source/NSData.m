@@ -846,7 +846,6 @@ failure:
 	  *(unsigned long*)data = NSSwapBigLongToHost(nl);
 	  return;
 	}
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
       case _C_ULNG_LNG:
 	{
@@ -858,7 +857,6 @@ failure:
 	  *(unsigned long long*)data = NSSwapBigLongLongToHost(nl);
 	  return;
 	}
-#endif
       case _C_FLT:
 	{
 	  NSSwappedFloat nf;
@@ -1429,7 +1427,6 @@ failure:
 	  [self appendBytes: &nl length: sizeof(unsigned long)];
 	  return;
 	}
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
       case _C_ULNG_LNG:
 	{
@@ -1439,7 +1436,6 @@ failure:
 	  [self appendBytes: &nl length: sizeof(unsigned long long)];
 	  return;
 	}
-#endif
       case _C_FLT:
 	{
 	  NSSwappedFloat nf = NSSwapHostFloatToBig(*(float*)data);
@@ -1912,7 +1908,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  *(unsigned long*)data = NSSwapBigLongToHost(nl);
 	  return;
 	}
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
       case _C_ULNG_LNG:
 	{
@@ -1922,7 +1917,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  *(unsigned long long*)data = NSSwapBigLongLongToHost(nl);
 	  return;
 	}
-#endif
       case _C_FLT:
 	{
 	  NSSwappedFloat nf;
@@ -2845,7 +2839,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  (*appendImp)(self, appendSel, &nl, sizeof(unsigned long));
 	  return;
 	}
-#ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
       case _C_ULNG_LNG:
 	{
@@ -2855,7 +2848,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  (*appendImp)(self, appendSel, &nl, sizeof(unsigned long long));
 	  return;
 	}
-#endif
       case _C_FLT:
 	{
 	  NSSwappedFloat nf = NSSwapHostFloatToBig(*(float*)data);
