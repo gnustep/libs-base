@@ -2389,7 +2389,8 @@ fail:
       [self appendComment: comment to: method];
       DESTROY(comment);
     }
-  if ([itemName length] > 1 && [itemName characterAtIndex: 1] == '_')
+  if (flag == YES
+    && [itemName length] > 1 && [itemName characterAtIndex: 1] == '_')
     {
       NSString	*c;
 
