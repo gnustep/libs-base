@@ -379,6 +379,7 @@ NSGData.m \
 NSGDictionary.m \
 NSGSet.m \
 NSHashTable.m \
+NSHost.m \
 NSInvocation.m \
 NSLock.m \
 NSLog.m \
@@ -455,6 +456,7 @@ include/NSGData.h \
 include/NSGDictionary.h \
 include/NSGSet.h \
 include/NSHashTable.h \
+include/NSHost.h \
 include/NSInvocation.h \
 include/NSLock.h \
 include/NSMapTable.h \
