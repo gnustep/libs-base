@@ -87,6 +87,10 @@ static NSBundle		*_gnustep_bundle = nil;
 static NSRecursiveLock	*load_lock = nil;
 static BOOL		_strip_after_loading = NO;
 
+/* List of framework linked in the _loadingBundle */
+static NSMutableArray	*_loadingFrameworks = nil;
+static NSString         *_currentFrameworkName = nil;
+
 static NSString	*gnustep_target_dir = 
 #ifdef GNUSTEP_TARGET_DIR
   @GNUSTEP_TARGET_DIR;
@@ -219,7 +223,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 }
 
 @interface NSBundle (Private)
-+ (void) _addFrameworkFromClass:(Class)frameworkClass;
++ (void) _addFrameworkFromClass: (Class)frameworkClass;
 - (NSArray *) _bundleClasses;
 @end
 
@@ -261,8 +265,15 @@ _bundle_name_first_match(NSString* directory, NSString* name)
    the classes belonging to it, and tries to determine the path
    on disk to the framework bundle.
 
+   Mirko:
+
+   Bundles (ie frameworks) could depend to other frameworks (linked
+   togheter on platform that supports this behaviour) so in
+   _bundle_load_callback() we construct a list of all NSFramework_* classes
+   loaded and call this method to build the correct list of bundles.
+
 */
-+ (void) _addFrameworkFromClass:(Class)frameworkClass
++ (void) _addFrameworkFromClass: (Class)frameworkClass
 {
   NSBundle	 *bundle;
   NSString	**fmClasses;
@@ -274,20 +285,13 @@ _bundle_name_first_match(NSString* directory, NSString* name)
       return;
     }
 
-  /* FIXME NICOLA :-) Hmmm ... consider the case that the framework
-     was linked (using xxx_LIBRARIES_DEPEND_UPON) into a bundle.  */
-  if (_loadingBundle != nil)
-    {
-      return;
-    }
-  
   len = strlen (frameworkClass->name);
-  
+
   if (len > 12 * sizeof(char)
       && !strncmp("NSFramework_", frameworkClass->name, 12))
     {
       NSString *varEnv, *path, *name;
-      
+
       /* The name of the framework.  */
       name = [NSString stringWithCString: &frameworkClass->name[12]];
       
@@ -355,18 +359,22 @@ _bundle_name_first_match(NSString* directory, NSString* name)
       /* A NULL terminated list of class names - the classes contained
 	 in the framework.  */
       fmClasses = [frameworkClass frameworkClasses];
-      
+
       while (*fmClasses != NULL)
 	{
 	  NSValue *value;
 	  Class    class = NSClassFromString(*fmClasses);
-	  
+
 	  value = [NSValue valueWithNonretainedObject: class];
 	  
 	  [(NSMutableArray *)[bundle _bundleClasses] addObject: value];
 	  
 	  fmClasses++;
 	}
+
+      if (_loadingBundle)
+	[(NSMutableArray *)[_loadingBundle _bundleClasses]
+			   removeObjectsInArray: [bundle _bundleClasses]];
     }
 }
 
@@ -381,6 +389,7 @@ void
 _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSCAssert(_loadingBundle, NSInternalInconsistencyException);
+  NSCAssert(_loadingFrameworks, NSInternalInconsistencyException);
 
   /* We never record categories - if this is a category, just do nothing.  */
   if (theCategory != 0)
@@ -389,10 +398,22 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   /* Don't store the internal NSFramework_xxx class into the list of
-     bundle classes.  */
+     bundle classes, but store the linked frameworks in _loadingFrameworks  */
   if (strlen (theClass->name) > 12   &&  !strncmp ("NSFramework_", 
 						   theClass->name, 12))
     {
+      if (_currentFrameworkName)
+	{
+	  const char *frameworkName;
+
+	  frameworkName = [_currentFrameworkName cString];
+
+	  if (!strcmp(theClass->name, frameworkName))
+	    return;
+	}
+
+      [_loadingFrameworks
+	addObject: [NSValue valueWithNonretainedObject: (id)theClass]];
       return; 
     }
 
@@ -902,6 +923,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if (_bundleType == NSBUNDLE_FRAMEWORK)
 	{
 	  path = [_path stringByAppendingPathComponent:@"Versions/Current"];
+
+	  _currentFrameworkName = RETAIN(([NSString stringWithFormat:
+						      @"NSFramework_%@",
+						    object]));
 	}
       else
 	{
@@ -911,13 +936,25 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       object = bundle_object_name(path, object);
       _loadingBundle = self;
       _bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
+      _loadingFrameworks = RETAIN([NSMutableArray arrayWithCapacity: 2]);
       if (objc_load_module([object fileSystemRepresentation], 
 			   stderr, _bundle_load_callback, NULL, NULL))
 	{
+	  DESTROY(_loadingFrameworks);
+	  DESTROY(_currentFrameworkName);
 	  [load_lock unlock];
 	  return NO;
 	}
       _codeLoaded = YES;
+
+      /* We now construct the list of bundles from frameworks linked with
+	 this one */
+      classEnumerator = [_loadingFrameworks objectEnumerator];
+      while ((class = [classEnumerator nextObject]) != nil)
+	{
+	  [NSBundle _addFrameworkFromClass: [class nonretainedObjectValue]];
+	}
+
       /* After we load code from a bundle, we retain the bundle until
 	 we unload it (because we never unload bundles, that is
 	 forever).  The reason why we retain it is that we need it!
@@ -926,6 +963,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	 +allBundles.  */
       RETAIN (self);
       _loadingBundle = nil;
+
+      DESTROY(_loadingFrameworks);
+      DESTROY(_currentFrameworkName);
       
       classNames = [NSMutableArray arrayWithCapacity: [_bundleClasses count]];
       classEnumerator = [_bundleClasses objectEnumerator];
