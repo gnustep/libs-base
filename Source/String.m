@@ -278,7 +278,17 @@
 
 - (unsigned) hash
 {
-  return elt_hash_string([self cString]);
+  unsigned ret = 0;
+  unsigned ctr = 0;
+  unsigned char_count = 0;
+  const char *s = [self cStringNoCopy];
+
+  while (*s && char_count++ < NSHashStringLength)
+    {
+      ret ^= *s++ << ctr;
+      ctr = (ctr + 1) % sizeof (void*);
+    }
+  return ret;
 }
 
 - (int) compare: anObject
