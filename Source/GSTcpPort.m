@@ -108,11 +108,11 @@ static	BOOL	multi_threaded = NO;
 static gsu32	maxDataLength = 10 * 1024 * 1024;
 
 #if 0
-#define	DO_LOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"lock %@",X); [X lock];}
-#define	DO_UNLOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"unlock %@",X); [X unlock];}
+#define	M_LOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"lock %@",X); [X lock];}
+#define	M_UNLOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"unlock %@",X); [X unlock];}
 #else
-#define	DO_LOCK(X) {[X lock];}
-#define	DO_UNLOCK(X) {[X unlock];}
+#define	M_LOCK(X) {[X lock];}
+#define	M_UNLOCK(X) {[X unlock];}
 #endif
 
 #define	GS_CONNECTION_MSG	0
@@ -473,7 +473,7 @@ static Class	runLoopClass;
   BOOL			gotAddr = NO;
   NSRunLoop		*l;
 
-  DO_LOCK(myLock);
+  M_LOCK(myLock);
   NSDebugMLLog(@"GSTcpHandle", @"Connecting on 0x%x in thread 0x%x before %@",
     self, GSCurrentThread(), when);
   if (state != GS_H_UNCON)
@@ -495,14 +495,14 @@ static Class	runLoopClass;
 	  NSLog(@"attempting connect while connecting");
 	  result = NO;
 	}
-      DO_UNLOCK(myLock);
+      M_UNLOCK(myLock);
       return result;
     }
 
   if (recvPort == nil || aPort == nil)
     {
       NSLog(@"attempting connect with port(s) unset");
-      DO_UNLOCK(myLock);
+      M_UNLOCK(myLock);
       return NO;	/* impossible.		*/
     }
 
@@ -527,7 +527,7 @@ static Class	runLoopClass;
 	{
 	  NSLog(@"run out of addresses to try (tried %d) for port %@",
 	    addrNum, aPort);
-	  DO_UNLOCK(myLock);
+	  M_UNLOCK(myLock);
 	  return NO;
 	}
       addr = [[addrs objectAtIndex: addrNum++] cString];
@@ -568,12 +568,12 @@ static Class	runLoopClass;
 	      BOOL	result;
 
 	      result = [self connectToPort: aPort beforeDate: when];
-	      DO_UNLOCK(myLock);
+	      M_UNLOCK(myLock);
 	      return result;
 	    }
 	  else
 	    {
-	      DO_UNLOCK(myLock);
+	      M_UNLOCK(myLock);
 	      return NO;	/* Tried all addresses	*/
 	    }
 	}
@@ -607,7 +607,7 @@ static Class	runLoopClass;
     {
       state = GS_H_UNCON;
       addrNum = 0;
-      DO_UNLOCK(myLock);
+      M_UNLOCK(myLock);
       return NO;	/* Timed out 	*/
     }
   else if (state == GS_H_UNCON)
@@ -621,12 +621,12 @@ static Class	runLoopClass;
 	   * that we haven't tried.
 	   */
 	  result = [self connectToPort: aPort beforeDate: when];
-	  DO_UNLOCK(myLock);
+	  M_UNLOCK(myLock);
 	  return result;
 	}
       addrNum = 0;
       state = GS_H_UNCON;
-      DO_UNLOCK(myLock);
+      M_UNLOCK(myLock);
       return NO;	/* connection failed	*/
     }
   else
@@ -634,7 +634,7 @@ static Class	runLoopClass;
       addrNum = 0;
       caller = YES;
       [aPort addHandle: self forSend: YES];
-      DO_UNLOCK(myLock);
+      M_UNLOCK(myLock);
       return YES;
     }
 }
@@ -662,7 +662,7 @@ static Class	runLoopClass;
 }
 
 /*
- * Method to pass an incoming message to the recieving port.
+ * Method to pass an incoming message to the receiving port.
  * Our lock must be locked on entry to this method, and we
  * unlock it temporarily while actually sending the message.
  */ 
@@ -681,9 +681,17 @@ static Class	runLoopClass;
   NSDebugMLLog(@"GSTcpHandle", @"got message %@ on 0x%x in thread 0x%x",
     pm, self, GSCurrentThread());
   RETAIN(rp);
-  DO_UNLOCK(myLock);
-  [rp handlePortMessage: pm];
-  DO_LOCK(myLock);
+  M_UNLOCK(myLock);
+  NS_DURING
+    {
+      [rp handlePortMessage: pm];
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Problem handling port message: %@", localException);
+    }
+  NS_ENDHANDLER
+  M_LOCK(myLock);
   RELEASE(pm);
   RELEASE(rp);
 }
@@ -699,7 +707,7 @@ static Class	runLoopClass;
 {
   if (valid == YES)
     {
-      DO_LOCK(myLock);
+      M_LOCK(myLock);
       if (valid == YES)
 	{ 
 	  NSRunLoop	*l;
@@ -723,7 +731,7 @@ static Class	runLoopClass;
 	  [[self recvPort] removeHandle: self];
 	  [[self sendPort] removeHandle: self];
 	}
-      DO_UNLOCK(myLock);
+      M_UNLOCK(myLock);
     }
 }
 
@@ -766,7 +774,7 @@ static Class	runLoopClass;
       return;
     }
 
-  DO_LOCK(myLock);
+  M_LOCK(myLock);
 
   if (type == ET_RPORT)
     {
@@ -815,7 +823,7 @@ static Class	runLoopClass;
 	    {
 	      NSDebugMLLog(@"GSTcpHandle", @"read eof on 0x%x in thread 0x%x",
 		self, GSCurrentThread());
-	      DO_UNLOCK(myLock);
+	      M_UNLOCK(myLock);
 	      [self invalidate];
 	      return;
 	    }
@@ -824,7 +832,7 @@ static Class	runLoopClass;
 	      NSDebugMLLog(@"GSTcpHandle",
 		@"read failed - %s on 0x%x in thread 0x%x",
 		GSLastErrorStr(errno), self, GSCurrentThread());
-	      DO_UNLOCK(myLock);
+	      M_UNLOCK(myLock);
 	      [self invalidate];
 	      return;
 	    }
@@ -856,7 +864,7 @@ static Class	runLoopClass;
 			{
 			  NSLog(@"%@ - unreasonable length (%u) for port",
 			    self, l);
-			  DO_UNLOCK(myLock);
+			  M_UNLOCK(myLock);
 			  [self invalidate];
 			  return;
 			}
@@ -898,7 +906,7 @@ static Class	runLoopClass;
 			    {
 			      NSLog(@"%@ - unreasonable length (%u) for data",
 				self, l);
-			      DO_UNLOCK(myLock);
+			      M_UNLOCK(myLock);
 			      [self invalidate];
 			      return;
 			    }
@@ -921,7 +929,7 @@ static Class	runLoopClass;
 			{
 			  NSLog(@"%@ - unreasonable length (%u) for data",
 			    self, l);
-			  DO_UNLOCK(myLock);
+			  M_UNLOCK(myLock);
 			  [self invalidate];
 			  return;
 			}
@@ -940,7 +948,7 @@ static Class	runLoopClass;
 		  else
 		    {
 		      NSLog(@"%@ - bad data received on port handle", self);
-		      DO_UNLOCK(myLock);
+		      M_UNLOCK(myLock);
 		      [self invalidate];
 		      return;
 		    }
@@ -1037,7 +1045,7 @@ static Class	runLoopClass;
 		  if (p == nil)
 		    {
 		      NSLog(@"%@ - unable to decode remote port", self);
-		      DO_UNLOCK(myLock);
+		      M_UNLOCK(myLock);
 		      [self invalidate];
 		      return;
 		    }
@@ -1152,7 +1160,7 @@ static Class	runLoopClass;
 	      if (errno != EINTR && errno != EAGAIN)
 		{
 		  NSLog(@"write attempt failed - %s", GSLastErrorStr(errno));
-		  DO_UNLOCK(myLock);
+		  M_UNLOCK(myLock);
 		  [self invalidate];
 		  return;
 		}
@@ -1208,7 +1216,7 @@ static Class	runLoopClass;
 	}
     }
 
-  DO_UNLOCK(myLock);
+  M_UNLOCK(myLock);
 }
 
 - (BOOL) sendMessage: (NSArray*)components beforeDate: (NSDate*)when
@@ -1220,7 +1228,7 @@ static Class	runLoopClass;
   NSDebugMLLog(@"GSTcpHandle",
     @"Sending message 0x%x %@ on 0x%x(%d) in thread 0x%x before %@",
     components, components, self, desc, GSCurrentThread(), when);
-  DO_LOCK(myLock);
+  M_LOCK(myLock);
   [wMsgs addObject: components];
 
   l = [runLoopClass currentRunLoop];
@@ -1235,9 +1243,9 @@ static Class	runLoopClass;
     && [wMsgs indexOfObjectIdenticalTo: components] != NSNotFound
     && [when timeIntervalSinceNow] > 0)
     {
-      DO_UNLOCK(myLock);
+      M_UNLOCK(myLock);
       [l runMode: NSConnectionReplyMode beforeDate: when];
-      DO_LOCK(myLock);
+      M_LOCK(myLock);
     }
   /*
    * NB. We will remove ourself from the run loop when the message send
@@ -1247,7 +1255,7 @@ static Class	runLoopClass;
     {
       sent = YES;
     }
-  DO_UNLOCK(myLock);
+  M_UNLOCK(myLock);
   RELEASE(self);
   NSDebugMLLog(@"GSTcpHandle",
     @"Message send 0x%x on 0x%x in thread 0x%x status %d",
@@ -1395,7 +1403,7 @@ static unsigned	wordAlign;
   GSTcpPort	*port = nil;
   NSMapTable	*thePorts;
 
-  [tcpPortLock lock];
+  M_LOCK(tcpPortLock);
 
   /*
    *	Get the map table of ports with the specified number.
@@ -1406,7 +1414,7 @@ static unsigned	wordAlign;
       port = (GSTcpPort*)NSMapGet(thePorts, (void*)aHost);
       IF_NO_GC(AUTORELEASE(RETAIN(port)));
     }
-  [tcpPortLock unlock];
+  M_UNLOCK(tcpPortLock);
   return port;
 }
 
@@ -1451,7 +1459,7 @@ static unsigned	wordAlign;
       return nil;
     }
 
-  [tcpPortLock lock];
+  M_LOCK(tcpPortLock);
 
   /*
    * First try to find a pre-existing port.
@@ -1620,13 +1628,13 @@ static unsigned	wordAlign;
     }
   IF_NO_GC(AUTORELEASE(port));
 
-  [tcpPortLock unlock];
+  M_UNLOCK(tcpPortLock);
   return port;
 }
 
 - (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send
 {
-  DO_LOCK(myLock);
+  M_LOCK(myLock);
   if (send == YES)
     {
       if (handle->caller == YES)
@@ -1639,7 +1647,7 @@ static unsigned	wordAlign;
       handle->recvPort = GS_GC_HIDE(self);
     }
   NSMapInsert(handles, (void*)(gsaddr)[handle descriptor], (void*)handle);
-  DO_UNLOCK(myLock);
+  M_UNLOCK(myLock);
 }
 
 - (NSString*) address
@@ -1695,7 +1703,7 @@ static unsigned	wordAlign;
   GSTcpHandle		*handle;
   id			recvSelf;
 
-  DO_LOCK(myLock);
+  M_LOCK(myLock);
 
   /*
    * Make sure there is enough room in the provided array.
@@ -1726,7 +1734,7 @@ static unsigned	wordAlign;
 	}
     }
   NSEndMapTableEnumeration(&me);
-  DO_UNLOCK(myLock);
+  M_UNLOCK(myLock);
 }
 
 - (GSTcpHandle*) handleForPort: (GSTcpPort*)recvPort beforeDate: (NSDate*)when
@@ -1736,7 +1744,7 @@ static unsigned	wordAlign;
   int			opt = 1;
   GSTcpHandle		*handle = nil;
 
-  DO_LOCK(myLock);
+  M_LOCK(myLock);
   /*
    * Enumerate all our socket handles, and look for one with port.
    */
@@ -1745,7 +1753,7 @@ static unsigned	wordAlign;
     {
       if ([handle recvPort] == recvPort)
 	{
-	  DO_UNLOCK(myLock);
+	  M_UNLOCK(myLock);
 	  NSEndMapTableEnumeration(&me);
 	  return handle;
 	}
@@ -1783,7 +1791,7 @@ static unsigned	wordAlign;
     {
       [recvPort addHandle: handle forSend: NO];
     }
-  DO_UNLOCK(myLock);
+  M_UNLOCK(myLock);
   /*
    * If we succeeded in creating a new handle - connect to remote host.
    */
@@ -1836,7 +1844,7 @@ static unsigned	wordAlign;
 {
   if ([self isValid] == YES)
     {
-      DO_LOCK(myLock);
+      M_LOCK(myLock);
 
       if ([self isValid] == YES)
 	{
@@ -1844,7 +1852,7 @@ static unsigned	wordAlign;
 	  NSArray	*handleArray;
 	  unsigned	i;
 
-	  [tcpPortLock lock];
+	  M_LOCK(tcpPortLock);
 	  thePorts = NSMapGet(tcpPortMap, (void*)(gsaddr)portNum);
 	  if (thePorts != 0)
 	    {
@@ -1855,7 +1863,7 @@ static unsigned	wordAlign;
 		}
 	      NSMapRemove(thePorts, (void*)host);
 	    }
-	  [tcpPortLock unlock];
+	  M_UNLOCK(tcpPortLock);
 
 	  if (handles != 0)
 	    {
@@ -1879,7 +1887,7 @@ static unsigned	wordAlign;
 	    }
 	  [super invalidate];
 	}
-      DO_UNLOCK(myLock);
+      M_UNLOCK(myLock);
     }
 }
 
@@ -1942,10 +1950,10 @@ static unsigned	wordAlign;
     }
   else
     {
-      DO_LOCK(myLock);
+      M_LOCK(myLock);
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(gsaddr)desc);
       IF_NO_GC(AUTORELEASE(RETAIN(handle)));
-      DO_UNLOCK(myLock);
+      M_UNLOCK(myLock);
       if (handle == nil)
 	{
 	  const char	*t;
@@ -1975,7 +1983,7 @@ static unsigned	wordAlign;
  */
 - (void) removeHandle: (GSTcpHandle*)handle
 {
-  DO_LOCK(myLock);
+  M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
       if (handle->caller != YES)
@@ -2000,7 +2008,7 @@ static unsigned	wordAlign;
     {
       [self invalidate];
     }
-  DO_UNLOCK(myLock);
+  M_UNLOCK(myLock);
 }
 
 /*

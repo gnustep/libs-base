@@ -1,3 +1,8 @@
+2003-05-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m: ([dispatch]) catch exceptions handling the port
+	message, so as to ensure that locking won't get out of sync.
+
 Mon Apr 28 12:09:44 BST 2003  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* NSCharacterSets/GNUmakefile (base-resources_RESOURCE_FILES_INSTALL_DIR): 
