@@ -1,3 +1,9 @@
+2004-04-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/GNUmakefile:
+	* Tools/Makefile.postamble:
+	Stop attempts to install templates removed in Adrian Robert's tidyup.
+
 2004-04-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Invalidate  userLanguages cache with every
