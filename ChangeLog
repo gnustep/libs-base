@@ -1,3 +1,7 @@
+Fri May  7 13:46:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSBundle.m: Modified ([-release]) to avoid unnecessary work.
+
 Thu May  6 21:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSUnarchiver.m: Don't retain/release unless necessary.
