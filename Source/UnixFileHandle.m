@@ -344,7 +344,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    return nil;
 	  }
 	
-      info = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
+      info = [[NSMutableDictionary alloc] initWithCapacity: 4];
       [info setObject: address forKey: NSFileHandleNotificationDataItem];
       [info setObject: GSFileHandleConnectCompletionNotification
 	       forKey: NotificationKey];
@@ -945,7 +945,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self checkAccept];
   readPos = 0;
   RELEASE(readInfo);
-  readInfo = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
+  readInfo = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [readInfo setObject: NSFileHandleConnectionAcceptedNotification
 	       forKey: NotificationKey];
   [self watchReadDescriptorForModes: modes];
@@ -961,7 +961,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self checkRead];
   readPos = 0;
   RELEASE(readInfo);
-  readInfo = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
+  readInfo = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [readInfo setObject: NSFileHandleReadCompletionNotification
 	       forKey: NotificationKey];
   [readInfo setObject: [NSMutableData dataWithCapacity: 0]
@@ -979,7 +979,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self checkRead];
   readPos = 0;
   RELEASE(readInfo);
-  readInfo = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
+  readInfo = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [readInfo setObject: NSFileHandleReadToEndOfFileCompletionNotification
 	       forKey: NotificationKey];
   [readInfo setObject: [NSMutableData dataWithCapacity: 0]
@@ -997,7 +997,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self checkRead];
   readPos = 0;
   RELEASE(readInfo);
-  readInfo = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
+  readInfo = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [readInfo setObject: NSFileHandleDataAvailableNotification
 	       forKey: NotificationKey];
   [readInfo setObject: [NSMutableData dataWithCapacity: 0]
@@ -1151,7 +1151,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   [self checkWrite];
 
-  info = RETAIN([NSMutableDictionary dictionaryWithCapacity: 4]);
+  info = [[NSMutableDictionary alloc] initWithCapacity: 4];
   [info setObject: item forKey: NSFileHandleNotificationDataItem];
   [info setObject: GSFileHandleWriteCompletionNotification
 		forKey: NotificationKey];
@@ -1554,11 +1554,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void) setAddr: (struct sockaddr_in *)sin
 {
-  address = [NSString stringWithCString: (char*)inet_ntoa(sin->sin_addr)];
-  RETAIN(address);
-  service = [NSString stringWithFormat: @"%d",
+  address = [[NSString alloc] initWithCString: (char*)inet_ntoa(sin->sin_addr)];
+  service = [[NSString alloc] initWithFormat: @"%d",
 	(int)GSSwapBigI16ToHost(sin->sin_port)];
-  RETAIN(service);
   protocol = @"tcp";
 }
 
