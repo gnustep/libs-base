@@ -33,6 +33,7 @@
 #include <objects/Dictionary.h>
 #include <objects/Queue.h>
 #include <objects/mframe.h>
+#include <objects/String.h>
 #include <assert.h>
 
 @interface Connection (GettingCoderInterface)
