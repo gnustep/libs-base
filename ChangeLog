@@ -10,6 +10,10 @@
 2001-01-30  Michael Hanni  <mhanni@sprintmail.com>
 
 	* Source/.cvsignore: tweaked to cover a few more items.
+	* Makefile.postamble: distclean removes created file: base.make.
+	* configure.in: patched to fix bug in libxml detection macro
+	(reviewed by: Nicola Pero <nicola@brainstorm.co.uk>)
+	* configure: Regenerated.
 
 2001-01-30  Nicola Pero  <nicola@brainstorm.co.uk>
 
