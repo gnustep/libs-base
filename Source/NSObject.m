@@ -1341,6 +1341,14 @@ static BOOL double_release_check_enabled = NO;
   return self;
 }
 
+/**
+ * Returns the actual object to be encoded for sending over the
+ * network on a Distributed Objects connection.<br />
+ * The default implementation returns self if the receiver is being
+ * sent <em>bycopy</em> and returns a proxy otherwise.<br />
+ * Subclasses may override this method to change this behavior,
+ * eg. to ensure that they are always copied. 
+ */
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
   static Class	proxyClass = 0;
@@ -1358,10 +1366,6 @@ static BOOL double_release_check_enabled = NO;
     }
 
   if ([aCoder isBycopy])
-    {
-      return self;
-    }
-  else if ([self isKindOfClass: proxyClass])
     {
       return self;
     }
