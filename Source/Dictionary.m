@@ -142,7 +142,7 @@
 	       capacity:aCapacity];
 }
 
-- (void) dealloc
+- (void) _collectionDealloc
 {
   coll_hash_delete(_contents_hash);
   [super dealloc];
