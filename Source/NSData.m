@@ -531,7 +531,7 @@ static unsigned	gsu32Align;
  * Initialises the receiver.<br />
  * The value of aBuffer is a pointer to something to be stored.<br />
  * The value of bufferSize is the number of bytes to use.<br />
- * The value fo shouldFree specifies whether the receiver should
+ * The value of shouldFree specifies whether the receiver should
  * attempt to free the memory pointer to by aBuffer when the receiver
  * is deallocated ... ie. it says whether the receiver <em>owns</em>
  * the memory.  Supplying the wrong value here will lead to memory
