@@ -40,6 +40,7 @@ INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 AR = ar
+AROUT =
 ARFLAGS = rc
 LN_S = @LN_S@
 MAKEINFO = makeinfo
@@ -49,9 +50,14 @@ LEXFLAGS =
      
 DEFS = @DEFS@
 
+# File name extensions
+OEXT = .o
+EXEEXT =
+LIBEXT = .a
+
 # All these are optional.  You can redefine CFLAGS, CPPFLAGS and
 # INCLUDEFLAGS on the command line however you like.
-CFLAGS = -Wno-implicit -g -O
+CFLAGS = -Wno-implicit -O
 CPPFLAGS = 
 INCLUDEFLAGS =
 
@@ -87,14 +93,14 @@ MAKEDEFINES = CC='$(CC)' CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' \
 INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 
 .SUFFIXES: .m
-.m.o:
+.m$(OEXT):
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -o $@ $<
-.c.o:
+.c$(OEXT):
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -o $@ $<
-%_pic.o: %.m
+%_pic$(OEXT): %.m
 	$(CC) -c $(ALL_CPPFLAGS) -fPIC -DPIC $(DEFS) \
 		$(ALL_OBJCFLAGS) -o $@ $<
-%_pic.o: %.c
+%_pic$(OEXT): %.c
 	$(CC) -c $(ALL_CPPFLAGS) -fPIC -DPIC $(DEFS) \
 		$(ALL_CFLAGS) -o $@ $<
 
@@ -212,10 +218,10 @@ objects/x-basics.h.in \
 objects/x-callbacks.h.in
 
 GNU_OBJS = \
-	$(GNU_MFILES:.m=.o) \
-	$(GNU_BASICS_CFILES:.c=.o) \
-	$(GNU_CALLBACKS_CFILES:.c=.o) \
-	$(GNU_CFILES:.c=.o)
+	$(GNU_MFILES:.m=$(OEXT)) \
+	$(GNU_BASICS_CFILES:.c=$(OEXT)) \
+	$(GNU_CALLBACKS_CFILES:.c=$(OEXT)) \
+	$(GNU_CFILES:.c=$(OEXT))
 
 GNU_HEADERS = \
 objects/Archiver.h \
@@ -327,9 +333,9 @@ NEXTSTEP_OTHER_SRCFILES = \
 NXStringTable_scan.l 
 
 NEXTSTEP_OBJS = \
-	$(NEXTSTEP_MFILES:.m=.o) \
-	$(NEXTSTEP_CFILES:.c=.o) \
-	$(NEXTSTEP_DERIVED_CFILES:.c=.o)
+	$(NEXTSTEP_MFILES:.m=$(OEXT)) \
+	$(NEXTSTEP_CFILES:.c=$(OEXT)) \
+	$(NEXTSTEP_DERIVED_CFILES:.c=$(OEXT))
 
 NEXTSTEP_HEADERS = \
 objc/HashTable.h \
@@ -367,6 +373,7 @@ NSGCString.m \
 NSGData.m \
 NSGDictionary.m \
 NSGSet.m \
+NSLock.m \
 NSHashTable.m \
 NSMapTable.m \
 NSMethodSignature.m \
@@ -377,6 +384,7 @@ NSProcessInfo.m \
 NSRange.m \
 NSSet.m \
 NSString.m \
+NSThread.m \
 NSTimeZone.m \
 NSValue.m
 
@@ -403,10 +411,10 @@ null-load.h \
 simple-load.h 
 
 GNUSTEP_OBJS = \
-	$(GNUSTEP_MFILES:.m=.o) \
-	$(GNUSTEP_CFILES:.c=.o) \
-	$(NSVALUE_MFILES:.m=.o) \
-	$(NSNUMBER_MFILES:.m=.o)
+	$(GNUSTEP_MFILES:.m=$(OEXT)) \
+	$(GNUSTEP_CFILES:.c=$(OEXT)) \
+	$(NSVALUE_MFILES:.m=$(OEXT)) \
+	$(NSNUMBER_MFILES:.m=$(OEXT))
 
 GNUSTEP_HEADERS = \
 Foundation/NSArchiver.h \
@@ -428,6 +436,7 @@ Foundation/NSGArray.h \
 Foundation/NSGCString.h \
 Foundation/NSGData.h \
 Foundation/NSGDictionary.h \
+Foundation/NSLock.h \
 Foundation/NSGSet.h \
 Foundation/NSHashTable.h \
 Foundation/NSInvocation.h \
@@ -440,6 +449,7 @@ Foundation/NSRange.h \
 Foundation/NSSerialization.h \
 Foundation/NSSet.h \
 Foundation/NSString.h \
+Foundation/NSThread.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \
 Foundation/NSZone.h \
@@ -450,7 +460,7 @@ HEADERS_INSTALL = @HEADERS_INSTALL@ \
                   $(GNU_BASICS_HFILES) $(GNU_CALLBACKS_HFILES) \
                   objects/stdobjects.h
 OBJS_INSTALL = @OBJS_INSTALL@ 
-OBJS_INSTALL_PIC = $(OBJS_INSTALL:.o=_pic.o)
+OBJS_INSTALL_PIC = $(OBJS_INSTALL:$(OEXT)=_pic$(OEXT))
 
 DIST_FILES = \
         Makefile.in AUTHORS \
@@ -485,7 +495,7 @@ RCS_FILES = \
         $(GNUSTEP_HEADERS) \
         $(GNUSTEP_OTHER_SRCFILES)
 
-all: libobjects.a @LIBOBJECTS_SO@
+all: libobjects$(LIBEXT) @LIBOBJECTS_SO@
 
 libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL_PIC) 
 	$(CC) -shared -o libobjects.so.$(OBJECTS_VERSION) \
@@ -498,14 +508,14 @@ libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL_PIC)
 	ln -s libobjects.so.$(OBJECTS_MAJOR_VERSION) \
 		libobjects.so
 
-libobjects.a: objects/stdobjects.h $(OBJS_INSTALL) 
-	$(AR) $(ARFLAGS) libobjects.a $(OBJS_INSTALL)
-	$(RANLIB) libobjects.a
+libobjects$(LIBEXT): objects/stdobjects.h $(OBJS_INSTALL) 
+	$(AR) $(ARFLAGS) $(AROUT)libobjects$(LIBEXT) $(OBJS_INSTALL)
+	$(RANLIB) libobjects$(LIBEXT)
 
 install: installdirs all
 	# Install the library
-	$(INSTALL_DATA) libobjects.a $(libdir)
-	$(RANLIB) $(libdir)/libobjects.a; \
+	$(INSTALL_DATA) libobjects$(LIBEXT) $(libdir)
+	$(RANLIB) $(libdir)/libobjects$(LIBEXT); \
 	if [ -n "@LIBOBJECTS_SO@" ]; then \
 	  $(INSTALL_DATA) libobjects.so.$(OBJECTS_VERSION) $(libdir) ; \
 	  rm -f $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
@@ -531,29 +541,31 @@ installdirs:
 		$(includedir)/Foundation
 
 uninstall:
-	rm -f $(libdir)/libobjects.a
+	rm -f $(libdir)/libobjects$(LIBEXT)
 	rm -rf $(includedir)/objects \
-		$(includedir)/objc \
 		$(includedir)/Foundation 
+	for file in $(NEXTSTEP_HEADERS); do \
+	  rm -f $(includedir)/$$file ; \
+	done
 
 # Creation of NSValue and NSNumber concrete classes from templates
 $(NSVALUE_MFILES) : NSCTemplateValue.m
 	rm -f $@
-	echo '#define TYPE_ORDER' `echo $@ | sed -e 's,[^0-9],,g'` >$@
+	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
 	cat $(srcdir)/NSCTemplateValue.m >> $@
 $(NSNUMBER_MFILES) : NSConcreteNumber.m
 	rm -f $@
-	echo '#define TYPE_ORDER' `echo $@ | sed -e 's,[^0-9],,g'` >$@
+	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
 	cat $(srcdir)/NSConcreteNumber.m >> $@
 
 NXStringTable_scan.c: NXStringTable_scan.l
 	$(LEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
 		> NXStringTable_scan.temp
-	sed 's/yy/NXlex_/g' < NXStringTable_scan.temp \
+	sed "s/yy/NXlex_/g" < NXStringTable_scan.temp \
 		> NXStringTable_scan.c
 	$(RM) -f NXStringTable_scan.temp
 
-objc-load.o: dynamic-load.h
+objc-load$(OEXT): dynamic-load.h
 
 dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
@@ -561,14 +573,14 @@ dynamic-load.h: ../config.status
 
 objects/stdobjects.h: $(srcdir)/../Version $(srcdir)/objects/stdobjects.h.in
 	rm -f $(srcdir)/objects/stdobjects.h
-	sed -e 's/@OBJECTS_VERSION@/$(OBJECTS_VERSION)/' \
+	sed -e "s/@OBJECTS_VERSION@/$(OBJECTS_VERSION)/" \
 	< $(srcdir)/objects/stdobjects.h.in | \
-	sed -e 's/@OBJECTS_MAJOR_VERSION@/$(OBJECTS_MAJOR_VERSION)/' | \
-	sed -e 's/@OBJECTS_MINOR_VERSION@/$(OBJECTS_MINOR_VERSION)/' | \
-	sed -e 's/@OBJECTS_SUBMINOR_VERSION@/$(OBJECTS_SUBMINOR_VERSION)/' | \
-	sed -e 's/@OBJECTS_GCC_VERSION@/$(OBJECTS_GCC_VERSION)/' \
+	sed -e "s/@OBJECTS_MAJOR_VERSION@/$(OBJECTS_MAJOR_VERSION)/" | \
+	sed -e "s/@OBJECTS_MINOR_VERSION@/$(OBJECTS_MINOR_VERSION)/" | \
+	sed -e "s/@OBJECTS_SUBMINOR_VERSION@/$(OBJECTS_SUBMINOR_VERSION)/" | \
+	sed -e "s/@OBJECTS_GCC_VERSION@/$(OBJECTS_GCC_VERSION)/" \
 	> $(srcdir)/objects/stdobjects.h
-stdobjects.o: objects/stdobjects.h
+stdobjects$(OEXT): objects/stdobjects.h
 
 # The Xs and Ys...
 
@@ -624,7 +636,7 @@ mostlyclean:
 	Foundation/*~ \
 	objc/*~
 clean: mostlyclean
-	rm -f libobjects.a *.o
+	rm -f libobjects$(LIBEXT) *$(OEXT)
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 	rm -f $(GNU_BASICS_CFILES) $(GNU_CALLBACKS_CFILES)
 	rm -f $(GNU_BASICS_HFILES) $(GNU_CALLBACKS_HFILES)

@@ -1,4 +1,50 @@
+Mon Feb 12 22:03:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in: Fix patch rejects.
+	(GNUSTEP_MFILES): Added NSHashTable.m and NSMapTable.m.
+	(GNUSTEP_HEADERS): Added Foundation/NSHashTable.h and
+	Foundation/NSMapTable.h.
+
+Mon Feb 12 21:14:58 1996  Albin L. Jones  <ajones@coos.dartmouth.edu>
+
+        * src/Makefile.in (GNU_MFILES, GNU_CFILES, GNU_HEADERS): Added
+        the above to the appropriate lists.  (GNU_BASICS_CFILES): Created
+        this variable to hold a list of `...-basics.c' files to be made.
+        (GNU_BASICS_HFILES): Similarly.  (GNU_CALLBACKS_CFILES): Created
+        this variable to hold a list of `...-callbacks.c' files to be
+        make.  (GNU_CALLBACKS_HFILES): Similarly.  (GNU_OTHER_SRCFILES):
+        Needed to add `x-basics.c.in', `x-callbacks.c.in',
+        `objects/x-basics.h.in' and `objects/x-callbacks.h.in' to this
+        list.  (GNUSTEP_HEADERS): Added `Foundation/atoz.h'.  (%-basics.c,
+        %-callbacks.c, objects/%-basics.h, objects/%-callbacks.h): Added
+        these make targets.  (array.o, data.o, hash.o, list.o, map.o,
+        objects/array.h, objects/data.h, objects/hash.h, objects/list.h,
+        objects/map.h): Added these make targets.
+
+        * src/NSHashTable.m, src/NSMapTable.m,
+        src/Foundation/NSHashTable.h,
+        src/Foundation/NSMapTable.h,
+        src/Foundation/atoz.h: Added these.
+
+        * src/objects/abort.h, src/objects/allocs.h,
+        src/objects/array.h, src/objects/bitops.h,
+        src/objects/callbacks.h, src/objects/data.h,
+        src/objects/hash.h, src/objects/list.h, src/objects/magic.h,
+        src/objects/magic.h, src/objects/minmax.h,
+        src/objects/number.h: Added these.
+
+        * src/abort.c, src/allocs.c, src/array.c, src/atoz.m,
+        src/callbacks-char_p.c, src/callbacks-id.m, src/callbacks-int.c,
+        src/callbacks-int_p.c, src/callbacks-void_p.c, src/callbacks.c,
+        src/hash.c, src/list.c, src/map.c, src/md5.c, src/md5.h,
+        src/number.c: Added these.
+
 Mon Feb 12 20:50:05 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Makefile.in (GNUSTEP_MFILES): Added NSHashTable.m and
+ 	NSMapTable.m.
+	(GNUSTEP_HEADERS): Added Foundation/NSHashTable.h and
+	Foundation/NSMapTable.h.
 
 	* checks/invocation.m: New file.
 	* checks/Makefile.in (SRCS): Add invocation.m.
@@ -32,6 +78,58 @@ Thu Feb  1 17:04:17 1996  Andrew McCallum  <mccallum@eeyore.cs.rochester>
  	Port.m, MutableString.m, NSArray.m:
         Use -subclassResponsibility instead of -notImplemented
         where appropriate.
+
+Mon Feb  5 10:08:56 1996  Scott Christley  (scottc@net-community.com)
+
+	* checks/diningPhilosophers.m: New file
+	* checks/Makefile.in: add diningPhilosophers.m
+	* src/Foundation/NSGeometry.h: Add NSZeroPoint, NSZeroSize,
+	and NSZeroRect constants.
+
+Sun Feb  4 18:43:41 1996  Scott Christley  (scottc@net-community.com)
+
+	* checks/Makefile.sed.nt: New file
+	* configure.bat: Added configuration of checks makefile
+	* checks/Makefile.in (RCS_FILES): Add file Makefile.sed.nt
+	Add $(EXEEXT), $(OEXT), $(LIBEXT) extensions
+	* test01.m: Different random() for WIN32
+	* src/Foundation/NSZone.h: include <objects/config.h>
+
+Sat Feb  3 22:28:52 1996  Scott Christley  (scottc@net-community.com)
+
+	* src/NSLock.m: New file
+	* src/Foundation/NSLock.h: New file
+	* src/NSThread.m: New file
+	* src/Foundation/NSThread.h: New file
+	* src/Makefile.in (GNUSTEP_MFILES): Add NSLock.m, NSThread.m
+	(GNUSTEP_HEADERS): Add Foundation/NSLock.h, Foundation/NSThread.h
+
+Fri Feb  2 15:44:20 1996  Scott Christley  (scottc@net-community.com)
+
+	* src/Makefile.in (uninstall): Only uninstall NEXTSTEP_HEADERS
+
+Thu Feb  1 19:42:09 1996  Scott Christley  (scottc@net-community.com)
+
+	* src/objects/SocketPort.h: Exclude non-existent headers for WIN32
+	* src/objects/Time.h: Likewise
+	* src/SocketPort.m: Likewise
+	* src/NSBundle.m: Likewise
+	* src/objects/NSCoder.h: fixed mispelled file name
+	* src/NSCoder.m: remove inclusion of non-existent file
+	* src/Date.m: Exclude non-existent headers for WIN32
+	* src/NSProcessInfo.m: Likewise
+	* src/find_exec.c: Likewise
+
+	* Makefile.in (RCS_FILES): Add file configure.bat, Makefile.sed.nt
+	Add $(EXEEXT), $(OEXT), $(LIBEXT) extensions
+	* configure.bat: New file
+	* Makefile.sed.nt: New file
+	* src/Makefile.sed.nt: New file
+	* src/objects/config-nt.h: New file
+	* src/objects/config-nt.sed: New file
+	* src/objc-load.c: Runtime include file changed "objc/list.h"
+	to "objc/objc-list.h"
+	* src/objects/stdobject.h.in: Likewise
 
 Wed Jan 31 22:29:57 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 

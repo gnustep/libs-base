@@ -2,12 +2,15 @@
 #include <objects/objects.h>
 
 #define N 20
-
 #if (sun && __svr4__) || defined(__hpux) || defined(_SEQUENT_)
 long lrand48();
 #define random lrand48
 #else
+#if WIN32
+#define random rand
+#else
 long random();
+#endif
 #endif
 
 int main()

@@ -6,7 +6,11 @@
 long lrand48();
 #define random lrand48
 #else
+#if WIN32
+#define random rand
+#else
 long random();
+#endif
 #endif
 
 @interface Collection (TestingExtras)

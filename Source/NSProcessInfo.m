@@ -53,8 +53,10 @@
  *************************************************************************/
 
 /* One of these two should have MAXHOSTNAMELEN */
+#ifndef WIN32
 #include <sys/param.h>
 #include <netdb.h>
+#endif /* WIN32 */
 
 #include <string.h>
 #include <Foundation/NSString.h>

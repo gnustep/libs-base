@@ -22,11 +22,15 @@
    */ 
 
 #include <objects/SocketPort.h>
+
+#ifndef WIN32
 #include <netdb.h>
+#include <sys/time.h>
+#endif /* !WIN32 */
+
 #include <objc/hash.h>
 #include <objects/Lock.h>
 #include <objc/List.h>
-#include <sys/time.h>
 #include <objects/Connection.h>
 #include <objects/Coder.h>
 #include <objects/ConnectedCoder.h>

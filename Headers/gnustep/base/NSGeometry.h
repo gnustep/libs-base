@@ -50,6 +50,11 @@ typedef enum {
     NSMaxYEdge
 } NSRectEdge;
 
+/* Standard zero structures */
+const NSPoint NSZeroPoint;
+const NSRect NSZeroRect;
+const NSSize NSZeroSize;
+
 /* Create Basic Structures */
 extern NSPoint	NSMakePoint(float x, float y);
 extern NSSize	NSMakeSize(float w, float h);

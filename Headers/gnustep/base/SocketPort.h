@@ -28,8 +28,11 @@
 #include <objects/Port.h>
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+
+#ifndef WIN32
+# include <sys/socket.h>
+# include <netinet/in.h>
+#endif /* !WIN32 */
 
 typedef struct sockaddr_in sockport_t;
 

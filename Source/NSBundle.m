@@ -23,8 +23,12 @@
 */
 
 #include <assert.h>
+
+#ifndef WIN32
 #include <unistd.h>
 #include <sys/param.h>		/* Needed by sys/stat */
+#endif
+
 #include <sys/stat.h>
 #include <objc/objc-api.h>
 #include <objects/stdobjects.h>
