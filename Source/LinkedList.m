@@ -240,7 +240,7 @@
     [self insertObject: newObject after: _last_link];
 }
 
-- prependObject: newObject
+- (void) prependObject: newObject
 {
   /* Make sure no one else already owns the newObject. */
   assert ([newObject linkedList] == NO_OBJECT);
@@ -263,7 +263,7 @@
     [self insertObject: newObject before: _first_link];
 }
 
-- insertObject: newObject atIndex: (unsigned)index
+- (void) insertObject: newObject atIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, (_count+1));
 
@@ -288,7 +288,6 @@
     [self insertObject: newObject after: _last_link];
   else
     [self insertObject:newObject before: [self objectAtIndex: index]];
-  return self;
 }
 
 - (void) removeObjectAtIndex: (unsigned)index
