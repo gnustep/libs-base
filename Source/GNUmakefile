@@ -283,7 +283,6 @@ NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
 NSAutoreleasePool.h \
-NSBitmapCharSet.h \
 NSBundle.h \
 NSByteOrder.h \
 NSCalendarDate.h \

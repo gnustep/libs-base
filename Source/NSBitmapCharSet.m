@@ -25,7 +25,7 @@
 */
 
 #include "config.h"
-#include "Foundation/NSBitmapCharSet.h"
+#include "NSBitmapCharSet.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSCoder.h"
 

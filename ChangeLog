@@ -1,7 +1,8 @@
 2005-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSCharacterSet.h: Add documentation and method
-	([-capitalizedLetterCharacterSet])
+	([-capitalizedLetterCharacterSet]) Change name of symbol set to
+	match MacOS-X
 	* Source/NSCharacterSet.m: Add new method and move documentation to
 	header.  Include local NSCharacterSetData.h for bitmap data.
 	* Source/NSCharacterSetData.h: New file containing the bitmap data
@@ -11,6 +12,8 @@
 	* Source/GNUmakefile: No longer build/install NSCharacterSets
 	The standard bitmap data for charactersets is now built in to
 	NSCharacterSet.
+	* Headers/Foundation/NSBitmapChar.h: Moved nonstandard header
+	to private source directory.
 
 2005-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 

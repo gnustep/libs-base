@@ -96,10 +96,12 @@
  */
 + (NSCharacterSet*) punctuationCharacterSet;
 
+#ifndef	STRICT_OPENSTEP
 /**
  *  Returns a character set containing mathematical symbols, etc..
  */
-+ (NSCharacterSet*) symbolAndOperatorCharacterSet;
++ (NSCharacterSet*) symbolCharacterSet;
+#endif
 
 /**
  * Returns a character set that contains the uppercase characters.

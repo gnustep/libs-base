@@ -27,7 +27,6 @@
 #include "config.h"
 #include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
-#include "Foundation/NSBitmapCharSet.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSData.h"
@@ -35,8 +34,14 @@
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSNotification.h"
+#include "Foundation/NSCharacterSet.h"
+#include "Foundation/NSDebug.h"
 
+#include "NSBitmapCharSet.h"
 #include "NSCharacterSetData.h"
+
+@class	NSBitmapCharacterSet;
+@class	NSMutableBitmapCharSet;
 
 /* A simple array for caching standard bitmap sets */
 #define MAX_STANDARD_SETS 15
@@ -169,8 +174,15 @@ static Class abstractClass = nil;
   return [self _staticSet: punctuationCharSet number: 8];
 }
 
++ (NSCharacterSet*) symbolCharacterSet
+{
+  return [self _staticSet: symbolAndOperatorCharSet number: 9];
+}
+
+// FIXME ... deprecated ... remove after next release.
 + (NSCharacterSet*) symbolAndOperatorCharacterSet
 {
+  GSOnceMLog(@"symbolAndOperatorCharacterSet is deprecated ... use symbolCharacterSet");
   return [self _staticSet: symbolAndOperatorCharSet number: 9];
 }
 
@@ -408,6 +420,12 @@ static Class abstractClass = nil;
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
++ (NSCharacterSet*) symbolCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
+// FIXME ... deprecated ... remove after next release.
 + (NSCharacterSet*) symbolAndOperatorCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
