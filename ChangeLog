@@ -1,6 +1,7 @@
 2004-01-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Fix bug in encoding integers as xml.
+	Fix to compile without xml if necessary.
 	* Source/GSPrivate.h: Added internal class for handling old style
 	arrays of items within keyed coding ... should this go elsewhere?
 	* Source/NSCoder.m: Added internal class for keyed coding of
@@ -13,6 +14,7 @@
 	* Source/NSKeyedUnarchiver.m: All methods now implemented, but no
 	proper type checking/coercion done, and minimal testing done.
 	No attempt to handle OpenStep style property lists either, just xml!
+	* configure.ac: Insist on libxml2 presence unless told not to.
 
 2004-01-24 Richard Frith-Macdonald <rfm@gnu.org>
 
