@@ -1,3 +1,8 @@
+Wed Jun 26 15:32:36 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* base.make.in (OBJC_LIBS): Don't add -lobjc_gc -lgc for gc=yes,
+	now should be done by gnustep-make automatically.
+
 Tue Jun 25 13:31:12 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Tools/AGSHtml.m: Tidy up autorelease pool macros so that it

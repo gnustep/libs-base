@@ -44,7 +44,6 @@ ifeq ($(FOUNDATION_LIB),gnu)
   GNUSTEP_DEFINE = -DGNUSTEP
   # If gc=yes was passed, use the appropriate library and defines
   ifeq ($(gc), yes)
-    OBJC_LIBS = -lobjc_gc -lgc
     AUXILIARY_CPPFLAGS += -DGS_WITH_GC=1
     AUXILIARY_INCLUDE_DIRS += -I/usr/include/gc
   endif
