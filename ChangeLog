@@ -2,6 +2,9 @@
 
 	* Source/NSCalendarDate.m: Correct order of args to
 	lastDayOfGregorianMonth()
+	* Source/NSPortCoder.m: Handle classes encoded as objects specially.
+	* Source/NSArchiver.m: ditto.
+	* Source/NNSUnarchiver.m: ditto.
 
 2000-07-31  Richard Frith-Macdonald <rfm@gnu.org>
 
