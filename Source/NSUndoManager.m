@@ -656,11 +656,11 @@
     {
       if ([actionName isEqual: @""])
 	{
-	  return _(@"Redo");
+	  return @"Redo";
 	}
       else
 	{
-	  return [NSString stringWithFormat: @"%@ %@", _(@"Redo"), actionName];
+	  return [NSString stringWithFormat: @"Redo %@", actionName];
 	}
     }
   return actionName;
@@ -933,11 +933,11 @@
     {
       if ([actionName isEqual: @""])
 	{
-	  return _(@"Undo");
+	  return @"Undo";
 	}
       else
 	{
-	  return [NSString stringWithFormat: @"%@ %@", _(@"Undo"), actionName];
+	  return [NSString stringWithFormat: @"Undo %@", actionName];
 	}
     }
   return actionName;
