@@ -51,7 +51,9 @@ Here are more detailed instructions.
 @enumerate
 
 @item
-Patch the @samp{gcc} Objective C runtime with objc.patch.
+Patch the @samp{gcc} Objective C runtime with objc.patch.  These changes
+will be part of @samp{gcc} version 2.8.0, but 2.8.0 hasn't been released
+yet.
 
 @item
 Install @samp{gcc}.  The library requires gcc version
