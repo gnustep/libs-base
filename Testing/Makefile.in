@@ -96,7 +96,8 @@ cstream.m \
 fref.m \
 basic.m \
 release.m \
-nsscanner.m
+nsscanner.m \
+nsdate.m
 
 tcpport: FORCE
 	(cd ../src; $(MAKE))

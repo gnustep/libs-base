@@ -2,6 +2,7 @@
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Jeremy Bettis <jeremy@hksys.com>
+   Rewritten by:  Scott Christley <scottc@net-community.com>
    Date: March 1995
 
    This file is part of the GNUstep Base Library.
@@ -53,70 +54,9 @@
 #define DISTANT_PAST	(-DISTANT_FUTURE)
 
 
-/* Concrete implementation of NSDate. */
-
-@interface NSConcreteDate : NSDate
-{
-  NSTimeInterval seconds_since_ref;
-}
-- (id) copyWithZone: (NSZone*)zone;
-- (NSTimeInterval) timeIntervalSinceReferenceDate;
-- (id) init;
-- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
-@end
-
-@implementation NSConcreteDate
-
-- (id) copyWithZone: (NSZone*)zone
-{
-  return [[[self class] allocWithZone: zone]
-	  initWithTimeIntervalSinceReferenceDate: seconds_since_ref];
-}
-
-- (NSTimeInterval) timeIntervalSinceReferenceDate
-{
-  return seconds_since_ref;
-}
-
-- (NSTimeInterval) timeIntervalSinceNow
-{
-  NSTimeInterval now = [[self class] timeIntervalSinceReferenceDate];
-  return seconds_since_ref - now;
-}
-
-- (id) init
-{
-  return [self initWithTimeIntervalSinceReferenceDate:
-		 [[self class] timeIntervalSinceReferenceDate]];
-}
-
-- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
-{
-  self = [super init];
-  seconds_since_ref = secs;
-  return self;
-}
-
-@end
-
-
-/* The abstract implementation of NSDate. */
+/* The implementation of NSDate. */
 
 @implementation NSDate
-
-+ (void) initialize
-{
-  /* xxx Force NSConcreteDate to initialize itself.  There seems to be 
-     a bug with __objc_word_forward and returning doubles? */
-  if (self == [NSDate class])
-    [NSConcreteDate instanceMethodForSelector: 
-		      @selector(timeIntervalSinceReferenceDate)];
-}
-
-- (id) copyWithZone: (NSZone*)zone
-{
-  return [[NSConcreteDate class] copyWithZone:zone];
-}
 
 // Getting current time
 
@@ -139,23 +79,21 @@
 
 // Allocation and initializing
 
-+ (id) allocWithZone: (NSZone*)z
-{
-  if (self != [NSDate class])
-    return [super allocWithZone:z];
-  return [NSConcreteDate allocWithZone:z];
-}
-
 + (NSDate*) date
 {
-  return [[[self alloc] init] 
-	   autorelease];
+  return [[[self alloc] init] autorelease];
 }
 
 + (NSDate*) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds
 {
   return [[[self alloc] initWithTimeIntervalSinceNow: seconds]  
 	  autorelease];
+}
+
++ (NSDate *)dateWithTimeIntervalSince1970:(NSTimeInterval)seconds
+{
+  return [[[self alloc] initWithTimeIntervalSinceReferenceDate: 
+		       UNIX_REFERENCE_INTERVAL + seconds] autorelease];
 }
 
 + (NSDate*) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
@@ -182,46 +120,41 @@
 
 - (id) init
 {
-  // We have to do this, otherwise the subclasses cannot do [super init];
-  return [super init];
+  return [self initWithTimeIntervalSinceReferenceDate:
+		 [[self class] timeIntervalSinceReferenceDate]];
 }
 
 - (id) initWithString: (NSString*)description
 {
-  NSTimeInterval theTime = 0;
-  /* From the doc:
-     Returns an calendar date object with a date and time value  
-     specified by the international string-representation format:  
-     YYYY-MM-DD HH:MM:SS -HHMM, where -HHMM is a time zone offset in  
-     hours and minutes from Greenwich Mean Time. (Adding the offset to  
-     the specified time yields the equivalent GMT.) An example string  
-     might be "1994-03-30 13:12:43 +0900". You must specify all fields of  
-     the format, including the time-zone offset, which must have a plus-  
-     or minus-sign prefix.
-     */
-  /* a miracle occurs  ****************************** */
-  [self notImplemented:_cmd];
-  return [self initWithTimeIntervalSinceReferenceDate: theTime];
+  // Easiest to just have NSCalendarDate do the work for us
+  NSCalendarDate *d = [NSCalendarDate alloc];
+  [d initWithString: description];
+  [self initWithTimeIntervalSinceReferenceDate:
+	[d timeIntervalSinceReferenceDate]];
+  [d release];
+  return self;
 }
 
 - (NSDate*) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
 		       sinceDate: (NSDate*)anotherDate;
 {
+  // Get the other date's time, add the secs and init thyself
   return [self initWithTimeIntervalSinceReferenceDate:
-	       [anotherDate timeIntervalSinceReferenceDate]];
+	       [anotherDate timeIntervalSinceReferenceDate] + secsToBeAdded];
 }
 
 - (NSDate*) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
 {
-  // Get the current time, add the secs and init thyself;
+  // Get the current time, add the secs and init thyself
   return [self initWithTimeIntervalSinceReferenceDate:
 	       [[self class] timeIntervalSinceReferenceDate] + secsToBeAdded];
 }
 
-- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  [super init];
+  seconds_since_ref = secs;
+  return self;
 }
 
 // Converting to NSCalendar
@@ -229,50 +162,59 @@
 - (NSCalendarDate *) dateWithCalendarFormat: (NSString*)formatString
 				   timeZone: (NSTimeZone*)timeZone
 {
-  // Not done yet,  NSCalendarDate doesn't exist yet!
-  [self notImplemented: _cmd];
-  return nil;
+  NSCalendarDate *d = [NSCalendarDate alloc];
+  [d initWithTimeIntervalSinceReferenceDate: seconds_since_ref];
+  [d setCalendarFormat: formatString];
+  [d setTimeZone: timeZone];
+  return [d autorelease];
 }
-
 
 // Representing dates
 
 - (NSString*) description
 {
-  /* *********************** only works for >1970 dates */
-  struct tm		*theTime;
-  NSTimeInterval	secs;
-  time_t			unix_secs;
-  char			buf[64];
-	
-  secs = [self timeIntervalSinceReferenceDate];
-  unix_secs = (time_t)secs - (time_t)UNIX_REFERENCE_INTERVAL;
-  theTime = localtime(&unix_secs);
-/* 
-   Gregor Hoffleit <flight@mathi.uni-heidelberg.DE> reports problems
-   with strftime on i386-next-nextstep3.
-   Date: Fri, 12 Jan 96 16:00:42 +0100
-   */
-#ifdef NeXT
-  sprintf(buf,"%4d-%02d-%02d %02d:%02d:%02d %c%02d%02d",
-	  1900+theTime->tm_year, theTime->tm_mon+1, theTime->tm_mday,
-	  theTime->tm_hour, theTime->tm_min, theTime->tm_sec,
-	  (theTime->tm_gmtoff>0)?'+':'-', abs(theTime->tm_gmtoff)/3600,
-	  (abs(theTime->tm_gmtoff)/60)%60);
-#else
-  strftime(buf, 64, "%Y-%m-%d %H:%M:%S", theTime);
-#endif
-  return [NSString stringWithCString: buf];
+  // Easiest to just have NSCalendarDate do the work for us
+  NSString *s;
+  NSCalendarDate *d = [NSCalendarDate alloc];
+  [d initWithTimeIntervalSinceReferenceDate: seconds_since_ref];
+  s = [d description];
+  [d release];
+  return s;
 }
 
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				   timeZone: (NSTimeZone*)aTimeZone
 {
-  // Not done yet, no NSCalendarDate or NSTimeZone...
-  [self notImplemented: _cmd];
-  return nil;
+  // Easiest to just have NSCalendarDate do the work for us
+  NSString *s;
+  NSCalendarDate *d = [NSCalendarDate alloc];
+  id f, t;
+
+  [d initWithTimeIntervalSinceReferenceDate: seconds_since_ref];
+  if (!format)
+    f = [d calendarFormat];
+  else
+    f = format;
+  if (!aTimeZone)
+    t = [d timeZoneDetail];
+  else
+    t = aTimeZone;
+
+  s = [d descriptionWithCalendarFormat: f timeZone: t];
+  [d release];
+  return s;
 }
 
+- (NSString *) descriptionWithLocale: (NSDictionary *)locale
+{
+  // Easiest to just have NSCalendarDate do the work for us
+  NSString *s;
+  NSCalendarDate *d = [NSCalendarDate alloc];
+  [d initWithTimeIntervalSinceReferenceDate: seconds_since_ref];
+  s = [d descriptionWithLocale: locale];
+  [d release];
+  return s;
+}
 
 // Adding and getting intervals
 
@@ -280,38 +222,33 @@
 {
   /* xxx We need to check for overflow? */
   return [[self class] dateWithTimeIntervalSinceReferenceDate:
-		       [self timeIntervalSinceReferenceDate] + seconds];
+		       seconds_since_ref + seconds];
 }
 
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
-  return [self timeIntervalSinceReferenceDate] -
-    [otherDate timeIntervalSinceReferenceDate];
+  return seconds_since_ref - [otherDate timeIntervalSinceReferenceDate];
 }
 
 - (NSTimeInterval) timeIntervalSinceNow
 {
   NSTimeInterval now = [[self class] timeIntervalSinceReferenceDate];
-  NSTimeInterval me = [self timeIntervalSinceReferenceDate];
-  return me - now;
+  return seconds_since_ref - now;
 }
 
 - (NSTimeInterval) timeIntervalSinceReferenceDate
 {
-  [self subclassResponsibility: _cmd];
-  return 0.0;
+  return seconds_since_ref;
 }
 
 // Comparing dates
 
 - (NSComparisonResult) compare: (NSDate*)otherDate
 {
-  if ([self timeIntervalSinceReferenceDate] >
-      [otherDate timeIntervalSinceReferenceDate])
+  if (seconds_since_ref > [otherDate timeIntervalSinceReferenceDate])
     return NSOrderedDescending;
 		
-  if ([self timeIntervalSinceReferenceDate] <
-      [otherDate timeIntervalSinceReferenceDate])
+  if (seconds_since_ref < [otherDate timeIntervalSinceReferenceDate])
     return NSOrderedAscending;
 		
   return NSOrderedSame;
@@ -319,8 +256,7 @@
 
 - (NSDate*) earlierDate: (NSDate*)otherDate
 {
-  if ([self timeIntervalSinceReferenceDate] >
-      [otherDate timeIntervalSinceReferenceDate])
+  if (seconds_since_ref > [otherDate timeIntervalSinceReferenceDate])
     return otherDate;
   return self;
 }
@@ -328,16 +264,14 @@
 - (BOOL) isEqual: (id)other
 {
   if ([other isKindOf: [NSDate class]] 
-      && 1.0 > ([self timeIntervalSinceReferenceDate] -
-		[other timeIntervalSinceReferenceDate]))
+      && 1.0 > (seconds_since_ref - [other timeIntervalSinceReferenceDate]))
     return YES;
   return NO;
 }		
 
 - (NSDate*) laterDate: (NSDate*)otherDate
 {
-  if ([self timeIntervalSinceReferenceDate] <
-      [otherDate timeIntervalSinceReferenceDate])
+  if (seconds_since_ref < [otherDate timeIntervalSinceReferenceDate])
     return otherDate;
   return self;
 }
