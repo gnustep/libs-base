@@ -812,18 +812,61 @@ static NSMapTable	*nodeNames = 0;
 }
 
 /**
- * Return node content as a string.
+ * Return node content as a string.  This should return meaningful
+ * information for text nodes and for entity nodes containing only
+ * text nodes.<br />
+ * If entity substitution was not enabled during parsing, an
+ * element containing text may actually contain both text nodes and
+ * entity reference nodes, in this case you should not use this
+ * method to get the content of the element, but should examine
+ * the child nodes of the element individually and perform any
+ * entity reference you need to do explicitly.
  */
 - (NSString*) content
 {
-  if (lib != NULL && ((xmlNodePtr)lib)->content!=NULL)
-    {
-      return UTF8Str(((xmlNodePtr)lib)->content);
-    }
-  else
+  xmlNodePtr	ptr = (xmlNodePtr)lib;
+
+  if (ptr == NULL)
     {
       return nil;
     }
+  if (ptr->content != NULL)
+    {
+      return UTF8Str(ptr->content);
+    }
+  if ((int)ptr->type == XML_TEXT_NODE)
+    {
+      return @"";
+    }
+  else if ((int)ptr->type == XML_ELEMENT_NODE)
+    {
+      ptr = ptr->children;
+      if (ptr != NULL)
+	{
+	  if (ptr->next == NULL)
+	    {
+	      if (ptr->content != NULL)
+		{
+		  return UTF8Str(ptr->content);
+		}
+	    }
+	  else
+	    {
+	      NSMutableString	*m = [NSMutableString new];
+
+	      while (ptr != NULL)
+		{
+		  if (ptr->content != NULL)
+		    {
+		      [m appendString: UTF8Str(ptr->content)];
+		    }
+		  ptr = ptr->next;
+		}
+	      return AUTORELEASE(m);
+	    }
+	}
+    }
+  return nil;
 }
 
 - (void) dealloc
