@@ -120,8 +120,7 @@ my_object_is_class(id object)
 {
   /* Careful: the string should not contain newlines. */
   [[cstream stream] writeFormat: SIGNATURE_FORMAT_STRING,
-		    [self defaultDecoderClassname],
-		    format_version];
+		    WRITE_SIGNATURE_FORMAT_ARGS];
 }
 
 
