@@ -170,6 +170,17 @@ AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)
 
 #--------------------------------------------------------------------
+# Check if Objective-C is installed
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(objc/objc.h)
+if test $ac_cv_header_objc_objc_h = no; then
+  echo "Could not find Objective-C headers"
+  echo "Check to make sure you have a full installation of the GCC"
+  echo "compiler that includes the Objective-C headers and libraries"
+  AC_MSG_ERROR(Could not find Objective-C headers)
+fi
+
+#--------------------------------------------------------------------
 # Check if libobjc was compiled with thread support.
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(whether objc has thread support)
