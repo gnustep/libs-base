@@ -841,7 +841,7 @@ wordData(NSString *word)
 	    case ChunkData:
 	      /*
 	       * If the pos is non-zero, we have a data chunk to read.
-	       * otherwise, what we actually want it to read footers.
+	       * otherwise, what we actually want is to read footers.
 	       */
 	      if (ctxt->pos > 0)
 		{
