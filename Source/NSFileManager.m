@@ -189,12 +189,15 @@ static NSFileManager* defaultManager = nil;
 
 + (NSFileManager*) defaultManager
 {
-  if (!defaultManager)
+  if (defaultManager == nil)
     {
       NS_DURING
 	{
 	  [gnustep_global_lock lock];
-	  defaultManager = [[self alloc] init];
+	  if (defaultManager == nil)
+	    {
+	      defaultManager = [[self alloc] init];
+	    }
 	  [gnustep_global_lock unlock];
 	}
       NS_HANDLER
