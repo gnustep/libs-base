@@ -96,6 +96,7 @@ objc_find_executable (const char *file)
 {
     char *search;
     register char *p;
+    int cwd_in_path = 0;
     
     if (ABSOLUTE_FILENAME_P(file)) {
 	search = copy_of(file);
@@ -122,7 +123,7 @@ objc_find_executable (const char *file)
 	*next = 0;
 	if (*p) p++;
 
-	if (name[0] == '.' && name[1] == 0)
+	if (name[0] == '.' && name[1] == 0) {
 #ifndef NeXT
 	    getcwd (name, MAXPATHLEN);
 #else
@@ -132,10 +133,33 @@ objc_find_executable (const char *file)
 	    */
 	    getwd (name);
 #endif
+	    cwd_in_path = 1;
+	}
 	
 	strcat (name, "/");
 	strcat (name, file);
 	      
+/*
+	if (access (name, X_OK) == 0)
+*/
+	if (find_full_path (name) == 0)
+	    return copy_of (name);
+    }
+
+    /*
+      If '.' not in PATH, check this too
+    */
+    if (!cwd_in_path) {
+	char  name[MAXPATHLEN];
+
+#ifndef NeXT
+	getcwd (name, MAXPATHLEN);
+#else
+	getwd (name);
+#endif
+	strcat (name, "/");
+	strcat (name, file);
+
 /*
 	if (access (name, X_OK) == 0)
 */
