@@ -436,6 +436,7 @@ UNICODE_HEADERS = \
 unicode/caseconv.h \
 unicode/cop.h \
 unicode/cyrillic.h \
+unicode/latin2.h \
 unicode/decomp.h \
 unicode/nextstep.h
 
