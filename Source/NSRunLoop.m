@@ -563,7 +563,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
   int		poll_return;
-  int		fdEnd = 0;	/* Number of descriptors being monitored. */
+  int		fdEnd;	/* Number of descriptors being monitored. */
   int		fdIndex;
   int		fdFinish;
   unsigned int	i;
@@ -614,21 +614,18 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    fd = (int)info->data;
 	    setPollfd(fd, POLLPRI, self);
 	    NSMapInsert(_efdMap, (void*)fd, info);
-	    fdEnd++;
 	    break;
 
 	  case ET_RDESC: 
 	    fd = (int)info->data;
 	    setPollfd(fd, POLLIN, self);
 	    NSMapInsert(_rfdMap, (void*)fd, info);
-	    fdEnd++;
 	    break;
 
 	  case ET_WDESC: 
 	    fd = (int)info->data;
 	    setPollfd(fd, POLLOUT, self);
 	    NSMapInsert(_wfdMap, (void*)fd, info);
-	    fdEnd++;
 	    break;
 
 	  case ET_RPORT: 
@@ -660,7 +657,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		    setPollfd(fd, POLLIN, self);
 		    NSMapInsert(_rfdMap, 
 		      (void*)port_fd_array[port_fd_count], info);
-		    fdEnd++;
 		  }
 	      }
 	    break;
@@ -742,6 +738,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
    * inputs where multiple inputs are in use.  Note - fairStart can be
    * modified while we are in the loop (by recursive calls).
    */
+  fdEnd = pollfds_count;
   if (++fairStart >= fdEnd)
     {
       fairStart = 0;
