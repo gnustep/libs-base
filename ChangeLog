@@ -1,3 +1,10 @@
+Thu Feb 24 21:05:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSBundle.m: ([-initWithPath:]) added code suggested by
+	jagapen@whitewater.chem.wisc.edu to handle relative paths.
+	* Source/NSObject.m: Added catagory of 'Object' so that containers
+	can safely hold non-NSObject descended objects.
+
 Thu Feb 24 15:55:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/TcpPort.m: Removed some unused code.

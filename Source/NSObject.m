@@ -1409,3 +1409,33 @@ _fastMallocBuffer(unsigned size)
   return ((void*)&o[1])+fastMallocOffset;
 }
 
+
+/*
+ * Stuff for compatibility with 'Object' derived classes.
+ */
+@interface	Object (NSObjectCompat)
++ (void) release;
++ (id) retain;
+- (void) release;
+- (id) retain;
+@end
+
+@implementation	Object (NSObjectCompat)
++ (void) release
+{
+  return;
+}
++ (id) retain
+{
+  return self;
+}
+- (void) release
+{
+  return;
+}
+- (id) retain
+{
+  return self;
+}
+@end
+

@@ -401,6 +401,12 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       NSLog(@"No path specified for bundle");
       return nil;
     }
+  if ([path isAbsolutePath] == NO)
+    {
+      NSLog(@"WARNING: NSBundle -initWithPath: requires absolute path names!");
+      path = [[[NSFileManager defaultManager] currentDirectoryPath]
+        stringByAppendingPathComponent: path];
+    }
 
   /* Check if we were already initialized for this directory */
   if (_bundles) 
