@@ -1,5 +1,12 @@
 2000-12-21  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDistantObject.m: Modified DO_FORWARD_INVOCATION() macro
+	and its uses so that they actually do what was intended :-)
+	Also, modified implementation of methodSignatureForSelector: for
+	ffcall library to prevent recursion.
+
+2000-12-21  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/GSIMap.h: On initialisation set number of nodes
 	to exactly equal capacity, for improved memory efficiency.
 	* Source/Makefile.postamble: correct dependencies for GSIMap.

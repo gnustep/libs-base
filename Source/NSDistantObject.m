@@ -30,13 +30,14 @@
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSInvocation.h>
 
 #define DO_FORWARD_INVOCATION(_SELX, _ARG1)			\
   sig = [self methodSignatureForSelector: @selector(_SELX)];	\
   inv = [NSInvocation invocationWithMethodSignature: sig];	\
   [inv setSelector: @selector(_SELX)];				\
   [inv setTarget: self];					\
-  [inv setArgument: _ARG1 atIndex: 2];			       	\
+  [inv setArgument: (void*)&_ARG1 atIndex: 2];			       	\
   [self forwardInvocation: inv];				\
   [inv getReturnValue: &m]
 
@@ -798,8 +799,28 @@ enum
 	  id		m;
 	  const char	*types;
 #ifdef USE_FFCALL
-	  id            inv, sig;
-	  DO_FORWARD_INVOCATION(_cmd, aSelector);
+	  /*
+	   * Evil hack to prevent recursion - if we are asking a remote
+	   * object for a method signature, we can't ask it for the
+	   * signature of methodSignatureForSelector:, so we hack in
+	   * the signature required manually :-(
+	   */
+	  if (sel_eq(aSelector, _cmd))
+	    {
+	      static	NSMethodSignature	*sig = nil;
+
+	      if (sig == nil)
+		{
+		  sig = [NSMethodSignature signatureWithObjCTypes: "@@::"];
+		  RETAIN(sig);
+		}
+	      return sig;
+	    }
+	  else
+	    {
+	      id	inv, sig;
+	      DO_FORWARD_INVOCATION(methodSignatureForSelector:, aSelector);
+	    }
 #else
 	  arglist_t	args;
 	  void		*retframe;
@@ -928,7 +949,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 #ifdef USE_FFCALL
   BOOL m;
   id inv, sig;
-  DO_FORWARD_INVOCATION(_cmd, aProtocol);
+  DO_FORWARD_INVOCATION(conformsToProtocol:, aProtocol);
   return m;
 #else
   arglist_t	args;
@@ -953,7 +974,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 #ifdef USE_FFCALL
   BOOL m;
   id inv, sig;
-  DO_FORWARD_INVOCATION(_cmd, aSelector);
+  DO_FORWARD_INVOCATION(respondsToSelector:, aSelector);
   return m;
 #else
   arglist_t	args;
