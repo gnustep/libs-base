@@ -1,0 +1,131 @@
+@ifset NEWS_ONLY
+@chapter News about GNU Objective C Class Library
+@end ifset
+@include version.texi
+
+@section Noteworthy changes in version @samp{0.1}
+
+@itemize
+
+@item Renamed the library from @samp{libcoll} to @samp{libobjects}.
+(See the end of the file @samp{DISCUSSION} for the background on this
+name choice.)  Several file names changed to reflect this.  GNU class
+interfaces are now included with @samp{objects} prefix,
+e.g. @samp{#include <objects/BinaryTree.h>}.
+
+@item Many new classes. Pseudo-random number classes Random, RNGBerkeley
+and RNGAdditiveCongruential.  New stream classes Stream, StdioStream and
+MemoryStream.  New coder classes Coder, TextCoder and BinaryCoder.  New
+network packet transmission classes Port and SocketPort.  New remote
+object messaging classes Connection, Proxy and ConnectedCoder.  New
+protocols Coding and Retaining.  New, but unimplemented: Lock and
+Locking.  New but soon-to-disapppear: RetainingNotifier,
+InvalidationListening.
+
+@item Some bug fixes:  Fixed the assert typo in Storage.m.  The Time
+class now compiles under Solaris.  Fixed insertion bug in CircularArray.
+NXStringTable_scan.l can now be compiled with lex, not just flex,
+(thanks to Adam Fedor <adam@@bastille.rmnug.org>).  Properly detect the
+difference between gcc running under NEXTSTEP and NeXT's cc.  Using 
+autoconf version 2.0.  Renamed DelegateList to DelegatePool.  Renamed
+some collection hierarchy methods for better consistency.
+
+@item Some directory reorganization so that NeXT-compatible files can be
+included in the standard way, e.g. #include <objc/List.h>.  Some other
+NeXT-compatibility improvements: Changed @samp{GNU} prefix to @samp{NX}
+in List and HashTable.  New files zone.[hc] containing dummy stubs for
+NeXT-compatible zone functions.
+
+@end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE_ONLY
+
+@section Noteworthy changes in verion @samp{940524}
+
+@itemize
+
+@item A NeXT-compatible NXStringTable object, thanks to Adam Fedor
+<adam@@bastille.rmnug.org>.
+
+@item
+SplayTree and RBTree classes now operational.  More methods in Time
+class implemented.
+
+@item
+Some API cleanup:  -delegateListList changed to -delegateListCollection.
+-includesSameContents: changed to -contentsEqual:.  -insertObject:atKey:
+changed to -putObject:atKey:.  See the ChangeLog for more detail.
+
+@item
+Configuration by autoconf in the self-tests directory.  Configuration
+script tests GCC nested functions.  Configuration script detects
+NEXTSTEP and makes the appropriate adjustments, including skipping the
+NeXT-compatibility classes.
+
+@item
+Bug fixes: BinaryTree rotate methods fixed.  Fixed the way
+@code{ifNone:} and @code{ifAbsent:} functions were called.  Fixed the
+way long elements are printed.  Added methods for preventing memory
+leaks by unfinished enumerations: @code{-newEnumState} and
+@code{-freeEnumState:}.  Several bug fixes in List and Storage; changes
+for better NeXT-compability.  And more.
+
+@end itemize
+
+@section Noteworthy changes in version @samp{931026}
+
+@itemize
+
+@item
+Installation using @samp{./configure} and @samp{autoconf}
+
+@item
+New BinaryTree and RBTree(unfinished) classes.  Rewritten LinkedList
+class.
+
+@item
+A new scheme for holding non-object elements in classes that require
+  object contents; EltNodeCollector class.
+
+@item
+Archiving with -write: and -read: methods.  This involved removing the
+ability to set the comparison function independent of content type.
+
+@item
+Removed COLL_NO_ELEMENT and friends.  Now there are no arbitrary
+restrictions on which long int's can be stored.  Like in Smalltalk,
+...ifAbsentCall: methods have been added to replace this functionalty.
+
+@item
+Added a LABMDA() macro for defining small functions in the arg position.
+
+@item
+Removed many ...perform: methods.  Use instead the more flexible 
+...call: methods with LABMDA().
+
+@item
+Renamed ...Description: methods to ...Encoding: for better use of
+already-defined objc keyword: @@encode().
+
+@item
+New in the Collecting protocol:
+Filtered enumerating instead of filtered shallowCopy'ing.
+Enumerations still safe when modifying the contents.
+
+@item
+The beginnings of documentation in libcoll.texi.
+
+@item
+Many bug fixes.
+
+@item
+...and more.
+
+@end itemize
+
+Also see the @samp{ChangeLog} file for more detail.
+
+@end ifclear
+@c end ifclear ANNOUNCE_ONLY

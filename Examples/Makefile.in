@@ -1,0 +1,129 @@
+#
+#  Examples makefile for Objective-C Class Library
+#  Copyright (C) 1993 Free Software Foundation, Inc.
+#
+#  Written by:	R. Andrew McCallum <mccallum@cs.rochester.edu>
+#  Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
+#
+#  This file is part of the GNU Objective-C Class Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Library General Public License for more details.
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+SHELL = /bin/sh
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+CC = @CC@
+     
+CFLAGS = -Wall -Wno-implicit -g -O
+CPPFLAGS =
+LDFLAGS =
+     
+DEFS = @DEFS@
+LIBS = -L$(srcdir)/.. -lobjects @LIBOBJC@ @LIBS@ 
+
+#### End of system configuration section. ####
+
+NEXT_NEXT_INCLUDES = -I/usr/include
+OBJECTS_NEXT_INCLUDES = -I$(srcdir)/../objects/next-include
+NEXT_INCLUDES = @NEXT_INCLUDES@
+
+ALL_CPPFLAGS = -I$(srcdir)/.. $(NEXT_INCLUDES) $(CPPFLAGS)
+ALL_CFLAGS = $(CFLAGS)
+ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
+ALL_LDFLAGS = $(LDFLAGS) $(LIBS)
+
+.SUFFIXES: .m
+.m.o:
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $< -o $*.o
+.c.o:
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) $< -o $*.o
+
+SRCS = \
+dictionary.m \
+stdio-stream.m \
+textcoding.m \
+port-server.m \
+port-client.m \
+first-server.m \
+first-client.m \
+second-server.m \
+second-client.m 
+
+HDRS = \
+first-server.h \
+second-server.h \
+second-client.h
+
+EXCS = $(SRCS:.m=)
+
+all: $(EXCS)
+
+# This works for GNU make, but not others.
+# %: %.o $(srcdir)/../libobjects.a
+# 	$(CC) $(ALL_CFLAGS) $< -o $@ $(ALL_LDFLAGS)
+# How can I do this in a better way than the ugliness below?
+# (but also have it work on old-style /bin/make)
+
+LINK_CMD = $(CC) $(ALL_CFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
+dictionary: dictionary.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+stdio-stream: stdio-stream.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+textcoding: textcoding.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+port-server: port-server.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+port-client: port-client.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+first-server: first-server.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+first-client: first-client.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+second-server: second-server.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+second-client: second-client.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+
+first: first-server first-client
+second: second-server second-client
+port: port-server port-client
+
+DISTFILES = $(SRCS) $(HDRS) Makefile.in
+
+mostlyclean:
+	rm -f core *~
+
+clean: mostlyclean
+	rm -f *.o $(EXCS)
+
+distclean: clean
+	rm -f Makefile config.status
+
+realclean: distclean
+	rm -f TAGS
+
+dist-dir: $(srcdir)/../.fname
+	@echo Run make dist from the parent directory.
+
+dist: $(DISTFILES) dist-dir
+	mkdir $(srcdir)/../`cat $(srcdir)/../.fname`/examples
+	ln $(DISTFILES) $(srcdir)/../`cat $(srcdir)/../.fname`/examples
+
+Makefile: Makefile.in
+	cd $(srcdir)/..; $(SHELL) config.status
