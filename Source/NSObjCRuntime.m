@@ -193,9 +193,19 @@ GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
 
 #include	<Foundation/NSValue.h>
 #include	<Foundation/NSKeyValueCoding.h>
+/**
+ * This is used internally by the key-value coding methods, to get a
+ * value from an object either via an accessor method (if sel is
+ * supplied), or via direct access (if type, size, and offset are
+ * supplied).<br />
+ * Automatic conversion between NSNumber and C scalar types is performed.<br />
+ * If type is nul and can't be determined from the selector, the
+ * [NSObject-handleQueryWithUnboundKey:] method is called to try
+ * to get a value.
+ */
 id
 GSGetValue(NSObject *self, NSString *key, SEL sel,
-  const char *type, unsigned size, int off)
+  const char *type, unsigned size, int offset)
 {
   if (sel != 0)
     {
@@ -225,7 +235,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(id *)((char *)self + off);
+		  v = *(id *)((char *)self + offset);
 		}
 	      else
 		{
@@ -244,7 +254,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(char *)((char *)self + off);
+		  v = *(char *)((char *)self + offset);
 		}
 	      else
 		{
@@ -263,7 +273,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(unsigned char *)((char *)self + off);
+		  v = *(unsigned char *)((char *)self + offset);
 		}
 	      else
 		{
@@ -283,7 +293,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(short *)((char *)self + off);
+		  v = *(short *)((char *)self + offset);
 		}
 	      else
 		{
@@ -302,7 +312,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(unsigned short *)((char *)self + off);
+		  v = *(unsigned short *)((char *)self + offset);
 		}
 	      else
 		{
@@ -322,7 +332,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(int *)((char *)self + off);
+		  v = *(int *)((char *)self + offset);
 		}
 	      else
 		{
@@ -341,7 +351,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(unsigned int *)((char *)self + off);
+		  v = *(unsigned int *)((char *)self + offset);
 		}
 	      else
 		{
@@ -361,7 +371,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(long *)((char *)self + off);
+		  v = *(long *)((char *)self + offset);
 		}
 	      else
 		{
@@ -380,7 +390,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(unsigned long *)((char *)self + off);
+		  v = *(unsigned long *)((char *)self + offset);
 		}
 	      else
 		{
@@ -401,7 +411,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(long long *)((char *)self + off);
+		  v = *(long long *)((char *)self + offset);
 		}
 	      else
 		{
@@ -422,7 +432,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(unsigned long long *)((char *)self + off);
+		  v = *(unsigned long long *)((char *)self + offset);
 		}
 	      else
 		{
@@ -443,7 +453,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(float *)((char *)self + off);
+		  v = *(float *)((char *)self + offset);
 		}
 	      else
 		{
@@ -462,7 +472,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
 
 	      if (sel == 0)
 		{
-		  v = *(double *)((char *)self + off);
+		  v = *(double *)((char *)self + offset);
 		}
 	      else
 		{
@@ -493,9 +503,19 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
     }
 }
 
+/**
+ * This is used internally by the key-value coding methods, to set a
+ * value in an object either via an accessor method (if sel is
+ * supplied), or via direct access (if type, size, and offset are
+ * supplied).<br />
+ * Automatic conversion between NSNumber and C scalar types is performed.<br />
+ * If type is nul and can't be determined from the selector, the
+ * [NSObject-handleTakevalue:forUnboundKey:] method is called to try
+ * to set a value.
+ */
 void
 GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
-  const char *type, unsigned size, int off)
+  const char *type, unsigned size, int offset)
 {
   if (sel != 0)
     {
@@ -523,7 +543,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  id *ptr = (id *)((char *)self + off);
+		  id *ptr = (id *)((char *)self + offset);
 
 		  [*ptr autorelease];
 		  *ptr = [v retain];
@@ -544,7 +564,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  char *ptr = (char *)((char *)self + off);
+		  char *ptr = (char *)((char *)self + offset);
 
 		  *ptr = v;
 		}
@@ -564,7 +584,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  unsigned char *ptr = (unsigned char*)((char *)self + off);
+		  unsigned char *ptr = (unsigned char*)((char *)self + offset);
 
 		  *ptr = v;
 		}
@@ -585,7 +605,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  short *ptr = (short*)((char *)self + off);
+		  short *ptr = (short*)((char *)self + offset);
 
 		  *ptr = v;
 		}
@@ -605,8 +625,9 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  unsigned short *ptr = (unsigned short*)((char *)self + off);
+		  unsigned short *ptr;
 
+		  ptr = (unsigned short*)((char *)self + offset);
 		  *ptr = v;
 		}
 	      else
@@ -626,7 +647,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  int *ptr = (int*)((char *)self + off);
+		  int *ptr = (int*)((char *)self + offset);
 
 		  *ptr = v;
 		}
@@ -646,7 +667,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  unsigned int *ptr = (unsigned int*)((char *)self + off);
+		  unsigned int *ptr = (unsigned int*)((char *)self + offset);
 
 		  *ptr = v;
 		}
@@ -667,7 +688,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  long *ptr = (long*)((char *)self + off);
+		  long *ptr = (long*)((char *)self + offset);
 
 		  *ptr = v;
 		}
@@ -687,7 +708,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  unsigned long *ptr = (unsigned long*)((char *)self + off);
+		  unsigned long *ptr = (unsigned long*)((char *)self + offset);
 
 		  *ptr = v;
 		}
@@ -709,7 +730,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  long long *ptr = (long long*)((char *)self + off);
+		  long long *ptr = (long long*)((char *)self + offset);
 
 		  *ptr = v;
 		}
@@ -732,7 +753,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 	      if (sel == 0)
 		{
 		  unsigned long long *ptr = (unsigned long long*)((char*)self +
-								  off);
+								  offset);
 
 		  *ptr = v;
 		}
@@ -754,7 +775,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  float *ptr = (float*)((char *)self + off);
+		  float *ptr = (float*)((char *)self + offset);
 
 		  *ptr = v;
 		}
@@ -774,7 +795,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 	      if (sel == 0)
 		{
-		  double *ptr = (double*)((char *)self + off);
+		  double *ptr = (double*)((char *)self + offset);
 
 		  *ptr = v;
 		}
