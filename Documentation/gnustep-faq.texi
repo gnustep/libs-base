@@ -597,7 +597,7 @@ methods necessary in order to implement low-level drawing event
 receiving.  Different back-ends will make GNUstep available on various
 platforms.  The default GNU back-end will run on top of X Windows and
 the DisplayGhostScript Server.  Other back-ends could allow GNUstep to
-run on OpenGL, OS/2, WIN32, graphics/event platforms.  Much work
+run on OpenGL, OS/2, and WIN32 graphics/event platforms.  Much work
 will be saved by this clean separation between front- and back-end,
 because it allows different platforms to share the large amount of
 front-end code.
