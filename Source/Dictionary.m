@@ -169,7 +169,10 @@
 {
   coll_node_ptr node = coll_hash_node_for_key(_contents_hash, aKey);
   if (node)
-    node->value = newContentElement;
+    {
+      RELEASE_ELT(node->value);
+      node->value = newContentElement;
+    }
   else
     coll_hash_add(&_contents_hash, aKey, 
 		  newContentElement);
