@@ -39,11 +39,11 @@ typedef union {
 
 
 
-#define	YYFINAL		29
+#define	YYFINAL		30
 #define	YYFLAG		-32768
 #define	YYNTBASE	13
 
-#define YYTRANSLATE(x) ((unsigned)(x) <= 260 ? yytranslate[x] : 20)
+#define YYTRANSLATE(x) ((unsigned)(x) <= 260 ? yytranslate[x] : 19)
 
 static const char yytranslate[] = {     0,
      2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -77,7 +77,7 @@ static const char yytranslate[] = {     0,
 #if YYDEBUG != 0
 static const short yyprhs[] = {     0,
      0,     2,     4,     6,     8,    10,    12,    14,    18,    23,
-    26,    30,    32,    36,    41,    44,    48,    50
+    26,    30,    32,    36,    41,    44,    50
 };
 
 static const short yyrhs[] = {    14,
@@ -85,7 +85,7 @@ static const short yyrhs[] = {    14,
      0,    17,     0,     6,    16,     7,     0,     6,    16,     8,
      7,     0,     6,     7,     0,    16,     8,    14,     0,    14,
      0,     9,    18,    10,     0,     9,    18,    11,    10,     0,
-     9,    10,     0,    18,    11,    19,     0,    19,     0,     3,
+     9,    10,     0,    18,    11,     3,    12,    14,     0,     3,
     12,    14,     0
 };
 
@@ -94,7 +94,7 @@ static const short yyrhs[] = {    14,
 #if YYDEBUG != 0
 static const short yyrline[] = { 0,
     24,    29,    33,    39,    40,    41,    42,    45,    47,    49,
-    53,    58,    66,    68,    70,    73,    79,    85
+    53,    58,    65,    67,    69,    72,    77
 };
 #endif
 
@@ -103,59 +103,59 @@ static const short yyrline[] = { 0,
 
 static const char * const yytname[] = {   "$","error","$undefined.","NSSTRING",
 "NSDATA","ERROR","'('","')'","','","'{'","'}'","';'","'='","root","object","array",
-"objlist","dictionary","keyval_list","keyval_pair", NULL
+"objlist","dictionary","keyval_list", NULL
 };
 #endif
 
 static const short yyr1[] = {     0,
     13,    13,    13,    14,    14,    14,    14,    15,    15,    15,
-    16,    16,    17,    17,    17,    18,    18,    19
+    16,    16,    17,    17,    17,    18,    18
 };
 
 static const short yyr2[] = {     0,
      1,     1,     1,     1,     1,     1,     1,     3,     4,     2,
-     3,     1,     3,     4,     2,     3,     1,     3
+     3,     1,     3,     4,     2,     5,     3
 };
 
 static const short yydefact[] = {     0,
      2,     4,     5,     3,     0,     0,     1,     6,     7,    10,
-    12,     0,     0,    15,     0,    17,     8,     0,     0,    13,
-     0,     9,    11,    18,    14,    16,     0,     0,     0
+    12,     0,     0,    15,     0,     8,     0,     0,    13,     0,
+     9,    11,    17,     0,    14,     0,    16,     0,     0,     0
 };
 
-static const short yydefgoto[] = {    27,
-     7,     8,    12,     9,    15,    16
+static const short yydefgoto[] = {    28,
+     7,     8,    12,     9,    15
 };
 
 static const short yypact[] = {     0,
--32768,-32768,-32768,-32768,    15,     5,-32768,-32768,-32768,-32768,
--32768,     4,   -10,-32768,    26,-32768,-32768,    22,    29,-32768,
-     7,-32768,-32768,-32768,-32768,-32768,    16,    20,-32768
+-32768,-32768,-32768,-32768,    13,     4,-32768,-32768,-32768,-32768,
+-32768,     3,   -10,-32768,    24,-32768,    20,    27,-32768,     5,
+-32768,-32768,-32768,     6,-32768,    27,-32768,    25,    28,-32768
 };
 
 static const short yypgoto[] = {-32768,
-    -5,-32768,-32768,-32768,-32768,   -14
+    -5,-32768,-32768,-32768,-32768
 };
 
 
-#define	YYLAST		38
+#define	YYLAST		36
 
 
 static const short yytable[] = {    11,
-     1,    19,     2,     3,     4,     5,    26,    13,     6,    13,
-    17,    18,    23,    24,    14,    28,    25,     2,     3,    29,
-     5,    10,     0,     6,     2,     3,     0,     5,    22,     0,
-     6,     2,     3,     0,     5,    20,    21,     6
+     1,    18,     2,     3,     4,     5,    13,    24,     6,    16,
+    17,    22,    23,    14,    25,     2,     3,    26,     5,    10,
+    27,     6,     2,     3,    29,     5,    21,    30,     6,     2,
+     3,     0,     5,    19,    20,     6
 };
 
 static const short yycheck[] = {     5,
-     1,    12,     3,     4,     5,     6,    21,     3,     9,     3,
-     7,     8,    18,    19,    10,     0,    10,     3,     4,     0,
-     6,     7,    -1,     9,     3,     4,    -1,     6,     7,    -1,
-     9,     3,     4,    -1,     6,    10,    11,     9
+     1,    12,     3,     4,     5,     6,     3,     3,     9,     7,
+     8,    17,    18,    10,    10,     3,     4,    12,     6,     7,
+    26,     9,     3,     4,     0,     6,     7,     0,     9,     3,
+     4,    -1,     6,    10,    11,     9
 };
 /* -*-C-*-  Note some compilers choke on comments on `#line' lines.  */
-#line 3 "/usr/lib/bison.simple"
+#line 3 "/apps/share/bison.simple"
 
 /* Skeleton output parser for bison,
    Copyright (C) 1984, 1989, 1990 Free Software Foundation, Inc.
@@ -348,7 +348,7 @@ __yy_memcpy (char *to, char *from, int count)
 #endif
 #endif
 
-#line 196 "/usr/lib/bison.simple"
+#line 196 "/apps/share/bison.simple"
 
 /* The user can define YYPARSE_PARAM as the name of an argument to be passed
    into yyparse.  The argument should have type void *.
@@ -693,49 +693,39 @@ case 11:
 case 12:
 #line 59 "proplist.y"
 {
-                                  yyval.obj = [[[NSMutableArray alloc]
-initWithCapacity:1] autorelease];
+                                  yyval.obj = [NSMutableArray arrayWithCapacity: 1];
                                   [yyval.obj addObject:yyvsp[0].obj];
                                 ;
     break;}
 case 13:
-#line 67 "proplist.y"
+#line 66 "proplist.y"
 {yyval.obj = yyvsp[-1].obj;;
     break;}
 case 14:
-#line 69 "proplist.y"
+#line 68 "proplist.y"
 {yyval.obj = yyvsp[-2].obj;;
     break;}
 case 15:
-#line 71 "proplist.y"
+#line 70 "proplist.y"
 {yyval.obj = [NSDictionary dictionary];;
     break;}
 case 16:
-#line 74 "proplist.y"
+#line 73 "proplist.y"
 {
-                                  yyval.obj = yyvsp[-2].obj;
-                                  [yyval.obj addEntriesFromDictionary:yyvsp[0].obj];
-				  [yyvsp[0].obj release];
-                                ;
-    break;}
-case 17:
-#line 80 "proplist.y"
-{
-                                  yyval.obj = yyvsp[0].obj;
-				  [yyval.obj autorelease];
-				;
-    break;}
-case 18:
-#line 86 "proplist.y"
-{
-                                  yyval.obj = [[NSMutableDictionary alloc]
-initWithCapacity:1];
+                                  yyval.obj = yyvsp[-4].obj;
                                   [yyval.obj setObject:yyvsp[0].obj forKey:yyvsp[-2].obj];
                                 ;
     break;}
+case 17:
+#line 78 "proplist.y"
+{
+                                  yyval.obj = [NSMutableDictionary dictionaryWithCapacity:1];
+                                  [yyval.obj setObject:yyvsp[0].obj forKey:yyvsp[-2].obj];
+				;
+    break;}
 }
    /* the action file gets copied in in place of this dollarsign */
-#line 498 "/usr/lib/bison.simple"
+#line 498 "/apps/share/bison.simple"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -931,7 +921,7 @@ yyerrhandle:
   yystate = yyn;
   goto yynewstate;
 }
-#line 92 "proplist.y"
+#line 83 "proplist.y"
 
 
                 /* C code section */

@@ -65,9 +65,6 @@ classes could make things more efficient (especially EltNodeCollector).
 SplayTree's could be done using top-down splaying.  collhash could be
 completely reimplemented.  [5-8] (970101)
 
-@item Separate core and non-core code in NSDictionary, NSSet, etc, the
-same way I did for NSArray. (970101)
-
 @item Separate Constant and non-Constant collections for the rest of the
 GNU connection classes the same way I did for Array. (970101)
 
