@@ -1360,7 +1360,7 @@ handle_printf_atsign (FILE *stream,
   NSStringEncoding	enc = _DefaultStringEncoding;
   NSData		*d = [NSDataClass dataWithContentsOfURL: url];
   unsigned int		len = [d length];
-  const unsigned char	*test;
+  const unichar		*test;
 
   if (d == nil)
     {
