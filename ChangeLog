@@ -1,3 +1,12 @@
+Fri Oct 17 14:28:49 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/GNUmakefile (LIBRARY_VAR): Unused variable removed.
+	* Source/GNUmakefile (srcdir): Variable removed.
+	* Source/Makefile.preamble: Removed references to srcdir.
+	* Source/Makefile.postamble: Same changes.
+	* Source/Makefile.preamble (ADDITIONAL_LIB_DIRS): Use
+	$(GNUSTEP_OBJ_DIR), not ./$(GNUSTEP_OBJ_DIR).
+	
 Fri Oct 17 14:15:33 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Makefile.postamble (.PHONY): Unused target removed.
