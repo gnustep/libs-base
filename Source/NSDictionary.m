@@ -25,7 +25,6 @@
 #include <config.h>
 #include <gnustep/base/behavior.h>
 #include <Foundation/NSDictionary.h>
-#include <Foundation/NSGDictionary.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
@@ -39,6 +38,9 @@
 @end
 
 @implementation NSDictionary 
+
+@class	NSGDictionary;
+@class	NSGMutableDictionary;
 
 static Class NSDictionary_concrete_class;
 static Class NSMutableDictionary_concrete_class;
@@ -225,6 +227,7 @@ static Class NSMutableDictionary_concrete_class;
   OBJC_MALLOC (keys, id, capacity);
   if (firstObject != nil)
     {
+      NSDictionary *d;
       objects[num_pairs] = firstObject;
       /* Keep grabbing arguments until we get a nil... */
       while ((arg = va_arg (ap, id)))
@@ -246,9 +249,11 @@ static Class NSMutableDictionary_concrete_class;
 	    }
 	}
       NSAssert (argi % 2 == 0, NSInvalidArgumentException);
-      return [[[self alloc] initWithObjects: objects forKeys: keys
-			    count: num_pairs]
-	       autorelease];
+      d = [[[self alloc] initWithObjects: objects forKeys: keys
+			    count: num_pairs] autorelease];
+      OBJC_FREE(objects);
+      OBJC_FREE(keys);
+      return d;
     }
   /* FIRSTOBJECT was nil; just return an empty NSDictionary object. */
   return [self dictionary];
