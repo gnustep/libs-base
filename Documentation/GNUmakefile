@@ -31,7 +31,7 @@ include ../Version
 include ../config.mak
 
 # The documents to be generated
-DOCUMENT_NAME = gnustep-base
+DOCUMENT_NAME = gnustep-base 
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \
@@ -42,12 +42,7 @@ TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE
 gnustep-base_TEXI_FILES = \
 version.tmpl.texi \
 gnustep-base.tmpl.texi \
-gnustep-zones.tmpl.texi \
-announce.tmpl.texi \
-coding-standards.tmpl.texi \
-install.tmpl.texi \
-news.tmpl.texi \
-readme.tmpl.texi
+gnustep-zones.tmpl.texi
 
 TODO_TEXI_FILES = version.tmpl.texi
 TODO_TEXT_MAIN = todo.tmpl.texi
