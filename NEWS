@@ -1,9 +1,24 @@
 News
 ****
 
-The currently released version of the library is `1.10.0'.
+The currently released version of the library is `1.10.1'.
 
 See the <ReleaseNotes.html> document for more information.
+
+Noteworthy changes in version `1.10.1'
+======================================
+
+This version mostly includes minor fixes and updates.
+
+   * Runtime discovery of the library version is possible.
+
+   * NSXMLParser class added. Not completely implemented.
+
+   * NSArrays makeObjectsPerformSelector iterates in same order as
+     MacOS X.
+
+   * Designated initializers for NSArray, NSDictionary, NSSet, and
+     NSString have been changed for MacOS X compatibility.
 
 Noteworthy changes in version `1.10.0'
 ======================================

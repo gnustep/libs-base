@@ -1,3 +1,10 @@
+2004-10-28  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.10.1
+
+	* Source/Makefile.postamble (Info-gnustep.plist): Add some 
+	compatibility keys.
+
 2004-10-26  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Standardize order of flags and libs
@@ -56,7 +63,7 @@
 
 2004-10-15 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/GSHTTPURLHandle.m: Don't expect a baody where status is 204
+	* Source/GSHTTPURLHandle.m: Don't expect a body where status is 204
 	or 304
 
 2004-10-13  Adam Fedor  <fedor@gnu.org>
