@@ -32,6 +32,10 @@
 #include <mframe.h>
 #include <string.h>
 
+/**
+ * Returns a string object containing the method name for
+ * aSelector.  If aSelector is 0, returns nil.
+ */
 NSString *
 NSStringFromSelector(SEL aSelector)
 {
@@ -40,6 +44,10 @@ NSStringFromSelector(SEL aSelector)
   return nil;
 }
 
+/**
+ * Returns a selector for the method whose name is supplied in the
+ * aSelectorName argument, or 0 if a nil string is supplied.
+ */
 SEL
 NSSelectorFromString(NSString *aSelectorName)
 {
@@ -48,6 +56,10 @@ NSSelectorFromString(NSString *aSelectorName)
   return (SEL)0;
 }
 
+/**
+ * Returns the class whose name is supplied in the
+ * aClassName argument, or 0 if a nil string is supplied.
+ */
 Class
 NSClassFromString(NSString *aClassName)
 {
@@ -56,6 +68,10 @@ NSClassFromString(NSString *aClassName)
   return (Class)0;
 }
 
+/**
+ * Returns an [NSString] object containing the class name for
+ * aClass.  If aClass is 0, returns nil.
+ */
 NSString *
 NSStringFromClass(Class aClass)
 {
@@ -64,6 +80,14 @@ NSStringFromClass(Class aClass)
   return nil;
 }
 
+/**
+ * When provided with a C string containing encoded type information,
+ * this method extracts size and alignment information for the specified
+ * type into the buffers pointed to by sizep and alignp.<br />
+ * If either sizep or alignp is a nil pointer, the corresponding data is
+ * not extracted.<br />
+ * The function returns a pointer to the type information C string.
+ */
 const char *
 NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
 {
