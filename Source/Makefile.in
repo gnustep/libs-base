@@ -1,7 +1,7 @@
 # @configure_input@
 #
 #  src makefile for GNU Objective-C Class library
-#  Copyright (C) 1995 Free Software Foundation, Inc.
+#  Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 #
 #  Written by:	R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
 #
@@ -22,7 +22,6 @@
 #  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  
 SHELL = /bin/sh
-include ../Makeconf
 
 #### Start of system configuration section. ####
 
@@ -58,6 +57,8 @@ INCLUDEFLAGS =
 
 #### End of system configuration section. ####
 
+include $(srcdir)/../Makeconf
+
 include $(srcdir)/../Version
 
 # Grep for these names to build the legally-required "AUTHORS" file.
@@ -72,19 +73,14 @@ FILE_AUTHORS = \
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
-SHAREDLIB_CFLAGS = -fPIC
-SHAREDLIB_ARFLAGS = -shared
-USING_SHAREDLIB_CFLAGS = @USING_SHAREDLIB_CFLAGS@
-USING_SHAREDLIB_ARFLAGS = @USING_SHAREDLIB_ARFLAGS@
-
 NEXT_NEXT_INCLUDES = -I/usr/include
 OBJECTS_NEXT_INCLUDES = -I$(srcdir)
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
 ALL_INCLUDE_FLAGS = -I$(srcdir) $(NEXT_INCLUDES) $(INCLUDEFLAGS)
 ALL_CPPFLAGS = $(ALL_INCLUDE_FLAGS) $(CPPFLAGS)
-ALL_CFLAGS = $(CFLAGS) $(USING_SHAREDLIB_CFLAGS)
-ALL_OBJCFLAGS = $(CFLAGS) $(USING_SHAREDLIB_CFLAGS) -Wno-protocol
+ALL_CFLAGS = $(CFLAGS)
+ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
 
 # definitions to be passed to subdir Makefile's
 MAKEDEFINES = CC='$(CC)' CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' \
@@ -92,9 +88,15 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 
 .SUFFIXES: .m
 .m.o:
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -o $*.o $<
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -o $@ $<
 .c.o:
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -o $*.o $<
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -o $@ $<
+%_pic.o: %.m
+	$(CC) -c $(ALL_CPPFLAGS) -fPIC -DPIC $(DEFS) \
+		$(ALL_OBJCFLAGS) -o $@ $<
+%_pic.o: %.c
+	$(CC) -c $(ALL_CPPFLAGS) -fPIC -DPIC $(DEFS) \
+		$(ALL_CFLAGS) -o $@ $<
 
 # GNU Class source files
 
@@ -387,6 +389,7 @@ Foundation/objc-load.h
 
 HEADERS_INSTALL = @HEADERS_INSTALL@ objects/config.h objects/stdobjects.h
 OBJS_INSTALL = @OBJS_INSTALL@ 
+OBJS_INSTALL_PIC = $(OBJS_INSTALL:.o=_pic.o)
 
 DIST_FILES = \
         Makefile.in AUTHORS \
@@ -421,14 +424,15 @@ RCS_FILES = \
         $(GNUSTEP_HEADERS) \
         $(GNUSTEP_OTHER_SRCFILES)
 
-all: @LIBOBJECTS_A_OR_SO@
+all: libobjects.a @LIBOBJECTS_SO@
 
-libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL) 
-	$(CC) $(USING_SHAREDLIB_ARFLAGS) -o libobjects.so.$(OBJECTS_VERSION) \
-		$(OBJS_INSTALL) \
-		-Wl,-soname,libobjects.so.$(OBJECTS_VERSION)
-	rm -f libobjects.so
-	ln -s libobjects.so.$(OBJECTS_VERSION) libobjects.so
+libobjects.so.$(OBJECTS_VERSION): objects/stdobjects.h $(OBJS_INSTALL_PIC) 
+	$(CC) -shared -o libobjects.so.$(OBJECTS_VERSION) \
+		-Wl,-soname,libobjects.so.$(OBJECTS_VERSION) \
+		$(OBJS_INSTALL_PIC)
+	rm -f libobjects.so.$(OBJECTS_MAJOR_VERSION)
+	ln -s libobjects.so.$(OBJECTS_VERSION) \
+		libobjects.so.$(OBJECTS_MAJOR_VERSION)
 
 libobjects.a: objects/stdobjects.h $(OBJS_INSTALL) 
 	$(AR) $(ARFLAGS) libobjects.a $(OBJS_INSTALL)
@@ -436,17 +440,17 @@ libobjects.a: objects/stdobjects.h $(OBJS_INSTALL)
 
 install: installdirs all
 	# Install the library
-	$(INSTALL_DATA) @LIBOBJECTS_A_OR_SO@ $(libdir)
-	if [ $USING_SHAREDLIB_CFLAGS ]; then \
-	  $(RANLIB) $(libdir)/libobjects.a; \
-	else ; \
+	$(INSTALL_DATA) libobjects.a $(libdir)
+	$(RANLIB) $(libdir)/libobjects.a; \
+	if [ @LIBOBJECTS_SO@ ]; then \
+	  $(INSTALL_DATA) libobjects.so.$(OBJECTS_VERSION) $(libdir) ; \
 	  rm -f $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
 	  ln -s $(libdir)/libobjects.so.$(OBJECTS_VERSION) ; \
 		$(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
 	fi
 	# Install the headers
 	for file in $(HEADERS_INSTALL); do \
-	  $(INSTALL_DATA) $$file $(includedir)/$$file ; \
+	  $(INSTALL_DATA) $(srcdir)/$$file $(includedir)/$$file ; \
 	done
 	cd $(includedir)/Foundation; rm -f README; ln -s ../objects/README .
 	cd $(includedir)/objc; rm -f README; ln -s ../objects/README .
@@ -467,7 +471,7 @@ uninstall:
 # Compilation of class clusters
 $(NSVALUE_OFILES) : NSCTemplateValue.m
 	for i in ${NSVALUE_CLUSTER}; do \
-	    cp NSCTemplateValue.m NSCTemplateValue$$i.m; \
+	    cp $(srcdir)/NSCTemplateValue.m NSCTemplateValue$$i.m; \
 	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
 		-DTYPE_ORDER=$$i NSCTemplateValue$$i.m \
 		-o NSValue$$i.o; \
@@ -476,7 +480,7 @@ $(NSVALUE_OFILES) : NSCTemplateValue.m
 
 $(NSNUMBER_OFILES) : NSConcreteNumber.m
 	for i in ${NSNUMBER_CLUSTER}; do \
-	    cp NSConcreteNumber.m NSConcreteNumber$$i.m; \
+	    cp $(srcdir)/NSConcreteNumber.m NSConcreteNumber$$i.m; \
 	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \
 		-DTYPE_ORDER=$$i -c NSConcreteNumber$$i.m \
 		-o NSNumber$$i.o; \
@@ -484,7 +488,7 @@ $(NSNUMBER_OFILES) : NSConcreteNumber.m
 	done
 
 NXStringTable_scan.c: NXStringTable_scan.l
-	$(LEX) $(LEXFLAGS) -t NXStringTable_scan.l \
+	$(LEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
 		> NXStringTable_scan.temp
 	sed 's/yy/NXlex_/g' < NXStringTable_scan.temp \
 		> NXStringTable_scan.c
@@ -493,14 +497,13 @@ NXStringTable_scan.c: NXStringTable_scan.l
 # remove this special case?
 # turn off warnings while compiling NXStringTable_scan.c
 NXStringTable_scan.o: NXStringTable_scan.c
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -w \
-		NXStringTable_scan.c -o $*.o
+	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -w $^ -o $*.o
 
 objc-load.o: dynamic-load.h
 
 dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
-	cp $(DYNAMIC_LINKER)-load.h dynamic-load.h
+	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
 
 objects/stdobjects.h: $(srcdir)/../Version objects/stdobjects.h.in
 	rm -f $(srcdir)/objects/stdobjects.h
