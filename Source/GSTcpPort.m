@@ -292,6 +292,10 @@ newDataWithEncodedPort(GSTcpPort *port)
 		}
 	    }
 	}
+      if (addr == nil)
+	{
+	  addr = @"127.0.0.1";	/* resign ourselves to this	*/
+	}
     }
   plen = [addr cStringLength] + 3;
   data = [[NSMutableData alloc] initWithLength: sizeof(GSPortItemHeader)+plen];
@@ -1206,12 +1210,11 @@ static Class		tcpPortClass;
 	       */
 	      port->listener = desc;
 	      port->portNum = GSSwapBigI16ToHost(sockaddr.sin_port); 
-
 	      /*
 	       * Make sure we have the map table for this port.
 	       */
 	      thePorts = (NSMapTable*)NSMapGet(tcpPortMap,
-		    (void*)(gsaddr)port->portNum);
+		(void*)(gsaddr)port->portNum);
 	      if (thePorts == 0)
 		{
 		  /*

@@ -2,6 +2,7 @@
 
 	* Tools/Makefile.postamble: Improve warning messages for gdomap install
 	* Source/NSProcessInfo.m: Change __MINGW32__ to __MINGW__
+	* Source/GSTcpPort.m: improve encoding of local port for send over wire
 
 2000-07-17  Adam Fedor  <fedor@gnu.org>
 
