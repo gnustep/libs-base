@@ -1,3 +1,36 @@
+Thu Nov 19 21:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+	src/Archiver.m: Got rid of 'assert' - replace with 'NSAssert' etc.
+	src/BinaryTree.m: ditto
+	src/Coder.m: ditto
+	src/Collection.m: ditto
+	src/ConnectedCoder.m: ditto
+	src/Invocation.m: ditto
+	src/LinkedList.m: ditto
+	src/MachPort.m: ditto
+	src/NSAutoreleasePool.m: ditto
+	src/NSBundle.m: ditto
+	src/NSConnection.m: ditto
+	src/NSCountedSet.m: ditto
+	src/NSDate.m: ditto
+	src/NSDistantObject.m: ditto
+	src/NSGArchiver.m: ditto
+	src/NSGSequence.m: ditto
+	src/NSObject.m: ditto
+	src/NSPortCoder.m: ditto
+	src/NSRunLoop.m: ditto
+	src/NSSet.m: ditto
+	src/NSTimer.m: ditto
+	src/NSZone.m: ditto
+	src/NotificationDispatcher.m: ditto
+	src/OrderedCollection.m: ditto
+	src/Port.m: ditto
+	src/Random.m: ditto
+	src/Storage.m: ditto
+	src/TcpPort.m: ditto
+	src/UdpPort.m: ditto
+	src/behavior.m: ditto
+	src/mframe.m: ditto
+
 Thu Nov 19 16:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/include/NSSerializer.h: Removed erroneous protocol conformance
