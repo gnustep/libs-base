@@ -1,3 +1,8 @@
+2004-06-21 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSIndexSet.m: (-indexGreaterThanOrEqualToIndex,
+	-indexGreaterThanIndex:) removed incorrect special case handling.
+
 2004-06-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: ([initForUser:]) carry on and initialise
