@@ -28,19 +28,30 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSInvocation.h>
 
+@class	NSGDate;
+static Class	NSDate_class;
+
 @implementation NSTimer
 
++ (void) initialize
+{
+  if (self == [NSTimer class])
+    {
+      NSDate_class = [NSGDate class];
+    }
+}
+
 /* This is the designated initializer. */
-- initWithTimeInterval: (NSTimeInterval)seconds
-    targetOrInvocation: t
-	      selector: (SEL)sel
-              userInfo: info
-               repeats: (BOOL)f
+- (id) initWithTimeInterval: (NSTimeInterval)seconds
+	 targetOrInvocation: (id)t
+		   selector: (SEL)sel
+		   userInfo: info
+		    repeats: (BOOL)f
 {
   if (seconds <= 0)
-    seconds = 0.01;
+    seconds = 0.001;
   _interval = seconds;
-  _date = [[NSDate allocWithZone: [self zone]]
+  _date = [[NSDate_class allocWithZone: [self zone]]
     initWithTimeIntervalSinceNow: seconds];
   _target = t;
   _selector = sel;
