@@ -44,8 +44,10 @@ NSString *ConnectionWasCreatedNotification =
 @"ConnectionWasCreatedNotification";
 
 /* NSThread Notifications */
-NSString *NSBecomingMultiThreaded = @"NSBecomingMultiThreadedNotification";
-NSString *NSThreadExiting = @"NSThreadExitingNotification";
+NSString *NSWillBecomeMultiThreadedNotification
+  = @"NSWillBecomeMultiThreadedNotification";
+NSString *NSThreadWillExitNotification
+  = @"NSThreadWillExitNotification";
 
 /* Port Notifications */
 NSString *PortBecameInvalidNotification = @"PortBecameInvalidNotification";

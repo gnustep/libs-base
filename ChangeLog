@@ -1,3 +1,10 @@
+Fri May 21 16:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/NSThread.h: Update notification names to MacOS-X
+	with defines for OpenStep compatibility.
+	* Source/NSThread.m: Update notification names to MacOS-X
+	* Source/externs.m: Update thread notification names to MacOS-X
+
 Fri May 21 16:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/NSZone.h: Added NSZoneMallocAtomic() for Helge
