@@ -76,8 +76,9 @@ int main (int argc, char *argv[])
 	  [[[ObjectFunctionInvocation alloc]
 	     initWithObjectFunction: handle_incoming_packet]
 	    autorelease]];
-  [port addToRunLoop: [RunLoop currentInstance] forMode: nil];
-  [[RunLoop currentInstance] run];
+  [[RunLoop currentInstance] addPort: port
+			     forMode: RunLoopDefaultMode];
+  [RunLoop run];
 #else
   {
     id packet;

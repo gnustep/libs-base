@@ -36,7 +36,8 @@ int main (int argc, char *argv[])
 		initWithObjectFunction: handle_incoming_packet]
 	       autorelease]];
 
-  [in_port addToRunLoop: [RunLoop currentInstance] forMode: nil];
+  [[RunLoop currentInstance] addPort: in_port
+			     forMode: RunLoopDefaultMode];
   
   for (i = 0; i < 10; i++)
     {
