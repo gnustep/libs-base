@@ -1135,6 +1135,11 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
   unichar	base = 0;
   _ucc_		*table = 0;
   unsigned	tsize = 0;
+  unsigned char	escape = 0;
+  _ucc_		*etable = 0;
+  unsigned	etsize = 0;
+  _ucc_		*ltable = 0;
+  unsigned	ltsize = 0;
   BOOL		swapped = NO;
   BOOL		result = YES;
   
@@ -1270,120 +1275,90 @@ bases:
 	goto tables;
 #endif
 
-tables:
+      case NSGSM0338StringEncoding:
+	base = 0;
+	table = GSM0338_uni_to_char_table;
+	tsize = GSM0338_tsize;
+        escape = 0x1b;
+	etable = GSM0338_escapes;
+	etsize = GSM0338_esize;
 	if (strict == NO)
 	  {
-	    while (spos < slen)
-	      {
-		unichar	u = src[spos++];
-
-		if (swapped == YES)
-		  {
-		    u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
-		  }
-
-		if (dpos >= bsize)
-		  {
-		    GROW();
-		  }
-		if (u < base)
-		  {
-		    ptr[dpos++] = (char)u;
-		  }
-		else
-		  {
-		    int i = chop(u, table, tsize);
-
-		    if (i < 0)
-		      {
-			ptr[dpos++] = '*';
-		      }
-		    else
-		      {
-			ptr[dpos++] = table[i].to;
-		      }
-		  }
-	      }
+	    ltable = GSM0338_lossy;
+	    ltsize = GSM0338_lsize;
 	  }
-	else
-	  {
-	    while (spos < slen)
-	      {
-		unichar	u = src[spos++];
+	goto tables;
 
-		if (swapped == YES)
-		  {
-		    u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
-		  }
-
-		if (dpos >= bsize)
-		  {
-		    GROW();
-		  }
-		if (u < base)
-		  {
-		    ptr[dpos++] = (char)u;
-		  }
-		else
-		  {
-		    int i = chop(u, table, tsize);
-
-		    if (i < 0)
-		      {
-			result = NO;
-			spos = slen;
-			break;
-		      }
-		    ptr[dpos++] = table[i].to;
-		  }
-	      }
-	  }
-	break;
-
-      case NSGSM0338StringEncoding:
+tables:
 	while (spos < slen)
 	  {
 	    unichar	u = src[spos++];
-	    int		i;
+	    int	i;
 
+	    /* Swap byte order if necessary */
 	    if (swapped == YES)
 	      {
 		u = ((u & 0xff00 >> 8) + ((u & 0x00ff) << 8));
 	      }
 
+	    /* Grow output buffer to make room if necessary */
 	    if (dpos >= bsize)
 	      {
 		GROW();
 	      }
 
-	    i = chop(u, GSM0338_uni_to_char_table, GSM0338_tsize);
-	    if (i >= 0)
+	    if (u < base)
 	      {
-		ptr[dpos] = GSM0338_uni_to_char_table[i].to;
+		/*
+		 * The character set has a lower section whose contents
+		 * are identical to unicode, so no mapping is needed.
+		 */
+		ptr[dpos++] = (char)u;
+	      }
+	    else if (table != 0 && (i = chop(u, table, tsize)) >= 0)
+	      {
+		/*
+		 * The character mapping is found in a basic table.
+		 */
+		ptr[dpos++] = table[i].to;
+	      }
+	    else if (etable != 0 && (i = chop(u, etable, etsize)) >= 0)
+	      {
+		/*
+		 * The character mapping is found in a table of simple
+		 * escape sequences consisting of an escape byte followed
+		 * by another single byte.
+		 */
+		ptr[dpos++] = escape;
+		if (dpos >= bsize)
+		  {
+		    GROW();
+		  }
+		ptr[dpos++] = etable[i].to;
+	      }
+	    else if (ltable != 0 && (i = chop(u, ltable, ltsize)) >= 0)
+	      {
+		/*
+		 * The character is found in a lossy mapping table.
+		 */
+		ptr[dpos++] = ltable[i].to;
+	      }
+	    else if (strict == NO)
+	      {
+		/*
+		 * The default lossy mapping generates an asterisk.
+		 */
+		ptr[dpos++] = '*';
 	      }
 	    else
 	      {
-		i = chop(u, GSM0338_escapes, GSM0338_esize);
-		if (i >= 0)
-		  {
-		    ptr[dpos++] = 0x1b;
-		    if (dpos >= bsize)
-		      {
-			GROW();
-		      }
-		    ptr[dpos] = GSM0338_escapes[i].to;
-		  }
-		else if (strict == YES)
-		  {
-		    result = NO;
-		    break;
-		  }
-		else
-		  {
-		    ptr[dpos] = '*';
-		  }
+		/*
+		 * No mapping has been found.
+		 */
+		result = NO;
+		spos = slen;
+		break;
 	      }
-	    dpos++;
 	  }
 	break;
 

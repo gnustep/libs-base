@@ -271,17 +271,39 @@ _ucc_ GSM0338_uni_to_char_table[] =
 
 _ucc_ GSM0338_escapes[] =
 {
-  {0x000C,0x0A},
-  {0x005B,0x3C},
-  {0x005C,0x2F},
-  {0x005D,0x3E},
-  {0x005E,0x14},
-  {0x007B,0x28},
-  {0x007C,0x40},
-  {0x007D,0x29},
-  {0x007E,0x3D},
-  {0x20AC,0x65}
+  {0x000C,0x0A},	/* Form feed	*/
+  {0x005B,0x3C},	/* '['		*/
+  {0x005C,0x2F},	/* '\\'		*/
+  {0x005D,0x3E},	/* ']'		*/
+  {0x005E,0x14},	/* '^'		*/
+  {0x007B,0x28},	/* '{'		*/
+  {0x007C,0x40},	/* '|'		*/
+  {0x007D,0x29},	/* '}'		*/
+  {0x007E,0x3D},	/* '~'		*/
+  {0x20AC,0x65}		/* Euro symbol	*/
 };
 
 #define	GSM0338_esize	(sizeof(GSM0338_escapes)/sizeof(_ucc_))
+
+/*
+ * Some of these conversions should not be needed because they are
+ * already handled by escape sequences ... I put them here so we can
+ * support two varieties of the GSM alphabet.  The official one, and
+ * a cut down version suitable for use when delivering data to phones
+ * which don't support escape sequences.
+ */
+_ucc_ GSM0338_lossy[] =
+{
+  {0x005B,0x3C},	/* '[' => '<'	*/
+  {0x005C,0x2F},	/* '\\' => '/'	*/
+  {0x005D,0x3E},	/* ']' => '>'	*/
+  {0x005E,0x14},	/* '^' => lambda */
+  {0x0060,0x27},	/* '`' => '\''	*/
+  {0x007B,0x28},	/* '{' => '('	*/
+  {0x007C,0x40},	/* '|' => 'i'	*/
+  {0x007D,0x29},	/* '}' => ')'	*/
+  {0x007E,0x3D}		/* '~' => '='	*/
+};
+
+#define	GSM0338_lsize	(sizeof(GSM0338_lossy)/sizeof(_ucc_))
 

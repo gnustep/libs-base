@@ -1,3 +1,11 @@
+2002-09-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Unicode.m: Restructure conversion from unicode slightly,
+	to make it clearer and more readable and to include handling of
+	lossy conversions.
+	* Headers/gnustep/unicode/gsm0338.h: Added table for lossy conversion
+	from unicode.
+
 2002-09-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Bugfix ... look for source files more

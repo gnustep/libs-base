@@ -35,8 +35,9 @@ int main()
   NSMutableString	*f1 = [NSMutableString stringWithString: @"ab"];
   NSStringEncoding	*encs;
 
-{
-  unichar	buf[] = { '\243' };
+#if 0
+{	// GSM test
+  unichar	buf[] = { 163, '[', ']', '{', '}', '\\', '^', '|', '~', '_' };
   NSString	*str = [NSString stringWithCharacters: buf
 			 length: sizeof(buf)/sizeof(unichar)];
   NSData	*gsm  = [str dataUsingEncoding: NSGSM0338StringEncoding];
@@ -44,6 +45,8 @@ int main()
   NSLog(@"GSM: %*.*s", [gsm length], [gsm length], [gsm bytes]);
   return 0;
 }
+#endif
+
   NS_DURING
   [fo replaceCharactersInRange: [fo rangeOfString: @"xx"] withString: us1];
   NS_HANDLER
