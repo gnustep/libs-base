@@ -56,7 +56,7 @@
  #include <objc/list.h>
 #endif
 
-#include <objc/Object.h>
+#include <foundation/NSObject.h>
 #include <objects/objc-malloc.h>
 
 /* The following two lines are maintained by the libobjects Makefile */
