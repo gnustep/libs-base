@@ -515,7 +515,11 @@ extern char *objc_find_executable(const char *name);
        * Make sure task is run in it's own process group.
        */
 #if     HAVE_SETPGRP
+#ifdef	SETPGRP_VOID
       setpgrp();
+#else
+      setpgrp(getpid(), getpid());
+#endif
 #else
 #if defined(__WIN32__)
       pid = (int)GetCurrentProcessId(),

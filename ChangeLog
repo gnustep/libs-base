@@ -1,3 +1,9 @@
+Sat Jun 26  7:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSRunLoop.m: Fix error in last mod.
+	* Source/NSTask.m: Allow for bsd setpgrp()
+	* Souyrce/configure.in: Allow for bsd setpgrp()
+
 Fri Jun 25 11:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSRunLoop.m: Use autorelease pools in ([limitDateForMode:])
