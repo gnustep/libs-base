@@ -1,3 +1,13 @@
+2004-11-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Fix to ensure that a main bundle exists.
+	Fix to get -executablePath for the main bundle to return the
+	path to the executable.
+	* Tools/gdnc.m: In order to avoid problems on BSD when using the pth
+	library to do threading, we need to fork, close descriptors, and
+	then exec the program again, since closing descriptors messes up
+	the threading library.
+
 2004-11-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/pl.m: Make code conform to gnu coding standards.
