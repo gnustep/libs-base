@@ -90,6 +90,9 @@ typedef gsu32 wint_t;
 #ifdef HAVE_SYS_INTTYPES_H
 #include <sys/inttypes.h>
 #endif
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
 #ifndef HAVE_UINTMAX_T
 typedef unsigned long long uintmax_t;
 #endif
