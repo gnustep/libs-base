@@ -23,6 +23,10 @@
 
 /* The implementation for NotificationDispatcher. */
 
+/* NeXT says you can only have one NotificationCenter per task;
+   I don't think GNU needs this restriction with its corresponding
+   NotificationDistributor class. */
+
 #include <objects/NotificationDispatcher.h>
 #include <objects/Notification.h>
 #include <objects/LinkedListNode.h>
@@ -470,26 +474,6 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
   /* We are now guaranteed that at least one of NAME and OBJECT is non-nil. */
 
-  /* If OBSERVER is nil, check the _nil_observer_array for 
-     NotificationRequests needing removal. */
-  if (!observer)
-    {
-      int i;
-      for (i = [_nil_observer_array count] - 1; i >= 0; i--)
-	{
-	  nr = [_nil_observer_array objectAtIndex: i];
-	  if ((!name || [name isEqual: [nr notificationName]])
-	      && (!object || [object isEqual: [nr notificationObject]]))
-	    {
-	      [self _removeFromLinkedListNotificationRequest: nr];
-	      [_nil_observer_array removeObjectAtIndex: i];
-	    }
-	}
-      /* Since NotificationRequest's with nil OBSERVER aren't put in the
-	 _observer_2_nr_array, we are now done; return. */
-      return;
-    }
-
   /* Get the list of NotificationRequest's associated with OBSERVER. */
   observer_nr_array = NSMapGet (_observer_2_nr_array, observer);
 
@@ -605,6 +589,11 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
 
 /* Class methods. */
+
++ defaultInstance
+{
+  return default_notification_dispatcher;
+}
 
 + (void) addInvocation: (id <Invoking>)invocation
 		  name: (id <String>)name
