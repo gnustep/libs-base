@@ -8,6 +8,8 @@
 	* Headers/Foundation/NSObject.h: Fix v dumb memory leak.
 	* Source/GSHTTPURLHandle.m: Append crlf to separate headers from body
 	rather than just an lf.
+	* SSL: Renamed SSL class and source file to reflect the fact
+	that the code is not unix specific.
 
 2002-08-11  Richard Frith-Macdonald <rfm@gnu.org>
 
