@@ -141,7 +141,7 @@ static Class	NSDate_class;
 	NSLog(@"Missed %d timeouts at %f second intervals", inc, _interval);
 #endif
       RELEASE(_date);
-      _date = [[NSDate allocWithZone: [self zone]]
+      _date = [[NSDate_class allocWithZone: [self zone]]
 	initWithTimeIntervalSinceReferenceDate: nxt];
     }
 }
