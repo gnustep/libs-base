@@ -1,3 +1,17 @@
+2004-01-12  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Makefile.preamble: Add library depends for baseadd
+	* Source/Additions/GSLock.m: Include GSCategories.
+	* Source/Additions/GSObjCRuntime.m: Define -methodForSelector:
+	since Apple doesn't.
+	* Source/Additions/GSXML.m: Idem as well as GSXPathObject method.
+	Change warnings varialbe to NSHashTable*.
+
+	* Tools/AGSHtml.m ([AGSHtml -outputNode:to:]): Change name
+	of block variable to avoid clash
+	* Tools/AGSOutput.m ([AGSOutput -split:]): Initialize local vars.
+	Changes suggested by Stephane Corthesy.
+
 2003-12-20 Sheldon Gill <sheldon@iinet.net.au>
 
 	* Source/NSProcessInfo.m (+load): Fix coding standard violations.

@@ -1843,7 +1843,7 @@ static BOOL snuggleStart(NSString *t)
 	      unsigned	ePos = r.location;
 	      NSString	*cName = nil;
 	      NSString	*mName = nil;
-	      unichar	c;
+	      unichar	c = 0;
 	      BOOL	isProtocol = NO;
 
 	      if (pos < ePos

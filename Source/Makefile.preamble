@@ -79,6 +79,7 @@ libgnustep-base_LIBRARIES_DEPEND_UPON += -lobjc
 endif
 ifeq ($(shared),yes)
 libgnustep-base_LIBRARIES_DEPEND_UPON += $(CONFIG_SYSTEM_LIBS) 
+libgnustep-baseadd_LIBRARIES_DEPEND_UPON += $(CONFIG_SYSTEM_LIBS) 
 endif
 
 #
