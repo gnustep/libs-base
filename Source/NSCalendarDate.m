@@ -1,8 +1,11 @@
 /** Implementation for NSCalendarDate for GNUstep
-   Copyright (C) 1996, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
    Author:  Scott Christley <scottc@net-community.com>
    Date: October 1996
+
+   Author: Richard Frith-Macdonald <rfm@gnu.org>
+   Date: September 2002
 
    This file is part of the GNUstep Base Library.
 
@@ -36,6 +39,7 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSDebug.h>
 #include <base/behavior.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -143,6 +147,11 @@ GSTime(int day, int month, int year, int h, int m, int s, int mil)
   return a;
 }
 
+/**
+ * Convert a time interval since the reference date into broken out
+ * elements.<br />
+ * External - so NSDate and others can use it.
+ */
 static void
 GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   int *hour, int *minute, int *second, int *mil)
@@ -177,13 +186,6 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   *second = (int)c;
   *mil = (a - h - m - c) * 1000;
 }
-
-@interface NSCalendarDate (Private)
-
-- (void)getYear: (int *)year month: (int *)month day: (int *)day
-	   hour: (int *)hour minute: (int *)minute second: (int *)second;
-
-@end
 
 @class	NSGDate;
 
@@ -1001,34 +1003,24 @@ static inline int getDigits(const char *from, char *to, int limit)
 
   if (month < 1 || month > 12)
     {
-      [NSException raise: NSInvalidArgumentException
-	format: @"[%@-%@] invalid month given - %u",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd), month];
+      NSWarnMLog(@"invalid month given - %u", month);
     }
   c = lastDayOfGregorianMonth(month, year);
   if (day < 1 || day > c)
     {
-      [NSException raise: NSInvalidArgumentException
-	format: @"[%@-%@] invalid day given - %u",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd), day];
+      NSWarnMLog(@"invalid day given - %u", day);
     }
   if (hour > 23)
     {
-      [NSException raise: NSInvalidArgumentException
-	format: @"[%@-%@] invalid hour given - %u",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd), hour];
+      NSWarnMLog(@"invalid hour given - %u", hour);
     }
   if (minute > 59)
     {
-      [NSException raise: NSInvalidArgumentException
-	format: @"[%@-%@] invalid minute given - %u",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd), minute];
+      NSWarnMLog(@"invalid minute given - %u", minute);
     }
   if (second > 59)
     {
-      [NSException raise: NSInvalidArgumentException
-	format: @"[%@-%@] invalid second given - %u",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd), second];
+      NSWarnMLog(@"invalid second given - %u", second);
     }
 
   // Calculate date as GMT
@@ -1061,6 +1053,15 @@ static inline int getDigits(const char *from, char *to, int limit)
     {
       s -= (newOffset - oldOffset);
       _seconds_since_ref = s;
+      oldOffset = [_time_zone secondsFromGMTForDate: self];
+      /*
+       * If the adjustment puts us in another offset, we must be in the
+       * non-existent period at the start of daylight savings time.
+       */
+      if (oldOffset != newOffset)
+	{
+	  NSWarnMLog(@"init non-existent time at start of daylight savings");
+	}
     }
 
   return self;
@@ -1075,20 +1076,6 @@ static inline int getDigits(const char *from, char *to, int limit)
   if (_time_zone == nil)
     _time_zone = RETAIN([NSTimeZone localTimeZone]);
   return self;
-}
-
-// Retrieving Date Elements
-- (void) getYear: (int *)year
-	   month: (int *)month
-	     day: (int *)day
-	    hour: (int *)hour
-	  minute: (int *)minute
-	  second: (int *)second
-{
-  int	mil;
-
-  GSBreakTime(_seconds_since_ref + [_time_zone secondsFromGMTForDate: self],
-   year, month, day, hour, minute, second, &mil);
 }
 
 - (int) dayOfCommonEra
@@ -1269,7 +1256,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   BOOL mname = NO, dname = NO;
   double s;
   int yd = 0, md = 0, mnd = 0, sd = 0, dom = -1, dow = -1, doy = -1;
-  int hd = 0, nhd;
+  int hd = 0, nhd, mil;
   int i, j, k, z;
 
   if (locale == nil)
@@ -1284,7 +1271,8 @@ static inline int getDigits(const char *from, char *to, int limit)
   f = [format cString];
   lf = strlen(f);
 
-  [self getYear: &yd month: &md day: &dom hour: &hd minute: &mnd second: &sd];
+  GSBreakTime(_seconds_since_ref + [_time_zone secondsFromGMTForDate: self],
+    &yd, &md, &dom, &hd, &mnd, &sd, &mil);
   nhd = hd;
 
   // The strftime specifiers
@@ -1782,6 +1770,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   int			diff;
   int			extra;
   int			sign;
+  int			mil;
   int			syear, smonth, sday, shour, sminute, ssecond;
   int			eyear, emonth, eday, ehour, eminute, esecond;
 
@@ -1809,18 +1798,13 @@ static inline int getDigits(const char *from, char *to, int limit)
       sign = -1;
     }
 
-  [start getYear: &syear
-	   month: &smonth
-	     day: &sday
-	    hour: &shour
-	  minute: &sminute
-	  second: &ssecond];
-  [end getYear: &eyear
-	 month: &emonth
-	   day: &eday
-	  hour: &ehour
-	minute: &eminute
-	second: &esecond];
+  GSBreakTime(start->_seconds_since_ref
+    + [start->_time_zone secondsFromGMTForDate: start],
+    &syear, &smonth, &sday, &shour, &sminute, &ssecond, &mil);
+
+  GSBreakTime(end->_seconds_since_ref
+    + [end->_time_zone secondsFromGMTForDate: end],
+    &eyear, &emonth, &eday, &ehour, &eminute, &esecond, &mil);
 
   /* Calculate year difference and leave any remaining months in 'extra' */
   diff = eyear - syear;
