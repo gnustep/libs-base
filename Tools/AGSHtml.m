@@ -774,7 +774,7 @@ static NSMutableSet	*textNodes = nil;
 	  NSString		*text;
 	  NSString		*val;
 
-	  text = [children content];
+	  text = [children escapedContent];
 	  val = [prop objectForKey: @"id"];
 	  if (val == nil)
 	    {
@@ -847,7 +847,7 @@ static NSMutableSet	*textNodes = nil;
 			{
 			  if ([t type] == XML_TEXT_NODE)
 			    {
-			      NSString	*content = [t content];
+			      NSString	*content = [t escapedContent];
 
 			      if (content == nil) content = @"";
 			      str = [str stringByAppendingString: content];
@@ -1182,7 +1182,7 @@ static NSMutableSet	*textNodes = nil;
 	  NSString		*text;
 	  NSString		*val;
 
-	  text = [children content];
+	  text = [children escapedContent];
 	  val = [prop objectForKey: @"id"];
 	  if (val == nil)
 	    {
@@ -1225,7 +1225,7 @@ static NSMutableSet	*textNodes = nil;
 			{
 			  if ([t type] == XML_TEXT_NODE)
 			    {
-			      NSString	*content = [t content];
+			      NSString	*content = [t escapedContent];
 
 			      if (content == nil) content = @"";
 			      str = [str stringByAppendingString: content];
@@ -1340,7 +1340,7 @@ static NSMutableSet	*textNodes = nil;
 			{
 			  if ([t type] == XML_TEXT_NODE)
 			    {
-			      NSString	*content = [t content];
+			      NSString	*content = [t escapedContent];
 
 			      if (content == nil) content = @"";
 			      sel = [sel stringByAppendingString: content];
@@ -1366,7 +1366,7 @@ static NSMutableSet	*textNodes = nil;
 			{
 			  if ([t type] == XML_TEXT_NODE)
 			    {
-			      NSString	*content = [t content];
+			      NSString	*content = [t escapedContent];
 			
 			      if (content == nil) content = @"";
 			      str = [str stringByAppendingString: content];
@@ -2002,7 +2002,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
     {
       if ([node type] == XML_TEXT_NODE)
 	{
-	  NSString	*str = [node content];
+	  NSString	*str = [node escapedContent];
 
 	  if (str == nil) str = @"";
 	  [buf appendString: str];
@@ -2055,7 +2055,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       [buf appendString: @"<dt><b>Conforms to:</b></dt>\n"];
       while (node != nil && [[node name] isEqual: @"conform"] == YES)
 	{
-	  NSString	*text = [[node firstChild] content];
+	  NSString	*text = [[node firstChild] escapedContent];
 
 	  if (text == nil) text = @"";
 	  [buf appendString: indent];

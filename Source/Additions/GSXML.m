@@ -820,7 +820,13 @@ static NSMapTable	*nodeNames = 0;
  * entity reference nodes, in this case you should not use this
  * method to get the content of the element, but should examine
  * the child nodes of the element individually and perform any
- * entity reference you need to do explicitly.
+ * entity reference you need to do explicitly.<br />
+ * NB. There are five standard entities which are automatically
+ * substituted into the content text rather than appearing as
+ * entity nodes in their own right.  These are '&lt;', '&gt;', '&apos;',
+ * '&quot;' and '&amp;'.  If you with to receive content in which these
+ * characters are represented by the original entity escapes, you need
+ * to use the -escapedContent method.
  */
 - (NSString*) content
 {
@@ -891,6 +897,112 @@ static NSMapTable	*nodeNames = 0;
     {
       return nil;
     }
+}
+
+/**
+ * This performs the same function as the -content method, but retains
+ * the standard five entities (&amp;lt;, &amp;gt;, &amp;apos;, &amp;quot;,
+ * and &amp;amp;) which are normally replaced with their standard equivalents
+ * (&lt;, &gt;, &apos;, &quot;, and &amp;).<br />
+ */
+- (NSString*) escapedContent
+{
+  NSString		*str = [self content];
+
+  if (str != nil)
+    {
+      static NSCharacterSet	*set = nil;
+
+      if (set == nil)
+	{
+	  set = [NSCharacterSet characterSetWithCharactersInString: @"<>'\"&"];
+	  RETAIN(set);
+	}
+      if ([str rangeOfCharacterFromSet: set].length > 0)
+	{
+	  unichar	*base;
+	  unichar	*map;
+	  unichar	c;
+	  unsigned	len;
+	  unsigned	rpos;
+	  unsigned	wpos;
+	  unsigned	end = [str length];
+
+	  base = NSZoneMalloc(NSDefaultMallocZone(), end * sizeof(unichar));
+	  [str getCharacters: base];
+	  for (len = rpos = 0; rpos < end; rpos++)
+	    {
+	      c = base[rpos];
+	      switch (c)
+		{
+		  case '&': 
+		    len += 5;
+		    break;
+		  case '<': 
+		  case '>': 
+		    len += 4;
+		    break;
+		  case '\'': 
+		  case '"': 
+		    len += 6;
+		    break;
+		  default: 
+		    len++;
+		    break;
+		}
+	    }
+	  map = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
+	  for (wpos = rpos = 0; rpos < end; rpos++)
+	    {
+	      c = base[rpos];
+	      switch (c)
+		{
+		  case '&': 
+		    map[wpos++] = '&';
+		    map[wpos++] = 'a';
+		    map[wpos++] = 'm';
+		    map[wpos++] = 'p';
+		    map[wpos++] = ';';
+		    break;
+		  case '<': 
+		    map[wpos++] = '&';
+		    map[wpos++] = 'l';
+		    map[wpos++] = 't';
+		    map[wpos++] = ';';
+		    break;
+		  case '>': 
+		    map[wpos++] = '&';
+		    map[wpos++] = 'g';
+		    map[wpos++] = 't';
+		    map[wpos++] = ';';
+		    break;
+		  case '\'': 
+		    map[wpos++] = '&';
+		    map[wpos++] = 'a';
+		    map[wpos++] = 'p';
+		    map[wpos++] = 'o';
+		    map[wpos++] = 's';
+		    map[wpos++] = ';';
+		    break;
+		  case '"': 
+		    map[wpos++] = '&';
+		    map[wpos++] = 'q';
+		    map[wpos++] = 'u';
+		    map[wpos++] = 'o';
+		    map[wpos++] = 't';
+		    map[wpos++] = ';';
+		    break;
+		  default: 
+		    map[wpos++] = c;
+		    break;
+		}
+	    }
+	  NSZoneFree(NSDefaultMallocZone(), base);
+	  str = [[NSString alloc] initWithCharacters: map length: len];
+	  AUTORELEASE(str);
+	}
+    }
+  return str;
 }
 
 /**

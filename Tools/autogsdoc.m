@@ -1196,9 +1196,9 @@ main(int argc, char **argv, char **env)
 		  AGSIndex	*localRefs;
 
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-		  [parser substituteEntities: NO];
 		  [parser doValidityChecking: YES];
 		  [parser keepBlanks: NO];
+		  [parser substituteEntities: NO];
 		  if ([parser parse] == NO)
 		    {
 		      NSLog(@"WARNING %@ is not a valid document", gsdocfile);
@@ -1485,9 +1485,9 @@ main(int argc, char **argv, char **env)
 			file, gDate, hDate);
 		    }
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-		  [parser substituteEntities: NO];
 		  [parser doValidityChecking: YES];
 		  [parser keepBlanks: NO];
+		  [parser substituteEntities: NO];
 		  if ([parser parse] == NO)
 		    {
 		      NSLog(@"WARNING %@ is not a valid document", gsdocfile);

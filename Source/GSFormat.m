@@ -922,7 +922,7 @@ NSDictionary *locale)
     if (grouping == (const char *) -1)
       {
 	thousands_sep = [locale objectForKey: NSThousandsSeparator];
-	if (!thousands_sep) thousands_sep = @",";
+	if (thousands_sep == nil) thousands_sep = @",";
 
 	grouping = ""; // FIXME: grouping info missing in locale?
 	if (*grouping == '\0' || *grouping == CHAR_MAX)
@@ -1405,6 +1405,7 @@ NSDictionary *locale)
 	NSString	*decimal_sep;
 
 	decimal_sep = [locale objectForKey: NSDecimalSeparator];
+	if (decimal_sep == nil) decimal_sep = @".";
 
 	bp = buf1;
 
@@ -1525,6 +1526,7 @@ NSDictionary *locale)
 	NSString	*decimal_sep;
 
 	decimal_sep = [locale objectForKey: NSDecimalSeparator];
+	if (decimal_sep == nil) decimal_sep = @".";
 
 	bp = buf1;
 

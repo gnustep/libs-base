@@ -114,6 +114,7 @@
 - (NSDictionary*) attributes;
 - (NSString*) content;
 - (GSXMLDocument*) document;
+- (NSString*) escapedContent;
 - (GSXMLAttribute*) firstAttribute;
 - (GSXMLNode*) firstChild;
 - (GSXMLNode*) firstChildElement;
