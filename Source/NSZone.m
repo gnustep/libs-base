@@ -92,6 +92,22 @@
 #include <Foundation/NSLock.h>
 
 
+/*
+ *	Try to get more memory - the normal process has failed.
+ *	If we can't do anything, bomb out.
+ */
+void *
+GSOutOfMemory(size_t size, BOOL retry)
+{
+  /*
+   *	It would be nice to raise an exception - but how can we if there is
+   *	no memory available?
+   */
+  abort();
+}
+
+#if	GS_WITH_GC == 0
+
 /* Alignment */
 #define ALIGN ((__alignof__(double) < 8) ? 8 : __alignof__(double))
 #define MINGRAN 256 /* Minimum granularity. */
@@ -1659,13 +1675,6 @@ NSDefaultMallocZone (void)
   return __nszone_private_hidden_default_zone;
 }
 
-/* Not in OpenStep. */
-void
-NSSetDefaultMallocZone (NSZone *zone)
-{
-  __nszone_private_hidden_default_zone = zone;
-}
-
 inline void*
 NSZoneMalloc (NSZone *zone, size_t size)
 {
@@ -1743,3 +1752,6 @@ NSZoneStats (NSZone *zone)
     zone = NSDefaultMallocZone();
   return (zone->stats)(zone);
 }
+
+#endif	/* GS_WITH_GC */
+

@@ -23,15 +23,11 @@
 #ifndef __NSZone_h_GNUSTEP_BASE_INCLUDE
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
 
-
 #include <objc/objc.h>
-
 
 @class NSString;
 
-
 typedef struct _NSZone NSZone;
-
 
 /* The members are the same as the structure mstats which is in the
    GNU C library. */
@@ -60,18 +56,92 @@ struct _NSZone
   NSZone *next;
 };
 
+void *GSOutOfMemory(size_t size, BOOL retry);
+
+#ifndef	GS_WITH_GC
+#define	GS_WITH_GC	0
+#endif
+#if	GS_WITH_GC
+
+#include <gc.h>
+
+extern inline NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree)
+{ return 0; }
+
+extern inline NSZone* NSDefaultMallocZone (void)
+{ return 0; }
+
+extern inline NSZone* NSZoneFromPointer (void *ptr)
+{ return 0; }
+
+extern inline void* NSZoneMalloc (NSZone *zone, size_t size)
+{
+  void	*ptr = (void*)GC_MALLOC(size);
+
+  if (ptr == 0)
+    ptr = GSOutOfMemory(size, YES);
+  return ptr;
+}
+
+extern inline void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
+{
+  size_t	size = elems * bytes;
+  void		*ptr = (void*)GC_MALLOC(size);
+
+  void	*ptr = (void*)GC_MALLOC(size, YES);
+  if (ptr == 0)
+    ptr = GSOutOfMemory(size);
+  memset(ptr, '\0', size);
+  return ptr;
+}
+
+extern inline void* NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
+{
+  ptr = GC_REALLOC(ptr, size);
+  if (ptr == 0)
+    GSOutOfMemory(size, NO);
+  return ptr;
+}
+
+extern inline void NSRecycleZone (NSZone *zone)
+{
+}
+
+extern inline void NSZoneFree (NSZone *zone, void *ptr)
+{
+  GC_FREE(ptr);
+}
+
+extern inline void NSSetZoneName (NSZone *zone, NSString *name)
+{
+}
+
+extern inline NSString* NSZoneName (NSZone *zone)
+{
+  return nil;
+}
+
+extern inline BOOL NSZoneCheck (NSZone *zone)
+{
+  return YES;
+}
+
+extern inline struct NSZoneStats NSZoneStats (NSZone *zone)
+{
+  struct NSZoneStats stats = { 0 };
+  return stats;
+}
+
+#else	/* GS_WITH_GC */
 
 /* Default zone.  Name is hopelessly long so that no one will ever
    want to use it. ;) Private variable. */
 extern NSZone* __nszone_private_hidden_default_zone;
 
-
 extern NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree);
 
 extern inline NSZone* NSDefaultMallocZone (void)
 { return __nszone_private_hidden_default_zone; }
-
-extern void NSSetDefaultMallocZone (NSZone *zone); // Not in OpenStep
 
 extern NSZone* NSZoneFromPointer (void *ptr);
 
@@ -107,5 +177,7 @@ return (zone->check)(zone); }
 extern inline struct NSZoneStats NSZoneStats (NSZone *zone)
 { if (!zone) zone = NSDefaultMallocZone();
 return (zone->stats)(zone); }
+
+#endif	/* GS_WITH_GC */
 
 #endif /* not __NSZone_h_GNUSTEP_BASE_INCLUDE */
