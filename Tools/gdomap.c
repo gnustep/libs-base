@@ -1174,19 +1174,6 @@ init_ports()
     }
 
   /*
-   * Try to become a 'safe' user now that we have
-   * done everything that needs root priv.
-   */ 
-  if (getuid () != 0)
-    {
-      setuid (getuid ());
-    }
-  else
-    {
-      setuid (-1);
-    }
-
-  /*
    *	Set up masks to say we are interested in these descriptors.
    */
   memset(&read_fds, '\0', sizeof(read_fds));
@@ -3328,6 +3315,25 @@ printf(
 	}
     }
   init_ports();	/* Create ports to handle requests.	*/
+
+  /*
+   * Try to become a 'safe' user now that we have
+   * done everything that needs root priv.
+   */ 
+  if (getuid () != 0)
+    {
+      setuid (getuid ());
+    }
+  else
+    {
+      setuid (-1);
+    }
+  /*
+   * As another level of paranoia - restrict this process to /tmp
+   */
+  chdir("/tmp");
+  chroot("/tmp");
+
   init_probe();	/* Probe other name servers on net.	*/
 
   if (debug)
