@@ -43,6 +43,7 @@
 #include <Foundation/NSDistributedLock.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSBundle.h>
+#include <Foundation/NSValue.h>
 #include <base/GSLocale.h>
 
 /* Wait for access */
@@ -904,6 +905,9 @@ static NSString	*pathForUser(NSString *user)
   // Read the persistent data from the stored database
   if ([mgr fileExistsAtPath: _defaultsDatabase])
     {
+      unsigned long desired;
+      unsigned long attributes;
+
       newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
         initWithContentsOfFile: _defaultsDatabase];
       if (newDict == nil)
@@ -911,6 +915,30 @@ static NSString	*pathForUser(NSString *user)
 	  [_defaultsDatabaseLock unlock];	// release file lock
 	  NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
 	  return NO;
+	}
+      
+      attributes = [[mgr fileAttributesAtPath: _defaultsDatabase
+	traverseLink: YES] filePosixPermissions];
+      // We enforce the permission mode 0600 on the defaults database
+#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+      desired = 0600;
+#else
+      desired = (S_IRUSR|S_IWUSR);
+#endif
+      if (attributes != desired)
+	{
+	  NSMutableDictionary	*enforced_attributes;
+	  NSNumber		*permissions;
+	  
+	  enforced_attributes = [NSMutableDictionary dictionaryWithDictionary:
+	    [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES]];
+
+	  permissions = [NSNumber numberWithUnsignedLong: desired];
+	  [enforced_attributes setObject: permissions
+				  forKey: NSFilePosixPermissions];
+
+	  [mgr changeFileAttributes: enforced_attributes 
+			     atPath: _defaultsDatabase];
 	}
     }
   else
