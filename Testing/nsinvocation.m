@@ -260,7 +260,7 @@ main ()
 
     SETUP(retSmall);
     [inv invokeWithTarget: t];
-    printf("Expect: {11,22), ");
+    printf("Expect: {11,22}, ");
     [inv getReturnValue: &sm];
     printf("invoke: {%d,%d} ", sm.c, sm.i);
     sm = [p retSmall];
@@ -268,7 +268,7 @@ main ()
 
     SETUP(retLarge);
     [inv invokeWithTarget: t];
-    printf("Expect: {99,large,99.99), ");
+    printf("Expect: {99,large,99.99}, ");
     [inv getReturnValue: &la];
     printf("invoke: {%d,%s,%.2f} ", la.i, la.s, la.f);
     la = [p retLarge];
@@ -357,7 +357,7 @@ main ()
     printf("forward: '%s'\n", str);
 
     SETUP(loopSmall:);
-    printf("Expect: {8,9), ");
+    printf("Expect: {8,9}, ");
     [inv setArgument: &tmpsm atIndex: 2];
     [inv invokeWithTarget: t];
     [inv getReturnValue: &sm];
@@ -366,7 +366,7 @@ main ()
     printf("forward: {%d,%d}\n", sm.c, sm.i);
 
     SETUP(loopLarge:);
-    printf("Expect: {1,hello,1.23), ");
+    printf("Expect: {1,hello,1.23}, ");
     [inv setArgument: &tmpla atIndex: 2];
     [inv invokeWithTarget: t];
     [inv getReturnValue: &la];
@@ -375,7 +375,7 @@ main ()
     printf("forward: {%d,%s,%.2f}\n", la.i, la.s, la.f);
 
     SETUP(loopSmallPtr:);
-    printf("Expect: {8,9), ");
+    printf("Expect: {8,9}, ");
     [inv setArgument: &smptr atIndex: 2];
     [inv invokeWithTarget: t];
     [inv getReturnValue: &sm];
@@ -384,7 +384,7 @@ main ()
     printf("forward: {%d,%d}\n", sm.c, sm.i);
 
     SETUP(loopLargePtr:);
-    printf("Expect: {1,hello,1.23), ");
+    printf("Expect: {1,hello,1.23}, ");
     [inv setArgument: &laptr atIndex: 2];
     [inv invokeWithTarget: t];
     [inv getReturnValue: &la];
@@ -392,5 +392,6 @@ main ()
     la = [p loopLargePtr: laptr];
     printf("forward: {%d,%s,%.2f}\n", la.i, la.s, la.f);
 
+    return 0;
 }
 
