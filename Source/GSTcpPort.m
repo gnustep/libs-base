@@ -624,7 +624,8 @@ static Class	runLoopClass;
 	    }
 	  else if (errno != EINTR && errno != EAGAIN)
 	    {
-	      NSLog(@"read attempt failed - %s", strerror(errno));
+	      NSDebugMLLog(@"GSTcpHandle", @"read attempt failed - %s",
+		strerror(errno));
 	      [self invalidate];
 	      return;
 	    }
