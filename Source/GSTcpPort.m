@@ -551,12 +551,20 @@ static Class	runLoopClass;
 	 type: ET_WDESC
       watcher: self
       forMode: NSDefaultRunLoopMode];
+  [l addEvent: (void*)(gsaddr)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
   while (state == GS_H_TRYCON && [when timeIntervalSinceNow] > 0)
     {
       [l runMode: NSDefaultRunLoopMode beforeDate: when];
     }
   [l removeEvent: (void*)(gsaddr)desc
 	    type: ET_WDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+  [l removeEvent: (void*)(gsaddr)desc
+	    type: ET_EDESC
 	 forMode: NSDefaultRunLoopMode
 	     all: NO];
 
@@ -711,6 +719,10 @@ static Class	runLoopClass;
 
       [l removeEvent: data
 		type: ET_WDESC
+	     forMode: mode
+		 all: YES];
+      [l removeEvent: data
+		type: ET_EDESC
 	     forMode: mode
 		 all: YES];
       return;
@@ -1021,7 +1033,7 @@ static Class	runLoopClass;
 	    }
 	}
     }
-  else if (type == ET_WDESC)
+  else
     {
       if (state == GS_H_TRYCON)	/* Connection attempt.	*/
 	{
