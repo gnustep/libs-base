@@ -2,6 +2,8 @@
 
 	Varous cluster classes - Bugfix to let allocWithZone work for
 	new concrete subclasses in the cluster.
+	* NSPortCoder.m: Accept classes when asked to decode object.
+	* NSUnarchiver.m: ditto.
 
 2000-07-28  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -49,6 +49,7 @@ TEST_TOOL_NAME = \
 		nsattributedstring \
 		nsbundle \
 		nscharacterset \
+		nsconnection \
 		nsconnection_client \
 		nsconnection_server \
 		nsdata \
@@ -88,6 +89,7 @@ nsarray_OBJC_FILES = nsarray.m
 nsattributedstring_OBJC_FILES = nsattributedstring.m
 nsbundle_OBJC_FILES = nsbundle.m
 nscharacterset_OBJC_FILES = nscharacterset.m
+nsconnection_OBJC_FILES = nsconnection.m
 nsconnection_client_OBJC_FILES = nsconnection_client.m
 nsconnection_server_OBJC_FILES = nsconnection_server.m
 nsdata_OBJC_FILES = nsdata.m

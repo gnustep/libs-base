@@ -424,9 +424,12 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
       (*_dTagImp)(_src, dTagSel, &ainfo, 0, &_cursor);
       if (info != (ainfo & _GSC_MASK))
         {
-          [NSException raise: NSInternalInconsistencyException
-                      format: @"expected %s and got %s",
-                        typeToName2(info), typeToName2(ainfo)];
+	  if (info != _GSC_ID || (ainfo & _GSC_MASK) != _GSC_CLASS)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"expected %s and got %s",
+			    typeToName2(info), typeToName2(ainfo)];
+	    }
         }
 
       for (i = 0; i < count; i++)
@@ -468,84 +471,6 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 
   [self decodeValueOfObjCType: @encode(unsigned) at: &pos];
   return [_comp objectAtIndex: pos];
-}
-
-/*
- *	The [-decodeObject] method is implemented purely for performance -
- *	It duplicates the code for handling objects in the
- *	[-decodeValueOfObjCType:at:] method above, but differs in that the
- *	resulting object is autoreleased when it comes from this method.
- */
-- (id) decodeObject
-{
-  unsigned char	info;
-  unsigned	xref;
-  id		obj;
-
-  (*_dTagImp)(_src, dTagSel, &info, &xref, &_cursor);
-  if ((info & _GSC_MASK) != _GSC_ID)
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"expected object and got %s", typeToName2(info)];
-    }
-
-  /*
-   *	Special case - a zero crossref value is a nil pointer.
-   */
-  if ((info & _GSC_SIZE) == 0)
-    {
-      return nil;
-    }
-
-  if (info & _GSC_XREF)
-    {
-      if (xref >= GSIArrayCount(_objAry))
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"object crossref missing - %d",
-			    xref];
-	}
-      obj = GSIArrayItemAtIndex(_objAry, xref).obj;
-      /*
-       *	If it's a cross-reference, we don't need to autorelease it
-       *	since we didn't create it.
-       */
-      return obj;
-    }
-  else
-    {
-      Class	c;
-      id	rep;
-
-      if (xref != GSIArrayCount(_objAry))
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"extra object crossref - %d",
-			    xref];
-	}
-      (*_dValImp)(self, dValSel, @encode(Class), &c);
-
-      obj = [c allocWithZone: _zone];
-      GSIArrayAddItem(_objAry, (GSIArrayItem)obj);
-
-      rep = [obj initWithCoder: self];
-      if (rep != obj)
-	{
-	  obj = rep;
-	  GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)obj, xref);
-	}
-
-      rep = [obj awakeAfterUsingCoder: self];
-      if (rep != obj)
-	{
-	  obj = rep;
-	  GSIArraySetItemAtIndex(_objAry, (GSIArrayItem)obj, xref);
-	}
-      /*
-       *	A newly allocated object needs to be autoreleased.
-       */
-      return AUTORELEASE(obj);
-    }
 }
 
 - (void) decodeValueOfObjCType: (const char*)type
@@ -638,7 +563,10 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
 	  GSClassInfo	*classInfo;
 	  Class		dummy;
 
-	  typeCheck(*type, _GSC_CLASS);
+	  if (*type != _C_ID)
+	    {
+	      typeCheck(*type, _GSC_CLASS);
+	    }
 	  /*
 	   *	Special case - a zero crossref value size is a nil pointer.
 	   */
