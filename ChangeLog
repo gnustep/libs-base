@@ -2,6 +2,7 @@
 
 	* configure.ac: Clarify ffi interface warnings and disable_do on
 	apple-apple-apple.
+	Fixes #4824
 
 2003-08-15  Richard Frith-Macdonald <rfm@gnu.org>
 
