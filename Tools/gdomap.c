@@ -178,7 +178,7 @@ static void	queue_probe(struct in_addr* to, struct in_addr *from,
 
 
 #ifdef __MINGW__
-
+#ifndef HAVE_GETOPT
 /* A simple implementation of getopt() */
 
 static int
@@ -244,6 +244,7 @@ getopt(int argc, char **argv, char *options)
     }
   return -1;
 }
+#endif
 #endif
 
 

@@ -1,3 +1,8 @@
+2003-09-22  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Check for getopt
+	* Tools/gdomap.c: Use local getopt if no native getopt
+
 2003-09-21  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/cvtenc.m (main): Write using local/set encoding when

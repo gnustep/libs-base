@@ -43,6 +43,9 @@
 /* Define to 1 if you have the `getlogin' function. */
 #undef HAVE_GETLOGIN
 
+/* Define to 1 if you have the `getopt' function. */
+#undef HAVE_GETOPT
+
 /* Define to 1 if you have the <getopt.h> header file. */
 #undef HAVE_GETOPT_H
 
