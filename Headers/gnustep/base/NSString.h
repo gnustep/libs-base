@@ -312,7 +312,14 @@ compiler warning.
 @interface NSMutableString : NSString <NSMutableString>
 @end
 
-/* Because the compiler thinks that @".." strings are NXConstantString's. */
+/*
+ * Because the compiler thinks that @".." strings are NXConstantString's.
+ * NB. An NXConstantString has a length and a pointer to char as it's ivars
+ * but an NSGCString also has a hash value - the code has to be careful not
+ * to use the _hash ivar if the class is actually an NXConstantString.
+ * If you modify and NSGCString method to use the _hash ivar, you must
+ * override that method in NXConstantString, to avoid using the ivar.
+ */
 #include <Foundation/NSGString.h>
 #include <Foundation/NSGCString.h>
 @interface NXConstantString : NSGCString

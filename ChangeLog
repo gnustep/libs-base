@@ -1,3 +1,12 @@
+Fri Aug  6 13:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Portability fixes for compilers that don't leave enough space in an
+	NXConstantString object for the _hash ivar of NSGCString.
+	* Source/NSGCString.m: don't use _hash ivar of NXConstantString.
+	* Source/NSGString.m: don't use _hash ivar of NXConstantString.
+	* Source/Foundation/NSString.h: Add warning comment about the ivar
+	layout for NXConstantString.
+
 Thu Aug  5 10:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/gdomap.c: prb_add() maintain server info in date order.

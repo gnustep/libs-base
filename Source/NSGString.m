@@ -110,13 +110,16 @@
 {
   Class	c;
   if (anObject == self)
-    return YES;
+    {
+      return YES;
+    }
   if (anObject == nil)
-    return NO;
+    {
+      return NO;
+    }
   c = fastClassOfInstance(anObject);
   if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString
-    || c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
-    || c == _fastCls._NXConstantString)
+    || c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString)
     {
       NSGString	*other = (NSGString*)anObject;
       NSRange	r = {0, _count};
@@ -146,13 +149,28 @@
 	}
       return NO;
     }
+  else if (c == _fastCls._NXConstantString)
+    {
+      NSGString	*other = (NSGString*)anObject;
+      NSRange	r = {0, _count};
+
+      if (strCompUsCs(self, other, 0, r) == NSOrderedSame)
+	return YES;
+      return NO;
+    }
   else if (c == nil)
-    return NO;
+    {
+      return NO;
+    }
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
-    return _fastImp._NSString_isEqualToString_(self,
-		@selector(isEqualToString:), anObject);
+    {
+      return _fastImp._NSString_isEqualToString_(self,
+	@selector(isEqualToString:), anObject);
+    }
   else
-    return NO;
+    {
+      return NO;
+    }
 }
 
 // Initializing Newly Allocated Strings
