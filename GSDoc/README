@@ -1,5 +1,5 @@
 
-28-Feb-2000
+11-Mar-2000
 
 GSDoc should probably be part of the 'Tools' directory of gstep-base,
 but it depends on a version of the nome XML parsing library this is
@@ -15,7 +15,7 @@ Password - 'anonymous'
   cvs -d :pserver:anonymous@dev.w3.org:/sources/public checkout XML
 
 Older versions of the library may work - but I doubt it.
-Newer versions may also fail - try using the -D 28-Feb-2000 flag with CVS
+Newer versions may also fail - try using the -D 11-Mar-2000 flag with CVS
 to get the version I used.
 
 Once you have built and installed the xml parser library, you can build
