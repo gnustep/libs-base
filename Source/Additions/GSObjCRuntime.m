@@ -53,9 +53,11 @@
 
 @class	NSNull;
 
+#ifdef NeXT_Foundation_LIBRARY
 @interface NSObject (MissingFromMacOSX)
 - (IMP) methodForSelector: (SEL)aSelector;
 @end
+#endif
 
 /**  Deprecated ... use GSObjCFindVariable() */
 BOOL
