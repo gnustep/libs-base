@@ -1,3 +1,18 @@
+2000-09-30  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/gnustep/base/Unicode.h:
+	Merged in GetDefEncoding.h
+	New function GetAvailableEncodings.
+	* Source/Unicode.m: 
+	Merged in GetDefEncoding.m
+	New function GetAvailableEncodings.
+	Updated the encoding arrays.
+	* Headers/gnustep/base/GetDefEncoding.h:
+	* Source/GetDefEncoding.m: 
+	This are now obsolete and therfore removed.
+	* Source/NSString.m: 
+	Use GetAvailableEncodings in [availableStringEncodings]
+
 2000-09-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([-initWithUTFString:length:]),
