@@ -49,7 +49,7 @@ LEX = flex
 LEXFLAGS =
 YACC = bison
 
-DEFS = @DEFS@
+DEFS = -DGNUSTEP_INSTALL_PREFIX=$(prefix) @DEFS@
 
 # File name extensions
 OEXT = .o
