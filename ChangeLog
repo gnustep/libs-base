@@ -1,3 +1,14 @@
+2002-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSInvocation.h: Remove _argframe ivar
+	* Source/NSInvocation.m: Simplify by removing _argframe ivar and
+	using _frame throughout to hold arguments. Fix checks for valid frame.
+	* Source/callframe.m: Initialise newly created frame with zeros so
+	that setting an object in an invocation should work when the
+	invocation is retaining its contents.
+	* configure.in: Disable ffi and warn about it.
+	* configure: regenerated
+
 2002-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Removed some code that was doing nothing,

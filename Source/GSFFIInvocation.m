@@ -58,7 +58,7 @@
     {
       [self setSelector: aSelector];
       /*
-       *	Copy the _argframe we were given.
+       *	Copy the _cframe we were given.
        */
       if (frame)
 	{
@@ -83,7 +83,6 @@
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _argframe = mframe_create_argframe([_sig methodType], &_retval);
   _cframe = cifframe_from_sig([_sig methodType], &_retval);
   if (_retval == 0 && _info[0].size > 0)
     {
