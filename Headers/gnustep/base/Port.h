@@ -43,7 +43,8 @@
 - (BOOL) isValid;
 - (void) close;
 
-- (Class) packetClass;
++ (Class) outPacketClass;
+- (Class) outPacketClass;
 
 @end
 
@@ -65,7 +66,7 @@
    packet arrives, INVOCATION will be invoked with the new packet
    as an argument.  The INVOCATION is responsible for releasing
    the packet. */
-- (void) setPacketInvocation: (id <Invoking>)invocation;
+- (void) setReceivedPacketInvocation: (id <Invoking>)invocation;
 
 /* An alternative to the above way for receiving packets from this port.
    Get a packet from the net and return it.  If no packet is received 
@@ -80,20 +81,44 @@
 
 + newForSendingToRegisteredName: (id <String>)name 
                          onHost: (id <String>)hostname;
-- (BOOL) sendPacket: packet withTimeout: (int)milliseconds;
+- (BOOL) sendPacket: packet;
 
 @end
 
 extern NSString *PortBecameInvalidNotification;
 
-@interface Packet : MemoryStream
+
+
+/* Objects for holding incoming/outgoing data to/from ports. */
+
+@interface InPacket : MemoryStream
 {
-  id reply_port;
+  id _receiving_in_port;
+  id _reply_out_port;
+}
+
+- replyOutPort;
+- receivingInPort;
+
+/* Do not call this method yourself; it is to be called by subclassers. 
+   InPackets are created for you by the InPort object, and are
+   made available as the argument to the received packet invocation. */
+- initForReceivingWithCapacity: (unsigned)s
+               receivingInPort: ip
+                  replyOutPort: op;
+
+@end
+
+@interface OutPacket : MemoryStream
+{
+  id _reply_in_port;
 }
 
 - initForSendingWithCapacity: (unsigned)c
-   replyPort: p;
-- replyPort;
+   replyInPort: p;
+- replyInPort;
+
++ (unsigned) prefixSize;
 
 @end
 

@@ -48,12 +48,11 @@
 }
 
 + newForReceivingFromPortNumber: (unsigned short)n;
-+ newForReceivingFromRegisteredName: (id <String>)name;
 
 /* Get a packet from the net and return it.  If no packet is received 
    within MILLISECONDS, then return nil.  The caller is responsible 
    for releasing the packet. */
-- receivePacketWithTimeout: (int)milliseconds;
+- newReceivedPacketBeforeDate: date;
 /* xxx Change this name to - newPacketReceivedWithTimeout: to emphasize
    need to release the returned packet. */
 
@@ -78,18 +77,16 @@
 
 + newForSendingToPortNumber: (unsigned short)n 
 		     onHost: (id <String>)hostname;
-+ newForSendingToRegisteredName: (id <String>)name 
-                         onHost: (id <String>)hostname;
-- (BOOL) sendPacket: packet withTimeout: (int)milliseconds;
-
 - (int) portNumber;
 
 @end
 
 
-/*  */
+/* Holders of sent and received data. */
 
-@interface TcpPacket : Packet
+@interface TcpInPacket : InPacket
+@end
+@interface TcpOutPacket : OutPacket
 @end
 
 
