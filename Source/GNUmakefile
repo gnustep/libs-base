@@ -104,12 +104,7 @@ ifeq ($(GNUSTEP_TARGET_OS), mingw32)
 GNU_MFILES += libgnustep-base-entry.m
 endif
 
-GNU_CFILES = \
-md5.c \
-numbers.c
-
 GNU_OTHER_SRCFILES = \
-md5.h \
 win32-entry.m \
 win32-def.top \
 libgnustep-base.def
@@ -346,9 +341,6 @@ $(HEADER_DIR)/preface.h \
 $(GNUSTEP_TARGET_DIR)/mframe.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/GSConfig.h
-
-# The C source files to be compiled
-libgnustep-base_C_FILES = $(GNU_CFILES)
 
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
