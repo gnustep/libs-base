@@ -50,9 +50,9 @@ static BOOL debug_connected_coder = NO;
    sequenceNumber: (int)n
    identifier: (int)i
 {
-  Packet* packet = [[[[c outPort] packetClass] alloc]
-		     initForSendingWithCapacity: DEFAULT_SIZE
-		     replyPort: [c inPort]];
+  OutPacket* packet = [[[[c outPort] outPacketClass] alloc]
+			initForSendingWithCapacity: DEFAULT_SIZE
+			replyInPort: [c inPort]];
   [super initForWritingToStream: packet];
   connection = c;
   sequence_number = n;
@@ -80,7 +80,7 @@ static BOOL debug_connected_coder = NO;
 - (void) dismiss
 {
   id packet = [cstream stream];
-  [[connection outPort] sendPacket: packet withTimeout: 0];
+  [[connection outPort] sendPacket: packet];
   if (debug_connected_coder)
     fprintf(stderr, "dismiss 0x%x: #=%d i=%d %d\n", 
 	    (unsigned)self, sequence_number, identifier, 
@@ -180,7 +180,7 @@ static BOOL debug_connected_coder = NO;
   return cd;
 }
 
-+ newDecodingWithPacket: (Packet*)packet
++ newDecodingWithPacket: (InPacket*)packet
 	     connection: (Connection*)c
 {
   ConnectedDecoder *cd;
