@@ -63,8 +63,7 @@
 # before-distclean::
 
 # Things to do after distcleaning
-after-distclean::
-	rm -f config.status config.log config.cache TAGS config.mak
+# after-distclean::
 
 # Things to do before checking
 # before-check::
@@ -72,44 +71,8 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
-configure: configure.in
-	autoconf
-
-snap: $(DIST_FILES)
-	rm -rf snap
-	mkdir snap
-	for i in $(SUBPROJECTS); do \
-	  (cd $$i; $(MAKE) $(MAKEDEFINES) copy-dist); \
+copy-dist: $(DIST_FILES)
+	mkdir ../snap/examples
+	for f in $(DIST_FILES); do \
+	  cp $$f ../snap/examples ; \
 	done
-	mkdir snap/config
-	for file in $(DIST_FILES); do \
-	  ln $$file snap/$$file ; \
-	done
-
-snapshot: snap
-	ln README.first snap
-	rm -f .name
-	echo $(PACKAGE_NAME)-`date +%y%m%d` >.name
-	rm -rf `cat .name`
-	mv snap `cat .name`
-	tar -chvf `cat .name`.tar `cat .name`
-	rm -f `cat .name`.tar.gz
-	gzip -9 `cat .name`.tar
-	rm -rf `cat .name`
-
-dist: snap
-	mv snap $(PACKAGE_NAME)-$(VERSION)
-	tar -chvf $(PACKAGE_NAME)-$(VERSION).tar \
-		$(PACKAGE_NAME)-$(VERSION)
-	rm -f $(PACKAGE_NAME)-$(VERSION).tar.gz
-	gzip -9 $(PACKAGE_NAME)-$(VERSION).tar
-	rm -rf $(PACKAGE_NAME)-$(VERSION)
-
-snapshot-rtag:
-	cvs rtag snapshot-`date +%y%m%d` $(PACKAGE_NAME)
-
-dist-rtag:
-	cvs rtag release-`echo $(VERSION) | tr . -` $(PACKAGE_NAME)
-
-rdiff:
-	cvs rdiff -u -r $(OLD) $(PACKAGE_NAME)

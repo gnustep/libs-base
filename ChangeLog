@@ -1,3 +1,22 @@
+Fri Sep 26 20:43:12 1997  Adam Fedor  <fedor@doc.com>
+
+	* Fix Makefiles so snapshots and releases work again
+	* Makefile: Include missing DIST_FILES
+	* Makefile.postamble: Correct csnap projects.
+	* NSCharacterSets/Makefile: Include missing DIST_FILES.
+	* admin/Makefile: Likewise.
+	* admin/Makefile: Correct snap target.
+	* checks/Makefile: Include missing DIST_FILES.
+	* checks/Makefile.postamble: New file.
+	* examples/Makefile: Include missing DIST_FILES.
+	* examples/Makefile.postamble: New file.
+	* doc/Makefile.postamble: New file.
+	* src/Makefile: Include missing DIST_FILES.
+	* ssrc/Makefile.postamble: Fix AUTHORS depend, copy-dist.
+
+	* STATUS: Update.
+	* README.foundation: Remove obsolete file.
+
 Sat Sep 23 10:18:41 2017  Scott Christley  <scottc@net-community.com>
 
 	* Convert to GNUstep makefile package.

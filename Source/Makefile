@@ -69,7 +69,6 @@ Collection.m \
 ConnectedCoder.m \
 Connection.m \
 Coder.m \
-Connection.m \
 CStream.m \
 Decoder.m \
 DelegatePool.m \
@@ -377,7 +376,6 @@ hpux-load.h \
 null-load.h \
 simple-load.h \
 NSCallBacks.h \
-NSHost.m \
 gdomap.c gdomap.h \
 tzfile.h
 
@@ -456,12 +454,11 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
                   $(BASE_HEADERS)
 
 DIST_FILES = \
-        Makefile.in AUTHORS Makefile.sed.nt \
+        Makefile Makefile.preamble Makefile.postamble AUTHORS \
         include/config.h.in include/preface.h.in \
 	include/config-win32.h \
         $(GNU_MFILES) \
         $(GNU_CFILES) \
-        $(GNU_HEADERS) \
         $(GNU_OTHER_SRCFILES) \
         $(NEXTSTEP_MFILES) \
         $(NEXTSTEP_CFILES) \
@@ -470,9 +467,12 @@ DIST_FILES = \
         $(NEXTSTEP_OTHER_SRCFILES) \
         $(BASE_MFILES) \
         $(BASE_CFILES) \
-        $(BASE_HEADERS) \
         $(BASE_OTHER_SRCFILES) \
 	$(UNICODE_HEADERS)
+
+GENERATED_HFILES = \
+dynamic-load.h \
+include/preface.h
 
 # The C source files to be compiled
 C_FILES = $(GNU_CFILES) $(NEXTSTEP_CFILES) $(NEXTSTEP_DERIVED_CFILES) \

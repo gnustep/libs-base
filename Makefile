@@ -26,12 +26,15 @@ include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
 
 include ./Version
 
+PACKAGE_NAME = gstep-base
+
 DIST_FILES = \
-	Makefile.in Makeconf configure.in aclocal.m4 acconfig.h \
-	configure.bat Makefile.sed.nt INSTALL.WIN32 \
+	Makefile Makefile.postamble config.mak.in \
+	configure.in aclocal.m4 acconfig.h \
+	configure.bat INSTALL.WIN32 \
 	config/config.nested.c config/config.nextcc.h config/config.nextrt.m \
 	config/config.vsprintf.c \
-	README.ULTRIX README.foundation README.ucblib \
+	README.ULTRIX README.ucblib \
 	STATUS RELEASE-NOTES \
 	COPYING COPYING.LIB ChangeLog \
 	configure Version \
