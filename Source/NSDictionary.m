@@ -182,16 +182,18 @@ static Class NSMutableDictionary_concrete_class;
   id desc;
   id keyenum = [self keyEnumerator];
   id key;
-  int i;
-  desc = [NSMutableString stringWithCapacity:2];
-  [desc appendString:@"{"];
-  while(key = [keyenum nextObject]) { /* I wish appendString: returned self*/
-    [desc appendString:[key description]];
-    [desc appendString:@" = "];
-    [desc appendString:[[self objectForKey:key] description]];
-    [desc appendString:@"; "];
-  }
-  [desc appendString:@"}"];
+
+  desc = [NSMutableString stringWithCapacity: 2];
+  [desc appendString: @"{"];
+  while((key = [keyenum nextObject]))
+    {
+      /* I wish appendString: returned self*/
+      [desc appendString: [key description]];
+      [desc appendString: @" = "];
+      [desc appendString: [[self objectForKey: key] description]];
+      [desc appendString: @"; "];
+    }
+  [desc appendString: @"}"];
   return desc;
 }
 
