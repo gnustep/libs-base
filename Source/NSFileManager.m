@@ -949,7 +949,7 @@ static NSFileManager* defaultManager = nil;
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
   
 #else
-#if HAVE_SYS_VFS_H || HAVE_SYS_STATFS_H
+#if HAVE_SYS_VFS_H || HAVE_SYS_STATFS_H || HAVE_SYS_MOUNT_H
   struct stat statbuf;
 #if HAVE_STATVFS
   struct statvfs statfsbuf;
@@ -980,7 +980,7 @@ static NSFileManager* defaultManager = nil;
 #endif
 
   totalsize = statfsbuf.f_bsize * statfsbuf.f_blocks;
-  freesize = statfsbuf.f_bsize * statfsbuf.f_bfree;
+  freesize = statfsbuf.f_bsize * statfsbuf.f_bavail;
   
   values[0] = [NSNumber numberWithLongLong: totalsize];
   values[1] = [NSNumber numberWithLongLong: freesize];
