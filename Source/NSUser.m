@@ -787,9 +787,10 @@ NSTemporaryDirectory(void)
   NSDictionary	*attr;
   int		perm;
   int		owner;
-  int		uid;
   BOOL		flag;
-#if	defined(__WIN32__)
+#if	!defined(__WIN32__)
+  int		uid;
+#else
   char buffer[1024];
 
   if (GetTempPath(1024, buffer))

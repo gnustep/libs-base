@@ -40,7 +40,9 @@
 */
 
 #include "config.h"
+#include "GNUstepBase/preface.h"
 #include "GNUstepBase/GSCategories.h"
+
 
 #ifdef	HAVE_LIBXML
 
@@ -85,8 +87,6 @@
 #include <libxslt/transform.h>
 #include <libxslt/xsltutils.h>
 #endif /* HAVE_LIBXSLT */
-
-extern int xmlGetWarningsDefaultValue;
 
 /*
  * optimization

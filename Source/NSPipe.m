@@ -81,9 +81,14 @@
 	  DESTROY(self);
 	}
 #else
+      SECURITY_ATTRIBUTES saAttr;
       HANDLE readh, writeh;
 
-      if (CreatePipe(&readh, &writeh, NULL, 0) != 0)
+      saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+      saAttr.bInheritHandle = TRUE;
+      saAttr.lpSecurityDescriptor = NULL;
+
+      if (CreatePipe(&readh, &writeh, &saAttr, 0) != 0)
         {
           readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh
 						   closeOnDealloc: YES];

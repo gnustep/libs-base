@@ -1,7 +1,9 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileHandle.h>
+#include <Foundation/NSManager.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSURL.h>
 #include <assert.h>
 
 int
@@ -26,7 +28,7 @@ main ()
   assert(dst != nil);
 
   d0 = [[src readDataToEndOfFile] retain];
-  [dst writeData:d0];
+  [(NSFileHandle*)dst writeData: d0];
   [src release];
   [dst release];
   [pool release];
@@ -44,5 +46,11 @@ main ()
   else
     printf("Test failed\n");
 
+  pool = [[NSAutoreleasePool alloc] init];
+  src = [NSURL URLWithString: @"http://www.w3.org/index.html"];
+  d0 = [src resourceDataUsingCache: NO];
+  NSLog(@"Data is %@", d0);
+  [pool release];
+  
   exit (0);
 }

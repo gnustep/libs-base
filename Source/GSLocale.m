@@ -89,12 +89,14 @@ NSDictionary *
 GSDomainFromDefaultLocale(void)
 {
   static NSDictionary	*saved = nil;
-  int			i;
   struct lconv		*lconv;
   NSMutableDictionary	*dict;
-  NSMutableArray	*arr;
   NSString		*str1;
   NSString		*str2;
+#ifdef HAVE_LANGINFO_H
+  int			i;
+  NSMutableArray	*arr;
+#endif
 
   if (saved != nil)
     return saved;

@@ -1,3 +1,32 @@
+2005-02-23 14:00 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Additions/GNUstepBase/GSFileHandle.h: Add windows event
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Source/GNUmakefile:
+	* Source/GSFileHandle.m:
+	* Source/GSLocale.m:
+	* Source/NSMessagePort.m:
+	* Source/NSPipe.m:
+	* Source/NSRunLoop.m:
+	* Source/NSSocketPort.m:
+	* Source/NSThread.m:
+	* Source/NSUser.m:
+	* Source/unix/GNUmakefile:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/unix/GSRunLoopWatcher.m:
+	* Source/unix/Makefile.preamble:
+	* Source/win32/GNUmakefile:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopWatcher.m:
+	* Source/win32/Makefile.preamble:
+	* Source/win32/NSRunLoopWin32.m:
+	Applied patch by Luis Cabellos to use native win32 event handling
+	rather than unix style select/poll on a win32 system.
+	Rewrote various chunks to simplify, conform to coding standards,
+	work for me etc.  In particular, replaced code for thread
+	synchronisation to use win32 Event rather than pipe.
+
 2005-02-22 14:00 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.gsdoc:

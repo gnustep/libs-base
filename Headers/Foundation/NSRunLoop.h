@@ -108,10 +108,14 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
  </example>
  */
 typedef	enum {
+#ifdef __MINGW__
+    ET_HANDLE,
+#else
     ET_RDESC,	/* Watch for descriptor becoming readable.	*/
     ET_WDESC,	/* Watch for descriptor becoming writeable.	*/
-    ET_RPORT,	/* Watch for message arriving on port.		*/
-    ET_EDESC	/* Watch for descriptor with out-of-band data.	*/
+    ET_EDESC,	/* Watch for descriptor with out-of-band data.	*/
+#endif
+    ET_RPORT	/* Watch for message arriving on port.		*/
 } RunLoopEventType;
 
 /**
@@ -194,4 +198,25 @@ typedef	enum {
 - (void) getFds: (int*)fds count: (int*)count;
 @end
 
+#ifdef __MINGW32__
+/**
+ * Interface that add method to set target for win32 messages.<br />
+ */
+@interface NSRunLoop(mingw32)
+/**
+ * Adds a target to the loop in the specified mode for the 
+ * win32 messages.<br />
+ * Only a target+selector is added in one mode. Successive 
+ * calls overwrite the previous.<br />
+ */
+- (void) addMsgTarget: (id)target
+           withMethod: (SEL)selector
+              forMode: (NSString*)mode;
+/**
+ * Delete the target of the loop in the specified mode for the 
+ * win32 messages.<br />
+ */
+- (void) removeMsgForMode: (NSString*)mode;
+@end
+#endif
 #endif /*__NSRunLoop_h_GNUSTEP_BASE_INCLUDE */
