@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="gsdoc">
+  <head>
+    <title>GNUstep Documentation XML markup language (GSDoc)</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+      <desc>
+	A person who has devotes far too much time to GNUstep development.
+      </desc>
+    </author>
+    <version>0.1</version>
+    <date>4 march, 2000</date>
+    <abstract>
+      This documents the GNUstep Documentation markup language and tools
+    </abstract>
+  </head>
+
+  <body>
+    <front>
+      <contents/>
+
+      <chapter>
+	<heading>Introduction</heading>
+	<p>
+	  The GSDoc markup language is an XML language designed specifically
+	  for writing documentation for the
+	  <uref url="http://www.gnustep.org">GNUstep project</uref>.
+	  In practice, that means that it is designed for writing about
+	  software, and in particular, for writing about Objective-C classes.
+	</p>
+	<p>
+	  This is also an example, as well as a test case, of the new
+	  GNUstep documentation markup language (GSDoc).
+	</p>
+	<section>
+	  <heading>Why another documentation language?</heading>
+	  <p>
+	    There are several reasons for producing the new markup
+	    language -
+	  </p>
+	<list>
+	    <item>
+	      There were no existing markup languages that dealt well with
+	      documenting software written in the Objective-C language,
+	      except the GDML language - which has no easy to use support
+	      software.
+	    </item>
+	    <item>
+	      While the DocBook system works nicely for general software
+	      documentation, it requires a relatively large amount of
+	      support software and comes with a lot of baggage that's
+	      not directly useful for GNUstep.
+	    </item>
+	    <item>
+	      The GNU info system comes with easy to use, lightweight
+	      conversion tools, but is particularly ill suited to
+	      Objective-C documentation because the colon character
+	      using in Objective-C method names is used in info markup.
+	    </item>
+	    <item>
+	      LinuxDoc, while bening a nice basic system, seesm to be
+	      in the process of being replaced by DocBook.
+	    </item>
+	  </list>
+	  <p>
+	    So, with only one markup language available that supported
+	    Objective-C, and with XML software becoming available, the
+	    decision was to take GDML and update it to be an XML
+	    language, in the hope that this would - 
+ 	  </p>
+	  <list>
+	    <item>
+	      Provide optimal support for GNUstep documentation.
+	    </item>
+	    <item>
+	      Minimise the amount of work needed for development of
+	      software tools.
+	    </item>
+	    <item>
+	      Provide future-proofing in that documentation written in one
+	      XML language should be quite easy to convert to another if
+	      necessary.
+	    </item>
+	  </list>
+	</section>
+      </chapter>
+    </front>
+
+    <chapter>
+      <heading>The gsdoc DTD and what it means</heading>
+      <p>
+	The GSDoc markup language is defined by an SGML DTD, that specifies
+	the tags that may be used in marking up a GSDoc document, and how
+	and where those tags may be placed.  Please see the DTD for a
+	precise specification.
+      </p>
+      <p>
+	The gsdoc DTD defines an XML language - that is, a markup language
+	that conforms to a specific subset of SGML features defined as XML.
+	The advantage of XML is that it provides most of the useful features
+	of SGML while being much more light-weight (easy to use) beacause
+	you can forget about the rest of SGML.
+	As XML looks set to become increasingly popular, we can hope that
+	documentation written with an XML language will be easily imported
+	into XML software tools as they become available, so we will not
+	(in the GNUstep project) need to devote a lot of time and effort
+	to maintaining documentation tools.
+      </p>
+      <section>
+	<heading>Overall document structure</heading>
+	<p>
+	  A GSDoc document consists of a <ref id="head">head</ref> and a
+	  <ref id="body">body</ref> wrapped inside the overall document
+	  framework that looks like this -
+	</p>
+	<example>
+&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml"&gt;
+&lt;gsdoc base="MyDoc" prev="First.html" next="Last.html" up="Overview.html"&gt;
+  &lt;head&gt;
+  ... your document head here
+  &lt;/head&gt;
+  &lt;body&gt;
+  ... your document body here
+  &lt;/body&gt;
+&lt;/gsdoc&gt;
+	</example>
+	<p>
+	  The above example shows a GSDoc document framework.
+	  The first line specifies the XML version that the document
+	  conforms to.
+	  The second line specifies the version of GSDoc that the
+	  document conforms to.
+	  The third and final lines frame the main part of the document
+	  and supply all the (optional) attributes of the <em>gsdoc</em>
+	  element -
+ 	</p>
+	<deflist>
+	  <term>base</term>
+	  <desc>
+	    This is optional, but recommended - it specifies the base name
+	    for the document.  When the document is tranlated to another
+	    format, the outut file name should be based on this - eg.
+	    if the base name of a document is <em>foo</em> then an html
+	    output for this file would be <em>foo.html</em>.
+	  </desc>
+	  <term>prev</term>
+	  <desc>
+	    This optional attribute may be used as the name of a document
+	    that precedes this one in logical reading order.  If the
+	    converted output format of the document supports some sort of
+	    link between documents, the converter software may insert
+	    a link between the two documents.
+	  </desc>
+	  <term>next</term>
+	  <desc>
+	    This optional attribute may be used as the name of a document
+	    that follows this one in logical reading order.  If the
+	    converted output format of the document supports some sort of
+	    link between documents, the converter software may insert
+	    a link between the two documents.
+	  </desc>
+	  <term>up</term>
+	  <desc>
+	    This optional attribute may be used as the name of a document
+	    that is above this document in some sort of hierarchical
+	    structure (a contents list perhaps).
+	    If the converted output format of the document supports some sort
+	    of link between documents, the converter software may insert
+	    a link between the two documents.
+	  </desc>
+	</deflist>
+      </section>
+    </chapter>
+
+    <chapter>
+      <heading>The gsdoc conversion tool</heading>
+      <p>
+	The gsdoc tool is written in Objective-C and uses the GNUstep base
+	library and the Gnome XML parser library.
+      </p>
+      <p>
+	This tool is intended to convert GSDoc documents to other formats
+	though, at present, only HTML output is supported.
+      </p>
+      <p>
+	Use of the tool is trivial - just provide it with a list of gsdoc
+	file names, and it will produce a load of html output files.
+      </p>
+    </chapter>
+
+    <back>
+<!--
+      <chapter>
+	<heading>Afterword</heading>
+      </chapter>
+-->
+      <index type="label"/>
+    </back>
+  </body>
+</gsdoc>
