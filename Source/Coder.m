@@ -1154,8 +1154,8 @@ exc_return_null(arglist_t f)
   /* xxx No. [self _finishDecodeRootObject]; */
   [const_ptr_table release];
   [object_table release];
-  [[forward_object_tables releaseObjects] release];
-  [[root_object_tables releaseObjects] release];
+  [forward_object_tables release];
+  [root_object_tables release];
   [stream release];		/* xxx should we do this? */
   [super dealloc];
 }

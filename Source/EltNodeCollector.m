@@ -187,7 +187,7 @@
 
 - (void) dealloc
 {
-  [[_contents_collector releaseObjects] release];
+  [_contents_collector release];
   [super dealloc];
 }
 
