@@ -1,5 +1,5 @@
 /* Interface for NSObject for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -275,5 +275,15 @@ compiler warning.
 #include <Foundation/NSGCString.h>
 @interface NXConstantString : NSGCString
 @end
+
+#ifndef NO_GNUSTEP
+
+#include <objects/IndexedCollecting.h>
+#include <objects/String.h>
+
+@interface NSString (GNU) <String,IndexedCollecting>
+@end
+
+#endif /* NO_GNUSTEP */
 
 #endif /* __NSString_h_OBJECTS_INCLUDE */
