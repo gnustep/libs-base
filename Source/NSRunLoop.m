@@ -118,6 +118,7 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
 
   switch (aType)
     {
+      case ET_EDESC: 	type = aType;	break;
       case ET_RDESC: 	type = aType;	break;
       case ET_WDESC: 	type = aType;	break;
       case ET_RPORT: 	type = aType;	break;
@@ -129,7 +130,8 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
   if ([receiver respondsToSelector: eventSel] == YES) 
     handleEvent = [receiver methodForSelector: eventSel];
   else
-    handleEvent = 0;
+    [NSException raise: NSInvalidArgumentException
+		format: @"RunLoop listener has no event handling method"];
   data = item;
   return self;
 }
@@ -542,27 +544,6 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
     }
 }
 
-- (void) addReadDescriptor: (int)fd
-		    object: (id <FdListening>)listener
-		   forMode: (NSString*)mode
-{
-  return [self addEvent: (void*)fd
-		   type: ET_RDESC
-		watcher: (id<RunLoopEvents>)listener
-		forMode: mode];
-}
-
-  /* Add our new handler information to the array. */
-- (void) addWriteDescriptor: (int)fd
-		     object: (id <FdSpeaking>)speaker
-		    forMode: (NSString*)mode
-{
-  return [self addEvent: (void*)fd
-		   type: ET_WDESC
-		watcher: (id<RunLoopEvents>)speaker
-		forMode: mode];
-}
-
 - (void) removeEvent: (void*)data
                 type: (RunLoopEventType)type
              forMode: (NSString*)mode
@@ -594,18 +575,6 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 	    }
 	}
     }
-}
-
-- (void) removeReadDescriptor: (int)fd 
-		      forMode: (NSString*)mode
-{
-  return [self removeEvent: (void*)fd type: ET_RDESC forMode: mode all: NO];
-}
-
-- (void) removeWriteDescriptor: (int)fd
-		       forMode: (NSString*)mode
-{
-  return [self removeEvent: (void*)fd type: ET_WDESC forMode: mode all: NO];
 }
 
 - (BOOL) runOnceBeforeDate: date
@@ -732,6 +701,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   _mode_2_performers = NSCreateMapTable (NSObjectMapKeyCallBacks,
 					   ArrayMapValueCallBacks, 0);
   _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
+  _efdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
+				  WatcherMapValueCallBacks, 0);
   _rfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  WatcherMapValueCallBacks, 0);
   _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
@@ -751,6 +722,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   NSFreeMapTable(_mode_2_timers);
   NSFreeMapTable(_mode_2_watchers);
   NSFreeMapTable(_mode_2_performers);
+  NSFreeMapTable(_efdMap);
   NSFreeMapTable(_rfdMap);
   NSFreeMapTable(_wfdMap);
 }
@@ -1015,7 +987,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   NSTimeInterval ti;
   struct timeval timeout;
   void *select_timeout;
-  fd_set fds;			/* The file descriptors we will listen to. */
   fd_set read_fds;		/* Copy for listening to read-ready fds. */
   fd_set exception_fds;		/* Copy for listening to exception fds. */
   fd_set write_fds;		/* Copy for listening for write-ready fds. */
@@ -1077,8 +1048,10 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
    *	The maps may not have been emptied if a previous call to this
    *	method was terminated by an exception.
    */
-  memset(&fds, '\0', sizeof(fds));
+  memset(&exception_fds, '\0', sizeof(exception_fds));
+  memset(&read_fds, '\0', sizeof(read_fds));
   memset(&write_fds, '\0', sizeof(write_fds));
+  NSResetMapTable(_efdMap);
   NSResetMapTable(_rfdMap);
   NSResetMapTable(_wfdMap);
 
@@ -1104,17 +1077,24 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	      }
 	    switch (info->type)
 	      {
-		case ET_WDESC: 
+		case ET_EDESC: 
 		  fd = (int)info->data;
-		  FD_SET (fd, &write_fds);
-		  NSMapInsert(_wfdMap, (void*)fd, info);
+		  FD_SET (fd, &exception_fds);
+		  NSMapInsert(_efdMap, (void*)fd, info);
 		  num_inputs++;
 		  break;
 
 		case ET_RDESC: 
 		  fd = (int)info->data;
-		  FD_SET (fd, &fds);
+		  FD_SET (fd, &read_fds);
 		  NSMapInsert(_rfdMap, (void*)fd, info);
+		  num_inputs++;
+		  break;
+
+		case ET_WDESC: 
+		  fd = (int)info->data;
+		  FD_SET (fd, &write_fds);
+		  NSMapInsert(_wfdMap, (void*)fd, info);
 		  num_inputs++;
 		  break;
 
@@ -1129,7 +1109,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 		    }
 		  else
 		    {
-		      id	port = info->receiver;
+		      id port = info->receiver;
 		      int port_fd_count = 128; // xxx #define this constant
 		      int port_fd_array[port_fd_count];
 
@@ -1141,10 +1121,9 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 		      while (port_fd_count--)
 			{
-			  FD_SET (port_fd_array[port_fd_count], &fds);
+			  FD_SET (port_fd_array[port_fd_count], &read_fds);
 			  NSMapInsert(_rfdMap, 
-				       (void*)port_fd_array[port_fd_count],
-				      info);
+			    (void*)port_fd_array[port_fd_count], info);
 			  num_inputs++;
 			}
 		    }
@@ -1153,10 +1132,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	  }
       }
   }
-
-  /* Wait for incoming data, listening to the file descriptors in _FDS. */
-  read_fds = fds;
-  exception_fds = fds;
 
   /*
    * If there are notifications in the 'idle' queue, we try an instantaneous
@@ -1196,6 +1171,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     }
   if (select_return == 0)
     {
+      NSResetMapTable(_efdMap);
       NSResetMapTable(_rfdMap);
       NSResetMapTable(_wfdMap);
       GSNotifyIdle();
@@ -1214,6 +1190,25 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
    */
   for (fd_index = 0; fd_index < FD_SETSIZE; fd_index++)
     {
+      if (FD_ISSET (fd_index, &exception_fds))
+        {
+	  GSRunLoopWatcher	*watcher;
+
+	  watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)fd_index);
+	  if (watcher != nil && watcher->_invalidated == NO)
+	    {
+	      /*
+	       * The watcher is still valid - so call it's receivers
+	       * event handling method.
+	       */
+	      (*watcher->handleEvent)(watcher->receiver,
+		eventSel, watcher->data, watcher->type,
+		(void*)(gsaddr)fd_index, _current_mode);
+	    }
+	  GSNotifyASAP();
+	  if (--select_return == 0)
+	    break;
+        }
       if (FD_ISSET (fd_index, &write_fds))
         {
 	  GSRunLoopWatcher	*watcher;
@@ -1225,17 +1220,9 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	       * The watcher is still valid - so call it's receivers
 	       * event handling method.
 	       */
-	      if (watcher->handleEvent != 0)
-		{
-		  (*watcher->handleEvent)(watcher->receiver,
-			eventSel, watcher->data, watcher->type,
-			(void*)(gsaddr)fd_index, _current_mode);
-		}
-	      else if (watcher->type == ET_WDESC)
-		{
-		  [watcher->receiver readyForWritingOnFileDescriptor:
-				(int)(gsaddr)fd_index];
-		}
+	      (*watcher->handleEvent)(watcher->receiver,
+		eventSel, watcher->data, watcher->type,
+		(void*)(gsaddr)fd_index, _current_mode);
 	    }
 	  GSNotifyASAP();
 	  if (--select_return == 0)
@@ -1252,17 +1239,9 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	       * The watcher is still valid - so call it's receivers
 	       * event handling method.
 	       */
-	      if (watcher->handleEvent != 0)
-		{
-		  (*watcher->handleEvent)(watcher->receiver,
-			eventSel, watcher->data, watcher->type,
-			(void*)(gsaddr)fd_index, _current_mode);
-		}
-	      else if (watcher->type == ET_RDESC)
-		{
-		  [watcher->receiver readyForReadingOnFileDescriptor:
-				(int)(gsaddr)fd_index];
-		}
+	      (*watcher->handleEvent)(watcher->receiver,
+		    eventSel, watcher->data, watcher->type,
+		    (void*)(gsaddr)fd_index, _current_mode);
 	    }
 	  GSNotifyASAP();
 	  if (--select_return == 0)
@@ -1272,6 +1251,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 
   /* Clean up before returning. */
+  NSResetMapTable(_efdMap);
   NSResetMapTable(_rfdMap);
   NSResetMapTable(_wfdMap);
 
