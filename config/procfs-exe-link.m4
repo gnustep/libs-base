@@ -10,15 +10,14 @@ AC_DEFUN(AC_SYS_PROCFS_EXE_LINK,
       # Linux 2.2.x and up
       if test -L /proc/self/exe; then
         ac_cv_sys_procfs_exe_link=/proc/self/exe
-      # FreeBSD 2.2.1 and up
+      # FreeBSD 4.x and up
       elif test -L /proc/curproc/file; then
         ac_cv_sys_procfs_exe_link=/proc/curproc/file
-      # Solaris 2.6 and up
-      elif test -L /proc/self/object/a.out; then
-        ac_cv_sys_procfs_exe_link=/proc/self/object/a.out
       else
         ac_cv_sys_procfs_exe_link=no
       fi
+    else
+      ac_cv_sys_procfs_exe_link=no
     fi])
 
   if test "$ac_cv_sys_procfs_exe_link" != no; then

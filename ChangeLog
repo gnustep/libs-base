@@ -1,3 +1,15 @@
+2002-05-02  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Updated to autoconf 2.53 from configure.in
+	* configure, config.h.in: Regenerate.
+	* Source/mframe/configure.ac: Idem.
+	* SSL/configure.ac: Idem.
+	* acconfig.h, aclocal.m4: Remove
+	* config/pathxml.m4: New from aclocal.m4.
+	* config/objc-con-autoload.m4: Updated from aclocal.m4
+	* config/procfs-exe-link.m4: Idem.
+	* config/procfs.m4: Idem.
+
 2002-05-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLHandle.m: Implement ([-hash]) and ([-isEqual:]) based on
