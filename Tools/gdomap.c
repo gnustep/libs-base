@@ -4110,6 +4110,55 @@ unregister(const char *name, int port, int ptype)
     }
 }
 
+static void do_help(int argc, char **argv, char *options)
+{
+  /*
+   * Where argc > 0 we check to see if there is a '--help' argument
+   * and do nothing if there isn't.
+   */
+  if (argc > 0)
+    {
+      int	i;
+
+      for (i = 1; i < argc; i++)
+	{
+	  if (strcmp(argv[i], "--help") == 0)
+	    {
+	      break;
+	    }
+	}
+      if (i == argc)
+	{
+	  return;	// --help not found ... 
+	}
+    }
+  printf("%s -[%s]\n", argv[0], options);
+  printf("GNU Distributed Objects name server\n");
+  printf("-C		help about configuration\n");
+  printf("-H		general help\n");
+  printf("-I		pid file to write pid\n");
+  printf("-L name		perform lookup for name then quit.\n");
+  printf("-M name		machine name for -L and -N\n");
+  printf("-N		list all names registered on host\n");
+  printf("-P number	port number required for R option.\n");
+  printf("-R name		register name locally then quit.\n");
+  printf("-T type		port type for L, R and U options -\n");
+  printf("		tcp_gdo, udp_gdo,\n");
+  printf("		tcp_foreign, udp_foreign.\n");
+  printf("-U name		unregister name locally then quit.\n");
+  printf("-a file		use config file for interface list.\n");
+  printf("-c file		use config file for probe.\n");
+  printf("-d		extra debug logging (normally via syslog).\n");
+  printf("-f		avoid fork() to make debugging easy\n");
+  printf("-i seconds	re-probe at this interval (roughly), min 60\n");
+  printf("-p		disable probing for other servers\n");
+  printf("\n");
+  printf("Kill with SIGUSR1 to obtain a dump of all known peers\n");
+  printf("in /tmp/gdomap.dump\n");
+  printf("\n");
+  exit(EXIT_SUCCESS);
+}
+
 /**
  * (A dummy comment to help autogsdoc realize this is a command-line tool.)
  */
@@ -4163,35 +4212,13 @@ main(int argc, char** argv)
   class_c_mask = inet_makeaddr(class_c_net, 0);
 #endif
 
+  do_help(argc, argv, options);
   while ((c = getopt(argc, argv, options)) != -1)
     {
       switch(c)
 	{
 	  case 'H':
-	    printf("%s -[%s]\n", argv[0], options);
-	    printf("GNU Distributed Objects name server\n");
-	    printf("-C		help about configuration\n");
-	    printf("-H		general help\n");
-	    printf("-I		pid file to write pid\n");
-	    printf("-L name		perform lookup for name then quit.\n");
-	    printf("-M name		machine name for -L and -N\n");
-	    printf("-N		list all names registered on host\n");
-	    printf("-P number	port number required for R option.\n");
-	    printf("-R name		register name locally then quit.\n");
-	    printf("-T type		port type for L, R and U options -\n");
-	    printf("		tcp_gdo, udp_gdo,\n");
-	    printf("		tcp_foreign, udp_foreign.\n");
-	    printf("-U name		unregister name locally then quit.\n");
-	    printf("-a file		use config file for interface list.\n");
-	    printf("-c file		use config file for probe.\n");
-	    printf("-d		extra debug logging (normally via syslog).\n");
-	    printf("-f		avoid fork() to make debugging easy\n");
-	    printf("-i seconds	re-probe at this interval (roughly), min 60\n");
-	    printf("-p		disable probing for other servers\n");
-	    printf("\n");
-	    printf("Kill with SIGUSR1 to obtain a dump of all known peers\n");
-	    printf("in /tmp/gdomap.dump\n");
-	    printf("\n");
+	    do_help(0, argv, options);
 	    exit(EXIT_SUCCESS);
 
 	  case 'C':

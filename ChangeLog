@@ -1,3 +1,7 @@
+2004-11-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: make respond to --help as to -H
+
 2004-11-24 15:08  Patrick McFarland  <unknown@panax.com>
 
 	* configure.ac: Change "doesn't" to "does not" in an error message to
