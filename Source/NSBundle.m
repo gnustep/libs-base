@@ -1595,6 +1595,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return _infoDict;
 }
 
+- (NSString *)bundleIdentifier
+{
+    return [[self infoDictionary] objectForKey:@"CFBundleIdentifier"];
+}
+
 - (unsigned)bundleVersion
 {
   return _version;
