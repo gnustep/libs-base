@@ -60,10 +60,13 @@
  * dealing with NSMessagePort objects, but that is incompatible
  * with OpenStep/OPENSTEP/NeXTstep behavior, so GNUstep returns
  * a name server which deals with NSSocketPort objects capable
- * of being used for inter-host communications.
+ * of being used for inter-host communications... unless it
+ * is running in compatibility mode.<br />
+ * This may change in future releases.
  */
 + (id) systemDefaultPortNameServer
 {
+#ifndef __MINGW__
   /* Must be kept in sync with [NSPort +initialize]. */
   if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES
     || [[NSUserDefaults standardUserDefaults]
@@ -75,6 +78,9 @@
     {
       return [NSSocketPortNameServer sharedInstance];
     }
+#else
+  return [NSSocketPortNameServer sharedInstance];
+#endif
 }
 
 - (void) dealloc

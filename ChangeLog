@@ -1,3 +1,8 @@
+2004-08-17 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPort.m, Source/NSPortNameServer.m: Fix port type
+	selection for windows.
+
 2004-08-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: don't escape single quotes unnecessarily.
