@@ -68,7 +68,7 @@
 - (void) _safeWithElementsCallNoRetain: (void(*)(elt))aFunc
 {
   int c = [self count];
-  elt *elts = (elt*) alloca(c * sizeof(elt));
+  elt *elts = (elt*) (*objc_malloc) (c * sizeof(elt));
   int i = 0;
   void fill_elts(elt e)
     {
@@ -77,6 +77,7 @@
   [self withElementsCall:fill_elts];
   for (i = 0; i < c; i++)
     aFunc(elts[i]);
+  (*objc_free) (elts);
 }
 
 static void
