@@ -63,6 +63,8 @@ GS_EXPORT unichar *uni_is_decomp(unichar u);
 #define	GSUniTerminate	0x01
 #define	GSUniTemporary	0x02
 #define	GSUniStrict	0x04
+#define	GSUniBOM	0x08
+#define	GSUniShortOk	0x10
 
 GS_EXPORT BOOL GSFromUnicode(unsigned char **dst, unsigned int *size,
   const unichar *src, unsigned int slen, NSStringEncoding enc, NSZone *zone,

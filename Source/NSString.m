@@ -259,6 +259,7 @@ surrogatePairValue(unichar high, unichar low)
 @implementation NSString
 
 static NSStringEncoding _DefaultStringEncoding;
+static BOOL		_ByteEncodingOk;
 static const unichar byteOrderMark = 0xFEFF;
 static const unichar byteOrderMarkSwapped = 0xFFFE;
 
@@ -344,6 +345,8 @@ handle_printf_atsign (FILE *stream,
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
 
       _DefaultStringEncoding = GetDefEncoding();
+      _ByteEncodingOk = GSIsByteEncoding(_DefaultStringEncoding);
+
       NSStringClass = self;
       [self setVersion: 1];
       NSMutableStringClass = [NSMutableString class];
@@ -606,16 +609,22 @@ handle_printf_atsign (FILE *stream,
 		      length: (unsigned int)length
 		freeWhenDone: (BOOL)flag
 {
-  unichar	*buf;
+  unichar	*buf = 0;
+  unsigned int	l = 0;
 
-  buf = (unichar*)NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
-  length = encode_cstrtoustr(buf, length, byteString, length,
-    _DefaultStringEncoding);
-  if (flag == YES && byteString != 0)
+  if (GSToUnicode(&buf, &l, byteString, length, _DefaultStringEncoding,
+    [self zone], 0) == NO)
     {
-      NSZoneFree(NSZoneFromPointer(byteString), byteString);
+      DESTROY(self);
     }
-  self = [self initWithCharactersNoCopy: buf length: length freeWhenDone: YES];
+  else
+    {
+      if (flag == YES && byteString != 0)
+	{
+	  NSZoneFree(NSZoneFromPointer(byteString), byteString);
+	}
+      self = [self initWithCharactersNoCopy: buf length: l freeWhenDone: YES];
+    }
   return self;
 }
 
@@ -682,32 +691,44 @@ handle_printf_atsign (FILE *stream,
 
   if (length > 0)
     {
-      unsigned	i;
+      unsigned		i = 0;
 
-      /*
-       * Check to see if we have in fact got an ascii string
-       */
-      for (i = 0; i < length; i++)
+      if (_ByteEncodingOk)
 	{
-	  if (((unsigned char*)bytes)[i] > 127)
+	  /*
+	   * If it's ok to store ascii strings as internal C strings,
+	   * check to see if we have in fact got an ascii string.
+	   */
+	  while (i < length)
 	    {
-	      break;
+	      if (((unsigned char*)bytes)[i] > 127)
+		{
+		  break;
+		}
+	      i++;
 	    }
 	}
+
       if (i == length)
 	{
 	  self = [self initWithCString: bytes length: length];
 	}
       else
 	{
-	  unichar	*s;
+	  unichar	*u = 0;
+	  unsigned int	l = 0;
 
-	  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
-	  length = encode_cstrtoustr(s, length, bytes, length,
-	    NSUTF8StringEncoding);
-	  self = [self initWithCharactersNoCopy: s
-					 length: length
-				   freeWhenDone: YES];
+	  if (GSToUnicode(&u, &l, bytes, length, NSUTF8StringEncoding,
+	    GSObjCZone(self), 0) == NO)
+	    {
+	      DESTROY(self);
+	    }
+	  else
+	    {
+	      self = [self initWithCharactersNoCopy: u
+					     length: l
+				       freeWhenDone: YES];
+	    }
 	}
     }
   else
@@ -1071,96 +1092,139 @@ handle_printf_atsign (FILE *stream,
 
   if (len == 0)
     {
-      self = [self initWithCStringNoCopy: "" length: 0 freeWhenDone: NO];
+      self = [self initWithCharactersNoCopy: (unichar*)""
+				     length: 0
+			       freeWhenDone: NO];
     }
-  else if (encoding == NSASCIIStringEncoding
-    || encoding == _DefaultStringEncoding)
+  else if (_ByteEncodingOk == YES
+    && (encoding==_DefaultStringEncoding || encoding==NSASCIIStringEncoding))
     {
-      char	*s = NSZoneMalloc(GSObjCZone(self), len);
+      char	*s;
 
+      /*
+       * We can only create an internal C string if the default C string
+       * encoding is Ok, and the specified encoding matches it.
+       */ 
+      s = NSZoneMalloc(GSObjCZone(self), len);
       [data getBytes: s];
       self = [self initWithCStringNoCopy: s length: len freeWhenDone: YES];
     } 
   else if (encoding == NSUTF8StringEncoding)
     {
       const char	*bytes = [data bytes];
-      unsigned		i;
+      unsigned		i = 0;
 
-      /*
-       * Check to see if we have in fact got an ascii string
-       */
-      for (i = 0; i < len; i++)
+      if (_ByteEncodingOk)
 	{
-	  if (((unsigned char*)bytes)[i] > 127)
+	  /*
+	   * If it's ok to store ascii strings as internal C strings,
+	   * check to see if we have in fact got an ascii string.
+	   */
+	  while (i < len)
 	    {
-	      break;
+	      if (((unsigned char*)bytes)[i] > 127)
+		{
+		  break;
+		}
+	      i++;
 	    }
 	}
+
       if (i == len)
 	{
 	  self = [self initWithCString: bytes length: len];
 	}
       else
 	{
-	  unichar	*u;
+	  unichar	*u = 0;
+	  unsigned int	l = 0;
 
-	  u = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
-	  len = encode_cstrtoustr(u, len, bytes, len,
-	    NSUTF8StringEncoding);
-	  if (len > 0)
+	  if (GSToUnicode(&u, &l, bytes, len, NSUTF8StringEncoding,
+	    GSObjCZone(self), 0) == NO)
 	    {
-	      self = [self initWithCharactersNoCopy: u
-					     length: len
-				       freeWhenDone: YES];
+	      DESTROY(self);
 	    }
 	  else
 	    {
-	      DESTROY(self);
+	      self = [self initWithCharactersNoCopy: u
+					     length: l
+				       freeWhenDone: YES];
+	    }
+	}
+    }
+  else if (encoding == NSUnicodeStringEncoding)
+    {
+      if (len%2 != 0)
+	{
+	  DESTROY(self);	// Not valid unicode data.
+	}
+      else
+	{
+	  BOOL		swapped = NO;
+	  unsigned char	*b;
+	  unichar	*uptr;
+
+	  b = (unsigned char*)[data bytes];
+	  uptr = (unichar*)b;
+	  if (*uptr == 0xFFFE)
+	    {
+	      b = (unsigned char*)++uptr;
+	      len -= sizeof(unichar);
+	    }
+	  else if (*uptr == 0xFEFF)
+	    {
+	      b = (unsigned char*)++uptr;
+	      len -= sizeof(unichar);
+	      swapped = YES;
+	    }
+	  if (len == 0)
+	    {
+	      self = [self initWithCharactersNoCopy: (unichar*)""
+					     length: 0
+				       freeWhenDone: NO];
+	    }
+	  else
+	    {
+	      unsigned char	*u;
+
+	      u = (unsigned char*)NSZoneMalloc(GSObjCZone(self), len);
+	      if (swapped == YES)
+		{
+		  unsigned	i;
+
+		  for (i = 0; i < len; i += 2)
+		    {
+		      u[i] = b[i + 1];
+		      u[i + 1] = b[i];
+		    }
+		}
+	      else
+		{
+		  memcpy(u, b, len);
+		}
+	      self = [self initWithCharactersNoCopy: (unichar*)u
+					     length: len/2
+				       freeWhenDone: YES];
 	    }
 	}
     }
   else
     {
-      unichar	*u;
-      unsigned	count;
-      const unsigned char *b;
+      unsigned char	*b;
+      unichar		*u = 0;
+      unsigned		l = 0;
 
-      if (len < 1  ||  (len < 2 && encoding == NSUnicodeStringEncoding))
+      b = (unsigned char*)[data bytes];
+      if (GSToUnicode(&u, &l, b, len, NSUTF8StringEncoding, GSObjCZone(self),
+	0) == NO)
 	{
-	  return [self initWithCStringNoCopy: "" length: 0 freeWhenDone: NO];
-	}
-
-      b = [data bytes];
-      u = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*(len+1));
-      if (encoding == NSUnicodeStringEncoding)
-        {
-	  if ((b[0]==0xFE) & (b[1]==0xFF))
-	    {
-	      b = &b[2];
-	      count -= 2;
-	    }
-	  for (count = 0; count < (len - 1); count += 2)
-	    {
-	      u[count/2 - 1] = 256*b[count + 1] + b[count];
-	    }
-	  count = count/2;
-	  self = [self initWithCharactersNoCopy: u
-					 length: count
-				   freeWhenDone: YES];
+	  DESTROY(self);
 	}
       else
 	{
-	  count = encode_cstrtoustr(u, len, b, len, encoding);
-	  if (count < 1)
-	    {
-	      DESTROY(self);
-	    }
-	  else
-	    {
-	      self = [self initWithCharactersNoCopy: u
-					     length: count
-				       freeWhenDone: YES];
-	    }
+	  self = [self initWithCharactersNoCopy: u
+					 length: l
+				   freeWhenDone: YES];
 	}
     }
   return self;
@@ -2314,47 +2378,27 @@ handle_printf_atsign (FILE *stream,
       buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
 	sizeof(unichar)*(len+1));
       buff[0] = 0xFEFF;
-      for (count = 0; count < len; count++)
-	{
-	  buff[count+1] = (*caiImp)(self, caiSel, count);
-	}
+      [self getCharacters: &buff[1]];
       return [NSDataClass dataWithBytesNoCopy: buff
 					length: sizeof(unichar)*(len+1)];
     }
   else
     {
-      int		t;
-      int		bsiz;
+      unsigned char	*b = 0;
+      int		l = 0;
       unichar		*u;
-      unsigned char	*buff;
 
       u = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), len*sizeof(unichar));
       [self getCharacters: u];
-      if (encoding == NSUTF8StringEncoding)
+      if (GSFromUnicode(&b, &l, u, len, encoding, NSDefaultMallocZone(),
+	(flag == NO) ? GSUniStrict : 0)
+	== NO)
 	{
-	  bsiz = len * 4;
-	}
-      else
-	{
-	  bsiz = len;
-	}
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), bsiz);
-      flag = (flag == YES) ? NO : YES;
-      t = encode_ustrtocstr(buff, bsiz, u, len, encoding, flag);
-      NSZoneFree(NSDefaultMallocZone(), u);
-      if (t == 0)
-        {
-	  NSZoneFree(NSDefaultMallocZone(), buff);
+	  NSZoneFree(NSDefaultMallocZone(), u);
 	  return nil;
 	}
-      else
-	{
-	  if (bsiz != t)
-	    {
-	      buff = NSZoneRealloc(NSDefaultMallocZone(), buff, t);
-	    }
-	  return [NSDataClass dataWithBytesNoCopy: buff length: t];
-	}
+      NSZoneFree(NSDefaultMallocZone(), u);
+      return [NSDataClass dataWithBytesNoCopy: b length: l];
     }
   return nil;
 }

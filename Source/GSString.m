@@ -224,6 +224,7 @@ static SEL	hashSel;
 static unsigned (*hashImp)(id, SEL);
 
 static NSStringEncoding defEnc = 0;
+static NSStringEncoding intEnc = NSISOLatin1StringEncoding;
 
 /*
  * The setup() function is called when any concrete string class is
@@ -277,9 +278,14 @@ setup()
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
 
       /*
-       * Cache the default string encoding.
+       * Cache the default string encoding, and set the internal encoding
+       * used by 8-bit character strings to match if possible.
        */
       defEnc = GetDefEncoding();
+      if (GSIsByteEncoding(defEnc) == YES)
+	{
+	  intEnc = defEnc;
+	}
     }
 }
 
@@ -521,12 +527,12 @@ boolValue_u(ivars self)
     }
   else
     {
-      unsigned	len = self->_count < 10 ? self->_count : 9;
-      char	buf[len+1];
+      unsigned int	l = self->_count < 10 ? self->_count : 9;
+      unsigned char	buf[l+1];
+      unsigned char	*b = buf;
 
-      len = encode_ustrtocstr(buf, len, self->_contents.u, len, defEnc, NO);
-      buf[len] = '\0';
-      if (len == 3
+      GSFromUnicode(&b, &l, self->_contents.u, l, intEnc, 0, GSUniTerminate);
+      if (l == 3
 	&& (buf[0] == 'Y' || buf[0] == 'y')
 	&& (buf[1] == 'E' || buf[1] == 'e')
 	&& (buf[2] == 'S' || buf[2] == 's'))
@@ -543,8 +549,10 @@ boolValue_u(ivars self)
 static inline BOOL
 canBeConvertedToEncoding_c(ivars self, NSStringEncoding enc)
 {
-  if (enc == defEnc)
-    return YES;
+  if (enc == intEnc)
+    {
+      return YES;
+    }
   else
     {
       BOOL	result = (*convertImp)((id)self, convertSel, enc);
@@ -571,7 +579,7 @@ characterAtIndex_c(ivars self, unsigned index)
   c = self->_contents.c[index];
   if (c > 127)
     {
-      c = encode_chartouni(c, defEnc);
+      c = encode_chartouni(c, intEnc);
     }
   return c;
 }
@@ -631,13 +639,48 @@ compare_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 static inline char*
 cString_c(ivars self)
 {
-  char *r = (char*)_fastMallocBuffer(self->_count+1);
+  char *r;
 
-  if (self->_count > 0)
+  if (self->_count == 0)
     {
-      memcpy(r, self->_contents.c, self->_count);
+      return "";
     }
-  r[self->_count] = '\0';
+  if (defEnc == intEnc)
+    {
+      r = (char*)_fastMallocBuffer(self->_count+1);
+
+      if (self->_count > 0)
+	{
+	  memcpy(r, self->_contents.c, self->_count);
+	}
+      r[self->_count] = '\0';
+    }
+  else
+    {
+      unichar	*u = 0;
+      unsigned	l = 0;
+      unsigned	s = 0;
+
+      /*
+       * The external C string encoding is not compatible with the internal
+       * C strings ... we must convert from internal format to unicode and
+       * then to the external C string encoding.
+       */
+      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
+	NSDefaultMallocZone(), 0) == NO)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert to/from Unicode string."];
+	}
+      if (GSFromUnicode((unsigned char**)&r, &s, u, l, defEnc,
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	{
+	  NSZoneFree(NSDefaultMallocZone(), u);
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert to/from Unicode string."];
+	}
+      NSZoneFree(NSDefaultMallocZone(), u);
+    }
   
   return r;
 }
@@ -645,58 +688,90 @@ cString_c(ivars self)
 static inline char*
 cString_u(ivars self)
 {
-  int		l = self->_count;
-  char		*r = (char*)_fastMallocBuffer(l*2 + 1);
-  unsigned	limit = 0;
+  unsigned	c = self->_count;
 
-  if (l > 0)
+  if (c == 0)
     {
-      limit =  encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, YES);
-      if (limit == 0)
+      return "";
+    }
+  else
+    {
+      unsigned int	l = 0;
+      unsigned char	*r = 0;
+
+      if (GSFromUnicode(&r, &l, self->_contents.u, c, defEnc,
+	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
 	{
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get cString from Unicode string."];
 	}
+      return r;
     }
-  r[limit] = '\0';
-  
-  return r;
 }
 
 static inline unsigned int
 cStringLength_c(ivars self)
 {
-  return self->_count;
+  if (defEnc == intEnc)
+    {
+      return self->_count;
+    }
+  else
+    {
+      /*
+       * The external C string encoding is not compatible with the internal
+       * C strings ... we must convert from internal format to unicode and
+       * then to the external C string encoding.
+       */
+      if (self->_count == 0)
+	{
+	  return 0;
+	}
+      else
+	{
+	  unichar	*u = 0;
+	  unsigned	l = 0;
+	  unsigned	s = 0;
+
+	  if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
+	    NSDefaultMallocZone(), 0) == NO)
+	    {
+	      [NSException raise: NSCharacterConversionException
+			  format: @"Can't convert to/from Unicode string."];
+	    }
+	  if (GSFromUnicode(0, &s, u, l, defEnc, 0, GSUniStrict) == NO)
+	    {
+	      NSZoneFree(NSDefaultMallocZone(), u);
+	      [NSException raise: NSCharacterConversionException
+			  format: @"Can't get cStringLength from string."];
+	    }
+	  NSZoneFree(NSDefaultMallocZone(), u);
+	  return s;
+	}
+    }
 }
 
 static inline unsigned int
 cStringLength_u(ivars self)
 {
-  unsigned	c;
-  unsigned	l = self->_count;
-  unsigned	limit = 0;
+  unsigned	c = self->_count;
 
-  if (l > 0)
+  if (c == 0)
     {
-      char	*r;
-
-      r = (char*)NSZoneMalloc(NSDefaultMallocZone(), l*2 + 1);
-      limit = encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, NO);
-      if (limit == 0)
-	{
-	  NSZoneFree(NSDefaultMallocZone(), r);
-	  [NSException raise: NSCharacterConversionException
-		      format: @"Can't get cStringLength from Unicode string."];
-	}
-      r[limit] = '\0';
-      c = strlen(r);
-      NSZoneFree(NSDefaultMallocZone(), r);
+      return 0;
     }
   else
     {
-      c = 0;
+      unsigned	l = 0;
+
+      if (GSFromUnicode(0, &l, self->_contents.u, c, defEnc, 0, GSUniStrict)
+	== NO)
+	{
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't get cStringLength from Unicode string."];
+	}
+      return l;
     }
-  return c;
 }
 
 static inline NSData*
@@ -709,8 +784,8 @@ dataUsingEncoding_c(ivars self, NSStringEncoding encoding, BOOL flag)
       return [NSDataClass data];
     }
 
-  if ((encoding == defEnc)
-    || ((defEnc == NSASCIIStringEncoding) 
+  if ((encoding == intEnc)
+    || ((intEnc == NSASCIIStringEncoding) 
     && ((encoding == NSISOLatin1StringEncoding)
     || (encoding == NSISOLatin2StringEncoding)
     || (encoding == NSNEXTSTEPStringEncoding)
@@ -724,51 +799,43 @@ dataUsingEncoding_c(ivars self, NSStringEncoding encoding, BOOL flag)
     }
   else if (encoding == NSUnicodeStringEncoding)
     {
-      int	t;
-      unichar	*buff;
+      unsigned int	l = 0;
+      unichar		*r = 0;
+      unsigned int	options = GSUniBOM;
 
-      buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
-	sizeof(unichar)*(len+1));
-      buff[0] = 0xFEFF;
-      t = encode_cstrtoustr(buff+1, len, self->_contents.c, len, defEnc);
-      return [NSDataClass dataWithBytesNoCopy: buff
-				       length: sizeof(unichar)*(t+1)];
+      if (flag == NO)
+	{
+	  options |= GSUniStrict;
+	}
+
+      if (GSToUnicode(&r, &l, self->_contents.c, self->_count, intEnc,
+	NSDefaultMallocZone(), options) == NO)
+	{
+	  return nil;
+	}
+      return [NSDataClass dataWithBytesNoCopy: r length: l];
     }
   else
     {
-      int	t;
-      int	bsiz;
-      unichar	*ubuff;
-      unsigned char *buff;
+      unichar		*u = 0;
+      unsigned		l = 0;
+      unsigned char	*r = 0;
+      unsigned		s = 0;
 
-      ubuff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
-	sizeof(unichar)*len);
-      t = encode_cstrtoustr(ubuff, len, self->_contents.c, len, defEnc);
-      if (encoding == NSUTF8StringEncoding)
+      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
+	NSDefaultMallocZone(), 0) == NO)
 	{
-	  bsiz = t*4;
+	  [NSException raise: NSCharacterConversionException
+		      format: @"Can't convert to Unicode string."];
 	}
-      else
+      if (GSFromUnicode(&r, &s, u, l, encoding, NSDefaultMallocZone(),
+	(flag == NO) ? GSUniStrict : 0) == NO)
 	{
-	  bsiz = t;
-	}
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), bsiz);
-      flag = (flag == YES) ? NO : YES;
-      t = encode_ustrtocstr(buff, bsiz, ubuff, t, encoding, flag);
-      NSZoneFree(NSDefaultMallocZone(), ubuff);
-      if (t == 0)
-        {
-	  NSZoneFree(NSDefaultMallocZone(), buff);
+	  NSZoneFree(NSDefaultMallocZone(), u);
 	  return nil;
 	}
-      else
-	{
-	  if (t != bsiz)
-	    {
-	      buff = NSZoneRealloc(NSDefaultMallocZone(), buff, t);
-	    }
-	  return [NSDataClass dataWithBytesNoCopy: buff length: t];
-	}
+      NSZoneFree(NSDefaultMallocZone(), u);
+      return [NSDataClass dataWithBytesNoCopy: r length: s];
     }
 }
 
@@ -795,34 +862,15 @@ dataUsingEncoding_u(ivars self, NSStringEncoding encoding, BOOL flag)
     }
   else
     {
-      int t;
-      int	bsiz;
-      unsigned char *buff;
+      unsigned char	*r = 0;
+      unsigned int	l = 0;
 
-      if (encoding == NSUTF8StringEncoding)
+      if (GSFromUnicode(&r, &l, self->_contents.u, self->_count, encoding,
+	NSDefaultMallocZone(), (flag == NO) ? GSUniStrict : 0) == NO)
 	{
-	  bsiz = len*4;
-	}
-      else
-	{
-	  bsiz = len;
-	}
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), bsiz);
-      flag = (flag == YES) ? NO : YES;
-      t = encode_ustrtocstr(buff, bsiz, self->_contents.u, len, encoding, flag);
-      if (t == 0)
-        {
-	  NSZoneFree(NSDefaultMallocZone(), buff);
 	  return nil;
 	}
-      else
-	{
-	  if (t != bsiz)
-	    {
-	      buff = NSZoneRealloc(NSDefaultMallocZone(), buff, t);
-	    }
-	  return [NSDataClass dataWithBytesNoCopy: buff length: t];
-	}
+      return [NSDataClass dataWithBytesNoCopy: r length: l];
     }
 }
 
@@ -853,11 +901,11 @@ doubleValue_u(ivars self)
     }
   else
     {
-      unsigned	len = self->_count < 32 ? self->_count : 31;
-      char	buf[len+1];
+      unsigned int	l = self->_count < 10 ? self->_count : 9;
+      unsigned char	buf[l+1];
+      unsigned char	*b = buf;
 
-      len = encode_ustrtocstr(buf, len, self->_contents.u, len, defEnc, NO);
-      buf[len] = '\0';
+      GSFromUnicode(&b, &l, self->_contents.u, l, intEnc, 0, GSUniTerminate);
       return atof(buf);
     }
 }
@@ -907,8 +955,10 @@ fillHole(ivars self, unsigned index, unsigned size)
 static inline void
 getCharacters_c(ivars self, unichar *buffer, NSRange aRange)
 {
-  encode_cstrtoustr(buffer, aRange.length, self->_contents.c + aRange.location,
-    aRange.length, defEnc);
+  unsigned	len = aRange.length;
+
+  GSToUnicode(&buffer, &len, self->_contents.c + aRange.location,
+    aRange.length, intEnc, 0, 0);
 }
 
 static inline void
@@ -955,8 +1005,7 @@ static inline void
 getCString_u(ivars self, char *buffer, unsigned int maxLength,
   NSRange aRange, NSRange *leftoverRange)
 {
-  int	len;
-  int	result;
+  unsigned int	len;
 
   if (maxLength > self->_count)
     {
@@ -981,9 +1030,8 @@ getCString_u(ivars self, char *buffer, unsigned int maxLength,
 	}
     }
 
-  result = encode_ustrtocstr(buffer, len, &self->_contents.u[aRange.location],
-    len, defEnc, YES);
-  if (result != len)
+  if (GSFromUnicode((unsigned char **)&buffer, &len, self->_contents.u, len,
+    defEnc, 0, GSUniTerminate | GSUniStrict) == NO)
     {
       [NSException raise: NSCharacterConversionException
 		  format: @"Can't get cString from Unicode string."];
@@ -1018,11 +1066,11 @@ intValue_u(ivars self)
     }
   else
     {
-      unsigned	len = self->_count < 32 ? self->_count : 31;
-      char	buf[len+1];
+      unsigned int	l = self->_count < 10 ? self->_count : 9;
+      unsigned char	buf[l+1];
+      unsigned char	*b = buf;
 
-      len = encode_ustrtocstr(buf, len, self->_contents.u, len, defEnc, NO);
-      buf[len] = '\0';
+      GSFromUnicode(&b, &l, self->_contents.u, l, intEnc, 0, GSUniTerminate);
       return atol(buf);
     }
 }
@@ -1177,8 +1225,7 @@ lossyCString_u(ivars self)
   unsigned	l = self->_count;
   unsigned char	*r = (unsigned char*)_fastMallocBuffer(l + 1);
 
-  encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, NO);
-  r[l] = '\0';
+  GSFromUnicode(&r, &l, self->_contents.u, l, intEnc, 0, GSUniTerminate);
   return (const char*)r;
 }
 
@@ -1357,7 +1404,7 @@ rangeOfCharacter_c(ivars self, NSCharacterSet *aSet, unsigned mask,
 
       if (letter > 127)
 	{
-	  letter = encode_chartouni(letter, defEnc);
+	  letter = encode_chartouni(letter, intEnc);
 	}
       if ((*mImp)(aSet, cMemberSel, letter))
 	{
@@ -1534,7 +1581,7 @@ transmute(ivars self, NSString *aString)
 	   */
 	  transmute = NO;
 	}
-      else if ([aString canBeConvertedToEncoding: defEnc] == YES)
+      else if ([aString canBeConvertedToEncoding: intEnc] == YES)
 	{
 	  /*
 	   * This is a C string, but the other string can be converted to
@@ -1567,11 +1614,11 @@ transmute(ivars self, NSString *aString)
 
   if (transmute == YES)
     {
-      unichar	*tmp;
-      int	len = self->_count;
+      unichar	*tmp = 0;
+      int	len = 0;
 
-      tmp = NSZoneMalloc(self->_zone, self->_capacity * sizeof(unichar));
-      len = encode_cstrtoustr(tmp, len, self->_contents.c, len, defEnc);
+      GSToUnicode(&tmp, &len, self->_contents.c, self->_count, intEnc,
+	self->_zone, 0);
       if (self->_flags.free == 1)
 	{
 	  NSZoneFree(self->_zone, self->_contents.c);
@@ -1761,7 +1808,7 @@ transmute(ivars self, NSString *aString)
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count > 0)
     {
-      [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &defEnc];
+      [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &intEnc];
       [aCoder encodeArrayOfObjCType: @encode(unsigned char)
 			      count: _count
 				 at: _contents.c];
@@ -1770,7 +1817,7 @@ transmute(ivars self, NSString *aString)
 
 - (NSStringEncoding) fastestEncoding
 {
-  return defEnc;
+  return intEnc;
 }
 
 - (float) floatValue
@@ -1885,7 +1932,7 @@ transmute(ivars self, NSString *aString)
 
 - (NSStringEncoding) smallestEncoding
 {
-  return defEnc;
+  return intEnc;
 }
 
 - (NSString*) substringFromRange: (NSRange)aRange
@@ -2487,7 +2534,7 @@ transmute(ivars self, NSString *aString)
 	}
       else
 	{
-	  [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &defEnc];
+	  [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &intEnc];
 	  [aCoder encodeArrayOfObjCType: @encode(unsigned char)
 				  count: _count
 				     at: _contents.c];
@@ -2500,7 +2547,7 @@ transmute(ivars self, NSString *aString)
   if (_flags.wide == 1)
     return NSUnicodeStringEncoding;
   else
-    return defEnc;
+    return intEnc;
 }
 
 - (float) floatValue
@@ -2817,7 +2864,7 @@ transmute(ivars self, NSString *aString)
 			    maxLength: l];
 		}
 	      _contents.c[aRange.location + l]
-		= encode_unitochar([aString characterAtIndex: l], defEnc);
+		= encode_unitochar([aString characterAtIndex: l], intEnc);
 	    }
 	  else
 	    {
@@ -2880,7 +2927,7 @@ transmute(ivars self, NSString *aString)
 	      [aString getCString: _contents.c maxLength: l];
 	    }
 	  _contents.c[l]
-	    = encode_unitochar([aString characterAtIndex: l], defEnc);
+	    = encode_unitochar([aString characterAtIndex: l], intEnc);
 	}
       else
 	{
@@ -2896,7 +2943,7 @@ transmute(ivars self, NSString *aString)
       return NSUnicodeStringEncoding;
     }
   else
-    return defEnc;
+    return intEnc;
 }
 
 - (NSString*) substringFromRange: (NSRange)aRange
@@ -3209,7 +3256,7 @@ transmute(ivars self, NSString *aString)
   if (((ivars)_parent)->_flags.wide == 1)
     return NSUnicodeStringEncoding;
   else
-    return defEnc;
+    return intEnc;
 }
 
 - (void) getCharacters: (unichar*)buffer
@@ -3313,7 +3360,7 @@ transmute(ivars self, NSString *aString)
       return NSUnicodeStringEncoding;
     }
   else
-    return defEnc;
+    return intEnc;
 }
 
 @end
@@ -3436,7 +3483,7 @@ transmute(ivars self, NSString *aString)
 
 	  if (c > 127)
 	    {
-	      c = encode_chartouni(c, defEnc);
+	      c = encode_chartouni(c, intEnc);
 	    }
 	  ret = (ret << 5) + ret + c;
 	}
