@@ -34,7 +34,11 @@ Base_DOC_INSTALL_DIR = Developer
 
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
+GSIArray.h \
+GSIMap.h \
 GSMime.h \
+GSObjCRuntime.h \
+GSUnion.h \
 GSXML.h \
 behavior.h \
 Unicode.h \
@@ -124,6 +128,7 @@ Base_AGSDOC_FLAGS = \
 	GS_EXPORT=extern;GS_DECLARE="";\
 	GS_RANGE_SCOPE=extern;GS_RANGE_ATTR="";\
 	GS_ZONE_SCOPE=extern;GS_ZONE_ATTR="";\
+	INLINE=inline;\
 	}' -Up Base
 
 # Use local version of autogsdoc in case it is not installed
