@@ -1,3 +1,8 @@
+2004-08-24  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSScanner.m: Define _GNU_SOURCE before including other
+	headers.
+
 2004-08-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Always write date using GMT timezone for
