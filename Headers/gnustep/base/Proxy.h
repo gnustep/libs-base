@@ -1,8 +1,8 @@
 /* Interface for GNU Objective-C proxy for remote objects messaging
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: July 1994
+   Created: July 1994
    
    This file is part of the GNU Objective C Class Library.
 
@@ -44,7 +44,7 @@
 }
 
 /* xxx Change name to newForTarget:connection: */
-+ newForRemote: (unsigned)target connection: (Connection*)c;
++ newForRemoteTarget: (unsigned)target connection: (Connection*)c;
 
 - self;
 #if NeXT_runtime

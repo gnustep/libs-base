@@ -28,38 +28,52 @@
 #include <objects/Coder.h>
 
 /* ConnectedCoder identifiers */
-#define METHOD_REQUEST 0
-#define METHOD_REPLY 1
-#define ROOTPROXY_REQUEST 2
-#define ROOTPROXY_REPLY 3
-#define CONNECTION_SHUTDOWN 4
-#define METHODTYPE_REQUEST 5	/* these two only needed with NeXT runtime */
-#define METHODTYPE_REPLY 6
+enum {
+ METHOD_REQUEST = 0,
+ METHOD_REPLY,
+ ROOTPROXY_REQUEST,
+ ROOTPROXY_REPLY,
+ CONNECTION_SHUTDOWN,
+ METHODTYPE_REQUEST,	/* these two only needed with NeXT runtime */
+ METHODTYPE_REPLY
+};
 
 @class Connection;
 
-@interface ConnectedCoder : Coder
+@interface ConnectedEncoder : Encoder
 {
   Connection *connection;
   unsigned sequence_number;
   int identifier;
-
-  /* only used for incoming ConnectedCoder's */
-  id remotePort;
 }
 
-+ newEncodingWithConnection: (Connection*)c
++ newForWritingWithConnection: (Connection*)c
    sequenceNumber: (int)n
    identifier: (int)i;
-+ newDecodingWithConnection: (Connection*)c
-   timeout: (int) timeout;
-- dismiss;
+- (void) dismiss;
 
 - connection;
 - (unsigned) sequenceNumber;
 - (int) identifier;
 
-- remotePort;
+@end
+
+@interface ConnectedDecoder : Decoder
+{
+  Connection *connection;
+  unsigned sequence_number;
+  int identifier;
+}
+
++ newDecodingWithConnection: (Connection*)c
+   timeout: (int) timeout;
+- (void) dismiss;
+
+- connection;
+- (unsigned) sequenceNumber;
+- (int) identifier;
+
+- replyPort;
 
 @end
 

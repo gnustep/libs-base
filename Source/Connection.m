@@ -22,7 +22,7 @@
    */ 
 
 /* RMC == Remote Method Coder, or Remote Method Call.
-   It's an instance of ConnectedCoder. */
+   It's an instance of ConnectedEncoder or ConnectedDecoder. */
 
 #include <objects/stdobjects.h>
 #include <objects/Connection.h>
@@ -34,6 +34,7 @@
 #include <objects/Queue.h>
 #include <objects/mframe.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSNotification.h>
 #include <assert.h>
 
 @interface Connection (GettingCoderInterface)
@@ -44,10 +45,18 @@
 - (int) _newMsgNumber;
 @end
 
+@interface Connection (Private)
+- _superInit;
+@end
+
 #define proxiesHashGate refGate
 #define sequenceNumberGate refGate
 
-static inline BOOL class_is_kind_of(Class self, Class aClassObject)
+/* xxx Fix this! */
+#define refGate nil
+
+static inline BOOL
+class_is_kind_of (Class self, Class aClassObject)
 {
   Class class;
 
@@ -81,13 +90,11 @@ type_get_number_of_arguments (const char *type)
   return i - 1;
 }
 
-static elt
-exc_func_return_nil (arglist_t af) { return nil; }
-
 /* class defaults */
 static id default_port_class;
-static id defaultProxyClass;
-static id defaultCoderClass;
+static id default_proxy_class;
+static id default_encoding_class;
+static id default_decoding_class;
 static int default_in_timeout;
 static int default_out_timeout;
 
@@ -99,66 +106,72 @@ static BOOL debug_connection = NO;
    one registered connection (with different in ports) in the
    application. */
 /* We could write -hash and -isEqual implementations for Connection */
-static Array *connectionArray;
-static Lock *connectionArrayGate;
+static Array *connection_array;
+static Lock *connection_array_gate;
 
-static Dictionary *rootObjectDictionary;
-static Lock *rootObjectDictionaryGate;
+static Dictionary *root_object_dictionary;
+static Lock *root_object_dictionary_gate;
 
 /* rmc handling */
-static Queue *receivedRequestRmcQueue;
-static Lock *receivedRequestRmcQueueGate;
-static Queue *receivedReplyRmcQueue;
-static Lock *receivedReplyRmcQueueGate;
+static Queue *received_request_rmc_queue;
+static Lock *received_request_rmc_queue_gate;
+static Queue *received_reply_rmc_queue;
+static Lock *received_reply_rmc_queue_gate;
 
-static int messagesReceivedCount;
+static int messages_received_count;
 
 @implementation Connection
 
 + (void) initialize
 {
-  connectionArray = [[Array alloc] init];
-  connectionArrayGate = [Lock new];
-  receivedRequestRmcQueue = [[Queue alloc] init];
-  receivedRequestRmcQueueGate = [Lock new];
-  receivedReplyRmcQueue = [[Queue alloc] init];
-  receivedReplyRmcQueueGate = [Lock new];
-  rootObjectDictionary = [[Dictionary alloc] init];
-  rootObjectDictionaryGate = [Lock new];
-  messagesReceivedCount = 0;
+  connection_array = [[Array alloc] init];
+  connection_array_gate = [Lock new];
+  received_request_rmc_queue = [[Queue alloc] init];
+  received_request_rmc_queue_gate = [Lock new];
+  received_reply_rmc_queue = [[Queue alloc] init];
+  received_reply_rmc_queue_gate = [Lock new];
+  root_object_dictionary = [[Dictionary alloc] init];
+  root_object_dictionary_gate = [Lock new];
+  messages_received_count = 0;
   default_port_class = [SocketPort class];
-  defaultProxyClass = [Proxy class];
-  defaultCoderClass = [ConnectedCoder class];
+  default_proxy_class = [Proxy class];
+  default_encoding_class = [ConnectedEncoder class];
+  default_decoding_class = [ConnectedDecoder class];
   default_in_timeout = CONNECTION_DEFAULT_TIMEOUT;
   default_out_timeout = CONNECTION_DEFAULT_TIMEOUT;
 }
 
-+ setDefaultPortClass: aClass
+
+/* Getting and setting class variables */
+
++ (void) setDefaultPortClass: (Class)aClass
 {
   default_port_class = aClass;
-  return self;
 }
 
-+ setDefaultProxyClass: aClass
++ (Class) defaultPortClass
 {
-  defaultProxyClass = aClass;
-  return self;
+  return default_port_class;
 }
 
-+ defaultProxyClass
++ (void) setDefaultProxyClass: (Class)aClass
 {
-  return defaultProxyClass;
+  default_proxy_class = aClass;
 }
 
-+ setDefaultCoderClass: aClass
++ (Class) defaultProxyClass
 {
-  defaultCoderClass = aClass;
-  return self;
+  return default_proxy_class;
 }
 
-+ defaultCoderClass
++ (void) setDefaultDecodingClass: (Class) aClass
 {
-  return defaultCoderClass;
+  default_decoding_class = aClass;
+}
+
++ (Class) default_decoding_class
+{
+  return default_decoding_class;
 }
 
 + (int) defaultOutTimeout
@@ -166,10 +179,9 @@ static int messagesReceivedCount;
   return default_out_timeout;
 }
 
-+ setDefaultOutTimeout: (int)to
++ (void) setDefaultOutTimeout: (int)to
 {
   default_out_timeout = to;
-  return self;
 }
 
 + (int) defaultInTimeout
@@ -177,74 +189,278 @@ static int messagesReceivedCount;
   return default_in_timeout;
 }
 
-+ setDefaultInTimeout: (int)to
++ (void) setDefaultInTimeout: (int)to
 {
   default_in_timeout = to;
-  return self;
 }
+
+
+/* Class-wide stats and collections. */
 
 + (int) messagesReceived
 {
-  return messagesReceivedCount;
+  return messages_received_count;
 }
 
-/* For encoding and decoding the method arguments, we have to know where
-   to find things in the "argframe" as returned by __builtin_apply_args.
-
-   For some situations this is obvious just from the selector type 
-   encoding, but structures passed by value cause a problem because some
-   architectures actually pass these by reference, i.e. use the
-   structure-value-address mentioned in the gcc/config/_/_.h files.
-
-   These differences are not encoded in the selector types.
-
-   Below is my current guess for which architectures do this.
-
-   I've also been told that some architectures may pass structures with
-   sizef(structure) > sizeof(void*) by reference, but pass smaller ones by
-   value.  The code doesn't currently handle that case.
-   */
-
-/* Do we need separate _PASSED_BY_REFERENCE and _RETURNED_BY_REFERENCE? */
-
-#if (sparc) || (hppa) || (AM29K)
-#define CONNECTION_STRUCTURES_PASSED_BY_REFERENCE 1
-#else
-#define CONNECTION_STRUCTURES_PASSED_BY_REFERENCE 0
-#endif
-
-/* Float and double return values are stored at retframe + 8 bytes
-   by __builtin_return() 
-
-   The retframe consists of 16 bytes.  The first 4 are used for ints, 
-   longs, chars, etc.  The last 8 are used for floats and doubles.
-
-   xxx This is disgusting.  I should get this info from the gcc config 
-   machine description files. xxx
-   */
-#define FLT_AND_DBL_RETFRAME_OFFSET 8
-
-
-- (retval_t) connectionForward: (Proxy*)object : (SEL)sel : (arglist_t)argframe
++ (id <Collecting>) allConnections
 {
-  ConnectedCoder *op;
+  return [connection_array copy];
+}
 
-  void encoder(int argnum, void *datum, const char *type, int flags)
++ (unsigned) connectionsCount
+{
+  return [connection_array count];
+}
+
++ (unsigned) connectionsCountWithInPort: (Port*)aPort
+{
+  unsigned count = 0;
+  id o;
+  [connection_array_gate lock];
+  FOR_ARRAY (connection_array, o)
+    {
+      if ([aPort isEqual: [o inPort]])
+	count++;
+    }
+  FOR_ARRAY_END;
+  [connection_array_gate unlock];
+  return count;
+}
+
+
+/* Creating and initializing connections. */
+
+- init
+{
+  id newPort = [default_port_class newForReceiving];
+  id newConn = 
+    [Connection newForInPort:newPort outPort:nil ancestorConnection:nil];
+  [self release];
+  return newConn;
+}
+
++ new
+{
+  id newPort = [default_port_class newForReceiving];
+  id newConn = 
+    [Connection newForInPort:newPort outPort:nil ancestorConnection:nil];
+  return newConn;
+}
+
++ (Connection*) newWithRootObject: anObj;
+{
+  id newPort;
+  id newConn;
+
+  newPort = [default_port_class newForReceiving];
+  newConn = [self newForInPort:newPort outPort:nil
+		  ancestorConnection:nil];
+  [self setRootObject:anObj forInPort:newPort];
+  return newConn;
+}
+
+/* I want this method name to clearly indicate that we're not connecting
+   to a pre-existing registration name, we're registering a new name,
+   and this method will fail if that name has already been registered. 
+   This is why I don't like "newWithRegisteredName:" --- it's unclear 
+   if we're connecting to another Connection that already registered 
+   with that name. */
+
++ (Connection*) newRegisteringAtName: (id <String>)n withRootObject: anObj
+{
+  id newPort;
+  id newConn;
+
+  newPort = [default_port_class newForReceivingFromRegisteredName: n];
+  newConn = [self newForInPort:newPort outPort:nil
+		  ancestorConnection:nil];
+  [self setRootObject:anObj forInPort:newPort];
+  return newConn;
+}
+
++ (Proxy*) rootProxyAtName: (id <String>)n
+{
+  return [self rootProxyAtName: n onHost: @""];
+}
+
++ (Proxy*) rootProxyAtName: (id <String>)n onHost: (id <String>)h
+{
+  id p = [default_port_class newForSendingToRegisteredName: n onHost: h];
+  return [self rootProxyAtPort: p];
+}
+
++ (Proxy*) rootProxyAtPort: (Port*)anOutPort
+{
+  id newInPort = [default_port_class newForReceiving];
+  return [self rootProxyAtPort: anOutPort withInPort: newInPort];
+}
+
++ (Proxy*) rootProxyAtPort: (Port*)anOutPort withInPort: (Port*)anInPort
+{
+  Connection *newConn = [self newForInPort:anInPort
+				outPort:anOutPort
+				ancestorConnection:nil];
+  Proxy *newRemote;
+
+  newRemote = [newConn rootProxy];
+  return newRemote;
+}
+
+
+
+/* This is the designated initializer for Connection */
+
++ (Connection*) newForInPort: (Port*)ip outPort: (Port*)op
+   ancestorConnection: (Connection*)ancestor;
+{
+  Connection *newConn;
+  int i, count;
+  id newConnInPort, newConnOutPort;
+
+  [connection_array_gate lock];
+
+  /* Find previously existing connection if there */
+  /* xxx Clean this up */
+  count = [connection_array count];
+  for (i = 0; i < count; i++)
+    {
+      newConn = [connection_array objectAtIndex: i];
+      newConnInPort = [newConn inPort];
+      newConnOutPort = [newConn outPort];
+      if ([newConnInPort isEqual: ip]
+	  && [newConnOutPort isEqual: op])
+	{
+	  [connection_array_gate unlock];
+	  return newConn;
+	}
+    }
+
+  newConn = [[Connection alloc] _superInit];
+  if (debug_connection)
+    printf("new connection 0x%x, inPort 0x%x outPort 0x%x\n", 
+	   (unsigned)newConn, (unsigned)ip, (unsigned)op);
+  newConn->in_port = ip;
+  [ip retain];
+  newConn->out_port = op;
+  [op retain];
+  newConn->message_count = 0;
+
+  /* This maps (void*)obj to (id)obj.  The obj's are retained.
+     We use this instead of an NSHashTable because we only care about
+     the object's address, and don't want to send the -hash message to it. */
+  newConn->local_targets = 
+    NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
+		      NSObjectMapValueCallBacks, 0);
+
+  /* This maps [proxy targetForProxy] to proxy.  The proxy's are retained. */
+  newConn->remote_proxies = 
+    NSCreateMapTable (NSIntMapKeyCallBacks,
+		      NSObjectMapValueCallBacks, 0);
+
+  newConn->incoming_xref_2_const_ptr = 
+    NSCreateMapTable (NSIntMapKeyCallBacks,
+		      NSNonOwnedPointerMapValueCallBacks, 0);
+  newConn->outgoing_const_ptr_2_xref = 
+    NSCreateMapTable (NSIntMapKeyCallBacks,
+		      NSNonOwnedPointerMapValueCallBacks, 0);
+
+  newConn->in_timeout = [self defaultInTimeout];
+  newConn->out_timeout = [self defaultOutTimeout];
+  newConn->encoding_class = default_encoding_class;
+  if (ancestor)
+    newConn->port_class = [ancestor portClass];
+  else
+    newConn->port_class = default_port_class;
+  newConn->delay_dialog_interruptions = YES;
+  newConn->delegate = nil;
+
+  /* Here ask the delegate for permission. */
+  /* delegate is responsible for freeing newConn if it returns something
+     different. */
+  if ([[ancestor delegate] respondsTo:@selector(connection:didConnect:)])
+    newConn = [[ancestor delegate] connection:ancestor
+	       didConnect:newConn];
+
+  /* Register outselves for invalidation notification when the 
+     ports become invalid. */
+  [[NSNotification defaultCenter] addObserver: self
+				  selector: @selector(portIsInvalid:)
+				  name: PortBecameInvalidNotification
+				  object: ip];
+  [[NSNotification defaultCenter] addObserver: self
+				  selector: @selector(portIsInvalid:)
+				  name: PortBecameInvalidNotification
+				  object: op];
+
+  /* xxx This is weird, though.  When will newConn ever get dealloc'ed?
+     connectionArray will retain it, but connectionArray will never get
+     deallocated.  This sort of retain/release cirularity must be common
+     enough.  Think about this and fix it. */
+  [connection_array addObject: newConn];
+
+  [connection_array_gate unlock];
+
+  return newConn;
+}
+
+- _superInit
+{
+  [super init];
+  return self;
+}
+
+
+/* Creating new rmc's for encoding requests and replies */
+
+/* Create a new, empty rmc, which will be filled with a request. */
+- newSendingRequestRmc
+{
+  id rmc;
+
+  assert(in_port);
+  rmc = [[self encodingClass] newForWritingWithConnection: self
+				     sequenceNumber: [self _newMsgNumber]
+				     identifier: METHOD_REQUEST];
+  return rmc;
+}
+
+/* Create a new, empty rmc, which will be filled with a reply to msg #n. */
+- newSendingReplyRmcWithSequenceNumber: (int)n
+{
+  id rmc = [[self encodingClass] newForWritingWithConnection: self
+					sequenceNumber: n
+					identifier: METHOD_REPLY];
+  return rmc;
+}
+
+
+/* Methods for handling client and server, requests and replies */
+
+/* Proxy's -forward:: method calls this to the the message over the wire. */
+- (retval_t) forwardForProxy: (Proxy*)object 
+		    selector: (SEL)sel 
+                    argFrame: (arglist_t)argframe
+{
+  ConnectedEncoder *op;
+
+  /* The callback for encoding the args of the method call. */
+  void encoder (int argnum, void *datum, const char *type, int flags)
     {
 #define ENCODED_ARGNAME @"argument value"
       switch (*type)
 	{
 	case _C_ID:
 	  if (flags & _F_BYCOPY)
-	    [op encodeBycopyObject:*(id*)datum withName:ENCODED_ARGNAME];
+	    [op encodeBycopyObject: *(id*)datum withName: ENCODED_ARGNAME];
 	  else
-	    [op encodeObject:*(id*)datum withName:ENCODED_ARGNAME];
+	    [op encodeObject: *(id*)datum withName: ENCODED_ARGNAME];
 	  break;
 	default:
-	  [op encodeValueOfObjCType:type at:datum withName:ENCODED_ARGNAME];
+	  [op encodeValueOfObjCType: type at: datum withName: ENCODED_ARGNAME];
 	}
     }
 
+  /* Encode the method on an RMC, and send it. */
   {
     BOOL out_parameters;
     const char *type;
@@ -267,21 +483,24 @@ static int messagesReceivedCount;
 
     /* Send the types that we're using, so that the performer knows
        exactly what qualifiers we're using.
-       If all selectors included qualifiers and I could make sel_types_match() 
-       work the way I wanted, we wouldn't need to do this. */
-    [op encodeValueOfCType:@encode(char*) 
-	at:&type 
-	withName:@"selector type"];
+       If all selectors included qualifiers, and if I could make
+       sel_types_match() work the way I wanted, we wouldn't need to do
+       this. */
+    [op encodeValueOfCType: @encode(char*) 
+	at: &type 
+	withName: @"selector type"];
 
     /* xxx This doesn't work with proxies and the NeXT runtime because
        type may be a method_type from a remote machine with a
        different architecture, and its argframe layout specifiers
        won't be right for this machine! */
-    out_parameters = dissect_method_call(argframe, type, encoder);
+    out_parameters = dissect_method_call (argframe, type, encoder);
+    /* Send the rmc */
     [op dismiss];
     
+    /* Get the reply rmc, and decode it. */
     {
-      ConnectedCoder *ip = nil;
+      ConnectedDecoder *ip = nil;
       int last_argnum;
 
       void decoder(int argnum, void *datum, const char *type, int flags)
@@ -306,7 +525,8 @@ static int messagesReceivedCount;
   }
 }
 
-- connectionPerformAndDismissCoder: aRmc
+/* Connection calls this to service the incoming method request. */
+- (void) _service_forwardForProxy: aRmc
 {
   char *forward_type;
   id op = nil;
@@ -323,6 +543,7 @@ static int messagesReceivedCount;
       if (argnum == numargs-1)
 	[aRmc dismiss];
     }
+
   void encoder (int argnum, void *datum, const char *type, int flags)
     {
 #define ENCODED_RETNAME @"return value"
@@ -359,266 +580,6 @@ static int messagesReceivedCount;
   [op dismiss];
 
   (*objc_free)(forward_type);
-  return self;
-}
-
-+ (id <Collecting>) allConnections
-{
-  return [connectionArray copy];
-}
-
-+ (unsigned) connectionsCount
-{
-  return [connectionArray count];
-}
-
-+ (unsigned) connectionsCountWithInPort: (Port*)aPort
-{
-  unsigned count = 0;
-  elt e;
-  [connectionArrayGate lock];
-  FOR_ARRAY(connectionArray, e)
-    {
-      if ([aPort isEqual:[e.id_u inPort]])
-	count++;
-    }
-  FOR_ARRAY_END;
-  [connectionArrayGate unlock];
-  return count;
-}
-
-/* This should get called whenever an object free's itself */
-+ removeObject: anObj
-{
-  id c;
-  int i, count = [connectionArray count];
-  for (i = 0; i < count; i++)
-    {
-      c = [connectionArray objectAtIndex:i];
-      [c removeLocalObject:anObj];
-      [c removeProxy:anObj];
-    }
-  return self;
-}
-
-+ unregisterForInvalidationNotification: anObj
-{
-  int i, count = [connectionArray count];
-  for (i = 0; i < count; i++)
-    {
-      [[connectionArray objectAtIndex:i] 
-       unregisterForInvalidationNotification:anObj];
-    }
-  return self;
-}
-
-- init
-{
-  id newPort = [default_port_class newPort];
-  id newConn = 
-    [Connection newForInPort:newPort outPort:nil ancestorConnection:nil];
-  [self release];
-  return newConn;
-}
-
-+ new
-{
-  id newPort = [default_port_class newPort];
-  id newConn = 
-    [Connection newForInPort:newPort outPort:nil ancestorConnection:nil];
-  return newConn;
-}
-
-+ (Connection*) newWithRootObject: anObj;
-{
-  id newPort;
-  id newConn;
-
-  newPort = [default_port_class newPort];
-  newConn = [self newForInPort:newPort outPort:nil
-		  ancestorConnection:nil];
-  [self setRootObject:anObj forInPort:newPort];
-  return newConn;
-}
-
-/* I want this method name to clearly indicate that we're not connecting
-   to a pre-existing registration name, we're registering a new name,
-   and this method will fail if that name has already been registered. 
-   This is why I don't like "newWithRegisteredName:" --- it's unclear 
-   if we're connecting to another Connection that already registered 
-   with that name. */
-
-+ (Connection*) newRegisteringAtName: (id <String>)n withRootObject: anObj
-{
-  id newPort;
-  id newConn;
-
-  newPort = [default_port_class newRegisteredPortWithName:n];
-  newConn = [self newForInPort:newPort outPort:nil
-		  ancestorConnection:nil];
-  [self setRootObject:anObj forInPort:newPort];
-  return newConn;
-}
-
-+ (Proxy*) rootProxyAtName: (id <String>)n
-{
-  return [self rootProxyAtName:n onHost:@""];
-}
-
-+ (Proxy*) rootProxyAtName: (id <String>)n onHost: (id <String>)h
-{
-  id p = [default_port_class newPortFromRegisterWithName:n onHost:h];
-  return [self rootProxyAtPort:p];
-}
-
-+ (Proxy*) rootProxyAtPort: (Port*)anOutPort
-{
-  id newInPort = [default_port_class newPort];
-  return [self rootProxyAtPort: anOutPort withInPort:newInPort];
-}
-
-+ (Proxy*) rootProxyAtPort: (Port*)anOutPort withInPort: (Port*)anInPort
-{
-  Connection *newConn = [self newForInPort:anInPort
-				outPort:anOutPort
-				ancestorConnection:nil];
-  Proxy *newRemote;
-
-  newRemote = [newConn rootProxy];
-  return newRemote;
-}
-
-
-- _superInit
-{
-  [super init];
-  return self;
-}
-
-/* This is the designated initializer for Connection */
-
-+ (Connection*) newForInPort: (Port*)ip outPort: (Port*)op
-   ancestorConnection: (Connection*)ancestor;
-{
-  Connection *newConn;
-  int i, count;
-  id newConnInPort, newConnOutPort;
-
-  [connectionArrayGate lock];
-
-  /* Find previously existing connection if there */
-  /* xxx Clean this up */
-  count = [connectionArray count];
-  for (i = 0; i < count; i++)
-    {
-      newConn = [connectionArray objectAtIndex:i];
-      newConnInPort = [newConn inPort];
-      newConnOutPort = [newConn outPort];
-      if ([newConnInPort isEqual:ip]
-	  && [newConnOutPort isEqual:op])
-	{
-	  [connectionArrayGate unlock];
-	  return newConn;
-	}
-    }
-
-  newConn = [[Connection alloc] _superInit];
-  if (debug_connection)
-    printf("new connection 0x%x, inPort 0x%x outPort 0x%x\n", 
-	   (unsigned)newConn, (unsigned)ip, (unsigned)op);
-  newConn->in_port = ip;
-  [ip retain];
-  newConn->out_port = op;
-  [op retain];
-  newConn->message_count = 0;
-
-  /* Careful: We might want to use (void*) encoding because we
-     don't want Dictionary to send -isEqual messages to the proxy's
-     that are in the Dictionary.  YES. */
-  newConn->local_targets = [[Dictionary alloc] 
-			   initWithType:@encode(id)
-			   keyType:@encode(unsigned)];
-  newConn->remote_proxies = [[Dictionary alloc] 
-			    initWithType:@encode(void*)
-			    keyType:@encode(unsigned)];
-  newConn->incoming_const_ptrs = [[Dictionary alloc] 
-				initWithType:@encode(void*)
-				keyType:@encode(unsigned)];
-  newConn->outgoing_const_ptrs = [[Dictionary alloc] 
-				initWithType:@encode(void*)
-				keyType:@encode(unsigned)];
-  newConn->in_timeout = [self defaultInTimeout];
-  newConn->out_timeout = [self defaultOutTimeout];
-  newConn->port_class = [ancestor portClass];
-  newConn->queue_dialog_interruptions = YES;
-  newConn->delegate = nil;
-
-  /* Here ask the delegate for permission. */
-  /* delegate is responsible for freeing newConn if it returns something
-     different. */
-  if ([[ancestor delegate] respondsTo:@selector(connection:didConnect:)])
-    newConn = [[ancestor delegate] connection:ancestor
-	       didConnect:newConn];
-
-  [ip registerForInvalidationNotification:newConn];
-  [op registerForInvalidationNotification:newConn];
-
-  /* xxx This is weird, though.  When will newConn ever get dealloc'ed?
-     connectionArray will retain it, but connectionArray will never get
-     deallocated.  This sort of retain/release cirularity must be common
-     enough.  Think about this and fix it. */
-  [connectionArray addObject:newConn];
-
-  [connectionArrayGate unlock];
-
-  return newConn;
-}
-
-/* This needs locks */
-- (void) dealloc
-{
-  if (debug_connection)
-    printf("deallocating 0x%x\n", (unsigned)self);
-  [self invalidate];
-  [connectionArray removeObject:self];
-  /* Remove rootObject from rootObjectDictionary if this is last connection */
-  if (![Connection connectionsCountWithInPort:in_port])
-    [Connection setRootObject:nil forInPort:in_port];
-  [in_port unregisterForInvalidationNotification:self];
-  [out_port unregisterForInvalidationNotification:self];
-  [in_port release];
-  [out_port release];
-  {
-/* xxx What was I thinking here? */
-#if 0
-    void deallocObj (elt o)
-      {
-	[o.id_u dealloc];
-      }
-#endif
-    [proxiesHashGate lock];
-#if 0
-    [remote_proxies withElementsCall:deallocObj];
-#endif
-    [remote_proxies release];
-    [local_targets release];
-    [incoming_const_ptrs release];
-    [outgoing_const_ptrs release];
-    [proxiesHashGate unlock];
-  }
-  [super dealloc];
-  return;
-}
-
-/* to < 0 will never time out */
-- (void) runConnectionWithTimeout: (int)to
-{
-  [self doReceivedRequestsWithTimeout:to];
-}
-
-- (void) runConnection
-{
-  [self runConnectionWithTimeout:-1];
 }
 
 - (Proxy*) rootProxy
@@ -628,32 +589,54 @@ static int messagesReceivedCount;
   int seq_num = [self _newMsgNumber];
 
   assert(in_port);
-  op = [[self coderClass]
-	newEncodingWithConnection:self
-	sequenceNumber:seq_num
-	identifier:ROOTPROXY_REQUEST];
+  op = [[self encodingClass]
+	newForWritingWithConnection: self
+	sequenceNumber: seq_num
+	identifier: ROOTPROXY_REQUEST];
   [op dismiss];
-  ip = [self newReceivedReplyRmcWithSequenceNumber:seq_num];
-  [ip decodeObjectAt:&newProxy withName:NULL];
-  assert(class_is_kind_of(newProxy->isa, objc_get_class("Proxy")));
+  ip = [self newReceivedReplyRmcWithSequenceNumber: seq_num];
+  [ip decodeObjectAt: &newProxy withName: NULL];
+  assert (class_is_kind_of (newProxy->isa, objc_get_class ("Proxy")));
   [ip dismiss];
   return newProxy;
 }
 
-- _sendShutdown
+- (void) _service_rootObject: rmc
+{
+  id rootObject = [Connection rootObjectForInPort:in_port];
+  ConnectedEncoder* op = [[self encodingClass]
+			newForWritingWithConnection: [rmc connection]
+			sequenceNumber: [rmc sequenceNumber]
+			identifier: ROOTPROXY_REPLY];
+  assert (in_port);
+  /* Perhaps we should turn this into a class method. */
+  assert([rmc connection] == self);
+  [op encodeObject: rootObject withName: @"root object"];
+  [op dismiss];
+}
+
+- (void) shutdown
 {
   id op;
 
   assert(in_port);
-  op = [[self coderClass]
-	newEncodingWithConnection:self
-	sequenceNumber:[self _newMsgNumber]
-	identifier:CONNECTION_SHUTDOWN];
+  op = [[self encodingClass]
+	newForWritingWithConnection: self
+	sequenceNumber: [self _newMsgNumber]
+	identifier: CONNECTION_SHUTDOWN];
   [op dismiss];
-  return self;
 }
 
-- (const char *) _typeForSelector: (SEL)sel remoteTarget: (unsigned)target
+- (void) _service_shutdown: rmc forConnection: receiving_connection
+{
+  [self invalidate];
+  if (receiving_connection == self)
+    [self error: "connection waiting for request was shut down"];
+  [self dealloc];		// xxx release instead?
+  [rmc dismiss];
+}
+
+- (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target
 {
   id op, ip;
   char *type;
@@ -661,10 +644,10 @@ static int messagesReceivedCount;
 
   assert(in_port);
   seq_num = [self _newMsgNumber];
-  op = [[self coderClass]
-	newEncodingWithConnection:self
-	sequenceNumber:seq_num
-	identifier:METHODTYPE_REQUEST];
+  op = [[self encodingClass]
+	newForWritingWithConnection: self
+	sequenceNumber: seq_num
+	identifier: METHODTYPE_REQUEST];
   [op encodeValueOfObjCType:":"
       at:&sel
       withName:NULL];
@@ -680,9 +663,9 @@ static int messagesReceivedCount;
   return type;
 }
 
-- _handleMethodTypeRequest: rmc
+- (void) _service_typeForSelector: rmc
 {
-  ConnectedCoder* op;
+  ConnectedEncoder* op;
   unsigned target;
   SEL sel;
   const char *type;
@@ -690,10 +673,10 @@ static int messagesReceivedCount;
 
   assert(in_port);
   assert([rmc connection] == self);
-  op = [[self coderClass]
-	newEncodingWithConnection:[rmc connection]
-	sequenceNumber:[rmc sequenceNumber]
-	identifier:METHODTYPE_REPLY];
+  op = [[self encodingClass]
+	newForWritingWithConnection: [rmc connection]
+	sequenceNumber: [rmc sequenceNumber]
+	identifier: METHODTYPE_REPLY];
 
   [rmc decodeValueOfObjCType:":"
        at:&sel
@@ -715,33 +698,20 @@ static int messagesReceivedCount;
       at:&type
       withName:@"Requested Method Type for Target"];
   [op dismiss];
-  return self;
 }
 
-- _handleRemoteRootObject: rmc
+
+/* Running the connection, getting/sending requests/replies. */
+
+- (void) runConnection
 {
-  id rootObject = [Connection rootObjectForInPort:in_port];
-  ConnectedCoder* op = [[self coderClass]
-			newEncodingWithConnection:[rmc connection]
-			sequenceNumber:[rmc sequenceNumber]
-			identifier:ROOTPROXY_REPLY];
-  assert(in_port);
-  /* Perhaps we should turn this into a class method. */
-  assert([rmc connection] == self);
-  [op encodeObject:rootObject withName:@"root object"];
-  [op dismiss];
-  return self;
+  [self runConnectionWithTimeout: -1];
 }
 
-- _newReceivedRmcWithTimeout: (int)to
+/* to < 0 will never time out */
+- (void) runConnectionWithTimeout: (int)to
 {
-  id rmc;
-
-  rmc = [[self coderClass] newDecodingWithConnection:self
-			   timeout:to];
-  /* if (!rmc) [self error:"received timed out"]; */
-  assert((!rmc) || [rmc isDecoding]);
-  return rmc;
+  [self doReceivedRequestsWithTimeout: to];
 }
 
 - (int) _newMsgNumber
@@ -754,7 +724,21 @@ static int messagesReceivedCount;
   return n;
 }
 
-- doReceivedRequestsWithTimeout: (int)to
+/* We not going to get one from a queue; actually go to the network and
+   wait for it. */
+- _newReceivedRmcWithTimeout: (int)to
+{
+  id rmc;
+
+  rmc = [[self encodingClass] newDecodingWithConnection: self
+			      timeout: to];
+  /* if (!rmc) [self error:"received timed out"]; */
+  assert((!rmc) || [rmc isDecoding]);
+  return rmc;
+}
+
+/* Waiting for incoming requests. */
+- _serviceReceivedRequestsWithTimeout: (int)to
 {
   id rmc;
   unsigned count;
@@ -764,76 +748,70 @@ static int messagesReceivedCount;
       if (debug_connection)
 	printf("%s\n", sel_get_name(_cmd));
 
-      /* Get a rmc */
-      [receivedRequestRmcQueueGate lock];
-      count = [receivedRequestRmcQueue count];
+      /* Get a rmc, either from off the queue, or from the network. */
+      [received_request_rmc_queue_gate lock];
+      count = [received_request_rmc_queue count];
       if (count)
 	{
 	  if (debug_connection)
-	    printf("Getting received request from queue\n");
-	  rmc = [receivedRequestRmcQueue dequeueObject];
-	  [receivedRequestRmcQueueGate unlock];
+	    printf ("Getting received request from queue\n");
+	  rmc = [received_request_rmc_queue dequeueObject];
+	  [received_request_rmc_queue_gate unlock];
 	}
       else
 	{
-	  [receivedRequestRmcQueueGate unlock];
+	  [received_request_rmc_queue_gate unlock];
 	  rmc = [self _newReceivedRmcWithTimeout:to];
 	}
       
+      /* If we timed out, just return. */
       if (!rmc) return self;		/* timed out */
-      assert([rmc isDecoding]);
+      assert([rmc isKindOf: [Decoder class]]);
 
-      /* Process the rmc */
+      /* We got a rmc; process it */
       switch ([rmc identifier])
 	{
 	case ROOTPROXY_REQUEST:
-	  [[rmc connection] _handleRemoteRootObject:rmc];
+	  [[rmc connection] _service_rootObject: rmc];
 	  [rmc dismiss];
 	  break;
 	case ROOTPROXY_REPLY:
-	  [self error:"Got ROOTPROXY reply when looking for request"];
+	  [self error: "Got ROOTPROXY reply when looking for request"];
 	  break;
 	case METHOD_REQUEST:
-	  {
-	    assert([rmc isDecoding]);
-	    [[rmc connection] connectionPerformAndDismissCoder:rmc];
-	    break;
-	  }
+	  [[rmc connection] _service_forwardForProxy: rmc];
+	  break;
 	case METHOD_REPLY:
 	  /* Will this ever happen?
 	     Yes, with multi-threaded callbacks */
-	  [receivedReplyRmcQueueGate lock];
-	  [receivedReplyRmcQueue enqueueObject:rmc];
-	  [receivedReplyRmcQueueGate unlock];
+	  [received_reply_rmc_queue_gate lock];
+	  [received_reply_rmc_queue enqueueObject: rmc];
+	  [received_reply_rmc_queue_gate unlock];
 	  break;
 	case METHODTYPE_REQUEST:
-	  [[rmc connection] _handleMethodTypeRequest:rmc];
+	  [[rmc connection] _service_typeForSelector: rmc];
 	  [rmc dismiss];
 	  break;
 	case METHODTYPE_REPLY:
 	  /* Will this ever happen?
 	     Yes, with multi-threaded callbacks */
-	  [receivedReplyRmcQueueGate lock];
-	  [receivedReplyRmcQueue enqueueObject:rmc];
-	  [receivedReplyRmcQueueGate unlock];
+	  [received_reply_rmc_queue_gate lock];
+	  [received_reply_rmc_queue enqueueObject: rmc];
+	  [received_reply_rmc_queue_gate unlock];
 	  break;
 	case CONNECTION_SHUTDOWN:
 	  {
-	    id c = [rmc connection];
-	    [c invalidate];
-	    if (c == self)
-	      [self error:"connection waiting for request was shut down"];
-	    [c dealloc];
+	    [[rmc connection] _service_shutdown: rmc forConnection: self];
 	    break;
 	  }
 	default:
-	  [self error:"unrecognized ConnectedCoder identifier"];
+	  [self error:"unrecognized ConnectedDecoder identifier"];
 	}
     }
-  return self;			/* we never get here */
 }
 
-- newReceivedReplyRmcWithSequenceNumber: (int)n
+/* Waiting for a reply to a request. */
+- _serviceNewReceivedReplyRmcWithSequenceNumber: (int)n
 {
   id rmc, aRmc;
   unsigned count, i;
@@ -842,26 +820,31 @@ static int messagesReceivedCount;
 
   /* Get a rmc */
   rmc = nil;
-  [receivedReplyRmcQueueGate lock];
-  count = [receivedReplyRmcQueue count];
-  /* There should be a per-thread queue of rmcs so we can do
+  [received_reply_rmc_queue_gate lock];
+  /* Check to see if what we are looking for is on the queue. */
+  count = [received_reply_rmc_queue count];
+  /* xxx There should be a per-thread queue of rmcs so we can do
      callbacks when multi-threaded. */
   for (i = 0; i < count; i++)
     {
-      aRmc = [receivedReplyRmcQueue objectAtIndex:i];
+      aRmc = [received_reply_rmc_queue objectAtIndex: i];
       if ([aRmc connection] == self
 	  && [aRmc sequenceNumber] == n)
         {
 	  if (debug_connection)
 	    printf("Getting received reply from queue\n");
-          [receivedReplyRmcQueue removeObjectAtIndex:i];
+          [received_reply_rmc_queue removeObjectAtIndex:i];
           rmc = aRmc;
           break;
         }
     }
-  [receivedReplyRmcQueueGate unlock];
+  [received_reply_rmc_queue_gate unlock];
+
+  /* What we needed was not on the queue, get it from the network. */
   if (rmc == nil)
     rmc = [self _newReceivedRmcWithTimeout:in_timeout];
+
+  /* We timed out on the network. */
   if (rmc == nil)
     {
       /* We timed out */
@@ -876,238 +859,216 @@ static int messagesReceivedCount;
   switch ([rmc identifier])
     {
     case ROOTPROXY_REQUEST:
-      [self _handleRemoteRootObject: rmc];
+      [self _service_rootObject: rmc];
       [rmc dismiss];
       break;
     case METHODTYPE_REQUEST:
-      [self _handleMethodTypeRequest:rmc];
+      [self _service_typeForSelector: rmc];
       [rmc dismiss];
       break;
     case ROOTPROXY_REPLY:
     case METHOD_REPLY:
     case METHODTYPE_REPLY:
+      /* We got a reply... */
       if ([rmc connection] != self)
 	{
-	  [receivedReplyRmcQueueGate lock];
-	  [receivedReplyRmcQueue enqueueObject:rmc];
-	  [receivedReplyRmcQueueGate unlock];
+	  /* ... but it wasn't for us; enqueue it. */
+	  [received_reply_rmc_queue_gate lock];
+	  [received_reply_rmc_queue enqueueObject:rmc];
+	  [received_reply_rmc_queue_gate unlock];
 	}
       else
 	{
+	  /* ... and it's for us; make sure the sequence is right. */
 	  if ([rmc sequenceNumber] != n)
 	    [self error:"sequence number mismatch %d != %d\n",
 		  [rmc sequenceNumber], n];
 	  if (debug_connection)
 	    printf("received reply number %d\n", n);
+	  /* ... and all checks out; return it. */
 	  return rmc;
 	}
       break;
     case METHOD_REQUEST:
-      /* 
-	 While waiting for a reply,
-	 we can either honor new requests from other connections immediately,
-	 or just queue them. */
-      if (queue_dialog_interruptions && [rmc connection] != self)
+      /* We got a new request while waiting for a reply.
+	 We can either 
+	 (1) honor new requests from other connections immediately, or
+	 (2) just queue them. */
+      if (delay_dialog_interruptions && [rmc connection] != self)
 	{
 	  /* Here we queue them */
-	  [receivedRequestRmcQueueGate lock];
-	  [receivedRequestRmcQueue enqueueObject:rmc];
-	  [receivedRequestRmcQueueGate unlock];
+	  [received_request_rmc_queue_gate lock];
+	  [received_request_rmc_queue enqueueObject:rmc];
+	  [received_request_rmc_queue_gate unlock];
 	}
       else
 	{
 	  /* Here we honor them right away */
-	  [self connectionPerformAndDismissCoder:rmc];
+	  [self _service_forwardForProxy: rmc];
 	}
       break;
     case CONNECTION_SHUTDOWN:
       {
-	id c = [rmc connection];
-	[c invalidate];
-	if (c == self)
-	  [self error:"connection waiting for reply was shut down"];
-	[c dealloc];
-	[rmc dismiss];
+	[[rmc connection] _service_shutdown: rmc forConnection: self];
 	break;
       }
     default:
-      [self error:"unrecognized ConnectedCoder identifier"];
+      [self error:"unrecognized ConnectedDecoder identifier"];
     }
   goto again;
 
   return rmc;
 }
 
-- newSendingRequestRmc
-{
-  id rmc;
+
+/* Managing objects and proxies. */
 
-  assert(in_port);
-  rmc = [[self coderClass] newEncodingWithConnection:self
-			sequenceNumber:[self _newMsgNumber]
-			identifier:METHOD_REQUEST];
-  return rmc;
-}
-
-- newSendingReplyRmcWithSequenceNumber: (int)n
+/* This should get called whenever an object free's itself */
++ (void) removeLocalObject: anObj
 {
-  id rmc = [[self coderClass]
-	       newEncodingWithConnection:self
-	       sequenceNumber:n
-	       identifier:METHOD_REPLY];
-  return rmc;
-}
-
-- removeLocalObject: anObj
-{
-  unsigned target = PTR2LONG(anObj);
-  [proxiesHashGate lock];
-  if ([local_targets includesKey:target])
+  id c;
+  int i, count = [connection_array count];
+  for (i = 0; i < count; i++)
     {
-      [local_targets removeElementAtKey:target];
-      [anObj release];
+      c = [connection_array objectAtIndex:i];
+      [c removeLocalObject: anObj];
+      [c removeProxy: anObj];
     }
-  [proxiesHashGate unlock];
-  return self;
 }
 
-- removeProxy: (Proxy*)aProxy
+- (void) removeLocalObject: anObj
+{
+  [proxiesHashGate lock];
+  /* This also releases anObj */
+  NSMapRemove (local_targets, (void*)anObj);
+  [proxiesHashGate unlock];
+}
+
+- (void) removeProxy: (Proxy*)aProxy
 {
   unsigned target = [aProxy targetForProxy];
   [proxiesHashGate lock];
-  if ([remote_proxies includesKey:target])
-    [remote_proxies removeElementAtKey:target];
+  /* This also releases aProxy */
+  NSMapRemove (remote_proxies, (void*)target);
   [proxiesHashGate unlock];
-  return self;
 }
 
 - (id <Collecting>) localObjects
 {
-  id l = [Array alloc];
+  id c;
 
   [proxiesHashGate lock];
-  [l initWithContentsOf:local_targets];
+  c = NSAllMapTableValues (local_targets);
   [proxiesHashGate unlock];
-  return l;
+  return c;
 }
 
 - (id <Collecting>) proxies
 {
-  id a = [[Array alloc] initWithCapacity:[remote_proxies count]];
-  void doit (elt e)
-    {
-      [a appendElement:e];
-    }
+  id c;
 
   [proxiesHashGate lock];
-  [remote_proxies withElementsCall:doit];
+  c = NSAllMapTableValues (remote_proxies);
   [proxiesHashGate unlock];
-  return a;
+  return c;
 }
 
 - (Proxy*) proxyForTarget: (unsigned)target
 {
   Proxy *p;
   [proxiesHashGate lock];
-  if ([remote_proxies includesKey:target])
-    p = [remote_proxies elementAtKey:target].id_u;
-  else
-    p = nil;
+  p = NSMapGet (remote_proxies, (void*)target);
   [proxiesHashGate unlock];
   assert(!p || [p connectionForProxy] == self);
   return p;
 }
 
-- addProxy: (Proxy*) aProxy
+- (void) addProxy: (Proxy*) aProxy
 {
   unsigned target = [aProxy targetForProxy];
+
   assert(aProxy->isa == [Proxy class]);
   assert([aProxy connectionForProxy] == self);
   [proxiesHashGate lock];
-  if ([remote_proxies includesKey:target])
+  if (NSMapGet (remote_proxies, (void*)target))
     [self error:"Trying to add the same proxy twice"];
-  [remote_proxies putElement:aProxy atKey:target];
+  NSMapInsert (remote_proxies, (void*)target, aProxy);
   [proxiesHashGate unlock];
-  return self;
+}
+
+- (void) addLocalObject: anObj
+{
+  [proxiesHashGate lock];
+  /* xxx Do we need to check to make sure it's not already there? */
+  /* This retains anObj */
+  NSMapInsert (local_targets, (void*)anObj, anObj);
+  [proxiesHashGate unlock];
 }
 
 - (BOOL) includesProxyForTarget: (unsigned)target
 {
   BOOL ret;
   [proxiesHashGate lock];
-  ret = [remote_proxies includesKey:target];
+  ret = NSMapGet (remote_proxies, (void*)target) ? YES : NO;
   [proxiesHashGate unlock];
   return ret;
 }
 
 - (BOOL) includesLocalObject: anObj
 {
-  unsigned target = PTR2LONG(anObj);
   BOOL ret;
   [proxiesHashGate lock];
-  ret = [local_targets includesKey:target];
+  ret = NSMapGet (local_targets, (void*)anObj) ? YES : NO;
   [proxiesHashGate unlock];
   return ret;
 }
 
-- addLocalObject: anObj
-{
-  unsigned target = PTR2LONG(anObj);
-  [proxiesHashGate lock];
-  if (![local_targets includesKey:target])
-    {
-      [anObj retain];
-      [local_targets putElement:anObj atKey:target];
-    }
-  [proxiesHashGate unlock];
-  return self;
-}
-
+
 /* Pass nil to remove any reference keyed by aPort. */
-+ setRootObject: anObj forInPort: (Port*)aPort
++ (void) setRootObject: anObj forInPort: (Port*)aPort
 {
-  id oldRootObject = [self rootObjectForInPort:aPort];
+  id oldRootObject = [self rootObjectForInPort: aPort];
 
+  /* xxx This retains aPort?  How will aPort ever get dealloc'ed? */
   if (oldRootObject != anObj)
     {
       if (anObj)
 	{
-	  [anObj retain];
-	  [rootObjectDictionaryGate lock];
-	  [rootObjectDictionary putElement:anObj atKey:aPort];
-	  [rootObjectDictionaryGate unlock];
+	  [root_object_dictionary_gate lock];
+	  [root_object_dictionary putObject: anObj atKey: aPort];
+	  [root_object_dictionary_gate unlock];
 	}
       else /* anObj == nil && oldRootObject != nil */
 	{
-	  [rootObjectDictionaryGate lock];
-	  [rootObjectDictionary removeElementAtKey:aPort];
-	  [rootObjectDictionaryGate unlock];
+	  [root_object_dictionary_gate lock];
+	  [root_object_dictionary removeObjectAtKey: aPort];
+	  [root_object_dictionary_gate unlock];
 	}
-      [oldRootObject release];
     }
-  return self;
 }  
 
 + rootObjectForInPort: (Port*)aPort
 {
   id ro;
-  [rootObjectDictionaryGate lock];
-  ro = [rootObjectDictionary elementAtKey:aPort 
-			     ifAbsentCall:exc_func_return_nil].id_u;
-  [rootObjectDictionaryGate unlock];
+  [root_object_dictionary_gate lock];
+  ro = [root_object_dictionary objectAtKey:aPort];
+  [root_object_dictionary_gate unlock];
   return ro;
 }
 
 - setRootObject: anObj
 {
-  [Connection setRootObject:anObj forInPort:in_port];
+  [[self class] setRootObject: anObj forInPort: in_port];
   return self;
 }
 
 - rootObject
 {
-  return [Connection rootObjectForInPort:in_port];
+  return [[self class] rootObjectForInPort: in_port];
 }
+
+
+/* Accessing ivars */
 
 - (int) outTimeout
 {
@@ -1119,47 +1080,49 @@ static int messagesReceivedCount;
   return in_timeout;
 }
 
-- setOutTimeout: (int)to
+- (void) setOutTimeout: (int)to
 {
   out_timeout = to;
-  return self;
 }
 
-- setInTimeout: (int)to
+- (void) setInTimeout: (int)to
 {
   in_timeout = to;
-  return self;
 }
 
-- portClass
+- (Class) portClass
 {
   return port_class;
 }
 
-- setPortClass: aPortClass
+- (void) setPortClass: (Class) aPortClass
 {
   port_class = aPortClass;
-  return self;
 }
 
-- proxyClass
+- (Class) proxyClass
 {
   /* we might replace this with a per-Connection proxy class. */
-  return defaultProxyClass;
+  return default_proxy_class;
 }
 
-- coderClass
+- (Class) encodingClass
 {
-  /* we might replace this with a per-Connection proxy class. */
-  return defaultCoderClass;
+  return encoding_class;
 }
 
-- (Port *) outPort
+- (Class) decodingClass
+{
+  /* we might replace this with a per-Connection class. */
+  return default_decoding_class;
+}
+
+- outPort
 {
   return out_port;
 }
 
-- (Port *) inPort
+- inPort
 {
   return in_port;
 }
@@ -1169,43 +1132,43 @@ static int messagesReceivedCount;
   return delegate;
 }
 
-- setDelegate: anObj
+- (void) setDelegate: anObj
 {
   delegate = anObj;
-  return self;
 }
 
-- _incomingConstPtrs
+
+/* Support for cross-connection const-ptr cache. */
+
+- (unsigned) _encoderCreateReferenceForConstPtr: (const void*)ptr
 {
-  return incoming_const_ptrs;
+  unsigned xref;
+  xref = NSCountMapTable (outgoing_const_ptr_2_xref) + 1;
+  assert (! NSMapGet (outgoing_const_ptr_2_xref, (void*)xref));
+  NSMapInsert (outgoing_const_ptr_2_xref, ptr, (void*)xref);
 }
 
-- _outgoingConstPtrs
+- (unsigned) _encoderReferenceForConstPtr: (const void*)ptr
 {
-  return outgoing_const_ptrs;
+  return (unsigned) NSMapGet (outgoing_const_ptr_2_xref, ptr);
 }
 
-- senderIsInvalid: anObj
+- (unsigned) _decoderCreateReferenceForConstPtr: (const void*)ptr
 {
-  if (anObj == in_port || anObj == out_port)
-    [self invalidate];
-  /* xxx What else? */
-  return self;
+  unsigned xref;
+  xref = NSCountMapTable (incoming_xref_2_const_ptr);
+  NSMapInsert (incoming_xref_2_const_ptr, (void*)xref, ptr);
+  return xref;
 }
 
-/* xxx This needs locks */
-- invalidate
+- (const void*) _decoderConstPtrAtReference: (unsigned)xref
 {
-  if (!isValid)
-    return nil;
-  /* xxx Note: this is causing us to send a shutdown message
-     to the connection that shut *us* down.  Don't do that. 
-     Well, perhaps it's a good idea just in case other side didn't really
-     send us the shutdown; this way we let them know we're going away */
-  [self _sendShutdown];
-  [super invalidate];
-  return self;
+  return NSMapGet (incoming_xref_2_const_ptr, (void*)xref);
 }
+
+
+
+/* Prevent trying to encode the connection itself */
 
 - (void) encodeWithCoder: anEncoder
 {
@@ -1218,28 +1181,53 @@ static int messagesReceivedCount;
   return self;
 }
 
+
+/* Shutting down and deallocating. */
 
-@end
-
-
-#if 0 /* temporarily moved to Coder.m */
-
-@implementation Object (ConnectionRequests)
-
-/* By default, Object's encode themselves as proxies across Connection's */
-- classForConnectedCoder:aRmc
+/* We register this method with NSNotification for when a port dies. */
+- portIsInvalid: anObj
 {
-  return [[aRmc connection] proxyClass];
+  if (anObj == in_port || anObj == out_port)
+    [self invalidate];
+  /* xxx What else? */
+  return nil;
 }
 
-/* But if any object overrides the above method to return [Object class]
-   instead, the Object implementation of the coding method will actually
-   encode the object itself, not a proxy */
-+ (void) encodeObject: anObject withConnectedCoder: aRmc
+/* xxx This needs locks */
+- (void) invalidate
 {
-  [anObject encodeWithCoder:aRmc];
+  if (!is_valid)
+    return;
+  /* xxx Note: this is causing us to send a shutdown message
+     to the connection that shut *us* down.  Don't do that. 
+     Well, perhaps it's a good idea just in case other side didn't really
+     send us the shutdown; this way we let them know we're going away */
+  [self shutdown];
+}
+
+/* This needs locks */
+- (void) dealloc
+{
+  if (debug_connection)
+    printf("deallocating 0x%x\n", (unsigned)self);
+  [self invalidate];
+  [connection_array removeObject: self];
+  /* Remove rootObject from root_object_dictionary
+     if this is last connection */
+  if (![Connection connectionsCountWithInPort:in_port])
+    [Connection setRootObject:nil forInPort:in_port];
+  [[NSNotificationCenter defaultCenter] removeObserver: self];
+  [in_port release];
+  [out_port release];
+
+  [proxiesHashGate lock];
+  NSFreeMapTable (remote_proxies);
+  NSFreeMapTable (local_targets);
+  NSFreeMapTable (incoming_xref_2_const_ptr);
+  NSFreeMapTable (outgoing_const_ptr_2_xref);
+  [proxiesHashGate unlock];
+
+  [super dealloc];
 }
 
 @end
-
-#endif /* 0 temporarily moved to Coder.m */
