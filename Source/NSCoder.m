@@ -368,7 +368,7 @@
 
 // Getting a Version
 
-- (unsigned int) systemVersion;
+- (unsigned int) systemVersion
 {
   return (((GNUSTEP_BASE_MAJOR_VERSION * 100)
     + GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
