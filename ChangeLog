@@ -1,3 +1,23 @@
+Sat Feb 20  20:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSUser.m: Added GSSetUserName() and rewrote NSUserName() to
+	work consistently - use the LOGNAME environment variable as first
+	choice of username.
+	* Source/include/NSPathUtilities.h: Added GSSetUserName()
+	* Source/NSUserDefaults.m: Added GNUstep specific method -
+	([+resetUserDefaults]) to reset the standard defaults in the event of
+	a change os username.  Also changed to create defaults withe correct
+	ownership, and to create a defaults file containing a valid (empty)
+	dictionary.
+	* Source/include/NSUserDefaults.h: Added ([+resetUserDefaults])
+	* Source/NSData.m: Try to preserve file ownership etc with
+	([-writeToFile:atomically:])
+	* Source/NSFileManager.m: ([-changeFileAttributes:atPath:]) added
+	code to handle owner and group names if owner and group IDs are not
+	supplied.  Also added code to ensure that programs running setuid to
+	root create new files and directories with the ownership of their
+	actual login user by default.
+
 1999-02-19  Michael Hanni <mhanni@sprintmail.com
 
 	* Source/NSArray.m: Added @end for NSArrayEnumeratorReverse.

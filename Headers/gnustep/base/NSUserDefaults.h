@@ -124,6 +124,13 @@ extern NSString* const NSDateTimeOrdering;
 
 /* Getting the Shared Instance */
 + (NSUserDefaults*) standardUserDefaults;
+#ifndef	NO_GNUSTEP
+/*
+ * Called by GSSetUserName() to get the defaults system to use the defaults
+ * of a new user.
+ */
++ (void) resetUserDefaults;
+#endif
 + (NSArray*) userLanguages;
 + (void) setUserLanguages: (NSArray*)languages;
 

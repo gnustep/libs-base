@@ -184,63 +184,93 @@ static NSFileManager* defaultManager = nil;
 #endif
 }
 
-- (BOOL)createDirectoryAtPath:(NSString*)path
-  attributes:(NSDictionary*)attributes
+- (BOOL) createDirectoryAtPath:(NSString*)path
+		    attributes:(NSDictionary*)attributes
 {
 #if defined(__WIN32__) || defined(_WIN32)
   return CreateDirectory([self fileSystemRepresentationWithPath: path], NULL);
 #else
-    const char* cpath;
-    char dirpath[PATH_MAX+1];
-    struct stat statbuf;
-    int len, cur;
+  const char* cpath;
+  char dirpath[PATH_MAX+1];
+  struct stat statbuf;
+  int len, cur;
+  NSDictionary *needChown = nil;
     
-    cpath = [self fileSystemRepresentationWithPath:path];
-    len = strlen(cpath);
-    if (len > PATH_MAX)
-	// name too long
-	return NO;
-    
-    if (strcmp(cpath, "/") == 0 || len == 0)
-	// cannot use "/" or "" as a new dir path
-	return NO; 
-    
-    strcpy(dirpath, cpath);
-    dirpath[len] = '\0';
-    if (dirpath[len-1] == '/')
-	dirpath[len-1] = '\0';
-    cur = 0;
-    
-    do {
-	// find next '/'
-	while (dirpath[cur] != '/' && cur < len)
-	    cur++;
-	// if first char is '/' then again; (cur == len) -> last component
-	if (cur == 0) {
-	    cur++;
-	    continue;
-	}
-	// check if path from 0 to cur is valid
-	dirpath[cur] = '\0';
-	if (stat(dirpath, &statbuf) == 0) {
-	    if (cur == len)
-		return NO; // already existing last path
-	}
-	else {
-	    // make new directory
-	    if (mkdir(dirpath, 0777) != 0)
-	      return NO; // could not create component
-	    // if last directory and attributes then change
-	    if (cur == len && attributes)
-		return [self changeFileAttributes:attributes 
-		    atPath:[self stringWithFileSystemRepresentation:dirpath
-			length:cur]];
-	}
-	dirpath[cur] = '/';
-	cur++;
-    } while (cur < len);
+  /*
+   * If there is no file owner specified, and we are running setuid to
+   * root, then we assume we need to change ownership to correct user.
+   */
+  if ([attributes objectForKey: NSFileOwnerAccountName] == nil 
+    && [attributes objectForKey: NSFileOwnerAccountNumber] == nil 
+    && geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
+    {
+      needChown = [NSDictionary dictionaryWithObjectsAndKeys:
+			NSFileOwnerAccountName, NSUserName(), nil];
+    }
 
-    return YES;
+  cpath = [self fileSystemRepresentationWithPath:path];
+  len = strlen(cpath);
+  if (len > PATH_MAX) // name too long
+    return NO;
+    
+  if (strcmp(cpath, "/") == 0 || len == 0) // cannot use "/" or ""
+    return NO; 
+    
+  strcpy(dirpath, cpath);
+  dirpath[len] = '\0';
+  if (dirpath[len-1] == '/')
+    dirpath[len-1] = '\0';
+  cur = 0;
+    
+  do
+    {
+      // find next '/'
+      while (dirpath[cur] != '/' && cur < len)
+	cur++;
+      // if first char is '/' then again; (cur == len) -> last component
+      if (cur == 0)
+	{
+	  cur++;
+	  continue;
+	}
+      // check if path from 0 to cur is valid
+      dirpath[cur] = '\0';
+      if (stat(dirpath, &statbuf) == 0)
+	{
+	  if (cur == len)
+	    return NO; // already existing last path
+	}
+      else
+	{
+	  // make new directory
+	  if (mkdir(dirpath, 0777) != 0)
+	    return NO; // could not create component
+	  // if last directory and attributes then change
+	  if (cur == len && attributes)
+	    {
+	      if ([self changeFileAttributes:attributes 
+		atPath:[self stringWithFileSystemRepresentation:dirpath
+			length:cur]] == NO)
+		return NO;
+	      if (needChown)
+		{
+		  if ([self changeFileAttributes: needChown 
+		    atPath:[self stringWithFileSystemRepresentation:dirpath
+		      length:cur]] == NO)
+		    {
+		      NSLog(@"Failed to change ownership of '%s' to '%@'",
+			      dirpath, NSUserName());
+		    }
+		}
+	      return YES;
+	    }
+	}
+      dirpath[cur] = '/';
+      cur++;
+    }
+  while (cur < len);
+
+  return YES;
 #endif /* WIN32 */
 }
 
@@ -267,7 +297,7 @@ static NSFileManager* defaultManager = nil;
 // File operations
 
 - (BOOL)copyPath:(NSString*)source toPath:(NSString*)destination
-  handler:handler
+	 handler:handler
 {
     BOOL sourceIsDir, fileExists;
     NSDictionary* attributes;
@@ -327,7 +357,7 @@ static NSFileManager* defaultManager = nil;
 }
 
 - (BOOL)movePath:(NSString*)source toPath:(NSString*)destination 
-  handler:handler
+	 handler:handler
 {
     BOOL sourceIsDir, fileExists;
     const char* sourcePath = [self fileSystemRepresentationWithPath:source];
@@ -485,29 +515,48 @@ static NSFileManager* defaultManager = nil;
     }
 }
 
-- (BOOL)createFileAtPath:(NSString*)path contents:(NSData*)contents
-  attributes:(NSDictionary*)attributes
+- (BOOL) createFileAtPath: (NSString*)path
+		 contents: (NSData*)contents
+	       attributes: (NSDictionary*)attributes
 {
-    int fd, len, written;
+  int fd, len, written;
 
-    fd = open ([self fileSystemRepresentationWithPath:path],
+  fd = open ([self fileSystemRepresentationWithPath:path],
                 O_WRONLY|O_TRUNC|O_CREAT, 0644);
-    if (fd < 0)
-        return NO;
+  if (fd < 0)
+    return NO;
 
-    if (![self changeFileAttributes:attributes atPath:path]) {
-        close (fd);
-        return NO;
+  if (![self changeFileAttributes: attributes atPath: path])
+    {
+      close (fd);
+      return NO;
     }
 
-    len = [contents length];
-    if (len)
-        written = write (fd, [contents bytes], len);
-    else
-        written = 0;
-    close (fd);
+  /*
+   * If there is no file owner specified, and we are running setuid to
+   * root, then we assume we need to change ownership to correct user.
+   */
+  if ([attributes objectForKey: NSFileOwnerAccountName] == nil 
+    && [attributes objectForKey: NSFileOwnerAccountNumber] == nil 
+    && geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
+    {
+      attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+			NSFileOwnerAccountName, NSUserName(), nil];
+      if (![self changeFileAttributes: attributes atPath: path])
+	{
+	  NSLog(@"Failed to change ownership of '%@' to '%@'",
+		path, NSUserName());
+	}
+    }
 
-    return written == len;
+  len = [contents length];
+  if (len)
+    written = write (fd, [contents bytes], len);
+  else
+    written = 0;
+  close (fd);
+
+  return written == len;
 }
 
 // Getting and comparing file contents
@@ -781,55 +830,95 @@ static NSFileManager* defaultManager = nil;
 #endif /* WIN32 */
 }
 
-- (BOOL)changeFileAttributes:(NSDictionary*)attributes atPath:(NSString*)path
+- (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
 {
-    const char* cpath = [self fileSystemRepresentationWithPath:path];
-    NSNumber* num;
-    NSDate* date;
-    BOOL allOk = YES;
+  const char	*cpath = [self fileSystemRepresentationWithPath:path];
+  NSNumber	*num;
+  NSString	*str;
+  NSDate	*date;
+  BOOL		allOk = YES;
 
 #ifndef __WIN32__
-    num = [attributes objectForKey:NSFileOwnerAccountNumber];
-    if (num) {
-	allOk &= (chown(cpath, [num intValue], -1) == 0);
+  num = [attributes objectForKey: NSFileOwnerAccountNumber];
+  if (num)
+    {
+      allOk &= (chown(cpath, [num intValue], -1) == 0);
     }
-    
-    num = [attributes objectForKey:NSFileGroupOwnerAccountNumber];
-    if (num) {
-	allOk &= (chown(cpath, -1, [num intValue]) == 0);
-    }
-#endif
-    
-    num = [attributes objectForKey:NSFilePosixPermissions];
-    if (num) {
-	allOk &= (chmod(cpath, [num intValue]) == 0);
-    }
-    
-    date = [attributes objectForKey:NSFileModificationDate];
-    if (date) {
-	struct stat sb;
-#ifdef  _POSIX_VERSION
-	struct utimbuf ub;
+  else
+    {
+      if ((str = [attributes objectForKey:NSFileOwnerAccountName]) != nil)
+	{
+#if HAVE_PWD_H	
+	  struct passwd *pw = getpwnam([str cString]);
+
+	  if (pw)
+	    {
+	      allOk &= (chown(cpath, pw->pw_uid, -1) == 0);
+	      chown(cpath, -1, pw->pw_gid);
+	    }
+	  else
+	    allOk = NO;
 #else
-	time_t ub[2];
+	  allOk = NO;
+#endif
+	}
+    }
+
+  num = [attributes objectForKey:NSFileGroupOwnerAccountNumber];
+  if (num)
+    {
+      allOk &= (chown(cpath, -1, [num intValue]) == 0);
+    }
+  else if ((str = [attributes objectForKey:NSFileGroupOwnerAccountName]) != nil)
+#if HAVE_GRP_H
+    {
+      struct group *gp = getgrnam([str cString]);
+
+      if (gp)
+	{
+	  allOk &= (chown(cpath, -1, gp->gr_gid) == 0);
+	}
+      else
+	allOk = NO;
+    }
+#else
+    allOk = NO;
+#endif
 #endif
 
-	if (stat(cpath, &sb) != 0)
-	    allOk = NO;
-	else {
+  num = [attributes objectForKey:NSFilePosixPermissions];
+  if (num)
+    {
+      allOk &= (chmod(cpath, [num intValue]) == 0);
+    }
+    
+  date = [attributes objectForKey:NSFileModificationDate];
+  if (date)
+    {
+      struct stat sb;
 #ifdef  _POSIX_VERSION
-	    ub.actime = sb.st_atime;
-	    ub.modtime = [date timeIntervalSince1970];
-	    allOk &= (utime(cpath, &ub) == 0);
+      struct utimbuf ub;
 #else
-	    ub[0] = sb.st_atime;
-	    ub[1] = [date timeIntervalSince1970];
-	    allOk &= (utime((char*)cpath, ub) == 0);
+      time_t ub[2];
+#endif
+
+      if (stat(cpath, &sb) != 0)
+	allOk = NO;
+      else
+	{
+#ifdef  _POSIX_VERSION
+	  ub.actime = sb.st_atime;
+	  ub.modtime = [date timeIntervalSince1970];
+	  allOk &= (utime(cpath, &ub) == 0);
+#else
+	  ub[0] = sb.st_atime;
+	  ub[1] = [date timeIntervalSince1970];
+	  allOk &= (utime((char*)cpath, ub) == 0);
 #endif
 	}
     }
     
-    return allOk;
+  return allOk;
 }
 
 // Discovering directory contents

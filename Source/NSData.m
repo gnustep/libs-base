@@ -71,6 +71,8 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSFileManager.h>
+#include <Foundation/NSPathUtilities.h>
 #include <string.h>		/* for memset() */
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
 
@@ -500,6 +502,7 @@ failure:
       NSLog(@"Open (%s) attempt failed - bad path", theRealPath);
       return NO;
     }
+
 #ifdef	HAVE_MKSTEMP
   if (useAuxiliaryFile)
     {
@@ -576,17 +579,43 @@ failure:
     }
 
   /* If we used a temporary file, we still need to rename() it be the
-   * real file.  Am I forgetting anything here? */
+   * real file.  Also, we need to try to retain the file attributes of
+   * the original file we are overwriting (if we are) */
   if (useAuxiliaryFile)
     {
-      c = rename(thePath, theRealPath);
+      NSFileManager		*mgr = [NSFileManager defaultManager];
+      NSMutableDictionary	*att = nil;
 
-      if (c != 0)               /* Many things could go wrong, I
-                                 * guess. */
+      if ([mgr fileExistsAtPath: path])
+	{
+	  att = [[mgr fileAttributesAtPath:path traverseLink:YES] mutableCopy];
+	  if (att)
+	    [att autorelease];
+	}
+
+      c = rename(thePath, theRealPath);
+      if (c != 0)               /* Many things could go wrong, I guess. */
         {
           NSLog(@"Rename (%s) failed - %s", thePath, strerror(errno));
           goto failure;
         }
+
+      if (att)
+	{
+	  /*
+	   * We have created a new file - so we attempt to make it's
+	   * attributes match that of the original.
+	   */
+	  [att removeObjectForKey: NSFileSize];
+	  [att removeObjectForKey: NSFileModificationDate];
+	  [att removeObjectForKey: NSFileReferenceCount];
+	  [att removeObjectForKey: NSFileSystemNumber];
+	  [att removeObjectForKey: NSFileSystemFileNumber];
+	  [att removeObjectForKey: NSFileDeviceIdentifier];
+	  [att removeObjectForKey: NSFileType];
+	  if ([mgr changeFileAttributes: att atPath: path] == NO)
+	    NSLog(@"Unable to correctly set all attributes for '%@'", path);
+	}
     }
 
   /* success: */
