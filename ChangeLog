@@ -2,6 +2,8 @@ Thu Oct 31 11:54:42 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.11.
 
+	* src/Makefile.in (DIST_FILES): Remove include/config-win32.sed.
+
 	* src/NSString.m (HAVE_REGISTER_PRINTF_FUNCTION): Move definition
  	below #include's.
 
