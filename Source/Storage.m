@@ -131,7 +131,7 @@ static inline void _makeRoomForAnotherIfNecessary(Storage *self)
       assert(self->maxElements);
       self->maxElements *= 2;
       self->dataPtr = (void*) 
-	(*objc_realloc)(self->dataPtr, self->maxElements*self->elementSize);
+	objc_realloc (self->dataPtr, self->maxElements*self->elementSize);
     }
 }
 
@@ -141,7 +141,7 @@ static inline void _shrinkIfDesired(Storage *self)
     {
       self->maxElements /= 2;
       self->dataPtr = (void *) 
-	(*objc_realloc)(self->dataPtr, self->maxElements*self->elementSize);
+	objc_realloc (self->dataPtr, self->maxElements*self->elementSize);
     }
 }
 
@@ -150,7 +150,7 @@ static inline void _shrinkIfDesired(Storage *self)
   if (numSlots > numElements) 
     {
       maxElements = numSlots;
-      dataPtr = (void*) (*objc_realloc)(dataPtr, maxElements * elementSize);
+      dataPtr = (void*) objc_realloc (dataPtr, maxElements * elementSize);
     }
   return self;
 }
@@ -160,7 +160,7 @@ static inline void _shrinkIfDesired(Storage *self)
   if (numSlots > numElements) 
     {
       maxElements = numSlots;
-      dataPtr = (void*) (*objc_realloc)(dataPtr, maxElements * elementSize);
+      dataPtr = (void*) objc_realloc (dataPtr, maxElements * elementSize);
       bzero(STORAGE_NTH(numElements), (maxElements-numElements)*elementSize);
     }
   else if (numSlots < numElements) 
@@ -256,7 +256,7 @@ static inline void _shrinkIfDesired(Storage *self)
 {
   numElements = 0;
   maxElements = 1;
-  dataPtr = (void*) (*objc_realloc)(dataPtr, maxElements * elementSize);
+  dataPtr = (void*) objc_realloc (dataPtr, maxElements * elementSize);
   return self;
 }
 

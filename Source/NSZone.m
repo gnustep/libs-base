@@ -157,14 +157,14 @@ NSZone *NSCreateZone(size_t startSize, size_t granularity, int canFree)
 #ifdef DEBUG
     printf("entered NSCreateZone\n");
 #endif
-    ptr = (NSZone *) (*objc_malloc)(sizeof(NSZone));
+    ptr = (NSZone *) objc_malloc (sizeof(NSZone));
     if (ptr == NULL) {
 #ifdef DEBUG
         printf("out of memory for zone structure\n");
 #endif
         return NS_NOZONE;
         }
-    ptr->base        = (void *) (*objc_valloc)(startSize);
+    ptr->base        = (void *) objc_valloc (startSize);
     if (ptr->base == NULL) {
 #ifdef DEBUG
         printf("out of memory for zone\n");
@@ -301,7 +301,8 @@ void *NSZoneMalloc(NSZone *zonep, size_t size)
     chunkdesc temp,*chunk;
     NSZone *newzone;
 
-    if (zonep == NS_NOZONE) return (*objc_malloc) (size);
+    if (zonep == NS_NOZONE) 
+      return objc_malloc (size);
 /* round size up to the nearest word, so that all chunks are word aligned */
     oddsize = (size % WORDSIZE);
     newsize = size - oddsize + (oddsize?WORDSIZE:0);
@@ -392,7 +393,8 @@ void *NSZoneRealloc(NSZone *zonep, void *ptr, size_t size)
     void *ptr2;
     chunkdesc temp,*chunk,*nextchunk,*priorchunk;
     
-    if (zonep == NS_NOZONE) return (*objc_realloc)(ptr,size);
+    if (zonep == NS_NOZONE) 
+      return objc_realloc (ptr,size);
     
     if (zonep->canFree) {
         i = searchheap(&(zonep->heap),ptr);
@@ -799,12 +801,12 @@ void *addtolist(void *ptr,llist *list, int at)
         if (list->LList == NULL) {
             list->Size = DEFAULTLISTSIZE;
             list->LList = (void *)
-	      (*objc_malloc)(list->ElementSize * list->Size);
+	      objc_malloc (list->ElementSize * list->Size);
         }
         else {
             list->Size *= 2;
             list->LList = (void *)
-	      (*objc_realloc)(list->LList, list->ElementSize * list->Size);
+	      objc_realloc (list->LList, list->ElementSize * list->Size);
         }
         
     }
