@@ -1,3 +1,11 @@
+2001-10-25  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Check for LLONG_MAX. Check for -lcipher.
+	(Patch from chrisv@web4inc.com with modifications).
+	* Source/GSFormat.m: If we have LLONG_MAX, define LONG_LONG_MAX
+	to match.
+	* Source/NSScanner.m: Likewise.
+
 2001-10-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.in: Check for zlib
