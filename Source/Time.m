@@ -30,6 +30,10 @@
 #include <ucbinclude/sys/resource.h>
 #endif
 
+#if (sun && __svr4__) /* solaris */ 
+#include <sys/times.h> 
+#endif 
+
 /* There are several places where I need to deal with tz more intelligently */
 /* I should allow customization of a strftime() format string for printing. */
 
@@ -92,6 +96,20 @@ id monthNames;
   
 + (long) millisecondsToRun: (void(*)())aFunc
 {
+#if (sun && __svr4__) 
+  /* As of Solaris 2.4, getrusage is not supported with the system libraries 
+     or with multi-threaded applications.  Thus, we use the times() call  
+     instead. */ 
+  struct tms start_tms, end_tms; 
+
+  times(&start_tms); 
+  (*aFunc)(); 
+  times(&end_tms);   
+ 
+  /* CLK_TCK is the number of clock ticks each second */ 
+  return ((long)((end_tms.tms_utime - start_tms.tms_utime + 
+                end_tms.tms_stime - start_tms.tms_stime) * 1000) / CLK_TCK); 
+#else 
   struct rusage start_ru, end_ru;
   
   getrusage(RUSAGE_SELF, &start_ru);
@@ -99,26 +117,30 @@ id monthNames;
   getrusage(RUSAGE_SELF, &end_ru);
   return ((end_ru.ru_utime.tv_sec - start_ru.ru_utime.tv_sec +
 	   end_ru.ru_stime.tv_sec - start_ru.ru_stime.tv_sec) * 1000 + 
-/* xxx disabled for now; not needed? */
-#if 0 && (sun && __svr4__)		/* xxx A hack for solaris */
-	  (end_ru.ru_utime.tv_nsec - start_ru.ru_utime.tv_nsec +
-	   end_ru.ru_stime.tv_nsec - start_ru.ru_stime.tv_nsec) / 1000000);
-#else
 	  (end_ru.ru_utime.tv_usec - start_ru.ru_utime.tv_usec +
 	   end_ru.ru_stime.tv_usec - start_ru.ru_stime.tv_usec) / 1000);
-#endif
+#endif /* solaris */
   /* should add a warning on overflow. */
 }
 
 + getSeconds: (long *)sec microseconds: (long *)usec toRun: (void(*)())aFunc
 {
+#if (sun && __svr4__) /* solaris */ 
+  struct tms start_tms, end_tms; 
+#else 
   struct rusage start_ru, end_ru;
+#endif /* solaris */ 
 
   [self notImplemented:_cmd];
+#if (sun && __svr4__) /* solaris */ 
+  times(&start_tms); 
+  (*aFunc)(); 
+  times(&end_tms); 
+#else 
   getrusage(RUSAGE_SELF, &start_ru);
   (*aFunc)();
   getrusage(RUSAGE_SELF, &end_ru);
-
+#endif /* solaris */ 
   return self;
 }
 
