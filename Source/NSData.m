@@ -84,6 +84,8 @@
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
 #endif
 
+#define	USE_WINDOWS_IO	0
+
 #ifdef	HAVE_MMAP
 #include	<unistd.h>
 #include	<sys/mman.h>
@@ -132,7 +134,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   FILE		*theFile = 0;
   void		*tmp = 0;
   int		c;
-#if defined(__MINGW__)
+#if USE_WINDOWS_IO && defined(__MINGW__)
   HANDLE	fh;
   DWORD		fileLength;
   DWORD		high;
@@ -152,7 +154,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       return NO;
     }
 
-#if defined(__MINGW__)
+#if USE_WINDOWS_IO && defined(__MINGW__)
   fh = CreateFile(thePath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
     FILE_ATTRIBUTE_NORMAL, 0);
   if (fh == INVALID_HANDLE_VALUE)
@@ -847,7 +849,7 @@ static unsigned	gsu32Align;
   char		thePath[BUFSIZ*2+8];
   char		theRealPath[BUFSIZ*2];
   int		c;
-#if defined(__MINGW__)
+#if USE_WINDOWS_IO && defined(__MINGW__)
   NSString	*tmppath = path;
   HANDLE	fh;
   DWORD		wroteBytes;
@@ -863,7 +865,7 @@ static unsigned	gsu32Align;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if USE_WINDOWS_IO && defined(__MINGW__)
   if (useAuxiliaryFile)
     {
       tmppath = [path stringByAppendingPathExtension: @"tmp"];

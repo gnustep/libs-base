@@ -1,3 +1,7 @@
+2003-04-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Experimantal disable ReadFile and WriteFile on MINGW
+
 2003-04-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObjCRuntime.m: NSClassFromString(), NSSelectorFromString()
