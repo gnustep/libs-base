@@ -285,8 +285,8 @@ static inline int getDigits(const char *from, char *to, int limit)
       int		julianWeeks = -1, weekStartsMonday = 0, dayOfWeek = -1;
       const char	*source = [description cString];
       int		sourceLen = strlen(source);
-      const char	*format = [fmt cString];
-      int		formatLen = strlen(format);
+      const char	*format;
+      int		formatLen;
       int		formatIdx = 0;
       int		sourceIdx = 0;
       char		tmpStr[20];
@@ -299,9 +299,12 @@ static inline int getDigits(const char *from, char *to, int limit)
 	}
       if (fmt == nil)
 	{
-	  format = [[locale objectForKey: NSTimeDateFormatString] cString];
-	  formatLen = strlen(format);
+	  fmt = [locale objectForKey: NSTimeDateFormatString];
+	  if (fmt == nil)
+	    fmt = @"";
 	}
+      format = [fmt cString];
+      formatLen = strlen(format);
       
       //
       // WARNING:
@@ -982,11 +985,11 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 // Providing Adjusted Dates
 - (NSCalendarDate*) addYear: (int)year
-		      month: (unsigned int)month
-			day: (unsigned int)day
-		       hour: (unsigned int)hour
-		     minute: (unsigned int)minute
-		     second: (unsigned int)second
+		      month: (int)month
+			day: (int)day
+		       hour: (int)hour
+		     minute: (int)minute
+		     second: (int)second
 {
   return [self dateByAddingYears: year
 		          months: month

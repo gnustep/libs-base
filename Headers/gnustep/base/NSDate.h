@@ -203,11 +203,11 @@ NSTimeInterval GSTime(int day, int mon, int year, int hour, int min, int sec);
 
 // Providing Adjusted Dates
 - (NSCalendarDate*) addYear: (int)year
-		      month: (unsigned int)month
-			day: (unsigned int)day
-		       hour: (unsigned int)hour
-		     minute: (unsigned int)minute
-		     second: (unsigned int)second;
+		      month: (int)month
+			day: (int)day
+		       hour: (int)hour
+		     minute: (int)minute
+		     second: (int)second;
 
 // Getting String Descriptions of Dates
 - (NSString*) description;

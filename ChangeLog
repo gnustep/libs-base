@@ -1,3 +1,9 @@
+2000-10-24  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSCalendarDate.m (-initWithString:calendarFormat:locale:): 
+	Set format if nil.
+	(-addYear:month:day:hour:minute:second:): Use signed ints.
+
 2000-10-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Implement ([-substringWithRange:]) and
