@@ -108,6 +108,46 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 @implementation GSFileHandle
 
+- (int) read: (void*)buf length: (int)len
+{
+#if	USE_ZLIB
+  if (gzDescriptor != 0)
+    {
+      len = gzread(gzDescriptor, buf, len);
+    }
+  else
+#endif
+  if (isSocket)
+    {
+      len = recv(descriptor, buf, len, 0);
+    }
+  else
+    {
+      len = read(descriptor, buf, len);
+    }
+  return len;
+}
+
+- (int) write: (const void*)buf length: (int)len
+{
+#if	USE_ZLIB
+  if (gzDescriptor != 0)
+    {
+      len = gzwrite(gzDescriptor, (char*)buf, len);
+    }
+  else
+#endif
+  if (isSocket)
+    {
+      len = send(descriptor, buf, len, 0);
+    }
+  else
+    {
+      len = write(descriptor, buf, len);
+    }
+  return len;
+}
+
 static BOOL
 getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
@@ -1242,41 +1282,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   d = [NSMutableData dataWithCapacity: 0];
   if (isStandardFile)
     {
-#if	USE_ZLIB
-      if (gzDescriptor != 0)
-	{
-	  while ((len = gzread(gzDescriptor, buf, sizeof(buf))) > 0)
-	    {
-	      [d appendBytes: buf length: len];
-	    }
-	}
-      else
-#endif
-      while ((len = read(descriptor, buf, sizeof(buf))) > 0)
+      while ((len = [self read: buf length: sizeof(buf)]) > 0)
         {
 	  [d appendBytes: buf length: len];
         }
     }
   else
     {
-#if	USE_ZLIB
-      if (gzDescriptor != 0)
-	{
-	  if ((len = gzread(gzDescriptor, buf, sizeof(buf))) > 0)
-	    {
-	      [d appendBytes: buf length: len];
-	    }
-	}
-      else
-#endif
-      if (isSocket)
-	{
-	  len = recv(descriptor, buf, sizeof(buf), 0);
-	}
-      else
-	{
-	  len = read(descriptor, buf, sizeof(buf));
-	}
+      len = [self read: buf length: sizeof(buf)];
       if (len > 0)
 	{
 	  [d appendBytes: buf length: len];
@@ -1303,17 +1316,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       [self setNonBlocking: NO];
     }
   d = [NSMutableData dataWithCapacity: 0];
-#if	USE_ZLIB
-  if (gzDescriptor != 0)
-    {
-      while ((len = gzread(gzDescriptor, buf, sizeof(buf))) > 0)
-	{
-	  [d appendBytes: buf length: len];
-	}
-    }
-  else
-#endif
-  while ((len = read(descriptor, buf, sizeof(buf))) > 0)
+  while ((len = [self read: buf length: sizeof(buf)]) > 0)
     {
       [d appendBytes: buf length: len];
     }
@@ -1342,14 +1345,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       buf = NSZoneMalloc(NSDefaultMallocZone(), len);
       d = [NSMutableData dataWithBytesNoCopy: buf length: len];
-#if	USE_ZLIB
-      if (gzDescriptor != 0)
-	{
-	  got = gzread(gzDescriptor, [d mutableBytes], len);
-	}
-      else
-#endif
-      got = read(descriptor, [d mutableBytes], len);
+      got = [self read: [d mutableBytes] length: len];
       if (got < 0)
 	{
 	  [NSException raise: NSFileHandleOperationException
@@ -1367,14 +1363,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
 
-#if	USE_ZLIB
-	  if (gzDescriptor != 0)
-	    {
-	      got = gzread(gzDescriptor, buf, chunk);
-	    }
-	  else
-#endif
-	  got = read(descriptor, buf, chunk);
+	  got = [self read: buf length: chunk];
 	  if (got > 0)
 	    {
 	      [d appendBytes: buf length: got];
@@ -1412,14 +1401,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
 	  toWrite = NETBUF_SIZE;
 	}
-#if	USE_ZLIB
-      if (gzDescriptor != 0)
-	{
-	  rval = gzwrite(gzDescriptor, (char*)ptr+pos, toWrite);
-	}
-      else
-#endif
-      rval = write(descriptor, (char*)ptr+pos, toWrite);
+      rval = [self write: (char*)ptr+pos length: toWrite];
       if (rval < 0)
 	{
 	  if (errno == EAGAIN || errno == EINTR)
@@ -1972,7 +1954,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      struct sockaddr_in	sin;
 	      int			size = sizeof(sin);
 
-	      h = [[GSFileHandle alloc] initWithFileDescriptor: desc
+	      h = [[[self class] alloc] initWithFileDescriptor: desc
 						closeOnDealloc: YES];
 	      h->isSocket = YES;
 	      getpeername(desc, (struct sockaddr*)&sin, &size);
@@ -2011,21 +1993,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      length = sizeof(buf);
 	    }
 
-#if	USE_ZLIB
-	  if (gzDescriptor != 0)
-	    {
-	      received = gzread(gzDescriptor, buf, length);
-	    }
-	  else
-#endif
-	  if (isSocket)
-	    {
-	      received = recv(descriptor, buf, length, 0);
-	    }
-	  else
-	    {
-	      received = read(descriptor, buf, length);
-	    }
+	  received = [self read: buf length: length];
 	  if (received == 0)
 	    { // Read up to end of file.
 	      [self postReadNotification];
@@ -2095,24 +2063,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    {
 	      int	written;
 
-#if	USE_ZLIB
-	      if (gzDescriptor != 0)
-		{
-		  written = gzwrite(gzDescriptor, (char*)ptr+writePos,
-		    length-writePos);
-		}
-	      else
-#endif
-	      if (isSocket)
-		{
-		  written = send(descriptor, (char*)ptr+writePos,
-		    length-writePos, 0);
-		}
-	      else
-		{
-		  written = write(descriptor, (char*)ptr+writePos,
-		    length-writePos);
-		}
+	      written = [self write: (char*)ptr+writePos
+			     length: length-writePos];
 	      if (written <= 0)
 		{
 		  if (written < 0 && errno != EAGAIN && errno != EINTR)
