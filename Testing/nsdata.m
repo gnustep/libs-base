@@ -11,6 +11,8 @@ main()
   id o;
   id pool;
 
+  [NSAutoreleasePool enableDoubleReleaseCheck:YES];
+
   pool = [[NSAutoreleasePool alloc] init];
 
   d = [NSData dataWithContentsOfMappedFile:@"nsdata.m"];
@@ -80,7 +82,6 @@ main()
   o = [a decodeObject];
   printf("Decoded data from archive - length %d\n", [o length]);
   [a release];
-  [o release];
 
   [d setCapacity: 2000000];
   printf("Set capacity of shared memory item to %d\n", [d capacity]);

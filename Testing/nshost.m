@@ -26,6 +26,7 @@ main ()
   NSHost*	n;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
+  [NSAutoreleasePool enableDoubleReleaseCheck:YES];
   c = [NSHost currentHost];
   displayHost(c);
   n = [NSHost hostWithName:[c name]];
@@ -37,7 +38,6 @@ main ()
 
   [NSHost setHostCacheEnabled:NO];
 
-  [n release];
   n = [NSHost hostWithName:[c name]];
   displayHost(n);
   printf("c:%lx, n:%lx, a:%lx\n", c, n, a);
