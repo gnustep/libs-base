@@ -1,3 +1,12 @@
+Wed Sep 10 18:03:22 1997  Scott Christley  <scottc@net-community.com>
+
+	* config.guess: Update.
+	* config.sub: Add mingw32.
+
+	* src/NSArray.m (-initWithObjects:rest:): The first object is
+	allowed to be nil and the count needs to be reduced by one before
+	calling -initWithObjects:count:
+
 Tue Sep  9 10:15:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/NSConnection.m: Made numerous changes to fix memory leak with

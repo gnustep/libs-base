@@ -153,58 +153,48 @@ static Class NSMutableArray_concrete_class;
 
 - initWithObjects: firstObject rest: (va_list) ap
 {
-	register	int			i;
-	register	int			curSize;
-	auto		int			prevSize;
-	auto		int			newSize;
-	auto		id			*objsArray;
-	auto		id			tmpId;
+  register	int			i;
+  register	int			curSize;
+  auto		int			prevSize;
+  auto		int			newSize;
+  auto		id			*objsArray;
+  auto		id			tmpId;
 
-	/*	Now, if the first object is nil, we have an error.	*/
-	if (firstObject == nil)
+  /*	Do initial allocation.	*/
+  prevSize = 1;
+  curSize  = 2;
+  OBJC_MALLOC(objsArray, id, curSize);
+  tmpId = firstObject;
+
+  /*	Loop through adding objects to array until a nil is
+   *	found.
+   */
+  for (i = 0; tmpId != nil; i++)
+    {
+      /*	Put id into array.	*/
+      objsArray[i] = tmpId;
+
+      /*	If the index equals the current size, increase size.	*/
+      if (i == curSize)
 	{
-		[NSException  raise: NSInvalidArgumentException
-					 format: @"initWithObjects: first object id was nil"
-		];
+	  /*	Fibonacci series.  Supposedly, for this application,
+	   *	the fibonacci series will be more memory efficient.
+	   */
+	  newSize  = prevSize + curSize;
+	  prevSize = curSize;
+	  curSize  = newSize;
+
+	  /*	Reallocate object array.	*/
+	  OBJC_REALLOC(objsArray, id, curSize);
 	}
+      tmpId = va_arg(ap, id);
+    }
+  va_end( ap );
 
-	/*	Do initial allocation.	*/
-	prevSize = 1;
-	curSize  = 2;
-	OBJC_MALLOC(objsArray, id, curSize);
-	objsArray[0] = firstObject;
-
-	/*	Loop through adding objects to array until a nil is
-	*	found.
-	*/
-	for (i = 1;
-		 (tmpId = va_arg(ap, id)) != nil;
-		 i++)
-	{
-		/*	Put id into array.	*/
-		objsArray[i++] = tmpId;
-
-		/*	If the index equals the current size, increase size.	*/
-		if (i == curSize)
-		{
-			/*	Fibonacci series.  Supposedly, for this application,
-			*	the fibonacci series will be more memory efficient.
-			*/
-			newSize  = prevSize + curSize;
-			prevSize = curSize;
-			curSize  = newSize;
-
-			/*	Reallocate object array.	*/
-			OBJC_REALLOC(objsArray, id, curSize);
-		}
-	}
-	va_end( ap );
-
-	/*	Put object ids into NSArray.	*/
-	self = [self initWithObjects: objsArray
-						   count: i];
-	OBJC_FREE( objsArray );
-	return( self );
+  /*	Put object ids into NSArray.	*/
+  self = [self initWithObjects: objsArray count: i-1];
+  OBJC_FREE( objsArray );
+  return( self );
 }
 
 - initWithObjects: firstObject, ...
