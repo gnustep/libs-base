@@ -41,7 +41,10 @@
 + (NSValue*) valueWithSize: (NSSize)size;
 
 #ifndef STRICT_OPENSTEP
-+ valueFromString: (NSString *)string;
++ (NSValue*) valueWithBytes: (const void*)value objCType: (const char*)type;
++ (NSValue*) valueFromString: (NSString*)string;
+/* Designated initializer for all concrete subclasses */
+- (id) initWithBytes: (const void*)value objCType: (const char*)type;
 - (BOOL) isEqualToValue: (NSValue*)other;
 #endif
 
@@ -75,19 +78,19 @@
 + (NSNumber*) numberWithUnsignedLongLong: (unsigned long long)value;
 + (NSNumber*) numberWithUnsignedShort: (unsigned short)value;
 
-- (id)initWithBool:(BOOL)value;
-- (id)initWithChar:(char)value;
-- (id)initWithDouble:(double)value;
-- (id)initWithFloat:(float)value;
-- (id)initWithInt:(int)value;
-- (id)initWithLong:(long)value;
-- (id)initWithLongLong:(long long)value;
-- (id)initWithShort:(short)value;
-- (id)initWithUnsignedChar:(unsigned char)value;
-- (id)initWithUnsignedInt:(unsigned int)value;
-- (id)initWithUnsignedLong:(unsigned long)value;
-- (id)initWithUnsignedLongLong:(unsigned long long)value;
-- (id)initWithUnsignedShort:(unsigned short)value;
+- (id)initWithBool: (BOOL)value;
+- (id)initWithChar: (char)value;
+- (id)initWithDouble: (double)value;
+- (id)initWithFloat: (float)value;
+- (id)initWithInt: (int)value;
+- (id)initWithLong: (long)value;
+- (id)initWithLongLong: (long long)value;
+- (id)initWithShort: (short)value;
+- (id)initWithUnsignedChar: (unsigned char)value;
+- (id)initWithUnsignedInt: (unsigned int)value;
+- (id)initWithUnsignedLong: (unsigned long)value;
+- (id)initWithUnsignedLongLong: (unsigned long long)value;
+- (id)initWithUnsignedShort: (unsigned short)value;
 
 // Accessing Data 
 
@@ -114,15 +117,15 @@
 
 @end
 
-/* Note: These methods are not in the OpenStep spec, but they may make
+#ifndef	NO_GNUSTEP
+/* Note: This method is not in the OpenStep spec, but they makes
    subclassing easier. */
 @interface NSValue (Subclassing)
 
-/* Used by value:withObjCType: to determine the concrete subclass to alloc */
-+ (Class)valueClassWithObjCType:(const char *)type;
+/* Used by value: withObjCType: to determine the concrete subclass to alloc */
++ (Class)valueClassWithObjCType: (const char *)type;
 
-/* Designated initializer for all concrete subclasses */
-- initValue:(const void *)value withObjCType:(const char *)type;
 @end
+#endif
 
 #endif /* __NSValue_h_GNUSTEP_BASE_INCLUDE */

@@ -135,143 +135,152 @@
 @implementation NumberTemplate (Private)
 - (int)_nextOrder
 {
-    return NEXT_ORDER;
+  return NEXT_ORDER;
 }
 - (NSComparisonResult) _promotedCompare: (NSNumber*)other
 {
-    NEXT_CTYPE	v0, v1;
+  NEXT_CTYPE	v0, v1;
 
-    v0 = [self NEXT_METHOD];
-    v1 = [other NEXT_METHOD];
+  v0 = [self NEXT_METHOD];
+  v1 = [other NEXT_METHOD];
 
-    if (v0 == v1)
-	return NSOrderedSame;
-    else
-	return (v0 < v1) ?  NSOrderedAscending : NSOrderedDescending;
+  if (v0 == v1)
+    return NSOrderedSame;
+  else
+    return (v0 < v1) ?  NSOrderedAscending : NSOrderedDescending;
 }
 - (int)_typeOrder
 {
-    return TYPE_ORDER;
+  return TYPE_ORDER;
 }
 @end
 
 @implementation NumberTemplate
 
-- initValue:(const void *)value withObjCType:(const char *)type;
+- (id)initWithBytes: (const void *)value objCType: (const char *)type
 {
-    typedef _dt = data;
-    self = [super init];
-    data = *(_dt *)value;
-    return self;
+  typedef _dt = data;
+  self = [super init];
+  data = *(_dt *)value;
+  return self;
 }
 
 - (BOOL)boolValue
 {
-    return data;
+  return data;
 }
 
 - (char)charValue
 {
-    return data;
+  return data;
 }
 
 - (double)doubleValue
 {
-    return data;
+  return data;
 }
 
 - (float)floatValue
 {
-    return data;
+  return data;
 }
 
 - (int)intValue
 {
-    return data;
+  return data;
 }
 
 - (long long)longLongValue
 {
-    return data;
+  return data;
 }
 
 - (long)longValue
 {
-    return data;
+  return data;
 }
 
 - (short)shortValue
 {
-    return data;
+  return data;
 }
 
 - (unsigned char)unsignedCharValue
 {
-    return data;
+  return data;
 }
 
 - (unsigned int)unsignedIntValue
 {
-    return data;
+  return data;
 }
 
 - (unsigned long long)unsignedLongLongValue
 {
-    return data;
+  return data;
 }
 
 - (unsigned long)unsignedLongValue
 {
-    return data;
+  return data;
 }
 
 - (unsigned short)unsignedShortValue
 {
-    return data;
+  return data;
 }
 
-- (NSComparisonResult)compare:(NSNumber *)other
+- (NSComparisonResult)compare: (NSNumber *)other
 {
-    int	o = [self _typeOrder];
+  int	o = [self _typeOrder];
 
-    if (o == [other _typeOrder] || o >= [other _nextOrder]) {
-        typedef _dt = data;
-        _dt other_data = [other TYPE_METHOD];
-    
-        if (data == other_data)
-    	    return NSOrderedSame;
-        else
-    	    return (data < other_data) ?
-		NSOrderedAscending : NSOrderedDescending;
+  if (o == [other _typeOrder] || o >= [other _nextOrder])
+    {
+      typedef _dt = data;
+      _dt other_data = [other TYPE_METHOD];
+  
+      if (data == other_data)
+	return NSOrderedSame;
+      else
+	return (data < other_data) ?  NSOrderedAscending : NSOrderedDescending;
     }
-    o = [self _nextOrder];
-    if (o <= [other _typeOrder]) {
-	NSComparisonResult	r = [other compare: self];
-	if (r == NSOrderedAscending) {
-	    return NSOrderedDescending;
+  o = [self _nextOrder];
+  if (o <= [other _typeOrder])
+    {
+      NSComparisonResult	r = [other compare: self];
+
+      if (r == NSOrderedAscending)
+	{
+	  return NSOrderedDescending;
 	}
-	if (r == NSOrderedDescending) {
-	    return NSOrderedAscending;
+      if (r == NSOrderedDescending)
+	{
+	  return NSOrderedAscending;
 	}
-	return r;
+      return r;
     }
-    if (o >= [other _nextOrder]) {
-	return [self _promotedCompare: other];
+  if (o >= [other _nextOrder])
+    {
+      return [self _promotedCompare: other];
     }
-    else {
-	NSComparisonResult	r = [other _promotedCompare: self];
-	if (r == NSOrderedAscending) {
-	    return NSOrderedDescending;
+  else
+    {
+      NSComparisonResult	r = [other _promotedCompare: self];
+
+      if (r == NSOrderedAscending)
+	{
+	  return NSOrderedDescending;
 	}
-	if (r == NSOrderedDescending) {
-	    return NSOrderedAscending;
+      if (r == NSOrderedDescending)
+	{
+	  return NSOrderedAscending;
 	}
-	return r;
+      return r;
     }
 }
 
 /* Because of the rule that two numbers which are the same according to
- * [-isEqual:] must generate the same hash, we must generate the hash
+ * [-isEqual: ] must generate the same hash, we must generate the hash
  * from the most general representation of the number.
  */
 - (unsigned) hash
@@ -292,9 +301,9 @@
 
 - (BOOL) isEqualToNumber: (NSNumber*)o
 {
-    if ([self compare: o] == NSOrderedSame)
-        return YES;
-    return NO;
+  if ([self compare: o] == NSOrderedSame)
+    return YES;
+  return NO;
 }
 
 - (BOOL) isEqual: o
@@ -308,21 +317,22 @@
 - (NSString *)descriptionWithLocale: (NSDictionary*)locale
 {
 #if TYPE_ORDER == 0
-    return (data) ? @"YES" : @"NO";
+  return (data) ? @"YES" : @"NO";
 #else
-    return [NSString stringWithFormat:TYPE_FORMAT, data];
+  return [NSString stringWithFormat: TYPE_FORMAT, data];
 #endif
 }
 
 // Override these from NSValue
-- (void)getValue:(void *)value
+- (void)getValue: (void *)value
 {
-    if (!value) {
-    	[NSException raise:NSInvalidArgumentException
-		format:@"Cannot copy value into NULL pointer"];
-	/* NOT REACHED */ 
+  if (!value)
+    {
+      [NSException raise: NSInvalidArgumentException
+	      format: @"Cannot copy value into NULL pointer"];
+      /* NOT REACHED */ 
     }
-    memcpy( value, &data, objc_sizeof_type([self objCType]) );
+  memcpy( value, &data, objc_sizeof_type([self objCType]) );
 }
 
 - (const char *)objCType
@@ -332,7 +342,7 @@
 }
 
 // NSCoding
-- classForCoder
+- (Class)classForCoder
 {
   return [self class];
 }
@@ -347,13 +357,13 @@
 - (void) encodeWithCoder: coder
 {
   const char *type = [self objCType];
-  [coder encodeValueOfObjCType: type at: &data withName: @"NSNumber value"];
+  [coder encodeValueOfObjCType: type at: &data];
 }
 
 - (id) initWithCoder: coder
 {
   const char *type = [self objCType];
-  [coder decodeValueOfObjCType: type at: &data withName: NULL];
+  [coder decodeValueOfObjCType: type at: &data];
   return self;
 }
 
