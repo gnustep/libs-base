@@ -1,55 +1,109 @@
-#ifndef __NSObject_h_INCLUDE_GNU
-#define __NSObject_h_INCLUDE_GNU
+/* Interface for NSObject for GNUStep
+   Copyright (C) 1994 NeXT Computer, Inc.
+   
+   Typed by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   Date: August 1994
+   
+   This file is part of the GNU Objective C Class Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+   
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   */ 
+
+#ifndef __NSObject_h_OBJECTS_INCLUDE
+#define __NSObject_h_OBJECTS_INCLUDE
 
 #include <objc/objc.h>
 #include <objc/Protocol.h>
+#include <foundation/NSZone.h>
 
-@class NSArchiver
-@class NSCoder
-@class NSMethodSignature
-@class NSString
+@class NSArchiver;
+@class NSCoder;
+@class NSMethodSignature;
+@class NSString;
+@class NSInvocation;
+@class Protocol;
 
-@interface NSObject
+@protocol NSObject
+- autorelease;
+- (Class) class;
+- (BOOL)conformsToProtocol: (Protocol*)aProtocol;
+- (unsigned) hash;
+- (BOOL) isEqual: anObject;
+- (BOOL) isKindOfClass: (Class)aClass;
+- (BOOL) isMemberOfClass: (Class)aClass;
+- (BOOL) isProxy;
+- perform: (SEL)aSelector;
+- perform: (SEL)aSelector withObject: anObject;
+- perform: (SEL)aSelector withObject: object1 withObject: object2;
+- (oneway void) release;
+- (BOOL) respondsToSelector: (SEL)aSelector;
+- retain;
+- (unsigned) retainCount;
+- self;
+- (NSZone *)zone;
+@end
+
+@protocol NSCopying
+- copyWithZone: (NSZone *)zone;
+- copy;
+@end
+
+@protocol NSMutableCopying
+- mutableCopyWithZone:(NSZone *)zone;
+- mutableCopy;
+@end
+
+@protocol NSCoding
+- (void)encodeWithCoder:(NSCoder *)aCoder;
+- initWithCoder:(NSCoder *)aDecoder;
+@end
+
+
+@interface NSObject <NSObject, NSCoding>
 {
-  Class *isa;
+  Class isa;
 }
 
 + (void) initialize;
-+ (id) alloc;
 + (id) allocWithZone: (NSZone*)z;
++ (id) alloc;
 + (id) new;
 - (id) copy;
 - (void) dealloc;
 - (id) init;
 - (id) mutableCopy;
 
-+ (Class) class;
-+ (Class) superclass;
+- (Class) class;
+- (Class) superclass;
 
 + (BOOL) instancesRespondToSelector: (SEL)aSelector;
-
-+ (BOOL) conformsToProtocol: (Protocol*)aProtocol;
 
 + (IMP) instanceMethodForSelector: (SEL)aSelector;
 - (IMP) methodForSelector: (SEL)aSelector;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 
+- (NSString*) description;
 + (NSString*) description;
 
 + (void) poseAsClass: (Class)aClass;
 
 - (void) doesNotRecognizeSelector: (SEL)aSelector;
 
-+ (void) cancelPreviousPerformRequestsWithTarget: (id)aTarget
-   selector: (SEL)aSelector
-   object: (id)anObject;
-- (void) performSelector: (SEL)aSelector
-   object: (id)anObject
-   afterDelay: (NSTimeInterval)delay;
-
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
 
-- (id) awakAfterUsingCoder: (NSCoder*)aDecoder;
+- (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
 - (Class) classForArchiver;
 - (Class) classForCoder;
 - (id) replacementObjectForArchiveer: (NSArchiver*)anArchiver;
@@ -57,4 +111,24 @@
 
 @end
 
-#endif /* __NSObject_h_INCLUDE_GNU */
+NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
+void NSDeallocateObject(NSObject *anObject);
+NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
+BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
+void NSIncrementExtraRefCount(id anObject);
+BOOL NSDecrementExtraRefCountWasZero(id anObject);
+
+typedef enum _NSComparisonResult 
+{
+  NSOrderedAscending = -1, NSOrderedSame, NSOrderedDescending
+} 
+NSComparisonResult;
+
+enum {NSNotFound = 0x7fffffff};
+
+@interface Object (NEXTSTEP)
+- error:(const char *)aString, ...;
+- notImplemented:(SEL)aSel;
+@end
+
+#endif /* __NSObject_h_OBJECTS_INCLUDE */
