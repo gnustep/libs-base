@@ -138,7 +138,7 @@ BUNDLE_NAME=LoadMe
 LoadMe_OBJC_FILES = LoadMe.m MyCategory.m SecondClass.m
 
 # The bundle resource files and directories
-LoadMe_RESOURCES = English.lproj/NXStringTable.example
+LoadMe_RESOURCE_FILES = English.lproj/NXStringTable.example
 LoadMe_RESOURCE_DIRS = English.lproj
 
 SRCS = $(TEST_TOOL_NAME:=.m)

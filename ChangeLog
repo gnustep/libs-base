@@ -1,3 +1,14 @@
+Tue Mar 31 11:32:03 1998  Adam Fedor  <fedor@doc.com>
+
+	* aclocal.m4 (OBJC_CON_AUTOLOAD): Improved test. Check nm output
+	for indicator functions.
+	* configure: Regenerate.
+
+	* checks/GNUmakefile (LoadMe_RESOURCE_FILES): Changed name.
+
+	* doc/gnustep-howto.tmpl.texi: Update.
+	* doc/status.tmpl.texi: Likewise.
+
 Fri Mar 20 11:15:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* checks/client.m: Added some tests for passing objects byref

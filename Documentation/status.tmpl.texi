@@ -35,6 +35,7 @@ Unknown status.
 	Doesn't yet call -awakeAfterUsingCoder:.
 @item NSArray::			[9]
 @item NSAssertionHandler::		[9]
+@item NSAttributedString::		[8]
 @item NSAutoreleasePool::		[9]
 	But not exception- safe
 @item NSBundle::			[8]
@@ -60,11 +61,17 @@ Unknown status.
 @item NSDeserializer::		[7]
 @item NSDictionary::		[8]
 @item NSDistantObject::		[7]
+@item NSDistributedLock::		[7]
 @item NSEnumerator::		[9]
-@item NSException::			[9]
+@item NSException::		[9]
 	But this needs integration with new, better
+@item NSFileHandle::		[9]
+@item NSFileManager::		[9]
+@item NSHashTable::		[8]
+@item NSHost::			[8]
 @item NSInvocation::		[3]
 @item NSLock::			[8]
+@item NSMapTable::		[8]
 @item NSMethodSignature::		[4]
 @item NSMutableArray::		[8]
 @item NSMutableCharacterSet::	[7]
@@ -89,6 +96,7 @@ Unknown status.
 @item NSString::			[8]
 	Careful, relationship with GNU String is tricky; this could
 	 also use fixing.
+@item NSTask::				[8]
 @item NSThread::			[8]
 @item NSTimeZone::			[8]
 @item NSTimeZoneDetail::		[8]

@@ -170,9 +170,11 @@ make install
 
 @subsection Compiling PCThreads
 
-For Linux/GNU systems on Intel x86 processors, the PCThreads library is
+For GNU/Linux systems on Intel x86 processors, the PCThreads library is
 known to work with GNUstep.  PCThreads version 1.1.0 is an enhanced version
-of PCThread 1.0.0 with better support for GNUstep.
+of PCThread 1.0.0 with better support for GNUstep. PCThreads may no longer
+be necessary on all GNU/Linux systems, such as Debian 2.0 or other systems
+with glibc2.
 
 @example
 cd /usr/src
@@ -204,7 +206,7 @@ Special note for Solaris users.  GNUstep works on Solaris/Intel systems;
 however, GCC 2.8.0 has problems, so you must use the older patched GCC
 2.7.2 instead.  GCC 2.8.0 has also induced a problem on Solaris/Sparc
 systems; however, there is a patch to fix this in the contrib directory
-on the ftp sites.
+on the ftp sites (This is also true for egcs-1.0.1).
 
 @table @asis
 @item 1. Uncompress GCC:
