@@ -28,6 +28,7 @@
 #include <objects/stdobjects.h>
 #include <objects/TcpPort.h>
 #include <objects/Array.h>
+#include <objects/Notification.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -188,6 +189,11 @@ static NSMapTable* port_number_2_port;
 	   autorelease];
 }
 
+- (unsigned) numberOfConnectedOutPorts
+{
+  return NSCountMapTable (client_sock_2_out_port);
+}
+
 - receivePacketWithTimeout: (int)milliseconds
 {
   static int fd_index = 0;
@@ -311,6 +317,7 @@ static NSMapTable* port_number_2_port;
   NSMapInsert (client_sock_2_out_port, (void*)s, p);
 }
 
+/* Called by an OutPort in its -invalidate method. */
 - (void) _connectedOutPortInvalidated: p
 {
   id packet;
@@ -324,11 +331,23 @@ static NSMapTable* port_number_2_port;
     }
   NSMapRemove (client_sock_2_out_port, (void*)s);
   FD_CLR(s, &active_fd_set);
+
+  /* xxx Should this be earlier, so that the notification recievers
+     can still use client_sock_2_out_port before the out port P is removed? */
+  [NotificationDispatcher
+    postNotificationName: InPortClientBecameInvalidNotification
+    object: self
+    userInfo: p];
 }
 
 - (int) _socket
 {
   return _socket;
+}
+
+- (int) portNumber
+{
+  return (int) ntohs (_address.sin_port);
 }
 
 - (void) invalidate
@@ -341,6 +360,7 @@ static NSMapTable* port_number_2_port;
       int sock;
       id out_ports[count];
       int i;
+
       for (i = 0; 
 	   NSNextMapEnumeratorPair (&me, (void*)&sock, (void*)&out_port);
 	   i++)
@@ -351,7 +371,10 @@ static NSMapTable* port_number_2_port;
 	  [out_ports[i] invalidate];
 	}
       assert (!NSCountMapTable (client_sock_2_out_port));
+
       close (_socket);
+
+      /* This also posts a PortBecameInvalidNotification. */
       [super invalidate];
     }
 }
@@ -382,6 +405,15 @@ static NSMapTable* port_number_2_port;
 - (Class) packetClass
 {
   return [TcpPacket class];
+}
+
+- description
+{
+  return [NSString stringWithFormat: @"%s 0x%x port %hd socket %d",
+		   object_get_class_name (self),
+		   (unsigned)self,
+		   ntohs (_address.sin_port),
+		   _socket];
 }
 
 @end
@@ -465,7 +497,19 @@ static NSMapTable* port_number_2_port;
 
 + newWithAcceptedSocket: (int)s inPort: p
 {
-  return [[self alloc] _initWithSocket: s inPort: p];
+  TcpOutPort *op;
+  struct sockaddr_in addr;
+  int size = sizeof (struct sockaddr_in);
+
+  /* Create the port object. */
+  op = [[self alloc] _initWithSocket: s inPort: p];
+
+  /* Fill in its _address ivar. */
+  getsockname (op->_socket, (struct sockaddr*)&addr, &size);
+  assert (size == sizeof (struct sockaddr_in));
+  memcpy (&(op->_address), &addr, sizeof (struct sockaddr_in));
+
+  return op;
 }
 
 - (int) writeBytes: (const char*)b length: (int)len
@@ -497,6 +541,11 @@ static NSMapTable* port_number_2_port;
   return _socket;
 }
 
+- (int) portNumber
+{
+  return (int) ntohs (_address.sin_port);
+}
+
 - (void) close
 {
   [self invalidate];
@@ -511,6 +560,7 @@ static NSMapTable* port_number_2_port;
       [connected_in_port _connectedOutPortInvalidated: self];
       [connected_in_port release];
       connected_in_port = nil;
+      /* This also posts a PortBecameInvalidNotification. */
       [super invalidate];
     }
 }
@@ -532,6 +582,16 @@ static NSMapTable* port_number_2_port;
 - (Class) packetClass
 {
   return [TcpPacket class];
+}
+
+- description
+{
+  return [NSString stringWithFormat: @"%s 0x%x host %s port %hd socket %d",
+		   object_get_class_name (self),
+		   (unsigned)self,
+		   inet_ntoa (_address.sin_addr),
+		   ntohs (_address.sin_port),
+		   _socket];
 }
 
 @end
@@ -630,3 +690,9 @@ static NSMapTable* port_number_2_port;
 
 @end
 
+
+/* Notification Strings. */
+
+NSString *
+InPortClientBecameInvalidNotification = 
+@"InPortClientBecameInvalidNotification";
