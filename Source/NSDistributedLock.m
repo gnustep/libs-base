@@ -111,32 +111,47 @@
 - (BOOL) tryLock
 {
   NSFileManager		*fileManager;
-  NSMutableDictionary	*attributes;
+  NSMutableDictionary	*attributesToSet;
+  NSDictionary		*attributes;
+  BOOL			locked;
 
   fileManager = [NSFileManager defaultManager];
-  attributes = [NSMutableDictionary dictionaryWithCapacity: 1];
-  [attributes setObject: [NSNumber numberWithUnsignedInt: 0755]
-		 forKey: NSFilePosixPermissions];
+  attributesToSet = [NSMutableDictionary dictionaryWithCapacity: 1];
+  [attributesToSet setObject: [NSNumber numberWithUnsignedInt: 0755]
+		      forKey: NSFilePosixPermissions];
 	
-  if ([fileManager createDirectoryAtPath: lockPath
-			      attributes: attributes] == NO)
+  locked = [fileManager createDirectoryAtPath: lockPath
+				   attributes: attributesToSet];
+  if (locked == NO)
     {
       BOOL	dir;
 
+      /*
+       * We expect the directory creation to have failed because it already
+       * exists as another processes lock.  If the directory doesn't exist,
+       * then either the other process has removed it's lock (and we can retry)
+       * or we have a severe problem!
+       */
       if ([fileManager fileExistsAtPath: lockPath isDirectory: &dir] == NO)
-        [NSException raise: NSGenericException 
-		    format: @"Failed to create lock directory '%@' - %s",
-		    lockPath, strerror(errno)];
+	{
+	  locked = [fileManager createDirectoryAtPath: lockPath
+					   attributes: attributes];
+	  if (locked == NO)
+	    {
+	      NSLog(@"Failed to create lock directory '%@' - %s",
+		    lockPath, strerror(errno));
+	    }
+	}
+    }
+
+  if (locked == NO)
+    {
       [lockTime release];
       lockTime = nil;
       return NO;
     }
   else
     {
-      NSFileManager	*fileManager;
-      NSDictionary	*attributes;
-
-      fileManager = [NSFileManager defaultManager];
       attributes = [fileManager fileAttributesAtPath: lockPath
 					traverseLink: YES];
       [lockTime release];
