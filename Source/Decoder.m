@@ -737,7 +737,7 @@ static int debug_coder = 0;
 	[self decodeValueOfCType: @encode(unsigned)
 	      at: &xref 
 	      withName: NULL];
-	*anObjPtr = [self _coderObjectAtReference: xref];
+	*anObjPtr = [[self _coderObjectAtReference: xref] retain];
 	if (!*anObjPtr)
 	  [NSException 
 	    raise: NSGenericException
