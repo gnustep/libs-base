@@ -124,7 +124,6 @@ ConstantString.m \
 CStream.m \
 DelegatePool.m \
 Dictionary.m \
-EltNodeCollector.m \
 GapArray.m \
 Heap.m \
 IndexedCollection.m \
@@ -247,7 +246,6 @@ objects/CStream.h \
 objects/CStreaming.h \
 objects/DelegatePool.h \
 objects/Dictionary.h \
-objects/EltNodeCollector.h \
 objects/EltNode-h \
 objects/EltNode-m \
 objects/GapArray.h \
