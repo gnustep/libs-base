@@ -7,6 +7,7 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSException.h>
 #include "server.h"
 
 #include "wgetopt.h"
@@ -63,6 +64,22 @@
 - echoObject: obj
 {
   return obj;
+}
+
+- (int) exceptionTest1
+{
+  [NSException raise: @"Test1" format: @"exception1"];
+  return 111;
+}
+
+- (void) exceptionTest2
+{
+  [NSException raise: @"Test2" format: @"exception2"];
+}
+
+- (void) exceptionTest3
+{
+  [NSException raise: @"Test3" format: @"exception3"];
 }
 
 - print: (const char *)msg

@@ -1,3 +1,9 @@
+2001-09-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Testing/nsconnection_client.m: Added simple exception tests
+	* Testing/nsconnection_server.m: Added simple exception tests
+	* Testing/server.h: Added simple exception tests
+
 2001-09-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: rewrite ethod call code.
