@@ -405,26 +405,26 @@ static NSString	*pathForUser(NSString *user)
   // Check and if not existent add the Application and the Global domains
   if (![_persDomains objectForKey: processName])
     {
-      [_persDomains setObject: 
-		     [NSMutableDictionaryClass 
-		       dictionaryWithCapacity: 10] forKey: processName];
+      [_persDomains
+	setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
+	forKey: processName];
       [self __changePersistentDomain: processName];
     }
   if (![_persDomains objectForKey: NSGlobalDomain])
     {
-      [_persDomains setObject: 
-		   [NSMutableDictionaryClass 
-		     dictionaryWithCapacity: 10] forKey: NSGlobalDomain];
+      [_persDomains
+	setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
+	forKey: NSGlobalDomain];
       [self __changePersistentDomain: NSGlobalDomain];
     }
 	
   // Create volatile defaults and add the Argument and the Registration domains
   _tempDomains = [[NSMutableDictionaryClass alloc] initWithCapacity: 10];
   [_tempDomains setObject: [self __createArgumentDictionary] 
-	       forKey: NSArgumentDomain];
-  [_tempDomains setObject: 
-		 [NSMutableDictionaryClass
-		   dictionaryWithCapacity: 10] forKey: NSRegistrationDomain];
+		   forKey: NSArgumentDomain];
+  [_tempDomains
+    setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
+    forKey: NSRegistrationDomain];
 	
   return self;
 }
@@ -444,12 +444,12 @@ static NSString	*pathForUser(NSString *user)
 
 - (NSString*) description
 {
-  NSMutableString *desc =
-    [NSMutableString stringWithFormat: @"%@",[super description]];
+  NSMutableString *desc;
 
-  // $$$ Not Implemented
-  // It's good idea to put all useful info here -- so I can test it later
-  [self notImplemented: _cmd];
+  desc = [NSMutableString stringWithFormat: @"%@", [super description]];
+  [desc appendFormat: @" SearchList: %@", _searchList];
+  [desc appendFormat: @" Persistant: %@", _persDomains];
+  [desc appendFormat: @" Temporary: %@", _tempDomains];
   return desc;
 }
 

@@ -721,7 +721,7 @@ static NSString	*indentStrings[] = {
 	  [item descriptionWithLocale: nil indent: 0 to: result];
 	  if (i != last)
 	    {
-	      (*appImp)(result, appSel, @",");
+	      (*appImp)(result, appSel, @", ");
 	    }
 	}
       (*appImp)(result, appSel, @")");
