@@ -2834,7 +2834,6 @@ startElementNsFunction(void *ctx, const unsigned char *name,
 	  [dict setObject: obj forKey: key];
 	}
     }
-  NSLog(@"Start '%@' with %@", elem, dict); 
   [HANDLER startElement: elem
 		 prefix: UTF8Str(prefix)
 		   href: UTF8Str(href)
