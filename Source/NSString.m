@@ -586,7 +586,9 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      self = [self initWithCharactersNoCopy: 0 length: 0 freeWhenDone: NO];
+      self = [self initWithCharactersNoCopy: (unichar*)""
+				     length: 0
+			       freeWhenDone: NO];
     }
 
   return self;
@@ -649,7 +651,7 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      self = [self initWithCharactersNoCopy: 0
+      self = [self initWithCharactersNoCopy: (unichar*)""
 				     length: 0
 			       freeWhenDone: NO];
     }
@@ -700,7 +702,7 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      self = [self initWithCharactersNoCopy: 0
+      self = [self initWithCharactersNoCopy: (unichar*)""
 				     length: 0
 			       freeWhenDone: NO];
     }
@@ -1065,7 +1067,7 @@ handle_printf_atsign (FILE *stream,
 	}
       else
 	{
-	  self = [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
+	  self = [self initWithCStringNoCopy: "" length: 0 freeWhenDone: NO];
 	}
       return self;
     } 
@@ -1109,7 +1111,7 @@ handle_printf_atsign (FILE *stream,
 
       if (len < 1  ||  (len < 2 && encoding == NSUnicodeStringEncoding))
 	{
-	  return [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
+	  return [self initWithCStringNoCopy: "" length: 0 freeWhenDone: NO];
 	}
 
       b = [data bytes];
@@ -1197,7 +1199,9 @@ handle_printf_atsign (FILE *stream,
 
 - (id) init
 {
-  self = [self initWithCharactersNoCopy: 0 length: 0 freeWhenDone: 0];
+  self = [self initWithCharactersNoCopy: (unichar*)""
+				 length: 0
+			   freeWhenDone: 0];
   return self;
 }
 
@@ -3380,7 +3384,7 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      self = [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
+      self = [self initWithCStringNoCopy: "" length: 0 freeWhenDone: NO];
     }
   return self;
 }
