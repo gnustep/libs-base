@@ -145,6 +145,11 @@
   return (self == anObject);
 }
 
++ (BOOL) isKindOfClass: (Class)aClass
+{
+  return NO;
+}
+
 - (BOOL) isKindOfClass: (Class)aClass
 {
   Class class = self->isa;
@@ -158,6 +163,11 @@
       class = class_get_super_class(class);
     }
   return NO;
+}
+
++ (BOOL) isMemberOfClass: (Class)aClass
+{
+  return(self == aClass);
 }
 
 - (BOOL) isMemberOfClass: (Class)aClass
