@@ -352,7 +352,7 @@ static int messages_received_count;
   int i, count;
   id newConnInPort, newConnOutPort;
  
-  assert (ip);
+  NSParameterAssert (ip);
 
   [connection_array_gate lock];
 
@@ -494,8 +494,8 @@ static int messages_received_count;
 {
   id rmc;
 
-  assert(in_port);
-  assert (is_valid);
+  NSParameterAssert(in_port);
+  NSParameterAssert (is_valid);
   rmc = [[self encodingClass] newForWritingWithConnection: self
 			      sequenceNumber: [self _newMsgNumber]
 			      identifier: METHOD_REQUEST];
@@ -508,7 +508,7 @@ static int messages_received_count;
   id rmc = [[self encodingClass] newForWritingWithConnection: self
 				 sequenceNumber: n
 				 identifier: METHOD_REPLY];
-  assert (is_valid);
+  NSParameterAssert (is_valid);
   return rmc;
 }
 
@@ -545,8 +545,8 @@ static int messages_received_count;
     const char *type;
     retval_t retframe;
     int seq_num;
-  
-    assert (is_valid);
+
+    NSParameterAssert (is_valid);
     op = [self newSendingRequestRmc];
     seq_num = [op sequenceNumber];
 
@@ -559,8 +559,8 @@ static int messages_received_count;
 #else
     type = sel_get_type(sel);
 #endif
-    assert(type);
-    assert(*type);
+    NSParameterAssert(type);
+    NSParameterAssert(*type);
 
     /* Send the types that we're using, so that the performer knows
        exactly what qualifiers we're using.
@@ -583,12 +583,34 @@ static int messages_received_count;
     {
       ConnectedDecoder *ip = nil;
       int last_argnum;
+      BOOL is_exception;
 
       void decoder(int argnum, void *datum, const char *type, int flags)
 	{
-	  assert(ip != (id)-1);
+	  NSParameterAssert(ip != (id)-1);
+	  /* If we didn't get the reply packet yet, get it now. */
 	  if (!ip)
-	    ip = [self _getReceivedReplyRmcWithSequenceNumber:seq_num];
+	    {
+	      /* xxx Why do we get the reply packet in here, and not
+		 just before calling dissect_method_return() below? */
+	      ip = [self _getReceivedReplyRmcWithSequenceNumber:seq_num];
+	      /* Find out if the server is returning an exception instead
+		 of the return values. */
+	      [ip decodeValueOfCType: @encode(BOOL)
+		  at: &is_exception
+		  withName: NULL];
+	      if (is_exception)
+		{
+		  /* Decode the exception object, and raise it. */
+		  id exc;
+		  [ip decodeObjectAt: &exc
+		      withName: NULL];
+		  [ip dismiss];
+		  /* xxx Is there anything else to clean up in
+		     dissect_method_return()? */
+		  [exc raise];
+		}
+	    }
 	  [ip decodeValueOfObjCType:type at:datum withName:NULL];
 	  if (argnum == last_argnum)
 	    {
@@ -629,8 +651,14 @@ static int messages_received_count;
     {
 #define ENCODED_RETNAME @"return value"
       if (op == nil)
-	op = [self newSendingReplyRmcWithSequenceNumber:
-		   reply_sequence_number];
+	{
+	  BOOL is_exception = NO;
+	  op = [self newSendingReplyRmcWithSequenceNumber:
+		       reply_sequence_number];
+	  [op encodeValueOfCType: @encode(BOOL)
+	      at: &is_exception
+	      withName: @"Exceptional reply flag"];
+	}
       switch (*type)
 	{
 	case _C_ID:
@@ -644,25 +672,51 @@ static int messages_received_count;
 	}
     }
 
-  assert (is_valid);
+  /* Make sure don't let exceptions caused by servicing the client's 
+     request cause us to crash. */
+  NS_DURING
+    {
+      NSParameterAssert (is_valid);
 
-  /* Save this for later */
-  reply_sequence_number = [aRmc sequenceNumber];
+      /* Save this for later */
+      reply_sequence_number = [aRmc sequenceNumber];
   
-  /* Get the types that we're using, so that we know
-     exactly what qualifiers the forwarder used.
-     If all selectors included qualifiers and I could make sel_types_match() 
-     work the way I wanted, we wouldn't need to do this. */
-  [aRmc decodeValueOfCType:@encode(char*) 
-	at:&forward_type 
-	withName:NULL];
+      /* Get the types that we're using, so that we know
+	 exactly what qualifiers the forwarder used.
+	 If all selectors included qualifiers and I could make
+	 sel_types_match() work the way I wanted, we wouldn't need 
+	 to do this. */ 
+      [aRmc decodeValueOfCType:@encode(char*) 
+	    at:&forward_type 
+	    withName:NULL];
 
-  numargs = type_get_number_of_arguments(forward_type);
+      numargs = type_get_number_of_arguments(forward_type);
+      
+      make_method_call(forward_type, decoder, encoder);
+      [op dismiss];
+    }
 
-  make_method_call(forward_type, decoder, encoder);
-  [op dismiss];
+  /* Make sure we pass all exceptions back to the requestor. */
+  NS_HANDLER
+    {
+      BOOL is_exception = YES;
+      /* Try to clean up a little. */
+      if (op)
+	[op release];
 
-  (*objc_free)(forward_type);
+      /* Send the exception back to the client. */
+      op = [self newSendingReplyRmcWithSequenceNumber: reply_sequence_number];
+      [op encodeValueOfCType: @encode(BOOL)
+	  at: &is_exception
+	  withName: @"Exceptional reply flag"];
+      [op encodeBycopyObject: exception
+	  withName: @"Exception object"];
+      [op dismiss];
+    }
+  NS_ENDHANDLER;
+
+  if (forward_type)
+    (*objc_free) (forward_type);
 }
 
 - (Proxy*) rootProxy
@@ -671,8 +725,8 @@ static int messages_received_count;
   Proxy *newProxy;
   int seq_num = [self _newMsgNumber];
 
-  assert(in_port);
-  assert (is_valid);
+  NSParameterAssert(in_port);
+  NSParameterAssert (is_valid);
   op = [[self encodingClass]
 	newForWritingWithConnection: self
 	sequenceNumber: seq_num
@@ -680,7 +734,7 @@ static int messages_received_count;
   [op dismiss];
   ip = [self _getReceivedReplyRmcWithSequenceNumber: seq_num];
   [ip decodeObjectAt: &newProxy withName: NULL];
-  assert (class_is_kind_of (newProxy->isa, objc_get_class ("Proxy")));
+  NSParameterAssert (class_is_kind_of (newProxy->isa, objc_get_class ("Proxy")));
   [ip dismiss];
   return newProxy;
 }
@@ -692,10 +746,10 @@ static int messages_received_count;
 			newForWritingWithConnection: [rmc connection]
 			sequenceNumber: [rmc sequenceNumber]
 			identifier: ROOTPROXY_REPLY];
-  assert (in_port);
-  assert (is_valid);
+  NSParameterAssert (in_port);
+  NSParameterAssert (is_valid);
   /* Perhaps we should turn this into a class method. */
-  assert([rmc connection] == self);
+  NSParameterAssert([rmc connection] == self);
   [op encodeObject: rootObject withName: @"root object"];
   [op dismiss];
 }
@@ -704,8 +758,8 @@ static int messages_received_count;
 {
   id op;
 
-  assert(in_port);
-  assert (is_valid);
+  NSParameterAssert(in_port);
+  NSParameterAssert (is_valid);
   op = [[self encodingClass]
 	newForWritingWithConnection: self
 	sequenceNumber: [self _newMsgNumber]
@@ -715,7 +769,7 @@ static int messages_received_count;
 
 - (void) _service_shutdown: rmc forConnection: receiving_connection
 {
-  assert (is_valid);
+  NSParameterAssert (is_valid);
   [self invalidate];
   if (receiving_connection == self)
     [NSException raise: NSGenericException
@@ -730,8 +784,8 @@ static int messages_received_count;
   char *type;
   int seq_num;
 
-  assert(in_port);
-  assert (is_valid);
+  NSParameterAssert(in_port);
+  NSParameterAssert (is_valid);
   seq_num = [self _newMsgNumber];
   op = [[self encodingClass]
 	newForWritingWithConnection: self
@@ -760,9 +814,9 @@ static int messages_received_count;
   const char *type;
   struct objc_method* m;
 
-  assert(in_port);
-  assert (is_valid);
-  assert([rmc connection] == self);
+  NSParameterAssert(in_port);
+  NSParameterAssert (is_valid);
+  NSParameterAssert([rmc connection] == self);
   op = [[self encodingClass]
 	newForWritingWithConnection: [rmc connection]
 	sequenceNumber: [rmc sequenceNumber]
@@ -953,7 +1007,7 @@ static int messages_received_count;
 {
   int n;
 
-  assert (is_valid);
+  NSParameterAssert (is_valid);
   [sequenceNumberGate lock];
   n = message_count++;
   [sequenceNumberGate unlock];
@@ -966,7 +1020,7 @@ static int messages_received_count;
 
 - (void) addLocalObject: anObj
 {
-  assert (is_valid);
+  NSParameterAssert (is_valid);
   [proxiesHashGate lock];
   /* xxx Do we need to check to make sure it's not already there? */
   /* This retains anObj. */
@@ -1042,7 +1096,7 @@ static int messages_received_count;
   [proxiesHashGate lock];
   p = NSMapGet (remote_proxies, (void*)target);
   [proxiesHashGate unlock];
-  assert(!p || [p connectionForProxy] == self);
+  NSParameterAssert(!p || [p connectionForProxy] == self);
   return p;
 }
 
@@ -1050,9 +1104,9 @@ static int messages_received_count;
 {
   unsigned target = [aProxy targetForProxy];
 
-  assert (is_valid);
-  assert(aProxy->isa == [Proxy class]);
-  assert([aProxy connectionForProxy] == self);
+  NSParameterAssert (is_valid);
+  NSParameterAssert(aProxy->isa == [Proxy class]);
+  NSParameterAssert([aProxy connectionForProxy] == self);
   [proxiesHashGate lock];
   if (NSMapGet (remote_proxies, (void*)target))
     [NSException raise: NSGenericException
@@ -1094,7 +1148,7 @@ static int messages_received_count;
   BOOL ret;
 
   /* Don't assert (is_valid); */
-  assert (all_connections_local_targets);
+  NSParameterAssert (all_connections_local_targets);
   [proxiesHashGate lock];
   ret = NSMapGet (all_connections_local_targets, (void*)anObj) ? YES : NO;
   [proxiesHashGate unlock];
@@ -1107,7 +1161,7 @@ static int messages_received_count;
 {
   id oldRootObject = [self rootObjectForInPort: aPort];
 
-  assert ([aPort isValid]);
+  NSParameterAssert ([aPort isValid]);
   /* xxx This retains aPort?  How will aPort ever get dealloc'ed? */
   if (oldRootObject != anObj)
     {
@@ -1234,17 +1288,17 @@ static int messages_received_count;
 {
   unsigned xref;
 
-  assert (is_valid);
+  NSParameterAssert (is_valid);
   /* This must match the assignment of xref in _decoderCreateRef... */
   xref = NSCountMapTable (outgoing_const_ptr_2_xref) + 1;
-  assert (! NSMapGet (outgoing_const_ptr_2_xref, (void*)xref));
+  NSParameterAssert (! NSMapGet (outgoing_const_ptr_2_xref, (void*)xref));
   NSMapInsert (outgoing_const_ptr_2_xref, ptr, (void*)xref);
   return xref;
 }
 
 - (unsigned) _encoderReferenceForConstPtr: (const void*)ptr
 {
-  assert (is_valid);
+  NSParameterAssert (is_valid);
   return (unsigned) NSMapGet (outgoing_const_ptr_2_xref, ptr);
 }
 
@@ -1252,7 +1306,7 @@ static int messages_received_count;
 {
   unsigned xref;
 
-  assert (is_valid);
+  NSParameterAssert (is_valid);
   /* This must match the assignment of xref in _encoderCreateRef... */
   xref = NSCountMapTable (incoming_xref_2_const_ptr) + 1;
   NSMapInsert (incoming_xref_2_const_ptr, (void*)xref, ptr);
@@ -1261,7 +1315,7 @@ static int messages_received_count;
 
 - (const void*) _decoderConstPtrAtReference: (unsigned)xref
 {
-  assert (is_valid);
+  NSParameterAssert (is_valid);
   return NSMapGet (incoming_xref_2_const_ptr, (void*)xref);
 }
 
@@ -1288,7 +1342,7 @@ static int messages_received_count;
 {
   id port = [notification object];
 
-  assert (is_valid);
+  NSParameterAssert (is_valid);
   if (debug_connection)
     fprintf (stderr, "Received port invalidation notification for "
 	     "connection 0x%x\n\t%s\n", (unsigned)self,
@@ -1297,7 +1351,7 @@ static int messages_received_count;
      except from our own ports; this is how we registered ourselves
      with the NotificationDispatcher in 
      +newForInPort:outPort:ancestorConnection. */
-  assert (port == in_port || port == out_port);
+  NSParameterAssert (port == in_port || port == out_port);
 
   /* xxx This also needs to be done properly in cases where the
      Connection invalidates itself. */
