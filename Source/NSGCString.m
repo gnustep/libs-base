@@ -130,16 +130,12 @@
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  NSGMutableCString *s;
-
   if (aRange.location > _count)
     [NSException raise: NSRangeException format:@"Invalid location."];
   if (aRange.length > (_count - aRange.location))
     [NSException raise: NSRangeException format:@"Invalid location+length."];
-  s = [[NSGMutableCString alloc] initWithCapacity:aRange.length+1];
-  [s setCString:_contents_chars+aRange.location length:aRange.length];
-  [s autorelease];
-  return (NSString *)s;
+  return [[self class] stringWithCString: _contents_chars + aRange.location
+		       length: aRange.length];
 }
 
 // FOR IndexedCollection SUPPORT;
