@@ -254,6 +254,7 @@ static NSLock *root_object_dictionary_gate;
 
 static NSMapTable *receive_port_2_ancestor;
 
+static NSMapTable *all_connections_local_objects = NULL;
 static NSMapTable *all_connections_local_targets = NULL;
 static NSMapTable *all_connections_local_cached = NULL;
 
@@ -327,9 +328,12 @@ static int messages_received_count;
   connection_array = [[NSMutableArray alloc] initWithCapacity:8];
   connection_array_gate = [NSLock new];
   /* xxx When NSHashTable's are working, change this. */
-  all_connections_local_targets =
+  all_connections_local_objects =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
+  all_connections_local_targets =
+    NSCreateMapTable (NSIntMapKeyCallBacks,
+		      NSNonOwnedPointerMapValueCallBacks, 0);
   all_connections_local_cached =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
@@ -431,6 +435,7 @@ static int messages_received_count;
 
   [proxiesHashGate lock];
   NSFreeMapTable (remote_proxies);
+  NSFreeMapTable (local_objects);
   NSFreeMapTable (local_targets);
   NSFreeMapTable (incoming_xref_2_const_ptr);
   NSFreeMapTable (outgoing_const_ptr_2_xref);
@@ -522,7 +527,7 @@ static int messages_received_count;
 	targets = [NSAllMapTableValues(local_targets) retain];
 	for (i = 0; i < [targets count]; i++)
 	  {
-	    id	t = [[targets objectAtIndex:i] targetForProxy];
+	    id	t = [[targets objectAtIndex:i] localForProxy];
 
 	    [self removeLocalObject:t];
 	  }
@@ -925,9 +930,14 @@ static int messages_received_count;
   /* This maps (void*)obj to (id)obj.  The obj's are retained.
      We use this instead of an NSHashTable because we only care about
      the object's address, and don't want to send the -hash message to it. */
-  newConn->local_targets =
+  newConn->local_objects =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
+
+  /* This maps handles for local objects to their local proxies. */
+  newConn->local_targets =
+    NSCreateMapTable (NSIntMapKeyCallBacks,
+		      NSNonOwnedPointerMapValueCallBacks, 0);
 
   /* This maps [proxy targetForProxy] to proxy.  The proxy's are retained. */
   newConn->remote_proxies =
@@ -1437,7 +1447,7 @@ static int messages_received_count;
 		   withName: NULL];
 
     for (pos = 0; pos < count; pos++) {
-	unsigned int	target;
+	gsu32		target;
 	char		vended;
 	NSDistantObject	*prox;
 
@@ -1463,7 +1473,7 @@ static int messages_received_count;
 
 - (void) _service_retain: rmc forConnection: receiving_connection
 {
-    unsigned int	target;
+    gsu32 target;
 
     NSParameterAssert (is_valid);
 
@@ -1508,7 +1518,7 @@ static int messages_received_count;
   [rmc dismiss];
 }
 
-- (const char *) typeForSelector: (SEL)sel remoteTarget: (unsigned)target
+- (const char *) typeForSelector: (SEL)sel remoteTarget: (gsu32)target
 {
   id op, ip;
   char *type = 0;
@@ -1524,7 +1534,7 @@ static int messages_received_count;
   [op encodeValueOfObjCType:":"
       at:&sel
       withName:NULL];
-  [op encodeValueOfCType:@encode(unsigned)
+  [op encodeValueOfCType:@encode(gsu32)
       at:&target
       withName:NULL];
   [op dismiss];
@@ -1539,7 +1549,9 @@ static int messages_received_count;
 - (void) _service_typeForSelector: rmc
 {
   NSPortCoder* op;
-  unsigned target;
+  gsu32 target;
+  NSDistantObject *p;
+  id o;
   SEL sel;
   const char *type;
   struct objc_method* m;
@@ -1555,12 +1567,15 @@ static int messages_received_count;
   [rmc decodeValueOfObjCType:":"
        at:&sel
        withName:NULL];
-  [rmc decodeValueOfCType:@encode(unsigned)
+  [rmc decodeValueOfCType:@encode(gsu32)
        at:&target
        withName:NULL];
+  p = [self includesLocalTarget: target];
+  o = [p localForProxy];
+
   /* xxx We should make sure that TARGET is a valid object. */
   /* Not actually a Proxy, but we avoid the warnings "id" would have made. */
-  m = class_get_instance_method(((NSDistantObject*)target)->isa, sel);
+  m = class_get_instance_method((o)->isa, sel);
   /* Perhaps I need to be more careful in the line above to get the
      version of the method types that has the type qualifiers in it.
      Search the protocols list. */
@@ -1764,47 +1779,52 @@ static int messages_received_count;
 /* Managing objects and proxies. */
 - (void) addLocalObject: anObj
 {
-    id	local = [anObj targetForProxy];
-    id	counter;
+  id	object = [anObj localForProxy];
+  gsu32	target = [anObj targetForProxy];
+  id	counter;
 
-    NSParameterAssert (is_valid);
-    [proxiesHashGate lock];
-    /* xxx Do we need to check to make sure it's not already there? */
-    /* This retains anObj. */
-    NSMapInsert(local_targets, (void*)local, anObj);
+  NSParameterAssert (is_valid);
+  [proxiesHashGate lock];
+  /* xxx Do we need to check to make sure it's not already there? */
+  /* This retains anObj. */
+  NSMapInsert(local_objects, (void*)object, anObj);
+  NSMapInsert(local_targets, (void*)target, anObj);
 
-    /*
-     *	Keep track of local objects accross all connections.
-     */
-    counter = NSMapGet(all_connections_local_targets, (void*)local);
-    if (counter) {
-	[counter increment];
+  /*
+   *	Keep track of local objects accross all connections.
+   */
+  counter = NSMapGet(all_connections_local_objects, (void*)object);
+  if (counter)
+    {
+      [counter increment];
     }
-    else {
-	counter = [ConnectionLocalCounter new];
-	NSMapInsert(all_connections_local_targets, (void*)local, counter);
-	[counter release];
+  else
+    {
+      counter = [ConnectionLocalCounter new];
+      NSMapInsert(all_connections_local_objects, (void*)object, counter);
+      NSMapInsert(all_connections_local_targets, (void*)target, counter);
+      [counter release];
     }
-    if (debug_connection > 2)
-      NSLog(@"add local object (0x%x) to connection (0x%x) (ref %d)\n",
-		(unsigned)local, (unsigned) self, [counter value]);
-    [proxiesHashGate unlock];
+  if (debug_connection > 2)
+    NSLog(@"add local object (0x%x) to connection (0x%x) (ref %d)\n",
+		(unsigned)object, (unsigned) self, [counter value]);
+  [proxiesHashGate unlock];
 }
 
-- (NSDistantObject*) localForTarget: (void*)target
+- (NSDistantObject*) localForObject: (id)object
 {
   NSDistantObject *p;
 
   /* Don't assert (is_valid); */
   [proxiesHashGate lock];
-  p = NSMapGet (local_targets, target);
+  p = NSMapGet (local_objects, (void*)object);
   [proxiesHashGate unlock];
   NSParameterAssert(!p || [p connectionForProxy] == self);
   return p;
 }
 
 /* This should get called whenever an object free's itself */
-+ (void) removeLocalObject: anObj
++ (void) removeLocalObject: (id)anObj
 {
   id c;
   int i, count = [connection_array count];
@@ -1820,127 +1840,134 @@ static int messages_received_count;
 
 - (void) removeLocalObject: anObj
 {
-    id	counter;
-    unsigned val = 0;
+  NSDistantObject	*prox = NSMapGet(local_objects, (void*)anObj);
+  gsu32			target = [prox targetForProxy];
+  id	counter;
+  unsigned val = 0;
 
-    [proxiesHashGate lock];
+  [proxiesHashGate lock];
 
-    /*
-     *	If all references to a local proxy have gone - remove the
-     *	global reference as well.
-     */
-    counter = NSMapGet(all_connections_local_targets, (void*)anObj);
-    if (counter) {
-	[counter decrement];
-	if ((val = [counter value]) == 0) {
-	    NSDistantObject	*prox = NSMapGet(local_targets, (void*)anObj);
-
-	    NSMapRemove(all_connections_local_targets, (void*)anObj);
-	    /*
-	     *	If this proxy has been vended onwards by another process, we
-	     *	need to keep a reference to the local object around for a
-	     *	while in case that other process needs it.
-	     */
-	    if ([prox isVended]) {
-		id	item;
-		if (timer == nil) {
-		    timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
-					   target: [NSConnection class]
+  /*
+   *	If all references to a local proxy have gone - remove the
+   *	global reference as well.
+   */
+  counter = NSMapGet(all_connections_local_objects, (void*)anObj);
+  if (counter)
+    {
+      [counter decrement];
+      if ((val = [counter value]) == 0)
+	{
+	  NSMapRemove(all_connections_local_objects, (void*)anObj);
+	  NSMapRemove(all_connections_local_targets, (void*)target);
+	  /*
+	   *	If this proxy has been vended onwards by another process, we
+	   *	need to keep a reference to the local object around for a
+	   *	while in case that other process needs it.
+	   */
+	  if ([prox isVended])
+	    {
+	      id	item;
+	      if (timer == nil)
+		{
+		  timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
+					 target: [NSConnection class]
 					 selector: @selector(_timeout:)
 					 userInfo: nil
 					  repeats: YES];
 		}
-		item = [CachedLocalObject itemWithObject: anObj time: 30];
-		NSMapInsert(all_connections_local_cached, anObj, item);
+	      item = [CachedLocalObject itemWithObject: anObj time: 30];
+	      NSMapInsert(all_connections_local_cached, anObj, item);
 	    }
 	}
     }
 
-    NSMapRemove (local_targets, (void*)anObj);
+  NSMapRemove(local_objects, (void*)anObj);
+  NSMapRemove(local_targets, (void*)target);
 
-    if (debug_connection > 2)
-	NSLog(@"remove local object (0x%x) to connection (0x%x) (ref %d)\n",
+  if (debug_connection > 2)
+    NSLog(@"remove local object (0x%x) to connection (0x%x) (ref %d)\n",
 		(unsigned)anObj, (unsigned) self, val);
 
-    [proxiesHashGate unlock];
+  [proxiesHashGate unlock];
 }
 
 - (void) _release_targets: (NSDistantObject**)list count:(unsigned int)number
 {
-    NS_DURING
+  NS_DURING
     {
-	/*
-	 *	Tell the remote app that it can release its local objects
-	 *	for the targets in the specified list since we don't have
-	 *	proxies for them any more.
-	 */
-	if (receive_port && is_valid && number > 0) {
-	    id		op;
-	    unsigned int 	i;
+      /*
+       *	Tell the remote app that it can release its local objects
+       *	for the targets in the specified list since we don't have
+       *	proxies for them any more.
+       */
+      if (receive_port && is_valid && number > 0) {
+	  id		op;
+	  unsigned int 	i;
 
-	    op = [[self encodingClass]
-		    newForWritingWithConnection: self
-				 sequenceNumber: [self _newMsgNumber]
-				     identifier: PROXY_RELEASE];
+	  op = [[self encodingClass]
+		  newForWritingWithConnection: self
+			       sequenceNumber: [self _newMsgNumber]
+				   identifier: PROXY_RELEASE];
 
-	    [op encodeValueOfCType: @encode(typeof(number))
-				at: &number
-			  withName: NULL];
+	  [op encodeValueOfCType: @encode(typeof(number))
+			      at: &number
+			withName: NULL];
 
-	    for (i = 0; i < number; i++) {
-		unsigned	target = (unsigned)[list[i] targetForProxy];
-		char		vended = [list[i] isVended];
+	  for (i = 0; i < number; i++) {
+	      gsu32	target = [list[i] targetForProxy];
+	      char	vended = [list[i] isVended];
 
-		[op encodeValueOfCType: @encode(typeof(target))
-				    at: &target
-			      withName: NULL];
-		[op encodeValueOfCType: @encode(char)
-				    at: &vended
-			      withName: NULL];
-	    }
+	      [op encodeValueOfCType: @encode(typeof(target))
+				  at: &target
+			    withName: NULL];
+	      [op encodeValueOfCType: @encode(char)
+				  at: &vended
+			    withName: NULL];
+	  }
 
-	    [op dismiss];
-	}
+	  [op dismiss];
+      }
     }
-    NS_HANDLER
+  NS_HANDLER
     {
       if (debug_connection)
         NSLog(@"failed to release targets - %@\n", [localException name]);
     }
-    NS_ENDHANDLER
+  NS_ENDHANDLER
 }
 
-- (void) retainTarget: (unsigned int)target
+- (void) retainTarget: (gsu32)target
 {
-    NS_DURING
+  NS_DURING
     {
-	/*
-	 *	Tell the remote app that it must retain the local object
-	 *	for the target on this connection.
-	 */
-	if (receive_port && is_valid) {
-	    id		op;
-	    unsigned int 	i;
-	    int seq_num = [self _newMsgNumber];
+      /*
+       *	Tell the remote app that it must retain the local object
+       *	for the target on this connection.
+       */
+      if (receive_port && is_valid)
+	{
+	  id		op;
+	  unsigned int 	i;
+	  int seq_num = [self _newMsgNumber];
 
-	    op = [[self encodingClass]
-		    newForWritingWithConnection: self
-				 sequenceNumber: seq_num
-				     identifier: PROXY_RETAIN];
+	  op = [[self encodingClass]
+		  newForWritingWithConnection: self
+			       sequenceNumber: seq_num
+				   identifier: PROXY_RETAIN];
 
-	    [op encodeValueOfCType: @encode(typeof(target))
-				at: &target
-			  withName: NULL];
+	  [op encodeValueOfCType: @encode(typeof(target))
+			      at: &target
+			withName: NULL];
 
-	    [op dismiss];
+	  [op dismiss];
 	}
     }
-    NS_HANDLER
+  NS_HANDLER
     {
       if (debug_connection)
         NSLog(@"failed to retain target - %@\n", [localException name]);
     }
-    NS_ENDHANDLER
+  NS_ENDHANDLER
 }
 
 - (void) removeProxy: (NSDistantObject*)aProxy
@@ -1966,7 +1993,7 @@ static int messages_received_count;
 
   /* Don't assert (is_valid); */
   [proxiesHashGate lock];
-  c = NSAllMapTableValues (local_targets);
+  c = NSAllMapTableValues (local_objects);
   [proxiesHashGate unlock];
   return c;
 }
@@ -1982,13 +2009,13 @@ static int messages_received_count;
   return c;
 }
 
-- (NSDistantObject*) proxyForTarget: (void*)target
+- (NSDistantObject*) proxyForTarget: (gsu32)target
 {
   NSDistantObject *p;
 
   /* Don't assert (is_valid); */
   [proxiesHashGate lock];
-  p = NSMapGet (remote_proxies, target);
+  p = NSMapGet (remote_proxies, (void*)target);
   [proxiesHashGate unlock];
   NSParameterAssert(!p || [p connectionForProxy] == self);
   return p;
@@ -2009,7 +2036,7 @@ static int messages_received_count;
   [proxiesHashGate unlock];
 }
 
-- (id) includesProxyForTarget: (void*)target
+- (id) includesProxyForTarget: (gsu32)target
 {
   NSDistantObject	*ret;
 
@@ -2020,13 +2047,24 @@ static int messages_received_count;
   return ret;
 }
 
-- (id) includesLocalObject: anObj
+- (id) includesLocalObject: (id)anObj
 {
   NSDistantObject* ret;
 
   /* Don't assert (is_valid); */
   [proxiesHashGate lock];
-  ret = NSMapGet(local_targets, (void*)anObj);
+  ret = NSMapGet(local_objects, (void*)anObj);
+  [proxiesHashGate unlock];
+  return ret;
+}
+
+- (id) includesLocalTarget: (gsu32)target
+{
+  NSDistantObject* ret;
+
+  /* Don't assert (is_valid); */
+  [proxiesHashGate lock];
+  ret = NSMapGet(local_targets, (void*)target);
   [proxiesHashGate unlock];
   return ret;
 }
@@ -2035,9 +2073,9 @@ static int messages_received_count;
    Proxy needs to use this when decoding a local object in order to
    make sure the target address is a valid object.  It is not enough
    for the Proxy to check the Proxy's connection only (using
-   -includesLocalObject), because the proxy may have come from a
+   -includesLocalTarget), because the proxy may have come from a
    triangle connection. */
-+ (id) includesLocalObject: anObj
++ (id) includesLocalTarget: (gsu32)anObj
 {
   id ret;
 

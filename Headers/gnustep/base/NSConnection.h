@@ -70,6 +70,7 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
   unsigned req_in_count;
   unsigned rep_out_count;
   unsigned rep_in_count;
+  NSMapTable *local_objects;
   NSMapTable *local_targets;
   NSMapTable *remote_proxies;
   NSTimeInterval reply_timeout;
@@ -220,7 +221,7 @@ extern NSString *NSConnectionProxyCount;	/* Objects received	*/
 
 /* Only subclassers and power-users need worry about these */
 - (void) addProxy: (NSDistantObject*)aProxy;
-- (id) includesProxyForTarget: (void*)target;
+- (id) includesProxyForTarget: (gsu32)target;
 - (void) removeProxy: (NSDistantObject*)aProxy;
 
 // It seems to be a non pure-OPENSTEP definition...
