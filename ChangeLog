@@ -3,6 +3,7 @@
 	* Source/NSKeyedArchiver.m:
 	* Source/NSKeyedUnarchiver.m:
 	Added NSPoint, NSRect, and NSSize coding methods.
+	implemented quick hack of ([decodeValueOfObCType:at:])
 	* Source/NSMSoperamulti_test.m: Sort dictionary items in xml output
 
 2004-01-23 Richard Frith-Macdonald <rfm@gnu.org>
