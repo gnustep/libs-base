@@ -491,22 +491,22 @@ RCS_FILES = \
         $(GNUSTEP_HEADERS) \
         $(GNUSTEP_OTHER_SRCFILES)
 
-all: gnustep/base $(LIBRARY_NAME)$(LIBEXT) @SHARED_LIBRARY@
+all: gnustep/base lib$(LIBRARY_NAME)$(LIBEXT) @SHARED_LIBRARY@
 
-$(LIBRARY_NAME).so.$(VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC) 
-	$(CC) -shared -o $(LIBRARY_NAME).so.$(VERSION) \
-		-Wl,-soname,$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
+lib$(LIBRARY_NAME).so.$(VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC) 
+	$(CC) -shared -o lib$(LIBRARY_NAME).so.$(VERSION) \
+		-Wl,-soname,lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
 		$(OBJS_INSTALL_PIC)
-	rm -f $(LIBRARY_NAME).so.$(MAJOR_VERSION) 
-	rm -f $(LIBRARY_NAME).so
-	ln -s $(LIBRARY_NAME).so.$(VERSION) \
-		$(LIBRARY_NAME).so.$(MAJOR_VERSION)
-	ln -s $(LIBRARY_NAME).so.$(MAJOR_VERSION) \
-		$(LIBRARY_NAME).so
+	rm -f lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) 
+	rm -f lib$(LIBRARY_NAME).so
+	ln -s lib$(LIBRARY_NAME).so.$(VERSION) \
+		lib$(LIBRARY_NAME).so.$(MAJOR_VERSION)
+	ln -s lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
+		lib$(LIBRARY_NAME).so
 
-$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) 
-	$(AR) $(ARFLAGS) $(AROUT)$(LIBRARY_NAME)$(LIBEXT) $(OBJS_INSTALL)
-	$(RANLIB) $(LIBRARY_NAME)$(LIBEXT)
+lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) 
+	$(AR) $(ARFLAGS) $(AROUT)lib$(LIBRARY_NAME)$(LIBEXT) $(OBJS_INSTALL)
+	$(RANLIB) lib$(LIBRARY_NAME)$(LIBEXT)
 
 gnustep/base:
 	mkdir gnustep
@@ -515,16 +515,16 @@ gnustep/base:
 
 install: installdirs all
 	# Install the library
-	$(INSTALL_DATA) $(LIBRARY_NAME)$(LIBEXT) $(libdir)
-	$(RANLIB) $(libdir)/$(LIBRARY_NAME)$(LIBEXT); \
+	$(INSTALL_DATA) lib$(LIBRARY_NAME)$(LIBEXT) $(libdir)
+	$(RANLIB) $(libdir)/lib$(LIBRARY_NAME)$(LIBEXT); \
 	if [ -n "@SHARED_LIBRARY@" ]; then \
-	  $(INSTALL_DATA) $(LIBRARY_NAME).so.$(VERSION) $(libdir) ; \
-	  rm -f $(libdir)/$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
-	  rm -f $(libdir)/$(LIBRARY_NAME).so ; \
-	  ln -s $(libdir)/$(LIBRARY_NAME).so.$(VERSION) \
-		$(libdir)/$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
-	  ln -s $(libdir)/$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
-		$(libdir)/$(LIBRARY_NAME).so ; \
+	  $(INSTALL_DATA) lib$(LIBRARY_NAME).so.$(VERSION) $(libdir) ; \
+	  rm -f $(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
+	  rm -f $(libdir)/lib$(LIBRARY_NAME).so ; \
+	  ln -s $(libdir)/lib$(LIBRARY_NAME).so.$(VERSION) \
+		$(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
+	  ln -s $(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
+		$(libdir)/lib$(LIBRARY_NAME).so ; \
 	fi
 	# Install the headers
 	for file in $(HEADERS_INSTALL); do \
@@ -541,7 +541,7 @@ installdirs:
 		$(includedir)/gnustep/base
 
 uninstall:
-	rm -f $(libdir)/$(LIBRARY_NAME)$(LIBEXT)
+	rm -f $(libdir)/lib$(LIBRARY_NAME)$(LIBEXT)
 	rm -rf $(includedir)/gnustep/base
 	rm -f $(includedir)/Foundation
 
@@ -634,7 +634,7 @@ mostlyclean:
 	include/*~ \
 	objc/*~
 clean: mostlyclean
-	rm -f $(LIBRARY_NAME)$(LIBEXT) *$(OEXT)
+	rm -f lib$(LIBRARY_NAME)$(LIBEXT) *$(OEXT)
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 distclean: clean
 	rm -f Makefile 
