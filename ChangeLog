@@ -1,3 +1,8 @@
+2003-06-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Add 'UTF-7' so iconv can be used to
+	handle utf7 if available.
+
 2003-06-28 15:48  Alexander Malmberg <alexander@malmberg.org>
 
 	* Tools/make_strings/StringsFile.h, Tools/make_strings/StringsFile.m,
