@@ -1,5 +1,10 @@
 2004-09-07 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSSet.m:
+	* Source/GSSet.m: ([allObjects]) Fix stack overflow for large sets.
+
+2004-09-07 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSArray.m:
 	* Source/NSDictionary.m:
 	* Source/NSSet.m:

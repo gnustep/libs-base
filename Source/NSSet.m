@@ -36,6 +36,7 @@
 // For private method _decodeArrayOfObjectsForKey:
 #include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSCategories.h"
+#include "GSPrivate.h"
 
 @class	GSSet;
 @class	GSMutableSet;
@@ -417,8 +418,10 @@ static Class NSMutableSet_concrete_class;
 - (NSArray*) allObjects
 {
   id		e = [self objectEnumerator];
-  unsigned	i, c = [self count];
-  id		k[c];
+  unsigned	i;
+  unsigned	c = [self count];
+  NSArray	*result;
+  GS_BEGINIDBUF(k, c);
 
   for (i = 0; i < c; i++)
     {
@@ -426,6 +429,8 @@ static Class NSMutableSet_concrete_class;
     }
   return AUTORELEASE([[NSArray allocWithZone: NSDefaultMallocZone()]
     initWithObjects: k count: c]);
+  GS_ENDIDBUF();
+  return result;
 }
 
 /**
