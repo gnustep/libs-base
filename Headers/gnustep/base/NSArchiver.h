@@ -1,5 +1,5 @@
 /* Interface for NSArchiver for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -44,7 +44,7 @@
 
 /* Substituting Classes */
 + (NSString*) classNameEncodedForTrueClassName: (NSString*) trueName;
-- (void) enocdeClassName: (NSString*)trueName
+- (void) encodeClassName: (NSString*)trueName
            intoClassName: (NSString*)inArchiveName;
 
 @end
