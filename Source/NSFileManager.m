@@ -1218,10 +1218,10 @@ static NSFileManager* defaultManager = nil;
 		      pathContent: (NSString*)otherPath
 {
 #if HAVE_SYMLINK
-  const char* lpath = [self fileSystemRepresentationWithPath: path];
-  const char* npath = [self fileSystemRepresentationWithPath: otherPath];
+  const char* newpath = [self fileSystemRepresentationWithPath: path];
+  const char* oldpath = [self fileSystemRepresentationWithPath: otherPath];
     
-  return (symlink(lpath, npath) == 0);
+  return (symlink(oldpath, newpath) == 0);
 #else
   return NO;
 #endif
