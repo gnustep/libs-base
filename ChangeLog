@@ -1,27 +1,29 @@
-Tue Jan  5 16:20:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Tue Jan  5 20:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * configure.in: New stuff for making byte-order and type-size
         information available in GSConfig.h
-        * src/NSTask.h: Set process group for child process and preliminary
-        code for keeping track of active child tasks.
+        * src/NSTask.m: Set process group for child process and preliminary
+        code for keeping track of active child tasks and handlign sigchld.
+        * src/UnixFileHandle.m: Modified ([-closeFile]) to send notifications
+        if there are any asynchronous operations in progress.
         * src/include/Foundation.h: include GSConfig.h
         * src/include/NSObject.h: include GSConfig.h
         * src/include/NSByteOrder.h: Use GS_WORDS_BIGENDIAN from GSConfig.h
         * src/include/GSConfig.h.in: Add typedefs for types with known size.
         * src/include/config.h.in: Added HAVE_SETPGID and HAVE_SETPGRP
 
-Tue Jan  5  9:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Tue Jan  5  9:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * src/NSTask.m: Workaround for bug in linux waitpid(), general
         tidying, clean up descriptors in child process.
         * src/NSString.m: ([-dataUsingEncoding:]) fixed memory leak.
 
-Mon Jan  4 15:35:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Mon Jan  4 15:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * src/NSInvocation.m: Fix for machines that pass structures by ref.
         * mframe/powerpc/linux-gnu: Machine definition added for powerpc.
 
-Mon Jan  4  9:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Mon Jan  4  9:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * src/o_vscanf.c: Don't make local copy of va_list parameter by
         assignment - doesn't work on machines where a va_list is an array.
