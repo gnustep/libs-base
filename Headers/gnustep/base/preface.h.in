@@ -155,5 +155,11 @@ extern const char o_NeXT_cc_version[];
 #define VSPRINTF_LENGTH(VSPF_CALL) strlen((VSPF_CALL))
 #endif /* VSPRINTF_RETURNS_LENGTH */
 
+#if VASPRINTF_RETURNS_LENGTH 
+#define VASPRINTF_LENGTH(VASPF_CALL) (VASPF_CALL)
+#else
+#error /* not implemented yet */
+#endif /* VSPRINTF_RETURNS_LENGTH */
+
 
 #endif /* __preface_h_OBJECTS_INCLUDE */

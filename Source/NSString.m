@@ -502,9 +502,191 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithFormat: (NSString*)format
    arguments: (va_list)arg_list
 {
-#if HAVE_VSPRINTF
+#if defined(HAVE_VSPRINTF) || defined(HAVE_VASPRINTF)
   const char *format_cp = [format cString];
   int format_len = strlen (format_cp);
+#if HAVE_VASPRINTF
+  char *buf;
+  int printed_len = 0;
+  NSString *ret;
+
+#if ! HAVE_REGISTER_PRINTF_FUNCTION
+  NSZone *z = fastZone(self);
+
+  /* If the available libc doesn't have `register_printf_function()', then
+     the `%@' printf directive isn't available with printf() and friends.
+     Here we make a feable attempt to handle it. */
+  {
+    /* We need a local copy since we change it.  (Changing and undoing
+       the change doesn't work because some format strings are constant
+       strings, placed in a non-writable section of the executable, and 
+       writing to them will cause a segfault.) */ 
+    char format_cp_copy[format_len+1];
+    char *atsign_pos;	     /* points to a location inside format_cp_copy */
+    char *format_to_go = format_cp_copy;
+    char *buf_l;
+#define _PRINTF_BUF_LEN 256
+    int printed_local_len, avail_len = _PRINTF_BUF_LEN;
+    int cstring_len;
+
+    buf = NSZoneMalloc(z, _PRINTF_BUF_LEN);
+    strcpy (format_cp_copy, format_cp);
+    /* Loop once for each `%@' in the format string. */
+    while ((atsign_pos = strstr (format_to_go, "%@")))
+      {
+        const char *cstring;
+        char *formatter_pos; // Position for formatter.
+        
+        /* If there is a "%%@", then do the right thing: print it literally. */
+        if ((*(atsign_pos-1) == '%')
+            && atsign_pos != format_cp_copy)
+          continue;
+        /* Temporarily terminate the string before the `%@'. */
+        *atsign_pos = '\0';
+        /* Print the part before the '%@' */
+        printed_local_len = VASPRINTF_LENGTH (vasprintf (&buf_l,
+                                                         format_to_go, arg_list));
+        if(buf_l)
+          {
+            if(avail_len < printed_local_len+1)
+              {
+                NS_DURING
+                  {
+                    buf = NSZoneRealloc(z, buf,
+                                        printed_len+printed_local_len+_PRINTF_BUF_LEN);
+                    avail_len += _PRINTF_BUF_LEN;
+                  }
+                NS_HANDLER
+                  {
+                    free(buf_l);
+                    [localException raise];
+                  }
+                NS_ENDHANDLER
+              }
+            memcpy(&buf[printed_len], buf_l, printed_local_len+1);
+            avail_len -= printed_local_len;
+            printed_len += printed_local_len;
+            free(buf_l);
+          }
+        else
+          {
+            [NSException raise: NSMallocException
+                         format: @"No available memory"];
+          }
+        /* Skip arguments used in last vsprintf(). */
+        while ((formatter_pos = strchr(format_to_go, '%')))
+          {
+            char *spec_pos; // Position of conversion specifier.
+            
+            if (*(formatter_pos+1) == '%')
+              {
+                format_to_go = formatter_pos+2;
+                continue;
+              }
+            spec_pos = strpbrk(formatter_pos+1, "dioxXucsfeEgGpn\0");
+            switch (*spec_pos)
+              {
+#ifndef powerpc
+	      /* FIXME: vsprintf on powerpc apparently advances the arg list
+             so this doesn't need to be done. Make a more general check 
+             for this */
+              case 'd': case 'i': case 'o': 
+              case 'x': case 'X': case 'u': case 'c': 
+                va_arg(arg_list, int);
+                break;
+              case 's': 
+                if (*(spec_pos - 1) == '*')
+                  va_arg(arg_list, int*);
+                va_arg(arg_list, char*);
+                break;
+              case 'f': case 'e': case 'E': case 'g': case 'G': 
+                va_arg(arg_list, double);
+                break;
+              case 'p': 
+                va_arg(arg_list, void*);
+                break;
+              case 'n': 
+                va_arg(arg_list, int*);
+                break;
+#endif /* NOT powerpc */
+              case '\0': 
+                spec_pos--;
+                break;
+              }
+            format_to_go = spec_pos+1;
+          }
+        /* Get a C-string (char*) from the String object, and print it. */
+        cstring = [[(id) va_arg (arg_list, id) description] cString];
+        if (!cstring)
+          cstring = "<null string>";
+        cstring_len = strlen(cstring);
+
+        if(cstring_len)
+          {
+            if(avail_len < cstring_len+1)
+              {
+                buf = NSZoneRealloc(z, buf,
+                                    printed_len+cstring_len+_PRINTF_BUF_LEN);
+                avail_len += _PRINTF_BUF_LEN;
+              }
+            memcpy(&buf[printed_len], cstring, cstring_len+1);
+            avail_len -= cstring_len;
+            printed_len += cstring_len;
+          }
+        /* Skip over this `%@', and look for another one. */
+        format_to_go = atsign_pos + 2;
+      }
+    /* Print the rest of the string after the last `%@'. */
+    printed_local_len = VASPRINTF_LENGTH (vasprintf (&buf_l,
+                                                     format_to_go, arg_list));
+    if(buf_l)
+      {
+        if(avail_len < printed_local_len+1)
+          {
+            NS_DURING
+              {
+                buf = NSZoneRealloc(z, buf,
+                                    printed_len+printed_local_len+_PRINTF_BUF_LEN);
+                avail_len += _PRINTF_BUF_LEN;
+              }
+            NS_HANDLER
+              {
+                free(buf_l);
+                [localException raise];
+              }
+            NS_ENDHANDLER
+          }
+        memcpy(&buf[printed_len], buf_l, printed_local_len+1);
+        avail_len -= printed_local_len;
+        printed_len += printed_local_len;
+        free(buf_l);
+      }
+    else
+      {
+        [NSException raise: NSMallocException
+                     format: @"No available memory"];
+      }
+  }
+#else /* HAVE_VSPRINTF */
+  /* The available libc has `register_printf_function()', so the `%@' 
+     printf directive is handled by printf and friends. */
+  printed_len = VASPRINTF_LENGTH (vasprintf (&buf, format_cp, arg_list));
+
+  if(!buf)
+    {
+      [NSException raise: NSMallocException
+                   format: @"No available memory"];
+    }
+#endif /* !HAVE_REGISTER_PRINTF_FUNCTION */
+
+  ret = [self initWithCString: buf];
+#if ! HAVE_REGISTER_PRINTF_FUNCTION
+  NSZoneFree(z, buf);
+#else
+  free(buf);
+#endif
+  return ret;
+#else
   /* xxx horrible disgusting BUFFER_EXTRA arbitrary limit; fix this! */
   #define BUFFER_EXTRA 1024*500
   char buf[format_len + BUFFER_EXTRA];
@@ -602,7 +784,8 @@ handle_printf_atsign (FILE *stream,
   /* Raise an exception if we overran our buffer. */
   NSParameterAssert (printed_len < format_len + BUFFER_EXTRA - 1);
   return [self initWithCString: buf];
-#else /* HAVE_VSPRINTF */
+#endif /* HAVE_VASPRINTF */
+#else /* HAVE_VSPRINTF || HAVE_VASPRINTF */
   [self notImplemented: _cmd];
   return self;
 #endif
