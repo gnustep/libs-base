@@ -37,6 +37,15 @@ __objc_malloc(size_t size)
 }
  
 void*
+__objc_valloc(size_t size)
+{
+  void* res = (void*) valloc(size);
+  if(!res)
+    objc_fatal("Virtual memory exhausted\n");
+  return res;
+}
+ 
+void*
 __objc_realloc(void* mem, size_t size)
 {
   void* res = (void*) realloc(mem, size);
@@ -66,6 +75,7 @@ __objc_free (void* mem)
 
 /* I do this to make substituting Boehm's Garbage Collector easy. */
 void *(*objc_malloc)(size_t size) = __objc_malloc;
+void *(*objc_valloc)(size_t size) = __objc_valloc;
 void *(*objc_atomic_malloc)(size_t) = __objc_malloc;
 void *(*objc_realloc)(void *optr, size_t size) = __objc_realloc;
 void *(*objc_calloc)(size_t nelem, size_t size) = __objc_calloc;
