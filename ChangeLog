@@ -2,6 +2,16 @@ Mon Sep  2 10:00:05 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.7.
 
+	* src/NSString.m ([NSString -substringFromRange:]): Implement it
+ 	using CString's for now so we can get it working; (we'll fix
+ 	everything for Unichar's in the next release).
+
+	* checks/nsscanner.m: New file from Eric Norum.
+
+	* Version: Remove spaces around `=' so file can be
+ 	read by sh.
+ 	(VERSION): Use curly braces for sh.
+
 	* src/NSString.m ([NSString -substringFromRange:]): Fix bug in
  	references to string length.
 
