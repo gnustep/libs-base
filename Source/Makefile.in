@@ -153,21 +153,68 @@ Stream.m \
 String.m \
 TextCStream.m \
 Time.m \
+atoz.m \
+callbacks-id.m \
 stdobjects.m \
 mframe.m \
 objc-gnu2next.m \
 eltfuncs.m
 
 GNU_CFILES = \
+abort.c \
+array.c \
 behavior.c \
+callbacks.c \
+callbacks-char_p.c \
+callbacks-int.c \
+callbacks-int_p.c \
+callbacks-void_p.c \
 collhash.c \
+data.c \
+hash.c \
+list.c \
+map.c \
+md5.c \
+number.c \
 objc-malloc.c \
 o_vscanf.c 
 
-GNU_OTHER_SRCFILES = 
+GNU_BASICS_CFILES = \
+array-basics.c \
+data-basics.c \
+hash-basics.c \
+list-basics.c \
+map-basics.c
+
+GNU_BASICS_HFILES = \
+objects/array-basics.h \
+objects/data-basics.h \
+objects/hash-basics.h \
+objects/list-basics.h \
+objects/map-basics.h
+
+GNU_CALLBACKS_CFILES = \
+array-callbacks.c \
+hash-callbacks.c \
+list-callbacks.c \
+map-callbacks.c
+
+GNU_CALLBACKS_HFILES = \
+objects/array-callbacks.h \
+objects/hash-callbacks.h \
+objects/list-callbacks.h \
+objects/map-callbacks.h
+
+GNU_OTHER_SRCFILES = \
+x-basics.c.in \
+x-callbacks.c.in \
+objects/x-basics.h.in \
+objects/x-callbacks.h.in
 
 GNU_OBJS = \
 	$(GNU_MFILES:.m=.o) \
+	$(GNU_BASICS_CFILES:.c=.o) \
+	$(GNU_CALLBACKS_CFILES:.c=.o) \
 	$(GNU_CFILES:.c=.o)
 
 GNU_HEADERS = \
@@ -244,11 +291,20 @@ objects/String.h \
 objects/TextCStream.h \
 objects/Time.h \
 objects/ValueHolding.h \
+objects/abort.h \
+objects/allocs.h \
 objects/behavior.h \
+objects/callbacks.h \
 objects/collhash.h \
+objects/data.h \
 objects/elt.h \
 objects/eltfuncs.h \
+objects/hash.h \
+objects/list.h \
+objects/magic.h \
+objects/map.h \
 objects/mframe.h \
+objects/number.h \
 objects/objc-gnu2next.h \
 objects/objc-malloc.h \
 objects/objects.h \
@@ -311,6 +367,8 @@ NSGCString.m \
 NSGData.m \
 NSGDictionary.m \
 NSGSet.m \
+NSHashTable.m \
+NSMapTable.m \
 NSMethodSignature.m \
 NSNumber.m \
 NSObjCRuntime.m \
@@ -371,7 +429,9 @@ Foundation/NSGCString.h \
 Foundation/NSGData.h \
 Foundation/NSGDictionary.h \
 Foundation/NSGSet.h \
+Foundation/NSHashTable.h \
 Foundation/NSInvocation.h \
+Foundation/NSMapTable.h \
 Foundation/NSMethodSignature.h \
 Foundation/NSObjCRuntime.h \
 Foundation/NSObject.h \
@@ -383,9 +443,12 @@ Foundation/NSString.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \
 Foundation/NSZone.h \
+Foundation/atoz.h \
 Foundation/objc-load.h
 
-HEADERS_INSTALL = @HEADERS_INSTALL@ objects/stdobjects.h
+HEADERS_INSTALL = @HEADERS_INSTALL@ \
+                  $(GNU_BASICS_HFILES) $(GNU_CALLBACKS_HFILES) \
+                  objects/stdobjects.h
 OBJS_INSTALL = @OBJS_INSTALL@ 
 OBJS_INSTALL_PIC = $(OBJS_INSTALL:.o=_pic.o)
 
@@ -507,6 +570,32 @@ objects/stdobjects.h: $(srcdir)/../Version $(srcdir)/objects/stdobjects.h.in
 	> $(srcdir)/objects/stdobjects.h
 stdobjects.o: objects/stdobjects.h
 
+# The Xs and Ys...
+
+objects/%-basics.h: objects/x-basics.h.in
+	sed -e "s/@XX@/$*/g" $^ > $@
+
+objects/%-callbacks.h: objects/x-callbacks.h.in
+	sed -e "s/@YY@/$*/g" $^ > $@
+
+%-basics.c: x-basics.c.in objects/%.h
+	sed -e "s/@XX@/$*/g" $^ > $@
+
+%-callbacks.c: x-callbacks.c.in objects/%.h
+	sed -e "s/@YY@/$*/g" $^ > $@
+
+array.o: array.c objects/array.h
+objects/array.h: objects/array-basics.h objects/array-callbacks.h objects/hash.h
+data.o: data.c objects/data.h
+objects/data.h: objects/data-basics.h
+hash.o: hash.c objects/hash.h
+objects/hash.h: objects/hash-basics.h objects/hash-callbacks.h
+list.o: list.c objects/list.h
+objects/list.h: objects/list-basics.h objects/list-callbacks.h objects/hash.h
+map.o: map.c objects/map.h
+objects/map.h: objects/map-basics.h objects/map-callbacks.h objects/hash.h
+
+
 Makefile: $(srcdir)/Makefile.in ../config.status
 	cd ..; $(SHELL) config.status
 ../config.status:
@@ -537,6 +626,8 @@ mostlyclean:
 clean: mostlyclean
 	rm -f libobjects.a *.o
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
+	rm -f $(GNU_BASICS_CFILES) $(GNU_CALLBACKS_CFILES)
+	rm -f $(GNU_BASICS_HFILES) $(GNU_CALLBACKS_HFILES)
 distclean: clean
 	rm -f Makefile 
 	rm -f dynamic-load.h
