@@ -1621,9 +1621,10 @@ tables:
 
 		  GROW();
 		  outbuf = (char*)&ptr[dpos];
-		  outbytesleft = (bsize - old) * sizeof(unichar);
+		  outbytesleft += (bsize - old) * sizeof(unichar);
 		}
 	      rval = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+	      dpos = (bsize * sizeof(unichar) - outbytesleft) / sizeof(unichar);
 	      if (rval == (size_t)-1)
 		{
 		  if (errno == E2BIG)
@@ -1632,7 +1633,7 @@ tables:
 
 		      GROW();
 		      outbuf = (char*)&ptr[dpos];
-		      outbytesleft = (bsize - old) * sizeof(unichar);
+		      outbytesleft += (bsize - old) * sizeof(unichar);
 		    }
 		  else
 		    {
@@ -1640,7 +1641,6 @@ tables:
 		      break;
 		    }
 		}
-	      dpos = (bsize * sizeof(unichar) - outbytesleft) / sizeof(unichar);
 	    }
 	  // close the converter
 	  iconv_close(cd);
@@ -2141,9 +2141,10 @@ tables:
 
 		  GROW();
 		  outbuf = (char*)&ptr[dpos];
-		  outbytesleft = (bsize - old);
+		  outbytesleft += (bsize - old);
 		}
 	      rval = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+	      dpos = bsize - outbytesleft;
 	      if (rval == (size_t)-1)
 		{
 		  if (errno == E2BIG)
@@ -2152,7 +2153,7 @@ tables:
 
 		      GROW();
 		      outbuf = (char*)&ptr[dpos];
-		      outbytesleft = (bsize - old);
+		      outbytesleft += (bsize - old);
 		    }
 		  else if (errno == EILSEQ)
 		    {
@@ -2179,7 +2180,6 @@ tables:
 		      break;
 		    }
 		}
-	      dpos = bsize - outbytesleft;
 	    }
 	  // close the converter
 	  iconv_close(cd);
