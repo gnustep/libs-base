@@ -307,6 +307,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   void			*key;
   NSBundle		*bundle;
 
+  [load_lock lock];
   enumerate = NSEnumerateMapTable(_bundles);
   while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
     {
@@ -316,6 +317,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  [array addObject: bundle];
 	}
     }
+  [load_lock unlock];
   return array;
 }
 
@@ -379,6 +381,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   if (!aClass)
     return nil;
 
+  [load_lock lock];
   bundle = nil;
   enumerate = NSEnumerateMapTable(_bundles);
   while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
@@ -389,6 +392,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	break;
       bundle = nil;
     }
+  [load_lock unlock];
   if (!bundle) 
     {
       /* Is it in the main bundle? */
@@ -422,13 +426,16 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     }
 
   /* Check if we were already initialized for this directory */
+  [load_lock lock];
   if (_bundles) 
     {
       NSBundle* bundle = (NSBundle *)NSMapGet(_bundles, path);
       if (bundle)
 	{
+	  RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	  [load_lock unlock];
 	  [self dealloc];
-	  return RETAIN(bundle); /* retain - look as if we were alloc'ed */
+	  return bundle;
 	}
     }
   if (_releasedBundles)
@@ -438,17 +445,25 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	{
 	  NSMapInsert(_bundles, path, loaded);
 	  NSMapRemove(_releasedBundles, path);
+	  RETAIN(loaded); /* retain - look as if we were alloc'ed */
+	  [load_lock unlock];
 	  [self dealloc];
-	  return RETAIN(loaded); /* retain - look as if we were alloc'ed */
+	  return loaded;
 	}
     }
+  [load_lock unlock];
 
   if (stat([path cString], &statbuf) != 0) 
     {
-      NSDebugMLLog(@"NSBundle", @"Could not access path %s for bundle", [path cString]);
+      NSDebugMLLog(@"NSBundle", @"Could not access path %@ for bundle", path);
       //[self dealloc];
       //return nil;
     }
+
+  _path = [path copy];
+  _bundleType = (unsigned int)NSBUNDLE_BUNDLE;
+  if (self == _mainBundle)
+    _bundleType = (unsigned int)NSBUNDLE_APPLICATION;
 
   [load_lock lock];
   if (!_bundles)
@@ -458,14 +473,9 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       _releasedBundles = NSCreateMapTable(NSObjectMapKeyCallBacks,
 				  NSNonOwnedPointerMapValueCallBacks, 0);
     }
+  NSMapInsert(_bundles, _path, self);
   [load_lock unlock];
 
-  _path = [path copy];
-  _bundleType = (unsigned int)NSBUNDLE_BUNDLE;
-  if (self == _mainBundle)
-    _bundleType = (unsigned int)NSBUNDLE_APPLICATION;
-
-  NSMapInsert(_bundles, _path, self);
   return self;
 }
 
@@ -479,15 +489,18 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     {
       if ([self retainCount] == 1)
 	{
+	  [load_lock lock];
 	  if (self == NSMapGet(_releasedBundles, _path))
 	    {
+	      [load_lock unlock];
 	      [NSException raise: NSGenericException
 		format: @"Bundle for path %@ released too many times", _path];
 	    }
       
-	    NSMapRemove(_bundles, _path);
-	    NSMapInsert(_releasedBundles, _path, self);
-	    return;
+	  NSMapRemove(_bundles, _path);
+	  NSMapInsert(_releasedBundles, _path, self);
+	  [load_lock unlock];
+	  return;
 	}
     }
   [super release];
@@ -495,9 +508,11 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 - (void) dealloc
 {
-  if (_path)
+  if (_path != nil)
     {
+      [load_lock lock];
       NSMapRemove(_bundles, _path);
+      [load_lock unlock];
       RELEASE(_path);
     }
   TEST_RELEASE(_bundleClasses);
