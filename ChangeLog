@@ -1,6 +1,8 @@
 2002-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Removed obsolete code for shrinking data structures.
+	Added memmove() for overlapped memory moves (Alexander Malmberg) and
+	removed a couple of obsolete functions.
 	* Source/GSValue.m: attempt to correct encoding.
 	* Source/NSKeyValueCoding.m: Fix termination of method names with nuls
 	from report by Manuel Guesdon.
