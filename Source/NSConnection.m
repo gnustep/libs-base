@@ -1793,7 +1793,7 @@ static int messages_received_count;
   /*
    *	Keep track of local objects accross all connections.
    */
-  counter = NSMapGet(all_connections_local_objects, (void*)object);
+  counter = NSMapGet(all_connections_local_targets, (void*)target);
   if (counter)
     {
       [counter increment];
