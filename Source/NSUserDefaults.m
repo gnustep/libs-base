@@ -358,6 +358,15 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     {
       currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
     }
+#ifdef __MINGW__
+  if (currLang == nil && locale != 0)
+    {
+      /* Check for language as the first part of the locale string */
+      NSRange under = [locale rangeOfString: @"_"];
+      if (under.location)
+	currLang = [locale substringToIndex: under.location];
+    }
+#endif
   if (currLang == nil)
     { 
       const char	*env_list;
