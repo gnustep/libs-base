@@ -317,13 +317,11 @@ GSTimeNow()
 
 	  if ((mname = findInArray(lm, 0, tmp)) != nil)
 	    {
-	      modMonth += M - [lm indexOfObjectIdenticalTo: mname] - 1;
-	      hadMonth = YES;
+	      M = [lm indexOfObjectIdenticalTo: mname] + 1;
 	    }
 	  else if ((mname = findInArray(sm, 0, tmp)) != nil)
 	    {
-	      modMonth += M - [sm indexOfObjectIdenticalTo: mname] - 1;
-	      hadMonth = YES;
+	      M = [sm indexOfObjectIdenticalTo: mname] + 1;
 	    }
 
 	  if (mname != nil)
