@@ -992,6 +992,7 @@ typedef enum {
 	}
       else
 	{
+	  NSPort	*port;
 	  unsigned	result;
 
 	  result = GSSwapBigI32ToHost(*(gsu32*)[[com data] bytes]);
@@ -1002,29 +1003,27 @@ typedef enum {
 	    }
 	  else
 	    {
-	      NSPort		*port;
+	      val = YES;
+	    }
+	  /*
+	   *	Find the port that was registered for this name and
+	   *	remove the mapping table entries.
+	   */
+	  port = NSMapGet(_nameMap, name);
+	  if (port)
+	    {
+	      NSMutableSet	*known;
 
-	      /*
-	       *	Find the port that was registered for this name and
-	       *	remove the mapping table entries.
-	       */
-	      port = NSMapGet(_nameMap, name);
-	      if (port)
+	      NSMapRemove(_nameMap, name);
+	      known = NSMapGet(_portMap, port);
+	      if (known)
 		{
-		  NSMutableSet	*known;
-
-		  NSMapRemove(_nameMap, name);
-		  known = NSMapGet(_portMap, port);
-		  if (known)
+		  [known removeObject: name];
+		  if ([known count] == 0)
 		    {
-		      [known removeObject: name];
-		      if ([known count] == 0)
-			{
-			  NSMapRemove(_portMap, port);
-			}
+		      NSMapRemove(_portMap, port);
 		    }
 		}
-	      val = YES;
 	    }
 	}
       tmp = com;

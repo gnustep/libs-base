@@ -6,6 +6,8 @@
 	* Source/NSUserDefaults.m: Changed the method name +resetUserDefaults
 	to be +resetStandardUserDefaults for compatibility with MacOS-X, which
 	has now implemented an equivalent for the GNUstep method.
+	* Source/NSPortNameServer.m: When removing a port, remove from
+	internal name tables even if gdomap reports no name to unregister.
 
 2001-11-12  Richard Frith-Macdonald <rfm@gnu.org>
 
