@@ -527,7 +527,7 @@ userDirectory(NSString *name, BOOL defaults)
 	  while (r.length > 0)
 	    {
 	      template = [template stringByAppendingFormat:
-		@"%@%@]", [old substringToIndex: r.location], uMarker];
+		@"%@%@", [old substringToIndex: r.location], uMarker];
 	      old = [old substringFromIndex: NSMaxRange(r)];
 	      r = [old rangeOfString: name];
 	    }
