@@ -105,6 +105,11 @@
 @end
 
 #ifndef	NO_GNUSTEP
+
+@interface NSCalendarDate (GSCategories)
+- (int) weekOfYear;
+@end
+
 @interface NSCalendarDate (GregorianDate)
 
 - (int) lastDayOfGregorianMonth: (int)month year: (int)year;

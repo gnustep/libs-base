@@ -116,6 +116,12 @@
 
 #ifndef NO_GNUSTEP
 
+@interface NSData (GSCategories)
+- (NSString*) hexadecimalRepresentation;
+- (id) initWithHexadecimalRepresentation: (NSString*)string;
+- (NSData*) md5Digest;
+@end
+
 /*
  *	We include special support for coding/decoding - adding methods for
  *	serializing/deserializing type-tags and cross-references.
@@ -250,6 +256,7 @@
 @end
 
 #ifndef	NO_GNUSTEP
+
 @interface NSMutableData (GNUstepExtensions)
 /*
  *	Capacity management - GNUstep gives you control over the size of

@@ -90,7 +90,5 @@
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSZone.h>
-#include <gnustep/base/GSCategories.h>
-#include <gnustep/base/GSObjCRuntime.h>
 
 #endif /* __Foundation_h_GNUSTEP_BASE_INCLUDE */

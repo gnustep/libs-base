@@ -130,7 +130,6 @@ static void updateCache(NSUserDefaults *self)
 - (void) __createStandardSearchList;
 - (NSDictionary*) __createArgumentDictionary;
 - (void) __changePersistentDomain: (NSString*)domainName;
-- (void) __timerTicked: (NSTimer*)tim;
 @end
 
 /**
@@ -522,7 +521,8 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	  [tempDefaults setSearchList: sList];
 	  RELEASE(sList);
 	  currLang = [tempDefaults stringArrayForKey: @"NSLanguages"];
-	  AUTORELEASE(tempDefaults);
+	  AUTORELEASE(RETAIN(currLang));
+	  RELEASE(tempDefaults);
 	}
     }
   else
@@ -825,15 +825,17 @@ static NSString	*pathForUser(NSString *user)
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
 
+  [[NSNotificationCenter defaultCenter] addObserver: self
+           selector: @selector(synchronize)
+               name: @"GSHousekeeping"
+             object: nil];
+
   return self;
 }
 
 - (void) dealloc
 {
-  if (_tickingTimer != nil)
-    {
-      [_tickingTimer invalidate];
-    }
+  [[NSNotificationCenter defaultCenter] removeObserver: self];
   RELEASE(_lastSync);
   RELEASE(_searchList);
   RELEASE(_persDomains);
@@ -1364,15 +1366,6 @@ static BOOL isPlistObject(id o)
 	}
     }
 
-  if (_tickingTimer == nil)
-    {
-      _tickingTimer = [NSTimer scheduledTimerWithTimeInterval: 30
-	       target: self
-	       selector: @selector(__timerTicked:)
-	       userInfo: nil
-	       repeats: NO];
-    }
-
   /*
    *	If we haven't changed anything, we only need to synchronise if
    *	the on-disk database has been changed by someone else.
@@ -1397,8 +1390,12 @@ static BOOL isPlistObject(id o)
 	    {
 	      NSDate	*mod;
 
+	      /*
+	       * If the database was modified since the last synchronisation
+	       * we need to read it.
+	       */
 	      mod = [attr objectForKey: NSFileModificationDate];
-	      if (mod !=nil && [_lastSync earlierDate: mod] != _lastSync)
+	      if (mod != nil && [_lastSync laterDate: mod] != _lastSync)
 		{
 		  wantRead = YES;
 		}
@@ -1805,14 +1802,6 @@ static BOOL isPlistObject(id o)
       [_changedDomains addObject: domainName];
     }
   [_lock unlock];
-}
-
-- (void) __timerTicked: (NSTimer*)tim
-{
-  if (tim == _tickingTimer)
-    _tickingTimer = nil;
-
-  [self synchronize];
 }
 @end
 

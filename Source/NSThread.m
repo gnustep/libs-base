@@ -42,6 +42,7 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSConnection.h>
+#include <Foundation/NSInvocation.h>
 
 @class	GSPerformHolder;
 
@@ -197,6 +198,22 @@ GSCurrentThreadDictionary()
   return GSDictionaryForThread(nil);
 }
 
+/*
+ * The special timer which we set up in the run loop of the main thread
+ * to perform housekeeping duties.  NSRunLoop needs to call this private
+ * function so it knows about the housekeeping timer and won't keep the
+ * loop running just to do housekeeping.
+ *
+ * The NSUserDefaults system registers as an observer of GSHousekeeping
+ * notifications in order to synchronise the in-memory cache and the
+ * on-disk database.
+ */
+static NSTimer	*housekeeper = nil;
+NSTimer	*GSHousekeeper()
+{
+  return housekeeper;
+}
+
 /**
  * Returns the runloop for the specified thread (or, if t is nil,
  * for the current thread).  Creates a new runloop if necessary.<br />
@@ -217,6 +234,30 @@ GSRunLoopForThread(NSThread *t)
           r = [NSRunLoop new];
           [d setObject: r forKey: key];
           RELEASE(r);
+	  if (t == nil || t == defaultThread)
+	    {
+	      NSNotificationCenter	*ctr;
+	      NSNotification		*not;
+	      NSInvocation		*inv;
+	      SEL			sel;
+
+	      ctr = [NSNotificationCenter defaultCenter];
+	      not = [NSNotification notificationWithName: @"GSHousekeeping"
+						  object: r
+						userInfo: nil];
+	      sel = @selector(postNotification:);
+	      inv = [NSInvocation invocationWithMethodSignature:
+		[ctr methodSignatureForSelector: sel]];
+	      [inv setTarget: ctr];
+	      [inv setSelector: sel];
+	      [inv setArgument: &not atIndex: 2];
+	      [inv retainArguments];
+		
+	      housekeeper = [NSTimer timerWithTimeInterval: 30.0
+						invocation: inv
+						   repeats: YES];
+	      [r addTimer: housekeeper forMode: NSDefaultRunLoopMode];
+	    }
         }
     }
   return r;
