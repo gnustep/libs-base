@@ -29,10 +29,13 @@
 */
 
 #include <config.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSUserDefaults.h>
 #ifndef __WIN32__
 #include <time.h>
 #endif /* !__WIN32__ */
@@ -61,6 +64,75 @@
 
 @implementation NSDate
 
++ (void) initialize
+{
+  if (self == [NSDate class])
+    {
+      NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+      NSDictionary	*registrationDefaults;
+      NSArray		*ampm;
+      NSArray		*long_day;
+      NSArray		*long_month;
+      NSArray		*short_day;
+      NSArray		*short_month;
+
+      ampm = [NSArray arrayWithObjects: @"AM", @"PM", nil];
+      short_month = [NSArray arrayWithObjects:
+						@"Jan",
+						@"Feb",
+						@"Mar",
+						@"Apr",
+						@"May",
+						@"Jun",
+						@"Jul",
+						@"Aug",
+						@"Sep",
+						@"Oct",
+						@"Nov",
+						@"Dec",
+						nil];
+      long_month = [NSArray arrayWithObjects:
+					      @"January",
+					      @"February",
+					      @"March",
+					      @"April",
+					      @"May",
+					      @"June",
+					      @"July",
+					      @"August",
+					      @"September",
+					      @"October",
+					      @"November",
+					      @"December",
+					      nil];
+      short_day = [NSArray arrayWithObjects:
+					      @"Sun",
+					      @"Mon",
+					      @"Tue",
+					      @"Wed",
+					      @"Thu",
+					      @"Fri",
+					      @"Sat",
+					      nil];
+      long_day = [NSArray arrayWithObjects:
+					    @"Sunday",
+					    @"Monday",
+					    @"Tuesday",
+					    @"Wednesday",
+					    @"Thursday",
+					    @"Friday",
+					    @"Saturday",
+					    nil];
+      registrationDefaults = [NSDictionary dictionaryWithObjectsAndKeys:
+		ampm, NSAMPMDesignation,
+		long_month, NSMonthNameArray,
+		long_day, NSWeekDayNameArray,
+		short_month, NSShortMonthNameArray,
+		short_day, NSShortWeekDayNameArray,
+		nil];
+      [defs registerDefaults: registrationDefaults];
+    }
+}
 // Getting current time
 
 + (NSTimeInterval) timeIntervalSinceReferenceDate
@@ -259,23 +331,22 @@
 
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				   timeZone: (NSTimeZone*)aTimeZone
+				     locale: (NSDictionary*)l
 {
   // Easiest to just have NSCalendarDate do the work for us
   NSString *s;
   NSCalendarDate *d = [NSCalendarDate alloc];
-  id f, t;
+  id f;
 
   [d initWithTimeIntervalSinceReferenceDate: seconds_since_ref];
   if (!format)
     f = [d calendarFormat];
   else
     f = format;
-  if (!aTimeZone)
-    t = [d timeZoneDetail];
-  else
-    t = aTimeZone;
+  if (aTimeZone)
+    [d setTimeZone: aTimeZone];
 
-  s = [d descriptionWithCalendarFormat: f timeZone: t];
+  s = [d descriptionWithCalendarFormat: f locale: l];
   [d release];
   return s;
 }
@@ -345,6 +416,13 @@
 {
   if ([other isKindOf: [NSDate class]] 
       && 1.0 > ABS(seconds_since_ref - [other timeIntervalSinceReferenceDate]))
+    return YES;
+  return NO;
+}		
+
+- (BOOL) isEqualToDate: (NSDate*)other
+{
+  if (1.0 > ABS(seconds_since_ref - [other timeIntervalSinceReferenceDate]))
     return YES;
   return NO;
 }		
