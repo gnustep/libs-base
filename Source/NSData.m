@@ -119,9 +119,11 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
   unsigned	fileLength;
   void		*tmp = 0;
   int		c;
-
 #if defined(__MINGW__)
-  return NO;
+  HANDLE	fh;
+  DWORD		fileLength
+  DWORD		high;
+  DWORD		got;
 #endif
 
   if ([path getFileSystemRepresentation: thePath
@@ -130,6 +132,65 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
       NSDebugLog(@"Open (%s) attempt failed - bad path", thePath);
       return NO;
     }
+
+#if defined(__MINGW__)
+  fh = CreateFile(thePath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
+    FILE_ATTRIBUTE_NORMAL, 0);
+  if (fh == INVALID_HANDLE_VALUE)
+    {
+      NSDebugLog(@"Open (%s) attempt failed", thePath);
+      return NO;
+    }
+
+  fileLength = GetFileSize(fh, &high);
+  if ((fileLength == 0xFFFFFFFF) && (GetLastError() != NO_ERROR))
+    {
+      CloseHandle(fh);
+      NSLog(@"Failed to determine size of - %s", thePath);
+      return NO;
+    }
+  if (high != 0)
+    {
+      CloseHandle(fh);
+      NSLog(@"File too big to handle - %s", thePath);
+      return NO;
+    }
+
+#if	GS_WITH_GC == 1
+  tmp = NSZoneMalloc(GSAtomicMallocZone(), fileLength);
+#else
+  tmp = NSZoneMalloc(zone, fileLength);
+#endif
+  if (tmp == 0)
+    {
+      CloseHandle(fh);
+      NSLog(@"Malloc failed for file (%s) of length %d - %s",
+	thePath, fileLength, strerror(errno));
+      return NO;
+    }
+  if (!ReadFile(fh, tmp, fileSize, &got, 0))
+    {
+      if (tmp != 0)
+	{
+	  NSZoneFree(zone, tmp);
+	  CloseHandle(fh);
+	  NSLog(@"File read operation failed for %s", thePath);
+	  return NO;
+	}
+    }
+  if (got != fileSize)
+    {
+      NSZoneFree(zone, tmp);
+      CloseHandle(fh);
+      NSLog(@"File read operation short for %s", thePath);
+      return NO;
+    }
+  CloseHandle(fh);
+  *buf = tmp;
+  *len = fileLength;
+  return YES;
+#endif
+
   theFile = fopen(thePath, "rb");
 
   if (theFile == NULL)		/* We failed to open the file. */
@@ -198,9 +259,9 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
    *	Just in case the failure action needs to be changed.
    */
 failure:
-  if (tmp)
+  if (tmp != 0)
     NSZoneFree(zone, tmp);
-  if (theFile)
+  if (theFile != 0)
     fclose(theFile);
   return NO;
 }
@@ -535,16 +596,44 @@ failure:
   FILE	*theFile;
   int	c;
 
-#if defined(__MINGW__)
-  return NO;
-#endif
-
   if ([path getFileSystemRepresentation: theRealPath
 			      maxLength: sizeof(theRealPath)-1] == NO)
     {
       NSDebugLog(@"Open (%s) attempt failed - bad path", theRealPath);
       return NO;
     }
+
+#if defined(__MINGW__)
+  HANDLE	fh;
+  DWORD		wroteBytes;
+
+  if (useAuxiliaryFile)
+    {
+      path = [path stringByAppendingPathExtension: @"tmp"];
+    }
+  if ([path getFileSystemRepresentation: thePath
+			      maxLength: sizeof(thePath)-1] == NO)
+    {
+      NSDebugLog(@"Open (%s) attempt failed - bad path", thePath);
+      return NO;
+    }
+  
+  fh = CreateFile(thePath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
+    FILE_ATTRIBUTE_NORMAL, NULL);
+  if (fh == INVALID_HANDLE_VALUE)
+    {
+      NSLog(@"Create (%s) attempt failed", thePath);
+      return NO;
+    }
+
+  if (!WriteFile(fh, [self bytes], [self length], &wroteBytes, 0))
+    {
+      CloseHandle(fh);
+      NSLog(@"Write (%s) attempt failed", thePath);
+      goto failure;
+    }
+  CloseHandle(fh);
+#else
 
 #ifdef	HAVE_MKSTEMP
   if (useAuxiliaryFile)
@@ -620,6 +709,7 @@ failure:
       NSLog(@"Fclose (%s) failed - %s", thePath, strerror(errno));
       goto failure;
     }
+#endif
 
   /* If we used a temporary file, we still need to rename() it be the
    * real file.  Also, we need to try to retain the file attributes of
@@ -673,7 +763,7 @@ failure:
   return YES;
 
   /* Just in case the failure action needs to be changed. */
- failure:
+failure:
   /*
    * Attempt to tidy up by removing temporary file on failure.
    */

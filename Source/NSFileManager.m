@@ -515,7 +515,13 @@ static NSFileManager* defaultManager = nil;
   contents = [self directoryContentsAtPath: path];
   if (contents == nil)
     {
-      if (unlink([path fileSystemRepresentation]) < 0)
+      const char	*cpath = [path fileSystemRepresentation];
+
+#if defined(__MINGW__)
+      if (DeleteFile(cpath) == FALSE)
+#else
+      if (unlink(cpath) < 0)
+#endif
 	{
 	  BOOL	result;
 
@@ -587,14 +593,43 @@ static NSFileManager* defaultManager = nil;
 		 contents: (NSData*)contents
 	       attributes: (NSDictionary*)attributes
 {
-  int fd, len, written;
+  int		len;
+  int		written;
+  const char	*cpath = [self fileSystemRepresentationWithPath: path];
 
-  fd = open ([self fileSystemRepresentationWithPath: path],
-                O_WRONLY|O_TRUNC|O_CREAT, 0644);
+#if	defined(__MINGW__)
+  HANDLE fh;
+
+  fh = CreateFile(cpath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
+    FILE_ATTRIBUTE_NORMAL, 0);
+  if (fh == INVALID_HANDLE_VALUE)
+    {
+      return NO;
+    }
+  else
+    {
+      DWORD	len = [contents length];
+      DWORD	written = 0;
+
+      if (len > 0)
+	{
+	  WriteFile(fh, [contents bytes], len, &written, NULL);
+	}
+      CloseHandle(fh);
+      if ([self changeFileAttributes: attributes atPath: path] == NO)
+	{
+	  return NO;
+	}
+    }
+#else
+  int	fd;
+
+  fd = open (cpath, O_WRONLY|O_TRUNC|O_CREAT, 0644);
   if (fd < 0)
-    return NO;
-
-  if (![self changeFileAttributes: attributes atPath: path])
+    {
+      return NO;
+    }
+  if ([self changeFileAttributes: attributes atPath: path] == NO)
     {
       close (fd);
       return NO;
@@ -618,12 +653,16 @@ static NSFileManager* defaultManager = nil;
     }
 
   len = [contents length];
-  if (len)
-    written = write (fd, [contents bytes], len);
+  if (len > 0)
+    {
+      written = write(fd, [contents bytes], len);
+    }
   else
-    written = 0;
+    {
+      written = 0;
+    }
   close (fd);
-
+#endif
   return written == len;
 }
 

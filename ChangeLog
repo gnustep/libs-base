@@ -1,5 +1,13 @@
 2000-06-30  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/gnustep/base/NSDate.h: Added GSTime() function
+	* Source/NSDate.m: More efficient MINGW date creation
+	* Source/NSCalendarDate.m: optimised date creation from yymmddhhmmss
+	* Source/NSData.m: MINGW file read and write operations added (untested)
+	* Source/NSFileManager.m: MINGW file operations updated.
+
+2000-06-30  Richard Frith-Macdonald <rfm@gnu.org>
+
 	Coding/decoding modifications to make system more in line with
 	OPENSTEP/MacOS-X. Tidyup of global string constants.  Advanced
 	development of DO rewrite.
