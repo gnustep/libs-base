@@ -53,6 +53,7 @@
 - initWithObjects: (id*)objects forKeys: (id*)keys count: (unsigned)c
 {
   [self notImplemented: _cmd];
+  return nil;
 }
 
 /* Empty copy must empty an allocCopy'ed version of self */
