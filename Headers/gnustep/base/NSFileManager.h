@@ -130,22 +130,20 @@
 @end /* NSDirectoryEnumerator */
 
 /* File Attributes */
+GS_EXPORT NSString* const NSFileCreationDate;
 GS_EXPORT NSString* const NSFileDeviceIdentifier;
 GS_EXPORT NSString* const NSFileGroupOwnerAccountName;
+GS_EXPORT NSString* const NSFileGroupOwnerAccountNumber;
 GS_EXPORT NSString* const NSFileDeviceIdentifier;
 GS_EXPORT NSString* const NSFileModificationDate;
 GS_EXPORT NSString* const NSFileOwnerAccountName;
+GS_EXPORT NSString* const NSFileOwnerAccountNumber;
 GS_EXPORT NSString* const NSFilePosixPermissions;
 GS_EXPORT NSString* const NSFileReferenceCount;
 GS_EXPORT NSString* const NSFileSize;
 GS_EXPORT NSString* const NSFileSystemFileNumber;
 GS_EXPORT NSString* const NSFileSystemNumber;
 GS_EXPORT NSString* const NSFileType;
-
-#ifndef	STRICT_MACOS_X
-GS_EXPORT NSString* const NSFileGroupOwnerAccountNumber;
-GS_EXPORT NSString* const NSFileOwnerAccountNumber;
-#endif
 
 /* File Types */
 

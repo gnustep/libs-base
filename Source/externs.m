@@ -89,66 +89,6 @@ NSString *NSLoadedClasses;
 NSString *StreamException;
 
 
-/*
- * File attributes names
- */
-
-/* File Attributes */
-
-NSString *NSFileDeviceIdentifier;
-
-NSString *NSFileGroupOwnerAccountName;
-
-NSString *NSFileGroupOwnerAccountNumber;
-
-NSString *NSFileModificationDate;
-
-NSString *NSFileOwnerAccountName;
-
-NSString *NSFileOwnerAccountNumber;
-
-NSString *NSFilePosixPermissions;
-
-NSString *NSFileReferenceCount;
-
-NSString *NSFileSize;
-
-NSString *NSFileSystemFileNumber;
-
-NSString *NSFileSystemNumber;
-
-NSString *NSFileType;
-
-
-/* File Types */
-
-NSString *NSFileTypeDirectory;
-
-NSString *NSFileTypeRegular;
-
-NSString *NSFileTypeSymbolicLink;
-
-NSString *NSFileTypeSocket;
-
-NSString *NSFileTypeFifo;
-
-NSString *NSFileTypeCharacterSpecial;
-
-NSString *NSFileTypeBlockSpecial;
-
-NSString *NSFileTypeUnknown;
-
-
-/* FileSystem Attributes */
-
-NSString *NSFileSystemSize;
-
-NSString *NSFileSystemFreeSize;
-
-NSString *NSFileSystemNodes;
-
-NSString *NSFileSystemFreeNodes;
-
 
 /* Standard domains */
 NSString *NSArgumentDomain;
@@ -319,54 +259,6 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "NSDecimalSeparator"];
       NSEarlierTimeDesignations
 	= [[SClass alloc] initWithCString: "NSEarlierTimeDesignations"];
-      NSFileDeviceIdentifier
-	= [[SClass alloc] initWithCString: "NSFileDeviceIdentifier"];
-      NSFileGroupOwnerAccountName
-	= [[SClass alloc] initWithCString: "NSFileGroupOwnerAccountName"];
-      NSFileGroupOwnerAccountNumber
-	= [[SClass alloc] initWithCString: "NSFileGroupOwnerAccountNumber"];
-      NSFileModificationDate
-	= [[SClass alloc] initWithCString: "NSFileModificationDate"];
-      NSFileOwnerAccountName
-	= [[SClass alloc] initWithCString: "NSFileOwnerAccountName"];
-      NSFileOwnerAccountNumber
-	= [[SClass alloc] initWithCString: "NSFileOwnerAccountNumber"];
-      NSFilePosixPermissions
-	= [[SClass alloc] initWithCString: "NSFilePosixPermissions"];
-      NSFileReferenceCount
-	= [[SClass alloc] initWithCString: "NSFileReferenceCount"];
-      NSFileSize
-	= [[SClass alloc] initWithCString: "NSFileSize"];
-      NSFileSystemFileNumber
-	= [[SClass alloc] initWithCString: "NSFileSystemFileNumber"];
-      NSFileSystemFreeNodes
-	= [[SClass alloc] initWithCString: "NSFileSystemFreeNodes"];
-      NSFileSystemFreeSize
-	= [[SClass alloc] initWithCString: "NSFileSystemFreeSize"];
-      NSFileSystemNodes
-	= [[SClass alloc] initWithCString: "NSFileSystemNodes"];
-      NSFileSystemNumber
-	= [[SClass alloc] initWithCString: "NSFileSystemNumber"];
-      NSFileSystemSize
-	= [[SClass alloc] initWithCString: "NSFileSystemSize"];
-      NSFileType
-	= [[SClass alloc] initWithCString: "NSFileType"];
-      NSFileTypeBlockSpecial
-	= [[SClass alloc] initWithCString: "NSFileTypeBlockSpecial"];
-      NSFileTypeCharacterSpecial
-	= [[SClass alloc] initWithCString: "NSFileTypeCharacterSpecial"];
-      NSFileTypeDirectory
-	= [[SClass alloc] initWithCString: "NSFileTypeDirectory"];
-      NSFileTypeFifo
-	= [[SClass alloc] initWithCString: "NSFileTypeFifo"];
-      NSFileTypeRegular
-	= [[SClass alloc] initWithCString: "NSFileTypeRegular"];
-      NSFileTypeSocket
-	= [[SClass alloc] initWithCString: "NSFileTypeSocket"];
-      NSFileTypeSymbolicLink
-	= [[SClass alloc] initWithCString: "NSFileTypeSymbolicLink"];
-      NSFileTypeUnknown
-	= [[SClass alloc] initWithCString: "NSFileTypeUnknown"];
       NSFormalName
         = [[SClass alloc] initWithCString: "NSFormalName"];
       NSGlobalDomain
