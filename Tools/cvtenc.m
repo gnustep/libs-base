@@ -232,7 +232,7 @@ main(int argc, char** argv, char **env)
 			    }
 			  else
 			    {
-			      sprintf(&c[o], "\\u%04x", u[i]);
+			      sprintf(&c[o], "\\U%04x", u[i]);
 			      o += 6;
 			    }
 			}
@@ -282,9 +282,9 @@ main(int argc, char** argv, char **env)
 	@"You can supply a '-Encoding name' option to specify the C string\n"
 	@"encoding to be used, if you don't want to use the default.\n"
 	@"You can supply a '-EscapeIn YES' option to specify that input\n"
-	@"should be parsed for \\u escape sequences (as in property lists).\n"
+	@"should be parsed for \\U escape sequences (as in property lists).\n"
 	@"You can supply a '-EscapeOut YES' option to specify that output\n"
-	@"should be ascii with \\u escape sequences (for property lists).\n");
+	@"should be ascii with \\U escape sequences (for property lists).\n");
     }
   [pool release];
   return 0;

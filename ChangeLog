@@ -1,3 +1,8 @@
+2004-07-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/cvtenc.m: Use uppercase 'U' rather than 'u' in unicode
+	escape sequences.
+
 2004-07-09  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSFileManager.m ([GSAttrDictionary
