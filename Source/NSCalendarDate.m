@@ -302,6 +302,8 @@ static inline int getDigits(const char *from, char *to, int limit)
 	  if (fmt == nil)
 	    fmt = @"";
 	}
+      ASSIGN(_calendar_format, fmt);
+
       format = [fmt cString];
       formatLen = strlen(format);
       
