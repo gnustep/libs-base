@@ -108,10 +108,12 @@ static int debug_run_loop = 0;
  *	runloop must ask the 'receiver' (or its delegate) to supply a date
  *	using the '[-limitDateForMode:]' message.
  *
+ *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
  
 @interface RunLoopWatcher: NSObject
 {
+@public
   BOOL			invalidated;
   void			*data;
   id			receiver;
@@ -121,20 +123,11 @@ static int debug_run_loop = 0;
 }
 - (void) eventFor: (void*)info
 	     mode: (NSString*)mode;
-- (void*) getData;
-- (NSDate*) getLimit;
-- (id) getReceiver;
-- (RunLoopEventType) getType;
-- (BOOL) decrement;
-- (void) increment;
 - initWithType: (RunLoopEventType)type
       receiver: (id)anObj
           data: (void*)data;
 - (void) invalidate;
 - (BOOL) isValid;
-- (void) setData: (void*)item;
-- (void) setLimit: (NSDate*)when;
-- (void) setReceiver: (id)anObj;
 @end
 
 @implementation	RunLoopWatcher
@@ -145,19 +138,6 @@ static int debug_run_loop = 0;
   [limit release];
   [receiver release];
   [super dealloc];
-}
-
-- (BOOL) decrement
-{
-  if (count > 0)
-    {
-      count--;
-      if (count > 0)
-	{
-	  return YES;
-	}
-    }
-  return NO;
 }
 
 - (void) eventFor: (void*)info
@@ -189,53 +169,22 @@ static int debug_run_loop = 0;
     }
 }
 
-- (void*) getData
-{
-  return data;
-}
-
-- (NSDate*) getLimit
-{
-  return limit;
-}
-
-- (id) getReceiver
-{
-  return receiver;
-}
-
-- (RunLoopEventType) getType
-{
-  return type;
-}
-
-- (void) increment
-{
-  count++;
-}
-
 - initWithType: (RunLoopEventType)aType
       receiver: (id)anObj
           data: (void*)item
 {
-  self = [super init];
-  if (self)
+  invalidated = NO;
+  switch (aType)
     {
-      invalidated = NO;
-      switch (aType)
-	{
-	  case ET_RDESC:	type = aType;	break;
-	  case ET_WDESC:	type = aType;	break;
-	  case ET_RPORT:	type = aType;	break;
-	  default:
-	    [NSException raise: NSInvalidArgumentException
-		        format: @"NSRunLoop - unknown event type"];
-	}
-      [self setReceiver: anObj];
-      [self setData: item];
-      [self setLimit: nil];
-      count = 0;
+      case ET_RDESC:	type = aType;	break;
+      case ET_WDESC:	type = aType;	break;
+      case ET_RPORT:	type = aType;	break;
+      default:
+	[NSException raise: NSInvalidArgumentException
+		    format: @"NSRunLoop - unknown event type"];
     }
+  receiver = [anObj retain];
+  data = item;
   return self;
 }
 
@@ -257,28 +206,6 @@ static int debug_run_loop = 0;
       return NO;
     }
   return YES;
-}
-
-- (void) setData: (void*)item
-{
-  data = item;
-}
-
-- (void) setLimit: (NSDate*)when
-{
-  NSDate*	d = [when retain];
-
-  [limit release];
-  limit = d;
-}
-
-- (void) setReceiver: (id)anObject
-{
-  id	obj = receiver;
-
-  receiver = [anObject retain];
-
-  [obj release];
 }
 
 @end
@@ -529,20 +456,24 @@ static int debug_run_loop = 0;
    *	'limitDateForMode:' then we ask them for the limit date for
    *	this watcher.
    */
-  obj = [item getReceiver];
+  obj = item->receiver;
   if ([obj respondsToSelector: @selector(limitDateForMode:)])
     {
-      [item setLimit: [obj limitDateForMode:mode]];
+      NSDate	*d = [obj limitDateForMode: mode];
+
+      ASSIGN(item->limit, d);
     }
   else if ([obj respondsToSelector: @selector(delegate)])
     {
       obj = [obj delegate];
       if ([obj respondsToSelector: @selector(limitDateForMode:)])
 	{
-	  [item setLimit: [obj limitDateForMode:mode]];
+	  NSDate	*d = [obj limitDateForMode: mode];
+
+	  ASSIGN(item->limit, d);
 	}
     }
-  limit = [item getLimit];
+  limit = item->limit;
 
   /*
    *	Make sure that the items in the watchers list are ordered.
@@ -557,7 +488,8 @@ static int debug_run_loop = 0;
 
       for (i = 0; i < count; i++)
 	{
-	  NSDate*	when = [[watchers objectAtIndex:i] getLimit];
+	  RunLoopWatcher	*watcher = [watchers objectAtIndex: i];
+	  NSDate		*when = watcher->limit;
 
 	  if (when == nil || [limit earlierDate:when] == when)
 	    {
@@ -648,10 +580,10 @@ static int debug_run_loop = 0;
 
   info = [self _getWatcher: data type: type forMode: mode];
 
-  if (info && [info getReceiver] == (id)watcher)
+  if (info && info->receiver == (id)watcher)
     {
       /* Increment usage count for this watcher. */
-      [info increment];
+      info->count++;
     }
   else
     {
@@ -664,7 +596,7 @@ static int debug_run_loop = 0;
 					     data: data];
       /* Add the object to the array for the mode and keep count. */
       [self _addWatcher:info forMode:mode];
-      [info increment];
+      info->count++;
 
       [info release];		/* Now held in array.	*/
     }
@@ -710,10 +642,17 @@ static int debug_run_loop = 0;
 
       info = [self _getWatcher: data type: type forMode: mode];
   
-      if (info && [info decrement] == NO)
+      if (info)
 	{
-	  [self _removeWatcher: data type: type forMode: mode];
-  	}
+	  if (info->count == 0)
+	    {
+	      [self _removeWatcher: data type: type forMode: mode];
+  	    }
+	  else
+	    {
+	      info->count--;
+	    }
+	}
     }
 }
 
@@ -845,7 +784,7 @@ static int debug_run_loop = 0;
   Heap			*timers;
   NSTimer		*min_timer = nil;
   RunLoopWatcher	*min_watcher = nil;
-  NSArray		*watchers;
+  NSMutableArray	*watchers;
   NSDate		*when;
 
   saved_mode = _current_mode;
@@ -893,12 +832,12 @@ static int debug_run_loop = 0;
 
 	  if (![min_watcher isValid])
 	    {
-	      [watchers removeObjectAtIndex:0];
+	      [watchers removeObjectAtIndex: 0];
 	      min_watcher = nil;
 	      continue;
 	    }
 
-	  when = [min_watcher getLimit];
+	  when = min_watcher->limit;
 	  if (when == nil || [when timeIntervalSinceNow] > 0)
 	    {
 	      break;
@@ -913,13 +852,13 @@ static int debug_run_loop = 0;
 	       *	timeouts - inform it and give it a chance to set a
 	       *	revised limit date.
 	       */
-	      obj = [min_watcher getReceiver];
+	      obj = min_watcher->receiver;
 	      if ([obj respondsToSelector:
 		      @selector(timedOutEvent:type:forMode:)])
 		{
-		  nxt = [obj timedOutEvent:[min_watcher getData]
-				      type:[min_watcher getType]
-				   forMode:_current_mode];
+		  nxt = [obj timedOutEvent: min_watcher->data
+				      type: min_watcher->type
+				   forMode: _current_mode];
 		}
 	      else if ([obj respondsToSelector:@selector(delegate)])
 		{
@@ -927,9 +866,9 @@ static int debug_run_loop = 0;
 		  if ([obj respondsToSelector:
 			    @selector(timedOutEvent:type:forMode:)])
 		    {
-		      nxt = [obj timedOutEvent:[min_watcher getData]
-					  type:[min_watcher getType]
-				       forMode:_current_mode];
+		      nxt = [obj timedOutEvent: min_watcher->data
+					  type: min_watcher->type
+				       forMode: _current_mode];
 		    }
 		}
 	      if (nxt && [nxt timeIntervalSinceNow] > 0.0)
@@ -939,9 +878,9 @@ static int debug_run_loop = 0;
 		   *	re-insert it into the queue in the correct place.
 		   */
 		  [min_watcher retain];
-		  [min_watcher setLimit:nxt];
-		  [watchers removeObjectAtIndex:0];
-		  [self _addWatcher:min_watcher forMode:mode];
+		  ASSIGN(min_watcher->limit, nxt);
+		  [watchers removeObjectAtIndex: 0];
+		  [self _addWatcher: min_watcher forMode: mode];
 		  [min_watcher release];
 		}
 	      else
@@ -982,13 +921,13 @@ static int debug_run_loop = 0;
     {
       NSDate*	lim;
 
-      if ([min_watcher getLimit] == nil)	/* No limit for watcher	*/
+      if (min_watcher->limit == nil)		/* No limit for watcher	*/
 	{
 	  lim = [NSDate distantFuture];		/* - watches forever.	*/
 	}
       else
 	{
-	  lim = [min_watcher getLimit];
+	  lim = min_watcher->limit;
 	}
 
       if (when == nil)
@@ -1037,9 +976,9 @@ static int debug_run_loop = 0;
     {
       info = [watchers objectAtIndex: count];
 
-      if ([info getType] == type)
+      if (info->type == type)
 	{
-	  if ([info getData] == data)
+	  if (info->data == data)
 	    {
 	      return info;
 	    }
@@ -1069,7 +1008,7 @@ static int debug_run_loop = 0;
 	  RunLoopWatcher*	info;
 
 	  info = (RunLoopWatcher*)[watchers objectAtIndex:(i-1)];
-	  if ([info getType] == type && [info getData] == data)
+	  if (info->type == type && info->data == data)
 	    {
 	      [info invalidate];
 	      [watchers removeObject: info];
@@ -1161,7 +1100,7 @@ static int debug_run_loop = 0;
 
   /* Do the pre-listening set-up for the file descriptors of this mode. */
   {
-      NSArray	*watchers;
+      NSMutableArray	*watchers;
 
       watchers = NSMapGet (_mode_2_watchers, mode);
       if (watchers) {
@@ -1172,19 +1111,19 @@ static int debug_run_loop = 0;
 	      int fd;
 
 	      if ([info isValid] == NO) {
-		[watchers removeObjectAtIndex:(i-1)];
+		[watchers removeObjectAtIndex: (i-1)];
 		continue;
               }
-	      switch ([info getType]) {
+	      switch (info->type) {
 		case ET_WDESC:
-	          fd = (int)[info getData];
+	          fd = (int)info->data;
 	          FD_SET (fd, &write_fds);
 	          NSMapInsert (wfd_2_object, (void*)fd, info);
 	          num_inputs++;
 		  break;
 
 		case ET_RDESC:
-	          fd = (int)[info getData];
+	          fd = (int)info->data;
 	          FD_SET (fd, &fds);
 	          NSMapInsert (rfd_2_object, (void*)fd, info);
 	          num_inputs++;
@@ -1192,7 +1131,7 @@ static int debug_run_loop = 0;
 
 		case ET_RPORT:
 		  {
-		    id	port = [info getReceiver];
+		    id	port = info->receiver;
 		    int port_fd_count = 128; // xxx #define this constant
 		    int port_fd_array[port_fd_count];
 
