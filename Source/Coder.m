@@ -225,6 +225,13 @@ my_object_is_class(id object)
 	       formatVersion: DEFAULT_FORMAT_VERSION];
 }
 
+- initForReadingFromFile: (id <String>) filename
+{
+  return [self initForReadingFromStream: 
+		 [StdioStream streamWithFilename: filename
+			      fmode: "r"]];
+}
+
 - initForWritingToStream: (id <Streaming>) s
 	   formatVersion: (int) version
 {
@@ -240,6 +247,13 @@ my_object_is_class(id object)
 {
   return [self initForWritingToStream: s
 	       formatVersion: DEFAULT_FORMAT_VERSION];
+}
+
+- initForWritingToFile: (id <String>) filename
+{
+  return [self initForWritingToStream: 
+		 [StdioStream streamWithFilename: filename
+			      fmode: "w"]];
 }
 
 + coderWritingToStream: (id <Streaming>)s
@@ -1156,6 +1170,18 @@ exc_return_null(arglist_t f)
 	    withName:NULL];
       where += offset;
     }
+}
+
+/* We must separate the idea of "closing" a coder and "deallocating"
+   a coder because of delays in deallocation due to -autorelease. */
+- (void) closeCoder
+{
+  [[cstream stream] closeStream];
+}
+
+- (BOOL) isClosed
+{
+  return [[cstream stream] isClosed];
 }
 
 - (void) dealloc
