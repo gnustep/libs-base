@@ -159,6 +159,8 @@
 {
   unsigned	i;
 
+  if (anObject == nil)
+    return NSNotFound;
   /*
    *	For large arrays, speed things up a little by caching the method.
    */
