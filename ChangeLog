@@ -2,6 +2,11 @@
 
 	* Source/NSIndexSet.m: Remove some redundant code for clarity.
 	([containsIndexes:]) implemented.
+	* Source/NSUser.m: NSSearchPathForDirectoriesInDomains() fix for user
+	domain developer directory.
+	* Source/Additions/GSXML.m: SAX2 fixes ... get element attributes
+	from libxml2 properly. Make SAX2 element start/end methods call old
+	methods for compatibility. Tidy somewhat, re-enable SAX2 support.
 
 2004-06-22  Adrian Robert  <arobert@cogsci.ucsd.edu>
 

@@ -44,6 +44,8 @@
 
 #ifdef	HAVE_LIBXML
 
+// #undef	HAVE_LIBXML_SAX2_H
+
 #include "GNUstepBase/GSXML.h"
 #ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSData.h>
@@ -59,8 +61,6 @@
 #else
 #include <Foundation/Foundation.h>
 #endif
-
-#undef HAVE_LIBXML_SAX2_H
 
 /* libxml headers */
 #include <libxml/tree.h>
@@ -2641,58 +2641,31 @@ loadEntityFunction(const unsigned char *url, const unsigned char *eid,
 static void
 startDocumentFunction(void *ctx)
 {
-  START(startDocument, void, (id,SEL));
-
-  if (imp == treeImp)
-    {
-      TREEFUN(startDocument, (ctx));
-    }
-  else
-    {
-      (*imp)(HANDLER, sel);
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER startDocument];
 }
 
 static void
 endDocumentFunction(void *ctx)
 {
-  START(endDocument, void, (id,SEL));
-
-  if (imp == treeImp)
-    {
-      TREEFUN(endDocument, (ctx));
-    }
-  else
-    {
-      (*imp)(HANDLER, sel);
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER endDocument];
 }
 
 static int
 isStandaloneFunction(void *ctx)
 {
-  START(isStandalone, int, (id,SEL));
-
-  if (imp == treeImp)
-    {
-      return TREEFUN(isStandalone, (ctx));
-    }
-  else
-    {
-      return (*imp)(HANDLER, sel);
-    }
+  NSCAssert(ctx,@"No Context");
+  return [HANDLER isStandalone];
 }
 
 static int
 hasInternalSubsetFunction(void *ctx)
 {
-  int	has = -1;
-  START(hasInternalSubset, int, (id,SEL));
+  int	has;
 
-  if (imp != treeImp)
-    {
-      has = (*imp)(HANDLER, sel);
-    }  
+  NSCAssert(ctx,@"No Context");
+  has = [HANDLER hasInternalSubset];
   if (has < 0)
     {
       has = TREEFUN(hasInternalSubset, (ctx));
@@ -2703,13 +2676,10 @@ hasInternalSubsetFunction(void *ctx)
 static int
 hasExternalSubsetFunction(void *ctx)
 {
-  int	has = -1;
-  START(hasExternalSubset, int, (id,SEL));
+  int	has;
 
-  if (imp != treeImp)
-    {
-      has = (*imp)(HANDLER, sel);
-    }  
+  NSCAssert(ctx,@"No Context");
+  has = [HANDLER hasExternalSubset];
   if (has < 0)
     {
       has = TREEFUN(hasExternalSubset, (ctx));
@@ -2721,54 +2691,34 @@ static void
 internalSubsetFunction(void *ctx, const unsigned char *name,
   const xmlChar *ExternalID, const xmlChar *SystemID)
 {
-  START(internalSubset:externalID:systemID:, BOOL, (id,SEL,id,id,id));
-  if (imp == treeImp || (*imp)(HANDLER, sel, UTF8Str(name),
-    UTF8Str(ExternalID), UTF8Str(SystemID)) == NO)
-    {
-      TREEFUN(internalSubset, (ctx, name, ExternalID, SystemID));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER internalSubset: UTF8Str(name)
+	       externalID: UTF8Str(ExternalID)
+		 systemID: UTF8Str(SystemID)];
 }
 
 static void
 externalSubsetFunction(void *ctx, const unsigned char *name,
   const xmlChar *ExternalID, const xmlChar *SystemID)
 {
-  START(externalSubset:externalID:systemID:, BOOL, (id,SEL,id,id,id));
-  if (imp == treeImp || (*imp)(HANDLER, sel, UTF8Str(name),
-    UTF8Str(ExternalID), UTF8Str(SystemID)) == NO)
-    {
-      TREEFUN(externalSubset, (ctx, name, ExternalID, SystemID));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER externalSubset: UTF8Str(name)
+	       externalID: UTF8Str(ExternalID)
+		 systemID: UTF8Str(SystemID)];
 }
 
 static xmlEntityPtr
 getEntityFunction(void *ctx, const unsigned char *name)
 {
-  START(getEntity:, xmlEntityPtr, (id,SEL,id));
-
-  if (imp != treeImp)
-    {
-      return (*imp)(HANDLER, sel, UTF8Str(name));
-    }  
-  else
-    {
-      return TREEFUN(getEntity, (ctx, name));
-    }
+  NSCAssert(ctx,@"No Context");
+  return [HANDLER getEntity: UTF8Str(name)];
 }
 
 static xmlEntityPtr
 getParameterEntityFunction(void *ctx, const unsigned char *name)
 {
-  START(getParameterEntity:, xmlEntityPtr, (id,SEL,id));
-
-  if (imp != treeImp)
-    {
-      return (*imp)(HANDLER, sel, UTF8Str(name));
-    }  
-  else
-    {
-      return TREEFUN(getParameterEntity, (ctx, name));
-    }
+  NSCAssert(ctx,@"No Context");
+  return [HANDLER getParameterEntity: UTF8Str(name)];
 }
 
 static void
@@ -2776,17 +2726,12 @@ entityDeclFunction(void *ctx, const unsigned char *name, int type,
   const unsigned char *publicId, const unsigned char *systemId,
   unsigned char *content)
 {
-  START(entityDecl:type:public:system:content:, void, (id,SEL,id,int,id,id,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(name), type, UTF8Str(publicId),
-	UTF8Str(systemId), UTF8Str(content));
-    }  
-  else
-    {
-      TREEFUN(entityDecl, (ctx, name, type, publicId, systemId, content));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER entityDecl: UTF8Str(name)
+		 type: type
+	       public: UTF8Str(publicId)
+	       system: UTF8Str(systemId)
+	      content: UTF8Str(content)];
 }
 
 static void
@@ -2794,49 +2739,30 @@ attributeDeclFunction(void *ctx, const unsigned char *elem,
   const unsigned char *name, int type, int def,
   const unsigned char *defaultValue, xmlEnumerationPtr tree)
 {
-  START(attributeDecl:name:type:typeDefValue:defaultValue:, void, (id,SEL,id,id,int,int,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(elem), UTF8Str(name), type, def,
-	UTF8Str(defaultValue));
-    }  
-  else
-    {
-      TREEFUN(attributeDecl, (ctx, elem, name, type, def, defaultValue, tree));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER attributeDecl: UTF8Str(elem)
+		    name: UTF8Str(name)
+		    type: type
+	    typeDefValue: def
+	    defaultValue: UTF8Str(defaultValue)];
 }
 
 static void
 elementDeclFunction(void *ctx, const unsigned char *name, int type,
   xmlElementContentPtr content)
 {
-  START(elementDecl:type:, void, (id,SEL,id,int));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(name), type);
-    }  
-  else
-    {
-      TREEFUN(elementDecl, (ctx, name, type, content));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER elementDecl: UTF8Str(name) type: type];
 }
 
 static void
 notationDeclFunction(void *ctx, const unsigned char *name,
   const unsigned char *publicId, const unsigned char *systemId)
 {
-  START(notationDecl:public:system:, void, (id,SEL,id,id, id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(name), UTF8Str(publicId), UTF8Str(systemId));
-    }  
-  else
-    {
-      TREEFUN(notationDecl, (ctx, name, publicId, systemId));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER notationDecl: UTF8Str(name)
+		 public: UTF8Str(publicId)
+		 system: UTF8Str(systemId)];
 }
 
 static void
@@ -2849,63 +2775,36 @@ unparsedEntityDeclFunction(void *ctx, const unsigned char *name,
 		       public: UTF8Str(publicId)
 		       system: UTF8Str(systemId)
 		 notationName: UTF8Str(notationName)];
-  {
-    START(unparsedEntityDecl:public:system:notationName:, void, (id,SEL,id,id,id,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(name), UTF8Str(publicId), UTF8Str(systemId),
-	UTF8Str(notationName));
-    }  
-  else
-    {
-      TREEFUN(unparsedEntityDecl, (ctx,name,publicId,systemId,notationName));
-    }
-  }
 }
 
 static void
 startElementFunction(void *ctx, const unsigned char *name,
   const unsigned char **atts)
 {
-  START(startElement:attributes:, void, (id,SEL,id,id));
+  NSMutableDictionary *dict;
 
-  if (imp != treeImp)
+  NSCAssert(ctx,@"No Context");
+  dict = [NSMutableDictionary dictionary];
+  if (atts != NULL)
     {
-      int i;
-      NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-      NSString *key, *obj;
+      int i = 0;;
 
-      if (atts != NULL)
+      while (atts[i] != NULL)
 	{
-	  for (i = 0; (atts[i] != NULL); i++)
-	    {
-	      key = UTF8Str(atts[i++]);
-	      obj = UTF8Str(atts[i]);
-	      [dict setObject: obj forKey: key];
-	    }
+	  NSString	*key = UTF8Str(atts[i++]);
+	  NSString	*obj = UTF8Str(atts[i++]);
+
+	  [dict setObject: obj forKey: key];
 	}
-      (*imp)(HANDLER, sel, UTF8Str(name), dict);
     }
-  else
-    {
-      TREEFUN(startElement, (ctx, name, atts));
-    }
+  [HANDLER startElement: UTF8Str(name)
+	     attributes: dict];
 }
 
 static void
 endElementFunction(void *ctx, const unsigned char *name)
 {
-  START(endElement:, void, (id,SEL,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(name));
-    }
-  else
-    {
-      TREEFUN(endElement, (ctx, name));
-    }
+  [HANDLER endElement: UTF8Str(name)];
 }
 
 #if	HAVE_LIBXML_SAX2_H
@@ -2916,137 +2815,85 @@ startElementNsFunction(void *ctx, const unsigned char *name,
   int nb_attributes, int nb_defaulted,
   const unsigned char **atts)
 {
-  START(startElement:prefix:href:attributes:, void, (id,SEL,id,id,id,id));
+  NSMutableDictionary	*dict;
+  NSString		*elem;
 
-  if (imp != treeImp)
+  NSCAssert(ctx,@"No Context");
+  elem = UTF8Str(name);
+  dict = [NSMutableDictionary dictionary];
+  if (atts != NULL)
     {
-      int i;
-      NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-      NSString *key, *obj;
+      int 	i;
+      int	j;
 
-      if (atts != NULL)
+      for (i = j = 0; i < nb_attributes; i++, j += 5)
 	{
-	  for (i = 0; (atts[i] != NULL); i++)
-	    {
-	      key = UTF8Str(atts[i++]);
-	      obj = UTF8Str(atts[i]);
-	      [dict setObject: obj forKey: key];
-	    }
+	  NSString	*key = UTF8Str(atts[j]);
+	  NSString	*obj = UTF8StrLen(atts[j+3], atts[j+4]-atts[j+3]);
+
+	  [dict setObject: obj forKey: key];
 	}
-      (*imp)(HANDLER, sel, UTF8Str(name), UTF8Str(prefix), UTF8Str(href), dict);
     }
-  else
-    {
-      xmlSAX2StartElementNs(ctx, name, prefix, href, nb_namespaces, namespaces, nb_attributes, nb_defaulted, atts);
-    }
+  NSLog(@"Start '%@' with %@", elem, dict); 
+  [HANDLER startElement: elem
+		 prefix: UTF8Str(prefix)
+		   href: UTF8Str(href)
+	     attributes: dict];
 }
 
 static void
 endElementNsFunction(void *ctx, const unsigned char *name,
   const unsigned char *prefix, const unsigned char *href)
 {
-  START(endElement:, void, (id,SEL,id,id,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(name), UTF8Str(prefix), UTF8Str(href));
-    }
-  else
-    {
-      xmlSAX2EndElementNs(ctx, name, prefix, href);
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER endElement: UTF8Str(name)
+	       prefix: UTF8Str(prefix)
+		 href: UTF8Str(href)];
 }
 #endif
 
 static void
 charactersFunction(void *ctx, const unsigned char *ch, int len)
 {
-  START(characters:, void, (id,SEL,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8StrLen(ch, len));
-    }
-  else
-    {
-      TREEFUN(characters, (ctx, ch, len));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER characters: UTF8StrLen(ch, len)];
 }
 
 static void
 referenceFunction(void *ctx, const unsigned char *name)
 {
-  START(reference:, void, (id,SEL,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(name));
-    }
-  else
-    {
-      TREEFUN(reference, (ctx, name));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER reference: UTF8Str(name)];
 }
 
 static void
 ignorableWhitespaceFunction(void *ctx, const unsigned char *ch, int len)
 {
-  START(ignoreWhitespace:, void, (id,SEL,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8StrLen(ch, len));
-    }
-  else
-    {
-      TREEFUN(ignorableWhitespace, (ctx, ch, len));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER ignoreWhitespace: UTF8StrLen(ch, len)];
 }
 
 static void
 processingInstructionFunction(void *ctx, const unsigned char *target,
   const char *data)
 {
-  START(processInstruction:, void, (id,SEL,id,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(target), UTF8Str(data));
-    }
-  else
-    {
-      TREEFUN(processingInstruction, (ctx, target, data));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER processInstruction: UTF8Str(target)
+			 data: UTF8Str(data)];
 }
 
 static void
 cdataBlockFunction(void *ctx, const unsigned char *value, int len)
 {
-  START(cdataBlock:, void, (id,SEL,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, [NSData dataWithBytes: value length: len]);
-    }
-  else
-    {
-      TREEFUN(cdataBlock, (ctx, value, len));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER cdataBlock: [NSData dataWithBytes: value length: len]];
 }
 
 static void
 commentFunction(void *ctx, const unsigned char *value)
 {
-  START(comment:, void, (id,SEL,id));
-
-  if (imp != treeImp)
-    {
-      (*imp)(HANDLER, sel, UTF8Str(value));
-    }
-  else
-    {
-      TREEFUN(comment, (ctx, value));
-    }
+  NSCAssert(ctx,@"No Context");
+  [HANDLER comment: UTF8Str(value)];
 }
 
 static void
@@ -3195,6 +3042,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 		 href: (NSString*)href
 	   attributes: (NSMutableDictionary*)elementAttributes
 {
+  [self startElement: elementName attributes: elementAttributes];
 }
 
 /**
@@ -3211,6 +3059,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 	     prefix: (NSString*)prefix
 	       href: (NSString*)href
 {
+  [self endElement: elementName];
 }
 
 /**
@@ -3465,6 +3314,18 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       memcpy(lib, &xmlDefaultSAXHandler, sizeof(xmlSAXHandler));
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
+#if	HAVE_LIBXML_SAX2_H
+      /*
+       * We must call xmlSAXVersion() BEFORE setting any functions as it
+       * sets up default values and would trash our settings.
+       */
+      xmlSAXVersion(LIB, 2);	// Set SAX2
+      LIB->startElementNs         = (void*) startElementNsFunction;
+      LIB->endElementNs           = (void*) endElementNsFunction;
+#else
+      LIB->startElement           = (void*) startElementFunction;
+      LIB->endElement             = (void*) endElementFunction;
+#endif
       LIB->internalSubset         = (void*) internalSubsetFunction;
       LIB->externalSubset         = (void*) externalSubsetFunction;
       LIB->isStandalone           = (void*) isStandaloneFunction;
@@ -3478,12 +3339,6 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->unparsedEntityDecl     = (void*) unparsedEntityDeclFunction;
       LIB->startDocument          = (void*) startDocumentFunction;
       LIB->endDocument            = (void*) endDocumentFunction;
-      LIB->startElement           = (void*) startElementFunction;
-      LIB->endElement             = (void*) endElementFunction;
-#if	HAVE_LIBXML_SAX2_H
-      LIB->startElementNs         = (void*) startElementNsFunction;
-      LIB->endElementNs           = (void*) endElementNsFunction;
-#endif
       LIB->reference              = (void*) referenceFunction;
       LIB->characters             = (void*) charactersFunction;
       LIB->ignorableWhitespace    = (void*) ignorableWhitespaceFunction;
@@ -3494,9 +3349,6 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->fatalError             = (void*) fatalErrorFunction;
       LIB->getParameterEntity     = (void*) getParameterEntityFunction;
       LIB->cdataBlock             = (void*) cdataBlockFunction;
-#if	HAVE_LIBXML_SAX2_H
-      xmlSAXVersion(LIB, 2);	// Set SAX2
-#endif
 #undef	LIB
       return YES;
     }
@@ -3570,6 +3422,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
     }
 }
 
+
 - (BOOL) _initLibXML
 {
   lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
@@ -3582,9 +3435,44 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       memcpy(lib, &xmlDefaultSAXHandler, sizeof(xmlSAXHandler));
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
-      LIB->warning                = (void*) warningFunction;
-      LIB->error                  = (void*) errorFunction;
-      LIB->fatalError             = (void*) fatalErrorFunction;
+#define	SETCB(NAME,SEL) if ([self methodForSelector: @selector(SEL)] != [treeClass instanceMethodForSelector: @selector(SEL)]) LIB->NAME = (void*)NAME ## Function
+#if	HAVE_LIBXML_SAX2_H
+      /*
+       * We must call xmlSAXVersion() BEFORE setting any functions as it
+       * sets up default values and would trash our settings.
+       */
+      xmlSAXVersion(LIB, 2);	// Set SAX2
+      SETCB(startElementNs, startElement:prefix:href:attributes:);
+      SETCB(endElementNs, endElement:prefix:href:);
+#else 
+      SETCB(startElement, startElement:attributes:);
+      SETCB(endElement, endElement:);
+#endif 
+      SETCB(internalSubset, internalSubset:externalID:systemID:);
+      SETCB(externalSubset, externalSubset:externalID:systemID:);
+      SETCB(isStandalone, isStandalone);
+      SETCB(hasInternalSubset, hasInternalSubset);
+      SETCB(hasExternalSubset, hasExternalSubset);
+      SETCB(getEntity, getEntity:);
+      SETCB(entityDecl, entityDecl:type:public:system:content:);
+      SETCB(notationDecl, notationDecl:public:);
+      SETCB(attributeDecl, attributeDecl:name:type:typeDefValue:defaultValue:);
+      SETCB(elementDecl, elementDecl:type:);
+      SETCB(unparsedEntityDecl, unparsedEntityDecl:public:system:notationName:);
+      SETCB(startDocument, startDocument);
+      SETCB(endDocument, endDocument); 
+      SETCB(reference, reference:);
+      SETCB(characters, characters:);
+      SETCB(ignorableWhitespace, ignoreWhitespace:);
+      SETCB(processingInstruction, processInstruction:data:);
+      SETCB(comment, comment:);
+      SETCB(getParameterEntity, getParameterEntity:);
+      SETCB(cdataBlock, cdataBlock:);
+
+      LIB->warning                = (void*)warningFunction;
+      LIB->error                  = (void*)errorFunction;
+      LIB->fatalError             = (void*)fatalErrorFunction;
+
 #undef	LIB
       return YES;
     }
@@ -3613,31 +3501,31 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       memcpy(lib, &htmlDefaultSAXHandler, sizeof(htmlSAXHandler));
 
 #define	LIB	((htmlSAXHandlerPtr)lib)
-      LIB->internalSubset         = (void*) internalSubsetFunction;
-      LIB->externalSubset         = (void*) externalSubsetFunction;
-      LIB->isStandalone           = (void*) isStandaloneFunction;
-      LIB->hasInternalSubset      = (void*) hasInternalSubsetFunction;
-      LIB->hasExternalSubset      = (void*) hasExternalSubsetFunction;
-      LIB->getEntity              = (void*) getEntityFunction;
-      LIB->entityDecl             = (void*) entityDeclFunction;
-      LIB->notationDecl           = (void*) notationDeclFunction;
-      LIB->attributeDecl          = (void*) attributeDeclFunction;
-      LIB->elementDecl            = (void*) elementDeclFunction;
-      LIB->unparsedEntityDecl     = (void*) unparsedEntityDeclFunction;
-      LIB->startDocument          = (void*) startDocumentFunction;
-      LIB->endDocument            = (void*) endDocumentFunction;
-      LIB->startElement           = (void*) startElementFunction;
-      LIB->endElement             = (void*) endElementFunction;
-      LIB->reference              = (void*) referenceFunction;
-      LIB->characters             = (void*) charactersFunction;
-      LIB->ignorableWhitespace    = (void*) ignorableWhitespaceFunction;
-      LIB->processingInstruction  = (void*) processingInstructionFunction;
-      LIB->comment                = (void*) commentFunction;
-      LIB->warning                = (void*) warningFunction;
-      LIB->error                  = (void*) errorFunction;
-      LIB->fatalError             = (void*) fatalErrorFunction;
-      LIB->getParameterEntity     = (void*) getParameterEntityFunction;
-      LIB->cdataBlock             = (void*) cdataBlockFunction;
+      LIB->internalSubset         = (void*)internalSubsetFunction;
+      LIB->externalSubset         = (void*)externalSubsetFunction;
+      LIB->isStandalone           = (void*)isStandaloneFunction;
+      LIB->hasInternalSubset      = (void*)hasInternalSubsetFunction;
+      LIB->hasExternalSubset      = (void*)hasExternalSubsetFunction;
+      LIB->getEntity              = (void*)getEntityFunction;
+      LIB->entityDecl             = (void*)entityDeclFunction;
+      LIB->notationDecl           = (void*)notationDeclFunction;
+      LIB->attributeDecl          = (void*)attributeDeclFunction;
+      LIB->elementDecl            = (void*)elementDeclFunction;
+      LIB->unparsedEntityDecl     = (void*)unparsedEntityDeclFunction;
+      LIB->startDocument          = (void*)startDocumentFunction;
+      LIB->endDocument            = (void*)endDocumentFunction;
+      LIB->startElement           = (void*)startElementFunction;
+      LIB->endElement             = (void*)endElementFunction;
+      LIB->reference              = (void*)referenceFunction;
+      LIB->characters             = (void*)charactersFunction;
+      LIB->ignorableWhitespace    = (void*)ignorableWhitespaceFunction;
+      LIB->processingInstruction  = (void*)processingInstructionFunction;
+      LIB->comment                = (void*)commentFunction;
+      LIB->warning                = (void*)warningFunction;
+      LIB->error                  = (void*)errorFunction;
+      LIB->fatalError             = (void*)fatalErrorFunction;
+      LIB->getParameterEntity     = (void*)getParameterEntityFunction;
+      LIB->cdataBlock             = (void*)cdataBlockFunction;
 #undef	LIB
       return YES;
     }
