@@ -35,8 +35,10 @@ main(int argc, char** argv)
     NSProcessInfo	*proc;
     NSArray		*args;
     NSArray		*domains;
-    NSString		*owner;
-    NSString		*name;
+    NSString		*owner = nil;
+    NSString		*name = nil;
+    NSString		*user = nil;
+    BOOL		found = NO;
     int			i;
 
     [NSObject enableDoubleReleaseCheck: YES];
@@ -47,44 +49,119 @@ main(int argc, char** argv)
 	exit(0);
     }
 
-    defs = [NSUserDefaults standardUserDefaults];
+    args = [proc arguments];
+
+    for (i = 0; i < [args count]; i++) {
+	if ([[args objectAtIndex: i] isEqual: @"--help"]) {
+	    printf(
+"\nThe 'dread' command lets you to read a user's defaults database.\n"
+"WARNING - this program is obsolete - please use 'defaults read' instead.\n\n"
+"Results are printed on standard output in a format suitable for input to\n"
+"the 'dwrite' command.  The value of each default is quoted with \"'\" and\n"
+"may wrap over line boundaries.\n"
+"Single quotes used within a default value are repeated.\n\n"
+"If you have read access to another user's defaults database, you may include\n"
+"the '-u' flag to read that user's database rather than your own.\n\n");
+	    printf(
+"dread [-u uname] -g key\n"
+"    read the named default from the global domain.\n\n");
+	    printf(
+"dread [-u uname] -l\n"
+"    read all defaults from all domains.\n\n");
+	    printf(
+"dread [-u uname] -n key\n"
+"    read values named 'key' from all domains.\n\n");
+	    printf(
+"dread [-u uname] -o domain\n"
+"    read all defaults from the specified domain.\n\n");
+	    printf(
+"dread [-u uname] domain key\n"
+"    read default with name 'key' from domain 'domain'.\n\n");
+	    printf(
+"dread [-u uname] key\n"
+"    read default named 'key' from the global domain.\n");
+	    exit(0);
+	}
+    }
+
+    i = 0;
+    if ([args count] <= i) {
+	NSLog(@"too few arguments supplied!\n");
+	exit(0);
+    }
+    
+    if ([[args objectAtIndex: i] isEqual: @"-u"]) {
+	if ([args count] > ++i) {
+	    user = [args objectAtIndex: i++];
+	}
+	else {
+	    NSLog(@"no name supplied for -u option!\n");
+	    exit(0);
+	}
+    }
+
+    if ([args count] <= i) {
+	NSLog(@"too few arguments supplied!\n");
+	exit(0);
+    }
+
+    if ([[args objectAtIndex: i] isEqual: @"-g"]) {
+	owner = NSGlobalDomain;
+	if ([args count] > ++i) {
+	    name = [args objectAtIndex: i];
+	}
+	else {
+	    NSLog(@"no key supplied for -g option!\n");
+	    exit(0);
+	}
+    }
+    else if ([[args objectAtIndex: i] isEqual: @"-n"]) {
+	owner = nil;
+	if ([args count] > ++i) {
+	    name = [args objectAtIndex: i];
+	}
+	else {
+	    NSLog(@"no key supplied for -n option!\n");
+	    exit(0);
+	}
+    }
+    else if ([[args objectAtIndex: i] isEqual: @"-o"]) {
+	name = nil;
+	if ([args count] > ++i) {
+	    owner = [args objectAtIndex: i];
+	}
+	else {
+	    NSLog(@"no domain name supplied for -o option!\n");
+	    exit(0);
+	}
+    }
+    else if ([[args objectAtIndex: i] isEqual: @"-l"]) {
+	owner = nil;
+	name = nil;
+    }
+    else {
+	if ([args count] > i+1) {
+	    owner = [args objectAtIndex: i];
+	    name = [args objectAtIndex: ++i];
+	}
+	else {
+	    owner = NSGlobalDomain;
+	    name = [args objectAtIndex: i];
+	}
+    }
+
+    if (user) {
+	defs = [[NSUserDefaults alloc] initWithUser: user];
+    }
+    else {
+        defs = [NSUserDefaults standardUserDefaults];
+    }
     if (defs == nil) {
 	NSLog(@"unable to access defaults database!\n");
 	exit(0);
     }
-
-    args = [proc arguments];
-    if ([args count] == 0) {
-	NSLog(@"no arguments supplied!\n");
-	exit(0);
-    }
-
-    if ([[args objectAtIndex: 0] isEqual: @"-g"]) {
-	owner = NSGlobalDomain;
-	name = [args objectAtIndex: 1];
-    }
-    else if ([[args objectAtIndex: 0] isEqual: @"-l"]) {
-	owner = nil;
-	name = nil;
-    }
-    else if ([[args objectAtIndex: 0] isEqual: @"-n"]) {
-	owner = NSGlobalDomain;
-	name = [args objectAtIndex: 1];
-    }
-    else if ([[args objectAtIndex: 0] isEqual: @"-o"]) {
-	owner = [args objectAtIndex: 1];
-	name = nil;
-    }
-    else {
-        if ([args count] > 1) {
-	    owner = [args objectAtIndex: 0];
-	    name = [args objectAtIndex: 1];
-	}
-	else {
-	    owner = NSGlobalDomain;
-	    name = [args objectAtIndex: 0];
-	}
-    }
+    /* We don't want dwrite in the defaults database - so remove it. */
+    [defs removePersistentDomainForName: [proc processName]];
 
     domains = [defs persistentDomainNames];
     for (i = 0; i < [domains count]; i++) {
@@ -101,27 +178,46 @@ main(int argc, char** argv)
 
 		    enumerator = [dom keyEnumerator];
 		    while ((key = [enumerator nextObject]) != nil) {
-			id	obj = [dom objectForKey: key];
+			id		obj = [dom objectForKey: key];
+			const char	*ptr;
 
-			printf("%s %s %s\n",
-			    [domainName cString], [key cString],
-			    [[obj description] cString]);
+			printf("%s %s '", [domainName cString], [key cString]);
+			ptr = [[obj description] cString];
+			while (*ptr) {
+			    if (*ptr == '\'') {
+				putchar('\'');
+			    }
+			    putchar(*ptr);
+			    ptr++;
+			}
+			printf("'\n");
 		    }
 		}
 		else {
-		    id	obj = [dom objectForKey: name];
+		    id		obj = [dom objectForKey: name];
 
 		    if (obj) {
-		        printf("%s %s %s\n",
-			    [domainName cString], [name cString],
-			    [[obj description] cString]);
-		    }
-		    else {
-			printf("dread: couldn't read default\n");
+			const char	*ptr;
+
+			printf("%s %s '", [domainName cString], [name cString]);
+			ptr = [[obj description] cString];
+			while (*ptr) {
+			    if (*ptr == '\'') {
+				putchar('\'');
+			    }
+			    putchar(*ptr);
+			    ptr++;
+			}
+			printf("'\n");
+			found = YES;
 		    }
 		}
 	    }
 	}
+    }
+
+    if (found == NO && name != nil) {
+	printf("dread: couldn't read default\n");
     }
 
     exit(0);

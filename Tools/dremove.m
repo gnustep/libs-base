@@ -38,6 +38,8 @@ main(int argc, char** argv)
     NSMutableDictionary	*domain;
     NSString		*owner;
     NSString		*name;
+    NSString		*user = nil;
+    int			i;
 
     [NSObject enableDoubleReleaseCheck: YES];
 
@@ -47,14 +49,57 @@ main(int argc, char** argv)
 	exit(0);
     }
 
-    defs = [NSUserDefaults standardUserDefaults];
+    args = [proc arguments];
+
+    for (i = 0; i < [args count]; i++) {
+        if ([[args objectAtIndex: i] isEqual: @"--help"]) {
+	    printf(
+"The 'dremove' command lets you delete entries in a user's defaults database.\n"
+"WARNING - this program is obsolete - please use 'defaults delete' instead.\n\n"
+"The value written must be a property list and must be enclosed in quotes.\n"
+"If you have write access to another user's database, you may include\n"
+"the '-u' flag to modify that user's database rather than your own.\n\n");
+	    printf(
+"dremove [-u uname] -g key\n"
+"    removed the named default to the global domain.\n\n");
+	    printf(
+"dremove [-u uname] -o domain\n"
+"    removed the named domain and all its contents.\n\n");
+	    printf(
+"dremove [-u uname] domain key\n"
+"    remove default with name 'key' from domain 'domain'.\n\n");
+	    printf(
+"dremove\n"
+"    read the standard input for a series of lines listing domain name and\n"
+"    default key pairs to be removed.  Domain names and default keys must be\n"
+"    separated by spaces.\n");
+	    exit(0);
+	}
+    }
+
+    i = 0;
+    if ([args count] > i && [[args objectAtIndex: i] isEqual: @"-u"]) {
+	if ([args count] > ++i) {
+	    user = [args objectAtIndex: i++];
+	}
+	else {
+	    NSLog(@"no name supplied for -u option!\n");
+	    exit(0);
+	}
+    }
+
+    if (user) {
+	defs = [[NSUserDefaults alloc] initWithUser: user];
+    }
+    else {
+        defs = [NSUserDefaults standardUserDefaults];
+    }
     if (defs == nil) {
 	NSLog(@"unable to access defaults database!\n");
 	exit(0);
     }
 
-    args = [proc arguments];
-    if ([args count] == 0) {
+    if ([args count] == i) {
 	char	buf[BUFSIZ*10];
 
 	while (fgets(buf, sizeof(buf), stdin) != 0) {
@@ -63,21 +108,9 @@ main(int argc, char** argv)
 
 	    start = buf;
 
-	    if (*start == '"') {
-		for (ptr = ++start; *ptr; ptr++) {
-		    if (*ptr == '\\' && ptr[1] != '\0') {
-			ptr++;
-		    }
-		    else if (*ptr == '"') {
-			break;
-		    }
-		}
-	    }
-	    else {
-		ptr = start;
-		while (*ptr && !isspace(*ptr)) {
-		    ptr++;
-		}
+	    ptr = start;
+	    while (*ptr && !isspace(*ptr)) {
+		ptr++;
 	    }
 	    if (*ptr) {
 		*ptr++ = '\0';
@@ -92,21 +125,9 @@ main(int argc, char** argv)
 	    owner = [NSString stringWithCString: start];
 	    start = ptr;
 
-	    if (*start == '"') {
-		for (ptr = ++start; *ptr; ptr++) {
-		    if (*ptr == '\\' && ptr[1] != '\0') {
-			ptr++;
-		    }
-		    else if (*ptr == '"') {
-			break;
-		    }
-		}
-	    }
-	    else {
-		ptr = start;
-		while (*ptr && !isspace(*ptr)) {
-		    ptr++;
-		}
+	    ptr = start;
+	    while (*ptr && !isspace(*ptr)) {
+		ptr++;
 	    }
 	    if (*ptr) {
 		*ptr++ = '\0';
@@ -121,8 +142,8 @@ main(int argc, char** argv)
 	    name = [NSString stringWithCString: start];
 	    domain = [[defs persistentDomainForName: owner] mutableCopy];
 	    if (domain == nil || [domain objectForKey: name] == nil) {
-		printf("dremoveL couldn't remove %s owned by %s\n",
-		    [name quotedCString], [owner quotedCString]);
+		printf("dremove: couldn't remove %s owned by %s\n",
+		    [name cString], [owner cString]);
 	    }
 	    else {
 		[domain removeObjectForKey: name];
@@ -130,27 +151,43 @@ main(int argc, char** argv)
 	    }
 	}
     }
-    else if ([[args objectAtIndex: 0] isEqual: @"-g"]) {
+    else if ([[args objectAtIndex: i] isEqual: @"-g"]) {
 	owner = NSGlobalDomain;
-	name = [args objectAtIndex: 1];
+	if ([args count] > ++i) {
+	    name = [args objectAtIndex: i];
+	}
+	else {
+	    NSLog(@"no key supplied for -g option.\n");
+	    exit(0);
+	}
 	domain = [[defs persistentDomainForName: owner] mutableCopy];
 	if (domain == nil || [domain objectForKey: name] == nil) {
-	    printf("dremoveL couldn't remove %s owned by %s\n",
-		[name quotedCString], [owner quotedCString]);
+	    printf("dremove: couldn't remove %s owned by %s\n",
+		[name cString], [owner cString]);
 	}
 	else {
 	    [domain removeObjectForKey: name];
 	    [defs setPersistentDomain: domain forName: owner];
 	}
     }
+    else if ([[args objectAtIndex: i] isEqual: @"-o"]) {
+	if ([args count] > ++i) {
+	    owner = [args objectAtIndex: i];
+	}
+	else {
+	    NSLog(@"no domain supplied for -o option.\n");
+	    exit(0);
+	}
+        [defs removePersistentDomainForName: owner];
+    }
     else {
-        if ([args count] > 1) {
-	    owner = [args objectAtIndex: 0];
-	    name = [args objectAtIndex: 1];
+        if ([args count] > i+1) {
+	    owner = [args objectAtIndex: i];
+	    name = [args objectAtIndex: ++i];
 	    domain = [[defs persistentDomainForName: owner] mutableCopy];
 	    if (domain == nil || [domain objectForKey: name] == nil) {
-		printf("dremoveL couldn't remove %s owned by %s\n",
-		    [name quotedCString], [owner quotedCString]);
+		printf("dremove: couldn't remove %s owned by %s\n",
+		    [name cString], [owner cString]);
 	    }
 	    else {
 		[domain removeObjectForKey: name];

@@ -280,7 +280,7 @@ enum {
 
 #ifndef NO_GNUSTEP
 - (const char *) cStringNoCopy;
-- (const char *) quotedCString;
+- (NSString*) descriptionForPropertyList;
 #endif /* NO_GNUSTEP */
 
 @end

@@ -35,11 +35,18 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSHost.h>
 
+#ifdef WIN32
+#include <Windows32/Sockets.h>
+#else
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif /* WIN32 */
+
 #include <sys/file.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
 #include <sys/fcntl.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
@@ -64,6 +71,12 @@ static UnixFileHandle*	fh_stderr = nil;
 
 // Key to info dictionary for operation mode.
 static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
+
+@interface	UnixFileHandle (Private)
+- (void) setAddr: (struct sockaddr_in *)sin;
+@end
+
+@implementation UnixFileHandle
 
 static BOOL
 getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
@@ -95,7 +108,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 #ifndef	HAVE_INET_ATON
       sin->sin_addr.s_addr = inet_addr([name cStringNoCopy]);
 #else
-      if (inet_aton([name cStringNoCopy], &sin->sin_addr.s_addr) == 0)
+      if (inet_aton([name cStringNoCopy], &sin->sin_addr) == 0)
 	return NO;
 #endif
     }
@@ -127,9 +140,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
 }
 
-
-@implementation UnixFileHandle
-
 + allocWithZone:(NSZone*)z
 {
   return NSAllocateObject ([self class], 0, z);
@@ -137,6 +147,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void)dealloc
 {
+  [address release];
+  [service release];
+  [protocol release];
+
   if (self == fh_stdin)
     fh_stdin = nil;
   if (self == fh_stdout)
@@ -169,15 +183,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     return [self initWithNullDevice];
 }
 
-- (id)initAsClientAtAddress:address
-		    service:service
-		   protocol:protocol
+- (id)initAsClientAtAddress:a
+		    service:s
+		   protocol:p
 		   forModes:modes
 {
   int	net;
   struct sockaddr_in	sin;
 
-  if (getAddr(address, service, protocol, &sin) == NO)
+  if (getAddr(a, s, p, &sin) == NO)
     {
       [self dealloc];
       NSLog(@"bad address-service-protocol combination");
@@ -217,19 +231,21 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       connectOK = YES;
       readOK = NO;
       writeOK = NO;
+      [self setAddr: &sin];
     }
   return self;
 }
 
-- (id)initAsServerAtAddress:address
-		    service:service
-		   protocol:protocol
+- (id)initAsServerAtAddress:a
+		    service:s
+		   protocol:p
 {
   int	status = 1;
   int	net;
   struct sockaddr_in	sin;
+  int	size = sizeof(sin);
 
-  if (getAddr(address, service, protocol, &sin) == NO)
+  if (getAddr(a, s, p, &sin) == NO)
     {
       [self dealloc];
       NSLog(@"bad address-service-protocol combination");
@@ -261,12 +277,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       return nil;
     }
 
+  getsockname(net, (struct sockaddr*)&sin, &size);
+
   self = [self initWithFileDescriptor:net closeOnDealloc:YES];
   if (self)
     {
       acceptOK = YES;
       readOK = NO;
       writeOK = NO;
+      [self setAddr: &sin];
     }
   return self;
 }
@@ -1021,9 +1040,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	[readInfo setObject:s forKey:GSFileHandleNotificationError];
       }
       else { // Accept attempt completed.
-	hdl = [[NSFileHandle alloc] initWithFileDescriptor:desc];
-	[readInfo setObject:hdl forKey:NSFileHandleNotificationFileHandleItem];
-	[hdl release];
+	UnixFileHandle	*h;
+        struct sockaddr_in	sin;
+        int	size = sizeof(sin);
+
+	h = [[UnixFileHandle alloc] initWithFileDescriptor:desc];
+        getsockname(desc, (struct sockaddr*)&sin, &size);
+        [h setAddr: &sin];
+	[readInfo setObject: h forKey: NSFileHandleNotificationFileHandleItem];
+	[h release];
       }
       [self postReadNotification];
     }
@@ -1110,6 +1135,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     return nil;		/* Don't restart timed out events	*/
 }
 
+- (void) setAddr: (struct sockaddr_in *)sin
+{
+    address = [NSString stringWithCString: inet_ntoa(sin->sin_addr)];
+    [address retain];
+    service = [NSString stringWithFormat: @"%d", (int)ntohs(sin->sin_port)];
+    [service retain];
+    protocol = @"tcp";
+}
+
 - (void)setNonBlocking:(BOOL)flag
 {
   int	e;
@@ -1139,5 +1173,21 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       NSLog(@"unable to get non-blocking mode - %s", strerror(errno));
 }
 
+- (NSString*) socketAddress
+{
+    return address;
+}
+
+- (NSString*) socketProtocol
+{
+    return protocol;
+}
+
+- (NSString*) socketService
+{
+    return service;
+}
+
 @end
+
 

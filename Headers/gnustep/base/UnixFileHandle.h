@@ -41,10 +41,13 @@
     BOOL			connectOK;
     BOOL			readOK;
     BOOL			writeOK;
-    NSMutableDictionary*	readInfo;
+    NSMutableDictionary		*readInfo;
     int				readPos;
-    NSMutableArray*		writeInfo;
+    NSMutableArray		*writeInfo;
     int				writePos;
+    NSString			*address;
+    NSString			*service;
+    NSString			*protocol;
 }
 
 - (id)initAsClientAtAddress:address

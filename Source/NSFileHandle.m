@@ -304,6 +304,21 @@ NSString*	NSFileHandleOperationException =
   return NO;
 }
 
+- (NSString*)socketAddress
+{
+    return nil;
+}
+
+- (NSString*)socketService
+{
+    return nil;
+}
+
+- (NSString*)socketProtocol
+{
+    return nil;
+}
+
 - (void)writeInBackgroundAndNotify:(NSData*)item forModes:(NSArray*)modes
 {
   [self subclassResponsibility:_cmd];

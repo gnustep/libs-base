@@ -38,7 +38,9 @@ main(int argc, char** argv)
     NSString		*owner;
     NSString		*name;
     NSString		*value;
+    NSString		*user = nil;
     const char		*text;
+    const char		*str;
     id			obj = nil;
     int			i;
 
@@ -50,14 +52,60 @@ main(int argc, char** argv)
 	exit(0);
     }
 
-    defs = [NSUserDefaults standardUserDefaults];
+    args = [proc arguments];
+
+    for (i = 0; i < [args count]; i++) {
+        if ([[args objectAtIndex: i] isEqual: @"--help"]) {
+	    printf(
+"The 'dwrite' command lets you modify a user's defaults database.\n"
+"WARNING - this program is obsolete - please use 'defaults write' instead.\n\n"
+"The value written must be a property list and (if being read from standard\n"
+"input) must be enclosed in single quotes unless it is a simple alphanumeric\n"
+"string.\n"
+"Quotes appearing inside a quoted property list must be repeated to avoid\n"
+"their being interpreted as the end of the property list.\n"
+"If you have write access to another user's database, you may include\n"
+"the '-u' flag to modify that user's database rather than your own.\n\n");
+	    printf(
+"dwrite [-u uname] -g key value\n"
+"    write the named default to the global domain.\n\n");
+	    printf(
+"dwrite [-u uname] domain key value\n"
+"    write default with name 'key' to domain 'domain'.\n\n");
+	    printf(
+"dwrite\n"
+"    read the standard input for a series of lines listing defaults to be\n"
+"    written.  Domain names, default keys, and default values must be\n"
+"    separated on each line by spaces.\n");
+	    exit(0);
+	}
+    }
+
+    i = 0;
+    if ([args count] > i && [[args objectAtIndex: i] isEqual: @"-u"]) {
+	if ([args count] > ++i) {
+	    user = [args objectAtIndex: i++];
+	}
+	else {
+	    NSLog(@"no name supplied for -u option!\n");
+	    exit(0);
+	}
+    }
+
+    if (user) {
+	defs = [[NSUserDefaults alloc] initWithUser: user];
+    }
+    else {
+        defs = [NSUserDefaults standardUserDefaults];
+    }
     if (defs == nil) {
 	NSLog(@"unable to access defaults database!\n");
 	exit(0);
     }
+    /* We don't want dwrite in the defaults database - so remove it. */
+    [defs removePersistentDomainForName: [proc processName]];
 
-    args = [proc arguments];
-    if ([args count] == 0) {
+    if ([args count] == i) {
 	char	buf[BUFSIZ*10];
 
 	while (fgets(buf, sizeof(buf), stdin) != 0) {
@@ -67,21 +115,9 @@ main(int argc, char** argv)
 	    obj = nil;
 	    start = buf;
 
-	    if (*start == '"') {
-		for (ptr = ++start; *ptr; ptr++) {
-		    if (*ptr == '\\' && ptr[1] != '\0') {
-			ptr++;
-		    }
-		    else if (*ptr == '"') {
-			break;
-		    }
-		}
-	    }
-	    else {
-		ptr = start;
-		while (*ptr && !isspace(*ptr)) {
-		    ptr++;
-		}
+	    ptr = start;
+	    while (*ptr && !isspace(*ptr)) {
+		ptr++;
 	    }
 	    if (*ptr) {
 		*ptr++ = '\0';
@@ -90,27 +126,21 @@ main(int argc, char** argv)
 		ptr++;
 	    }
 	    if (*start == '\0') {
-		printf("dwrite: invalid input\n");
+		printf("dwrite: invalid input - nul domain name\n");
 		exit(0);
+	    }
+	    for (str = start; *str; str++) {
+		if (isspace(*str)) {
+		    printf("dwrite: invalid input - space in domain name.\n");
+		    exit(0);
+		}
 	    }
 	    owner = [NSString stringWithCString: start];
 	    start = ptr;
 
-	    if (*start == '"') {
-		for (ptr = ++start; *ptr; ptr++) {
-		    if (*ptr == '\\' && ptr[1] != '\0') {
-			ptr++;
-		    }
-		    else if (*ptr == '"') {
-			break;
-		    }
-		}
-	    }
-	    else {
-		ptr = start;
-		while (*ptr && !isspace(*ptr)) {
-		    ptr++;
-		}
+	    ptr = start;
+	    while (*ptr && !isspace(*ptr)) {
+		ptr++;
 	    }
 	    if (*ptr) {
 		*ptr++ = '\0';
@@ -119,41 +149,33 @@ main(int argc, char** argv)
 		ptr++;
 	    }
 	    if (*start == '\0') {
-		printf("dwrite: invalid input\n");
+		printf("dwrite: invalid input - nul default name.\n");
 		exit(0);
+	    }
+	    for (str = start; *str; str++) {
+		if (isspace(*str)) {
+		    printf("dwrite: invalid input - space in default name.\n");
+		    exit(0);
+		}
 	    }
 	    name = [NSString stringWithCString: start];
 	    start = ptr;
 
-	    if (*start == '(' || *start == '{' || *start == '<') {
-		ptr = &start[strlen(start)-1];
-		while (isspace(*ptr)) {
-		    *ptr-- = '\0';
-		}
-	        value = [NSString stringWithCString: start];
-		while ((obj = [value propertyList]) == nil) {
-		    if (fgets(buf, sizeof(buf), stdin) != 0) {
-			ptr = &buf[strlen(buf)-1];
-			while (isspace(*ptr)) {
-			    *ptr-- = '\0';
+	    if (*start == '\'') {
+		for (ptr = ++start; ; ptr++) {
+		    if (*ptr == '\0') {
+			if (fgets(ptr, sizeof(buf) - (ptr-buf), stdin) == 0) {
+			    printf("dwrite: invalid input - no final quote.\n");
+			    exit(0);
 			}
-		        value = [value stringByAppendingString: @"\n"];
-			value = [value stringByAppendingString:
-					[NSString stringWithCString: buf]];
 		    }
-		    else {
-			printf("dwrite: invalid input\n");
-			exit(0);
-		    }
-		}
-	    }
-	    else if (*start == '"') {
-		for (ptr = ++start; *ptr; ptr++) {
-		    if (*ptr == '\\' && ptr[1] != '\0') {
-			ptr++;
-		    }
-		    else if (*ptr == '"') {
-			break;
+		    if (*ptr == '\'') {
+			if (ptr[1] == '\'') {
+			    strcpy(ptr, &ptr[1]);
+			}
+			else {
+			    break;
+			}
 		    }
 		}
 	    }
@@ -168,10 +190,21 @@ main(int argc, char** argv)
 		    *ptr++ = '\0';
 		}
 		if (*start == '\0') {
-		    printf("dwrite: invalid input\n");
+		    printf("dwrite: invalid input - empty property list\n");
 		    exit(0);
 		}
 		obj = [NSString stringWithCString: start];
+		if (*start == '(' || *start == '{' || *start == '<') {
+		    id	tmp = [obj propertyList];
+
+		    if (tmp == nil) {
+		        printf("dwrite: invalid input - bad property list\n");
+		        exit(0);
+		    }
+		    else {
+			obj = tmp;
+		    }
+		}
 	    }
 	    domain = [[defs persistentDomainForName: owner] mutableCopy];
 	    if (domain == nil) {
@@ -181,17 +214,27 @@ main(int argc, char** argv)
 	    [defs setPersistentDomain: domain forName: owner];
 	}
     }
-    else if ([[args objectAtIndex: 0] isEqual: @"-g"]) {
-        if ([args count] > 2) {
+    else if ([[args objectAtIndex: i] isEqual: @"-g"]) {
+        if ([args count] > i+2) {
 	    owner = NSGlobalDomain;
-	    name = [args objectAtIndex: 1];
-	    value = [args objectAtIndex: 2];
+	    name = [args objectAtIndex: ++i];
+	    for (str = [name cString]; *str; str++) {
+		if (isspace(*str)) {
+		    printf("dwrite: invalid input - space in default name.\n");
+		    exit(0);
+		}
+	    }
+	    value = [args objectAtIndex: ++i];
 	    text = [value cStringNoCopy];
 	    if (*text == '(' || *text == '{' || *text == '<') {
 		obj = [value propertyList];
 	    }
-	    if (obj == nil) {
+	    else {
 		obj = value;
+	    }
+	    if (obj == nil) {
+		printf("dwrite: invalid input - bad property list\n");
+		exit(0);
 	    }
 	    domain = [[defs persistentDomainForName: owner] mutableCopy];
 	    if (domain == nil) {
@@ -206,16 +249,32 @@ main(int argc, char** argv)
 	}
     }
     else {
-        if ([args count] > 2) {
-	    owner = [args objectAtIndex: 0];
-	    name = [args objectAtIndex: 1];
-	    value = [args objectAtIndex: 2];
+        if ([args count] > i+2) {
+	    owner = [args objectAtIndex: i];
+	    for (str = [owner cString]; *str; str++) {
+		if (isspace(*str)) {
+		    printf("dwrite: invalid input - space in domain name.\n");
+		    exit(0);
+		}
+	    }
+	    name = [args objectAtIndex: ++i];
+	    for (str = [name cString]; *str; str++) {
+		if (isspace(*str)) {
+		    printf("dwrite: invalid input - space in default name.\n");
+		    exit(0);
+		}
+	    }
+	    value = [args objectAtIndex: ++i];
 	    text = [value cStringNoCopy];
 	    if (*text == '(' || *text == '{' || *text == '<') {
 		obj = [value propertyList];
 	    }
-	    if (obj == nil) {
+	    else {
 		obj = value;
+	    }
+	    if (obj == nil) {
+		printf("dwrite: invalid input - bad property list\n");
+		exit(0);
 	    }
 	    domain = [[defs persistentDomainForName: owner] mutableCopy];
 	    if (domain == nil) {
@@ -230,8 +289,6 @@ main(int argc, char** argv)
 	}
     }
 
-    /* We don't want dwrite in the defaults database - so remove it. */
-    [defs removePersistentDomainForName: [proc processName]];
     [defs synchronize];
 
     exit(0);

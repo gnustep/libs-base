@@ -2396,70 +2396,84 @@ else
   return NULL;
 }
 
-- (const char *) quotedCString
+- (NSString*) descriptionForPropertyList
 {
-    const char	*from;
-    char	*buf;
-    char	*ptr;
-    int		len = 0;
+    static NSCharacterSet	*quotables = nil;
 
-    for (from = [self cStringNoCopy]; *from; from++) {
-	switch (*from) {
-	    case '\a':
-	    case '\b':
-	    case '\t':
-	    case '\r':
-	    case '\n':
-	    case '\v':
-	    case '\f':
-	    case '\\':
-	    case '\'' :
-	    case '"' :
-		len += 2;
-		break;
-
-	    default:
-		if (isprint(*from) || *from == ' ') {
-		    len++;
-		}
-		else {
-		    len += 4;
-		}
-		break;
-	}
+    if (quotables == nil) {
+	quotables = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+	[quotables retain];
     }
 
-    buf = objc_malloc(len + 3);
-    ptr = buf;
-    *ptr++ = '"';
-    for (from = [self cStringNoCopy]; *from; from++) {
-	switch (*from) {
-	    case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
-	    case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
-	    case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
-	    case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
-	    case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
-	    case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
-	    case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
-	    case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
-	    case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
-	    case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
+    if ([self length] == 0 ||
+	[self rangeOfCharacterFromSet: quotables].length > 0) {
+	NSString	*result;
+	const char	*cstring = [self cString];
+	const char	*from;
+	char		*buf;
+	char		*ptr;
+	int		len = 0;
 
-	    default:
-		if (isprint(*from) || *from == ' ') {
-		    *ptr++ = *from;
-		}
-		else {
-		    sprintf(ptr, "\\%03o", *(unsigned char*)from);
-		    ptr = &ptr[4];
-		}
-		break;
+	for (from = cstring; *from; from++) {
+	    switch (*from) {
+		case '\a':
+		case '\b':
+		case '\t':
+		case '\r':
+		case '\n':
+		case '\v':
+		case '\f':
+		case '\\':
+		case '\'' :
+		case '"' :
+		    len += 2;
+		    break;
+
+		default:
+		    if (isprint(*from) || *from == ' ') {
+			len++;
+		    }
+		    else {
+			len += 4;
+		    }
+		    break;
+	    }
 	}
+
+	buf = objc_malloc(len + 3);
+	ptr = buf;
+	*ptr++ = '"';
+	for (from = cstring; *from; from++) {
+	    switch (*from) {
+		case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
+		case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
+		case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
+		case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
+		case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
+		case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
+		case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
+		case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
+		case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
+		case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
+
+		default:
+		    if (isprint(*from) || *from == ' ') {
+			*ptr++ = *from;
+		    }
+		    else {
+			sprintf(ptr, "\\%03o", *(unsigned char*)from);
+			ptr = &ptr[4];
+		    }
+		    break;
+	    }
+	}
+	*ptr++ = '"';
+	*ptr = '\0';
+	result = [NSString stringWithCString: buf];
+	objc_free(buf);
+	return result;
     }
-    *ptr++ = '"';
-    *ptr = '\0';
-    [MallocAddress autoreleaseMallocAddress: buf];
-    return buf;
+    return self;
 }
 // #endif /* NO_GNUSTEP */
 

@@ -37,11 +37,9 @@
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Collecting.h>
+#include <Foundation/NSRange.h>
 
-typedef struct _IndexRange { 
-  unsigned location;
-  unsigned length;
-} IndexRange;
+#define	IndexRange	NSRange
 
 #define IndexRangeInside(RANGE1,RANGE2) \
   ({IndexRange __a=(RANGE1), __b=(RANGE2); \
