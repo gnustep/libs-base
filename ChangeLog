@@ -2,7 +2,8 @@
 
 	* configure.in: Look for libxml2 (patch from Kim Shrier
 	<kim@tinker.com>).
-	* Headers/gnustep/base/config.h.in: Define LIBXML2
+	* acconfig.h: Define LIBXML2
+	* Headers/gnustep/base/config.h.in: Regenerate
 	* Headers/gnustep/base/GSXML.h: Include libxml2.h if found.
 	* Source/GSXML.m: Likewise.
 	* Tools/gsdoc.m: Likewise. (patches from Kim Shrier <kim@tinker.com>).
