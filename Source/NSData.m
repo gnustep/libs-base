@@ -24,8 +24,9 @@
 #include <objects/stdobjects.h>
 #include <foundation/NSData.h>
 #include <foundation/NSString.h>
+#include <foundation/NSGData.h>
 
-@class NSGNUData;		/* xxx Needs to be #included. */
+/* xxx Pretty messy.  Needs work. */
 
 @implementation NSData
 
@@ -33,7 +34,7 @@
 
 + (id) data
 {
-  return [[[NSGNUData alloc] init] 
+  return [[[NSGData alloc] init] 
 	  autorelease];
 }
 
@@ -71,7 +72,7 @@
   return [self initWithBytesNoCopy:buf length:length];
 }
 
-/* This is one of the designated initializers for NSData */
+/* This is the designated initializer for NSData */
 - (id) initWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
@@ -79,6 +80,13 @@
      vs vm_allocate'd memory, etc. */
   [self notImplemented:_cmd];
   return nil;
+}
+
+- init
+{
+  /* xxx Is this right? */
+  return [self initWithBytesNoCopy:NULL
+	       length:0];
 }
 
 - (id) initWithContentsOfFile: (NSString*)path
