@@ -118,6 +118,13 @@
 		environment variables.
 	      </p>
 	    </desc>
+	    <term>Local Time Zone</term>
+	    <desc>
+	      <p>
+		Used to specify the name of the timezone to be used by the
+		<ref type="class" id="NSTimeZone">NSTimeZone</ref> class.
+	      </p>
+	    </desc>
 	    <term>NSWriteOldStylePropertyLists</term>
 	    <desc>
 	      <p>
@@ -309,20 +316,22 @@
             </desc>
 	    <term>NSDeallocateZombies</term>
 	    <desc>
-	      This may be used in conjunction with NSZombieEnabled to specify
-	      whether the objects should really be deallocated.  If you set
-	      this tom YES, the zombie logging will only work until the
-	      deallocated memory is re-used.
+	      <p>
+		This may be used in conjunction with NSZombieEnabled to specify
+		whether the objects should really be deallocated.  If you set
+		this to YES, the zombie logging will only work until the
+		deallocated memory is re-used.
+	      </p>
 	    </desc>
 	    <term>NSZombieEnabled</term>
 	    <desc>
 	      <p>
 		If this is set to YES, then deallocation of an object causes
-	        the object to be morphes into a Zombie ... a special object
+	        the object to be morphed into a Zombie ... a special object
 		which will call the GNUstep specific GSLogZombie() function
 		to log the method call.<br />
 		You can set a breakpoint in this function and examine the
-		process memory if you are running undera debugger.<br />
+		process memory if you are running under a debugger.<br />
 		As this overrides actual object deallocation, all memory
 		allocated for objects will be leaked!
 	      </p>

@@ -1623,7 +1623,7 @@ static BOOL snuggleStart(NSString *t)
 	       */
 	      if (optr[-2] == '/' && optr[-3] != ' ')
 		{
-		  unsigned	len = ptr - buf;
+		  unsigned	len = optr - buf;
 		  unichar	c[len + 1];
 
 		  memcpy(c, buf, (len+1)*sizeof(unichar));
@@ -1634,7 +1634,7 @@ static BOOL snuggleStart(NSString *t)
 		}
 	      else
 		{
-		  tmp = [NSString stringWithCharacters: buf length: ptr - buf];
+		  tmp = [NSString stringWithCharacters: buf length: optr - buf];
 		}
 	      [a addObject: tmp];
 	    }
