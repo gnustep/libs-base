@@ -215,6 +215,59 @@ static Class NSMutableDictionary_concrete_class;
   return [self initWithObjects:os forKeys:ks count:objectCount];
 }
 
+- (id) initWithObjectsAndKeys: (id)firstObject, ...
+{
+  va_list ap;
+  int capacity = 16;
+  int num_pairs = 0;
+  id *objects;
+  id *keys;
+  id arg;
+  int argi = 1;
+
+  va_start (ap, firstObject);
+  if (firstObject != nil)
+    {
+      return [self init];
+    }
+  /* Gather all the arguments in a simple array, in preparation for
+     calling the designated initializer. */
+  OBJC_MALLOC (objects, id, capacity);
+  OBJC_MALLOC (keys, id, capacity);
+
+  objects[num_pairs] = firstObject;
+  /* Keep grabbing arguments until we get a nil... */
+  while ((arg = va_arg (ap, id)))
+    {
+      if (num_pairs >= capacity)
+	{
+	  /* Must increase capacity in order to fit additional ARG's. */
+	  capacity *= 2;
+	  OBJC_REALLOC (objects, id, capacity);
+	  OBJC_REALLOC (keys, id, capacity);
+	}
+      /* ...and alternately dump them into OBJECTS and KEYS */
+      if (argi++ % 2 == 0)
+	objects[num_pairs] = arg;
+      else
+	{
+	  keys[num_pairs] = arg;
+	  num_pairs++;
+	}
+    }
+  if (argi %2 != 0)
+    {
+      OBJC_FREE(objects);
+      OBJC_FREE(keys);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"init dictionary with nil key"];
+    }
+  self = [self initWithObjects: objects forKeys: keys count: num_pairs];
+  OBJC_FREE(objects);
+  OBJC_FREE(keys);
+  return self;
+}
+
 + dictionaryWithObjectsAndKeys: (id)firstObject, ...
 {
   va_list ap;
