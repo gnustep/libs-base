@@ -320,6 +320,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
   if (_remote == nil)
     {
       NSString	*host;
+      NSString	*description;
 
       /*
        *	Connect to the NSDistributedNotificationCenter for this host.
@@ -340,11 +341,29 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	   * indicate that we may start a gdnc server locally.
 	   */
 	  h = [NSHost hostWithName: host];
-	  if ([h isEqual: [NSHost currentHost]] == YES)
+	  if (h == nil)
+	    {
+	      NSLog(@"Unknown -NSHost '%@' ignored", host);
+	    }
+	  else if ([h isEqual: [NSHost currentHost]] == YES)
 	    {
 	      host = @"";
 	    }
+	  else
+	    {
+	      host = [h name];
+	    }
 	}
+
+      if ([host length] == 0)
+	{
+	  description = @"local host";
+	}
+      else
+	{
+	  description = host;
+	}
+
       _remote = RETAIN([NSConnection rootProxyForConnectionWithRegisteredName:
 	GDNC_SERVICE host: host]);
       if (_remote == nil && [host isEqual: @""] == NO)
@@ -371,30 +390,45 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 		 object: c];
 	  [_remote registerClient: (id<GDNCClient>)self];
 	}
-      else if ([host isEqual: @""] == YES)
+      else
 	{
 	  static BOOL recursion = NO;
 
 	  if (recursion == NO)
 	    {
 	      static NSString	*cmd = nil;
+              static NSArray    *args = nil;
+
+              NSLog(@"\nI couldn't contact the notification server for %@ -\n"
+@"so I'm attempting to to start one - which will take a few seconds.\n"
+@"It is recommended that you start the notification server (gdnc) either at\n"
+@"login or (better) when your computer is started up.\n", description);
 
 	      if (cmd == nil)
-		cmd = MAKE_GDNC_CMD;
+		{
+#if 1
+                  cmd = RETAIN([[NSSearchPathForDirectoriesInDomains(
+                    GSToolsDirectory, NSSystemDomainMask, YES) objectAtIndex: 0]
+                    stringByAppendingPathComponent: @"gdnc"]);
+#else
+		  cmd = MAKE_GDNC_CMD;
+#endif
+                  if ([host length] > 0)
+                    {
+                      args = [[NSArray alloc] initWithObjects:
+                        @"-NSHost", host, nil];
+                    }
+		}
 
-NSLog(@"NSDistributedNotificationCenter failed to contact GDNC server.\n");
-NSLog(@"Attempting to start GDNC process - this will take several seconds.\n");
-	      [NSTask launchedTaskWithLaunchPath: cmd arguments: nil];
+	      [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
 	      [NSTimer scheduledTimerWithTimeInterval: 5.0
 					   invocation: nil
 					      repeats: NO];
 	      [[NSRunLoop currentRunLoop] runUntilDate:
 		[NSDate dateWithTimeIntervalSinceNow: 5.0]];
-NSLog(@"Retrying connection to the GDNC server.\n");
 	      recursion = YES;
 	      [self _connect];
 	      recursion = NO;
-NSLog(@"Connection to GDNC server established.\n");
 	    }
 	  else
 	    { 
@@ -403,11 +437,6 @@ NSLog(@"Connection to GDNC server established.\n");
 			  format: @"unable to contact GDNC server - %@",
 			   MAKE_GDNC_ERR];
 	    }
-	}
-      else
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		       format: @"unable to contact GDNC server for %@", host];
 	}
     }
 }
