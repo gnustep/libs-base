@@ -197,8 +197,19 @@
 	    <desc>
 	      <p>
 		This is used to specify the default encoding for 8-bit
-		strings.  It defaults to NSISOLatin1StringEncoding, but
-		may be any of the 8-bit encodings supported by your system.
+		strings (those used by 'cstring' methods of NSString).<br />
+		It may be any of the 8-bit encodings supported
+		by your system.
+	      </p>
+	      <p>
+		If this environment variable is not set, GNUstep attempts
+		to use the characterset specified by your operating systems,
+		locale information (using the standard nl_langinfo function)
+		if possible.
+	      </p>
+	      <p>
+		If there is no usable operating system defined characterset,
+		GNUstep defaults to NSISOLatin1StringEncoding.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_HOST_CPU</term>
