@@ -2,6 +2,11 @@
 
 	* Tools/gsdoc.m: loader() if entity id is missing, try to load url as
 	a file.
+	* Tools/AGSParser.m: Fixes for handling typedefs, constants, varibales
+	and functions.
+	* Tools/AGSOutput.[hm]: ditto
+	* Tools/AGSHtml.m: ditto
+	Preliminary support for C language added.
 
 2002-02-03  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -46,8 +46,7 @@ typedef void *NSMapTable;
 typedef struct { void *map; void *node; } NSMapEnumerator;
 
 /* Callback functions for a key. */
-typedef struct _NSMapTableKeyCallBacks NSMapTableKeyCallBacks;
-struct _NSMapTableKeyCallBacks
+typedef struct _NSMapTableKeyCallBacks
 {
   /* Hashing function.  NOTE: Elements with equal values must
    * have equal hash function values. */
@@ -68,7 +67,7 @@ struct _NSMapTableKeyCallBacks
 
   /* Quantity that is not a key to the map table. */
   const void *notAKeyMarker;
-};
+} NSMapTableKeyCallBacks;
 
 /* Callback functions for a value. */
 typedef struct _NSMapTableValueCallBacks NSMapTableValueCallBacks;

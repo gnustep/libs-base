@@ -258,12 +258,11 @@
   name CDATA #REQUIRED
 >
 
-<!ELEMENT typespec (#PCDATA)*>
-
 <!-- A type definition. -->
-<!ELEMENT type (typespec, declared?, desc?, standards?)>
+<!ELEMENT type (declared?, desc?, standards?)>
 <!ATTLIST type
   name CDATA #REQUIRED
+  type CDATA #REQUIRED
 >
 
 <!-- Variable definition.
