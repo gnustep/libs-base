@@ -1,3 +1,12 @@
+2004-08-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPort.m (+initialize), Source/NSPortNameServer.m
+	(systemDefaultPortNameServer): We should be using message ports
+	when we are supposed to be MacOS-X compatible anyway, so check the
+	runtime compatibility setting.  Maybe we should be thinking about
+	changing away from the OpenStep behavior as default, and put a
+	warning into the next release?
+
 2004-08-07 02:26  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSPort.m (+initialize), Source/NSPortNameServer.m
