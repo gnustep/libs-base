@@ -916,7 +916,7 @@ static int messages_received_count;
 	timeout_date = [[NSDate alloc] 
 			 initWithTimeIntervalSinceNow: in_timeout];
       [RunLoop runOnceBeforeDate: timeout_date 
-	       forMode: nil];
+	       forMode: RunLoopConnectionReplyMode];
     }
   reply_depth--;
   return rmc;
