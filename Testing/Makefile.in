@@ -50,7 +50,7 @@ NEXT_NEXT_INCLUDES = -I/usr/include
 OBJECTS_NEXT_INCLUDES = -I$(srcdir)/../src
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
-ALL_CPPFLAGS = -I. -I$(srcdir)/../src $(NEXT_INCLUDES) $(CPPFLAGS)
+ALL_CPPFLAGS = -I../src -I$(srcdir)/../src $(NEXT_INCLUDES) $(CPPFLAGS)
 ALL_CFLAGS = $(CFLAGS)
 ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
 ALL_LDFLAGS = $(LDFLAGS) $(LIBS)
@@ -206,5 +206,5 @@ copy-dist: $(DIST_FILES)
 	mkdir ../snap/checks
 	ln $(DIST_FILES) ../snap/checks
 
-Makefile: Makefile.in
+Makefile: $(srcdir)/Makefile.in
 	cd ..; $(SHELL) config.status
