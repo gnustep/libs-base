@@ -12,6 +12,8 @@
 {
   static int count = 0;
   printf ("Timer fired %d times\n", ++count);
+  if (count == 20)
+    exit(0);
 }
 + (double) testDouble
 {

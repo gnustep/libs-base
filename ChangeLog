@@ -5,6 +5,8 @@
 	Added typedef for GSIVar.
 	(GSCGetInstanceVariableDefinition): New function.
 	(GSObjCGetInstanceVariableDefinition): Ditto.
+	* Testing/nstimer.m ([TestDouble -sayCount]): Quit test after 20
+	invocations.
 
 2003-07-07  Richard Frith-Macdonald <rfm@gnu.org>
 
