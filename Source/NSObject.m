@@ -1320,7 +1320,7 @@ struct objc_method_description_list {
   else
     {
       c = (Class)self;
-      mth = GSGetClassMethod((Class)self, aSelector);
+      mth = GSGetClassMethod(c, aSelector);
     }
 
   if (mth == 0)
