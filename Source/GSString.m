@@ -1755,6 +1755,15 @@ transmute(ivars self, NSString *aString)
  * in memory immediately after the object.  
  */
 @implementation	GSCInlineString
+- (id) initWithCStringNoCopy: (char*)chars
+		      length: (unsigned)length
+		freeWhenDone: (BOOL)flag
+{
+  RELEASE(self);
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"Illegal method used to initialise inline string"];
+  return nil;
+}
 - (id) initWithCString: (const char*)chars length: (unsigned)length
 {
   if (_contents.c != 0)
@@ -1844,7 +1853,7 @@ transmute(ivars self, NSString *aString)
       NSString	*obj;
 
       obj = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
-	_count*2, z);
+	_count*sizeof(unichar), z);
       obj = [obj initWithCharacters: _contents.u length: _count];
       return obj;
     }
@@ -2031,6 +2040,15 @@ transmute(ivars self, NSString *aString)
 
 
 @implementation	GSUnicodeInlineString
+- (id) initWithCharactersNoCopy: (unichar*)chars
+			 length: (unsigned)length
+		   freeWhenDone: (BOOL)flag
+{
+  RELEASE(self);
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"Illegal method used to initialise inline string"];
+  return nil;
+}
 - (id) initWithCharacters: (const unichar*)chars length: (unsigned)length
 {
   if (_contents.u != 0)
@@ -2039,7 +2057,7 @@ transmute(ivars self, NSString *aString)
 		  format: @"re-initialisation of string"];
     }
   _count = length;
-  _contents.u = (unichar*)&self[1];
+  _contents.u = (unichar*)&((GSUnicodeInlineString*)self)[1];
   if (_count > 0)
     memcpy(_contents.u, chars, length*sizeof(unichar));
   _flags.wide = 1;
@@ -2620,17 +2638,15 @@ transmute(ivars self, NSString *aString)
     {
       sub = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
 	_count*sizeof(unichar), NSDefaultMallocZone());
-      sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
-				   length: aRange.length
-			     freeWhenDone: NO];
+      sub = [sub initWithCharacters: self->_contents.u + aRange.location
+			     length: aRange.length];
     }
   else
     {
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
 	_count, NSDefaultMallocZone());
-      sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
-				length: aRange.length
-			  freeWhenDone: NO];
+      sub = [sub initWithCString: self->_contents.c + aRange.location
+			  length: aRange.length];
     }
   AUTORELEASE(sub);
   return sub;
@@ -2646,17 +2662,15 @@ transmute(ivars self, NSString *aString)
     {
       sub = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
 	_count*sizeof(unichar), NSDefaultMallocZone());
-      sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
-				   length: aRange.length
-			     freeWhenDone: NO];
+      sub = [sub initWithCharacters: self->_contents.u + aRange.location
+			     length: aRange.length];
     }
   else
     {
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
 	_count, NSDefaultMallocZone());
-      sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
-				length: aRange.length
-			  freeWhenDone: NO];
+      sub = [sub initWithCString: self->_contents.c + aRange.location
+			  length: aRange.length];
     }
   AUTORELEASE(sub);
   return sub;

@@ -1,3 +1,8 @@
+2000-11-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: ([GSMutableString substringWithRange:]) fix to
+	initialize inline string classes correctly.
+
 2000-11-06  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation: Move tmpl.texi files to texi and update GNUmakefile
