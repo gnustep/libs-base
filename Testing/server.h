@@ -27,6 +27,7 @@ struct myarray {
 @end
 
 @protocol ServerProtocol 
+- (void) addObject: (id)o;
 - (BOOL) sendBoolean: (BOOL)b;
 - (void) getBoolean: (BOOL*)bp;
 - (unsigned char) sendUChar: (unsigned char)uc;

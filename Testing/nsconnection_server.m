@@ -8,6 +8,7 @@
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSProtocolChecker.h>
 
 #define	IN_SERVER	1
 #include "server.h"
@@ -460,7 +461,8 @@ usage(const char *program)
 int main(int argc, char *argv[], char **env)
 {
   int i, debug, timeout;
-  id l = [[Server alloc] init];
+  id s = [[Server alloc] init];
+  id l;
   id o = [[NSObject alloc] init];
   NSConnection *c;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
@@ -468,6 +470,9 @@ int main(int argc, char *argv[], char **env)
   extern int optind;
   extern char *optarg;
 #endif
+
+  l = [NSProtocolChecker protocolCheckerWithTarget: s
+					  protocol: @protocol(ServerProtocol)];
 
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
   debug = 0;
@@ -512,13 +517,13 @@ int main(int argc, char *argv[], char **env)
     [c registerName: @"test2server"];
 
   [[NSNotificationCenter defaultCenter]
-    addObserver: l
+    addObserver: s
     selector: @selector(connectionBecameInvalid:)
     name: NSConnectionDidDieNotification
     object: c];
-  [c setDelegate: l];
+  [c setDelegate: s];
 
-  [l addObject: o];
+  [s addObject: o];
   printf("  list's hash is 0x%x\n", (unsigned)[l hash]);
   printf("  object's hash is 0x%x\n", (unsigned)[o hash]);
   printf("Running...\n");

@@ -61,20 +61,24 @@
  */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
-  if (GSObjCIsInstance(_myTarget)
-    && ![_myProtocol descriptionForInstanceMethod: [anInvocation selector]])
+  if (GSObjCIsInstance(_myTarget))
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"<%s -%@> not declared",
-        [_myProtocol name], NSStringFromSelector([anInvocation selector])];
+      if (![_myProtocol descriptionForInstanceMethod: [anInvocation selector]])
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"<%s -%@> not declared",
+	    [_myProtocol name], NSStringFromSelector([anInvocation selector])];
+	}
     }
-  else if (![_myProtocol descriptionForClassMethod: [anInvocation selector]])
+  else
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"<%s +%@> not declared",
-        [_myProtocol name], NSStringFromSelector([anInvocation selector])];
+      if (![_myProtocol descriptionForClassMethod: [anInvocation selector]])
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"<%s +%@> not declared",
+	    [_myProtocol name], NSStringFromSelector([anInvocation selector])];
+	}
     }
-
   [anInvocation invokeWithTarget: _myTarget];
 }
 
@@ -94,13 +98,23 @@
  */
 - (id) initWithTarget: (NSObject*)anObject protocol: (Protocol*)aProtocol
 {
-  self = [super init];
-  if (self != nil)
-    {
-      _myProtocol = aProtocol;
-      ASSIGN(_myTarget, anObject);
-    }
+  _myProtocol = aProtocol;
+  ASSIGN(_myTarget, anObject);
   return self;
+}
+
+- (IMP) methodForSelector: (SEL)aSelector
+{
+  return get_imp(GSObjCClass((id)self), aSelector);
+}
+
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
+{
+  if (aSelector == _cmd || [self respondsToSelector: aSelector] == YES)
+    {
+      return [_myTarget methodSignatureForSelector: aSelector];
+    }
+  return nil;
 }
 
 /**
@@ -110,6 +124,25 @@
 - (Protocol*) protocol
 {
   return _myProtocol;
+}
+
+- (BOOL) respondsToSelector: (SEL)aSelector
+{
+  if (GSObjCIsInstance(_myTarget))
+    {
+      if ([_myProtocol descriptionForInstanceMethod: aSelector])
+	{
+	  return YES;
+	}
+    }
+  else
+    {
+      if ([_myProtocol descriptionForClassMethod: aSelector])
+	{
+	  return YES;
+	}
+    }
+  return NO;
 }
 
 /**

@@ -1,7 +1,8 @@
 2004-04-25 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSProtocolChecker.m: Rewrite ... appeared almost totally
+	* Source/NSProtocolChecker.m: Major rewrite ... appeared almost totally
 	non-functional.
+	* Testing/nsconnectiion_server.m: Use NSProtocolChecker as a test.
 
 2004-04-23  David Ayers  <d.ayers@inode.at>
 
