@@ -2686,7 +2686,7 @@ handle_printf_atsign (FILE *stream,
 /**
  * Retrieve the contents of the receiver into the buffer.<br />
  * The buffer must be large enought to contain the CString representation
- * of the characters in the receiver, plus a null terminator which this
+ * of the characters in the receiver, plus a nul terminator which this
  * method adds.
  */
 - (void) getCString: (char*)buffer
@@ -2697,9 +2697,9 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Retrieve up to maxLength characters from the receiver into the buffer.<br />
- * The buffer must be at least maxLength characters long, so that it has
- * room for the null terminator that this method adds.
+ * Retrieve up to maxLength bytes from the receiver into the buffer.<br />
+ * The buffer must be at least maxLength + 1 bytes long, so that it has
+ * room for the nul terminator that this method adds.
  */
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
@@ -2709,6 +2709,16 @@ handle_printf_atsign (FILE *stream,
     remainingRange: NULL];
 }
 
+/**
+ * Converts characters from the given range of the string to the c string
+ * encoding and stores the resulting bytes in the given buffer. As many
+ * characters are converted as will fit in the buffer. A trailing nul
+ * byte is always added, so the buffer needs to be big enough to hold
+ * maxLength+1 bytes.
+ * <br />
+ * If leftoverRange is non-NULL, the range of trailing characters that didn't
+ * will be stored in it.
+ */
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned int)maxLength
 	      range: (NSRange)aRange
@@ -3624,12 +3634,12 @@ handle_printf_atsign (FILE *stream,
   char		new_buf[MAX_PATH];
 #ifdef HAVE_REALPATH
 
-  if (realpath([self cString], new_buf) == 0)
+  if (realpath([self fileSystemRepresentation], new_buf) == 0)
     return self;
 #else
   char		extra[MAX_PATH];
   char		*dest;
-  const char	*name = [self cString];
+  const char	*name = [self fileSystemRepresentation];
   const char	*start;
   const	char	*end;
   unsigned	num_links = 0;
@@ -3763,7 +3773,8 @@ handle_printf_atsign (FILE *stream,
       if (lstat(&new_buf[8], &st) == 0)
 	strcpy(new_buf, &new_buf[8]);
     }
-  return [NSStringClass stringWithCString: new_buf];
+  return [[NSFileManager defaultManager]
+	     stringWithFileSystemRepresentation: new_buf];
 #endif  /* (__MINGW__) */
 }
 

@@ -1,3 +1,12 @@
+2004-04-15 14:39  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSString.m (-stringByResolvingSymlinksInPath): Use
+	-fileSystemRepresentation and -stringWithFileSystemRepresentation:
+	instead of cstring methods.
+
+	(-getCString:maxLength:range:remainingRange:): Document.
+	(-getCString:, -getCString:maxLength:): Documentation fixes.
+
 2004-04-14 18:20  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/Additions/Unicode.m (GSToUnicode): In an utf8 sequence,
