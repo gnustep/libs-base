@@ -232,6 +232,11 @@ handle_printf_atsign (FILE *stream,
   return [[[self alloc] init] autorelease];
 }
 
++ (NSString*) stringWithString: (NSString*)aString
+{
+   return [[[self alloc] initWithString: aString] autorelease];
+}
+
 + (NSString*) stringWithCharacters: (const unichar*)chars
    length: (unsigned int)length
 {
@@ -557,10 +562,10 @@ handle_printf_atsign (FILE *stream,
 #endif
 }
 
-// xxx check this
 - (id) init
 {
-  return [self initWithCString:""];
+ [super init];
+ return self;
 }
 
 // Getting a String's Length
@@ -664,8 +669,25 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  [self subclassResponsibility:_cmd];
-  return self;
+  unichar *buf;
+  id ret;
+
+  if (aRange.location > [self length])
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > ([self length] - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  if (aRange.length == 0)
+    return @"";
+  OBJC_MALLOC(buf, unichar, aRange.length+1);
+  [self getCharacters:buf range:aRange];
+  ret = [[self class] stringWithCharacters:buf length:aRange.length];
+  OBJC_FREE(buf);
+  return ret;
+}
+
+- (NSString*) substringWithRange: (NSRange)aRange
+{
+  return [self substringFromRange: aRange];
 }
 
 - (NSString*) substringToIndex: (unsigned int)index
@@ -1433,35 +1455,17 @@ else
 }
 
 - (unsigned int) hash
-#if 1
-//  xxx C string implementation
-{
-  unsigned ret = 0;
-  unsigned ctr = 0;
-  unsigned char_count = 0;
-  const char *s = [self cStringNoCopy];
-
-  while (*s && char_count++ < NSHashStringLength)
-    {
-      ret ^= *s++ << ctr;
-      ctr = (ctr + 1) % sizeof (void*);
-    }
-  return ret;
-}
-#else
-//  xxx Unicode string implementation - check !!!
-
 {
   unsigned ret = 0;
   unsigned ctr = 0;
   unsigned char_count = 0;
   unichar *s,*p;
-  int len;
 
   id g = [self _normalizedString];
-  len = [g length];
+  int len = [g length];
   OBJC_MALLOC(s, unichar, len + 1);
   [g getCharacters: s];
+  s[len]=(unichar)0;
   p = s;
   while (*p && char_count++ < NSHashStringLength)
     {
@@ -1471,7 +1475,6 @@ else
   OBJC_FREE(s);
   return ret;
 }
-#endif
 
 // Getting a Shared Prefix
 
@@ -1833,7 +1836,7 @@ else
   return [self cString];
 }
 
-- (BOOL)fileSystemRepresentation: (char*)buffer maxLength: (unsigned int)size
+- (BOOL)getFileSystemRepresentation: (char*)buffer maxLength: (unsigned int)size
 {
   const char* ptr = [self cStringNoCopy];
   if (strlen(ptr) > size)
@@ -2127,7 +2130,7 @@ else
 
   unichar *u, *upoint;
   NSRange r;
-  id seq;
+  id seq,ret;
   int len = [self length];
   int count = 0;
   OBJC_MALLOC(u, unichar, len*MAXDEC+1);
@@ -2143,9 +2146,10 @@ else
   }
   *upoint = (unichar)0;
 
- return [self initWithCharactersNoCopy:u
-        length: uslen(u)
-  	freeWhenDone:YES];
+  ret = [NSString stringWithCharacters:u
+        length: uslen(u)];
+  OBJC_FREE(u);
+  return ret;
 }
 
 // #ifndef STRICT_OPENSTEP
@@ -2171,6 +2175,7 @@ else
 // #endif
 
 // #ifndef NO_GNUSTEP
+// This method should be removed
 - (const char *) cStringNoCopy
 {
   [self subclassResponsibility: _cmd];
@@ -2259,6 +2264,11 @@ else
 - copy
 {
   return [self copyWithZone: NSDefaultMallocZone ()];
+}
+
+- mutableCopy
+{
+  return [self mutableCopyWithZone: NSDefaultMallocZone ()];
 }
 
 - mutableCopyWithZone: (NSZone*)zone
@@ -2372,25 +2382,25 @@ else
 
 - (void) deleteCharactersInRange: (NSRange)range
 {
-  [self subclassResponsibility:_cmd];
+  [self replaceCharactersInRange:range withString:nil];
 }
 
 - (void) insertString: (NSString*)aString atIndex:(unsigned)loc
 {
-  [self subclassResponsibility:_cmd];
+  NSRange range = {loc, 0};
+  [self replaceCharactersInRange:range withString:aString];
 }
 
-/* Inefficient. */
 - (void) replaceCharactersInRange: (NSRange)range 
    withString: (NSString*)aString
 {
-  [self deleteCharactersInRange:range];
-  [self insertString:aString atIndex:range.location];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) setString: (NSString*)aString
 {
-  [self subclassResponsibility:_cmd];
+  NSRange range = {0, [self length]};
+  [self replaceCharactersInRange:range withString:aString];
 }
 
 @end

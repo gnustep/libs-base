@@ -39,7 +39,8 @@
 
 - (void)dealloc
 {
-  [self _collectionDealloc];
+  if (_free_contents)
+    OBJC_FREE(_contents_chars);
   [super dealloc];
 }
 
@@ -52,6 +53,7 @@
   _count = length;
   _contents_chars = byteString;
   _free_contents = flag;
+  [super init];
   return self;
 }
 
@@ -64,6 +66,11 @@
    freeWhenDone: flag];
   [self release];
   return a;
+}
+
+- (id) init
+{
+  return [self initWithCString:""];
 }
 
 - (void) _collectionReleaseContents
@@ -269,6 +276,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   OBJC_MALLOC(_contents_chars, char, _capacity);
   _contents_chars[0] = '\0';
   _free_contents = YES;
+  [super init];
   return self;
 }
 
@@ -276,6 +284,14 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 {
   stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, 
 				    range.location, range.length);
+}
+
+// xxx This should be primitive method
+- (void) replaceCharactersInRange: (NSRange)range
+   withString: (NSString*)aString
+{
+  [self deleteCharactersInRange:range];
+  [self insertString:aString atIndex:range.location];
 }
 
 - (void) insertString: (NSString*)aString atIndex:(unsigned)index
@@ -336,11 +352,30 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
-  [self initWithCapacity:length];
-  [self setCString:byteString length:length];
+  _count = length;
+  _capacity = length+1;
+  _contents_chars = byteString;
+  _free_contents = flag;
+  [super init];
   return self;
 }
 
+/* Override NSString's designated initializer for Unicode Strings. */
+- (id) initWithCharactersNoCopy: (unichar*)chars
+   length: (unsigned int)length
+   freeWhenDone: (BOOL)flag
+{
+  id a = [[NSGMutableString alloc] initWithCharactersNoCopy: chars
+   length: length
+   freeWhenDone: flag];
+  [self release];
+  return a;
+}
+
+- (id) init
+{
+  return [self initWithCString:""];
+};
 
 /* For IndexedCollecting Protocol and other GNU libobjects conformity. */
 
