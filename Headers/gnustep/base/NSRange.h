@@ -31,10 +31,16 @@ typedef struct _NSRange
 
 
 static inline unsigned
+NSMaxRange(NSRange range) __attribute__ ((unused));
+
+static inline unsigned
 NSMaxRange(NSRange range) 
 {
   return range.location + range.length;
 }
+
+static inline BOOL 
+NSLocationInRange(unsigned location, NSRange range) __attribute__ ((unused));
 
 static inline BOOL 
 NSLocationInRange(unsigned location, NSRange range) 
