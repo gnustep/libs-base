@@ -37,6 +37,30 @@
 #define	_array	((GSIArray)(self->_data))
 #define	_other	((GSIArray)(aSet->_data))
 
+#ifdef	SANITY_CHECKS
+static void sanity(GSIArray array)
+{
+  if (array != 0)
+    {
+      unsigned	c = GSIArrayCount(array);
+      unsigned	i;
+      unsigned	last = 0;
+
+      for (i = 0; i < c; i++)
+	{
+	  NSRange	r = GSIArrayItemAtIndex(array, i).ext;
+
+	  NSCAssert(r.location >= last, @"Overlap ranges");
+	  NSCAssert(NSMaxRange(r) > r.location, @"Bad range length");
+	  last = NSMaxRange(r);
+	}
+    }
+}
+#define	SANITY()	sanity(_array)
+#else
+#define	SANITY()	
+#endif
+
 /*
  * Returns the position in the array at which the index should be inserted.
  * This may be the position of a range containing the index if it is already
@@ -668,6 +692,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
 	}
     }
+  SANITY();
 }
 
 - (id) copyWithZone: (NSZone*)aZone
@@ -742,12 +767,12 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	      /*
 	       * Range to remove is entirely within found range and
 	       * overlaps the start of the found range ... shrink it
-	       * and trhen we are finished.
+	       * and then we are finished.
 	       */
 	      r.location += aRange.length;
 	      r.length -= aRange.length;
 	      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
-	      return;
+	      pos++;
 	    }
 	}
       else
@@ -778,7 +803,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
 	      pos++;
 	      GSIArrayInsertItem(_array, (GSIArrayItem)next, pos);
-	      return;
+	      pos++;
 	    }
 	}
     }
@@ -814,9 +839,10 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	  /*
 	   * Found range extends beyond range to remove ... finished.
 	   */
-	  return;
+	  break;
 	}
     }
+  SANITY();
 }
 
 - (void) shiftIndexesStartingAtIndex: (unsigned int)anIndex by: (int)amount
@@ -923,6 +949,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	    }
 	}
     }
+  SANITY();
 }
 
 @end
