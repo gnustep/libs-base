@@ -1108,15 +1108,15 @@ o_hash_description(o_hash_t *hash)
 #define DESCRIBE(E) o_describe(callbacks, (E), hash)
 
   [string appendFormat:@"element_count = %d;\n", o_hash_count(hash)];
-  [string appendFormat:@"not_an_element_marker = %@;\n",
-          DESCRIBE(o_hash_not_an_element_marker(hash))];
+  [string appendFormat:@"not_an_element_marker = %s;\n",
+          [DESCRIBE(o_hash_not_an_element_marker(hash)) cStringNoCopy]];
   [string appendString:@"elements = {\n"];
 
   while (o_hash_enumerator_next_element(&enumerator, &element))
-    [string appendFormat:@"%@,\n", DESCRIBE(element)];
+    [string appendFormat:@"%s,\n", [DESCRIBE(element) cStringNoCopy]];
 
-  [string appendFormat:@"%@};\n",
-          DESCRIBE(o_hash_not_an_element_marker(hash))];
+  [string appendFormat:@"%s};\n",
+          [DESCRIBE(o_hash_not_an_element_marker(hash)) cStringNoCopy]];
 
 #undef DESCRIBE
 
