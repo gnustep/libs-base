@@ -1,3 +1,10 @@
+Mon Nov 03 08:35:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Remove unnecessary -copy implementations for
+	simplicity, and add code to avoid creating substrings of strings
+	which do not own their buffers ... stopgap until Alexander
+	reorganises class hierarchy.
+
 2003-11-02 01:53  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/GSString.m ([GSCSubString -copy]): Add as a stopgap

@@ -1687,36 +1687,55 @@ rangeOfString_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
 static inline NSString*
 substring_c(ivars self, NSRange aRange)
 {
-  GSCSubString	*sub;
+  id	sub;
 
-  sub = (GSCSubString*)NSAllocateObject(GSCSubStringClass, 0,
-    NSDefaultMallocZone());
-  sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
-			    length: aRange.length
-		      freeWhenDone: NO];
-  if (sub != nil)
+  if (self->_flags.free == 1)
     {
-      sub->_parent = RETAIN((id)self);
-      AUTORELEASE(sub);
+      sub = NSAllocateObject(GSCSubStringClass, 0, NSDefaultMallocZone());
+      sub = [sub initWithCStringNoCopy: self->_contents.c + aRange.location
+				length: aRange.length
+			  freeWhenDone: NO];
+      if (sub != nil)
+	{
+	  ((GSCSubString*)sub)->_parent = RETAIN((id)self);
+	}
     }
+  else
+    {
+      sub = NSAllocateObject(GSCInlineStringClass,
+	aRange.length, NSDefaultMallocZone());
+      sub = [sub initWithCString: self->_contents.c + aRange.location
+			  length: aRange.length];
+    }
+  AUTORELEASE(sub);
   return sub;
 }
 
 static inline NSString*
 substring_u(ivars self, NSRange aRange)
 {
-  GSUnicodeSubString	*sub;
+  id	sub;
 
-  sub = (GSUnicodeSubString*)NSAllocateObject(GSUnicodeSubStringClass, 0,
-    NSDefaultMallocZone());
-  sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
-			       length: aRange.length
-			 freeWhenDone: NO];
-  if (sub != nil)
+  if (self->_flags.free == 1)
     {
-      sub->_parent = RETAIN((id)self);
-      AUTORELEASE(sub);
+      sub = NSAllocateObject(GSUnicodeSubStringClass, 0, NSDefaultMallocZone());
+      sub = [sub initWithCharactersNoCopy: self->_contents.u + aRange.location
+				   length: aRange.length
+			     freeWhenDone: NO];
+      if (sub != nil)
+	{
+	  ((GSUnicodeSubString*)sub)->_parent = RETAIN((id)self);
+	}
     }
+  else
+    {
+      sub = NSAllocateObject(GSUnicodeInlineStringClass,
+	aRange.length*sizeof(unichar),
+	NSDefaultMallocZone());
+      sub = [sub initWithCharacters: self->_contents.u + aRange.location
+			     length: aRange.length];
+    }
+  AUTORELEASE(sub);
   return sub;
 }
 
@@ -1953,30 +1972,6 @@ transmute(ivars self, NSString *aString)
   return compare_c((ivars)self, aString, mask, aRange);
 }
 
-- (id) copy
-{
-  if (_flags.free == NO
-    || NSShouldRetainWithZone(self, NSDefaultMallocZone()) == NO)
-    {
-      GSCString	*obj;
-
-      obj = (GSCString*)NSCopyObject(self, 0, NSDefaultMallocZone());
-      if (_contents.c != 0)
-	{
-	  unsigned char	*tmp;
-
-	  tmp = NSZoneMalloc(NSDefaultMallocZone(), _count);
-	  memcpy(tmp, _contents.c, _count);
-	  obj->_contents.c = tmp;
-	}
-      return obj;
-    }
-  else 
-    {
-      return RETAIN(self);
-    }
-}
-
 - (id) copyWithZone: (NSZone*)z
 {
   if (_flags.free == NO
@@ -2197,10 +2192,6 @@ transmute(ivars self, NSString *aString)
   _flags.wide = 0;
   return self;
 }
-- (id) copy
-{
-  return RETAIN(self);
-}
 - (id) copyWithZone: (NSZone*)z
 {
   if (NSShouldRetainWithZone(self, z) == NO)
@@ -2232,10 +2223,6 @@ transmute(ivars self, NSString *aString)
 /*
  * Assume that a copy should be a new string, never just a retained substring.
  */
-- (id) copy
-{
-  return [self copyWithZone: NSDefaultMallocZone()];
-}
 - (id) copyWithZone: (NSZone*)z
 {
   NSString	*obj;
@@ -2279,30 +2266,6 @@ transmute(ivars self, NSString *aString)
 			 range: (NSRange)aRange
 {
   return compare_u((ivars)self, aString, mask, aRange);
-}
-
-- (id) copy
-{
-  if (_flags.free == NO
-    || NSShouldRetainWithZone(self, NSDefaultMallocZone()) == NO)
-    {
-      GSUnicodeString	*obj;
-
-      obj = (GSUnicodeString*)NSCopyObject(self, 0, NSDefaultMallocZone());
-      if (_contents.u != 0)
-	{
-	  unichar	*tmp;
-
-	  tmp = NSZoneMalloc(NSDefaultMallocZone(), _count*sizeof(unichar));
-	  memcpy(tmp, _contents.u, _count*sizeof(unichar));
-	  obj->_contents.u = tmp;
-	}
-      return obj;
-    }
-  else 
-    {
-      return RETAIN(self);
-    }
 }
 
 - (id) copyWithZone: (NSZone*)z
@@ -2531,10 +2494,6 @@ transmute(ivars self, NSString *aString)
   _flags.wide = 1;
   return self;
 }
-- (id) copy
-{
-  return RETAIN(self);
-}
 - (id) copyWithZone: (NSZone*)z
 {
   if (NSShouldRetainWithZone(self, z) == NO)
@@ -2708,25 +2667,6 @@ transmute(ivars self, NSString *aString)
     return compare_u((ivars)self, aString, mask, aRange);
   else
     return compare_c((ivars)self, aString, mask, aRange);
-}
-
-- (id) copy
-{
-  id	copy;
-
-  if (_flags.wide == 1)
-    {
-      copy = NSAllocateObject(GSUnicodeInlineStringClass,
-	_count*sizeof(unichar), NSDefaultMallocZone());
-      copy = [copy initWithCharacters: _contents.u length: _count];
-    }
-  else
-    {
-      copy = NSAllocateObject(GSCInlineStringClass,
-	_count, NSDefaultMallocZone());
-      copy = [copy initWithCString: _contents.c length: _count];
-    }
-  return copy;
 }
 
 - (id) copyWithZone: (NSZone*)z
@@ -3413,11 +3353,6 @@ transmute(ivars self, NSString *aString)
   [super dealloc];
 }
 
-- (id) copy
-{
-  return [_parent copy];
-}
-
 - (id) copyWithZone: (NSZone*)z
 {
   return [_parent copyWithZone: z];
@@ -3775,11 +3710,6 @@ transmute(ivars self, NSString *aString)
 }
 
 - (id) autorelease
-{
-  return self;
-}
-
-- (id) copy
 {
   return self;
 }
