@@ -6,6 +6,6 @@ NXStringTable_scan.c dynamic-load.h
 proplist.tab.m proplist.tab.h lex.pl.m
 NSValue?.m NSNumber?.m NSNumber??.m
 
-*-bas.m *-cbs.m 
+*_bas.m *_cbs.m 
 
 errs*
