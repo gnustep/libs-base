@@ -1,4 +1,4 @@
-/** Implementatikon for <NSUndoManager> for GNUStep
+/** Implementation for NSUndoManager for GNUStep
    Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -254,7 +254,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
  * Returns whether the receiver has any action groupings
  * on the stack to undo.  It does not imply, that the
  * receiver is currently in a state to service an undo
- * request.  Make sure [-endEndGrouping] is invoked before
+ * request.  Make sure [-endUndoGrouping] is invoked before
  * requesting either an [-undo] or an [-undoNestedGroup].
  */
 - (BOOL) canUndo
@@ -380,7 +380,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
  * Registers the invocation with the current undo grouping.
  * This method is part of the NSInvocation-based undo registration
  * as opposed to the simpler [-registerUndoWithTarget:selector:object:]
- * technique. <br/>
+ * technique.<br />
  * You generally never invoke this method directly.  
  * Instead invoke [-prepareWithInvocationTarget:] with the target of the
  * undo action and then invoke the targets method to undo the action
@@ -388,16 +388,16 @@ NSString *NSUndoManagerWillUndoChangeNotification =
  * which actually is the undo manager.
  * The runtime will then fallback to -forwardInvocation: to do the actual
  * registration of the invocation.
- * The invocation will added to the current grouping.<br/>
+ * The invocation will added to the current grouping.<br />
  * If the registrations have been disabled through [-disableUndoRegistration],
- * this method does nothing.<br/>
+ * this method does nothing.<br />
  * Unless the reciever implicitly 
  * groups operations by event, the this method must have been preceeded
  * with a [-beginUndoGrouping] message.  Otherwise it will raise an
- * NSInternalInconsistencyException. <br/>
+ * NSInternalInconsistencyException. <br />
  * Unless this method is invoked as part of a [-undo] or [-undoNestedGroup]
- * processing, the redo stack is cleared.<br/>
- * If the reciever [-groupsByEvents] and this is the first call to this
+ * processing, the redo stack is cleared.<br />
+ * If the reciever [-groupsByEvent] and this is the first call to this
  * method since the last run loop processing, this method sets up
  * the reciever to process the [-endUndoGrouping] at the
  * end of the event loop.
@@ -554,7 +554,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
  * Prepares the receiver to registers an invocation-based undo operation.
  * This method is part of the NSInvocation-based undo registration
  * as opposed to the simpler [-registerUndoWithTarget:selector:object:]
- * technique. <br/>
+ * technique. <br />
  * You invoke this method with the target of the
  * undo action and then invoke the targets method to undo the action
  * on the return value of this invocation
@@ -576,7 +576,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
  * on the redo stack, the top object is poped of the stack and invoked
  * within a nested [-beginUndoGrouping]/[-endUndoGrouping].  During this
  * pocessing, the operations registered for undo are recorded on the undo
- * stack again.<br\>
+ * stack again.<br />
  */
 - (void) redo
 {
@@ -637,7 +637,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 /**
  * Returns the full localized title of the actions to be displayed
  * as a menu item.  This method first invokes [-redoActionName] and 
- * passes it to [-redoMenuTitelForUndoActionName:] and returns the result.
+ * passes it to [-redoMenuTitleForUndoActionName:] and returns the result.
  */
 - (NSString*) redoMenuItemTitle
 {
@@ -647,7 +647,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 /**
  * Returns the localized title of the actions to be displayed
  * as a menu item identified by actionName, by appending a
- * localized command string like @"Redo <localized(actionName)>".
+ * localized command string like @"Redo &lt;localized(actionName)&gt;".
  */
 - (NSString*) redoMenuTitleForUndoActionName: (NSString*)actionName
 {
@@ -674,21 +674,21 @@ NSString *NSUndoManagerWillUndoChangeNotification =
  * Registers an undo operation.
  * This method is the simple target-action-based undo registration
  * as opposed to the sophisticated [-forwardInvocation:]
- * mechanism. <br/>
+ * mechanism. <br />
  * You invoke this method with the target of the
  * undo action providing the selector which can perform the undo with
  * the provided object.  The object is often a dictionary of the
  * identifying the attribute and thier values before the change.
- * The invocation will added to the current grouping.<br/>
+ * The invocation will added to the current grouping.<br />
  * If the registrations have been disabled through [-disableUndoRegistration],
- * this method does nothing.<br/>
+ * this method does nothing.<br />
  * Unless the reciever implicitly 
  * groups operations by event, the this method must have been preceeded
  * with a [-beginUndoGrouping] message.  Otherwise it will raise an
- * NSInternalInconsistencyException. <br/>
+ * NSInternalInconsistencyException. <br />
  * Unless this method is invoked as part of a [-undo] or [-undoNestedGroup]
- * processing, the redo stack is cleared.<br/>
- * If the reciever [-groupsByEvents] and this is the first call to this
+ * processing, the redo stack is cleared.<br />
+ * If the reciever [-groupsByEvent] and this is the first call to this
  * method since the last run loop processing, this method sets up
  * the reciever to process the [-endUndoGrouping] at the
  * end of the event loop.
@@ -792,7 +792,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 
 /**
  * Returns the run loop modes in which the receiver registers 
- * the [-endUndoGroup] processing when it [-groupsByEvent].
+ * the [-endUndoGrouping] processing when it [-groupsByEvent].
  */
 - (NSArray*) runLoopModes
 {
@@ -854,7 +854,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 /**
  * Sets the modes in which the reciever registers the calls
  * with the current run loop to invoke
- * [-endUndoGroup] when it [-groupsByEvents].  This method
+ * [-endUndoGrouping] when it [-groupsByEvent].  This method
  * first cancels any pending registrations in the old modes and
  * registers the invokation in the new modes.
  */
@@ -914,7 +914,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 /**
  * Returns the full localized title of the actions to be displayed
  * as a menu item.  This method first invokes [-undoActionName] and 
- * passes it to [-undoMenuTitelForUndoActionName:] and returns the result.
+ * passes it to [-undoMenuTitleForUndoActionName:] and returns the result.
  */
 - (NSString*) undoMenuItemTitle
 {
@@ -924,7 +924,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 /**
  * Returns the localized title of the actions to be displayed
  * as a menu item identified by actionName, by appending a
- * localized command string like @"Undo <localized(actionName)>".
+ * localized command string like @"Undo &lt;localized(actionName)&gt;".
  */
 - (NSString*) undoMenuTitleForUndoActionName: (NSString*)actionName
 {
@@ -955,7 +955,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
  * on the undo stack, the top object is poped of the stack and invoked
  * within a nested beginUndoGrouping/endUndoGrouping.  During this
  * pocessing, the undo operations registered for undo are recorded on the redo
- * stack.<br\>
+ * stack.<br />
  */
 - (void) undoNestedGroup
 {

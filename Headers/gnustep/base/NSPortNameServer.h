@@ -1,5 +1,5 @@
-/* Interface of NSPortNameServer class for Distributed Objects
-   Copyright (C) 1998,1999 Free Software Foundation, Inc.
+/** Interface of NSPortNameServer class for Distributed Objects
+   Copyright (C) 1998,1999,2003 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 1998
@@ -19,6 +19,11 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+   AutogsdocSource: NSPortNameServer.m
+   AutogsdocSource: NSSocketPortNameServer.m
+   AutogsdocSource: NSMessagePortNameServer.m
+
    */
 
 #ifndef __NSPortNameServer_h_GNUSTEP_BASE_INCLUDE
@@ -58,6 +63,13 @@
   NSMapTable	*_nameMap;	/* Registered names information.	*/
 }
 + (id) sharedInstance;
++ (id) systemDefaultPortNameServer;
+- (NSPort*) portForName: (NSString*)name;
+- (NSPort*) portForName: (NSString*)name
+		 onHost: (NSString*)host;
+- (BOOL) registerPort: (NSPort*)port
+	      forName: (NSString*)name;
+- (BOOL) removePortForName: (NSString*)name;
 @end
 
 

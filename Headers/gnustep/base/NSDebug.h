@@ -125,7 +125,7 @@ GS_EXPORT void     GSDebugAllocationActiveRecordingObjects(Class c);
 /**
  * Returns an array containing all the allocated objects
  * of a certain class which have been recorded.
- * Presumably, you will immediately call -description on
+ * Presumably, you will immediately call [NSObject-description] on
  * them to find out the objects you are leaking.
  * Warning - the objects are put in an array, so until
  * the array is autoreleased, the objects are not released.

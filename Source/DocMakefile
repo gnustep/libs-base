@@ -85,6 +85,7 @@ NSProxy.h \
 NSRange.h \
 NSRunLoop.h \
 NSScanner.h \
+NSSerialization.h \
 NSSet.h \
 NSString.h \
 NSTask.h \
