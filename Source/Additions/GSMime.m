@@ -2887,15 +2887,14 @@ static NSCharacterSet	*tokenSet = nil;
 
   for (sIndex = 0; sIndex < length; sIndex += 3)
     {
-      dBuf[dIndex] = b64[sBuf[sIndex] >> 2];
-      dBuf[dIndex + 1]
-	= b64[((sBuf[sIndex] << 4) & 060)
-	| ((sBuf[sIndex + 1] >> 4) & 017)];
-      dBuf[dIndex + 2]
-	= b64[((sBuf[sIndex + 1] << 2) & 074)
-	| ((sBuf[sIndex + 2] >> 6) & 03)];
-      dBuf[dIndex + 3] = b64[sBuf[sIndex + 2] & 077];
-      dIndex += 3;
+      int	c0 = sBuf[sIndex];
+      int	c1 = sBuf[sIndex+1];
+      int	c2 = sBuf[sIndex+2];
+
+      dBuf[dIndex++] = b64[(c0 >> 2) & 077];
+      dBuf[dIndex++] = b64[((c0 << 4) & 060) | ((c1 >> 4) & 017)];
+      dBuf[dIndex++] = b64[((c1 << 2) & 074) | ((c2 >> 6) & 03)];
+      dBuf[dIndex++] = b64[c2 & 077];
     }
 
    /* If len was not a multiple of 3, then we have encoded too
