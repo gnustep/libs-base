@@ -67,31 +67,47 @@ static NSMapTable       *activeTasks = 0;
 
 @implementation NSTask
 
+static BOOL	hadChildSignal = NO;
 static void handleSignal(int sig)
 {
-  int result;
-  int status;
+  hadChildSignal = YES;
+}
 
-  do
+BOOL
+GSCheckTasks()
+{
+  BOOL	found = NO;
+
+  if (hadChildSignal)
     {
-      result = waitpid(-1, &status, WNOHANG);
-      if (result > 0)
-        {
-          if (WIFEXITED(status))
-            {
-              NSTask    *t;
+      int result;
+      int status;
 
-              [tasksLock lock];
-              t = (NSTask*)NSMapGet(activeTasks, (void*)result);
-              [tasksLock unlock];
-              if (t)
-                {
-                  [t _terminatedChild: WEXITSTATUS(status)];
-                }
-            }
-        }
+      hadChildSignal = NO;
+
+      do
+	{
+	  result = waitpid(-1, &status, WNOHANG);
+	  if (result > 0)
+	    {
+	      if (WIFEXITED(status))
+		{
+		  NSTask    *t;
+
+		  [tasksLock lock];
+		  t = (NSTask*)NSMapGet(activeTasks, (void*)result);
+		  [tasksLock unlock];
+		  if (t)
+		    {
+		      [t _terminatedChild: WEXITSTATUS(status)];
+		      found = YES;
+		    }
+		}
+	    }
+	}
+      while (result > 0);  
     }
-  while (result > 0);  
+  return found;
 }
 
 + (void) initialize

@@ -1,3 +1,12 @@
+Thu Feb 10 15:00:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Changes to fix possible crashes where task completion notifications
+	are sent at inappropriate times due to SIGCHLD.
+	* Source/NSTask.m: Move signal handler code to GSChecktasks() and
+	have the signal handler simply set a flag to say work needs doing.
+	* Source/NSRunLoop.m: Add calls to GSCheckTasks() so that we notice
+	the death of a child.
+
 Thu Feb 10 14:13:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/UnixFileHandle.m: ([-receivedEvent:type:extra: forMode:])
