@@ -4731,6 +4731,8 @@ static void indentation(unsigned level, NSMutableString *str)
 
 
 
+#ifdef	HAVE_LIBXML
+
 /*
  * And now, the actual GSXMLRPC class.
  */
@@ -5219,4 +5221,6 @@ static void indentation(unsigned level, NSMutableString *str)
 {
 }
 @end
+
+#endif	/* HAVE_LIBXML */
 
