@@ -26,7 +26,7 @@
 #define callframe_h_INCLUDE
 
 #include "Foundation/NSMethodSignature.h"
-#include "gnustep/base/DistributedObjects.h"
+#include "GNUstepBase/DistributedObjects.h"
 
 @class NSInvocation;
 

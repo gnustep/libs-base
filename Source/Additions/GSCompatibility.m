@@ -25,8 +25,8 @@
 #include "config.h"
 #include <objc/objc-class.h>
 #include "GSCompatibility.h"
-#include "gnustep/base/GSCategories.h"
-#include "gnustep/base/GCObject.h"
+#include "GNUstepBase/GSCategories.h"
+#include "GNUstepBase/GCObject.h"
 
 /* FIXME: Need to initialize this */
 NSRecursiveLock *gnustep_global_lock = NULL;

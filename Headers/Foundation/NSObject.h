@@ -36,7 +36,7 @@
 #endif
 
 #include <Foundation/NSObjCRuntime.h>
-#include <base/preface.h>
+#include <GNUstepBase/preface.h>
 #include <GSConfig.h>
 #include <objc/objc.h>
 #include <objc/Protocol.h>

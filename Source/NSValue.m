@@ -27,7 +27,7 @@
 */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSValue.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSDictionary.h"

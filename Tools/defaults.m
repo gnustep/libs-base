@@ -20,7 +20,7 @@
 
 #include "config.h"
 #include	<string.h>
-#include	<base/preface.h>
+#include	<GNUstepBase/preface.h>
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSArray.h>
 #include	<Foundation/NSDictionary.h>

@@ -38,7 +38,7 @@
 
 #include "config.h"
 #include <string.h>
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSAutoreleasePool.h"
@@ -1931,7 +1931,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 #define GSI_ARRAY_RELEASE(A, X)   gsedRelease(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)
 
-#include "gnustep/base/GSIArray.h"
+#include "GNUstepBase/GSIArray.h"
 
 /* Portable replacement for strdup - return a copy of original.  */
 inline char *custom_strdup (const char *original)

@@ -37,7 +37,7 @@
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSProcessInfo.h"
-#include "Foundation/GSMime.h"
+#include "GNUstepBase/GSMime.h"
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

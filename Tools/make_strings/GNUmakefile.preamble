@@ -45,8 +45,13 @@ ADDITIONAL_OBJCFLAGS += -Wall
 #ADDITIONAL_CFLAGS += 
 
 # Additional include directories the compiler should search
-ADDITIONAL_INCLUDE_DIRS += -I../../Headers/gnustep -I../../Headers \
+ADDITIONAL_INCLUDE_DIRS += -I../../Headers/Additions \
 	-I../../Source/$(GNUSTEP_TARGET_DIR)
+
+ifeq ($(FOUNDATION_LIB),gnu)
+  ADDITIONAL_INCLUDE_DIRS += -I../../Headers
+endif
+
 
 
 # Additional LDFLAGS to pass to the linker

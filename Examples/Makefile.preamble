@@ -45,7 +45,9 @@ ADDITIONAL_OBJCFLAGS =
 ADDITIONAL_CFLAGS = 
 
 # Additional include directories the compiler should search
-ADDITIONAL_INCLUDE_DIRS = -I../Headers
+ifeq ($(FOUNDATION_LIB),gnu)
+  ADDITIONAL_INCLUDE_DIRS = -I../Headers
+endif
 
 # Additional LDFLAGS to pass to the linker
 ADDITIONAL_LDFLAGS = 

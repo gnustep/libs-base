@@ -45,7 +45,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSCalendarDate.h"
 #include "Foundation/NSArray.h"
@@ -65,8 +65,8 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSMime.h"
-#include "gnustep/base/GSFormat.h"
+#include "GNUstepBase/GSMime.h"
+#include "GSFormat.h"
 #include <limits.h>
 #include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
@@ -76,7 +76,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#include "gnustep/base/Unicode.h"
+#include "GNUstepBase/Unicode.h"
 
 #include "GSPrivate.h"
 
@@ -4376,7 +4376,7 @@ handle_printf_atsign (FILE *stream,
 
 
 #ifdef	HAVE_LIBXML
-#include	"Foundation/GSXML.h"
+#include	"GNUstepBase/GSXML.h"
 static int      XML_ELEMENT_NODE;
 #endif
 

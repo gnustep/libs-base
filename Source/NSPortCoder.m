@@ -57,7 +57,7 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).uint == (Y).uint)
 #define	GSI_MAP_NOCLEAN	1
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 /*
  *	Setup for inline operation of arrays.
@@ -66,7 +66,7 @@
 #define	GSI_ARRAY_RELEASE(A, X)	
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_PTR
 
-#include "gnustep/base/GSIArray.h"
+#include "GNUstepBase/GSIArray.h"
 
 
 
@@ -74,7 +74,7 @@
 #include "Foundation/NSPortCoder.h"
 #undef	_IN_PORT_CODER_M
 
-#include "gnustep/base/DistributedObjects.h"
+#include "GNUstepBase/DistributedObjects.h"
 
 typedef	unsigned char	uchar;
 

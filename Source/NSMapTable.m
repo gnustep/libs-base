@@ -66,7 +66,7 @@ typedef struct {
  (M->extra.v.retain)((NSMapTable*)M, X.ptr)
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 /**** Function Implementations ****/
 

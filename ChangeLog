@@ -1,3 +1,172 @@
+2003-07-31  David Ayers  <d.ayers@inode.at>
+
+	* Created tag 'pre-header-reorg-20030731'.
+
+	* Headers/Additions/GNUstepBase: New directory.
+	* Headers/Additions/GNUstepBase/unicode: Ditto.
+	* Headers/Foundation: Ditto.
+	* Headers/gnustep/base: Obsoleted.
+	* Headers/gnustep/unicode: Ditto.
+
+	* Headers/Additions/GNUstepBase/DistributedObjects.h: Moved here
+	from Headers/gnustep/base.
+	* Headers/Additions/GNUstepBase/GCObject.h: Ditto.
+	* Headers/Additions/GNUstepBase/GNUstep.h: Ditto.
+	* Headers/Additions/GNUstepBase/GSCategories.h: Ditto.
+	* Headers/Additions/GNUstepBase/GSConfig.h.in: Ditto.
+	* Headers/Additions/GNUstepBase/GSFileHandle.h: Ditto.
+	* Headers/Additions/GNUstepBase/GSIArray.h: Ditto.
+	* Headers/Additions/GNUstepBase/GSIMap.h: Ditto.
+	* Headers/Additions/GNUstepBase/GSLocale.h: Ditto.
+	* Headers/Additions/GNUstepBase/GSMime.h: Ditto.
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Ditto.
+	* Headers/Additions/GNUstepBase/GSUnion.h: Ditto.
+	* Headers/Additions/GNUstepBase/GSXML.h: Ditto.
+	* Headers/Additions/GNUstepBase/Unicode.h: Ditto.
+	* Headers/Additions/GNUstepBase/behavior.h: Ditto.
+	* Headers/Additions/GNUstepBase/config.h.in: Ditto.
+	* Headers/Additions/GNUstepBase/objc-gnu2next.h: Ditto.
+	* Headers/Additions/GNUstepBase/preface.h.in: Ditto.
+	* Headers/Additions/GNUstepBase/thr-mach.h: Ditto.
+	* Headers/Additions/GNUstepBase/.cvsignore: Ditto.
+
+	* Headers/Additions/GNUstepBase/unicode/caseconv.h: Moved here
+	from Headers/gnustep/unicode.
+	* Headers/Additions/GNUstepBase/unicode/cop.h: Ditto.
+	* Headers/Additions/GNUstepBase/unicode/cyrillic.h: Ditto.
+	* Headers/Additions/GNUstepBase/unicode/decomp.h: Ditto.
+	* Headers/Additions/GNUstepBase/unicode/gsm0338.h: Ditto.
+	* Headers/Additions/GNUstepBase/unicode/latin2.h: Ditto.
+	* Headers/Additions/GNUstepBase/unicode/latin9.h: Ditto.
+	* Headers/Additions/GNUstepBase/unicode/nextstep.h: Ditto.
+	* Headers/Additions/GNUstepBase/unicode/thai.h: Ditto.
+
+	* Headers/Foundation/Foundation.h: Moved here from
+	Headers/gnustep/base.
+	* Headers/Foundation/NSArchiver.h: Ditto.
+	* Headers/Foundation/NSArray.h: Ditto.
+	* Headers/Foundation/NSAttributedString.h: Ditto.
+	* Headers/Foundation/NSAutoreleasePool.h: Ditto.
+	* Headers/Foundation/NSBitmapCharSet.h: Ditto.
+	* Headers/Foundation/NSBundle.h: Ditto.
+	* Headers/Foundation/NSByteOrder.h: Ditto.
+	* Headers/Foundation/NSCalendarDate.h: Ditto.
+	* Headers/Foundation/NSCharacterSet.h: Ditto.
+	* Headers/Foundation/NSClassDescription.h: Ditto.
+	* Headers/Foundation/NSCoder.h: Ditto.
+	* Headers/Foundation/NSConcreteNumber.h: Ditto.
+	* Headers/Foundation/NSConnection.h: Ditto.
+	* Headers/Foundation/NSData.h: Ditto.
+	* Headers/Foundation/NSDate.h: Ditto.
+	* Headers/Foundation/NSDateFormatter.h: Ditto.
+	* Headers/Foundation/NSDebug.h: Ditto.
+	* Headers/Foundation/NSDecimal.h: Ditto.
+	* Headers/Foundation/NSDecimalNumber.h: Ditto.
+	* Headers/Foundation/NSDictionary.h: Ditto.
+	* Headers/Foundation/NSDistantObject.h: Ditto.
+	* Headers/Foundation/NSDistributedLock.h: Ditto.
+	* Headers/Foundation/NSDistributedNotificationCenter.h: Ditto.
+	* Headers/Foundation/NSEnumerator.h: Ditto.
+	* Headers/Foundation/NSException.h: Ditto.
+	* Headers/Foundation/NSFileHandle.h: Ditto.
+	* Headers/Foundation/NSFileManager.h: Ditto.
+	* Headers/Foundation/NSFormatter.h: Ditto.
+	* Headers/Foundation/NSGeometry.h: Ditto.
+	* Headers/Foundation/NSHashTable.h: Ditto.
+	* Headers/Foundation/NSHost.h: Ditto.
+	* Headers/Foundation/NSInvocation.h: Ditto.
+	* Headers/Foundation/NSKeyValueCoding.h: Ditto.
+	* Headers/Foundation/NSLock.h: Ditto.
+	* Headers/Foundation/NSMapTable.h: Ditto.
+	* Headers/Foundation/NSMethodSignature.h: Ditto.
+	* Headers/Foundation/NSNotification.h: Ditto.
+	* Headers/Foundation/NSNotificationQueue.h: Ditto.
+	* Headers/Foundation/NSNull.h: Ditto.
+	* Headers/Foundation/NSNumberFormatter.h: Ditto.
+	* Headers/Foundation/NSObjCRuntime.h: Ditto.
+	* Headers/Foundation/NSObject.h: Ditto.
+	* Headers/Foundation/NSPathUtilities.h: Ditto.
+	* Headers/Foundation/NSPort.h: Ditto.
+	* Headers/Foundation/NSPortCoder.h: Ditto.
+	* Headers/Foundation/NSPortMessage.h: Ditto.
+	* Headers/Foundation/NSPortNameServer.h: Ditto.
+	* Headers/Foundation/NSProcessInfo.h: Ditto.
+	* Headers/Foundation/NSProtocolChecker.h: Ditto.
+	* Headers/Foundation/NSProxy.h: Ditto.
+	* Headers/Foundation/NSRange.h: Ditto.
+	* Headers/Foundation/NSRunLoop.h: Ditto.
+	* Headers/Foundation/NSScanner.h: Ditto.
+	* Headers/Foundation/NSSerialization.h: Ditto.
+	* Headers/Foundation/NSSet.h: Ditto.
+	* Headers/Foundation/NSString.h: Ditto.
+	* Headers/Foundation/NSTask.h: Ditto.
+	* Headers/Foundation/NSThread.h: Ditto.
+	* Headers/Foundation/NSTimeZone.h: Ditto.
+	* Headers/Foundation/NSTimer.h: Ditto.
+	* Headers/Foundation/NSURL.h: Ditto.
+	* Headers/Foundation/NSURLHandle.h: Ditto.
+	* Headers/Foundation/NSUndoManager.h: Ditto.
+	* Headers/Foundation/NSUserDefaults.h: Ditto.
+	* Headers/Foundation/NSUtilities.h: Ditto.
+	* Headers/Foundation/NSValue.h: Ditto.
+	* Headers/Foundation/NSZone.h: Ditto.
+	
+	* Soruce/GSFormat.h: Ditto.
+	* Source/GSInvocation.h: Moved here from Headers/gnustep/base.
+	* Source/objc-load.h: Ditto.
+
+	* configure.ac: Update to new header structure.
+	* configure: Regenerated.
+	* Makefile.postamble: Remove handling of header-links and update
+	to new header structure.
+
+	* Source/GNUmakefile: Update to new header structure.  
+	Always install GSFileHandle.h, GSLocal.h, GSUnion.h, GSIArray.h,
+	GSIMap.h, preface.h as public headers.  
+	Do not install DistributedObjects.h, objc-load.h and thr-mach.h.
+	Install GSMime.h and GSXML.h in GNUstepBase instead of Foundation.
+	Include CompatibilityHeaders.make makefile fragement.
+
+	* Source/Makefile.preamble: Update to new header structure.
+	Split HEADER_DIR into HEADER_DIR_BASE and HEADER_DIR_FND.
+
+	* Source/Makefile.postamble: Update to new header structure.
+	Do not install mframe.h.
+	Update for HEADER_DIR split.
+	
+	* Source/CompatibilityHeaders.make: New file which installs dummy
+	headers in the place of the old headers, warning about obsoleting
+	the old location and includeing the header from its new location.
+
+	* Source/Additions/Makefile.preamble: Update to new header
+	structure.  Only add -I../../Headers for *-gnu-*.
+	
+	* Source/*.[hm]: Update includes for new header structure.
+	* Source/Additions/*.m: Ditto.
+	* Source/mframe/mframe.head: Ditto.
+	* Source/.cvsignore: Ignore config.h.
+
+	* Testing/Makefile.preamble: Update to new header structure.  Only
+	add -I../../Headers for *-gnu-*.
+	* Testing/*.[hm]: Update includes for new header structure.
+
+	* Tools/Makefile.preamble: Update to new header structure.  Only
+	add -I../../Headers for *-gnu-*.
+	* Tools/*.[hm]: Update includes for new header structure.
+
+	* Tools/make_strings/GNUmakefile.preamble: Update to new header
+	structure.  Only add -I../../Headers for *-gnu-*.
+	
+	* Source/DocMakefile: Update to new header structure.
+
+	* SSL/Makefile.preamble: Update to new header structure.
+	* SSL/GSSSLHandle.m: Ditto.
+
+	* Examples/Makefile.preamble: Use -I../Headers only with *-gnu-*.
+
+	* Headers/gnustep/base/UnixFileHandle.h: Removed.
+	* Headers/gnustep/base/WindowsFileHandle.h: Ditto.
+	
 2003-07-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Some security fixes and tweaks.

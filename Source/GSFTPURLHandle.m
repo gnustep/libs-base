@@ -35,7 +35,7 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSDebug.h"
-#include "Foundation/GSMime.h"
+#include "GNUstepBase/GSMime.h"
  
 GS_EXPORT NSString * const GSTelnetNotification;
 GS_EXPORT NSString * const GSTelnetErrorKey;

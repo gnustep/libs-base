@@ -42,7 +42,7 @@ AC_CONFIG_AUX_DIR($GNUSTEP_MAKEFILES)
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
-AC_CONFIG_HEADER(Headers/gnustep/base/config.h)
+AC_CONFIG_HEADER(Headers/Additions/GNUstepBase/config.h)
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
@@ -1042,6 +1042,6 @@ AC_SUBST(GCC_VERSION)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_CONFIG_FILES([config.mak base.make Headers/gnustep/base/GSConfig.h 
-	  Headers/gnustep/base/preface.h])
+AC_CONFIG_FILES([config.mak base.make Headers/Additions/GNUstepBase/GSConfig.h 
+	  Headers/Additions/GNUstepBase/preface.h])
 AC_OUTPUT

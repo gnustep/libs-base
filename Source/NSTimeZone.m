@@ -49,7 +49,7 @@
    FIXME?: use leap seconds? */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,7 +75,7 @@
 #include "Foundation/NSTimeZone.h"
 #include "Foundation/NSByteOrder.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSCategories.h"
+#include "GNUstepBase/GSCategories.h"
 #include "GSConfig.h"
 
 

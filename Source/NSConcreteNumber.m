@@ -26,7 +26,7 @@
 */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "GSConfig.h"
 #include "Foundation/NSConcreteNumber.h"

@@ -130,7 +130,7 @@
 /*
  *	Generate the union typedef
  */
-#include <base/GSUnion.h>
+#include <GNUstepBase/GSUnion.h>
 
 
 #if (GSI_MAP_KTYPES) & GSUNION_OBJ
@@ -179,7 +179,7 @@
 /*
  *	Generate the union typedef
  */
-#include <base/GSUnion.h>
+#include <GNUstepBase/GSUnion.h>
 
 #if (GSI_MAP_VTYPES) & GSUNION_OBJ
 #define GSI_MAP_CLEAR_VAL(node)  node->value.obj = nil

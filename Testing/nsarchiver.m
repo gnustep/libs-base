@@ -150,7 +150,7 @@ printf("%u\n", [arc retainCount]);
 /* An old, unused test. */
 #else
 
-#include <base/all.h>
+#include <GNUstepBase/all.h>
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSAutoreleasePool.h>
 

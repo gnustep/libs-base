@@ -27,7 +27,7 @@
 */ 
 
 #include "config.h"
-#include "gnustep/base/Unicode.h"
+#include "GNUstepBase/Unicode.h"
 #include "Foundation/NSScanner.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"

@@ -29,7 +29,7 @@
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSZone.h"
 #include "Foundation/NSObjCRuntime.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 
 @interface GSValue : NSValue
 {

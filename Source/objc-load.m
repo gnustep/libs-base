@@ -46,7 +46,7 @@
 # include <objc/objc-load.h>
 #endif
 
-#include "Foundation/objc-load.h"
+#include "objc-load.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSDebug.h"
 

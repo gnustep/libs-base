@@ -36,7 +36,7 @@
 #define GSI_MAP_KTYPES	GSUNION_OBJ
 #define GSI_MAP_VTYPES	GSUNION_INT
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 @interface GSCountedSet : NSCountedSet
 {

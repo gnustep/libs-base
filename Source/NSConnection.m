@@ -29,7 +29,7 @@
    */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #ifdef	HAVE_FLOAT_H
 #include <float.h>
 #endif
@@ -45,7 +45,7 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 #define	_IN_CONNECTION_M
 #include "Foundation/NSConnection.h"
@@ -59,7 +59,7 @@
 #endif
 
 #include "Foundation/NSPortCoder.h"
-#include "gnustep/base/DistributedObjects.h"
+#include "GNUstepBase/DistributedObjects.h"
 
 #include "Foundation/NSHashTable.h"
 #include "Foundation/NSMapTable.h"
@@ -78,7 +78,7 @@
 #include "Foundation/NSPortNameServer.h"
 #include "Foundation/NSNotification.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSInvocation.h"
+#include "GSInvocation.h"
 
 #define F_LOCK(X) {NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define F_UNLOCK(X) {NSDebugFLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}

@@ -140,8 +140,8 @@ Base_AGSDOC_FLAGS = \
 
 BaseAdditions_AGSDOC_FLAGS = \
 	-DocumentationDirectory ../Documentation/BaseAdditions \
-	-HeaderDirectory ../Headers/gnustep/base \
-	-Declared gnustep/base \
+	-HeaderDirectory ../Headers/Additions/GNUstepBase \
+	-Declared GNUstepBase \
 	-Standards YES \
 	-ConstantsTemplate TypesAndConstants \
 	-FunctionsTemplate Functions \

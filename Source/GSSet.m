@@ -24,7 +24,7 @@
 
 #include "config.h"
 #include "Foundation/NSSet.h"
-#include "gnustep/base/GSObjCRuntime.h"
+#include "GNUstepBase/GSObjCRuntime.h"
 #include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSException.h"
@@ -37,7 +37,7 @@
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 static SEL	memberSel;
 

@@ -29,7 +29,7 @@
 
 #include <string.h>
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSException.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSNotification.h"

@@ -36,7 +36,7 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).uint == (Y).uint)
 #define	GSI_MAP_NOCLEAN	1
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 #define	_IN_NSARCHIVER_M
 #include "Foundation/NSArchiver.h"

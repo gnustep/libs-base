@@ -33,7 +33,7 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSCategories.h"
+#include "GNUstepBase/GSCategories.h"
 
 @class	GSSet;
 @class	GSMutableSet;

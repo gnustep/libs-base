@@ -40,22 +40,22 @@
 #include <Foundation/Foundation.h>
 #endif
 #include "GSCompatibility.h"
-#include "gnustep/base/Unicode.h"
+#include "GNUstepBase/Unicode.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 typedef struct {unichar from; unsigned char to;} _ucc_;
 
-#include "unicode/cyrillic.h"
-#include "unicode/latin2.h"
-#include "unicode/latin9.h"
-#include "unicode/nextstep.h"
-#include "unicode/caseconv.h"
-#include "unicode/cop.h"
-#include "unicode/decomp.h"
-#include "unicode/gsm0338.h"
-#include "unicode/thai.h"
+#include "GNUstepBase/unicode/cyrillic.h"
+#include "GNUstepBase/unicode/latin2.h"
+#include "GNUstepBase/unicode/latin9.h"
+#include "GNUstepBase/unicode/nextstep.h"
+#include "GNUstepBase/unicode/caseconv.h"
+#include "GNUstepBase/unicode/cop.h"
+#include "GNUstepBase/unicode/decomp.h"
+#include "GNUstepBase/unicode/gsm0338.h"
+#include "GNUstepBase/unicode/thai.h"
 
 #ifdef HAVE_ICONV
 #ifdef HAVE_GICONV_H

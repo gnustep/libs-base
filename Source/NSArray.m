@@ -43,7 +43,7 @@
 #include "Foundation/NSMapTable.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSCategories.h"
+#include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
 
 extern BOOL	GSMacOSXCompatiblePropertyLists(void);

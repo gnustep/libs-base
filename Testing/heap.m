@@ -1,6 +1,6 @@
 /* Test Heap class. */
 
-#include <base/all.h>
+#include <GNUstepBase/all.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSAutoreleasePool.h>
 

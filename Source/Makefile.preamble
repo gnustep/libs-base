@@ -62,7 +62,7 @@ ADDITIONAL_OBJCFLAGS =
 ADDITIONAL_CFLAGS = 
 
 # Additional include directories the compiler should search
-ADDITIONAL_INCLUDE_DIRS = -I../Headers/gnustep -I../Headers \
+ADDITIONAL_INCLUDE_DIRS = -I../Headers/Additions -I../Headers \
    -I./$(GNUSTEP_TARGET_DIR)
 
 # Additional LDFLAGS to pass to the linker
@@ -86,9 +86,10 @@ endif
 #
 
 # Additional directories to be created during installation
-ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_HEADERS)/gnustep/base \
-   $(GNUSTEP_HEADERS)/gnustep/unicode \
+ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_HEADERS)/Foundation \
+   $(GNUSTEP_HEADERS)/GNUstepBase/unicode \
    $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
 
-HEADER_DIR=$(srcdir)/../Headers/gnustep/base
+HEADER_DIR_BASE=$(srcdir)/../Headers/Additions/GNUstepBase
+HEADER_DIR_FND =$(srcdir)/../Headers/Foundation
 

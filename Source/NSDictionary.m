@@ -38,7 +38,7 @@
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSValue.h"
-#include "gnustep/base/GSCategories.h"
+#include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
 
 @implementation NSDictionary 

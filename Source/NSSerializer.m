@@ -25,7 +25,7 @@
    */
 
 #include "config.h"
-#include "gnustep/base/preface.h"
+#include "GNUstepBase/preface.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSArray.h"
@@ -61,7 +61,7 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	[(X).obj isEqualToString: (Y).obj]
 #define	GSI_MAP_NOCLEAN	1
 
-#include "gnustep/base/GSIMap.h"
+#include "GNUstepBase/GSIMap.h"
 
 /*
  *	Setup for inline operation of string arrays.
@@ -70,7 +70,7 @@
 #define	GSI_ARRAY_RELEASE(A, X)	
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ
 
-#include "gnustep/base/GSIArray.h"
+#include "GNUstepBase/GSIArray.h"
 
 /*
  *	Define constants for data types and variables to hold them.

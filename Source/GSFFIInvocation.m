@@ -25,7 +25,7 @@
 #include "Foundation/NSDistantObject.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSDebug.h"
-#include "gnustep/base/GSInvocation.h"
+#include "GSInvocation.h"
 #include <config.h>
 #include <objc/objc-api.h>
 #include "cifframe.h"

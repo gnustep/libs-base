@@ -126,7 +126,7 @@
 /*
  *	Generate the union typedef
  */
-#include <base/GSUnion.h>
+#include <GNUstepBase/GSUnion.h>
 
 struct	_GSIArray {
   GSIArrayItem	*ptr;

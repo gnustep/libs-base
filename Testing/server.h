@@ -1,7 +1,7 @@
 #ifndef _server_h
 #define _server_h
 
-#include <base/preface.h>
+#include <GNUstepBase/preface.h>
 #include <Foundation/NSConnection.h>
 
 typedef struct _small_struct {

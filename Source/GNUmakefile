@@ -109,27 +109,28 @@ win32-def.top \
 libgnustep-base.def
 
 ADD_HEADERS = \
-GCObject.h \
-GSCategories.h \
 GSObjCRuntime.h \
-Unicode.h \
-GNUstep.h \
-behavior.h \
-objc-gnu2next.h
-
-GNU_HEADERS = $(ADD_HEADERS) \
-DistributedObjects.h \
+GSCategories.h \
 GSFileHandle.h \
-GSLocale.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \
-objc-load.h \
-preface.h
+GCObject.h \
+GSMime.h \
+GSXML.h \
+GSLocale.h \
+Unicode.h \
+GNUstep.h \
+behavior.h \
+preface.h \
+objc-gnu2next.h
+
+GNU_HEADERS = $(ADD_HEADERS)
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)
 GNU_HEADERS += thr-mach.h
 endif
+
 # GNUStep source files
 
 BASE_MFILES = \
@@ -260,8 +261,6 @@ tzfile.h
 
 FOUNDATION_HEADERS = \
 Foundation.h \
-GSMime.h \
-GSXML.h \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
@@ -344,7 +343,7 @@ HEADERS_INSTALL = $(GNU_HEADERS) \
 
 GENERATED_HFILES = \
 dynamic-load.h \
-$(HEADER_DIR)/preface.h \
+$(HEADER_DIR_BASE)/preface.h \
 $(GNUSTEP_TARGET_DIR)/mframe.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
 $(GNUSTEP_TARGET_DIR)/GSConfig.h
@@ -356,7 +355,7 @@ libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 # Extra DLL exports file
 libgnustep-base_DLL_DEF = libgnustep-base.def
 
-libgnustep-base_HEADER_FILES_DIR = $(HEADER_DIR)
+libgnustep-base_HEADER_FILES_DIR = $(HEADER_DIR_FND)
 libgnustep-base_HEADER_FILES_INSTALL_DIR = /Foundation
 
 libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
@@ -368,3 +367,5 @@ libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 include $(GNUSTEP_MAKEFILES)/library.make
 
 -include Makefile.postamble
+
+include CompatibilityHeaders.make
