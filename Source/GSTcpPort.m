@@ -1123,6 +1123,7 @@ static Class	runLoopClass;
   NSDebugMLLog(@"GSTcpHandle",
     @"Sending message 0x%x %@ on 0x%x(%d) in thread 0x%x before %@",
     components, components, self, desc, GSCurrentThread(), when);
+  DO_LOCK(myLock);
   [wMsgs addObject: components];
 
   l = [runLoopClass currentRunLoop];
@@ -1136,7 +1137,9 @@ static Class	runLoopClass;
   while ([wMsgs indexOfObjectIdenticalTo: components] != NSNotFound
     && [when timeIntervalSinceNow] > 0)
     {
+      DO_UNLOCK(myLock);
       [l runMode: NSDefaultRunLoopMode beforeDate: when];
+      DO_LOCK(myLock);
     }
   /*
    * NB. We will remove ourself from the run loop when the message send
@@ -1146,6 +1149,7 @@ static Class	runLoopClass;
     {
       sent = YES;
     }
+  DO_UNLOCK(myLock);
   RELEASE(self);
   NSDebugMLLog(@"GSTcpHandle",
     @"Message send 0x%x on 0x%x in thread 0x%x status %d",
