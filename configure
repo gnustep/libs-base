@@ -5311,7 +5311,7 @@ fi
   if test x"$av_cv_lib_giconv_main" = xyes; then
     LIBS="$LIBS -lgiconv"
     
-    SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
+    SYSTEM_DEFS="-DHAVE_ICONV -DHAVE_GICONV_H $SYSTEM_DEFS"
   else
     echo $ac_n "checking for main in -liconv""... $ac_c" 1>&6
 echo "configure:5318: checking for main in -liconv" >&5

@@ -1,6 +1,7 @@
 2001-05-23  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Check for libgiconv
+	* Unicode.m: Include giconv.h if available.
 
 2001-05-22  Adam Fedor  <fedor@gnu.org>
 
