@@ -1250,16 +1250,9 @@ static BOOL double_release_check_enabled = NO;
     : class_get_class_method(GSObjCClass(self), aSelector));
   if (mth == 0)
     {
-      types = 0;
+      return nil;
     }
-  else
-    {
-      types = mth->method_types;
-    }
-  if (types == 0)
-    {
-      types = sel_get_type(aSelector);
-    }
+  types = mth->method_types;
   if (types == 0)
     {
       return nil;
