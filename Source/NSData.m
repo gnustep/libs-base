@@ -911,7 +911,28 @@ failure:
 	  IF_NO_GC(TEST_AUTORELEASE(att));
 	}
 
+#if defined(__NEW__MINGW__)
+      if (ReplaceFile(theRealPath, thePath, 0,
+	REPLACEFILE_IGNORE_MERGE_ERRORS, 0, 0) != 0)
+	{
+	  c = 0;
+	}
+      else
+	{
+	  c = -1;
+	}
+#else
       c = rename(thePath, theRealPath);
+#if defined(__MINGW__)
+      if (c != 0)
+	{
+          NSLog(@"Rename ('%s' to '%s') failed - %s trying delete first.",
+	    thePath, theRealPath, GSLastErrorStr(errno));
+	  DeleteFile(theRealPath);		// Non-atomic!
+	  c = rename(thePath, theRealPath);
+	}
+#endif
+#endif
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
           NSLog(@"Rename ('%s' to '%s') failed - %s",
