@@ -78,6 +78,6 @@ copy-dist: $(DIST_FILES)
 	  cp $$f ../snap/Tools ; \
 	done
 
-documentation: $(GNUSTEP_OBJ_DIR)/gsdoc
+documentation: gsdoc
 	  $(GNUSTEP_OBJ_DIR)/gsdoc gsdoc
 

@@ -419,10 +419,10 @@
 <!-- Unnumbered parts appearing in the front, such as a preface. -->
 <!ELEMENT front (contents?, chapter*)>
 
-<!-- Unnumbered parts appearing in the back, such as an afterword or
+<!-- Unnumbered parts appearing in the back, such as an afterword and/or
  indices.
 -->
-<!ELEMENT back (chapter*, index?)>
+<!ELEMENT back (chapter*, index*)>
 
 
 <!--***** The topmost structures for the document. *****-->
