@@ -1,5 +1,11 @@
 2003-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDistributedNotificationCenter.m: Use -setProtocolForProxy:
+	and implement dummy class to work around bug in old compilers.
+	* Tools/gdnc.m: ditto
+
+2003-07-04  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Source/GSFFCallInvocation.m: Modify to use local type
 	information if it looks like it has come from a protocol ...
 	as too much existing code is broken in that DO server objects

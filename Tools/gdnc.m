@@ -90,6 +90,29 @@ ihandler(int sig)
 
 #include	"gdnc.h"
 
+/*
+ * The following dummy class is here solely as a workaround for pre 3.3
+ * versions of gcc where protocols didn't work properly unless implemented
+ * in the source where the '@protocol()' directiver is used.
+ */
+@interface NSDistributedNotificationCenterDummy : NSObject <GDNCClient>
+- (oneway void) postNotificationName: (NSString*)name
+                              object: (NSString*)object
+                            userInfo: (NSData*)info
+                            selector: (NSString*)aSelector
+                                  to: (unsigned long)observer;
+@end
+@implementation	NSDistributedNotificationCenterDummy
+- (oneway void) postNotificationName: (NSString*)name
+                              object: (NSString*)object
+                            userInfo: (NSData*)info
+                            selector: (NSString*)aSelector
+                                  to: (unsigned long)observer
+{
+}
+@end
+
+
 @interface	GDNCNotification : NSObject
 {
 @public
@@ -517,6 +540,12 @@ ihandler(int sig)
 		  format: @"registration with registered client"];
     }
   info = [GDNCClient new];
+  if ([(id)client isProxy] == YES)
+    {
+      Protocol	*p = @protocol(GDNCClient);
+
+      [(id)client setProtocolForProxy: p];
+    }
   info->client = client;
   NSMapInsert(table, client, info);
   RELEASE(info);
