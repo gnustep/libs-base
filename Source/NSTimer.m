@@ -87,7 +87,7 @@
   id t = [self timerWithTimeInterval: ti
 	       invocation: invocation
 	       repeats: f];
-  [[RunLoop currentInstance] addTimer: t forMode: nil];
+  [[RunLoop currentInstance] addTimer: t forMode: RunLoopDefaultMode];
   return t;
 }
 
@@ -102,7 +102,7 @@
 	       selector: selector
 	       userInfo: info
 	       repeats: f];
-  [[RunLoop currentInstance] addTimer: t forMode: nil];
+  [[RunLoop currentInstance] addTimer: t forMode: RunLoopDefaultMode];
   return t;
 }
 
