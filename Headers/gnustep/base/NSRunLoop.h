@@ -26,7 +26,7 @@
 
 #include <objects/stdobjects.h>
 
-@class NSString;
+@class NSTimer, NSDate;
 
 @interface NSRunLoop : NSObject
 @end
@@ -37,7 +37,7 @@
 /* Getting this thread's current run loop */
 + (NSRunLoop*) currentRunLoop;
 - (NSString*) currentMode;
-- (NSDate*) limitDateForMode: (NSString*)mode
+- (NSDate*) limitDateForMode: (NSString*)mode;
 
 /* Adding timers. */
 - (void) addTimer: (NSTimer*)timer forMode: (NSString*)mode;
@@ -50,7 +50,15 @@
 
 @end
 
-extern NSString *NSDefaultRunLoopMode;
-extern NSString *NSConnectionReplyMode;
+
+/* Declare some run loop modes.  These String's are actually defined
+   in the GNU RunLoop class.  These #define's take the place of:
+   extern NSString *NSDefaultRunLoopMode;
+   extern NSString *NSConnectionReplyMode;
+ */
+
+#define NSDefaultRunLoopMode RunLoopDefaultMode
+#define NSConnectionReplyMode RunLoopConnectionReplyMode
+
 
 #endif /*__NSRunLoop_h_OBJECTS_INCLUDE */
