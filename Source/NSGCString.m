@@ -421,20 +421,13 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (void) getCharacters: (unichar*)buffer
 {
-  unsigned	i;
-
-  for (i = 0; i < _count; i++)
-    buffer[i] = chartouni(((unsigned char *)_contents_chars)[i]);
+  strtoustr(buffer, _contents_chars, _count);
 }
 
 - (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
 {
-  unsigned	e, i;
-
   GS_RANGE_CHECK(aRange, _count);
-  e = aRange.location + aRange.length;
-  for (i = aRange.location; i < e; i++)
-    *buffer++ = chartouni(((unsigned char *)_contents_chars)[i]);
+  strtoustr(buffer, _contents_chars + aRange.location, aRange.length);
 }
 
 - (NSString*) substringFromRange: (NSRange)aRange
