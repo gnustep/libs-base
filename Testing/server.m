@@ -4,6 +4,7 @@
 #include <objects/Connection.h>
 #include <objc/List.h>
 #include <objects/BinaryCoder.h>
+#include <objects/String.h>
 #include "server.h"
 
 @implementation Server
@@ -206,7 +207,7 @@ int main()
 #if NeXT_runtime
   [Proxy setProtocolForProxies:@protocol(AllProxies)];
 #endif
-  c = [Connection newRegisteringAtName:"test2server" withRootObject:l];
+  c = [Connection newRegisteringAtName:@"test2server" withRootObject:l];
   [c registerForInvalidationNotification:l];
   [c setDelegate:l];
 
