@@ -1171,8 +1171,6 @@
     }
   [a removeAllObjects];		// Parsed base type
 
-  [d setObject: t forKey: @"BaseType"];
-  RELEASE(t);
 
   /*
    * Handle protocol specification if necessary
@@ -1191,10 +1189,14 @@
       pos++;
       [self parseSpace];
       [a sortUsingSelector: @selector(compare:)];
-      [d setObject: [a componentsJoinedByString: @","] forKey: @"Protocols"];
+      [t appendString: @"<"];
+      [t appendString: [a componentsJoinedByString: @","]];
+      [t appendString: @">"];
       [a removeAllObjects];
     }
    
+  [d setObject: t forKey: @"BaseType"];
+  RELEASE(t);
   /*
    * Set the 'Kind' of declaration ... one of 'Types', 'Functions',
    * 'Variables', or 'Constants'
