@@ -32,9 +32,9 @@
 - initWithCString: (char*)aCharPtr range: (IndexRange)aRange
 {
   [super initWithType:@encode(char)];
-  _count = aRange.end - aRange.start;
+  _count = aRange.length;
   OBJC_MALLOC(_contents_chars, char, _count+1);
-  memcpy(_contents_chars, aCharPtr + aRange.start, _count);
+  memcpy(_contents_chars, aCharPtr + aRange.location, _count);
   _contents_chars[_count] = '\0';
   return self;
 }

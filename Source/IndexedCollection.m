@@ -246,10 +246,10 @@
 - replaceRange: (IndexRange)aRange
     with: (id <Collecting>)aCollection
 {
-  CHECK_INDEX_RANGE_ERROR(aRange.start, [self count]);
-  CHECK_INDEX_RANGE_ERROR(aRange.end-1, [self count]);
+  CHECK_INDEX_RANGE_ERROR(aRange.location, [self count]);
+  CHECK_INDEX_RANGE_ERROR(aRange.location+aRange.length-1, [self count]);
   [self removeRange:aRange];
-  [self insertContentsOf:aCollection atIndex:aRange.start];
+  [self insertContentsOf:aCollection atIndex:aRange.location];
   return self;
 }
 
@@ -260,10 +260,10 @@
   void *state = [aCollection newEnumState];
   elt e;
 
-  CHECK_INDEX_RANGE_ERROR(aRange.start, [self count]);
-  CHECK_INDEX_RANGE_ERROR(aRange.end-1, [self count]);
-  for (i = aRange.start; 
-       i < aRange.end 
+  CHECK_INDEX_RANGE_ERROR(aRange.location, [self count]);
+  CHECK_INDEX_RANGE_ERROR(aRange.location+aRange.length-1, [self count]);
+  for (i = aRange.location; 
+       i < aRange.location + aRange.length 
        && [aCollection getNextElement:&e withEnumState:&state]; 
        i++)
     {
@@ -325,10 +325,10 @@
 {
   int i;
 
-  CHECK_INDEX_RANGE_ERROR(aRange.start, [self count]);
-  CHECK_INDEX_RANGE_ERROR(aRange.end-1, [self count]);
-  for (i = aRange.start; i < aRange.end; i++)
-    [self removeElementAtIndex:aRange.start];
+  CHECK_INDEX_RANGE_ERROR(aRange.location, [self count]);
+  CHECK_INDEX_RANGE_ERROR(aRange.location+aRange.length-1, [self count]);
+  for (i = aRange.location; i < aRange.location+aRange.length; i++)
+    [self removeElementAtIndex:aRange.location];
   return self;
 }
 
@@ -485,9 +485,9 @@
   int i;
   int (*cf)(elt,elt) = [self comparisonFunction];
 
-  for (i = aRange.start; i < aRange.end; i++)
+  for (i = aRange.location; i < aRange.location+aRange.length; i++)
     if (!((*cf)(anElement, [self elementAtIndex:i])))
-      return i - aRange.start;
+      return i - aRange.location;
   RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
 }
 
@@ -648,7 +648,9 @@
   id newColl = [self emptyCopyAs:[self species]];
   unsigned i, myCount = [self count];
   
-  for (i = aRange.start; i < aRange.end && i < myCount; i++)
+  for (i = aRange.location;
+       i < aRange.location+aRange.length && i < myCount;
+       i++)
     [newColl addElement:[self elementAtIndex:i]];
   return newColl;
 }
@@ -657,7 +659,9 @@
 {
   unsigned i, myCount = [self count];
   
-  for (i = aRange.start; i < aRange.end && i < myCount; i++)
+  for (i = aRange.location; 
+       i < aRange.location+aRange.lengthf && 
+       i < myCount; i++)
     (*aFunc)([self elementAtIndex:i]);
   return self;
 }
@@ -676,9 +680,11 @@
 {
   unsigned i, myCount = [self count];
   id tmpColl = [[Array alloc] initWithType:[self contentType]
-		capacity:aRange.end - aRange.start];
+		capacity:aRange.length];
   
-  for (i = aRange.start; i < aRange.end && i < myCount; i++)
+  for (i = aRange.location; 
+       i < aRange.location+aRange.length && 
+       i < myCount; i++)
     [tmpColl addElement:[self elementAtIndex:i]];
   [tmpColl withElementsCall:aFunc];
   [tmpColl release];
@@ -691,10 +697,10 @@
   id newColl = [self emptyCopyAs:[self species]];
   unsigned i, myCount = [self count];
   
-  for (i = 0; i < aRange.start && i < myCount; i++)
+  for (i = 0; i < aRange.location && i < myCount; i++)
     [newColl appendElement:[self elementAtIndex:i]];
   [newColl appendContentsOf:replaceCollection];
-  for (i = aRange.end; i < myCount; i++)
+  for (i = aRange.location+aRange.length; i < myCount; i++)
     [newColl appendElement:[self elementAtIndex:i]];
   return newColl;
 }
@@ -703,12 +709,13 @@
     using: (id <Collecting>)replaceCollection
 {
   id newColl = [self shallowCopy];
-  unsigned index = aRange.start;
+  unsigned index = aRange.location;
   BOOL cont = YES;
+  unsigned end = aRange.location+aRange.length;
   void doIt (elt e)
     {
       [newColl replaceElementAtIndex: index with: e];
-      cont = (++index != aRange.end);
+      cont = (++index != end);
     }
   [replaceCollection withElementsCall: doIt whileTrue: &cont];
   return newColl;
