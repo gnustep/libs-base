@@ -134,7 +134,7 @@ static Class NSMutableSet_concrete_class;
 - initWithObjects: (id*)objects
 	    count: (unsigned)count
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
@@ -366,12 +366,12 @@ static Class NSMutableSet_concrete_class;
 
 - (void) removeAllObjects
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void) removeObject: anObject
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 @end
