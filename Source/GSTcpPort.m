@@ -556,7 +556,8 @@ static Class	runLoopClass;
 	 type: ET_EDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  while (state == GS_H_TRYCON && [when timeIntervalSinceNow] > 0)
+  while (valid == YES && state == GS_H_TRYCON
+    && [when timeIntervalSinceNow] > 0)
     {
       [l runMode: NSConnectionReplyMode beforeDate: when];
     }
@@ -1154,6 +1155,10 @@ static Class	runLoopClass;
 				type: ET_WDESC
 			     forMode: mode
 				 all: NO];
+		      [l removeEvent: data
+				type: ET_EDESC
+			     forMode: mode
+				 all: NO];
 		    }
 		}
 	    }
@@ -1183,7 +1188,8 @@ static Class	runLoopClass;
 	 type: ET_WDESC
       watcher: self
       forMode: NSConnectionReplyMode];
-  while ([wMsgs indexOfObjectIdenticalTo: components] != NSNotFound
+  while (valid == YES
+    && [wMsgs indexOfObjectIdenticalTo: components] != NSNotFound
     && [when timeIntervalSinceNow] > 0)
     {
       DO_UNLOCK(myLock);
