@@ -2920,6 +2920,12 @@ transmute(ivars self, NSString *aString)
     return lossyCString_c((ivars)self);
 }
 
+- (id) makeImmutableCopyOnFail: (BOOL)force
+{
+  isa = [GSString class];
+  return self;
+}
+
 - (id) mutableCopy
 {
   GSMutableString	*obj;

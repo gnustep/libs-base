@@ -285,6 +285,7 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 + (void) descriptionWithLocale: (NSDictionary*)aLocale
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output;
+- (id) makeImmutableCopyOnFail: (BOOL)force;
 - (Class) transmuteClassTo: (Class)aClassObject;
 - (id) subclassResponsibility: (SEL)aSel;
 - (id) shouldNotImplement: (SEL)aSel;

@@ -284,6 +284,12 @@ static SEL	objSel;
   return self;
 }
 
+- (id) makeImmutableCopyOnFail: (BOOL)force
+{
+  isa = [GSDictionary class];
+  return self;
+}
+
 - (void) setObject: (id)anObject forKey: (id)aKey
 {
   GSIMapNode	node;

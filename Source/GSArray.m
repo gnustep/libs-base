@@ -479,6 +479,12 @@ static SEL	eqSel;
   _contents_array[index] = RETAIN(anObject);
 }
 
+- (id) makeImmutableCopyOnFail: (BOOL)force
+{
+  isa = [GSArray class];
+  return self;
+}
+
 - (void) removeLastObject
 {
   if (_count == 0)
