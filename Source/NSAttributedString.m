@@ -190,14 +190,12 @@ static Class NSMutableAttributedString_concrete_class;
   NSDictionary		*attrs;
   NSMutableString	*desc;
 
-  desc = AUTORELEASE([[super description] mutableCopy]);
-  [desc appendFormat: @" Length: %u", length];
+  desc = [[NSMutableString alloc] init];
   while (index < length &&
     (attrs = [self attributesAtIndex: index effectiveRange: &r]) != nil)
     {
       index = NSMaxRange(r);
-      [desc appendFormat: @"\nRange: %@ Chars:'%@' Attrs: %@",
-	NSStringFromRange(r), [string substringFromRange: r], attrs];
+      [desc appendFormat: @"%@%@", [string substringFromRange: r], attrs];
     }
   return desc;
 }

@@ -1,5 +1,13 @@
 2000-09-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSAttributedString.m: Make -description produce output in
+	same format as MacOS-X
+	* Source/NSDistributedNotificationCenter.m: update method return
+	types for macOS-X complience.
+	* Headers/base/NSDistributedNotificationCenter.h: ditto.
+
+2000-09-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSGString.m: Removed obsolete methods and added range checks.
 	* Source/NSGCString.m: ditto.
 	* Source/NSAttributedString.m: Fix fencepost error in -description.
