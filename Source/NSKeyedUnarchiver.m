@@ -34,9 +34,9 @@
 /*
  *      Setup for inline operation of arrays.
  */
-#define GSI_ARRAY_RETAIN(A, X)
-#define GSI_ARRAY_RELEASE(A, X)
-#define GSI_ARRAY_TYPES GSUNION_OBJ|GSUNION_SEL|GSUNION_PTR
+#define GSI_ARRAY_RETAIN(A, X)	RETAIN((X).obj)
+#define GSI_ARRAY_RELEASE(A, X)	RELEASE((X).obj)
+#define GSI_ARRAY_TYPES GSUNION_OBJ
 
 
 #include <GNUstepBase/GSIArray.h>
@@ -191,7 +191,6 @@ static NSMapTable	globalClassMap = 0;
 	    }
 	}
 
-
       savedCursor = _cursor;
       savedKeyMap = _keyMap;
 
@@ -199,7 +198,7 @@ static NSMapTable	globalClassMap = 0;
       _keyMap = obj;			// Dictionary describing object
 
       o = [c allocWithZone: _zone];	// Create instance.
-      // Store object in map so that decoding of it cn be self refrential.
+      // Store object in map so that decoding of it can be self referential.
       GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
       r = [o initWithCoder: self];
       if (r != o)
@@ -232,23 +231,22 @@ static NSMapTable	globalClassMap = 0;
 	      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
 	    }
 	}
-
-      if (o == nil)
-	{
-	  obj = RETAIN(GSIArrayItemAtIndex(_objMap, 0).obj);
-	}
-      else
-	{
-	  obj = o;
-	}
-
+      RELEASE(o);	// Retained in array
+      obj = o;
       _keyMap = savedKeyMap;
       _cursor = savedCursor;
     }
   else
     {
-      RETAIN(obj);	// Use the decoded object directly
+      // Use the decoded object directly
       GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)obj, index);
+    }
+
+  if (obj == nil)
+    {
+      // Record NSNull marker for decoded object.
+      o = GSIArrayItemAtIndex(_objMap, 0).obj;
+      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
     }
 
   return obj;
@@ -764,11 +762,11 @@ static NSMapTable	globalClassMap = 0;
 	  count = [_objects count];
 	  GSIArrayInitWithZoneAndCapacity(_objMap, _zone, count);
 	  // Add marker for nil object
-	  GSIArrayAddItem(_objMap, (GSIArrayItem)(void*)[NSNull null]);
+	  GSIArrayAddItem(_objMap, (GSIArrayItem)[NSNull null]);
 	  // Add markers for unencoded objects.
 	  for (i = 1; i < count; i++)
 	    {
-	      GSIArrayAddItem(_objMap, (GSIArrayItem)(void*)0);
+	      GSIArrayAddItem(_objMap, (GSIArrayItem)nil);
 	    }
 	}
     }
