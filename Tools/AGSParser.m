@@ -331,10 +331,10 @@
 
 - (NSMutableDictionary*) parseDeclaration
 {
+  NSMutableDictionary	*d = [NSMutableDictionary dictionary];
 #if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
 #endif
-  NSMutableDictionary	*d = [NSMutableDictionary dictionary];
   static NSSet		*qualifiers = nil;
   static NSSet		*keep = nil;
   NSMutableString	*t = nil;
@@ -740,7 +740,7 @@
       if (inArgList == NO)
 	{
 	  /*
-	   * This is a top-level declaration, so lets tidy up ready for
+	   * This is a top-level declaration, so let's tidy up ready for
 	   * linking into the documentation tree.
 	   */
 	  if ([d objectForKey: @"Name"] == nil)
