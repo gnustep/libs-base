@@ -343,9 +343,8 @@ enum {
   unsigned int	_count;
   struct {
     unsigned int	wide: 1;	// 16-bit characters in string?
-    unsigned int	ascii: 1;	// String contains only ascii?
     unsigned int	free: 1;	// Should free memory?
-    unsigned int	unused: 1;
+    unsigned int	unused: 2;
     unsigned int	hash: 28;
   } _flags;
 }
