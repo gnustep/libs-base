@@ -184,5 +184,3 @@ libgnustep-base.def: libgnustep-base.def.in
 	sed -e 's/NXConstantString/NSConstantString/' < $<  > $@
 endif
 
-
-FORCE:
