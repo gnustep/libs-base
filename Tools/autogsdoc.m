@@ -823,7 +823,7 @@ main(int argc, char **argv, char **env)
 	  GSPrintf(stderr, @"  [.h files]\t\tMust be in 'HeaderDirectory'\n");
 	  GSPrintf(stderr,
 	    @"  [.m files]\t\tAbsolute or relative path (from here)\n");
-	  GSPrintf(stderr
+	  GSPrintf(stderr,
 	    @"  [.gsdoc files]\tMust be in 'DocumentationDirectory'\n\n");
 	  exit(1);
 	}
