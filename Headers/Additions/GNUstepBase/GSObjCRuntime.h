@@ -367,76 +367,23 @@ typedef struct objc_method_list *GSMethodList;
 typedef struct objc_ivar        *GSIVar;
 
 /**
- * Returns the pointer to the instance method structure
- * for the selector in the specified class.  This function searches
- * the specified class and its superclasses.<br/>
+ * Returns the pointer to the method structure
+ * for the selector in the specified class.
+ * Depending on searchInstanceMethods, this function searches
+ * either instance or class methods.
+ * Depending on searchSuperClassesm this function searches
+ * either the specified class only or also its superclasses.<br/>
  * To obtain the implementation pointer IMP use returnValue->method_imp
  * which should be safe across all runtimes.<br/>
  * It should be safe to use this function in +load implementations.<br/>
- * This function should currently (June 2003) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.
- */
-GS_STATIC_INLINE GSMethod
-GSGetInstanceMethod(Class class, SEL sel)
-{
-  return class_get_instance_method(class, sel);
-}
-
-/**
- * Returns the pointer to the instance method structure
- * for the selector in the specified class.  This function searches
- * the specified class and its superclasses.<br/>
- * To obtain the implementation pointer IMP use returnValue->method_imp
- * which should be safe across all runtimes.<br/>
- * It should be safe to use this function in +load implementations.<br/>
- * This function should currently (June 2003) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.
- */
-GS_STATIC_INLINE GSMethod
-GSGetClassMethod(Class class, SEL sel)
-{
-  /*
-    We do not rely on the mapping supplied in objc_gnu2next.h
-    because we want to be explicit about the fact 
-    that the expected parameters are different.
-    Therefor we refrain from simply using class_getClassMethod().
-  */
-#ifdef NeXT_RUNTIME
-  return class_getClassMethod(class, sel);
-#else
-  return class_get_class_method(class->class_pointer, sel);
-#endif
-}
-
-/**
- * Returns the pointer to the instance method structure
- * for the selector in the specified class.  This function only searches
- * the specified class and not its superclasses.<br/>
- * To obtain the implementation pointer IMP use returnValue->method_imp
- * which should be safe across all runtimes.<br/>
- * It should be safe to use this function in +load implementations.<br/>
- * This function should currently (June 2003) be considered WIP.
+ * This function should currently (June 2004) be considered WIP.
  * Please follow potential changes (Name, parameters, ...) closely until
  * it stabilizes.
  */
 GS_EXPORT GSMethod
-GSGetInstanceMethodNotInherited(Class class, SEL sel);
-
-/**
- * Returns the pointer to the class method structure
- * for the selector in the specified class.  This function only searches
- * the specified class and not its superclasses.<br/>
- * To obtain the implementation pointer IMP use returnValue->method_imp
- * which should be safe across all runtimes.<br/>
- * It should be safe to use this function in +load implementations.<br/>
- * This function should currently (June 2003) be considered WIP.
- * Please follow potential changes (Name, parameters, ...) closely until
- * it stabilizes.
- */
-GS_EXPORT GSMethod
-GSGetClassMethodNotInherited(Class class, SEL sel);
+GSGetMethod(Class class, SEL sel,
+	    BOOL searchInstanceMethods,
+	    BOOL searchSuperClasses);
 
 /**
  * Flushes the cached method dispatch table for the class.
@@ -755,6 +702,31 @@ GSObjCSelectorTypes(SEL this)
 {
   return sel_get_type(this);
 }
+
+GS_STATIC_INLINE GSMethod
+GSGetInstanceMethod(Class class, SEL sel)
+{
+  return GSGetMethod(class, sel, YES, YES);
+}
+
+GS_STATIC_INLINE GSMethod
+GSGetClassMethod(Class class, SEL sel)
+{
+  return GSGetMethod(class, sel, NO, YES);
+}
+
+GS_STATIC_INLINE GSMethod
+GSGetInstanceMethodNotInherited(Class class, SEL sel)
+{
+  return GSGetMethod(class, sel, YES, NO);
+}
+
+GS_STATIC_INLINE GSMethod
+GSGetClassMethodNotInherited(Class class, SEL sel)
+{
+  return GSGetMethod(class, sel, NO, NO);
+}
+
 
 #endif  /* NO_DEPRECATED */
 

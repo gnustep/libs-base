@@ -783,19 +783,50 @@ search_for_method_in_class (Class class, SEL op)
 
 #endif /* NeXT runtime */
 
-/* See header for documentation. */
 GSMethod
-GSGetInstanceMethodNotInherited (Class class, SEL sel)
+GSGetMethod(Class class, SEL sel,
+	    BOOL searchInstanceMethods,
+	    BOOL searchSuperClasses)
 {
-  return search_for_method_in_class (class, sel);
+  if (class == 0 || sel == 0)
+    {
+      return 0;
+    }
+
+  if (searchSuperClasses == NO)
+    {
+      if (searchInstanceMethods == NO)
+	{
+	  return search_for_method_in_class(class->class_pointer, sel);
+	}
+      else
+	{
+	  return search_for_method_in_class(class, sel);
+	}
+    }
+  else
+    {
+      if (searchInstanceMethods == NO)
+	{
+	  /*
+	    We do not rely on the mapping supplied in objc_gnu2next.h
+	    because we want to be explicit about the fact 
+	    that the expected parameters are different.
+	    Therefor we refrain from simply using class_getClassMethod().
+	  */
+#ifdef NeXT_RUNTIME
+	  return class_getClassMethod(class, sel);
+#else
+	  return class_get_class_method(class->class_pointer, sel);
+#endif
+	}
+      else
+	{
+	  return class_get_instance_method(class, sel);
+	}
+    }
 }
 
-/* See header for documentation. */
-GSMethod
-GSGetClassMethodNotInherited (Class class, SEL sel)
-{
-  return search_for_method_in_class (class->class_pointer, sel);
-}
 
 /* See header for documentation. */
 GSMethodList

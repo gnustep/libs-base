@@ -1,3 +1,12 @@
+2004-06-08  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
+	* Source/Additions/GSObjCRuntime.m
+	(GSGetInstanceMethod, GSGetClassMethod)
+	(GSGetInstanceMethodNotInherited, GSGetClassMethodNotInherited):
+	Deprecate.
+	(GSGetMethod): New function.
+
 2004-06-06  David Ayers  <d.ayers@inode.at>
 
 	* Source/Additions/GSObjCRuntime.m
