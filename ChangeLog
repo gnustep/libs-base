@@ -1,3 +1,12 @@
+2004-09-03 19:08  Alexander Malmberg <alexander@malmberg.org>
+
+	* Tools/gdnc.m
+	(-addObserver:selector:name:object:suspensionBehavior:for:): Fix
+	string reuse.
+	(-postNotificationName:object:userInfo:deliverImmediately:for:):
+	Make sure queued notifications are always released. Don't release
+	obs.
+
 2004-09-02  David Ayers  <d.ayers@inode.at>
 
 	* Source/GSFFCallInvocation.m

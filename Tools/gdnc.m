@@ -557,7 +557,7 @@ ihandler(int sig)
 	{
 	  GDNCObserver	*tmp = [namList objectAtIndex: 0];
 
-	  notificationName = tmp->notificationObject;
+	  notificationName = tmp->notificationName;
 	}
       obs->notificationName = RETAIN(notificationName);
       [namList addObject: obs];
@@ -750,24 +750,23 @@ ihandler(int sig)
 	  while (obs != nil && [obs->queue count] > 0
 	    && NSHashGet(allObservers, obs) != 0)
 	    {
+	      GDNCNotification *n;
+	      n = RETAIN([obs->queue objectAtIndex: 0]);
 	      NS_DURING
 		{
-		  GDNCNotification	*n;
-
-		  n = RETAIN([obs->queue objectAtIndex: 0]);
 		  [obs->queue removeObjectAtIndex: 0];
 		  [obs->client->client postNotificationName: n->name
 						     object: n->object
 						   userInfo: n->info
 						   selector: obs->selector
 							 to: obs->observer];
-		  RELEASE(n);
 		}
 	      NS_HANDLER
 		{
-		  DESTROY(obs);
+		  obs = nil;
 		}
 	      NS_ENDHANDLER
+	      RELEASE(n);
 	    }
 	}
     }
