@@ -1,3 +1,9 @@
+Thu Apr 11 15:34:33 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/GSAttributedString.m ([GSMutableAttributedString
+	-sanity]): Renamed to -_sanity, and changed so that we always
+	compile this in so that regression testcases can use it.
+
 2002-04-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Resources/GNUmakefile: install new language files.
