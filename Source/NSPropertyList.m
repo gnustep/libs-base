@@ -1552,7 +1552,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    {
 	      [dest appendBytes: "<real>" length: 6];
 	      XString([obj stringValue], dest);
-	      [dest appendBytes: "</real>" length: 7];
+	      [dest appendBytes: "</real>\n" length: 8];
 	    }
 	  else if (x == NSPropertyListGNUStepFormat)
 	    {
@@ -1721,7 +1721,16 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     {
       const char	*iBaseString;
       const char	*iSizeString;
-      unsigned	level = lev;
+      SEL		objSel = @selector(objectForKey:);
+      IMP		myObj = [obj methodForSelector: objSel];
+      unsigned		i;
+      NSArray		*keyArray = [obj allKeys];
+      unsigned		numKeys = [keyArray count];
+      NSString		*plists[numKeys];
+      NSString		*keys[numKeys];
+      BOOL		canCompare = YES;
+      Class		lastClass = 0;
+      unsigned		level = lev;
 
       if (level*step < sizeof(indentStrings)/sizeof(id))
 	{
@@ -1743,167 +1752,147 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
 	}
 
+      [keyArray getObjects: keys];
+
+      for (i = 0; i < numKeys; i++)
+	{
+	  if (GSObjCClass(keys[i]) == lastClass)
+	    continue;
+	  if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
+	    {
+	      canCompare = NO;
+	      break;
+	    }
+	  lastClass = GSObjCClass(keys[i]);
+	}
+
+      if (canCompare == YES)
+	{
+	  #define STRIDE_FACTOR 3
+	  unsigned	c,d, stride;
+	  BOOL		found;
+	  NSComparisonResult	(*comp)(id, SEL, id) = 0;
+	  unsigned int	count = numKeys;
+	  #ifdef	GSWARN
+	  BOOL		badComparison = NO;
+	  #endif
+
+	  stride = 1;
+	  while (stride <= count)
+	    {
+	      stride = stride * STRIDE_FACTOR + 1;
+	    }
+	  lastClass = 0;
+	  while (stride > (STRIDE_FACTOR - 1))
+	    {
+	      // loop to sort for each value of stride
+	      stride = stride / STRIDE_FACTOR;
+	      for (c = stride; c < count; c++)
+		{
+		  found = NO;
+		  if (stride > c)
+		    {
+		      break;
+		    }
+		  d = c - stride;
+		  while (!found)
+		    {
+		      id			a = keys[d + stride];
+		      id			b = keys[d];
+		      Class			x;
+		      NSComparisonResult	r;
+
+		      x = GSObjCClass(a);
+		      if (x != lastClass)
+			{
+			  lastClass = x;
+			  comp = (NSComparisonResult (*)(id, SEL, id))
+			    [a methodForSelector: @selector(compare:)];
+			}
+		      r = (*comp)(a, @selector(compare:), b);
+		      if (r < 0)
+			{
+			  #ifdef	GSWARN
+			  if (r != NSOrderedAscending)
+			    {
+			      badComparison = YES;
+			    }
+			  #endif
+			  keys[d + stride] = b;
+			  keys[d] = a;
+			  if (stride > d)
+			    {
+			      break;
+			    }
+			  d -= stride;
+			}
+		      else
+			{
+			  #ifdef	GSWARN
+			  if (r != NSOrderedDescending
+			    && r != NSOrderedSame)
+			    {
+			      badComparison = YES;
+			    }
+			  #endif
+			  found = YES;
+			}
+		    }
+		}
+	    }
+	  #ifdef	GSWARN
+	  if (badComparison == YES)
+	    {
+	      NSWarnFLog(@"Detected bad return value from comparison");
+	    }
+	  #endif
+	}
+
+      for (i = 0; i < numKeys; i++)
+	{
+	  plists[i] = (*myObj)(obj, objSel, keys[i]);
+	}
+
       if (x == NSPropertyListXMLFormat_v1_0)
 	{
-	  NSEnumerator	*e;
-	  id		key;
-
 	  [dest appendBytes: "<dict>\n" length: 7];
-	  e = [obj keyEnumerator];
-	  while ((key = [e nextObject]))
+	  for (i = 0; i < numKeys; i++)
 	    {
-	      id	val;
-
-	      val = [obj objectForKey: key];
 	      [dest appendBytes: iSizeString length: strlen(iSizeString)];
 	      [dest appendBytes: "<key>" length: 5];
-	      XString(key, dest);
+	      XString(keys[i], dest);
 	      [dest appendBytes: "</key>\n" length: 7];
 	      [dest appendBytes: iSizeString length: strlen(iSizeString)];
-	      OAppend(val, loc, level, step, x, dest);
+	      OAppend(plists[i], loc, level, step, x, dest);
 	    }
 	  [dest appendBytes: iBaseString length: strlen(iBaseString)];
 	  [dest appendBytes: "</dict>\n" length: 8];
 	}
+      else if (loc == nil)
+	{
+	  [dest appendBytes: "{" length: 1];
+	  for (i = 0; i < numKeys; i++)
+	    {
+	      OAppend(keys[i], nil, 0, step, x, dest);
+	      [dest appendBytes: " = " length: 3];
+	      OAppend(plists[i], nil, 0, step, x, dest);
+	      [dest appendBytes: "; " length: 2];
+	    }
+	  [dest appendBytes: "}" length: 1];
+	}
       else
 	{
-	  SEL		objSel = @selector(objectForKey:);
-	  IMP		myObj = [obj methodForSelector: objSel];
-	  unsigned	i;
-	  NSArray	*keyArray = [obj allKeys];
-	  unsigned	numKeys = [keyArray count];
-	  NSString	*plists[numKeys];
-	  NSString	*keys[numKeys];
-	  BOOL		canCompare = YES;
-	  Class		lastClass = 0;
-
-	  [keyArray getObjects: keys];
-
+	  [dest appendBytes: "{\n" length: 2];
 	  for (i = 0; i < numKeys; i++)
 	    {
-	      if (GSObjCClass(keys[i]) == lastClass)
-		continue;
-	      if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
-		{
-		  canCompare = NO;
-		  break;
-		}
-	      lastClass = GSObjCClass(keys[i]);
+	      [dest appendBytes: iSizeString length: strlen(iSizeString)];
+	      OAppend(keys[i], loc, level, step, x, dest);
+	      [dest appendBytes: " = " length: 3];
+	      OAppend(plists[i], loc, level, step, x, dest);
+	      [dest appendBytes: ";\n" length: 2];
 	    }
-
-	  if (canCompare == YES)
-	    {
-	      #define STRIDE_FACTOR 3
-	      unsigned	c,d, stride;
-	      BOOL		found;
-	      NSComparisonResult	(*comp)(id, SEL, id) = 0;
-	      unsigned int	count = numKeys;
-	      #ifdef	GSWARN
-	      BOOL		badComparison = NO;
-	      #endif
-
-	      stride = 1;
-	      while (stride <= count)
-		{
-		  stride = stride * STRIDE_FACTOR + 1;
-		}
-	      lastClass = 0;
-	      while (stride > (STRIDE_FACTOR - 1))
-		{
-		  // loop to sort for each value of stride
-		  stride = stride / STRIDE_FACTOR;
-		  for (c = stride; c < count; c++)
-		    {
-		      found = NO;
-		      if (stride > c)
-			{
-			  break;
-			}
-		      d = c - stride;
-		      while (!found)
-			{
-			  id			a = keys[d + stride];
-			  id			b = keys[d];
-			  Class			x;
-			  NSComparisonResult	r;
-
-			  x = GSObjCClass(a);
-			  if (x != lastClass)
-			    {
-			      lastClass = x;
-			      comp = (NSComparisonResult (*)(id, SEL, id))
-				[a methodForSelector: @selector(compare:)];
-			    }
-			  r = (*comp)(a, @selector(compare:), b);
-			  if (r < 0)
-			    {
-			      #ifdef	GSWARN
-			      if (r != NSOrderedAscending)
-				{
-				  badComparison = YES;
-				}
-			      #endif
-			      keys[d + stride] = b;
-			      keys[d] = a;
-			      if (stride > d)
-				{
-				  break;
-				}
-			      d -= stride;
-			    }
-			  else
-			    {
-			      #ifdef	GSWARN
-			      if (r != NSOrderedDescending
-				&& r != NSOrderedSame)
-				{
-				  badComparison = YES;
-				}
-			      #endif
-			      found = YES;
-			    }
-			}
-		    }
-		}
-	      #ifdef	GSWARN
-	      if (badComparison == YES)
-		{
-		  NSWarnFLog(@"Detected bad return value from comparison");
-		}
-	      #endif
-	    }
-
-	  for (i = 0; i < numKeys; i++)
-	    {
-	      plists[i] = (*myObj)(obj, objSel, keys[i]);
-	    }
-
-	  if (loc == nil)
-	    {
-	      [dest appendBytes: "{" length: 1];
-	      for (i = 0; i < numKeys; i++)
-		{
-		  OAppend(keys[i], nil, 0, step, x, dest);
-		  [dest appendBytes: " = " length: 3];
-		  OAppend(plists[i], nil, 0, step, x, dest);
-		  [dest appendBytes: "; " length: 2];
-		}
-	      [dest appendBytes: "}" length: 1];
-	    }
-	  else
-	    {
-	      [dest appendBytes: "{\n" length: 2];
-	      for (i = 0; i < numKeys; i++)
-		{
-		  [dest appendBytes: iSizeString length: strlen(iSizeString)];
-		  OAppend(keys[i], loc, level, step, x, dest);
-		  [dest appendBytes: " = " length: 3];
-		  OAppend(plists[i], loc, level, step, x, dest);
-		  [dest appendBytes: ";\n" length: 2];
-		}
-	      [dest appendBytes: iBaseString length: strlen(iBaseString)];
-	      [dest appendBytes: "}" length: 1];
-	    }
+	  [dest appendBytes: iBaseString length: strlen(iBaseString)];
+	  [dest appendBytes: "}" length: 1];
 	}
     }
   else
