@@ -852,13 +852,9 @@
 - (int) yearOfCommonEra
 {
   int m, d, y;
-  int a;
 
-  // Get reference date in terms of days
-  a = (_seconds_since_ref+[_time_zone timeZoneSecondsFromGMT]) / 86400;
-  // Offset by Gregorian reference
-  a += GREGORIAN_REFERENCE;
-  [self gregorianDateFromAbsolute: a day: &d month: &m year: &y];
+  [self gregorianDateFromAbsolute: [self dayOfCommonEra]
+	day: &d month: &m year: &y];
 
   return y;
 }
