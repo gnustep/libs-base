@@ -92,9 +92,9 @@
 
 /* The following group of lines maintained by the gstep-base configure */
 #define GNUSTEP_BASE_VERSION            @VERSION@
-#define GNUSTEP_BASE_MAJOR_VERSION      @MAJOR_VERSION@
-#define GNUSTEP_BASE_MINOR_VERSION      @MINOR_VERSION@
-#define GNUSTEP_BASE_SUBMINOR_VERSION   @SUBMINOR_VERSION@
+#define GNUSTEP_BASE_MAJOR_VERSION      1
+#define GNUSTEP_BASE_MINOR_VERSION      6
+#define GNUSTEP_BASE_SUBMINOR_VERSION   0
 #define GNUSTEP_BASE_GCC_VERSION        @GCC_VERSION@
 
 #if 0

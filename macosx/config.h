@@ -27,6 +27,12 @@
 #ifndef __config_h__
 #define __config_h__
 
+#ifndef GNUSTEP_BASE_MAJOR_VERSION		
+#define GNUSTEP_BASE_MAJOR_VERSION		1
+#define GNUSTEP_BASE_MINOR_VERSION		6
+#define GNUSTEP_BASE_SUBMINOR_VERSION	0
+#endif
+
 /* Define if Foundation implements KeyValueCoding.  */
 #define FOUNDATION_HAS_KVC 1
 
@@ -50,9 +56,17 @@
 #define HAVE_STRERROR 1
 #endif
 
-//#define HAVE_LIBXML 1
-//#define HAVE_ICONV 1
-//#define HAVE_GICONV_H 1
+#ifndef HAVE_LIBXML
+#define HAVE_LIBXML 1
+#endif
+
+#ifndef HAVE_ICONV
+#define HAVE_ICONV 1
+#endif
+
+#ifndef HAVE_INET_ATON
+#define HAVE_INET_ATON 1
+#endif
 
 #ifndef RCS_ID
 #define RCS_ID(name) \
