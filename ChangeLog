@@ -1,3 +1,15 @@
+2002-10-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSDebug.h: Make warn logs de-selectable at
+	runtime by setting the NoWarn debug level.  Document.  Say that
+	debug levels can be added by putting them in the GNU-Debug
+	array in the defaults database.
+	* Source/NSUserDefaults.m: Add contents of the GNU-Debug array to
+	the set of active debug levels.
+	* Tools/AGSParser.m: Updated with support for documenting macros.
+	* Tools/AGSOutput.m: ditto
+	* Tools/AGSHtml.m: ditto
+
 2002-10-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Update logging after checks for results of memory

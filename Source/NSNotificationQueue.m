@@ -249,6 +249,11 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
   NSNotificationQueueRegistration	*item;
 
   item = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueRegistration));
+  if (item == 0)
+    {
+      [NSException raise: NSMallocException
+      		  format: @"Unable to add to notification queue"];
+    }
       
   item->notification = RETAIN(notification);
   item->name = [notification name];
@@ -312,12 +317,17 @@ add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
   _center = RETAIN(notificationCenter);
   _asapQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
   _idleQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
-
-  /*
-   * insert in global queue list
-   */
-  [NotificationQueueList registerQueue: self];
-
+  if (_asapQueue == 0 || _idleQueue == 0)
+    {
+      DESTROY(self);
+    }
+  else
+    {
+      /*
+       * insert in global queue list
+       */
+      [NotificationQueueList registerQueue: self];
+    }
   return self;
 }
 

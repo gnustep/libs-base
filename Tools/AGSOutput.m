@@ -240,6 +240,7 @@ static BOOL snuggleStart(NSString *t)
   NSDictionary		*types;
   NSDictionary		*variables;
   NSDictionary		*constants;
+  NSDictionary		*macros;
   NSMutableArray	*files;
   NSArray		*authors;
   NSString		*base;
@@ -270,6 +271,7 @@ static BOOL snuggleStart(NSString *t)
   types = [info objectForKey: @"Types"];
   variables = [info objectForKey: @"Variables"];
   constants = [info objectForKey: @"Constants"];
+  macros = [info objectForKey: @"Macros"];
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
@@ -515,6 +517,42 @@ static BOOL snuggleStart(NSString *t)
       [m appendString: @"    </chapter>\n"];
 
       tmp = [self mergeMarkup: m ofKind: @"Constants"];
+      if (tmp == nil)
+	{
+	  [str appendString: m];
+	  chapters++;
+	}
+      else
+	{
+	  [files addObject: tmp];
+	}
+      RELEASE(m);
+    }
+
+  if ([macros count] > 0)
+    {
+      NSMutableString	*m = [NSMutableString new];
+      NSArray		*names;
+      unsigned		i;
+      unsigned		c = [macros count];
+
+      [m appendString: @"    <chapter>\n"];
+      [m appendFormat: @"      <heading>%@ macros</heading>\n", base];
+      [m appendString: @"      <p></p>\n"];
+
+      names = [macros allKeys];
+      names = [names sortedArrayUsingSelector: @selector(compare:)];
+      for (i = 0; i < c; i++)
+	{
+	  NSString	*name = [names objectAtIndex: i];
+	  NSDictionary	*d = [macros objectForKey: name];
+
+	  [self outputMacro: d to: m];
+	}
+
+      [m appendString: @"    </chapter>\n"];
+
+      tmp = [self mergeMarkup: m ofKind: @"Macros"];
       if (tmp == nil)
 	{
 	  [str appendString: m];
@@ -796,7 +834,7 @@ static BOOL snuggleStart(NSString *t)
     }
   if ([[d objectForKey: @"VarArgs"] boolValue] == YES)
     {
-      [str appendString: @"<vararg />\n"];
+      [str appendString: @"        <vararg />\n"];
     }
 
   if (declared != nil)
@@ -851,6 +889,64 @@ static BOOL snuggleStart(NSString *t)
       [self reformat: standards withIndent: 10 to: str];
     }
   [str appendString: @"        </ivariable>\n"];
+}
+
+/**
+ * Uses -split: and -reformat:withIndent:to:.
+ */
+- (void) outputMacro: (NSDictionary*)d
+		  to: (NSMutableString*)str
+{
+  NSString	*name = [d objectForKey: @"Name"];
+  NSString	*comment = [d objectForKey: @"Comment"];
+  NSString	*declared = [d objectForKey: @"Declared"];
+  NSString	*standards = nil;
+  unsigned	i;
+
+  if (standards == nil)
+    {
+      standards = [d objectForKey: @"Standards"];
+    }
+
+  [str appendString: @"      <macro name=\""];
+  [str appendString: name];
+  [str appendString: @"\">\n"];
+
+  /*
+   * Storing the argument names array in the 'args' ivar ensures that
+   * when we output comments, the argument names are highlighted.
+   */
+  args = [d objectForKey: @"Args"];
+  for (i = 0; i < [args count]; i++)
+    {
+      NSString		*s = [args objectAtIndex: i];
+
+      [str appendString: @"        <arg>"];
+      [str appendString: s];
+      [str appendString: @"</arg>\n"];
+    }
+  if ([[d objectForKey: @"VarArgs"] boolValue] == YES)
+    {
+      [str appendString: @"        <vararg />\n"];
+    }
+
+  if (declared != nil)
+    {
+      [str appendString: @"        <declared>"];
+      [str appendString: declared];
+      [str appendString: @"</declared>\n"];
+    }
+
+  [str appendString: @"        <desc>\n"];
+  comment = [self checkComment: comment unit: nil info: d];
+  [self reformat: comment withIndent: 10 to: str];
+  [str appendString: @"        </desc>\n"];
+  if (standards != nil)
+    {
+      [self reformat: standards withIndent: 8 to: str];
+    }
+  [str appendString: @"      </macro>\n"];
+  args = nil;
 }
 
 /**
@@ -1013,7 +1109,7 @@ static BOOL snuggleStart(NSString *t)
     }
   if ([[d objectForKey: @"VarArgs"] boolValue] == YES)
     {
-      [str appendString: @"<vararg />\n"];
+      [str appendString: @"          <vararg />\n"];
     }
 
   [str appendString: @"          <desc>\n"];
