@@ -30,7 +30,7 @@
 #include <gnustep/base/Array.h>
 #include <Foundation/NSException.h>
 
-#define debug_coder 0
+static int debug_coder = 0;
 
 @implementation Decoder
 
@@ -109,7 +109,7 @@
 
 
 /* Functions and methods for keeping cross-references
-   so objects that were already read can be refered to again. */
+   so objects that were already read can be referred to again. */
 
 /* These _coder... methods may be overriden by subclasses so that 
    cross-references can be kept differently. */
@@ -123,6 +123,9 @@
 	 Encoders, which start at 1. */
       [xref_2_object appendObject: [NSObject new]];
     }
+  if (debug_coder)
+    fprintf (stderr, "Decoder registering object xref %u\n",
+	     [xref_2_object count] - 1);
   [xref_2_object appendObject: anObj]; // xxx but this will retain anObj.  NO.
   /* This return value should be the same as the index of anObj 
      in xref_2_object. */
@@ -161,7 +164,7 @@
       xref_2_object_root = [Array new];
       /* Append an object so our xref numbers are in sync with the 
 	 Encoders, which start at 1. */
-      [xref_2_object_root appendObject: [NSObject new]];
+      [xref_2_object_root appendObject: [[NSObject new] autorelease]];
     }
   [xref_2_object_root appendObject: anObj];
   /* This return value should be the same as the index of anObj 
@@ -276,7 +279,7 @@
 
 
 /* This is the Coder's interface to the over-ridable
-   "_coderPutObject:atReference" method.  Do not override it.  It
+   "_coderCreateReferenceForObject" method.  Do not override it.  It
    handles the xref_2_object_root. */
 
 - (unsigned) _coderInternalCreateReferenceForObject: anObj
@@ -378,7 +381,8 @@
 	  unsigned xref;
 	  xref = [self _coderCreateReferenceForConstPtr: ret];
 	  if (debug_coder)
-	    fprintf(stderr, "Coder decoding registered class xref %u\n", xref);
+	    fprintf(stderr,
+		    "Decoder decoding registered class xref %u\n", xref);
 	}
 	(*objc_free) (class_name);
 	break;
@@ -460,7 +464,8 @@
 	  unsigned xref;
 	  xref = [self _coderCreateReferenceForConstPtr: ret];
 	  if (debug_coder)
-	    fprintf(stderr, "Coder decoding registered sel xref %u\n", xref);
+	    fprintf(stderr,
+		    "Decoder decoding registered sel xref %u\n", xref);
 	}
 	(*objc_free)(sel_name);
 	(*objc_free)(sel_types);
@@ -558,6 +563,11 @@
   /* xxx We need to catch unions and make a sensible error message */
 }
 
+- (BOOL) _createReferenceBeforeInit
+{
+  return NO;
+}
+
 /* This is the designated (and one-and-only) object decoder */
 - (void) decodeObjectAt: (id*) anObjPtr withName: (id <String> *) name
 {
@@ -606,6 +616,7 @@
 	Class object_class;
 	SEL new_sel = sel_get_any_uid ("newWithCoder:");
 	Method* new_method;
+	BOOL create_ref_before_init = [self _createReferenceBeforeInit];
 
 	[self decodeIndent];
 	object_class = [self decodeClass];
@@ -614,15 +625,22 @@
 	   argument, not the metaclass! */
 	new_method = class_get_class_method(class_get_meta_class(object_class),
 					    new_sel);
-	if (new_method)
+	if (new_method && !create_ref_before_init)
 	  *anObjPtr = (*(new_method->method_imp))(object_class, new_sel, self);
 	else
 	  {
 	    SEL init_sel = sel_get_any_uid("initWithCoder:");
 	    Method *init_method = 
 	      class_get_instance_method(object_class, init_sel);
+	    
+	    NSAssert (!create_ref_before_init,
+		      @"You are trying to decode an object with the non-GNU"
+		      @"OpenStep-style of forward references, but the object's"
+		      @"decoding mechanism wants to use GNU features.");
 	    /* xxx Or should I send +alloc? */
 	    *anObjPtr = (id) NSAllocateObject (object_class, 0, zone);
+	    if (create_ref_before_init)
+	      [self _coderInternalCreateReferenceForObject: *anObjPtr];
 	    if (init_method)
 	      *anObjPtr = 
 		(*(init_method->method_imp))(*anObjPtr, init_sel, self);
@@ -640,12 +658,14 @@
 
 	/* Would get error here with Connection-wide object references
 	   because addProxy gets called in +newRemote:connection: */
-	{
-	  unsigned xref = 
-	    [self _coderInternalCreateReferenceForObject: *anObjPtr];
-	  if (debug_coder)
-	    fprintf(stderr, "Coder decoding registered class xref %u\n", xref);
-	}
+	if (!create_ref_before_init)
+	  {
+	    unsigned xref = 
+	      [self _coderInternalCreateReferenceForObject: *anObjPtr];
+	    if (debug_coder)
+	      fprintf(stderr, 
+		      "Decoder decoding registered class xref %u\n", xref);
+	  }
 	break;
       }
     case CODER_OBJECT_ROOT:
