@@ -1,3 +1,10 @@
+2001-05-04  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* configure.in: Abort if GNUSTEP_SYSTEM_ROOT is empty, printing a
+	message saying that you must run the GNUstep configuration script
+	before configuring the base library.
+	* configure: Regenerated.
+
 2001-05-04  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/objc-gnu2next.h: Add arglist_h def. Add
