@@ -58,7 +58,80 @@
 
 #define GREGORIAN_REFERENCE 730486
 
+@class	GSTimeZone;
+@class	NSConcreteAbsoluteTimeZone;
+
 static NSTimeZone	*localTZ = nil;
+
+static Class	absClass;
+static Class	dstClass;
+
+static SEL		offSEL;
+static int (*offIMP)(id, SEL, id);
+static int (*absOffIMP)(id, SEL, id);
+static int (*dstOffIMP)(id, SEL, id);
+
+static SEL		abrSEL;
+static NSString* (*abrIMP)(id, SEL, id);
+static NSString* (*absAbrIMP)(id, SEL, id);
+static NSString* (*dstAbrIMP)(id, SEL, id);
+
+
+/*
+ * Return the offset from GMT for a date in a timezone ...
+ * Optimize for the local timezone, and less so for the other
+ * base library time zone classes.
+ */
+static inline int
+offset(NSTimeZone *tz, NSDate *d)
+{
+  if (tz == localTZ)
+    {
+      return (*offIMP)(tz, offSEL, d);
+    }
+  else
+    {
+      Class	c = GSObjCClass(tz);
+
+      if (c == dstClass)
+	{
+	  return (*dstOffIMP)(tz, offSEL, d);
+	}
+      if (c == absClass)
+	{
+	  return (*absOffIMP)(tz, offSEL, d);
+	}
+      return [tz secondsFromGMTForDate: d];
+    }
+}
+
+/*
+ * Return the offset from GMT for a date in a timezone ...
+ * Optimize for the local timezone, and less so for the other
+ * base library time zone classes.
+ */
+static inline NSString*
+abbrev(NSTimeZone *tz, NSDate *d)
+{
+  if (tz == localTZ)
+    {
+      return (*abrIMP)(tz, abrSEL, d);
+    }
+  else
+    {
+      Class	c = GSObjCClass(tz);
+
+      if (c == dstClass)
+	{
+	  return (*dstAbrIMP)(tz, abrSEL, d);
+	}
+      if (c == absClass)
+	{
+	  return (*absAbrIMP)(tz, abrSEL, d);
+	}
+      return [tz abbreviationForDate: d];
+    }
+}
 
 static inline int
 lastDayOfGregorianMonth(int month, int year)
@@ -199,6 +272,26 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
     {
       [self setVersion: 1];
       localTZ = RETAIN([NSTimeZone localTimeZone]);
+
+      dstClass = [GSTimeZone class];
+      absClass = [NSConcreteAbsoluteTimeZone class];
+
+      offSEL = @selector(secondsFromGMTForDate:);
+      offIMP = (int (*)(id,SEL,id))
+	[localTZ methodForSelector: offSEL];
+      dstOffIMP = (int (*)(id,SEL,id))
+	[dstClass instanceMethodForSelector: offSEL];
+      absOffIMP = (int (*)(id,SEL,id))
+	[absClass instanceMethodForSelector: offSEL];
+
+      abrSEL = @selector(abbreviationForDate:);
+      abrIMP = (NSString* (*)(id,SEL,id))
+	[localTZ methodForSelector: abrSEL];
+      dstAbrIMP = (NSString* (*)(id,SEL,id))
+	[dstClass instanceMethodForSelector: abrSEL];
+      absAbrIMP = (NSString* (*)(id,SEL,id))
+	[absClass instanceMethodForSelector: abrSEL];
+
       behavior_class_add_class(self, [NSGDate class]);
     }
 }
@@ -1081,19 +1174,19 @@ static inline int getDigits(const char *from, char *to, int limit)
   /*
    * Adjust date so it is correct for time zone.
    */
-  oldOffset = [_time_zone secondsFromGMTForDate: self];
+  oldOffset = offset(_time_zone, self);
   s -= oldOffset;
   _seconds_since_ref = s;
 
   /*
    * See if we need to adjust for daylight savings time
    */
-  newOffset = [_time_zone secondsFromGMTForDate: self];
+  newOffset = offset(_time_zone, self);
   if (oldOffset != newOffset)
     {
       s -= (newOffset - oldOffset);
       _seconds_since_ref = s;
-      oldOffset = [_time_zone secondsFromGMTForDate: self];
+      oldOffset = offset(_time_zone, self);
       /*
        * If the adjustment puts us in another offset, we must be in the
        * non-existent period at the start of daylight savings time.
@@ -1130,7 +1223,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 {
   NSTimeInterval	when;
 
-  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  when = _seconds_since_ref + offset(_time_zone, self);
   return dayOfCommonEra(when);
 }
 
@@ -1139,7 +1232,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   int m, d, y;
   NSTimeInterval	when;
 
-  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  when = _seconds_since_ref + offset(_time_zone, self);
   gregorianDateFromAbsolute(dayOfCommonEra(when), &d, &m, &y);
 
   return d;
@@ -1150,7 +1243,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   int	d;
   NSTimeInterval	when;
 
-  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  when = _seconds_since_ref + offset(_time_zone, self);
   d = dayOfCommonEra(when);
 
   /* The era started on a sunday.
@@ -1168,7 +1261,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   int m, d, y, days, i;
   NSTimeInterval	when;
 
-  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  when = _seconds_since_ref + offset(_time_zone, self);
   gregorianDateFromAbsolute(dayOfCommonEra(when), &d, &m, &y);
   days = d;
   for (i = m - 1;  i > 0; i--) // days in prior months this year
@@ -1183,11 +1276,11 @@ static inline int getDigits(const char *from, char *to, int limit)
   double a, d;
   NSTimeInterval	when;
 
-  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  when = _seconds_since_ref + offset(_time_zone, self);
   d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
+  a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
   a = a / 3600;
   h = (int)a;
 
@@ -1205,11 +1298,11 @@ static inline int getDigits(const char *from, char *to, int limit)
   double a, b, d;
   NSTimeInterval	when;
 
-  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  when = _seconds_since_ref + offset(_time_zone, self);
   d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
+  a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
   b = a / 3600;
   h = (int)b;
   h = h * 3600;
@@ -1225,7 +1318,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   int m, d, y;
   NSTimeInterval	when;
 
-  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  when = _seconds_since_ref + offset(_time_zone, self);
   gregorianDateFromAbsolute(dayOfCommonEra(when), &d, &m, &y);
 
   return m;
@@ -1237,11 +1330,11 @@ static inline int getDigits(const char *from, char *to, int limit)
   double a, b, c, d;
   NSTimeInterval	when;
 
-  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  when = _seconds_since_ref + offset(_time_zone, self);
   d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref+[_time_zone secondsFromGMTForDate: self]));
+  a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
   b = a / 3600;
   h = (int)b;
   h = h * 3600;
@@ -1260,7 +1353,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   int m, d, y;
   NSTimeInterval	when;
 
-  when = _seconds_since_ref+[_time_zone secondsFromGMTForDate: self];
+  when = _seconds_since_ref + offset(_time_zone, self);
   gregorianDateFromAbsolute(dayOfCommonEra(when), &d, &m, &y);
 
   return y;
@@ -1319,7 +1412,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   f = [format cString];
   lf = strlen(f);
 
-  GSBreakTime(_seconds_since_ref + [_time_zone secondsFromGMTForDate: self],
+  GSBreakTime(_seconds_since_ref + offset(_time_zone, self),
     &yd, &md, &dom, &hd, &mnd, &sd, &mil);
   nhd = hd;
 
@@ -1419,8 +1512,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 	    case 'F': 	// milliseconds
 	      s = ([self dayOfCommonEra] - GREGORIAN_REFERENCE) * 86400.0;
-	      s -= (_seconds_since_ref
-		+ [_time_zone secondsFromGMTForDate: self]);
+	      s -= (_seconds_since_ref + offset(_time_zone, self));
 	      s = fabs(s);
 	      s -= floor(s);
 	      ++i;
@@ -1521,13 +1613,13 @@ static inline int getDigits(const char *from, char *to, int limit)
 	    case 'Z':
 	      ++i;
 	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
-			  [[_time_zone abbreviationForDate: self] cString]));
+		[abbrev(_time_zone, self) UTF8String]));
 	      j += k;
 	      break;
 
 	    case 'z':
 	      ++i;
-	      z = [_time_zone secondsFromGMTForDate: self];
+	      z = offset(_time_zone, self);
 	      if (z < 0) {
 		z = -z;
 		z /= 60;
@@ -1675,7 +1767,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   NSTimeInterval	newOffset;
   int			i, year, month, day, hour, minute, second, mil;
 
-  oldOffset = [_time_zone secondsFromGMTForDate: self];
+  oldOffset = offset(_time_zone, self);
   /*
    * Break into components in GMT time zone.
    */
@@ -1782,7 +1874,7 @@ static inline int getDigits(const char *from, char *to, int limit)
    * Adjust date to try to maintain the time of day over
    * a daylight savings time boundary if necessary.
    */
-  newOffset = [_time_zone secondsFromGMTForDate: c];
+  newOffset = offset(_time_zone, c);
   if (newOffset != oldOffset)
     {
       NSTimeInterval	tmpOffset = newOffset;
@@ -1794,7 +1886,7 @@ static inline int getDigits(const char *from, char *to, int limit)
        * daylight savings time transition, we use the original
        * date rather than the adjusted one.
        */
-      newOffset = [_time_zone secondsFromGMTForDate: c];
+      newOffset = offset(_time_zone, c);
       if (newOffset == oldOffset)
 	{
 	  s += (tmpOffset - oldOffset);
@@ -1846,12 +1938,10 @@ static inline int getDigits(const char *from, char *to, int limit)
       sign = -1;
     }
 
-  GSBreakTime(start->_seconds_since_ref
-    + [start->_time_zone secondsFromGMTForDate: start],
+  GSBreakTime(start->_seconds_since_ref + offset(start->_time_zone, start),
     &syear, &smonth, &sday, &shour, &sminute, &ssecond, &mil);
 
-  GSBreakTime(end->_seconds_since_ref
-    + [end->_time_zone secondsFromGMTForDate: end],
+  GSBreakTime(end->_seconds_since_ref + offset(end->_time_zone, end),
     &eyear, &emonth, &eday, &ehour, &eminute, &esecond, &mil);
 
   /* Calculate year difference and leave any remaining months in 'extra' */
