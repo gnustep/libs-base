@@ -210,4 +210,6 @@ extern NSString *ConnectionBecameInvalidNotification;
 
 #define CONNECTION_DEFAULT_TIMEOUT   15000 /* in milliseconds */
 
+extern NSString *ConnectionBecameInvalidNotification;
+
 #endif /* __Connection_h_OBJECTS_INCLUDE */
