@@ -113,6 +113,9 @@
           <sel>instanceMethodSignatureForSelector:</sel>
           <arg type="SEL">aSelector</arg>
           <desc>
+	    Returns a method signature object representing the
+	    method implemented for instsances of this class which
+	    corresponds to the supplied selector.
           </desc>
         </method>
         <method type="BOOL" factory="yes">
@@ -293,6 +296,9 @@
           <sel>methodSignatureForSelector:</sel>
           <arg type="SEL">aSelector</arg>
           <desc>
+	    Returns a method signature object representing the
+	    method implemented in this object which corresponds to
+	    the supplied selector.
           </desc>
         </method>
         <method type="id">
