@@ -11,14 +11,21 @@
 
 #include <Foundation/Foundation.h>
 
+@class	GSTelnetHandle;
+extern NSString * const GSTelnetNotification;
+extern NSString * const GSTelnetErrorKey;
+extern NSString * const GSTelnetTextKey;
+
 @interface Call : NSObject
 {
   NSFileHandle		*ichan;
   NSFileHandle		*ochan;
-  NSFileHandle		*remote;
+  GSTelnetHandle	*remote;
+  NSMutableData		*buf;
 }
 - (void) didRead: (NSNotification*)notification;
 - (void) didWrite: (NSNotification*)notification;
+- (void) gotTelnet: (NSNotification*)notification;
 @end
 
 
@@ -29,13 +36,13 @@
   RELEASE(ichan);
   RELEASE(ochan);
   RELEASE(remote);
+  RELEASE(buf);
   [super dealloc];
 }
 
 - (void) didRead: (NSNotification*)notification
 {
   NSDictionary	*userInfo = [notification userInfo];
-  NSFileHandle	*object = [notification object];
   NSData	*d;
 
   d = [userInfo objectForKey: NSFileHandleNotificationDataItem];
@@ -46,16 +53,39 @@
     }
   else
     {
-      if (object == ichan)
+      char	*ptr;
+      unsigned	len;
+      int	i;
+
+      [buf appendData: d];
+      ptr = [buf mutableBytes];
+      len = [buf length];
+      for (i = 0; i < len; i++)
 	{
-	  [remote writeInBackgroundAndNotify: d];
-	  [ichan readInBackgroundAndNotify];
+	  if (ptr[i] == '\n')
+	    {
+	      NSString	*s;
+
+	      if (i > 0 && ptr[i-1] == '\r')
+		{
+		  s = [NSString stringWithCString: ptr length: i-1];
+		}
+	      else
+		{
+		  s = [NSString stringWithCString: ptr length: i];
+		}
+	      len -= (i + 1);
+	      if (len > 0)
+		{
+		  memcpy(ptr, &ptr[i+1], len);
+		}
+	      [buf setLength: len];
+	      ptr = [buf mutableBytes];
+	      i = -1;
+	      [remote putTelnetLine: s];
+	    }
 	}
-      else
-	{
-	  [ochan writeInBackgroundAndNotify: d];
-	  [remote readInBackgroundAndNotify];
-	}
+      [ichan readInBackgroundAndNotify];
     }
 }
 
@@ -69,6 +99,29 @@
     {
       NSLog(@"%@", e);
       exit(0);
+    }
+}
+
+- (void) gotTelnet: (NSNotification*)notification
+{
+  NSDictionary	*info = [notification userInfo];
+  NSArray	*text;
+
+  text = [info objectForKey: GSTelnetTextKey];
+  if (text == nil)
+    {
+      NSLog(@"Lost telnet - %@", [info objectForKey: GSTelnetErrorKey]);
+      exit(0);
+    }
+  else
+    {
+      unsigned	i;
+
+      for (i = 0; i < [text count]; i++)
+	{
+	  [ochan writeInBackgroundAndNotify:
+	    [[text objectAtIndex: i] dataUsingEncoding: NSUTF8StringEncoding]];
+	}
     }
 }
 
@@ -91,10 +144,12 @@
 	    }
 	}
     }
+  buf = [NSMutableData new];
   ichan = RETAIN([NSFileHandle fileHandleWithStandardInput]);
   ochan = RETAIN([NSFileHandle fileHandleWithStandardOutput]);
-  remote = RETAIN([NSFileHandle fileHandleAsClientAtAddress:
-    host service: service protocol: protocol]);
+  remote = [[GSTelnetHandle alloc] initWithHandle:
+    [NSFileHandle fileHandleAsClientAtAddress:
+      host service: service protocol: protocol] isConnected: YES];
   if (remote == nil)
     {
       NSLog(@"Failed to create connection");
@@ -107,20 +162,15 @@
       [nc addObserver: self
 	     selector: @selector(didRead:)
 		 name: NSFileHandleReadCompletionNotification
-	       object: (id)ichan];
+	       object: ichan];
       [nc addObserver: self
 	     selector: @selector(didWrite:)
 		 name: GSFileHandleWriteCompletionNotification
-	       object: (id)ochan];
+	       object: ochan];
       [nc addObserver: self
-	     selector: @selector(didRead:)
-		 name: NSFileHandleReadCompletionNotification
-	       object: (id)remote];
-      [nc addObserver: self
-	     selector: @selector(didWrite:)
-		 name: GSFileHandleWriteCompletionNotification
-	       object: (id)remote];
-      [remote readInBackgroundAndNotify];
+	     selector: @selector(gotTelnet:)
+		 name: GSTelnetNotification
+	       object: remote];
       [ichan readInBackgroundAndNotify];
     }
   return self;
