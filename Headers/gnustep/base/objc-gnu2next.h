@@ -151,7 +151,6 @@ object_is_meta_class(id object)
 /* The following from GNU's objc/list.h */
 
 #include <stdio.h>
-#include <gnustep/base/objc-malloc.h>
 
 struct objc_list {
   void *head;
