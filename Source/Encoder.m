@@ -334,7 +334,10 @@ my_object_is_class(id object)
    count: (unsigned)c
    withName: (id <String>)name
 {
-  [self notImplemented:_cmd];
+  /* xxx Is this what we want?  
+     It won't be cleanly readable in TextCStream's. */
+  [cstream encodeName: name];
+  [[cstream stream] writeBytes: b length: c];
 }
 
 
