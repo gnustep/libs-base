@@ -1,5 +1,7 @@
 Wed Sep 30  9:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
+	* Removed MallocAddress class -
+	    use ([NSData +dataWithBytesNoCopy:length:]) instead.
 	* Tools/dwrite.m: Removed references to cStringNoCopy
 	* src/BinaryTree.m: Removed references to cStringNoCopy
 	* src/Collection.m: Removed references to cStringNoCopy
