@@ -143,7 +143,12 @@ typedef	enum {
 /*
  *	These next two are general purpose methods for letting objects
  *	ask the runloop to watch for events for them.  Only one object
- *	at a time may be watching for a particular event in a mode.
+ *	at a time may be watching for a particular event in a mode, but
+ *	that object may add itsself as a watcher many times as long as
+ *	each addition is matched by a removal (the run loop keeps count).
+ *	Alternatively, the 'removeAll' parameter may be set to 'YES' for
+ *	[-removeEvent:type:forMode:all:] in order to remove the watcher
+ *	irrespective of the number of times it has been added.
  */
 - (void) addEvent: (void*)data
 	     type: (RunLoopEventType)type
@@ -151,7 +156,8 @@ typedef	enum {
 	  forMode: (NSString*)mode;
 - (void) removeEvent: (void*)data
 	        type: (RunLoopEventType)type
-	     forMode: (NSString*)mode;
+	     forMode: (NSString*)mode
+		 all: (BOOL)removeAll;
 /*
  *	The next four methods are rendered obsolete by
  *	[-addEvent:type:watcher:forMode:] and

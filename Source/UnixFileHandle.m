@@ -144,14 +144,16 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
-  if (closeOnDealloc == YES)
+  if (descriptor != -1)
     {
-      close(descriptor);
-      descriptor = -1;
+      if (closeOnDealloc == YES)
+	{
+	  close(descriptor);
+	  descriptor = -1;
+	}
+      else if (isNonBlocking != wasNonBlocking)
+	[self setNonBlocking:wasNonBlocking];
     }
-  else if (isNonBlocking != wasNonBlocking)
-    [self setNonBlocking:wasNonBlocking];
-
   [readInfo release];
   [writeInfo release];
   [super dealloc];
@@ -531,9 +533,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (NSData*)availableData
 {
   char			buf[NETBUF_SIZE];
-  NSMutableData*	d = [NSMutableData dataWithCapacity:0];
+  NSMutableData*	d;
   int			len;
 
+  [self checkRead];
+  d = [NSMutableData dataWithCapacity:0];
   if (isStandardFile)
     {
       while ((len = read(descriptor, buf, sizeof(buf))) > 0)
@@ -560,9 +564,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (NSData*)readDataToEndOfFile
 {
   char			buf[NETBUF_SIZE];
-  NSMutableData*	d = [NSMutableData dataWithCapacity:0];
+  NSMutableData*	d;
   int			len;
 
+  [self checkRead];
+  d = [NSMutableData dataWithCapacity:0];
   while ((len = read(descriptor, buf, sizeof(buf))) > 0)
     {
       [d appendBytes:buf length:len];
@@ -578,9 +584,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (NSData*)readDataOfLength:(unsigned int)len
 {
-  NSMutableData*	d = [NSMutableData dataWithCapacity:len];
+  NSMutableData*	d;
   int			pos;
 
+  [self checkRead];
+  d = [NSMutableData dataWithCapacity:len];
   if ((pos = read(descriptor, [d mutableBytes], len)) < 0)
     {
       [NSException raise: NSFileHandleOperationException
@@ -598,6 +606,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   unsigned int	len = [item length];
   unsigned int	pos = 0;
 
+  [self checkWrite];
   while (pos < len)
     {
       int	toWrite = len - pos;
@@ -678,7 +687,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   off_t	result = -1;
 
-  if (isStandardFile)
+  if (isStandardFile && descriptor >= 0)
     result = lseek(descriptor, 0, SEEK_CUR);
   if (result < 0)
     {
@@ -693,7 +702,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   off_t	result = -1;
 
-  if (isStandardFile)
+  if (isStandardFile && descriptor >= 0)
     result = lseek(descriptor, 0, SEEK_END);
   if (result < 0)
     {
@@ -708,7 +717,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 {
   off_t	result = -1;
 
-  if (isStandardFile)
+  if (isStandardFile && descriptor >= 0)
     result = lseek(descriptor, (off_t)pos, SEEK_SET);
   if (result < 0)
     {
@@ -739,6 +748,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   (void)close(descriptor);
   descriptor = -1;
+  acceptOK = NO;
+  connectOK = NO;
+  readOK = NO;
+  writeOK = NO;
 }
 
 - (void)synchronizeFile
@@ -749,7 +762,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void)truncateFileAtOffset:(unsigned long long)pos
 {
-  if (isStandardFile)
+  if (isStandardFile && descriptor >= 0)
     (void)ftruncate(descriptor, pos);
    [self seekToFileOffset:pos];
 }
@@ -855,13 +868,15 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  [l removeEvent: (void*)descriptor
 		    type: ET_RDESC
-		 forMode: [modes objectAtIndex:i]];
+		 forMode: [modes objectAtIndex:i]
+		     all: YES];
         }
     }
   else
     [l removeEvent: (void*)descriptor
 	      type: ET_RDESC
-	   forMode: NSDefaultRunLoopMode];
+	   forMode: NSDefaultRunLoopMode
+	       all: YES];
 }
 
 - (void)ignoreWriteDescriptor
@@ -887,19 +902,25 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  [l removeEvent: (void*)descriptor
 		    type: ET_WDESC
-		 forMode: [modes objectAtIndex:i]];
+		 forMode: [modes objectAtIndex:i]
+		     all: YES];
         }
     }
   else
     [l removeEvent: (void*)descriptor
 	      type: ET_WDESC
-	   forMode: NSDefaultRunLoopMode];
+	   forMode: NSDefaultRunLoopMode
+	       all: YES];
 }
 
 - (void)watchReadDescriptorForModes:(NSArray*)modes;
 {
-  NSRunLoop*	l = [NSRunLoop currentRunLoop];
+  NSRunLoop*	l;
 
+  if (descriptor < 0)
+    return;
+
+  l = [NSRunLoop currentRunLoop];
   [self setNonBlocking:YES];
   if (modes && [modes count])
     {
@@ -925,6 +946,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void)watchWriteDescriptor
 {
+  if (descriptor < 0)
+    return;
+
   if ([writeInfo count] > 0)
     {
       NSMutableDictionary*	info = [writeInfo objectAtIndex:0];
@@ -1020,8 +1044,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   }
   else if (type == ET_WDESC) {
-    NSMutableDictionary*	info = [writeInfo objectAtIndex:0];
+    NSMutableDictionary*	info;
 
+    info = [writeInfo objectAtIndex:0];
     operation = [info objectForKey:NotificationKey];
     if (operation == GSFileHandleWriteCompletionNotification) {
       NSData*		item;
@@ -1072,6 +1097,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (void)setNonBlocking:(BOOL)flag
 {
   int	e;
+
+  if (descriptor < 0)
+    return;
 
   if (isStandardFile)
     return;

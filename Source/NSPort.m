@@ -1,8 +1,8 @@
 /* Implementation of abstract superclass port for use with Connection
    Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
-   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   Created: July 1994
+   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Created: August 1997
 
    This file is part of the GNUstep Base Library.
 
@@ -23,6 +23,7 @@
 
 #include <Foundation/NSString.h>
 #include <Foundation/NSPort.h>
+#include <Foundation/NSAutoreleasePool.h>
 
 NSString*	NSPortDidBecomeInvalidNotification
 = @"NSPortDidBecomeInvalidNotification";
@@ -89,6 +90,27 @@ NSString *NSPortTimeoutException
 {
     [self notImplemented: _cmd];
     return nil;
+}
+
+- (void) release
+{
+    if (is_valid && [self retainCount] == 1) {
+	NSAutoreleasePool	*arp;
+
+	/*
+	 *	If the port is about to have a final release deallocate it
+	 *	we must invalidate it.  Use a local autorelease pool when
+	 *	invalidating so that we know that anything refering to this
+	 *	port during the invalidation process is released immediately.
+	 *	Also - bracket with retain/release pair to prevent recursion.
+	 */
+	[super retain];
+        arp = [[NSAutoreleasePool alloc] init];
+	[self invalidate];
+	[arp release];
+	[super release];
+    }
+    [super release];
 }
 
 - (void) setDelegate: anObject

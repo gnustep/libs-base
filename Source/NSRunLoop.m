@@ -115,12 +115,15 @@ static int debug_run_loop = 0;
     id			receiver;
     RunLoopEventType	type;
     NSDate*		limit;
+    unsigned 		count;
 }
 - (void) eventFor: (void*)info mode: (NSString*)mode;
 - (void*) getData;
 - (NSDate*) getLimit;
 - (id) getReceiver;
 - (RunLoopEventType) getType;
+- (BOOL) decrement;
+- (void) increment;
 - initWithType: (RunLoopEventType)type
       receiver: (id)anObj
           data: (void*)data;
@@ -135,9 +138,21 @@ static int debug_run_loop = 0;
 
 - (void) dealloc
 {
+    [self invalidate];
     [limit release];
     [receiver release];
     [super dealloc];
+}
+
+- (BOOL) decrement
+{
+    if (count > 0) {
+	count--;
+	if (count > 0) {
+	    return YES;
+	}
+    }
+    return NO;
 }
 
 - (void) eventFor: (void*)info mode: (NSString*)mode
@@ -184,6 +199,11 @@ static int debug_run_loop = 0;
     return type;
 }
 
+- (void) increment
+{
+    count++;
+}
+
 - initWithType: (RunLoopEventType)aType
       receiver: (id)anObj
           data: (void*)item
@@ -202,6 +222,7 @@ static int debug_run_loop = 0;
 	[self setReceiver:anObj];
 	[self setData:item];
 	[self setLimit:nil];
+	count = 0;
     }
     return self;
 }
@@ -239,10 +260,11 @@ static int debug_run_loop = 0;
 
 - (void) setReceiver: anObject
 {
-    id	obj = [anObject retain];
+    id	obj = receiver;
 
-    [receiver release];
-    receiver = obj;
+    receiver = [anObject retain];
+
+    [obj release];
 }
 
 @end
@@ -333,8 +355,15 @@ static int debug_run_loop = 0;
 
 @interface NSRunLoop (Private)
 
-- (void) _addWatcher: (RunLoopWatcher*) item forMode: (NSString*)mode;
+- (void) _addWatcher: (RunLoopWatcher*)item
+	     forMode: (NSString*)mode;
 - (void) _checkPerformers;
+- (RunLoopWatcher*) _getWatcher: (void*)data
+			   type: (RunLoopEventType)type
+		        forMode: (NSString*)mode;
+- (void) _removeWatcher: (void*)data
+		   type: (RunLoopEventType)type
+		forMode: (NSString*)mode;
 
 @end
 
@@ -344,14 +373,14 @@ static int debug_run_loop = 0;
    limit-date order. */
 - (void) _addWatcher: (RunLoopWatcher*) item forMode: (NSString*)mode
 {
-    Array	*watchers;
-    id		obj;
-    NSDate*	limit;
-    int		count;
+    NSMutableArray	*watchers;
+    id			obj;
+    NSDate		*limit;
+    int			count;
 
     watchers = NSMapGet (_mode_2_watchers, mode);
     if (watchers == nil) {
-	watchers = [Array new];
+	watchers = [NSMutableArray new];
 	NSMapInsert (_mode_2_watchers, mode, watchers);
 	[watchers release];
 	count = 0;
@@ -463,15 +492,26 @@ static int debug_run_loop = 0;
     if (mode == nil)
 	mode = _current_mode;
 
-    /* Remove any existing handler for the specified descriptor. */
-    [self removeEvent: data type: type forMode: mode];
+    info = [self _getWatcher: data type: type forMode: mode];
 
-    /* Create new object to hold information. */
-    info = [[RunLoopWatcher alloc] initWithType: type
-				       receiver: watcher
-					   data: data];
-    [self _addWatcher:info forMode:mode];
-    [info release];
+    if (info && [info getReceiver] == watcher) {
+	/* Increment usage count for this watcher. */
+	[info increment];
+    }
+    else {
+	/* Remove any existing handler for another watcher. */
+	[self _removeWatcher: data type: type forMode: mode];
+
+	/* Create new object to hold information. */
+	info = [[RunLoopWatcher alloc] initWithType: type
+					   receiver: watcher
+					       data: data];
+	/* Add the object to the array for the mode and keep count. */
+	[self _addWatcher:info forMode:mode];
+	[info increment];
+
+	[info release];		/* Now held in array.	*/
+    }
 }
 
 - (void) addReadDescriptor: (int)fd
@@ -498,38 +538,35 @@ static int debug_run_loop = 0;
 - (void) removeEvent: (void*)data
                 type: (RunLoopEventType)type
              forMode: (NSString*)mode
+		 all: (BOOL)removeAll
 {
-    Array*	watchers;
+    if (mode == nil)
+  	mode = _current_mode;
+  
+    if (removeAll) {
+	[self _removeWatcher: data type: type forMode: mode];
+    }
+    else {
+	RunLoopWatcher	*info;
 
-    if (mode == nil )
-	mode = _current_mode;
-
-    watchers = NSMapGet (_mode_2_watchers, mode);
-    if (watchers) {
-	int	i;
-
-	for (i = [watchers count]; i > 0; i--) {
-	    RunLoopWatcher*	info;
-
-	    info = (RunLoopWatcher*)[watchers objectAtIndex:(i-1)];
-	    if ([info getType] == type && [info getData] == data) {
-		[info invalidate];
-		[watchers removeObject: info];
-	    }
-	}
+	info = [self _getWatcher: data type: type forMode: mode];
+  
+	if (info && [info decrement] == NO) {
+	    [self _removeWatcher: data type: type forMode: mode];
+  	}
     }
 }
 
 - (void) removeReadDescriptor: (int)fd 
 		      forMode: (NSString*)mode
 {
-    return [self removeEvent:(void*)fd type: ET_RDESC forMode:mode];
+    return [self removeEvent:(void*)fd type: ET_RDESC forMode:mode all:NO];
 }
 
 - (void) removeWriteDescriptor: (int)fd
 		       forMode: (NSString*)mode
 {
-    return [self removeEvent:(void*)fd type: ET_WDESC forMode:mode];
+    return [self removeEvent:(void*)fd type: ET_WDESC forMode:mode all:NO];
 }
 
 - (BOOL) runOnceBeforeDate: date
@@ -646,7 +683,7 @@ static int debug_run_loop = 0;
     Heap		*timers;
     NSTimer		*min_timer = nil;
     RunLoopWatcher	*min_watcher = nil;
-    Array		*watchers;
+    NSArray		*watchers;
     NSDate		*when;
 
     saved_mode = _current_mode;
@@ -872,10 +909,62 @@ static int debug_run_loop = 0;
   wfd_2_object = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  NSObjectMapValueCallBacks, 0);
 
+- (RunLoopWatcher*) _getWatcher: (void*)data
+			   type: (RunLoopEventType)type
+		        forMode: (NSString*)mode
+{
+    NSArray		*watchers;
+    RunLoopWatcher	*info;
+    int			count;
+
+    if (mode == nil)
+	mode = _current_mode;
+
+    watchers = NSMapGet (_mode_2_watchers, mode);
+    if (watchers == nil) {
+	return nil;
+    }
+    for (count = 0; count < [watchers count]; count++) {
+	info = [watchers objectAtIndex: count];
+
+	if ([info getType] == type) {
+	    if ([info getData] == data) {
+		return info;
+	    }
+	}
+    }
+    return nil;
+}
+
+- (void) _removeWatcher: (void*)data
+                   type: (RunLoopEventType)type
+                forMode: (NSString*)mode
+{
+    NSMutableArray	*watchers;
+
+    if (mode == nil )
+	mode = _current_mode;
+
+    watchers = NSMapGet (_mode_2_watchers, mode);
+    if (watchers) {
+	int	i;
+
+	for (i = [watchers count]; i > 0; i--) {
+	    RunLoopWatcher*	info;
+
+	    info = (RunLoopWatcher*)[watchers objectAtIndex:(i-1)];
+	    if ([info getType] == type && [info getData] == data) {
+		[info invalidate];
+		[watchers removeObject: info];
+	    }
+	}
+    }
+}
+
 
   /* Do the pre-listening set-up for the file descriptors of this mode. */
   {
-      Array*	watchers;
+      NSArray	*watchers;
 
       watchers = NSMapGet (_mode_2_watchers, mode);
       if (watchers) {
@@ -1117,7 +1206,7 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 - (void) removePort: (NSPort*)port
             forMode: (NSString*)mode
 {
-    return [self removeEvent:(void*)port type: ET_RPORT forMode:mode];
+    return [self removeEvent:(void*)port type: ET_RPORT forMode:mode all:NO];
 }
 
 @end

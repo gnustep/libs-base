@@ -40,7 +40,6 @@
 {
 }
 - (void) invalidate;
-- (BOOL) isValid;
 - (void) close;
 
 + (Class) outPacketClass;

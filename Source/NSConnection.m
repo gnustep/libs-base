@@ -278,9 +278,10 @@ static int messages_received_count;
 
 + new
 {
-  id newPort = [default_receive_port_class newForReceiving];
-  id newConn =
-    [NSConnection newForInPort:newPort outPort:nil ancestorConnection:nil];
+  id newPort = [[default_receive_port_class newForReceiving] autorelease];
+  id newConn = [NSConnection newForInPort:newPort
+				  outPort:nil
+		       ancestorConnection:nil];
   return newConn;
 }
 
@@ -291,7 +292,7 @@ static int messages_received_count;
     if (p == nil) {
 	return nil;
     }
-    return [self rootProxyAtPort: p];
+    return [self rootProxyAtPort: [p autorelease]];
 }
 
 - (void) addRequestMode: (NSString*)mode
@@ -308,14 +309,24 @@ static int messages_received_count;
   if (debug_connection)
     printf("deallocating 0x%x\n", (unsigned)self);
   [self invalidate];
+
   /* Remove rootObject from root_object_dictionary
      if this is last connection */
   if (![NSConnection connectionsCountWithInPort:receive_port])
     [NSConnection setRootObject:nil forInPort:receive_port];
-  [NotificationDispatcher removeObserver: self];
+
+  /* Remove receive port from run loop. */
+  [self setRequestMode: nil];
+  [[NSRunLoop currentRunLoop] removePort: receive_port
+				 forMode: NSConnectionReplyMode];
+  [request_modes release];
+
+  /* Finished with ports - releasing them may generate a notification */
   [receive_port release];
   [send_port release];
-  [request_modes release];
+
+  /* Don't need notifications any more - so remove self as observer. */
+  [NotificationDispatcher removeObserver: self];
 
   [proxiesHashGate lock];
   NSFreeMapTable (remote_proxies);
@@ -339,9 +350,10 @@ static int messages_received_count;
 
 - (id) init
 {
-  id newPort = [default_receive_port_class newForReceiving];
-  id newConn =
-    [NSConnection newForInPort:newPort outPort:nil ancestorConnection:nil];
+  id newPort = [[default_receive_port_class newForReceiving] autorelease];
+  id newConn = [NSConnection newForInPort:newPort
+				  outPort:nil
+		       ancestorConnection:nil];
   [self release];
   return newConn;
 }
@@ -364,6 +376,12 @@ static int messages_received_count;
   if (is_valid)
     {
       is_valid = 0;
+
+      /*
+       *	We can't be the ancestor of anything if we are invalid.
+       */
+      if (self == NSMapGet(receive_port_2_ancestor, receive_port))
+	NSMapRemove(receive_port_2_ancestor, receive_port);
 
       /*
        *	If we have been invalidated, we don't need to retain proxies
@@ -515,7 +533,7 @@ static int messages_received_count;
     while ([request_modes count]>1) {
 	[self removeRequestMode:[request_modes objectAtIndex:1]];
     }
-    if ([request_modes count] == 0) {
+    if (mode != nil && [request_modes count] == 0) {
 	[self addRequestMode:mode];
     }
 }
@@ -667,7 +685,7 @@ static int messages_received_count;
   id newPort;
   id newConn;
 
-  newPort = [default_receive_port_class newForReceiving];
+  newPort = [[default_receive_port_class newForReceiving] autorelease];
   newConn = [self newForInPort:newPort outPort:nil
 		  ancestorConnection:nil];
   [self setRootObject:anObj forInPort:newPort];
@@ -687,8 +705,9 @@ static int messages_received_count;
   id newConn;
 
   newPort = [default_receive_port_class newForReceivingFromRegisteredName: n];
-  newConn = [self newForInPort:newPort outPort:nil
-		  ancestorConnection:nil];
+  newConn = [self newForInPort:[newPort autorelease]
+		       outPort:nil
+	    ancestorConnection:nil];
   [self setRootObject:anObj forInPort:newPort];
   return newConn;
 }
@@ -706,10 +725,12 @@ static int messages_received_count;
 + (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort
 {
   id newInPort = [default_receive_port_class newForReceiving];
-  return [self rootProxyAtPort: anOutPort withInPort: newInPort];
+  return [self rootProxyAtPort: anOutPort 
+	       withInPort: [newInPort autorelease]];
 }
 
-+ (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort withInPort: (NSPort *)anInPort
++ (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort 
+			  withInPort: (NSPort *)anInPort
 {
   NSConnection *newConn = [self newForInPort:anInPort
 				outPort:anOutPort
@@ -809,10 +830,6 @@ static int messages_received_count;
   if (!(ancestor = NSMapGet (receive_port_2_ancestor, ip)))
     {
       NSMapInsert (receive_port_2_ancestor, ip, newConn);
-      [[NSRunLoop currentRunLoop] addPort: (NSPort*)ip
-				 forMode: NSDefaultRunLoopMode];
-      [[NSRunLoop currentRunLoop] addPort: (NSPort*)ip
-				 forMode: NSConnectionReplyMode];
       /* This will cause the connection with the registered name
 	 to receive the -invokeWithObject: from the IN_PORT.
 	 This ends up being the ancestor of future new NSConnections
@@ -837,8 +854,16 @@ static int messages_received_count;
   newConn->independant_queueing = NO;
   newConn->reply_depth = 0;
   newConn->delegate = nil;
+  /*
+   *	Set up request modes array and make sure the receiving port is
+   *	added to the run loop to get data.
+   */
   newConn->request_modes = [[NSMutableArray arrayWithObject:
 		NSDefaultRunLoopMode] retain];
+  [[NSRunLoop currentRunLoop] addPort: (NSPort*)ip
+			      forMode: NSDefaultRunLoopMode];
+  [[NSRunLoop currentRunLoop] addPort: (NSPort*)ip
+			      forMode: NSConnectionReplyMode];
 
   /* Ssk the delegate for permission, (OpenStep-style and GNUstep-style). */
 
@@ -967,6 +992,7 @@ static int messages_received_count;
     int seq_num;
 
     NSParameterAssert (is_valid);
+    [[self retain] autorelease];
     op = [self newSendingRequestRmc];
     seq_num = [op sequenceNumber];
 
@@ -1018,6 +1044,11 @@ static int messages_received_count;
 	  /* If we didn't get the reply packet yet, get it now. */
 	  if (!ip)
 	    {
+	      if (!is_valid)
+		{
+	          [NSException raise: NSGenericException
+		      format: @"connection waiting for request was shut down"];
+		}
 	      /* xxx Why do we get the reply packet in here, and not
 		 just before calling dissect_method_return() below? */
 	      ip = [self _getReceivedReplyRmcWithSequenceNumber:seq_num];
@@ -1100,6 +1131,11 @@ static int messages_received_count;
       if (op == nil)
 	{
 	  BOOL is_exception = NO;
+	  /* It is possible that our connection died while the method was
+	     being called - in this case we mustn't try to send the result
+	     back to the remote application!	*/
+	  if (!is_valid)
+	    return;
 	  op = [self newSendingReplyRmcWithSequenceNumber:
 		       reply_sequence_number];
 	  [op encodeValueOfCType: @encode(BOOL)
@@ -1152,13 +1188,16 @@ static int messages_received_count;
 	[op release];
 
       /* Send the exception back to the client. */
-      op = [self newSendingReplyRmcWithSequenceNumber: reply_sequence_number];
-      [op encodeValueOfCType: @encode(BOOL)
-	  at: &is_exception
-	  withName: @"Exceptional reply flag"];
-      [op encodeBycopyObject: localException
-	  withName: @"Exception object"];
-      [op dismiss];
+      if (is_valid)
+	{
+	  op=[self newSendingReplyRmcWithSequenceNumber: reply_sequence_number];
+	  [op encodeValueOfCType: @encode(BOOL)
+	      at: &is_exception
+	      withName: @"Exceptional reply flag"];
+	  [op encodeBycopyObject: localException
+	      withName: @"Exception object"];
+	  [op dismiss];
+	}
     }
   NS_ENDHANDLER;
 
@@ -1315,18 +1354,20 @@ static int messages_received_count;
 
 - (void) _handleRmc: rmc
 {
+  NSConnection*	conn = [[rmc connection] retain];
+
   switch ([rmc identifier])
     {
     case ROOTPROXY_REQUEST:
       /* It won't take much time to handle this, so go ahead and service
 	 it, even if we are waiting for a reply. */
-      [[rmc connection] _service_rootObject: rmc];
+      [conn _service_rootObject: rmc];
       [rmc dismiss];
       break;
     case METHODTYPE_REQUEST:
       /* It won't take much time to handle this, so go ahead and service
 	 it, even if we are waiting for a reply. */
-      [[rmc connection] _service_typeForSelector: rmc];
+      [conn _service_typeForSelector: rmc];
       [rmc dismiss];
       break;
     case METHOD_REQUEST:
@@ -1343,15 +1384,17 @@ static int messages_received_count;
 	 then we may still want to service it now if DELAY_DIALOG_INTERRUPTIONS
 	 is false. */
       if (reply_depth == 0
-	  || ([rmc connection] == self && independant_queueing == NO)
+	  || (conn == self && independant_queueing == NO)
 	  || !delay_dialog_interruptions)
 	{
-	  [[rmc connection] _service_forwardForProxy: rmc];
+	  [self retain];
+	  [conn _service_forwardForProxy: rmc];
 	  /* Service any requests that were queued while we
 	     were waiting for replies.
 	     xxx Is this the right place for this check? */
 	  if (reply_depth == 0)
 	    [self _handleQueuedRmcRequests];
+	  [self release];
 	}
       else
 	{
@@ -1370,18 +1413,20 @@ static int messages_received_count;
       break;
     case CONNECTION_SHUTDOWN:
       {
-	[[rmc connection] _service_shutdown: rmc forConnection: self];
+	[conn _service_shutdown: rmc forConnection: self];
 	break;
       }
     case PROXY_RELEASE:
       {
-	[[rmc connection] _service_release: rmc forConnection: self];
+	[conn _service_release: rmc forConnection: self];
 	break;
       }
     default:
+      [conn release];
       [NSException raise: NSGenericException
 		   format: @"unrecognized NSPortCoder identifier"];
     }
+  [conn release];
 }
 
 - (void) _handleQueuedRmcRequests
@@ -1389,7 +1434,7 @@ static int messages_received_count;
   id rmc;
 
   [received_request_rmc_queue_gate lock];
-  while ((rmc = [received_request_rmc_queue dequeueObject]))
+  while (is_valid && (rmc = [received_request_rmc_queue dequeueObject]))
     {
       [received_request_rmc_queue_gate unlock];
       [self _handleRmc: rmc];
@@ -1561,34 +1606,44 @@ static int messages_received_count;
 
 - (void) _release_targets: (unsigned int*)list count:(unsigned int)number
 {
-    /*
-     *	Tell the remote app that it can release its local objects
-     *	for the targets in the specified list since we don't have
-     *	proxies for them any more.
-     */
-    if (receive_port && is_valid && number > 0) {
-	id		op;
-	unsigned int 	i;
+    NS_DURING
+    {
+	/*
+	 *	Tell the remote app that it can release its local objects
+	 *	for the targets in the specified list since we don't have
+	 *	proxies for them any more.
+	 */
+	if (receive_port && is_valid && number > 0) {
+	    id		op;
+	    unsigned int 	i;
 
-	op = [[self encodingClass]
-		newForWritingWithConnection: self
-			     sequenceNumber: [self _newMsgNumber]
-				 identifier: PROXY_RELEASE];
+	    op = [[self encodingClass]
+		    newForWritingWithConnection: self
+				 sequenceNumber: [self _newMsgNumber]
+				     identifier: PROXY_RELEASE];
 
-	[op encodeValueOfCType: @encode(typeof(number))
-			    at: &number
-		      withName: NULL];
-
-	for (i = 0; i < number; i++) {
-	    unsigned int	target = list[i];
-
-	    [op encodeValueOfCType: @encode(typeof(target))
-				at: &target
+	    [op encodeValueOfCType: @encode(typeof(number))
+				at: &number
 			  withName: NULL];
-	}
 
-	[op dismiss];
+	    for (i = 0; i < number; i++) {
+		unsigned int	target = list[i];
+
+		[op encodeValueOfCType: @encode(typeof(target))
+				    at: &target
+			      withName: NULL];
+	    }
+
+	    [op dismiss];
+	}
     }
+    NS_HANDLER
+    {
+      if (debug_connection)
+        fprintf (stderr, "failed to release targets - %s\n",
+	     [[localException name] cStringNoCopy]);
+    }
+    NS_ENDHANDLER
 }
 
 - (void) removeProxy: (NSDistantObject*)aProxy
@@ -1828,33 +1883,29 @@ static int messages_received_count;
 
 /* Shutting down and deallocating. */
 
-/* We register this method with NotificationDispatcher for when a port dies. */
+/*
+ *	We register this method for a notification when a port dies.
+ *	NB. It is possible that the death of a port could be notified
+ *	to us after we are invalidated - in which case we must ignore it.
+ */
 - (void) portIsInvalid: notification
 {
-  id port = [notification object];
+    if (is_valid) {
+	id port = [notification object];
 
-  NSParameterAssert (is_valid);
-  if (debug_connection)
-    fprintf (stderr, "Received port invalidation notification for "
-	     "connection 0x%x\n\t%s\n", (unsigned)self,
-	     [[port description] cStringNoCopy]);
-  /* We shouldn't be getting any port invalidation notifications,
-     except from our own ports; this is how we registered ourselves
-     with the NotificationDispatcher in
-     +newForInPort:outPort:ancestorConnection. */
-  NSParameterAssert (port == receive_port || port == send_port);
+	if (debug_connection)
+	    fprintf (stderr, "Received port invalidation notification for "
+		"connection 0x%x\n\t%s\n", (unsigned)self,
+		[[port description] cStringNoCopy]);
 
-  /* xxx This also needs to be done properly in cases where the
-     Connection invalidates itself. */
-  /* Remove ourselves from the receive_port_2_ancestor, if necessary. */
-  {
-    id ancestor;
-    if ([port isKindOfClass: [InPort class]]
-	&& (self == (ancestor = NSMapGet (receive_port_2_ancestor, port))))
-      NSMapRemove (receive_port_2_ancestor, port);
-  }
-  [self invalidate];
-  /* xxx Anything else? */
+	/* We shouldn't be getting any port invalidation notifications,
+	    except from our own ports; this is how we registered ourselves
+	    with the NotificationDispatcher in
+	    +newForInPort:outPort:ancestorConnection. */
+	NSParameterAssert (port == receive_port || port == send_port);
+
+	[self invalidate];
+    }
 }
 
 @end
