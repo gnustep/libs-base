@@ -238,8 +238,8 @@ static IMP	initImp;
       NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
       if (anObj)
-	NSLog(@"autorelease called without pool for object (%x) of class %s\n",
-                anObj, [NSStringFromClass([anObj class]) cString]);
+	NSLog(@"autorelease called without pool for object (%x) of class %@\n",
+                anObj, NSStringFromClass([anObj class]));
       else
 	NSLog(@"autorelease called without pool for nil object.\n");
       [arp release];

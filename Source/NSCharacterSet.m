@@ -124,8 +124,7 @@ static NSLock* cache_lock = nil;
 	      set = [self characterSetWithBitmapRepresentation: 
 			    [NSData dataWithContentsOfFile: user_path]];
             NS_HANDLER
-              NSLog(@"Unable to read NSCharacterSet file %s",
-		    [user_path cString]);
+              NSLog(@"Unable to read NSCharacterSet file %@", user_path);
 	      set = nil;
             NS_ENDHANDLER
 	  }
@@ -138,8 +137,7 @@ static NSLock* cache_lock = nil;
 	      set = [self characterSetWithBitmapRepresentation: 
 			    [NSData dataWithContentsOfFile: local_path]];
             NS_HANDLER
-              NSLog(@"Unable to read NSCharacterSet file %s",
-		    [local_path cString]);
+              NSLog(@"Unable to read NSCharacterSet file %@", local_path);
 	      set = nil;
             NS_ENDHANDLER
 	  }
@@ -152,8 +150,7 @@ static NSLock* cache_lock = nil;
 	      set = [self characterSetWithBitmapRepresentation: 
 			    [NSData dataWithContentsOfFile: system_path]];
             NS_HANDLER
-              NSLog(@"Unable to read NSCharacterSet file %s",
-		    [system_path cString]);
+              NSLog(@"Unable to read NSCharacterSet file %@", system_path);
 	      set = nil;
             NS_ENDHANDLER
 	  }
@@ -162,8 +159,7 @@ static NSLock* cache_lock = nil;
 	if (!set)
 	  {
 	    [NSException raise: NSGenericException
-			 format: @"Could not find bitmap file %s",
-			 [setname cString]];
+			 format: @"Could not find bitmap file %@", setname];
 	    /* NOT REACHED */
 	  }
 	else

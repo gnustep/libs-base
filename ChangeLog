@@ -1,3 +1,12 @@
+2001-03-19  Jonathan Gapen  <jagapen@home.com>
+
+	* Source/NSAutoreleasePool.m, Source/NSCharacterSet.m,
+	Source/NSHashTable.m, Source/NSMapTable.m, Source/NSZone.m:
+	Update from %s/([-cString]) to %@ for format strings.
+	* Source/NSDecimal.m: In GSDecimalFromString(), use ([-lossyCString])
+	instead of ([-cString]) which should (in the future) always return
+	ASCII-range decimal digits in place of digits from other languages.
+
 2001-03-19  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/NSThread.m: registerCurrentThread and

@@ -968,7 +968,7 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
   found = [numberValue rangeOfString: sep];
   if (found.length)
     {
-      s = [[numberValue substringToIndex: found.location] cString];
+      s = [[numberValue substringToIndex: found.location] lossyCString];
       if ('-' == *s)
         {
 	  result->isNegative = YES;
@@ -982,7 +982,7 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
 	  result->length++;
 	  s++;  
 	}
-      s = [[numberValue substringFromIndex: NSMaxRange(found)] cString];
+      s = [[numberValue substringFromIndex: NSMaxRange(found)] lossyCString];
       while ((*s) && (isdigit(*s)))
         {
 	  result->cMantissa[i++] = *s - '0';
@@ -993,7 +993,7 @@ GSDecimalFromString(GSDecimal *result, NSString *numberValue,
     }
   else
     {
-      s = [numberValue cString];
+      s = [numberValue lossyCString];
       if ('-' == *s)
         {
 	  result->isNegative = YES;
