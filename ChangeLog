@@ -5,6 +5,9 @@
 	* configure.ac: Check for nanosleep()
 	* Headers/Foundation/config.h.in: Add entry for nanosleep
 	* Source/NSThread.m: Use nanosleep if available.
+	* Headers/Foundation/NSProcessInfo.h: Added new methods -
+	([-setDebugLoggingEnabled:]) and ([-debugLoggingEnabled])
+	* Source/NSProcessInfo.m: ditto
 
 2003-07-16  David Ayers  <d.ayers@inode.at>
 

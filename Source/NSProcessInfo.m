@@ -909,6 +909,9 @@ int main(int argc, char *argv[], char *env[])
 @end
 
 @implementation	NSProcessInfo (GNUstep)
+
+static BOOL	debugTemporarilyDisabled = NO;
+
 /**
  * Fallback method. The developer must call this method to initialize
  * the NSProcessInfo system if none of the system-specific hacks to
@@ -924,6 +927,23 @@ int main(int argc, char *argv[], char *env[])
 }
 
 /**
+ * Returns a indication of whether debug logging is enabled.
+ * This returns YES unless a call to -setDebugLoggingEnabled: has
+ * been used to turn logging off.
+ */
+- (BOOL) debugLoggingEnabled
+{
+  if (debugTemporarilyDisabled == YES)
+    {
+      return NO;
+    }
+  else
+    {
+      return YES;
+    }
+}
+
+/**
  * This method returns a set of debug levels set using the
  * --GNU-Debug=... command line option.<br />
  * You can modify this set to change the debug logging under
@@ -933,6 +953,22 @@ int main(int argc, char *argv[], char *env[])
 - (NSMutableSet*) debugSet
 {
   return _debug_set;
+}
+
+/**
+ * This method permits you to turn all debug logging on or off
+ * without modifying the set of debug levels in use.
+ */
+- (void) setDebugLoggingEnabled: (BOOL)flag
+{
+  if (flag == NO)
+    {
+      debugTemporarilyDisabled = YES;
+    }
+  else
+    {
+      debugTemporarilyDisabled = NO;
+    }
 }
 
 /**
@@ -960,14 +996,20 @@ int main(int argc, char *argv[], char *env[])
 @end
 
 /**
- * Function for rapid testing to see if a debug level is set.
- * This is used by the debugging macros.
+ * Function for rapid testing to see if a debug level is set.<br />
+ * This is used by the debugging macros.<br />
+ * If debug logging has been turned off, this returns NO even if
+ * the specified level exists in the set of debug levels.
  */
 BOOL GSDebugSet(NSString *level)
 {
   static IMP debugImp = 0;
   static SEL debugSel;
 
+  if (debugTemporarilyDisabled == YES)
+    {
+      return NO;
+    }
   if (debugImp == 0)
     {
       debugSel = @selector(member:);
