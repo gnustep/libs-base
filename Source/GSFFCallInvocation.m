@@ -774,7 +774,6 @@ GSInvocationCallback (void *callback_data, va_alist args)
   int			i;
   int			num_args;
   void			*retval;
-  const char            *selectorName;
   vacallReturnTypeInfo	*typeinfo;
   NSArgumentInfo	*info;
   GSFFCallInvocation	*invocation;
@@ -795,24 +794,6 @@ GSInvocationCallback (void *callback_data, va_alist args)
 
   obj      = va_arg_ptr(args, id);
   selector = va_arg_ptr(args, SEL);
-
-  /* Fetch the selector from the runtime 
-     to get the portable type information later.  */
-  selectorName = sel_get_name(selector);
-  selector = sel_get_uid(selectorName);
-
-  if (!selector)
-    {
-      /* The selector is not registered with the runtime.  It seems 
-	 safe to assume that the receiver does not respond to it which
-	 would happen if we created a selector with the 'correct' types 
-	 and registered it manually.  So let us raise the corresponding
-	 exception.  */
-      [NSException raise: NSGenericException
-		   format: @"%s does not recognize %s",
-		   GSClassNameFromObject(obj), 
-		   selectorName ? selectorName : "(null)"];
-    }
 
   fwdInvMethod = gs_method_for_receiver_and_selector
     (obj, @selector (forwardInvocation:));
