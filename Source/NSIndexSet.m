@@ -321,10 +321,6 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     {
       return anIndex;
     }
-  if (++pos >= GSIArrayCount(_array))
-    {
-      return NSNotFound;
-    }
   r = GSIArrayItemAtIndex(_array, pos).ext;
   return r.location;
 }
@@ -351,10 +347,6 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   if (r.location > anIndex)
     {
       return r.location;
-    }
-  if (++pos >= GSIArrayCount(_array))
-    {
-      return NSNotFound;
     }
   r = GSIArrayItemAtIndex(_array, pos).ext;
   return r.location;
