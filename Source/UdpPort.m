@@ -21,6 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+/* xxx I should also look into SOCK_RDM and SOCK_SEQPACKET. */
+
 #include <objects/UdpPort.h>
 #include <objects/Lock.h>
 #include <objects/Connection.h>
@@ -249,7 +251,8 @@ static NSMapTable *port_number_2_in_port = NULL;
 - (void) encodeWithCoder: aCoder
 {
   /* We are actually encoding a "send right" (ala Mach), 
-     not a receive right. */
+     not a receive right.
+     These values must match those expected by [TcpOutPort +newWithCoder] */
   [super encodeWithCoder: aCoder];
   [aCoder encodeValueOfCType: @encode(typeof(_address.sin_port))
 	  at: &_address.sin_port 
@@ -282,7 +285,7 @@ static Array *udp_out_port_array;
     }
 }
 
-#define SOCKPORT_EQUAL(s1,s2) (s1->sin_port == s2->sin_port && s1->sin_addr.s_addr == s2->sin_addr.s_addr) 
+#define SOCKADDR_EQUAL(s1,s2) ((s1)->sin_port == (s2)->sin_port && (s1)->sin_addr.s_addr == (s2)->sin_addr.s_addr) 
 /* xxx Change to make INADDR_ANY and the localhost address be equal. */
 /* Assume that sin_family is equal */
 /* (!memcmp(s1, s2, sizeof(struct sockaddr_in))) 
@@ -406,7 +409,7 @@ static Array *udp_out_port_array;
   [aCoder decodeValueOfCType: @encode(typeof(addr.sin_addr.s_addr))
 	  at: &addr.sin_addr.s_addr
 	  withName: NULL];
-  return [UdpInPort newForSendingToSockaddr: &addr];
+  return [UdpOutPort newForSendingToSockaddr: &addr];
 }
 
 @end
