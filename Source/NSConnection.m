@@ -3273,7 +3273,6 @@ static void callEncoder (DOContext *ctxt)
       node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
       if (node != 0)
 	{
-	  RELEASE(node->value.obj);
 	  GSIMapRemoveKey(_remoteProxies, (GSIMapKey)target);
 	}
       /*
