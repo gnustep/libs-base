@@ -24,9 +24,8 @@
 
 #include <config.h>
 #include <gnustep/base/preface.h>
-#include <gnustep/base/MallocAddress.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSCoder.h>
-#include <gnustep/base/NSCoder.h>
 
 @implementation NSCoder
 
@@ -189,7 +188,7 @@
   while (count-- > 0)
     [self decodeValueOfObjCType:type at:where++];
 
-  [[[MallocAddress alloc] initWithAddress: array] autorelease];
+  [NSData dataWithBytesNoCopy: array length: count];
   return array;
 }
 

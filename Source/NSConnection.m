@@ -36,7 +36,7 @@
 #include <gnustep/base/TcpPort.h>
 #include <gnustep/base/mframe.h>
 #include <gnustep/base/NotificationDispatcher.h>
-#include <gnustep/base/MallocAddress.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
@@ -1224,7 +1224,7 @@ static int messages_received_count;
 	     so we don't have a memory leak.  Request here that it be
 	     autorelease'ed. Also autorelease created objects. */
 	  if (*type == _C_CHARPTR)
-	    [MallocAddress autoreleaseMallocAddress: *(char**)datum];
+	    [NSData dataWithBytesNoCopy: *(void**)datum length: 1];
           else if (*type == _C_ID)
             [*(id*)datum autorelease];
 	}
@@ -1268,7 +1268,7 @@ static int messages_received_count;
 	 so we don't have a memory leak.  Request here that it be
 	 autorelease'ed. Also autorelease created objects. */
       if (*type == _C_CHARPTR)
-	[MallocAddress autoreleaseMallocAddress: *(char**)datum];
+	[NSData dataWithBytesNoCopy: *(void**)datum length: 1];
       else if (*type == _C_ID)
         [*(id*)datum autorelease];
     }
