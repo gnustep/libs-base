@@ -322,6 +322,7 @@ static int messages_received_count;
 + (Proxy*) rootProxyAtName: (NSString*)n onHost: (NSString*)h
 {
   id p = [default_out_port_class newForSendingToRegisteredName: n onHost: h];
+  if (p == nil) return p;
   return [self rootProxyAtPort: p];
 }
 
@@ -583,12 +584,18 @@ static int messages_received_count;
     /* Get the reply rmc, and decode it. */
     {
       ConnectedDecoder *ip = nil;
-      int last_argnum;
       BOOL is_exception;
 
       void decoder(int argnum, void *datum, const char *type, int flags)
 	{
-	  NSParameterAssert(ip != (id)-1);
+	  if (type == 0) {
+	    if (ip) {
+	      /* this must be here to avoid trashing alloca'ed retframe */
+	      [ip dismiss]; 	
+	      ip = nil;
+	    }
+	    return;
+	  }
 	  /* If we didn't get the reply packet yet, get it now. */
 	  if (!ip)
 	    {
@@ -619,15 +626,8 @@ static int messages_received_count;
 	     autorelease'ed. */
 	  if (*type == _C_CHARPTR)
 	    [MallocAddress autoreleaseMallocAddress: *(char**)datum];
-	  if (argnum == last_argnum)
-	    {
-	      /* this must be here to avoid trashing alloca'ed retframe */
-	      [ip dismiss]; 	
-	      ip = (id)-1;
-	    }
 	}
 
-      last_argnum = type_get_number_of_arguments(type) - 1;
       retframe = mframe_build_return (argframe, type, out_parameters,
 				      decoder);
       /* Make sure we processed all arguments, and dismissed the IP. */
