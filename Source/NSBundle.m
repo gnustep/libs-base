@@ -1,5 +1,5 @@
 /* Implementation of NSBundle class
-   Copyright (C) 1993,1994,1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994,1995, 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: May 1993
@@ -22,15 +22,6 @@
 
 */
 
-#include <assert.h>
-
-#ifndef __WIN32__
-#include <unistd.h>
-#include <sys/param.h>		/* Needed by sys/stat */
-#endif
-
-#include <sys/stat.h>
-#include <objc/objc-api.h>
 #include <gnustep/base/preface.h>
 #include <Foundation/objc-load.h>
 #include <Foundation/NSBundle.h>
@@ -44,6 +35,14 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSMapTable.h>
+
+#include <assert.h>
+#include <sys/stat.h>
+
+#ifndef __WIN32__
+#include <unistd.h>
+#include <sys/param.h>		/* Needed by sys/stat */
+#endif
 
 /* Deal with strchr: */
 #if STDC_HEADERS || HAVE_STRING_H
@@ -62,6 +61,7 @@
 /* memory.h and strings.h conflict on some systems.  */
 #endif /* not STDC_HEADERS and not HAVE_STRING_H */
 
+/* For DIR and diropen() */
 #if HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
@@ -166,7 +166,7 @@ _bundle_path_for_name(NSString* path, NSString* name)
     {
       while ((entry = readdir(thedir))) 
 	{
-	  if (*entry->d_name != '.'
+	  if (*(entry->d_name) != '.'
 	      && strncmp([name cString], entry->d_name, [name length]) == 0)
 	    {
 	      fullname = [NSString stringWithCString: entry->d_name];
