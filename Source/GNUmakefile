@@ -40,7 +40,6 @@ LIBRARY_NAME=libgnustep-base
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
 # the installing person may set it on the `make' command line.
 DEFS= -DGNUSTEP_INSTALL_PREFIX=$(GNUSTEP_SYSTEM_ROOT) \
-	-DPLATFORM_OS=\"$(GNUSTEP_TARGET_OS)\" \
 	-DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
 	-DGNUSTEP_TARGET_CPU=\"$(GNUSTEP_TARGET_CPU)\" \
 	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \

@@ -41,10 +41,11 @@ _ostream_error (const char* message)
 int  
 ostream_getc (ostream* s)
 {
-  char c = 0;
+  char r, c;
+  r = c = 0;
   if (s->flags & OSTREAM_READFLAG)
-    [(id <Streaming>)s->stream_obj readByte: &c];
-  else
+    r = [(id <Streaming>)s->stream_obj readByte: &c];
+  if (r == 0)
     c = OSTREAM_EOF;
   return c;
 }
@@ -105,23 +106,26 @@ ostream_tell (ostream *s)
 int  
 ostream_read (ostream* s, void* buf, int count)
 {
+  int r = 0;
   assert(buf); /* xxxFIXME: should be an exception ? */
   if (s->flags & OSTREAM_READFLAG)
-    return [(id <Streaming>)s->stream_obj readBytes: buf length: count];
-  return OSTREAM_EOF;
+    r =  [(id <Streaming>)s->stream_obj readBytes: buf length: count];
+  if (r == 0)
+    r = OSTREAM_EOF;
+  return r;
 }
 
 char* ostream_gets (ostream* s, char* buf, int count)
 {
-  char c;
+  char r, c;
   int i = 0;
     
   assert(buf); /* xxxFIXME: should be an exception ? */
   if (!(s->flags & OSTREAM_READFLAG))
     return NULL;
   while (i < count-1) {
-    [(id <Streaming>)s->stream_obj readByte: &c];
-    if (c == -1)
+    r = [(id <Streaming>)s->stream_obj readByte: &c];
+    if (r <= 0)
       break;
     buf[i++] = c;
     if (c == '\n')
@@ -177,8 +181,14 @@ ostream_vscanf (ostream *s, const char *format, va_list argList)
 {
   id str = [[NSString alloc] stringWithCString: format];
   if (s->flags & OSTREAM_READFLAG)
-    return [(id <Streaming>)s->stream_obj readFormat: str 
+    {
+      int r = 0;
+      r =  [(id <Streaming>)s->stream_obj readFormat: str 
 	     arguments: argList];
+      if (r == 0)
+	r = OSTREAM_EOF;
+      return r;
+    }
   _ostream_error("Tried to read from non-readable stream");
   [str release];
   return OSTREAM_EOF;
