@@ -1,3 +1,9 @@
+Fri Mar 12 13:35:25 2004  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* SSL/GNUmakefile: Set GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES before
+	including common.make so that the local base.make is read
+	correctly.
+
 2004-03-07  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Add HAVE_DLADDR define

@@ -25,14 +25,16 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
+# This must set be before reading common.make, which will read the
+# Additional makefiles.
+GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
+
 # Include common.make as the first thing, as this defined
 # FOUNDATION_LIB which is used in ../config.mak
 include $(GNUSTEP_MAKEFILES)/common.make
 
 -include ../config.mak
 -include config.mak
-
-GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 
 srcdir = .
 PACKAGE_NAME = gnustep-base
