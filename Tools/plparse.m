@@ -53,7 +53,7 @@ main(int argc, char** argv, char **env)
 
   if ([args count] <= 1)
     {
-      NSLog(@"No file names given to parse.");
+      GSPrintf(stderr, @"No file names given to parse.\n");
     }
   else
     {
@@ -69,22 +69,23 @@ main(int argc, char** argv, char **env)
 	      myString = [NSString stringWithContentsOfFile: file];
 	      result = [myString propertyList];
 	      if (result == nil)
-		NSLog(@"Parsing '%@' - nil property list", file);
+		GSPrintf(stderr, @"Parsing '%@' - nil property list\n", file);
 	      else if ([result isKindOfClass: [NSDictionary class]] == YES)
-		NSLog(@"Parsing '%@' - a dictionary", file);
+		GSPrintf(stderr, @"Parsing '%@' - a dictionary\n", file);
 	      else if ([result isKindOfClass: [NSArray class]] == YES)
-		NSLog(@"Parsing '%@' - an array", file);
+		GSPrintf(stderr, @"Parsing '%@' - an array\n", file);
 	      else if ([result isKindOfClass: [NSData class]] == YES)
-		NSLog(@"Parsing '%@' - a data object", file);
+		GSPrintf(stderr, @"Parsing '%@' - a data object\n", file);
 	      else if ([result isKindOfClass: [NSString class]] == YES)
-		NSLog(@"Parsing '%@' - a string", file);
+		GSPrintf(stderr, @"Parsing '%@' - a string\n", file);
 	      else
-		NSLog(@"Parsing '%@' - unexpected class - %@",
-			file, [[result class] description]);
+		GSPrintf(stderr, @"Parsing '%@' - unexpected class - %@\n",
+		  file, [[result class] description]);
 	    }
 	  NS_HANDLER
 	    {
-	      NSLog(@"Parsing '%@' - %@", file, [localException reason]);
+	      GSPrintf(stderr, @"Parsing '%@' - %@\n", file,
+		[localException reason]);
 	    }
 	  NS_ENDHANDLER
 	}

@@ -55,7 +55,7 @@ main(int argc, char** argv, char **env)
 
   if ([args count] <= 1)
     {
-      NSLog(@"No file names given to deserialize.");
+      GSPrintf(stderr, @"No file names given to deserialize.\n");
     }
   else
     {
@@ -76,7 +76,7 @@ main(int argc, char** argv, char **env)
 	      result = [NSDeserializer deserializePropertyListFromData: myData
 						     mutableContainers: NO];
 	      if (result == nil)
-		NSLog(@"Loading '%@' - nil property list", file);
+		GSPrintf(stderr, @"Loading '%@' - nil property list\n", file);
 	      else
 		{
 		  NSFileHandle	*out;
@@ -90,7 +90,8 @@ main(int argc, char** argv, char **env)
 	    }
 	  NS_HANDLER
 	    {
-	      NSLog(@"Loading '%@' - %@", file, [localException reason]);
+	      GSPrintf(stderr, @"Loading '%@' - %@\n", file,
+		[localException reason]);
 	    }
 	  NS_ENDHANDLER
 	}

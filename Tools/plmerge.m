@@ -55,8 +55,8 @@ main(int argc, char** argv, char **env)
 
   if ([args count] < 3)
     {
-      NSLog(@"Usage: %@ [destination-file] [input-file ...]",
-              [procinfo processName]);
+      GSPrintf(stderr, @"Usage: %@ [destination-file] [input-file ...]\n",
+	[procinfo processName]);
       [pool release];
       exit(0);
     }
@@ -71,13 +71,15 @@ main(int argc, char** argv, char **env)
         }
       NS_HANDLER
         {
-          NSLog(@"Parsing '%@' - %@", destName, [localException reason]);
+          GSPrintf(stderr, @"Parsing '%@' - %@\n", destName,
+	    [localException reason]);
         }
       NS_ENDHANDLER
 
       if ((plist == nil) || ![plist isKindOfClass: [NSDictionary class]])
         {
-          NSLog(@"The destination property list must contain an NSDictionary.");
+          GSPrintf(stderr,
+	    @"The destination property list must contain an NSDictionary.\n");
           [pool release];
           exit(1);
         }
@@ -100,7 +102,8 @@ main(int argc, char** argv, char **env)
         }
       NS_HANDLER
         {
-          NSLog(@"Parsing '%@' - %@", filename, [localException reason]);
+          GSPrintf(stderr, @"Parsing '%@' - %@\n", filename,
+	    [localException reason]);
         }
       NS_ENDHANDLER
 
@@ -110,7 +113,7 @@ main(int argc, char** argv, char **env)
 	}
 
       if (object == nil)
-        NSLog(@"Parsing '%@' - nil property list", filename);
+        GSPrintf(stderr, @"Parsing '%@' - nil property list\n", filename);
       else if ([object isKindOfClass: [NSArray class]] == YES)
         [plist setObject: object forKey: key];
       else if ([object isKindOfClass: [NSData class]] == YES)
@@ -120,12 +123,12 @@ main(int argc, char** argv, char **env)
       else if ([object isKindOfClass: [NSString class]] == YES)
         [plist setObject: object forKey: key];
       else
-        NSLog(@"Parsing '%@' - unexpected class - %@",
+        GSPrintf(stderr, @"Parsing '%@' - unexpected class - %@\n",
                 filename, [[object class] description]);
     }
 
   if ([plist writeToFile: destName atomically: YES] == NO)
-    NSLog(@"Error writing property list to '%@'", destName);
+    GSPrintf(stderr, @"Error writing property list to '%@'\n", destName);
 
   [pool release];
   exit(0);

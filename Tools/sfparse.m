@@ -45,19 +45,22 @@ convert_unicode(NSArray *args)
 
 	  data = [NSData dataWithContentsOfFile: file];
 	  myString = [[NSString alloc] initWithData: data
-				       encoding: NSUTF8StringEncoding];
+					   encoding: NSUTF8StringEncoding];
 	  AUTORELEASE(myString);
 	  if ([myString length] == 0)
-	    myString = [[NSString alloc] initWithData: data
-					 encoding: [NSString defaultCStringEncoding]];
+	    {
+	      myString = [[NSString alloc] initWithData: data
+		encoding: [NSString defaultCStringEncoding]];
+	    }
 	  output = [[file lastPathComponent]
-		     stringByAppendingPathExtension: @"unicode"];
+	    stringByAppendingPathExtension: @"unicode"];
 	  data = [myString dataUsingEncoding: NSUnicodeStringEncoding];
 	  [data writeToFile: output atomically: YES];
 	}
       NS_HANDLER
 	{
-	  NSLog(@"Converting '%@' - %@", file, [localException reason]);
+	  GSPrintf(stderr, @"Converting '%@' - %@\n", file,
+	    [localException reason]);
 	}
       NS_ENDHANDLER
     }
@@ -81,13 +84,14 @@ convert_utf8(NSArray *args)
 
 	  myString = [NSString stringWithContentsOfFile: file];
 	  output = [[file lastPathComponent]
-		     stringByAppendingPathExtension: @"utf8"];
+	    stringByAppendingPathExtension: @"utf8"];
 	  data = [myString dataUsingEncoding: NSUTF8StringEncoding];
 	  [data writeToFile: output atomically: YES];
 	}
       NS_HANDLER
 	{
-	  NSLog(@"Converting '%@' - %@", file, [localException reason]);
+	  GSPrintf(stderr, @"Converting '%@' - %@\n", file,
+	    [localException reason]);
 	}
       NS_ENDHANDLER
     }
@@ -109,7 +113,7 @@ main(int argc, char** argv, char **env)
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {
-      NSLog(@"defaults: unable to get process information!\n");
+      GSPrintf(stderr, @"defaults: unable to get process information!\n");
       [pool release];
       exit(0);
     }
@@ -145,16 +149,17 @@ main(int argc, char** argv, char **env)
 	      myString = [NSString stringWithContentsOfFile: file];
 	      result = [myString propertyListFromStringsFileFormat];
 	      if (result == nil)
-		NSLog(@"Parsing '%@' - nil property list", file);
+		GSPrintf(stderr, @"Parsing '%@' - nil property list\n", file);
 	      else if ([result isKindOfClass: [NSDictionary class]] == YES)
-		NSLog(@"Parsing '%@' - seems ok", file);
+		GSPrintf(stderr, @"Parsing '%@' - seems ok\n", file);
 	      else
-		NSLog(@"Parsing '%@' - unexpected class - %@",
-			file, [[result class] description]);
+		GSPrintf(stderr, @"Parsing '%@' - unexpected class - %@\n",
+		  file, [[result class] description]);
 	    }
 	  NS_HANDLER
 	    {
-	      NSLog(@"Parsing '%@' - %@", file, [localException reason]);
+	      GSPrintf(stderr, @"Parsing '%@' - %@\n", file,
+		[localException reason]);
 	    }
 	  NS_ENDHANDLER
 	}

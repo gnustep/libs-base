@@ -256,8 +256,9 @@ GSTimeNow()
   unsigned		dtoIndex;
 
   if (locale == nil)
-    locale = GSUserDefaultsDictionaryRepresentation();
-
+    {
+      locale = GSUserDefaultsDictionaryRepresentation();
+    }
   ws = [NSCharacterSet whitespaceAndNewlineCharacterSet];
   digits = [NSCharacterSet decimalDigitCharacterSet];
   scanner = [NSScanner scannerWithString: string];
@@ -521,14 +522,18 @@ GSTimeNow()
   if (dto == nil)
     {
       if (debug)
-	NSLog(@"no NSDateTimeOrdering - default to DMYH.\n");
+	{
+	  NSLog(@"no NSDateTimeOrdering - default to DMYH.");
+	}
       dto = @"DMYH";
     }
   length = [dto length];
   if (length > 4)
     {
       if (debug)
-	NSLog(@"too many characters in NSDateTimeOrdering - truncating.\n");
+	{
+	  NSLog(@"too many characters in NSDateTimeOrdering - truncating.");
+	}
       length = 4;
     }
 
@@ -557,9 +562,13 @@ GSTimeNow()
 		  if (num > 23)
 		    {
 		      if (debug)
-			NSLog(@"hour (%d) too large - ignored.\n", num);
+			{
+			  NSLog(@"hour (%d) too large - ignored.", num);
+			}
 		      else
-			return nil;
+			{
+			  return nil;
+			}
 		    }
 		  else
 		    {
@@ -574,9 +583,13 @@ GSTimeNow()
 		  if (num > 59)
 		    {
 		      if (debug)
-			NSLog(@"minute (%d) too large - ignored.\n", num);
+			{
+			  NSLog(@"minute (%d) too large - ignored.", num);
+			}
 		      else
-			return nil;
+			{
+			  return nil;
+			}
 		    }
 		  else
 		    {
@@ -590,9 +603,13 @@ GSTimeNow()
 		  if (num > 59)
 		    {
 		      if (debug)
-			NSLog(@"second (%d) too large - ignored.\n", num);
+			{
+			  NSLog(@"second (%d) too large - ignored.", num);
+			}
 		      else
-			return nil;
+			{
+			  return nil;
+			}
 		    }
 		  else
 		    {
@@ -603,7 +620,9 @@ GSTimeNow()
 	      else
 		{
 		  if (debug)
-		    NSLog(@"odd time spec - excess numbers ignored.\n");
+		    {
+		      NSLog(@"odd time spec - excess numbers ignored.");
+		    }
 		}
 
 	      done = YES;
@@ -661,8 +680,10 @@ GSTimeNow()
 
 		  default:
 		    if (debug)
-		      NSLog(@"odd char (unicode %d) in NSDateTimeOrdering.\n",
-			    [dto characterAtIndex: dtoIndex]);
+		      {
+			NSLog(@"odd char (unicode %d) in NSDateTimeOrdering.",
+			  [dto characterAtIndex: dtoIndex]);
+		      }
 		    dtoIndex++;
 		    break;
 		}
@@ -670,7 +691,9 @@ GSTimeNow()
 	  if (dtoIndex >= [dto length])
 	    {
 	      if (debug)
-		NSLog(@"odd date specification - excess numbers ignored.\n");
+		{
+		  NSLog(@"odd date specification - excess numbers ignored.");
+		}
 	      break;
 	    }
 	  switch ([dto characterAtIndex: dtoIndex])
@@ -679,16 +702,24 @@ GSTimeNow()
 		if (num < 1)
 		  {
 		    if (debug)
-		      NSLog(@"day (0) too small - ignored.\n");
+		      {
+			NSLog(@"day (0) too small - ignored.");
+		      }
 		    else
-		      return nil;
+		      {
+			return nil;
+		      }
 		  }
 		else if (num > 31)
 		  {
 		    if (debug)
-		      NSLog(@"day (%d) too large - ignored.\n", num);
+		      {
+			NSLog(@"day (%d) too large - ignored.", num);
+		      }
 		    else
-		      return nil;
+		      {
+			return nil;
+		      }
 		  }
 		else
 		  {
@@ -700,16 +731,24 @@ GSTimeNow()
 		if (num < 1)
 		  {
 		    if (debug)
-		      NSLog(@"month (0) too small - ignored.\n");
+		      {
+			NSLog(@"month (0) too small - ignored.");
+		      }
 		    else
-		      return nil;
+		      {
+			return nil;
+		      }
 		  }
 		else if (num > 12)
 		  {
 		    if (debug)
-		      NSLog(@"month (%d) too large - ignored.\n", num);
+		      {
+			NSLog(@"month (%d) too large - ignored.", num);
+		      }
 		    else
-		      return nil;
+		      {
+			return nil;
+		      }
 		  }
 		else
 		  {
@@ -729,7 +768,9 @@ GSTimeNow()
 			Y = num + 1900;
 		      }
 		    if (debug)
-		      NSLog(@"year (%d) adjusted to %d.\n", num, Y);
+		      {
+			NSLog(@"year (%d) adjusted to %d.", num, Y);
+		      }
 		  }
 		else
 		  {
@@ -757,10 +798,13 @@ GSTimeNow()
 			  if (num > 11)
 			    {
 			      if (debug)
-				NSLog(@"hour (%d) too large - ignored.\n",
-				      num);
+				{
+				  NSLog(@"hour (%d) too large - ignored.", num);
+				}
 			      else
-				return nil;
+				{
+				  return nil;
+				}
 			      shouldIgnore = YES;
 			    }
 			  else if (mod == [ampm objectAtIndex: 1])
@@ -774,9 +818,13 @@ GSTimeNow()
 		      if (num > 23)
 			{
 			  if (debug)
-			    NSLog(@"hour (%d) too large - ignored.\n", num);
+			    {
+			      NSLog(@"hour (%d) too large - ignored.", num);
+			    }
 			  else
-			    return nil;
+			    {
+			      return nil;
+			    }
 			}
 		      else
 			{
@@ -788,8 +836,10 @@ GSTimeNow()
 		}
 	      default:
 		if (debug)
-		  NSLog(@"unexpected char (unicode%d) in NSDateTimeOrdering.\n",
-		    [dto characterAtIndex: dtoIndex]);
+		  {
+		    NSLog(@"unexpected char (unicode%d) in NSDateTimeOrdering.",
+		      [dto characterAtIndex: dtoIndex]);
+		  }
 		break;
 	    }
 	}
@@ -843,7 +893,9 @@ GSTimeNow()
   if (hadWeekDay && [theDate dayOfWeek] != weekDay)
     {
       if (debug)
-	NSLog(@"Date resulted in wrong day of week.\n");
+	{
+	  NSLog(@"Date resulted in wrong day of week.");
+	}
       return nil;
     }
   if (theDate == nil)

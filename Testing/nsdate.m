@@ -25,6 +25,9 @@ main()
 
   pool = [[NSAutoreleasePool alloc] init];
 
+  NSLog(@"%@", [NSCalendarDate dateWithNaturalLanguageString: @"01-08-2002 00:00:00"]);
+  NSLog(@"%@", [NSCalendarDate dateWithNaturalLanguageString: @"31-08-2002 23:59:59"]);
+
 if ([(NSDate*) [NSCalendarDate date] compare:
         [NSCalendarDate dateWithString:@"Feb 2 00:00:00 2001"
                         calendarFormat:@"%b %d %H:%M:%S %Y"]] == NSOrderedDescending) {
