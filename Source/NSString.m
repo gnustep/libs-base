@@ -108,27 +108,32 @@ static id	(*plInit)(id, SEL, unichar*, unsigned) = 0;
 static SEL	plSel;
 static SEL	cMemberSel = 0;
 
-static NSCharacterSet	*hexdigits = nil;
-static BOOL		(*hexdigitsImp)(id, SEL, unichar) = 0;
+
+#define IS_BIT_SET(a,i) ((((a) & (1<<(i)))) > 0)
+
+static unsigned const char *hexdigitsBitmapRep = NULL;
+#define GS_IS_HEXDIGIT(X) IS_BIT_SET(hexdigitsBitmapRep[(X)/8], (X) % 8)
+
 static void setupHexdigits()
 {
-  if (hexdigits == nil)
+  if (hexdigitsBitmapRep == NULL)
     {
+      NSCharacterSet *hexdigits;
+      
       hexdigits = [NSCharacterSet characterSetWithCharactersInString:
 	@"0123456789abcdefABCDEF"];
       IF_NO_GC(RETAIN(hexdigits));
-      if (cMemberSel == 0)
-	cMemberSel = @selector(characterIsMember:);
-      hexdigitsImp =
-	(BOOL(*)(id,SEL,unichar)) [hexdigits methodForSelector: cMemberSel];
+      hexdigitsBitmapRep = [[hexdigits bitmapRepresentation] bytes];
     }
 }
 
-static NSCharacterSet	*quotables = nil;
-static BOOL		(*quotablesImp)(id, SEL, unichar) = 0;
+static NSCharacterSet *quotables = nil;
+static unsigned const char *quotablesBitmapRep = NULL;
+#define GS_IS_QUOTABLE(X) IS_BIT_SET(quotablesBitmapRep[(X)/8], (X) % 8)
+
 static void setupQuotables()
 {
-  if (quotables == nil)
+  if (quotablesBitmapRep == NULL)
     {
       NSMutableCharacterSet	*s;
 
@@ -138,26 +143,23 @@ static void setupQuotables()
       [s invert];
       quotables = [s copy];
       RELEASE(s);
-      if (cMemberSel == 0)
-	cMemberSel = @selector(characterIsMember:);
-      quotablesImp =
-	(BOOL(*)(id,SEL,unichar)) [quotables methodForSelector: cMemberSel];
+      quotablesBitmapRep = [[quotables bitmapRepresentation] bytes];
     }
 }
 
-static NSCharacterSet	*whitespce = nil;
-static BOOL		(*whitespceImp)(id, SEL, unichar) = 0;
-static void setupWhitespce()
+static unsigned const char *whitespaceBitmapRep = NULL;
+#define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespaceBitmapRep[(X)/8], (X) % 8)
+
+static void setupWhitespace()
 {
-  if (whitespce == nil)
+  if (whitespaceBitmapRep == NULL)
     {
-      whitespce = [NSCharacterSet characterSetWithCharactersInString:
-	@" \t\r\n\f\b"];
-      IF_NO_GC(RETAIN(whitespce));
-      if (cMemberSel == 0)
-	cMemberSel = @selector(characterIsMember:);
-      whitespceImp =
-	(BOOL(*)(id,SEL,unichar)) [whitespce methodForSelector: cMemberSel];
+      NSCharacterSet *whitespace;
+
+      whitespace = [NSCharacterSet characterSetWithCharactersInString:
+				    @" \t\r\n\f\b"];
+      IF_NO_GC(RETAIN(whitespace));
+      whitespaceBitmapRep = [[whitespace bitmapRepresentation] bytes];
     }
 }
 
@@ -1852,19 +1854,19 @@ handle_printf_atsign (FILE *stream,
 
   if (len == 0)
     return self;
-  if (whitespce == nil)
-    setupWhitespce();
+  if (whitespaceBitmapRep == NULL)
+    setupWhitespace();
 
   s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*len);
   [self getCharacters: s];
   while (count < len)
     {
-      if ((*whitespceImp)(whitespce, cMemberSel, s[count]))
+      if (GS_IS_WHITESPACE(s[count]))
 	{
 	  count++;
 	  found = YES;
 	  while (count < len
-	    && (*whitespceImp)(whitespce, cMemberSel, s[count]))
+	    && GS_IS_WHITESPACE(s[count]))
 	    {
 	      count++;
 	    }
@@ -1879,7 +1881,7 @@ handle_printf_atsign (FILE *stream,
 	  else
 	    {
 	      while (count < len
-		&& !(*whitespceImp)(whitespce, cMemberSel, s[count]))
+		&& !GS_IS_WHITESPACE(s[count]))
 		{
 		  s[count] = uni_tolower(s[count]);
 		  count++;
@@ -3086,7 +3088,7 @@ handle_printf_atsign (FILE *stream,
       return;
     }
 
-  if (quotables == nil)
+  if (quotablesBitmapRep == NULL)
     {
       setupQuotables();
     }
@@ -3762,7 +3764,7 @@ static BOOL skipSpace(pldata *pld)
     {
       c = pld->ptr[pld->pos];
 
-      if ((*whitespceImp)(whitespce, cMemberSel, c) == NO)
+      if (GS_IS_WHITESPACE(c) == NO)
 	{
 	  if (c == '/' && pld->pos < pld->end - 1)
 	    {
@@ -3848,7 +3850,7 @@ static inline id parseQuotedString(pldata* pld)
 		  shrink++;
 		  escaped++;
 		}
-	      else if (hex && (*hexdigitsImp)(hexdigits, cMemberSel, c))
+	      else if (hex && GS_IS_HEXDIGIT(c))
 		{
 		  shrink++;
 		  escaped++;
@@ -3921,7 +3923,7 @@ static inline id parseQuotedString(pldata* pld)
 		      hex = YES;
 		      escaped++;
 		    }
-		  else if (hex && (*hexdigitsImp)(hexdigits, cMemberSel, c))
+		  else if (hex && GS_IS_HEXDIGIT(c))
 		    {
 		      chars[k] <<= 4;
 		      chars[k] |= char2num(c);
@@ -3985,7 +3987,7 @@ static inline id parseUnquotedString(pldata *pld)
 
   while (pld->pos < pld->end)
     {
-      if ((*quotablesImp)(quotables, cMemberSel, pld->ptr[pld->pos]) == YES)
+      if (GS_IS_QUOTABLE(pld->ptr[pld->pos]) == YES)
 	break;
       pld->pos++;
     }
@@ -4129,8 +4131,8 @@ static id parsePlItem(pldata* pld)
 	  pld->pos++;
 	  skipSpace(pld);
 	  while (pld->pos < max
-	    && (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos])
-	    && (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos+1]))
+		 && GS_IS_HEXDIGIT(pld->ptr[pld->pos])
+		 && GS_IS_HEXDIGIT(pld->ptr[pld->pos+1]))
 	    {
 	      unsigned char	byte;
 
@@ -4304,7 +4306,7 @@ setupPl()
 
   setupHexdigits();
   setupQuotables();
-  setupWhitespce();
+  setupWhitespace();
 }
 
 static id
@@ -4328,15 +4330,15 @@ GSPropertyList(NSString *string)
     }
 
 #if	HAVE_LIBXML
-  if (whitespce == nil)
+  if (whitespaceBitmapRep == NULL)
     {
-      setupWhitespce();
+      setupWhitespace();
     }
   while (index < length)
     {
       unsigned	c = [string characterAtIndex: index];
 
-      if ((*whitespceImp)(whitespce, cMemberSel, c) == NO)
+      if (GS_IS_WHITESPACE(c) == NO)
 	{
 	  break;
 	}
