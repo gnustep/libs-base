@@ -95,11 +95,11 @@ AC_MSG_CHECKING(the Objective-C runtime)
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   AC_MSG_RESULT(NeXT)
   LIBOBJC='-lobjc'
-  CPPFLAGS="$CPPFLAGS -fnext-runtime -DNeXT_RUNTIME"
+  OBJCFLAGS="-fnext-runtime -DNeXT_RUNTIME"
 else
   AC_MSG_RESULT(GNU)
   LIBOBJC='-lobjc'
-  CPPFLAGS="$CPPFLAGS -fgnu-runtime"
+  OBJCFLAGS="-fgnu-runtime"
 fi
 
 #--------------------------------------------------------------------
@@ -408,7 +408,7 @@ AC_MSG_CHECKING(whether objc really works)
 saved_LIBS="$LIBS"
 saved_CPPFLAGS="$CPPFLAGS"
 LIBS="$LIBS $LIBOBJC"
-CPPFLAGS="$CPPFLAGS -x objective-c"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
 if test x"$objc_threaded" != x""; then
   LIBS="$LIBS $objc_threaded"
 fi
@@ -460,8 +460,7 @@ fi
 AC_SUBST(NX_CONST_STRING_OBJCFLAGS)
 AC_SUBST(NX_CONST_STRING_CLASS)
 
-CPPFLAGS="$saved_CPPFLAGS"
-# Don't revert LIBS, need it for the next test
+# Don't revert any Objective-C flags as they are used in the next test
 
 #---------------------------------------------------------------------
 # Guess if we are using a compiler which has the (GNU extension) +load 
@@ -469,8 +468,6 @@ CPPFLAGS="$saved_CPPFLAGS"
 # Defines HAVE_LOAD_METHOD if +load methods are called before main.
 # Needed by NSProcessInfo.m
 #---------------------------------------------------------------------
-saved_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS -x objective-c"
 AC_MSG_CHECKING(if +load method is executed before main)
 AC_CACHE_VAL(objc_load_method_worked,
   AC_TRY_RUN([#include "$srcdir/config/config.loadtest.m"],
@@ -486,8 +483,7 @@ else
   AC_MSG_RESULT(no)
 fi
 
-CPPFLAGS="$saved_CPPFLAGS"
-# Don't revert LIBS, need it for the next test
+# Don't revert any Objective-C flags as they are used in the next test
 
 #--------------------------------------------------------------------
 # This function needed by NSLock.m for conditioned wait
@@ -501,6 +497,7 @@ AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
                   [ Define if objc-api.h defines this function]),)
 
 LIBS="$saved_LIBS"
+CPPFLAGS="$saved_CPPFLAGS"
 
 #--------------------------------------------------------------------
 # Generic settings needed by NSZone.m
@@ -982,6 +979,8 @@ if test $have_libffi = no; then
 fi
 
 have_forward_hook=yes
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
 AC_MSG_CHECKING("for forwarding callback in runtime")
 AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward.m"],
 	have_forward_hook=yes, have_forward_hook=no)
@@ -990,6 +989,7 @@ if test $have_forward_hook = no; then
   enable_libffi=no
   enable_ffcall=no
 fi
+CPPFLAGS="$saved_CPPFLAGS"
 
 AC_MSG_CHECKING("FFI library usage")
 WITH_FFI=none
