@@ -333,6 +333,8 @@ NSUserDefaults.m \
 NSValue.m \
 NSZone.m \
 externs.m \
+objc-load.m \
+find_exec.m \
 NSURL.m \
 NSURLHandle.m
 
@@ -344,10 +346,6 @@ NSNUMBER_MFILES = \
 	NSNumber4.m NSNumber5.m NSNumber6.m NSNumber7.m \
 	NSNumber8.m NSNumber9.m NSNumber10.m NSNumber11.m \
 	NSNumber12.m
-
-BASE_CFILES = \
-find_exec.c \
-objc-load.c
 
 BASE_OTHER_SRCFILES = \
 NSConcreteNumber.m \
@@ -456,7 +454,7 @@ $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h \
 $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h
 
 # The C source files to be compiled
-libgnustep-base_C_FILES = $(GNU_CFILES) $(BASE_CFILES)
+libgnustep-base_C_FILES = $(GNU_CFILES)
 
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
