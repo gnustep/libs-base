@@ -46,7 +46,7 @@
 @class	GSMutableDictionary;
 
 extern BOOL	GSMacOSXCompatiblePropertyLists(void);
-extern void	GSPropertyListMake(id, NSDictionary*, BOOL, unsigned, id*);
+extern void	GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 
 static Class NSArray_class;
@@ -746,11 +746,11 @@ compareIt(id o1, id o2, void* context)
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
-      GSPropertyListMake(self, loc, YES, 2, &desc);
+      GSPropertyListMake(self, loc, YES, NO, 2, &desc);
     }
   else
     {
-      GSPropertyListMake(self, loc, NO, 2, &desc);
+      GSPropertyListMake(self, loc, NO, NO, 2, &desc);
     }
 
   return [[desc dataUsingEncoding: NSUTF8StringEncoding]
@@ -770,11 +770,11 @@ compareIt(id o1, id o2, void* context)
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
-      GSPropertyListMake(self, loc, YES, 2, &desc);
+      GSPropertyListMake(self, loc, YES, NO, 2, &desc);
     }
   else
     {
-      GSPropertyListMake(self, loc, NO, 2, &desc);
+      GSPropertyListMake(self, loc, NO, NO, 2, &desc);
     }
 
   return [[desc dataUsingEncoding: NSUTF8StringEncoding]
@@ -807,11 +807,11 @@ compareIt(id o1, id o2, void* context)
     {
       id val = (*myObj)(self, objSel, key);
 
-      GSPropertyListMake(key, nil, NO, 0, &result);
+      GSPropertyListMake(key, nil, NO, YES, 0, &result);
       if (val != nil && [val isEqualToString: @""] == NO)
         {
 	  [result appendString: @" = "];
-	  GSPropertyListMake(val, nil, NO, 0, &result);
+	  GSPropertyListMake(val, nil, NO, YES, 0, &result);
         }
       [result appendString: @";\n"];
     }
@@ -844,7 +844,7 @@ compareIt(id o1, id o2, void* context)
 {
   NSMutableString	*result = nil;
 
-  GSPropertyListMake(self, locale, NO, level == 1 ? 3 : 2, &result);
+  GSPropertyListMake(self, locale, NO, YES, level == 1 ? 3 : 2, &result);
   return result;
 }
 

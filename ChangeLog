@@ -4,6 +4,8 @@
 	from NSObjCRuntime, plus renamed behavior functions, plus a few other
 	runtime manipulation functions. EXPERIMENTAL
 	* Headers/gnustep/base/GSObjCRuntime.h: declarations for above.
+	* Source/GSCompatibility.m: Don't use new format plists when writing
+	descriptions.
 
 2002-11-26  Richard Frith-Macdonald <rfm@gnu.org>
 
