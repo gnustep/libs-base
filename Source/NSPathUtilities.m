@@ -334,9 +334,11 @@ static NSString *setUserGNUstepPath(NSString *userName,
       dict = GSReadStepConfFile(steprcFile);
       if (dict != nil)
 	{
-	  fprintf(stderr, "Warning: Configuration: The file %s has been deprecated. Please use the \nconfiguration file %s to set standard paths.\n",
-		  [steprcFile fileSystemRepresentation],
-		  stringify(GNUSTEP_CONFIGURATION_FILE));
+	  GSOnceFLog(@"Warning: Configuration: The file %s has been "
+	    @"deprecated.  Please use the configuration file %s to "
+	    @"set standard paths.\n",
+	    [steprcFile fileSystemRepresentation],
+	    stringify(GNUSTEP_CONFIGURATION_FILE));
 	  forceD = [[dict objectForKey: @"FORCE_DEFAULTS_ROOT"] boolValue];
 	  forceU = [[dict objectForKey: @"FORCE_USER_ROOT"] boolValue];
 	  ASSIGN(oldDRoot, [dict objectForKey: @"GNUSTEP_DEFAULTS_ROOT"]);
@@ -442,27 +444,27 @@ void InitialisePathUtilities(void)
 		o = [d objectForKey: @"FORCE_DEFAULTS_ROOT"];
 		if (o != nil)
 		  {
-		    fprintf(stderr, "Warning: Configuration: "
+		    GSOnceFLog(@"Warning: Configuration: "
 		      "FORCE_DEFAULTS_ROOT is deprecated.\n");
 		    forceD = [o boolValue];
 		  }
 		o = [d objectForKey: @"FORCE_USER_ROOT"];
 		if (o != nil)
 		  {
-		    fprintf(stderr, "Warning: Configuration: "
+		    GSOnceFLog(@"Warning: Configuration: "
 		      "FORCE_USER_ROOT is deprecated.\n");
 		    forceU = [o boolValue];
 		  }
 		ASSIGN(oldDRoot, [d objectForKey: @"GNUSTEP_DEFAULTS_ROOT"]);
 		if (oldDRoot != nil)
 		  {
-		    fprintf(stderr, "Warning: Configuration: "
+		    GSOnceFLog(@"Warning: Configuration: "
 		      "GNUSTEP_DEFAULTS_ROOT is deprecated.\n");
 		  }
 		ASSIGN(oldURoot, [d objectForKey: @"GNUSTEP_USER_ROOT"]);
 		if (oldURoot != nil)
 		  {
-		    fprintf(stderr, "Warning: Configuration: "
+		    GSOnceFLog(@"Warning: Configuration: "
 		      "GNUSTEP_USER_ROOT is deprecated.\n");
 		  }
 	      }
