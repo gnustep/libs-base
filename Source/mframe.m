@@ -430,7 +430,7 @@ mframe_do_call (const char *encoded_types,
       abort();
     type = m->method_types;
   }
-#else
+#elif 0
   {
     Method_t m;
     m = class_get_instance_method (object->class_pointer,
@@ -438,6 +438,8 @@ mframe_do_call (const char *encoded_types,
     NSCParameterAssert (m);
     type = m->method_types;
   }
+#else
+  type = sel_get_type (selector);
 #endif /* NeXT_runtime */
 
   /* Make sure we successfully got the method type, and that its
