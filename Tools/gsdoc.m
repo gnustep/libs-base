@@ -3035,7 +3035,7 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
 
   NSDebugMLLog(@"debug", @"Start parsing EOEntity");
 
-  if (entityName != nil)
+  if (!entityName)
     {
       NSLog(@"Missing entity name");
       return nil;
@@ -3044,7 +3044,7 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
   // We're working on EOEntity
   ASSIGN(currentEOEntity, entityName);
 
-  if (ref != nil)
+  if (!ref)
     {
       ref = entityName;
     }
