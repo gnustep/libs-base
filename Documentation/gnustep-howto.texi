@@ -1,7 +1,6 @@
 \input texinfo @c -*-texinfo-*-
 
 @setfilename gnustep-howto.texi
-@set DATE 03 Nov 1997
 
 @paragraphindent 4
 
@@ -30,7 +29,7 @@ Free Software Foundation instead of in the original English.
 @format
    GNUstep-HOWTO
 
-   Last Update: @value{DATE}
+   Last Update: @today{}
 
    This document explains how to build the different components
    of GNUstep.
