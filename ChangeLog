@@ -1,8 +1,9 @@
-Mon Sep 27 20:37:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Mon Sep 27 21:15:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSScanner.m: Fix error introduced into skipToNextField() macro
 	my my last rewrite - sorry.  Thanks to N. Pero for narrowing down the
 	problem to a level where I could locate it.
+	* Source/NSGeometry.m: optimised.
 
 1999-09-24  Adam Fedor  <fedor@gnu.org>
 

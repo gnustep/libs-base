@@ -35,13 +35,38 @@
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSScanner.h>
 
+static Class	NSStringClass = 0;
+static Class	NSScannerClass = 0;
+static SEL	scanFloatSel = @selector(scanFloat:);
+static SEL	scanStringSel = @selector(scanString:intoString:);
+static SEL	scannerSel = @selector(scannerWithString:);
+static BOOL	(*scanFloatImp)(NSScanner*, SEL, float*);
+static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
+static id 	(*scannerImp)(Class, SEL, NSString*);
+
+static inline void
+setupCache()
+{
+  if (NSStringClass == 0)
+    {
+      NSStringClass = [NSString class];
+      NSScannerClass = [NSScanner class];
+      scanFloatImp = (BOOL (*)(NSScanner*, SEL, float*))
+	[NSScannerClass instanceMethodForSelector: scanFloatSel];
+      scanStringImp = (BOOL (*)(NSScanner*, SEL, NSString*, NSString**))
+	[NSScannerClass instanceMethodForSelector: scanStringSel];
+      scannerImp = (id (*)(Class, SEL, NSString*))
+	[NSScannerClass methodForSelector: scannerSel];
+    }
+}
+
 /**** Function Implementations ***********************************************/
 /* Most of these are implemented in the header file as inline functkions */
 
 NSRect
 NSIntegralRect(NSRect aRect)
 {
-  NSRect rect;
+  NSRect	rect;
 
   if (NSIsEmptyRect(aRect))
     return NSMakeRect(0, 0, 0, 0);
@@ -60,7 +85,8 @@ NSDivideRect(NSRect aRect,
              float amount,
              NSRectEdge edge)
 {
-  static NSRect sRect, rRect;
+  static NSRect sRect;
+  static NSRect	rRect;
     
   if (!slice)
     slice = &sRect;
@@ -68,100 +94,100 @@ NSDivideRect(NSRect aRect,
     remainder = &rRect;
     
   if (NSIsEmptyRect(aRect))
-  {
-    *slice = NSMakeRect(0,0,0,0);
-    *remainder = NSMakeRect(0,0,0,0);
-    return;
-  }
+    {
+      *slice = NSMakeRect(0,0,0,0);
+      *remainder = NSMakeRect(0,0,0,0);
+      return;
+    }
 
   switch (edge)
-  {
-    case NSMinXEdge:
-      if (amount > aRect.size.width)
-      {
-        *slice = aRect;
-        *remainder = NSMakeRect(NSMaxX(aRect),
-                                aRect.origin.y, 
-                                0,
-                                aRect.size.height);
-      }
-      else
-      {
+    {
+      case NSMinXEdge:
+	if (amount > aRect.size.width)
+	  {
+	    *slice = aRect;
+	    *remainder = NSMakeRect(NSMaxX(aRect),
+				    aRect.origin.y, 
+				    0,
+				    aRect.size.height);
+	  }
+	else
+	  {
 	    *slice = NSMakeRect(aRect.origin.x,
-                            aRect.origin.y,
-                            amount, 
-                            aRect.size.height);
-        *remainder = NSMakeRect(NSMaxX(*slice),
-                                aRect.origin.y, 
-                                NSMaxX(aRect) - NSMaxX(*slice),
-                                aRect.size.height);
-      }
-      break;
-    case NSMinYEdge:
-      if (amount > aRect.size.height)
-      {
-        *slice = aRect;
-        *remainder = NSMakeRect(aRect.origin.x,
-                                NSMaxY(aRect), 
-                                aRect.size.width, 0);
-      }
-      else
-      {
-        *slice = NSMakeRect(aRect.origin.x,
-                            aRect.origin.y, 
-                            aRect.size.width,
-                            amount);
-        *remainder = NSMakeRect(aRect.origin.x,
-                                NSMaxY(*slice), 
-                                aRect.size.width,
-                                NSMaxY(aRect) - NSMaxY(*slice));
-      }
-      break;
-    case (NSMaxXEdge):
-      if (amount > aRect.size.width)
-      {
+				aRect.origin.y,
+				amount, 
+				aRect.size.height);
+	    *remainder = NSMakeRect(NSMaxX(*slice),
+				    aRect.origin.y, 
+				    NSMaxX(aRect) - NSMaxX(*slice),
+				    aRect.size.height);
+	  }
+	break;
+      case NSMinYEdge:
+	if (amount > aRect.size.height)
+	  {
 	    *slice = aRect;
 	    *remainder = NSMakeRect(aRect.origin.x,
-                                aRect.origin.y, 
-                                0,
-                                aRect.size.height);
-      }
-      else
-      {
-	    *slice = NSMakeRect(NSMaxX(aRect) - amount,
-                            aRect.origin.y,
-                            amount,
-                            aRect.size.height);
+				    NSMaxY(aRect), 
+				    aRect.size.width, 0);
+	  }
+	else
+	  {
+	    *slice = NSMakeRect(aRect.origin.x,
+				aRect.origin.y, 
+				aRect.size.width,
+				amount);
 	    *remainder = NSMakeRect(aRect.origin.x,
-                                aRect.origin.y, 
-                                NSMinX(*slice) - aRect.origin.x,
-                                aRect.size.height);
-      }
-      break;
-    case NSMaxYEdge:
-      if (amount > aRect.size.height)
-      {
-        *slice = aRect;
-        *remainder = NSMakeRect(aRect.origin.x,
-                                aRect.origin.y, 
-                                aRect.size.width,
-                                0);
-      }
-      else
-      {
-        *slice = NSMakeRect(aRect.origin.x,
-                            NSMaxY(aRect) - amount, 
-                            aRect.size.width,
-                            amount);
-        *remainder = NSMakeRect(aRect.origin.x,
-                                aRect.origin.y, 
-                                aRect.size.width,
-                                NSMinY(*slice) - aRect.origin.y);
-      }
-      break;
-    default:
-      break;
-  }
+				    NSMaxY(*slice), 
+				    aRect.size.width,
+				    NSMaxY(aRect) - NSMaxY(*slice));
+	  }
+	break;
+      case (NSMaxXEdge):
+	if (amount > aRect.size.width)
+	  {
+	    *slice = aRect;
+	    *remainder = NSMakeRect(aRect.origin.x,
+				    aRect.origin.y, 
+				    0,
+				    aRect.size.height);
+	  }
+	else
+	  {
+	    *slice = NSMakeRect(NSMaxX(aRect) - amount,
+				aRect.origin.y,
+				amount,
+				aRect.size.height);
+	    *remainder = NSMakeRect(aRect.origin.x,
+				    aRect.origin.y, 
+				    NSMinX(*slice) - aRect.origin.x,
+				    aRect.size.height);
+	  }
+	break;
+      case NSMaxYEdge:
+	if (amount > aRect.size.height)
+	  {
+	    *slice = aRect;
+	    *remainder = NSMakeRect(aRect.origin.x,
+				    aRect.origin.y, 
+				    aRect.size.width,
+				    0);
+	  }
+	else
+	  {
+	    *slice = NSMakeRect(aRect.origin.x,
+				NSMaxY(aRect) - amount, 
+				aRect.size.width,
+				amount);
+	    *remainder = NSMakeRect(aRect.origin.x,
+				    aRect.origin.y, 
+				    aRect.size.width,
+				    NSMinY(*slice) - aRect.origin.y);
+	  }
+	break;
+      default:
+	break;
+    }
 
   return;
 }
@@ -171,38 +197,42 @@ NSDivideRect(NSRect aRect,
 NSString *
 NSStringFromPoint(NSPoint aPoint)
 {
-  return [NSString stringWithFormat:@"{x=%f; y=%f}", aPoint.x, aPoint.y];
+  setupCache();
+  return [NSStringClass stringWithFormat: @"{x=%f; y=%f}", aPoint.x, aPoint.y];
 }
 
 NSString *
 NSStringFromRect(NSRect aRect)
 {
-  return [NSString stringWithFormat:@"{x=%f; y=%f; width=%f; height=%f}",
-                   aRect.origin.x, aRect.origin.y,
-                   aRect.size.width, aRect.size.height];
+  setupCache();
+  return [NSStringClass stringWithFormat: @"{x=%f; y=%f; width=%f; height=%f}",
+    aRect.origin.x, aRect.origin.y, aRect.size.width, aRect.size.height];
 }
 
 NSString *
 NSStringFromSize(NSSize aSize)
 {
-  return [NSString stringWithFormat:@"{width=%f; height=%f}",
-                   aSize.width, aSize.height];
+  setupCache();
+  return [NSStringClass stringWithFormat: @"{width=%f; height=%f}",
+     aSize.width, aSize.height];
 }
 
 NSPoint	NSPointFromString(NSString* string)
 {
-  NSScanner* scanner = [NSScanner scannerWithString:string];
-  NSPoint point;
+  NSScanner	*scanner;
+  NSPoint	point;
 
-  if ([scanner scanString:@"{" intoString:NULL]
-      && [scanner scanString:@"x" intoString:NULL]
-      && [scanner scanString:@"=" intoString:NULL]
-      && [scanner scanFloat:&point.x]
-      && [scanner scanString:@";" intoString:NULL]
-      && [scanner scanString:@"y" intoString:NULL]
-      && [scanner scanString:@"=" intoString:NULL]
-      && [scanner scanFloat:&point.y]
-      && [scanner scanString:@"}" intoString:NULL])
+  setupCache();
+  scanner = (*scannerImp)(NSScannerClass, scannerSel, string);
+  if ((*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"x", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
+    && (*scanFloatImp)(scanner, scanFloatSel, &point.x)
+    && (*scanStringImp)(scanner, scanStringSel, @";", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"y", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
+    && (*scanFloatImp)(scanner, scanFloatSel, &point.y)
+    && (*scanStringImp)(scanner, scanStringSel, @"}", NULL))
     return point;
   else
     return NSMakePoint(0, 0);
@@ -210,18 +240,20 @@ NSPoint	NSPointFromString(NSString* string)
 
 NSSize NSSizeFromString(NSString* string)
 {
-  NSScanner* scanner = [NSScanner scannerWithString:string];
-  NSSize size;
+  NSScanner	*scanner;
+  NSSize	size;
   
-  if ([scanner scanString:@"{" intoString:NULL]
-      && [scanner scanString:@"width" intoString:NULL]
-      && [scanner scanString:@"=" intoString:NULL]
-      && [scanner scanFloat:&size.width]
-      && [scanner scanString:@";" intoString:NULL]
-      && [scanner scanString:@"height" intoString:NULL]
-      && [scanner scanString:@"=" intoString:NULL]
-      && [scanner scanFloat:&size.height]
-      && [scanner scanString:@"}" intoString:NULL])
+  setupCache();
+  scanner = (*scannerImp)(NSScannerClass, scannerSel, string);
+  if ((*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"width", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
+    && (*scanFloatImp)(scanner, scanFloatSel, &size.width)
+    && (*scanStringImp)(scanner, scanStringSel, @";", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"height", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
+    && (*scanFloatImp)(scanner, scanFloatSel, &size.height)
+    && (*scanStringImp)(scanner, scanStringSel, @"}", NULL))
     return size;
   else
     return NSMakeSize(0, 0);
@@ -229,29 +261,31 @@ NSSize NSSizeFromString(NSString* string)
 
 NSRect NSRectFromString(NSString* string)
 {
-  NSScanner* scanner = [NSScanner scannerWithString:string];
-  NSRect rect;
+  NSScanner	*scanner;
+  NSRect	rect;
   
-  if ([scanner scanString:@"{" intoString:NULL]
-      && [scanner scanString:@"x" intoString:NULL]
-      && [scanner scanString:@"=" intoString:NULL]
-      && [scanner scanFloat:&rect.origin.x]
-      && [scanner scanString:@";" intoString:NULL]
+  setupCache();
+  scanner = (*scannerImp)(NSScannerClass, scannerSel, string);
+  if ((*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"x", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
+    && (*scanFloatImp)(scanner, scanFloatSel, &rect.origin.x)
+    && (*scanStringImp)(scanner, scanStringSel, @";", NULL)
+
+    && (*scanStringImp)(scanner, scanStringSel, @"y", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
+    && (*scanFloatImp)(scanner, scanFloatSel, &rect.origin.y)
+    && (*scanStringImp)(scanner, scanStringSel, @";", NULL)
       
-      && [scanner scanString:@"y" intoString:NULL]
-      && [scanner scanString:@"=" intoString:NULL]
-      && [scanner scanFloat:&rect.origin.y]
-      && [scanner scanString:@";" intoString:NULL]
+    && (*scanStringImp)(scanner, scanStringSel, @"width", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
+    && (*scanFloatImp)(scanner, scanFloatSel, &rect.size.width)
+    && (*scanStringImp)(scanner, scanStringSel, @";", NULL)
       
-      && [scanner scanString:@"width" intoString:NULL]
-      && [scanner scanString:@"=" intoString:NULL]
-      && [scanner scanFloat:&rect.size.width]
-      && [scanner scanString:@";" intoString:NULL]
-      
-      && [scanner scanString:@"height" intoString:NULL]
-      && [scanner scanString:@"=" intoString:NULL]
-      && [scanner scanFloat:&rect.size.height]
-      && [scanner scanString:@"}" intoString:NULL])
+    && (*scanStringImp)(scanner, scanStringSel, @"height", NULL)
+    && (*scanStringImp)(scanner, scanStringSel, @"=", NULL)
+    && (*scanFloatImp)(scanner, scanFloatSel, &rect.size.height)
+    && (*scanStringImp)(scanner, scanStringSel, @"}", NULL))
     return rect;
   else
     return NSMakeRect(0, 0, 0, 0);
