@@ -1,5 +1,10 @@
 2000-04-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/gdomap.c: Don't do chdir/chroot on sysv - it screws up
+	their streams so we can't handle incoming connections.
+
+2000-04-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSCalendarDate.m: Fix memory leak when initialising from
 	string.
 

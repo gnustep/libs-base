@@ -2145,10 +2145,15 @@ handle_request(int desc)
 	   *	probing, try to select one on the same network to send back.
 	   *	otherwise, respond with the address it was probing.
 	   */
-	  if (is_local_host(laddr) == 0)
+	  if (is_local_host(laddr) == 0
+	    || laddr.s_addr == loopback.s_addr)
 	    {
 	      for (i = 0; i < interfaces; i++)
 		{
+		  if (addr[i].s_addr == loopback.s_addr)
+		    {
+		      continue;
+		    }
 		  if ((mask[i].s_addr && addr[i].s_addr) ==
 			(mask[i].s_addr && r_info[desc].addr.sin_addr.s_addr))
 		    {
@@ -3335,11 +3340,13 @@ printf(
     {
       setuid (-1);
     }
+#if	!defined(__svr4__)
   /*
    * As another level of paranoia - restrict this process to /tmp
    */
   chdir("/tmp");
   chroot("/tmp");
+#endif
 
   init_probe();	/* Probe other name servers on net.	*/
 
