@@ -27,6 +27,21 @@
 	    an associated document into which data is stored.
 	  </p>
 
+	  <p>
+
+	    You supply the document to be parsed as one or more data
+	    items passed to the <code>Parse:</code> method, and (if
+	    the method always returns <code>YES</code>, you give it
+	    a final <code>nil</code> argument to mark the end of the
+	    document.
+	  </p>
+
+	  <p>
+
+	    On completion of parsing a valid document, the
+	    <code>document</code> method returns the resulting parsed document.
+	  </p>
+
 	
 <h2>Instance Variables </h2>
 <ul>
@@ -147,10 +162,24 @@
 <h3><a name ="method-8">parse:</a></h3>
 - (BOOL) <b>parse:</b> (NSData*)rawData;<br>
 
-	    This method is called repeatedly to pass raw mime data into
-	    the parser.  It should be called with a nil argument at the
-	    end of the data - to inform the parser that it has been given
-	    all the available information.
+	    <p>
+
+	      This method is called repeatedly to pass raw mime data into
+	      the parser.  It returns <code>YES</code> as long as it wants
+	      more data to complete parsing of a document, and <code>NO</code>
+	      if parsing is complete, either due to having reached the end of
+	      a document or due to an error.
+	    </p>
+
+	    <p>
+
+	      Since it is not always possible to determine if the end of a
+	      MIME document has been reached from its content, the method
+	      may need to be called with a nil argument after you have
+	      passed all the data to it ... this tells it that the data
+	      is complete.
+	    </p>
+
           
  <hr>
 <h3><a name ="method-9">parseHeader:</a></h3>
