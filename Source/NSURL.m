@@ -1514,14 +1514,23 @@ static void unescape(const char *from, char * to)
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDataDidBecomeAvailable: (NSData*)newData
 {
-  [clientForHandle(_clients, sender) URL: self
-	  resourceDataDidBecomeAvailable: newData];
+  id	c = clientForHandle(_clients, sender);
+
+  if ([c respondsToSelector: @selector(URL:resourceDataDidBecomeAvailable:)])
+    {
+      [c URL: self resourceDataDidBecomeAvailable: newData];
+    }
 }
+
 - (void) URLHandle: (NSURLHandle*)sender
   resourceDidFailLoadingWithReason: (NSString*)reason
 {
-  [clientForHandle(_clients, sender) URL: self
-       resourceDidFailLoadingWithReason: reason];
+  id	c = clientForHandle(_clients, sender);
+
+  if ([c respondsToSelector: @selector(URL:resourceDidFailLoadingWithReason:)])
+    {
+      [c URL: self resourceDidFailLoadingWithReason: reason];
+    }
 }
 
 - (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender
@@ -1530,12 +1539,22 @@ static void unescape(const char *from, char * to)
 
 - (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender
 {
-  [clientForHandle(_clients, sender) URLResourceDidCancelLoading: self];
+  id	c = clientForHandle(_clients, sender);
+
+  if ([c respondsToSelector: @selector(URLResourceDidCancelLoading:)])
+    {
+      [c URLResourceDidCancelLoading: self];
+    }
 }
 
 - (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender
 {
-  [clientForHandle(_clients, sender) URLResourceDidFinishLoading: self];
+  id	c = clientForHandle(_clients, sender);
+
+  if ([c respondsToSelector: @selector(URLResourceDidFinishLoading:g:)])
+    {
+      [c URLResourceDidFinishLoading: self];
+    }
 }
 
 

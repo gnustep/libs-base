@@ -1,3 +1,9 @@
+2003-03-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: When loading a resource and attempting to notify
+	a client, check that the client responds to the selectors before
+	sending messages to it.
+	
 2003-03-25  David Ayers  <d.ayers@inode.at>
 
 	* Headers/gnustep/base/GSObjCRuntime.h
