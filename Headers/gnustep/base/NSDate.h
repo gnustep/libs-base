@@ -88,6 +88,13 @@ typedef double NSTimeInterval;
 - (BOOL) isEqualToDate: (NSDate*)otherDate;
 - (NSDate*) laterDate: (NSDate*)otherDate;
 
+#ifndef	STRICT_OPENSTEP
++ (id) dateWithNaturalLanguageString: (NSString *)string;
++ (id) dateWithNaturalLanguageString: (NSString *)string
+                              locale: (NSDictionary *)localeDictionary;
+- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
+#endif
+
 @end
 
 
@@ -111,13 +118,6 @@ typedef double NSTimeInterval;
 //Getting Arrays of Time Zones
 + (NSArray *)timeZoneArray;
 - (NSArray *)timeZoneDetailArray;
-
-#ifndef	STRICT_OPENSTEP
-+ (id) dateWithNaturalLanguageString: (NSString *)string;
-+ (id) dateWithNaturalLanguageString: (NSString *)string
-                              locale: (NSDictionary *)localeDictionary;
-- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
-#endif
 
 #ifndef	NO_GNUSTEP
 /* Returns an dictionary that maps abbreviations to the array

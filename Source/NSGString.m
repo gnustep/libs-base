@@ -303,17 +303,6 @@
     }
 }
 
-- (Class) classForPortCoder
-{
-  return [self class];
-}
-
-- replacementObjectForPortCoder:(NSPortCoder*)aCoder
-{
-    return self;
-}
-
-
 // FOR IndexedCollection SUPPORT;
 
 - objectAtIndex: (unsigned)index

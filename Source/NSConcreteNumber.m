@@ -28,6 +28,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSPortCoder.h>
 #include <gnustep/base/Coder.h>
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
@@ -334,6 +335,13 @@
 - classForCoder
 {
   return [self class];
+}
+
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  if ([aCoder isByref] == NO)
+    return self;
+  return [super replacementObjectForPortCoder: aCoder];
 }
 
 - (void) encodeWithCoder: coder

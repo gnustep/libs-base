@@ -94,6 +94,7 @@
 			     indent: (unsigned int)level;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxilliaryFile;
+
 @end
 
 

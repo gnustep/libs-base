@@ -50,6 +50,8 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSPortCoder.h>
+#include <Foundation/NSPathUtilities.h>
 
 #include <gnustep/base/IndexedCollection.h>
 #include <Foundation/NSData.h>
@@ -2588,7 +2590,6 @@ else
   return ret;
 }
 
-// #ifndef STRICT_OPENSTEP
 + (NSString*) pathWithComponents: (NSArray*)components
 {
     NSString    *s = [components objectAtIndex: 0];
@@ -2677,93 +2678,102 @@ else
     d = [self dataUsingEncoding: NSUnicodeStringEncoding];
   return [d writeToFile: filename atomically: useAuxiliaryFile];
 }
-// #endif
 
-// #ifndef NO_GNUSTEP
-
-- (NSString*) descriptionForPropertyList
+- (void) descriptionTo: (NSMutableString*)output
 {
-    static NSCharacterSet	*quotables = nil;
+  static NSCharacterSet	*quotables = nil;
 
-    if (quotables == nil) {
-	quotables = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
-	[quotables retain];
+  if ([self length] == 0)
+    {
+      [output appendString: @"\"\""];
+      return;
     }
 
-    if ([self length] == 0 ||
-	[self rangeOfCharacterFromSet: quotables].length > 0) {
-	const char	*cstring = [self cString];
-	const char	*from;
-	int		len = 0;
+  if (quotables == nil)
+    {
+      quotables = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+      [quotables retain];
+    }
 
-	for (from = cstring; *from; from++) {
-	    switch (*from) {
-		case '\a':
-		case '\b':
-		case '\t':
-		case '\r':
-		case '\n':
-		case '\v':
-		case '\f':
-		case '\\':
-		case '\'' :
-		case '"' :
-		    len += 2;
-		    break;
+  if ([self rangeOfCharacterFromSet: quotables].length > 0)
+    {
+      const char	*cstring = [self cString];
+      const char	*from;
+      int		len = 0;
+
+      for (from = cstring; *from; from++)
+	{
+	  switch (*from)
+	    {
+	      case '\a':
+	      case '\b':
+	      case '\t':
+	      case '\r':
+	      case '\n':
+	      case '\v':
+	      case '\f':
+	      case '\\':
+	      case '\'' :
+	      case '"' :
+		len += 2;
+		break;
+
+	      default:
+		if (isprint(*from) || *from == ' ')
+		  {
+		    len++;
+		  }
+		else
+		  {
+		    len += 4;
+		  }
+		break;
+	    }
+	}
+
+      {
+	char	buf[len+3];
+	char	*ptr = buf;
+
+	*ptr++ = '"';
+	for (from = cstring; *from; from++)
+	  {
+	    switch (*from)
+	      {
+		case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
+		case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
+		case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
+		case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
+		case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
+		case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
+		case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
+		case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
+		case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
+		case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
 
 		default:
-		    if (isprint(*from) || *from == ' ') {
-			len++;
+		  if (isprint(*from) || *from == ' ')
+		    {
+		      *ptr++ = *from;
 		    }
-		    else {
-			len += 4;
+		  else
+		    {
+		      sprintf(ptr, "\\%03o", *(unsigned char*)from);
+		      ptr = &ptr[4];
 		    }
-		    break;
-	    }
-	}
-
-	if (len == 0) {
-	    return @"\"\"";
-	}
-	else {
-	    char	buf[len+3];
-	    char	*ptr = buf;
-	    NSString	*result;
-
-	    *ptr++ = '"';
-	    for (from = cstring; *from; from++) {
-		switch (*from) {
-		    case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
-		    case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
-		    case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
-		    case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
-		    case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
-		    case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
-		    case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
-		    case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
-		    case '\'':	*ptr++ = '\\'; *ptr++ = '\''; break;
-		    case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
-
-		    default:
-			if (isprint(*from) || *from == ' ') {
-			    *ptr++ = *from;
-			}
-			else {
-			    sprintf(ptr, "\\%03o", *(unsigned char*)from);
-			    ptr = &ptr[4];
-			}
-			break;
-		}
-	    }
-	    *ptr++ = '"';
-	    *ptr = '\0';
-	    result = [NSString stringWithCString: buf];
-	    return result;
-	}
+		  break;
+	      }
+	  }
+	*ptr++ = '"';
+	*ptr = '\0';
+	[output appendString: [NSString stringWithCString: buf]];
+      }
     }
-    return self;
+  else
+    {
+      [output appendString: self];
+    }
 }
-// #endif /* NO_GNUSTEP */
 
 
 /* NSCopying Protocol */
@@ -2795,6 +2805,28 @@ else
 {
     [self subclassResponsibility:_cmd];
     return self;
+}
+
+- (Class) classForArchiver
+{
+  return [self class];
+}
+
+- (Class) classForCoder
+{
+  return [self class];
+}
+
+- (Class) classForPortCoder
+{
+  return [self class];
+}
+
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+  if ([aCoder isByref] == NO)
+    return self;
+  return [super replacementObjectForPortCoder: aCoder];
 }
 
 @end

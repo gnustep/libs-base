@@ -49,6 +49,7 @@
 #include <Foundation/NSGAttributedString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSPortCoder.h>
 
 @implementation NSAttributedString
 
@@ -113,9 +114,12 @@ static Class NSMutableAttributedString_concrete_class;
 {
   return [self class];
 }
-- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
+  if ([aCoder isByref] == NO)
     return self;
+  return [super replacementObjectForPortCoder: aCoder];
 }
 
 //NSCopying protocol

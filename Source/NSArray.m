@@ -37,6 +37,8 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
 
+#include <gnustep/base/fast.x>
+
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
 
@@ -603,113 +605,90 @@ static Class NSMutableArray_concrete_class;
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {
-    NSMutableString	*result;
-    unsigned		size;
-    unsigned		indentSize;
-    unsigned		indentBase;
-    NSMutableString	*iBaseString;
-    NSMutableString	*iSizeString;
-    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-    unsigned		count = [self count];
-    NSString		*plists[count];
-    unsigned		i;
+  NSMutableString	*result;
 
-    [self getObjects: plists];
+  result = [NSMutableString stringWithCapacity: 20*[self count]];
+  [self descriptionWithLocale: locale
+		       indent: level
+			   to: (id<GNUDescriptionDestination>)result];
+  return result;
+}
 
-    /*
-     *	Indentation is at four space intervals using tab characters to
-     *	replace multiples of eight spaces.
-     *
-     *	We work out the sizes of the strings needed to perform indentation for
-     *	this level and build strings to make up the indentation.
-     */
-    indentBase = level << 2;
-    count = indentBase >> 3;
-    if ((indentBase % 8) == 0) {
-	indentBase = count;
-    }
-    else {
-	indentBase == count + 4;
-    }
-    iBaseString = [NSMutableString stringWithCapacity: indentBase];
-    for (i = 0; i < count; i++) {
-	[iBaseString appendString: @"\t"];
-    }
-    if (count != indentBase) {
-	[iBaseString appendString: @"    "];
-    }
+static NSString	*indentStrings[] = {
+  @"",
+  @"    ",
+  @"\t",
+  @"\t    ",
+  @"\t\t",
+  @"\t\t    ",
+  @"\t\t\t",
+  @"\t\t\t    ",
+  @"\t\t\t\t",
+  @"\t\t\t\t    ",
+  @"\t\t\t\t\t",
+  @"\t\t\t\t\t    ",
+  @"\t\t\t\t\t\t"
+};
 
-    level++;
-    indentSize = level << 2;
-    count = indentSize >> 3;
-    if ((indentSize % 8) == 0) {
-	indentSize = count;
-    }
-    else {
-	indentSize == count + 4;
-    }
-    iSizeString = [NSMutableString stringWithCapacity: indentSize];
-    for (i = 0; i < count; i++) {
-	[iSizeString appendString: @"\t"];
-    }
-    if (count != indentSize) {
-	[iSizeString appendString: @"    "];
-    }
+- (void) descriptionWithLocale: (NSDictionary*)locale
+		        indent: (unsigned int)level
+			    to: (id<GNUDescriptionDestination>)result
+{
+  NSString		*iBaseString;
+  NSString		*iSizeString;
+  unsigned		count = [self count];
+  NSString		*plists[count];
+  unsigned		i;
+  SEL			appSel;
+  IMP			appImp;
 
-    /*
-     *	Basic size is - opening bracket, newline, closing bracket,
-     *	indentation for the closing bracket, and a nul terminator.
-     */
-    size = 4 + indentBase;
+  appSel = @selector(appendString:);
+  appImp = [(NSObject*)result methodForSelector: appSel];
 
-    count = [self count];
-    for (i = 0; i < count; i++) {
-	id		item;
+  if (level < sizeof(indentStrings)/sizeof(NSString*))
+    iBaseString = indentStrings[level];
+  else
+    iBaseString = indentStrings[sizeof(indentStrings)/sizeof(NSString*)-1];
+  level++;
+  if (level < sizeof(indentStrings)/sizeof(NSString*))
+    iSizeString = indentStrings[level];
+  else
+    iSizeString = indentStrings[sizeof(indentStrings)/sizeof(NSString*)-1];
 
-	item = plists[i];
-	if ([item isKindOfClass: [NSString class]]) {
-	   item = [item descriptionForPropertyList];
+  (*appImp)(result, appSel, @"(\n");
+
+  [self getObjects: plists];
+  for (i = 0; i < count; i++)
+    {
+      id	item = plists[i];
+
+      (*appImp)(result, appSel, iSizeString);
+ 
+      if ([item respondsToSelector:
+	      @selector(descriptionWithLocale:indent:)])
+	{
+	  [item descriptionWithLocale: locale indent: level to: result];
 	}
-	else if ([item respondsToSelector:
-		@selector(descriptionWithLocale:indent:)]) {
-	   item = [item descriptionWithLocale: locale indent: level];
+      else if ([item respondsToSelector:
+	      @selector(descriptionWithLocale:)])
+	{
+	  [item descriptionWithLocale: locale to: result];
 	}
-	else if ([item respondsToSelector:
-		@selector(descriptionWithLocale:)]) {
-	   item = [item descriptionWithLocale: locale];
+      else
+	{
+	  [item descriptionTo: result];
 	}
-	else {
-	   item = [item description];
+      if (i == count - 1)
+	{
+	  (*appImp)(result, appSel, @"\n");
 	}
-	plists[i] = item;
-
-	size += [item length] + indentSize;
-	if (i == count - 1) {
-	    size += 1;			/* newline	*/
-	}
-	else {
-	    size += 2;			/* ',' and newline	*/
+      else
+	{
+	  (*appImp)(result, appSel, @",\n");
 	}
     }
-
-    result = [[NSMutableString alloc] initWithCapacity: size];
-    [result appendString: @"(\n"];
-    for (i = 0; i < count; i++) {
-	[result appendString: iSizeString];
-	[result appendString: plists[i]];
-	if (i == count - 1) {
-            [result appendString: @"\n"];
-	}
-	else {
-            [result appendString: @",\n"];
-	}
-    }
-    [result appendString: iBaseString];
-    [result appendString: @")"];
-
-    [arp release];
-
-    return [result autorelease];
+  (*appImp)(result, appSel, iBaseString);
+  (*appImp)(result, appSel, @")");
 }
 
 @end
