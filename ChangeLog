@@ -3,6 +3,9 @@
 	* Source/NSObject.m: Implemented and documented -className
 	* Tools/AGSOutput.m: When Verbose = YES log all documentable
 	entities for which no comment text was found.
+	* Source/NSException.m: Added NSParseErrorException and tidied other
+	general exceptions.
+	* Source/extern.m: Removed generic exceptions ... now in NSException.m
 
 2002-06-06  Adam Fedor  <fedor@gnu.org>
 

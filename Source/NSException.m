@@ -34,6 +34,50 @@
 #include <Foundation/NSDictionary.h>
 #include <stdio.h>
 
+/**
+ * A generic exception for general purpose usage.
+ */
+const NSString* const NSGenericException
+  = @"NSGenericException";
+
+/**
+ * An exception for caes where unexpected state is detected within an object
+ */
+const NSString* const NSInternalInconsistencyException
+  = @"NSInternalInconsistencyException";
+
+/**
+ * An exception used when an invalid argument is passed to a method
+ * or function.
+ */
+const NSString* const NSInvalidArgumentException
+  = @"NSInvalidArgumentException";
+
+/**
+ * An exception used when the system faols to allocate required memory.
+ */
+const NSString* const NSMallocException
+  = @"NSMallocException";
+
+/**
+ * An exception used when an illegal range is encountered ... usually this
+ * is used to provide more information than an invalid argument exception.
+ */
+const NSString* const NSRangeException
+ = @"NSRangeException";
+
+/**
+ * An exception when character set conversion fails.
+ */
+const NSString* const NSCharacterConversionException
+  = @"NSCharacterConversionException";
+
+/**
+ * An exception used when some form of parsing fails.
+ */
+const NSString* const NSParseErrorException
+  = @"NSParseErrorException";
+
 #include "GSPrivate.h"
 
 static void

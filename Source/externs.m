@@ -74,20 +74,6 @@ NSString *NSConnectionReplyMode;
 
 
 
-/* Exceptions */
-NSString * const NSCharacterConversionException;
-
-NSString * const NSGenericException;
-
-NSString * const NSInternalInconsistencyException;
-
-NSString * const NSInvalidArgumentException;
-
-NSString * const NSMallocException;
-
-NSString * const NSRangeException;
-
-
 /* Exception handler */
 NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
@@ -299,9 +285,6 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "NSArgumentDomain"];
       NSBundleDidLoadNotification
 	= [[SClass alloc] initWithCString: "NSBundleDidLoadNotification"];
-      *(NSString**)&NSCharacterConversionException
-	= [[SClass alloc] initWithCString:
-	"NSCharacterConversionException"];
       NSConnectionDidDieNotification
 	= [[SClass alloc] initWithCString:
 	"NSConnectionDidDieNotification"];
@@ -386,19 +369,12 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "NSFileTypeUnknown"];
       NSFormalName
         = [[SClass alloc] initWithCString: "NSFormalName"];
-      *(NSString**)&NSGenericException
-	= [[SClass alloc] initWithCString: "NSGenericException"];
       NSGlobalDomain
 	= [[SClass alloc] initWithCString: "NSGlobalDomain"];
       NSHourNameDesignations
 	= [[SClass alloc] initWithCString: "NSHourNameDesignations"];
-      *(NSString**)&NSInternalInconsistencyException
-	= [[SClass alloc] initWithCString:
-	"NSInternalInconsistencyException"];
       NSInternationalCurrencyString
 	= [[SClass alloc] initWithCString: "NSInternationalCurrencyString"];
-      *(NSString**)&NSInvalidArgumentException
-	= [[SClass alloc] initWithCString: "NSInvalidArgumentException"];
       NSLanguageCode
         = [[SClass alloc] initWithCString: "NSLanguageCode"];
       NSLanguageName
@@ -409,8 +385,6 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "NSLoadedClasses"];
       NSLocale
 	= [[SClass alloc] initWithCString: "NSLocale"];
-      *(NSString**)&NSMallocException
-	= [[SClass alloc] initWithCString: "NSMallocException"];
       NSMonthNameArray
 	= [[SClass alloc] initWithCString: "NSMonthNameArray"];
       NSNegativeCurrencyFormatString
@@ -428,8 +402,6 @@ GSBuildStrings()
 	"NSPositiveCurrencyFormatString"];
       NSPriorDayDesignations
 	= [[SClass alloc] initWithCString: "NSPriorDayDesignations"];
-      *(NSString**)&NSRangeException
-	= [[SClass alloc] initWithCString: "NSRangeException"];
       NSRegistrationDomain
 	= [[SClass alloc] initWithCString: "NSRegistrationDomain"];
       NSShortDateFormatString
