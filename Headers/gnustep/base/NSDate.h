@@ -39,46 +39,42 @@ typedef double	NSTimeInterval;
 
 + (id) allocWithZone: (NSZone*)z;
 + (NSDate*) date;
-+ (NSDate*) dateWithTimeIntervalSinceNow:(NSTimeInterval)seconds;
-+ (NSDate*)  
-dateWithTimeIntervalSinceReferenceDate:(NSTimeInterval)seconds;
++ (NSDate*) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds;
++ (NSDate*) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds;
 + (NSDate*) distantFuture;
 + (NSDate*) distantPast;
 - (id) init;
-// Designated Initalizer - Concrete subclasses must implement -init
-- (id) initWithString:(NSString*)description;
-- (NSDate*) initWithTimeInterval:(NSTimeInterval)secsToBeAdded
-	sinceDate:(NSDate*)anotherDate;
-- (NSDate*) initWithTimeIntervalSinceNow:(NSTimeInterval)secsToBeAdded;
-- (id) initWithTimeIntervalSinceReferenceDate:(NSTimeInterval)secs;
-// Designated Initalizer - Concrete subclasses must implement
-//	-initWithTimeIntervalSinceReferenceDate
+- (id) initWithString: (NSString*)description;
+- (NSDate*) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
+		       sinceDate: (NSDate*)anotherDate;
+- (NSDate*) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 
 // Converting to NSCalendar
 
-- (NSCalendarDate *) dateWithCalendarFormat:(NSString*)formatString
-	timeZone:(NSTimeZone*)timeZone;
+- (NSCalendarDate *) dateWithCalendarFormat: (NSString*)formatString
+				   timeZone: (NSTimeZone*)timeZone;
 
 // Representing dates
 
 - (NSString*) description;
-- (NSString*) descriptionWithCalendarFormat:(NSString*)format
-	timeZone:(NSTimeZone*)aTimeZone;
+- (NSString*) descriptionWithCalendarFormat: (NSString*)format
+				   timeZone: (NSTimeZone*)aTimeZone;
 
 // Adding and getting intervals
 
-- (NSDate*) addTimeInterval:(NSTimeInterval)seconds;
-- (NSTimeInterval) timeIntervalSinceDate:(NSDate*)otherDate;
+- (NSDate*) addTimeInterval: (NSTimeInterval)seconds;
+- (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate;
 - (NSTimeInterval) timeIntervalSinceNow;
 - (NSTimeInterval) timeIntervalSinceReferenceDate;
 
 // Comparing dates
 
-- (NSComparisonResult) compare:(NSDate*)otherDate;
-- (NSDate*) earlierDate:(NSDate*)otherDate;
-- (BOOL) isEqual:(id)other;
-- (NSDate*) laterDate:(NSDate*)otherDate;
+- (NSComparisonResult) compare: (NSDate*)otherDate;
+- (NSDate*) earlierDate: (NSDate*)otherDate;
+- (BOOL) isEqual: (id)other;
+- (NSDate*) laterDate: (NSDate*)otherDate;
 
 @end
 
-#endif
+#endif  /* __NSDate_h_OBJECTS_INCLUDE */
