@@ -4,7 +4,7 @@
 	content of elements rather than just text nodes.
 	* Source/GSMime.m: ([-rawMimeData]) ensure that the transfer encoding
 	of a multipart document is 8bit if any of its constituent parts are
-	not 7bit
+	8bit or binary
 
 22003-04-01  Richard Frith-Macdonald <rfm@gnu.org>
 

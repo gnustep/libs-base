@@ -3878,7 +3878,7 @@ static NSCharacterSet	*tokenSet = nil;
 
 	      enc = [part headerNamed: @"content-transfer-encoding"];
 	      v = [enc value];
-	      if ([v isEqual: @"7bit"] == NO)
+	      if ([v isEqual: @"8bit"] == YES || [v isEqual: @"binary"] == YES)
 		{
 		  is7bit = NO;
 		}
@@ -4010,7 +4010,9 @@ static NSCharacterSet	*tokenSet = nil;
 	    {
 	      NSString	*charset = [type parameterForKey: @"charset"];
 
-	      if ([charset isEqual: @"ascii"] || [charset isEqual: @"us-ascii"])
+	      if (charset == nil
+		|| [charset isEqual: @"ascii"]
+		|| [charset isEqual: @"us-ascii"])
 		{
 		  enc = [enc initWithName: @"content-transfer-encoding"
 				    value: @"7bit"
