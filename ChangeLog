@@ -1,3 +1,12 @@
+2001-10-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.in: Check for zlib
+	* Headers/gnustep/base/GSConfig.h.in: Define HAVE_ZLIB
+	* Headers/gnustep/base/NSFileHandle.h: Add useCompression extension
+	* Headers/gnustep/base/UnixFileHandle.h: ditto
+	* Source/UnixFileHandle.m: Add support for read/write with compression
+	using zlib.  Activate with -useCompression
+
 2001-10-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSNumberFormatter.h: ivars aded and updated.
