@@ -1,5 +1,5 @@
 /* Interface for NSArray for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -35,6 +35,8 @@
 + array;
 + arrayWithObject: anObject;
 + arrayWithObjects: firstObj, ...;
+- (NSArray*) arrayByAddingObject: anObject;
+- (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
 - initWithObjects: (id*) objects count: (unsigned) count;
 - initWithObjects: firstObj, ...;
 - initWithArray: (NSArray*)array;
@@ -83,6 +85,7 @@
 - (void) removeObjectsFromIndices: (unsigned*)indices 
    numIndices: (unsigned)count;
 - (void) removeObjectsInArray: (NSArray*)otherArray;
+- (void) setArray:(NSArray *)otherArray;
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 
 	context: (void*)context;
 
