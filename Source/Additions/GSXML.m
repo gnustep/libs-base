@@ -130,6 +130,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 
 @interface GSXMLParser (Private)
 - (BOOL) _initLibXML;
+- (NSMutableString*) _messages;
 - (void) _parseChunk: (NSData*)data;
 @end
 
@@ -1985,7 +1986,7 @@ static NSString	*endMarker = @"At end of incremental parse";
  * Returns the string into which warning and error messages are saved,
  * or nil if they are being written to stderr.
  */
-- (NSMutableString*) messages
+- (NSString*) messages
 {
   return messages;
 }
@@ -2235,6 +2236,11 @@ static NSString	*endMarker = @"At end of incremental parse";
       ((xmlParserCtxtPtr)lib)->_private = saxHandler;
     }
   return YES;
+}
+
+- (NSMutableString*) _messages
+{
+  return messages;
 }
 
 - (void) _parseChunk: (NSData*)data
@@ -3121,7 +3127,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  */
 - (void) warning: (NSString*)e
 {
-  NSMutableString	*m = [parser messages];
+  NSMutableString	*m = [parser _messages];
 
   if (m == nil)
     {
@@ -3139,7 +3145,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  */
 - (void) error: (NSString*)e
 {
-  NSMutableString	*m = [parser messages];
+  NSMutableString	*m = [parser _messages];
 
   if (m == nil)
     {
@@ -3157,7 +3163,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
  */
 - (void) fatalError: (NSString*)e
 {
-  NSMutableString	*m = [parser messages];
+  NSMutableString	*m = [parser _messages];
 
   if (m == nil)
     {
