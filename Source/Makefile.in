@@ -375,6 +375,7 @@ NSObjCRuntime.m \
 NSObject.m \
 NSProcessInfo.m \
 NSRange.m \
+NSRunLoop.m \
 NSSet.m \
 NSString.m \
 NSThread.m \
@@ -442,6 +443,7 @@ Foundation/NSObjCRuntime.h \
 Foundation/NSObject.h \
 Foundation/NSProcessInfo.h \
 Foundation/NSRange.h \
+Foundation/NSRunLoop.h \
 Foundation/NSSerialization.h \
 Foundation/NSSet.h \
 Foundation/NSString.h \
