@@ -24,6 +24,14 @@
 #include <config.h>
 #include <Foundation/Foundation.h>
 
+#ifndef HAVE_RINT
+#include <math.h>
+static double rint(double a)
+{
+  return (floor(a+0.5));
+}
+#endif
+
 /*
  * Runtime MacOS-X compatibility flags.
  */

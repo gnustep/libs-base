@@ -592,14 +592,14 @@ GSCheckTasks()
   start_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
   start_info.hStdError  = GetStdHandle(STD_ERROR_HANDLE);
 
-  result = CreateProcess([lpath cString],
+  result = CreateProcess([lpath fileSystemRepresentation],
 			 c_args,
 			 NULL,      /* proc attrs */
 			 NULL,      /* thread attrs */
 			 1,         /* inherit handles */
 			 0,         /* creation flags */
 			 NULL,      /* env block */
-			 [[self currentDirectoryPath] cString],
+			 [[self currentDirectoryPath] fileSystemRepresentation],
 			 &start_info,
 			 &proc_info);
   objc_free(c_args);
@@ -717,7 +717,7 @@ GSCheckTasks()
     }
 
   lpath = [self _fullLaunchPath];
-  executable = [lpath cString];
+  executable = [lpath fileSystemRepresentation];
   args[0] = executable;
 
   for (i = 0; i < ac; i++)
@@ -744,7 +744,7 @@ GSCheckTasks()
     }
   envl[ec] = 0;
 
-  path = [[self currentDirectoryPath] cString];
+  path = [[self currentDirectoryPath] fileSystemRepresentation];
 
   toClose = [NSMutableArray arrayWithCapacity: 3];
   hdl = [self standardInput];

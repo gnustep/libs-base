@@ -124,7 +124,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
 #if defined(__MINGW__)
   HANDLE	fh;
   DWORD		fileLength;
-  DWORD		fileSize;
   DWORD		high;
   DWORD		got;
 #else
@@ -173,7 +172,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
 	thePath, fileLength, strerror(errno));
       return NO;
     }
-  if (!ReadFile(fh, tmp, fileSize, &got, 0))
+  if (!ReadFile(fh, tmp, fileLength, &got, 0))
     {
       if (tmp != 0)
 	{
@@ -183,7 +182,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
 	  return NO;
 	}
     }
-  if (got != fileSize)
+  if (got != fileLength)
     {
       NSZoneFree(zone, tmp);
       CloseHandle(fh);
@@ -617,6 +616,7 @@ failure:
 {
   char	thePath[BUFSIZ*2+8];
   char	theRealPath[BUFSIZ*2];
+  NSString *tmppath;
   FILE	*theFile;
   int	c;
 #if defined(__MINGW__)
@@ -635,9 +635,9 @@ failure:
 #if defined(__MINGW__)
   if (useAuxiliaryFile)
     {
-      path = [path stringByAppendingPathExtension: @"tmp"];
+      tmppath = [path stringByAppendingPathExtension: @"tmp"];
     }
-  if ([path getFileSystemRepresentation: thePath
+  if ([tmppath getFileSystemRepresentation: thePath
 			      maxLength: sizeof(thePath)-1] == NO)
     {
       NSDebugLog(@"Open (%s) attempt failed - bad path", thePath);
@@ -750,6 +750,7 @@ failure:
 	  att = [[mgr fileAttributesAtPath: path
 			      traverseLink: YES] mutableCopy];
 	  IF_NO_GC(TEST_AUTORELEASE(att));
+ 	  [mgr removeFileAtPath: path handler: nil];
 	}
 
       c = rename(thePath, theRealPath);

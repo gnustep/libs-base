@@ -1204,12 +1204,20 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	  GSCheckTasks();
 	  select_return = 0;
 	}
+#ifdef __MINGW__
+      else if (errno == 0)
+        {
+	  /* MinGW often returns an errno == 0. Not sure why */
+	    select_return = 0;
+        }
+#endif
       else
 	{
 	  /* Some exceptional condition happened. */
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
-	  perror ("[NSRunLoop acceptInputForMode: beforeDate: ] select()");
+	  NSLog (@"select() error in -acceptInputForMode:beforeDate: '%s'",
+		strerror(errno));
 	  abort ();
 	}
     }

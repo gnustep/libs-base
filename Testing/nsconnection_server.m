@@ -9,6 +9,8 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include "server.h"
 
+#include "wgetopt.h"
+
 @implementation Server
 
 - (NSData*) authenticationDataForComponents: (NSMutableArray*)components
@@ -402,8 +404,10 @@ int main(int argc, char *argv[], char **env)
   id o = [[NSObject alloc] init];
   NSConnection *c;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+#ifndef __MINGW__
   extern int optind;
   extern char *optarg;
+#endif
 
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
   debug = 0;
