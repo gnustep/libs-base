@@ -111,7 +111,8 @@ typedef struct {
 #endif
 } NSDecimal;
 
-/** Returns whether decimal represents an invalid number. */
+/** Returns whether decimal represents an invalid number (i.e., an "NaN" as
+    might result from an overflow or a division by zero). */
 static inline BOOL
 NSDecimalIsNotANumber(const NSDecimal *decimal)
 {
@@ -144,7 +145,7 @@ GS_EXPORT void
 NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale, NSRoundingMode mode);
 
 /**
- *  Sets the exponents of n1 and n2 to equal one another, adjusting mantissas
+ *  Sets the exponents of n1 and n2 equal to one another, adjusting mantissas
  *  as necessary to preserve values.  This makes certain operations quicker.
  */
 GS_EXPORT NSCalculationError
@@ -199,7 +200,7 @@ NSDecimalPower(NSDecimal *result, const NSDecimal *n, unsigned power, NSRounding
  *  Multiplies n by 10^power and returns result to 38-digit precision.  See the
  *  [(NSDecimalNumberBehaviors)] protocol for a description of mode and the
  *  return value.  The result should be preallocated but can be the same as
- *  n or power.
+ *  n.
  */
 GS_EXPORT NSCalculationError
 NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power, NSRoundingMode mode);

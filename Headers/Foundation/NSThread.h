@@ -113,8 +113,10 @@ GS_EXPORT void GSUnregisterCurrentThread (void);
 /**
  *  Notification posted the first time a new [NSThread] is created or a
  *  separate thread from another library is registered in an application.
- *  Before such a notification has been posted you can assume the application
- *  is in single-threaded mode and locks are not necessary.
+ *  (The initial thread that a program starts with does <em>not</em>
+ *  post this notification.)  Before such a notification has been posted you
+ *  can assume the application is in single-threaded mode and locks are not
+ *  necessary.  Afterwards multiple threads <em>may</em> be running.
  */
 GS_EXPORT NSString	*NSWillBecomeMultiThreadedNotification;
 #define	NSBecomingMultiThreaded NSWillBecomeMultiThreadedNotification
@@ -129,7 +131,8 @@ GS_EXPORT NSString	*NSThreadWillExitNotification;
 #ifndef	NO_GNUSTEP
 
 /**
- *  Notification posted (only in GNUstep) whenever a new thread is started up.
+ *  Notification posted whenever a new thread is started up.  This is a
+ *  GNUstep extension.
  */
 GS_EXPORT NSString	*NSThreadDidStartNotification;
 

@@ -95,8 +95,9 @@ GS_EXPORT NSString * const NSDefaultRunLoopMode;
  */
 
 /**
- * GNUstep extension: enumeration of event types that an [NSRunLoop] watcher
+ * Enumeration of event types that an [NSRunLoop] watcher
  * can watch for.  See [NSRunLoop-addEvent:type:watcher:forMode:].
+ * This is a GNUstep extension.
  <example>
 {
     ET_RDESC,	// Watch for descriptor becoming readable.

@@ -38,8 +38,9 @@ enum {
 /* Public notification */
 
 /**
- *  Notification posted whenever [NSUndoManager] opens or closes an undo group.
- *  The undo manager itself is posted, with no <em>userInfo</em> dictionary.
+ *  Notification posted whenever [NSUndoManager] opens or closes an undo
+ *  group.  The undo manager itself is the notification object, with no
+ *  <em>userInfo</em> dictionary.
  */
 GS_EXPORT NSString *NSUndoManagerCheckpointNotification;
 
