@@ -1,3 +1,9 @@
+Fri Nov 26 19:46:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Headers/Foundation/NSString.h: Tidied and fixed return types for
+	for a few methods.
+	* Source/NSString.m: ditto.
+
 Sun Nov 21  6:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSNotificationQueue.m: Applied patch by Dan Pascu to fix bug

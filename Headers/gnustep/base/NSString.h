@@ -1,5 +1,5 @@
 /* Interface for NSObject for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1999 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
@@ -66,62 +66,62 @@ typedef enum _NSStringEncoding
 /* NB. Must not have an encoding with value zero - so we can use zero to
    tell that a variable that should contain an encoding has not yet been
    initialised */
-		GSUndefinedEncoding = 0,
-                NSASCIIStringEncoding = 1,
-                NSNEXTSTEPStringEncoding = 2,
-                NSJapaneseEUCStringEncoding = 3,
-                NSUTF8StringEncoding = 4,
-                NSISOLatin1StringEncoding = 5,
-                NSSymbolStringEncoding = 6,
-                NSNonLossyASCIIStringEncoding = 7,
-                NSShiftJISStringEncoding = 8,
-                NSISOLatin2StringEncoding = 9,
-                NSUnicodeStringEncoding = 10,
-                NSWindowsCP1251StringEncoding = 11,
-                NSWindowsCP1252StringEncoding = 12,
-                NSWindowsCP1253StringEncoding = 13,
-                NSWindowsCP1254StringEncoding = 14,
-                NSWindowsCP1250StringEncoding = 15,
-                NSISO2022JPStringEncoding = 21,
+  GSUndefinedEncoding = 0,
+  NSASCIIStringEncoding = 1,
+  NSNEXTSTEPStringEncoding = 2,
+  NSJapaneseEUCStringEncoding = 3,
+  NSUTF8StringEncoding = 4,
+  NSISOLatin1StringEncoding = 5,
+  NSSymbolStringEncoding = 6,
+  NSNonLossyASCIIStringEncoding = 7,
+  NSShiftJISStringEncoding = 8,
+  NSISOLatin2StringEncoding = 9,
+  NSUnicodeStringEncoding = 10,
+  NSWindowsCP1251StringEncoding = 11,
+  NSWindowsCP1252StringEncoding = 12,
+  NSWindowsCP1253StringEncoding = 13,
+  NSWindowsCP1254StringEncoding = 14,
+  NSWindowsCP1250StringEncoding = 15,
+  NSISO2022JPStringEncoding = 21,
 // GNUstep additions
-                NSCyrillicStringEncoding = 22
+  NSCyrillicStringEncoding = 22
 
 } NSStringEncoding;
 
 enum {
-                NSOpenStepUnicodeReservedBase = 0xF400
+  NSOpenStepUnicodeReservedBase = 0xF400
 };
 
 @protocol NSString  <NSCoding, NSCopying, NSMutableCopying>
 
 // Creating Temporary Strings
-+ (NSString*) string;
-+ (NSString*) stringWithCharacters: (const unichar*)chars
-   length: (unsigned int)length;
-+ (NSString*) stringWithCString: (const char*)byteString
-   length: (unsigned int)length;
-+ (NSString*) stringWithCString: (const char*) byteString;
-+ (NSString*) stringWithFormat: (NSString*)format,...;
-+ (NSString*) stringWithContentsOfFile:(NSString *)path;
++ (id) string;
++ (id) stringWithCharacters: (const unichar*)chars
+		     length: (unsigned int)length;
++ (id) stringWithCString: (const char*)byteString
+		  length: (unsigned int)length;
++ (id) stringWithCString: (const char*) byteString;
++ (id) stringWithFormat: (NSString*)format,...;
++ (id) stringWithContentsOfFile:(NSString *)path;
 
 // Initializing Newly Allocated Strings
 - (id) initWithCharactersNoCopy: (unichar*)chars
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag;
+			 length: (unsigned int)length
+		   freeWhenDone: (BOOL)flag;
 - (id) initWithCharacters: (const unichar*)chars
-   length: (unsigned int)length;
+		   length: (unsigned int)length;
 - (id) initWithCStringNoCopy: (char*)byteString
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag;
+		      length: (unsigned int)length
+	        freeWhenDone: (BOOL)flag;
 - (id) initWithCString: (const char*)byteString
-   length: (unsigned int)length;
+	        length: (unsigned int)length;
 - (id) initWithCString: (const char*)byteString;
 - (id) initWithString: (NSString*)string;
 - (id) initWithFormat: (NSString*)format,...;
 - (id) initWithFormat: (NSString*)format
-   arguments: (va_list)argList;
+	    arguments: (va_list)argList;
 - (id) initWithData: (NSData*)data
-   encoding: (NSStringEncoding)encoding;
+	   encoding: (NSStringEncoding)encoding;
 - (id) initWithContentsOfFile: (NSString*)path;
 - (id) init;
 
@@ -132,7 +132,7 @@ enum {
 - (unichar) characterAtIndex: (unsigned int)index;
 - (void) getCharacters: (unichar*)buffer;
 - (void) getCharacters: (unichar*)buffer
-   range: (NSRange)aRange;
+		 range: (NSRange)aRange;
 
 // Combining Strings
 - (NSString*) stringByAppendingFormat: (NSString*)format,...;
@@ -147,16 +147,16 @@ enum {
 // Finding Ranges of Characters and Substrings
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet;
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-   options: (unsigned int)mask;
+			    options: (unsigned int)mask;
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
-    options: (unsigned int)mask
-    range: (NSRange)aRange;
+			    options: (unsigned int)mask
+			      range: (NSRange)aRange;
 - (NSRange) rangeOfString: (NSString*)string;
 - (NSRange) rangeOfString: (NSString*)string
-   options: (unsigned int)mask;
+		  options: (unsigned int)mask;
 - (NSRange) rangeOfString: (NSString*)aString
-   options: (unsigned int)mask
-   range: (NSRange)aRange;
+		  options: (unsigned int)mask
+		    range: (NSRange)aRange;
 
 // Determining Composed Character Sequences
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex;
@@ -168,10 +168,10 @@ enum {
 // Identifying and Comparing Strings
 - (NSComparisonResult) compare: (NSString*)aString;
 - (NSComparisonResult) compare: (NSString*)aString	
-   options: (unsigned int)mask;
+		       options: (unsigned int)mask;
 - (NSComparisonResult) compare: (NSString*)aString
-   options: (unsigned int)mask
-   range: (NSRange)aRange;
+		       options: (unsigned int)mask
+			 range: (NSRange)aRange;
 - (BOOL) hasPrefix: (NSString*)aString;
 - (BOOL) hasSuffix: (NSString*)aString;
 - (BOOL) isEqual: (id)anObject;
@@ -180,7 +180,7 @@ enum {
 
 // Getting a Shared Prefix
 - (NSString*) commonPrefixWithString: (NSString*)aString
-   options: (unsigned int)mask;
+			     options: (unsigned int)mask;
 
 // Changing Case
 - (NSString*) capitalizedString;
@@ -192,11 +192,11 @@ enum {
 - (unsigned int) cStringLength;
 - (void) getCString: (char*)buffer;
 - (void) getCString: (char*)buffer
-    maxLength: (unsigned int)maxLength;
+	  maxLength: (unsigned int)maxLength;
 - (void) getCString: (char*)buffer
-   maxLength: (unsigned int)maxLength
-   range: (NSRange)aRange
-   remainingRange: (NSRange*)leftoverRange;
+	  maxLength: (unsigned int)maxLength
+	      range: (NSRange)aRange
+     remainingRange: (NSRange*)leftoverRange;
 
 // Getting Numeric Values
 - (float) floatValue;
@@ -206,7 +206,7 @@ enum {
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding;
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding;
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
-   allowLossyConversion: (BOOL)flag;
+	 allowLossyConversion: (BOOL)flag;
 + (NSStringEncoding) defaultCStringEncoding;
 - (NSString*) description;
 - (NSStringEncoding) fastestEncoding;
@@ -214,9 +214,9 @@ enum {
 
 // Manipulating File System Paths
 - (unsigned int) completePathIntoString: (NSString**)outputName
-   caseSensitive: (BOOL)flag
-   matchesIntoArray: (NSArray**)outputArray
-   filterTypes: (NSArray*)filterTypes;
+			  caseSensitive: (BOOL)flag
+		       matchesIntoArray: (NSArray**)outputArray
+			    filterTypes: (NSArray*)filterTypes;
 - (const char*) fileSystemRepresentation;
 - (BOOL) getFileSystemRepresentation: (char*)buffer maxLength: (unsigned int)l;
 - (NSString*) lastPathComponent;
@@ -252,13 +252,13 @@ enum {
 - (BOOL) writeToFile: (NSString*)filename
 	  atomically: (BOOL)useAuxiliaryFile;
 - (double) doubleValue;
-+ (NSStringEncoding*)availableStringEncodings;
-+ (NSString*)localizedNameOfStringEncoding:(NSStringEncoding)encoding;
-- (void)getLineStart:(unsigned int *)startIndex
-                 end:(unsigned int *)lineEndIndex
-         contentsEnd:(unsigned int *)contentsEndIndex
-            forRange:(NSRange)aRange;
-- (NSRange)lineRangeForRange:(NSRange)aRange;
++ (NSStringEncoding*) availableStringEncodings;
++ (NSString*) localizedNameOfStringEncoding: (NSStringEncoding)encoding;
+- (void) getLineStart: (unsigned int *)startIndex
+                  end: (unsigned int *)lineEndIndex
+          contentsEnd: (unsigned int *)contentsEndIndex
+             forRange: (NSRange)aRange;
+- (NSRange) lineRangeForRange: (NSRange)aRange;
 - (const char*) lossyCString;
 #endif
 
@@ -282,21 +282,10 @@ enum {
 @protocol NSMutableString <NSString>
 
 // Creating Temporary Strings
-+ (NSMutableString*) stringWithCapacity:(unsigned)capacity;
-#if 0
-These methods were already declared above with different return type.
-Including them again here with different return type causes a
-compiler warning. 
-+ (NSMutableString*) stringWithCharacters: (const unichar*)characters
-   length: (unsigned)length;
-+ (NSMutableString*) stringWithCString: (const char*)byteString;
-+ (NSMutableString*) stringWithCString: (const char*)bytes
-   length:(unsigned)length;
-+ (NSMutableString*) stringWithFormat: (NSString*)format, ...;
-#endif 
++ (NSMutableString*) stringWithCapacity: (unsigned)capacity;
 
 // Initializing Newly Allocated Strings
-- initWithCapacity:(unsigned)capacity;
+- (id) initWithCapacity: (unsigned)capacity;
 
 // Modify A String
 - (void) appendFormat: (NSString*)format, ...;
@@ -304,7 +293,7 @@ compiler warning.
 - (void) deleteCharactersInRange: (NSRange)range;
 - (void) insertString: (NSString*)aString atIndex:(unsigned)index;
 - (void) replaceCharactersInRange: (NSRange)range 
-   withString: (NSString*)aString;
+		       withString: (NSString*)aString;
 - (void) setString: (NSString*)aString;
 
 @end
@@ -327,33 +316,33 @@ compiler warning.
 
 #ifndef NO_GNUSTEP
 @interface NSString (GSString)
--(NSString*)stringWithoutSuffix:(NSString*)_suffix;
--(NSString*)stringWithoutPrefix:(NSString*)_prefix;
--(NSString*)stringByReplacingString:(NSString*)_replace
-						 withString:(NSString*)_by;
+- (NSString*) stringWithoutSuffix: (NSString*)_suffix;
+- (NSString*) stringWithoutPrefix: (NSString*)_prefix;
+- (NSString*) stringByReplacingString: (NSString*)_replace
+			   withString: (NSString*)_by;
 @end
 
 @interface NSString(GSTrimming)
--(NSString*)stringByTrimmingLeadWhiteSpaces;
--(NSString*)stringByTrimmingTailWhiteSpaces;
--(NSString*)stringByTrimmingWhiteSpaces;
+- (NSString*) stringByTrimmingLeadWhiteSpaces;
+- (NSString*) stringByTrimmingTailWhiteSpaces;
+- (NSString*) stringByTrimmingWhiteSpaces;
 
--(NSString*)stringByTrimmingLeadSpaces;
--(NSString*)stringByTrimmingTailSpaces;
--(NSString*)stringByTrimmingSpaces;
+- (NSString*) stringByTrimmingLeadSpaces;
+- (NSString*) stringByTrimmingTailSpaces;
+- (NSString*) stringByTrimmingSpaces;
 @end
 
 @interface NSMutableString (GSString)
--(void)removeSuffix:(NSString*)_suffix;
--(void)removePrefix:(NSString*)_prefix;
--(void)replaceString:(NSString*)_replace
-		  withString:(NSString*)_by;
+- (void) removeSuffix: (NSString*)_suffix;
+- (void) removePrefix: (NSString*)_prefix;
+- (void) replaceString: (NSString*)_replace
+	    withString: (NSString*)_by;
 @end
 
 @interface NSMutableString (GSTrimming)
--(void)trimLeadSpaces;
--(void)trimTailSpaces;
--(void)trimSpaces;
+- (void) trimLeadSpaces;
+- (void) trimTailSpaces;
+- (void) trimSpaces;
 @end
 #endif /* NO_GNUSTEP */
 
