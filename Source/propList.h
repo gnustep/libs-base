@@ -131,7 +131,7 @@ typedef	struct	{
 #if	GSPLUNI
   const unichar	*ptr;
 #else
-  const unsigned char	*ptr;
+  const char	*ptr;
 #endif
   unsigned	end;
   unsigned	pos;
@@ -223,8 +223,6 @@ static inline id parseQuotedString(pldata* pld)
     {
       unichar	c = (unichar)pld->ptr[pld->pos];
 
-      if (c == '\n')
-	pld->lin++;
       if (escaped)
 	{
 	  if (escaped == 1 && c == '0')
@@ -252,6 +250,7 @@ static inline id parseQuotedString(pldata* pld)
 		}
 	      else
 		{
+		  pld->pos--;
 		  escaped = 0;
 		}
 	    }
@@ -268,8 +267,12 @@ static inline id parseQuotedString(pldata* pld)
 	      shrink++;
 	    }
 	  else if (c == '"')
-	    break;
+	    {
+	      break;
+	    }
 	}
+      if (c == '\n')
+	pld->lin++;
       pld->pos++;
     }
   if (pld->pos >= pld->end)
@@ -286,7 +289,7 @@ static inline id parseQuotedString(pldata* pld)
 #if	GSPLUNI
       unichar	chars[pld->pos - start - shrink];
 #else
-      unsigned char	chars[pld->pos - start - shrink];
+      char	chars[pld->pos - start - shrink];
 #endif
       unsigned	j;
       unsigned	k;
@@ -327,7 +330,7 @@ static inline id parseQuotedString(pldata* pld)
 		  else
 		    {
 		      escaped = 0;
-		      chars[++k] = c;
+		      j--;
 		      k++;
 		    }
 		}
@@ -352,9 +355,13 @@ static inline id parseQuotedString(pldata* pld)
 	    {
 	      chars[k] = c;
 	      if (c == '\\')
-		escaped = 1;
+		{
+		  escaped = 1;
+		}
 	      else
-		k++;
+		{
+		  k++;
+		}
 	    }
 	}
       obj = (*plAlloc)(plCls, @selector(allocWithZone:), NSDefaultMallocZone());
