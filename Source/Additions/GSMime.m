@@ -1121,6 +1121,7 @@ wordData(NSString *word)
     {
       data = [[NSMutableData alloc] init];
       document = [[GSMimeDocument alloc] init];
+      _defaultEncoding = NSASCIIStringEncoding;
     }
   return self;
 }
@@ -1931,6 +1932,16 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 }
 
 /**
+ * Method to inform the parser that body parts with no content-type
+ * header (which are treated as text/plain) should use the specified
+ * characterset rather than the default (us-ascii)
+ */
+- (void) setDefaultCharset: (NSString*)aName
+{
+  _defaultEncoding = [GSMimeDocument encodingFromCharset: aName];
+}
+
+/**
  * Method to inform the parser that the data it is parsing is an HTTP
  * document rather than true MIME.  This method is called internally
  * if the parser detects an HTTP response line at the start of the
@@ -1943,6 +1954,23 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 @end
 
 @implementation	GSMimeParser (Private)
+/*
+ * Make a new child to parse a subsidiary document
+ */
+- (void) _child
+{
+  DESTROY(child);
+  child = [GSMimeParser new];
+  if (flags.buggyQuotes == 1)
+    {
+      [child setBuggyQuotes: YES];
+    }
+  /*
+   * Tell child parser the default encoding to use.
+   */
+  child->_defaultEncoding = _defaultEncoding;
+}
+
 /*
  * This method takes the raw data of an unfolded header line, and handles
  * Method to inform the parser that the data it is parsing is an HTTP
@@ -2208,16 +2236,24 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
 	      if ([type isEqualToString: @"text"] == YES)
 		{
-		  NSString		*charset;
 		  NSStringEncoding	stringEncoding;
 		  NSString		*string;
 
+		  if (typeInfo == nil)
+		    {
+		      stringEncoding = _defaultEncoding;
+		    }
+		  else
+		    {
+		      NSString	*charset;
+
+		      charset = [typeInfo parameterForKey: @"charset"];
+		      stringEncoding
+			= [GSMimeDocument encodingFromCharset: charset];
+		    }
 		  /*
 		   * Assume that content type is best represented as NSString.
 		   */
-		  charset = [typeInfo parameterForKey: @"charset"];
-		  stringEncoding
-		    = [GSMimeDocument encodingFromCharset: charset];
 		  string = [[NSString alloc] initWithData: data
 						 encoding: stringEncoding];
 		  [document setContent: string];
@@ -2298,17 +2334,28 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	    } 
 	  else if (child == nil)
 	    {
+	      NSString	*cset;
+	     
 	      /*
 	       * Found boundary at the start of the first section.
 	       * Set sectionStart to point immediately after boundary.
 	       */
 	      lineStart += bLength;
 	      sectionStart = lineStart;
-	      child = [GSMimeParser new];
-	      if (flags.buggyQuotes == 1)
+
+	      /*
+	       * If we have an explicit character set for the multipart
+	       * document, we set it as the default characterset inherited
+	       * by any child documents.
+	       */
+	      cset = [[document headerNamed: @"content-type"]
+		parameterForKey: @"charset"];
+	      if (cset != nil)
 		{
-		  [child setBuggyQuotes: YES];
+		  [self setDefaultCharset: cset];
 		}
+
+	      [self _child];
 	    }
 	  else
 	    {
@@ -2372,13 +2419,12 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  if (doc != nil)
 		    {
 		      [document addContent: doc];
+if ([doc headerNamed: @"content-type"] == nil)
+{
+  NSLog(@"Content: %@", [[doc convertToText] dataUsingEncoding: NSUnicodeStringEncoding]);
+}
 		    }
-		  RELEASE(child);
-		  child = [GSMimeParser new];
-		  if (flags.buggyQuotes == 1)
-		    {
-		      [child setBuggyQuotes: YES];
-		    }
+		  [self _child];
 		}
 	      else
 		{
@@ -2386,12 +2432,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		   * Section failed to decode properly!
 		   */
 		  NSLog(@"Failed to decode section of multipart");
-		  RELEASE(child);
-		  child = [GSMimeParser new];
-		  if (flags.buggyQuotes == 1)
-		    {
-		      [child setBuggyQuotes: YES];
-		    }
+		  [self _child];
 		}
 
 	      /*

@@ -173,6 +173,7 @@
   GSMimeDocument	*document;
   GSMimeParser		*child;
   GSMimeCodingContext	*context;
+  NSStringEncoding	_defaultEncoding;
 }
 
 + (GSMimeDocument*) documentFromData: (NSData*)mimeData;
@@ -198,6 +199,7 @@
 - (NSString*) scanSpecial: (NSScanner*)scanner;
 - (NSString*) scanToken: (NSScanner*)scanner;
 - (void) setBuggyQuotes: (BOOL)flag;
+- (void) setDefaultCharset: (NSString*)aName;
 - (void) setIsHttp;
 @end
 

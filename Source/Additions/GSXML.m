@@ -60,6 +60,8 @@
 #include <Foundation/Foundation.h>
 #endif
 
+#undef HAVE_LIBXML_SAX2_H
+
 /* libxml headers */
 #include <libxml/tree.h>
 #include <libxml/entities.h>
@@ -128,6 +130,10 @@ setupCache()
   if (cacheDone == NO)
     {
       cacheDone = YES;
+
+#if	HAVE_LIBXML_SAX2_H
+      xmlDefaultSAXHandlerInit();
+#endif
       NSString_class = [NSString class];
       usSel = @selector(stringWithUTF8String:);
       usImp = [NSString_class methodForSelector: usSel];
@@ -2457,7 +2463,9 @@ static NSString	*endMarker = @"At end of incremental parse";
 + (void) initialize
 {
   if (cacheDone == NO)
-    setupCache();
+    {
+      setupCache();
+    }
 }
 
 /*

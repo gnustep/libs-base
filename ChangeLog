@@ -1,3 +1,11 @@
+2004-05-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSMime.m: Add support for setting default characterset for
+	text elements ... needed for parsing multipart/form-data where the
+	charset is not set in individual parts of the form.
+	* Source/GSXML.h: tempoorarily disable sax2 support ... seem it
+	doesn't work reliably.
+
 2004-05-28  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Check for kvm access and use it if available.
