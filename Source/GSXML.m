@@ -119,10 +119,9 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 @implementation GSXMLDocument : NSObject
 
-+ (void) initialize
++ (GSXMLDocument*) documentFrom: (void*)data
 {
-  if (cacheDone == NO)
-    setupCache();
+  return AUTORELEASE([[self alloc] initFrom: data]);
 }
 
 + (GSXMLDocument*) documentWithVersion: (NSString*)version
@@ -130,25 +129,31 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   return AUTORELEASE([[self alloc] initWithVersion: version]);
 }
 
-- (id) initWithVersion: (NSString*)version
++ (void) initialize
 {
-  void	*data = xmlNewDoc([version cString]);
-
-  if (data == 0)
-    {
-      NSLog(@"Can't create GSXMLDocument object");
-      DESTROY(self);
-    }
-  else if ((self = [self initFrom: data]) != nil)
-    {
-      native = YES;
-    }
-  return self;
+  if (cacheDone == NO)
+    setupCache();
 }
 
-+ (GSXMLDocument*) documentFrom: (void*)data
+- (id) copyWithZone: (NSZone*)z
 {
-  return AUTORELEASE([[self alloc] initFrom: data]);
+  return RETAIN(self);
+}
+
+- (void) dealloc
+{
+  if ((native) && lib != NULL)
+    {
+      xmlFreeDoc(lib);
+    }
+  [super dealloc];
+}
+
+- (id) init
+{
+  NSLog(@"GSXMLDocument: calling -init is not legal");
+  RELEASE(self);
+  return nil;
 }
 
 - (id) initFrom: (void*)data
@@ -173,11 +178,20 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   return self;
 }
 
-- (id) init
+- (id) initWithVersion: (NSString*)version
 {
-  NSLog(@"GSXMLDocument: calling -init is not legal");
-  RELEASE(self);
-  return nil;
+  void	*data = xmlNewDoc([version cString]);
+
+  if (data == 0)
+    {
+      NSLog(@"Can't create GSXMLDocument object");
+      DESTROY(self);
+    }
+  else if ((self = [self initFrom: data]) != nil)
+    {
+      native = YES;
+    }
+  return self;
 }
 
 - (GSXMLNode*) root
@@ -202,15 +216,6 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 - (NSString*) encoding
 {
   return [NSString_class stringWithCString: ((xmlDocPtr)(lib))->encoding];
-}
-
-- (void) dealloc
-{
-  if ((native) && lib != NULL)
-    {
-      xmlFreeDoc(lib);
-    }
-  [super dealloc];
 }
 
 - (void*) lib
@@ -314,6 +319,11 @@ static NSMapTable	*nsNames = 0;
   return AUTORELEASE([[self alloc] initWithNode: node
 					   href: href
 				 	 prefix: prefix]);
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return RETAIN(self);
 }
 
 - (id) initWithNode: (GSXMLNode*)node
@@ -538,6 +548,11 @@ static NSMapTable	*nodeNames = 0;
 + (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
 {
   return AUTORELEASE([[self alloc] initWithNamespace: ns name: name]);
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return RETAIN(self);
 }
 
 - (id) initWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
@@ -828,7 +843,7 @@ static NSMapTable	*nodeNames = 0;
 
 /*
  *
- * GSXMLAttribure
+ * GSXMLAttribute
  *
  */
 
@@ -890,6 +905,11 @@ static NSMapTable	*attrNames = 0;
   NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
 
   return desc;
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return RETAIN(self);
 }
 
 - (int) type

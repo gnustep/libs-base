@@ -49,6 +49,7 @@
   unsigned	length;
   unsigned	pos;
   BOOL		commentsRead;
+  NSString		*declared;	// Where classes were declared.
 
   NSString		*comment;	// Documentation accumulator.
   NSMutableDictionary	*info;		// All information parsed.
@@ -72,6 +73,7 @@
 - (NSMutableDictionary*) parseProtocol;
 - (NSMutableArray*) parseProtocolList;
 - (void) reset;
+- (void) setDeclared: (NSString*)name;
 - (void) setupBuffer;
 - (unsigned) skipBlock;
 - (unsigned) skipComment;

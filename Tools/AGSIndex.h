@@ -31,10 +31,13 @@
   NSString		*base;	// Not retained
   NSString		*unit;	// Not retained
 }
+- (NSString*) globalRef: (NSString*)ref type: (NSString*)type;
 - (void) makeRefs: (GSXMLNode*)node;
 - (void) mergeRefs: (NSDictionary*)more;
 - (NSMutableDictionary*) refs;
 - (void) setGlobalRef: (NSString*)ref type: (NSString*)type;
 - (void) setUnitRef: (NSString*)ref type: (NSString*)type;
+- (NSDictionary*) unitRef: (NSString*)ref type: (NSString*)type;
+- (NSString*) unitRef: (NSString*)ref type: (NSString*)type unit: (NSString*)u;
 @end
 #endif

@@ -41,13 +41,16 @@
 - (void) incIndent;
 - (NSString*) outputDocument: (GSXMLNode*)node;
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf;
+- (void) outputNodeList: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (GSXMLNode*) outputBlock: (GSXMLNode*)node
 			to: (NSMutableString*)buf
 		    inPara: (BOOL)flag;
 - (GSXMLNode*) outputList: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (GSXMLNode*) outputText: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (void) outputUnit: (GSXMLNode*)node to: (NSMutableString*)buf;
+- (NSString*) protocolRef: (NSString*)t;
 - (void) setGlobalRefs: (AGSIndex*)r;
 - (void) setLocalRefs: (AGSIndex*)r;
+- (NSString*) typeRef: (NSString*)t;
 @end
 #endif
