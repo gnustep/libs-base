@@ -4,6 +4,7 @@
 	contains more bytes than unicode string has characters.
 	* Tools/gdomap.c: Suppress unnecessary warnings except under debug.
 	Implement spawning to run as daemon under windoze.
+	* Toolds/gdnc.m: Run as daemon under windoze.
 	* Source/GSTcpPort.m: Fix to stop multiple servers trying to use
 	the same port under windoze.
 	* Source/WindowsFileHandle.m: Fix to stop multiple servers trying to use
