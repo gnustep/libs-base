@@ -192,6 +192,8 @@ static NSMapTable	globalClassMap = 0;
       _keyMap = obj;			// Dictionary describing object
 
       o = [c allocWithZone: _zone];	// Create instance.
+      // Store object in map so that decoding of it cn be self refrential.
+      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
       r = [o initWithCoder: self];
       if (r != o)
 	{
@@ -199,6 +201,7 @@ static NSMapTable	globalClassMap = 0;
 	      willReplaceObject: o
 		     withObject: r];
 	  o = r;
+	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
 	}
       r = [o awakeAfterUsingCoder: self];
       if (r != o)
@@ -207,6 +210,7 @@ static NSMapTable	globalClassMap = 0;
 	      willReplaceObject: o
 		     withObject: r];
 	  o = r;
+	  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
 	}
 
       if (_delegate != nil)
@@ -218,6 +222,7 @@ static NSMapTable	globalClassMap = 0;
 		  willReplaceObject: o
 			 withObject: r];
 	      o = r;
+	      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
 	    }
 	}
 
@@ -236,9 +241,9 @@ static NSMapTable	globalClassMap = 0;
   else
     {
       RETAIN(obj);	// Use the decoded object directly
+      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)obj, index);
     }
 
-  GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)obj, index);
   return obj;
 }
 @end
