@@ -491,7 +491,7 @@ userDirectory(NSString *name, BOOL defaults)
 	    }
 	  if (path == nil)
 	    {
-	      path = [NSHomeDirectory()
+	      path = [NSHomeDirectoryForUser(name)
 		stringByAppendingPathComponent: @"GNUstep"];
 	      fprintf (stderr, 
 		"Warning - GNUSTEP_USER_ROOT is not set "
