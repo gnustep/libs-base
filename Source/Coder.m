@@ -194,23 +194,27 @@ static BOOL debug_coder = NO;
 
 - (void) encodeConditionalObject: (id)anObject
 {
-  /* Apparently, NeXT's implementation doesn't actually 
-     handle *forward* references, (hence it's use of -decodeObject, 
-     instead of decodeObjectAt:.)
-     So here, we only encode the object for real if the object has 
-     already been written. 
-     This means that if you encode a web of objects with the more 
-     powerful GNU Coder, and then try to decode them with NSArchiver,
-     you could get corrupt data on the stack when Coder resolves its 
-     forward references.  I recommend just using the GNU Coder. */
-#if 1
+  /* NeXT's implementation handles *forward* references by running
+     through the entire encoding process twice!  GNU Coding can handle
+     forward references with only one pass.  Therefore, however, GNU
+     Coding cannot return a *forward* reference from -decodeObject, so
+     here, assuming this call to -encodeConditionalObject: is mirrored
+     by a -decodeObject, we don't try to encode *forward*
+     references.
+
+     Note that this means objects that use -encodeConditionalObject:
+     that are encoded in the GNU style might decode a nil where
+     NeXT-style encoded would not.  I don't see this a huge problem;
+     at least not as bad as NeXT coding mechanism that actually causes
+     crashes in situations where GNU's does fine.  Still, if we wanted
+     to fix this, we might be able to build a kludgy fix based on
+     detecting when this would happen, rewinding the stream to the
+     "conditional" point, and encoding again.  Yuck. */
+
   if ([self _coderReferenceForObject: anObject])
     [self encodeObject: anObject];
   else
     [self encodeObject: nil];
-#else
-  [self encodeObjectReference: anObject withName: NULL];
-#endif
 }
 
 - (void) encodeRootObject: (id)rootObject
@@ -220,7 +224,12 @@ static BOOL debug_coder = NO;
 
 - (id) decodeObject
 {
-  /* xxx This won't work for decoding forward references!!! */
+  /* This won't work for decoding GNU-style forward references because
+     once the GNU decoder finds the object later in the decoding, it
+     will back-patch by storing the id in &o... &o will point to some
+     weird location on the stack!  This is why we make the GNU
+     implementation of -encodeConditionalObject: not encode forward
+     references. */
   id o;
   [self decodeObjectAt: &o withName: NULL];
   return o;
