@@ -255,7 +255,8 @@ static BOOL debug_binary_coder;
 	break;
       }
     default:
-      [self error:"Unrecognized Type %s", type];
+      [NSException raise: NSGenericException
+		   format: @"Unrecognized type %s", type];
     }
 }
 
@@ -274,7 +275,9 @@ static BOOL debug_binary_coder;
   if (encoded_type != *type 
       && !((encoded_type=='c' || encoded_type=='C') 
 	   && (*type=='c' || *type=='C')))
-    [self error:"Expected type \"%c\", got type \"%c\"", *type, encoded_type];
+    [NSException raise: NSGenericException
+		 format @"Expected type \"%c\", got type \"%c\"",
+		 *type, encoded_type];
 
   switch (encoded_type)
     {
@@ -327,7 +330,8 @@ static BOOL debug_binary_coder;
 	char *buf;
 	[self decodeValueOfCType:@encode(char*) at:&buf withName:NULL];
 	if (sscanf(buf, "%f", (float*)d) != 1)
-	  [self error:"expected float, got %s", buf];
+	  [NSException raise: NSGenericException
+		       format: @"expected float, got %s", buf];
 	(*objc_free)(buf);
 	break;
       }
@@ -336,7 +340,8 @@ static BOOL debug_binary_coder;
 	char *buf;
 	[self decodeValueOfCType:@encode(char*) at:&buf withName:NULL];
 	if (sscanf(buf, "%lf", (double*)d) != 1)
-	  [self error:"expected double, got %s", buf];
+	  [NSException raise: NSGenericException
+		       format: @"expected double, got %s", buf];
 	(*objc_free)(buf);
 	break;
       }
@@ -384,7 +389,8 @@ static BOOL debug_binary_coder;
 	break;
       }
     default:
-      [self error:"Unrecognized Type %s", type];
+      [NSException raise: NSGenericException
+		   format: @"Unrecognized Type %s", type];
     }
 
   if (debug_binary_coder)
