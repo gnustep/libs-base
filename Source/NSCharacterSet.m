@@ -21,77 +21,131 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#include <Foundation/NSCharacterSet.h>
+#include <Foundation/NSBitmapCharSet.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSBundle.h>
+#include <Foundation/NSData.h>
 
+/* FIXME: Where should bitmaps go? Maybe should be defined with configure */
+#ifndef BITMAP_PATH
+#define BITMAP_PATH @"/usr/local/share/objects"
+#endif
 
 @implementation NSCharacterSet
 
+/* Provide a default object for allocation */
++ allocWithZone:(NSZone *)zone
+{
+  return NSAllocateObject([NSBitmapCharSet self], 0, zone);
+}
+
 // Creating standard character sets
+
++ (NSData *)_bitmapForSet:(NSString *)setname
+{
+  NSString *path;
+
+  path = [NSBundle pathForResource:setname
+			ofType:@".dat"
+			inDirectory:BITMAP_PATH
+			withVersion:0];
+  /* This is for testing purposes */
+  if (path == nil || [path length] == 0)
+    {
+      path = [NSBundle pathForResource:setname
+			ofType:@".dat"
+			inDirectory:@"../share"
+			withVersion:0];
+    }
+
+  if (path == nil || [path length] == 0)
+    {
+      [NSException raise:NSGenericException
+	  format:@"Could not find bitmap file %s", [setname cString]];
+      /* NOT REACHED */
+    }
+
+  return [NSData dataWithContentsOfFile:path];
+}
+
 
 + (NSCharacterSet *)alphanumericCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"alphanumCharSet"];
+
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)controlCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"controlCharSet"];
+
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)decimalDigitCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"decimalCharSet"];
+
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)decomposableCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"decomposableCharSet"];
+
+  fprintf(stderr, "Warning: Decomposable set not yet fully specified\n");
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)illegalCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"illegalCharSet"];
+
+  fprintf(stderr, "Warning: Illegal set not yet fully specified\n");
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)letterCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"lettercharCharSet"];
+
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)lowercaseLetterCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"lowercaseCharSet"];
+
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)nonBaseCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"nonbaseCharSet"];
+
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)uppercaseLetterCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"uppercaseCharSet"];
+
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)whitespaceAndNewlineCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"whitespaceandnlCharSet"];
+
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 + (NSCharacterSet *)whitespaceCharacterSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSData *data = [self _bitmapForSet:@"whitespaceCharSet"];
+
+  return [self characterSetWithBitmapRepresentation:data];
 }
 
 
@@ -99,123 +153,159 @@
 
 + (NSCharacterSet *)characterSetWithBitmapRepresentation:(NSData *)data
 {
-  [self notImplemented:_cmd];
-  return 0;
+  return [[[NSBitmapCharSet alloc] initWithBitmap:data] autorelease];
 }
 
 + (NSCharacterSet *)characterSetWithCharactersInString:(NSString *)aString
 {
-  [self notImplemented:_cmd];
-  return 0;
+  int   i, length;
+  char *bytes;
+  NSMutableData *bitmap = [NSMutableData dataWithLength:BITMAP_SIZE];
+
+  if (!aString)
+    {
+      [NSException raise:NSInvalidArgumentException
+	  format:@"Creating character set with nil string"];
+      /* NOT REACHED */
+    }
+
+  length = [aString length];
+  bytes  = [bitmap mutableBytes];
+  for (i=0; i < length; i++)
+    {
+      unichar letter = [aString characterAtIndex:i];
+      SETBIT(bytes[letter/8], letter % 8);
+    }
+
+  return [self characterSetWithBitmapRepresentation:bitmap];
 }
 
 + (NSCharacterSet *)characterSetWithRange:(NSRange)aRange
 {
-  [self notImplemented:_cmd];
-  return 0;
+  int   i;
+  char *bytes;
+  NSMutableData *bitmap = [NSMutableData dataWithLength:BITMAP_SIZE];
+
+  if (NSMaxRange(aRange) > UNICODE_SIZE)
+    {
+      [NSException raise:NSInvalidArgumentException
+          format:@"Specified range exceeds character set"];
+      /* NOT REACHED */
+    }
+
+  bytes = (char *)[bitmap mutableBytes];
+  for (i=aRange.location; i < NSMaxRange(aRange); i++)
+      SETBIT(bytes[i/8], i % 8);
+
+  return [self characterSetWithBitmapRepresentation:bitmap];
 }
 
-
-/* Other instance methods - only the first TWO must be implemented by all 
-   subclasses.  There is an abstract implementation of the inverted set.
-*/
 - (NSData *)bitmapRepresentation
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
 - (BOOL)characterIsMember:(unichar)aCharacter
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
   return 0;
 }
 
 - (NSCharacterSet *)invertedSet
 {
-  [self notImplemented:_cmd];
-  return 0;
+  int   i, length;
+  char *bytes;
+  NSMutableData *bitmap = [[self bitmapRepresentation] mutableCopy];
+
+  length = [bitmap length];
+  bytes = [bitmap mutableBytes];
+  for (i=0; i < length; i++)
+      bytes[i] = ~bytes[i];
+
+  return [[self class] characterSetWithBitmapRepresentation:bitmap];
 }
 
 
 // NSCopying, NSMutableCopying
-/* deepening is done by concrete subclasses */
-- deepen
-{
-    return self;
-}
-
 - (id)copyWithZone:(NSZone *)zone
 {
   if (NSShouldRetainWithZone(self, zone))
       return [self retain];
   else
-      return [[super copyWithZone:zone] deepen];
+      return [super copyWithZone:zone];
 }
 
 - (id)mutableCopyWithZone:(NSZone *)zone
 {
-  NSMutableCharacterSet *copy;
-  copy = [[NSMutableCharacterSet allocWithZone:zone] init];
-  [copy formUnionWithCharacterSet:self];
-  return copy;
+  NSData *bitmap;
+  bitmap = [self bitmapRepresentation];
+  return [[NSMutableBitmapCharSet allocWithZone:zone] initWithBitmap:bitmap];
 }
 
 @end
 
 @implementation NSMutableCharacterSet
 
+/* Provide a default object for allocation */
++ allocWithZone:(NSZone *)zone
+{
+  return NSAllocateObject([NSMutableBitmapCharSet self], 0, zone);
+}
+
+/* Override this from NSCharacterSet to create the correct class */
++ (NSCharacterSet *)characterSetWithBitmapRepresentation:(NSData *)data
+{
+  return [[[NSMutableBitmapCharSet alloc] initWithBitmap:data] autorelease];
+}
+
 /* Mutable subclasses must implement ALL of these methods.  */
 - (void)addCharactersInRange:(NSRange)aRange
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void)addCharactersInString:(NSString *)aString
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void)formUnionWithCharacterSet:(NSCharacterSet *)otherSet
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void)formIntersectionWithCharacterSet:(NSCharacterSet *)otherSet
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void)removeCharactersInRange:(NSRange)aRange
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void)removeCharactersInString:(NSString *)aString
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 - (void)invert
 {
-  [self notImplemented:_cmd];
+  [self subclassResponsibility:_cmd];
 }
 
 // NSCopying, NSMutableCopying
-/* deepening is done by concrete subclasses */
-- deepen
-{
-    return self;
-}
-
 - (id)copyWithZone:(NSZone *)zone
 {
-  return [[super copyWithZone:zone] deepen];
+  NSData *bitmap;
+  bitmap = [self bitmapRepresentation];
+  return [[NSBitmapCharSet allocWithZone:zone] initWithBitmap:bitmap];
 }
 
 - (id)mutableCopyWithZone:(NSZone *)zone
 {
-  return [[super copyWithZone:zone] deepen];
+  return [super mutableCopyWithZone:zone];
 }
 
 @end
