@@ -33,7 +33,7 @@
       userInfo: info
 {
   [super init];
-  _name = [name retain];
+  _name = [name copy];
   _object = [object retain];
   _info = [info retain];
   return self;
@@ -94,7 +94,6 @@
   if (NSShouldRetainWithZone (self, zone))
     return [self retain];
 
-  /* xxx How deep should the copy go?  Should we copy _name, etc.? */
   return [[[self class] allocWithZone: zone]
 	   initWithName: _name
 	   object: _object
