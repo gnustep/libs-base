@@ -1,3 +1,7 @@
+2004-08-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Accept iso-10646-ucs-2
+
 2004-08-25 Fred Kiefer <FredKiefer@gmx.de>
 
 	* Tools/make_strings/GNUmakefile: Include config.mak to be
@@ -27,7 +31,8 @@
 	* Source/GSHTTPURLHandle.m:
 	* Source/NSURLHandle.m: Add new property keys for setting certificate
 	information for https. Stopgap until we can clone newer MacOS-X
-	features.
+	features.  Add support for persistent connections for better
+	performance when posting repeatedly to the same server.
 
 2004-08-23 Richard Frith-Macdonald <rfm@gnu.org>
 
