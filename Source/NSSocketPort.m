@@ -49,6 +49,9 @@
 #include <winsock2.h>
 #include <wininet.h>
 #define close closesocket
+#define	SOCKET	int
+#define	SOCKET_ERROR	-1
+#define	INVALID_SOCKET	-1
 #endif /* __MINGW__ */
 
 
@@ -58,17 +61,11 @@
  *   NSPort which implements Distributed Objects communication between
  *   hosts on a network.  However, the GNUstep distributed objects system's 
  *   NSPort class uses TCP/IP for all of its communication.  The GNUstep
- *   <code>NSSocketPort</code>, then, is useful as a convenient method to
- *   create and encapsulate BSD sockets:
+ *   <code>NSSocketPort</code>, then, is useful only as a method to
+ *   create and encapsulate BSD sockets. However, the GNUstep [NSFileHandle]
+ *   extensions for networking provide a richer and easier to use mechanism
+ *   than that provided by the NSSocketPort class.
  * </p>
- * <example>
- *   int fileDesc;
- *   NSFileHandle *smtpHandle;
- *   
- *   fileDesc = [[NSSocketPort alloc] initRemoteWithTCPPort: 25
- *                                       host: @"mail.example.com"];
- *   smtpHandle = [[NSFileHandle alloc] initWithFileDescriptor: fileDesc];
- * </example>
  */
 @implementation NSSocketPort
 
@@ -143,29 +140,30 @@
   int s = -1;
 
   if (addrData == nil)
-  {
-    NSDebugMLLog(@"NSSocketPort", @"Nil value passed for address.");
-    goto iWPFAFailed;
-  }
+    {
+      NSDebugMLLog(@"NSSocketPort", @"Nil value passed for address.");
+      goto iWPFAFailed;
+    }
 
   s = socket(family, type, protocol);
-  if (s == -1)
-  {
-    NSLog(@"socket: %s", GSLastErrorStr(errno));
-    goto iWPFAFailed;
-  }
+  if (s == INVALID_SOCKET)
+    {
+      NSLog(@"socket: %s", GSLastErrorStr(errno));
+      goto iWPFAFailed;
+    }
 
-  if (bind(s, (struct sockaddr *)[addrData bytes], [addrData length]) == -1)
-  {
-    NSLog(@"bind: %s", GSLastErrorStr(errno));
-    goto iWPFAFailed;
-  }
+  if (bind(s, (struct sockaddr *)[addrData bytes], [addrData length])
+    == SOCKET_ERROR)
+    {
+      NSLog(@"bind: %s", GSLastErrorStr(errno));
+      goto iWPFAFailed;
+    }
 
-  if (listen(s, SOMAXCONN) == -1)
-  {
-    NSLog(@"listen: %s", GSLastErrorStr(errno));
-    goto iWPFAFailed;
-  }
+  if (listen(s, SOMAXCONN) == SOCKET_ERROR)
+    {
+      NSLog(@"listen: %s", GSLastErrorStr(errno));
+      goto iWPFAFailed;
+    }
 
   return [self initWithProtocolFamily: family
                            socketType: type
@@ -214,10 +212,10 @@ iWPFAFailed:
 
   address = [[[NSHost hostWithName: hostname] address] cString];
   if (address == NULL)
-  {
-    RELEASE(self);
-    return nil;
-  }
+    {
+      RELEASE(self);
+      return nil;
+    }
 
   /* Clear memory, as recommended. */
   memset(&sa, 0, sizeof(struct sockaddr_in));
@@ -229,10 +227,10 @@ iWPFAFailed:
 
   addrData = [NSData dataWithBytes: &sa length: sizeof(struct sockaddr_in)];
   if (addrData == nil)
-  {
-    RELEASE(self);
-    return nil;
-  }
+    {
+      RELEASE(self);
+      return nil;
+    }
 
   return [self initRemoteWithProtocolFamily: PF_INET
                                  socketType: SOCK_STREAM
@@ -252,19 +250,19 @@ iWPFAFailed:
                             address: (NSData *)addrData
 {
   if (addrData == nil)
-  {
-    NSDebugMLLog(@"NSSocketPort", @"Nil value passed for address.");
-    RELEASE(self);
-    return nil;
-  }
+    {
+      NSDebugMLLog(@"NSSocketPort", @"Nil value passed for address.");
+      RELEASE(self);
+      return nil;
+    }
 
   _socket = socket(family, type, protocol);
-  if (_socket == -1)
-  {
-    NSLog(@"socket: %s", GSLastErrorStr(errno));
-    RELEASE(self);
-    return nil;
-  }
+  if (_socket == INVALID_SOCKET)
+    {
+      NSLog(@"socket: %s", GSLastErrorStr(errno));
+      RELEASE(self);
+      return nil;
+    }
 
   _protocolFamily = family;
   _socketType = type;
@@ -283,18 +281,18 @@ iWPFAFailed:
   int len = SOCK_MAXADDRLEN;
 
   if (_remoteAddrData != nil)
-  {
-    return _remoteAddrData;
-  }
+    {
+      return _remoteAddrData;
+    }
   else if (getsockname(_socket, (struct sockaddr *)&sa, &len) == 0)
-  {
-    return [NSData dataWithBytes: &sa length: len];
-  }
+    {
+      return [NSData dataWithBytes: &sa length: len];
+    }
   else
-  { 
-    NSLog(@"getsockname: %s", GSLastErrorStr(errno));
-    return nil;
-  }
+    { 
+      NSLog(@"getsockname: %s", GSLastErrorStr(errno));
+      return nil;
+    }
 }
 
 /**
@@ -357,23 +355,23 @@ iWPFAFailed:
   if (NSShouldRetainWithZone(self, zone) == YES)
     return RETAIN(self);
   else
-  {
-    NSSocketPort *copy = NSAllocateObject([self class], 0, zone);
-
-    if (copy != nil)
     {
-      /* Insulate against NSPort changes. */
-      [copy setDelegate: [self delegate]];
+      NSSocketPort *copy = NSAllocateObject([self class], 0, zone);
 
-      copy->_socket = dup(_socket);
-      copy->_protocolFamily = _protocolFamily;
-      copy->_socketType = _socketType;
-      copy->_protocol = _protocol;
-      _remoteAddrData = [_remoteAddrData copyWithZone: zone];
+      if (copy != nil)
+	{
+	  /* Insulate against NSPort changes. */
+	  [copy setDelegate: [self delegate]];
+
+	  copy->_socket = dup(_socket);
+	  copy->_protocolFamily = _protocolFamily;
+	  copy->_socketType = _socketType;
+	  copy->_protocol = _protocol;
+	  _remoteAddrData = [_remoteAddrData copyWithZone: zone];
+	}
+
+      return RETAIN(copy);
     }
-
-    return RETAIN(copy);
-  }
 }
 
 /* NSCoding */

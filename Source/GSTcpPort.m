@@ -51,7 +51,9 @@
 #include <unistd.h>		/* for gethostname() */
 #endif
 
-#ifndef __MINGW__
+#ifdef __MINGW__
+#define close closesocket
+#else
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -94,11 +96,12 @@
 #if	defined(__svr4__)
 #include <sys/stropts.h>
 #endif
-#endif /* !__MINGW__ */
 
-#ifdef __MINGW__
-#define close closesocket
-#endif
+#define	SOCKET	int
+#define	SOCKET_ERROR	-1
+#define	INVALID_SOCKET	-1
+
+#endif /* !__MINGW__ */
 
 static	BOOL	multi_threaded = NO;
 
@@ -189,7 +192,7 @@ typedef enum {
 
 @interface GSTcpHandle : NSObject <GCFinalization, RunLoopEvents>
 {
-  int			desc;		/* File descriptor for I/O.	*/
+  SOCKET		desc;		/* File descriptor for I/O.	*/
   unsigned		wItem;		/* Index of item being written.	*/
   NSMutableData		*wData;		/* Data object being written.	*/
   unsigned		wLength;	/* Ammount written so far.	*/
@@ -213,7 +216,7 @@ typedef enum {
   NSString		*defaultAddress;
 }
 
-+ (GSTcpHandle*) handleWithDescriptor: (int)d;
++ (GSTcpHandle*) handleWithDescriptor: (SOCKET)d;
 - (BOOL) connectToPort: (GSTcpPort*)aPort beforeDate: (NSDate*)when;
 - (int) descriptor;
 - (void) invalidate;
@@ -238,7 +241,7 @@ typedef enum {
   NSHost		*host;		/* OpenStep host for this port.	*/
   NSString		*address;	/* Forced internet address.	*/
   gsu16			portNum;	/* TCP port in host byte order.	*/
-  int			listener;	/* Descriptor to listen on.	*/
+  SOCKET		listener;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
 }
 
@@ -251,7 +254,7 @@ typedef enum {
 
 - (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send;
 - (NSString*) address;
-- (void) getFds: (int*)fds count: (int*)count;
+- (void) getFds: (SOCKET*)fds count: (int*)count;
 - (GSTcpHandle*) handleForPort: (GSTcpPort*)recvPort beforeDate: (NSDate*)when;
 - (void) handlePortMessage: (NSPortMessage*)m;
 - (NSHost*) host;
@@ -391,7 +394,7 @@ static Class	runLoopClass;
   return nil;
 }
 
-+ (GSTcpHandle*) handleWithDescriptor: (int)d
++ (GSTcpHandle*) handleWithDescriptor: (SOCKET)d
 {
   GSTcpHandle	*handle;
 #ifdef __MINGW__
@@ -400,14 +403,14 @@ static Class	runLoopClass;
   int		e;
 #endif /* __MINGW__ */
 
-  if (d < 0)
+  if (d == INVALID_SOCKET)
     {
       NSLog(@"illegal descriptor (%d) for Tcp Handle", d);
       return nil;
     }
 #ifdef __MINGW__
   dummy = 1;
-  if (ioctlsocket(d, FIONBIO, &dummy) < 0)
+  if (ioctlsocket(d, FIONBIO, &dummy) == SOCKET_ERROR)
     {
       NSLog(@"unable to set non-blocking mode on %d - %s",
 	d, GSLastErrorStr(errno));
@@ -551,7 +554,8 @@ static Class	runLoopClass;
     }
   sockAddr.sin_port = GSSwapHostI16ToBig([aPort portNumber]);
 
-  if (connect(desc, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) < 0)
+  if (connect(desc, (struct sockaddr*)&sockAddr, sizeof(sockAddr))
+    == SOCKET_ERROR)
     {
 #ifdef __MINGW__
       if (WSAGetLastError() != WSAEWOULDBLOCK)
@@ -655,7 +659,7 @@ static Class	runLoopClass;
     desc, inet_ntoa(sockAddr.sin_addr), ntohs(sockAddr.sin_port)];
 }
 
-- (int) descriptor
+- (SOCKET) descriptor
 {
   return desc;
 }
@@ -723,7 +727,7 @@ static Class	runLoopClass;
    * If we have been invalidated (desc < 0) then we should ignore this
    * event and remove ourself from the runloop.
    */
-  if (desc < 0)
+  if (desc == INVALID_SOCKET)
     {
       NSRunLoop	*l = [runLoopClass currentRunLoop];
 
@@ -776,11 +780,7 @@ static Class	runLoopClass;
        * Now try to fill the buffer with data.
        */
       bytes = [rData mutableBytes];
-#ifdef __MINGW__
       res = recv(desc, bytes + rLength, want - rLength, 0);
-#else
-      res = read(desc, bytes + rLength, want - rLength);
-#endif
       if (res <= 0)
 	{
 	  if (res == 0)
@@ -1100,11 +1100,7 @@ static Class	runLoopClass;
 	    {
 	      NSData	*d = newDataWithEncodedPort([self recvPort]);
 
-#ifdef __MINGW__
 	      len = send(desc, [d bytes], [d length], 0);
-#else
-	      len = write(desc, [d bytes], [d length]);
-#endif
 	      if (len == (int)[d length])
 		{
 		  RELEASE(defaultAddress);
@@ -1147,11 +1143,7 @@ static Class	runLoopClass;
 	    }
 	  b = [wData bytes];
 	  l = [wData length];
-#ifdef __MINGW__
 	  res = send(desc, b + wLength,  l - wLength, 0);
-#else
-	  res = write(desc, b + wLength,  l - wLength);
-#endif
 	  if (res < 0)
 	    {
 	      if (errno != EINTR && errno != EAGAIN)
@@ -1483,8 +1475,10 @@ static unsigned	wordAlign;
 
       if (shouldListen == YES && [thisHost isEqual: aHost])
 	{
+#ifndef	BROKEN_SO_REUSEADDR
 	  int	reuse = 1;	/* Should we re-use ports?	*/
-	  int	desc;
+#endif
+	  SOCKET desc;
 	  BOOL	addrOk = YES;
 	  struct sockaddr_in	sockaddr;
 
@@ -1521,7 +1515,8 @@ static unsigned	wordAlign;
 	      NSLog(@"Bad address (%@) specified for listening port", addr);
 	      DESTROY(port);
 	    }
-	  else if ((desc = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+	  else if ((desc = socket(AF_INET, SOCK_STREAM, PF_UNSPEC))
+	    == INVALID_SOCKET)
 	    {
 	      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
 	      DESTROY(port);
@@ -1543,20 +1538,21 @@ static unsigned	wordAlign;
 	    }
 #endif
 	  else if (bind(desc, (struct sockaddr *)&sockaddr,
-	    sizeof(sockaddr)) < 0)
+	    sizeof(sockaddr)) == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to bind to port %s:%d - %s",
 		inet_ntoa(sockaddr.sin_addr), number, GSLastErrorStr(errno));
 	      (void) close(desc);
               DESTROY(port);
 	    }
-	  else if (listen(desc, 5) < 0)
+	  else if (listen(desc, 5) == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
-	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &i) < 0)
+	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &i)
+	    == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
 	      (void) close(desc);
@@ -1693,10 +1689,10 @@ static unsigned	wordAlign;
  * This is a callback method used by the NSRunLoop class to determine which
  * descriptors to watch for the port.
  */
-- (void) getFds: (int*)fds count: (int*)count
+- (void) getFds: (SOCKET*)fds count: (int*)count
 {
   NSMapEnumerator	me;
-  int			sock;
+  SOCKET		sock;
   GSTcpHandle		*handle;
   id			recvSelf;
 
@@ -1737,8 +1733,10 @@ static unsigned	wordAlign;
 - (GSTcpHandle*) handleForPort: (GSTcpPort*)recvPort beforeDate: (NSDate*)when
 {
   NSMapEnumerator	me;
-  int			sock;
+  SOCKET		sock;
+#ifndef	BROKEN_SO_REUSEADDR
   int			opt = 1;
+#endif
   GSTcpHandle		*handle = nil;
 
   M_LOCK(myLock);
@@ -1761,7 +1759,7 @@ static unsigned	wordAlign;
    * Not found ... create a new handle.
    */
   handle = nil;
-  if ((sock = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+  if ((sock = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
     {
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
     }
@@ -1916,7 +1914,7 @@ static unsigned	wordAlign;
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-  int		desc = (int)(gsaddr)extra;
+  SOCKET	desc = (SOCKET)(gsaddr)extra;
   GSTcpHandle	*handle;
 
   if (desc == listener)
@@ -1925,7 +1923,7 @@ static unsigned	wordAlign;
       int			size = sizeof(sockAddr);
 
       desc = accept(listener, (struct sockaddr*)&sockAddr, &size);
-      if (desc < 0)
+      if (desc == INVALID_SOCKET)
         {
 	  NSDebugMLLog(@"NSPort", @"accept failed - handled in other thread?");
         }

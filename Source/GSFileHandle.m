@@ -67,6 +67,10 @@
 #include <sys/filio.h>
 #endif
 #include <netdb.h>
+
+#define	SOCKET	int
+#define	SOCKET_ERROR	-1
+#define	INVALID_SOCKET	-1
 #endif /* __MINGW__ */
 
 #include <string.h>
@@ -123,7 +127,11 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 #endif
   if (isSocket)
     {
+#if defined(__MINGW__)
+      len = recv((SOCKET)_get_osfhandle(descriptor), buf, len, 0);
+#else
       len = recv(descriptor, buf, len, 0);
+#endif
     }
   else
     {
@@ -147,7 +155,11 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 #endif
   if (isSocket)
     {
+#if defined(__MINGW__)
+      len = send((SOCKET)_get_osfhandle(descriptor), buf, len, 0);
+#else
       len = send(descriptor, buf, len, 0);
+#endif
     }
   else
     {
@@ -298,7 +310,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       [self setNonBlocking: wasNonBlocking];
       if (closeOnDealloc == YES)
 	{
+#if defined(__MINGW__)
+	  if (isSocket)
+	    closesocket((SOCKET)_get_osfhandle(descriptor));
+	  else
+	    close(descriptor);
+#else
 	  close(descriptor);
+#endif
 	  descriptor = -1;
 	}
     }
@@ -679,7 +698,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   static NSString	*esocks = nil;
   static NSString	*dsocks = nil;
   BOOL			beenHere = NO;
-  int			net;
+  SOCKET		net;
   struct sockaddr_in	sin;
   NSString		*shost = nil;
   NSString		*sport = nil;
@@ -785,21 +804,25 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
     }
 
-  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
     {
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
       RELEASE(self);
       return nil;
     }
 
+#if defined(__MINGW__)
+  self = [self initWithNativeHandle: (void*)net closeOnDealloc: YES];
+#else
   self = [self initWithFileDescriptor: net closeOnDealloc: YES];
+#endif
   if (self)
     {
       NSMutableDictionary*	info;
 
       isSocket = YES;
       [self setNonBlocking: YES];
-      if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) < 0)
+      if (connect(net, (struct sockaddr*)&sin, sizeof(sin)) == SOCKET_ERROR)
 	{
 #if defined(__MINGW__)
 	  if (WSAGetLastError() != WSAEWOULDBLOCK)
@@ -858,11 +881,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 		    protocol: (NSString*)p
 {
 #ifndef	BROKEN_SO_REUSEADDR
-  int	status = 1;
+  int		status = 1;
 #endif
-  int	net;
+  SOCKET	net;
   struct sockaddr_in	sin;
-  int	size = sizeof(sin);
+  int		size = sizeof(sin);
 
   if (getAddr(a, s, p, &sin) == NO)
     {
@@ -871,7 +894,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return  nil;
     }
 
-  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) == INVALID_SOCKET)
     {
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
       RELEASE(self);
@@ -888,32 +911,48 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
 #endif
 
-  if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
+  if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) == SOCKET_ERROR)
     {
       NSLog(@"unable to bind to port %s:%d - %s", inet_ntoa(sin.sin_addr),
 	GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
+#if defined(__MINGW__)
+      (void) closesocket(net);
+#else
       (void) close(net);
+#endif
       RELEASE(self);
       return nil;
     }
 
-  if (listen(net, 5) < 0)
+  if (listen(net, 5) == SOCKET_ERROR)
     {
       NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
+#if defined(__MINGW__)
+      (void) closesocket(net);
+#else
       (void) close(net);
+#endif
       RELEASE(self);
       return nil;
     }
 
-  if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
+  if (getsockname(net, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
     {
       NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
+#if defined(__MINGW__)
+      (void) closesocket(net);
+#else
       (void) close(net);
+#endif
       RELEASE(self);
       return nil;
     }
 
+#if defined(__MINGW__)
+  self = [self initWithNativeHandle: (void*)net closeOnDealloc: YES];
+#else
   self = [self initWithFileDescriptor: net closeOnDealloc: YES];
+#endif
   if (self)
     {
       isSocket = YES;
@@ -1081,7 +1120,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 #endif
 
 #if defined(__MINGW__)
-      if (_fstat(desc, &sbuf) < 0)
+      if (_fstat(desc, &sbuf) != 0)
 #else
       if (fstat(desc, &sbuf) < 0)
 #endif
@@ -1111,9 +1150,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	   * This is probably a socket ... try
 	   * using a socket specific call and see if that fails.
 	   */
-	  if (ioctlsocket(desc, FIONBIO, &nbio) == 0)
+	  if (ioctlsocket((SOCKET)_get_osfhandle(desc), FIONBIO, &nbio) == 0)
 	    {
 	      wasNonBlocking = (nbio == 0) ? NO : YES;
+	    }
+	  else
+	    {
+	      isSocket = NO; // maybe special file desc. like std in/out/err?
 	    }
 	}
 #else
@@ -1148,7 +1191,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initWithNativeHandle: (void*)hdl
 {
 #if defined(__MINGW__)
-  return [self initWithFileDescriptor: _open_osfhandle((int)hdl, 0)
+  return [self initWithFileDescriptor: _open_osfhandle((SOCKET)hdl, 0)
 		       closeOnDealloc: NO];
 #else
   return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: NO];
@@ -1158,7 +1201,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
 #if defined(__MINGW__)
-  return [self initWithFileDescriptor: _open_osfhandle((int)hdl, 0)
+  return [self initWithFileDescriptor: _open_osfhandle((SOCKET)hdl, 0)
 		       closeOnDealloc: flag];
 #else
   return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: flag];
@@ -1268,7 +1311,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (void*) nativeHandle
 {
 #if defined(__MINGW__)
-  return (void*)_get_osfhandle(descriptor);
+  return (void*)(SOCKET)_get_osfhandle(descriptor);
 #else
   return (void*)descriptor;
 #endif
@@ -1625,7 +1668,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      (void)closesocket(descriptor);
+      (void)closesocket((SOCKET)_get_osfhandle(descriptor));
     }
 #else
   (void)close(descriptor);
@@ -1660,12 +1703,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void) synchronizeFile
 {
-#if	!defined(__MINGW__)
   if (isStandardFile)
     {
+#if defined(__MINGW__)
+      (void)_commit(descriptor);
+#else
       (void)sync();
-    }
 #endif
+    }
 }
 
 - (void) truncateFileAtOffset: (unsigned long long)pos
@@ -1800,18 +1845,32 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
+#if defined(__MINGW__)
+	  [l removeEvent: (void*)(gsaddr)(SOCKET)_get_osfhandle(descriptor)
+		    type: ET_RDESC
+		 forMode: [modes objectAtIndex: i]
+		     all: YES];
+#else
 	  [l removeEvent: (void*)(gsaddr)descriptor
 		    type: ET_RDESC
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
+#endif
         }
     }
   else
     {
+#if defined(__MINGW__)
+      [l removeEvent: (void*)(gsaddr)(SOCKET)_get_osfhandle(descriptor)
+		type: ET_RDESC
+	     forMode: NSDefaultRunLoopMode
+		 all: YES];
+#else
       [l removeEvent: (void*)(gsaddr)descriptor
 		type: ET_RDESC
 	     forMode: NSDefaultRunLoopMode
 		 all: YES];
+#endif
     }
 }
 
@@ -1840,18 +1899,32 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
+#if defined(__MINGW__)
+	  [l removeEvent: (void*)(gsaddr)(SOCKET)_get_osfhandle(descriptor)
+		    type: ET_WDESC
+		 forMode: [modes objectAtIndex: i]
+		     all: YES];
+#else
 	  [l removeEvent: (void*)(gsaddr)descriptor
 		    type: ET_WDESC
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
+#endif
         }
     }
   else
     {
+#if defined(__MINGW__)
+      [l removeEvent: (void*)(gsaddr)(SOCKET)_get_osfhandle(descriptor)
+		type: ET_WDESC
+	     forMode: NSDefaultRunLoopMode
+		 all: YES];
+#else
       [l removeEvent: (void*)(gsaddr)descriptor
 		type: ET_WDESC
 	     forMode: NSDefaultRunLoopMode
 		 all: YES];
+#endif
     }
 }
 
@@ -1871,19 +1944,33 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       for (i = 0; i < [modes count]; i++)
 	{
+#if defined(__MINGW__)
+	  [l addEvent: (void*)(gsaddr)(SOCKET)_get_osfhandle(descriptor)
+		 type: ET_RDESC
+	      watcher: self
+	      forMode: [modes objectAtIndex: i]];
+#else
 	  [l addEvent: (void*)(gsaddr)descriptor
 		 type: ET_RDESC
 	      watcher: self
 	      forMode: [modes objectAtIndex: i]];
+#endif
         }
       [readInfo setObject: modes forKey: NSFileHandleNotificationMonitorModes];
     }
   else
     {
+#if defined(__MINGW__)
+      [l addEvent: (void*)(gsaddr)(SOCKET)_get_osfhandle(descriptor)
+	     type: ET_RDESC
+	  watcher: self
+	  forMode: NSDefaultRunLoopMode];
+#else
       [l addEvent: (void*)(gsaddr)descriptor
 	     type: ET_RDESC
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
+#endif
     }
 }
 
@@ -1908,18 +1995,32 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 	  for (i = 0; i < [modes count]; i++)
 	    {
+#if defined(__MINGW__)
+	      [l addEvent: (void*)(gsaddr)(SOCKET)_get_osfhandle(descriptor)
+		     type: ET_WDESC
+		  watcher: self
+		  forMode: [modes objectAtIndex: i]];
+#else
 	      [l addEvent: (void*)(gsaddr)descriptor
 		     type: ET_WDESC
 		  watcher: self
 		  forMode: [modes objectAtIndex: i]];
+#endif
 	    }
 	}
       else
 	{
+#if defined(__MINGW__)
+	  [l addEvent: (void*)(gsaddr)(SOCKET)_get_osfhandle(descriptor)
+		 type: ET_WDESC
+	      watcher: self
+	      forMode: NSDefaultRunLoopMode];
+#else
 	  [l addEvent: (void*)(gsaddr)descriptor
 		 type: ET_WDESC
 	      watcher: self
 	      forMode: NSDefaultRunLoopMode];
+#endif
 	}
     }
 }
@@ -1944,11 +2045,19 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (operation == NSFileHandleConnectionAcceptedNotification)
 	{
 	  struct sockaddr_in	buf;
+#if defined(__MINGW__)
+	  SOCKET		desc;
+#else
 	  int			desc;
+#endif
 	  int			blen = sizeof(buf);
 
+#if defined(__MINGW__)
+	  desc = accept((SOCKET)_get_osfhandle(descriptor), (struct sockaddr*)&buf, &blen);
+#else
 	  desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
-	  if (desc < 0)
+#endif
+	  if (desc == INVALID_SOCKET)
 	    {
 	      NSString	*s;
 
@@ -1962,8 +2071,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      struct sockaddr_in	sin;
 	      int			size = sizeof(sin);
 
+#if defined(__MINGW__)
+	      h = [[[self class] alloc] initWithNativeHandle: (void*)desc
+						closeOnDealloc: YES];
+#else
 	      h = [[[self class] alloc] initWithFileDescriptor: desc
 						closeOnDealloc: YES];
+#endif
 	      h->isSocket = YES;
 	      getpeername(desc, (struct sockaddr*)&sin, &size);
 	      [h setAddr: &sin];
@@ -2041,8 +2155,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  int	result;
 	  int	len = sizeof(result);
 
+#if defined(__MINGW__)
+	  if (getsockopt((SOCKET)_get_osfhandle(descriptor), SOL_SOCKET, SO_ERROR,
+	    (char*)&result, &len) == 0 && result != 0)
+#else
 	  if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
 	    (char*)&result, &len) == 0 && result != 0)
+#endif
 	    {
 	      NSString	*s;
 
@@ -2132,10 +2251,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 #if defined(__MINGW__)
       unsigned long	dummy;
 
+      if (isSocket != YES)
+        return;
+
       if (flag)
 	{
 	  dummy = 1;
-	  if (ioctlsocket(descriptor, FIONBIO, &dummy) < 0)
+	  if (ioctlsocket((SOCKET)_get_osfhandle(descriptor), FIONBIO, &dummy)
+	    == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to set non-blocking mode - %s",
 		GSLastErrorStr(errno));
@@ -2144,7 +2267,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       else
 	{
 	  dummy = 0;
-	  if (ioctlsocket(descriptor, FIONBIO, &dummy) < 0)
+	  if (ioctlsocket((SOCKET)_get_osfhandle(descriptor), FIONBIO, &dummy)
+	    == SOCKET_ERROR)
 	    {
 	      NSLog(@"unable to set blocking mode - %s",
 		GSLastErrorStr(errno));
