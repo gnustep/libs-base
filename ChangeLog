@@ -1,3 +1,7 @@
+2003-10-24  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Try to use libffi if ffcall not found.
+
 2003-10-24  David Ayers  <d.ayers@inode.at>
 
 	* Source/GSArray.m:
