@@ -433,15 +433,16 @@ con_callback (id prx)
 
   localObj = [CallbackClient new];
   [prx registerClient: localObj];
-  k = 10000;
+  k = 1000;
   for (j = 0; j < k; j++)
     {
+      CREATE_AUTORELEASE_POOL(arp);
       [prx unregisterClient: localObj];
       [prx registerClient: localObj];
       [prx tryClientCallback];
       if (j < 10 || j %10 == 0)
 	printf("repeated client registration and callback %d\n", j);
-
+      RELEASE(arp);
     }
   printf("repeated client registration and callback %d\n", j);
   RELEASE(localObj);
@@ -493,7 +494,7 @@ int main (int argc, char *argv[], char **env)
     switch (c) 
       {
       case 'd':
-	debug = 1;
+	debug++;
 	break;
       case 't':
 	type_test = TYPE_TEST;
@@ -537,6 +538,13 @@ int main (int argc, char *argv[], char **env)
     connect_attempts = 100000;
   else
     connect_attempts = 1;
+
+  if (debug > 0)
+    {
+      [NSConnection setDebug: debug];
+      [NSDistantObject setDebug: debug];
+      [NSObject enableDoubleReleaseCheck: YES];
+    }
 
   while (connect_attempts-- > 0)
     {

@@ -1,3 +1,18 @@
+Mon Oct 27 13:37:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Rewrite/simplify methods dealing with DO
+	retain/release and handling interaction with NSDistantObject.
+	Attempts to make retain/release simpler and more reliable by
+	(among other things) counting the nujmber of times an object is
+	vended by reference.  Much care taken to try to ensure that
+	backward compatibility is not broken ... hope it is ok.
+	* Source/NSDistantObject.m: Modified to use slightly simpler 
+	interaction with NSConnecxtion, to include count of times an
+	object is vended by reference and to ensure thread safety.
+	* Testing/nsconnection_client.m: Make the -d  option produce detailed
+	debug output.
+	* Testing/nsconnection_server.m: ditto.
+
 Mon Oct 27 13:24:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile: build new lock classes

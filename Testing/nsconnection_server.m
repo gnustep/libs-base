@@ -476,7 +476,7 @@ int main(int argc, char *argv[], char **env)
     switch (i) 
       {
       case 'd':
-	debug = 1;
+	debug++;
 	break;
       case 't':
 	timeout = atoi(optarg);;
@@ -497,6 +497,12 @@ int main(int argc, char *argv[], char **env)
   [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
 #endif
 
+  if (debug > 0)
+    {
+      [NSDistantObject setDebug: debug];
+      [NSConnection setDebug: debug];
+      [NSObject enableDoubleReleaseCheck: YES];
+    }
   c = [NSConnection defaultConnection];
   [c setRootObject: l];
 
