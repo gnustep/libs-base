@@ -373,13 +373,20 @@ static char	**_gnu_noobjc_env = NULL;
       abort();
     }
 
-  /* get the environment vectors */
-  vectors = kvm_getenvv(kptr, proc_ptr, 0);
-  if (!vectors)
-    {
-      fprintf(stderr, "Error: libkvm does not return an environment for the current process\n");
-      abort();
-    }
+  /* get the environment vectors the normal way, since this always works.
+     On FreeBSD, the only other way is via /proc, and in later versions
+     /proc is not mounted.  */
+  {
+    extern char **environ;
+    vectors = environ;
+    if (!vectors)
+      {
+	fprintf(stderr, "Error: for some reason, environ == NULL "
+		"during GNUstep base initialization\n"
+		"Please check the linking process\n");
+	abort();
+      }
+  }
 
   /* copy the environment strings */
   for(count = 0; vectors[count]; count++)
