@@ -521,7 +521,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	}
     }
 
-  if (self == _mainBundle) 
+  if (self == _mainBundle || self == _gnustep_bundle)
     {
       theClass = NSClassFromString(className);
       if (theClass && [[self class] bundleForClass:theClass] != _mainBundle)
@@ -546,7 +546,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
   class_name = [[self infoDictionary] objectForKey: @"NSPrincipalClass"];
 
-  if (self == _mainBundle) 
+  if (self == _mainBundle || self == _gnustep_bundle) 
     {
       _codeLoaded = YES;
       if (class_name)
@@ -566,11 +566,22 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 - (BOOL) load
 {
+  if (self == _mainBundle || self == _gnustep_bundle) 
+    {
+      _codeLoaded = YES;
+      return YES;
+    }
+
   [load_lock lock];
   if (!_codeLoaded) 
     {
       NSString* object;
       object = [[self infoDictionary] objectForKey: @"NSExecutable"];
+      if (object == nil || [object length] == 0)
+	{
+	  [load_lock unlock];
+	  return NO;
+	}
       object = bundle_object_name(_path, object);
       _loadingBundle = self;
       _bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
