@@ -28,6 +28,7 @@
 
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSObject.h>
+
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSAttributedString.h>
@@ -38,14 +39,20 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSConnection.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSDateFormatter.h>
 #include <Foundation/NSData.h>
-#include <Foundation/NSDebug.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSDecimalNumber.h>
 #include <Foundation/NSDistantObject.h>
+#include <Foundation/NSDistributedLock.h>
+#include <Foundation/NSDistributedNotificationCenter.h>
+#include <Foundation/NSEnumerator.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSFormatter.h>
 #include <Foundation/NSHashTable.h>
+#include <Foundation/NSGeometry.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSLock.h>
@@ -54,15 +61,23 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPortCoder.h>
+#include <Foundation/NSPortMessage.h>
+#include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSProtocolChecker.h>
+#include <Foundation/NSProxy.h>
+#include <Foundation/NSRange.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSScanner.h>
+#include <Foundation/NSSerialization.h>
 #include <Foundation/NSSet.h>
+#include <Foundation/NSString.h>
 #include <Foundation/NSTask.h>
-#include <Foundation/NSTimer.h>
 #include <Foundation/NSThread.h>
-#include <Foundation/NSValue.h>
+#include <Foundation/NSTimer.h>
 #include <Foundation/NSUndoManager.h>
 #include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSValue.h>
+#include <Foundation/NSZone.h>
 
 #endif /* __Foundation_h_GNUSTEP_BASE_INCLUDE */

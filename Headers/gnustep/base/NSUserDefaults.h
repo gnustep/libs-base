@@ -62,7 +62,7 @@ extern NSString *NSCurrencyString;
 extern NSString *NSDecimalDigits;
 extern NSString *NSAMPMDesignation;
 
-/* NeXTSTEP 4.0 includes some more language-dependent constants: 
+#ifndef	STRICT_OPENSTEP
 extern NSString *NSHourNameDesignations;
 extern NSString *NSYearMonthWeekDesignations;
 extern NSString *NSEarlierTimeDesignations;
@@ -72,9 +72,7 @@ extern NSString *NSNextDayDesignations;
 extern NSString *NSNextNextDayDesignations;
 extern NSString *NSPriorDayDesignations;
 extern NSString *NSDateTimeOrdering;
-
-Perhaps one day they will be part of OpenStep and we should implement them.
-*/
+#endif
 
 /* Get Information about a User */
 extern NSString *NSUserName(void);

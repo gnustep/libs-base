@@ -305,6 +305,7 @@ NSCountedSet.m \
 NSConnection.m \
 NSData.m \
 NSDate.m \
+NSDateFormatter.m \
 NSDebug.m \
 NSDictionary.m \
 NSDistantObject.m \
@@ -406,6 +407,7 @@ Foundation/NSConcreteValue.h \
 Foundation/NSConnection.h \
 Foundation/NSData.h \
 Foundation/NSDate.h \
+Foundation/NSDateFormatter.h \
 Foundation/NSDebug.h \
 Foundation/NSDictionary.h \
 Foundation/NSDistantObject.h \

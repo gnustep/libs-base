@@ -1,3 +1,17 @@
+Wed Dec  2 20:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/GNUmakefile: Added NSDateFormatter
+	* src/Makefile.postamle: Bugfix in installation - was adding service
+	entries when not needed.
+	* src/NSDate.m: natural language support.
+	* src/externs.m: natural language support.
+	* src/include/Foundation.h: Added missing headers
+	* src/include/NSDate.h: natural language stuff.
+	* src/include/NSDateFormatter.h: Contributed by camile
+	* src/include/NSDecimalNumber.h: header - no implementation yet.
+	* src/include/NSDecimal.h: header - no implementation yet.
+	* src/include/NSUserDewfaults.h: natural language stuff.
+
 Tue Dec  1 09:31:59 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/Makefile.postamble: new variable INSTALL_ROOT_DIR, such that

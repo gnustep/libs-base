@@ -47,9 +47,6 @@ typedef double NSTimeInterval;
 
 + (id) date;
 + (id) dateWithString: (NSString*)description;
-+ (id) dateWithNaturalLanguageString: (NSString *)string;
-+ (id) dateWithNaturalLanguageString: (NSString *)string
-                              locale: (NSDictionary *)localeDictionary;
 + (id) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds;
 + (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds;
 + (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds;
@@ -60,7 +57,6 @@ typedef double NSTimeInterval;
 - (id) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
 		  sinceDate: (NSDate*)anotherDate;
 - (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
-- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 
 // Converting to NSCalendar
@@ -112,14 +108,22 @@ typedef double NSTimeInterval;
 + (NSDictionary *)abbreviationDictionary;
 - (NSString *)timeZoneName;
 
-/* Returns an dictionary that maps abbreviations to the array
-   containing all the time zone names that use the abbreviation.
-   Not in OpenStep. */
-+ (NSDictionary *)abbreviationMap;
-
 //Getting Arrays of Time Zones
 + (NSArray *)timeZoneArray;
 - (NSArray *)timeZoneDetailArray;
+
+#ifndef	STRICT_OPENSTEP
++ (id) dateWithNaturalLanguageString: (NSString *)string;
++ (id) dateWithNaturalLanguageString: (NSString *)string
+                              locale: (NSDictionary *)localeDictionary;
+- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
+#endif
+
+#ifndef	NO_GNUSTEP
+/* Returns an dictionary that maps abbreviations to the array
+   containing all the time zone names that use the abbreviation.  */
++ (NSDictionary *)abbreviationMap;
+#endif
 
 @end
 

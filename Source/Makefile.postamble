@@ -63,7 +63,7 @@ after-install::
 	  services=$(INSTALL_ROOT_DIR)/etc/services.add; \
 	  echo "GNUstep addons for /etc/services written to $$services"; \
 	fi; \
-	if [ "`fgrep gdomap $$services >/dev/null`" = "" ]; then \
+	if [ "`fgrep gdomap $$services 2>/dev/null`" = "" ]; then \
 	    set -x; \
 	    echo "gdomap 538/tcp # GNUstep distrib objects" >> $$services; \
 	    echo "gdomap 538/udp # GNUstep distrib objects" >> $$services; \
