@@ -1,6 +1,6 @@
 /* A demonstration of writing and reading with NSArchiver */
 
-#if 0
+#if 1
 
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSString.h>
@@ -126,7 +126,7 @@ int main()
   /* Write it to a file */
   {
     id d = [[NSMutableData alloc] init];
-    id a = [[Coder alloc] initForWritingWithMutableData: d];
+    id a = [[Archiver alloc] initForWritingWithMutableData: d];
 
     [a startEncodingInterconnectedObjects];
     [a encodeObject: r1 withName:@"one"];
@@ -147,7 +147,7 @@ int main()
   printf("\nReading:\n");
   {
     id d;
-    id a = [Coder newReadingFromFile:@"./nsarchiver.dat"];
+    id a = [Unarchiver newReadingFromFile:@"./nsarchiver.dat"];
 
     [a startDecodingInterconnectedObjects];
     [a decodeObjectAt: &r1 withName:&d];
