@@ -22,6 +22,11 @@ Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
  	Use NSBundle's pathForResource:ofType:inDirectory method properly.
   	(Reported by Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>.)
 
+Sat Mar 29 00:43:18 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+	* src/NSZone.m: New e-mail address.  Default default zone
+	alignment problems fixed.
+
 Sun Mar 23 19:55:19 1997  Mark Kettenis  <kettenis@phys.uva.nl>
 
 	* src/Makefile.in: Update config.h.in in $(srcdir)/src/include.
