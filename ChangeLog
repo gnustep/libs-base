@@ -1,3 +1,8 @@
+2001-06-11  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in (enable-openssl): New option, disabled by default.
+	* Documentation/install.texi: document it.
+
 2001-06-09  Adam Fedor  <fedor@gnu.org>
 
 	* Source/externs.m: Change definition of exception strings and some
