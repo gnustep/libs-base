@@ -1,3 +1,8 @@
+2004-04-09  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
+
+	* Source/NSTask.m ([NSConcreteWindowsTask -launch]): Set stdin/stdout/stderr
+	file to values provided by the user (Fix #8417)
+
 2004-04-08  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/autogsdoc.m (main): Move var decl to begginning of block
