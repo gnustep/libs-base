@@ -3119,6 +3119,10 @@ static NSCharacterSet	*tokenSet = nil;
     return @"windows-1253";
   if (enc == NSWindowsCP1254StringEncoding)
     return @"windows-1254";
+  if (enc == NSBIG5StringEncoding)
+    return @"big5";
+  if (enc == NSShiftJISStringEncoding)
+    return @"shift_JIS";
   return @"utf-8";
 }
 
@@ -3370,6 +3374,10 @@ static NSCharacterSet	*tokenSet = nil;
     return NSUnicodeStringEncoding;
   if ([charset isEqualToString: @"iso-10646"] == YES)
     return NSUnicodeStringEncoding;
+  if ([charset isEqualToString: @"big5"] == YES)
+    return NSBIG5StringEncoding;
+  if ([charset isEqualToString: @"shift_JIS"] == YES)
+    return NSShiftJISStringEncoding;
 
   return NSASCIIStringEncoding;		// Default character set.
 }
