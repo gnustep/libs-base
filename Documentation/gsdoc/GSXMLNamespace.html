@@ -1,12 +1,12 @@
 <html><head>
-<title>GSXMLNamespace</title>
+ <title>GSXMLNamespace</title>
 </head>
 <body>
-<a href="GSXML.html">[Up]</a>
-<a href="GSXMLNode.html">[Next]</a>
+<a href ="GSXML.html">[Up]</a>
+<a href ="GSXMLNode.html">[Next]</a>
 <h1>GSXMLNamespace</h1>
-<h3>Authors</h3>
-<dl>
+<h3>Authors </h3>
+ <dl>
 <dt>Michael Pakhantsov
 <dd>
 <dt>Richard Frith-Macdonald
@@ -14,32 +14,32 @@
 </dl>
 <p>Version: 0.2</p>
 <p>Date: 15 September, 2000</p>
-<h2><a name="cont-0">GSXMLNamespace</a></h2>
-<h2><a name="GSXMLNamespace">GSXMLNamespace</a></h2>
-<p><b>Declared in:</b> GSXML.h</p>
-<p><b>Inherits from:</b> <A HREF="NSObject.html#NSObject">NSObject</A></p>
+<h2><a name ="cont-0">GSXMLNamespace</a></h2>
+<h2><a name ="GSXMLNamespace">GSXMLNamespace</a></h2>
+<p><b>Declared in: </b> GSXML.h</p>
+<p><b>Inherits from: </b> NSObject</p>
 <hr>
 
              XML namespace.
           
-<h2>Instance Variables</h2>
+<h2>Instance Variables </h2>
 <ul>
 </ul>
-<h2>Methods</h2>
+<h2>Methods </h2>
 <ul>
-<li><a href="GSXMLNamespace.html#method-3">+namespaceFrom:</a>
-<li><a href="GSXMLNamespace.html#method-0">+namespaceWithNode:prefix:href:</a>
-<li><a href="GSXMLNamespace.html#method-7">-href</a>
-<li><a href="GSXMLNamespace.html#method-4">-initFrom:</a>
-<li><a href="GSXMLNamespace.html#method-2">-initWithNode:prefix:href:</a>
-<li><a href="GSXMLNamespace.html#method-5">-lib</a>
-<li><a href="GSXMLNamespace.html#method-9">-next</a>
-<li><a href="GSXMLNamespace.html#method-6">-prefix</a>
-<li><a href="GSXMLNamespace.html#method-8">-type</a>
+<li><a href ="GSXMLNamespace.html#method-3">+namespaceFrom:</a>
+<li><a href ="GSXMLNamespace.html#method-0">+namespaceWithNode:prefix:href:</a>
+<li><a href ="GSXMLNamespace.html#method-7">-href</a>
+<li><a href ="GSXMLNamespace.html#method-4">-initFrom:</a>
+<li><a href ="GSXMLNamespace.html#method-2">-initWithNode:prefix:href:</a>
+<li><a href ="GSXMLNamespace.html#method-5">-lib</a>
+<li><a href ="GSXMLNamespace.html#method-9">-next</a>
+<li><a href ="GSXMLNamespace.html#method-6">-prefix</a>
+<li><a href ="GSXMLNamespace.html#method-8">-type</a>
 </ul>
-<hr><h2>Class Methods</h2>
-<h3><a name="method-0">namespaceWithNode:prefix:href:</a></h3>
-+ (<A HREF="GSXMLNamespace.html#GSXMLNamespace">GSXMLNamespace</A>*) <b>namespaceWithNode:</b> (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*)node <b>prefix:</b> (<A HREF="NSString.html#NSString">NSString</A>*)prefix <b>href:</b> (<A HREF="NSString.html#NSString">NSString</A>*)href;<br>
+<hr><h2>Class Methods </h2>
+<h3><a name ="method-0">namespaceWithNode:prefix:href:</a></h3>
++ (GSXMLNamespace*) <b>namespaceWithNode:</b> (GSXMLNode*)node <b>prefix:</b> (NSString*)prefix <b>href:</b> (NSString*)href;<br>
 
 	    <p>
 
@@ -48,7 +48,7 @@
 		with a similar prefix than an existing one present on this node.
 	    </p>
 
-            <a name="label-1">example</a>
+            <a name ="label-1">example </a>
 <pre>
 
 
@@ -73,13 +73,13 @@
              node1   &#60;mac-os-property:node1/>
              node2   &#60;node2 xmlns="mac-os-property"/>
              
-</pre>
+ </pre>
 
 
           
-<hr>
-<h3><a name="method-3">namespaceFrom:</a></h3>
-+ (<A HREF="GSXMLNamespace.html#GSXMLNamespace">GSXMLNamespace</A>*) <b>namespaceFrom:</b> (void*)data;<br>
+ <hr>
+<h3><a name ="method-3">namespaceFrom:</a></h3>
++ (GSXMLNamespace*) <b>namespaceFrom:</b> (void*)data;<br>
 
           <p>
 
@@ -87,10 +87,10 @@
           </p>
 
           
-<hr>
-<hr><h2>Instances Methods</h2>
-<h3><a name="method-2">initWithNode:prefix:href:</a></h3>
-- (id) <b>initWithNode:</b> (<A HREF="GSXMLNode.html#GSXMLNode">GSXMLNode</A>*)node <b>prefix:</b> (<A HREF="NSString.html#NSString">NSString</A>*)prefix <b>href:</b> (<A HREF="NSString.html#NSString">NSString</A>*)href;<br>
+ <hr>
+<hr><h2>Instances Methods </h2>
+<h3><a name ="method-2">initWithNode:prefix:href:</a></h3>
+- (id) <b>initWithNode:</b> (GSXMLNode*)node <b>prefix:</b> (NSString*)prefix <b>href:</b> (NSString*)href;<br>
 
           <p>
 
@@ -100,9 +100,9 @@
           </p>
 
           
-<hr>
-<h3><a name="method-4">initFrom:</a></h3>
-<b>This is the designated initialiser</b><br>
+ <hr>
+<h3><a name ="method-4">initFrom:</a></h3>
+<b>This is the designated initialiser </b><br>
 - (id) <b>initFrom:</b> (void*)data;<br>
 
           <p>
@@ -111,8 +111,8 @@
           </p>
 
           
-<hr>
-<h3><a name="method-5">lib</a></h3>
+ <hr>
+<h3><a name ="method-5">lib</a></h3>
 - (void*) <b>lib</b>;<br>
 
           <p>
@@ -121,9 +121,9 @@
           </p>
 
           
-<hr>
-<h3><a name="method-6">prefix</a></h3>
-- (<A HREF="NSString.html#NSString">NSString</A>*) <b>prefix</b>;<br>
+ <hr>
+<h3><a name ="method-6">prefix</a></h3>
+- (NSString*) <b>prefix</b>;<br>
 
           <p>
 
@@ -131,9 +131,9 @@
           </p>
 
           
-<hr>
-<h3><a name="method-7">href</a></h3>
-- (<A HREF="NSString.html#NSString">NSString</A>*) <b>href</b>;<br>
+ <hr>
+<h3><a name ="method-7">href</a></h3>
+- (NSString*) <b>href</b>;<br>
 
           <p>
 
@@ -141,8 +141,8 @@
           </p>
 
           
-<hr>
-<h3><a name="method-8">type</a></h3>
+ <hr>
+<h3><a name ="method-8">type</a></h3>
 - (GSXMLNamespaceType) <b>type</b>;<br>
 
           <p>
@@ -151,9 +151,9 @@
           </p>
 
           
-<hr>
-<h3><a name="method-9">next</a></h3>
-- (<A HREF="GSXMLNamespace.html#GSXMLNamespace">GSXMLNamespace</A>*) <b>next</b>;<br>
+ <hr>
+<h3><a name ="method-9">next</a></h3>
+- (GSXMLNamespace*) <b>next</b>;<br>
 
           <p>
 
@@ -161,7 +161,7 @@
           </p>
 
           
-<hr>
+ <hr>
 </body>
 
-</html>
+ </html>

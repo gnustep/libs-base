@@ -819,15 +819,53 @@ static NSString	*endMarker = @"At end of incremental parse";
     setupCache();
 }
 
-+ (GSXMLParser*) parser: (id)source
++ (GSXMLParser*) parser
 {
-  return AUTORELEASE([[self alloc] initWithSAXHandler: nil source: source]);
+  return AUTORELEASE([[self alloc] initWithSAXHandler: nil]);
+}
+
++ (GSXMLParser*) parserWithContentsOfFile: (NSString*)path
+{
+  return AUTORELEASE([[self alloc] initWithSAXHandler: nil
+				   withContentsOfFile: path]);
+}
+
++ (GSXMLParser*) parserWithContentsOfURL: (NSURL*)url
+{
+  return AUTORELEASE([[self alloc] initWithSAXHandler: nil
+				    withContentsOfURL: url]);
+}
+
++ (GSXMLParser*) parserWithData: (NSData*)data
+{
+  return AUTORELEASE([[self alloc] initWithSAXHandler: nil
+					     withData: data]);
 }
 
 + (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
-			       source: (id)source
 {
-  return AUTORELEASE([[self alloc] initWithSAXHandler: handler source: source]);
+  return AUTORELEASE([[self alloc] initWithSAXHandler: handler]);
+}
+
++ (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
+		   withContentsOfFile: (NSString*)path
+{
+  return AUTORELEASE([[self alloc] initWithSAXHandler: handler
+				   withContentsOfFile: path]);
+}
+
++ (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
+		    withContentsOfURL: (NSURL*)url
+{
+  return AUTORELEASE([[self alloc] initWithSAXHandler: handler
+				    withContentsOfURL: url]);
+}
+
++ (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
+			     withData: (NSData*)data
+{
+  return AUTORELEASE([[self alloc] initWithSAXHandler: handler
+					     withData: data]);
 }
 
 + (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding
@@ -891,38 +929,70 @@ static NSString	*endMarker = @"At end of incremental parse";
   return xmlEncodingString;
 }
 
-- (id) initWithSAXHandler: (GSSAXHandler*)handler source: (id)source
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
 {
-  self = [super init];
-
+  if (handler != nil && [handler isKindOfClass: [GSSAXHandler class]] == NO)
+    {
+      NSLog(@"Bad GSSAXHandler object passed to GSXMLParser initialiser");
+      RELEASE(self);
+      return nil;
+    }
+  self = [self init];
   if (self != nil)
     {
-      if ([source isKindOfClass: [NSData class]])
-        {
-        }
-      else if ([source isKindOfClass: NSString_class])
-        {
-        }
-      else if ([source isKindOfClass: [NSURL class]])
-        {
-          NSLog(@"NSURL source not currently implemented");
-	  RELEASE(self);
-	  return nil;
-        }
-      else if ([source isKindOfClass: [NSURL class]])
-        {
-          NSLog(@"NSURL source not currently implemented");
-        }
-      else
-        {
-          NSLog(@"source must be NSString, NSData, NSURL or nil");
-	  RELEASE(self);
-	  return nil;
-        }
-      src = [source copy];
-      saxHandler = handler;
+      saxHandler = RETAIN(handler);
     }
+  return self;
+}
 
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
+       withContentsOfFile: (NSString*)path
+{
+  self = [self initWithSAXHandler: handler];
+  if (self != nil)
+    {
+      if (path == nil || [path isKindOfClass: [NSString class]] == NO)
+        {
+          NSLog(@"Bad file path passed to initialize GSXMLParser");
+	  RELEASE(self);
+	  return nil;
+        }
+      src = [path copy];
+    }
+  return self;
+}
+
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
+	withContentsOfURL: (NSURL*)url
+{
+  self = [self initWithSAXHandler: handler];
+  if (self != nil)
+    {
+      if (url == nil || [url isKindOfClass: [NSURL class]] == NO)
+        {
+          NSLog(@"Bad NSURL passed to initialize GSXMLParser");
+	  RELEASE(self);
+	  return nil;
+        }
+      src = [url copy];
+    }
+  return self;
+}
+
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
+		 withData: (NSData*)data
+{
+  self = [self initWithSAXHandler: handler];
+  if (self != nil)
+    {
+      if (data == nil || [data isKindOfClass: [NSData class]] == NO)
+        {
+          NSLog(@"Bad NSData passed to initialize GSXMLParser");
+	  RELEASE(self);
+	  return nil;
+        }
+      src = [data copy];
+    }
   return self;
 }
 
@@ -1061,6 +1131,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 - (void) dealloc
 {
   RELEASE(src);
+  RELEASE(saxHandler);
   if (lib != NULL)
     {
       xmlFreeDoc(((xmlParserCtxtPtr)lib)->myDoc);

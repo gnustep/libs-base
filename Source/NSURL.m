@@ -40,17 +40,18 @@ function may be incorrect
 #include <Foundation/NSConcreteNumber.h>
 #include <Foundation/NSURLHandle.h>
 #include <Foundation/NSURL.h>
+#include <Foundation/NSRunLoop.h>
 
-NSString* NSURLFileScheme = @"file";
+NSString	*NSURLFileScheme = @"file";
 
-NSString* NSURLPartKey_host = @"host";
-NSString* NSURLPartKey_port = @"port";
-NSString* NSURLPartKey_user = @"user";
-NSString* NSURLPartKey_password = @"password";
-NSString* NSURLPartKey_path = @"path";
-NSString* NSURLPartKey_fragment = @"fragment";
-NSString* NSURLPartKey_parameterString = @"parameterString";
-NSString* NSURLPartKey_query = @"query";
+NSString	*NSURLPartKey_host = @"host";
+NSString	*NSURLPartKey_port = @"port";
+NSString	*NSURLPartKey_user = @"user";
+NSString	*NSURLPartKey_password = @"password";
+NSString	*NSURLPartKey_path = @"path";
+NSString	*NSURLPartKey_fragment = @"fragment";
+NSString	*NSURLPartKey_parameterString = @"parameterString";
+NSString	*NSURLPartKey_query = @"query";
 
 //=============================================================================
 @implementation NSURL
@@ -82,12 +83,14 @@ NSString* NSURLPartKey_query = @"query";
 {
   NSString	*aUrlString = nil;
 
-  if (aHost)
+  if (aHost != nil)
     aUrlString = [NSString stringWithFormat: @"%@://%@", aScheme, aHost];
   else
     aUrlString = [NSString stringWithFormat: @"%@:", aScheme];
-  if (aPath)
+
+  if (aPath != nil)
     aUrlString = [aUrlString stringByAppendingString: aPath];
+
   self = [self initWithString: aUrlString];
   return self;
 }
@@ -101,10 +104,11 @@ NSString* NSURLPartKey_query = @"query";
 {
   NSString	*tmpHost = nil;
 
-  if (aPort)
+  if (aPort != nil)
     tmpHost = [NSString stringWithFormat: @"%@:%@", aHost, aPort];
   else
     tmpHost = aHost;
+
   self = [self initWithScheme: aScheme
 			 host: tmpHost
 			 path: aPath];
@@ -165,7 +169,6 @@ NSString* NSURLPartKey_query = @"query";
 {
   [aCoder encodeObject: _urlString];
   [aCoder encodeObject: _baseURL];
-  //FIXME? _clients ?
 }
 
 //-----------------------------------------------------------------------------
@@ -173,7 +176,6 @@ NSString* NSURLPartKey_query = @"query";
 {
   [aCoder decodeValueOfObjCType: @encode(id) at: &_urlString];
   [aCoder decodeValueOfObjCType: @encode(id) at: &_baseURL];
-  //FIXME? _clients ?
   return self;
 }
 
@@ -183,7 +185,7 @@ NSString* NSURLPartKey_query = @"query";
 {
   NSString	*dscr = _urlString;
 
-  if (_baseURL)
+  if (_baseURL != nil)
     dscr = [dscr stringByAppendingFormat: @" -- %@", _baseURL];
   return dscr;
 }
@@ -192,15 +194,17 @@ NSString* NSURLPartKey_query = @"query";
 // Non Standard Function
 - (NSString*) baseURLAbsolutePart
 {
-  if (_baseURL)
+  if (_baseURL != nil)
     {
-      NSString* suffix = [_baseURL path];
-      NSString* tmp = nil;
-      if ([_baseURL query])
-	suffix = [suffix stringByAppendingFormat: @"?%@", [_baseURL query]];
+      NSString	*suffix = [_baseURL path];
+      NSString	*query = [_baseURL query];
+      NSString	*tmp = nil;
+
+      if (query != nil)
+	suffix = [suffix stringByAppendingFormat: @"?%@", query];
       // /test?aa = bb&cc=dd -- http: //user: passwd@www.gnustep.org: 80/apache
       //    ==> http: //user: passwd@www.gnustep.org: 80/
-      tmp = [[_baseURL absoluteString]stringWithoutSuffix: suffix];
+      tmp = [[_baseURL absoluteString] stringWithoutSuffix: suffix];
 
       //    ==> http: //user: passwd@www.gnustep.org: 80
       if ([tmp hasSuffix: @"/"])
@@ -215,8 +219,9 @@ NSString* NSURLPartKey_query = @"query";
 //-----------------------------------------------------------------------------
 - (NSString*) absoluteString
 {
-  NSString* absString = nil;
-  if (_baseURL)
+  NSString *absString = nil;
+
+  if (_baseURL != nil)
     {
       // /test?aa = bb&cc=dd -- http: //user: passwd@www.gnustep.org: 80/apache
       //    ==> http: //user: passwd@www.gnustep.org: 80
@@ -247,7 +252,7 @@ NSString* NSURLPartKey_query = @"query";
 //-----------------------------------------------------------------------------
 - (NSURL*) absoluteURL
 {
-  if (!_baseURL)
+  if (_baseURL != nil)
     return self;
   else
     return [NSURL URLWithString: [self absoluteString]];
@@ -260,8 +265,21 @@ NSString* NSURLPartKey_query = @"query";
   NSString	*absoluteString = [self absoluteString];
   NSRange	range = [absoluteString rangeOfString: @"://"];
 
-  if (range.length>0)
-    scheme = [absoluteString substringToIndex: range.location];
+  if (range.length > 0)
+    {
+      scheme = [absoluteString substringToIndex: range.location];
+    }
+  else
+    {
+      /*
+       * Cope with URLs missing net_path info -  <scheme>:/<path>...
+       */
+      range = [absoluteString rangeOfString: @":"];
+      if (range.length > 0)
+	{
+	  scheme = [absoluteString substringToIndex: range.location];
+	}
+    }
   return scheme;
 }
 
@@ -272,9 +290,24 @@ NSString* NSURLPartKey_query = @"query";
   NSRange	range = [absoluteString rangeOfString: @"://"];
 
   if (range.length > 0)
-    return [absoluteString substringFromIndex: range.location+1];
+    {
+      return [absoluteString substringFromIndex: range.location + 1];
+    }
   else
-    return absoluteString;
+    {
+      /*
+       * Cope with URLs missing net_path info -  <scheme>:/<path>...
+       */
+      range = [absoluteString rangeOfString: @":"];
+      if (range.length > 0)
+	{
+	  return [absoluteString substringFromIndex: range.location + 1];
+	}
+      else
+	{
+	  return absoluteString;
+	}
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -283,98 +316,142 @@ NSString* NSURLPartKey_query = @"query";
 {
   NSMutableDictionary	*elements = nil;
   NSString		*resourceSpecifier = [self resourceSpecifier];
+  int			index = 0;
+  NSRange		range;
 
   if ([resourceSpecifier hasPrefix: @"//"])
     {
-      int	index = 2;
-      NSRange	range;
-
-      elements = [NSMutableDictionary dictionaryWithCapacity: 0];
-      if (![[self scheme] isEqualToString: NSURLFileScheme])
-	{
-	  range = [resourceSpecifier rangeOfString: @"/" options: 0
-	    range: NSMakeRange(index, [resourceSpecifier length]-index)];
-	  if (range.length>0)
-	    {
-	      NSString	*userPasswordHostPort;
-	      NSString	*userPassword = nil;
-	      NSString	*hostPort = nil;
-
-	      userPasswordHostPort
-		= [resourceSpecifier substringWithRange:
-		NSMakeRange(index, range.location-index)];
-	      index = range.location;
-	      range = [userPasswordHostPort rangeOfString: @"@"];
-	      if (range.length>0)
-		{
-		  if (range.location>0)
-		    userPassword
-		      = [userPasswordHostPort substringToIndex: range.location];
-		  if (range.location+1<[userPasswordHostPort length])
-		    hostPort = [userPasswordHostPort
-		      substringFromIndex: range.location+1];
-		}
-	      else
-		hostPort = userPasswordHostPort;
-	      if (userPassword)
-		{
-		  range = [userPassword rangeOfString: @": "];
-		  if (range.length>0)
-		    {
-		      if (range.location>0)
-			[elements setObject: [userPassword substringToIndex: range.location]
-				    forKey: NSURLPartKey_user];
-		      if (range.location+1<[userPassword length])
-			[elements setObject: [userPassword substringFromIndex: range.location+1]
-				    forKey: NSURLPartKey_password];
-		    }
-		  else
-		    [elements setObject: userPassword
-				 forKey: NSURLPartKey_user];
-		}
-
-	      if (hostPort)
-		{
-		  range = [hostPort rangeOfString: @": "];
-		  if (range.length>0)
-		    {
-		      if (range.location>0)
-			[elements setObject: [hostPort substringToIndex: range.location]
-					  forKey: NSURLPartKey_host];
-		      if (range.location+1<[hostPort length])
-			[elements setObject: [NSNumber valueFromString: 
-											    [hostPort substringFromIndex: range.location+1]]
-					      forKey: NSURLPartKey_port];
-		    }
-		  else
-		    [elements setObject: hostPort
-				 forKey: NSURLPartKey_host];
-		}
-	    }
-	}
-      else
-	index--; //To Take a /
-      range = [resourceSpecifier rangeOfString: @"?"
-				       options: 0
-					 range: NSMakeRange(index, [resourceSpecifier length]-index)];
-      if (range.length>0)
-	{
-	  if (range.location>0)
-	    [elements setObject: [resourceSpecifier substringWithRange: NSMakeRange(index, range.location-index)]
-				  forKey: NSURLPartKey_path];
-	  if (range.location+1<[resourceSpecifier length])
-	    [elements setObject: [resourceSpecifier substringFromIndex: range.location+1]
-				  forKey: NSURLPartKey_query];
-	}
-      else
-	[elements setObject: [resourceSpecifier substringFromIndex: index]
-		     forKey: NSURLPartKey_path];
+      index = 2;
+    }
+  else if ([resourceSpecifier hasPrefix: @"/"])
+    {
+      index = 0;
     }
   else
     {
       [NSException raise: NSGenericException
 		  format: @"'%@' is a bad URL", self];
     }
+
+  elements = [NSMutableDictionary dictionaryWithCapacity: 0];
+  range = [resourceSpecifier rangeOfString: @"/" options: 0
+    range: NSMakeRange(index, [resourceSpecifier length] - index)];
+  if (range.length > 0)
+    {
+      NSString	*userPasswordHostPort;
+      NSString	*userPassword = nil;
+      NSString	*hostPort = nil;
+
+      userPasswordHostPort = [resourceSpecifier substringWithRange:
+	NSMakeRange(index, range.location - index)];
+      index = range.location;
+      range = [userPasswordHostPort rangeOfString: @"@"];
+      if (range.length > 0)
+	{
+	  if (range.location > 0)
+	    {
+	      userPassword = [userPasswordHostPort substringToIndex:
+		range.location];
+	    }
+	  if (range.location + 1 < [userPasswordHostPort length])
+	    {
+	      hostPort = [userPasswordHostPort substringFromIndex:
+		range.location + 1];
+	    }
+	}
+      else
+	hostPort = userPasswordHostPort;
+      if (userPassword != nil)
+	{
+	  range = [userPassword rangeOfString: @": "];
+	  if (range.length > 0)
+	    {
+	      if (range.location > 0)
+		{
+		  NSString	*sub;
+
+		  sub = [userPassword substringToIndex: range.location];
+		  [elements setObject: sub
+			forKey: NSURLPartKey_user];
+		}
+	      if (range.location + 1 < [userPassword length])
+		{
+		  NSString	*sub;
+
+		  sub = [userPassword substringToIndex:
+		    range.location + 1];
+		  [elements setObject: sub
+			       forKey: NSURLPartKey_password];
+		}
+	    }
+	  else
+	    {
+	      [elements setObject: userPassword
+			   forKey: NSURLPartKey_user];
+	    }
+	}
+
+      if (hostPort != nil)
+	{
+	  range = [hostPort rangeOfString: @": "];
+	  if (range.length > 0)
+	    {
+	      if (range.location > 0)
+		{
+		  NSString	*sub;
+
+		  sub = [hostPort substringToIndex: range.location];
+		  [elements setObject: sub
+			       forKey: NSURLPartKey_host];
+		}
+	      if (range.location + 1 < [hostPort length])
+		{
+		  NSString	*sub;
+
+												  sub = [hostPort substringFromIndex:
+		    range.location + 1];
+		  [elements setObject: [NSNumber valueFromString: sub]
+			       forKey: NSURLPartKey_port];
+		}
+	    }
+	  else
+	    {
+	      [elements setObject: hostPort
+			   forKey: NSURLPartKey_host];
+	    }
+	}
+    }
+
+  range = NSMakeRange(index, [resourceSpecifier length] - index);
+  range = [resourceSpecifier rangeOfString: @"?"
+				   options: 0
+				     range: range];
+  if (range.length > 0)
+    {
+      if (range.location > 0)
+	{
+	  NSString	*sub;
+
+	  sub = [resourceSpecifier substringWithRange:
+	    NSMakeRange(index, range.location - index)];
+	  [elements setObject: sub
+		       forKey: NSURLPartKey_path];
+	}
+      if (range.location + 1 < [resourceSpecifier length])
+	{
+	  NSString	*sub;
+
+	  sub = [resourceSpecifier substringFromIndex: range.location + 1];
+	  [elements setObject: sub
+		       forKey: NSURLPartKey_query];
+	}
+    }
+  else
+    {
+      [elements setObject: [resourceSpecifier substringFromIndex: index]
+		   forKey: NSURLPartKey_path];
+    }
+
   return elements;
 }
 
@@ -448,40 +525,30 @@ NSString* NSURLPartKey_query = @"query";
 }
 
 //-----------------------------------------------------------------------------
-- (void)					URLHandle: (NSURLHandle*)sender
-   resourceDataDidBecomeAvailable: (NSData*)newData
+- (void) URLHandle: (NSURLHandle*)sender
+  resourceDataDidBecomeAvailable: (NSData*)newData
 {
-  //FIXME
-  [self notImplemented: _cmd];
 }
 
 //-----------------------------------------------------------------------------
-- (void)URLHandleResourceDidBeginLoading: (NSURLHandle*)sender
+- (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender
 {
-  //FIXME
-  [self notImplemented: _cmd];
 }
 
 //-----------------------------------------------------------------------------
-- (void)URLHandleResourceDidFinishLoading: (NSURLHandle*)sender
+- (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender
 {
-  //FIXME
-  [self notImplemented: _cmd];
 }
 
 //-----------------------------------------------------------------------------
-- (void)URLHandleResourceDidCancelLoading: (NSURLHandle*)sender
+- (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender
 {
-  //FIXME
-  [self notImplemented: _cmd];
 }
 
 //-----------------------------------------------------------------------------
 - (void) URLHandle: (NSURLHandle*)sender
-	 resourceDidFailLoadingWithReason: (NSString*)reason
+  resourceDidFailLoadingWithReason: (NSString*)reason
 {
-  //FIXME
-  [self notImplemented: _cmd];
 }
 
 //-----------------------------------------------------------------------------
@@ -505,14 +572,11 @@ NSString* NSURLPartKey_query = @"query";
 {
   id aBaseUrl = nil;
   id aUrlString = nil;
-  void* __clients =0;
   GSGetInstanceVariable(url, @"_baseURL", &aBaseUrl);
   GSGetInstanceVariable(url, @"_urlString", &aUrlString);
-  GSGetInstanceVariable(url, @"_clients", &__clients);
   NSLog(@"*BaseURL: %ld", (long)aBaseUrl);
   NSLog(@"*BaseURL: %@", [aBaseUrl description]);
   NSLog(@"*_urlString: %@", aUrlString);
-  NSLog(@"*_clients: %ld", (long)__clients);
   NSLog(@"*host: %@", [url host]);
   NSLog(@"*port: %@", [url port]);
   NSLog(@"*user: %@", [url user]);
@@ -525,63 +589,97 @@ NSString* NSURLPartKey_query = @"query";
   NSLog(@"*absoluteString: %@", [url absoluteString]);
   NSLog(@"*relativeString: %@", [url relativeString]);
   NSLog(@"*_baseURL: %@", [[url baseURL] description]);
-  NSLog(@"*absoluteURL: %@", [[url absoluteURL] description]);
-  NSLog(@"*scheme: %@", [url scheme]);
-  NSLog(@"*resourceSpecifier: %@", [url resourceSpecifier]);
-  NSLog(@"*description: %@", [url description]);
-}
-@end
-
-//=============================================================================
-@implementation NSURL (NSURLLoading)
-
-//-----------------------------------------------------------------------------
-- (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache
-{
-  //FIXME
-  [self notImplemented: _cmd];
-  return nil;
 }
 
 //-----------------------------------------------------------------------------
 - (void) loadResourceDataNotifyingClient: (id)client
 			      usingCache: (BOOL)shouldUseCache
 {
-  //FIXME
-  [self notImplemented: _cmd];
+  NSURLHandle	*handle = [self URLHandleUsingCache: shouldUseCache];
+  NSRunLoop	*loop;
+  NSDate	*future;
+  
+  if (client != nil)
+    [handle addClient: client];
+
+  /*
+   * Kick off the load process.
+   */
+  [handle loadInBackground];
+
+  /*
+   * Keep the runloop going until the load has completed (or failed).
+   */
+  loop = [NSRunLoop currentRunLoop];
+  future = [NSDate distantFuture];
+  while ([handle status] == NSURLHandleLoadInProgress)
+    {
+      [loop runMode: NSDefaultRunLoopMode beforeDate: future];
+    }
+
+  if (client != nil)
+    [handle removeClient: client];
+}
+
+- (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache
+{
+  NSURLHandle	*handle = [self URLHandleUsingCache: shouldUseCache];
+  NSData	*data;
+
+  if (shouldUseCache == NO || [handle status] != NSURLHandleLoadSucceeded)
+    {
+      [self loadResourceDataNotifyingClient: self
+				 usingCache: shouldUseCache];
+    }
+  data = [handle resourceData];
+  return data;
 }
 
 //-----------------------------------------------------------------------------
-- (NSURLHandle*)URLHandleUsingCache: (BOOL)shouldUseCache
+- (NSURLHandle*) URLHandleUsingCache: (BOOL)shouldUseCache
 {
-  //FIXME
-  [self notImplemented: _cmd];
-  return nil;
+  NSURLHandle	*handle = nil;
+
+  if (shouldUseCache)
+    {
+      handle = [NSURLHandle cachedHandleForURL: self];
+    }
+  if (handle == nil)
+    {
+      Class	c = [NSURLHandle URLHandleClassForURL: self];
+
+      if (c != 0)
+	{
+	  handle = [[c alloc] initWithURL: self cached: shouldUseCache];
+	  AUTORELEASE(handle);
+	}
+    }
+  return handle;
 }
 
 //-----------------------------------------------------------------------------
 - (BOOL) setResourceData: (NSData*)data
 {
-  //FIXME
-  [self notImplemented: _cmd];
-  return NO;
+  NSURLHandle	*handle = [self URLHandleUsingCache: YES];
+
+  return [handle writeData: data];
 }
 
 //-----------------------------------------------------------------------------
 - (id) propertyForKey: (NSString*)propertyKey
 {
-  //FIXME
-  [self notImplemented: _cmd];
-  return nil;
+  NSURLHandle	*handle = [self URLHandleUsingCache: YES];
+
+  return [handle propertyForKey: propertyKey];
 }
 
 //-----------------------------------------------------------------------------
 - (BOOL) setProperty: (id)property
 	      forKey: (NSString*)propertyKey;
 {
-  //FIXME
-  [self notImplemented: _cmd];
-  return NO;
+  NSURLHandle	*handle = [self URLHandleUsingCache: YES];
+
+  return [handle writeProperty: property forKey: propertyKey];
 }
 
 @end
@@ -589,36 +687,25 @@ NSString* NSURLPartKey_query = @"query";
 //=============================================================================
 @implementation NSObject (NSURLClient)
 
-//-----------------------------------------------------------------------------
 - (void) URL: (NSURL*)sender
-	 resourceDataDidBecomeAvailable: (NSData*)newBytes
+  resourceDataDidBecomeAvailable: (NSData*)newBytes
 {
-  //FIXME
   [self notImplemented: _cmd];
-
 }
 
-//-----------------------------------------------------------------------------
 - (void) URLResourceDidFinishLoading: (NSURL*)sender
 {
-  //FIXME
   [self notImplemented: _cmd];
-
 }
 
-//-----------------------------------------------------------------------------
 - (void) URLResourceDidCancelLoading: (NSURL*)sender
 {
-  //FIXME
   [self notImplemented: _cmd];
-
 }
 
-//-----------------------------------------------------------------------------
 - (void) URL: (NSURL*)sender
-   resourceDidFailLoadingWithReason: (NSString*)reason
+  resourceDidFailLoadingWithReason: (NSString*)reason
 {
-  //FIXME
   [self notImplemented: _cmd];
 }
 

@@ -74,6 +74,7 @@
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSRange.h>
+#include <Foundation/NSURL.h>
 #include <Foundation/NSZone.h>
 #include <string.h>		/* for memset() */
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
@@ -402,6 +403,14 @@ failure:
   return AUTORELEASE(d);
 }
 
++ (id) dataWithContentsOfURL: (NSURL*)url
+{
+  NSData	*d;
+
+  d = [url resourceDataUsingCache: YES];
+  return d;
+}
+
 + (id) dataWithData: (NSData*)data
 {
   NSData	*d;
@@ -455,6 +464,13 @@ failure:
 {
   [self subclassResponsibility: _cmd];
   return nil;
+}
+
+- (id) initWithContentsOfURL: (NSURL*)url
+{
+  NSData	*data = [url resourceDataUsingCache: YES];
+
+  return [self initWithBytes: [data bytes] length: [data length]];
 }
 
 - (id) initWithData: (NSData*)data
@@ -614,12 +630,12 @@ failure:
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile
 {
-  char	thePath[BUFSIZ*2+8];
-  char	theRealPath[BUFSIZ*2];
-  NSString *tmppath;
-  FILE	*theFile;
-  int	c;
+  char		thePath[BUFSIZ*2+8];
+  char		theRealPath[BUFSIZ*2];
+  FILE		*theFile;
+  int		c;
 #if defined(__MINGW__)
+  NSString	*tmppath;
   HANDLE	fh;
   DWORD		wroteBytes;
 #endif
@@ -1337,7 +1353,7 @@ failure:
 
 + (id) dataWithContentsOfFile: (NSString*)path
 {
-  NSData	*d;
+  NSMutableData	*d;
 
   d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
   d = [d initWithContentsOfFile: path];
@@ -1346,16 +1362,27 @@ failure:
 
 + (id) dataWithContentsOfMappedFile: (NSString*)path
 {
-  NSData	*d;
+  NSMutableData	*d;
 
   d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
   d = [d initWithContentsOfMappedFile: path];
   return AUTORELEASE(d);
 }
 
++ (id) dataWithContentsOfURL: (NSURL*)url
+{
+  NSMutableData	*d;
+  NSData	*data;
+
+  d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
+  data = [url resourceDataUsingCache: YES];
+  d = [d initWithBytes: [data bytes] length: [data length]];
+  return AUTORELEASE(d);
+}
+
 + (id) dataWithData: (NSData*)data
 {
-  NSData	*d;
+  NSMutableData	*d;
 
   d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
   d = [d initWithBytes: [data bytes] length: [data length]];

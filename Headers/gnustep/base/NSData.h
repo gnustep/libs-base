@@ -28,6 +28,10 @@
 #include <Foundation/NSRange.h>
 #include <Foundation/NSSerialization.h>
 
+#ifndef STRICT_OPENSTEP
+@class	NSURL;
+#endif
+
 @interface NSData : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 // Allocating and Initializing a Data Object
@@ -39,6 +43,9 @@
 		    length: (unsigned int)length;
 + (id) dataWithContentsOfFile: (NSString*)path;
 + (id) dataWithContentsOfMappedFile: (NSString*)path;
+#ifndef STRICT_OPENSTEP
++ (id) dataWithContentsOfURL: (NSURL*)url;
+#endif
 + (id) dataWithData: (NSData*)data;
 - (id) initWithBytes: (const void*)bytes
 	      length: (unsigned int)length;
@@ -46,6 +53,9 @@
 		    length: (unsigned int)length;
 - (id) initWithContentsOfFile: (NSString*)path;
 - (id) initWithContentsOfMappedFile: (NSString*)path;
+#ifndef STRICT_OPENSTEP
+- (id) initWithContentsOfURL: (NSURL*)url;
+#endif
 - (id) initWithData: (NSData*)data;
 
 // Accessing Data 

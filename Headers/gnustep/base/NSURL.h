@@ -36,7 +36,6 @@ GS_EXPORT NSString* NSURLFileScheme; //file
 {
   NSString	*_urlString;
   NSURL		*_baseURL;
-  void		*_clients;
 }
         
 + (id) fileURLWithPath: (NSString*)path;

@@ -177,12 +177,26 @@ typedef xmlNsType		GSXMLNamespaceType;
    void          *lib;                  /* parser context       */
    GSSAXHandler  *saxHandler;
 }
-+ (GSXMLParser*) parser: (id)source;
++ (GSXMLParser*) parser;
++ (GSXMLParser*) parserWithContentsOfFile: (NSString*)path;
++ (GSXMLParser*) parserWithContentsOfURL: (NSURL*)url;
++ (GSXMLParser*) parserWithData: (NSData*)data;
++ (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler;
 + (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
-			       source: (id) source;
+		   withContentsOfFile: (NSString*)path;
++ (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
+		    withContentsOfURL: (NSURL*)url;
++ (GSXMLParser*) parserWithSAXHandler: (GSSAXHandler*)handler
+			     withData: (NSData*)data;
 + (NSString*) xmlEncodingStringForStringEncoding: (NSStringEncoding)encoding;
 
-- (id) initWithSAXHandler: (GSSAXHandler*)handler source: (id)source;
+- (id) initWithSAXHandler: (GSSAXHandler*)handler;
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
+       withContentsOfFile: (NSString*)path;
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
+	withContentsOfURL: (NSURL*)url;
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
+		 withData: (NSData*)data;
 
 - (GSXMLDocument*) doc;
 - (BOOL) parse;

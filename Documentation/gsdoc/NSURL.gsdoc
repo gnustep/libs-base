@@ -22,22 +22,29 @@
           <sel>URLWithString:</sel>
           <arg type="NSString*">URLString</arg>
           <desc>
+	    Initializes with a string as specified in RFCs 1738 and 1808
           </desc>
         </method>
+
         <method type="id" factory="yes">
           <sel>URLWithString:</sel>
           <arg type="NSString*">URLString</arg>
           <sel>relativeToURL:</sel>
           <arg type="NSURL*">baseURL</arg>
           <desc>
+	    Initializes relative to a base URL, with a string as
+	    specified in RFCs 1738 and 1808
           </desc>
         </method>
+
         <method type="id" factory="yes">
           <sel>fileURLWithPath:</sel>
           <arg type="NSString*">path</arg>
           <desc>
+	    Initializes as a file schem URL with the specified path.
           </desc>
         </method>
+
         <method type="void">
           <sel>loadResourceDataNotifyingClient:</sel>
           <arg type="id">client</arg>
@@ -46,80 +53,95 @@
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>parameterString</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>password</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>path</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSNumber*">
           <sel>port</sel>
           <desc>
           </desc>
         </method>
+
         <method type="id">
           <sel>propertyForKey:</sel>
           <arg type="NSString*">propertyKey</arg>
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>query</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>relativePath</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>relativeString</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSData*">
           <sel>resourceDataUsingCache:</sel>
           <arg type="BOOL">shouldUseCache</arg>
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>resourceSpecifier</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>scheme</sel>
           <desc>
           </desc>
         </method>
+
         <method type="BOOL">
           <sel>setProperty:</sel>
           <arg type="id">property</arg>
           <desc>
           </desc>
         </method>
+
         <method type="BOOL">
           <sel>setResourceData:</sel>
           <arg type="NSData*">data</arg>
           <desc>
           </desc>
         </method>
+
         <method type="NSURL*">
           <sel>standardizedURL</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>user</sel>
           <desc>

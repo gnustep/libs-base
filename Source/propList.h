@@ -730,7 +730,7 @@ static id parsePl(pldata* pld)
       memcpy(buf, pld->ptr, pld->end);
       buf[pld->end] = '\0';
       data = [NSData dataWithBytesNoCopy: buf length: pld->end+1]; 
-      parser = [GSXMLParser parser: data];
+      parser = [GSXMLParser parserWithData: data];
       if ([parser parse] == YES)
 	{
 	  if (![[[[parser doc] root] name] isEqualToString: @"plist"])

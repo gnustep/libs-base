@@ -17,57 +17,73 @@
         <declared>Foundation/NSURLHandle.h</declared>
           <desc>
           </desc>
+
         <method type="Class" factory="yes">
           <sel>URLHandleClassForURL:</sel>
           <arg type="NSURL*">anURL</arg>
           <desc>
+	    Returns the most recently registered NSURLHandle subclass that
+	    responds to <code>canInitWithURL:</code> with <code>YES</code>
           </desc>
         </method>
+
         <method type="NSURLHandle*" factory="yes">
           <sel>cachedHandleForURL:</sel>
           <arg type="NSURL*">anURL</arg>
           <desc>
+	    Returns a previously created object that handles the specified
+	    URL (if any exists).
           </desc>
         </method>
+
         <method type="BOOL" factory="yes">
           <sel>canInitWithURL:</sel>
           <arg type="NSURL*">anURL</arg>
           <desc>
+	    Implemented by subclasses to say which URLs they can handle.
           </desc>
         </method>
+
         <method type="void" factory="yes">
           <sel>registerURLHandleClass:</sel>
           <arg type="Class">anURLHandleSubclass</arg>
           <desc>
+	    Used to register a subclass as being available to handle URLs.
           </desc>
         </method>
+
         <method type="void">
           <sel>addClient:</sel>
           <arg type="id&lt;NSURLHandleClient&gt;">client</arg>
           <desc>
           </desc>
         </method>
+
         <method type="NSData*">
           <sel>availableResourceData</sel>
           <desc>
           </desc>
         </method>
+
         <method type="void">
           <sel>backgroundLoadDidFailWithReason:</sel>
           <arg type="NSString*">reason</arg>
           <desc>
           </desc>
         </method>
+
         <method type="void">
           <sel>beginLoadInBackground</sel>
           <desc>
           </desc>
         </method>
+
         <method type="void">
           <sel>cancelLoadInBackground</sel>
           <desc>
           </desc>
         </method>
+
         <method type="void">
           <sel>didLoadBytes:</sel>
           <arg type="NSData*">newBytes</arg>
@@ -76,65 +92,77 @@
           <desc>
           </desc>
         </method>
+
         <method type="void">
           <sel>endLoadInBackground</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSString*">
           <sel>failureReason</sel>
           <desc>
           </desc>
         </method>
+
         <method type="void">
           <sel>flushCachedData</sel>
           <desc>
           </desc>
         </method>
+
         <method type="void">
           <sel>loadInBackground</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSData*">
           <sel>loadInForeground</sel>
           <desc>
           </desc>
         </method>
+
         <method type="id">
           <sel>propertyForKey:</sel>
           <arg type="NSString*">propertyKey</arg>
           <desc>
           </desc>
         </method>
+
         <method type="id">
           <sel>propertyForKeyIfAvailable:</sel>
           <arg type="NSString*">propertyKey</arg>
           <desc>
           </desc>
         </method>
+
         <method type="void">
           <sel>removeClient:</sel>
           <arg type="id&lt;NSURLHandleClient&gt;">client</arg>
           <desc>
           </desc>
         </method>
+
         <method type="NSData*">
           <sel>resourceData</sel>
           <desc>
           </desc>
         </method>
+
         <method type="NSURLHandleStatus">
           <sel>status</sel>
           <desc>
           </desc>
         </method>
+
         <method type="BOOL">
           <sel>writeData:</sel>
           <arg type="NSData*">data</arg>
           <desc>
           </desc>
         </method>
+
         <method type="BOOL">
           <sel>writeProperty:</sel>
           <arg type="id">propertyValue</arg>
