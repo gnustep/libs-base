@@ -1,3 +1,9 @@
+2001-10-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSNumberFormatter.h: ivars aded and updated.
+	* Source/NSNumberFormatter.m: implemented dealloc, copy, coding and
+	all the ivar setting/getting methods.
+
 2001-10-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([+stringWithCString:]) check for nul pointer.

@@ -4,6 +4,7 @@
 
    Written by: Fred Kiefer <FredKiefer@gmx.de>
    Created: July 2000
+   Updated by: Richard Frith-Macdonald <rfm@gnu.org> Sept 2001
 
    This file is part of the GNUstep Base Library.
 
@@ -31,13 +32,145 @@
 
 @implementation NSNumberFormatter
 
-+ (void) initialize
+- (BOOL) allowsFloats
 {
+  return _allowsFloats;
+}
+
+- (NSAttributedString*) attributedStringForObjectValue: (id)anObject
+				 withDefaultAttributes: (NSDictionary*)attr
+{
+  // FIXME
+  return AUTORELEASE([[NSAttributedString alloc] initWithString: 
+    [self editingStringForObjectValue: anObject] attributes: attr]);  
+}
+
+- (NSAttributedString*) attributedStringForNil
+{
+  return _attributedStringForNil;
+}
+
+- (NSAttributedString*) attributedStringForNotANumber
+{
+  return _attributedStringForNotANumber;
+}
+
+- (NSAttributedString*) attributedStringForZero
+{
+  return _attributedStringForZero;
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  NSNumberFormatter	*c = (NSNumberFormatter*) NSCopyObject(self, 0, zone);
+
+  RETAIN(c->_negativeFormat);
+  RETAIN(c->_positiveFormat);
+  RETAIN(c->_attributesForPositiveValues);
+  RETAIN(c->_attributesForNegativeValues);
+  RETAIN(c->_maximum);
+  RETAIN(c->_minimum);
+  RETAIN(c->_roundingBehavior);
+  RETAIN(c->_roundingBehavior);
+  RETAIN(c->_attributedStringForNil);
+  RETAIN(c->_attributedStringForNotANumber);
+  RETAIN(c->_attributedStringForZero);
+
+  return c;
+}
+
+- (void) dealloc
+{
+  RELEASE(_negativeFormat);
+  RELEASE(_positiveFormat);
+  RELEASE(_attributesForPositiveValues);
+  RELEASE(_attributesForNegativeValues);
+  RELEASE(_maximum);
+  RELEASE(_minimum);
+  RELEASE(_roundingBehavior);
+  RELEASE(_roundingBehavior);
+  RELEASE(_attributedStringForNil);
+  RELEASE(_attributedStringForNotANumber);
+  RELEASE(_attributedStringForZero);
+  [super dealloc];
+}
+
+- (NSString*) decimalSeparator
+{
+  if (_decimalSeparator == 0)
+    return @"";
+  else
+    return [NSString stringWithCharacters: &_decimalSeparator length: 1];
+}
+
+- (NSString*) editingStringForObjectValue: (id)anObject
+{
+  return [self stringForObjectValue: anObject];
+}
+
+- (void) encodeWithCoder: (NSCoder*)encoder
+{
+  [encoder encodeValueOfObjCType: @encode(BOOL) at: &_hasThousandSeparators];
+  [encoder encodeValueOfObjCType: @encode(BOOL) at: &_allowsFloats];
+  [encoder encodeValueOfObjCType: @encode(BOOL) at: &_localizesFormat];
+  [encoder encodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
+  [encoder encodeValueOfObjCType: @encode(unichar) at: &_decimalSeparator];
+
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_negativeFormat];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_positiveFormat];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_attributesForPositiveValues];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_attributesForNegativeValues];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_maximum];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_minimum];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_roundingBehavior];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_roundingBehavior];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_attributedStringForNil];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_attributedStringForNotANumber];
+  [encoder encodeValueOfObjCType: @encode(id)
+			      at: &_attributedStringForZero];
+}
+
+- (NSString*) format
+{
+  if (_attributedStringForZero != nil)
+    {
+      return [NSString stringWithFormat: @"%@;%@;%@",
+	_positiveFormat, [_attributedStringForZero string], _negativeFormat];
+    }
+  else
+    {
+      return [NSString stringWithFormat: @"%@;%@",
+	_positiveFormat, _negativeFormat];
+    }
+}
+
+- (BOOL) getObjectValue: (id*)anObject
+	      forString: (NSString*)string
+       errorDescription: (NSString**)error
+{
+  return NO;	// FIXME
+}
+
+- (BOOL) hasThousandSeparators
+{
+  return _hasThousandSeparators;
 }
 
 - (id) init
 {
   _allowsFloats = YES;
+  _decimalSeparator = '.';
+  _thousandSeparator = ',';
   [self setAttributedStringForNil: AUTORELEASE([[NSAttributedString new] 
 						   initWithString: @""])];
   [self setAttributedStringForNotANumber: AUTORELEASE([[NSAttributedString new] 
@@ -46,42 +179,48 @@
   return self;
 }
 
-// Coding
-- (void)encodeWithCoder:(NSCoder *)encoder
+- (id) initWithCoder: (NSCoder*)decoder
 {
-}
+  [decoder decodeValueOfObjCType: @encode(BOOL) at: &_hasThousandSeparators];
+  [decoder decodeValueOfObjCType: @encode(BOOL) at: &_allowsFloats];
+  [decoder decodeValueOfObjCType: @encode(BOOL) at: &_localizesFormat];
+  [decoder decodeValueOfObjCType: @encode(unichar) at: &_thousandSeparator];
+  [decoder decodeValueOfObjCType: @encode(unichar) at: &_decimalSeparator];
 
-- (id)initWithCoder:(NSCoder *)decoder
-{
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_negativeFormat];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_positiveFormat];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributesForPositiveValues];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributesForNegativeValues];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_maximum];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_negativeFormat];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_positiveFormat];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributesForPositiveValues];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributesForNegativeValues];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_maximum];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_minimum];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_roundingBehavior];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_roundingBehavior];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributedStringForNil];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributedStringForNotANumber];
+  [decoder decodeValueOfObjCType: @encode(id)
+			      at: &_attributedStringForZero];
+
   return self;
-}
-
-// Copying
-- (id)copyWithZone:(NSZone *)zone
-{
-  return NSCopyObject(self, 0, zone);
-}
-
-// NSFormatter
-- (NSAttributedString*) attributedStringForObjectValue: (id)anObject
-				 withDefaultAttributes: (NSDictionary*)attr
-{
-  // FIXME
-  return AUTORELEASE([[NSAttributedString alloc] initWithString: 
-						     [self editingStringForObjectValue: anObject]
-						 attributes: attr]);  
-}
-
-- (NSString*) editingStringForObjectValue: (id)anObject
-{
-  return [self stringForObjectValue: anObject];
-}
-
-- (BOOL) getObjectValue: (id*)anObject
-	      forString: (NSString*)string
-       errorDescription: (NSString**)error
-{
-  return NO;
 }
 
 - (BOOL) isPartialStringValid: (NSString*)partialString
@@ -94,6 +233,147 @@
   return YES;
 }
 
+- (BOOL) localizesFormat
+{
+  return _localizesFormat;
+}
+
+- (NSDecimalNumber*) maximum
+{
+  return _maximum;
+}
+
+- (NSDecimalNumber*) minimum
+{
+  return _minimum;  
+}
+
+- (NSString*) negativeFormat
+{
+  return _negativeFormat;
+}
+
+- (NSString*) positiveFormat
+{
+  return _positiveFormat;
+}
+
+- (NSDecimalNumberHandler*) roundingBehavior
+{
+  return _roundingBehavior;
+}
+
+- (void) setAllowsFloats: (BOOL)flag
+{
+  _allowsFloats = flag;
+}
+
+- (void) setAttributedStringForNil: (NSAttributedString*)newAttributedString
+{
+  ASSIGN(_attributedStringForNil, newAttributedString);
+}
+
+- (void) setAttributedStringForNotANumber:
+  (NSAttributedString*)newAttributedString
+{
+  ASSIGN(_attributedStringForNotANumber, newAttributedString);
+}
+
+- (void) setAttributedStringForZero: (NSAttributedString*)newAttributedString
+{
+  ASSIGN(_attributedStringForZero, newAttributedString);
+}
+
+- (void) setDecimalSeparator: (NSString*)newSeparator
+{
+  if ([newSeparator length] > 0)
+    _decimalSeparator = [newSeparator characterAtIndex: 0];
+  else
+    _decimalSeparator = 0;
+}
+
+- (void) setFormat: (NSString*)aFormat
+{
+  NSRange	r;
+
+  r = [aFormat rangeOfString: @";"];
+  if (r.length == 0)
+    {
+      [self setPositiveFormat: aFormat];
+      [self setNegativeFormat: [@"-" stringByAppendingString: aFormat]];
+    }
+  else
+    {
+      [self setPositiveFormat: [aFormat substringToIndex: r.location]];
+      aFormat = [aFormat substringFromIndex: NSMaxRange(r)];
+      r = [aFormat rangeOfString: @";"];
+      if (r.length == 0)
+	{
+	  [self setNegativeFormat: aFormat];
+	}
+      else
+	{
+	  RELEASE(_attributedStringForZero);
+	  _attributedStringForZero = [[NSAttributedString alloc] initWithString:
+	    [aFormat substringToIndex: r.location]];
+	  [self setNegativeFormat: [aFormat substringFromIndex: NSMaxRange(r)]];
+	}
+    }
+}
+
+- (void) setHasThousandSeparators: (BOOL)flag
+{
+  _hasThousandSeparators = flag;
+}
+
+- (void) setLocalizesFormat: (BOOL)flag
+{
+  _localizesFormat = flag;
+}
+
+- (void) setMaximum: (NSDecimalNumber*)aMaximum
+{
+  ASSIGN(_maximum, aMaximum);
+}
+
+- (void) setMinimum: (NSDecimalNumber*)aMinimum
+{
+  ASSIGN(_minimum, aMinimum);
+}
+
+- (void) setNegativeFormat: (NSString*)aFormat
+{
+  ASSIGN(_negativeFormat, aFormat);
+}
+
+- (void) setPositiveFormat: (NSString*)aFormat
+{
+  ASSIGN(_positiveFormat, aFormat);
+}
+
+- (void) setRoundingBehavior: (NSDecimalNumberHandler*)newRoundingBehavior
+{
+  ASSIGN(_roundingBehavior, newRoundingBehavior);
+}
+
+- (void) setTextAttributesForNegativeValues: (NSDictionary*)newAttributes
+{
+  ASSIGN(_attributesForNegativeValues, newAttributes);
+}
+
+- (void) setTextAttributesForPositiveValues: (NSDictionary*)newAttributes
+{
+  ASSIGN(_attributesForPositiveValues, newAttributes);
+}
+
+- (void) setThousandSeparator: (NSString*)newSeparator
+{
+  if ([newSeparator length] > 0)
+    _thousandSeparator = [newSeparator characterAtIndex: 0];
+  else
+    _thousandSeparator = 0;
+}
+
 - (NSString*) stringForObjectValue: (id)anObject
 {
   if (nil == anObject)
@@ -102,171 +382,22 @@
   return [anObject description];
 }
 
-// Format
-- (BOOL)localizesFormat
+- (NSDictionary*) textAttributesForNegativeValues
 {
-  return _localizesFormat;
+  return _attributesForNegativeValues;
 }
 
-- (void)setLocalizesFormat:(BOOL)flag
+- (NSDictionary*) textAttributesForPositiveValues
 {
-  _localizesFormat = flag;
+  return _attributesForPositiveValues;
 }
 
-- (NSString *)format
+- (NSString*) thousandSeparator
 {
-  return nil;
-}
-
-- (void)setFormat:(NSString *)aFormat
-{
-
-}
-
-- (NSString *)negativeFormat
-{
-  return nil;
-}
-
-- (void)setNegativeFormat:(NSString *)aFormat
-{
-}
-
-- (NSString *)positiveFormat
-{
-  return nil;
-}
-
-- (void)setPositiveFormat:(NSString *)aFormat
-{
-}
-
-// Attributed Strings
-- (NSAttributedString *)attributedStringForNil
-{
-  return _attributedStringForNil;
-}
-
-- (void)setAttributedStringForNil:(NSAttributedString *)newAttributedString
-{
-  if (nil == newAttributedString)
-    {
-      RELEASE(_attributedStringForNil);
-      _attributedStringForNil = nil; 
-    }
+  if (_thousandSeparator == 0)
+    return @"";
   else
-    ASSIGN(_attributedStringForNil, newAttributedString);
-}
-
-- (NSAttributedString *)attributedStringForNotANumber
-{
-  return _attributedStringForNotANumber;
-}
-
-- (void)setAttributedStringForNotANumber:(NSAttributedString *)newAttributedString
-{
-  ASSIGN(_attributedStringForNotANumber, newAttributedString);
-}
-
-- (NSAttributedString *)attributedStringForZero
-{
-  return _attributedStringForZero;
-}
-
-- (void)setAttributedStringForZero:(NSAttributedString *)newAttributedString
-{
-  ASSIGN(_attributedStringForZero, newAttributedString);
-}
-
-- (NSDictionary *)textAttributesForNegativeValues
-{
-  return nil;
-}
-
-- (void)setTextAttributesForNegativeValues:(NSDictionary *)newAttributes
-{
-}
-
-- (NSDictionary *)textAttributesForPositiveValues
-{
-    return nil;
-}
-
-- (void)setTextAttributesForPositiveValues:(NSDictionary *)newAttributes
-{
-}
-
-// Rounding
-- (NSDecimalNumberHandler *)roundingBehavior
-{
-  return _roundingBehavior;
-}
-
-- (void)setRoundingBehavior:(NSDecimalNumberHandler *)newRoundingBehavior
-{
-  ASSIGN(_roundingBehavior, newRoundingBehavior);
-}
-
-// Separators
-- (BOOL)hasThousandSeparators
-{
-  return _hasThousandSeparators;
-}
-
-- (void)setHasThousandSeparators:(BOOL)flag
-{
-  _hasThousandSeparators = flag;
-}
-
-- (NSString *)thousandSeparator
-{
-  return _thousandSeparator;
-}
-
-- (void)setThousandSeparator:(NSString *)newSeparator
-{
-  ASSIGN(_thousandSeparator, newSeparator);
-}
-
-- (BOOL)allowsFloats
-{
-  return _allowsFloats;
-}
-
-- (void)setAllowsFloats:(BOOL)flag
-{
-  _allowsFloats = flag;
-}
-
-- (NSString *)decimalSeparator
-{
-  return _decimalSeparator;
-}
-
-- (void)setDecimalSeparator:(NSString *)newSeparator
-{
-  ASSIGN(_decimalSeparator, newSeparator);
-}
-
-// Maximum/minimum
-- (NSDecimalNumber *)maximum
-{
-  return _maximum;
-}
-
-- (void)setMaximum:(NSDecimalNumber *)aMaximum
-{
-  ASSIGN(_maximum, aMaximum);
-}
-
-- (NSDecimalNumber *)minimum
-{
-  return _minimum;  
-}
-
-- (void)setMinimum:(NSDecimalNumber *)aMinimum
-{
-    ASSIGN(_minimum, aMinimum);
+    return [NSString stringWithCharacters: &_thousandSeparator length: 1];
 }
 
 @end
