@@ -282,6 +282,7 @@ mkinstalldirs install-sh \
 version.texi \
 libobjects.info libobjects.texi \
 texinfo.tex \
+gcc-class.patch gcc-string.patch \
 $(GNU_MFILES) $(NEXTSTEP_MFILES) $(GNUSTEP_MFILES) \
 $(GNU_CFILES) $(NEXTSTEP_CFILES) $(GNUSTEP_CFILES) \
 $(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS) \
