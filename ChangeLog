@@ -1,3 +1,8 @@
+2004-01-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyedUnrchiver.m: Store objects in map while they are
+	decoding themselves, s they can be self referential.
+
 2004-01-27  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m (nodeToObject()): Fixed bug in handling
