@@ -787,7 +787,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
          the executable name here - just in case it turns out it's a
          tool.  */
       NSString *toolName = [_executable_path lastPathComponent];
-
+#if defined(__WIN32__)
+      toolName = [toolName stringByDeletingPathExtension];
+#endif
+      
       /* Strip off the name of the program */
       path = [_executable_path stringByDeletingLastPathComponent];
 
