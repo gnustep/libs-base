@@ -260,8 +260,8 @@ gdomap_log (int prio)
     }
   else if (prio == LOG_INFO)
     {
-      write (0, ebuf, strlen (ebuf));
-      write (0, "\n", 1);
+      write (1, ebuf, strlen (ebuf));
+      write (1, "\n", 1);
     }
   else
     {
