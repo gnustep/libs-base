@@ -1,6 +1,6 @@
 /* NSConcreteValue - Interface for Concrete NSValue classes
     
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994,1995,1999 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
@@ -29,38 +29,38 @@
 
 @interface NSConcreteValue : NSValue
 {
-    void *data;
-    NSString *objctype;
+  void *data;
+  char *objctype;
 }
 @end
 
 @interface NSNonretainedObjectValue : NSValue
 {
-    id data;
+  id data;
 }
 @end
 
 @interface NSPointValue : NSValue
 {
-    NSPoint data;
+  NSPoint data;
 }
 @end
 
 @interface NSPointerValue : NSValue
 {
-    void *data;
+  void *data;
 }
 @end
 
 @interface NSRectValue : NSValue
 {
-    NSRect data;
+  NSRect data;
 }
 @end
 
 @interface NSSizeValue : NSValue
 {
-    NSSize data;
+  NSSize data;
 }
 @end
 

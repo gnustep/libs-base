@@ -1,7 +1,9 @@
-Sat Jun 12 10:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Sat Jun 12 15:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSConcreteValue.m: Implemented [hash and isEqualToValue
-	* Source/NSCTemplateValue.m: Implemented hash
+	* Source/include/NSConcreteValue.h: Change NSString ivar to char* for
+	performance reasons.
+	* Source/NSCTemplateValue.m: Implemented hash and optimised.
 
 Thu Jun  4 13:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
