@@ -369,10 +369,6 @@ enum {
 @end
 
 @interface NSString(GSTrimming)
-- (NSString*) stringByTrimmingLeadWhiteSpaces;
-- (NSString*) stringByTrimmingTailWhiteSpaces;
-- (NSString*) stringByTrimmingWhiteSpaces;
-
 - (NSString*) stringByTrimmingLeadSpaces;
 - (NSString*) stringByTrimmingTailSpaces;
 - (NSString*) stringByTrimmingSpaces;

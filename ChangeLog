@@ -1,5 +1,13 @@
 2001-11-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSString.h: removed stringByTrimming...Whitespace
+	methods as they just duplicate the stringByTrimming...Spaces
+	* Source/NSString.m: ditto
+	Optimised the space trimming methods - avoid using character sets and
+	creating unnecessary intermediary objects.
+
+2001-11-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSUserDefaults.m: force defaults data to be read/write
 	only to the user.  Supplied by Ludovic Marcotte
 

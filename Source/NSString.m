@@ -3604,72 +3604,81 @@ handle_printf_atsign (FILE *stream,
 
 @implementation NSString (GSTrimming)
 
-- (NSString*) stringByTrimmingLeadWhiteSpaces
-{
-  NSCharacterSet	*nonSPSet;
-  NSRange		nonSPCharRange;
-
-  nonSPSet = [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
-  nonSPCharRange = [self rangeOfCharacterFromSet: nonSPSet];
-  
-  if (nonSPCharRange.length > 0)
-    return [self substringFromIndex: nonSPCharRange.location];
-  else
-    return @"";
-}
-
-- (NSString*) stringByTrimmingTailWhiteSpaces
-{
-  NSCharacterSet	*nonSPSet;
-  NSRange		nonSPCharRange;
-
-  nonSPSet= [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
-  nonSPCharRange = [self rangeOfCharacterFromSet: nonSPSet
-					 options: NSBackwardsSearch];
-  if (nonSPCharRange.length > 0)
-    return [self substringToIndex: nonSPCharRange.location+1];
-  else
-    return @"";
-}
-
-- (NSString*) stringByTrimmingWhiteSpaces
-{
-  return [[self stringByTrimmingLeadWhiteSpaces]
-    stringByTrimmingTailWhiteSpaces];
-}
-
 - (NSString*) stringByTrimmingLeadSpaces
 {
-  NSMutableString	*tmp = [self mutableCopy];
-  NSString		*str;
+  unsigned	length = [self length];
 
-  [tmp trimLeadSpaces];
-  str = AUTORELEASE([tmp copy]);
-  RELEASE(tmp);
-  return str;
+  if (length > 0)
+    {
+      unsigned	location = 0;
+      unichar	(*caiImp)(NSString*, SEL, unsigned);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (location < length && isspace((*caiImp)(self, caiSel, location)))
+	{
+	  location++;
+	}
+      if (location > 0)
+	{
+	  return [self substringFromIndex: location];
+	}
+    }
+  return self;
 }
 
 - (NSString*) stringByTrimmingTailSpaces
 {
-  NSMutableString	*tmp = [self mutableCopy];
-  NSString		*str;
+  unsigned	length = [self length];
 
-  [tmp trimTailSpaces];
-  str = AUTORELEASE([tmp copy]);
-  RELEASE(tmp);
-  return str;
+  if (length > 0)
+    {
+      unsigned	location = length;
+      unichar	(*caiImp)(NSString*, SEL, unsigned);
+        
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (location > 0)
+	{
+	  if (!isspace((*caiImp)(self, caiSel, --location)))
+	    {
+	      break;
+	    }
+	}
+      if (location < length-1)
+	{
+	  return [self substringToIndex: location+1];
+	}
+    }
+  return self;
 }
 
 - (NSString*) stringByTrimmingSpaces
 {
-  NSMutableString	*tmp = [self mutableCopy];
-  NSString		*str;
+  unsigned	length = [self length];
 
-  [tmp trimLeadSpaces];
-  [tmp trimTailSpaces];
-  str = AUTORELEASE([tmp copy]);
-  RELEASE(tmp);
-  return str;
+  if (length > 0)
+    {
+      unsigned	start = 0;
+      unsigned	end = length;
+      unichar	(*caiImp)(NSString*, SEL, unsigned);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (start < length && isspace((*caiImp)(self, caiSel, start)))
+	{
+	  start++;
+	}
+      while (end > start)
+	{
+	  if (!isspace((*caiImp)(self, caiSel, --end)))
+	    {
+	      break;
+	    }
+	}
+      if (start > 0 || end < length-1)
+	{
+	  return [self substringFromRange: NSMakeRange(start, end + 1 - start)];
+	}
+    }
+  return self;
 }
 
 @end
@@ -3678,18 +3687,22 @@ handle_printf_atsign (FILE *stream,
 
 - (void) trimLeadSpaces
 {
-  unsigned	location = 0;
   unsigned	length = [self length];
-  unichar	(*caiImp)(NSString*, SEL, unsigned);
 
-  caiImp = (unichar (*)())[self methodForSelector: caiSel];
-  while (location < length && isspace((*caiImp)(self, caiSel, location)))
+  if (length > 0)
     {
-      location++;
-    }
-  if (location > 0)
-    {
-      [self deleteCharactersInRange: NSMakeRange(0,location)];
+      unsigned	location = 0;
+      unichar	(*caiImp)(NSString*, SEL, unsigned);
+
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
+      while (location < length && isspace((*caiImp)(self, caiSel, location)))
+	{
+	  location++;
+	}
+      if (location > 0)
+	{
+	  [self deleteCharactersInRange: NSMakeRange(0,location)];
+	}
     }
 }
 
