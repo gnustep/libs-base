@@ -839,6 +839,8 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-ffcall-include=PATH include path for ffcall headers
+  --with-ffcall-library=PATH library path for ffcall libraries
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
@@ -11071,6 +11073,32 @@ if test "${enable_do+set}" = set; then
 else
   enable_do=yes
 fi;
+
+
+# Check whether --with-ffcall-include or --without-ffcall-include was given.
+if test "${with_ffcall_include+set}" = set; then
+  withval="$with_ffcall_include"
+  ffcall_incdir="$withval"
+else
+  ffcall_incdir="no"
+fi;
+if test ${ffcall_incdir} != "no"; then
+    ffcall_check_lib_save_cppflags="$CPPFLAGS"
+    CPPFLAGS="-I${ffcall_incdir} $CPPFLAGS"
+fi
+
+
+# Check whether --with-ffcall-library or --without-ffcall-library was given.
+if test "${with_ffcall_library+set}" = set; then
+  withval="$with_ffcall_library"
+  ffcall_libdir="$withval"
+else
+  ffcall_libdir="no"
+fi;
+if test ${ffcall_libdir} != "no"; then
+    ffcall_check_lib_save_libs="$LIBS"
+    LIBS="-L${ffcall_libdir} $LIBS"
+fi
 
 if test "${ac_cv_header_ffi_h+set}" = set; then
   echo "$as_me:$LINENO: checking for ffi.h" >&5

@@ -1,3 +1,8 @@
+2003-06-18  Kazunobu Kuriyama  <kazunobu.kuriyama@nifty.com>
+
+	* configure.ac: Add --with--ffcall-include=PATH and
+	--with-ffcall-library=PATH options
+
 2003-06-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Implement -description for nodes.
@@ -6,7 +11,7 @@
 
 	* GNUmakefile (SUBPROJECTS): Add Documentation
 
-2003-06-17  Chris Vetter <chrisv@web4inc.com?
+2003-06-17  Chris Vetter <chrisv@web4inc.com>
 
 	* Tools/AGSHtml.m: Tidy up formatting of author output.
 
