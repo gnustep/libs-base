@@ -30,7 +30,7 @@
 #include <ucbinclude/sys/resource.h>
 #endif
 
-#if (sun && __svr4__) /* solaris */ 
+#if (sun && __svr4__) || (__hpux)
 #include <sys/times.h> 
 #endif 
 
@@ -95,7 +95,7 @@ id monthNames;
   
 + (long) millisecondsToRun: (void(*)())aFunc
 {
-#if (sun && __svr4__) 
+#if (sun && __svr4__) || (__hpux)
   /* As of Solaris 2.4, getrusage is not supported with the system libraries 
      or with multi-threaded applications.  Thus, we use the times() call  
      instead. */ 
@@ -124,14 +124,14 @@ id monthNames;
 
 + getSeconds: (long *)sec microseconds: (long *)usec toRun: (void(*)())aFunc
 {
-#if (sun && __svr4__) /* solaris */ 
+#if (sun && __svr4__) || (__hpux)
   struct tms start_tms, end_tms; 
 #else 
   struct rusage start_ru, end_ru;
 #endif /* solaris */ 
 
   [self notImplemented:_cmd];
-#if (sun && __svr4__) /* solaris */ 
+#if (sun && __svr4__) || (__hpux)
   times(&start_tms); 
   (*aFunc)(); 
   times(&end_tms); 
