@@ -62,6 +62,7 @@ typedef struct {
   char	*query;
   char	*fragment;
   BOOL	pathIsAbsolute;
+  BOOL	isGeneric;
 } parsedURL;
 
 #define	myData ((parsedURL*)(self->_data))
@@ -136,7 +137,8 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
       ptr = &ptr[strlen(ptr)];
       *ptr++ = ':';
     }
-  if (rel->user != 0 || rel->password != 0 || rel->host != 0 || rel->port != 0)
+  if (rel->isGeneric == YES
+    || rel->user != 0 || rel->password != 0 || rel->host != 0 || rel->port != 0)
     {
       *ptr++ = '/';
       *ptr++ = '/';
@@ -538,10 +540,10 @@ static void unescape(const char *from, char * to)
       char	*end;
       char	*start;
       char	*ptr;
-      BOOL	usesAuthority = YES;
       BOOL	usesFragments = YES;
       BOOL	usesParameters = YES;
       BOOL	usesQueries = YES;
+      BOOL	canBeGeneric = YES;
 
       size += sizeof(parsedURL) + __alignof__(parsedURL) + 1;
       buf = _data = (parsedURL*)NSZoneMalloc(GSAtomicMallocZone(), size);
@@ -596,22 +598,28 @@ static void unescape(const char *from, char * to)
 	{
 	  if (strcmp(buf->scheme, "file") == 0)
 	    {
-	      usesAuthority = NO;
+	      usesFragments = NO;
+	      usesParameters = NO;
+	      usesQueries = NO;
+	    }
+	  else if (strcmp(buf->scheme, "mailto") == 0)
+	    {
 	      usesFragments = NO;
 	      usesParameters = NO;
 	      usesQueries = NO;
 	    }
 	}
 
-      /*
-       * Parse the 'authority'
-       * //user:password@host:port
-       */
-      if (start[0] == '/' && start[1] == '/')
+      if (canBeGeneric == YES)
 	{
-	  start = end = &end[2];
-	  if (usesAuthority == YES)
+	  /*
+	   * Parse the 'authority'
+	   * //user:password@host:port
+	   */
+	  if (start[0] == '/' && start[1] == '/')
 	    {
+	      buf->isGeneric = YES;
+	      start = end = &end[2];
 	      end = strchr(start, '/');
 	      if (end != 0)
 		{
@@ -646,92 +654,97 @@ static void unescape(const char *from, char * to)
 		  buf->port = ptr;
 		}
 	      start = end;
+
+	      /*
+	       * If we have an authority component,
+	       * this must be an absolute URL
+	       */
+	      buf->pathIsAbsolute = YES;
+	      base = 0;
 	    }
-
-	  /*
-	   * If we have an authority component, this must be an absolute URL
-	   */
-	  buf->pathIsAbsolute = YES;
-	  base = 0;
-	}
-      else if (*start == '/')
-	{
-	  buf->pathIsAbsolute = YES;
-	  start++;
-	}
-
-      if (usesFragments == YES)
-	{
-	  /*
-	   * Strip fragment string from end of url.
-	   */
-	  ptr = strchr(start, '#');
-	  if (ptr != 0)
+	  else
 	    {
-	      *ptr++ = '\0';
-	      if (*ptr != 0)
+	      if (base != 0)
 		{
-		  buf->fragment = ptr;
+		  buf->isGeneric = base->isGeneric;
+		}
+	      if (*start == '/')
+		{
+		  buf->pathIsAbsolute = YES;
+		  start++;
 		}
 	    }
-	  if (buf->fragment == 0 && base != 0)
-	    {
-	      buf->fragment = base->fragment;
-	    }
-	}
 
-      if (usesQueries == YES)
-	{
-	  /*
-	   * Strip query string from end of url.
-	   */
-	  ptr = strchr(start, '?');
-	  if (ptr != 0)
+	  if (usesFragments == YES)
 	    {
-	      *ptr++ = '\0';
-	      if (*ptr != 0)
+	      /*
+	       * Strip fragment string from end of url.
+	       */
+	      ptr = strchr(start, '#');
+	      if (ptr != 0)
 		{
-		  buf->query = ptr;
+		  *ptr++ = '\0';
+		  if (*ptr != 0)
+		    {
+		      buf->fragment = ptr;
+		    }
+		}
+	      if (buf->fragment == 0 && base != 0)
+		{
+		  buf->fragment = base->fragment;
 		}
 	    }
-	  if (buf->query == 0 && base != 0)
-	    {
-	      buf->query = base->query;
-	    }
-	}
 
-      if (usesParameters == YES)
-	{
-	  /*
-	   * Strip parameters string from end of url.
-	   */
-	  ptr = strchr(start, ';');
-	  if (ptr != 0)
+	  if (usesQueries == YES)
 	    {
-	      *ptr++ = '\0';
-	      if (*ptr != 0)
+	      /*
+	       * Strip query string from end of url.
+	       */
+	      ptr = strchr(start, '?');
+	      if (ptr != 0)
 		{
-		  buf->parameters = ptr;
+		  *ptr++ = '\0';
+		  if (*ptr != 0)
+		    {
+		      buf->query = ptr;
+		    }
+		}
+	      if (buf->query == 0 && base != 0)
+		{
+		  buf->query = base->query;
 		}
 	    }
-	  if (buf->parameters == 0 && base != 0)
+
+	  if (usesParameters == YES)
 	    {
-	      buf->parameters = base->parameters;
+	      /*
+	       * Strip parameters string from end of url.
+	       */
+	      ptr = strchr(start, ';');
+	      if (ptr != 0)
+		{
+		  *ptr++ = '\0';
+		  if (*ptr != 0)
+		    {
+		      buf->parameters = ptr;
+		    }
+		}
+	      if (buf->parameters == 0 && base != 0)
+		{
+		  buf->parameters = base->parameters;
+		}
+	    }
+
+	  if (base != 0
+	    && buf->user == 0 && buf->password == 0
+	    && buf->host == 0 && buf->port == 0)
+	    {
+	      buf->user = base->user;
+	      buf->password = base->password;
+	      buf->host = base->host;
+	      buf->port = base->port;
 	    }
 	}
-
-      /*
-       * The authority information is inherited from the base if necessary.
-       */
-      if (usesAuthority == YES && base != 0 && buf->user == 0
-	&& buf->password == 0 && buf->host == 0  && buf->port == 0)
-	{
-	  buf->user = base->user;
-	  buf->password = base->password;
-	  buf->host = base->host;
-	  buf->port = base->port;
-	}
-
       /*
        * Store the path.
        */
@@ -1004,44 +1017,50 @@ static void unescape(const char *from, char * to)
  */
 - (NSString*) path
 {
-  NSString	*path;
-  unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
-    + strlen(myData->path) + 3;
-  char		buf[len];
-  char		*tmp = buf;
+  NSString	*path = nil;
 
-  if (myData->pathIsAbsolute == YES)
+  /*
+   * If this scheme is from a URL without generic format, there is no path.
+   */
+  if (myData->isGeneric == YES)
     {
-      *tmp++ = '/';
-      strcpy(tmp, myData->path);
-    }
-  else if (_baseURL == nil)
-    {
-      strcpy(tmp, myData->path);
-    }
-  else if (*myData->path == 0)
-    {
-      *tmp++ = '/';
-      strcpy(tmp, baseData->path);
-    }
-  else
-    {
-      char	*start = baseData->path;
-      char	*end = strrchr(start, '/');
+      unsigned int	len = (_baseURL ? strlen(baseData->path) : 0)
+	+ strlen(myData->path) + 3;
+      char		buf[len];
+      char		*tmp = buf;
 
-      if (end != 0)
+      if (myData->pathIsAbsolute == YES)
 	{
 	  *tmp++ = '/';
-	  strncpy(tmp, start, end - start);
-	  tmp += end - start;
+	  strcpy(tmp, myData->path);
 	}
-      *tmp++ = '/';
-      strcpy(tmp, myData->path);
+      else if (_baseURL == nil)
+	{
+	  strcpy(tmp, myData->path);
+	}
+      else if (*myData->path == 0)
+	{
+	  *tmp++ = '/';
+	  strcpy(tmp, baseData->path);
+	}
+      else
+	{
+	  char	*start = baseData->path;
+	  char	*end = strrchr(start, '/');
+
+	  if (end != 0)
+	    {
+	      *tmp++ = '/';
+	      strncpy(tmp, start, end - start);
+	      tmp += end - start;
+	    }
+	  *tmp++ = '/';
+	  strcpy(tmp, myData->path);
+	}
+
+      unescape(buf, buf);
+      path = [NSString stringWithUTF8String: buf];
     }
-
-  unescape(buf, buf);
-  path = [NSString stringWithUTF8String: buf];
-
   return path;
 }
 
