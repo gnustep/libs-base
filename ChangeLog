@@ -2,6 +2,9 @@
 
 	* Source/NSData.m: Fix reference to zone of deallocated object.
 	Bug reported by Roland Schwingel
+	* Source/NSFileManager.m: Fix typo (using logical or rather than
+	bitwise or) in call to access()
+	Bug reported by Roland Schwingel
 
 2003-02-17    <woudshoo@agilisys.com>
 
