@@ -72,6 +72,10 @@ extern	int	errno;
 #include <errno.h>
 #endif /* !__WIN32__ */
 
+#ifndef INADDR_NONE
+#define	INADDR_NONE	-1
+#endif
+
 @class	GSTcpPort;
 
 /*
