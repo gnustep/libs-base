@@ -15,6 +15,7 @@
     <abstract>
       This documents the GNUstep Documentation markup language and tools
     </abstract>
+    <copy>Free Software Foundation, Inc.</copy>
   </head>
 
   <body>
@@ -182,10 +183,60 @@
 	  The title and at least one author are the only parts of the
 	  document head that must be present.
 	</p>
+	<example>
+  &lt;head&gt;
+    &lt;title&gt;GNUstep Documentation XML markup language (GSDoc)&lt;/title&gt;
+    &lt;author name="Richard Frith-Macdonald"&gt;
+      &lt;email address="rfm@gnu.org"/&gt;
+      &lt;url url="http://www.gnustep.org/developers/whoiswho.html"/&gt;
+      &lt;desc&gt;
+	A person who has devotes far too much time to GNUstep development.
+      &lt;/desc&gt;
+    &lt;/author&gt;
+    &lt;version&gt;0.1&lt;/version&gt;
+    &lt;date&gt;4 march, 2000&lt;/date&gt;
+    &lt;abstract&gt;
+      This documents the GNUstep Documentation markup language and tools
+    &lt;/abstract&gt;
+    &lt;copy&gt;Free Software Foundation, Inc.&lt;/copy&gt;
+  &lt;/head&gt;
+	</example>
+	<p>
+	  The above axample shows all the elements possible in a document head -
+	</p>
 	<deflist>
 	<term><label id="title">title</label></term>
 	<desc>
 	  The title of the document.
+	</desc>
+	<term><label id="author">author</label></term>
+	<desc>
+	  <p>
+	    The author of the document, also specifying an email address at
+	    which the author may be reached, a URL for a web page giving
+	    some information about the author, and an additional description
+	    of the author.
+	  </p>
+	  <p>
+	    Of course, a document may have more than one author, in which
+	    case you simply write multiple author elements.
+	  </p>
+	</desc>
+	<term><label id="version">version</label></term>
+	<desc>
+	  The version number of the document.
+	</desc>
+	<term><label id="date">date</label></term>
+	<desc>
+	  The date at which the document was last modified.
+	</desc>
+	<term><label id="abstract">abstract</label></term>
+	<desc>
+	  A <em>short</em> description of the document contents.
+	</desc>
+	<term><label id="copy">copy</label></term>
+	<desc>
+	  The copyright owner of the document.
 	</desc>
 	</deflist>
       </section>

@@ -15,6 +15,7 @@
 <blockquote>
       This documents the GNUstep Documentation markup language and tools
     </blockquote>
+<p>Copyright: Free Software Foundation, Inc.</p>
 <h1>Contents</h1>
 <ul>
 <li><a href="#cont-0">Introduction</a>
@@ -156,6 +157,12 @@
 	    format, the outut file name should be based on this - eg.
 	    if the base name of a document is <em>foo</em> then an html
 	    output for this file would be <em>foo.html</em>.
+	  <em>foo</em> then an html
+	    output for this file would be <em>foo.html</em>.
+	   then an html
+	    output for this file would be <em>foo.html</em>.
+	  <em>foo.html</em>.
+	  .
 	  
 <dt>prev
 <dd>
@@ -192,10 +199,73 @@
 	  The title and at least one author are the only parts of the
 	  document head that must be present.
 	</p>
+<a name="label-1">example</a>
+<pre>
+
+  &#60;head>
+    &#60;title>GNUstep Documentation XML markup language (GSDoc)&#60;/title>
+    &#60;author name="Richard Frith-Macdonald">
+      &#60;email address="rfm@gnu.org"/>
+      &#60;url url="http://www.gnustep.org/developers/whoiswho.html"/>
+      &#60;desc>
+	A person who has devotes far too much time to GNUstep development.
+      &#60;/desc>
+    &#60;/author>
+    &#60;version>0.1&#60;/version>
+    &#60;date>4 march, 2000&#60;/date>
+    &#60;abstract>
+      This documents the GNUstep Documentation markup language and tools
+    &#60;/abstract>
+    &#60;copy>Free Software Foundation, Inc.&#60;/copy>
+  &#60;/head>
+	
+</pre>
+<p>
+
+	  The above axample shows all the elements possible in a document head -
+	</p>
 <dl>
 <dt><a name="title">title</a>
 <dd>
 	  The title of the document.
+	
+<dt><a name="author">author</a>
+<dd>
+	  
+	  
+	<p>
+
+	    The author of the document, also specifying an email address at
+	    which the author may be reached, a URL for a web page giving
+	    some information about the author, and an additional description
+	    of the author.
+	  </p>
+
+	  
+	<p>
+
+	    Of course, a document may have more than one author, in which
+	    case you simply write multiple author elements.
+	  </p>
+
+	
+<dt><a name="version">version</a>
+<dd>
+	  The version number of the document.
+	
+<dt><a name="date">date</a>
+<dd>
+	  The date at which the document was last modified.
+	
+<dt><a name="abstract">abstract</a>
+<dd>
+	  A <em>short</em> description of the document contents.
+	<em>short</em> description of the document contents.
+	 description of the document contents.
+	
+<dt><a name="copy">copy</a>
+<dd>
+	  The copyright owner of the document.
 	
 </dl>
 <h3><a name="body">The document body</a></h3>
