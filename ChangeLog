@@ -6,7 +6,8 @@
 	* Source/NSArray.m: Use new plist code
 	* Source/NSData.m: ditto
 	* Source/NSDictionary.m: ditto
-	* Source/NSString.m: ditto
+	* Source/NSString.m: ditto, plus implement extensions to old plist
+	support so we can encode NSNumber and NSDate values.
 	Remove GNUstep property list extensions from the api ... make more
 	like MacOS and OpenStep spec by having a central mechanism for
 	generating property lists rather than spreading the code across the
