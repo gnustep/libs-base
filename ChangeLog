@@ -4,6 +4,8 @@
 	reference counts.
 	* Source/NSMapTable.m: Improve warning logging for dodgy practices.
 	* Source/NSHashTable.m: ditto
+	* Tools/AGSHtml.m: A couple of minor fixes for systems where the xml
+	parser does not discard whitespace as it should.
 
 2002-02-01  Richard Frith-Macdonald <rfm@gnu.org>
 
