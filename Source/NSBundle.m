@@ -280,6 +280,10 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       s = [path lastPathComponent];
       if ([s isEqual: gnustep_target_cpu])
 	path = [path stringByDeletingLastPathComponent];
+      /* object dir */
+      s = [path lastPathComponent];
+      if ([s hasSuffix: @"_obj"])
+	path = [path stringByDeletingLastPathComponent];
 
       NSDebugLLog(@"NSBundle", @"(NSBundle): Found main in %@\n", path);
       /* We do alloc and init separately so initWithPath: knows

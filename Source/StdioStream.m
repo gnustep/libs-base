@@ -21,7 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+#ifndef _REENTRANT
 #define _REENTRANT
+#endif
 
 #include <config.h>
 #include <gnustep/base/preface.h>

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <gnustep/base/TcpPort.h>
-#include <gnustep/base/Notification.h>
 #include <gnustep/base/Invocation.h>
+#include <Foundation/NSNotification.h>
 #include <Foundation/NSRunLoop.h>
 
 id announce_new_connection (id notification)
