@@ -71,6 +71,18 @@ This document explains the official coding standards which developers
 for GNUstep base should follow. Note that these standards are in addition
 to GNU coding standards, not a replacement of them.
 
+To summarize, always add a ChangeLog message whenever your commit a
+change. Make sure your patch, if possible, improves the operation of
+the library, not just fixes things - i.e. there are many places where
+things are just hacked together from long ago and really aren't
+correct. It's better to rewrite the whole thing correctly, then just
+make some temporary fix.
+
+Some particular pieces of code which may seem odd or wrong may in fact
+be there for particular and obscure, but necessary reasons. If you
+have questions, ask on @email{bug-gnustep@@gnu.org} or 
+@email{gnustep-dev@@gnu.org}.
+
 @c ******************************************************************
 @node ChangeLog Entries, Coding Style, Introduction, Top
 @section ChangeLog Entries
@@ -134,7 +146,7 @@ x++, y++;
 
 Brackets should have space only before the leading bracket and after
 the trailing bracket (as in this example), though there are odd occasions
-where those spcaes might be omitted ((eg. when brackets are doubled)).
+where those spaces might be omitted ((eg. when brackets are doubled)).
 This applies to square brackets too.
 
 Where round brackets are used for type-casts or at the end of a statement,
@@ -284,7 +296,7 @@ in use.
 @section Error Handling
 
 Initialization methods (e.g. -init) should, upon failure to
-initialize the class, deallocate itself and return nil. This may mean
+initialize the class, release itself and return nil. This may mean
 in certain cases, that it should catch exceptions, since the calling
 method will be expecting a nil object rather than an exception on
 failure. However, init methods should endeavor to provide some

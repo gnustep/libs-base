@@ -167,12 +167,12 @@ static IMP gs_objc_msg_forward (SEL sel)
   NSCAssert1(sig, @"No signature for selector %@", NSStringFromSelector(sel));
 
   /* Construct the frame and closure. */
-  /* Note: We alloc cframe here, but it's passed to GSFFIInvocationCallback
+  /* Note: We malloc cframe here, but it's passed to GSFFIInvocationCallback
      where it becomes owned by the callback invocation, so we don't have to
      worry about freeing it */
   cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
-  /* Free the closure through NSData */
-  amemory = [NSMutableData dataWithLength: sizeof(ffi_closure)];
+  /* Autorelease the closure through fastMallocBuffer */
+  amemory = _fastMallocBuffer(sizeof(ffi_closure));
   cclosure = [amemory mutableBytes];
   if (cframe == NULL || cclosure == NULL)
     {

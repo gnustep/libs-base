@@ -1,3 +1,14 @@
+2002-06-04  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSByteOrder.h: Hack for bug in gcc 3.1
+	* Source/externs.m (_gcc3_1_hack): Idem. (modified patch from 
+	benhur@inf.ufsm.br).
+
+	* Source/GSFFIInvocation.m (gs_objc_msg_forward): Alloc closure
+	with fastMallocBuffer.
+
+	* Documentation/coding-standards.texi: Update.
+
 2002-06-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h: Removed  ([_dealloc]),
