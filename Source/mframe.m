@@ -1,5 +1,5 @@
 /* Implementation of functions for dissecting/making method calls 
-   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: Oct 1994
@@ -874,9 +874,14 @@ mframe_build_return (arglist_t argframe,
 	      /* xxx Is this the right test?  Use sizeof(int) instead? */
 	      if (retsize < sizeof(void*))
 		{
+#if 1
+		  /* Frith-Macdonald said this worked better 21 Nov 96. */
+		  (*decoder) (-1, retframe, tmptype, flags);
+#else
 		  *(void**)retframe = 0;
 		  (*decoder) (-1, ((char*)retframe)+sizeof(void*)-retsize,
 			      tmptype, flags);
+#endif
 		}
 	      else
 		{
