@@ -127,10 +127,10 @@ void
 NSLogv (NSString* format, va_list args)
 {
   static NSRecursiveLock	*myLock = nil;
-  CREATE_AUTORELEASE_POOL(arp);
   NSString			*prefix;
   NSString			*message;
   int				pid;
+  CREATE_AUTORELEASE_POOL(arp);
 
   if (_NSLog_printf_handler == NULL)
     _NSLog_printf_handler = *_NSLog_standard_printf_handler;
