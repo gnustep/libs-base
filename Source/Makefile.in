@@ -31,6 +31,7 @@ VPATH = @srcdir@
 # Installation locations
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+bindir = $(exec_prefix)/bin
 libdir = @libdir@
 gnustep_libdir = $(libdir)/gnustep
 includedir = @includedir@
@@ -522,7 +523,11 @@ DIST_FILES = \
 
 # Targets
 
-all: gnustep/base Foundation lib$(LIBRARY_NAME)$(LIBEXT) @SHARED_LIBRARY@
+all: \
+gnustep/base Foundation \
+lib$(LIBRARY_NAME)$(LIBEXT) \
+@SHARED_LIBRARY@ \
+gdomap
 
 lib$(LIBRARY_NAME).so.$(VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC) 
 	$(CC) -o lib$(LIBRARY_NAME).so.$(VERSION) $(CFLAGS_SHAREDLIB) \
@@ -559,6 +564,8 @@ Foundation: ../configure $(HEADERS_INSTALL)
 	$(LN_S) $(srcdir)/include Foundation
 
 install: installdirs all
+	# Install the Distributed Objects name server
+	$(INSTALL_PROGRAM) -o root -m 04755 gdomap $(bindir)
 	# Install the library
 	$(INSTALL_DATA) lib$(LIBRARY_NAME)$(LIBEXT) $(libdir)
 	$(RANLIB) $(libdir)/lib$(LIBRARY_NAME)$(LIBEXT); \
@@ -605,6 +612,9 @@ $(NSNUMBER_MFILES) : NSConcreteNumber.m
 	rm -f $@
 	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
 	cat $(srcdir)/NSConcreteNumber.m >> $@
+
+gdomap:	gdomap.c gdomap.h
+	$(CC) $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
 
 NXStringTable_scan.c: NXStringTable_scan.l
 	$(LEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
@@ -705,6 +715,7 @@ mostlyclean:
 clean: mostlyclean
 	rm -f lib$(LIBRARY_NAME)$(LIBEXT) *${OEXT}
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
+	rm -f gdomap
 distclean: clean
 	rm -f Makefile 
 	rm -f dynamic-load.h
