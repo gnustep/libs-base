@@ -58,18 +58,18 @@ extern int	errno;
  *
  *      GSDebugAllocationClassList()
  *              Returns a NULL terminated array listing all the classes 
- *              for which statistical information have been collected.
+ *              for which statistical information has been collected.
  *
  *	GSDebugAllocationList()
  *		Returns a newline separated list of the classes which
  *		have instances allocated, and the instance counts.
  *		If 'changeFlag' is YES then the list gives the number
- *		of instances allocated/deallocated sine the function
+ *		of instances allocated/deallocated since the function
  *		was last called.
  *	GSDebugAllocationListAll()
  *		Returns a newline separated list of the classes which
  *		have had instances allocated at any point, and the total
- *		count of the number of instances allocated.
+ *		count of the number of instances allocated for each class.
  *
  * When the previous functions have allowed you to find a memory leak,
  * and you know that you are leaking objects of class XXX, but you are
@@ -79,7 +79,7 @@ extern int	errno;
  * could slow down your system appreciably - use them only temporarily
  * and only in debugging systems):
  *
- *  GSDebugAllocationStartRecordingObjects()
+ *  GSDebugAllocationActiveRecordingObjects()
  *              Starts recording all allocated objects of a certain class
  *
  *  GSDebugAllocationListRecordedObjects() 
