@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSRecursiveLock" prev="NSProxy.html" next="NSRunLoop.html" up="Foundation.html">
+  <head>
+    <title>NSRecursiveLock</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSRecursiveLock</heading>
+      <class name="NSRecursiveLock" super="NSObject">
+        <declared>Foundation/NSLock.h</declared>
+        <conform>NSLocking</conform>
+        <desc>
+        </desc>
+        <method type="BOOL"><sel>lockBeforeDate:</sel><arg type="NSDate*">limit</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>tryLock</sel>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

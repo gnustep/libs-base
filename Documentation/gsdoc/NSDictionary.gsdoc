@@ -1,0 +1,168 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSDictionary" prev="NSDeserializer.html" next="NSDirectoryEnumerator.html" up="Foundation.html">
+  <head>
+    <title>NSDictionary</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSDictionary</heading>
+      <class name="NSDictionary" super="NSObject">
+        <declared>Foundation/NSDictionary.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="id" factory="yes"><sel>allocWithZone:</sel><arg type="NSZone*">zone</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dictionary</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dictionaryWithContentsOfFile:</sel><arg type="NSString*">path</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dictionaryWithDictionary:</sel><arg type="NSDictionary*">otherDictionary</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dictionaryWithObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dictionaryWithObjects:</sel><arg type="NSArray*">objects</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dictionaryWithObjects:</sel><arg type="id*">objects</arg><sel>forKeys:(id *)keys count:</sel><arg type="unsignedint">count</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dictionaryWithObjectsAndKeys:</sel><arg type="id">object,</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>allKeys</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>allKeysForObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>allValues</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>count</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>descriptionInStringsFileFormat</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>descriptionWithLocale:</sel><arg type="NSDictionary*">locale</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>descriptionWithLocale:</sel><arg type="NSDictionary*">locale</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>fileGroupOwnerAccountName</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSDate*"><sel>fileModificationDate</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>fileOwnerAccountName</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedlong"><sel>filePosixPermissions</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedlonglong"><sel>fileSize</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedlong"><sel>fileSystemFileNumber</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedlong"><sel>fileSystemNumber</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>fileType</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithContentsOfFile:</sel><arg type="NSString*">path</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithDictionary:</sel><arg type="NSDictionary*">otherDictionary</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithDictionary:</sel><arg type="NSDictionary*">otherDictionary</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithObjects:</sel><arg type="NSArray*">objects</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithObjects:</sel><arg type="id*">objects</arg><sel>forKeys:(id *)keys count:</sel><arg type="unsignedint">count</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithObjectsAndKeys:</sel><arg type="id">object,</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>isEqualToDictionary:</sel><arg type="NSDictionary*">otherDictionary</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSEnumerator*"><sel>keyEnumerator</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel> keysSortedByValueUsingSelector:</sel><arg type="SEL">comparator</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSEnumerator*"><sel>objectEnumerator</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>objectForKey:</sel><arg type="id">aKey</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>objectsForKeys:</sel><arg type="NSArray*">keys</arg><sel>notFoundMarker:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>writeToFile:</sel><arg type="NSString*">path</arg><sel>atomically:</sel><arg type="BOOL">flag</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

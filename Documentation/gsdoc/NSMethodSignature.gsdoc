@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSMethodSignature" prev="NSLock.html" next="NSMutableArray.html" up="Foundation.html">
+  <head>
+    <title>NSMethodSignature</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSMethodSignature</heading>
+      <class name="NSMethodSignature" super="NSObject">
+        <declared>Foundation/NSMethodSignature.h</declared>
+        <conform>NSObject</conform>
+        <desc>
+        </desc>
+        <method type="constchar*"><sel>getArgumentTypeAtIndex:</sel><arg type="unsignedint">index</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>frameLength</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>isOneway</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>methodReturnLength</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="char*"><sel>methodReturnType</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>numberOfArguments</sel>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSProtocolChecker" prev="NSProcessInfo.html" next="NSProxy.html" up="Foundation.html">
+  <head>
+    <title>NSProtocolChecker</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSProtocolChecker</heading>
+      <class name="NSProtocolChecker" super="NSObject">
+        <declared>Foundation/NSProtocolChecker.h</declared>
+        <desc>
+        </desc>
+        <method type="id" factory="yes"><sel>protocolCheckerWithTarget:</sel><arg type="NSObject*">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>forwardInvocation:</sel><arg type="NSInvocation*">anInvocation</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithTarget:</sel><arg type="NSObject*">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="structobjc_method_description*"><sel>methodDescriptionForSelector:</sel><arg type="SEL">aSelector</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="Protocol*"><sel>protocol</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSObject*"><sel>target</sel>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSNotification" prev="NSMutableString.html" next="NSNotificationCenter.html" up="Foundation.html">
+  <head>
+    <title>NSNotification</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSNotification</heading>
+      <class name="NSNotification" super="NSObject">
+        <declared>Foundation/NSNotification.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="id" factory="yes"><sel>notificationWithName:</sel><arg type="NSString*">aName</arg><sel>object:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>notificationWithName:</sel><arg type="NSString*">aName</arg><sel>object:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>name</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>object</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSDictionary*"><sel>userInfo</sel>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSInvocation" prev="NSHost.html" next="NSLock.html" up="Foundation.html">
+  <head>
+    <title>NSInvocation</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSInvocation</heading>
+      <class name="NSInvocation" super="NSObject">
+        <declared>Foundation/NSInvocation.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="NSInvocation*" factory="yes"><sel>invocationWithMethodSignature:</sel><arg type="NSMethodSignature*">signature</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>argumentsRetained</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>getArgument:</sel><arg type="void*">buffer</arg><sel>atIndex:</sel><arg type="int">index</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>getReturnValue:</sel><arg type="void*">buffer</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>invoke</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>invokeWithTarget:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSMethodSignature*"><sel>methodSignature</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>retainArguments</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="SEL"><sel>selector</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setArgument:</sel><arg type="void*">buffer</arg><sel>atIndex:</sel><arg type="int">index</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setReturnValue:</sel><arg type="void*">buffer</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setSelector:</sel><arg type="SEL">selector</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setTarget:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>target</sel>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSBundle" prev="NSAutoreleasePool.html" next="NSCalendarDate.html" up="Foundation.html">
+  <head>
+    <title>NSBundle</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSBundle</heading>
+      <class name="NSBundle" super="NSObject">
+        <declared>Foundation/NSBundle.h</declared>
+        <conform>NSObject</conform>
+        <desc>
+        </desc>
+        <method type="NSArray*" factory="yes"><sel>allBundles</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*" factory="yes"><sel>allFrameworks</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSBundle*" factory="yes"><sel>bundleForClass:</sel><arg type="Class">aClass</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSBundle*" factory="yes"><sel>bundleWithPath:</sel><arg type="NSString*">path</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSBundle*" factory="yes"><sel>mainBundle</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*" factory="yes"><sel>pathForResource:</sel><arg type="NSString*">name</arg><sel>ofType:</sel><arg type="NSString*">extension</arg><sel>inDirectory:</sel><arg type="NSString*">bundlePath</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>bundlePath</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="Class"><sel>classNamed:</sel><arg type="NSString*">className</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSDictionary*"><sel>infoDictionary</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithPath:</sel><arg type="NSString*">fullPath</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>load</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>localizedStringForKey:</sel><arg type="NSString*">key</arg><sel>value:</sel><arg type="NSString*">value</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>pathForResource:</sel><arg type="NSString*">name</arg><sel>ofType:</sel><arg type="NSString*">extension</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>pathForResource:</sel><arg type="NSString*">name</arg><sel>ofType:</sel><arg type="NSString*">extension</arg><sel>inDirectory:</sel><arg type="NSString*">bundlePath</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>pathsForResourcesOfType:</sel><arg type="NSString*">extension</arg><sel>inDirectory:</sel><arg type="NSString*">bundlePath</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="Class"><sel>principalClass</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>resourcePath</sel>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

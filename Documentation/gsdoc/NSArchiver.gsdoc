@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSArchiver" next="NSArray.html" up="Foundation.html">
+  <head>
+    <title>NSArchiver</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSArchiver</heading>
+      <class name="NSArchiver" super="NSCoder">
+        <declared>Foundation/NSArchiver.h</declared>
+        <conform>NSObject</conform>
+        <desc>
+        </desc>
+        <method type="BOOL" factory="yes"><sel>archiveRootObject:</sel><arg type="id">rootObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSData*" factory="yes"><sel>archivedDataWithRootObject:</sel><arg type="id">rootObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSMutableData*"><sel>archiverData</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>classNameEncodedForTrueClassName:</sel><arg type="NSString*">trueName</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>encodeClassName:</sel><arg type="NSString*">trueName</arg><sel>intoClassName:</sel><arg type="NSString*">inArchiveName</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>encodeConditionalObject:</sel><arg type="id">object</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>encodeRootObject:</sel><arg type="id">rootObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initForWritingWithMutableData:</sel><arg type="NSMutableData*">data</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>replaceObject:</sel><arg type="id">object</arg><sel>withObject:</sel><arg type="id">newObject</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

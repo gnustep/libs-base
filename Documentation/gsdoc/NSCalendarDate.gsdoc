@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSCalendarDate" prev="NSBundle.html" next="NSCharacterSet.html" up="Foundation.html">
+  <head>
+    <title>NSCalendarDate</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSCalendarDate</heading>
+      <class name="NSCalendarDate" super="NSDate">
+        <declared>Foundation/NSDate.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="id" factory="yes"><sel>calendarDate</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dateWithString:</sel><arg type="NSString*">description</arg><sel>calendarFormat:</sel><arg type="NSString*">format</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dateWithString:</sel><arg type="NSString*">description</arg><sel>calendarFormat:</sel><arg type="NSString*">format</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>dateWithYear:</sel><arg type="int">year</arg><sel>month:</sel><arg type="unsignedint">month</arg><sel>day:(unsigned int)day  hour:</sel><arg type="unsignedint">hour</arg><sel>minute:</sel><arg type="unsignedint">minute</arg><sel>second:(unsigned int)second  timeZone:</sel><arg type="NSTimeZone*">aTimeZone</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>calendarFormat</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSCalendarDate*"><sel>dateByAddingYears:</sel><arg type="int">year</arg><sel>months:</sel><arg type="int">month</arg><sel>days:(int)day  hours:</sel><arg type="int">hour</arg><sel>minutes:</sel><arg type="int">minute</arg><sel>seconds:</sel><arg type="int">second</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>dayOfCommonEra</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>dayOfMonth</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>dayOfWeek</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>dayOfYear</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>description</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>descriptionWithCalendarFormat:</sel><arg type="NSString*">format</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>descriptionWithCalendarFormat:</sel><arg type="NSString*">format</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>descriptionWithLocale:</sel><arg type="NSDictionary*">locale</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>hourOfDay</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithString:</sel><arg type="NSString*">description</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithString:</sel><arg type="NSString*">description</arg><sel>calendarFormat:</sel><arg type="NSString*">format</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithString:</sel><arg type="NSString*">description</arg><sel>calendarFormat:</sel><arg type="NSString*">format</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithYear:</sel><arg type="int">year</arg><sel>month:</sel><arg type="unsignedint">month</arg><sel>day:(unsigned int)day  hour:</sel><arg type="unsignedint">hour</arg><sel>minute:</sel><arg type="unsignedint">minute</arg><sel>second:(unsigned int)second  timeZone:</sel><arg type="NSTimeZone*">aTimeZone</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>minuteOfHour</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>monthOfYear</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>secondOfMinute</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setCalendarFormat:</sel><arg type="NSString*">format</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setTimeZone:</sel><arg type="NSTimeZone*">aTimeZone</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSTimeZone*"><sel>timeZone</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>yearOfCommonEra</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>years:</sel><arg type="int*">yearsPointer</arg><sel>months:(int *)monthsPointer  days:</sel><arg type="int*">daysPointer</arg><sel>hours:(int *)hoursPointer  minutes:</sel><arg type="int*">minutesPointer</arg><sel>seconds:(int *)secondsPointer  sinceDate:</sel><arg type="NSCalendarDate*">date</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

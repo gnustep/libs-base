@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSMutableAttributedString" prev="NSMutableArray.html" next="NSMutableCharacterSet.html" up="Foundation.html">
+  <head>
+    <title>NSMutableAttributedString</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSMutableAttributedString</heading>
+      <class name="NSMutableAttributedString" super="NSAttributedString">
+        <declared>Foundation/NSAttributedString.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="void"><sel>addAttribute:</sel><arg type="NSString*">name</arg><sel>value:</sel><arg type="id">value</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>addAttributes:</sel><arg type="NSDictionary*">attributes</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>appendAttributedString:</sel><arg type="NSAttributedString*">attributedString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>beginEditing</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>deleteCharactersInRange:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>endEditing</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>insertAttributedString:</sel><arg type="NSAttributedString*">attributedString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSMutableString*"><sel>mutableString</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeAttribute:</sel><arg type="NSString*">name</arg><sel>range:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>replaceCharactersInRange:</sel><arg type="NSRange">aRange</arg><sel>withAttributedString:</sel><arg type="NSAttributedString*">attributedString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>replaceCharactersInRange:</sel><arg type="NSRange">aRange</arg><sel>withString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setAttributedString:</sel><arg type="NSAttributedString*">attributedString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setAttributes:</sel><arg type="NSDictionary*">attributes</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

@@ -1,7 +1,9 @@
 Mon Feb 28 15:27:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	Added GSDoc subdirectory to contain tool for converting gsdoc
+	* GSDoc: Added GSDoc subdirectory to contain tool for converting gsdoc
 	documentation to HTML format.
+	* Documentation/gsdoc: Added skeleton documentation for the
+	OpenStep/MacOS-X foundation classes in the gsdoc subdirectory.
 
 Sun Feb 27 08:37:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

@@ -1,0 +1,180 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSArray" prev="NSArchiver.html" next="NSAssertionHandler.html" up="Foundation.html">
+  <head>
+    <title>NSArray</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSArray</heading>
+      <class name="NSArray" super="NSObject">
+        <declared>Foundation/NSArray.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="id" factory="yes"><sel>allocWithZone:</sel><arg type="NSZone*">zone</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>array</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>arrayWithArray:</sel><arg type="NSArray*">anArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>arrayWithContentsOfFile:</sel><arg type="NSString*">aPath</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>arrayWithObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>arrayWithObjects:</sel><arg type="id">firstObj,</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>arrayWithObjects:</sel><arg type="id*">objects</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>arrayByAddingObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>arrayByAddingObjectsFromArray:</sel><arg type="NSArray*">otherArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>componentsJoinedByString:</sel><arg type="NSString*">separator</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>containsObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>count</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>descriptionWithLocale:</sel><arg type="NSDictionary*">locale</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>descriptionWithLocale:</sel><arg type="NSDictionary*">locale</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>firstObjectCommonWithArray:</sel><arg type="NSArray*">otherArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>getObjects:</sel><arg type="id*">aBuffer</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>getObjects:</sel><arg type="id*">aBuffer</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>indexOfObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>indexOfObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>indexOfObjectIdenticalTo:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>indexOfObjectIdenticalTo:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithArray:</sel><arg type="NSArray*">anArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithContentsOfFile:</sel><arg type="NSString*">aPath</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithObjects:</sel><arg type="id">firstObj,</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithObjects:</sel><arg type="id*">objects</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>isEqualToArray:</sel><arg type="NSArray*">otherArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>lastObject</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>makeObjectsPerformSelector:</sel><arg type="SEL">aSelector</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>makeObjectsPerformSelector:</sel><arg type="SEL">aSelector</arg><sel>withObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>objectAtIndex:</sel><arg type="unsignedint">index</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSEnumerator*"><sel>objectEnumerator</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>pathsMatchingExtensions:</sel><arg type="NSArray*">filterTypes</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSEnumerator*"><sel>reverseObjectEnumerator</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSData*"><sel>sortedArrayHint</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>sortedArrayUsingFunction:</sel><arg type="int(*">(id,</arg><sel>id, void *))comparator context:</sel><arg type="void*">context</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>sortedArrayUsingFunction:</sel><arg type="int(*">(id,</arg><sel>id, void *))compare  	context:</sel><arg type="void*">context</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>sortedArrayUsingSelector:</sel><arg type="SEL">comparator</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>subarrayWithRange:</sel><arg type="NSRange">range</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>writeToFile:</sel><arg type="NSString*">path</arg><sel>atomically:</sel><arg type="BOOL">flag</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

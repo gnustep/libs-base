@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSProxy" prev="NSProtocolChecker.html" next="NSRecursiveLock.html" up="Foundation.html">
+  <head>
+    <title>NSProxy</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSProxy</heading>
+      <class name="NSProxy">
+        <declared>Foundation/NSProxy.h</declared>
+        <conform>NSObject</conform>
+        <desc>
+        </desc>
+        <method type="id" factory="yes"><sel>alloc</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>allocWithZone:</sel><arg type="NSZone*">zone</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="Class" factory="yes"><sel>class</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void" factory="yes"><sel>load</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL" factory="yes"><sel>respondsToSelector:</sel><arg type="SEL">aSelector</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="Class"><sel>class</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>conformsToProtocol:</sel><arg type="Protocol">aProtocol</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>dealloc</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>description</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>forwardInvocation:</sel><arg type="NSInvocation*">anInvocation</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>isKindOfClass:</sel><arg type="Class">aClass</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>isMemberOfClass:</sel><arg type="Class">aClass</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>isProxy</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSMethodSignature*"><sel>methodSignatureForSelector:</sel><arg type="SEL">aSelector</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>respondsToSelector:</sel><arg type="SEL">aSelector</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

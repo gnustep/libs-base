@@ -1,0 +1,376 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSString" prev="NSSet.html" next="NSTask.html" up="Foundation.html">
+  <head>
+    <title>NSString</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSString</heading>
+      <class name="NSString" super="NSObject">
+        <declared>Foundation/NSString.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="constNSStringEncoding*" factory="yes"><sel>availableStringEncodings</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSStringEncoding" factory="yes"><sel>defaultCStringEncoding</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*" factory="yes"><sel>localizedNameOfStringEncoding:</sel><arg type="NSStringEncoding">encoding</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*" factory="yes"><sel>localizedStringWithFormat:</sel><arg type="NSString*">format,</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*" factory="yes"><sel>pathWithComponents:</sel><arg type="NSArray*">components</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>string</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>stringWithCharacters:</sel><arg type="constunichar*">chars</arg><sel>length:</sel><arg type="unsignedint">length</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>stringWithContentsOfFile:</sel><arg type="NSString*">path</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>stringWithCString:</sel><arg type="constchar*">cString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>stringWithCString:</sel><arg type="constchar*">cString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>stringWithFormat:</sel><arg type="NSString*">format,</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>stringWithString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>canBeConvertedToEncoding:</sel><arg type="NSStringEncoding">encoding</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>capitalizedString</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSComparisonResult"><sel>caseInsensitiveCompare:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unichar"><sel>characterAtIndex:</sel><arg type="unsignedint">index</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>commonPrefixWithString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSComparisonResult"><sel>compare:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSComparisonResult"><sel>compare:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSComparisonResult"><sel>compare:</sel><arg type="NSString*">aString</arg><sel>options:(unsigned int)mask range:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>completePathIntoString:</sel><arg type="NSString**">outputName</arg><sel>caseSensitive:</sel><arg type="BOOL">flag</arg><sel>matchesIntoArray:</sel><arg type="NSArray**">outputArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>componentsSeparatedByString:</sel><arg type="NSString*">separator</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="constchar*"><sel>cString</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>cStringLength</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSData*"><sel>dataUsingEncoding:</sel><arg type="NSStringEncoding">encoding</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSData*"><sel>dataUsingEncoding:</sel><arg type="NSStringEncoding">encoding</arg><sel>allowLossyConversion:</sel><arg type="BOOL">flag</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>description</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="double"><sel>doubleValue</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSStringEncoding"><sel>fastestEncoding</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="constchar*"><sel>fileSystemRepresentation</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="float"><sel>floatValue</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>getCharacters:</sel><arg type="unichar*">buffer</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>getCharacters:</sel><arg type="unichar*">buffer</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>getCString:</sel><arg type="char*">buffer</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>getCString:</sel><arg type="char*">buffer</arg><sel>maxLength:</sel><arg type="unsignedint">maxLength</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>getCString:</sel><arg type="char*">buffer</arg><sel>maxLength:</sel><arg type="unsignedint">maxLength</arg><sel>range:(NSRange)aRange remainingRange:</sel><arg type="NSRange*">leftoverRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>getFileSystemRepresentation:</sel><arg type="char*">buffer</arg><sel>maxLength:</sel><arg type="unsignedint">maxLength</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void" factory="yes"><sel>getLineStart:</sel><arg type="unsignedint*">startIndex</arg><sel>end:(unsigned int *)lineEndIndex contentsEnd:</sel><arg type="unsignedint*">contentsEndIndex</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>hash</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>hasPrefix:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>hasSuffix:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>init</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithCharacters:</sel><arg type="constunichar*">characters</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithCharactersNoCopy:</sel><arg type="unichar*">characters</arg><sel>length:(unsigned int)length freeWhenDone:</sel><arg type="BOOL">flag</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithContentsOfFile:</sel><arg type="NSString*">path</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithCString:</sel><arg type="constchar*">cString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithCString:</sel><arg type="constchar*">cString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithCStringNoCopy:</sel><arg type="char*">cString</arg><sel>length:(unsigned int)length freeWhenDone:</sel><arg type="BOOL">flag</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithData:</sel><arg type="NSData*">data</arg><sel>encoding:</sel><arg type="NSStringEncoding">encoding</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithFormat:</sel><arg type="NSString*">format,</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithFormat:</sel><arg type="NSString*">format</arg><sel>arguments:</sel><arg type="va_list">argList</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithFormat:</sel><arg type="NSString*">format</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithFormat:</sel><arg type="NSString*">format</arg><sel>locale:(NSDictionary *)dictionary arguments:</sel><arg type="va_list">argList</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="int"><sel>intValue</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>isAbsolutePath</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>isEqualToString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>lastPathComponent</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>length</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSRange" factory="yes"><sel>lineRangeForRange:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="constchar*"><sel>lossyCString</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>lowercaseString</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>pathComponents</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>pathExtension</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>propertyList</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSDictionary*"><sel>propertyListFromStringsFileFormat</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSRange"><sel>rangeOfCharacterFromSet:</sel><arg type="NSCharacterSet*">aSet</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSRange"><sel>rangeOfCharacterFromSet:</sel><arg type="NSCharacterSet*">aSet</arg><sel>options:</sel><arg type="unsignedint">mask</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSRange"><sel>rangeOfCharacterFromSet:</sel><arg type="NSCharacterSet*">aSet</arg><sel>options:</sel><arg type="unsignedint">mask</arg><sel>range:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSRange"><sel>rangeOfComposedCharacterSequenceAtIndex:</sel><arg type="unsignedint">anIndex</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSRange"><sel>rangeOfString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSRange"><sel>rangeOfString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSRange"><sel>rangeOfString:</sel><arg type="NSString*">subString</arg><sel>options:(unsigned int)mask range:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSStringEncoding"><sel>smallestEncoding</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>stringByAbbreviatingWithTildeInPath</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>stringByAppendingFormat:</sel><arg type="NSString*">format,</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>stringByAppendingPathComponent:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>stringByAppendingPathExtension:</sel><arg type="NSString*">string</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>stringByAppendingString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>stringByDeletingLastPathComponent</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>stringByDeletingPathExtension</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>stringByExpandingTildeInPath</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSArray*"><sel>stringsByAppendingPaths:</sel><arg type="NSArray*">paths</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>substringFromIndex:</sel><arg type="unsignedint">anIndex</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>substringToIndex:</sel><arg type="unsignedint">anIndex</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>substringWithRange:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>uppercaseString</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>writeToFile:</sel><arg type="NSString*">path</arg><sel>atomically:</sel><arg type="BOOL">flag</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>
