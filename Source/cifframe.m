@@ -116,7 +116,7 @@ cifframe_guess_struct_size(ffi_type *stype)
      
 
 cifframe_t *
-cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
+cifframe_from_info (NSArgumentInfo *info, int numargs)
 {
   unsigned      size = sizeof(cifframe_t);
   unsigned      align = __alignof(double);
@@ -191,9 +191,9 @@ cifframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
       else
 	full += MAX(rtype->size, sizeof(smallret_t));
       cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), full, 1);
-      if (cframe && retval)
+      if (cframe)
 	{
-	  *retval = buf + pos;
+	  cframe->retval = buf + pos;
 	}
     }
   else
@@ -700,8 +700,8 @@ cifframe_do_call (DOContext *ctxt,
 
   /* Build the cif frame */
   sig = [NSMethodSignature signatureWithObjCTypes: type];
-  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], 
-			       &retval);
+  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments]);
+  retval = cframe->retval;
   ctxt->datToFree = cframe;
 
   /* Put OBJECT and SELECTOR into the ARGFRAME. */
@@ -986,8 +986,8 @@ cifframe_build_return (NSInvocation *inv,
 
   /* Build the cif frame */
   sig = [NSMethodSignature signatureWithObjCTypes: type];
-  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], 
-			       &retval);
+  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments]);
+  retval = cframe->retval;
   ctxt->datToFree = cframe;
 
   /* Get the return type qualifier flags, and the return type. */

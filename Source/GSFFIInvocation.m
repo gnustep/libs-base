@@ -169,7 +169,7 @@ static IMP gs_objc_msg_forward (SEL sel)
   /* Note: We malloc cframe here, but it's passed to GSFFIInvocationCallback
      where it becomes owned by the callback invocation, so we don't have to
      worry about freeing it */
-  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments], NULL);
+  cframe = cifframe_from_info([sig methodInfo], [sig numberOfArguments]);
   /* Autorelease the closure through fastMallocBuffer */
   cclosure = (ffi_closure *)_fastMallocBuffer(sizeof(ffi_closure));
   if (cframe == NULL || cclosure == NULL)
@@ -212,7 +212,8 @@ static IMP gs_objc_msg_forward (SEL sel)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _cframe = cifframe_from_info(_info, _numArgs, &_retval);
+  _cframe = cifframe_from_info(_info, _numArgs);
+  _retval = ((cifframe_t *)_cframe)->retval;
   return self;
 }
 
@@ -220,7 +221,6 @@ static IMP gs_objc_msg_forward (SEL sel)
    the callback. The cifframe was allocated by the forwarding function,
    but we own it now so we can free it */
 - (id) initWithCallback: (ffi_cif *)cif 
-		returnp: (void *)retp
 		 values: (void **)vals
 		  frame: (cifframe_t *)frame
 	      signature: (NSMethodSignature*)aSignature
@@ -253,7 +253,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 #else
   ((cifframe_t *)_cframe)->values = vals;
 #endif
-  _retval = retp;
+  _retval = ((cifframe_t *)_cframe)->retval;
   return self;
 }
 
@@ -389,7 +389,6 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
     NSStringFromSelector(selector));
     
   invocation = [[GSFFIInvocation alloc] initWithCallback: cif
-					returnp: retp
 					values: args
  					frame: user
 					signature: sig];
@@ -408,6 +407,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   fwdInvMethod->method_imp (obj, fwdInvMethod->method_name, invocation);
 
   /* We need to (re)encode the return type for it's trip back. */
+  retp = [invocation returnFrame: NULL];
   if (retp)
     cifframe_encode_arg([sig methodReturnType], retp);
 }
