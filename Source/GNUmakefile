@@ -145,6 +145,9 @@ o_map_cbs.h \
 objc-gnu2next.h \
 preface.h
 
+ifeq ($(OBJC_RUNTIME), NeXT)
+GNU_HEADERS += thr-mach.h
+endif
 # GNUStep source files
 
 BASE_MFILES = \

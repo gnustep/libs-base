@@ -1,3 +1,8 @@
+2001-04-12  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSObjCRuntime: Revert to using class_pointer.
+	* Headers/gnustep/base/objc-gnu2next.h: Redefine class_pointer.
+
 2001-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m ([load]): Fixed single line change somehow
