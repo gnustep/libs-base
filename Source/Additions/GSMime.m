@@ -3376,9 +3376,21 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Return an NSData object representing the MIME document as raw data
- * ready to be sent via an email system.
+ * ready to be sent via an email system.<br />
+ * Calls -rawMimeData: with the isOuter flag set to YES.
  */
 - (NSMutableData*) rawMimeData
+{
+  return [self rawMimeData: YES];
+}
+
+/**
+ * Return an NSData object representing the MIME document as raw data
+ * ready to be sent via an email system.<br />
+ * The isOuter flag denotes whether this document is the outermost
+ * part of a MIME message, or is a part of a multipart message.
+ */
+- (NSMutableData*) rawMimeData: (BOOL)isOuter
 {
   NSData	*d = nil;
   NSMutableData	*md;
@@ -3388,16 +3400,21 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*hdr;
   NSData	*boundary;
 
-  /*
-   * Ensure there is a mime version header.
-   */
-  hdr = [self headerNamed: @"mime-version"];
-  if (hdr == nil)
+  if (isOuter == YES)
     {
-      hdr = [GSMimeHeader alloc];
-      hdr = [hdr initWithName: @"mime-version" value: @"1.0" parameters: nil];
-      [self addHeader: hdr];
-      RELEASE(hdr);
+      /*
+       * Ensure there is a mime version header.
+       */
+      hdr = [self headerNamed: @"mime-version"];
+      if (hdr == nil)
+	{
+	  hdr = [GSMimeHeader alloc];
+	  hdr = [hdr initWithName: @"mime-version"
+			    value: @"1.0"
+		       parameters: nil];
+	  [self addHeader: hdr];
+	  RELEASE(hdr);
+	}
     }
 
   type = [self headerNamed: @"content-type"];
@@ -3457,12 +3474,24 @@ static NSCharacterSet	*tokenSet = nil;
     }
   else if (enc == nil)
     {
+      d = [self convertToData];
       enc = [GSMimeHeader alloc];
       if ([[type objectForKey: @"Type"] isEqual: @"text"] == YES)
 	{
-	  enc = [enc initWithName: @"content-transfer-encoding"
-			    value: @"8bit"
-		       parameters: nil];
+	  NSString	*charset = [type parameterForKey: @"charset"];
+
+	  if ([charset isEqual: @"ascii"] || [charset isEqual: @"us-ascii"])
+	    {
+	      enc = [enc initWithName: @"content-transfer-encoding"
+				value: @"7bit"
+			   parameters: nil];
+	    }
+	  else
+	    {
+	      enc = [enc initWithName: @"content-transfer-encoding"
+				value: @"8bit"
+			   parameters: nil];
+	    }
 	}
       else
 	{
@@ -3472,7 +3501,6 @@ static NSCharacterSet	*tokenSet = nil;
 	}
       [self addHeader: enc];
       RELEASE(enc);
-      d = [self convertToData];
     }
 
   /*
@@ -3509,7 +3537,7 @@ static NSCharacterSet	*tokenSet = nil;
       for (i = 0; i < count; i++)
 	{
 	  CREATE_AUTORELEASE_POOL(arp);
-	  NSMutableData	*part = [[content objectAtIndex: i] rawMimeData];
+	  NSMutableData	*part = [[content objectAtIndex: i] rawMimeData: NO];
 
 	  [md appendData: part];
 	  [md appendBytes: "\r\n--" length: 4];
@@ -3967,7 +3995,7 @@ makeUniqueString()
   const char		*bytes;
   unsigned int		i;
   unsigned char		digest[20];
-  unsigned char		hex[4];
+  unsigned char		hex[40];
 
   MD5Init(&ctx);
   bytes = [[[NSProcessInfo processInfo] globallyUniqueString] lossyCString];
