@@ -1,4 +1,4 @@
-2002-10-01  Richard Frith-Macdonald <rfm@gnu.org>
+2002-10-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedLock.m: Document and tidy.
 	* Source/NSTimeZone.m: Don't set system zone prematurely.
