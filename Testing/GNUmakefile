@@ -38,6 +38,7 @@ TEST_TOOL_NAME = \
 		awake \
 		basic \
 		benchmark \
+		call \
 		containers \
 		create-abbrevs \
 		create-regions \
@@ -78,6 +79,7 @@ TEST_TOOL_NAME = \
 awake_OBJC_FILES = awake.m
 basic_OBJC_FILES = basic.m
 benchmark_OBJC_FILES = benchmark.m
+call_OBJC_FILES = call.m
 containers_OBJC_FILES = containers.m
 create-abbrevs_OBJC_FILES = create-abbrevs.m
 create-regions_OBJC_FILES = create-regions.m
