@@ -1,3 +1,13 @@
+2002-10-13  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Source/NSBundle.m ([NSBundle +_addFrameworkFromClass:]): remove
+	the classes in the _loadingBundle that does not belong to it but with
+	frameworks linked with it.
+	([NSBundle +bundleForClass:]): construct a list of NSFramework_*
+	classes loaded with the bundle.
+	([NSBundle -load]): call _addFrameworkFromClass: for all linked
+	frameworks with the bundle.
+
 2002-10-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Create automatic references to protocols in
