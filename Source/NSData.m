@@ -800,6 +800,11 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   return [[[NSDataStatic alloc] initWithBytesNoCopy:(void*)bytes length:length]
 	  autorelease];
 }
+
+- (void*) relinquishAllocatedBytes
+{
+    return 0;	/* No data from malloc - return nul pointer	*/
+}
 @end
 
 
@@ -1312,6 +1317,15 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 							  length: length];
 }
 
+- (void*) relinquishAllocatedBytes
+{
+    void	*buf = bytes;
+
+    bytes = 0;
+    length = 0;
+    return buf;
+}
+
 @end
 
 #if	HAVE_MMAP
@@ -1730,6 +1744,12 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
     memset(bytes + length, '\0', size - length);
 
   length = size;
+}
+
+- (void*) relinquishAllocatedBytes
+{
+    capacity = 0;
+    return [super relinquishAllocatedBytes];
 }
 
 @end

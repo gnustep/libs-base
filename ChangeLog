@@ -1,3 +1,40 @@
+Thu Feb  5 10:12:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSConcreteNumber.m: Defined preprocessor values to handle
+	'promotion' of numeric types and added private methods to support
+	this.  Modified ([-compare:]) to promote numeric values so that
+	comparisons work as expected.  Implemented ([-isEqualToNumber:]),
+	Implemented ([-description]) and partially ([-descriptionWithLocale:])
+	Implemented ([-hash]) so that numbers which compare the same also
+	has the same (so we can use NSNumbers as dictionary keys).
+	
+	* src/NSData.m: Added non-openstep method ([-relinquishAllocatedBytes])
+	to ask a data object to hand over it's malloced buffer.
+
+	* src/NSNumber.m: Added initialisation methods specified in Rhapsody
+	documentation.
+
+	* src/NSString.m: ([-dataUsingEncoding:allowLossyConversion:]) made
+	tiny change for efficiency - moving test outside loop - perhaps the
+	compiler would have optimised it anyway.
+
+	* src/Port.m: Modified initialisaers to test for failure to create
+	NSData objects and return nil as appropriate.
+
+	* src/TcpPort.m: ([+newForReceivingFromPortNumber:]) release newly
+	created port before raising exceptions.
+	In both ([-invalidate]) methods we remove the port from the various
+	maps before doing anything else so that invalid ports can't be found
+	by accident during the invalidation process.
+
+	* src/UnixFileHandle.m: ([-readDataOfLength:]) fixed problem with
+	data object causing read value to be overwritten with nuls.
+
+	* src/include/NSData.h: Added ([-relinquishAllocatedBytes])
+
+	* src/NSValue.h: Added initialisation methods for NSNumber and
+	([-isEqualToNumber:]) method.
+
 Thu Feb  5 10:48:35 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* GNUmakefile (GNUSTEP_MAKEFILE_DIR): New variable. Use it to

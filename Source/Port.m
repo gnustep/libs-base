@@ -165,12 +165,14 @@
 	       receivingInPort: ip
 		  replyOutPort: op
 {
-  [super initWithCapacity: c
-	 prefix: 0];
-  assert ([op isValid]);
-  assert (!ip || [ip isValid]);
-  _reply_out_port = op;
-  _receiving_in_port = ip;
+  self = [super initWithCapacity: c prefix: 0];
+  if (self)
+    {
+      assert ([op isValid]);
+      assert (!ip || [ip isValid]);
+      _reply_out_port = op;
+      _receiving_in_port = ip;
+    }
   return self;
 }
 
@@ -193,10 +195,12 @@
 - initForSendingWithCapacity: (unsigned)c
 		replyInPort: ip
 {
-  [super initWithCapacity: c
-	 prefix: [[self class] prefixSize]];
-  assert ([ip isValid]);
-  _reply_in_port = ip;
+  self = [super initWithCapacity: c prefix: [[self class] prefixSize]];
+  if (self)
+    {
+      assert ([ip isValid]);
+      _reply_in_port = ip;
+    }
   return self;
 }
 

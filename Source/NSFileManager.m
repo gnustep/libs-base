@@ -31,6 +31,8 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSLock.h>
 
+#include <stdio.h>
+
 /* determine directory reading files */
 
 #if defined(HAVE_DIRENT_H)
@@ -91,10 +93,20 @@
 # include <sys/statfs.h>
 #endif
 
+#if HAVE_SYS_FILE_H
+#include <sys/file.h>
+#endif
+
 #include <errno.h>
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+
+#include <fcntl.h>
+
+#if HAVE_UTIME_H
+# include <utime.h>
 #endif
 
 /* include usual headers */
@@ -107,6 +119,19 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSFileManager.h>
+
+@interface NSFileManager (PrivateMethods)
+
+/* Copies the contents of source file to destination file. Assumes source
+   and destination are regular files or symbolic links. */
+- (BOOL)_copyFile:(NSString*)source toFile:(NSString*)destination
+  handler:handler;
+
+/* Recursively copies the contents of source directory to destination. */
+- (BOOL)_copyPath:(NSString*)source toPath:(NSString*)destination
+  handler:handler;
+
+@end /* NSFileManager (PrivateMethods) */
 
 /*
  * NSFileManager implementation
@@ -237,44 +262,139 @@ static NSFileManager* defaultManager = nil;
 - (BOOL)copyPath:(NSString*)source toPath:(NSString*)destination
   handler:handler
 {
-    // TODO
+    BOOL sourceIsDir, fileExists;
+    NSDictionary* attributes;
+
+    fileExists = [self fileExistsAtPath:source isDirectory:&sourceIsDir];
+    if (!fileExists)
+	return NO;
+
+    fileExists = [self fileExistsAtPath:destination];
+    if (fileExists)
+	return NO;
+
+    attributes = [self fileAttributesAtPath:source traverseLink:NO];
+
+    if (sourceIsDir) {
+	/* If destination directory is a descendant of source directory copying
+	    isn't possible. */
+	if ([[destination stringByAppendingString:@"/"]
+			    hasPrefix:[source stringByAppendingString:@"/"]])
+	    return NO;
+
+	[handler fileManager:self willProcessPath:destination];
+	if (![self createDirectoryAtPath:destination attributes:attributes]) {
+	    if (handler) {
+		NSDictionary* errorInfo
+		    = [NSDictionary dictionaryWithObjectsAndKeys:
+			destination, @"Path",
+			@"cannot create directory", @"Error",
+			nil];
+		return [handler fileManager:self
+				shouldProceedAfterError:errorInfo];
+	    }
+	    else
+		return NO;
+	}
+    }
+
+    if (sourceIsDir) {
+	if (![self _copyPath:source toPath:destination handler:handler])
+	    return NO;
+	else {
+	    [self changeFileAttributes:attributes atPath:destination];
+	    return YES;
+	}
+    }
+    else {
+	[handler fileManager:self willProcessPath:source];
+	if (![self _copyFile:source toFile:destination handler:handler])
+	    return NO;
+	else {
+	    [self changeFileAttributes:attributes atPath:destination];
+	    return YES;
+	}
+    }
+
     return NO;
 }
 
 - (BOOL)movePath:(NSString*)source toPath:(NSString*)destination 
   handler:handler
 {
-    BOOL sourceIsDir;
+    BOOL sourceIsDir, fileExists;
     const char* sourcePath = [self fileSystemRepresentationWithPath:source];
     const char* destPath = [self fileSystemRepresentationWithPath:destination];
+    NSString* destinationParent;
+    unsigned int sourceDevice, destinationDevice;
 
-    if ([self fileExistsAtPath:source isDirectory:&sourceIsDir]
-	&& !sourceIsDir) {
-	/* `source' is file so simply move it to destination. */
+    fileExists = [self fileExistsAtPath:source isDirectory:&sourceIsDir];
+    if (!fileExists)
+	return NO;
+
+    fileExists = [self fileExistsAtPath:destination];
+    if (fileExists)
+	return NO;
+
+    /* Check to see if the source and destination's parent are on the same
+       physical device so we can perform a rename syscall directly. */
+    sourceDevice = [[[self fileSystemAttributesAtPath:source]
+			    objectForKey:NSFileSystemNumber]
+			    unsignedIntValue];
+    destinationParent = [destination stringByDeletingLastPathComponent];
+    if ([destinationParent isEqual:@""])
+	destinationParent = @".";
+    destinationDevice
+	= [[[self fileSystemAttributesAtPath:destinationParent]
+		  objectForKey:NSFileSystemNumber]
+		  unsignedIntValue];
+
+    if (sourceDevice != destinationDevice) {
+	/* If destination directory is a descendant of source directory moving
+	    isn't possible. */
+	if (sourceIsDir && [[destination stringByAppendingString:@"/"]
+			    hasPrefix:[source stringByAppendingString:@"/"]])
+	    return NO;
+
+	if ([self copyPath:source toPath:destination handler:handler]) {
+	    NSDictionary* attributes;
+
+	    attributes = [self fileAttributesAtPath:source traverseLink:NO];
+	    [self changeFileAttributes:attributes atPath:destination];
+	    return [self removeFileAtPath:source handler:handler];
+	}
+	else
+	    return NO;
+    }
+    else {
+	/* source and destination are on the same device so we can simply
+	   invoke rename on source. */
 	[handler fileManager:self willProcessPath:source];
-	if (rename(sourcePath, destPath) == -1) {
+	if (rename (sourcePath, destPath) == -1) {
 	    if (handler) {
-		NSDictionary* dict
+		NSDictionary* errorInfo
 		    = [NSDictionary dictionaryWithObjectsAndKeys:
 			source, @"Path",
-			[NSString stringWithCString:strerror(errno)], @"Error",
 			destination, @"ToPath",
+			@"cannot move file", @"Error",
 			nil];
-		if ([handler fileManager:self shouldProceedAfterError:dict])
+		if ([handler fileManager:self
+			     shouldProceedAfterError:errorInfo])
 		    return YES;
 	    }
 	    return NO;
 	}
+	return YES;
     }
 
-    // TODO: handle directories
-    return YES;
+    return NO;
 }
 
 - (BOOL)linkPath:(NSString*)source toPath:(NSString*)destination
   handler:handler
 {
     // TODO
+    [self notImplemented:_cmd];
     return NO;
 }
 
@@ -361,8 +481,26 @@ static NSFileManager* defaultManager = nil;
 - (BOOL)createFileAtPath:(NSString*)path contents:(NSData*)contents
   attributes:(NSDictionary*)attributes
 {
-    // TODO
-    return NO;
+    int fd, len, written;
+
+    fd = open ([self fileSystemRepresentationWithPath:path],
+                O_WRONLY|O_TRUNC|O_CREAT, 0644);
+    if (fd < 0)
+        return NO;
+
+    if (![self changeFileAttributes:attributes atPath:path]) {
+        close (fd);
+        return NO;
+    }
+
+    len = [contents length];
+    if (len)
+        written = write (fd, [contents bytes], len);
+    else
+        written = 0;
+    close (fd);
+
+    return written == len;
 }
 
 // Getting and comparing file contents
@@ -370,12 +508,14 @@ static NSFileManager* defaultManager = nil;
 - (NSData*)contentsAtPath:(NSString*)path
 {
     // TODO
+    [self notImplemented:_cmd];
     return nil;
 }
 
 - (BOOL)contentsEqualAtPath:(NSString*)path1 andPath:(NSString*)path2
 {
     // TODO
+    [self notImplemented:_cmd];
     return NO;
 }
 
@@ -495,12 +635,16 @@ static NSFileManager* defaultManager = nil;
 	values[8] = NSFileTypeCharacterSpecial;
     else if (mode == S_IFBLK)
 	values[8] = NSFileTypeBlockSpecial;
+#ifdef S_IFLNK
     else if (mode == S_IFLNK)
 	values[8] = NSFileTypeSymbolicLink;
+#endif
     else if (mode == S_IFIFO)
 	values[8] = NSFileTypeFifo;
+#ifdef S_IFSOCK
     else if (mode == S_IFSOCK)
 	values[8] = NSFileTypeSocket;
+#endif
     else
 	values[8] = NSFileTypeUnknown;
 
@@ -963,4 +1107,185 @@ static NSFileManager* defaultManager = nil;
   {return [self objectForKey:NSFileModificationDate];}
 - (NSNumber*)filePosixPermissions;
   {return [self objectForKey:NSFilePosixPermissions];}
+
+
+@implementation NSFileManager (PrivateMethods)
+
+- (BOOL)_copyFile:(NSString*)source toFile:(NSString*)destination
+  handler:handler
+{
+    NSDictionary* attributes;
+    int i, bufsize = 8096;
+    int sourceFd, destFd, fileSize, fileMode;
+    int rbytes, wbytes;
+    char buffer[bufsize];
+
+    /* Assumes source is a file and exists! */
+    NSAssert1 ([self fileExistsAtPath:source],
+		@"source file '%@' does not exist!", source);
+
+    attributes = [self fileAttributesAtPath:source traverseLink:NO];
+    NSAssert1 (attributes, @"could not get the attributes for file '%@'",
+		source);
+
+    fileSize = [[attributes objectForKey:NSFileSize] intValue];
+    fileMode = [[attributes objectForKey:NSFilePosixPermissions] intValue];
+
+    /* Open the source file. In case of error call the handler. */
+    sourceFd = open ([self fileSystemRepresentationWithPath:source], O_RDONLY);
+    if (sourceFd < 0) {
+	if (handler) {
+	    NSDictionary* errorInfo
+		= [NSDictionary dictionaryWithObjectsAndKeys:
+			source, @"Path",
+			@"cannot open file for reading", @"Error",
+			nil];
+	    return [handler fileManager:self
+			    shouldProceedAfterError:errorInfo];
+	}
+	else
+	    return NO;
+    }
+
+    /* Open the destination file. In case of error call the handler. */
+    destFd = open ([self fileSystemRepresentationWithPath:destination],
+		   O_WRONLY|O_CREAT|O_TRUNC, fileMode);
+    if (destFd < 0) {
+	if (handler) {
+	    NSDictionary* errorInfo
+		= [NSDictionary dictionaryWithObjectsAndKeys:
+			destination, @"ToPath",
+			@"cannot open file for writing", @"Error",
+			nil];
+	    close (sourceFd);
+	    return [handler fileManager:self
+			    shouldProceedAfterError:errorInfo];
+	}
+	else
+	    return NO;
+    }
+
+    /* Read bufsize bytes from source file and write them into the destination
+       file. In case of errors call the handler and abort the operation. */
+    for (i = 0; i < fileSize; i += rbytes) {
+	rbytes = read (sourceFd, buffer, bufsize);
+	if (rbytes < 0) {
+	    if (handler) {
+		NSDictionary* errorInfo
+		    = [NSDictionary dictionaryWithObjectsAndKeys:
+			    source, @"Path",
+			    @"cannot read from file", @"Error",
+			    nil];
+		close (sourceFd);
+		close (destFd);
+		return [handler fileManager:self
+				shouldProceedAfterError:errorInfo];
+	    }
+	    else
+		return NO;
+	}
+
+	wbytes = write (destFd, buffer, rbytes);
+	if (wbytes != rbytes) {
+	    if (handler) {
+		NSDictionary* errorInfo
+		    = [NSDictionary dictionaryWithObjectsAndKeys:
+			    source, @"Path",
+			    destination, @"ToPath",
+			    @"cannot write to file", @"Error",
+			    nil];
+		close (sourceFd);
+		close (destFd);
+		return [handler fileManager:self
+				shouldProceedAfterError:errorInfo];
+	    }
+	    else
+		return NO;
+	}
+    }
+    close (sourceFd);
+    close (destFd);
+
+    return YES;
+}
+
+- (BOOL)_copyPath:(NSString*)source
+  toPath:(NSString*)destination
+  handler:handler
+{
+    NSDirectoryEnumerator* enumerator;
+    NSString* dirEntry;
+    NSString* sourceFile;
+    NSString* fileType;
+    NSString* destinationFile;
+    NSDictionary* attributes;
+    NSAutoreleasePool* pool;
+
+    pool = [NSAutoreleasePool new];
+    enumerator = [self enumeratorAtPath:source];
+    while ((dirEntry = [enumerator nextObject])) {
+	attributes = [enumerator fileAttributes];
+	fileType = [attributes objectForKey:NSFileType];
+	sourceFile = [source stringByAppendingPathComponent:dirEntry];
+	destinationFile
+		= [destination stringByAppendingPathComponent:dirEntry];
+
+	[handler fileManager:self willProcessPath:sourceFile];
+	if ([fileType isEqual:NSFileTypeDirectory]) {
+	    if (![self createDirectoryAtPath:destinationFile
+			attributes:attributes]) {
+		if (handler) {
+		    NSDictionary* errorInfo
+			= [NSDictionary dictionaryWithObjectsAndKeys:
+				destinationFile, @"Path",
+				@"cannot create directory", @"Error",
+				nil];
+		    if (![handler fileManager:self
+				  shouldProceedAfterError:errorInfo])
+			return NO;
+		}
+		else
+		    return NO;
+	    }
+	    else {
+		[enumerator skipDescendents];
+		if (![self _copyPath:sourceFile toPath:destinationFile
+			    handler:handler])
+		    return NO;
+	    }
+	}
+	else if ([fileType isEqual:NSFileTypeRegular]) {
+	    if (![self _copyFile:sourceFile toFile:destinationFile
+			handler:handler])
+		return NO;
+	}
+	else if ([fileType isEqual:NSFileTypeSymbolicLink]) {
+	    if (![self createSymbolicLinkAtPath:destinationFile
+			pathContent:sourceFile]) {
+		if (handler) {
+		    NSDictionary* errorInfo
+			= [NSDictionary dictionaryWithObjectsAndKeys:
+				sourceFile, @"Path",
+				destinationFile, @"ToPath",
+				@"cannot create symbolic link", @"Error",
+				nil];
+		    if (![handler fileManager:self
+				  shouldProceedAfterError:errorInfo])
+			return NO;
+		}
+		else
+		    return NO;
+	    }
+	}
+	else {
+	    NSLog(@"cannot copy file '%@' of type '%@'", sourceFile, fileType);
+	}
+	[self changeFileAttributes:attributes atPath:destinationFile];
+    }
+    [pool release];
+
+    return YES;
+}
+
+@end /* NSFileManager (PrivateMethods) */
 @end
