@@ -6,7 +6,8 @@
 	* Tools/AGSParser.[hm]: Add mechanism to return list of source
 	files on which a document depends.
 	* Tools/gsdoc-0_6_7.dtd: Permit wider use of index element.
-	* Tools/AGSHtml.m: ditto
+	* Tools/AGSHtml.m: ditto, and support indexing of category methods
+	along with class methods.
 	* Source/GNUmakefile (Base_AGSDOC_FLAGS): Remove the SourceDirectory
 	option ... now assumed to be the current directory for simplicity.
 	* Source/Base.gsdoc: Add class and protocol indexes.
