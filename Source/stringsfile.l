@@ -18,7 +18,7 @@ return 1;
 quote		\"
 semicolen	\;
 equals		\=
-label		[a-zA-Z][a-zA-Z0-9_]*
+label		[a-zA-Z0-9\./_]*
 quoted		[^"]*\"
 whitespace	[ \t\n]
 startComment	\/\*
