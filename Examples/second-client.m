@@ -1,4 +1,5 @@
 #include "second-client.h"
+#include <objects/String.h>
 
 int main(int argc, char *argv[])
 {
@@ -8,12 +9,12 @@ int main(int argc, char *argv[])
   char namebuf[16];
 
   printf("Looking up server object on localhost with name `secondserver'\n");
-  server = [Connection rootProxyAtName:"secondserver"];
+  server = [Connection rootProxyAtName:@"secondserver"];
   printf("Found server.\n");
 
   /* Create an AppellationObject */
   a1 = [[AppellationObject alloc] init];
-  sprintf(namebuf, "%d", getpid());
+  sprintf(namebuf, "%d", (int)getpid());
   [a1 setAppellation:namebuf];
   printf("This client has appellation %s\n", [a1 appellation]);
 
