@@ -44,7 +44,7 @@
 {
   [super initWithType:@encode(char)];
   _count = strlen(aCharPtr);
-  _contents_chars = aCharPtr;
+  _contents_chars = (char *) aCharPtr;
   _free_contents = f;
   return self;
 }
@@ -65,15 +65,17 @@
 
 - (void) encodeWithCoder: aCoder
 {
-  [aCoder encodeValueOfType:@encode(char*) at:&_contents_chars 
-	  withName:"Concrete String content_chars"];
+  [aCoder encodeValueOfObjCType: @encode(char*)
+	  at: &_contents_chars 
+	  withName: @"Concrete String content_chars"];
 }
 
 - initWithCoder: aCoder
 {
   [super initWithCoder:aCoder];
-  [aCoder decodeValueOfType:@encode(char*) at:&_contents_chars
-	  withName:NULL];
+  [aCoder decodeValueOfObjCType: @encode(char*) 
+	  at: &_contents_chars
+	  withName: NULL];
   _count = strlen(_contents_chars);
   _free_contents = YES;
   return self;
