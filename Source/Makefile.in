@@ -301,6 +301,7 @@ NSGData.m \
 NSGDictionary.m \
 NSGSet.m \
 NSGUnarchiver.m \
+NSMethodSignature.m \
 NSNumber.m \
 NSObjCRuntime.m \
 NSObject.m \
