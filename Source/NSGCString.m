@@ -651,13 +651,12 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 {
   unsigned cap;
   
-  [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap withName:NULL];
+  [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap];
   [self initWithCapacity:cap];
   _count = cap;
   [aCoder decodeArrayOfObjCType:@encode(unsigned char)
 			  count:_count
-			     at:_contents_chars
-		       withName:NULL];
+			     at:_contents_chars];
   return self;
 }
 
