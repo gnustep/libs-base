@@ -7,6 +7,9 @@
 	Update to latest gsdoc document version.
 	* Documentation/Makefile.postamble:
 	Build Tools documentation.
+	contigure.ac:
+	Add --enable-xslt option to require stylesheet support (in case we want
+	to start uisng it to generate documentation)
 
 2004-03-29 Adrian Robert <arobert@cogsci.ucsd.edu>
 

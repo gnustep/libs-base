@@ -853,6 +853,7 @@ Optional Features:
   --disable-do			Compile even if DO-dependencies are not met
   --disable-xml			Compile even if XML-dependencies are not met
   --disable-xmltest        Do not try to compile and run a test XML program
+  --disable-xslt			Compile even if XSLT-dependency is not met
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -12988,6 +12989,14 @@ fi
 #--------------------------------------------------------------------
 # Check for (optional) libxslt
 #--------------------------------------------------------------------
+# Check whether --enable-xslt or --disable-xslt was given.
+if test "${enable_xslt+set}" = set; then
+  enableval="$enable_xslt"
+
+else
+  enable_xslt=no
+fi;
+
 echo "$as_me:$LINENO: checking for xsltApplyStylesheet in -lxslt" >&5
 echo $ECHO_N "checking for xsltApplyStylesheet in -lxslt... $ECHO_C" >&6
 if test "${ac_cv_lib_xslt_xsltApplyStylesheet+set}" = set; then
@@ -13185,15 +13194,30 @@ else
 fi
 
 
-  if test "$xslthdr_ok" = "yes"; then
-    HAVE_LIBXSLT=1
+  if test "$xslthdr_ok" = "no"; then
+    xslt_ok=no
+  fi
+fi
+if test "$xslt_ok" = "yes"; then
+  HAVE_LIBXSLT=1
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBXSLT 1
 _ACEOF
 
-    LIBS="$LIBS -lxslt"
+  LIBS="$LIBS -lxslt"
+else
+  if test $enable_xslt = yes; then
+    echo
+    echo "You most likely do not want to build base without XSLT support."
+    echo "If you really want to build -base without XSLT support, add --disable-xslt"
+    echo "to the configure arguments."
+    { { echo "$as_me:$LINENO: error: Missing support for XSLT functionality." >&5
+echo "$as_me: error: Missing support for XSLT functionality." >&2;}
+   { (exit 1); exit 1; }; }
   fi
+  { echo "$as_me:$LINENO: WARNING: Missing support for XSLT funtionality." >&5
+echo "$as_me: WARNING: Missing support for XSLT funtionality." >&2;}
 fi
 
 
