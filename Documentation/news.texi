@@ -20,7 +20,7 @@ New class NSMethodSignature.
 
 @item Running './configure' and building the library in a different
 directory than the source works as it should, according to the GNU
-standard. 
+standards. 
 
 @item Dynamic loading fixes for Solaris, thanks to Adam Fedor.
 
@@ -37,9 +37,14 @@ tree; the LinkedList nodes also have pointers back to the tree nodes.)
 @item NSObjCRuntime functions implemented.  NSObject description methods
 implemented.
 
-@item Bug fixes in NSString, NSDictionary and NSArray.
+@item Bug fixes in NSString, NSDictionary, NSArray, NSGeometry and other
+places. 
 
 @end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE_ONLY
 
 @section Noteworthy changes since version @samp{0.1.13}
 
@@ -57,10 +62,6 @@ methods implemented.
 @item Many bug fixes.
 
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE_ONLY
 
 @section Noteworthy changes since version @samp{0.1.12}
 
