@@ -56,6 +56,15 @@
 #define	make_gdomap_port(X)	stringify_it(X)
 
 /*
+ * to suppress warnings about using this private method.
+ */
+@interface TcpOutPort (Hack)
++ newForSendingToSockaddr: (struct sockaddr_in*)sockaddr
+       withAcceptedSocket: (int)sock
+            pollingInPort: (id)ip;
+@end
+
+/*
  *	Private methods for internal use only.
  */
 @interface	NSPortNameServer (Private)
