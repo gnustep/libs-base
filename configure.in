@@ -52,72 +52,41 @@ case "$target_os" in
 		LIBS="$LIBS -L/usr/local/lib";;
 esac
 
-#--------------------------------------------------------------------
-# Find out if we\'re using NeXT\'s compiler.
-# if yes:
-#   add -cpp-traditional to CPP
-#--------------------------------------------------------------------
-AC_PROG_NEXTCC
-if test "$NeXTCC" != yes; then
-    #----------------------------------------------------------------
-    # Find out if nested functions work on this machine
-    #----------------------------------------------------------------
-    AC_MSG_CHECKING(whether nested functions work)
-    AC_TRY_RUN([#include "$srcdir/config/config.nested.c"],
-	       gcc_nested=1, gcc_nested=0, 
-               gcc_nested=1)
-    if test $gcc_nested = 0; then
-      AC_MSG_RESULT(no)
-      echo
-      echo "The GCC 'nested functions' feature does not seem to be working on"
-      echo "this machine. "
-      echo "Read the bug-report instructions in the GCC texinfo manual"
-      echo "and submit a bug report."
-      echo "I'm not even sure gstep-base uses nested functions anymore"
-      echo "but if it does, gstep-base will not compile. Try it"
-      echo "The program this configure script used to test nested functions"
-      echo "can be found in the file 'config/config.nested.c'"
-    else
-      AC_MSG_RESULT(yes)
-    fi
-    #----------------------------------------------------------------
-    # Find out if we're on a NEXTSTEP machine
-    #----------------------------------------------------------------
-    AC_MSG_CHECKING(whether we are running under NEXTSTEP)
-    AC_TRY_CPP([#if defined(NeXT)
-                #error
-                #endif], NeXTSTEP=0, NeXTSTEP=1)
-    if test $NeXTSTEP = 0; then
-      AC_MSG_RESULT(no)
-      NeXT_cc=0
-    else
-      AC_MSG_RESULT(yes)
-      #----------------------------------------------------------------
-      # Find out if we are using NeXT or GNU runtime
-      #----------------------------------------------------------------
-      saved_ac_ext=$ac_ext
-      ac_ext=m
-      AC_MSG_CHECKING(whether we are using GNU Objective C runtime)
-      AC_TRY_LINK([#include "$srcdir/config/config.nextrt.m"], ;,
-                  NeXT_RUNTIME=1, NeXT_RUNTIME=0)
-      ac_ext=$saved_ac_ext
-      if test $NeXT_RUNTIME = 1; then
-        AC_MSG_RESULT(no: NeXT runtime)
-	LIBOBJC=''
-        CPPFLAGS="$CPPFLAGS -fnext-runtime -DNeXT_RUNTIME"
-        NeXT_cc=0
-      else
-        AC_MSG_RESULT(yes)
-        LIBOBJC='-lobjc'
-        CPPFLAGS="$CPPFLAGS -fgnu-runtime"
-        NeXT_cc=0
-      fi
-    fi
-
+#----------------------------------------------------------------
+# Find out if nested functions work on this machine
+#----------------------------------------------------------------
+AC_MSG_CHECKING(whether nested functions work)
+AC_TRY_RUN([#include "$srcdir/config/config.nested.c"],
+    gcc_nested=1, gcc_nested=0, gcc_nested=1)
+if test $gcc_nested = 0; then
+  AC_MSG_RESULT(no)
+  echo
+  echo "The GCC 'nested functions' feature does not seem to be working on"
+  echo "this machine. "
+  echo "Read the bug-report instructions in the GCC texinfo manual"
+  echo "and submit a bug report."
+  echo "I'm not even sure gstep-base uses nested functions anymore"
+  echo "but if it does, gstep-base will not compile. Try it"
+  echo "The program this configure script used to test nested functions"
+  echo "can be found in the file 'config/config.nested.c'"
 else
-    AC_MSG_ERROR(Sorry, $(LIBRARY_NAME) does not work with NeXT's cc; use gcc)
+  AC_MSG_RESULT(yes)
 fi
-AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
+
+#--------------------------------------------------------------------
+# Set Apple/Darwin/OSX/NeXT information for other tests
+#--------------------------------------------------------------------
+OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
+AC_MSG_CHECKING(the Objective-C runtime)
+if test "$OBJC_RUNTIME_LIB" = "nx"; then
+  AC_MSG_RESULT(NeXT)
+  LIBOBJC=''
+  CPPFLAGS="$CPPFLAGS -fnext-runtime -DNeXT_RUNTIME"
+else
+  AC_MSG_RESULT(GNU)
+  LIBOBJC='-lobjc'
+  CPPFLAGS="$CPPFLAGS -fgnu-runtime"
+fi
 
 #--------------------------------------------------------------------
 # Miscellaneous flags

@@ -60,7 +60,6 @@ Cambridge, MA 02111, USA.  */
 #include <stdlib.h>
 #include <string.h>
 #include <objc/objc-api.h>
-#include <base/objc-gnu2next.h>
 
 extern double strtod(const char *str, char **ptr);
 extern long strtol(const char *str, char** ptr, int base);
