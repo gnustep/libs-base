@@ -63,8 +63,17 @@
 @end
 
 
+#include <gnustep/base/NotificationDispatcher.h>
+
 /* Put this in a category to avoid unimportant errors due to behaviors. */
 @interface NSNotificationCenter : NSObject
+  /* Make the instance size of this class match exactly the instance
+     size of NotificationDispatcher.  Thus, behavior_class_add_class() will not
+     have to increase the instance size of NSNotificationCenter, and
+     NSNotificationCenter can safely be subclassed. */
+  char _NSNotificationCenter_placeholder[(sizeof(struct NotificationDispatcher)
+                                  - sizeof(struct NSObject))];
+
 @end
 
 @interface NSNotificationCenter (GNUstep)
@@ -94,7 +103,5 @@
 		       object: object
 		     userInfo: (NSDictionary*)user_info;
 @end
-
-#include <gnustep/base/NotificationDispatcher.h>
 
 #endif /*__NSNotification_h_GNUSTEP_BASE_INCLUDE */
