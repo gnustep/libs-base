@@ -25,6 +25,8 @@
 #ifndef _NSNumberFormatter_h__
 #define _NSNumberFormatter_h__
 
+#ifndef	STRICT_OPENSTEP
+
 #include <Foundation/NSObject.h>
 #include <Foundation/NSFormatter.h>
 #include <Foundation/NSDecimalNumber.h>
@@ -94,4 +96,5 @@
 
 @end
 
+#endif
 #endif

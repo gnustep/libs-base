@@ -235,6 +235,8 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 - (BOOL) _dealloc;
 @end
 
+#endif
+
 /*
  *	Protocol for garbage collection finalization - same as libFoundation
  *	for compatibility.
@@ -242,8 +244,6 @@ GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 @protocol       GCFinalization
 - (void) gcFinalize;
 @end
-
-#endif
 
 #include <Foundation/NSDate.h>
 @interface NSObject (TimedPerformers)
