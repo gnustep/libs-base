@@ -74,7 +74,7 @@ AC_TRY_RUN([#include "$srcdir/config/config.nested.c"],
     gcc_nested=1, gcc_nested=0, gcc_nested=1)
 if test $gcc_nested = 0; then
   AC_MSG_RESULT(no)
-  AC_DEFINE(BROKEN_NESTED_FUNCTIONS,,
+  AC_DEFINE(BROKEN_NESTED_FUNCTIONS,1,
             [Define if nested functions are broken on this compiler])
 else
   AC_MSG_RESULT(yes)
@@ -140,7 +140,7 @@ AC_TRY_COMPILE([
   sa_len=1, sa_len=0)
 if test $sa_len = 1; then
   AC_MSG_RESULT([found])
-  AC_DEFINE(HAVE_SA_LEN,,
+  AC_DEFINE(HAVE_SA_LEN,1,
             [Define if your system has variable length network addresses])
 else
   AC_MSG_RESULT([not found])
@@ -155,7 +155,7 @@ AC_TRY_RUN([#include "$srcdir/config/config.reuseaddr.c"],
 	reuseaddr_ok=0,
 	reuseaddr_ok=0)
 if test $reuseaddr_ok = 0; then
-  AC_DEFINE(BROKEN_SO_REUSEADDR,,
+  AC_DEFINE(BROKEN_SO_REUSEADDR,1,
             [Define if SO_REUSEADDR is broken on this system])
   echo
   echo "The SO_REUSEADDR socket option for controlling re-use of network"
@@ -467,7 +467,7 @@ AC_CACHE_VAL(objc_load_method_worked,
 	objc_load_method_worked=no)
 )
 if test $objc_load_method_worked = yes; then
-  AC_DEFINE(HAVE_LOAD_METHOD,,
+  AC_DEFINE(HAVE_LOAD_METHOD,1,
             [Define if your Obj-C compiler calls +load methods before main])
   AC_MSG_RESULT(yes)
 else
@@ -485,7 +485,7 @@ CPPFLAGS="$saved_CPPFLAGS"
 AC_CHECK_FUNCS(objc_condition_timedwait objc_thread_add)
 
 AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h, 
-	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE,,
+	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE,1,
                   [ Define if objc-api.h defines this function]),)
 
 LIBS="$saved_LIBS"
@@ -669,7 +669,7 @@ AC_TRY_CPP([#ifdef HAVE_STDINT_H
 	], llmax=yes, llmax=no)
 if test $llmax = yes; then
 	AC_MSG_RESULT(yes)
-        AC_DEFINE(HANDLE_LONG_LONG_MAX,,
+        AC_DEFINE(HANDLE_LONG_LONG_MAX,1,
                   [Define if this constant is defined])
 else
 	AC_MSG_RESULT(no)
@@ -692,7 +692,7 @@ AC_TRY_CPP([#include <limits.h>
 
 if test $llmax = yes; then
   AC_MSG_RESULT(yes)
-  AC_DEFINE(HANDLE_LLONG_MAX,,
+  AC_DEFINE(HANDLE_LLONG_MAX,1,
             [Define if this constant is defined])
 else
   AC_MSG_RESULT(no)
@@ -709,7 +709,7 @@ if test $register_printf = 1; then
 	       working_register_printf=1, working_register_printf=0, 
                working_register_printf=1)
   if test $working_register_printf = 1; then
-    AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION,,
+    AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION,1,
               [Define if you have the register_printf_function function])
   fi
 fi
@@ -735,7 +735,7 @@ main (int argc, char *argv[])
 }
 ], program_invocation_name_worked=yes, program_invocation_name_worked=no, program_invocation_name_worked=no)])
 if test $program_invocation_name_worked = yes; then
-  AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME,,
+  AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME,1,
             [Define if your Lib C defines program_invocation_name])
   AC_MSG_RESULT(yes)
 else
@@ -863,13 +863,13 @@ AC_CHECK_HEADERS(callback.h, , enable_ffcall=no)
 AC_MSG_CHECKING("FFI library usage")
 WITH_FFI=none
 if test $enable_libffi = yes; then
-  AC_DEFINE(USE_LIBFFI,,
+  AC_DEFINE(USE_LIBFFI,1,
             [Define if using the libffi library for invocations])
   WITH_FFI=libffi
   LIBS="$LIBS -lffi"
   AC_MSG_RESULT(libffi)
 elif test $enable_ffcall = yes; then
-  AC_DEFINE(USE_FFCALL,,
+  AC_DEFINE(USE_FFCALL,1,
             [Define if using the ffcall library for invocations])
   WITH_FFI=ffcall
   LIBS="$LIBS -lcallback -lavcall"
@@ -898,7 +898,7 @@ if test $enable_libxml = yes; then
   CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
   LIBS="$LIBS $XML_LIBS"
   HAVE_LIBXML=1
-  AC_DEFINE(HAVE_LIBXML,,
+  AC_DEFINE(HAVE_LIBXML,1,
            [Define if libxml available])
 else
   HAVE_LIBXML=0
@@ -968,12 +968,12 @@ if test $ac_cv_func_iconv = no; then
   # BSDs install this lib as libgiconv
   AC_CHECK_LIB(giconv, main)
   if test x"$ac_cv_lib_giconv_main" = xyes; then
-    AC_DEFINE(HAVE_ICONV,, [Define if you have this function])
-    AC_DEFINE(HAVE_GICONV_H,, [Define if you have this header])
+    AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+    AC_DEFINE(HAVE_GICONV_H,1, [Define if you have this header])
   else
     AC_CHECK_LIB(iconv, main)
     if test x"$ac_cv_lib_iconv_main" = xyes; then
-      AC_DEFINE(HAVE_ICONV,, [Define if you have this function])
+      AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
     fi
   fi
   CPPFLAGS="$cppflags_temp"

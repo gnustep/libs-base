@@ -36,7 +36,7 @@ esac
 ])
 if test $objc_cv_con_autoload = yes; then
   AC_MSG_RESULT(yes)
-  AC_DEFINE(CON_AUTOLOAD,,[Define if constructors are automatically loaded])
+  AC_DEFINE(CON_AUTOLOAD,1,[Define if constructors are automatically loaded])
 else
   AC_MSG_RESULT(no)
 fi
