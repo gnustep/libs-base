@@ -4,6 +4,10 @@
 	worked as expected and moved getpwnam() call to where it works.
 	* Source/Additions/GSMime.m: ([GSMimeDocument-rawMimeData:]) bugfix
 	to remove mjime version header from inner documents.
+	* Source/NSBundle.m: Fixup for windows.
+	* Source/NSFileManager.m: Fixup for windows.
+	* Source/NSString.m: Fixup for windows.
+	Windows fixups adapted from patch by <Roland.Schwingel@onevision.de>
 
 2003-10-07  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -3099,12 +3099,22 @@ handle_printf_atsign (FILE *stream,
 {
   NSString	*homedir;
   NSRange	first_slash_range;
+  unsigned	length;
 
-  if ([self length] == 0)
+  if ((length = [self length]) == 0)
     {
       return self;
     }
   if ([self characterAtIndex: 0] != 0x007E)
+    {
+      return self;
+    }
+
+  /*
+   * Anything beginning '~@' is assumed to be a windows path specification
+   * which can't be expanded.
+   */
+  if (length > 1 && [self characterAtIndex: 1] == 0x0040)
     {
       return self;
     }
@@ -3137,7 +3147,7 @@ handle_printf_atsign (FILE *stream,
     }
   if (homedir != nil)
     {
-      return [NSStringClass stringWithFormat: @"%@%@", homedir,
+      return [homedir stringByAppendingPathComponent:
 	[self substringFromIndex: first_slash_range.location]];
     }
   else
@@ -3163,7 +3173,7 @@ handle_printf_atsign (FILE *stream,
     {
       return @"~";
     }
-  return [NSStringClass stringWithFormat: @"~/%@",
+  return [@"~" stringByAppendingPathComponent:
     [self substringFromIndex: [homedir length] + 1]];
 }
 
