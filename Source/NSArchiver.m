@@ -24,10 +24,26 @@
 #include <objects/stdobjects.h>
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSGArchiver.h>
-#include <Foundation/NSGData.h>
 #include <objects/NSCoder.h>
 
 @implementation NSArchiver
+
+static Class NSArchiver_concrete_class;
+
++ (void) _setConcreteClass: (Class)c
+{
+  NSArchiver_concrete_class = c;
+}
+
++ (Class) _concreteClass
+{
+  return NSArchiver_concrete_class;
+}
+
++ (void) initialize
+{
+  NSArchiver_concrete_class = [NSGArchiver class];
+}
 
 // Initializing an archiver
 
@@ -43,8 +59,8 @@
 + (NSData*) archivedDataWithRootObject: (id)rootObject
 {
   /* xxx a quick kludge implementation */
-  id d = [[NSGMutableData alloc] init];
-  id a = [[NSGArchiver alloc] initForWritingWithMutableData:d];
+  id d = [[NSMutableData alloc] init];
+  id a = [[NSArchiver alloc] initForWritingWithMutableData:d];
   [a encodeRootObject:rootObject];
   return [d autorelease];
 }
