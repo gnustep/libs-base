@@ -84,6 +84,7 @@ NSAllHashTableObjects(NSHashTable *table)
     {
       [array addObject: element];
     }
+  NSEndHashTableEnumeration(&enumerator)
   return array;
 }
 
@@ -500,6 +501,7 @@ NSStringFromHashTable(NSHashTable *table)
     {
       [string appendFormat: @"%@;\n", (t->extra.describe)(table, element)];
     }
+  NSEndHashTableEnumeration(&enumerator)
   return string;
 }
 

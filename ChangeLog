@@ -1,12 +1,18 @@
+2004-04-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHashTable.m: End enumerations 'properly' ... no effect
+	in current implementationm, but could be important in future.
+
 2004-04-26  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
-	* Source/libgnustep-base-entry.m (gnustep_base_socket_init): Added braces for
-	if statement
+	* Source/libgnustep-base-entry.m (gnustep_base_socket_init):
+	Added braces for if statement
 	(DllMain): Removed old initialization code
 	(gnustep_base_socket_handler): Removd this method plus declaration.
 
-	* Source/GSFFCallInvocation.m (GSInvocationCallback): Try to find type information
-	if not available, also changes wording of exception when no type information is found.
+	* Source/GSFFCallInvocation.m (GSInvocationCallback): Try to find
+	type information if not available, also changes wording of exception
+	when no type information is found.
 	(Fixes #8654)
 
 	* Source/GSFFIInvocation.m (GSFFIInvocationCallback): Idem
