@@ -24,6 +24,11 @@
 #ifndef __String_h_OBJECTS_INCLUDE
 #define __String_h_OBJECTS_INCLUDE
 
+/* xxx These method names need to be fixed because we will get
+   type conflicts with GNUSTEP.
+   Perhaps I'll just get rid of the GNU String objects and just
+   transfer this functionality into NSSTring and friends. */
+
 #include <objects/objc-gnu2next.h>
 #include <objects/IndexedCollection.h>
 #include <objects/ValueHolding.h>
@@ -38,6 +43,8 @@ typedef unsigned short Character;
 /* Like in SmallTalk, the String class is a subclass of Collection---a
    collection of characters.  So, all the collection methods are
    available.  Nice. */
+
+/* Think about changing these names to avoid conflicts with OpenStep? */
 
 @protocol String <ValueGetting>
 
