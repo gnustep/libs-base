@@ -42,6 +42,15 @@ int _MB_init_runtime()
 }
 #endif /* __MS_WIN32__ */
 
+void
+gnustep_base_socket_init()
+{
+  /* Start of sockets so we can get host name and other info */
+  static WSADATA wsaData;
+  if (WSAStartup(MAKEWORD(2,0), &wsaData))
+    NSLog(@"Error: Could not startup Windows Sockets.\n");
+}
+
 LONG APIENTRY
 gnustep_base_socket_handler(HWND hWnd, UINT message,
 			    UINT wParam, LONG lParam);
@@ -69,13 +78,10 @@ DllMain(HANDLE hInst, ULONG ul_reason_for_call,	LPVOID lpReserved)
 	/* Initialize the Microsoft C stdio DLL */
 	_CRT_INIT(hInst, ul_reason_for_call, lpReserved);
 
-	/* Initialize the GNUstep Base Library runtime structures */
-	gnustep_base_init_runtime();
 #endif /* __MS_WIN32__ */
 
 	// Initialize Windows Sockets
-	if (WSAStartup(MAKEWORD(1,1), &lpWSAData))
-	  NSLog(@"Error: Could not startup Windows Sockets.\n");
+	gnustep_base_socket_init();
 
 	// Register a window class for the socket handler
 	wc.lpszClassName = "GnustepBaseSocketHandler";
@@ -178,3 +184,8 @@ gnustep_base_socket_handler(HWND hWnd, UINT message,
   return 0;
 }
 
+/*
+  This section terminates the list of imports under GCC. If you do not
+  include this then you will have problems when linking with DLLs.
+  */
+asm (".section .idata$3\n" ".long 0,0,0,0,0,0,0,0");

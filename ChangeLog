@@ -1,3 +1,10 @@
+2000-10-11  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSObject.m (+initialize): Initialize Window sockets
+	on MINGW.
+	* Source/libgnustep-base-entry.m (gnustep_base_socket_init):
+	New function.
+
 2000-10-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: fillHole() fixed error in copying bytes.
