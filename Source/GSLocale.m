@@ -184,7 +184,11 @@ GSDomainFromDefaultLocale(void)
   
   /* FIXME: Get currency format from localeconv */
 
+#ifdef	LC_MESSAGES
   str1 = GSSetLocale(LC_MESSAGES, nil);
+#else
+  str1 = nil;
+#endif
   if (str1 != nil)
     {
       [dict setObject: str1 forKey: NSLocale];

@@ -438,7 +438,9 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	  NSString	*locale = nil;
 
 #ifdef HAVE_LOCALE_H
+#ifdef LC_MESSAGES
 	  locale = GSSetLocale(LC_MESSAGES, nil);
+#endif
 #endif
 	  if (locale == nil)
 	    {
@@ -485,7 +487,9 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   NSString	*locale = nil;
 
 #ifdef HAVE_LOCALE_H
+#ifdef LC_MESSAGES
   locale = GSSetLocale(LC_MESSAGES, nil);
+#endif
 #endif
   [classLock lock];
   if (userLanguages != nil)
