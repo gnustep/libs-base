@@ -61,6 +61,7 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
+#include <base/GSFormat.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -665,6 +666,31 @@ handle_printf_atsign (FILE *stream,
   return [self initWithFormat: format locale: nil arguments: arg_list];
 }
 
+- (id) initWithFormat: (NSString*)format
+               locale: (NSDictionary*)locale
+            arguments: (va_list)arg_list
+{
+  FormatBuf_t	f;
+  unichar	*fmt;
+  size_t	len;
+
+  len = [format length];
+  fmt = objc_malloc((len+1)*sizeof(unichar));
+  [format getCharacters: fmt];
+  fmt[len] = '\0';
+  f.z = NSDefaultMallocZone();
+  f.buf = NSZoneMalloc(f.z, 100*sizeof(unichar));
+  f.len = 0;
+  f.size = 100;
+  GSFormat(&f, fmt, arg_list, locale);
+  objc_free(fmt);
+  // don't use noCopy because f.size > f.len!
+  self = [self initWithCharacters: f.buf length: f.len];
+  NSZoneFree(f.z, f.buf);
+  return self;
+}
+
+#if 0
 /* xxx Change this when we have non-CString classes */
 - (id) initWithFormat: (NSString*)format
                locale: (NSDictionary*)locale
@@ -958,6 +984,7 @@ handle_printf_atsign (FILE *stream,
   return self;
 #endif
 }
+#endif
 
 - (id) initWithData: (NSData*)data
 	   encoding: (NSStringEncoding)encoding
@@ -3189,10 +3216,11 @@ handle_printf_atsign (FILE *stream,
 /* Inefficient. */
 - (void) appendFormat: (NSString*)format, ...
 {
-  va_list ap;
-  id tmp;
+  va_list	ap;
+  id		tmp;
+
   va_start(ap, format);
-  tmp = [[NSString allocWithZone: NSDefaultMallocZone()]
+  tmp = [[NSStringClass allocWithZone: NSDefaultMallocZone()]
     initWithFormat: format arguments: ap];
   va_end(ap);
   [self appendString: tmp];
