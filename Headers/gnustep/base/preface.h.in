@@ -61,33 +61,22 @@
 #include <objects/objc-malloc.h>
 @class String;
 
-/* The following five lines are maintained by the libobjects Makefile */
-#define OBJECTS_VERSION @OBJECTS_VERSION@
-#define OBJECTS_MAJOR_VERSION @OBJECTS_MAJOR_VERSION@
-#define OBJECTS_MINOR_VERSION @OBJECTS_MINOR_VERSION@
-#define OBJECTS_SUBMINOR_VERSION @OBJECTS_SUBMINOR_VERSION@
-#define OBJECTS_GCC_VERSION @OBJECTS_GCC_VERSION@
+/* The following group of lines are maintained by the libobjects Makefile */
+#define @VERSION@
+#define @MAJOR_VERSION@
+#define @MINOR_VERSION@
+#define @SUBMINOR_VERSION@
+#define @GCC_VERSION@
+#define @LIBRARY_NAME@
+#define @PACKAGE_NAME@
 
-#define OBJECTS_PACKAGE_NAME libobjects
-
+#if 0
 extern const char objects_version[];
 extern const char objects_gcc_version[];
 #if NeXT_cc
 extern const char objects_NeXT_cc_version[];
 #endif
-
-#define LAMBDA(RETTYPE, ARGS, BODY) \
-({RETTYPE __lambda_func ARGS BODY __lambda_func;})
-
-#define LAMBDA_VOID_PERFORM(SELECTOR) \
-LAMBDA(void, (id _o), {[_o perform: SELECTOR];})
-
-#define LAMBDA_ID_PERFORM(SELECTOR) \
-LAMBDA(id, (id _o), {return [_o perform: SELECTOR];})
-
-#define LAMBDA_BOOL_PERFORM(SELECTOR) \
-LAMBDA(BOOL, (id _o), {if ([_o perform:SELECTOR]) return YES; else return NO;})
-
+#endif
 
 #ifndef MAX
 #define MAX(a,b) \
