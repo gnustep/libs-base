@@ -688,3 +688,5 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   (NSHT_describe_func_t) _NS_int_p_describe
 };
 
+/* For bug in gcc 3.1. See NSByteOrder.h */
+void _gcc3_1_hack(void){}

@@ -94,6 +94,12 @@ GSSwapHostI64ToLittle(gsu64 in) __attribute__((unused));
 static inline gsu128
 GSSwapHostI128ToLittle(gsu128 in) __attribute__((unused));
 
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 1)
+/* gcc 3.1 with option -O2 generates bad (i386?) code when compiling
+   the following inline functions inside a .m file.  A call to a
+   dumb function seems to work. */
+extern void _gcc3_1_hack(void);
+#endif
 
 static inline gsu16
 GSSwapI16(gsu16 in)
@@ -103,6 +109,9 @@ GSSwapI16(gsu16 in)
     gsu8	byt[2];
   } dst;
   union swap	*src = (union swap*)&in;
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 1)
+  _gcc3_1_hack();
+#endif
   dst.byt[0] = src->byt[1];
   dst.byt[1] = src->byt[0];
   return dst.num;
@@ -116,6 +125,9 @@ GSSwapI32(gsu32 in)
     gsu8	byt[4];
   } dst;
   union swap	*src = (union swap*)&in;
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 1)
+  _gcc3_1_hack();
+#endif
   dst.byt[0] = src->byt[3];
   dst.byt[1] = src->byt[2];
   dst.byt[2] = src->byt[1];
@@ -131,6 +143,9 @@ GSSwapI64(gsu64 in)
     gsu8	byt[8];
   } dst;
   union swap	*src = (union swap*)&in;
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 1)
+  _gcc3_1_hack();
+#endif
   dst.byt[0] = src->byt[7];
   dst.byt[1] = src->byt[6];
   dst.byt[2] = src->byt[5];
@@ -150,6 +165,9 @@ GSSwapI128(gsu128 in)
     gsu8	byt[16];
   } dst;
   union swap	*src = (union swap*)&in;
+#if (__GNUC__ == 3) && (__GNUC_MINOR__ == 1)
+  _gcc3_1_hack();
+#endif
   dst.byt[0] = src->byt[15];
   dst.byt[1] = src->byt[14];
   dst.byt[2] = src->byt[13];
@@ -292,7 +310,6 @@ static inline unsigned long
 NSSwapHostLongToLittle(unsigned long num) __attribute__((unused));
 static inline unsigned short
 NSSwapHostShortToLittle(unsigned short num) __attribute__((unused));
-
 
 /*
  *	Basic byte swapping routines and type conversions
