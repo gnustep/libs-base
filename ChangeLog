@@ -1,10 +1,6 @@
 2004-09-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: ([_getReplyRmc:]) improve timeout code.
-	* Source/GSHTTPURLHasndle.m: Modifications to allow a retry of a
-	load is reusing an http1.1 connection which may have been dropped
-	by the remote end.  Also some restructuring moving towards handling
-	redirects.
 
 2004-09-20 Richard Frith-Macdonald <rfm@gnu.org>
 
