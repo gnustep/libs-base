@@ -56,6 +56,9 @@ if ([(NSDate*) [NSCalendarDate date] compare:
     b = [NSDate dateWithTimeIntervalSinceReferenceDate: 300];
     printf("+[dateWithTimeIntervalSinceReferenceDate: 300] -- %s\n", 
 	   [DESCRIP(b) cString]);
+    b = [NSDate dateWithTimeIntervalSinceNow: 24*60*40];
+    printf("+[dateWithTimeIntervalSinceNow: 0] -- %s\n", 
+	   [DESCRIP(b) cString]);
 
     // Comparisons
 
