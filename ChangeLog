@@ -1,10 +1,47 @@
+Tue Mar 19 12:10:44 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* checks/server.m: Use new RunLoop mechanism, and new Array method
+ 	names.
+	([Server -connection:didConnect:]): Clean up search for invalidated
+	proxies.
+	* checks/client.m: Use new RunLoop mechanism.
+
+	* src/TcpPort.m (debug_tcp_port): Set to 1.
+	([TcpInPort -encodeWithCoder:]): Use encodeBytes:.., not
+	encodeValue..; the data is already in network byte-order.
+	([TcpOutPort -encodeWithCoder:]): Likewise.
+	([TcpOutPort +newWithCoder:]): Likewise.
+	([TcpOutPort
+	+newForSendingToSockaddr:withAcceptedSocket:pollingInPort:]): Set
+ 	entirety of _REMOTE_IN_PORT_ADDRESS to zero.
+
+	* src/Encoder.m ([Encoder -encodeBytes:count:withName:]): Update
+ 	for new argument types.
+	* src/Decoder.m ([Decoder -decodeBytes:count:withName:name]):
+ 	Update for new argument types, and verify read count.
+	* src/objects/Coding.h (Coding -encodeBytes:count:withName:): Use
+ 	void*, not char* for bytes.
+	(Coding -decodeBytes:count:withName:): Likewise, and pass COUNT, not
+	pointer to COUNT.
+
+	* src/Encoder.m ([Encoder -encodeBytes:count:withName:]): Method
+ 	implemented; although it may need to change later.
+	* src/Decoder.m ([Decoder -decodeBytes:count:withName:name]):
+	Likewise.
+
+	* src/RunLoop.m ([RunLoop -acceptInputForMode:beforeDate:]): If
+ 	LIMIT_DATE is nil, poll the inputs, but don't wait if there is
+ 	nothing available immediately.  Check to make sure that the
+ 	LIMIT_DATE hasn't already past; if it has, return immediately,
+ 	before polling input sources.
+
 Mon Mar 18 13:31:38 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	Miscellaneous small fixes, found with -Wall.
 	* src/NSThread.m: Fix indentation.
 	([NSThread +currentThread]): Add parenthesis around assignment inside
 	while.
-	* src/NSString.m: Include <objects/behavior.h.
+	* src/NSString.m: Include <objects/behavior.h>.
 	([NSString -componentsSeparatedByString:]): Initialize ARRAY!
 	* src/List.m: Include <objects/stdobjects.h> Use OBJC_MALLOC and
  	friends, instead of NX_MALLOC.
