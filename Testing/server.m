@@ -4,7 +4,7 @@
 #include <gnustep/base/BinaryCStream.h>
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Proxy.h>
-#include <gnustep/base/String.h>
+#include <Foundation/NSString.h>
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/RunLoop.h>
 #include "server.h"
