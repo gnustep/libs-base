@@ -8,7 +8,7 @@
 @implementation ConstantCollection (TestingExtras)
 - printCount
 {
-  printf("%s: count=%d\n", [self name], [self count]);
+  printf("%s: count=%d\n", object_get_class_name (self), [self count]);
   return self;
 }
 @end
@@ -29,8 +29,8 @@ int main()
   int i;
 
   id array = [Array new];
-  id bag = [Bag new];
-  id set = [Set new];
+  // id bag = [Bag new];
+  // id set = [Set new];
   id stack = [Stack new];
   id queue = [Queue new];
   id gaparray = [GapArray new];
