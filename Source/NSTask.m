@@ -1362,7 +1362,7 @@ GSCheckTasks()
     }
 }
 
-- (void) setStandard[self currentDirectoryPath]: (id)hdl
+- (void) setStandardError: (id)hdl
 {
   if (_usePseudoTerminal == YES)
     {
