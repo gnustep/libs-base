@@ -1,3 +1,8 @@
+2004-01-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistantObject.m: All code conditional on USE_FFCALL should
+	also be conditional on USE_LIBFFI so it works for both mechanisms.
+
 2004-01-14  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Additions/GSObjCRuntime.m: Fix previous method def.

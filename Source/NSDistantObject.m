@@ -700,7 +700,7 @@ enum
       else
 	{
 	  id		m = nil;
-#ifdef USE_FFCALL
+#if	defined(USE_FFCALL) || defined(USE_LIBFFI)
 	  id		inv;
 	  id		sig;
 
@@ -876,7 +876,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-#ifdef USE_FFCALL
+#if	defined(USE_FFCALL) || defined(USE_LIBFFI)
   BOOL m = NO;
   id inv, sig;
   DO_FORWARD_INVOCATION(conformsToProtocol:, aProtocol);
@@ -901,7 +901,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-#ifdef USE_FFCALL
+#if	defined(USE_FFCALL) || defined(USE_LIBFFI)
   BOOL m = NO;
   id inv, sig;
   DO_FORWARD_INVOCATION(respondsToSelector:, aSelector);
