@@ -41,3 +41,4 @@
 - (BOOL) makeNewConnection: (NSConnection*)c sender: (NSConnection*)ancester;
 @end
 
+#define NSConnectionDeath ConnectionBecameInvalid
