@@ -80,13 +80,9 @@ GSSetUserName(NSString* name)
   if ([theUserName isEqualToString: name] == NO)
     {
       /*
-       * We must ensure that userDirectory() has been called to set
-       * up the template user paths from the environment variables.
-       * Then we can destroy the cached user path so that next time
-       * anything wants it, it will be regenerated from the template
-       * and the new user details.
+       * We can destroy the cached user path so that next time
+       * anything wants it, it will be regenerated.
        */
-      userDirectory(theUserName, YES);
       DESTROY(gnustep_user_root);
       /*
        * Next we can set up the new user name, and reset the user defaults
@@ -106,6 +102,10 @@ GSSetUserName(NSString* name)
  * than the name associated with their numeric user ID (though the two
  * are usually the same).  If you have a setuid program and want to
  * change the user to reflect the uid, use GSSetUserName()
+ */
+/* NOTE FOR DEVELOPERS.
+ * If you change the behavior of this method you must also change
+ * user_home.c in the makefiles package to match.
  */
 NSString *
 NSUserName(void)
@@ -209,6 +209,10 @@ GSStringFromWin32EnvironmentVariable(const char * envVar)
 
 /**
  * Returns loginName's home directory as an NSString object.
+ */
+/* NOTE FOR DEVELOPERS.
+ * If you change the behavior of this method you must also change
+ * user_home.c in the makefiles package to match.
  */
 NSString *
 NSHomeDirectoryForUser(NSString *loginName)
@@ -424,11 +428,9 @@ GSSystemRootDirectory(void)
 
 /**
  * Return the path of the defaults directory for name.<br />
- * This uses the GNUSTEP_DEFAULTS_ROOT or the GNUSTEP_USER_ROOT
- * environment variable to determine the directory.  If the user
- * has changed, the path for the new user will be based on a template
- * derived from the path for the original user, substituting in
- * the values returned by NSHomeDirectory() and NSUser()
+ * This examines the .GNUsteprc file in the home directory of the
+ * user for the GNUSTEP_DEFAULTS_ROOT or the GNUSTEP_USER_ROOT
+ * directory definitions.
  */
 NSString*
 GSDefaultsRootForUser(NSString *userName)
@@ -439,144 +441,89 @@ GSDefaultsRootForUser(NSString *userName)
 static NSString *
 userDirectory(NSString *name, BOOL defaults)
 {
-  /*
-   * Marker objects should be something which will never
-   * appear in a normal path
-   */
-  static NSString	*uMarker = @"[{<USER>}]";
-  static NSString	*hMarker = @"[{<HOME>}]";
-  static NSString	*fileTemplate = nil;
-  static NSString	*defsTemplate = nil;
-  NSString		*template;
-  NSString		*home;
-  NSString		*path = nil;
-  NSRange		r;
+  NSFileManager	*manager;
+  NSString	*home;
+  NSString	*path = nil;
+  NSString	*file;
+  NSString	*user = nil;
+  NSString	*defs = nil;
 
   NSCAssert([name length] > 0, NSInvalidArgumentException);
 
-  /**
-   * If we don't have templates set up, ensure that it's set up for
-   * the original user by pre-calling ourself for that user.
-   */
-  if ([name isEqual: NSUserName()] == NO)
+  if (defaults == YES)
     {
-      if (defsTemplate == nil)
+#ifdef	FORCE_DEFAULTS_ROOT
+      return [NSString stringWithCString: stringify(FORCE_DEFAULTS_ROOT)];
+#endif
+    }
+  else
+    {
+#ifdef	FORCE_USER_ROOT
+      return [NSString stringWithCString: stringify(FORCE_USER_ROOT)];
+#endif
+    }
+
+  home = NSHomeDirectoryForUser(name);
+  file = [home stringByAppendingPathComponent: @".GNUsteprc"];
+  manager = [NSFileManager defaultManager];
+  if ([manager isReadableFileAtPath: file] == YES)
+    {
+      NSArray	*lines;
+      unsigned	count;
+
+      file = [NSString stringWithContentsOfFile: file];
+      lines = [file componentsSeparatedByString: @"\n"];
+      count = [lines count];
+      while (count-- > 0)
 	{
-	  userDirectory(NSUserName(), YES);
-	}
-      if (fileTemplate == nil)
-	{
-	  userDirectory(NSUserName(), NO);
+	  NSRange	r;
+	  NSString	*line;
+
+	  line = [[lines objectAtIndex: count] stringByTrimmingSpaces];
+	  r = [line rangeOfString: @"="];
+	  if (r.length == 1)
+	    {
+	      NSString	*key = [line substringToIndex: r.location];
+	      NSString	*val = [line substringFromIndex: NSMaxRange(r)];
+
+	      key = [key stringByTrimmingSpaces];
+	      val = [val stringByTrimmingSpaces];
+	      if ([key isEqualToString: @"GNUSTEP_USER_ROOT"] == YES)
+		{
+		  user = val;
+		}
+	      else if ([key isEqualToString: @"GNUSTEP_DEFAULTS_ROOT"] == YES)
+		{
+		  defs = val;
+		}
+	    }
 	}
     }
 
   if (defaults == YES)
     {
-      template = defsTemplate;
+      path = defs;
+      /*
+       * defaults root may default to user root
+       */
+      if (path == nil)
+	{
+	  path = user;
+	}
     }
   else
     {
-      template = fileTemplate;
+      path = user;
     }
-  home = NSHomeDirectoryForUser(name);
 
-  [gnustep_global_lock lock];
-  NS_DURING
+  /*
+   * If not specified in file, default to standard location.
+   */
+  if (path == nil)
     {
-      if (template == nil)
-	{
-	  NSString	*old;
-
-	  if (defaults == YES)
-	    {
-	      path = [[[NSProcessInfo processInfo] environment]
-		objectForKey: @"GNUSTEP_DEFAULTS_ROOT"];
-	    }
-	  if (path == nil)
-	    {
-	      path = [[[NSProcessInfo processInfo] environment]
-		objectForKey: @"GNUSTEP_USER_ROOT"];
-	    }
-	  if (path == nil)
-	    {
-	      path = [NSHomeDirectoryForUser(name)
-		stringByAppendingPathComponent: @"GNUstep"];
-	      fprintf (stderr, 
-		"Warning - GNUSTEP_USER_ROOT is not set "
-		"- using %s\n", [path lossyCString]);
-	    }
-	  else
-	    {
-	      path = [path stringByExpandingTildeInPath];
-	    }
-	  /*
-	   * We build a template for the user root path by replacing
-	   * the user name and home directory in the original string.
-	   */
-	  old = path;
-	  if ([old hasPrefix: home] == YES)
-	    {
-	      old = [old substringFromIndex: [home length]];
-	      template = hMarker;
-	    }
-	  else
-	    {
-	      template = @"";
-	    }
-	  r = [old rangeOfString: name];
-	  while (r.length > 0)
-	    {
-	      template = [template stringByAppendingFormat:
-		@"%@%@", [old substringToIndex: r.location], uMarker];
-	      old = [old substringFromIndex: NSMaxRange(r)];
-	      r = [old rangeOfString: name];
-	    }
-	  template = [template stringByAppendingString: old];
-	  RETAIN(template);
-	  if (defaults == YES)
-	    {
-	      defsTemplate = template;
-	    }
-	  else
-	    {
-	      fileTemplate = template;
-	    }
-	}
-      else
-	{
-	  NSMutableString	*m;
-
-	  /*
-	   * Use an existing template to create the user root
-	   * for the current user.
-	   */
-	  m = [template mutableCopy];
-	  r = [m rangeOfString: uMarker];
-	  while (r.length > 0)
-	    {
-	      [m replaceCharactersInRange: r withString: name];
-	      r.location += [name length];
-	      r.length = [m length] - r.location;
-	      r = [m rangeOfString: uMarker
-			   options: NSLiteralSearch
-			     range: r];
-	    }
-	  r = [m rangeOfString: hMarker];
-	  if (r.location == 0)
-	    {
-	      [m replaceCharactersInRange: r withString: home];
-	    }
-	  path = m;
-	  AUTORELEASE(path);
-	}
+      path = [home stringByAppendingPathComponent: @"GNUstep"];
     }
-  NS_HANDLER
-    {
-      [gnustep_global_lock unlock];
-      [localException raise];
-    }
-  NS_ENDHANDLER
-  [gnustep_global_lock unlock];
+
   return path;
 }
 
