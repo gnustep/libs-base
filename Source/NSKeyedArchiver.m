@@ -26,6 +26,7 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSScanner.h>
 #include <Foundation/NSValue.h>
 
 #include "GSPrivate.h"
@@ -55,6 +56,34 @@ NSString * const NSInvalidArchiveOperationException
 = @"NSInvalidArchiveOperationException";
 
 static NSMapTable	*globalClassMap = 0;
+
+static Class	NSStringClass = 0;
+static Class	NSScannerClass = 0;
+static SEL	scanFloatSel;
+static SEL	scanStringSel;
+static SEL	scannerSel;
+static BOOL	(*scanFloatImp)(NSScanner*, SEL, float*);
+static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
+static id 	(*scannerImp)(Class, SEL, NSString*);
+
+static inline void
+setupCache(void)
+{
+  if (NSStringClass == 0)
+    {
+      NSStringClass = [NSString class];
+      NSScannerClass = [NSScanner class];
+      scanFloatSel = @selector(scanFloat:);
+      scanStringSel = @selector(scanString:intoString:);
+      scannerSel = @selector(scannerWithString:);
+      scanFloatImp = (BOOL (*)(NSScanner*, SEL, float*))
+	[NSScannerClass instanceMethodForSelector: scanFloatSel];
+      scanStringImp = (BOOL (*)(NSScanner*, SEL, NSString*, NSString**))
+	[NSScannerClass instanceMethodForSelector: scanStringSel];
+      scannerImp = (id (*)(Class, SEL, NSString*))
+	[NSScannerClass methodForSelector: scannerSel];
+    }
+}
 
 #define	CHECKKEY \
   if ([aKey isKindOfClass: [NSString class]] == NO) \
@@ -88,12 +117,10 @@ static NSDictionary *makeReference(unsigned ref)
 }
 
 @interface	NSKeyedArchiver (Private)
-- (void) _encodeArrayOfObjects: (NSArray*)anArray forKey: (NSString*)aKey;
 - (id) _encodeObject: (id)anObject conditional: (BOOL)conditional;
 @end
 
-@implementation	NSKeyedArchiver (Private)
-
+@implementation	NSKeyedArchiver (Internal)
 /**
  * Internal method used to encode an array relatively efficiently.<br />
  * Some MacOS-X library classes seem to use this.
@@ -124,7 +151,9 @@ static NSDictionary *makeReference(unsigned ref)
     }
   [_enc setObject: o forKey: aKey];
 }
+@end
 
+@implementation	NSKeyedArchiver (Private)
 /*
  * The real workhorse of the archiving process ... this deals with all
  * archiving of objects. It returns the object to be stored in the
@@ -819,58 +848,120 @@ willReplaceObject: (id)anObject
 - (void) encodePoint: (NSPoint)aPoint forKey: (NSString*)aKey
 {
   NSString	*val;
+
   val = [NSString stringWithFormat: @"{%g, %g}", aPoint.x, aPoint.y];
   [self encodeObject: val forKey: aKey];
 }
+
 - (void) encodeRect: (NSRect)aRect forKey: (NSString*)aKey
 {
   NSString	*val;
+
   val = [NSString stringWithFormat: @"{{%g, %g}, {%g, %g}}",
     aRect.origin.x, aRect.origin.y, aRect.size.width, aRect.size.height];
   [self encodeObject: val forKey: aKey];
 }
+
 - (void) encodeSize: (NSSize)aSize forKey: (NSString*)aKey
 {
   NSString	*val;
+
   val = [NSString stringWithFormat: @"{%g, %g}", aSize.width, aSize.height];
   [self encodeObject: val forKey: aKey];
 }
+
 - (NSPoint) decodePointForKey: (NSString*)aKey
 {
-  const char	*val = [[self decodeObjectForKey: aKey] UTF8String];
+  NSString	*val = [self decodeObjectForKey: aKey];
   NSPoint	aPoint;
+
   if (val == 0)
-    aPoint = NSMakePoint(0, 0);
-  else if (sscanf(val, "{%f, %f}", &aPoint.x, &aPoint.y) != 2)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@]: bad value - '%s'",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd), val];
+    {
+      aPoint = NSMakePoint(0, 0);
+    }
+  else
+    {
+      NSScanner	*scanner;
+
+      setupCache();
+      scanner = (*scannerImp)(NSScannerClass, scannerSel, val);
+      if (!(*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+	|| !(*scanFloatImp)(scanner, scanFloatSel, &aPoint.x)
+	|| !(*scanStringImp)(scanner, scanStringSel, @",", NULL)
+	|| !(*scanFloatImp)(scanner, scanFloatSel, &aPoint.y)
+	|| !(*scanStringImp)(scanner, scanStringSel, @"}", NULL))
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"[%@ -%@]: bad value - '%@'",
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), val];
+	}
+    }
   return aPoint;
 }
+
 - (NSRect) decodeRectForKey: (NSString*)aKey
 {
-  const char	*val = [[self decodeObjectForKey: aKey] UTF8String];
+  NSString	*val = [self decodeObjectForKey: aKey];
   NSRect	aRect;
+
   if (val == 0)
-    aRect = NSMakeRect(0, 0, 0, 0);
-  else if (sscanf(val, "{{%f, %f}, {%f, %f}}",
-    &aRect.origin.x, &aRect.origin.y, &aRect.size.height, &aRect.size.height)
-  != 4)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@]: bad value - '%s'",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd), val];
+    {
+      aRect = NSMakeRect(0, 0, 0, 0);
+    }
+  else
+    {
+      NSScanner	*scanner;
+
+      setupCache();
+      scanner = (*scannerImp)(NSScannerClass, scannerSel, val);
+      if (!(*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+	|| !(*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+	|| !(*scanFloatImp)(scanner, scanFloatSel, &aRect.origin.x)
+	|| !(*scanStringImp)(scanner, scanStringSel, @",", NULL)
+	|| !(*scanFloatImp)(scanner, scanFloatSel, &aRect.origin.y)
+	|| !(*scanStringImp)(scanner, scanStringSel, @"}", NULL)
+	|| !(*scanStringImp)(scanner, scanStringSel, @",", NULL)
+	|| !(*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+	|| !(*scanFloatImp)(scanner, scanFloatSel, &aRect.size.width)
+	|| !(*scanStringImp)(scanner, scanStringSel, @",", NULL)
+	|| !(*scanFloatImp)(scanner, scanFloatSel, &aRect.size.height)
+	|| !(*scanStringImp)(scanner, scanStringSel, @"}", NULL)
+	|| !(*scanStringImp)(scanner, scanStringSel, @"}", NULL))
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"[%@ -%@]: bad value - '%@'",
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), val];
+	}
+    }
   return aRect;
 }
+
 - (NSSize) decodeSizeForKey: (NSString*)aKey
 {
-  const char	*val = [[self decodeObjectForKey: aKey] UTF8String];
+  NSString	*val = [self decodeObjectForKey: aKey];
   NSSize	aSize;
+
   if (val == 0)
-    aSize = NSMakeSize(0, 0);
-  else if (sscanf(val, "{%f, %f}", &aSize.height, &aSize.height) != 2)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@]: bad value - '%s'",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd), val];
+    {
+      aSize = NSMakeSize(0, 0);
+    }
+  else
+    {
+      NSScanner	*scanner;
+
+      setupCache();
+      scanner = (*scannerImp)(NSScannerClass, scannerSel, val);
+      if (!(*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+	|| !(*scanFloatImp)(scanner, scanFloatSel, &aSize.width)
+	|| !(*scanStringImp)(scanner, scanStringSel, @",", NULL)
+	|| !(*scanFloatImp)(scanner, scanFloatSel, &aSize.height)
+	|| !(*scanStringImp)(scanner, scanStringSel, @"}", NULL))
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"[%@ -%@]: bad value - '%@'",
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), val];
+	}
+    }
   return aSize;
 }
 @end

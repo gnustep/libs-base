@@ -213,6 +213,13 @@
 
 @end
 
+@interface	NSKeyedArchiver (Internal)
+- (void) _encodeArrayOfObjects: (NSArray*)anArray forKey: (NSString*)aKey;
+@end
+@interface	NSKeyedUnarchiver (Internal)
+- (id) _decodeArrayOfObjectsForKey: (NSString*)aKey;
+@end
+
 
 /* Exceptions */
 GS_EXPORT NSString * const NSInvalidArchiveOperationException;
