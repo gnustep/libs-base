@@ -48,8 +48,8 @@ void class_add_behavior (Class class, Class behavior);
    a CLASS with a different instance variable layout than "self". */
 
 #define CALL_METHOD_IN_CLASS(CLASS, METHOD, ARGS...)	\
-((*imp([CLASS class], @selector(METHOD)))		\
-  self, @selector(METHOD), ## ARGS)
+((*(get_imp([CLASS class], @selector(METHOD))))		\
+  (self, @selector(METHOD), ## ARGS))
 
 /* Set to non-zero if you want debugging messages on stderr. */
 void set_behavior_debug(int i);
