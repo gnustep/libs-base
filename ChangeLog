@@ -1,3 +1,11 @@
+2000-10-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: When deserialising selectors, register new
+	selectors if they don't already exist - so we can unarchive a
+	selector into a program where no objects implements it (we might
+	still want to use it over DO or to store in another archive).
+	Change suggested by N.Pero.
+
 2000-10-24  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSCalendarDate.m (-initWithString:calendarFormat:locale:): 

@@ -1121,9 +1121,20 @@ failure:
 		}
 	      if (sel == 0)
 		{
-		  [NSException raise: NSInternalInconsistencyException
-			      format: @"can't find sel with name '%s' "
-				      @"and types '%s'", name, types];
+		  if (lt)
+		    {
+		      sel = sel_register_typed_name(name, types);
+		    }
+		  else
+		    {
+		      sel = sel_register_name(name);
+		    }
+		  if (sel == 0)
+		    {
+		      [NSException raise: NSInternalInconsistencyException
+				  format: @"can't make sel with name '%s' "
+					      @"and types '%s'", name, types];
+		    }
 		}
 	      *(SEL*)data = sel;
 	    }
@@ -2187,9 +2198,20 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		}
 	      if (sel == 0)
 		{
-		  [NSException raise: NSInternalInconsistencyException
-			      format: @"can't find sel with name '%s' "
-					  @"and types '%s'", name, types];
+		  if (lt)
+		    {
+		      sel = sel_register_typed_name(name, types);
+		    }
+		  else
+		    {
+		      sel = sel_register_name(name);
+		    }
+		  if (sel == 0)
+		    {
+		      [NSException raise: NSInternalInconsistencyException
+				  format: @"can't make sel with name '%s' "
+					      @"and types '%s'", name, types];
+		    }
 		}
 	      *(SEL*)data = sel;
 	    }
