@@ -1,0 +1,112 @@
+
+   This directory contains files used for the 'mframe' software in gstep-base.
+
+   These files are part of the GNUstep Base Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+   
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+   The code in this directory was written by
+   Richard Frith-Macdonald <richard@brainstorm.co.uk>.
+   Inspiration for this software came from the original mframe.m by
+   Andrew McCallum, and the libFoundation software by Ovidiu Predescu and
+   Mircea Oancea, while the algorithms used are copied from gcc and are
+   copyright the Free Software Foundation.  Many code fragments are derived
+   from gcc by way of libFoundation.
+
+
+   These files are used by the configuration script to build a
+   machine/operating-system specific 'mframe.m' file containing macros used
+   to access stack frames.
+   The 'mframe.m' file is simply built by wrapping a system dependant file
+   between mframe.head and mframe.foot
+
+
+Advice on porting -
+
+    See unknown/generic for an example of the following macros
+
+MFRAME_STACK_STRUCT
+	This should be defined to 1 if functions return structures by value
+	using the method where the caller places a pointer on the stack.
+	Define this to 0 otherwise (eg. when the pointer to the structure is
+	passed in a register).
+
+MFRAME_SMALL_STRUCT
+	This is the size of the largest structure returned by value on
+	the stack.  Normally gcc returns structures of up to 8 bytes on
+	the stack.  If your system never returns structures on the stack,
+	set this to zero rather than 8.
+	NB. If __builtin_apply_args() always returns an argframe for
+	structure return via pointe, you should also define this to zero.
+
+MFRAME_STRUCT_BYREF
+	This should be defined to 1 if structure aprguments are passed
+	by reference, 0 otherwise.
+
+MFRAME_ARGS_SIZE
+	This must be set to the value computed by the apply_args_size()
+	function in expr.c in the gcc source.  It is the size of the
+	area of memory allocated in which to pass arguments to a function.
+	If you can't figure out how to determine this - try using a
+	value like 128 - which will probably be far larger than required
+	(and therefore somewhat inefficient) but will msot likely work.
+
+MFRAME_RESULT_SIZE
+	This must be set to the value computed by the apply_result_size()
+	function in expr.c in the gcc source.  It is the size of the area
+	of memory allocated in which to return a value from a function.
+	If you can't figure out how to determine this - try using a
+	value like 128 - which will probably be far larger than required
+	(and therefore somewhat inefficient) but will msot likely work.
+
+MFRAME_STRUCT_ADDR(ARGFRAME,TYPES)
+	If a function returns a structure by copying it into a location
+	whose address is set by the caller, this macro must return that
+	address within the argframe.
+	Otherwise the macro must return zero.
+
+MFRAME_ARGS
+	This macro should define a data type to be used for recording
+	information about the arguments list of a method.
+	See 'CUMULATIVE_ARGS' in the configuration file for your system
+	in gcc for a parallel example.
+
+MFRAME_INIT_ARGS(CUM, RTYPE)
+	This macro is used to initialise a variable (CUM) of the type
+	defined by MFRAME_ARGS.  The RTYPE value is the type encoding for the
+	method return type, it is needed so that CUM can take int account any
+	invisible first argument used for returning structures by value.
+	See 'INIT_CUMULATIVE_ARGS' in the configuration file for your system
+	in gcc for a parallel example.
+
+MFRAME_ARG_ENCODING(CUM,TYPES,STACK,DEST)
+	This macro is used to to determine the encoding of arguments.
+	Before initial entry,
+	  CUM should have been initialised using the MFRAME_INIT_ARGS() macro,
+	  TYPES should be a (const char*) variable initialised to a
+	    type-encoding string listing the arguments of a function/method,
+	  STACK should be an integer variable of value 0 in which the size of
+	    the stack arguments will be accumulated,
+	  DEST should be a (char*) variable initialised to a pointer to a
+	    buffer into which the full type encoding will be written.
+	After each use of the macro, TYPES is advanced to point to the next
+	argument, and DEST is advanced to point after the encoding of the
+	previous argument.
+	Of course, you must ensure that the buffer pointed to by DEST is
+	large enough so that it does not overflow!
+	You will be safe if your buffer is at least ten times as big as
+	the type-encoding string you start from.
+
+  
