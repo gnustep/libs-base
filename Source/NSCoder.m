@@ -26,6 +26,7 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSSerialization.h>
 
 @implementation NSCoder
 
@@ -117,7 +118,9 @@
 
 - (void) encodePropertyList: (id)plist
 {
-  [self notImplemented:_cmd];
+  id	anObject = [NSSerializer serializePropertyList: plist];
+  [self encodeValueOfObjCType:@encode(id)
+	at: &anObject];
 }
 
 - (void) encodePoint: (NSPoint)point
@@ -202,8 +205,14 @@
 
 - (id) decodePropertyList
 {
-  [self notImplemented:_cmd];
-  return nil;
+  id o;
+  id d;
+  [self decodeValueOfObjCType:@encode(id)
+	at:&d];
+  o = [NSSerializer deserializePropertyListFromData: d
+				  mutableContainers: NO];
+  [d release];
+  return o;
 }
 
 - (NSPoint) decodePoint
