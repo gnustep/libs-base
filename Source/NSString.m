@@ -1315,33 +1315,36 @@ handle_printf_atsign (FILE *stream,
   z = fastZone(self);
   s = NSZoneMalloc(z, sizeof(unichar)*len);
   [self getCharacters: s];
-  while (count<len)
+  while (count < len)
     {
       if ((*whitespceImp)(whitespce, cMemberSel, s[count]))
 	{
 	  count++;
-	  found=YES;
-	  while ((*whitespceImp)(whitespce, cMemberSel, s[count])
-	    && (count < len))
+	  found = YES;
+	  while (count < len
+	    && (*whitespceImp)(whitespce, cMemberSel, s[count]))
 	    {
 	      count++;
 	    }
 	}
-      if (found)
+      if (count < len)
 	{
-	  s[count] = uni_toupper(s[count]);
-	  count++;
-	}
-      else
-	{
-	  while (!(*whitespceImp)(whitespce, cMemberSel, s[count])
-	    && (count < len))
+	  if (found)
 	    {
-	      s[count] = uni_tolower(s[count]);
+	      s[count] = uni_toupper(s[count]);
 	      count++;
 	    }
+	  else
+	    {
+	      while (count < len
+		&& !(*whitespceImp)(whitespce, cMemberSel, s[count]))
+		{
+		  s[count] = uni_tolower(s[count]);
+		  count++;
+		}
+	    }
 	}
-      found=NO;
+      found = NO;
     }
   return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len fromZone: z]);
