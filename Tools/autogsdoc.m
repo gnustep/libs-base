@@ -215,7 +215,8 @@
     <item><strong>DocumentationDirectory</strong>
       May be used to specify the directory in which generated
       documentation is to be placed.  If this is not set, output
-      is placed in the current directory.
+      is placed in the current directory.  This directory is also
+      used as a last resort to locate source files (not headers).
     </item>
     <item><strong>GenerateHtml</strong>
       May be used to specify if HTML output is to be generated.
@@ -223,8 +224,11 @@
     </item>
     <item><strong>HeaderDirectory</strong>
       May be used to specify the directory to be searched for header files.
-      If this is not specified, headers are looked for relative to the
-      current directory or using absolute path names if given.
+      When supplied, this value is prepended to relative header names,
+      otherwise the relative header names are interpreted relative to
+      the current directory.<br />
+      Header files specified as absolute paths are not influenced by this
+      default.
     </item>
     <item><strong>IgnoreDependencies</strong>
       A boolean value which may be used to specify that the program should
@@ -591,17 +595,15 @@ main(int argc, char **argv, char **env)
 
 	  /*
 	   * Ensure that header file name is set up using the
-	   * header directory specified unless is is absolute.
+	   * header directory specified unless it is absolute.
 	   */
 	  if ([hfile isAbsolutePath] == NO)
 	    {
-	      if ([[hfile pathExtension] isEqual: @"h"] == YES)
+	      if ([headerDirectory length] > 0
+	        && [[hfile pathExtension] isEqual: @"h"] == YES)
 		{
-		  if ([headerDirectory length] > 0)
-		    {
-		      hfile = [headerDirectory stringByAppendingPathComponent:
-			[hfile lastPathComponent]];
-		    }
+		  hfile = [headerDirectory stringByAppendingPathComponent:
+		    hfile];
 		}
 	    }
 
