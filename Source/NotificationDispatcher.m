@@ -21,6 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+/* The implementation for NotificationDispatcher. */
+
 #include <objects/NotificationDispatcher.h>
 #include <objects/Notification.h>
 #include <objects/LinkedListNode.h>
@@ -28,15 +30,10 @@
 #include <objects/Invocation.h>
 #include <Foundation/NSException.h>
 
-/* The implementation for NotificationDispatcher.
-
-   First we define an object for holding the observer's 
-   notification requests: */
-
 
-/* One of these objects is created for each -addObserver... request.
-   It holds the requested invocation, name and object.  Each object
-   is placed
+/* NotificationRequest class - One of these objects is created for
+   each -addObserver... request.  It holds the requested invocation,
+   name and object.  Each object is placed
    (1) in one LinkedList, as keyed by the NAME/OBJECT parameters (accessible
    through one of the ivars: anonymous_nr_list, object_2_nr_list, 
    name_2_nr_list), and 
@@ -44,14 +41,13 @@
    the ivar observer_2_nr_array.
 
    To post a notification in satisfaction of this request, 
-   send -postNotification:.
-   */
+   send -postNotification:.  */
 
 @interface NotificationRequest : LinkedListNode
 {
-  int retain_count;
-  id name;
-  id object;
+  int _retain_count;
+  id _name;
+  id _object;
 }
 
 - initWithName: n object: o;
@@ -65,50 +61,50 @@
 - initWithName: n object: o
 {
   [super init];
-  retain_count = 0;
-  name = [n retain];
-  object = o;
+  _retain_count = 0;
+  _name = [n retain];
+  _object = o;
   /* Note that OBJECT is not retained.  See the comment for
      -addObserver... in NotificationDispatcher.h. */
   return self;
 }
 
 /* Implement these retain/release methods here for efficiency, since
-   NotificationInvocation's get retained and released by all their
+   NotificationRequest's get retained and released by all their
    holders.  Doing this is a judgement call; I'm choosing speed over
    space. */
 
 - retain
 {
-  retain_count++;
+  _retain_count++;
   return self;
 }
 
 - (oneway void) release
 {
-  if (!retain_count--)
+  if (!_retain_count--)
     [self dealloc];
 }
 
 - (unsigned) retainCount
 {
-  return retain_count;
+  return _retain_count;
 }
 
 - (void) dealloc
 {
-  [name release];
+  [_name release];
   [super dealloc];
 }
 
 - (id <String>) notificationName
 {
-  return name;
+  return _name;
 }
 
 - notificationObject
 {
-  return object;
+  return _object;
 }
 
 - (void) postNotification: n
@@ -121,7 +117,7 @@
 
 @interface NotificationInvocation : NotificationRequest
 {
-  id invocation;
+  id _invocation;
 }
 - initWithInvocation: i name: n object: o;
 @end
@@ -131,19 +127,19 @@
 - initWithInvocation: i name: n object: o
 {
   [super initWithName: n object: o];
-  invocation = [i retain];
+  _invocation = [i retain];
   return self;
 }
 
 - (void) dealloc
 {
-  [invocation release];
+  [_invocation release];
   [super dealloc];
 }
 
 - (void) postNotification: n
 {
-  [invocation invokeWithObject: n];
+  [_invocation invokeWithObject: n];
 }
 
 @end
@@ -151,8 +147,8 @@
 
 @interface NotificationPerformer : NotificationRequest
 {
-  id target;
-  SEL selector;
+  id _target;
+  SEL _selector;
 }
 - initWithTarget: t selector: (SEL)s name: n object: o;
 @end
@@ -164,14 +160,14 @@
   [super initWithName: n object: o];
   /* Note that TARGET is not retained.  See the comment for
      -addObserver... in NotificationDispatcher.h. */
-  target = t;
-  selector = s;
+  _target = t;
+  _selector = s;
   return self;
 }
 
 - (void) postNotification: n
 {
-  [target perform: selector withObject: n];
+  [_target perform: _selector withObject: n];
 }
 
 @end
@@ -198,22 +194,24 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 - init
 {
   [super init];
-  anonymous_nr_list = [LinkedList new];
+  _anonymous_nr_list = [LinkedList new];
 
   /* Use NSNonOwnedPointerOrNullMapKeyCallBacks so we won't retain
-     the object.  We will, however, retain the LinkedList's. */
-  object_2_nr_list = 
+     the object.  We will, however, retain the values, which are
+     LinkedList's. */
+  _object_2_nr_list = 
     NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
 
-  /* Likewise. */
-  /* xxx Should we retain NAME here after all? */
-  name_2_nr_list = 
+  /* Use NSObjectMapKeyCallBacks so we retain the NAME.  We also retain
+     the values, which are LinkedList's. */
+  _name_2_nr_list = 
     NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
 
-  /* Likewise. */
-  observer_2_nr_array = 
+  /* Use NSNonOwnedPointerOrNullMapKeyCallBacks so we won't retain
+     the observer.  We will, however, retain the values, which are Array's. */
+  _observer_2_nr_array = 
     NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
 
@@ -223,25 +221,36 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
 /* Adding new observers. */
 
-/* This is the designated method for adding observers. */
+/* This is the (private) designated method for adding observers.  If we 
+   came from -addInvocation... then OBSERVER is actually an Invocation. */
+
 - (void) _addObserver: observer
   notificationRequest: nr
                  name: (id <String>)name
 	       object: object
 {
-  /* Record the request in an array of all the requests by this observer. */
-  if (observer)
-    {
-      Array *nr_array = NSMapGet (observer_2_nr_array, observer);
-      if (!nr_array)
-	{
-	  nr_array = [Array new];
-	  /* nr_array is retained; observer is not. */
-	  NSMapInsert (observer_2_nr_array, observer, nr_array);
-	  [nr_array release];
-	}
-      [nr_array appendObject: nr];
-    }     
+  /* If observer is nil, there is nothing to do; return. */
+  if (!observer)
+    return;
+
+  /* Record the notification request in an array keyed by OBSERVER. */
+  {
+    /* Find the array of all the requests by OBSERVER. */
+    Array *nr_array = NSMapGet (_observer_2_nr_array, observer);
+    if (!nr_array)
+      {
+	nr_array = [Array new];
+	/* nr_array is retained; observer is not. */
+	NSMapInsert (_observer_2_nr_array, observer, nr_array);
+	/* Now that nr_array is retained by the map table, release it;
+	   this way the array will be completely released when the
+	   map table is done with it. */
+	[nr_array release];
+      }
+    [nr_array appendObject: nr];
+  }
+
+  /* Record the NotificationRequest in one of three MapTable->LinkedLists. */
 
   /* Record the request in one, and only one, LinkedList.  The LinkedList
      is stored in a hash table accessed by a key.  Which key is used
@@ -250,16 +259,21 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
     {
       if (!object)
 	{
-	  [anonymous_nr_list appendObject: nr];
+	  /* This NotificationRequest will get posted notifications
+	     for all NAME and OBJECT combinations. */
+	  [_anonymous_nr_list appendObject: nr];
 	}
       else
 	{
-	  LinkedList *nr_list = NSMapGet (object_2_nr_list, object);
+	  LinkedList *nr_list = NSMapGet (_object_2_nr_list, object);
 	  if (!nr_list)
 	    {
 	      nr_list = [LinkedList new];
 	      /* nr_list is retained; object is not retained. */
-	      NSMapInsert (object_2_nr_list, object, nr_list);
+	      NSMapInsert (_object_2_nr_list, object, nr_list);
+	      /* Now that nr_list is retained by the map table, release it;
+		 this way the list will be completely released when the
+		 map table is done with it. */
 	      [nr_list release];
 	    }
 	  [nr_list appendObject: nr];
@@ -267,61 +281,60 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
     }
   else
     {
-      LinkedList *nr_list = NSMapGet (name_2_nr_list, name);
+      LinkedList *nr_list = NSMapGet (_name_2_nr_list, name);
       if (!nr_list)
 	{
 	  nr_list = [LinkedList new];
 	  /* nr_list is retained; object is not retained. */
-	  NSMapInsert (name_2_nr_list, name, nr_list);
+	  NSMapInsert (_name_2_nr_list, name, nr_list);
+	  /* Now that nr_list is retained by the map table, release it;
+	     this way the list will be completely released when the
+	     map table is done with it. */
 	  [nr_list release];
 	}
       [nr_list appendObject: nr];
     }
 
-  /* Since nr was retained when it was added to the collection above,
-     we can release it now. */
+  /* Since nr was retained when it was added to the Array and
+     LinkedListabove, we can release it now. */
   [nr release];
 }
 
-- (void) addObserver: observer
-          invocation: (id <Invoking>)invocation
-                name: (id <String>)name
-	      object: object
+- (void) addInvocation: (id <Invoking>)invocation
+		  name: (id <String>)name
+                object: object
 {
-  /* The NotificationInvocation we create to hold this request. */
   id nr;
 
-  /* Create the NotificationInvocation object that will hold
-     this observation request.  This will retain INVOCATION and NAME. */
+  /* Create the NotificationRequest object that will hold this
+     observation request.  This will retain INVOCATION and NAME. */
   nr = [[NotificationInvocation alloc] 
 	 initWithInvocation: invocation
 	 name: name
 	 object: object];
 
   /* Record it in all the right places. */
-  [self _addObserver: observer
+  [self _addObserver: invocation
 	notificationRequest: nr
 	name: name
 	object: object];
+
+  [nr release];
 }
 
 
 /* For those that want to specify a selector instead of an invocation
-   as a way to contact the observer. 
-   If for some reason we didn't want to use Invocation's, we could 
-   additionally create another kind of "NotificationInvocation" that 
-   just used selector's instead. */
+   as a way to contact the observer. */
 
 - (void) addObserver: observer
             selector: (SEL)sel
                 name: (id <String>)name
 	      object: object
 {
-  /* The NotificationInvocation we create to hold this request. */
   id nr;
 
-  /* Create the NotificationInvocation object that will hold
-     this observation request.  This will retain INVOCATION and NAME. */
+  /* Create the NotificationRequest object that will hold this
+     observation request.  This will retain INVOCATION and NAME. */
   nr = [[NotificationPerformer alloc] 
 	 initWithTarget: observer
 	 selector: sel
@@ -333,7 +346,74 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	notificationRequest: nr
 	name: name
 	object: object];
+
+  [nr release];
 }
+
+
+/* Removing objects. */
+
+/* A private method.
+   Remove the NR object from its one LinkedList; if this is the last
+   element of that LinkedList, and the LinkedList is map-accessible,
+   also release the LinkedList. */
+
+- (void) _removeFromLinkedListNotificationRequest: nr
+{
+  id nr_list = [nr linkedList];
+
+  /* See if, instead of removing the NR from its LinkedList, we can
+     actually release the entire list. */
+  if ([nr_list count] == 1
+      && nr_list != _anonymous_nr_list)
+    {
+      id nr_name;
+      id nr_object;
+      LinkedList *mapped_nr_list;
+
+      assert ([nr_list firstObject] == nr);
+      if ((nr_name = [nr notificationName]))
+	{
+	  mapped_nr_list = NSMapGet (_name_2_nr_list, nr_name);
+	  assert (mapped_nr_list == nr_list);
+	  NSMapRemove (_name_2_nr_list, nr_name);
+	}
+      else 
+	{
+	  nr_object = [nr notificationObject];
+	  assert (nr_object);
+	  mapped_nr_list = NSMapGet (_object_2_nr_list, nr_object);
+	  assert (mapped_nr_list == nr_list);
+	  NSMapRemove (_object_2_nr_list, nr_object);
+	}
+    }
+  else
+    [nr_list removeObject: nr];
+}
+
+
+/* Removing notification requests. */
+
+/* Remove all notification requests that would be sent to INVOCATION. */ 
+
+- (void) removeInvocation: invocation
+{
+  [self removeObserver: invocation];
+}
+
+/* Remove the notification requests matching NAME and OBJECT that
+   would be sent to INVOCATION.  As with adding an observation
+   request, nil NAME or OBJECT act as wildcards. */
+
+- (void) removeInvocation: invocation
+                     name: (id <String>)name
+                   object: object
+{
+  [self removeObserver: invocation
+	name: name
+	object: object];
+}
+
 
 
 /* Remove all records pertaining to OBSERVER.  For instance, this 
@@ -342,10 +422,17 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 - (void) removeObserver: observer
 {
   Array *observer_nr_array;
-  NotificationInvocation *nr;
+  NotificationRequest *nr;
 
-  /* Get the array of NotificationInvocation's associated with OBSERVER. */
-  observer_nr_array = NSMapGet (observer_2_nr_array, observer);
+  /* If OBSERVER is nil, do nothing; just return.  NOTE: This *does not*
+     remove all requests with a nil OBSERVER; it would be too easy to
+     unintentionally remove other's requests that way.  If you need to
+     remove a request with a nil OBSERVER, use -removeObserver:name:object: */
+  if (!observer)
+    return;
+
+  /* Get the array of NotificationRequest's associated with OBSERVER. */
+  observer_nr_array = NSMapGet (_observer_2_nr_array, observer);
 
   if (!observer_nr_array)
     /* OBSERVER was never registered for any notification requests with us.
@@ -355,14 +442,14 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   /* Remove each of these from it's LinkedList. */
   FOR_ARRAY (observer_nr_array, nr)
     {
-      [[nr linkedList] removeObject: nr];
+      [self _removeFromLinkedListNotificationRequest: nr];
     }
   END_FOR_ARRAY (observer_nr_array);
 
-  /* Remove from the MapTable the list of NotificationInvocation's
+  /* Remove from the MapTable the list of NotificationRequest's
      associated with OBSERVER.  This also releases the observer_nr_array,
      and its contents. */
-  NSMapRemove (observer_2_nr_array, observer);
+  NSMapRemove (_observer_2_nr_array, observer);
 }
 
 
@@ -374,21 +461,50 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
                  object: object
 {
   Array *observer_nr_array;
-  NotificationInvocation *nr;
+  NotificationRequest *nr;
 
-  /* Get the list of NotificationInvocation's associated with OBSERVER. */
-  observer_nr_array = NSMapGet (observer_2_nr_array, observer);
+  /* If both NAME and OBJECT are nil, this call is the same as 
+     -removeObserver:, so just call it. */
+  if (!name && !object)
+    [self removeObserver: observer];
+
+  /* We are now guaranteed that at least one of NAME and OBJECT is non-nil. */
+
+  /* If OBSERVER is nil, check the _nil_observer_array for 
+     NotificationRequests needing removal. */
+  if (!observer)
+    {
+      int i;
+      for (i = [_nil_observer_array count] - 1; i >= 0; i--)
+	{
+	  nr = [_nil_observer_array objectAtIndex: i];
+	  if ((!name || [name isEqual: [nr notificationName]])
+	      && (!object || [object isEqual: [nr notificationObject]]))
+	    {
+	      [self _removeFromLinkedListNotificationRequest: nr];
+	      [_nil_observer_array removeObjectAtIndex: i];
+	    }
+	}
+      /* Since NotificationRequest's with nil OBSERVER aren't put in the
+	 _observer_2_nr_array, we are now done; return. */
+      return;
+    }
+
+  /* Get the list of NotificationRequest's associated with OBSERVER. */
+  observer_nr_array = NSMapGet (_observer_2_nr_array, observer);
 
   if (!observer_nr_array)
     /* OBSERVER was never registered for any notification requests with us.
        Nothing to do. */
     return;
 
-  /* Find those NotificationInvocation's from the array that
+  /* Find those NotificationRequest's from the array that
      match NAME and OBJECT, and remove them from the array and 
      their linked list. */
+  /* xxx If we thought the LinkedList from the map table keyed on NAME
+     would be shorter, we could use that instead. */
   {
-    NotificationInvocation *nr;
+    NotificationRequest *nr;
     int count = [observer_nr_array count];
     unsigned matching_nr_indices[count];
     int i;
@@ -404,7 +520,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 	       and the indices of yet-to-come objects don't change when
 	       high-indexed objects are removed. */
 	    [observer_nr_array removeObjectAtIndex: i];
-	    [[nr linkedList] removeObject: nr];
+	    [self _removeFromLinkedListNotificationRequest: nr];
 	  }
       }
     /* xxx If there are some LinkedList's that are empty, I should
@@ -417,7 +533,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
 - (void) postNotification: notification
 {
-  /* This cast avoids complaints about different types for -name. */
+  /* This cast avoids complaints about different types for the -name method. */
   id notification_name = [(Notification*)notification name];
   id notification_object = [notification object];
   id nr;
@@ -430,20 +546,20 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
   /* Post the notification to all the observers that specified neither
      NAME or OBJECT. */
-  if ([anonymous_nr_list count])
+  if ([_anonymous_nr_list count])
     {
-      FOR_COLLECTION (anonymous_nr_list, nr)
+      FOR_COLLECTION (_anonymous_nr_list, nr)
 	{
 	  [nr postNotification: notification];
 	}
-      END_FOR_COLLECTION (anonymous_nr_list);
+      END_FOR_COLLECTION (_anonymous_nr_list);
     }
 
   /* Post the notification to all the observers that specified OBJECT,
      but didn't specify NAME. */
   if (notification_object)
     {
-      nr_list = NSMapGet (object_2_nr_list, notification_object);
+      nr_list = NSMapGet (_object_2_nr_list, notification_object);
       if (nr_list)
 	{
 	  FOR_COLLECTION (nr_list, nr)
@@ -457,7 +573,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   /* Post the notification to all the observers of NAME; (and if the
      observer's OBJECT is non-nil, don't send unless the observer's OBJECT
      matches the notification's OBJECT). */
-  nr_list = NSMapGet (name_2_nr_list, notification_name);
+  nr_list = NSMapGet (_name_2_nr_list, notification_name);
   if (nr_list)
     {
       FOR_COLLECTION (nr_list, nr)
@@ -490,13 +606,11 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 
 /* Class methods. */
 
-+ (void) addObserver: observer
-          invocation: (id <Invoking>)invocation
-                name: (id <String>)name
-	      object: object
++ (void) addInvocation: (id <Invoking>)invocation
+		  name: (id <String>)name
+                object: object
 {
-  [default_notification_dispatcher addObserver: observer
-				   invocation: invocation
+  [default_notification_dispatcher addInvocation: invocation
 				   name: name
 				   object: object];
 }
@@ -508,6 +622,20 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
 {
   [default_notification_dispatcher addObserver: observer
 				   selector: sel
+				   name: name
+				   object: object];
+}
+
++ (void) removeInvocation: invocation
+{
+  [default_notification_dispatcher removeInvocation: invocation];
+}
+
++ (void) removeInvocation: invocation
+                     name: (id <String>)name
+                   object: object
+{
+  [default_notification_dispatcher removeInvocation: invocation
 				   name: name
 				   object: object];
 }
