@@ -29,13 +29,12 @@
 #define INLINE inline
 #endif
 
-/* To turn assertions on, comment out the following four lines */
-#ifndef	NS_BLOCK_ASSERTIONS
-#define	NS_BLOCK_ASSERTIONS	1
-#define	GSI_ARRAY_BLOCKED_ASSERTIONS	1
-#endif
-
+/* To turn assertions on, define GSI_ARRAY_CHECKS */
+#ifdef	GSI_ARRAY_CHECKS
 #define	GSI_ARRAY_CHECK NSCAssert(array->count <= array->cap && array->old <= array->cap && array->old >= 1, NSInternalInconsistencyException)
+#else
+#define	GSI_ARRAY_CHECK
+#endif
 
 /*
  This file should be INCLUDED in files wanting to use the GSIArray
@@ -251,11 +250,13 @@ GSIArrayInsertionPosition(GSIArray array, GSIArrayItem item,
     {
       index++;
     }
+#ifdef	GSI_ARRAY_CHECKS
   NSCAssert(index <= array->count, NSInternalInconsistencyException);
+#endif
   return index;
 }
 
-#ifndef	NS_BLOCK_ASSERTIONS
+#ifdef	GSI_ARRAY_CHECKS
 static INLINE void
 GSIArrayCheckSort(GSIArray array, 
 	NSComparisonResult (*sorter)(GSIArrayItem, GSIArrayItem))
@@ -264,7 +265,9 @@ GSIArrayCheckSort(GSIArray array,
 
   for (i = 1; i < array->count; i++)
     {
+#ifdef	GSI_ARRAY_CHECKS
       NSCAssert(((*sorter)(array->ptr[i-1], array->ptr[i]) 
+#endif
 	         != NSOrderedDecending), NSInvalidArgumentException);
     }
 }
@@ -278,7 +281,7 @@ GSIArrayInsertSorted(GSIArray array, GSIArrayItem item,
 
   index = GSIArrayInsertionPosition(array, item, sorter);
   GSIArrayInsertItem(array, item, index);
-#ifndef	NS_BLOCK_ASSERTIONS
+#ifdef	GSI_ARRAY_CHECKS
   GSIArrayCheckSort(array, sorter);
 #endif
 }
@@ -291,7 +294,7 @@ GSIArrayInsertSortedNoRetain(GSIArray array, GSIArrayItem item,
 
   index = GSIArrayInsertionPosition(array, item, sorter);
   GSIArrayInsertItemNoRetain(array, item, index);
-#ifndef	NS_BLOCK_ASSERTIONS
+#ifdef	GSI_ARRAY_CHECKS
   GSIArrayCheckSort(array, sorter);
 #endif
 }
@@ -300,7 +303,9 @@ static INLINE void
 GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
 {
   GSIArrayItem	tmp;
+#ifdef	GSI_ARRAY_CHECKS
   NSCAssert(index < array->count, NSInvalidArgumentException);
+#endif
   tmp = array->ptr[index];
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
@@ -312,7 +317,9 @@ static INLINE void
 GSIArrayRemoveItemAtIndexNoRelease(GSIArray array, unsigned index)
 {
   GSIArrayItem	tmp;
+#ifdef	GSI_ARRAY_CHECKS
   NSCAssert(index < array->count, NSInvalidArgumentException);
+#endif
   tmp = array->ptr[index];
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
@@ -323,7 +330,9 @@ static INLINE void
 GSIArraySetItemAtIndex(GSIArray array, GSIArrayItem item, unsigned index)
 {
   GSIArrayItem	tmp;
+#ifdef	GSI_ARRAY_CHECKS
   NSCAssert(index < array->count, NSInvalidArgumentException);
+#endif
   tmp = array->ptr[index];
   GSI_ARRAY_RETAIN(item);
   array->ptr[index] = item;
@@ -333,7 +342,9 @@ GSIArraySetItemAtIndex(GSIArray array, GSIArrayItem item, unsigned index)
 static INLINE GSIArrayItem
 GSIArrayItemAtIndex(GSIArray array, unsigned index)
 {
+#ifdef	GSI_ARRAY_CHECKS
   NSCAssert(index < array->count, NSInvalidArgumentException);
+#endif
   return array->ptr[index];
 }
 
@@ -411,9 +422,4 @@ GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
 #endif
   return array;
 }
-
-#ifdef	GSI_ARRAY_BLOCKED_ASSERTIONS
-#undef	NS_BLOCK_ASSERTIONS
-#undef	GSI_ARRAY_BLOCKED_ASSERTIONS
-#endif
 
