@@ -589,7 +589,7 @@ static NSNotificationCenter *default_center = nil;
 {
   if ((self = [super init]) != nil)
     {
-      TABLE = newNCTable();
+      _table = newNCTable();
     }
   return self;
 }

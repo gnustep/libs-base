@@ -3743,7 +3743,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (id) initWithDocument: (GSXMLDocument *)d
 {
   ASSIGN (_document, d);
-  ((xmlXPathContext*)_lib) = xmlXPathNewContext ([_document lib]);
+  _lib = xmlXPathNewContext ([_document lib]);
   ((xmlXPathContext*)_lib)->node = xmlDocGetRootElement ([_document lib]);
   
   return self;

@@ -43,7 +43,7 @@
 #define	GSI_MAP_VTYPES		GSUNION_OBJ
 #define	GSI_MAP_HASH(M, X)		[X.obj hash]
 #define	GSI_MAP_EQUAL(M, X,Y)		[X.obj isEqual: Y.obj]
-#define	GSI_MAP_RETAIN_KEY(M, X)	((id)(X).obj) = \
+#define	GSI_MAP_RETAIN_KEY(M, X)	((X).obj) = \
 				[((id)(X).obj) copyWithZone: map->zone]
 
 #include	"GNUstepBase/GSIMap.h"

@@ -467,7 +467,7 @@ if (__value != __object) \
       { \
 	__value = [__value copy]; \
       } \
-    (id)object = __value; \
+    object = __value; \
     if (__object != nil) \
       { \
 	[__object release]; \

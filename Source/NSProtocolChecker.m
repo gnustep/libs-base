@@ -75,7 +75,7 @@
     {
       if (((id)buffer) == _myTarget)
    	{
-	  ((id)buffer) = self;
+	  buffer = self;
 	  [anInvocation setReturnValue: buffer];
    	}
     }
