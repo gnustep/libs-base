@@ -1,3 +1,14 @@
+Thu May  6 13:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/propList.h: new file
+	* Source/NSString.m: include propList.h for property-list parsing.
+	* Source/NSGString.m: ditto
+	* Source/NSGCString.m: ditto
+	* Source/NSTask.m: Minor fixes for win32
+	* Source/NSLog.m: ditto
+	* Source/NSProcessInfo.m: ditto
+	* Source/NSFileManager.m: ditto
+
 1999-04-28  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSRunLoop.m (aSort): Redefine to take FastArrayItem as

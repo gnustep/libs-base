@@ -34,6 +34,10 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSGString.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSData.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSCharacterSet.h>
 #include <base/IndexedCollection.h>
 #include <base/IndexedCollectionPrivate.h>
 #include <Foundation/NSValue.h>
@@ -43,6 +47,12 @@
 
 #include <base/fast.x>
 #include <base/Unicode.h>
+
+/*
+ *	Include property-list parsing code configured for unicode characters.
+ */
+#define	GSPLUNI	1
+#include "propList.h"
 
 
 @implementation NSGString
@@ -310,6 +320,53 @@
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
   return [NSNumber numberWithChar: unitochar(_contents_chars[index])];
+}
+
+- (id) propertyList
+{
+  id		result;
+  pldata	data;
+
+  data.ptr = _contents_chars;
+  data.pos = 0;
+  data.end = _count;
+  data.lin = 1;
+  data.err = nil;
+
+  if (plInit == 0)
+    setupPl([NSGString class]);
+
+  result = parsePlItem(&data);
+
+  if (result == nil && data.err != nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"%@ at line %u", data.err, data.lin];
+    }
+  return result;
+}
+
+- (NSDictionary*) propertyListFromStringsFileFormat
+{
+  id		result;
+  pldata	data;
+
+  data.ptr = _contents_chars;
+  data.pos = 0;
+  data.end = _count;
+  data.lin = 1;
+  data.err = nil;
+
+  if (plInit == 0)
+    setupPl([NSGString class]);
+
+  result = parseSfItem(&data);
+  if (result == nil && data.err != nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"%@ at line %u", data.err, data.lin];
+    }
+  return result;
 }
 
 @end
