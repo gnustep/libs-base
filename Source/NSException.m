@@ -1,5 +1,5 @@
 /* NSException - Object encapsulation of a general exception handler
-   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
@@ -41,7 +41,7 @@ NSString *NSRangeException = @"NSRangeException";
 /* FIXME: Not thread safe - probably need one for each thread. */
 static NSMutableArray *e_queue;
 
-static NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
+NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
 static volatile void
 _NSFoundationUncaughtExceptionHandler(NSException *exception)
