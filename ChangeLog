@@ -1,3 +1,10 @@
+2002-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSAttributedString.m: Applied fix for left-over attributes
+	at end of string.  Patch supplied by Alexander Malmberg
+	<alexander@malmberg.org>.  Reformatting to conform to GNUstep
+	standards, and optimisation by me.
+
 2002-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m: Output gsdoc as UTF8 as we should.
