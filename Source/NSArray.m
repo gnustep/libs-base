@@ -46,7 +46,7 @@
 #include "GSPrivate.h"
 
 extern BOOL	GSMacOSXCompatiblePropertyLists(void);
-extern void     GSPropertyListMake(id, NSDictionary*, BOOL, unsigned, id*);
+extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
@@ -997,7 +997,7 @@ static int compare(id elem1, id elem2, void* context)
 {
   NSString	*result = nil;
 
-  GSPropertyListMake(self, locale, NO, level == 1 ? 3 : 2, &result);
+  GSPropertyListMake(self, locale, NO, YES, level == 1 ? 3 : 2, &result);
 
   return result;
 }
@@ -1032,11 +1032,11 @@ static int compare(id elem1, id elem2, void* context)
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
-      GSPropertyListMake(self, loc, YES, 2, &desc);
+      GSPropertyListMake(self, loc, YES, NO, 2, &desc);
     }
   else
     {
-      GSPropertyListMake(self, loc, NO, 2, &desc);
+      GSPropertyListMake(self, loc, NO, NO, 2, &desc);
     }
 
   return [[desc dataUsingEncoding: NSUTF8StringEncoding]
@@ -1056,11 +1056,11 @@ static int compare(id elem1, id elem2, void* context)
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
-      GSPropertyListMake(self, loc, YES, 2, &desc);
+      GSPropertyListMake(self, loc, YES, NO, 2, &desc);
     }
   else
     {
-      GSPropertyListMake(self, loc, NO, 2, &desc);
+      GSPropertyListMake(self, loc, NO, NO, 2, &desc);
     }
 
   return [[desc dataUsingEncoding: NSUTF8StringEncoding]

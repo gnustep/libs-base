@@ -446,21 +446,24 @@ static NSString	*indentStrings[] = {
   @"\t\t\t\t\t\t"
 };
 
+#define	PLNEW	0
+#define	PLXML	1
+#define	PLOLD	2
 /**
  * obj is the object to be written out<br />
  * loc is the locale for formatting (or nil to indicate no formatting)<br />
  * lev is the level of indentation to use<br />
  * step is the indentation step (0 == 0, 1 = 2, 2 = 4, 3 = 8)<br />
- * x is a flag to indicate xml property list format<br />
+ * x is an indicator for xml or old/new openstep property list format<br />
  * dest is the output buffer.
  */
 static void
 OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
-  BOOL x, GSMutableString *dest)
+  int x, GSMutableString *dest)
 {
   if ([obj isKindOfClass: [NSString class]])
     {
-      if (x == YES)
+      if (x == PLXML)
 	{
 	  Append(@"<string>", dest);
 	  XString(obj, dest);
@@ -477,60 +480,76 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 
       if (val == 1.0)
 	{
-	  if (x)
+	  if (x == PLXML)
 	    {
 	      Append(@"<true/>\n", dest);
 	    }
-	  else
+	  else if (x == PLNEW)
 	    {
 	      Append(@"<*BY>", dest);
+	    }
+	  else
+	    {
+	      PString([obj description], dest);
 	    }
 	}
       else if (val == 0.0)
 	{
-	  if (x)
+	  if (x == PLXML)
 	    {
 	      Append(@"<false/>\n", dest);
 	    }
-	  else
+	  else if (x == PLNEW)
 	    {
 	      Append(@"<*BN>", dest);
+	    }
+	  else
+	    {
+	      PString([obj description], dest);
 	    }
 	}
       else if (rint(val) == val)
 	{
-	  if (x == YES)
+	  if (x == PLXML)
 	    {
 	      Append(@"<integer>", dest);
 	      XString([obj stringValue], dest);
 	      Append(@"</integer>\n", dest);
 	    }
-	  else
+	  else if (x == PLNEW)
 	    {
 	      Append(@"<*I", dest);
 	      PString([obj stringValue], dest);
 	      Append(@">", dest);
 	    }
+	  else
+	    {
+	      PString([obj description], dest);
+	    }
 	}
       else
 	{
-	  if (x == YES)
+	  if (x == PLXML)
 	    {
 	      Append(@"<real>", dest);
 	      XString([obj stringValue], dest);
 	      Append(@"</real>\n", dest);
 	    }
-	  else
+	  else if (x == PLNEW)
 	    {
 	      Append(@"<*R", dest);
 	      PString([obj stringValue], dest);
 	      Append(@">", dest);
 	    }
+	  else
+	    {
+	      PString([obj description], dest);
+	    }
 	}
     }
   else if ([obj isKindOfClass: [NSData class]])
     {
-      if (x == YES)
+      if (x == PLXML)
 	{
 	  Append(@"<data>", dest);
 	  Append(encodeBase64(obj), dest);
@@ -573,19 +592,23 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else if ([obj isKindOfClass: [NSDate class]])
     {
-      if (x == YES)
+      if (x == PLXML)
 	{
 	  Append(@"<date>", dest);
 	  Append([obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"
 	    timeZone: nil locale: nil], dest);
 	  Append(@"</date>\n", dest);
 	}
-      else
+      else if (x == PLNEW)
 	{
 	  Append(@"<*D", dest);
 	  Append([obj descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S %z"
 	    timeZone: nil locale: nil], dest);
 	  Append(@">", dest);
+	}
+      else
+	{
+	  PString([obj description], dest);
 	}
     }
   else if ([obj isKindOfClass: [NSArray class]])
@@ -614,7 +637,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
 	}
 
-      if (x == YES)
+      if (x == PLXML)
 	{
 	  NSEnumerator	*e;
 
@@ -623,7 +646,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  while ((obj = [e nextObject]))
 	    {
 	      Append(iSizeString, dest);
-	      OAppend(obj, loc, level, step, YES, dest);
+	      OAppend(obj, loc, level, step, x, dest);
 	    }
 	  Append(iBaseString, dest);
 	  Append(@"</array>\n", dest);
@@ -701,7 +724,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
 	}
 
-      if (x == YES)
+      if (x == PLXML)
 	{
 	  NSEnumerator	*e;
 	  id		key;
@@ -873,7 +896,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     {
       NSDebugLog(@"Non-property-list class (%@) encoded as string",
 	NSStringFromClass([obj class]));
-      if (x == YES)
+      if (x == PLXML)
 	{
 	  Append(@"<string>", dest);
 	  XString([obj description], dest);
@@ -887,9 +910,11 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 }
 
 void
-GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml, unsigned step, id *str)
+GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
+  BOOL forDescription, unsigned step, id *str)
 {
   GSMutableString	*dest;
+  int			style = PLNEW;
 
   if (plQuotablesBitmapRep == NULL)
     {
@@ -942,10 +967,19 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml, unsigned step, id *str)
 	"PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" "
 	"\"http://www.gnustep.org/plist-0_9.xml\">\n"
 	"<plist version=\"0.9\">\n"], dest);
+      style = PLXML;
+    }
+  else if (forDescription || GSUserDefaultsFlag(NSWriteOldStylePropertyLists))
+    {
+      style = PLOLD;
+    }
+  else
+    {
+      style = PLNEW;
     }
 
-  OAppend(obj, loc, 0, step > 3 ? 3 : step, xml, dest);
-  if (xml == YES)
+  OAppend(obj, loc, 0, step > 3 ? 3 : step, style, dest);
+  if (style == PLXML)
     {
       Append(@"</plist>", dest);
     }

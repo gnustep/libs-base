@@ -678,10 +678,10 @@ failure:
 
 - (NSString*) description
 {
-  extern void     GSPropertyListMake(id, NSDictionary*, BOOL, unsigned, id*);
+  extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   NSMutableString       *result = nil;
 
-  GSPropertyListMake(self, nil, NO, 0, &result);
+  GSPropertyListMake(self, nil, NO, YES, 0, &result);
   return result;
 }
 
