@@ -280,9 +280,10 @@ newDataWithEncodedPort(GSTcpPort *port)
       if ([addr isEqualToString: @"127.0.0.1"] == YES)
 	{
 	  NSArray	*a = [[port host] addresses];
+          unsigned	c = [a count];
 	  unsigned	i;
 
-	  for (i = 0; i < [a count]; i++)
+	  for (i = 0; i < c; i++)
 	    {
 	      addr = [a objectAtIndex: i];
 	      if ([addr isEqualToString: @"127.0.0.1"] == NO)
@@ -1666,13 +1667,36 @@ static Class		tcpPortClass;
 		  [header setLength: hLength + l + h];
 		  b = [header mutableBytes];
 		  b += hLength;
-		  hLength += l + h;
+#if NEED_WORD_ALIGNMENT
+		  /*
+		   * When packing data, an item may not be aligned on a
+		   * word boundary, so we work with an aligned buffer
+		   * and use memcmpy()
+		   */
+		  if ((*hLength % __alignof__(gsu32)) != 0)
+		    {
+		      GSPortItemHeader	itemHeader;
+
+		      pih = (GSPortItemHeader*)&itemHeader;
+		      pih->type = GSSwapHostI32ToBig(GSP_DATA);
+		      pih->length = GSSwapHostI32ToBig(l);
+		      memcpy(b, (void*)pih, h);
+		    }
+		  else
+		    {
+		      pih = (GSPortItemHeader*)b;
+		      pih->type = GSSwapHostI32ToBig(GSP_DATA);
+		      pih->length = GSSwapHostI32ToBig(l);
+		    }
+#else
 		  pih = (GSPortItemHeader*)b;
-		  memcpy(b+h, [o bytes], l);
 		  pih->type = GSSwapHostI32ToBig(GSP_DATA);
 		  pih->length = GSSwapHostI32ToBig(l);
+#endif
+		  memcpy(b+h, [o bytes], l);
 		  [components removeObjectAtIndex: i--];
 		  c--;
+		  hLength += l + h;
 		}
 	      else
 		{
