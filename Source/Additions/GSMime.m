@@ -3949,6 +3949,12 @@ static NSCharacterSet	*tokenSet = nil;
 	  if (v == nil)
 	    {
 	      start = [content objectAtIndex: 0];
+#if 0
+	      /*
+	       * The 'start' parameter is not compulsory ... should we
+	       * force it to be set anyway in case some dumb software
+	       * doesn't default to the first part of the message?
+	       */
 	      v = [start contentID];
 	      if (v == nil)
 		{
@@ -3956,6 +3962,7 @@ static NSCharacterSet	*tokenSet = nil;
 		  v = [hdr value];
 		}
 	      [type setParameter: v forKey: @"start"];
+#endif
 	    }
 	  else
 	    {
