@@ -98,8 +98,12 @@ static NSStringEncoding _availableEncodings[] = {
     0
 };
 
-static Class	NSString_class;		/* For speed	*/
-static Class	NSMutableString_class;		/* For speed	*/
+/*
+ * Cache classes for speed.
+ */
+static Class	NSData_class;
+static Class	NSString_class;
+static Class	NSMutableString_class;
 
 /*
  *	Include sequence handling code with instructions to generate search
@@ -239,6 +243,7 @@ handle_printf_atsign (FILE *stream,
       _DefaultStringEncoding = GetDefEncoding();
       NSString_class = self;
       NSMutableString_class = [NSMutableString class];
+      NSData_class = [NSData class];
       NSString_concrete_class = [NSGString class];
       NSString_c_concrete_class = [NSGCString class];
       NSMutableString_concrete_class = [NSGMutableString class];
@@ -826,9 +831,9 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithContentsOfFile: (NSString*)path
 {
-  NSStringEncoding enc;
-  id	d = [NSData dataWithContentsOfFile: path];
-  const unsigned char *test;
+  NSStringEncoding	enc;
+  NSData		*d = [NSData_class dataWithContentsOfFile: path];
+  const unsigned char	*test;
 
   if (d == nil)
     return nil;
@@ -877,12 +882,14 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	l = [self length];
   unsigned	i;
+  unichar	(*caiImp)(NSString*, SEL, unsigned);
 
   GS_RANGE_CHECK(aRange, l);
 
+  caiImp = (unichar (*)())[self methodForSelector: caiSel];
   for (i = 0; i < aRange.length; i++)
     {
-      buffer[i] = [self characterAtIndex: aRange.location+i];
+      buffer[i] = (*caiImp)(self, caiSel, aRange.location + i);
     }
 }
 
@@ -1089,15 +1096,17 @@ handle_printf_atsign (FILE *stream,
   unsigned	start;
   unsigned	end;
   unsigned	length = [self length];
+  unichar	(*caiImp)(NSString*, SEL, unsigned);
 
   if (anIndex >= length)
     [NSException raise: NSRangeException format:@"Invalid location."];
+  caiImp = (unichar (*)())[self methodForSelector: caiSel];
   start = anIndex;
-  while (uni_isnonsp([self characterAtIndex: start]) && start > 0)
+  while (uni_isnonsp((*caiImp)(self, caiSel, start)) && start > 0)
     start--;
   end=start+1;
   if (end < length)
-    while ((end < length) && (uni_isnonsp([self characterAtIndex: end])) )
+    while ((end < length) && (uni_isnonsp((*caiImp)(self, caiSel, end))) )
       end++;
   return NSMakeRange(start, end-start);
 }
@@ -1363,17 +1372,19 @@ handle_printf_atsign (FILE *stream,
 {
   unichar	thischar;
   unsigned	start, end, len;
+  unichar	(*caiImp)(NSString*, SEL, unsigned);
 
   len = [self length];
   GS_RANGE_CHECK(aRange, len);
 
+  caiImp = (unichar (*)())[self methodForSelector: caiSel];
   start = aRange.location;
 
   if (startIndex)
     {
-      if (start==0)
+      if (start == 0)
 	{
-	  *startIndex=0;
+	  *startIndex = 0;
 	}
       else
 	{
@@ -1382,8 +1393,8 @@ handle_printf_atsign (FILE *stream,
 	    {
 	      BOOL	done = NO;
 
-	      thischar = [self characterAtIndex: start];
-	      switch(thischar)
+	      thischar = (*caiImp)(self, caiSel, start);
+	      switch (thischar)
 		{
 		  case (unichar)0x000A: 
 		  case (unichar)0x000D: 
@@ -1400,8 +1411,8 @@ handle_printf_atsign (FILE *stream,
 	    };
 	  if (start == 0)
 	    {
-	       thischar = [self characterAtIndex: start];
-	       switch(thischar)
+	       thischar = (*caiImp)(self, caiSel, start);
+	       switch (thischar)
 		 {
 		   case (unichar)0x000A: 
 		   case (unichar)0x000D: 
@@ -1421,12 +1432,12 @@ handle_printf_atsign (FILE *stream,
 
   if (lineEndIndex || contentsEndIndex)
     {
-      end=aRange.location+aRange.length;
-      while (end<len)
+      end = aRange.location + aRange.length;
+      while (end < len)
 	{
 	   BOOL done = NO;
-	   thischar = [self characterAtIndex: end];
-	   switch(thischar)
+	   thischar = (*caiImp)(self, caiSel, end);
+	   switch (thischar)
 	     {
 	       case (unichar)0x000A: 
 	       case (unichar)0x000D: 
@@ -1441,11 +1452,11 @@ handle_printf_atsign (FILE *stream,
 	   if (done)
 	     break;
 	};
-      if (end<len)
+      if (end < len)
 	{
-	  if ([self characterAtIndex: end]==(unichar)0x000D)
+	  if ((*caiImp)(self, caiSel, end) == (unichar)0x000D)
 	    {
-	      if ([self characterAtIndex: end+1]==(unichar)0x000A)
+	      if ((*caiImp)(self, caiSel, end+1) == (unichar)0x000A)
 		*lineEndIndex = end+1;
 	      else
 		*lineEndIndex = end;
@@ -1459,15 +1470,15 @@ handle_printf_atsign (FILE *stream,
 
   if (contentsEndIndex)
     {
-      if (end<len)
+      if (end < len)
 	{
-	  *contentsEndIndex= end-1;
+	  *contentsEndIndex = end-1;
 	}
       else
 	{
 	  /* xxx OPENSTEP documentation does not say what to do if last
 	     line is not terminated. Assume this */
-	  *contentsEndIndex= end;
+	  *contentsEndIndex = end;
 	}
     }
 }
@@ -1533,13 +1544,19 @@ handle_printf_atsign (FILE *stream,
   unichar	*s;
   unsigned	count;
   unsigned	len = [self length];
+  unichar	(*caiImp)(NSString*, SEL, unsigned);
 
   if (len == 0)
-    return self;
+    {
+      return self;
+    }
   z = fastZone(self);
   s = NSZoneMalloc(z, sizeof(unichar)*len);
+  caiImp = (unichar (*)())[self methodForSelector: caiSel];
   for (count = 0; count < len; count++)
-    s[count] = uni_tolower([self characterAtIndex: count]);
+    {
+      s[count] = uni_tolower((*caiImp)(self, caiSel, count));
+    }
   return AUTORELEASE([[NSString_concrete_class
     allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len fromZone: z]);
@@ -1551,13 +1568,19 @@ handle_printf_atsign (FILE *stream,
   unichar	*s;
   unsigned	count;
   unsigned	len = [self length];
+  unichar	(*caiImp)(NSString*, SEL, unsigned);
 
   if (len == 0)
-    return self;
+    {
+      return self;
+    }
   z = fastZone(self);
   s = NSZoneMalloc(z, sizeof(unichar)*len);
+  caiImp = (unichar (*)())[self methodForSelector: caiSel];
   for (count = 0; count < len; count++)
-    s[count] = uni_toupper([self characterAtIndex: count]);
+    {
+      s[count] = uni_toupper((*caiImp)(self, caiSel, count));
+    }
   return AUTORELEASE([[NSString_concrete_class
     allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len fromZone: z]);
@@ -1575,8 +1598,10 @@ handle_printf_atsign (FILE *stream,
 
 - (const char*) cString
 {
-  NSData	*d = [self dataUsingEncoding: _DefaultStringEncoding
-			allowLossyConversion: NO];
+  NSData	*d;
+
+  d = [self dataUsingEncoding: _DefaultStringEncoding
+    allowLossyConversion: NO];
   if (d == nil)
     {
       [NSException raise: NSCharacterConversionException
@@ -1587,30 +1612,35 @@ handle_printf_atsign (FILE *stream,
 
 - (const char*) lossyCString
 {
-  NSData	*d = [self dataUsingEncoding: _DefaultStringEncoding
-			allowLossyConversion: YES];
+  NSData	*d;
+
+  d = [self dataUsingEncoding: _DefaultStringEncoding
+    allowLossyConversion: YES];
   return (const char*)[d bytes];
 }
 
 - (unsigned) cStringLength
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  NSData	*d;
+
+  d = [self dataUsingEncoding: _DefaultStringEncoding
+    allowLossyConversion: YES];
+  return [d length];
 }
 
 - (void) getCString: (char*)buffer
 {
   [self getCString: buffer maxLength: NSMaximumStringLength
-	range: ((NSRange){0, [self length]})
-	remainingRange: NULL];
+	     range: ((NSRange){0, [self length]})
+    remainingRange: NULL];
 }
 
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned)maxLength
 {
   [self getCString: buffer maxLength: maxLength 
-	range: ((NSRange){0, [self length]})
-	remainingRange: NULL];
+	     range: ((NSRange){0, [self length]})
+    remainingRange: NULL];
 }
 
 // xxx FIXME adjust range for composite sequence
@@ -1621,6 +1651,7 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	len;
   unsigned	count;
+  unichar	(*caiImp)(NSString*, SEL, unsigned);
 
   len = [self cStringLength];
   GS_RANGE_CHECK(aRange, len);
@@ -1643,10 +1674,11 @@ handle_printf_atsign (FILE *stream,
 	  leftoverRange->length = aRange.length - maxLength;
 	}
     }
+  caiImp = (unichar (*)())[self methodForSelector: caiSel];
   count = 0;
   while (count < len)
     {
-      buffer[count]=unitochar([self characterAtIndex: aRange.location + count]);
+      buffer[count]=unitochar((*caiImp)(self, caiSel, aRange.location + count));
       count++;
     }
   buffer[len] = '\0';
@@ -1704,10 +1736,9 @@ handle_printf_atsign (FILE *stream,
   ourbundle = [NSBundle bundleWithPath: rootPath];
 
   ourname = GetEncodingName(encoding);
-  return [ourbundle
-            localizedStringForKey: ourname
-            value: ourname
-            table: nil];
+  return [ourbundle localizedStringForKey: ourname
+				    value: ourname
+				    table: nil];
 }
 
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
@@ -1725,29 +1756,33 @@ handle_printf_atsign (FILE *stream,
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
 	 allowLossyConversion: (BOOL)flag
 {
-  int count=0;
-  int len = [self length];
+  unsigned int	count = 0;
+  unsigned int	len = [self length];
+  unichar	(*caiImp)(NSString*, SEL, unsigned);
 
   if (len == 0)
-    return [NSData data];
-
-  if ((encoding==NSASCIIStringEncoding)
-    || (encoding==NSISOLatin1StringEncoding)
-    || (encoding==NSISOLatin2StringEncoding)
-    || (encoding==NSNEXTSTEPStringEncoding)
-    || (encoding==NSNonLossyASCIIStringEncoding)
-    || (encoding==NSSymbolStringEncoding)
-    || (encoding==NSCyrillicStringEncoding))
     {
-      char t;
-      unsigned char *buff;
+      return [NSData_class data];
+    }
+
+  caiImp = (unichar (*)())[self methodForSelector: caiSel];
+  if ((encoding == NSASCIIStringEncoding)
+    || (encoding == NSISOLatin1StringEncoding)
+    || (encoding == NSISOLatin2StringEncoding)
+    || (encoding == NSNEXTSTEPStringEncoding)
+    || (encoding == NSNonLossyASCIIStringEncoding)
+    || (encoding == NSSymbolStringEncoding)
+    || (encoding == NSCyrillicStringEncoding))
+    {
+      char		t;
+      unsigned char	*buff;
 
       buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
       if (!flag)
 	{
 	  for (count = 0; count < len; count++)
 	    {
-	      t = encode_unitochar([self characterAtIndex: count], encoding);
+	      t = encode_unitochar((*caiImp)(self, caiSel, count), encoding);
 	      if (t)
 		{
 		  buff[count] = t;
@@ -1763,7 +1798,7 @@ handle_printf_atsign (FILE *stream,
 	{
 	  for (count = 0; count < len; count++)
 	    {
-	      t = encode_unitochar([self characterAtIndex: count], encoding);
+	      t = encode_unitochar((*caiImp)(self, caiSel, count), encoding);
 	      if (t)
 		{
 		  buff[count] = t;
@@ -1779,17 +1814,19 @@ handle_printf_atsign (FILE *stream,
 	    }
 	}
       buff[count] = '\0';
-      return [NSData dataWithBytesNoCopy: buff length: count];
+      return [NSData_class dataWithBytesNoCopy: buff length: count];
     }
   else if (encoding == NSUnicodeStringEncoding)
     {
-      unichar *buff;
+      unichar	*buff;
 
       buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), 2*len+2);
-      buff[0]=0xFEFF;
+      buff[0] = 0xFEFF;
       for (count = 0; count < len; count++)
-	buff[count+1] = [self characterAtIndex: count];
-      return [NSData dataWithBytesNoCopy: buff length: 2*len+2];
+	{
+	  buff[count+1] = (*caiImp)(self, caiSel, count);
+	}
+      return [NSData_class dataWithBytesNoCopy: buff length: 2*len+2];
     }
   else /* UTF8 or EUC */
     {
@@ -1927,7 +1964,7 @@ handle_printf_atsign (FILE *stream,
   else
     {
       NSRange range2 = [self rangeOfCharacterFromSet: pathSeps()
-				 options: NSBackwardsSearch];
+					     options: NSBackwardsSearch];
       if (range2.length > 0 && range.location < range2.location)
 	substring = nil;
       else
@@ -1984,7 +2021,7 @@ handle_printf_atsign (FILE *stream,
 	  aLength--;
 	}
     }
-  return [NSString stringWithCharacters: buf length: length];
+  return [NSString_class stringWithCharacters: buf length: length];
 }
 
 /* Returns a new string with the path extension given in aString
@@ -2036,8 +2073,8 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) stringByExpandingTildeInPath
 {
-  NSString *homedir;
-  NSRange first_slash_range;
+  NSString	*homedir;
+  NSRange	first_slash_range;
   
   if ([self length] == 0)
     return AUTORELEASE([self copy]);
@@ -2066,9 +2103,8 @@ handle_printf_atsign (FILE *stream,
       homedir = NSHomeDirectory ();
     }
   
-  return [NSString stringWithFormat: @"%@%@", 
-		   homedir, 
-		   [self substringFromIndex: first_slash_range.location]];
+  return [NSString_class stringWithFormat: @"%@%@", homedir, 
+    [self substringFromIndex: first_slash_range.location]];
 }
 
 - (NSString*) stringByAbbreviatingWithTildeInPath
@@ -2078,8 +2114,8 @@ handle_printf_atsign (FILE *stream,
   if (![self hasPrefix: homedir])
     return AUTORELEASE([self copy]);
 
-  return [NSString stringWithFormat: @"~%c%@", (char)pathSepChar,
-		   [self substringFromIndex: [homedir length] + 1]];
+  return [NSString_class stringWithFormat: @"~%c%@", (char)pathSepChar,
+    [self substringFromIndex: [homedir length] + 1]];
 }
 
 - (NSString*) stringByResolvingSymlinksInPath
@@ -2240,9 +2276,11 @@ handle_printf_atsign (FILE *stream,
 {
   NSMutableString	*s;
   NSRange		r;
+  unichar		(*caiImp)(NSString*, SEL, unsigned);
 
   /* Expand `~' in the path */
   s = [[self stringByExpandingTildeInPath] mutableCopy];
+  caiImp = (unichar (*)())[s methodForSelector: caiSel];
 
   /* Remove `/private' */
   if ([s hasPrefix: @"/private"])
@@ -2257,13 +2295,13 @@ handle_printf_atsign (FILE *stream,
       unsigned	length = [s length];
 
       if (r.location + r.length + 1 <= length
-	&& pathSepMember([s characterAtIndex: r.location + 1]) == YES)
+	&& pathSepMember((*caiImp)(s, caiSel, r.location + 1)) == YES)
 	{
 	  [s deleteCharactersInRange: r];
 	}
       else if (r.location + r.length + 2 <= length
-	&& [s characterAtIndex: r.location + 1] == (unichar)'.'
-	&& pathSepMember([s characterAtIndex: r.location + 2]) == YES)
+	&& (*caiImp)(s, caiSel, r.location + 1) == (unichar)'.'
+	&& pathSepMember((*caiImp)(s, caiSel, r.location + 2)) == YES)
 	{
 	  r.length++;
 	  [s deleteCharactersInRange: r];
@@ -2293,9 +2331,9 @@ handle_printf_atsign (FILE *stream,
 				   range: r]).length)
     {
       if (r.location + r.length + 3 <= [s length]
-	&& [s characterAtIndex: r.location + 1] == (unichar)'.'
-	&& [s characterAtIndex: r.location + 2] == (unichar)'.'
-	&& pathSepMember([s characterAtIndex: r.location + 3]) == YES)
+	&& (*caiImp)(s, caiSel, r.location + 1) == (unichar)'.'
+	&& (*caiImp)(s, caiSel, r.location + 2) == (unichar)'.'
+	&& pathSepMember((*caiImp)(s, caiSel, r.location + 3)) == YES)
 	{
 	  if (r.location > 0)
 	    {
@@ -2332,11 +2370,16 @@ handle_printf_atsign (FILE *stream,
   if (len > 0)
     {
       int	count = 0;
-      unichar	(*caiImp)() = (unichar (*)())[self methodForSelector: caiSel];
+      unichar	(*caiImp)(NSString*, SEL, unsigned);
 
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (count < len)
-	if (!uni_isnonsp((*caiImp)(self, caiSel, count++)))
-	  blen++;
+	{
+	  if (!uni_isnonsp((*caiImp)(self, caiSel, count++)))
+	    {
+	      blen++;
+	    }
+	}
     }
   return blen;
 } 
@@ -2542,7 +2585,7 @@ handle_printf_atsign (FILE *stream,
 	  }
 	*ptr++ = '"';
 	*ptr = '\0';
-	[output appendString: [NSString stringWithCString: buf]];
+	[output appendString: [NSString_class stringWithCString: buf]];
       }
     }
   else
@@ -2863,29 +2906,41 @@ handle_printf_atsign (FILE *stream,
 {
   unsigned	location = 0;
   unsigned	length = [self length];
+  unichar	(*caiImp)(NSString*, SEL, unsigned);
 
-  while (location < length && isspace([self characterAtIndex: location]))
-    location++;
-        
+  caiImp = (unichar (*)())[self methodForSelector: caiSel];
+  while (location < length && isspace((*caiImp)(self, caiSel, location)))
+    {
+      location++;
+    }
   if (location > 0)
-    [self deleteCharactersInRange: NSMakeRange(0,location)];
+    {
+      [self deleteCharactersInRange: NSMakeRange(0,location)];
+    }
 }
 
 - (void) trimTailSpaces
 {
   unsigned	length = [self length];
 
-  if (length)
+  if (length > 0)
     {
       unsigned	location = length;
+      unichar	(*caiImp)(NSString*, SEL, unsigned);
         
+      caiImp = (unichar (*)())[self methodForSelector: caiSel];
       while (location > 0)
-	if (!isspace([self characterAtIndex: --location]))
-	  break;
-        
+	{
+	  if (!isspace((*caiImp)(self, caiSel, --location)))
+	    {
+	      break;
+	    }
+	}
       if (location < length-1)
-	[self deleteCharactersInRange: NSMakeRange((location == 0) ? 0
-	  : location + 1, length - ((location == 0) ? 0 : location + 1))];
+	{
+	  [self deleteCharactersInRange: NSMakeRange((location == 0) ? 0
+	    : location + 1, length - ((location == 0) ? 0 : location + 1))];
+	}
     }
 }
 
