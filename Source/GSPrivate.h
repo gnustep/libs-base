@@ -167,6 +167,7 @@ typedef enum {
   GSMacOSXCompatible,			// General behavior flag.
   GSOldStyleGeometry,			// Control geometry string output.
   GSLogSyslog,				// Force logging to go to syslog.
+  GSLogThread,				// Include thread ID in log message.
   NSWriteOldStylePropertyLists,		// Control PList output.
   GSUserDefaultMaxFlag			// End marker.
 } GSUserDefaultFlagType;

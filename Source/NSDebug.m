@@ -621,7 +621,7 @@ _GSDebugAllocationListAll(void)
 void
 GSDebugAllocationRemove(Class c, id o)
 {
-	(*_GSDebugAllocationRemoveFunc)(c,o);
+  (*_GSDebugAllocationRemoveFunc)(c,o);
 }
 
 void

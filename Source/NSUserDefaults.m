@@ -121,6 +121,8 @@ static void updateCache(NSUserDefaults *self)
 	= [self boolForKey: @"GSOldStyleGeometry"];
       flags[GSLogSyslog]
 	= [self boolForKey: @"GSLogSyslog"];
+      flags[GSLogThread]
+	= [self boolForKey: @"GSLogThread"];
       flags[NSWriteOldStylePropertyLists]
 	= [self boolForKey: @"NSWriteOldStylePropertyLists"];
     }
