@@ -1,5 +1,5 @@
 /* Some preliminary ideas about what a String class might look like.
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -67,6 +67,9 @@ typedef unsigned short Character;
 + stringWithFormat: (id <String>)aFormatString arguments: (va_list)arg;
 + stringWithCString: (const char*)aCharPtr;
 + stringWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
++ stringWithCStringNoCopy: (const char*)aCharPtr
+	     freeWhenDone: (BOOL) f;
++ stringWithCStringNoCopy: (const char*)aCharPtr;
 
 - stringByAppendingFormat: (id <String>)aString, ...;
 - stringByAppendingFormat: (id <String>)aString arguments: (va_list)arg;
