@@ -27,6 +27,7 @@ GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../../base.make
 
 include $(GNUSTEP_MAKEFILES)/common.make
+include ../../config.mak
 
 SUBPROJECT_NAME=Additions
 
