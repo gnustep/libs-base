@@ -1,3 +1,9 @@
+2003-11-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Only obtain distributed lock for reading
+	or writing defaults ... not needed just to check the modification
+	date.  Avoids unnecessary filesystem writes.
+
 2003-11-09  Frederic De Jaeger  <dejaeger@free.fr>
 
 	* Source/GSFileHandle.m ([GSFileHandle
