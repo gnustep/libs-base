@@ -30,6 +30,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSFileManager.h>
 
 @interface NSDictionaryNonCore : NSDictionary
 @end
@@ -735,6 +736,47 @@ compareIt(id o1, id o2, void* context)
     [arp release];
 
     return [result autorelease];
+}
+
+/* Accessing file attributes */
+- (NSString *) fileGroupOwnerAccountName
+{
+  return [self objectForKey: NSFileGroupOwnerAccountName];
+}
+
+- (NSDate *) fileModificationDate
+{
+  return [self objectForKey: NSFileModificationDate];
+}
+
+- (NSString *) fileOwnerAccountName
+{
+  return [self objectForKey: NSFileOwnerAccountName];
+}
+
+- (unsigned long) filePosixPermissions
+{
+  return [self objectForKey: NSFilePosixPermissions];
+}
+
+- (unsigned long long) fileSize
+{
+  return [self objectForKey: NSFileSize];
+}
+
+- (unsigned long) fileSystemFileNumber
+{
+  return [self objectForKey: NSFileSystemFileNumber];
+}
+
+- (unsigned long) fileSystemNumber
+{
+  return [self objectForKey: NSFileSystemNumber];
+}
+
+- (NSString *) fileType
+{
+  return [self objectForKey: NSFileType];
 }
 
 @end
