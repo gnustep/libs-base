@@ -56,6 +56,15 @@ a list of the claimed and unclaimed GNUStep Foundation classes.
 program smaller.  Currently it is huge becuase it pulls in archiving and
 therefore many of the collection classes.
 
+@item Make sure that Encoder's properly release their CStream and
+Stream's.  It seems that the Stream is not getting -delloc'ed, and
+therefore may not be closed, and therefore may be missing data at the
+end. 
+
+@item Change all the assert()'s (especially in the archiving code) to
+NSAssert()'s.  This will help make D.O. servers more safe from bad
+clients. 
+
 @item Make my NS... classes raise the NSExceptions they are supposed to.
 Change many NSParameterAssert()'s into NSAssert()'s with explanations.
 
