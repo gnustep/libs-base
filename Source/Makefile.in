@@ -163,8 +163,7 @@ atoz.m \
 callbacks-id.m \
 stdobjects.m \
 mframe.m \
-objc-gnu2next.m \
-eltfuncs.m
+objc-gnu2next.m
 
 GNU_CFILES = \
 abort.c \
@@ -299,8 +298,6 @@ objects/allocs.h \
 objects/behavior.h \
 objects/callbacks.h \
 objects/data.h \
-objects/elt.h \
-objects/eltfuncs.h \
 objects/hash.h \
 objects/list.h \
 objects/magic.h \
