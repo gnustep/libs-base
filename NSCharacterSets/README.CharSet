@@ -4,15 +4,12 @@
    character sets.
    
    These file were generated automatically from the the latest version
-   of the Unicode character set by unisort.  The Unicode character set 
-   can be obtained from http://www.unicode.org
+   of the Unicode character set as of Feb. 27, 2001.  The Unicode character
+   set can be obtained from http://www.unicode.org
 
-   The current character sets are based on UnicodeData-2.1.8.txt.
+   The current character sets are based on UnicodeData.txt version 3.0.1.
 
    NOTE: There are a number of differences between these sets and the
-   sets provided by NeXT in their OPENSTEP system. It may be because
-   I haven't read all the Unicode documentation and don't completly
-   understand the classifications. In any case, the differences seem
-   relatively minor and confined to the upper reaches of the Unicode
-   character set (characters usually pertaining to relatively rare
-   languages -- at least for computer users).
+   sets provided by NeXT in their OPENSTEP system.  The Unicode Consortium
+   has added thousands of characters, and changed the classification for
+   many of them, since the version of the Unicode standard used by NeXT.
