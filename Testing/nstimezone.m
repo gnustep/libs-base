@@ -10,15 +10,20 @@
 int
 main ()
 {
-  id detail;
+  NSTimeZone *system;
   CREATE_AUTORELEASE_POOL(pool);
 
-  printf("time zones for PST:\n%s\n",
-[[[[NSTimeZone abbreviationMap] objectForKey: @"PST"] description] UTF8String]);
-  printf("time zones:\n%s\n",
-[[[NSTimeZone timeZoneArray] description] UTF8String]);
-  printf("local time zone:\n%s\n",
-[[[NSTimeZone localTimeZone] description] UTF8String]);
+  GSPrintf(stdout, @"System time zone\n");
+  system = [NSTimeZone systemTimeZone];
+  GSPrintf(stdout, @"  %@\n\n", [system description]);
+  
+  GSPrintf(stdout, @"Local time zone:\n  %@\n\n",
+	   [[NSTimeZone localTimeZone] description]);
+
+  GSPrintf(stdout, @"Time zones for PST:\n  %@\n",
+	   [[[NSTimeZone abbreviationMap] objectForKey: @"PST"] description]);
+
+
   RELEASE(pool);
   return 0;
 }

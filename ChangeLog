@@ -1,3 +1,14 @@
+2004-10-10  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac:  Check for tzfile.h
+	* Source/NSTimeZone.m: Include system tzfile.h if found.
+	(abbreviationMap): Add abbreviation from systemTimeZone if not
+	already there.
+	(systemTimeZone): Update the search list to look for time zone in TZ,
+	then system location, then tznam.
+	(getTimeZoneFile:): Look for file in system directory first.
+	* Source/nstzfile.h: Renamed from tzfile.h
+
 2004-10-09  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m: 

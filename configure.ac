@@ -544,7 +544,7 @@ LIBS="$saved_LIBS"
 #--------------------------------------------------------------------
 dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
 
-AC_CHECK_HEADERS(time.h sys/time.h sys/rusage.h ucbinclude/sys/resource.h)
+AC_CHECK_HEADERS(time.h sys/time.h tzfile.h sys/rusage.h ucbinclude/sys/resource.h)
 AC_CHECK_FUNCS(time ctime tzset)
 
 #--------------------------------------------------------------------
