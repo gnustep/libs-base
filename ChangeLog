@@ -1,3 +1,24 @@
+i2003-02-11  Willem Rein Oudshoorn  <woudshoo@xs4all.nl>
+
+	* Headers/Foundation/NSFileManager.h: Added a little bit to the
+	* documentation of the NSFileManagerHandler protocol.
+	(some documentation markup fixes by RFM also)
+	* Source/NSFileManager.m ([NSFileManager -copyPath:toPath:handler:]): 
+	use new private methods to cope with handlers that do not implement
+	the informal protocol.  Pass more information to the handler in case
+	of an error.
+	([NSFileManager -removeFileAtPath:handler:]):  see above
+	([NSFileManager -movePath:toPath:handler:]): see above
+	([NSFileManager -_copyPath:toPath:handler:]): see above
+	([NSFileManager -_copyFile:toFile:handler:]): see above, also fixed
+	leaking of file descriptors in case of error without a handler.
+	([NSFileManager -_sendToHandler:handlerwillProcessPath:path]):
+	new method
+	([NSFileManager -_proceedAccordingToHandler:handlerforError:
+	errorinPath:path]): new method
+	([NSFileManager -_proceedAccordingToHandler:handlerforError:
+	errorinPath:pathfromPath:fromPathtoPath:toPath]): new method
+
 2003-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: ([+attributesAt:traverseLink:]) check for
