@@ -158,6 +158,11 @@ class_add_methods_if_not_there(Class class, MethodList_t mlist)
     }
 }
 
+/* Should implement this too:
+class_add_behavior_category(), 
+and perhaps something like:
+class_add_methods_if_not_there_or_inherited() */
+
 #if 0
 /* This is like class_add_method_list(), except is doesn't balk at 
    duplicates; it simply ignores them.  Thus, a method implemented 
