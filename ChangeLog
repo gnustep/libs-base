@@ -1,5 +1,10 @@
 2000-11-16  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSURL.m:  ([-explode]) bugfix for parsing username/password
+	provided by mark@brainstorm.co.uk
+
+2000-11-16  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSTcpPort.m: Altered all GSTcpHandle debug output to include
 	current thread.  Added locking for read/write operations on handle.
 	Hopefully all thread-safe now :-)
