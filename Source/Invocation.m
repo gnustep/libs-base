@@ -101,6 +101,33 @@
      a return value yet. */
 }
 
+- objectReturnValue
+{
+  [self notImplemented: _cmd];
+  return nil;
+}
+
+- (int) intReturnValue
+{
+  [self notImplemented: _cmd];
+  return 0;
+}
+
+- (BOOL) returnValueIsTrue
+{
+  switch (return_size)
+    {
+    case sizeof(char):
+      return (*(char*)return_value != 0);
+    case sizeof(short):
+      return (*(short*)return_value != 0);
+    case sizeof(long):
+      return (*(long*)return_value != 0);
+    }
+  [self notImplemented: _cmd];
+}
+
+
 - (void) dealloc
 {
   OBJC_FREE(encoding);
@@ -270,7 +297,23 @@ my_method_get_next_argument (arglist_t argframe,
   va_start (ap, s);
   while (datum)
     {
-      memcpy (datum, va_arg (ap, void*), objc_sizeof_type(tmptype));
+      #define CASE_TYPE(_C,_T) case _C: *(_T*)datum = va_arg (ap, _T); break
+      switch (*tmptype)
+	{
+	  CASE_TYPE(_C_ID, id);
+	  CASE_TYPE(_C_LNG, long);
+	  CASE_TYPE(_C_ULNG, unsigned long);
+	  CASE_TYPE(_C_INT, int);
+	  CASE_TYPE(_C_UINT, unsigned int);
+	  CASE_TYPE(_C_SHT, short);
+	  CASE_TYPE(_C_USHT, unsigned short);
+	  CASE_TYPE(_C_CHR, char);
+	  CASE_TYPE(_C_UCHR, unsigned char);
+	  CASE_TYPE(_C_CHARPTR, char*);
+	default:
+	  [self notImplemented: _cmd];
+	  // memcpy (datum, va_arg (ap, void*), objc_sizeof_type(tmptype));
+	}
       datum = my_method_get_next_argument (argframe, &tmptype);
     }
   return self;
