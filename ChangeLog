@@ -1,3 +1,9 @@
+2000-10-27  Lyndon Tremblay  <humasect@home.com>
+
+	* Source/NSObject.m ([NSObject +new]): No longer sends 2 messages,
+	uses NSAllocateObject().
+	([NSObject +alloc]): Likewise, no message sending within the method.
+
 2000-10-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLHandle.m: Make class registration thread safe.
@@ -66,6 +72,7 @@
 	* Source/GSString.m: Changed all substringFromRange: to
 	substringWithRange: as this is the basic method.
 
+>>>>>>> 1.737
 2000-10-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([-fastestEncoding]), ([-smallestEncoding])
