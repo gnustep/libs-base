@@ -1296,6 +1296,12 @@ static NSMapTable	*nodeNames = 0;
   return desc;
 }
 
+/**
+ * Sets the namespace of the receiver to the value specified.<br />
+ * Supplying a nil namespace removes any namespace previously set
+ * or any namespace that the node inherited from a parent when it
+ * was created.
+ */
 - (void) setNamespace: (GSXMLNamespace *)space
 {
   xmlSetNs (lib, [space lib]);   
