@@ -57,21 +57,22 @@ static Lock* udp_port_gate = nil;
 
 static BOOL udp_port_debug = NO;
 
-/* xxx This function is just temporary.
-   Eventually we should write a real name server for sockets */
-static unsigned int
-name_to_port_number (const char *name)
+
+/* Our current, sad excuse for a name server. */
+
+static unsigned short
+name_2_port_number (const char *name)
 {
   unsigned int ret = 0;
   unsigned int ctr = 0;
-
-  /* xxx Limit the length? */
+        
   while (*name) 
     {
       ret ^= *name++ << ctr;
       ctr = (ctr + 1) % sizeof (void *);
     }
-  return ret % (65535 - IPPORT_USERRESERVED - 1);
+  return (ret % (65535 - IPPORT_USERRESERVED - 1)) + IPPORT_USERRESERVED;
+  /* return strlen (name) + IPPORT_USERRESERVED; */
 }
 
 @implementation UdpInPort 
@@ -88,14 +89,9 @@ static NSMapTable *port_number_2_in_port = NULL;
     }
 }
 
-+ (void) setDebug: (BOOL)f
-{
-  udp_port_debug = f;
-}
+/* This is the designated initializer.
+   If N is zero, it will choose a port number for you. */
 
-/* This is the designated initializer. */
-
-/* An argument of 0 say to let the system choose the port number. */
 + newForReceivingFromPortNumber: (unsigned short)n 
 {
   UdpInPort* p;
@@ -108,37 +104,75 @@ static NSMapTable *port_number_2_in_port = NULL;
   if ((p = NSMapGet (port_number_2_in_port, (void*)(int)n)))
     return p;
 
-  /* No, create a new one */
+  /* No, create a new port object */
   p = [[self alloc] init];
-  p->_address.sin_family = AF_INET;
-#if 1
-  {
-    struct hostent *hp;
-    hp = gethostbyname ("localhost");
-    assert (hp);
-    memcpy (&(p->_address.sin_addr), hp->h_addr, sizeof(p->_address.sin_addr));
-  }
-#else
-  p->_address.sin_addr.s_addr = INADDR_ANY;
-#endif
-  p->_address.sin_port = htons (n);
+
+  /* Make a new socket for the port object */
   if ((p->_socket = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
     {
-      perror("creating socket");
+      perror("[UdpInPort +newForReceivingFromPortNumber:] socket()");
       abort ();
     }
-  if (bind (p->_socket, (struct sockaddr*)&(p->_address), sizeof(p->_address)))
-    {
-      perror("bind");
-      abort ();
-    }
-  if (udp_port_debug)
-    fprintf(stderr, "created new UdpInPort 0x%x, fd=%d port_number=%d\n",
-	   (unsigned)p, p->_socket, -1);
 
-  /* Record it. */
+  /* Give the socket a name using bind */
+  {
+    struct hostent *hp;
+    char hostname[MAXHOSTNAMELEN];
+    int len = MAXHOSTNAMELEN;
+    if (gethostname (hostname, len) < 0)
+      {
+	perror ("[UdpInPort +newForReceivingFromPortNumber:] gethostname()");
+	abort ();
+      }
+    hp = gethostbyname (hostname);
+    if (!hp)
+      /* xxx This won't work with port connections on a network, though.
+         Fix this.  Perhaps there is a better way of getting the address
+	 of the local host. */
+      hp = gethostbyname ("localhost");
+    assert (hp);
+    /* Use host's address, and not INADDR_ANY, so that went we
+       encode our _address for a D.O. operation, they get
+       our unique host address that can identify us across the network. */
+    memcpy (&(p->_address.sin_addr), hp->h_addr, hp->h_length);
+    p->_address.sin_family = AF_INET;
+    p->_address.sin_port = htons (n);
+    /* N may be zero, in which case bind() will choose a port number
+       for us. */
+    if (bind (p->_socket,
+	      (struct sockaddr*) &(p->_address),
+	      sizeof (p->_address)) 
+	< 0)
+      {
+	perror ("[UdpInPort +newForReceivingFromPortNumber] bind()");
+	abort ();
+      }
+  }
+
+  /* If the caller didn't specify a port number, it was chosen for us.
+     Here, find out what number was chosen. */
+  if (!n)
+    /* xxx Perhaps I should do this unconditionally? */
+    {
+      int size = sizeof (p->_address);
+      if (getsockname (p->_socket,
+		       (struct sockaddr*)&(p->_address),
+		       &size)
+	  < 0)
+	{
+	  perror ("[UdpInPort +newForReceivingFromPortNumber] getsockname()");
+	  abort ();
+	}
+      assert (p->_address.sin_port);
+    }
+
+  /* Record it in UdpInPort's map table. */
   NSMapInsert (port_number_2_in_port, (void*)(int)n, p);
   [udp_port_gate unlock];
+
+  if (udp_port_debug)
+    fprintf(stderr, "created new UdpInPort 0x%x, fd=%d port_number=%d\n",
+	   (unsigned)p, p->_socket, htons(p->_address.sin_port));
 
   return p;
 }
@@ -147,9 +181,16 @@ static NSMapTable *port_number_2_in_port = NULL;
 {
   int n;
 
-  n = name_to_port_number ([name cStringNoCopy]);
+  n = name_2_port_number ([name cStringNoCopy]);
   return [self newForReceivingFromPortNumber: n];
 }
+
+/* Usually, you would run the run loop to get packets, but if you
+   want to wait for one directly from a port, you can use this method. */
+- newPacketReceivedBeforeDate: date
+{
+}
+
 
 /* Returns nil on timeout.
    Pass -1 for milliseconds to ignore timeout parameter and block indefinitely.
@@ -266,6 +307,11 @@ static NSMapTable *port_number_2_in_port = NULL;
   /* An InPort cannot be created by decoding, only OutPort's. */
   [self shouldNotImplement: _cmd];
   return nil;
+}
+
++ (void) setDebug: (BOOL)f
+{
+  udp_port_debug = f;
 }
 
 @end
