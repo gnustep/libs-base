@@ -222,7 +222,9 @@ PString(NSString *obj, GSMutableString *output)
 			  }
 			else
 			  {
-			    sprintf(ptr, "\\%03o", *(unsigned char*)from);
+			    unichar	c = *from;
+
+			    sprintf(ptr, "\\%03o", c);
 			    ptr = &ptr[4];
 			  }
 		      }
