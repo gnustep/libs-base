@@ -217,13 +217,26 @@ pathSepMember(unichar c)
   return (*sepMember)(myPathSeps, @selector(characterIsMember:), c);
 }
 
+/* Convert a high-low surrogate pair into Unicode scalar code-point */
+static inline gsu32
+surrogatePairValue(unichar high, unichar low)
+{
+  return ((high - (unichar)0xD800) * (unichar)400) +
+         ((low - (unichar)0xDC00) + (unichar)10000);
+}
+
 
 
 @implementation NSString
 
 static NSStringEncoding _DefaultStringEncoding;
-static const unichar byteOrderMark = 0xFFFE;
-static const unichar byteOrderMarkSwapped = 0xFEFF;
+static const unichar byteOrderMark = 0xFEFF;
+static const unichar byteOrderMarkSwapped = 0xFFFE;
+
+/* UTF-16 Surrogate Ranges */
+static NSRange  highSurrogateRange = {0xD800, 1024};
+static NSRange  lowSurrogateRange = {0xDC00, 1024};
+
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
 #include <stdio.h>
@@ -1440,15 +1453,16 @@ handle_printf_atsign (FILE *stream,
 - (BOOL) hasPrefix: (NSString*)aString
 {
   NSRange range;
-  range = [self rangeOfString: aString];
-  return ((range.location == 0) && (range.length != 0)) ? YES : NO;
+  range = [self rangeOfString: aString options: NSAnchoredSearch];
+  return (range.length > 0) ? YES : NO;
 }
 
 - (BOOL) hasSuffix: (NSString*)aString
 {
   NSRange range;
-  range = [self rangeOfString: aString options: NSBackwardsSearch];
-  return (range.length > 0 && range.location == ([self length] - [aString length])) ? YES : NO;
+  range = [self rangeOfString: aString
+                      options: NSAnchoredSearch | NSBackwardsSearch];
+  return (range.length > 0) ? YES : NO;
 }
 
 - (BOOL) isEqual: (id)anObject
@@ -2144,6 +2158,71 @@ handle_printf_atsign (FILE *stream,
 	}
       buff[count] = '\0';
       return [NSDataClass dataWithBytesNoCopy: buff length: count];
+    }
+  else if (encoding == NSUTF8StringEncoding)
+    {
+      unsigned char	*buff;
+      unsigned		i, j;
+      unichar		ch, ch2;
+      gsu32		cp;
+
+      buff = (unsigned char *)NSZoneMalloc(NSDefaultMallocZone(), len*3);
+
+      /*
+       * Each UTF-16 character maps to at most 3 bytes of UTF-8, so we simply
+       * allocate three times as many bytes as UTF-16 characters, then use
+       * NSZoneRealloc() later to trim the excess.  Most Unix virtual memory
+       * implementations allocate address space, and actual memory pages are
+       * not actually allocated until used, so this method shouldn't cause
+       * memory problems on most Unix systems.  On other systems, it may prove
+       * advantageous to scan the UTF-16 string to determine the UTF-8 string
+       * length before allocating memory.
+       */
+      for (i = j = 0; i < len; i++)
+        {
+          ch = (*caiImp)(self, caiSel, i);
+          if (NSLocationInRange(ch, highSurrogateRange) && ((i+1) < len))
+            {
+              ch2 = (*caiImp)(self, caiSel, i+1);
+              if (NSLocationInRange(ch2, lowSurrogateRange))
+                {
+                  cp = surrogatePairValue(ch, ch2);
+                  i++;
+                }
+              else
+                cp = (gsu32)ch;
+            }
+          else
+            cp = (gsu32)ch;
+
+          if (cp < 0x80)
+            {
+              buff[j++] = cp;
+            }
+          else if (cp < 0x800)
+            {
+              buff[j++] = 0xC0 | ch>>6;
+              buff[j++] = 0x80 | (ch & 0x3F);
+            }
+          else if (cp < 0x10000)
+            {
+              buff[j++] = 0xE0 | ch>>12;
+              buff[j++] = 0x80 | (ch>>6 & 0x3F);
+              buff[j++] = 0x80 | (ch & 0x3F);
+            }
+          else if (cp < 0x200000)
+            {
+              buff[j++] = 0xF0 | ch>>18;
+              buff[j++] = 0x80 | (ch>>12 & 0x3F);
+              buff[j++] = 0x80 | (ch>>6 & 0x3F);
+              buff[j++] = 0x80 | (ch & 0x3F);
+            }
+        }
+
+      NSZoneRealloc(NSDefaultMallocZone(), buff, j);
+
+      return [NSDataClass dataWithBytesNoCopy: buff
+                                       length: count];
     }
   else if (encoding == NSUnicodeStringEncoding)
     {
