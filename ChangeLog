@@ -1,3 +1,8 @@
+2003-08-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: save and restore libxml global settings
+	before/after each parse operation.
+
 2003-08-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: nodeToObject() fix error in handling escape
