@@ -294,7 +294,6 @@ NSGCountedSet.m \
 NSGCString.m \
 NSGDictionary.m \
 NSGSet.m \
-NSGSequence.m \
 NSGString.m \
 NSHashTable.m \
 NSHost.m \
@@ -398,7 +397,6 @@ Foundation/NSGArray.h \
 Foundation/NSGAttributedString.h \
 Foundation/NSGCString.h \
 Foundation/NSGSet.h \
-Foundation/NSGSequence.h \
 Foundation/NSGString.h \
 Foundation/NSHashTable.h \
 Foundation/NSHost.h \
