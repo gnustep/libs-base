@@ -881,7 +881,7 @@ exc_return_null(arglist_t f)
 {
   [self encodeClass:object_get_class(anObj)];
   /* xxx Make sure it responds to this selector! */
-  [anObj encodeWithCoder:self];
+  [anObj encodeWithCoder:(id)self];
 }
 
 /* This method overridden by ConnectedCoder */
@@ -982,24 +982,32 @@ exc_return_null(arglist_t f)
     case CODER_OBJECT:
       {
 	unsigned xref;
-	SEL new_sel = sel_get_any_uid("newWithCoder:");
 	Class object_class;
-	IMP imp;
+	SEL new_sel = sel_get_any_uid("newWithCoder:");
+	Method* new_method;
 
 	[self decodeValueOfSimpleType:@encode(unsigned) 
 	      at:&xref 
 	      withName:NULL];
 	[self decodeIndent];
 	object_class = [self decodeClass];
-	if ((imp = objc_msg_lookup(object_class, new_sel)))
-	  *anObjPtr = (*imp)(object_class, new_sel, self);
+	/* xxx Should change the runtime.
+	   class_get_class_method should take the class as its first
+	   argument, not the metaclass! */
+	new_method = class_get_class_method(class_get_meta_class(object_class),
+					    new_sel);
+	if (new_method)
+	  *anObjPtr = (*(new_method->method_imp))(object_class, new_sel, self);
 	else
 	  {
 	    SEL init_sel = sel_get_any_uid("initWithCoder:");
-	    IMP imp = objc_msg_lookup(object_class, init_sel);
-	    *anObjPtr = class_create_instance(object_class);
-	    if (imp)
-	      *anObjPtr = (*imp)(*anObjPtr, init_sel, self);
+	    Method *init_method = 
+	      class_get_instance_method(object_class, init_sel);
+	    /*xxx Fix this NS_NOZONE. */
+	    *anObjPtr = (id) NSAllocateObject (object_class, 0, NS_NOZONE);
+	    if (init_method)
+	      *anObjPtr = 
+		(*(init_method->method_imp))(*anObjPtr, init_sel, self);
 	    /* xxx else, error? */
 	  }
 	/* Would get error here with Connection-wide object references
@@ -1240,6 +1248,8 @@ exc_return_null(arglist_t f)
 
 @implementation NSObject (CoderAdditions)
 
+/* Now in NSObject.m */
+#if 0
 - (void) encodeWithCoder: (id <Encoding>)anEncoder
 {
   return;
@@ -1254,6 +1264,7 @@ exc_return_null(arglist_t f)
 {
   return NSAllocateObject(self, 0, NULL); /* xxx Fix this NULL */
 }
+#endif
 
 
 
