@@ -502,7 +502,7 @@ SANITY();
 	  info->loc = afterRangeLoc;
 	  arrayIndex--;
 	}
-      else if (effectiveRange.location < beginRangeLoc)
+      else
 	{
 	  /*
 	   * The located range starts before our range.

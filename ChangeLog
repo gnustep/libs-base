@@ -1,3 +1,8 @@
+2000-03-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSGAttributedString.m: ([setAttributes:range:]) make sure
+	attributes are set when old range starts at start of new range.
+
 2000-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Become an unpriveliged user after binding to
