@@ -29,8 +29,8 @@
    directly or by way of libFoundation.
 
    The sections of code (and comments) to do with the MFRAME_ARG_ENCODING()
-   macro for sparc, hppa and powerpc were derived from libFoundation (for
-   which, much thanks) avoiding the need to extract the relevent details
+   macro for sparc, hppa and powerpc were derived in part from libFoundation
+   (for which, much thanks) avoiding the need to extract the relevent details
    directly from the gcc source in these cases.  The originals from which
    these fragments came the additional credit/copyright -
 
@@ -89,7 +89,8 @@ MFRAME_ARGS_SIZE
 	This must be set to the value computed by the apply_args_size()
 	function in expr.c in the gcc source.  It is the size of the
 	area of memory allocated in which to pass arguments to a function.
-	If you can't figure out how to determine this - try using a
+	If you can't figure out how to determine this (hack expr.c to print
+	the result of the function the first time it's called) - try using a
 	value like 128 - which will probably be far larger than required
 	(and therefore somewhat inefficient) but will most likely work.
 
@@ -97,7 +98,8 @@ MFRAME_RESULT_SIZE
 	This must be set to the value computed by the apply_result_size()
 	function in expr.c in the gcc source.  It is the size of the area
 	of memory allocated in which to return a value from a function.
-	If you can't figure out how to determine this - try using a
+	If you can't figure out how to determine this (hack expr.c to print
+	the result of the function the first time it's called) - try using a
 	value like 128 - which will probably be far larger than required
 	(and therefore somewhat inefficient) but will most likely work.
 
