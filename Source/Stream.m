@@ -79,13 +79,8 @@
 - (id <String>) readLine
 {
   char *l;
-  [self readFormat:"%a[^\n]\n", &l];
+  [self readFormat: @"%a[^\n]\n", &l];
   return [NSString stringWithCStringNoCopy:l];
-}
-
-- (void) rewindStream
-{
-  [self setStreamPosition:0];
 }
 
 - (void) flushStream
@@ -96,6 +91,11 @@
 - (void) setStreamPosition: (unsigned)i
 {
   [self subclassResponsibility:_cmd];
+}
+
+- (void) rewindStream
+{
+  [self setStreamPosition:0];
 }
 
 - (unsigned) streamPosition
