@@ -93,7 +93,7 @@
 
 - (BOOL) sendBoolean: (BOOL)b
 {
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), (int)b, (int)(!b));
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), (int)b, (int)(!b));
   fflush(stdout);
   return !b;
 }
@@ -102,7 +102,7 @@
 - (void) getBoolean: (BOOL*)bp
 {
   BOOL rbp = !(*bp);
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), 
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), 
 	 (int)*bp, (int)rbp);
   fflush(stdout);
   *bp = rbp;
@@ -111,7 +111,7 @@
 - (unsigned char) sendUChar: (unsigned char)num
 {
   unsigned char rnum = num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), 
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), 
 	 (int)num, (int)rnum);
   fflush(stdout);
   return rnum;
@@ -121,7 +121,7 @@
 - (void) getUChar: (unsigned char *)num
 {
   unsigned char rnum = *num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), 
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), 
 	 (int)(*num), (int)rnum);
   *num = rnum;
   fflush(stdout);
@@ -130,7 +130,7 @@
 - (char) sendChar: (char)num
 {
   char rnum = num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd),
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd),
 	 (int)num, (int)rnum);
   fflush(stdout);
   return rnum;
@@ -139,7 +139,7 @@
 - (void) getChar: (char *)num
 {
   char rnum = *num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), 
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), 
 	 (int)(*num), (int)rnum);
   *num = rnum;
   fflush(stdout);
@@ -148,7 +148,7 @@
 - (short) sendShort: (short)num
 {
   short rnum = num + ADD_CONST;
-  printf("(%s) got %hd, returning %hd\n", sel_get_name(_cmd),
+  printf("(%s) got %hd, returning %hd\n", GSNameFromSelector(_cmd),
 	 num, rnum);
   fflush(stdout);
   return rnum;
@@ -157,7 +157,7 @@
 - (void) getShort: (short *)num
 {
   short rnum = *num + ADD_CONST;
-  printf("(%s) got %hd, returning %hd\n", sel_get_name(_cmd), 
+  printf("(%s) got %hd, returning %hd\n", GSNameFromSelector(_cmd), 
 	 (*num), rnum);
   *num = rnum;
   fflush(stdout);
@@ -166,7 +166,7 @@
 - (int) sendInt: (int)num
 {
   int rnum = num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), num, rnum);
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), num, rnum);
   fflush(stdout);
   return rnum;
 }
@@ -174,7 +174,7 @@
 - (void) getInt: (int *)num
 {
   int rnum = *num + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), *num, rnum);
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), *num, rnum);
   *num = rnum;
   fflush(stdout);
 }
@@ -182,7 +182,7 @@
 - (long) sendLong: (long)num
 {
   long rnum = num + ADD_CONST;
-  printf("(%s) got %ld, returning %ld\n", sel_get_name(_cmd), num, rnum);
+  printf("(%s) got %ld, returning %ld\n", GSNameFromSelector(_cmd), num, rnum);
   fflush(stdout);
   return rnum;
 }
@@ -190,7 +190,7 @@
 - (void) getLong: (long *)num
 {
   long rnum = *num + ADD_CONST;
-  printf("(%s) got %ld, returning %ld\n", sel_get_name(_cmd), *num, rnum);
+  printf("(%s) got %ld, returning %ld\n", GSNameFromSelector(_cmd), *num, rnum);
   *num = rnum;
   fflush(stdout);
 }
@@ -198,7 +198,7 @@
 - (float) sendFloat: (float)num
 {
   float rnum = num + ADD_CONST;
-  printf("(%s) got %f, returning %f\n", sel_get_name(_cmd), num, rnum);
+  printf("(%s) got %f, returning %f\n", GSNameFromSelector(_cmd), num, rnum);
   fflush(stdout);
   return rnum;
 }
@@ -206,7 +206,7 @@
 - (void) getFloat: (float *)num
 {
   float rnum = *num + ADD_CONST;
-  printf("(%s) got %f, returning %f\n", sel_get_name(_cmd), *num, rnum);
+  printf("(%s) got %f, returning %f\n", GSNameFromSelector(_cmd), *num, rnum);
   *num = rnum;
   fflush(stdout);
 }
@@ -214,7 +214,7 @@
 - (double) sendDouble: (double)num
 {
   double rnum = num + ADD_CONST;
-  printf("(%s) got %g, returning %g\n", sel_get_name(_cmd), num, rnum);
+  printf("(%s) got %g, returning %g\n", GSNameFromSelector(_cmd), num, rnum);
   fflush(stdout);
   return rnum;
 }
@@ -222,7 +222,7 @@
 - (void) getDouble: (double *)num
 {
   double rnum = *num + ADD_CONST;
-  printf("(%s) got %g, returning %g\n", sel_get_name(_cmd), *num, rnum);
+  printf("(%s) got %g, returning %g\n", GSNameFromSelector(_cmd), *num, rnum);
   *num = rnum;
   fflush(stdout);
 }
@@ -230,7 +230,7 @@
 - (small_struct) sendSmallStruct: (small_struct)str
 {
   char rnum = str.z + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), str.z, rnum);
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), str.z, rnum);
   fflush(stdout);
   str.z = rnum;
   return str;
@@ -239,7 +239,7 @@
 - (void) getSmallStruct: (small_struct *)str
 {
   char rnum = str->z + ADD_CONST;
-  printf("(%s) got %d, returning %d\n", sel_get_name(_cmd), str->z, rnum);
+  printf("(%s) got %d, returning %d\n", GSNameFromSelector(_cmd), str->z, rnum);
   fflush(stdout);
   str->z = rnum;
 }
@@ -248,7 +248,7 @@
 {
   foo f2 = {'A', 123.456, 1, "horse", 987654};
   printf("(%s) got c='%c', d=%g, i=%d, s=%s, l=%lu",
-    sel_get_name(_cmd), f.c, f.d, f.i, f.s, f.l);
+    GSNameFromSelector(_cmd), f.c, f.d, f.i, f.s, f.l);
   fflush(stdout);
   printf(" returning c='%c', d=%g, i=%d, s=%s, l=%lu\n",
     f2.c, f2.d, f2.i, f2.s, f2.l);
@@ -260,7 +260,7 @@
 {
   foo f2 = {'A', 123.456, 1, "horse", 987654};
   printf("(%s) got c='%c', d=%g, i=%d, s=%s, l=%lu",
-    sel_get_name(_cmd), f->c, f->d, f->i, f->s, f->l);
+    GSNameFromSelector(_cmd), f->c, f->d, f->i, f->s, f->l);
   fflush(stdout);
   printf(" returning c='%c', d=%g, i=%d, s=%s, l=%lu\n",
     f2.c, f2.d, f2.i, f2.s, f2.l);
@@ -270,22 +270,22 @@
 
 - sendObject: (id)str
 {
-  printf ("(%s) got object (%s)\n", sel_get_name(_cmd), 
-    object_get_class_name (str));
+  printf ("(%s) got object (%s)\n", GSNameFromSelector(_cmd), 
+    GSClassNameFromObject(str));
   fflush(stdout);
   return str;
 }
 
 - (void) getObject: (id *)str
 {
-  printf ("(%s) got object (%s)\n", sel_get_name(_cmd), 
-    object_get_class_name (*str));
+  printf ("(%s) got object (%s)\n", GSNameFromSelector(_cmd), 
+    GSClassNameFromObject(*str));
   fflush(stdout);
 }
 
 - (char *) sendString: (char *)str
 {
-  printf ("(%s) got string (%s)", sel_get_name(_cmd), str);
+  printf ("(%s) got string (%s)", GSNameFromSelector(_cmd), str);
   str[0] = 'N';
   printf(" returning (%s)\n", str);
   fflush(stdout);
@@ -294,7 +294,7 @@
 
 - (void) getString: (char **)str
 {
-  printf ("(%s) got string (%s)", sel_get_name(_cmd), *str);
+  printf ("(%s) got string (%s)", GSNameFromSelector(_cmd), *str);
   (*str)[0] = 'N';
   printf(" returning (%s)\n", *str);
   fflush(stdout);
@@ -302,14 +302,14 @@
 
 - (oneway void) shout
 {
-  printf ("(%s) got it\n", sel_get_name(_cmd));
+  printf ("(%s) got it\n", GSNameFromSelector(_cmd));
   fflush(stdout);
 }
 
 /* sender must also respond to 'bounce:count:' */
 - bounce: sender count: (int)c
 {
-  printf ("(%s) got message %d, bouncing back %d", sel_get_name(_cmd), c, c-1);
+  printf ("(%s) got message %d, bouncing back %d", GSNameFromSelector(_cmd), c, c-1);
   fflush(stdout);
   if (--c)
     [sender bounce:self count:c];
@@ -354,21 +354,21 @@
 
 - sendDouble: (double)d andFloat: (float)f
 {
-  printf("(%s) got double %f, float %f\n", sel_get_name(_cmd), d, f);
+  printf("(%s) got double %f, float %f\n", GSNameFromSelector(_cmd), d, f);
   fflush(stdout);
   return self;
 }
 
 - quietBycopy: (bycopy id)o
 {
-  printf("  >> quiet bycopy class is %s\n", object_get_class_name (o));
+  printf("  >> quiet bycopy class is %s\n", GSClassNameFromObject(o));
   fflush(stdout);
   return self;
 }
 
 - sendBycopy: (bycopy id)o
 {
-  printf("  >> bycopy class is %s\n", object_get_class_name (o));
+  printf("  >> bycopy class is %s\n", GSClassNameFromObject(o));
   fflush(stdout);
   return self;
 }
@@ -376,13 +376,13 @@
 #ifdef	_F_BYREF
 - sendByref: (byref id)o
 {
-  printf("  >> byref class is %s\n", object_get_class_name (o));
+  printf("  >> byref class is %s\n", GSClassNameFromObject(o));
   fflush(stdout);
   return self;
 }
 - modifyByref: (byref NSMutableString *)o
 {
-  printf("  >> byref class is %s\n", object_get_class_name (o));
+  printf("  >> byref class is %s\n", GSClassNameFromObject(o));
   fflush(stdout);
   [o appendString: @"hello"];
   return self;
@@ -422,7 +422,7 @@
 
 - (NSConnection*) connection: ancestor didConnect: newConn
 {
-  printf("%s\n", sel_get_name(_cmd));
+  printf("%s\n", GSNameFromSelector(_cmd));
   [[NSNotificationCenter defaultCenter]
     addObserver: self
     selector: @selector(connectionBecameInvalid:)

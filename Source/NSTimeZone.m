@@ -54,6 +54,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "Foundation/NSArray.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSData.h"
@@ -1123,6 +1124,18 @@ static NSMapTable	*absolutes = 0;
 	      localZoneString = [localZoneString stringByTrimmingSpaces];
 	    }
 	}
+#if HAVE_TZSET
+      if (localZoneString == nil)
+	{
+	  /*
+	   * Try to get timezone from tzset and tzname
+	   */
+	  extern char *tzname[2];
+	  tzset();
+	  if (tzname[0] != NULL && *tzname[0] != '\0')
+	    localZoneString = [NSString stringWithCString: tzname[0]];
+	}
+#else
       if (localZoneString == nil)
 	{
 	  /*
@@ -1131,6 +1144,7 @@ static NSMapTable	*absolutes = 0;
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"TZ"];
 	}
+#endif
       if (localZoneString != nil)
 	{
 	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];

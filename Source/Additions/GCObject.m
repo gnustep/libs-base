@@ -38,7 +38,7 @@
 #endif
 
 #include "GNUstepBase/GCObject.h"
-#include "GSCompatibility.h"
+#include "GNUstepBase/GSCategories.h"
 
 /*
  * The head of a linked list of all garbage collecting objects  is a

@@ -105,14 +105,15 @@ fi
 # Miscellaneous flags
 #--------------------------------------------------------------------
 # Set location of GNUstep dirs for later use
-GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers
 if test "$GNUSTEP_FLATTENED" = yes; then
   GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries
+  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers
 else
   clean_target_os=`$GNUSTEP_MAKEFILES/clean_os.sh $target_os`
   clean_target_cpu=`$GNUSTEP_MAKEFILES/clean_cpu.sh $target_cpu`
   obj_dir=$clean_target_cpu/$clean_target_os
   GNUSTEP_LDIR=$GNUSTEP_SYSTEM_ROOT/Library/Libraries/$obj_dir
+  GNUSTEP_HDIR=$GNUSTEP_SYSTEM_ROOT/Library/Headers/$LIBRARY_COMBO
 fi
 
 #
@@ -529,7 +530,7 @@ LIBS="$saved_LIBS"
 dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
 
 AC_CHECK_HEADERS(time.h sys/time.h sys/rusage.h ucbinclude/sys/resource.h)
-AC_CHECK_FUNCS(time ctime)
+AC_CHECK_FUNCS(time ctime tzset)
 
 #--------------------------------------------------------------------
 # These headers/functions needed by GSTcpPort.m
@@ -888,12 +889,12 @@ if test ${ffcall_libdir} != "no"; then
 fi
 
 AC_CHECK_HEADER(ffi.h, , enable_libffi=no)
+AC_CHECK_HEADERS(callback.h, , enable_ffcall=no)
 
 have_forward_hook=yes
 AC_MSG_CHECKING("for forwarding callback in runtime")
 AC_EGREP_HEADER(__objc_msg_forward, objc/objc-api.h, AC_MSG_RESULT(yes), 
 	        AC_MSG_RESULT(no); have_forward_hook=no)
-AC_CHECK_HEADERS(callback.h, , have_forward_hook=no)
 if test $have_forward_hook = no; then
   enable_libffi=no
   enable_ffcall=no

@@ -14,12 +14,13 @@ AC_DEFUN(AC_SYS_PROCFS,
   # works fine
     if (mount | grep 'proc' >/dev/null 2>/dev/null); then 
       ac_cv_sys_procfs=yes
-	# Solaris has proc, but for some reason the dir is not readable
-	# 	elif (grep proc /etc/vfstab >/dev/null 2>/dev/null); then 
-	# ac_cv_sys_procfs=yes
     else
       ac_cv_sys_procfs=no
     fi
+    case "$target_os" in
+      # Solaris has proc, but it is not readable
+      solaris*)    ac_cv_sys_procfs=no;;
+    esac
   elif test "$enable_procfs" = cross; then
     AC_MSG_WARN(Pass --enable-procfs argument to enable use of /proc filesystem.)
   else

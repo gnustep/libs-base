@@ -48,7 +48,7 @@
 #endif
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
-#include "GSCompatibility.h"
+#include "GNUstepBase/GSCategories.h"
 #include <string.h>
 
 @class	NSNull;
@@ -172,7 +172,7 @@ GSObjCMethodNames(id obj)
 	      NSString	*name;
 
 	      name = [[NSString alloc] initWithUTF8String:
-		sel_get_name(methods->method_list[i].method_name)];
+		GSNameFromSelector(methods->method_list[i].method_name)];
 	      [set addObject: name];
 	      RELEASE(name);
 	    }
@@ -505,7 +505,7 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
 	  if (behavior_debug)
 	    {
 	      fprintf(stderr, "   processing method [%s] ... ", 
-		sel_get_name(method->method_name));
+		GSNameFromSelector(method->method_name));
 	    }
 
 	  if (!search_for_method_in_class(class,method->method_name)
@@ -610,7 +610,7 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
       while (counter >= 0)
         {
           struct objc_method	*method = &(mlist->method_list[counter]);
-	  const char		*name = sel_get_name(method->method_name);
+	  const char		*name = GSNameFromSelector(method->method_name);
 
 	  if (behavior_debug)
 	    {

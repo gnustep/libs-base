@@ -4602,13 +4602,13 @@ printf(
   /*
    * As another level of paranoia - restrict this process to /tmp
    */
+#ifndef __MINGW__
   if (chdir("/tmp") < 0)
     {
       sprintf(ebuf, "Unable to change directory to /tmp");
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
-#ifndef __MINGW__
   if (geteuid() == 0)
     {
       if (chroot("/tmp") < 0)
@@ -4654,14 +4654,14 @@ printf(
       setgid (gid);
       setgroups (0, 0);	/* Empty additional groups list */
     }
-#endif /* __MINGW__ */
-
   if (getuid() == 0)
     {
       sprintf(ebuf, "Still running as root after trying to change");
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
+
+#endif /* __MINGW__ */
 
   init_probe();	/* Probe other name servers on net.	*/
 
