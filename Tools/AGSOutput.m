@@ -2217,6 +2217,7 @@ static BOOL snuggleStart(NSString *t)
 	  [str appendString: @"\"></author>\n"];
 	  [str appendString: @"  </head>\n"];
 	  [str appendString: @"  <body>\n"];
+	  [str appendString: @"    <front><contents /></front>\n"];
 	  [str appendString: @"  </body>\n"];
 	  [str appendString: @"</gsdoc>\n"];
 	}

@@ -1458,6 +1458,15 @@ static NSMutableSet	*textNodes = nil;
 	  else
 	    {
 	      s = [self makeLink: r ofType: type isRef: YES];
+	      /**
+	       * As a special case, if we have a reference to a function,
+	       * and we can't find it, we check to see if there is actually
+	       * a macro of that name and refer to that instead.
+	       */
+	      if (s == nil && [type isEqual: @"function"] == YES)
+		{
+		  s = [self makeLink: r ofType: @"macro" isRef: YES];
+		}
 	    }
 	  if (s == nil)
 	    {
