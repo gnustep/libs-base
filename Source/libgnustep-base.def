@@ -73,7 +73,6 @@ __objc_class_name_KeyedCollection
 __objc_class_name_LinkedList
 __objc_class_name_LinkedListNode
 __objc_class_name_Magnitude
-__objc_class_name_MallocAddress
 __objc_class_name_MappedCollector
 __objc_class_name_MemoryStream
 inchar_func
