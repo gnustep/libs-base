@@ -46,13 +46,13 @@ main()
   {
     // Instance methods for allocating and initializing an array
     printf("Method: -arrayByAddingObject:\n");
-    d = [[c arrayByAddingObject: s] autorelease];
+    d = [c arrayByAddingObject: s];
     printf("NSArray has count %d\n", [c count]);
     if ([d count] != 4)
       printf("Error: count != 4\n");
 
     printf("Method: -arrayByAddingObjectsFromArray:\n");
-    e = [[c arrayByAddingObjectsFromArray: b] autorelease];
+    e = [c arrayByAddingObjectsFromArray: b];
     printf("NSArray has count %d\n", [c count]);
     if ([e count] != 4)
       printf("Error: count != 4\n");
@@ -168,6 +168,7 @@ main()
     f = [NSMutableArray arrayWithCapacity: 10];
     assert(f);
     f = [[NSMutableArray alloc] initWithCapacity: 10];
+    [f release];
     assert(f);
   }
 
