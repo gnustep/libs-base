@@ -112,6 +112,8 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   return tv->pool_cache[--(tv->pool_cache_count)];
 }
 
+static SEL	releaseSel = 0;
+
 
 @implementation NSAutoreleasePool
 
@@ -122,6 +124,7 @@ static IMP	initImp;
 {
   if (self == [NSAutoreleasePool class])
     {
+      releaseSel = @selector(release);
       allocImp = [self methodForSelector: @selector(allocWithZone:)];
       initImp = [self instanceMethodForSelector: @selector(init)];
     }
@@ -341,15 +344,31 @@ static IMP	initImp;
      releasing. */
   {
     struct autorelease_array_list *released = _released_head;
-    unsigned int i;
+    unsigned	i;
+    Class	classes[16];
+    IMP 	imps[16];
 
-    while (released)
+    for (i = 0; i < 16; i++)
+      {
+	classes[i] = 0;
+	imps[i] = 0;
+      }
+
+    while (released != 0)
       {
 	for (i = 0; i < released->count; i++)
 	  {
-	    id anObject = released->objects[i];
+	    id		anObject = released->objects[i];
+	    Class	c = GSObjCClass(anObject);
+	    unsigned	hash = (((unsigned)c) >> 3) & 0x0f;
+
 	    released->objects[i] = nil;
-	    [anObject release];
+	    if (classes[hash] != c)
+	      {
+		classes[hash] = c;
+		imps[hash] = [c methodForSelector: releaseSel];
+	      }
+	    (imps[hash])(anObject, releaseSel);
 	  }
 	released->count = 0;
 	released = released->next;

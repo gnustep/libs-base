@@ -28,22 +28,65 @@
 #include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSBitmapCharSet.h"
+#include "Foundation/NSCoder.h"
 #include "Foundation/NSException.h"
-#include "Foundation/NSBundle.h"
 #include "Foundation/NSData.h"
 #include "Foundation/NSLock.h"
-#include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSDictionary.h"
 #include "Foundation/NSThread.h"
 #include "Foundation/NSNotification.h"
 
-static NSString *NSCharacterSet_PATH = @"NSCharacterSets";
+#include "../NSCharacterSets/NSCharacterSetData.h"
 
 /* A simple array for caching standard bitmap sets */
 #define MAX_STANDARD_SETS 15
 static NSCharacterSet *cache_set[MAX_STANDARD_SETS];
 static NSLock *cache_lock = nil;
 static Class abstractClass = nil;
+
+@interface GSStaticCharSet : NSCharacterSet
+{
+  const unsigned char	*_data;
+  int			_index;
+}
+@end
+
+@implementation GSStaticCharSet
+
+- (id) init
+{
+  DESTROY(self);
+  return nil;
+}
+
+- (id) initWithIndex: (int)index bytes: (const unsigned char*)bitmap
+{
+  _index = index;
+  _data = bitmap;
+  return self;
+}
+
+- (NSData*) bitmapRepresentation
+{
+  return [NSData dataWithBytes: _data length: BITMAP_SIZE];
+}
+
+- (BOOL) characterIsMember: (unichar)aCharacter
+{
+  return ISSET(_data[aCharacter/8], aCharacter % 8);
+}
+
+- (Class) classForCoder
+{
+  return [NSCharacterSet class];
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  [aCoder encodeValueOfObjCType: @encode(int) at: &_index];
+}
+
+@end
 
 /**
  *  Represents a set of unicode characters.  Used by [NSScanner] and [NSString]
@@ -72,76 +115,22 @@ static Class abstractClass = nil;
     return NSAllocateObject(self, 0, zone);
 }
 
-// Creating standard character sets
-
-+ (NSCharacterSet*) _bitmapForSet: (NSString*)setname number: (int)number
+/**
+ * Creat and cache (or retrieve from cache) a characterset
+ * using static bitmap data.
+ * Return nil if no data is supplied and the cache is empty.
+ */
++ (NSCharacterSet*) _staticSet: (unsigned char*)bytes number: (int)number
 {
-  NSCharacterSet *set;
-  NSString *set_path;
-  NSBundle *bundle;
-
   [cache_lock lock];
-
-  set = nil; /* Quiet warnings */
-  if (cache_set[number] == nil)
+  if (cache_set[number] == nil && bytes != 0)
     {
-      NS_DURING
-
-	bundle = [NSBundle bundleForLibrary: @"gnustep-base"];
-        set_path = [bundle pathForResource: setname
-                                    ofType: @"dat"
-                               inDirectory: NSCharacterSet_PATH];
-	if (set_path != nil)
-	  {
-	    NS_DURING
-	      {
-		NSData *data;
-
-		/* Load the character set file */
-		data = [NSData dataWithContentsOfFile: set_path];
-		set = [NSCharacterSet characterSetWithBitmapRepresentation:
-					data];
-	      }
-	    NS_HANDLER
-	      NSLog(@"Unable to read NSCharacterSet file %@", set_path);
-	    set = nil;
-	    NS_ENDHANDLER
-          }
-
-	/* If we didn't load a set then raise an exception */
-	if (!set)
-	  {
-	    [NSException raise: NSGenericException
-			 format: @"Could not find bitmap file %@", setname];
-	    /* NOT REACHED */
-	  }
-	else
-	  {
-	    /* Else cache the set */
-	    cache_set[number] = RETAIN(set);
-	  }
-      NS_HANDLER
-	[cache_lock unlock];
-        [localException raise];
-	abort (); /* quiet warnings about `set' clobbered by longjmp. */
-      NS_ENDHANDLER
+      cache_set[number]
+	= [[GSStaticCharSet alloc] initWithIndex: number bytes: bytes];
     }
-  else
-    set = cache_set[number];
-
   [cache_lock unlock];
-
-  if (self != abstractClass && self != [set class])
-    {
-      NSData	*data;
-
-      data = [set bitmapRepresentation];
-      set = [self characterSetWithBitmapRepresentation: data];
-    }
-
-  return set;
+  return cache_set[number];
 }
-
 
 /**
  *  Returns a character set containing letters, numbers, and diacritical
@@ -150,7 +139,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) alphanumericCharacterSet
 {
-  return [self _bitmapForSet: @"alphanumericCharSet" number: 0];
+  return [self _staticSet: alphanumericCharSet number: 0];
 }
 
 /**
@@ -158,7 +147,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) controlCharacterSet
 {
-  return [self _bitmapForSet: @"controlCharSet" number: 1];
+  return [self _staticSet: controlCharSet number: 1];
 }
 
 /**
@@ -167,7 +156,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) decimalDigitCharacterSet
 {
-  return [self _bitmapForSet: @"decimalDigitCharSet" number: 2];
+  return [self _staticSet: decimalDigitCharSet number: 2];
 }
 
 /**
@@ -176,7 +165,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) decomposableCharacterSet
 {
-  return [self _bitmapForSet: @"decomposableCharSet" number: 3];
+  return [self _staticSet: decomposableCharSet number: 3];
 }
 
 /**
@@ -185,7 +174,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) illegalCharacterSet
 {
-  return [self _bitmapForSet: @"illegalCharSet" number: 4];
+  return [self _staticSet: illegalCharSet number: 4];
 }
 
 /**
@@ -194,7 +183,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) letterCharacterSet
 {
-  return [self _bitmapForSet: @"letterCharSet" number: 5];
+  return [self _staticSet: letterCharSet number: 5];
 }
 
 /**
@@ -204,7 +193,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) lowercaseLetterCharacterSet
 {
-  return [self _bitmapForSet: @"lowercaseLetterCharSet" number: 6];
+  return [self _staticSet: lowercaseLetterCharSet number: 6];
 }
 
 /**
@@ -213,7 +202,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) nonBaseCharacterSet
 {
-  return [self _bitmapForSet: @"nonBaseCharSet" number: 7];
+  return [self _staticSet: nonBaseCharSet number: 7];
 }
 
 /**
@@ -221,7 +210,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) punctuationCharacterSet
 {
-  return [self _bitmapForSet: @"punctuationCharSet" number: 8];
+  return [self _staticSet: punctuationCharSet number: 8];
 }
 
 /**
@@ -229,7 +218,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) symbolAndOperatorCharacterSet
 {
-  return [self _bitmapForSet: @"symbolAndOperatorCharSet" number: 9];
+  return [self _staticSet: symbolAndOperatorCharSet number: 9];
 }
 
 /**
@@ -239,7 +228,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) uppercaseLetterCharacterSet
 {
-  return [self _bitmapForSet: @"uppercaseLetterCharSet" number: 10];
+  return [self _staticSet: uppercaseLetterCharSet number: 10];
 }
 
 /**
@@ -248,7 +237,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) whitespaceAndNewlineCharacterSet
 {
-  return [self _bitmapForSet: @"whitespaceAndNlCharSet" number: 11];
+  return [self _staticSet: whitespaceAndNlCharSet number: 11];
 }
 
 /**
@@ -256,7 +245,7 @@ static Class abstractClass = nil;
  */
 + (NSCharacterSet*) whitespaceCharacterSet
 {
-  return [self _bitmapForSet: @"whitespaceCharSet" number: 12];
+  return [self _staticSet: whitespaceCharSet number: 12];
 }
 
 // Creating custom character sets
@@ -363,13 +352,22 @@ static Class abstractClass = nil;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  if ([self class] == [NSCharacterSet class])
+    {
+      int	index;
+
+      /*
+       * Abstract class returns characterset from cache.
+       */
+      DESTROY(self);
+      [aCoder decodeValueOfObjCType: @encode(int) at: &index];
+      self = RETAIN([NSCharacterSet _staticSet: 0 number: index]);
+    }
+  return self;
 }
 
 - (BOOL) isEqual: (id)anObject

@@ -1,3 +1,24 @@
+2005-02-27 08:45 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSCharacterSets/dataToheader.c: new file to convert data files to
+	constant values in a new header (NSCharacterSetData.h).
+	* NSCharacterSets/GNUmakefile: build header from data files, and
+	don't create resource set, since we no longer use the files at runtime.
+	* Source/NSCharacterSet.m: include NSCharacterSetData.h and use it to
+	create the standard charactersets rather than reading from data files.
+	This has two advantages - It avoids the need to install characterset
+	data files with the library, and it means that we have characterset
+	data available immediately (before we need to access the filesystem)
+	so we can use charactersets and NSString methods which depend upon them
+	earlier on in the system initialisation.
+
+2005-02-27 00:50 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: ([-dealloc]) cache method implementations
+	for release calls on the assumption that many of the objects in the
+	pool will be of the same class.
+	Optimisation suggested by Georg Wallmann
+
 2005-02-23  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Add test to check for poll emulation

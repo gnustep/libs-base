@@ -26,13 +26,6 @@ GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
 include $(GNUSTEP_MAKEFILES)/common.make
 
-RESOURCE_SET_NAME = base-resources
-base-resources_RESOURCE_FILES_INSTALL_DIR = Library/Libraries/Resources/gnustep-base/NSCharacterSets
-base-resources_LANGUAGES =
-base-resources_LOCALIZED_RESOURCE_FILES =
-base-resources_RESOURCE_DIRS =
-base-resources_RESOURCE_FILES = $(CHARSET_FILES)
-
 CHARSET_FILES = \
 alphanumericCharSet.dat \
 controlCharSet.dat \
@@ -48,8 +41,13 @@ uppercaseLetterCharSet.dat \
 whitespaceAndNlCharSet.dat \
 whitespaceCharSet.dat
 
--include Makefile.preamble
+CTOOL_NAME = dataToHeader
+dataToHeader_C_FILES = dataToHeader.c
 
-include $(GNUSTEP_MAKEFILES)/resource-set.make
+include $(GNUSTEP_MAKEFILES)/ctool.make
 
--include Makefile.postamble
+after-all::	NSCharacterSetData.h
+
+NSCharacterSetData.h: $(CHARSET_FILES)
+	obj/dataToHeader $(CHARSET_FILES)
+
