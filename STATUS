@@ -24,15 +24,7 @@ Classes
 * NSAutoreleasePool::		[9]
 	But not exception- or thread-safe
 
-* NSBTreeBlock::		[0]
-
-* NSBTreeCursor::		[0]
-
 * NSBundle::			[8]
-
-* NSByteStore::			[0]
-
-* NSByteStoreFile::		[0]
 
 * NSCalendarDate::		[0]
 
