@@ -299,7 +299,8 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
       unsigned retain_count = [self retainCount];
       release_count = [autorelease_class autoreleaseCountForObject:self];
       if (release_count > retain_count)
-        [self error:"Autorelease would release object too many times."];
+        [self error:"Autorelease would release object too many times.\n"
+	  "%d release(s) versus %d retain(s)", release_count, retain_count];
     }
 
   [autorelease_class addObject:self];
