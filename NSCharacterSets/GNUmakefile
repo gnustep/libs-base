@@ -33,17 +33,19 @@ include ../config.mak
 charsetdir = $(GNUSTEP_RESOURCES)/gnustep/NSCharacterSets
 
 CHARSET_FILES = \
-alphanumCharSet.dat \
+alphanumericCharSet.dat \
 controlCharSet.dat \
-decimalCharSet.dat \
+decimalDigitCharSet.dat \
 decomposableCharSet.dat \
 illegalCharSet.dat \
-lettercharCharSet.dat \
-nonbaseCharSet.dat \
+letterCharSet.dat \
+lowercaseLetterCharSet.dat \
+nonBaseCharSet.dat \
 punctuationCharSet.dat \
-uppercaseCharSet.dat \
-whitespaceCharSet.dat \
-whitespaceandnlCharSet.dat
+symbolAndOperatorCharSet.dat \
+uppercaseLetterCharSet.dat \
+whitespaceAndNlCharSet.dat \
+whitespaceCharSet.dat
 
 RCS_FILES = GNUmakefile Makefile.postamble
 DIST_FILES = $(RCS_FILES) $(CHARSET_FILES) README.CharSet
