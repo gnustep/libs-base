@@ -309,9 +309,11 @@ compiler warning.
 @end
 
 /* Because the compiler thinks that @".." strings are NXConstantString's. */
-#include <Foundation/NSGString.h>
-#include <Foundation/NSGCString.h>
-@interface NXConstantString : NSGCString
+@interface NXConstantString : NSString
+{
+    char	*_contents_chars;
+    int		_count;
+}
 @end
 
 #endif /* __NSString_h_GNUSTEP_BASE_INCLUDE */
