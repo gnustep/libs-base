@@ -26,18 +26,29 @@
 #include	<Foundation/NSFileManager.h>
 #include	<Foundation/NSString.h>
 #include	<Foundation/NSProcessInfo.h>
+#include	<Foundation/NSData.h>
 #include	<Foundation/NSDebug.h>
 #include	<Foundation/NSAutoreleasePool.h>
-#include	<Foundation/NSArchiver.h>
+#include	<Foundation/NSSerialization.h>
 
 static void scanDirectory(NSMutableDictionary *services, NSString *path);
 static NSMutableArray *validateEntry(id svcs, NSString* path);
 static NSMutableDictionary *validateService(NSDictionary *service, NSString* path, unsigned i);
 
+static NSString		*cacheName = @".GNUstepServices";
+static NSString		*infoLoc = @"Resources/Info.plist";
+
+static	BOOL verbose = NO;
+static	NSMutableDictionary	*serviceMap;
+static	NSMutableDictionary	*filterMap;
+static	NSMutableDictionary	*printMap;
+static	NSMutableDictionary	*spellMap;
+
 int
 main(int argc, char** argv)
 {
   NSAutoreleasePool	*pool;
+  NSData		*data;
   NSProcessInfo		*proc;
   NSFileManager		*mgr;
   NSDictionary		*env;
@@ -49,7 +60,7 @@ main(int argc, char** argv)
   NSString		*str;
   unsigned		index;
   BOOL			isDir;
-  NSString		*cacheName = @".GNUstepServices";
+  NSMutableDictionary	*fullMap;
 
   pool = [NSAutoreleasePool new];
 
@@ -60,6 +71,11 @@ main(int argc, char** argv)
       [pool release];
       exit(0);
     }
+
+  serviceMap = [NSMutableDictionary dictionaryWithCapacity: 64];
+  filterMap = [NSMutableDictionary dictionaryWithCapacity: 66];
+  printMap = [NSMutableDictionary dictionaryWithCapacity: 8];
+  spellMap = [NSMutableDictionary dictionaryWithCapacity: 8];
 
   env = [proc environment];
   args = [proc arguments];
@@ -164,8 +180,16 @@ main(int argc, char** argv)
 	}
     }
 
+  fullMap = [NSMutableDictionary dictionaryWithCapacity: 5];
+  [fullMap setObject: services forKey: @"ByPath"];
+  [fullMap setObject: serviceMap forKey: @"ByService"];
+  [fullMap setObject: filterMap forKey: @"ByFilter"];
+  [fullMap setObject: printMap forKey: @"ByPrint"];
+  [fullMap setObject: spellMap forKey: @"BySpell"];
+
   str = [usrRoot stringByAppendingPathComponent: cacheName];
-  if ([NSArchiver archiveRootObject: services toFile: str] == NO)
+  data = [NSSerializer serializePropertyList: fullMap];
+  if ([data writeToFile: str atomically: YES] == NO)
     {
       NSLog(@"couldn't write %@\n", str);
       [pool release];
@@ -191,14 +215,15 @@ scanDirectory(NSMutableDictionary *services, NSString *path)
       BOOL	isDir;
 
 
-      if (ext != nil && [ext isEqualToString: @".app"])
+      if (ext != nil &&
+	  ([ext isEqualToString: @"app"] || [ext isEqualToString: @"debug"]))
 	{
 	  newPath = [path stringByAppendingPathComponent: name];
 	  if ([mgr fileExistsAtPath: newPath isDirectory: &isDir] && isDir)
 	    {
 	      NSString	*infPath;
 
-	      infPath = [newPath stringByAppendingPathComponent: @"Info.plist"];
+	      infPath = [newPath stringByAppendingPathComponent: infoLoc];
 	      if ([mgr fileExistsAtPath: infPath isDirectory: &isDir] && !isDir)
 		{
 		  NSDictionary	*info;
@@ -230,14 +255,14 @@ scanDirectory(NSMutableDictionary *services, NSString *path)
 	      NSLog(@"bad application - %@\n", newPath);
 	    }
 	}
-      else if (ext != nil && [ext isEqualToString: @".service"])
+      else if (ext != nil && [ext isEqualToString: @"service"])
 	{
 	  newPath = [path stringByAppendingPathComponent: name];
 	  if ([mgr fileExistsAtPath: newPath isDirectory: &isDir] && isDir)
 	    {
 	      NSString	*infPath;
 
-	      infPath = [newPath stringByAppendingPathComponent: @"Info.plist"];
+	      infPath = [newPath stringByAppendingPathComponent: infoLoc];
 	      if ([mgr fileExistsAtPath: infPath isDirectory: &isDir] && !isDir)
 		{
 		  NSDictionary	*info;
@@ -322,6 +347,7 @@ validateEntry(id svcs, NSString *path)
 		pos, path);
 	}
     }
+  return newServices;
 }
 
 static NSMutableDictionary*
@@ -451,10 +477,20 @@ validateService(NSDictionary *service, NSString *path, unsigned pos)
     }
 
   /*
+   *	Record in this service dictionary where it is to be found.
+   */
+  [result setObject: path forKey: @"ServicePath"];
+
+  /*
    *	Now check that we have the required fields for the service.
    */
   if ((obj = [result objectForKey: @"NSMessage"]) != nil)
     {
+      NSDictionary	*item;
+      NSEnumerator	*e;
+      NSString		*k;
+      BOOL		used = NO;
+
       if ([result objectForKey: @"NSPortName"] == nil)
 	{
 	  NSLog(@"NSServices entry %u NSPortName missing - %@\n", pos, path);
@@ -466,30 +502,168 @@ validateService(NSDictionary *service, NSString *path, unsigned pos)
 	  NSLog(@"NSServices entry %u types missing - %@\n", pos, path);
 	  return nil;
 	}
-      if ([result objectForKey: @"NSMenuItem"] == nil)
+      if ((item = [result objectForKey: @"NSMenuItem"]) == nil)
 	{
 	  NSLog(@"NSServices entry %u NSMenuItem missing - %@\n", pos, path);
 	  return nil;
 	}
+
+      /*
+       *	For each language, check to see if we already have a service
+       *	by this name - if so - we ignore this one.
+       */
+      e = [item keyEnumerator];
+      while ((k = [e nextObject]) != nil)
+	{
+	  NSString		*name = [item objectForKey: k];
+	  NSMutableDictionary	*names;
+
+	  names = [serviceMap objectForKey: k];
+	  if (names == nil)
+	    {
+	      names = [NSMutableDictionary dictionaryWithCapacity: 1];
+	      [serviceMap setObject: names forKey: k];
+	    }
+	  if ([names objectForKey: name] == nil)
+	    {
+	      [names setObject: result forKey: name];
+	      used = YES;
+	    }
+	}
+      if (used == NO)
+	{
+	  return nil;	/* Ignore - already got service with this name	*/
+	}
     }
   else if ((obj = [result objectForKey: @"NSFilter"]) != nil)
     {
-      if ([result objectForKey: @"NSSendTypes"] == nil ||
-	  [result objectForKey: @"NSReturnTypes"] == nil)
+      NSString	*str;
+      NSArray	*snd;
+      NSArray	*ret;
+      unsigned	spos;
+      BOOL	used = NO;
+
+      str = [result objectForKey: @"NSInputMechanism"];
+      if (str)
+	{
+	  if ([str isEqualToString: @"NSUnixStdio"] == NO &&
+	      [str isEqualToString: @"NSMapFile"] == NO &&
+	      [str isEqualToString: @"NSIdentity"] == NO)
+	  {
+	    NSLog(@"NSServices entry %u bad input mechanism - %@\n", pos, path);
+	    return nil;
+	  }
+	}
+
+      snd = [result objectForKey: @"NSSendTypes"];
+      ret = [result objectForKey: @"NSReturnTypes"];
+      if (snd == nil || ret == nil)
 	{
 	  NSLog(@"NSServices entry %u types missing - %@\n", pos, path);
 	  return nil;
 	}
+
+      /*
+       *	For each send-type/return-type combination, see if we
+       *	already have a filter - if so - ignore this one.
+       */
+      spos = [snd count];
+      while (spos-- > 0)
+	{
+	  NSString		*stype = [snd objectAtIndex: spos];
+	  NSMutableDictionary	*sdict = [filterMap objectForKey: stype];
+	  unsigned		rpos;
+
+	  if (sdict == nil)
+	    {
+	      sdict = [NSMutableDictionary dictionaryWithCapacity: [snd count]];
+	      [filterMap setObject: sdict forKey: stype];
+	    }
+	  rpos = [ret count];
+	  while (rpos-- > 0)
+	    {
+	      NSString			*rtype = [ret objectAtIndex: rpos];
+
+	      if ([sdict objectForKey: rtype] == nil)
+		{
+		  [sdict setObject: result forKey: rtype];
+		  used = YES;
+		}
+	    }
+	}
+      if (used == NO)
+	{
+	  return nil;	/* Ignore - already got filter for types.	*/
+	}
     }
   else if ((obj = [result objectForKey: @"NSPrintFilter"]) != nil)
     {
+      NSDictionary	*item;
+      NSEnumerator	*e;
+      NSString		*k;
+      BOOL		used = NO;
+
+      if ((item = [result objectForKey: @"NSMenuItem"]) == nil)
+	{
+	  NSLog(@"NSServices entry %u NSMenuItem missing - %@\n", pos, path);
+	  return nil;
+	}
+      /*
+       *	For each language, check to see if we already have a print
+       *	filter by this name - if so - we ignore this one.
+       */
+      e = [item keyEnumerator];
+      while ((k = [e nextObject]) != nil)
+	{
+	  NSString		*name = [item objectForKey: k];
+	  NSMutableDictionary	*names;
+
+	  names = [printMap objectForKey: k];
+	  if (names == nil)
+	    {
+	      names = [NSMutableDictionary dictionaryWithCapacity: 1];
+	      [printMap setObject: names forKey: k];
+	    }
+	  if ([names objectForKey: name] == nil)
+	    {
+	      [names setObject: result forKey: name];
+	      used = YES;
+	    }
+	}
+      if (used == NO)
+	{
+	  return nil;	/* Ignore - already got filter with this name	*/
+	}
     }
   else if ((obj = [result objectForKey: @"NSSpellChecker"]) != nil)
     {
-      if ([result objectForKey: @"NSLanguages"] == nil)
+      NSArray	*item;
+      unsigned	pos;
+      BOOL	used = NO;
+
+      if ((item = [result objectForKey: @"NSLanguages"]) == nil)
 	{
 	  NSLog(@"NSServices entry %u NSLanguages missing - %@\n", pos, path);
 	  return nil;
+	}
+      /*
+       *	For each language, check to see if we already have a spell
+       *	checker by this name - if so - we ignore this one.
+       */
+      pos = [item count];
+      while (pos-- > 0)
+	{
+	  NSString	*lang = [item objectAtIndex: pos];
+
+	  if ([spellMap objectForKey: lang] == nil)
+	    {
+	      [spellMap setObject: result forKey: lang];
+	      used = YES;
+	    }
+	}
+      if (used == NO)
+	{
+	  return nil;	/* Ignore - already got speller with language.	*/
 	}
     }
   else
