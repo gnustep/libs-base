@@ -1,5 +1,5 @@
 /* Concrete implementation of NSCountedSet based on GNU Bag class
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Created: Sep 1995
@@ -49,11 +49,7 @@
 
 - nextObject
 {
-  elt e;
-  if ([bag getNextElement:&e withEnumState:&enum_state])
-    return e.id_u;
-  else
-    return nil;
+  return [bag nextObjectWithEnumState: &enum_state];
 }
 
 - (void) dealloc
@@ -90,19 +86,9 @@
 	  autorelease];
 }
 
-- (void) addObject: anObject
-{
-  [self addElement:anObject];
-}
-
-- (void) removeObject: anObject
-{
-  [self removeElement:anObject];
-}
-
 - (unsigned int) countForObject: anObject
 {
-  return [self occurrencesOfElement:anObject];
+  return [self occurrencesOfObject: anObject];
 }
 
 /* To deal with behavior over-enthusiasm.  Will be fixed later. */

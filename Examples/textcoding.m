@@ -6,44 +6,35 @@
 
 #include <objects/Archiver.h>
 #include <objects/TextCStream.h>
-#include <objects/Set.h>
-#include <objects/EltNodeCollector.h>
-#include <objects/LinkedList.h>
-#include <objects/LinkedListEltNode.h>
+#include <objects/Array.h>
+#include <objects/Dictionary.h>
 #include <objects/NSString.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSValue.h>
 
 int main()
 {
-  id set, ll;
+  id array, dictionary;
   id archiver;
   id name;
   id arp;
-  
+  int i;
+
+  [NSObject enableDoubleReleaseCheck: YES];
   arp = [[NSAutoreleasePool alloc] init];
 
-  /* Create a Set of int's
-     and a LinkedList of float's */
-  set = [[Set alloc] initWithType:@encode(int)];
-  ll = [[EltNodeCollector alloc] initWithType:@encode(float)
-	nodeCollector:[[LinkedList alloc] init]
-	nodeClass:[LinkedListEltNode class]];
+  /* Create an Array and Dictionary */
+  array = [Array new];
+  dictionary = [Dictionary new];
 
-  /* Populate the Set and display it */
-  [set addElement:1234567];
-  [set addElement:2345678];
-  [set addElement:3456789];
-  [set addElement:4567891];
-  [set addElement:5678912];
-  [set printForDebugger];
-
-  /* Populate the LinkedList and display it */
-  [ll addElement:1.2f];
-  [ll addElement:(float)3.4];
-  [ll addElement:(float)5.6];
-  [ll addElement:(float)7.8];
-  [ll addElement:(float)9.0];
-  [ll printForDebugger];
+  for (i = 0; i < 6; i++)
+    {
+      [array addObject: [NSNumber numberWithInt: i]];
+      [dictionary putObject: [NSNumber numberWithInt: i] 
+		  atKey: [NSNumber numberWithInt: i*i]];
+    }
+  [array printForDebugger];
+  [dictionary printForDebugger];
 
   /* Write them to a file */
 
@@ -52,12 +43,14 @@ int main()
      coding. */
   archiver = [[Archiver alloc] initForWritingToFile: @"./textcoding.txt"
 	    withCStreamClass: [TextCStream class]];
-  [archiver encodeObject:set withName:@"Test Set"];
-  [archiver encodeObject:ll withName:@"Test EltNodeCollector LinkedList"];
+  [archiver encodeObject: array 
+	    withName:@"Test Array"];
+  [archiver encodeObject: dictionary
+	    withName:@"Test Dictionary"];
 
   /* Release the objects that were coded */
-  [set release];
-  [ll release];
+  [array release];
+  [dictionary release];
 
   /* Close the archiver, (and thus flush the stream); then release it.
      We must separate the idea of "closing" a stream and
@@ -72,21 +65,21 @@ int main()
   /* First create the unarchiver */
   archiver = [Unarchiver newReadingFromFile: @"./textcoding.txt"];
 
-  /* Read in the Set */
-  [archiver decodeObjectAt:&set withName:&name];
+  /* Read in the Array */
+  [archiver decodeObjectAt: &array withName: &name];
   printf("got object named %@\n", name);
 
-  /* Read in the LinkedList */
-  [archiver decodeObjectAt:&ll withName:&name];
+  /* Read in the Dictionary */
+  [archiver decodeObjectAt: &dictionary withName: &name];
   printf("got object named %@\n", name);
 
   /* Display what we read, to make sure it matches what we wrote */
-  [set printForDebugger];
-  [ll printForDebugger];
+  [array printForDebugger];
+  [dictionary printForDebugger];
 
   /* Relase the objects we read */
-  [set release];
-  [ll release];
+  [array release];
+  [dictionary release];
 
   /* Release the unarchiver. */
   [archiver release];

@@ -24,13 +24,61 @@
 #include <objects/Array.h>
 #include <objects/ArrayPrivate.h>
 #include <objects/NSString.h>
+#include <objects/OrderedCollection.h>
+
+@implementation ConstantArray
+
+/* This is the designated initializer of this class */
+- initWithObjects: (id*)objs count: (unsigned)c
+{
+  _count = c;
+  OBJC_MALLOC(_contents_array, id, _count);
+  while (c--)
+    _contents_array[c] = objs[c];
+  return self;
+}
+
+/* Empty copy must empty an allocCopy'ed version of self */
+- emptyCopy
+{
+  Array *copy = [super emptyCopy];
+  copy->_count = 0;
+  OBJC_MALLOC(copy->_contents_array, id, copy->_capacity);
+  return copy;
+}
+
+- (void) _collectionDealloc
+{
+  OBJC_FREE(_contents_array);
+  [super _collectionDealloc];
+}
+
+
+// GETTING ELEMENTS BY INDEX;
+
+- objectAtIndex: (unsigned)index
+{
+  CHECK_INDEX_RANGE_ERROR(index, _count);
+  return _contents_array[index];
+}
+
+
+// TESTING;
+
+- (unsigned) count
+{
+  return _count;
+}
+
+@end
+
 
 @implementation Array
 
 + (void) initialize
 {
   if (self == [Array class])
-    [self setVersion:0];	/* beta release */
+    class_add_behavior (self, [OrderedCollection class]);
 }
 
 // MANAGING CAPACITY;
@@ -47,17 +95,14 @@
 {
   return DEFAULT_ARRAY_GROW_FACTOR;
 }
-  
-/* This is the designated initializer of this class */
-- initWithType: (const char *)contentEncoding
-    capacity: (unsigned)aCapacity
+
+/* This is the designated initializer for this class */
+- initWithCapacity: (unsigned)aCapacity
 {
-  [super initWithType:contentEncoding];
-  _comparison_function = elt_get_comparison_function(contentEncoding);
   _grow_factor = [[self class] defaultGrowFactor];
   _count = 0;
   _capacity = (aCapacity < 1) ? 1 : aCapacity;
-  OBJC_MALLOC(_contents_array, elt, _capacity);
+  OBJC_MALLOC(_contents_array, id, _capacity);
   return self;
 }
 
@@ -65,12 +110,7 @@
 
 - (void) _encodeCollectionWithCoder: (id <Encoding>)coder
 {
-  const char *encoding = [self contentType];
-
   [super _encodeCollectionWithCoder:coder];
-  [coder encodeValueOfCType:@encode(char*)
-	 at:&encoding
-	 withName:@"Array Encoding Type"];
   [coder encodeValueOfCType:@encode(unsigned)
 	 at:&_grow_factor
 	 withName:@"Array Grow Factor"];
@@ -81,12 +121,7 @@
 
 - _initCollectionWithCoder: (id <Decoding>)coder
 {
-  char *encoding;
   [super _initCollectionWithCoder:coder];
-  [coder decodeValueOfCType:@encode(char*)
-	 at:&encoding
-	 withName:NULL];
-  _comparison_function = elt_get_comparison_function(encoding);
   [coder decodeValueOfCType:@encode(unsigned)
 	 at:&_grow_factor
 	 withName:NULL];
@@ -94,76 +129,23 @@
   [coder decodeValueOfCType:@encode(unsigned)
 	 at:&_capacity
 	 withName:NULL];
-  OBJC_MALLOC(_contents_array, elt, _capacity);
+  OBJC_MALLOC(_contents_array, id, _capacity);
   return self;
 }
 
-- _writeInit: (TypedStream*)aStream
+/* Override superclass' designated initializer to call ours */
+- initWithObjects: (id*)objs count: (unsigned)c
 {
-  const char *encoding = [self contentType];
-
-  [super _writeInit: aStream];
-  // This implicitly archives the _comparison_function;
-  objc_write_type(aStream, @encode(char*), &encoding);
-  objc_write_type(aStream, @encode(unsigned int), &_grow_factor);
-  objc_write_type(aStream, @encode(unsigned int), &_capacity);
-  return self;
-}
-
-- _readInit: (TypedStream*)aStream
-{
-  char *encoding;
-
-  [super _readInit: aStream];
-  objc_read_type(aStream, @encode(char*), &encoding);
-  _comparison_function = elt_get_comparison_function(encoding);
-  objc_read_type(aStream, @encode(unsigned int), &_grow_factor);
-  _count = 0;
-  objc_read_type(aStream, @encode(unsigned int), &_capacity);
-  OBJC_MALLOC(_contents_array, elt, _capacity);
-  return self;
-}
-
-/* Empty copy must empty an allocCopy'ed version of self */
-- emptyCopy
-{
-  Array *copy = [super emptyCopy];
-  copy->_count = 0;
-  OBJC_MALLOC(copy->_contents_array, elt, copy->_capacity);
-  return copy;
+  int i;
+  [self initWithCapacity: c];
+  for (i = 0; i < c; i++)
+    [self insertObject: objs[i] atIndex:i]; // xxx this most efficient method?
 }
 
 /* This must work without sending any messages to content objects */
-- _empty
+- (void) _empty
 {
   _count = 0;
-  return self;
-}
-
-- (void) _collectionDealloc
-{
-  OBJC_FREE(_contents_array);
-  [super _collectionDealloc];
-}
-
-- initWithContentsOf: (id <Collecting>)aCollection
-{
-  [self initWithType:[aCollection contentType]
-	capacity:[aCollection count]];
-  [self addContentsOf:aCollection];
-  return self;
-}
-
-- initWithCapacity: (unsigned)aCapacity
-{
-  return [self initWithType:@encode(id) capacity:aCapacity];
-}
-
-/* Catch designated initializer for IndexedCollection */
-- initWithType: (const char *)contentEncoding
-{
-  return [self initWithType:contentEncoding
-	       capacity:[[self class] defaultCapacity]];
 }
 
 // MANAGING CAPACITY;
@@ -171,13 +153,12 @@
 /* This is the only method that changes the value of the instance
    variable _capacity, except for "-initDescription:capacity:" */
 
-- setCapacity: (unsigned)newCapacity
+- (void) setCapacity: (unsigned)newCapacity
 {
   if (newCapacity > _count) {
     _capacity = newCapacity;
-    OBJC_REALLOC(_contents_array, elt, _capacity);
+    OBJC_REALLOC(_contents_array, id, _capacity);
   }
-  return self;
 }
 
 - (unsigned) growFactor
@@ -185,109 +166,73 @@
   return _grow_factor;
 }
 
-- setGrowFactor: (unsigned)aNum;
+- (void) setGrowFactor: (unsigned)aNum;
 {
   _grow_factor = aNum;
-  return self;
 }
 
+
 // ADDING;
 
-- appendElement: (elt)newElement
+- (void) appendObject: newObject
 {
   incrementCount(self);
-  RETAIN_ELT(newElement);
-  _contents_array[_count-1] = newElement;
-  return self;
+  [newObject retain];
+  _contents_array[_count-1] = newObject;
 }
 
-- prependElement: (elt)newElement
+- (void) prependObject: newObject
 {
   incrementCount(self);
-  RETAIN_ELT(newElement);
+  [newObject retain];
   makeHoleAt(self, 0);
-  _contents_array[0] = newElement;
-  return self;
+  _contents_array[0] = newObject;
 }
 
-- insertElement: (elt)newElement atIndex: (unsigned)index
+- (void) insertObject: newObject atIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
   incrementCount(self);
-  RETAIN_ELT(newElement);
+  [newObject retain];
   makeHoleAt(self, index);
-  _contents_array[index] = newElement;
-  return self;
+  _contents_array[index] = newObject;
 }
 
-
+
 // REMOVING, REPLACING AND SWAPPING;
 
-- (elt) removeElementAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (unsigned)index
 {
-  elt ret;
-
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  ret = _contents_array[index];
+  [_contents_array[index] release];
   fillHoleAt(self, index);
   decrementCount(self);
-  return AUTORELEASE_ELT(ret);
 }
   
 /* We could be more efficient if we override these also.
-   - (elt) removeFirstElement
-   - (elt) removeLastElement; */
+   - removeFirstObject
+   - removeLastObject; 
+   If you do, remember, you will have to implement this methods
+   in GapArray also! */
 
 
-- (elt) replaceElementAtIndex: (unsigned)index with: (elt)newElement
+- (void) replaceObjectAtIndex: (unsigned)index withObject: newObject
 {
-  elt ret;
-
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  RETAIN_ELT(newElement);
-  ret = _contents_array[index];
-  _contents_array[index] = newElement;
-  return AUTORELEASE_ELT(ret);
+  [newObject retain];
+  [_contents_array[index] release];
+  _contents_array[index] = newObject;
 }
 
-- swapAtIndeces: (unsigned)index1 : (unsigned)index2
+- (void) swapAtIndeces: (unsigned)index1 : (unsigned)index2
 {
-  elt tmp;
+  id tmp;
 
   CHECK_INDEX_RANGE_ERROR(index1, _count);
   CHECK_INDEX_RANGE_ERROR(index2, _count);
   tmp = _contents_array[index1];
   _contents_array[index1] = _contents_array[index2];
   _contents_array[index2] = tmp;
-  return self;
 }
-
-
-// GETTING ELEMENTS BY INDEX;
-
-- (elt) elementAtIndex: (unsigned)index
-{
-  CHECK_INDEX_RANGE_ERROR(index, _count);
-  return _contents_array[index];
-}
-
-// TESTING;
-
-- (int(*)(elt,elt)) comparisonFunction
-{
-  return _comparison_function;
-}
-
-- (const char *) contentType
-{
-  return elt_get_encoding(_comparison_function);
-}
-
-- (unsigned) count
-{
-  return _count;
-}
-
+  
 @end
-
-

@@ -1,8 +1,8 @@
 /* Implementation for GNU Objective-C MutableCString object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: January 1995
+   Created: January 1995
 
    This file is part of the GNU Objective C Class Library.
 
@@ -71,7 +71,6 @@ stringDecrementCountAndFillHoleAt(MutableCStringStruct *self,
 /* This is the designated initializer for this class */
 - initWithCapacity: (unsigned)capacity
 {
-  [super initWithType:@encode(char)];
   _count = 0;
   _capacity = capacity;
   OBJC_MALLOC(_contents_chars, char, _capacity+1);
@@ -89,11 +88,10 @@ stringDecrementCountAndFillHoleAt(MutableCStringStruct *self,
 
 /* xxx This should be made to return void, but we need to change
    IndexedCollecting and its conformers */
-- removeRange: (IndexRange)range
+- (void) removeRange: (IndexRange)range
 {
   stringDecrementCountAndFillHoleAt((MutableCStringStruct*)self, 
 				    range.location, range.length);
-  return self;
 }
 
 - (void) insertString: (String*)string atIndex: (unsigned)index
@@ -166,6 +164,7 @@ stringDecrementCountAndFillHoleAt(MutableCStringStruct *self,
   return _contents_chars[index];
 }
 
+#if 0
 /* For IndexedCollecting protocol */
 
 - insertElement: (elt)newElement atIndex: (unsigned)index
@@ -201,5 +200,7 @@ stringDecrementCountAndFillHoleAt(MutableCStringStruct *self,
   ret_elt.char_u = _contents_chars[index];
   return ret_elt;
 }
+
+#endif
 
 @end

@@ -37,6 +37,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCharacterSet.h>
+#include <Foundation/NSValue.h>
 #include <objects/IndexedCollection.h>
 #include <objects/IndexedCollectionPrivate.h>
 #include <objects/String.h>
@@ -953,12 +954,10 @@ handle_printf_atsign (FILE *stream,
 
 @implementation NSString (GNU)
 
-- (elt) elementAtIndex: (unsigned)index
+- objectAtIndex: (unsigned)index
 {
-  elt ret_elt;
   CHECK_INDEX_RANGE_ERROR(index, [self cStringLength]);
-  ret_elt.char_u = [self _cStringContents][index];
-  return ret_elt;
+  return [NSNumber numberWithChar: [self _cStringContents][index]];
 }
 
 /* The rest are handled by the class_add_behavior() call in +initialize. */

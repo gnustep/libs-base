@@ -52,7 +52,7 @@
     if (objects[i] == nil)
       [NSException raise:NSInvalidArgumentException
 		   format:@"Tried to add nil"];
-  [self initWithType: @encode(id) capacity: count];
+  [self initWithCapacity: count];
   while (count--)
     [self addObject: [objects[count] retain]];
   return self;
@@ -69,7 +69,7 @@
   if (index >= self->_count)
     [NSException raise: NSRangeException
 		 format: @"Index out of bounds"];
-  return self->_contents_array[index].id_u;
+  return self->_contents_array[index];
 }
 
 
@@ -88,12 +88,8 @@
     }
 }
 
-- initWithCapacity: (unsigned)numItems
-{
-  return [self initWithType: @encode(id) capacity: numItems];
-}
-
 /* Comes in from Array behavior 
+   - initWithCapacity:
    - (void) addObject: anObject
    - (void) insertObject: anObject atIndex: (unsigned)index
    */

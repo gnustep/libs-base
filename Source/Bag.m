@@ -1,8 +1,8 @@
 /* Implementation for Objective-C Bag collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -24,33 +24,55 @@
 #include <objects/Bag.h>
 #include <objects/CollectionPrivate.h>
 
+#define DEFAULT_BAG_CAPACITY 32
+
 @implementation Bag
 
-+ (void) initialize
-{
-  if (self == [Bag class])
-    [self setVersion:0];	/* beta release */
-}
+// MANAGING CAPACITY;
 
+/* Eventually we will want to have better capacity management,
+   potentially keep default capacity as a class variable. */
+
++ (unsigned) defaultCapacity
+{
+  return DEFAULT_BAG_CAPACITY;
+}
+  
 // INITIALIZING AND FREEING;
 
 /* This is the designated initializer of this class */
 /* Override designated initializer of superclass */
-- initWithType: (const char *)contentEncoding
-    capacity: (unsigned)aCapacity
+- initWithCapacity: (unsigned)cap
 {
-  [super initWithType:contentEncoding
-	 capacity:aCapacity];
+  _contents_map = NSCreateMapTable (NSObjectMapKeyCallBacks,
+				    NSIntMapValueCallBacks,
+				    cap);
   _count = 0;
   return self;
 }
 
+/* Override Collection's designated initializer */
+- initWithObjects: (id*)objs count: (unsigned)count
+{
+  [self initWithCapacity: count];
+  while (count--)
+    [self addObject: objs[count]];
+  return self;
+}
+
+
 /* Archiving must mimic the above designated initializer */
 
-- _readInit: (TypedStream*)aStream
+/* Archiving must mimic the above designated initializer */
+
+- (void) encodeWithCoder: anEncoder
 {
-  [super _readInit:aStream];
-  _count = 0;
+  [self notImplemented:_cmd];
+}
+
+- initWithCoder: aDecoder
+{
+  [self notImplemented:_cmd];
   return self;
 }
 
@@ -58,94 +80,70 @@
 - emptyCopy
 {
   Bag *copy = [super emptyCopy];
+  copy->_contents_map = NSCreateMapTable (NSObjectMapKeyCallBacks,
+					  NSIntMapValueCallBacks,
+					  0);
   copy->_count = 0;
   return copy;
 }
 
-/* This must work without sending any messages to content objects */
-- _empty
+- (void) dealloc
 {
-  coll_hash_empty(_contents_hash);
+  NSFreeMapTable (_contents_map);
+  [super _collectionDealloc];
+}
+
+/* This must work without sending any messages to content objects */
+- (void) _collectionEmpty
+{
+  NSResetMapTable (_contents_map);
   _count = 0;
-  return self;
 }
 
 // ADDING;
 
-- addElement: (elt)newElement withOccurrences: (unsigned)count
+- (void) addObject: newObject withOccurrences: (unsigned)count
 {
-  coll_node_ptr node = 
-    coll_hash_node_for_key(_contents_hash, newElement);
-  if (node)
-    node->value.unsigned_int_u += count;
-  else
-    coll_hash_add(&_contents_hash, newElement, count);
+  unsigned new_count = (unsigned) NSMapGet (_contents_map, newObject);
+  new_count += count;
+  NSMapInsert (_contents_map, newObject, (void*)new_count);
   _count += count;
-  while (count--)
-    RETAIN_ELT(newElement);
-  return self;
 }
 
-- addElement: (elt)newElement
+- (void) addObject: newObject
 {
-  return [self addElement:newElement withOccurrences:1];
+  [self addObject: newObject withOccurrences: 1];
 }
 
 
 // REMOVING AND REPLACING;
 
-- (elt) removeElement:(elt)oldElement occurrences: (unsigned)count
+- (void) removeObject: oldObject occurrences: (unsigned)count
 {
-  elt err(arglist_t argFrame)
+  unsigned c = (unsigned) NSMapGet (_contents_map, oldObject);
+  if (c)
     {
-      return ELEMENT_NOT_FOUND_ERROR(oldElement);
+      if (c <= count)
+	{
+	  NSMapRemove (_contents_map, oldObject);
+	  _count -= c;
+	}
+      else
+	{
+	  NSMapInsert (_contents_map, oldObject, (void*)(c - count));
+	  _count -= count;
+	}
     }
-  return [self removeElement:oldElement occurrences:count
-	       ifAbsentCall:err];
 }
 
-- (elt) removeElement:(elt)oldElement occurrences: (unsigned)count
-    ifAbsentCall: (elt(*)(arglist_t))excFunc
+- (void) removeObject: oldObject
 {
-  coll_node_ptr node = 
-    coll_hash_node_for_key(_contents_hash, oldElement);
-  if (!node || node->value.unsigned_int_u < count)
-    {
-      RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-    }
-  if (node->value.unsigned_int_u > count)
-    {
-      (node->value.unsigned_int_u) -= count;
-    }
-  else /* (node->value.unsigned_int_u == count) */
-    {
-      coll_hash_remove(_contents_hash, oldElement);
-    }
-  _count -= count;
-  while (count-- > 0)
-    RELEASE_ELT(oldElement);
-  return AUTORELEASE_ELT(oldElement);
+  [self removeObject: oldObject occurrences:1];
 }
 
-- (elt) removeElement: (elt)oldElement ifAbsentCall: (elt(*)(arglist_t))excFunc
+- (void) uniqueContents
 {
-  return [self removeElement:oldElement occurrences:1 ifAbsentCall:excFunc];
-}
-
-- uniqueContents
-{
-  void *state = 0;
-  coll_node_ptr node = 0;
-
-  _count = 0;
-  while ((node = coll_hash_next(_contents_hash, &state)))
-    {
-      while ((node->value.unsigned_int_u)-- > 0)
-	RELEASE_ELT(node->key);
-      node->value.unsigned_int_u = 1;
-      _count++;
-    }
-  return self;
+  [self notImplemented: _cmd];
 }
 
 
@@ -158,18 +156,12 @@
 
 - (unsigned) uniqueCount
 {
-  return _contents_hash->used;
+  return NSCountMapTable (_contents_map);
 }
 
-- (unsigned) occurrencesOfElement: (elt)anElement
+- (unsigned) occurrencesOfObject: anObject
 {
-  coll_node_ptr node = 
-    coll_hash_node_for_key(_contents_hash, anElement);
-
-  if (node)
-    return node->value.unsigned_int_u;
-  else
-    return 0;
+  return (unsigned) NSMapGet (_contents_map, anObject);
 }
 
 
@@ -177,34 +169,22 @@
 
 struct BagEnumState
 {
-  void *state;
-  coll_node_ptr node;
+  NSMapEnumerator me;
+  id object;
   unsigned count;
 };
 
 #define ES ((struct BagEnumState *) *enumState)
 
-- (BOOL) getNextElement:(elt *)anElementPtr withEnumState: (void**)enumState
+- nextObjectWithEnumState: (void**)enumState
 {
-  if (!(*enumState))
-    {
-    }
-  else if (ES->count >= ES->node->value.unsigned_int_u)
-    {
-      /* time to get the next different element */
-      ES->node = coll_hash_next(_contents_hash, &(ES->state));
-      ES->count = 0;
-    }
-  if (!(ES->node))
-    {
-      /* at end of enumeration */
-      OBJC_FREE(*enumState);
-      *enumState = 0;
-      return NO;
-    }
-  *anElementPtr = ES->node->key;
-  (ES->count)++;
-  return YES;
+  if (!(ES->count))
+    if (!NSNextMapEnumeratorPair (&(ES->me), 
+				  (void**) &(ES->object), 
+				  (void**) &(ES->count)))
+      return NO_OBJECT;
+  ES->count--;
+  return ES->object;
 }  
 
 - (void*) newEnumState
@@ -213,81 +193,16 @@ struct BagEnumState
   void *vp;
   void **enumState = &vp;
   OBJC_MALLOC(*enumState, struct BagEnumState, 1);
-  ES->state = 0;
-  ES->node = coll_hash_next(_contents_hash, &(ES->state));
+  ES->me = NSEnumerateMapTable (_contents_map);
+  ES->object = nil;
   ES->count = 0;
   return vp;
 }
 
-- freeEnumState: (void**)enumState
+- (void) freeEnumState: (void**)enumState
 {
   if (*enumState)
     OBJC_FREE(*enumState);
-  return self;
-}
-
-- withElementsCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag
-{
-  int i;
-  void *state = 0;
-  coll_node_ptr node;
-
-  while ((node = coll_hash_next(_contents_hash, &state)))
-    {
-      for (i = 0; i < node->value.unsigned_int_u; i++) 
-	{
-	  if (!(*flag))
-	    return self;
-	  (*aFunc)(node->key);
-	}
-    }
-  return self;
-}
-
-- withElementsCall: (void(*)(elt))aFunc
-{
-  int i;
-  void *state = 0;
-  coll_node_ptr node;
-  int test = 0;
-
-  while ((node = coll_hash_next(_contents_hash, &state)))
-    {
-      test++;
-      for (i = 0; i < node->value.unsigned_int_u; i++) 
-	{
-	  (*aFunc)(node->key);
-	}
-    }
-  return self;
-}
-
-
-// OBJECT-COMPATIBLE MESSAGE NAMES;
-
-- addObject: newObject withOccurrences: (unsigned)count
-{
-  return [self addElement:newObject withOccurrences:count];
-}
-
-- removeObject: oldObject occurrences: (unsigned)count
-{
-  id err(arglist_t argFrame)
-    {
-      return ELEMENT_NOT_FOUND_ERROR(oldObject);
-    }
-  return [self removeObject:oldObject occurrences:count ifAbsentCall:err];
-}
-
-- removeObject: oldObject occurrences: (unsigned)count
-    ifAbsentCall: (id(*)(arglist_t))excFunc
-{
-  elt elt_exc(arglist_t argFrame)
-    {
-      RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-    }
-  return [self removeElement:oldObject occurrences:count
-	       ifAbsentCall:elt_exc].id_u;
 }
 
 @end

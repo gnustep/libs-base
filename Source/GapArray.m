@@ -1,8 +1,10 @@
 /* Implementation for Objective-C GapArray collection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Kresten Krab Thorup <krab@iesd.auc.dk>
    Dept. of Mathematics and Computer Science, Aalborg U., Denmark
+
+   Overhauled by: R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
 
    This file is part of the GNU Objective C Class Library.
 
@@ -27,19 +29,11 @@
 
 @implementation GapArray
 
-+ (void) initialize
-{
-  if (self == [GapArray class])
-    [self setVersion:0];	/* beta release */
-}
-
 /* This is the designated initializer of this class */
 /* Override designated initializer of superclass */
-- initWithType: (const char *)contentEncoding
-    capacity: (unsigned)aCapacity
+- initWithCapacity: (unsigned)aCapacity
 {
-  [super initWithType:contentEncoding
-	 capacity:aCapacity];
+  [super initWithCapacity: aCapacity];
   _gap_start = 0;
   _gap_size  = aCapacity;
   return self;
@@ -58,14 +52,6 @@
   return self;
 }
 
-- _readInit: (TypedStream*)aStream
-{
-  [super _readInit: aStream];
-  _gap_start = 0;
-  _gap_size = _capacity;
-  return self;
-}
-
 /* Empty copy must empty an allocCopy'ed version of self */
 
 - emptyCopy
@@ -76,15 +62,14 @@
   return copy;
 }
 
-- _empty
+- (void) _collectionEmpty
 {
-  [super _empty];
+  [super _collectionEmpty];
   _gap_start = 0;
   _gap_size = _capacity;
-  return self;
 }
 
-- setCapacity: (unsigned)newCapacity
+- (void) setCapacity: (unsigned)newCapacity
 {
   if (newCapacity > _count)
     {
@@ -92,80 +77,58 @@
       [super setCapacity: newCapacity];	/* resize */
       _gap_size = _capacity - _gap_start;
     }
-  return self;
 }
       
-- (elt) removeElementAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (unsigned)index
 {
-  elt res;
-
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  res = _contents_array[GAP_TO_BASIC (index)];
+  [_contents_array[GAP_TO_BASIC (index)] release];
   gapFillHoleAt (self, index);
   decrementCount(self);
-  return AUTORELEASE_ELT(res);
 }
 
-- (elt) removeFirstElement
-{
-  elt res = _contents_array[GAP_TO_BASIC (0)];
-  gapFillHoleAt (self, 0);
-  decrementCount(self);
-  return AUTORELEASE_ELT(res);
-}
-
-- (elt) removeLastElement
-{
-  return [self removeElementAtIndex: _count-1];
-}
-
-- (elt) elementAtIndex: (unsigned)index
+- objectAtIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
   return _contents_array[GAP_TO_BASIC(index)];
 }
 
-- appendElement: (elt)newElement
+- (void) appendObject: newObject
 {
   incrementCount(self);
-  RETAIN_ELT(newElement);
+  [newObject retain];
   gapMakeHoleAt (self, _count-1);
-  _contents_array[_count-1] = newElement;
-  return self;
+  _contents_array[_count-1] = newObject;
 }
 
-- prependElement: (elt)newElement
+- (void) prependObject: newObject
 {
   incrementCount(self);
+  [newObject retain];
   gapMakeHoleAt (self, 0);
-  _contents_array[0] = newElement;
-  return self;
+  _contents_array[0] = newObject;
 }
 
-- insertElement: (elt)newElement atIndex: (unsigned)index
+- (void) insertObject: newObject atIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
   incrementCount(self);
-  RETAIN_ELT(newElement);
+  [newObject retain];
   gapMakeHoleAt (self, index);
-  _contents_array[index] = newElement;
-  return self;
+  _contents_array[index] = newObject;
 }
 
-- (elt) replaceElementAtIndex: (unsigned)index with: (elt)newElement
+- (void) replaceObjectAtIndex: (unsigned)index withObject: newObject
 {
-  elt ret;
-
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  RETAIN_ELT(newElement);
-  ret = _contents_array[GAP_TO_BASIC(index)];
-  _contents_array[GAP_TO_BASIC(index)] = newElement;
-  return AUTORELEASE_ELT(ret);
+  [newObject retain];
+  [_contents_array[GAP_TO_BASIC(index)] release];
+  _contents_array[GAP_TO_BASIC(index)] = newObject;
 }
 
-- swapAtIndeces: (unsigned)index1 : (unsigned)index2
+- (void) swapAtIndeces: (unsigned)index1 : (unsigned)index2
 {
-  elt tmp;
+  id tmp;
 
   CHECK_INDEX_RANGE_ERROR(index1, _count);
   CHECK_INDEX_RANGE_ERROR(index2, _count);
@@ -174,7 +137,6 @@
   tmp = _contents_array[index1];
   _contents_array[index1] = _contents_array[index2];
   _contents_array[index2] = tmp;
-  return self;
 }
 
 @end
