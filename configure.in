@@ -350,13 +350,15 @@ esac
 AC_SUBST(whole_archive)
 AC_SUBST(no_whole_archive)
 
+AC_CONFIG_SUBDIRS(src/mframe)
+
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
 AC_OUTPUT(config.mak)
 
-echo "Running 'configure' in src/mframe"
-(cd src/mframe; ./configure)
+#echo "Running 'configure' in src/mframe"
+#(cd src/mframe; ./configure)
 
 dnl Local Variables:
 dnl comment-start: "dnl "
