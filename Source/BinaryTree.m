@@ -53,8 +53,13 @@ static id nilBinaryTreeNode;
 
 /* Archiving must mimic the above designated initializer */
 
+/* xxx See Collection _decodeContentsWithCoder:.
+   We shouldn't do an -addElement.  finishEncodingInterconnectedObjects
+   should take care of all that. */
+
 - _initCollectionWithCoder: aCoder
 {
+  [self notImplemented:_cmd];
   [super _initCollectionWithCoder:aCoder];
   _count = 0;
   _contents_root = [self nilNode];
