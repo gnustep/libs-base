@@ -1978,7 +1978,10 @@ static NSString	*endMarker = @"At end of incremental parse";
   int	newVal = (yesno == YES) ? 1 : 0;
 
   xmlGetFeature((xmlParserCtxtPtr)lib, "substitute entities", (void*)&oldVal);
-  xmlSetFeature((xmlParserCtxtPtr)lib, "substitute entities", (void*)&newVal);
+  if (xmlSetFeature((xmlParserCtxtPtr)lib, "substitute entities",
+    (void*)&newVal) < 0)
+    [NSException raise: NSInternalInconsistencyException
+		format: @"Unable to set substituteEntities"];
   return (oldVal == 1) ? YES : NO;
 }
 
