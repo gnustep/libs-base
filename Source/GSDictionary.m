@@ -215,14 +215,25 @@ static SEL	objSel;
       NSEnumerator	*e = [other keyEnumerator];
       IMP		nxtObj = [e methodForSelector: nxtSel];
       IMP		otherObj = [other methodForSelector: objSel];
+      BOOL		isProxy = [other isProxy];
       unsigned		i;
 
       for (i = 0; i < c; i++)
 	{
 	  GSIMapNode	node;
-	  id		k = (*nxtObj)(e, nxtSel);
-	  id		o = (*otherObj)(other, objSel, k);
+	  id		k;
+	  id		o;
 
+	  if (isProxy == YES)
+	    {
+	      k = [e nextObject];
+	      o = [other objectForKey: k];
+	    }
+	  else
+	    {
+	      k = (*nxtObj)(e, nxtSel);
+	      o = (*otherObj)(other, objSel, k);
+	    }
 	  k = [k copyWithZone: z];
 	  if (k == nil)
 	    {

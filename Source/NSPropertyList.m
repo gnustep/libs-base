@@ -1697,7 +1697,17 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  NSString		*plists[count];
 	  unsigned		i;
 
-	  [obj getObjects: plists];
+	  if ([obj isProxy] == YES)
+	    {
+	      for (i = 0; i < count; i++)
+		{
+		  plists[i] = [obj objectAtIndex: i];
+		}
+	    }
+	  else
+	    {
+	      [obj getObjects: plists];
+	    }
 
 	  if (loc == nil)
 	    {
@@ -1751,6 +1761,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       BOOL		canCompare = YES;
       Class		lastClass = 0;
       unsigned		level = lev;
+      BOOL		isProxy = [obj isProxy];
 
       if (level*step < sizeof(indentStrings)/sizeof(id))
 	{
@@ -1772,7 +1783,17 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	    = indentStrings[sizeof(indentStrings)/sizeof(id)-1];
 	}
 
-      [keyArray getObjects: keys];
+      if (isProxy == YES)
+	{
+	  for (i = 0; i < numKeys; i++)
+	    {
+	      keys[i] = [keyArray objectAtIndex: i];
+	    }
+	}
+      else
+	{
+	  [keyArray getObjects: keys];
+	}
 
       for (i = 0; i < numKeys; i++)
 	{
@@ -1868,9 +1889,19 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  #endif
 	}
 
-      for (i = 0; i < numKeys; i++)
+      if (isProxy == YES)
 	{
-	  plists[i] = (*myObj)(obj, objSel, keys[i]);
+	  for (i = 0; i < numKeys; i++)
+	    {
+	      plists[i] = [obj objectForKey: keys[i]];
+	    }
+	}
+      else
+	{
+	  for (i = 0; i < numKeys; i++)
+	    {
+	      plists[i] = (*myObj)(obj, objSel, keys[i]);
+	    }
 	}
 
       if (x == NSPropertyListXMLFormat_v1_0)
