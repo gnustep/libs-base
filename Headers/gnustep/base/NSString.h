@@ -237,10 +237,11 @@ enum {
 - (BOOL) isAbsolutePath;
 - (NSArray*) pathComponents;
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths;
-+ (NSString*) stringWithString: (NSString*) aString;
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...;
-+ (NSString*) stringWithFormat: (NSString*)format
-		     arguments: (va_list)argList;
+
++ (id) stringWithFormat: (NSString*)format
+	      arguments: (va_list)argList;
++ (id) stringWithString: (NSString*) aString;
 - (id) initWithFormat: (NSString*)format
 	       locale: (NSDictionary*)dictionary;
 - (id) initWithFormat: (NSString*)format

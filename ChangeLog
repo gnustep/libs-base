@@ -1,3 +1,7 @@
+2000-06-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileHandle.m: Use AUTORELEASE and tidy up.
+
 2000-06-21  Adam Fedor  <fedor@gnu.org>
 
         * Shared library (DLL) fixes on Windows
