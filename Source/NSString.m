@@ -1,5 +1,5 @@
 /* Implementation of GNUSTEP string class
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: January 1995
@@ -478,8 +478,9 @@ handle_printf_atsign (FILE *stream,
   NSRange search;
   NSRange found;
   NSMutableArray *array = [NSMutableArray array];
+  int myLength = [self length];
 
-  search = NSMakeRange (0, [self length]);
+  search = NSMakeRange (0, myLength);
   found = [self rangeOfString: separator];
   while (found.length)
     {
@@ -487,8 +488,8 @@ handle_printf_atsign (FILE *stream,
       current = NSMakeRange (search.location,
 			     found.location - search.location);
       [array addObject: [self substringFromRange: current]];
-      search = NSMakeRange (found.location+1,
-			    search.length - found.location);
+      search = NSMakeRange (found.location + found.length,
+			    myLength - (found.location + found.length));
       found = [self rangeOfString: separator 
 		    options: 0
 		    range: search];
