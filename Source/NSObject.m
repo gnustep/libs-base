@@ -339,9 +339,13 @@ NSDecrementExtraRefCountWasZero (id anObject)
 {
   Class class;
 
-  for (class = self->isa; class!=Nil; class = class_get_super_class(class))
-    if (class==aClass)
-      return YES;
+  for (class = self->isa; 
+       class != Nil;
+       class = class_get_super_class (class))
+    {
+      if (class == aClass)
+	return YES;
+    }
   return NO;
 }
 
