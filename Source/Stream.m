@@ -57,7 +57,21 @@
   return 0;
 }
 
+- (int) writeFormat: (id <String>)format
+	  arguments: (va_list)arg
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
 - (int) writeFormat: (id <String>)format, ...
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
+- (int) readFormat: (id <String>)format
+	 arguments: (va_list)arg
 {
   [self subclassResponsibility:_cmd];
   return 0;
