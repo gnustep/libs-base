@@ -1,3 +1,8 @@
+2001-06-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/callframe.m: callframe_do_call_opts(),
+	callframe_build_return_opts() fixed memory leaks.
+
 2001-06-26  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSUserDefaults.m (+userLanguages): On MingW systems, check
