@@ -998,9 +998,9 @@ static NSString	*pathForUser(NSString *user)
  */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
-  id	obj = (value)?@"YES": @"NO";
+  NSNumber	*n = [NSNumber numberWithBool: value];
 
-  [self setObject: obj forKey: defaultName];
+  [self setObject: n forKey: defaultName];
   return;
 }
 
@@ -1010,10 +1010,9 @@ static NSString	*pathForUser(NSString *user)
  */
 - (void) setFloat: (float)value forKey: (NSString*)defaultName
 {
-  char	buf[32];
+  NSNumber	*n = [NSNumber numberWithFloat: value];
 
-  sprintf(buf,"%g",value);
-  [self setObject: [NSStringClass stringWithCString: buf] forKey: defaultName];
+  [self setObject: n forKey: defaultName];
   return;
 }
 
@@ -1023,10 +1022,9 @@ static NSString	*pathForUser(NSString *user)
  */
 - (void) setInteger: (int)value forKey: (NSString*)defaultName
 {
-  char	buf[32];
+  NSNumber	*n = [NSNumber numberWithInt: value];
 
-  sprintf(buf,"%d",value);
-  [self setObject: [NSStringClass stringWithCString: buf] forKey: defaultName];
+  [self setObject: n forKey: defaultName];
   return;
 }
 
@@ -1085,10 +1083,14 @@ static BOOL isPlistObject(id o)
 }
 
 /**
- * Sets an object value for defaultName in the application domain.
- * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
+ * Sets an object value for defaultName in the application domain.<br />
+ * The defaultName must be a non-empty string.<br />
+ * The value must be an instance of one of the [NSString-propertyList]
+ * classes.<br />
+ * <p>Causes a NSUserDefaultsDidChangeNotification to be posted
  * if this is the first change to a persistent-domain since the
  * last -synchronize.
+ * </p>
  */
 - (void) setObject: (id)value forKey: (NSString*)defaultName
 {

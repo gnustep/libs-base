@@ -1801,24 +1801,24 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	      [buf appendString: @"<p>\n"];
 	      [self incIndent];
 	    }
-	  return [node nextElement];
+	  return [node next];
 	}
       else if ([n isEqual: @"example"] == YES)
 	{
 	  [buf appendString: @"<pre>\n"];
 	  [self outputText: [node firstChild] to: buf];
 	  [buf appendString: @"\n</pre>\n"];
-	  return [node nextElement];
+	  return [node next];
 	}
       else if ([n isEqual: @"embed"] == YES)
 	{
 	  NSLog(@"Element 'embed' not supported");
-	  return [node nextElement];
+	  return [node next];
 	}
       else if ([n isEqual: @"index"] == YES)
 	{
 	  [self outputNode: node to: buf];
-	  return [node nextElement];
+	  return [node next];
 	}
       else if ([textNodes member: n] != nil)
 	{
@@ -1969,7 +1969,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
     {
       return node;	// Not a list
     }
-  node = [node nextElement];
+  node = [node next];
   return node;
 }
 

@@ -1,3 +1,8 @@
+2002-11-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: adocument property list stuff.
+	* Source/NSUserDefaults.m: set integers, floats and bools as NSNumber
+
 2002-11-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSObject.h: Removed GNUstep plist extensions.
