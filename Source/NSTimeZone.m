@@ -27,10 +27,12 @@
    $Date$ $Revision$
  */
   
-/* We use a implementation independent of the system, since POSIX
-   functions for time zones are woefully inadequate for implementing
-   NSTimeZone, and time zone names can be different from system to
-   system.
+/* Use the system time zones if available. In other cases, use an
+   implementation independent of the system, since POSIX functions for
+   time zones are woefully inadequate for implementing NSTimeZone.
+   Time zone names can be different from system to system, but usually
+   the user has already set up his timezone independant of GNUstep, so we
+   should respect that information.
 
    We do not use a dictionary for storing time zones, since such a
    dictionary would be VERY large (~500K).  And we would have to use a
@@ -44,9 +46,10 @@
     2) the GNUSTEP_TZ environment variable
     3) the file LOCAL_TIME_FILE in _time_zone_path()
     4) the TZ environment variable
-    5) tzset() & tznam[] for platforms which have it
-    6) Windows registry, for Win32 systems
-    7) or the fallback time zone (which is UTC)
+    5) TZDEFAULT defined in tzfile.h on platforms which have it
+    6) tzset() & tznam[] for platforms which have it
+    7) Windows registry, for Win32 systems
+    8) or the fallback time zone (which is UTC)
    with the ones listed first having precedence.
 
    Any time zone must be a file name in ZONES_DIR.
@@ -65,16 +68,6 @@
    (dir)     NSTimeZone
    (file)      localtime {text; time zone eg Australia/Perth}
    (dir)       zones
-
-   Since NSTimeZone gets the name from LOCAL_TIME_FILE it's sufficient
-   to symlink this to the time zone name used elsewhere. For example:
-   Debian uses "/etc/timezone"
-
-   A number of POSIX systems have the zone files already installed.
-   For these systems it is sufficient to symlink ZONES_DIR to the
-   platform specific location.
-   For (g)libc6 this is /usr/share/zoneinfo
-   For Solaris  this is /usr/share/lib/zoneinfo
 
    Note that full zone info is required, especially the various "GMT"
    files which are created especially for OPENSTEP compatibility.
@@ -115,10 +108,12 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GSConfig.h"
 
-
+#ifdef HAVE_TZFILE_H
+#include <tzfile.h>
+#else
 #define NOID
-#include "tzfile.h"
-
+#include "nstzfile.h"
+#endif
 
 /* Key for local time zone in user defaults. */
 #define LOCALDBKEY @"Local Time Zone"
@@ -145,6 +140,11 @@
 /* Directory that contains the actual time zones. */
 #define ZONES_DIR @"zones/"
 
+/* Many systems have this file */
+#define SYSTEM_TIME_FILE @"/etc/localtime"
+
+/* Possible location of system time zone files */
+static NSString *tzdir = nil;
 
 @class GSAbsTimeZone;
 @class GSTimeZoneDetail;
@@ -899,15 +899,15 @@ static NSMapTable	*absolutes = 0;
 
 /**
  * <p>
- * The local time zone can be specified by:<br/ >
+ * The local time zone is obtained from, in order of preference:<br/ >
  *  1) the user defaults database: NSGlobalDomain "Local Time Zone"<br/ >
  *  2) the GNUSTEP_TZ environment variable<br/ >
  *  3) the file "localtime" in System/Library/Libraries/Resources/NSTimeZone<br/ >
  *  4) the TZ environment variable<br/ >
- *  5) tzset and tznam on platforms which have it<br/ >
- *  6) Windows registry, on Win32 systems<br/ >
- *  7) or the fallback time zone (which is UTC)<br/ >
- * with the ones listed first having precedence.
+ *  5) The system zone settings (typically in /etc/localtime)<br/ >
+ *  6) tzset and tznam on platforms which have it<br/ >
+ *  7) Windows registry, on Win32 systems<br/ >
+ *  8) or the fallback time zone (which is UTC)<br/ >
  * </p>
  * <p>If the GNUstep time zone datafiles become too out of date, one
  * can download an updated database from <uref
@@ -925,14 +925,9 @@ static NSMapTable	*absolutes = 0;
  * abbreviation and offsets from UTC are the same.
  * </p>
  * <p>The problems with depending on the OS for providing time zone
- * info are that some methods for the NSTimeZone classes might be
- * difficult to implement, and also that time zone names may vary
+ * info are that time zone names may vary
  * wildly between OSes (this could be a big problem when
  * archiving is used between different systems).
- * </p>
- * <p>On platforms where the zone info files are already installed
- * elsewhere it is sufficient to use a symlink provided the GMT+/-
- * zones are added.
  * </p>
  * <p>Win32:  Time zone names read from the registry are different
  * from other GNUstep installations. Be careful when moving data
@@ -987,12 +982,26 @@ static NSMapTable	*absolutes = 0;
       a = [abbreviationDictionary objectForKey: the_abbrev];
       if (a == nil)
 	{
-	  a = [[NSMutableArray alloc] init];
+	  a = AUTORELEASE([NSMutableArray new]);
 	  [abbreviationDictionary setObject: a forKey: the_abbrev];
 	}
       [a addObject: the_name];
     }
   fclose(file);
+
+  /* Special case: Add the system time zone if it doesn't exist in the map */
+  {
+    id array;
+    id the_abbrev = [systemTimeZone abbreviation];
+    array = [abbreviationDictionary objectForKey: the_abbrev];
+    if (array == nil)
+      {
+	array = AUTORELEASE([NSMutableArray new]);
+	[abbreviationDictionary setObject: array forKey: the_abbrev];
+      }
+    if ([array containsObject: [systemTimeZone timeZoneName]] == NO)
+      [array addObject: [systemTimeZone timeZoneName]];
+  }
 
   return abbreviationDictionary;
 }
@@ -1204,6 +1213,55 @@ static NSMapTable	*absolutes = 0;
 	      localZoneString = [localZoneString stringByTrimmingSpaces];
 	    }
 	}
+      /*
+       * Try to get timezone from standard unix environment variable.
+       */
+      if (localZoneString == nil)
+	{
+	  localZoneString = [[[NSProcessInfo processInfo]
+	    environment] objectForKey: @"TZ"];
+	}
+      if (localZoneString == nil)
+        {
+          /* Get the zone name from the localtime file, assuming the file
+	     is a symlink to the time zone. Getting the actual data (which
+	     is easier) doesn't help, since we won't know the name itself.  */
+#if defined(HAVE_TZFILE_H) && defined(TZDEFAULT)
+	  tzdir = RETAIN([NSString stringWithCString: TZDIR]);
+	  localZoneString = [NSString stringWithCString: TZDEFAULT];
+	  localZoneString = [localZoneString stringByResolvingSymlinksInPath];
+#else
+	  NSFileManager *dflt = [NSFileManager defaultManager];
+          if ([dflt fileExistsAtPath: SYSTEM_TIME_FILE])
+	    {
+	      localZoneString = SYSTEM_TIME_FILE;
+	      localZoneString = [localZoneString stringByResolvingSymlinksInPath];
+	      /* Guess what tzdir is */
+	      tzdir = [localZoneString stringByDeletingLastPathComponent];
+	      while ([tzdir length] > 2
+	             && [dflt fileExistsAtPath: [tzdir stringByAppendingPathComponent: @"GMT"]] == NO)
+	        tzdir = [tzdir stringByDeletingLastPathComponent];
+	      if ([tzdir length] > 2)
+		RETAIN(tzdir);
+	      else
+	        {
+		  localZoneString = tzdir = nil;
+		}
+	    }
+#endif
+	  if ( localZoneString != nil && [localZoneString hasPrefix: tzdir] )
+	    {
+	      /* This must be the time zone name */
+	      localZoneString = [[localZoneString mutableCopy] autorelease];
+	      [(NSMutableString *)localZoneString deletePrefix: tzdir];
+	      if ( [localZoneString hasPrefix: @"/"] )
+	        {
+	          [(NSMutableString *)localZoneString deletePrefix: @"/"];
+	        }
+	    }
+	  else
+	    localZoneString = nil;
+        }
 #if HAVE_TZSET
       /*
        * Try to get timezone from tzset and tzname
@@ -1213,15 +1271,6 @@ static NSMapTable	*absolutes = 0;
 	  tzset();
 	  if (tzname[0] != NULL && *tzname[0] != '\0')
 	    localZoneString = [NSString stringWithCString: tzname[0]];
-	}
-#else
-      /*
-       * Try to get timezone from standard unix environment variable.
-       */
-      if (localZoneString == nil)
-	{
-	  localZoneString = [[[NSProcessInfo processInfo]
-	    environment] objectForKey: @"TZ"];
 	}
 #endif
 
@@ -1254,6 +1303,7 @@ static NSMapTable	*absolutes = 0;
       
       if (localZoneString != nil)
 	{
+	  NSDebugLLog (@"NSTimeZone", @"Using zone %@", localZoneString);
 	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];
 	}
       else
@@ -1652,9 +1702,15 @@ static NSMapTable	*absolutes = 0;
  */
 + (NSString*) getTimeZoneFile: (NSString *)name
 {
-  NSString	*dir;
+  NSString	*dir = nil;
 
-  dir= _time_zone_path (ZONES_DIR);
+  /* Use the system zone info if possible, otherwise, use our installed 
+     info.  */
+  if (tzdir && [[NSFileManager defaultManager] fileExistsAtPath:
+  	[tzdir stringByAppendingPathComponent: name]] == NO)
+    dir = nil;
+  if (dir == nil)
+    dir= _time_zone_path (ZONES_DIR);
   return [dir stringByAppendingPathComponent: name];
 }
 
@@ -2167,11 +2223,13 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 	}
       header = (struct tzhead *)(bytes + pos);
       pos += sizeof(struct tzhead);
+#ifdef TZ_MAGIC
       if (memcmp(header->tzh_magic, TZ_MAGIC, strlen(TZ_MAGIC)) != 0)
 	{
 	  [NSException raise: fileException
 		      format: @"TZ_MAGIC is incorrect"];
 	}
+#endif
       n_trans = GSSwapBigI32ToHost(*(gss32*)header->tzh_timecnt);
       n_types = GSSwapBigI32ToHost(*(gss32*)header->tzh_typecnt);
       charcnt = GSSwapBigI32ToHost(*(gss32*)header->tzh_charcnt);
