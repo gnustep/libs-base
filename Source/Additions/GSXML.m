@@ -2349,19 +2349,19 @@ warningFunction(void *ctx, const char *msg, ...)
 {
   char allMsg[2048];
   va_list args;
-  int lineNumber=-1;
-  int colNumber=-1;
+  int lineNumber = -1;
+  int colNumber = -1;
 
   va_start(args, msg);
   vsprintf(allMsg, msg, args);
   va_end(args);
 
   NSCAssert(ctx,@"No Context");
-  lineNumber=getLineNumber(ctx);
-  colNumber=getColumnNumber(ctx);
+  lineNumber = getLineNumber(ctx);
+  colNumber = getColumnNumber(ctx);
   [HANDLER warning: UTF8Str(allMsg)
-           colNumber:colNumber
-           lineNumber:lineNumber];
+	 colNumber: colNumber
+	lineNumber: lineNumber];
 }
 
 static void
@@ -2369,18 +2369,18 @@ errorFunction(void *ctx, const char *msg, ...)
 {
   char allMsg[2048];
   va_list args;
-  int lineNumber=-1;
-  int colNumber=-1;
+  int lineNumber = -1;
+  int colNumber = -1;
 
   va_start(args, msg);
   vsprintf(allMsg, msg, args);
   va_end(args);
   NSCAssert(ctx,@"No Context");
-  lineNumber=getLineNumber(ctx);
-  colNumber=getColumnNumber(ctx);
+  lineNumber = getLineNumber(ctx);
+  colNumber = getColumnNumber(ctx);
   [HANDLER error: UTF8Str(allMsg)
-           colNumber:colNumber
-           lineNumber:lineNumber];
+       colNumber: colNumber
+      lineNumber: lineNumber];
 }
 
 static void
@@ -2388,18 +2388,18 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
   char allMsg[2048];
   va_list args;
-  int lineNumber=-1;
-  int colNumber=-1;
+  int lineNumber = -1;
+  int colNumber = -1;
 
   va_start(args, msg);
   vsprintf(allMsg, msg, args);
   va_end(args);
   NSCAssert(ctx, @"No Context");
-  lineNumber=getLineNumber(ctx);
-  colNumber=getColumnNumber(ctx);
+  lineNumber = getLineNumber(ctx);
+  colNumber = getColumnNumber(ctx);
   [HANDLER fatalError: UTF8Str(allMsg)
-           colNumber:colNumber
-           lineNumber:lineNumber];
+            colNumber: colNumber
+           lineNumber: lineNumber];
 }
 
 #undef	HANDLER
@@ -2645,7 +2645,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
        colNumber: (int)colNumber
       lineNumber: (int)lineNumber
 {
-  [self warning:e];
+  [self warning: e];
 }
 
 /**
@@ -2655,7 +2655,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
      colNumber: (int)colNumber
     lineNumber: (int)lineNumber
 {
-  [self error:e];
+  [self error: e];
 }
 
 /**
@@ -2665,7 +2665,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
        colNumber: (int)colNumber
       lineNumber: (int)lineNumber
 {
-  [self fatalError:e];
+  [self fatalError: e];
 }
 
 /**
@@ -2713,7 +2713,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 }
 
 /**
- * get a aparameter entity by name
+ * get a parameter entity by name
  */
 - (void*) getParameterEntity: (NSString*)name
 {
@@ -2727,7 +2727,9 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
   lib = (xmlSAXHandler*)malloc(sizeof(xmlSAXHandler));
   if (lib == NULL)
-    return NO;
+    {
+      return NO;
+    }
   else
     {
       memcpy(lib, &xmlDefaultSAXHandler, sizeof(htmlSAXHandler));
@@ -2774,7 +2776,9 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
   lib = (xmlSAXHandler*)malloc(sizeof(htmlSAXHandler));
   if (lib == NULL)
-    return NO;
+    {
+      return NO;
+    }
   else
     {
       memcpy(lib, &xmlDefaultSAXHandler, sizeof(htmlSAXHandler));
