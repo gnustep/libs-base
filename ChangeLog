@@ -1,3 +1,10 @@
+2002-02-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Fix some maptable problems when using non-local
+	reference counts.
+	* Source/NSMapTable.m: Improve warning logging for dodgy practices.
+	* Source/NSHashTable.m: ditto
+
 2002-02-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/manual: New directory containing Objective-C and

@@ -80,10 +80,11 @@ NSAllMapTableKeys(NSMapTable *table)
   NSMutableArray	*keyArray;
   NSMapEnumerator	enumerator;
   id			key = nil;
+  void			*dummy;
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return nil;
     }
 
@@ -94,7 +95,7 @@ NSAllMapTableKeys(NSMapTable *table)
   enumerator = NSEnumerateMapTable(table);
 
   /* Step through TABLE... */
-  while (NSNextMapEnumeratorPair(&enumerator, (void **)(&key), 0))
+  while (NSNextMapEnumeratorPair(&enumerator, (void **)(&key), &dummy))
     {
       [keyArray addObject: key];
     }
@@ -111,10 +112,11 @@ NSAllMapTableValues(NSMapTable *table)
   NSMapEnumerator	enumerator;
   NSMutableArray	*valueArray;
   id			value = nil;
+  void			*dummy;
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return nil;
     }
 
@@ -125,7 +127,7 @@ NSAllMapTableValues(NSMapTable *table)
   enumerator = NSEnumerateMapTable(table);
 
   /* Step through TABLE... */
-  while (NSNextMapEnumeratorPair(&enumerator, 0, (void **)(&value)))
+  while (NSNextMapEnumeratorPair(&enumerator, &dummy, (void **)(&value)))
     {
       [valueArray addObject: value];
     }
@@ -152,12 +154,12 @@ NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
     }
   if (t1 == 0)
     {
-      NSWarnLog(@"Nul first argument supplied");
+      NSWarnFLog(@"Nul first argument supplied");
       return NO;
     }
   if (t2 == 0)
     {
-      NSWarnLog(@"Nul second argument supplied");
+      NSWarnFLog(@"Nul second argument supplied");
       return NO;
     }
 
@@ -192,7 +194,7 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return 0;
     }
 
@@ -218,7 +220,7 @@ NSCountMapTable(NSMapTable *table)
 {
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return 0;
     }
   return ((GSIMapTable)table)->nodeCount;
@@ -289,7 +291,7 @@ NSEndMapTableEnumeration(NSMapEnumerator *enumerator)
 {
   if (enumerator == 0)
     {
-      NSWarnLog(@"Nul enumerator argument supplied");
+      NSWarnFLog(@"Nul enumerator argument supplied");
     }
 }
 
@@ -304,7 +306,7 @@ NSEnumerateMapTable(NSMapTable *table)
     {
       NSMapEnumerator	v = {0, 0};
 
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return v;
     }
   return GSIMapEnumeratorForMap((GSIMapTable)table);
@@ -318,7 +320,7 @@ NSFreeMapTable(NSMapTable *table)
 {
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
     }
   else
     {
@@ -340,7 +342,7 @@ NSMapGet(NSMapTable *table, const void *key)
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return 0;
     }
   n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
@@ -462,7 +464,7 @@ NSMapMember(NSMapTable *table, const void *key,
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return NO;
     }
   n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
@@ -492,7 +494,7 @@ NSMapRemove(NSMapTable *table, const void *key)
 {
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return;
     }
   GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)key);
@@ -513,7 +515,7 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
   
   if (enumerator == 0)
     {
-      NSWarnLog(@"Nul enumerator argument supplied");
+      NSWarnFLog(@"Nul enumerator argument supplied");
       return NO;
     }
   n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
@@ -527,9 +529,18 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 	{
 	  *key = n->key.ptr;
 	}
+      else
+	{
+	  NSWarnFLog(@"Nul key return address");
+	}
+
       if (value != 0)
 	{
 	  *value = n->value.ptr;
+	}
+      else
+	{
+	  NSWarnFLog(@"Nul value return address");
 	}
       return YES;
     }
@@ -543,7 +554,7 @@ NSResetMapTable(NSMapTable *table)
 {
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
     }
   else
     {
@@ -568,7 +579,7 @@ NSStringFromMapTable(NSMapTable *table)
 
   if (table == 0)
     {
-      NSWarnLog(@"Nul table argument supplied");
+      NSWarnFLog(@"Nul table argument supplied");
       return nil;
     }
   string = [NSMutableString stringWithCapacity: 0];
