@@ -206,6 +206,8 @@ NEXTSTEP_OTHER_SRCFILES = \
 NXStringTable_scan.l 
 
 GNUSTEP_OTHER_SRCFILES = \
+NSConcreteNumber.m \
+NSCTemplateValue.m \
 dld-load.h \
 hpux-load.h \
 null-load.h \
