@@ -33,6 +33,7 @@
 #include <Foundation/NSAttributedString.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSBundle.h>
+#include <Foundation/NSByteOrder.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSConnection.h>
@@ -46,8 +47,10 @@
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSInvocation.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSMapTable.h>
+#include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPortCoder.h>
