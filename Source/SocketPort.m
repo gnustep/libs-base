@@ -77,14 +77,13 @@ name_to_port_number (const char *name)
 
 @implementation SocketPort 
 
-+ initialize
++ (void) initialize
 {
   if ([self class] == [SocketPort class])
     {
       socketPortList = [[List alloc] init];
       socketPortListGate = [Lock new];
     }
-  return self;
 }
 
 + setDebug: (BOOL)f
@@ -276,7 +275,7 @@ s1.sin_addr.s_addr == s2.sin_addr.s_addr)
   int r;
   sockport_t a;
 
-  if (![remote isKindOf:[SocketPort class]])
+  if (![remote isKindOfClass:[SocketPort class]])
     [self error:"Trying to send to a non-SocketPort"];
   a = [(SocketPort*)remote sockPort];
   if (socket_port_debug)
