@@ -108,6 +108,9 @@ extern const NSMapTableValueCallBacks NSIntMapValueCallBacks;
 /* For values that are pointers not freed. */
 extern const NSMapTableValueCallBacks NSNonOwnedPointerMapValueCallBacks;
 
+/* For sets of objects without retaining and releasing. */
+extern const NSMapTableValueCallBacks NSNonRetainedObjectMapValueCallBacks;
+
 /* For values that are objects. */
 extern const NSMapTableValueCallBacks NSObjectMapValueCallBacks;
 

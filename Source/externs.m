@@ -236,6 +236,13 @@ const NSMapTableValueCallBacks NSNonOwnedPointerMapValueCallBacks =
   (NSMT_describe_func_t) _NS_non_owned_void_p_describe
 };
 
+const NSMapTableValueCallBacks NSNonRetainedObjectMapValueCallBacks = 
+{
+  (NSMT_retain_func_t) _NS_non_retained_id_retain,
+  (NSMT_release_func_t) _NS_non_retained_id_release,
+  (NSMT_describe_func_t) _NS_non_retained_id_describe
+};
+
 const NSMapTableValueCallBacks NSObjectMapValueCallBacks = 
 {
   (NSMT_retain_func_t) _NS_id_retain,
