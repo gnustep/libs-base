@@ -1,3 +1,10 @@
+2001-04-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSLocale.m: Only call setlocale() in GSSetLocaleC()
+	* Source/NSObject.m: ([+initialize]) call GSSetLocaleC() after other
+	initialisation, to try to ensure that locale stuff is set up early
+	before any attempt is made to use locale dependent code.
+
 2001-04-22  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Testing/benchmark.m: Modified messages to give a better idea of

@@ -570,7 +570,10 @@ static BOOL double_release_check_enabled = NO;
 {
   if (self == [NSObject class])
     {
-      extern void	GSBuildStrings();	// See externs.m
+      extern void		GSBuildStrings();	// See externs.m
+      extern const char*	GSSetLocaleC();		// See GSLocale.m
+
+      GSSetLocaleC("");		// Set up locale from environment.
 
 #ifdef __MINGW__
       // See libgnustep-base-entry.m

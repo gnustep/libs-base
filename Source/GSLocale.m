@@ -35,6 +35,18 @@
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSBundle.h>
 
+/*
+ * Function called by [NSObject +initialize] to setup locale information
+ * from environment variables.  Must *not* use any ObjC code since it needs
+ * to run before any ObjC classes are fully initialised so that they can
+ * make use of locale information.
+ */
+const char*
+GSSetLocaleC(const char *loc)
+{
+  return setlocale(LC_ALL, loc);
+}
+
 /* Set the locale for libc functions from the supplied string or from
    the environment if not specified. This function should be called
    as soon as possible after the start of the program. Passing
@@ -51,7 +63,7 @@ GSSetLocale(NSString *locale)
     {
       clocale = [locale cString];
     }
-  clocale = setlocale(LC_ALL, clocale);
+  clocale = GSSetLocaleC(clocale);
 
   if (clocale == NULL || strcmp(clocale, "C") == 0 
     || strcmp(clocale, "POSIX") == 0) 
@@ -154,7 +166,7 @@ GSDomainFromDefaultLocale(void)
     }
   /* FIXME: Get currency format from localeconv */
 
-  str1 = [NSString stringWithCString: setlocale(LC_ALL, NULL)];
+  str1 = GSSetLocale(nil);
   [dict setObject: str1	forKey: NSLocale];
   str2 = GSLanguageFromLocale(str1);
   if (str2)
