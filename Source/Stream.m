@@ -99,12 +99,17 @@
 
 - (void) flushStream
 {
-  [self subclassResponsibility:_cmd];
+  /* Do nothing. */
 }
 
 - (void) closeStream
 {
-  [self subclassResponsibility:_cmd];
+  /* Do nothing. */
+}
+
+- (BOOL) isClosed
+{
+  return NO;
 }
 
 - (void) setStreamPosition: (unsigned)i
