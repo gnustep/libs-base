@@ -2326,8 +2326,14 @@ handle_printf_atsign (FILE *stream,
     }
   if (length > 0)
     {
+#if defined(__MINGW__)
+#define _PATH_SEARCH_END 1
+#else
+#define _PATH_SEARCH_END 0
+#endif
       aLength = length - 1;
-      while (aLength > 0)
+      while (aLength > _PATH_SEARCH_END)
+#undef _PATH_SEARCH_END
 	{
 	  if (pathSepMember(buf[aLength]) == YES)
 	    {
@@ -2621,7 +2627,18 @@ handle_printf_atsign (FILE *stream,
       if (r.location + r.length + 1 <= length
 	&& pathSepMember((*caiImp)(s, caiSel, r.location + 1)) == YES)
 	{
+#if defined(__MINGW__)
+	   if (r.location)
+	     {
+	       [s deleteCharactersInRange: r];
+	     }
+	   else
+	     {
+	       r.location++;
+	     }
+#else
 	  [s deleteCharactersInRange: r];
+#endif /* (__MINGW__) */
 	}
       else if (r.location + r.length + 2 <= length
 	&& (*caiImp)(s, caiSel, r.location + 1) == (unichar)'.'
@@ -2730,25 +2747,39 @@ handle_printf_atsign (FILE *stream,
 - (BOOL) isAbsolutePath
 {
   if ([self length] == 0)
-    return NO;
-
+    {
+      return NO;
+    }
 #if defined(__MINGW__)
   if ([self indexOfString: @":"] == NSNotFound)
     {
       const char *cpath = [self fileSystemRepresentation];
       if (isalpha(cpath[0]) && cpath[1] == ':')
-        return YES;
+	{
+	  return YES;
+	}
+      else if (cpath[0] == cpath[1]
+	&& (cpath[0] == '/' || cpath[0] == '\\'))
+	{
+	  return YES;
+	}
       else
-	return NO;
+	{
+	  return NO;
+	}
     }
   else
-    return YES;
+    {
+      return YES;
+    }
 #else
   {
     unichar	c = [self characterAtIndex: 0];
 
     if (c == (unichar)'/' || c == (unichar)'~')
-      return YES;
+      {
+	return YES;
+      }
   }
 #endif
   return NO;

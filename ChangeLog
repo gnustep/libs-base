@@ -1,8 +1,11 @@
 2001-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSThread.h: Remove unused ivar.
 	* Source/NSThread.m: Revise scheme for deallocation of thread
 	dictionary ... keep it operating to avoid problems with stuff
 	trying to use it while deing deallocated.  Log memory leaks.
+	* Source/NSString.m: MINGW path handling fixes by Michael Scheibler
+	stringByAppendingPath, isAbsolurtePath, and stringByStandardizingPath.
 	
 2001-03-16  Nicola Pero  <n.pero@mi.flashnet.it>
 
