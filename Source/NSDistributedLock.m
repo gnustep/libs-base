@@ -138,7 +138,7 @@ static NSFileManager	*mgr = nil;
 }
 
 /**
- * Returns the date at which the lock was aquired by any
+ * Returns the date at which the lock was aquired by <em>any</em>
  * NSDistributedLock using the same path.  If nothing has
  * the lock, this returns nil.
  */
