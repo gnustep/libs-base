@@ -1,3 +1,14 @@
+2003-02-29 Sheldon Gill <sheldon@iinet.net.au>
+
+	* Source/NSTimeZone.m: Added capability on Win32. NSTimeZone now
+	has GSWindowsTimeZone concrete sub-class which uses data from the
+	registry.  Based on changes from Jeremy Bettis:
+
+2003-02-29 Sheldon Gill <sheldon@iinet.net.au>
+
+	* Source/NSTimeZone.m:  Added documentation and clean up.
+	[NSTimeZone initTimeZoneWithName:data:] now uses data.
+
 2004-02-28  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.9.1
