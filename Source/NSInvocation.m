@@ -437,17 +437,30 @@ _arg_addr(NSInvocation *inv, int index)
   _set_arg(self, 0, &_target);
   _set_arg(self, 1, &_selector);
 
-  imp = method_get_imp(object_is_instance(_target) ?
-	      class_get_instance_method(
-		    ((struct objc_class*)_target)->class_pointer, _selector)
-	    : class_get_class_method(
-		    ((struct objc_class*)_target)->class_pointer, _selector));
-  /*
-   *	If fast lookup failed, we may be forwarding or something ...
-   */
-  if (imp == 0)
-    imp = objc_msg_lookup(_target, _selector);
+  if (_sendToSuper == YES)
+    {
+      Super	s;
 
+      s.self = _target;
+      if (GSObjCIsInstance(_target))
+	s.class = class_get_super_class(GSObjCClass(_target));
+      else
+	s.class = class_get_super_class((Class)_target);
+      imp = objc_msg_lookup_super(&s, _selector);
+    }
+  else
+    {
+      imp = method_get_imp(object_is_instance(_target) ?
+	class_get_instance_method(
+		    ((struct objc_class*)_target)->class_pointer, _selector)
+	: class_get_class_method(
+		    ((struct objc_class*)_target)->class_pointer, _selector));
+	/*
+	 * If fast lookup failed, we may be forwarding or something ...
+	 */
+      if (imp == 0)
+	imp = objc_msg_lookup(_target, _selector);
+    }
   [self setTarget: old_target];
   RELEASE(old_target);
 
@@ -717,6 +730,17 @@ _arg_addr(NSInvocation *inv, int index)
   [self subclassResponsibility: _cmd];
   return NULL;
 }
+
+- (BOOL) sendsToSuper
+{
+  return _sendToSuper;
+}
+
+- (void) setSendsToSuper: (BOOL)flag
+{
+  _sendToSuper = flag;
+}
+
 @end
 
 @implementation NSInvocation (BackwardCompatibility)

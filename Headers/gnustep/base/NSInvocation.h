@@ -39,6 +39,7 @@
   NSArgumentInfo	*_info;
   BOOL			_argsRetained;
   BOOL			_validReturn;
+  BOOL			_sendToSuper;
 }
 
 /*
@@ -86,6 +87,8 @@
 - (id) initWithSelector: (SEL)aSelector;
 - (id) initWithTarget: target selector: (SEL)aSelector, ...;
 - (void*) returnFrame: (arglist_t)argFrame;
+- (BOOL) sendsToSuper;
+- (void) setSendsToSuper: (BOOL)flag;
 @end
 #endif
 
