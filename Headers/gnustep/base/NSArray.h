@@ -89,9 +89,9 @@
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level;
 
-- (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxilliaryFile;
+- (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #ifndef	STRICT_OPENSTEP
-- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxilliaryFile;
+- (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
 #endif
 @end
 

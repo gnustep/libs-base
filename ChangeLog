@@ -1,3 +1,8 @@
+2002-03-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m: Ensure property-list read/write uses UTF8
+	* Source/NSDictionary.m: ditto
+
 2002-03-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: lossyCString_u() handle case where cString
