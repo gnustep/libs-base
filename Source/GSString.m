@@ -313,7 +313,7 @@ setup(void)
  * The GSPlaceholderString class is used by the abstract cluster root
  * class to provide temporary objects that will be replaced as soon
  * as the objects are initialised.  This object tries to replace
- * itsself with an appropriate object whose type may vary depending
+ * itself with an appropriate object whose type may vary depending
  * on the initialisation method used.
  */
 @implementation GSPlaceholderString

@@ -56,6 +56,16 @@ NSString * const NSInconsistentArchiveException =
 
 #define	PREFIX		"GNUstep archive"
 
+/**
+ *  <p>Implementation of [NSCoder] capable of creating sequential archives which
+ *  must be read in the same order they were written.  This class implements
+ *  methods for saving to and restoring from a serial archive (usually a file
+ *  on disk, but can be an [NSData] object) as well as methods that can be
+ *  used by objects that need to write/restore themselves.</p>
+ *  
+ * <p>Note, the sibling class [NSKeyedArchiver] supports a form of archive
+ *  that is more robust to class changes, and is recommended over this one.</p>
+ */
 @implementation NSArchiver
 
 static SEL serSel;
@@ -80,6 +90,10 @@ static Class	NSMutableDataMallocClass;
     }
 }
 
+/**
+ *  Creates an NSMutableData instance and calls
+ *  [initForWritingWithMutableData:].
+ */
 - (id) init
 {
   NSMutableData	*d;
@@ -90,6 +104,10 @@ static Class	NSMutableDataMallocClass;
   return self;
 }
 
+/**
+ *  Init instance that will archive its data to mdata.  (Even if
+ *  [archiveRootObject:toFile:] is called, this still gets written to.)
+ */
 - (id) initForWritingWithMutableData: (NSMutableData*)mdata
 {
   self = [super init];
@@ -164,6 +182,10 @@ static Class	NSMutableDataMallocClass;
   [super dealloc];
 }
 
+/**
+ *  Writes serialized representation of object and, recursively, any
+ *  other objects it holds references to, to byte array.
+ */
 + (NSData*) archivedDataWithRootObject: (id)rootObject
 {
   NSArchiver	*archiver;
@@ -197,6 +219,10 @@ static Class	NSMutableDataMallocClass;
   return d;
 }
 
+/**
+ *  Writes out serialized representation of object and, recursively, any
+ *  other objects it holds references to.
+ */
 + (BOOL) archiveRootObject: (id)rootObject
 		    toFile: (NSString*)path
 {
@@ -804,11 +830,19 @@ static Class	NSMutableDataMallocClass;
     }
 }
 
+/**
+ *  Returns whatever data has been encoded thusfar.
+ */
 - (NSMutableData*) archiverData
 {
   return _data;
 }
 
+/**
+ *  Returns substitute class used to encode objects of given class.  This
+ *  would have been set through an earlier call to
+ *  [NSArchiver -encodeClassName:intoClassName:].
+ */
 - (NSString*) classNameEncodedForTrueClassName: (NSString*)trueName
 {
   if (_namMap->nodeCount)
@@ -827,6 +861,14 @@ static Class	NSMutableDataMallocClass;
   return trueName;
 }
 
+/**
+ *  Specify substitute class used in archiving objects of given class.  This
+ *  class is written to the archive as the class to use for restoring the
+ *  object, instead of what is returned from [NSObject -classForArchiver].
+ *  This can be used to provide backward compatibility across class name
+ *  changes.  The object is still encoded by calling
+ *  <code>encodeWithCoder:</code> as normal.
+ */
 - (void) encodeClassName: (NSString*)trueName
 	   intoClassName: (NSString*)inArchiveName
 {
@@ -857,6 +899,9 @@ static Class	NSMutableDataMallocClass;
     }
 }
 
+/**
+ *  Set encoder to write out newObject in place of object.
+ */
 - (void) replaceObject: (id)object
 	    withObject: (id)newObject
 {
@@ -886,14 +931,15 @@ static Class	NSMutableDataMallocClass;
 
 
 
-/*
- *	Catagories for compatibility with old GNUstep encoding.
+/**
+ *  Catagory for compatibility with old GNUstep encoding.
  */
-
 @implementation	NSArchiver (GNUstep)
 
-/* Re-using an archiver */
-
+/**
+ *  Allow reuse of archiver (clears class substitution maps, etc.) but
+ *  do not clear out current serialized data.
+ */
 - (void) resetArchiver
 {
   if (_clsMap)
@@ -937,11 +983,17 @@ static Class	NSMutableDataMallocClass;
 		 pointers: 0];
 }
 
+/**
+ *  Returns YES.
+ */
 - (BOOL) directDataAccess
 {
   return YES;
 }
 
+/**
+ *  Writes out header for GNUstep archive format.
+ */
 - (void) serializeHeaderAt: (unsigned)positionInData
 		   version: (unsigned)systemVersion
 		   classes: (unsigned)classCount

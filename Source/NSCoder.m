@@ -290,6 +290,8 @@
 
 - (unsigned int) systemVersion
 {
+  //PENDING(ABR)- should probably mult major version by 1000, not 100, since,
+  //              e.g., 2.0.0 is going to be <1000
   return (((GNUSTEP_BASE_MAJOR_VERSION * 100)
     + GNUSTEP_BASE_MINOR_VERSION) * 100) + GNUSTEP_BASE_SUBMINOR_VERSION;
 }

@@ -803,50 +803,11 @@ static Class	doubleNumberClass;
     return NSCopyObject(self, 0, zone);
 }
 
-/**
- * Returns the string representation of this number using a non-localised
- * conversion (decimal point is '.' irrespective of the locale).
- */
 - (NSString*) description
 {
   return [self descriptionWithLocale: nil];
 }
 
-/**
- * <p>
- *   Produces a string representation of the number.  For a boolean
- *   this will be either 'true' or 'false'.  For other numbers the
- *   format is produced using the initWithFormat:locale:... method
- *   of NSString, and the format depends on the type of number as
- *   follows -
- * </p>
- * <deflist>
- *   <term>char</term>
- *   <desc>%i</desc>
- *   <term> short</term>
- *   <desc>%hi</desc>
- *   <term> int</term>
- *   <desc>%i</desc>
- *   <term> long</term>
- *   <desc>%li</desc>
- *   <term> long long</term>
- *   <desc>%lli</desc>
- *   <term> unsigned char</term>
- *   <desc>%u</desc>
- *   <term> unsigned short</term>
- *   <desc>%hu</desc>
- *   <term> unsigned int</term>
- *   <desc>%u</desc>
- *   <term> unsigned long</term>
- *   <desc>%lu</desc>
- *   <term> unsigned long long</term>
- *   <desc>%llu</desc>
- *   <term> float</term>
- *   <desc>%0.7g</desc>
- *   <term> double</term>
- *   <desc>%0.16g</desc>
- * </deflist>
- */
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
   NSString	*result = nil;

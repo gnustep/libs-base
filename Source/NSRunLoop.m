@@ -1181,7 +1181,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 @implementation NSObject (TimedPerformers)
 
-/**
+/*
  * Cancels any perform operations set up for the specified target
  * in the current run loop.
  */
@@ -1210,7 +1210,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     }
 }
 
-/**
+/*
  * Cancels any perform operations set up for the specified target
  * in the current loop, but only if the value of aSelector and argument
  * with which the performs were set up match those supplied.<br />
@@ -1589,6 +1589,23 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 
 
+/**
+ *  <p><code>NSRunLoop</code> instances handle various utility tasks that must
+ *  be performed repetitively in an application, such as processing input
+ *  events, listening for distributed objects communications, firing
+ *  [NSTimer]s, and sending notifications and other messages
+ *  asynchronously.</p>
+ *
+ * <p>In general, there is one run loop per thread in an application, which
+ *  may always be obtained through the <code>+currentRunLoop</code> method,
+ *  however unless you are using the AppKit and the [NSApplication] class, the
+ *  run loop will not be started unless you explicitly send it a
+ *  <code>-run</code> message.</p>
+ *
+ * <p>At any given point, a run loop operates in a single <em>mode</em>, usually
+ * <code>NSDefaultRunLoopMode</code>.  Other options include
+ * <code>NSConnectionReplyMode</code>, and certain modes used by the AppKit.</p>
+ */
 @implementation NSRunLoop
 
 + (void) initialize
@@ -1607,6 +1624,9 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     }
 }
 
+/**
+ * Returns the run loop instance for the current thread.
+ */
 + (NSRunLoop*) currentRunLoop
 {
   extern NSRunLoop	*GSRunLoopForThread();
@@ -2038,11 +2058,21 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   return YES;
 }
 
+/**
+ * Runs the loop in <code>NSDefaultRunLoopMode</code> by repeated calls to
+ * -runMode:beforeDate: while there are still input sources.  Exits when no
+ * more input sources remain.
+ */
 - (void) run
 {
   [self runUntilDate: theFuture];
 }
 
+/**
+ * Runs the loop in <code>NSDefaultRunLoopMode</code> by repeated calls to
+ * -runMode:beforeDate: while there are still input sources.  Exits when no
+ * more input sources remain, or date is reached, whichever occurs first.
+ */
 - (void) runUntilDate: (NSDate*)date
 {
   double	ti = [date timeIntervalSinceNow];
@@ -2061,8 +2091,15 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 
 
+/**
+ * OpenStep-compatibility methods for [NSRunLoop].  These methods are also
+ * all in OS X.
+ */
 @implementation	NSRunLoop (OPENSTEP)
 
+/**
+ * Adds port to be monitored in given mode.
+ */
 - (void) addPort: (NSPort*)port
          forMode: (NSString*)mode
 {
@@ -2146,6 +2183,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   NSEndMapTableEnumeration(&enumerator);
 }
 
+/**
+ *  Configure event processing for acting as a server process for distributed
+ *  objects.  (In the current implementation this is a no-op.)
+ */
 - (void) configureAsServer
 {
 /* Nothing to do here */
@@ -2218,6 +2259,10 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     }
 }
 
+/**
+ * Removes port to be monitored from given mode.
+ * Ports are also removed if they are detected to be invalid.
+ */
 - (void) removePort: (NSPort*)port
             forMode: (NSString*)mode
 {

@@ -2246,7 +2246,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 @end
 
 /**
- * Routines for manipulating Gregorian dates
+ * Routines for manipulating Gregorian dates.
  */
 // The following code is based upon the source code in
 // ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
@@ -2288,7 +2288,7 @@ static void Grow(DescriptionInfo *info, unsigned size)
 
 
 /**
- * Methods present in OpenStep but later removed from MacOS-X
+ * Methods present in OpenStep but later removed from MacOS-X.
  */
 @implementation NSCalendarDate (OPENSTEP)
 

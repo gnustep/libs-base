@@ -183,7 +183,9 @@ NSCountHashTable(NSHashTable *table)
 
 /**
  * Create a new hash table by calling NSCreateHashTableWithZone() using
- * NSDefaultMallocZone().<br />
+ * NSDefaultMallocZone().  callbacks provides five helper functions used by
+ * the main implementation.  See the NSHashTableCallbacks documentation
+ * for more information.<br />
  * If capacity is small or 0, then the returned
  * table has a reasonable (but still small) capacity. 
  */

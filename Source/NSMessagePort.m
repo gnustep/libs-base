@@ -1226,7 +1226,7 @@ static int unique_index = 0;
 /*
  * This is the preferred initialisation method for NSMessagePort
  *
- * 'name' is the name of the socket in the port directory
+ * 'socketName' is the name of the socket in the port directory
  */
 + (NSMessagePort*) _portWithName: (const unsigned char *)socketName
 		     listener: (BOOL)shouldListen
@@ -1642,11 +1642,6 @@ static int unique_index = 0;
     }
 }
 
-/*
- * This is called when a tcp/ip socket connection is broken.  We remove the
- * connection handle from this port and, if this was the last handle to a
- * remote port, we invalidate the port.
- */
 - (void) removeHandle: (GSMessageHandle*)handle
 {
   M_LOCK(myLock);
@@ -1753,7 +1748,7 @@ static int unique_index = 0;
       header = [components objectAtIndex: 0];
       /*
        * The Item header contains the item type and the length of the
-       * data in the item (excluding the item header itsself).
+       * data in the item (excluding the item header itself).
        */
       hLength = [header length];
       l = hLength - sizeof(GSPortItemHeader);

@@ -43,6 +43,27 @@
 #include "GNUstepBase/GSCategories.h"
 #include "GSPrivate.h"
 
+/**
+ *  <p>This class and its subclasses store key-value pairs, where the key and
+ *  the value are objects.  A great many utility methods for working with
+ *  dictionaries are provided as part of this class, including the ability to
+ *  retrieve multiple entries simultaneously, obtain sorted contents, and
+ *  read/write from/to a serialized representation.</p>
+ *
+ *  <p>Both keys and values are retained by the implementation, and released
+ *  when either their entry is dropped or the entire dictionary is deallocated.
+ *  This differs from the implementation on OS X, where keys are copied instead
+ *  of being retained and must therefore implement the [NSCopying] protocol.</p>
+ *
+ *  <p>Objects of this class are immutable.  For a mutable version, use the
+ *  [NSMutableDictionary] subclass.</p>
+ *
+ *  <p>The basic functionality in <code>NSDictionary</code> is similar to that
+ *  in Java's <code>HashMap</code>, and like that class it includes no locking
+ *  code and is not thread-safe.  If the contents will be modified and
+ *  accessed from multiple threads you should enclose critical operations
+ *  within locks (see [NSLock]).</p>
+ */
 @implementation NSDictionary 
 
 @class	GSDictionary;
@@ -96,7 +117,12 @@ static SEL	appSel;
     }
 }
 
-/** <init />
+/**
+ * Initializes contents to the given objects and keys.
+ * The two arrays must have the same size.
+ * The n th element of the objects array is associated with the n th
+ * element of the keys array.
+ * <init />
  */
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
@@ -304,6 +330,9 @@ static SEL	appSel;
   return self;
 }
 
+/**
+ *  Returns a new autoreleased empty dictionary.
+ */
 + (id) dictionary
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
@@ -394,6 +423,12 @@ static SEL	appSel;
   return AUTORELEASE(o);
 }
 
+/**
+ * Returns a dictionary created using the given objects and keys.
+ * The two arrays must have the same length.
+ * The n th element of the objects array is associated with the n th
+ * element of the keys array.
+ */
 + (id) dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -416,6 +451,10 @@ static SEL	appSel;
   return [self initWithObjects: NULL forKeys: NULL count: 0];
 }
 
+/**
+ * Initializes with the keys and objects of otherDictionary.
+ * (The keys and objects are not copied.)
+ */
 - (id) initWithDictionary: (NSDictionary*)otherDictionary
 {
   return [self initWithDictionary: otherDictionary copyItems: NO];
@@ -478,7 +517,7 @@ static SEL	appSel;
  * which must contain a dictionary in property-list format.
  * </p>
  * <p>In GNUstep, the property-list format may be either the OpenStep
- * format (ASCII data), or the MacOS-X format (URF8 XML data) ... this
+ * format (ASCII data), or the MacOS-X format (UTF-8 XML data) ... this
  * method will recognise which it is.
  * </p>
  * <p>If there is a failure to load the file for any reason, the receiver
@@ -531,7 +570,7 @@ static SEL	appSel;
  * which must contain a dictionary in property-list format.
  * </p>
  * <p>In GNUstep, the property-list format may be either the OpenStep
- * format (ASCII data), or the MacOS-X format (URF8 XML data) ... this
+ * format (ASCII data), or the MacOS-X format (UTF-8 XML data) ... this
  * method will recognise which it is.
  * </p>
  * <p>If there is a failure to load the URL for any reason, the receiver
@@ -610,6 +649,12 @@ static SEL	appSel;
   return NO;
 }
 
+/**
+ * Two dictionaries are equal if they each hold the same number of
+ * entries, each key in one <code>isEqual</code> to a key in the other,
+ * and, for a given key, the corresponding value objects also satisfy
+ * <code>isEqual</code>.
+ */
 - (BOOL) isEqualToDictionary: (NSDictionary*)other
 {
   unsigned	count;
@@ -764,6 +809,14 @@ compareIt(id o1, id o2, void* context)
   return (int)[o1 performSelector: f->s withObject: o2];
 }
 
+/**
+ *  Returns ordered array of the keys sorted according to the values they
+ *  correspond to.  To sort the values, a message with selector comp is
+ *  send to each value with another value as argument, as in
+ *  <code>[a comp: b]</code>.  The comp method should return
+ *  <code>NSOrderedSame</code>, <code>NSOrderedAscending</code>, or
+ *  <code>NSOrderedDescending</code> as appropriate.
+ */
 - (NSArray*) keysSortedByValueUsingSelector: (SEL)comp
 {
   struct foo	info;
@@ -776,6 +829,12 @@ compareIt(id o1, id o2, void* context)
   return k;
 }
 
+/**
+ *  Multiple version of [-objectForKey:].  Objects for each key in keys are
+ *  looked up and placed into return array in same order.  For each key that
+ *  has no corresponding value in this dictionary, marker is put into the
+ *  array in its place.
+ */
 - (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)marker
 {
   unsigned	c = [keys count];
@@ -978,6 +1037,10 @@ compareIt(id o1, id o2, void* context)
 }
 @end
 
+
+/**
+ *  Mutable version of [NSDictionary].
+ */
 @implementation NSMutableDictionary
 
 + (void) initialize
@@ -1037,23 +1100,46 @@ compareIt(id o1, id o2, void* context)
   return NSMutableDictionaryClass;
 }
 
-/* This is the designated initializer */
+/**
+ *  Initializes an empty dictionary with memory preallocated for given number
+ *  of entries.  Although memory space will be grown as needed when entries
+ *  are added, this can avoid the reallocate-and-copy process if the size of
+ *  the ultimate contents is known in advance.
+ *  <init/>
+ */
 - (id) initWithCapacity: (unsigned)numItems
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
+/**
+ *  Adds entry for aKey, mapping to anObject.  If either is nil, an exception
+ *  is raised.  If aKey already in dictionary, the value it maps to is
+ *  silently replaced.  aKey and anObject are both retained.  (This differs
+ *  from OS X, where the key is copied and must therefore implement the
+ *  [NSCopying] protocol.)
+ */
 - (void) setObject: anObject forKey: (id)aKey
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Remove key-value mapping for given key aKey.  No error if there is no
+ *  mapping for the key.  A warning will be generated if aKey is nil.
+ */
 - (void) removeObjectForKey: (id)aKey
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Returns an empty dictionary with memory preallocated for given number of
+ *  entries.  Although memory space will be grown as needed when entries are
+ *  added, this can avoid the reallocate-and-copy process if the size of the
+ *  ultimate contents is known in advance.
+ */
 + (id) dictionaryWithCapacity: (unsigned)numItems
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -1061,6 +1147,12 @@ compareIt(id o1, id o2, void* context)
 }
 
 /* Override superclass's designated initializer */
+/**
+ * Initializes contents to the given objects and keys.
+ * The two arrays must have the same size.
+ * The n th element of the objects array is associated with the n th
+ * element of the keys array.
+ */
 - (id) initWithObjects: (id*)objects
 	       forKeys: (id*)keys
 		 count: (unsigned)count
@@ -1079,6 +1171,9 @@ compareIt(id o1, id o2, void* context)
   return self;
 }
 
+/**
+ *  Clears out this dictionary by removing all entries.
+ */
 - (void) removeAllObjects
 {
   id		k;
@@ -1092,6 +1187,11 @@ compareIt(id o1, id o2, void* context)
     }
 }
 
+/**
+ *  Remove entries specified by the given keyArray.  No error is generated if
+ *  no mapping exists for a key or one is nil, although a console warning is
+ *  produced in the latter case.
+ */
 - (void) removeObjectsForKeys: (NSArray*)keyArray
 {
   unsigned	c = [keyArray count];
@@ -1132,6 +1232,9 @@ compareIt(id o1, id o2, void* context)
     }
 }
 
+/**
+ *  Remove all entries, then add all entries from otherDictionary.
+ */
 - (void) setDictionary: (NSDictionary*)otherDictionary
 {
   [self removeAllObjects];

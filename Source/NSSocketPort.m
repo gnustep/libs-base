@@ -1977,7 +1977,7 @@ static unsigned	wordAlign;
       header = [components objectAtIndex: 0];
       /*
        * The Item header contains the item type and the length of the
-       * data in the item (excluding the item header itsself).
+       * data in the item (excluding the item header itself).
        */
       hLength = [header length];
       l = hLength - sizeof(GSPortItemHeader);

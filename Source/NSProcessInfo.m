@@ -145,9 +145,17 @@ Please report the error to bug-gnustep@gnu.org.\n\n"
 }
 @end
 
+
 /*************************************************************************
  *** NSProcessInfo implementation
  *************************************************************************/
+
+/**
+ * Instances of this class encapsulate information on the current process.
+ * For example, you can get the arguments, environment variables, host name,
+ * or process name.  There is only one instance per process, for obvious
+ * reasons, and it may be obtained through the +processInfo method.
+ */
 @implementation NSProcessInfo
 /*************************************************************************
  *** Static global vars
@@ -912,6 +920,10 @@ int main(int argc, char *argv[], char *env[])
 
 @end
 
+/**
+ * Provides GNUstep-specific methods for controlled debug logging (a GNUstep
+ * facility) and an internal/developer-related method.
+ */
 @implementation	NSProcessInfo (GNUstep)
 
 static BOOL	debugTemporarilyDisabled = NO;

@@ -1134,7 +1134,7 @@ else \
  * </list>
  * <p>On return, the function result is a flag indicating success (YES)
  * or failure (NO), and on success, the value stored in size is the number
- * of characters in the converted string.  The converted string itsself is
+ * of characters in the converted string.  The converted string itself is
  * stored in the location given by dst.<br />
  * NB. If the value stored in dst has been changed, it is a pointer to
  * allocated memory which the caller is responsible for freeing, and the

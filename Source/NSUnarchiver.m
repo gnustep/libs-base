@@ -294,8 +294,8 @@ mapClassName(NSUnarchiverObjectInfo *info)
 @end
 
 /**
- * This class reconstructs objects from an archive.<br />
- * <strong>Re-using the archiver</strong><br />
+ * <p>This class reconstructs objects from an archive.</p><br />
+ * <strong>Re-using the archiver</strong>
  * <p>
  *   The -resetUnarchiverWithData:atIndex: method lets you re-use
  *   the archive to decode a new data object or, in conjunction
@@ -303,9 +303,9 @@ mapClassName(NSUnarchiverObjectInfo *info)
  *   position in the archive), decode a second archive that exists
  *   in the data object after the first one.
  * </p>
- * <strong>Subclassing with different input format.</strong><br />
- * NSUnarchiver normally reads directly from an NSData object using
- * the methods -
+ * <strong>Subclassing with different input format.</strong><br /><br />
+ * <code>NSUnarchiver</code> normally reads directly from an [NSData]
+ * object using the methods -
  * <deflist>
  *   <term>-deserializeTypeTag:andCrossRef:atCursor:</term>
  *   <desc>
@@ -317,7 +317,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
  *     Also decode a crossreference number either to identify the
  *     following item, or to refer to a previously encoded item.
  *     Objects, Classes, Selectors, CStrings and Pointer items
- *     have crossreference encoding, other types do not.
+ *     have crossreference encoding, other types do not.<br />
  *   </desc>
  *   <term>[NSData-deserializeDataAt:ofObjCType:atCursor:context:]</term>
  *   <desc>
@@ -325,18 +325,18 @@ mapClassName(NSUnarchiverObjectInfo *info)
  *   </desc>
  * </deflist>
  * <p>
- *   And uses other NSData methods to read the archive header information
- *   from within the method:
+ *   <code>NSUnarchiver</code> normally uses other [NSData] methods to read
+ *   the archive header information from within the method:
  *   [-deserializeHeaderAt:version:classes:objects:pointers:]
  *   to read a fixed size header including archiver version
- *   (obtained by [self systemVersion]) and crossreference
+ *   (obtained by <code>[self systemVersion]</code>) and crossreference
  *   table sizes.
  * </p>
  * <p>
- *   To subclass NSUnarchiver, you must implement your own versions of the
- *   four methods above, and override the 'directDataAccess' method to
- *   return NO so that the archiver knows to use your serialization
- *   methods rather than those in the NSData object.
+ *   To subclass <code>NSUnarchiver</code>, you must implement your own
+ *   versions of the four methods above, and override the 'directDataAccess'
+ *   method to return NO so that the archiver knows to use your serialization
+ *   methods rather than those in the [NSData] object.
  * </p>
  */
 @implementation NSUnarchiver
@@ -356,6 +356,10 @@ static Class NSDataMallocClass;
     }
 }
 
+/**
+ *  Creates an NSUnarchiver to read from anObject and returns result of sending
+ *  [NSCoder -decodeObject] to it.
+ */
 + (id) unarchiveObjectWithData: (NSData*)anObject
 {
   NSUnarchiver	*unarchiver;
@@ -378,6 +382,10 @@ static Class NSDataMallocClass;
   return obj;
 }
 
+/**
+ *  Creates an NSUnarchiver to read from path and returns result of sending
+ *  [NSCoder -decodeObject] to it.
+ */
 + (id) unarchiveObjectWithFile: (NSString*)path
 {
   NSData	*d = [NSDataMallocClass dataWithContentsOfFile: path];
@@ -406,6 +414,9 @@ static Class NSDataMallocClass;
   [super dealloc];
 }
 
+/**
+ *  Set up to read objects from data buffer anObject.
+ */
 - (id) initForReadingWithData: (NSData*)anObject
 {
   if (anObject == nil)
@@ -1090,26 +1101,43 @@ static Class NSDataMallocClass;
   return [NSData data];
 }
 
+/**
+ *  Returns whether have currently read through all of data buffer or file
+ *  this unarchiver was initialized with.
+ */
 - (BOOL) isAtEnd
 {
   return (cursor >= [data length]);
 }
 
+/**
+ *  Returns zone unarchived objects will be allocated from.
+ */
 - (NSZone*) objectZone
 {
   return zone;
 }
 
+/**
+ *  Sets zone unarchived objects will be allocated from.
+ */
 - (void) setObjectZone: (NSZone*)aZone
 {
   zone = aZone;
 }
 
+/**
+ *  Returns system version archive was encoded by.
+ */
 - (unsigned) systemVersion
 {
   return version;
 }
 
+/**
+ *  Returns class name unarchivers will use to instantiate encoded objects
+ *  when they report their class name as nameInArchive.
+ */
 + (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive
 {
   NSUnarchiverClassInfo	*info = [clsDict objectForKey: nameInArchive];
@@ -1127,6 +1155,11 @@ static Class NSDataMallocClass;
   return nameInArchive;
 }
 
+/**
+ *  Sets class name unarchivers will use to instantiate encoded objects
+ *  when they report their class name as nameInArchive.  This can be used
+ *  to support backwards compatibility across class name changes.
+ */
 + (void) decodeClassName: (NSString*)nameInArchive
 	     asClassName: (NSString*)trueName
 {
@@ -1152,6 +1185,10 @@ static Class NSDataMallocClass;
     }
 }
 
+/**
+ *  Returns class name this unarchiver uses to instantiate encoded objects
+ *  when they report their class name as nameInArchive.
+ */
 - (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive
 {
   NSUnarchiverObjectInfo	*info = [objDict objectForKey: nameInArchive];
@@ -1170,6 +1207,11 @@ static Class NSDataMallocClass;
 }
 
 
+/**
+ *  Set class name this unarchiver uses to instantiate encoded objects
+ *  when they report their class name as nameInArchive.  This can be used
+ *  to provide backward compatibility across class name changes.
+ */
 - (void) decodeClassName: (NSString*)nameInArchive
 	     asClassName: (NSString*)trueName
 {
@@ -1195,6 +1237,10 @@ static Class NSDataMallocClass;
     }
 }
 
+/**
+ *  Set unarchiver to replace anObject with replacement whenever it is
+ *  found decoded from the archive.
+ */
 - (void) replaceObject: (id)anObject withObject: (id)replacement
 {
   unsigned i;
@@ -1230,15 +1276,24 @@ static Class NSDataMallocClass;
 
 
 
+/**
+ *  Catagory for compatibility with old GNUstep encoding.
+ */
 @implementation	NSUnarchiver (GNUstep)
 
-/* Re-using the unarchiver */
-
+/**
+ *  Return current position within archive byte array.
+ */
 - (unsigned) cursor
 {
   return cursor;
 }
 
+
+/**
+ *  Prepare for reuse of the unarchiver to unpack a new archive, specified in
+ *  anObject, starting at pos.  Reads archive header.
+ */
 - (void) resetUnarchiverWithData: (NSData*)anObject
 			 atIndex: (unsigned)pos
 {
@@ -1312,6 +1367,9 @@ static Class NSDataMallocClass;
   [objSave removeAllObjects];
 }
 
+/**
+ *  Reads in header for GNUstep archive format.
+ */
 - (void) deserializeHeaderAt: (unsigned*)pos
 		     version: (unsigned*)v
 		     classes: (unsigned*)c
@@ -1337,6 +1395,9 @@ static Class NSDataMallocClass;
     }
 }
 
+/**
+ *  Returns YES.
+ */
 - (BOOL) directDataAccess
 {
   return YES;

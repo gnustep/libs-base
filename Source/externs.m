@@ -73,7 +73,10 @@ NSString *NSConnectionReplyMode = @"NSConnectionReplyMode";
 
 
 
-/* Exception handler */
+/**
+ * Last-resort exception handler, a function taking an NSException and
+ * returning void.  Set with NSSetUncaughtExceptionHandler().
+ */
 NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 
 /* NSBundle */

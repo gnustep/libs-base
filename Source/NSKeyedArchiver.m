@@ -52,6 +52,10 @@
 #undef	_IN_NSKEYEDARCHIVER_M
 
 /* Exceptions */
+
+/**
+ * An archiving error has occurred.
+ */
 NSString * const NSInvalidArchiveOperationException
 = @"NSInvalidArchiveOperationException";
 
@@ -316,7 +320,7 @@ static NSDictionary *makeReference(unsigned ref)
 	}
 
       /*
-       * At last, get the object to encode itsself.  Save and restore the
+       * At last, get the object to encode itself.  Save and restore the
        * current object scope of course.
        */
       _enc = m;

@@ -29,8 +29,15 @@
 #include "Foundation/NSUtilities.h"
 #include "Foundation/NSArray.h"
 
+/**
+ *  Simple class for iterating over a collection of objects, usually returned
+ *  from an [NSArray] or similar.
+ */
 @implementation NSEnumerator
 
+/**
+ *  Returns all objects remaining in the enumeration as an array.
+ */
 - (NSArray*) allObjects
 {
   NSMutableArray	*array;
@@ -54,6 +61,10 @@
   return array;
 }
 
+/**
+ *  Returns next object in enumeration, or nil if none remain.  Use code like
+ *  <code>while (object = [enumerator nextObject]) { ... }</code>.
+ */
 - (id) nextObject
 {
   [self subclassResponsibility:_cmd];

@@ -132,14 +132,13 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // Simplest lock for protecting critical sections of code
 
 /**
- * An NSLock is used in multi-threaded applications to protect critical
- * pieces of code. While one thread holds a lock within a piece of code,
- * another thread cannot execute that code until the first thread has
- * given up it's hold on the lock. The limitation of NSLock is that
- * you can only lock an
- * NSLock once and it must be unlocked before it can be aquired again.<br />
- * Other lock classes, notably NSRecursiveLock, have
- * different restrictions.
+ * An <code>NSLock</code> is used in multi-threaded applications to protect
+ * critical pieces of code. While one thread holds a lock within a piece of
+ * code, another thread cannot execute that code until the first thread has
+ * given up its hold on the lock. The limitation of <code>NSLock</code> is
+ * that you can only lock an <code>NSLock</code> once and it must be unlocked
+ * before it can be aquired again.<br /> Other lock classes, notably
+ * [NSRecursiveLock], have different restrictions.
  */
 @implementation NSLock
 
@@ -567,8 +566,8 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 
 /**
- * See NSLock for more information about what a lock is. A recursive
- * lock extends NSLock in that you can lock a recursive lock multiple
+ * See [NSLock] for more information about what a lock is. A recursive
+ * lock extends [NSLock] in that you can lock a recursive lock multiple
  * times. Each lock must be balanced by a cooresponding unlock, and the
  * lock is not released for another thread to aquire until the last
  * unlock call is made (corresponding to the first lock message).

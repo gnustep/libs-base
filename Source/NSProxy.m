@@ -47,12 +47,17 @@ extern BOOL __objc_responds_to(id, SEL);
 #endif
 
 /**
- * The NSProxy class provides a basic implementation of a class whose
+ * <p>The NSProxy class provides a basic implementation of a class whose
  * instances are used to <em>stand in</em> for other objects.<br />
  * The class provides the most basic methods of NSObject, and expects
  * messages for other methods to be forwarded to the <em>real</em>
  * object represented by the proxy.  You must subclass NSProxy to
- * implement -forwardInvocation: to these <em>real</em> objects.
+ * implement -forwardInvocation: to these <em>real</em> objects.</p>
+ *
+ * <p>Note that <code>NSProxy</code> is a different sort of class than others
+ *  in the GNUstep Base library in that it is the only example of a root class
+ *  besides [NSObject].  Thus, it defines its own <code><em>isa</em></code>
+ *  variable and implements the <code>NSObject</code> protocol.</p>
  */
 @implementation NSProxy
 
@@ -74,7 +79,7 @@ extern BOOL __objc_responds_to(id, SEL);
 }
 
 /**
- * Returns the receiver
+ * Returns the receiver.
  */
 + (id) autorelease
 {
@@ -82,7 +87,7 @@ extern BOOL __objc_responds_to(id, SEL);
 }
 
 /**
- * Returns the receiver
+ * Returns the receiver.
  */
 + (Class) class
 {
@@ -186,7 +191,7 @@ extern BOOL __objc_responds_to(id, SEL);
 }
 
 /**
- * Returns the superclass of the receiver
+ * Returns the superclass of the receiver.
  */
 + (Class) superclass
 {
@@ -271,7 +276,7 @@ extern BOOL __objc_responds_to(id, SEL);
 }
 
 /** <override-subclass />
- * Raises an NSInvalidArgumentException
+ * Raises an <code>NSInvalidArgumentException</code>.
  */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
@@ -300,7 +305,7 @@ extern BOOL __objc_responds_to(id, SEL);
 }
 
 /**
- * Tests for pointer equality with anObject
+ * Tests for pointer equality with anObject.
  */
 - (BOOL) isEqual: (id)anObject
 {
@@ -350,7 +355,7 @@ extern BOOL __objc_responds_to(id, SEL);
 }
 
 /**
- * Returns YES
+ * Returns YES.
  */
 - (BOOL) isProxy
 {
@@ -536,7 +541,7 @@ extern BOOL __objc_responds_to(id, SEL);
 }
 
 /**
- * Returns the superclass of the receivers class.
+ * Returns the superclass of the receiver's class.
  */
 - (Class) superclass
 {

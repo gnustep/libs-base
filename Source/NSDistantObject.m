@@ -803,6 +803,9 @@ enum
 
 @end
 
+/**
+ *  Adds some backwards-compatibility and other methods.
+ */
 @implementation NSDistantObject(GNUstepExtensions)
 
 /**

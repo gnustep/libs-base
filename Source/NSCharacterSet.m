@@ -45,6 +45,10 @@ static NSCharacterSet *cache_set[MAX_STANDARD_SETS];
 static NSLock *cache_lock = nil;
 static Class abstractClass = nil;
 
+/**
+ *  Represents a set of unicode characters.  Used by [NSScanner] and [NSString]
+ *  for parsing-related methods.
+ */
 @implementation NSCharacterSet
 
 + (void) initialize
@@ -139,11 +143,19 @@ static Class abstractClass = nil;
 }
 
 
+/**
+ *  Returns a character set containing letters, numbers, and diacritical
+ *  marks.  Note that "letters" includes all alphabetic as well as Chinese
+ *  characters, etc..
+ */
 + (NSCharacterSet*) alphanumericCharacterSet
 {
   return [self _bitmapForSet: @"alphanumericCharSet" number: 0];
 }
 
+/**
+ *  Returns a character set containing control and format characters.
+ */
 + (NSCharacterSet*) controlCharacterSet
 {
   return [self _bitmapForSet: @"controlCharSet" number: 1];
@@ -176,6 +188,10 @@ static Class abstractClass = nil;
   return [self _bitmapForSet: @"illegalCharSet" number: 4];
 }
 
+/**
+ *  Returns a character set containing letters, including all alphabetic as
+ *  well as Chinese characters, etc..
+ */
 + (NSCharacterSet*) letterCharacterSet
 {
   return [self _bitmapForSet: @"letterCharSet" number: 5];
@@ -191,16 +207,26 @@ static Class abstractClass = nil;
   return [self _bitmapForSet: @"lowercaseLetterCharSet" number: 6];
 }
 
+/**
+ *  Returns a character set containing characters for diacritical marks, which
+ *  are usually only rendered in conjunction with another character.
+ */
 + (NSCharacterSet*) nonBaseCharacterSet
 {
   return [self _bitmapForSet: @"nonBaseCharSet" number: 7];
 }
 
+/**
+ *  Returns a character set containing punctuation marks.
+ */
 + (NSCharacterSet*) punctuationCharacterSet
 {
   return [self _bitmapForSet: @"punctuationCharSet" number: 8];
 }
 
+/**
+ *  Returns a character set containing mathematical symbols, etc..
+ */
 + (NSCharacterSet*) symbolAndOperatorCharacterSet
 {
   return [self _bitmapForSet: @"symbolAndOperatorCharSet" number: 9];
@@ -244,6 +270,10 @@ static Class abstractClass = nil;
   return AUTORELEASE([[NSBitmapCharSet alloc] initWithBitmap: data]);
 }
 
+/**
+ *  Returns set with characters in aString, or empty set for empty string.
+ *  Raises an exception if given a nil string.
+ */
 + (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
 {
   unsigned	i;
@@ -270,6 +300,9 @@ static Class abstractClass = nil;
   return [self characterSetWithBitmapRepresentation: bitmap];
 }
 
+/**
+ *  Returns set containing unicode index range given by aRange.
+ */
 + (NSCharacterSet*)characterSetWithRange: (NSRange)aRange
 {
   unsigned	i;
@@ -291,6 +324,12 @@ static Class abstractClass = nil;
   return [self characterSetWithBitmapRepresentation: bitmap];
 }
 
+/**
+ *  Initializes from a bitmap.  (See [NSBitmapCharSet].)  File must have
+ *  extension "<code>.bitmap</code>".  (To get around this load the file
+ *  into data yourself and use
+ *  [NSCharacterSet -characterSetWithBitmapRepresentation].
+ */
 + (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile
 {
   if ([@"bitmap" isEqual: [aFile pathExtension]])
@@ -394,6 +433,9 @@ static Class abstractClass = nil;
 
 @end
 
+/**
+ *  An [NSCharacterSet] that can be modified.
+ */
 @implementation NSMutableCharacterSet
 
 /* Provide a default object for allocation */
@@ -408,37 +450,61 @@ static Class abstractClass = nil;
   return AUTORELEASE([[NSMutableBitmapCharSet alloc] initWithBitmap: data]);
 }
 
-/* Mutable subclasses must implement ALL of these methods.  */
+/* Mutable subclasses must implement ALL of these methods. */
+
+/**
+ *  Adds characters specified by unicode indices in aRange to set.
+ */
 - (void) addCharactersInRange: (NSRange)aRange
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Adds characters in aString to set.
+ */
 - (void) addCharactersInString: (NSString*)aString
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Set union of character sets.
+ */
 - (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Set intersection of character sets.
+ */
 - (void) formIntersectionWithCharacterSet: (NSCharacterSet*)otherSet
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Drop given range of characters.  No error for characters not currently in
+ *  set.
+ */
 - (void) removeCharactersInRange: (NSRange)aRange
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Drop characters in aString.  No error for characters not currently in
+ *  set.
+ */
 - (void) removeCharactersInString: (NSString*)aString
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ *  Remove all characters currently in set and add all other characters.
+ */
 - (void) invert
 {
   [self subclassResponsibility: _cmd];

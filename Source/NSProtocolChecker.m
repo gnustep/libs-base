@@ -33,6 +33,23 @@
 #include "Foundation/NSInvocation.h"
 #include "Foundation/NSMethodSignature.h"
 
+/**
+ * The NSProtocolChecker and NSProxy classes provide message filtering and
+ * forwarding capabilities. If you wish to ensure at runtime that a given
+ * object will only be sent messages in a certain protocol, you create an
+ * <code>NSProtocolChecker</code> instance with the protocol and the object as
+ * arguments-
+
+<example>
+    id versatileObject = [[ClassWithManyMethods alloc] init];
+    id narrowObject = [NSProtocolChecker protocolCheckerWithTarget: versatileObject
+                                         protocol: @protocol(SomeSpecificProtocol)];
+    return narrowObject;
+</example>
+
+ * This is often used in conjunction with distributed objects to expose only a
+ * subset of an objects methods to remote processes
+ */
 @implementation NSProtocolChecker
 
 /**
@@ -95,9 +112,10 @@
   return 0;
 }
 
-/*
+/**
  * Forwards any message to the delegate if the method is declared in
- * the checker's protocol; otherwise raises an NSInvalidArgumentException.
+ * the checker's protocol; otherwise raises an
+ * <code>NSInvalidArgumentException</code>.
  */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
@@ -150,7 +168,7 @@
  * delegate. Thus, the checker can be vended in lieu of anObject to
  * restrict the messages that can be sent to anObject. If any method
  * in the protocol returns anObject, the checker will replace the returned
- * value with itsself rather than the target object.<br />
+ * value with itself rather than the target object.<br />
  * Returns the new instance.
  */
 - (id) initWithTarget: (NSObject*)anObject protocol: (Protocol*)aProtocol
@@ -216,7 +234,7 @@
   /*
    * If there are protocols that this class conforms to,
    * the method may be listed in a protocol with more
-   * detailed type information than in the class itsself
+   * detailed type information than in the class itself
    * and we must therefore use the information from the
    * protocol.
    * This is because protocols also carry information

@@ -263,19 +263,26 @@ surrogatePairValue(unichar high, unichar low)
 
 /**
  * <p>
- *   NSString objects represent an immutable string of characters.
- *   NSString itself is an abstract class which provides factory
- *   methods to generate objects of unspecified subclasses.
+ *   <code>NSString</code> objects represent an immutable string of Unicode 3.0
+ *   characters.  These may be accessed individually as type
+ *   <code>unichar</code>, an unsigned short.<br/>
+ *   The [NSMutableString] subclass represents a modifiable string.  Both are
+ *   implemented as part of a class cluster and the instances you receive may
+ *   actually be of unspecified concrete subclasses.
  * </p>
  * <p>
- *   A constant NSString can be created using the following syntax:
+ *   A constant <code>NSString</code> can be created using the following syntax:
  *   <code>@"..."</code>, where the contents of the quotes are the
  *   string, using only ASCII characters.
  * </p>
  * <p>
- *   To create a concrete subclass of NSString, you must have your
- *   class inherit from NSString and override at least the two
- *   primitive methods - length and characterAtIndex:
+ *   A variable string can be created using a C printf-like <em>format</em>,
+ *   as in <code>[NSString stringWithFormat: @"Total is %f", t]</code>.
+ * </p>
+ * <p>
+ *   To create a concrete subclass of <code>NSString</code>, you must have your
+ *   class inherit from <code>NSString</code> and override at least the two
+ *   primitive methods - -length and -characterAtIndex:
  * </p>
  * <p>
  *   In general the rule is that your subclass must override any
@@ -286,6 +293,8 @@ surrogatePairValue(unichar high, unichar low)
  * </p>
  */
 @implementation NSString
+//  NSString itself is an abstract class which provides factory
+//  methods to generate objects of unspecified subclasses.
 
 static NSStringEncoding _DefaultStringEncoding;
 static BOOL		_ByteEncodingOk;
@@ -480,11 +489,17 @@ handle_printf_atsign (FILE *stream,
 
 // Creating Temporary Strings
 
+/**
+ * Create an empty string.
+ */
 + (id) string
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
 }
 
+/**
+ * Create a copy of aString.
+ */
 + (id) stringWithString: (NSString*)aString
 {
   NSString	*obj;
@@ -494,6 +509,9 @@ handle_printf_atsign (FILE *stream,
   return AUTORELEASE(obj);
 }
 
+/**
+ * Create a string of unicode characters.
+ */
 + (id) stringWithCharacters: (const unichar*)chars
 		     length: (unsigned int)length
 {
@@ -504,6 +522,11 @@ handle_printf_atsign (FILE *stream,
   return AUTORELEASE(obj);
 }
 
+/**
+ * Create a string based on the given C (char[]) string, which should be
+ * null-terminated and encoded in the default C string encoding.  (Characters
+ * will be converted to unicode representation internally.)
+ */
 + (id) stringWithCString: (const char*) byteString
 {
   NSString	*obj;
@@ -514,6 +537,11 @@ handle_printf_atsign (FILE *stream,
   return AUTORELEASE(obj);
 }
 
+/**
+ * Create a string based on the given C (char[]) string, which may contain
+ * null bytes and should be encoded in the default C string encoding.
+ * (Characters will be converted to unicode representation internally.)
+ */
 + (id) stringWithCString: (const char*)byteString
 		  length: (unsigned int)length
 {
@@ -524,6 +552,9 @@ handle_printf_atsign (FILE *stream,
   return AUTORELEASE(obj);
 }
 
+/**
+ * Create a string based on the given UTF-8 string, null-terminated.
+ */
 + (id) stringWithUTF8String: (const char *)bytes
 {
   NSString	*obj;
@@ -533,6 +564,11 @@ handle_printf_atsign (FILE *stream,
   return AUTORELEASE(obj);
 }
 
+/**
+ * Load contents of file at path into a new string.  Will interpret file as
+ * containing direct unicode if it begins with the unicode byte order mark,
+ * else converts to unicode using default C string encoding.
+ */
 + (id) stringWithContentsOfFile: (NSString *)path
 {
   NSString	*obj;
@@ -542,6 +578,11 @@ handle_printf_atsign (FILE *stream,
   return AUTORELEASE(obj);
 }
 
+/**
+ * Load contents of given URL into a new string.  Will interpret contents as
+ * containing direct unicode if it begins with the unicode byte order mark,
+ * else converts to unicode using default C string encoding.
+ */
 + (id) stringWithContentsOfURL: (NSURL *)url
 {
   NSString	*obj;
@@ -551,6 +592,11 @@ handle_printf_atsign (FILE *stream,
   return AUTORELEASE(obj);
 }
 
+/**
+ * Creates a new string using C printf-style formatting.  First argument should
+ * be a constant format string, like '<code>@"float val = %f"</code>', remaining
+ * arguments should be the variables to print the values of, comma-separated.
+ */
 + (id) stringWithFormat: (NSString*)format,...
 {
   va_list ap;
@@ -908,9 +954,12 @@ handle_printf_atsign (FILE *stream,
 }
 
 /** <init />
- * This is the most basic initialiser for unicode strings.
+ * <p>Initialize with given unicode chars up to length, regardless of presence
+ *  of null bytes.  Does not copy the string.  If flag, frees its storage when
+ *  this instance is deallocated.</p>
+ * <p>Note, this is the most basic initialiser for unicode strings.
  * In the GNUstep implementation, your subclasses may override
- * this initialiser in order to have all others function.
+ * this initialiser in order to have all others function.</p>
  */
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
@@ -920,6 +969,10 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * <p>Initialize with given unicode chars up to length, regardless of presence
+ *  of null bytes.  Copies the string and frees copy when deallocated.</p>
+ */
 - (id) initWithCharacters: (const unichar*)chars
 		   length: (unsigned int)length
 {
@@ -977,6 +1030,12 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * <p>Initialize with given C string byteString up to length, regardless of
+ *  presence of null bytes.  Characters converted to unicode based on the
+ *  default C encoding.  Does not copy the string.  If flag, frees its storage
+ *  when this instance is deallocated.</p>
+ */
 - (id) initWithCStringNoCopy: (char*)byteString
 		      length: (unsigned int)length
 		freeWhenDone: (BOOL)flag
@@ -1000,6 +1059,11 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * <p>Initialize with given C string byteString up to length, regardless of
+ *  presence of null bytes.  Characters converted to unicode based on the
+ *  default C encoding.  Copies the string.</p>
+ */
 - (id) initWithCString: (const char*)byteString  length: (unsigned int)length
 {
   if (length > 0)
@@ -1020,12 +1084,20 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * <p>Initialize with given C string byteString, which should be
+ * null-terminated.  Characters are converted to unicode based on the default
+ * C encoding.  Copies the string.</p>
+ */
 - (id) initWithCString: (const char*)byteString
 {
   return [self initWithCString: byteString
     length: (byteString ? strlen(byteString) : 0)];
 }
 
+/**
+ * Initialize to be a copy of the given string.
+ */
 - (id) initWithString: (NSString*)string
 {
   unsigned	length = [string length];
@@ -1048,6 +1120,9 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * Initialize based on given null-terminated UTF-8 string bytes.
+ */
 - (id) initWithUTF8String: (const char *)bytes
 {
   unsigned	length = 0;
@@ -1448,6 +1523,24 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ * <p>Initialises the receiver with the contents of the given URL.
+ * </p>
+ * <p>Invokes [NSData+dataWithContentsOfURL:] to read the contents, then
+ * examines the data to infer its encoding type, and converts the
+ * data to a string using -initWithData:encoding:
+ * </p>
+ * <p>The encoding to use is determined as follows ... if the data begins
+ * with the 16-bit unicode Byte Order Marker, then it is assumed to be
+ * unicode data in the appropriate ordering and converted as such.<br />
+ * If it begins with a UTF8 representation of the BOM, the UTF8 encoding
+ * is used.<br />
+ * Otherwise, the default C String encoding is used.
+ * </p>
+ * <p>Releases the receiver and returns nil if the URL contents could not be
+ * read and converted to a string.
+ * </p>
+ */
 - (id) initWithContentsOfURL: (NSURL*)url
 {
   NSStringEncoding	enc = _DefaultStringEncoding;
@@ -1491,6 +1584,9 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+/**
+ *  Initializes as an empty string.
+ */
 - (id) init
 {
   self = [self initWithCharactersNoCopy: (unichar*)0
@@ -1501,6 +1597,10 @@ handle_printf_atsign (FILE *stream,
 
 // Getting a String's Length
 
+/**
+ * Returns the number of Unicode characters in this string, including the
+ * individual characters of composed character sequences,
+ */
 - (unsigned int) length
 {
   [self subclassResponsibility: _cmd];
@@ -1509,20 +1609,34 @@ handle_printf_atsign (FILE *stream,
 
 // Accessing Characters
 
+/**
+ * Returns unicode character at index.  <code>unichar</code> is an unsigned
+ * short.  Thus, a 16-bit character is returned.
+ */
 - (unichar) characterAtIndex: (unsigned int)index
 {
   [self subclassResponsibility: _cmd];
   return (unichar)0;
 }
 
-/* Inefficient.  Should be overridden */
+/**
+ * Returns this string as an array of 16-bit <code>unichar</code> (unsigned
+ * short) values.  buffer must be preallocated and should be capable of
+ * holding -length shorts.
+ */
+// Inefficient.  Should be overridden
 - (void) getCharacters: (unichar*)buffer
 {
   [self getCharacters: buffer range: ((NSRange){0, [self length]})];
   return;
 }
 
-/* Inefficient.  Should be overridden */
+/**
+ * Returns aRange of string as an array of 16-bit <code>unichar</code>
+ * (unsigned short) values.  buffer must be preallocated and should be capable
+ * of holding a sufficient number of shorts.
+ */
+// Inefficient.  Should be overridden
 - (void) getCharacters: (unichar*)buffer
 		 range: (NSRange)aRange
 {
@@ -1543,6 +1657,10 @@ handle_printf_atsign (FILE *stream,
 
 // Combining Strings
 
+/**
+ * Constructs a new string consisting of this instance followed by the string
+ * specified by format.
+ */
 - (NSString*) stringByAppendingFormat: (NSString*)format,...
 {
   va_list	ap;
@@ -1555,6 +1673,9 @@ handle_printf_atsign (FILE *stream,
   return ret;
 }
 
+/**
+ * Constructs a new string consisting of this instance followed by the aString.
+ */
 - (NSString*) stringByAppendingString: (NSString*)aString
 {
   unsigned	len = [self length];
@@ -1572,6 +1693,14 @@ handle_printf_atsign (FILE *stream,
 
 // Dividing Strings into Substrings
 
+/**
+ * <p>Returns an array of [NSString]s representing substrings of this string
+ * that are separated by separator (which itself is never returned in the
+ * array).  If there are no occurrences of separator, the whole string is
+ * returned.  If string begins or ends with separator, empty strings will
+ * be returned for those positions.</p>
+ * <p>Note, use an [NSScanner] if you need more sophisticated parsing.</p>
+ */
 - (NSArray*) componentsSeparatedByString: (NSString*)separator
 {
   NSRange	search;
@@ -1664,6 +1793,12 @@ handle_printf_atsign (FILE *stream,
 
 // Finding Ranges of Characters and Substrings
 
+/**
+ * Returns position of first character in this string that is in aSet.
+ * Positions start at 0.  If the character is a composed character sequence,
+ * the range returned will contain the whole sequence, else just the character
+ * itself.
+ */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 {
   NSRange all = NSMakeRange(0, [self length]);
@@ -1673,6 +1808,15 @@ handle_printf_atsign (FILE *stream,
 				 range: all];
 }
 
+/**
+ * Returns position of first character in this string that is in aSet.
+ * Positions start at 0.  If the character is a composed character sequence,
+ * the range returned will contain the whole sequence, else just the character
+ * itself.  mask may contain <code>NSCaseInsensitiveSearch</code>,
+ * <code>NSLiteralSearch</code> (don't consider alternate forms of composed
+ * characters equal), or <code>NSBackwardsSearch</code> (search from end of
+ * string).
+ */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 			    options: (unsigned int)mask
 {
@@ -1683,6 +1827,15 @@ handle_printf_atsign (FILE *stream,
 				 range: all];
 }
 
+/**
+ * Returns position of first character in this string that is in aSet.
+ * Positions start at 0.  If the character is a composed character sequence,
+ * the range returned will contain the whole sequence, else just the character
+ * itself.  mask may contain <code>NSCaseInsensitiveSearch</code>,
+ * <code>NSLiteralSearch</code> (don't consider alternate forms of composed
+ * characters equal), or <code>NSBackwardsSearch</code> (search from end of
+ * string).  Search only carried out within aRange.
+ */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 			    options: (unsigned int)mask
 			      range: (NSRange)aRange
@@ -1729,8 +1882,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Invokes -rangeOfString:options: with the options mask
- * set to zero.
+ * Invokes -rangeOfString:options: with no options.
  */
 - (NSRange) rangeOfString: (NSString*)string
 {
@@ -1770,11 +1922,14 @@ handle_printf_atsign (FILE *stream,
  * <br/>
  * The options mask may contain the following options -
  * <list>
- *   <item>NSCaseInsensitiveSearch</item>
- *   <item>NSLiteralSearch</item>
- *   <item>NSBackwardsSearch</item>
- *   <item>NSAnchoredSearch</item>
+ *   <item><code>NSCaseInsensitiveSearch</code></item>
+ *   <item><code>NSLiteralSearch</code></item>
+ *   <item><code>NSBackwardsSearch</code></item>
+ *   <item><code>NSAnchoredSearch</code></item>
  * </list>
+ * The <code>NSAnchoredSearch</code> option means aString must occur at the
+ * beginning (or end, if <code>NSBackwardsSearch</code> is also given) of the
+ * string.  Options should be OR'd together using <code>'|'</code>.
  */
 - (NSRange) rangeOfString: (NSString *)aString
 		  options: (unsigned int)mask
@@ -1804,6 +1959,11 @@ handle_printf_atsign (FILE *stream,
 
 // Determining Composed Character Sequences
 
+/**
+ * Unicode utility method.  If character at anIndex is part of a composed
+ * character sequence anIndex (note indices start from 0), returns the full
+ * range of this sequence.
+ */
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex
 {
   unsigned	start;
@@ -1836,11 +1996,24 @@ handle_printf_atsign (FILE *stream,
 
 // Identifying and Comparing Strings
 
+/**
+ * <p>Compares this instance with aString.  Returns
+ * <code>NSOrderedAscending</code>, <code>NSOrderedDescending</code>, or
+ * <code>NSOrderedSame</code>, depending on whether this instance occurs
+ * before or after string in lexical order, or is equal to it.</p>
+ */
 - (NSComparisonResult) compare: (NSString*)aString
 {
   return [self compare: aString options: 0];
 }
 
+/**
+ * <p>Compares this instance with aString.  mask may be either
+ * <code>NSCaseInsensitiveSearch</code> or <code>NSLiteralSearch</code>.  The
+ * latter requests a literal byte-by-byte comparison, which is fastest but may
+ * return inaccurate results in cases where two different composed character
+ * sequences may be used to express the same character.</p>
+ */
 - (NSComparisonResult) compare: (NSString*)aString
 		       options: (unsigned int)mask
 {
@@ -1848,6 +2021,15 @@ handle_printf_atsign (FILE *stream,
 		 range: ((NSRange){0, [self length]})];
 }
 
+/**
+ * <p>Compares this instance with string.  mask may be either
+ * <code>NSCaseInsensitiveSearch</code> or <code>NSLiteralSearch</code>.  The
+ * latter requests a literal byte-by-byte comparison, which is fastest but may
+ * return inaccurate results in cases where two different composed character
+ * sequences may be used to express the same character.  aRange refers
+ * to this instance, and should be set to 0..length to compare the whole
+ * string.</p>
+ */
 // xxx Should implement full POSIX.2 collate
 - (NSComparisonResult) compare: (NSString*)aString
 		       options: (unsigned int)mask
@@ -1858,6 +2040,9 @@ handle_printf_atsign (FILE *stream,
   return strCompNsNs(self, aString, mask, aRange);
 }
 
+/**
+ *  Returns whether this string starts with aString.
+ */
 - (BOOL) hasPrefix: (NSString*)aString
 {
   NSRange	range;
@@ -1866,6 +2051,9 @@ handle_printf_atsign (FILE *stream,
   return (range.length > 0) ? YES : NO;
 }
 
+/**
+ *  Returns whether this string ends with aString.
+ */
 - (BOOL) hasSuffix: (NSString*)aString
 {
   NSRange	range;
@@ -1875,6 +2063,10 @@ handle_printf_atsign (FILE *stream,
   return (range.length > 0) ? YES : NO;
 }
 
+/**
+ *  Returns based on string comparison if anObject is an NSString, else
+ *  uses <code>==</code>.
+ */
 - (BOOL) isEqual: (id)anObject
 {
   if (anObject == self)
@@ -1896,6 +2088,10 @@ handle_printf_atsign (FILE *stream,
   return NO;
 }
 
+/**
+ *  Returns whether this instance is equal as a string to aString.  See also
+ *  -compare: and related methods.
+ */
 - (BOOL) isEqualToString: (NSString*)aString
 {
   if ([self hash] != [aString hash])
@@ -1960,6 +2156,14 @@ handle_printf_atsign (FILE *stream,
 
 // Getting a Shared Prefix
 
+/**
+ *  Returns the largest initial portion of this instance shared with aString.
+ *  mask may be either <code>NSCaseInsensitiveSearch</code> or
+ *  <code>NSLiteralSearch</code>.  The latter requests a literal byte-by-byte
+ *  comparison, which is fastest but may return inaccurate results in cases
+ *  where two different composed character sequences may be used to express
+ *  the same character.
+ */
 - (NSString*) commonPrefixWithString: (NSString*)aString
 			     options: (unsigned int)mask
 {
@@ -2261,6 +2465,12 @@ handle_printf_atsign (FILE *stream,
 
 // Changing Case
 
+/**
+ * Returns version of string in which each whitespace-delimited <em>word</em>
+ * is capitalized (not every letter).  Conversion to capitals is done in a
+ * unicode-compliant manner but there may be exceptional cases where behavior
+ * is not what is desired.
+ */
 // xxx There is more than this in word capitalization in Unicode,
 // but this will work in most cases
 - (NSString*) capitalizedString
@@ -2365,6 +2575,7 @@ handle_printf_atsign (FILE *stream,
 
 // Storing the String
 
+/** Returns <code>self</code>. */
 - (NSString*) description
 {
   return self;
@@ -2374,10 +2585,11 @@ handle_printf_atsign (FILE *stream,
 // Getting C Strings
 
 /**
- * Returns a pointer to a null terminated string of 8-bit
- * characters in the default encoding.  The memory pointed
- * to is not owned by the caller, so the caller must copy
- * its contents to keep it.
+ * Returns a pointer to a null terminated string of 8-bit characters in the
+ * default encoding.  The memory pointed to is not owned by the caller, so the
+ * caller must copy its contents to keep it.  Raises an
+ * <code>NSCharacterConversionException</code> if loss of information would
+ * occur during conversion.  (See -canBeConvertedToEncoding: .)
  */
 - (const char*) cString
 {
@@ -2397,6 +2609,11 @@ handle_printf_atsign (FILE *stream,
   return (const char*)[m bytes];
 }
 
+/**
+ * Returns a C string converted using the default C string encoding, which may
+ * result in information loss.  The memory pointed to is not owned by the
+ * caller, so the caller must copy its contents to keep it.
+ */
 - (const char*) lossyCString
 {
   NSData	*d;
@@ -2410,6 +2627,11 @@ handle_printf_atsign (FILE *stream,
   return (const char*)[m bytes];
 }
 
+/**
+ * Returns null-terminated UTF-8 version of this unicode string.  The char[]
+ * memory comes from an autoreleased object, so it will eventually go out of
+ * scope.
+ */
 - (const char *) UTF8String
 {
   NSData	*d;
@@ -2423,6 +2645,12 @@ handle_printf_atsign (FILE *stream,
   return (const char*)[m bytes];
 }
 
+/**
+ *  Returns length of a version of this unicode string converted to bytes
+ *  using the default C string encoding.  If the conversion would result in
+ *  information loss, the results are unpredictable.  Check
+ *  -canBeConvertedToEncoding: first.
+ */
 - (unsigned int) cStringLength
 {
   NSData	*d;
@@ -2540,8 +2768,8 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Returns the strings content as a double.  Skips leading whitespace.<br />
- * Conversion is not localised (ie uses '.' as the decimal separator).<br />
+ * Returns the string's content as a double.  Skips leading whitespace.<br />
+ * Conversion is not localised (i.e. uses '.' as the decimal separator).<br />
  * Returns 0.0 on underflow or if the string does not contain a number.
  */
 - (double) doubleValue
@@ -2557,8 +2785,8 @@ handle_printf_atsign (FILE *stream,
 }
 
 /**
- * Returns the strings content as a double.  Skips leading whitespace.<br />
- * Conversion is not localised (ie uses '.' as the decimal separator).<br />
+ * Returns the string's content as a float.  Skips leading whitespace.<br />
+ * Conversion is not localised (i.e. uses '.' as the decimal separator).<br />
  * Returns 0.0 on underflow or if the string does not contain a number.
  */
 - (float) floatValue
@@ -2573,6 +2801,11 @@ handle_printf_atsign (FILE *stream,
   return (float)d;
 }
 
+/**
+ * <p>Returns the string's content as an int.<br/>
+ * Current implementation uses C library <code>atoi()</code>, which does not
+ * detect conversion errors -- use with care!</p>
+ */
 - (int) intValue
 {
   return atoi([self lossyCString]);
@@ -2583,7 +2816,7 @@ handle_printf_atsign (FILE *stream,
 /**
  * <p>
  *   Returns the encoding used for any method accepting a C string.
- *   This value is determined automatically from the programs
+ *   This value is determined automatically from the program's
  *   environment and cannot be changed programmatically.
  * </p>
  * <p>
@@ -2632,6 +2865,10 @@ handle_printf_atsign (FILE *stream,
 				    table: nil];
 }
 
+/**
+ *  Returns whether this string can be converted to the given string encoding
+ *  without information loss.
+ */
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
 {
   id d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
@@ -2639,11 +2876,19 @@ handle_printf_atsign (FILE *stream,
   return d != nil ? YES : NO;
 }
 
+/**
+ *  Converts string to a byte array in the given encoding, returning nil if
+ *  this would result in information loss.
+ */
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
 {
   return [self dataUsingEncoding: encoding allowLossyConversion: NO];
 }
 
+/**
+ *  Converts string to a byte array in the given encoding.  If flag is NO,
+ *  nil would be returned if this would result in information loss.
+ */
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
 	 allowLossyConversion: (BOOL)flag
 {
@@ -2805,11 +3050,20 @@ handle_printf_atsign (FILE *stream,
   return nil;
 }
 
+
+/**
+ * Returns the encoding with which this string can be converted without
+ * information loss that would result in most efficient character access.
+ */
 - (NSStringEncoding) fastestEncoding
 {
   return NSUnicodeStringEncoding;
 }
 
+/**
+ * Returns the smallest encoding with which this string can be converted
+ * without information loss.
+ */
 - (NSStringEncoding) smallestEncoding
 {
   return NSUnicodeStringEncoding;
@@ -2818,6 +3072,16 @@ handle_printf_atsign (FILE *stream,
 
 // Manipulating File System Paths
 
+/**
+ * Attempts to complete this string as a path in the filesystem by finding
+ * a unique completion if one exists and returning it by reference in
+ * outputName (which must be a non-nil pointer), or if it finds a set of
+ * completions they are returned by reference in outputArray, if it is non-nil.
+ * filterTypes can be an array of strings specifying extensions to consider;
+ * files without these extensions will be ignored and will not constitute
+ * completions.  Returns 0 if no match found, else a positive number that is
+ * only accurate if outputArray was non-nil.
+ */
 - (unsigned int) completePathIntoString: (NSString**)outputName
 			  caseSensitive: (BOOL)flag
 		       matchesIntoArray: (NSArray**)outputArray
@@ -2889,7 +3153,13 @@ handle_printf_atsign (FILE *stream,
   return match_count;
 }
 
-/* Return a string for passing to OS calls to handle file system objects. */
+/**
+ * Converts this string, which is assumed to be a path in Unix notation ('/'
+ * is file separator, '.' is extension separator) to a C string path expressed
+ * in the convention for the host operating system.  This string will be
+ * automatically freed soon after it is returned, so copy it if you need it
+ * for long.
+ */
 - (const char*) fileSystemRepresentation
 {
   static NSFileManager *fm = nil;
@@ -2902,6 +3172,12 @@ handle_printf_atsign (FILE *stream,
   return [fm fileSystemRepresentationWithPath: self];
 }
 
+/**
+ * Converts this string, which is assumed to be a path in Unix notation ('/'
+ * is file separator, '.' is extension separator) to a C string path expressed
+ * in the convention for the host operating system.  This string will be
+ * stored into buffer if it is shorter than size, otherwise NO is returned.
+ */
 - (BOOL) getFileSystemRepresentation: (char*)buffer
 			   maxLength: (unsigned int)size
 {
@@ -3372,6 +3648,10 @@ handle_printf_atsign (FILE *stream,
     }
 }
 
+/**
+ * Replaces path string by one in which path components representing symbolic
+ * links have been replaced by their referents.
+ */
 - (NSString*) stringByResolvingSymlinksInPath
 {
 #if defined(__MINGW__)
@@ -3760,9 +4040,9 @@ handle_printf_atsign (FILE *stream,
   return s;
 }
 
-/*
- * Returs YES if the receiver represents an absolute path ... ie if it begins
- * with a '/' or a '~'<br />
+/**
+ * Returns YES if the receiver represents an absolute path ... i.e. if it
+ * begins with a '/' or a '~'<br />
  * Returns NO otherwise.
  */
 - (BOOL) isAbsolutePath
@@ -3865,6 +4145,9 @@ handle_printf_atsign (FILE *stream,
   return AUTORELEASE(r);
 }
 
+/**
+ * Returns an autoreleased string with given format using the default locale.
+ */
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...
 {
   va_list ap;
@@ -3886,6 +4169,11 @@ handle_printf_atsign (FILE *stream,
   return ret;
 }
 
+/**
+ * Compares this string with aString ignoring case.  Convenience for
+ * -compare:options:range: with the <code>NSCaseInsensitiveSearch</code>
+ * option, in the default locale.
+ */
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString
 {
   return [self compare: aString
@@ -3893,17 +4181,36 @@ handle_printf_atsign (FILE *stream,
 		 range: ((NSRange){0, [self length]})];
 }
 
+/**
+ * <p>Compares this instance with string, using rules in locale given by dict.
+ * mask may be either <code>NSCaseInsensitiveSearch</code> or
+ * <code>NSLiteralSearch</code>.  The latter requests a literal byte-by-byte
+ * comparison, which is fastest but may return inaccurate results in cases
+ * where two different composed character sequences may be used to express
+ * the same character.  compareRange refers to this instance, and should be
+ * set to 0..length to compare the whole string.</p>
+ *
+ * <p>Returns <code>NSOrderedAscending</code>, <code>NSOrderedDescending</code>,
+ * or <code>NSOrderedSame</code>, depending on whether this instance occurs
+ * before or after string in lexical order, or is equal to it.</p>
+ *
+ * <p><em><strong>Warning:</strong> this implementation and others in NSString
+ * IGNORE the locale.</em></p>
+ */
 - (NSComparisonResult) compare: (NSString *)string
 		       options: (unsigned int)mask
 			 range: (NSRange)compareRange
 			locale: (NSDictionary *)dict
 {
-  // FIXME: This does only a normal compare
+  // FIXME: This does only a normal compare, ignoring locale
   return [self compare: string
 	       options: mask
 		 range: compareRange];
 }
 
+/**
+ * Compares this instance with string, using rules in the default locale.
+ */
 - (NSComparisonResult) localizedCompare: (NSString *)string
 {
   NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
@@ -3914,6 +4221,10 @@ handle_printf_atsign (FILE *stream,
                 locale: dict];
 }
 
+/**
+ * Compares this instance with string, using rules in the default locale,
+ * ignoring case.
+ */
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string
 {
   NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
@@ -3924,6 +4235,13 @@ handle_printf_atsign (FILE *stream,
                 locale: dict];
 }
 
+/**
+ * Writes contents out to file at filename, using the default C string encoding
+ * unless this would result in information loss, otherwise straight unicode.
+ * The '<code>atomically</code>' option if set will cause the contents to be
+ * written to a temp file, which is then closed and renamed to filename.  Thus,
+ * an incomplete file at filename should never result.
+ */
 - (BOOL) writeToFile: (NSString*)filename
 	  atomically: (BOOL)useAuxiliaryFile
 {
@@ -3936,6 +4254,13 @@ handle_printf_atsign (FILE *stream,
   return [d writeToFile: filename atomically: useAuxiliaryFile];
 }
 
+/**
+ * Writes contents out to anURL, using the default C string encoding
+ * unless this would result in information loss, otherwise straight unicode.
+ * See [NSURLHandle-writeData:] on which URL types are supported.
+ * The '<code>atomically</code>' option is only heeded if the URL is a
+ * <code>file://</code> URL; see -writeToFile:atomically: .
+ */
 - (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)atomically
 {
   id	d = [self dataUsingEncoding: _DefaultStringEncoding];
@@ -4130,134 +4455,11 @@ handle_printf_atsign (FILE *stream,
  * </p>
  * <p>Both the traditional format and the XML format permit comments to be
  * placed in <em>property list</em> documents.  In traditional format the
- * comment notations used in ObjectiveC programming are supported, while
+ * comment notations used in Objective-C programming are supported, while
  * in XML format, the standard SGML comment sequences are used.
  * </p>
- * A <em>property list</em> may only be one of the following classes - 
- * <deflist>
- *   <term>[NSArray]</term>
- *   <desc>
- *     An array which is either empty or contains only <em>property list</em>
- *     objects.<br />
- *     An array is delimited by round brackets and its contents are comma
- *     <em>separated</em> (there is no comma after the last array element).
- *     <example>
- *       ( "one", "two", "three" )
- *     </example>
- *     In XML format, an array is an element whose name is <code>array</code>
- *     and whose content is the array content.
- *     <example>
- *       &lt;array&gt;&lt;string&gt;one&lt;/string&gt;&lt;string&gt;two&lt;/string&gt;&lt;string&gt;three&lt;/string&gt;&lt;/array&gt;
- *     </example>
- *   </desc>
- *   <term>[NSData]</term>
- *   <desc>
- *     An array is represented as a series of pairs of hexadecimal characters
- *     (each pair representing a byte of data) enclosed in angle brackets.
- *     Spaces are ignored).
- *     <example>
- *       &lt; 54637374 696D67 &gt;
- *     </example>
- *     In XML format, a data object is an element whose name is
- *     <code>data</code> and whose content is a stream of base64 encoded bytes.
- *   </desc>
- *   <term>[NSDate]</term>
- *   <desc>
- *     Date objects were not traditionally allowed in <em>property lists</em>
- *     but were added when the XML format was intoroduced.  GNUstep provides
- *     an extension to the traditional <em>property list</em> format to
- *     support date objects, but older code will not read
- *     <em>property lists</em> containing this extension.<br />
- *     This format consists of an asterisk follwed by the letter 'D' then a
- *     date/time in YYYY-MM-DD HH:MM:SS +/-ZZZZ format, all enclosed within
- *     angle brackets.
- *     <example>
- *       &lt;*D2002-03-22 11:30:00 +0100&gt;
- *     </example>
- *     In XML format, a date object is an element whose name is
- *     <code>date</code> and whose content is a date in the above format.
- *     <example>
- *       &lt;date&gt;2002-03-22 11:30:00 +0100&lt;/date&gt;
- *     </example>
- *   </desc>
- *   <term>[NSDictionary]</term>
- *   <desc>
- *     A dictionary which is either empty or contains only <em>string</em>
- *     keys and <em>property list</em> objects.<br />
- *     A dictionary is delimited by curly brackets and its contents are
- *     semicolon <em>terminated</em> (there is a semicolon after each value).
- *     Each item in the dictionary is a key/value pair with an equals sign
- *     after the key and before the value.
- *     <example>
- *       {
- *         "key1" = "value1";
- *       }
- *     </example>
- *     In XML format, a dictionary is an element whose name is
- *     <code>dictionary</code> and whose content consists of pairs of
- *     strings and other <em>property list</em> objects.
- *     <example>
- *       &lt;dictionary&gt;
- *         &lt;string&gt;key1&lt;/string&gt;
- *         &lt;string&gt;value1&lt;/string&gt;
- *       &lt;/dictionary&gt;
- *     </example>
- *   </desc>
- *   <term>[NSNumber]</term>
- *   <desc>
- *     Number objects were not traditionally allowed in <em>property lists</em>
- *     but were added when the XML format was intoroduced.  GNUstep provides
- *     an extension to the traditional <em>property list</em> format to
- *     support number objects, but older code will not read
- *     <em>property lists</em> containing this extension.<br />
- *     Numbers are stored in a variety of formats depending on their values.
- *     <list>
- *       <item>boolean ... either <code>&lt;*BY&gt;</code> for YES or
- *         <code>&lt;*BN&gt;</code> for NO.<br />
- *         In XML format this is either <code>&lt;true /&gt;</code> or
- *         <code>&lt;false /&gt;</code>
- *       </item>
- *       <item>integer ... <code>&lt;*INNN&gt;</code> where NNN is an
- *         integer.<br />
- *         In XML format this is <code>&lt;integer&gt;NNN&lt;integer&gt;</code>
- *       </item>
- *       <item>real ... <code>&lt;*RNNN&gt;</code> where NNN is a real
- *         number.<br />
- *         In XML format this is <code>&lt;real&gt;NNN&lt;real&gt;</code>
- *       </item>
- *     </list>
- *   </desc>
- *   <term>[NSString]</term>
- *   <desc>
- *     A string is either stored literally (if it contains no spaces or special
- *     characters), or is stored as a quoted string with special characters
- *     escaped where necessary.<br />
- *     Escape conventions are similar to those normally used in ObjectiveC
- *     programming, using a backslash followed by -
- *     <list>
- *      <item><strong>\</strong> a backslash character</item>
- *      <item><strong>"</strong> a quote character</item>
- *      <item><strong>b</strong> a backspace character</item>
- *      <item><strong>n</strong> a newline character</item>
- *      <item><strong>r</strong> a carriage return character</item>
- *      <item><strong>t</strong> a tab character</item>
- *      <item><strong>OOO</strong> (three octal digits)
- *	  an arbitrary ascii character</item>
- *      <item><strong>UXXXX</strong> (where X is a hexadecimal digit)
- *	  a an arbitrary unicode character</item>
- *     </list>
- *     <example>
- *       "hello world &amp; others"
- *     </example>
- *     In XML format, the string is simply stored in UTF8 format as the
- *     content of a <code>string</code> element, and the only character
- *     escapes  required are those used by XML such as the
- *     '&amp;lt;' markup representing a '&lt;' character.
- *     <example>
- *       &lt;string&gt;hello world &amp;amp; others&lt;/string&gt;"
- *     </example>
- *   </desc>
- * </deflist>
+ * <p>See the documentation for [NSPropertyListSerialization] for more
+ *    information on what a property list is.</p>
  */
 - (id) propertyList
 {
@@ -4291,7 +4493,7 @@ handle_printf_atsign (FILE *stream,
 @end
 
 /**
- * This is the mutable form of the NSString class.
+ * This is the mutable form of the [NSString] class.
  */
 @implementation NSMutableString
 
@@ -4309,19 +4511,28 @@ handle_printf_atsign (FILE *stream,
 
 // Creating Temporary Strings
 
+/**
+ * Constructs an empty string.
+ */
 + (NSMutableString*) string
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCapacity: 0]);
 }
 
+/**
+ * Constructs an empty string with initial buffer size of capacity.
+ */
 + (NSMutableString*) stringWithCapacity: (unsigned int)capacity
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCapacity: capacity]);
 }
 
-/* Inefficient. */
+/**
+ * Create a string of unicode characters.
+ */
+// Inefficient implementation.
 + (NSString*) stringWithCharacters: (const unichar*)characters
 			    length: (unsigned int)length
 {
@@ -4329,18 +4540,33 @@ handle_printf_atsign (FILE *stream,
     NSDefaultMallocZone()] initWithCharacters: characters length: length]);
 }
 
+/**
+ * Load contents of file at path into a new string.  Will interpret file as
+ * containing direct unicode if it begins with the unicode byte order mark,
+ * else converts to unicode using default C string encoding.
+ */
 + (id) stringWithContentsOfFile: (NSString *)path
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithContentsOfFile: path]);
 }
 
+/**
+ * Create a string based on the given C (char[]) string, which should be
+ * null-terminated and encoded in the default C string encoding.  (Characters
+ * will be converted to unicode representation internally.)
+ */
 + (NSString*) stringWithCString: (const char*)byteString
 {
   return AUTORELEASE([[GSMutableStringClass allocWithZone:
     NSDefaultMallocZone()] initWithCString: byteString]);
 }
 
+/**
+ * Create a string based on the given C (char[]) string, which may contain
+ * null bytes and should be encoded in the default C string encoding.
+ * (Characters will be converted to unicode representation internally.)
+ */
 + (NSString*) stringWithCString: (const char*)byteString
 			 length: (unsigned int)length
 {
@@ -4348,6 +4574,11 @@ handle_printf_atsign (FILE *stream,
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
 }
 
+/**
+ * Creates a new string using C printf-style formatting.  First argument should
+ * be a constant format string, like '<code>@"float val = %f"</code>', remaining
+ * arguments should be the variables to print the values of, comma-separated.
+ */
 + (NSString*) stringWithFormat: (NSString*)format, ...
 {
   va_list ap;
@@ -4358,6 +4589,9 @@ handle_printf_atsign (FILE *stream,
 }
 
 // Designated initialiser
+/** <init/>
+ * Constructs an empty string with initial buffer size of capacity.
+ */
 - (id) initWithCapacity: (unsigned int)capacity
 {
   [self subclassResponsibility: _cmd];
@@ -4402,6 +4636,9 @@ handle_printf_atsign (FILE *stream,
 
 // Modify A String
 
+/**
+ *  Modifies this string by appending aString.
+ */
 - (void) appendString: (NSString*)aString
 {
   NSRange aRange;
@@ -4411,7 +4648,10 @@ handle_printf_atsign (FILE *stream,
   [self replaceCharactersInRange: aRange withString: aString];
 }
 
-/* Inefficient. */
+/**
+ *  Modifies this string by appending string described by given format.
+ */
+// Inefficient implementation.
 - (void) appendFormat: (NSString*)format, ...
 {
   va_list	ap;
@@ -4430,17 +4670,27 @@ handle_printf_atsign (FILE *stream,
   return NSMutableStringClass;
 }
 
+/**
+ * Modifies this instance by deleting specified range of characters.
+ */
 - (void) deleteCharactersInRange: (NSRange)range
 {
   [self replaceCharactersInRange: range withString: nil];
 }
 
+/**
+ * Modifies this instance by inserting aString at loc.
+ */
 - (void) insertString: (NSString*)aString atIndex: (unsigned int)loc
 {
   NSRange range = {loc, 0};
   [self replaceCharactersInRange: range withString: aString];
 }
 
+/**
+ * Modifies this instance by deleting characters in range and then inserting
+ * aString at its beginning.
+ */
 - (void) replaceCharactersInRange: (NSRange)range
 		       withString: (NSString*)aString
 {
@@ -4509,6 +4759,9 @@ handle_printf_atsign (FILE *stream,
   return count;
 }
 
+/**
+ * Modifies this instance by replacing contents with those of aString.
+ */
 - (void) setString: (NSString*)aString
 {
   NSRange range = {0, [self length]};

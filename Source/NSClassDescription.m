@@ -30,19 +30,28 @@
 #include "Foundation/NSNotification.h"
 
 
+/**
+ *  Each instance of this class provides descriptive information for an
+ *  Objective C class.  This is used for key-value coding, a framework
+ *  used in Cocoa for scripting with Objective-C objects.  Scripting is
+ *  available in GNUstep using Guile, however that implementation does
+ *  not make use of class descriptions.  Therefore the primary purpose
+ *  of this class is to smooth the process of porting between GNUstep
+ *  and other OpenStep-derived systems.
+ */
 @implementation NSClassDescription
 
 static NSRecursiveLock	*mapLock = nil;
 static NSMapTable	*classMap;
 
 /**
- * Returns the class descriptuion for aClass.  If there is no such description
- * available, sends an NSClassDescriptionNeededForClassNotification (with
- * aClass as its object) so that objects providing class descriptions can
- * register one, and tries again to find one.<br />
- * Returns nil if there is no description found.<br />
- * Handles locking to ensure thread safety and ensures that the returned
- * object will not be destroyed by other threads.
+ * Returns the class description for aClass.  If there is no such description
+ * available, sends an
+ * <code>NSClassDescriptionNeededForClassNotification</code> (with aClass as
+ * its object) so that objects providing class descriptions can register one,
+ * and tries again to find one.<br /> Returns nil if there is no description
+ * found.<br /> Handles locking to ensure thread safety and ensures that the
+ * returned object will not be destroyed by other threads.
  */
 + (NSClassDescription*) classDescriptionForClass: (Class)aClass
 {

@@ -45,6 +45,9 @@
 #include <Foundation/NSKeyedArchiver.h>
 #undef	_IN_NSKEYEDUNARCHIVER_M
 
+/**
+ * An unarchiving error has occurred.
+ */
 NSString * const NSInvalidUnarchiveOperationException
   = @"NSInvalidUnarchiveOperationException";
 

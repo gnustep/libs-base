@@ -74,7 +74,12 @@ static void clean_up_names(void)
     }
 }
 
-
+/**
+ * Subclass of [NSPortNameServer] taking/returning instances of [NSMessagePort].
+ * Port removal functionality is not supported; if you want to cancel a service,
+ * you have to destroy the port (invalidate the [NSMessagePort] given to
+ * [NSPortNameServer-registerPort:forName:]).
+ */
 @implementation NSMessagePortNameServer
 
 + (void) initialize
@@ -88,6 +93,9 @@ static void clean_up_names(void)
     }
 }
 
+/**
+ *  Obtain single instance for this host.
+ */
 + (id) sharedInstance
 {
   if (defaultServer == nil)
