@@ -1,3 +1,13 @@
+2002-01-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* acconfig.h: Add HAVE_SA_LEN
+	* configure.in: Check for sa_len in sockaddr in struct ifreq
+	* configure: regenerate
+	* Headers/gnustep/base/config.h.in: regenerate
+	* Tools/gdomap.c: Add patch by Pete French <pete@twisted.org.uk>
+	to handle variable length socket addresses ... modified to work
+	with the rest of the world where we don't have such things.
+
 2002-01-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: Correct returns from within exception handler.

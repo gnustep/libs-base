@@ -1,4 +1,4 @@
-/* Headers/gnustep/base/config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* Headers/gnustep/base/config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
 
 /* Define as __inline if that's what the C compiler calls it.  */
 #undef inline
@@ -41,6 +41,9 @@
 
 /* Define if your Lib C defines program_invocation_name */
 #undef HAVE_PROGRAM_INVOCATION_NAME
+
+/* Define if your system has variable length network addresses */
+#undef HAVE_SA_LEN
 
 /* Define if using the libffi library for invocations */
 #undef USE_LIBFFI

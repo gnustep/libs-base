@@ -1082,11 +1082,10 @@ init_iface()
 #ifdef	SIOCGIFCONF
   struct ifconf	ifc;
   struct ifreq	ifreq;
-  struct ifreq	*ifr;
-  struct ifreq	*final;
+  void		*final;
+  void		*ifr_ptr;
   char		buf[MAX_IFACE * sizeof(struct ifreq)];
   int		desc;
-  int		num_iface;
 
   if ((desc = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
@@ -1120,8 +1119,7 @@ init_iface()
   /*
    *	Find the IP address of each active network interface.
    */
-  num_iface = ifc.ifc_len / sizeof(struct ifreq);
-  if (num_iface == 0)
+  if (ifc.ifc_len == 0)
     {
       int	res = errno;
 
@@ -1129,9 +1127,7 @@ init_iface()
       if (res == EINVAL)
 	{
 	  fprintf(stderr,
-"Either you have too many network interfaces on your machine (in which case\n"
-"you need to change the 'MAX_IFACE' constant in gdomap.c and rebuild it), or\n"
-"your system is buggy, and you need to use the '-a' command line flag for\n"
+"Your system is buggy, thus you need to use the '-a' command line flag for\n"
 "gdomap to manually set the interface addresses and masks to be used.\n");
 	}
 #ifdef __MINGW__
@@ -1141,19 +1137,29 @@ init_iface()
 #endif
       exit(1);
     }
+  /*
+   * We cannot know the number of interfaces in advance, thus we
+   * need to malloc to MAX_IFACE toensure sufficient space
+   */
   if (addr != 0) free(addr);
-  addr = (struct in_addr*)malloc((num_iface+1)*IASIZE);
+  addr = (struct in_addr*)malloc((MAX_IFACE+1)*IASIZE);
   if (bcok != 0) free(bcok);
-  bcok = (char*)malloc((num_iface+1)*sizeof(char));
+  bcok = (char*)malloc((MAX_IFACE+1)*sizeof(char));
   if (bcst != 0) free(bcst);
-  bcst = (struct in_addr*)malloc((num_iface+1)*IASIZE);
+  bcst = (struct in_addr*)malloc((MAX_IFACE+1)*IASIZE);
   if (mask != 0) free(mask);
-  mask = (struct in_addr*)malloc((num_iface+1)*IASIZE);
+  mask = (struct in_addr*)malloc((MAX_IFACE+1)*IASIZE);
 
-  final = (struct ifreq*)&ifc.ifc_buf[ifc.ifc_len];
-  for (ifr = ifc.ifc_req; ifr < final; ifr++)
+  final = &ifc.ifc_buf[ifc.ifc_len];
+  for (ifr_ptr = ifc.ifc_req; ifr_ptr < final;)
     {
-      ifreq = *ifr;
+      ifreq = *(struct ifreq*)ifr_ptr;
+#ifdef HAVE_SA_LEN
+      ifr_ptr += sizeof(ifreq) - sizeof(ifreq.ifr_name) + ifreq.ifr_addr.sa_len;
+#else
+      ifr_ptr += sizeof(ifreq);
+#endif
+
       if (ioctl(desc, SIOCGIFFLAGS, (char *)&ifreq) < 0)
         {
           perror("SIOCGIFFLAGS");
@@ -1162,6 +1168,7 @@ init_iface()
         {  /* interface is up */
 	  int	broadcast = 0;
 	  int	pointopoint = 0;
+	  int	loopback = 0;
 
 	  if (ifreq.ifr_flags & IFF_BROADCAST)
 	    {
@@ -1171,6 +1178,12 @@ init_iface()
 	  if (ifreq.ifr_flags & IFF_POINTOPOINT)
 	    {
 	      pointopoint = 1;
+	    }
+#endif
+#ifdef IFF_LOOPBACK
+	  if (ifreq.ifr_flags & IFF_LOOPBACK)
+	    {
+	      loopback = 1;
 	    }
 #endif
           if (ioctl(desc, SIOCGIFADDR, (char *)&ifreq) < 0)
@@ -1213,7 +1226,8 @@ init_iface()
 	      else
 #endif
 		{
-		  if (ioctl(desc, SIOCGIFBRDADDR, (char*)&ifreq) < 0)
+		  if (!loopback &&
+                      ioctl(desc, SIOCGIFBRDADDR, (char*)&ifreq) < 0)
 		    {
 		      perror("SIOCGIFBRDADDR");
 		      bcok[interfaces] = 0;
