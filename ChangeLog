@@ -1,3 +1,8 @@
+Thu Feb 11  19:25:00 1999  Manuel Guesdon <mguesdon@sbuilders.com>
+
+	* Source/NSObjCRuntime.m: Fixed error in GSGetInstanceVariable name:
+	GSGetIinstanceVariable transformed to GSGetInstanceVariable
+
 Thu Feb 11  9:51:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSString.m: Fixed error in property-list parsing - was not
