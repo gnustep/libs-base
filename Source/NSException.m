@@ -30,8 +30,8 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSDictionary.h>
 
-static volatile void
-_NSFoundationUncaughtExceptionHandler(NSException *exception)
+static void
+_NSFoundationUncaughtExceptionHandler (NSException *exception)
 {
   fprintf(stderr, "Uncaught exception %s, reason: %s\n",
     	[[exception name] cString], [[exception reason] cString]);
@@ -44,16 +44,16 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 @implementation NSException
 
-+ (NSException*) exceptionWithName: (NSString *)name
-			    reason: (NSString *)reason
-			  userInfo: (NSDictionary *)userInfo
++ (NSException*) exceptionWithName: (NSString*)name
+			    reason: (NSString*)reason
+			  userInfo: (NSDictionary*)userInfo
 {
   return AUTORELEASE([[self alloc] initWithName: name reason: reason
 		      userInfo: userInfo]);
 }
 
-+ (volatile void) raise: (NSString *)name
-		 format: (NSString *)format,...
++ (void) raise: (NSString*)name
+	format: (NSString*)format,...
 {
   va_list args;
 
@@ -63,9 +63,9 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
   va_end(args);
 }
 
-+ (volatile void) raise: (NSString *)name
-		 format: (NSString *)format
-	      arguments: (va_list)argList
++ (void) raise: (NSString*)name
+	format: (NSString*)format
+     arguments: (va_list)argList
 {
   NSString	*reason;
   NSException	*except;
@@ -75,9 +75,9 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
   [except raise];
 }
 
-- (id) initWithName: (NSString *)name
-	     reason: (NSString *)reason
-	   userInfo: (NSDictionary *)userInfo
+- (id) initWithName: (NSString*)name
+	     reason: (NSString*)reason
+	   userInfo: (NSDictionary*)userInfo
 {
   ASSIGN(_e_name, name);
   ASSIGN(_e_reason, reason);
@@ -85,7 +85,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
   return self;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   DESTROY(_e_name);
   DESTROY(_e_reason);
@@ -93,7 +93,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
   [super dealloc];
 }
 
-- (volatile void) raise
+- (void) raise
 {
   NSThread	*thread;
   NSHandler	*handler;
@@ -116,17 +116,17 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
   longjmp(handler->jumpState, 1);
 }
 
-- (NSString *) name
+- (NSString*) name
 {
   return _e_name;
 }
 
-- (NSString *) reason
+- (NSString*) reason
 {
   return _e_reason;
 }
 
-- (NSDictionary *) userInfo
+- (NSDictionary*) userInfo
 {
   return _e_info;
 }
@@ -164,7 +164,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
   return self;
 }
 
-- (id) copyWithZone: (NSZone *)zone
+- (id) copyWithZone: (NSZone*)zone
 {
   if (NSShouldRetainWithZone(self, zone))
     return RETAIN(self);
@@ -186,7 +186,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 
 void
-_NSAddHandler( NSHandler *handler )
+_NSAddHandler (NSHandler* handler)
 {
   NSThread *thread;
 
@@ -196,7 +196,7 @@ _NSAddHandler( NSHandler *handler )
 }
 
 void
-_NSRemoveHandler( NSHandler *handler )
+_NSRemoveHandler (NSHandler* handler)
 {
   NSThread *thread;
 

@@ -37,24 +37,24 @@
   NSDictionary *_e_info;
 }
 
-+ (NSException *)exceptionWithName:(NSString *)name
-	reason:(NSString *)reason
-	userInfo:(NSDictionary *)userInfo;
-+ (volatile void)raise:(NSString *)name
-	format:(NSString *)format,...;
-+ (volatile void)raise:(NSString *)name
-	format:(NSString *)format
-	arguments:(va_list)argList;
++ (NSException*) exceptionWithName: (NSString*)name
+			    reason: (NSString*)reason
+			  userInfo: (NSDictionary*)userInfo;
++ (void) raise: (NSString*)name
+	format: (NSString*)format,...;
++ (void) raise: (NSString*)name
+	format: (NSString*)format
+     arguments: (va_list)argList;
 
-- (id)initWithName:(NSString *)name 
-	reason:(NSString *)reason 
-	userInfo:(NSDictionary *)userInfo;
-- (volatile void)raise;
+- (id) initWithName: (NSString*)name 
+	     reason: (NSString*)reason 
+	   userInfo: (NSDictionary*)userInfo;
+- (void) raise;
 
 // Querying Exceptions
-- (NSString *)name;
-- (NSString *)reason;
-- (NSDictionary *)userInfo;
+- (NSString*) name;
+- (NSString*) reason;
+- (NSDictionary*) userInfo;
 
 @end
 
@@ -75,14 +75,14 @@ typedef struct _NSHandler
     NSException *exception;
 } NSHandler;
 
-typedef volatile void NSUncaughtExceptionHandler(NSException *exception);
+typedef void NSUncaughtExceptionHandler(NSException *exception);
 
 extern NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
 #define NSGetUncaughtExceptionHandler() _NSUncaughtExceptionHandler
 #define NSSetUncaughtExceptionHandler(proc) \
 			(_NSUncaughtExceptionHandler = (proc))
 
-/* NS_DURING, NS_HANDLER and NS_ENDHANDLER are always used like:
+/* NS_DURING, NS_HANDLER and NS_ENDHANDLER are always used like: 
 
 	NS_DURING
 	    some code which might raise an error
@@ -133,18 +133,18 @@ extern void _NSRemoveHandler( NSHandler *handler );
 
 @interface NSAssertionHandler : NSObject
 
-+ (NSAssertionHandler *)currentHandler;
++ (NSAssertionHandler*) currentHandler;
 
-- (void)handleFailureInFunction:(NSString *)functionName 
-	file:(NSString *)fileName 
-	lineNumber:(int)line 
-	description:(NSString *)format,...;
+- (void) handleFailureInFunction: (NSString*)functionName 
+			    file: (NSString*)fileName 
+		      lineNumber: (int)line 
+		     description: (NSString*)format,...;
 
-- (void)handleFailureInMethod:(SEL)aSelector 
-	object:object 
-	file:(NSString *)fileName 
-	lineNumber:(int)line 
-	description:(NSString *)format,...;
+- (void) handleFailureInMethod: (SEL)aSelector 
+			object: object 
+			  file: (NSString*)fileName 
+		    lineNumber: (int)line 
+		   description: (NSString*)format,...;
 
 @end
 
@@ -156,11 +156,11 @@ extern void _NSRemoveHandler( NSHandler *handler );
     do {							\
 	if (!(condition)) {					\
 	    [[NSAssertionHandler currentHandler] 		\
-	    	handleFailureInMethod:_cmd 			\
-		object:self 					\
-		file:[NSString stringWithCString:__FILE__] 	\
-		lineNumber:__LINE__ 				\
-		description:(desc) , ## args]; 			\
+	    	handleFailureInMethod: _cmd 			\
+		object: self 					\
+		file: [NSString stringWithCString: __FILE__] 	\
+		lineNumber: __LINE__ 				\
+		description: (desc) , ## args]; 			\
 	}							\
     } while(0)
 
@@ -168,10 +168,10 @@ extern void _NSRemoveHandler( NSHandler *handler );
     do {							\
 	if (!(condition)) {					\
 	    [[NSAssertionHandler currentHandler] 		\
-	    handleFailureInFunction:[NSString stringWithCString:__PRETTY_FUNCTION__] 				\
-	    file:[NSString stringWithCString:__FILE__] 		\
-	    lineNumber:__LINE__ 				\
-	    description:(desc) , ## args]; 			\
+	    handleFailureInFunction: [NSString stringWithCString: __PRETTY_FUNCTION__] 				\
+	    file: [NSString stringWithCString: __FILE__] 		\
+	    lineNumber: __LINE__ 				\
+	    description: (desc) , ## args]; 			\
 	}							\
     } while(0)
 #endif
