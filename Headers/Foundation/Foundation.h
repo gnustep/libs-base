@@ -58,6 +58,7 @@
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSIndexSet.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSKeyValueCoding.h>
 #include <Foundation/NSLock.h>
