@@ -308,20 +308,28 @@ static NSMapTable* port_number_2_port;
 
   assert (is_valid);
 
-  /* If MILLISECONDS is less than 0, wait forever. */
-  if (milliseconds >= 0)
-    {
-      timeout.tv_sec = milliseconds / 1000;
-      timeout.tv_usec = (milliseconds % 1000) * 1000;
-      select_timeout = &timeout;
-    }
-  else
-    select_timeout = NULL;
-
   for (;;)
     {
+      /* Set the file descriptors select() will wait on. */
       read_fd_set = active_fd_set;
+
+      /* Set the amount of time to wait. */
+      /* Linux select() modifies *select_timeout to reflect the
+	 amount of time not slept, so we have to re-initialize it 
+	 each time. */
+      /* If MILLISECONDS is less than 0, wait forever. */
+      if (milliseconds >= 0)
+	{
+	  timeout.tv_sec = milliseconds / 1000;
+	  timeout.tv_usec = (milliseconds % 1000) * 1000;
+	  select_timeout = &timeout;
+	}
+      else
+	select_timeout = NULL;
+
+      /* Wait for incoming data. */
       sel_ret = select (FD_SETSIZE, &read_fd_set, NULL, NULL, select_timeout);
+
       if (sel_ret < 0)
 	{
 	  perror ("[TcpInPort receivePacketWithTimeout:] select()");
@@ -502,6 +510,8 @@ static NSMapTable* port_number_2_port;
 	}
       assert (!NSCountMapTable (client_sock_2_out_port));
 
+      /* xxx Perhaps should delay this close() to keep another port from
+	 getting it.  This may help Connection invalidation confusion. */
       close (_socket);
 
       /* These are here, and not in -dealloc, to prevent 
@@ -886,6 +896,8 @@ static NSMapTable *out_port_bag = NULL;
 {
   assert (is_valid);
 
+  /* xxx Perhaps should delay this close() to keep another port from
+     getting it.  This may help Connection invalidation confusion. */
   if (close (_socket) < 0)
     {
       perror ("[TcpOutPort -invalidate] close()");
