@@ -43,10 +43,12 @@
 - (NSMutableDictionary*) refs;
 - (void) setDirectory: (NSString*)path;
 - (void) setGlobalRef: (NSString*)ref type: (NSString*)type;
+- (void) setOutputs: (NSArray*)a forHeader: (NSString*)h;
 - (void) setRelationship: (NSString*)r from: (NSString*)from to: (NSString*)to;
 - (void) setSources: (NSArray*)a forHeader: (NSString*)h;
 - (void) setUnitRef: (NSString*)ref type: (NSString*)type;
-- (NSArray*) sourcesForHeader: (NSString*)h;
+- (NSMutableArray*) outputsForHeader: (NSString*)h;
+- (NSMutableArray*) sourcesForHeader: (NSString*)h;
 - (NSDictionary*) unitRef: (NSString*)ref type: (NSString*)type;
 - (NSString*) unitRef: (NSString*)ref type: (NSString*)type unit: (NSString**)u;
 @end

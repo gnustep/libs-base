@@ -1,3 +1,18 @@
+2002-05-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Don't try to release memory using free()
+	when it was allocated using NSZoneMalloc().
+	* Tools/autogsdoc.m: Improve dependency rule management.
+	* Tools/AGSParser.h: ditto
+	* Tools/AGSParser.m: ditto
+	* Tools/AGSIndex.h: ditto
+	* Tools/AGSIndex.m: ditto
+	Store all dependency information in the .igsdoc file and keep it up
+	to date.  Never regenerate a file that doesn't need it.
+	Mostly the changes are to cope with the fact that we now have
+	common files into which all functions, constants, variables, and
+	typedefs within a project are combined.
+
 2002-05-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Unicode.m: Rationalise so that all conversion operations

@@ -1541,7 +1541,7 @@ typedef	struct	_GSEnumeratedDirectory {
 
 inline void gsedRelease(GSEnumeratedDirectory X)
 {
-  free(X.path);
+  NSZoneFree(NSDefaultMallocZone(), X.path);
   closedir(X.pointer);
 }
 
