@@ -173,47 +173,6 @@ static Class NSMutableString_c_concrete_class;
 
 static NSStringEncoding _DefaultStringEncoding;
 
-
-+ (void) _setConcreteClass: (Class)c
-{
-  NSString_concrete_class = c;
-}
-
-+ (void) _setConcreteCClass: (Class)c
-{
-  NSString_c_concrete_class = c;
-}
-
-+ (void) _setMutableConcreteClass: (Class)c
-{
-  NSMutableString_concrete_class = c;
-}
-
-+ (void) _setMutableConcreteCClass: (Class)c
-{
-  NSMutableString_c_concrete_class = c;
-}
-
-+ (Class) _concreteClass
-{
-  return NSString_concrete_class;
-}
-
-+ (Class) _concreteCClass
-{
-  return NSString_c_concrete_class;
-}
-
-+ (Class) _mutableConcreteClass
-{
-  return NSMutableString_concrete_class;
-}
-
-+ (Class) _mutableConcreteCClass
-{
-  return NSMutableString_c_concrete_class;
-}
-
 #if HAVE_REGISTER_PRINTF_FUNCTION
 #include <stdio.h>
 #include <printf.h>
@@ -301,7 +260,7 @@ handle_printf_atsign (FILE *stream,
 + (id) allocWithZone: (NSZone*)z
 {
   if ([self class] == [NSString class])
-    return NSAllocateObject ([self _concreteClass], 0, z);
+    return NSAllocateObject (NSString_concrete_class, 0, z);
   return [super allocWithZone: z];
 }
 
@@ -2593,7 +2552,7 @@ handle_printf_atsign (FILE *stream,
 {
   if ([self isKindOfClass: [NSMutableString class]] ||
 	NSShouldRetainWithZone(self, zone) == NO)
-    return [[[[self class] _concreteClass] allocWithZone: zone]
+    return [[NSString_concrete_class allocWithZone: zone]
 	initWithString: self];
   else
     return RETAIN(self);
@@ -2601,7 +2560,7 @@ handle_printf_atsign (FILE *stream,
 
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  return [[[[self class] _mutableConcreteClass] allocWithZone: zone]
+  return [[NSMutableString_concrete_class allocWithZone: zone]
 	  initWithString: self];
 }
 
@@ -2701,7 +2660,7 @@ handle_printf_atsign (FILE *stream,
 + (id) allocWithZone: (NSZone*)z
 {
   if ([self class] == [NSMutableString class])
-    return NSAllocateObject([self _mutableConcreteClass], 0, z);
+    return NSAllocateObject(NSMutableString_concrete_class, 0, z);
   return [super allocWithZone: z];
 }
 

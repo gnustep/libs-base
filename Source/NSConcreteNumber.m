@@ -45,7 +45,7 @@
 #elif TYPE_ORDER == 1
 #  define NumberTemplate	NSCharNumber
 #  define TYPE_FORMAT	@"%c"
-#  define TYPE_TYPE	char
+#  define TYPE_TYPE	signed char
 #elif TYPE_ORDER == 2
 #  define NumberTemplate	NSUCharNumber
 #  define TYPE_FORMAT	@"%c"
@@ -53,7 +53,7 @@
 #elif TYPE_ORDER == 3
 #  define NumberTemplate	NSShortNumber
 #  define TYPE_FORMAT	@"%hd"
-#  define TYPE_TYPE	short
+#  define TYPE_TYPE	signed short
 #elif TYPE_ORDER == 4
 #  define NumberTemplate	NSUShortNumber
 #  define TYPE_FORMAT	@"%hu"
@@ -61,7 +61,7 @@
 #elif TYPE_ORDER == 5
 #  define NumberTemplate	NSIntNumber
 #  define TYPE_FORMAT	@"%d"
-#  define TYPE_TYPE	int
+#  define TYPE_TYPE	signed int
 #elif TYPE_ORDER == 6
 #  define NumberTemplate	NSUIntNumber
 #  define TYPE_FORMAT	@"%u"
@@ -69,7 +69,7 @@
 #elif TYPE_ORDER == 7
 #  define NumberTemplate	NSLongNumber
 #  define TYPE_FORMAT	@"%ld"
-#  define TYPE_TYPE	long
+#  define TYPE_TYPE	signed long
 #elif TYPE_ORDER == 8
 #  define NumberTemplate	NSULongNumber
 #  define TYPE_FORMAT	@"%lu"
@@ -77,7 +77,7 @@
 #elif TYPE_ORDER == 9
 #  define NumberTemplate	NSLongLongNumber
 #  define TYPE_FORMAT	@"%lld"
-#  define TYPE_TYPE	long long
+#  define TYPE_TYPE	signed long long
 #elif TYPE_ORDER == 10
 #  define NumberTemplate	NSULongLongNumber
 #  define TYPE_FORMAT	@"%llu"
@@ -144,9 +144,9 @@
   return (BOOL)data;
 }
 
-- (char) charValue
+- (signed char) charValue
 {
-  return (char)data;
+  return (signed char)data;
 }
 
 - (double) doubleValue
@@ -159,24 +159,24 @@
   return (float)data;
 }
 
-- (int) intValue
+- (signed int) intValue
 {
-  return (int)data;
+  return (signed int)data;
 }
 
-- (long long) longLongValue
+- (signed long long) longLongValue
 {
-  return (long long)data;
+  return (signed long long)data;
 }
 
-- (long) longValue
+- (signed long) longValue
 {
-  return (long)data;
+  return (signed long)data;
 }
 
-- (short) shortValue
+- (signed short) shortValue
 {
-  return (short)data;
+  return (signed short)data;
 }
 
 - (unsigned char) unsignedCharValue
@@ -230,7 +230,7 @@
 	}
       case 1:
 	{
-	  char	oData;
+	  signed char	oData;
 
 	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 	  if (data == oData)
@@ -254,7 +254,7 @@
 	}
       case 3:
 	{
-	  short	oData;
+	  signed short	oData;
 
 	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 	  if (data == oData)
@@ -278,7 +278,7 @@
 	}
       case 5:
 	{
-	  int	oData;
+	  signed int	oData;
 
 	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 	  if (data == oData)
@@ -302,7 +302,7 @@
 	}
       case 7:
 	{
-	  long	oData;
+	  signed long	oData;
 
 	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 	  if (data == oData)
@@ -326,7 +326,7 @@
 	}
       case 9:
 	{
-	  long long	oData;
+	  signed long long	oData;
 
 	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
 	  if (data == oData)

@@ -1,3 +1,29 @@
+2000-07-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/externs.m: Some evil casts to avoid compiler warnings about
+	assigning to constant variables when we initiallise them.
+	* Source/NSGSet.m: implemented [-anyObject] and [-allObjects]
+	* Source/NSSet.m: Fix to encode subclasses as abstract class.
+	Remove unused methods for set/get concrete class
+	* Source/NSCountedSet.m: ditto
+	* Source/NSNumber.m: Use explicitly signed types for portability -
+	particularly for systems (eg PPC) where char is not signed by default.
+	* Source/NSConcrete.m: ditto.
+	* Source/NSConcreteNumber.m: ditto.
+	* Source/Foundation/NSValue.h: ditto
+	* Source/Foundation/NSConcreteNumber.h: ditto
+	* Source/NSArray.m: Remove unused methods for set/get concrete class
+	* Source/NSDictionary.m: ditto.
+	* Source/NSString.m: ditto.
+	* Source/NSAttributedString.m: ditto.
+	* Source/NSHost.m: store names and addresses in sets for improved
+	performance (comparisons).
+	Encode host as an address other than loopback if possible.
+	Add code for a new '+localHost' method to try to get ALL
+	names/addresses of current host.
+	* Source/NSPortNameServer.m: Use new localHost method.
+	* Source/GSTcpPort.m: Use new localHost method.
+
 2000-07-16  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/GNUmakefile (gdomap): Make as a C-tool rather than an

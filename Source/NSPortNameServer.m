@@ -345,16 +345,25 @@ typedef enum {
 	}
       else
 	{
-	  NSHost	*current = [NSHost currentHost];
+	  NSHost	*local = [NSHost localHost];
 	  NSHost	*host = [NSHost hostWithName: hostname];
 
 	  if (host == nil)
 	    {
 	      host = [NSHost hostWithAddress: hostname];
 	    }
-	  if ([current isEqual: host])
+	  if ([local isEqual: host])
 	    {
 	      state = GSPC_LOPEN;
+	    }
+	  else
+	    {
+	      NSHost	*loopback = [NSHost hostWithAddress: @"127.0.0.1"];
+
+	      if ([loopback isEqual: host])
+		{
+		  state = GSPC_LOPEN;
+		}
 	    }
 	}
     }

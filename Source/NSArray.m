@@ -80,26 +80,6 @@ static SEL	rlSel = @selector(removeLastObject);
     }
 }
 
-+ (void) _setConcreteClass: (Class)c
-{
-  NSArray_concrete_class = c;
-}
-
-+ (void) _setMutableConcreteClass: (Class)c
-{
-  NSMutableArray_concrete_class = c;
-}
-
-+ (Class) _concreteClass
-{
-  return NSArray_concrete_class;
-}
-
-+ (Class) _mutableConcreteClass
-{
-  return NSMutableArray_concrete_class;
-}
-
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSArray_abstract_class)

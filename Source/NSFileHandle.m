@@ -41,59 +41,49 @@ static Class NSFileHandle_concrete_class = nil;
     }
 }
 
-+ (void)_setConcreteClass: (Class)c
-{
-  NSFileHandle_concrete_class = c;
-}
-
-+ (Class)_concreteClass
-{
-  return NSFileHandle_concrete_class;
-}
-
 + (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject ([self _concreteClass], 0, z);
+  return NSAllocateObject (NSFileHandle_concrete_class, 0, z);
 }
 
 // Allocating and Initializing a FileHandle Object
 
 + (id) fileHandleForReadingAtPath: (NSString*)path
 {
-  return AUTORELEASE([[[self _concreteClass] alloc]
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
     initForReadingAtPath: path]);
 }
 
 + (id) fileHandleForWritingAtPath: (NSString*)path
 {
-  return AUTORELEASE([[[self _concreteClass] alloc]
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
     initForWritingAtPath: path]);
 }
 
 + (id) fileHandleForUpdatingAtPath: (NSString*)path
 {
-  return AUTORELEASE([[[self _concreteClass] alloc]
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
     initForUpdatingAtPath: path]);
 }
 
 + (id) fileHandleWithStandardError
 {
-  return AUTORELEASE([[[self _concreteClass] alloc] initWithStandardError]);
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc] initWithStandardError]);
 }
 
 + (id) fileHandleWithStandardInput
 {
-  return AUTORELEASE([[[self _concreteClass] alloc] initWithStandardInput]);
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc] initWithStandardInput]);
 }
 
 + (id) fileHandleWithStandardOutput
 {
-  return AUTORELEASE([[[self _concreteClass] alloc] initWithStandardOutput]);
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc] initWithStandardOutput]);
 }
 
 + (id) fileHandleWithNullDevice
 {
-  return AUTORELEASE([[[self _concreteClass] alloc] initWithNullDevice]);
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc] initWithNullDevice]);
 }
 
 - (id) initWithFileDescriptor: (int)desc
@@ -277,7 +267,7 @@ NSString*	NSFileHandleOperationException =
 			   service: (NSString*)service
 			  protocol: (NSString*)protocol
 {
-  return AUTORELEASE([[[self _concreteClass] alloc]
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
     initAsClientAtAddress: address
 		  service: service
 		 protocol: protocol]);
@@ -287,7 +277,7 @@ NSString*	NSFileHandleOperationException =
 				       service: (NSString*)service
 				      protocol: (NSString*)protocol
 {
-  return AUTORELEASE([[[self _concreteClass] alloc]
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
     initAsClientInBackgroundAtAddress: address
 			      service: service
 			     protocol: protocol
@@ -299,7 +289,7 @@ NSString*	NSFileHandleOperationException =
 				      protocol: (NSString*)protocol
 				      forModes: (NSArray*)modes
 {
-  return AUTORELEASE([[[self _concreteClass] alloc]
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
     initAsClientInBackgroundAtAddress: address
 			      service: service
 			     protocol: protocol
@@ -310,7 +300,7 @@ NSString*	NSFileHandleOperationException =
 			   service: (NSString*)service
 			  protocol: (NSString*)protocol
 {
-  return AUTORELEASE([[[self _concreteClass] alloc]
+  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
     initAsServerAtAddress: address
 		  service: service
 		 protocol: protocol]);

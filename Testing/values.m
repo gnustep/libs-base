@@ -16,11 +16,15 @@ int main()
     NSPoint p;
     NSRect rect;
     NSValue *v1, *v2;
-    NSNumber *n1, *n2, *n3, *n4, *n5;
+    NSNumber *nc, *ns, *n1, *n2, *n3, *n4, *n5;
     NSArray *a1, *a2;
     NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
     // Numbers
+    nc = [NSNumber numberWithChar:-100];
+    ns = [NSNumber numberWithShort:-100];
+printf("try %d, %d", [nc charValue], [ns shortValue]);
+printf("nc compare:ns is %d\n", [nc compare:ns]);
     n1 = [NSNumber numberWithUnsignedShort:30];
     n2 = [NSNumber numberWithDouble:2.7];
     n3 = [NSNumber numberWithDouble:30];

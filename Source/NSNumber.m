@@ -302,7 +302,7 @@ static Class	doubleNumberClass;
     }
 }
 
-+ (NSNumber*) numberWithChar: (char)value
++ (NSNumber*) numberWithChar: (signed char)value
 {
   NSNumber	*theObj;
 
@@ -336,7 +336,7 @@ static Class	doubleNumberClass;
   return AUTORELEASE(theObj);
 }
 
-+ (NSNumber*) numberWithInt: (int)value
++ (NSNumber*) numberWithInt: (signed int)value
 {
   NSNumber	*theObj;
 
@@ -350,7 +350,7 @@ static Class	doubleNumberClass;
   return AUTORELEASE(theObj);
 }
 
-+ (NSNumber*) numberWithLong: (long)value
++ (NSNumber*) numberWithLong: (signed long)value
 {
   NSNumber	*theObj;
 
@@ -364,7 +364,7 @@ static Class	doubleNumberClass;
   return AUTORELEASE(theObj);
 }
 
-+ (NSNumber*) numberWithLongLong: (long long)value
++ (NSNumber*) numberWithLongLong: (signed long long)value
 {
   NSNumber	*theObj;
 
@@ -378,7 +378,7 @@ static Class	doubleNumberClass;
   return AUTORELEASE(theObj);
 }
 
-+ (NSNumber*) numberWithShort: (short)value
++ (NSNumber*) numberWithShort: (signed short)value
 {
   NSNumber	*theObj;
 
@@ -500,7 +500,7 @@ static Class	doubleNumberClass;
   return RETAIN(self);
 }
 
-- (id) initWithChar: (char)value
+- (id) initWithChar: (signed char)value
 {
   NSDeallocateObject(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
@@ -531,7 +531,7 @@ static Class	doubleNumberClass;
   return self;
 }
 
-- (id) initWithInt: (int)value
+- (id) initWithInt: (signed int)value
 {
   NSDeallocateObject(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
@@ -544,7 +544,7 @@ static Class	doubleNumberClass;
   return self;
 }
 
-- (id) initWithLong: (long)value
+- (id) initWithLong: (signed long)value
 {
   NSDeallocateObject(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
@@ -557,7 +557,7 @@ static Class	doubleNumberClass;
   return self;
 }
 
-- (id) initWithLongLong: (long long)value
+- (id) initWithLongLong: (signed long long)value
 {
   NSDeallocateObject(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
@@ -570,7 +570,7 @@ static Class	doubleNumberClass;
   return self;
 }
 
-- (id) initWithShort: (short)value
+- (id) initWithShort: (signed short)value
 {
   NSDeallocateObject(self);
   if (value <= GS_SMALL && value >= -GS_SMALL)
@@ -742,7 +742,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -756,7 +756,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -770,7 +770,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -784,7 +784,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -798,7 +798,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -832,7 +832,7 @@ static Class	doubleNumberClass;
   return 0;
 }
 
-- (char) charValue
+- (signed char) charValue
 {
   if (fastClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
@@ -852,7 +852,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -866,7 +866,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -880,7 +880,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -894,7 +894,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -908,7 +908,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -962,7 +962,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -976,7 +976,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -990,7 +990,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1004,7 +1004,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1018,7 +1018,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1072,7 +1072,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1086,7 +1086,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1100,7 +1100,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1114,7 +1114,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1128,7 +1128,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1162,7 +1162,7 @@ static Class	doubleNumberClass;
   return 0;
 }
 
-- (int) intValue
+- (signed int) intValue
 {
   if (fastClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
@@ -1182,7 +1182,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1196,7 +1196,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1210,7 +1210,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1224,7 +1224,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1238,7 +1238,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1272,7 +1272,7 @@ static Class	doubleNumberClass;
   return 0;
 }
 
-- (long long) longLongValue
+- (signed long long) longLongValue
 {
   if (fastClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
@@ -1292,7 +1292,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1306,7 +1306,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1320,7 +1320,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1334,7 +1334,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1348,7 +1348,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1382,7 +1382,7 @@ static Class	doubleNumberClass;
   return 0;
 }
 
-- (long) longValue
+- (signed long) longValue
 {
   if (fastClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
@@ -1402,7 +1402,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1416,7 +1416,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1430,7 +1430,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1444,7 +1444,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1458,7 +1458,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1492,7 +1492,7 @@ static Class	doubleNumberClass;
   return 0;
 }
 
-- (short) shortValue
+- (signed short) shortValue
 {
   if (fastClass(self) == abstractClass)
     [NSException raise: NSInternalInconsistencyException
@@ -1512,7 +1512,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1526,7 +1526,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1540,7 +1540,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1554,7 +1554,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1568,7 +1568,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1627,7 +1627,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1641,7 +1641,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1655,7 +1655,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1669,7 +1669,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1683,7 +1683,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1737,7 +1737,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1751,7 +1751,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1765,7 +1765,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1779,7 +1779,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1793,7 +1793,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1847,7 +1847,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1861,7 +1861,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1875,7 +1875,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1889,7 +1889,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1903,7 +1903,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1957,7 +1957,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1971,7 +1971,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1985,7 +1985,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -1999,7 +1999,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -2013,7 +2013,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -2067,7 +2067,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 1:
 	    {
-	      char	oData;
+	      signed char	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -2081,7 +2081,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 3:
 	    {
-	      short	oData;
+	      signed short	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -2095,7 +2095,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 5:
 	    {
-	      int	oData;
+	      signed int	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -2109,7 +2109,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 7:
 	    {
-	      long	oData;
+	      signed long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;
@@ -2123,7 +2123,7 @@ static Class	doubleNumberClass;
 	    }
 	  case 9:
 	    {
-	      long long	oData;
+	      signed long long	oData;
 
 	      (*(info->getValue))(self, @selector(getValue:), &oData);
 	      return oData;

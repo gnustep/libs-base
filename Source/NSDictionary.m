@@ -59,26 +59,6 @@ static SEL	remSel = @selector(removeObjectForKey:);
 static SEL	setSel = @selector(setObject:forKey:);
 static SEL	appSel = @selector(appendString:);
 
-+ (void) _setConcreteClass: (Class)c
-{
-  NSDictionary_concrete_class = c;
-}
-
-+ (void) _setMutableConcreteClass: (Class)c
-{
-  NSMutableDictionary_concrete_class = c;
-}
-
-+ (Class) _concreteClass
-{
-  return NSDictionary_concrete_class;
-}
-
-+ (Class) _mutableConcreteClass
-{
-  return NSMutableDictionary_concrete_class;
-}
-
 + (void) initialize
 {
   if (self == [NSDictionary class])

@@ -35,13 +35,13 @@
 
 @implementation NSPort
 
-Class	_abstractClass;
-Class	_concreteClass;
+Class	NSPort_abstract_class;
+Class	NSPort_concrete_class;
 
 + (id) allocWithZone: (NSZone*)aZone
 {
-  if (self == _abstractClass)
-    return NSAllocateObject(_concreteClass, 0, aZone);
+  if (self == NSPort_abstract_class)
+    return NSAllocateObject(NSPort_concrete_class, 0, aZone);
   else
     return [super allocWithZone: aZone];
 }
@@ -50,14 +50,14 @@ Class	_concreteClass;
 {
   if (self == [NSPort class])
     {
-      _abstractClass = self;
-      _concreteClass = [GSTcpPort class];
+      NSPort_abstract_class = self;
+      NSPort_concrete_class = [GSTcpPort class];
     }
 }
 
 + (NSPort*) port
 {
-  return AUTORELEASE([_concreteClass new]);
+  return AUTORELEASE([NSPort_concrete_class new]);
 }
 
 + (NSPort*) portWithMachPort: (int)machPort

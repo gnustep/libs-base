@@ -1080,7 +1080,7 @@ static Class		tcpPortClass;
 {
   unsigned		i;
   GSTcpPort		*port = nil;
-  NSHost		*thisHost = [NSHost currentHost];
+  NSHost		*thisHost = [NSHost localHost];
   NSMapTable		*thePorts;
 
   if (thisHost == nil)
@@ -1125,7 +1125,7 @@ static Class		tcpPortClass;
       port->myLock = [NSRecursiveLock new];
       port->_is_valid = YES;
 
-      if (shouldListen == YES && [thisHost isEqual: aHost] == YES)
+      if (shouldListen == YES && [thisHost isEqual: aHost])
 	{
 	  int	reuse = 1;	/* Should we re-use ports?	*/
 	  int	desc;
