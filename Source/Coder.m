@@ -21,6 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+/* xxx We could get rid of doing_root_object and just use 
+   interconnected_stack_height instead. */
+
 #include <objects/stdobjects.h>
 #include <objects/Coder.h>
 #include <objects/MemoryStream.h>
@@ -29,9 +32,6 @@
 #include <objects/Stack.h>
 #include <objects/Set.h>
 #include <assert.h>
-
-/* The stacks of dictionaries are not necessary---one dictionary will do.
-   I fixed a bug with a quick fix; now I need to go back and clean it up. */
 
 #define CODER_FORMAT_VERSION 0
 
@@ -163,8 +163,8 @@ my_object_is_class(id object)
   in_progress_table = [[Array alloc] initWithType:@encode(unsigned)];
   const_ptr_table = [[Dictionary alloc] initWithType:@encode(void*) 
 					keyType:@encode(unsigned)];
-  root_object_tables = nil;
-  forward_object_tables = nil;
+  root_object_table = nil;
+  forward_object_table = nil;
   interconnected_stack_height = 0;
   return self;
 }
@@ -276,61 +276,57 @@ exc_return_null(arglist_t f)
 
 - (void) _coderPushRootObjectTable
 {
-  if (!root_object_tables)
-    root_object_tables = [[Stack alloc] init];
-  [root_object_tables pushObject:
-		      [[Dictionary alloc] initWithType:@encode(void*)
-		       keyType:@encode(unsigned)]];
+  if (!root_object_table)
+    root_object_table = [[Dictionary alloc] initWithType:@encode(void*)
+					    keyType:@encode(unsigned)];
 }
 
 - (void) _coderPopRootObjectTable
 {
-  assert(root_object_tables);
-  [[root_object_tables popObject] release];
+  assert(root_object_table);
+  [root_object_table release];
+  root_object_table = nil;
 }
 
 - _coderTopRootObjectTable
 {
-  assert(root_object_tables);
-  return [root_object_tables topObject];
+  assert(root_object_table);
+  return root_object_table;
 }
 
 /* Here are the methods for forward object references. */
 
 - (void) _coderPushForwardObjectTable
 {
-  if (!forward_object_tables)
-    forward_object_tables = [[Stack alloc] init];
-  [forward_object_tables pushObject:
-			  [[Dictionary alloc] initWithType:@encode(void*)
-			   keyType:@encode(unsigned)]];
+  if (!forward_object_table)
+    forward_object_table = [[Dictionary alloc] initWithType:@encode(void*)
+					       keyType:@encode(unsigned)];
 }
 
 - (void) _coderPopForwardObjectTable
 {
-  assert(forward_object_tables);
-  [[forward_object_tables popObject] release];
+  assert(forward_object_table);
+  [forward_object_table release];
+  forward_object_table = nil;
 }
 
 - _coderTopForwardObjectTable
 {
-  assert(forward_object_tables);
-  return [forward_object_tables topObject];
+  assert(forward_object_table);
+  return forward_object_table;
 }
 
 - (struct objc_list *) _coderForwardObjectsAtReference: (unsigned)xref
 {
-  assert(forward_object_tables);
   return (struct objc_list*)
-    [[forward_object_tables topObject] elementAtKey:xref 
+    [[self _coderTopForwardObjectTable] elementAtKey:xref 
      ifAbsentCall:exc_return_null].void_ptr_u;
 }
 
 - (void) _coderPutForwardObjects: (struct objc_list *)head
    atReference: (unsigned)xref
 {
-  assert(forward_object_tables);
-  [[forward_object_tables topObject] putElement:head atKey:xref];
+  [[self _coderTopForwardObjectTable] putElement:head atKey:xref];
 }
 
 
@@ -829,7 +825,7 @@ exc_return_null(arglist_t f)
     return;
 
   /* resolve object forward references */
-  if (forward_object_tables)
+  if (forward_object_table)
     {
       void set_obj_addrs_for_xref(elt key, elt content)
 	{
@@ -1187,8 +1183,8 @@ exc_return_null(arglist_t f)
   [const_ptr_table release];
   [in_progress_table release];
   [object_table release];
-  [forward_object_tables release];
-  [root_object_tables release];
+  [forward_object_table release];
+  [root_object_table release];
   [stream release];		/* xxx should we do this? */
   [super dealloc];
 }
