@@ -1,3 +1,58 @@
+Wed Jul 15 12:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/Invocation.m: Rewrote ([-invoke]) to retrieve return values
+	correctly by using mframe_decode_return()
+
+	* src/NSCharacterSet.m: Fixed ([-copyWithZone:]) to avoid using the
+	(non-existant) NSObject method.
+
+	* src/NSFileHandle.m: Modified method for making socket connections
+	and added a synchronous version.
+
+	* src/NSObjCRuntime.m: Tidied and added NSGetSizeAndAlignment().
+
+	* src/NSObject.m: Removed ([-copyWithZone:]) and
+	([-mutableCopyWithZone:]) (which shiould not exist in NSObject).
+
+	* src/NSString.m: Fixed implementation of the
+	([-rangeOfCharacterFromSet:options:range:]) method.
+
+	* src/UnixFileHandle.m: Various bug fixes for synchronous operations.
+
+	* src/mframe.m: Added mframe_decode_return() function to get the
+	return value out of a retframe.
+
+	* src/include/NSCharacterSet.h: Modified to say we conform to the
+	NSCoding protocol (whith the spec says we should).
+
+	* src/include/NSFileHandle.h: Altered methods for making a network call.
+
+	* src/include/NSObjCRuntime.h: Added NSGetSizeAndAlignment().
+
+	* src/include/NSObject.h: Removed stuff saying we conform to the
+	NSCoding and NSCopying protocols (we shouldn't) and removed the
+	([-copyWithZone:]) and ([-mutableCopyWithZone:]) methods - which
+	shouldn't be there.
+
+        * src/include/UnixFileHandle.h: Altered methods for making a network
+	connection.
+
+	* src/include/mframe.h: Added mframe_decode_return() function.
+
+
+Tue Jul 14 16:06:16 1998  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
+
+        * checks/invocation_*.m : New test files.
+
+        * checks/invocation2.m: Removed the file.
+
+        * src/include/NSInvocation.h (NS_INVOCATION, NS_MESSAGE):
+        Added new arguments to the macros. These macros don't require
+        SEL type argument to specify the method to invoke now.
+
+	* checks; Added invocation_char.m, invocation_short.m, invocation_int.m
+	and invocation_long.m
+
 Fri Jul 10 21:43:30 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/include/GapArrayPrivate.h (gapMoveGaptTo): Change - to +.
