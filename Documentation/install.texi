@@ -36,6 +36,8 @@ cd objc
 patch < ../../libobjects-@value{OBJECTS_VERSION}/gcc-dynamic.patch
 @end example
 
+The patches have not changed since release of libobjects version 0.1.9.
+
 @item
 Configure the package for your system.  In the directory that this file
 is in, type @samp{./configure}.  If you're using @samp{csh} on an old
