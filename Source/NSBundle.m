@@ -316,27 +316,35 @@ static NSBundle *lastFrameworkBundle = nil;
 void
 _bundle_load_callback(Class theClass, Category *theCategory)
 {
-  NSBundle	  *bundle = nil;
-  NSString        *className;
-  NSString        *path, *bundlePath = nil, *lastComponent;
-  NSString        *libName, *frameworkVersion = nil;
-  BOOL             isFramework = NO;
+  NSBundle	*bundle = nil;
+  NSString	*className;
+#if	LINKER_GETSYMBOL
+  NSString	*path;
+  NSString	*bundlePath = nil;
+  NSString	*lastComponent;
+  NSString	*libName;
+  NSString	*frameworkVersion = nil;
+  BOOL		isFramework = NO;
+#endif
 
   NSCAssert(_loadingBundle, NSInternalInconsistencyException);
 
-  if (theClass)
-    className = NSStringFromClass(theClass);
+  if (theClass != 0)
+    {
+      className = NSStringFromClass(theClass);
+    }
   else
-    className = [NSString stringWithCString: theCategory->class_name];
+    {
+      className = [NSString stringWithCString: theCategory->class_name];
+    }
 
-#if !LINKER_GETSYMBOL
-  if ([NSBundle _addFrameworkFromClass: theClass] == YES)
-    return;
-#else
+#if	LINKER_GETSYMBOL
   path = objc_get_symbol_path(theClass, theCategory);
 
   if (lastSymbolPath && [lastSymbolPath isEqual: path] == YES)
-    isFramework = YES;
+    {
+      isFramework = YES;
+    }
   else
     {
       NSString *s;
@@ -378,10 +386,14 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	      if (len > 3)
 		{
 		  for (i = 3; i < len; i++)
-		    if (cString[i] == '.')
-		      break;
+		    {
+		      if (cString[i] == '.')
+			{
+			  break;
+			}
+		    }
 
-		  if (i-3)
+		  if (i > 3)
 		    {
 		      NSString *name;
 
@@ -424,28 +436,29 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
       if (isFramework == YES)
 	{
-	  if (_bundles) 
-	    bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
-
-	  if (!bundle && _releasedBundles)
+	  if (_bundles != nil) 
+	    {
+	      bundle = (NSBundle *)NSMapGet(_bundles, bundlePath);
+	    }
+	  if (bundle != nil && _releasedBundles != 0)
 	    {
 	      bundle = (NSBundle *)NSMapGet(_releasedBundles, bundlePath);
 
-	      if (bundle)
+	      if (bundle != nil)
 		{
 		  NSMapInsert(_bundles, bundlePath, bundle);
 		  NSMapRemove(_releasedBundles, bundlePath);
 		}
 	    }
 
-	  if (!bundle)
+	  if (bundle != nil)
 	    {
 	      bundle = [NSBundle bundleWithPath: bundlePath];
 	      bundle->_bundleType = NSBUNDLE_FRAMEWORK;
 	      bundle->_codeLoaded = YES;
 	      bundle->_frameworkVersion = RETAIN(frameworkVersion);
-	      bundle->_bundleClasses = RETAIN([NSMutableArray
-						arrayWithCapacity: 2]);
+	      bundle->_bundleClasses
+		= RETAIN([NSMutableArray arrayWithCapacity: 2]);
 	    }
 
 	  ASSIGN(lastFrameworkBundle, bundle);
@@ -456,24 +469,31 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     {
       bundle = lastFrameworkBundle;
 
-      if (lastFrameworkName)
+      if (lastFrameworkName != nil)
 	{
 	  if ([className isEqual: lastFrameworkName] == YES)
 	    {
 	      bundle->_frameworkVersion = RETAIN([theClass frameworkVersion]);
-
 	      DESTROY(lastFrameworkName);
 	    }
 	}
     }
   else
+    {
+      bundle = _loadingBundle;
+    }
+#else
+  if ([NSBundle _addFrameworkFromClass: theClass] == YES)
+    return;
+  bundle = _loadingBundle;
 #endif
-    bundle = _loadingBundle;
 
   /* Don't store categories */
-  if (!theCategory)
-    [(NSMutableArray *)[bundle _bundleClasses] addObject: [NSValue
-      valueWithNonretainedObject: (id)theClass]];
+  if (theCategory == 0)
+    {
+      [(NSMutableArray *)[bundle _bundleClasses] addObject:
+	[NSValue valueWithNonretainedObject: (id)theClass]];
+    }
 }
 
 
