@@ -1,3 +1,9 @@
+2001-07-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Unicode.m: Removed bogus tests for character zero in 
+	string conversion functions ... OpenStep strings are not nul
+	terminated, so the code terminated conversions prematurely.
+
 Tue Jul 17 15:00:52 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Makefile.postamble (after-distclean): Depend on
