@@ -61,7 +61,7 @@ infodir = $(prefix)/info
 #### End of system configuration section. ####
 
 # The gcc version required to compile the library.
-OBJECTS_GCC_VERSION = 2.6.1
+OBJECTS_GCC_VERSION = 2.6.3
 
 # The version number of this release.
 OBJECTS_VERSION = 0.1.4
