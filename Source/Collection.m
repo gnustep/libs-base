@@ -1218,6 +1218,22 @@ for info about latest version.",
   return licenseString;
 }
 
+- write: (TypedStream *)aStream 
+{ 
+  [super write: aStream]; 
+  [self _writeInit:aStream]; 
+  [self _writeContents:aStream]; 
+  return self; 
+} 
+ 
+- read: (TypedStream *)aStream 
+{ 
+  [super read: aStream]; 
+  [self _readInit:aStream]; 
+  [self _readContents:aStream]; 
+  return self; 
+} 
+
 - (void) encodeWithCoder: aCoder
 {
   [self _encodeCollectionWithCoder:aCoder];
