@@ -717,14 +717,7 @@ SANITY();
     tmpLength, _infoArray, &arrayIndex);
 
   arrayIndex++;
-  if (NSMaxRange(effectiveRange) > NSMaxRange(range))
-    {
-      info = NEWINFO(z, cacheAttributes(attrs), NSMaxRange(range));
-      INSOBJECT(info, arrayIndex);
-      arraySize++;
-SANITY();
-    }
-  else if (NSMaxRange(effectiveRange) < NSMaxRange(range))
+  if (NSMaxRange(effectiveRange) < NSMaxRange(range))
     {
       /*
        * Remove all range info for ranges enclosed within the one
