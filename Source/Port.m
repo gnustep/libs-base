@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+#include <config.h>
 #include <gnustep/base/Port.h>
 #include <gnustep/base/Coder.h>	/* for Coding protocol in Object category */
 #include <gnustep/base/Notification.h>

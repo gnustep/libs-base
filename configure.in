@@ -47,14 +47,6 @@ PIPE='-pipe'
 AC_SUBST(PIPE)
 
 #--------------------------------------------------------------------
-# Check for the pthreads and math library
-#--------------------------------------------------------------------
-AC_CHECK_LIB(pcthread, pthread_create,
-	     ,
-	     AC_CHECK_LIB(pthread, pthread_create))
-AC_CHECK_LIB(m, sqrt)
-
-#--------------------------------------------------------------------
 # Find out if we\'re using NeXT\'s compiler.
 # if yes:
 #   add -cpp-traditional to CPP

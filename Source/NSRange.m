@@ -2,6 +2,7 @@
 
 */
 
+#include <config.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 

@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
+#include <config.h>
 #include <Foundation/NSGSet.h>
 #include <gnustep/base/NSSet.h>
 #include <gnustep/base/behavior.h>
@@ -78,11 +79,6 @@
    - initWithObjects: (id*)objects
    count: (unsigned)count
    Implemented by behavior. */
-
-- member: anObject
-{
-  return ([self containsObject: anObject] ? anObject : nil);
-}
 
 - (NSEnumerator*) objectEnumerator
 {

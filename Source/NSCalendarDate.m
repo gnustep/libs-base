@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
+#include <config.h>
 #include <gnustep/base/NSDate.h>
 #include <gnustep/base/NSString.h>
 #include <gnustep/base/NSException.h>
@@ -174,12 +175,15 @@ static id long_day[7] = {@"Sunday",
   char *newf;
   int lf = strlen(f);
   BOOL mtag = NO, dtag = NO, ycent = NO;
-  char ms[80] = "", ds[80] = "";
+  BOOL fullm = NO;
+  char ms[80] = "", ds[80] = "", timez[80] = "", ampm[80] = "";
   int yd = 0, md = 0, dd = 0, hd = 0, mnd = 0, sd = 0;
   void *pntr[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int order;
-  int yord = 0, mord = 0, dord = 0, hord = 0, mnord = 0, sord = 0;
+  int yord = 0, mord = 0, dord = 0, hord = 0, mnord = 0, sord = 0, tzord = 0;
+  int ampmord = 0;
   int i;
+  NSTimeZone *tz;
 
   // If either the string or format is nil then raise exception
   if (!description)
@@ -242,8 +246,9 @@ static id long_day[7] = {@"Sunday",
 	      break;
 
 	      // is it the month
-	    case 'b':
 	    case 'B':
+	      fullm = YES;   // Full month name
+	    case 'b':
 	      mtag = YES;    // Month is character string
 	    case 'm':
 	      mord = order;
@@ -311,6 +316,24 @@ static id long_day[7] = {@"Sunday",
 	      pntr[sord] = (void *)&sd;
 	      break;
 
+	      // the time zone abbreviation
+	    case 'Z':
+	      tzord = order;
+	      ++order;
+	      ++i;
+	      newf[i] = 's';
+	      pntr[tzord] = (void *)timez;
+	      break;
+
+	      // AM PM indicator
+	    case 'p':
+	      ampmord = order;
+	      ++order;
+	      ++i;
+	      newf[i] = 's';
+	      pntr[ampmord] = (void *)ampm;
+	      break;
+
 	      // Anything else is an invalid format
 	    default:
 	      free(newf);
@@ -338,6 +361,22 @@ static id long_day[7] = {@"Sunday",
   // +++ how do we take locale into account?
   if (mtag)
     {
+      int i;
+      NSString *m = [NSString stringWithCString: ms];
+      
+      if (fullm)
+	{
+	  for (i = 0;i < 12; ++i)
+	    if ([long_month[i] isEqual: m] == YES)
+	      break;
+	}
+      else
+	{
+	  for (i = 0;i < 12; ++i)
+	    if ([short_month[i] isEqual: m] == YES)
+	      break;
+	}
+      md = i + 1;
     }
 
   // Possibly convert day from string to decimal number
@@ -347,14 +386,33 @@ static id long_day[7] = {@"Sunday",
     }
 
   // +++ We need to take 'am' and 'pm' into account
+  if (ampmord)
+    {
+      // If its PM then we shift
+      if ((ampm[0] == 'p') || (ampm[0] == 'P'))
+	{
+	  // 12pm is 12pm not 24pm
+	  if (hd != 12)
+	    hd += 12;
+	}
+    }
 
   // +++ then there is the time zone
+  if (tzord)
+    {
+      tz = [NSTimeZone timeZoneWithAbbreviation:
+			 [NSString stringWithCString: timez]];
+      if (!tz)
+	tz = [NSTimeZone localTimeZone];
+    }
+  else
+    tz = [NSTimeZone localTimeZone];
 
   free(newf);
 
   return [self initWithYear: yd month: md day: dd hour: hd
 	       minute: mnd second: sd 
-	       timeZone: [NSTimeZone localTimeZone]];
+	       timeZone: tz];
 }
 
 - (id)initWithYear:(int)year

@@ -156,6 +156,14 @@ include/preface.h: $(srcdir)/include/preface.h.in ../Version
 	> $@
 preface${OEXT}: include/preface.h
 
+#
+# The config.h file is specific to a target
+#
+$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h: ../config.status
+	$(GNUSTEP_MAKEFILES)/mkinstalldirs \
+	   $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+	-mv include/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+
 # Turn off warnings for o_vscanf.c, it generates a bunch of unimportant ones.
 o_vscanf${OEXT}: o_vscanf.c
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<

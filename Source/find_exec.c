@@ -32,7 +32,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <gnustep/base/config.h>
+#include <config.h>
 
 #ifdef __WIN32__
 #include <limits.h>

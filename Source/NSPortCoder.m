@@ -29,6 +29,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/CStream.h>

@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
+#include <config.h>
 #include <gnustep/base/BinaryTree.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
 #include <gnustep/base/BinaryTreeNode.h>

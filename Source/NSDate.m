@@ -28,6 +28,7 @@
   Three methods not implemented, and NSCalendarDate/NSTimeZone don't exist.
 */
 
+#include <config.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>

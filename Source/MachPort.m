@@ -25,6 +25,7 @@
 
 #if __mach__
 
+#include <config.h>
 #include <gnustep/base/MachPort.h>
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Lock.h>

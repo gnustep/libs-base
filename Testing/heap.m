@@ -12,8 +12,6 @@ long lrand48();
 #else
 #if _WIN32 || __WIN32__
 #define random rand
-#else
-long random();
 #endif
 #endif
 

@@ -24,6 +24,7 @@
 
 /**** Included Headers *******************************************************/
 
+#include <config.h>
 #include <Foundation/NSZone.h>
 #include <gnustep/base/o_cbs.h>
 #include <gnustep/base/o_list.h>

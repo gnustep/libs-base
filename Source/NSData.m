@@ -56,6 +56,7 @@
  *		
  */
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/MallocAddress.h>
 #include <Foundation/byte_order.h>

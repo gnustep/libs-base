@@ -28,6 +28,7 @@
 
 */
 
+#include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/mframe.h>
 #include <gnustep/base/MallocAddress.h>

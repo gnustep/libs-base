@@ -22,6 +22,7 @@
 */ 
 
 
+#include <config.h>
 #include <gnustep/base/CircularArray.h>
 #include <gnustep/base/CircularArrayPrivate.h>
 

@@ -21,6 +21,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
+#include <config.h>
 #include <gnustep/base/Time.h>
 #include <gnustep/base/Array.h>
 #include <unistd.h>    /* _SC_CLK_TCK on SunOS 4 */

@@ -44,6 +44,7 @@
  * It was reworked for the GNU Objective-C Library by Andrew Kachites McCallum
  */
 
+#include <config.h>
 #include <gnustep/base/RNGBerkeley.h>
 #include <gnustep/base/Coder.h>
 #include <errno.h>
