@@ -3,7 +3,7 @@
    
    Written by: 	Manuel Guesdon <mguesdon@sbuilders.com>
    Date: 	Jan 1999
-   Updaten by:	Richard Frith-Macdonald <rfm@gnu.org>
+   Rewrite by:	Richard Frith-Macdonald <rfm@gnu.org>
    Date:	Sep 2000, June 2002
    
    This file is part of the GNUstep Library.
@@ -96,6 +96,9 @@ NSString * const GSHTTPPropertyProxyPortKey
  *   </item>
  *   <item>
  *     <code>http:</code> and <code>shttp:</code> (webserver) access.
+ *   </item>
+ *   <item>
+ *     <code>ftp:</code> (FTP server) access.
  *   </item>
  * </list>
  */
@@ -497,8 +500,12 @@ static Class		NSURLHandleClass = 0;
 }
 
 /**
- * Returns the resource data belonging to the handler.
+ * Returns the resource data belonging to the handle.
  * Calls -loadInForeground if necessary.
+ * <p>
+ *   The GNUstep implementation treats an <em>ftp:</em> request for a
+ *   directory as a request to list the names of the directory contents.
+ * </p>
  */
 - (NSData*) resourceData
 {
@@ -536,8 +543,19 @@ static Class		NSURLHandleClass = 0;
  *   NO on failure.
  * </p>
  * <p>
- *   The GNUstep implementation for HTTP/HTTPS sets the specified data as
- *   information to be POSTed to the URL next time it is loaded.
+ *   The GNUstep implementation for <em>file:</em> writes the data
+ *   directly to the local filesystem, and the return status reflects
+ *   the result of that write operation.
+ * </p>
+ * <p>
+ *   The GNUstep implementation for <em>http:</em> and <em>https:</em>
+ *   sets the specified data as information to be POSTed to the URL next
+ *   time it is loaded - so the method always returns YES.
+ * </p>
+ * <p>
+ *   The GNUstep implementation for <em>ftp:</em> sets the specified data
+ *   as information to be weitten to the URL next time it is loaded - so
+ *   the method always returns YES.
  * </p>
  */
 - (BOOL) writeData: (NSData*)data
