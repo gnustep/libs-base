@@ -2,6 +2,8 @@
 
 	* Source/Additions/Unicode.m: Add 'UTF-7' so iconv can be used to
 	handle utf7 if available.
+	* Tools/AGSParser.m: Don't always strip asterisks from comments,
+	Check first line of comment to see if it has one first.
 
 2003-06-28 15:48  Alexander Malmberg <alexander@malmberg.org>
 
