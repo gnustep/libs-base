@@ -52,7 +52,13 @@ SEL
 NSSelectorFromString(NSString *aSelectorName)
 {
   if (aSelectorName != nil)
-    return GSSelectorFromName ([aSelectorName lossyCString]);
+    {
+      int	len = [aSelectorName cStringLength];
+      char	buf[len+1];
+
+      [aSelectorName getCString: buf];
+      return GSSelectorFromName (buf);
+    }
   return (SEL)0;
 }
 
@@ -64,7 +70,13 @@ Class
 NSClassFromString(NSString *aClassName)
 {
   if (aClassName != nil)
-    return GSClassFromName ([aClassName lossyCString]);
+    {
+      int	len = [aClassName cStringLength];
+      char	buf[len+1];
+
+      [aClassName getCString: buf];
+      return GSClassFromName (buf);
+    }
   return (Class)0;
 }
 
