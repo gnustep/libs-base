@@ -38,18 +38,12 @@
                repeats: (BOOL)f
 {
   _interval = seconds;
-  _date = [[NSDate alloc] initWithTimeIntervalSinceNow: seconds];
+  _date = GSTimeNow() + seconds;
   _target = t;
   _selector = sel;
   _info = info;
   _repeats = f;
   return self;
-}
-
-- (void) dealloc
-{
-  RELEASE(_date);
-  [super dealloc];
 }
 
 + timerWithTimeInterval: (NSTimeInterval)ti
@@ -114,25 +108,18 @@
     [self invalidate];
   else if (!_invalidated)
     {
-      NSTimeInterval	ti = [_date timeIntervalSinceReferenceDate];
       NSTimeInterval	now = GSTimeNow();
       int		inc = -1;
 
-      NSAssert(now < 0.0, NSInternalInconsistencyException);
-      while (ti <= now)		// xxx remove this
+      while (_date <= now)		// xxx remove this
 	{
 	  inc++;
-	  ti += _interval;
+	  _date += _interval;
 	}
 #ifdef	LOG_MISSED
       if (inc > 0)
 	NSLog(@"Missed %d timeouts at %f second intervals", inc, _interval);
 #endif
-      /*
-       * Rely on feature of NSDate implementation that it's possible to
-       * re-initialize a date!
-       */
-      _date = [_date initWithTimeIntervalSinceReferenceDate: ti];
     }
 }
 
@@ -149,7 +136,7 @@
 
 - fireDate
 {
-  return _date;
+  return [NSDate dateWithTimeIntervalSinceReferenceDate: _date];
 }
 
 - userInfo
@@ -157,8 +144,13 @@
   return _info;
 }
 
-- (int)compare:(NSTimer*)anotherTimer
+- (int) compare: (NSTimer*)anotherTimer
 {
-    return [_date compare: anotherTimer->_date];
+  if (_date < anotherTimer->_date)
+    return NSOrderedAscending;
+  else if (_date > anotherTimer->_date)
+    return NSOrderedDescending;
+  else
+    return NSOrderedSame;
 }
 @end

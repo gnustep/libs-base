@@ -38,7 +38,7 @@
 #define	FAST_ARRAY_CHECK NSCAssert(array->count <= array->cap && array->old <= array->cap && array->old >= 1, NSInternalInconsistencyException)
 
 /*
- *	This file should be INCLUDED in files wanting to use the FastArray
+ This file should be INCLUDED in files wanting to use the FastArray
  *	functions - these are all declared inline for maximum performance.
  *
  *	The file including this one may predefine some macros to alter
@@ -112,6 +112,12 @@ struct	_FastArray {
 };
 typedef	struct	_FastArray	FastArray_t;
 typedef	struct	_FastArray	*FastArray;
+
+static INLINE unsigned
+FastArrayCount(FastArray array)
+{
+  return array->count;
+}
 
 static INLINE void
 FastArrayGrow(FastArray array)
@@ -210,13 +216,13 @@ static INLINE unsigned
 FastArrayInsertionPosition(FastArray array, FastArrayItem item, int (*sorter)())
 {
   unsigned	upper = array->count;
-  unsigned	index = upper/2;
   unsigned	lower = 0;
+  unsigned	index;
 
   /*
    *	Binary search for an item equal to the one to be inserted.
-   *
-  while (upper != lower)
+   */
+  for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
     {
       int	comparison = (*sorter)(item, array->ptr[index]);
 
@@ -232,7 +238,6 @@ FastArrayInsertionPosition(FastArray array, FastArrayItem item, int (*sorter)())
 	{
 	  break;
         } 
-      index = lower+(upper-lower)/2;
     }
   /*
    *	Now skip past any equal items so the insertion point is AFTER any
@@ -242,8 +247,23 @@ FastArrayInsertionPosition(FastArray array, FastArrayItem item, int (*sorter)())
     {
       index++;
     }
+  NSCAssert(index <= array->count, NSInternalInconsistencyException);
   return index;
 }
+
+#ifndef	NS_BLOCK_ASSERTIONS
+static INLINE void
+FastArrayCheckSort(FastArray array, int (*sorter)())
+{
+  unsigned	i;
+
+  for (i = 1; i < FastArrayCount(array); i++)
+    {
+      NSCAssert(((*sorter)(array->ptr[i-1], array->ptr[i]) <= 0),
+	NSInvalidArgumentException);
+    }
+}
+#endif
 
 static INLINE void
 FastArrayInsertSorted(FastArray array, FastArrayItem item, int (*sorter)())
@@ -252,6 +272,21 @@ FastArrayInsertSorted(FastArray array, FastArrayItem item, int (*sorter)())
 
   index = FastArrayInsertionPosition(array, item, sorter);
   FastArrayInsertItem(array, item, index);
+#ifndef	NS_BLOCK_ASSERTIONS
+  FastArrayCheckSort(array, sorter);
+#endif
+}
+
+static INLINE void
+FastArrayInsertSortedNoRetain(FastArray array, FastArrayItem item, int (*sorter)())
+{
+  unsigned	index;
+
+  index = FastArrayInsertionPosition(array, item, sorter);
+  FastArrayInsertItemNoRetain(array, item, index);
+#ifndef	NS_BLOCK_ASSERTIONS
+  FastArrayCheckSort(array, sorter);
+#endif
 }
 
 static INLINE void
@@ -293,12 +328,6 @@ FastArrayItemAtIndex(FastArray array, unsigned index)
 {
   NSCAssert(index < array->count, NSInvalidArgumentException);
   return array->ptr[index];
-}
-
-static INLINE unsigned
-FastArrayCount(FastArray array)
-{
-  return array->count;
 }
 
 static INLINE void

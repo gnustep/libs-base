@@ -1,3 +1,19 @@
+Wed Apr 21 20:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSAttributedString.m: Tidied.
+	* Source/Source/NSAutoreleasePool.m: Thread exit code added
+	* Source/NSCalendarDate.m: Tidied
+	* Source/NSConnection.m: ditto
+	* Source/NSException.m: Tidied and added description
+	* Source/NSRunLoop.m: Optimisation, bugfixes, and removal of cruft.
+	* Source/NSThread.m: Clean up autorelease pools on exit.
+	* Source/NSTimer.m: Optimise use in runloop.
+	* Source/include/FastArray.x: Bugfix for sorted array.
+	* Source/include/NSAutoreleasePool.h: Mod for threads.
+	* Source/include/NSObject.h: More retain/release macros.
+	* Source/include/NSRunLoop.h: Optimise limit date.
+	* Source/include/NSTimer.h: Optimise use with run loop.
+
 Tue Apr 20 16:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/Makefile.postamble: NSRunLoop.m uses FastArray.x

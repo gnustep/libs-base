@@ -1006,19 +1006,22 @@
 
 - (id) copyWithZone: (NSZone*)zone
 {
-    NSCalendarDate	*newDate;
+  NSCalendarDate	*newDate;
 
-    if (NSShouldRetainWithZone(self, zone)) {
-	newDate = RETAIN(self);
+  if (NSShouldRetainWithZone(self, zone))
+    {
+      newDate = RETAIN(self);
     }
-    else {
-	newDate = (NSCalendarDate*)NSCopyObject(self, 0, zone);
+  else
+    {
+      newDate = (NSCalendarDate*)NSCopyObject(self, 0, zone);
 
-	if (newDate) {
-	    newDate->calendar_format = [calendar_format copyWithZone: zone];
+      if (newDate)
+	{
+	  newDate->calendar_format = [calendar_format copyWithZone: zone];
 	}
     }
-    return newDate;
+  return newDate;
 }
 
 - (NSString *)descriptionWithLocale: (NSDictionary *)locale

@@ -26,21 +26,9 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSString.h>
-#include <base/o_map.h>
-#include <base/NotificationDispatcher.h>
+#include <Foundation/NSNotificationQueue.h>
 
 // Class variables
-
-#define USING_THREAD_COLLECTION 0
-#if USING_THREAD_COLLECTION
-/* For managing the collection of all NSThread objects.  Note, however,
-   threads that have not yet called +currentThread will not be in the
-   collection.
-   xxx Do we really need this collection anyway?  
-   How about getting rid of it? */
-static NSRecursiveLock *thread_lock;
-static o_map_t thread_id_2_nsthread;
-#endif
 
 /* Flag indicating whether the objc runtime ever went multi-threaded. */
 static BOOL entered_multi_threaded_state;
@@ -86,7 +74,7 @@ void gnustep_base_thread_callback()
   if (!entered_multi_threaded_state)
     {
       entered_multi_threaded_state = YES;
-      [NotificationDispatcher
+      [[NSNotificationCenter defaultCenter]
 	postNotificationName: NSBecomingMultiThreaded
 	object: nil];
     }
@@ -100,11 +88,6 @@ void gnustep_base_thread_callback()
 {
   if (self == [NSThread class])
     {
-#if USING_THREAD_COLLECTION
-      thread_id_2_nsthread = o_map_of_non_owned_void_p ();
-      thread_lock = [[[NSRecursiveLock alloc] init]
-		      autorelease];
-#endif
       entered_multi_threaded_state = NO;
       objc_set_thread_callback(gnustep_base_thread_callback);
     }
@@ -115,14 +98,12 @@ void gnustep_base_thread_callback()
 
 - (void)dealloc
 {
-  [_thread_dictionary release];
+  TEST_RELEASE(_thread_dictionary);
   [super dealloc];
 }
 
-- init
+- (id) init
 {
-  [super init];
-
   /* Make it easy and fast to get this NSThread object from the thread. */
   objc_thread_set_data (self);
 
@@ -130,15 +111,6 @@ void gnustep_base_thread_callback()
   _thread_dictionary = nil;	// Initialize this later only when needed
   _exception_handler = NULL;
   init_autorelease_thread_vars (&_autorelease_vars);
-
-#if USING_THREAD_COLLECTION
-  /* Register ourselves in the maptable of all threads. */
-  // Lock the thread list so it doesn't change on us
-  [thread_lock lock];
-  // Save the thread in our thread map; NOTE: this will not retain it
-  o_map_at_key_put_value_known_absent (thread_id_2_nsthread, tid, t);
-  [thread_lock unlock];
-#endif
 
   return self;
 }
@@ -228,29 +200,19 @@ void gnustep_base_thread_callback()
   NSThread *t;
 
   // the current NSThread
-  t = [NSThread currentThread];
+  t = GSCurrentThread();
 
   // Post the notification
-  [NotificationDispatcher
+  [[NSNotificationCenter defaultCenter]
     postNotificationName: NSThreadExiting
     object: t];
 
-#if USING_THREAD_COLLECTION
-  { 
-    _objc_thread_t tid;
-    // Get current thread id from runtime
-    tid = objc_thread_id();
-    // Lock the thread list so it doesn't change on us
-    [thread_lock lock];
-    // Remove the thread from the map
-    o_map_remove_key (thread_id_2_nsthread, tid);
-    // Unlock the thread list
-    [thread_lock unlock];
-  }
-#endif
+  /*
+   * Release anything in our autorelease pools
+   */
+  [NSAutoreleasePool _endThread];
 
-  // Release the thread object
-  [t release];
+  RELEASE(t);
 
   // xxx Clean up any outstanding NSAutoreleasePools here.
 

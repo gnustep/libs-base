@@ -230,6 +230,10 @@ extern NSRecursiveLock *gnustep_global_lock;
 #define	RELEASE(object)		
 #define	AUTORELEASE(object)	((id)object)
 
+#define	TEST_RETAIN(object)	((id)object)
+#define	TEST_RELEASE(object)
+#define	TEST_AUTORELEASE(object)	((id)object)
+
 #define	ASSIGN(object,value)	(object = value)
 #define	ASSIGNCOPY(object,value)	(object = [value copy])
 #define	DESTROY(object) 	(object = nil)
@@ -238,9 +242,20 @@ extern NSRecursiveLock *gnustep_global_lock;
 
 #else
 
+/*
+ *	Basic retain, release, and autorelease operations.
+ */
 #define	RETAIN(object)		[object retain]
 #define	RELEASE(object)		[object release]
 #define	AUTORELEASE(object)	[object autorelease]
+
+/*
+ *	Tested retain, release, and autorelease operations - only invoke the
+ *	objective-c method if the receiver is not nil.
+ */
+#define	TEST_RETAIN(object)	(object != nil ? [object retain] : nil)
+#define	TEST_RELEASE(object)	({ if (object) [object release]; })
+#define	TEST_AUTORELEASE(object)	({ if (object) [object autorelease]; })
 
 /*
  *	ASSIGN(object,value) assignes the value to the object with
@@ -287,7 +302,13 @@ if (__value != object) \
  *	a nil pointer for tidyness - we can't accidentally use a DESTROYED
  *	object later.
  */
-#define	DESTROY(object) 	([object release], object = nil)
+#define	DESTROY(object) 	({ \
+  if (object) \
+    { \
+      [object release]; \
+      object = nil; \
+    } \
+})
 
 #define	CREATE_AUTORELEASE_POOL(X)	\
   NSAutoreleasePool *(X) = [NSAutoreleasePool new]
