@@ -35,6 +35,7 @@
 @class NSMutableDictionary;
 @class NSData;
 @class NSTimer;
+@class NSRecursiveLock;
 
 /* Standard domains */
 GS_EXPORT NSString* const NSArgumentDomain;
@@ -106,9 +107,6 @@ GS_EXPORT NSString* const NSLocale;
     the M$ hell. God help the Win95/WinNT users of NSUserDefaults ;-)
   
   To Do: 
-  	- Add writeToFile:  instance method;
-	- implement the description method;
-	- test for UNIX  (write test app);
 	- ask somebody to test it for M$;
 	- polish & optimize;
 	- when tested, fix NSBundle (the system languages stuff);
@@ -129,6 +127,7 @@ GS_EXPORT NSString* const NSLocale;
   NSDistributedLock	*_defaultsDatabaseLock;
   NSDate		*_lastSync;
   NSTimer		*_tickingTimer;   // for synchronization
+  NSRecursiveLock	*_lock;
 }
 
 /* Getting the Shared Instance */
