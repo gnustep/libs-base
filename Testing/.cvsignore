@@ -4,6 +4,6 @@ test??
 pipes server client string values nsarray nsbundle nsdictionary nsset
 nsprocessinfo nsarchiver invocation diningPhilosophers nsmaptable nshashtable
 tcpport-server tcpport-client coder cstream float prepend randoms
-nstimer nsnotification nxst fref heap
+nstimer nsnotification nxst fref heap basic
 
 *.txt *.dat
