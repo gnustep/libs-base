@@ -849,39 +849,51 @@ static inline void
 stringIncrementCountAndMakeHoleAt(NSGMutableCStringStruct *self, 
 				  int index, int size)
 {
+  if (size > 0)
+    {
+      if (self->_count > 0)
+	{
 #ifndef STABLE_MEMCPY
-  {
-    unsigned i = self->_count;
+	  unsigned i = self->_count;
 
-    while (i-- > index)
-      self->_contents_chars[i+size] = self->_contents_chars[i];
-  }
+	  while (i-- > index)
+	    {
+	      self->_contents_chars[i+size] = self->_contents_chars[i];
+	    }
 #else
-  memcpy(self->_contents_chars + index, 
-	 self->_contents_chars + index + size,
-	 self->_count - index);
+	  memcpy(self->_contents_chars + index, 
+		 self->_contents_chars + index + size,
+		 self->_count - index);
 #endif /* STABLE_MEMCPY */
-  (self->_count) += size;
-  (self->_hash) = 0;
+	}
+      self->_count += size;
+      self->_hash = 0;
+    }
 }
 
 static inline void
 stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self, 
 				  int index, int size)
 {
-  (self->_count) -= size;
+  if (size > 0)
+    {
+      self->_count -= size;
 #ifndef STABLE_MEMCPY
-  {
-    int i;
-    for (i = index; i <= self->_count; i++)
-      self->_contents_chars[i] = self->_contents_chars[i+size];
-  }
+      {
+	int i;
+
+	for (i = index; i <= self->_count; i++)
+	  {
+	    self->_contents_chars[i] = self->_contents_chars[i+size];
+	  }
+      }
 #else
-  memcpy(self->_contents_chars + index + size,
-	 self->_contents_chars + index, 
-	 self->_count - index);
+      memcpy(self->_contents_chars + index + size,
+	     self->_contents_chars + index, 
+	     self->_count - index);
 #endif /* STABLE_MEMCPY */
-  (self->_hash) = 0;
+      self->_hash = 0;
+    }
 }
 
 /* This is the designated initializer for this class */
