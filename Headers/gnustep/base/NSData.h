@@ -185,35 +185,6 @@
 - (void) deserializeTypeTag: (unsigned char*)tag
 		andCrossRef: (unsigned int*)xref
 		   atCursor: (unsigned*)cursor;
-
-/*
- *	-initWithBytesNoCopy:length:fromZone:
- *	The GNUstep designated initialiser for normal data objects - lets
- *	the class know what zone the data comes from, so we can avoid the
- *	overhead of an NSZoneFromPointer() call.
- *	A zone of zero denotes static memory rather than malloced memory.
- */
-- (id) initWithBytesNoCopy: (void*)bytes
-		    length: (unsigned)length
-		  fromZone: (NSZone*)zone;
-/*
- *	-relinquishAllocatedBytes
- *	For an NSData object with a malloced buffer, returns that buffer and
- *	removes it from the NSData object, otherwise returns a nul pointer.
- *	Use with care, preferably when no-one else has retained the NSData
- *	object - or they will find it's buffer disappearing unexpectedly.
- *	Once you have used this method, you own the malloced data and are
- *	responsible for freeing it.
- *	NB. While this buffer is guaranteed to be freeable by NSZoneFree(),
- *	it's not necessarily safe to pass it to free()/objc_free() and
- *	friends.  If you wish to pass the buffer to code that might use
- *	free() or realloc(), you should use the
- *	-relinquishAllocatedBytesFromZone: method instead - this method
- *	will only relinquich the buffer if it was allocated from the
- *	specified zone (a zone of 0 disables this checking).
- */
-- (void*) relinquishAllocatedBytes;
-- (void*) relinquishAllocatedBytesFromZone: (NSZone*)aZone;
 @end
 #endif
 

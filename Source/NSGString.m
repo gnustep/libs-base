@@ -174,32 +174,13 @@
 
 // Initializing Newly Allocated Strings
 
-/* This is the GNUstep designated initializer for this class. */
-- (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned int)length
-		       fromZone: (NSZone*)zone
-{
-  self = [super init];
-  if (self)
-    {
-      _count = length;
-      _contents_chars = chars;
-#if	GS_WITH_GC
-      _zone = chars ? GSAtomicMallocZone() : 0;
-#else
-      _zone = chars ? zone : 0;
-#endif
-    }
-  return self;
-}
-
 /* This is the OpenStep designated initializer for this class. */
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
   self = [super init];
-  if (self)
+  if (self != nil)
     {
       _count = length;
       _contents_chars = chars;
@@ -222,30 +203,21 @@
 - (id) initWithCharacters: (const unichar*)chars
 		   length: (unsigned int)length
 {
-  NSZone	*z = fastZone(self);
-  unichar	*s;
-
-  if (length)
+  if (length > 0)
     {
-      s = NSZoneMalloc(z, length*sizeof(unichar));
-      if (chars)
+      unichar	*s = NSZoneMalloc(fastZone(self), length*sizeof(unichar));
+
+      if (chars != 0)
 	memcpy(s, chars, sizeof(unichar)*length);
+      self = [self initWithCharactersNoCopy: s
+				     length: length
+			       freeWhenDone: YES];
     }
   else
     {
-      s = 0;
+      self = [self initWithCharactersNoCopy: 0 length: 0 freeWhenDone: NO];
     }
-  return [self initWithCharactersNoCopy:s length:length fromZone:z];
-}
-
-- (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned int)length
-		    fromZone: (NSZone*)zone
-{
-  id a = [[NSGCString allocWithZone: zone]
-	initWithCStringNoCopy: byteString length: length fromZone: zone];
-  [self release];
-  return a;
+  return self;
 }
 
 - (id) initWithCStringNoCopy: (char*)byteString
@@ -254,13 +226,13 @@
 {
   id a = [[NSGCString allocWithZone: fastZone(self)]
 	initWithCStringNoCopy: byteString length: length freeWhenDone: flag];
-  [self release];
+  RELEASE(self);
   return a;
 }
 
 - (id) init
 {
-  return [self initWithCharactersNoCopy:0 length:0 fromZone: fastZone(self)];
+  return [self initWithCharactersNoCopy:0 length:0 freeWhenDone: 0];
 }
 
 // Getting a String's Length
@@ -411,23 +383,6 @@
   return self;
 }
 
-
-// ******* Stuff from NSGCString *********
-//    Do we need this ???
-
-- (void) _collectionReleaseContents
-{
-  return;
-}
-
-- (void) _collectionDealloc
-{
-  if (_zone)
-    {
-      NSZoneFree(_zone, _contents_chars);
-      _zone = 0;
-    }
-}
 
 - (id) propertyList
 {
@@ -704,32 +659,12 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
   return [self initWithCapacity: 0];
 }
 
-/* This is the GNUstep designated initializer for this class. */
-- (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned int)length
-		       fromZone: (NSZone*)zone
-{
-  self = [super init];
-  if (self)
-    {
-      _count = length;
-      _capacity = length;
-      _contents_chars = chars;
-#if	GS_WITH_GC
-      _zone = _zone ? GSAtomicMallocZone() : 0;
-#else
-      _zone = zone;
-#endif
-    }
-  return self;
-}
-
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
   self = [super init];
-  if (self)
+  if (self != nil)
     {
       _count = length;
       _capacity = length;
@@ -773,21 +708,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 
 - (id) initWithCStringNoCopy: (char*)byteString
 		      length: (unsigned int)length
-		    fromZone: (NSZone*)zone
-{
-  id a = [[NSGMutableCString allocWithZone: zone]
-	initWithCStringNoCopy: byteString length: length fromZone: zone];
-  [self release];
-  return a;
-}
-
-- (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned int)length
 	        freeWhenDone: (BOOL)flag
 {
   id a = [[NSGMutableCString allocWithZone: fastZone(self)]
 	initWithCStringNoCopy: byteString length: length freeWhenDone: flag];
-  [self release];
+  RELEASE(self);
   return a;
 }
 

@@ -975,8 +975,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 				count: l
 				   at: b];
 	  d = [[NSData allocWithZone: zone] initWithBytesNoCopy: b
-							 length: l
-						       fromZone: z];
+							 length: l];
 	  IF_NO_GC(AUTORELEASE(d));
 	  return d;
 	}
