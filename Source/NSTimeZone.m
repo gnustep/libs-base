@@ -544,7 +544,7 @@ decode (const void *ptr)
 
 	 if (f)
 	   {
-	     fp = fopen([f cString], "r");
+	     fp = fopen([f cString], "rb");
 	     if (fp != NULL)
 	       {
                  if (fscanf(fp, "%79s", zone_name) == 1)
@@ -779,7 +779,7 @@ decode (const void *ptr)
   /* Read dictionary from file. */
   abbreviationDictionary = [[NSMutableDictionary alloc] init];
   fileName = [NSTimeZone getAbbreviationFile];
-  file = fopen([fileName cString], "r");
+  file = fopen([fileName cString], "rb");
   if (file == NULL)
     [NSException
       raise: NSInternalInconsistencyException
@@ -826,7 +826,7 @@ decode (const void *ptr)
     temp_array[i] = [[NSMutableArray alloc] init];
 
   fileName = [NSTimeZone getRegionsFile];
-  file = fopen([fileName cString], "r");
+  file = fopen([fileName cString], "rb");
   if (file == NULL)
     [NSException
       raise: NSInternalInconsistencyException
