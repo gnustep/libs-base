@@ -164,7 +164,11 @@
       default.<br />
       If this default is not specified, the full name of the header file
       (as supplied on the command line), with the HeaderDirectory
-      default prepended, is used.
+      default prepended, is used.<br />
+      A typical usage of this might be <code>-Declared Foundation</code>
+      when generating documentation for the GNUstep base library.  This
+      would result in the documentation saying that NSString is declared
+      in <code>Foundation/NSString.h</code>
     </item>
     <item><strong>DocumentationDirectory</strong>
       May be used to specify the directory in which generated
@@ -260,7 +264,7 @@ main(int argc, char **argv, char **env)
   unsigned		i;
   NSUserDefaults	*defs;
   NSFileManager		*mgr;
-  NSDictionary		*projects;
+  NSMutableDictionary	*projects;
   NSString		*documentationDirectory;
   NSString		*declared;
   NSString		*headerDirectory;
@@ -300,7 +304,8 @@ main(int argc, char **argv, char **env)
     {
       systemProjects = @"";
     }
-  projects = [defs dictionaryForKey: @"Projects"];
+  projects = [[defs dictionaryForKey: @"Projects"] mutableCopy];
+  AUTORELEASE(projects);
 
   headerDirectory = [defs stringForKey: @"HeaderDirectory"];
   if (headerDirectory == nil)
@@ -512,14 +517,7 @@ main(int argc, char **argv, char **env)
 	   * When were the files last modified?
 	   */
 	  attrs = [mgr fileAttributesAtPath: hfile traverseLink: YES];
-	  if (attrs == nil)
-	    {
-	      sDate = [NSDate distantPast];
-	    }
-	  else
-	    {
-	      sDate = [attrs objectForKey: NSFileModificationDate];
-	    }
+	  sDate = [attrs objectForKey: NSFileModificationDate];
 	  AUTORELEASE(RETAIN(sDate));
 	  attrs = [mgr fileAttributesAtPath: sfile traverseLink: YES];
 	  if (attrs != nil)
@@ -527,7 +525,7 @@ main(int argc, char **argv, char **env)
 	      NSDate	*d;
 
 	      d = [attrs objectForKey: NSFileModificationDate];
-	      if ([d earlierDate: sDate] == d)
+	      if (sDate == nil || [d earlierDate: sDate] == d)
 		{
 		  sDate = d;
 		  AUTORELEASE(RETAIN(sDate));
@@ -646,7 +644,7 @@ main(int argc, char **argv, char **env)
 	      AGSIndex		*locRefs;
 
 	      parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-	      [parser substituteEntities: YES];
+	      [parser substituteEntities: NO];
 	      [parser doValidityChecking: YES];
 	      [parser keepBlanks: NO];
 	      if ([parser parse] == NO)
@@ -738,7 +736,7 @@ main(int argc, char **argv, char **env)
 		  AGSHtml	*html;
 
 		  parser = [GSXMLParser parserWithContentsOfFile: gsdocfile];
-		  [parser substituteEntities: YES];
+		  [parser substituteEntities: NO];
 		  [parser doValidityChecking: YES];
 		  [parser keepBlanks: NO];
 		  if ([parser parse] == NO)
