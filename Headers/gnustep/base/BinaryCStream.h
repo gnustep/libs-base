@@ -1,5 +1,5 @@
 /* Interface for GNU Objective-C binary stream object for use serializing
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Written: Jan 1996
@@ -29,6 +29,12 @@
 #include <gnustep/base/CStream.h>
 
 @interface BinaryCStream : CStream
+{
+  unsigned char _sizeof_long;
+  unsigned char _sizeof_int;
+  unsigned char _sizeof_short;
+  unsigned char _sizeof_char;
+}
 
 + setDebugging: (BOOL)f;
 
