@@ -278,9 +278,6 @@ con_benchmark (id prx)
   rep = [prx sendObject: sen];
   printf("  Sent: 0x%p, Reply: 0x%p, Length: %d\n", sen, rep, [rep length]);
 
-  [NSConnection setDebug: 0];
-  [NSDistantObject setDebug: 0];
-  //[NSPort setDebug: 0];
   localObj = [[NSObject alloc] init];
   [prx addObject: localObj];  // FIXME: Why is this needed?
   for (i = 0; i < 10000; i++)
@@ -452,13 +449,6 @@ int main (int argc, char *argv[], char **env)
       }
   if (type_test == NO_TEST)
     type_test = TYPE_TEST;
-
-  if (debug)
-    {
-      [NSConnection setDebug: 10];
-      [NSDistantObject setDebug: 10];
-      //[NSPort setDebug: 10];
-    }
 
   if (type_test == CONNECT_TEST)
     connect_attempts = 100000;

@@ -459,12 +459,6 @@ int main(int argc, char *argv[], char **env)
   [NSDistantObject setProtocolForProxies:@protocol(AllProxies)];
 #endif
 
-  if (debug)
-    {
-      [NSConnection setDebug: 10];
-      [NSDistantObject setDebug: 10];
-    }
-
   c = [NSConnection defaultConnection];
   [c setRootObject: l];
 

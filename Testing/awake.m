@@ -99,7 +99,6 @@ int SubFoo_awakeAfterUsingCoder_substitutes = 1;
 - (void) encodeWithCoder: coder
 {
   printf ("In [SubFoo encodeWithCoder:]\n");
-  [super encodeWithCoder: coder];
 #if GNU_ARCHIVING
   [coder encodeObjectReference: super_foo
 	 withName: @"super foo"];
@@ -117,10 +116,6 @@ int SubFoo_awakeAfterUsingCoder_substitutes = 1;
       id o = self;
       self = [[[self class] alloc] init];
       [o release];
-    }
-  else
-    {
-      self = [super initWithCoder: coder];
     }
 #if GNU_ARCHIVING
   [coder decodeObjectAt: &super_foo
@@ -179,7 +174,6 @@ int SubFoo_awakeAfterUsingCoder_substitutes = 1;
 - (void) encodeWithCoder: coder
 {
   printf ("In [Foo encodeWithCoder:]\n");
-  [super encodeWithCoder: coder];
   [coder encodeObject: sub_foo];
   [coder encodeValueOfObjCType: @encode(int)
 	 at: &label];
@@ -192,10 +186,6 @@ int SubFoo_awakeAfterUsingCoder_substitutes = 1;
       id o = self;
       self = [[[self class] alloc] init];
       [o release];
-    }
-  else
-    {
-      self = [super initWithCoder: coder];
     }
   sub_foo = [coder decodeObject];
   [coder decodeValueOfObjCType: @encode(int)

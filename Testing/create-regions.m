@@ -23,6 +23,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSUtilities.h>
+#include <Foundation/NSTimeZone.h>
 
 #define HOURSECS (60*60) /* Seconds in 1 hour. */
 #define DAYSECS (HOURSECS*24) /* Seconds in 24 hours. */

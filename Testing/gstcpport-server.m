@@ -32,7 +32,7 @@ main()
 
   local = [GSTcpPort new];
   del = [MyDelegate new];
-  [local setDelegate: del];
+  [(id)local setDelegate: del];
   loop = [NSRunLoop currentRunLoop];
   [NSPortNameServer setPortClass: [GSTcpPort class]];
   names = [NSPortNameServer systemDefaultPortNameServer];
