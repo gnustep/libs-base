@@ -185,7 +185,7 @@ main()
     // Joining string elements
     printf("Method: -componentsJoinedByString:\n");
     i = [c componentsJoinedByString: @"/"];
-    if ([i isEqual: @"NSObject/NSArray/NSMutableArray"])
+    if ([i isEqual: @"<NSObject>/<NSArray>/<NSMutableArray>"])
       printf("%s is correct\n", [i cString]);
     else
       {

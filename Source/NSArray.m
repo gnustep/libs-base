@@ -911,8 +911,45 @@ static NSString	*indentStrings[] = {
 - (void) removeObjectsFromIndices: (unsigned*)indices 
 		       numIndices: (unsigned)count
 {
-  while (count--)
-    [self removeObjectAtIndex:indices[count]];
+  if (count > 0)
+    {
+      unsigned	sorted[count];
+      unsigned	to = 0;
+      unsigned	from = 0;
+      unsigned	i;
+
+      while (from < count)
+	{
+	  unsigned	val = indices[from++];
+
+	  i = to;
+	  while (i > 0 && sorted[i] > val)
+	    {
+	      i--;
+	    }
+	  if (i == to)
+	    {
+	      sorted[to++] = val;
+	    }
+	  else if (sorted[i] < val)
+	    {
+	      unsigned	j = to++;
+
+	      i++;
+	      while (j > i)
+		{
+		  sorted[j] = sorted[j-1];
+		  j--;
+		}
+	      sorted[i] = val;
+	    }
+	}
+
+      while (to--)
+	{
+	  [self removeObjectAtIndex: indices[to]];
+	}
+    }
 }
 
 - (void) removeObjectsInArray: (NSArray*)otherArray
