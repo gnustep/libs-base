@@ -1121,6 +1121,7 @@ static Class		tcpPortClass;
 	   * listener socket to accept incoming connections.
 	   */
 	  memset(&sockaddr, '\0', sizeof(sockaddr));
+	  sockaddr.sin_family = AF_INET;
 	  if (addr == nil)
 	    {
 	      sockaddr.sin_addr.s_addr = GSSwapHostI32ToBig(INADDR_ANY);
