@@ -1,3 +1,8 @@
+2005-01-16 07:59 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Added code to properly set the
+	name of the action when undo/redo is called. 
+
 2005-01-16 06:37 Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSUndoManager.m: Check if the group is nil in 
