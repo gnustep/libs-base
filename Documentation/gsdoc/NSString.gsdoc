@@ -7,6 +7,9 @@
       <email address="rfm@gnu.org"/>
       <url url="http://www.gnustep.org/developers/whoiswho.html"/>
     </author>
+    <author name="James Dessart">
+      <email address="skwirl@cam.org"/>
+    </author>
     <version>0.1</version>
     <date>28 February, 2000</date>
   </head>
@@ -17,21 +20,30 @@
         <declared>Foundation/NSString.h</declared>
         <conform>NSCoding</conform>
           <desc>
+          <p>NSString objects represent an immutable string of characters.  NSString itself is an
+          abstract class which provides factory methods to generate objects of unspecified
+          subclasses.</p>
+
+          <p>A constant NSString can be created using the following syntax: <code>@"..."</code>,
+          where the contents of the quotes are the string, using only ASCII characters.</p>
           </desc>
         <method type="const NSStringEncoding*" factory="yes">
           <sel>availableStringEncodings</sel>
           <desc>
+          <p>Returns an array of all available string encodings, terminated by a null value.</p>
           </desc>
         </method>
         <method type="NSStringEncoding" factory="yes">
           <sel>defaultCStringEncoding</sel>
           <desc>
+          <p>Returns the encoding used for any method accepting a C string.</p>
           </desc>
         </method>
         <method type="NSString*" factory="yes">
           <sel>localizedNameOfStringEncoding:</sel>
           <arg type="NSStringEncoding">encoding</arg>
           <desc>
+          <p>Returns the localized name of the encoding specified by <var>encoding</var>.</p>
           </desc>
         </method>
         <method type="NSString*" factory="yes">
