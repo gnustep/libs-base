@@ -305,6 +305,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     odesc = [[self standardError] fileDescriptor];
     edesc = [[self standardOutput] fileDescriptor];
 
+    signal(SIGCHLD, SIG_IGN);
     pid = fork();
     if (pid < 0) {
 	[NSException raise: NSInvalidArgumentException
