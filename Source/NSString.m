@@ -572,8 +572,17 @@ handle_printf_atsign (FILE *stream,
 
 - (unsigned int) hash
 {
-  /* xxx need to use NSHashStringLength. */
-  return elt_hash_string([self _cStringContents]);
+  unsigned ret = 0;
+  unsigned ctr = 0;
+  unsigned char_count = 0;
+  const char *s = [self _cStringContents];
+
+  while (*s && char_count++ < NSHashStringLength)
+    {
+      ret ^= *s++ << ctr;
+      ctr = (ctr + 1) % sizeof (void*);
+    }
+  return ret;
 }
 
 - (BOOL) isEqual: (id)anObject
