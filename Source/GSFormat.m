@@ -1122,6 +1122,7 @@ NSDictionary *locale)
 	/* Process format specifiers.  */
 	while (1)
 	  {
+	    int string_malloced;
       do
 	{
 	  const void *ptr;
@@ -1499,8 +1500,8 @@ NSDictionary *locale)
 	    /* Make sure the full string "(nil)" is printed.  */
 	    if (prec < 5)
 	      prec = 5;
-	    is_long = 0;	/* This is no wide-char string.  */
-	    goto LABEL (print_string);
+	    string_malloced = 0;
+	    goto LABEL (print_uni_string);
 	  }
       }
       /* NOTREACHED */
@@ -1524,8 +1525,7 @@ NSDictionary *locale)
     LABEL (form_strerror):
       /* Print description of error ERRNO.  */
       string =
-	(unichar *) __strerror_r (save_errno, (char *) work_buffer,
-				 sizeof work_buffer);
+	(unichar *) strerror(save_errno);
       is_long = 0;		/* This is no wide-char string.  */
       goto LABEL (print_string);
     LABEL (form_character):
@@ -1556,7 +1556,6 @@ NSDictionary *locale)
     LABEL (form_string):
       {
 	size_t len;
-	int string_malloced;
 
 	/* The string argument could in fact be `char *' or `wchar_t *'.
 	   But this should not make a difference here.  */
@@ -1633,6 +1632,7 @@ NSDictionary *locale)
 	    while (prc--) *sp = *wsp;
 	  }
 
+	LABEL (print_uni_string):
 	if ((width -= len) <= 0)
 	  {
 	    outstring (string, len);
@@ -1652,7 +1652,6 @@ NSDictionary *locale)
     LABEL (form_object):
       {
 	size_t len;
-	int string_malloced;
 	id obj;
 	NSString *dsc;
 
@@ -1672,7 +1671,8 @@ NSDictionary *locale)
 	       NSString into a unicode string.  */
 	    NSRange r;
 
-	    len = prec != -1 ? prec : [dsc length];
+	    len = [dsc length];
+	    if (prec >= 0 && prec < len) len = prec;
 
 	    /* Allocate dynamically an array which definitely is long
 	       enough for the wide character version.  */

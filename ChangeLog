@@ -1,5 +1,9 @@
 2001-02-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSFormat.m: merged in some more fixes by Kai.
+
+2001-02-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSFormat.m: Fixed error in PAD() macro - it was failing to
 	decrement a counter - and looping forever.
 	Fixed error in formatted output of string arguments ... was
