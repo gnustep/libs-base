@@ -222,7 +222,7 @@ static NotificationDispatcher *default_notification_dispatcher = nil;
   /* Use NSObjectMapKeyCallBacks so we retain the NAME.  We also retain
      the values, which are LinkedList's. */
   _name_2_nr_list = 
-    NSCreateMapTable (NSNonOwnedPointerOrNullMapKeyCallBacks,
+    NSCreateMapTable (NSObjectMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
 
   /* Use NSNonOwnedPointerOrNullMapKeyCallBacks so we won't retain

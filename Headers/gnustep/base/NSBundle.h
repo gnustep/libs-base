@@ -83,6 +83,14 @@ extern NSString* NSLoadedClasses;
 
 @end
 
+@interface NSBundle (GNUstep)
+
++ (NSString *) pathForGNUstepResource: (NSString *)name
+			       ofType: (NSString *)ext	
+			  inDirectory: (NSString *)bundlePath;
+
+@end
+
 #define NSLocalizedString(key, comment) \
   [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]
 #define NSLocalizedStringFromTable(key, tbl, comment) \

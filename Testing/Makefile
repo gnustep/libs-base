@@ -71,7 +71,10 @@ nsdate \
 awake \
 thread-except \
 nscharacterset \
-NSData-test
+NSData-test \
+nstimezone \
+create-abbrevs \
+create-regions
 
 # The tool Objective-C source files to be compiled
 test01_OBJC_FILES = test01.m
@@ -116,6 +119,9 @@ awake_OBJC_FILES = awake.m
 thread-except_OBJC_FILES = thread-except.m
 nscharacterset_OBJC_FILES = nscharacterset.m
 NSData-test_OBJC_FILES = NSData-test.m
+nstimezone_OBJC_FILES = nstimezone.m
+create-abbrevs_OBJC_FILES = create-abbrevs.m
+create-regions_OBJC_FILES = create-regions.m
 
 # The bundles to be compiled
 BUNDLE_NAME=LoadMe
