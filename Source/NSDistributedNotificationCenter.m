@@ -344,6 +344,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	  if (h == nil)
 	    {
 	      NSLog(@"Unknown -NSHost '%@' ignored", host);
+	      host = @"";
 	    }
 	  else if ([h isEqual: [NSHost currentHost]] == YES)
 	    {
