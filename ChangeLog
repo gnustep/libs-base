@@ -1,5 +1,8 @@
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* examples/Makefile.in (RCS_FILES): Added custom-zone.m.
+	* examples/custom-zone.m: New file.
+
 	* src/NSBundle.m ([NSBundle
  	+pathForResource:ofType:inDirectory:]): Change it from an instance
  	method to a class method, in order to conform to spec.
@@ -14,6 +17,55 @@ Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 	* src/NSCharacterSet.m ([NSCharacterSet +_bitmapForSet:number:]):
  	Use NSBundle's pathForResource:ofType:inDirectory method properly.
   	(Reported by Stevo Crvenkovski <stevoc@lotus.mpt.com.mk>.)
+
+Sun Mar 23 22:14:21 1997  Stevo Crvenkovski  <stevoc@lotus.mpt.com.mk>
+
+        * src/NSGString.m: New file Initial implementation of Unicode
+        * src/include/NSGString.h : New file Interface for NSGString
+        * src/NSGSequence.m: New file - class that deals with Unicode
+ 	composite character sequences
+	* src/include/NSGSequence.h : New file Interface for NSGSequence
+	* src/Unicode.m: New file - functions for Unicode
+	* src/include/Unicode.h : New file
+		
+	* src/Makefile.in: Added NSGString.m, NSGString.h, NSGSequence.m,
+ 	NSGSequence.h, Unicode.m, Unicode.h
+        
+	* src/NSGCString.m ([NSGCString -length]): Method implemented.
+	([NSGCString -characterAtIndex]): Changed to work
+	with encodings
+	([NSGCString -_baseLength]): private method for
+	composite character sequences.
+	([NSGCString -initWithString:]): CString implementation
+	moved here from NSString.m
+
+        * src/NSString.m : Changed NSString_concrete_class to NSGString
+ 	and NSMutableString_concrete_class to NSGMutableCString
+	([NSString +stringWithCharacters]): Method implemented.
+	([NSString -initWithCharacters:length:]): Method implemented.
+	([NSString -stringByAppendingString]): changed for Unicode.
+	([NSString -rangeOfString]): split method into 8 private _search*
+ 	methods and implemented full Unicode
+	([NSString -compare:options:range:]): changed for Unicode.
+	([NSString -isEqualToString]): changed for Unicode
+	([NSString -description]): changed.
+	([NSString -commonPrefixWithString]): changed for Unicode
+	([NSString -capitalizedString]): changed for Unicode
+	([NSString -lowercaseString]): changed for Unicode
+	([NSString -uppercaseString]): changed for Unicode
+	([NSString -getCString]): changed for Unicode
+	([NSString -defaultCStringEncoding]): method implemented
+	([NSString -_baseLength]): private method for composite
+	sequences.
+	([NSString -stringWithFormat:]): null terminate buffer.
+
+ 	*src/unicode : New directory - temporary holds data for unicode
+ 	functions.
+        *src/unicode/caseconv.h : New file
+        *src/unicode/cop.h : New file
+        *src/unicode/cyrillic.h : New file
+        *src/unicode/decomp.h : New file
+	*src/unicode/nextstep.h : New file
 
 Fri Feb 14 08:51:39 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
 

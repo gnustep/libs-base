@@ -55,6 +55,7 @@ typedef enum _NSStringEncoding
   NSUTFStringEncoding,
   NSISOLatin1StringEncoding,
   NSSymbolStringEncoding,
+  NSCyrillicStringEncoding,
   NSNonLossyASCIIStringEncoding
 } NSStringEncoding;
 
@@ -194,6 +195,9 @@ typedef enum _NSStringEncoding
 - (NSString*) stringByResolvingSymlinksInPath;
 - (NSString*) stringByStandardizingPath;
 
+// for methods working with decomposed strings
+- (int) _baseLength;
+
 #ifndef STRICT_OPENSTEP
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...;
 + (NSString*) stringWithFormat: (NSString*)format
@@ -254,6 +258,7 @@ compiler warning.
 @end
 
 /* Because the compiler thinks that @".." strings are NXConstantString's. */
+#include <Foundation/NSGString.h>
 #include <Foundation/NSGCString.h>
 @interface NXConstantString : NSGCString
 @end

@@ -172,6 +172,7 @@ TcpPort.m \
 TextCStream.m \
 Time.m \
 UdpPort.m \
+Unicode.m \
 behavior.m \
 lex.pl.m \
 lex.sf.m \
@@ -295,6 +296,7 @@ include/TcpPort.h \
 include/TextCStream.h \
 include/Time.h \
 include/UdpPort.h \
+include/Unicode.h \
 include/ValueHolding.h \
 include/behavior.h \
 include/fake-main.h \
@@ -378,6 +380,8 @@ NSGCString.m \
 NSGData.m \
 NSGDictionary.m \
 NSGSet.m \
+NSGSequence.m \
+NSGString.m \
 NSHashTable.m \
 NSHost.m \
 NSInvocation.m \
@@ -455,6 +459,8 @@ include/NSGCString.h \
 include/NSGData.h \
 include/NSGDictionary.h \
 include/NSGSet.h \
+include/NSGSequence.h \
+include/NSGString.h \
 include/NSHashTable.h \
 include/NSHost.h \
 include/NSInvocation.h \

@@ -31,6 +31,9 @@
 #include <gnustep/base/behavior.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
+#include <gnustep/base//Unicode.h>
+
+
 @implementation NSGCString
 
 /* This is the designated initializer for this class. */
@@ -111,12 +114,18 @@
   return _count;
 }
 
+- (unsigned int) length
+{
+  return _count;
+}
+
 - (unichar) characterAtIndex: (unsigned int)index
 {
   /* xxx This should raise an NSException. */
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  return (unichar) _contents_chars[index];
+  return chartouni(_contents_chars[index]);
 }
+
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
@@ -128,12 +137,23 @@
 		       length: aRange.length];
 }
 
+
 // FOR IndexedCollection SUPPORT;
 
 - objectAtIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
   return [NSNumber numberWithChar: _contents_chars[index]];
+}
+
+- (int) _baseLength
+{
+  return _count;
+} 
+
+- (id) initWithString: (NSString*)string
+{
+  return [self initWithCString:[string cStringNoCopy]];
 }
 
 @end

@@ -3,7 +3,11 @@
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: January 1995
-   
+
+   Unicode implementation by Stevo Crvenkovski
+   <stevoc@lotus.mpt.com.mk>
+   Date: February 1997
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
@@ -15,19 +19,22 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-   */ 
+*/ 
 
 /* Caveats:
 
-   Only supports C Strings.  Some implementations will need to be 
-   changed when we get other string backing classes.
-
+   Some implementations will need to be changed.
    Does not support all justification directives for `%@' in format strings 
    on non-GNU-libc systems.
+*/
+
+/* Initial implementation of Unicode. Version 0.0.0 :)
+   Locales and encoding methods not yet supported.
+   Limited choice of default encodings.
 */
 
 #include <gnustep/base/preface.h>
@@ -49,6 +56,20 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+#include <gnustep/base/MallocAddress.h>
+#include <gnustep/base/behavior.h>
+
+#include <gnustep/base/NSGSequence.h>
+#include <gnustep/base/Unicode.h>
+
+
+// Choose default encoding
+// xxx Should be install time option, not compile time
+#define DEFAULT_ENCODING NSNEXTSTEPStringEncoding
+// #define DEFAULT_ENCODING NSASCIIStringEncoding
+// #define DEFAULT_ENCODING NSISOLatin1StringEncoding
+// #define DEFAULT_ENCODING NSCyrillicStringEncoding
+
 /* xxx Temporarily set HAVE_REGISTER_PRINTF_FUNCTION function to 0
    because I can't seem to figure out which versions of libc pass a
    `va_list' to the output handler, and which pass a `void**' to the
@@ -60,7 +81,7 @@
 
 @implementation NSString
 
-/* For unichar strings.  (Not implemented---using cStrings) */
+/* For unichar strings. */
 static Class NSString_concrete_class;
 static Class NSMutableString_concrete_class;
 
@@ -165,9 +186,9 @@ handle_printf_atsign (FILE *stream,
 {
   if (self == [NSString class])
     {
-      NSString_concrete_class = [NSGCString class];
+      NSString_concrete_class = [NSGString class];
       NSString_c_concrete_class = [NSGCString class];
-      NSMutableString_concrete_class = [NSGMutableCString class];
+      NSMutableString_concrete_class = [NSGMutableString class];
       NSMutableString_c_concrete_class = [NSGMutableCString class];
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
@@ -204,6 +225,14 @@ handle_printf_atsign (FILE *stream,
   return [[[self alloc] init] autorelease];
 }
 
++ (NSString*) stringWithCharacters: (const unichar*)chars
+   length: (unsigned int)length
+{
+   return [[[self alloc]
+          initWithCharacters:chars length:length]
+         autorelease];
+}
+
 + (NSString*) stringWithCString: (const char*) byteString
 {
   return [[[self alloc] initWithCString:byteString]
@@ -224,11 +253,10 @@ handle_printf_atsign (FILE *stream,
 	      initWithContentsOfFile: path] autorelease];
 }
 
-+ (NSString*) stringWithCharacters: (const unichar*)chars
-   length: (unsigned int)length
++ (NSString*) stringWithCString: (const char*) byteString
 {
-  [self notImplemented:_cmd];  
-  return self;
+  return [[[self alloc] initWithCString:byteString]
+	  autorelease];
 }
 
 + (NSString*) stringWithFormat: (NSString*)format,...
@@ -251,28 +279,27 @@ handle_printf_atsign (FILE *stream,
 	  autorelease];
 }
 
+
 // Initializing Newly Allocated Strings
 
-- (id) init
+/* This is the designated initializer for Unicode Strings. */
+- (id) initWithCharactersNoCopy: (unichar*)chars
+   length: (unsigned int)length
+   freeWhenDone: (BOOL)flag
 {
-  return [self initWithCString:""];
+  [self subclassResponsibility:_cmd];
+  return self;
 }
 
-- (id) initWithCString: (const char*)byteString
-{
-  return [self initWithCString:byteString 
-	       length:(byteString ? strlen(byteString) : 0)];
-}
-
-- (id) initWithCString: (const char*)byteString
+- (id) initWithCharacters: (const unichar*)chars
    length: (unsigned int)length
 {
-  char *s;
-  OBJC_MALLOC(s, char, length+1);
-  if (byteString)
-    memcpy(s, byteString, length);
-  s[length] = '\0';
-  return [self initWithCStringNoCopy:s length:length freeWhenDone:YES];
+  unichar *s;
+  OBJC_MALLOC(s, unichar, length+1);
+  if (chars)
+    memcpy(s, chars,2*length);
+  s[length] = (unichar)0;
+  return [self initWithCharactersNoCopy:s length:length freeWhenDone:YES];
 }
 
 /* This is the designated initializer for CStrings. */
@@ -284,71 +311,29 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-- (id) initWithCharacters: (const unichar*)chars
-   length: (unsigned int)length
+- (id) initWithCString: (const char*)byteString  length: (unsigned int)length
 {
-  [self notImplemented:_cmd];
-  return self;
+  char *s;
+  OBJC_MALLOC(s, char, length+1);
+  if (byteString)
+    memcpy(s, byteString, length);
+  s[length] = '\0';
+  return [self initWithCStringNoCopy:s length:length freeWhenDone:YES];
 }
 
-/* This is the designated initializer for unichar Strings. */
-- (id) initWithCharactersNoCopy: (unichar*)chars
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag
+- (id) initWithCString: (const char*)byteString
 {
-  [self subclassResponsibility:_cmd];
-  return self;
+  return [self initWithCString:byteString 
+	       length:(byteString ? strlen(byteString) : 0)];
 }
 
-- (id) initWithContentsOfFile: (NSString*)path
-  {
-  /* xxx Maybe this should use StdioStream? */
-#ifdef __WIN32__
-  NSMutableString *s = [NSMutableString stringWithCString:""];
-  DWORD dwread;
-  char bytes[1024];
-  BOOL res, done = NO;
-  HANDLE fd = CreateFile([path cString], GENERIC_READ, FILE_SHARE_READ,
-			 NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
-
-  while (!done)
-    {
-      res = ReadFile(fd, bytes, 1023, &dwread, NULL);
-      bytes[dwread] = '\0';
-      if ((res) && (dwread == 0))
-	done = YES;
-      else
-	[s appendString: [NSString stringWithCString: bytes]];
-    }
-  CloseHandle(fd);
-  [self initWithString: s];
-  [s release];
-  return self;
-#else
-  int fd = open([path cString], O_RDONLY);
-  struct stat fstat_buf;
-  char* bytes = NULL;
-
-  if((fd == -1) || (fstat(fd, &fstat_buf) == -1))
-    return nil;
-
-  OBJC_MALLOC(bytes, char, fstat_buf.st_size + 1);
-  if (read(fd, bytes, fstat_buf.st_size) != fstat_buf.st_size) {
-    OBJC_FREE(bytes);
-    return nil;
-  }
-  close(fd);
-  bytes[fstat_buf.st_size] = '\0';
-  return [self initWithCStringNoCopy:bytes length:fstat_buf.st_size
-	       freeWhenDone:YES];
-#endif
-}
-
-- (id) initWithData: (NSData*)data
-   encoding: (NSStringEncoding)encoding
+- (id) initWithString: (NSString*)string
 {
-  [self notImplemented:_cmd];
-  return self;
+  unichar *s;
+  OBJC_MALLOC(s, unichar, [string length]+1);
+  [string getCharacters:s];
+  s[[string length]] = (unichar)0;
+  return [self initWithCharactersNoCopy:s length:[string length] freeWhenDone:YES];
 }
 
 - (id) initWithFormat: (NSString*)format,...
@@ -439,30 +424,77 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-/* xxx Change this when we have non-CString classes */
-- (id) initWithString: (NSString*)string
+- (id) initWithData: (NSData*)data
+   encoding: (NSStringEncoding)encoding
 {
-  return [self initWithCString:[string cStringNoCopy]];
+  [self notImplemented:_cmd];
+  return self;
 }
 
+- (id) initWithContentsOfFile: (NSString*)path
+  {
+  /* xxx Maybe this should use StdioStream? */
+#ifdef __WIN32__
+  NSMutableString *s = [NSMutableString stringWithCString:""];
+  DWORD dwread;
+  char bytes[1024];
+  BOOL res, done = NO;
+  HANDLE fd = CreateFile([path cString], GENERIC_READ, FILE_SHARE_READ,
+			 NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
+
+  while (!done)
+    {
+      res = ReadFile(fd, bytes, 1023, &dwread, NULL);
+      bytes[dwread] = '\0';
+      if ((res) && (dwread == 0))
+	done = YES;
+      else
+	[s appendString: [NSString stringWithCString: bytes]];
+    }
+  CloseHandle(fd);
+  [self initWithString: s];
+  [s release];
+  return self;
+#else
+  int fd = open([path cString], O_RDONLY);
+  struct stat fstat_buf;
+  char* bytes = NULL;
+
+  if((fd == -1) || (fstat(fd, &fstat_buf) == -1))
+    return nil;
+
+  OBJC_MALLOC(bytes, char, fstat_buf.st_size + 1);
+  if (read(fd, bytes, fstat_buf.st_size) != fstat_buf.st_size) {
+    OBJC_FREE(bytes);
+    return nil;
+  }
+  close(fd);
+  bytes[fstat_buf.st_size] = '\0';
+  return [self initWithCStringNoCopy:bytes length:fstat_buf.st_size
+	       freeWhenDone:YES];
+#endif
+}
+
+// xxx check this
+- (id) init
+{
+  return [self initWithCString:""];
+}
 
 // Getting a String's Length
 
-/* xxx Change this when we have non-CString classes */
 - (unsigned int) length
 {
-  return [self cStringLength];
+  [self subclassResponsibility:_cmd];
+  return 0;
 }
-
 
 // Accessing Characters
 
-/* xxx Change this when we have non-CString classes */
 - (unichar) characterAtIndex: (unsigned int)index
 {
-  /* xxx raise NSException instead of assert. */
-  assert(index < [self cStringLength]);
-  return (unichar) [self cStringNoCopy][index];
+  [self subclassResponsibility:_cmd];
+  return (unichar)0;
 }
 
 /* Inefficient.  Should be overridden */
@@ -481,8 +513,8 @@ handle_printf_atsign (FILE *stream,
     {
       buffer[i] = [self characterAtIndex: aRange.location+i];
     }
+  buffer[aRange.length] = (unichar)0;
 }
-
 
 // Combining Strings
 
@@ -497,14 +529,15 @@ handle_printf_atsign (FILE *stream,
   return ret;
 }
 
-/* xxx Change this when we have non-CString classes */
 - (NSString*) stringByAppendingString: (NSString*)aString
 {
-  unsigned len = [self cStringLength];
-  char *s = alloca(len + [aString cStringLength] + 1);
-  s = strcpy(s, [self cStringNoCopy]);
-  strcpy(s + len, [aString cStringNoCopy]);
-  return [NSString stringWithCString:s];
+  unsigned len = [self length];
+  unichar *s;
+  OBJC_MALLOC(s, unichar, len + [aString length]+1);
+  [self getCharacters:s];
+  [aString getCharacters:s+len];
+  s[len + [aString length]]=(unichar) 0;
+    return [[self class] stringWithCharacters:s length: len + [aString length]];
 }
 
 
@@ -544,26 +577,14 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) substringFromRange: (NSRange)aRange
 {
-  char buffer[aRange.length];
-  int count = [self length];
-
-  if (aRange.location > count)
-    [NSException raise: NSRangeException format: @"Invalid location."];
-  if (aRange.length > (count - aRange.location))
-    [NSException raise: NSRangeException format: @"Invalid location+length."];
-  /* This will only DTRT for CString's... but that's all we have right now. */
-  [self getCString: buffer 
-	maxLength: aRange.length
-	range: aRange
-	remainingRange: NULL];
-  return [[self class] stringWithCString: buffer length: aRange.length];
+  [self subclassResponsibility:_cmd];
+  return self;
 }
 
 - (NSString*) substringToIndex: (unsigned int)index
 {
   return [self substringFromRange:((NSRange){0,index})];;
 }
-
 
 // Finding Ranges of Characters and Substrings
 
@@ -584,8 +605,7 @@ handle_printf_atsign (FILE *stream,
 		range:all];
 }
 
-/* FIXME:  how do you do a case insensitive search?  what's an anchored
-   search? what's a literal search? */
+/* xxx FIXME */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
     options: (unsigned int)mask
     range: (NSRange)aRange
@@ -635,49 +655,24 @@ handle_printf_atsign (FILE *stream,
 		range:all];
 }
 
-- (NSRange) rangeOfString:(NSString *) aString
+- (NSRange) _searchForwardCaseInsensitiveLiteral:(NSString *) aString
    options:(unsigned int) mask
    range:(NSRange) aRange
 {
-  int stepDirection;
-  unsigned int myIndex, myLength, myEndIndex;
+  unsigned int myIndex, myEndIndex;
   unsigned int strLength;
   unichar strFirstCharacter;
 
-  /* Check that the search range is reasonable */
-  myLength = [self length];
-  if (aRange.location > myLength)
-    [NSException raise: NSRangeException format:@"Invalid location."];
-  if (aRange.length > (myLength - aRange.location))
-    [NSException raise: NSRangeException format:@"Invalid location+length."];
-
-  /* Ensure the string can be found */
   strLength = [aString length];
-  if (strLength > aRange.length)
-    return (NSRange){0, 0};
 
-  /* Decide where to start and end the search */
-  if (mask & NSBackwardsSearch)
-    {
-      stepDirection = -1;
-      myIndex = aRange.location + aRange.length - strLength;
-      myEndIndex = aRange.location;
-    }
-  else
-    {
-      stepDirection = 1;
-      myIndex = aRange.location;
-      myEndIndex = aRange.location + aRange.length - strLength;
-    }
-  /* FIXME: I am guessing that this is what NSAnchoredSearch does. */
+  myIndex = aRange.location;
+  myEndIndex = aRange.location + aRange.length - strLength;
+
   if (mask & NSAnchoredSearch)
     myEndIndex = myIndex;
 
-  /* Start searching.  For efficiency there are separate loops for
-     case-sensitive and case-insensitive searches. */
   strFirstCharacter = [aString characterAtIndex:0];
-  if (mask & NSCaseInsensitiveSearch)
-    {
+
       for (;;)
       {
         unsigned int i = 1;
@@ -686,14 +681,8 @@ handle_printf_atsign (FILE *stream,
 
         for (;;)
           {
-            /* FIXME: I have no idea how to make case-insensitive
-	       comparisons work over the full range of Unicode characters. */
             if ((myCharacter != strCharacter) &&
-                (!isascii (myCharacter)
-                 || !isalpha (myCharacter)
-                 || !isascii (strCharacter)
-                 || !isalpha (strCharacter)
-                 || (tolower (myCharacter) != tolower (strCharacter))))
+                ((uni_tolower (myCharacter) != uni_tolower (strCharacter))))
               break;
             if (i == strLength)
               return (NSRange){myIndex, strLength};
@@ -703,11 +692,72 @@ handle_printf_atsign (FILE *stream,
           }
         if (myIndex == myEndIndex)
           break;
-        myIndex += stepDirection;
+        myIndex ++;
       }
-    }
-  else
-    {
+  return (NSRange){0, 0};
+}
+
+- (NSRange) _searchBackwardCaseInsensitiveLiteral:(NSString *) aString
+   options:(unsigned int) mask
+   range:(NSRange) aRange
+{
+  unsigned int myIndex, myEndIndex;
+  unsigned int strLength;
+  unichar strFirstCharacter;
+
+  strLength = [aString length];
+
+  myIndex = aRange.location + aRange.length - strLength;
+  myEndIndex = aRange.location;
+
+
+  if (mask & NSAnchoredSearch)
+    myEndIndex = myIndex;
+
+  strFirstCharacter = [aString characterAtIndex:0];
+
+      for (;;)
+      {
+        unsigned int i = 1;
+        unichar myCharacter = [self characterAtIndex:myIndex];
+        unichar strCharacter = strFirstCharacter;
+
+        for (;;)
+          {
+            if ((myCharacter != strCharacter) &&
+                ((uni_tolower (myCharacter) != uni_tolower (strCharacter))))
+              break;
+            if (i == strLength)
+              return (NSRange){myIndex, strLength};
+            myCharacter = [self characterAtIndex:myIndex + i];
+            strCharacter = [aString characterAtIndex:i];
+            i++;
+          }
+        if (myIndex == myEndIndex)
+          break;
+        myIndex --;
+      }
+  return (NSRange){0, 0};
+}
+
+- (NSRange) _searchForwardLiteral:(NSString *) aString
+   options:(unsigned int) mask
+   range:(NSRange) aRange
+{
+  unsigned int myIndex, myEndIndex;
+  unsigned int strLength;
+  unichar strFirstCharacter;
+
+  strLength = [aString length];
+
+  myIndex = aRange.location;
+  myEndIndex = aRange.location + aRange.length - strLength;
+
+  if (mask & NSAnchoredSearch)
+    myEndIndex = myIndex;
+
+  strFirstCharacter = [aString characterAtIndex:0];
+
       for (;;)
       {
         unsigned int i = 1;
@@ -726,28 +776,407 @@ handle_printf_atsign (FILE *stream,
           }
         if (myIndex == myEndIndex)
           break;
-        myIndex += stepDirection;
+        myIndex ++;
       }
-    }
   return (NSRange){0, 0};
+}
+
+- (NSRange) _searchBackwardLiteral:(NSString *) aString
+   options:(unsigned int) mask
+   range:(NSRange) aRange
+{
+  unsigned int myIndex, myEndIndex;
+  unsigned int strLength;
+  unichar strFirstCharacter;
+
+  strLength = [aString length];
+
+  myIndex = aRange.location + aRange.length - strLength;
+  myEndIndex = aRange.location;
+
+
+  if (mask & NSAnchoredSearch)
+    myEndIndex = myIndex;
+
+  strFirstCharacter = [aString characterAtIndex:0];
+
+      for (;;)
+      {
+        unsigned int i = 1;
+        unichar myCharacter = [self characterAtIndex:myIndex];
+        unichar strCharacter = strFirstCharacter;
+
+        for (;;)
+          {
+            if (myCharacter != strCharacter)
+              break;
+            if (i == strLength)
+              return (NSRange){myIndex, strLength};
+            myCharacter = [self characterAtIndex:myIndex + i];
+            strCharacter = [aString characterAtIndex:i];
+            i++;
+          }
+        if (myIndex == myEndIndex)
+          break;
+        myIndex --;
+      }
+  return (NSRange){0, 0};
+}
+
+
+- (NSRange) _searchForwardCaseInsensitive:(NSString *) aString
+   options:(unsigned int) mask
+   range:(NSRange) aRange
+{
+  unsigned int myIndex, myEndIndex;
+  unsigned int strLength, strBaseLength;
+  id strFirstCharacterSeq;
+
+  strLength = [aString length];
+  strBaseLength = [aString _baseLength];
+
+  myIndex = aRange.location;
+  myEndIndex = aRange.location + aRange.length - strBaseLength;
+
+  if (mask & NSAnchoredSearch)
+    myEndIndex = myIndex;
+
+  strFirstCharacterSeq = [NSGSequence sequenceWithString: aString
+    range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
+
+      for (;;)
+      {
+        NSRange myRange;
+        NSRange mainRange;
+        NSRange strRange;
+        unsigned int myCount = 1;
+        unsigned int strCount = 1;
+        id myCharacter = [NSGSequence sequenceWithString: self
+    range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
+        id strCharacter = strFirstCharacterSeq;
+        for (;;)
+          {
+            if (![[myCharacter normalize] isEqual: [strCharacter normalize]] 
+            && ![[[myCharacter lowercase] normalize] isEqual: [[strCharacter lowercase] normalize]])
+
+              break;
+            if (strCount >= strLength)
+              return (NSRange){myIndex, myCount};
+            myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
+            myCharacter = [NSGSequence sequenceWithString: self range: myRange];
+            strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
+            strCharacter = [NSGSequence sequenceWithString: aString range: strRange];
+            myCount += myRange.length;
+            strCount += strRange.length;
+          }  /* for */
+        if (myIndex >= myEndIndex)
+          break;
+            mainRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
+          myIndex += mainRange.length;
+      } /* for */
+  return (NSRange){0, 0};
+}
+
+- (NSRange) _searchBackwardCaseInsensitive:(NSString *) aString
+   options:(unsigned int) mask
+   range:(NSRange) aRange
+{
+  unsigned int myIndex, myEndIndex;
+  unsigned int strLength, strBaseLength;
+  id strFirstCharacterSeq;
+
+  strLength = [aString length];
+  strBaseLength = [aString _baseLength];
+
+  myIndex = aRange.location + aRange.length - strBaseLength;
+  myEndIndex = aRange.location;
+
+  if (mask & NSAnchoredSearch)
+    myEndIndex = myIndex;
+
+  strFirstCharacterSeq = [NSGSequence sequenceWithString: aString
+    range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
+
+      for (;;)
+      {
+        NSRange myRange;
+        NSRange strRange;
+        unsigned int myCount = 1;
+        unsigned int strCount = 1;
+        id myCharacter = [NSGSequence sequenceWithString: self
+    range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
+        id strCharacter = strFirstCharacterSeq;
+        for (;;)
+          {
+            if (![[myCharacter normalize] isEqual: [strCharacter normalize]] 
+            && ![[[myCharacter lowercase] normalize] isEqual: [[strCharacter lowercase] normalize]])
+
+              break;
+            if (strCount >= strLength)
+              return (NSRange){myIndex, myCount};
+            myCharacter = [NSGSequence sequenceWithString: self range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount]];
+            myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
+            strCharacter = [NSGSequence sequenceWithString: aString range: [aString rangeOfComposedCharacterSequenceAtIndex: strCount]];
+            strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
+            myCount += myRange.length;
+            strCount += strRange.length;
+          }  /* for */
+        if (myIndex <= myEndIndex)
+          break;
+          myIndex--;
+          while(uni_isnonsp([self characterAtIndex: myIndex])&&(myIndex>0))
+            myIndex--;
+      } /* for */
+  return (NSRange){0, 0};
+}
+
+
+- (NSRange) _searchForward:(NSString *) aString
+   options:(unsigned int) mask
+   range:(NSRange) aRange
+{
+  unsigned int myIndex, myEndIndex;
+  unsigned int strLength, strBaseLength;
+  id strFirstCharacterSeq;
+
+  strLength = [aString length];
+  strBaseLength = [aString _baseLength];
+
+  myIndex = aRange.location;
+  myEndIndex = aRange.location + aRange.length - strBaseLength;
+
+  if (mask & NSAnchoredSearch)
+    myEndIndex = myIndex;
+
+  strFirstCharacterSeq = [NSGSequence sequenceWithString: aString
+    range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
+
+      for (;;)
+      {
+        NSRange myRange;
+        NSRange strRange;
+        NSRange mainRange;
+        unsigned int myCount = 1;
+        unsigned int strCount = 1;
+        id myCharacter = [NSGSequence sequenceWithString: self
+    range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
+        id strCharacter = strFirstCharacterSeq;
+        for (;;)
+          {
+            if (![[myCharacter normalize] isEqual: [strCharacter normalize]])
+              break;
+            if (strCount >= strLength)
+              return (NSRange){myIndex, myCount};
+            myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
+            myCharacter = [NSGSequence sequenceWithString: self range: myRange];
+            strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
+            strCharacter = [NSGSequence sequenceWithString: aString range: strRange];
+            myCount += myRange.length;
+            strCount += strRange.length;
+          }  /* for */
+        if (myIndex >= myEndIndex)
+          break;
+            mainRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
+          myIndex += mainRange.length;
+      } /* for */
+ return (NSRange){0, 0};
+}
+
+
+- (NSRange) _searchBackward:(NSString *) aString
+   options:(unsigned int) mask
+   range:(NSRange) aRange
+{
+  unsigned int myIndex, myEndIndex;
+  unsigned int strLength, strBaseLength;
+  id strFirstCharacterSeq;
+
+  strLength = [aString length];
+  strBaseLength = [aString _baseLength];
+
+  myIndex = aRange.location + aRange.length - strBaseLength;
+  myEndIndex = aRange.location;
+
+  if (mask & NSAnchoredSearch)
+    myEndIndex = myIndex;
+
+  strFirstCharacterSeq = [NSGSequence sequenceWithString: aString
+    range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
+
+      for (;;)
+      {
+        NSRange myRange;
+        NSRange strRange;
+        unsigned int myCount = 1;
+        unsigned int strCount = 1;
+        id myCharacter = [NSGSequence sequenceWithString: self
+    range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
+        id strCharacter = strFirstCharacterSeq;
+        for (;;)
+          {
+            if (![[myCharacter normalize] isEqual: [strCharacter normalize]])
+           
+              break;
+            if (strCount >= strLength)
+              return (NSRange){myIndex, myCount};
+            myCharacter = [NSGSequence sequenceWithString: self range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount]];
+            myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
+            strCharacter = [NSGSequence sequenceWithString: aString range: [aString rangeOfComposedCharacterSequenceAtIndex: strCount]];
+            strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
+            myCount += myRange.length;
+            strCount += strRange.length;
+          }  /* for */
+        if (myIndex <= myEndIndex)
+          break;
+          myIndex--;
+          while(uni_isnonsp([self characterAtIndex: myIndex])&&(myIndex>0))
+            myIndex--;
+      } /* for */
+ return (NSRange){0, 0};
+}
+
+- (NSRange) rangeOfString:(NSString *) aString
+   options:(unsigned int) mask
+   range:(NSRange) aRange
+{
+
+ #define FCLS  3
+ #define BCLS  7
+ #define FLS  2
+ #define BLS 6
+ #define FCS  1
+ #define BCS  5
+ #define FS  0
+ #define BS  4
+ #define FCLAS  11
+ #define BCLAS  15
+ #define FLAS  10
+ #define BLAS 14
+ #define FCAS  9
+ #define BCAS  13
+ #define FAS  8
+ #define BAS  12
+
+  unsigned int myLength, strLength;
+  
+  /* Check that the search range is reasonable */
+  myLength = [self length];
+  if (aRange.location > myLength)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (myLength - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+
+
+  /* Ensure the string can be found */
+  strLength = [aString length];
+  if (strLength > aRange.length)
+    return (NSRange){0, 0};
+
+ switch (mask)
+ {
+  case FCLS :
+  case FCLAS :
+     return [self _searchForwardCaseInsensitiveLiteral: aString
+               options: mask
+               range: aRange];
+           break;
+
+  case BCLS :
+  case BCLAS :
+     return [self _searchBackwardCaseInsensitiveLiteral: aString
+               options: mask
+               range: aRange];
+           break;
+
+  case FLS :
+  case FLAS :
+    return [self _searchForwardLiteral: aString
+               options: mask 
+               range: aRange];
+           break;
+
+  case BLS :
+  case BLAS :
+    return [self _searchBackwardLiteral: aString
+               options: mask
+               range: aRange];
+           break;
+
+  case FCS :
+  case FCAS :
+    return [self _searchForwardCaseInsensitive: aString
+               options: mask
+               range: aRange];
+               break;
+
+  case BCS :
+  case BCAS :
+    return [self _searchBackwardCaseInsensitive: aString
+               options: mask
+               range: aRange];
+               break;
+
+  case BS :
+  case BAS :
+    return [self _searchBackward: aString
+               options: mask
+               range: aRange];
+               break;
+
+  case FS :
+  case FAS :
+  default :
+    return [self _searchForward: aString
+           options: mask
+           range: aRange];
+           break;
+ }
+ return (NSRange){0, 0};
 }
 
 // Determining Composed Character Sequences
 
-- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex
+ - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex
 {
-  [self notImplemented:_cmd];
-  return ((NSRange){0,0});
+  unsigned int start, end;
+
+  start=anIndex;
+  while(uni_isnonsp([self characterAtIndex: start]))
+    start++;
+  end=start+1;
+  if(end < [self length])
+    while(uni_isnonsp([self characterAtIndex: end]))
+      end++;
+  return NSMakeRange(start, end-start);
 }
 
+// Converting String Contents into a Property List
+
+//  xxx C strings only ???
+- (id)propertyList
+{
+  id obj;
+  void *bufstate;
+  bufstate = (void *)pl_scan_string([self cString]);
+  obj = (id)plparse();
+  pl_delete_buffer(bufstate);
+  return obj;
+}
+
+//  xxx C strings only ???
+- (NSDictionary*) propertyListFromStringsFileFormat
+{
+   id dict = [[[NSMutableDictionary alloc] init] autorelease];
+   void *bufstate;
+
+   bufstate = (void *)sf_scan_string([self cString]);
+   sfSetDict(dict);
+   sfparse(dict);
+   sf_delete_buffer(bufstate);
+   return dict;
+}
 
 // Identifying and Comparing Strings
-
-- (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString
-{
-  return [self compare:aString options:NSCaseInsensitiveSearch 
-	       range:((NSRange){0, [self length]})];
-}
 
 - (NSComparisonResult) compare: (NSString*)aString
 {
@@ -761,36 +1190,31 @@ handle_printf_atsign (FILE *stream,
 	       range:((NSRange){0, MAX([self length], [aString length])})];
 }
 
+// xxx Should implement full POSIX.2 collate
 - (NSComparisonResult) compare: (NSString*)aString
    options: (unsigned int)mask
    range: (NSRange)aRange
 {
-  /* xxx ignores NSAnchoredSearch in mask.  Fix this. */
-  /* xxx only handles C-string encoding */
-
+if (mask & NSLiteralSearch)
+{
   int i, start, end, increment;
-  const char *s1 = [self cStringNoCopy];
-  const char *s2 = [aString cStringNoCopy];
+  unichar *s1;
+  unichar *s2;
+  OBJC_MALLOC(s1, unichar,[self length] +1);
+  OBJC_MALLOC(s2, unichar,[aString length] +1);
+  [self getCharacters:s1];
+  [aString getCharacters:s2];
 
-  if (mask & NSBackwardsSearch) 
-    {
-      start = aRange.location + aRange.length;
-      end = aRange.location;
-      increment = -1;
-    }
-  else
-    {
       start = aRange.location;
       end = aRange.location + aRange.length;
       increment = 1;
-    }
 
   if (mask & NSCaseInsensitiveSearch)
     {
       for (i = start; i < end; i += increment)
 	{
-	  int c1 = tolower(s1[i]);
-	  int c2 = tolower(s2[i]);
+	  int c1 = uni_tolower(s1[i]);
+	  int c2 = uni_tolower(s2[i]);
 	  if (c1 < c2) return NSOrderedAscending;
 	  if (c1 > c2) return NSOrderedDescending;
 	}
@@ -804,6 +1228,38 @@ handle_printf_atsign (FILE *stream,
 	}
     }
   return NSOrderedSame;
+}  /* if NSLiteralSearch */
+else
+{
+  int start, end, myCount, strCount;
+  NSRange myRange, strRange;
+  id mySeq, strSeq;
+  NSComparisonResult result;
+
+  start = aRange.location;
+  end = aRange.location + aRange.length;
+  myCount = start;
+  strCount = start;
+  while(myCount < end)
+  {
+    if(strCount>=[aString length])
+      return NSOrderedAscending;
+    myRange = [self rangeOfComposedCharacterSequenceAtIndex:  myCount];
+    myCount += myRange.length;
+    strRange = [aString rangeOfComposedCharacterSequenceAtIndex:  strCount];
+    strCount += strRange.length;
+    mySeq = [NSGSequence sequenceWithString: self range: myRange];
+    strSeq = [NSGSequence sequenceWithString: aString range: strRange];
+    if (mask & NSCaseInsensitiveSearch)
+      result = [[mySeq lowercase] compare: [strSeq lowercase]];
+    else
+      result = [mySeq compare: strSeq];
+    if(result != NSOrderedSame)
+      return result;
+    } /* while */
+  return NSOrderedSame;
+ }  /* else */
+   return NSOrderedSame;
 }
 
 - (BOOL) hasPrefix: (NSString*)aString
@@ -820,6 +1276,20 @@ handle_printf_atsign (FILE *stream,
   return (range.location == ([self length] - [aString length])) ? YES : NO;
 }
 
+- (BOOL) isEqual: (id)anObject
+{
+  if ([anObject isKindOf:[NSString class]])
+    return [self isEqualToString:anObject];
+  return NO;
+}
+
+- (BOOL) isEqualToString: (NSString*)aString
+{
+  return [self compare:aString]==NSOrderedSame;
+}
+
+//  xxx C string implementation
+//  xxx Should work on normalized strings
 - (unsigned int) hash
 {
   unsigned ret = 0;
@@ -835,17 +1305,81 @@ handle_printf_atsign (FILE *stream,
   return ret;
 }
 
-- (BOOL) isEqual: (id)anObject
+// Getting a Shared Prefix
+
+// xxx Unicode level 1 only
+- (NSString*) commonPrefixWithString: (NSString*)aString
+   options: (unsigned int)mask
 {
-  if ([anObject isKindOf:[NSString class]])
-    return [self isEqualToString:anObject];
-  return NO;
+  int prefix_len = 0;
+  unichar *s1;
+  unichar *s2;
+  unichar *u;
+  OBJC_MALLOC(s1, unichar,[self length] +1);
+  OBJC_MALLOC(s2, unichar,[aString length] +1);
+  u=s1;
+  [self getCharacters:s1];
+  [aString getCharacters:s2];
+  while (*s1 && *s2 
+	 && ((*s1 == *s2)
+	     || ((mask & NSCaseInsensitiveSearch) 
+		 && (uni_tolower (*s1) == uni_tolower (*s2)))))
+	     
+    {
+      s1++;
+      s2++;
+      prefix_len++;
+    }
+  return [NSString stringWithCharacters: u length: prefix_len];
 }
 
-- (BOOL) isEqualToString: (NSString*)aString
+// Changing Case
+
+// xxx There is more than this in word capitalization in Unicode,
+// but this will work in most cases
+// xxx fix me - consider tab, newline and friends
+- (NSString*) capitalizedString
 {
-  return ! strcmp([self cStringNoCopy], [aString cStringNoCopy]);
+  unichar *s;
+  int count=0;
+  int len=[self length];
+  OBJC_MALLOC(s, unichar,len +1);
+  s[0]=uni_toupper([self characterAtIndex:0]);
+  while(count<len)
+  {
+    while((!([self characterAtIndex: count++]==' '))&(count<len))
+      s[count]=uni_tolower([self characterAtIndex:count]);
+    if(count<len)
+      s[count]=uni_toupper([self characterAtIndex:count]);
+  }
+  s[len] = (unichar)0;
+  return [[self class] stringWithCharacters:s length:len];
 }
+
+- (NSString*) lowercaseString
+{
+  unichar *s;
+  int count;
+  int len=[self length];
+  OBJC_MALLOC(s, unichar,len +1);
+  for(count=0;count<len;count++)
+    s[count]=uni_tolower([self characterAtIndex:count]);
+  s[len] = (unichar)0;
+  return [[self class] stringWithCharacters:s length:len];
+}
+
+- (NSString*) uppercaseString;
+{
+  unichar *s;
+  int count;
+  int len=[self length];
+  OBJC_MALLOC(s, unichar,len +1);
+  for(count=0;count<len;count++)
+    s[count]=uni_toupper([self characterAtIndex:count]);
+  s[len] = (unichar)0;
+  return [[self class] stringWithCharacters:s length:len];
+}
+  
 
 
 // Storing the String
@@ -936,88 +1470,6 @@ handle_printf_atsign (FILE *stream,
 }
 
 
-// Getting a Shared Prefix
-
-- (NSString*) commonPrefixWithString: (NSString*)aString
-   options: (unsigned int)mask
-{
-  /* xxx only works with CStrings */
-  int prefix_len = 0;
-  const char *s1 = [self cStringNoCopy];
-  const char *s2 = [aString cStringNoCopy];
-
-  while (*s1 && *s2 
-	 && ((*s1 == *s2)
-	     || ((mask & NSCaseInsensitiveSearch) 
-		 && (tolower (*s1) == tolower (*s2)))))
-	     
-    {
-      s1++;
-      s2++;
-    }
-  return [NSString stringWithCString: s1 length: prefix_len];
-}
-
-
-// Changing Case
-
-- (NSString*) capitalizedString
-{
-  /* xxx only works with CStrings */
-  char *s;
-  BOOL just_saw_space = YES;
-
-  for (s = strdup ([self cStringNoCopy]); *s; s++)
-    {
-      if (just_saw_space && islower(*s))
-	{
-	  *s = toupper (*s);
-	  just_saw_space = NO;
-	}
-      else if (isspace (*s))
-	just_saw_space = YES;
-    }
-  
-  return [[[NSString alloc] initWithCStringNoCopy: s 
-			    length: strlen (s) 
-			    freeWhenDone: YES]
-	   autorelease];
-}
-
-- (NSString*) lowercaseString
-{
-  /* xxx only works with CStrings */
-  char *s;
-
-  for (s = strdup ([self cStringNoCopy]); *s; s++)
-    {
-      if (isupper(*s))
-	*s = tolower (*s);
-    }
-  
-  return [[[NSString alloc] initWithCStringNoCopy: s 
-			    length: strlen (s) 
-			    freeWhenDone: YES]
-	   autorelease];
-}
-
-- (NSString*) uppercaseString
-{
-  /* xxx only works with CStrings */
-  char *s;
-
-  for (s = strdup ([self cStringNoCopy]); *s; s++)
-    {
-      if (islower(*s))
-	*s = toupper (*s);
-    }
-  
-  return [[[NSString alloc] initWithCStringNoCopy: s 
-			    length: strlen (s) 
-			    freeWhenDone: YES]
-	   autorelease];
-}
-
 
 // Getting C Strings
 
@@ -1048,12 +1500,13 @@ handle_printf_atsign (FILE *stream,
 	remainingRange:NULL];
 }
 
+// xxx FIXME adjust range for composite sequence
 - (void) getCString: (char*)buffer
    maxLength: (unsigned int)maxLength
    range: (NSRange)aRange
    remainingRange: (NSRange*)leftoverRange
 {
-  int len;
+  int len, count;
 
   /* xxx check to make sure aRange is within self; raise NSStringBoundsError */
   assert(aRange.location + aRange.length <= [self cStringLength]);
@@ -1075,11 +1528,19 @@ handle_printf_atsign (FILE *stream,
 	  leftoverRange->length = aRange.length - maxLength;
 	}
     }
-  memcpy(buffer, [self cStringNoCopy] + aRange.location, len);
+  count=0;
+  while(count<len)
+  {
+    buffer[count]=unitochar([self characterAtIndex: aRange.location + count]);
+    count++;
+   }
+  buffer[len] = '\0';
 }
 
 
 // Getting Numeric Values
+
+// xxx Sould we use NSScanner here ?
 
 - (double) doubleValue
 {
@@ -1096,13 +1557,11 @@ handle_printf_atsign (FILE *stream,
   return atoi([self cStringNoCopy]);
 }
 
-
 // Working With Encodings
 
 + (NSStringEncoding) defaultCStringEncoding
 {
-  [self notImplemented:_cmd];
-  return 0;
+  return DEFAULT_ENCODING;
 }
 
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
@@ -1137,32 +1596,8 @@ handle_printf_atsign (FILE *stream,
 }
 
 
-// Converting String Contents into a Property List
-
-- (id)propertyList
-{
-  id obj;
-  void *bufstate;
-  bufstate = (void *)pl_scan_string([self cString]);
-  obj = (id)plparse();
-  pl_delete_buffer(bufstate);
-  return obj;
-}
-
-- (NSDictionary*) propertyListFromStringsFileFormat
-{
-   id dict = [[[NSMutableDictionary alloc] init] autorelease];
-   void *bufstate;
-
-   bufstate = (void *)sf_scan_string([self cString]);
-   sfSetDict(dict);
-   sfparse(dict);
-   sf_delete_buffer(bufstate);
-   return dict;
-}
-
-
 // Manipulating File System Paths
+
 
 - (unsigned int) completePathIntoString: (NSString**)outputName
    caseSensitive: (BOOL)flag
@@ -1200,7 +1635,6 @@ handle_printf_atsign (FILE *stream,
 
   return substring;
 }
-
 /* Returns a new string containing the path extension of the receiver. The
    path extension is a suffix on the last path component which starts with
    a '.' (for example .tiff is the pathExtension for /foo/bar.tiff). Returns
@@ -1379,6 +1813,47 @@ handle_printf_atsign (FILE *stream,
   return s;
 }
 
+// private method for Unicode level 3 implementation
+- (int) _baseLength
+{
+  int count=0;
+  int blen=0;
+  while(count < [self length])
+    if(!uni_isnonsp([self characterAtIndex: count++]))
+      blen++;
+  return blen;
+} 
+
+// #ifndef STRICT_OPENSTEP
++ (NSString*) localizedStringWithFormat: (NSString*) format, ...
+{
+  [self notImplemented:_cmd];
+  return self;
+}
+
+- (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString
+{
+  return [self compare:aString options:NSCaseInsensitiveSearch 
+	       range:((NSRange){0, [self length]})];
+}
+
+- (BOOL) writeToFile: (NSString*)filename
+   atomically: (BOOL)useAuxiliaryFile
+{
+  [self notImplemented:_cmd];
+  return NO;
+}
+// #endif
+
+// #ifndef NO_GNUSTEP
+- (const char *) cStringNoCopy
+{
+  [self subclassResponsibility: _cmd];
+  return NULL;
+}
+// #endif /* NO_GNUSTEP */
+
+
 /* NSCopying Protocol */
 
 - copyWithZone: (NSZone*)zone
@@ -1413,15 +1888,9 @@ handle_printf_atsign (FILE *stream,
   return [super initWithCoder:aDecoder];
 }
 
-- (const char *) cStringNoCopy
-{
-  [self subclassResponsibility: _cmd];
-  return NULL;
-}
-
 @end
 
-
+
 @implementation NSMutableString
 
 + allocWithZone: (NSZone*)z
@@ -1436,16 +1905,6 @@ handle_printf_atsign (FILE *stream,
 {
   [self subclassResponsibility:_cmd];
 }
-
-
-// Initializing Newly Allocated Strings
-
-- initWithCapacity:(unsigned)capacity
-{
-  [self subclassResponsibility:_cmd];
-  return self;
-}
-
 
 // Creating Temporary Strings
 
@@ -1488,6 +1947,13 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
+// Initializing Newly Allocated Strings
+
+- initWithCapacity:(unsigned)capacity
+{
+  [self subclassResponsibility:_cmd];
+  return self;
+}
 
 // Modify A String
 
@@ -1530,16 +1996,12 @@ handle_printf_atsign (FILE *stream,
   [self insertString:aString atIndex:range.location];
 }
 
-/* xxx Change this when we have non-CString classes */
 - (void) setString: (NSString*)aString
 {
-  const char *s = [aString cStringNoCopy];
-  [self setCString:s length:strlen(s)];
+  [self subclassResponsibility:_cmd];
 }
 
-
 @end
-
 
 @implementation NXConstantString
 
