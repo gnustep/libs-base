@@ -135,6 +135,15 @@
 # include <utime.h>
 #endif
 
+/*
+ * On systems that have the O_BINARY flag, use it for a binary copy.
+ */
+#if defined(O_BINARY)
+#define	GSBINIO	O_BINARY
+#else
+#define	GSBINIO	0
+#endif
+
 /* include usual headers */
 
 #include <Foundation/NSArray.h>
@@ -658,7 +667,7 @@ static NSFileManager* defaultManager = nil;
   int		len;
   int		written;
 
-  fd = open (cpath, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+  fd = open(cpath, GSBINIO|O_WRONLY|O_TRUNC|O_CREAT, 0644);
   if (fd < 0)
     {
       return NO;
@@ -1559,84 +1568,127 @@ static NSFileManager* defaultManager = nil;
 
 - (BOOL) _copyFile: (NSString*)source
 	    toFile: (NSString*)destination
-	   handler: handler
+	   handler: (id)handler
 {
-  NSDictionary* attributes;
-  int i, bufsize = 8096;
-  int sourceFd, destFd, fileSize, fileMode;
-  int rbytes, wbytes;
-  char buffer[bufsize];
+#if defined(__MINGW__)
+  if (CopyFile([self fileSystemRepresentationWithPath: source],
+    [self fileSystemRepresentationWithPath: destination], NO))
+    {
+      return YES;
+    }
+  if (handler != nil)
+    {
+      NSDictionary	*errorInfo
+	= [NSDictionary dictionaryWithObjectsAndKeys:
+                       source, @"Path",
+                       @"cannot copy file", @"Error",
+                       destination, @"ToPath",
+                       nil];
+      return [handler fileManager: self
+	  shouldProceedAfterError: errorInfo];
+    }
+  else
+    {
+      return NO;
+    }
+#else
+  NSDictionary	*attributes;
+  int		i;
+  int		bufsize = 8096;
+  int		sourceFd;
+  int		destFd;
+  int		fileSize;
+  int		fileMode;
+  int		rbytes;
+  int		wbytes;
+  char		buffer[bufsize];
 
   /* Assumes source is a file and exists! */
   NSAssert1 ([self fileExistsAtPath: source],
-	      @"source file '%@' does not exist!", source);
+    @"source file '%@' does not exist!", source);
 
   attributes = [self _attributesAtPath: source traverseLink: NO forCopy: YES];
   NSAssert1 (attributes, @"could not get the attributes for file '%@'",
-	      source);
+    source);
 
   fileSize = [[attributes objectForKey: NSFileSize] intValue];
   fileMode = [[attributes objectForKey: NSFilePosixPermissions] intValue];
 
   /* Open the source file. In case of error call the handler. */
-  sourceFd = open ([self fileSystemRepresentationWithPath: source], O_RDONLY);
-  if (sourceFd < 0) {
-      if (handler) {
-	  NSDictionary* errorInfo
-	      = [NSDictionary dictionaryWithObjectsAndKeys: 
+  sourceFd = open([self fileSystemRepresentationWithPath: source],
+    GSBINIO|O_RDONLY);
+  if (sourceFd < 0)
+    {
+      if (handler != nil)
+	{
+	  NSDictionary	*errorInfo
+	    = [NSDictionary dictionaryWithObjectsAndKeys: 
 		      source, @"Path",
 		      @"cannot open file for reading", @"Error",
 		      nil];
 	  return [handler fileManager: self
-			  shouldProceedAfterError: errorInfo];
-      }
+	      shouldProceedAfterError: errorInfo];
+	}
       else
+	{
 	  return NO;
-  }
+	}
+    }
 
   /* Open the destination file. In case of error call the handler. */
-  destFd = open ([self fileSystemRepresentationWithPath: destination],
-		 O_WRONLY|O_CREAT|O_TRUNC, fileMode);
-  if (destFd < 0) {
-      if (handler) {
-	  NSDictionary* errorInfo
-	      = [NSDictionary dictionaryWithObjectsAndKeys: 
+  destFd = open([self fileSystemRepresentationWithPath: destination],
+    GSBINIO|O_WRONLY|O_CREAT|O_TRUNC, fileMode);
+  if (destFd < 0)
+    {
+      if (handler != nil)
+	{
+	  NSDictionary	*errorInfo
+	    = [NSDictionary dictionaryWithObjectsAndKeys: 
 		      destination, @"ToPath",
 		      @"cannot open file for writing", @"Error",
 		      nil];
 	  close (sourceFd);
 	  return [handler fileManager: self
-			  shouldProceedAfterError: errorInfo];
-      }
+	      shouldProceedAfterError: errorInfo];
+	}
       else
+	{
 	  return NO;
-  }
+	}
+    }
 
   /* Read bufsize bytes from source file and write them into the destination
      file. In case of errors call the handler and abort the operation. */
-  for (i = 0; i < fileSize; i += rbytes) {
+  for (i = 0; i < fileSize; i += rbytes)
+    {
       rbytes = read (sourceFd, buffer, bufsize);
-      if (rbytes < 0) {
-	  if (handler) {
-	      NSDictionary* errorInfo
-		  = [NSDictionary dictionaryWithObjectsAndKeys: 
+      if (rbytes < 0)
+	{
+	  if (handler != nil)
+	    {
+	      NSDictionary	*errorInfo
+		= [NSDictionary dictionaryWithObjectsAndKeys: 
 			  source, @"Path",
 			  @"cannot read from file", @"Error",
 			  nil];
 	      close (sourceFd);
 	      close (destFd);
 	      return [handler fileManager: self
-			      shouldProceedAfterError: errorInfo];
-	  }
+		  shouldProceedAfterError: errorInfo];
+	    }
 	  else
+	    {
 	      return NO;
-      }
+	    }
+	}
 
       wbytes = write (destFd, buffer, rbytes);
-      if (wbytes != rbytes) {
-	  if (handler) {
-	      NSDictionary* errorInfo
-		  = [NSDictionary dictionaryWithObjectsAndKeys: 
+      if (wbytes != rbytes)
+	{
+	  if (handler != nil)
+	    {
+	      NSDictionary	*errorInfo
+		= [NSDictionary dictionaryWithObjectsAndKeys: 
 			  source, @"Path",
 			  destination, @"ToPath",
 			  @"cannot write to file", @"Error",
@@ -1644,16 +1696,19 @@ static NSFileManager* defaultManager = nil;
 	      close (sourceFd);
 	      close (destFd);
 	      return [handler fileManager: self
-			      shouldProceedAfterError: errorInfo];
-	  }
+		  shouldProceedAfterError: errorInfo];
+	    }
 	  else
+	    {
 	      return NO;
-      }
-  }
+	    }
+	}
+    }
   close (sourceFd);
   close (destFd);
 
   return YES;
+#endif
 }
 
 - (BOOL) _copyPath: (NSString*)source
