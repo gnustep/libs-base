@@ -1155,11 +1155,34 @@ static NSString	*pathForUser(NSString *user)
 	    }
 	  else
 	    {                            // Real parameter
-	      val = [val propertyList];
-	      [argDict setObject: val forKey: key];
+	      /* Parsing the argument as a property list is very
+		 delicate.  We *MUST NOT* crash here just because a
+		 strange parameter (such as `(load "test.scm")`) is
+		 passed, otherwise the whole library is useless in a
+		 foreign environment. */
+	      NSObject *plist_val;
+	      
+	      NS_DURING
+		{
+		  plist_val = [val propertyList];
+		}
+	      NS_HANDLER
+		{
+		  plist_val = val;
+		}
+	      NS_ENDHANDLER
+		
+	      /* Make sure we don't crash being caught adding nil to
+                 a dictionary. */
+	      if (plist_val == nil)
+		{
+		  plist_val = val;
+		}
+
+	      [argDict setObject: plist_val  forKey: key];
 	      if (old != nil)
 		{
-		  [argDict setObject: val forKey: old];
+		  [argDict setObject: plist_val  forKey: old];
 		}
 	    }
 	}
