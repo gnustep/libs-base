@@ -539,13 +539,14 @@ UTF8String_c(ivars self)
     {
       return "";
     }
-  if (intEnc == NSISOLatin1StringEncoding || intEnc == NSASCIIStringEncoding)
+  if (intEnc == NSASCIIStringEncoding)
     {
-      r = (unsigned char*)_fastMallocBuffer(self->_count+1);
+      unsigned	i = self->_count;
 
-      if (self->_count > 0)
+      r = (unsigned char*)_fastMallocBuffer(self->_count+1);
+      while (i-- > 0)
 	{
-	  memcpy(r, self->_contents.c, self->_count);
+	  r[i] = self->_contents.c[i] & 0x7f;
 	}
       r[self->_count] = '\0';
     }
