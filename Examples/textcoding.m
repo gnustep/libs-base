@@ -5,17 +5,22 @@
    */
 
 #include <objects/Coder.h>
+#include <objects/TextCStream.h>
 #include <objects/Set.h>
 #include <objects/EltNodeCollector.h>
 #include <objects/LinkedList.h>
 #include <objects/LinkedListEltNode.h>
 #include <objects/NSString.h>
+#include <Foundation/NSAutoreleasePool.h>
 
 int main()
 {
   id set, ll;
   id coder;
   id name;
+  id arp;
+  
+  arp = [[NSAutoreleasePool alloc] init];
 
   /* Create a Set of int's
      and a LinkedList of float's */
@@ -41,7 +46,9 @@ int main()
   [ll printForDebugger];
 
   /* Write them to a file */
-  coder = [Coder coderWritingToFile: @"./textcoding.txt"];
+
+  coder = [[Coder alloc] initForWritingToFile: @"./textcoding.txt"
+	    withCStreamClass: [TextCStream class]];
   [coder encodeObject:set withName:@"Test Set"];
   [coder encodeObject:ll withName:@"Test EltNodeCollector LinkedList"];
 
@@ -49,7 +56,16 @@ int main()
   [set release];
   [ll release];
 
+  /* Close the coder, (and thus flush the stream); then release it.
+     We must separate the idea of "closing" a stream and
+     "deallocating" a stream because of delays in deallocation due to
+     -autorelease. */
+  [coder closeCoder];
+  [coder release];
+
+
   /* Read them back in from the file */
+
   /* First init the stream and coder */
   coder = [Coder coderReadingFromFile: @"./textcoding.txt"];
 
@@ -68,6 +84,9 @@ int main()
   /* Relase the objects we read */
   [set release];
   [ll release];
+
+  /* Do the autorelease. */
+  [arp release];
   
   exit(0);
 }
