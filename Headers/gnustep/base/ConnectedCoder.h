@@ -26,6 +26,7 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Coder.h>
+#include <objects/Port.h>
 
 /* ConnectedCoder identifiers */
 enum {
@@ -65,6 +66,8 @@ enum {
   int identifier;
 }
 
++ newDecodingWithPacket: (Packet*)packet
+	     connection: (Connection*)c;
 + newDecodingWithConnection: (Connection*)c
    timeout: (int) timeout;
 - (void) dismiss;

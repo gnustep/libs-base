@@ -1,5 +1,5 @@
 /* Interface for GNU Objective C memory stream
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -52,6 +52,9 @@
   int prefix;
   int position;
 }
+
+- initWithCapacity: (unsigned)capacity
+	    prefix: (unsigned)prefix;
 
 - initWithSize: (unsigned)s;	/* For backwards compatibility, depricated */
 
