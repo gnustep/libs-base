@@ -167,13 +167,14 @@ typedef enum {
 
 - (void) didConnect: (NSNotification*)notification
 {
-  NSDictionary    *userInfo = [notification userInfo];
-  NSString        *e;
+  NSDictionary	*userInfo = [notification userInfo];
+  NSString	*e;
 
   e = [userInfo objectForKey: GSFileHandleNotificationError];
   if (e != nil)
     {
-      NSLog(@"NSPortNameServer failed connect to gdomap - %@", e); 
+      NSLog(@"NSPortNameServer failed connect to gdomap on %@- %@",
+	[[notification object] socketAddress], e); 
       /*
        * Remove our file handle, then either retry or fail.
        */
@@ -190,7 +191,7 @@ typedef enum {
 					 repeats: NO];
 	  [loop addTimer: timer forMode: [loop currentMode]];
 	  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 5.0]];
-	  NSLog(@"NSPortNameServer retrying connection attempt to gdomap"); 
+	  NSLog(@"NSPortNameServer retrying local connection to gdomap"); 
 	  state = GSPC_RETRY;
 	  [self open: nil];
 	}
@@ -226,7 +227,8 @@ typedef enum {
   if (d == nil || [d length] == 0)
     {
       [self fail];
-      NSLog(@"NSPortNameServer lost connection to gdomap"); 
+      NSLog(@"NSPortNameServer lost connection to gdomap on %@",
+	[[notification object] socketAddress]); 
     }
   else
     {
@@ -295,7 +297,8 @@ typedef enum {
   if (e != nil)
     {
       [self fail];
-      NSLog(@"NSPortNameServer failed write to gdomap - %@", e); 
+      NSLog(@"NSPortNameServer failed write to gdomap on %@ - %@",
+	[[notification object] socketAddress], e); 
     }
   else
     {

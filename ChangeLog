@@ -1,3 +1,8 @@
+2001-08-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortNameServer.m: Log the host we are connecting to
+	when we produce a warning for a failure of a link to gdomap.
+
 2001-08-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/gsdoc/Base.gsdoc: Documented all the uses of
