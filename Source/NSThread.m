@@ -264,7 +264,7 @@ GSCurrentThread(void)
 
 /**
  * Fast access function for thread dictionary of current thread.<br />
- * If there is no dictionary, and the thread is active, creates the dictionary.
+ * If there is no dictionary, creates the dictionary.
  */
 NSMutableDictionary*
 GSDictionaryForThread(NSThread *t)
@@ -281,7 +281,7 @@ GSDictionaryForThread(NSThread *t)
     {
       NSMutableDictionary	*dict = t->_thread_dictionary;
 
-      if (dict == nil && ((NSThread_ivars *)t)->_active == YES)
+      if (dict == nil)
 	{
 	  dict = [t threadDictionary];
 	}
@@ -514,6 +514,7 @@ gnustep_base_thread_callback(void)
     }
 }
 
+
 /**
  * Terminating a thread
  * What happens if the thread doesn't call +exit - it doesn't terminate!
@@ -666,12 +667,10 @@ gnustep_base_thread_callback(void)
       /*
        * Try again to get rid of thread dictionary.
        */
-      init_autorelease_thread_vars(&_autorelease_vars);
       DESTROY(_thread_dictionary);
       [NSAutoreleasePool _endThread: self];
       if (_thread_dictionary != nil)
 	{
-	  init_autorelease_thread_vars(&_autorelease_vars);
 	  NSLog(@"Oops - leak - thread dictionary is %@", _thread_dictionary);
 	  [NSAutoreleasePool _endThread: self];
 	}

@@ -77,6 +77,7 @@ free_pool_cache (struct autorelease_thread_vars *tv)
     {
       NSZoneFree(NSDefaultMallocZone(), tv->pool_cache);
       tv->pool_cache = 0;
+      tv->pool_cache_size = 0;
     }
 }
 
