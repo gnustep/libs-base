@@ -109,28 +109,28 @@ static Class NSMutableArray_concrete_class;
 + arrayWithObject: anObject
 {
   if (anObject == nil)
-    [NSException raise:NSInvalidArgumentException
-		 format:@"Tried to add nil"];
-  return [[[self alloc] initWithObjects:&anObject count:1]
+    [NSException raise: NSInvalidArgumentException
+		 format: @"Tried to add nil"];
+  return [[[self alloc] initWithObjects: &anObject count: 1]
 	  autorelease];
 }
 
 /* This is the designated initializer for NSArray. */
 - initWithObjects: (id*)objects count: (unsigned)count
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - (unsigned) count
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - objectAtIndex: (unsigned)index
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
@@ -178,40 +178,15 @@ static Class NSMutableArray_concrete_class;
 
 - copyWithZone: (NSZone*)zone
 {
-  /* a deep copy */
-  unsigned count = [self count];
-  id oldObjects[count];
-  id newObjects[count];
-  id newArray;
-  unsigned i;
-  BOOL needCopy = [self isKindOfClass: [NSMutableArray class]];
-
-  if (NSShouldRetainWithZone(self, zone) == NO)
-    needCopy = YES;
-  [self getObjects: oldObjects];
-  for (i = 0; i < count; i++)
-    {
-      newObjects[i] = [oldObjects[i] copyWithZone:zone];
-      if (newObjects[i] != oldObjects[i])
-	needCopy = YES;
-    }
-  if (needCopy)
-    newArray = [[[[self class] _concreteClass] allocWithZone:zone]
-	      initWithObjects:newObjects count:count];
-  else
-    newArray = [self retain];
-  for (i = 0; i < count; i++)
-    [newObjects[i] release];
-  return newArray;
+  return [self retain];
 }
 
 /* The NSMutableCopying Protocol */
 
 - mutableCopyWithZone: (NSZone*)zone
 {
-  /* a shallow copy */
-  return [[[[self class] _mutableConcreteClass] allocWithZone:zone] 
-	  initWithArray:self];
+  return [[[[self class] _mutableConcreteClass] allocWithZone: zone] 
+	  initWithArray: self];
 }
 
 @end
@@ -303,7 +278,7 @@ static Class NSMutableArray_concrete_class;
 {
   va_list ap;
   va_start(ap, firstObject);
-  self = [self initWithObjects:firstObject rest:ap];
+  self = [self initWithObjects: firstObject rest: ap];
   va_end(ap);
   return self;
 }
@@ -342,7 +317,7 @@ static Class NSMutableArray_concrete_class;
 {
   va_list ap;
   va_start(ap, firstObject);
-  self = [[self alloc] initWithObjects:firstObject rest:ap];
+  self = [[self alloc] initWithObjects: firstObject rest: ap];
   va_end(ap);
   return [self autorelease];
 }
@@ -388,22 +363,22 @@ static Class NSMutableArray_concrete_class;
     return [self count];
 }
 
-- (unsigned) indexOfObjectIdenticalTo:anObject
+- (unsigned) indexOfObjectIdenticalTo: anObject
 {
   unsigned i, c = [self count];
   for (i = 0; i < c; i++)
-    if (anObject == [self objectAtIndex:i])
+    if (anObject == [self objectAtIndex: i])
       return i;
   return NSNotFound;
 }
 
-- (unsigned) indexOfObjectIdenticalTo:anObject inRange: (NSRange)aRange
+- (unsigned) indexOfObjectIdenticalTo: anObject inRange: (NSRange)aRange
 {
   unsigned i, e = aRange.location + aRange.length, c = [self count];
   if (c < e)
     e = c;
   for (i = aRange.location; i < e; i++)
-    if (anObject == [self objectAtIndex:i])
+    if (anObject == [self objectAtIndex: i])
       return i;
   return NSNotFound;
 }
@@ -413,7 +388,7 @@ static Class NSMutableArray_concrete_class;
 {
   unsigned i, c = [self count];
   for (i = 0; i < c; i++)
-    if ([[self objectAtIndex:i] isEqual: anObject])
+    if ([[self objectAtIndex: i] isEqual: anObject])
       return i;
   return NSNotFound;
 }
@@ -435,13 +410,13 @@ static Class NSMutableArray_concrete_class;
 
 - (BOOL) containsObject: anObject
 {
-  return ([self indexOfObject:anObject] != NSNotFound);
+  return ([self indexOfObject: anObject] != NSNotFound);
 }
 
 - (BOOL) isEqual: anObject
 {
-  if ([anObject isKindOf:[NSArray class]])
-    return [self isEqualToArray:anObject];
+  if ([anObject isKindOf: [NSArray class]])
+    return [self isEqualToArray: anObject];
   return NO;
 }
 
@@ -469,7 +444,7 @@ static Class NSMutableArray_concrete_class;
 {
   unsigned i = [self count];
   while (i-- > 0)
-    [[self objectAtIndex:i] performSelector:aSelector];
+    [[self objectAtIndex: i] performSelector: aSelector];
 }
 
 - (void) makeObjectsPerform: (SEL)aSelector
@@ -477,26 +452,26 @@ static Class NSMutableArray_concrete_class;
    [self makeObjectsPerformSelector: aSelector];
 }
 
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject:argument
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
 {
   unsigned i = [self count];
   while (i-- > 0)
-    [[self objectAtIndex:i] performSelector:aSelector withObject:argument];
+    [[self objectAtIndex: i] performSelector: aSelector withObject: argument];
 }
 
-- (void) makeObjectsPerform: (SEL)aSelector withObject:argument
+- (void) makeObjectsPerform: (SEL)aSelector withObject: argument
 {
-   [self makeObjectsPerformSelector: aSelector withObject:argument];
+   [self makeObjectsPerformSelector: aSelector withObject: argument];
 }
 
 - (NSArray*) sortedArrayUsingSelector: (SEL)comparator
 {
   int compare(id elem1, id elem2, void* context)
     {
-      return (int)[elem1 performSelector:comparator withObject:elem2];
+      return (int)[elem1 performSelector: comparator withObject: elem2];
     }
 
-    return [self sortedArrayUsingFunction:compare context:NULL];
+    return [self sortedArrayUsingFunction: compare context: NULL];
 }
 
 - (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
@@ -518,7 +493,7 @@ static Class NSMutableArray_concrete_class;
   NSArray		*result;
 
   sortedArray = [[NSMutableArray alloc] initWithArray: self];
-  [sortedArray sortUsingFunction:comparator context:context];
+  [sortedArray sortUsingFunction: comparator context: context];
   result = [NSArray arrayWithArray: sortedArray];
   [sortedArray release];
   return result;
@@ -527,15 +502,15 @@ static Class NSMutableArray_concrete_class;
 - (NSString*) componentsJoinedByString: (NSString*)separator
 {
   unsigned i, c = [self count];
-  id s = [NSMutableString stringWithCapacity:2]; /* arbitrary capacity */
+  id s = [NSMutableString stringWithCapacity: 2]; /* arbitrary capacity */
   
   if (!c)
     return s;
-  [s appendString:[[self objectAtIndex:0] description]];
+  [s appendString: [[self objectAtIndex: 0] description]];
   for (i = 1; i < c; i++)
     {
-      [s appendString:separator];
-      [s appendString:[[self objectAtIndex:i] description]];
+      [s appendString: separator];
+      [s appendString: [[self objectAtIndex: i] description]];
     }
   return s;
 }
@@ -559,7 +534,7 @@ static Class NSMutableArray_concrete_class;
   unsigned i, c = [self count];
   id o;
   for (i = 0; i < c; i++)
-    if ([otherArray containsObject:(o = [self objectAtIndex:i])])
+    if ([otherArray containsObject: (o = [self objectAtIndex: i])])
       return o;
   return nil;
 }
@@ -595,13 +570,13 @@ static Class NSMutableArray_concrete_class;
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSArrayEnumerator alloc] initWithArray:self]
+  return [[[NSArrayEnumerator alloc] initWithArray: self]
 	  autorelease];
 }
 
 - (NSEnumerator*) reverseObjectEnumerator
 {
-  return [[[NSArrayEnumeratorReverse alloc] initWithArray:self]
+  return [[[NSArrayEnumeratorReverse alloc] initWithArray: self]
 	  autorelease];
 }
 
@@ -677,12 +652,12 @@ static NSString	*indentStrings[] = {
 
       (*appImp)(result, appSel, iSizeString);
  
-      if ([item respondsToSelector:
+      if ([item respondsToSelector: 
 	      @selector(descriptionWithLocale:indent:)])
 	{
 	  [item descriptionWithLocale: locale indent: level to: result];
 	}
-      else if ([item respondsToSelector:
+      else if ([item respondsToSelector: 
 	      @selector(descriptionWithLocale:)])
 	{
 	  [item descriptionWithLocale: locale to: result];
@@ -725,10 +700,30 @@ static NSString	*indentStrings[] = {
   return [super allocWithZone: z];
 }
 
+/* The NSCopying Protocol */
+
+- copyWithZone: (NSZone*)zone
+{
+  /* a deep copy */
+  unsigned	count = [self count];
+  id		objects[count];
+  NSArray	*newArray;
+  unsigned	i;
+
+  [self getObjects: objects];
+  for (i = 0; i < count; i++)
+    objects[i] = [objects[i] copyWithZone: zone];
+  newArray = [[[[self class] _concreteClass] allocWithZone: zone]
+	      initWithObjects: objects count: count];
+  while (i > 0)
+    [objects[--i] release];
+  return newArray;
+}
+
 /* This is the desgnated initializer for NSMutableArray */
 - initWithCapacity: (unsigned)numItems
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
@@ -739,7 +734,7 @@ static NSString	*indentStrings[] = {
 
 - (void) replaceObjectAtIndex: (unsigned)index withObject: anObject
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) replaceObjectsInRange: (NSRange)aRange
@@ -766,12 +761,12 @@ static NSString	*indentStrings[] = {
 
 - (void) insertObject: anObject atIndex: (unsigned)index
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) removeObjectAtIndex: (unsigned)index
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 @end
@@ -781,13 +776,13 @@ static NSString	*indentStrings[] = {
 
 + arrayWithCapacity: (unsigned)numItems
 {
-  return [[[self alloc] initWithCapacity:numItems] 
+  return [[[self alloc] initWithCapacity: numItems] 
 	  autorelease];
 }
 
-- (BOOL)writeToFile:(NSString *)path atomically:(BOOL)useAuxiliaryFile
+- (BOOL)writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  return [[self description] writeToFile:path atomically:useAuxiliaryFile];
+  return [[self description] writeToFile: path atomically: useAuxiliaryFile];
 }
 
 /* Override our superclass's designated initializer to go our's */
@@ -796,7 +791,7 @@ static NSString	*indentStrings[] = {
   unsigned i;
   self = [self initWithCapacity: count];
   for (i = 0; i < count; i++)
-    [self addObject:objects[i]];
+    [self addObject: objects[i]];
   return self;
 }
 
@@ -806,7 +801,7 @@ static NSString	*indentStrings[] = {
   if (count == 0)
     [NSException raise: NSRangeException
 		 format: @"Trying to remove from an empty array."];
-  [self removeObjectAtIndex:count-1];
+  [self removeObjectAtIndex: count-1];
 }
 
 - (void) removeObjectIdenticalTo: anObject
@@ -828,7 +823,7 @@ static NSString	*indentStrings[] = {
     [self removeObjectAtIndex: pos];
 }
 
-- (void) removeObject: anObject inRange:(NSRange)aRange
+- (void) removeObject: anObject inRange: (NSRange)aRange
 {
   unsigned c = [self count], s = aRange.location;
   unsigned i = aRange.location + aRange.length;
@@ -849,7 +844,7 @@ static NSString	*indentStrings[] = {
     [self removeObjectAtIndex: pos];
 }
 
-- (void) removeObjectIdenticalTo: anObject inRange:(NSRange)aRange
+- (void) removeObjectIdenticalTo: anObject inRange: (NSRange)aRange
 {
   unsigned c = [self count], s = aRange.location;
   unsigned i = aRange.location + aRange.length;
@@ -902,7 +897,7 @@ static NSString	*indentStrings[] = {
     [self addObject: [otherArray objectAtIndex: i]];
 }
 
-- (void) setArray:(NSArray *)otherArray
+- (void) setArray: (NSArray *)otherArray
 {
   [self removeAllObjects];
   [self addObjectsFromArray: otherArray];
@@ -959,7 +954,7 @@ static NSString	*indentStrings[] = {
 {
   unsigned i, c = [otherArray count];
   for (i = 0; i < c; i++)
-    [self removeObject:[otherArray objectAtIndex:i]];
+    [self removeObject: [otherArray objectAtIndex: i]];
 }
 
 - (void) removeObjectsInRange: (NSRange)aRange
@@ -976,10 +971,10 @@ static NSString	*indentStrings[] = {
 {
   int compare(id elem1, id elem2, void* context)
     {
-      return (int)[elem1 performSelector:comparator withObject:elem2];
+      return (int)[elem1 performSelector: comparator withObject: elem2];
     }
 
-    [self sortUsingFunction:compare context:NULL];
+    [self sortUsingFunction: compare context: NULL];
 }
 
 - (void) sortUsingFunction: (int(*)(id,id,void*))compare 
@@ -1006,12 +1001,12 @@ static NSString	*indentStrings[] = {
       d = c - stride;
       while (!found) {
 	// move to left until correct place
-	id a = [self objectAtIndex:d + stride];
-	id b = [self objectAtIndex:d];
+	id a = [self objectAtIndex: d + stride];
+	id b = [self objectAtIndex: d];
 	if ((*compare)(a, b, context) == NSOrderedAscending) {
 	  [a retain];
-	  [self replaceObjectAtIndex:d + stride withObject:b];
-	  [self replaceObjectAtIndex:d withObject:a];
+	  [self replaceObjectAtIndex: d + stride withObject: b];
+	  [self replaceObjectAtIndex: d withObject: a];
 	  [a release];
 	  if (stride > d)
 	    break;
@@ -1047,7 +1042,7 @@ static NSString	*indentStrings[] = {
 {
   if (next_index >= [array count])
     return nil;
-  return [array objectAtIndex:next_index++];
+  return [array objectAtIndex: next_index++];
 }
 
 - (void) dealloc
@@ -1076,6 +1071,6 @@ static NSString	*indentStrings[] = {
 {
   if (next_index < 0)
     return nil;
-  return [array objectAtIndex:next_index--];
+  return [array objectAtIndex: next_index--];
 }
 @end

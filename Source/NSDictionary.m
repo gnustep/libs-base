@@ -87,89 +87,53 @@ static Class NSMutableDictionary_concrete_class;
 	  forKeys: (id*)keys
 	    count: (unsigned)count
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - (unsigned) count
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - objectForKey: (id)aKey
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - (NSEnumerator*) keyEnumerator
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - (NSEnumerator*) objectEnumerator
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - copyWithZone: (NSZone*)z
 {
-  /* a deep copy */
-  unsigned count = [self count];
-  id oldKeys[count];
-  id newKeys[count];
-  id oldObjects[count];
-  id newObjects[count];
-  id newDictionary;
-  unsigned i;
-  id key;
-  NSEnumerator *enumerator = [self keyEnumerator];
-  BOOL needCopy = [self isKindOfClass: [NSMutableDictionary class]];
-
-  if (NSShouldRetainWithZone(self, z) == NO)
-    needCopy = YES;
-  for (i = 0; (key = [enumerator nextObject]); i++)
-    {
-      oldKeys[i] = key;
-      oldObjects[i] = [self objectForKey:key];
-      newKeys[i] = [oldKeys[i] copyWithZone:z];
-      newObjects[i] = [oldObjects[i] copyWithZone:z];
-      if (oldKeys[i] != newKeys[i] || oldObjects[i] != newObjects[i])
-	needCopy = YES;
-    }
-  if (needCopy)
-    newDictionary = [[[[self class] _concreteClass] alloc] 
-	  initWithObjects:newObjects
-	  forKeys:newKeys
-	  count:count];
-  else
-    newDictionary = [self retain];
-  for (i = 0; i < count; i++)
-    {
-      [newKeys[i] release];
-      [newObjects[i] release];
-    }
-  return newDictionary;
+  return [self retain];
 }
 
 - mutableCopyWithZone: (NSZone*)z
 {
-  /* a shallow copy */
-  return [[[[[self class] _mutableConcreteClass] _mutableConcreteClass] alloc] 
-	  initWithDictionary:self];
+  return [[[[self class] _mutableConcreteClass] allocWithZone: z] 
+	  initWithDictionary: self];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 @end
@@ -191,9 +155,9 @@ static Class NSMutableDictionary_concrete_class;
 		forKeys: (id*)keys
 		  count: (unsigned)count
 {
-  return [[[self alloc] initWithObjects:objects
-			forKeys:keys
-			count:count]
+  return [[[self alloc] initWithObjects: objects
+			forKeys: keys
+			count: count]
 	  autorelease];
 }
 
@@ -215,7 +179,7 @@ static Class NSMutableDictionary_concrete_class;
     }
   [objects getObjects: os];
   [keys getObjects: ks];
-  return [self initWithObjects:os forKeys:ks count:objectCount];
+  return [self initWithObjects: os forKeys: ks count: objectCount];
 }
 
 - (id) initWithObjectsAndKeys: (id)firstObject, ...
@@ -322,7 +286,7 @@ static Class NSMutableDictionary_concrete_class;
 
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
-  return [[[self alloc] initWithObjects:objects forKeys:keys]
+  return [[[self alloc] initWithObjects: objects forKeys: keys]
 	  autorelease];
 }
 
@@ -335,7 +299,7 @@ static Class NSMutableDictionary_concrete_class;
 /* Override superclass's designated initializer */
 - init
 {
-  return [self initWithObjects:NULL forKeys:NULL count:0];
+  return [self initWithObjects: NULL forKeys: NULL count: 0];
 }
 
 - initWithDictionary: (NSDictionary*)other
@@ -371,10 +335,10 @@ static Class NSMutableDictionary_concrete_class;
       while ((k = [e nextObject]))
 	{
 	  ks[i] = k;
-	  os[i] = [other objectForKey:k];
+	  os[i] = [other objectForKey: k];
 	  i++;
 	}
-      return [self initWithObjects:os forKeys:ks count:c];
+      return [self initWithObjects: os forKeys: ks count: c];
     }
 }
 
@@ -408,16 +372,16 @@ static Class NSMutableDictionary_concrete_class;
   return nil;
 }
 
-+ dictionaryWithContentsOfFile:(NSString *)path
++ dictionaryWithContentsOfFile: (NSString *)path
 {
-  return [[[self alloc] initWithContentsOfFile:path] 
+  return [[[self alloc] initWithContentsOfFile: path] 
 	   autorelease];
 }
 
 - (BOOL) isEqual: other
 {
-  if ([other isKindOfClass:[NSDictionary class]])
-    return [self isEqualToDictionary:other];
+  if ([other isKindOfClass: [NSDictionary class]])
+    return [self isEqualToDictionary: other];
   return NO;
 }
 
@@ -434,7 +398,7 @@ static Class NSMutableDictionary_concrete_class;
 	if (![o1 isEqual: o2])
 	  return NO;
 	/*
-      if (![[self objectForKey:k] isEqual:[other objectForKey:k]])
+      if (![[self objectForKey: k] isEqual: [other objectForKey: k]])
 	return NO; */
       }
   }
@@ -454,7 +418,7 @@ static Class NSMutableDictionary_concrete_class;
       NSAssert (k[i], NSInternalInconsistencyException);
     }
   NSAssert (![e nextObject], NSInternalInconsistencyException);
-  return [[[NSArray alloc] initWithObjects:k count:c]
+  return [[[NSArray alloc] initWithObjects: k count: c]
 	  autorelease];
 }
 
@@ -470,7 +434,7 @@ static Class NSMutableDictionary_concrete_class;
       NSAssert (k[i], NSInternalInconsistencyException);
     }
   NSAssert (![e nextObject], NSInternalInconsistencyException);
-  return [[[NSArray alloc] initWithObjects:k count:c]
+  return [[[NSArray alloc] initWithObjects: k count: c]
 	  autorelease];
 }
 
@@ -528,9 +492,9 @@ compareIt(id o1, id o2, void* context)
   return [NSArray arrayWithObjects: obuf count: c];
 }
 
-- (BOOL)writeToFile:(NSString *)path atomically:(BOOL)useAuxiliaryFile
+- (BOOL)writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  return [[self description] writeToFile:path atomically:useAuxiliaryFile];
+  return [[self description] writeToFile: path atomically: useAuxiliaryFile];
 }
 
 - (NSString*) description
@@ -659,13 +623,11 @@ static NSString	*indentStrings[] = {
 
       (*appImp)(result, appSel, @" = ");
 
-      if ([item respondsToSelector:
-	      @selector(descriptionWithLocale:indent:)])
+      if ([item respondsToSelector: @selector(descriptionWithLocale:indent:)])
 	{
 	  [item descriptionWithLocale: locale indent: level to: result];
 	}
-      else if ([item respondsToSelector:
-	      @selector(descriptionWithLocale:)])
+      else if ([item respondsToSelector: @selector(descriptionWithLocale:)])
 	{
 	  [item descriptionWithLocale: locale to: result];
 	}
@@ -700,21 +662,53 @@ static NSString	*indentStrings[] = {
   return [super allocWithZone: z];
 }
 
+- copyWithZone: (NSZone*)z
+{
+  /* a deep copy */
+  unsigned	count = [self count];
+  id		keys[count];
+  id		objects[count];
+  NSDictionary	*newDictionary;
+  unsigned	i;
+  id		key;
+  NSEnumerator	*enumerator = [self keyEnumerator];
+  static SEL	nxtSel = @selector(nextObject);
+  IMP		nxtImp = [enumerator methodForSelector: nxtSel];
+  static SEL	objSel = @selector(objectForKey:);
+  IMP		objImp = [self methodForSelector: objSel];
+
+  for (i = 0; (key = (*nxtImp)(enumerator, nxtSel)); i++)
+    {
+      keys[i] = key;
+      objects[i] = (*objImp)(self, objSel, key);
+      objects[i] = [objects[i] copyWithZone: z];
+    }
+  newDictionary = [[[[self class] _concreteClass] allocWithZone: z] 
+	  initWithObjects: objects
+		  forKeys: keys
+		    count: count];
+  while (i > 0)
+    {
+      [objects[--i] release];
+    }
+  return newDictionary;
+}
+
 /* This is the designated initializer */
 - initWithCapacity: (unsigned)numItems
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
-- (void) setObject:anObject forKey:(id)aKey
+- (void) setObject: anObject forKey: (id)aKey
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
-- (void) removeObjectForKey:(id)aKey
+- (void) removeObjectForKey: (id)aKey
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 @end
@@ -723,7 +717,7 @@ static NSString	*indentStrings[] = {
 
 + dictionaryWithCapacity: (unsigned)numItems
 {
-  return [[[self alloc] initWithCapacity:numItems]
+  return [[[self alloc] initWithCapacity: numItems]
 	  autorelease];
 }
 
@@ -732,9 +726,9 @@ static NSString	*indentStrings[] = {
 	  forKeys: (id*)keys
 	    count: (unsigned)count
 {
-  [self initWithCapacity:count];
+  [self initWithCapacity: count];
   while (count--)
-    [self setObject:objects[count] forKey:keys[count]];
+    [self setObject: objects[count] forKey: keys[count]];
   return self;
 }
 
@@ -742,21 +736,21 @@ static NSString	*indentStrings[] = {
 {
   id k, e = [self keyEnumerator];
   while ((k = [e nextObject]))
-    [self removeObjectForKey:k];
+    [self removeObjectForKey: k];
 }
 
 - (void) removeObjectsForKeys: (NSArray*)keyArray
 {
   int c = [keyArray count];
   while (c--)
-    [self removeObjectForKey:[keyArray objectAtIndex:c]];
+    [self removeObjectForKey: [keyArray objectAtIndex: c]];
 }
 
 - (void) addEntriesFromDictionary: (NSDictionary*)other
 {
   id k, e = [other keyEnumerator];
   while ((k = [e nextObject]))
-    [self setObject:[other objectForKey:k] forKey:k];
+    [self setObject: [other objectForKey: k] forKey: k];
 }
 
 - (void) setDictionary: (NSDictionary*)otherDictionary

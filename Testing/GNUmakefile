@@ -79,12 +79,14 @@ awake \
 thread-except \
 nscharacterset \
 NSData-test \
+containers \
 nstimezone \
 create-abbrevs \
 create-regions
 
 # The tool Objective-C source files to be compiled
 benchmark_OBJC_FILES = benchmark.m
+containers_OBJC_FILES = containers.m
 test01_OBJC_FILES = test01.m
 test02_OBJC_FILES = test02.m
 heap_OBJC_FILES = heap.m
