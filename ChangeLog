@@ -1,5 +1,10 @@
 2005-03-03  Adam Fedor  <fedor@gnu.org>
 
+	* Source/NSFileManager.m (-createFileAtPath:...): Define var at
+	beginning to work on gcc 2.x compilers.
+
+2005-03-03  Adam Fedor  <fedor@gnu.org>
+
 	* Start on integrating Sheldon Gills NSPathUtilities patches.
 	* Headers/Foundation/NSPathUtilities.h: Depreciate 
 	GSSystemRootDirectory, GSStandardPathPrefixes. Add 
