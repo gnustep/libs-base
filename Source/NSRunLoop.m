@@ -901,7 +901,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	    }
 	}
     }
-  RELEASE(arp);
 
   _current_mode = saved_mode;
   RELEASE(arp);
