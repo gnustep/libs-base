@@ -55,10 +55,13 @@ typedef struct {
 } NSDO;
 
 @interface NSConnection (DistantObjectHacks)
-- (BOOL) includesProxyForTarget: (unsigned)target;
-- (void) addLocalObject: (id)obj;
-- (void) addProxy: (id)obj;
+- (void) aquireProxyForTarget: (unsigned)target;
+- (NSDistantObject*) retainOrAddLocal: (NSDistantObject*)aProxy
+			    forObject: (id)anObject;
+- (NSDistantObject*) retainOrAddProxy: (NSDistantObject*)aProxy
+			    forTarget: (unsigned)aTarget;
 - (void) removeProxy: (id)obj;
+- (void) vendLocal: (NSDistantObject*)aProxy;
 @end
 
 /* This is the proxy tag; it indicates where the local object is,
@@ -171,7 +174,7 @@ enum
 		NSLog(@"Local object is 0x%x (0x%x)\n",
 		  (gsaddr)o, (gsaddr)o ? ((NSDO*)o)->_object : 0);
 	      }
-	    return o ? RETAIN(((NSDO*)o)->_object) : nil;
+	    return RETAIN(((NSDO*)o)->_object);
 	  }
 
       case PROXY_LOCAL_FOR_SENDER:
@@ -187,8 +190,9 @@ enum
 	if (debug_proxy)
 	  NSLog(@"Receiving a proxy, was local 0x%x connection 0x%x\n",
 		  target, (gsaddr)decoder_connection);
-	return [self initWithTarget: target
-			 connection: decoder_connection];
+	o = [self initWithTarget: target
+		      connection: decoder_connection];
+	return o;
 
       case PROXY_REMOTE_FOR_BOTH:
         /*
@@ -260,12 +264,11 @@ enum
 	    NSInternalInconsistencyException);
 
 	  /*
-	   *	If we don't already have a proxy for the object on the
-	   *	remote system, we must tell the other end to retain its
-	   *	local object for our use.
+	   * We may not already have a proxy for the object on the
+	   * remote system, we must tell the connection to make sure
+	   * the other end knows we are creating one.
 	   */
-	  if ([proxy_connection includesProxyForTarget: target] == NO)
-	    [proxy_connection retainTarget: target];
+	  [proxy_connection aquireProxyForTarget: target];
 
 	  /*
 	   *	Finally - we get a proxy via a direct connection to the
@@ -274,8 +277,9 @@ enum
 	   *	and will therefore go away when the current autorelease
 	   *	pool is destroyed.
 	   */
-	  return [self initWithTarget: target
-			   connection: proxy_connection];
+	  o = [self initWithTarget: target
+			connection: proxy_connection];
+	  return o;
         }
 
     default:
@@ -297,14 +301,14 @@ enum
    *	If there already is a local proxy for this target/connection
    *	combination, don't create a new one, just return the old one.
    */
-  if ((proxy = [aConnection localForObject: anObject]))
+  proxy = [aConnection retainOrAddLocal: nil forObject: anObject];
+  if (proxy == nil)
     {
-      return RETAIN(proxy);
-    }
-
-  proxy = (NSDistantObject*)NSAllocateObject(distantObjectClass,
+      proxy = (NSDistantObject*)NSAllocateObject(distantObjectClass,
 	0, NSDefaultMallocZone());
-  return [proxy initWithLocal: anObject connection: aConnection];
+      proxy = [proxy initWithLocal: anObject connection: aConnection];
+    }
+  return proxy;
 }
 
 + (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection
@@ -314,17 +318,17 @@ enum
   NSAssert([aConnection isValid], NSInternalInconsistencyException);
 
   /*
-   *	If there already is a local proxy for this target/connection
-   *	combination, don't create a new one, just return the old one.
+   * If there already is a local proxy for this target/connection
+   * combination, don't create a new one, just return the old one.
    */
-  if ((proxy = [aConnection proxyForTarget: target]))
+  proxy = [aConnection retainOrAddProxy: nil forTarget: target];
+  if (proxy == nil)
     {
-      return RETAIN(proxy);
-    }
-
-  proxy = (NSDistantObject*)NSAllocateObject(distantObjectClass,
+      proxy = (NSDistantObject*)NSAllocateObject(distantObjectClass,
 	0, NSDefaultMallocZone());
-  return [proxy initWithTarget: target connection: aConnection];
+      proxy = [proxy initWithTarget: target connection: aConnection];
+    }
+  return proxy;
 }
 @end
 
@@ -441,6 +445,10 @@ enum
 
 	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_target))
 				   at: &proxy_target];
+	  /*
+	   * Tell connection this object is being vended.
+	   */
+	  [_connection vendLocal: self];
 	}
       else
 	{
@@ -478,10 +486,10 @@ enum
       proxy_tag = PROXY_REMOTE_FOR_BOTH;
 
       /*
-       *	Get a proxy to refer to self - we send this to the other
-       *	side so we will be retained until the other side has
-       *	obtained a proxy to the original object via a connection
-       *	to the original vendor.
+       * Get a proxy to refer to self - we send this to the other
+       * side so we will be retained until the other side has
+       * obtained a proxy to the original object via a connection
+       * to the original vendor.
        */
       localProxy = [NSDistantObject proxyWithLocal: self
 					connection: encoder_connection];
@@ -493,8 +501,8 @@ enum
 		proxy_target, (gsaddr)_connection);
 
       /*
-       *	It's remote here, so we need to tell other side where to form
-       *	triangle connection to
+       * It's remote here, so we need to tell other side where to form
+       * triangle connection to
        */
       [aRmc encodeValueOfObjCType: @encode(typeof(proxy_tag))
 			       at: &proxy_tag];
@@ -506,6 +514,11 @@ enum
 			       at: &proxy_target];
 
       [aRmc encodeBycopyObject: proxy_connection_out_port];
+
+      /*
+       * Tell connection that localProxy is being vended.
+       */
+      [encoder_connection vendLocal: localProxy];
     }
 }
 
@@ -529,179 +542,9 @@ enum
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  gsu8			proxy_tag;
-  unsigned		target;
-  id			decoder_connection;
-  NSDistantObject	*o;
-
-/*
-  if ([aCoder isKindOfClass: [NSPortCoder class]] == NO)
-    {
-      RELEASE(self);
-      [NSException raise: NSGenericException
-		  format: @"NSDistantObject objects only decode with "
-			  @"NSPortCoder class"];
-    }
-*/
-
-  decoder_connection = [(NSPortCoder*)aCoder connection];
-  NSAssert(decoder_connection, NSInternalInconsistencyException);
-
-  /* First get the tag, so we know what values need to be decoded. */
-  [aCoder decodeValueOfObjCType: @encode(typeof(proxy_tag))
-			     at: &proxy_tag];
-
-  switch (proxy_tag)
-    {
-      case PROXY_LOCAL_FOR_RECEIVER:
-	/*
-	 *	This was a proxy on the other side of the connection, but
-	 *	here it's local.
-	 *	Lookup the target handle to ensure that it exists here.
-	 *	Return a retained copy of the local target object.
-	 */
-	[aCoder decodeValueOfObjCType: @encode(typeof(target))
-				   at: &target];
-
-        if (debug_proxy)
-	  NSLog(@"Receiving a proxy for local object 0x%x "
-		@"connection 0x%x\n", target, (gsaddr)decoder_connection);
-
-	o = [decoder_connection locateLocalTarget: target];
-        if (o == nil)
-	  {
-	    RELEASE(self);
-	    [NSException raise: @"ProxyDecodedBadTarget"
-			format: @"No local object with given target (0x%x)",
-				target];
-	  }
-	else
-	  {
-	    if (debug_proxy)
-	      {
-		NSLog(@"Local object is 0x%x (0x%x)\n",
-		  (gsaddr)o, (gsaddr)o ? o->_object : 0);
-	      }
-	    RELEASE(self);
-	    return o ? RETAIN(o->_object) : nil;
-	  }
-
-      case PROXY_LOCAL_FOR_SENDER:
-        /*
-	 *	This was a local object on the other side of the connection,
-	 *	but here it's a proxy object.  Get the target address, and
-	 *	send [NSDistantObject +proxyWithTarget:connection:]; this will
-	 *	return the proxy object we already created for this target, or
-	 *	create a new proxy object if necessary.
-	 */
-	[aCoder decodeValueOfObjCType: @encode(typeof(target))
-				   at: &target];
-	if (debug_proxy)
-	  NSLog(@"Receiving a proxy, was local 0x%x connection 0x%x\n",
-		  target, (gsaddr)decoder_connection);
-        RELEASE(self);
-	return RETAIN([NSDistantObject proxyWithTarget: target
-					    connection: decoder_connection]);
-
-      case PROXY_REMOTE_FOR_BOTH:
-        /*
-	 *	This was a proxy on the other side of the connection, and it
-	 *	will be a proxy on this side too; that is, the local version
-	 *	of this object is not on this host, not on the host the
-	 *	NSPortCoder is connected to, but on a *third* host.
-	 *	This is why I call this a "triangle connection".  In addition
-	 *	to decoding the target, we decode the OutPort object that we
-	 *	will use to talk directly to this third host.  We send
-	 *	[NSConnection +newForInPort:outPort:ancestorConnection:]; this
-	 *	will either return the connection already created for this
-	 *	inPort/outPort pair, or create a new connection if necessary.
-	 */
-	{
-	  NSDistantObject	*result;
-	  NSConnection		*proxy_connection;
-	  NSPort		*proxy_connection_out_port = nil;
-	  unsigned		intermediary;
-
-	  /*
-	   *	There is an object on the intermediary host that is keeping
-	   *	that hosts proxy for the original object retained, thus
-	   *	ensuring that the original is not released.  We create a
-	   *	proxy for that intermediate proxy.  When we release this
-	   *	proxy, the intermediary will be free to release it's proxy
-	   *	and the original can then be released.  Of course, by that
-	   *	time we will have obtained our own proxy for the original
-	   *	object ...
-	   */
-	  [aCoder decodeValueOfObjCType: @encode(typeof(intermediary))
-				     at: &intermediary];
-	  [NSDistantObject proxyWithTarget: intermediary
-				connection: decoder_connection];
-
-	  /*
-	   *	Now we get the target number and port for the orignal object
-	   *	and (if necessary) get the originating process to retain the
-	   *	object for us.
-	   */
-	  [aCoder decodeValueOfObjCType: @encode(typeof(target))
-				     at: &target];
-
-	  [aCoder decodeValueOfObjCType: @encode(id)
-				     at: &proxy_connection_out_port];
-
-	  NSAssert(proxy_connection_out_port, NSInternalInconsistencyException);
-	  /*
-	   #	If there already exists a connection for talking to the
-	   *	out port, we use that one rather than creating a new one from
-	   *	our listening port. 
-	   *
-	   *	First we try for a connection from our receive port,
-	   *	Then we try any connection to the send port
-	   *	Finally we resort to creating a new connection - we don't
-	   *	release the newly created connection - it will get released
-	   *	automatically when no proxies are left on it.
-	   */
-	  proxy_connection = [[decoder_connection class]
-	    connectionWithReceivePort: [decoder_connection receivePort]
-			     sendPort: proxy_connection_out_port];
-
-	  if (debug_proxy)
-	    NSLog(@"Receiving a triangle-connection proxy 0x%x "
-		  @"connection 0x%x\n", target, (gsaddr)proxy_connection);
-
-	  NSAssert(proxy_connection != decoder_connection,
-	    NSInternalInconsistencyException);
-	  NSAssert([proxy_connection isValid],
-	    NSInternalInconsistencyException);
-
-	  /*
-	   *	If we don't already have a proxy for the object on the
-	   *	remote system, we must tell the other end to retain its
-	   *	local object for our use.
-	   */
-	  if ([proxy_connection includesProxyForTarget: target] == NO)
-	    [proxy_connection retainTarget: target];
-
-	  result = RETAIN([NSDistantObject proxyWithTarget: target
-						connection: proxy_connection]);
-	  RELEASE(self);
-
-	  /*
-	   *	Finally - we have a proxy via a direct connection to the
-	   *	originating server.  We have also created a proxy to an
-	   *	intermediate object - but this proxy has not been retained
-	   *	and will therefore go away when the current autorelease
-	   *	pool is destroyed.
-	   */
-	  return result;
-        }
-
-    default:
-      /* xxx This should be something different than NSGenericException. */
-      RELEASE(self);
-      [NSException raise: NSGenericException
-		  format: @"Bad proxy tag"];
-    }
-  /* Not reached. */
+  DESTROY(self);
+  [NSException raise: NSGenericException
+	      format: @"NSDistantObject decodes from placeholder"];
   return nil;
 }
 
@@ -711,28 +554,12 @@ enum
  */
 - (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection
 {
-  NSDistantObject	*new_proxy;
-
   NSAssert([aConnection isValid], NSInternalInconsistencyException);
 
-  /*
-   *	If there already is a local proxy for this target/connection
-   *	combination, don't create a new one, just return the old one.
-   */
-  if ((new_proxy = [aConnection localForObject: anObject]))
-    {
-      RETAIN(new_proxy);
-      RELEASE(self);
-      return new_proxy;
-    }
-
   _object = RETAIN(anObject);
-
-  /*
-   * We register this proxy with the connection using it.
-   */
+  _handle = 0;
   _connection = RETAIN(aConnection);
-  [_connection addLocalObject: self];
+  self = [_connection retainOrAddLocal: self forObject: anObject];
 
   if (debug_proxy)
     NSLog(@"Created new local=0x%x object 0x%x target 0x%x connection 0x%x\n",
@@ -748,34 +575,17 @@ enum
  */
 - (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection
 {
-  NSDistantObject	*new_proxy;
-
   NSAssert([aConnection isValid], NSInternalInconsistencyException);
-
-  /*
-   *	If there already is a proxy for this target/connection combination,
-   *	don't create a new one, just return the old one.
-   */
-  if ((new_proxy = [aConnection proxyForTarget: target]))
-    {
-      RETAIN(new_proxy);
-      RELEASE(self);
-      return new_proxy;
-    }
 
   _object = nil;
   _handle = target;
-
-  /*
-   *	We retain our connection so it can't disappear while the app
-   *	may want to use it.
-   */
   _connection = RETAIN(aConnection);
 
   /*
-   *	We register this object with the connection using it.
+   * We register this object with the connection using it.
+   * Conceivably this could result in self being changed.
    */
-  [_connection addProxy: self];
+  self = [_connection retainOrAddProxy: self forTarget: target];
 
   if (debug_proxy)
       NSLog(@"Created new proxy=0x%x target 0x%x connection 0x%x\n",

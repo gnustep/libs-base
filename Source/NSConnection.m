@@ -195,8 +195,7 @@ stringFromMsgType(int type)
 + (void) setDebug: (int)val;
 
 - (void) addLocalObject: (NSDistantObject*)anObj;
-- (NSDistantObject*) localForObject: (id)object;
-- (void) removeLocalObject: (id)anObj;
+- (void) removeLocalObject: (NSDistantObject*)anObj;
 
 - (void) _doneInReply: (NSPortCoder*)c;
 - (void) _doneInRmc: (NSPortCoder*)c;
@@ -1107,9 +1106,7 @@ static BOOL	multi_threaded = NO;
 	}
       while (i-- > 0)
 	{
-	  id	t = ((ProxyStruct*)[targets objectAtIndex: i])->_object;
-
-	  [self removeLocalObject: t];
+	  [self removeLocalObject: [targets objectAtIndex: i]];
 	}
       RELEASE(targets);
       GSIMapEmptyMap(_localTargets);
@@ -2533,9 +2530,17 @@ static void callEncoder (DOContext *ctxt)
       if (prox != nil)
 	{
 	  if (debug_connection > 3)
-	    NSLog(@"releasing object with target (0x%x) on (0x%x)",
-		target, (gsaddr)self);
-	  [self removeLocalObject: ((ProxyStruct*)prox)->_object];
+	    NSLog(@"releasing object with target (0x%x) on (0x%x) counter %d",
+		target, (gsaddr)self, ((ProxyStruct*)prox)->_counter);
+#if 1
+	  // FIXME thread safety
+	  if (--(((ProxyStruct*)prox)->_counter) == 0)
+	    {
+	      [self removeLocalObject: prox];
+	    }
+#else
+	  [self removeLocalObject: prox];
+#endif
 	}
       else if (debug_connection > 3)
 	NSLog(@"releasing object with target (0x%x) on (0x%x) - nothing to do",
@@ -2546,9 +2551,11 @@ static void callEncoder (DOContext *ctxt)
 
 - (void) _service_retain: (NSPortCoder*)rmc
 {
-  unsigned	target;
-  NSPortCoder	*op;
-  int		sequence;
+  unsigned		target;
+  NSPortCoder		*op;
+  int			sequence;
+  NSDistantObject	*local;
+  NSString		*response = nil;
 
   NSParameterAssert (_isValid);
 
@@ -2562,27 +2569,19 @@ static void callEncoder (DOContext *ctxt)
     NSLog(@"looking to retain local object with target (0x%x) on (0x%x)",
 		target, (gsaddr)self);
 
-  if ([self includesLocalTarget: target] == nil)
+  M_LOCK(_proxiesGate);
+  local = [self locateLocalTarget: target];
+  if (local == nil)
     {
-      NSDistantObject	*proxy = [self locateLocalTarget: target];
-
-      if (proxy == nil)
-	{
-	  [op encodeObject: @"target not found anywhere"];
-	}
-      else
-	{
-	  [op encodeObject: nil];	// success
-	}
+      response = @"target not found anywhere";
     }
-  else 
+  else
     {
-      [op encodeObject: nil];
-      if (debug_connection > 3)
-	NSLog(@"target (0x%x) already retained on connection (0x%x)",
-		target, self);
+      ((ProxyStruct*)local)->_counter++;	// Vended on connection.
     }
+  M_UNLOCK(_proxiesGate);
 
+  [op encodeObject: response];
   [self _sendOutRmc: op type: RETAIN_REPLY];
 }
 
@@ -3012,7 +3011,7 @@ static void callEncoder (DOContext *ctxt)
   M_LOCK(_refGate);
 
   /*
-   * We replace the code we have just used in the cache, and tell it not to
+   * We replace the coder we have just used in the cache, and tell it not to
    * retain this connection any more.
    */
   if (cacheCoders == YES && _cachedEncoders != nil)
@@ -3099,7 +3098,8 @@ static void callEncoder (DOContext *ctxt)
   M_UNLOCK(_proxiesGate);
 }
 
-- (NSDistantObject*) localForObject: (id)object
+- (NSDistantObject*) retainOrAddLocal: (NSDistantObject*)proxy
+			    forObject: (id)object
 {
   GSIMapNode		node;
   NSDistantObject	*p;
@@ -3114,78 +3114,87 @@ static void callEncoder (DOContext *ctxt)
   else
     {
       p = node->value.obj;
+      RETAIN(p);
+      DESTROY(proxy);
+    }
+  if (p == nil && proxy != nil)
+    {
+      p = proxy;
+      [self addLocalObject: p];
     }
   M_UNLOCK(_proxiesGate);
-  NSParameterAssert(p == nil || [p connectionForProxy] == self);
   return p;
 }
 
-- (void) removeLocalObject: (id)anObj
+- (void) removeLocalObject: (NSDistantObject*)prox
 {
-  NSDistantObject	*prox;
-  unsigned		target;
-  unsigned		val = 0;
-  GSIMapNode		node;
+  id		anObj;
+  unsigned	target;
+  unsigned	val = 0;
+  GSIMapNode	node;
 
   M_LOCK(_proxiesGate);
-
+  anObj = ((ProxyStruct*)prox)->_object;
   node = GSIMapNodeForKey(_localObjects, (GSIMapKey)anObj);
-  if (node == 0)
-    {
-      M_UNLOCK(_proxiesGate);
-      [NSException raise: NSInternalInconsistencyException
-      		  format: @"Attempt to remove non-existent local %@", anObj];
-    }
-  prox = node->value.obj;
-  target = ((ProxyStruct*)prox)->_handle;
 
-  if (1)
+  /*
+   * The NSDistantObject concerned may not belong to this connection,
+   * so we need to check that any matching proxy is identical to the
+   * argument we were given.
+   */
+  if (node != 0 && node->value.obj == prox)
     {
-      id	item;
+      target = ((ProxyStruct*)prox)->_handle;
 
-      M_LOCK(cached_proxies_gate);
       /*
-       * If this proxy has been vended onwards by another process, we
-       * need to keep a reference to the local object around for a
-       * while in case that other process needs it.
+       * If this proxy has been vended onwards to another process
+       * which has not myet released it, we need to keep a reference
+       * to the local object around for a while in case that other
+       * process needs it.
        */
-      if (timer == nil)
+      if ((((ProxyStruct*)prox)->_counter) != 0)
 	{
-	  timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
-				 target: connectionClass
-				 selector: @selector(_timeout:)
-				 userInfo: nil
-				  repeats: YES];
+	  CachedLocalObject	*item;
+
+	  (((ProxyStruct*)prox)->_counter) = 0;
+	  M_LOCK(cached_proxies_gate);
+	  if (timer == nil)
+	    {
+	      timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
+		target: connectionClass
+		selector: @selector(_timeout:)
+		userInfo: nil
+		repeats: YES];
+	    }
+	  item = [CachedLocalObject newWithObject: prox time: 5];
+	  NSMapInsert(targetToCached, (void*)target, item);
+	  M_UNLOCK(cached_proxies_gate);
+	  RELEASE(item);
+	  if (debug_connection > 3)
+	    NSLog(@"placed local object (0x%x) target (0x%x) in cache",
+			(gsaddr)anObj, target);
 	}
-      item = [CachedLocalObject newWithObject: prox time: 5];
-      NSMapInsert(targetToCached, (void*)target, item);
-      M_UNLOCK(cached_proxies_gate);
-      RELEASE(item);
-      if (debug_connection > 3)
-	NSLog(@"placed local object (0x%x) target (0x%x) in cache",
-		    (gsaddr)anObj, target);
+
+      /*
+       * Remove the proxy from _localObjects and release it.
+       */
+      GSIMapRemoveKey(_localObjects, (GSIMapKey)anObj);
+      RELEASE(prox);
+
+      /*
+       * Remove the target info too - no release required.
+       */
+      GSIMapRemoveKey(_localTargets, (GSIMapKey)target);
+
+      if (debug_connection > 2)
+	NSLog(@"removed local object (0x%x) target (0x%x) "
+	    @"from connection (0x%x) (ref %d)",
+		    (gsaddr)anObj, target, (gsaddr)self, val);
     }
-
-  /*
-   * Remove the proxy from _localObjects and release it.
-   */
-  GSIMapRemoveKey(_localObjects, (GSIMapKey)anObj);
-  RELEASE(prox);
-
-  /*
-   * Remove the target info too - no release required.
-   */
-  GSIMapRemoveKey(_localTargets, (GSIMapKey)target);
-
-  if (debug_connection > 2)
-    NSLog(@"remove local object (0x%x) target (0x%x) "
-	@"from connection (0x%x) (ref %d)",
-		(gsaddr)anObj, target, (gsaddr)self, val);
-
   M_UNLOCK(_proxiesGate);
 }
 
-- (void) _release_targets: (unsigned*)list count: (unsigned)number
+- (void) _release_target: (unsigned)target count: (unsigned)number
 {
   NS_DURING
     {
@@ -3206,10 +3215,10 @@ static void callEncoder (DOContext *ctxt)
 
 	  for (i = 0; i < number; i++)
 	    {
-	      [op encodeValueOfObjCType: @encode(unsigned) at: &list[i]];
+	      [op encodeValueOfObjCType: @encode(unsigned) at: &target];
 	      if (debug_connection > 3)
 		NSLog(@"sending release for target (0x%x) on (0x%x)",
-		      list[i], (gsaddr)self);
+		      target, (gsaddr)self);
 	    }
 
 	  [self _sendOutRmc: op type: PROXY_RELEASE];
@@ -3229,6 +3238,11 @@ static void callEncoder (DOContext *ctxt)
   GSIMapNode		node;
 
   M_LOCK(_proxiesGate);
+
+  /*
+   * Try a quick lookup to see if the target references a local object
+   * belonging to the receiver ... usually it should.
+   */
   node = GSIMapNodeForKey(_localTargets, (GSIMapKey)target);
   if (node != 0)
     {
@@ -3236,8 +3250,35 @@ static void callEncoder (DOContext *ctxt)
     }
 
   /*
-   * If not found in the current connection, try all other existing
-   * connections.
+   * If the target doesn't exist in the receiver, but still
+   * persists in the cache (ie it was recently released) then
+   * we move it back from the cache to the receiver.
+   */
+  if (proxy == nil)
+    {
+      CachedLocalObject	*cached;
+
+      M_LOCK(cached_proxies_gate);
+      cached = NSMapGet (targetToCached, (void*)target);
+      if (cached != nil)
+	{
+	  proxy = [cached obj];
+	  /*
+	   * Found in cache ... add to this connection as the object
+	   * is no longer in use by any connection.
+	   */
+	  ASSIGN(((ProxyStruct*)proxy)->_connection, self);
+	  [self addLocalObject: proxy];
+	  NSMapRemove(targetToCached, (void*)target);
+	  if (debug_connection > 3)
+	    NSLog(@"target (0x%x) moved from cache", target);
+	}
+      M_UNLOCK(cached_proxies_gate);
+    }
+
+  /*
+   * If not found in the current connection or the cache of local references
+   * of recently invalidated connections, try all other existing connections.
    */
   if (proxy == nil)
     {
@@ -3255,44 +3296,35 @@ static void callEncoder (DOContext *ctxt)
 	      node = GSIMapNodeForKey(c->_localTargets, (GSIMapKey)target);
 	      if (node != 0)
 		{
-		  proxy = node->value.obj;
+		  id		local;
+		  unsigned	nTarget;
+
 		  /*
-		   * Found in another connection ... add to this one.
+		   * We found the local object in use in another connection
+		   * so we create a new reference to the same object and
+		   * add it to our connection, adjusting the target of the
+		   * new reference to be the value we need.
+		   *
+		   * We don't want to just share the NSDistantObject with
+		   * the other connection, since we might want to keep
+		   * track of information on a per-connection basis in
+		   * order to handle connection shutdown cleanly.
 		   */
-		  [self addLocalObject: proxy];
+		  proxy = node->value.obj;
+		  local = RETAIN(((ProxyStruct*)proxy)->_object);
+		  proxy = [NSDistantObject proxyWithLocal: local
+					       connection: self];
+		  nTarget = ((ProxyStruct*)proxy)->_handle;
+		  GSIMapRemoveKey(_localTargets, (GSIMapKey)nTarget);
+		  ((ProxyStruct*)proxy)->_handle = target;
+		  GSIMapAddPair(_localTargets, (GSIMapKey)target,
+		    (GSIMapVal)proxy);
 		}
 	      M_UNLOCK(c->_proxiesGate);
 	    }
 	}
       NSEndHashTableEnumeration(&enumerator);
       M_UNLOCK(connection_table_gate);
-    }
-
-  if (proxy == nil)
-    {
-      CachedLocalObject	*cached;
-
-      /*
-       * If the target doesn't exist for any connection, but still
-       * persists in the cache (ie it was recently released) then
-       * we move it back from the cache to the connection so we can
-       * retain it on this connection.
-       */
-      M_LOCK(cached_proxies_gate);
-      cached = NSMapGet (targetToCached, (void*)target);
-      if (cached != nil)
-	{
-	  proxy = [cached obj];
-	  /*
-	   * Found in cache ... add to this connection.
-	   */
-	  ASSIGN(((ProxyStruct*)proxy)->_connection, self);
-	  [self addLocalObject: proxy];
-	  NSMapRemove(targetToCached, (void*)target);
-	  if (debug_connection > 3)
-	    NSLog(@"target (0x%x) moved from cache", target);
-	}
-      M_UNLOCK(cached_proxies_gate);
     }
 
   M_UNLOCK(_proxiesGate);
@@ -3305,39 +3337,69 @@ static void callEncoder (DOContext *ctxt)
   return proxy;
 }
 
-- (void) retainTarget: (unsigned)target
+- (void) vendLocal: (NSDistantObject*)aProxy
 {
-  NS_DURING
+  M_LOCK(_proxiesGate);
+  ((ProxyStruct*)aProxy)->_counter++;
+  M_UNLOCK(_proxiesGate);
+}
+
+- (void) aquireProxyForTarget: (unsigned)target
+{
+  NSDistantObject	*found;
+  GSIMapNode		node;
+
+  /* Don't assert (_isValid); */
+  M_LOCK(_proxiesGate);
+  node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
+  if (node == 0)
     {
-      /*
-       * Tell the remote app that it must retain the local object
-       * for the target on this connection.
-       */
-      if (_receivePort && _isValid)
+      found = nil;
+    }
+  else
+    {
+      found = node->value.obj;
+    }
+  M_UNLOCK(_proxiesGate);
+  if (found == nil)
+    {
+      NS_DURING
 	{
-	  NSPortCoder	*op;
-	  id	ip;
-	  id	result;
-	  int	seq_num;
+	  /*
+	   * Tell the remote app that it must retain the local object
+	   * for the target on this connection.
+	   */
+	  if (_receivePort && _isValid)
+	    {
+	      NSPortCoder	*op;
+	      id	ip;
+	      id	result;
+	      int	seq_num;
 
-	  op = [self _makeOutRmc: 0 generate: &seq_num reply: YES];
-	  [op encodeValueOfObjCType: @encode(typeof(target)) at: &target];
-	  [self _sendOutRmc: op type: PROXY_RETAIN];
+	      op = [self _makeOutRmc: 0 generate: &seq_num reply: YES];
+	      [op encodeValueOfObjCType: @encode(typeof(target)) at: &target];
+	      [self _sendOutRmc: op type: PROXY_RETAIN];
 
-	  ip = [self _getReplyRmc: seq_num];
-	  [ip decodeValueOfObjCType: @encode(id) at: &result];
-	  [self _doneInRmc: ip];
-	  if (result != nil)
-	    NSLog(@"failed to retain target - %@", result);
-	  else if (debug_connection > 3)
-	    NSLog(@"sending retain for target - %u", target);
+	      ip = [self _getReplyRmc: seq_num];
+	      [ip decodeValueOfObjCType: @encode(id) at: &result];
+	      [self _doneInRmc: ip];
+	      if (result != nil)
+		NSLog(@"failed to retain target - %@", result);
+	      else if (debug_connection > 3)
+		NSLog(@"sending retain for target - %u", target);
+	    }
 	}
+      NS_HANDLER
+	{
+	  NSLog(@"failed to retain target - %@", localException);
+	}
+      NS_ENDHANDLER
     }
-  NS_HANDLER
-    {
-      NSLog(@"failed to retain target - %@", localException);
-    }
-  NS_ENDHANDLER
+}
+
+- (id) retain
+{
+  return [super retain];
 }
 
 - (void) removeProxy: (NSDistantObject*)aProxy
@@ -3346,31 +3408,60 @@ static void callEncoder (DOContext *ctxt)
   if (_isValid == YES)
     {
       unsigned		target;
+      unsigned		count = 1;
       GSIMapNode	node;
 
       target = ((ProxyStruct*)aProxy)->_handle;
       node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
-      if (node != 0)
-	{
-	  GSIMapRemoveKey(_remoteProxies, (GSIMapKey)target);
-	}
+
       /*
-       * Tell the remote application that we have removed our proxy and
-       * it can release it's local object.
+       * Only remove if the proxy for the target is the same as the
+       * supplied argument.
        */
-      [self _release_targets: &target count: 1];
+      if (node != 0 && node->value.obj == aProxy)
+	{
+	  count = ((ProxyStruct*)aProxy)->_counter;
+	  GSIMapRemoveKey(_remoteProxies, (GSIMapKey)target);
+	  /*
+	   * Tell the remote application that we have removed our proxy and
+	   * it can release it's local object.
+	   */
+	  [self _release_target: target count: count];
+	}
     }
   M_UNLOCK(_proxiesGate);
 }
 
-- (NSDistantObject*) proxyForTarget: (unsigned)target
+
+/**
+ * Private method used only when a remote process/thread has sent us a
+ * target which we are decoding into a proxy in this process/thread.
+ * <p>The argument aProxy may be nil, in which case an existing proxy
+ * matching aTarget is retrieved retained, and returned (this is done
+ * when a proxy target is sent to us by a remote process).
+ * </p>
+ * <p>If aProxy is not nil, but a proxy with the same target already
+ * exists, then aProxy is released and the existing proxy is returned
+ * as in the case where aProxy was nil.
+ * </p>
+ * <p>If aProxy is not nil and there was no prior proxy with the same
+ * target, aProxy is added to the receiver and returned.
+ * </p>
+ */
+- (NSDistantObject*) retainOrAddProxy: (NSDistantObject*)aProxy
+			    forTarget: (unsigned)aTarget
 {
   NSDistantObject	*p;
   GSIMapNode		node;
 
   /* Don't assert (_isValid); */
+  NSParameterAssert(aTarget > 0);
+  NSParameterAssert(aProxy==nil || aProxy->isa == distantObjectClass);
+  NSParameterAssert(aProxy==nil || [aProxy connectionForProxy] == self);
+  NSParameterAssert(aProxy==nil || aTarget == ((ProxyStruct*)aProxy)->_handle);
+
   M_LOCK(_proxiesGate);
-  node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
+  node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)aTarget);
   if (node == 0)
     {
       p = nil;
@@ -3378,50 +3469,26 @@ static void callEncoder (DOContext *ctxt)
   else
     {
       p = node->value.obj;
+      RETAIN(p);
+      DESTROY(aProxy);
+    }
+  if (p == nil && aProxy != nil)
+    {
+      p = aProxy;
+      GSIMapAddPair(_remoteProxies, (GSIMapKey)aTarget, (GSIMapVal)p);
+    }
+  /*
+   * Whether this is a new proxy or an existing proxy, this method is
+   * only called for an object being vended by a remote process/thread.
+   * We therefore need to increment the count of the number of times
+   * the proxy has been vended.
+   */
+  if (p != nil)
+    {
+      ((ProxyStruct*)p)->_counter++;
     }
   M_UNLOCK(_proxiesGate);
   return p;
-}
-
-- (void) addProxy: (NSDistantObject*)aProxy
-{
-  unsigned	target;
-  GSIMapNode	node;
-
-  M_LOCK(_proxiesGate);
-  NSParameterAssert(_isValid);
-  NSParameterAssert(aProxy->isa == distantObjectClass);
-  NSParameterAssert([aProxy connectionForProxy] == self);
-  target = ((ProxyStruct*)aProxy)->_handle;
-  node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
-  if (node != 0)
-    {
-      M_UNLOCK(_proxiesGate);
-      [NSException raise: NSGenericException
-		  format: @"Trying to add the same proxy twice"];
-    }
-  GSIMapAddPair(_remoteProxies, (GSIMapKey)target, (GSIMapVal)aProxy);
-  M_UNLOCK(_proxiesGate);
-}
-
-- (id) includesProxyForTarget: (unsigned)target
-{
-  NSDistantObject	*ret;
-  GSIMapNode		node;
-
-  /* Don't assert (_isValid); */
-  M_LOCK(_proxiesGate);
-  node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
-  if (node == 0)
-    {
-      ret = nil;
-    }
-  else
-    {
-      ret = node->value.obj;
-    }
-  M_UNLOCK(_proxiesGate);
-  return ret;
 }
 
 - (id) includesLocalObject: (id)anObj
