@@ -6,6 +6,7 @@ Sun Nov 21  6:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	* Source/UnixFileHandle.m: ([-availableData]) fixed to block when no
 	data is availabvle on a comms channel - as per spec.  This bug was
 	also reported by Dan <dan@services.iirux.ro>
+	* Source/NSHost.m: Use inet_aton() if available.
 
 1999-11-18  Adam Fedor  <fedor@gnu.org>
 
