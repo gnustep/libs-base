@@ -1,3 +1,8 @@
+2000-05-25  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/GSIArray.h: remove config.h
+	* Headers/gnustep/base/GSIMap.h: Likewise.
+
 2000-05-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: ([-directoryContentsAtPath:])
