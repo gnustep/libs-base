@@ -120,7 +120,7 @@ main(int argc, char** argv, char **env)
       [fileContents appendFormat: @"#TryExec=%@.app\n", entry];
     }
 
-  list = [plist objectForKey: @"Types"];
+  list = [plist objectForKey: @"NSTypes"];
   if (list != nil)
   {
     int i;
@@ -128,10 +128,19 @@ main(int argc, char** argv, char **env)
     [fileContents appendString: @"MimeType="];
     for (i = 0; i < [list count]; i++)
     {
+      NSArray *types;
+      int j;
+
       plist = [list objectAtIndex: i];
-      entry = [plist objectForKey: @"NSMIMETypes"];
-      if (entry != nil)
-	[fileContents appendFormat: @"%@;", entry];
+      types = [plist objectForKey: @"NSMIMETypes"];
+      if (types != nil)
+        {
+	  for (j = 0; j < [types count]; j++)
+	  {
+	    entry = [types objectAtIndex: j];
+	    [fileContents appendFormat: @"%@;", entry];
+	  }
+	}
     }
     [fileContents appendString: @"\n"];
   }
