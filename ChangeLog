@@ -1,8 +1,8 @@
 Wed Feb 16 06:28:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSAssertionHandler.m: Applied patch by David relson to change
-	output format for function assertions and made similar changes for
-	method assertions.
+	output format for function assertions, fixed error in format string,
+	 and made similar changes for method assertions.
 
 2000-02-14  Adam Fedor  <fedor@gnu.org>
 

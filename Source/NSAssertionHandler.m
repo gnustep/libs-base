@@ -59,7 +59,7 @@ static NSString *dict_key = @"_NSAssertionHandler";
   va_start(ap, format);
   message =
     [NSString
-      stringWithFormat: @"%s:%d  Assertion failed in %@.  %@",
+      stringWithFormat: @"%@:%d  Assertion failed in %@.  %@",
       fileName, line, functionName, format];
   NSLogv(message, ap);
   va_end(ap);
@@ -81,7 +81,7 @@ static NSString *dict_key = @"_NSAssertionHandler";
   va_start(ap, format);
   message =
     [NSString
-      stringWithFormat: @"%s:%d  Assertion failed in %s, method %s.  %@",
+      stringWithFormat: @"%@:%d  Assertion failed in %s, method %s.  %@",
       fileName, line, object_get_class_name(object), sel_get_name(aSelector),
       format];
   NSLogv(message, ap);
