@@ -621,36 +621,44 @@ static NSMutableString   *processName = nil;
   return;
 }
 
-- (BOOL)synchronize
+- (BOOL) synchronize
 {
   NSMutableDictionary *newDict = nil;
 		
   if (tickingTimer == nil)
     {
-      [NSTimer scheduledTimerWithTimeInterval:30
-	       target:self
-	       selector:@selector(__timerTicked:)
-	       userInfo:nil
-	       repeats:NO];
+      tickingTimer = [NSTimer scheduledTimerWithTimeInterval: 30
+	       target: self
+	       selector: @selector(__timerTicked:)
+	       userInfo: nil
+	       repeats: NO];
     }
 
   // Get file lock - break any lock that is more than five minute old.
   if ([defaultsDatabaseLock tryLock] == NO)
-    if ([[defaultsDatabaseLock lockDate] timeIntervalSinceNow] < -300.0)
     {
-      [defaultsDatabaseLock breakLock];
-      if ([defaultsDatabaseLock tryLock] == NO)
-        return NO;
+      if ([[defaultsDatabaseLock lockDate] timeIntervalSinceNow] < -300.0)
+	{
+	  [defaultsDatabaseLock breakLock];
+	  if ([defaultsDatabaseLock tryLock] == NO)
+	    {
+	      return NO;
+	    }
+	}
+      else
+	{
+	  return NO;
+	}
     }
-    else
-      return NO;
 	
   DESTROY(dictionaryRep);
 
   // Read the persistent data from the stored database
   if ([[NSFileManager defaultManager] fileExistsAtPath: defaultsDatabase])
-    newDict = [[NSMutableDictionary allocWithZone:[self zone]]
-		initWithContentsOfFile:defaultsDatabase];
+    {
+      newDict = [[NSMutableDictionary allocWithZone: [self zone]]
+		initWithContentsOfFile: defaultsDatabase];
+    }
   else
     {
       NSLog(@"Creating defaults database file %@", defaultsDatabase);
@@ -659,9 +667,11 @@ static NSMutableString   *processName = nil;
 				  attributes: nil];
     }
 
-    if (!newDict)
-      newDict = [[NSMutableDictionary allocWithZone:[self zone]]
-		  initWithCapacity:1];
+  if (!newDict)
+    {
+      newDict = [[NSMutableDictionary allocWithZone: [self zone]]
+		  initWithCapacity: 1];
+    }
 
   if (changedDomains)
     {           // Synchronize both dictionaries
@@ -670,16 +680,20 @@ static NSMutableString   *processName = nil;
 		
       while ((obj = [enumerator nextObject]))
 	{
-	  dict = [persDomains objectForKey:obj];
-	  if (dict)       // Domane was added or changet
-	    [newDict setObject:dict forKey:obj];
+	  dict = [persDomains objectForKey: obj];
+	  if (dict)       // Domain was added or changet
+	    {
+	      [newDict setObject: dict forKey: obj];
+	    }
 	  else            // Domain was removed
-	    [newDict removeObjectForKey:obj];
+	    {
+	      [newDict removeObjectForKey: obj];
+	    }
 	}
       [persDomains release];
       persDomains = newDict;
       // Save the changes
-      if (![persDomains writeToFile:defaultsDatabase atomically:YES])
+      if (![persDomains writeToFile: defaultsDatabase atomically: YES])
 	{
 	  [defaultsDatabaseLock unlock];
 	  return NO;
@@ -698,9 +712,10 @@ static NSMutableString   *processName = nil;
 			  object: nil];
 	}
       else
-	[newDict release];
+	{
+	  [newDict release];
+	}
     }
-	
 
   return YES;
 }
