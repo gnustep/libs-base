@@ -1,5 +1,5 @@
 /* NSDictionary - Dictionary object to store key/value pairs
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -181,8 +181,16 @@ static Class NSMutableDictionary_concrete_class;
 
 - initWithContentsOfFile: (NSString*)path
 {
-  [self notImplemented:_cmd];
-  return 0;
+  NSString 	*myString;
+
+  myString = [[NSString alloc] initWithContentsOfFile:path];
+  if (myString)
+    {
+      [self initWithDictionary: (NSDictionary*) [myString propertyList]];
+      return self;
+    }
+  [self autorelease];
+  return nil;
 }
 
 - (unsigned) count
