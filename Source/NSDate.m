@@ -65,10 +65,9 @@
 #ifndef __WIN32__
   volatile NSTimeInterval interval;
   struct timeval tp;
-  struct timezone tzp;
 
   interval = UNIX_REFERENCE_INTERVAL;
-  gettimeofday (&tp, &tzp);
+  gettimeofday (&tp, NULL);
   interval += tp.tv_sec;
   interval += (double)tp.tv_usec / 1000000.0;
 
@@ -262,6 +261,11 @@
   return seconds_since_ref - UNIX_REFERENCE_INTERVAL;
 }
 
+- (NSTimeInterval) timeIntervalSince1970
+{
+  return seconds_since_ref - UNIX_REFERENCE_INTERVAL;
+}
+
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
   return seconds_since_ref - [otherDate timeIntervalSinceReferenceDate];
@@ -301,7 +305,7 @@
 - (BOOL) isEqual: (id)other
 {
   if ([other isKindOf: [NSDate class]] 
-      && 1.0 > (seconds_since_ref - [other timeIntervalSinceReferenceDate]))
+      && 1.0 > ABS(seconds_since_ref - [other timeIntervalSinceReferenceDate]))
     return YES;
   return NO;
 }		
