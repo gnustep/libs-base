@@ -1,3 +1,12 @@
+Fri Jan  4 10:15:48 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Tools/HTMLLinker.m: Implemented -FixupAllLinks, -PathMappings,
+	-PathMappingsFile options.  Made -CheckLinks default to YES.
+	Added support for specifying a directory as input or destination
+	file, meaning all html files found in the directory.  Never
+	attempt to fixup links starting with mailto: or news: or without a
+	filename, even if running with -FixupAllLinks YES.
+	
 2002-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/autogsdoc.m: Fixup bug in html relocation code ... was
