@@ -1,3 +1,9 @@
+2004-09-27 15:51  Alexander Malmberg <alexander@malmberg.org>
+
+	* configure.ac:	Change SO_REUSADDR to SO_REUSEADDR in the checking
+	message. Reported by Alex Perez.
+	* configure: Regenerate.
+
 2004-09-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDebug.m: Remove checks for existence of lock ... it always
