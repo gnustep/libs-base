@@ -57,12 +57,26 @@
  *	GSI_ARRAY_NO_RETAIN
  *		Defined if no retain operation is needed for a an item
  */
+#ifdef	GSI_ARRAY_NO_RETAIN
+#ifdef	GSI_ARRAY_RETAIN
+#undef	GSI_ARRAY_RETAIN
+#endif
+#define	GSI_ARRAY_RETAIN(X)	
+#else
 #ifndef	GSI_ARRAY_RETAIN
 #define	GSI_ARRAY_RETAIN(X)	[(X).obj retain]
 #endif
+#endif
 
+#ifdef	GSI_ARRAY_NO_RELEASE
+#ifdef	GSI_ARRAY_RELEASE
+#undef	GSI_ARRAY_RELEASE
+#endif
+#define	GSI_ARRAY_RELEASE(X)	
+#else
 #ifndef	GSI_ARRAY_RELEASE
 #define	GSI_ARRAY_RELEASE(X)	[(X).obj release]
+#endif
 #endif
 
 /*
