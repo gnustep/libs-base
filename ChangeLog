@@ -1,3 +1,9 @@
+Sun Jan 16  9:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Moved objc-load.c to objc-load.m and filnd-exec.c to find-exec.m
+	Added logging functions to objc-load.m so that logging can be
+	enabled at runtime using --GNU-Debug=NSBundle
+
 Sun Jan  9 15:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSGAttributedString.m: ([-attributesAtIndex:effectiveRange:])

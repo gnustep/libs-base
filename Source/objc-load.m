@@ -35,6 +35,8 @@
 #include <objc/objc-list.h>
 #include <config.h>
 #include <Foundation/objc-load.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSDebug.h>
 
 /* include the interface to the dynamic linker */
 #include "dynamic-load.h"
@@ -99,9 +101,8 @@ objc_initialize_loading(FILE *errorStream)
 
     dynamic_loaded = NO;
     path   = objc_executable_location();
-#ifdef DEBUG
-    printf("Debug (objc-load): initializing dynamic loader for %s\n", path);
-#endif
+    NSDebugFLLog(@"NSBundle",
+      @"Debug (objc-load): initializing dynamic loader for %s", path);
     if (__objc_dynamic_init(path)) {
 	if (errorStream)
 	    __objc_dynamic_error(errorStream, "Error (objc-load): Cannot initialize dynamic linker");
@@ -152,9 +153,8 @@ objc_load_module(
     _objc_load_callback = objc_load_callback;
 
     /* Link in the object file */
-#ifdef DEBUG
-    printf("Debug (objc-load): Linking file %s\n", filename);
-#endif
+    NSDebugFLLog(@"NSBundle",
+      @"Debug (objc-load): Linking file %s\n", filename);
     handle = __objc_dynamic_link(filename, 1, debugFilename);
     if (handle == 0) {
 	if (errorStream)
@@ -178,13 +178,11 @@ objc_load_module(
 	return 1;
     }
 
-#ifdef DEBUG
-    printf("Debug (objc-load): %d modules\n", (int)ctor_list[0]);
-#endif
+    NSDebugFLLog(@"NSBundle",
+      @"Debug (objc-load): %d modules\n", (int)ctor_list[0]);
     for (i=1; ctor_list[i]; i++) {
-#ifdef DEBUG
-	printf("Debug (objc-load): Invoking CTOR %p\n", ctor_list[i]);
-#endif
+	NSDebugFLLog(@"NSBundle",
+	  @"Debug (objc-load): Invoking CTOR %p\n", ctor_list[i]);
 	ctor_list[i]();
     }
 #endif /* not __ELF__ */
