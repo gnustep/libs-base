@@ -384,13 +384,23 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithCharacters: (const unichar*)chars
 		   length: (unsigned)length
 {
-    NSZone	*z = [self zone];
-    unichar	*s = NSZoneMalloc(z, sizeof(unichar)*length);
+  NSZone	*z;
+  unichar	*s;
 
-    if (chars)
+  if (length > 0)
+    {
+      z = [self zone];
+      s = NSZoneMalloc(z, sizeof(unichar)*length);
+      if (chars)
 	memcpy(s, chars, sizeof(unichar)*length);
+    }
+  else
+    {
+      s = 0;
+      z = 0;
+    }
 
-    return [self initWithCharactersNoCopy: s length: length fromZone: z];
+  return [self initWithCharactersNoCopy: s length: length fromZone: z];
 }
 
 - (id) initWithCStringNoCopy: (char*)byteString
@@ -400,7 +410,7 @@ handle_printf_atsign (FILE *stream,
   if (flag)
     return [self initWithCStringNoCopy: byteString
 				length: length
-			      fromZone: NSZoneFromPointer(byteString)];
+			      fromZone: length?NSZoneFromPointer(byteString):0];
   else
     return [self initWithCStringNoCopy: byteString
 				length: length
@@ -418,12 +428,25 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithCString: (const char*)byteString  length: (unsigned)length
 {
-    NSZone	*z = [self zone];
-    char	*s = NSZoneMalloc(z, length);
+  NSZone	*z;
+  char		*s;
 
-    if (byteString)
-	memcpy(s, byteString, length);
-    return [self initWithCStringNoCopy: s length: length fromZone: z];
+  if (length > 0)
+    {
+      z = [self zone];
+      s = NSZoneMalloc(z, length);
+      if (byteString)
+	{
+	  memcpy(s, byteString, length);
+	}
+    }
+  else
+    {
+      s = 0;
+      z = 0;
+    }
+
+  return [self initWithCStringNoCopy: s length: length fromZone: z];
 }
 
 - (id) initWithCString: (const char*)byteString
@@ -434,14 +457,24 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithString: (NSString*)string
 {
-    NSZone	*z = [self zone];
-    unsigned	length = [string length];
-    unichar	*s = NSZoneMalloc(z, sizeof(unichar)*length);
+  unsigned	length = [string length];
+  NSZone	*z;
+  unichar	*s;
 
-    [string getCharacters: s];
-    return [self initWithCharactersNoCopy: s
-				   length: length
-				 fromZone: z];
+  if (length > 0)
+    {
+      z = [self zone];
+      s = NSZoneMalloc(z, sizeof(unichar)*length);
+      [string getCharacters: s];
+    }
+  else
+    {
+      s = 0;
+      z = 0;
+    }
+  return [self initWithCharactersNoCopy: s
+				 length: length
+			       fromZone: z];
 }
 
 - (id) initWithFormat: (NSString*)format,...
@@ -568,34 +601,50 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (id) initWithFormat: (NSString*)format
-   locale: (NSDictionary*)dictionary
-   arguments: (va_list)argList
+	       locale: (NSDictionary*)dictionary
+	    arguments: (va_list)argList
 {
   [self notImplemented: _cmd];
   return self;
 }
 
 - (id) initWithData: (NSData*)data
-   encoding: (NSStringEncoding)encoding
+	   encoding: (NSStringEncoding)encoding
 {
   if ((encoding==[NSString defaultCStringEncoding])
     || (encoding==NSASCIIStringEncoding))
     {
-      NSZone *z = fastZone(self);
-      int len=[data length];
-      char *s = NSZoneMalloc(z, len+1);
+      unsigned	len=[data length];
+      NSZone	*z;
+      char	*s;
 
-      [data getBytes: s];
+      if (len > 0)
+	{
+	  z = fastZone(self);
+	  s = NSZoneMalloc(z, len);
+	  [data getBytes: s];
+	}
+      else
+	{
+	  s = 0;
+	  z = 0;
+	}
       return [self initWithCStringNoCopy: s length: len fromZone: z];
     }
   else
     {
-      NSZone *z = fastZone(self);
-      int len=[data length];
-      unichar *u = NSZoneMalloc(z, sizeof(unichar)*(len+1));
-      int count;
-      const unsigned char *b=[data bytes];
+      unsigned	len = [data length];
+      NSZone	*z;
+      unichar	*u;
+      unsigned	count;
+      const unsigned char *b;
 
+      if (len < 2)
+	return [self initWithCStringNoCopy: 0 length: 0 fromZone: z];
+
+      z = fastZone(self);
+      b=[data bytes];
+      u = NSZoneMalloc(z, sizeof(unichar)*(len+1));
       if (encoding==NSUnicodeStringEncoding)
         {
 	  if ((b[0]==0xFE)&(b[1]==0xFF))
@@ -617,10 +666,14 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithContentsOfFile: (NSString*)path
 {
   NSStringEncoding enc;
-  id d = [NSData dataWithContentsOfFile: path];
-  const unsigned char *test=[d bytes];
+  id	d = [NSData dataWithContentsOfFile: path];
+  const unsigned char *test;
 
-  if (d == nil) return nil;
+  if (d == nil)
+    return nil;
+  if ([d length] < 2)
+    return @"";
+  test = [d bytes];
   if (test && (((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE))))
     enc = NSUnicodeStringEncoding;
   else
@@ -630,8 +683,8 @@ handle_printf_atsign (FILE *stream,
 
 - (id) init
 {
- self = [super init];
- return self;
+  self = [super init];
+  return self;
 }
 
 // Getting a String's Length
@@ -912,19 +965,23 @@ handle_printf_atsign (FILE *stream,
 
 - (BOOL) isEqual: (id)anObject
 {
-    if (anObject == self) {
-	return YES;
+  if (anObject == self)
+    {
+      return YES;
     }
-    if (anObject != nil) {
-	Class c = fastClassOfInstance(anObject);
+  if (anObject != nil)
+    {
+      Class c = fastClassOfInstance(anObject);
 
-	if (c != nil) {
-	    if (fastClassIsKindOfClass(c, NSString_class)) {
-		return [self isEqualToString: anObject];
+      if (c != nil)
+	{
+	  if (fastClassIsKindOfClass(c, NSString_class))
+	    {
+	      return [self isEqualToString: anObject];
 	    }
 	}
     }
-    return NO;
+  return NO;
 }
 
 - (BOOL) isEqualToString: (NSString*)aString
@@ -1244,54 +1301,63 @@ handle_printf_atsign (FILE *stream,
 // but this will work in most cases
 - (NSString*) capitalizedString
 {
-  NSZone *z = fastZone(self);
-  unichar *s;
-  int count=0;
-  BOOL found=YES;
-  int len=[self length];
+  NSZone	*z;
+  unichar	*s;
+  unsigned	count = 0;
+  BOOL		found = YES;
+  unsigned	len = [self length];
 
+  if (len == 0)
+    return self;
   if (whitespce == nil)
     setupWhitespce();
 
-  s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
+  z = fastZone(self);
+  s = NSZoneMalloc(z, sizeof(unichar)*len);
   [self getCharacters: s];
-  s[len] = (unichar)0;
   while (count<len)
-  {
-    if ((*whitespceImp)(whitespce, cMemberSel, s[count]))
     {
-      count++;
-      found=YES;
-      while ((*whitespceImp)(whitespce, cMemberSel, s[count]) && (count < len))
-        count++;
-    };
-    if (found)
-    {
-      s[count]=uni_toupper(s[count]);
-      count++;
+      if ((*whitespceImp)(whitespce, cMemberSel, s[count]))
+	{
+	  count++;
+	  found=YES;
+	  while ((*whitespceImp)(whitespce, cMemberSel, s[count])
+	    && (count < len))
+	    {
+	      count++;
+	    }
+	}
+      if (found)
+	{
+	  s[count] = uni_toupper(s[count]);
+	  count++;
+	}
+      else
+	{
+	  while (!(*whitespceImp)(whitespce, cMemberSel, s[count])
+	    && (count < len))
+	    {
+	      s[count] = uni_tolower(s[count]);
+	      count++;
+	    }
+	}
+      found=NO;
     }
-    else
-    {
-      while (!(*whitespceImp)(whitespce, cMemberSel, s[count]) && (count < len))
-      {
-        s[count]=uni_tolower(s[count]);
-        count++;
-      };
-    };
-    found=NO;
-  };
   return AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len fromZone: z]);
 }
 
 - (NSString*) lowercaseString
 {
-  NSZone	*z = fastZone(self);
+  NSZone	*z;
   unichar	*s;
   unsigned	count;
   unsigned	len = [self length];
 
-  s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
+  if (len == 0)
+    return self;
+  z = fastZone(self);
+  s = NSZoneMalloc(z, sizeof(unichar)*len);
   for (count = 0; count < len; count++)
     s[count] = uni_tolower([self characterAtIndex: count]);
   return AUTORELEASE([[NSString_concrete_class
@@ -1301,12 +1367,15 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) uppercaseString;
 {
-  NSZone	*z = fastZone(self);
+  NSZone	*z;
   unichar	*s;
   unsigned	count;
   unsigned	len = [self length];
 
-  s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
+  if (len == 0)
+    return self;
+  z = fastZone(self);
+  s = NSZoneMalloc(z, sizeof(unichar)*len);
   for (count = 0; count < len; count++)
     s[count] = uni_toupper([self characterAtIndex: count]);
   return AUTORELEASE([[NSString_concrete_class
@@ -1353,11 +1422,12 @@ handle_printf_atsign (FILE *stream,
 
 // xxx FIXME adjust range for composite sequence
 - (void) getCString: (char*)buffer
-   maxLength: (unsigned)maxLength
-   range: (NSRange)aRange
-   remainingRange: (NSRange*)leftoverRange
+	  maxLength: (unsigned)maxLength
+	      range: (NSRange)aRange
+     remainingRange: (NSRange*)leftoverRange
 {
-  int len, count;
+  unsigned	len;
+  unsigned	count;
 
   len = [self cStringLength];
   GS_RANGE_CHECK(aRange, len);
@@ -1380,12 +1450,12 @@ handle_printf_atsign (FILE *stream,
 	  leftoverRange->length = aRange.length - maxLength;
 	}
     }
-  count=0;
-  while (count<len)
-  {
-    buffer[count]=unitochar([self characterAtIndex: aRange.location + count]);
-    count++;
-   }
+  count = 0;
+  while (count < len)
+    {
+      buffer[count]=unitochar([self characterAtIndex: aRange.location + count]);
+      count++;
+    }
   buffer[len] = '\0';
 }
 
@@ -1396,9 +1466,9 @@ handle_printf_atsign (FILE *stream,
 
 - (BOOL) boolValue
 {
-    if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame) 
-	return YES;
-    return [self intValue] != 0 ? YES : NO;
+  if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame) 
+    return YES;
+  return [self intValue] != 0 ? YES : NO;
 }
 
 - (double) doubleValue
@@ -1464,6 +1534,9 @@ handle_printf_atsign (FILE *stream,
 {
   int count=0;
   int len = [self length];
+
+  if (len == 0)
+    return [NSData data];
 
   if ((encoding==NSASCIIStringEncoding)
     || (encoding==NSISOLatin1StringEncoding)
@@ -2167,7 +2240,7 @@ handle_printf_atsign (FILE *stream,
     return RETAIN(self);
 }
 
-- mutableCopyWithZone: (NSZone*)zone
+- (id) mutableCopyWithZone: (NSZone*)zone
 {
   return [[[[self class] _mutableConcreteClass] allocWithZone: zone]
 	  initWithString: self];
@@ -2175,15 +2248,15 @@ handle_printf_atsign (FILE *stream,
 
 /* NSCoding Protocol */
 
-- (void) encodeWithCoder: anEncoder
+- (void) encodeWithCoder: (NSCoder*)anEncoder
 {
-    [self subclassResponsibility: _cmd];
+  [self subclassResponsibility: _cmd];
 }
 
-- initWithCoder: aDecoder
+- (id) initWithCoder: (NSCoder*)aDecoder
 {
-    [self subclassResponsibility: _cmd];
-    return self;
+  [self subclassResponsibility: _cmd];
+  return self;
 }
 
 - (Class) classForArchiver
@@ -2266,7 +2339,7 @@ handle_printf_atsign (FILE *stream,
 
 @implementation NSMutableString
 
-+ allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
   if ([self class] == [NSMutableString class])
     return NSAllocateObject([self _mutableConcreteClass], 0, z);
@@ -2283,7 +2356,7 @@ handle_printf_atsign (FILE *stream,
 
 /* Inefficient. */
 + (NSString*) stringWithCharacters: (const unichar*)characters
-   length: (unsigned)length
+			    length: (unsigned)length
 {
   id n;
   n =  [[self allocWithZone: NSDefaultMallocZone()]
@@ -2316,7 +2389,7 @@ handle_printf_atsign (FILE *stream,
 
 // Initializing Newly Allocated Strings
 
-- initWithCapacity: (unsigned)capacity
+- (id) initWithCapacity: (unsigned)capacity
 {
   [self subclassResponsibility: _cmd];
   return self;
