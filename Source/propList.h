@@ -768,9 +768,12 @@ static id parsePl(pldata* pld)
     {
       NSData		*data;
       GSXMLParser	*parser;
+      char		*buf = NSZoneMalloc(NSDefaultMallocZone(), pld->end+1);
 
-      data = [NSData dataWithBytes: pld->ptr length: pld->end]; 
-      NSLog(@"Parsing '%*s'", pld->end, pld->ptr);
+      memcpy(buf, pld->ptr, pld->end);
+      buf[pld->end] = '\0';
+      data = [NSData dataWithBytesNoCopy: buf length: pld->end+1]; 
+      NSLog(@"Parsing '%s'", buf);
       parser = [GSXMLParser parser: data];
       if ([parser parse] == YES)
 	{
