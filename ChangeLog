@@ -8,6 +8,9 @@
 	* Source/NSHashTable.m: Update for macosx compatibility, add some
 	documentation and move stuff from externs.m
 	* Source/externs.m: Remove map and hash table stuff
+	* Source/NSException.m: Fix documentation cross ref error.
+	* Source/NSAssertion.m: Improve documentation.
+	* Headers/gnustep/base/NSException.h: Include assertion documentation.
 	* Headers/gnustep/base/NSMapTable.h: Update for macosx compatibility.
 	* Headers/gnustep/base/NSHashTable.h: Ditto
 	* Tools/AGSHtml.m: Fix typo ... excess semicolon in constant output.
