@@ -359,6 +359,49 @@ new_object_table()
 	  keyType:@encode(unsigned)];
 }
 
+#if 0
+/* Think about this new implementation, 
+   but careful not to break ConnectedCoder. */
+
+- (unsigned) _coderCreateReferenceForObject: anObj
+{
+  unsigned xref;
+  if (!object_table)
+    {
+      if ([self isDecoding])
+	object_table = [Array new];
+      else
+	object_table = [[Dictionary alloc] initWithType: @encode(id)
+					   keyType: @encode(void*)];
+    }
+  xref = [object_table count] + 1;
+  [object_table putElement:anObj atKey:xref];
+}
+
+/* Used when decoding. */
+- _coderObjectAtReference: (unsigned)xref
+{
+  assert (object_table);
+  assert ([self isDecoding]);
+  return [object_table elementAtKey:xref].id_u;
+}
+
+/* Used when encoding. */
+- (unsigned) _coderReferenceForObject: anObject
+{
+  assert (object_table);
+  assert (![self isDecoding]);
+  return [object_table elementAtKey: (void*)anObject].unsigned_u;
+}
+
+- (BOOL) _coderHasReferenceForObject: anObject
+{
+  assert (object_table);
+  return [object_table includesKey: (void*)anObject];
+}
+
+#endif
+
 - (BOOL) _coderHasObjectReference: (unsigned)xref
 {
   if (!object_table)
