@@ -1,8 +1,9 @@
 /* NSArray - Array object to hold other objects.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1995 Free Software Foundation, Inc.
    
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
-   Date: Mar 1995
+   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Date: March 1995
    
    This file is part of the GNU Objective C Class Library.
    
@@ -23,283 +24,348 @@
 
 #include <foundation/NSArray.h>
 #include <foundation/NSString.h>
+#include <foundation/NSConcreteArray.h>
+#include <limits.h>
 
 @implementation NSArray
 
-+ allocWithZone:(NSZone *)zone
-{
-  return [[[NSArray alloc] init] autorelease];
-}
-
 + array
 {
-  return [[[self alloc] init] autorelease];
+  return [[[NSConcreteArray alloc] init] autorelease];
 }
 
-+ arrayWithObject:anObject
++ arrayWithObject: anObject
 {
-  return [[[[self alloc] init] addObject: anObject] autorelease];
+  id a = [[[NSConcreteArray class] alloc] init];
+  [a addObject: anObject];
+  return [a autorelease];
 }
 
-+ arrayWithObjects:firstObj, ...
+/* This is the designated initializer for NSArray. */
+- initWithObjects: (id*)objects count: (unsigned)count
 {
-  va_list ap;
-  Array *n = [[self alloc] init];
-  id o;
- 
-  [n addObject:firstObject];
-  va_start(ap, firstObject);
-  while ((o = va_arg(ap, id)))
-    [n addObject:o];
-  va_end(ap);
-  return [n autorelease];
+  [self notImplemented:_cmd];
+  return nil;
 }
 
-- initWithObjects:(id *)objects count:(unsigned)count
+/* Not very pretty... */
+#define INITIAL_OBJECTS_SIZE 10
+- initWithObjects: firstObject rest: (va_list)ap
 {
-  [self initWithCapacity:count];
-  while (count--)
-    [self addObject:objects[count]];
+  id *objects;
+  int i = 0;
+  int s = INITIAL_OBJECTS_SIZE;
+
+  OBJC_MALLOC(objects, id, s);
+  if (firstObject != nil)
+    {
+      objects[i++] = firstObject;
+      while ((objects[i++] = va_arg(ap, id)))
+	{
+	  if (i >= s)
+	    {
+	      s *= 2;
+	      OBJC_REALLOC(objects, id, s);
+	    }
+	}
+    }
+  self = [self initWithObjects:objects count:i-1];
+  OBJC_FREE(objects);
   return self;
 }
 
-- initWithObjects:firstObj, ...
+- initWithObjects: firstObject, ...
 {
   va_list ap;
-  id o;
- 
-  [super init];
-  [self addObject:firstObject];
   va_start(ap, firstObject);
-  while ((o = va_arg(ap, id)))
-    [self addObject:o];
+  self = [self initWithObjects:firstObject rest:ap];
   va_end(ap);
   return self;
 }
 
-- initWithArray:(NSArray *)array
++ arrayWithObjects: firstObject, ...
+{
+  va_list ap;
+  va_start(ap, firstObject);
+  self = [[NSConcreteArray alloc] initWithObjects:firstObject rest:ap];
+  va_end(ap);
+  return [self autorelease];
+}
+
+
+- initWithArray: (NSArray*)array
 {
   int i, c;
+  id *objects;
  
   c = [array count];
-  [self initWithCapacity:c];
+  OBJC_MALLOC(objects, id, c);
   for (i = 0; i < c; i++)
-    [self addObject:[array objectAtIndex:i]];
-  return self;
+    objects[i] = [array objectAtIndex:i];
+  return [self initWithObjects:objects count:c];
 }
 
 
-- (unsigned)count
-{
-  return [super count];
-}
-
-- objectAtIndex:(unsigned)index
-{
-  return [super objectAtIndex:index];
-}
-
-- (unsigned)indexOfObjectIdenticalTo:anObject
+- (unsigned) count
 {
   [self notImplemented:_cmd];
   return 0;
 }
 
-- (unsigned)indexOfObject:anObject
+- objectAtIndex: (unsigned)index
 {
-  return [super indexOfObject:anObject];
+  [self notImplemented:_cmd];
+  return nil;
 }
 
-- (BOOL)containsObject:anObject
+- (unsigned) indexOfObjectIdenticalTo:anObject
 {
-  return [super includesObject:anObject];
+  int i, c = [self count];
+  for (i = 0; i < c; i++)
+    if (anObject == [self objectAtIndex:i])
+      return i;
+  return UINT_MAX;
 }
 
-- (BOOL)isEqualToArray:(NSArray *)otherArray;
+/* Inefficient, should be overridden. */
+- (unsigned) indexOfObject: anObject
 {
-  int i;
+  int i, c = [self count];
+  for (i = 0; i < c; i++)
+    if ([[self objectAtIndex:i] isEqual: anObject])
+      return i;
+  return UINT_MAX;
+}
+
+- (BOOL) containsObject: anObject
+{
+  return ([self indexOfObject:anObject] != UINT_MAX);
+}
+
+- (BOOL) isEqual: anObject
+{
+  if ([anObject isKindOf:[NSArray class]])
+    return [self isEqualToArray:anObject];
+  return NO;
+}
+
+- (BOOL) isEqualToArray: (NSArray*)otherArray
+{
+  int i, c = [self count];
  
-  if (_count != [otherArray count])
+  if (c != [otherArray count])
     return NO;
-  for (i = 0; i < _count; i++)
-    if ([_contents_array[i].id_u isEqual:[otherArray objectAtIndex:i]])
+  for (i = 0; i < c; i++)
+    if ([[self objectAtIndex:i] isEqual:[otherArray objectAtIndex:i]])
       return NO;
   return YES;
 }
 
 - lastObject
 {
-  return [super lastObject];
+  int count = [self count];
+  assert(count);		/* xxx should raise an NSException instead */
+  return [self objectAtIndex:count-1];
 }
 
-- (void)makeObjectsPerform:(SEL)aSelector
+- (void) makeObjectsPerform: (SEL)aSelector
+{
+  int i, c = [self count];
+  for (i = 0; i < c; i++)
+    [[self objectAtIndex:i] perform:aSelector];
+}
+
+- (void) makeObjectsPerform: (SEL)aSelector withObject:argument
+{
+  int i, c = [self count];
+  for (i = 0; i < c; i++)
+    [[self objectAtIndex:i] perform:aSelector withObject:argument];
+}
+
+
+- (NSArray*) sortedArrayUsingSelector: (SEL)comparator
 {
   [self notImplemented:_cmd];
+  return nil;
 }
 
-- (void)makeObjectsPerform:(SEL)aSelector withObject:argument
+- (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
+   context: (void*)context
 {
   [self notImplemented:_cmd];
+  return nil;
 }
 
-
-- (NSArray *)sortedArrayUsingSelector:(SEL)comparator
-{
-  id n = [self copy];
-  int compare(id o1, id o2)
-    {
-      return (int) [o1 perform:comparator with:o2];
-    }
-  [n sortObjectsByCalling:compare];
-  return [n autorelease];
-}
-
-- (NSArray *)sortedArrayUsingFunction:(int (*)(id, id, void *))comparator 
- context:(void *)context
-{
-  id n = [self copy];
-  int compare(id o1, id o2)
-    {
-      return comparator(o1, o2, context);
-    }
-  [n sortObjectsByCalling:compare];
-  return [n autorelease];
-}
-
-- (NSString *)componentsJoinedByString:(NSString *)separator
+- (NSString*) componentsJoinedByString: (NSString*)separator
 {
   [self notImplemented:_cmd];
   return 0;
 }
 
 
-- firstObjectCommonWithArray:(NSArray *)otherArray
+- firstObjectCommonWithArray: (NSArray*)otherArray
 {
-  BOOL is_in_otherArray (id o)
-    {
-      return [otherArray containsObject:o];
-    }
-  id none_found(arglist_t a)
-    {
-      return nil;
-    }
-  return [self detectObjectByCalling:is_in_otherArray
-	ifNoneCall:none_found];
+  int i, c = [self count];
+  id o;
+  for (i = 0; i < c; i++)
+    if ([otherArray containsObject:(o = [self objectAtIndex:i])])
+      return o;
+  return nil;
 }
 
-- (NSArray *)subarrayWithRange:(NSRange)range
-{
-  id n = [self emptyCopy];
-  [self notImplemented:_cmd];
-  return [n autorelease];
-}
-
-//- (NSEnumerator *)objectEnumerator
-//{
-  //    [self notImplemented:_cmd];
-  //}
-
-//- (NSEnumerator *)reverseObjectEnumerator
-//{
-  //    [self notImplemented:_cmd];
-  //    return 0;
-  //}
-
-- (NSString *)description
+- (NSArray*)subarrayWithRange: (NSRange)range
 {
   [self notImplemented:_cmd];
-  return 0;
+  return nil;
 }
 
-- (NSString *)descriptionWithIndent:(unsigned)level
+- (NSEnumerator*) objectEnumerator
 {
   [self notImplemented:_cmd];
-  return 0;
+  return nil;
 }
 
+- (NSEnumerator*) reverseObjectEnumerator
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+- (NSString*) description
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+- (NSString*) descriptionWithIndent: (unsigned)level
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+/* The NSCopying Protocol */
+
+- copyWithZone: (NSZone*)zone
+{
+  return [[[self class] allocWithZone:zone] initWithArray:self];
+}
+
+/* The NSMutableCopying Protocol */
+
+- mutableCopyWithZone: (NSZone*)zone
+{
+  return [[NSConcreteMutableArray allocWithZone:zone] initWithArray:self];
+}
 
 @end
 
 @implementation NSMutableArray: NSArray
 
-+ allocWithZone:(NSZone *)zone
++ arrayWithCapacity: (unsigned)numItems
 {
-  return [[[NSMutableArray alloc] init] autorelease];
+  return [[[[NSConcreteMutableArray class] alloc] initWithCapacity:numItems] 
+	  autorelease];
 }
 
-+ arrayWithCapacity:(unsigned)numItems
+/* This is the desgnated initializer for NSMutableArray */
+- initWithCapacity: (unsigned)numItems
 {
-  return [[[self alloc] initWithCapacity:numItems] autorelease];
+  [self notImplemented:_cmd];
+  return nil;
 }
 
-- initWithCapacity:(unsigned)numItems
+/* Not in OpenStep. */
+- (void) addObjects: (id*)objects count: (unsigned)count
 {
-  return [super initWithCapacity:numItems];
 }
 
-- (void)addObject:anObject
+/* Override our superclass's designated initializer to go our's */
+- initWithObjects: (id*)objects count: (unsigned)count
 {
-  [super addObject:[anObject retain]];
-}
-
-- (void)replaceObjectAtIndex:(unsigned)index withObject:anObject
-{
-  id old;
-  old = [super replaceObjectAtIndex:index with:[anObject retain]];
-  [old release];
-}
-
-- (void)removeLastObject
-{
-  [[super removeLastObject] release];
-}
-
-- (void)insertObject:anObject atIndex:(unsigned)index
-{
-  [super insertObject:[anObject retain] atIndex:index];
-}
-
-- (void)removeObjectAtIndex:(unsigned)index
-{
-  [[super removeObjectAtIndex:index] release];
-}
-
-- (void)removeObjectIdenticalTo:anObject
-{
+  /* xxx Could be made more efficient by increasing capacity all at once. */
   int i;
-  for (i = 0; i < _count; i++)
-    if (anObject == _contents_array[i].id_u)
-      return i;
-  return UINT_MAX;
+  self = [self initWithCapacity:count];
+  for (i = 0; i < count; i++)
+    [self addObject:objects[i]];
+  return self;
 }
 
-- (void)removeObject:anObject
-{
-  [[super removeObjectAtIndex:[super indexOfObject:anObject]] release];
-}
-
-- (void)removeAllObjects
+- (void) addObject: anObject
 {
   [self notImplemented:_cmd];
 }
 
-- (void)addObjectsFromArray:(NSArray *)otherArray
+- (void) replaceObjectAtIndex: (unsigned)index withObject: anObject
 {
   [self notImplemented:_cmd];
 }
 
-- (void)removeObjectsFromIndices:(unsigned *)indices numIndices:(unsigned)count
+- (void) insertObject: anObject atIndex: (unsigned)index
 {
   [self notImplemented:_cmd];
 }
 
-- (void)removeObjectsInArray:(NSArray *)otherArray
+- (void) removeObjectAtIndex: (unsigned)index
 {
   [self notImplemented:_cmd];
 }
 
-- (void)sortUsingFunction:(int (*)(id, id, void *))compare 
- context:(void *)context
+- (void) removeLastObject
+{
+  int count = [self count];
+  assert(count);		/* xxx should raise an NSException instead */
+  [self removeObjectAtIndex:count-1];
+}
+
+- (void) removeObjectIdenticalTo: anObject
+{
+  int i = [self indexOfObjectIdenticalTo:anObject];
+  assert (i != UINT_MAX);	/* xxx should raise an NSException instead */
+  [self removeObjectAtIndex:i];
+}
+
+- (void) removeObject: anObject
+{
+  int i = [self indexOfObject:anObject];
+  assert (i != UINT_MAX);	/* xxx should raise an NSException instead */
+  [self removeObjectAtIndex:i];
+}
+
+- (void) removeAllObjects
+{
+  [self notImplemented:_cmd];
+}
+
+- (void) addObjectsFromArray: (NSArray*)otherArray
+{
+  /* xxx Could be made more efficient by increasing capacity all at once. */
+  int i, c = [otherArray count];
+  for (i = 0; i < c; i++)
+    [self addObject:[otherArray objectAtIndex:i]];
+}
+
+- (void) removeObjectsFromIndices: (unsigned*)indices 
+   numIndices: (unsigned)count
+{
+  int compare_unsigned(const void *u1, const void *u2)
+    {
+      return *((int*)u1) - *((int*)u2);
+    }
+  /* xxx are we allowed to modify the contents of indices? */
+  qsort(indices, count, sizeof(unsigned), compare_unsigned);
+  while (count--)
+    [self removeObjectAtIndex:indices[count]];
+}
+
+- (void) removeObjectsInArray: (NSArray*)otherArray
+{
+  int i, c = [otherArray count];
+  for (i = 0; i < c; i++)
+    [self removeObject:[otherArray objectAtIndex:i]];
+}
+
+- (void) sortUsingFunction: (int(*)(id,id,void*))compare 
+   context: (void*)context
 {
   [self notImplemented:_cmd];
 }
