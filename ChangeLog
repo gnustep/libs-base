@@ -1,3 +1,9 @@
+2003-07-11 02:33  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSAssertionHandler.m: Use the correct key to store the
+	NSAssertionHandler in the thread dictionary, and document the
+	storing and the key.
+
 2003-07-09 15:54  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/Additions/Unicode.m (GSToUnicode, GSFromUnicode): Make sure
