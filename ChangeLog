@@ -1,3 +1,9 @@
+Thu Aug 30 20:03:19 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/objc-load.m (objc_load_module): Reset the load callbacks
+	to 0 when we abort loading the module because of an error
+	(Reported by Michael Scheibler <michael.scheibler@onevision.de>).
+
 Thu Aug 30 13:08:17 2001  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Documentation/gsdoc/NSObject.gsdoc: Added description of the
