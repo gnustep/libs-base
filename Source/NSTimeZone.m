@@ -820,7 +820,7 @@ static NSMapTable	*absolutes = 0;
  * <p>Time zone names in NSDates should be GMT, MET etc. not
  * Europe/Berlin, America/Washington etc.
  * </p>
- * The problem with this is that various time zones may use the
+ * <p>The problem with this is that various time zones may use the
  * same abbreviation (e.g. Australia/Brisbane and
  * America/New_York both use EST), and some time zones
  * may have different rules for daylight saving time even if the
