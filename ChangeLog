@@ -1,3 +1,11 @@
+2000-09-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Address problems reported by georg@ist.org ...
+	([-connectionWithRegisteredName:host:usingNameServer:]) avoid returning
+	local server connection - create new connection to it if necessary.
+	([-rootProxy]) return root object if sent to server connection.
+	Also added some more debug statements.
+
 2000-09-11  Adam Fedor  <fedor@gnu.org>
 
 	* Mingw fixes.
