@@ -36,6 +36,7 @@ main(int argc, char** argv, char **env)
   NSProcessInfo		*proc;
   NSArray		*args;
   unsigned		i;
+  int			retval = 0;
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
@@ -46,7 +47,7 @@ main(int argc, char** argv, char **env)
     {
       NSLog(@"plparse: unable to get process information!\n");
       [pool release];
-      exit(0);
+      exit(1);
     }
 
   args = [proc arguments];
@@ -86,10 +87,11 @@ main(int argc, char** argv, char **env)
 	    {
 	      GSPrintf(stderr, @"Parsing '%@' - %@\n", file,
 		[localException reason]);
+	      retval = 1;
 	    }
 	  NS_ENDHANDLER
 	}
     }
   [pool release];
-  return 0;
+  return retval;
 }
