@@ -37,6 +37,7 @@
 #include "Foundation/NSFileHandle.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSPathUtilities.h"
 #include "GNUstepBase/GSMime.h"
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -176,7 +177,7 @@ static NSLock			*urlLock = nil;
 static Class			sslClass = 0;
 
 static NSLock			*debugLock = nil;
-static char			debugFile[128];
+static NSString			*debugFile;
 
 static void debugRead(NSData *data)
 {
@@ -184,7 +185,8 @@ static void debugRead(NSData *data)
   int		d;
 
   [debugLock lock];
-  d = open(debugFile, O_WRONLY|O_CREAT|O_APPEND, 0644);
+  d = open([debugFile  fileSystemRepresentation], 
+	   O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
       s = [NSString stringWithFormat: @"\nRead %@ %u bytes - '",
@@ -202,7 +204,8 @@ static void debugWrite(NSData *data)
   int		d;
 
   [debugLock lock];
-  d = open(debugFile, O_WRONLY|O_CREAT|O_APPEND, 0644);
+  d = open([debugFile  fileSystemRepresentation], 
+	   O_WRONLY|O_CREAT|O_APPEND, 0644);
   if (d >= 0)
     {
       s = [NSString stringWithFormat: @"\nWrite %@ %u bytes - '",
@@ -240,8 +243,11 @@ static void debugWrite(NSData *data)
       urlCache = [NSMutableDictionary new];
       urlLock = [NSLock new];
       debugLock = [NSLock new];
-      sprintf(debugFile, "/tmp/GSHTTP.%d",
-	[[NSProcessInfo processInfo] processIdentifier]);
+      debugFile = [NSString stringWithFormat: @"%@/GSHTTP.%d", 
+			     NSTemporaryDirectory(),
+			     [[NSProcessInfo processInfo] processIdentifier]];
+      RETAIN(debugFile);
+
 #ifndef __MINGW__
       sslClass = [NSFileHandle sslClass];
 #endif
