@@ -206,16 +206,19 @@ static BOOL debug_binary_coder;
     case _C_FLT:
       {
 	volatile double value;
-	int exp, mantissa;
+	int exponent, mantissa;
+	short exponent_encoded;
 	value = *(float*)d;
 	/* Get the exponent */
-	value = frexp (value, &exp);
+	value = frexp (value, &exponent);
+	exponent_encoded = exponent;
+	NSParameterAssert (exponent_encoded == exponent);
 	/* Get the mantissa. */
 	value *= FLOAT_FACTOR;
 	mantissa = value;
 	assert (value - mantissa == 0);
 	/* Encode the value as its two integer components. */
-	WRITE_SIGNED_TYPE (&exp, int, htonl);
+	WRITE_SIGNED_TYPE (&exponent_encoded, short, htons);
 	WRITE_SIGNED_TYPE (&mantissa, int, htonl);
 	break;
       }
@@ -223,10 +226,13 @@ static BOOL debug_binary_coder;
     case _C_DBL:
       {
 	volatile double value;
-	int exp, mantissa1, mantissa2;
+	int exponent, mantissa1, mantissa2;
+	short exponent_encoded;
 	value = *(double*)d;
 	/* Get the exponent */
-	value = frexp (value, &exp);
+	value = frexp (value, &exponent);
+	exponent_encoded = exponent;
+	NSParameterAssert (exponent_encoded == exponent);
 	/* Get the first part of the mantissa. */
 	value *= FLOAT_FACTOR;
 	mantissa1 = value;
@@ -235,7 +241,7 @@ static BOOL debug_binary_coder;
 	mantissa2 = value;
 	assert (value - mantissa2 == 0);
 	/* Encode the value as its three integer components. */
-	WRITE_SIGNED_TYPE (&exp, int, htonl);
+	WRITE_SIGNED_TYPE (&exponent_encoded, short, htons);
 	WRITE_SIGNED_TYPE (&mantissa1, int, htonl);
 	WRITE_SIGNED_TYPE (&mantissa2, int, htonl);
 	break;
@@ -358,14 +364,15 @@ static BOOL debug_binary_coder;
 
     case _C_FLT:
       {
-	int exp, mantissa;
+	short exponent;
+	int mantissa;
 	double value;
 	/* Decode the exponent and mantissa. */
-	READ_SIGNED_TYPE (&exp, int, ntohl);
+	READ_SIGNED_TYPE (&exponent, short, ntohs);
 	READ_SIGNED_TYPE (&mantissa, int, ntohl);
 	/* Assemble them into a double */
 	value = mantissa / FLOAT_FACTOR;
-	value = ldexp (value, exp);
+	value = ldexp (value, exponent);
 	/* Put the double into the requested memory location as a float */
 	*(float*)d = value;
 	break;
@@ -373,15 +380,16 @@ static BOOL debug_binary_coder;
 
     case _C_DBL:
       {
-	int exp, mantissa1, mantissa2;
+	short exponent;
+	int mantissa1, mantissa2;
 	volatile double value;
 	/* Decode the exponent and the two pieces of the mantissa. */
-	READ_SIGNED_TYPE (&exp, int, ntohl);
+	READ_SIGNED_TYPE (&exponent, short, ntohs);
 	READ_SIGNED_TYPE (&mantissa1, int, ntohl);
 	READ_SIGNED_TYPE (&mantissa2, int, ntohl);
 	/* Assemble them into a double */
 	value = ((mantissa2 / FLOAT_FACTOR) + mantissa1) / FLOAT_FACTOR;
-	value = ldexp (value, exp);
+	value = ldexp (value, exponent);
 	/* Put the double into the requested memory location. */
 	*(double*)d = value;
 	break;
