@@ -1,12 +1,15 @@
 2003-01-24  Richard Frith-Macdonald <rfm@gnu.org>
 
-
 	* Source/Additions/GSCategories.m: Changed name of md5 digest method
 	and added -hexadecimalRepresentation.
 	* Source/Additions/GSMime.m: Update for md5 change.
 	* Documentation/GNUmakefile: Fixed error in installation location.
 	* Documentation/Makefile.postamble: Fixed to install BaseAdditions
 	documentation.
+	* Source/md5.c: Tidy up ... removed ... no longer used
+	* Source/md5.h: ditto
+	* Source/numbers.c: ditto
+	* Headers/gnustep/base/numbers.h: ditto
 
 2003-01-23  Richard Frith-Macdonald <rfm@gnu.org>
 
