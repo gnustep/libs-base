@@ -1374,7 +1374,8 @@ static NSMapTable	*attrNames = 0;
  * NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
  * while ((a = [a next]) != nil)
  *   {
- *     NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);          *   }
+ *     NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+ *   }
  * </example>
  */
 - (GSXMLAttribute*) next
