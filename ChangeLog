@@ -1,3 +1,8 @@
+2001-01-08  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Enable ffcall by default (unless the libraries
+	don't exist).
+
 2001-01-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSGArray.h: removed
