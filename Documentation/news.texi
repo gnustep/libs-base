@@ -6,6 +6,32 @@ The currently released version of the library is
 @samp{@value{OBJECTS_VERSION}}.
 @end ifset
 
+@section Noteworthy changes since version @samp{0.1.19}
+
+@itemize @bullet
+
+@item GNU-style archiving has had an overhaul, and the GNUstep
+NSArchiver class is functional, but not strongly tested.
+
+I have separated the high-level archiving of groups of objects from the
+low-level format of how C-types are written.  There are several new
+classes.  CStream is a subclass of Stream that knows how to encode
+C-type variables in a machine independent way; this class has two
+concrete subclasses: BinaryCStream, and TextCStream.  Plug these
+backends into Coder to get different style low-level formats for
+archiving.
+
+NSArchiver is built on top of Coder.  You can actually send all the
+Coder methods to NSArchiver and vice-versa.
+
+GNU classes BinaryCoder and TextCoder are gone.
+
+@end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE_ONLY
+
 @section Noteworthy changes since version @samp{0.1.14}
 
 @itemize @bullet
@@ -41,10 +67,6 @@ implemented.
 places. 
 
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE_ONLY
 
 @section Noteworthy changes since version @samp{0.1.13}
 
