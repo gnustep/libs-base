@@ -272,7 +272,7 @@ static NSMutableString   *processName = nil;
   // Either userName is empty or it's wrong
   if (!userHome)
     {  
-      [self dealloc];
+      [self release];
       return nil;
     }
   filename = [NSString stringWithFormat: @"%@/%@",
@@ -337,7 +337,7 @@ static NSMutableString   *processName = nil;
         }
       if (done == NO)
 	{
-          [self dealloc];
+          [self release];
           return self = nil;
         }
     }
@@ -371,6 +371,8 @@ static NSMutableString   *processName = nil;
 
 - (void)dealloc
 {
+  if (tickingTimer)
+    [tickingTimer invalidate];
   [searchList release];
   [persDomains release];
   [tempDomains release];
