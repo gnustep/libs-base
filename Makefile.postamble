@@ -99,9 +99,6 @@ remove-header-links:
 	-rm -f Headers/Foundation
 endif
 
-configure: configure.in
-	autoconf
-
 base.make: base.make.in configure
 	./configure
 
