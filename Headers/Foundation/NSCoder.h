@@ -80,8 +80,9 @@
 - (void) encodeDataObject: (NSData*)data;
 
 /**
- *  Encodes a generic object.  This will usually result in an [NSCoding
- *  -encodeWithCoder:] message being sent to anObject so it can encode itself.
+ *  Encodes a generic object.  This will usually result in an
+ *  [(NSCoding)-encodeWithCoder:] message being sent to anObject so it
+ *  can encode itself.
  */
 - (void) encodeObject: (id)anObject;
 
@@ -150,7 +151,7 @@
 /**
  *  Decodes a generic object.  Usually the class will be read from the
  *  archive, an object will be created through an <code>alloc</code> call,
- *  then that class will be sent an [NSCoding -initWithCoder:] message.
+ *  then that class will be sent an [(NSCoding)-initWithCoder:] message.
  */
 - (id) decodeObject;
 

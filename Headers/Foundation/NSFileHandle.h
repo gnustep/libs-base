@@ -124,7 +124,7 @@ GS_EXPORT NSString * const NSFileHandleReadToEndOfFileCompletionNotification;
 
 /**
  * Dictionary key for [NSFileHandle] notifications used to access an
- * [NSDataItem] containing received data.
+ * [NSData] object containing received data.
  */
 GS_EXPORT NSString * const NSFileHandleNotificationDataItem;
 

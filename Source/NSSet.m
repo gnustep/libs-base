@@ -43,7 +43,7 @@
 
 /**
  *  <code>NSSet</code> maintains an unordered collection of unique objects
- *  (according to [NSObject -isEqual]).  When a duplicate object is added
+ *  (according to [NSObject-isEqual:]).  When a duplicate object is added
  *  to the set, it replaces its old copy.
  */
 @implementation NSSet
@@ -454,7 +454,7 @@ static Class NSMutableSet_concrete_class;
 
 /**
  *  Return whether set contains an object equal to this one according
- *  to [NSObject -isEqual:].
+ *  to [NSObject-isEqual:].
  */
 - (BOOL) containsObject: (id)anObject
 {
