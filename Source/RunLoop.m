@@ -337,6 +337,7 @@ static RunLoop *current_run_loop;
   while ((min_timer = [timers minObject])
 	 && ([[min_timer fireDate] timeIntervalSinceNow] > 0))
     {
+      [min_timer retain];
       [timers removeFirstObject];
       /* Firing will also increment its fireDate, if it is repeating. */
       if ([min_timer isValid])
@@ -345,6 +346,7 @@ static RunLoop *current_run_loop;
 	  if ([[min_timer fireDate] timeIntervalSinceNow] < 0)
 	    [timers addObject: min_timer];
 	}
+      [min_timer release];
     }
   if (debug_run_loop)
     printf ("\tRunLoop limit date %f\n", 
