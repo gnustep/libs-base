@@ -2922,7 +2922,10 @@ transmute(ivars self, NSString *aString)
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
-  isa = [GSString class];
+  if (_flags.wide == 1)
+    isa = [GSUnicodeString class];
+  else
+    isa = [GSCString class];
   return self;
 }
 
