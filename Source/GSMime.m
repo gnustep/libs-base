@@ -380,6 +380,113 @@ parseCharacterSet(NSString *token)
 	[dData setLength: dst - beg];
 	break;
 
+      case GSMimeEncodingChunked:
+	while (ctxt->atEnd == NO && src < end)
+	  {
+	    /*
+	     * Keep track of chunk size in the context.
+	     * A negative 'pos' indicates that we are reading the chunk size.
+	     * A positive 'pos' indicates that we are reading the chunk itsself.
+	     */
+	    if (ctxt->pos <= 0)
+	      {
+		BOOL	foundChunkSize = NO;
+
+		/*
+		 * If we have a negative 'pos', convert it to a positive
+		 * count of bytes read for the chunk size.
+		 */
+		if (ctxt->pos < 0)
+		  {
+		    ctxt->pos = -ctxt->pos;
+		  }
+		while (src < end)
+		  {
+		    if (isxdigit(*src))
+		      {
+			ctxt->buf[ctxt->pos++] = *src++;
+			if (ctxt->pos == sizeof(ctxt->buf))
+			  {
+			    NSLog(@"Bad chunk size field");
+			    ctxt->pos = 0;
+			  }
+		      }
+		    else
+		      {
+			if (*src == '\r')
+			  {
+			    src++;
+			  }
+			if (*src == '\n')
+			  {
+			    src++;
+			  }
+			foundChunkSize = YES;
+			break;
+		      }
+		  }
+		if (foundChunkSize == YES)
+		  {
+		    int	size = 0;
+		    int	index;
+
+		    for (index = 0; index < ctxt->pos; index++)
+		      {
+			size *= 16;
+			if (isdigit(ctxt->buf[index]))
+			  {
+			    size += ctxt->buf[index] - '0';
+			  }
+			else if (isupper(ctxt->buf[index]))
+			  {
+			    size += ctxt->buf[index] - 'A' + 10;
+			  }
+			else
+			  {
+			    size += ctxt->buf[index] - 'a' + 10;
+			  }
+		      }
+		    ctxt->pos = size;
+		    /*
+		     * Check to see if this is the terminator for the
+		     * document content.
+		     */
+		    if (ctxt->pos == 0)
+		      {
+			ctxt->atEnd = YES;
+		      }
+		  }
+		else
+		  {
+		    ctxt->pos = -ctxt->pos;
+		  }
+	      }
+	    if (ctxt->pos > 0)
+	      {
+		/*
+		 * Expand destination data buffer to have capacity to
+		 * handle remainder of chunk.
+		 */
+		[dData setLength: size + ctxt->pos];
+		dst = (unsigned char*)[dData mutableBytes];
+		beg = dst;
+		/*
+	  	 * Read the specified chunk length (excluding carriage returns)
+		 */
+		while (ctxt->pos > 0 && src < end)
+		  {
+		    if (*src != '\r')
+		      {
+			*dst++ = *src;
+			ctxt->pos--;
+		      }
+		    src++;
+		  }
+		[dData setLength: dst - beg];
+	      }
+	  }
+	break;
+
       default:
 	NSLog(@"Content encoding %d not known - assume binary", ctxt->type);
       case GSMimeEncodingBinary:
@@ -564,14 +671,15 @@ parseCharacterSet(NSString *token)
 	}
       [document deleteHeaderNamed: name];	// Should be unique
     }
-  else if ([name isEqualToString: @"content-transfer-encoding"] == YES)
+  else if ([name isEqualToString: @"content-transfer-encoding"] == YES
+   || [name isEqualToString: @"transfer-encoding"] == YES)
     {
       BOOL	supported = NO;
 
       value = [info objectForKey: @"Value"];
       if ([value length] == 0)
 	{
-	  NSLog(@"Bad value for content-transfer-encoding header");
+	  NSLog(@"Bad value for %@ header", name);
 	  return NO;
 	}
       if ([value isEqualToString: @"quoted-printable"] == YES)
@@ -597,6 +705,11 @@ parseCharacterSet(NSString *token)
       else if ([value characterAtIndex: 0] == '8')
 	{
 	  context->type = GSMimeEncodingEightBit;
+	  supported = YES;
+	}
+      else if ([value isEqualToString: @"chunked"] == YES)
+	{
+	  context->type = GSMimeEncodingChunked;
 	  supported = YES;
 	}
       if (supported == NO)
