@@ -1,8 +1,8 @@
 /* Interface for Objective-C Stack object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -29,17 +29,11 @@
 
 @interface Stack : Array
 
-- pushObject: anObject;
+- (void) pushObject: anObject;
 - popObject;
 - topObject;
-- duplicateTop;
-- exchangeTop;
-
-// NON-OBJECT MESSAGE NAMES;
-- pushElement: (elt)anElement;
-- (elt) popElement;
-- (elt) topElement;
-
+- (void) duplicateTop;
+- (void) exchangeTop;
 
 @end
 

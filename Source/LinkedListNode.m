@@ -1,8 +1,8 @@
 /* Implementation for Objective-C LinkedListNode object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -44,6 +44,7 @@
   [super encodeWithCoder:aCoder];
   [aCoder encodeObjectReference:_next withName:@"Next LinkedList Node"];
   [aCoder encodeObjectReference:_prev withName:@"Prev LinkedList Node"];
+  [aCoder encodeObjectReference:_linked_list withName:@"LinkedList"];
 }
 
 - initWithCoder: aCoder
@@ -51,6 +52,7 @@
   [super initWithCoder:aCoder];
   [aCoder decodeObjectAt:&_next withName:NULL];
   [aCoder decodeObjectAt:&_prev withName:NULL];
+  [aCoder decodeObjectAt:&_linked_list withName:NULL];
   return self;
 }
 
@@ -64,17 +66,24 @@
   return _prev;
 }
 
-- setNextLink: (id <LinkedListComprising>)aLink
+- (void) setNextLink: (id <LinkedListComprising>)aLink
 {
   _next = aLink;
-  return self;
 }
 
-- setPrevLink: (id <LinkedListComprising>)aLink
+- (void) setPrevLink: (id <LinkedListComprising>)aLink
 {
   _prev = aLink;
-  return self;
+}
+
+- linkedList
+{
+  return _linked_list;
+}
+
+- (void) setLinkedList: anObject;
+{
+  _linked_list = anObject;
 }
 
 @end
-

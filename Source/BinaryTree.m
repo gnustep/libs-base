@@ -1,5 +1,5 @@
 /* Implementation for Objective-C BinaryTree collection object
-   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -24,11 +24,9 @@
 #include <objects/BinaryTree.h>
 #include <objects/IndexedCollectionPrivate.h>
 #include <objects/BinaryTreeNode.h>
+#include <objects/NSString.h>
 
-// do safety checks;
-#define SAFE_BinaryTree 1
-
-/* sentinal */
+/* the sentinal */
 static id nilBinaryTreeNode;
 
 @implementation BinaryTree
@@ -37,7 +35,6 @@ static id nilBinaryTreeNode;
 {
   if (self == [BinaryTree class])
     {
-      [self setVersion:0];	/* beta release */
       nilBinaryTreeNode = [[BinaryTreeNode alloc] init];
     }
 }
@@ -45,7 +42,6 @@ static id nilBinaryTreeNode;
 /* This is the designated initializer of this class */
 - init
 {
-  [super initWithType:@encode(id)];
   _count = 0;
   _contents_root = [self nilNode];
   return self;
@@ -80,39 +76,6 @@ static id nilBinaryTreeNode;
   [aCoder finishDecodingInterconnectedObjects];
 }
 
-- _readInit: (TypedStream*)aStream
-{
-  [super _readInit:aStream];
-  _count = 0;
-  _contents_root = [self nilNode];
-  return self;
-}
-
-- _writeContents: (TypedStream*)aStream
-{
-  void archiveElement(elt e)
-    {
-      objc_write_object(aStream, e.id_u);
-    }
-  objc_write_type(aStream, @encode(unsigned int), &_count);
-  [self withElementsCall:archiveElement];
-  // We rely on the nodes to archive their children and parent ptrs;
-  objc_write_object_reference(aStream, _contents_root);
-  return self;
-}
-
-- _readContents: (TypedStream*)aStream
-{
-  int i;
-
-  objc_read_type(aStream, @encode(unsigned int), &_count);
-  for (i = 0; i < _count; i++)
-    objc_read_object(aStream, &_contents_root);
-  // We rely on the nodes to have archived their children and parent ptrs;
-  objc_read_object(aStream, &_contents_root);
-  return self;
-}
-
 /* Empty copy must empty an allocCopy'ed version of self */
 - emptyCopy
 {
@@ -123,20 +86,10 @@ static id nilBinaryTreeNode;
 }
 
 /* This must work without sending any messages to content objects */
-- _empty
+- (void) _empty
 {
   _count = 0;
   _contents_root = [self nilNode];
-  return self;
-}
-
-/* Override the designated initializer for our superclass IndexedCollection
-   to make sure we have object contents */
-- initWithType: (const char *)contentEncoding
-{
-  if (!ENCODING_IS_OBJECT(contentEncoding))
-    [self error:"BinaryTree contents must be objects."];
-  return [self init];
 }
 
 - nilNode
@@ -173,64 +126,72 @@ static id nilBinaryTreeNode;
   return aNode;
 }
 
-- (elt) firstElement
+- firstObject
 {
-  return [self leftmostNodeFromNode:_contents_root];
+  return [self leftmostNodeFromNode: _contents_root];
 }
 
-- (elt) lastElement
+- lastObject
 {
-  return [self rightmostNodeFromNode:_contents_root];
+  return [self rightmostNodeFromNode: _contents_root];
+}
+
+/* This is correct only if the tree is sorted.  How to deal with this? */
+- maxObject
+{
+  return [self rightmostNodeFromNode: _contents_root];
 }
 
 /* This is correct only is the tree is sorted.  How to deal with this? */
-- (elt) maxElement
+- minObject
 {
-  return [self rightmostNodeFromNode:_contents_root];
+  return [self leftmostNodeFromNode: _contents_root];
 }
 
-/* This is correct only is the tree is sorted.  How to deal with this? */
-- (elt) minElement
-{
-  return [self leftmostNodeFromNode:_contents_root];
-}
-
-// returns [self nilNode] is there is no successor;
-- (elt) successorOfElement: (elt)anElement
+- successorOfObject: anObject
 {
   id tmp;
 
+  /* Make sure we actually own the anObject. */
+  assert ([anObject binaryTree] == self);
+
   // here tmp is the right node;
-  if ((tmp = [anElement.id_u rightNode]) != [self nilNode])
-    return [self leftmostNodeFromNode:tmp];
+  if ((tmp = [anObject rightNode]) != [self nilNode])
+    return [self leftmostNodeFromNode: tmp];
   // here tmp is the parent;
-  tmp = [anElement.id_u parentNode];
-  while (tmp != [self nilNode] && anElement.id_u == [tmp rightNode])
+  tmp = [anObject parentNode];
+  while (tmp != [self nilNode] && anObject == [tmp rightNode])
     {
-      anElement.id_u = tmp;
+      anObject = tmp;
       tmp = [tmp parentNode];
     }
+  if (tmp == [self nilNode])
+    return NO_OBJECT;
   return tmp;
 }
 
 // I should make sure that [_contents_root parentNode] == [self nilNode];
 // Perhaps I should make [_contents_root parentNode] == binaryTreeObj ??;
 
-// returns [self nilNode] is there is no predecessor;
-- (elt) predecessorElement: (elt)anElement
+- predecessorObject: anObject
 {
   id tmp;
 
+  /* Make sure we actually own the anObject. */
+  assert ([anObject binaryTree] == self);
+
   // here tmp is the left node;
-  if ((tmp = [anElement.id_u leftNode]) != [self nilNode])
+  if ((tmp = [anObject leftNode]) != [self nilNode])
     return [self rightmostNodeFromNode:tmp];
   // here tmp is the parent;
-  tmp = [anElement.id_u parentNode];
-  while (tmp != [self nilNode] && anElement.id_u == [tmp leftNode])
+  tmp = [anObject parentNode];
+  while (tmp != [self nilNode] && anObject == [tmp leftNode])
     {
-      anElement.id_u = tmp;
+      anObject = tmp;
       tmp = [tmp parentNode];
     }
+  if (tmp == [self nilNode])
+    return NO_OBJECT;
   return tmp;
 }
 
@@ -238,6 +199,10 @@ static id nilBinaryTreeNode;
 - rootFromNode: aNode
 {
   id parentNode;
+
+  /* Make sure we actually own the aNode. */
+  assert ([aNode binaryTree] == self);
+
   while ((parentNode = [aNode parentNode]) != [self nilNode])
     aNode = parentNode;
   return aNode;
@@ -248,6 +213,9 @@ static id nilBinaryTreeNode;
 {
   unsigned count = 0;
   
+  /* Make sure we actually own the aNode. */
+  assert ([aNode binaryTree] == self);
+
   if (aNode == nil || aNode == [self nilNode])
     [self error:"in %s, Can't find depth of nil node", sel_get_name(_cmd)];
   do
@@ -263,6 +231,9 @@ static id nilBinaryTreeNode;
 {
   unsigned leftHeight, rightHeight;
   id tmpNode;
+
+  /* Make sure we actually own the aNode. */
+  assert ([aNode binaryTree] == self);
 
   if (aNode == nil || aNode == [self nilNode])
     {
@@ -288,6 +259,10 @@ static id nilBinaryTreeNode;
 - (unsigned) nodeCountUnderNode: aNode
 {
   unsigned count = 0;
+
+  /* Make sure we actually own the aNode. */
+  assert ([aNode binaryTree] == self);
+
   if ([aNode leftNode] != [self nilNode])
     count += 1 + [self nodeCountUnderNode:[aNode leftNode]];
   if ([aNode rightNode] != [self nilNode])
@@ -298,6 +273,9 @@ static id nilBinaryTreeNode;
 - leftRotateAroundNode: aNode
 {
   id y;
+
+  /* Make sure we actually own the aNode. */
+  assert ([aNode binaryTree] == self);
 
   y = [aNode rightNode];
   if (y == [self nilNode])
@@ -324,6 +302,9 @@ static id nilBinaryTreeNode;
 {
   id y;
 
+  /* Make sure we actually own the aNode. */
+  assert ([aNode binaryTree] == self);
+
   y = [aNode leftNode];
   if (y == [self nilNode])
     return self;
@@ -345,156 +326,73 @@ static id nilBinaryTreeNode;
   return self;
 }
 
-- (elt) elementAtIndex: (unsigned)index
+- objectAtIndex: (unsigned)index
 {
-  elt ret;
+  id ret;
 
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  ret = [self firstElement];
+  ret = [self firstObject];
   // Not very efficient;  Should be rewritten;
   while (index--)
-    ret = [self successorOfElement:ret];
+    ret = [self successorOfObject: ret];
   return ret;
 }
 
-- sortAddElement: (elt)newElement byCalling: (int(*)(elt,elt))aFunc
+- (void) sortAddObject: newObject
 {
   id theParent, tmpChild;
 
-  [newElement.id_u setLeftNode:[self nilNode]];
-  [newElement.id_u setRightNode:[self nilNode]];
+  /* Make sure no one else already owns the newObject. */
+  assert ([newObject binaryTree] == NO_OBJECT);
+
+  /* Claim ownership of the newObject. */
+  [newObject retain];
+  [newObject setBinaryTree: self];
+
+  [newObject setLeftNode:[self nilNode]];
+  [newObject setRightNode:[self nilNode]];
   theParent = [self nilNode];
   tmpChild = _contents_root;
   while (tmpChild != [self nilNode])
     {
       theParent = tmpChild;
-      if ((*aFunc)(newElement,theParent) < 0)
+      if ([newObject compare: theParent] < 0)
 	tmpChild = [tmpChild leftNode];
       else
 	tmpChild = [tmpChild rightNode];
     }
-  [newElement.id_u setParentNode:theParent];
+  [newObject setParentNode:theParent];
   if (theParent == [self nilNode])
-    _contents_root = newElement.id_u;
+    _contents_root = newObject;
   else
     {
-      if (COMPARE_ELEMENTS(newElement, theParent) < 0)
-	[theParent setLeftNode:newElement.id_u];
+      if ([newObject compare: theParent] < 0)
+	[theParent setLeftNode:newObject];
       else
-	[theParent setRightNode:newElement.id_u];
+	[theParent setRightNode:newObject];
     }
   _count++;
-  RETAIN_ELT(newElement);
-  return self;
 }
 
-- addElement: (elt)newElement
+- (void) addObject: newObject
 {
-  // By default insert in sorted order.  Is this what we want?;
-  [self sortAddElement:newElement];
-  return self;
+  // By default insert in sorted order.
+  [self sortAddObject: newObject];
 }
 
-// NOTE: This gives you the power to put elements in unsorted order;
-- insertElement: (elt)newElement before: (elt)oldElement
-{
-  id tmp;
-
-  #if SAFE_BinaryTree
-  if ([self rootFromNode:oldElement.id_u] != _contents_root)
-    [self error:"in %s, oldElement not in tree!!", sel_get_name(_cmd)];
-  #endif
-
-  [newElement.id_u setRightNode:[self nilNode]];
-  [newElement.id_u setLeftNode:[self nilNode]];
-  if ((tmp = [oldElement.id_u leftNode]) != [self nilNode])
-    {
-      [(tmp = [self rightmostNodeFromNode:tmp]) setRightNode:newElement.id_u];
-      [newElement.id_u setParentNode:tmp];
-    }
-  else if (newElement.id_u != [self nilNode])
-    {
-      [oldElement.id_u setLeftNode:newElement.id_u];
-      [newElement.id_u setParentNode:oldElement.id_u];
-    }
-  else
-    {
-      _contents_root = newElement.id_u;
-      [newElement.id_u setParentNode:[self nilNode]];
-    }
-  _count++;
-  RETAIN_ELT(newElement);
-  return self;
-}
-
-// NOTE: This gives you the power to put elements in unsorted order;
-- insertElement: (elt)newElement after: (elt)oldElement
-{
-  id tmp;
-
-  #if SAFE_BinaryTree
-  if ([self rootFromNode:oldElement.id_u] != _contents_root)
-    [self error:"in %s, !!!!!!!!", sel_get_name(_cmd)];
-  #endif
-
-  [newElement.id_u setRightNode:[self nilNode]];
-  [newElement.id_u setLeftNode:[self nilNode]];
-  if ((tmp = [oldElement.id_u rightNode]) != [self nilNode])
-    {
-      [(tmp = [self leftmostNodeFromNode:tmp]) setLeftNode:newElement.id_u];
-      [newElement.id_u setParentNode:tmp];
-    }
-  else if (newElement.id_u != [self nilNode])
-    {
-      [oldElement.id_u setRightNode:newElement.id_u];
-      [newElement.id_u setParentNode:oldElement.id_u];
-    }
-  else
-    {
-      _contents_root = newElement.id_u;
-      [newElement.id_u setParentNode:[self nilNode]];
-    }
-  _count++;
-  RETAIN_ELT(newElement);
-  return self;
-}
-
-// NOTE: This gives you the power to put elements in unsorted order;
-- insertElement: (elt)newElement atIndex: (unsigned)index
-{
-  CHECK_INDEX_RANGE_ERROR(index, _count+1);
-  if (index == _count)
-    [self appendElement:newElement];
-  else
-    [self insertElement:newElement before:[self elementAtIndex:index]];
-  return self;
-}
-
-// NOTE: This gives you the power to put elements in unsorted order;
-- appendElement: (elt)newElement
-{
-  if (_count == 0)
-    {
-      _contents_root = newElement.id_u;
-      _count = 1;
-      [newElement.id_u setLeftNode:[self nilNode]];
-      [newElement.id_u setRightNode:[self nilNode]];
-      [newElement.id_u setParentNode:[self nilNode]];
-    }
-  else 
-    [self insertElement:newElement after:[self lastElement]];
-  return self;
-}
-
-- (elt) removeElement: (elt)oldElement
+- (void) removeObject: oldObject
 {
   id x, y;
 
-  if ([oldElement.id_u leftNode] == [self nilNode] 
-      || [oldElement.id_u rightNode] == [self nilNode])
-    y = oldElement.id_u;
+  /* Make sure we actually own the aNode. */
+  assert ([oldObject binaryTree] == self);
+
+  /* Extract the oldObject and sew up the cut. */
+  if ([oldObject leftNode] == [self nilNode] 
+      || [oldObject rightNode] == [self nilNode])
+    y = oldObject;
   else
-    y = [self successorOfElement:oldElement].id_u;
+    y = [self successorOfObject: oldObject];
 
   if ([y leftNode] != [self nilNode])
     x = [y leftNode];
@@ -502,88 +400,66 @@ static id nilBinaryTreeNode;
     x = [y rightNode];
 
   if (x != [self nilNode])
-    [x setParentNode:[y parentNode]];
+    [x setParentNode: [y parentNode]];
 
   if ([y parentNode] == [self nilNode])
     _contents_root = x;
   else
     {
       if (y == [[y parentNode] leftNode])
-	[[y parentNode] setLeftNode:x];
+	[[y parentNode] setLeftNode: x];
       else
-	[[y parentNode] setRightNode:x];
+	[[y parentNode] setRightNode: x];
     }
 
-  if (y != oldElement.id_u)
+  if (y != oldObject)
     {
-      /* put y in the place of oldElement.id_u */
-      [y setParentNode:[oldElement.id_u parentNode]];
-      [y setLeftNode:[oldElement.id_u leftNode]];
-      [y setRightNode:[oldElement.id_u rightNode]];
-      if (oldElement.id_u == [[oldElement.id_u parentNode] leftNode])
-	[[oldElement.id_u parentNode] setLeftNode:y];
+      /* put y in the place of oldObject */
+      [y setParentNode: [oldObject parentNode]];
+      [y setLeftNode: [oldObject leftNode]];
+      [y setRightNode: [oldObject rightNode]];
+      if (oldObject == [[oldObject parentNode] leftNode])
+	[[oldObject parentNode] setLeftNode: y];
       else
-	[[oldElement.id_u parentNode] setRightNode:y];
-      [[oldElement.id_u leftNode] setParentNode:y];
-      [[oldElement.id_u rightNode] setParentNode:y];
+	[[oldObject parentNode] setRightNode: y];
+      [[oldObject leftNode] setParentNode: y];
+      [[oldObject rightNode] setParentNode: y];
     }
-  [oldElement.id_u setRightNode:[self nilNode]];
-  [oldElement.id_u setLeftNode:[self nilNode]];
-  [oldElement.id_u setParentNode:[self nilNode]];
   _count--;
-  return AUTORELEASE_ELT(oldElement);
+
+  /* Release ownership of the object. */
+#if 0
+  [oldObject setRightNode: [self nilNode]];
+  [oldObject setLeftNode: [self nilNode]];
+  [oldObject setParentNode: [self nilNode]];
+#else
+  [oldObject setLeftNode: NO_OBJECT];
+  [oldObject setRightNode: NO_OBJECT];
+  [oldObject setParentNode: NO_OBJECT];
+#endif
+  [oldObject setBinaryTree: NO_OBJECT];
+  [oldObject release];
 }
 
-- withElementsCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag
-{
-  void traverse(id aNode)
-    {
-      if (!(*flag) || aNode == [self nilNode] || !aNode)
-	return;
-      traverse([aNode leftNode]);
-      (*aFunc)(aNode);
-      traverse([aNode rightNode]);
-    }
-  traverse(_contents_root);
-  return self;
-}
+
+// ENUMERATING;
 
-- withElementsInReverseCall: (void(*)(elt))aFunc whileTrue: (BOOL*)flag
-{
-  void traverse(id aNode)
-    {
-      if (*flag || aNode == [self nilNode] || !aNode)
-	return;
-      traverse([aNode rightNode]);
-      (*aFunc)(aNode);
-      traverse([aNode leftNode]);
-    }
-  traverse(_contents_root);
-  return self;
-}
-
-- (BOOL) getNextElement:(elt *)anElementPtr withEnumState: (void**)enumState
+- nextObjectWithEnumState: (void**)enumState
 {
   if (!(*enumState)) 
     *enumState = [self leftmostNodeFromNode:_contents_root];
   else
-    *enumState = [self successorOfElement:*enumState].id_u;
-  *anElementPtr = *enumState;
-  if (*enumState)
-    return YES;
-  return NO;
+    *enumState = [self successorOfObject:*enumState];
+  return (id) *enumState;
 }
 
-- (BOOL) getPrevElement:(elt *)anElementPtr withEnumState: (void**)enumState
+- prevObjectWithEnumState: (void**)enumState
 {
   if (!(*enumState)) 
     *enumState = [self rightmostNodeFromNode:_contents_root];
   else
-    *enumState = [self predecessorElement:*enumState].id_u;
-  *anElementPtr = *enumState;
-  if (*enumState)
-    return YES;
-  return NO;
+    *enumState = [self predecessorObject:*enumState];
+  return (id) *enumState;
 }
 
 - (unsigned) count
@@ -591,14 +467,12 @@ static id nilBinaryTreeNode;
   return _count;
 }
 
+
 /* replace this with something better eventually */
 - _tmpPrintFromNode: aNode indent: (int)count
 {
   printf("%-*s", count, "");
-  if ([aNode respondsTo:@selector(printForDebugger)])
-    [aNode printForDebugger];
-  else
-    printf("?\n");
+  printf("%s\n", [[aNode description] cStringNoCopy]);
   printf("%-*s.", count, "");
   if ([aNode leftNode] != [self nilNode])
     [self _tmpPrintFromNode:[aNode leftNode] indent:count+2];
@@ -621,3 +495,112 @@ static id nilBinaryTreeNode;
 @end
 
 
+
+/* These methods removed because they belong to an 
+   OrderedCollection implementation, not an IndexedCollection
+   implementation. */
+
+#if 0
+// NOTE: This gives you the power to put elements in unsorted order;
+- insertObject: newObject before: oldObject
+{
+  id tmp;
+
+  /* Make sure no one else already owns the newObject. */
+  assert ([newObject linkedList] == NO_OBJECT);
+
+  /* Claim ownership of the newObject. */
+  [newObject retain];
+  [newObject setBinaryTree: self];
+
+  [newObject setRightNode:[self nilNode]];
+  [newObject setLeftNode:[self nilNode]];
+  if ((tmp = [oldObject leftNode]) != [self nilNode])
+    {
+      [(tmp = [self rightmostNodeFromNode:tmp]) setRightNode:newObject];
+      [newObject setParentNode:tmp];
+    }
+  else if (newObject != [self nilNode])
+    {
+      [oldObject setLeftNode:newObject];
+      [newObject setParentNode:oldObject];
+    }
+  else
+    {
+      _contents_root = newObject;
+      [newObject setParentNode:[self nilNode]];
+    }
+  _count++;
+  RETAIN_ELT(newObject);
+  return self;
+}
+
+// NOTE: This gives you the power to put elements in unsorted order;
+- insertObject: newObject after: oldObject
+{
+  id tmp;
+
+  /* Make sure no one else already owns the newObject. */
+  assert ([newObject linkedList] == NO_OBJECT);
+
+  /* Claim ownership of the newObject. */
+  [newObject retain];
+  [newObject setBinaryTree: self];
+
+  [newObject setRightNode:[self nilNode]];
+  [newObject setLeftNode:[self nilNode]];
+  if ((tmp = [oldObject rightNode]) != [self nilNode])
+    {
+      [(tmp = [self leftmostNodeFromNode:tmp]) setLeftNode:newObject];
+      [newObject setParentNode:tmp];
+    }
+  else if (newObject != [self nilNode])
+    {
+      [oldObject setRightNode:newObject];
+      [newObject setParentNode:oldObject];
+    }
+  else
+    {
+      _contents_root = newObject;
+      [newObject setParentNode:[self nilNode]];
+    }
+  _count++;
+  RETAIN_ELT(newObject);
+  return self;
+}
+
+// NOTE: This gives you the power to put elements in unsorted order;
+- insertObject: newObject atIndex: (unsigned)index
+{
+  CHECK_INDEX_RANGE_ERROR(index, _count+1);
+
+  if (index == _count)
+    [self appendObject:newObject];
+  else
+    [self insertObject:newObject before:[self ObjectAtIndex:index]];
+  return self;
+}
+
+// NOTE: This gives you the power to put elements in unsorted order;
+- appendObject: newObject
+{
+  if (_count == 0)
+    {
+      /* Make sure no one else already owns the newObject. */
+      assert ([newObject linkedList] == NO_OBJECT);
+
+      /* Claim ownership of the newObject. */
+      [newObject retain];
+      [newObject setBinaryTree: self];
+
+      _contents_root = newObject;
+      _count = 1;
+      [newObject setLeftNode:[self nilNode]];
+      [newObject setRightNode:[self nilNode]];
+      [newObject setParentNode:[self nilNode]];
+    }
+  else 
+    [self insertObject:newObject after:[self lastObject]];
+  return self;
+}
+#endif

@@ -1,5 +1,5 @@
 /* Protocol for Objective-C objects that hold elements accessible by index
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -36,7 +36,7 @@
 #define __IndexedCollecting_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <objects/KeyedCollecting.h>
+#include <objects/Collecting.h>
 
 typedef struct _IndexRange { 
   unsigned location;
@@ -47,8 +47,8 @@ typedef struct _IndexRange {
   ({IndexRange __a=(RANGE1), __b=(RANGE2); \
     __a.start<=__b.start && __a.end>=__b.end;})
 
-
-@protocol ConstantIndexedCollecting <ConstantKeyedCollecting>
+
+@protocol ConstantIndexedCollecting <ConstantCollecting>
 
 // GETTING MEMBERS BY INDEX;
 - objectAtIndex: (unsigned)index;
@@ -61,114 +61,52 @@ typedef struct _IndexRange {
 
 // GETTING INDICES BY MEMBER;
 - (unsigned) indexOfObject: anObject;
-- (unsigned) indexOfObject: anObject 
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc;
 - (unsigned) indexOfObject: anObject inRange: (IndexRange)aRange;
-- (unsigned) indexOfObject: anObject inRange: (IndexRange)aRange
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc;
 
 // TESTING;
-- (BOOL) includesIndex: (unsigned)index;
 - (BOOL) contentsEqualInOrder: (id <ConstantIndexedCollecting>)aColl;
+- (int) compareInOrderContentsOf: (id <Collecting>)aCollection;
 - (unsigned) indexOfFirstDifference: (id <ConstantIndexedCollecting>)aColl;
 - (unsigned) indexOfFirstIn: (id <ConstantCollecting>)aColl;
 - (unsigned) indexOfFirstNotIn: (id <ConstantCollecting>)aColl;
 
 // ENUMERATING;
-- (BOOL) getPrevObject: (id*)anIdPtr withEnumState: (void**)enumState;
-- withObjectsInRange: (IndexRange)aRange call:(void(*)(id))aFunc;
-- withObjectsInReverseCall: (void(*)(id))aFunc;
-- withObjectsInReverseCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag;
+- (id <Enumerating>) reverseObjectEnumerator;
+- (void) withObjectsInRange: (IndexRange)aRange
+    invoke: (id <Invoking>)anInvocation;
+- (void) withObjectsInReverseInvoke: (id <Invoking>)anInvocation;
+- (void) withObjectsInReverseInvoke: (id <Invoking>)anInvocation
+    whileTrue:(BOOL *)flag;
+- (void) makeObjectsPerformInReverse: (SEL)aSel;
+- (void) makeObjectsPerformInReverse: (SEL)aSel withObject: argObject;
 
-// NON-OBJECT MESSAGE NAMES;
-
-// GETTING ELEMENTS BY INDEX;
-- (elt) elementAtIndex: (unsigned)index;
-- (elt) firstElement;
-- (elt) lastElement;
-
-// GETTING MEMBERS BY NEIGHBOR;
-- (elt) successorOfElement: (elt)anElement;
-- (elt) predecessorOfElement: (elt)anElement;
-
-// GETTING INDICES BY MEMBER;
-- (unsigned) indexOfElement: (elt)anElement;
-- (unsigned) indexOfElement: (elt)anElement
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc;
-- (unsigned) indexOfElement: (elt)anElement inRange: (IndexRange)aRange;
-- (unsigned) indexOfElement: (elt)anElement inRange: (IndexRange)aRange
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc;
-
-// ENUMERATING;
-- (BOOL) getPrevElement:(elt*)anElementPtr withEnumState: (void**)enumState;
-- withElementsInRange: (IndexRange)aRange call:(void(*)(elt))aFunc;
-- withElementsInReverseCall: (void(*)(elt))aFunc;
-- withElementsInReverseCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag;
+// LOW-LEVEL ENUMERATING;
+- prevObjectWithEnumState: (void**)enumState;
 
 @end
 
-@protocol IndexedCollecting <ConstantIndexedCollecting, KeyedCollecting>
+
+@protocol IndexedCollecting <ConstantIndexedCollecting, Collecting>
 
-// ADDING;
-- insertObject: newObject atIndex: (unsigned)index;
-- insertObject: newObject before: oldObject;
-- insertObject: newObject after: oldObject;
-- insertContentsOf: (id <ConstantCollecting>)aCollection
-   atIndex: (unsigned)index;
-- appendObject: newObject;
-- prependObject: newObject;
-- appendContentsOf: (id <ConstantCollecting>)aCollection;
-- prependContentsOf: (id <ConstantCollecting>)aCollection;
+// REPLACING;
+- (void) replaceObjectAtIndex: (unsigned)index with: newObject;
 
-// REPLACING AND SWAPPING
-- replaceObjectAtIndex: (unsigned)index with: newObject;
-- replaceRange: (IndexRange)aRange with: (id <ConstantCollecting>)aCollection;
-- replaceRange: (IndexRange)aRange using: (id <ConstantCollecting>)aCollection;
-- swapAtIndeces: (unsigned)index1 : (unsigned)index2;
-
-// REMOVING
-- removeObjectAtIndex: (unsigned)index;
-- removeFirstObject;
-- removeLastObject;
-- removeRange: (IndexRange)aRange;
-
-// ENUMERATING WHILE CHANGING CONTENTS;
-- safeWithObjectsInReverseCall: (void(*)(id))aFunc;
-- safeWithObjectsInReverseCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag;
+// REMOVING;
+- (void) removeObjectAtIndex: (unsigned)index;
+- (void) removeFirstObject;
+- (void) removeLastObject;
+- (void) removeRange: (IndexRange)aRange;
 
 // SORTING;
-- sortContents;
-- sortObjectsByCalling: (int(*)(id,id))aFunc;
-- sortAddObject: newObject;
-- sortAddObject: newObject byCalling: (int(*)(id,id))aFunc;
-
-
-// NON-OBJECT MESSAGE NAMES;
-
-// ADDING;
-- appendElement: (elt)newElement;
-- prependElement: (elt)newElement;
-- insertElement: (elt)newElement atIndex: (unsigned)index;
-- insertElement: (elt)newElement before: (elt)oldElement;
-- insertElement: (elt)newElement after: (elt)oldElement;
-
-// REMOVING AND REPLACING;
-- (elt) removeElementAtIndex: (unsigned)index;
-- (elt) removeFirstElement;
-- (elt) removeLastElement;
-- (elt) replaceElementAtIndex: (unsigned)index with: (elt)newElement;
-
-// ENUMERATING WHILE CHANGING CONTENTS;
-- safeWithElementsInRange: (IndexRange)aRange call:(void(*)(elt))aFunc;
-- safeWithElementsInReverseCall: (void(*)(elt))aFunc;
-- safeWithElementsInReverseCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag;
-
-// SORTING;
-- sortElementsByCalling: (int(*)(elt,elt))aFunc;
-- sortAddElement: (elt)newElement;
-- sortAddElement: (elt)newElement byCalling: (int(*)(elt,elt))aFunc;
+- (void) sortContents;
+- (void) sortAddObject: newObject;
 
 @end
+
+#include <limits.h>
+#define NO_INDEX UINT_MAX
+
+/* xxx Fix this comment: */
 
 /* Most methods in the KeyedCollecting protocol that mention a key are
    duplicated in the IndexedCollecting protocol, with their names 

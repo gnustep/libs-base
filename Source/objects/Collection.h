@@ -32,29 +32,42 @@
 #include <Foundation/NSObject.h>
 #include <objects/Collecting.h>
 #include <objects/stdobjects.h>
-#include <objects/collhash.h>
 #include <objects/Coding.h>
 
-@interface Collection : NSObject <Collecting>
-{
-}
-
-- (void) withObjectsInvoke: anInvocation;
-- printElement: (elt)anElement;
-- printForDebugger;
-
+@interface ConstantCollection : NSObject <ConstantCollecting>
+- printForDebugger;  /* This method will disappear later. */
 @end
 
-// #warning fix this macro
-#define FOR_COLL(ACOLL, ELT) \
+@interface Collection : ConstantCollection <Collecting>
+@end
+
+@interface Enumerator : NSObject <Enumerating>
+{
+  id collection;
+  void *enum_state;
+}
+@end
+
+#define FOR_COLLECTION(ACOLL, ELT) \
 { \
-   void *_es = [ACOLL initEnumState]; \
-   while ([ACOLL getNextElement:&(ELT) withEnumState:&_es]) \
+   void *_es = [ACOLL newEnumState]; \
+   while ((ELT = [ACOLL nextObjectWithEnumState: &_es])) \
      {
 
-#define FOR_COLL_END \
+#define END_FOR_COLLECTION(ACOLL) \
      } \
-   [ACOLL freeEnumState:_es]; \
+   [ACOLL freeEnumState: &_es]; \
+}
+
+#define FOR_COLLECTION_WHILE_TRUE(ACOLL, ELT, FLAG) \
+{ \
+   void *_es = [ACOLL newEnumState]; \
+   while (FLAG && (ELT = [ACOLL nextObjectWithEnumState: &_es])) \
+     {
+
+#define END_FOR_COLLECTION_WHILE_TRUE(ACOLL) \
+     } \
+   [ACOLL freeEnumState: &_es]; \
 }
 
 /* The only subclassResponsibilities in Collection are:

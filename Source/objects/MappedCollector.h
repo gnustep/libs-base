@@ -1,5 +1,5 @@
 /* Interface for Objective-C MappedCollector collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -33,7 +33,7 @@
   id <KeyedCollecting> _domain;  
 }
 
-- initCollection: (id <KeyedCollecting>)aDomain 
+- initWithCollection: (id <KeyedCollecting>)aDomain 
   map: (id <KeyedCollecting>)aMap;
 
 @end

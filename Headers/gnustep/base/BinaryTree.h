@@ -1,8 +1,8 @@
 /* Interface for Objective-C BinaryTree collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -35,13 +35,15 @@
 /* The <BinaryTreeComprising> protocol defines the interface to an object
    that may be an element in a BinaryTree. 
 */
-@protocol BinaryTreeComprising
+@protocol BinaryTreeComprising <NSObject>
 - leftNode;
 - rightNode;
 - parentNode;
-- setLeftNode: (id <BinaryTreeComprising>)aNode;
-- setRightNode: (id <BinaryTreeComprising>)aNode;
-- setParentNode: (id <BinaryTreeComprising>)aNode;
+- (void) setLeftNode: (id <BinaryTreeComprising>)aNode;
+- (void) setRightNode: (id <BinaryTreeComprising>)aNode;
+- (void) setParentNode: (id <BinaryTreeComprising>)aNode;
+- binaryTree;
+- (void) setBinaryTree: anObject;
 @end
 
 #define NODE_IS_RIGHTCHILD(NODE) (NODE == [[NODE parentNode] rightNode])

@@ -1,8 +1,8 @@
 /* Implementation for Objective-C MappedCollector collection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -28,13 +28,9 @@
 @implementation MappedCollector
 
 /* This is the designated initializer for this class */
-- initCollection: (id <KeyedCollecting>)aDomain 
+- initWithCollection: (id <KeyedCollecting>)aDomain 
     map: (id <KeyedCollecting>)aMap
 {
-  if (strcmp([aMap contentType], [aDomain keyType]))
-    [self error:"map's contents are not the same as domain's keys"];
-  [super initWithType:[aDomain contentType]
-	 keyType:[aMap keyType]];
   _map = aMap;
   _domain = aDomain;
   return self;
@@ -53,20 +49,10 @@
   return self;
 }
 
-- _writeInit: (TypedStream*)aStream
+/* Override our superclass' designated initializer */
+- initWithObjects: (id*)objects forKeys: (id*)keys count: (unsigned)c
 {
-  [super _writeInit: aStream];
-  objc_write_object(aStream, _map);
-  objc_write_object(aStream, _domain);
-  return self;
-}
-
-- _readInit: (TypedStream*)aStream
-{
-  [super _readInit: aStream];
-  objc_read_object(aStream, &_map);
-  objc_read_object(aStream, &_domain);
-  return self;
+  [self notImplemented: _cmd];
 }
 
 /* Empty copy must empty an allocCopy'ed version of self */
@@ -79,83 +65,56 @@
 }
 
 /* This must work without sending any messages to content objects */
-- empty
+- (void) empty
 {
   [_domain empty];
+}
+
+- objectAtKey: aKey
+{
+  return [_domain objectAtKey: [_map objectAtKey: aKey]];
+}
+
+- keyOfObject: aContentObject
+{
+  [self notImplemented: _cmd];
   return self;
 }
 
-- (const char *) contentType
+- (void) replaceObjectAtKey: aKey with: newObject
 {
-  return [_domain contentType];
+  return [_domain replaceObjectAtKey: [_map objectAtKey: aKey]
+		 with: newObject];
 }
 
-- (const char *) keyType
+- (void) putObject: newObject atKey: aKey
 {
-  return [_map keyType];
+  return [_domain putObject: newObject
+		  atKey: [_map objectAtKey:aKey]];
 }
 
-- (int(*)(elt,elt)) comparisonFunction
+- (void) removeObjectAtKey: aKey
 {
-  return [_domain comparisonFunction];
+  return [_domain removeObjectAtKey: [_map objectAtKey: aKey]];
 }
 
-- (elt) elementAtKey: (elt)aKey
+- (BOOL) containsKey: aKey
 {
-  return [_domain elementAtKey:[_map elementAtKey:aKey]];
+  return [_domain containsKey: [_map objectAtKey:aKey]];
 }
 
-- (elt) replaceElementAtKey: (elt)aKey with: (elt)newElement
+- nextObjectAndKey: (id*)keyPtr withEnumState: (void**)enumState
 {
-  return [_domain replaceElementAtKey:[_map elementAtKey:aKey]
-		 with:newElement];
-}
+  id mapContent;
+  id domainKey;
 
-- putElement: (elt)newElement atKey: (elt)aKey
-{
-  return [_domain putElement:newElement
-		 atKey:[_map elementAtKey:aKey]];
-}
-
-- (elt) removeElementAtKey: (elt)aKey
-{
-  return [_domain removeElementAtKey:[_map elementAtKey:aKey]];
-}
-
-- (BOOL) includesKey: (elt)aKey
-{
-  return [_domain includesKey:[_map elementAtKey:aKey]];
-}
-
-- withKeyElementsAndContentElementsCall: (void(*)(const elt,elt))aFunc 
-    whileTrue: (BOOL *)flag
-{
-  void doIt(elt e)
-    {
-      elt domainKey = [_map elementAtKey:e];
-      if ([_domain includesKey:domainKey])
-	(*aFunc)(e, [_domain elementAtKey:domainKey]);
-    }
-  [_map withKeyElementsCall:doIt];
-  return self;
-}
-
-- (BOOL) getNextKey: (elt*)aKeyPtr content: (elt*)anElementPtr 
-  withEnumState: (void**)enumState;
-{
-  BOOL ret;
-  elt mapContent;
-  elt domainKey;
-
-  while ((ret = [_map getNextKey:aKeyPtr content:&mapContent 
-		     withEnumState:enumState])
+  while ((mapContent = [_map nextObjectAndKey:keyPtr withEnumState:enumState])
 	 && 
-	 (![_domain includesKey:(domainKey = [_map elementAtKey:*aKeyPtr])]))
+	 (![_domain containsKey: (domainKey = [_map objectAtKey:*keyPtr])]))
     ;
-  if (!ret)
-    return NO;
-  *anElementPtr = [_domain elementAtKey:domainKey];
-  return YES;
+  if (mapContent == NO_OBJECT)
+    return NO_OBJECT;
+  return [_domain objectAtKey: domainKey];
 }
 
 - species

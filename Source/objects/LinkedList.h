@@ -1,8 +1,8 @@
 /* Interface for Objective-C LinkedList collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -25,7 +25,7 @@
 #define __LinkedList_h_INCLUDE_GNU
 
 #include <objects/stdobjects.h>
-#include <objects/IndexedCollection.h>
+#include <objects/OrderedCollection.h>
 
 /* The <LinkedListComprising> protocol defines the interface to an object
    that may be an element in a LinkedList.
@@ -33,13 +33,16 @@
 @protocol LinkedListComprising
 - nextLink;
 - prevLink;
-- setNextLink: (id <LinkedListComprising>)aLink;
-- setPrevLink: (id <LinkedListComprising>)aLink;
+- (void) setNextLink: (id <LinkedListComprising>)aLink;
+- (void) setPrevLink: (id <LinkedListComprising>)aLink;
+- linkedList;
+- (void) setLinkedList: aLinkedList;
 @end
 
-@interface LinkedList : IndexedCollection
+@interface LinkedList : OrderedCollection
 {
   id _first_link;
+  id _last_link;
   unsigned int _count;
 }
 

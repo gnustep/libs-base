@@ -24,16 +24,11 @@
 #include <objects/Set.h>
 #include <objects/CollectionPrivate.h>
 #include <objects/Coder.h>
+#include <Foundation/NSHashTable.h>
 
 #define DEFAULT_SET_CAPACITY 32
 
 @implementation Set 
-
-+ (void) initialize
-{
-  if (self == [Set class])
-    [self setVersion:0];	/* beta release */
-}
 
 // MANAGING CAPACITY;
 
@@ -48,75 +43,28 @@
 // INITIALIZING AND FREEING;
 
 /* This is the designated initializer of this class */
-- initWithType:(const char *)encoding
-    capacity: (unsigned)aCapacity 
+- initWithCapacity: (unsigned)cap
 {
-  [super initWithType:encoding];
-  _contents_hash = 
-    coll_hash_new(POWER_OF_TWO(aCapacity),
-		  elt_get_hash_function(encoding),
-		  elt_get_comparison_function(encoding));
+  _contents_hash = NSCreateHashTable(NSObjectsHashCallBacks, cap);
+  return self;
+}
+
+/* Override Collection's designated initializer */
+- initWithObjects: (id*)objs count: (unsigned)count
+{
+  [self initWithCapacity: count];
+  while (count--)
+    [self addObject: objs[count]];
   return self;
 }
 
 /* Archiving must mimic the above designated initializer */
 
-- (void) _encodeCollectionWithCoder: (Coder*) aCoder
-{
-  const char *enc = [self contentType];
-
-  [super _encodeCollectionWithCoder:aCoder];
-  [aCoder encodeValueOfCType:@encode(char*) 
-	  at:&enc
-	  withName:@"Set contents encoding"];
-  [aCoder encodeValueOfCType:@encode(unsigned) 
-	  at:&(_contents_hash->size)
-	  withName:@"Set contents capacity"];
-  return;
-}
-
 - _initCollectionWithCoder: aCoder
 {
-  char *encoding;
-  unsigned size;
-
   [super _initCollectionWithCoder:aCoder];
-  [aCoder decodeValueOfCType:@encode(char*)
-	  at:&encoding
-	  withName:NULL];
-  [aCoder decodeValueOfCType:@encode(unsigned)
-	  at:&size
-	  withName:NULL];
-  _contents_hash =
-    coll_hash_new(size,
-		  elt_get_hash_function(encoding),
-		  elt_get_comparison_function(encoding));
-  return self;
-}
-
-- _writeInit: (TypedStream*)aStream
-{
-  const char *encoding = [self contentType];
-
-  [super _writeInit:aStream];
-  /* This implicitly archives the key's comparison and hash functions */
-  objc_write_type(aStream, @encode(char*), &encoding);
-  objc_write_type(aStream, @encode(unsigned int), &(_contents_hash->size));
-  return self;
-}
-
-- _readInit: (TypedStream*)aStream
-{
-  char *encoding;
-  unsigned int size;
-
-  [super _readInit:aStream];
-  objc_read_type(aStream, @encode(char*), &encoding);
-  objc_read_type(aStream, @encode(unsigned int), &size);
-  _contents_hash =
-    coll_hash_new(size,
-		  elt_get_hash_function(encoding),
-		  elt_get_comparison_function(encoding));
+  _contents_hash = NSCreateHashTable(NSObjectsHashCallBacks, 
+				     DEFAULT_SET_CAPACITY);
   return self;
 }
 
@@ -125,52 +73,38 @@
 {
   Set *copy = [super emptyCopy];
   copy->_contents_hash =
-    coll_hash_new(_contents_hash->size,
-		  _contents_hash->hash_func,
-		  _contents_hash->compare_func);
+    NSCreateHashTable (NSObjectsHashCallBacks, 0);
   return copy;
 }
 
-/* Override designated initializer of superclass */
-- initWithType:(const char *)contentEncoding
+- (void) dealloc
 {
-  return [self initWithType:contentEncoding
-	       capacity:[[self class] defaultCapacity]];
-}
-
-- initWithCapacity: (unsigned)aCapacity
-{
-  return [self initWithType:@encode(id) capacity:aCapacity];
-}
-
-- (void) _collectionDealloc
-{
-  coll_hash_delete(_contents_hash);
+  NSFreeHashTable (_contents_hash);
   [super _collectionDealloc];
 }
 
 // SET OPERATIONS;
 
-- intersectWithCollection: (id <Collecting>)aCollection
+- (void) intersectWithCollection: (id <Collecting>)aCollection
 {
-  [self removeContentsNotIn:aCollection];
-  return self;
+  [self removeContentsNotIn: aCollection];
 }
 
-- unionWithCollection: (id <Collecting>)aCollection
+- (void) unionWithCollection: (id <Collecting>)aCollection
 {
-  [self addContentsOfIfAbsent:aCollection];
-  return self;
+  [self addContentsIfAbsentOf: aCollection];
 }
 
-- differenceWithCollection: (id <Collecting>)aCollection
+- (void) differenceWithCollection: (id <Collecting>)aCollection
 {
-  [self removeContentsIn:aCollection];
-  return self;
+  [self removeContentsIn: aCollection];
 }
 
 - shallowCopyIntersectWithCollection: (id <Collecting>)aCollection
 {
+  [self notImplemented: _cmd];
+  return nil;
+#if 0
   id newColl = [self emptyCopyAs:[self species]];
   void doIt(elt e)
     {
@@ -179,18 +113,25 @@
     }
   [self withElementsCall:doIt];
   return newColl;
+#endif
 }
 
 - shallowCopyUnionWithCollection: (id <Collecting>)aCollection
 {
+  [self notImplemented: _cmd];
+  return nil;
+#if 0
   id newColl = [self shallowCopy];
-  
   [newColl addContentsOf:aCollection];
   return newColl;
+#endif
 }
 
 - shallowCopyDifferenceWithCollection: (id <Collecting>)aCollection
 {
+  [self notImplemented: _cmd];
+  return nil;
+#if 0
   id newColl = [self emptyCopyAs:[self species]];
   void doIt(elt e)
     {
@@ -199,128 +140,78 @@
     }
   [self withElementsCall:doIt];
   return newColl;
+#endif
 }
 
-
+
 // ADDING;
 
-- addElement: (elt)anElement
+- (void) addObject: newObject
 {
-  if (coll_hash_value_for_key(_contents_hash, anElement).void_ptr_u == 0)
-    coll_hash_add(&_contents_hash, anElement, 1);
-  RETAIN_ELT(anElement);
-  return self;
+  NSHashInsert (_contents_hash, newObject);
 }
 
-
+
 // REMOVING AND REPLACING;
 
-- (elt) removeElement: (elt)oldElement ifAbsentCall: (elt(*)(arglist_t))excFunc
+- (void) removeObject: oldObject
 {
-  if (coll_hash_value_for_key(_contents_hash, oldElement).void_ptr_u == 0)
-    coll_hash_remove(_contents_hash, oldElement);
-  else
-    RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-  return AUTORELEASE_ELT(oldElement);
+  NSHashRemove (_contents_hash, oldObject);
 }
 
 /* This must work without sending any messages to content objects */
-- _empty
+- (void) _collectionEmpty
 {
-  coll_hash_empty(_contents_hash);
-  return self;
+  NSResetHashTable (_contents_hash);
 }
 
-- uniqueContents
+- (void) uniqueContents
 {
-  return self;
+  return;
 }
 
-
+
 // TESTING;
 
-- (int(*)(elt,elt)) comparisonFunction
+- (BOOL) containsObject: anObject
 {
-  return _contents_hash->compare_func;
-}
-
-- (const char *) contentType
-{
-  return elt_get_encoding(_contents_hash->compare_func);
-}
-
-- (BOOL) includesElement: (elt)anElement
-{
-  if (coll_hash_value_for_key(_contents_hash, anElement).void_ptr_u != 0)
-    return YES;
-  else
-    return NO;
+  return (NSHashGet (_contents_hash, anObject) ? 1 : 0);
 }
 
 - (unsigned) count
 {
-  return _contents_hash->used;
+  return NSCountHashTable (_contents_hash);
 }
 
-- (unsigned) occurrencesOfElement: (elt)anElement
+- (unsigned) occurrencesOfObject: anObject
 {
-  if ([self includesElement:anElement])
+  if ([self containsObject: anObject])
     return 1;
   else
     return 0;
 }
 
-
+
 // ENUMERATING;
 
-- (BOOL) getNextElement:(elt *)anElementPtr withEnumState: (void**)enumState
+- nextObjectWithEnumState: (void**)enumState
 {
-  coll_node_ptr node = coll_hash_next(_contents_hash, enumState);
-  if (node)
-    {
-      *anElementPtr = node->key;
-      return YES;
-    }
-  return NO;
+  return NSNextHashEnumeratorItem (((NSHashEnumerator*)enumState));
 }
 
 - (void*) newEnumState
 {
-  return (void*)0;
+  void *es;
+
+  OBJC_MALLOC (es, NSMapEnumerator, 1);
+  *((NSHashEnumerator*)es) = NSEnumerateHashTable (_contents_hash);
+  return es;
 }
 
-- freeEnumState: (void**)enumState
+- (void) freeEnumState: (void**)enumState
 {
-  /* Yipes, this interface is ugly.  collhash:coll_hash_next malloc'ed this */
-  if (*enumState)
-    OBJC_FREE(*enumState);
-  return self;
+  OBJC_FREE (*enumState);
 }
-
-- withElementsCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag
-{
-  void *state = 0;
-  coll_node_ptr node;
-
-  while (*flag && (node = coll_hash_next(_contents_hash, &state))) 
-    {
-      (*aFunc)(node->key);
-    }
-  return self;
-}
-
-- withElementsCall: (void(*)(elt))aFunc
-{
-  void *state = 0;
-  coll_node_ptr node = 0;
-
-  while ((node = coll_hash_next(_contents_hash, &state)))
-    {
-      (*aFunc)(node->key);
-    }
-  return self;
-}
-
 
 @end
 

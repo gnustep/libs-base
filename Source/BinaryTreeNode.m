@@ -45,6 +45,8 @@
   [aCoder encodeObjectReference:_right withName:@"Right BinaryTree Node"];
   [aCoder encodeObjectReference:_left withName:@"Left BinaryTree Node"];
   [aCoder encodeObjectReference:_parent withName:@"Parent BinaryTree Node"];
+  [aCoder encodeObjectReference:_binary_tree
+	  withName:@"BinaryTree"];
 }
 
 - initWithCoder: aCoder
@@ -53,6 +55,7 @@
   [aCoder decodeObjectAt:&_right withName:NULL];
   [aCoder decodeObjectAt:&_left withName:NULL];
   [aCoder decodeObjectAt:&_parent withName:NULL];
+  [aCoder decodeObjectAt:&_binary_tree withName:NULL];
   return self;
 }
 
@@ -71,22 +74,29 @@
   return _parent;
 }
 
-- setLeftNode: aNode
+- (void) setLeftNode: aNode
 {
   _left = aNode;
-  return self;
 }
 
-- setRightNode: aNode
+- (void) setRightNode: aNode
 {
   _right = aNode;
-  return self;
 }
 
-- setParentNode: aNode
+- (void) setParentNode: aNode
 {
   _parent = aNode;
-  return self;
+}
+
+- binaryTree
+{
+  return _binary_tree;
+}
+
+- (void) setBinaryTree: anObject
+{
+  _binary_tree = anObject;
 }
 
 @end

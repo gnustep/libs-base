@@ -1,5 +1,5 @@
 /* Implementation for Objective-C SplayTree collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -26,14 +26,8 @@
 
 @implementation SplayTree
 
-+ (void) initialize
-{
-  if (self == [SplayTree class])
-    [self setVersion:0];	/* beta release */
-}
-
 /* Make this a function ? */
-- _doSplayOperationOnNode: aNode
+- (void) _doSplayOperationOnNode: aNode
 {
   id parent = [aNode parentNode];
   id parentRightChild = 
@@ -41,7 +35,7 @@
 
   if (aNode == _contents_root || aNode == [self nilNode])
     {
-      return self;
+      return;
     }
   else if (aNode == parentRightChild)
     {
@@ -80,53 +74,28 @@
 	  [self leftRotateAroundNode:[aNode parentNode]];
 	}
     }
-  return self;
 }
 
-- splayNode: aNode
+- (void) splayNode: aNode
 {
   while (aNode != _contents_root)
     [self _doSplayOperationOnNode:aNode];
-  return self;
 }
 
 /* We could make this a little more efficient by doing the splay as
    we search down the tree for the correct insertion point. */
-- sortAddElement: (elt)newElement byCalling: (int(*)(elt,elt))aFunc
+- (void) sortAddObject: newObject
 {
-  [super sortAddElement:newElement byCalling:aFunc];
-  [self splayNode:newElement.id_u];
-  return self;
+  [super sortAddObject: newObject];
+  [self splayNode: newObject];
 }
 
-- insertElement: (elt)newElement before: (elt)oldElement
+- (void) removeObject: anObject
 {
-  [super insertElement:newElement before:oldElement];
-  // ??  [self splayNode:newElement.id_u];
-  return self;
-}
-
-- insertElement: (elt)newElement after: (elt)oldElement
-{
-  [super insertElement:newElement after:oldElement];
-  // ??  [self splayNode:newElement.id_u];
-  return self;
-}
-
-- insertElement: (elt)newElement atIndex: (unsigned)index
-{
-  [super insertElement:newElement atIndex:index];
-  // ??  [self splayNode:newElement.id_u];
-  return self;
-}
-
-- (elt) removeElement: (elt)anElement
-{
-  id parent = [anElement.id_u parentNode];
-  [super removeElement:anElement];
+  id parent = [anObject parentNode];
+  [super removeObject: anObject];
   if (parent && parent != [self nilNode])
     [self splayNode:parent];
-  return AUTORELEASE_ELT(anElement);
 }
 
 @end

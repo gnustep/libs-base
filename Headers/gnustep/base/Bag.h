@@ -1,8 +1,8 @@
 /* Interface for Objective-C Bag collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -25,38 +25,26 @@
 #define __Bag_h_INCLUDE_GNU
 
 #include <objects/stdobjects.h>
-#include <objects/Set.h>
+#include <objects/Collection.h>
+#include <Foundation/NSMapTable.h>
 
-@interface Bag : Set
+@interface Bag : Collection
 {
+  NSMapTable *_contents_map;
   unsigned int _count;		// the number of elements;
 }
 
+// INITIALIZING AND FREEING;
+- initWithCapacity: (unsigned)aCapacity;
+
 // ADDING;
-- addObject: newObject withOccurrences: (unsigned)count;
+- (void) addObject: newObject withOccurrences: (unsigned)count;
 
 // REMOVING AND REPLACING;
-- removeObject: oldObject occurrences: (unsigned)count;
-- removeObject: oldObject occurrences: (unsigned)count
-    ifAbsentCall: (id(*)(arglist_t))excFunc;
+- (void) removeObject: oldObject occurrences: (unsigned)count;
 
 // TESTING;
 - (unsigned) uniqueCount;
-
-
-// NON-OBJECT ELEMENT METHOD NAMES;
-
-// INITIALIZING AND FREEING;
-- initWithType: (const char *)contentEncoding
-    capacity: (unsigned)aCapacity;
-
-// ADDING;
-- addElement: (elt)newElement withOccurrences: (unsigned)count;
-
-// REMOVING AND REPLACING;
-- (elt) removeElement:(elt)oldElement occurrences: (unsigned)count;
-- (elt) removeElement:(elt)oldElement occurrences: (unsigned)count
-    ifAbsentCall: (elt(*)(arglist_t))excFunc;
 
 @end
 

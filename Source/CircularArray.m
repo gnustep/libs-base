@@ -1,8 +1,8 @@
 /* Implementation for Objective-C CircularArray collection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -27,17 +27,10 @@
 
 @implementation CircularArray
 
-+ (void) initialize
-{
-  if (self == [CircularArray class])
-    [self setVersion:0];	/* beta release */
-}
-
 /* This is the designated initializer of this class */
-- initWithType: (const char *)contentEncoding 
-    capacity: (unsigned)aCapacity
+- initWithCapacity: (unsigned)aCapacity
 {
-  [super initWithType:contentEncoding capacity:aCapacity];
+  [super initWithCapacity:aCapacity];
   _start_index = 0;
   return self;
 }
@@ -51,13 +44,6 @@
   return self;
 }
 
-- _readInit: (TypedStream*)aStream
-{
-  [super _readInit: aStream];
-  _start_index = 0;
-  return self;
-}
-
 /* Empty copy must empty an allocCopy'ed version of self */
 
 - emptyCopy
@@ -67,24 +53,23 @@
   return copy;
 }
 
-- _empty
+- (void) _collectionEmpty
 {
-  [super _empty];
+  [super _collectionEmpty];
   _start_index = 0;
-  return self;
 }
 
 /* This is the only method that changes the value of the instance
-   variable _capacity, except for "-initDescription:capacity:" */
+   variable _capacity, except for "-initWithCapacity:" */
 
-- setCapacity: (unsigned)newCapacity
+- (void) setCapacity: (unsigned)newCapacity
 {
-  elt *new_contents;
+  id *new_contents;
   int i;
 
   if (newCapacity > _count) {
     /* This could be more efficient */
-    OBJC_MALLOC(new_contents, elt, newCapacity);
+    OBJC_MALLOC(new_contents, id, newCapacity);
     for (i = 0; i < _count; i++)
       new_contents[i] = _contents_array[CIRCULAR_TO_BASIC(i)];
     OBJC_FREE(_contents_array);
@@ -92,95 +77,83 @@
     _start_index = 0;
     _capacity = newCapacity;
   }
-  return self;
 }
 
-- (elt) removeElementAtIndex: (unsigned)index
+- (void) removeObjectAtIndex: (unsigned)index
 {
   unsigned basicIndex;
-  elt ret;
 
   CHECK_INDEX_RANGE_ERROR(index, _count);
   basicIndex = CIRCULAR_TO_BASIC(index);
-  ret = _contents_array[basicIndex];
+  [_contents_array[basicIndex] release];
   circularFillHoleAt(self, basicIndex);
   decrementCount(self);
-  return AUTORELEASE_ELT(ret);
 }
 
-- (elt) removeFirstElement
+- (void) removeFirstObject
 {
-  elt ret;
-
-  ret = _contents_array[_start_index];
+  if (!_count)
+    return;
+  [_contents_array[_start_index] release];
   _start_index = (_start_index + 1) % _capacity;
   decrementCount(self);
-  return AUTORELEASE_ELT(ret);
 }
 
-- (elt) removeLastElement
+- (void) removeLastObject
 {
-  elt ret;
-
   if (!_count)
-    NO_ELEMENT_FOUND_ERROR();
-  ret = _contents_array[CIRCULAR_TO_BASIC(_count-1)];
+    return;
+  [_contents_array[CIRCULAR_TO_BASIC(_count-1)] release];
   decrementCount(self);
-  return AUTORELEASE_ELT(ret);
 }
 
-- (elt) elementAtIndex: (unsigned)index
+- objectAtIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
   return _contents_array[CIRCULAR_TO_BASIC(index)];
 }
 
-- appendElement: (elt)newElement
+- (void) appendObject: newObject
 {
   incrementCount(self);
-  RETAIN_ELT(newElement);
-  _contents_array[CIRCULAR_TO_BASIC(_count-1)] = newElement;
-  return self;
+  [newObject retain];
+  _contents_array[CIRCULAR_TO_BASIC(_count-1)] = newObject;
 }
 
-- prependElement: (elt)newElement
+- (void) prependElement: newObject
 {
   incrementCount(self);
-  RETAIN_ELT(newElement);
+  [newObject retain];
   _start_index = (_capacity + _start_index - 1) % _capacity;
-  _contents_array[_start_index] = newElement;
-  return self;
+  _contents_array[_start_index] = newObject;
 }
 
-- insertElement: (elt)newElement atIndex: (unsigned)index
+- (void) insertElement: newObject atIndex: (unsigned)index
 {
   unsigned basicIndex;
 
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
   incrementCount(self);
-  RETAIN_ELT(newElement);
+  [newObject retain];
   basicIndex = CIRCULAR_TO_BASIC(index);
   circularMakeHoleAt(self, basicIndex);
-  _contents_array[basicIndex] = newElement;
-  return self;
+  _contents_array[basicIndex] = newObject;
 }
 
-- (elt) replaceElementAtIndex: (unsigned)index with: (elt)newElement
+- (void) replaceObjectAtIndex: (unsigned)index withObject: newObject
 {
-  elt ret;
   unsigned basicIndex;
 
   CHECK_INDEX_RANGE_ERROR(index, _count);
-  RETAIN_ELT(newElement);
+  [newObject retain];
   basicIndex = CIRCULAR_TO_BASIC(index);
-  ret = _contents_array[basicIndex];
-  _contents_array[basicIndex] = newElement;
-  return AUTORELEASE_ELT(ret);
+  [_contents_array[basicIndex] release];
+  _contents_array[basicIndex] = newObject;
 }
 
-- swapAtIndeces: (unsigned)index1 : (unsigned)index2
+- (void) swapAtIndeces: (unsigned)index1 : (unsigned)index2
 {
-  elt tmp;
+  id tmp;
 
   CHECK_INDEX_RANGE_ERROR(index1, _count);
   CHECK_INDEX_RANGE_ERROR(index2, _count);
@@ -189,10 +162,10 @@
   tmp = _contents_array[index1];
   _contents_array[index1] = _contents_array[index2];
   _contents_array[index2] = tmp;
-  return self;
 }
 
-/* just temporary for debugging
+#if 0
+/* just temporary for debugging */
 - circularArrayPrintForDebugger
 {
   int i;
@@ -217,7 +190,7 @@
 
   return self;
 }
-*/
+#endif
 
 @end
 

@@ -1,8 +1,8 @@
 /* Implementation for Objective-C Stack object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
    
    This file is part of the GNU Objective C Class Library.
    
@@ -26,65 +26,40 @@
 
 @implementation Stack 
   
-+ (void) initialize
+- (void) pushObject: newObject
 {
-  if (self == [Stack class])
-    [self setVersion:0];	/* beta release */
-}
-
-- pushElement: (elt)anElement
-{
-  [self appendElement:anElement];
-  return self;
+  [self appendObject: newObject];
 }
 
 /* Overriding */
-- addElement: (elt)anElement
+- (void) addObject: newObject
 {
-  [self pushElement:anElement];
-  return self;
-}
-
-- (elt) popElement
-{
-  return [self removeLastElement];
-}
-
-- (elt) topElement
-{
-  return [self lastElement];
-}
-
-/* Yipes.  What copying semantics do we want here? */
-- duplicateTop
-{
-  [self pushElement:[self topElement]];
-  return self;
-}
-
-- exchangeTop
-{
-  if (_count <= 1)
-    return nil;
-  [self swapAtIndeces:_count-1 :_count-2];
-  return self;
-}
-
-// OBJECT-COMPATIBLE MESSAGE NAMES;
-
-- pushObject: anObject
-{
-  return [self pushElement:anObject];
+  [self pushObject: newObject];
 }
 
 - popObject
 {
-  return [self popElement].id_u;
+  id ret;
+  ret = [[self lastObject] retain];
+  [self removeLastObject];
+  return [ret autorelease];
 }
 
 - topObject
 {
-  return [self topElement].id_u;
+  return [self lastObject];
+}
+
+/* xxx Yipes.  What copying semantics do we want here? */
+- (void) duplicateTop
+{
+  [self pushObject: [self topObject]];
+}
+
+- (void) exchangeTop
+{
+  if (_count > 1)
+    [self swapAtIndeces:_count-1 :_count-2];
 }
 
 @end
