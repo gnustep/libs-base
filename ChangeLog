@@ -1,3 +1,10 @@
+Wed Dec  1 19:36:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSArray.m: When sorting, treat illegal return values from the
+	comparator the same way as OPENSTEP does, but log a warning.
+	* Source/NSGArray.m: ditto
+	* Source/NSDictionary.m ditto
+
 Fri Nov 26 19:46:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Headers/Foundation/NSString.h: Tidied and fixed return types for

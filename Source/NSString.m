@@ -2476,20 +2476,30 @@ handle_printf_atsign (FILE *stream,
 
 // Creating Temporary Strings
 
++ (NSMutableString*) string
+{
+  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithCapacity: 0]);
+}
+
 + (NSMutableString*) stringWithCapacity: (unsigned)capacity
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithCapacity: capacity]);
+  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithCapacity: capacity]);
 }
 
 /* Inefficient. */
 + (NSString*) stringWithCharacters: (const unichar*)characters
 			    length: (unsigned)length
 {
-  id n;
-  n =  [[self allocWithZone: NSDefaultMallocZone()]
-    initWithCharacters: characters length: length];
-  return AUTORELEASE(n);
+  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithCharacters: characters length: length]);
+}
+
++ (id) stringWithContentsOfFile: (NSString *)path
+{
+  return AUTORELEASE([[NSMutableString_c_concrete_class allocWithZone:
+    NSDefaultMallocZone()] initWithContentsOfFile: path]);
 }
 
 + (NSString*) stringWithCString: (const char*)byteString

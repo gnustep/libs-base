@@ -32,6 +32,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSDebug.h>
 
 @interface NSDictionaryNonCore : NSDictionary
 @end
@@ -696,16 +697,21 @@ static NSString	*indentStrings[] = {
  * 3 is a fairly good choice (Sedgewick)
  */
 #define STRIDE_FACTOR 3
-      unsigned c,d, stride;
+      unsigned	c,d, stride;
       BOOL	found;
       NSComparisonResult	(*comp)(id, SEL, id);
-      int count = numKeys;
+      int	count = numKeys;
+#ifdef	GSWARN
+      BOOL	badComparison = NO;
+#endif
 
       stride = 1;
       while (stride <= count)
-	stride = stride * STRIDE_FACTOR + 1;
+	{
+	  stride = stride * STRIDE_FACTOR + 1;
+	}
       lastClass = 0;
-      while(stride > (STRIDE_FACTOR - 1))
+      while (stride > (STRIDE_FACTOR - 1))
 	{
 	  // loop to sort for each value of stride
 	  stride = stride / STRIDE_FACTOR;
@@ -713,14 +719,16 @@ static NSString	*indentStrings[] = {
 	    {
 	      found = NO;
 	      if (stride > c)
-		break;
-	      d = c - stride;
-	      while (!found)
 		{
-		  // move to left until correct place
-		  id	a = keys[d + stride];
-		  id	b = keys[d];
-		  Class	x;
+		  break;
+		}
+	      d = c - stride;
+	      while (!found)	// move to left until correct place
+		{
+		  id			a = keys[d + stride];
+		  id			b = keys[d];
+		  Class			x;
+		  NSComparisonResult	r;
 
 		  x = fastClass(a);
 		  if (x != lastClass)
@@ -729,21 +737,42 @@ static NSString	*indentStrings[] = {
 		      comp = (NSComparisonResult (*)(id, SEL, id))
 			[a methodForSelector: @selector(compare:)];
 		    }
-		  if ((*comp)(a, @selector(compare:), b) == NSOrderedAscending)
+		  r = (*comp)(a, @selector(compare:), b);
+		  if (r < 0)
 		    {
+#ifdef	GSWARN
+		      if (r != NSOrderedAscending)
+			{
+			  badComparison = YES;
+			}
+#endif
 		      keys[d + stride] = b;
 		      keys[d] = a;
 		      if (stride > d)
-			break;
+			{
+			  break;
+			}
 		      d -= stride;		// jump by stride factor
 		    }
 		  else
 		    {
+#ifdef	GSWARN
+		      if (r != NSOrderedDescending && r != NSOrderedSame)
+			{
+			  badComparison = YES;
+			}
+#endif
 		      found = YES;
 		    }
 		}
 	    }
 	}
+#ifdef	GSWARN
+      if (badComparison == YES)
+	{
+	  NSWarnMLog(@"Detected bad return value from comparison", 0);
+	}
+#endif
     }
 
   for (i = 0; i < numKeys; i++)
