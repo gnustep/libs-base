@@ -139,6 +139,15 @@ NSDictionary *_attributesAtIndexEffectiveRange(
   return nil;
 }
 
+- (Class) classForPortCoder: (NSPortCoder*)aCoder
+{
+  return [self class];
+}
+- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+{
+    return self;
+}
+
 - (void) encodeWithCoder: aCoder
 {
   [super encodeWithCoder:aCoder];
@@ -193,6 +202,15 @@ NSDictionary *_attributesAtIndexEffectiveRange(
 
 
 @implementation NSGMutableAttributedString
+
+- (Class) classForPortCoder: (NSPortCoder*)aCoder
+{
+  return [self class];
+}
+- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+{
+    return self;
+}
 
 - (void) encodeWithCoder: aCoder
 {

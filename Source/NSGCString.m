@@ -83,6 +83,15 @@
   return [self class];
 }
 
+- (Class) classForPortCoder: (NSPortCoder*)aCoder
+{
+  return [self class];
+}
+- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+{
+    return self;
+}
+
 - (void) encodeWithCoder: aCoder
 {
   [aCoder encodeValueOfObjCType:@encode(char*) at:&_contents_chars 

@@ -1,3 +1,40 @@
+Fri Sep 12 12:27:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSString.m: Added [-classForPortCoder:]) method for
+	NXConstantString to prevent minor DO memory leak.
+
+Fri Sep 12  6:15:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/NSAttributedString.m: Added the [-classForPortCoder:] and
+	[-replacementObjectForPortCoder:] methods to ensure that strings
+	are always sent over DO bycopy.
+
+	* src/NSDistantObject.m: Fixed the types of the parameters to a few
+	methods to avoid compiler warnings.
+
+	* src/NSGAttributedString.m: Added the [-classForPortCoder:] and
+	[-replacementObjectForPortCoder:] methods to ensure that strings
+	are always sent over DO bycopy.
+
+	* src/NSGCString.m: Added the [-classForPortCoder:] and
+	[-replacementObjectForPortCoder:] methods to ensure that strings
+	are always sent over DO bycopy.
+
+	* src/NSGString.m: Added the [-classForPortCoder:] and
+	[-replacementObjectForPortCoder:] methods to ensure that strings
+	are always sent over DO bycopy.
+
+	* src/NSHData.m: Added the [-classForPortCoder:] and
+	[-replacementObjectForPortCoder:] methods to ensure that data
+	objects are always sent over DO bycopy.
+
+	* src/NSProxy.m: Commented out a couple of methods whose OPENSTEP
+	style implementation was incomplete so that the old (working)
+	GNUstep implementation is used.
+
+	* src/NSRunLoop.m: Moved some code around to fix problems with
+	earlier patch being applied in wrong place.
+
 Wed Sep 10 18:03:22 1997  Scott Christley  <scottc@net-community.com>
 
 	* config.guess: Update.
@@ -27,8 +64,9 @@ Tue Sep  9 10:15:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 	* src/TcpPort.m: Fixed a minor retain/release problem.
 
 	* src/UnixFileHandle.m: Added loads of checks so that attempts to
-	use a file handle which has been closed will fail/generate an exception
-	rather than crashing things!  Also modified for changes to NSRunLoop.
+ 	use a file handle which has been closed will fail/generate an
+ 	exception rather than crashing things!  Also modified for changes
+ 	to NSRunLoop.
 
 	* src/include/NSRunLoop.h: Modified the interface for adding watchers
 	for events with a count of the number of times they have been added.

@@ -570,17 +570,17 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 			       argFrame: frame];
 }
 
-- classForCoder: aRmc;
+- classForCoder: (NSCoder*)aCoder;
 {
     return object_get_class (self);
 }
 
-- classForPortCoder: aRmc
+- classForPortCoder: (NSPortCoder*)aCoder
 {
     return object_get_class (self);
 }
 
-- replacementObjectForCoder:(NSPortCoder*)aCoder
+- replacementObjectForCoder:(NSCoder*)aCoder
 {
     return self;
 }

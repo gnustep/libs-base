@@ -91,6 +91,7 @@
     return object_get_class(self);
 }
 
+#if 0
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
     NSInvocation*	inv;
@@ -105,6 +106,7 @@
     [inv getReturnValue: &result];
     return result;
 }
+#endif
 
 - (void) dealloc
 {
@@ -220,6 +222,7 @@
     }
 }
 
+#if 0
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
     NSInvocation*       inv;
@@ -234,6 +237,7 @@
     [inv getReturnValue: &result];
     return result;
 }
+#endif
 
 - retain
 {

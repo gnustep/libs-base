@@ -225,6 +225,16 @@
   return [self class];
 }
 
+- (Class) classForPortCoder: (NSPortCoder*)aCoder
+{
+  return [self class];
+}
+- replacementObjectForPortCoder:(NSPortCoder*)aCoder
+{
+    return self;
+}
+
+
 // FOR IndexedCollection SUPPORT;
 
 - objectAtIndex: (unsigned)index
