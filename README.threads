@@ -1,0 +1,47 @@
+Return-Path: mccallum@ux2.sp.cs.cmu.edu 
+Received: from tera.jprc.com (tera.jprc.com [207.86.147.221])
+	by sandbox.jprc.com (8.8.5/8.8.5) with SMTP id MAA25547
+	for <mccallum@sandbox.jprc.com>; Tue, 20 May 1997 12:59:00 -0400
+Resent-Message-Id: <199705201659.MAA25547@sandbox.jprc.com>
+Received: from complex.jprc.com (complex.jprc.com [207.86.147.34]) by tera.jprc.com (NTMail 3.02.10) with ESMTP id na043797 for <mccallum@sandbox.jprc.com>; Tue, 20 May 1997 13:06:12 -0400
+Received: from UX2.SP.cs.cmu.edu (UX2.SP.cs.cmu.edu [128.2.198.102]) by complex.jprc.com (NTMail 3.02.10) with ESMTP id ea039706 for <mccallum@jprc.com>; Tue, 20 May 1997 12:56:58 -0400
+Received: from RI.CMU.EDU by ux2.sp.cs.cmu.edu id ab19713; 20 May 97 12:57 EDT
+Received: from churchy.gnu.ai.mit.edu by RI.CMU.EDU id aa11471;
+          20 May 97 12:57:03 EDT
+Received: from pluto by churchy.gnu.ai.mit.edu (8.8.5/8.6.12GNU) with ESMTP id MAA16968 for <gnustep-dev@gnu.ai.mit.edu>; Tue, 20 May 1997 12:56:28 -0400 (EDT)
+Received: by pluto
+	id m0wTsFr-0000ViC
+	(Debian Smail-3.2 1996-Jul-4 #2); Wed, 21 May 1997 01:59:19 +0900 (KST)
+Sender: "Yoo C. Chung" <wacko@laplace.snu.ac.kr>
+Sender: wacko@pluto.ai.mit.edu
+To: Adam Fedor <fedor@doc.com>
+Cc: GNUStep Developer <gnustep-dev@gnu.ai.mit.edu>
+Subject: Re: Threads on sparc-sun-solaris2.5.1
+References: <3381D457.3812@doc.com>
+From: "Yoo C. Chung" <wacko@laplace.snu.ac.kr>
+Date: 21 May 1997 01:59:18 +0900
+In-Reply-To: Adam Fedor's message of Tue, 20 May 1997 11:41:59 -0500
+Message-ID: <87oha6hyft.fsf@laplace.snu.ac.kr>
+Lines: 17
+X-Mailer: Gnus v5.4.37/XEmacs 19.15
+Resent-Date:  Tue, 20 May 97 12:57:40 EDT
+Resent-From: mccallum@ux2.sp.cs.cmu.edu
+Resent-To: mccallum@jprc.com
+
+Adam Fedor <fedor@doc.com> writes:
+
+> Has anyone ever tested threads on a Solaris computer? It appears that 
+> you can't retreive thread data -- thr-solaris.c:objc_get_thread_data 
+> always returns NULL.
+> 
+> Perhaps someone can try to run thread-except (from gstep-base/checks) to 
+> see if you get a segmentation fault trying to reset the exception 
+> handler from the data stored in the thread.
+
+On Solaris you need to link in the thread library with -lthread.  (It
+would have saved me a lot of grief if they had just let me have a lot
+of undefined symbol errors when linking without the thread library.)
+
+-- 
+Yoo C. Chung <http://plaza.snu.ac.kr/~wacko/>
+School of Electrical Engineering, Seoul National University
