@@ -93,7 +93,12 @@
 /* To deal with behavior over-enthusiasm.  Will be fixed later. */
 - (BOOL) isEqual: other
 {
-  return [super isEqual:other];
+  /* xxx What is the correct behavior here.
+     If we end up calling [NSSet -isEqualToSet:] we end up in
+     an infinite loop, since that method enumerates the set, and
+     the set enumerator asks if things are equal...
+     [Huh? What am I saying here?] */
+  return (self == other);
 }
 @end
 
