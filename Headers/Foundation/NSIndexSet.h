@@ -33,7 +33,6 @@
 #include	<Foundation/NSRange.h>
 
 /**
- * <strong> NOT YET FULLY IMPLEMENTED/TESTED </strong>
  * Instances of this class are collections of unsigned integers in the
  * range 0 to NSNotFound-1.<br />
  * Each integer can appear in a collection only once.

@@ -141,7 +141,9 @@
 
 #ifndef	STRICT_MACOS_X
 /**
- *  Initializes from a bitmap (4096 bytes representing 65536 values).
+ *  Initializes from a bitmap (8192 bytes representing 65536 values).<br />
+ *  Each bit set in the bitmap represents the fact that a character at
+ *  that position in the unicode base plane exists in the characterset.<br />
  *  File must have extension "<code>.bitmap</code>".
  *  To get around this load the file into data yourself and use
  *  [NSCharacterSet -characterSetWithBitmapRepresentation].
@@ -151,7 +153,7 @@
 
 /**
  * Returns a bitmap representation of the receiver's character set
- * suitable for archiving or writing to a file, in an NSData object.
+ * (suitable for archiving or writing to a file), in an NSData object.<br />
  */
 - (NSData*) bitmapRepresentation;
 
@@ -161,12 +163,31 @@
  */
 - (BOOL) characterIsMember: (unichar)aCharacter;
 
+#ifndef	STRICT_OPENSTEP
+/**
+ * Returns YES if the receiver contains at lerast one character in the
+ * specified unicode plane.
+ */
+- (BOOL) hasMemberInPlane: (uint8_t)aPlane;
+#endif
+
 /**
  * Returns a character set containing only characters that the
  * receiver does not contain.
  */
 - (NSCharacterSet*) invertedSet;
 
+#ifndef	STRICT_OPENSTEP
+/**
+ * Returns YES is all the characters in aSet are present in the receiver.
+ */
+- (BOOL) isSupersetOfSet: (NSCharacterSet*)aSet;
+
+/**
+ * Returns YES is the specified 32-bit character is present in the receiver.
+ */
+- (BOOL) longCharacterIsMember: (UTF32Char)aCharacter;
+#endif
 @end
 
 /**
@@ -185,14 +206,14 @@
 - (void) addCharactersInString: (NSString*)aString;
 
 /**
- *  Set union of character sets.
- */
-- (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet;
-
-/**
  *  Set intersection of character sets.
  */
 - (void) formIntersectionWithCharacterSet: (NSCharacterSet*)otherSet;
+
+/**
+ *  Set union of character sets.
+ */
+- (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet;
 
 /**
  *  Drop given range of characters.  No error for characters not currently in

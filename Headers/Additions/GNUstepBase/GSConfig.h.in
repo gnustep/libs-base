@@ -173,9 +173,21 @@ typedef	@GS_ADDR@ gsaddr;
  * Ensure some standard types are defined.
  */
 @INCLUDE_STDINT@
+@DEFINE_INT8_T@
 @DEFINE_UINT8_T@
+@DEFINE_INT16_T@
+@DEFINE_UINT16_T@
 @DEFINE_INT32_T@
+@DEFINE_UINT32_T@
 @DEFINE_INT64_T@
+@DEFINE_UINT64_T@
+
+/*
+ * Wide unicode character type.
+ */
+#ifndef	UTF32Char
+#define	UTF32Char	uint32_t
+#endif
 
 #endif	/* included_GSConfig_h */
 

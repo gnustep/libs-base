@@ -158,7 +158,6 @@ NSArchiver.m \
 NSArray.m \
 NSAssertionHandler.m \
 NSAutoreleasePool.m \
-NSBitmapCharSet.m \
 NSBundle.m \
 NSCalendarDate.m \
 NSCallBacks.m \
