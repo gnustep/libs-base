@@ -66,6 +66,8 @@ enum DelegatePoolSendBehavior {SEND_TO_ALL = 0,
 - forward:(SEL)aSel :(arglist_t)argFrame;
 
 // FOR FINDING OUT IF ANY OBJECTS IN THE POOL RESPONDED TO THE LAST MSG;
+/* This method is bad because it won't be thread-safe---it may
+   go away in the future. */
 - (BOOL) delegatePoolLastMessageHadReceivers;
 
 @end
