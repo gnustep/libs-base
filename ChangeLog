@@ -1,5 +1,6 @@
 Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* doc/news.texi: Fix typo.
 	* doc/install.texi: Fix typo.
 
 	* Makefile.in (DIST_FILES): Add config.sub.
