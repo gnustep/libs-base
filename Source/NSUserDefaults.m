@@ -44,6 +44,7 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSLock.h>
 #include <base/GSLocale.h>
 
 /* Wait for access */
@@ -63,6 +64,8 @@ static Class	NSDataClass;
 static Class	NSDictionaryClass;
 static Class	NSMutableDictionaryClass;
 static Class	NSStringClass;
+
+static NSRecursiveLock	*classLock = nil;
 
 /*************************************************************************
  *** Local method definitions
@@ -102,11 +105,13 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       NSDictionaryClass = [NSDictionary class];
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
+      classLock = [NSRecursiveLock new];
     }
 }
 
 + (void) resetUserDefaults
 {
+  [classLock lock];
   if (sharedDefaults != nil)
     {
       NSDictionary	*regDefs;
@@ -114,7 +119,8 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       regDefs = RETAIN([sharedDefaults->_tempDomains
 	objectForKey: NSRegistrationDomain]);
       setSharedDefaults = NO;
-      DESTROY(sharedDefaults);
+      AUTORELEASE(sharedDefaults);	// Let tother threads keep it.
+      sharedDefaults = nil;
       if (regDefs != nil)
 	{
 	  [self standardUserDefaults];
@@ -126,6 +132,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	  RELEASE(regDefs);
 	}
     }
+  [classLock unlock];
 }
 
 /* Create a locale dictionary when we have absolutely no information
@@ -248,9 +255,12 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   NSArray *uL;
   NSEnumerator *enumerator;
 
+  [classLock lock];
   if (setSharedDefaults)
     {
-      return sharedDefaults;
+      RETAIN(sharedDefaults);
+      [classLock unlock];
+      return AUTORELEASE(sharedDefaults);
     }
   setSharedDefaults = YES;
   /*
@@ -264,6 +274,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   if (sharedDefaults == nil)
     {
       NSLog(@"WARNING - unable to create shared user defaults!\n");
+      [classLock unlock];
       return nil;
     }
 	
@@ -312,7 +323,9 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       NSLog(@"Improper installation: No language locale found");
       [sharedDefaults registerDefaults: [self _unlocalizedDefaults]];
     }
-  return sharedDefaults;
+  RETAIN(sharedDefaults);
+  [classLock unlock];
+  return AUTORELEASE(sharedDefaults);
 }
 
 
@@ -321,9 +334,12 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   NSArray	*currLang = nil;
   NSString	*locale;
 
+  [classLock lock];
   if (userLanguages != nil)
     {
-      return userLanguages;
+      RETAIN(userLanguages);
+      [classLock unlock];
+      return AUTORELEASE(userLanguages);
     }
   userLanguages = RETAIN([NSMutableArray arrayWithCapacity: 5]);
   locale = GSSetLocale(@"");
@@ -404,21 +420,24 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     {
       [userLanguages addObject: @"English"];
     }
-
-  return userLanguages;
+  RETAIN(userLanguages);
+  [classLock unlock];
+  return AUTORELEASE(userLanguages);
 }
 
 + (void) setUserLanguages: (NSArray*)languages
 {
-  NSMutableDictionary	*globDict = [[self standardUserDefaults] 
-			    persistentDomainForName: NSGlobalDomain];
+  NSMutableDictionary	*globDict;
 	
+  globDict = [[[self standardUserDefaults] 
+    persistentDomainForName: NSGlobalDomain] mutableCopy];
   if (languages == nil)          // Remove the entry
     [globDict removeObjectForKey: @"NSLanguages"];
   else
     [globDict setObject: languages forKey: @"NSLanguages"];
   [[self standardUserDefaults] 
     setPersistentDomain: globDict forName: NSGlobalDomain];
+  RELEASE(globDict);
   return;
 }
 
@@ -569,7 +588,8 @@ static NSString	*pathForUser(NSString *user)
   [_tempDomains
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
-	
+
+  _lock = [NSRecursiveLock new];
   return self;
 }
 
@@ -583,6 +603,7 @@ static NSString	*pathForUser(NSString *user)
   RELEASE(_tempDomains);
   RELEASE(_changedDomains);
   RELEASE(_dictionaryRep);
+  RELEASE(_lock);
   [super dealloc];
 }
 
@@ -590,10 +611,12 @@ static NSString	*pathForUser(NSString *user)
 {
   NSMutableString *desc;
 
+  [_lock lock];
   desc = [NSMutableString stringWithFormat: @"%@", [super description]];
   [desc appendFormat: @" SearchList: %@", _searchList];
   [desc appendFormat: @" Persistant: %@", _persDomains];
   [desc appendFormat: @" Temporary: %@", _tempDomains];
+  [_lock unlock];
   return desc;
 }
 
@@ -656,13 +679,20 @@ static NSString	*pathForUser(NSString *user)
 
 - (id) objectForKey: (NSString*)defaultName
 {
-  NSEnumerator	*enumerator = [_searchList objectEnumerator];
-  IMP		nImp = [enumerator methodForSelector: nextObjectSel];
-  id		object = nil;
+  NSEnumerator	*enumerator;
+  IMP		nImp;
+  id		object;
   id		dN;
-  IMP		pImp = [_persDomains methodForSelector: objectForKeySel];
-  IMP		tImp = [_tempDomains methodForSelector: objectForKeySel];
+  IMP		pImp;
+  IMP		tImp;
 	
+  [_lock lock];
+  enumerator = [_searchList objectEnumerator];
+  nImp = [enumerator methodForSelector: nextObjectSel];
+  object = nil;
+  pImp = [_persDomains methodForSelector: objectForKeySel];
+  tImp = [_tempDomains methodForSelector: objectForKeySel];
+
   while ((dN = (*nImp)(enumerator, nextObjectSel)) != nil)
     {
       id	dict;
@@ -674,14 +704,16 @@ static NSString	*pathForUser(NSString *user)
       if (dict != nil && (object = [dict objectForKey: defaultName]))
 	break;
     }
-	
-  return object;
+  RETAIN(object);
+  [_lock unlock];
+  return AUTORELEASE(object);
 }
 
 - (void) removeObjectForKey: (NSString*)defaultName
 {
   id	obj;
 	
+  [_lock lock];
   obj = [[_persDomains objectForKey: processName] objectForKey: defaultName];
   if (obj != nil)
     {
@@ -700,6 +732,7 @@ static NSString	*pathForUser(NSString *user)
       [dict removeObjectForKey: defaultName];
       [self __changePersistentDomain: processName];
     }
+  [_lock unlock];
   return;
 }
 
@@ -734,8 +767,10 @@ static NSString	*pathForUser(NSString *user)
   if (value && defaultName && ([defaultName length] > 0))
     {
       NSMutableDictionary	*dict;
-      id			obj = [_persDomains objectForKey: processName];
+      id			obj;
 
+      [_lock lock];
+      obj = [_persDomains objectForKey: processName];
       if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
 	{
 	  dict = obj;
@@ -748,6 +783,7 @@ static NSString	*pathForUser(NSString *user)
 	}
       [dict setObject: value forKey: defaultName];
       [self __changePersistentDomain: processName];
+      [_lock unlock];
     }
   return;
 }
@@ -787,14 +823,21 @@ static NSString	*pathForUser(NSString *user)
  *************************************************************************/
 - (NSArray*) searchList
 {
-  return AUTORELEASE([_searchList copy]);
+  NSArray	*copy;
+
+  [_lock lock];
+  copy = [_searchList copy];
+  [_lock unlock];
+  return AUTORELEASE(copy);
 }
 
 - (void) setSearchList: (NSArray*)newList
 {
+  [_lock lock];
   DESTROY(_dictionaryRep);
   RELEASE(_searchList);
   _searchList = [newList mutableCopy];
+  [_lock unlock];
 }
 
 /*************************************************************************
@@ -802,31 +845,46 @@ static NSString	*pathForUser(NSString *user)
  *************************************************************************/
 - (NSDictionary*) persistentDomainForName: (NSString*)domainName
 {
-  return AUTORELEASE([[_persDomains objectForKey: domainName] copy]);
+  NSDictionary	*copy;
+
+  [_lock lock];
+  copy = [[_persDomains objectForKey: domainName] copy];
+  [_lock unlock];
+  return AUTORELEASE(copy);
 }
 
 - (NSArray*) persistentDomainNames
 {
-  return [_persDomains allKeys];
+  NSArray	*keys;
+
+  [_lock lock];
+  keys = [_persDomains allKeys];
+  [_lock unlock];
+  return keys;
 }
 
 - (void) removePersistentDomainForName: (NSString*)domainName
 {
+  [_lock lock];
   if ([_persDomains objectForKey: domainName])
     {
       [_persDomains removeObjectForKey: domainName];
       [self __changePersistentDomain: domainName];
     }
+  [_lock unlock];
   return;
 }
 
 - (void) setPersistentDomain: (NSDictionary*)domain 
 		     forName: (NSString*)domainName
 {
-  id	dict = [_tempDomains objectForKey: domainName];
+  id	dict;
 	
+  [_lock lock];
+  dict = [_tempDomains objectForKey: domainName];
   if (dict)
     {
+      [_lock unlock];
       [NSException raise: NSInvalidArgumentException 
 		   format: @"Persistant domain %@ already exists", domainName];
       return;
@@ -835,6 +893,7 @@ static NSString	*pathForUser(NSString *user)
   [_persDomains setObject: domain forKey: domainName];
   RELEASE(domain);
   [self __changePersistentDomain: domainName];
+  [_lock unlock];
   return;
 }
 
@@ -844,6 +903,8 @@ static NSString	*pathForUser(NSString *user)
   NSMutableDictionary	*newDict;
   NSDictionary		*attr;
   NSDate		*mod;
+
+  [_lock lock];
 
   if (_tickingTimer == nil)
     {
@@ -863,13 +924,17 @@ static NSString	*pathForUser(NSString *user)
       BOOL		wantRead = NO;
 
       if (_lastSync == nil)
-	wantRead = YES;
+	{
+	  wantRead = YES;
+	}
       else
 	{
 	  attr = [mgr fileAttributesAtPath: _defaultsDatabase
 			      traverseLink: YES];
 	  if (attr == nil)
-	    wantRead = YES;
+	    {
+	      wantRead = YES;
+	    }
 	  else
 	    {
 	      mod = [attr objectForKey: NSFileModificationDate];
@@ -878,7 +943,10 @@ static NSString	*pathForUser(NSString *user)
 	    }
 	}
       if (wantRead == NO)
-	return YES;
+	{
+	  [_lock unlock];
+	  return YES;
+	}
     }
 
   /*
@@ -891,11 +959,13 @@ static NSString	*pathForUser(NSString *user)
 	  [_defaultsDatabaseLock breakLock];
 	  if ([_defaultsDatabaseLock tryLock] == NO)
 	    {
+	      [_lock unlock];
 	      return NO;
 	    }
 	}
       else
 	{
+	  [_lock unlock];
 	  return NO;
 	}
     }
@@ -914,6 +984,7 @@ static NSString	*pathForUser(NSString *user)
 	{
 	  [_defaultsDatabaseLock unlock];	// release file lock
 	  NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
+	  [_lock unlock];
 	  return NO;
 	}
       
@@ -981,6 +1052,7 @@ static NSString	*pathForUser(NSString *user)
       if (![_persDomains writeToFile: _defaultsDatabase atomically: YES])
 	{
 	  [_defaultsDatabaseLock unlock];
+	  [_lock unlock];
 	  return NO;
 	}
       attr = [mgr fileAttributesAtPath: _defaultsDatabase
@@ -1010,6 +1082,7 @@ static NSString	*pathForUser(NSString *user)
 	}
     }
 
+  [_lock unlock];
   return YES;
 }
 
@@ -1019,17 +1092,22 @@ static NSString	*pathForUser(NSString *user)
  *************************************************************************/
 - (void) removeVolatileDomainForName: (NSString*)domainName
 {
+  [_lock lock];
   DESTROY(_dictionaryRep);
   [_tempDomains removeObjectForKey: domainName];
+  [_lock unlock];
 }
 
 - (void) setVolatileDomain: (NSDictionary*)domain 
 		   forName: (NSString*)domainName
 {
-  id	dict = [_persDomains objectForKey: domainName];
+  id	dict;
 	
+  [_lock lock];
+  dict = [_persDomains objectForKey: domainName];
   if (dict)
     {
+      [_lock unlock];
       [NSException raise: NSInvalidArgumentException 
 		  format: @"Volatile domain %@ already exists", domainName];
       return;
@@ -1038,17 +1116,28 @@ static NSString	*pathForUser(NSString *user)
   domain = [domain mutableCopy];
   [_tempDomains setObject: domain forKey: domainName];
   RELEASE(domain);
+  [_lock unlock];
   return;
 }
 
 - (NSDictionary*) volatileDomainForName: (NSString*)domainName
 {
-  return AUTORELEASE([[_tempDomains objectForKey: domainName] copy]);
+  NSDictionary	*copy;
+
+  [_lock lock];
+  copy = [[_tempDomains objectForKey: domainName] copy];
+  [_lock unlock];
+  return AUTORELEASE(copy);
 }
 
 - (NSArray*) volatileDomainNames
 {
-  return [_tempDomains allKeys];
+  NSArray	*keys;
+
+  [_lock lock];
+  keys = [_tempDomains allKeys];
+  [_lock unlock];
+  return keys;
 }
 
 /*************************************************************************
@@ -1056,6 +1145,9 @@ static NSString	*pathForUser(NSString *user)
  *************************************************************************/
 - (NSDictionary*) dictionaryRepresentation
 {
+  NSDictionary	*rep;
+
+  [_lock lock];
   if (_dictionaryRep == nil)
     {
       NSEnumerator		*enumerator;
@@ -1086,13 +1178,16 @@ static NSString	*pathForUser(NSString *user)
       _dictionaryRep = [dictRep copy];
       RELEASE(dictRep);
     }
-  return _dictionaryRep;
+  rep = RETAIN(_dictionaryRep);
+  [_lock unlock];
+  return AUTORELEASE(rep);
 }
 
 - (void) registerDefaults: (NSDictionary*)newVals
 {
   NSMutableDictionary	*regDefs;
 
+  [_lock lock];
   regDefs = [_tempDomains objectForKey: NSRegistrationDomain];
   if (regDefs == nil)
     {
@@ -1102,6 +1197,7 @@ static NSString	*pathForUser(NSString *user)
     }
   DESTROY(_dictionaryRep);
   [regDefs addEntriesFromDictionary: newVals];
+  [_lock unlock];
 }
 
 /*************************************************************************
@@ -1113,6 +1209,7 @@ static NSString	*pathForUser(NSString *user)
   NSEnumerator	*enumerator;
   id		object;
 	
+  [_lock lock];
   // Note: The search list should exist!
 	
   // 1. NSArgumentDomain
@@ -1135,19 +1232,22 @@ static NSString	*pathForUser(NSString *user)
   // 5. NSRegistrationDomain
   [_searchList addObject: NSRegistrationDomain];
 	
+  [_lock unlock];
   return;
 }
 
 - (NSDictionary*) __createArgumentDictionary
 {
-  NSArray	*args = [[NSProcessInfo processInfo] arguments];
-  //$$$	NSArray *args = _searchList;  // $$$
-  NSEnumerator	*enumerator = [args objectEnumerator];
-  NSMutableDictionary *argDict =
-    [NSMutableDictionaryClass dictionaryWithCapacity: 2];
+  NSArray	*args;
+  NSEnumerator	*enumerator;
+  NSMutableDictionary *argDict;
   BOOL		done;
   id		key, val;
-	
+
+  [_lock lock];
+  args = [[NSProcessInfo processInfo] arguments];
+  enumerator = [args objectEnumerator];
+  argDict = [NSMutableDictionaryClass dictionaryWithCapacity: 2];
   [enumerator nextObject];	// Skip process name.
   done = ((key = [enumerator nextObject]) == nil);
 	
@@ -1221,7 +1321,7 @@ static NSString	*pathForUser(NSString *user)
 	}
       done = ((key = [enumerator nextObject]) == nil);
     }
-  
+  [_lock unlock];
   return argDict;
 }
 
@@ -1231,6 +1331,7 @@ static NSString	*pathForUser(NSString *user)
   IMP		nImp;
   id		obj;
 
+  [_lock lock];
   DESTROY(_dictionaryRep);
   if (!_changedDomains)
     {
@@ -1244,9 +1345,13 @@ static NSString	*pathForUser(NSString *user)
   while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
     {
       if ([obj isEqualToString: domainName])
-	return;
+	{
+	  [_lock unlock];
+	  return;
+	}
     }
   [_changedDomains addObject: domainName];
+  [_lock unlock];
   return;
 }
 

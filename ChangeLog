@@ -1,5 +1,10 @@
 2001-11-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/foundation/NSUserDefaults.h: Add _lock ivar
+	* Source/NSUserDefaults.m: initial attempt at thread-safety.
+
+2001-11-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSString.h: removed stringByTrimming...Whitespace
 	methods as they just duplicate the stringByTrimming...Spaces
 	* Source/NSString.m: ditto
