@@ -186,12 +186,12 @@ map-bas.m \
 map-cbs.m \
 stdobjects.m \
 mframe.m \
-objc-gnu2next.m
+objc-gnu2next.m \
+objc-malloc.m
 
 GNU_CFILES = \
 md5.c \
 numbers.c \
-objc-malloc.c \
 o_vscanf.c 
 
 GNU_OTHER_SRCFILES = \
