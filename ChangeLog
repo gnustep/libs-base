@@ -1,3 +1,9 @@
+2001-04-22  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Testing/benchmark.m: Modified messages to give a better idea of
+	the order of magnitudes involved; added benchmarks for
+	retain/release, autorelease/retain and locking/unlocking.
+
 2001-04-21  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSString.m ([-fileSystemRepresentation]): Cache the
