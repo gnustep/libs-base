@@ -643,6 +643,7 @@ main(int argc, char **argv, char **env)
   NSString	*opt;
   NSSet		*argSet;
   NSArray 	*argsGiven;
+  NSArray	*informalProtocols = nil;
 
   /*
    Overall process in this file is as follows:
@@ -1390,7 +1391,7 @@ main(int argc, char **argv, char **env)
 
 	      /*
 	       * Only produce linkage if the up link is not empty.
-	       * Don't add an up link if this *is* the up link document.
+	       * Do not add an up link if this *is* the up link document.
 	       */
 	      if ([up length] > 0 && [up isEqual: file] == NO)
 		{
@@ -1426,6 +1427,7 @@ main(int argc, char **argv, char **env)
 	      [gFiles addObject: [hfile lastPathComponent]];
 	    }
 	}
+      informalProtocols = RETAIN([output informalProtocols]);
 #if GS_WITH_GC == 0
       DESTROY(pool);
 #endif
@@ -1540,6 +1542,10 @@ main(int argc, char **argv, char **env)
 		}
 	    }
 	}
+      if (informalProtocols != nil) {
+          [projectRefs addInformalProtocols: informalProtocols];
+          DESTROY(informalProtocols);
+      }
 #if GS_WITH_GC == 0
       DESTROY(arp);
 #endif
