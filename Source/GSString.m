@@ -513,7 +513,7 @@ boolValue_u(ivars self)
       unsigned	len = self->_count < 10 ? self->_count : 9;
       char	buf[len+1];
 
-      encode_ustrtostr(buf, self->_contents.u, len, defEnc);
+      len = encode_ustrtocstr(buf, len, self->_contents.u, len, defEnc, NO);
       buf[len] = '\0';
       if (len == 3
 	&& (buf[0] == 'Y' || buf[0] == 'y')
@@ -634,18 +634,18 @@ cString_c(ivars self)
 static inline char*
 cString_u(ivars self)
 {
-  char *r = (char*)_fastMallocBuffer(self->_count+1);
+  int	l = self->_count;
+  char	*r = (char*)_fastMallocBuffer(l + 1);
 
-  if (self->_count > 0)
+  if (l > 0)
     {
-      if (encode_ustrtostr_strict(r, self->_contents.u, self->_count, defEnc)
-	== 0)
+      if (encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, YES) == 0)
 	{
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get cString from Unicode string."];
 	}
     }
-  r[self->_count] = '\0';
+  r[l] = '\0';
   
   return r;
 }
@@ -660,19 +660,20 @@ static inline unsigned int
 cStringLength_u(ivars self)
 {
   unsigned	c;
+  unsigned	l = self->_count;
 
-  if (self->_count > 0)
+  if (l > 0)
     {
       char	*r;
 
-      r = (char*)NSZoneMalloc(NSDefaultMallocZone(), self->_count+1);
-      if (encode_ustrtostr(r, self->_contents.u, self->_count, defEnc) == 0)
+      r = (char*)NSZoneMalloc(NSDefaultMallocZone(), l + 1);
+      if (encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, NO) == 0)
 	{
 	  NSZoneFree(NSDefaultMallocZone(), r);
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't get cStringLength from Unicode string."];
 	}
-      r[self->_count] = '\0';
+      r[l] = '\0';
       c = strlen(r);
       NSZoneFree(NSDefaultMallocZone(), r);
     }
@@ -714,31 +715,45 @@ dataUsingEncoding_c(ivars self, NSStringEncoding encoding, BOOL flag)
       buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
 	sizeof(unichar)*(len+1));
       buff[0] = 0xFEFF;
-      t = encode_strtoustr(buff+1, self->_contents.c, len, defEnc);
+      t = encode_cstrtoustr(buff+1, len, self->_contents.c, len, defEnc);
       return [NSDataClass dataWithBytesNoCopy: buff
 				       length: sizeof(unichar)*(t+1)];
     }
   else
     {
       int	t;
+      int	bsiz;
       unichar	*ubuff;
       unsigned char *buff;
 
       ubuff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
 	sizeof(unichar)*len);
-      t = encode_strtoustr(ubuff, self->_contents.c, len, defEnc);
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), t);
-      if (flag)
-	t = encode_ustrtostr(buff, ubuff, t, encoding);
-      else 
-	t = encode_ustrtostr_strict(buff, ubuff, t, encoding);
+      t = encode_cstrtoustr(ubuff, len, self->_contents.c, len, defEnc);
+      if (encoding == NSUTF8StringEncoding)
+	{
+	  bsiz = t*4;
+	}
+      else
+	{
+	  bsiz = t;
+	}
+      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), bsiz);
+      flag = (flag == YES) ? NO : YES;
+      t = encode_ustrtocstr(buff, bsiz, ubuff, t, encoding, flag);
       NSZoneFree(NSDefaultMallocZone(), ubuff);
       if (t == 0)
         {
 	  NSZoneFree(NSDefaultMallocZone(), buff);
 	  return nil;
 	}
-      return [NSDataClass dataWithBytesNoCopy: buff length: t];
+      else
+	{
+	  if (t != bsiz)
+	    {
+	      buff = NSZoneRealloc(NSDefaultMallocZone(), buff, t);
+	    }
+	  return [NSDataClass dataWithBytesNoCopy: buff length: t];
+	}
     }
 }
 
@@ -766,19 +781,33 @@ dataUsingEncoding_u(ivars self, NSStringEncoding encoding, BOOL flag)
   else
     {
       int t;
+      int	bsiz;
       unsigned char *buff;
 
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-      if (flag == YES)
-	t = encode_ustrtostr(buff, self->_contents.u, len, encoding);
-      else 
-	t = encode_ustrtostr_strict(buff, self->_contents.u, len, encoding);
-      if (!t)
+      if (encoding == NSUTF8StringEncoding)
+	{
+	  bsiz = len*4;
+	}
+      else
+	{
+	  bsiz = len;
+	}
+      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), bsiz);
+      flag = (flag == YES) ? NO : YES;
+      t = encode_ustrtocstr(buff, bsiz, self->_contents.u, len, encoding, flag);
+      if (t == 0)
         {
 	  NSZoneFree(NSDefaultMallocZone(), buff);
 	  return nil;
 	}
-      return [NSDataClass dataWithBytesNoCopy: buff length: t];
+      else
+	{
+	  if (t != bsiz)
+	    {
+	      buff = NSZoneRealloc(NSDefaultMallocZone(), buff, t);
+	    }
+	  return [NSDataClass dataWithBytesNoCopy: buff length: t];
+	}
     }
 }
 
@@ -812,7 +841,7 @@ doubleValue_u(ivars self)
       unsigned	len = self->_count < 32 ? self->_count : 31;
       char	buf[len+1];
 
-      encode_ustrtostr(buf, self->_contents.u, len, defEnc);
+      len = encode_ustrtocstr(buf, len, self->_contents.u, len, defEnc, NO);
       buf[len] = '\0';
       return atof(buf);
     }
@@ -863,7 +892,7 @@ fillHole(ivars self, unsigned index, unsigned size)
 static inline void
 getCharacters_c(ivars self, unichar *buffer, NSRange aRange)
 {
-  encode_strtoustr(buffer, self->_contents.c + aRange.location,
+  encode_cstrtoustr(buffer, aRange.length, self->_contents.c + aRange.location,
     aRange.length, defEnc);
 }
 
@@ -937,8 +966,8 @@ getCString_u(ivars self, char *buffer, unsigned int maxLength,
 	}
     }
 
-  result = encode_ustrtostr_strict(buffer, &self->_contents.u[aRange.location],
-    len, defEnc);
+  result = encode_ustrtocstr(buffer, len, &self->_contents.u[aRange.location],
+    len, defEnc, YES);
   if (result != len)
     {
       [NSException raise: NSCharacterConversionException
@@ -977,7 +1006,7 @@ intValue_u(ivars self)
       unsigned	len = self->_count < 32 ? self->_count : 31;
       char	buf[len+1];
 
-      encode_ustrtostr(buf, self->_contents.u, len, defEnc);
+      len = encode_ustrtocstr(buf, len, self->_contents.u, len, defEnc, NO);
       buf[len] = '\0';
       return atol(buf);
     }
@@ -1130,10 +1159,11 @@ lossyCString_c(ivars self)
 static inline const char*
 lossyCString_u(ivars self)
 {
-  unsigned char	*r = (unsigned char*)_fastMallocBuffer(self->_count+1);
+  unsigned	l = self->_count;
+  unsigned char	*r = (unsigned char*)_fastMallocBuffer(l + 1);
 
-  encode_ustrtostr(r, self->_contents.u, self->_count, defEnc);
-  r[self->_count] = '\0';
+  encode_ustrtocstr(r, l, self->_contents.u, l, defEnc, NO);
+  r[l] = '\0';
   return (const char*)r;
 }
 
@@ -1433,10 +1463,10 @@ transmute(ivars self, NSString *aString)
   if (transmute == YES)
     {
       unichar	*tmp;
-      int	len;
+      int	len = self->_count;
 
       tmp = NSZoneMalloc(self->_zone, self->_capacity * sizeof(unichar));
-      len = encode_strtoustr(tmp, self->_contents.c, self->_count, defEnc);
+      len = encode_cstrtoustr(tmp, len, self->_contents.c, len, defEnc);
       if (self->_flags.free == 1)
 	{
 	  NSZoneFree(self->_zone, self->_contents.c);

@@ -601,7 +601,8 @@ handle_printf_atsign (FILE *stream,
   unichar	*buf;
 
   buf = (unichar*)NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
-  length = encode_strtoustr(buf, byteString, length, _DefaultStringEncoding);
+  length = encode_cstrtoustr(buf, length, byteString, length,
+    _DefaultStringEncoding);
   if (flag == YES && byteString != 0)
     {
       NSZoneFree(NSZoneFromPointer(byteString), byteString);
@@ -694,7 +695,8 @@ handle_printf_atsign (FILE *stream,
 	  unichar	*s;
 
 	  s = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
-	  length = encode_strtoustr(s, bytes, length+1, NSUTF8StringEncoding);
+	  length = encode_cstrtoustr(s, length, bytes, length,
+	    NSUTF8StringEncoding);
 	  self = [self initWithCharactersNoCopy: s
 					 length: length
 				   freeWhenDone: YES];
@@ -1101,7 +1103,8 @@ handle_printf_atsign (FILE *stream,
 	  unichar	*u;
 
 	  u = NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
-	  length = encode_strtoustr(u, bytes, length+1, NSUTF8StringEncoding);
+	  length = encode_cstrtoustr(u, length, bytes, length,
+	    NSUTF8StringEncoding);
 	  self = [self initWithCharactersNoCopy: u
 					 length: length
 				   freeWhenDone: YES];
@@ -1141,7 +1144,7 @@ handle_printf_atsign (FILE *stream,
 	}
       else
 	{
-	  count = encode_strtoustr(u, b, len, encoding);
+	  count = encode_cstrtoustr(u, len, b, len, encoding);
 	}
 
       self = [self initWithCharactersNoCopy: u length: count freeWhenDone: YES];
@@ -2307,23 +2310,37 @@ handle_printf_atsign (FILE *stream,
   else
     {
       int		t;
+      int		bsiz;
       unichar		*u;
       unsigned char	*buff;
 
       u = (unichar*)NSZoneMalloc(NSDefaultMallocZone(), len*sizeof(unichar));
       [self getCharacters: u];
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-      if (flag == YES)
-	t = encode_ustrtostr(buff, u, len, encoding);
-      else 
-	t = encode_ustrtostr_strict(buff, u, len, encoding);
+      if (encoding == NSUTF8StringEncoding)
+	{
+	  bsiz = len * 4;
+	}
+      else
+	{
+	  bsiz = len;
+	}
+      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), bsiz);
+      flag = (flag == YES) ? NO : YES;
+      t = encode_ustrtocstr(buff, bsiz, u, len, encoding, flag);
       NSZoneFree(NSDefaultMallocZone(), u);
       if (t == 0)
         {
 	  NSZoneFree(NSDefaultMallocZone(), buff);
 	  return nil;
 	}
-      return [NSDataClass dataWithBytesNoCopy: buff length: t];
+      else
+	{
+	  if (bsiz != t)
+	    {
+	      buff = NSZoneRealloc(NSDefaultMallocZone(), buff, t);
+	    }
+	  return [NSDataClass dataWithBytesNoCopy: buff length: t];
+	}
     }
   return nil;
 }

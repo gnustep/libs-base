@@ -40,14 +40,11 @@ GS_EXPORT char unitochar(unichar u);
 GS_EXPORT unichar encode_chartouni(char c, NSStringEncoding enc);
 GS_EXPORT char encode_unitochar(unichar u, NSStringEncoding enc);
 GS_EXPORT unsigned encode_unitochar_strict(unichar u, NSStringEncoding enc);
-GS_EXPORT int strtoustr(unichar * u1,const char *s1,int size);
-GS_EXPORT int ustrtostr(char *s2,unichar *u1,int size);
-GS_EXPORT int encode_strtoustr(unichar* u1,const char*s1,int size, 
-		NSStringEncoding enc);
-GS_EXPORT int encode_ustrtostr(char *s2, unichar *u1, int size, 
-		NSStringEncoding enc);
-GS_EXPORT int encode_ustrtostr_strict(char *s2, unichar *u1, int size, 
-		NSStringEncoding enc);
+
+GS_EXPORT int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl, 
+  NSStringEncoding enc, BOOL strict);
+GS_EXPORT int encode_cstrtoustr(unichar *dst, int dl, const char *str, int sl, 
+  NSStringEncoding enc);
 
 GS_EXPORT unichar uni_tolower(unichar ch);
 GS_EXPORT unichar uni_toupper(unichar ch);

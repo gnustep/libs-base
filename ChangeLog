@@ -1,3 +1,12 @@
+2001-08-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/Unicode.h: API Change
+	* Source/Unicode.m: API Change ... remove old string conversion
+	functions and replace with two functions, both of which differentiate
+	between lengths of the source strings and sizes of destination buffers.
+	* Source/NSString.m: Update for changes to Unicode.[hm]
+	* Source/GSString.m: Update for changes to Unicode.[hm]
+	
 2001-08-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortNameServer.m: Log the host we are connecting to
