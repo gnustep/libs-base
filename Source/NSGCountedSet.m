@@ -322,7 +322,7 @@
   if (node == 0)
     {
       result = anObject;
-      GSIMapAddPairNoRetain(&map,(GSIMapKey)anObject,(GSIMapVal)(unsigned)1);
+      GSIMapAddPair(&map,(GSIMapKey)anObject,(GSIMapVal)(unsigned)1);
     }
   else
     {

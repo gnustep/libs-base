@@ -198,6 +198,10 @@ static Class NSCountedSet_concrete_class;
   id	o = [self member: anObject];
 
   [self addObject: anObject];
+  if (o == nil)
+    {
+      o = anObject;
+    }
 #if	!GS_WITH_GC
   if (o != anObject)
     {
