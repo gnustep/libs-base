@@ -234,10 +234,12 @@ static Class		NSURLHandleClass = 0;
  */
 - (void) addClient: (id <NSURLHandleClient>)client
 {
-  RETAIN((id)client);
-  [_clients removeObjectIdenticalTo: client];
-  [_clients addObject: client];
-  RELEASE((id)client);
+  id	o = client;
+
+  RETAIN(o);
+  [_clients removeObjectIdenticalTo: o];
+  [_clients addObject: o];
+  RELEASE(o);
 }
 
 /**
