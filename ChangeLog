@@ -1,3 +1,8 @@
+2003-03-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSMime.m: (_unfoldHeader) Check that input pointer doesn't
+	run past end of data.
+
 2003-03-05 15:50  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSBundle.m (+initialize) [PROCFS_EXE_LINK]: Make sure that

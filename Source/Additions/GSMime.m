@@ -2428,7 +2428,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       /*
        * See if we have a wrapped line.
        */
-      if ((c = bytes[input]) == '\r' || c == '\n' || isspace(c) == 0)
+      if (input < dataEnd
+	&& ((c = bytes[input]) == '\r' || c == '\n' || isspace(c) == 0))
 	{
 	  unwrappingComplete = YES;
 	  bytes[lineEnd] = '\0';
