@@ -1,3 +1,8 @@
+2003-11-02 01:53  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/GSString.m ([GSCSubString -copy]): Add as a stopgap
+	workaround for problems uncovered by the previous change.
+
 Sat Nov 01 11:10:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: ([-copyWithZone:]) always do true copy
