@@ -92,6 +92,7 @@
 #ifndef	STRICT_OPENSTEP
 - (void) takeStoredValue: (id)value forKey: (NSString*)key;
 - (void) takeValue: (id)value forKey: (NSString*)key;
+- (void) setValue: (id)value forKey: (NSString*)key;
 #endif
 @end
 
