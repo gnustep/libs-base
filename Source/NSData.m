@@ -718,12 +718,13 @@ failure:
 {
   char		thePath[BUFSIZ*2+8];
   char		theRealPath[BUFSIZ*2];
-  FILE		*theFile;
   int		c;
 #if defined(__MINGW__)
   NSString	*tmppath = path;
   HANDLE	fh;
   DWORD		wroteBytes;
+#else
+  FILE		*theFile;
 #endif
 
 

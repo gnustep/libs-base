@@ -36,6 +36,7 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/NSDebug.h>
+#include <Foundation/NSProcessInfo.h>
 #include <Foundation/GSMime.h>
 #include <string.h>
 #ifdef HAVE_UNISTD_H
@@ -233,7 +234,8 @@ static void debugWrite(NSData *data)
       urlCache = [NSMutableDictionary new];
       urlLock = [NSLock new];
       debugLock = [NSLock new];
-      sprintf(debugFile, "/tmp/GSHTTP.%d", getpid());
+      sprintf(debugFile, "/tmp/GSHTTP.%d",
+	[[NSProcessInfo processInfo] processIdentifier]);
 #ifndef __MINGW__
       sslClass = [NSFileHandle sslClass];
 #endif

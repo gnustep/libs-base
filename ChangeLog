@@ -1,3 +1,9 @@
+2002-08-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/WindowsFileHandle.m: Removed ... no longer used.
+	* Source/GSHTTPURLHandle.m: Don't use getpid() ... not portable.
+	* Tools/gdomap.c: Don't use getuid() under windoze. 
+
 2002-08-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m: ([-initFileURLWithPath:]) check to see if path is

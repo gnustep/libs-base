@@ -4553,7 +4553,9 @@ printf(
     {
       FILE	*fptr;
 
+#ifndef __MINGW__
       if (getuid () == 0)
+#endif
 	{
 	  fptr = fopen(pidfile, "at");
 
@@ -4567,11 +4569,13 @@ printf(
 	  fclose(fptr);
 	  chmod(pidfile, 0644);
 	}
+#ifndef __MINGW__
       else
 	{
 	  sprintf(ebuf, "Only root user can write to pid file\n");
 	  gdomap_log(LOG_WARNING);
 	}
+#endif
     }
 
 #ifndef __MINGW__
