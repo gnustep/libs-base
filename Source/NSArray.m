@@ -33,6 +33,7 @@
 #include <base/behavior.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSRange.h>
 #include <limits.h>
@@ -418,12 +419,29 @@ static SEL	rlSel;
     return [self initWithObjects: 0 count: 0];
 }
 
+/**
+ * <p>Initialises the array with the contents of the specified file,
+ * which must contain an array in property-list format.
+ * </p>
+ * <p>In GNUstep, the property-list format may be either the OpenStep
+ * format (ASCII data), or the MacOS-X format (URF8 XML data) ... this
+ * method will recognise which it is.
+ * </p>
+ * <p>If there is a failure to load the file for any reason, the receiver
+ * will be released and the method will return nil.
+ * </p>
+ */
 - (id) initWithContentsOfFile: (NSString*)file
 {
   NSString 	*myString;
+  NSData	*someData;
 
-  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
+  someData = [[NSData allocWithZone: NSDefaultMallocZone()]
     initWithContentsOfFile: file];
+  myString = [[NSString allocWithZone: NSDefaultMallocZone()]
+    initWithData: someData encoding: NSUTF8StringEncoding];
+  RELEASE(someData);
+
   if (myString)
     {
       id result;
@@ -831,7 +849,30 @@ static NSString	*indentStrings[] = {
     }
 }
 
-- (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxilliaryFile
+/**
+ * <p>Writes the contents of the array to the file specified by path.
+ * The file contents will be in property-list format ... under GNUstep
+ * this is either OpenStep style (ASCII characters using \U hexadecimal
+ * escape sequences for unicode), or MacOS-X style (XML in the UTF8
+ * character set).
+ * </p>
+ * <p>If the useAuxiliaryFile flag is YES, the file write operation is
+ * atomic ... the data is written to a temporary file, which is then
+ * renamed to the actual file name.
+ * </p>
+ * <p>If the conversion of data into the correct property-list format fails
+ * or the write operation fails, the method returns NO, otherwise it
+ * returns YES.
+ * </p>
+ * <p>NB. The fact that the file is in property-list format does not
+ * necessarily mean that it can be used to reconstruct the array using
+ * the -initWithContentsOfFile: method.  If the original array contains
+ * non-property-list objects, the descriptions of those objects will
+ * have been written, and reading in the file as a property-list will
+ * result in a new array containing the string descriptions.
+ * </p>
+ */
+- (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
   extern BOOL	GSMacOSXCompatiblePropertyLists();
   NSDictionary	*loc;
@@ -857,10 +898,17 @@ static NSString	*indentStrings[] = {
       desc = result;
     }
 
-  return [desc writeToFile: path atomically: useAuxilliaryFile];
+  return [[desc dataUsingEncoding: NSUTF8StringEncoding]
+    writeToFile: path atomically: useAuxiliaryFile];
 }
 
-- (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxilliaryFile
+/**
+ * <p>Writes the contents of the array to the specified url.
+ * This functions just like -writeToFile:atomically: except that the
+ * output may be written to any URL, not just a local file.
+ * </p>
+ */
+- (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
   extern BOOL	GSMacOSXCompatiblePropertyLists();
   NSDictionary	*loc;
@@ -886,7 +934,8 @@ static NSString	*indentStrings[] = {
       desc = result;
     }
 
-  return [desc writeToURL: url atomically: useAuxilliaryFile];
+  return [[desc dataUsingEncoding: NSUTF8StringEncoding]
+    writeToURL: url atomically: useAuxiliaryFile];
 }
 
 @end
