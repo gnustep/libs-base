@@ -21,28 +21,29 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
+#include <objects/stdobjects.h>
 #include <Foundation/NSGArray.h>
+#include <Foundation/NSArray.h>
 #include <objects/NSArray.h>
 #include <objects/behavior.h>
 #include <objects/Array.h>
 #include <objects/ArrayPrivate.h>
 #include <Foundation/NSException.h>
 
-#define self ((Array*)self)
-
 @implementation NSGArray
 
 + (void) initialize
 {
-  static int done = 0;
-  assert(!done);		/* xxx see what the runtime is up to. */
-  if (!done)
+  if (self == [NSGArray class])
     {
-      done = 1;
-      class_add_behavior([NSGArray class], [Array class]);
+      behavior_class_add_class (self, [NSArrayNonCore class]);
+      behavior_class_add_class (self, [Array class]);
     }
 }
 
+/* #define self ((Array*)self) */
+
+#if 0
 /* This is the designated initializer for NSArray. */
 - initWithObjects: (id*)objects count: (unsigned)count
 {
@@ -71,7 +72,7 @@
 		 format: @"Index out of bounds"];
   return self->_contents_array[index];
 }
-
+#endif
 
 @end
 
@@ -79,15 +80,15 @@
 
 + (void) initialize
 {
-  static int done = 0;
-  if (!done)
+  if (self == [NSGMutableArray class])
     {
-      done = 1;
-      class_add_behavior([NSGMutableArray class], [NSGArray class]);
-      class_add_behavior([NSGMutableArray class], [Array class]);
+      behavior_class_add_class (self, [NSMutableArrayNonCore class]);
+      behavior_class_add_class (self, [NSGArray class]);
+      behavior_class_add_class (self, [Array class]);
     }
 }
 
+#if 0
 /* Comes in from Array behavior 
    - initWithCapacity:
    - (void) addObject: anObject
@@ -98,5 +99,6 @@
 {
   [self replaceObjectAtIndex: index with: anObject];
 }
+#endif
 
 @end
