@@ -1251,7 +1251,7 @@ compare(id elem1, id elem2, void* context)
       unsigned		count = [self count];
       volatile id	object = nil;
 
-      results = [NSMutableArray array];
+      results = [NSMutableArray arrayWithCapacity: count];
 
       for (i = 0; i < count; i++)
         {

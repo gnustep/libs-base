@@ -53,6 +53,27 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 }
 
 
+- (NSDictionary*) dictionaryWithValuesForKeys: (NSArray*)keys
+{
+  NSMutableDictionary	*dictionary;
+  NSEnumerator		*enumerator;
+  id			key;
+
+  dictionary = [NSMutableDictionary dictionaryWithCapacity: [keys count]];
+  enumerator = [keys objectEnumerator];
+  while ((key = [enumerator nextObject]) != nil)
+    {
+      id	value = [self valueForKey: key];
+
+      if (value == nil)
+	{
+	  value = [NSNull null];
+	}
+      [dictionary setObject: value forKey: key];
+    }
+  return dictionary;
+}
+
 - (id) handleQueryWithUnboundKey: (NSString*)aKey
 {
   NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -64,6 +85,8 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
   NSException *exp = [NSException exceptionWithName: NSUnknownKeyException
 				  reason: @"Unable to find value for key"
 				  userInfo: dict];
+
+  GSOnceMLog(@"This method is deprecated, use -valueForUndefinedKey:");
   [exp raise];
   return nil;
 }
@@ -80,7 +103,165 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
   NSException *exp = [NSException exceptionWithName: NSUnknownKeyException
 				  reason: @"Unable to set value for key"
 				  userInfo: dict];
+  GSOnceMLog(@"This method is deprecated, use -setValue:forUndefinedKey:");
   [exp raise];
+}
+
+
+- (NSMutableArray*) mutableArrayValueForKey: (NSString*)aKey
+{
+ [self notImplemented: _cmd];
+ return nil;
+}
+
+- (NSMutableArray*) mutableArrayValueForKeyPath: (NSString*)aKey
+{
+ [self notImplemented: _cmd];
+ return nil;
+}
+
+- (void) setNilValueForKey: (NSString*)aKey
+{
+  /* Backward compatibility hack */
+  if ([self methodForSelector: @selector(unableToSetNilForKey:)]
+    == [NSObject instanceMethodForSelector: @selector(unableToSetNilForKey:)])
+    {
+      [self unableToSetNilForKey: aKey];
+    }
+
+  [NSException raise: NSInvalidArgumentException
+	      format: @"%@ -- %@ 0x%x: Given nil value to set for key \"%@\"",
+    NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, aKey];
+}
+
+
+- (void) setValue: (id)anObject forKey: (NSString*)aKey
+{
+  SEL		sel = 0;
+  const char	*type = 0;
+  int		off;
+  unsigned	size = [aKey length];
+
+  if (size > 0)
+    {
+      const char	*name;
+      char		buf[size+6];
+      char		lo;
+      char		hi;
+
+      strcpy(buf, "_set");
+      [aKey getCString: &buf[4]];
+      lo = buf[4];
+      hi = islower(lo) ? toupper(lo) : lo;
+      buf[4] = hi;
+      buf[size+4] = ':';
+      buf[size+5] = '\0';
+
+      name = &buf[1];	// setKey:
+      type = NULL;
+      sel = GSSelectorFromName(name);
+      if (sel == 0 || [self respondsToSelector: sel] == NO)
+	{
+	  name = buf;	// _setKey:
+	  sel = GSSelectorFromName(name);
+	  if (sel == 0 || [self respondsToSelector: sel] == NO)
+	    {
+	      sel = 0;
+	      if ([[self class] accessInstanceVariablesDirectly] == YES)
+		{
+		  buf[size+4] = '\0';
+		  buf[3] = '_';
+		  buf[4] = lo;
+		  name = &buf[3];	// _key
+		  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
+		    {
+		      buf[4] = hi;
+		      buf[3] = 's';
+		      buf[2] = 'i';
+		      buf[1] = '_';
+		      name = &buf[1];	// _isKey
+		      if (GSObjCFindVariable(self,
+			name, &type, &size, &off) == NO)
+			{
+			  buf[4] = lo;
+			  name = &buf[4];	// key
+			  if (GSObjCFindVariable(self,
+			    name, &type, &size, &off) == NO)
+			    {
+			      buf[4] = hi;
+			      buf[3] = 's';
+			      buf[2] = 'i';
+			      name = &buf[2];	// isKey
+			      GSObjCFindVariable(self,
+				name, &type, &size, &off);
+			    }
+			}
+		    }
+		}
+	    }
+	  else
+	    {
+	      GSOnceMLog(@"Key-value access using _setKey: isdeprecated:");
+	    }
+	}
+    }
+  GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
+}
+
+
+- (void) setValue: (id)anObject forKeyPath: (NSString*)aKey
+{
+  NSRange	r = [aKey rangeOfString: @"."];
+
+  if (r.length == 0)
+    {
+      [self setValue: anObject forKey: aKey];
+    }
+  else
+    {
+      NSString	*key = [aKey substringToIndex: r.location];
+      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
+
+      [[self valueForKey: key] setValue: anObject forKeyPath: path];
+    }
+}
+
+
+- (void) setValue: (id)anObject forUndefinedKey: (NSString*)aKey
+{
+  NSDictionary	*dict;
+  NSException	*exp; 
+
+  /* Backward compatibility hack */
+  if ([self methodForSelector: @selector(handleTakeValue:forUnboundKey:)]
+    == [NSObject instanceMethodForSelector:
+    @selector(handleTakeValue:forUnboundKey:)])
+    {
+      [self handleTakeValue: anObject forUnboundKey: aKey];
+    }
+
+  dict = [NSDictionary dictionaryWithObjectsAndKeys:
+				     (anObject ? anObject : @"(nil)"),
+				     @"NSTargetObjectUserInfoKey",
+				     (aKey ? aKey : @"(nil)"),
+				     @"NSUnknownUserInfoKey",
+				     nil];
+  exp = [NSException exceptionWithName: NSInvalidArgumentException
+				reason: @"Unable to set nil value for key"
+			      userInfo: dict];
+  [exp raise];
+}
+
+
+- (void) setValuesForKeysWithDictionary: (NSDictionary*)aDictionary
+{
+  NSEnumerator	*enumerator = [aDictionary keyEnumerator];
+  NSString	*key;
+
+  while ((key = [enumerator nextObject]) != nil)
+    {
+      [self setValue: [aDictionary objectForKey: key] forKey: key];
+    }
 }
 
 
@@ -94,17 +275,11 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
     }
 
   size = [aKey cStringLength];
-  if (size < 1)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"storedValueForKey: ... empty key"];
-      return NO;	// avoid compiler warnings.
-    }
-  else
+  if (size > 0)
     {
       SEL		sel = 0;
       const char	*type = NULL;
-      unsigned		off;
+      int		off;
       const char	*name;
       char		buf[size+5];
       char		lo;
@@ -158,8 +333,13 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 		}
 	    }
 	}
-      return GSObjCGetValue(self, aKey, sel, type, size, off);
+      if (sel != 0 || type != NULL)
+	{
+	  return GSObjCGetValue(self, aKey, sel, type, size, off);
+	}
     }
+  [self handleTakeValue: nil forUnboundKey: aKey];
+  return nil;
 }
 
 
@@ -174,12 +354,7 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
     }
 
   size = [aKey length];
-  if (size < 1)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"takeStoredValue:forKey: ... empty key"];
-    }
-  else
+  if (size > 0)
     {
       SEL		sel;
       const char	*type;
@@ -228,8 +403,13 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 		}
 	    }
 	}
-      GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
-   }
+      if (sel != 0 || type != NULL)
+	{
+	  GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
+	  return;
+	}
+    }
+  [self handleTakeValue: anObject forUnboundKey: aKey];
 }
 
 
@@ -254,19 +434,14 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 
 - (void) takeValue: (id)anObject forKey: (NSString*)aKey
 {
-  unsigned	size;
+  SEL		sel = 0;
+  const char	*type = 0;
+  int		off;
+  unsigned	size = [aKey length];
 
-  size = [aKey length];
-  if (size < 1)
+  GSOnceMLog(@"This method is deprecated, use -setValue:forKey:");
+  if (size > 0)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"takeValue:forKey: ... empty key"];
-    }
-  else
-    {
-      SEL		sel;
-      const char	*type;
-      int		off;
       const char	*name;
       char		buf[size+6];
       char		lo;
@@ -304,8 +479,8 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 		}
 	    }
 	}
-      GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
     }
+  GSObjCSetValue(self, aKey, anObject, sel, type, size, off);
 }
 
 
@@ -313,6 +488,7 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 {
   NSRange	r = [aKey rangeOfString: @"."];
 
+  GSOnceMLog(@"This method is deprecated, use -setValue:forKeyPath:");
   if (r.length == 0)
     {
       [self takeValue: anObject forKey: aKey];
@@ -333,6 +509,7 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
   NSNull	*null = [NSNull null];
   NSString	*key;
 
+  GSOnceMLog(@"This method is deprecated, use -setValue:forKeyPath:");
   while ((key = [enumerator nextObject]) != nil)
     {
       id obj = [aDictionary objectForKey: key];
@@ -348,28 +525,69 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 
 - (void) unableToSetNilForKey: (NSString*)aKey
 {
+  GSOnceMLog(@"This method is deprecated, use -setNilValueForKey:");
   [NSException raise: NSInvalidArgumentException
 	      format: @"%@ -- %@ 0x%x: Given nil value to set for key \"%@\"",
     NSStringFromSelector(_cmd), NSStringFromClass([self class]), self, aKey];
 }
 
 
-- (id) valueForKey: (NSString*)aKey
+- (BOOL) validateValue: (id*)aValue
+                forKey: (NSString*)aKey
+                 error: (NSError**)anError
 {
-  unsigned	size;
+  NSString	*name;
+  const char	*str = [aKey cString];
+  SEL		sel;
+  BOOL		(*imp)(id,SEL,id*,id*);
 
-  size = [aKey length];
-  if (size < 1)
+  if (aValue == 0 || str == 0 || *str == '\0')
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"valueForKey: ... empty key"];
-      return nil;
+      [NSException raise: NSInvalidArgumentException format: @"nil argument"];
+    }
+  name = [NSString stringWithFormat: @"validate%c%s:error:",
+    islower(*str) ? toupper(*str) : *str, str + 1];
+  sel = NSSelectorFromString(name);
+  if (sel != 0
+    && (imp = (BOOL (*)(id,SEL,id*,id*))[self methodForSelector: sel]) != 0)
+    {
+      return (*imp)(self, sel, aValue, anError);
+    }
+  return YES;
+}
+
+- (BOOL) validateValue: (id*)aValue
+            forKeyPath: (NSString*)aKey
+                 error: (NSError**)anError
+{
+  NSRange	r = [aKey rangeOfString: @"."];
+  BOOL		result;
+
+  if (r.length == 0)
+    {
+      result = [self validateValue: aValue forKey: aKey error: anError];
     }
   else
     {
-      SEL		sel = 0;
-      const char	*type = NULL;
-      unsigned		off;
+      NSString	*key = [aKey substringToIndex: r.location];
+      NSString	*path = [aKey substringFromIndex: NSMaxRange(r)];
+
+      result = [[self valueForKey: key]
+	validateValue: aValue forKeyPath: path error: anError];
+    }
+  return result;
+}
+
+- (id) valueForKey: (NSString*)aKey
+{
+  unsigned	size;
+  SEL		sel = 0;
+  int		off;
+  const char	*type = NULL;
+
+  size = [aKey length];
+  if (size > 0)
+    {
       const char	*name;
       char		buf[size+5];
       char		lo;
@@ -390,36 +608,40 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 	  sel = GSSelectorFromName(name);
 	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
-	      buf[4] = hi;
-	      name = buf;	// _getKey
-	      sel = GSSelectorFromName(name);
-	      if (sel == 0 || [self respondsToSelector: sel] == NO)
-		{
-		  buf[4] = lo;
-		  buf[3] = '_';
-		  name = &buf[3];	// _key
-		  sel = GSSelectorFromName(name);
-		  if (sel == 0 || [self respondsToSelector: sel] == NO)
-		    {
-		      sel = 0;
-		    }
-		}
+	      sel = 0;
 	    }
 	}
 
       if (sel == 0 && [[self class] accessInstanceVariablesDirectly] == YES)
 	{
-	  buf[4] = lo;
-	  buf[3] = '_';
-	  name = &buf[4];	// key
-	  if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
+	  buf[4] = hi;
+	  name = buf;	// _getKey
+	  sel = GSSelectorFromName(name);
+	  if (sel == 0 || [self respondsToSelector: sel] == NO)
 	    {
+	      buf[4] = lo;
+	      buf[3] = '_';
 	      name = &buf[3];	// _key
-	      GSObjCFindVariable(self, name, &type, &size, &off);
+	      sel = GSSelectorFromName(name);
+	      if (sel == 0 || [self respondsToSelector: sel] == NO)
+		{
+		  sel = 0;
+		}
+	    }
+	  if (sel == 0)
+	    {
+	      buf[4] = lo;
+	      buf[3] = '_';
+	      name = &buf[4];	// key
+	      if (GSObjCFindVariable(self, name, &type, &size, &off) == NO)
+		{
+		  name = &buf[3];	// _key
+		  GSObjCFindVariable(self, name, &type, &size, &off);
+		}
 	    }
 	}
-      return GSObjCGetValue(self, aKey, sel, type, size, off);
     }
+  return GSObjCGetValue(self, aKey, sel, type, size, off);
 }
 
 
@@ -440,6 +662,33 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
       o = [[self valueForKey: key] valueForKeyPath: path];
     }
   return o;
+}
+
+
+- (id) valueForUndefinedKey: (NSString*)aKey
+{
+  NSDictionary	*dict;
+  NSException	*exp;
+
+  /* Backward compatibility hack */
+  if ([self methodForSelector: @selector(handleQueryWithUnboundKey:)]
+    == [NSObject instanceMethodForSelector:
+    @selector(handleQueryWithUnboundKey:)])
+    {
+      return [self handleQueryWithUnboundKey: aKey];
+    }
+  dict = [NSDictionary dictionaryWithObjectsAndKeys:
+				     self,
+				     @"NSTargetObjectUserInfoKey",
+				     (aKey ? aKey : @"(nil)"),
+				     @"NSUnknownUserInfoKey",
+				     nil];
+  exp = [NSException exceptionWithName: NSUnknownKeyException
+				reason: @"Unable to find value for key"
+			      userInfo: dict];
+
+  [exp raise];
+  return nil;
 }
 
 

@@ -595,8 +595,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  path. (Using '/' here is safe; it isn't the path separator
 	  everywhere, but it is on all systems that have PROCFS_EXE_LINK.)
 	  */
-	  if ([_executable_path length] > 0 &&
-	      [_executable_path characterAtIndex: 0] != '/')
+	  if ([_executable_path length] > 0
+	    && [_executable_path characterAtIndex: 0] != '/')
 	    {
 	      _executable_path = nil;
 	    }
