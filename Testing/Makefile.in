@@ -113,7 +113,7 @@ SecondClass.h
 DYNAMIC_OFILES = $(DYNAMIC_MFILES:.m=$(OEXT))
 
 RCS_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
-	Makefile.in NXStringTable.example
+	Makefile.in NXStringTable.example Makefile.sed.nt
 DIST_FILES = $(RCS_FILES) 
 
 # type 'make bundles' if you also want to check bundles.
