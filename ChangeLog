@@ -1,3 +1,10 @@
+2004-08-20  David Ayers  <d.ayers@inode.at>
+
+	* Source/Additions/GSObjCRuntime.m (GSSelectorTypesMatch):
+	Ignore structure names.
+	* Testing/nsmethodsignature.m: Added test for nested structures.
+	Reactivated test for signatures from older gcc versions.
+	
 2004-08-19  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
