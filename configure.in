@@ -85,7 +85,7 @@ OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 AC_MSG_CHECKING(the Objective-C runtime)
 if test "$OBJC_RUNTIME_LIB" = "nx"; then
   AC_MSG_RESULT(NeXT)
-  LIBOBJC=''
+  LIBOBJC='-lobjc'
   CPPFLAGS="$CPPFLAGS -fnext-runtime -DNeXT_RUNTIME"
 else
   AC_MSG_RESULT(GNU)

@@ -1,3 +1,10 @@
+2001-05-25  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Use -lobjc with NeXT_RUNTIME.
+	* Headers/gnustep/base/behavior.h: Include objc.h on NeXT_RUNTIME.
+
+	* Source/GSFormat.m: Replace assert with NSCParameterAssert
+
 2001-05-23  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Check for libgiconv

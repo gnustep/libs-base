@@ -24,7 +24,11 @@
 #ifndef __behavior_h_GNUSTEP_BASE_INCLUDE
 #define __behavior_h_GNUSTEP_BASE_INCLUDE
 
+#if NeXT_RUNTIME
+#include <objc/objc.h>
+#else
 #include <objc/objc-api.h>
+#endif
 
 /* Call this method from CLASS's +initialize method to add a behavior
    to CLASS.  A "behavior" is like a protocol with an implementation.

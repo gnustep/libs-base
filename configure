@@ -1187,7 +1187,7 @@ echo $ac_n "checking the Objective-C runtime""... $ac_c" 1>&6
 echo "configure:1188: checking the Objective-C runtime" >&5
 if test "$OBJC_RUNTIME_LIB" = "nx"; then
   echo "$ac_t""NeXT" 1>&6
-  LIBOBJC=''
+  LIBOBJC='-lobjc'
   CPPFLAGS="$CPPFLAGS -fnext-runtime -DNeXT_RUNTIME"
 else
   echo "$ac_t""GNU" 1>&6
