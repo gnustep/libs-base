@@ -1,3 +1,7 @@
+2002-03-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: regenerated with latest data.
+
 2002-03-12  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/NSString.h: Add extra ivars needed by Darwin
