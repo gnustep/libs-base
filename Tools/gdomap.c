@@ -176,6 +176,7 @@ static void	queue_pop();
 static void	queue_probe(struct in_addr* to, struct in_addr *from,
   int num_extras, struct in_addr* extra, int is_reply);
 
+char *xgethostname (void);
 
 #ifdef __MINGW__
 #ifndef HAVE_GETOPT
@@ -2296,9 +2297,13 @@ handle_io()
 	       */
 	      rval = 0;
 	    }
+	  else if (errno == EINTR)
+            {
+              rval = 0;
+            }
 	  else
 	    {
-	      sprintf(ebuf, "Interrupted in select.");
+	      sprintf(ebuf, "Interrupted in select: %s",strerror(errno));
 	      gdomap_log(LOG_CRIT);
 	      exit(EXIT_FAILURE);
 	    }
@@ -3764,11 +3769,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   int			multi = 0;
   int			found = 0;
   int			rval;
-#ifdef __MINGW__
-  char local_hostname[INTERNET_MAX_HOST_NAME_LENGTH];
-#else
-  char local_hostname[MAXHOSTNAMELEN];
-#endif
+  char *local_hostname=NULL; 
 
   if (len == 0)
     {
@@ -3811,7 +3812,8 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
     {
       char *first_dot;
 
-      if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
+      local_hostname = xgethostname();
+      if (!local_hostname) 
 	{
 	  sprintf(ebuf, "gethostname() failed: %s", strerror(errno));
 	  gdomap_log(LOG_ERR);
@@ -3934,6 +3936,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
   memcpy(&addr->sin_addr, &sin.sin_addr, sizeof(sin.sin_addr));
   addr->sin_family = AF_INET;
   addr->sin_port = htons(port);
+  free(local_hostname);
   return 1;
 }
 
@@ -3969,11 +3972,7 @@ donames(const char *host)
   int			rval;
   uptr			b;
   char			*first_dot;
-#ifdef __MINGW__
-  char local_hostname[INTERNET_MAX_HOST_NAME_LENGTH];
-#else
-  char local_hostname[MAXHOSTNAMELEN];
-#endif
+  char *local_hostname=NULL;
 
 #if	GDOMAP_PORT_OVERRIDE
   p = htons(GDOMAP_PORT_OVERRIDE);
@@ -3994,7 +3993,8 @@ donames(const char *host)
        * If no host name is given, we use the name of the local host.
        */
 
-      if (gethostname(local_hostname, sizeof(local_hostname)) < 0)
+      local_hostname = xgethostname();
+      if (!local_hostname) 
 	{
 	  sprintf(ebuf, "gethostname() failed: %s", strerror(errno));
 	  gdomap_log(LOG_ERR);
@@ -4056,6 +4056,7 @@ donames(const char *host)
 	}
     }
   free(b);
+  free(local_hostname);
 }
 
 static void
@@ -4742,4 +4743,106 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
     }
 
   queue_msg(&sin, (uptr)&msg, GDO_REQ_SIZE);
+}
+
+/* Copyright (c) 2001 Neal H Walfield <neal@cs.uml.edu>.
+   
+   This file is placed into the public domain.  Its distribution
+   is unlimited.
+
+   THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+   WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+   IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY
+   DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+   GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+   IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/* NAME
+
+	xgethostname - get the host name.
+
+   SYNOPSIS
+
+   	char *xgethostname (void);
+
+   DESCRIPTION
+
+	The xhostname function is intended to replace gethostname(2), a
+	function used to access the host name.  The old interface is
+	inflexable given that it assumes the existance of the
+	MAXHOSTNAMELEN macro, which neither POSIX nor the proposed
+	Single Unix Specification version 3 guarantee to be defined.
+
+   RETURN VALUE
+
+	On success, a malloced, null terminated (possibly truncated)
+	string containing the host name is returned.  On failure,
+	NULL is returned and errno is set.
+ */
+
+char *
+xgethostname (void)
+{
+  int size = 0;
+  int addnull = 0;
+  char *buf;
+  int err;
+
+#ifdef MAXHOSTNAMELEN
+  size = MAXHOSTNAMELEN;
+  addnull = 1;
+#else /* MAXHOSTNAMELEN */
+#ifdef _SC_HOST_NAME_MAX
+  size = sysconf (_SC_HOST_NAME_MAX);
+  addnull = 1;
+#endif /* _SC_HOST_NAME_MAX */
+#ifdef INTERNET_MAX_HOST_NAME_LENGTH
+  size = INTERNET_MAX_HOST_NAME_LENGTH
+  addnull = 1;
+#endif
+  if (size <= 0)
+    size = 256;
+#endif /* MAXHOSTNAMELEN */
+
+  buf = malloc (size + addnull);
+  if (! buf)
+    {
+      errno = ENOMEM;
+      return NULL;
+    }
+
+  err = gethostname (buf, size);
+  while (err == -1 && errno == ENAMETOOLONG)
+    {
+      free (buf);
+
+      size *= 2;
+      buf = malloc (size + addnull);
+      if (! buf)
+	{
+	  errno = ENOMEM;
+	  return NULL;
+	}
+      
+      err = gethostname (buf, size);
+    }
+
+  if (err)
+    {
+      if (buf)
+        free (buf);
+      errno = err;
+      return NULL;
+    }
+
+  if (addnull)
+    buf[size] = '\0';
+
+  return buf;
 }
