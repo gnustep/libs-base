@@ -9,6 +9,9 @@
 	* Source/NSObject.m: ditto
 	* Source/NSString.m: ditto
 	* Source/externs.m: Removed unused NXConstantString assignments.
+	* Source/GSXML.m: ([-propertiesAsDictionary]) bugfix adding nil object
+	to dictionary.  ([-externalSubset:externalID:systemID:]) method added.
+	Fixes suggested by mguesdon@oxymium.net
 
 2000-09-26  Lyndon Tremblay  <humasect@home.com>
 

@@ -535,7 +535,7 @@ static NSMapTable	*nodeNames = 0;
 	}
       else
 	{
-	   [d setObject: nil
+	   [d setObject: @""
 		 forKey: (*csImp)(NSString_class, csSel, name)];
 	}
       prop = prop->next;
@@ -1213,6 +1213,15 @@ internalSubsetFunction(void *ctx, const char *name,
 		 systemID: (*csImp)(NSString_class, csSel, SystemID)];
 }
 
+static void
+externalSubsetFunction(void *ctx, const char *name,
+  const xmlChar *ExternalID, const xmlChar *SystemID)
+{
+  [HANDLER externalSubset: (*csImp)(NSString_class, csSel, name)
+	       externalID: (*csImp)(NSString_class, csSel, ExternalID)
+		 systemID: (*csImp)(NSString_class, csSel, SystemID)];
+}
+
 static xmlParserInputPtr
 resolveEntityFunction(void *ctx, const char *publicId, const char *systemId)
 {
@@ -1408,6 +1417,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
      LIB->internalSubset         = internalSubsetFunction;
+     LIB->externalSubset         = externalSubsetFunction;
      LIB->isStandalone           = isStandaloneFunction;
      LIB->hasInternalSubset      = hasInternalSubsetFunction;
      LIB->hasExternalSubset      = hasExternalSubsetFunction;
@@ -1579,6 +1589,12 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 - (int) hasExternalSubset
 {
   return 0;
+}
+
+- (void) externalSubset: (NSString*)name
+            externalID: (NSString*)externalID
+              systemID: (NSString*)systemID
+{
 }
 
 - (void*) getEntity: (NSString*)name
