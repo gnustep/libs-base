@@ -55,12 +55,13 @@
   unsigned	length;
   unsigned	pos;
   BOOL		commentsRead;
+  BOOL		haveSource;
   NSString		*declared;	// Where classes were declared.
   NSMutableArray	*ifStack;	// track preprocessor conditionals.
 
   NSString		*comment;	// Documentation accumulator.
   NSMutableDictionary	*info;		// All information parsed.
-
+  NSMutableArray	*source;	// Names of source files.
   NSCharacterSet	*identifier;	// Legit char in identifier
   NSCharacterSet	*identStart;	// Legit initial char of identifier
   NSCharacterSet	*spaces;	// All blank characters
@@ -94,5 +95,6 @@
 - (unsigned) skipStatementLine;
 - (unsigned) skipUnit;
 - (unsigned) skipWhiteSpace;
+- (NSArray*) source;
 @end
 #endif

@@ -34,6 +34,7 @@
   DESTROY(identStart);
   DESTROY(spaces);
   DESTROY(spacenl);
+  DESTROY(source);
   [super dealloc];
 }
 
@@ -57,6 +58,7 @@
   identStart = RETAIN([NSCharacterSet characterSetWithCharactersInString:
     @"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
   info = [[NSMutableDictionary alloc] initWithCapacity: 6];
+  source = [NSMutableArray new];
   return self;
 }
 
@@ -129,6 +131,18 @@
   if (declared == nil)
     {
       ASSIGN(declared, [fileName lastPathComponent]);
+    }
+  /**
+   * If this is parsing a header file (isSource == NO) then we reset the
+   * list of known source files associated with the header before proceeding.
+   */
+  [source removeAllObjects];
+  if (isSource == NO)
+    {
+      [source removeAllObjects];
+      [source addObject:
+	[[[fileName lastPathComponent] stringByDeletingPathExtension]
+	  stringByAppendingPathExtension: @"m"]];
     }
   unitName = nil;
   itemName = nil;
@@ -1183,7 +1197,9 @@ fail:
 
 - (void) reset
 {
+  [source removeAllObjects];
   [info removeAllObjects];
+  haveSource = NO;
   DESTROY(declared);
   DESTROY(comment);
   fileName = nil;
@@ -1734,6 +1750,52 @@ fail:
 		    }
 		}
 
+	      /*
+	       * Lines of the form 'AutogsdocSource: ...' are used as the
+	       * names of source files to provide documentation information.
+	       * whitespace around a filename is stripped.
+	       */
+	      r = NSMakeRange(0, commentLength);
+	      while (r.length > 0)
+		{
+		  /*
+		   * Look for 'AtogsdocSource:' lines.
+		   */
+		  r = [comment rangeOfString: @"AutogsdocSource:"
+				     options: NSCaseInsensitiveSearch
+				       range: r];
+		  if (r.length > 0)
+		    {
+		      unsigned	i = NSMaxRange(r);
+		      NSString	*line;
+
+		      r = NSMakeRange(i, commentLength - i);
+		      r = [comment rangeOfString: @"\n"
+					 options: NSLiteralSearch
+					   range: r];
+		      if (r.length == 0)
+			{
+			  r.location = commentLength;
+			}
+		      r = NSMakeRange(i, NSMaxRange(r) - i);
+		      line = [comment substringWithRange: r];
+		      line = [line stringByTrimmingSpaces];
+		
+		      if ([line length] > 0
+			&& [source containsObject: line] == NO)
+			{
+			  if (haveSource == NO)
+			    {
+			      [source removeAllObjects]; // remove default.
+			    }
+			  [source addObject: line];
+			  haveSource = YES;
+			}
+		      i = NSMaxRange(r);
+		      r = NSMakeRange(i, commentLength - i);
+		    }
+		}
+
 	      /**
 	       * There are various sections we can extract from the
 	       * document - at most one of each.
@@ -2204,5 +2266,9 @@ fail:
   return pos;
 }
 
+- (NSArray*) source
+{
+  return AUTORELEASE([source copy]);
+}
 @end
 
