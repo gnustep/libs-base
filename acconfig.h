@@ -46,3 +46,9 @@
 /* Define if nested functions are broken on this compiler */
 #undef BROKEN_NESTED_FUNCTIONS
 
+/* Define if you have this header */
+#undef HAVE_GICONV_H
+
+/* Define if you have this function */
+#undef HAVE_ICONV
+
