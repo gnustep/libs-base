@@ -430,7 +430,8 @@ hpux-load.h \
 null-load.h \
 simple-load.h \
 NSCallBacks.h \
-NSHost.m 
+NSHost.m \
+gdomap.c gdomap.h
 
 GNUSTEP_OBJS = \
 	$(GNUSTEP_MFILES:.m=${OEXT}) \
