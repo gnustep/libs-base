@@ -1,5 +1,5 @@
 /** Implementation of NSBundle class
-   Copyright (C) 1993,1994,1995, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1993-2002 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: May 1993
@@ -77,10 +77,6 @@ static NSString	*_executable_path;
  */
 static NSDictionary	*_emptyTable = nil;
 
-/* This is for bundles that we can't unload, so they shouldn't be
-   dealloced.  This is true for all bundles right now */
-static NSMapTable	*_releasedBundles = NULL;
-
 /* When we are linking in an object file, objc_load_modules calls our
    callback routine for every Class and Category loaded.  The following
    variable stores the bundle that is currently doing the loading so we know
@@ -119,9 +115,9 @@ static NSString	*library_combo =
 /* This function is provided for objc-load.c, although I'm not sure it
    really needs it (So far only needed if using GNU dld library) */
 const char *
-objc_executable_location( void )
+objc_executable_location (void)
 {
-  return [[[NSBundle mainBundle] bundlePath] cString];
+  return [[_executable_path stringByDeletingLastPathComponent] cString];
 }
 
 static BOOL
@@ -277,9 +273,8 @@ _bundle_name_first_match(NSString* directory, NSString* name)
       return;
     }
 
-  /* This should NEVER happen.  Please read the description above to
-     convince yourself that if we are loading from a bundle, we
-     shouldn't be calling this function.  */
+  /* FIXME NICOLA :-) Hmmm ... consider the case that the framework
+     was linked (using xxx_LIBRARIES_DEPEND_UPON) into a bundle.  */
   if (_loadingBundle != nil)
     {
       return;
@@ -337,7 +332,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 					   name]];
       
       /* Try creating the bundle.  */
-      bundle = [[NSBundle alloc] initWithPath: bundlePath];
+      bundle = [[self alloc] initWithPath: bundlePath];
       
       if (bundle == nil)
 	{
@@ -462,15 +457,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	      _executable_path =
 		[[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
 	      _executable_path = 
-		[NSBundle _absolutePathOfExecutable: _executable_path];
+		[self _absolutePathOfExecutable: _executable_path];
 	      NSAssert(_executable_path, NSInternalInconsistencyException);
 	    }
 
 	  RETAIN(_executable_path);
-	  _gnustep_bundle = RETAIN([NSBundle bundleWithPath: system]);
+	  _gnustep_bundle = RETAIN([self bundleWithPath: system]);
 
 #if 0
-	  _loadingBundle = [NSBundle mainBundle];
+	  _loadingBundle = [self mainBundle];
 	  handle = objc_open_main_module(stderr);
 	  printf("%08x\n", handle);
 #endif
@@ -485,14 +480,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    }
 	    for (i = 0; i < numClasses; i++)
 	      {
-		[NSBundle _addFrameworkFromClass: classes[i]];
+		[self _addFrameworkFromClass: classes[i]];
 	      }
 	    free(classes);
 	  }
 #else
 	  while ((class = objc_next_class(&state)))
 	    {
-	      [NSBundle _addFrameworkFromClass: class];
+	      [self _addFrameworkFromClass: class];
 	    }
 #endif
 #if 0
@@ -642,9 +637,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	}
 
       NSDebugMLLog(@"NSBundle", @"Found main in %@\n", path);
-      /* We do alloc and init separately so initWithPath: knows
-          we are the _mainBundle */
-      _mainBundle = [NSBundle alloc];
+      /* We do alloc and init separately so initWithPath: knows we are
+          the _mainBundle.  Please note that we do *not* autorelease
+          mainBundle, because we don't want it to be ever released.  */
+      _mainBundle = [self alloc];
+      /* Please note that _mainBundle can perfectly well be nil.  */
       _mainBundle = [_mainBundle initWithPath:path];
     }
   
@@ -652,10 +649,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return _mainBundle;
 }
 
-/* Due to lazy evaluation, we will not find a class if either classNamed: or
-   principalClass has not been called on the particular bundle that contains
-   the class. (FIXME)
-*/
+/* NB: We will not find a class if the bundle has not been loaded yet!  */
 + (NSBundle *) bundleForClass: (Class)aClass
 {
   void*     key;
@@ -691,7 +685,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       /* Is it in the main bundle? */
       if (class_is_class(aClass))
-	bundle = [NSBundle mainBundle];
+	bundle = [self mainBundle];
     }
 
   return bundle;
@@ -699,7 +693,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 + (NSBundle*) bundleWithPath: (NSString*)path
 {
-  return AUTORELEASE([[NSBundle alloc] initWithPath: path]);
+  return AUTORELEASE([[self alloc] initWithPath: path]);
 }
 
 - (id) initWithPath: (NSString*)path
@@ -732,19 +726,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  return bundle;
 	}
     }
-  if (_releasedBundles)
-    {
-      NSBundle* loaded = (NSBundle *)NSMapGet(_releasedBundles, path);
-      if (loaded)
-	{
-	  NSMapInsert(_bundles, path, loaded);
-	  NSMapRemove(_releasedBundles, path);
-	  RETAIN(loaded); /* retain - look as if we were alloc'ed */
-	  [load_lock unlock];
-	  [self dealloc];
-	  return loaded;
-	}
-    }
   [load_lock unlock];
 
   if (bundle_directory_readable(path) == NO)
@@ -773,40 +754,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       _bundles = NSCreateMapTable(NSObjectMapKeyCallBacks,
 				  NSNonOwnedPointerMapValueCallBacks, 0);
-      _releasedBundles = NSCreateMapTable(NSObjectMapKeyCallBacks,
-				  NSNonOwnedPointerMapValueCallBacks, 0);
     }
   NSMapInsert(_bundles, _path, self);
   [load_lock unlock];
 
   return self;
-}
-
-/* Some bundles should not be dealloced, such as the main bundle. So we
-   keep track of our own retain count to avoid this.
-   Currently, the objc runtime can't unload modules, so we actually
-   avoid deallocating any bundle with code loaded */
-- (oneway void) release
-{
-  if (_codeLoaded == YES || self == _mainBundle || self == _gnustep_bundle) 
-    {
-      if ([self retainCount] == 1)
-	{
-	  [load_lock lock];
-	  if (self == NSMapGet(_releasedBundles, _path))
-	    {
-	      [load_lock unlock];
-	      [NSException raise: NSGenericException
-		format: @"Bundle for path %@ released too many times", _path];
-	    }
-      
-	  NSMapRemove(_bundles, _path);
-	  NSMapInsert(_releasedBundles, _path, self);
-	  [load_lock unlock];
-	  return;
-	}
-    }
-  [super release];
 }
 
 - (void) dealloc
@@ -954,6 +906,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  return NO;
 	}
       _codeLoaded = YES;
+      /* After we load code from a bundle, we retain the bundle until
+	 we unload it (because we never unload bundles, that is
+	 forever).  The reason why we retain it is that we need it!
+	 We need it to answer calls like bundleForClass:; also, users
+	 normally want all loaded bundles to appear when they call
+	 +allBundles.  */
+      RETAIN (self);
       _loadingBundle = nil;
       
       classNames = [NSMutableArray arrayWithCapacity: [_bundleClasses count]];
@@ -1030,8 +989,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       /* NOT REACHED */
     }
 
-  pathlist = [[NSBundle _bundleResourcePathsWithRootPath: rootPath
-			subPath: bundlePath] objectEnumerator];
+  pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
+		    subPath: bundlePath] objectEnumerator];
   fullpath = nil;
   while ((path = [pathlist nextObject]))
     {
@@ -1338,7 +1297,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
-	  return [NSBundle bundleWithPath: path];
+	  return [self bundleWithPath: path];
 	}
     }
   
@@ -1430,7 +1389,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   enumerator = [paths objectEnumerator];
   while ((path == nil) && (bundle_path = [enumerator nextObject]))
     {
-      bundle = [NSBundle bundleWithPath: bundle_path];
+      bundle = [self bundleWithPath: bundle_path];
       path = [bundle pathForResource: name
                               ofType: ext
                          inDirectory: bundlePath];
