@@ -1372,7 +1372,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  mth = GSGetInstanceMethod(self, aSelector);
+  mth = GSGetMethod(self, aSelector, YES, YES);
   return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
     : nil;
 }
@@ -1392,16 +1392,8 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  if (GSObjCIsInstance(self))
-    {
-      c = GSObjCClass(self);
-      mth = GSGetInstanceMethod(c, aSelector);
-    }
-  else
-    {
-      c = (Class)self;
-      mth = GSGetClassMethod(c, aSelector);
-    }
+  c = (GSObjCIsInstance(self) ? GSObjCClass(self) : (Class)self);
+  mth = GSGetMethod(c, aSelector, GSObjCIsInstance(self), YES);
 
   if (mth == 0)
     {
@@ -2111,7 +2103,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  mth = GSGetInstanceMethod(self, aSelector);
+  mth = GSGetMethod(self, aSelector, YES, YES);
   return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
     : nil;
 }
@@ -2265,7 +2257,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   return ((struct objc_method_description *)
-           GSGetInstanceMethod(self, aSel));
+           GSGetMethod(self, aSel, YES, YES));
 }
 
 - (struct objc_method_description *) descriptionForMethod: (SEL)aSel
@@ -2275,9 +2267,11 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   return ((struct objc_method_description *)
-           (GSObjCIsInstance(self)
-            ? GSGetInstanceMethod(GSObjCClass(self), aSel)
-            : GSGetClassMethod((Class)self, aSel)));
+	  GSGetMethod((GSObjCIsInstance(self) 
+		       ? GSObjCClass(self) : (Class)self),
+		      aSel,
+		      GSObjCIsInstance(self),
+		      YES));
 }
 
 /**

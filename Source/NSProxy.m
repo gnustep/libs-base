@@ -142,7 +142,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       return nil;
     }
-  mth = GSGetClassMethod(self, aSelector);
+  mth = GSGetMethod(self, aSelector, NO, YES);
   if (mth != 0)
     {
       const char	*types = mth->method_types;
@@ -381,7 +381,7 @@ extern BOOL __objc_responds_to(id, SEL);
     {
       return nil;
     }
-  mth = GSGetInstanceMethod(GSObjCClass(self), aSelector);
+  mth = GSGetMethod(GSObjCClass(self), aSelector, YES, YES);
   if (mth != 0)
     {
       const char	*types = mth->method_types;

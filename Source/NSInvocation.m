@@ -565,11 +565,14 @@ _arg_addr(NSInvocation *inv, int index)
     }
   else
     {
-      imp = method_get_imp(GSObjCIsInstance(_target) ?
-	GSGetInstanceMethod(
-		    ((struct objc_class*)_target)->class_pointer, _selector)
-	: GSGetClassMethod(
-		    ((struct objc_class*)_target), _selector));
+      GSMethod method;
+      method = GSGetMethod((GSObjCIsInstance(_target)
+			    ? GSObjCClass(_target)
+			    : _target),
+			   _selector,
+			   GSObjCIsInstance(_target),
+			   YES);
+      imp = method_get_imp(method);
 	/*
 	 * If fast lookup failed, we may be forwarding or something ...
 	 */

@@ -224,7 +224,7 @@
     }
 
   c = GSObjCClass(self);
-  mth = GSGetInstanceMethod(c, aSelector);
+  mth = GSGetMethod(c, aSelector, YES, YES);
   if (mth == 0)
     {
       return nil; // Method not implemented
