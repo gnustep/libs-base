@@ -60,6 +60,7 @@
 #include <Foundation/NSURL.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSDebug.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
