@@ -1088,10 +1088,30 @@ AM_LANGINFO_CODESET
 #--------------------------------------------------------------------
 # Check for iconv support (for Unicode conversion).
 #--------------------------------------------------------------------
-# Check in the glibc library
-AC_CHECK_FUNCS(iconv)
-if test $ac_cv_func_iconv = no; then
-  # Check if we have a libiconv library
+# We need to find an iconv library that matches the installed iconv.h header
+# (if any). It is important to check header/library compatibility. It's
+# fairly common to have iconv support both in libc and from libiconv. In that
+# case, a naive check that iconv() is in libc will succeed, but if we use
+# libiconv's iconv.h, it will redefine iconv() to functions that exist
+# only in libiconv, and we'll get link errors.
+#
+# First, check if there's a working iconv in libc (ie. if the test program
+# compiles and links without any extra flags).
+AC_MSG_CHECKING(iconv support)
+AC_LINK_IFELSE([[#include <iconv.h>
+int main(int argc,char **argv) { iconv_open("foo","bar"); }]]
+,
+  # libc has a working iconv.
+  AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+  AC_MSG_RESULT([[yes, in libc]])
+  found_iconv=yes
+,
+  found_iconv=no
+)
+
+if test $found_iconv = no ; then
+  # libc doesn't have a working iconv. Try adding -liconv and any user
+  # supplied directory.
   AC_ARG_WITH(libiconv-library,
     [  --with-libiconv-library=PATH  library path for libiconv libraries],
     libiconv_libdir="$withval", libiconv_libdir="no")
@@ -1099,21 +1119,39 @@ if test $ac_cv_func_iconv = no; then
 
   if test "$libiconv_libdir" != "no"; then
     LDFLAGS="$LDFLAGS -L$libiconv_libdir"
-    LIBS="$LIBS  -L$libiconv_libdir"
   fi
 
-  # BSDs install this lib as libgiconv
-  AC_CHECK_LIB(giconv, main)
-  if test x"$ac_cv_lib_giconv_main" = xyes; then
+  old_LIBS="$LIBS"
+  LIBS="$LIBS -liconv"
+  AC_LINK_IFELSE([[#include <iconv.h>
+  int main(int argc,char **argv) { iconv_open("foo","bar"); }]]
+  ,
+    # -liconv works.
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
-    AC_DEFINE(HAVE_GICONV_H,1, [Define if you have this header])
-  else
-    AC_CHECK_LIB(iconv, main)
-    if test x"$ac_cv_lib_iconv_main" = xyes; then
-      AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
-    fi
-  fi
-  LDFLAGS="$ldflags_temp"
+    AC_MSG_RESULT([[yes, -liconv]])
+    found_iconv=yes
+  ,
+    found_iconv=no
+    LDFLAGS="$ldflags_temp"
+    LIBS="$old_LIBS"
+  )
+fi
+
+if test $found_iconv = no ; then
+  # -liconv didn't work. Try giconv.h and -lgiconv.
+  # BSDs install this lib as libgiconv.
+  old_LIBS="$LIBS"
+  LIBS="$LIBS -lgiconv"
+  AC_LINK_IFELSE([[#include <giconv.h>
+  int main(int argc,char **argv) { iconv_open("foo","bar"); }]]
+  ,
+    AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+    AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])
+    AC_MSG_RESULT([[yes, -lgiconv]])
+  ,
+    AC_MSG_RESULT([[no]])
+    LIBS="$old_LIBS"
+  )
 fi
 
 AC_SUBST(INCLUDE_FLAGS)

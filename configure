@@ -13592,59 +13592,21 @@ _ACEOF
 #--------------------------------------------------------------------
 # Check for iconv support (for Unicode conversion).
 #--------------------------------------------------------------------
-# Check in the glibc library
+# We need to find an iconv library that matches the installed iconv.h header
+# (if any). It is important to check header/library compatibility. It's
+# fairly common to have iconv support both in libc and from libiconv. In that
+# case, a naive check that iconv() is in libc will succeed, but if we use
+# libiconv's iconv.h, it will redefine iconv() to functions that exist
+# only in libiconv, and we'll get link errors.
+#
+# First, check if there's a working iconv in libc (ie. if the test program
+# compiles and links without any extra flags).
+echo "$as_me:$LINENO: checking iconv support" >&5
+echo $ECHO_N "checking iconv support... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+#include <iconv.h>
+int main(int argc,char **argv) { iconv_open("foo","bar"); }
 
-for ac_func in iconv
-do
-as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $ac_func" >&5
-echo $ECHO_N "checking for $ac_func... $ECHO_C" >&6
-if eval "test \"\${$as_ac_var+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char $ac_func (); below.
-    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
-    <limits.h> exists even on freestanding compilers.  */
-#ifdef __STDC__
-# include <limits.h>
-#else
-# include <assert.h>
-#endif
-/* Override any gcc2 internal prototype to avoid an error.  */
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-/* We use char because int might match the return type of a gcc2
-   builtin and then its argument prototype would still apply.  */
-char $ac_func ();
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
-choke me
-#else
-char (*f) () = $ac_func;
-#endif
-#ifdef __cplusplus
-}
-#endif
-
-int
-main ()
-{
-return f != $ac_func;
-  ;
-  return 0;
-}
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
 if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
@@ -13658,27 +13620,28 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  eval "$as_ac_var=yes"
+  # libc has a working iconv.
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_ICONV 1
+_ACEOF
+
+  echo "$as_me:$LINENO: result: yes, in libc" >&5
+echo "${ECHO_T}yes, in libc" >&6
+  found_iconv=yes
+
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-eval "$as_ac_var=no"
+found_iconv=no
+
 fi
 rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_var'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_var'}'`" >&6
-if test `eval echo '${'$as_ac_var'}'` = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define `echo "HAVE_$ac_func" | $as_tr_cpp` 1
-_ACEOF
 
-fi
-done
-
-if test $ac_cv_func_iconv = no; then
-  # Check if we have a libiconv library
+if test $found_iconv = no ; then
+  # libc doesn't have a working iconv. Try adding -liconv and any user
+  # supplied directory.
 
 # Check whether --with-libiconv-library or --without-libiconv-library was given.
 if test "${with_libiconv_library+set}" = set; then
@@ -13691,34 +13654,14 @@ fi;
 
   if test "$libiconv_libdir" != "no"; then
     LDFLAGS="$LDFLAGS -L$libiconv_libdir"
-    LIBS="$LIBS  -L$libiconv_libdir"
   fi
 
-  # BSDs install this lib as libgiconv
+  old_LIBS="$LIBS"
+  LIBS="$LIBS -liconv"
+  cat >conftest.$ac_ext <<_ACEOF
+#include <iconv.h>
+  int main(int argc,char **argv) { iconv_open("foo","bar"); }
 
-echo "$as_me:$LINENO: checking for main in -lgiconv" >&5
-echo $ECHO_N "checking for main in -lgiconv... $ECHO_C" >&6
-if test "${ac_cv_lib_giconv_main+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgiconv  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-main ();
-  ;
-  return 0;
-}
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
 if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
@@ -13732,63 +13675,37 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  ac_cv_lib_giconv_main=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_cv_lib_giconv_main=no
-fi
-rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-echo "$as_me:$LINENO: result: $ac_cv_lib_giconv_main" >&5
-echo "${ECHO_T}$ac_cv_lib_giconv_main" >&6
-if test $ac_cv_lib_giconv_main = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBGICONV 1
-_ACEOF
-
-  LIBS="-lgiconv $LIBS"
-
-fi
-
-  if test x"$ac_cv_lib_giconv_main" = xyes; then
+  # -liconv works.
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_ICONV 1
 _ACEOF
 
+    echo "$as_me:$LINENO: result: yes, -liconv" >&5
+echo "${ECHO_T}yes, -liconv" >&6
+    found_iconv=yes
 
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_GICONV_H 1
-_ACEOF
-
-  else
-
-echo "$as_me:$LINENO: checking for main in -liconv" >&5
-echo $ECHO_N "checking for main in -liconv... $ECHO_C" >&6
-if test "${ac_cv_lib_iconv_main+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-liconv  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
 
+found_iconv=no
+    LDFLAGS="$ldflags_temp"
+    LIBS="$old_LIBS"
 
-int
-main ()
-{
-main ();
-  ;
-  return 0;
-}
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+fi
+
+if test $found_iconv = no ; then
+  # -liconv didn't work. Try giconv.h and -lgiconv.
+  # BSDs install this lib as libgiconv.
+  old_LIBS="$LIBS"
+  LIBS="$LIBS -lgiconv"
+  cat >conftest.$ac_ext <<_ACEOF
+#include <giconv.h>
+  int main(int argc,char **argv) { iconv_open("foo","bar"); }
+
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
 if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
@@ -13802,36 +13719,29 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  ac_cv_lib_iconv_main=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-ac_cv_lib_iconv_main=no
-fi
-rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-echo "$as_me:$LINENO: result: $ac_cv_lib_iconv_main" >&5
-echo "${ECHO_T}$ac_cv_lib_iconv_main" >&6
-if test $ac_cv_lib_iconv_main = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBICONV 1
-_ACEOF
-
-  LIBS="-liconv $LIBS"
-
-fi
-
-    if test x"$ac_cv_lib_iconv_main" = xyes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_ICONV 1
 _ACEOF
 
-    fi
-  fi
-  LDFLAGS="$ldflags_temp"
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_GICONV 1
+_ACEOF
+
+    echo "$as_me:$LINENO: result: yes, -lgiconv" >&5
+echo "${ECHO_T}yes, -lgiconv" >&6
+
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+    LIBS="$old_LIBS"
+
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
 fi
 
 
