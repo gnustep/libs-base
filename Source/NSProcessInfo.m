@@ -500,6 +500,14 @@ _gnu_noobjc_free_vars(void)
 #undef main
 int main(int argc, char *argv[], char *env[])
 {
+#ifdef NeXT_RUNTIME
+  /* This memcpy has to be done before the first message is sent to any
+     constant string object. See Apple Radar 2870817 */
+  memcpy(&_NSConstantStringClassReference,
+         objc_getClass("NSConstantString"),
+         sizeof(_NSConstantStringClassReference));
+#endif
+
 #if defined(__MINGW__)
   WSADATA lpWSAData;
 

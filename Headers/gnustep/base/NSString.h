@@ -330,6 +330,15 @@ enum {
  */
 @interface NXConstantString : NSString
 {
+#if defined(__APPLE__) && __GCC__ >= 3
+  /* Up to gcc 2.95.2 the compiler slipped these two in automatically.
+	 With the advent of ObjC++ this is no longer possible (?).
+	 There is no Apple modified gcc between 2.95.2 and 3.1.
+	 This info ia as of 2002-03-04 and regarding the experimental
+	 Apple gcc 3.1. Markus Hitter, mah@jump-ing.de */
+  char *cString;
+  unsigned int len;
+#endif
   union {
     unichar		*u;
     unsigned char	*c;
@@ -338,8 +347,9 @@ enum {
 }
 @end
 
-#if NeXT_RUNTIME
-/* For internal use with NeXT runtime. */
+#ifdef NeXT_RUNTIME
+/* For internal use with NeXT runtime;
+   needed, until Apple Radar 2870817 is fixed. */
 extern struct objc_class _NSConstantStringClassReference;
 #endif
 
