@@ -1,3 +1,8 @@
+2003-04-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObjCRuntime.m: NSClassFromString(), NSSelectorFromString()
+	avoid doing an unnecessary autorelease.
+
 2003-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/callframe.m:
