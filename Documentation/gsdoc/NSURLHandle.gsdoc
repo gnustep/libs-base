@@ -16,6 +16,18 @@
       <class name="NSURLHandle" super="NSObject">
         <declared>Foundation/NSURLHandle.h</declared>
           <desc>
+	    <p>
+	      An NSURLHandle instance is used to manage the resource data
+	      corresponding to an NSURL object. A single NSURLHandle can
+	      be used to manage multiple NSURL objects as long as those
+	      objects all refer to the same resource.
+	    </p>
+	    <p>
+	      Different NSURLHandle subclasses are used to manage different
+	      types of URL (usually based on the scheme of the URL), and you
+	      can register new subclasses to extend (or replace) the
+	      standard ones.
+	    </p>
           </desc>
 
         <method type="Class" factory="yes">
@@ -23,7 +35,8 @@
           <arg type="NSURL*">anURL</arg>
           <desc>
 	    Returns the most recently registered NSURLHandle subclass that
-	    responds to <code>canInitWithURL:</code> with <code>YES</code>
+	    responds to <ref id="initWithURL:">canInitWithURL:</ref>
+	    with <code>YES</code>.  If there is no such subclass, returns nil.
           </desc>
         </method>
 
@@ -32,7 +45,7 @@
           <arg type="NSURL*">anURL</arg>
           <desc>
 	    Returns a previously created object that handles the specified
-	    URL (if any exists).
+	    URL (if any exists), otherwise returns nil.
           </desc>
         </method>
 
@@ -40,7 +53,9 @@
           <sel>canInitWithURL:</sel>
           <arg type="NSURL*">anURL</arg>
           <desc>
-	    Implemented by subclasses to say which URLs they can handle.
+	    MUST be implemented by subclasses to say which URLs they can handle.
+	    This method is used to determine which subclasses can be used
+	    to handle a particular URL.
           </desc>
         </method>
 
@@ -169,7 +184,81 @@
           <desc>
           </desc>
         </method>
+	<standards><MacOS-X/><NotOpenStep/></standards>
       </class>
+
+      <protocol name="NSURLHandleClient">
+        <declared>Foundation/NSURLHandle.h</declared>
+	<desc>
+	</desc>
+
+        <method type="void">
+          <sel>URLHandleResourceDidBeginLoading:</sel>
+          <arg type="NSURLHandle*">sender</arg>
+          <desc>
+	    Sent by the NSURLHandle object when it begins loading
+	    resource data.
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>URLHandleResourceDidCancelLoading:</sel>
+          <arg type="NSURLHandle*">sender</arg>
+          <desc>
+	    Sent by the NSURLHandle object when resource loading is cancelled
+	    by programmatic request (rather than by failure).
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>URLHandleResourceDidFinishLoading:</sel>
+          <arg type="NSURLHandle*">sender</arg>
+          <desc>
+	    Sent by the NSURLHandle object when it completes loading
+	    resource data.
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>URLHandle:</sel>
+          <arg type="NSURLHandle*">sender</arg>
+	  <sel>resourceDidBecomeAvailable:</sel>
+          <arg type="NSData*">data</arg>
+          <desc>
+	    Sent by the NSURLHandle object when some data becomes available
+	    from the handle.
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>URLHandle:</sel>
+          <arg type="NSURLHandle*">sender</arg>
+	  <sel>resourceDidFailLoadingWithReason:</sel>
+          <arg type="NSString*">reason</arg>
+          <desc>
+	    Sent by the NSURLHandle object on resource load failure.
+	    Supplies a human readable failure reason.
+          </desc>
+        </method>
+
+	<standards><MacOS-X/><NotOpenStep/></standards>
+      </protocol>
+
+      <type name="NSURLHandleStatus">
+	<typespec>int</typespec>
+        <declared>Foundation/NSURLHandle.h</declared>
+	<desc>
+	  An NSURLHandleStatus is used to report the current state of an
+	  NSURLHandle object, it can take the following values -
+	  <list>
+	    <item>NSURLHandleNotLoaded</item>
+	    <item>NSURLHandleLoadSucceeded</item>
+	    <item>NSURLHandleLoadInProgress</item>
+	    <item>NSURLHandleLoadFailed</item>
+	  </list>
+	</desc>
+	<standards><MacOS-X/><NotOpenStep/></standards>
+      </type>
     </chapter>
   </body>
 </gsdoc>
