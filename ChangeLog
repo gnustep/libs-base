@@ -1,6 +1,8 @@
 Wed Feb  3 12:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	* Source/FastMap.x: Fix to assign values returned by RETAIN macros
+	* Source/FastArray.x: Don't use value returned by RETAIN macro.
+	* Source/FastMap.x: Don't use value returned by RETAIN macros.
+	* Source/NSGDictionary.m: Fix to assign values in RETAIN macros
 	as suggested by mguesdon@sbuilders.com
 
 Tue Feb  2 15:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
