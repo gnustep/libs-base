@@ -117,6 +117,7 @@ extern void _NSRemoveHandler( NSHandler *handler );
 #define NS_VALRETURN(val)  do { typeof(val) temp = (val);	\
 			_NSRemoveHandler(&NSLocalHandler);	\
 			return(temp); } while (0)
+#define NS_VALUERETURN  NS_VALRETURN
 
 #define NS_VOIDRETURN	do { _NSRemoveHandler(&NSLocalHandler);	\
 			return; } while (0)

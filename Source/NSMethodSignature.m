@@ -21,6 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+#include <config.h>
+#include <gnustep/base/preface.h>
+
 /* Deal with memchr: */
 #if STDC_HEADERS || HAVE_STRING_H
 #include <string.h>
@@ -37,8 +40,6 @@
 /* memory.h and strings.h conflict on some systems.  */
 #endif /* not STDC_HEADERS and not HAVE_STRING_H */
 
-#include <config.h>
-#include <gnustep/base/preface.h>
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>

@@ -346,8 +346,9 @@ ostream_close_memory (ostream *s, int option)
 {
   if (s->flags & OSTREAM_ISBUFFER)
     {
+      /* Dumb way to save buffer, but what else? */
       if (option == OSTREAM_SAVEBUFFER)
-	[(MemoryStream*)s->stream_obj setFreeWhenDone: NO];
+	[(MemoryStream*)s->stream_obj retain];
     }
   ostream_close(s);
 }

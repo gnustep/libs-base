@@ -45,6 +45,20 @@ static o_map_t thread_id_2_nsthread;
 /* Flag indicating whether the objc runtime ever went multi-threaded. */
 static BOOL entered_multi_threaded_state;
 
+void gnustep_base_thread_callback()
+{
+  /* Post a notification if this is the first new thread to be created.
+     Won't work properly if threads are not all created by this class.
+     */
+  if (!entered_multi_threaded_state)
+    {
+      entered_multi_threaded_state = YES;
+      [NotificationDispatcher
+	postNotificationName: NSBecomingMultiThreaded
+	object: nil];
+    }
+}
+
 
 @implementation NSThread
 
@@ -59,6 +73,7 @@ static BOOL entered_multi_threaded_state;
 		      autorelease];
 #endif
       entered_multi_threaded_state = NO;
+      objc_set_thread_callback(gnustep_base_thread_callback());
     }
 }
 
@@ -123,20 +138,12 @@ static BOOL entered_multi_threaded_state;
 		        toTarget:(id)aTarget
                       withObject:(id)anArgument
 {
-  /* Post a notification if this is the first new thread to be created.
-     Won't work properly if threads are not all created by this class.
-     xxx Should the notification be done before the new thread starts,
-     or after? */
-  if (!entered_multi_threaded_state)
-    {
-      entered_multi_threaded_state = YES;
-      [NotificationDispatcher
-	postNotificationName: NSBecomingMultiThreaded
-	object: nil];
-    }
-
   // Have the runtime detach the thread
-  objc_thread_detach (aSelector, aTarget, anArgument);
+  if (objc_thread_detach (aSelector, aTarget, anArgument) == NULL)
+    {
+      /* This should probably be an exception */
+      NSLog(@"Unable to detach thread (unknown error)");
+    }
 
   /* NOTE we can't create the new NSThread object for this thread here
      because there would be a race condition.  The newly created
@@ -177,14 +184,22 @@ static BOOL entered_multi_threaded_state;
   while (delay > 30.0*60.0)
     {
       // sleep 30 minutes
+#ifdef	HAVE_USLEEP
       usleep (30*60*1000000);
+#else
+      sleep (30*60);
+#endif
       delay = [date timeIntervalSinceNow];
     }
 
   // usleep may return early because of signals
   while (delay > 0)
     {
-      usleep (delay*1000000.0);
+#ifdef	HAVE_USLEEP
+      usleep (delay*1000000);
+#else
+      sleep (delay);
+#endif
       delay = [date timeIntervalSinceNow];
     }
 }

@@ -65,7 +65,9 @@
 	    prefix: (unsigned)prefix;
 - initWithData: (id)anObject;
 
+#if 0
 - initWithSize: (unsigned)s;	/* For backwards compatibility, depricated */
+#endif
 
 - (id) data;
 - (id) mutableData;

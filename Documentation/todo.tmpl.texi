@@ -4,15 +4,21 @@
 
 @chapter Todo
 
-This TODO list is out of date.
-
 @section Projects Looking for Volunteers
 
 If you think you can do one of these projects, please let me know.  Your
 help is greatly appreciated.  Send email to
-@samp{mccallum@@gnu.org}. 
+@samp{fedor@@gnu.org}. 
 
 @itemize @bullet
+
+@item Fix NSLog so it conforms to specs.  Need to check that write to
+stderr went ok, and if not write to syslog. Also need to serealize
+output (with threads).
+
+@item Simplify NSException and NSAssertionHandler and make sure they
+don't cause race conditions (if an exception is raised while processing
+an exception.
 
 @item Fix all the places marked FIXME or xxx.
 
@@ -86,13 +92,6 @@ RunLoop properly.
 @item Make the NSTimer's work and interoperate with the RunLoop
 properly. 
 
-@item Fix many memory allocation inconsistencies.  Methods that return
-malloc'ed buffers should autorelease those buffers, (like readFormat:).
-(I think all these are fixed now.)
-
-@item Many code fixes and cleanups, indicated with @samp{xxx} in the
-source.
-
 @item Add Coding methods to all the collection classes.
 
 @item Finish Collection heirarchy clean ups.  We need non-mutable
@@ -100,12 +99,6 @@ version for many of the classes.
 
 @item Possibly change implementation of @code{-(int)compare:anObject}
 for Collection.  How should non-Indexed collections be ordered?
-
-@item
-Fix all the subclassResponsibility comments in objects/*.h
-
-@item
-I will finish gnustep-base documentation.
 
 @end itemize
 
@@ -135,11 +128,6 @@ even get called.  <<ObjC insiders: This is a less well-expressed
 version of what we've just been discussing in email.>>
 
 @item
-If you don't like the organization of the documentation and you have
-suggestions for changes, please say so now, not after it's all been
-written. 
-
-@item
 Does anyone really need the ability to set the collection element
 comparison function independent of the -compare: method?
 
@@ -152,17 +140,6 @@ node to more than one linked list.
 Something like this needed?
 - elementDidChange: (elt*)elementPtr;
 Currently you have to remove, change, add, for some classes.
-
-@c -------------------------------------------------------------------
-@c @section Questions leftover from last release 
-
-@item
-I've been told that GNU filenames should be 14 chars or less.  I
-don't want to abbreviate my classnames, but I think using .h
-@@interface files with names different than the class name is even
-worse.  ** I want to keep my unabbreviated filenames!! **  What to do,
-what to do... I can't believe that *all* GNU classnames will be
-limited to 12 characters forever and ever---disgusting.
 
 @end itemize
 

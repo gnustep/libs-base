@@ -1,13 +1,21 @@
 Todo
 ****
 
-This TODO list is out of date.
-
 Projects Looking for Volunteers
 ===============================
 
-   If you think you can do one of these projects, please let me know.
-Your help is greatly appreciated.  Send email to `mccallum@gnu.org'.
+If you think you can do one of these projects, please let me know.  Your
+help is greatly appreciated.  Send email to `fedor@gnu.org'.
+
+   * Fix NSLog so it conforms to specs.  Need to check that write to
+     stderr went ok, and if not write to syslog. Also need to serealize
+     output (with threads).
+
+   * Simplify NSException and NSAssertionHandler and make sure they
+     don't cause race conditions (if an exception is raised while
+     processing an exception.
+
+   * Fix all the places marked FIXME or xxx.
 
    * Need to improve the testsuite and actually run it on gstep-base.
 
@@ -62,12 +70,6 @@ McCallum's To Do's
 
    * Make the NSTimer's work and interoperate with the RunLoop properly.
 
-   * Fix many memory allocation inconsistencies.  Methods that return
-     malloc'ed buffers should autorelease those buffers, (like
-     readFormat:).  (I think all these are fixed now.)
-
-   * Many code fixes and cleanups, indicated with `xxx' in the source.
-
    * Add Coding methods to all the collection classes.
 
    * Finish Collection heirarchy clean ups.  We need non-mutable
@@ -75,10 +77,6 @@ McCallum's To Do's
 
    * Possibly change implementation of `-(int)compare:anObject' for
      Collection.  How should non-Indexed collections be ordered?
-
-   * Fix all the subclassResponsibility comments in objects/*.h
-
-   * I will finish gnustep-base documentation.
 
 Questions
 =========
@@ -102,10 +100,6 @@ Please email your thoughts to mccallum@gnu.ai.mit.edu.
      a less well-expressed version of what we've just been discussing
      in email.>>
 
-   * If you don't like the organization of the documentation and you
-     have suggestions for changes, please say so now, not after it's
-     all been written.
-
    * Does anyone really need the ability to set the collection element
      comparison function independent of the -compare: method?
 
@@ -115,13 +109,6 @@ Please email your thoughts to mccallum@gnu.ai.mit.edu.
 
    * Something like this needed?  - elementDidChange: (elt*)elementPtr;
      Currently you have to remove, change, add, for some classes.
-
-   * I've been told that GNU filenames should be 14 chars or less.  I
-     don't want to abbreviate my classnames, but I think using .h
-     @interface files with names different than the class name is even
-     worse.  ** I want to keep my unabbreviated filenames!! **  What to
-     do, what to do... I can't believe that *all* GNU classnames will be
-     limited to 12 characters forever and ever--disgusting.
 
    
 

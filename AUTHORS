@@ -37,7 +37,6 @@ OrderedCollection.m
 Port.m
 Proxy.m
 Queue.m
-Random.m
 RawCStream.m
 RBTree.m
 RBTreeNode.m
@@ -198,6 +197,7 @@ NSPipe.m
 NSPort.m
 NSProxy.m
 NSTask.m
+NSUndoManager.m
 
 
 Stevo Crvenkovski:

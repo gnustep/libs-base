@@ -107,7 +107,7 @@ protocols by their name: they all end with "ing".
 Test Programs
 =============
 
-     Some of the programs I've used to test the library are in
+   Some of the programs I've used to test the library are in
 `./checks'.  Many of them are pretty messy, (desperately trying to
 tickle that late night bug), but at least they show some code that works
 when the library compiles correctly.  I'm looking for a volunteer to
@@ -116,20 +116,20 @@ write some nicely organized test cases using `dejagnu'.  Any takers?
 How can you help?
 =================
 
-        * Read the projects and questions in the `TODO' file.  If you
-          can volunteer for any of the projects, or if you have any
-          useful comments send me email!
+   * Read the projects and questions in the `TODO' file.  If you can
+     volunteer for any of the projects, or if you have any useful
+     comments send me email!
 
-        * Give me feedback!  Tell me what you like; tell me what you
-          think could be better.  Send me bug reports.
+   * Give me feedback!  Tell me what you like; tell me what you think
+     could be better.  Send me bug reports.
 
-        * Donate classes.  If you write classes that fit in the
-          libgnustep-base framework, I'd be happy to include them.
+   * Donate classes.  If you write classes that fit in the
+     libgnustep-base framework, I'd be happy to include them.
 
-          Happy hacking!
-                 Andrew McCallum
-                 mccallum@gnu.org
-          
-                 Adam Fedor
-                 fedor@gnu.org
+     Happy hacking!
+            Andrew McCallum
+            mccallum@gnu.org
+     
+            Adam Fedor
+            fedor@gnu.org
 

@@ -45,6 +45,10 @@
 #define getpagesize() sysconf(_SC_PAGESIZE)
 #endif
 
+#ifdef __svr4__
+#define getpagesize() sysconf(_SC_PAGESIZE)
+#endif
+
 #if __mach__
 #define getpagesize vm_page_size
 #endif
