@@ -28,7 +28,7 @@ NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
   id new = nil;
   int size = aClass->instance_size + extraBytes;
   if (CLS_ISCLASS(aClass))
-    new = NSZoneMalloc (size);
+    new = NSZoneMalloc (zone, size);
   if (new != nil)
     {
       memset (new, 0, size);
