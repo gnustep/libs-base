@@ -19,6 +19,9 @@ before-install::
 
 # Things to do after installing
 after-install::
+	if [ ! -f $(dtddir) ]; then \
+	  $(MKDIRS) $(dtddir); \
+	fi; \
 	for file in $(DTD_FILES); do \
 	  $(INSTALL_DATA) $$file $(dtddir)/$$file; \
 	done; \
