@@ -4167,7 +4167,7 @@ quoteArg(const char *arg)
   int	in;
   int	out = 0;
   int	quote = 0;
-  char	*ptr = objc_malloc(i*2+3);
+  char	*ptr = malloc(len*2+3);
 
   /*
    * Check for white space ... if present, must quote argument.
@@ -4210,10 +4210,10 @@ quoteArg(const char *arg)
 	  // Copy the original backslashes
 	  while (in < pos)
 	    {
-	      ptr[out++] = '\\';
+	      ptr[out++] = arg[in++];
 	    }
 	  // Copy the character after the backslashes
-	  if (in < end)
+	  if (in < len)
 	    {
 	      ptr[out++] = arg[in];
 	    }
@@ -4235,7 +4235,7 @@ quoteArg(const char *arg)
       ptr[out++] = '"';
     }
 
-  ptr[pos] = '\0';
+  ptr[out] = '\0';
 
   return ptr;
 }
