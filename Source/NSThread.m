@@ -778,8 +778,8 @@ static NSDate *theFuture;
  * an argument, but does so in the main thread of the program.  The receiver
  * and anObject are both retained until the method is performed.
  * </p>
- * <p>The selector is performed when the runloop of the main thread is in
- * one of the modes specified in anArray, or if there are no modes in
+ * <p>The selector is performed when the runloop of the main thread next
+ * runs in one of the modes specified in anArray. if there are no modes in
  * anArray, the method has no effect and simply returns immediately.
  * </p>
  * <p>The argument aFlag specifies whether the method should wait until
@@ -852,25 +852,21 @@ static NSDate *theFuture;
 
 /**
  * Invokes -performSelectorOnMainThread:withObject:waitUntilDone:modes:
- * using the supplied arguments and an array containing common modes.
+ * using the supplied arguments and an array containing common modes.<br />
+ * These modes consist of NSRunLoopMode, NSConnectionreplyMode, and if
+ * in an application, the NSApplication modes.
  */
 - (void) performSelectorOnMainThread: (SEL)aSelector
 			  withObject: (id)anObject
 		       waitUntilDone: (BOOL)aFlag
 {
-  static NSArray	*commonModes = nil;
-
-  if (commonModes == nil)
-    {
-      commonModes = [[NSArray alloc] initWithObjects:
-	NSDefaultRunLoopMode, NSConnectionReplyMode, nil];
-    }
   [self performSelectorOnMainThread: aSelector
 			 withObject: anObject
 		      waitUntilDone: aFlag
-			      modes: commonModes];
+			      modes: commonModes()];
 }
 @end
+
 typedef struct { @defs(NSThread) } NSThread_ivars;
 
 
