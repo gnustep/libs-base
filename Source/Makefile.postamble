@@ -53,7 +53,7 @@ after-install::
 	  $(INSTALL_DATA) ./include/$$file \
 	    $(GNUSTEP_HEADERS)/gnustep/base/$$file ; \
 	done
-	if ! ( fgrep -q gdomap /etc/services ); then \
+	if [ "`fgrep gdomap /etc/services`" = "" ]; then \
 	    echo "gdomap 538/tcp # GNUstep distrib objects" >> /etc/services; \
 	    echo "gdomap 538/udp # GNUstep distrib objects" >> /etc/services; \
 	fi
