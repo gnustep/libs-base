@@ -1,3 +1,19 @@
+2004-07-29  Matt Rice  <ratmice@yahoo.com>
+	    David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
+	* Source/Additions/GSObjCRuntime.m: Make ObjC++ safe.
+	(GSObjCSuper, GSObjCIsKindOf, GSNameFromClass)
+	(GSTypesFromSelector, GSGetMethod, GSFlushMethodCacheForClass)
+	(GSCGetInstanceVariableDefinition)
+	(GSObjCGetInstanceVariableDefinition)
+	(GSMethodListForSelector, GSAddMethodList, GSRemoveMethodList)
+	(GSObjCVersion, GSObjCName, GSObjCSelectorName)
+	(GSObjCSelectorTypes, GSGetInstanceMethod, GSGetClassMethod)
+	(GSGetInstanceMethodNotInherited, GSGetClassMethodNotInherited)
+	(search_for_method_in_class, GSObjCAddMethods): Replace class and
+	this with cls or sel.
+
 2004-07-29 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: ([emptyPool]) reset _released ivar
