@@ -1,3 +1,25 @@
+2003-09-15  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m (+_addFrameworkFromClass:): Check
+	_loadingBundle != bundle when removing classes.
+
+2003-09-15  S.J.Chun <chunsj@embian.com>
+
+	* Source/Unicode.m: Added Korean encoding
+	* Headers/Foundation/NSString.h: Added Korean encoding
+	* Source/Additions/GSCompatibility.h: Idem.
+
+Mon Sep  15 13:35:15 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* configure.ac: Fixed GNUSTEP_HDIR when not flattened.
+	* configure: Regenerated.
+
+2003-09-15  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Check for tzset
+	* Source/NSTimeZone.m (+systemTimeZone): Use it to find time zone
+	(as a last resort).
+
 2003-09-13  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSCategories.h: Move declarations
