@@ -25,7 +25,7 @@
 #include <Foundation/NSThread.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSString.h>
-#include <gnustep/base/o-map.h>
+#include <gnustep/base/o_map.h>
 #include <gnustep/base/Notification.h>
 
 // Notifications

@@ -29,8 +29,8 @@
 
 #include <Foundation/NSZone.h>
 #include <gnustep/base/callbacks.h>
-#include <gnustep/base/o-hash.h>
-#include <gnustep/base/o-array.h>
+#include <gnustep/base/o_hash.h>
+#include <gnustep/base/o_array.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -82,8 +82,8 @@ struct _o_list_enumerator
 
 /** Basics **/
 
-#include <gnustep/base/o-list-bas.h>
-#include <gnustep/base/o-list-cbs.h>
+#include <gnustep/base/o_list-bas.h>
+#include <gnustep/base/o_list-cbs.h>
 
 /** Creating **/
 
