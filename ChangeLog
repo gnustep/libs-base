@@ -1,3 +1,9 @@
+2000-11-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSGAttributedString.m: partial rewrite to cache/unique
+	dictionaries and to coalesce adjacent regions of string with the
+	same attributes when setting attributes.
+
 2000-11-12  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSArray.m: Corrected [NSMutableArray arrayWithObject:] to
