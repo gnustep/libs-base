@@ -1,3 +1,8 @@
+2002-07-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Ensure mime-version header appears
+	before other headers.
+
 2002-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Don't write to pidfile until *after* setuid away
