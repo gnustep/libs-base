@@ -39,8 +39,13 @@
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSDebug.h>
+#ifdef __MINGW__
+#include <winsock.h>
+#include <wininet.h>
+#else
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 
 /*
  *	Protocol definition stuff for talking to gdomap process.

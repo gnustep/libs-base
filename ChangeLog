@@ -13,6 +13,7 @@
 	* Source/NSFileManager.m (-findNextFile): Check if lstat,
 	geteuid implemented.
 	* Source/NSHost.m: Change includes for MINGW.
+	* Source/NSPortNameServer.m: Likewise.
 	* Source/NSPipe.m (init): Port to MINGW.
 
 	* configure.in: Do preface.h substitutions here.

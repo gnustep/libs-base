@@ -375,7 +375,7 @@ static Class	runLoopClass;
     }
 #ifdef __MINGW__
   dummy = 1;
-  if (ioctlsocket(udp_desc, FIONBIO, &dummy) < 0)
+  if (ioctlsocket(d, FIONBIO, &dummy) < 0)
     {
       NSLog(@"unable to set non-blocking mode - %s", strerror(errno));
       return nil;
