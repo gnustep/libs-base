@@ -2784,6 +2784,11 @@ else
   return self;
 }
 
+- (NSZone*) zone
+{
+  return NSDefaultMallocZone();
+}
+
 - (NSStringEncoding) fastestEncoding
 {
   return NSASCIIStringEncoding;
