@@ -70,4 +70,10 @@ __objc_dynamic_list_undefined_symbols(void)
     return NULL;
 }
 
+static char *
+__objc_dynamic_get_symbol_path(dl_handle_t handle, dl_symbol_t symbol)
+{
+  return NULL;
+}
+
 #endif /* __null_load_h_INCLUDE */
