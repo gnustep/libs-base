@@ -803,6 +803,30 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
+ * Returns the class of which the receiver is an instance.<br />
+ * The default implementation returns the private <code>isa</code>
+ * instance variable of NSObject, which is used to store a pointer
+ * to the objects class.<br />
+ * NB.  When NSZombie is enabled (see NSDebug.h) this pointer is
+ * changed upon object deallocation.
+ */
+- (Class) class
+{
+  return object_get_class(self);
+}
+
+/**
+ * Returns the name of the class of the receiving object by using
+ * the NSStringFromClass() function.<br />
+ * This is a MacOS-X addition for apple scripting, which is also
+ * generally useful.
+ */
+- (NSString*) className
+{
+  return NSStringFromClass([self class]);
+}
+
+/**
  * Creates and returns a copy of the reciever by calling -copyWithZone:
  * passing NSDefaultMallocZone()
  */
@@ -1162,19 +1186,6 @@ static BOOL double_release_check_enabled = NO;
 + (Class) class
 {
   return self;
-}
-
-/**
- * Returns the class of which the receiver is an instance.<br />
- * The default implementation returns the private <code>isa</code>
- * instance variable of NSObject, which is used to store a pointer
- * to the objects class.<br />
- * NB.  When NSZombie is enabled (see NSDebug.h) this pointer is
- * changed upon object deallocation.
- */
-- (Class) class
-{
-  return object_get_class(self);
 }
 
 /**

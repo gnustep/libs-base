@@ -104,6 +104,11 @@
 - (id) mutableCopyWithZone: (NSZone*)zone;
 @end
 
+/**
+ * This protocol must be adopted by any class wishing to support
+ * saving and restoring instances to an archive, or copying them
+ * to remote processes via the Distributed Objects mechanism.
+ */
 @protocol NSCoding
 - (void) encodeWithCoder: (NSCoder*)aCoder;
 - (id) initWithCoder: (NSCoder*)aDecoder;
@@ -120,11 +125,16 @@
 + (BOOL) requiresTypedMemory;
 #endif
 #endif
-+ (void) initialize;
+
+#ifndef	STRICT_OPENSTEP
+- (NSString*) className;
+#endif
+
 + (id) allocWithZone: (NSZone*)z;
 + (id) alloc;
 + (Class) class;
 + (NSString*) description;
++ (void) initialize;
 + (IMP) instanceMethodForSelector: (SEL)aSelector;
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector;
 + (BOOL) instancesRespondToSelector: (SEL)aSelector;
@@ -140,7 +150,7 @@
 - (Class) classForArchiver;
 - (Class) classForCoder;
 - (Class) classForPortCoder;
-- (BOOL) conformsToProtocol: (Protocol *)aProtocol;
+- (BOOL) conformsToProtocol: (Protocol*)aProtocol;
 - (id) copy;
 - (void) dealloc;
 - (NSString*) description;
@@ -156,8 +166,11 @@
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 - (id) mutableCopy;
 - (id) performSelector: (SEL)aSelector;
-- (id) performSelector: (SEL)aSelector withObject: anObject;
-- (id) performSelector: (SEL)aSelector withObject: object1 withObject: object2;
+- (id) performSelector: (SEL)aSelector
+	    withObject: (id)anObject;
+- (id) performSelector: (SEL)aSelector
+	    withObject: (id)object1
+	    withObject: (id)object2;
 - (void) release;
 - (id) replacementObjectForArchiver: (NSArchiver*)anArchiver;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
