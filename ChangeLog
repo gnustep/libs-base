@@ -1,3 +1,10 @@
+2003-09-11  Adam Fedor  <fedor@gnu.org>
+
+	* macosx/preface.h: Removed
+	* macosx/GNUstepBase/preface.h: New
+	* macosx/gnustep.pbproj/project.pbxproj: Update
+	(from Philip Moetteli  <philip.moetteli@tele2.ch>).
+
 2003-09-11  Philip Moetteli  <philip.moetteli@tele2.ch>
 
 	* Source/Additions/GSCompatibility.h
