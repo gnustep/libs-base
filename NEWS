@@ -1,7 +1,26 @@
 News
 ****
 
-The currently released version of the library is `1.5.0'.
+The currently released version of the library is `1.5.1'.
+
+Noteworthy changes in version `1.5.1'
+=====================================
+
+   * Port NSThread to MingW
+
+   * Better framework support in NSBundle
+
+   * Added Thai string encodings.
+
+   * New makeImmutableCopyOnFail: method.
+
+   * Lots of autogsdoc improvements, Updated gsdoc DTD to 1.0 version.
+
+   * Added GSPrintf for logging to stdout.
+
+   * Warning logs selectable at runtime.
+
+   * NSTimeZone code rewritten for speed.
 
 Noteworthy changes in version `1.5.0'
 =====================================

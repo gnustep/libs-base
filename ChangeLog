@@ -1,5 +1,10 @@
 2002-11-19  Adam Fedor  <fedor@gnu.org>
 
+	* Version: 1.5.1
+	* Documentation/news.texi: Updated.
+
+2002-11-19  Adam Fedor  <fedor@gnu.org>
+
 	* Headers/gnustep/base/NSBundle.h: More documentation. Add missing
 	MacOSX methods.
 	* Source/NSBundle.m (-executablePath): New

@@ -9,6 +9,21 @@ The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.5.1}
+
+@itemize @bullet
+@item Port NSThread to MingW
+@item Better framework support in NSBundle
+@item Added Thai string encodings.
+@item New makeImmutableCopyOnFail: method.
+@item Lots of autogsdoc improvements, Updated gsdoc DTD to 1.0 version.
+@item Added GSPrintf for logging to stdout.
+@item Warning logs selectable at runtime.
+@item NSTimeZone code rewritten for speed.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.5.0}
 
 @itemize @bullet
@@ -16,10 +31,6 @@ The currently released version of the library is
 @item Fixed bug that occationally deleted user defaults.
 @item Tcp connections use runloop in NSConnectionReplyMode.
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.4.0}
 

@@ -43,7 +43,7 @@ GS_EXPORT NSString* NSLoadedClasses;
    <p>
    NSBundle provides methods for locating and handling application (and tool)
    resources at runtime. Resources includes any time of file that the
-   application might need, such as images, nim (gorm or gmodel) files,
+   application might need, such as images, nib (gorm or gmodel) files,
    localization files, and any other type of file that an application
    might need to use to function. Resources also include executable
    code, which can be dynamically linked into the application at
@@ -58,8 +58,9 @@ GS_EXPORT NSString* NSLoadedClasses;
    basically a bundle that contains a library archive. The
    organization of a framework is a little difference, but in most
    respects there is no difference between a bundle and a framework.
+   </p>
    <p>
-   These is one special bundle, called the mainBundle, which is
+   There is one special bundle, called the mainBundle, which is
    basically the application itself. The mainBundle is always loaded
    (of course), but you can still perform other operations on the
    mainBundle, such as searching for files, just as with any other
@@ -204,10 +205,6 @@ GS_EXPORT NSString* NSLoadedClasses;
    <p>
    If ext is nil or empty, then the first file with name and any
    extension is returned.
-   </p>
-   <p>
-   Use of the version argument is depreciated. Specifiying a version
-   doesn't do anything useful.
    </p>
 */
 - (NSString*) pathForResource: (NSString*)name
