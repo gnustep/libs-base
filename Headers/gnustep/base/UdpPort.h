@@ -27,7 +27,9 @@
 #include <base/preface.h>
 #include <base/Port.h>
 #include <sys/types.h>
-#ifndef __WIN32__
+#ifdef __WIN32__
+# include <winsock.h>
+#else
 # include <sys/socket.h>
 # include <netinet/in.h>
 #endif /* !WIN32 */

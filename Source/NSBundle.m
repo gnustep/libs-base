@@ -192,8 +192,8 @@ _bundle_name_first_match(NSString* directory, NSString* name)
   filelist = [[mgr directoryContentsAtPath: directory] objectEnumerator];
   while ((match = [filelist nextObject]))
     {
-      if ([path isEqual: [match stringByDeletingPathExtension]])
-	return match;
+      if ([name isEqual: [match stringByDeletingPathExtension]])
+	return [directory stringByAppendingPathComponent: match];
     }
 
   return nil;
@@ -768,7 +768,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       while ((match = [filelist nextObject]))
 	{
 	  if (allfiles || [extension isEqual: [match pathExtension]])
-	    [resources addObject: match];
+	    [resources addObject: [path stringByAppendingPathComponent: match]];
 	}
     }
 

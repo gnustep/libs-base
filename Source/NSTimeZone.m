@@ -994,10 +994,10 @@ static NSMapTable	*absolutes = 0;
 
 + (NSString*) getTimeZoneFile: (NSString *)name
 {
-  NSString *fileName = [NSString stringWithFormat: @"%@%@", ZONES_DIR, name];
-  NSString *path = [NSBundle pathForGNUstepResource: fileName
+  NSString *dir = [NSString stringWithFormat: @"%@/%@", TIME_ZONE_DIR, ZONES_DIR];
+  NSString *path = [NSBundle pathForGNUstepResource: name
 					     ofType: @""
-				        inDirectory: TIME_ZONE_DIR];
+				        inDirectory: dir];
   return path;
 }
 

@@ -31,7 +31,6 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHost.h>
-#include <unistd.h>
 
 #if _AIX
 #include <sys/select.h>
@@ -40,6 +39,7 @@
 #ifdef __WIN32__
 #include <winsock.h>
 #else 
+#include <unistd.h>
 #include <netdb.h>
 #include <time.h>
 #include <sys/time.h>
