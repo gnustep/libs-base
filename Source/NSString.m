@@ -28,7 +28,7 @@
    Only supports C Strings.  Some implementations will need to be 
    changed when we get other string backing classes.
 
-   Does not support %@ in format strings.
+   Does not support %@ in format strings on non-GNU-libc systems.
 
 */
 
