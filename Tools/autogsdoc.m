@@ -1181,7 +1181,7 @@ main(int argc, char **argv, char **env)
 		  else
 		    {
 		      replace = NSMakeRange(replace.location,
-			r.location - replace.location);
+			NSMaxRange(r) - replace.location);
 		      href = [s substringWithRange:
 			NSMakeRange(p, r.location - p)];
 		      p = NSMaxRange(replace);
@@ -1273,6 +1273,7 @@ main(int argc, char **argv, char **env)
 			       options: NSLiteralSearch
 				 range: NSMakeRange(p, l - p)];
 		}
+	      [s writeToFile: dst atomically: YES];
 	    }
 	  else
 	    {
