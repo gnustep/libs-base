@@ -90,8 +90,8 @@ main(int argc, char** argv, char **env)
   for (i = 2; i < [args count]; i++)
     {
       NSString		*filename = [args objectAtIndex: i];
-      NSString		*key;
-      id		object;
+      NSString		*key = filename;
+      id		object = nil;
 
       NS_DURING
         {
@@ -105,7 +105,9 @@ main(int argc, char** argv, char **env)
       NS_ENDHANDLER
 
       if ([[filename pathExtension] isEqualToString: @"plist"])
-        key = [filename stringByDeletingPathExtension];
+	{
+	  key = [filename stringByDeletingPathExtension];
+	}
 
       if (object == nil)
         NSLog(@"Parsing '%@' - nil property list", filename);
