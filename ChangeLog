@@ -2,6 +2,9 @@
 
 	* Source/NSUserDefaults.m: Treat '-' on its own as an argument
 	rather than the start of a flag name.
+	* Source/Additions/GSMime.m: Place angle brackets around generated
+	content ID. Add method to generate message ID.  Tidy comments a
+	little.
 
 2002-11-20  Richard Frith-Macdonald <rfm@gnu.org>
 
