@@ -54,6 +54,7 @@ CHECKABLE_TOOLS = \
 		nshost \
 		nsindexset \
 		nsmaptable \
+		nsmethodsignature \
 		nsnotification \
 		nsprocessinfo \
 		nsscanner \
@@ -109,6 +110,7 @@ nshost_OBJC_FILES = nshost.m
 nsindexset_OBJC_FILES = nsindexset.m
 nsinvocation_OBJC_FILES = nsinvocation.m
 nsmaptable_OBJC_FILES = nsmaptable.m
+nsmethodsignature_OBJC_FILES = nsmethodsignature.m
 nsnotification_OBJC_FILES = nsnotification.m
 nsprocessinfo_OBJC_FILES = nsprocessinfo.m
 nsscanner_OBJC_FILES = nsscanner.m
