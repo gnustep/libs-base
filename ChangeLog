@@ -1,3 +1,8 @@
+2005-03-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: GSXMLRPC integrated.
+	* Headers/Additions/GSUstepBase/GSXML.h: GSXMLRPC integrated.
+
 2005-03-03  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSFileManager.m (-createFileAtPath:...): Define var at
