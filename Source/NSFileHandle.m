@@ -272,20 +272,30 @@ NSString*	NSFileHandleOperationException =
     return [[[[self _concreteClass] alloc]
 	initAsClientAtAddress:address
 		      service:service
-		     protocol:protocol
-		     forModes:nil] autorelease];
+		     protocol:protocol] autorelease];
 }
 
-+ (id)fileHandleAsClientAtAddress:(NSString*)address
-			  service:(NSString*)service
-			 protocol:(NSString*)protocol
-			 forModes:(NSArray*)modes
++ (id)fileHandleAsClientInBackgroundAtAddress:(NSString*)address
+				      service:(NSString*)service
+				     protocol:(NSString*)protocol
 {
     return [[[[self _concreteClass] alloc]
-	initAsClientAtAddress:address
-		      service:service
-		     protocol:protocol
-		     forModes:modes] autorelease];
+	initAsClientInBackgroundAtAddress:address
+				  service:service
+				 protocol:protocol
+				 forModes:nil] autorelease];
+}
+
++ (id)fileHandleAsClientInBackgroundAtAddress:(NSString*)address
+				      service:(NSString*)service
+				     protocol:(NSString*)protocol
+				     forModes:(NSArray*)modes
+{
+    return [[[[self _concreteClass] alloc]
+	initAsClientInBackgroundAtAddress:address
+				  service:service
+				 protocol:protocol
+				 forModes:modes] autorelease];
 }
 
 + (id)fileHandleAsServerAtAddress:(NSString*)address
