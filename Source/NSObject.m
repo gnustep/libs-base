@@ -24,8 +24,8 @@
 #include <objects/stdobjects.h>
 #include <stdarg.h>
 #include <foundation/NSObject.h>
-#include "objc/Protocol.h"
-#include "objc/objc-api.h"
+#include <objc/Protocol.h>
+#include <objc/objc-api.h>
 #include <foundation/NSMethodSignature.h>
 // #include <foundation/NSArchiver.h>
 // #include <foundation/NSCoder.h>
@@ -278,7 +278,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - (Class) class
 {
-  return isa;
+  return object_get_class(self);
 }
 
 - (unsigned) hash
@@ -376,10 +376,12 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return NSZoneFromPtr(self);
 }
 
+#if 0 /* waiting until I resolve type conflict with GNU Coding method */
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
   return;
 }
+#endif
 
 - initWithCoder:(NSCoder *)aDecoder
 {
@@ -480,6 +482,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 {
   return [self error:"%s does not recognize %s",
                      object_get_class_name(self), sel_get_name(aSel)];
+}
+
+- perform: (SEL)sel with: anObject
+{
+  return [self perform:sel withObject:anObject];
 }
 
 @end
@@ -603,4 +610,3 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 }
 
 @end
-
