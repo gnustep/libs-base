@@ -189,4 +189,36 @@ extern NSRecursiveLock *gnustep_global_lock;
 		 inModes: (NSArray*)modes;
 @end
 
+/*
+ *	RETAIN(), RELEASE(), and AUTORELEASE() are placeholders for the
+ *	(possible)  future day when we have garbage collecting.
+ */
+#define	RETAIN(object)		[object retain]
+#define	RELEASE(object)		[object release]
+#define	AUTORELEASE(object)	[object autorelease]
+
+/*
+ *	ASSIGN(object,value) assignes the value to the object with
+ *	appropriate retain and release operations.
+ */
+#define	ASSIGN(object,value)	({\
+if (value != object) \
+  if (value) \
+    { \
+      [value retain]; \
+      if (object) \
+	{ \
+	  [object release]; \
+	} \
+      object = value; \
+    } \
+})
+
+/*
+ *	DESTROY() is a release operation which also sets the object to be
+ *	a nil pointer for tidyness - we can't accidentally use a DESTROYED
+ *	object later.
+ */
+#define	DESTROY(object) 	([object release], object = nil)
+
 #endif /* __NSObject_h_GNUSTEP_BASE_INCLUDE */
