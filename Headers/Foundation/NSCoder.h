@@ -79,18 +79,9 @@
 
 #ifndef	STRICT_OPENSTEP
 /*
- * MacOS-X adds some typedefs that GNUstep already has by another name.
+ * Include GSConfig.h for typedefs/defines of uint8_t, int32_t int64_t
  */
 #include <GSConfig.h>
-#ifndef uint8_t
-#define	uint8_t	gsu8
-#endif
-#ifndef int32_t
-#define	int32_t	gss32
-#endif
-#ifndef int64_t
-#define	int64_t	gss64
-#endif
 
 
 /** <override-subclass />

@@ -645,6 +645,22 @@ AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
 	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h dnl
 	sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
 
+if test $ac_cv_header_stdint_h = yes; then
+INCLUDE_STDINT="#include <stdint.h>"
+DEFINE_UINT8_T=""
+DEFINE_INT32_T=""
+DEFINE_INT64_T=""
+else
+INCLUDE_STDINT=""
+DEFINE_UINT8_T="#define uint8_t gsu8"
+DEFINE_INT32_T="#define int32_t gss32"
+DEFINE_INT64_T="#define int64_t gss64"
+fi
+AC_SUBST(INCLUDE_STDINT)
+AC_SUBST(DEFINE_UINT8_T)
+AC_SUBST(DEFINE_INT32_T)
+AC_SUBST(DEFINE_INT64_T)
+
 #--------------------------------------------------------------------
 # These used by GSFileHandle.m and distributed objects
 #--------------------------------------------------------------------
