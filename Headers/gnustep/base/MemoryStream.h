@@ -68,6 +68,12 @@
    eofPosition: (unsigned)l	/* length of buffer with data for reading */
    prefix: (unsigned)p		/* reset for this position */
    position: (unsigned)i;	/* current position for reading/writing */
+- _initOnMallocBuffer: (char*)b
+   freeWhenDone: (BOOL)f
+   size: (unsigned)s		/* size of malloc'ed buffer */
+   eofPosition: (unsigned)l	/* length of buffer with data for reading */
+   prefix: (unsigned)p		/* reset for this position */
+   position: (unsigned)i;	/* current position for reading/writing */
 @end
 
 #endif /* __MemoryStream_h_GNUSTEP_BASE_INCLUDE */
