@@ -1,3 +1,7 @@
+2003-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/libgnustep-base.def.in: Regenerated
+
 2003-01-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Fixed bug in utf-8 output for three
