@@ -27,6 +27,7 @@
 #include <objects/Coding.h>
 #include <objects/Dictionary.h>
 #include <objects/Stack.h>
+#include <objects/Set.h>
 #include <assert.h>
 
 #define CODER_FORMAT_VERSION 0
@@ -920,7 +921,7 @@ exc_return_null(arglist_t f)
 		withName:"Object cross-reference number"];
 	}
       else if (forward_ref_flag
-	       || [in_progress_table containsElement:xref])
+	       || [in_progress_table includesElement:xref])
 	{
 	  [self encodeTag:CODER_OBJECT_FORWARD_REFERENCE];
 	  [self encodeValueOfSimpleType:@encode(unsigned)
@@ -929,7 +930,7 @@ exc_return_null(arglist_t f)
 	}
       else
 	{
-	  [in_progess_table addElement:xref];
+	  [in_progress_table addElement:xref];
 	  [self encodeTag:CODER_OBJECT];
 	  [self encodeValueOfSimpleType:@encode(unsigned)
 		at:&xref 
@@ -941,7 +942,7 @@ exc_return_null(arglist_t f)
 	    [self _doEncodeObject:anObj];	    
 	  [self encodeUnindent];
 	  [self _internalCoderPutObject:anObj atReference:xref];
-	  [in_progess_table removeElement:xref];
+	  [in_progress_table removeElement:xref];
 	}
     }
   [self encodeUnindent];
