@@ -101,7 +101,7 @@
   return 0;
 }
 
-- (BOOL) streamEof
+- (BOOL) isAtEof
 {
   [self notImplemented:_cmd];
   return YES;
