@@ -36,6 +36,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSMapTable.h>
+#include <Foundation/NSDebug.h>
 #include "NSCallBacks.h"
 
 
@@ -82,6 +83,12 @@ NSAllMapTableKeys(NSMapTable *table)
   NSMapEnumerator	enumerator;
   id			key = nil;
 
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return nil;
+    }
+
   /* Create our mutable key array. */
   keyArray = [NSMutableArray arrayWithCapacity: NSCountMapTable(table)];
 
@@ -106,6 +113,12 @@ NSAllMapTableValues(NSMapTable *table)
   NSMapEnumerator	enumerator;
   NSMutableArray	*valueArray;
   id			value = nil;
+
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return nil;
+    }
 
   /* Create our mutable value array. */
   valueArray = [NSMutableArray arrayWithCapacity: NSCountMapTable(table)];
@@ -134,6 +147,21 @@ NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
 {
   GSIMapTable	t1 = (GSIMapTable)table1;
   GSIMapTable	t2 = (GSIMapTable)table2;
+
+  if (t1 == t2)
+    {
+      return YES;
+    }
+  if (t1 == 0)
+    {
+      NSWarnLog(@"Nul first argument supplied");
+      return NO;
+    }
+  if (t2 == 0)
+    {
+      NSWarnLog(@"Nul second argument supplied");
+      return NO;
+    }
 
   if (t1->nodeCount != t2->nodeCount)
     {
@@ -164,6 +192,12 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
   GSIMapTable	t;
   GSIMapNode	n;
 
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return 0;
+    }
+
   t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
   t->extra.k = ((GSIMapTable)table)->extra.k;
@@ -184,6 +218,11 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
 unsigned int
 NSCountMapTable(NSMapTable *table)
 {
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return 0;
+    }
   return ((GSIMapTable)table)->nodeCount;
 }
 
@@ -250,6 +289,10 @@ NSCreateMapTableWithZone(
 void
 NSEndMapTableEnumeration(NSMapEnumerator *enumerator)
 {
+  if (enumerator == 0)
+    {
+      NSWarnLog(@"Nul enumerator argument supplied");
+    }
 }
 
 /**
@@ -259,6 +302,13 @@ NSEndMapTableEnumeration(NSMapEnumerator *enumerator)
 NSMapEnumerator
 NSEnumerateMapTable(NSMapTable *table)
 {
+  if (table == 0)
+    {
+      NSMapEnumerator	v = {0, 0};
+
+      NSWarnLog(@"Nul table argument supplied");
+      return v;
+    }
   return GSIMapEnumeratorForMap((GSIMapTable)table);
 }
 
@@ -268,10 +318,17 @@ NSEnumerateMapTable(NSMapTable *table)
 void
 NSFreeMapTable(NSMapTable *table)
 {
-  NSZone	*z = ((GSIMapTable)table)->zone;
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+    }
+  else
+    {
+      NSZone	*z = ((GSIMapTable)table)->zone;
 
-  GSIMapEmptyMap((GSIMapTable)table);
-  NSZoneFree(z, table);
+      GSIMapEmptyMap((GSIMapTable)table);
+      NSZoneFree(z, table);
+    }
 }
 
 /**
@@ -283,6 +340,17 @@ NSMapGet(NSMapTable *table, const void *key)
 {
   GSIMapNode	n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
 
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return 0;
+    }
+  if (key == 0)
+    {
+      NSWarnLog(@"Nul key argument supplied");
+      return 0;
+    }
+  n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
   if (n == 0)
     {
       return 0;
@@ -305,6 +373,11 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
 {
   GSIMapTable	t = (GSIMapTable)table;
 
+  if (table == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to place key-value in nul table"];
+    }
   if (key == t->extra.k.notAKeyMarker)
     {
       [NSException raise: NSInvalidArgumentException
@@ -326,6 +399,11 @@ NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
   GSIMapTable	t = (GSIMapTable)table;
   GSIMapNode	n;
 
+  if (table == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to place key-value in nul table"];
+    }
   if (key == t->extra.k.notAKeyMarker)
     {
       [NSException raise: NSInvalidArgumentException
@@ -355,6 +433,11 @@ NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
   GSIMapTable	t = (GSIMapTable)table;
   GSIMapNode	n;
 
+  if (table == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to place key-value in nul table"];
+    }
   if (key == t->extra.k.notAKeyMarker)
     {
       [NSException raise: NSInvalidArgumentException
@@ -382,8 +465,14 @@ BOOL
 NSMapMember(NSMapTable *table, const void *key,
   void **originalKey, void **value)
 {
-  GSIMapNode	n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
+  GSIMapNode	n;
 
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return NO;
+    }
+  n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
   if (n == 0)
     {
       return NO;
@@ -408,6 +497,11 @@ NSMapMember(NSMapTable *table, const void *key,
 void
 NSMapRemove(NSMapTable *table, const void *key)
 {
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return;
+    }
   GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)key);
 }
 
@@ -422,8 +516,14 @@ BOOL
 NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 			void **key, void **value)
 {
-  GSIMapNode	n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
+  GSIMapNode	n;
   
+  if (enumerator == 0)
+    {
+      NSWarnLog(@"Nul enumerator argument supplied");
+      return NO;
+    }
+  n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
   if (n == 0)
     {
       return NO;
@@ -448,7 +548,14 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 void
 NSResetMapTable(NSMapTable *table)
 {
-  GSIMapCleanMap((GSIMapTable)table);
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+    }
+  else
+    {
+      GSIMapCleanMap((GSIMapTable)table);
+    }
 }
 
 /**
@@ -466,6 +573,11 @@ NSStringFromMapTable(NSMapTable *table)
   void			*key;
   void			*value;
 
+  if (table == 0)
+    {
+      NSWarnLog(@"Nul table argument supplied");
+      return nil;
+    }
   string = [NSMutableString stringWithCapacity: 0];
   enumerator = NSEnumerateMapTable(table);
 
