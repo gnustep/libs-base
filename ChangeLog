@@ -4,6 +4,8 @@
 	anonymous bug submission (bug #11360)
 	* Source/NSUser.m: Fix bug #11378
 	* Tools/gdomap.c: Quote mingw arguments toi fix bug #11854
+	* Documentation/manual/Introduction.texi: Apply patch by pupeno
+	(bug #11814)
 
 2005-02-10 01:05  Alexander Malmberg  <alexander@malmberg.org>
 
