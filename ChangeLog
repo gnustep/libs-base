@@ -1,3 +1,21 @@
+2004-02-17  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Foundation/NSLock.h: Make types of _mutex and _condition
+	opaic to avoid including private thr-mach.h header.
+	* Headers/Foundation/NSThread.h: Do not include private thr-mach.h
+	header.
+	* Source/thr-mach.h: Moved here from
+	Headers/Additions/GNUstepBase/thr-mach.h.
+	* Source/NSLock.m: Include private thr-mach.h header for
+	apple-gnu-gnu.  Added defines for typing opaic instance
+	variables and use them in various methods. 
+	* Source/NSThread.m: Include private thr-mach.h header for
+	apple-gnu-gnu.
+	* Source/thr-mach.m: Include private thr-mach.h header from new
+	location.
+	* Source/thr-pthread.m: Ditto.
+	* Source/GNUmakefile: Do not install private thr-mach.h header.
+
 2004-02-11 17:47  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSCountedSet.m (-initWithCoder:): Release objects outside

@@ -35,6 +35,12 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSThread.h"
+#ifdef NeXT_RUNTIME
+#include "thr-mach.h"
+#endif
+
+#define _MUTEX     ((objc_mutex_t)_mutex)
+#define _CONDITION ((objc_condition_t)_condition)
 
 extern void		GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval);
 extern NSTimeInterval	GSTimeNow();
@@ -167,7 +173,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     {
       // Ask the runtime to deallocate the mutex
       // If there are outstanding locks then it will block
-      if (objc_mutex_deallocate(_mutex) == -1)
+      if (objc_mutex_deallocate(_MUTEX) == -1)
 	{
 	  NSWarnMLog(@"objc_mutex_deallocate() failed");
 	}
@@ -184,13 +190,13 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 - (BOOL) tryLock
 {
   /* Return NO if we're already locked */
-  if (_mutex->owner == objc_thread_id())
+  if (_MUTEX->owner == objc_thread_id())
     {	
       return NO;
     }
 
   // Ask the runtime to acquire a lock on the mutex
-  if (objc_mutex_trylock(_mutex) == -1)
+  if (objc_mutex_trylock(_MUTEX) == -1)
     {
       return NO;
     }
@@ -212,8 +218,8 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
   /* This is really the behavior of OpenStep, if the current thread has
      the lock, we just block until the time limit is up. Very odd */
-  while (_mutex->owner == objc_thread_id()
-    || (x = objc_mutex_trylock(_mutex)) == -1)
+  while (_MUTEX->owner == objc_thread_id()
+    || (x = objc_mutex_trylock(_MUTEX)) == -1)
     {
       if (GSSleepOrFail(&ctxt) == NO)
 	{
@@ -228,11 +234,11 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
  */
 - (void) lock
 {
-  CHECK_RECURSIVE_LOCK(_mutex);
+  CHECK_RECURSIVE_LOCK(_MUTEX);
 
   // Ask the runtime to acquire a lock on the mutex
   // This will block
-  if (objc_mutex_lock(_mutex) == -1)
+  if (objc_mutex_lock(_MUTEX) == -1)
     {
       [NSException raise: NSLockException
         format: @"failed to lock mutex"];
@@ -243,7 +249,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 - (void) unlock
 {
   // Ask the runtime to release a lock on the mutex
-  if (objc_mutex_unlock(_mutex) == -1)
+  if (objc_mutex_unlock(_MUTEX) == -1)
     {
       [NSException raise: NSLockException
 		  format: @"unlock: failed to unlock mutex"];
@@ -303,7 +309,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   if (_condition != 0)
     {
       // Ask the runtime to deallocate the condition
-      if (objc_condition_deallocate(_condition) == -1)
+      if (objc_condition_deallocate(_CONDITION) == -1)
 	{
 	  NSWarnMLog(@"objc_condition_deallocate() failed");
 	}
@@ -312,7 +318,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     {
       // Ask the runtime to deallocate the mutex
       // If there are outstanding locks then it will block
-      if (objc_mutex_deallocate(_mutex) == -1)
+      if (objc_mutex_deallocate(_MUTEX) == -1)
 	{
 	  NSWarnMLog(@"objc_mutex_deallocate() failed");
 	}
@@ -328,9 +334,9 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // Acquiring and release the lock
 - (void) lockWhenCondition: (int)value
 {
-  CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
+  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
 
-  if (objc_mutex_lock(_mutex) == -1)
+  if (objc_mutex_lock(_MUTEX) == -1)
     {
       [NSException raise: NSConditionLockException
         format: @"lockWhenCondition: failed to lock mutex"];
@@ -339,7 +345,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
   while (_condition_value != value)
     {
-      if (objc_condition_wait(_condition, _mutex) == -1)
+      if (objc_condition_wait(_CONDITION, _MUTEX) == -1)
         {
           [NSException raise: NSConditionLockException
             format: @"objc_condition_wait failed"];
@@ -353,7 +359,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   int depth;
 
   // First check to make sure we have the lock
-  depth = objc_mutex_trylock(_mutex);
+  depth = objc_mutex_trylock(_MUTEX);
 
   // Another thread has the lock so abort
   if (depth == -1)
@@ -376,7 +382,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   _condition_value = value;
 
   // wake up blocked threads
-  if (objc_condition_broadcast(_condition) == -1)
+  if (objc_condition_broadcast(_CONDITION) == -1)
     {
       [NSException raise: NSConditionLockException
         format: @"unlockWithCondition: objc_condition_broadcast failed"];
@@ -384,8 +390,8 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     }
 
   // and unlock twice
-  if ((objc_mutex_unlock(_mutex) == -1)
-    || (objc_mutex_unlock(_mutex) == -1))
+  if ((objc_mutex_unlock(_MUTEX) == -1)
+    || (objc_mutex_unlock(_MUTEX) == -1))
     {
       [NSException raise: NSConditionLockException
         format: @"unlockWithCondition: failed to unlock mutex"];
@@ -395,10 +401,10 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (BOOL) tryLock
 {
-  CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
+  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
 
   // Ask the runtime to acquire a lock on the mutex
-  if (objc_mutex_trylock(_mutex) == -1)
+  if (objc_mutex_trylock(_MUTEX) == -1)
     return NO;
   else
     return YES;
@@ -428,11 +434,11 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 { 
   GSSleepInfo	ctxt;
 
-  CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
+  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
 
   GSSleepInit(limit, &ctxt);
 
-  while (objc_mutex_trylock(_mutex) == -1)
+  while (objc_mutex_trylock(_MUTEX) == -1)
     {
       if (GSSleepOrFail(&ctxt) == NO)
 	{
@@ -449,7 +455,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 #ifndef HAVE_OBJC_CONDITION_TIMEDWAIT
   GSSleepInfo	ctxt;
 
-  CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
+  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
 
   GSSleepInit(limitDate, &ctxt);
 
@@ -457,7 +463,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     {
       if (_condition_value == condition_to_meet)
 	{
-	  while (objc_mutex_trylock(_mutex) == -1)
+	  while (objc_mutex_trylock(_MUTEX) == -1)
 	    {
 	      if (GSSleepOrFail(&ctxt) == NO)
 		{
@@ -468,7 +474,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 	    {
 	      return YES;
 	    }
-	  if (objc_mutex_unlock(_mutex) == -1)
+	  if (objc_mutex_unlock(_MUTEX) == -1)
 	    {
 	      [NSException raise: NSConditionLockException
 			   format: @"%s failed to unlock mutex",
@@ -485,9 +491,9 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   NSTimeInterval atimeinterval;
   struct timespec endtime;
   
-  CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
+  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
   
-  if (-1 == objc_mutex_lock(_mutex))
+  if (-1 == objc_mutex_lock(_MUTEX))
     [NSException raise: NSConditionLockException 
 		 format: @"lockWhenCondition: failed to lock mutex"];
 	
@@ -501,7 +507,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   
   while (_condition_value != condition_to_meet)
     {
-      switch (objc_condition_timedwait(_condition, _mutex, &endtime))
+      switch (objc_condition_timedwait(_CONDITION, _MUTEX, &endtime))
 	{
 	  case 0: 
 	    break;
@@ -525,11 +531,11 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // These methods ignore the condition
 - (void) lock
 {
-  CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
+  CHECK_RECURSIVE_CONDITION_LOCK(_MUTEX);
 
   // Ask the runtime to acquire a lock on the mutex
   // This will block
-  if (objc_mutex_lock(_mutex) == -1)
+  if (objc_mutex_lock(_MUTEX) == -1)
     {
       [NSException raise: NSConditionLockException
         format: @"lock: failed to lock mutex"];
@@ -540,7 +546,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 - (void) unlock
 {
   // wake up blocked threads
-  if (objc_condition_broadcast(_condition) == -1)
+  if (objc_condition_broadcast(_CONDITION) == -1)
     {
       [NSException raise: NSConditionLockException
         format: @"unlockWithCondition: objc_condition_broadcast failed"];
@@ -548,7 +554,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     }
 
   // Ask the runtime to release a lock on the mutex
-  if (objc_mutex_unlock(_mutex) == -1)
+  if (objc_mutex_unlock(_MUTEX) == -1)
     {
       [NSException raise: NSConditionLockException
         format: @"unlock: failed to unlock mutex"];
@@ -600,7 +606,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     {
       // Ask the runtime to deallocate the mutex
       // If there are outstanding locks then it will block
-      if (objc_mutex_deallocate(_mutex) == -1)
+      if (objc_mutex_deallocate(_MUTEX) == -1)
 	{
 	  NSWarnMLog(@"objc_mutex_deallocate() failed");
 	}
@@ -616,7 +622,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 - (BOOL) tryLock
 {
   // Ask the runtime to acquire a lock on the mutex
-  if (objc_mutex_trylock(_mutex) == -1)
+  if (objc_mutex_trylock(_MUTEX) == -1)
     return NO;
   else
     return YES;
@@ -632,7 +638,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   GSSleepInfo	ctxt;
 
   GSSleepInit(limit, &ctxt);
-  while (objc_mutex_trylock(_mutex) == -1)
+  while (objc_mutex_trylock(_MUTEX) == -1)
     {
       if (GSSleepOrFail(&ctxt) == NO)
 	{
@@ -647,7 +653,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 {
   // Ask the runtime to acquire a lock on the mutex
   // This will block
-  if (objc_mutex_lock(_mutex) == -1)
+  if (objc_mutex_lock(_MUTEX) == -1)
     {
       [NSException raise: NSRecursiveLockException
         format: @"lock: failed to lock mutex"];
@@ -658,7 +664,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 - (void) unlock
 {
   // Ask the runtime to release a lock on the mutex
-  if (objc_mutex_unlock(_mutex) == -1)
+  if (objc_mutex_unlock(_MUTEX) == -1)
     {
       [NSException raise: NSRecursiveLockException
         format: @"unlock: failed to unlock mutex"];

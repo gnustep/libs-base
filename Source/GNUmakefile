@@ -126,10 +126,6 @@ objc-gnu2next.h
 
 GNU_HEADERS = $(ADD_HEADERS)
 
-ifneq ($(OBJC_RUNTIME_LIB), gnu)
-GNU_HEADERS += thr-mach.h
-endif
-
 # GNUStep source files
 
 BASE_MFILES = \

@@ -28,7 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #include <pthread.h>
 #include <stdarg.h>
 #include "GNUstepBase/objc-gnu2next.h"
-#include "GNUstepBase/thr-mach.h"
+#include "thr-mach.h"
 
 /* Key structure for maintaining thread specific storage */
 static pthread_key_t _objc_thread_storage;
