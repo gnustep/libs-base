@@ -1,3 +1,99 @@
+Wed Jan  7 20:25:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/GNUmakefile: Added defaults.m
+
+	* Tools/defaults.m: New file defaults.m - command line tool like the
+	OPENSTEP defaults command. Renders dread, dwrite and dremove obsolete.
+
+	* Tools/dread.m: Added -u flag and made numerous bug fixes.
+
+	* Tools/dremove.m: Added -u flag and made numerous bug fixes.
+
+	* Tools/dwrite.m: Added -u flag and made numerous bug fixes.
+
+	* checks/nsdate.m: Added some year-2000 tests.
+
+	* src/Dictionary.m: Removed ([-descriptionWithIndent:]) and the
+	([-description]) methods - no longer needed for property lists.
+
+	* src/Heap.m: Added implementation of ([-minObject]) to take
+ 	advantage of the known ordering of a heap - fixes performance
+ 	problem with large numbers of timers in NSRunLoop.
+
+	* src/NSArray.m: Implemented many new methods for OPENSTEP -
+	([+arrayWithArray:]), ([+arrayWithContentsOfFile:]),
+	([+arrayWithObjects:count:]), ([-getObjects:]),
+	([-getObjects:range:]), ([-indexOfObjectIdenticalto:inRange:]),
+	([-indexOfObject:inRange:]), ([-makeObjectsPerformSelector:]),
+	([-makeObjectsPerformSelector:withObject:]), ([-sortedArrayHint]),
+	([-sortedArrayUsingFunction:context:hint:]),
+	([-pathsMatchingExtensions:]), ([-descriptionWithLocale:]),
+	([-descriptionWithLocale:indent:),
+	([-replaceObjectsInRange:withObjectsFromArray:]),
+	([-initWithContentsOfFile:]), ([-removeObject:inRange:]),
+	([-removeObjectIdenticalTo:inRange:]), ([-removeObjectsInRange:])
+	Modified ([-makeObjectsPerform:]) and
+	([-makeObjectsPerform:wihtObject:]) to iterate through array in
+	reverse as specified in OPENSTEP docs.
+	Removed obsolete method - ([-descriptionWithIndent:])
+
+	* src/NSArray.m: Implemented new methods for OPENSTEP -
+	([+dataWithData:]), ([-setData:])
+	Modified ([-description]) to give tidier output.
+
+	* src/NSData.m: Implemented new methods for OPENSTEP -
+	([+dataWithData:]), ([-setData:])
+	Modified ([-description]) to give tidier output.
+
+	* src/NSDictionary.m: Implemented new methods for OPENSTEP -
+	([-keysSortedByValueUsingSelector:]),
+	([-objectsForKeys:notFoundMarker:]), ([-description]),
+	([-descriptionInStringsFileFormat]), ([-descriptionWithLocale:]),
+	([-descriptionWithLocale:indent:]), ([-setDictionary:]),
+
+	* src/NSFileHandle.m: Added extensions for getting information
+	about sockets used in file handles.
+
+	* src/NSString.m: Removed ([-quotedCString]) and added new method
+	([-descriptionForPropertyList]) to do things more neatly.
+
+	* src/NSTask.m: Added this OPENSTEP/Rhapsody class.
+
+	* src/TcpPort.m: Added check for bad data arriving on descriptor
+	in ([-_tryToGetPacketFromReadableFD:])
+
+	* src/UnixFileHandle.m: Added stuff for getting information
+	about sockets used in file handles.
+
+	* src/include/IndexedCollecting.h: Made 'IndexRange' a synonym for
+	NSRange.
+
+	* src/include/NSArray.h: Changes to reflect the changes in methods
+	implemented in NSArray.m
+
+	* src/include/NSData.h: Changes to reflect the changes in methods
+	implemented in NSData.m
+
+	* src/include/NSDictionary.h: Changes to reflect the changes in methods
+	implemented in NSData.m
+
+	* src/include/NSFileHandle.h: Changes to reflect the changes in methods
+	implemented in NSFileHandle.m
+
+	* src/include/NSString.h: Changes to reflect the changes in methods
+	implemented in NSString.m
+
+	* src/NSTask.h: Added this OPENSTEP/Rhapsody class.
+
+	* src/include/UnixFileHandle.h: Changes to reflect the changes in
+	methods implemented in UnixFileHandle.m
+
+	* src/proplist.y: Make parsing less strict - permit dictionaries
+	with or without a semicolon after the last key-value pair.
+
+	* src/stringsfile.y: Fixed bug in parser - it is legitimate to have
+	a key-value pair without a value - in which case the '=' is omitted.
+
 Fri Jan  9 10:04:09 1998  Adam Fedor  <fedor@doc.com>
 
 	* Version: Release 0.4.0.

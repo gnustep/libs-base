@@ -30,7 +30,7 @@
 #include <limits.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSCharacterSet.h>
+#include <Foundation/NSAutoreleasePool.h>
 
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
@@ -109,6 +109,16 @@ static Class NSMutableArray_concrete_class;
 {
   return [[[self alloc] init] 
 	  autorelease];
+}
+
++ arrayWithArray: (NSArray*)array
+{
+  return [[[self alloc] initWithArray: array] autorelease];
+}
+
++ arrayWithContentsOfFile: (NSString*)file
+{
+  return [[[self alloc] initWithContentsOfFile: file] autorelease];
 }
 
 + arrayWithObject: anObject
@@ -218,6 +228,12 @@ static Class NSMutableArray_concrete_class;
   return [self autorelease];
 }
 
++ arrayWithObjects: (id*)objects count: (unsigned)count
+{
+  return [[[self alloc] initWithObjects: objects count: count]
+	  autorelease];
+}
+
 - initWithArray: (NSArray*)array
 {
   int i, c;
@@ -232,11 +248,37 @@ static Class NSMutableArray_concrete_class;
   return self;
 }
 
+- (void) getObjects: (id*)aBuffer
+{
+  int i, c = [self count];
+  for (i = 0; i < c; i++)
+    aBuffer[i] = [self objectAtIndex: i];
+}
+
+- (void) getObjects: (id*)aBuffer range: (NSRange)aRange
+{
+  int i, j = 0, c = [self count], e = aRange.location + aRange.length;
+  if (c < e)
+    e = c;
+  for (i = aRange.location; i < c; i++)
+    aBuffer[j++] = [self objectAtIndex: i];
+}
 
 - (unsigned) indexOfObjectIdenticalTo:anObject
 {
   int i, c = [self count];
   for (i = 0; i < c; i++)
+    if (anObject == [self objectAtIndex:i])
+      return i;
+  return NSNotFound;
+}
+
+- (unsigned) indexOfObjectIdenticalTo:anObject inRange: (NSRange)aRange
+{
+  int i, e = aRange.location + aRange.length, c = [self count];
+  if (c < e)
+    e = c;
+  for (i = aRange.location; i < e; i++)
     if (anObject == [self objectAtIndex:i])
       return i;
   return NSNotFound;
@@ -249,6 +291,21 @@ static Class NSMutableArray_concrete_class;
   for (i = 0; i < c; i++)
     if ([[self objectAtIndex:i] isEqual: anObject])
       return i;
+  return NSNotFound;
+}
+
+/* Inefficient, should be overridden. */
+- (unsigned) indexOfObject: anObject inRange: (NSRange)aRange
+{
+  int i, e = aRange.location + aRange.length, c = [self count];
+  if (c < e)
+    e = c;
+  for (i = aRange.location; i < e; i++)
+    {
+      id o = [self objectAtIndex: i];
+      if (anObject == o || [o isEqual: anObject])
+        return i;
+    }
   return NSNotFound;
 }
 
@@ -287,15 +344,25 @@ static Class NSMutableArray_concrete_class;
 - (void) makeObjectsPerform: (SEL)aSelector
 {
   int i, c = [self count];
-  for (i = 0; i < c; i++)
+  for (i = c-1; i >= 0; i--)
     [[self objectAtIndex:i] perform:aSelector];
+}
+
+- (void) makeObjectsPerformSelector: (SEL)aSelector
+{
+   [self makeObjectsPerform: aSelector];
 }
 
 - (void) makeObjectsPerform: (SEL)aSelector withObject:argument
 {
   int i, c = [self count];
-  for (i = 0; i < c; i++)
+  for (i = c-1; i >= 0; i--)
     [[self objectAtIndex:i] perform:aSelector withObject:argument];
+}
+
+- (void) makeObjectsPerformSelector: (SEL)aSelector withObject:argument
+{
+   [self makeObjectsPerform: aSelector withObject:argument];
 }
 
 
@@ -312,10 +379,26 @@ static Class NSMutableArray_concrete_class;
 - (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
    context: (void*)context
 {
-  id sortedArray = [[self mutableCopy] autorelease];
+  return [self sortedArrayUsingFunction: comparator context: context hint: nil];
+}
 
+- (NSData*) sortedArrayHint
+{
+    return nil;
+}
+
+- (NSArray*) sortedArrayUsingFunction: (int(*)(id,id,void*))comparator 
+   context: (void*)context
+   hint: (NSData*)hint
+{
+  NSMutableArray	*sortedArray;
+  NSArray		*result;
+
+  sortedArray = [[NSMutableArray alloc] initWithArray: self];
   [sortedArray sortUsingFunction:comparator context:context];
-  return [[sortedArray copy] autorelease];
+  result = [NSArray arrayWithArray: sortedArray];
+  [sortedArray release];
+  return result;
 }
 
 - (NSString*) componentsJoinedByString: (NSString*)separator
@@ -334,6 +417,19 @@ static Class NSMutableArray_concrete_class;
   return s;
 }
 
+- (NSArray*) pathsMatchingExtensions: (NSArray*)extensions
+{
+  int i, c = [self count];
+  NSMutableArray *a = [NSMutableArray arrayWithCapacity: 1];
+  for (i = 0; i < c; i++)
+    {
+      id o = [self objectAtIndex: i];
+      if ([o isKindOfClass: [NSString class]])
+	if ([extensions containsObject: [o pathExtension]])
+	  [a addObject: o];
+    }
+  return a;
+}
 
 - firstObjectCommonWithArray: (NSArray*)otherArray
 {
@@ -391,69 +487,126 @@ static Class NSMutableArray_concrete_class;
 
 - (NSString*) description
 {
-  return [self descriptionWithIndent: 0];
+  return [self descriptionWithLocale: nil];
 }
 
-- (NSString*) descriptionWithIndent: (unsigned)level
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
-  id string;
-  id desc;
-  id object;
-  int count = [self count];
-  int i;
-  NSCharacterSet *quotables;
+  return [self descriptionWithLocale: locale indent: 0];
+}
+  
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+			     indent: (unsigned int)level
+{
+    NSMutableString	*result;
+    NSMutableArray	*plists;
+    int			count;
+    int			size;
+    NSAutoreleasePool	*arp;
+    int			indentSize;
+    int			indentBase;
+    NSMutableString	*iBaseString;
+    NSMutableString	*iSizeString;
+    int			i;
 
-  quotables = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+    arp = [[NSAutoreleasePool alloc] init];
 
-  desc = [NSMutableString stringWithCapacity: 2];
-  [desc appendString: @"("];
-  if (count > 0)
-    {
-      object = [self objectAtIndex: 0];
-      if ([object respondsToSelector: @selector(descriptionWithIndent:)])
-        {
-          /* This a dictionary or array, so don't quote it */
-          string = [object descriptionWithIndent: 0];
-          [desc appendString: string];
-        }
-      else
-        {
-          /* This should be a string or number, so decide if we need to
-             quote it */
-          string = [object description];
-          if ([string length] == 0
-		|| [string rangeOfCharacterFromSet: quotables].length > 0)
-            [desc appendFormat: @"%s", [string quotedCString]];
-          else
-            [desc appendString: string];
-        }
+    /*
+     *	Indentation is at four space intervals using tab characters to
+     *	replace multiples of eight spaces.
+     *
+     *	We work out the sizes of the strings needed to perform indentation for
+     *	this level and build strings to make up the indentation.
+     */
+    indentBase = level << 2;
+    count = indentBase >> 3;
+    if ((indentBase % 8) == 0) {
+	indentBase = count;
     }
-  for (i=1; i<count; i++)
-    {
-      object = [self objectAtIndex: i];
-
-      [desc appendString: @", "];
-      if ([object respondsToSelector: @selector(descriptionWithIndent:)])
-        {
-          /* This a dictionary or array, so don't quote it */
-          string = [object descriptionWithIndent: 0];
-          [desc appendString: string];
-        }
-      else
-        {
-          /* This should be a string or number, so decide if we need to
-             quote it */
-          string = [object description];
-          if ([string length] == 0
-		|| [string rangeOfCharacterFromSet: quotables].length > 0)
-            [desc appendString: [NSString stringWithCString:
-			[string quotedCString]]];
-          else
-            [desc appendString: string];
-        }
+    else {
+	indentBase == count + 4;
     }
-  [desc appendString: @")"];
-  return desc;
+    iBaseString = [NSMutableString stringWithCapacity: indentBase];
+    for (i = 0; i < count; i++) {
+	[iBaseString appendString: @"\t"];
+    }
+    if (count != indentBase) {
+	[iBaseString appendString: @"    "];
+    }
+
+    level++;
+    indentSize = level << 2;
+    count = indentSize >> 3;
+    if ((indentSize % 8) == 0) {
+	indentSize = count;
+    }
+    else {
+	indentSize == count + 4;
+    }
+    iSizeString = [NSMutableString stringWithCapacity: indentSize];
+    for (i = 0; i < count; i++) {
+	[iSizeString appendString: @"\t"];
+    }
+    if (count != indentSize) {
+	[iSizeString appendString: @"    "];
+    }
+
+    /*
+     *	Basic size is - opening bracket, newline, closing bracket,
+     *	indentation for the closing bracket, and a nul terminator.
+     */
+    size = 4 + indentBase;
+
+    count = [self count];
+    plists = [NSMutableArray arrayWithCapacity: count];
+
+    for (i = 0; i < count; i++) {
+	id		item;
+
+	item = [self objectAtIndex: i];
+	if ([item isKindOfClass: [NSString class]]) {
+	   item = [item descriptionForPropertyList];
+ 	}
+	else if ([item respondsToSelector:
+		@selector(descriptionWithLocale:indent:)]) {
+	   item = [item descriptionWithLocale: locale indent: level];
+	}
+	else if ([item respondsToSelector:
+		@selector(descriptionWithLocale:)]) {
+	   item = [item descriptionWithLocale: locale];
+	}
+	else {
+	   item = [item description];
+	}
+	[plists addObject: item];
+
+	size += [item length] + indentSize;
+	if (i == count - 1) {
+	    size += 1;			/* newline	*/
+	}
+	else {
+	    size += 2;			/* ',' and newline	*/
+	}
+    }
+
+    result = [[NSMutableString alloc] initWithCapacity: size];
+    [result appendString: @"(\n"];
+    for (i = 0; i < count; i++) {
+	[result appendString: iSizeString];
+	[result appendString: [plists objectAtIndex: i]];
+	if (i == count - 1) {
+            [result appendString: @"\n"];
+	}
+	else {
+            [result appendString: @",\n"];
+	}
+    }
+    [result appendString: iBaseString];
+    [result appendString: @")"];
+
+    [arp release];
+
+    return [result autorelease];
 }
 
 /* The NSCopying Protocol */
@@ -520,6 +673,27 @@ static Class NSMutableArray_concrete_class;
   [self subclassResponsibility:_cmd];
 }
 
+- (void) replaceObjectsInRange: (NSRange)aRange
+	  withObjectsFromArray: (NSArray*)anArray
+{
+  int	i;
+
+  if ([self count] <= aRange.location)
+    [NSException raise: NSRangeException
+		 format: @"Replacing objects beyond end of array."];
+  [self removeObjectsInRange: aRange];
+  for (i = [anArray count] - 1; i >= 0; i--) 
+    [self insertObject: [anArray objectAtIndex: i] atIndex: aRange.location];
+}
+
+- (void) replaceObjectsInRange: (NSRange)aRange
+	  withObjectsFromArray: (NSArray*)anArray
+			 range: (NSRange)anotherRange
+{
+  [self replaceObjectsInRange: aRange
+	 withObjectsFromArray: [anArray subarrayWithRange: anotherRange]];
+}
+
 - (void) insertObject: anObject atIndex: (unsigned)index
 {
   [self subclassResponsibility:_cmd];
@@ -539,6 +713,29 @@ static Class NSMutableArray_concrete_class;
 {
   return [[[self alloc] initWithCapacity:numItems] 
 	  autorelease];
+}
+
+- initWithContentsOfFile: (NSString*)file
+{
+  NSString 	*myString;
+
+  myString = [[NSString alloc] initWithContentsOfFile:file];
+  if (myString)
+    {
+      id result = [myString propertyList];
+      if ( [result isKindOfClass: [NSArray class]] )
+	{
+	  [self initWithArray: result];
+	  return self;
+	}
+    }
+  [self dealloc];
+  return nil;
+}
+
+- (BOOL)writeToFile:(NSString *)path atomically:(BOOL)useAuxiliaryFile
+{
+  return [[self description] writeToFile:path atomically:useAuxiliaryFile];
 }
 
 /* Override our superclass's designated initializer to go our's */
@@ -575,6 +772,38 @@ static Class NSMutableArray_concrete_class;
        index = [self indexOfObjectIdenticalTo: anObject])
     [self removeObjectAtIndex: index];
 
+  [anObject release];
+}
+
+- (void) removeObject: anObject inRange:(NSRange)aRange
+{
+  int c = [self count], s = aRange.location;
+  int i = aRange.location + aRange.length;
+  if (i > c)
+    i = c;
+  [anObject retain];
+  for (i--; i >= s; i--)
+    {
+      id o = [self objectAtIndex: i];
+      if (o == anObject || [o isEqual: anObject])
+	[self removeObjectAtIndex:i];
+    }
+  [anObject release];
+}
+
+- (void) removeObjectIdenticalTo: anObject inRange:(NSRange)aRange
+{
+  int c = [self count], s = aRange.location;
+  int i = aRange.location + aRange.length;
+  if (i > c)
+    i = c;
+  [anObject retain];
+  for (i--; i >= s; i--)
+    {
+      id o = [self objectAtIndex: i];
+      if (o == anObject)
+	[self removeObjectAtIndex:i];
+    }
   [anObject release];
 }
 
@@ -633,6 +862,16 @@ static Class NSMutableArray_concrete_class;
   int i, c = [otherArray count];
   for (i = 0; i < c; i++)
     [self removeObject:[otherArray objectAtIndex:i]];
+}
+
+- (void) removeObjectsInRange: (NSRange)aRange
+{
+  int i, s = aRange.location, c = [self count];
+  i = aRange.location + aRange.length;
+  if (c < i)
+    i = c;
+  for (i--; i >= s; i--)
+    [self removeObjectAtIndex: i];
 }
 
 - (void) sortUsingSelector: (SEL)comparator

@@ -63,14 +63,16 @@ initWithCapacity:1] autorelease];
 
 dictionary:     '{' keyval_list '}'
                                 {$$ = $2;}
+		|	'{' keyval_list ';' '}'
+                                {$$ = $2;}
                 |       '{' '}'
                                 {$$ = [NSDictionary dictionary];}
                 ;
-keyval_list:    keyval_list keyval_pair
+keyval_list:    keyval_list ';' keyval_pair
                                 {
                                   $$ = $1;
-                                  [$$ addEntriesFromDictionary:$2];
-				  [$2 release];
+                                  [$$ addEntriesFromDictionary:$3];
+				  [$3 release];
                                 }
                 |       keyval_pair
 				{
@@ -78,7 +80,7 @@ keyval_list:    keyval_list keyval_pair
 				  [$$ autorelease];
 				}
                 ;
-keyval_pair:    NSSTRING '=' object ';'
+keyval_pair:    NSSTRING '=' object
                                 {
                                   $$ = [[NSMutableDictionary alloc]
 initWithCapacity:1];

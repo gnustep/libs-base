@@ -27,7 +27,7 @@ distribution.
 @section Where can you get it?  How can you compile it?
 
 @ifset GNUSTEP-BASE-FTP-MACHINE
-The libgnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz distribution file has 
+The gstepbase-@value{GNUSTEP-BASE-VERSION}.tar.gz distribution file has 
 been placed on @samp{@value{GNUSTEP-BASE-FTP-MACHINE}} in
 @samp{@value{GNUSTEP-BASE-FTP-DIRECTORY}}.
 @end ifset

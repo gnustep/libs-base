@@ -43,20 +43,30 @@
 + allocWithZone: (NSZone*)zone;
 + dictionary;
 + dictionaryWithContentsOfFile:(NSString *)path;
++ dictionaryWithDictionary: (NSDictionary)aDict;
++ dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 + dictionaryWithObjects: (id*)objects forKeys: (id*)keys
 		  count: (unsigned)count;
-+ dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 + dictionaryWithObjectsAndKeys: (id)object, ...;
-- initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
-- initWithDictionary: (NSDictionary*)otherDictionary;
 - initWithContentsOfFile: (NSString*)path;
+- initWithDictionary: (NSDictionary*)otherDictionary;
+- initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
+- initWithObjectsAndKeys: (id)object, ...;
 
 - (BOOL) isEqualToDictionary: (NSDictionary*)other;
-- (NSString*) description;
-- (NSString*) descriptionWithIndent: (unsigned)level;
+
 - (NSArray*) allKeys;
-- (NSArray*) allValues;
 - (NSArray*) allKeysForObject: anObject;
+- (NSArray*) allValues;
+- (NSArray*) keysSortedByValueUsingSelector: (SEL)comp;
+- (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)abObject;
+
+- (NSString*) description;
+- (NSString*) descriptionInStringsFileFormat;
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+			     indent: (unsigned int)level;
+
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 
 @end
@@ -75,6 +85,7 @@
 - (void) removeAllObjects;
 - (void) removeObjectsForKeys: (NSArray*)keyArray;
 - (void) addEntriesFromDictionary: (NSDictionary*)otherDictionary;
+- (void) setDictionary: (NSDictionary*)otherDictionary;
 
 @end
 

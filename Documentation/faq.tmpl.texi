@@ -3,9 +3,6 @@
 @c This file uses the special commands @url{} and @email{}.  They are
 @c handled by the doc/Makefile.
 
-@setfilename GNUstep-FAQ.info
-@settitle GNUstep Frequently Asked Questions with Answers
-
 @iftex
 @global@let@email=@i
 @global@let@url=@samp

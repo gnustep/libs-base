@@ -28,8 +28,9 @@
 #include <Foundation/NSGDictionary.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
-#include <gnustep/base/NSString.h>
-#include <gnustep/base/NSException.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <assert.h>
 
 @interface NSDictionaryNonCore : NSDictionary
@@ -315,6 +316,44 @@ static Class NSMutableDictionary_concrete_class;
 	  autorelease];
 }
 
+struct foo { NSDictionary *d; SEL s; };
+   
+static int
+compareIt(id o1, id o2, void* context)
+{
+  struct foo	*f = (struct foo*)context;
+  o1 = [f->d objectForKey: o1];
+  o2 = [f->d objectForKey: o2];
+  return (int)[o1 performSelector: f->s withObject: o2];
+}
+
+- (NSArray*)keysSortedByValueUsingSelector: (SEL)comp
+{
+  struct foo	info;
+  id	k;
+
+  info.d = self;
+  info.s = comp;
+  k = [[self allKeys] sortedArrayUsingFunction: compareIt context: &info];
+}
+
+- (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)marker
+{
+  int	i, c = [keys count];
+  id	obuf[c];
+
+  for (i = 0; i < c; i++)
+    {
+      id o = [self objectForKey: [keys objectAtIndex: i]];
+
+      if (o)
+        obuf[i] = o;
+      else
+	obuf[i] = marker;
+    }
+  return [NSArray arrayWithObjects: obuf count: c];
+}
+
 - (BOOL)writeToFile:(NSString *)path atomically:(BOOL)useAuxiliaryFile
 {
   return [[self description] writeToFile:path atomically:useAuxiliaryFile];
@@ -346,6 +385,239 @@ static Class NSMutableDictionary_concrete_class;
   /* a shallow copy */
   return [[[[[self class] _mutableConcreteClass] _mutableConcreteClass] alloc] 
 	  initWithDictionary:self];
+}
+
+- (NSString*) description
+{
+    return [self descriptionWithLocale: nil];
+}
+
+- (NSString*) descriptionInStringsFileFormat
+{
+    NSMutableString	*result;
+    NSMutableArray	*plists;
+    NSMutableArray	*theKeys;
+    int			numKeys;
+    int			size;
+    NSAutoreleasePool	*arp;
+    int			i;
+
+    arp = [[NSAutoreleasePool alloc] init];
+
+    size = 1;
+
+    theKeys = [NSMutableArray arrayWithArray: [self allKeys]];
+    numKeys = [theKeys count];
+    plists = [NSMutableArray arrayWithCapacity: numKeys];
+
+    for (i = 0; i < numKeys; i++) {
+	NSString	*newKey;
+	id		key;
+	id		item;
+
+	key = [theKeys objectAtIndex:i];
+	item = [self objectForKey: key];
+	if ([key respondsToSelector: @selector(descriptionForPropertyList)]) {
+	    newKey = [key descriptionForPropertyList];
+	}
+	else {
+	    newKey = [key description];
+	}
+	if (newKey != key) {
+	    key = newKey;
+	    [theKeys replaceObjectAtIndex: i withObject: key];
+	}
+
+	if (item == nil) {
+	    item = @"";
+	}
+	else if ([item isKindOfClass: [NSString class]]) {
+	   item = [item descriptionForPropertyList];
+	}
+	else {
+	   item = [item description];
+	}
+	[plists addObject: item];
+
+	size += [key length] + [item length];
+	if ([item length]) {
+	    size += 5;
+	}
+	else {
+	    size += 2;
+	}
+    }
+
+    result = [[NSMutableString alloc] initWithCapacity: size];
+    for (i = 0; i < numKeys; i++) {
+	NSString*	item = [plists objectAtIndex: i];
+
+	[result appendString: [theKeys objectAtIndex: i]];
+	if ([item length]) {
+            [result appendString: @" = "];
+	    [result appendString: item];
+	}
+	[result appendString: @";\n"];
+    }
+
+    [arp release];
+
+    return [result autorelease];
+}
+
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+{
+    return [self descriptionWithLocale: locale indent: 0];
+}
+
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+			     indent: (unsigned int)level
+{
+    NSMutableString	*result;
+    NSEnumerator	*enumerator;
+    NSMutableArray	*plists;
+    NSMutableArray	*theKeys;
+    id			key;
+    BOOL		canCompare = YES;
+    int			numKeys;
+    int			count;
+    int			size;
+    NSAutoreleasePool	*arp;
+    int			indentSize;
+    int			indentBase;
+    NSMutableString	*iBaseString;
+    NSMutableString	*iSizeString;
+    int			i;
+
+    arp = [[NSAutoreleasePool alloc] init];
+
+    /*
+     *	Indentation is at four space intervals using tab characters to
+     *	replace multiples of eight spaces.
+     *
+     *	We work out the sizes of the strings needed to perform indentation for
+     *	this level and build strings to make up the indentation.
+     */
+    indentBase = level << 2;
+    count = indentBase >> 3;
+    if ((indentBase % 8) == 0) {
+	indentBase = count;
+    }
+    else {
+	indentBase == count + 4;
+    }
+    iBaseString = [NSMutableString stringWithCapacity: indentBase];
+    for (i = 0; i < count; i++) {
+	[iBaseString appendString: @"\t"];
+    }
+    if (count != indentBase) {
+	[iBaseString appendString: @"    "];
+    }
+
+    level++;
+    indentSize = level << 2;
+    count = indentSize >> 3;
+    if ((indentSize % 8) == 0) {
+	indentSize = count;
+    }
+    else {
+	indentSize == count + 4;
+    }
+    iSizeString = [NSMutableString stringWithCapacity: indentSize];
+    for (i = 0; i < count; i++) {
+	[iSizeString appendString: @"\t"];
+    }
+    if (count != indentSize) {
+	[iSizeString appendString: @"    "];
+    }
+
+    /*
+     *	Basic size is - opening bracket, newline, closing bracket,
+     *	indentation for the closing bracket, and a nul terminator.
+     */
+    size = 4 + indentBase;
+
+    enumerator = [self keyEnumerator];
+    while ((key = [enumerator nextObject]) != nil) {
+	if ([key respondsToSelector: @selector(compare:)] == NO) {
+	    canCompare = NO;
+	    break;
+	}
+    }
+
+    if (canCompare) {
+	theKeys = [NSMutableArray arrayWithArray:
+	    [[self allKeys] sortedArrayUsingSelector: @selector(compare:)]];
+    }
+    else {
+	theKeys = [NSMutableArray arrayWithArray: [self allKeys]];
+    }
+
+    numKeys = [theKeys count];
+    plists = [NSMutableArray arrayWithCapacity: numKeys];
+
+    for (i = 0; i < numKeys; i++) {
+	NSString	*newKey;
+	id		item;
+
+	key = [theKeys objectAtIndex:i];
+	item = [self objectForKey: key];
+	if ([key respondsToSelector: @selector(descriptionForPropertyList)]) {
+	    newKey = [key descriptionForPropertyList];
+	}
+	else {
+	    newKey = [key description];
+	}
+	if (newKey != key) {
+	    key = newKey;
+	    [theKeys replaceObjectAtIndex: i withObject: key];
+	}
+
+	if ([item isKindOfClass: [NSString class]]) {
+	   item = [item descriptionForPropertyList];
+	}
+	else if ([item respondsToSelector:
+		@selector(descriptionWithLocale:indent:)]) {
+	   item = [item descriptionWithLocale: locale indent: level];
+	}
+	else if ([item respondsToSelector:
+		@selector(descriptionWithLocale:)]) {
+	   item = [item descriptionWithLocale: locale];
+	}
+	else {
+	   item = [item description];
+	}
+	[plists addObject: item];
+
+	size += [key length] + [item length] + indentSize;
+	if (i == numKeys - 1) {
+	    size += 4;			/* ' = ' and newline	*/
+	}
+	else {
+	    size += 5;			/* ' = ' and ';' and newline	*/
+	}
+    }
+
+    result = [[NSMutableString alloc] initWithCapacity: size];
+    [result appendString: @"{\n"];
+    for (i = 0; i < numKeys; i++) {
+	[result appendString: iSizeString];
+	[result appendString: [theKeys objectAtIndex: i]];
+        [result appendString: @" = "];
+	[result appendString: [plists objectAtIndex: i]];
+	if (i == numKeys - 1) {
+            [result appendString: @"\n"];
+	}
+	else {
+            [result appendString: @";\n"];
+	}
+    }
+    [result appendString: iBaseString];
+    [result appendString: @"}"];
+
+    [arp release];
+
+    return [result autorelease];
 }
 
 @end
@@ -425,5 +697,10 @@ static Class NSMutableDictionary_concrete_class;
     [self setObject:[other objectForKey:k] forKey:k];
 }
 
+- (void) setDictionary: (NSDictionary*)otherDictionary
+{
+  [self removeAllObjects];
+  [self addEntriesFromDictionary: otherDictionary];
+}
 
 @end

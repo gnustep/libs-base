@@ -39,6 +39,7 @@
    		   length: (unsigned int)length;
 + (id)dataWithContentsOfFile: (NSString*)path;
 + (id)dataWithContentsOfMappedFile: (NSString*)path;
++ (id)dataWithData: (NSData*)data;
 - (id)initWithBytes: (const void*)bytes
    	     length: (unsigned int)length;
 - (id)initWithBytesNoCopy: (void*)bytes
@@ -120,6 +121,7 @@
 - (void) replaceBytesInRange: (NSRange)aRange
 		   withBytes: (const void*)bytes;
 - (void) resetBytesInRange: (NSRange)aRange;
+- (void) setData: (NSData*)data;
 
 // Serializing Data
 

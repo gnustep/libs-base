@@ -94,4 +94,9 @@
   _contents_array[i] = newObject;
 }
 
+- (id) minObject
+{
+    return [self firstObject];
+}
+
 @end

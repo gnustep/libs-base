@@ -121,6 +121,9 @@ extern NSString*	NSFileHandleOperationException;
 			 protocol:(NSString*)protocol
 			 forModes:(NSArray*)modes;
 - (BOOL)readInProgress;
+- (NSString*)socketAddress;
+- (NSString*)socketService;
+- (NSString*)socketProtocol;
 - (void)writeInBackgroundAndNotify:(NSData*)item forModes:(NSArray*)modes;
 - (void)writeInBackgroundAndNotify:(NSData*)item;
 - (BOOL)writeInProgress;

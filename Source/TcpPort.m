@@ -1005,6 +1005,10 @@ static NSMapTable* port_number_2_port;
 			 initForReceivingWithCapacity: packet_size
 			 receivingInPort: self
 			 replyOutPort: reply_port];
+	      if (packet == nil)
+	        [NSException raise: NSInternalInconsistencyException
+	          format: @"[TcpInPort _tryToGetPacketFromReadableFD:"
+			@" - failed to create incoming packet"];
 	      NSMapInsert(_client_sock_2_packet,(void*)fd_index,(void*)packet);
 	    }
 	  /* The packet has now been created with correct capacity */

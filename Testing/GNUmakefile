@@ -62,6 +62,7 @@ nshashtable \
 tcpport-server \
 tcpport-client \
 nsnotification \
+nstask \
 nstimer \
 coder \
 cstream \
@@ -109,6 +110,7 @@ nshashtable_OBJC_FILES = nshashtable.m
 tcpport-server_OBJC_FILES = tcpport-server.m
 tcpport-client_OBJC_FILES = tcpport-client.m
 nsnotification_OBJC_FILES = nsnotification.m
+nstask_OBJC_FILES = nstask.m
 nstimer_OBJC_FILES = nstimer.m
 coder_OBJC_FILES = coder.m
 cstream_OBJC_FILES = cstream.m

@@ -257,6 +257,12 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 #endif
 }
 
++ (id) dataWithData: (NSData*)data
+{
+  return [[[NSDataMalloc alloc] initWithBytes: [data bytes]
+				       length: [data length]] autorelease];
+}
+
 - (id) initWithBytes: (const void*)bytes
 	      length: (unsigned int)length
 {
@@ -317,7 +323,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
     {
       dest[j++] = num2char((src[i]>>4) & 0x0f);
       dest[j] = num2char(src[i] & 0x0f);
-      if((i&0x3) == 3)
+      if((i&0x3) == 3 && i != length-1)
 	/* if we've just finished a 32-bit int, print a space */
 	dest[++j] = ' ';
     }
@@ -731,10 +737,20 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	intBuffer[i] = network_int_to_host (intBuffer[i]);
 }
 
+- (id) copy
+{
+  return [self copyWithZone: NSDefaultMallocZone()];
+}
+
 - (id) copyWithZone: (NSZone*)zone
 {
   [self subclassResponsibility:_cmd];
   return nil;
+}
+
+- (id) mutableCopy
+{
+  return [self mutableCopyWithZone: NSDefaultMallocZone()];
 }
 
 - (id) mutableCopyWithZone: (NSZone*)zone
@@ -823,6 +839,13 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   return [[[NSMutableDataMalloc alloc] initWithContentsOfFile:path] 
 	  autorelease];
+}
+
++ (id) dataWithData: (NSData*)data
+{
+  return [[[NSMutableDataMalloc alloc] initWithBytes: [data bytes]
+					      length: [data length]]
+		autorelease];
 }
 
 + (id) dataWithLength: (unsigned int)length
@@ -931,6 +954,14 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 				size];
   }
   memset((char*)[self bytes] + aRange.location, 0, aRange.length);
+}
+
+- (void) setData: (NSData*)data
+{
+  NSRange	r = NSMakeRange(0, [data length]);
+
+  [self setCapacity: [data length]];
+  [self replaceBytesInRange: r withBytes: [data bytes]];
 }
 
 // Serializing Data

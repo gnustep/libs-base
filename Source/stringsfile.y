@@ -41,6 +41,10 @@ asignment:	value EQUALS value SEMICOLEN
 		{
 			[(NSMutableDictionary *)properties setObject: $3 forKey: (NSString *) $1];
 		}
+		|	value SEMICOLEN
+		{
+			[(NSMutableDictionary *)properties setObject: nil forKey: (NSString *) $1];
+		}
 		;
 
 value:		LABEL
