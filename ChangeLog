@@ -1,3 +1,10 @@
+2003-05-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Fix call to GSFormat() to append to a mutable
+	string whose contents should not be freed.
+	Removed bogus TODO comments saying code broken when defEnc!=intEnc
+	in routines which should never be called when defEnc!=intEnc anyway.
+
 2003-05-05 15:28  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/Unicode.m (GSFromUnicode, GSToUnicode): Make sure the
