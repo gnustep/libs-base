@@ -1,3 +1,10 @@
+2002-05-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUser.m: NSHomeDirectoryForUser() ... fix windoze bug ...
+	was returning the current users home directory irrespective of the
+	user asked for.  Now returns nil for other users ... should really
+	find some mechanism to determine home directories for other users.
+
 2002-05-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAssertion.m: Added comments and fixed bug in handling
