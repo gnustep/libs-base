@@ -1955,8 +1955,11 @@ static SEL swfsSel = 0;
 	}
       else if ([fileType isEqual: NSFileTypeSymbolicLink])
 	{
+	  NSString	*path;
+
+	  path = [self pathContentOfSymbolicLinkAtPath: sourceFile];
 	  if (![self createSymbolicLinkAtPath: destinationFile
-				  pathContent: sourceFile])
+				  pathContent: path])
 	    {
 	      if (handler)
 		{
@@ -1968,10 +1971,14 @@ static SEL swfsSel = 0;
 			      nil];
 		  if (![handler fileManager: self
 		    shouldProceedAfterError: errorInfo])
-		    return NO;
+		    {
+		      return NO;
+		    }
 		}
 	      else
-		return NO;
+		{
+		  return NO;
+		}
 	    }
 	}
       else
