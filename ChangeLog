@@ -1,3 +1,11 @@
+2004-06-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUnarchiver.m: Decode class names directly so we can
+	substitute one class name for another.  Letting NSData decode
+	classes only supported substitution if both the old and new classes
+	existed in the executable, which is not what was intended.
+	Thanks to Ludovic Marcotte for spotting this bug.
+
 2004-05-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSMime.m: Add support for setting default characterset for
