@@ -1,3 +1,8 @@
+Fri Mar 15 13:10:34 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* doc/Makefile.in (GNUstep-FAQ.html): New target.
+	(GNUstep-FAQ): Rules modified to handle @email{} and @url{}.
+
 Tue Mar 12 09:43:32 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
 	* checks/tcpport-server.m, checks/tcpport-client.m: Method name
@@ -26,7 +31,7 @@ Tue Mar 12 09:43:32 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	* src/NSGSet.m ([NSGSet -member:]): Return value.
 
 	* src/IndexedCollection.m ([ConstantIndexedCollection
- 	-firstObject]): Return nil if emtpy.
+ 	-firstObject]): Return nil if empty.
 	([ConstantIndexedCollection -lastObject]): Likewise.
 	([ConstantIndexedCollection -prevObjectWithEnumState:]): Use -1 to
 	deal with reversals at extremes.
