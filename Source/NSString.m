@@ -404,7 +404,7 @@ handle_printf_atsign (FILE *stream,
 
 // Initializing Newly Allocated Strings
 
-/* This is the designated initializer for Unicode Strings. */
+/* This is the designated initializer. */
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned)length
 		   freeWhenDone: (BOOL)flag
@@ -468,12 +468,19 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-/* This is the designated initializer for CStrings. */
 - (id) initWithCStringNoCopy: (char*)byteString
 		      length: (unsigned)length
 		freeWhenDone: (BOOL)flag
 {
-  [self subclassResponsibility: _cmd];
+  unichar	*buf;
+
+  buf = (unichar*)NSZoneMalloc(GSObjCZone(self), sizeof(unichar)*length);
+  length = encode_strtoustr(buf, byteString, length, _DefaultStringEncoding);
+  if (flag == YES && byteString != 0)
+    {
+      NSZoneFree(NSZoneFromPointer(byteString), byteString);
+    }
+  self = [self initWithCharactersNoCopy: buf length: length freeWhenDone: YES];
   return self;
 }
 

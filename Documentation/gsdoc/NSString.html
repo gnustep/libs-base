@@ -13,8 +13,8 @@
 <dt>James Dessart
 <dd>
 </dl>
-<p>Version: 0.1</p>
-<p>Date: 28 February, 2000</p>
+<p>Version: 0.2</p>
+<p>Date: 31 October, 2000</p>
 <h2><a name ="cont-0">NSString</a></h2>
 <h2><a name ="NSString">NSString</a></h2>
 <p><b>Declared in: </b> Foundation/NSString.h</p>
@@ -24,16 +24,36 @@
 <hr>
 
           <p>
-NSString objects represent an immutable string of characters.  NSString itself is an
-          abstract class which provides factory methods to generate objects of unspecified
-          subclasses.</p>
 
+	    NSString objects represent an immutable string of characters.
+	    NSString itself is an abstract class which provides factory
+	    methods to generate objects of unspecified subclasses.
+	  </p>
 
           <p>
-A constant NSString can be created using the following syntax: <code>@"..."</code>,
-          where the contents of the quotes are the string, using only ASCII characters.</p>
 
-          
+	    A constant NSString can be created using the following syntax:
+	    <code>@"..."</code>, where the contents of the quotes are the
+	    string, using only ASCII characters.
+	  </p>
+
+	  <p>
+
+	    To create a concrete subclass of NSString, you must have your
+	    class inherit from NSString and override at least the two
+	    primitive methods - length and characterAtIndex:
+	  </p>
+
+	  <p>
+
+	    In general the rule is that your subclass must override any
+	    initialiser that you want to use with it.  The GNUstep
+	    implementation relaxes that to say that, you may override
+	    only the <em>designated initialiser</em> and the other
+	    initialisation methods should work.
+	  </p>
+
+	
 <h2>Instance Variables </h2>
 <ul>
 </ul>
@@ -133,24 +153,32 @@ A constant NSString can be created using the following syntax: <code>@"..."</cod
 <h3><a name ="method-0">availableStringEncodings</a></h3>
 + (const NSStringEncoding*) <b>availableStringEncodings</b>;<br>
 
-          <p>
-Returns an array of all available string encodings, terminated by a null value.</p>
+	    <p>
+
+	      Returns an array of all available string encodings,
+	      terminated by a null value.
+	    </p>
 
           
  <hr>
 <h3><a name ="method-1">defaultCStringEncoding</a></h3>
 + (NSStringEncoding) <b>defaultCStringEncoding</b>;<br>
 
-          <p>
-Returns the encoding used for any method accepting a C string.</p>
+	    <p>
+
+	      Returns the encoding used for any method accepting a C string.
+	    </p>
 
           
  <hr>
 <h3><a name ="method-2">localizedNameOfStringEncoding:</a></h3>
 + (NSString*) <b>localizedNameOfStringEncoding:</b> (NSStringEncoding)encoding;<br>
 
-          <p>
-Returns the localized name of the encoding specified by <var>encoding</var>.</p>
+	    <p>
+
+	      Returns the localized name of the encoding specified
+	      by <var>encoding</var>.
+	    </p>
 
           
  <hr>
@@ -263,6 +291,10 @@ Returns the localized name of the encoding specified by <var>encoding</var>.</p>
 <h3><a name ="method-22">cString</a></h3>
 - (const char*) <b>cString</b>;<br>
 
+            Returns a pointer to a nul terminated string of 8-bit
+            characters in the default encoding.  The memory pointed
+            to is not owned by the caller, so the caller must copy
+            its contents to keep it.
           
  <hr>
 <h3><a name ="method-23">cStringLength</a></h3>
@@ -361,8 +393,12 @@ Returns the localized name of the encoding specified by <var>encoding</var>.</p>
           
  <hr>
 <h3><a name ="method-43">initWithCharactersNoCopy:length:freeWhenDone:</a></h3>
+<b>This is the designated initialiser </b><br>
 - (id) <b>initWithCharactersNoCopy:</b> (unichar*)characters <b>length:</b> (unsigned int)length <b>freeWhenDone:</b> (BOOL)flag;<br>
 
+	    This is the most basic initialiser for unicode strings.
+	    In the GNUstep implementation, your subclasses may override
+	    this initialiser in order to have all others function.
           
  <hr>
 <h3><a name ="method-44">initWithContentsOfFile:</a></h3>
@@ -448,6 +484,8 @@ Returns the localized name of the encoding specified by <var>encoding</var>.</p>
 <h3><a name ="method-61">lowercaseString</a></h3>
 - (NSString*) <b>lowercaseString</b>;<br>
 
+	    Returns a copy of the receiver with all characters converted
+	    to lowercase.
           
  <hr>
 <h3><a name ="method-62">pathComponents</a></h3>
@@ -608,6 +646,8 @@ Standards:  GNUstep NotMacOS-X NotOpenStep<br>
 <h3><a name ="method-87">uppercaseString</a></h3>
 - (NSString*) <b>uppercaseString</b>;<br>
 
+	    Returns a copy of the receiver with all characters converted
+	    to uppercase.
           
  <hr>
 <h3><a name ="method-88">writeToFile:atomically:</a></h3>
