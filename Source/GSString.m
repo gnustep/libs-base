@@ -1446,6 +1446,12 @@ transmute(ivars self, NSString *aString)
  * will try to convert an instance to a type we can really use if necessary.
  */ 
 @implementation	GSString
+
++ (void) initialize
+{
+  setup();
+}
+
 - (void) dealloc
 {
   if (_flags.free == 1 && _contents.c != 0)
@@ -1516,12 +1522,6 @@ transmute(ivars self, NSString *aString)
  * 8-bit string class, storing immutable data in a single buffer.
  */
 @implementation GSCString
-
-+ (void) initialize
-{
-  setup();
-}
-
 - (BOOL) boolValue
 {
   return boolValue_c((ivars)self);
@@ -1792,12 +1792,6 @@ transmute(ivars self, NSString *aString)
 
 
 @implementation GSUnicodeString
-
-+ (void) initialize
-{
-  setup();
-}
-
 - (BOOL) boolValue
 {
   return boolValue_u((ivars)self);
