@@ -1,3 +1,20 @@
+2004-06-22  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
+	* Documentation/HtmlNav: Add top-level documentation HTML page, that
+	goes in System/Library/Documentation.
+	* Documentation/Makefile.postamble: Install this.
+	* Documentation/Base.gsdoc
+	* Documentation/BaseAdditions.gsdoc
+	* Documentation/General/OpenStepCompliance.gsdoc
+	* Documentation/General/Debugging.gsdoc: Use 1.0.1 DTD; also, minor
+	updates/improvements.
+	* Documentation/manual/*.texi: Major manual update to fill in missing
+	portions.  Still more to do, but the basics are complete now.  In
+	near term, need a class cluster example (maybe in appendix), and need
+	to write the Java-Guile appendix (maybe this needs to cover StepTalk).
+	* Documentation/manual/GNUmakefile: Update for above (some texi files
+	added/removed).
+
 2004-06-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m: ([descriptionWithCalendarFormat:locale:])
