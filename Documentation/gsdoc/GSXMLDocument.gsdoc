@@ -6,8 +6,8 @@
     <author name="Michael Pakhantsov">
       <email address="mishel@berest.dp.ua"/>
     </author>
-    <version>0.2</version>
-    <date>15 September, 2000</date>
+    <version>$Revision$>/version>
+    <date>$Date$</date>
   </head>
 
   <body>

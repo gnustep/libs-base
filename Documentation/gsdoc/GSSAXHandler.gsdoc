@@ -9,8 +9,8 @@
     <author name="Richard Frith-Macdonald">
       <email address="rfm@gnu.org"/>
     </author>
-    <version>0.3</version>
-    <date>1 November, 2000</date>
+    <version>$Revision$>/version>
+    <date>$Date$</date>
   </head>
 
   <body>
