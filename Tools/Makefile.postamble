@@ -15,7 +15,7 @@
 # after-all::
 
 # Things to do before installing
-# before-install::
+before-install::	documentation
 
 # Things to do after installing
 after-install::
@@ -77,4 +77,7 @@ copy-dist: $(DIST_FILES)
 	for f in $(DIST_FILES); do \
 	  cp $$f ../snap/Tools ; \
 	done
+
+documentation: $(GNUSTEP_OBJ_DIR)/gsdoc
+	  $(GNUSTEP_OBJ_DIR)/gsdoc gsdoc
 

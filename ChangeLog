@@ -1,6 +1,12 @@
 2000-06-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSScanner.m: ([-scanHexInt:]) fixed to permit leading 0x or 0X
+	* Documentation/gsdoc/NSScanner.gsdoc: fleshed out
+	* Tools/Makefile.postamble: Added documentation target - build before
+	install
+	* Tools/gsdoc-0_6_6.dtd: New dtd under development - add java support
+	* Tools/gsdoc.m: Update to work with current dtd
+	* Tools/gsdoc.gsdoc: Add a little more text on document body structure.
 
 2000-06-20  Richard Frith-Macdonald <rfm@gnu.org>
 

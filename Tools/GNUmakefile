@@ -32,7 +32,7 @@ include ../config.mak
 
 # DTDs to install
 dtddir = $(GNUSTEP_RESOURCES)/DTDs
-DTD_FILES = gsdoc-0_6_5.dtd
+DTD_FILES = gsdoc-0_6_5.dtd gsdoc-0_6_6.dtd
 
 # The application to be compiled
 TOOL_NAME = gdnc gsdoc defaults plmerge \
