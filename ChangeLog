@@ -1,3 +1,16 @@
+2003-08-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Move hacked methods for getting protocol
+	method info into functions so we can use them without going
+	through the ObjC runtime.
+	* Source/NSDistantObject.m: When attempting to check protocols,
+	use functions from NSObject.m if the protocol has not been
+	properly initialised (its class pointer is 0x2) as is the case
+	for all but very recent versions of the compiler.
+	FIXME ... this code should be removed at some future date when
+	all common systems have shipped with a working compiler for
+	a while.
+
 2003-08-13  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/preface.h: Remove generated

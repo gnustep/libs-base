@@ -853,10 +853,34 @@ enum
 
 	  struct objc_method_description* mth;
 
-	  mth = [_protocol descriptionForInstanceMethod: aSelector];
+	  /* Older gcc versions may not initialise Protocol objects properly
+	   * so we have an evil hack which checks for a known bad value of
+	   * the class pointer, and uses an internal function
+	   * (implemented in NSObject.m) to examine the protocol contents
+	   * without sending any ObjectiveC message to it.
+	   */
+	  if ((int)GSObjCClass(_protocol) == 0x2)
+	    {
+	      extern struct objc_method_description*
+		GSDescriptionForInstanceMethod();
+	      mth = GSDescriptionForInstanceMethod(_protocol, aSelector);
+	    }
+	  else
+	    {
+	      mth = [_protocol descriptionForInstanceMethod: aSelector];
+	    }
 	  if (mth == 0)
 	    {
-	      mth = [_protocol descriptionForClassMethod: aSelector];
+	      if ((int)GSObjCClass(_protocol) == 0x2)
+		{
+		  extern struct objc_method_description*
+		    GSDescriptionForClassMethod();
+		  mth = GSDescriptionForClassMethod(_protocol, aSelector);
+		}
+	      else
+		{
+		  mth = [_protocol descriptionForClassMethod: aSelector];
+		}
 	    }
 	  if (mth != 0)
 	    {

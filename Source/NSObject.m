@@ -688,68 +688,86 @@ static BOOL double_release_check_enabled = NO;
 
 
 
-@implementation	Protocol (Fixup)
 struct objc_method_description_list {
-        int count;
-        struct objc_method_description list[1];
+  int count;
+  struct objc_method_description list[1];
 };
+typedef struct {
+  @defs(Protocol)
+} *pcl;
 
-- (struct objc_method_description *) descriptionForInstanceMethod:(SEL)aSel
+struct objc_method_description *
+GSDescriptionForInstanceMethod(pcl self, SEL aSel)
 {
   int i;
-  struct objc_protocol_list* proto_list;
-  const char* name = sel_get_name (aSel);
+  struct objc_protocol_list	*p_list;
+  const char			*name = sel_get_name (aSel);
   struct objc_method_description *result;
 
-  if (instance_methods != 0)
+  if (self->instance_methods != 0)
     {
-      for (i = 0; i < instance_methods->count; i++)
+      for (i = 0; i < self->instance_methods->count; i++)
 	{
-	  if (!strcmp ((char*)instance_methods->list[i].name, name))
-	    return &(instance_methods->list[i]);
+	  if (!strcmp ((char*)self->instance_methods->list[i].name, name))
+	    return &(self->instance_methods->list[i]);
 	}
     }
-  for (proto_list = protocol_list; proto_list; proto_list = proto_list->next)
+  for (p_list = self->protocol_list; p_list != 0; p_list = p_list->next)
     {
-      size_t j;
-      for (j=0; j < proto_list->count; j++)
+      for (i = 0; i < p_list->count; i++)
 	{
-	  if ((result = [proto_list->list[j]
-			 descriptionForInstanceMethod: aSel]))
-	    return result;
+	  result = GSDescriptionForInstanceMethod(p_list->list[i], aSel);
+	  if (result)
+	    {
+	      return result;
+	    }
 	}
     }
 
   return NULL;
 }
 
-- (struct objc_method_description *) descriptionForClassMethod:(SEL)aSel;
+struct objc_method_description *
+GSDescriptionForClassMethod(pcl self, SEL aSel)
 {
   int i;
-  struct objc_protocol_list* proto_list;
-  const char* name = sel_get_name (aSel);
+  struct objc_protocol_list	*p_list;
+  const char			*name = sel_get_name (aSel);
   struct objc_method_description *result;
 
-  if (class_methods != 0)
+  if (self->class_methods != 0)
     {
-      for (i = 0; i < class_methods->count; i++)
+      for (i = 0; i < self->class_methods->count; i++)
 	{
-	  if (!strcmp ((char*)class_methods->list[i].name, name))
-	    return &(class_methods->list[i]);
+	  if (!strcmp ((char*)self->class_methods->list[i].name, name))
+	    return &(self->class_methods->list[i]);
 	}
     }
-  for (proto_list = protocol_list; proto_list; proto_list = proto_list->next)
+  for (p_list = self->protocol_list; p_list != 0; p_list = p_list->next)
     {
-      size_t j;
-      for (j=0; j < proto_list->count; j++)
+      for (i = 0; i < p_list->count; i++)
 	{
-	  if ((result = [proto_list->list[j]
-			 descriptionForClassMethod: aSel]))
-	    return result;
+	  result = GSDescriptionForClassMethod(p_list->list[i], aSel);
+	  if (result)
+	    {
+	      return result;
+	    }
 	}
     }
 
   return NULL;
+}
+
+@implementation	Protocol (Fixup)
+
+- (struct objc_method_description *) descriptionForInstanceMethod:(SEL)aSel
+{
+  return GSDescriptionForInstanceMethod((pcl)self, aSel);
+}
+
+- (struct objc_method_description *) descriptionForClassMethod:(SEL)aSel;
+{
+  return GSDescriptionForClassMethod((pcl)self, aSel);
 }
 
 @end
