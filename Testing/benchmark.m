@@ -371,6 +371,7 @@ bench_str()
 {
   int i;
   NSString *str;
+  NSMutableString	*ms;
   id plist;
   NSString *plstr;
   Class	arc = [NSArchiver class];
@@ -408,6 +409,25 @@ bench_str()
   plstr = [plist description];
  
   printf("NSString\n");
+
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT; i++)
+    {
+      str = [[stringClass alloc] initWithFormat: @"Hello %d", i];
+      RELEASE(str);
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (1 initWithFormat:) \t");
+
+  ms = [NSMutableString stringWithCapacity: 0];
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT; i++)
+    {
+      [ms appendFormat: @"%d", i];
+    }
+  END_TIMER;
+  PRINT_TIMER("NSString (1 appendFormat:) \t\t");
+
   START_TIMER;
   for (i = 0; i < MAX_COUNT; i++)
     {

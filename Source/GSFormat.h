@@ -26,18 +26,12 @@
 #define __GSFormat_H_
 
 #include	<Foundation/NSZone.h>
+#include	"GSPrivate.h"
 
 @class	NSDictionary;
 
-typedef struct {
-  unichar	*buf;
-  size_t	len;
-  size_t	size;
-  NSZone	*z;
-} FormatBuf_t;
-
 void 
-GSFormat(FormatBuf_t *fb, const unichar *fmt, va_list ap, NSDictionary *loc);
+GSFormat(GSStr fb, const unichar *fmt, va_list ap, NSDictionary *loc);
 
 #endif
 

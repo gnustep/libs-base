@@ -107,6 +107,42 @@ GS_EXPORT BOOL		GSIsByteEncoding(NSStringEncoding encoding);
 @end
 
 /*
+ * GSMutableString - concrete mutable string, capable of changing its storage
+ * from holding 8-bit to 16-bit character set.
+ */
+@interface GSMutableString : NSMutableString
+{
+  union {
+    unichar		*u;
+    unsigned char	*c;
+  } _contents;
+  unsigned int	_count;
+  struct {
+    unsigned int	wide: 1;
+    unsigned int	free: 1;
+    unsigned int	unused: 2;
+    unsigned int	hash: 28;
+  } _flags;
+  NSZone	*_zone;
+  unsigned int	_capacity;
+}
+@end
+
+/*
+ * Typedef for access to internals of concrete string objects.
+ */
+typedef struct {
+  @defs(GSMutableString)
+} GSStr_t;
+typedef	GSStr_t	*GSStr;
+
+/*
+ * Functions to append to GSStr
+ */
+extern void GSStrAppendUnichar(GSStr s, unichar);
+extern void GSStrAppendUnichars(GSStr s, const unichar *u, unsigned l);
+
+/*
  * Enumeration for MacOS-X compatibility user defaults settings.
  * For efficiency, we save defaults information which is used by the
  * base library.
