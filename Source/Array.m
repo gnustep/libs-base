@@ -195,6 +195,7 @@
 - appendElement: (elt)newElement
 {
   incrementCount(self);
+  RETAIN_ELT(newElement);
   _contents_array[_count-1] = newElement;
   return self;
 }
@@ -202,6 +203,7 @@
 - prependElement: (elt)newElement
 {
   incrementCount(self);
+  RETAIN_ELT(newElement);
   makeHoleAt(self, 0);
   _contents_array[0] = newElement;
   return self;
@@ -211,6 +213,7 @@
 {
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
   incrementCount(self);
+  RETAIN_ELT(newElement);
   makeHoleAt(self, index);
   _contents_array[index] = newElement;
   return self;
@@ -227,7 +230,7 @@
   ret = _contents_array[index];
   fillHoleAt(self, index);
   decrementCount(self);
-  return ret;
+  return AUTORELEASE_ELT(ret);
 }
   
 /* We could be more efficient if we override these also.
@@ -240,9 +243,10 @@
   elt ret;
 
   CHECK_INDEX_RANGE_ERROR(index, _count);
+  RETAIN_ELT(newElement);
   ret = _contents_array[index];
   _contents_array[index] = newElement;
-  return ret;
+  return AUTORELEASE_ELT(ret);
 }
 
 - swapAtIndeces: (unsigned)index1 : (unsigned)index2
