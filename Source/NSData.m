@@ -331,7 +331,7 @@ static Class NSMutableData_concrete_class;
    atomically: (BOOL)useAuxiliaryFile
 {
   const char *theFileName;
-  const char *theRealFileName;
+  const char *theRealFileName = NULL;
   FILE *theFile;
   int c;
 
@@ -512,7 +512,7 @@ static Class NSMutableData_concrete_class;
 - (id) initWithLength: (unsigned int)length
 {
   [self initWithCapacity:length];
-  memset ([self bytes], 0, length);
+  memset ((char*)[self bytes], 0, length);
   return self;
 }
 
@@ -566,7 +566,7 @@ static Class NSMutableData_concrete_class;
 
 - (void) resetBytesInRange: (NSRange)aRange
 {
-  memset([self bytes] + aRange.location, 0, aRange.length);
+  memset((char*)[self bytes] + aRange.location, 0, aRange.length);
 }
 
 // Serializing Data
