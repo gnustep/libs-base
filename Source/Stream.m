@@ -71,7 +71,9 @@
 
 - (void) writeLine: (id <String>)l
 {
-  [self writeFormat:"%s\n", l];
+  const char *s = [l cStringNoCopy];
+  [self writeBytes:s length:strlen(s)];
+  [self writeBytes:"\n" length:1];
 }
 
 - (id <String>) readLine
