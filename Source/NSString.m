@@ -3154,7 +3154,16 @@ handle_printf_atsign (FILE *stream,
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output
 {
+  extern BOOL	GSMacOSXCompatiblePropertyLists();
   unsigned	length;
+
+  if (GSMacOSXCompatiblePropertyLists() == YES)
+    {
+      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc, unsigned lev);
+
+      [output appendString: GSXMLPlMake(self, aLocale, level)];
+      return;
+    }
 
   if ((length = [self length]) == 0)
     {
@@ -3790,9 +3799,7 @@ handle_printf_atsign (FILE *stream,
 #if	HAVE_LIBXML
 #include	<Foundation/GSXML.h>
 
-#ifndef __XML_TREE_H__
 static int      XML_ELEMENT_NODE;
-#endif
 
 static void
 decodeBase64Unit(const char* ptr, unsigned char *out)
@@ -4332,12 +4339,115 @@ nodeToObject(GSXMLNode* node)
   content = [children content];
   children = elementNode(children);
 
-  if ([name isEqualToString: @"string"])
+  if ([name isEqualToString: @"string"]
+    || [name isEqualToString: @"key"])
     {
-      return content;
-    }
-  else if ([name isEqualToString: @"key"])
-    {
+      NSRange	r;
+
+      r = [content rangeOfString: @"\\"];
+      if (r.length == 1)
+	{
+	  unsigned	len = [content length];
+	  unichar	buf[len];
+	  unsigned	pos = r.location;
+
+	  [content getCharacters: buf];
+	  while (pos < len)
+	    {
+	      if (++pos < len)
+		{
+		  if (buf[pos] == '/')
+		    {
+		      len--;
+		      memcpy(&buf[pos], &buf[pos+1],
+			(len - pos) * sizeof(unichar));
+		    }
+		  else if (buf[pos] == 'U')
+		    {
+		      unichar	val = 0;
+		      unsigned	i;
+
+		      if (len < pos + 4)
+			{
+			  [NSException raise: NSInternalInconsistencyException
+				      format: @"Short escape sequence"];
+			}
+		      for (i = 1; i < 5; i++)
+			{
+			  unichar	c = buf[pos + i];
+
+			  if (c >= '0' && c <= '9')
+			    {
+			      val = (val << 4) + c - '0';
+			    }
+			  else if (c >= 'A' && c <= 'F')
+			    {
+			      val = (val << 4) + c - 'A' + 10;
+			    }
+			  else if (c >= 'a' && c <= 'f')
+			    {
+			      val = (val << 4) + c - 'a' + 10;
+			    }
+			  else
+			    {
+			      [NSException raise:
+				NSInternalInconsistencyException
+				format: @"bad hex escape sequence"];
+			    }
+			}
+		      len -= 5;
+		      memcpy(&buf[pos], &buf[pos+5],
+			(len - pos) * sizeof(unichar));
+		      buf[pos - 1] = val;
+		    }
+		  else if (buf[pos] >= '0' && buf[pos] <= '7')
+		    {
+		      unichar	val = 0;
+		      unsigned	i;
+
+		      if (len < pos + 2)
+			{
+			  [NSException raise: NSInternalInconsistencyException
+				      format: @"Short escape sequence"];
+			}
+		      for (i = 0; i < 3; i++)
+			{
+			  unichar	c = buf[pos + i];
+
+			  if (c >= '0' && c <= '7')
+			    {
+			      val = (val << 3) + c - '0';
+			    }
+			  else
+			    {
+			      [NSException raise:
+				NSInternalInconsistencyException
+				format: @"bad octal escape sequence"];
+			    }
+			}
+		      len -= 3;
+		      memcpy(&buf[pos], &buf[pos+3],
+			(len - pos) * sizeof(unichar));
+		      buf[pos - 1] = val;
+		    }
+		  else
+		    {
+		      [NSException raise: NSInternalInconsistencyException
+				  format: @"Short escape sequence"];
+		    }
+		  while (pos < len && buf[pos] != '\\')
+		    {
+		      pos++;
+		    }
+		}
+	      else
+		{
+		  [NSException raise: NSInternalInconsistencyException
+			      format: @"Short escape sequence"];
+		}
+	    }
+	  content = [NSString stringWithCharacters: buf length: len];
+	}
       return content;
     }
   else if ([name isEqualToString: @"true"])
@@ -4408,12 +4518,10 @@ static void
 setupPl()
 {
 #if	HAVE_LIBXML
-#ifndef __XML_TREE_H__
   /*
    * Cache XML node information.
    */
   XML_ELEMENT_NODE = [GSXMLNode typeFromDescription: @"XML_ELEMENT_NODE"];
-#endif
 #endif
   plAlloc = (id (*)(id, SEL, NSZone*))
     [NSStringClass methodForSelector: @selector(allocWithZone:)];
@@ -4451,6 +4559,11 @@ GSPropertyList(NSString *string)
   if (length == 0)
     {
       return nil;
+    }
+
+  if (plAlloc == 0)
+    {
+      setupPl();
     }
 
 #if	HAVE_LIBXML
@@ -4502,10 +4615,6 @@ GSPropertyList(NSString *string)
   _pld.end = length + 1;
   _pld.err = nil;
   _pld.lin = 1;
-  if (plAlloc == 0)
-    {
-      setupPl();
-    }
   pl = AUTORELEASE(parsePlItem(pld));
   if (pl == nil && _pld.err != nil)
     {

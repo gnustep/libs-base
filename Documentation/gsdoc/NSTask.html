@@ -37,20 +37,23 @@
 <li ><a href ="NSTask.html#method-5">-isRunning</a>
 <li ><a href ="NSTask.html#method-6">-launch</a>
 <li ><a href ="NSTask.html#method-7">-launchPath</a>
-<li ><a href ="NSTask.html#method-8">-setArguments:</a>
-<li ><a href ="NSTask.html#method-9">-setCurrentDirectoryPath:</a>
-<li ><a href ="NSTask.html#method-10">-setEnvironment:</a>
-<li ><a href ="NSTask.html#method-11">-setLaunchPath:</a>
-<li ><a href ="NSTask.html#method-12">-setStandardError:</a>
-<li ><a href ="NSTask.html#method-13">-setStandardInput:</a>
-<li ><a href ="NSTask.html#method-14">-setStandardOutput:</a>
-<li ><a href ="NSTask.html#method-15">-standardError</a>
-<li ><a href ="NSTask.html#method-16">-standardInput</a>
-<li ><a href ="NSTask.html#method-17">-standardOutput</a>
-<li ><a href ="NSTask.html#method-18">-terminate</a>
-<li ><a href ="NSTask.html#method-19">-terminationStatus</a>
-<li ><a href ="NSTask.html#method-20">-usePseudoTerminal</a>
-<li ><a href ="NSTask.html#method-21">-waitUntilExit</a>
+<li ><a href ="NSTask.html#method-8">-processIdentifer</a>
+<li ><a href ="NSTask.html#method-19">-resume</a>
+<li ><a href ="NSTask.html#method-9">-setArguments:</a>
+<li ><a href ="NSTask.html#method-10">-setCurrentDirectoryPath:</a>
+<li ><a href ="NSTask.html#method-11">-setEnvironment:</a>
+<li ><a href ="NSTask.html#method-12">-setLaunchPath:</a>
+<li ><a href ="NSTask.html#method-13">-setStandardError:</a>
+<li ><a href ="NSTask.html#method-14">-setStandardInput:</a>
+<li ><a href ="NSTask.html#method-15">-setStandardOutput:</a>
+<li ><a href ="NSTask.html#method-16">-standardError</a>
+<li ><a href ="NSTask.html#method-17">-standardInput</a>
+<li ><a href ="NSTask.html#method-18">-standardOutput</a>
+<li ><a href ="NSTask.html#method-20">-suspend</a>
+<li ><a href ="NSTask.html#method-21">-terminate</a>
+<li ><a href ="NSTask.html#method-22">-terminationStatus</a>
+<li ><a href ="NSTask.html#method-23">-usePseudoTerminal</a>
+<li ><a href ="NSTask.html#method-24">-waitUntilExit</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">launchedTaskWithLaunchPath:arguments:</a></h3>
@@ -112,7 +115,13 @@
 	    Returns the launch path set for the task.
           
  <hr>
-<h3><a name ="method-8">setArguments:</a></h3>
+<h3><a name ="method-8">processIdentifer</a></h3>
+- (int) <b>processIdentifer</b>;<br>
+
+	    Returns the number identifying the child process on this system.
+          
+ <hr>
+<h3><a name ="method-9">setArguments:</a></h3>
 - (void) <b>setArguments:</b> (NSArray*)arguments;<br>
 
 	    Sets an array of arguments to be supplied to the task when it
@@ -121,7 +130,7 @@
 	    it raises an NSInvalidArgumentException. 
           
  <hr>
-<h3><a name ="method-9">setCurrentDirectoryPath:</a></h3>
+<h3><a name ="method-10">setCurrentDirectoryPath:</a></h3>
 - (void) <b>setCurrentDirectoryPath:</b> (NSString*)path;<br>
 
 	    Sets the home directory in which the task is to be run.
@@ -130,7 +139,7 @@
 	    it raises an NSInvalidArgumentException. 
           
  <hr>
-<h3><a name ="method-10">setEnvironment:</a></h3>
+<h3><a name ="method-11">setEnvironment:</a></h3>
 - (void) <b>setEnvironment:</b> (NSDictionary*)environmentDictionary;<br>
 
 	    Sets the environment variables for the task to be run.
@@ -139,7 +148,7 @@
 	    it raises an NSInvalidArgumentException. 
           
  <hr>
-<h3><a name ="method-11">setLaunchPath:</a></h3>
+<h3><a name ="method-12">setLaunchPath:</a></h3>
 - (void) <b>setLaunchPath:</b> (NSString*)path;<br>
 
 	    Sets the path to the executable file to be run.
@@ -148,7 +157,7 @@
 	    it raises an NSInvalidArgumentException. 
           
  <hr>
-<h3><a name ="method-12">setStandardError:</a></h3>
+<h3><a name ="method-13">setStandardError:</a></h3>
 - (void) <b>setStandardError:</b> (id)file;<br>
 
 	    Sets the standard error stream for the task.<br>
@@ -161,7 +170,7 @@
 	    it raises an NSInvalidArgumentException. 
           
  <hr>
-<h3><a name ="method-13">setStandardInput:</a></h3>
+<h3><a name ="method-14">setStandardInput:</a></h3>
 - (void) <b>setStandardInput:</b> (id)file;<br>
 
 	    Sets the standard input stream for the task.<br>
@@ -174,7 +183,7 @@
 	    it raises an NSInvalidArgumentException. 
           
  <hr>
-<h3><a name ="method-14">setStandardOutput:</a></h3>
+<h3><a name ="method-15">setStandardOutput:</a></h3>
 - (void) <b>setStandardOutput:</b> (id)file;<br>
 
 	    Sets the standard output stream for the task.<br>
@@ -187,28 +196,44 @@
 	    it raises an NSInvalidArgumentException. 
           
  <hr>
-<h3><a name ="method-15">standardError</a></h3>
+<h3><a name ="method-16">standardError</a></h3>
 - (id) <b>standardError</b>;<br>
 
 	    Returns the standard error stream for the task - an NSFileHandle
 	    unless an NSPipe was passed to setStandardError:
           
  <hr>
-<h3><a name ="method-16">standardInput</a></h3>
+<h3><a name ="method-17">standardInput</a></h3>
 - (id) <b>standardInput</b>;<br>
 
 	    Returns the standard input stream for the task - an NSFileHandle
 	    unless an NSPipe was passed to setStandardInput:
           
  <hr>
-<h3><a name ="method-17">standardOutput</a></h3>
+<h3><a name ="method-18">standardOutput</a></h3>
 - (id) <b>standardOutput</b>;<br>
 
 	    Returns the standard output stream for the task - an NSFileHandle
 	    unless an NSPipe was passed to setStandardOutput:
           
  <hr>
-<h3><a name ="method-18">terminate</a></h3>
+<h3><a name ="method-19">resume</a></h3>
+- (BOOL) <b>resume</b>;<br>
+
+	    Sends a cont signal to the receiver and any subtasks.<br>
+	    If the task has not been launched, raises an
+	    NSInvalidArgumentException.<br> 
+          
+ <hr>
+<h3><a name ="method-20">suspend</a></h3>
+- (BOOL) <b>suspend</b>;<br>
+
+	    Sends a stop signal to the receiver and any subtasks.<br>
+	    If the task has not been launched, raises an
+	    NSInvalidArgumentException.<br> 
+          
+ <hr>
+<h3><a name ="method-21">terminate</a></h3>
 - (void) <b>terminate</b>;<br>
 
 	    Sends a terminate signal to the receiver and any subtasks.<br>
@@ -220,7 +245,7 @@
 	    posted.
           
  <hr>
-<h3><a name ="method-19">terminationStatus</a></h3>
+<h3><a name ="method-22">terminationStatus</a></h3>
 - (int) <b>terminationStatus</b>;<br>
 
 	    Returns the termination status of the task.<br>
@@ -228,7 +253,7 @@
 	    NSInvalidArgumentException.
           
  <hr>
-<h3><a name ="method-20">usePseudoTerminal</a></h3>
+<h3><a name ="method-23">usePseudoTerminal</a></h3>
 - (BOOL) <b>usePseudoTerminal</b>;<br>
 Standards:  GNUstep NotMacOS-X NotOpenStep<br>
 
@@ -244,7 +269,7 @@ Standards:  GNUstep NotMacOS-X NotOpenStep<br>
 	    The method returns YES on success, NO on failure.
           
  <hr>
-<h3><a name ="method-21">waitUntilExit</a></h3>
+<h3><a name ="method-24">waitUntilExit</a></h3>
 - (void) <b>waitUntilExit</b>;<br>
 
 	    Suspends the current thread until the task terminates, by

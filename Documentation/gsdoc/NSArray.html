@@ -10,6 +10,8 @@
  <dl>
 <dt><a href ="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
 <dd>
+<dt>Pierre-Yves Rivaille
+<dd>
 </dl>
 <p>Version: $Revision$</p>
 <p>Date: $Date$</p>
@@ -32,8 +34,8 @@
 <li ><a href ="NSArray.html#method-2">+arrayWithArray:</a>
 <li ><a href ="NSArray.html#method-3">+arrayWithContentsOfFile:</a>
 <li ><a href ="NSArray.html#method-4">+arrayWithObject:</a>
-<li ><a href ="NSArray.html#method-6">+arrayWithObjects:</a>
 <li ><a href ="NSArray.html#method-5">+arrayWithObjects:</a>
+<li ><a href ="NSArray.html#method-6">+arrayWithObjects:count:</a>
 <li ><a href ="NSArray.html#method-7">-arrayByAddingObject:</a>
 <li ><a href ="NSArray.html#method-8">-arrayByAddingObjectsFromArray:</a>
 <li ><a href ="NSArray.html#method-9">-componentsJoinedByString:</a>
@@ -42,16 +44,16 @@
 <li ><a href ="NSArray.html#method-12">-descriptionWithLocale:</a>
 <li ><a href ="NSArray.html#method-13">-descriptionWithLocale:</a>
 <li ><a href ="NSArray.html#method-14">-firstObjectCommonWithArray:</a>
-<li ><a href ="NSArray.html#method-16">-getObjects:</a>
 <li ><a href ="NSArray.html#method-15">-getObjects:</a>
+<li ><a href ="NSArray.html#method-16">-getObjects:range:</a>
 <li ><a href ="NSArray.html#method-17">-indexOfObject:</a>
-<li ><a href ="NSArray.html#method-18">-indexOfObject:</a>
-<li ><a href ="NSArray.html#method-20">-indexOfObjectIdenticalTo:</a>
+<li ><a href ="NSArray.html#method-18">-indexOfObject:range:</a>
 <li ><a href ="NSArray.html#method-19">-indexOfObjectIdenticalTo:</a>
+<li ><a href ="NSArray.html#method-20">-indexOfObjectIdenticalTo:range:</a>
 <li ><a href ="NSArray.html#method-21">-initWithArray:</a>
 <li ><a href ="NSArray.html#method-22">-initWithContentsOfFile:</a>
-<li ><a href ="NSArray.html#method-24">-initWithObjects:</a>
 <li ><a href ="NSArray.html#method-23">-initWithObjects:</a>
+<li ><a href ="NSArray.html#method-24">-initWithObjects:count:</a>
 <li ><a href ="NSArray.html#method-25">-isEqualToArray:</a>
 <li ><a href ="NSArray.html#method-26">-lastObject</a>
 <li ><a href ="NSArray.html#method-27">-makeObjectsPerformSelector:</a>
@@ -63,205 +65,288 @@
 <li ><a href ="NSArray.html#method-33">-sortedArrayHint</a>
 <li ><a href ="NSArray.html#method-34">-sortedArrayUsingFunction:context:</a>
 <li ><a href ="NSArray.html#method-35">-sortedArrayUsingFunction:context:</a>
-<li ><a href ="NSArray.html#method-36">-sortedArrayUsingSelector:</a>
+<li ><a href ="NSArray.html#method-36">-sortedArrayUsingSelector:hint:</a>
 <li ><a href ="NSArray.html#method-37">-subarrayWithRange:</a>
 <li ><a href ="NSArray.html#method-38">-writeToFile:atomically:</a>
+<li ><a href ="NSArray.html#method-39">-writeToURL:atomically:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">allocWithZone:</a></h3>
 + (id) <b>allocWithZone:</b> (NSZone*)zone;<br>
 
+	  TODO
           
  <hr>
 <h3><a name ="method-1">array</a></h3>
 + (id) <b>array</b>;<br>
 
+	    Returns a new empty array.
           
  <hr>
 <h3><a name ="method-2">arrayWithArray:</a></h3>
 + (id) <b>arrayWithArray:</b> (NSArray*)anArray;<br>
 
+            Returns a new array containing the same elements as anArray.
           
  <hr>
 <h3><a name ="method-3">arrayWithContentsOfFile:</a></h3>
 + (id) <b>arrayWithContentsOfFile:</b> (NSString*)aPath;<br>
 
+	    Returns a new array based upon the file located at aPath. 
+	    This file may be in property list format or in XML format (if XML is available).
+	    This method returns nil if the file does not represent an array.
           
  <hr>
 <h3><a name ="method-4">arrayWithObject:</a></h3>
 + (id) <b>arrayWithObject:</b> (id)anObject;<br>
 
+            Returns a new array containing only one object, anObject.
           
  <hr>
 <h3><a name ="method-5">arrayWithObjects:</a></h3>
 + (id) <b>arrayWithObjects:</b> (id)firstObj,;<br>
 
+            Returns a new array containing the objects passed as arguments to the method. The order is preserved.
           
  <hr>
-<h3><a name ="method-6">arrayWithObjects:</a></h3>
-+ (id) <b>arrayWithObjects:</b> (id*)objects;<br>
+<h3><a name ="method-6">arrayWithObjects:count:</a></h3>
++ (id) <b>arrayWithObjects:</b> (id*)objects <b>count:</b> (unsigned)count;<br>
 
+            Returns a new array containing the objects that are in 
+	    the C-array objects and which size is count.
+	    The order is preserved.
           
  <hr>
 <hr><h2>Instances Methods </h2>
 <h3><a name ="method-7">arrayByAddingObject:</a></h3>
 - (NSArray*) <b>arrayByAddingObject:</b> (id)anObject;<br>
 
+	    Returns a new array created by adding anObject at the end of seld. The order is respected.
           
  <hr>
 <h3><a name ="method-8">arrayByAddingObjectsFromArray:</a></h3>
 - (NSArray*) <b>arrayByAddingObjectsFromArray:</b> (NSArray*)otherArray;<br>
 
+	    Returns a new array which is the concatenation of self and otherArray (in this precise order).
           
  <hr>
 <h3><a name ="method-9">componentsJoinedByString:</a></h3>
 - (NSString*) <b>componentsJoinedByString:</b> (NSString*)separator;<br>
 
+	    Returns a string created by the concatenation of self's elements' description separated by the string separator.
+	    The order is preserved.
           
  <hr>
 <h3><a name ="method-10">containsObject:</a></h3>
 - (BOOL) <b>containsObject:</b> (id)anObject;<br>
 
+            Returns YES if anObject belongs to self. No otherwise. The isEqual: method of anObject is used to test equality.
           
  <hr>
 <h3><a name ="method-11">count</a></h3>
 - (unsigned int) <b>count</b>;<br>
 
+	    Returns the number of elements contained in self.
           
  <hr>
 <h3><a name ="method-12">descriptionWithLocale:</a></h3>
 - (NSString*) <b>descriptionWithLocale:</b> (NSDictionary*)locale;<br>
 
+            TODO
           
  <hr>
 <h3><a name ="method-13">descriptionWithLocale:</a></h3>
 - (NSString*) <b>descriptionWithLocale:</b> (NSDictionary*)locale;<br>
 
+            TODO
           
  <hr>
 <h3><a name ="method-14">firstObjectCommonWithArray:</a></h3>
 - (id) <b>firstObjectCommonWithArray:</b> (NSArray*)otherArray;<br>
 
+	    Returns the first element of the array which can be found in otherArray.
+            Equality is tested with the isEqual method.
           
  <hr>
 <h3><a name ="method-15">getObjects:</a></h3>
 - (void) <b>getObjects:</b> (id*)aBuffer;<br>
 
+            This methods store all the elements of self inside aBuffer which is a C-array.
+	    The order is preserved. You should get sure aBuffer's size is sufficient.
           
  <hr>
-<h3><a name ="method-16">getObjects:</a></h3>
-- (void) <b>getObjects:</b> (id*)aBuffer;<br>
+<h3><a name ="method-16">getObjects:range:</a></h3>
+- (void) <b>getObjects:</b> (id*)aBuffer <b>range:</b> (NSRange)aRange;<br>
 
+            This methods store the elements of self in the range aRange inside aBuffer which is a C-array.
+	    The order is preserved. You should get sure aBuffer's size is sufficient.            
           
  <hr>
 <h3><a name ="method-17">indexOfObject:</a></h3>
 - (unsigned int) <b>indexOfObject:</b> (id)anObject;<br>
 
+            Returns the index of the first object of the array which is equal to anObject.
+            Equality is tested with the isEqual: method of anObject.
           
  <hr>
-<h3><a name ="method-18">indexOfObject:</a></h3>
-- (unsigned int) <b>indexOfObject:</b> (id)anObject;<br>
+<h3><a name ="method-18">indexOfObject:range:</a></h3>
+- (unsigned int) <b>indexOfObject:</b> (id)anObject <b>range:</b> (NSRange)aRange;<br>
 
+            Returns the index of the first object of the array which is equal to anObject and which is in aRange range.
+            Equality is tested with the isEqual: method of anObject.            
           
  <hr>
 <h3><a name ="method-19">indexOfObjectIdenticalTo:</a></h3>
 - (unsigned int) <b>indexOfObjectIdenticalTo:</b> (id)anObject;<br>
 
+            Returns the index of the first object of the array which is physically equal to anObject.
+            Physical equality is tested with ==. 
           
  <hr>
-<h3><a name ="method-20">indexOfObjectIdenticalTo:</a></h3>
-- (unsigned int) <b>indexOfObjectIdenticalTo:</b> (id)anObject;<br>
+<h3><a name ="method-20">indexOfObjectIdenticalTo:range:</a></h3>
+- (unsigned int) <b>indexOfObjectIdenticalTo:</b> (id)anObject <b>range:</b> (NSRange)aRange;<br>
 
+            Returns the index of the first object of the array which is physically equal to anObject and which is in aRange range.
+            Physical equality is tested with ==. 
           
  <hr>
 <h3><a name ="method-21">initWithArray:</a></h3>
 - (id) <b>initWithArray:</b> (NSArray*)anArray;<br>
 
+	    Initialize the array with the content of anArray. The order is preserved.
+	    Returns self.
           
  <hr>
 <h3><a name ="method-22">initWithContentsOfFile:</a></h3>
 - (id) <b>initWithContentsOfFile:</b> (NSString*)aPath;<br>
 
+	    Initialize the array based upon the file located at aPath. 
+	    This file may be in property list format or in XML format (if XML is available).
+	    If the file does not represent an array, self is left uninitialized and nil is returned.
+            Otherwise self is returned.
           
  <hr>
 <h3><a name ="method-23">initWithObjects:</a></h3>
 - (id) <b>initWithObjects:</b> (id)firstObj,;<br>
 
+            Initialize the array with the objects passed as arguments. The order is preserved.
+	    Returns self.
+	    NSInvalidArgumentException is raised if nil is one of the objects.
           
  <hr>
-<h3><a name ="method-24">initWithObjects:</a></h3>
-- (id) <b>initWithObjects:</b> (id*)objects;<br>
+<h3><a name ="method-24">initWithObjects:count:</a></h3>
+- (id) <b>initWithObjects:</b> (id*)objects <b>count:</b> (unsigned)count;<br>
 
+            Initialize the array with the objects contained in the 
+	       C-array argument which size is count.
+	    The order is preserved.
+	    Returns self.
+	    NSInvalidArgumentException is raised if nil is one of the objects.
           
  <hr>
 <h3><a name ="method-25">isEqualToArray:</a></h3>
 - (BOOL) <b>isEqualToArray:</b> (NSArray*)otherArray;<br>
 
+            Returns YES if the two arrays contain the same elements,
+            i.e. the two arrays have the same length and <br>
+	    for i from 0 to length - 1,
+            [[self objectAtIndex: i] isEqual: [anArray objectAtIndex: i]] returns YES.
           
  <hr>
 <h3><a name ="method-26">lastObject</a></h3>
 - (id) <b>lastObject</b>;<br>
 
+	    Returns the last element of the array. If the array is empty, returns nil.
           
  <hr>
 <h3><a name ="method-27">makeObjectsPerformSelector:</a></h3>
 - (void) <b>makeObjectsPerformSelector:</b> (SEL)aSelector;<br>
 
+            Perform aSelector on every object of the array.
+            This is done sequentially from the last to the first object.
           
  <hr>
 <h3><a name ="method-28">makeObjectsPerformSelector:withObject:</a></h3>
 - (void) <b>makeObjectsPerformSelector:</b> (SEL)aSelector <b>withObject:</b> (id)anObject;<br>
 
+            Perform aSelector with the argument anObject on every object of the array.
+            This is done sequentially from the last to the first object.
           
  <hr>
 <h3><a name ="method-29">objectAtIndex:</a></h3>
 - (id) <b>objectAtIndex:</b> (unsigned int)index;<br>
 
+            Returns located in the array at position index.
+            Raise NSRangeException if index is out of bounds
           
  <hr>
 <h3><a name ="method-30">objectEnumerator</a></h3>
 - (NSEnumerator*) <b>objectEnumerator</b>;<br>
 
+            Returns an enumerator describing the array sequentially 
+              from the first to the last element.<br>
+            If you use a mutable subclass of NSArray, 
+              you should not modify the array during enumeration
           
  <hr>
 <h3><a name ="method-31">pathsMatchingExtensions:</a></h3>
 - (NSArray*) <b>pathsMatchingExtensions:</b> (NSArray*)filterTypes;<br>
 
+            Returns all the elements of the array which are NSString which 
+	    extensions are within the filterTypes NSArray.
           
  <hr>
 <h3><a name ="method-32">reverseObjectEnumerator</a></h3>
 - (NSEnumerator*) <b>reverseObjectEnumerator</b>;<br>
+
+            Returns an enumerator describing the array sequentially 
+              from the last to the first element.<br>
+            If you use a mutable subclass of NSArray, 
+              you should not modify the array during enumeration
 
           
  <hr>
 <h3><a name ="method-33">sortedArrayHint</a></h3>
 - (NSData*) <b>sortedArrayHint</b>;<br>
 
+             Returns nil. Does not do anything. TODO
           
  <hr>
 <h3><a name ="method-34">sortedArrayUsingFunction:context:</a></h3>
 - (NSArray*) <b>sortedArrayUsingFunction:</b> (int(*)(id,id,void*))comparator <b>context:</b> (void*)context;<br>
 
+            TODO
           
  <hr>
 <h3><a name ="method-35">sortedArrayUsingFunction:context:</a></h3>
 - (NSArray*) <b>sortedArrayUsingFunction:</b> (int(*)(id,id,void*))compare <b>context:</b> (void*)context;<br>
 
+            TODO
           
  <hr>
-<h3><a name ="method-36">sortedArrayUsingSelector:</a></h3>
-- (NSArray*) <b>sortedArrayUsingSelector:</b> (SEL)comparator;<br>
+<h3><a name ="method-36">sortedArrayUsingSelector:hint:</a></h3>
+- (NSArray*) <b>sortedArrayUsingSelector:</b> (SEL)comparator <b>hint:</b> (NSDate*)hint;<br>
 
+            TODO
           
  <hr>
 <h3><a name ="method-37">subarrayWithRange:</a></h3>
 - (NSArray*) <b>subarrayWithRange:</b> (NSRange)range;<br>
 
+            Returns a new array which contains self's elements located in range.
+            The order is preserved.
           
  <hr>
 <h3><a name ="method-38">writeToFile:atomically:</a></h3>
 - (BOOL) <b>writeToFile:</b> (NSString*)path <b>atomically:</b> (BOOL)flag;<br>
 
+	    TODO
+          
+ <hr>
+<h3><a name ="method-39">writeToURL:atomically:</a></h3>
+- (BOOL) <b>writeToURL:</b> (NSURL*)url <b>atomically:</b> (BOOL)flag;<br>
+
+	    TODO
           
  <hr>
 </body>

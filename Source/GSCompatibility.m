@@ -73,7 +73,22 @@ static BOOL	MacOSXCompatiblePropertyLists = NO;
     }
   else
     {
-      MacOSXCompatiblePropertyLists = MacOSXCompatible;
+      def = [defaults objectForKey: @"NSWriteOldStylePropertyLists"];
+      if (def != nil && [def isKindOfClass: sClass] == YES)
+	{
+	  if ([def boolBalue] == YES)
+	    {
+	      MacOSXCompatiblePropertyLists = NO;
+	    }
+	  else
+	    {
+	      MacOSXCompatiblePropertyLists = YES;
+	    }
+	}
+	else
+	{
+	  MacOSXCompatiblePropertyLists = MacOSXCompatible;
+	}
     }
 }
 @end
@@ -109,8 +124,6 @@ BOOL GSMacOSXCompatibleGeometry()
 
 BOOL GSMacOSXCompatiblePropertyLists()
 {
-/* HACK until xml propertylists fully working */
-return NO;
   if (setupDone == NO)
     compatibilitySetup();
   return MacOSXCompatiblePropertyLists;
@@ -170,11 +183,30 @@ encodeBase64(NSData *source)
     initWithCStringNoCopy: dBuf length: destlen-1 freeWhenDone: YES];
 }
 
+static NSCharacterSet *quotables = nil;
+
+static void setupQuotables()
+{
+  if (quotables == nil)
+    {
+      NSMutableCharacterSet	*s;
+
+      s = [[NSCharacterSet characterSetWithCharactersInString:
+	@"&<>'\\\""] mutableCopy];
+      [s addCharactersInRange: NSMakeRange(0x0001, 0x001f)];
+      [s removeCharactersInRange: NSMakeRange(0x0009, 0x0002)];
+      [s removeCharactersInRange: NSMakeRange(0x000D, 0x0001)];
+      [s addCharactersInRange: NSMakeRange(0xD800, 0x07FF)];
+      [s addCharactersInRange: NSMakeRange(0xFFFE, 0x0002)];
+      quotables = [s copy];
+      RELEASE(s);
+    }
+}
+
 static NSString*
 XMLString(NSString* obj)
 {
-  static NSCharacterSet	*quotables = nil;
-  static char *hexdigits = "0123456789ABCDEF";
+  static char	*hexdigits = "0123456789ABCDEF";
   unsigned	end;
 
   end = [obj length];
@@ -185,7 +217,7 @@ XMLString(NSString* obj)
 
   if (quotables == nil)
     {
-      // setupQuotables();
+      setupQuotables();
     }
 
   if ([obj rangeOfCharacterFromSet: quotables].length > 0)
@@ -213,7 +245,7 @@ XMLString(NSString* obj)
 		break;
 	      case '\'': 
 	      case '"': 
-		len += 5;
+		len += 6;
 		break;
 	      case '\\': 
 		len += 1;
@@ -302,27 +334,27 @@ XMLString(NSString* obj)
 		    else
 		      {
 			map[wpos++] = '\\';
-			map[wpos++] = hexdigits[(c>>4) & 0xff];
-			map[wpos++] = hexdigits[c & 0xff];
-			map[wpos++] = '\\';
+			map[wpos++] = '0' + ((c / 64) & 7);
+			map[wpos++] = '0' + ((c / 8) & 7);
+			map[wpos++] = '0' + (c & 7);
 		      }
 		  }
 		else if (c > 0xD7FF && c < 0xE000)
 		  {
 		    map[wpos++] = '\\';
-		    map[wpos++] = hexdigits[(c>>12) & 0xff];
-		    map[wpos++] = hexdigits[(c>>8) & 0xff];
-		    map[wpos++] = hexdigits[(c>>4) & 0xff];
-		    map[wpos++] = hexdigits[c & 0xff];
-		    map[wpos++] = '\\';
+		    map[wpos++] = 'U';
+		    map[wpos++] = hexdigits[(c>>12) & 0xf];
+		    map[wpos++] = hexdigits[(c>>8) & 0xf];
+		    map[wpos++] = hexdigits[(c>>4) & 0xf];
+		    map[wpos++] = hexdigits[c & 0xf];
 		  }
 		else if (c > 0xFFFD)
 		  {
 		    map[wpos++] = '\\';
-		    map[wpos++] = hexdigits[(c>>12) & 0xff];
-		    map[wpos++] = hexdigits[(c>>8) & 0xff];
-		    map[wpos++] = hexdigits[(c>>4) & 0xff];
-		    map[wpos++] = hexdigits[c & 0xff];
+		    map[wpos++] = hexdigits[(c>>12) & 0xf];
+		    map[wpos++] = hexdigits[(c>>8) & 0xf];
+		    map[wpos++] = hexdigits[(c>>4) & 0xf];
+		    map[wpos++] = hexdigits[c & 0xf];
 		    map[wpos++] = '\\';
 		  }
 		else
