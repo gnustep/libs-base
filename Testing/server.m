@@ -50,7 +50,10 @@
 }
 - objectAt: (unsigned)i
 {
-  return [the_array objectAtIndex: i];
+  if (i < [the_array count])
+    return [the_array objectAtIndex: i];
+  else
+    return nil;
 }
 - print: (const char *)msg
 {

@@ -993,9 +993,11 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   fd_set exception_fds;		/* Copy for listening to exception fds. */
   fd_set write_fds;		/* Copy for listening for write-ready fds. */
   int select_return;
-  int fd_index;
+  int fdIndex;
+  int fdEnd;
   id saved_mode;
-  int num_inputs = 0;
+  int num_inputs = 0;		/* Number of descriptors being monitored. */
+  int end_inputs = 0;		/* Highest numbered descriptor plus one. */
   CREATE_AUTORELEASE_POOL(arp);
 
   NSAssert(mode, NSInvalidArgumentException);
@@ -1057,7 +1059,9 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   NSResetMapTable(_rfdMap);
   NSResetMapTable(_wfdMap);
 
-  /* Do the pre-listening set-up for the file descriptors of this mode. */
+  /*
+   * Do the pre-listening set-up for the file descriptors of this mode.
+   */
   {
     GSIArray	watchers;
 
@@ -1081,6 +1085,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	      {
 		case ET_EDESC: 
 		  fd = (int)info->data;
+		  if (fd > end_inputs)
+		    end_inputs = fd;
 		  FD_SET (fd, &exception_fds);
 		  NSMapInsert(_efdMap, (void*)fd, info);
 		  num_inputs++;
@@ -1088,6 +1094,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 		case ET_RDESC: 
 		  fd = (int)info->data;
+		  if (fd > end_inputs)
+		    end_inputs = fd;
 		  FD_SET (fd, &read_fds);
 		  NSMapInsert(_rfdMap, (void*)fd, info);
 		  num_inputs++;
@@ -1095,6 +1103,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 		case ET_WDESC: 
 		  fd = (int)info->data;
+		  if (fd > end_inputs)
+		    end_inputs = fd;
 		  FD_SET (fd, &write_fds);
 		  NSMapInsert(_wfdMap, (void*)fd, info);
 		  num_inputs++;
@@ -1123,7 +1133,10 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 		      while (port_fd_count--)
 			{
+			  fd = port_fd_array[port_fd_count];
 			  FD_SET (port_fd_array[port_fd_count], &read_fds);
+			  if (fd > end_inputs)
+			    end_inputs = fd;
 			  NSMapInsert(_rfdMap, 
 			    (void*)port_fd_array[port_fd_count], info);
 			  num_inputs++;
@@ -1134,6 +1147,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	  }
       }
   }
+  end_inputs++;
 
   /*
    * If there are notifications in the 'idle' queue, we try an instantaneous
@@ -1145,11 +1159,11 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
       timeout.tv_sec = 0;
       timeout.tv_usec = 0;
       select_timeout = &timeout;
-      select_return = select (FD_SETSIZE, &read_fds, &write_fds, &exception_fds,
+      select_return = select (end_inputs, &read_fds, &write_fds, &exception_fds,
 			  select_timeout);
     }
   else
-    select_return = select (FD_SETSIZE, &read_fds, &write_fds, &exception_fds,
+    select_return = select (end_inputs, &read_fds, &write_fds, &exception_fds,
 			  select_timeout);
 
   if (debug_run_loop)
@@ -1184,19 +1198,35 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     }
   
   /*
-   *	Look at all the file descriptors select() says are ready for reading;
+   *	Look at all the file descriptors select() says are ready for action;
    *	notify the corresponding object for each of the ready fd's.
    *	NB. It is possible for a watcher to be missing from the map - if
    *	the event handler of a previous watcher has 'run' the loop again
    *	before returning.
+   *	NB. Each time this roop is entered, the starting position (_fdStart)
+   *	is incremented - this is to ensure a fair distribtion over all
+   *	inputs where multiple inputs are in use.  Note - _fdStart can be
+   *	modified while we are in the loop (by recursive calls).
    */
-  for (fd_index = 0; fd_index < FD_SETSIZE; fd_index++)
+  if (_fdStart >= end_inputs)
     {
-      if (FD_ISSET (fd_index, &exception_fds))
+      _fdStart = 0;
+      fdIndex = 0;
+      fdEnd = 0;
+    }
+  else
+    {
+      _fdStart++;
+      fdIndex = _fdStart;
+      fdEnd = _fdStart;
+    }
+  do
+    {
+      if (FD_ISSET (fdIndex, &exception_fds))
         {
 	  GSRunLoopWatcher	*watcher;
 
-	  watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)fd_index);
+	  watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      /*
@@ -1205,17 +1235,17 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	       */
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fd_index, _current_mode);
+		(void*)(gsaddr)fdIndex, _current_mode);
 	    }
 	  GSNotifyASAP();
 	  if (--select_return == 0)
 	    break;
         }
-      if (FD_ISSET (fd_index, &write_fds))
+      if (FD_ISSET (fdIndex, &write_fds))
         {
 	  GSRunLoopWatcher	*watcher;
 
-	  watcher = NSMapGet(_wfdMap, (void*)fd_index);
+	  watcher = NSMapGet(_wfdMap, (void*)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      /*
@@ -1224,17 +1254,17 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	       */
 	      (*watcher->handleEvent)(watcher->receiver,
 		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fd_index, _current_mode);
+		(void*)(gsaddr)fdIndex, _current_mode);
 	    }
 	  GSNotifyASAP();
 	  if (--select_return == 0)
 	    break;
         }
-      if (FD_ISSET (fd_index, &read_fds))
+      if (FD_ISSET (fdIndex, &read_fds))
         {
 	  GSRunLoopWatcher	*watcher;
 
-	  watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)fd_index);
+	  watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
 	      /*
@@ -1243,13 +1273,18 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	       */
 	      (*watcher->handleEvent)(watcher->receiver,
 		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd_index, _current_mode);
+		    (void*)(gsaddr)fdIndex, _current_mode);
 	    }
 	  GSNotifyASAP();
 	  if (--select_return == 0)
 	    break;
         }
+      if (++fdIndex >= end_inputs)
+	{
+	  fdIndex = 0;
+	}
     }
+  while (fdIndex != fdEnd);
 
 
   /* Clean up before returning. */

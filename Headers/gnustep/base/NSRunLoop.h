@@ -42,6 +42,7 @@ GS_EXPORT NSString* const NSDefaultRunLoopMode;
   NSMapTable	*_efdMap;
   NSMapTable	*_rfdMap;
   NSMapTable	*_wfdMap;
+  int		_fdStart;
 }
 
 + (NSRunLoop*) currentRunLoop;

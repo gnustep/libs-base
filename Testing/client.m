@@ -209,8 +209,13 @@ printf("oneway %d\n", _F_ONEWAY);
     [NSConnection setDebug: 0];
     [NSDistantObject setDebug: 0];
     [NSPort setDebug: 0];
-    for (j = 0; j < 10000; j++)
+    for (i = 0; i < 10000; i++)
       {
+	k = [p count];
+	for (j = 0; j < k; j++)
+	  {
+	    id remote_peer_obj = [p objectAt: j];
+	  }
 	[p echoObject: localObj];
       }
       
