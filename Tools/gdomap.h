@@ -227,5 +227,5 @@ typedef	struct	{
  *	NSPortNameServer.m and re-install the base library with
  *	the new NSPortNameServer.o
  */
-/* #define	GDOMAP_PORT_OVERRIDE	6006	*/
+/* #define	GDOMAP_PORT_OVERRIDE	6006 */
 

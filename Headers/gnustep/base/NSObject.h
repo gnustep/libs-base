@@ -292,6 +292,10 @@ extern NSRecursiveLock *gnustep_global_lock;
 #define	CREATE_AUTORELEASE_POOL(X)	
 #endif
 
+#ifndef RECREATE_AUTORELEASE_POOL
+#define RECREATE_AUTORELEASE_POOL(X)
+#endif
+
 #define	IF_NO_GC(X)	
 
 #else
@@ -388,7 +392,18 @@ if (__value != (id)object) \
 
 #ifndef	CREATE_AUTORELEASE_POOL
 #define	CREATE_AUTORELEASE_POOL(X)	\
-  NSAutoreleasePool *(X) = [NSAutoreleasePool new]
+  NSAutoreleasePool *(X) = [[NSAutoreleasePool alloc] init]
+#endif
+
+/*
+ * Similar, but allows reuse of variables. Be sure to use DESTROY()
+ * so the object variable stays nil.
+ */
+
+#ifndef RECREATE_AUTORELEASE_POOL
+#define RECREATE_AUTORELEASE_POOL(X)  \
+  if (X == nil) \
+    (X) = [[NSAutoreleasePool alloc] init]
 #endif
 
 #define	IF_NO_GC(X)	X
