@@ -663,8 +663,8 @@ cString_c(ivars self)
 
       /*
        * The external C string encoding is not compatible with the internal
-       * C strings ... we must convert from internal format to unicode and
-       * then to the external C string encoding.
+       * 8-bit character strings ... we must convert from internal format to
+       * unicode and then to the external C string encoding.
        */
       if (GSToUnicode(&u, &l, self->_contents.c, self->_count, intEnc,
 	NSDefaultMallocZone(), 0) == NO)
@@ -720,8 +720,8 @@ cStringLength_c(ivars self)
     {
       /*
        * The external C string encoding is not compatible with the internal
-       * C strings ... we must convert from internal format to unicode and
-       * then to the external C string encoding.
+       * 8-bit character strings ... we must convert from internal format to
+       * unicode and then to the external C string encoding.
        */
       if (self->_count == 0)
 	{
@@ -1576,17 +1576,18 @@ transmute(ivars self, NSString *aString)
 	|| (c == GSMutableStringClass && other->_flags.wide == 0))
 	{
 	  /*
-	   * This is a C string, but the other string is also a C string
-	   * so we don't need to transmute, and we can use its ivars.
+	   * This is an 8-bit character string, but the other string is also
+	   * an 8-bit character string, so we don't need to transmute, and
+	   * we can use its ivars.
 	   */
 	  transmute = NO;
 	}
       else if ([aString canBeConvertedToEncoding: intEnc] == YES)
 	{
 	  /*
-	   * This is a C string, but the other string can be converted to
-	   * a C string, so we don't need to transmute, but we can not use
-	   * its ivars.
+	   * This is an 8-bit character string, but the other string can be
+	   * converted to an 8-bit character string, so we don't need to
+	   * transmute, but we can *not* use its ivars.
 	   */
 	  transmute = NO;
 	  other = 0;
@@ -1595,18 +1596,19 @@ transmute(ivars self, NSString *aString)
 	|| GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
 	{
 	  /*
-	   * This is a C string, and the other string can not be converted
-	   * to a C string, so we need to transmute, and will then be able
-	   * to use its ivars.
+	   * This is an 8-bit character string, and the other string can
+	   * not be converted to an 8-bit character string, so we need to
+	   * transmute, and will then be able to use its ivars.
 	   */
 	  transmute = YES;
 	}
       else
 	{
 	  /*
-	   * This is a C string, and the other string can not be converted
-	   * to a C string, so we need to transmute, but even then we will
-	   * not be able to use  the other strings ivars.
+	   * This is an 8-bit character string, and the other string can
+	   * not be converted to an 8-bit character string, so we need to
+	   * transmute, but even then we will not be able to use the other
+	   * strings ivars.
 	   */
 	  other = 0;
 	}
@@ -2380,7 +2382,8 @@ transmute(ivars self, NSString *aString)
       t = (NSString*)[NSStringClass allocWithZone: NSDefaultMallocZone()];
       /*
        * Now initialise with the format information ... the placeholder
-       * can decide whether to create a concrete C string or unicode string.
+       * can decide whether to create a concrete 8-bit character string
+       * or unicode string.
        */
       t = [t initWithFormat: format arguments: ap];
       /*
