@@ -847,7 +847,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
     {
       NSString	*show = [[NSUserDefaults standardUserDefaults]
 			 objectForKey: NSShowNonLocalizedStrings];
-      if (!show || [show isEqual: @"YES"])
+      if (show && [show isEqual: @"YES"])
         {
 	  /* It would be bad to localize this string! */
 	  NSLog(@"Non-localized string: %@\n", newString);

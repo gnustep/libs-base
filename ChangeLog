@@ -1,3 +1,9 @@
+Sun Aug  1  7:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSBundle.m: ([+localizedStringForKey:value:table:]) Fixed so
+	that debugging behavior only takes place when NSShowNonLocalizedStrings
+	default is 'YES'.
+
 1999-07-29  Adam Fedor  <fedor@gnu.org>
 
 	* config.guess: Updated from latest version + fix for Netwinder.
@@ -8,7 +14,7 @@
 
 Wed Jul 28 15:53:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	* Source/NSObject.h: ([+isKindOfClass:]) Fixed to return NO except
+	* Source/NSObject.m: ([+isKindOfClass:]) Fixed to return NO except
 	when both the argument and the receiver are NSObject - as specified
 	in the MacOS-X documentation.  Thanks to Helge for pointing this out.
 
