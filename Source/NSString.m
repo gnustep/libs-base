@@ -156,7 +156,7 @@ handle_printf_atsign (FILE *stream,
 #endif
   len = fprintf(stream, "%*s",
 		(info->left ? - info->width : info->width),
-		[string_object cStringNoCopy]);
+		[[string_object description] cStringNoCopy]);
   return len;
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
@@ -186,7 +186,9 @@ handle_printf_atsign (FILE *stream,
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject ([self _concreteClass], 0, z);
+  if ([self class] == [NSString class])
+    return NSAllocateObject ([self _concreteClass], 0, z);
+  return [super allocWithZone:z];
 }
 
 // Creating Temporary Strings
@@ -195,6 +197,11 @@ handle_printf_atsign (FILE *stream,
 {
   [self notImplemented:_cmd];
   return self;
+}
+
++ (NSString*) string
+{
+  return [[[self alloc] init] autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*) byteString
@@ -1419,7 +1426,9 @@ handle_printf_atsign (FILE *stream,
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _mutableConcreteClass], 0, z);
+  if ([self class] == [NSMutableString class])
+    return NSAllocateObject([self _mutableConcreteClass], 0, z);
+  return [super allocWithZone:z];
 }
 
 /* xxx This method may be removed in future. */
