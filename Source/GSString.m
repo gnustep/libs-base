@@ -3496,7 +3496,7 @@ transmute(ivars self, NSString *aString)
 }
 
 /*
- * Access instance variables of NXConstnatString class consistently
+ * Access instance variables of NXConstantString class consistently
  * with other concrete NSString subclasses.
  */
 #define _self	((ivars)self)
@@ -3506,7 +3506,7 @@ transmute(ivars self, NSString *aString)
 	     freeWhenDone: (BOOL)flag
 {
   [NSException raise: NSGenericException
-	      format: @"Attempt to init an NXConstantString"];
+	      format: @"Attempt to init a constant string"];
   return nil;
 }
 
@@ -3515,7 +3515,7 @@ transmute(ivars self, NSString *aString)
 		freeWhenDone: (BOOL)flag
 {
   [NSException raise: NSGenericException
-	      format: @"Attempt to init an NXConstantString"];
+	      format: @"Attempt to init a constant string"];
   return nil;
 }
 
