@@ -5,6 +5,7 @@
 #define HAVE_STRING_H 1
 #define HAVE_MEMORY_H 1
 #define HAVE_VSPRINTF 1
+#define VSPRINTF_RETURNS_LENGTH 1
 
 #define NeXT_cc 0
 #define NeXT_runtime 0

@@ -20,6 +20,7 @@
 /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>.  */
 
 #include <sys/types.h>
+#include <gnustep/base/config.h>
 
 #if STDC_HEADERS
 #include <stdlib.h>

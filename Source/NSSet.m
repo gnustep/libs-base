@@ -360,17 +360,30 @@ static Class NSMutableSet_concrete_class;
 
 - (void) unionSet: (NSSet*) other
 {
-  [self notImplemented:_cmd];
+  id keys = [other objectEnumerator];
+  id key;
+
+  while ((key = [keys nextObject]))
+    [self addObject: key];
 }
 
 - (void) intersectSet: (NSSet*) other
 {
-  [self notImplemented:_cmd];
+  id keys = [self objectEnumerator];
+  id key;
+
+  while ((key = [keys nextObject]))
+    if ([other containsObject:key] == NO)
+      [self removeObject:key];
 }
 
 - (void) minusSet: (NSSet*) other
 {
-  [self notImplemented:_cmd];
+  id keys = [other objectEnumerator];
+  id key;
+
+  while ((key = [keys nextObject]))
+    [self removeObject:key];
 }
 
 - (void) removeAllObjects
