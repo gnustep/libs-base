@@ -49,6 +49,7 @@
 #include "Foundation/NSData.h"
 #include "Foundation/NSUtilities.h"
 #include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
 
 static const char*
 typeToName1(char type)
@@ -391,6 +392,7 @@ static Class NSDataMallocClass;
 - (void) dealloc
 {
   RELEASE(data);
+  RELEASE(objSave);
   RELEASE(objDict);
   if (clsMap)
     {
@@ -435,7 +437,13 @@ static Class NSDataMallocClass;
        *	encoded with.
        */
       objDict = [[NSMutableDictionary allocWithZone: zone]
-			initWithCapacity: 200];
+				   initWithCapacity: 200];
+      /*
+       *	objSave is an array used purely to ensure that objects
+       *	we decode persist until the end of the decoding.
+       */
+      objSave = [[NSMutableArray allocWithZone: zone]
+			      initWithCapacity: 200];
 
       NS_DURING
 	{
@@ -608,6 +616,16 @@ static Class NSDataMallocClass;
 		    {
 		      obj = rep;
 		      GSIArraySetItemAtIndex(objMap, (GSIArrayItem)obj, xref);
+		    }
+		  /*
+		   * The objMap does not retain objects, so in order to
+		   * be sure that a decoded object is not deallocated by
+		   * anything before it is needed (because it is decoded
+		   * later as a cross reference) we store it in objSave.
+		   */
+		  if (obj != nil)
+		    {
+		      [objSave addObject: obj];
 		    }
 		}
 	    }
@@ -1269,6 +1287,7 @@ static Class NSDataMallocClass;
     }
 
   [objDict removeAllObjects];
+  [objSave removeAllObjects];
 }
 
 - (void) deserializeHeaderAt: (unsigned*)pos
