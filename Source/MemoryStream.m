@@ -61,7 +61,7 @@ objects_vscanf (void *stream,
 		void (*unchar_func)(void*,int),
 		const char *format, va_list argptr);
 
-static BOOL debug_memory_stream = YES;
+static BOOL debug_memory_stream = NO;
 
 /* A pretty stupid implementation based on realloc(), but it works for now. */
 
