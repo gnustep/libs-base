@@ -2,6 +2,9 @@
 
 	* Source/NSArray.m: ([removeObjectsFromIndices:numIndices:])
 	bugfix for sorting by Kelvin Sherlock.
+	* Source/NSConnection.m: Experimental code to keep local objects
+	retained long enough to deal with most cases where the remote
+	process may want them again.
 
 2002-12-08  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -67,9 +67,9 @@ enum {
  *	by NSDistantObject et al for implementation of Distributed objects.
  */
 @interface NSConnection (Internal)
-+ (NSDistantObject*) includesLocalTarget: (unsigned)target;
 - (NSDistantObject*) includesLocalTarget: (unsigned)target;
 - (NSDistantObject*) localForObject: (id)object;
+- (NSDistantObject*) locateLocalTarget: (unsigned)target;
 - (NSDistantObject*) proxyForTarget: (unsigned)target;
 - (void) retainTarget: (unsigned)target;
 @end
