@@ -54,6 +54,7 @@ static BOOL debug_connected_coder = NO;
 			initForSendingWithCapacity: DEFAULT_SIZE
 			replyInPort: [c inPort]];
   [super initForWritingToStream: packet];
+  [packet release];
   connection = c;
   sequence_number = n;
   identifier = i;
@@ -161,6 +162,7 @@ static BOOL debug_connected_coder = NO;
 
   /* Create the new ConnectedDecoder */
   cd = [self newReadingFromStream: packet];
+  [packet release];
   reply_port = [packet replyPort];
   cd->connection = [Connection newForInPort: in_port
 			       outPort: reply_port
@@ -191,6 +193,7 @@ static BOOL debug_connected_coder = NO;
 
   /* Create the new ConnectedDecoder */
   cd = [self newReadingFromStream: packet];
+  [packet release];
   reply_port = [packet replyOutPort];
   cd->connection = [Connection newForInPort: in_port
 			       outPort: reply_port
