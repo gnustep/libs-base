@@ -147,6 +147,7 @@ BASE_MFILES = \
 GSArray.m \
 GSAttributedString.m \
 GSCountedSet.m \
+GSDictionary.m \
 GSHTTPURLHandle.m \
 GSMime.m \
 GSSet.m \
@@ -183,7 +184,6 @@ NSFileHandle.m \
 NSFileManager.m \
 NSFormatter.m \
 NSGeometry.m \
-NSGDictionary.m \
 NSHashTable.m \
 NSHost.m \
 NSInvocation.m \

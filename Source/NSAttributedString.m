@@ -55,7 +55,7 @@
 
 @class	GSAttributedString;
 @class	GSMutableAttributedString;
-@class	NSGMutableDictionary;
+@class	GSMutableDictionary;
 static Class	dictionaryClass = 0;
 
 static SEL	eqSel;
@@ -100,7 +100,7 @@ static Class GSMutableAttributedStringClass;
 	= [NSMutableAttributedString class];
       GSMutableAttributedStringClass
 	= [GSMutableAttributedString class];
-      dictionaryClass = [NSGMutableDictionary class];
+      dictionaryClass = [GSMutableDictionary class];
 
       eqSel = @selector(isEqual:);
       setSel = @selector(setAttributes:range:);

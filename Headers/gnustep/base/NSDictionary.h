@@ -29,17 +29,6 @@
 @class NSArray, NSString, NSEnumerator;
 
 @interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
-- (id) initWithObjects: (id*)objects
-	       forKeys: (id*)keys
-		 count: (unsigned)count;
-- (unsigned) count;
-- (id) objectForKey: (id)aKey;
-- (NSEnumerator*) keyEnumerator;
-- (NSEnumerator*) objectEnumerator;
-@end
-
-@interface NSDictionary (NonCore)
-
 + (id) dictionary;
 + (id) dictionaryWithContentsOfFile: (NSString*)path;
 + (id) dictionaryWithDictionary: (NSDictionary*)aDict;
@@ -49,26 +38,33 @@
 		     forKeys: (id*)keys
 		       count: (unsigned)count;
 + (id) dictionaryWithObjectsAndKeys: (id)object, ...;
+
+- (NSArray*) allKeys;
+- (NSArray*) allKeysForObject: (id)anObject;
+- (NSArray*) allValues;
+- (unsigned) count;						// Primitive
+- (NSString*) description;
+- (NSString*) descriptionInStringsFileFormat;
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
+			     indent: (unsigned int)level;
+
 - (id) initWithContentsOfFile: (NSString*)path;
 - (id) initWithDictionary: (NSDictionary*)otherDictionary;
 - (id) initWithDictionary: (NSDictionary*)otherDictionary
 		copyItems: (BOOL)shouldCopy;
 - (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 - (id) initWithObjectsAndKeys: (id)object, ...;
-
+- (id) initWithObjects: (id*)objects
+	       forKeys: (id*)keys
+		 count: (unsigned)count;			// Primitive
 - (BOOL) isEqualToDictionary: (NSDictionary*)other;
 
-- (NSArray*) allKeys;
-- (NSArray*) allKeysForObject: (id)anObject;
-- (NSArray*) allValues;
+- (NSEnumerator*) keyEnumerator;				// Primitive
 - (NSArray*) keysSortedByValueUsingSelector: (SEL)comp;
+- (NSEnumerator*) objectEnumerator;				// Primitive
+- (id) objectForKey: (id)aKey;					// Primitive
 - (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)anObject;
-
-- (NSString*) description;
-- (NSString*) descriptionInStringsFileFormat;
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale;
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
-			     indent: (unsigned int)level;
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 
@@ -77,18 +73,15 @@
 @end
 
 @interface NSMutableDictionary: NSDictionary
-- (id) initWithCapacity: (unsigned)numItems;
-- (void) setObject: (id)anObject forKey: (id)aKey;
-- (void) removeObjectForKey: (id)aKey;
-@end
-
-@interface NSMutableDictionary (NonCore)
 
 + (id) dictionaryWithCapacity: (unsigned)numItems;
 
-- (void) removeAllObjects;
-- (void) removeObjectsForKeys: (NSArray*)keyArray;
 - (void) addEntriesFromDictionary: (NSDictionary*)otherDictionary;
+- (id) initWithCapacity: (unsigned)numItems;			// Primitive
+- (void) removeAllObjects;
+- (void) removeObjectForKey: (id)aKey;				// Primitive
+- (void) removeObjectsForKeys: (NSArray*)keyArray;
+- (void) setObject: (id)anObject forKey: (id)aKey;		// Primitive
 - (void) setDictionary: (NSDictionary*)otherDictionary;
 
 @end

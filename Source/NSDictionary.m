@@ -36,21 +36,16 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSObjCRuntime.h>
 
-@interface NSDictionaryNonCore : NSDictionary
-@end
-@interface NSMutableDictionaryNonCore: NSMutableDictionary
-@end
-
 @implementation NSDictionary 
 
-@class	NSGDictionary;
-@class	NSGMutableDictionary;
+@class	GSDictionary;
+@class	GSMutableDictionary;
 
 static Class NSArray_class;
-static Class NSDictionary_abstract_class;
-static Class NSMutableDictionary_abstract_class;
-static Class NSDictionary_concrete_class;
-static Class NSMutableDictionary_concrete_class;
+static Class NSDictionaryClass;
+static Class NSMutableDictionaryClass;
+static Class GSDictionaryClass;
+static Class GSMutableDictionaryClass;
 
 static SEL	eqSel;
 static SEL	nxtSel;
@@ -63,12 +58,11 @@ static SEL	appSel;
 {
   if (self == [NSDictionary class])
     {
-      behavior_class_add_class (self, [NSDictionaryNonCore class]);
       NSArray_class = [NSArray class];
-      NSDictionary_abstract_class = [NSDictionary class];
-      NSMutableDictionary_abstract_class = [NSMutableDictionary class];
-      NSDictionary_concrete_class = [NSGDictionary class];
-      NSMutableDictionary_concrete_class = [NSGMutableDictionary class];
+      NSDictionaryClass = [NSDictionary class];
+      NSMutableDictionaryClass = [NSMutableDictionary class];
+      GSDictionaryClass = [GSDictionary class];
+      GSMutableDictionaryClass = [GSMutableDictionary class];
 
       eqSel = @selector(isEqual:);
       nxtSel = @selector(nextObject);
@@ -81,9 +75,9 @@ static SEL	appSel;
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if (self == NSDictionary_abstract_class)
+  if (self == NSDictionaryClass)
     {
-      return NSAllocateObject(NSDictionary_concrete_class, 0, z);
+      return NSAllocateObject(GSDictionaryClass, 0, z);
     }
   else
     {
@@ -131,13 +125,13 @@ static SEL	appSel;
 
 - (id) mutableCopyWithZone: (NSZone*)z
 {
-  return [[NSMutableDictionary_concrete_class allocWithZone: z] 
+  return [[GSMutableDictionaryClass allocWithZone: z] 
 	  initWithDictionary: self];
 }
 
 - (Class) classForCoder
 {
-  return NSDictionary_abstract_class;
+  return NSDictionaryClass;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -192,9 +186,6 @@ static SEL	appSel;
 
   return self;
 }
-@end
-
-@implementation NSDictionaryNonCore
 
 + (id) dictionary
 {
@@ -431,7 +422,7 @@ static SEL	appSel;
 	}
       NS_ENDHANDLER
       RELEASE(myString);
-      if ([result isKindOfClass: NSDictionary_abstract_class])
+      if ([result isKindOfClass: NSDictionaryClass])
 	{
 	  [self initWithDictionary: result];
 	  return self;
@@ -453,7 +444,7 @@ static SEL	appSel;
   if (other == self)
     return YES;
 
-  if ([other isKindOfClass: NSDictionary_abstract_class])
+  if ([other isKindOfClass: NSDictionaryClass])
     return [self isEqualToDictionary: other];
 
   return NO;
@@ -904,16 +895,14 @@ static NSString	*indentStrings[] = {
 {
   if (self == [NSMutableDictionary class])
     {
-      behavior_class_add_class (self, [NSMutableDictionaryNonCore class]);
-      behavior_class_add_class (self, [NSDictionaryNonCore class]);
     }
 }
 
 + (id) allocWithZone: (NSZone*)z
 {
-  if (self == NSMutableDictionary_abstract_class)
+  if (self == NSMutableDictionaryClass)
     {
-      return NSAllocateObject(NSMutableDictionary_concrete_class, 0, z);
+      return NSAllocateObject(GSMutableDictionaryClass, 0, z);
     }
   else
     {
@@ -940,7 +929,7 @@ static NSString	*indentStrings[] = {
       objects[i] = (*objImp)(self, objSel, key);
       objects[i] = [objects[i] copyWithZone: z];
     }
-  newDictionary = [[NSDictionary_concrete_class allocWithZone: z] 
+  newDictionary = [[GSDictionaryClass allocWithZone: z] 
 	  initWithObjects: objects
 		  forKeys: keys
 		    count: count];
@@ -955,7 +944,7 @@ static NSString	*indentStrings[] = {
 
 - (Class) classForCoder
 {
-  return NSMutableDictionary_abstract_class;
+  return NSMutableDictionaryClass;
 }
 
 /* This is the designated initializer */
@@ -974,10 +963,6 @@ static NSString	*indentStrings[] = {
 {
   [self subclassResponsibility: _cmd];
 }
-
-@end
-
-@implementation NSMutableDictionaryNonCore
 
 + (id) dictionaryWithCapacity: (unsigned)numItems
 {

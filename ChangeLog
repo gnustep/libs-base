@@ -1,11 +1,19 @@
 2001-01-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	General tidyups to simplify code and to make class names
+	consistent with the other libraries.
 	* Headers/Foundation/NSGAttributedString.h: removed
 	* Source/NSGAttributedString.m: renamed to GSAttributedString.m
 	concrete classes renamed for consistency with other gstep libs.
+	* Source/NSGDictionary.m: renamed to GSDictionary.m
+	concrete classes renamed for consistency with other gstep libs.
 	* Source/NSAttributedString.m: classes renamed
-	* Source/GNUmakefile: replace NSGAttrinbutedString with GS.
+	* Source/NSDictionary.m: classes renamed
+	* Source/GNUmakefile: replace NSGAttrinbutedString with and
+	NSGDictionary with GS prefixed classes.
 	Don't try to install old header.
+	* Source/NSString.m: updates for class renaming.
+	* Source/NSSerializer.m: ditto
 
 2001-01-08  Adam Fedor  <fedor@gnu.org>
 
