@@ -6,9 +6,26 @@
  *	Machine/OS specific information required by GNUstep headers.
  */
 
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-#undef WORDS_BIGENDIAN
+/*
+ * Definition to specify if your processor stores words with the most
+ * significant byte first (like Motorola and SPARC, unlike Intel and VAX).
+ */
+#define GS_WORDS_BIGENDIAN      @GS_WORDS_BIGENDIAN@
+
+/*
+ * Type definitions for types with known sizes.
+ */
+
+typedef @GS_SINT8@ gss8;
+typedef @GS_UINT8@ gsu8;
+typedef @GS_SINT16@ gss16;
+typedef @GS_UINT16@ gsu16;
+typedef @GS_SINT32@ gss32;
+typedef @GS_UINT32@ gsu32;
+typedef @GS_SINT64@ gss64;
+typedef @GS_UINT64@ gsu64;
+typedef @GS_FLT32@ gsf32;
+typedef @GS_FLT64@ gsf64;
 
 #endif	/* included_GSConfig_h */
 

@@ -33,6 +33,12 @@
 /* Define if you have the killpg function.  */
 #undef HAVE_KILLPG
 
+/* Define if you have the setpgrp function.  */
+#undef HAVE_SETPGRP
+
+/* Define if you have the setpgid function.  */
+#undef HAVE_SETPGID
+
 /* Define if you have the mmap function.  */
 #undef HAVE_MMAP
 

@@ -27,7 +27,7 @@ AC_INIT(src/Collection.m)
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
-AC_CONFIG_HEADER(src/include/config.h src/include/GSConfig.h)
+AC_CONFIG_HEADER(src/include/config.h)
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
@@ -181,6 +181,95 @@ AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)
 
 #--------------------------------------------------------------------
+# Byte order and type size information needed for foundation headers.
+#--------------------------------------------------------------------
+AC_C_BIGENDIAN
+if test $ac_cv_c_bigendian = yes; then
+  GS_WORDS_BIGENDIAN=1
+else
+  GS_WORDS_BIGENDIAN=0
+fi
+AC_SUBST(GS_WORDS_BIGENDIAN)
+
+GS_SINT8="signed char"
+GS_UINT8="unsigned char"
+AC_SUBST(GS_SINT8)
+AC_SUBST(GS_UINT8)
+
+AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
+AC_CHECK_SIZEOF(float)
+AC_CHECK_SIZEOF(double)
+
+if test $ac_cv_sizeof_short = 2; then
+  GS_SINT16="signed short"
+  GS_UINT16="unsigned short"
+else
+  if test $ac_cv_sizeof_int = 2; then
+    GS_SINT16="signed int"
+    GS_UINT16="unsigned int"
+  else
+    echo "Unable to determine type for 16-bit integer - abort configuration"
+    exit
+  fi
+fi
+AC_SUBST(GS_SINT16)
+AC_SUBST(GS_UINT16)
+
+if test $ac_cv_sizeof_int = 4; then
+  GS_SINT32="signed int"
+  GS_UINT32="unsigned int"
+else
+  if test $ac_cv_sizeof_long = 4; then
+    GS_SINT32="signed long"
+    GS_UINT32="unsigned long"
+  else
+    if test $ac_cv_sizeof_short = 4; then
+      GS_SINT32="signed short"
+      GS_UINT32="unsigned short"
+    else
+      echo "Unable to determine type for 32-bit integer - abort configuration"
+      exit
+    fi
+  fi
+fi
+AC_SUBST(GS_SINT32)
+AC_SUBST(GS_UINT32)
+
+if test $ac_cv_sizeof_long_long = 8; then
+  GS_SINT64="signed long long"
+  GS_UINT64="unsigned long long"
+else
+  if test $ac_cv_sizeof_long = 8; then
+    GS_SINT64="signed long"
+    GS_UINT64="unsigned long"
+  else
+    echo "Unable to determine type for 64-bit integer - abort configuration"
+    exit
+  fi
+fi
+AC_SUBST(GS_SINT64)
+AC_SUBST(GS_UINT64)
+
+if test $ac_cv_sizeof_float = 4; then
+  GS_FLT32="float"
+else
+    echo "Unable to determine type for 32-bit float - abort configuration"
+    exit
+fi
+AC_SUBST(GS_FLT32)
+
+if test $ac_cv_sizeof_double = 8; then
+  GS_FLT64="double"
+else
+    echo "Unable to determine type for 64-bit float - abort configuration"
+    exit
+fi
+AC_SUBST(GS_FLT64)
+
+#--------------------------------------------------------------------
 # Setup dynamic linking 
 #--------------------------------------------------------------------
 OBJC_SYS_DYNAMIC_LINKER()
@@ -190,12 +279,6 @@ OBJC_SYS_DYNAMIC_LINKER()
 #--------------------------------------------------------------------
 AC_TYPE_SIZE_T
 AC_C_INLINE
-
-#--------------------------------------------------------------------
-# Following needed by NSTimeZone.m
-#--------------------------------------------------------------------
-AC_C_BIGENDIAN
-AC_CHECK_SIZEOF(int)
 
 #--------------------------------------------------------------------
 # Following header checks needed for bzero in Storage.m and other places
@@ -282,9 +365,9 @@ AC_CHECK_FUNCS(mmap)
 AC_CHECK_FUNCS(inet_aton)
 
 #--------------------------------------------------------------------
-# This function needed by NSTask.m
+# These functions needed by NSTask.m
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(killpg)
+AC_CHECK_FUNCS(killpg, setpgrp, setpgid)
 
 #--------------------------------------------------------------------
 # This function needed by NSThread.m
@@ -355,7 +438,7 @@ AC_CONFIG_SUBDIRS(src/mframe)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(config.mak)
+AC_OUTPUT(config.mak src/include/GSConfig.h)
 
 #echo "Running 'configure' in src/mframe"
 #(cd src/mframe; ./configure)

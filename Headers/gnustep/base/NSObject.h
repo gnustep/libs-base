@@ -35,6 +35,7 @@
 #undef	NO_GNUSTEP
 #endif
 
+#include <GSConfig.h>
 #include <objc/objc.h>
 #include <objc/Protocol.h>
 #include <Foundation/NSZone.h>
