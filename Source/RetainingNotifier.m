@@ -91,6 +91,13 @@
   return retain_count;
 }
 
+/* xxx Deal with this. */
+- autorelease
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
 - registerForInvalidationNotification:  (id <InvalidationListening>)anObject
 {
   assert(refGate);
