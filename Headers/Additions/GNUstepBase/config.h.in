@@ -76,6 +76,9 @@
 /* Define to 1 if you have the `killpg' function. */
 #undef HAVE_KILLPG
 
+/* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
+#undef HAVE_LANGINFO_CODESET
+
 /* Define to 1 if you have the <langinfo.h> header file. */
 #undef HAVE_LANGINFO_H
 
@@ -190,7 +193,7 @@
 /* Define to 1 if you have the `shmctl' function. */
 #undef HAVE_SHMCTL
 
-/* Define to 1 if you have the 'sigaction' function. */
+/* Define to 1 if you have the `sigaction' function. */
 #undef HAVE_SIGACTION
 
 /* Define to 1 if you have the <signal.h> header file. */
@@ -269,6 +272,9 @@
 
 /* Define to 1 if you have the <sys/stropts.h> header file. */
 #undef HAVE_SYS_STROPTS_H
+
+/* Define to 1 if you have the <sys/syslimits.h> header file. */
+#undef HAVE_SYS_SYSLIMITS_H
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
