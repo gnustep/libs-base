@@ -1,3 +1,9 @@
+2001-06-04  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSObject.m (GSGetValue): Call handleQueryWithUnboundKey:
+	rather than handleTakeValue:forUnboundKey: when no property
+	binding is found.
+
 2001-05-04  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* configure.in: Abort if GNUSTEP_SYSTEM_ROOT is empty, printing a
