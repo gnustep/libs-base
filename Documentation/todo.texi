@@ -60,6 +60,9 @@ a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @item Overhaul the string classes.
 
+@item Make sets/dictionaries hashtables/maps copy their keys, not retain
+them.  This is specified in the OpenStep standard.
+
 @item Separate core and non-core code in NSDictionary, NSSet, etc, the
 same way I did for NSArray.
 
