@@ -106,7 +106,7 @@ in multiples of this size.  The GNUstep/Objective-C mechanisms supporting
 memory allocation are therefore described here.
 
 The fundamental structure describing a region of memory in GNUstep is called a
-@i{Zone}, and it is represented by the class @code{NSZone}.  All
+@i{Zone}, and it is represented by the @code{NSZone} struct.  All
 @code{NSObject} methods dealing with the allocation of memory optionally take
 an @code{NSZone} argument specifying the Zone to get the memory from.  For
 example, in addition to the fundamental @code{alloc} method described above,
