@@ -1,3 +1,11 @@
+Wed Jan  5 10:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* NSTimeZones/NSTimeZones.tar: Made a revised set of timezones with
+	timezone names offset from GMT corresponding to common usage
+	(as in OPENSTEP) rather than strict Posix interpretation.
+	Also added detailed instructions to the README file and added a
+	small makefile to build the abbreviations/regions tools.
+
 Tue Jan  4 22:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSCalendarDate.m: ([-yearOfCommonEra]) fix rounding error.
