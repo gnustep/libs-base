@@ -179,23 +179,19 @@
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
-  self = [super init];
-  if (self != nil)
+  _count = length;
+  _contents_chars = chars;
+  if (flag == YES && chars != 0)
     {
-      _count = length;
-      _contents_chars = chars;
-      if (flag == YES && chars != 0)
-	{
 #if	GS_WITH_GC
-	  _zone = GSAtomicMallocZone();
+      _zone = GSAtomicMallocZone();
 #else
-	  _zone = NSZoneFromPointer(chars);
+      _zone = NSZoneFromPointer(chars);
 #endif
-	}
-      else
-	{
-	  _zone = 0;
-	}
+    }
+  else
+    {
+      _zone = 0;
     }
   return self;
 }
@@ -663,24 +659,20 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
-  self = [super init];
-  if (self != nil)
+  _count = length;
+  _capacity = length;
+  _contents_chars = chars;
+  if (flag == YES && chars != 0)
     {
-      _count = length;
-      _capacity = length;
-      _contents_chars = chars;
-      if (flag == YES && chars != 0)
-	{
 #if	GS_WITH_GC
-	  _zone = GSAtomicMallocZone();
+      _zone = GSAtomicMallocZone();
 #else
-	  _zone = NSZoneFromPointer(chars);
+      _zone = NSZoneFromPointer(chars);
 #endif
-	}
-      else
-	{
-	  _zone = 0;
-	}
+    }
+  else
+    {
+      _zone = 0;
     }
   return self;
 }

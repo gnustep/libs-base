@@ -213,6 +213,24 @@ handle_printf_atsign (FILE *stream,
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
 
+static NSRange
+rangeOfSequence(NSString *self, unichar (*caiImp)(NSString*, SEL, unsigned),
+  unsigned index)
+{
+  unsigned	count = [self length];
+  unsigned	start;
+  unsigned	end;
+
+  start = index;
+  while (uni_isnonsp((*caiImp)(self, caiSel, start)) && start > 0)
+    start--;
+  end = start + 1;
+  if (end < count)
+    while ((end < count) && (uni_isnonsp((*caiImp)(self, caiSel, end))))
+      end++;
+  return (NSRange){start, end-start};
+}
+
 + (void) initialize
 {
   if (self == [NSString class])
@@ -908,7 +926,7 @@ handle_printf_atsign (FILE *stream,
 
 - (id) init
 {
-  self = [super init];
+  self = [self initWithCharactersNoCopy: 0 length: 0 freeWhenDone: 0];
   return self;
 }
 
@@ -931,7 +949,7 @@ handle_printf_atsign (FILE *stream,
 /* Inefficient.  Should be overridden */
 - (void) getCharacters: (unichar*)buffer
 {
-  [self getCharacters: buffer range: ((NSRange){0,[self length]})];
+  [self getCharacters: buffer range: ((NSRange){0, [self length]})];
   return;
 }
 
@@ -942,10 +960,26 @@ handle_printf_atsign (FILE *stream,
   unsigned	l = [self length];
   unsigned	i;
   unichar	(*caiImp)(NSString*, SEL, unsigned);
+  NSRange	boundary;
 
   GS_RANGE_CHECK(aRange, l);
 
   caiImp = (unichar (*)())[self methodForSelector: caiSel];
+
+  /*
+   * Handle composed character sequences.
+   */
+  if (aRange.location > 0)
+    {
+      boundary = rangeOfSequence(self, caiImp, aRange.location);
+      aRange.location = boundary.location;
+    }
+  if (NSMaxRange(aRange) < l)
+    {
+      boundary = rangeOfSequence(self, caiImp, NSMaxRange(aRange));
+      aRange.length = NSMaxRange(boundary) - aRange.location;
+    }
+
   for (i = 0; i < aRange.length; i++)
     {
       buffer[i] = (*caiImp)(self, caiSel, aRange.location + i);
@@ -1237,6 +1271,11 @@ handle_printf_atsign (FILE *stream,
   return NO;
 }
 
+/*
+ * Return 28-bit hash value (in 32-bit integer).  The top few bits are used
+ * for other purposes in a bitfield in the concrete string subclasses, so we
+ * must not use the full unsigned integer.
+ */
 - (unsigned) hash
 {
   unsigned ret = 0;
@@ -1267,11 +1306,13 @@ handle_printf_atsign (FILE *stream,
        * an empty cache value, so we MUST NOT return a hash of zero.
        */
       if (ret == 0)
-	ret = 0xffffffff;
+	ret = 0x0fffffff;
+      else
+	ret &= 0x0fffffff;
       return ret;
     }
   else
-    return 0xfffffffe;	/* Hash for an empty string.	*/
+    return 0x0ffffffe;	/* Hash for an empty string.	*/
 }
 
 // Getting a Shared Prefix
@@ -1704,7 +1745,6 @@ handle_printf_atsign (FILE *stream,
     remainingRange: NULL];
 }
 
-// xxx FIXME adjust range for composite sequence
 - (void) getCString: (char*)buffer
 	  maxLength: (unsigned)maxLength
 	      range: (NSRange)aRange
@@ -1713,9 +1753,26 @@ handle_printf_atsign (FILE *stream,
   unsigned	len;
   unsigned	count;
   unichar	(*caiImp)(NSString*, SEL, unsigned);
+  NSRange	boundary;
 
   len = [self cStringLength];
   GS_RANGE_CHECK(aRange, len);
+
+  caiImp = (unichar (*)())[self methodForSelector: caiSel];
+
+  /*
+   * Handle composed character sequences.
+   */
+  if (aRange.location > 0)
+    {
+      boundary = rangeOfSequence(self, caiImp, aRange.location);
+      aRange.location = boundary.location;
+    }
+  if (NSMaxRange(aRange) < [self length])
+    {
+      boundary = rangeOfSequence(self, caiImp, NSMaxRange(aRange));
+      aRange.length = NSMaxRange(boundary) - aRange.location;
+    }
 
   if (maxLength < aRange.length)
     {
@@ -1735,7 +1792,6 @@ handle_printf_atsign (FILE *stream,
 	  leftoverRange->length = aRange.length - maxLength;
 	}
     }
-  caiImp = (unichar (*)())[self methodForSelector: caiSel];
   count = 0;
   while (count < len)
     {
