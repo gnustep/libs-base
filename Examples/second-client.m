@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
   [[server connectionForProxy] runConnectionWithTimeout:15000];
   
   /* Clean up, to let the server know we're going away */
-  [[server connectionForProxy] free];
+  [[server connectionForProxy] invalidate];
 
   exit(0);
 }

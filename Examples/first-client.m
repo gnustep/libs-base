@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
 
   printf("Shutting down my connection to the server\n");
-  [s release];
+  [s invalidate];
 
   exit(0);
 }
