@@ -91,7 +91,7 @@ char encode_unitochar(unichar u, NSStringEncoding enc)
             return (char)u;
           else
           {
-             while(((res=u-Next_uni_to_char_table[i++].from)>0) & (i<Next_uni_to_char_table_size));
+             while(((res=u-Next_uni_to_char_table[i++].from)>0) && (i<Next_uni_to_char_table_size));
              return res?0:Next_uni_to_char_table[--i].to;
           }
 
@@ -100,7 +100,7 @@ char encode_unitochar(unichar u, NSStringEncoding enc)
             return (char)u;
           else
           {
-             while(((res=u-Cyrillic_uni_to_char_table[i++].from)>0) & (i<Cyrillic_uni_to_char_table_size));
+             while(((res=u-Cyrillic_uni_to_char_table[i++].from)>0) && (i<Cyrillic_uni_to_char_table_size));
              return res?0:Cyrillic_uni_to_char_table[--i].to;
           }
 
@@ -110,7 +110,7 @@ char encode_unitochar(unichar u, NSStringEncoding enc)
             return (char)u;
           else
           {
-             while(((res=u-Symbol_uni_to_char_table[i++].from)>0) & (i<Symbol_uni_to_char_table_size));
+             while(((res=u-Symbol_uni_to_char_table[i++].from)>0) && (i<Symbol_uni_to_char_table_size));
              return res?'*':Symbol_uni_to_char_table[--i].to;
           }
 #endif
@@ -139,7 +139,7 @@ char unitochar(unichar u)
 int strtoustr(unichar * u1,const char *s1,int size)
  {
    int count;
-  for(count=0;(s1[count]!=0)&(count<size);count++)
+  for(count=0;(count<size)&&(s1[count]!=0);count++)
     u1[count]=chartouni(s1[count]);
   return count;
  }
@@ -147,7 +147,7 @@ int strtoustr(unichar * u1,const char *s1,int size)
 int ustrtostr(char *s2,unichar *u1,int size)
   {
    int count;
-   for(count=0;(u1[count]!=(unichar)0)&(count<size);count++)
+   for(count=0;(count<size)&&(u1[count]!=(unichar)0);count++)
     s2[count]=unitochar(u1[count]);
    return(count);
   }
@@ -155,7 +155,7 @@ int ustrtostr(char *s2,unichar *u1,int size)
 int encode_strtoustr(unichar * u1,const char *s1,int size, NSStringEncoding enc)
  {
    int count;
-  for(count=0;(s1[count]!=0)&(count<size);count++)
+  for(count=0;(count<size)&&(s1[count]!=0);count++)
     u1[count]=encode_chartouni(s1[count],enc);
   return count;
  }
@@ -163,7 +163,7 @@ int encode_strtoustr(unichar * u1,const char *s1,int size, NSStringEncoding enc)
 int encode_ustrtostr(char *s2,unichar *u1,int size, NSStringEncoding enc)
   {
    int count;
-   for(count=0;(u1[count]!=(unichar)0)&(count<size);count++)
+   for(count=0;(count<size)&&(u1[count]!=(unichar)0);count++)
     s2[count]=encode_unitochar(u1[count],enc);
    return(count);
   }
@@ -187,7 +187,7 @@ unichar uni_tolower(unichar ch)
 {
   int res;
   int count=0;
-  while(((res=ch - t_tolower[count++][0])>0)&(count<t_len_tolower));
+  while(((res=ch - t_tolower[count++][0])>0)&&(count<t_len_tolower));
   return res?ch:t_tolower[--count][1];
  }
  
@@ -195,7 +195,7 @@ unichar uni_tolower(unichar ch)
 {
   int res;
   int count=0;
-  while(((res=ch - t_toupper[count++][0])>0)&(count<t_len_toupper));
+  while(((res=ch - t_toupper[count++][0])>0)&&(count<t_len_toupper));
   return res?ch:t_toupper[--count][1];
  }
 
@@ -211,7 +211,7 @@ unsigned char uni_cop(unichar u)
 
   if(u > (unichar)0x0080)  // no nonspacing in ascii
   {
-    while(notfound & (first <= last))
+    while(notfound && (first <= last))
     {
         if(!(first==last))
         {
@@ -261,7 +261,7 @@ unichar *uni_is_decomp(unichar u)
 
   if(u > (unichar)0x0080)  // no composites in ascii
   {
-    while(notfound & (first <= last))
+    while(notfound && (first <= last))
     {
         if(!(first==last))
         {
