@@ -2124,7 +2124,9 @@ handle_printf_atsign (FILE *stream,
 #if defined(__MINGW__)
   return self;
 #else 
-  const int	MAX_PATH = 1024;
+  #ifndef MAX_PATH
+  #define MAX_PATH 1024
+  #endif
   char		new_buf[MAX_PATH];
 #if HAVE_REALPATH
 

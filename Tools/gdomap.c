@@ -24,17 +24,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>		/* for gethostname() */
-#ifndef __WIN32__
+#ifndef __MINGW32__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>		/* for inet_ntoa() */
-#endif /* !__WIN32__ */
+#endif /* !__MINGW32__ */
 #include <errno.h>
 #include <limits.h>
 #include <string.h>		/* for strchr() */
 #include <ctype.h>		/* for strchr() */
-#ifdef __WIN32__
+#ifdef __MINGW32__
 #include <winsock.h>
 #else
 #include <sys/time.h>
@@ -55,7 +55,7 @@
 
 #include <netinet/in.h>
 #include <net/if.h>
-#ifndef	SIOCGIFCONF
+#if	!defined(SIOCGIFCONF) || defined(__CYGWIN__)
 #include <sys/ioctl.h>
 #ifndef	SIOCGIFCONF
 #include <sys/sockio.h>
@@ -65,7 +65,11 @@
 #if	defined(__svr4__)
 #include <sys/stropts.h>
 #endif
-#endif /* !__WIN32__ */
+#endif /* !__MINGW32__ */
+
+#if HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
 #include	"gdomap.h"
 /*
@@ -782,10 +786,12 @@ init_iface()
 	    {
 	      broadcast = 1;
 	    }
+#ifdef IFF_POINTOPOINT
 	  if (ifreq.ifr_flags & IFF_POINTOPOINT)
 	    {
 	      pointopoint = 1;
 	    }
+#endif
           if (ioctl(desc, SIOCGIFADDR, (char *)&ifreq) < 0)
             {
               perror("SIOCGIFADDR");
@@ -805,6 +811,7 @@ init_iface()
 	      addr[interfaces] =
 		((struct sockaddr_in *)&ifreq.ifr_addr)->sin_addr;
 	      bcok[interfaces] = (broadcast | pointopoint);
+#ifdef IFF_POINTOPOINT
 	      if (pointopoint)
 		{
 		  if (ioctl(desc, SIOCGIFDSTADDR, (char*)&ifreq) < 0)
@@ -819,6 +826,7 @@ init_iface()
 		    }
 		}
 	      else
+#endif
 		{
 		  if (ioctl(desc, SIOCGIFBRDADDR, (char*)&ifreq) < 0)
 		    {

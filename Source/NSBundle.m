@@ -322,6 +322,12 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 #else
   patharr = [pathlist componentsSeparatedByString:@":"];
 #endif
+  /* Add . if not already in path */
+  if ([patharr indexOfObject: @"."] == NSNotFound)
+    {
+      patharr = AUTORELEASE([patharr mutableCopy]);
+      [patharr addObject: @"."];
+    }
   patharr = [patharr objectEnumerator];
   while ((prefix = [patharr nextObject]))
     {

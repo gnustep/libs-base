@@ -31,7 +31,7 @@ include ../Version
 include ../config.mak
 
 # The application to be compiled
-TOOL_NAME = gdnc defaults dread dwrite dremove plmerge \
+TOOL_NAME = gdnc defaults plmerge \
 		plparse sfparse pldes plser
 OBJC_PROGRAM_NAME = gdomap
 

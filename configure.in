@@ -511,8 +511,7 @@ AC_CHECK_HEADERS(sys/time.h sys/rusage.h ucbinclude/sys/resource.h)
 #--------------------------------------------------------------------
 # These headers/functions needed by TcpPort.m
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS(sys/socket.h)
-AC_CHECK_HEADERS(netinet/in.h)
+AC_CHECK_HEADERS(sys/socket.h netinet/in.h)
 dnl AC_REPLACE_FUNCS(recvfrom)
 
 #--------------------------------------------------------------------
@@ -541,14 +540,15 @@ if test $ac_cv_func_vasprintf = yes ; then
 fi
 
 #--------------------------------------------------------------------
-# This function needed by NSFileManager.m and find_exec.c
+# This function needed by NSFileManager.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(getcwd)
+AC_HEADER_DIRENT
 
 #--------------------------------------------------------------------
-# DIR definitions needed by NSBundle.m
+# This function needed by gdomap.c
 #--------------------------------------------------------------------
-AC_HEADER_DIRENT
+AC_CHECK_HEADERS(getopt.h)
 
 #--------------------------------------------------------------------
 # This function needed by NSPage.m

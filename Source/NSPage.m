@@ -25,6 +25,9 @@
 #include <base/preface.h>
 #include <Foundation/NSZone.h>
 #include <string.h>
+#ifdef __WIN32__
+#include <malloc.h>
+#endif
 #ifndef __MINGW__
 #include <unistd.h>
 #endif
@@ -136,7 +139,11 @@ NSAllocateMemoryPages (unsigned bytes)
     return NULL;
   return where;
 #else
+#if HAVE_VALLOC
   where = valloc (bytes);
+#else
+  where = malloc (bytes);
+#endif
   if (where == NULL)
     return NULL;
   memset (where, 0, bytes);
