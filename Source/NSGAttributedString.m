@@ -49,7 +49,8 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSRange.h>
 #include <Foundation/NSDebug.h>
-#include <base/NSGArray.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSZone.h>
 #include <base/fast.x>
 
 #define		SANITY_CHECKS	0
@@ -147,15 +148,19 @@ static void _setup()
 {
   if (infCls == 0)
     {
-      Class	c = [NSGMutableArray class];
+      NSMutableArray	*a;
 
       infCls = [GSAttrInfo class];
       infImp = [infCls methodForSelector: infSel];
-      addImp = (void (*)())[c instanceMethodForSelector: addSel];
-      cntImp = (unsigned (*)())[c instanceMethodForSelector: cntSel];
-      insImp = (void (*)())[c instanceMethodForSelector: insSel];
-      oatImp = [c instanceMethodForSelector: oatSel];
-      remImp = (void (*)())[c instanceMethodForSelector: remSel];
+
+      a = [NSMutableArray allocWithZone: NSDefaultMallocZone()];
+      a = [a initWithCapacity: 1];
+      addImp = (void (*)())[a methodForSelector: addSel];
+      cntImp = (unsigned (*)())[a methodForSelector: cntSel];
+      insImp = (void (*)())[a methodForSelector: insSel];
+      oatImp = [a methodForSelector: oatSel];
+      remImp = (void (*)())[a methodForSelector: remSel];
+      RELEASE(a);
     }
 }
 
@@ -312,7 +317,7 @@ _attributesAtIndexEffectiveRange(
 {
   NSZone	*z = fastZone(self);
 
-  _infoArray = [[NSGMutableArray allocWithZone: z] initWithCapacity: 1];
+  _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
     {
       NSAttributedString	*as = (NSAttributedString*)aString;
@@ -419,7 +424,7 @@ _attributesAtIndexEffectiveRange(
 {
   NSZone	*z = fastZone(self);
 
-  _infoArray = [[NSGMutableArray allocWithZone: z] initWithCapacity: 1];
+  _infoArray = [[NSMutableArray allocWithZone: z] initWithCapacity: 1];
   if (aString != nil && [aString isKindOfClass: [NSAttributedString class]])
     {
       NSAttributedString	*as = (NSAttributedString*)aString;
@@ -437,7 +442,7 @@ SANITY();
       RELEASE(info);
     }
   if (aString == nil)
-    _textChars = [[NSGMutableString allocWithZone: z] init];
+    _textChars = [[NSMutableString allocWithZone: z] init];
   else
     _textChars = [aString mutableCopyWithZone: z];
   return self;

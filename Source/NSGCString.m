@@ -114,7 +114,7 @@ static	IMP msInitImp;	/* designated initialiser for mutable	*/
 - (unsigned) hash
 {
   if (_hash == 0)
-    _hash = _fastImp._NSString_hash(self, @selector(hash));
+    _hash = [super hash];
   return _hash;
 }
 
@@ -483,10 +483,8 @@ static	IMP msInitImp;	/* designated initialiser for mutable	*/
       if (_count != other->_count)
 	return NO;
       if (_hash == 0)
-         _hash = _fastImp._NSString_hash(self, @selector(hash));
-      if (other->_hash == 0)
-         other->_hash = _fastImp._NSString_hash(other, @selector(hash));
-      if (_hash != other->_hash)
+         _hash = [super hash];
+      if (_hash != [other hash])
 	return NO;
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
 	return NO;
@@ -511,8 +509,7 @@ static	IMP msInitImp;	/* designated initialiser for mutable	*/
   else if (c == nil)
     return NO;
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
-    return _fastImp._NSString_isEqualToString_(self,
-		@selector(isEqualToString:), anObject);
+    return [super isEqualtoString: anObject];
   else
     return NO;
 }
@@ -533,10 +530,8 @@ static	IMP msInitImp;	/* designated initialiser for mutable	*/
       if (_count != other->_count)
 	return NO;
       if (_hash == 0)
-        _hash = _fastImp._NSString_hash(self, @selector(hash));
-      if (other->_hash == 0)
-         other->_hash = _fastImp._NSString_hash(other, @selector(hash));
-      if (_hash != other->_hash)
+        _hash = [super hash];
+      if (_hash != [other hash])
 	return NO;
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
 	return NO;
@@ -561,8 +556,7 @@ static	IMP msInitImp;	/* designated initialiser for mutable	*/
   else if (c == nil)
     return NO;
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
-    return _fastImp._NSString_isEqualToString_(self,
-		@selector(isEqualToString:), aString);
+    return [super isEqualToString: aString];
   else
     return NO;
 }
@@ -1432,8 +1426,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
     }
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
     {
-      return _fastImp._NSString_isEqualToString_(self,
-	@selector(isEqualToString:), anObject);
+      return [anObject isEqualToString: self];
     }
   else
     {
@@ -1477,8 +1470,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
     }
   else if (fastClassIsKindOfClass(c, _fastCls._NSString))
     {
-      return _fastImp._NSString_isEqualToString_(self,
-	@selector(isEqualToString:), aString);
+      return [anObject isEqualToString: self];
     }
   else
     {

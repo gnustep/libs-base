@@ -35,83 +35,13 @@
 #include <base/fast.x>
 
 /*
- *	Evil hack - this structure MUST correspond to the layout of all
- *	instances of the string classes we know about!
- */
-typedef struct {
-  @defs(NSGCString)
-} *dictAccessToStringHack;
-
-static inline unsigned
-myHash(id obj)
-{
-  if (fastIsInstance(obj))
-    {
-      Class	c = fastClass(obj);
-
-      if (c == _fastCls._NSGCString ||
-	  c == _fastCls._NSGMutableCString ||
-	  c == _fastCls._NSGString ||
-	  c == _fastCls._NSGMutableString)
-	{
-	  if (((dictAccessToStringHack)obj)->_hash == 0)
-	    {
-	      ((dictAccessToStringHack)obj)->_hash =
-	            _fastImp._NSString_hash(obj, @selector(hash));
-	    }
-	  return ((dictAccessToStringHack)obj)->_hash;
-	}
-      else if (c == _fastCls._NXConstantString)
-	{
-	  static unsigned (*myImp)(id,SEL) = 0;
-
-	  if (myImp == 0)
-	    {
-	      myImp = (unsigned (*)(id,SEL))
-		[obj methodForSelector: @selector(hash)];
-	    }
-	  return (*myImp)(obj, @selector(hash));
-	}
-    }
-  return [obj hash];
-}
-
-static inline BOOL
-myEqual(id self, id other)
-{
-  if (self == other)
-    {
-      return YES;
-    }
-  if (fastIsInstance(self))
-    {
-      Class	c = fastClass(self);
-
-      if (c == _fastCls._NXConstantString ||
-	  c == _fastCls._NSGCString ||
-	  c == _fastCls._NSGMutableCString)
-	{
-	  return _fastImp._NSGCString_isEqual_(self,
-		@selector(isEqual:), other);
-	}
-      if (c == _fastCls._NSGString ||
-	  c == _fastCls._NSGMutableString)
-	{
-	  return _fastImp._NSGString_isEqual_(self,
-		@selector(isEqual:), other);
-	}
-    }
-  return [self isEqual: other];
-}
-
-/*
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
  *	table - for maximum performance.
  */
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
 #define	GSI_MAP_VTYPES		GSUNION_OBJ
-#define	GSI_MAP_HASH(X)	myHash(X.obj)
-#define	GSI_MAP_EQUAL(X,Y)	myEqual(X.obj,Y.obj)
+#define	GSI_MAP_HASH(X)		[X.obj hash]
+#define	GSI_MAP_EQUAL(X,Y)	[X.obj isEqual: Y.obj]
 #define	GSI_MAP_RETAIN_KEY(X)	((id)(X).obj) = \
 				[((id)(X).obj) copyWithZone: map->zone]
 

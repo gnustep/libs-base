@@ -42,8 +42,6 @@
 
 @implementation NSDictionary 
 
-@class	NSGMutableCString;
-
 @class	NSGDictionary;
 @class	NSGMutableDictionary;
 
@@ -597,7 +595,7 @@ compareIt(id o1, id o2, void* context)
   IMP			appImp;
   id                    key;
 
-  result = AUTORELEASE([[NSGMutableCString alloc] initWithCapacity: 1024]);
+  result = AUTORELEASE([[NSMutableString alloc] initWithCapacity: 1024]);
   appImp = [(NSObject*)result methodForSelector: appSel];
   while ((key = (*nxtObj)(enumerator, nxtSel)) != nil)
     {
@@ -639,7 +637,7 @@ compareIt(id o1, id o2, void* context)
     {
       NSMutableString	*result;
 
-      result = AUTORELEASE([[NSGMutableCString alloc] initWithCapacity:
+      result = AUTORELEASE([[NSMutableString alloc] initWithCapacity:
 	20*[self count]]);
       [self descriptionWithLocale: locale
 			   indent: level

@@ -68,14 +68,6 @@ typedef	struct	Obs {
 
 #define	ENDOBS	((Observation*)-1)
 
-static SEL	hSel = @selector(hash);
-static SEL	eqSel = @selector(isEqualToString:);
-
-static unsigned	(*cHash)(id, SEL);
-static unsigned	(*uHash)(id, SEL);
-static BOOL	(*cEqual)(id, SEL, id);
-static BOOL	(*uEqual)(id, SEL, id);
-
 static inline unsigned doHash(NSString* key)
 {
   if (key == nil)
@@ -88,13 +80,6 @@ static inline unsigned doHash(NSString* key)
     }
   else
     {
-      Class	c = fastClassOfInstance(key);
-
-      if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
-	|| c == _fastCls._NXConstantString)
-	return (*cHash)(key, hSel);
-      if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
-	return (*uHash)(key, hSel);
       return [key hash];
     }
 }
@@ -111,12 +96,7 @@ static inline BOOL doEqual(NSString* key1, NSString* key2)
     }
   else
     {
-      Class	c = fastClassOfInstance(key1);
-
-      if (c == _fastCls._NSGString)
-	return (*uEqual)(key1, eqSel, key2);
-      else
-	return (*cEqual)(key1, eqSel, key2);
+      return [key1 isEqualToString: key2];
     }
 }
 
@@ -497,15 +477,6 @@ static NSNotificationCenter *default_center = nil;
 {
   if (self == [NSNotificationCenter class])
     {
-      cHash = (unsigned (*)(id, SEL))
-	[NSGCString instanceMethodForSelector: hSel];
-      uHash = (unsigned (*)(id, SEL))
-	[NSGString instanceMethodForSelector: hSel];
-      cEqual = (BOOL (*)(id, SEL, id))
-	[NSGCString instanceMethodForSelector: eqSel];
-      uEqual = (BOOL (*)(id, SEL, id))
-	[NSGString instanceMethodForSelector: eqSel];
-
       /*
        * Do alloc and init separately so the default center can refer to
        * the 'default_center' variable during initialisation.
@@ -645,24 +616,12 @@ static NSNotificationCenter *default_center = nil;
       n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
       if (n == 0)
 	{
-	  Class	c;
-
 	  m = mapNew(TABLE);
 	  /*
 	   * As this is the first observation for the given name, we take a
 	   * copy of the name so it cannot be mutated while in the map.
-	   * Also ensure the copy is one of our well-known string types so
-	   * we can optimise it's hash and isEqualToString:.
 	   */
 	  name = [name copyWithZone: NSDefaultMallocZone()];
-	  c = fastClassOfInstance(name);
-	  if (c != _fastCls._NSGString && c != _fastCls._NSGCString
-	    && c != _fastCls._NXConstantString)
-	    {
-	      id n = [[NSGString alloc] initWithString: name];
-	      RELEASE(name);
-	      name = n;
-	    }
 	  GSIMapAddPair(NAMED, (GSIMapKey)name, (GSIMapVal)(void*)m);
 	}
       else

@@ -217,22 +217,11 @@ static inline void GSeq_uppercase(GSeq seq)
 }
 
 /*
- * Specify NSString, NSGString or NSGCString
+ * Specify NSString, GSUString or GSCString
  */
 #define	GSEQ_NS	0
 #define	GSEQ_US	1
 #define	GSEQ_CS	2
-
-/*
- *	Structures to access NSGString and NSGCString ivars.
- */
-typedef struct {
-  @defs(NSGString)
-} NSGStringStruct;
-
-typedef struct {
-  @defs(NSGCString)
-} NSGCStringStruct;
 
 /*
  * Definitions for bitmask of search options.  These MUST match the
@@ -261,21 +250,21 @@ typedef struct {
  * Set up macros for dealing with 'self' on the basis of GSQ_S
  */
 #if	GSEQ_S == GSEQ_US
-#define	GSEQ_ST	NSGStringStruct*
+#define	GSEQ_ST	ivars
 #define	GSEQ_SLEN	s->_count
-#define	GSEQ_SGETC(I)	s->_contents_chars[I]
-#define	GSEQ_SGETR(B,R)	memcpy(B, &s->_contents_chars[R.location], 2*(R).length)
+#define	GSEQ_SGETC(I)	s->_contents.u[I]
+#define	GSEQ_SGETR(B,R)	memcpy(B, &s->_contents.u[R.location], 2*(R).length)
 #define	GSEQ_SRANGE(I)	(*srImp)((id)s, ranSel, I)
 #else
 #if	GSEQ_S == GSEQ_CS
-#define	GSEQ_ST	NSGCStringStruct*
+#define	GSEQ_ST	ivars
 #define	GSEQ_SLEN	s->_count
-#define	GSEQ_SGETC(I)	(unichar)s->_contents_chars[I]
+#define	GSEQ_SGETC(I)	(unichar)s->_contents.c[I]
 #define	GSEQ_SGETR(B,R)	( { \
   unsigned _lcount = 0; \
   while (_lcount < (R).length) \
     { \
-      (B)[_lcount] = (unichar)(unsigned char)s->_contents_chars[(R).location + _lcount]; \
+      (B)[_lcount] = (unichar)s->_contents.c[(R).location + _lcount]; \
       _lcount++; \
     } \
 } )
@@ -293,21 +282,21 @@ typedef struct {
  * Set up macros for dealing with 'other' string on the basis of GSQ_O
  */
 #if	GSEQ_O == GSEQ_US
-#define	GSEQ_OT	NSGStringStruct*
+#define	GSEQ_OT	ivars
 #define	GSEQ_OLEN	o->_count
-#define	GSEQ_OGETC(I)	o->_contents_chars[I]
-#define	GSEQ_OGETR(B,R)	memcpy(B, &o->_contents_chars[R.location], 2*(R).length)
+#define	GSEQ_OGETC(I)	o->_contents.u[I]
+#define	GSEQ_OGETR(B,R)	memcpy(B, &o->_contents.u[R.location], 2*(R).length)
 #define	GSEQ_ORANGE(I)	(*orImp)((id)o, ranSel, I)
 #else
 #if	GSEQ_O == GSEQ_CS
-#define	GSEQ_OT	NSGCStringStruct*
+#define	GSEQ_OT	ivars
 #define	GSEQ_OLEN	o->_count
-#define	GSEQ_OGETC(I)	(unichar)o->_contents_chars[I]
+#define	GSEQ_OGETC(I)	(unichar)o->_contents.c[I]
 #define	GSEQ_OGETR(B,R)	( { \
   unsigned _lcount = 0; \
   while (_lcount < (R).length) \
     { \
-      (B)[_lcount] = (unichar)(unsigned char)o->_contents_chars[(R).location + _lcount]; \
+      (B)[_lcount] = (unichar)o->_contents.c[(R).location + _lcount]; \
       _lcount++; \
     } \
 } )
@@ -383,13 +372,21 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
       sgImp = (void (*)())[(id)s methodForSelector: gcrSel];
       GSEQ_SGETR(sBuf, aRange);
 #else
-      sBuf = &s->_contents_chars[aRange.location];
+#if	GSEQ_S == GSEQ_CS
+      sBuf = &s->_contents.c[aRange.location];
+#else
+      sBuf = &s->_contents.u[aRange.location];
+#endif
 #endif
 #if	GSEQ_O == GSEQ_NS
       ogImp = (void (*)())[(id)o methodForSelector: gcrSel];
       GSEQ_OGETR(oBuf, NSMakeRange(0, oLen));
 #else
-      oBuf = o->_contents_chars;
+#if	GSEQ_O == GSEQ_CS
+      oBuf = o->_contents.c;
+#else
+      oBuf = o->_contents.u;
+#endif
 #endif
 
       if (oLen < sLen)

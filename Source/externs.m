@@ -31,7 +31,7 @@
 #include "NSCallBacks.h"
 #include <Foundation/NSHashTable.h>
 
-@class	NSGCString;
+@class	GSCString;
 
 /* Global lock to be used by classes when operating on any global
    data that invoke other methods which also access global; thus,
@@ -282,192 +282,192 @@ GSBuildStrings()
     {
       beenHere = YES;
       InPortAcceptedClientNotification
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"InPortAcceptedClientNotification"];
       InPortClientBecameInvalidNotification
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"InPortClientBecameInvalidNotification"];
       NSAMPMDesignation
-	= [[NSGCString alloc] initWithCString: "NSAMPMDesignation"];
+	= [[GSCString alloc] initWithCString: "NSAMPMDesignation"];
       NSArgumentDomain
-	= [[NSGCString alloc] initWithCString: "NSArgumentDomain"];
+	= [[GSCString alloc] initWithCString: "NSArgumentDomain"];
       NSBundleDidLoadNotification
-	= [[NSGCString alloc] initWithCString: "NSBundleDidLoadNotification"];
+	= [[GSCString alloc] initWithCString: "NSBundleDidLoadNotification"];
       *(NSString**)&NSCharacterConversionException
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"NSCharacterConversionException"];
       NSConnectionDidDieNotification
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"NSConnectionDidDieNotification"];
       NSConnectionDidInitializeNotification
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"NSConnectionDidInitializeNotification"];
       NSConnectionLocalCount
-	= [[NSGCString alloc] initWithCString: "NSConnectionLocalCount"];
+	= [[GSCString alloc] initWithCString: "NSConnectionLocalCount"];
       NSConnectionProxyCount
-	= [[NSGCString alloc] initWithCString: "NSConnectionProxyCount"];
+	= [[GSCString alloc] initWithCString: "NSConnectionProxyCount"];
       NSConnectionRepliesReceived
-	= [[NSGCString alloc] initWithCString: "NSConnectionRepliesReceived"];
+	= [[GSCString alloc] initWithCString: "NSConnectionRepliesReceived"];
       NSConnectionRepliesSent
-	= [[NSGCString alloc] initWithCString: "NSConnectionRepliesSent"];
+	= [[GSCString alloc] initWithCString: "NSConnectionRepliesSent"];
       NSConnectionReplyMode
-	= [[NSGCString alloc] initWithCString: "NSConnectionReplyMode"];
+	= [[GSCString alloc] initWithCString: "NSConnectionReplyMode"];
       NSConnectionRequestsReceived
-	= [[NSGCString alloc] initWithCString: "NSConnectionRequestsReceived"];
+	= [[GSCString alloc] initWithCString: "NSConnectionRequestsReceived"];
       NSConnectionRequestsSent
-	= [[NSGCString alloc] initWithCString: "NSConnectionRequestsSent"];
+	= [[GSCString alloc] initWithCString: "NSConnectionRequestsSent"];
       NSCurrencyString
-	= [[NSGCString alloc] initWithCString: "NSCurrencyString"];
+	= [[GSCString alloc] initWithCString: "NSCurrencyString"];
       NSCurrencySymbol
-	= [[NSGCString alloc] initWithCString: "NSCurrencySymbol"];
+	= [[GSCString alloc] initWithCString: "NSCurrencySymbol"];
       NSDateFormatString
-	= [[NSGCString alloc] initWithCString: "NSDateFormatString"];
+	= [[GSCString alloc] initWithCString: "NSDateFormatString"];
       NSDateTimeOrdering
-	= [[NSGCString alloc] initWithCString: "NSDateTimeOrdering"];
+	= [[GSCString alloc] initWithCString: "NSDateTimeOrdering"];
       NSDecimalDigits
-	= [[NSGCString alloc] initWithCString: "NSDecimalDigits"];
+	= [[GSCString alloc] initWithCString: "NSDecimalDigits"];
       NSDecimalSeparator
-	= [[NSGCString alloc] initWithCString: "NSDecimalSeparator"];
+	= [[GSCString alloc] initWithCString: "NSDecimalSeparator"];
       NSDefaultRunLoopMode
-	= [[NSGCString alloc] initWithCString: "NSDefaultRunLoopMode"];
+	= [[GSCString alloc] initWithCString: "NSDefaultRunLoopMode"];
       NSEarlierTimeDesignations
-	= [[NSGCString alloc] initWithCString: "NSEarlierTimeDesignations"];
+	= [[GSCString alloc] initWithCString: "NSEarlierTimeDesignations"];
       NSFailedAuthenticationException
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"NSFailedAuthenticationException"];
       NSFileDeviceIdentifier
-	= [[NSGCString alloc] initWithCString: "NSFileDeviceIdentifier"];
+	= [[GSCString alloc] initWithCString: "NSFileDeviceIdentifier"];
       NSFileGroupOwnerAccountName
-	= [[NSGCString alloc] initWithCString: "NSFileGroupOwnerAccountName"];
+	= [[GSCString alloc] initWithCString: "NSFileGroupOwnerAccountName"];
       NSFileGroupOwnerAccountNumber
-	= [[NSGCString alloc] initWithCString: "NSFileGroupOwnerAccountNumber"];
+	= [[GSCString alloc] initWithCString: "NSFileGroupOwnerAccountNumber"];
       NSFileModificationDate
-	= [[NSGCString alloc] initWithCString: "NSFileModificationDate"];
+	= [[GSCString alloc] initWithCString: "NSFileModificationDate"];
       NSFileOwnerAccountName
-	= [[NSGCString alloc] initWithCString: "NSFileOwnerAccountName"];
+	= [[GSCString alloc] initWithCString: "NSFileOwnerAccountName"];
       NSFileOwnerAccountNumber
-	= [[NSGCString alloc] initWithCString: "NSFileOwnerAccountNumber"];
+	= [[GSCString alloc] initWithCString: "NSFileOwnerAccountNumber"];
       NSFilePosixPermissions
-	= [[NSGCString alloc] initWithCString: "NSFilePosixPermissions"];
+	= [[GSCString alloc] initWithCString: "NSFilePosixPermissions"];
       NSFileReferenceCount
-	= [[NSGCString alloc] initWithCString: "NSFileReferenceCount"];
+	= [[GSCString alloc] initWithCString: "NSFileReferenceCount"];
       NSFileSize
-	= [[NSGCString alloc] initWithCString: "NSFileSize"];
+	= [[GSCString alloc] initWithCString: "NSFileSize"];
       NSFileSystemFileNumber
-	= [[NSGCString alloc] initWithCString: "NSFileSystemFileNumber"];
+	= [[GSCString alloc] initWithCString: "NSFileSystemFileNumber"];
       NSFileSystemFreeNodes
-	= [[NSGCString alloc] initWithCString: "NSFileSystemFreeNodes"];
+	= [[GSCString alloc] initWithCString: "NSFileSystemFreeNodes"];
       NSFileSystemFreeSize
-	= [[NSGCString alloc] initWithCString: "NSFileSystemFreeSize"];
+	= [[GSCString alloc] initWithCString: "NSFileSystemFreeSize"];
       NSFileSystemNodes
-	= [[NSGCString alloc] initWithCString: "NSFileSystemNodes"];
+	= [[GSCString alloc] initWithCString: "NSFileSystemNodes"];
       NSFileSystemNumber
-	= [[NSGCString alloc] initWithCString: "NSFileSystemNumber"];
+	= [[GSCString alloc] initWithCString: "NSFileSystemNumber"];
       NSFileSystemSize
-	= [[NSGCString alloc] initWithCString: "NSFileSystemSize"];
+	= [[GSCString alloc] initWithCString: "NSFileSystemSize"];
       NSFileType
-	= [[NSGCString alloc] initWithCString: "NSFileType"];
+	= [[GSCString alloc] initWithCString: "NSFileType"];
       NSFileTypeBlockSpecial
-	= [[NSGCString alloc] initWithCString: "NSFileTypeBlockSpecial"];
+	= [[GSCString alloc] initWithCString: "NSFileTypeBlockSpecial"];
       NSFileTypeCharacterSpecial
-	= [[NSGCString alloc] initWithCString: "NSFileTypeCharacterSpecial"];
+	= [[GSCString alloc] initWithCString: "NSFileTypeCharacterSpecial"];
       NSFileTypeDirectory
-	= [[NSGCString alloc] initWithCString: "NSFileTypeDirectory"];
+	= [[GSCString alloc] initWithCString: "NSFileTypeDirectory"];
       NSFileTypeFifo
-	= [[NSGCString alloc] initWithCString: "NSFileTypeFifo"];
+	= [[GSCString alloc] initWithCString: "NSFileTypeFifo"];
       NSFileTypeRegular
-	= [[NSGCString alloc] initWithCString: "NSFileTypeRegular"];
+	= [[GSCString alloc] initWithCString: "NSFileTypeRegular"];
       NSFileTypeSocket
-	= [[NSGCString alloc] initWithCString: "NSFileTypeSocket"];
+	= [[GSCString alloc] initWithCString: "NSFileTypeSocket"];
       NSFileTypeSymbolicLink
-	= [[NSGCString alloc] initWithCString: "NSFileTypeSymbolicLink"];
+	= [[GSCString alloc] initWithCString: "NSFileTypeSymbolicLink"];
       NSFileTypeUnknown
-	= [[NSGCString alloc] initWithCString: "NSFileTypeUnknown"];
+	= [[GSCString alloc] initWithCString: "NSFileTypeUnknown"];
       NSFormalName
-        = [[NSGCString alloc] initWithCString: "NSFormalName"];
+        = [[GSCString alloc] initWithCString: "NSFormalName"];
       *(NSString**)&NSGenericException
-	= [[NSGCString alloc] initWithCString: "NSGenericException"];
+	= [[GSCString alloc] initWithCString: "NSGenericException"];
       NSGlobalDomain
-	= [[NSGCString alloc] initWithCString: "NSGlobalDomain"];
+	= [[GSCString alloc] initWithCString: "NSGlobalDomain"];
       NSHourNameDesignations
-	= [[NSGCString alloc] initWithCString: "NSHourNameDesignations"];
+	= [[GSCString alloc] initWithCString: "NSHourNameDesignations"];
       NSInconsistentArchiveException
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"NSInconsistentArchiveException"];
       *(NSString**)&NSInternalInconsistencyException
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"NSInternalInconsistencyException"];
       NSInternationalCurrencyString
-	= [[NSGCString alloc] initWithCString: "NSInternationalCurrencyString"];
+	= [[GSCString alloc] initWithCString: "NSInternationalCurrencyString"];
       *(NSString**)&NSInvalidArgumentException
-	= [[NSGCString alloc] initWithCString: "NSInvalidArgumentException"];
+	= [[GSCString alloc] initWithCString: "NSInvalidArgumentException"];
       NSLanguageCode
-        = [[NSGCString alloc] initWithCString: "NSLanguageCode"];
+        = [[GSCString alloc] initWithCString: "NSLanguageCode"];
       NSLanguageName
-        = [[NSGCString alloc] initWithCString: "NSLanguageName"];
+        = [[GSCString alloc] initWithCString: "NSLanguageName"];
       NSLaterTimeDesignations
-	= [[NSGCString alloc] initWithCString: "NSLaterTimeDesignations"];
+	= [[GSCString alloc] initWithCString: "NSLaterTimeDesignations"];
       NSLoadedClasses
-	= [[NSGCString alloc] initWithCString: "NSLoadedClasses"];
+	= [[GSCString alloc] initWithCString: "NSLoadedClasses"];
       *(NSString**)&NSMallocException
-	= [[NSGCString alloc] initWithCString: "NSMallocException"];
+	= [[GSCString alloc] initWithCString: "NSMallocException"];
       NSMonthNameArray
-	= [[NSGCString alloc] initWithCString: "NSMonthNameArray"];
+	= [[GSCString alloc] initWithCString: "NSMonthNameArray"];
       NSNegativeCurrencyFormatString
-        = [[NSGCString alloc] initWithCString:
+        = [[GSCString alloc] initWithCString:
 	"NSNegativeCurrencyFormatString"];
       NSNextDayDesignations
-	= [[NSGCString alloc] initWithCString: "NSNextDayDesignations"];
+	= [[GSCString alloc] initWithCString: "NSNextDayDesignations"];
       NSNextNextDayDesignations
-	= [[NSGCString alloc] initWithCString: "NSNextNextDayDesignations"];
+	= [[GSCString alloc] initWithCString: "NSNextNextDayDesignations"];
       NSPortDidBecomeInvalidNotification
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"NSPortDidBecomeInvalidNotification"];
       NSPortTimeoutException
-	= [[NSGCString alloc] initWithCString: "NSPortTimeoutException"];
+	= [[GSCString alloc] initWithCString: "NSPortTimeoutException"];
       NSPositiveCurrencyFormatString
-        = [[NSGCString alloc] initWithCString:
+        = [[GSCString alloc] initWithCString:
 	"NSPositiveCurrencyFormatString"];
       NSPriorDayDesignations
-	= [[NSGCString alloc] initWithCString: "NSPriorDayDesignations"];
+	= [[GSCString alloc] initWithCString: "NSPriorDayDesignations"];
       *(NSString**)&NSRangeException
-	= [[NSGCString alloc] initWithCString: "NSRangeException"];
+	= [[GSCString alloc] initWithCString: "NSRangeException"];
       NSRegistrationDomain
-	= [[NSGCString alloc] initWithCString: "NSRegistrationDomain"];
+	= [[GSCString alloc] initWithCString: "NSRegistrationDomain"];
       NSShortDateFormatString
-        = [[NSGCString alloc] initWithCString: "NSShortDateFormatString"];
+        = [[GSCString alloc] initWithCString: "NSShortDateFormatString"];
       NSShortMonthNameArray
-	= [[NSGCString alloc] initWithCString: "NSShortMonthNameArray"];
+	= [[GSCString alloc] initWithCString: "NSShortMonthNameArray"];
       NSShortTimeDateFormatString
-	= [[NSGCString alloc] initWithCString: "NSShortTimeDateFormatString"];
+	= [[GSCString alloc] initWithCString: "NSShortTimeDateFormatString"];
       NSShortWeekDayNameArray
-	= [[NSGCString alloc] initWithCString: "NSShortWeekDayNameArray"];
+	= [[GSCString alloc] initWithCString: "NSShortWeekDayNameArray"];
       NSShowNonLocalizedStrings
-	= [[NSGCString alloc] initWithCString: "NSShowNonLocalizedStrings"];
+	= [[GSCString alloc] initWithCString: "NSShowNonLocalizedStrings"];
       NSThisDayDesignations
-	= [[NSGCString alloc] initWithCString: "NSThisDayDesignations"];
+	= [[GSCString alloc] initWithCString: "NSThisDayDesignations"];
       NSThousandsSeparator
-	= [[NSGCString alloc] initWithCString: "NSThousandsSeparator"];
+	= [[GSCString alloc] initWithCString: "NSThousandsSeparator"];
       NSThreadWillExitNotification
-	= [[NSGCString alloc] initWithCString: "NSThreadWillExitNotification"];
+	= [[GSCString alloc] initWithCString: "NSThreadWillExitNotification"];
       NSTimeDateFormatString
-	= [[NSGCString alloc] initWithCString: "NSTimeDateFormatString"];
+	= [[GSCString alloc] initWithCString: "NSTimeDateFormatString"];
       NSTimeFormatString
-	= [[NSGCString alloc] initWithCString: "NSTimeFormatString"];
+	= [[GSCString alloc] initWithCString: "NSTimeFormatString"];
       NSUserDefaultsDidChangeNotification
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"NSUserDefaultsDidChangeNotification"];
       NSWeekDayNameArray
-	= [[NSGCString alloc] initWithCString: "NSWeekDayNameArray"];
+	= [[GSCString alloc] initWithCString: "NSWeekDayNameArray"];
       NSWillBecomeMultiThreadedNotification
-	= [[NSGCString alloc] initWithCString:
+	= [[GSCString alloc] initWithCString:
 	"NSWillBecomeMultiThreadedNotification"];
       NSYearMonthWeekDesignations
-	= [[NSGCString alloc] initWithCString: "NSYearMonthWeekDesignations"];
+	= [[GSCString alloc] initWithCString: "NSYearMonthWeekDesignations"];
       PortBecameInvalidNotification
-	= [[NSGCString alloc] initWithCString: "PortBecameInvalidNotification"];
+	= [[GSCString alloc] initWithCString: "PortBecameInvalidNotification"];
       StreamException
-	= [[NSGCString alloc] initWithCString: "StreamException"];
+	= [[GSCString alloc] initWithCString: "StreamException"];
     }
 }
 

@@ -47,11 +47,12 @@
 extern BOOL __objc_responds_to(id, SEL);
 
 fastCls	_fastCls;	/* Structure to cache classes.	*/
-fastImp	_fastImp;	/* Structure to cache methods.	*/
 
 @class	_FastMallocBuffer;
 static Class	fastMallocClass;
 static unsigned	fastMallocOffset;
+
+static Class	NXConstantStringClass;
 
 @class	NSDataMalloc;
 @class	NSMutableDataMalloc;
@@ -66,28 +67,8 @@ void	_fastBuildCache()
   _fastCls._NSMutableArray = [NSMutableArray class];
   _fastCls._NSDictionary = [NSDictionary class];
   _fastCls._NSMutableDictionary = [NSMutableDictionary class];
-  _fastCls._NSString = [NSString class];
-  _fastCls._NSMutableString = [NSMutableString class];
-  _fastCls._NSGString = [NSGString class];
-  _fastCls._NSGMutableString = [NSGMutableString class];
-  _fastCls._NSGCString = [NSGCString class];
-  _fastCls._NSGMutableCString = [NSGMutableCString class];
-  _fastCls._NXConstantString = [NXConstantString class];
   _fastCls._NSDataMalloc = [NSDataMalloc class];
   _fastCls._NSMutableDataMalloc = [NSMutableDataMalloc class];
-
-  /*
-   *	Cache some method implementations for quick access later.
-   */
-
-  _fastImp._NSString_hash = (unsigned (*)())[_fastCls._NSString
-    instanceMethodForSelector: @selector(hash)];
-  _fastImp._NSString_isEqualToString_ = (BOOL (*)())[_fastCls._NSString
-    instanceMethodForSelector: @selector(isEqualToString:)];
-  _fastImp._NSGString_isEqual_ = (BOOL (*)())[_fastCls._NSGString
-    instanceMethodForSelector: @selector(isEqual:)];
-  _fastImp._NSGCString_isEqual_ = (BOOL (*)())[_fastCls._NSGCString
-    instanceMethodForSelector: @selector(isEqual:)];
 }
 
 
@@ -443,7 +424,7 @@ NSDeallocateObject(NSObject *anObject)
 inline NSZone *
 fastZone(NSObject *object)
 {
-  if (fastClass(object) == _fastCls._NXConstantString)
+  if (fastClass(object) == NXConstantStringClass)
     return NSDefaultMallocZone();
   return ((obj)object)[-1].zone;
 }
@@ -453,7 +434,7 @@ fastZone(NSObject *object)
 inline NSZone *
 fastZone(NSObject *object)
 {
-  if (fastClass(object) == _fastCls._NXConstantString)
+  if (fastClass(object) == NXConstantStringClass)
     return NSDefaultMallocZone();
   return NSZoneFromPointer(&((obj)object)[-1]);
 }
@@ -514,9 +495,9 @@ NSDeallocateObject(NSObject *anObject)
 inline NSZone *
 fastZone(NSObject *object)
 {
-    if (fastClass(object) == _fastCls._NXConstantString)
-	return NSDefaultMallocZone();
-    return NSZoneFromPointer(object);
+  if (fastClass(object) == NXConstantStringClass)
+    return NSDefaultMallocZone();
+  return NSZoneFromPointer(object);
 }
 
 inline NSObject *
@@ -632,6 +613,7 @@ static BOOL double_release_check_enabled = NO;
 #else
       fastMallocOffset = 0;
 #endif
+      NXConstantStringClass = [NXConstantString class];
       _fastBuildCache();
       GSBuildStrings();
       [[NSNotificationCenter defaultCenter]

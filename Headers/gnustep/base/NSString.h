@@ -314,17 +314,43 @@ enum {
 @end
 
 /*
- * Because the compiler thinks that @".." strings are NXConstantString's.
- * NB. An NXConstantString has a length and a pointer to char as it's ivars
- * but an NSGCString also has a hash value - the code has to be careful not
- * to use the _hash ivar if the class is actually an NXConstantString.
- * If you modify and NSGCString method to use the _hash ivar, you must
- * override that method in NXConstantString, to avoid using the ivar.
+ * Information for NXConstantString
  */
-#include <Foundation/NSGString.h>
-#include <Foundation/NSGCString.h>
-@interface NXConstantString : NSGCString
+@interface NXConstantString : NSString
+{
+  union {
+    unichar		*u;
+    unsigned char	*c;
+  } _contents;
+  unsigned int	_count;
+}
 @end
+
+#ifndef	NO_GNUSTEP
+/*
+ * Private concrete string classes.
+ * NB. All these concrete string classes MUST have the same initial ivar
+ * layout so that we can swap between them as necessary.
+ * The initial layout must also match that of NXConstnatString (which is
+ * determined by the compiler).
+ */
+@interface GSString : NSString
+{
+  union {
+    unichar		*u;
+    unsigned char	*c;
+  } _contents;
+  unsigned int	_count;
+  struct {
+    unsigned int	wide: 1;	// 16-bit characters in string?
+    unsigned int	ascii: 1;	// String contains only ascii?
+    unsigned int	free: 1;	// Should free memory?
+    unsigned int	hash: 30;
+  } _flags;
+}
+@end
+#endif
+
 
 #ifndef NO_GNUSTEP
 @interface NSString (GSString)
