@@ -120,7 +120,7 @@
 @end
 
 
-@implementation NSMutableCString
+@implementation NSGMutableCString
 
 + (void) initialize
 {
@@ -133,11 +133,11 @@
 }
 
 typedef struct {
-  @defs(NSMutableCString)
-} NSMutableCStringStruct;
+  @defs(NSGMutableCString)
+} NSGMutableCStringStruct;
 
 static inline void
-stringIncrementCountAndMakeHoleAt(NSMutableCStringStruct *self, 
+stringIncrementCountAndMakeHoleAt(NSGMutableCStringStruct *self, 
 				  int index, int size)
 {
 #ifndef STABLE_MEMCPY
@@ -155,7 +155,7 @@ stringIncrementCountAndMakeHoleAt(NSMutableCStringStruct *self,
 }
 
 static inline void
-stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self, 
+stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self, 
 				  int index, int size)
 {
   (self->_count) -= size;
@@ -185,7 +185,7 @@ stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self,
 
 - (void) deleteCharactersInRange: (NSRange)range
 {
-  stringDecrementCountAndFillHoleAt((NSMutableCStringStruct*)self, 
+  stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, 
 				    range.location, range.length);
 }
 
@@ -197,7 +197,7 @@ stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self,
       _capacity = MAX(_capacity*2, _count+c);
       OBJC_REALLOC(_contents_chars, char, _capacity);
     }
-  stringIncrementCountAndMakeHoleAt((NSMutableCStringStruct*)self, index, c);
+  stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, c);
   memcpy(_contents_chars + index, [aString _cStringContents], c);
   _contents_chars[_count] = '\0';
 }
@@ -232,7 +232,7 @@ stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self,
    IndexedCollecting and its conformers */
 - removeRange: (IndexRange)range
 {
-  stringDecrementCountAndFillHoleAt((NSMutableCStringStruct*)self, 
+  stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, 
 				    range.location, range.length);
   return self;
 }
@@ -263,7 +263,7 @@ stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self,
 /* Empty copy must empty an allocCopy'ed version of self */
 - emptyCopy
 {
-  NSMutableCString *copy = [super emptyCopy];
+  NSGMutableCString *copy = [super emptyCopy];
   OBJC_MALLOC(copy->_contents_chars, char, _count+1);
   copy->_count = 0;
   copy->_contents_chars[0] = '\0';
@@ -285,7 +285,7 @@ stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self,
       _capacity *= 2;
       OBJC_REALLOC(_contents_chars, char, _capacity);
     }
-  stringIncrementCountAndMakeHoleAt((NSMutableCStringStruct*)self, index, 1);
+  stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, 1);
   _contents_chars[index] = newElement.char_u;
   _contents_chars[_count] = '\0';
   return self;
@@ -297,7 +297,7 @@ stringDecrementCountAndFillHoleAt(NSMutableCStringStruct *self,
 
   CHECK_INDEX_RANGE_ERROR(index, _count);
   ret = _contents_chars[index];
-  stringDecrementCountAndFillHoleAt((NSMutableCStringStruct*)self, index, 1);
+  stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, index, 1);
   _contents_chars[_count] = '\0';
   return ret;
 }
