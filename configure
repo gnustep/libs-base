@@ -1291,7 +1291,7 @@ else
   cat > conftest.$ac_ext <<EOF
 #line 1293 "configure"
 #include "confdefs.h"
-#include "config_thread.m"
+#include "config/config_thread.m"
 EOF
 if { (eval echo configure:1297: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
@@ -1314,7 +1314,7 @@ else
   cat > conftest.$ac_ext <<EOF
 #line 1316 "configure"
 #include "confdefs.h"
-#include "config_thread.m"
+#include "config/config_thread.m"
 EOF
 if { (eval echo configure:1320: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
@@ -1336,7 +1336,7 @@ else
   cat > conftest.$ac_ext <<EOF
 #line 1338 "configure"
 #include "confdefs.h"
-#include "config_thread.m"
+#include "config/config_thread.m"
 EOF
 if { (eval echo configure:1342: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
