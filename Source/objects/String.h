@@ -29,9 +29,10 @@
    Perhaps I'll just get rid of the GNU String objects and just
    transfer this functionality into NSSTring and friends. */
 
-#include <objects/objc-gnu2next.h>
+#include <objects/stdobjects.h>
 #include <objects/IndexedCollection.h>
 #include <objects/ValueHolding.h>
+#include <foundation/NSString.h>
 #include <stdarg.h>
 
 typedef unsigned short Character;
@@ -46,42 +47,42 @@ typedef unsigned short Character;
 
 /* Think about changing these names to avoid conflicts with OpenStep? */
 
-@protocol String <ValueGetting>
+@protocol String <ValueGetting, NSString>
 
 // INITIALIZING NEWLY ALLOCATED STRINGS.  DON'T FORGET TO RELEASE THEM!;
 - init;
-- initWithString: (String*)aString;
-- initWithString: (String*)aString range: (IndexRange)aRange;
-- initWithFormat: (String*)aFormatString, ...;
-- initWithFormat: (String*)aFormatString arguments: (va_list)arg;
+- initWithString: (id <String>)aString;
+- initWithString: (id <String>)aString range: (IndexRange)aRange;
+- initWithFormat: (id <String>)aFormatString, ...;
+- initWithFormat: (id <String>)aFormatString arguments: (va_list)arg;
 - initWithCString: (const char*)aCharPtr;
 - initWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
 //- initWithStream: (Stream*)aStream;
 //- initWithStream: (Stream*)aStream length: (unsigned)aLength;
 
 // GETTING NEW, AUTORELEASED STRING OBJECTS, NO NEED TO RELEASE THESE;
-+ (String*) stringWithString: (String*)aString;
-+ (String*) stringWithString: (String*)aString range: (IndexRange)aRange;
-+ (String*) stringWithFormat: (String*)aFormatString, ...;
-+ (String*) stringWithFormat: (String*)aFormatString arguments: (va_list)arg;
-+ (String*) stringWithCString: (const char*)aCharPtr;
-+ (String*) stringWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
++ stringWithString: (id <String>)aString;
++ stringWithString: (id <String>)aString range: (IndexRange)aRange;
++ stringWithFormat: (id <String>)aFormatString, ...;
++ stringWithFormat: (id <String>)aFormatString arguments: (va_list)arg;
++ stringWithCString: (const char*)aCharPtr;
++ stringWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
 
-- (String*) stringByAppendingFormat: (String*)aString, ...;
-- (String*) stringByAppendingFormat: (String*)aString arguments: (va_list)arg;
-- (String*) stringByPrependingFormat: (String*)aString, ...;
-- (String*) stringByPrependingFormat: (String*)aString arguments: (va_list)arg;
-- (String*) stringByAppendingString: (String*)aString;
-- (String*) stringByPrependingString: (String*)aString;
+- stringByAppendingFormat: (id <String>)aString, ...;
+- stringByAppendingFormat: (id <String>)aString arguments: (va_list)arg;
+- stringByPrependingFormat: (id <String>)aString, ...;
+- stringByPrependingFormat: (id <String>)aString arguments: (va_list)arg;
+- stringByAppendingString: (id <String>)aString;
+- stringByPrependingString: (id <String>)aString;
 
-//- (String*) substringWithRange: (IndexRange)aRange;
-//- (String*) substringWithLength: (unsigned)l;
-//- (String*) substringAfterIndex: (unsigned)i;
-//- (id <IndexedCollecting>) substringsSeparatedByString: (String*)separator;
+//- substringWithRange: (IndexRange)aRange;
+//- substringWithLength: (unsigned)l;
+//- substringAfterIndex: (unsigned)i;
+//- (id <IndexedCollecting>) substringsSeparatedByString: (id <String>)sep;
 
-//- (String*) capitalizedString;
-//- (String*) lowercaseString;
-//- (String*) uppercaseString;
+//- capitalizedString;
+//- lowercaseString;
+//- uppercaseString;
 
 - mutableCopy;
 - copy;
@@ -93,7 +94,7 @@ typedef unsigned short Character;
 - (unsigned) hash;
 - (int) compare: anObject;
 - copy;
-- (unsigned) indexOfString: (String*)aString;
+- (unsigned) indexOfString: (id <String>)aString;
 - (unsigned) indexOfChar: (char)aChar;
 - (unsigned) indexOfLastChar: (char)aChar;
 //- (unsigned) indexOfCharacter: (Character)aChar;
@@ -118,24 +119,32 @@ typedef unsigned short Character;
 
 @protocol MutableString <ValueSetting>
 
-+ (MutableString*) stringWithCapacity: (unsigned)capacity;
++ stringWithCapacity: (unsigned)capacity;
 - initWithCapacity: (unsigned)capacity;
 
 /* This from IndexedCollecting: - removeRange: (IndexRange)range; */
-- (void) insertString: (String*)string atIndex: (unsigned)index;
+- (void) insertString: (id <String>)string atIndex: (unsigned)index;
 
-- (void) setString: (String*)string;
-- (void) appendString: (String*)string;
-- (void) replaceRange: (IndexRange)range withString: (String*)string;
+- (void) setString: (id <String>)string;
+- (void) appendString: (id <String>)string;
+- (void) replaceRange: (IndexRange)range withString: (id <String>)string;
 
 @end
 
 /* Abstract string classes */
 
-@interface String : IndexedCollection <String>
+@interface String : IndexedCollection
 @end
 
-@interface MutableString : String <MutableString>
+/* To prevent complaints about protocol conformance. */
+@interface String (StringProtocol) <String>
+@end
+
+@interface MutableString : String
+@end
+
+/* To prevent complaints about protocol conformance. */
+@interface MutableString (MutableStringProtocol) <MutableString>
 @end
 
 /* Some concrete string classes */
