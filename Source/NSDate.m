@@ -206,7 +206,16 @@
   secs = [self timeIntervalSinceReferenceDate];
   unix_secs = (time_t)secs - (time_t)UNIX_OFFSET;
   theTime = localtime(&unix_secs);
+/* 
+   Gregor Hoffleit <flight@mathi.uni-heidelberg.DE> reports problems
+   with strftime on i386-next-nextstep3.
+   Date: Fri, 12 Jan 96 16:00:42 +0100
+   */
+#ifdef NeXT
+  buf[0] = '\0';
+#else
   strftime(buf, 64, "%Y-%m-%d %H:%M:%S", theTime);
+#endif
   return [NSString stringWithCString: buf];
 }
 
