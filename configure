@@ -7472,8 +7472,8 @@ echo "${ECHO_T}no" >&6
   echo "can be found by the dynamic linker - usually that requires you to play"
   echo "with LD_LIBRARY_PATH or /etc/ld.so.conf."
   echo "Please refer to your compiler installation instructions for more help."
-  { { echo "$as_me:$LINENO: error: The Objective-C compiler doesn't work or is not installed properly." >&5
-echo "$as_me: error: The Objective-C compiler doesn't work or is not installed properly." >&2;}
+  { { echo "$as_me:$LINENO: error: The Objective-C compiler does not work or is not installed properly." >&5
+echo "$as_me: error: The Objective-C compiler does not work or is not installed properly." >&2;}
    { (exit 1); exit 1; }; }
 fi
 

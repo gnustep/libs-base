@@ -429,7 +429,7 @@ else
   echo "can be found by the dynamic linker - usually that requires you to play"
   echo "with LD_LIBRARY_PATH or /etc/ld.so.conf."
   echo "Please refer to your compiler installation instructions for more help."
-  AC_MSG_ERROR(The Objective-C compiler doesn't work or is not installed properly.)
+  AC_MSG_ERROR(The Objective-C compiler does not work or is not installed properly.)
 fi
 
 # Don't revert any Objective-C flags as they are used in the next test

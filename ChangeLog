@@ -1,3 +1,9 @@
+2004-11-24 15:08  Patrick McFarland  <unknown@panax.com>
+
+	* configure.ac: Change "doesn't" to "does not" in an error message to
+	avoid autoconf/m4 quoting issues.
+	* configure: Regenerate.
+
 2004-11-23 David Wetzel <dave@turbocat.de>
 
         * Headers/Additions/GNUstepBase/Unicode.h: added missing 
