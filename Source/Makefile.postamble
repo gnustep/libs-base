@@ -242,6 +242,12 @@ $(GNUSTEP_OBJ_DIR)/NSString.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
         : include/fast.x
 
+#
+#	NSGeometry.m needs a recompile if NSGeometry.h is changed.
+#
+$(GNUSTEP_OBJ_DIR)/NSGeometry.o \
+	: include/NSGeometry.h
+
 TAGS: $(DIST_FILES)
 	etags $(DIST_FILES)
 
