@@ -30,6 +30,11 @@
   NSCharacterSet	*spacenl;	// Blanks excluding newline
 }
 
+- (unsigned) fitWords: (NSArray*)a
+		 from: (unsigned)start
+		   to: (unsigned)end
+	      maxSize: (unsigned)limit
+	       output: (NSMutableString*)buf;
 - (NSString*) output: (NSDictionary*)d;
 - (BOOL) output: (NSDictionary*)d file: (NSString*)name;
 - (void) outputMethod: (NSDictionary*)d to: (NSMutableString*)str;
