@@ -1201,6 +1201,15 @@ handle_printf_atsign (FILE *stream,
   return [[[self class] allocWithZone:zone] initWithString:self];
 }
 
+/* xxx Temporarily put this NSObject-like implementation here, so
+   we don't get String's Collection implementation. 
+   When we separate Core from NonCore methods, this problem will
+   go away. */
+- copy
+{
+  return [self copyWithZone: NS_NOZONE];
+}
+
 - mutableCopyWithZone: (NSZone*)zone
 {
   return [[[[self class] _mutableConcreteClass] allocWithZone:zone]
