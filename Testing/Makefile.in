@@ -73,7 +73,8 @@ server.m \
 client.m \
 string.m \
 values.m \
-nsarray.m 
+nsarray.m \
+nsdictionary.m
 
 # nsarchiving.m
 
@@ -130,6 +131,8 @@ string: string.o $(srcdir)/../libobjects.a
 values: values.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 nsarray: nsarray.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+nsdictionary: nsdictionary.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 
 #nsarchiving: nsarray.o $(srcdir)/../libobjects.a
