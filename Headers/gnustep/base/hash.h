@@ -6,7 +6,7 @@
  * Updated: Tue Mar 19 00:25:34 EST 1996
  * Serial: 96.03.19.05
  * 
- * This file is part of the GNU Objective C Class Library.
+ * This file is part of the Gnustep Base Library.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public

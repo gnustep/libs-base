@@ -4,7 +4,7 @@
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
 
-   This file is part of the GNU Objective C Class Library.
+   This file is part of the Gnustep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -564,7 +564,7 @@
     "\n"
     "Chief Maintainer: Andrew McCallum <mccallum@gnu.ai.mit.edu>\n"
     "\n"
-    "This object is part of the GNU Objective C Class Library.\n"
+    "This object is part of the Gnustep Base Library.\n"
     "\n"
     "This library is free software; you can redistribute it and/or\n"
     "modify it under the terms of the GNU Library General Public\n"

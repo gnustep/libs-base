@@ -1,7 +1,7 @@
 /* Implementation of Objective-C method-name-compatible NXProxy
    Copyright (C) 1994 Free Software Foundation, Inc.
    
-   This file is part of the GNU Objective C Class Library.
+   This file is part of the Gnustep Base Library.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
