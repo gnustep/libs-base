@@ -30,6 +30,14 @@
 #include	<Foundation/NSFileHandle.h>
 #include	<Foundation/NSAutoreleasePool.h>
 
+#include	<ctype.h>
+
+#define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
+#define char2num(ch) \
+inrange(ch,'0','9') \
+? ((ch)-0x30) \
+: (inrange(ch,'a','f') \
+? ((ch)-0x57) : ((ch)-0x37))
 
 int
 main(int argc, char** argv, char **env)
@@ -39,6 +47,8 @@ main(int argc, char** argv, char **env)
   NSArray		*args;
   unsigned		i;
   BOOL			found = NO;
+  BOOL			eIn;
+  BOOL			eOut;
   NSString		*n;
   NSStringEncoding	enc = 0;
 
@@ -56,6 +66,8 @@ main(int argc, char** argv, char **env)
 
   args = [proc arguments];
 
+  eIn = [[NSUserDefaults standardUserDefaults] boolForKey: @"EscapeIn"];
+  eOut = [[NSUserDefaults standardUserDefaults] boolForKey: @"EscapeOut"];
   n = [[NSUserDefaults standardUserDefaults] stringForKey: @"Encoding"];
   if (n == nil)
     {
@@ -93,7 +105,7 @@ main(int argc, char** argv, char **env)
     {
       NSString	*file = [args objectAtIndex: i];
 
-      if ([file isEqual: @"-Encoding"] == YES)
+      if ([file hasPrefix: @"-"] == YES)
 	{
 	  i++;
 	  continue;
@@ -111,7 +123,7 @@ main(int argc, char** argv, char **env)
 	  else
 	    {
 	      unsigned		l = [myData length];
-	      const unichar		*b = (const unichar*)[myData bytes];
+	      const unichar	*b = (const unichar*)[myData bytes];
 	      NSStringEncoding	iEnc;
 	      NSStringEncoding	oEnc;
 	      NSString		*myString;
@@ -136,8 +148,92 @@ main(int argc, char** argv, char **env)
 		}
 	      else
 		{
-		  myData = [myString dataUsingEncoding: oEnc
-				  allowLossyConversion: NO];
+		  if (eIn == YES)
+		    {
+		      unsigned	l = [myString length];
+		      unichar	*u;
+		      NSZone	*z = NSDefaultMallocZone();
+		      unsigned	i = 0;
+		      unsigned	o = 0;
+
+		      u = NSZoneMalloc(z, sizeof(unichar)*l);
+		      [myString getCharacters: u];
+
+		      while (i < l)
+			{
+			  unichar	c = u[i++];
+
+			  if (c == '\\' && i <= l - 6)
+			    {
+			      c = u[i++];
+
+			      if (c == 'u' || c == 'U')
+				{
+				  unichar	v;
+
+				  v = 0;
+				  c = u[i++];
+				  v |= char2num(c);
+
+				  v <<= 4;
+				  c = u[i++];
+				  v |= char2num(c);
+				    
+				  v <<= 4;
+				  c = u[i++];
+				  v |= char2num(c);
+				    
+				  v <<= 4;
+				  c = u[i++];
+				  v |= char2num(c);
+
+				  c = v;
+				}
+			      else
+				{
+				  u[o++] = '\\';
+				}
+			    }
+			  u[o++] = c;
+			}
+
+		      RELEASE(myString);
+		      myString = [[NSString alloc] initWithCharactersNoCopy: u
+			length: o freeWhenDone: YES];
+		    }
+		  if (eOut == YES)
+		    {
+		      unsigned	l = [myString length];
+		      unichar	*u;
+		      char	*c;
+		      NSZone	*z = NSDefaultMallocZone();
+		      unsigned	o = 0;
+		      unsigned	i;
+
+		      u = NSZoneMalloc(z, sizeof(unichar)*l);
+		      c = NSZoneMalloc(z, 6*l);
+		      [myString getCharacters: u];
+		      for (i = 0; i < l; i++)
+			{
+			  if (u[i] < 128)
+			    {
+			      c[o++] = u[i];
+			    }
+			  else
+			    {
+			      sprintf(&c[o], "\\u%04x", u[i]);
+			      o += 6;
+			    }
+			}
+		      NSZoneFree(z, u);
+		      myData = [[NSData alloc] initWithBytesNoCopy: c
+							    length: o];
+		    }
+		  else
+		    {
+		      myData = [myString dataUsingEncoding: oEnc
+				      allowLossyConversion: NO];
+		    }
 		  RELEASE(myString);
 		  if (myData == nil)
 		    {
@@ -168,7 +264,11 @@ main(int argc, char** argv, char **env)
 	@"It reads the file, and writes it to STDOUT after converting it\n"
 	@"to unicode from C string encoding or vice versa.\n"
 	@"You can supply a '-Encoding name' option to specify the C string\n"
-	@"encoding to be used, if you don't want to use the default.");
+	@"encoding to be used, if you don't want to use the default.\n"
+	@"You can supply a '-EscapeIn YES' option to specify that input\n"
+	@"should be parsed for \\u escape sequences (as in property lists).\n"
+	@"You can supply a '-EscapeOut YES' option to specify that output\n"
+	@"should be ascii with \\u escape sequences (for property lists).\n");
     }
   [pool release];
   return 0;

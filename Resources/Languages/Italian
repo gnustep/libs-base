@@ -15,7 +15,7 @@
   NSThousandsSeparator = "'"; /* not sure but better than `.' */
   
   NSAMPMDesignation = (AM, PM);
-  NSDateFormatString = "%A %d %B %Y"; /* Giovedì 22 Febbraio 2001 */
+  NSDateFormatString = "%A %d %B %Y"; /* Gioved\u00ec 22 Febbraio 2001 */
   NSDateTimeOrdering = DMYH; 
   NSEarlierTimeDesignations = (prima, passato, fa);
   NSHourNameDesignations = ((0, mezzanotte), (12, mezzogiorno), (10, mattina), (14, pomeriggio), (19, sera));
@@ -31,7 +31,7 @@
   NSThisDayDesignations = (oggi);
   NSTimeDateFormatString = "%a %d %b %H:%M:%S %z %Y"; /* Gio 22 Feb 15:33:42 +0100 2001 */
   NSTimeFormatString = "%H:%M:%S"; /* 21:21:08 */
-  NSWeekDayNameArray = (Domenica, "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", Sabato);
+  NSWeekDayNameArray = (Domenica, "Luned\u00ec", "Marted\u00ec", "Mercoled\u00ec", "Gioved\u00ec", "Venerd\u00ec", Sabato);
   NSYearMonthWeekDesignations = (anno, mese, settimana);
 }
 

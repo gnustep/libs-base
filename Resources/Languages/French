@@ -2,7 +2,7 @@
 {
   NSLanguageName = "French";
   NSLanguageCode = FRE;
-  NSFormalName = "Français";
+  NSFormalName = "Fran\u00e7ais";
   NSParentContext = "Default";
   
   NSCurrencySymbol = "EUR";
@@ -18,11 +18,11 @@
   NSDateFormatString = "%A %d %B %Y";
   NSDateTimeOrdering = DMYH; 
   NSEarlierTimeDesignations = (avant);
-  NSHourNameDesignations = ((0, minuit), (12, midi), (10, matin), (14, "après-midi" ), (19, soir));
-  NSLaterTimeDesignations = ("après");
-  NSMonthNameArray = (Janvier, "Février", Mars, Avril, Mai, Juin, Juillet, "Août", Septembre, Octobre, Novembre, "Décembre");
+  NSHourNameDesignations = ((0, minuit), (12, midi), (10, matin), (14, "apr\u00e8s-midi" ), (19, soir));
+  NSLaterTimeDesignations = ("apr\u00e8s");
+  NSMonthNameArray = (Janvier, "F\u00e9vrier", Mars, Avril, Mai, Juin, Juillet, "Ao\u00fbt", Septembre, Octobre, Novembre, "D\u00e9cembre");
   NSNextDayDesignations = (demain);
-  NSNextNextDayDesignations = ("après demain");
+  NSNextNextDayDesignations = ("apr\u00e8s demain");
   NSPriorDayDesignations = (hier);
   NSShortDateFormatString = "%d/%m/%Y"; /* 20/11/1974 */
   NSShortMonthNameArray = (Jan, Fev, Mar, Avr, Mai, Jun, Jui, Aou, Sep, Oct, Nov, Dec);
@@ -32,7 +32,7 @@
   NSTimeDateFormatString = "%a %d %b %H:%M:%S %z %Y"; /* Gio 22 Feb 15:33:42 +0100 2001 */
   NSTimeFormatString = "%H:%M:%S"; /* 21:21:08 */
   NSWeekDayNameArray = (Dimanche, Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi);
-  NSYearMonthWeekDesignations = ("année", mois, semaine);
+  NSYearMonthWeekDesignations = ("ann\u00e9e", mois, semaine);
 }
 
 
