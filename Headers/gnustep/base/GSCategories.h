@@ -93,6 +93,7 @@
 /**
  * The number of objects to try to get from varargs into an array on
  * the stack ... if there are more than this, use the heap.
+ * NB. This MUST be a multiple of 2
  */
 #define	GS_MAX_OBJECTS_FROM_STACK	128
 #endif
@@ -122,101 +123,59 @@
   va_list	__ap; \
   unsigned int	__max = GS_MAX_OBJECTS_FROM_STACK; \
   unsigned int	__count = 0; \
-  id		__buf[__max/2]; \
+  id		__buf[__max]; \
   id		*__objects = __buf; \
-  if (isPaired == YES) \
+  id		*__pairs = &__objects[__max/2]; \
+  id		__obj = firstObject; \
+  va_start(__ap, firstObject); \
+  while (__obj != nil && __count < __max) \
     { \
-      id		__buf2[__max/2]; \
-      id		*__pairs = __buf2; \
-      while (__count < __max) \
+      if ((__count % 2) == 0) \
 	{ \
-	  id	__tmp = va_arg(__ap, id); \
-	  if (__tmp == nil) \
+	  __objects[__count/2] = __obj; \
+	} \
+      else \
+	{ \
+	  __pairs[__count/2] = __obj; \
+	} \
+      __obj = va_arg(__ap, id); \
+      if (++__count == __max) \
+	{ \
+	  while (__obj != nil) \
 	    { \
-	      break; \
+	      __count++; \
+	      __obj = va_arg(__ap, id); \
 	    } \
-	  if ((__count % 2) == 0) \
+	} \
+    } \
+  if ((__count % 2) == 1) \
+    { \
+      __pairs[__count/2] = nil; \
+      __count++; \
+    } \
+  va_end(__ap); \
+  if (__count > __max) \
+    { \
+      unsigned int	__tmp; \
+      __objects = (id*)objc_malloc(__count*sizeof(id)); \
+      __pairs = &__objects[__count/2]; \
+      __objects[0] = firstObject; \
+      va_start(__ap, firstObject); \
+      for (__tmp = 1; __tmp < __count; __tmp++) \
+	{ \
+	  if ((__tmp % 2) == 0) \
 	    { \
-	      __objects[__count/2] = __tmp; \
+	      __objects[__tmp/2] = va_arg(__ap, id); \
 	    } \
 	  else \
 	    { \
-	      __pairs[__count/2] = __tmp; \
-	    } \
-	  if (++__count == __max) \
-	    { \
-	      __tmp = va_arg(__ap, id); \
-	      while (__tmp != nil) \
-		{ \
-		  __count++; \
-		  __tmp = va_arg(__ap, id); \
-		} \
-	    } \
-	  else if ((__count % 2) == 1) \
-	    { \
-	      __count++; \
-	      __pairs[__count/2] = nil; \
+	      __pairs[__tmp/2] = va_arg(__ap, id); \
 	    } \
 	} \
       va_end(__ap); \
-      if (__count > __max) \
-	{ \
-	  unsigned int	__tmp; \
-	  if ((__count % 2) == 1) __count++; \
-	  __objects = (id*)objc_malloc(__count*sizeof(id)*2); \
-	  __pairs = &__objects[__count/2]; \
-	  va_start(__ap, firstObject); \
-	  for (__tmp = 0; __tmp < __count; __tmp++) \
-	    { \
-	      if ((__count % 2) == 0) \
-		{ \
-		  __objects[__count/2] = va_arg(__ap, id); \
-		} \
-	      else \
-		{ \
-		  __pairs[__count/2] = va_arg(__ap, id); \
-		} \
-	    } \
-	  va_end(__ap); \
-	} \
-      code; \
-      if (__objects != __buf) objc_free(__objects); \
     } \
-  else \
-    { \
-      va_start(__ap, firstObject); \
-      while (__count < __max) \
-	{ \
-	  __objects[__count] = va_arg(__ap, id); \
-	  if (__objects[__count] == nil) \
-	    { \
-	      break; \
-	    } \
-	  if (++__count == __max) \
-	    { \
-	      id	__tmp = va_arg(__ap, id); \
-	      while (__tmp != nil) \
-		{ \
-		  __count++; \
-		  __tmp = va_arg(__ap, id); \
-		} \
-	    } \
-	} \
-      va_end(__ap); \
-      if (__count > __max) \
-	{ \
-	  unsigned int	__tmp; \
-	  __objects = (id*)objc_malloc(__count*sizeof(id)); \
-	  va_start(__ap, firstObject); \
-	  for (__tmp = 0; __tmp < __count; __tmp++) \
-	    { \
-	      __objects[__tmp] = va_arg(__ap, id); \
-	    } \
-	  va_end(__ap); \
-	} \
-      code; \
-      if (__objects != __buf) objc_free(__objects); \
-    } \
+  code; \
+  if (__objects != __buf) objc_free(__objects); \
 })
 
 /**
@@ -243,24 +202,18 @@
   unsigned int	__count = 0; \
   id		__buf[__max]; \
   id		*__objects = __buf; \
+  id		__obj = firstObject; \
   va_start(__ap, firstObject); \
-  while (__count < __max) \
+  while (__obj != nil && __count < __max) \
     { \
-      if (__count) \
-	__objects[__count] = va_arg(__ap, id); \
-      else \
-	__objects[__count] = firstObject; \
-      if (__objects[__count] == nil) \
-	{ \
-	  break; \
-	} \
+      __objects[__count] = __obj; \
+      __obj = va_arg(__ap, id); \
       if (++__count == __max) \
 	{ \
-	  id	__tmp = va_arg(__ap, id); \
-	  while (__tmp != nil) \
+	  while (__obj != nil) \
 	    { \
 	      __count++; \
-	      __tmp = va_arg(__ap, id); \
+	      __obj = va_arg(__ap, id); \
 	    } \
 	} \
     } \
