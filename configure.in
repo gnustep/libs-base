@@ -916,12 +916,12 @@ if test $ac_cv_func_iconv = no; then
 
   # BSDs install this lib as libgiconv
   AC_CHECK_LIB(giconv, main)
-  if test x"$av_cv_lib_giconv_main" = xyes; then
+  if test x"$ac_cv_lib_giconv_main" = xyes; then
     AC_DEFINE(HAVE_ICONV)
     AC_DEFINE(HAVE_GICONV_H)
   else
     AC_CHECK_LIB(iconv, main)
-    if test x"$av_cv_lib_iconv_main" = xyes; then
+    if test x"$ac_cv_lib_iconv_main" = xyes; then
       AC_DEFINE(HAVE_ICONV)
     fi
   fi
