@@ -23,6 +23,8 @@ int main (int argc, char **argv)
   NSData *data = [url resourceDataUsingCache: YES];
 
   NSLog(@"%@", data);
+  url = [NSURL fileURLWithPath: @"/tmp/z"];
+  [url setResourceData: data];
 
   NSLog(@"%@", _(Testing));
   NSLog(@"%@", $(@"Testing"));

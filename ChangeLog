@@ -8,9 +8,16 @@
 	tolerate URLs where the network part is missing and the '//' left out.
 	* Source/GSXML.m: Reorganized init methods in line with
 	Manuels ideas but with naming consistent with other classes.
+	Correct methods for setting parser behavior for the object concerned
+	rather than default behavior for all parsers.
+	Support NSURL parsing.
 	* Source/propList.h: Update for change in GSXMLParser API.
 	* Documentation/gsdoc/GSXMLParser.gsdoc: update for new initialisation
 	methods.
+	* Source/NSArray.m: Put code in place to generate XML proplists
+	* Source/NSDictionary.m: Put code in place to generate XML proplists
+	* Source/GSCompatibility.m: Put code in place to generate XML proplists
+	but disable it until working entity replacement is done.
 
 2000-09-21  Adam Fedor  <fedor@gnu.org>
 

@@ -627,14 +627,25 @@ compareIt(id o1, id o2, void* context)
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {
-  NSMutableString	*result;
+  extern BOOL GSMacOSXCompatiblePropertyLists();
 
-  result = AUTORELEASE([[NSGMutableCString alloc] initWithCapacity:
-    20*[self count]]);
-  [self descriptionWithLocale: locale
-		       indent: level
-			   to: (id<GNUDescriptionDestination>)result];
-  return result;
+  if (GSMacOSXCompatiblePropertyLists() == YES)
+    {
+      extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc, unsigned lev);
+
+      return GSXMLPlMake(self, locale, level);
+    }
+  else
+    {
+      NSMutableString	*result;
+
+      result = AUTORELEASE([[NSGMutableCString alloc] initWithCapacity:
+	20*[self count]]);
+      [self descriptionWithLocale: locale
+			   indent: level
+			       to: (id<GNUDescriptionDestination>)result];
+      return result;
+    }
 }
 
 static NSString	*indentStrings[] = {

@@ -109,6 +109,8 @@ BOOL GSMacOSXCompatibleGeometry()
 
 BOOL GSMacOSXCompatiblePropertyLists()
 {
+/* HACK until xml propertylists fully working */
+return NO;
   if (setupDone == NO)
     compatibilitySetup();
   return MacOSXCompatiblePropertyLists;
@@ -178,9 +180,30 @@ XMLString(NSString* obj)
   return obj;
 }
 
+static NSString	*indentStrings[] = {
+  @"",
+  @"    ",
+  @"\t",
+  @"\t    ",
+  @"\t\t",
+  @"\t\t    ",
+  @"\t\t\t",
+  @"\t\t\t    ",
+  @"\t\t\t\t",
+  @"\t\t\t\t    ",
+  @"\t\t\t\t\t",
+  @"\t\t\t\t\t    ",
+  @"\t\t\t\t\t\t"
+};
+
 static void
-XMLPlObject(NSMutableString *dest, id obj)
+XMLPlObject(NSMutableString *dest, id obj, NSDictionary *loc, unsigned lev)
 {
+  if (lev >= sizeof(indentStrings) / sizeof(*indentStrings))
+    lev = sizeof(indentStrings) / sizeof(*indentStrings) - 1;
+
+  [dest appendString: indentStrings[lev]];
+
   if ([obj isKindOfClass: [NSString class]])
     {
       [dest appendString: @"<string>"];
@@ -233,14 +256,19 @@ XMLPlObject(NSMutableString *dest, id obj)
       e = [obj objectEnumerator];
       while ((obj = [e nextObject]))
         {
-          XMLPlObject(dest, obj);
+          XMLPlObject(dest, obj, loc, lev + 1);
         }
+      [dest appendString: indentStrings[lev]];
       [dest appendString: @"</array>\n"];
     }
   else if ([obj isKindOfClass: [NSDictionary class]])
     {
       NSEnumerator	*e;
       id		key;
+      unsigned		nxt = lev + 1;
+
+      if (lev >= sizeof(indentStrings) / sizeof(*indentStrings))
+	lev = sizeof(indentStrings) / sizeof(*indentStrings) - 1;
 
       [dest appendString: @"<dict>\n"];
       e = [obj keyEnumerator];
@@ -249,11 +277,13 @@ XMLPlObject(NSMutableString *dest, id obj)
 	  id	val;
 
           val = [obj objectForKey: key];
+	  [dest appendString: indentStrings[nxt]];
 	  [dest appendString: @"<key>"];
 	  [dest appendString: XMLString(key)];
 	  [dest appendString: @"</key>\n"];
-          XMLPlObject(dest, val);
+          XMLPlObject(dest, val, loc, nxt);
         }
+      [dest appendString: indentStrings[lev]];
       [dest appendString: @"</dict>\n"];
     }
   else
@@ -263,5 +293,20 @@ XMLPlObject(NSMutableString *dest, id obj)
       [dest appendString: [obj description]];
       [dest appendString: @"</string>\n"];
     }
+}
+
+NSString*
+GSXMLPlMake(id obj, NSDictionary *loc, unsigned lev)
+{
+  NSMutableString	*dest;
+
+  dest = [NSMutableString stringWithCString:
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist "
+    "SYSTEM \"file://localhost/System/Library/DTDs/PropertyList.dtd\">\n"
+    "<plist version=\"0.9\">\n"];
+
+  XMLPlObject(dest, obj, loc, 0);
+  [dest appendString: @"</plist>"];
+  return dest;
 }
 

@@ -32,6 +32,8 @@
 
 #include <Foundation/GSXML.h>
 #include <Foundation/NSData.h>
+#include <Foundation/NSValue.h>
+#include <Foundation/NSURL.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSFileManager.h>
@@ -937,10 +939,14 @@ static NSString	*endMarker = @"At end of incremental parse";
       RELEASE(self);
       return nil;
     }
-  self = [self init];
-  if (self != nil)
+  saxHandler = RETAIN(handler);
+  [saxHandler parser: self];
+  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], saxHandler, 0, 0, "");
+  if (lib == NULL)
     {
-      saxHandler = RETAIN(handler);
+      NSLog(@"Failed to create libxml parser context");
+      RELEASE(self);
+      return nil;
     }
   return self;
 }
@@ -1013,29 +1019,28 @@ static NSString	*endMarker = @"At end of incremental parse";
 
   if ([src isKindOfClass: [NSData class]])
     {
-      lib = (void*)xmlCreateMemoryParserCtxt((void*)[src bytes],
-	[src length]-1);
-      if (lib == NULL)
-        {
-          NSLog(@"out of memory");
-          return NO;
-        }
     }
   else if ([src isKindOfClass: NSString_class])
     {
-      NSFileManager	*mgr = [NSFileManager defaultManager];
+      NSData	*data = [NSData dataWithContentsOfFile: src];
 
-      if ([mgr isReadableFileAtPath: src] == NO)
+      if (data == nil)
 	{
 	  NSLog(@"File to parse (%@) is not readable", src);
           return NO;
 	}
-      lib = (void*)xmlCreateFileParserCtxt([src cString]);
-      if (lib == NULL)
-        {
-          NSLog(@"out of memory");
+      ASSIGN(src, data);
+    }
+  else if ([src isKindOfClass: [NSURL class]])
+    {
+      NSData	*data = [src resourceDataUsingCache: YES];
+
+      if (data == nil)
+	{
+	  NSLog(@"URL to parse (%@) is not readable", src);
           return NO;
-        }
+	}
+      ASSIGN(src, data);
     }
   else
     {
@@ -1043,18 +1048,10 @@ static NSString	*endMarker = @"At end of incremental parse";
        return NO;
     }
 
-  if (saxHandler != nil)
-    {
-      NSAssert([saxHandler parser] == nil, NSGenericException);
-      free(((xmlParserCtxtPtr)lib)->sax);
-      ((xmlParserCtxtPtr)lib)->sax = [saxHandler lib];
-      ((xmlParserCtxtPtr)lib)->userData = saxHandler;
-      [saxHandler parser: self];
-    }
-
   tmp = RETAIN(src);
   ASSIGN(src, endMarker);
-  xmlParseDocument(lib);
+  xmlParseChunk(lib, [tmp bytes], [tmp length], 0);
+  xmlParseChunk(lib, 0, 0, 0);
   RELEASE(tmp);
 
   if (((xmlParserCtxtPtr)lib)->wellFormed)
@@ -1065,17 +1062,11 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (BOOL) parse: (NSData*)data
 {
-  /*
-   * Permit start of new parse after completed one.
-   */
   if (src == endMarker)
     {
-      xmlFreeDoc(((xmlParserCtxtPtr)lib)->myDoc);
-      xmlClearParserCtxt(lib);
-      lib = NULL;
-      src = nil;
+      NSLog(@"GSXMLParser -parse: called on object that is fully parsed");
+      return NO;
     }
-
   if (src != nil)
     {
        NSLog(@"XMLParser -parse: called for parser not initialised with nil");
@@ -1104,21 +1095,7 @@ static NSString	*endMarker = @"At end of incremental parse";
     }
   else
     {
-      if (lib == NULL)
-	{
-	  NSAssert([saxHandler parser] == nil, NSGenericException);
-	  [saxHandler parser: self];
-	  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], saxHandler,
-	    [data bytes], [data length], "incremental");
-	  if (lib == NULL)
-	    {
-	      return NO;
-	    }
-	}
-      else
-	{
-	  xmlParseChunk(lib, [data bytes], [data length], 0);
-	}
+      xmlParseChunk(lib, [data bytes], [data length], 0);
       return YES;
     }
 }
@@ -1143,24 +1120,32 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (BOOL) substituteEntities: (BOOL)yesno
 {
-  return xmlSubstituteEntitiesDefault(yesno);
+  BOOL	result = ((xmlParserCtxtPtr)lib)->replaceEntities ? YES : NO;
+
+  ((xmlParserCtxtPtr)lib)->replaceEntities = (yesno == YES) ? 1 : 0;
+  return result;
 }
 
 - (BOOL) keepBlanks: (BOOL)yesno
 {
-  return xmlKeepBlanksDefault(yesno);
+  BOOL	result = ((xmlParserCtxtPtr)lib)->keepBlanks ? YES : NO;
+
+  ((xmlParserCtxtPtr)lib)->keepBlanks = (yesno == YES) ? 1 : 0;
+  return result;
 }
 
 - (BOOL) doValidityChecking: (BOOL)yesno
 {
-  return !(xmlDoValidityCheckingDefaultValue = yesno);
+  BOOL	result = ((xmlParserCtxtPtr)lib)->validate ? YES : NO;
+
+  ((xmlParserCtxtPtr)lib)->validate = (yesno == YES) ? 1 : 0;
+  return result;
 }
 
 - (BOOL) getWarnings: (BOOL)yesno
 {
   return !(xmlGetWarningsDefaultValue = yesno);
 }
-
 
 - (void) setExternalEntityLoader: (void*)function
 {
