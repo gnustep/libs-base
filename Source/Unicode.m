@@ -156,6 +156,12 @@ const struct _strenc_ str_encoding_table[]=
   {NSISOArabicStringEncoding, "NSISOArabicStringEncoding"},
   {NSISOGreekStringEncoding, "NSISOGreekStringEncoding"},
   {NSISOHebrewStringEncoding, "NSISOHebrewStringEncoding"},
+  {NSISOLatin5StringEncoding, "NSISOLatin5StringEncoding"},
+  {NSISOLatin6StringEncoding, "NSISOLatin6StringEncoding"},
+  {NSISOLatin7StringEncoding, "NSISOLatin7StringEncoding"},
+  {NSISOLatin8StringEncoding, "NSISOLatin8StringEncoding"},
+  {NSISOLatin9StringEncoding, "NSISOLatin9StringEncoding"},
+  {NSUTF7StringEncoding, "NSUTF7StringEncoding"},
   {NSGB2312StringEncoding, "NSGB2312StringEncoding"},
 
   {0, "Unknown encoding"}
