@@ -62,6 +62,12 @@
 #include "Foundation/NSDebug.h"
 #include "GNUstepBase/GSLocale.h"
 #include "GSFormat.h"
+
+/* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>

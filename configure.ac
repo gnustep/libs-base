@@ -672,7 +672,11 @@ AC_CHECK_FUNCS(strerror)
 AC_CHECK_TYPES([uintmax_t])
 
 AC_MSG_CHECKING([whether precompiler handles LONG_LONG_MAX])
-AC_TRY_CPP([#ifdef HAVE_STDINT_H
+# We need to define _GNU_SOURCE for some systems to enable LONG_LONG_MAX
+AC_TRY_CPP([#ifndef _GNU_SOURCE
+	#define _GNU_SOURCE
+	#endif
+        #ifdef HAVE_STDINT_H
 	#include <stdint.h>
 	#endif
 	#include <limits.h>
@@ -696,7 +700,6 @@ fi
 # Solaris and *BSD use LLONG_MAX instead
 #
 AC_MSG_CHECKING([whether we have LLONG_MAX])
-
 AC_TRY_CPP([#include <limits.h>
 	#if defined(LLONG_MAX)
 	#if LONG_MAX == LLONG_MAX
