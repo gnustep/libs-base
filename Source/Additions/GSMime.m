@@ -3642,14 +3642,38 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Create new content ID header, set it as the content ID of the document
- * and return it.
+ * and return it.<br />
+ * This is a convenience method which simply places angle brackets around
+ * an [NSProcessInfo+globallyUniqueString] to form the header value.
  */
 - (GSMimeHeader*) makeContentID
 {
   GSMimeHeader	*hdr;
+  NSString	*str = [[NSProcessInfo processInfo] globallyUniqueString];
 
+  str = [NSString stringWithFormat: @"<%@>", str];
   hdr = [[GSMimeHeader alloc] initWithName: @"content-id"
-				     value: makeUniqueString()
+				     value: str
+				parameters: nil];
+  [self setHeader: hdr];
+  RELEASE(hdr);
+  return hdr;
+}
+
+/**
+ * Create new message ID header, set it as the message ID of the document
+ * and return it.<br />
+ * This is a convenience method which simply places angle brackets around
+ * an [NSProcessInfo+globallyUniqueString] to form the header value.
+ */
+- (GSMimeHeader*) makeMessageID
+{
+  GSMimeHeader	*hdr;
+  NSString	*str = [[NSProcessInfo processInfo] globallyUniqueString];
+
+  str = [NSString stringWithFormat: @"<%@>", str];
+  hdr = [[GSMimeHeader alloc] initWithName: @"message-id"
+				     value: str
 				parameters: nil];
   [self setHeader: hdr];
   RELEASE(hdr);
@@ -3931,7 +3955,7 @@ static NSCharacterSet	*tokenSet = nil;
 /**
  * Convenience method calling -setContent:type:name: to set document
  * content and type without specifying a name ... useful for top-level
- * documents rather than parts within a daocument (parts should really
+ * documents rather than parts within a document (parts should really
  * be named).
  */
 - (void) setContent: (id)newContent
@@ -3983,7 +4007,12 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Convenience method to set the content of the document along with
- * creating a content-type header for it.
+ * creating a content-type header for it.<br />
+ * You can get the same effect by calling -setContent: to set the document
+ * content, then creating a [GSMimeHeader] instance, initialising it with
+ * the content type information you want using
+ * [GSMimeHeader-initWithName:value:parameters:], and  calling the
+ * -setHeader: method to attach it to the document.
  */
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
@@ -4350,8 +4379,12 @@ makeUniqueString()
   const char		*bytes;
   unsigned int		i;
   unsigned char		digest[20];
-  unsigned char		encoded[40];
+  unsigned char		*encoded;
+  NSMutableData		*md;
+  NSString		*result;
 
+  md = [[NSMutableData alloc] initWithLength: 40];
+  encoded = (unsigned char*)[md mutableBytes];
   MD5Init(&ctx);
   bytes = [[[NSProcessInfo processInfo] globallyUniqueString] lossyCString];
   MD5Update(&ctx, bytes, strlen(bytes));
@@ -4363,6 +4396,8 @@ makeUniqueString()
   digest[18] = (count >> 8) & 0xff;
   digest[19] = count & 0xff;
   i = encodebase64(encoded, digest, 20);
-  return [NSString stringWithCString: encoded length: i];
+  [md setLength: i];
+  result = [[NSString alloc] initWithData: md encoding: NSASCIIStringEncoding];
+  return AUTORELEASE(result);
 }
 
