@@ -1,28 +1,39 @@
 #!/bin/sh
 
-dir=/com/share/ftp/roland
+# The directory in which to find the last snapshot
+dir=../releases
+
+# The email addresses of people to receive mail about the new diff
 diff_recipients=drepper
 
-module=libc
+# The name of this module
+module=gstep-base
+# A regular expression for the six-digit date string "yymmdd"
 yrptn='[0-9][0-9][0-9][0-9][0-9][0-9]'
+# The pattern for the file containing the diff
 ptn="${module}-${yrptn}"
 dptn="${ptn}-${yrptn}.diff"
 
+# Get the current date
 date=`date +%y%m%d`
 
+# Find date of the last snapshot
 lastsnap=`cd $dir; ls $ptn.tar.gz $dptn $dptn.gz 2>/dev/null |
                    sed -e "s/^.*\\(${yrptn}\\)[.a-z]*$/\\1/" |
                    sort -nr | head -1`
 
+# Find the date of the last diff
 lastdiff=`cd $dir; ls $dptn $dptn.gz 2>/dev/null |
                     sed -e "s/^.*\\(${yrptn}\\)[.a-z]*$/\\1/" |
                     sort -nr | head -1`
 
-notag=
+# Will we make a CVS tag for this snapshot?  An empty value means `tag it'.
+# Always disabled for now.
+notag=yes
 
 if [ $lastsnap = $date ]; then
   if [ $lastdiff = $lastsnap ]; then
-    echo "$0: Snapshot ${module}-${date} already made, skipping."
+    echo "$0: Snapshot diff for ${module}-${date} already made, skipping."
     exit 0
   fi
 
@@ -32,12 +43,20 @@ if [ $lastsnap = $date ]; then
   lastsnap=$lastdiff
 fi
 
+# The name of the diff file
 diff="${module}-${lastdiff}-${date}.diff"
-test -z "$notag" && cvs -q rtag -F libc-$date $module
-cvs -q rdiff -u -r $module-$lastdiff -r $module-$date $module > $diff || exit
+echo Making $diff
+
+# If $notag is empty, `cvs rtag' the repository
+#test -z "$notag" && cvs -q rtag -F snapshot-$date $module
+
+# Have cvs make the diff for us.
+#cvs -q rdiff -u -r snapshot-$lastdiff -r snapshot-$date $module >$diff || exit
+cvs rdiff -u -r snapshot-$lastdiff $module > $diff || exit
 
 if [ -s $diff ]; then
-  mail -s $diff < $diff $diff_recipients
+  # Mail a message saying the new diff is available. (Commented out for now)
+  # mail -s $diff < $diff $diff_recipients
   gzip -9 $diff && mv -f $diff.gz $dir
 else
   rm -f $diff
