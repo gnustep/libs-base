@@ -253,7 +253,8 @@ win32-load.h \
 NSCallBacks.h \
 tzfile.h
 
-AUTOGSDOC_HEADERS = \
+FOUNDATION_HEADERS = \
+Foundation.h \
 GSMime.h \
 GSXML.h \
 NSArchiver.h \
@@ -262,10 +263,12 @@ NSAttributedString.h \
 NSAutoreleasePool.h \
 NSBitmapCharSet.h \
 NSBundle.h \
+NSByteOrder.h \
 NSCalendarDate.h \
 NSCharacterSet.h \
 NSClassDescription.h \
 NSCoder.h \
+NSConcreteNumber.h \
 NSConnection.h \
 NSData.h \
 NSDate.h \
@@ -296,6 +299,7 @@ NSNull.h \
 NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
+NSPathUtilities.h \
 NSPort.h \
 NSPortCoder.h \
 NSPortMessage.h \
@@ -306,6 +310,7 @@ NSProxy.h \
 NSRange.h \
 NSRunLoop.h \
 NSScanner.h \
+NSSerialization.h \
 NSSet.h \
 NSString.h \
 NSTask.h \
@@ -316,17 +321,9 @@ NSURL.h \
 NSURLHandle.h \
 NSUndoManager.h \
 NSUserDefaults.h \
-NSValue.h \
-NSZone.h
-
-FOUNDATION_HEADERS = \
-Foundation.h \
-NSByteOrder.h \
-NSConcreteNumber.h \
-NSPathUtilities.h \
-NSSerialization.h \
 NSUtilities.h \
-$(AUTOGSDOC_HEADERS) \
+NSValue.h \
+NSZone.h \
 objc-load.h
 
 
@@ -364,32 +361,10 @@ libgnustep-base_HEADER_FILES_INSTALL_DIR = /Foundation
 
 libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 
-DOCUMENT_NAME = Base
-
-Base_HEADER_FILES_DIR = $(HEADER_DIR)
-Base_AGSDOC_FILES = Base.gsdoc $(AUTOGSDOC_HEADERS)
-Base_DOC_INSTALL_DIR = Developer
-Base_AGSDOC_FLAGS = \
-	-HeaderDirectory ../Headers/Foundation \
-	-Declared Foundation \
-	-Standards YES \
-	-WordMap '{\
-	FOUNDATION_EXPORT=extern;FOUNDATION_STATIC_INLINE="";\
-	GS_GEOM_SCOPE=extern;GS_GEOM_ATTR="";\
-	GS_EXPORT=extern;GS_DECLARE="";\
-	GS_RANGE_SCOPE=extern;GS_RANGE_ATTR="";\
-	GS_ZONE_SCOPE=extern;GS_ZONE_ATTR="";\
-	}' -Up Base
-
 -include Makefile.preamble
 
 -include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/library.make
-
-# Only build the doc if doc=yes was passed on the command line
-ifeq ($(doc),yes)
-include $(GNUSTEP_MAKEFILES)/documentation.make
-endif
 
 -include Makefile.postamble
