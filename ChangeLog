@@ -5,6 +5,8 @@
 	termination nicely under windoze.
 	* Source/NSException.m: flush stderr ... under windoze stderr is
 	not automatically flushed!
+	* Source/GSWindowsFileHandle.m: watch for exceptional conditions
+	so we can handle socket failures.
 
 2002-03-22  Richard Frith-Macdonald <rfm@gnu.org>
 

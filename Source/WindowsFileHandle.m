@@ -1062,13 +1062,23 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		    type: ET_RDESC
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
+	  [l removeEvent: (void*)(gsaddr)descriptor
+		    type: ET_EDESC
+		 forMode: [modes objectAtIndex: i]
+		     all: YES];
         }
     }
   else
-    [l removeEvent: (void*)(gsaddr)descriptor
-	      type: ET_RDESC
-	   forMode: NSDefaultRunLoopMode
-	       all: YES];
+    {
+      [l removeEvent: (void*)(gsaddr)descriptor
+		type: ET_RDESC
+	     forMode: NSDefaultRunLoopMode
+		 all: YES];
+      [l removeEvent: (void*)(gsaddr)descriptor
+		type: ET_EDESC
+	     forMode: NSDefaultRunLoopMode
+		 all: YES];
+    }
 }
 
 - (void) ignoreWriteDescriptor
@@ -1077,7 +1087,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   NSArray	*modes;
 
   if (descriptor < 0)
-    return;
+    {
+      return;
+    }
 
   l = [NSRunLoop currentRunLoop];
   modes = nil;
@@ -1099,13 +1111,23 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		    type: ET_WDESC
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
+	  [l removeEvent: (void*)(gsaddr)descriptor
+		    type: ET_EDESC
+		 forMode: [modes objectAtIndex: i]
+		     all: YES];
         }
     }
   else
-    [l removeEvent: (void*)(gsaddr)descriptor
-	      type: ET_WDESC
-	   forMode: NSDefaultRunLoopMode
-	       all: YES];
+    {
+      [l removeEvent: (void*)(gsaddr)descriptor
+		type: ET_WDESC
+	     forMode: NSDefaultRunLoopMode
+		 all: YES];
+      [l removeEvent: (void*)(gsaddr)descriptor
+		type: ET_EDESC
+	     forMode: NSDefaultRunLoopMode
+		 all: YES];
+    }
 }
 
 - (void) watchReadDescriptorForModes: (NSArray*)modes;
@@ -1127,6 +1149,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		 type: ET_RDESC
 	      watcher: self
 	      forMode: [modes objectAtIndex: i]];
+	  [l addEvent: (void*)(gsaddr)descriptor
+		 type: ET_EDESC
+	      watcher: self
+	      forMode: [modes objectAtIndex: i]];
         }
       [readInfo setObject: modes forKey: NSFileHandleNotificationMonitorModes];
     }
@@ -1136,14 +1162,19 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	     type: ET_RDESC
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
+      [l addEvent: (void*)(gsaddr)descriptor
+	     type: ET_EDESC
+	  watcher: self
+	  forMode: NSDefaultRunLoopMode];
     }
 }
 
 - (void) watchWriteDescriptor
 {
   if (descriptor < 0)
-    return;
-
+    {
+      return;
+    }
   if ([writeInfo count] > 0)
     {
       NSMutableDictionary*	info = [writeInfo objectAtIndex: 0];
@@ -1164,12 +1195,20 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		     type: ET_WDESC
 		  watcher: self
 		  forMode: [modes objectAtIndex: i]];
+	      [l addEvent: (void*)(gsaddr)descriptor
+		     type: ET_EDESC
+		  watcher: self
+		  forMode: [modes objectAtIndex: i]];
 	    }
 	}
       else
 	{
 	  [l addEvent: (void*)(gsaddr)descriptor
 		 type: ET_WDESC
+	      watcher: self
+	      forMode: NSDefaultRunLoopMode];
+	  [l addEvent: (void*)(gsaddr)descriptor
+		 type: ET_EDESC
 	      watcher: self
 	      forMode: NSDefaultRunLoopMode];
 	}
@@ -1184,7 +1223,25 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   NSString	*operation;
 
   if (isNonBlocking == NO)
-    [self setNonBlocking: YES];
+    {
+      [self setNonBlocking: YES];
+    }
+  /*
+   * If we have an exceptional condition ... treat as a read or write as
+   * appropriate.
+   */
+  if (type == ET_EDESC)
+    {
+      if ([writeInfo count] > 0)
+	{
+	  type = ET_WDESC;
+	}
+      else
+	{
+	  type = ET_RDESC;
+	}
+    }
+
   if (type == ET_RDESC)
     {
       operation = [readInfo objectForKey: NotificationKey];
