@@ -48,11 +48,9 @@
 
    */
 
-#include <objc/objc.h>
-#include <objc/objc-api.h>
-#include <objc/sarray.h>
-#include <objects/objc-malloc.h>
+#include <objects/stdobjects.h>
 #include <assert.h>
+#include <Foundation/NSException.h>
 
 static int behavior_debug = 0;
 
@@ -93,7 +91,16 @@ class_add_behavior (Class class, Class behavior)
 
   /* If necessary, increase instance_size of CLASS. */
   if (class->instance_size < behavior->instance_size)
-    class->instance_size = behavior->instance_size;
+    {
+      NSCAssert (!class->subclass_list,
+		 @"The behavior-addition code wants to increase the\n"
+		 @"instance size of a class, but it cannot because you\n"
+		 @"have subclassed the class.  There are two solutions:\n"
+		 @"(1) Don't subclass it; (2) Add placeholder instance\n"
+		 @"variables to the class, so the behavior-addition code\n"
+		 @"will not have to increase the instance size.");
+      class->instance_size = behavior->instance_size;
+    }
 
 #if 0
   /* xxx Do protocols */
