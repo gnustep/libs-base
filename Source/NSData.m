@@ -801,13 +801,13 @@ failure:
 		[self deserializeBytes: types
 				length: lt
 			      atCursor: cursor];
-		name[lt] = '\0';
+		types[lt] = '\0';
 
 		if (lt) {
                     sel = sel_get_typed_uid(name, types);
 		}
 		else {
-		    sel = sel_get_uid(name);
+		    sel = sel_get_any_typed_uid(name);
 		}
 		if (sel == 0) {
 		    [NSException raise: NSInternalInconsistencyException
@@ -1684,13 +1684,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		getBytes((void*)name, bytes, ln, length, cursor);
 		name[ln] = '\0';
 		getBytes((void*)types, bytes, lt, length, cursor);
-		name[lt] = '\0';
+		types[lt] = '\0';
 
 		if (lt) {
                     sel = sel_get_typed_uid(name, types);
 		}
 		else {
-		    sel = sel_get_uid(name);
+		    sel = sel_get_any_typed_uid(name);
 		}
 		if (sel == 0) {
 		    [NSException raise: NSInternalInconsistencyException
@@ -2448,7 +2448,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		length += ln;
 	    }
 	    if (lt) {
-		memcpy(bytes+length, type, lt);
+		memcpy(bytes+length, types, lt);
 		length += lt;
 	    }
 	    return;

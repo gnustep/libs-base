@@ -162,7 +162,8 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	  }
 	NS_HANDLER
 	  {
-	    d = nil;
+	    [archiver release];
+	    [localException raise];
 	  }
 	NS_ENDHANDLER
 	[archiver release];
@@ -280,10 +281,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	      (*tagImp)(dst, tagSel, _C_STRUCT_B);
 	    }
 
-	  while (*type != _C_STRUCT_E && *type != '=')
-	    {
-	      type++;
-	    }
+	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
 
 	  for (;;)
 	    {
@@ -355,6 +353,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		    node->value.I = ++xRefP;
 		  }
 		(*tagImp)(dst, tagSel, _C_PTR);
+		(*xRefImp)(dst, xRefSel, node->value.I);
 		type++;
 		buf = *(char**)buf;
 		(*eValImp)(self, eValSel, type, buf);
