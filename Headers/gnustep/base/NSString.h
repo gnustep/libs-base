@@ -61,69 +61,54 @@ typedef enum _NSStringEncoding
 @protocol NSString  <NSCoding, NSCopying, NSMutableCopying>
 
 // Creating Temporary Strings
-
-+ (NSString*) localizedStringWithFormat: (NSString*) format, ...;
-+ (NSString*) stringWithCString: (const char*) byteString;
-+ (NSString*) stringWithCString: (const char*)byteString
-   length: (unsigned int)length;
 + (NSString*) stringWithCharacters: (const unichar*)chars
    length: (unsigned int)length;
++ (NSString*) stringWithCString: (const char*)byteString
+   length: (unsigned int)length;
++ (NSString*) stringWithCString: (const char*) byteString;
 + (NSString*) stringWithFormat: (NSString*)format,...;
-+ (NSString*) stringWithFormat: (NSString*)format
-   arguments: (va_list)argList;
 
 // Initializing Newly Allocated Strings
-
-- (id) init;
-- (id) initWithCString: (const char*)byteString;
-- (id) initWithCString: (const char*)byteString
-   length: (unsigned int)length;
-- (id) initWithCStringNoCopy: (char*)byteString
+- (id) initWithCharactersNoCopy: (unichar*)chars
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag;
 - (id) initWithCharacters: (const unichar*)chars
    length: (unsigned int)length;
-- (id) initWithCharactersNoCopy: (unichar*)chars
+- (id) initWithCStringNoCopy: (char*)byteString
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag;
-- (id) initWithContentsOfFile: (NSString*)path;
-- (id) initWithData: (NSData*)data
-   encoding: (NSStringEncoding)encoding;
+- (id) initWithCString: (const char*)byteString
+   length: (unsigned int)length;
+- (id) initWithCString: (const char*)byteString;
+- (id) initWithString: (NSString*)string;
 - (id) initWithFormat: (NSString*)format,...;
 - (id) initWithFormat: (NSString*)format
    arguments: (va_list)argList;
-- (id) initWithFormat: (NSString*)format
-   locale: (NSDictionary*)dictionary;
-- (id) initWithFormat: (NSString*)format
-   locale: (NSDictionary*)dictionary
-   arguments: (va_list)argList;
-- (id) initWithString: (NSString*)string;
+- (id) initWithData: (NSData*)data
+   encoding: (NSStringEncoding)encoding;
+- (id) initWithContentsOfFile: (NSString*)path;
+- (id) init;
 
 // Getting a String's Length
-
 - (unsigned int) length;
 
 // Accessing Characters
-
 - (unichar) characterAtIndex: (unsigned int)index;
 - (void) getCharacters: (unichar*)buffer;
 - (void) getCharacters: (unichar*)buffer
    range: (NSRange)aRange;
 
 // Combining Strings
-
 - (NSString*) stringByAppendingFormat: (NSString*)format,...;
 - (NSString*) stringByAppendingString: (NSString*)aString;
 
 // Dividing Strings into Substrings
-
 - (NSArray*) componentsSeparatedByString: (NSString*)separator;
 - (NSString*) substringFromIndex: (unsigned int)index;
 - (NSString*) substringFromRange: (NSRange)aRange;
 - (NSString*) substringToIndex: (unsigned int)index;
 
 // Finding Ranges of Characters and Substrings
-
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet;
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
    options: (unsigned int)mask;
@@ -138,12 +123,13 @@ typedef enum _NSStringEncoding
    range: (NSRange)aRange;
 
 // Determining Composed Character Sequences
-
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned int)anIndex;
 
-// Identifying and Comparing Strings
+// Converting String Contents into a Property List
+- (id)propertyList;
+- (NSDictionary*) propertyListFromStringsFileFormat;
 
-- (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
+// Identifying and Comparing Strings
 - (NSComparisonResult) compare: (NSString*)aString;
 - (NSComparisonResult) compare: (NSString*)aString	
    options: (unsigned int)mask;
@@ -152,29 +138,20 @@ typedef enum _NSStringEncoding
    range: (NSRange)aRange;
 - (BOOL) hasPrefix: (NSString*)aString;
 - (BOOL) hasSuffix: (NSString*)aString;
-- (unsigned int) hash;
 - (BOOL) isEqual: (id)anObject;
 - (BOOL) isEqualToString: (NSString*)aString;
-
-// Storing the String
-
-- (NSString*) description;
-- (BOOL) writeToFile: (NSString*)filename
-   atomically: (BOOL)useAuxiliaryFile;
+- (unsigned int) hash;
 
 // Getting a Shared Prefix
-
 - (NSString*) commonPrefixWithString: (NSString*)aString
    options: (unsigned int)mask;
 
 // Changing Case
-
 - (NSString*) capitalizedString;
 - (NSString*) lowercaseString;
 - (NSString*) uppercaseString;
 
 // Getting C Strings
-
 - (const char*) cString;
 - (unsigned int) cStringLength;
 - (void) getCString: (char*)buffer;
@@ -186,28 +163,20 @@ typedef enum _NSStringEncoding
    remainingRange: (NSRange*)leftoverRange;
 
 // Getting Numeric Values
-
-- (double) doubleValue;
 - (float) floatValue;
 - (int) intValue;
 
 // Working With Encodings
-
-+ (NSStringEncoding) defaultCStringEncoding;
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding;
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding;
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
    allowLossyConversion: (BOOL)flag;
++ (NSStringEncoding) defaultCStringEncoding;
+- (NSString*) description;
 - (NSStringEncoding) fastestEncoding;
 - (NSStringEncoding) smallestEncoding;
 
-// Converting String Contents into a Property List
-
-- (id)propertyList;
-- (NSDictionary*) propertyListFromStringsFileFormat;
-
 // Manipulating File System Paths
-
 - (unsigned int) completePathIntoString: (NSString**)outputName
    caseSensitive: (BOOL)flag
    matchesIntoArray: (NSArray**)outputArray
@@ -223,6 +192,21 @@ typedef enum _NSStringEncoding
 - (NSString*) stringByResolvingSymlinksInPath;
 - (NSString*) stringByStandardizingPath;
 
+#ifndef STRICT_OPENSTEP
++ (NSString*) localizedStringWithFormat: (NSString*) format, ...;
++ (NSString*) stringWithFormat: (NSString*)format
+   arguments: (va_list)argList;
+- (id) initWithFormat: (NSString*)format
+   locale: (NSDictionary*)dictionary;
+- (id) initWithFormat: (NSString*)format
+   locale: (NSDictionary*)dictionary
+   arguments: (va_list)argList;
+- (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
+- (BOOL) writeToFile: (NSString*)filename
+   atomically: (BOOL)useAuxiliaryFile;
+- (double) doubleValue;
+#endif
+
 #ifndef NO_GNUSTEP
 - (const char *) cStringNoCopy;
 #endif /* NO_GNUSTEP */
@@ -232,39 +216,30 @@ typedef enum _NSStringEncoding
 @interface NSString : NSObject <NSString>
 @end
 
-/* This private method will go away later. */
-@interface NSString (NSCStringAccess)
-- (const char *) _cStringContents;
-@end
-
 @class NSMutableString;
 
 @protocol NSMutableString <NSString>
 
 // Creating Temporary Strings
-
 + (NSMutableString*) stringWithCapacity:(unsigned)capacity;
-
 #if 0
 These methods were already declared above with different return type.
 Including them again here with different return type causes a
 compiler warning. 
-+ (NSMutableString*) stringWithCString: (const char*)byteString;
 + (NSMutableString*) stringWithCharacters: (const unichar*)characters
    length: (unsigned)length;
++ (NSMutableString*) stringWithCString: (const char*)byteString;
 + (NSMutableString*) stringWithCString: (const char*)bytes
    length:(unsigned)length;
 + (NSMutableString*) stringWithFormat: (NSString*)format, ...;
 #endif 
 
 // Initializing Newly Allocated Strings
-
 - initWithCapacity:(unsigned)capacity;
 
 // Modify A String
-
-- (void) appendString: (NSString*)aString;
 - (void) appendFormat: (NSString*)format, ...;
+- (void) appendString: (NSString*)aString;
 - (void) deleteCharactersInRange: (NSRange)range;
 - (void) insertString: (NSString*)aString atIndex:(unsigned)index;
 - (void) replaceCharactersInRange: (NSRange)range 
