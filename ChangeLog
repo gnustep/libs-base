@@ -1,3 +1,18 @@
+2001-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: For efficiency, use _DefaultStringEncoding
+	throughout, rather than calling +defaultCStringEncoding.  This is
+	safe since the documentation explicitly states that the encoding
+	cannot be changed programmatically ... so we don't have to worry
+	about someone adding a category to change that.
+	When converting data to/from strings, optimise to simple cString
+	stuff if the specified encoding is the defautl encoding.
+	Tidied some stuff to conform better to coding standards.
+	* Source/Unicode.m GetDefEncoding(): prohibit UTF8 from being the
+	default cString encoding ... the default cString encoding must
+	consist of 7 or 8 bit characters, and must contain ASCII as a
+	subset.  We really should think of a generalised test for that.
+
 2001-04-11  Nicola Pero  <nicola@brainstorm.co.uk>
 	
 	* Source/NSString.m ([-initWithData:encoding:]): When working with

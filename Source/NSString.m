@@ -229,8 +229,8 @@ pathSepMember(unichar c)
 static inline gsu32
 surrogatePairValue(unichar high, unichar low)
 {
-  return ((high - (unichar)0xD800) * (unichar)400) +
-         ((low - (unichar)0xDC00) + (unichar)10000);
+  return ((high - (unichar)0xD800) * (unichar)400)
+    + ((low - (unichar)0xDC00) + (unichar)10000);
 }
 
 
@@ -1021,7 +1021,8 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithData: (NSData*)data
 	   encoding: (NSStringEncoding)encoding
 {
-  if (encoding == NSASCIIStringEncoding)
+  if (encoding == NSASCIIStringEncoding
+    || encoding == _DefaultStringEncoding)
     {
       unsigned	len = [data length];
 
@@ -1126,14 +1127,14 @@ handle_printf_atsign (FILE *stream,
 
   test = [d bytes];
   if ((test != NULL) && (len > 1)
-       && ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped)))
+    && ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped)))
     {
       /* somebody set up us the BOM! */
       enc = NSUnicodeStringEncoding;
     }
   else
     {
-      enc = [NSString defaultCStringEncoding];
+      enc = _DefaultStringEncoding;
     }
   return [self initWithData: d encoding: enc];
 }
@@ -1153,13 +1154,13 @@ handle_printf_atsign (FILE *stream,
 
   test = [d bytes];
   if ((test != NULL) && (len > 1)
-       && ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped)))
+    && ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped)))
     {
       enc = NSUnicodeStringEncoding;
     }
   else
     {
-      enc = [NSString defaultCStringEncoding];
+      enc = _DefaultStringEncoding;
     }
   return [self initWithData: d encoding: enc];
 }
@@ -1215,11 +1216,12 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) stringByAppendingFormat: (NSString*)format,...
 {
-  va_list ap;
-  id ret;
+  va_list	ap;
+  id		ret;
+
   va_start(ap, format);
   ret = [self stringByAppendingString: 
-	      [NSString stringWithFormat: format arguments: ap]];
+    [NSString stringWithFormat: format arguments: ap]];
   va_end(ap);
   return ret;
 }
@@ -1243,26 +1245,27 @@ handle_printf_atsign (FILE *stream,
 
 - (NSArray*) componentsSeparatedByString: (NSString*)separator
 {
-  NSRange search, complete;
-  NSRange found;
+  NSRange	search;
+  NSRange	complete;
+  NSRange	found;
   NSMutableArray *array = [NSMutableArray array];
 
   search = NSMakeRange (0, [self length]);
   complete = search;
   found = [self rangeOfString: separator];
-  while (found.length)
+  while (found.length != 0)
     {
       NSRange current;
 
       current = NSMakeRange (search.location,
-			     found.location - search.location);
+	found.location - search.location);
       [array addObject: [self substringWithRange: current]];
 
       search = NSMakeRange (found.location + found.length,
-			    complete.length - found.location - found.length);
+	complete.length - found.location - found.length);
       found = [self rangeOfString: separator 
-		    options: 0
-		    range: search];
+			  options: 0
+			    range: search];
     }
   // Add the last search string range
   [array addObject: [self substringWithRange: search]];
@@ -1308,18 +1311,20 @@ handle_printf_atsign (FILE *stream,
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 {
   NSRange all = NSMakeRange(0, [self length]);
+
   return [self rangeOfCharacterFromSet: aSet
-		options: 0
-		range: all];
+			       options: 0
+				 range: all];
 }
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 			    options: (unsigned)mask
 {
   NSRange all = NSMakeRange(0, [self length]);
+
   return [self rangeOfCharacterFromSet: aSet
-		options: mask
-		range: all];
+			       options: mask
+				 range: all];
 }
 
 /* xxx FIXME */
@@ -1327,8 +1332,11 @@ handle_printf_atsign (FILE *stream,
 			    options: (unsigned)mask
 			      range: (NSRange)aRange
 {
-  int i, start, stop, step;
-  NSRange range;
+  int		i;
+  int		start;
+  int		stop;
+  int		step;
+  NSRange	range;
   unichar	(*cImp)(id, SEL, unsigned);
   BOOL		(*mImp)(id, SEL, unichar);
 
@@ -1353,6 +1361,7 @@ handle_printf_atsign (FILE *stream,
   for (i = start; i != stop; i += step)
     {
       unichar letter = (unichar)(*cImp)(self, caiSel, i);
+
       if ((*mImp)(aSet, cMemberSel, letter))
 	{
 	  range = NSMakeRange(i, 1);
@@ -1365,19 +1374,21 @@ handle_printf_atsign (FILE *stream,
 
 - (NSRange) rangeOfString: (NSString*)string
 {
-  NSRange all = NSMakeRange(0, [self length]);
+  NSRange	all = NSMakeRange(0, [self length]);
+
   return [self rangeOfString: string
-		options: 0
-		range: all];
+		     options: 0
+		       range: all];
 }
 
 - (NSRange) rangeOfString: (NSString*)string
 		  options: (unsigned)mask
 {
-  NSRange all = NSMakeRange(0, [self length]);
+  NSRange	all = NSMakeRange(0, [self length]);
+
   return [self rangeOfString: string
-		options: mask
-		range: all];
+		     options: mask
+		       range: all];
 }
 
 - (NSRange) rangeOfString: (NSString *) aString
@@ -1391,18 +1402,18 @@ handle_printf_atsign (FILE *stream,
 
 - (unsigned int) indexOfString: (NSString *)substring
 {
-    NSRange range = {0, [self length]};
+  NSRange range = {0, [self length]};
 
-    range = [self rangeOfString:substring options:0 range:range];
-    return range.length ? range.location : NSNotFound;
+  range = [self rangeOfString: substring options: 0 range: range];
+  return range.length ? range.location : NSNotFound;
 }
 
 - (unsigned int) indexOfString: (NSString*)substring fromIndex: (unsigned)index
 {
-    NSRange range = {index, [self length]-index};
+  NSRange range = {index, [self length] - index};
 
-    range = [self rangeOfString:substring options:0 range:range];
-    return range.length ? range.location : NSNotFound;
+  range = [self rangeOfString: substring options: 0 range: range];
+  return range.length ? range.location : NSNotFound;
 }
 
 // Determining Composed Character Sequences
@@ -1462,14 +1473,16 @@ handle_printf_atsign (FILE *stream,
 
 - (BOOL) hasPrefix: (NSString*)aString
 {
-  NSRange range;
+  NSRange	range;
+
   range = [self rangeOfString: aString options: NSAnchoredSearch];
   return (range.length > 0) ? YES : NO;
 }
 
 - (BOOL) hasSuffix: (NSString*)aString
 {
-  NSRange range;
+  NSRange	range;
+
   range = [self rangeOfString: aString
                       options: NSAnchoredSearch | NSBackwardsSearch];
   return (range.length > 0) ? YES : NO;
@@ -1518,8 +1531,10 @@ handle_printf_atsign (FILE *stream,
   int len = [self length];
 
   if (len > NSHashStringLength)
-    len = NSHashStringLength;
-  if (len)
+    {
+      len = NSHashStringLength;
+    }
+  if (len > 0)
     {
       unichar		buf[len * MAXDEC + 1];
       GSeqStruct	s = { buf, len, len * MAXDEC, 0 };
@@ -1738,10 +1753,10 @@ handle_printf_atsign (FILE *stream,
 		  default: 
 		    start--;
 		    break;
-		};
+		}
 	      if (done)
 		break;
-	    };
+	    }
 	  if (start == 0)
 	    {
 	       thischar = (*caiImp)(self, caiSel, start);
@@ -1755,7 +1770,7 @@ handle_printf_atsign (FILE *stream,
 		     break;
 		   default: 
 		     break;
-		 };
+		 }
 	    }
 	  else
 	    start++;
@@ -1769,6 +1784,7 @@ handle_printf_atsign (FILE *stream,
       while (end < len)
 	{
 	   BOOL done = NO;
+
 	   thischar = (*caiImp)(self, caiSel, end);
 	   switch (thischar)
 	     {
@@ -1780,11 +1796,11 @@ handle_printf_atsign (FILE *stream,
 		 break;
 	       default: 
 		 break;
-	     };
+	     }
 	   end++;
 	   if (done)
 	     break;
-	};
+	}
       if (end < len)
 	{
 	  if ((*caiImp)(self, caiSel, end) == (unichar)0x000D)
@@ -1928,7 +1944,7 @@ handle_printf_atsign (FILE *stream,
   NSMutableData	*m;
 
   d = [self dataUsingEncoding: _DefaultStringEncoding
-              allowLossyConversion: NO];
+	 allowLossyConversion: NO];
   if (d == nil)
     {
       [NSException raise: NSCharacterConversionException
@@ -2098,7 +2114,8 @@ handle_printf_atsign (FILE *stream,
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
 {
   id d = [self dataUsingEncoding: encoding allowLossyConversion: NO];
-  return d ? YES : NO;
+
+  return d != nil ? YES : NO;
 }
 
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
@@ -3020,17 +3037,23 @@ handle_printf_atsign (FILE *stream,
 - (BOOL) writeToFile: (NSString*)filename
 	  atomically: (BOOL)useAuxiliaryFile
 {
-  id d;
-  if (!(d = [self dataUsingEncoding: [NSString defaultCStringEncoding]]))
-    d = [self dataUsingEncoding: NSUnicodeStringEncoding];
+  id	d = [self dataUsingEncoding: _DefaultStringEncoding];
+
+  if (d == nil)
+    {
+      d = [self dataUsingEncoding: NSUnicodeStringEncoding];
+    }
   return [d writeToFile: filename atomically: useAuxiliaryFile];
 }
 
 - (BOOL) writeToURL: (NSURL*)anURL atomically: (BOOL)atomically
 {
-  id d;
-  if (!(d = [self dataUsingEncoding: [NSString defaultCStringEncoding]]))
-    d = [self dataUsingEncoding: NSUnicodeStringEncoding];
+  id	d = [self dataUsingEncoding: _DefaultStringEncoding];
+
+  if (d == nil)
+    {
+      d = [self dataUsingEncoding: NSUnicodeStringEncoding];
+    }
   return [d writeToURL: anURL atomically: atomically];
 }
 
@@ -3198,7 +3221,8 @@ handle_printf_atsign (FILE *stream,
 					 length: count
 				   freeWhenDone: YES];
 	}
-      else if (enc == NSASCIIStringEncoding)
+      else if (enc == NSASCIIStringEncoding
+	|| enc == _DefaultStringEncoding)
 	{
 	  unsigned char	*chars;
 
