@@ -115,7 +115,9 @@ static void handleSignal(int sig)
 #ifdef __MINGW__
 @interface NSConcreteWindowsTask : NSTask
 {
-  PROCESS_INFORMATION proc_info;
+@public
+  PROCESS_INFORMATION	procInfo;
+  HANDLE		wThread;
 }
 @end
 #define NSConcreteTask NSConcreteWindowsTask
@@ -905,17 +907,51 @@ pty_slave(const char* name)
 BOOL
 GSCheckTasks()
 {
-  /* FIXME: Implement */
-  return NO;
+  BOOL	found = NO;
+
+  if (hadChildSignal == YES)
+    {
+      NSArray	*a;
+      unsigned	c;
+
+      hadChildSignal = NO;
+      [tasksLock lock];
+      a = NSAllMapTableValues(activeTasks);
+      [tasksLock unlock];
+      c = [a count];
+      while (c-- > 0)
+	{
+	  NSConcreteWindowsTask	*t = [a objectAtIndex: c];
+	  DWORD			eCode;
+
+	  if (GetExitCodeProcess(t->procInfo.hProcess, &eCode) != 0)
+	    {
+	      if (eCode != STILL_ACTIVE)
+		{
+		  [t _terminatedChild: eCode];
+		  found = YES;
+		}
+	    }
+	}
+    }
+  return found;
 }
 
 - (void) gcFinalize
 {
   [super gcFinalize];
-  if (proc_info.hProcess != NULL)
-    CloseHandle(proc_info.hProcess);
-  if (proc_info.hThread != NULL)
-    CloseHandle(proc_info.hThread);
+  if (wThread != NULL)
+    {
+      CloseHandle(wThread);
+    }
+  if (procInfo.hProcess != NULL)
+    {
+      CloseHandle(procInfo.hProcess);
+    }
+  if (procInfo.hThread != NULL)
+    {
+      CloseHandle(procInfo.hThread);
+    }
 }
 
 - (void) interrupt
@@ -935,11 +971,46 @@ GSCheckTasks()
     }
 
   _hasTerminated = YES;
-  TerminateProcess(proc_info.hProcess, 10);
+  TerminateProcess(procInfo.hProcess, 10);
+}
+
+/*
+ * Wait for child process completion.
+ */
+static DWORD WINAPI _threadFunction(LPVOID t)
+{
+  DWORD	milliseconds = 60000;
+  int	taskId = [(NSTask*)t processIdentifier]; 
+
+  for (;;)
+    {
+      NSConcreteWindowsTask	*task;
+
+      [tasksLock lock];
+      task = (NSConcreteWindowsTask*)NSMapGet(activeTasks, (void*)taskId);
+      [tasksLock unlock];
+      if (t == nil)
+	{
+	  return 0;	// Task gone away.
+	}
+      switch (WaitForSingleObject(task->procInfo.hProcess, milliseconds))
+	{
+	  case WAIT_OBJECT_0:
+	    handleSignal(0);	// Signal child process state change.
+	    return 0;
+
+	  case WAIT_TIMEOUT:
+	    break;		// Timeout ... retry
+
+	  default:
+	    return 0;		// Error ... stop watching.
+	}
+    }
 }
 
 - (void) launch
 {
+  DWORD		tid;
   STARTUPINFO	start_info;
   NSString      *lpath;
   NSString      *arg;
@@ -980,53 +1051,44 @@ GSCheckTasks()
 			 NULL,      /* env block */
 			 [[self currentDirectoryPath] fileSystemRepresentation],
 			 &start_info,
-			 &proc_info);
+			 &procInfo);
   NSZoneFree(NSDefaultMallocZone(), c_args);
   if (result == 0)
     {
       NSLog(@"Error launching task: %@", lpath);
       return;
     }
-  _taskId = proc_info.dwProcessId;
+  
+  _taskId = procInfo.dwProcessId;
   _hasLaunched = YES;
   ASSIGN(_launchPath, lpath);	// Actual path used.
 
   [tasksLock lock];
   NSMapInsert(activeTasks, (void*)_taskId, (void*)self);
   [tasksLock unlock];
+/*
+ * Create thread to watch for termination of process.
+ */
+  wThread = CreateThread(NULL, 0, _threadFunction, (LPVOID)self, 0, &tid);
 }
 
 - (void) _collectChild
 {
   if (_hasCollected == NO)
     {
-      /* FIXME: Implement */
+      DWORD		eCode;
+
+      if (GetExitCodeProcess(procInfo.hProcess, &eCode) == 0)
+	{
+	  NSLog(@"Error getting exit codef for process %d", _taskId);
+	}
+      else if (eCode != STILL_ACTIVE)
+	{
+	  [self _terminatedChild: eCode];
+	}
     }
 }
 
-- (int) terminationStatus
-{
-  DWORD	exit_code;
-  int	result;
-
-  [super terminationStatus];
-  result = GetExitCodeProcess(proc_info.hProcess, &exit_code);
-  _terminationStatus = exit_code;
-  if (result == 0)
-    {
-      NSLog(@"Error getting exit code");
-      return -1;
-    }
-  return exit_code;
-}
-
-- (void) waitUntilExit
-{
-  DWORD result;
-
-  result = WaitForSingleObject(proc_info.hProcess, INFINITE);
-}
-  
 @end
 
 #else /* !MINGW */
@@ -1339,7 +1401,7 @@ GSCheckTasks()
       if (result < 0)
         {
           NSLog(@"waitpid %d, result %d, error %s",
-                _taskId, result, GSLastErrorStr(errno));
+	    _taskId, result, GSLastErrorStr(errno));
           [self _terminatedChild: -1];
         }
       else if (result == _taskId || (result > 0 && errno == 0))
@@ -1348,7 +1410,7 @@ GSCheckTasks()
 	    {
 #ifdef  WAITDEBUG
               NSLog(@"waitpid %d, termination status = %d",
-                        _taskId, _terminationStatus);
+		_taskId, _terminationStatus);
 #endif
               [self _terminatedChild: WEXITSTATUS(_terminationStatus)];
 	    }
@@ -1356,20 +1418,24 @@ GSCheckTasks()
 	    {
 #ifdef  WAITDEBUG
               NSLog(@"waitpid %d, termination status = %d",
-                        _taskId, _terminationStatus);
+		_taskId, _terminationStatus);
 #endif
               [self _terminatedChild: WTERMSIG(_terminationStatus)];
 	    }
 #ifdef  WAITDEBUG
           else
-            NSLog(@"waitpid %d, event status = %d",
-                        _taskId, _terminationStatus);
+	    {
+	      NSLog(@"waitpid %d, event status = %d",
+		_taskId, _terminationStatus);
+	    }
 #endif
 	}
 #ifdef  WAITDEBUG
       else
-        NSLog(@"waitpid %d, result %d, error %s",
-                _taskId, result, GSLastErrorStr(errno));
+	{
+	  NSLog(@"waitpid %d, result %d, error %s",
+	    _taskId, result, GSLastErrorStr(errno));
+	}
 #endif
     }
 }

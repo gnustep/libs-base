@@ -49,6 +49,7 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
   _NSUncaughtExceptionHandler = _preventRecursion;
   fprintf(stderr, "Uncaught exception %s, reason: %s\n",
     	[[exception name] lossyCString], [[exception reason] lossyCString]);
+  fflush(stderr);	/* NEEDED UNDER MINGW */
 /* FIXME: need to implement this:
   NSLogError("Uncaught exception %@, reason: %@",
     	[exception name], [exception reason]);

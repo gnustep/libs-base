@@ -29,14 +29,14 @@ main()
 	 object: nil];
 
 #ifdef __MINGW__
-  task = [NSTask launchedTaskWithLaunchPath: @"C:\\WINDOWS\\COMMAND\\MEM.EXE"
+  task = [NSTask launchedTaskWithLaunchPath: @"C:\\windows\\system32\\mem.exe"
 				  arguments: nil];
 #else
   task = [NSTask launchedTaskWithLaunchPath: @"/bin/ls"
 				  arguments: nil];
 #endif
   [task waitUntilExit];
-  printf("Exit status - %d\n", [task terminationStatus]);
+  printf("Exit status - %d\n", [task terminationStatus]); fflush(stdout);
 
   RELEASE(pool);
   pool = [NSAutoreleasePool new];
@@ -70,7 +70,7 @@ main()
     {
       NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
-      [[NSRunLoop currentRunLoop] runOnceBeforeDate:
+      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode beforeDate:
 	[NSDate dateWithTimeIntervalSinceNow: 1]];
       RELEASE(arp);
     }

@@ -1,7 +1,10 @@
 2002-03-25  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSTask.m: GSCheckTasks() return NO under MINGW -
-	temporary hack to avoid busy wait in run loop.
+	* Source/NSTask.m: Implement code to watch for child process exit
+	under mingw and rewrite various methods to handle process
+	termination nicely under windoze.
+	* Source/NSException.m: flush stderr ... under windoze stderr is
+	not automatically flushed!
 
 2002-03-22  Richard Frith-Macdonald <rfm@gnu.org>
 
