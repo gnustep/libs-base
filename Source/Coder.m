@@ -44,6 +44,7 @@
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSHashTable.h>
+#include <Foundation/NSCoder.h>
 #include <assert.h>
 
 
@@ -62,6 +63,12 @@ static BOOL debug_coder = NO;
 
 
 @implementation Coder
+
++ (void) initialize
+{
+  if (self == [Coder class])
+    behavior_class_add_class (self, [NSCoderNonCore class]);
+}
 
 + setDebugging: (BOOL)f
 {
@@ -142,7 +149,7 @@ static BOOL debug_coder = NO;
 @implementation Coder (NSCoderCompatibility)
 
 
-/* Encoding Data */
+/* The core methods */
 
 - (void) encodeValueOfObjCType: (const char*)type
    at: (const void*)address;
@@ -150,12 +157,30 @@ static BOOL debug_coder = NO;
   [self encodeValueOfObjCType: type at: address withName: NULL];
 }
 
-- (void) encodeArrayOfObjCType: (const char*)type
-   count: (unsigned)count
-   at: (const void*)array
+- (void) decodeValueOfObjCType: (const char*)type
+   at: (void*)address
 {
-  [self encodeArrayOfObjCType: type count: count at: array withName: NULL];
+  [self decodeValueOfObjCType: type at: address withName: NULL];
 }
+
+- (void) encodeDataObject: (NSData*)data
+{
+  [self notImplemented:_cmd];
+}
+
+- (NSData*) decodeDataObject
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+- (unsigned int) versionForClassName: (NSString*)className
+{
+  [self notImplemented:_cmd];
+  return 0;
+}
+
+/* Override some methods in NSCoderNonCore */
 
 - (void) encodeObject: (id)anObject
 {
@@ -188,63 +213,9 @@ static BOOL debug_coder = NO;
 #endif
 }
 
-- (void) encodeDataObject: (NSData*)data
-{
-  [self notImplemented:_cmd];
-}
-
-- (void) encodePropertyList: (id)plist
-{
-  [self notImplemented:_cmd];
-}
-
-- (void) encodePoint: (NSPoint)point
-{
-  [self encodeValueOfObjCType:@encode(NSPoint)
-	at:&point
-	withName: NULL];
-}
-
-- (void) encodeRect: (NSRect)rect
-{
-  [self encodeValueOfObjCType:@encode(NSRect) at:&rect withName: NULL];
-}
-
 - (void) encodeRootObject: (id)rootObject
 {
   [self encodeRootObject: rootObject withName: NULL];
-}
-
-- (void) encodeSize: (NSSize)size
-{
-  [self encodeValueOfObjCType:@encode(NSSize) at:&size withName: NULL];
-}
-
-- (void) encodeValuesOfObjCTypes: (const char*)types,...
-{
-  [self notImplemented:_cmd];
-}
-
-
-/* Decoding Data */
-
-- (void) decodeValueOfObjCType: (const char*)type
-   at: (void*)address
-{
-  [self decodeValueOfObjCType: type at: address withName: NULL];
-}
-
-- (void) decodeArrayOfObjCType: (const char*)type
-                         count: (unsigned)count
-                            at: (void*)address
-{
-  [self decodeArrayOfObjCType: type count: count at: address withName: NULL];
-}
-
-- (NSData*) decodeDataObject
-{
-  [self notImplemented:_cmd];
-  return nil;
 }
 
 - (id) decodeObject
@@ -255,56 +226,9 @@ static BOOL debug_coder = NO;
   return o;
 }
 
-- (id) decodePropertyList
-{
-  [self notImplemented:_cmd];
-  return nil;
-}
-
-- (NSPoint) decodePoint
-{
-  NSPoint point;
-  [self decodeValueOfObjCType:@encode(NSPoint)
-	at:&point
-	withName: NULL];
-  return point;
-}
-
-- (NSRect) decodeRect
-{
-  NSRect rect;
-  [self decodeValueOfObjCType:@encode(NSRect)
-	at:&rect
-	withName: NULL];
-  return rect;
-}
-
-- (NSSize) decodeSize
-{
-  NSSize size;
-  [self decodeValueOfObjCType:@encode(NSSize)
-	at:&size
-	withName: NULL];
-  return size;
-}
-
-- (void) decodeValuesOfObjCTypes: (const char*)types,...
-{
-  [self notImplemented:_cmd];
-}
-
-
-/* Getting a Version */
-
 - (unsigned int) systemVersion
 {
   return format_version;	/* xxx Is this right? */
-}
-
-- (unsigned int) versionForClassName: (NSString*)className
-{
-  [self notImplemented:_cmd];
-  return 0;
 }
 
 @end  /* of (NSCoderCompatibility) */
