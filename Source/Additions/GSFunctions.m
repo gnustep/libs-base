@@ -43,7 +43,7 @@ GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension)
   /* make up the name with extension if given */
   if (anExtension != nil)
     {
-      file_name = [NSString stringWithFormat: @"%@.%@", aName, anExtension];
+      file_name = [aName stringByAppendingPathExtension: anExtension];
     }
   else
     {
