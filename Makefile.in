@@ -190,8 +190,9 @@ collhash.c \
 objc-malloc.c \
 o_vscanf.c 
 
+NEXTSTEP_CFILES = 
 
-NEXTSTEP_CFILES = \
+NEXTSTEP_DERIVED_CFILES = \
 NXStringTable_scan.c
 
 GNUSTEP_CFILES = \
@@ -210,9 +211,16 @@ hpux-load.h \
 null-load.h \
 simple-load.h 
 
-GNU_OBJS = $(GNU_MFILES:.m=.o) $(GNU_CFILES:.c=.o)
-NEXTSTEP_OBJS = $(NEXTSTEP_MFILES:.m=.o) $(NEXTSTEP_CFILES:.c=.o)
-GNUSTEP_OBJS =  $(GNUSTEP_MFILES:.m=.o) $(GNUSTEP_CFILES:.c=.o) \
+GNU_OBJS = \
+	$(GNU_MFILES:.m=.o) \
+	$(GNU_CFILES:.c=.o)
+NEXTSTEP_OBJS = \
+	$(NEXTSTEP_MFILES:.m=.o) \
+	$(NEXTSTEP_CFILES:.c=.o) \
+	$(NEXTSTEP_DERIVED_CFILES:.c=.o)
+GNUSTEP_OBJS = \
+	$(GNUSTEP_MFILES:.m=.o) \
+	$(GNUSTEP_CFILES:.c=.o) \
 	$(NSVALUE_OFILES) $(NSNUMBER_OFILES)
 
 GNU_HEADERS = \
@@ -282,14 +290,12 @@ objects/Time.h \
 objects/ValueHolding.h \
 objects/behavior.h \
 objects/collhash.h \
-objects/config.h \
 objects/elt.h \
 objects/eltfuncs.h \
 objects/mframe.h \
 objects/objc-gnu2next.h \
 objects/objc-malloc.h \
 objects/objects.h \
-objects/stdobjects.h \
 objects/README 
 
 NEXTSTEP_HEADERS = \
@@ -297,8 +303,7 @@ objc/HashTable.h \
 objc/List.h \
 objc/NXStringTable.h \
 objc/Storage.h \
-objc/zone.h \
-objc/README
+objc/zone.h
 
 GNUSTEP_HEADERS = \
 foundation/NSArray.h \
@@ -321,10 +326,9 @@ foundation/NSString.h \
 foundation/NSUtilities.h \
 foundation/NSValue.h \
 foundation/NSZone.h \
-foundation/objc-load.h \
-foundation/README
+foundation/objc-load.h
 
-INSTALL_HEADERS = @INSTALL_HEADERS@
+INSTALL_HEADERS = @INSTALL_HEADERS@ objects/config.h objects/stdobjects.h
 INSTALL_OBJS = @INSTALL_OBJS@ 
 
 DIST_FILES = \
@@ -335,7 +339,8 @@ TODO todo.texi \
 NEWS news.texi \
 CREDITS README.ULTRIX MACHINES \
 COPYING COPYING.LIB DISCUSSION ChangeLog \
-Makefile.in configure configure.in objects/config.h.in \
+Makefile.in configure configure.in \
+objects/config.h.in objects/stdobjects.h.in \
 config.guess config.nested.c config.nextcc.h config.nextrt.m \
 mkinstalldirs install-sh \
 version.texi \
@@ -343,14 +348,46 @@ libobjects.info libobjects.texi \
 texinfo.tex \
 gcc-class.patch gcc-string.patch \
 gcc-dynamic.patch NSBundle.README \
-$(GNU_MFILES) $(NEXTSTEP_MFILES) $(GNUSTEP_MFILES) \
-$(GNU_CFILES) $(NEXTSTEP_CFILES) $(GNUSTEP_CFILES) \
-$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS) \
-$(GNU_OTHER_SRCFILES) $(NEXTSTEP_OTHER_SRCFILES) $(GNUSTEP_OTHER_SRCFILES)
+$(GNU_MFILES) \
+$(GNU_CFILES) \
+$(GNU_HEADERS) \
+$(GNU_OTHER_SRCFILES) \
+$(NEXTSTEP_MFILES) \
+$(NEXTSTEP_CFILES) \
+$(NEXTSTEP_DERIVED_CFILES) \
+$(NEXTSTEP_HEADERS) \
+$(NEXTSTEP_OTHER_SRCFILES) \
+$(GNUSTEP_MFILES) \
+$(GNUSTEP_CFILES) \
+$(GNUSTEP_HEADERS) \
+$(GNUSTEP_OTHER_SRCFILES)
+
+RCS_FILES = \
+readme.texi \
+announce.texi \
+install.texi \
+todo.texi \
+news.texi \
+CREDITS MACHINES \
+Makefile.in configure.in objects/config.h.in objects/stdobjects.h.in \
+config.nested.c config.nextcc.h config.nextrt.m \
+libobjects.texi \
+$(GNU_MFILES) \
+$(GNU_CFILES) \
+$(GNU_HEADERS) \
+$(GNU_OTHER_SRCFILES) \
+$(NEXTSTEP_MFILES) \
+$(NEXTSTEP_CFILES) \
+$(NEXTSTEP_HEADERS) \
+$(NEXTSTEP_OTHER_SRCFILES) \
+$(GNUSTEP_MFILES) \
+$(GNUSTEP_CFILES) \
+$(GNUSTEP_HEADERS) \
+$(GNUSTEP_OTHER_SRCFILES)
 
 all: libobjects.a
 
-libobjects.a: $(INSTALL_OBJS)
+libobjects.a: objects/stdobjects.h $(INSTALL_OBJS) 
 	$(AR) $(ARFLAGS) libobjects.a $(INSTALL_OBJS)
 	$(RANLIB) libobjects.a
 
@@ -360,6 +397,8 @@ install: installdirs all
 	for file in $(INSTALL_HEADERS); do \
 	  $(INSTALL_DATA) $$file $(includedir)/$$file ; \
 	done
+	(cd $(includedir)/foundation; ln -s ../objects/README .)
+	(cd $(includedir)/objc; ln -s ../objects/README .)
 	$(INSTALL_DATA) libobjects.info $(infodir)
 
 installdirs:
@@ -409,41 +448,22 @@ NXStringTable_scan.o: NXStringTable_scan.c
 
 objc-load.o: dynamic-load.h
 
-dynamic-load.h: Makefile
+dynamic-load.h: config.status
 	rm -f dynamic-load.h
 	cp $(DYNAMIC_LINKER)-load.h dynamic-load.h
 
-objects/stdobjects.h: Makefile.in
-	rm -f objects/tmp-stdobjects.h
-	mv objects/stdobjects.h objects/tmp-stdobjects.h
-	sed -e \
-	's/#define OBJECTS_VERSION .*/#define OBJECTS_VERSION $(OBJECTS_VERSION)/'\
-		< objects/tmp-stdobjects.h > objects/stdobjects.h
-	rm -f objects/tmp-stdobjects.h
-	mv objects/stdobjects.h objects/tmp-stdobjects.h
-	sed -e \
-	's/#define OBJECTS_MAJOR_VERSION .*/#define OBJECTS_MAJOR_VERSION $(OBJECTS_MAJOR_VERSION)/'\
-		< objects/tmp-stdobjects.h > objects/stdobjects.h
-	rm -f objects/tmp-stdobjects.h
-	mv objects/stdobjects.h objects/tmp-stdobjects.h
-	sed -e \
-	's/#define OBJECTS_MINOR_VERSION .*/#define OBJECTS_MINOR_VERSION $(OBJECTS_MINOR_VERSION)/'\
-		< objects/tmp-stdobjects.h > objects/stdobjects.h
-	rm -f objects/tmp-stdobjects.h
-	mv objects/stdobjects.h objects/tmp-stdobjects.h
-	sed -e \
-	's/#define OBJECTS_SUBMINOR_VERSION .*/#define OBJECTS_SUBMINOR_VERSION $(OBJECTS_SUBMINOR_VERSION)/'\
-		< objects/tmp-stdobjects.h > objects/stdobjects.h
-	rm -f tmp-stdobjects.h
-	mv objects/stdobjects.h objects/tmp-stdobjects.h
-	sed -e \
-	's/#define OBJECTS_GCC_VERSION .*/#define OBJECTS_GCC_VERSION $(OBJECTS_GCC_VERSION)/'\
-		< objects/tmp-stdobjects.h > objects/stdobjects.h
-	rm -f objects/tmp-stdobjects.h
-
+objects/stdobjects.h: Makefile.in objects/stdobjects.h.in
+	rm -f $(srcdir)/objects/stdobjects.h
+	sed -e 's/@OBJECTS_VERSION@/$(OBJECTS_VERSION)/' \
+	< $(srcdir)/objects/stdobjects.h.in | \
+	sed -e 's/@OBJECTS_MAJOR_VERSION@/$(OBJECTS_MAJOR_VERSION)/' | \
+	sed -e 's/@OBJECTS_MINOR_VERSION@/$(OBJECTS_MINOR_VERSION)/' | \
+	sed -e 's/@OBJECTS_SUBMINOR_VERSION@/$(OBJECTS_SUBMINOR_VERSION)/' | \
+	sed -e 's/@OBJECTS_GCC_VERSION@/$(OBJECTS_GCC_VERSION)/' \
+	> $(srcdir)/objects/stdobjects.h
 stdobjects.m: objects/stdobjects.h
 
-version.texi: Makefile
+version.texi: Makefile.in
 	rm -f $(srcdir)/version.texi
 	echo '@set OBJECTS_VERSION' $(OBJECTS_VERSION) \
 		> $(srcdir)/version.texi
@@ -513,7 +533,9 @@ distclean: clean
 
 realclean: distclean
 	rm -f TAGS configure \
-		libobjects.info version.texi README TODO INSTALL NEWS ANNOUNCE
+		libobjects.info version.texi \
+		objects/stdobjects.h objects/config.h
+		README TODO INSTALL NEWS ANNOUNCE
 
 dist: $(DIST_FILES)
 	echo libobjects-$(OBJECTS_VERSION) > .fname
@@ -542,6 +564,9 @@ diff:
 	> libobjects-$(OLD_OBJECTS_VERSION)-$(OBJECTS_VERSION).diff
 	rm -rf /tmp/libobjects-$(OLD_OBJECTS_VERSION) \
 	/tmp/libobjects-$(OBJECTS_VERSION) \
+
+rcs-list-locked:
+	@rlog -L -R $(RCS_FILES)
 
 include Makefile.depend
 
