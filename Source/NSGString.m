@@ -162,13 +162,14 @@
 			 length: (unsigned int)length
 		       fromZone: (NSZone*)zone
 {
-    self = [super init];
-    if (self) {
-	_count = length;
-	_contents_chars = chars;
-	_zone = chars ? zone : 0;
+  self = [super init];
+  if (self)
+    {
+      _count = length;
+      _contents_chars = chars;
+      _zone = chars ? zone : 0;
     }
-    return self;
+  return self;
 }
 
 /* This is the OpenStep designated initializer for this class. */
@@ -176,29 +177,40 @@
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
-    self = [super init];
-    if (self) {
-	_count = length;
-	_contents_chars = chars;
-	if (flag) {
-	    _zone = NSZoneFromPointer(chars);
+  self = [super init];
+  if (self)
+    {
+      _count = length;
+      _contents_chars = chars;
+      if (flag && chars)
+	{
+	  _zone = NSZoneFromPointer(chars);
 	}
-	else {
-	    _zone = 0;
+      else
+	{
+	  _zone = 0;
 	}
     }
-    return self;
+  return self;
 }
 
 - (id) initWithCharacters: (const unichar*)chars
 		   length: (unsigned int)length
 {
-    NSZone	*z = fastZone(self);
-    unichar	*s = NSZoneMalloc(z, length*sizeof(unichar));
+  NSZone	*z = fastZone(self);
+  unichar	*s;
 
-    if (chars)
+  if (length)
+    {
+      s = NSZoneMalloc(z, length*sizeof(unichar));
+      if (chars)
 	memcpy(s, chars, sizeof(unichar)*length);
-    return [self initWithCharactersNoCopy:s length:length fromZone:z];
+    }
+  else
+    {
+      s = 0;
+    }
+  return [self initWithCharactersNoCopy:s length:length fromZone:z];
 }
 
 - (id) initWithCStringNoCopy: (char*)byteString
@@ -304,7 +316,7 @@
 
 /* NSCoding Protocol */
 
-- (void) encodeWithCoder: aCoder
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count > 0)
@@ -315,7 +327,7 @@
     }
 }
 
-- initWithCoder: aCoder
+- (id) initWithCoder: (NSCoder*)aCoder
 {
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &_count];
   if (_count)
@@ -467,14 +479,14 @@
 
 // @protocol NSMutableString <NSString>
 
-+ allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject (self, 0, z);
+  return NSAllocateObject(self, 0, z);
 }
 
-+ alloc
++ (id) alloc
 {
-  return NSAllocateObject (self, 0, NSDefaultMallocZone());
+  return NSAllocateObject(self, 0, NSDefaultMallocZone());
 }
 
 + (void) initialize
@@ -540,47 +552,54 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 			 length: (unsigned int)length
 		       fromZone: (NSZone*)zone
 {
-    self = [super init];
-    if (self) {
-	_count = length;
-	_capacity = length;
-	_contents_chars = chars;
-	_zone = zone;
+  self = [super init];
+  if (self)
+    {
+      _count = length;
+      _capacity = length;
+      _contents_chars = chars;
+      _zone = zone;
     }
-    return self;
+  return self;
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length
 		   freeWhenDone: (BOOL)flag
 {
-    self = [super init];
-    if (self) {
-	_count = length;
-	_capacity = length;
-	_contents_chars = chars;
-	if (flag) {
-	    _zone = NSZoneFromPointer(chars);
+  self = [super init];
+  if (self)
+    {
+      _count = length;
+      _capacity = length;
+      _contents_chars = chars;
+      if (flag && chars)
+	{
+	  _zone = NSZoneFromPointer(chars);
 	}
-	else {
-	    _zone = 0;
+      else
+	{
+	  _zone = 0;
 	}
     }
-    return self;
+  return self;
 }
 
-- initWithCapacity: (unsigned)capacity
+- (id) initWithCapacity: (unsigned)capacity
 {
-    self = [super init];
-    if (self) {
-	if (capacity < 2)
-	    capacity = 2;
-	_count = 0;
-	_capacity = capacity;
-	_zone = fastZone(self);
-	_contents_chars = NSZoneMalloc(_zone, sizeof(unichar)*capacity);
+  self = [super init];
+  if (self)
+    {
+      if (capacity < 2)
+	{
+	  capacity = 2;
+	}
+      _count = 0;
+      _capacity = capacity;
+      _zone = fastZone(self);
+      _contents_chars = NSZoneMalloc(_zone, sizeof(unichar)*capacity);
     }
-    return self;
+  return self;
 }
 
 - (id) initWithCStringNoCopy: (char*)byteString
@@ -612,7 +631,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 }
 
 - (void) replaceCharactersInRange: (NSRange)aRange
-   withString: (NSString*)aString
+		       withString: (NSString*)aString
 {
   int offset;
   unsigned stringLength;
@@ -683,7 +702,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 				    range.location, range.length);
 }
 
-- initWithCoder: aCoder    //  *** changed to unichar
+- (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned cap;
   

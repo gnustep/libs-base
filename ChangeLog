@@ -1,9 +1,12 @@
-Fre Jul  2 12:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Fri Jul  2 14:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/GSeq.h: Fix boundary error when searching for string in
 	string.
+	* Source/NSString.m: Don't allocate contents for string with 0 length.
+	* Source/NSGString.m: ditto
+	* Source/NSGCString.m: ditto
 
-Fre Jul  2  8:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Fri Jul  2  8:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSUnarchiver.m: In designated initialiser, catch exceptions
 	and deallocate self before re-throwing in order to prevent memory

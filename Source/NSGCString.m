@@ -92,14 +92,14 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     }
 }
 
-+ allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject (self, 0, z);
+  return NSAllocateObject(self, 0, z);
 }
 
-+ alloc
++ (id) alloc
 {
-  return NSAllocateObject (self, 0, NSDefaultMallocZone());
+  return NSAllocateObject(self, 0, NSDefaultMallocZone());
 }
 
 - (void)dealloc
@@ -144,7 +144,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 {
   NSZone	*z;
 
-  if (flag)
+  if (flag && byteString)
     {
       z = NSZoneFromPointer(byteString);
     }
@@ -198,7 +198,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     }
 }
 
-- (void) encodeWithCoder: aCoder
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_count];
   if (_count > 0)
@@ -209,7 +209,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     }
 }
 
-- initWithCoder: aCoder
+- (id) initWithCoder: (NSCoder*)aCoder
 {
   [aCoder decodeValueOfObjCType:@encode(unsigned)
 			     at:&_count];
@@ -224,7 +224,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   return self;
 }
 
-- copy
+- (id) copy
 {
   NSZone	*z = NSDefaultMallocZone();
 
@@ -234,8 +234,16 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       char		*tmp;
 
       obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
-      tmp = NSZoneMalloc(z, _count);
-      memcpy(tmp, _contents_chars, _count);
+      if (_count)
+	{
+	  tmp = NSZoneMalloc(z, _count);
+	  memcpy(tmp, _contents_chars, _count);
+	}
+      else
+	{
+	  tmp = 0;
+	  z = 0;
+	}
       obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
       if (_hash && obj)
         {
@@ -249,7 +257,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     }
 }
 
-- copyWithZone: (NSZone*)z
+- (id) copyWithZone: (NSZone*)z
 {
   if (NSShouldRetainWithZone(self, z) == NO)
     {
@@ -257,8 +265,16 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       char		*tmp;
 
       obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
-      tmp = NSZoneMalloc(z, _count);
-      memcpy(tmp, _contents_chars, _count);
+      if (_count)
+	{
+	  tmp = NSZoneMalloc(z, _count);
+	  memcpy(tmp, _contents_chars, _count);
+	}
+      else
+	{
+	  tmp = 0;
+	  z = 0;
+	}
       obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
       if (_hash && obj)
         {
@@ -272,7 +288,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     }
 }
 
-- mutableCopy
+- (id) mutableCopy
 {
   NSGMutableCString	*obj;
 
@@ -293,7 +309,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   return obj;
 }
 
-- mutableCopyWithZone: (NSZone*)z
+- (id) mutableCopyWithZone: (NSZone*)z
 {
   NSGMutableCString	*obj;
 
@@ -525,12 +541,22 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (id) initWithString: (NSString*)string
 {
-    NSZone	*z = fastZone(self);
-    unsigned	length = [string cStringLength];
-    char	*buf = NSZoneMalloc(z, length+1);  // getCString appends a nul.
+  unsigned	length = [string cStringLength];
+  NSZone	*z;
+  char		*buf;
 
-    [string getCString: buf];
-    return [self initWithCStringNoCopy: buf length: length fromZone: z];
+  if (length > 0)
+    {
+      z = fastZone(self);
+      buf = NSZoneMalloc(z, length+1);  // getCString appends a nul.
+      [string getCString: buf];
+    }
+  else
+    {
+      z = 0;
+      buf = 0;
+    }
+  return [self initWithCStringNoCopy: buf length: length fromZone: z];
 }
 
 - (void) descriptionTo: (id<GNUDescriptionDestination>)output
@@ -747,14 +773,14 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 @implementation NSGMutableCString
 
-+ allocWithZone: (NSZone*)z
++ (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject (self, 0, z);
+  return NSAllocateObject(self, 0, z);
 }
 
-+ alloc
++ (id) alloc
 {
-  return NSAllocateObject (self, 0, NSDefaultMallocZone());
+  return NSAllocateObject(self, 0, NSDefaultMallocZone());
 }
 
 + (void) initialize
@@ -822,7 +848,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 }
 
 /* This is the designated initializer for this class */
-- initWithCapacity: (unsigned)capacity
+- (id) initWithCapacity: (unsigned)capacity
 {
   _count = 0;
   _capacity = capacity;
@@ -873,15 +899,23 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return a;
 }
 
-- copy
+- (id) copy
 {
   char		*tmp;
   NSGCString	*obj;
   NSZone	*z = NSDefaultMallocZone();
 
   obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
-  tmp = NSZoneMalloc(z, _count);
-  memcpy(tmp, _contents_chars, _count);
+  if (_count)
+    {
+      tmp = NSZoneMalloc(z, _count);
+      memcpy(tmp, _contents_chars, _count);
+    }
+  else
+    {
+      tmp = 0;
+      z = 0;
+    }
   obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
   if (_hash && obj)
     {
@@ -892,14 +926,22 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return obj;
 }
 
-- copyWithZone: (NSZone*)z
+- (id) copyWithZone: (NSZone*)z
 {
   char		*tmp;
   NSGCString	*obj;
 
   obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
-  tmp = NSZoneMalloc(z, _count);
-  memcpy(tmp, _contents_chars, _count);
+  if (_count)
+    {
+      tmp = NSZoneMalloc(z, _count);
+      memcpy(tmp, _contents_chars, _count);
+    }
+  else
+    {
+      tmp = 0;
+      z = 0;
+    }
   obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
   if (_hash && obj)
     {
@@ -910,7 +952,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return obj;
 }
 
-- mutableCopy
+- (id) mutableCopy
 {
   NSGMutableCString	*obj;
 
@@ -955,7 +997,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 // xxx This should be primitive method
 - (void) replaceCharactersInRange: (NSRange)range
-   withString: (NSString*)aString
+		       withString: (NSString*)aString
 {
   [self deleteCharactersInRange:range];
   [self insertString:aString atIndex:range.location];
@@ -1030,7 +1072,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 				    range.location, range.length);
 }
 
-- initWithCoder: aCoder
+- (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned cap;
   
