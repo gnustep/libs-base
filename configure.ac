@@ -979,25 +979,56 @@ AC_ARG_ENABLE(xml,
   [  --disable-xml			Compile even if XML-dependencies are not met],,
   enable_xml=yes)
 
-# Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
-# of the success of the macro.
-saved_LIBS="$LIBS"
-saved_CFLAGS="$CFLAGS"
+if test $enable_xml = yes; then
+  # Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
+  # of the success of the macro.
+  saved_LIBS="$LIBS"
+  saved_CFLAGS="$CFLAGS"
 
-AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
-if test $enable_libxml = yes; then
-  CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
-  INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
-  LIBS="$LIBS $XML_LIBS"
-  HAVE_LIBXML=1
-  AC_DEFINE(HAVE_LIBXML,1,
-           [Define if libxml available])
-else
-  HAVE_LIBXML=0
-  # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
-  LIBS="$saved_LIBS"
-  CFLAGS="$saved_CFLAGS"
-  if test $enable_xml = yes; then
+  AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
+  if test $enable_libxml = yes; then
+    CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
+    LIBS="$LIBS $XML_LIBS"
+    HAVE_LIBXML=1
+    AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
+    #--------------------------------------------------------------------
+    # Check for (optional) libxslt
+    #--------------------------------------------------------------------
+    AC_ARG_ENABLE(xslt,
+      [  --disable-xslt				Compile even if XSLT-dependency is not met],,
+      enable_xslt=yes)
+
+    if test $enable_xslt = yes; then
+      AC_CHECK_LIB(xslt, xsltApplyStylesheet, xslt_ok=yes, xslt_ok=no)
+      if test "$xslt_ok" = "yes"; then
+	AC_CHECK_HEADER(libxslt/xslt.h, xslthdr_ok=yes, xslthdr_ok=no)
+	if test "$xslthdr_ok" = "no"; then
+	  xslt_ok=no
+	fi
+      fi
+      if test "$xslt_ok" = "yes"; then
+	HAVE_LIBXSLT=1
+	AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
+	LIBS="$LIBS -lxslt"
+      else
+	echo
+	echo "You most likely do not want to build base without XSLT support."
+	echo "If you really want to build -base without XSLT support, add --disable-xslt"
+	echo "to the configure arguments."
+	AC_MSG_WARN([Missing support for XSLT functionality.])
+      fi
+    else
+      HAVE_LIBXSLT=0
+      AC_MSG_WARN([Disabled support for XSLT funtionality.])
+    fi
+    AC_SUBST(HAVE_LIBXSLT)
+
+  else
+    HAVE_LIBXML=0
+    # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
+    LIBS="$saved_LIBS"
+    CFLAGS="$saved_CFLAGS"
     echo
     echo "You most likely do not want to build base without XML support."
     echo "For instance, MacOS-X compatible property lists require XML."
@@ -1005,39 +1036,11 @@ else
     echo "to the configure arguments."
     AC_MSG_ERROR([Missing support for XML functionality.])
   fi
-  AC_MSG_WARN([Missing support for XML funtionality.])
+else
+  AC_MSG_WARN([Disabled support for XML funtionality.])
+  HAVE_LIBXML=0
 fi
 AC_SUBST(HAVE_LIBXML)
-
-#--------------------------------------------------------------------
-# Check for (optional) libxslt
-#--------------------------------------------------------------------
-AC_ARG_ENABLE(xslt,
-  [  --disable-xslt			Compile even if XSLT-dependency is not met],,
-  enable_xslt=no)
-
-AC_CHECK_LIB(xslt, xsltApplyStylesheet, xslt_ok=yes, xslt_ok=no)
-if test "$xslt_ok" = "yes"; then
-  AC_CHECK_HEADER(libxslt/xslt.h, xslthdr_ok=yes, xslthdr_ok=no)
-  if test "$xslthdr_ok" = "no"; then
-    xslt_ok=no
-  fi
-fi
-if test "$xslt_ok" = "yes"; then
-  HAVE_LIBXSLT=1
-  AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
-  LIBS="$LIBS -lxslt"
-else
-  if test $enable_xslt = yes; then
-    echo
-    echo "You most likely do not want to build base without XSLT support."
-    echo "If you really want to build -base without XSLT support, add --disable-xslt"
-    echo "to the configure arguments."
-    AC_MSG_ERROR([Missing support for XSLT functionality.])
-  fi
-  AC_MSG_WARN([Missing support for XSLT funtionality.])
-fi
-AC_SUBST(HAVE_LIBXSLT)
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal
