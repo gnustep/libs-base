@@ -831,8 +831,15 @@ GSTimeNow()
 	NSLog(@"Date resulted in wrong day of week.\n");
       return nil;
     }
-  return [self dateWithTimeIntervalSinceReferenceDate:
-		otherTime(theDate)];
+  if (theDate == nil)
+    {
+      return theDate;
+    }
+  else
+    {
+      return [self dateWithTimeIntervalSinceReferenceDate:
+	otherTime(theDate)];
+    }
 }
 
 + (id) dateWithString: (NSString*)description
@@ -931,17 +938,31 @@ GSTimeNow()
   NSCalendarDate	*d = [calendarClass alloc];
 
   d = [d initWithString: description];
-  self = [self initWithTimeIntervalSinceReferenceDate: otherTime(d)];
-  RELEASE(d);
-  return self;
+  if (d == nil)
+    {
+      RELEASE(self);
+      return nil;
+    }
+  else
+    {
+      self = [self initWithTimeIntervalSinceReferenceDate: otherTime(d)];
+      RELEASE(d);
+      return self;
+    }
 }
 
 - (id) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
 		  sinceDate: (NSDate*)anotherDate;
 {
+  if (anotherDate == nil)
+    {
+      NSLog(@"initWithTimeInterval:sinceDate: given nil date");
+      RELEASE(self);
+      return nil;
+    }
   // Get the other date's time, add the secs and init thyself
   return [self initWithTimeIntervalSinceReferenceDate:
-	       otherTime(anotherDate) + secsToBeAdded];
+    otherTime(anotherDate) + secsToBeAdded];
 }
 
 - (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
@@ -1027,7 +1048,7 @@ GSTimeNow()
 {
   /* xxx We need to check for overflow? */
   return [[self class] dateWithTimeIntervalSinceReferenceDate:
-		       otherTime(self) + seconds];
+    otherTime(self) + seconds];
 }
 
 - (NSTimeInterval) timeIntervalSince1970
@@ -1097,7 +1118,7 @@ GSTimeNow()
   if (other == nil)
     return NO;
   if ([other isKindOf: abstractClass]
-      && 1.0 > ABS(otherTime(self) - otherTime(other)))
+    && 1.0 > ABS(otherTime(self) - otherTime(other)))
     return YES;
   return NO;
 }
@@ -1118,8 +1139,7 @@ GSTimeNow()
       [NSException raise: NSInvalidArgumentException
 		  format: @"nil argument for laterDate:"];
     }
-  if (otherTime(self)
-    < otherTime(otherDate))
+  if (otherTime(self) < otherTime(otherDate))
     return otherDate;
   return self;
 }
@@ -1224,7 +1244,7 @@ GSTimeNow()
   if (other == nil)
     return NO;
   if ([other isKindOfClass: abstractClass]
-      && 1.0 > ABS(_seconds_since_ref - otherTime(other)))
+    && 1.0 > ABS(_seconds_since_ref - otherTime(other)))
     return YES;
   return NO;
 }
