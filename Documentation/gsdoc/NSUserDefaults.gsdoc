@@ -64,7 +64,7 @@
 	    </desc>
 	  </deflist>
 	  <p>
-	  The <em>Languages</em> default value is used to set up the
+	  The <em>NSLanguages</em> default value is used to set up the
 	  constants for localization. GNUstep will also look for the
 	  <code>LANGUAGES</code> environment variable if it is not set
 	  in the defaults system. If it exists, it consists of an
@@ -76,7 +76,7 @@
 	  <p>
 	  As a special extension, on systems that support locales
 	  (e.g. GNU/Linux and Solaris), GNUstep will use information
-	  from the user specified locale, if the <em>Languages</em>
+	  from the user specified locale, if the <em>NSLanguages</em>
 	  default value is not found. Typically the locale is
 	  specified in the environment with the <code>LANG</code>
 	  environment variable.
@@ -85,30 +85,50 @@
         <method type="NSUserDefaults*" factory="yes">
           <sel>standardUserDefaults</sel>
           <desc>
+	    Returns a shared instance of the class containing the standard
+	    defaults for the process.
           </desc>
         </method>
+        <method type="NSArray*" factory="yes">
+          <sel>userLanguages</sel>
+          <desc>
+	    Returns the array of user languages preferences.  Uses the
+	    <em>NSLanguages</em> user default if available, otherwise
+	    tries to infer setup from operating system information etc
+	    (in particular, uses the <em>LANGUAGES</em> environment variable).
+          </desc>
+	  <standards><GNUstep/><NotMacOS-X/><NotOpenStep/></standards>
+	</method>
         <method type="NSArray*">
           <sel>arrayForKey:</sel>
           <arg type="NSString*">defaultName</arg>
           <desc>
+	    Looks up a value for a specified default, checks that it is
+	    an array.  Returns nil if it is not.
           </desc>
         </method>
         <method type="BOOL">
           <sel>boolForKey:</sel>
           <arg type="NSString*">defaultName</arg>
           <desc>
+	    Looks up a value for a specified default, checks that it is
+	    a boolean.  Returns NO if it is not present.
           </desc>
         </method>
         <method type="NSData*">
           <sel>dataForKey:</sel>
           <arg type="NSString*">defaultName</arg>
           <desc>
+	    Looks up a value for a specified default, checks that it is
+	    an NSData object.  Returns nil if it is not.
           </desc>
         </method>
         <method type="NSDictionary*">
           <sel>dictionaryForKey:</sel>
           <arg type="NSString*">defaultName</arg>
           <desc>
+	    Looks up a value for a specified default, checks that it is
+	    an NSDictionary object.  Returns nil if it is not.
           </desc>
         </method>
         <method type="NSDictionary*">
