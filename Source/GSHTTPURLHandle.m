@@ -557,6 +557,13 @@ static void debugWrite(NSData *data)
   NSString              *key;
   NSMutableData		*buf;
   NSString		*method;
+  NSString		*path;
+
+  path = [[url path] stringByTrimmingSpaces];
+  if ([path length] == 0)
+    {
+      path = @"/";
+    } 
 
   /*
    * See if the connection attempt caused an error.
@@ -682,18 +689,18 @@ static void debugWrite(NSData *data)
       if ([url port] == nil)
 	{
 	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@", 
-	    method, [url host], [url path]];
+	    method, [url host], path];
 	}
       else
 	{
 	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@:%@%@", 
-	    method, [url host], [url port], [url path]];
+	    method, [url host], [url port], path];
 	}
     }
   else    // no proxy
     {
       s = [[NSMutableString alloc] initWithFormat: @"%@ %@", 
-	method, [url path]];
+	method, path];
     }
   if ([[url query] length] > 0)
     {
