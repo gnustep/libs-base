@@ -992,8 +992,8 @@ static NSString	*endMarker = @"At end of incremental parse";
       case NSSymbolStringEncoding:
 	NSLog(@"NSSymbolStringEncoding not supported for XML");//??
 	break;
-      case NSCyrillicStringEncoding:
-	NSLog(@"NSCyrillicStringEncoding not supported for XML");//??
+      case NSISOCyrillicStringEncoding:
+	NSLog(@"NSISOCyrillicStringEncoding not supported for XML");//??
 	break;
       case NSNonLossyASCIIStringEncoding:
       case NSASCIIStringEncoding:
