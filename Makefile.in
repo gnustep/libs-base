@@ -292,6 +292,7 @@ NSCoder.m \
 NSCopyObject.m \
 NSConcreteValue.m \
 NSCString.m \
+NSData.m \
 NSDeallocateObject.m \
 NSDictionary.m \
 NSEnumerator.m \
@@ -327,12 +328,9 @@ NSCTemplateValue.m \
 dld-load.h \
 hpux-load.h \
 null-load.h \
-simple-load.h \
-foundation/NSArchiver.h \
-foundation/NSData.h \
-NSArchiver.m \
+foundation/NSDate.h \
 NSDate.m \
-NSData.m
+simple-load.h 
 
 GNUSTEP_OBJS = \
 	$(GNUSTEP_MFILES:.m=.o) \
@@ -349,7 +347,7 @@ foundation/NSCString.h \
 foundation/NSCoder.h \
 foundation/NSConcreteNumber.h \
 foundation/NSConcreteValue.h \
-foundation/NSDate.h \
+foundation/NSData.h \
 foundation/NSDictionary.h \
 foundation/NSException.h \
 foundation/NSGeometry.h \
@@ -604,7 +602,7 @@ dist: $(DIST_FILES)
 	mkdir `cat .fname`/foundation
 	# previously did this: -ln (DIST_FILES) `cat .fname`
 	for file in $(DIST_FILES); do \
-	  ln $$file `cat .fname`/$$file ; \
+	  ln -s $$file `cat .fname`/$$file ; \
 	done
 	touch `cat .fname`/Makefile.local
 	touch `cat .fname`/Makefile.depend
