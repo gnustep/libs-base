@@ -27,7 +27,7 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/CollectionPrivate.h>
 #include <Foundation/NSException.h>
-#include <gnustep/base/NSString.h>
+#include <Foundation/NSString.h>
 
 /* To be used inside a method for making sure that index
    is not above range.
