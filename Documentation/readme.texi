@@ -14,10 +14,6 @@ The file @samp{NEWS} has the library's feature history.
 
 The file @samp{INSTALL} gives instructions for installing the library.
 
-The file @samp{DISCUSSION} contains the archives of email discussions
-about the library.  It's a good place to read about the reasons for
-some of the design decisions.
-
 @section Preparing to write code
 
 Preliminary documentation is available via @samp{texinfo} in the files
