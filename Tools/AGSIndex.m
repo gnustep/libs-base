@@ -205,7 +205,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	  unit = [NSString stringWithFormat: @"%@(%@)",
 	    [prop objectForKey: @"class"], [prop objectForKey: @"name"]];
 
-	  [self setGlobalRef: unit type: name];
+	  [self setGlobalRef: unit type: @"category"];
 	}
       else if ([name isEqual: @"chapter"] == YES)
 	{
@@ -234,6 +234,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 		}
 	      [t setObject: tmp forKey: unit];
 	    }
+	  [self setGlobalRef: unit type: @"class"];
 	}
       else if ([name isEqual: @"gsdoc"] == YES)
 	{
@@ -355,7 +356,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 	  newUnit = YES;
 	  unit = [NSString stringWithFormat: @"(%@)",
 	    [prop objectForKey: @"name"]];
-	  [self setGlobalRef: unit type: name];
+	  [self setGlobalRef: unit type: @"protocol"];
 	}
       else if ([name isEqual: @"constant"] == YES
 	|| [name isEqual: @"EOEntity"] == YES
@@ -515,6 +516,10 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   [r setObject: base forKey: unit];
 }
 
+/**
+ * Return a dictionary containing info on all the units containing the
+ * specified method or instance variable.
+ */
 - (NSDictionary*) unitRef: (NSString*)ref type: (NSString*)type
 {
   NSDictionary	*t;
@@ -523,13 +528,79 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   return [t objectForKey: ref];
 }
 
-- (NSString*) unitRef: (NSString*)ref type: (NSString*)type unit: (NSString*)u
+/**
+ * Return the name of the file containing the ref and return
+ * the unit name in which it was found.  If not found, return nil for both.
+ */
+- (NSString*) unitRef: (NSString*)ref type: (NSString*)type unit: (NSString**)u
 {
+  NSString	*s;
   NSDictionary	*t;
 
-  t = [refs objectForKey: type];
-  t = [t objectForKey: ref];
-  return [t objectForKey: u];
+  /**
+   * If ref does not occur in the index, this method returns nil.
+   */
+  t = [self unitRef: ref type: type];
+  if (t == nil)
+    {
+      *u = nil;
+      return nil;
+    }
+
+  if (*u == nil)
+    {
+      /**
+       * If the method was given no unit to look in, then it will succeed
+       * and return a value if (and only if) the required reference is
+       * defined only in one unit.
+       */
+      if ([t count] == 1)
+	{
+	  *u = [[t allKeys] lastObject];
+	  return [t objectForKey: *u];
+	}
+      return nil;
+    }
+
+  /**
+   * If ref exists in the unit specified, the method will succeed and
+   * return the name of the file in which the reference is located.
+   */
+  s = [t objectForKey: *u];
+  if (s != nil)
+    {
+      return s;
+    }
+
+  /**
+   * If the unit that the method has been asked to look in is a
+   * category or protocol which is not found, the lookup must fail.
+   */
+  if ([t objectForKey: *u] == nil
+    && ([*u length] == 0 || [*u characterAtIndex: [*u length] - 1] == ')'))
+    {
+      *u = nil;
+      return nil;
+    }
+
+  /**
+   * If the unit is a class, and ref was not found in it, then this
+   * method will succeed if ref can be found in any superclass of the class.
+   */
+  while (*u != nil)
+    {
+      *u = [self globalRef: *u type: @"super"];
+      if (*u != nil)
+	{
+	  s = [t objectForKey: *u];
+	  if (s != nil)
+	    {
+	      return s;
+	    }
+	}
+    }
+
+  return nil;
 }
 
 @end

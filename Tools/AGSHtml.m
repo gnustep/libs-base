@@ -149,7 +149,7 @@ static NSMutableSet	*textNodes = nil;
 		 isRef: (BOOL)f
 {
   NSString	*s;
-  NSString	*kind = (f == YES) ? @"href" : @"name";
+  NSString	*kind = (f == YES) ? @"rel=\"gsdoc\" href" : @"name";
   NSString	*hash = (f == YES) ? @"#" : @"";
 
   if (f == NO || (s = [localRefs globalRef: r type: t]) != nil)
@@ -172,8 +172,6 @@ static NSMutableSet	*textNodes = nil;
  * the html element is returned (&lt;a ...&gt;).<br />
  * If the boolean f is YES, then the link is a reference to somewhere,
  * otherwise the link is an anchor for some element being output.<br />
- * The method will try to infer the unit in which the element was
- * defined if the value of u is nil.<br />
  * If there is an error, the method returns nil.
  */
 - (NSString*) makeLink: (NSString*)r
@@ -182,110 +180,60 @@ static NSMutableSet	*textNodes = nil;
 		 isRef: (BOOL)f
 {
   NSString	*s = nil;
-  BOOL		isLocal = YES;
-  NSString	*kind = (f == YES) ? @"href" : @"name";
+  NSString	*kind = (f == YES) ? @"rel=\"gsdoc\" href" : @"name";
   NSString	*hash = (f == YES) ? @"#" : @"";
 
-  /*
-   * No unit specified ... try to infer it.
-   */
-  if (u == nil)
+  if (f == YES)
     {
-      /*
-       * If we are currently inside a class, category, or protocol
-       * we see if the required item exists in that unit and if so,
-       * we assume that this is the unit to be used.
-       */
-      if (unit != nil)
+      if (u == nil)
 	{
-	  s = [localRefs unitRef: r type: t unit: unit];
-	  if (s != nil)
-	    {
-	      u = unit;
-	    }
-	  else
-	    {
-	      NSString	*x = unit;
-
-	      /*
-	       * Try stepping up superclasses until we find a match.
-	       */
-	      while (x != nil)
-		{
-		  x = [localRefs globalRef: x type: @"super"];
-		  if (x != nil)
-		    {
-		      s = [localRefs unitRef: r type: t unit: x];
-		      if (s != nil)
-			{
-			  u = x;
-			  break;
-			}
-		    }
-		}
-	    }
+	  u = unit;
 	}
-      /*
-       * If we are making a reference, and we have not found it in the
-       * current unit, we check all known references to see if the item
-       * is uniquely documented somewhere.
-       */
-      if (u == nil && f == YES)
+      s = base;
+    }
+  else if (u == nil)
+    {
+      u = unit;
+      s = [localRefs unitRef: r type: t unit: &u];
+      if (s == nil)
 	{
-	  NSDictionary	*d;
-
-	  d = [localRefs unitRef: r type: t];
-	  if ([d count] == 0)
-	    {
-	      isLocal = NO;
-	      d = [globalRefs unitRef: r type: t];
-	    }
-	  if ([d count] == 1)
-	    {
-	      /*
-	       * Record the class where the item is documented
-	       * and the file where that documentation occurs.
-	       */
-	      u = [[d allKeys] objectAtIndex: 0];
-	      s = [d objectForKey: u];
-	    }
+	  u = unit;
+	  s = [globalRefs unitRef: r type: t unit: &u];
 	}
     }
   else
     {
+      NSString	*tmp = u;
+
       /*
        * Simply look up the reference.
        */
-      s = [localRefs unitRef: r type: t unit: u];
-      if (s == nil && f == YES)
+      s = [localRefs unitRef: r type: t unit: &u];
+      if (s == nil)
 	{
-	  isLocal = NO;
-	  s = [globalRefs unitRef: r type: t unit: u];
+	  u = tmp;
+	  s = [globalRefs unitRef: r type: t unit: &u];
 	}
     }
 
-  /**
-   * There are only two types of unit specific element ... methods
-   * and instance variables.  The names within a unit are unique
-   * since you can't have two methods or two variables with the
-   * same name in a unit, and all method names contain either a
-   * a plus or minus as a prefix, while no variables do.<br />
-   * This means that we do not need to incorporate any type
-   * information into anchors and references for methods or
-   * instance varibales. 
-   */
   if (s != nil)
     {
-      if (isLocal == YES)
+      NSString	*sep = @"";
+
+      if ([t isEqual: @"ivariable"] == YES)
 	{
-	  s = [NSString stringWithFormat: @"<a %@=\"%@%@%@\">",
-	    kind, hash, u, r];
+	  sep = @"*";
+	}
+      if ([s isEqual: base] == YES)
+	{
+	  s = [NSString stringWithFormat: @"<a %@=\"%@%@$%@%@%@\">",
+	    kind, hash, t, u, sep, r];
 	}
       else
 	{
 	  s = [s stringByAppendingPathExtension: @"html"];
-	  s = [NSString stringWithFormat: @"<a %@=\"%@%@%@%@\">",
-	    kind, s, hash, u, r];
+	  s = [NSString stringWithFormat: @"<a %@=\"%@%@%@$%@%@%@\">",
+	    kind, s, hash, t, u, sep, r];
 	}
     }
   return s;
@@ -822,7 +770,12 @@ static NSMutableSet	*textNodes = nil;
 	      NSArray	*a = [dict allKeys];
 	      unsigned	c = [a count];
 	      unsigned	i;
+	      NSString	*sep = @"";
 
+	      if ([type isEqual: @"ivariable"])
+		{
+		  sep = @"*";
+		}
 	      a = [a sortedArrayUsingSelector: @selector(compare:)];
 
 	      [buf appendString: indent];
@@ -850,9 +803,10 @@ static NSMutableSet	*textNodes = nil;
 			  NSString	*file = [units objectForKey: u];
 
 			  [buf appendString: indent];
-			  [buf appendFormat:
-			    @"<li><a href=\"%@.html#%@%@\">%@ in %@</a></li>\n",
-			    file, u, ref, ref, u];
+			  [buf appendFormat: @"<li><a rel=\"gsdoc\" href="];
+			  [buf appendFormat: @"\"%@.html#%@$%@%@%@\">",
+			    file, type, u, sep, ref];
+			  [buf appendFormat: @"%@ in %@</a></li>\n", ref, u];
 			}
 		    }
 		  else
@@ -877,8 +831,8 @@ static NSMutableSet	*textNodes = nil;
 			}
 
 		      [buf appendString: indent];
-		      [buf appendFormat:
-			@"<li><a href=\"%@.html#%@$%@\">%@</a></li>\n",
+		      [buf appendString: @"<li><a rel=\"gsdoc\" href="];
+		      [buf appendFormat: @"\"%@.html#%@$%@\">%@</a></li>\n",
 			file, type, ref, text];
 		    }
 		}
