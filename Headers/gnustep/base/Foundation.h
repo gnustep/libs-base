@@ -30,23 +30,36 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSAttributedString.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSConnection.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSDictionary.h>
+#include <Foundation/NSDistantObject.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSFileHandle.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSHashTable.h>
+#include <Foundation/NSHost.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSMapTable.h>
 #include <Foundation/NSNotification.h>
+#include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSRunLoop.h>
+#include <Foundation/NSScanner.h>
 #include <Foundation/NSSet.h>
+#include <Foundation/NSTask.h>
 #include <Foundation/NSTimer.h>
+#include <Foundation/NSThread.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSUndoManager.h>
 #include <Foundation/NSUserDefaults.h>
 
 #endif /* __Foundation_h_GNUSTEP_BASE_INCLUDE */
