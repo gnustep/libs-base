@@ -1,3 +1,9 @@
+2004-08-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURLHandle.h:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLHandle.m: Fix property key names
+
 2004-08-25  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
 	* Documentation/HtmlNav/index.html:

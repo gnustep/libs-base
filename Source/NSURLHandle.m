@@ -73,14 +73,14 @@ NSString * const GSHTTPPropertyProxyHostKey
 NSString * const GSHTTPPropertyProxyPortKey
   = @"GSHTTPPropertyProxyPortKey";
  
-NSString * const GSHTTPSCertificateFileKey
-  = @"GSHTTPSCertificateFileKey";
+NSString * const GSHTTPPropertyCertificateFileKey
+  = @"GSHTTPPropertyCertificateFileKey";
 
-NSString * const GSHTTPSKeyFileKey
-  = @"GSHTTPSKeyFileKey";
+NSString * const GSHTTPPropertyKeyFileKey
+  = @"GSHTTPPropertyKeyFileKey";
 
-NSString * const GSHTTPSKeyPasswordKey
-  = @"GSHTTPSKeyPasswordKey";
+NSString * const GSHTTPPropertyPasswordKey
+  = @"GSHTTPPropertyPasswordKey";
 
 
 /**
