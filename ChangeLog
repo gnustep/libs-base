@@ -1,3 +1,8 @@
+2001-07-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/objc-load.m: Remove bogus include of objc-load.h
+	on non-NeXT systems.
+
 2001-07-09  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Check for pthread.h - for compiling on Darwin.
