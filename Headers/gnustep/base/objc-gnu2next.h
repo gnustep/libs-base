@@ -37,6 +37,7 @@ typedef union {
 } *arglist_t;                   /* argument frame */
 //#define arglist_t marg_list
 #define retval_t void*
+typedef void(*apply_t)(void);   /* function pointer */
 #define TypedStream void*
 
 #define class_pointer isa

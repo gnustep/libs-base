@@ -22,7 +22,8 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
-#include <config.h>
+#include "config.h"
+#include <stdio.h>
 #include <base/preface.h>
 
 #ifndef ROUND
