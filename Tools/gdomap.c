@@ -1137,13 +1137,13 @@ init_iface()
       exit(1);
     }
   if (addr != 0) free(addr);
-  addr = (struct in_addr*)malloc(num_iface*IASIZE);
+  addr = (struct in_addr*)malloc((num_iface+1)*IASIZE);
   if (bcok != 0) free(bcok);
-  bcok = (char*)malloc(num_iface*sizeof(char));
+  bcok = (char*)malloc((num_iface+1)*sizeof(char));
   if (bcst != 0) free(bcst);
-  bcst = (struct in_addr*)malloc(num_iface*IASIZE);
+  bcst = (struct in_addr*)malloc((num_iface+1)*IASIZE);
   if (mask != 0) free(mask);
-  mask = (struct in_addr*)malloc(num_iface*IASIZE);
+  mask = (struct in_addr*)malloc((num_iface+1)*IASIZE);
 
   final = (struct ifreq*)&ifc.ifc_buf[ifc.ifc_len];
   for (ifr = ifc.ifc_req; ifr < final; ifr++)
@@ -1326,14 +1326,22 @@ load_iface(const char* from)
       fprintf(stderr, "No address mask pairs found in file.\n");
       exit(1);
     }
-  addr = (struct in_addr*)malloc(num_iface*IASIZE);
-  mask = (struct in_addr*)malloc(num_iface*IASIZE);
-  bcok = (char*)malloc(num_iface*sizeof(char));
-  bcst = (struct in_addr*)malloc(num_iface*IASIZE);
+  num_iface++;
+  addr = (struct in_addr*)malloc((num_iface+1)*IASIZE);
+  mask = (struct in_addr*)malloc((num_iface+1)*IASIZE);
+  bcok = (char*)malloc((num_iface+1)*sizeof(char));
+  bcst = (struct in_addr*)malloc((num_iface+1)*IASIZE);
 
+  addr[interfaces].s_addr = inet_addr("127.0.0.1");
+  mask[interfaces].s_addr = inet_addr("255.255.255.0");
+  bcok[interfaces] = 0;
+  bcst[interfaces].s_addr = inet_addr("127.0.0.255");
+  interfaces++;
+  
   while (fgets(buf, sizeof(buf), fptr) != 0)
     {
       char	*ptr = buf;
+      char	*msk;
 
       /*
        *	Strip leading white space.
@@ -1384,8 +1392,27 @@ load_iface(const char* from)
 	{
 	  *ptr++ = '\0';
 	}
+      msk = ptr;
+      while (*ptr && (isdigit(*ptr) || (*ptr == '.')))
+	{
+	  ptr++;
+	}
+      while (isspace(*ptr))
+	{
+	  *ptr++ = '\0';
+	}
       addr[interfaces].s_addr = inet_addr(buf);
-      mask[interfaces].s_addr = inet_addr(ptr);
+      mask[interfaces].s_addr = inet_addr(msk);
+      if (isdigit(*ptr))
+	{
+	  bcok[interfaces] = 1;
+	  bcst[interfaces].s_addr = inet_addr(ptr);
+	}
+      else
+	{
+	  bcok[interfaces] = 0;
+	  bcst[interfaces].s_addr = inet_addr("0.0.0.0");
+	}
       if (addr[interfaces].s_addr == -1)
 	{
 	  fprintf(stderr, "'%s' is not as valid address\n", buf);
@@ -3893,6 +3920,8 @@ printf(
 "option.  The file named with '-a' should contain a series of lines with\n"
 "space separated pairs of addresses and masks in 'dot' notation.\n"
 "You must NOT include loopback interfaces in this list.\n"
+"If you want to support broadcasting of probe information on a network,\n"
+"you may supply the broadcast address as a third item on the line.\n"
 "If your operating system has some other method of giving you a list of\n"
 "network interfaces and masks, please send me example code so that I can\n"
 "implement it in gdomap.\n");
