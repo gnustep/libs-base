@@ -53,6 +53,26 @@
 - (void) setAtEnd: (BOOL)flag;
 @end
 
+@interface      GSMimeHeader : NSObject
+{
+  NSString              *name;
+  NSString              *value;
+  NSMutableDictionary   *params;
+}
+- (id) initWithName: (NSString*)n value: (NSString*)v params: (NSDictionary*)p;
+- (NSString*) makeQuoted: (NSString*)v;
+- (NSString*) makeToken: (NSString*)t;
+- (NSString*) name;
+- (NSDictionary*) params;
+- (void) setName: (NSString*)s;
+- (void) setParam: (NSString*)v forKey: (NSString*)k;
+- (void) setParams: (NSDictionary*)d;
+- (void) setValue: (NSString*)s;
+- (NSString*) text;
+- (NSString*) value;
+@end
+
+
 @interface	GSMimeDocument : NSObject
 {
   NSMutableArray	*headers;
