@@ -618,7 +618,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	    fd = (int)info->data;
 	    if (fd > end_inputs)
 	      end_inputs = fd;
-	    setPollfd(fd, POLLERR, self);
+	    setPollfd(fd, POLLPRI, self);
 	    NSMapInsert(_efdMap, (void*)fd, info);
 	    num_inputs++;
 	    break;
@@ -779,7 +779,7 @@ if (0) {
 	  GSRunLoopWatcher	*watcher;
 	  BOOL			found = NO;
 	  
-	  if (pollfds[fdIndex].revents & (POLLERR | POLLHUP | POLLNVAL))
+	  if (pollfds[fdIndex].revents & (POLLPRI|POLLERR|POLLHUP|POLLNVAL))
 	    {
 	      watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap,
 		(void*)fd);
@@ -835,6 +835,10 @@ if (0) {
 		}
 	      found = YES;
 	    }
+	  /*
+	   * The poll() call supports various error conditions - all
+	   * errors should be handled by the 'read' event handler.
+	   */
 	  if (pollfds[fdIndex].revents & POLLIN)
 	    {
 	      watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap,
