@@ -1,3 +1,8 @@
+Wed Jan  9 11:08:57 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* config.guess: Updated to latest version.
+	* config.sub: Idem.
+	
 2002-01-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.h:
