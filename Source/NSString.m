@@ -34,8 +34,8 @@
    on non-GNU-libc systems.
 */
 
-/* Initial implementation of Unicode. Version 0.0.0 : )
-   Locales not yet supported.
+/*
+   Locales somewhat supported.
    Limited choice of default encodings.
 */
 
@@ -2855,8 +2855,23 @@ handle_printf_atsign (FILE *stream,
 
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...
 {
-  [self notImplemented: _cmd];
-  return self;
+  va_list ap;
+  id ret;
+  NSDictionary *dict;
+
+  va_start(ap, format);
+  if (format == nil)
+    {
+      ret = nil;
+    }
+  else
+    {
+      dict = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+      ret = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+        initWithFormat: format locale: dict arguments: ap]);
+    }
+  va_end(ap);
+  return ret;
 }
 
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString
@@ -2879,18 +2894,24 @@ handle_printf_atsign (FILE *stream,
 
 - (NSComparisonResult) localizedCompare: (NSString *)string
 {
-  // FIXME: This does only a normal compare
+  NSDictionary *dict =
+      [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+
   return [self compare: string
-	       options: 0
-		 range: ((NSRange){0, [self length]})];
+               options: 0
+                 range: ((NSRange){0, [self length]})
+                locale: dict];
 }
 
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string
 {
-  // FIXME: This does only a normal compare
+  NSDictionary *dict =
+      [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+
   return [self compare: string
-	       options: NSCaseInsensitiveSearch 
-		 range: ((NSRange){0, [self length]})];
+               options: NSCaseInsensitiveSearch 
+                 range: ((NSRange){0, [self length]})
+                locale: dict];
 }
 
 - (BOOL) writeToFile: (NSString*)filename
@@ -3199,7 +3220,6 @@ handle_printf_atsign (FILE *stream,
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
 }
 
-/* xxx Change this when we have non-CString classes */
 + (NSString*) stringWithFormat: (NSString*)format, ...
 {
   va_list ap;
