@@ -1,7 +1,8 @@
-Fri Nov 27  9:50:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Fri Nov 27 13:45:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSObjCRuntime.m: minor performance improvment.
 	* src/NSUnarchiver.m: more performance improvements.
+	* src/NSObject.m: Fix error introduced in last mod.
 
 Thu Nov 26 13:35:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
