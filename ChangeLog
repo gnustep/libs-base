@@ -2,10 +2,10 @@ Mon May 10  8:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSString.m: ([-rangeOfComposedCharacterSequenceAtIndex:])
 	optimised.
-	* Source/NSGString.m ([-rangeOfComposedCharacterSequenceAtIndex:])
+	* Source/NSGString.m: ([-rangeOfComposedCharacterSequenceAtIndex:])
 	implemented.
-	* Source/NSGCString.m ([-rangeOfComposedCharacterSequenceAtIndex:])
-	implemented.
+	* Source/NSGCString.m: ([-rangeOfComposedCharacterSequenceAtIndex:])
+	* Source/NSGSequence.m: various parts optimised.
 	* Source/include/NSThread.h: add gcontext ivar.
 
 Fri May  7 15:12:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
