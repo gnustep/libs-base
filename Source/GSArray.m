@@ -370,7 +370,7 @@ static SEL	eqSel;
     {
       [NSException raise: NSRangeException format:
 	@"in %@:, index %d is out of range",
-	NSStringFromSelector(_cmd), i1];
+	NSStringFromSelector(_cmd), i2];
     }
   if (i1 != i2)
     {

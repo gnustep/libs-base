@@ -51,7 +51,7 @@ static Class	NSDate_class;
  * Initialise the receive, a newly allocated NSTimer object.<br />
  * The fd argument specifies an initial fire date ... if it is not
  * supplied (a nil object) then the ti argument is used to create
- * a astart date relative to the current time.<br />
+ * a start date relative to the current time.<br />
  * The ti argument specifies the time (in seconds) between the firing.
  * If it is less than or equal to 0.0 then a small interval is chosen
  * automatically.<br />
@@ -269,7 +269,7 @@ static Class	NSDate_class;
 /**
  * Change the fire date for the receiver.<br />
  * NB. You should <em>NOT</em> use this method for a timer which has
- * been added to a run loop.  The only time whan it is safe to modify
+ * been added to a run loop.  The only time when it is safe to modify
  * the fire date of a timer in a run loop is for a repeating timer
  * when the timer is actually in the process of firing.
  */

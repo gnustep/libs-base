@@ -1694,7 +1694,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		[date timeIntervalSinceReferenceDate]];
   else
     [NSException raise: NSInvalidArgumentException
-		format: @"%@ invalid date given", NSStringFromSelector(_cmd)];
+      format: @"%@ invalid date given - %@", NSStringFromSelector(_cmd), date];
 
   end = (NSCalendarDate*)[self laterDate: tmp];
   if (end == self)
