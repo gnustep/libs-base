@@ -2,7 +2,8 @@
 
 	* Source/NSLock.m: Commented out extra token after #endif
 	directive.
-
+	* Headers/gnustep/base/GSXML.h: Idem.
+	
 2001-02-27  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* configure.in (Version): source it as ./Version rather than
