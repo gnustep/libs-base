@@ -164,6 +164,7 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (id) initFrom: (void*)data;
 
 - (NSString*) name;
+- (GSXMLNamespace*) ns;
 - (GSXMLAttribute*) next;
 - (GSXMLAttribute*) prev;
 - (GSXMLAttributeType) type;
