@@ -27,6 +27,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
 #include <gnustep/base/NSString.h>
+#include <gnustep/base/NSException.h>
 #include <assert.h>
 
 @implementation NSDictionary 
@@ -100,7 +101,7 @@ static Class NSMutableDictionary_concrete_class;
 {
   va_list ap;
   int capacity = 16;
-  int num_pairs = 0
+  int num_pairs = 0;
   id *objects;
   id *keys;
   id arg;
