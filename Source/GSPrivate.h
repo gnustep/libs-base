@@ -134,5 +134,28 @@ BOOL	GSUserDefaultsFlag(GSUserDefaultFlagType type);
  */
 BOOL	GSEnvironmentFlag(const char *name, BOOL def);
 
+
+
+/**
+ * This class exists simply as a mechanism for encapsulating arrays
+ * encoded using [NSKeyedArchiver-encodeArrayOfObjCType:count:at:]
+ */
+@interface	_NSKeyedCoderOldStyleArray : NSObject <NSCoding>
+{
+  char		_t[2];
+  unsigned	_c;
+  unsigned	_s;
+  const void	*_a;
+  NSData	*_d;	// Only valid after initWithCoder:
+}
+- (const void*) bytes;
+- (unsigned) count;
+- (void) encodeWithCoder: (NSCoder*)aCoder;
+- (id) initWithCoder: (NSCoder*)aCoder;
+- (id) initWithObjCType: (const char*)t count: (int)c at: (const void*)a;
+- (unsigned) size;
+- (const char*) type;
+@end
+
 #endif /* __GSPrivate_h_ */
 

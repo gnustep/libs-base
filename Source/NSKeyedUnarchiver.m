@@ -29,6 +29,8 @@
 #include <Foundation/NSNull.h>
 #include <Foundation/NSValue.h>
 
+#include "GSPrivate.h"
+
 /*
  *      Setup for inline operation of arrays.
  */
@@ -49,7 +51,6 @@ NSString * const NSInvalidUnarchiveOperationException
 static NSMapTable	globalClassMap = 0;
 
 #define	GETVAL \
-  NSString	*oldKey = aKey; \
   id		o; \
   \
   if ([aKey isKindOfClass: [NSString class]] == NO) \
@@ -62,21 +63,60 @@ static NSMapTable	globalClassMap = 0;
     { \
       aKey = [@"$" stringByAppendingString: aKey]; \
     } \
-  if ([_keyMap objectForKey: aKey] != nil) \
-    { \
-      [NSException raise: NSInvalidArgumentException \
-		  format: @"%@, duplicate key '%@' in %@", \
-	NSStringFromClass([self class]), aKey, NSStringFromSelector(_cmd)]; \
-    } \
   o = [_keyMap objectForKey: aKey];
 
 
 
 @interface NSKeyedUnarchiver (Private)
+- (id) _decodeArrayOfObjectsForKey: (NSString*)aKey;
 - (id) _decodeObject: (unsigned)index;
 @end
 
 @implementation NSKeyedUnarchiver (Private)
+/**
+ * Internal method used to decode an array relatively efficiently.<br />
+ * Some MacOS-X library classes seem to use this.
+ */
+- (id) _decodeArrayOfObjectsForKey: (NSString*)aKey
+{
+  id	o = [_keyMap objectForKey: aKey];
+
+  if (o != nil)
+    {
+      if ([o isKindOfClass: [NSArray class]] == YES)
+	{
+	  unsigned		c = [o count];
+	  NSMutableArray	*m = [NSMutableArray arrayWithCapacity: c];
+	  unsigned		i;
+
+	  for (i = 0; i < c; i++)
+	    {
+	      unsigned	ref;
+	      id	val;
+
+	      ref = [[[o objectAtIndex: i] objectForKey: @"CF$UID"]
+		unsignedIntValue];
+	      val = [self _decodeObject: ref];
+	      if (val == nil)
+		{
+		  [NSException raise:
+		    NSInvalidUnarchiveOperationException
+		    format: @"[%@ +%@]: decoded nil in array",
+		    NSStringFromClass([self class]),
+		    NSStringFromSelector(_cmd)];
+		}
+	      [m addObject: val];
+	    }
+	  o = m;
+	}
+      else
+	{
+	  o = nil;
+	}
+    }
+  return o;
+}
+
 - (id) _decodeObject: (unsigned)index
 {
   id	o;
@@ -308,8 +348,36 @@ static NSMapTable	globalClassMap = 0;
   [super dealloc];
 }
 
+- (void) decodeArrayOfObjCType: (const char*)type
+			 count: (unsigned)expected
+			    at: (void*)buf
+{
+  id	 o = [self decodeObject];
+
+  if ([o isKindOfClass: [_NSKeyedCoderOldStyleArray class]] == NO)
+    {
+      [NSException raise: NSInvalidUnarchiveOperationException
+		  format: @"[%@ +%@]: value is '%@'",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), o];
+    }
+  if (strcmp([o type], type) != 0)
+    {
+      [NSException raise: NSInvalidUnarchiveOperationException
+		  format: @"[%@ +%@]: type missmatch",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), o];
+    }
+  if ([o count] != expected)
+    {
+      [NSException raise: NSInvalidUnarchiveOperationException
+		  format: @"[%@ +%@]: count missmatch",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd), o];
+    }
+  memcpy(buf, [o bytes], expected * objc_sizeof_type(type));
+}
+
 - (BOOL) decodeBoolForKey: (NSString*)aKey
 {
+  NSString	*oldKey = aKey;
   GETVAL
   if (o != nil)
     {
@@ -331,6 +399,7 @@ static NSMapTable	globalClassMap = 0;
 - (const uint8_t*) decodeBytesForKey: (NSString*)aKey
 		      returnedLength: (unsigned*)length
 {
+  NSString	*oldKey = aKey;
   GETVAL
   if (o != nil)
     {
@@ -353,6 +422,7 @@ static NSMapTable	globalClassMap = 0;
 
 - (double) decodeDoubleForKey: (NSString*)aKey
 {
+  NSString	*oldKey = aKey;
   GETVAL
   if (o != nil)
     {
@@ -373,6 +443,7 @@ static NSMapTable	globalClassMap = 0;
 
 - (float) decodeFloatForKey: (NSString*)aKey
 {
+  NSString	*oldKey = aKey;
   GETVAL
   if (o != nil)
     {
@@ -393,6 +464,7 @@ static NSMapTable	globalClassMap = 0;
 
 - (int) decodeIntForKey: (NSString*)aKey
 {
+  NSString	*oldKey = aKey;
   GETVAL
   if (o != nil)
     {
@@ -415,6 +487,7 @@ static NSMapTable	globalClassMap = 0;
 
 - (int32_t) decodeInt32ForKey: (NSString*)aKey
 {
+  NSString	*oldKey = aKey;
   GETVAL
   if (o != nil)
     {
@@ -437,6 +510,7 @@ static NSMapTable	globalClassMap = 0;
 
 - (int64_t) decodeInt64ForKey: (NSString*)aKey
 {
+  NSString	*oldKey = aKey;
   GETVAL
   if (o != nil)
     {
@@ -485,6 +559,7 @@ static NSMapTable	globalClassMap = 0;
 
 - (id) decodeObjectForKey: (NSString*)aKey
 {
+  NSString	*oldKey = aKey;
   GETVAL
   if (o != nil)
     {

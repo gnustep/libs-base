@@ -28,16 +28,20 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
 
+#include "GSPrivate.h"
+
+@class	GSString;
+
 /*
  *	Setup for inline operation of pointer map tables.
  */
-#define	GSI_MAP_RETAIN_KEY(M, X)	
-#define	GSI_MAP_RELEASE_KEY(M, X)	
+#define	GSI_MAP_RETAIN_KEY(M, X)	RETAIN(X.obj)	
+#define	GSI_MAP_RELEASE_KEY(M, X)	RELEASE(X.obj)
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define	GSI_MAP_HASH(M, X)	((X).uint)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).uint == (Y).uint)
-#define	GSI_MAP_NOCLEAN	1
+#undef	GSI_MAP_NOCLEAN
 
 #include <GNUstepBase/GSIMap.h>
 
@@ -70,45 +74,70 @@ static NSMapTable	*globalClassMap = 0;
 	NSStringFromClass([self class]), aKey, NSStringFromSelector(_cmd)]; \
     }
 
+/*
+ * Make a dictionary referring to the object at ref in the array of all objects.
+ */
+static NSDictionary *makeReference(unsigned ref)
+{
+  NSNumber	*n;
+  NSDictionary	*d;
+
+  n = [NSNumber numberWithUnsignedInt: ref];
+  d = [NSDictionary dictionaryWithObject: n forKey:  @"CF$UID"];
+  return d;
+}
+
 @interface	NSKeyedArchiver (Private)
-- (NSDictionary*) _buildObjectReference: (id)anObject;
-- (void) _encodeObject: (id)anObject
-		forKey: (NSString*)aKey
-	   conditional: (BOOL)conditional;
+- (void) _encodeArrayOfObjects: (NSArray*)anArray forKey: (NSString*)aKey;
+- (id) _encodeObject: (id)anObject conditional: (BOOL)conditional;
 @end
 
 @implementation	NSKeyedArchiver (Private)
-/*
- * Add an object to the table off all encoded objects, and return a reference.
- */
-- (NSDictionary*) _buildObjectReference: (id)anObject
-{
-  unsigned	ref = 0;
 
-  if (anObject != nil)
+/**
+ * Internal method used to encode an array relatively efficiently.<br />
+ * Some MacOS-X library classes seem to use this.
+ */
+- (void) _encodeArrayOfObjects: (NSArray*)anArray forKey: (NSString*)aKey
+{
+  id		o;
+  CHECKKEY
+
+  if (anArray == nil)
     {
-      ref = [_obj count];
-      [_obj addObject: anObject];
+      o = makeReference(0);
     }
-  return [NSDictionary dictionaryWithObject: [NSNumber numberWithInt: ref]
-				     forKey: @"CF$UID"];
+  else
+    {
+      NSMutableArray	*m;
+      unsigned		c;
+      unsigned		i;
+
+      c = [anArray count];
+      m = [NSMutableArray arrayWithCapacity: c];
+      for (i = 0; i < c; i++)
+	{
+	  o = [self _encodeObject: [anArray objectAtIndex: i] conditional: NO];
+	  [m addObject: o];
+	}
+      o = m;
+    }
+  [_enc setObject: o forKey: aKey];
 }
 
 /*
  * The real workhorse of the archiving process ... this deals with all
- * archiving of objects.
+ * archiving of objects. It returns the object to be stored in the
+ * mapping dictionary (_enc).
  */
-- (void) _encodeObject: (id)anObject
-		forKey: (NSString*)aKey
-	   conditional: (BOOL)conditional
+- (id) _encodeObject: (id)anObject conditional: (BOOL)conditional
 {
   id			original = anObject;
   GSIMapNode		node;
   id			objectInfo = nil;	// Encoded object
   NSMutableDictionary	*m = nil;
-  NSNumber		*refNum;
-  NSDictionary		*keyDict;
-  unsigned		ref = 0;
+  NSDictionary		*refObject;
+  unsigned		ref = 0;		// Reference to nil
 
   if (anObject != nil)
     {
@@ -166,8 +195,11 @@ static NSMapTable	*globalClassMap = 0;
 	    }
 	  else
 	    {
+	      Class	c = [anObject class];
+
 // FIXME ... exactly what classes are stored directly???
-	      if ([anObject isKindOfClass: [NSString class]] == YES)
+	      if ([anObject isKindOfClass: [GSString class]] == YES
+		|| c == [@"literal" class])
 		{
 		  // We will store the string object directly.
 		  objectInfo = anObject;
@@ -209,12 +241,9 @@ static NSMapTable	*globalClassMap = 0;
     }
 
   /*
-   * Store the mapping from aKey to the appropriate entry in _obj
+   * Build an object to reference the encoded value of anObject
    */
-  refNum = [[NSNumber alloc] initWithInt: ref];
-  keyDict = [NSDictionary dictionaryWithObject: refNum forKey: @"CF$UID"];
-  [_enc setObject: keyDict forKey: aKey];
-  RELEASE(refNum);
+  refObject = makeReference(ref);
 
   /*
    * objectInfo is a dictionary describing the object.
@@ -317,10 +346,7 @@ static NSMapTable	*globalClassMap = 0;
        * Now create a reference to the class information and store it
        * in the object description dictionary for the object we just encoded.
        */
-      refNum = [[NSNumber alloc] initWithInt: ref];
-      keyDict = [NSDictionary dictionaryWithObject: refNum forKey: @"CF$UID"]; 
-      [m setObject: keyDict forKey: @"$class"];
-      RELEASE(refNum);
+      [m setObject: makeReference(ref) forKey: @"$class"];
     }
 
   /*
@@ -330,6 +356,11 @@ static NSMapTable	*globalClassMap = 0;
     {
       [_delegate archiver: self didEncodeObject: anObject];
     }
+
+  /*
+   * Return the dictionary identifying the encoded object.
+   */ 
+  return refObject;
 }
 @end
 
@@ -445,6 +476,19 @@ static NSMapTable	*globalClassMap = 0;
   return _delegate;
 }
 
+- (void) encodeArrayOfObjCType: (const char*)aType
+			 count: (unsigned)aCount
+			    at: (const void*)address
+{
+  id	o;
+
+  o = [[_NSKeyedCoderOldStyleArray alloc] initWithObjCType: aType
+						     count: aCount
+							at: address];
+  [self encodeObject: o];
+  RELEASE(o);
+}
+
 - (void) encodeBool: (BOOL)aBool forKey: (NSString*)aKey
 {
   CHECKKEY
@@ -462,16 +506,18 @@ static NSMapTable	*globalClassMap = 0;
 
 - (void) encodeConditionalObject: (id)anObject
 {
-  [self _encodeObject: anObject
-	       forKey: [NSString stringWithFormat: @"$%u", _keyNum++]
-	  conditional: YES];
+  NSString	*aKey = [NSString stringWithFormat: @"$%u", _keyNum++];
+
+  anObject = [self _encodeObject: anObject conditional: YES];
+  [_enc setObject: anObject forKey: aKey];
 }
 
 - (void) encodeConditionalObject: (id)anObject forKey: (NSString*)aKey
 {
   CHECKKEY
 
-  [self _encodeObject: anObject forKey: aKey conditional: YES];
+  anObject = [self _encodeObject: anObject conditional: YES];
+  [_enc setObject: anObject forKey: aKey];
 }
 
 - (void) encodeDouble: (double)aDouble forKey: (NSString*)aKey
@@ -511,16 +557,18 @@ static NSMapTable	*globalClassMap = 0;
 
 - (void) encodeObject: (id)anObject
 {
-  [self _encodeObject: anObject
-	       forKey: [NSString stringWithFormat: @"$%u", _keyNum++]
-	  conditional: NO];
+  NSString	*aKey = [NSString stringWithFormat: @"$%u", _keyNum++];
+
+  anObject = [self _encodeObject: anObject conditional: NO];
+  [_enc setObject: anObject forKey: aKey];
 }
 
 - (void) encodeObject: (id)anObject forKey: (NSString*)aKey
 {
   CHECKKEY
 
-  [self _encodeObject: anObject forKey: aKey conditional: NO];
+  anObject = [self _encodeObject: anObject conditional: NO];
+  [_enc setObject: anObject forKey: aKey];
 }
 
 - (void) encodePoint: (NSPoint)p
