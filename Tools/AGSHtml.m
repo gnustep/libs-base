@@ -705,16 +705,16 @@ static NSMutableSet	*textNodes = nil;
 	  if ([[children name] isEqual: @"version"] == YES)
 	    {
 	      [buf appendString: indent];
-	      [buf appendString: @"<p>Version: "];
-	      [self outputNode: [children children] to: buf];
+	      [buf appendString: @"<p><b>Version:</b> "];
+	      [self outputText: [children children] to: buf];
 	      [buf appendString: @"</p>\n"];
 	      children = firstElement([children next]);
 	    }
 	  if ([[children name] isEqual: @"date"] == YES)
 	    {
 	      [buf appendString: indent];
-	      [buf appendString: @"<p>Date: "];
-	      [self outputNode: [children children] to: buf];
+	      [buf appendString: @"<p><b>Date:</b> "];
+	      [self outputText: [children children] to: buf];
 	      [buf appendString: @"</p>\n"];
 	      children = firstElement([children next]);
 	    }
