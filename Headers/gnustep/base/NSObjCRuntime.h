@@ -59,13 +59,13 @@ GS_EXPORT void			NSLogv (NSString* format, va_list args);
 
 #ifndef YES
 #define YES		1
-#endif YES
+#endif
 #ifndef NO
 #define NO		0
-#endif NO
+#endif
 #ifndef nil
 #define nil		0
-#endif nil
+#endif
 
 #define FOUNDATION_EXPORT
 #define FOUNDATION_STATIC_INLINE static inline

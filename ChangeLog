@@ -1,3 +1,8 @@
+2001-01-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: fix for checking windows executable file
+	extensions - reported by michael.scheibler@onevision.de
+
 2001-01-03  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSObjCRuntime.m (GSInstanceVariableInfo): fixes.
