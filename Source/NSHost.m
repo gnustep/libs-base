@@ -314,7 +314,7 @@ static NSString			*myHostName = nil;
 	{
 	  /*
 	   * Special GNUstep extension host - we try to have a host entry
-	   * with ALL the IP addresses of any interfaaces on the local machine
+	   * with ALL the IP addresses of any interfaces on the local machine
 	   */
 	  host = [[self alloc] _initWithHostEntry: 0 key: name];
 	  AUTORELEASE(host);

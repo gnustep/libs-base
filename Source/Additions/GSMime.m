@@ -206,69 +206,6 @@ decodeWord(unsigned char *dst, unsigned char *src, unsigned char *end, WE enc)
     }
 }
 
-static NSStringEncoding
-parseCharacterSet(NSString *token)
-{
-  if (token == nil)
-    {
-      return NSASCIIStringEncoding;	// Default character set.
-    }
-
-  token = [token lowercaseString];
-
-  /*
-   * Try the three most popular charactersets first - for efficiency.
-   */
-  if ([token isEqualToString: @"us-ascii"] == YES)
-    return NSASCIIStringEncoding;
-  if ([token isEqualToString: @"iso-8859-1"] == YES)
-    return NSISOLatin1StringEncoding;
-  if ([token isEqualToString: @"utf-8"] == YES)
-    return NSUTF8StringEncoding;
-
-  /*
-   * Now try all remaining character sets in alphabetical order.
-   */
-  if ([token isEqualToString: @"ascii"] == YES)
-    return NSASCIIStringEncoding;
-  if ([token isEqualToString: @"iso-8859-2"] == YES)
-    return NSISOLatin2StringEncoding;
-  if ([token isEqualToString: @"iso-8859-3"] == YES)
-    return NSISOLatin3StringEncoding;
-  if ([token isEqualToString: @"iso-8859-4"] == YES)
-    return NSISOLatin4StringEncoding;
-  if ([token isEqualToString: @"iso-8859-5"] == YES)
-    return NSISOCyrillicStringEncoding;
-  if ([token isEqualToString: @"iso-8859-6"] == YES)
-    return NSISOArabicStringEncoding;
-  if ([token isEqualToString: @"iso-8859-7"] == YES)
-    return NSISOGreekStringEncoding;
-  if ([token isEqualToString: @"iso-8859-8"] == YES)
-    return NSISOHebrewStringEncoding;
-  if ([token isEqualToString: @"iso-8859-9"] == YES)
-    return NSISOLatin5StringEncoding;
-  if ([token isEqualToString: @"iso-8859-10"] == YES)
-    return NSISOLatin6StringEncoding;
-  if ([token isEqualToString: @"iso-8859-13"] == YES)
-    return NSISOLatin7StringEncoding;
-  if ([token isEqualToString: @"iso-8859-14"] == YES)
-    return NSISOLatin8StringEncoding;
-  if ([token isEqualToString: @"iso-8859-15"] == YES)
-    return NSISOLatin9StringEncoding;
-  if ([token isEqualToString: @"windows-1250"] == YES)
-    return NSWindowsCP1250StringEncoding;
-  if ([token isEqualToString: @"windows-1251"] == YES)
-    return NSWindowsCP1251StringEncoding;
-  if ([token isEqualToString: @"windows-1252"] == YES)
-    return NSWindowsCP1252StringEncoding;
-  if ([token isEqualToString: @"windows-1253"] == YES)
-    return NSWindowsCP1253StringEncoding;
-  if ([token isEqualToString: @"windows-1254"] == YES)
-    return NSWindowsCP1254StringEncoding;
-
-  return NSASCIIStringEncoding;		// Default character set.
-}
-
 static NSString *
 selectCharacterSet(NSString *str, NSData **d)
 {
@@ -318,6 +255,39 @@ selectCharacterSet(NSString *str, NSData **d)
 
   *d = [str dataUsingEncoding: NSUTF8StringEncoding];
   return @"utf-8";		// Catch-all character set.
+}
+
+/**
+ * Encode a word in a header according to RFC2047 if necessary.
+ * For an ascii word, we just return the data.
+ */
+static NSData*
+wordData(NSString *word)
+{
+  NSData	*d = nil;
+  NSString	*charset;
+
+  charset = selectCharacterSet(word, &d);
+  if ([charset isEqualToString: @"us-ascii"] == YES)
+    {
+      return d;
+    }
+  else
+    {
+      int		len = [charset cStringLength];
+      char		buf[len+1];
+      NSMutableData	*md;
+
+      [charset getCString: buf];
+      md = [NSMutableData dataWithCapacity: [d length]*4/3 + len + 8];
+      d = [GSMimeDocument encodeBase64: d];
+      [md appendBytes: "=?" length: 2];
+      [md appendBytes: buf length: len];
+      [md appendBytes: "?b?" length: 3];
+      [md appendData: d];
+      [md appendBytes: "?=" length: 2];
+      return md;
+    }
 }
 
 /**
@@ -1848,12 +1818,13 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
  * document rather than true MIME.  This method is called internally
  * if the parser detects an HTTP response line at the start of the
  * headers it is parsing.
- * RFC2047 word encoding in the header by creating a string containing the
- * decoded words.
+ * RFC2047 word encoding in the header is handled by creating a
+ * string containing the decoded words.
  */
 - (NSString*) _decodeHeader
 {
-  NSStringEncoding	charset;
+  NSStringEncoding	enc;
+  NSString		*charset;
   WE			encoding;
   unsigned char		c;
   unsigned char		*src, *dst, *beg;
@@ -1913,7 +1884,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      break;
 	    }
 	  *src = '\0';
-	  charset = parseCharacterSet([NSString stringWithCString: tmp]);
+	  charset = [NSString stringWithCString: tmp];
+	  enc = [GSMimeDocument encodingFromCharset: charset];
 	  src++;
 	  if (*src == 0)
 	    {
@@ -1965,8 +1937,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	      NSData	*d = [NSData dataWithBytes: beg length: dst - beg];
 	      NSString	*s;
 
-	      s = [[NSString alloc] initWithData: d
-					encoding: charset];
+	      s = [[NSString alloc] initWithData: d encoding: enc];
 	      [hdr appendString: s];
 	      RELEASE(s);
 	      dst = beg;
@@ -2102,7 +2073,8 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		   * Assume that content type is best represented as NSString.
 		   */
 		  charset = [typeInfo parameterForKey: @"charset"];
-		  stringEncoding = parseCharacterSet(charset);
+		  stringEncoding
+		    = [GSMimeDocument encodingFromCharset: charset];
 		  string = [[NSString alloc] initWithData: data
 						 encoding: stringEncoding];
 		  [document setContent: string];
@@ -2601,6 +2573,88 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * Returns the full text of the header, built from its component parts,
+ * and including a terminating CR-LF
+ */
+- (NSMutableData*) rawMimeData
+{
+  NSMutableData	*md = [NSMutableData dataWithCapacity: 128];
+  NSEnumerator	*e = [params keyEnumerator];
+  NSString	*k;
+  NSData	*d = [[self name] dataUsingEncoding: NSASCIIStringEncoding];
+  unsigned	l = [d length];
+  char		buf[l];
+  int		i = 0;
+  BOOL		conv = YES;
+
+  /*
+   * Capitalise the header name.
+   */
+  memcpy(buf, [d bytes], l);
+  while (i < l)
+    {
+      if (conv == YES)
+        {
+	  if (islower(buf[i]))
+	    {
+	      buf[i] = toupper(buf[i]);
+	    }
+	}
+      if (buf[i++] == '-')
+        {
+	  conv = YES;
+	}
+      else
+        {
+	  conv = NO;
+	}
+    }
+  [md appendBytes: buf length: l];
+  d = wordData(value);
+  if ([md length] + [d length] + 2 > 72)
+    {
+      [md appendBytes: ":\r\n\t" length: 4];
+      [md appendData: d];
+      l = [md length] + 8;
+    }
+  else
+    {
+      [md appendBytes: ": " length: 2];
+      [md appendData: d];
+      l = [md length];
+    }
+
+  while ((k = [e nextObject]) != nil)
+    {
+      NSString	*v = [GSMimeHeader makeQuoted: [params objectForKey: k]];
+      NSData	*kd = wordData(k);
+      NSData	*vd = wordData(v);
+      unsigned	kl = [kd length];
+      unsigned	vl = [vd length];
+
+      if ((l + kl + vl + 3) > 72)
+	{
+	  [md appendBytes: ";\r\n\t" length: 4];
+	  [md appendData: kd];
+	  [md appendBytes: "=" length: 1];
+	  [md appendData: vd];
+	  l = kl + vl + 9;
+	}
+      else
+	{
+	  [md appendBytes: "; " length: 2];
+	  [md appendData: kd];
+	  [md appendBytes: "=" length: 1];
+	  [md appendData: vd];
+	  l += kl + vl + 3;
+	}
+    }
+  [md appendBytes: "\r\n" length: 2];
+
+  return md;
+}
+
+/**
  * Sets the name of this header ... converts to lowercase and removes
  * illegal characters.  If given a nil or empty string argument,
  * sets the name to 'unknown'.
@@ -2680,45 +2734,10 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSString*) text
 {
-  NSMutableString	*t = [NSMutableString new];
-  NSEnumerator		*e = [params keyEnumerator];
-  NSString		*k;
-  unsigned		l;
+  NSString	*s = [NSString alloc];
 
-  [t appendString: [[self name] capitalizedString]];
-  if ([t length] + [value length] + 2 > 72)
-    {
-      [t appendString: @":\r\n\t"];
-      [t appendString: value];
-      l = [t length] + 8;
-    }
-  else
-    {
-      [t appendString: @": "];
-      [t appendString: value];
-      l = [t length];
-    }
-
-  while ((k = [e nextObject]) != nil)
-    {
-      NSString	*v = [GSMimeHeader makeQuoted: [params objectForKey: k]];
-      unsigned	kl = [k length];
-      unsigned	vl = [v length];
-
-      if ((l + kl + vl + 3) > 72)
-	{
-	  [t appendFormat: @";\r\n\t%@=%@", k, v];
-	  l = kl + vl + 9;
-	}
-      else
-	{
-	  [t appendFormat: @"; %@=%@", k, v];
-	  l += kl + vl + 3;
-	}
-    }
-  [t appendString: @"\r\n"];
-
-  return AUTORELEASE(t);
+  s = [s initWithData: [self rawMimeData] encoding: NSASCIIStringEncoding];
+  return AUTORELEASE(s);
 }
 
 /**
@@ -2746,6 +2765,53 @@ static NSCharacterSet	*tokenSet = nil;
  * </p>
  */
 @implementation	GSMimeDocument
+
+/**
+ * Return the MIME characterset name corresponding to the
+ * specified string encoding.
+ */
++ (NSString*) charsetFromEncoding: (NSStringEncoding)enc
+{
+  if (enc == NSASCIIStringEncoding)
+    return @"us-ascii";	// Default character set.
+  if (enc == NSISOLatin1StringEncoding)
+    return @"iso-8859-1";
+  if (enc == NSISOLatin2StringEncoding)
+    return @"iso-8859-2";
+  if (enc == NSISOLatin3StringEncoding)
+    return @"iso-8859-3";
+  if (enc == NSISOLatin4StringEncoding)
+    return @"iso-8859-4";
+  if (enc == NSISOCyrillicStringEncoding)
+    return @"iso-8859-5";
+  if (enc == NSISOArabicStringEncoding)
+    return @"iso-8859-6";
+  if (enc == NSISOGreekStringEncoding)
+    return @"iso-8859-7";
+  if (enc == NSISOHebrewStringEncoding)
+    return @"iso-8859-8";
+  if (enc == NSISOLatin5StringEncoding)
+    return @"iso-8859-9";
+  if (enc == NSISOLatin6StringEncoding)
+    return @"iso-8859-10";
+  if (enc == NSISOLatin7StringEncoding)
+    return @"iso-8859-13";
+  if (enc == NSISOLatin8StringEncoding)
+    return @"iso-8859-14";
+  if (enc == NSISOLatin9StringEncoding)
+    return @"iso-8859-15";
+  if (enc == NSWindowsCP1250StringEncoding)
+    return @"windows-1250";
+  if (enc == NSWindowsCP1251StringEncoding)
+    return @"windows-1251";
+  if (enc == NSWindowsCP1252StringEncoding)
+    return @"windows-1252";
+  if (enc == NSWindowsCP1253StringEncoding)
+    return @"windows-1253";
+  if (enc == NSWindowsCP1254StringEncoding)
+    return @"windows-1254";
+  return @"utf-8";
+}
 
 /**
  * Decode the source data from base64 encoding and return the result.
@@ -2933,6 +2999,72 @@ static NSCharacterSet	*tokenSet = nil;
       AUTORELEASE(r);
     }
   return r;
+}
+
+/**
+ * Return the string encoding corresponding to the specified MIME
+ * characterset name.
+ */
++ (NSStringEncoding) encodingFromCharset: (NSString*)charset
+{
+  if (charset == nil)
+    {
+      return NSASCIIStringEncoding;	// Default character set.
+    }
+
+  charset = [charset lowercaseString];
+
+  /*
+   * Try the three most popular charactersets first - for efficiency.
+   */
+  if ([charset isEqualToString: @"us-ascii"] == YES)
+    return NSASCIIStringEncoding;
+  if ([charset isEqualToString: @"iso-8859-1"] == YES)
+    return NSISOLatin1StringEncoding;
+  if ([charset isEqualToString: @"utf-8"] == YES)
+    return NSUTF8StringEncoding;
+
+  /*
+   * Now try all remaining character sets in alphabetical order.
+   */
+  if ([charset isEqualToString: @"ascii"] == YES)
+    return NSASCIIStringEncoding;
+  if ([charset isEqualToString: @"iso-8859-2"] == YES)
+    return NSISOLatin2StringEncoding;
+  if ([charset isEqualToString: @"iso-8859-3"] == YES)
+    return NSISOLatin3StringEncoding;
+  if ([charset isEqualToString: @"iso-8859-4"] == YES)
+    return NSISOLatin4StringEncoding;
+  if ([charset isEqualToString: @"iso-8859-5"] == YES)
+    return NSISOCyrillicStringEncoding;
+  if ([charset isEqualToString: @"iso-8859-6"] == YES)
+    return NSISOArabicStringEncoding;
+  if ([charset isEqualToString: @"iso-8859-7"] == YES)
+    return NSISOGreekStringEncoding;
+  if ([charset isEqualToString: @"iso-8859-8"] == YES)
+    return NSISOHebrewStringEncoding;
+  if ([charset isEqualToString: @"iso-8859-9"] == YES)
+    return NSISOLatin5StringEncoding;
+  if ([charset isEqualToString: @"iso-8859-10"] == YES)
+    return NSISOLatin6StringEncoding;
+  if ([charset isEqualToString: @"iso-8859-13"] == YES)
+    return NSISOLatin7StringEncoding;
+  if ([charset isEqualToString: @"iso-8859-14"] == YES)
+    return NSISOLatin8StringEncoding;
+  if ([charset isEqualToString: @"iso-8859-15"] == YES)
+    return NSISOLatin9StringEncoding;
+  if ([charset isEqualToString: @"windows-1250"] == YES)
+    return NSWindowsCP1250StringEncoding;
+  if ([charset isEqualToString: @"windows-1251"] == YES)
+    return NSWindowsCP1251StringEncoding;
+  if ([charset isEqualToString: @"windows-1252"] == YES)
+    return NSWindowsCP1252StringEncoding;
+  if ([charset isEqualToString: @"windows-1253"] == YES)
+    return NSWindowsCP1253StringEncoding;
+  if ([charset isEqualToString: @"windows-1254"] == YES)
+    return NSWindowsCP1254StringEncoding;
+
+  return NSASCIIStringEncoding;		// Default character set.
 }
 
 + (void) initialize
@@ -3209,8 +3341,9 @@ static NSCharacterSet	*tokenSet = nil;
 
       if (charset != nil)
 	{
-	  NSStringEncoding	enc = parseCharacterSet(charset);
+	  NSStringEncoding	enc;
 
+	  enc = [GSMimeDocument encodingFromCharset: charset];
 	  d = [content dataUsingEncoding: enc];
 	}
       else
@@ -3241,8 +3374,9 @@ static NSCharacterSet	*tokenSet = nil;
     {
       GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
       NSString		*charset = [hdr parameterForKey: @"charset"];
-      NSStringEncoding	enc = parseCharacterSet(charset);
+      NSStringEncoding	enc;
 
+      enc = [GSMimeDocument encodingFromCharset: charset];
       s = [[NSString alloc] initWithData: content encoding: enc];
       AUTORELEASE(s);
     }
@@ -3513,7 +3647,7 @@ static NSCharacterSet	*tokenSet = nil;
   enumerator = [headers objectEnumerator];
   while ((hdr = [enumerator nextObject]) != nil)
     {
-      [md appendData: [[hdr text] dataUsingEncoding: NSASCIIStringEncoding]];
+      [md appendData: [hdr rawMimeData]];
     }
 
   /*

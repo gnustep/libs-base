@@ -70,6 +70,7 @@
 - (NSDictionary*) objects;
 - (NSString*) parameterForKey: (NSString*)k;
 - (NSDictionary*) parameters;
+- (NSMutableData*) rawMimeData;
 - (void) setName: (NSString*)s;
 - (void) setObject: (id)o  forKey: (NSString*)k;
 - (void) setParameter: (NSString*)v forKey: (NSString*)k;
@@ -86,10 +87,12 @@
   id			content;
 }
 
++ (NSString*) charsetFromEncoding: (NSStringEncoding)enc;
 + (NSData*) decodeBase64: (NSData*)source;
 + (NSString*) decodeBase64String: (NSString*)source;
 + (NSData*) encodeBase64: (NSData*)source;
 + (NSString*) encodeBase64String: (NSString*)source;
++ (NSStringEncoding) encodingFromCharset: (NSString*)charset;
 
 - (void) addContent: (id)newContent;
 - (void) addHeader: (GSMimeHeader*)info;

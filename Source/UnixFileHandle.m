@@ -706,6 +706,19 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   [self setAddr: &sin];		// Store the address of the remote end.
 
+  /*
+   * Don't use SOCKS if we are contancting the local host.
+   */
+  if (shost != nil)
+    {
+      NSHost	*remote = [NSHost hostWithAddress: [self socketAddress]];
+      NSHost	*local = [NSHost currentHost];
+
+      if ([remote isEqual: local] || [remote isEqual: [NSHost localHost]])
+        {
+	  shost = nil;
+	}
+    }
   if (shost != nil)
     {
       if (getAddr(shost, sport, p, &sin) == NO)
