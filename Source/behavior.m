@@ -93,7 +93,7 @@ class_add_behavior (Class class, Class behavior)
 
   /* If necessary, increase instance_size of CLASS. */
   if (class->instance_size < behavior->instance_size)
-    class->instance_size = behavior->instance_size);
+    class->instance_size = behavior->instance_size;
 
 #if 0
   /* xxx Do protocols */
