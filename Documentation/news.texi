@@ -3,7 +3,18 @@
 @end ifset
 @include version.texi
 
-@section Noteworthy changes in version @samp{0.1}
+@section Noteworthy changes since version @samp{0.1.0}
+
+@itemize
+
+@item New category: ObjectRetaining.  New classes: AutoreleasePool,
+AutoreleaseStack. 
+
+@item Bug fixes: Install next-includes properly.
+
+@end itemize
+
+@section Noteworthy changes in version @samp{0.1.0}
 
 @itemize
 
