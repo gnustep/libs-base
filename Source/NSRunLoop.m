@@ -1274,7 +1274,7 @@ id NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 
     [target retain];
     [argument retain];
-    for (i = count; i > 0; i++) {
+    for (i = count; i > 0; i--) {
 	item = (RunLoopPerformer*)[_performers objectAtIndex:(i-1)];
 
 	if ([item matchesSelector:aSelector target:target argument:argument]) {
