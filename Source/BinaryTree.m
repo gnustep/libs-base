@@ -496,7 +496,8 @@ static id nilBinaryTreeNode;
   else
     x = [y rightNode];
 
-  [x setParentNode:[y parentNode]];
+  if (x != [self nilNode])
+    [x setParentNode:[y parentNode]];
 
   if ([y parentNode] == [self nilNode])
     _contents_root = x;
@@ -517,7 +518,7 @@ static id nilBinaryTreeNode;
       if (oldElement.id_u == [[oldElement.id_u parentNode] leftNode])
 	[[oldElement.id_u parentNode] setLeftNode:y];
       else
-	[[oldElement.id_u parentNode] setRightNode:oldElement.id_u];
+	[[oldElement.id_u parentNode] setRightNode:y];
       [[oldElement.id_u leftNode] setParentNode:y];
       [[oldElement.id_u rightNode] setParentNode:y];
     }
