@@ -717,14 +717,14 @@ GSIMapCleanMap(GSIMapTable map)
 	{
 	  GSI_MAP_RELEASE_KEY(map, node->key);
 #if	GSI_MAP_HAS_VALUE
-	  GSI_MAP_RELEASE_VAL(map, node->val);
+	  GSI_MAP_RELEASE_VAL(map, node->value);
 #endif
 	  node->nextInBucket = 0;
 	  node = node->nextInMap;
 	}
       GSI_MAP_RELEASE_KEY(map, node->key);
 #if	GSI_MAP_HAS_VALUE
-      GSI_MAP_RELEASE_VAL(map, node->val);
+      GSI_MAP_RELEASE_VAL(map, node->value);
 #endif
       node->nextInBucket = 0;
       node->nextInMap = map->freeNodes;
