@@ -26,11 +26,10 @@
 
 @implementation LinkedListEltNode
 
-+ initialize
++ (void) initialize
 {
   if (self == [LinkedListEltNode class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 #include <objects/EltNode-m>
