@@ -1,3 +1,9 @@
+2002-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GNUmakefile (Base_AGSDOC_FLAGS): Fix to use
+	-HeaderDirectory and -SourceDirectory to get docs to build again...
+	hopefully with both sets of make rules.
+
 Fri Jan  4 15:44:02 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* base.make.in (GNUSTEP_BASE_HAVE_LIBXML): Define.
@@ -12,7 +18,8 @@ Fri Jan  4 15:44:02 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Tools/autogsdoc.m: Rearrange code somewhat and remove auto
 	generation of index and 'up' links ... now requires an explicit
-	-Up if you want one.
+	-Up if you want one.  Fix to support multiple source files parsed
+	per interface file.
 	* Tools/GNUmakefile: Add -Up for documentation generation
 	* Source/GNUmakefile: ditto
 

@@ -414,6 +414,8 @@ DOCUMENT_NAME = Base
 Base_HEADER_FILES_DIR = $(HEADER_DIR)
 Base_AGSDOC_FILES = Base.gsdoc $(AUTOGSDOC_HEADERS)
 Base_AGSDOC_FLAGS = \
+	-HeaderDirectory ../Headers/Foundation \
+	-SourceDirectory . \
 	-Declared Foundation \
 	-Standards YES \
 	-Up Base
