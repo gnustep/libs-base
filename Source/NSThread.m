@@ -249,8 +249,9 @@ gnustep_base_thread_callback()
    */
   if (objc_thread_detach(@selector(_sendThreadMethod), thread, nil) == NULL)
     {
-      /* This should probably be an exception */
-      NSLog(@"Unable to detach thread (unknown error)");
+      entered_multi_threaded_state = NO;
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Unable to detach thread (unknown error)"];
     }
 }
 
