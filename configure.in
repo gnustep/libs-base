@@ -499,6 +499,11 @@ AC_CHECK_FUNCS(syslog)
 # Check for pthread.h (only when building on Darwin machines)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(pthread.h)
+HAVE_PTHREAD_H=no
+if test $ac_cv_header_pthread_h = yes ; then
+  HAVE_PTHREAD_H=yes
+fi
+AC_SUBST(HAVE_PTHREAD_H)
 
 #--------------------------------------------------------------------
 # This function needed by StdioStream.m

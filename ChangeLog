@@ -1,3 +1,7 @@
+2001-09-11  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Make sure to subst HAVE_PTHREAD_H into config.mak
+
 2001-09-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSCompatibility.m: GSXMLPlMake() unused argument removed.
