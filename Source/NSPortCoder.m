@@ -35,6 +35,7 @@
 #include <base/CStream.h>
 #include <base/Port.h>
 #include <base/MemoryStream.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <Foundation/DistributedObjects.h>
 
@@ -213,6 +214,20 @@ static BOOL debug_connected_coder = NO;
   return;
 }
 
+- (void) encodeDataObject: (NSData*)anObject
+{
+  unsigned	l = [anObject length];
+
+  [self encodeValueOfObjCType: @encode(unsigned) at: &l];
+  if (l)
+    {
+      const void	*b = [anObject bytes];
+
+      [self encodeArrayOfObjCType: @encode(unsigned char)
+			    count: l
+			       at: b];
+    }
+}
 @end
 
 
@@ -349,6 +364,33 @@ static BOOL debug_connected_coder = NO;
 - (void) dismiss
 {
   [self release];
+}
+
+- (NSData*) decodeDataObject
+{
+  unsigned	l;
+
+  [self decodeValueOfObjCType: @encode(unsigned) at: &l];
+  if (l)
+    {
+      void	*b;
+      NSData	*d;
+      NSZone	*z;
+
+#if	GS_WITH_GC
+      z = GSAtomicMallocZone();
+#else
+      z = NSDefaultMallocZone();
+#endif
+      b = NSZoneMalloc(z, l);
+      [self decodeArrayOfObjCType: @encode(unsigned char)
+			    count: l
+			       at: b];
+      d = [[NSData alloc] initWithBytesNoCopy: b length: l fromZone: z];
+      IF_NO_GC(AUTORELEASE(d));
+      return d;
+    }
+  return [NSData data];
 }
 
 @end
