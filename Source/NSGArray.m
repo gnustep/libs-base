@@ -30,7 +30,7 @@
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSDebug.h>
 
-static SEL	eqSel = @selector(isEqual:);
+static SEL	eqSel;
 
 @class	NSGArrayEnumerator;
 @class	NSGArrayEnumeratorReverse;
@@ -40,6 +40,11 @@ static SEL	eqSel = @selector(isEqual:);
 @public
   id		*_contents_array;
   unsigned	_count;
+}
+@end
+
+@interface NSGInlineArray : NSGArray
+{
 }
 @end
 
@@ -62,6 +67,7 @@ static SEL	eqSel = @selector(isEqual:);
   if (self == [NSGArray class])
     {
       [self setVersion: 1];
+      eqSel = @selector(isEqual:);
       behavior_class_add_class(self, [NSArrayNonCore class]);
     }
 }
@@ -87,7 +93,7 @@ static SEL	eqSel = @selector(isEqual:);
 #endif
       NSZoneFree([self zone], _contents_array);
     }
-  [super dealloc];
+  NSDeallocateObject(self);
 }
 
 /* This is the designated initializer for NSArray. */
@@ -269,6 +275,45 @@ static SEL	eqSel = @selector(isEqual:);
     }
 }
 
+@end
+
+@implementation	NSGInlineArray
+- (void) dealloc
+{
+  if (_contents_array)
+    {
+#if	!GS_WITH_GC
+      unsigned	i;
+
+      for (i = 0; i < _count; i++)
+	{
+	  [_contents_array[i] release];
+	}
+#endif
+    }
+  NSDeallocateObject(self);
+}
+- (id) initWithObjects: (id*)objects count: (unsigned)count
+{
+  _contents_array = (id*)&self[1];
+  if (count > 0)
+    {
+      unsigned	i;
+
+      for (i = 0; i < count; i++)
+	{
+	  if ((_contents_array[i] = RETAIN(objects[i])) == nil)
+	    {
+	      _count = i;
+	      RELEASE(self);
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Tried to add nil"];
+	    }
+	}
+      _count = count;
+    }
+  return self;
+}
 @end
 
 @class NSMutableArrayNonCore;
@@ -659,7 +704,7 @@ static SEL	eqSel = @selector(isEqual:);
 - (void) dealloc
 {
   RELEASE(array);
-  [super dealloc];
+  NSDeallocateObject(self);
 }
 
 @end

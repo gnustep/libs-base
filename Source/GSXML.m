@@ -48,7 +48,7 @@ extern int xmlGetWarningsDefaultValue;
  */
 static Class NSString_class;
 static IMP usImp;
-static SEL usSel = @selector(stringWithUTF8String:);
+static SEL usSel;
 
 inline static NSString*
 UTF8Str(const char *bytes)
@@ -78,6 +78,7 @@ setupCache()
     {
       cacheDone = YES;
       NSString_class = [NSString class];
+      usSel = @selector(stringWithUTF8String:);
       usImp = [NSString_class methodForSelector: usSel];
     }
 }

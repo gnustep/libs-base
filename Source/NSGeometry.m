@@ -41,9 +41,9 @@ extern BOOL	GSMacOSXCompatibleGeometry();	// Compatibility mode
 
 static Class	NSStringClass = 0;
 static Class	NSScannerClass = 0;
-static SEL	scanFloatSel = @selector(scanFloat:);
-static SEL	scanStringSel = @selector(scanString:intoString:);
-static SEL	scannerSel = @selector(scannerWithString:);
+static SEL	scanFloatSel;
+static SEL	scanStringSel;
+static SEL	scannerSel;
 static BOOL	(*scanFloatImp)(NSScanner*, SEL, float*);
 static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
 static id 	(*scannerImp)(Class, SEL, NSString*);
@@ -55,6 +55,9 @@ setupCache()
     {
       NSStringClass = [NSString class];
       NSScannerClass = [NSScanner class];
+      scanFloatSel = @selector(scanFloat:);
+      scanStringSel = @selector(scanString:intoString:);
+      scannerSel = @selector(scannerWithString:);
       scanFloatImp = (BOOL (*)(NSScanner*, SEL, float*))
 	[NSScannerClass instanceMethodForSelector: scanFloatSel];
       scanStringImp = (BOOL (*)(NSScanner*, SEL, NSString*, NSString**))

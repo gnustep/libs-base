@@ -86,7 +86,7 @@ static NSDate	*theFuture = nil;
  *	NB.  This class is private to NSRunLoop and must not be subclassed.
  */
  
-static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
+static SEL	eventSel;	/* Initialized in [NSRunLoop +initialize] */
 
 @interface GSRunLoopWatcher: NSObject
 {
@@ -641,8 +641,8 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 @implementation NSRunLoop
 
 #if	GS_WITH_GC == 0
-static SEL	wRelSel = @selector(release);
-static SEL	wRetSel = @selector(retain);
+static SEL	wRelSel;
+static SEL	wRetSel;
 static IMP	wRelImp;
 static IMP	wRetImp;
 
@@ -695,7 +695,10 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
+      eventSel = @selector(receivedEvent:type:extra:forMode:);
 #if	GS_WITH_GC == 0
+      wRelSel = @selector(release);
+      wRetSel = @selector(retain);
       wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
       wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
 #endif

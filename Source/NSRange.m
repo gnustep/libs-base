@@ -14,9 +14,9 @@
 
 static Class	NSStringClass = 0;
 static Class	NSScannerClass = 0;
-static SEL	scanIntSel = @selector(scanInt:);
-static SEL	scanStringSel = @selector(scanString:intoString:);
-static SEL	scannerSel = @selector(scannerWithString:);
+static SEL	scanIntSel;
+static SEL	scanStringSel;
+static SEL	scannerSel;
 static BOOL	(*scanIntImp)(NSScanner*, SEL, int*);
 static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
 static id 	(*scannerImp)(Class, SEL, NSString*);
@@ -28,6 +28,9 @@ setupCache()
     {
       NSStringClass = [NSString class];
       NSScannerClass = [NSScanner class];
+      scanIntSel = @selector(scanInt:);
+      scanStringSel = @selector(scanString:intoString:);
+      scannerSel = @selector(scannerWithString:);
       scanIntImp = (BOOL (*)(NSScanner*, SEL, int*))
 	[NSScannerClass instanceMethodForSelector: scanIntSel];
       scanStringImp = (BOOL (*)(NSScanner*, SEL, NSString*, NSString**))

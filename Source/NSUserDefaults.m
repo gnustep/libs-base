@@ -48,8 +48,9 @@
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */
 
-static SEL	nextObjectSel = @selector(nextObject);
-static SEL	objectForKeySel = @selector(objectForKey:);
+static SEL	nextObjectSel;
+static SEL	objectForKeySel;
+static SEL	addSel;
 
 /* User's Defaults database */
 static NSString	*GNU_UserDefaultsPrefix = @"GNUstep";
@@ -89,6 +90,9 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 {
   if (self == [NSUserDefaults class])
     {
+      nextObjectSel = @selector(nextObject);
+      objectForKeySel = @selector(objectForKey:);
+      addSel = @selector(addEntriesFromDictionary:);
       /*
        * Cache class info for more rapid testing of the types of defaults.
        */
@@ -954,11 +958,10 @@ static NSString	*pathForUser(NSString *user)
       NSMutableDictionary	*dictRep;
       id			obj;
       id			dict;
-      static SEL		aSel = @selector(addEntriesFromDictionary:);
       IMP			nImp;
       IMP			pImp;
       IMP			tImp;
-      IMP			aImp;
+      IMP			addImp;
 	
       pImp = [_persDomains methodForSelector: objectForKeySel];
       tImp = [_tempDomains methodForSelector: objectForKeySel];
@@ -968,13 +971,13 @@ static NSString	*pathForUser(NSString *user)
 
       dictRep = [NSMutableDictionaryClass allocWithZone: NSDefaultMallocZone()];
       dictRep = [dictRep initWithCapacity: 512];
-      aImp = [dictRep methodForSelector: aSel];
+      addImp = [dictRep methodForSelector: addSel];
 
       while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
 	{
 	  if ( (dict = (*pImp)(_persDomains, objectForKeySel, obj)) != nil
 	    || (dict = (*tImp)(_tempDomains, objectForKeySel, obj)) != nil)
-	    (*aImp)(dictRep, aSel, dict);
+	    (*addImp)(dictRep, addSel, dict);
 	}
       _dictionaryRep = [dictRep copy];
       RELEASE(dictRep);

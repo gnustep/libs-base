@@ -78,14 +78,14 @@ typedef	unsigned char	uchar;
 
 #define	PREFIX		"GNUstep DO archive"
 
-static SEL eSerSel = @selector(serializeDataAt:ofObjCType:context:);
-static SEL eTagSel = @selector(serializeTypeTag:);
-static SEL xRefSel = @selector(serializeTypeTag:andCrossRef:);
-static SEL eObjSel = @selector(encodeObject:);
-static SEL eValSel = @selector(encodeValueOfObjCType:at:);
-static SEL dDesSel = @selector(deserializeDataAt:ofObjCType:atCursor:context:);
-static SEL dTagSel = @selector(deserializeTypeTag:andCrossRef:atCursor:);
-static SEL dValSel = @selector(decodeValueOfObjCType:at:);
+static SEL eSerSel;
+static SEL eTagSel;
+static SEL xRefSel;
+static SEL eObjSel;
+static SEL eValSel;
+static SEL dDesSel;
+static SEL dTagSel;
+static SEL dValSel;
 
 
 
@@ -311,6 +311,14 @@ static IMP	_xRefImp;	/* Serialize a crossref.	*/
       connectionClass = [NSConnection class];
       mutableArrayClass = [NSMutableArray class];
       mutableDataClass = [NSMutableDataMalloc class];
+      eSerSel = @selector(serializeDataAt:ofObjCType:context:);
+      eTagSel = @selector(serializeTypeTag:);
+      xRefSel = @selector(serializeTypeTag:andCrossRef:);
+      eObjSel = @selector(encodeObject:);
+      eValSel = @selector(encodeValueOfObjCType:at:);
+      dDesSel = @selector(deserializeDataAt:ofObjCType:atCursor:context:);
+      dTagSel = @selector(deserializeTypeTag:andCrossRef:atCursor:);
+      dValSel = @selector(decodeValueOfObjCType:at:);
       _eSerImp = [mutableDataClass instanceMethodForSelector: eSerSel];
       _eTagImp = [mutableDataClass instanceMethodForSelector: eTagSel];
       _xRefImp = [mutableDataClass instanceMethodForSelector: xRefSel];

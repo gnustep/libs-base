@@ -76,10 +76,15 @@
 
 @implementation NSGDictionary
 
+static SEL	nxtSel;
+static SEL	objSel;
+
 + (void) initialize
 {
   if (self == [NSGDictionary class])
     {
+      nxtSel = @selector(nextObject);
+      objSel = @selector(objectForKey:);
       behavior_class_add_class(self, [NSDictionaryNonCore class]);
     }
 }
@@ -189,8 +194,6 @@
 
   if (c > 0)
     {
-      static SEL	nxtSel = @selector(nextObject);
-      static SEL	objSel = @selector(objectForKey:);
       NSEnumerator	*e = [other keyEnumerator];
       IMP		nxtObj = [e methodForSelector: nxtSel];
       IMP		otherObj = [other methodForSelector: objSel];

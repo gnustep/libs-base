@@ -69,8 +69,8 @@
 #define	GSPLUNI	0
 #include "propList.h"
 
-static	SEL csInitSel = @selector(initWithCStringNoCopy:length:freeWhenDone:);
-static	SEL msInitSel = @selector(initWithCapacity:);
+static	SEL csInitSel;
+static	SEL msInitSel;
 static	IMP csInitImp;	/* designated initialiser for cString	*/
 static	IMP msInitImp;	/* designated initialiser for mutable	*/
 
@@ -86,6 +86,8 @@ static	IMP msInitImp;	/* designated initialiser for mutable	*/
   if (!done)
     {
       done = 1;
+      csInitSel = @selector(initWithCStringNoCopy:length:freeWhenDone:);
+      msInitSel = @selector(initWithCapacity:);
       csInitImp = [NSGCString instanceMethodForSelector: csInitSel];
       msInitImp = [NSGMutableCString instanceMethodForSelector: msInitSel];
     }

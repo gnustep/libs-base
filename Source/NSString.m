@@ -102,9 +102,9 @@ static id	(*plSet)(id, SEL, id, id) = 0;
 
 static id	(*plAlloc)(Class, SEL, NSZone*) = 0;
 static id	(*plInit)(id, SEL, unichar*, unsigned) = 0;
-static SEL	plSel = @selector(initWithCharacters:length:);
 
-static SEL		cMemberSel = @selector(characterIsMember:);
+static SEL	plSel;
+static SEL	cMemberSel;
 
 static NSCharacterSet	*hexdigits = nil;
 static BOOL		(*hexdigitsImp)(id, SEL, unichar) = 0;
@@ -278,8 +278,11 @@ handle_printf_atsign (FILE *stream,
 {
   if (self == [NSString class])
     {
+      plSel = @selector(initWithCharacters:length:);
+      cMemberSel = @selector(characterIsMember:);
       _DefaultStringEncoding = GetDefEncoding();
       NSStringClass = self;
+      [self setVersion: 1];
       NSMutableStringClass = [NSMutableString class];
       NSDataClass = [NSData class];
       GSStringClass = [GSString class];

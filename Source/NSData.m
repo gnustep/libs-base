@@ -107,12 +107,13 @@
  *	Some static variables to cache classes and methods for quick access -
  *	these are set up at process startup or in [NSData +initialize]
  */
-static SEL	appendSel = @selector(appendBytes:length:);
+static SEL	appendSel;
 static Class	dataStatic;
 static Class	dataMalloc;
 static Class	mutableDataMalloc;
 static Class	NSDataAbstract;
 static Class	NSMutableDataAbstract;
+static SEL	appendSel;
 static IMP	appendImp;
 
 static BOOL
@@ -334,6 +335,7 @@ failure:
       dataMalloc = [NSDataMalloc class];
       dataStatic = [NSDataStatic class];
       mutableDataMalloc = [NSMutableDataMalloc class];
+      appendSel = @selector(appendBytes:length:);
       appendImp = [mutableDataMalloc instanceMethodForSelector: appendSel];
     }
 }

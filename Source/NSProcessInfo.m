@@ -618,11 +618,12 @@ int main(int argc, char *argv[], char *env[])
  */
 BOOL GSDebugSet(NSString *val)
 {
-  static SEL debugSel = @selector(member:);
   static IMP debugImp = 0;
+  static SEL debugSel;
 
   if (debugImp == 0)
     {
+      debugSel = @selector(member:);
       if (_debug_set == nil)
 	{
 	  [[NSProcessInfo processInfo] debugSet];

@@ -44,7 +44,7 @@ static Class		GSUString_class;
 static Class		GSMString_class;
 static Class		NXConstantString_class;
 static NSCharacterSet	*defaultSkipSet;
-static SEL		memSel = @selector(characterIsMember:);
+static SEL		memSel;
 
 /*
  * Hack for direct access to internals of an concrete string object.
@@ -74,6 +74,7 @@ typedef struct {
 {
   if (self == [NSScanner class])
     {
+      memSel = @selector(characterIsMember:);
       defaultSkipSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
       IF_NO_GC(RETAIN(defaultSkipSet));
       NSString_class = [NSString class];
