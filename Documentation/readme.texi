@@ -19,6 +19,10 @@ The file @samp{NEWS} has the library's feature history.
 The files @samp{INSTALL} or @samp{GNUstep-HOWTO} (from the web site)
 gives instructions for installing the library.
 
+Note that releases numbers that have an odd minor version (e.g. 1.3.2)
+are unstable releases. They are not as well tested as stable releases
+(e.g. 1.4.1).
+
 @section License
 
 The GNUstep libraries are covered under the GNU Lesser Public License.

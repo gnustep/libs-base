@@ -13,6 +13,9 @@ In addition you should install an Objective-C library (gnustep-objc)
 if you are not using gcc 3.x, as well some other libraries (notably
 ffcall). See the GNUstep-HOWTO for more information.
 
+   After installing this library you should install gnustep-gui if you
+are going to use graphical applications.
+
    When you configure this library, make sure you use the same
 configuration options as with gstep-make. Some additional options to
 configure are described below.
@@ -89,7 +92,7 @@ machines and is not supported.
 <http://clisp.cons.org/~haible/>. You also need to have a special
 version of the Objective-C library (before gcc 3.0 the required hooks
 were not in the standard library). You can get this library from
-<ftp://www.gnustep.org/pub/gnustep/libs/libobjc-1.0.0.tar.gz>.
+<ftp://www.gnustep.org/pub/gnustep/libs/libobjc-1.2.0.tar.gz>.
 
 OpenSSL
 -------
