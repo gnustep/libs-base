@@ -442,8 +442,8 @@ mframe_do_call (const char *encoded_types,
 
   /* Make sure we successfully got the method type, and that its
      types match the ENCODED_TYPES. */
-  NSParameterAssert (type);
-  NSParameterAssert (sel_types_match(encoded_types, type));
+  NSCParameterAssert (type);
+  NSCParameterAssert (sel_types_match(encoded_types, type));
 
 
   /* Allocate an argframe, using memory on the stack */
