@@ -25,11 +25,10 @@
 
 @implementation RBTreeEltNode
 
-+ initialize
++ (void) initialize
 {
   if (self == [RBTreeEltNode class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 #include <objects/EltNode-m>
