@@ -65,6 +65,8 @@
 - (void)readInBackgroundAndNotify;
 - (void)readToEndOfFileInBackgroundAndNotifyForModes:(NSArray*)modes;
 - (void)readToEndOfFileInBackgroundAndNotify;
+- (void)waitForDataInBackgroundAndNotifyForModes:(NSArray*)modes;
+- (void)waitForDataInBackgroundAndNotify;
 
 // Seeking within a file
 
@@ -83,6 +85,7 @@
 // Notification names.
 
 extern	NSString*	NSFileHandleConnectionAcceptedNotification;
+extern	NSString*	NSFileHandleDataAvailableNotification;
 extern	NSString*	NSFileHandleReadCompletionNotification;
 extern	NSString*	NSFileHandleReadToEndOfFileCompletionNotification;
 

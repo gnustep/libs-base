@@ -645,22 +645,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   else
     {
       int	count;
-      fd_set	fds;
-      fd_set	dummy;
-      int	rval;
 
-      /*
-       *	Check that channel is readable.
-       */
-      FD_ZERO(&fds);
-      FD_ZERO(&dummy);
-      FD_SET(descriptor, &fds);
-      if (select(descriptor+1, &fds, &dummy, &dummy, 0) < 0)
-	{
-	  [NSException raise: NSFileHandleOperationException
-		      format: @"failed to use select() on descriptor - %s",
-		      strerror(errno)];
-	}
       /*
        *	Determine number of bytes readable on descriptor.
        */
@@ -822,6 +807,24 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 - (void)readToEndOfFileInBackgroundAndNotify
 {
   return [self readToEndOfFileInBackgroundAndNotifyForModes:nil];
+}
+
+- (void)waitForDataInBackgroundAndNotifyForModes:(NSArray*)modes
+{
+  [self checkRead];
+  readPos = 0;
+  [readInfo release];
+  readInfo = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
+  [readInfo setObject:NSFileHandleDataAvailableNotification
+	       forKey:NotificationKey];
+  [readInfo setObject:[NSMutableData dataWithCapacity:0]
+	       forKey:NSFileHandleNotificationDataItem];
+  [self watchReadDescriptorForModes:modes];
+}
+
+- (void)waitForDataInBackgroundAndNotify
+{
+  return [self waitForDataInBackgroundAndNotifyForModes:nil];
 }
 
 // Seeking within a file
@@ -1163,6 +1166,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	[readInfo setObject: h forKey: NSFileHandleNotificationFileHandleItem];
 	[h release];
       }
+      [self postReadNotification];
+    }
+    else if (operation == NSFileHandleDataAvailableNotification) {
       [self postReadNotification];
     }
     else {

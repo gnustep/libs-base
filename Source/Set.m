@@ -46,7 +46,7 @@
 /* This is the designated initializer of this class */
 - initWithCapacity: (unsigned)cap
 {
-  _contents_hash = NSCreateHashTable(NSObjectsHashCallBacks, cap);
+  _contents_hash = NSCreateHashTable(NSObjectHashCallBacks, cap);
   return self;
 }
 
@@ -64,7 +64,7 @@
 - _initCollectionWithCoder: aCoder
 {
   [super _initCollectionWithCoder:aCoder];
-  _contents_hash = NSCreateHashTable(NSObjectsHashCallBacks, 
+  _contents_hash = NSCreateHashTable(NSObjectHashCallBacks, 
 				     DEFAULT_SET_CAPACITY);
   return self;
 }
@@ -74,7 +74,7 @@
 {
   Set *copy = [super emptyCopy];
   copy->_contents_hash =
-    NSCreateHashTable (NSObjectsHashCallBacks, 0);
+    NSCreateHashTable (NSObjectHashCallBacks, 0);
   return copy;
 }
 
