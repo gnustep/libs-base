@@ -139,9 +139,21 @@ GSObjCClass(id obj)
  * Returns the superclass of this.
  */
 GS_STATIC_INLINE Class
-GSObjCSuper(Class this)
+GSObjCSuper(Class class)
 {
-  return class_get_super_class(this);
+#ifndef NeXT_RUNTIME
+  if (class != 0 && CLS_ISRESOLV (class) == NO)
+    {
+      const char *name;
+      name = (const char *)class->super_class;
+      if (name == NULL)
+	{
+	  return 0;
+	}
+      return objc_lookup_class (name);
+    }
+#endif
+  return class_get_super_class(class);
 }
 
 /**
