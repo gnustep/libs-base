@@ -120,14 +120,16 @@ char encode_unitochar(unichar u, NSStringEncoding enc)
 
 unichar chartouni(char c)
 {
-  NSStringEncoding enc = [NSString defaultCStringEncoding];
+  static NSStringEncoding enc = GSUndefinedEncoding;
+  if (enc == 0) enc = [NSString defaultCStringEncoding];
   return encode_chartouni(c, enc);
 }
 
 char unitochar(unichar u)
 {
   unsigned char res;
-  NSStringEncoding enc = [NSString defaultCStringEncoding];
+  static NSStringEncoding enc = GSUndefinedEncoding;
+  if (enc == 0) enc = [NSString defaultCStringEncoding];
   if((res=encode_unitochar(u, enc)))
     return res;
   else
