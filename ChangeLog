@@ -1,3 +1,11 @@
+Mopn Apr 5  7:33:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSRange.m: Moved most functions into header file, while
+	including header to generate linkable versions.
+	* Source/include/NSGeometry.h: Define MIN and MAX if required.
+	* Source/include/NSRange.h: Define MIN and MAX if required and make
+	most range functions a efficiency.
+e
 Thu Mar 11 10:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSDebug.m: Added two new functions for logging messags.

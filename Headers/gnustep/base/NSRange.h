@@ -1,5 +1,5 @@
 /* Interface for NSObject for GNUStep
- * Copyright (C) 1995 Free Software Foundation, Inc.
+ * Copyright (C) 1995,199 Free Software Foundation, Inc.
  * 
  * Written by:  Adam Fedor <fedor@boulder.colorado.edu>
  * Date: 1995
@@ -29,6 +29,18 @@
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
+#ifndef MAX
+#define MAX(a,b) \
+       ({typeof(a) _MAX_a = (a); typeof(b) _MAX_b = (b);  \
+         _MAX_a > _MAX_b ? _MAX_a : _MAX_b; })
+#endif
+
+#ifndef MIN
+#define MIN(a,b) \
+       ({typeof(a) _MIN_a = (a); typeof(b) _MIN_b = (b);  \
+         _MIN_a < _MIN_b ? _MIN_a : _MIN_b; })
+#endif
+
 typedef struct _NSRange NSRange;
 struct _NSRange
 {
@@ -38,19 +50,34 @@ struct _NSRange
 
 /**** Function Prototypes ****************************************************/
 
-static inline unsigned
-NSMaxRange(NSRange range) __attribute__ ((unused));
+/*
+ *      All but the most complex functions are declared static inline in this
+ *      header file so that they are maximally efficient.  In order to provide
+ *      true functions (for code modules that don't have this header) this
+ *      header is included in NSGeometry.m where the functions are no longer
+ *      declared inline.
+ */
+#ifdef  IN_NSRANGE_M
+#define GS_RANGE_SCOPE   extern
+#define GS_RANGE_ATTR
+#else
+#define GS_RANGE_SCOPE   static inline
+#define GS_RANGE_ATTR    __attribute__((unused))
+#endif
 
-static inline unsigned
+GS_RANGE_SCOPE unsigned
+NSMaxRange(NSRange range) GS_RANGE_ATTR;
+
+GS_RANGE_SCOPE unsigned
 NSMaxRange(NSRange range) 
 {
   return range.location + range.length;
 }
 
-static inline BOOL 
-NSLocationInRange(unsigned location, NSRange range) __attribute__ ((unused));
+GS_RANGE_SCOPE BOOL 
+NSLocationInRange(unsigned location, NSRange range) GS_RANGE_ATTR;
 
-static inline BOOL 
+GS_RANGE_SCOPE BOOL 
 NSLocationInRange(unsigned location, NSRange range) 
 {
   return (location >= range.location) && (location < NSMaxRange(range));
@@ -60,11 +87,48 @@ NSLocationInRange(unsigned location, NSRange range)
 extern NSRange
 NSMakeRange(unsigned int location, unsigned int length);
 
-extern NSRange
-NSUnionRange(NSRange range1, NSRange range2);
+GS_RANGE_SCOPE BOOL
+NSEqualRanges(NSRange range1, NSRange range2) GS_RANGE_ATTR;
 
-extern NSRange
-NSIntersectionRange(NSRange range1, NSRange range2);
+GS_RANGE_SCOPE BOOL
+NSEqualRanges(NSRange range1, NSRange range2)
+{
+  return ((range1.location == range2.location)
+                && (range1.length == range2.length));
+}
+
+GS_RANGE_SCOPE NSRange
+NSUnionRange(NSRange range1, NSRange range2) GS_RANGE_ATTR;
+
+GS_RANGE_SCOPE NSRange
+NSUnionRange(NSRange aRange, NSRange bRange)
+{
+  NSRange range;
+
+  range.location = MIN(aRange.location, bRange.location);
+  range.length   = MAX(NSMaxRange(aRange), NSMaxRange(bRange))
+                - range.location;
+  return range;
+}
+
+GS_RANGE_SCOPE NSRange
+NSIntersectionRange(NSRange range1, NSRange range2) GS_RANGE_ATTR;
+
+GS_RANGE_SCOPE NSRange
+NSIntersectionRange (NSRange aRange, NSRange bRange)
+{
+  NSRange range;
+
+  if (NSMaxRange(aRange) < bRange.location
+                || NSMaxRange(bRange) < aRange.location)
+    return NSMakeRange(0, 0);
+
+  range.location = MAX(aRange.location, bRange.location);
+  range.length   = MIN(NSMaxRange(aRange), NSMaxRange(bRange))
+                - range.location;
+  return range;
+}
+
 
 @class NSString;
 
