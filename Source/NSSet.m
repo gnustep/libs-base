@@ -30,6 +30,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSDebug.h>
 
 @class	GSSet;
 @class	GSMutableSet;
@@ -523,20 +524,6 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
-- (void) unionSet: (NSSet*) other
-{
-  if (other != self)
-    {
-      id keys = [other objectEnumerator];
-      id key;
-
-      while ((key = [keys nextObject]))
-	{
-	  [self addObject: key];
-	}
-    }
-}
-
 - (void) intersectSet: (NSSet*) other
 {
   if (other != self)
@@ -575,6 +562,40 @@ static Class NSMutableSet_concrete_class;
 - (void) removeAllObjects
 {
   [self subclassResponsibility: _cmd];
+}
+
+- (void) setSet: (NSSet*)other
+{
+  if (other == self)
+    {
+      return;
+    }
+  if (other == nil)
+    {
+      NSWarnMLog(@"Setting mutable set to nil");
+      [self removeAllObjects];
+    }
+  else
+    {
+      RETAIN(other);	// In case it's held by us
+      [self removeAllObjects];
+      [self unionSet: other];
+      RELEASE(other);
+    }
+}
+
+- (void) unionSet: (NSSet*) other
+{
+  if (other != self)
+    {
+      id keys = [other objectEnumerator];
+      id key;
+
+      while ((key = [keys nextObject]))
+	{
+	  [self addObject: key];
+	}
+    }
 }
 
 @end

@@ -1,3 +1,14 @@
+2001-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+	* Headers/Foundation/NSSet.h: Added ([-setSet:])
+	* Source/GSSet.m: Optimise ([-unionSet:])
+	* Source/GSArray.m: Tidy NSWarnMLog macros.
+	* Source/GSAttributedString.m: ditto
+	* Source/GSCountedSet.m: ditto
+	* Source/GSDictionary.m: ditto
+	* Source/NSArray.m: ditto
+	* Source/NSDictionary.m: ditto
+	* Source/NSSet.m: Implement ([-setSet:])
+
 2001-05-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDate.m: check for nil dates in some init methods so

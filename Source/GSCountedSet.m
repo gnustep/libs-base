@@ -284,7 +284,7 @@
 
   if (anObject == nil)
     {
-      NSWarnMLog(@"attempt to remove nil object", 0);
+      NSWarnMLog(@"attempt to remove nil object");
       return;
     }
   bucket = GSIMapBucketForKey(&map, (GSIMapKey)anObject);

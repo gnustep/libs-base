@@ -993,7 +993,7 @@ static NSString	*indentStrings[] = {
 
   if (anObject == nil)
     {
-      NSWarnMLog(@"attempt to remove nil object", 0);
+      NSWarnMLog(@"attempt to remove nil object");
       return;
     }
   i = [self count];
@@ -1026,7 +1026,7 @@ static NSString	*indentStrings[] = {
 
   if (anObject == nil)
     {
-      NSWarnMLog(@"attempt to remove nil object", 0);
+      NSWarnMLog(@"attempt to remove nil object");
       return;
     }
   c = [self count];
@@ -1079,7 +1079,7 @@ static NSString	*indentStrings[] = {
 
   if (anObject == nil)
     {
-      NSWarnMLog(@"attempt to remove nil object", 0);
+      NSWarnMLog(@"attempt to remove nil object");
       return;
     }
   c = [self count];
@@ -1116,7 +1116,7 @@ static NSString	*indentStrings[] = {
 
   if (anObject == nil)
     {
-      NSWarnMLog(@"attempt to remove nil object", 0);
+      NSWarnMLog(@"attempt to remove nil object");
       return;
     }
   i = [self count];
@@ -1362,7 +1362,7 @@ static NSString	*indentStrings[] = {
 #ifdef	GSWARN
   if (badComparison == YES)
     {
-      NSWarnMLog(@"Detected bad return value from comparison", 0);
+      NSWarnMLog(@"Detected bad return value from comparison");
     }
 #endif
 }
