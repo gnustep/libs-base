@@ -913,7 +913,7 @@ NSTemporaryDirectory(void)
 
 /**
  * Returns the root directory for the OpenStep (GNUstep) installation.
- * This si determined by the GNUSTEP_ROOT environment variable if available.
+ * This is determined by the GNUSTEP_ROOT environment variable if available.
  */
 NSString *
 NSOpenStepRootDirectory(void)
