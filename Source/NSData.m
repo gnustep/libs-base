@@ -124,7 +124,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
       NSLog(@"Open (%s) attempt failed - bad path", thePath);
       return NO;
     }
-  theFile = fopen(thePath, "r");
+  theFile = fopen(thePath, "rb");
 
   if (theFile == NULL)		/* We failed to open the file. */
     {
@@ -175,7 +175,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
   c = fread(tmp, 1, fileLength, theFile);
   if (c != fileLength)
     {
-      NSLog(@"Fread of file contents failed - %s", strerror(errno));
+      NSLog(@"read of file contents failed - %s", strerror(errno));
       goto failure;
     }
 
@@ -523,7 +523,7 @@ failure:
   else
     {
       strcpy(thePath, theRealPath);
-      theFile = fopen(thePath, "w");
+      theFile = fopen(thePath, "wb");
     }
 #else
   if (useAuxiliaryFile)
@@ -545,7 +545,7 @@ failure:
     }
 
   /* Open the file (whether temp or real) for writing. */
-  theFile = fopen(thePath, "w");
+  theFile = fopen(thePath, "wb");
 #endif
 
   if (theFile == NULL)          /* Something went wrong; we weren't
