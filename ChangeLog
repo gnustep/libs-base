@@ -1,3 +1,11 @@
+2002-05-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMapTable.m: Delete line teft over by accident ... could
+	cause crach if passes nul table.  Thanks to Lars Sonchocky-Helldorf
+	* Source/NSCalendarDate.m: ([-initWithString:calendarFormat:]) don't
+	supply current date information as default ... for compatibility
+	with MacOS-X use zero date instead. Thanks to lcampbell.
+
 2002-05-04  Adam Fedor  <fedor@gnu.org>
 
         * Testing/nsbundle.m: Update to work without installing bundle.
