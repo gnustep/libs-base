@@ -52,6 +52,7 @@ static Class		GSUnicodeStringClass;
 static Class		GSMutableStringClass;
 static Class		GSPlaceholderStringClass;
 static Class		NSConstantStringClass;
+static id		*_holder;
 static NSCharacterSet	*defaultSkipSet;
 static SEL		memSel;
 
@@ -92,6 +93,7 @@ typedef struct {
       GSMutableStringClass = [GSMutableString class];
       GSPlaceholderStringClass = [GSPlaceholderString class];
       NSConstantStringClass = [NSString constantStringClass];
+      _holder = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
     }
 }
 
@@ -147,17 +149,16 @@ typedef struct {
     }
   else if (GSObjCIsKindOf(c, GSMutableStringClass) == YES)
     {
-      _string = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
       if (((ivars)aString)->_flags.wide == 1)
 	{
 	  _isUnicode = YES;
-	  _string = [_string initWithCharacters: ((ivars)aString)->_contents.u
+	  _string = [_holder initWithCharacters: ((ivars)aString)->_contents.u
 					 length: ((ivars)aString)->_count];
 	}
       else
 	{
 	  _isUnicode = NO;
-	  _string = [_string initWithCString: ((ivars)aString)->_contents.c
+	  _string = [_holder initWithCString: ((ivars)aString)->_contents.c
 				      length: ((ivars)aString)->_count];
 	}
     }
@@ -169,8 +170,7 @@ typedef struct {
   else if ([aString isKindOfClass: NSStringClass])
     {
       _isUnicode = YES;
-      _string = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
-      _string = [_string initWithString: aString];
+      _string = [_holder initWithString: aString];
     }
   else
     {
