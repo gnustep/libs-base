@@ -25,6 +25,7 @@
 #include        "AGSHtml.h"
 
 static int      XML_ELEMENT_NODE;
+static int      XML_ENTITY_REF_NODE;
 static int      XML_TEXT_NODE;
 
 static GSXMLNode	*firstElement(GSXMLNode *nodes)
@@ -52,6 +53,8 @@ static NSMutableSet	*textNodes = nil;
        * Cache XML node information.
        */
       XML_ELEMENT_NODE = [GSXMLNode typeFromDescription: @"XML_ELEMENT_NODE"];
+      XML_ENTITY_REF_NODE
+	= [GSXMLNode typeFromDescription: @"XML_ENTITY_REF_NODE"];
       XML_TEXT_NODE = [GSXMLNode typeFromDescription: @"XML_TEXT_NODE"];
       textNodes = [NSMutableSet new];
       [textNodes addObject: @"br"];
@@ -64,6 +67,7 @@ static NSMutableSet	*textNodes = nil;
       [textNodes addObject: @"prjref"];
       [textNodes addObject: @"ref"];
       [textNodes addObject: @"site"];
+      [textNodes addObject: @"strong"];
       [textNodes addObject: @"uref"];
       [textNodes addObject: @"url"];
       [textNodes addObject: @"var"];
@@ -240,6 +244,10 @@ static NSMutableSet	*textNodes = nil;
 	      [buf appendFormat: @"</code></a>", ename];
 	    }
 	}
+      else if ([name isEqual: @"embed"] == YES)
+	{
+	  [self outputBlock: node to: buf inPara: NO];
+	}
       else if ([name isEqual: @"entry"])
 	{
 	  NSString		*text;
@@ -252,6 +260,10 @@ static NSMutableSet	*textNodes = nil;
 	      val = text;
 	    }
 	  [buf appendFormat: @"<a name=\"label$%@\"></a>", val];
+	}
+      else if ([name isEqual: @"example"] == YES)
+	{
+	  [self outputBlock: node to: buf inPara: NO];
 	}
       else if ([name isEqual: @"file"] == YES)
 	{
@@ -596,6 +608,10 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	      [buf appendString: @"<hr />\n"];
 	    }
 	}
+      else if ([name isEqual: @"p"] == YES)
+	{
+	  [self outputBlock: node to: buf inPara: NO];
+	}
       else if ([name isEqual: @"prjref"] == YES)
 	{
 NSLog(@"Element '%@' not implemented", name); 	    // FIXME
@@ -714,6 +730,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  if (f == nil)
 	    {
 	      NSLog(@"ref '%@' not found for %@", r, type);
+	      [self outputText: [node children] to: buf];
 	    }
 	  else
 	    {
@@ -746,7 +763,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       else if ([name isEqual: @"section"] == YES)
 	{
 	  heading = @"h2";
-	  [self outputNode: children to: buf];
+	  [self outputNodeList: children to: buf];
 	}
       else if ([name isEqual: @"site"] == YES)
 	{
@@ -754,15 +771,21 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  [self outputText: children to: buf];
 	  [buf appendString: @"</code>"];
 	}
+      else if ([name isEqual: @"strong"] == YES)
+	{
+	  [buf appendString: @"<strong>"];
+	  [self outputText: children to: buf];
+	  [buf appendString: @"</strong>"];
+	}
       else if ([name isEqual: @"subsect"] == YES)
 	{
 	  heading = @"h3";
-	  [self outputNode: children to: buf];
+	  [self outputNodeList: children to: buf];
 	}
       else if ([name isEqual: @"subsubsect"] == YES)
 	{
 	  heading = @"h4";
-	  [self outputNode: children to: buf];
+	  [self outputNodeList: children to: buf];
 	}
       else if ([name isEqual: @"type"] == YES)
 	{
@@ -815,13 +838,14 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	{
 	  GSXMLNode	*tmp;
 	  /*
-	   * Try outputing as any of the common elements.
+	   * Try outputing as any of the list elements.
 	   */
-	  tmp = [self outputBlock: node to: buf inPara: NO];
+	  tmp = [self outputList: node to: buf];
 	  if (tmp == node)
 	    {
 	      NSLog(@"Element '%@' not implemented", name);	// FIXME
 	    }
+	  node = tmp;
 	}
     }
   RELEASE(arp);
@@ -849,189 +873,170 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 			to: (NSMutableString*)buf
 		    inPara: (BOOL)flag
 {
-  while (node != nil)
+  if (node != nil &&  [node type] == XML_ELEMENT_NODE)
     {
-      BOOL	changed = YES;
+      GSXMLNode	*tmp = node;
+      NSString	*n;
 
-      while (changed == YES)
+      node = [self outputList: node to: buf];
+      if (node != tmp)
 	{
-	  GSXMLNode	*tmp = node;
-
-	  node = [self outputText: node to: buf];
-	  if (node == tmp)
-	    {
-	      node = [self outputList: node to: buf];
-	    }
-	  if (node == tmp)
-	    {
-	      changed = NO;
-	    }
+	  return node;
 	}
-      if (node != nil)
+      n = [node name];
+      if ([n isEqual: @"p"] == YES)
 	{
-	  NSString	*n;
-
-	  if ([node type] != XML_ELEMENT_NODE)
+	  if (flag == YES)
 	    {
-	      NSLog(@"Unexpected node type in block");
-	      break;	// Not a known node type;
-	    }
-	  n = [node name];
-	  if ([n isEqual: @"p"] == YES)
-	    {
-	      if (flag == YES)
-		{
-		  [self decIndent];
-		  [buf appendString: indent];
-		  [buf appendString: @"</p>\n"];
-		}
-	      [buf appendString: indent];
-	      [buf appendString: @"<p>\n"];
-	      [self incIndent];
-	      [self outputText: [node children] to: buf];
 	      [self decIndent];
 	      [buf appendString: indent];
 	      [buf appendString: @"</p>\n"];
-	      if (flag == YES)
-		{
-		  [buf appendString: indent];
-		  [buf appendString: @"<p>\n"];
-		  [self incIndent];
-		}
-	      node = [node next];
 	    }
-	  else if ([n isEqual: @"example"] == YES)
-	    {
-	      [buf appendString: @"\n<pre>\n"];
-	      [self outputText: [node children] to: buf];
-	      [buf appendString: @"\n</pre>\n"];
-	      node = [node next];
-	    }
-	  else if ([n isEqual: @"embed"] == YES)
-	    {
-	      NSLog(@"Element 'embed' not supported");
-	      node = [node next];
-	    }
-	  else
-	    {
-	      return node;	// Not a block node.
-	    }
-	}
-    }
-  return node;
-}
-
-/**
- * Outputs zero or more nodes at the same level as long as the nodes
- * are valid %list elements.  Returns nil or the first node not output.
- */
-- (GSXMLNode*) outputList: (GSXMLNode*)node to: (NSMutableString*)buf
-{
-  while (node != nil && [node type] == XML_ELEMENT_NODE)
-    {
-      NSString	*name = [node name];
-      GSXMLNode	*children = [node children];
-
-      if ([name isEqual: @"list"] == YES)
-	{
 	  [buf appendString: indent];
-	  [buf appendString: @"<ul>\n"];
+	  [buf appendString: @"<p>\n"];
 	  [self incIndent];
-	  while (children != nil)
-	    {
-	      [buf appendString: indent];
-	      [buf appendString: @"<li>\n"];
-	      [self incIndent];
-	      [self outputBlock: [children children] to: buf inPara: NO];
-	      [self decIndent];
-	      [buf appendString: indent];
-	      [buf appendString: @"</li>\n"];
-	      children = [children next];
-	    }
+	  [self outputText: [node children] to: buf];
 	  [self decIndent];
 	  [buf appendString: indent];
-	  [buf appendString: @"</ul>\n"];
-	}
-      else if ([name isEqual: @"enum"] == YES)
-	{
-	  [buf appendString: indent];
-	  [buf appendString: @"<ol>\n"];
-	  [self incIndent];
-	  while (children != nil)
+	  [buf appendString: @"</p>\n"];
+	  if (flag == YES)
 	    {
 	      [buf appendString: indent];
-	      [buf appendString: @"<li>\n"];
+	      [buf appendString: @"<p>\n"];
 	      [self incIndent];
-	      [self outputBlock: [children children] to: buf inPara: NO];
-	      [self decIndent];
-	      [buf appendString: indent];
-	      [buf appendString: @"</li>\n"];
-	      children = [children next];
 	    }
-	  [self decIndent];
-	  [buf appendString: indent];
-	  [buf appendString: @"</ol>\n"];
+	  return [node next];
 	}
-      else if ([name isEqual: @"deflist"] == YES)
+      else if ([n isEqual: @"example"] == YES)
 	{
-	  [buf appendString: indent];
-	  [buf appendString: @"<dl>\n"];
-	  [self incIndent];
-	  while (children != nil)
-	    {
-	      [buf appendString: indent];
-	      [buf appendString: @"<dt>"];
-	      [self outputText: [children children] to: buf];
-	      [buf appendString: @"</dt>\n"];
-	      children = [children next];
-	      [buf appendString: indent];
-	      [buf appendString: @"<dd>\n"];
-	      [self incIndent];
-	      [self outputBlock: [children children] to: buf inPara: NO];
-	      [self decIndent];
-	      [buf appendString: indent];
-	      [buf appendString: @"</dd>\n"];
-	      children = [children next];
-	    }
-	  [self decIndent];
-	  [buf appendString: indent];
-	  [buf appendString: @"</dl>\n"];
+	  [buf appendString: @"\n<pre>\n"];
+	  [self outputText: [node children] to: buf];
+	  [buf appendString: @"\n</pre>\n"];
+	  return [node next];
 	}
-      else if ([name isEqual: @"qalist"] == YES)
+      else if ([n isEqual: @"embed"] == YES)
 	{
-	  [buf appendString: indent];
-	  [buf appendString: @"<dl>\n"];
-	  [self incIndent];
-	  while (children != nil)
-	    {
-	      [buf appendString: indent];
-	      [buf appendString: @"<dt>"];
-	      [self outputText: [children children] to: buf];
-	      [buf appendString: @"</dt>\n"];
-	      children = [children next];
-	      [buf appendString: indent];
-	      [buf appendString: @"<dd>\n"];
-	      [self incIndent];
-	      [self outputBlock: [children children] to: buf inPara: NO];
-	      [self decIndent];
-	      [buf appendString: indent];
-	      [buf appendString: @"</dd>\n"];
-	      children = [children next];
-	    }
-	  [self decIndent];
-	  [buf appendString: indent];
-	  [buf appendString: @"</dl>\n"];
-	}
-      else if ([name isEqual: @"dictionary"] == YES)
-	{
-NSLog(@"Element '%@' not implemented", name); // FIXME
+	  NSLog(@"Element 'embed' not supported");
+	  return [node next];
 	}
       else
 	{
-	  return node;	// Not a list
+	  NSLog(@"Non-block element '%@' in block ...", n);
+	  return node;
 	}
-      node = [node next];
     }
+
+  return [self outputText: node to: buf];
+}
+
+/**
+ * Outputs a node as long as it is a
+ * valid %list element.  Returns next node at this level.
+ */
+- (GSXMLNode*) outputList: (GSXMLNode*)node to: (NSMutableString*)buf
+{
+  NSString	*name = [node name];
+  GSXMLNode	*children = [node children];
+
+  if ([name isEqual: @"list"] == YES)
+    {
+      [buf appendString: indent];
+      [buf appendString: @"<ul>\n"];
+      [self incIndent];
+      while (children != nil)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<li>\n"];
+	  [self incIndent];
+	  [self outputBlock: [children children] to: buf inPara: NO];
+	  [self decIndent];
+	  [buf appendString: indent];
+	  [buf appendString: @"</li>\n"];
+	  children = [children next];
+	}
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</ul>\n"];
+    }
+  else if ([name isEqual: @"enum"] == YES)
+    {
+      [buf appendString: indent];
+      [buf appendString: @"<ol>\n"];
+      [self incIndent];
+      while (children != nil)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<li>\n"];
+	  [self incIndent];
+	  [self outputBlock: [children children] to: buf inPara: NO];
+	  [self decIndent];
+	  [buf appendString: indent];
+	  [buf appendString: @"</li>\n"];
+	  children = [children next];
+	}
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</ol>\n"];
+    }
+  else if ([name isEqual: @"deflist"] == YES)
+    {
+      [buf appendString: indent];
+      [buf appendString: @"<dl>\n"];
+      [self incIndent];
+      while (children != nil)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<dt>"];
+	  [self outputText: [children children] to: buf];
+	  [buf appendString: @"</dt>\n"];
+	  children = [children next];
+	  [buf appendString: indent];
+	  [buf appendString: @"<dd>\n"];
+	  [self incIndent];
+	  [self outputBlock: [children children] to: buf inPara: NO];
+	  [self decIndent];
+	  [buf appendString: indent];
+	  [buf appendString: @"</dd>\n"];
+	  children = [children next];
+	}
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</dl>\n"];
+    }
+  else if ([name isEqual: @"qalist"] == YES)
+    {
+      [buf appendString: indent];
+      [buf appendString: @"<dl>\n"];
+      [self incIndent];
+      while (children != nil)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<dt>"];
+	  [self outputText: [children children] to: buf];
+	  [buf appendString: @"</dt>\n"];
+	  children = [children next];
+	  [buf appendString: indent];
+	  [buf appendString: @"<dd>\n"];
+	  [self incIndent];
+	  [self outputBlock: [children children] to: buf inPara: NO];
+	  [self decIndent];
+	  [buf appendString: indent];
+	  [buf appendString: @"</dd>\n"];
+	  children = [children next];
+	}
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</dl>\n"];
+    }
+  else if ([name isEqual: @"dictionary"] == YES)
+    {
+NSLog(@"Element '%@' not implemented", name); // FIXME
+    }
+  else
+    {
+      return node;	// Not a list
+    }
+  node = [node next];
   return node;
 }
 
@@ -1046,6 +1051,12 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       if ([node type] == XML_TEXT_NODE)
 	{
 	  [buf appendString: [node content]];
+	}
+      else if ([node type] == XML_ENTITY_REF_NODE)
+	{
+	  [buf appendString: @"&"];
+	  [buf appendString: [node name]]; 
+	  [buf appendString: @";"];
 	}
       else if ([node type] == XML_ELEMENT_NODE)
 	{
