@@ -1,3 +1,14 @@
+2003-07-09 02:41  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/GSString.m (getCString_u): Rewrite to correctly handle
+	all encodings, the range argument, and the leftoverRange attribute.
+
+	* Source/Unicode.m (GSToUnicode): Clarify the documentation (and fix
+	a few typos in it).
+	(GSFromUnicode): Clarify the documentation. Signal failure correctly
+	from the utf8 encoder. Make sure dst isn't set to NULL if zone is
+	NULL but *size is 0.
+
 2003-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Avoid using atof() in parsing plists ... we

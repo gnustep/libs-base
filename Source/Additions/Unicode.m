@@ -939,7 +939,7 @@ else \
   }
 
 /**
- * Function to convert from 8-bit character data to 16-bit unicode.
+ * Function to convert from 8-bit data to 16-bit unicode characters.
  * <p>The dst argument is a pointer to a pointer to a buffer in which the
  * converted string is to be stored.  If it is a null pointer, this function
  * discards converted data, and is used only to determine the length of the
@@ -949,17 +949,18 @@ else \
  * </p>
  * <p>The size argument is a pointer to the initial size of the destination
  * buffer.  If the function changes the buffer size, this value will be
- * altered to the new size.  This is measured in characters, not bytes.
+ * altered to the new size.  This is measured in 16-bit unicode characters,
+ * not bytes.
  * </p>
- * <p>The src argument is a pointer to the 8-bit character string which is
+ * <p>The src argument is a pointer to the byte sequence which is
  * to be converted to 16-bit unicode.
  * </p>
- * <p>The slen argument is the length (bytes) of the 8-bit character string
+ * <p>The slen argument is the length of the byte sequence
  * which is to be converted to 16-bit unicode.
- * This is measured in characters, not bytes.
+ * This is measured in bytes.
  * </p>
- * <p>The end argument specifies the encoding type of the 8-bit character
- * string which is to be converted to 16-bit unicode.
+ * <p>The enc argument specifies the encoding type of the 8-bit byte sequence
+ * which is to be converted to 16-bit unicode.
  * </p>
  * <p>The zone argument specifies a memory zone in which the function may
  * allocate a buffer to return data in.
@@ -971,7 +972,7 @@ else \
  * <list>
  * <item>If GSUniTerminate is set, the function is expected to null terminate
  * the output string, and will assume that it is safe to place the nul
- * just beyond the ned of the stated buffer size.
+ * just beyond the end of the stated buffer size.
  * Also, if the function grows the buffer, it will allow for an extra
  * termination character.</item>
  * <item>If GSUniTemporary is set, the function will return the results in
@@ -1033,8 +1034,6 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
     {
       case NSUTF8StringEncoding:
 	{
-	  result = YES;
-
 	  while (spos < slen)
 	    {
 	      unsigned char	c = src[spos++];
@@ -1452,27 +1451,27 @@ static inline int chop(unichar c, _ucc_ *table, int hi)
 }
 
 /**
- * Function to convert from 16-bit unicode to 8-bit character data.
+ * Function to convert from 16-bit unicode to 8-bit data.
  * <p>The dst argument is a pointer to a pointer to a buffer in which the
- * converted string is to be stored.  If it is a null pointer, this function
+ * converted data is to be stored.  If it is a null pointer, this function
  * discards converted data, and is used only to determine the length of the
- * converted string.  If the zone argument is non-nul, the function is free
+ * converted data.  If the zone argument is non-nul, the function is free
  * to allocate a larger buffer if necessary, and store this new buffer in
  * the dst argument.  It will *NOT* deallocate the original buffer!
  * </p>
  * <p>The size argument is a pointer to the initial size of the destination
  * buffer.  If the function changes the buffer size, this value will be
- * altered to the new size.  This is measured in characters, not bytes.
+ * altered to the new size.  This is measured in bytes.
  * </p>
  * <p>The src argument is a pointer to the 16-bit unicode string which is
  * to be converted to 8-bit data.
  * </p>
- * <p>The slen argument is the length (bytes) of the 16-bit unicode string
+ * <p>The slen argument is the length of the 16-bit unicode string
  * which is to be converted to 8-bit data.
- * This is measured in characters, not bytes.
+ * This is measured in 16-bit characters, not bytes.
  * </p>
- * <p>The end argument specifies the encoding type of the 8-bit character
- * string which is to be produced from the 16-bit unicode.
+ * <p>The enc argument specifies the encoding type of the 8-bit byte sequence
+ * which is to be produced from the 16-bit unicode.
  * </p>
  * <p>The zone argument specifies a memory zone in which the function may
  * allocate a buffer to return data in.
@@ -1483,13 +1482,13 @@ static inline int chop(unichar c, _ucc_ *table, int hi)
  * The options argument controls some special behavior.
  * <list>
  * <item>If GSUniStrict is set, the function will fail if a character is
- * encountered which can't be displayed in the source.  Otherwise, some
+ * encountered in the source which can't be converted.  Otherwise, some
  * approximation or marker will be placed in the destination.</item>
- * <item>If GSUniTerminate is set, the function is expected to null terminate
- * the output string, and will assume that it is safe to place the nul
- * just beyond the ned of the stated buffer size.
+ * <item>If GSUniTerminate is set, the function is expected to nul terminate
+ * the output data, and will assume that it is safe to place the nul
+ * just beyond the end of the stated buffer size.
  * Also, if the function grows the buffer, it will allow for an extra
- * termination character.</item>
+ * termination byte.</item>
  * <item>If GSUniTemporary is set, the function will return the results in
  * an autoreleased buffer rather than in a buffer that the caller must
  * release.</item>
@@ -1500,8 +1499,8 @@ static inline int chop(unichar c, _ucc_ *table, int hi)
  * </list>
  * <p>On return, the function result is a flag indicating success (YES)
  * or failure (NO), and on success, the value stored in size is the number
- * of characters in the converted string.  The converted string itsself is
- * stored in the location gioven by dst.<br />
+ * of bytes in the converted data.  The converted data itself is
+ * stored in the location given by dst.<br />
  * NB. If the value stored in dst has been changed, it is a pointer to
  * allocated memory which the caller is responsible for freeing, and the
  * caller is <em>still</em> responsible for freeing the original buffer.
@@ -1620,7 +1619,6 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		  ptr[dpos++] = (u & 0x3f) | 0x80;
 	        }
 	    }
-	  result = YES;
         }
         break;
 
@@ -1946,6 +1944,7 @@ tables:
 	      NSZoneFree(zone, ptr);
 	    }
 	  ptr = r;
+	  *dst = ptr;
 	}
       else if (zone != 0 && (ptr == buf || bsize > dpos))
 	{
@@ -1970,13 +1969,13 @@ tables:
 	    {
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
 	    }
+	  *dst = ptr;
 	}
       else if (ptr == buf)
 	{
 	  ptr = NULL;
 	  result = NO;
 	}
-      *dst = ptr;
     }
   else if (ptr != buf && dst != 0 && ptr != *dst)
     {
