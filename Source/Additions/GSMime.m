@@ -3112,8 +3112,7 @@ static NSCharacterSet	*tokenSet = nil;
  * Return the MIME characterset name corresponding to the
  * specified string encoding.<br />
  * As a special case, returns "us-ascii" if enc is zero.<br />
- * Raises an NSInvalidArgumentException if enc cannot be
- * mapped to a charset.<br />
+ * Returns nil if enc cannot be mapped to a charset.<br />
  * NB. The correspondence between charsets and encodings is not
  * a direct one to one mapping, so successive calls to +encodingFromCharset:
  * and +charsetFromEncoding: may not produce the original input.
@@ -3125,11 +3124,6 @@ static NSCharacterSet	*tokenSet = nil;
   if (enc != 0)
     {
       charset = (NSString*)NSMapGet(encodings, (void*)enc);
-      if (charset == nil)
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"no charset for encoding '%d'", enc];
-	}
     }
   return charset;
 }
@@ -3322,7 +3316,7 @@ static NSCharacterSet	*tokenSet = nil;
  * Return the string encoding corresponding to the specified MIME
  * characterset name.<br />
  * As a special case, returns NSASCIIStringEncoding if charset is nil.<br />
- * Raises an NSInvalidArgumentException if charset cannot be found.<br />
+ * Returns 0 if charset cannot be found.<br />
  * NB. We treat iso-10646-ucs-2 as utf-16, which should
  * work for most text, but is not strictly correct.<br />
  * The correspondence between charsets and encodings is not
@@ -3340,11 +3334,6 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  charset = [charset lowercaseString];
 	  enc = (NSStringEncoding)NSMapGet(charsets, charset);
-	  if (enc == 0)
-	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"unknown charset '%@'", charset];
-	    }
 	}
     }
   return enc;
@@ -3388,12 +3377,51 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  charsets = NSCreateMapTable (NSObjectMapKeyCallBacks,
 	    NSIntMapValueCallBacks, 0);
+
+	  // All the ascii mappings from IANA
+	  NSMapInsert(charsets, (void*)@"ansi_x3.4-1968",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-ir-6",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"ansi_x3.4-1986",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso_646.irv:1991",
+	    (void*)NSASCIIStringEncoding);
 	  NSMapInsert(charsets, (void*)@"ascii",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso646-us",
 	    (void*)NSASCIIStringEncoding);
 	  NSMapInsert(charsets, (void*)@"us-ascii",
 	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"us",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"ibm367",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"cp367",
+	    (void*)NSASCIIStringEncoding);
+	  NSMapInsert(charsets, (void*)@"csascii",
+	    (void*)NSASCIIStringEncoding);
+
+	  // All the latin1 mappings from IANA
+	  NSMapInsert(charsets, (void*)@"iso-8859-1:1987",
+	    (void*)NSISOLatin1StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso-ir-100",
+	    (void*)NSISOLatin1StringEncoding);
+	  NSMapInsert(charsets, (void*)@"iso_8859-1",
+	    (void*)NSISOLatin1StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-1",
 	    (void*)NSISOLatin1StringEncoding);
+	  NSMapInsert(charsets, (void*)@"latin1",
+	    (void*)NSISOLatin1StringEncoding);
+	  NSMapInsert(charsets, (void*)@"l1",
+	    (void*)NSISOLatin1StringEncoding);
+	  NSMapInsert(charsets, (void*)@"ibm819",
+	    (void*)NSISOLatin1StringEncoding);
+	  NSMapInsert(charsets, (void*)@"cp819",
+	    (void*)NSISOLatin1StringEncoding);
+	  NSMapInsert(charsets, (void*)@"csisolatin1",
+	    (void*)NSISOLatin1StringEncoding);
+
 	  NSMapInsert(charsets, (void*)@"iso-8859-2",
 	    (void*)NSISOLatin2StringEncoding);
 	  NSMapInsert(charsets, (void*)@"iso-8859-3",
@@ -4495,11 +4523,12 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  if ([[type objectForKey: @"Type"] isEqualToString: @"text"] == YES)
 	    {
-	      NSString		*charset = [type parameterForKey: @"charset"];
+	      NSString		*charset;
+	      NSStringEncoding	e;
 
-	      if (charset != nil
-		&& [charset isEqualToString: @"ascii"] == NO
-		&& [charset isEqualToString: @"us-ascii"] == NO)
+	      charset = [type parameterForKey: @"charset"];
+	      e = [documentClass encodingFromCharset: charset];
+	      if (e != NSASCIIStringEncoding && e != NSUTF7StringEncoding)
 		{
 		  encoding = @"8bit";
 		  enc = [GSMimeHeader alloc];
