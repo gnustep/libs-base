@@ -64,9 +64,9 @@ infodir = $(prefix)/info
 OBJECTS_GCC_VERSION = 2.6.3
 
 # The version number of this release.
-OBJECTS_VERSION = 0.1.4
+OBJECTS_VERSION = 0.1.5
 OBJECTS_FTP_MACHINE = alpha.gnu.ai.mit.edu
-OBJECTS_FTP_DIRECTORY = pub/gnu
+OBJECTS_FTP_DIRECTORY = gnu
 
 NEXT_NEXT_INCLUDES = -I/usr/include
 OBJECTS_NEXT_INCLUDES = -I$(srcdir)
@@ -151,15 +151,18 @@ Storage.m
 GNUSTEP_MFILES = \
 NSAllocateObject.m \
 NSAutoreleasePool.m \
-NSBundle.m \
 NSCopyObject.m \
 NSDeallocateObject.m \
+NSObject.m \
+NSString.m
+
+FEDOR_GNUSTEP_MFILES = \
+NSBundle.m \
 NSException.m \
 NSGeometry.m \
 NSNumber.m \
-NSObject.m \
 NSRange.m \
-NSString.m
+NSValue.m
 
 GNU_CFILES = \
 collhash.c \
@@ -267,16 +270,20 @@ objc/README
 
 GNUSTEP_HEADERS = \
 foundation/NSAutoreleasePool.h \
-foundation/NSBundle.h \
-foundation/NSException.h \
-foundation/NSGeometry.h \
-foundation/NSNumber.h \
+foundation/NSInvocation.h \
+foundation/NSMethodSignature.h \
 foundation/NSObjCRuntime.h \
 foundation/NSObject.h \
 foundation/NSRange.h \
 foundation/NSString.h \
 foundation/NSZone.h \
 foundation/README
+
+FEDOR_GNUSTEP_HEADERS = \
+foundation/NSBundle.h \
+foundation/NSException.h \
+foundation/NSGeometry.h \
+foundation/NSValue.h
 
 INSTALL_HEADERS = @INSTALL_HEADERS@
 INSTALL_OBJS = @INSTALL_OBJS@
@@ -296,6 +303,7 @@ version.texi \
 libobjects.info libobjects.texi \
 texinfo.tex \
 gcc-class.patch gcc-string.patch \
+$(FEDOR_GNUSTEP_MFILES) $(FEDOR_GNUSTEP_HEADERS) \
 $(GNU_MFILES) $(NEXTSTEP_MFILES) $(GNUSTEP_MFILES) \
 $(GNU_CFILES) $(NEXTSTEP_CFILES) $(GNUSTEP_CFILES) \
 $(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS) \
