@@ -1,3 +1,9 @@
+2000-11-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m: ([-initWithString:calendarFormat:locale:])
+	Bugfixes to fill in missing information using current date/time and
+	to implement missing format codes.
+
 2000-11-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSClassDescription.m: New MacOS-X class added.
