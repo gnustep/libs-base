@@ -1,58 +1,67 @@
-GDNC(1)                   System Manuals                  GDNC(1)
-
-
-
-NNAAMMEE
-       gdomap - GNU Distributed Notification Center
-
-
-SSYYNNOOPPSSIISS
-       ggddnncc
-
-
-DDEESSCCRRIIPPTTIIOONN
-       The  gdnc daemon is used by GNUstep programs to send noti-
-       fications and messages to one another.
-
-       Every user needs to have his own instance of gdnc running.
-       While  gdnc will be started automatically by applications,
-       it is recommend to start gdnc in a personal  login  script
-       like  .bashrc  or  .cshrc.   This avoids error messages as
-       well as additional waiting times on application  launches.
-       Alternatively you could launch gdnc when X11 is started or
-       - if you are running Window Maker - put it Window  Maker's
-       autostart script. See the _G_N_U_s_t_e_p _B_u_i_l_d _G_u_i_d_e for a sample
-       startup script.
-
-
-
-OOPPTTIIOONNSS
-       To attach gpbs to a remote session use the _-_N_S_H_o_s_t  _<_h_o_s_t_-
-       _n_a_m_e_> argument.
-
-
-DDIIAAGGNNOOSSTTIICCSS
-       ggddoommaapp --LL GGDDNNCCSSeerrvveerr will lookup instances of gdnc.
-
-       Alternatively, ggddoommaapp --NN will list all registered names on
-       the local host.
-
-
-
-SSEEEE AALLSSOO
-       gdomap(8), GNUstep(7), gpbs(1)
-
-       _T_h_e _G_N_U_s_t_e_p _B_u_i_l_d _G_u_i_d_e example startup script:
-        <http://documents.made-it.com/GNUstep/Build/
-        #GNUSTEP.SERVICES>
-
-
-AAUUTTHHOORRSS
-       gdnc was written by Richard Frith-McDonald <rfm@gnu.org>
-
-       This man page was written by  Martin  Brecher  <martin@mb-
-       itconsulting.com>
-
-
-
-GNUstep                     June 2003                     GDNC(1)
+.\"gdnc(1) man page
+.\"put together by Martin Brecher <martin@gnustep.de>
+.\"
+.\"Process this file with
+.\"groff -man -Tascii gdnc.1
+.\"
+.TH GDNC 1 "August 2003" GNUstep "GNUstep System Manual"
+.SH NAME
+gdnc \- GNUstep Distributed Notification Center
+.SH SYNOPSIS
+.B gdnc
+.P
+.SH DESCRIPTION
+The gdnc daemon is used by GNUstep programs to send notifications and 
+messages to one another.
+.P
+Every user needs to have his own instance of
+.B gdnc
+running. While
+.B gdnc
+will be started automatically as soon as it is needed,
+it is recommend to start
+.B gdnc
+in a personal login script like ~/.bashrc or ~/.cshrc.
+Alternatively you can launch gpbs when your windowing system or the
+window manager is started. For example, on systems with X11 you can launch
+.B gdnc
+from your .xinitrc script or alternatively
+- if you are running Window Maker - put it in Window Maker's autostart script.
+See the
+.I GNUstep Build Guide
+for a sample startup script.
+.P
+.SH OPTIONS
+To attach
+.B gdnc
+to a remote session use the
+.IP "\fB-NXHost \fIhostname" 
+argument.
+.P
+.SH DIAGNOSTICS
+.B gdomap -L GDNCServer
+will lookup instances of gdnc.
+.P
+Alternatively, 
+.B gdomap -N
+will list all registered names on the local host.
+.P
+.SH SEE ALSO
+gdomap(8), GNUstep(7), gpbs(1)
+.PP
+.I The GNUstep Build Guide
+example startup script: 
+<http://gnustep.made-it.com/BuildGuide/index.html#GNUSTEP.SERVICES>
+.P
+.SH HISTORY
+Work on
+.B gdnc
+started October 1998.
+.PP
+This manual page first appeared in gnustep-base 1.7.2 (July 2003).
+.P
+.SH AUTHORS
+.B gdnc 
+was written by Richard Frith-McDonald <rfm@gnu.org>.
+.PP
+This man page was written by Martin Brecher <martin@mb-itconsulting.com>.
