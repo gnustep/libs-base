@@ -1,3 +1,9 @@
+Sat Apr  6 02:42:43 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSUser.m (NSSearchPathForDirectoriesInDomains): Fixed
+	typo, gnustep_local_root being used instead of gnustep_user_root
+	for developer dirs in user root.
+	
 2002-04-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Fix locking bug with NSZombie ... was not
