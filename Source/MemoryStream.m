@@ -96,6 +96,14 @@ static BOOL debug_memory_stream = NO;
 }
 
 - initWithCapacity: (unsigned)capacity
+	    prefix: (unsigned)p
+{
+  return [self initWithSize: capacity
+	       prefix: p
+	       position: 0];
+}
+
+- initWithCapacity: (unsigned)capacity
 {
   return [self initWithSize:capacity prefix:0 position:0];
 }
