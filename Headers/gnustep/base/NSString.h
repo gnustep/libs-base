@@ -63,6 +63,10 @@ typedef enum _NSStringEncoding
 
 typedef enum _NSStringEncoding
 {
+/* NB. Must not have an encoding with value zero - so we can use zero to
+   tell that a variable that should contain an encoding has not yet been
+   initialised */
+		GSUndefinedEncoding = 0,
                 NSASCIIStringEncoding = 1,
                 NSNEXTSTEPStringEncoding = 2,
                 NSJapaneseEUCStringEncoding = 3,
