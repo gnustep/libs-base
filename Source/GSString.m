@@ -901,7 +901,8 @@ static inline void
 getCString_u(ivars self, char *buffer, unsigned int maxLength,
   NSRange aRange, NSRange *leftoverRange)
 {
-  int len;
+  int	len;
+  int	result;
 
   if (maxLength > self->_count)
     {
@@ -926,8 +927,13 @@ getCString_u(ivars self, char *buffer, unsigned int maxLength,
 	}
     }
 
-  encode_ustrtostr_strict(buffer, &self->_contents.u[aRange.location],
-    maxLength, defEnc);
+  result = encode_ustrtostr_strict(buffer, &self->_contents.u[aRange.location],
+    len, defEnc);
+  if (result != len)
+    {
+      [NSException raise: NSCharacterConversionException
+		  format: @"Can't get cString from Unicode string."];
+    }
   buffer[len] = '\0';
 }
 

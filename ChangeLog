@@ -1,3 +1,12 @@
+2000-12-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Unicode.m: Tidied to conform to coding standards and changed
+	to use ISOLatin1 as the default cString encoding.
+	* Source/GSString.m: Fixed bug getting cString from unicode string -
+	raise exception when it should.
+	* Source/NSString.m: ditto.  Also use lossyCString in various
+	places rather than cString.
+ 
 2000-12-13  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Headers/gnustep/base/NSRange.h, Source/NSRange.m: Inlined 
