@@ -5,6 +5,8 @@
 #include <objects/Coder.h>
 #include <objects/BinaryCStream.h>
 #include <objects/String.h>
+#include <objects/RunLoop.h>
+#include <Foundation/NSDate.h>
 #include <assert.h>
 #include "server.h"
 
@@ -130,7 +132,8 @@ int main(int argc, char *argv[])
       printf("repeated triangle %d object proxy's hash is 0x%x\n", 
 	     j, (unsigned)[remote_peer_obj hash]);
     }
-  [c runConnectionWithTimeout:1500];
+
+  [RunLoop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 20 * 60]];
   [c invalidate];
 
   exit(0);
