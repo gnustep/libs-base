@@ -1,9 +1,9 @@
-/* Implementation of o_vscanf for Gnustep Base Library
+/* Implementation of o_vscanf for GNUstep Base Library
    
    Reworked by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
    
-   This file is part of the Gnustep Base Library.
+   This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public

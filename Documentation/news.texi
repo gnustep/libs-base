@@ -1,6 +1,6 @@
 @include version.texi
 @ifset NEWS_ONLY
-@chapter News about Gnustep Base Library
+@chapter News about GNUstep Base Library
 
 The currently released version of the library is
 @samp{@value{GNUSTEP_BASE_VERSION}}.

@@ -3,7 +3,7 @@
 @c set the vars GNUSTEP_BASE_VERSION and GCC_VERSION
 @include version.texi
 
-The Gnustep Base Library (libgnustep-base) is a library of
+The GNUstep Base Library (libgnustep-base) is a library of
 general-purpose, non-graphical Objective C objects written by Andrew
 McCallum.  What `libg++' is to GNU's C++, `libgnustep-base' is to GNU's
 Objective C.

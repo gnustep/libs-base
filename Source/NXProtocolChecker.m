@@ -4,7 +4,7 @@
    Written by:  Andrew Kachites McCallum <mccallum@cs.rochester.edu>
    Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
    
-   This file is part of the Gnustep Base Library.
+   This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public

@@ -1,5 +1,8 @@
 Sat May 11 20:38:10 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
+	* After consulting other developers, change "Gnustep" to "GNUstep"
+	everywhere.
+
 	* src/include/NSAutoreleasePool.h (struct autorelease_cache): New
  	data type.
 	* src/include/NSThread.h (NSThread _thread_autorelease_pool): New

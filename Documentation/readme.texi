@@ -1,4 +1,4 @@
-@chapter Gnustep Base Library README
+@chapter GNUstep Base Library README
 
 @c set the vars GNUSTEP_BASE_VERSION and GCC_VERSION
 @include version.texi
@@ -29,9 +29,9 @@ recommend skipping @file{gnustep-base.info} and reading the header files
 instead.  The headers for the classes are in @file{./src/include} and
 @file{./src/objc}.
 
-The Gnustep FAQ also contains much useful information, including an
+The GNUstep FAQ also contains much useful information, including an
 outline of the class heirarchy.  The FAQ can be found in
-@file{./doc/Gnustep-FAQ}.
+@file{./doc/GNUstep-FAQ}.
 
 @section Overview of the classes
 

@@ -1,11 +1,11 @@
 # @configure_input@
-#
-#  Main makefile for GNU Objective-C Class library
+#  Main Makefile for GNUstep Base Library.
+#  
 #  Copyright (C) 1993,1994,1995, 1996 Free Software Foundation, Inc.
 #
 #  Written by:	Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
 #
-#  This file is part of the GNU Objective-C Class library.
+#  This file is part of the GNUstep Base Library.
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Library General Public

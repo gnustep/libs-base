@@ -7,7 +7,7 @@
  * Updated: Sat Feb 10 16:12:17 EST 1996
  * Serial: 96.02.10.07
  * 
- * This file is part of the Gnustep Base Library.
+ * This file is part of the GNUstep Base Library.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
