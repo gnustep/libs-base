@@ -1,3 +1,12 @@
+2000-09-19  Manuel Guesdon <mguesdon@orange-concept.com>
+	You'll need libxml2 v >= 2.2.3 to compile GSXML
+	* Source/GSXML.m & Headers/Foundation/GSXML.h:
+		corrected bugs,
+		added added non guessing construction methods in GSXMLParser
+		added -typeDescription in GSXMLNode
+		added +xmlEncodingStringForStringEncoding: in GSXMLParser
+		added inParserContext:(void*)parserContext parameter for GSSAXHandler
+	
 2000-09-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLHandle.m: Implemented subclass registry.
