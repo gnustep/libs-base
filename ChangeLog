@@ -2,6 +2,9 @@
 
 	* Source/NSPropertyList.m: Always write date using GMT timezone for
 	consistency.  Make XML representation MacOS-X compatible.
+	* Source/NSIndexSet.m: ([getIndexes:maxCount:inIndexRange:]) accept
+	null pointer for index range.  Consistent with undocumented MacOS-X
+	feature (but we document it).
 
 2004-08-23 Richard Frith-Macdonald <rfm@gnu.org>
 
