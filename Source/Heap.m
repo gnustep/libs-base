@@ -42,12 +42,12 @@
   right = HEAP_RIGHT(index);
   left = HEAP_LEFT(index);
   if (left <= _count 
-      && [_contents_array[left] compare: _contents_array[index]] > 0)
+      && [_contents_array[index] compare: _contents_array[left]] > 0)
     largest = left;
   else
     largest = index;
   if (right <= _count
-      && [_contents_array[right] compare: _contents_array[largest]] > 0)
+      && [_contents_array[largest] compare: _contents_array[right]] > 0)
     largest = right;
   if (largest != index)
     {
@@ -85,7 +85,7 @@
   [newObject retain];
   for (i = _count-1; 
        i > 0 
-       && [_contents_array[HEAP_PARENT(i)] compare: newObject] < 0;
+       && [newObject compare: _contents_array[HEAP_PARENT(i)]] < 0;
        i = HEAP_PARENT(i))
     {
       _contents_array[i] = _contents_array[HEAP_PARENT(i)];
