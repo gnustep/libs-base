@@ -183,6 +183,11 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS(string.h memory.h)
 
 #--------------------------------------------------------------------
+# Following header check needed BinaryCStream.h
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(values.h)
+
+#--------------------------------------------------------------------
 # These two headers (functions) needed by Time.m
 #--------------------------------------------------------------------
 dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
