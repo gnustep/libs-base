@@ -4,9 +4,7 @@
 
 @ifinfo
 @format
-START-INFO-DIR-ENTRY
 * Coding: (coding).           Coding Standards for GNUstep Libraries
-END-INFO-DIR-ENTRY
 @end format
 @end ifinfo
 

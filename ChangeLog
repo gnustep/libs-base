@@ -1,3 +1,18 @@
+2002-04-18  Adam Fedor  <fedor@gnu.org>
+
+	* Minimally working libffi support. Needs work.
+	* configure.in: Allow libffi to be enabled.
+	* Source/GSFFIInvocation.m: Rewrite.
+	* Source/NSConnection.m (-forwardInvocation:forProxy:): Add libffi
+	function.
+	* Source/NSInvocation.m: Fixup cifframe arg functions.
+	* Source/cifframe.m: Rewrite.
+	* Testing/nsinvocation.m: Bug fix.
+
+	* Documentation/coding-standards.texi: Remove info dir tag.
+	* Documentation/gnustep-base.texi: Idem.
+	* Resources/Languages/Slovak: New file.
+
 Thu Apr 18 11:10:04 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Headers/gnustep/base/NSObjCRuntime.h: Updated #defines and

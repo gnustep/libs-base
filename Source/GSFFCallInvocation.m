@@ -1057,3 +1057,4 @@ GSInvocationCallback (void *callback_data, va_alist args)
   return out_parameters;
 }
 
+@end

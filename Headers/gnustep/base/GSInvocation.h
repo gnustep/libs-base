@@ -48,4 +48,7 @@
 extern void
 GSFFCallInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp);
 
+extern void
+GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp);
+
 #endif

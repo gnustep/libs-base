@@ -35,11 +35,6 @@ typedef long long smallret_t;
 typedef int smallret_t;
 #endif
 
-/* Return the number of arguments that the method MTH expects.  Note
-   that all methods need two implicit arguments `self' and `_cmd'.  
-   From mframe.m */
-extern int method_types_get_number_of_arguments (const char *type);
-
 extern BOOL sel_types_match(const char* t1, const char* t2);
 
 callframe_t *

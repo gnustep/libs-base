@@ -164,6 +164,8 @@ typedef struct {
   d = [NSArchiver archivedDataWithRootObject: i];
   i = [NSUnarchiver unarchiveObjectWithData: d];
   l = [[i methodSignature] methodReturnLength];
+  if (l < sizeof(void *))
+    l = sizeof(void *);
   b = (void *)objc_malloc(l);
   [i getReturnValue: b];
   [inv setReturnValue: b];
@@ -194,8 +196,10 @@ main ()
   id			p;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
+printf("Starting\n");
   t = [Target new];
   p = [[MyProxy alloc] initWithTarget: t];
+printf("Calling proxy\n");
 [p loopInt: 1];
 
 #define	SETUP(X) \
