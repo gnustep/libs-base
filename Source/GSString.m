@@ -255,7 +255,7 @@ setup()
       GSCSubStringClass = [GSCSubString class];
       GSUnicodeSubStringClass = [GSUnicodeSubString class];
       GSMutableStringClass = [GSMutableString class];
-      NSConstantStringClass = [NSString constantStringClass];
+      NSConstantStringClass = [NXConstantString class];
 
       /*
        * Cache some selectors and method implementations for
@@ -3508,6 +3508,7 @@ transmute(ivars self, NSString *aString)
   if (self == [NXConstantString class])
     {
       behavior_class_add_class(self, [GSCString class]);
+      NSConstantStringClass = self;
     }
 }
 
