@@ -948,6 +948,7 @@ static NSFileManager* defaultManager = nil;
       if (res == WIN32ERR)
 	{
 	  return NO;
+	}
       return (res & FILE_ATTRIBUTE_READONLY) ? NO : YES;
 #else
       return (access(cpath, W_OK) == 0);

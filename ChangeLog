@@ -1,3 +1,8 @@
+2002-08-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Fix typo ... missing closing brace under
+	windoze. Reported by Alex Stockdale.
+
 2002-08-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: ([-replacementObjectForPortCoder:])
