@@ -2,9 +2,9 @@
 #ifndef _first_server_h
 #define _first_server_h
 
-#include <objc/Object.h>
+#include <foundation/NSObject.h>
 
-@interface FirstServer : Object
+@interface FirstServer : NSObject
 
 - sayHiTo: (char *)name;
 
