@@ -160,14 +160,14 @@ ihandler(int sig)
  * versions of gcc where protocols didn't work properly unless implemented
  * in the source where the '@protocol()' directive is used.
  */
-@interface NSDistributedNotificationCenterDummy : NSObject <GDNCClient>
+@interface NSDistributedNotificationCenterGDNCDummy : NSObject <GDNCClient>
 - (oneway void) postNotificationName: (NSString*)name
                               object: (NSString*)object
                             userInfo: (NSData*)info
                             selector: (NSString*)aSelector
                                   to: (unsigned long)observer;
 @end
-@implementation	NSDistributedNotificationCenterDummy
+@implementation	NSDistributedNotificationCenterGDNCDummy
 - (oneway void) postNotificationName: (NSString*)name
                               object: (NSString*)object
                             userInfo: (NSData*)info
