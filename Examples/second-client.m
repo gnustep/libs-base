@@ -21,14 +21,15 @@ int main(int argc, char *argv[])
   char namebuf[16];
 
   printf("Looking up server object on localhost with name `secondserver'\n");
-  server = [Connection rootProxyAtName:@"secondserver"];
+  if (argc > 1)
+    server = [Connection rootProxyAtName: [String stringWithCString: argv[1]]];
+  else
+    server = [Connection rootProxyAtName: @"secondserver"];
   printf("Found server.\n");
 
   [NotificationDispatcher
-    addObserver: nil
-    invocation: [[[ObjectFunctionInvocation alloc]
-		   initWithObjectFunction: announce_new_connection]
-		  autorelease]
+    addInvocation: [[ObjectFunctionInvocation alloc]
+		     initWithObjectFunction: announce_new_connection]
     name: ConnectionWasCreatedNotification
     object: nil];
 
