@@ -43,6 +43,7 @@ LIBS = -L$(srcdir)/../src -lobjects @LIBOBJC@ @LIBS@ -lm
 #### End of system configuration section. ####
 
 include $(srcdir)/../Makeconf
+include $(srcdir)/../Version
 
 # Not needed anymore?
 NEXT_NEXT_INCLUDES = -I/usr/include
@@ -112,60 +113,60 @@ DIST_FILES = $(RCS_FILES)
 all: $(EXCS) bundles
 
 # This works for GNU make, but not others.
-# %: %.o $(srcdir)/../src/libobjects.a
+# %: %.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 # 	$(CC) $(ALL_CFLAGS) $< -o $@ $(ALL_LDFLAGS)
 # How can I do this in a better way than the ugliness below?
 # (but also have it work on old-style /bin/make)
 
 LINK_CMD = $(CC) $(ALL_CFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
-test01: test01.o $(srcdir)/../src/libobjects.a
+test01: test01.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test02: test02.o $(srcdir)/../src/libobjects.a
+test02: test02.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test03: test03.o $(srcdir)/../src/libobjects.a
+test03: test03.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test04: test04.o $(srcdir)/../src/libobjects.a
+test04: test04.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test05: test05.o $(srcdir)/../src/libobjects.a
+test05: test05.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test06: test06.o $(srcdir)/../src/libobjects.a
+test06: test06.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test07: test07.o $(srcdir)/../src/libobjects.a
+test07: test07.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test08: test08.o $(srcdir)/../src/libobjects.a
+test08: test08.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test09: test09.o $(srcdir)/../src/libobjects.a
+test09: test09.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test10: test10.o $(srcdir)/../src/libobjects.a
+test10: test10.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test11: test11.o $(srcdir)/../src/libobjects.a
+test11: test11.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test12: test12.o $(srcdir)/../src/libobjects.a
+test12: test12.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-test13: test13.o $(srcdir)/../src/libobjects.a
+test13: test13.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-pipes: pipes.o $(srcdir)/../src/libobjects.a
+pipes: pipes.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-server: server.o $(srcdir)/../src/libobjects.a
+server: server.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-client: client.o $(srcdir)/../src/libobjects.a
+client: client.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-string: string.o $(srcdir)/../src/libobjects.a
+string: string.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-values: values.o $(srcdir)/../src/libobjects.a
+values: values.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-nsarray: nsarray.o $(srcdir)/../src/libobjects.a
+nsarray: nsarray.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-nsbundle: nsbundle.o $(srcdir)/../src/libobjects.a
+nsbundle: nsbundle.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(CC) $(ALL_CFLAGS) $(DYNAMIC_LDFLAGS) $@.o -o $@ $(ALL_LDFLAGS)
-nsdictionary: nsdictionary.o $(srcdir)/../src/libobjects.a
+nsdictionary: nsdictionary.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-nsset: nsset.o $(srcdir)/../src/libobjects.a
+nsset: nsset.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
-nsprocessinfo: nsprocessinfo.o $(srcdir)/../src/libobjects.a
+nsprocessinfo: nsprocessinfo.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 	$(LINK_CMD)
 
-#nsarchiving: nsarray.o $(srcdir)/../src/libobjects.a
+#nsarchiving: nsarray.o $(srcdir)/../src/@LIBOBJECTS_A_OR_SO@
 #	$(LINK_CMD)
 
 install:
