@@ -1,5 +1,11 @@
 Thu Feb  4 13:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
+	* Source/NSString.m: ([-dataUsingEncoding:allowLossyConversion:])
+	Removed spurious trailing nul and other spurious code having no
+	effect - formatted to be readable.
+
+Thu Feb  4 13:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
 	Deleted all the old property-list and strings-file parsing stuff.
 	* Source/NSBitmapCharSet.m: ([-formUnionWithCharacterSet]) corrected
 	to use bitwise or rather than logical or.
