@@ -666,6 +666,18 @@
   return [[NSMutableCString allocWithZone:zone] initWithString:self];
 }
 
+/* NSCoding Protocol */
+
+- (void) encodeWithCoder: anEncoder
+{
+  [super encodeWithCoder:anEncoder];
+}
+
+- initWithCoder: aDecoder
+{
+  return [super initWithCoder:aDecoder];
+}
+
 @end
 
 @implementation NSString (NSCStringAccess)

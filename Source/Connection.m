@@ -1202,12 +1202,12 @@ static int messagesReceivedCount;
   return self;
 }
 
-- (void) encodeWithCoder: (Coder*)anEncoder
+- (void) encodeWithCoder: anEncoder
 {
   [self shouldNotImplement:_cmd];
 }
 
-+ newWithCoder: (Coder*)aDecoder;
++ newWithCoder: aDecoder;
 {
   [self shouldNotImplement:_cmd];
   return self;

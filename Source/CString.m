@@ -1,5 +1,5 @@
 /* Implementation for GNU Objective-C CString object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -52,13 +52,13 @@
 	  withName:"Concrete String content_chars"];
 }
 
-+ newWithCoder: aCoder
+- initWithCoder: aCoder
 {
-  CString *n = [super newWithCoder:aCoder];
-  [aCoder decodeValueOfType:@encode(char*) at:&(n->_contents_chars)
+  [super initWithCoder:aCoder];
+  [aCoder decodeValueOfType:@encode(char*) at:&_contents_chars
 	  withName:NULL];
-  n->_count = strlen(n->_contents_chars);
-  return n;
+  _count = strlen(_contents_chars);
+  return self;
 }
 
 /* Empty copy must empty an allocCopy'ed version of self */

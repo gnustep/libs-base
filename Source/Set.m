@@ -1,5 +1,5 @@
 /* Implementation for Objective-C Set collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -75,24 +75,23 @@
   return;
 }
 
-+ _newCollectionWithCoder: (Coder*) aCoder
+- _initCollectionWithCoder: aCoder
 {
-  Set *newColl;
   char *encoding;
   unsigned size;
 
-  newColl = [super _newCollectionWithCoder:aCoder];
+  [super _initCollectionWithCoder:aCoder];
   [aCoder decodeValueOfSimpleType:@encode(char*)
 	  at:&encoding
 	  withName:NULL];
   [aCoder decodeValueOfSimpleType:@encode(unsigned)
 	  at:&size
 	  withName:NULL];
-  newColl->_contents_hash =
+  _contents_hash =
     coll_hash_new(size,
 		  elt_get_hash_function(encoding),
 		  elt_get_comparison_function(encoding));
-  return newColl;
+  return self;
 }
 
 - _writeInit: (TypedStream*)aStream

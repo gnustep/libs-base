@@ -1,7 +1,8 @@
-/* NSCoder - coder obejct for serialization and persistance.
+/* NSCoder - coder object for serialization and persistance.
    Copyright (C) 1995 Free Software Foundation, Inc.
    
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
+   From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
    
    This file is part of the GNU Objective C Class Library.
@@ -21,143 +22,184 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
+#include <objects/stdobjects.h>
 #include <foundation/NSCoder.h>
+#include <foundation/NSConcreteCoder.h>
+#include <objects/NSCoder.h>
 
 @implementation NSCoder
 
 // Encoding Data
 
-- (void)encodeArrayOfObjCType:(const char *)types
- count:(unsigned)count
- at:(const void *)array
+- (void) encodeArrayOfObjCType: (const char*)type
+   count: (unsigned)count
+   at: (const void*)array
+{
+  int i, size = objc_sizeof_type(type);
+  const char *where = array;
+
+  [self encodeValueOfObjCType:@encode(unsigned)
+	at:&count];
+  for (i = 0; i < count; i++, where += size)
+    [self encodeValueOfObjCType:type
+	  at:where];
+}
+
+- (void) encodeBycopyObject: (id)anObject;
+{
+  [self encodeObject:anObject];
+}
+
+- (void) encodeConditionalObject: (id)anObject;
+{
+  [self encodeObject:anObject];
+}
+
+- (void) encodeDataObject: (NSData*)data;
 {
   [self notImplemented:_cmd];
 }
 
-- (void)encodeBycopyObject:(id)anObject;
+- (void) encodeObject: (id)anObject;
 {
   [self notImplemented:_cmd];
 }
 
-- (void)encodeConditionalObject:(id)anObject;
+- (void) encodePropertyList: (id)plist;
 {
   [self notImplemented:_cmd];
 }
 
-- (void)encodeDataObject:(NSData *)data;
+- (void) encodePoint: (NSPoint)point;
+{
+  [self encodeValueOfObjCType:@encode(NSPoint)
+	at:&point];
+}
+
+- (void) encodeRect: (NSRect)rect;
+{
+  [self encodeValueOfObjCType:@encode(NSRect)
+	at:&rect];
+}
+
+- (void) encodeRootObject: (id)rootObject;
+{
+  [self encodeObject:rootObject];
+}
+
+- (void) encodeSize: (NSSize)size;
+{
+  [self encodeValueOfObjCType:@encode(NSSize)
+	at:&size];
+}
+
+- (void) encodeValueOfObjCType: (const char*)type
+   at: (const void*)address;
 {
   [self notImplemented:_cmd];
 }
 
-- (void)encodeObject:(id)anObject;
+- (void) encodeValuesOfObjCTypes: (const char*)types,...;
 {
-  [self notImplemented:_cmd];
-}
-
-- (void)encodePropertyList:(id)plist;
-{
-  [self notImplemented:_cmd];
-}
-
-- (void)encodePoint:(NSPoint)point;
-{
-  [self notImplemented:_cmd];
-}
-
-- (void)encodeRect:(NSRect)rect;
-{
-  [self notImplemented:_cmd];
-}
-
-- (void)encodeRootObject:(id)rootObject;
-{
-  [self notImplemented:_cmd];
-}
-
-- (void)encodeSize:(NSSize)size;
-{
-  [self notImplemented:_cmd];
-}
-
-- (void)encodeValueOfObjCType:(const char *)type
- at:(const void *)address;
-{
-  [self notImplemented:_cmd];
-}
-
-- (void)encodeValuesOfObjCTypes:(const char *)types,...;
-{
-  [self notImplemented:_cmd];
+  va_list ap;
+  va_start(ap, types);
+  while (*types)
+    {
+      [self encodeValueOfObjCType:types
+	    at:va_arg(ap, void*)];
+      types = objc_skip_typespec(types);
+    }
+  va_end(ap);
 }
 
 // Decoding Data
 
-- (void)decodeArrayOfObjCType:(const char *)types
- count:(unsigned)count
- at:(void *)address;
+- (void) decodeArrayOfObjCType: (const char*)type
+   count: (unsigned)count
+   at: (void*)address;
 {
-  [self notImplemented:_cmd];
+  unsigned encoded_count;
+  int i, size = objc_sizeof_type(type);
+  char *where = address;
+
+  [self decodeValueOfObjCType:@encode(unsigned)
+	at:&encoded_count];
+  assert(encoded_count == count); /* xxx fix this */
+  for (i = 0; i < count; i++, where += size)
+    [self decodeValueOfObjCType:type
+	  at:where];
 }
 
-- (NSData *)decodeDataObject;
-{
-  [self notImplemented:_cmd];
-  return nil;
-}
-
-- (id)decodeObject;
-{
-  [self notImplemented:_cmd];
-  return nil;
-}
-
-- (id)decodePropertyList
+- (NSData*) decodeDataObject;
 {
   [self notImplemented:_cmd];
   return nil;
 }
 
-- (NSPoint)decodePoint
+- (id) decodeObject;
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+- (id) decodePropertyList
+{
+  [self notImplemented:_cmd];
+  return nil;
+}
+
+- (NSPoint) decodePoint
 {
   NSPoint point;
-  [self notImplemented:_cmd];
+  [self decodeValueOfObjCType:@encode(NSPoint)
+	at:&point];
   return point;
 }
 
-- (NSRect)decodeRect
+- (NSRect) decodeRect
 {
   NSRect rect;
-  [self notImplemented:_cmd];
+  [self decodeValueOfObjCType:@encode(NSRect)
+	at:&rect];
   return rect;
 }
 
-- (NSSize)decodeSize
+- (NSSize) decodeSize
 {
   NSSize size;
-  [self notImplemented:_cmd];
+  [self decodeValueOfObjCType:@encode(NSSize)
+	at:&size];
   return size;
 }
 
-- (void)decodeValueOfObjCType:(const char *)type
- at:(void *)address
+- (void) decodeValueOfObjCType: (const char*)type
+   at: (void*)address
 {
   [self notImplemented:_cmd];
 }
 
-- (void)decodeValuesOfObjCTypes:(const char *)types,...;
+- (void) decodeValuesOfObjCTypes: (const char*)types,...;
 {
-  [self notImplemented:_cmd];
+  va_list ap;
+  va_start(ap, types);
+  while (*types)
+    {
+      [self decodeValueOfObjCType:types
+	    at:va_arg(ap, void*)];
+      types = objc_skip_typespec(types);
+    }
+  va_end(ap);
 }
 
 // Managing Zones
 
-- (NSZone *)objectZone;
+- (NSZone*) objectZone;
 {
   [self notImplemented:_cmd];
-  return (NSZone *)0;
+  return (NSZone*)0;
 }
 
-- (void)setObjectZone:(NSZone *)zone;
+- (void) setObjectZone: (NSZone*)zone;
 {
   [self notImplemented:_cmd];
 }
@@ -165,13 +207,13 @@
 
 // Getting a Version
 
-- (unsigned int)systemVersion;
+- (unsigned int) systemVersion;
 {
   [self notImplemented:_cmd];
   return 0;
 }
 
-- (unsigned int)versionForClassName:(NSString *)className;
+- (unsigned int) versionForClassName: (NSString*)className;
 {
   [self notImplemented:_cmd];
   return 0;

@@ -1,5 +1,5 @@
 /* Implementation for Objective-C Array collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -78,23 +78,23 @@
 	 withName:"Array Capacity"];
 }
 
-+ _newCollectionWithCoder: (Coder*)coder
+- _initCollectionWithCoder: (Coder*)coder
 {
   char *encoding;
-  Array *n = [super _newCollectionWithCoder:coder];
+  [super _initCollectionWithCoder:coder];
   [coder decodeValueOfSimpleType:@encode(char*)
 	 at:&encoding
 	 withName:NULL];
-  n->_comparison_function = elt_get_comparison_function(encoding);
+  _comparison_function = elt_get_comparison_function(encoding);
   [coder decodeValueOfSimpleType:@encode(unsigned)
-	 at:&(n->_grow_factor)
+	 at:&_grow_factor
 	 withName:NULL];
-  n->_count = 0;
+  _count = 0;
   [coder decodeValueOfSimpleType:@encode(unsigned)
-	 at:&(n->_capacity)
+	 at:&_capacity
 	 withName:NULL];
-  OBJC_MALLOC(n->_contents_array, elt, n->_capacity);
-  return n;
+  OBJC_MALLOC(_contents_array, elt, _capacity);
+  return self;
 }
 
 - _writeInit: (TypedStream*)aStream

@@ -21,7 +21,7 @@
 */ 
 
 /*
- * Copyright (c) 1983 Regents of the University of California.
+ * Copyright (c) 1983, 1995 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms are permitted
@@ -428,12 +428,12 @@ static long int *end_ptr = &randtbl[sizeof(randtbl) / sizeof(randtbl[0])];
     }
 }
 
-- (void) encodeWithCoder: (Coder*)anEncoder
+- (void) encodeWithCoder: anEncoder
 {
   [self notImplemented:_cmd];
 }
 
-+ newWithCoder: (Coder*)aDecoder
+- initWithCoder: aDecoder
 {
   [self notImplemented:_cmd];
   return self;

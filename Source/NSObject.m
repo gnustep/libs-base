@@ -408,14 +408,14 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return NSZoneFromPtr(self);
 }
 
-#if 0 /* waiting until I resolve type conflict with GNU Coding method */
-- (void)encodeWithCoder:(NSCoder *)aCoder
+#if 1 /* waiting until I resolve type conflict with GNU Coding method */
+- (void) encodeWithCoder: (NSCoder*)aCoder
 {
   return;
 }
 #endif
 
-- initWithCoder:(NSCoder *)aDecoder
+- initWithCoder: (NSCoder*)aDecoder
 {
   return self;
 }

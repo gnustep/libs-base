@@ -1,5 +1,5 @@
 /* Implementation of Objective-C "collection of delegates" object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -51,7 +51,7 @@
 
 /* Archiving must mimic the above designated initializer */
 
-- (void) encodeWithCoder: (Coder*)anEncoder
+- (void) encodeWithCoder: anEncoder
 {
   [anEncoder encodeValueOfSimpleType:@encode(unsigned char)
 	     at:&_send_behavior
@@ -60,9 +60,11 @@
 	     withName:"DelegatePool Collection of Delegates"];
 }
 
-+ newWithCoder: (Coder*)aDecoder
++ newWithCoder: aDecoder
 {
-  DelegatePool *n = class_create_instance(self);
+  /* xxx Should be:
+     DelegatePool *n = NSAllocateObject(self, 0, [aDecoder objectZone]); */
+  DelegatePool *n = (id) NSAllocateObject(self, 0, NS_NOZONE);
   [aDecoder decodeValueOfSimpleType:@encode(unsigned char)
 	    at:&(n->_send_behavior)
 	    withName:NULL];

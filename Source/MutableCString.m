@@ -117,17 +117,17 @@ stringDecrementCountAndFillHoleAt(MutableCStringStruct *self,
 	  withName:"String content_chars"];
 }
 
-+ newWithCoder: aCoder
+- initWithCoder: aCoder
 {
   MutableCString *n;
   unsigned cap;
   
   [aCoder decodeValueOfType:@encode(unsigned) at:&cap withName:NULL];
-  n = [[MutableCString alloc] initWithCapacity:cap];
-  [aCoder decodeValueOfType:@encode(char*) at:&(n->_contents_chars)
+  [self initWithCapacity:cap];
+  [aCoder decodeValueOfType:@encode(char*) at:_contents_chars
 	  withName:NULL];
-  n->_count = strlen(n->_contents_chars);
-  n->_capacity = cap;
+  _count = strlen(_contents_chars);
+  _capacity = cap;
   return n;
 }
 

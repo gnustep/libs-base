@@ -1,5 +1,5 @@
 /* Implementation for Objective-C CircularArray collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -44,11 +44,11 @@
 
 /* Archiving must mimic the above designated initializer */
 
-+ _newCollectionWithCoder: (Coder*)coder
+- _initCollectionWithCoder: coder
 {
-  CircularArray *n = [super newWithCoder:coder];
-  n->_start_index = 0;
-  return n;
+  [super _initCollectionWithCoder:coder];
+  _start_index = 0;
+  return self;
 }
 
 - _readInit: (TypedStream*)aStream

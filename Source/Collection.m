@@ -1,5 +1,5 @@
 /* Implementation for Objective-C Collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -1218,17 +1218,17 @@ for info about latest version.",
   return licenseString;
 }
 
-- (void) encodeWithCoder: (Coder*)aCoder
+- (void) encodeWithCoder: aCoder
 {
   [self _encodeCollectionWithCoder:aCoder];
   [self _encodeContentsWithCoder:aCoder];
 }
 
-+ newWithCoder: (Coder*)aCoder
+- initWithCoder: aCoder
 {
-  id newCollection = [self _newCollectionWithCoder:aCoder];
-  [newCollection _decodeContentsWithCoder:aCoder];
-  return newCollection;
+  [self _initCollectionWithCoder:aCoder];
+  [self _decodeContentsWithCoder:aCoder];
+  return self;
 }
 
 @end
@@ -1236,17 +1236,17 @@ for info about latest version.",
 
 @implementation Collection (ArchivingHelpers)
 
-- (void) _encodeCollectionWithCoder: (Coder*) aCoder
+- (void) _encodeCollectionWithCoder: aCoder
 {
   [super encodeWithCoder:aCoder];
   // there are no instance vars;
   return;
 }
 
-+ _newCollectionWithCoder: (Coder*) aCoder
+- _initCollectionWithCoder: aCoder
 {
   // there are no instance vars;
-  return [super newWithCoder:aCoder];
+  return [super initWithCoder:aCoder];
 }
 
 - _writeInit: (TypedStream*)aStream
