@@ -63,7 +63,8 @@ FILE_AUTHORS = \
 "Yoo C. Chung" \
 "Richard Frith-Macdonald" \
 "Stevo Crvenkovski" \
-"Mike Kienenberger"
+"Mike Kienenberger" \
+"Manuel Guesdon"
 
 # The GNU source files
 
@@ -330,7 +331,9 @@ NSUser.m \
 NSUserDefaults.m \
 NSValue.m \
 NSZone.m \
-externs.m
+externs.m \
+NSURL.m \
+NSURLHandle.m
 
 NSVALUE_MFILES = \
 	NSValue0.m NSValue1.m NSValue2.m NSValue3.m \
@@ -427,7 +430,9 @@ Foundation/NSUserDefaults.h \
 Foundation/NSUtilities.h \
 Foundation/NSValue.h \
 Foundation/NSZone.h \
-Foundation/objc-load.h
+Foundation/objc-load.h \
+Foundation/NSURL.h \
+Foundation/NSURLHandle.h
 
 UNICODE_HEADERS = \
 unicode/caseconv.h \

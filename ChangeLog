@@ -1,3 +1,19 @@
+Thu Feb 12  00:57:00 1999  Manuel Guesdon <mguesdon@sbuilders.com>
+
+	* Source/include/NSString.h: declaration of categories:
+		NSString (GSString)
+		NSString(GSTrimming)
+		NSMutableString (GSString)
+		NSMutableString (GSTrimming)
+	* Source/NSString.m: implementation of these categories
+	* Source/include/NSObject.h: added ASSIGNCOPY
+	Same as ASSIGN but copy the value
+	* Source/include/NSURL.h: New class
+	* Source/include/NSURLHandle.h: New class
+	* Source/NSURL.m: New class [see the note in the file]
+	* Source/NSURLHandle.m: New class [see the note in the file]
+	* GNUMakefile: added NSURL.m and NSURLHandle.m
+
 Fri Feb 12  16:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSGeometry.m: Removed most functions - into header

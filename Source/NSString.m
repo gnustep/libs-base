@@ -3499,3 +3499,183 @@ static id parseSfItem(pldata* pld)
 
 @end
 
+#ifndef NO_GNUSTEP
+//==============================================================================
+@implementation NSString (GSTrimming)
+
+//------------------------------------------------------------------------------
+-(NSString*)stringByTrimmingLeadWhiteSpaces
+{
+  NSCharacterSet *nonSPSet= [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
+  NSRange nonSPCharRange  = [self rangeOfCharacterFromSet:nonSPSet];
+  
+  if (nonSPCharRange.length>0)
+	return [self substringFromIndex:nonSPCharRange.location];
+  else
+	return [NSString string];
+};
+
+//------------------------------------------------------------------------------
+-(NSString*)stringByTrimmingTailWhiteSpaces
+{
+  NSCharacterSet *nonSPSet= [[NSCharacterSet whitespaceAndNewlineCharacterSet] invertedSet];
+  NSRange nonSPCharRange  = [self rangeOfCharacterFromSet:nonSPSet
+								  options:NSBackwardsSearch];
+  if (nonSPCharRange.length>0)
+	return [self substringToIndex:nonSPCharRange.location+1];
+  else
+	return [NSString string];
+};
+
+//------------------------------------------------------------------------------
+-(NSString*)stringByTrimmingWhiteSpaces
+{
+  return [[self stringByTrimmingLeadWhiteSpaces]
+                stringByTrimmingTailWhiteSpaces];
+};;
+
+//------------------------------------------------------------------------------
+-(NSString*)stringByTrimmingLeadSpaces
+{
+  NSMutableString* tmp = [[self mutableCopy] autorelease];
+  [tmp trimLeadSpaces];
+  // Convert to immuable
+  return [[tmp copy] autorelease];
+};
+
+//------------------------------------------------------------------------------
+-(NSString*)stringByTrimmingTailSpaces
+{
+  NSMutableString* tmp= [[self mutableCopy] autorelease];
+  [tmp trimTailSpaces];
+  // Convert to immuable
+  return [[tmp copy] autorelease];
+};
+
+//------------------------------------------------------------------------------
+-(NSString*) stringByTrimmingSpaces
+{
+  NSMutableString* tmp=[[self mutableCopy] autorelease];
+  [tmp trimLeadSpaces];
+  [tmp trimTailSpaces];
+  // Convert to immuable
+  return [[tmp copy] autorelease];
+};
+
+@end
+
+
+//==============================================================================
+@implementation NSMutableString (GSTrimming)
+
+//------------------------------------------------------------------------------
+-(void)trimLeadSpaces
+{
+  int location = 0;
+  int length = [self length];
+  while (location<length && isspace([self characterAtIndex:location]))
+	location++;
+        
+  if (location>0)
+	  [self deleteCharactersInRange:NSMakeRange(0,location)];
+};
+
+//------------------------------------------------------------------------------
+-(void)trimTailSpaces
+{
+  int length = [self length];
+  int location = length-1;
+        
+  while (location>=0 && isspace([self characterAtIndex:location]))
+	location--;
+        
+  if (location < length-1)
+	[self deleteCharactersInRange:NSMakeRange((location == 0) ? 0 : location + 1,
+											  length - ((location == 0) ? 0 : location + 1))];
+}
+
+//------------------------------------------------------------------------------
+-(void)trimSpaces
+{
+  [self trimLeadSpaces];
+  [self trimTailSpaces];
+};
+        
+@end
+
+//==============================================================================
+@implementation NSString (GSString)
+
+//------------------------------------------------------------------------------
+-(NSString*)stringWithoutSuffix:(NSString*)_suffix
+{
+  NSCAssert2([self hasSuffix:_suffix],@"'%@' has not the suffix '%@'",self,_suffix);
+  return [self substringToIndex:([self length]-[_suffix length])];
+};
+
+//------------------------------------------------------------------------------
+-(NSString*)stringWithoutPrefix:(NSString*)_prefix
+{
+  NSCAssert2([self hasPrefix:_prefix],@"'%@' has not the prefix '%@'",self,_prefix);
+  return [self substringFromIndex:[_prefix length]];
+};
+
+//------------------------------------------------------------------------------
+-(NSString*)stringByReplacingString:(NSString*)_replace
+						 withString:(NSString*)_by
+{
+  NSRange range=[self rangeOfString:_replace];
+  if (range.length>0)
+	{
+	  NSMutableString* tmp= [[self mutableCopy] autorelease];
+	  [tmp replaceString:_replace
+		   withString:_by];
+	  // Convert to immuable
+	  return [[tmp copy] autorelease];
+	}
+  else
+	return self;
+};
+
+@end
+
+//==============================================================================
+@implementation NSMutableString (GSString)
+//------------------------------------------------------------------------------
+-(void)removeSuffix:(NSString*)_suffix
+{
+  NSCAssert2([self hasSuffix:_suffix],@"'%@' has not the suffix '%@'",self,_suffix);
+  [self deleteCharactersInRange:NSMakeRange([self length]-[_suffix length],[_suffix length])];
+};
+
+//------------------------------------------------------------------------------
+-(void)removePrefix:(NSString*)_prefix;
+{
+  NSCAssert2([self hasPrefix:_prefix],@"'%@' has not the prefix '%@'",self,_prefix);
+  [self deleteCharactersInRange:NSMakeRange(0,[_prefix length])];
+};
+
+//------------------------------------------------------------------------------
+-(void)replaceString:(NSString*)_replace
+		  withString:(NSString*)_by
+{
+  NSRange range=[self rangeOfString:_replace];
+  if (range.length>0)
+	{
+	  int byLen=[_by length];
+	  do
+		{
+		  [self replaceCharactersInRange:range
+				withString:_by];
+		  range.location+=byLen;
+		  range.length=[self length]-range.location;
+		  range=[self rangeOfString:_replace
+					  options:0
+					  range:range];
+		}
+	  while (range.length>0);
+	};
+};
+@end
+
+#endif /* NO_GNUSTEP */

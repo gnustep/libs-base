@@ -260,6 +260,26 @@ if (__value != object) \
 })
 
 /*
+ *	ASSIGNCOPY(object,value) assignes a copy of the value to the object with
+ *	and release operations.
+ */
+#define	ASSIGNCOPY(object,value)	({\
+typeof (value) __value = (value); \
+if (__value != object) \
+  { \
+    if (__value) \
+      { \
+	[__value copy]; \
+      } \
+    if (object) \
+      { \
+	[object release]; \
+      } \
+    object = __value; \
+  } \
+})
+
+/*
  *	DESTROY() is a release operation which also sets the object to be
  *	a nil pointer for tidyness - we can't accidentally use a DESTROYED
  *	object later.
