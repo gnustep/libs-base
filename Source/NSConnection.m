@@ -893,7 +893,7 @@ static BOOL	multi_threaded = NO;
   timer = nil;
   M_UNLOCK(connection_table_gate);
 
-  M_LOCK(_refGate);
+  M_UNLOCK(_refGate);
 
   /*
    *	Don't need notifications any more - so remove self as observer.
