@@ -737,13 +737,31 @@ pty_slave(const char* name)
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
   lpath = [full_path stringByAppendingPathComponent: prog];
+#ifdef	__MINGW__
+  if ([mgr isExecutableFileAtPath: lpath] == NO
+    && [mgr isExecutableFileAtPath:
+    (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
+#else
   if ([mgr isExecutableFileAtPath: lpath] == NO)
+#endif
     {
       lpath = [arch_path stringByAppendingPathComponent: prog];
+#ifdef	__MINGW__
+      if ([mgr isExecutableFileAtPath: lpath] == NO
+	&& [mgr isExecutableFileAtPath:
+	(lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
+#else
       if ([mgr isExecutableFileAtPath: lpath] == NO)
+#endif
 	{
 	  lpath = [base_path stringByAppendingPathComponent: prog];
+#ifdef	__MINGW__
+	  if ([mgr isExecutableFileAtPath: lpath] == NO
+	    && [mgr isExecutableFileAtPath:
+	    (lpath = [lpath stringByAppendingPathExtension: @"exe"])] == NO)
+#else
 	  if ([mgr isExecutableFileAtPath: lpath] == NO)
+#endif
 	    {
 	      /*
 	       * Last resort - if the launch path was simply a program name
@@ -754,9 +772,19 @@ pty_slave(const char* name)
 		{
 		  lpath = [NSBundle _absolutePathOfExecutable: prog];
 		}
-	      if (lpath != nil && [mgr isExecutableFileAtPath: lpath] == NO)
+	      if (lpath != nil)
 		{
-		  lpath = nil;
+#ifdef	__MINGW__
+		  if ([mgr isExecutableFileAtPath: lpath] == NO
+		    && [mgr isExecutableFileAtPath:
+		    (lpath = [lpath stringByAppendingPathExtension: @"exe"])]
+		    == NO)
+#else
+		  if ([mgr isExecutableFileAtPath: lpath] == NO)
+#endif
+		    {
+		      lpath = nil;
+		    }
 		}
 	    }
 	}

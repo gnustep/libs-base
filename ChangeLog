@@ -12,6 +12,7 @@
 	getservbyname() doesn't.
 	* Source/UnixFileHandle.m: Fix to return gdomap port even if
 	getservbyname() doesn't.
+	* Source/NSTask.m: Try appending .exe extension to paths under windoze.
 
 2002-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
