@@ -34,10 +34,10 @@
         </method>
         <method type="BOOL">
           <sel>tryLock</sel>
+          <desc>
 	  Attempts to aquire a lock, but returns NO immediately if the lock
 	  cannot be aquired. It returns YES if the lock is aquired. Can be
 	  called multiple times to make nested locks.
-          <desc>
           </desc>
         </method>
       </class>
