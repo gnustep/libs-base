@@ -103,26 +103,24 @@
 
 // MANIPULATING COLLECTION OF DELEGATES;
 
-- delegatePoolAddObject: anObject
+- (void) delegatePoolAddObject: anObject
 {
   [_list addObject: anObject];
-  return self;
 }
 
-- delegatePoolAddObjectIfAbsent: anObject
+- (void) delegatePoolAddObjectIfAbsent: anObject
 {
   [_list addObjectIfAbsent: anObject];
-  return self;
 }
 
-- delegatePoolRemoveObject: anObject
+- (void) delegatePoolRemoveObject: anObject
 {
-  return [_list removeObject:anObject];
+  [_list removeObject:anObject];
 }
 
 - (BOOL) delegatePoolIncludesObject: anObject
 {
-  return [_list includesObject:anObject];
+  return [_list containsObject:anObject];
 }
 
 - delegatePoolCollection
@@ -135,10 +133,9 @@
   return _send_behavior;
 }
 
-- delegatePoolSetSendBehavior: (unsigned char)b
+- (void) delegatePoolSetSendBehavior: (unsigned char)b
 {
   _send_behavior = b;
-  return self;
 }
 
 - (BOOL) delegatePoolLastMessageHadReceivers
@@ -151,7 +148,7 @@
 - forward: (SEL)aSel :(arglist_t)argFrame
 {
   void *ret = 0;
-  elt delegate;
+  id delegate;
   
   _last_message_had_receivers = NO;
   switch (_send_behavior) 
@@ -159,9 +156,9 @@
     case SEND_TO_ALL:
       FOR_ARRAY(_list, delegate)
 	{
-	  if ([delegate.id_u respondsTo:aSel]) 
+	  if ([delegate respondsTo:aSel]) 
 	    {
-	      ret = [delegate.id_u performv:aSel :argFrame];
+	      ret = [delegate performv:aSel :argFrame];
 	      _last_message_had_receivers = YES;
 	    }
 	}
@@ -171,10 +168,10 @@
     case SEND_TO_FIRST_RESPONDER:
       FOR_ARRAY(_list, delegate)
 	{
-	  if ([delegate.id_u respondsTo:aSel]) 
+	  if ([delegate respondsTo:aSel]) 
 	    {
 	      _last_message_had_receivers = YES;
-	      return [delegate.id_u performv:aSel :argFrame];
+	      return [delegate performv:aSel :argFrame];
 	    }
 	}
       FOR_ARRAY_END;
@@ -183,10 +180,10 @@
     case SEND_UNTIL_YES:
       FOR_ARRAY(_list, delegate)
 	{
-	  if ([delegate.id_u respondsTo:aSel]) 
+	  if ([delegate respondsTo:aSel]) 
 	    {
 	      _last_message_had_receivers = YES;
-	      if ((ret = [delegate.id_u performv:aSel :argFrame]))
+	      if ((ret = [delegate performv:aSel :argFrame]))
 		return ret;
 	    }
 	}
@@ -196,10 +193,10 @@
     case SEND_UNTIL_NO:
       FOR_ARRAY(_list, delegate)
 	{
-	  if ([delegate.id_u respondsTo:aSel]) 
+	  if ([delegate respondsTo:aSel]) 
 	    {
 	      _last_message_had_receivers = YES;
-	      if (!(ret = [delegate.id_u performv:aSel :argFrame]))
+	      if (!(ret = [delegate performv:aSel :argFrame]))
 		return ret;
 	    }
 	}
