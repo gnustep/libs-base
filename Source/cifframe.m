@@ -73,8 +73,8 @@ cifframe_from_sig (const char *typePtr, void **retval)
 
   if (retval)
     {
-      *retval = NSZoneMalloc(NSDefaultMallocZone(), 
-			    MAX(cframe->rtype->size, sizeof(smallret_t)) );
+      *retval = NSZoneCalloc(NSDefaultMallocZone(), 
+	MAX(cframe->rtype->size, sizeof(smallret_t)), 1);
     }
   return cframe;
 }

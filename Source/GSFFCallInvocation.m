@@ -653,7 +653,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 
   /*
    *	Temporarily set new target and copy it (and the selector) into the
-   *	_argframe.
+   *	_cframe.
    */
   old_target = RETAIN(_target);
   [self setTarget: anObject];

@@ -91,7 +91,7 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
 	}
       pos = full;
       full += MAX(info[0].size, sizeof(smallret_t));
-      cframe = buf = NSZoneMalloc(NSDefaultMallocZone(), full);
+      cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), full, 1);
       if (cframe)
 	{
 	  *retval = buf + pos;
@@ -99,7 +99,7 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
     }
   else
     {
-      cframe = buf = NSZoneMalloc(NSDefaultMallocZone(), size);
+      cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), size, 1);
     }
 
   if (cframe)
@@ -633,7 +633,7 @@ callframe_build_return (NSInvocation *inv,
 		retLength = objc_sizeof_type(tmptype);
 		/* Allocate memory to hold the value we're pointing to. */
 		*(void**)retval = 
-		  NSZoneMalloc(NSDefaultMallocZone(), retLength);
+		  NSZoneCalloc(NSDefaultMallocZone(), retLength, 1);
 		/* We are responsible for making sure this memory gets free'd
 		   eventually.  Ask NSData class to autorelease it. */
 		[NSData dataWithBytesNoCopy: *(void**)retval

@@ -87,19 +87,19 @@ _arg_addr(NSInvocation *inv, int index)
 static inline void
 _get_arg(NSInvocation *inv, int index, void *buffer)
 {
-  mframe_get_arg(inv->_argframe, &inv->_info[index+1], buffer);
+  mframe_get_arg((arglist_t)inv->_cframe, &inv->_info[index+1], buffer);
 }
 
 static inline void
 _set_arg(NSInvocation *inv, int index, void *buffer)
 {
-  mframe_set_arg(inv->_argframe, &inv->_info[index+1], buffer);
+  mframe_set_arg((arglist_t)inv->_cframe, &inv->_info[index+1], buffer);
 }
 
 static inline void *
 _arg_addr(NSInvocation *inv, int index)
 {
-  return mframe_arg_addr(inv->_argframe, &inv->_info[index+1]);
+  return mframe_arg_addr((arglist_t)inv->_cframe, &inv->_info[index+1]);
 }
 
 #endif
@@ -143,7 +143,7 @@ _arg_addr(NSInvocation *inv, int index)
     {
       RELEASE(_target);
       _argsRetained = NO;
-      if (_argframe && _sig)
+      if (_cframe && _sig)
 	{
 	  int	i;
 
@@ -166,26 +166,28 @@ _arg_addr(NSInvocation *inv, int index)
 	    }
 	}
     }
-#ifdef USE_LIBFFI
+#if	defined(USE_LIBFFI)
   if (_cframe)
-    cifframe_free((cifframe_t *)_cframe);
-#else
-#ifdef USE_FFCALL
+    {
+      cifframe_free((cifframe_t *)_cframe);
+      _retval = 0;	// Part of _cframe
+    }
+#elif defined(USE_FFCALL)
   if (_cframe)
     {
       NSZoneFree(NSDefaultMallocZone(), _cframe);
       _retval = 0;	// Part of _cframe
     }
-#endif
-#endif
-  if (_argframe)
+#else
+  if (_cframe)
     {
-      mframe_destroy_argframe([_sig methodType], _argframe);
+      mframe_destroy_argframe([_sig methodType], (arglist_t)_cframe);
     }
   if (_retval)
     {
       NSZoneFree(NSDefaultMallocZone(), _retval);
     }
+#endif
   RELEASE(_sig);
   [super dealloc];
 }
@@ -369,7 +371,7 @@ _arg_addr(NSInvocation *inv, int index)
 
       _argsRetained = YES;
       IF_NO_GC(RETAIN(_target));
-      if (_argframe == 0)
+      if (_cframe == 0)
 	{
 	  return;
 	}
@@ -435,7 +437,7 @@ _arg_addr(NSInvocation *inv, int index)
 
   /*
    *	Temporarily set new target and copy it (and the selector) into the
-   *	_argframe.
+   *	_cframe.
    */
   old_target = RETAIN(_target);
   [self setTarget: anObject];
@@ -484,7 +486,8 @@ _arg_addr(NSInvocation *inv, int index)
       cifframe_decode_return(_info[0].type, _retval);
     }
 #else
-  returned = __builtin_apply((void(*)(void))imp, _argframe, stack_argsize);
+  returned = __builtin_apply((void(*)(void))imp,
+    (arglist_t)_cframe, stack_argsize);
   if (_info[0].size)
     {
       mframe_decode_return(_info[0].type, _retval, returned);
@@ -786,7 +789,7 @@ _arg_addr(NSInvocation *inv, int index)
     {
       [self setSelector: aSelector];
       /*
-       *	Copy the _argframe we were given.
+       *	Copy the _cframe we were given.
        */
       if (frame)
 	{
@@ -795,7 +798,7 @@ _arg_addr(NSInvocation *inv, int index)
 	  mframe_get_arg(frame, &_info[1], &_target);
 	  for (i = 1; i <= _numArgs; i++)
 	    {
-	      mframe_cpy_arg(_argframe, frame, &_info[i]);
+	      mframe_cpy_arg((arglist_t)_cframe, frame, &_info[i]);
 	    }
 	}
     }
@@ -810,7 +813,7 @@ _arg_addr(NSInvocation *inv, int index)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _argframe = mframe_create_argframe([_sig methodType], &_retval);
+  _cframe = mframe_create_argframe([_sig methodType], &_retval);
   if (_retval == 0 && _info[0].size > 0)
     {
       _retval = NSZoneMalloc(NSDefaultMallocZone(), _info[0].size);

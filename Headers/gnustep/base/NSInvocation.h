@@ -30,7 +30,6 @@
 @interface NSInvocation : NSObject
 {
   NSMethodSignature	*_sig;
-  arglist_t		_argframe;
   void                  *_cframe;
   void			*_retval;
   id			_target;
