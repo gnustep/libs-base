@@ -1,3 +1,13 @@
+Wed Jan 16 13:46:24 2002  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	Fixed dynamical loading of frameworks.
+	* Source/NSBundle.m ([-_addFrameworkForClass:]): Fixed, should never
+	be run during dynamical loading.
+	* Source/NSBundle.m (_bundle_load_callback): Major simplification.
+	Most code removed.  Should run faster too.
+	([-load]): Do not DESTROY _bundle_load_callback's related
+	variables.
+	
 Wed Jan 16 12:30:20 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/NSBundle.m (_addFrameworkFromClass:): Fixed third argument
