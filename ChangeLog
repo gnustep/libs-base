@@ -1,5 +1,7 @@
 Mon Mar  3 14:41:01 1997  Andrew McCallum  <mccallum@jprc.com>
 
+	* doc/Makefile.in (TEXI_FILES): Added gnustep-zones.texi.
+
 	* src/NSHost.m, src/include/NSHost.h: New files from Luke Howard
 	<lukeh@xedoc.com.au>.
 

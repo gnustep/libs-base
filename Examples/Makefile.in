@@ -35,7 +35,7 @@ CPPFLAGS =
 LDFLAGS =
      
 DEFS = @DEFS@
-LIBS = -L../src -l$(LIBRARY_NAME) @LIBOBJC@ @LIBS@ -lm
+LIBS = -L../src @whole_archive@ -l$(LIBRARY_NAME) @no_whole_archive@ @LIBOBJC@ @LIBS@ -lm
 
 EXEEXT = 
 OEXT = .o

@@ -28,7 +28,7 @@
 #include <Foundation/NSLock.h>
 
 #ifndef NSCharacterSet_PATH
-#define NSCharacterSet_PATH OBJC_STRINGIFY(GNUSTEP_INSTALL_PREFIX) @"/share"
+#define NSCharacterSet_PATH OBJC_STRINGIFY(GNUSTEP_INSTALL_LIBDIR) @"/NSCharacterSets"
 #endif
 
 /* A simple array for caching standard bitmap sets */

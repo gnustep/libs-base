@@ -38,7 +38,8 @@ DYNAMIC_BUNDLER_LINKER=@DYNAMIC_BUNDLER_LINKER@
 DYNAMIC_LDFLAGS=@DYNAMIC_LDFLAGS@
 DYNAMIC_CFLAGS=@DYNAMIC_CFLAGS@
 DEFS = @DEFS@
-LIBS = -L../src -l$(LIBRARY_NAME) @LIBOBJC@ @LIBS@ -lm
+LIBS = -L../src @whole_archive@ -l$(LIBRARY_NAME) @no_whole_archive@ \
+	@LIBOBJC@ @LIBS@ -lm
 
 EXEEXT = 
 OEXT = .o
@@ -99,7 +100,8 @@ release.m \
 nsscanner.m \
 nsdate.m \
 awake.m \
-thread-except.m
+thread-except.m \
+nscharacterset.m
 
 tcpport: FORCE
 	(cd ../src; $(MAKE))

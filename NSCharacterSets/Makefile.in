@@ -28,8 +28,10 @@ srcdir = @srcdir@
 VPATH = @srcdir@
 
 prefix = @prefix@
-datadir = $(prefix)/share
-charsetdir = $(datadir)/NSCharacterSets
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+gnustep_libdir = $(libdir)/gnustep
+charsetdir = $(gnustep_libdir)/NSCharacterSets
 
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -58,7 +60,7 @@ DIST_FILES = $(RCS_FILES) $(CHARSET_FILES) README.CharSet
 INSTALL_FILES = $(CHARSET_FILES) README.CharSet
 
 installdirs:
-	$(srcdir)/../mkinstalldirs $(charsetdir)
+	$(srcdir)/../mkinstalldirs $(libdir) $(gnustep_libdir) $(charsetdir)
 install: installdirs
 	for file in $(INSTALL_FILES); do \
 	  $(INSTALL_DATA) $(srcdir)/$$file $(charsetdir)/$$file ; \

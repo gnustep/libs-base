@@ -176,6 +176,12 @@
 	       [[self class] timeIntervalSinceReferenceDate] + secsToBeAdded];
 }
 
+- (NSDate *)initWithTimeIntervalSince1970:(NSTimeInterval)seconds
+{
+  return [self initWithTimeIntervalSinceReferenceDate: 
+		       UNIX_REFERENCE_INTERVAL + seconds];
+}
+
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
   [super init];
@@ -249,6 +255,11 @@
   /* xxx We need to check for overflow? */
   return [[self class] dateWithTimeIntervalSinceReferenceDate:
 		       seconds_since_ref + seconds];
+}
+
+- (NSTimeInterval) timeIntervalSince1970
+{
+  return seconds_since_ref - UNIX_REFERENCE_INTERVAL;
 }
 
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate

@@ -89,7 +89,7 @@ NSString *NSAMPMDesignation = @"NSAMPMDesignation";
 @interface NSUserDefaults (__local_NSUserDefaults)
 - (void)__createStandardSearchList;
 - (NSDictionary *)__createArgumentDictionary;
-- (void)__changePersitentDomain:(NSString *)domainName;
+- (void)__changePersistentDomain:(NSString *)domainName;
 @end
 
 @implementation NSUserDefaults: NSObject
@@ -231,14 +231,14 @@ static NSMutableString   *processName = nil;
       [persDomains setObject:
 		     [NSMutableDictionary 
 		       dictionaryWithCapacity:10] forKey:processName];
-      [self __changePersitentDomain:processName];
+      [self __changePersistentDomain:processName];
     }
   if (![persDomains objectForKey:NSGlobalDomain])
     {
       [persDomains setObject:
 		   [NSMutableDictionary 
 		     dictionaryWithCapacity:10] forKey:NSGlobalDomain];
-      [self __changePersitentDomain:NSGlobalDomain];
+      [self __changePersistentDomain:NSGlobalDomain];
     }
 	
   // Create volatile defaults and add the Argument and the Registration domains
@@ -359,7 +359,7 @@ static NSMutableString   *processName = nil;
   if (obj)
     {
       [[persDomains objectForKey:processName] removeObjectForKey:defaultName];
-      [self __changePersitentDomain:processName];
+      [self __changePersistentDomain:processName];
     }
   return;
 }
@@ -394,7 +394,7 @@ static NSMutableString   *processName = nil;
     {
       [[persDomains objectForKey:processName]
 	setObject:value forKey:defaultName];
-      [self __changePersitentDomain:processName];
+      [self __changePersistentDomain:processName];
     }
   return;
 }
@@ -451,7 +451,7 @@ static NSMutableString   *processName = nil;
   if ([persDomains objectForKey:domainName])
     {
       [persDomains removeObjectForKey:domainName];
-      [self __changePersitentDomain:domainName];
+      [self __changePersistentDomain:domainName];
     }
   return;
 }
@@ -469,7 +469,7 @@ static NSMutableString   *processName = nil;
       return;
     }
   [persDomains setObject:domain forKey:domainName];
-  [self __changePersitentDomain:domainName];
+  [self __changePersistentDomain:domainName];
   return;
 }
 
@@ -659,7 +659,7 @@ static NSMutableString   *processName = nil;
   return argDict;
 }
 
-- (void)__changePersitentDomain:(NSString *)domainName
+- (void)__changePersistentDomain:(NSString *)domainName
 {
   NSEnumerator *enumerator = nil;
   id obj;

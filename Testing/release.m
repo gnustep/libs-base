@@ -1,7 +1,9 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSAutoreleasePool.h>
+#ifndef _WIN32
 #include "malloc.h"
+#endif
 
 @interface ReleaseTester : NSObject
 {

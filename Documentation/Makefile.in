@@ -29,7 +29,7 @@ VPATH = @srcdir@
 
 # Installation location
 prefix = @prefix@
-infodir = $(prefix)/info
+infodir = @infodir@
 
 MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi

@@ -61,7 +61,7 @@ static int debug_tcp_port = 0;
 /* Private interfaces */
 
 @interface TcpInPort (Private)
-- (int) _socket;
+- (int) _port_socket;
 - (struct sockaddr_in*) _listeningSockaddr;
 - (void) _addClientOutPort: p;
 - (void) _connectedOutPortInvalidated: p;
@@ -69,7 +69,7 @@ static int debug_tcp_port = 0;
 @end
 
 @interface TcpOutPort (Private)
-- (int) _socket;
+- (int) _port_socket;
 - _initWithSocket: (int)s inPort: ip;
 + _newWithAcceptedSocket: (int)s peeraddr: (struct sockaddr_in*)addr inPort: p;
 - (struct sockaddr_in*) _remoteInPortSockaddr;
@@ -100,7 +100,7 @@ static int debug_tcp_port = 0;
 
 @interface TcpInStream : NSObject
 {
-  int _socket;
+  int _port_socket;
   id _listening_in_port;
 }
 - initWithAcceptedSocket: (int)s inPort: p;
@@ -133,7 +133,7 @@ name_2_port_number (const char *name)
 static NSMapTable *socket_2_port = NULL;
 
 static void 
-init_socket_2_port ()
+init_port_socket_2_port ()
 {
   if (!socket_2_port)
     socket_2_port =
@@ -160,7 +160,7 @@ static NSMapTable* port_number_2_port;
     port_number_2_port = 
       NSCreateMapTable (NSIntMapKeyCallBacks,
 			NSNonOwnedPointerMapValueCallBacks, 0);
-  init_socket_2_port ();
+  init_port_socket_2_port ();
 }
 
 /* This is the designated initializer. 
@@ -185,16 +185,16 @@ static NSMapTable* port_number_2_port;
   p = [[TcpInPort alloc] init];
 
   /* Create the socket. */
-  p->_socket = socket (AF_INET, SOCK_STREAM, 0);
-  if (p->_socket < 0)
+  p->_port_socket = socket (AF_INET, SOCK_STREAM, 0);
+  if (p->_port_socket < 0)
     {
       perror ("[TcpInPort +newForReceivingFromPortNumber:] socket()");
       abort ();
     }
 
   /* Register the port object according to its socket. */
-  assert (!NSMapGet (socket_2_port, (void*)p->_socket));
-  NSMapInsert (socket_2_port, (void*)p->_socket, p);
+  assert (!NSMapGet (socket_2_port, (void*)p->_port_socket));
+  NSMapInsert (socket_2_port, (void*)p->_port_socket, p);
   
   /* Give the socket a name using bind() and INADDR_ANY for the
      machine address in _LISTENING_ADDRESS; then put the network
@@ -215,7 +215,7 @@ static NSMapTable* port_number_2_port;
     p->_listening_address.sin_port = htons (n);
     /* N may be zero, in which case bind() will choose a port number
        for us. */
-    if (bind (p->_socket,
+    if (bind (p->_port_socket,
 	      (struct sockaddr*) &(p->_listening_address),
 	      sizeof (p->_listening_address)) 
 	< 0)
@@ -252,7 +252,7 @@ static NSMapTable* port_number_2_port;
     /* xxx Perhaps I should do this unconditionally? */
     {
       int size = sizeof (p->_listening_address);
-      if (getsockname (p->_socket,
+      if (getsockname (p->_port_socket,
 		       (struct sockaddr*)&(p->_listening_address),
 		       &size)
 	  < 0)
@@ -265,7 +265,7 @@ static NSMapTable* port_number_2_port;
 
   /* Set it up to accept connections, let 10 pending connections queue */
   /* xxx Make this "10" a class variable? */
-  if (listen (p->_socket, 10) < 0)
+  if (listen (p->_port_socket, 10) < 0)
     {
       perror ("[TcpInPort +newForReceivingFromPortNumber] listen()");
       abort ();
@@ -364,7 +364,7 @@ static NSMapTable* port_number_2_port;
 
 - _tryToGetPacketFromReadableFD: (int)fd_index
 {
-  if (fd_index == _socket)
+  if (fd_index == _port_socket)
     {
       /* This is a connection request on the original listen()'ing socket. */
       int new;
@@ -373,7 +373,7 @@ static NSMapTable* port_number_2_port;
       struct sockaddr_in clientname;
 
       size = sizeof (clientname);
-      new = accept (_socket, (struct sockaddr*)&clientname, &size);
+      new = accept (_port_socket, (struct sockaddr*)&clientname, &size);
       if (new < 0)
 	{
 	  perror ("[TcpInPort receivePacketWithTimeout:] accept()");
@@ -480,7 +480,7 @@ static NSMapTable* port_number_2_port;
 
   /* Put in our listening socket. */
   *count = 0;
-  fds[(*count)++] = _socket;
+  fds[(*count)++] = _port_socket;
 
   /* Enumerate all our client sockets, and put them in. */
   me = NSEnumerateMapTable (_client_sock_2_out_port);
@@ -506,7 +506,7 @@ static NSMapTable* port_number_2_port;
 
 - (void) _addClientOutPort: p
 {
-  int s = [p _socket];
+  int s = [p _port_socket];
 
   assert (is_valid);
   /* Make sure it hasn't already been added. */
@@ -520,7 +520,7 @@ static NSMapTable* port_number_2_port;
 - (void) _connectedOutPortInvalidated: p
 {
   id packet;
-  int s = [p _socket];
+  int s = [p _port_socket];
 
   assert (is_valid);
   if (debug_tcp_port)
@@ -545,9 +545,9 @@ static NSMapTable* port_number_2_port;
     userInfo: p];
 }
 
-- (int) _socket
+- (int) _port_socket
 {
-  return _socket;
+  return _port_socket;
 }
 
 - (int) portNumber
@@ -582,14 +582,14 @@ static NSMapTable* port_number_2_port;
 	 However, then the process might run out of FD's if the close()
 	 was delayed too long. */
 #ifdef __WIN32__
-      closesocket (_socket);
+      closesocket (_port_socket);
 #else
-      close (_socket);
+      close (_port_socket);
 #endif
 
       /* These are here, and not in -dealloc, to prevent 
 	 +newForReceivingFromPortNumber: from returning invalid sockets. */
-      NSMapRemove (socket_2_port, (void*)_socket);
+      NSMapRemove (socket_2_port, (void*)_port_socket);
       NSMapRemove (port_number_2_port,
 		   (void*)(int) ntohs(_listening_address.sin_port));
 
@@ -630,7 +630,7 @@ static NSMapTable* port_number_2_port;
 	   is_valid ? ' ' : '-',
 	   (unsigned)self,
 	   ntohs (_listening_address.sin_port),
-	   _socket];
+	   _port_socket];
 }
 
 - (Class) classForConnectedCoder: aRmc
@@ -670,7 +670,7 @@ static NSMapTable* port_number_2_port;
 
 /* TcpOutPort - An object that represents a connection to a remote
    host.  Although it is officially an "Out" Port, we actually receive
-   data on the socket that is this object's `_socket' ivar; TcpInPort
+   data on the socket that is this object's `_port_socket' ivar; TcpInPort
    takes care of this. */
 
 @implementation TcpOutPort
@@ -683,7 +683,7 @@ static NSMapTable *out_port_bag = NULL;
 {
   if (self == [TcpOutPort class])
     {
-      init_socket_2_port ();
+      init_port_socket_2_port ();
       out_port_bag = NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
 				       NSNonOwnedPointerMapValueCallBacks, 0);
     }
@@ -700,8 +700,8 @@ static NSMapTable *out_port_bag = NULL;
    If SOCK is 0, then SOCKADDR must be non-NULL.  It is the address of
    the socket on which the remote TcpInPort is listen()'ing.  Note
    that it is *not* the address of the TcpOutPort's
-   getsockname(_socket,...), and it is not the address of the
-   TcpOutPort's getpeername(_socket,...).
+   getsockname(_port_socket,...), and it is not the address of the
+   TcpOutPort's getpeername(_port_socket,...).
 
    SOCK can be either an already-created socket, or 0, in which case a 
    socket will be created.
@@ -749,7 +749,7 @@ static NSMapTable *out_port_bag = NULL;
      _remote_in_port_address set, we should make sure that there isn't
      already an OutPort with that address. */
 
-  /* See if there already exists a TcpOutPort object with ivar _socket
+  /* See if there already exists a TcpOutPort object with ivar _port_socket
      equal to SOCK.  If there is, and if sockaddr is non-null, this
      call may be a request to set the TcpOutPort's _remote_in_port_address
      ivar. */
@@ -793,11 +793,11 @@ static NSMapTable *out_port_bag = NULL;
 
   /* Set its socket. */
   if (sock)
-    p->_socket = sock;
+    p->_port_socket = sock;
   else
     {
-      p->_socket = socket (AF_INET, SOCK_STREAM, 0);
-      if (p->_socket < 0)
+      p->_port_socket = socket (AF_INET, SOCK_STREAM, 0);
+      if (p->_port_socket < 0)
 	{
 	  perror ("[TcpOutPort newForSendingToSockaddr:...] socket()");
 	  abort ();
@@ -825,14 +825,14 @@ static NSMapTable *out_port_bag = NULL;
       p->_remote_in_port_address.sin_addr.s_addr = 0;
     }
 
-  /* xxx Do I need to bind(_socket) to this address?  I don't think so. */
+  /* xxx Do I need to bind(_port_socket) to this address?  I don't think so. */
 
   /* Connect the socket to its destination, (if it hasn't been done 
      already by a previous accept() call. */
   if (!sock)
     {
       assert (p->_remote_in_port_address.sin_family);
-      if (connect (p->_socket,
+      if (connect (p->_port_socket,
 		   (struct sockaddr*)&(p->_remote_in_port_address), 
 		   sizeof(p->_remote_in_port_address)) 
 	  < 0)
@@ -843,8 +843,8 @@ static NSMapTable *out_port_bag = NULL;
     }
 
   /* Put it in the shared socket->port map table. */
-  assert (!NSMapGet (socket_2_port, (void*)p->_socket));
-  NSMapInsert (socket_2_port, (void*)p->_socket, p);
+  assert (!NSMapGet (socket_2_port, (void*)p->_port_socket));
+  NSMapInsert (socket_2_port, (void*)p->_port_socket, p);
 
   /* Put it in TcpOutPort's registry. */
   NSMapInsert (out_port_bag, (void*)p, (void*)p);
@@ -966,14 +966,14 @@ static NSMapTable *out_port_bag = NULL;
      and the reply port address.  If REPLY_PORT is nil, the second argument
      to this call with be NULL, and __writeToSocket:withReplySockaddr: will
      know that there is no reply port. */
-  [packet _writeToSocket: _socket 
+  [packet _writeToSocket: _port_socket 
 	  withReplySockaddr: [reply_port _listeningSockaddr]];
   return YES;
 }
 
-- (int) _socket
+- (int) _port_socket
 {
-  return _socket;
+  return _port_socket;
 }
 
 - (int) portNumber
@@ -993,9 +993,9 @@ static NSMapTable *out_port_bag = NULL;
   /* xxx Perhaps should delay this close() to keep another port from
      getting it.  This may help Connection invalidation confusion. */
 #ifdef __WIN32__
-  if (closesocket (_socket) < 0)
+  if (closesocket (_port_socket) < 0)
 #else
-  if (close (_socket) < 0)
+  if (close (_port_socket) < 0)
 #endif
     {
       perror ("[TcpOutPort -invalidate] close()");
@@ -1012,7 +1012,7 @@ static NSMapTable *out_port_bag = NULL;
   /* This is here, and not in -dealloc, because invalidated
      but not dealloc'ed ports should not be returned from
      the socket_2_port in +newForSendingToSockaddr:... */
-  NSMapRemove (socket_2_port, (void*)_socket);
+  NSMapRemove (socket_2_port, (void*)_port_socket);
 
   /* This also posts a PortBecameInvalidNotification. */
   [super invalidate];
@@ -1051,7 +1051,7 @@ static NSMapTable *out_port_bag = NULL;
 	   (unsigned)self,
 	   inet_ntoa (_remote_in_port_address.sin_addr),
 	   ntohs (_remote_in_port_address.sin_port),
-	   _socket];
+	   _port_socket];
 }
 
 - (void) encodeWithCoder: aCoder
