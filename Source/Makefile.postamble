@@ -80,7 +80,7 @@ after-install::
 # before-uninstall::
 
 # Things to do after uninstalling
-after-uninstall::
+before-uninstall::
 	for file in $(GNU_HEADERS); do \
 	  rm -f $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done

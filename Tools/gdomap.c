@@ -4803,7 +4803,7 @@ xgethostname (void)
   addnull = 1;
 #endif /* _SC_HOST_NAME_MAX */
 #ifdef INTERNET_MAX_HOST_NAME_LENGTH
-  size = INTERNET_MAX_HOST_NAME_LENGTH
+  size = INTERNET_MAX_HOST_NAME_LENGTH;
   addnull = 1;
 #endif
   if (size <= 0)

@@ -82,7 +82,7 @@ before-uninstall::
 	for file in $(MAN1_PAGES); do \
 	  rm -f $(GNUSTEP_DOCUMENTATION_MAN)/man1/$$file.gz; \
 	done;
-	-rmdir$(GNUSTEP_DOCUMENTATION_MAN)/man1;
+	-rmdir $(GNUSTEP_DOCUMENTATION_MAN)/man1;
 	for file in $(MAN8_PAGES); do \
 	  rm -f $(GNUSTEP_DOCUMENTATION_MAN)/man8/$$file.gz; \
 	done;
