@@ -2158,12 +2158,15 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
  */
 - (NSString*) typeRef: (NSString*)t
 {
-  NSString	*orig = [t stringByTrimmingSpaces];
+  NSString	*str = [t stringByTrimmingSpaces];
   NSString	*s;
-  unsigned	end = [orig length];
+  unsigned	end = [str length];
   unsigned	start;
+  NSMutableString	*ms = nil;
+  NSRange		er;
+  NSRange		sr;
 
-  t = orig;
+  t = str;
   while (end > 0)
     {
       unichar	c = [t characterAtIndex: end-1];
@@ -2185,7 +2188,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 	}
       start--;
     }
-  t = [orig substringWithRange: NSMakeRange(start, end - start)];
+  t = [str substringWithRange: NSMakeRange(start, end - start)];
 
   s = [self makeLink: t ofType: @"type" isRef: YES];
   if (s == nil)
@@ -2193,16 +2196,88 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       s = [self makeLink: t ofType: @"class" isRef: YES];
     }
 
+  s = [s stringByAppendingFormat: @"%@</a>", t];
+  if (s != nil && [str length] == [t length])
+    {
+      return s;
+    }
+
+  /*
+   * Look for protocol spec.
+   */
+  sr = [str rangeOfString: @"<"];
+  if (sr.length == 0)
+    {
+      sr = [str rangeOfString: @"&lt;"];
+    }
+  if (sr.length == 0)
+    {
+      sr = [str rangeOfString: @"&#60;"];
+    }
+  er = [str rangeOfString: @">"];
+  if (er.length == 0)
+    {
+      er = [str rangeOfString: @"&gt;"];
+    }
+  if (er.length == 0)
+    {
+      er = [str rangeOfString: @"&#62;"];
+    }
+
+  /*
+   * Substitute in protocol references.
+   */
+  if (sr.length > 0 && er.length > 0 && er.location > sr.location)
+    {
+      NSString	*pString;
+      NSRange	r;
+      NSArray	*protocols;
+      unsigned	i;
+
+      r = NSMakeRange(NSMaxRange(sr), er.location - NSMaxRange(sr));
+      pString = [str substringWithRange: r];
+      protocols = [pString componentsSeparatedByString: @","];
+      ms = [str mutableCopy];
+      pString = @"";
+      for (i = 0; i < [protocols count]; i++)
+	{
+	  NSString	*p = [protocols objectAtIndex: i];
+	  NSString	*l;
+
+	  l = [self makeLink: [NSString stringWithFormat: @"(%@)", p]
+		      ofType: @"protocol"
+		       isRef: YES];
+	  if (l != nil)
+	    {
+	      p = [l stringByAppendingFormat: @"%@</a>", p];
+	    }
+	  if (i > 0)
+	    {
+	      pString = [pString stringByAppendingString: @","];
+	    }
+	  pString = [pString stringByAppendingString: p];
+	}
+      [ms replaceCharactersInRange: r withString: pString];
+    }
+
+
+  /*
+   * Substitute in basic type reference.
+   */
   if (s != nil)
     {
-      s = [s stringByAppendingFormat: @"%@</a>", t];
-      if ([orig length] == [t length])
+      if (ms == nil)
 	{
-	  return s;
+	  ms = [str mutableCopy];
 	}
-      return [orig stringByReplacingString: t withString: s];
+      [ms replaceCharactersInRange: NSMakeRange(start, end - start)
+			withString: s];
     }
-  return orig;
+  if (ms != nil)
+    {
+      str = AUTORELEASE(ms);
+    }
+  return str;
 }
 
 @end

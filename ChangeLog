@@ -1,3 +1,8 @@
+2002-10-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Create automatic references to protocols in
+	type specifications of the form (id<protocol1,protocol2,...>)
+
 2002-10-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSProcessInfo.m: Make safe to reinitialise with args.
