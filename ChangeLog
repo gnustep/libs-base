@@ -1,3 +1,9 @@
+2001-04-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: Tidied code a little, added safety checks for
+	usePseudoTerminal method.
+	* Documentation/gsdoc/NSTask.gsdoc: documentation fleshed out.
+
 2001-04-16  Adam Fedor  <fedor@gnu.org>
 
 	* aclocal.m4: Detect the xm2-config script.
