@@ -259,6 +259,8 @@
   Class	c;
   if (anObject == self)
     return YES;
+  if (anObject == nil)
+    return NO;
   c = fastClassOfInstance(anObject);
 
   if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString || c == _fastCls._NXConstantString)
@@ -288,6 +290,10 @@
 {
   Class	c;
 
+  if (aString == self)
+    return YES;
+  if (aString == nil)
+    return NO;
   c = fastClassOfInstance(aString);
   if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString || c == _fastCls._NXConstantString)
     {

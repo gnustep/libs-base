@@ -67,6 +67,8 @@
   Class	c;
   if (anObject == self)
     return YES;
+  if (anObject == nil)
+    return NO;
   c = fastClassOfInstance(anObject);
   if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
     {
