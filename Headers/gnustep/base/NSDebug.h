@@ -48,7 +48,7 @@ extern int	errno;
  *
  *	GSDebugAllocationList()
  *		Returns a newline separated list of the classes which
- *		have nstances allocated, and the instance counts.
+ *		have instances allocated, and the instance counts.
  *		If 'changeFlag' is YES then the list gives the number
  *		of instances allocated/deallocated sine the function
  *		was last called.
@@ -61,6 +61,11 @@ extern	void		GSDebugAllocationRemove(Class c);
 extern	BOOL		GSDebugAllocationActive(BOOL active);
 extern	int		GSDebugAllocationCount(Class c);
 extern	const char*	GSDebugAllocationList(BOOL changeFlag);
+
+extern	NSString*	GSDebugFunctionMsg(const char *func, const char *file,
+				int line, NSString *fmt);
+extern	NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
+				int line, NSString *fmt);
 #endif
 
 
@@ -90,6 +95,13 @@ extern	const char*	GSDebugAllocationList(BOOL changeFlag);
    You can also change the active debug levels under your programs control -
    NSProcessInfo has a [-debugSet] method that returns the mutable set that
    contains the active debug levels - your program can modify this set.
+
+   As a convenience, there are four more logging macros you can use -
+   NSDebugFLog(), NSDebugFLLog(), NSDebugMLog() and NSDebugMLLog().
+   These are the same as the other macros, but are specifically for use in
+   either functions or methods and prepend information about the file, line
+   and either function or class/method in which the message was generated.
+
  */
 #ifdef DEBUG
 #include	<Foundation/NSObjCRuntime.h>
@@ -100,9 +112,33 @@ extern	const char*	GSDebugAllocationList(BOOL changeFlag);
 #define NSDebugLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) \
     NSLog(format, ## args); } while (0)
+#define NSDebugFLLog(level, format, args...) \
+  do { if (GSDebugSet(level) == YES) { \
+    NSString *fmt = GSDebugFunctionMsg( \
+	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+    NSLog(fmt, ## args); }} while (0)
+#define NSDebugFLog(format, args...) \
+  do { if (GSDebugSet(@"dflt") == YES) { \
+    NSString *fmt = GSDebugFunctionMsg( \
+	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+    NSLog(fmt, ## args); }} while (0)
+#define NSDebugMLLog(level, format, args...) \
+  do { if (GSDebugSet(level) == YES) { \
+    NSString *fmt = GSDebugMethodMsg( \
+	self, _cmd, __FILE__, __LINE__, format); \
+    NSLog(fmt, ## args); }} while (0)
+#define NSDebugMLog(format, args...) \
+  do { if (GSDebugSet(@"dflt") == YES) { \
+    NSString *fmt = GSDebugMethodMsg( \
+	self, _cmd, __FILE__, __LINE__, format); \
+    NSLog(fmt, ## args); }} while (0)
 #else
 #define NSDebugLLog(level, format, args...)
 #define NSDebugLog(format, args...)
+#define NSDebugFLLog(level, format, args...)
+#define NSDebugFLog(format, args...)
+#define NSDebugMLLog(level, format, args...)
+#define NSDebugMLog(format, args...)
 #endif
 
 #endif

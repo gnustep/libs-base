@@ -294,7 +294,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       if ([s hasSuffix: @"_obj"])
 	path = [path stringByDeletingLastPathComponent];
 
-      NSDebugLLog(@"NSBundle", @"(NSBundle): Found main in %@\n", path);
+      NSDebugMLLog(@"NSBundle", @"Found main in %@\n", path);
       /* We do alloc and init separately so initWithPath: knows
           we are the _mainBundle */
       _mainBundle = [NSBundle alloc];
@@ -377,7 +377,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
   if (stat([path cString], &statbuf) != 0) 
     {
-      NSDebugLLog(@"NSBundle", @"Could not access path %s for bundle", [path cString]);
+      NSDebugMLLog(@"NSBundle", @"Could not access path %s for bundle", [path cString]);
       //[self dealloc];
       //return nil;
     }
