@@ -391,7 +391,6 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 - (GSRunLoopWatcher*) _getWatcher: (void*)data
 			     type: (RunLoopEventType)type
 			  forMode: (NSString*)mode;
-- (NSMutableArray*) _performers;
 - (void) _removeWatcher: (void*)data
 		   type: (RunLoopEventType)type
 		forMode: (NSString*)mode;
@@ -500,6 +499,68 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 	}
     }
 }
+
+- (GSRunLoopWatcher*) _getWatcher: (void*)data
+			     type: (RunLoopEventType)type
+			  forMode: (NSString*)mode
+{
+  GSIArray		watchers;
+
+  if (mode == nil)
+    {
+      mode = _current_mode;
+    }
+
+  watchers = NSMapGet(_mode_2_watchers, mode);
+  if (watchers)
+    {
+      unsigned		i = GSIArrayCount(watchers);
+
+      while (i-- > 0)
+	{
+	  GSRunLoopWatcher	*info;
+
+	  info = GSIArrayItemAtIndex(watchers, i).obj;
+	  if (info->type == type && info->data == data)
+	    {
+	      return info;
+	    }
+	}
+    }
+  return nil;
+}
+
+- (void) _removeWatcher: (void*)data
+                   type: (RunLoopEventType)type
+                forMode: (NSString*)mode
+{
+  GSIArray	watchers;
+
+  if (mode == nil)
+    {
+      mode = _current_mode;
+    }
+
+  watchers = NSMapGet(_mode_2_watchers, mode);
+  if (watchers)
+    {
+      unsigned	i = GSIArrayCount(watchers);
+
+      while (i-- > 0)
+	{
+	  GSRunLoopWatcher	*info;
+
+	  info = GSIArrayItemAtIndex(watchers, i).obj;
+	  if (info->type == type && info->data == data)
+	    {
+	      info->_invalidated = YES;
+	      GSIArrayRemoveItemAtIndex(watchers, i);
+	    }
+	}
+    }
+}
+
+@end
 
 
 @implementation NSRunLoop(GNUstepExtensions)
@@ -949,69 +1010,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   return when;
 }
 
-- (GSRunLoopWatcher*) _getWatcher: (void*)data
-			     type: (RunLoopEventType)type
-			  forMode: (NSString*)mode
-{
-  GSIArray		watchers;
-
-  if (mode == nil)
-    {
-      mode = _current_mode;
-    }
-
-  watchers = NSMapGet(_mode_2_watchers, mode);
-  if (watchers)
-    {
-      unsigned		i = GSIArrayCount(watchers);
-
-      while (i-- > 0)
-	{
-	  GSRunLoopWatcher	*info;
-
-	  info = GSIArrayItemAtIndex(watchers, i).obj;
-	  if (info->type == type && info->data == data)
-	    {
-	      return info;
-	    }
-	}
-    }
-  return nil;
-}
-
-- (void) _removeWatcher: (void*)data
-                   type: (RunLoopEventType)type
-                forMode: (NSString*)mode
-{
-  GSIArray	watchers;
-
-  if (mode == nil)
-    {
-      mode = _current_mode;
-    }
-
-  watchers = NSMapGet(_mode_2_watchers, mode);
-  if (watchers)
-    {
-      unsigned	i = GSIArrayCount(watchers);
-
-      while (i-- > 0)
-	{
-	  GSRunLoopWatcher	*info;
-
-	  info = GSIArrayItemAtIndex(watchers, i).obj;
-	  if (info->type == type && info->data == data)
-	    {
-	      info->_invalidated = YES;
-	      GSIArrayRemoveItemAtIndex(watchers, i);
-	    }
-	}
-    }
-}
-
-
-
-
 /* Listen to input sources.
    If LIMIT_DATE is nil, then don't wait; i.e. call select() with 0 timeout */
 
@@ -1158,7 +1156,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 		      int port_fd_count = 128; // xxx #define this constant
 		      int port_fd_array[port_fd_count];
 
-		      if ([port respondsTo: @selector(getFds:count:)])
+		      if ([port respondsToSelector: @selector(getFds:count:)])
 			[port getFds: port_fd_array count: &port_fd_count];
 		      if (debug_run_loop)
 			printf("\tNSRunLoop listening to %d sockets\n",
