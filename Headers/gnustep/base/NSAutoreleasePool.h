@@ -1,9 +1,6 @@
 /* Interface for NSAutoreleasePool for GNUStep
    Copyright (C) 1994 NeXT Computer, Inc.
    
-   Typed by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: August 1994
-   
    This file is part of the GNU Objective C Class Library.
 
    This library is free software; you can redistribute it and/or

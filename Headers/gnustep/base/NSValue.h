@@ -1,12 +1,25 @@
-/* 
-    NSValue.h - Object encapsulation for C types.
-    
-    Copyright 1994 NeXT, Inc. All rights reserved.
+/* Interface for NSArray for GNUStep
+   Copyright (C) 1994 NeXT Computer, Inc.
+   
+   This file is part of the GNU Objective C Class Library.
 
- */
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+   
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   */ 
 
-#ifndef __NSValue_INCLUDE_GNU_
-#define __NSValue_INCLUDE_GNU_
+#ifndef __NSValue_h_OBJECTS_INCLUDE
+#define __NSValue_h_OBJECTS_INCLUDE
 
 #include <foundation/NSObject.h>
 #include <foundation/NSGeometry.h>
@@ -14,34 +27,29 @@
 @class NSString;
 
 @interface NSValue : NSObject <NSCopying, NSCoding>
-{
-    void		*_dataptr;
-    NSString		*objctype;
-}
 
 // Allocating and Initializing 
 
-+ (NSValue *)value:(const void *)value
-      withObjCType:(const char *)type;
-+ (NSValue *)valueWithNonretainedObject: (id)anObject;
-+ (NSValue *)valueWithPoint:(NSPoint)point;
-+ (NSValue *)valueWithPointer:(const void *)pointer;
-+ (NSValue *)valueWithRect:(NSRect)rect;
-+ (NSValue *)valueWithSize:(NSSize)size;
++ (NSValue*) value: (const void*)value withObjCType: (const char*)type;
++ (NSValue*) valueWithNonretainedObject: (id)anObject;
++ (NSValue*) valueWithPoint: (NSPoint)point;
++ (NSValue*) valueWithPointer: (const void*)pointer;
++ (NSValue*) valueWithRect: (NSRect)rect;
++ (NSValue*) valueWithSize: (NSSize)size;
 
 /* Note: not in OpenStep specification */
-- initValue:(const void *)value
-      withObjCType:(const char *)type;
+- initValue: (const void*)value
+      withObjCType: (const char*)type;
 
 // Accessing Data 
 
-- (void)getValue:(void *)value;
-- (const char *)objCType;
-- (id)nonretainedObjectValue;
-- (void *)pointerValue;
-- (NSRect)rectValue;
-- (NSSize)sizeValue;
-- (NSPoint)pointValue;
+- (void) getValue: (void*)value;
+- (const char*) objCType;
+- (id) nonretainedObjectValue;
+- (void*) pointerValue;
+- (NSRect) rectValue;
+- (NSSize) sizeValue;
+- (NSPoint) pointValue;
 
 @end
 
@@ -51,38 +59,39 @@
 
 // Allocating and Initializing
 
-+ (NSNumber *)numberWithBool:(BOOL)value; 
-+ (NSNumber *)numberWithChar:(char)value;
-+ (NSNumber *)numberWithDouble:(double)value;
-+ (NSNumber *)numberWithFloat:(float)value;
-+ (NSNumber *)numberWithInt:(int)value;
-+ (NSNumber *)numberWithLong:(long)value;
-+ (NSNumber *)numberWithLongLong:(long long)value;
-+ (NSNumber *)numberWithShort:(short)value;
-+ (NSNumber *)numberWithUnsignedChar:(unsigned char)value;
-+ (NSNumber *)numberWithUnsignedInt:(unsigned int)value;
-+ (NSNumber *)numberWithUnsignedLong:(unsigned long)value;
-+ (NSNumber *)numberWithUnsignedLongLong:(unsigned long long)value;
-+ (NSNumber *)numberWithUnsignedShort:(unsigned short)value;
++ (NSNumber*) numberWithBool: (BOOL)value; 
++ (NSNumber*) numberWithChar: (char)value;
++ (NSNumber*) numberWithDouble: (double)value;
++ (NSNumber*) numberWithFloat: (float)value;
++ (NSNumber*) numberWithInt: (int)value;
++ (NSNumber*) numberWithLong: (long)value;
++ (NSNumber*) numberWithLongLong: (long long)value;
++ (NSNumber*) numberWithShort: (short)value;
++ (NSNumber*) numberWithUnsignedChar: (unsigned char)value;
++ (NSNumber*) numberWithUnsignedInt: (unsigned int)value;
++ (NSNumber*) numberWithUnsignedLong: (unsigned long)value;
++ (NSNumber*) numberWithUnsignedLongLong: (unsigned long long)value;
++ (NSNumber*) numberWithUnsignedShort: (unsigned short)value;
 
 // Accessing Data 
 
-- (BOOL)boolValue;
-- (char)charValue;
-- (double)doubleValue;
-- (float)floatValue;
-- (int)intValue;
-- (long long)longLongValue;
-- (long)longValue;
-- (short)shortValue;
-- (NSString *)stringValue;
-- (unsigned char)unsignedCharValue;
-- (unsigned int)unsignedIntValue;
-- (unsigned long long)unsignedLongLongValue;
-- (unsigned long)unsignedLongValue;
-- (unsigned short)unsignedShortValue;
+- (BOOL) boolValue;
+- (char) charValue;
+- (double) doubleValue;
+- (float) floatValue;
+- (int) intValue;
+- (long long) longLongValue;
+- (long) longValue;
+- (short) shortValue;
+- (NSString*) stringValue;
+- (unsigned char) unsignedCharValue;
+- (unsigned int) unsignedIntValue;
+- (unsigned long long) unsignedLongLongValue;
+- (unsigned long) unsignedLongValue;
+- (unsigned short) unsignedShortValue;
 
-- (NSComparisonResult)compare:(NSNumber *)otherNumber;
+- (NSComparisonResult) compare: (NSNumber*)otherNumber;
 
 @end
-#endif
+
+#endif /* __NSValue_h_OBJECTS_INCLUDE */

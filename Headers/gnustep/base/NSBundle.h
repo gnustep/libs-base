@@ -1,17 +1,25 @@
-/* Interface for NSBundle class
- *
- * Copyright (C)  1993  The Board of Trustees of  
- * The Leland Stanford Junior University.  All Rights Reserved.
- *
- * Authors: Adam Fedor, Scott Francis and Paul Kunz
- *
- * This file is part of an Objective-C class library for X/Motif
- *
- * NSBundle.h,v 1.9 1993/10/20 00:44:51 pfkeb Exp
- */
+/* Interface for NSBundle for GNUStep
+   Copyright (C) 1994 NeXT Computer, Inc.
+   
+   This file is part of the GNU Objective C Class Library.
 
-#ifndef _NS_Bundle_h_
-#define _NS_Bundle_h_
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+   
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   */ 
+
+#ifndef __NSBundle_h_OBJECTS_INCLUDE
+#define __NSBundle_h_OBJECTS_INCLUDE
 
 #include <foundation/NSObject.h>
 
@@ -55,4 +63,4 @@
 
 @end
 
-#endif	/* _NS_Bundle_h_ */
+#endif	/* __NSBundle_h_OBJECTS_INCLUDE */
