@@ -487,6 +487,13 @@ include/NSValue.h \
 include/NSZone.h \
 include/objc-load.h
 
+UNICODE_HEADERS = \
+unicode/caseconv.h \
+unicode/cop.h \
+unicode/cyrillic.h \
+unicode/decomp.h \
+unicode/nextstep.h
+
 HEADERS_INSTALL = @HEADERS_INSTALL@ \
                   include/preface.h \
                   include/config.h
@@ -509,7 +516,8 @@ DIST_FILES = \
         $(GNUSTEP_MFILES) \
         $(GNUSTEP_CFILES) \
         $(GNUSTEP_HEADERS) \
-        $(GNUSTEP_OTHER_SRCFILES)
+        $(GNUSTEP_OTHER_SRCFILES) \
+	$(UNICODE_HEADERS)
 
 
 # Targets
@@ -709,6 +717,7 @@ copy-dist: $(DIST_FILES)
 	mkdir ../snap/src
 	mkdir ../snap/src/include
 	mkdir ../snap/src/objc
+	mkdir ../snap/src/unicode
 	for file in $(DIST_FILES); do \
 	  ln $$file ../snap/src/$$file ; \
 	done
