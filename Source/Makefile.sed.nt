@@ -2,8 +2,8 @@ s/@configure_input@/ Generated from Makefile.in by configure.bat/
 s/@srcdir@/./
 s/@prefix@/$(MB_DEV)/
 s/@exec_prefix@/$(prefix)/
-s/libdir = $(exec_prefix)\/lib/libdir = $(MB_DEV)\/$(MB_LIB)/
-s/includedir = $(prefix)\/include/includedir = $(MB_DEV)\/$(MB_H)\/$(MB_OS)/
+s/libdir = $(exec_prefix)\/lib/libdir = $(exec_prefix)\\$(MB_LIB)/
+s/includedir = $(prefix)\/include/includedir = $(prefix)\\$(MB_H)\\$(MB_OS)/
 s/CC = @CC@ -pipe/CC = gcc -fgnu-runtime/
 s/@RANLIB@/touch/
 s/@INSTALL@/cp/
@@ -19,20 +19,23 @@ s/LEXFLAGS =/LEXFLAGS = -L/
 s/EXEEXT =/EXEEXT = .exe/
 s/OEXT = .o/OEXT = .obj/
 s/LIBEXT = .a/LIBEXT = .lib/
-s/@DEFS@/-DSTDC_HEADERS=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_TIMES=1 -DHAVE_VSPRINTF=1 -Dvm_page_size=4096 -D__MS_WIN32__\
+s/@DEFS@/-D__MS_WIN32__\
 \
 ##################################################################\
 #\
 # NT specifics\
 #\
 WIN32_GCC_INCLUDE = \
-INIT_FILE = init_gnustep_base_runtime\
+INIT_FILE = gnustep_base_init_runtime\
 INIT_FILE_OBJ = $(INIT_FILE)$(OEXT)/
 s/@DYNAMIC_LINKER@/null/
 s/@NEXT_INCLUDES@//
 s/@HEADERS_INSTALL@/$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)/
 s/@OBJS_INSTALL@/$(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS)/
 s/@LIBOBJECTS_SO@//
+/lex.pl.m: proplist.l proplist.tab.h/,/proplist.l > $@/c\
+lex.pl.m: proplist.l proplist.tab.h\
+	touch lex.pl.m
 /lib$(LIBRARY_NAME)$(LIBEXT):/,/$(RANLIB) lib$(LIBRARY_NAME)$(LIBEXT)/c\
 lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) $(INIT_FILE_OBJ)\
 	$(AR) $(ARFLAGS) $(AROUT)lib1$(LIBEXT) $(GNU_OBJS)\
@@ -80,9 +83,9 @@ GNUSTEP_OBJS = \\\
         $(NSVALUE_OFILES) $(NSNUMBER_OFILES)
 /installdirs:/,/$(includedir)\/Foundation/c\
 installdirs:\
-	IF NOT EXIST $(MB_DEV)\\$(MB_H)\\$(MB_OS)\\gnustep mkdir $(MB_DEV)\\$(MB_H)\\$(MB_OS)\\gnustep\
-	IF NOT EXIST $(MB_DEV)\\$(MB_H)\\$(MB_OS)\\gnustep\\base mkdir $(MB_DEV)\\$(MB_H)\\$(MB_OS)\\gnustep\\base\
-	IF NOT EXIST $(MB_DEV)\\$(MB_H)\\$(MB_OS)\\objc mkdir $(MB_DEV)\\$(MB_H)\\$(MB_OS)\\objc
+	IF NOT EXIST $(includedir)\\gnustep mkdir $(includedir)\\gnustep\
+	IF NOT EXIST $(includedir)\\gnustep\\base mkdir $(includedir)\\gnustep\\base\
+	IF NOT EXIST $(includedir)\\objc mkdir $(includedir)\\objc
 /install: installdirs all/,/cd $(includedir)\/objc; rm -f README/c\
 $(INIT_FILE_OBJ): $(OBJS_INSTALL)\
 	nm $(GNU_OBJS) | grep "  __GLOBAL_" > tmpinit.c\
@@ -92,30 +95,40 @@ $(INIT_FILE_OBJ): $(OBJS_INSTALL)\
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $(INIT_FILE).c\
 	rm tmpinit.c\
 \
+uninstall:\
+	rm -f $(libdir)\/lib$(LIBRARY_NAME)$(LIBEXT)\
+	rm -f $(libdir)\/lib$(LIBRARY_NAME)-dll$(LIBEXT)\
+	rm -f $(prefix)\/$(MB_BIN)\/lib$(LIBRARY_NAME).dll\
+	rm -rf $(includedir)\/gnustep/base\
+	rm -rf $(includedir)\/Foundation\
+	for %i in ( ${NEXTSTEP_HEADERS} ) do \\\
+	  rm -f $(includedir)/%i\
+\
 lib$(LIBRARY_NAME)-dll$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) $(INIT_LIB_OBJ) lib$(LIBRARY_NAME).def\
 	lib -machine:i386 -def:lib$(LIBRARY_NAME).def \\\
 		lib$(LIBRARY_NAME)$(LIBEXT) \\\
 		-out:lib$(LIBRARY_NAME)-dll$(LIBEXT)\
 \
-lib$(LIBRARY_NAME).dll: $(HEADERS_INSTALL) $(OBJS_INSTALL) $(INIT_LIB_OBJ) lib$(LIBRARY_NAME)-dll$(LIBEXT) lib$(LIBRARY_NAME)-entry$(OEXT)\
+lib$(LIBRARY_NAME).dll: $(HEADERS_INSTALL) $(OBJS_INSTALL) $(INIT_LIB_OBJ) lib$(LIBRARY_NAME)-dll$(LIBEXT) win32-entry$(OEXT)\
 	link -out:lib$(LIBRARY_NAME).dll $(DLLFLAGS) \\\
 		lib$(LIBRARY_NAME)-dll.exp \\\
 		lib$(LIBRARY_NAME)$(LIBEXT) \\\
-		lib$(LIBRARY_NAME)-entry$(OEXT) libgcc.lib libobjc.lib \\\
-		libcmt.lib oldnames.lib user32.lib kernel32.lib wsock32.lib\
+		win32-entry$(OEXT) libgcc.lib libobjc.lib \\\
+		libcmt.lib oldnames.lib user32.lib kernel32.lib wsock32.lib \\\
+		advapi32.lib\
 \
 lib$(LIBRARY_NAME).def: lib$(LIBRARY_NAME)$(LIBEXT)\
 	nm libgnustep-base.lib | grep "g e" | grep ".text" | gawk "{print $$6}" | gawk "{print substr($$1,2,length($$1)-1)}" > libgnustep-base.lst\
-	cat libgnustep-base.top libgnustep-base.lst > libgnustep-base.def\
+	cat win32-def.top libgnustep-base.lst > libgnustep-base.def\
 	rm libgnustep-base.lst\
 \
-lib$(LIBRARY_NAME)-entry$(OEXT): lib$(LIBRARY_NAME)-entry.c\
+win32-entry$(OEXT): win32-entry.c\
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -o $*$(OEXT) $<\
 \
 install: installdirs all\
 	$(INSTALL_DATA) lib$(LIBRARY_NAME)$(LIBEXT) $(libdir)\
 	$(INSTALL_DATA) lib$(LIBRARY_NAME)-dll$(LIBEXT) $(libdir)\
-	$(INSTALL_DATA) lib$(LIBRARY_NAME).dll $(MB_DEV)/$(MB_BIN)\
+	$(INSTALL_DATA) lib$(LIBRARY_NAME).dll $(prefix)/$(MB_BIN)\
 	$(INSTALL_DATA) $(srcdir)/gnustep/base/*.h $(includedir)/gnustep/base\
 	$(INSTALL_DATA) $(srcdir)/objc/*.h $(includedir)/objc\
 	$(INSTALL_DATA) include/config.h $(includedir)/gnustep/base/config.h\
@@ -124,22 +137,22 @@ install: installdirs all\
 	for %i in ( ${NEXTSTEP_HEADERS} ) do \\\
 	  rm -f $(includedir)/%i
 /gnustep\/base:/,/ln -s $(srcdir)\/include Foundation/c\
-gnustep/base: FORCE\
+gnustep/base: include\/preface.h\
 	-rm -rf gnustep\
 	-mkdir gnustep\
 	-mkdir gnustep\\base\
-	cp include/* gnustep/base\
+	-cp -rf include/* gnustep/base\
 # This deletion is necessary, because the CVS repository contains\
 # an emtpy `Foundation' directory that used to hold the OpenStep headers.\
 Foundation: FORCE\
 	-rm -rf Foundation\
 	-mkdir Foundation\
-	cp include/* Foundation
+	-cp -rf include/* Foundation
 /clean: mostlyclean/,/rm -f dynamic-load.h/c\
 clean: mostlyclean\
-	rm -f lib$(LIBRARY_NAME)$(LIBEXT) *${OEXT}\
+	rm -f lib$(LIBRARY_NAME)$(LIBEXT) lib$(LIBRARY_NAME).dll *${OEXT}\
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)\
-	rm -f init_gnustep_base_runtime.c\
+	rm -f gnustep_base_init_runtime.*\
 	rm -f libgnustep-base-dll.*\
 	rm -f libgnustep-base.def\
 distclean: clean\
@@ -148,108 +161,3 @@ distclean: clean\
 	rm -rf gnustep\
 	rm -rf Foundation\
 	rm -f dynamic-load.h
-s/@configure_input@/ Generated from Makefile.in by configure.bat/
-s/@srcdir@/./
-s/@prefix@/\/MB\/Headers/
-s/@exec_prefix@/$(prefix)/
-s/libdir = $(exec_prefix)\/lib/libdir = \/MB\/Libraries/
-s/includedir = $(prefix)\/include/includedir = \/MB\/Headers/
-s/@CC@/gcc -fgnu-runtime/
-s/@RANLIB@/touch/
-s/@INSTALL@/cp/
-s/@INSTALL_PROGRAM@/$(INSTALL)/
-s/@INSTALL_DATA@/$(INSTALL)/
-s/AR = ar/AR = lib/
-s/ARFLAGS = rc/ARFLAGS = /
-s/AROUT =/AROUT = -out:/
-s/@LN_S@/cp/
-s/CFLAGS = -Wno-implicit -g -O/CFLAGS = -Wno-implicit -O/
-s/LEXFLAGS =/LEXFLAGS = -L/
-s/EXEEXT =/EXEEXT = .exe/
-s/OEXT = .o/OEXT = .obj/
-s/LIBEXT = .a/LIBEXT = .lib/
-s/@DEFS@/-DSTDC_HEADERS=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_TIMES=1 -DHAVE_VSPRINTF=1 -Dvm_page_size=4096\
-\
-##################################################################\
-#\
-# NT specifics\
-#\
-WIN32_GCC_INCLUDE = \
-INIT_FILE = init_libObjects\
-INIT_FILE_OBJ = $(INIT_FILE)$(OEXT)/
-s/@DYNAMIC_LINKER@/null/
-s/@NEXT_INCLUDES@//
-s/@HEADERS_INSTALL@/$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)/
-s/@OBJS_INSTALL@/$(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS)/
-s/@LIBOBJECTS_SO@//
-s/libobjects$(LIBEXT): objects\/stdobjects.h $(OBJS_INSTALL)/libobjects$(LIBEXT): objects\/stdobjects.h $(OBJS_INSTALL) $(INIT_FILE_OBJ)/
-s/$(AR) $(ARFLAGS) $(AROUT)libobjects$(LIBEXT) $(OBJS_INSTALL)/$(AR) $(ARFLAGS) $(AROUT)libobjects$(LIBEXT) $(OBJS_INSTALL) $(INIT_FILE_OBJ)/
-/NSVALUE_MFILES =/c\
-NSVALUE_CLUSTER = 0 1 2 3 4 \
-NSVALUE_OFILES  = \\\
-	NSValue0$(OEXT) NSValue1$(OEXT) NSValue2$(OEXT) NSValue3$(OEXT) \\\
-	NSValue4$(OEXT) \
-NSVALUE_MFILES = \\
-/NSNUMBER_MFILES =/c\
-NSNUMBER_CLUSTER = 0 1 2 3 4 5 6 7 8 9 10 11 12 \
-NSNUMBER_OFILES  = \\\
-	NSNumber0$(OEXT) NSNumber1$(OEXT) NSNumber2$(OEXT) \\\
-	NSNumber3$(OEXT) NSNumber4$(OEXT) NSNumber5$(OEXT) \\\
-	NSNumber6$(OEXT) NSNumber7$(OEXT) NSNumber8$(OEXT) \\\
-	NSNumber9$(OEXT) NSNumber10$(OEXT) NSNumber11$(OEXT) \\\
-	NSNumber12$(OEXT) \
-NSNUMBER_MFILES = \\
-/$(NSVALUE_MFILES) : NSCTemplateValue.m/,/cat $(srcdir)\/NSConcreteNumber/c\
-# Compilation of class clusters \
-$(NSVALUE_OFILES) : NSCTemplateValue.m \
-	for %i in ( ${NSVALUE_CLUSTER} ) do \\\
-	  ( cp NSCTemplateValue.m NSCTemplateValue%i.m & \\\
-	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \\\
-	        -DTYPE_ORDER=%i NSCTemplateValue%i.m \\\
-	        -o NSValue%i$(OEXT) & \\\
-	    rm -f NSCTemplateValue%i.m ) \
-\
-$(NSNUMBER_OFILES) : NSConcreteNumber.m \
-	for %i in ( ${NSNUMBER_CLUSTER} ) do \\\
-	  ( cp NSConcreteNumber.m NSConcreteNumber%i.m & \\\
-	    $(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) \\\
-	        -DTYPE_ORDER=%i -c NSConcreteNumber%i.m \\\
-	        -o NSNumber%i$(OEXT) & \\\
-	    rm -f NSConcreteNumber%i.m )
-/GNUSTEP_OBJS =/,/$(NSNUMBER_MFILES:.m=/c\
-GNUSTEP_OBJS = \\\
-        $(GNUSTEP_MFILES:.m=$(OEXT)) \\\
-        $(GNUSTEP_CFILES:.c=$(OEXT)) \\\
-        $(NSVALUE_OFILES) $(NSNUMBER_OFILES)
-/installdirs:/,/$(includedir)\/Foundation/c\
-installdirs:\
-	IF NOT EXIST \\MB\\Libraries mkdir \\MB\\Libraries\
-	IF NOT EXIST \\MB\\Headers\\Foundation mkdir \\MB\\Headers\\Foundation\
-	IF NOT EXIST \\MB\\Headers\\objects mkdir \\MB\\Headers\\objects\
-	IF NOT EXIST \\MB\\Headers\\objc mkdir \\MB\\Headers\\objc
-/install: installdirs all/,/cd $(includedir)\/objc; rm -f README/c\
-$(INIT_FILE_OBJ): $(OBJS_INSTALL)\
-	nm $(GNU_OBJS) | grep "  __GLOBAL_" > tmpinit.c\
-	nm $(GNUSTEP_OBJS) | grep "  __GLOBAL_" >> tmpinit.c\
-	nm $(NEXTSTEP_OBJS) | grep "  __GLOBAL_" >> tmpinit.c\
-	collect tmpinit.c $(INIT_FILE)\
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) $(INIT_FILE).c\
-	rm tmpinit.c\
-\
-install: installdirs all\
-	$(INSTALL_DATA) libobjects$(LIBEXT) $(libdir)\
-	$(RANLIB) $(libdir)/libobjects$(LIBEXT); \
-	for %i in ( ${GNUSTEP_HEADERS} ) do \\\
-	  $(INSTALL_DATA) $(srcdir)/%i $(includedir)/%i\
-	for %i in ( ${GNU_HEADERS} ) do \\\
-	  $(INSTALL_DATA) $(srcdir)/%i $(includedir)/%i\
-	for %i in ( ${NEXTSTEP_HEADERS} ) do \\\
-	  $(INSTALL_DATA) $(srcdir)/%i $(includedir)/%i\
-	$(INSTALL_DATA) objects/stdobjects.h $(includedir)/objects\
-	$(INSTALL_DATA) objects/config.h $(includedir)/objects\
-	$(INSTALL_DATA) $(srcdir)/objects/README $(includedir)/Foundation\
-	$(INSTALL_DATA) $(srcdir)/objects/README $(includedir)/objc
-/for file in $(NEXTSTEP_HEADERS); do/,/done/c\
-	for %i in ( ${NEXTSTEP_HEADERS} ) do \\\
-	  rm -f $(includedir)/%i
-

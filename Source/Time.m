@@ -31,9 +31,7 @@
 #endif
 
 #if HAVE_TIMES
-#ifndef __WIN32__
 #include <sys/times.h> 
-#endif /* !__WIN32__ */
 #endif /* HAVE_TIMES */
 
 /* There are several places where I need to deal with tz more intelligently */
@@ -172,6 +170,13 @@ id monthNames;
 #endif
   return ((long)((end_tms.tms_utime - start_tms.tms_utime + 
                 end_tms.tms_stime - start_tms.tms_stime) * 1000) / CLK_TCK); 
+#elif __WIN32__
+  DWORD start_tick, end_tick;
+
+  start_tick = GetTickCount();
+  (*aFunc)(); 
+  end_tick = GetTickCount();
+  return ((long)(end_tick - start_tick));
 #else 
   struct rusage start_ru, end_ru;
   
@@ -190,6 +195,8 @@ id monthNames;
 {
 #if HAVE_TIMES
   struct tms start_tms, end_tms; 
+#elif __WIN32__
+  DWORD start_tick, end_tick;
 #else 
   struct rusage start_ru, end_ru;
 #endif /* solaris */ 
@@ -199,6 +206,7 @@ id monthNames;
   times(&start_tms); 
   (*aFunc)(); 
   times(&end_tms); 
+#elif __WIN32__
 #else 
   getrusage(RUSAGE_SELF, &start_ru);
   (*aFunc)();

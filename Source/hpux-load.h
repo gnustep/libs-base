@@ -3,7 +3,6 @@
 
     Copyright (C) 1995, Adam Fedor.
 
-    $Id$
 */
 
 #ifndef __hpux_load_h_INCLUDE

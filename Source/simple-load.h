@@ -10,7 +10,6 @@
 	if there are undefined symbols. Later versions (e.g. 5.3) fix this
 	with RTLD_GLOBAL.
 
-    $Id$
 */
 
 #ifndef __sunos_load_h_INCLUDE

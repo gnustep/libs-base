@@ -3,7 +3,7 @@ s/@CC@/gcc -fgnu-runtime -D__MS_WIN32__/
 s/@DYNAMIC_BUNDLER_LINKER@//
 s/@DYNAMIC_LDFLAGS@//
 s/@DYNAMIC_CFLAGS@//
-s/LIBS = -L..\/src -l$(LIBRARY_NAME) @LIBOBJC@ @LIBS@ -lm/LIBS = ..\/src\/lib$(LIBRARY_NAME).lib libobjc.lib libgcc.lib libc.lib oldnames.lib user32.lib wsock32.lib/
+s/LIBS = -L..\/src -l$(LIBRARY_NAME) @LIBOBJC@ @LIBS@ -lm/LIBS = ..\/src\/lib$(LIBRARY_NAME).lib libobjc.lib libgcc.lib libc.lib oldnames.lib user32.lib advapi32.lib wsock32.lib/
 s/@NEXT_INCLUDES@//
 s/CFLAGS = -Wall -Wno-implicit -Wno-format -g -O/CFLAGS = -Wall -Wno-implicit -Wno-format -O/
 s/EXEEXT =/EXEEXT = .exe/

@@ -3,7 +3,6 @@
 
     Copyright (C) 1993, Adam Fedor.
     
-    $Id$
 */
 
 #ifndef __objc_load_h_INCLUDE
