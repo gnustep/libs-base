@@ -412,17 +412,10 @@ GSClassList(Class *buffer, unsigned int max, BOOL clearCache)
   return num;
 }
 
-/*
- *	NOTE - OBJC_VERSION needs to be defined to be the version of the
- *	Objective-C runtime you are using.  You can find this in the file
- *	'init.c' in the GNU objective-C runtime source.
- */
-#define	OBJC_VERSION	8
-
 /** references:
 http://www.macdevcenter.com/pub/a/mac/2002/05/31/runtime_parttwo.html?page=1
-http://developer.apple.com/techpubs/macosx/Cocoa/ObjectiveC/9objc_runtime_reference/_Adding_Classes.html
-http://developer.apple.com/techpubs/macosx/Cocoa/ObjectiveC/9objc_runtime_reference/_Class_Defi__Structures.html
+http://developer.apple.com/documentation/Cocoa/Conceptual/ObjectiveC/9objc_runtime_reference/chapter_5_section_1.html
+http://developer.apple.com/documentation/Cocoa/Conceptual/ObjectiveC/9objc_runtime_reference/chapter_5_section_21.html
 ObjcRuntimeUtilities.m by Nicola Pero
 **/
 
@@ -567,6 +560,13 @@ GSObjCAddClasses(NSArray *classes)
     }
 }
 #else
+/*
+ *	NOTE - OBJC_VERSION needs to be defined to be the version of the
+ *	Objective-C runtime you are using.  You can find this in the file
+ *	'init.c' in the GNU objective-C runtime source.
+ */
+#define	OBJC_VERSION	8
+
 void
 GSObjCAddClasses(NSArray *classes)
 {

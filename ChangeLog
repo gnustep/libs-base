@@ -2,6 +2,8 @@
 
 	* Source/Additions/GSObjCRuntime.m (BDBGPrintf) New macro.
 	(GSObjCAddClassBehavior, GSObjCAddMethods): Use new macro.
+	(OBJC_VERSION): Move define to where it is needed.
+	(Runtime documenation references): Update links.
 	
 	* Source/GSSet.m (-[GSMutableSet unionSet:]): Remove redundant
 	test.
