@@ -41,6 +41,7 @@
   [self init];
   while (c--)
     [self prependObject: objs[c]];
+  return self;
 }
 
 /* Archiving must mimic the above designated initializer */
