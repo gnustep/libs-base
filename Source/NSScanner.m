@@ -149,7 +149,7 @@ typedef struct {
 	{
 	  _isUnicode = NO;
 	  _string = [GSCString_class allocWithZone: NSDefaultMallocZone()];
-	  _string = [_string initWithCString: ((ivars)aString)->_contents.u
+	  _string = [_string initWithCString: ((ivars)aString)->_contents.c
 				      length: ((ivars)aString)->_count];
 	}
     }
