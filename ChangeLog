@@ -1,3 +1,7 @@
+2000-02-17  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 0.6.5 released.
+
 2000-02-16  Adam Fedor  <fedor@gnu.org>
 
 	* gnustep-base.spec: Newfile
