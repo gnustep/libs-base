@@ -214,7 +214,7 @@ static Class NSMutableArray_concrete_class;
   for (i = 0; i < c; i++)
     if (anObject == [self objectAtIndex:i])
       return i;
-  return UINT_MAX;
+  return NSNotFound;
 }
 
 /* Inefficient, should be overridden. */
@@ -224,12 +224,12 @@ static Class NSMutableArray_concrete_class;
   for (i = 0; i < c; i++)
     if ([[self objectAtIndex:i] isEqual: anObject])
       return i;
-  return UINT_MAX;
+  return NSNotFound;
 }
 
 - (BOOL) containsObject: anObject
 {
-  return ([self indexOfObject:anObject] != UINT_MAX);
+  return ([self indexOfObject:anObject] != NSNotFound);
 }
 
 - (BOOL) isEqual: anObject
@@ -434,14 +434,14 @@ static Class NSMutableArray_concrete_class;
 - (void) removeObjectIdenticalTo: anObject
 {
   int i = [self indexOfObjectIdenticalTo:anObject];
-  assert (i != UINT_MAX);	/* xxx should raise an NSException instead */
+  assert (i != NSNotFound);	/* xxx should raise an NSException instead */
   [self removeObjectAtIndex:i];
 }
 
 - (void) removeObject: anObject
 {
   int i = [self indexOfObject:anObject];
-  assert (i != UINT_MAX);	/* xxx should raise an NSException instead */
+  assert (i != NSNotFound);	/* xxx should raise an NSException instead */
   [self removeObjectAtIndex:i];
 }
 

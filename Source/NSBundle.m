@@ -281,6 +281,17 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	/* NOT REACHED */
     }
 
+   /* Check if we were already initialized for this directory */
+    if (_bundles) {
+        int i;
+        int count;
+        count = [_bundles count];
+        for (i=0; i < count; i++) {
+            if ([path isEqual:[[_bundles objectAtIndex:i] bundlePath]])
+                return [_bundles objectAtIndex:i];
+        }
+    }
+
     if (stat([path cString], &statbuf) != 0) {
     	[NSException raise:NSGenericException
 		format:@"Could not find path %s", [path cString]];
