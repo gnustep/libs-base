@@ -21,14 +21,12 @@
 #ifndef __NSArray_h_OBJECTS_INCLUDE
 #define __NSArray_h_OBJECTS_INCLUDE
 
-#include <objects/Array.h>
+#include <objects/stdobjects.h>
 #include <foundation/NSRange.h>
 
 @class NSString;
 
-enum {NSNotInArray = 0x7fffffff}; // to be obsoleted soon
-
-@interface NSArray: Array 
+@interface NSArray: NSObject
 
 + allocWithZone:(NSZone *)zone;
 + array;
