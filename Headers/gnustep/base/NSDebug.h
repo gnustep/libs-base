@@ -67,23 +67,38 @@ extern	const char*	GSDebugAllocationList(BOOL changeFlag);
 /* Debug logging which can be enabled/disabled by defining DEBUG
    when compiling and also setting values in the mutable array
    that is set up by NSProcessInfo.
-   This array is initialised by NSProcess info using the
-    '--GNU-Debug=...' command line argument.  Each command-line argument
-   of that form is removed from NSProcessInfos list of arguments and the
-   variable part (...) is added to the array.
+
+   NB. The 'debug=yes' option is understood by the GNUstep make package
+   to mean that DEBUG should be defined, so you don't need to go editing
+   your makefiles to do it.
+
+   NSProcess initialises a set of strings that are the names of active
+   debug levels using the '--GNU-Debug=...' command line argument.
+   Each command-line argument of that form is removed from NSProcessInfos
+   list of arguments and the variable part (...) is added to the set.
+
    For instance, to debug the NSBundle class, run your program with 
     '--GNU-Debug=NSBundle'
    You can of course supply multiple '--GNU-Debug=...' arguments to
    output debug information on more than one thing.
+
+   To embed debug logging in your code you use the NSDebugLLog() or
+   NSDebugLog() macro.  NSDebugLog() is just NSDebugLLog() with the debug
+   level set to 'dflt'.  So, to activate debug statements that use
+   NSDebugLog(), you supply the '--GNU-Debug=dflt' argument to your program.
+
+   You can also change the active debug levels under your programs control -
+   NSProcessInfo has a [-debugSet] method that returns the mutable set that
+   contains the active debug levels - your program can modify this set.
  */
 #ifdef DEBUG
-#include	<Foundation/NSDebug.h>
+#include	<Foundation/NSObjCRuntime.h>
 #include	<Foundation/NSProcessInfo.h>
 #define NSDebugLLog(level, format, args...) \
-  do { if ([[[NSProcessInfo processInfo] debugArray] containsObject: level]) \
+  do { if (GSDebugSet(level) == YES) \
     NSLog(format, ## args); } while (0)
 #define NSDebugLog(format, args...) \
-  do { if ([[[NSProcessInfo processInfo] debugArray] containsObject: @"dflt"]) \
+  do { if (GSDebugSet(@"dflt") == YES) \
     NSLog(format, ## args); } while (0)
 #else
 #define NSDebugLLog(level, format, args...)
