@@ -18,7 +18,7 @@ struct myarray {
   int a[3];
 };
 
-#define ADD_CONST 129
+#define ADD_CONST 47
  
 @protocol ServerProtocol 
 - (BOOL) sendBoolean: (BOOL)b;
