@@ -43,7 +43,7 @@ RCS_FILES = \
 
 DIST_FILES = \
 	$(RCS_FILES) \
-	README.ULTRIX README.foundation \
+	README.ULTRIX README.foundation STATUS \
 	COPYING COPYING.LIB ChangeLog \
 	configure Version \
 	config.guess mkinstalldirs install-sh \
