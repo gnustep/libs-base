@@ -1,3 +1,7 @@
+2001-01-30  Michael Hanni  <mhanni@sprintmail.com>
+
+	* Source/.cvsignore: tweaked to cover a few more items.
+
 2001-01-30  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* gnustep-base.script.spec.in: Fixed, tidied.
