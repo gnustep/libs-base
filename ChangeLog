@@ -4,6 +4,8 @@
 	* Source/NSThread.m: Revise scheme for deallocation of thread
 	dictionary ... keep it operating to avoid problems with stuff
 	trying to use it while deing deallocated.  Log memory leaks.
+	* Source/NSRunLoop.m: ([+currentRunLoop]) return nil if there is
+	no thread dictionary available (shouldn't happen).
 	* Source/NSString.m: MINGW path handling fixes by Michael Scheibler
 	stringByAppendingPath, isAbsolurtePath, and stringByStandardizingPath.
 	

@@ -714,9 +714,12 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   r = [d objectForKey: key];
   if (r == nil)
     {
-      r = [NSRunLoop new];
-      [d setObject: r forKey: key];
-      RELEASE(r);
+      if (d != nil)
+	{
+	  r = [self new];
+	  [d setObject: r forKey: key];
+	  RELEASE(r);
+	}
     }
   return r;
 }
