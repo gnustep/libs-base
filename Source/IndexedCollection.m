@@ -660,7 +660,7 @@
   unsigned i, myCount = [self count];
   
   for (i = aRange.location; 
-       i < aRange.location+aRange.lengthf && 
+       i < aRange.location+aRange.length && 
        i < myCount; i++)
     (*aFunc)([self elementAtIndex:i]);
   return self;
