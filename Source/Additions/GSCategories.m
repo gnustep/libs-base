@@ -1066,15 +1066,50 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
  * the receiver.<br />
  * Calls - replaceOccurrencesOfString:withString:options:range: passing
  * zero for the options and a range from 0 with the length of the receiver.
+ *
+ * Note that is has to work for [tmp replaceString:@"&" withString:@"&amp;"];
  */
 - (void) replaceString: (NSString*)replace
 	    withString: (NSString*)by
 {
-    NSRange range = [self rangeOfString: replace];
+  NSRange       range;
+  unsigned int  count = 0;
+  unsigned int      newEnd;
+  NSRange searchRange;
 
-    while (range.location != NSNotFound) {
-        [self replaceCharactersInRange: range withString: by];
-        range = [self rangeOfString: replace];
+  if (replace == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"%@ nil search string", NSStringFromSelector(_cmd)];
+    }
+  if (by == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"%@ nil replace string", NSStringFromSelector(_cmd)];
+    }
+
+  searchRange = NSMakeRange(0, [self length]);
+  range = [self rangeOfString: replace options: 0 range: searchRange];
+
+  if (range.length > 0)
+    {
+      unsigned  byLen = [by length];
+
+      do
+        {
+          count++;
+          [self replaceCharactersInRange: range
+                              withString: by];
+
+              newEnd = NSMaxRange(searchRange) + byLen - range.length;
+              searchRange.location = range.location + byLen;
+              searchRange.length = newEnd - searchRange.location;
+
+          range = [self rangeOfString: replace
+                              options: 0
+                                range: searchRange];
+        }
+      while (range.length > 0);
     }
 }
 
