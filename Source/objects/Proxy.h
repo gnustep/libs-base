@@ -34,9 +34,9 @@
 {
 @public
   struct objc_class *isa;
-  unsigned target;
-  Connection *connection;
-  unsigned retain_count;
+  unsigned _target;
+  Connection *_connection;
+  unsigned _retain_count;
 #if NeXT_runtime
   coll_cache_ptr _method_types;
   Protocol *protocol;
@@ -53,7 +53,7 @@
 + (Class) class;
 #endif
 
-- invalidateProxy;
+- (void) invalidateProxy;
 - (BOOL) isProxy;
 - (unsigned) targetForProxy;
 - connectionForProxy;
