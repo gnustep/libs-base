@@ -1194,22 +1194,22 @@ static BOOL isPlistObject(id o)
  * if this is the first change to a persistent-domain since the
  * last -synchronize.
  * </p>
+ * If value is nil, this is equivalent to the -removeObjectForKey: method.
  */
 - (void) setObject: (id)value forKey: (NSString*)defaultName
 {
   NSMutableDictionary	*dict;
   id			obj;
 
+  if (value == nil)
+    {
+      [self removeObjectForKey: defaultName];
+    }
   if ([defaultName isKindOfClass: [NSString class]] == NO
     || [defaultName length] == 0)
     {
       [NSException raise: NSInvalidArgumentException
 	format: @"attempt to set object with bad key (%@)", defaultName];
-    }
-  if (value == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-	format: @"attempt to set nil object for key (%@)", defaultName];
     }
   if (isPlistObject(value) == NO)
     {
