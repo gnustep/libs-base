@@ -926,21 +926,19 @@ if test $LIBRARY_COMBO = apple-apple-apple; then
   enable_do=no
 fi
 
-AC_ARG_WITH(ffcall-include,
-    [  --with-ffcall-include=PATH include path for ffcall headers],
-    ffcall_incdir="$withval", ffcall_incdir="no")
-if test ${ffcall_incdir} != "no"; then
-    ffcall_check_lib_save_cppflags="$CPPFLAGS"
-    CPPFLAGS="-I${ffcall_incdir} $CPPFLAGS"
-    INCLUDE_FLAGS="-I${ffcall_incdir} $INCLUDE_FLAGS"
+AC_ARG_WITH(ffi-include,
+    [  --with-ffi-include=PATH include path for ffi (ffcall/libffi) headers],
+    ffi_incdir="$withval", ffi_incdir="no")
+if test ${ffi_incdir} != "no"; then
+    CPPFLAGS="-I${ffi_incdir} $CPPFLAGS"
+    INCLUDE_FLAGS="-I${ffi_incdir} $INCLUDE_FLAGS"
 fi
 
-AC_ARG_WITH(ffcall-library,
-    [  --with-ffcall-library=PATH library path for ffcall libraries],
-    ffcall_libdir="$withval", ffcall_libdir="no")
-if test ${ffcall_libdir} != "no"; then
-    ffcall_check_lib_save_libs="$LIBS"
-    LIBS="-L${ffcall_libdir} $LIBS"
+AC_ARG_WITH(ffi-library,
+    [  --with-ffi-library=PATH library path for ffi (ffcall/libffi) libraries],
+    ffi_libdir="$withval", ffi_libdir="no")
+if test ${ffi_libdir} != "no"; then
+    LIBS="-L${ffi_libdir} $LIBS"
 fi
 
 AC_CHECK_HEADER(ffi.h, have_libffi=yes, have_libffi=no)

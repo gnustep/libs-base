@@ -1,3 +1,8 @@
+2004-07-14  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Use generic -with-ffi-{include,library} for finding
+	ffi libraries.
+
 2004-07-13  Andrew Ruder <aeruder@ksu.edu>
 
 	* Source/NSMessagePort.m, Source/NSSocketPort.m: Use memmove instead
