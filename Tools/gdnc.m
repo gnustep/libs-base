@@ -792,6 +792,7 @@ main(int argc, char** argv, char** env)
   GDNCServer		*server;
   NSString		*str;
   BOOL			shouldFork = YES;
+  BOOL			debugging = NO;
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
@@ -805,6 +806,7 @@ main(int argc, char** argv, char** env)
   if (str != nil && [str caseInsensitiveCompare: @"yes"] == NSOrderedSame)
     {
       shouldFork = NO;
+      debugging = YES;
     }
   RELEASE(pool);
 #ifdef __MINGW__
@@ -850,7 +852,28 @@ main(int argc, char** argv, char** env)
 
   {
     CREATE_AUTORELEASE_POOL(pool);
+    NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
+
+    /*
+     * Make gdnc logging go to syslog unless overridden by user.
+     */
+    [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
+      @"YES", @"GSLogSyslog", nil]];
+
     server = [GDNCServer new];
+
+    /*
+     * Close standard input, output, and error to run as daemon.
+     */
+    [[NSFileHandle fileHandleWithStandardInput] closeFile];
+    [[NSFileHandle fileHandleWithStandardOutput] closeFile];
+#ifndef __MINGW__
+    if (debugging == NO)
+      {
+	[[NSFileHandle fileHandleWithStandardError] closeFile];
+      }
+#endif
+
     RELEASE(pool);
   }
 
