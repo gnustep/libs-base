@@ -106,7 +106,7 @@ void testAttributedString(void)
     range:NSMakeRange(5,12)];
   printAttrString(muAttrString);
 
-  muAttrString2 = [muAttrString copy];
+  muAttrString2 = [muAttrString mutableCopy];
   printAttrString(muAttrString2);
 
   [muAttrString replaceCharactersInRange:NSMakeRange(5,15)
