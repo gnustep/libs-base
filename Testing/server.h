@@ -22,6 +22,10 @@ struct myarray {
 
 #define ADD_CONST 47
  
+@protocol ClientProtocol 
+- (BOOL) callback;
+@end
+
 @protocol ServerProtocol 
 - (BOOL) sendBoolean: (BOOL)b;
 - (void) getBoolean: (BOOL*)bp;
@@ -73,6 +77,10 @@ struct myarray {
 - (int) exceptionTest1;
 - (void) exceptionTest2;
 - (oneway void) exceptionTest3;
+
+- (oneway void) registerClient: (id<ClientProtocol>)client;
+- (oneway void) unregisterClient: (id<ClientProtocol>)client;
+- (BOOL) tryClientCallback;
 @end
 
 #ifdef	IN_SERVER
@@ -86,12 +94,14 @@ struct myarray {
 @interface Server : NSObject <ServerProtocol,privateServer>
 {
   id the_array;
+  id<ClientProtocol> registered_client;
 }
 @end
 #else
 @interface Server : NSObject <ServerProtocol>
 {
   id the_array;
+  id<ClientProtocol> registered_client;
 }
 @end
 #endif

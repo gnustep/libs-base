@@ -1,3 +1,12 @@
+Tue Oct 21 15:25:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Testing/nsconnection_client.m: Add -r option.
+	* Testing/nsconnection_server.m: support registration/degeristration
+	* Testing/server.h: New methods.
+	Add a test (-r) to have the client repeated register/unregister
+	with server, and have server do a callback to the registered object.
+	Should cause a crash if the retain counts of proxies get out of sync.
+
 Mon Oct 20 16:50:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Additions/GNUstepBase/GSMime.h: Fix missing copying method
