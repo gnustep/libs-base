@@ -1,3 +1,7 @@
+2004-06-18  Manuel Guesdon <mguesdon@orange-concept.com>
+
+	* Source/NSKeyValueCoding.m: fix exception userInfo
+	
 2004-06-16  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
 	* Tools/gdomap.c (map_add): Fix off by one bug that causes

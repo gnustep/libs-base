@@ -83,7 +83,7 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
   NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
 				     self, 
 				     @"NSTargetObjectUserInfoKey", 
-				     aKey,
+				     (aKey ? aKey : @"(nil)"),
 				     @"NSUnknownUserInfoKey",
 				     nil];
   NSException *exp = [NSException exceptionWithName: NSUnknownKeyException
@@ -105,9 +105,9 @@ NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
 - (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey
 {
   NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
-				     anObject, 
+				     (anObject ? anObject : @"(nil)"), 
 				     @"NSTargetObjectUserInfoKey", 
-				     aKey,
+				     (aKey ? aKey : @"(nil)"),
 				     @"NSUnknownUserInfoKey",
 				     nil];
   NSException *exp = [NSException exceptionWithName: NSUnknownKeyException
