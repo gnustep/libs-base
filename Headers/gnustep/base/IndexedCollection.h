@@ -1,5 +1,5 @@
 /* Interface for Objective-C Sequential Collection object.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -28,8 +28,11 @@
 #include <objects/KeyedCollection.h>
 #include <objects/IndexedCollecting.h>
 
-@interface IndexedCollection : KeyedCollection <IndexedCollecting>
+@interface IndexedCollection : KeyedCollection 
+@end
 
+/* Put this on category instead of class to avoid bogus complaint from gcc */
+@interface IndexedCollection (IndexedCollectionProtocol) <IndexedCollecting>
 @end
 
 /* The only subclassResponsibilities in IndexedCollection are:

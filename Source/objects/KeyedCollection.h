@@ -1,5 +1,5 @@
 /* Interface for Objective-C KeyedCollection collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -28,8 +28,11 @@
 #include <objects/Collection.h>
 #include <objects/KeyedCollecting.h>
 
-@interface KeyedCollection : Collection <KeyedCollecting>
+@interface KeyedCollection : Collection
+@end
 
+/* Put this on category instead of class to avoid bogus complaint from gcc */
+@interface KeyedCollection (KeyedCollectingProtocol) <KeyedCollecting>
 @end
 
 /* The only subclassResponsibilities in IndexedCollection are:
