@@ -1,3 +1,12 @@
+2005-01-21 22:08 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: [NSUndoManager redo] and 
+	[NSUndoManager undoNestedGroup] moved the call to actionName
+	to a later point in both methods to get the name from the 
+	"groupToRedo" or the "groupToUndo" respectively.  This 
+	corrects the issue with the wrong name sometimes appearing
+	in the redo/undo menu items.
+
 2005-01-16 07:59 Gregory John Casamento <greg_casamento@yahoo.com>
 
 	* Source/NSUndoManager.m: Added code to properly set the
