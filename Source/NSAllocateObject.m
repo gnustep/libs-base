@@ -22,6 +22,7 @@
    */ 
 
 #include <objects/stdobjects.h>
+#include <string.h>		/* For memset(). */
 
 NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 {
