@@ -61,6 +61,7 @@ into another language, under the above conditions for modified versions.
 * Memory Management::           
 * Error Handling::              
 * Variable Declaration::        
+* Object Persistance::          
 * Contributing::                
 @end menu
 
@@ -333,7 +334,7 @@ similar mechanism exists in libFoundation with the CLEANUP and FINALLY
 blocks.
 
 @c ******************************************************************
-@node Variable Declaration, Contributing, Error Handling, Top
+@node Variable Declaration, Object Persistance, Error Handling, Top
 @section Variable Declaration
 
 All variables should be decalred at the beginning of a block. The new
@@ -346,7 +347,21 @@ GNUstep libraries which stopped them compiling with one of the
 commonly used compilers.
 
 
-@node Contributing,  , Variable Declaration, Top
+@c ******************************************************************
+@node Object Persistance, Contributing, Variable Declaration, Top
+@section Object Persistance
+
+The standard method of saving and restoring object information in GNUstep
+is through the use of the -encodeWithCoder: and -initWithCoder: methods.
+Any object which requires persistance implements these methods. They are
+used, for instance by Gorm, to save GUI interface elements. It is important
+that all changes to these methods be backward compatible with previously
+stored archives (for instance, those created by Gorm). The easiest way to do
+this is to use class version numbers to indicate which archive configuration
+should be read.
+
+
+@node Contributing,  , Object Persistance, Top
 @section Contributing
 
 Contributing code is not difficult. Here are
