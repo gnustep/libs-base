@@ -3,6 +3,7 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSPortMessage.h>
 #include <Foundation/NSPortNameServer.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSPort.h>
 
 @class GSTcpPort;
@@ -22,7 +23,7 @@ main()
   local = [GSTcpPort new];
   loop = [NSRunLoop currentRunLoop];
   [NSPortNameServer setPortClass: [GSTcpPort class]];
-  names = [NSPortNameServer systemDefaultPortNameServer];
+  names = (id)[NSPortNameServer systemDefaultPortNameServer];
   remote = [names portForName: @"GSTcpPort"];
   [loop addPort: (NSPort*)local forMode: NSDefaultRunLoopMode];
   [remote sendBeforeDate: [NSDate dateWithTimeIntervalSinceNow: 240]

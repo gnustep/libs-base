@@ -251,6 +251,7 @@ bench_object()
   AUTO_END;
 }
 
+void
 bench_array()
 {
   int i;
@@ -300,6 +301,7 @@ bench_array()
   AUTO_END;
 }
 
+void
 bench_dict()
 {
   int i;
@@ -364,6 +366,7 @@ bench_dict()
   AUTO_END;
 }
 
+void
 bench_str()
 {
   int i;
@@ -487,6 +490,7 @@ bench_str()
   AUTO_END;
 }
 
+void
 bench_data()
 {
   int i;

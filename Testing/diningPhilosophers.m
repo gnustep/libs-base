@@ -113,31 +113,32 @@ id forks[5];
 //
 int main()
 {
-    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-	int i;
-	id p[5];
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  int i;
+  id p[5];
 
-	// Create the locks
-	for (i = 0;i < 5; ++i)
-	{
-		forks[i] = [[NSConditionLock alloc] 
-			initWithCondition:NO_FOOD];
-		[forks[i] lock];
-	}
+  // Create the locks
+  for (i = 0;i < 5; ++i)
+  {
+	  forks[i] = [[NSConditionLock alloc] 
+		  initWithCondition:NO_FOOD];
+	  [forks[i] lock];
+  }
 
-	// Create the philosophers
-	for (i = 0;i < 5; ++i)
-		p[i] = [[Philosopher alloc] init];
+  // Create the philosophers
+  for (i = 0;i < 5; ++i)
+	  p[i] = [[Philosopher alloc] init];
 
-	// Have them sit at the table
-	for (i = 0;i < 5; ++i)
-		[NSThread detachNewThreadSelector:@selector(sitAtChair:)
-			toTarget:p[i] withObject: [NSNumber numberWithInt: i]];
+  // Have them sit at the table
+  for (i = 0;i < 5; ++i)
+	  [NSThread detachNewThreadSelector:@selector(sitAtChair:)
+		  toTarget:p[i] withObject: [NSNumber numberWithInt: i]];
 
-	// Now let them all eat
-	for (i = 0;i < 5; ++i)
-		[forks[i] unlockWithCondition:FOOD_SERVED];
-	
-	while (1);
+  // Now let them all eat
+  for (i = 0;i < 5; ++i)
+	  [forks[i] unlockWithCondition:FOOD_SERVED];
+  
+  while (1);
+  [arp release];
 }
 

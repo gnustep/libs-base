@@ -24,6 +24,7 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSUtilities.h>
+#include <Foundation/NSTimeZone.h>
 
 int
 main (int argc, char *argv[])
