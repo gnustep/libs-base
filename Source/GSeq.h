@@ -446,18 +446,21 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 #endif
 
 #if	GSEQ_S == GSEQ_NS || GSEQ_S == GSEQ_US
-      srImp = (NSRange (*)())[(id)s methodForSelector: ranSel];
+      srImp = (NSRange (*)(NSString*, SEL, unsigned))
+	[(id)s methodForSelector: ranSel];
 #endif
 #if	GSEQ_O == GSEQ_NS || GSEQ_O == GSEQ_US
-      orImp = (NSRange (*)())[(id)o methodForSelector: ranSel];
+      orImp = (NSRange (*)(NSString*, SEL, unsigned))
+	[(id)o methodForSelector: ranSel];
 #endif
 #if	GSEQ_S == GSEQ_NS
-      sgImp = (void (*)())[(id)s methodForSelector: gcrSel];
+      sgImp = (void (*)(NSString*, SEL, unichar*, NSRange))
+	[(id)s methodForSelector: gcrSel];
 #endif
 #if	GSEQ_O == GSEQ_NS
-      ogImp = (void (*)())[(id)o methodForSelector: gcrSel];
+      ogImp = (void (*)(NSString*, SEL, unichar*, NSRange))
+	[(id)o methodForSelector: gcrSel];
 #endif
-
 
       while (sCount < end)
 	{

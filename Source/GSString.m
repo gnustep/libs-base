@@ -231,13 +231,13 @@ static NSStringEncoding intEnc = NSISOLatin1StringEncoding;
  * initialized, and caches classes and some method implementations.
  */
 static void
-setup()
+setup(void)
 {
   static BOOL	beenHere = NO;
 
   if (beenHere == NO)
     {
-      extern NSStringEncoding	GetDefEncoding();
+      extern NSStringEncoding	GetDefEncoding(void);
 
       beenHere = YES;
 

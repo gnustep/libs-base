@@ -260,56 +260,6 @@ static inline unsigned long
 NSSwapHostLongToLittle(unsigned long num) __attribute__((unused));
 static inline unsigned short
 NSSwapHostShortToLittle(unsigned short num) __attribute__((unused));
-static inline NSByteOrder
-NSHostByteOrder(void) __attribute__((unused));
-static inline double
-NSSwapBigDoubleToHost(NSSwappedDouble num) __attribute__((unused));
-static inline float
-NSSwapBigFloatToHost(NSSwappedFloat num) __attribute__((unused));
-static inline unsigned int
-NSSwapBigIntToHost(unsigned int num) __attribute__((unused));
-static inline unsigned long long
-NSSwapBigLongLongToHost(unsigned long long num) __attribute__((unused));
-static inline unsigned long
-NSSwapBigLongToHost(unsigned long num) __attribute__((unused));
-static inline unsigned short
-NSSwapBigShortToHost(unsigned short num) __attribute__((unused));
-static inline NSSwappedDouble
-NSSwapHostDoubleToBig(double num) __attribute__((unused));
-static inline NSSwappedFloat
-NSSwapHostFloatToBig(float num) __attribute__((unused));
-static inline unsigned int
-NSSwapHostIntToBig(unsigned int num) __attribute__((unused));
-static inline unsigned long long
-NSSwapHostLongLongToBig(unsigned long long num) __attribute__((unused));
-static inline unsigned long
-NSSwapHostLongToBig(unsigned long num) __attribute__((unused));
-static inline unsigned short
-NSSwapHostShortToBig(unsigned short num) __attribute__((unused));
-static inline double
-NSSwapLittleDoubleToHost(NSSwappedDouble num) __attribute__((unused));
-static inline float
-NSSwapLittleFloatToHost(NSSwappedFloat num) __attribute__((unused));
-static inline unsigned int
-NSSwapLittleIntToHost(unsigned int num) __attribute__((unused));
-static inline unsigned long long
-NSSwapLittleLongLongToHost(unsigned long long num) __attribute__((unused));
-static inline unsigned long
-NSSwapLittleLongToHost(unsigned long num) __attribute__((unused));
-static inline unsigned short
-NSSwapLittleShortToHost(unsigned short num) __attribute__((unused));
-static inline NSSwappedDouble
-NSSwapHostDoubleToLittle(double num) __attribute__((unused));
-static inline NSSwappedFloat
-NSSwapHostFloatToLittle(float num) __attribute__((unused));
-static inline unsigned int
-NSSwapHostIntToLittle(unsigned int num) __attribute__((unused));
-static inline unsigned long long
-NSSwapHostLongLongToLittle(unsigned long long num) __attribute__((unused));
-static inline unsigned long
-NSSwapHostLongToLittle(unsigned long num) __attribute__((unused));
-static inline unsigned short
-NSSwapHostShortToLittle(unsigned short num) __attribute__((unused));
 
 /*
  *	Basic byte swapping routines and type conversions

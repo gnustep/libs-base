@@ -124,7 +124,7 @@ otherTime(NSDate* other)
  * Returns the current time (seconds since reference date) as an NSTimeInterval.
  */
 NSTimeInterval
-GSTimeNow()
+GSTimeNow(void)
 {
 #if !defined(__MINGW__)
   NSTimeInterval interval;

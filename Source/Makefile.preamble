@@ -39,7 +39,21 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall
+ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall \
+#-Wpointer-arith \
+#-Wcast-qual \
+#-Wcast-align \
+#-Wwrite-strings \
+#-Wstrict-prototypes \
+#-Wmissing-prototypes \
+#-Wmissing-declarations \
+#-Wredundant-decls \
+#-Wnested-externs \
+#-Winline \
+#-Werror \
+#-Wshadow 
+#-Wconversion
+
 
 # Additional flags to pass to the Objective-C compiler
 ADDITIONAL_OBJCFLAGS =

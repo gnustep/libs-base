@@ -46,6 +46,8 @@
 #include <Foundation/NSDebug.h>
 #include "GSPrivate.h"
 
+extern BOOL	GSMacOSXCompatiblePropertyLists(void);
+
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;
 
@@ -1100,7 +1102,6 @@ static NSString	*indentStrings[] = {
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  extern BOOL	GSMacOSXCompatiblePropertyLists();
   NSDictionary	*loc;
   NSString	*desc;
 
@@ -1136,7 +1137,6 @@ static NSString	*indentStrings[] = {
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  extern BOOL	GSMacOSXCompatiblePropertyLists();
   NSDictionary	*loc;
   NSString	*desc;
 

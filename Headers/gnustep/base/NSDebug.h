@@ -29,8 +29,6 @@
 #include <errno.h>
 #include <Foundation/NSObject.h>
 
-extern int	errno;
-
 
 /*
  *	Functions for debugging object allocation/deallocation
@@ -99,7 +97,7 @@ GS_EXPORT int		GSDebugAllocationTotal(Class c);
  * Returns a NULL terminated array listing all the classes 
  * for which statistical information has been collected.
  */
-GS_EXPORT Class*        GSDebugAllocationClassList();
+GS_EXPORT Class*        GSDebugAllocationClassList(void);
 
 /**
  * Returns a newline separated list of the classes which
@@ -115,7 +113,7 @@ GS_EXPORT const char*	GSDebugAllocationList(BOOL changeFlag);
  * have had instances allocated at any point, and the total
  * count of the number of instances allocated for each class.
  */
-GS_EXPORT const char*	GSDebugAllocationListAll();
+GS_EXPORT const char*	GSDebugAllocationListAll(void);
 
 /**
  * Starts recording all allocated objects of a certain class.<br />

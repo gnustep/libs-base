@@ -113,6 +113,15 @@ NSLocationInRange(unsigned location, NSRange range)
 GS_RANGE_SCOPE NSRange
 NSMakeRange(unsigned int location, unsigned int length) GS_RANGE_ATTR;
 
+GS_EXPORT void _NSRangeExceptionRaise (void);
+/* NB: The implementation of _NSRangeExceptionRaise is: 
+   [NSException raise: NSRangeException
+	       format: @"Range location + length too great"]; 
+
+   _NSRangeExceptionRaise is defined in NSRange.m so that this
+   file (NSRange.h) can be included without problems in the
+   implementation of the base classes themselves. */
+
 GS_RANGE_SCOPE NSRange
 NSMakeRange(unsigned int location, unsigned int length)
 {
@@ -121,14 +130,6 @@ NSMakeRange(unsigned int location, unsigned int length)
 
   if (end < location || end < length)
     {
-      GS_EXPORT void _NSRangeExceptionRaise ();
-      /* NB: The implementation of _NSRangeExceptionRaise is: 
-	 [NSException raise: NSRangeException
-	             format: @"Range location + length too great"]; */
-
-      /* _NSRangeExceptionRaise is defined in NSRange.m so that this
-	 file (NSRange.h) can be included without problems in the
-	 implementation of the base classes themselves. */
       _NSRangeExceptionRaise ();
     }
   range.location = location;

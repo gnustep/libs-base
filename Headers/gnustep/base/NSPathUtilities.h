@@ -44,8 +44,8 @@ GS_EXPORT NSString *GSDefaultsRootForUser(NSString *userName);
 GS_EXPORT NSString *GSSystemRootDirectory(void);
 GS_EXPORT NSArray  *GSStandardPathPrefixes(void);
 #endif
-GS_EXPORT NSString *NSUserName();
-GS_EXPORT NSString *NSHomeDirectory();
+GS_EXPORT NSString *NSUserName(void);
+GS_EXPORT NSString *NSHomeDirectory(void);
 GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *userName);
 
 #ifndef STRICT_OPENSTEP
