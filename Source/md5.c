@@ -1,7 +1,7 @@
 
 /* md5.c - Functions to compute MD5 message digest of files or memory blocks
    according to the definition of MD5 in RFC 1321 from April 1992.
-   Copyright (C) 1995 Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,6 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>.  */
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include <sys/types.h>
 
