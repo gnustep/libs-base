@@ -27,26 +27,42 @@
 
 /**
  * Macro to manage memory for chunks of code that need to work with
+ * arrays of items.  Use this to start the block of code using
+ * the array and GS_ENDITEMBUF() to end it.  The idea is to ensure that small
+ * arrays are allocated on the stack (for speed), but large arrays are
+ * allocated from the heap (to avoid stack overflow).
+ */
+#define	GS_BEGINITEMBUF(P, S, T) { \
+  T _ibuf[(S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 0]; \
+  T *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
+    : (T*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(T)); \
+  T *(P) = _base;
+
+/**
+ * Macro to manage memory for chunks of code that need to work with
+ * arrays of items.  Use GS_BEGINITEMBUF() to start the block of code using
+ * the array and this macro to end it.
+ */
+#define	GS_ENDITEMBUF() \
+  if (_base != _ibuf) \
+    NSZoneFree(NSDefaultMallocZone(), _base); \
+  }
+
+/**
+ * Macro to manage memory for chunks of code that need to work with
  * arrays of objects.  Use this to start the block of code using
  * the array and GS_ENDIDBUF() to end it.  The idea is to ensure that small
  * arrays are allocated on the stack (for speed), but large arrays are
  * allocated from the heap (to avoid stack overflow).
  */
-#define	GS_BEGINIDBUF(P, S) { \
-  id _obuf[(S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 0]; \
-  id *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _obuf \
-    : (id*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(id)); \
-  id *(P) = _base;
+#define	GS_BEGINIDBUF(P, S) GS_BEGINITEMBUF(P, S, id)
 
 /**
  * Macro to manage memory for chunks of code that need to work with
  * arrays of objects.  Use GS_BEGINIDBUF() to start the block of code using
  * the array and this macro to end it.
  */
-#define	GS_ENDIDBUF() \
-  if (_base != _obuf) \
-    NSZoneFree(NSDefaultMallocZone(), _base); \
-  }
+#define	GS_ENDIDBUF() GS_ENDITEMBUF()
 
 /**
  * Macro to consistently replace public accessable

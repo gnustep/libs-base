@@ -1688,7 +1688,7 @@ compare(id elem1, id elem2, void* context)
 {
   if (count > 0)
     {
-      unsigned	sorted[count];
+      GS_BEGINITEMBUF(sorted, count, unsigned int);
       unsigned	to = 0;
       unsigned	from = 0;
       unsigned	i;
@@ -1732,6 +1732,7 @@ compare(id elem1, id elem2, void* context)
 	      (*rem)(self, remSel, sorted[to]);
 	    }
 	}
+      GS_ENDITEMBUF();
     }
 }
 

@@ -991,7 +991,7 @@ static DWORD WINAPI _threadFunction(LPVOID t)
       [tasksLock lock];
       task = (NSConcreteWindowsTask*)NSMapGet(activeTasks, (void*)taskId);
       [tasksLock unlock];
-      if (t == nil)
+      if (task == nil)
 	{
 	  return 0;	// Task gone away.
 	}
