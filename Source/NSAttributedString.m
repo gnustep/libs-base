@@ -102,7 +102,7 @@ static Class NSMutableAttributedString_concrete_class;
   return [super initWithCoder:aDecoder];
 }
 
-- (Class) classForPortCoder: (NSPortCoder*)aCoder
+- (Class) classForPortCoder
 {
   return [self class];
 }

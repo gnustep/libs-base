@@ -291,7 +291,7 @@ static NSMapTable *port_number_2_in_port = NULL;
   return [UdpOutPort class];
 }
 
-- (Class) classForPortCoder: aRmc
+- (Class) classForPortCoder
 {
   return [UdpOutPort class];
 }

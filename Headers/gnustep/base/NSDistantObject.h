@@ -55,7 +55,7 @@
 + newForRemoteTarget: (unsigned)target connection: (NSConnection*)conn;
 
 - awakeAfterUsingCoder: aDecoder;
-- classForPortCoder: aRmc;
+- classForPortCoder;
 + newWithCoder: aRmc;
 - (const char *) selectorTypeForProxy: (SEL)selector;
 - forward: (SEL)aSel :(arglist_t)frame;

@@ -21,6 +21,13 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+/*
+   Modified by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Date: September 1997
+
+   Modifications to use NSData and NSMutable data objects to hold data.
+*/
+
 #ifndef __MemoryStream_h_GNUSTEP_BASE_INCLUDE
 #define __MemoryStream_h_GNUSTEP_BASE_INCLUDE
 
@@ -45,21 +52,23 @@
 
 @interface MemoryStream : Stream <MemoryStreaming>
 {
-  int type;
-  char *buffer;
-  int size;
-  int eof_position;
+  id data;
   int prefix;
   int position;
-  BOOL free_when_done;
+  int eof_position;
+  BOOL isMutable;
 }
+
++ (MemoryStream*)streamWithData: (id)anObject;
 
 - initWithCapacity: (unsigned)capacity
 	    prefix: (unsigned)prefix;
+- initWithData: (id)anObject;
 
 - initWithSize: (unsigned)s;	/* For backwards compatibility, depricated */
 
-- (void) setFreeWhenDone: (BOOL)f;
+- (id) data;
+- (id) mutableData;
 - (unsigned) streamBufferPrefix;
 - (unsigned) streamBufferLength; /* prefix + eofPosition */
 

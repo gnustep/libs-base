@@ -1,3 +1,93 @@
+Sun Sep 28 21:15:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* checks/nsdata.m: Added a whole lot of trivial checks.
+
+	* checks/oldserver.h: Added include file for oldserver.m, oldclient.m
+
+	* src/Coder.m: ([-initForWritingWithMutableData:]) added code to
+	wrap the NSMutableData object inside a MemoryStream since
+	NSMutableData no longer conforms to the MemoryStreaming protocol.
+	([-initForReadingWithData:]) added code to wrap the NSData object
+	inside a MemoryStream.
+	([+unarchiveObjectWithData:]) added code to wrap the NSData object
+	inside a MemoryStream.
+	([-classForPortCoder:]) changed to [-classForPortCoder] to conform
+	to OpenStep spec.
+
+	* src/Makefile.in: Removed NSGData.[hm] and NSHData.[hm]
+
+	* src/MemoryStream.m: Rewritten to use NSData and NSMutableData
+	objects to hold the memory.
+
+	* src/NSAttributedString.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/NSData.m: Extensively rewritten to have the OPENSTEP class
+	cluster architecture. Should support the full OPENSTEP api and
+	have shared memory support and static buffer support as extensions.
+
+	* src/NSDate.m: ([-classForPortCoder:]) changed to [-classForPortCoder]
+	to conform to OpenStep spec.
+
+	* src/NSDistantObject.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/NSGArchiver.m: ([-archiverData]) modified to cope with changes
+	to NSData and NSMutableData.
+
+	* src/NSGAttributedString.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/NSGCString.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/NSGString.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/NSPortCoder.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+	([-isByCopy]) changed to [-isBycopy] to conform to OpenStep.
+
+	* src/NSString.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/Port.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/StdioStream.m: ([-initWithFilename:fmode:]) fixed excessive
+	releases of string.  ([-initWithFileDescriptor:fmode:]) fixed
+	excessive releases of string. ([-close]) clear file pointer when
+	it is closed to prevent attempted operations on bad pointer.
+
+	* src/TcpPort.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec. Also multiple
+	changes to deal with the rewrite of MemoryStream.
+
+	* src/UdpPort.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/UnixFileHandle.m: Numerous changes improving logging and
+	tidying stuff. failed initialisers should now all return nil
+	rather than raising exceptions.
+
+	* src/include/MemoryStream.h: Changed this class to use NSData and
+	NSMutableData to hold its contents.  Added methods to initialise
+	with a data object so we can wrap an NSData or NSMutableData inside
+	a MemoryStream to give it Streaming behaviour.
+
+	* src/include/NSData.h: Added some extension methods for creating
+	data objects with static buffers or shared memory buffers.
+
+	* src/include/NSDistantObject.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/include/NSObject.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder] to conform to OpenStep spec.
+
+	* src/include/NSPortCoder.m: ([-classForPortCoder:]) changed to
+	[-classForPortCoder], and ([-isByCopy]) changed to [-isBycopy] to
+	conform to OpenStep spec.
+
 Fri Sep 26 20:43:12 1997  Adam Fedor  <fedor@doc.com>
 
 	* Fix Makefiles so snapshots and releases work again

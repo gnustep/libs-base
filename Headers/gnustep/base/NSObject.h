@@ -114,7 +114,7 @@
 @end
 
 @interface NSObject (NSPortCoder)
-- (Class) classForPortCoder: (NSPortCoder*)anEncoder;
+- (Class) classForPortCoder;
 - (id) replacementObjectForPortCoder: (NSPortCoder*)anEncoder;
 @end
 

@@ -570,12 +570,12 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 			       argFrame: frame];
 }
 
-- classForCoder: (NSCoder*)aCoder;
+- classForCoder
 {
     return object_get_class (self);
 }
 
-- classForPortCoder: (NSPortCoder*)aCoder
+- classForPortCoder
 {
     return object_get_class (self);
 }
@@ -612,15 +612,18 @@ format: @"NSDistantObject objects only encode with PortEncoder class"];
 
 @implementation Protocol (DistributedObjectsCoding)
 
-- (Class) classForPortCoder: (NSPortCoder*)aRmc;
+- (Class) classForPortCoder
 {
-    return [NSDistantObject class];
+    return [self classForCoder];
 }
 
 - replacementObjectForPortCoder: (NSPortCoder*)aRmc;
 {
-    return [NSDistantObject proxyWithLocal: self
-			        connection: [aRmc connection]];
+    if ([aRmc isBycopy])
+      return self;
+    else
+      return [NSDistantObject proxyWithLocal: self
+			          connection: [aRmc connection]];
 }
 
 @end

@@ -225,7 +225,7 @@
   return [self class];
 }
 
-- (Class) classForPortCoder: (NSPortCoder*)aCoder
+- (Class) classForPortCoder
 {
   return [self class];
 }

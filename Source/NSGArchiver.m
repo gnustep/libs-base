@@ -27,6 +27,7 @@
 #include <gnustep/base/CStream.h>
 #include <gnustep/base/behavior.h>
 #include <gnustep/base/CoderPrivate.h>
+#include <gnustep/base/MemoryStream.h>
 #include <Foundation/NSException.h>
 
 #define USE_OPENSTEP_STYLE_FORWARD_REFERENCES 1
@@ -200,20 +201,19 @@
   return "NSGUnarchiver";
 }
 
-/* if anyone asks for an archivers data we assume that they have finished
-   archiving and want to read from the data area, so we rewind the stream
-   and give it to them.  Attempting to use the archiver after this will
+/* Attempting to use the archiver after this will
    mess up in a big way.  NB. If the archiver was not writing to an
    NSData object, we can't give one out, so we return nil. */
 - (NSMutableData*) archiverData
 {
   id	s = [cstream stream];
-  if ([s isKindOfClass:[NSData class]])
+  if ([s isKindOfClass:[MemoryStream class]])
     {
-      if ([s respondsTo:@selector(rewindStream)])
-	{
-	  [s rewindStream];
-        }
+      [s rewindStream];
+      return [s mutableData];
+    }
+  if ([s isKindOfClass:[NSMutableData class]])
+    {
       return (NSMutableData*)s;
     }
   return nil;

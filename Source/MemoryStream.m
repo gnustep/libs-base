@@ -24,6 +24,7 @@
 #include <gnustep/base/preface.h>
 #include <gnustep/base/MemoryStream.h>
 #include <gnustep/base/Coder.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <stdarg.h>
 #include <assert.h>
@@ -44,15 +45,6 @@
 /* memory.h and strings.h conflict on some systems.  */
 #endif /* not STDC_HEADERS and not HAVE_STRING_H */
 
-/* This could be done with a set of classes instead. */
-enum {MALLOC_MEMORY_STREAM = 0, OBSTACK_MEMORY_STREAM, VM_MEMORY_STREAM};
-
-enum {
-  STREAM_READONLY = 0,
-  STREAM_READWRITE,
-  STREAM_WRITEONLY
-};
-
 #define DEFAULT_MEMORY_STREAM_SIZE 64
 
 extern int
@@ -67,6 +59,16 @@ static BOOL debug_memory_stream = NO;
 
 @implementation MemoryStream
 
++ (MemoryStream*)streamWithData: (id)anObject
+{
+  return [[[MemoryStream alloc] initWithData:anObject] autorelease];
+}
+
+- (id) data
+{
+  return data;
+}
+
 /* xxx This interface will change */
 - _initOnMallocBuffer: (char*)b
 	 freeWhenDone: (BOOL)f
@@ -75,14 +77,37 @@ static BOOL debug_memory_stream = NO;
 	       prefix: (unsigned)p /* never read/write before this position */
 	     position: (unsigned)i /* current position for reading/writing */
 {
-  [super init];
-  buffer = b;
-  size = s;
-  prefix = p;
-  position = i;
-  eof_position = l;
-  free_when_done = f;
-  type = MALLOC_MEMORY_STREAM;
+  self = [super init];
+  if (self)
+    {
+      if (b)
+	if (f)
+	  data = [NSMutableData dataWithBytesNoCopy: b length: s];
+	else
+	  data = [NSMutableData dataWithBytes: b length: s];
+      else
+	{
+	  data = [NSMutableData dataWithCapacity: s];
+	  if (data)
+	    [data setLength: s];
+	}
+
+      if (data)
+	{
+	  [data retain];
+	  prefix = p;
+	  position = i;
+	  eof_position = l;
+	  isMutable = YES;
+	  if ([data length] < prefix + MAX(position, eof_position))
+	    [data setLength: prefix + MAX(position, eof_position)];
+	}
+      else
+	{
+	  [self release];
+	  self = nil;
+	}
+    }
   return self;
 }
 
@@ -105,9 +130,7 @@ static BOOL debug_memory_stream = NO;
    prefix: (unsigned)p
    position: (unsigned)i
 {
-  char *b;
-  OBJC_MALLOC(b, char, s);
-  return [self _initOnMallocBuffer:b 
+  return [self _initOnMallocBuffer: 0
 	       freeWhenDone: YES
 	       size: s
 	       eofPosition: i
@@ -128,6 +151,29 @@ static BOOL debug_memory_stream = NO;
   return [self initWithSize:capacity prefix:0 position:0];
 }
 
+- initWithData: (id)anObject
+{
+  self = [super init];
+  if (self)
+    {
+      if (anObject && [anObject isKindOfClass:[NSData class]])
+        {
+	  data = [anObject retain];
+	  if ([data isKindOfClass:[NSMutableData class]])
+	    isMutable = YES;
+	  eof_position = [data length];
+	  position = 0;
+	  prefix = 0;
+	}
+      else
+	{
+	  [self dealloc];
+	  self = nil;
+	}
+    }
+  return self;
+}
+
 - initWithSize: (unsigned)s
 {
   return [self initWithCapacity:s];
@@ -138,14 +184,9 @@ static BOOL debug_memory_stream = NO;
   return [self initWithCapacity: DEFAULT_MEMORY_STREAM_SIZE];
 }
 
-- (void) setFreeWhenDone: (BOOL)f
-{
-  free_when_done = f;
-}
-
 - (BOOL) isWritable
 {
-  return YES;
+  return isMutable;
 }
 
 - (void) encodeWithCoder: anEncoder
@@ -159,38 +200,54 @@ static BOOL debug_memory_stream = NO;
   return self;
 }
 
+- (id) mutableData
+{
+  if (isMutable)
+    return data;
+  return nil;
+}
+
 - (int) writeBytes: (const void*)b length: (int)l
 {
-  if (prefix+position+l > size)
+  unsigned size;
+
+  if (isMutable)
     {
-      size = MAX(prefix+position+l, size*2);
-      buffer = objc_realloc (buffer, size);
+      size = [data capacity];
+      if (prefix+position+l > size)
+	{
+	  size = MAX(prefix+position+l, size*2);
+	  [data setCapacity: size];
+	}
+      if (position+prefix+l > [data length])
+	[data setLength: position+prefix+l];
+      memcpy([data mutableBytes]+prefix+position, b, l);
+      position += l;
+      if (position > eof_position)
+	eof_position = position;
+      return l;
     }
-  memcpy(buffer+prefix+position, b, l);
-  position += l;
-  if (position > eof_position)
-    eof_position = position;
-  return l;
+  return 0;
 }
 
 - (int) readBytes: (void*)b length: (int)l
 {
   if (position+l > eof_position)
     l = eof_position-position;
-  memcpy(b, buffer+prefix+position, l);
+  memcpy(b, [data bytes]+prefix+position, l);
   position += l;
   return l;
 }
 
 - (NSString*) readLine
 {
-  char *nl = memchr(buffer+prefix+position, '\n', eof_position-position);
+  char *nl = memchr([data bytes]+prefix+position, '\n', eof_position-position);
   char *ret = NULL;
   if (nl)
     {
-      int len = nl-buffer-prefix-position;
+      int len = nl-((char*)[data bytes])-prefix-position;
       ret = objc_malloc (len+1);
-      strncpy(ret, buffer+prefix+position, len);
+      strncpy(ret, ((char*)[data bytes])+prefix+position, len);
       ret[len] = '\0';
       position += len+1;
     }
@@ -206,54 +263,65 @@ static BOOL debug_memory_stream = NO;
 
 int outchar_func(void *s, int c)
 {
-  if (MS->prefix + MS->position >= MS->size)
-    return EOF;
-  MS->buffer[MS->prefix + MS->position++] = (char)c;
-  return 1;
+  if (MS->isMutable)
+    {
+      if (MS->prefix + MS->position >= [MS->data capacity])
+        return EOF;
+      ((char*)[MS->data mutableBytes])[MS->prefix + MS->position++] = (char)c;
+      return 1;
+    }
+  return EOF;
 }
 
 int inchar_func(void *s)
 {
-  if (MS->prefix + MS->position >= MS->size)
+  if (MS->prefix + MS->position >= [MS->data length])
     return EOF;
-  return (int) MS->buffer[MS->prefix + MS->position++];
+  return (int) ((char*)[MS->data bytes])[MS->prefix + MS->position++];
 }
 
 void unchar_func(void *s, int c)
 {
   if (MS->position > 0)
     MS->position--;
-  MS->buffer[MS->prefix + MS->position] = (char)c;
+  if (MS->isMutable)
+    ((char*)[MS->data mutableBytes])[MS->prefix + MS->position] = (char)c;
 }
 
 #if HAVE_VSPRINTF
 - (int) writeFormat: (NSString*)format
 	  arguments: (va_list)arg
-{
+{ 
+  unsigned size;
   int ret;
 
+  if (!isMutable)
+    return 0;
   /* xxx Using this ugliness we at least let ourselves safely print
      formatted strings up to 128 bytes long.
      It's digusting, though, and we need to fix it. 
      Using GNU stdio streams would do the trick. 
      */
+  size = [data capacity];
   if (size - (prefix + position) < 128)
-    [self setStreamBufferCapacity: MAX(128, size*2)];
-
-  ret = VSPRINTF_LENGTH (vsprintf(buffer+prefix+position,
-				  [format cStringNoCopy], arg));
+    size = MAX(size+128, size*2);
+  [data setLength: size];
+  
+  ret = VSPRINTF_LENGTH (vsprintf([data mutableBytes]+prefix+position,
+				[format cStringNoCopy], arg));
   position += ret;
   /* xxx Make sure we didn't overrun our buffer.
      As per above kludge, this would happen if we happen to have more than
      128 bytes left in the buffer and we try to write a string longer than
      the num bytes left in the buffer. */
-  assert(prefix + position <= size);
+  assert(prefix + position <= [data capacity]);
   if (position > eof_position)
     eof_position = position;
+  [data setLength:eof_position + prefix];
   if (debug_memory_stream)
     {
-      *(buffer+prefix+position) = '\0';
-      fprintf(stderr, "%s\n", buffer+prefix);
+      *(char*)([data mutableBytes]+prefix+position) = '\0';
+      fprintf(stderr, "%s\n", (char*)[data mutableBytes]+prefix);
     }
   return ret;
 }
@@ -299,8 +367,7 @@ void unchar_func(void *s, int c)
 
 - (void) dealloc
 {
-  if (free_when_done)
-    OBJC_FREE(buffer);
+  [data release];
   [super dealloc];
 }
 
@@ -314,21 +381,23 @@ void unchar_func(void *s, int c)
 
 - (unsigned) streamBufferCapacity
 {
-  return size;
+  if (isMutable)
+    return [data capacity];
+  return [data length];
 }
 
 - (char*) streamBuffer
 {
-  return buffer;
+  if (isMutable)
+    return (char*)[data mutableBytes];
+  return 0;
 }
 
 - (void) setStreamBufferCapacity: (unsigned)s
 {
-  if (s > prefix + eof_position)
-    {
-      buffer = objc_realloc (buffer, s);
-      size = s;
-    }
+  if (isMutable)
+    if (s > prefix + eof_position)
+      [data setCapacity:s];
 }
 
 - (unsigned) streamEofPosition
@@ -338,7 +407,7 @@ void unchar_func(void *s, int c)
 
 - (void) setStreamEofPosition: (unsigned)i
 {
-  if (i < size)
+  if (i < [data length] - prefix)
     eof_position = i;
 }  
 
