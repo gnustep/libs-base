@@ -247,7 +247,8 @@ fastZone(NSObject *object)
 
 #endif	/* defined(CACHE_ZONE)	*/
 
-NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+inline NSObject *
+NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 {
   id new = nil;
   int size = aClass->instance_size + extraBytes + sizeof(struct obj_layout);
@@ -272,7 +273,8 @@ NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
   return new;
 }
 
-void NSDeallocateObject(NSObject *anObject)
+inline void
+NSDeallocateObject(NSObject *anObject)
 {
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
@@ -298,7 +300,8 @@ fastZone(NSObject *object)
     return NSZoneFromPointer(object);
 }
 
-NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+inline NSObject *
+NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 {
   id new = nil;
   int size = aClass->instance_size + extraBytes;
@@ -315,7 +318,8 @@ NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
   return new;
 }
 
-void NSDeallocateObject(NSObject *anObject)
+inline void
+NSDeallocateObject(NSObject *anObject)
 {
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
