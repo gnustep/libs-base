@@ -30,6 +30,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSDebug.h>
 
 #include <stdio.h>
 
@@ -460,7 +461,7 @@ static NSFileManager* defaultManager = nil;
 		       forKey: @"Error"];
 	      result = [handler fileManager: self
 		    shouldProceedAfterError: info];
-	      [info release];
+	      RELEASE(info);
 	    }
 	  else
 	    result = NO;
@@ -504,7 +505,7 @@ static NSFileManager* defaultManager = nil;
 		       forKey: @"Error"];
 	      result = [handler fileManager: self
 		    shouldProceedAfterError: info];
-	      [info release];
+	      RELEASE(info);
 	    }
 	  else
 	    result = NO;
@@ -742,9 +743,9 @@ static NSFileManager* defaultManager = nil;
     {
       values[11] = @"UnknownGroup";
     }
-  return [[[NSDictionary alloc]
-	initWithObjects: values forKeys: keys count: count]
-	autorelease];
+  return [NSDictionary dictionaryWithObjects: values
+				     forKeys: keys
+				       count: count];
 }
 
 - (NSDictionary*)fileSystemAttributesAtPath:(NSString*)path
@@ -777,9 +778,7 @@ static NSFileManager* defaultManager = nil;
     values[3] = [NSNumber numberWithLong: LONG_MAX];
     values[4] = [NSNumber numberWithUnsignedInt: 0];
     
-    return [[[NSDictionary alloc]
-	initWithObjects:values forKeys:keys count:5]
-	autorelease];
+    return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
     
 #else
 #if HAVE_SYS_VFS_H || HAVE_SYS_STATFS_H
@@ -821,9 +820,7 @@ static NSFileManager* defaultManager = nil;
     values[3] = [NSNumber numberWithLong:statfsbuf.f_ffree];
     values[4] = [NSNumber numberWithUnsignedLong:statbuf.st_dev];
     
-    return [[[NSDictionary alloc]
-	initWithObjects:values forKeys:keys count:5]
-	autorelease];
+    return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
 #else
     return nil;
 #endif
@@ -923,37 +920,37 @@ static NSFileManager* defaultManager = nil;
 
 // Discovering directory contents
 
-- (NSArray*)directoryContentsAtPath:(NSString*)path
+- (NSArray*) directoryContentsAtPath: (NSString*)path
 {
-    NSDirectoryEnumerator* direnum;
-    NSMutableArray* content;
-    BOOL isDir;
+  NSDirectoryEnumerator* direnum;
+  NSMutableArray* content;
+  BOOL isDir;
     
-    if (![self fileExistsAtPath:path isDirectory:&isDir] || !isDir)
-	return nil;
+  if (![self fileExistsAtPath:path isDirectory:&isDir] || !isDir)
+    return nil;
     
-    direnum = [[NSDirectoryEnumerator alloc]
+  direnum = [[NSDirectoryEnumerator alloc]
 	initWithDirectoryPath:path 
 	recurseIntoSubdirectories:NO
 	followSymlinks:NO
 	prefixFiles:NO];
-    content = [[[NSMutableArray alloc] init] autorelease];
+  content = [NSMutableArray arrayWithCapacity: 128];
     
-    while ((path = [direnum nextObject]))
-	[content addObject:path];
+  while ((path = [direnum nextObject]))
+    [content addObject:path];
 
-    [direnum release];
+  RELEASE(direnum);
 
-    return content;
+  return content;
 }
 
 - (NSDirectoryEnumerator*)enumeratorAtPath:(NSString*)path
 {
-    return [[[NSDirectoryEnumerator alloc]
+    return AUTORELEASE([[NSDirectoryEnumerator alloc]
 	initWithDirectoryPath:path 
 	recurseIntoSubdirectories:YES
 	followSymlinks:NO
-	prefixFiles:YES] autorelease];
+	prefixFiles:YES]);
 }
 
 - (NSArray*)subpathsAtPath:(NSString*)path
@@ -970,12 +967,12 @@ static NSFileManager* defaultManager = nil;
 	recurseIntoSubdirectories:YES
 	followSymlinks:NO
 	prefixFiles:YES];
-    content = [[[NSMutableArray alloc] init] autorelease];
+    content = [NSMutableArray arrayWithCapacity: 128];
     
     while ((path = [direnum nextObject]))
 	[content addObject:path];
 
-    [direnum release];
+    RELEASE(direnum);
 
     return content;
 }
@@ -1030,7 +1027,7 @@ static NSFileManager* defaultManager = nil;
     }
   return [[NSString stringWithCString: cpath] cString];
 #else
-  return [[[path copy] autorelease] cString];
+  return [path cString];
 #endif
 }
 
@@ -1055,22 +1052,26 @@ static NSFileManager* defaultManager = nil;
 	- pushes relative path (relative to root of search) on pathStack
 	- pushes system dir enumerator on enumPath 
 */
-- (void)recurseIntoDirectory:(NSString*)path relativeName:(NSString*)name
+- (void) recurseIntoDirectory: (NSString*)path relativeName: (NSString*)name
 {
 #ifdef __WIN32__
 #else
-    const char* cpath;
-    DIR*  dir;
+  const char* cpath;
+  DIR*  dir;
     
-    cpath = [[NSFileManager defaultManager]
-	fileSystemRepresentationWithPath:path];
+  cpath = [[NSFileManager defaultManager]
+	fileSystemRepresentationWithPath: path];
     
-    dir = opendir(cpath);
+  dir = opendir(cpath);
     
-    if (dir) {
-	[pathStack addObject:name];
-	[enumStack addObject:[NSValue valueWithPointer:dir]];
+  if (dir)
+    {
+      [pathStack addObject:name];
+      [enumStack addObject:[NSValue valueWithPointer:dir]];
     }
+  else
+    NSLog(@"Failed to recurse into directory '%@' - %s",
+	path, strerror(errno));
 #endif
 }
 
@@ -1080,17 +1081,16 @@ static NSFileManager* defaultManager = nil;
 	- pops system dir enumerator from enumStack
 	- sets currentFile* to nil
 */
-- (void)backtrack
+- (void) backtrack
 {
 #ifdef __WIN32__
 #else
-    closedir((DIR*)[[enumStack lastObject] pointerValue]);
+  closedir((DIR*)[[enumStack lastObject] pointerValue]);
 #endif
-    [enumStack removeLastObject];
-    [pathStack removeLastObject];
-    [currentFileName release];
-    [currentFilePath release];
-    currentFileName = currentFilePath = nil;
+  [enumStack removeLastObject];
+  [pathStack removeLastObject];
+  DESTROY(currentFileName);
+  DESTROY(currentFilePath);
 }
 
 /*
@@ -1104,58 +1104,63 @@ static NSFileManager* defaultManager = nil;
 	    find the next entry in the parent
 	- sets currentFile to nil if there are no more files to enumerate
 */
-- (void)findNextFile
+- (void) findNextFile
 {
 #ifdef __WIN32__
 #else
-    NSFileManager*	manager = [NSFileManager defaultManager];
-    DIR_enum_state*  	dir;
-    DIR_enum_item*	dirbuf;
-    struct stat		statbuf;
-    const char*		cpath;
+  NSFileManager*	manager = [NSFileManager defaultManager];
+  DIR_enum_state*  	dir;
+  DIR_enum_item*	dirbuf;
+  struct stat		statbuf;
+  const char*		cpath;
     
-    [currentFileName release];
-    [currentFilePath release];
-    currentFileName = currentFilePath = nil;
+  DESTROY(currentFileName);
+  DESTROY(currentFilePath);
     
-    while ([pathStack count]) {
-	dir = (DIR*)[[enumStack lastObject] pointerValue];
-	dirbuf = readdir(dir);
-	if (dirbuf) {
-	    /* Skip "." and ".." directory entries */
-	    if (strcmp(dirbuf->d_name, ".") == 0 || 
-	        strcmp(dirbuf->d_name, "..") == 0)
-		    continue;
-	    // Name of current file
-	    currentFileName = [manager
+  while ([pathStack count])
+    {
+      dir = (DIR*)[[enumStack lastObject] pointerValue];
+      dirbuf = readdir(dir);
+      if (dirbuf)
+	{
+	  /* Skip "." and ".." directory entries */
+	  if (strcmp(dirbuf->d_name, ".") == 0 || 
+	    strcmp(dirbuf->d_name, "..") == 0)
+	    continue;
+	  // Name of current file
+	  currentFileName = [manager
 		   stringWithFileSystemRepresentation:dirbuf->d_name
 		   length:strlen(dirbuf->d_name)];
-	    currentFileName = [[[pathStack lastObject]
-		stringByAppendingPathComponent:currentFileName] retain];
-	    // Full path of current file
-	    currentFilePath = [[topPath
-		stringByAppendingPathComponent:currentFileName] retain];
-	    // Check if directory
-	    cpath = [manager fileSystemRepresentationWithPath:currentFilePath];
-	    // Do not follow links
-	    if (!flags.isFollowing) {
-		if (!lstat(cpath, &statbuf))
-		    break;
-		// If link then return it as link
-		if (S_IFLNK == (S_IFMT & statbuf.st_mode)) 
-		    break;
-	    }
-	    // Follow links - check for directory
-	    if (!stat(cpath, &statbuf))
+	  currentFileName = RETAIN([[pathStack lastObject]
+		stringByAppendingPathComponent:currentFileName]);
+	  // Full path of current file
+	  currentFilePath = RETAIN([topPath
+		stringByAppendingPathComponent:currentFileName]);
+	  // Check if directory
+	  cpath = [manager fileSystemRepresentationWithPath:currentFilePath];
+	  // Do not follow links
+	  if (!flags.isFollowing)
+	    {
+	      if (!lstat(cpath, &statbuf))
 		break;
-	    if (S_IFDIR == (S_IFMT & statbuf.st_mode)) {
-		[self recurseIntoDirectory:currentFilePath 
-		    relativeName:currentFileName];
+	      // If link then return it as link
+	      if (S_IFLNK == (S_IFMT & statbuf.st_mode)) 
 		break;
 	    }
+	  // Follow links - check for directory
+	  if (!stat(cpath, &statbuf))
+	    break;
+	  if (S_IFDIR == (S_IFMT & statbuf.st_mode))
+	    {
+	      [self recurseIntoDirectory: currentFilePath 
+			    relativeName: currentFileName];
+	    }
+	  break;	// Got a file name - break out of loop
 	}
-	else
-	    [self backtrack];
+      else
+	{
+	  [self backtrack];
+	}
     }
 #endif
 }
@@ -1167,60 +1172,60 @@ static NSFileManager* defaultManager = nil;
   followSymlinks:(BOOL)follow
   prefixFiles:(BOOL)prefix
 {
-    pathStack = [NSMutableArray new];
-    enumStack = [NSMutableArray new];
-    flags.isRecursive = recurse;
-    flags.isFollowing = follow;
-    
-    topPath = [path retain];
-    [self recurseIntoDirectory:path relativeName:@""];
-    
-    return self;
+  pathStack = [NSMutableArray new];
+  enumStack = [NSMutableArray new];
+  flags.isRecursive = recurse;
+  flags.isFollowing = follow;
+  
+  topPath = RETAIN(path);
+  [self recurseIntoDirectory: path relativeName: @""];
+
+  return self;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   while ([pathStack count])
     [self backtrack];
     
-  [pathStack release];
-  [enumStack release];
-  [currentFileName release];
-  [currentFilePath release];
-  [topPath release];
+  RELEASE(pathStack);
+  RELEASE(enumStack);
+  RELEASE(currentFileName);
+  RELEASE(currentFilePath);
+  RELEASE(topPath);
   [super dealloc];
 }
 
 // Getting attributes
 
-- (NSDictionary*)directoryAttributes
+- (NSDictionary*) directoryAttributes
 {
-    return [[NSFileManager defaultManager]
-	fileAttributesAtPath:currentFilePath
-	traverseLink:flags.isFollowing];
+  return [[NSFileManager defaultManager]
+	fileAttributesAtPath: currentFilePath
+		traverseLink: flags.isFollowing];
 }
 
-- (NSDictionary*)fileAttributes
+- (NSDictionary*) fileAttributes
 {
-    return [[NSFileManager defaultManager]
-	fileAttributesAtPath:currentFilePath
-	traverseLink:flags.isFollowing];
+  return [[NSFileManager defaultManager]
+	fileAttributesAtPath: currentFilePath
+		traverseLink: flags.isFollowing];
 }
 
 // Skipping subdirectories
 
-- (void)skipDescendents
+- (void) skipDescendents
 {
-    if ([pathStack count])
-	[self backtrack];
+  if ([pathStack count])
+    [self backtrack];
 }
 
 // Enumerate next
 
 - nextObject
 {
-    [self findNextFile];
-    return currentFileName;
+  [self findNextFile];
+  return currentFileName;
 }
 
 @end /* NSDirectoryEnumerator */
