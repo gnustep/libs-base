@@ -1,5 +1,5 @@
 /* Interface for NSArchiver for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -41,13 +41,19 @@
 
 // Getting data from the archiver
 
++ unarchiveObjectWithData: (NSData*) data;
++ unarchiveObjectWithFile: (NSString*) path;
+
 - (NSMutableData*) archiverData;
 
 // Substituting Classes
 
-+ (NSString*) classNameEncodedForTrueClassName: (NSString*)trueName;
++ (NSString*) classNameEncodedForTrueClassName: (NSString*) trueName;
 - (void) enocdeClassName: (NSString*)trueName
-   intoClassName: (NSString*)inArchiveName;
+           intoClassName: (NSString*)inArchiveName;
++ (NSString*) classNameDecodedForArchiveClassName: (NSString*) inArchiveName;
++ (void) decodeClassName: (NSString*) inArchiveName
+             asClassName:(NSString *)trueName;
 
 @end
 
