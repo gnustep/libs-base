@@ -53,7 +53,7 @@
   [self notImplemented: _cmd];
 #else
   SEL mysel = [self selector];
-  char * my_sel_type;
+  const char * my_sel_type;
   if (mysel)
     {
       my_sel_type = sel_get_type(mysel);

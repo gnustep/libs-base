@@ -439,7 +439,7 @@ my_method_get_next_argument (arglist_t argframe,
   memcpy (addr, datum, objc_sizeof_type(tmptype));
 }
 
-- (void) setArgument:(void *)addr atIndex: (unsigned)i
+- (void) setArgument:(const void *)addr atIndex: (unsigned)i
 {
   const char *tmptype = return_type;
   void *datum;
