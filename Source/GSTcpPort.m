@@ -1348,10 +1348,17 @@ static Class		tcpPortClass;
 	    object: nil];
 }
 
+#if NEED_WORD_ALIGNMENT
+static unsigned	wordAlign;
+#endif
+
 + (void) initialize
 {
   if (self == [GSTcpPort class])
     {
+#if NEED_WORD_ALIGNMENT
+      wordAlign = objc_alignof_type(@encode(gsu32));
+#endif
       tcpPortClass = self;
       tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
@@ -2117,7 +2124,7 @@ static Class		tcpPortClass;
 		   * word boundary, so we work with an aligned buffer
 		   * and use memcmpy()
 		   */
-		  if ((hLength % __alignof__(gsu32)) != 0)
+		  if ((hLength % wordAlign) != 0)
 		    {
 		      GSPortItemHeader	itemHeader;
 
