@@ -4582,7 +4582,11 @@ static NSCharacterSet	*tokenSet = nil;
 	      [md appendBytes: "\r\n" length: 2];
 	      pos += 76;
 	    }
-	  [md appendBytes: &ptr[pos] length: len-pos];
+	  if (pos < len)
+	    {
+	      [md appendBytes: &ptr[pos] length: len-pos];
+	      [md appendBytes: "\r\n" length: 2];
+	    }
 	}
       else if ([[enc value] isEqualToString: @"x-uuencode"] == YES)
         {
