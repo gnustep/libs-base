@@ -6,7 +6,7 @@
 .\"
 .TH PLDES 1 "August 2003" GNUstep "GNUstep System Manual"
 .SH NAME
-pldes, plser, plmerge, plparse, pl2link	\- property list tools
+pl, pldes, plser, plmerge, plparse, pl2link	\- property list tools
 .SH SYNOPSIS
 .nf
 .BI "pldes " "filename(s)"
@@ -18,6 +18,8 @@ pldes, plser, plmerge, plparse, pl2link	\- property list tools
 .BI "plparse " "filename(s)"
 .nl
 .BI "pl2link " "input-file" " [ " "destination-file" " ]"
+.nl
+.BI "pl -input [ " "input-file" " ] " " -output [ " "destination-file" " ]"
 .nl
 
 .SH DESCRIPTION
@@ -46,6 +48,10 @@ Checks that each file contains a valid text representation of a property list.
 .IP "\fBpl2link\fR \fIinput-file\fR [ \fIdestination-file\fR ]" 4
 Produces a desktop link file for KDE and Gnome for the given text
 representation of a property list.
+.IP "\fBpl\fR \fI-input\fR [ \fIinput-file\fR ]" 4
+Takes the serialized plist represented by input-file and outputs it to standard output.
+.IP "\fBpl\fR \fI-output\fR [ \fIdestination-file\fR ]" 4
+Takes a plist from standard input and serializes it into destination-file.
 .PP
 
 .SH SEE ALSO
@@ -65,3 +71,6 @@ was written by Jonathan Gapen  <jagapen@whitewater.chem.wisc.edu>.
 .PP
 .B pl2link
 was written by Fred Kiefer <FredKiefer@gmx.de>.
+.PP
+.B pl
+was written by Gregory Casamento <greg_casamento@yahoo.com>.
