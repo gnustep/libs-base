@@ -24,6 +24,7 @@
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSArray.h>
 #include	<Foundation/NSDictionary.h>
+#include	<Foundation/NSException.h>
 #include	<Foundation/NSString.h>
 #include	<Foundation/NSProcessInfo.h>
 #include	<Foundation/NSUserDefaults.h>
@@ -34,6 +35,83 @@
 #define GSEXIT_SUCCESS EXIT_SUCCESS
 #define GSEXIT_FAILURE EXIT_FAILURE
 #define GSEXIT_NOTFOUND 2
+
+static NSString *input(char **ptr)
+{
+  NSString	*result = nil;
+  char		*tmp = *ptr;
+  char		*start;
+
+  while (*tmp != '\0' && isspace(*tmp))
+    {
+      tmp++;
+    }
+  start = tmp;
+  if (*start == '\'')
+    {
+      start = ++tmp;
+      while (*tmp != '\0')
+	{
+	  if (*tmp++ == '\'')
+	    {
+	      if (*tmp == '\'')
+		{
+		  strcpy(&tmp[-1], tmp);
+		}
+	      else
+		{
+		  tmp[-1] = '\0';
+		  *ptr = tmp;
+		  result = [NSString stringWithCString: start];
+		  break;
+		}
+	    }
+	}
+    }
+  else
+    {
+      while (*tmp != '\0' && !isspace(*tmp))
+	{
+	  tmp++;
+	}
+      *tmp++ = '\0';
+      *ptr = tmp;
+      result = [NSString stringWithCString: start];
+    }
+  return result;
+}
+
+
+static void output(const char *ptr)
+{
+  const char	*tmp;
+
+  for (tmp = ptr; *tmp; tmp++)
+    {
+      if (isspace(*tmp))
+	{
+	  break;
+	}
+    }
+  if (tmp == ptr || *tmp != '\0')
+    {
+      putchar('\'');
+      while (*ptr)
+	{
+	  if (*ptr == '\'')
+	    {
+	      putchar('\'');
+	    }
+	  putchar(*ptr);
+	  ptr++;
+	}
+      putchar('\'');
+    }
+  else
+    {
+      fputs(ptr, stdout);
+    }
+}
 
 /** <p>This tool mimics the OPENSTEP command line tool for handling defaults.
        Please see the man page for more information.
@@ -283,20 +361,18 @@ main(int argc, char** argv, char **env)
 			  id		obj = [dom objectForKey: key];
 			  const char	*ptr;
 
-			  printf("%s %s '",
-				[domainName cString], [key cString]);
-			  ptr = [[obj descriptionWithLocale: locale indent: 0]
-			    cString];
-			  while (*ptr)
-			    {
-			      if (*ptr == '\'')
-				{
-				  putchar('\'');
-				}
-			      putchar(*ptr);
-			      ptr++;
-			    }
-			  printf("'\n");
+			  ptr = [domainName cString];
+			  output(ptr);
+			  putchar(' ');
+
+			  ptr = [key cString];
+			  output(ptr);
+			  putchar(' ');
+
+			  ptr = [[obj descriptionWithLocale: locale
+			    indent: 0] cString];
+			  output(ptr);
+			  putchar('\n');
 			}
 		    }
 		  else
@@ -307,20 +383,16 @@ main(int argc, char** argv, char **env)
 			{
 			  const char      *ptr;
 
-			  printf("%s %s '",
-				[domainName cString], [name cString]);
+			  ptr = [domainName cString];
+			  output(ptr);
+			  putchar(' ');
+			  ptr = [name cString];
+			  output(ptr);
+			  putchar(' ');
 			  ptr = [[obj descriptionWithLocale: locale indent: 0]
 			    cString];
-			  while (*ptr)
-			    {
-			      if (*ptr == '\'')
-				{
-				  putchar('\'');
-				}
-			      putchar(*ptr);
-			      ptr++;
-			    }
-			  printf("'\n");
+			  output(ptr);
+			  putchar('\n');
 			  found = YES;
 			}
 		    }
@@ -341,158 +413,69 @@ main(int argc, char** argv, char **env)
       if ([args count] == ++i)
 	{
 	  int	size = BUFSIZ;
+	  int	got;
+	  int	off = 0;
 	  char	*buf = objc_malloc(size);
+	  char	*ptr;
 
 	  /*
 	   *	Read from stdin - grow buffer as necessary since defaults
 	   *	values are quoted property lists which may be huge.
 	   */
-	  while (fgets(buf, BUFSIZ, stdin) != 0)
+	  while ((got = fread(buf + off, 1, BUFSIZ, stdin)) == BUFSIZ)
 	    {
-	      char	*ptr;
-	      char	*start;
-	      char	*str;
+	      off += BUFSIZ;
+	      size += BUFSIZ;
+	      buf = objc_realloc(buf, size);
+	      if (buf == 0)
+		{
+		  printf("defaults write: out of memory loading defaults\n");
+		  [pool release];
+		  exit(GSEXIT_FAILURE);
+		}
+	    }
+	  buf[off + got] = '\0';
 
-	      start = buf;
+	  ptr = buf;
+
+	  for (;;)
+	    {
+	      unichar	c;
 
 	      /*
 	       *	Expect domain name as a space delimited string.
 	       */
-	      ptr = start;
-	      while (*ptr && !isspace(*ptr))
-		{
-		  ptr++;
-		}
-	      if (*ptr)
-		{
-		  *ptr++ = '\0';
-		}
 	      while (isspace(*ptr))
 		{
 		  ptr++;
 		}
-	      if (*start == '\0')
+	      if (*ptr == '\0')
+		{
+		  break;	/* At end ... quit. */
+		}
+
+	      owner = input(&ptr);
+	      if ([owner length] == 0)
 		{
 		  printf("defaults write: invalid input - nul domain name\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
-	      for (str = start; *str; str++)
-		{
-		  if (isspace(*str))
-		    {
-		      printf("defaults write: invalid input - "
-				"space in domain name.\n");
-		      [pool release];
-		      exit(GSEXIT_FAILURE);
-		    }
-		}
-	      owner = [NSString stringWithCString: start];
-	      start = ptr;
 
-	      /*
-	       *	Expect defaults key as a space delimited string.
-	       */
-	      ptr = start;
-	      while (*ptr && !isspace(*ptr))
+	      name = input(&ptr);
+	      if ([name length] == 0)
 		{
-		  ptr++;
-		}
-	      if (*ptr)
-		{
-		  *ptr++ = '\0';
-		}
-	      while (isspace(*ptr))
-		{
-		  ptr++;
-		}
-	      if (*start == '\0')
-		{
-		  printf("defaults write: invalid input - "
-			"nul default name.\n");
+		  printf("defaults write: invalid input - nul default name.\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
-	      for (str = start; *str; str++)
-		{
-		  if (isspace(*str))
-		    {
-		      printf("defaults write: invalid input - "
-				"space in default name.\n");
-		      [pool release];
-		      exit(GSEXIT_FAILURE);
-		    }
-		}
-	      name = [NSString stringWithCString: start];
 
 	      /*
-	       *	Expect defaults value as a quoted property list which
-	       *	may cover multiple lines.
+	       * Expect defaults value as a quoted property list which
+	       * may cover multiple lines.
 	       */
-	      start = ptr;
-	      if (*start == '\'')
-		{
-		  for (ptr = ++start; ; ptr++)
-		    {
-		      if (*ptr == '\0')
-			{
-			  int	pos = ptr - buf;
-
-			  if (size - pos < BUFSIZ)
-			    {
-			      char	*tmp;
-			      int	spos = start - buf;
-
-			      tmp = objc_realloc(buf, size + BUFSIZ);
-			      if (tmp)
-				{
-				  size += BUFSIZ;
-				  buf = tmp;
-				  ptr = &buf[pos];
-				  start = &buf[spos];
-				}
-			      else
-				{
-				  printf("defaults write: fatal error - "
-					    "out of memory.\n");
-				  [pool release];
-				  exit(GSEXIT_FAILURE);
-				}
-			    }
-			  if (fgets(ptr, BUFSIZ, stdin) == 0)
-			    {
-			      printf("defaults write: invalid input - "
-					"no final quote.\n");
-			      [pool release];
-			      exit(GSEXIT_FAILURE);
-			    }
-			}
-		      if (*ptr == '\'')
-			{
-			  if (ptr[1] == '\'')
-			    {
-			      strcpy(ptr, &ptr[1]);
-			    }
-			  else
-			    {
-			      break;
-			    }
-			}
-		    }
-		}
-	      else
-		{
-		  ptr = start;
-		  while (*ptr && !isspace(*ptr))
-		    {
-		      ptr++;
-		    }
-		}
-	      if (*ptr)
-		{
-		  *ptr++ = '\0';
-		}
-	      if (*start == '\0')
+	      obj = input(&ptr);
+	      if (obj == nil)
 		{
 		  printf("defaults write: invalid input - "
 			    "empty property list\n");
@@ -500,15 +483,21 @@ main(int argc, char** argv, char **env)
 		  exit(GSEXIT_FAILURE);
 		}
 
-	      /*
-	       *	Convert read property list from C string format to
-	       *	an NSString or a structured property list.
-	       */
-	      obj = [NSString stringWithCString: start];
-	      if (*start == '(' || *start == '{' || *start == '<')
+	      c = 0;
+	      if ([obj length] > 0)
 		{
-		  id	tmp = [obj propertyList];
+		  c = [obj characterAtIndex: 0];
+		}
+	      if (c == '(' || c == '{' || c == '<')
+		{
+		  id	tmp;
 
+		  NS_DURING
+		    tmp = [obj propertyList];
+		  NS_HANDLER
+		    NSLog(@"Failed to parse '%@' ... '%@'", obj, localException);
+		    tmp = nil;
+		  NS_ENDHANDLER
 		  if (tmp == nil)
 		    {
 		      printf("defaults write: invalid input - "
@@ -550,7 +539,13 @@ main(int argc, char** argv, char **env)
 
 	      if (*ptr == '(' || *ptr == '{' || *ptr == '<')
 		{
-		  obj = [value propertyList];
+		  NS_DURING
+		    obj = [value propertyList];
+		  NS_HANDLER
+		    NSLog(@"Failed to parse '%@' ... '%@'",
+		      value, localException);
+		    obj = nil;
+		  NS_ENDHANDLER
 
 		  if (obj == nil)
 		    {
@@ -598,55 +593,52 @@ main(int argc, char** argv, char **env)
     {
       if ([args count] == ++i)
 	{
-	  char	buf[BUFSIZ];
+	  int	size = BUFSIZ;
+	  int	got;
+	  int	off = 0;
+	  char	*buf = objc_malloc(size);
+	  char	*ptr;
 
-	  while (fgets(buf, sizeof(buf), stdin) != 0)
+	  while ((got = fread(buf + off, 1, BUFSIZ, stdin)) == BUFSIZ)
 	    {
-	      char	*ptr;
-	      char	*start;
+	      off += BUFSIZ;
+	      size += BUFSIZ;
+	      buf = objc_realloc(buf, size);
+	      if (buf == 0)
+		{
+		  printf("defaults write: out of memory reading domains\n");
+		  [pool release];
+		  exit(GSEXIT_FAILURE);
+		}
+	    }
+	  buf[off + got] = '\0';
 
-	      start = buf;
-	      ptr = start;
-	      while (*ptr && !isspace(*ptr))
+	  ptr = buf;
+
+	  for (;;)
+	    {
+	      while (*ptr && isspace(*ptr))
 		{
 		  ptr++;
 		}
-	      if (*ptr)
+	      if (*ptr == '\0')
 		{
-		  *ptr++ = '\0';
+		  break;	// Read all
 		}
-	      while (isspace(*ptr))
+	      owner = input(&ptr);
+	      if ([owner length] == 0)
 		{
-		  ptr++;
-		}
-	      if (*start == '\0')
-		{
-		  printf("defaults delete: invalid input\n");
+		  printf("defaults delete: invalid input - empty owner\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
-	      owner = [NSString stringWithCString: start];
-	      start = ptr;
-	      ptr = start;
-	      while (*ptr && !isspace(*ptr))
+	      name = input(&ptr);
+	      if ([name length] == 0)
 		{
-		  ptr++;
-		}
-	      if (*ptr)
-		{
-		  *ptr++ = '\0';
-		}
-	      while (isspace(*ptr))
-		{
-		  ptr++;
-		}
-	      if (*start == '\0')
-		{
-		  printf("defaults delete: invalid input\n");
+		  printf("defaults delete: invalid input - empty domain name\n");
 		  [pool release];
 		  exit(GSEXIT_FAILURE);
 		}
-	      name = [NSString stringWithCString: start];
 	      domain = [[defs persistentDomainForName: owner] mutableCopy];
 	      if (domain == nil || [domain objectForKey: name] == nil)
 		{
@@ -704,7 +696,8 @@ main(int argc, char** argv, char **env)
 	{
 	  NSString	*domainName = [domains objectAtIndex: i];
 
-	  printf("%s\n", [domainName cString]);
+	  output([domainName cString]);
+	  putchar('\n');
 	}
     }
   else if ([[args objectAtIndex: i] isEqual: @"find"])

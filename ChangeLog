@@ -1,3 +1,8 @@
+2004-10-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/defaults.m: fix for domains and default names contaning
+	spaces.
+
 2004-10-10  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac:  Check for tzfile.h
