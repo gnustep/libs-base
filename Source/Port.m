@@ -65,13 +65,12 @@
 
 - (void) invalidate
 {
-  if (is_valid)
-    {
-      [NotificationDispatcher
-	postNotificationName: PortBecameInvalidNotification 
-	object: self];
-      is_valid = NO;
-    }
+  assert (is_valid);
+
+  [NotificationDispatcher
+    postNotificationName: PortBecameInvalidNotification 
+    object: self];
+  is_valid = NO;
 }
 
 - (Class) packetClass
