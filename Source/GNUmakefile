@@ -339,6 +339,7 @@ NSPage.m \
 NSPipe.m \
 NSPort.m \
 NSPortCoder.m \
+NSPortMessage.m \
 NSProcessInfo.m \
 NSProtocolChecker.m \
 NSProxy.m \
@@ -430,6 +431,7 @@ Foundation/NSPage.h \
 Foundation/NSPathUtilities.h \
 Foundation/NSPort.h \
 Foundation/NSPortCoder.h \
+Foundation/NSPortMessage.h \
 Foundation/NSProcessInfo.h \
 Foundation/NSProtocolChecker.h \
 Foundation/NSProxy.h \
