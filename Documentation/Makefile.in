@@ -130,9 +130,8 @@ GNUstep-FAQ.html: gnustep-faq.texi version.texi
 	    > GNUstep-FAQ.texi
 	texi2html -expandinfo $(MAKEINFO_FLAGS) GNUstep-FAQ.texi
 
-#	  | awk -- '/@item/ { print "@br{}" } /@end itemize/ { print "@br{}" } ; { print }' \
-
-<A HREF="http://www.cl.cam.ac.uk/texinfodoc/dir.html">GNU "info" manuals</A>
+#	  | awk -- '/@item/ { print "@br{}" } /@end itemize/ { print "@br{}" } ; { print }' 
+#<A HREF="http://www.cl.cam.ac.uk/texinfodoc/dir.html">GNU "info" manuals</A>
 
 TOP_DOC_FILES = README INSTALL NEWS
 RCS_FILES =  $(TEXI_FILES) Makefile.in 

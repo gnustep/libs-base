@@ -12,8 +12,8 @@ directory has the extension "bundle" and the main object file that
 resides in the directory has the same name as the bundle directory,
 without any extension.
 
-The NSBundle class provided with GNU libobjects is meant to run on a
-variety of systems.  However, some set-up is required to use it.
+The NSBundle class provided with GNUstep Base Library is meant to run
+on a variety of systems.  However, some set-up is required to use it.
 Currently it has been tested on only a few systems that support
 dynamic linking -- SunOS, Solaris.  It configures for HP, but I
 haven't been able to get it to work yet. There are unconfirmed reports
@@ -21,14 +21,14 @@ it work on Linux systems.
 
 NSBundle set-up:
 
-To compile NSBundle into your programs, you need to make sure that
-libobjects was configured correctly for the dynamic linking system on
-your machine.  This is done automatically in the configure script that
-comes with libobjects, but it is possible that the configuration is
-incorrect for your system (especially if it is not one of the systems
-listed above). In particular, the Makefile variable DYNAMIC_LINKER is
-set to link in the proper header file that prvides the dynamic linking
-for the system.
+To compile NSBundle into your programs, you need to make sure that the
+GNUstep Base Library was configured correctly for the dynamic linking
+system on your machine.  This is done automatically in the configure
+script that comes with the Base Library, but it is possible that the
+configuration is incorrect for your system (especially if it is not
+one of the systems listed above). In particular, the Makefile variable
+DYNAMIC_LINKER is set to link in the proper header file that prvides
+the dynamic linking for the system.
 
 You also need to configure your own program to take advantage of
 NSBundle, and also configure the compilation of any "bundles" you want
@@ -37,7 +37,7 @@ through you own customized configure script.  The examples directory
 contains an example configure.example.in and Makefile.example.in which
 you can use as a template for configuring your system for compiling so
 that you can dynamically load object files into your running program.
-You will need the file aclocal.m4 that comes with the libobjects 
+You will need the file aclocal.m4 that comes with the Base Library 
 distribution in order to use configure.example.in in your system.
 In particular, the example configure script sets the following
 Makefile variables:
@@ -67,8 +67,8 @@ data files within a bundle.
 
 If NSBundle does not work on systems that do support dynamic linking,
 it is likely that the Makefile variable DYNAMIC_BUNDLER_LINKER is not
-set-up correctly, or that libobjects did not link in the correct
-header file to use dynamic linking. Diagnosing and fixing these
-problems is not trivial and requires some knowledge of dynamic
+set-up correctly, or that the GNUstep Base Library did not link in the
+correct header file to use dynamic linking. Diagnosing and fixing
+these problems is not trivial and requires some knowledge of dynamic
 linking, object file formats and the Objective-C runtime. Contact Adam
 Fedor <fedor@boulder.colorado.edu> for help.

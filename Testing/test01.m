@@ -77,7 +77,7 @@ int main()
 
   [foo removeObject:[foo minObject]];
   [foo addObject: [NSNumber numberWithInt: 99]];
-  printf("Collections 0 and 9 should mismatch\n");
+  printf("Collections 0 and 4 should mismatch\n");
   [collections printForDebugger];
 
   checkSameContents([collections delegatePoolCollection]);

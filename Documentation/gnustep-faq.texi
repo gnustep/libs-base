@@ -239,10 +239,11 @@ The short answer is: On whichever platforms volunteers offer port it!
 The main target platforms is free operating systems, namely Linux and
 the Hurd.  Much of the code is OS-independent, and should port quite
 easily to various UNIX-like OS's.  There has been interest in a port to
-Linux on the Apple Macintosh, but I have not heard of any developers.
+Linux on the Apple Macintosh, but we have not heard from any developers
+working on this.
 
 At least one of the current active developers is also working with
-WindowsNT.  There has been some interest in an OS/2 port, but I've seen
+Windows NT.  There has been some interest in an OS/2 port, but I've seen
 few code contributions for OS/2.
 
 
@@ -343,8 +344,8 @@ No.  Unlike NeXT's @samp{cc}, GNU GCC does not support source files
 containing both Objective C and C++.  People at Cygnus have mentioned
 that they would be willing to do the work---if they were paid for it, of
 course.  Several people are interested in seeing this happen.  Send
-email to @samp{discussion@gnustep.org} and
-@samp{gnu-objc@prep.ai.mit.edu} if you are interesting in pushing this
+email to @samp{discussion@@gnustep.org} and
+@samp{gnu-objc@@prep.ai.mit.edu} if you are interesting in pushing this
 issue, so that the efforts of all those people interested can be
 coordinated.
 
@@ -385,8 +386,8 @@ and usable: NSArchiver, NSArray, NSAssertionHandler, NSAutoreleasePool,
 NSBitmapCharSet, NSBundle, NSCharacterSet, NSCoder, NSCountedSet,
 NSData, NSDate, NSDictionary, NSEnumerator, NSException, NSInvocation,
 NSLock, NSMethodSignature, NSNotification, NSNotificationCenter,
-NSNumber, NSObject, NSProcessInfo, NSRunLoop, NSSet, NSString, NSThread,
-NSTimeZone, NSTimer, NSUserDefaults, NSValue.
+NSNumber, NSObject, NSProcessInfo, NSRunLoop, NSScanner, NSSet,
+NSString, NSThread, NSTimeZone, NSTimer, NSUserDefaults, NSValue.
 
 Most of the C functions are also implemented, including NSHashTable and
 NSMaptable.
@@ -397,7 +398,7 @@ not yet been made.
 
 The following classes are unstarted or unusable: NSBTreeBlock,
 NSBTreeCursor, NSByteStore, NSByteStoreFile, NSCalendarDate,
-NSDeserializer, NSScanner, NSSerializer.
+NSDeserializer, NSSerializer.
 
 
 @item @b{In what ways is the Base Library different from OpenStep's FoundationKit?}
@@ -455,7 +456,7 @@ OpenStep's archiving system implements forward references, (that is,
 calls to @samp{encodeConditionalObject:} for which the object argument
 has not yet been encoded, but will be encoded later.) by making two
 passes through all the -encodeWithCoder: methods of the objects to be
-encoded GNU's archiving system, on the other hand, implements forward
+encoded.  GNU's archiving system, on the other hand, implements forward
 references efficiently, without making two passes.  It does this by
 using an object decoding method (@samp{-decodeObjectAt:..}) that
 back-patches @code{id}-pointers when the conditionally encoded objects

@@ -37,7 +37,6 @@
 @end
 
 
-@class NSArrayNonCore;
 @interface NSArray (NonCore) <NSCopying, NSMutableCopying>
 
 + array;
@@ -48,7 +47,6 @@
 - initWithObjects: firstObj, ...;
 - initWithArray: (NSArray*)array;
 
-    
 - (unsigned) indexOfObjectIdenticalTo: anObject;
 - (unsigned) indexOfObject: anObject;
 - (BOOL) containsObject: anObject;
@@ -73,7 +71,6 @@
 @end
 
 
-@class NSMutableArrayNonCore;
 @interface NSMutableArray : NSArray
 - initWithCapacity: (unsigned)numItems;
 - (void) addObject: anObject;

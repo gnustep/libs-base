@@ -6,8 +6,8 @@
 @include version.texi
 
 @ifset INSTALL_ONLY
-This file documents the installation of the GNU Objective C 
-Class Library, @samp{libgnustep-base}.  Copyright (C) 1993, 1994, 1996 Free Software
+This file documents the installation of the GNUstep Base Library,
+@samp{libgnustep-base}.  Copyright (C) 1993, 1994, 1996 Free Software 
 Foundation, Inc.  You may copy, distribute, and modify it freely as long
 as you preserve this copyright notice and permission notice.
 @chapter Installing @samp{libgnustep-base}
@@ -18,9 +18,9 @@ To compile and install @samp{libgnustep-base}:
 @enumerate
 
 @item
-If you are running Linux, first install pthreads.  gnustep-base has been
-tested with pthreads-0.9.2.  You can just copying the libaries from the
-@file{lib} directory of the distribution to /usr/local/lib, and the
+If you are running GNU/Linux, first install pthreads.  gnustep-base has
+been tested with pthreads-0.9.2.  You can just copying the libaries from
+the @file{lib} directory of the distribution to /usr/local/lib, and the
 @file{pthreads} directory from the @file{include} directory of the
 distribution to /usr/local/include.  For example:
 
@@ -63,10 +63,10 @@ make
 make install
 @end example
 
-If you are running GNU/Linux and have an older version of libc, then the
-Objective C runtime will not work unless you pass @samp{-lieee} to the
-linker.  If you use the pthreads library that will also have to be
-linked in.  You can do that like this:
+Alternatively, if you are running GNU/Linux and have an older version of
+libc, then the Objective C runtime will not work unless you pass
+@samp{-lieee} to the linker.  If you use the pthreads library that will
+also have to be linked in.  You can do that like this:
 
 @example
 LIBS="-lieee -lpthreads" ./configure --prefix=/usr/local
@@ -74,7 +74,11 @@ make
 make install
 @end example
 
-@item
+If your system supports dynamically loaded shared libraries, you can
+request the building and installation of a @samp{.so} version of the
+library by passing @samp{--enable-shared} to @samp{configure}.  If in
+doubt, do not include this option.  
+
 If you have trouble with the Makefile, it may be that our makefiles use
 features that your @code{make} does not support; use GNU make.
 

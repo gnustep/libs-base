@@ -1,10 +1,10 @@
-This is a snapshot distribution of libobjects.
+This is a snapshot distribution of the GNUstep Base Library.
 
 It is a totally untested "snapshot" of the source tree made on the
 date indicated by the filename.
 
-This release is not intended for casual users of libobjects---it is
-meant for libobjects developers.
+This release is not intended for casual users of GNUstep---it is meant
+for GNUstep developers.
 
 IMPORTANT:
 

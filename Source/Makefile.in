@@ -386,6 +386,7 @@ NSPage.m \
 NSProcessInfo.m \
 NSRange.m \
 NSRunLoop.m \
+NSScanner.m \
 NSSet.m \
 NSString.m \
 NSThread.m \
@@ -457,6 +458,7 @@ include/NSPathUtilities.h \
 include/NSProcessInfo.h \
 include/NSRange.h \
 include/NSRunLoop.h \
+include/NSScanner.h \
 include/NSSerialization.h \
 include/NSSet.h \
 include/NSString.h \

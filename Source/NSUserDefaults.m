@@ -36,6 +36,7 @@
 
 #ifdef NeXT
 #include <foundation/NSUserDefaults.h>
+#include <foundation/NSPathUtilities.h>
 #include <foundation/NSDictionary.h>
 #include <foundation/NSArray.h>
 #include <foundation/NSDate.h>
@@ -47,6 +48,7 @@
 #include <foundation/NSProcessInfo.h>
 #else  
 #include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDate.h>
@@ -92,47 +94,6 @@ NSString *NSInternationalCurrencyString = @"NSInternationalCurrencyString";
 NSString *NSCurrencyString = @"NSCurrencyString";
 NSString *NSDecimalDigits = @"NSDecimalDigits";
 NSString *NSAMPMDesignation = @"NSAMPMDesignation";
-
-
-/*************************************************************************
- *** Get Information about a User 
- *************************************************************************/
-#ifndef NeXT
-// The functions used below showld work with /etc/passwd file,
-// YP and NetInfo. I have no idea how this should be implemented
-// for Win-NT and I know that this cannot be implemented fow Win95
-
-NSString *NSUserName(void)
-{
-  NSString* processOwner = [NSString stringWithCString: getlogin()];
-  return processOwner;
-}
-
-NSString *NSHomeDirectory(void)
-{
-  return NSHomeDirectoryForUser (NSUserName());
-}
-
-NSString *NSHomeDirectoryForUser (NSString * userName)
-{	
-  struct passwd *pwd;
-	
-  if (!userName)
-    return nil; 
-	
-  setpwent();                  // Start scanning the password file 
-  while ((pwd = getpwent ()))
-    {
-      if (strcmp(pwd->pw_name,[userName cString]) == 0)
-	break;
-    }
-  endpwent();                  // Finish scanning the password file
-	
-  if (!pwd)
-    return nil;
-  return [NSString stringWithCString:pwd->pw_dir];
-}
-#endif
 
 /*************************************************************************
  *** Local method definitions
