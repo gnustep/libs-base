@@ -65,7 +65,6 @@
  *		map table whose type is that specified by the value of the
  *		preprocessor constant. This field can be used
  *		to store additional information for the map.
- *
  */
 
 #ifndef	GSI_MAP_HAS_VALUE
@@ -156,6 +155,10 @@
 #endif
 #ifdef	GSI_MAP_VEXTRA
 #define	GSUNION_EXTRA	GSI_MAP_VEXTRA
+#endif
+
+#ifndef	GSI_MAP_SIMPLE
+#define	GSI_MAP_SIMPLE	0
 #endif
 
 /*
@@ -688,22 +691,39 @@ GSIMapRemoveKey(GSIMapTable map, GSIMapKey key)
 static INLINE void
 GSIMapCleanMap(GSIMapTable map)
 {
-  GSIMapBucket	bucket = map->buckets;
-  int		i;
-
-  for (i = 0; i < map->bucketCount; i++)
+  if (map->nodeCount > 0)
     {
-      while (bucket->nodeCount != 0)
-	{
-	  GSIMapNode	node = bucket->firstNode;
+      GSIMapBucket	bucket = map->buckets;
+      int		i;
+      GSIMapNode	start = map->firstNode;
+      GSIMapNode	node = start;
+      unsigned int	end = map->nodeCount - 1;
 
-	  GSIMapRemoveNodeFromMap(map, bucket, node);
-	  GSIMapFreeNode(map, node);
+      map->nodeCount = 0;
+      map->firstNode = 0;
+      for (i = 0; i < map->bucketCount; i++)
+	{
+	  bucket->nodeCount = 0;
+	  bucket->firstNode = 0;
+	  bucket++;
 	}
-      bucket++;
-    }
-  map->firstNode = 0;
-  map->nodeCount = 0;
+      for (i = 0; i < end; i++)
+	{
+	  GSI_MAP_RELEASE_KEY(map, node->key);
+#if	GSI_MAP_HAS_VALUE
+	  GSI_MAP_RELEASE_VAL(map, node->val);
+#endif
+	  node->nextInBucket = 0;
+	  node = node->nextInMap;
+	}
+      GSI_MAP_RELEASE_KEY(map, node->key);
+#if	GSI_MAP_HAS_VALUE
+      GSI_MAP_RELEASE_VAL(map, node->val);
+#endif
+      node->nextInBucket = 0;
+      node->nextInMap = map->freeNodes;
+      map->freeNodes = start;
+    } 
 }
 
 static INLINE void

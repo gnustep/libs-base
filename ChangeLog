@@ -2,6 +2,8 @@
 
 	* Source/NSString.m: ([stringByExpandingTildeInPath]) fix bug in
 	handling ~username/... format.
+	* Headers/Foundation/GSIMap.h: GSIMapCleanMap() rewrote to empty
+	the map efficiently.
 
 2002-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
