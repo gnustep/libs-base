@@ -1,3 +1,8 @@
+2001-05-03  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/objc-gnu2next.h: Add sel_register_name
+	* Source/behavior.m: Add define hacks for Darwin.
+
 2001-05-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject: ([+initialize]) Move GSSetLocale() after platform
