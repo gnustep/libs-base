@@ -23,7 +23,6 @@
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/AutoreleasePool.h>
-#include <gnustep/base/objc-malloc.h>
 #include <gnustep/base/ObjectRetaining.h>
 
 /* Doesn't handle multi-threaded stuff.

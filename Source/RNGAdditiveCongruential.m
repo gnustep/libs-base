@@ -1,5 +1,5 @@
 /* Implementation additive congruential pseudo-random num generating
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -22,7 +22,6 @@
 */ 
 
 #include <gnustep/base/RNGAdditiveCongruential.h>
-#include <gnustep/base/objc-malloc.h>
 #include <gnustep/base/Coder.h>
 #include <limits.h>
 
