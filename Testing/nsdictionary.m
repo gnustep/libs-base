@@ -4,6 +4,7 @@
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <assert.h>
 
 int
 main(int argc, char** argv, char** envp)

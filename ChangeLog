@@ -1,3 +1,17 @@
+2002-01-03  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSString.h: Extern constant string class
+	reference for Darwin added.  
+	* Source/GSString.m ([NXConstantString +initialize]): Setup constant
+	string class reference variable for Darwin.
+	* Source/NSObject.m: Don't put reference count and zone with object
+	on Darwin.
+	* Source/behavior.m (NeXT_RUNTIME/behavior_class_add_class): Use NeXT 
+	runtime	functions. Pass only one method_list at a time.
+	(NeXT_RUNTIME/behavior_class_add_methods): Only look at one 
+	method_list at a time.
+	(NeXT_RUNTIME/search_for_method_in_list): Use NeXT runtime functions.
+
 Thu Jan  3 19:38:42 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Tools/HTMLLinker.m: New tool.

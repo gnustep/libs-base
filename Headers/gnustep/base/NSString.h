@@ -336,6 +336,10 @@ enum {
 }
 @end
 
+#if NeXT_RUNTIME
+/* For internal use with NeXT runtime. */
+extern struct objc_class _NSConstantStringClassReference;
+#endif
 
 #ifndef NO_GNUSTEP
 /*

@@ -54,10 +54,6 @@
 #include <base/behavior.h>
 #include <Foundation/NSException.h>
 
-#if NeXT_RUNTIME
-#define methods methodLists
-static struct objc_method *search_for_method_in_list (struct objc_method_list **list, SEL op);
-#endif
 static BOOL class_is_kind_of(Class self, Class class);
 
 static int behavior_debug = 0;
@@ -79,14 +75,15 @@ behavior_class_add_class (Class class, Class behavior)
 #if NeXT_RUNTIME
   if (class->instance_size < behavior->instance_size)
     {
-      /* We can allow this since we're pretty sure NXConstantString is not subclassed. */
-      if (strcmp(class_get_class_name(class), "NXConstantString") == 0)
+      /* We can allow this since we're pretty sure NXConstantString is 
+	 not subclassed. */
+      if (class == [NXConstantString class])
         {
           class->instance_size = behavior->instance_size;
         }
       else
         NSCAssert2(class->instance_size >= behavior->instance_size,
-	        @"Trying to add behavior (%s) with instance size larger than class (%s)",
+		@"Trying to add behavior (%s) with instance size larger than class (%s)",
                 class_get_class_name(behavior), class_get_class_name(class));
     }
 #else
@@ -116,7 +113,17 @@ behavior_class_add_class (Class class, Class behavior)
       fprintf(stderr, "Adding instance methods from %s\n",
 	      behavior->name);
     }
+#if NeXT_RUNTIME
+  {
+     void *iterator = 0;
+     struct objc_method_list *method_list;
+
+     while ( (method_list = class_nextMethodList(behavior, &iterator)) )
+       behavior_class_add_methods (class, method_list);
+  }
+#else
   behavior_class_add_methods (class, behavior->methods);
+#endif
 
   /* Add class methods */
   if (behavior_debug)
@@ -124,8 +131,19 @@ behavior_class_add_class (Class class, Class behavior)
       fprintf(stderr, "Adding class methods from %s\n",
 	      behavior->class_pointer->name);
     }
+#if NeXT_RUNTIME
+  {
+     void *iterator = 0;
+     struct objc_method_list *method_list;
+
+     while ( (method_list = 
+	      class_nextMethodList(behavior->class_pointer, &iterator)) )
+       behavior_class_add_methods (class->class_pointer, method_list);
+  }
+#else
   behavior_class_add_methods (class->class_pointer, 
 			      behavior->class_pointer->methods);
+#endif
 
   /* Add behavior's superclass, if not already there. */
   {
@@ -143,22 +161,22 @@ class_add_behavior (Class class, Class behavior)
   behavior_class_add_class (class, behavior);
 }
 
-#if NeXT_RUNTIME
 void
 behavior_class_add_category (Class class, struct objc_category *category)
 {
-  struct objc_method_list *mlists[2];
-
-  mlists[1] = 0;
-  mlists[0] = category->instance_methods;
-  behavior_class_add_methods (class, mlists);
-  mlists[0] = category->class_methods;
-  behavior_class_add_methods (class->class_pointer, mlists);
+  behavior_class_add_methods (class, 
+			      category->instance_methods);
+  behavior_class_add_methods (class->class_pointer, 
+			      category->class_methods);
   /* xxx Add the protocols (category->protocols) too. */
 }
 
+#if NeXT_RUNTIME
+
+static struct objc_method *search_for_method_in_list (Class class, SEL op);
+
 void 
-behavior_class_add_methods (Class class, struct objc_method_list **methodLists)
+behavior_class_add_methods (Class class, struct objc_method_list *methods)
 {
   static SEL initialize_sel = 0;
   struct objc_method_list *mlist;
@@ -167,7 +185,7 @@ behavior_class_add_methods (Class class, struct objc_method_list **methodLists)
     initialize_sel = sel_register_name ("initialize");
 
   /* Add methods to class->dtable and class->methods */
-  while ((mlist = *(methodLists++)))
+  mlist = methods;
     {
       int counter;
       struct objc_method_list *new_list;
@@ -191,7 +209,7 @@ behavior_class_add_methods (Class class, struct objc_method_list **methodLists)
 		sel_get_name(method->method_name));
 	    }
 
-	  if (!search_for_method_in_list(class->methodLists,method->method_name)
+	  if (!search_for_method_in_list(class,method->method_name)
 	    && !sel_eq(method->method_name, initialize_sel))
 	    {
 	      /* As long as the method isn't defined in the CLASS,
@@ -221,19 +239,19 @@ behavior_class_add_methods (Class class, struct objc_method_list **methodLists)
     }
 }
 
-/* Given a linked list of method and a method's name.  Search for the named
-   method's method structure.  Return a pointer to the method's method
-   structure if found.  NULL otherwise. */
+/* Search for the named method's method structure.  Return a pointer
+   to the method's method structure if found.  NULL otherwise. */
 static struct objc_method *
-search_for_method_in_list (struct objc_method_list **list, SEL op)
+search_for_method_in_list (Class class, SEL op)
 {
-  struct objc_method_list *method_list = *(list++);
+  void *iterator = 0;
+  struct objc_method_list *method_list;
 
   if (! sel_is_mapped (op))
     return NULL;
 
   /* If not found then we'll search the list.  */
-  while (method_list)
+  while ( (method_list = class_nextMethodList(class, &iterator)) )
     {
       int i;
 
@@ -248,10 +266,6 @@ search_for_method_in_list (struct objc_method_list **list, SEL op)
                 return method;
             }
         }
-
-      /* The method wasn't found.  Follow the link to the next list of
-         methods.  */
-      method_list = *(list++);
     }
 
   return NULL;
@@ -265,16 +279,6 @@ search_for_method_in_list (struct objc_method_list **list, SEL op)
  */
 extern Method_t search_for_method_in_list(MethodList_t list, SEL op);
 extern void class_add_method_list(Class, MethodList_t);
-
-void
-behavior_class_add_category (Class class, struct objc_category *category)
-{
-  behavior_class_add_methods (class, 
-			      category->instance_methods);
-  behavior_class_add_methods (class->class_pointer, 
-			      category->class_methods);
-  /* xxx Add the protocols (category->protocols) too. */
-}
 
 void
 behavior_class_add_methods (Class class, 

@@ -52,13 +52,8 @@ void behavior_class_add_class (Class class,
 			       Class behavior);
 void behavior_class_add_category (Class class, 
 				  struct objc_category *category);
-#if NeXT_RUNTIME
-void behavior_class_add_methods (Class class, 
-				 struct objc_method_list **methodLists);
-#else
 void behavior_class_add_methods (Class class, 
 				 struct objc_method_list *methods);
-#endif
 
 /* Set to non-zero if you want debugging messages on stderr. */
 void set_behavior_debug(int i);

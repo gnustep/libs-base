@@ -2,6 +2,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include    <Foundation/NSAutoreleasePool.h>
+#include <assert.h>
 
 void original_test ();
 void intersects_set_test();

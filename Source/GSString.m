@@ -52,6 +52,9 @@
 
 #include <base/Unicode.h>
 
+/* Used by the Darwin/NeXT ObjC Runtime */
+struct objc_class _NSConstantStringClassReference;
+
 /*
  * GSPlaceholderString - placeholder class for objects awaiting intialisation.
  */
@@ -2850,7 +2853,17 @@ transmute(ivars self, NSString *aString)
 {
   if (self == [NXConstantString class])
     {
+#if NeXT_RUNTIME
+      struct objc_class *ref = self;
+#endif
       behavior_class_add_class(self, [GSCString class]);
+ 
+#if NeXT_RUNTIME
+      /* Set up a structure to represent the constant string class. All constant strings point to 
+         this structure.
+      */
+      _NSConstantStringClassReference = *ref;
+#endif
     }
 }
 
