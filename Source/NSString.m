@@ -4412,6 +4412,12 @@ static NSFileManager *fm = nil;
     {
       return YES;		// Begins with tilde ... absolute
     }
+#if !defined(__MINGW__)
+  if (c == '/' && GSPathHandlingWindows() == NO)
+    {
+      return YES;		// Begins with slash ... absolute on unix. 
+    }
+#endif
   root = rootOf(self, l);
   if (root > 0 && pathSepMember([self characterAtIndex: root-1]))
     {
