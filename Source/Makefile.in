@@ -83,7 +83,7 @@ NEXT_NEXT_INCLUDES = -I/usr/include
 GNU_NEXT_INCLUDES = -I$(srcdir)
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
-ALL_INCLUDE_FLAGS = -I. -I$(srcdir) $(NEXT_INCLUDES) $(INCLUDEFLAGS)
+ALL_INCLUDE_FLAGS = -I. -I./include $(NEXT_INCLUDES) $(INCLUDEFLAGS)
 ALL_CPPFLAGS = $(ALL_INCLUDE_FLAGS) $(CPPFLAGS)
 ALL_CFLAGS = $(CFLAGS)
 ALL_OBJCFLAGS = $(CFLAGS) -Wno-protocol
@@ -93,14 +93,14 @@ MAKEDEFINES = CC='$(CC)' CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' \
 INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 
 .SUFFIXES: .m
-.m$(OEXT):
+.m${OEXT}:
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -o $@ $<
-.c$(OEXT):
+.c${OEXT}:
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_CFLAGS) -o $@ $<
-%_pic$(OEXT): %.m
+%_pic${OEXT}: %.m
 	$(CC) -c $(ALL_CPPFLAGS) -fPIC -DPIC $(DEFS) \
 		$(ALL_OBJCFLAGS) -o $@ $<
-%_pic$(OEXT): %.c
+%_pic${OEXT}: %.c
 	$(CC) -c $(ALL_CPPFLAGS) -fPIC -DPIC $(DEFS) \
 		$(ALL_CFLAGS) -o $@ $<
 
@@ -201,8 +201,8 @@ include/x-cbs.h.in \
 md5.h
 
 GNU_OBJS = \
-	$(GNU_MFILES:.m=$(OEXT)) \
-	$(GNU_CFILES:.c=$(OEXT))
+	$(GNU_MFILES:.m=${OEXT}) \
+	$(GNU_CFILES:.c=${OEXT})
 
 GNU_HEADERS = \
 include/Archiver.h \
@@ -249,11 +249,6 @@ include/MappedCollector.h \
 include/MemoryStream.h \
 include/Notification.h \
 include/NotificationDispatcher.h \
-include/NSArray.h \
-include/NSCoder.h \
-include/NSDictionary.h \
-include/NSSet.h \
-include/NSString.h \
 include/Ordering.h \
 include/OrderedCollecting.h \
 include/OrderedCollection.h \
@@ -321,9 +316,9 @@ NEXTSTEP_OTHER_SRCFILES = \
 NXStringTable_scan.l 
 
 NEXTSTEP_OBJS = \
-	$(NEXTSTEP_MFILES:.m=$(OEXT)) \
-	$(NEXTSTEP_CFILES:.c=$(OEXT)) \
-	$(NEXTSTEP_DERIVED_CFILES:.c=$(OEXT))
+	$(NEXTSTEP_MFILES:.m=${OEXT}) \
+	$(NEXTSTEP_CFILES:.c=${OEXT}) \
+	$(NEXTSTEP_DERIVED_CFILES:.c=${OEXT})
 
 NEXTSTEP_HEADERS = \
 objc/HashTable.h \
@@ -406,10 +401,10 @@ simple-load.h \
 NSCallBacks.h 
 
 GNUSTEP_OBJS = \
-	$(GNUSTEP_MFILES:.m=$(OEXT)) \
-	$(GNUSTEP_CFILES:.c=$(OEXT)) \
-	$(NSVALUE_MFILES:.m=$(OEXT)) \
-	$(NSNUMBER_MFILES:.m=$(OEXT))
+	$(GNUSTEP_MFILES:.m=${OEXT}) \
+	$(GNUSTEP_CFILES:.c=${OEXT}) \
+	$(NSVALUE_MFILES:.m=${OEXT}) \
+	$(NSNUMBER_MFILES:.m=${OEXT})
 
 GNUSTEP_HEADERS = \
 include/NSArchiver.h \
@@ -456,7 +451,7 @@ include/objc-load.h
 HEADERS_INSTALL = @HEADERS_INSTALL@ \
                   include/preface.h
 OBJS_INSTALL = @OBJS_INSTALL@ 
-OBJS_INSTALL_PIC = $(OBJS_INSTALL:$(OEXT)=_pic$(OEXT))
+OBJS_INSTALL_PIC = $(OBJS_INSTALL:${OEXT}=_pic${OEXT})
 
 DIST_FILES = \
         Makefile.in AUTHORS \
@@ -511,7 +506,12 @@ lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL)
 # Local links to the include files
 gnustep/base:
 	ln -s . gnustep
-	ln -s $(srcdir)/include base
+	ln -s ./include base
+	# Make necessary links to source headers if compiling in seperate dir
+	if [ ! -e ./include/Collection.h ]; then \
+	  ln -s ../$(srcdir)/include ./include/base; \
+	  (cd include; ln -s . gnustep); \
+	fi
 # This deletion is necessary, because the CVS repository contains
 # an emtpy `Foundation' directory that used to hold the OpenStep headers.
 Foundation: ../configure
@@ -567,16 +567,16 @@ NXStringTable_scan.c: NXStringTable_scan.l
 		> NXStringTable_scan.c
 	$(RM) -f NXStringTable_scan.temp
 
-objc-load$(OEXT): dynamic-load.h
+objc-load${OEXT}: dynamic-load.h
 
 dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
 
-include/preface.h: include/preface.h.in ../Version
+include/preface.h: $(srcdir)/include/preface.h.in ../Version
 	rm -f $@
 	sed -e "s/@VERSION@/$(LIBRARY_VAR)_VERSION $(VERSION)/" \
-	< $< | \
+	< $(srcdir)/include/preface.h.in | \
 	sed -e "s/@MAJOR_VERSION@/$(LIBRARY_VAR)_MAJOR_VERSION $(MAJOR_VERSION)/" | \
 	sed -e "s/@MINOR_VERSION@/$(LIBRARY_VAR)_MINOR_VERSION $(MINOR_VERSION)/" | \
 	sed -e "s/@SUBMINOR_VERSION@/$(LIBRARY_VAR)_SUBMINOR_VERSION $(SUBMINOR_VERSION)/" | \
@@ -584,12 +584,12 @@ include/preface.h: include/preface.h.in ../Version
 	sed -e "s/@LIBRARY_NAME@/$(LIBRARY_VAR)_LIBRARY_NAME $(LIBRARY_NAME)/" | \
 	sed -e "s/@PACKAGE_NAME@/$(LIBRARY_VAR)_PACKAGE_NAME $(PACKAGE_NAME)/" \
 	> $@
-preface$(OEXT): include/preface.h
+preface${OEXT}: include/preface.h
 
 # Turn off warnings for o_vscanf.c, it generates a bunch of unimportant ones.
-o_vscanf$(OEXT): o_vscanf.c
+o_vscanf${OEXT}: o_vscanf.c
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
-o_vscanf_pic$(OEXT): o_vscanf.c
+o_vscanf_pic${OEXT}: o_vscanf.c
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
 
 include/o-%-bas.h: include/x-bas.h.in
@@ -641,7 +641,7 @@ mostlyclean:
 	include/*~ \
 	objc/*~
 clean: mostlyclean
-	rm -f lib$(LIBRARY_NAME)$(LIBEXT) *$(OEXT)
+	rm -f lib$(LIBRARY_NAME)$(LIBEXT) *${OEXT}
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 distclean: clean
 	rm -f Makefile 
