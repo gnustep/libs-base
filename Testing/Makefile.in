@@ -134,8 +134,9 @@ all: $(EXCS)
 %: %$(OEXT) ../src/lib$(LIBRARY_NAME)$(LIBEXT)
 	$(CC) $(ALL_CFLAGS) $@$(OEXT) -o $@ $(ALL_LDFLAGS)
 
-foo:
-	echo $(OEXT)
+../src/lib$(LIBRARY_NAME)$(LIBEXT):
+	@echo You must first make the library $(LIBRARY_NAME).
+	@false
 
 install:
 uninstall:
