@@ -101,6 +101,59 @@
 
 static Class	NSString_class;	/* For speed	*/
 
+/*
+ *	Cache some commonly used character sets along with methods to
+ *	check membership.
+ */
+
+static SEL		cMemberSel = @selector(characterIsMember:);
+
+static NSCharacterSet	*hexdigits = nil;
+static BOOL		(*hexdigitsImp)(id, SEL, unichar) = 0;
+static void setupHexdigits()
+{
+  if (hexdigits == nil)
+    {
+      hexdigits = [NSCharacterSet characterSetWithCharactersInString:
+	@"0123456789abcdef"];
+      [hexdigits retain];
+      hexdigitsImp =
+	(BOOL(*)(id,SEL,unichar)) [hexdigits methodForSelector: cMemberSel];
+    }
+}
+
+static NSCharacterSet	*quotables = nil;
+static BOOL		(*quotablesImp)(id, SEL, unichar) = 0;
+static void setupQuotables()
+{
+  if (quotables == nil)
+    {
+      NSMutableCharacterSet	*s;
+
+      s = (NSMutableCharacterSet*)[NSMutableCharacterSet
+	characterSetWithCharactersInString:
+	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$./_"];
+      [s invert];
+      quotables = [s copy];
+      quotablesImp =
+	(BOOL(*)(id,SEL,unichar)) [quotables methodForSelector: cMemberSel];
+    }
+}
+
+static NSCharacterSet	*whitespce = nil;
+static BOOL		(*whitespceImp)(id, SEL, unichar) = 0;
+static void setupWhitespce()
+{
+  if (whitespce == nil)
+    {
+      whitespce = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+      [whitespce retain];
+      whitespceImp =
+	(BOOL(*)(id,SEL,unichar)) [whitespce methodForSelector: cMemberSel];
+    }
+}
+
+
 static unichar		pathSepChar = (unichar)'/';
 static NSString		*pathSepString = @"/";
 
@@ -572,9 +625,9 @@ handle_printf_atsign (FILE *stream,
       int count;
       const unsigned char *b=[data bytes];
 
-      if(encoding==NSUnicodeStringEncoding)
+      if (encoding==NSUnicodeStringEncoding)
         {
-	  if((b[0]==0xFE)&(b[1]==0xFF))
+	  if ((b[0]==0xFE)&(b[1]==0xFF))
 	    for(count=2;count<(len-1);count+=2)
 	      u[count/2 - 1]=256*b[count]+b[count+1];
 	  else
@@ -599,7 +652,7 @@ handle_printf_atsign (FILE *stream,
   unsigned int len = [d length];
 
   if (d == nil) return nil;
-  if(test && (((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE))))
+  if (test && (((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE))))
     enc = NSUnicodeStringEncoding;
   else
     enc = [NSString defaultCStringEncoding];
@@ -768,6 +821,8 @@ handle_printf_atsign (FILE *stream,
 {
   int i, start, stop, step;
   NSRange range;
+  unichar	(*cImp)(id, SEL, unsigned);
+  BOOL		(*mImp)(id, SEL, unichar);
 
   i = [self length];
   if (aRange.location > i)
@@ -785,10 +840,16 @@ handle_printf_atsign (FILE *stream,
     }
   range.location = 0;
   range.length = 0;
-  for (i = start; i != stop; i+=step)
+
+  cImp = (unichar(*)(id,SEL,unsigned)) 
+    [self methodForSelector: @selector(characterAtIndex:)];
+  mImp = (BOOL(*)(id,SEL,unichar))
+    [aSet methodForSelector: cMemberSel];
+
+  for (i = start; i != stop; i += step)
     {
-      unichar letter = [self characterAtIndex:i];
-      if ([aSet characterIsMember:letter])
+      unichar letter = (unichar)(*cImp)(self, @selector(characterAtIndex:), i);
+      if ((*mImp)(aSet, cMemberSel, letter))
 	{
 	  range = NSMakeRange(i, 1);
 	  break;
@@ -1084,7 +1145,7 @@ handle_printf_atsign (FILE *stream,
         if (myIndex <= myEndIndex)
           break;
           myIndex--;
-          while(uni_isnonsp([self characterAtIndex: myIndex])&&(myIndex>0))
+          while (uni_isnonsp([self characterAtIndex: myIndex])&&(myIndex>0))
             myIndex--;
       } /* for */
   return (NSRange){0, 0};
@@ -1189,7 +1250,7 @@ handle_printf_atsign (FILE *stream,
         if (myIndex <= myEndIndex)
           break;
           myIndex--;
-          while(uni_isnonsp([self characterAtIndex: myIndex])&&(myIndex>0))
+          while (uni_isnonsp([self characterAtIndex: myIndex])&&(myIndex>0))
             myIndex--;
       } /* for */
  return (NSRange){0, 0};
@@ -1301,17 +1362,18 @@ handle_printf_atsign (FILE *stream,
   unsigned int start, end;
 
   start=anIndex;
-  while(uni_isnonsp([self characterAtIndex: start]) && start > 0)
+  while (uni_isnonsp([self characterAtIndex: start]) && start > 0)
     start--;
   end=start+1;
-  if(end < [self length])
-    while((end < [self length]) && (uni_isnonsp([self characterAtIndex: end])) )
+  if (end < [self length])
+    while ((end < [self length]) && (uni_isnonsp([self characterAtIndex: end])) )
       end++;
   return NSMakeRange(start, end-start);
 }
 
 // Converting String Contents into a Property List
 
+#if 0
 //  xxx C strings only ???
 - (id)propertyList
 {
@@ -1335,6 +1397,7 @@ handle_printf_atsign (FILE *stream,
    sf_delete_buffer(bufstate);
    return dict;
 }
+#endif
 
 // Identifying and Comparing Strings
 
@@ -1362,11 +1425,11 @@ handle_printf_atsign (FILE *stream,
 
   if (aRange.length == 0)
     return NSOrderedSame;
-  if((([self length] - aRange.location == 0) && (![aString length])))
+  if ((([self length] - aRange.location == 0) && (![aString length])))
     return NSOrderedSame;
-  if(![self length])
+  if (![self length])
     return NSOrderedAscending;
-  if(![aString length])
+  if (![aString length])
     return NSOrderedDescending;
 
 if (mask & NSLiteralSearch)
@@ -1422,11 +1485,11 @@ else
   end = aRange.location + aRange.length;
   myCount = start;
   strCount = start;
-  while(myCount < end)
+  while (myCount < end)
   {
-    if(strCount>=[aString length])
+    if (strCount>=[aString length])
       return NSOrderedDescending;
-    if(myCount>=[self length])
+    if (myCount>=[self length])
       return NSOrderedAscending;
     myRange = [self rangeOfComposedCharacterSequenceAtIndex:  myCount];
     myCount += myRange.length;
@@ -1438,10 +1501,10 @@ else
       result = [[mySeq lowercase] compare: [strSeq lowercase]];
     else
       result = [mySeq compare: strSeq];
-    if(result != NSOrderedSame)
+    if (result != NSOrderedSame)
       return result;
     } /* while */
-  if(strCount<[aString length])
+  if (strCount<[aString length])
     return NSOrderedAscending;
   return NSOrderedSame;
  }  /* else */
@@ -1491,15 +1554,15 @@ else
     return NO;
   myLength = [self length];
   strLength = [aString length];
-  if((!myLength) && (!strLength))
+  if ((!myLength) && (!strLength))
     return YES;
-  if(!myLength)
+  if (!myLength)
     return NO;
-  if(!strLength)
+  if (!strLength)
     return NO;
 
-  while((myIndex < myLength) && (strIndex < strLength))
-    if([self characterAtIndex: myIndex] ==
+  while ((myIndex < myLength) && (strIndex < strLength))
+    if ([self characterAtIndex: myIndex] ==
        [aString characterAtIndex: strIndex])
     {
       myIndex++;
@@ -1509,13 +1572,13 @@ else
     {
       myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
       strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strIndex];
-      if((myRange.length < 2) || (strRange.length < 2))
+      if ((myRange.length < 2) || (strRange.length < 2))
         return NO;
       else
       {
         mySeq = [NSGSequence sequenceWithString: self range: myRange];
         strSeq = [NSGSequence sequenceWithString: aString range: strRange];
-        if([mySeq isEqual: strSeq])
+        if ([mySeq isEqual: strSeq])
         {
           myIndex += myRange.length;
           strIndex += strRange.length;
@@ -1524,7 +1587,7 @@ else
           return NO;
       }
     }
-  if((myIndex  == myLength) && (strIndex  == strLength))
+  if ((myIndex  == myLength) && (strIndex  == strLength))
     return YES;
   else
     return NO;
@@ -1552,7 +1615,7 @@ else
 
   if (len)
   {
-    if(len > NSHashStringLength)
+    if (len > NSHashStringLength)
       len = NSHashStringLength;
     source = alloca(sizeof(unichar)*(len*MAXDEC+1));
     [self getCharacters: source range:NSMakeRange(0,len)];
@@ -1567,25 +1630,25 @@ else
       notdone=NO;
       do
       {
-        if(!(dpoint=uni_is_decomp(*spoint)))
+        if (!(dpoint=uni_is_decomp(*spoint)))
           *tpoint++ = *spoint;
         else
         {
-          while(*dpoint)
+          while (*dpoint)
             *tpoint++=*dpoint++;
           notdone=YES;
         }
-      } while(*spoint++);
+      } while (*spoint++);
       *tpoint=(unichar)0;
       memcpy(source, target,2*(len*MAXDEC+1));
       tpoint = target;
       spoint = source;
-    } while(notdone);
+    } while (notdone);
 
 // order
 
   len2 = uslen(source);
-  if(len2>1)
+  if (len2>1)
   do
   {
     notdone=NO;
@@ -1593,17 +1656,17 @@ else
     second=first+1;
     for(count=1;count<len2;count++)
     {
-      if(uni_cop(*second))
+      if (uni_cop(*second))
       {
-         if(uni_cop(*first)>uni_cop(*second))
+         if (uni_cop(*first)>uni_cop(*second))
          {
             tmp= *first;
             *first= *second;
             *second=tmp;
             notdone=YES;
          }
-         if(uni_cop(*first)==uni_cop(*second))
-           if(*first>*second)
+         if (uni_cop(*first)==uni_cop(*second))
+           if (*first>*second)
            {
               tmp= *first;
               *first= *second;
@@ -1614,7 +1677,7 @@ else
       first++;
       second++;
     }
-  } while(notdone);
+  } while (notdone);
 
   p = source;
 
@@ -1652,7 +1715,7 @@ else
 - (NSString*) commonPrefixWithString: (NSString*)aString
    options: (unsigned int)mask
 {
- if(mask & NSLiteralSearch)
+ if (mask & NSLiteralSearch)
  {
   int prefix_len = 0;
   unichar *u,*w;
@@ -1667,7 +1730,7 @@ else
   s2[[aString length]] = (unichar)0;
   u=s1;
   w=s2;
- if(mask & NSCaseInsensitiveSearch)
+ if (mask & NSCaseInsensitiveSearch)
   while (*s1 && *s2 
 	 && (uni_tolower(*s1) == uni_tolower(*s2)))
     {
@@ -1693,14 +1756,14 @@ else
   unsigned int strLength = [aString length];
   unsigned int myIndex = 0;
   unsigned int strIndex = 0;
-  if(!myLength)
+  if (!myLength)
     return self;
-  if(!strLength)
+  if (!strLength)
     return aString;
- if(mask & NSCaseInsensitiveSearch)
+ if (mask & NSCaseInsensitiveSearch)
  {
-  while((myIndex < myLength) && (strIndex < strLength))
-    if(uni_tolower([self characterAtIndex: myIndex]) ==
+  while ((myIndex < myLength) && (strIndex < strLength))
+    if (uni_tolower([self characterAtIndex: myIndex]) ==
        uni_tolower([aString characterAtIndex: strIndex]))
     {
       myIndex++;
@@ -1710,13 +1773,13 @@ else
     {
       myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
       strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strIndex];
-      if((myRange.length < 2) || (strRange.length < 2))
+      if ((myRange.length < 2) || (strRange.length < 2))
         return [self substringFromRange: NSMakeRange(0, myIndex)];
       else
       {
         mySeq = [NSGSequence sequenceWithString: self range: myRange];
         strSeq = [NSGSequence sequenceWithString: aString range: strRange];
-        if([[mySeq lowercase] isEqual: [strSeq lowercase]])
+        if ([[mySeq lowercase] isEqual: [strSeq lowercase]])
         {
           myIndex += myRange.length;
           strIndex += strRange.length;
@@ -1729,8 +1792,8 @@ else
  }
  else
  {
-  while((myIndex < myLength) && (strIndex < strLength))
-    if([self characterAtIndex: myIndex] ==
+  while ((myIndex < myLength) && (strIndex < strLength))
+    if ([self characterAtIndex: myIndex] ==
        [aString characterAtIndex: strIndex])
     {
       myIndex++;
@@ -1740,13 +1803,13 @@ else
     {
       myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
       strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strIndex];
-      if((myRange.length < 2) || (strRange.length < 2))
+      if ((myRange.length < 2) || (strRange.length < 2))
         return [self substringFromRange: NSMakeRange(0, myIndex)];
       else
       {
         mySeq = [NSGSequence sequenceWithString: self range: myRange];
         strSeq = [NSGSequence sequenceWithString: aString range: strRange];
-        if([mySeq isEqual: strSeq])
+        if ([mySeq isEqual: strSeq])
         {
           myIndex += myRange.length;
           strIndex += strRange.length;
@@ -1789,13 +1852,13 @@ else
   len = [self length];
   start=aRange.location;
 
-  if(startIndex)
-    if(start==0)
+  if (startIndex)
+    if (start==0)
       *startIndex=0;
     else
     {
       start--;
-      while(start>0)
+      while (start>0)
       {
         BOOL done = NO;
         thischar = [self characterAtIndex:start];
@@ -1811,10 +1874,10 @@ else
             start--;
             break;
         };
-        if(done)
+        if (done)
           break;
       };
-      if(start == 0)
+      if (start == 0)
       {
          thischar = [self characterAtIndex:start];
          switch(thischar)
@@ -1834,10 +1897,10 @@ else
       *startIndex=start;
     };
 
-  if(lineEndIndex || contentsEndIndex)
+  if (lineEndIndex || contentsEndIndex)
   {
     end=aRange.location+aRange.length;
-    while(end<len)
+    while (end<len)
     {
        BOOL done = NO;
        thischar = [self characterAtIndex:end];
@@ -1853,13 +1916,13 @@ else
            break;
        };
        end++;
-       if(done)
+       if (done)
          break;
     };
-    if(end<len)
+    if (end<len)
     {
-      if([self characterAtIndex:end]==(unichar)0x000D)
-        if([self characterAtIndex:end+1]==(unichar)0x000A)
+      if ([self characterAtIndex:end]==(unichar)0x000D)
+        if ([self characterAtIndex:end+1]==(unichar)0x000A)
           *lineEndIndex = end+1;
         else  *lineEndIndex = end;
       else  *lineEndIndex = end;
@@ -1868,9 +1931,9 @@ else
     *lineEndIndex = end;
   };
 
-  if(contentsEndIndex)
+  if (contentsEndIndex)
   {
-    if(end<len)
+    if (end<len)
     {
       *contentsEndIndex= end-1;
     }
@@ -1893,28 +1956,30 @@ else
   int count=0;
   BOOL found=YES;
   int len=[self length];
-  id white = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+
+  if (whitespce == nil)
+    setupWhitespce();
 
   s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
   [self getCharacters:s];
   s[len] = (unichar)0;
-  while(count<len)
+  while (count<len)
   {
-    if([white characterIsMember:s[count]])
+    if ((*whitespceImp)(whitespce, cMemberSel, s[count]))
     {
       count++;
       found=YES;
-      while([white characterIsMember:s[count]]&(count<len))
+      while ((*whitespceImp)(whitespce, cMemberSel, s[count]) && (count < len))
         count++;
     };
-    if(found)
+    if (found)
     {
       s[count]=uni_toupper(s[count]);
       count++;
     }
     else
     {
-      while(![white characterIsMember:s[count]]&(count<len))
+      while (!(*whitespceImp)(whitespce, cMemberSel, s[count]) && (count < len))
       {
         s[count]=uni_tolower(s[count]);
         count++;
@@ -2023,7 +2088,7 @@ else
 	}
     }
   count=0;
-  while(count<len)
+  while (count<len)
   {
     buffer[count]=unitochar([self characterAtIndex: aRange.location + count]);
     count++;
@@ -2107,7 +2172,7 @@ else
   int count=0;
   int len = [self length];
 
-  if((encoding==NSASCIIStringEncoding)
+  if ((encoding==NSASCIIStringEncoding)
   || (encoding==NSISOLatin1StringEncoding)
   || (encoding==NSNEXTSTEPStringEncoding)
   || (encoding==NSNonLossyASCIIStringEncoding)
@@ -2118,9 +2183,9 @@ else
     unsigned char *buff;
 
     buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
-    if(!flag)
+    if (!flag)
       for(count=0; count<len; count++)
-        if((t = encode_unitochar([self characterAtIndex: count], encoding)))
+        if ((t = encode_unitochar([self characterAtIndex: count], encoding)))
           buff[count] = t;
         else
           {
@@ -2129,7 +2194,7 @@ else
           }
     else /* lossy */
       for(count=0; count<len; count++)
-        if((t = encode_unitochar([self characterAtIndex: count], encoding)))
+        if ((t = encode_unitochar([self characterAtIndex: count], encoding)))
           buff[count] = t;
         else
         {
@@ -2137,7 +2202,7 @@ else
           range:
           [self rangeOfComposedCharacterSequenceAtIndex: count]]
            baseCharacter];
-          if((t = encode_unitochar([self characterAtIndex: count], encoding)))
+          if ((t = encode_unitochar([self characterAtIndex: count], encoding)))
             buff[count] = t;
           else
   /* xxx should handle decomposed characters */
@@ -2149,7 +2214,7 @@ else
       return [NSData dataWithBytesNoCopy: buff length: count+1];
     }
     else
-      if(encoding==NSUnicodeStringEncoding)
+      if (encoding==NSUnicodeStringEncoding)
       {
         unichar *buff;
 
@@ -2456,7 +2521,7 @@ else
   int syscall_result;
   struct stat tmp_stat;  
 
-  while(1)
+  while (1)
     {
       tmp_cpath = [first_half cString];
 
@@ -2559,8 +2624,8 @@ else
 {
   int count=0;
   int blen=0;
-  while(count < [self length])
-    if(!uni_isnonsp([self characterAtIndex: count++]))
+  while (count < [self length])
+    if (!uni_isnonsp([self characterAtIndex: count++]))
       blen++;
   return blen;
 } 
@@ -2580,7 +2645,7 @@ else
   u = NSZoneMalloc(z, sizeof(unichar)*(len*MAXDEC+1));
   upoint = u;
 
-  while(count < len)
+  while (count < len)
   {
     r = [self rangeOfComposedCharacterSequenceAtIndex: count];
     seq=[NSGSequence sequenceWithString: self range: r];
@@ -2680,15 +2745,13 @@ else
    atomically: (BOOL)useAuxiliaryFile
 {
   id d;
-  if(!(d = [self dataUsingEncoding:[NSString defaultCStringEncoding]]))
+  if (!(d = [self dataUsingEncoding:[NSString defaultCStringEncoding]]))
     d = [self dataUsingEncoding: NSUnicodeStringEncoding];
   return [d writeToFile: filename atomically: useAuxiliaryFile];
 }
 
 - (void) descriptionTo: (id<GNUDescriptionDestination>)output
 {
-  static NSCharacterSet	*quotables = nil;
-
   if ([self length] == 0)
     {
       [output appendString: @"\"\""];
@@ -2696,10 +2759,7 @@ else
     }
 
   if (quotables == nil)
-    {
-      quotables = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
-      [quotables retain];
-    }
+    setupQuotables();
 
   if ([self rangeOfCharacterFromSet: quotables].length > 0)
     {
@@ -2833,6 +2893,445 @@ else
   if ([aCoder isByref] == NO)
     return self;
   return [super replacementObjectForPortCoder: aCoder];
+}
+
+
+#define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
+#define char2num(ch) \
+inrange(ch,'0','9') \
+? ((ch)-0x30) \
+: (inrange(ch,'a','f') \
+? ((ch)-0x57) : ((ch)-0x37))
+
+typedef	struct	{
+  const unichar	*ptr;
+  unsigned	end;
+  unsigned	pos;
+  unsigned	lin;
+  NSString	*err;
+} pldata;
+
+/*
+ *	Property list parsing - skip whitespace keeping count of lines and
+ *	regarding objective-c style comments as whitespace.
+ *	Returns YES if there is any non-whitespace text remaining.
+ */
+static BOOL skipSpace(pldata *pld)
+{
+  unichar	c;
+
+  while (pld->pos < pld->end)
+    {
+      c = pld->ptr[pld->pos];
+
+      if ((*whitespceImp)(whitespce, cMemberSel, c) == NO)
+	{
+	  if (c == '/' && pld->pos < pld->end - 1)
+	    {
+	      /*
+	       * Check for comments beginning '//' or '/*'
+	       */
+	      if (pld->ptr[pld->pos + 1] == '/')
+		{
+		  pld->pos += 2;
+		  while (pld->pos < pld->end)
+		    {
+		      c = pld->ptr[pld->pos];
+		      if (c == '\n')
+			break;
+		      pld->pos++;
+		    }
+		  if (pld->pos >= pld->end)
+		    {
+		      pld->err = @"reached end of string in comment";
+		      return NO;
+		    }
+		}
+	      else if (pld->ptr[pld->pos + 1] == '*')
+		{
+		  pld->pos += 2;
+		  while (pld->pos < pld->end)
+		    {
+		      c = pld->ptr[pld->pos];
+		      if (c == '\n')
+			pld->lin++;
+		      else if (c == '*' && pld->pos < pld->end - 1
+			&& pld->ptr[pld->pos+1] == '/')
+			{
+			  pld->pos++; /* Skip past '*'	*/
+			  break;
+			}
+		      pld->pos++;
+		    }
+		  if (pld->pos >= pld->end)
+		    {
+		      pld->err = @"reached end of string in comment";
+		      return NO;
+		    }
+		}
+	      else
+		return YES;
+	    }
+	  else
+	    return YES;
+	}
+      if (c == '\n')
+	pld->lin++;
+      pld->pos++;
+    }
+  pld->err = @"reached end of string";
+  return NO;
+}
+
+static inline id parseQuotedString(pldata* pld)
+{
+  unsigned	start = ++pld->pos;
+  BOOL		escaped = NO;
+  unsigned	shrink = 0;
+  NSString	*obj;
+
+  while (pld->pos < pld->end)
+    {
+      unichar	c = pld->ptr[pld->pos];
+
+      if (escaped)
+	{
+	  escaped = NO;
+	}
+      else
+	{
+	  if (c == '\\')
+	    {
+	      escaped = YES;
+	      shrink++;
+	    }
+	  else if (c == '"')
+	    break;
+	}
+      pld->pos++;
+    }
+  if (pld->pos >= pld->end)
+    {
+      pld->err = @"reached end of string while parsing quoted string";
+      return nil;
+    }
+  if (pld->pos - start - shrink == 0)
+    {
+      obj = @"";
+    }
+  else
+    {
+      unichar	chars[pld->pos - start - shrink];
+      unsigned	j;
+      unsigned	k;
+
+      for (j = start, k = 0; j < pld->pos; j++)
+	{
+	  chars[k] = pld->ptr[j];
+	  if (escaped)
+	    {
+	      escaped = NO;
+	      switch (chars[k])
+		{
+		  case 'a' : chars[k] = '\a'; break;
+		  case 'b' : chars[k] = '\b'; break;
+		  case 't' : chars[k] = '\t'; break;
+		  case 'r' : chars[k] = '\r'; break;
+		  case 'n' : chars[k] = '\n'; break;
+		  case 'v' : chars[k] = '\v'; break;
+		  case 'f' : chars[k] = '\f'; break;
+		  default:	break;
+		}
+	      k++;
+	    }
+	  else
+	    {
+	      if (chars[k] == '\\')
+		escaped = YES;
+	      else
+		k++;
+	    }
+	}
+      obj = [NSString stringWithCharacters: chars
+				    length: pld->pos - start - shrink];
+    }
+  pld->pos++;
+  return obj;
+}
+
+static inline id parseUnquotedString(pldata *pld)
+{
+  unsigned	start = pld->pos;
+
+  while (pld->pos < pld->end)
+    {
+      if ((*quotablesImp)(quotables, cMemberSel, pld->ptr[pld->pos]) == YES)
+	break;
+      pld->pos++;
+    }
+  return [NSString stringWithCharacters: &pld->ptr[start]
+				 length: pld->pos-start];
+}
+
+static id parsePlItem(pldata* pld)
+{
+  if (skipSpace(pld) == NO)
+    return nil;
+
+  switch (pld->ptr[pld->pos])
+    {
+      case '{':
+	{
+	  NSMutableDictionary	*dict;
+
+	  dict = [NSMutableDictionary dictionaryWithCapacity: 0];
+	  pld->pos++;
+	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != '}')
+	    {
+	      id	key;
+	      id	val;
+
+	      key = parsePlItem(pld);
+	      if (key == nil)
+		return nil;
+	      if (skipSpace(pld) == NO)
+		return nil;
+	      if (pld->ptr[pld->pos] != '=')
+		{
+		  pld->err = @"unexpected character (wanted '=')";
+		  return nil;
+		}
+	      pld->pos++;
+	      val = parsePlItem(pld);
+	      if (val == nil)
+		return nil;
+	      if (skipSpace(pld) == NO)
+		return nil;
+	      if (pld->ptr[pld->pos] == ';')
+		pld->pos++;
+	      else if (pld->ptr[pld->pos] != '}')
+		{
+		  pld->err = @"unexpected character (wanted ';' or '}')";
+		  return nil;
+		}
+	      [dict setObject: val forKey: key];
+	    }
+	  if (pld->pos >= pld->end)
+	    {
+	      pld->err = @"unexpected end of string when parsing dictionary";
+	      return nil;
+	    }
+	  pld->pos++;
+	  return dict;
+	}
+
+      case '(':
+	{
+	  NSMutableArray	*array;
+
+	  array = [NSMutableArray arrayWithCapacity: 0];
+	  pld->pos++;
+	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != ')')
+	    {
+	      id	val;
+
+	      val = parsePlItem(pld);
+	      if (val == nil)
+		return nil;
+	      if (skipSpace(pld) == NO)
+		return nil;
+	      if (pld->ptr[pld->pos] == ',')
+		pld->pos++;
+	      else if (pld->ptr[pld->pos] != ')')
+		{
+		  pld->err = @"unexpected character (wanted ',' or ')')";
+		  return nil;
+		}
+	      [array addObject: val];
+	    }
+	  if (pld->pos >= pld->end)
+	    {
+	      pld->err = @"unexpected end of string when parsing array";
+	      return nil;
+	    }
+	  pld->pos++;
+	  return array;
+	}
+
+      case '<':
+	{
+	  NSMutableData	*data;
+	  unsigned	max = pld->end - 1;
+	  unsigned char	buf[BUFSIZ];
+	  unsigned	len = 0;
+
+	  data = [NSMutableData dataWithCapacity: 0];
+	  pld->pos++;
+	  while (skipSpace(pld) == YES && pld->ptr[pld->pos] != '>')
+	    {
+	      while (pld->pos < max
+		&& (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos])
+		&& (*hexdigitsImp)(hexdigits, cMemberSel, pld->ptr[pld->pos+1]))
+		{
+		  unsigned char	byte;
+
+		  byte = (char2num(pld->ptr[pld->pos])) << 4; 
+		  pld->pos++;
+		  byte |= char2num(pld->ptr[pld->pos]);
+		  pld->pos++;
+		  buf[len++] = byte;
+		  if (len > sizeof(buf))
+		    {
+		      [data appendBytes: buf length: len];
+		      len = 0;
+		    }
+		}
+	    }
+	  if (pld->pos >= pld->end)
+	    {
+	      pld->err = @"unexpected end of string when parsing data";
+	      return nil;
+	    }
+	  if (pld->ptr[pld->pos] != '>')
+	    {
+	      pld->err = @"unexpected character in string";
+	      return nil;
+	    }
+	  if (len > 0)
+	    {
+	      [data appendBytes: buf length: len];
+	    }
+	  pld->pos++;
+	  return data;
+	}
+
+      case '"':
+	return parseQuotedString(pld);
+
+      default:
+	return parseUnquotedString(pld);
+    }
+}
+
+static id parseSfItem(pldata* pld)
+{
+  NSMutableDictionary	*dict;
+
+  dict = [NSMutableDictionary dictionaryWithCapacity: 0];
+  while (skipSpace(pld) == YES)
+    {
+      id	key;
+      id	val;
+
+      if (pld->ptr[pld->pos] == '"')
+	key = parseQuotedString(pld);
+      else
+	key = parseUnquotedString(pld);
+      if (key == nil)
+	return nil;
+      if (skipSpace(pld) == NO)
+	{
+	  pld->err = @"incomplete final entry (no semicolon?)";
+	  return nil;
+	}
+      if (pld->ptr[pld->pos] == ';')
+	{
+	  pld->pos++;
+	  [dict setObject: @"" forKey: key];
+	}
+      else if (pld->ptr[pld->pos] == '=')
+	{
+	  pld->pos++;
+	  if (skipSpace(pld) == NO)
+	    return nil;
+	  if (pld->ptr[pld->pos] == '"')
+	    val = parseQuotedString(pld);
+	  else
+	    val = parseUnquotedString(pld);
+	  if (val == nil)
+	    return nil;
+	  if (skipSpace(pld) == NO)
+	    {
+	      pld->err = @"missing final semicolon";
+	      return nil;
+	    }
+	  [dict setObject: val forKey: key];
+	  if (pld->ptr[pld->pos] == ';')
+	    pld->pos++;
+	  else
+	    {
+	      pld->err = @"unexpected character (wanted ';')";
+	      return nil;
+	    }
+	}
+      else
+	{
+	  pld->err = @"unexpected character (wanted '=' or ';')";
+	  return nil;
+	}
+    }
+  return dict;
+}
+
+- (id) propertyList
+{
+  unsigned	len = [self length];
+  unichar	chars[len];
+  id		result;
+  pldata	data;
+
+  data.ptr = chars;
+  data.pos = 0;
+  data.end = len;
+  data.lin = 1;
+  data.err = nil;
+
+  [self getCharacters: chars];
+  if (hexdigits == nil)
+    setupHexdigits();
+  if (quotables == nil)
+    setupQuotables();
+  if (whitespce == nil)
+    setupWhitespce();
+
+  result = parsePlItem(&data);
+
+  if (result == nil && data.err != nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"%@ at line %u", data.err, data.lin];
+    }
+  return result;
+}
+
+- (NSDictionary*) propertyListFromStringsFileFormat
+{
+  unsigned	len = [self length];
+  unichar	chars[len];
+  id		result;
+  pldata	data;
+
+  data.ptr = chars;
+  data.pos = 0;
+  data.end = len;
+  data.lin = 1;
+  data.err = nil;
+
+  [self getCharacters: chars];
+  if (hexdigits == nil)
+    setupHexdigits();
+  if (quotables == nil)
+    setupQuotables();
+  if (whitespce == nil)
+    setupWhitespce();
+
+  result = parseSfItem(&data);
+  if (result == nil && data.err != nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"%@ at line %u", data.err, data.lin];
+    }
+  return result;
 }
 
 @end
