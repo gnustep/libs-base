@@ -359,6 +359,18 @@ static int messages_received_count;
   return newConn;
 }
 
+/* xxx This method is an anomaly, just until we get a proper name
+   server for port objects.  Richard Frith-MacDonald is working on a
+   name server. */
+- (BOOL) registerName: (NSString*)name
+{
+  id old_receive_port = receive_port;
+  receive_port = [default_receive_port_class newForReceivingFromRegisteredName: name];
+  [old_receive_port release];
+  return YES;
+}
+
+
 /*
  *	Keep track of connections created by DO system but not necessarily
  *	ever retained by users code.  These must be retained now for later
@@ -737,18 +749,6 @@ static int messages_received_count;
   return newRemote;
 }
 
-/* xxx This method is an anomaly, just until we get a proper name
-   server for port objects.  Richard Frith-MacDonald is working on a
-   name server. */
-- (BOOL) registerName: (NSString*)name
-{
-  id old_receive_port = receive_port;
-  receive_port = [default_receive_port_class newForReceivingFromRegisteredName: name];
-  [old_receive_port release];
-  return YES;
-}
-
-
 
 /* This is the designated initializer for NSConnection */
 
@@ -756,28 +756,15 @@ static int messages_received_count;
    ancestorConnection: ancestor
 {
   NSConnection *newConn;
-  int i, count;
-  id newConnInPort, newConnOutPort;
 
   NSParameterAssert (ip);
 
-  [connection_array_gate lock];
-
   /* Find previously existing connection if there */
-  /* xxx Clean this up */
-  count = [connection_array count];
-  for (i = 0; i < count; i++)
-    {
-      newConn = [connection_array objectAtIndex: i];
-      newConnInPort = [newConn receivePort];
-      newConnOutPort = [newConn sendPort];
-      if ([newConnInPort isEqual: ip]
-	  && [newConnOutPort isEqual: op])
-	{
-	  [connection_array_gate unlock];
-	  return [newConn retain];
-	}
-    }
+  newConn = [[self connectionByInPort: ip outPort: op] retain];
+  if (newConn)
+    return newConn;
+
+  [connection_array_gate lock];
 
   newConn = [[NSConnection alloc] _superInit];
   if (debug_connection)
@@ -918,6 +905,62 @@ static int messages_received_count;
     object: newConn];
 
   return newConn;
+}
+
++ (NSConnection*) connectionByInPort: (NSPort*)ip
+			     outPort: (NSPort*)op
+{
+  int count;
+  int i;
+
+  NSParameterAssert (ip);
+
+  [connection_array_gate lock];
+  count = [connection_array count];
+  for (i = 0; i < count; i++)
+    {
+      id newConnInPort;
+      id newConnOutPort;
+      NSConnection *newConn;
+
+      newConn = [connection_array objectAtIndex: i];
+      newConnInPort = [newConn receivePort];
+      newConnOutPort = [newConn sendPort];
+      if ([newConnInPort isEqual: ip]
+	  && [newConnOutPort isEqual: op])
+	{
+	  [connection_array_gate unlock];
+	  return newConn;
+	}
+    }
+  [connection_array_gate unlock];
+  return nil;
+}
+
++ (NSConnection*) connectionByOutPort: (NSPort*)op
+{
+  int i, count;
+
+  NSParameterAssert (op);
+
+  [connection_array_gate lock];
+
+  count = [connection_array count];
+  for (i = 0; i < count; i++)
+    {
+      id newConnOutPort;
+      NSConnection *newConn;
+
+      newConn = [connection_array objectAtIndex: i];
+      newConnOutPort = [newConn sendPort];
+      if ([newConnOutPort isEqual: op])
+	{
+	  [connection_array_gate unlock];
+	  return newConn;
+	}
+    }
+  [connection_array_gate unlock];
+  return nil;
 }
 
 - _superInit
@@ -1245,6 +1288,30 @@ static int messages_received_count;
     [rmc dismiss];
 }
 
+- (void) _service_retain: rmc forConnection: receiving_connection
+{
+    unsigned int	target;
+
+    NSParameterAssert (is_valid);
+
+    if ([rmc connection] != self) {
+	[NSException raise: @"ProxyDecodedBadTarget"
+		    format: @"request to retain object on bad connection"];
+    }
+
+    [rmc decodeValueOfCType: @encode(typeof(target))
+			 at: &target
+		   withName: NULL];
+
+    if ([self includesLocalObject:(void*)target] == NO) {
+	if ([[self class] includesLocalObject:(void*)target] == YES) {
+	    [NSDistantObject proxyWithLocal: (id)target connection: self];
+	}
+    }
+
+    [rmc dismiss];
+}
+
 - (void) shutdown
 {
   id op;
@@ -1414,6 +1481,11 @@ static int messages_received_count;
     case PROXY_RELEASE:
       {
 	[conn _service_release: rmc forConnection: self];
+	break;
+      }
+    case PROXY_RETAIN:
+      {
+	[conn _service_retain: rmc forConnection: self];
 	break;
       }
     default:
@@ -1636,6 +1708,39 @@ static int messages_received_count;
     {
       if (debug_connection)
         fprintf (stderr, "failed to release targets - %s\n",
+	     [[localException name] cStringNoCopy]);
+    }
+    NS_ENDHANDLER
+}
+
+- (void) retainTarget: (unsigned int)target
+{
+    NS_DURING
+    {
+	/*
+	 *	Tell the remote app that it must retain the local object
+	 *	for the target on this connection.
+	 */
+	if (receive_port && is_valid) {
+	    id		op;
+	    unsigned int 	i;
+
+	    op = [[self encodingClass]
+		    newForWritingWithConnection: self
+				 sequenceNumber: [self _newMsgNumber]
+				     identifier: PROXY_RETAIN];
+
+	    [op encodeValueOfCType: @encode(typeof(target))
+				at: &target
+			  withName: NULL];
+
+	    [op dismiss];
+	}
+    }
+    NS_HANDLER
+    {
+      if (debug_connection)
+        fprintf (stderr, "failed to retain target - %s\n",
 	     [[localException name] cStringNoCopy]);
     }
     NS_ENDHANDLER

@@ -27,6 +27,7 @@
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSDistributedLock.h>
 
 @class NSArray;
 @class NSMutableArray;
@@ -119,6 +120,9 @@ extern NSString *NSHomeDirectoryForUser(NSString * userName);
    NSMutableDictionary *tempDomains;   // Contains volatile defaults info;
    NSMutableArray      *changedDomains; /* ..after first time that persistent 
 					   user defaults are changed */
+   NSMutableString     *defaultsDatabase;
+   NSMutableString     *defaultsDatabaseLockName;
+   NSDistributedLock   *defaultsDatabaseLock;
    BOOL                tickingTimer;   // for synchronization
 }
 

@@ -60,7 +60,8 @@ enum {
  CONNECTION_SHUTDOWN,
  METHODTYPE_REQUEST,	/* these two only needed with NeXT runtime */
  METHODTYPE_REPLY,	/* these two only needed with NeXT runtime */
- PROXY_RELEASE
+ PROXY_RELEASE,
+ PROXY_RETAIN
 };
 
 
@@ -70,8 +71,12 @@ enum {
  *	by NSDistantObject et al for implementation of Distributed objects.
  */
 @interface NSConnection (Internal)
++ (NSConnection*) connectionByInPort: (NSPort*)ip
+			     outPort: (NSPort*)op;
++ (NSConnection*) connectionByOutPort: (NSPort*)op;
 - (NSDistantObject*) localForTarget: (void*)target;
 - (NSDistantObject*) proxyForTarget: (void*)target;
+- (void) retainTarget: (unsigned)target;
 - (void) setNotOwned;
 @end
 

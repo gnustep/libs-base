@@ -61,6 +61,6 @@ custom-zone.m
 
 -include Makefile.preamble
 
-include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/test.make
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/test-tool.make
 
 -include Makefile.postamble

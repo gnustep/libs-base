@@ -71,9 +71,6 @@ static NSString* GNU_UserDefaultsDatabaseLock = @"GNUstep/.GNUstepUDLock";
  *** Class variables
  *************************************************************************/
 static NSUserDefaults    *sharedDefaults = nil;
-static NSMutableString   *defaultsDatabase = nil;     
-static NSMutableString   *defaultsDatabaseLockName = nil;
-static NSDistributedLock *defaultsDatabaseLock = nil;
 static NSMutableString   *processName = nil;
 
 /*************************************************************************
@@ -165,10 +162,11 @@ static NSMutableString   *processName = nil;
   // Either userName is empty or it's wrong
   if (!userHome)
     {  
-      [self release];		/* xxx really? -mccallum. */
+      [self dealloc];
       return nil;
     }
-  filename = [userHome stringByAppendingString: GNU_UserDefaultsDatabase];
+  filename = [NSString stringWithFormat: @"%@/%@",
+	userHome, GNU_UserDefaultsDatabase];
   return [self initWithContentsOfFile: filename];
 }
 
@@ -181,21 +179,31 @@ static NSMutableString   *processName = nil;
   // Find the user's home folder and build the paths (executed only once)
   if (!defaultsDatabase)
     {
-      defaultsDatabase =
+      if (path != nil && [path isEqual: @""] == NO)
+        defaultsDatabase = [path copy];
+      else
+        defaultsDatabase =
 	[[NSMutableString stringWithFormat:@"%@/%@",
 			  NSHomeDirectoryForUser(NSUserName()),
 			  GNU_UserDefaultsDatabase] retain];
-      defaultsDatabaseLockName =
-	[[NSMutableString stringWithFormat:@"%@/%@",
+
+      if ([[defaultsDatabase lastPathComponent] isEqual:
+		[GNU_UserDefaultsDatabase lastPathComponent]] == YES)
+        defaultsDatabaseLockName =
+	  [[NSMutableString stringWithFormat:@"%@/%@",
+			  [defaultsDatabase stringByDeletingLastPathComponent],
+			  [GNU_UserDefaultsDatabaseLock lastPathComponent]]
+				retain];
+      else
+        defaultsDatabaseLockName =
+	  [[NSMutableString stringWithFormat:@"%@/%@",
 			  NSHomeDirectoryForUser(NSUserName()),
 			  GNU_UserDefaultsDatabaseLock] retain];
       defaultsDatabaseLock =
 	[[NSDistributedLock lockWithPath: defaultsDatabaseLockName] retain];
-      processName = [[[NSProcessInfo processInfo] processName] retain];
-#if 0
-      processName = [[NSMutableString stringWithFormat:@"TestApp"] retain];
-#endif
   }
+  if (processName == nil)
+    processName = [[[NSProcessInfo processInfo] processName] retain];
 	
   // Create an empty search list
   searchList = [[NSMutableArray arrayWithCapacity:10] retain];
@@ -468,12 +476,13 @@ static NSMutableString   *processName = nil;
 		
   tickingTimer = NO;
 
-  // Get file lock
+  // Get file lock - break any lock that is more than five minute old.
   if ([defaultsDatabaseLock tryLock] == NO)
+    if ([[defaultsDatabaseLock lockDate] timeIntervalSinceNow] < 300.0)
     {
-      NSLog(@"unable to access defaults database - locked on (%@) since %@\n",
-		defaultsDatabaseLockName, [defaultsDatabaseLock lockDate]);
-      return NO;
+      [defaultsDatabaseLock breakLock];
+      if ([defaultsDatabaseLock tryLock] == NO)
+        return NO;
     }
 	
   // Read the persistent data from the stored database
@@ -484,7 +493,7 @@ static NSMutableString   *processName = nil;
 		initWithCapacity:1];
 
   if (changedDomains)
-    {           // Synchronize bpth dictionaries
+    {           // Synchronize both dictionaries
       NSEnumerator *enumerator = [changedDomains objectEnumerator];
       id obj, dict;
 		
@@ -501,7 +510,7 @@ static NSMutableString   *processName = nil;
       // Save the changes
       if (![persDomains writeToFile:defaultsDatabase atomically:YES])
 	{
-          NSLog(@"failed to write defaults to '%@'\n", defaultsDatabase);
+//          NSLog(@"failed to write defaults to '%@'\n", defaultsDatabase);
 	  [defaultsDatabaseLock unlock];
 	  return NO;
 	}

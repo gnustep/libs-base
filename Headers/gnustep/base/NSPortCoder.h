@@ -28,8 +28,6 @@
 #include <Foundation/NSCoder.h>
 #include <gnustep/base/Port.h>
 
-#include <Foundation/DistributedObjects.h>
-
 @class NSConnection;
 
 @interface NSPortCoder : NSCoder

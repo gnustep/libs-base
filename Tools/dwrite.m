@@ -39,7 +39,7 @@ main(int argc, char** argv)
     NSString		*name;
     NSString		*value;
     const char		*text;
-    id			obj;
+    id			obj = nil;
     int			i;
 
     [NSObject enableDoubleReleaseCheck: YES];

@@ -212,12 +212,12 @@ _ostream_new_stream_struct (int mode, char** cmode)
       stream->flags |= OSTREAM_WRITEFLAG; 
       break;
     case OSTREAM_READWRITE: 
-      fmode = "w+"; 
+      fmode = "r+"; 
       stream->flags |= OSTREAM_READFLAG; 
       stream->flags |= OSTREAM_WRITEFLAG; 
       break;
     case OSTREAM_APPEND: 
-      fmode = "w"; 
+      fmode = "r+"; 
       stream->flags |= OSTREAM_WRITEFLAG; 
       break;
     default: 

@@ -1,7 +1,61 @@
+Wed Nov 26 16:08:20 1997  Adam Fedor  <fedor@doc.com>
+
+	* Tools/GNUmakefile (OBJC-PROGRAM_NAME): Change from underscore.
+	* checks/GNUmakefile: include new test-tool.make.
+	* examples/GNUmakefile: Likewise.
+	* src/Makefile.postamble (FORCE): New target.
+
+	* src/ostream.m (_ostream_new_stream_struct): Use "r+" for append
+	or read/write mode.
+
+Wed Nov 26 11:30:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/dwrite.m: Fix problem with uninitialised variable.
+
+	* src/NSConnection.m: Added [+connectionByOutPort:] and
+	[+connectionByInPort:OutPort:] methods to lookup connections for
+	use by other barts of the DO system.
+	Added [-_service_retain:] and [-retainTraget:] methods to handle
+	special case of retaining of proxies.
+
+	* src/NSDistantObject.m: ([+newWithCoder:]) modified to fix two
+	problems to do with proxies passed in a triangle -
+	1. if passed a proxy to an object in a third server, use any
+	existing connection to that third server if possible rather
+	than creating a new connection.
+	2. if passed a proxy to an object in a third server, tell the
+	third server to retain it's local object for us.
+
+	* src/NSUserDefaults.m: various modifications to fix for getting
+	the defaults for a user other than the logged in user - eg when a
+	server process runs setuid to a particular user ID and wants to
+	read the defaults for that user rather than the user who actually
+	launched it.  Also - added code to break the lock on the defaults
+	database if it is more than five minutes old.
+
+	* src/include/DistributedObjects.h: modifications for retaining
+	objects.
+
+	* src/include/NSPortCoder.h: removed unneccessary include.
+
+	* src/include/NSUserDefaults.h: minor changes for coping with
+ 	tasks runnning setuid to a user other than the person who launched
+ 	them.
+
+Fri Nov 21 13:14:31 1997  Adam Fedor  <fedor@doc.com>
+
+	* src/NSAttributedString.m (-initWIthString:attributes:): Make
+	designated initializer.
+	* src/NSGAttributedString.m: (_initWithString): Save value of
+	textChars.
+	* src/include/NSAttributedString.h: Update comments, Remove
+	attribute strings. 
+	Fixes submitted by <anoq@vip.cybercity.de>.
+	
 Tue Nov 18 14:13:13 1997  Adam Fedor  <fedor@doc.com>
 
-	* src/NSNotification.h: Correct placeholder size (bug submitted by
-	Ville-Pertti Keinonen <will@cc.hut.fi>.
+	* src/include/NSNotification.h: Correct placeholder size (bug
+ 	submitted by Ville-Pertti Keinonen <will@cc.hut.fi>.
 
 Wed Nov 12 10:10:33 1997  Adam Fedor  <fedor@doc.com>
 
