@@ -1,5 +1,5 @@
 /* Interface for GNU Objective C memory stream
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -26,8 +26,24 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Stream.h>
+#include <objects/Streaming.h>
 
-@interface MemoryStream : Stream
+/* This protocol is preliminary and may change.
+   This also may get pulled out into a separate .h file. */
+
+@protocol MemoryStreaming <Streaming>
+
+- initWithCapacity: (unsigned)capacity;
+
+- (void) setStreamBufferCapacity: (unsigned)s;
+
+- (char*) streamBuffer;
+- (unsigned) streamBufferCapacity;
+- (unsigned) streamEofPosition;
+
+@end
+
+@interface MemoryStream : Stream <MemoryStreaming>
 {
   int type;
   char *buffer;
@@ -37,12 +53,10 @@
   int position;
 }
 
-- initWithSize: (unsigned)s;
-- (char *) streamBuffer;
-- (unsigned) streamBufferLength;
-- (unsigned) streamPrefix;
-- (unsigned) streamEofPosition;
-- (void) setStreamBufferSize: (unsigned)s;
+- initWithSize: (unsigned)s;	/* For backwards compatibility, depricated */
+
+- (unsigned) streamBufferPrefix;
+- (unsigned) streamBufferLength; /* prefix + eofPosition */
 
 /* xxx This interface will change */
 - _initOnMallocBuffer: (char*)b
