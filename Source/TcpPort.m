@@ -39,6 +39,7 @@
 #include <Foundation/NSDate.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #ifndef __WIN32__
 #include <unistd.h>		/* for gethostname() */
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
@@ -54,7 +55,7 @@
 #define NBLK_OPT     FNDELAY
 #endif
 
-#define	GDOMAP	1	/* Use name server.	*/
+#define	GDOMAP	0	/* 1 = Use name server.	*/
 #define	stringify_it(X)	#X
 #define	make_gdomap_cmd(X)	stringify_it(X) "/bin/gdomap -p &"
 #define	make_gdomap_err(X)	"check that " stringify_it(X)  "/bin/gdomap is running and owned by root."
@@ -289,13 +290,13 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
       return(-1);		/* Error in select.	*/
     }
     else if (len > 0) {
-      int	(*ifun)();
+      void	(*ifun)();
 
       /*
        *	Should be able to write this short a message immediately, but
        *	if the connection is lost we will get a signal we must trap.
        */
-      ifun = signal(SIGPIPE, SIG_IGN);
+      ifun = signal(SIGPIPE, (void(*)(int))SIG_IGN);
       rval = write(desc, &dat[pos], len - pos);
       signal(SIGPIPE, ifun);
 
@@ -724,7 +725,7 @@ static NSMapTable* port_number_2_port;
     /* Set the re-use socket option so that we don't get this socket
        hanging around after we close it (or die) */
     r = 1;
-    setsockopt(p->_socket,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r));
+    setsockopt(p->_port_socket,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r));
     /* Fill in the _LISTENING_ADDRESS with the address this in port on
        which will listen for connections.  Use INADDR_ANY so that we
        will accept connection on any of the machine network addresses;
@@ -751,7 +752,7 @@ static NSMapTable* port_number_2_port;
       /* xxx Perhaps I should do this unconditionally? */
       {
 	int size = sizeof (p->_listening_address);
-	if (getsockname (p->_socket,
+	if (getsockname (p->_port_socket,
 			 (struct sockaddr*)&(p->_listening_address),
 			 &size)
 	    < 0)
@@ -852,7 +853,7 @@ static NSMapTable* port_number_2_port;
 #else
   return [self newForReceivingFromPortNumber: 
 		 name_2_port_number ([name cStringNoCopy])];
-+ #endif	/* GDOMAP */
+#endif	/* GDOMAP */
 }
 
 + newForReceiving
@@ -1431,7 +1432,7 @@ static NSMapTable *out_port_bag = NULL;
 		   sizeof(p->_remote_in_port_address)) 
 	  < 0)
 	{
-	    close(p->_socket);
+	    close(p->_port_socket);
 #if 0
 	    [NSException raise: NSInternalInconsistencyException
 	      format: @"[TcpInPort newForSendingToSockaddr:...] connect(): %s",
@@ -1445,17 +1446,17 @@ static NSMapTable *out_port_bag = NULL;
       /*
        *	Ensure the socket is non-blocking.
        */
-      if ((rval = fcntl(p->_socket, F_GETFL, 0)) >= 0) {
+      if ((rval = fcntl(p->_port_socket, F_GETFL, 0)) >= 0) {
 	rval |= NBLK_OPT;
-	if (fcntl(p->_socket, F_SETFL, rval) < 0) {
-	  close(p->_socket);
+	if (fcntl(p->_port_socket, F_SETFL, rval) < 0) {
+	  close(p->_port_socket);
 	  [NSException raise: NSInternalInconsistencyException
 	      format: @"[TcpInPort newForSendingToSockaddr:...] fcntl(SET): %s",
 	      strerror(errno)];
 	}
       }
       else {
-	close(p->_socket);
+	close(p->_port_socket);
 	[NSException raise: NSInternalInconsistencyException
 	      format: @"[TcpInPort newForSendingToSockaddr:...] fcntl(GET): %s",
 	      strerror(errno)];
