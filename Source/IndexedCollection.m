@@ -729,7 +729,7 @@
       [newColl appendElement:e];
     }
   [self withElementsInReverseCall:doIt];
-  return self;
+  return newColl;
 }
 
 
@@ -785,14 +785,14 @@
 
 - withElementsInReverseCall: (void(*)(elt))aFunc;
 {
-  BOOL flag = NO;
+  BOOL flag = YES;
   [self withElementsInReverseCall:aFunc whileTrue:&flag];
   return self;
 }
 
 - safeWithElementsInReverseCall: (void(*)(elt))aFunc;
 {
-  BOOL flag = NO;
+  BOOL flag = YES;
   [self safeWithElementsInReverseCall:aFunc whileTrue:&flag];
   return self;
 }
