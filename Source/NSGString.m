@@ -524,18 +524,23 @@ static inline void
 stringIncrementCountAndMakeHoleAt(NSGMutableStringStruct *self, 
 				  int index, int size)
 {
- #ifndef STABLE_MEMCPY
-  {
-    int i;
-    for (i = self->_count; i >= index; i--)
-      self->_contents_chars[i+size] = self->_contents_chars[i];
-  }
- #else
-  memcpy(self->_contents_chars + index, 
-	 self->_contents_chars + index + size,
-	 2*(self->_count - index));
- #endif /* STABLE_MEMCPY */
-  (self->_count) += size;
+  if (self->_count || size)
+	{
+	  NSCAssert(index+size<=self->_count,@"index+size>length");
+	  NSCAssert(self->_count+size<=self->_capacity,@"length+size>capacity");
+#ifndef STABLE_MEMCPY
+	  {
+		int i;
+		for (i = self->_count; i >= index; i--)
+		  self->_contents_chars[i+size] = self->_contents_chars[i];
+	  }
+#else
+	  memcpy(self->_contents_chars + index, 
+			 self->_contents_chars + index + size,
+			 2*(self->_count - index));
+#endif /* STABLE_MEMCPY */
+	  (self->_count) += size;
+	};
   (self->_hash) = 0;
 }
 
@@ -543,18 +548,22 @@ static inline void
 stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self, 
 				  int index, int size)
 {
-  (self->_count) -= size;
- #ifndef STABLE_MEMCPY
-  {
-    int i;
-    for (i = index; i <= self->_count; i++)
-      self->_contents_chars[i] = self->_contents_chars[i+size];
-  }
- #else
-  memcpy(self->_contents_chars + index + size,
-	 self->_contents_chars + index, 
-	 2*(self->_count - index));
- #endif // STABLE_MEMCPY
+  if (self->_count || size)
+	{
+	  NSCAssert(index+size<=self->_count,@"index+size>length");
+	  (self->_count) -= size;
+#ifndef STABLE_MEMCPY
+	  {
+		int i;
+		for (i = index; i <= self->_count; i++)
+		  self->_contents_chars[i] = self->_contents_chars[i+size];
+	  }
+#else
+	  memcpy(self->_contents_chars + index + size,
+			 self->_contents_chars + index, 
+			 2*(self->_count - index));
+#endif // STABLE_MEMCPY
+	};
   (self->_hash) = 0;
 }
 
