@@ -3,6 +3,7 @@
    
    Written by: 	Fred Kiefer <FredKiefer@gmx.de>
    Date: 	July 2000
+   Updated by: Richard Frith-Macdonald <rfm@gnu.org> Sept 2001
    
    This file is part of the GNUstep Library.
    
@@ -35,59 +36,61 @@
   BOOL _hasThousandSeparators;
   BOOL _allowsFloats;
   BOOL _localizesFormat;
+  unichar _thousandSeparator;
+  unichar _decimalSeparator;
   NSDecimalNumberHandler *_roundingBehavior;
-  NSString *_thousandSeparator;
-  NSString *_decimalSeparator;
   NSDecimalNumber *_maximum;
   NSDecimalNumber *_minimum;
   NSAttributedString *_attributedStringForNil;
   NSAttributedString *_attributedStringForNotANumber;
   NSAttributedString *_attributedStringForZero;
-  NSAttributedString *_attributedFormatForPositiveValues;
-  NSAttributedString *_attributedFormatForNegativeValues;
+  NSString *_negativeFormat;
+  NSString *_positiveFormat;
+  NSDictionary *_attributesForPositiveValues;
+  NSDictionary *_attributesForNegativeValues;
 }
 
 // Format
-- (NSString *)format;
-- (void)setFormat:(NSString *)aFormat;
-- (BOOL)localizesFormat;
-- (void)setLocalizesFormat:(BOOL)flag;
-- (NSString *)negativeFormat;
-- (void)setNegativeFormat:(NSString *)aFormat;
-- (NSString *)positiveFormat;
-- (void)setPositiveFormat:(NSString *)aFormat;
+- (NSString*) format;
+- (void) setFormat: (NSString*)aFormat;
+- (BOOL) localizesFormat;
+- (void) setLocalizesFormat: (BOOL)flag;
+- (NSString*) negativeFormat;
+- (void) setNegativeFormat: (NSString*)aFormat;
+- (NSString*) positiveFormat;
+- (void) setPositiveFormat: (NSString*)aFormat;
 
 // Attributed Strings
-- (NSAttributedString *)attributedStringForNil;
-- (void)setAttributedStringForNil:(NSAttributedString *)newAttributedString;
-- (NSAttributedString *)attributedStringForNotANumber;
-- (void)setAttributedStringForNotANumber:(NSAttributedString *)newAttributedString;
-- (NSAttributedString *)attributedStringForZero;
-- (void)setAttributedStringForZero:(NSAttributedString *)newAttributedString;
-- (NSDictionary *)textAttributesForNegativeValues;
-- (void)setTextAttributesForNegativeValues:(NSDictionary *)newAttributes;
-- (NSDictionary *)textAttributesForPositiveValues;
-- (void)setTextAttributesForPositiveValues:(NSDictionary *)newAttributes;
+- (NSAttributedString*) attributedStringForNil;
+- (void) setAttributedStringForNil: (NSAttributedString*)newAttributedString;
+- (NSAttributedString*) attributedStringForNotANumber;
+- (void) setAttributedStringForNotANumber: (NSAttributedString*)newAttributedString;
+- (NSAttributedString*) attributedStringForZero;
+- (void) setAttributedStringForZero: (NSAttributedString*)newAttributedString;
+- (NSDictionary*) textAttributesForNegativeValues;
+- (void) setTextAttributesForNegativeValues: (NSDictionary*)newAttributes;
+- (NSDictionary*) textAttributesForPositiveValues;
+- (void) setTextAttributesForPositiveValues: (NSDictionary*)newAttributes;
 
 // Rounding
-- (NSDecimalNumberHandler *)roundingBehavior;
-- (void)setRoundingBehavior:(NSDecimalNumberHandler *)newRoundingBehavior;
+- (NSDecimalNumberHandler*) roundingBehavior;
+- (void) setRoundingBehavior: (NSDecimalNumberHandler*)newRoundingBehavior;
 
 // Separators
-- (BOOL)hasThousandSeparators;
-- (void)setHasThousandSeparators:(BOOL)flag;
-- (NSString *)thousandSeparator;
-- (void)setThousandSeparator:(NSString *)newSeparator;
-- (BOOL)allowsFloats;
-- (void)setAllowsFloats:(BOOL)flag;
-- (NSString *)decimalSeparator;
-- (void)setDecimalSeparator:(NSString *)newSeparator;
+- (BOOL) hasThousandSeparators;
+- (void) setHasThousandSeparators: (BOOL)flag;
+- (NSString*) thousandSeparator;
+- (void) setThousandSeparator: (NSString*)newSeparator;
+- (BOOL) allowsFloats;
+- (void) setAllowsFloats: (BOOL)flag;
+- (NSString*) decimalSeparator;
+- (void) setDecimalSeparator: (NSString*)newSeparator;
 
 // Maximum/minimum
-- (NSDecimalNumber *)maximum;
-- (void)setMaximum:(NSDecimalNumber *)aMaximum;
-- (NSDecimalNumber *)minimum;
-- (void)setMinimum:(NSDecimalNumber *)aMinimum;
+- (NSDecimalNumber*) maximum;
+- (void) setMaximum: (NSDecimalNumber*)aMaximum;
+- (NSDecimalNumber*) minimum;
+- (void) setMinimum: (NSDecimalNumber*)aMinimum;
 
 @end
 
