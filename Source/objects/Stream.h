@@ -1,5 +1,5 @@
 /* Interface for GNU Objective C byte stream
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -25,41 +25,11 @@
 #define __Stream_h__OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
+#include <objects/Streaming.h>
 
-/* More modes needed? truncate? create? */
-enum 
-{
-  STREAM_READONLY = 0, 
-  STREAM_WRITEONLY, 
-  STREAM_READWRITE
-};
+@interface Stream : NSObject <Streaming>
 
-@interface Stream : NSObject
-{
-  int mode;
-}
-
-- initWithMode: (int)m;
 - init;
-
-- (int) writeByte: (unsigned char)b;
-- (int) readByte: (unsigned char*)b;
-
-- (int) writeBytes: (const void*)b length: (int)l;
-- (int) readBytes: (void*)b length: (int)l;
-
-- (int) writeFormat: (const char *)format, ...;
-- (int) readFormat: (const char *)format, ...;
-
-- (void) writeLine: (const char *)l;
-- (char *) readLine;
-
-- (void) rewindStream;
-- (void) flushStream;
-- (void) setStreamPosition: (unsigned)i;
-- (unsigned) streamPosition;
-- (BOOL) streamEof;
-- (int) streamMode;
 
 @end
 
