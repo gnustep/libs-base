@@ -69,10 +69,10 @@ typedef struct _IndexRange {
 
 // TESTING;
 - (BOOL) includesIndex: (unsigned)index;
-- (BOOL) contentsEqualInOrder: (id <IndexedCollecting>)aColl;
-- (unsigned) indexOfFirstDifference: (id <IndexedCollecting>)aColl;
-- (unsigned) indexOfFirstIn: (id <Collecting>)aColl;
-- (unsigned) indexOfFirstNotIn: (id <Collecting>)aColl;
+- (BOOL) contentsEqualInOrder: (id <ConstantIndexedCollecting>)aColl;
+- (unsigned) indexOfFirstDifference: (id <ConstantIndexedCollecting>)aColl;
+- (unsigned) indexOfFirstIn: (id <ConstantCollecting>)aColl;
+- (unsigned) indexOfFirstNotIn: (id <ConstantCollecting>)aColl;
 
 // ENUMERATING;
 - (BOOL) getPrevObject: (id*)anIdPtr withEnumState: (void**)enumState;
@@ -113,16 +113,17 @@ typedef struct _IndexRange {
 - insertObject: newObject atIndex: (unsigned)index;
 - insertObject: newObject before: oldObject;
 - insertObject: newObject after: oldObject;
-- insertContentsOf: (id <Collecting>)aCollection atIndex: (unsigned)index;
+- insertContentsOf: (id <ConstantCollecting>)aCollection
+   atIndex: (unsigned)index;
 - appendObject: newObject;
 - prependObject: newObject;
-- appendContentsOf: (id <Collecting>)aCollection;
-- prependContentsOf: (id <Collecting>)aCollection;
+- appendContentsOf: (id <ConstantCollecting>)aCollection;
+- prependContentsOf: (id <ConstantCollecting>)aCollection;
 
 // REPLACING AND SWAPPING
 - replaceObjectAtIndex: (unsigned)index with: newObject;
-- replaceRange: (IndexRange)aRange with: (id <Collecting>)aCollection;
-- replaceRange: (IndexRange)aRange using: (id <Collecting>)aCollection;
+- replaceRange: (IndexRange)aRange with: (id <ConstantCollecting>)aCollection;
+- replaceRange: (IndexRange)aRange using: (id <ConstantCollecting>)aCollection;
 - swapAtIndeces: (unsigned)index1 : (unsigned)index2;
 
 // REMOVING
