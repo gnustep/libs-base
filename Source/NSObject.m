@@ -236,6 +236,13 @@ extraRefCount (id anObject)
                          :class_get_class_method(self->isa, aSelector)));
 }
 
++ (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
+{
+    struct objc_method* mth = class_get_instance_method(self, aSelector);
+    return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
+		: nil;
+}
+  
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
     struct objc_method* mth =
