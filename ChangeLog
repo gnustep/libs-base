@@ -1,6 +1,9 @@
 2003-07-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Don't output authors heading if not needed.
+	* Source/NSUser.m: Use HOMEPATH in preference to USERPROFILE for
+	OPENSTEP compatibility and because USERPROFILE generally doesn't
+	work due to the presence of spaces.
 
 2003-07-21  Richard Frith-Macdonald <rfm@gnu.org>
 
