@@ -501,8 +501,8 @@ main(int argc, char **argv, char **env)
 	    }
 	  else
 	    {
+	      sdir = [sourceDirectory stringByAppendingPathComponent: hdir];
 	      hdir = [headerDirectory stringByAppendingPathComponent: hdir];
-	      sdir = [sourceDirectory stringByAppendingPathComponent: sdir];
 	    }
 	  ddir = documentationDirectory;
 

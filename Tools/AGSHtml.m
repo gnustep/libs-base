@@ -838,7 +838,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  [buf appendString: indent];
 	  [buf appendString: @"<h2>"];
 	  [buf appendString:
-	    [self makeAnchor: name ofType: @"protocol" name: name]];
+	    [self makeAnchor: unit ofType: @"protocol" name: name]];
 	  [buf appendString: @"</h2>\n"];
 	  [self outputUnit: node to: buf];
 	  unit = nil;
