@@ -20,6 +20,8 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
+   <title>NSPortNameServer class reference</title>
+
    AutogsdocSource: NSPortNameServer.m
    AutogsdocSource: NSSocketPortNameServer.m
    AutogsdocSource: NSMessagePortNameServer.m
@@ -63,8 +65,6 @@
   NSMapTable	*_nameMap;	/* Registered names information.	*/
 }
 + (id) sharedInstance;
-+ (id) systemDefaultPortNameServer;
-- (NSPort*) portForName: (NSString*)name;
 - (NSPort*) portForName: (NSString*)name
 		 onHost: (NSString*)host;
 - (BOOL) registerPort: (NSPort*)port
