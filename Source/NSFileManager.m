@@ -1129,7 +1129,6 @@ static NSFileManager* defaultManager = nil;
   NSMutableArray	*content;
   IMP			nxtImp;
   IMP			addImp;
-  NSDictionary		*attr;
   BOOL			is_dir;
 
   /*
