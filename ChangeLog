@@ -1,3 +1,8 @@
+2001-09-14  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Remove redundancies in iconv checking. Remove
+	redundant AC_SUBST(LIBS) lines.
+
 2001-09-12  Adam Fedor  <fedor@gnu.org>
 
 	* Source/thr-pthread.m (objc_yield): Replace pthread_yield with 

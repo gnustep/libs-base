@@ -846,7 +846,6 @@ if test $enable_openssl = yes; then
       AC_CHECK_LIB(ssl, ssl2_clear, ssl_ok=yes, ssl_ok=no)
       if test "$ssl_ok" = yes; then
         LIBS="$base_libs -lssl -lcrypto"
-        AC_SUBST(LIBS)
         AC_DEFINE(HAVE_OPENSSL)
       fi
     fi
@@ -889,7 +888,6 @@ if test $ac_cv_header_gmp_h = yes; then
   if test "$gmp_ok" = yes; then
     base_libs="$LIBS"
     LIBS="$LIBS -lgmp"
-    AC_SUBST(LIBS)
     HAVE_GMP=1
   fi
 fi
@@ -910,35 +908,27 @@ if test $ac_cv_func_iconv = no; then
   AC_ARG_WITH(libiconv-library,
     [  --with-libiconv-library=PATH  library path for libiconv libraries],
     libiconv_libdir="$withval", libiconv_libdir="no")
-  libs_temp=$LIBS
+  cppflags_temp=$CPPFLAGS
 
   if test "$libiconv_libdir" != "no"; then
-    LIBS="$LIBS -L$libiconv_libdir"
+    CPPFLAGS="$CPPFLAGS -L$libiconv_libdir"
   fi
 
   # BSDs install this lib as libgiconv
   AC_CHECK_LIB(giconv, main)
   if test x"$av_cv_lib_giconv_main" = xyes; then
-    LIBS="$LIBS -lgiconv"
-    AC_SUBST(LIBS)
-    SYSTEM_DEFS="-DHAVE_ICONV -DHAVE_GICONV_H $SYSTEM_DEFS"
+    AC_DEFINE(HAVE_ICONV)
+    AC_DEFINE(HAVE_GICONV_H)
   else
     AC_CHECK_LIB(iconv, main)
     if test x"$av_cv_lib_iconv_main" = xyes; then
-      LIBS="$LIBS -liconv"
-      AC_SUBST(LIBS)
-      SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
-    else
-      LIBS="$libs_temp"
+      AC_DEFINE(HAVE_ICONV)
     fi
   fi
-else
-  SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
+  CPPFLAGS=$cppflag_temp
 fi
 
 AC_SUBST(SYSTEM_DEFS)
-AC_SUBST(whole_archive)
-AC_SUBST(no_whole_archive)
 
 AC_CONFIG_SUBDIRS(Source/mframe)
 

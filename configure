@@ -5160,7 +5160,6 @@ fi
 
       if test "$ssl_ok" = yes; then
         LIBS="$base_libs -lssl -lcrypto"
-        
         cat >> confdefs.h <<\EOF
 #define HAVE_OPENSSL 1
 EOF
@@ -5211,17 +5210,17 @@ for ac_hdr in gmp.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:5215: checking for $ac_hdr" >&5
+echo "configure:5214: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 5220 "configure"
+#line 5219 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:5225: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:5224: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -5249,7 +5248,7 @@ done
 
 if test $ac_cv_header_gmp_h = yes; then
   echo $ac_n "checking for mpf_abs in -lgmp""... $ac_c" 1>&6
-echo "configure:5253: checking for mpf_abs in -lgmp" >&5
+echo "configure:5252: checking for mpf_abs in -lgmp" >&5
 ac_lib_var=`echo gmp'_'mpf_abs | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -5257,7 +5256,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgmp  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 5261 "configure"
+#line 5260 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -5268,7 +5267,7 @@ int main() {
 mpf_abs()
 ; return 0; }
 EOF
-if { (eval echo configure:5272: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:5271: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -5291,7 +5290,7 @@ fi
 
   if test "$gmp_ok" = no; then
     echo $ac_n "checking for __gmpf_abs in -lgmp""... $ac_c" 1>&6
-echo "configure:5295: checking for __gmpf_abs in -lgmp" >&5
+echo "configure:5294: checking for __gmpf_abs in -lgmp" >&5
 ac_lib_var=`echo gmp'_'__gmpf_abs | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -5299,7 +5298,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgmp  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 5303 "configure"
+#line 5302 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -5310,7 +5309,7 @@ int main() {
 __gmpf_abs()
 ; return 0; }
 EOF
-if { (eval echo configure:5314: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:5313: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -5335,7 +5334,6 @@ fi
   if test "$gmp_ok" = yes; then
     base_libs="$LIBS"
     LIBS="$LIBS -lgmp"
-    
     HAVE_GMP=1
   fi
 fi
@@ -5353,12 +5351,12 @@ fi
 for ac_func in iconv
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
-echo "configure:5357: checking for $ac_func" >&5
+echo "configure:5355: checking for $ac_func" >&5
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 5362 "configure"
+#line 5360 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -5381,7 +5379,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:5385: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:5383: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -5415,15 +5413,15 @@ else
   libiconv_libdir="no"
 fi
 
-  libs_temp=$LIBS
+  cppflags_temp=$CPPFLAGS
 
   if test "$libiconv_libdir" != "no"; then
-    LIBS="$LIBS -L$libiconv_libdir"
+    CPPFLAGS="$CPPFLAGS -L$libiconv_libdir"
   fi
 
   # BSDs install this lib as libgiconv
   echo $ac_n "checking for main in -lgiconv""... $ac_c" 1>&6
-echo "configure:5427: checking for main in -lgiconv" >&5
+echo "configure:5425: checking for main in -lgiconv" >&5
 ac_lib_var=`echo giconv'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -5431,14 +5429,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgiconv  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 5435 "configure"
+#line 5433 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:5442: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:5440: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -5466,12 +5464,17 @@ else
 fi
 
   if test x"$av_cv_lib_giconv_main" = xyes; then
-    LIBS="$LIBS -lgiconv"
-    
-    SYSTEM_DEFS="-DHAVE_ICONV -DHAVE_GICONV_H $SYSTEM_DEFS"
+    cat >> confdefs.h <<\EOF
+#define HAVE_ICONV_H 1
+EOF
+
+    cat >> confdefs.h <<\EOF
+#define HAVE_GICONV_H 1
+EOF
+
   else
     echo $ac_n "checking for main in -liconv""... $ac_c" 1>&6
-echo "configure:5475: checking for main in -liconv" >&5
+echo "configure:5478: checking for main in -liconv" >&5
 ac_lib_var=`echo iconv'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -5479,14 +5482,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-liconv  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 5483 "configure"
+#line 5486 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:5490: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:5493: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -5514,18 +5517,14 @@ else
 fi
 
     if test x"$av_cv_lib_iconv_main" = xyes; then
-      LIBS="$LIBS -liconv"
-      
-      SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
-    else
-      LIBS="$libs_temp"
+      cat >> confdefs.h <<\EOF
+#define HAVE_ICONV_H 1
+EOF
+
     fi
   fi
-else
-  SYSTEM_DEFS="-DHAVE_ICONV $SYSTEM_DEFS"
+  CPPFLAGS=$cppflag_temp
 fi
-
-
 
 
 
@@ -5536,7 +5535,7 @@ subdirs="Source/mframe"
 # Record the version
 #--------------------------------------------------------------------
 echo $ac_n "checking for the version of gnustep-base we are compiling""... $ac_c" 1>&6
-echo "configure:5540: checking for the version of gnustep-base we are compiling" >&5
+echo "configure:5539: checking for the version of gnustep-base we are compiling" >&5
 if test -f "Version"; then
   . ./Version
 fi
@@ -5744,8 +5743,6 @@ s%@XML_LIBS@%$XML_LIBS%g
 s%@HAVE_LIBXML@%$HAVE_LIBXML%g
 s%@HAVE_GMP@%$HAVE_GMP%g
 s%@SYSTEM_DEFS@%$SYSTEM_DEFS%g
-s%@whole_archive@%$whole_archive%g
-s%@no_whole_archive@%$no_whole_archive%g
 s%@subdirs@%$subdirs%g
 s%@VERSION@%$VERSION%g
 s%@MAJOR_VERSION@%$MAJOR_VERSION%g
