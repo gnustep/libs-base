@@ -358,9 +358,10 @@ NSTemporaryDirectory(void)
 NSString *
 NSOpenStepRootDirectory(void)
 {
-  NSString	*root = [[[NSProcessInfo processInfo] environment]
-		     objectForKey: @"GNUSTEP_ROOT"];
+  NSString	*root;
 
+  root = [[[NSProcessInfo processInfo] environment]
+    objectForKey: @"GNUSTEP_ROOT"];
   if (root == nil)
 #if	defined(__MINGW__)
     root = @"C:\\";
@@ -372,31 +373,31 @@ NSOpenStepRootDirectory(void)
 
 NSArray *
 NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
-                                    NSSearchPathDomainMask domainMask,
-                                    BOOL expandTilde)
+  NSSearchPathDomainMask domainMask, BOOL expandTilde)
 {
   /* We read these four only once */
-  static NSString *gnustep_user_root = nil;    /* GNUSTEP_USER_ROOT */
-  static NSString *gnustep_local_root = nil;   /* GNUSTEP_LOCAL_ROOT */
-  static NSString *gnustep_network_root = nil; /* GNUSTEP_NETWORK_ROOT */
-  static NSString *gnustep_system_root = nil;  /* GNUSTEP_SYSTEM_ROOT */
-  NSFileManager *fm;
-  NSString *adminDir = @"Administrator";
-  NSString *appsDir = @"Apps";
-  NSString *demosDir = @"Demos";
-  NSString *devDir = @"Developer";
-  NSString *libraryDir = @"Library";
-  NSString *libsDir = @"Libraries";
-  NSString *docDir = @"Documentation";
-  NSMutableArray *paths = [NSMutableArray new];
-  NSString *path;
-  unsigned i, count;
+  static NSString	*gnustep_user_root = nil;    /* GNUSTEP_USER_ROOT */
+  static NSString	*gnustep_local_root = nil;   /* GNUSTEP_LOCAL_ROOT */
+  static NSString	*gnustep_network_root = nil; /* GNUSTEP_NETWORK_ROOT */
+  static NSString	*gnustep_system_root = nil;  /* GNUSTEP_SYSTEM_ROOT */
+  NSFileManager		*fm;
+  NSString		*adminDir = @"Administrator";
+  NSString		*appsDir = @"Apps";
+  NSString		*demosDir = @"Demos";
+  NSString		*devDir = @"Developer";
+  NSString		*libraryDir = @"Library";
+  NSString		*libsDir = @"Libraries";
+  NSString		*docDir = @"Documentation";
+  NSMutableArray	*paths = [NSMutableArray new];
+  NSString		*path;
+  unsigned		i;
+  unsigned		count;
 
   if (gnustep_system_root == nil)
     {
       NS_DURING
 	{
-	  NSDictionary *env;
+	  NSDictionary	*env;
 	  
 	  [gnustep_global_lock lock];
 
@@ -409,18 +410,20 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
 	      TEST_RETAIN (gnustep_system_root);
 	      if (gnustep_system_root == nil)
 		{
-		  /* This is pretty important as we need it to load
-		     character sets, language settings and similar
-		     resources.  Use fprintf to avoid recursive calls. */
+		  /*
+		   * This is pretty important as we need it to load
+		   * character sets, language settings and similar
+		   * resources.  Use fprintf to avoid recursive calls.
+		   */
 		  fprintf (stderr, 
-			   "Warning - GNUSTEP_SYSTEM_ROOT is not set "
-			   "- using /usr/GNUstep/System as a default\n");
+		    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
+		    "- using /usr/GNUstep/System as a default\n");
 		  gnustep_system_root = @"/usr/GNUstep/System";
 		}
 	      gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
 	      TEST_RETAIN (gnustep_local_root);
 	      gnustep_network_root = [env objectForKey: 
-					    @"GNUSTEP_NETWORK_ROOT"];
+		@"GNUSTEP_NETWORK_ROOT"];
 	      TEST_RETAIN (gnustep_network_root);
 	      gnustep_user_root = [env objectForKey: @"GNUSTEP_USER_ROOT"];
 	      TEST_RETAIN (gnustep_user_root);
@@ -435,16 +438,20 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
 	  [localException raise];
 	}
       NS_ENDHANDLER
-  }
+    }
 
-  /* The order in which we return paths is important - user must come
-   first, followed by local, followed by network, followed by system.
-   The calling code can then loop on the returned paths, and stop as
-   soon as it finds something.  So things in user automatically
-   override things in system etc. */
+  /*
+   * The order in which we return paths is important - user must come
+   * first, followed by local, followed by network, followed by system.
+   * The calling code can then loop on the returned paths, and stop as
+   * soon as it finds something.  So things in user automatically
+   * override things in system etc.
+   */
 
-  /* FIXME - The following code will not respect this order for
-     NSAllApplicationsDirectory.  This should be fixed I think. */
+  /*
+   * FIXME - The following code will not respect this order for
+   * NSAllApplicationsDirectory.  This should be fixed I think.
+   */
   
 #define ADD_PATH(mask, base_dir, add_dir) \
 if (domainMask & mask) \
@@ -455,7 +462,7 @@ if (domainMask & mask) \
 }
 
   if (directoryKey == NSApplicationDirectory
-      || directoryKey == NSAllApplicationsDirectory)
+    || directoryKey == NSAllApplicationsDirectory)
     {
       ADD_PATH (NSUserDomainMask, gnustep_user_root, appsDir);
       ADD_PATH (NSLocalDomainMask, gnustep_local_root, appsDir);
@@ -463,13 +470,13 @@ if (domainMask & mask) \
       ADD_PATH (NSSystemDomainMask, gnustep_system_root, appsDir);
     }
   if (directoryKey == NSDemoApplicationDirectory
-      || directoryKey == NSAllApplicationsDirectory);
-  {
-    NSString *devDemosDir = [devDir stringByAppendingPathComponent: demosDir];
-    ADD_PATH (NSSystemDomainMask, gnustep_system_root, devDemosDir);
-  }
+    || directoryKey == NSAllApplicationsDirectory);
+    {
+      NSString *devDemosDir = [devDir stringByAppendingPathComponent: demosDir];
+      ADD_PATH (NSSystemDomainMask, gnustep_system_root, devDemosDir);
+    }
   if (directoryKey == NSDeveloperApplicationDirectory
-      || directoryKey == NSAllApplicationsDirectory)
+    || directoryKey == NSAllApplicationsDirectory)
     {
       NSString *devAppsDir = [devDir stringByAppendingPathComponent: appsDir];
 
@@ -508,7 +515,7 @@ if (domainMask & mask) \
       if (domainMask & NSUserDomainMask)
 	{
 	  path = [NSHomeDirectory() stringByAppendingPathComponent: 
-				   @"GNUstep"];
+	    @"GNUstep"];
 	  [paths addObject: path];
 	}
     }
@@ -549,12 +556,12 @@ if (domainMask & mask) \
       else if (expandTilde == YES)
 	{
 	  [paths replaceObjectAtIndex: i
-		 withObject: [path stringByExpandingTildeInPath]];
+			   withObject: [path stringByExpandingTildeInPath]];
 	}
       else
 	{
 	  [paths replaceObjectAtIndex: i
-		 withObject: [path stringByAbbreviatingWithTildeInPath]];
+	    withObject: [path stringByAbbreviatingWithTildeInPath]];
 	}
     }
 
