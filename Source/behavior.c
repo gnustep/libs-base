@@ -1,5 +1,5 @@
 /* Behaviors for Objective-C, "for Protocols with implementations".
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -90,6 +90,10 @@ class_add_behavior (Class class, Class behavior)
 
   __objc_send_initialize(class);
   __objc_send_initialize(behavior);
+
+  /* If necessary, increase instance_size of CLASS. */
+  if (class->instance_size < behavior->instance_size)
+    class->instance_size = behavior->instance_size);
 
 #if 0
   /* xxx Do protocols */
