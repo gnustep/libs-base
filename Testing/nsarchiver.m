@@ -76,35 +76,47 @@ printf("%u\n", [arc retainCount]);
       printf("%s\n", [o cString]);    
   }
 
+#if 0
+/*
+ *	Benchmark use of very lightwight archiving - a single
+ *	archiver/unarchiver pair using a single mutable data object to
+ *	archive and unarchive many times.
+ */
   {
     NSDate		*start = [NSDate date];
     NSAutoreleasePool	*arp = [NSAutoreleasePool new];
     int			i;
     NSUnarchiver	*u = nil;
-    NSArchiver		*a = [NSArchiver new];
+    NSMutableData	*d;
+    NSArchiver		*a;
+
+    d = [NSMutableData data];
+    a = [[NSArchiver alloc] initForWritingWithMutableData: d];
 
     [NSAutoreleasePool enableDoubleReleaseCheck:NO];
-    for (i = 0; i < 10000; i++) {
-	NSMutableData	*d;
+    for (i = 0; i < 10000; i++)
+      {
 	id	o;
 
 	[a encodeRootObject: set];
-	d = [a archiverData];
-	if (u == nil) {
+	if (u == nil)
+	  {
 	    u = [[NSUnarchiver alloc] initForReadingWithData: d];
-	}
-	else {
+	  }
+	else
+	  {
 	    [u resetUnarchiverWithData: d atIndex: 0];
-	}
+	  }
 	o = [u decodeObject];
 	[d setLength: 0];
 	[a resetArchiver];
-    }
+      }
     [a release];
     [u release];
     [arp release];
     printf("Time: %f\n", -[start timeIntervalSinceNow]);
   }
+#endif
 
   /* Do the autorelease. */
   [arp release];
