@@ -43,7 +43,6 @@
 #include <Foundation/NSDictionary.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/IndexedCollectionPrivate.h>
-#include <gnustep/base/String.h>
 #include <gnustep/base/behavior.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
@@ -167,11 +166,8 @@ handle_printf_atsign (FILE *stream,
 
 + (void) initialize
 {
-  static int done = 0;
-  if (!done)
+  if (self == [NSString class])
     {
-      done = 1;
-      class_add_behavior([NSString class], [String class]);
       NSString_concrete_class = [NSGCString class];
       NSString_c_concrete_class = [NSGCString class];
       NSMutableString_concrete_class = [NSGMutableCString class];
@@ -300,17 +296,18 @@ handle_printf_atsign (FILE *stream,
    int fd;
    char *s;
 
-   stat([path cString], &buf);
+   stat ([path cString], &buf);
 
-   OBJC_MALLOC(s,char,buf.st_size + 1);
-   fd = open([path cString], O_RDONLY);
+   OBJC_MALLOC (s, char, buf.st_size + 1);
+   fd = open ([path cString], O_RDONLY);
    if ( fd < 0 )
-      [NSException raise: NSGenericException format: @"Could not open file %s", [path cString]];
+      [NSException raise: NSGenericException
+		   format: @"Could not open file %s", [path cString]];
 
-   read(fd,(void *)s,buf.st_size);
+   read (fd,(void *)s,buf.st_size);
    s[buf.st_size] = (char)0;
 
-   return [self initWithCStringNoCopy:s length: buf.st_size freeWhenDone:YES];
+   return [self initWithCStringNoCopy:s length: buf.st_size freeWhenDone: YES];
 }
 
 - (id) initWithData: (NSData*)data
