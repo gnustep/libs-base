@@ -95,6 +95,7 @@
 
 #ifndef	NO_GNUSTEP
 - (BOOL) usePseudoTerminal;
+- (NSString*) validatedLaunchPath;
 #endif
 @end
 

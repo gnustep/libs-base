@@ -1,3 +1,13 @@
+2002-02-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSTask.h: New method -validatedLaunchPath to
+	check that an executable exists at the specified path or any
+	alternative version corresponding to host, OS, and library-combo
+	directories.  Returns the actual path to the binary.
+	* Source/NSTask.m: Implemented new mathod and added autogsdoc
+	comments.
+	* Source/NSBundle.m: Cotrrected error in comments.
+
 2002-02-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSString.m: Additioanl method -immutableProxy

@@ -1243,7 +1243,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
    within the GNUstep directory structure specified by the environment
    variables. */
 
-/* Return a bundle which accesses the first existing directory from the list 
+/** Return a bundle which accesses the first existing directory from the list 
    GNUSTEP_USER_ROOT/Libraries/Resources/libraryName/
    GNUSTEP_NETWORK_ROOT/Libraries/Resources/libraryName/
    GNUSTEP_LOCAL_ROOT/Libraries/Resources/libraryName/
@@ -1282,11 +1282,11 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return nil;
 }
 
-/* Return a bundle which accesses the first existing directory from the list 
-   GNUSTEP_USER_ROOT/Tools/Resources/libraryName/
-   GNUSTEP_NETWORK_ROOT/Tools/Resources/libraryName/
-   GNUSTEP_LOCAL_ROOT/Tools/Resources/libraryName/
-   GNUSTEP_SYSTEM_ROOT/Tools/Resources/libraryName/
+/** Return a bundle which accesses the first existing directory from the list 
+   GNUSTEP_USER_ROOT/Libraries/Resources/toolName/
+   GNUSTEP_NETWORK_ROOT/Libraries/Resources/toolName/
+   GNUSTEP_LOCAL_ROOT/Libraries/Resources/toolName/
+   GNUSTEP_SYSTEM_ROOT/Libraries/Resources/toolName/
  */
 + (NSBundle *) bundleForTool: (NSString *)toolName
 {
