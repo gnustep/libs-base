@@ -567,8 +567,6 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 
 - forward: (SEL)aSel :(arglist_t)frame
 {
-  IMP	imp;
-
   if (plist == nil && info.data != nil)
     {
       plist = deserializeFromInfo(&info);
