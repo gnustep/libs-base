@@ -11,7 +11,26 @@ Wed Apr 17 08:56:09 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 	(my pre-marriage name)              (my post-marriage name)
 	...and more...
 
+	* examples/Makefile.in (EXEEXT): New variable.
+	(OEXT): New variable.
+	(LIBEXT): New variable.
+	(SRCS): Remove port-{server,client}.m.
+
+	* examples/dictionary.m: Warn user that the file hasn't been
+ 	converted to new collection scheme, and comment out old code.
+
+	* examples/second-server.m ([SecondServer -addRemoteObject:]):
+ 	Don't free the string returned; mframe already does it!
+
+	* examples/stdio-stream.m: Include Foundation/NSString.h.
+
 	* Makefile.in: Include Makeconf.
+
+	* checks/server.m: Include TcpPort.h, not SocketPort.h.
+	* checks/client.m: Likewise.
+
+	* checks/Makefile.in (../src/lib$(LIBRARY_NAME)$(LIBEXT)): New
+ 	target.
 
 	* doc/Makefile.in (TEXI_FILES): Rename libobjects.texi to
  	gnustep-base.texi.  Add base-desc.texi.
@@ -130,6 +149,11 @@ Wed Apr 17 08:56:09 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
  	<objects/NSDictionary.h>
 	* src/Foundation/NSCoder.h: Insert contents of <objects/NSCoder.h>
 	* src/Foundation/NSArray.h: Insert contents of <objects/NSArray.h>
+
+	Fix error in Decoder, that only affected TextCStream.
+
+	* src/Decoder.m ([Decoder -decodeObjectAt:anObjPtr:name]): Decode
+ 	the Unindent *before* decoding the fref; as does Encoder!
 
 Tue Apr 16 17:29:02 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
