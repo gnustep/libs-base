@@ -215,7 +215,7 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
           return class_get_instance_method (object_get_class
                                               (receiver), sel);
         }
-      else if (object_is_meta_class (receiver))
+      else if (object_is_class (receiver))
         {
           return class_get_class_method (object_get_meta_class
                                            (receiver), sel);

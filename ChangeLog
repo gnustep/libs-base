@@ -1,3 +1,13 @@
+2002-01-03  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSFFCallInvocation.m (gs_method_for_receiver_and_selector): 
+	Correct test for class.
+
+	* Source/GNUmakefile (AUTHORS): Remove target.
+	* AUTHORS: Remove.
+	* Admin/: Remove.
+	* configure.bat: Likewise.
+
 2002-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Header/Foundation/GSXML.h: Correction standards complience
@@ -19,7 +29,6 @@
 
 	* Tools/autogsdoc.m (main): When no libxml, abort with a useful error
 	message.
-
 
 2002-01-02  Richard Frith-Macdonald <rfm@gnu.org>
 

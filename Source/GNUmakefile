@@ -76,7 +76,7 @@ DEFS= -DGNUSTEP_INSTALL_PREFIX=$(GNUSTEP_TARGET_INSTALL_PREFIX) \
 	-DGNUSTEP_TARGET_CPU=\"$(GNUSTEP_TARGET_CPU)\" \
 	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \
 	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
-		
+
 else
 
 GNUSTEP_INSTALL_PREFIX=$(GNUSTEP_SYSTEM_ROOT)
@@ -89,24 +89,6 @@ DEFS= -DGNUSTEP_INSTALL_PREFIX=$(GNUSTEP_INSTALL_PREFIX) \
 	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
 
 endif
-
-# Grep for these names to build the legally-required "AUTHORS" file.
-FILE_AUTHORS = \
-"Andrew Kachites McCallum" \
-"Kresten Krab Thorup" \
-"Adam Fedor" \
-"Mark Lakata" \
-"Jeremy Bettis" \
-"Georg Tuparev" \
-"Peter Burka" \
-"Albin L. Jones" \
-"Scott Christley" \
-"Luke Howard" \
-"Yoo C. Chung" \
-"Richard Frith-Macdonald" \
-"Stevo Crvenkovski" \
-"Mike Kienenberger" \
-"Manuel Guesdon"
 
 # The GNU source files
 
