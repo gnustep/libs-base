@@ -243,6 +243,7 @@ objects/CStream.h \
 objects/CStreaming.h \
 objects/DelegatePool.h \
 objects/Dictionary.h \
+objects/Enumerating.h \
 objects/GapArray.h \
 objects/GapArrayPrivate.h \
 objects/Heap.h \
@@ -251,6 +252,7 @@ objects/IndexedCollection.h \
 objects/IndexedCollectionPrivate.h \
 objects/InvalidationListening.h \
 objects/Invocation.h \
+objects/Invoking.h \
 objects/KeyedCollecting.h \
 objects/KeyedCollection.h \
 objects/LibobjectsMain.h \
