@@ -1,5 +1,10 @@
 Thu Feb 11  9:51:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
+	* Source/NSString.m: Fixed error in property-list parsing - was not
+	taking into account octal and hexadecimal escape sequences.
+
+Thu Feb 11  9:51:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
 	* Source/NSUserDefaults.m: ([-dealloc]) invalidate timer so we can't
 	get sent a timeout message after d4eallocation - fixes occasional
 	crashes when the defaults database has been unreadable.
