@@ -679,11 +679,19 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 }
 
+/**
+ * Returns an array of all the bundles which do not belong to frameworks.<br />
+ * This always contains the main bundle.
+ */
 + (NSArray *) allBundles
 {
   NSMutableArray	*array = [NSMutableArray arrayWithCapacity: 2];
 
   [load_lock lock];
+  if (!_mainBundle) 
+    {
+      [self mainBundle];
+    }
   if (_bundles != 0)
     {
       NSMapEnumerator	enumerate;
@@ -708,6 +716,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return array;
 }
 
+/**
+ * Returns an array containing all the known bundles representing frameworks.
+ */
 + (NSArray *) allFrameworks
 {
   NSMapEnumerator  enumerate;
@@ -730,26 +741,29 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return array;
 }
 
-/* For an application, returns the main bundle of the application.
-   For a tool, returns the main bundle associated with the tool.
-   
-   For an application, the structure is as follows - 
-   
-   The executable is Gomoku.app/ix86/linux-gnu/gnu-gnu-gnu/Gomoku
-   and the main bundle directory is Gomoku.app/.
-   
-   For a tool, the structure is as follows - 
-   
-   The executable is xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control
-   and the main bundle directory is xxx/Tools/Resources/Control.
-   
-   (when the tool has not yet been installed, it's similar - 
-   xxx/shared_obj/ix86/linux-gnu/gnu-gnu-gnu/Control
-   and the main bundle directory is xxx/Resources/Control).
-   
-   (For a flattened structure, the structure is the same without the
-   ix86/linux-gnu/gnu-gnu-gnu directories).  */
-+ (NSBundle *)mainBundle
+/**
+ * For an application, returns the main bundle of the application.<br />
+ * For a tool, returns the main bundle associated with the tool.<br />
+ * <br />
+ * For an application, the structure is as follows - 
+ * <p> 
+ * The executable is Gomoku.app/ix86/linux-gnu/gnu-gnu-gnu/Gomoku
+ * and the main bundle directory is Gomoku.app/.
+ * </p> 
+ * For a tool, the structure is as follows - 
+ * <p>
+ * The executable is xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control
+ * and the main bundle directory is xxx/Tools/Resources/Control.
+ * </p> 
+ * <p>(when the tool has not yet been installed, it's similar - 
+ * xxx/shared_obj/ix86/linux-gnu/gnu-gnu-gnu/Control
+ * and the main bundle directory is xxx/Resources/Control).
+ * </p> 
+ * <p>(For a flattened structure, the structure is the same without the
+ * ix86/linux-gnu/gnu-gnu-gnu directories).
+ * </p>
+ */
++ (NSBundle *) mainBundle
 {
   [load_lock lock];
   if (!_mainBundle) 
@@ -803,19 +817,19 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	}
 
       if (isApplication == YES)
-    {
-      s = [path lastPathComponent];
-          
-      if ((([s hasSuffix: @".app"]  == NO)
-          && ([s hasSuffix: @".debug"] == NO)
-          && ([s hasSuffix: @".profile"] == NO))
-          // GNUstep Web
-          && (([s hasSuffix: @".gswa"] == NO)
-	      && ([s hasSuffix: @".woa"] == NO)))
-        {
-          isApplication = NO;
-        }
-    }
+	{
+	  s = [path lastPathComponent];
+	      
+	  if ((([s hasSuffix: @".app"]  == NO)
+	    && ([s hasSuffix: @".debug"] == NO)
+	    && ([s hasSuffix: @".profile"] == NO))
+	    // GNUstep Web
+	    && (([s hasSuffix: @".gswa"] == NO)
+		&& ([s hasSuffix: @".woa"] == NO)))
+	    {
+	      isApplication = NO;
+	    }
+	}
       
       if (isApplication == NO)
 	{
@@ -836,7 +850,10 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   return _mainBundle;
 }
 
-/* NB: We will not find a class if the bundle has not been loaded yet!  */
+/**
+ * Returns the bundle whose code contains the specified class.<br />
+ * NB: We will not find a class if the bundle has not been loaded yet!
+ */
 + (NSBundle *) bundleForClass: (Class)aClass
 {
   void*     key;
