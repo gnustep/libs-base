@@ -1,6 +1,6 @@
 #
 #  Tests makefile for Objective-C Class Library
-#  Copyright (C) 1993 Free Software Foundation, Inc.
+#  Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 #
 #  Written by:	R. Andrew McCallum <mccallum@cs.rochester.edu>
 #  Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
@@ -73,7 +73,8 @@ server.m \
 client.m \
 string.m \
 values.m \
-nsarray.m
+nsarray.m \
+nsarchiving.m
 
 HDRS = \
 server.h
@@ -128,6 +129,8 @@ string: string.o $(srcdir)/../libobjects.a
 values: values.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 nsarray: nsarray.o $(srcdir)/../libobjects.a
+	$(LINK_CMD)
+nsarchiving: nsarray.o $(srcdir)/../libobjects.a
 	$(LINK_CMD)
 
 echo-excs:
