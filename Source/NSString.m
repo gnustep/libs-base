@@ -632,7 +632,7 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      self = [self initWithCharactersNoCopy: (unichar*)""
+      self = [self initWithCharactersNoCopy: (unichar*)0
 				     length: 0
 			       freeWhenDone: NO];
     }
@@ -704,7 +704,7 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      self = [self initWithCharactersNoCopy: (unichar*)""
+      self = [self initWithCharactersNoCopy: (unichar*)0
 				     length: 0
 			       freeWhenDone: NO];
     }
@@ -768,7 +768,7 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      self = [self initWithCharactersNoCopy: (unichar*)""
+      self = [self initWithCharactersNoCopy: (unichar*)0
 				     length: 0
 			       freeWhenDone: NO];
     }
@@ -1148,7 +1148,7 @@ handle_printf_atsign (FILE *stream,
 
   if (len == 0)
     {
-      self = [self initWithCharactersNoCopy: (unichar*)""
+      self = [self initWithCharactersNoCopy: (unichar*)0
 				     length: 0
 			       freeWhenDone: NO];
     }
@@ -1245,7 +1245,7 @@ handle_printf_atsign (FILE *stream,
 	    }
 	  if (len == 0)
 	    {
-	      self = [self initWithCharactersNoCopy: (unichar*)""
+	      self = [self initWithCharactersNoCopy: (unichar*)0
 					     length: 0
 				       freeWhenDone: NO];
 	    }
@@ -1395,7 +1395,7 @@ handle_printf_atsign (FILE *stream,
 
 - (id) init
 {
-  self = [self initWithCharactersNoCopy: (unichar*)""
+  self = [self initWithCharactersNoCopy: (unichar*)0
 				 length: 0
 			   freeWhenDone: 0];
   return self;
