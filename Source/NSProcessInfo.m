@@ -515,6 +515,16 @@ _gnu_noobjc_free_vars(void)
   if (self == [NSProcessInfo class])
     _gnu_process_args(__argc, __argv, _environ);
 }
+#elif defined(__BEOS__)
+
+extern int __libc_argc;
+extern char **__libc_argv;
++ (void) initialize
+{
+  if (self == [NSProcessInfo class])
+    _gnu_process_args(__libc_argc, __libc_argv, environ);
+}
+
 
 #else
 #ifndef GS_PASS_ARGUMENTS
@@ -696,6 +706,18 @@ int main(int argc, char *argv[], char *env[])
         {
 	  os = NSBSDOperatingSystem;
 	}
+      else if ([n isEqualToString: @"beos"] == YES)
+	{
+          os = NSBeOperatingSystem;
+        }
+      else if ([n hasPrefix: @"solaris"] == YES)
+	{
+          os = NSSolarisOperatingSystem;
+        }
+      else if ([n hasPrefix: @"hpux"] == YES)
+	{
+          os = NSHPUXOperatingSystem;
+        }
       else
         {
 	  NSLog(@"Unable to determine O/S ... assuming GNU/Linux");

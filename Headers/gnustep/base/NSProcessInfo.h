@@ -50,7 +50,8 @@ enum {
   NSSunOSOperatingSystem,
   NSOSF1OperatingSystem,
   NSGNULinuxOperatingSystem = 100,
-  NSBSDOperatingSystem
+  NSBSDOperatingSystem,
+  NSBeOperatingSystem
 };
 #endif
 
