@@ -3698,9 +3698,9 @@ static NSCharacterSet	*tokenSet = nil;
       count = [content count];
       for (i = 0; i < count; i++)
 	{
-	  CREATE_AUTORELEASE_POOL(arp);
 	  GSMimeDocument	*part = [content objectAtIndex: i];
 	  NSMutableData		*rawPart = [part rawMimeData: NO];
+	  CREATE_AUTORELEASE_POOL(arp);
 
 	  if (is7bit == YES)
 	    {
