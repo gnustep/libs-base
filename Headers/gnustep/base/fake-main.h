@@ -36,9 +36,18 @@
    functions is implemented in NSProcessInfo.m
 */
 
-#define main LibobjectsMain
+/* Currently this only actually necessary if we don't have ELF.
+   If we have ELF, we can do something far cleaner.  
+   See src/NSProcessInfo.m [__ELF__]. 
+   Hopefully, in the future, we'll do something cleaner 
+   with non-ELF systems too. 
+     -mccallum 
+*/
 
+#ifndef __ELF__
+#define main LibobjectsMain
 extern int LibobjectsMain(int argc, char *argv[]);
+#endif /* __ELF__ */
 
 /*
   NOTE! This is very dirty and dangerous trick. I spend several hours
