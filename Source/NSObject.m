@@ -281,42 +281,37 @@ static void
 GSFinalize(void* object, void* data)
 {
   [(id)object gcFinalize];
-
-  /* Set the class of anObject to FREED_OBJECT. The further messages to this
-     object will cause an error to occur. */
-  ((id)object)->class_pointer = __freedObjectClass;
-
 #ifndef	NDEBUG
   GSDebugAllocationRemove(((id)object)->class_pointer);
 #endif
-  ((id)object)->class_pointer = (void*) 0xdeadface;
+  ((id)object)->class_pointer = (void*)0xdeadface;
 }
 
 inline NSObject *
-NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 {
-  id new = nil;
-  int size = aClass->instance_size + extraBytes;
-  if (CLS_ISCLASS (aClass))
-    new = NSZoneMalloc (zone, size);
+  id	new = nil;
+  int	size = aClass->instance_size + extraBytes;
+
+  if (CLS_ISCLASS(aClass))
+    new = NSZoneMalloc(zone, size);
   if (new != nil)
     {
-      memset (new, 0, size);
+      memset(new, 0, size);
       new->class_pointer = aClass;
-    }
-  if ([new respondsToSelector: @selector(gcFinalize)])
-    {
+      if (__objc_responds_to(new, @selector(gcFinalize)))
+	{
 #ifndef	NDEBUG
-      /*
-       *	We only do allocation counting for objects that can be
-       *	finalised - for other objects we have no way of decrementing
-       *	the count when the object is collected.
-       */
-      GSDebugAllocationAdd(aClass);
+	  /*
+	   *	We only do allocation counting for objects that can be
+	   *	finalised - for other objects we have no way of decrementing
+	   *	the count when the object is collected.
+	   */
+	  GSDebugAllocationAdd(aClass);
 #endif
-      GC_REGISTER_FINALIZER (new, GSFinalize, NULL, NULL, NULL);
+	  GC_REGISTER_FINALIZER (new, GSFinalize, NULL, NULL, NULL);
+	}
     }
-
   return new;
 }
 

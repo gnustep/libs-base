@@ -364,17 +364,7 @@ GSIMapMoreNodes(GSIMapTable map)
 	  chunkCount = ((map->nodeCount>>2)+1)<<1;
 	}
       chunkSize = chunkCount * sizeof(GSIMapNode_t);
-#if	GS_WITH_GC
-      /*
-       *	If we use a nil zone, objects we point to are subject to GC
-       */
-      if (map->zone == 0)
-	newNodes = (GSIMapNode*)GC_MALLOC_ATOMIC(chunkSize);
-      else
-	newNodes = (GSIMapNode*)GC_MALLOC(chunkSize);
-#else
       newNodes = (GSIMapNode)NSZoneMalloc(map->zone, chunkSize);
-#endif
       if (newNodes)
 	{
 	  map->nodeChunks[map->chunkCount++] = newNodes;

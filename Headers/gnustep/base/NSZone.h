@@ -1,5 +1,5 @@
 /* Zone memory management. -*- Mode: ObjC -*-
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997,1998,1999 Free Software Foundation, Inc.
 
    Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>
    Date: January 1997
@@ -69,6 +69,8 @@ extern NSZone* __nszone_private_hidden_default_zone;
 
 #include <gc.h>
 
+extern NSZone* __nszone_private_hidden_atomic_zone;
+
 #define
 extern inline NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree)
 { return __nszone_private_hidden_default_zone; }
@@ -76,12 +78,20 @@ extern inline NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree)
 extern inline NSZone* NSDefaultMallocZone (void)
 { return __nszone_private_hidden_default_zone; }
 
+extern inline NSZone* GSAtomicMallocZone (void)
+{ return __nszone_private_hidden_atomict_zone; }
+
 extern inline NSZone* NSZoneFromPointer (void *ptr)
 { return __nszone_private_hidden_default_zone; }
 
 extern inline void* NSZoneMalloc (NSZone *zone, size_t size)
 {
-  void	*ptr = (void*)GC_MALLOC(size);
+  void	*ptr;
+
+  if (zone == GSAtomicMallocZone())
+    *ptr = (void*)GC_MALLOC_ATOMIC(size);
+  else
+    *ptr = (void*)GC_MALLOC(size);
 
   if (ptr == 0)
     ptr = GSOutOfMemory(size, YES);
@@ -91,9 +101,13 @@ extern inline void* NSZoneMalloc (NSZone *zone, size_t size)
 extern inline void* NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
 {
   size_t	size = elems * bytes;
-  void		*ptr = (void*)GC_MALLOC(size);
+  void		*ptr;
 
-  void	*ptr = (void*)GC_MALLOC(size, YES);
+  if (zone == __nszone_private_hidden_atomic_zone)
+    *ptr = (void*)GC_MALLOC_ATOMIC(size);
+  else
+    *ptr = (void*)GC_MALLOC(size);
+
   if (ptr == 0)
     ptr = GSOutOfMemory(size);
   memset(ptr, '\0', size);
@@ -130,11 +144,7 @@ extern inline NSString* NSZoneName (NSZone *zone)
 
 extern inline void* NSZoneMallocAtomic (NSZone *zone, size_t size)
 {
-  void	*ptr = (void*)GC_MALLOC_ATOMIC(size);
-
-  if (ptr == 0)
-    ptr = GSOutOfMemory(size, YES);
-  return ptr;
+  return NSZoneMalloc(GSAtomicmallocZone(), size);
 }
 
 extern inline BOOL NSZoneCheck (NSZone *zone)
@@ -156,6 +166,11 @@ extern NSZone* NSCreateZone (size_t start, size_t gran, BOOL canFree);
 extern inline NSZone* NSDefaultMallocZone (void)
 {
   return __nszone_private_hidden_default_zone;
+}
+
+extern inline NSZone* GSAtomicMallocZone (void)
+{
+  return NSDefaultMallocZone();
 }
 
 extern NSZone* NSZoneFromPointer (void *ptr);
