@@ -39,6 +39,7 @@
 #include	"Foundation/NSDistributedNotificationCenter.h"
 #include	"Foundation/NSUserDefaults.h"
 #include	"Foundation/NSHost.h"
+#include	"Foundation/NSPortNameServer.h"
 
 #include	"../Tools/gdnc.h"
 
@@ -616,9 +617,18 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  	      format: @"Unknown center type - %@", _type];
 	}
 
-
-      _remote = RETAIN([NSConnection rootProxyForConnectionWithRegisteredName:
-	service host: host]);
+      if ([host isEqualToString: @"*"] == YES)
+	{
+	  _remote = [NSConnection rootProxyForConnectionWithRegisteredName:
+	    service host: host
+	    usingNameServer: [NSSocketPortNameServer sharedInstance]];
+	}
+      else
+	{
+	  _remote = [NSConnection rootProxyForConnectionWithRegisteredName:
+	    service host: host];
+	}
+      RETAIN(_remote);
 
       if (_type == NSLocalNotificationCenterType
 	&& _remote == nil && [host isEqual: @""] == NO)
