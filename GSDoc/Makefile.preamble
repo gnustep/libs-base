@@ -34,7 +34,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-#ADDITIONAL_CPPFLAGS += 
+ADDITIONAL_CPPFLAGS += -DHAVE_LIBXML=$(HAVE_LIBXML)
 
 # Additional flags to pass to the Objective-C compiler
 #ADDITIONAL_OBJCFLAGS += 
@@ -43,7 +43,7 @@
 #ADDITIONAL_CFLAGS += 
 
 # Additional include directories the compiler should search
-ADDITIONAL_INCLUDE_DIRS += -I/usr/include/gnome-xml \
+ADDITIONAL_INCLUDE_DIRS += \
 	-I../Headers/gnustep -I../Headers \
 	-I../Source/$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
@@ -54,7 +54,9 @@ ADDITIONAL_INCLUDE_DIRS += -I/usr/include/gnome-xml \
 ADDITIONAL_LIB_DIRS += -L../Source/$(GNUSTEP_OBJ_DIR)
 
 # Additional libraries for XML parsing
+ifeq ($(HAVE_LIBXML),1)
 ADDITIONAL_TOOL_LIBS += -lxml -lz
+endif
 
 #
 # Flags dealing with installing and uninstalling

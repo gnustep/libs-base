@@ -1,3 +1,11 @@
+2000-06-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.in: Added check for recent libxml
+	* config.mak.in: Added defeine for HAVE_LIBXML
+	* GSDoc/gsdoc.m: modified for standard libxml 2.0 installation
+	* GSDoc/README: updated
+	* GSDoc/Makefile.preamble: conditional on presence of libxml
+
 2000-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDate.m: Remove obsolete classForConnectedCoder method
