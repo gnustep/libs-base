@@ -472,6 +472,8 @@ static void unescape(const char *from, char * to)
  */
 @implementation NSURL
 
+static unsigned	urlAlign;
+
 /**
  * Create and return a file URL with the supplied path.<br />
  * The value of aPath must be a valid filesystem path.<br />
@@ -486,6 +488,7 @@ static void unescape(const char *from, char * to)
 {
   if (clientsLock == nil)
     {
+      urlAlign = objc_alignof_type(@encode(parsedURL));
       clientsLock = [NSLock new];
     }
 }
@@ -637,7 +640,7 @@ static void unescape(const char *from, char * to)
       BOOL	usesQueries = YES;
       BOOL	canBeGeneric = YES;
 
-      size += sizeof(parsedURL) + __alignof__(parsedURL) + 1;
+      size += sizeof(parsedURL) + urlAlign + 1;
       buf = _data = (parsedURL*)NSZoneMalloc(GSAtomicMallocZone(), size);
       memset(buf, '\0', size);
       start = end = ptr = (char*)&buf[1];

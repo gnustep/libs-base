@@ -1,3 +1,13 @@
+2003-04-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTcpPort.m:
+	* Source/NSData.m:
+	* Source/NSSerializer.m:
+	* Source/NSURL.m:
+	Replace __alignof__() with calls to objc_alignof_type() so that if
+	__alignof__() is broken we can hope that the objc runtime library
+	has a workaround.
+
 2003-04-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/Foundation.h: Include GNUstep extensions
