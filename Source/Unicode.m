@@ -33,211 +33,203 @@ struct _ucc_ {unichar from; char to;};
 #include "unicode/cop.h"
 #include "unicode/decomp.h"
 
-#define FALSE 0
-#define TRUE 1
-
 typedef	unsigned char	unc;
+static NSStringEncoding	defEnc = GSUndefinedEncoding;
 
 unichar
 encode_chartouni(char c, NSStringEncoding enc)
 {
   /* All that I could find in Next documentation
     on NSNonLossyASCIIStringEncoding was << forthcoming >>. */
-  if ((enc == NSNonLossyASCIIStringEncoding)
-    || (enc == NSASCIIStringEncoding)
-    || (enc == NSISOLatin1StringEncoding))
+  switch (enc)
     {
-      return (unichar)((unc)c);
-    }
-  if ((enc == NSNEXTSTEPStringEncoding))
-    {
-      if ((unc)c < Next_conv_base)
+      case NSNonLossyASCIIStringEncoding:
+      case NSASCIIStringEncoding:
+      case NSISOLatin1StringEncoding:
 	return (unichar)((unc)c);
-      else
-	return(Next_char_to_uni_table[(unc)c - Next_conv_base]);
-    }
-  if ((enc == NSCyrillicStringEncoding))
-    {
-      if ((unc)c < Cyrillic_conv_base)
-	return (unichar)((unc)c);
-      else
-	return(Cyrillic_char_to_uni_table[(unc)c - Cyrillic_conv_base]);
-    }
-  if ((enc ==  NSISOLatin2StringEncoding))
-    {
-      if ((unc)c < Latin2_conv_base)
-	return (unichar)((unc)c);
-      else
-	return(Latin2_char_to_uni_table[(unc)c - Latin2_conv_base]);
-    }
+
+      case NSNEXTSTEPStringEncoding:
+	if ((unc)c < Next_conv_base)
+	  return (unichar)((unc)c);
+	else
+	  return(Next_char_to_uni_table[(unc)c - Next_conv_base]);
+
+      case NSCyrillicStringEncoding:
+	if ((unc)c < Cyrillic_conv_base)
+	  return (unichar)((unc)c);
+	else
+	  return(Cyrillic_char_to_uni_table[(unc)c - Cyrillic_conv_base]);
+
+      case NSISOLatin2StringEncoding:
+	if ((unc)c < Latin2_conv_base)
+	  return (unichar)((unc)c);
+	else
+	  return(Latin2_char_to_uni_table[(unc)c - Latin2_conv_base]);
 
 #if 0
-  if ((enc == NSSymbolStringEncoding))
-    {
-      if ((unc)c < Symbol_conv_base)
-	return (unichar)((unc)c);
-      else
-	return(Symbol_char_to_uni_table[(unc)c - Symbol_conv_base]);
-    }
+      case NSSymbolStringEncoding:
+	if ((unc)c < Symbol_conv_base)
+	  return (unichar)((unc)c);
+	else
+	  return(Symbol_char_to_uni_table[(unc)c - Symbol_conv_base]);
 #endif
 
-  return 0;
+      default:
+	return 0;
+    }
 }
 
 char
 encode_unitochar(unichar u, NSStringEncoding enc)
 {
-  int res;
-  int i =0;
+  int	res;
+  int	i = 0;
 
-  if ((enc == NSNonLossyASCIIStringEncoding)
-    || (enc == NSASCIIStringEncoding))
+  switch (enc)
     {
-      if (u <128)
-	return (char)u;
-      else
-	return 0;
-    }
+      case NSNonLossyASCIIStringEncoding:
+      case NSASCIIStringEncoding:
+	if (u < 128)
+	  return (char)u;
+	else
+	  return 0;
 
-  if ((enc == NSISOLatin1StringEncoding))
-    {
-      if (u <256)
-	return (char)u;
-      else
-	return 0;
-    }
+      case NSISOLatin1StringEncoding:
+	if (u < 256)
+	  return (char)u;
+	else
+	  return 0;
 
-  if ((enc == NSNEXTSTEPStringEncoding))
-    {
-      if (u <(unichar)Next_conv_base)
-	return (char)u;
-      else
-	{
-	  while (((res = u-Next_uni_to_char_table[i++].from) > 0)
-	    && (i < Next_uni_to_char_table_size));
-	  return res?0:Next_uni_to_char_table[--i].to;
-	}
-    }
+      case NSNEXTSTEPStringEncoding:
+	if (u < (unichar)Next_conv_base)
+	  return (char)u;
+	else
+	  {
+	    while (((res = u - Next_uni_to_char_table[i++].from) > 0)
+	      && (i < Next_uni_to_char_table_size));
+	    return res ? 0 : Next_uni_to_char_table[--i].to;
+	  }
 
-  if ((enc == NSCyrillicStringEncoding))
-    {
-      if (u <(unichar)Cyrillic_conv_base)
-	return (char)u;
-      else
-	{
-	  while (((res = u-Cyrillic_uni_to_char_table[i++].from) > 0)
-	    && (i < Cyrillic_uni_to_char_table_size));
-	  return res ? 0 : Cyrillic_uni_to_char_table[--i].to;
-	}
-    }
+      case NSCyrillicStringEncoding:
+	if (u < (unichar)Cyrillic_conv_base)
+	  return (char)u;
+	else
+	  {
+	    while (((res = u - Cyrillic_uni_to_char_table[i++].from) > 0)
+	      && (i < Cyrillic_uni_to_char_table_size));
+	    return res ? 0 : Cyrillic_uni_to_char_table[--i].to;
+	  }
 
-  if ((enc == NSISOLatin2StringEncoding))
-    {
-      if (u <(unichar)Latin2_conv_base)
-	return (char)u;
-      else
-	{
-	  while (((res = u-Latin2_uni_to_char_table[i++].from) > 0)
-	    && (i < Latin2_uni_to_char_table_size));
-	  return res ? 0 : Latin2_uni_to_char_table[--i].to;
-	}
-    }
+      case NSISOLatin2StringEncoding:
+	if (u < (unichar)Latin2_conv_base)
+	  return (char)u;
+	else
+	  {
+	    while (((res = u - Latin2_uni_to_char_table[i++].from) > 0)
+	      && (i < Latin2_uni_to_char_table_size));
+	    return res ? 0 : Latin2_uni_to_char_table[--i].to;
+	  }
 
 #if 0
-  if ((enc == NSSymbolStringEncoding))
-    {
-      if (u <(unichar)Symbol_conv_base)
-	return (char)u;
-      else
-	{
-	  while (((res = u-Symbol_uni_to_char_table[i++].from) > 0)
-	    && (i < Symbol_uni_to_char_table_size));
-	  return res ? '*' : Symbol_uni_to_char_table[--i].to;
-	}
-    }
+      case NSSymbolStringEncoding:
+	if (u < (unichar)Symbol_conv_base)
+	  return (char)u;
+	else
+	  {
+	    while (((res = u - Symbol_uni_to_char_table[i++].from) > 0)
+	      && (i < Symbol_uni_to_char_table_size));
+	    return res ? '*' : Symbol_uni_to_char_table[--i].to;
+	  }
 #endif
 
-  return 0;
+      default:
+	return 0;
+    }
 }
 
 unichar
 chartouni(char c)
 {
-  static NSStringEncoding enc = GSUndefinedEncoding;
-
-  if (enc == 0)
-    enc = [NSString defaultCStringEncoding];
-  return encode_chartouni(c, enc);
+  if (defEnc == GSUndefinedEncoding)
+    {
+      defEnc = [NSString defaultCStringEncoding];
+    }
+  return encode_chartouni(c, defEnc);
 }
 
 char
 unitochar(unichar u)
 {
-  unc res;
-  static NSStringEncoding enc = GSUndefinedEncoding;
+  unc				res;
 
-  if (enc == 0)
-    enc = [NSString defaultCStringEncoding];
-  if ((res = encode_unitochar(u, enc)))
-    return res;
-  else
-    return '*';
-}
-
-int
-strtoustr(unichar * u1,const char *s1,int size)
-{
-  int count;
-
-  for (count = 0; (count < size) && (s1[count] != 0); count++)
-    u1[count] = chartouni(s1[count]);
-  return count;
-}
- 
-int
-ustrtostr(char *s2,unichar *u1,int size)
-{
-  int count;
-
-  for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
-    s2[count] = unitochar(u1[count]);
-  return(count);
-}
- 
-int
-encode_strtoustr(unichar * u1,const char *s1,int size, NSStringEncoding enc)
-{
-  int count;
-
-  for (count = 0; (count < size) && (s1[count] != 0); count++)
-    u1[count] = encode_chartouni(s1[count], enc);
-  return count;
-}
-
-int
-encode_ustrtostr(char *s2,unichar *u1,int size, NSStringEncoding enc)
-{
-  int count;
-
-  for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
-  s2[count] = encode_unitochar(u1[count], enc);
-  return(count);
-}
-
-/* Be carefull if you use this. Unicode arrays returned by
-   -getCharacters methods are not zero terminated */
-int
-uslen (unichar *u)
-{
-  int len = 0;
-
-  while (u[len] != 0)
+  if (defEnc == GSUndefinedEncoding)
     {
-      if (u[++len] == 0)
-	return len;
-      ++len;
+      defEnc = [NSString defaultCStringEncoding];
     }
-  return len;
+  if ((res = encode_unitochar(u, defEnc)))
+    {
+      return res;
+    }
+  else
+    {
+      return '*';
+    }
+}
+
+int
+strtoustr(unichar *u1, const char *s1, int size)
+{
+  int count;
+
+  if (defEnc == GSUndefinedEncoding)
+    {
+      defEnc = [NSString defaultCStringEncoding];
+    }
+  for (count = 0; (count < size) && (s1[count] != 0); count++)
+    {
+      u1[count] = encode_chartouni(s1[count], defEnc);
+    }
+  return count;
+}
+ 
+int
+ustrtostr(char *s2, unichar *u1, int size)
+{
+  int count;
+
+  if (defEnc == GSUndefinedEncoding)
+    {
+      defEnc = [NSString defaultCStringEncoding];
+    }
+  for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
+    {
+      s2[count] = encode_unitochar(u1[count], defEnc);
+    }
+  return count;
+}
+ 
+int
+encode_strtoustr(unichar *u1, const char *s1, int size, NSStringEncoding enc)
+{
+  int count;
+
+  for (count = 0; (count < size) && (s1[count] != 0); count++)
+    {
+      u1[count] = encode_chartouni(s1[count], enc);
+    }
+  return count;
+}
+
+int
+encode_ustrtostr(char *s2, unichar *u1, int size, NSStringEncoding enc)
+{
+  int count;
+
+  for (count = 0; (count < size) && (u1[count] != (unichar)0); count++)
+    {
+      s2[count] = encode_unitochar(u1[count], enc);
+    }
+  return count;
 }
 
 unichar
@@ -263,29 +255,33 @@ uni_toupper(unichar ch)
 unsigned char
 uni_cop(unichar u)
 {
-  unichar count,first,last,comp;
-  BOOL notfound;
+  unichar	count, first, last, comp;
+  BOOL		notfound;
 
   first = 0;
   last = uni_cop_table_size;
-  notfound = TRUE;
-  count =0;
+  notfound = YES;
+  count = 0;
 
   if (u > (unichar)0x0080)  // no nonspacing in ascii
     {
       while (notfound && (first <= last))
 	{
-	  if (!(first == last))
+	  if (first != last)
 	    {
 	      count = (first + last) / 2;
 	      comp = uni_cop_table[count].code;
 	      if (comp < u)
-		first = count+1;
+		{
+		  first = count+1;
+		}
 	      else
-	        if (comp > u)
-		  last = count-1;
-		else
-		  notfound = FALSE;
+		{
+		  if (comp > u)
+		    last = count-1;
+		  else
+		    notfound = NO;
+		}
 	    }
 	  else  /* first == last */
 	    {
@@ -303,25 +299,23 @@ uni_cop(unichar u)
 BOOL
 uni_isnonsp(unichar u)
 {
-#define TRUE 1
-#define FALSE 0
 // check is uni_cop good for this
   if (uni_cop(u))
-    return TRUE;
+    return YES;
   else
-    return FALSE;
+    return NO;
 }
 
 unichar*
 uni_is_decomp(unichar u)
 {
-  unichar count,first,last,comp;
-  BOOL notfound;
+  unichar	count, first, last, comp;
+  BOOL		notfound;
 
   first = 0;
   last = uni_dec_table_size;
-  notfound = TRUE;
-  count =0;
+  notfound = YES;
+  count = 0;
 
   if (u > (unichar)0x0080)  // no composites in ascii
     {
@@ -334,10 +328,12 @@ uni_is_decomp(unichar u)
 	      if (comp < u)
 		first = count+1;
 	      else
-		if (comp > u)
-		  last = count-1;
-		else
-		  notfound = FALSE;
+		{
+		  if (comp > u)
+		    last = count-1;
+		  else
+		    notfound = NO;
+		}
 	    }
 	  else  /* first == last */
 	    {

@@ -25,13 +25,13 @@
 
 #include <Foundation/NSObject.h>
 
-@class NSString, NSArray, NSMutableArray;
+@class NSString, NSArray, NSSet;
 
 @interface NSHost : NSObject
 {
   @private
-  NSMutableArray *_names;
-  NSMutableArray *_addresses;
+  NSSet	*_names;
+  NSSet	*_addresses;
 }
 
 /*
@@ -76,6 +76,10 @@
 - (NSString*) address;
 - (NSArray*) addresses;
 
+@end
+
+@interface NSHost (GNUstep)
++ (NSHost*) localHost;		/* All local IP addresses	*/
 @end
 
 #endif

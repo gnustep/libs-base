@@ -80,31 +80,16 @@ static SEL	rlSel = @selector(removeLastObject);
     }
 }
 
-+ (void) _setConcreteClass: (Class)c
-{
-  NSArray_concrete_class = c;
-}
-
-+ (void) _setMutableConcreteClass: (Class)c
-{
-  NSMutableArray_concrete_class = c;
-}
-
-+ (Class) _concreteClass
-{
-  return NSArray_concrete_class;
-}
-
-+ (Class) _mutableConcreteClass
-{
-  return NSMutableArray_concrete_class;
-}
-
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSArray_abstract_class)
-    return NSAllocateObject(NSArray_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSArray_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 + (id) array
@@ -799,8 +784,13 @@ static NSString	*indentStrings[] = {
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSMutableArray_abstract_class)
-    return NSAllocateObject(NSMutableArray_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSMutableArray_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 /* The NSCopying Protocol */
@@ -1347,3 +1337,130 @@ static NSString	*indentStrings[] = {
   return (*get)(array, oaiSel, --pos);
 }
 @end
+
+
+@implementation	NSArray (GNUstep)
+
+/*
+ *	The comparator function takes two items as arguments, the first is the
+ *	item to be added, the second is the item already in the array.
+ *      The function should return NSOrderedAscending if the item to be
+ *      added is 'less than' the item in the array, NSOrderedDescending
+ *      if it is greater, and NSOrderedSame if it is equal.
+ */
+- (unsigned) insertionPosition: (id)item
+		 usingFunction: (NSComparisonResult (*)(id, id))sorter
+{
+  unsigned	count = [self count];
+  unsigned	upper = count;
+  unsigned	lower = 0;
+  unsigned	index;
+  IMP		oai;
+
+  if (item == nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position for nil object in array"];
+    }
+  if (sorter == 0)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position with null comparator"];
+    }
+
+  oai = [self methodForSelector: oaiSel];
+  /*
+   *	Binary search for an item equal to the one to be inserted.
+   */
+  for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
+    {
+      NSComparisonResult comparison;
+
+      comparison = (*sorter)(item, (*oai)(self, oaiSel, index));
+      if (comparison == NSOrderedAscending)
+        {
+          upper = index;
+        }
+      else if (comparison == NSOrderedDescending)
+        {
+          lower = index + 1;
+        }
+      else
+        {
+          break;
+        }
+    }
+  /*
+   *	Now skip past any equal items so the insertion point is AFTER any
+   *	items that are equal to the new one.
+   */
+  while (index < count
+    && (*sorter)(item, (*oai)(self, oaiSel, index)) != NSOrderedAscending)
+    {
+      index++;
+    }
+  return index;
+}
+
+- (unsigned) insertionPosition: (id)item
+		 usingSelector: (SEL)comp
+{
+  unsigned	count = [self count];
+  unsigned	upper = count;
+  unsigned	lower = 0;
+  unsigned	index;
+  NSComparisonResult	(*imp)(id, SEL, id);
+  IMP		oai;
+
+  if (item == nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position for nil object in array"];
+    }
+  if (comp == 0)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position with null comparator"];
+    }
+  imp = (NSComparisonResult (*)(id, SEL, id))[item methodForSelector: comp];
+  if (imp == 0)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position with unknown method"];
+    }
+
+  oai = [self methodForSelector: oaiSel];
+  /*
+   *	Binary search for an item equal to the one to be inserted.
+   */
+  for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
+    {
+      NSComparisonResult comparison;
+
+      comparison = (*imp)(item, comp, (*oai)(self, oaiSel, index));
+      if (comparison == NSOrderedAscending)
+        {
+          upper = index;
+        }
+      else if (comparison == NSOrderedDescending)
+        {
+          lower = index + 1;
+        }
+      else
+        {
+          break;
+        }
+    }
+  /*
+   *	Now skip past any equal items so the insertion point is AFTER any
+   *	items that are equal to the new one.
+   */
+  while (index < count
+    && (*imp)(item, comp, (*oai)(self, oaiSel, index)) != NSOrderedAscending)
+    {
+      index++;
+    }
+  return index;
+}
+@end
+

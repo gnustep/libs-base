@@ -23,8 +23,10 @@
 
 #include <config.h>
 #include <base/behavior.h>
+#include <base/fast.x>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSGSet.h>
+#include <Foundation/NSCoder.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
@@ -77,21 +79,16 @@ static Class NSCountedSet_concrete_class;
     }
 }
 
-+ (void) _setCountedSetConcreteClass: (Class)c
-{
-  NSCountedSet_concrete_class = c;
-}
-
-+ (Class) _concreteClass
-{
-  return NSCountedSet_concrete_class;
-}
-
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSCountedSet_abstract_class)
-    return NSAllocateObject(NSCountedSet_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSCountedSet_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 - (unsigned int) countForObject: (id)anObject
@@ -112,13 +109,59 @@ static Class NSCountedSet_concrete_class;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  unsigned	count;
+  Class		c = fastClass(self);
+
+  if (c == NSCountedSet_abstract_class)
+    {
+      RELEASE(self);
+      self = [NSCountedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
+      return [self initWithCoder: aCoder];
+    }
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+  {
+    id		objs[count];
+    unsigned	refs[count];
+    unsigned	i;
+    IMP		addImp = [self methodForSelector: @selector(addObject:)];
+
+    for (i = 0; i < count; i++)
+      {
+	[aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
+	[aCoder decodeValueOfObjCType: @encode(unsigned) at: &refs[i]];
+      }
+    self = [self initWithObjects: objs count: count];
+    for (i = 0; i < count; i++)
+      {
+	unsigned	j = refs[i];
+
+	while (j-- > 1)
+	  {
+	    (*addImp)(self, @selector(addObject:), objs[i]);
+	  }
+      }
+  }
+  return self;
+}
+
+- (Class) classForCoder
+{
+  return NSCountedSet_abstract_class;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
+  unsigned	count = [self count];
+  NSEnumerator	*e = [self objectEnumerator];
+  id		o;
+
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+  while ((o = [e nextObject]) != nil)
+    {
+      [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+      count = [self countForObject: o];
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+    }
 }
 
 - (id) initWithSet: (NSSet*)other copyItems: (BOOL)flag
@@ -147,14 +190,15 @@ static Class NSCountedSet_concrete_class;
 	{
           unsigned	extra = [(NSCountedSet*)other countForObject: os[j]];
 
-	  if (extra > 1)
-	    while (--extra)
-	      (*addImp)(self, @selector(addObject:), os[j]);
+	  while (extra-- > 1)
+	    (*addImp)(self, @selector(addObject:), os[j]);
 	}
     }
+#if	!GS_WITH_GC
   if (flag)
     while (i--)
       [os[i] release];
+#endif
   return self;
 }
 

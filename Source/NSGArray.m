@@ -683,3 +683,122 @@ static SEL	eqSel = @selector(isEqual:);
   return array->_contents_array[--pos];
 }
 @end
+
+@implementation	NSGArray (GNUstep)
+/*
+ *	The comparator function takes two items as arguments, the first is the
+ *	item to be added, the second is the item already in the array.
+ *      The function should return NSOrderedAscending if the item to be
+ *      added is 'less than' the item in the array, NSOrderedDescending
+ *      if it is greater, and NSOrderedSame if it is equal.
+ */
+- (unsigned) insertionPosition: (id)item
+		 usingFunction: (NSComparisonResult (*)(id, id))sorter
+{
+  unsigned	upper = _count;
+  unsigned	lower = 0;
+  unsigned	index;
+
+  if (item == nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position for nil object in array"];
+    }
+  if (sorter == 0)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position with null comparator"];
+    }
+
+  /*
+   *	Binary search for an item equal to the one to be inserted.
+   */
+  for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
+    {
+      NSComparisonResult comparison;
+
+      comparison = (*sorter)(item, _contents_array[index]);
+      if (comparison == NSOrderedAscending)
+        {
+          upper = index;
+        }
+      else if (comparison == NSOrderedDescending)
+        {
+          lower = index + 1;
+        }
+      else
+        {
+          break;
+        }
+    }
+  /*
+   *	Now skip past any equal items so the insertion point is AFTER any
+   *	items that are equal to the new one.
+   */
+  while (index < _count
+    && (*sorter)(item, _contents_array[index]) != NSOrderedAscending)
+    {
+      index++;
+    }
+  return index;
+}
+
+- (unsigned) insertionPosition: (id)item
+		 usingSelector: (SEL)comp
+{
+  unsigned	upper = _count;
+  unsigned	lower = 0;
+  unsigned	index;
+  NSComparisonResult	(*imp)(id, SEL, id);
+
+  if (item == nil)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position for nil object in array"];
+    }
+  if (comp == 0)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position with null comparator"];
+    }
+  imp = (NSComparisonResult (*)(id, SEL, id))[item methodForSelector: comp];
+  if (imp == 0)
+    {
+      [NSException raise: NSGenericException
+		  format: @"Attempt to find position with unknown method"];
+    }
+
+  /*
+   *	Binary search for an item equal to the one to be inserted.
+   */
+  for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
+    {
+      NSComparisonResult comparison;
+
+      comparison = (*imp)(item, comp, _contents_array[index]);
+      if (comparison == NSOrderedAscending)
+        {
+          upper = index;
+        }
+      else if (comparison == NSOrderedDescending)
+        {
+          lower = index + 1;
+        }
+      else
+        {
+          break;
+        }
+    }
+  /*
+   *	Now skip past any equal items so the insertion point is AFTER any
+   *	items that are equal to the new one.
+   */
+  while (index < _count
+    && (*imp)(item, comp, _contents_array[index]) != NSOrderedAscending)
+    {
+      index++;
+    }
+  return index;
+}
+@end
+

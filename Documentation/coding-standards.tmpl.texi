@@ -62,6 +62,7 @@ into another language, under the above conditions for modified versions.
 * Coding Style::                
 * Memory Management::              
 * Error Handling::              
+* Contributing::                
 @end menu
 
 @c ******************************************************************
@@ -248,7 +249,7 @@ of code is involved
 @end example
 
 @c ******************************************************************
-@node Memory Management, Error Handling , Coding Style, Top
+@node Memory Management, Error Handling, Coding Style, Top
 @section Memory Management
 
 In anticipation of the day when we can make the use of a Garbage Collector
@@ -281,7 +282,7 @@ in use.
 @end itemize
 
 @c ******************************************************************
-@node Error Handling,  , Memory Management, Top
+@node Error Handling, Contributing, Memory Management, Top
 @section Error Handling
 
 Initialization methods (e.g. -init) should, upon failure to
@@ -319,5 +320,41 @@ Unfortunately there is no nice way to do this automatically in OpenStep.
 Java has the "finally" block which is specifically designed for this task. A
 similar mechanism exists in libFoundation with the CLEANUP and FINALLY
 blocks.
+
+@node Contributing,  , Error Handling, Top
+@section Contributing
+
+Contributing code is not difficult. Here are
+some general guidelines:
+
+@itemize @bullet
+
+@item
+FSF must maintain the right to accept or reject potential contributions.
+Generally, the only reasons for rejecting contributions are cases where
+they duplicate existing or nearly-released code, contain unremovable
+specific machine dependencies, or are somehow incompatible with the
+rest of the library. 
+
+@item
+Acceptance of contributions means that the code is accepted for adaptation
+into libgnustep-base.  FSF must reserve the right to make various editorial changes
+in code. Very often, this merely entails formatting, maintenance of various
+conventions, etc. Contributors are always given authorship credit and shown
+the final version for approval.
+
+@item
+Contributors must assign their copyright to FSF via a form sent out
+upon acceptance. Assigning copyright to FSF ensures that the code
+may be freely distributed.
+
+@item
+Assistance in providing documentation, test files, and debugging
+support is strongly encouraged.
+
+@end itemize
+
+Extensions, comments, and suggested modifications of existing libgnustep-base
+features are also very welcome.
 
 @bye

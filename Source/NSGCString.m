@@ -800,6 +800,77 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     return strRangeCsNs(self, aString, mask, aRange);
 }
 
+- (BOOL) boolValue
+{
+  if (_count == 0)
+    {
+      return 0;
+    }
+  else if (_count == 3
+    && (_contents_chars[0] == 'Y' || _contents_chars[0] == 'y')
+    && (_contents_chars[1] == 'E' || _contents_chars[1] == 'e')
+    && (_contents_chars[2] == 'S' || _contents_chars[2] == 's'))
+    {
+      return YES;
+    }
+  else
+    {
+      char	buf[_count+1];
+
+      memcpy(buf, _contents_chars, _count);
+      buf[_count] = '\0';
+      return atoi(buf);
+    }
+}
+
+- (double) doubleValue
+{
+  if (_count == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      char	buf[_count+1];
+
+      memcpy(buf, _contents_chars, _count);
+      buf[_count] = '\0';
+      return atof(buf);
+    }
+}
+
+- (float) floatValue
+{
+  if (_count == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      char	buf[_count+1];
+
+      memcpy(buf, _contents_chars, _count);
+      buf[_count] = '\0';
+      return (float) atof(buf);
+    }
+}
+
+- (int) intValue
+{
+  if (_count == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      char	buf[_count+1];
+
+      memcpy(buf, _contents_chars, _count);
+      buf[_count] = '\0';
+      return atoi(buf);
+    }
+}
+
 @end
 
 

@@ -17,50 +17,57 @@ typedef struct _foo {
 struct myarray {
   int a[3];
 };
+
+#define ADD_CONST 47
  
 @protocol ServerProtocol 
-- (void) addObject: o;
+- (BOOL) sendBoolean: (BOOL)b;
+- (void) getBoolean: (BOOL*)bp;
+- (unsigned char) sendUChar: (unsigned char)uc;
+- (void) getUChar: (unsigned char *)ucp;
+- (char) sendChar: (char)uc;
+- (void) getChar: (char *)ucp;
+- (short) sendShort: (short)num;
+- (void) getShort: (short *)num;
+- (int) sendInt: (int)num;
+- (void) getInt: (int *)num;
+- (long) sendLong: (long)num;
+- (void) getLong: (long *)num;
+- (float) sendFloat: (float)num;
+- (void) getFloat: (float *)num;
+- (double) sendDouble: (double)num;
+- (void) getDouble: (double *)num;
+- sendDouble: (double)dbl andFloat: (float)flt;
+
+- (small_struct) sendSmallStruct: (small_struct)str;
+- (void) getSmallStruct: (small_struct *)str;
+- (foo) sendStruct: (foo)str;
+- (void) getStruct: (foo *)str;
+- (id) sendObject: (id)str;
+- (void) getObject: (id *)str;
+- (char *) sendString: (char *)str;
+- (void) getString: (char **)str;
+
+- print: (const char *)str;
+
 - objectAt: (unsigned)i;
 - (unsigned) count;
-- print: (const char *)msg;
-- getLong: (out unsigned long*)i;
+- echoObject: obj;
+
 - (oneway void) shout;
-- callbackNameOn: obj;
 - bounce: sender count: (int)c;
-- (BOOL) doBoolean: (BOOL)b;
-- getBoolean: (BOOL*)bp;
-- getUCharPtr: (unsigned char *)ucp;
 - (oneway void) outputStats:obj;
-- (foo*) sendStructPtr: (foo*)f;
-- sendStruct: (foo)f;
-- sendSmallStruct: (small_struct)small;
-- (foo) returnStruct;
-- (foo) returnSetStruct: (int)x;
-- (small_struct) returnSmallStruct;
-- (small_struct) returnSetSmallStruct: (int)x;
+
 - sendArray: (int[3])a;
 - sendStructArray: (struct myarray)ma;
-- sendDouble: (double)d andFloat: (float)f;
-- (double*) doDoublePointer: (double*)d;
-- sendCharPtrPtr: (char**)sp;
+
 - sendBycopy: (bycopy id)o;
 #ifdef	_F_BYREF
 - sendByref: (byref id)o;
 #endif
 - manyArgs: (int)i1 : (int)i2 : (int)i3 : (int)i4 : (int)i5 : (int)i6
 : (int)i7 : (int)i8 : (int)i9 : (int)i10 : (int)i11 : (int)i12;
-- (float) returnFloat;
-- (double) returnDouble;
-- (id) echoObject: (id)obj;
 @end
-
-#if NeXT_runtime
-@protocol AllProxies <ServerProtocol>
-- (const char *)name;
-- (unsigned) hash;
-- self;
-@end
-#endif
 
 @interface Server : NSObject <ServerProtocol>
 {

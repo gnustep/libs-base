@@ -27,7 +27,7 @@
 #include <errno.h>
 #include <Foundation/NSObject.h>
 
-GS_IMPORT int	errno;
+extern int	errno;
 
 
 /*
@@ -115,30 +115,30 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 
 #define NSDebugLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) \
-    NSLog(format, ## args); } while (0)
+    NSLog(format , ## args); } while (0)
 #define NSDebugLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) \
-    NSLog(format, ## args); } while (0)
+    NSLog(format , ## args); } while (0)
 #define NSDebugFLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) { \
     NSString *fmt = GSDebugFunctionMsg( \
 	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-    NSLog(fmt, ## args); }} while (0)
+    NSLog(fmt , ## args); }} while (0)
 #define NSDebugFLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) { \
     NSString *fmt = GSDebugFunctionMsg( \
 	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-    NSLog(fmt, ## args); }} while (0)
+    NSLog(fmt , ## args); }} while (0)
 #define NSDebugMLLog(level, format, args...) \
   do { if (GSDebugSet(level) == YES) { \
     NSString *fmt = GSDebugMethodMsg( \
 	self, _cmd, __FILE__, __LINE__, format); \
-    NSLog(fmt, ## args); }} while (0)
+    NSLog(fmt , ## args); }} while (0)
 #define NSDebugMLog(format, args...) \
   do { if (GSDebugSet(@"dflt") == YES) { \
     NSString *fmt = GSDebugMethodMsg( \
 	self, _cmd, __FILE__, __LINE__, format); \
-    NSLog(fmt, ## args); }} while (0)
+    NSLog(fmt , ## args); }} while (0)
 #else
 #define NSDebugLLog(level, format, args...)
 #define NSDebugLog(format, args...)
@@ -178,17 +178,17 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 
 #define NSWarnLog(format, args...) \
   do { \
-    NSLog(format, ## args); } while (0)
+    NSLog(format , ## args); } while (0)
 #define NSWarnFLog(format, args...) \
   do { \
     NSString *fmt = GSDebugFunctionMsg( \
 	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
-    NSLog(fmt, ## args); } while (0)
+    NSLog(fmt , ## args); } while (0)
 #define NSWarnMLog(format, args...) \
   do { \
     NSString *fmt = GSDebugMethodMsg( \
 	self, _cmd, __FILE__, __LINE__, format); \
-    NSLog(fmt, ## args); } while (0)
+    NSLog(fmt , ## args); } while (0)
 #else
 #define NSWarnLog(format, args...)
 #define NSWarnFLog(format, args...)

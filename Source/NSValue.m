@@ -106,7 +106,7 @@ static Class	sizeValueClass;
 
 // Allocating and Initializing 
 
-+ (NSValue *)value: (const void *)value
++ (NSValue*) value: (const void *)value
       withObjCType: (const char *)type
 {
   Class		theClass = [self valueClassWithObjCType: type];
@@ -117,7 +117,7 @@ static Class	sizeValueClass;
   return AUTORELEASE(theObj);
 }
 		
-+ (NSValue *)valueWithBytes: (const void *)value
++ (NSValue*) valueWithBytes: (const void *)value
 		   objCType: (const char *)type
 {
   Class		theClass = [self valueClassWithObjCType: type];
@@ -128,7 +128,7 @@ static Class	sizeValueClass;
   return AUTORELEASE(theObj);
 }
 		
-+ (NSValue *) valueWithNonretainedObject: (id)anObject
++ (NSValue*) valueWithNonretainedObject: (id)anObject
 {
   NSValue	*theObj;
 
@@ -137,7 +137,7 @@ static Class	sizeValueClass;
   return AUTORELEASE(theObj);
 }
 	
-+ (NSValue *) valueWithPoint: (NSPoint)point
++ (NSValue*) valueWithPoint: (NSPoint)point
 {
   NSValue	*theObj;
 
@@ -146,7 +146,7 @@ static Class	sizeValueClass;
   return AUTORELEASE(theObj);
 }
  
-+ (NSValue *)valueWithPointer: (const void *)pointer
++ (NSValue*) valueWithPointer: (const void *)pointer
 {
   NSValue	*theObj;
 
@@ -155,7 +155,7 @@ static Class	sizeValueClass;
   return AUTORELEASE(theObj);
 }
 
-+ (NSValue *)valueWithRect: (NSRect)rect
++ (NSValue*) valueWithRect: (NSRect)rect
 {
   NSValue	*theObj;
 
@@ -164,7 +164,7 @@ static Class	sizeValueClass;
   return AUTORELEASE(theObj);
 }
  
-+ (NSValue *)valueWithSize: (NSSize)size
++ (NSValue*) valueWithSize: (NSSize)size
 {
   NSValue	*theObj;
 
@@ -173,7 +173,7 @@ static Class	sizeValueClass;
   return AUTORELEASE(theObj);
 }
 
-+ (NSValue*)valueFromString: (NSString *)string
++ (NSValue*) valueFromString: (NSString *)string
 {
   NSDictionary	*dict = [string propertyList];
 
@@ -214,57 +214,57 @@ static Class	sizeValueClass;
 
 // Accessing Data 
 /* All the rest of these methods must be implemented by a subclass */
-- (void)getValue: (void *)value
+- (void) getValue: (void *)value
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (BOOL)isEqual: (id)other
+- (BOOL) isEqual: (id)other
 {
   if ([other isKindOfClass: [self class]])
     {
-	return [self isEqualToValue: other];
+      return [self isEqualToValue: other];
     }
   return NO;
 }
 
-- (BOOL)isEqualToValue: (NSValue*)other
+- (BOOL) isEqualToValue: (NSValue*)other
 {
   [self subclassResponsibility: _cmd];
   return NO;
 }
 
-- (const char *)objCType
+- (const char *) objCType
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
  
-- (id)nonretainedObjectValue
+- (id) nonretainedObjectValue
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
  
-- (void *)pointerValue
+- (void *) pointerValue
 {
   [self subclassResponsibility: _cmd];
   return 0;
 } 
 
-- (NSRect)rectValue
+- (NSRect) rectValue
 {
   [self subclassResponsibility: _cmd];
   return NSMakeRect(0,0,0,0);
 }
  
-- (NSSize)sizeValue
+- (NSSize) sizeValue
 {
   [self subclassResponsibility: _cmd];
   return NSMakeSize(0,0);
 }
  
-- (NSPoint)pointValue
+- (NSPoint) pointValue
 {
   [self subclassResponsibility: _cmd];
   return NSMakePoint(0,0);

@@ -1,13 +1,18 @@
 #include <Foundation/NSRunLoop.h>
-#include <base/Invocation.h>
 #include <Foundation/NSTimer.h>
-#include    <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSInvocation.h>
+#include <Foundation/NSAutoreleasePool.h>
 
 @interface TestDouble : NSObject
 + (double) testDouble;
 - (double) testDoubleInstance;
 @end
 @implementation TestDouble
++ (void) sayCount
+{
+  static int count = 0;
+  printf ("Timer fired %d times\n", ++count);
+}
 + (double) testDouble
 {
   return 12345678912345.0;
@@ -23,20 +28,20 @@ double test_double ()
   return 92345678912345.0;
 }
 
-void say_count ()
-{
-  static int count = 0;
-  printf ("Timer fired %d times\n", ++count);
-}
 
 int main()
 {
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   volatile double foo, bar;
-  id inv = [[VoidFunctionInvocation alloc] initWithVoidFunction: say_count];
+  id inv;
   id o;
   id d;
   
+  inv = [NSInvocation invocationWithMethodSignature: 
+    [TestDouble methodSignatureForSelector: @selector(sayCount)]];
+  [inv setSelector: @selector(sayCount)];
+  [inv setTarget: [TestDouble class]];
+
   foo = [TestDouble testDouble];
   printf ("TestDouble is %f\n", foo);
   foo = [TestDouble testDouble];

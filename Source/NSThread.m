@@ -123,7 +123,18 @@ gnustep_base_thread_callback()
  */
 + (NSThread*) currentThread
 {
-  return GSCurrentThread();
+  if (entered_multi_threaded_state == NO)
+    {
+      /*
+       * The NSThread class has been initialized - so we will have a default
+       * thread set up.
+       */
+      return defaultThread;
+    }
+  else
+    {
+      return (NSThread*)objc_thread_get_data();
+    }
 }
 
 /*

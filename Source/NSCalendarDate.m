@@ -48,7 +48,7 @@
 #define GREGORIAN_REFERENCE 730486
 
 static inline int
-lastDayOfGregorianMonth(int year, int month)
+lastDayOfGregorianMonth(int month, int year)
 {
   switch (month)
     {

@@ -204,7 +204,7 @@ GSBuildStrings()
 	= [[NSString alloc] initWithCString: "NSArgumentDomain"];
       NSBundleDidLoadNotification
 	= [[NSString alloc] initWithCString: "NSBundleDidLoadNotification"];
-      NSCharacterConversionException
+      *(NSString**)&NSCharacterConversionException
 	= [[NSString alloc] initWithCString: "NSCharacterConversionException"];
       NSConnectionDidDieNotification
 	= [[NSString alloc] initWithCString: "NSConnectionDidDieNotification"];
@@ -293,7 +293,7 @@ GSBuildStrings()
 	= [[NSString alloc] initWithCString: "NSFileTypeUnknown"];
       NSFormalName
         = [[NSString alloc] initWithCString: "NSFormalName"];
-      NSGenericException
+      *(NSString**)&NSGenericException
 	= [[NSString alloc] initWithCString: "NSGenericException"];
       NSGlobalDomain
 	= [[NSString alloc] initWithCString: "NSGlobalDomain"];
@@ -301,12 +301,12 @@ GSBuildStrings()
 	= [[NSString alloc] initWithCString: "NSHourNameDesignations"];
       NSInconsistentArchiveException
 	= [[NSString alloc] initWithCString: "NSInconsistentArchiveException"];
-      NSInternalInconsistencyException
+      *(NSString**)&NSInternalInconsistencyException
 	= [[NSString alloc] initWithCString:
 	"NSInternalInconsistencyException"];
       NSInternationalCurrencyString
 	= [[NSString alloc] initWithCString: "NSInternationalCurrencyString"];
-      NSInvalidArgumentException
+      *(NSString**)&NSInvalidArgumentException
 	= [[NSString alloc] initWithCString: "NSInvalidArgumentException"];
       NSLanguageCode
         = [[NSString alloc] initWithCString: "NSLanguageCode"];
@@ -316,7 +316,7 @@ GSBuildStrings()
 	= [[NSString alloc] initWithCString: "NSLaterTimeDesignations"];
       NSLoadedClasses
 	= [[NSString alloc] initWithCString: "NSLoadedClasses"];
-      NSMallocException
+      *(NSString**)&NSMallocException
 	= [[NSString alloc] initWithCString: "NSMallocException"];
       NSMonthNameArray
 	= [[NSString alloc] initWithCString: "NSMonthNameArray"];
@@ -335,7 +335,7 @@ GSBuildStrings()
         = [[NSString alloc] initWithCString: "NSPositiveCurrencyFormatString"];
       NSPriorDayDesignations
 	= [[NSString alloc] initWithCString: "NSPriorDayDesignations"];
-      NSRangeException
+      *(NSString**)&NSRangeException
 	= [[NSString alloc] initWithCString: "NSRangeException"];
       NSRegistrationDomain
 	= [[NSString alloc] initWithCString: "NSRegistrationDomain"];
