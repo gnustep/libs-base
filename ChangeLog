@@ -1,3 +1,18 @@
+2004-08-25  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
+	* Documentation/HtmlNav/index.html:
+	* Documentation/HtmlNav/style.css:
+	* Documentation/HtmlNav/gnustep-header.png:
+	* Documentation/HtmlNav/gnustep-header14.jpg:
+	* Documentation/HtmlNav/masthead-bg.jpg: Changed local HTML docs
+	overview page  to use same graphics as web site and a subset of its
+	stylesheet.
+	* Documentation/Makefile.postamble: Changed install accordingly.
+	* Documentation/HtmlNav/docs-web.html: Added this file to be used as
+	overview page for HTML docs when presented on gnustep.org web site.
+	* Headers/Foundation/NSMethodSignature.h: Fixed unclosed tag typo in
+	comment that was stopping docs from being generated.
+
 2004-08-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Accept iso-10646-ucs-2
