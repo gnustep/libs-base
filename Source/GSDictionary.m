@@ -49,42 +49,41 @@
 @class	NSDictionaryNonCore;
 @class	NSMutableDictionaryNonCore;
 
-@interface NSGDictionary : NSDictionary
+@interface GSDictionary : NSDictionary
 {
 @public
   GSIMapTable_t	map;
 }
 @end
 
-@interface NSGMutableDictionary : NSMutableDictionary
+@interface GSMutableDictionary : NSMutableDictionary
 {
 @public
   GSIMapTable_t	map;
 }
 @end
 
-@interface NSGDictionaryKeyEnumerator : NSEnumerator
+@interface GSDictionaryKeyEnumerator : NSEnumerator
 {
-  NSGDictionary		*dictionary;
+  GSDictionary		*dictionary;
   GSIMapEnumerator_t	enumerator;
 }
 @end
 
-@interface NSGDictionaryObjectEnumerator : NSGDictionaryKeyEnumerator
+@interface GSDictionaryObjectEnumerator : GSDictionaryKeyEnumerator
 @end
 
-@implementation NSGDictionary
+@implementation GSDictionary
 
 static SEL	nxtSel;
 static SEL	objSel;
 
 + (void) initialize
 {
-  if (self == [NSGDictionary class])
+  if (self == [GSDictionary class])
     {
       nxtSel = @selector(nextObject);
       objSel = @selector(objectForKey:);
-      behavior_class_add_class(self, [NSDictionaryNonCore class]);
     }
 }
 
@@ -244,13 +243,13 @@ static SEL	objSel;
 
 - (NSEnumerator*) keyEnumerator
 {
-  return AUTORELEASE([[NSGDictionaryKeyEnumerator allocWithZone:
+  return AUTORELEASE([[GSDictionaryKeyEnumerator allocWithZone:
     NSDefaultMallocZone()] initWithDictionary: self]);
 }
 
 - (NSEnumerator*) objectEnumerator
 {
-  return AUTORELEASE([[NSGDictionaryObjectEnumerator allocWithZone:
+  return AUTORELEASE([[GSDictionaryObjectEnumerator allocWithZone:
     NSDefaultMallocZone()] initWithDictionary: self]);
 }
 
@@ -270,14 +269,13 @@ static SEL	objSel;
 
 @end
 
-@implementation NSGMutableDictionary
+@implementation GSMutableDictionary
 
 + (void) initialize
 {
-  if (self == [NSGMutableDictionary class])
+  if (self == [GSMutableDictionary class])
     {
-      behavior_class_add_class(self, [NSMutableDictionaryNonCore class]);
-      behavior_class_add_class(self, [NSGDictionary class]);
+      behavior_class_add_class(self, [GSDictionary class]);
     }
 }
 
@@ -332,12 +330,12 @@ static SEL	objSel;
 
 @end
 
-@implementation NSGDictionaryKeyEnumerator
+@implementation GSDictionaryKeyEnumerator
 
 - (id) initWithDictionary: (NSDictionary*)d
 {
   [super init];
-  dictionary = (NSGDictionary*)RETAIN(d);
+  dictionary = (GSDictionary*)RETAIN(d);
   enumerator = GSIMapEnumeratorForMap(&dictionary->map);
   return self;
 }
@@ -361,7 +359,7 @@ static SEL	objSel;
 
 @end
 
-@implementation NSGDictionaryObjectEnumerator
+@implementation GSDictionaryObjectEnumerator
 
 - (id) nextObject
 {
@@ -375,3 +373,32 @@ static SEL	objSel;
 }
 
 @end
+
+
+
+@interface	NSGDictionary : NSDictionary
+@end
+@implementation	NSGDictionary
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
+  RELEASE(self);
+  self = (id)NSAllocateObject([GSDictionary class], 0, NSDefaultMallocZone());
+  self = [self initWithCoder: aCoder];
+  return self;
+}
+@end
+
+@interface	NSGMutableDictionary : NSMutableDictionary
+@end
+@implementation	NSGMutableDictionary
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
+  RELEASE(self);
+  self = (id)NSAllocateObject([GSMutableDictionary class], 0, NSDefaultMallocZone());
+  self = [self initWithCoder: aCoder];
+  return self;
+}
+@end
+

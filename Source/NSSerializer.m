@@ -35,8 +35,8 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSObjCRuntime.h>
 
-@class	NSGDictionary;
-@class	NSGMutableDictionary;
+@class	GSDictionary;
+@class	GSMutableDictionary;
 @class	NSDataMalloc;
 @class	GSInlineArray;
 @class  GSMutableArray;
@@ -690,8 +690,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       IACls = [GSInlineArray class];
       MACls = [GSMutableArray class];
       DCls = [NSDataMalloc class];
-      IDCls = [NSGDictionary class];
-      MDCls = [NSGMutableDictionary class];
+      IDCls = [GSDictionary class];
+      MDCls = [GSMutableDictionary class];
       USCls = [GSUnicodeString class];
       CSCls = [GSCString class];
       csInitImp = [CSCls instanceMethodForSelector: csInitSel];
