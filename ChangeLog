@@ -3,6 +3,7 @@
 	* Source/NSFileManager.m: Change copy so that, if the source argument
 	is a symbolic link, we copy the link rather than the thing it points
 	to.
+	* configure.in: Look for headers of an additional libobjc
 
 2002-03-08  Richard Frith-Macdonald <rfm@gnu.org>
 

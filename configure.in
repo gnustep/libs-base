@@ -117,8 +117,10 @@ fi
 #
 # The following one is so that headers of custom libraries into
 # $GNUSTEP_HDIR are used before the standard ones
+# The libobjc subdirectory is for if an alternative libobjc is
+# installed and we want to use that rather than the default system one.
 #
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_HDIR"
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_HDIR -I$GNUSTEP_HDIR/libobjc"
 LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
 
 #--------------------------------------------------------------------
