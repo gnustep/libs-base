@@ -140,6 +140,7 @@ enum {NSNotFound = 0x7fffffff};
 - shouldNotImplement:(SEL)aSel;
 + (Class) autoreleaseClass;
 + (void) setAutoreleaseClass: (Class)aClass;
++ (void) enableDoubleReleaseCheck: (BOOL)enable;
 - read: (TypedStream*)aStream;
 - write: (TypedStream*)aStream;
 @end
