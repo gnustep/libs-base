@@ -1,3 +1,10 @@
+2004-08-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Various minor optimisations ... uppercaseString
+	and lowercaseString no longer create a new object if no change is
+	needed.  Avoid unnecessary calls by using method variants with
+	range arguments if we already know the length of the string.
+
 2004-08-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Destory comments after skipping units ...
