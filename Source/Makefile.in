@@ -81,6 +81,12 @@ FILE_AUTHORS = \
 
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
+# Flags to pass to $(CC) for making a shared library
+CFLAGS_SHAREDLIB_GNU = \
+	-shared -Wl,-soname,lib$(LIBRARY_NAME).so.$(MAJOR_VERSION)
+CFLAGS_SHAREDLIB_SOLARIS = -G
+CFLAGS_SHAREDLIB = @CFLAGS_SHAREDLIB@
+
 NEXT_NEXT_INCLUDES = -I/usr/include
 GNU_NEXT_INCLUDES = -I$(srcdir)
 NEXT_INCLUDES = @NEXT_INCLUDES@
@@ -488,8 +494,7 @@ DIST_FILES = \
 all: gnustep/base Foundation lib$(LIBRARY_NAME)$(LIBEXT) @SHARED_LIBRARY@
 
 lib$(LIBRARY_NAME).so.$(VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC) 
-	$(CC) -shared -o lib$(LIBRARY_NAME).so.$(VERSION) \
-		-Wl,-soname,lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
+	$(CC) -o lib$(LIBRARY_NAME).so.$(VERSION) $(CFLAGS_SHAREDLIB) \
 		$(OBJS_INSTALL_PIC)
 	rm -f lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) 
 	rm -f lib$(LIBRARY_NAME).so
