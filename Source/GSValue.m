@@ -244,28 +244,17 @@ typeSize(const char* type)
 // NSCoding
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  NSMutableData	*d;
   unsigned	size;
 
   size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
-  size = (unsigned)typeSize(objctype);
-  [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
-  [coder encodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
-}
 
-- (id) initWithCoder: (NSCoder *)coder
-{
-  unsigned	size;
-
-  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
-  objctype = (void *)NSZoneMalloc(GSObjCZone(self), size);
-  [coder decodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
-  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
-  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
-  [coder decodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
-
-  return self;
+  d = [NSMutableData new];
+  [d serializeDataAt: data ofObjCType: objctype context: nil];
+  [coder encodeValueOfObjCType: @encode(id) at: &d];
+  RELEASE(d);
 }
 
 @end
