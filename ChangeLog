@@ -1,3 +1,8 @@
+2004-04-27  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Get debugFile path using
+ 	NSTemporaryDirectory() (based on fix from Sheldon Gill).
+
 2004-04-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Tidy indentation and line lengths.
