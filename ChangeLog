@@ -1,5 +1,11 @@
 2000-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSString.m: Implemented
+	([-initWithCharactersNoCopy:length:freeWhenDone:]) and
+	([-initWithCStringNoCopy:length:freeWhenDone:]) for NSMutableString.
+
+2000-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
 	Loads of files modified, fast.x removed.
 	Found it unexpectedly easy to tidy up so that all functions for
 	accessing the runtime are now in NSObjCRuntime.h.

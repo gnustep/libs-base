@@ -3044,11 +3044,46 @@ handle_printf_atsign (FILE *stream,
   return self;
 }
 
-// Initializing Newly Allocated Strings
-
+// Designated initialiser 
 - (id) initWithCapacity: (unsigned)capacity
 {
   [self subclassResponsibility: _cmd];
+  return self;
+}
+
+- (id) initWithCharactersNoCopy: (unichar*)chars
+			 length: (unsigned)length
+		   freeWhenDone: (BOOL)flag
+{
+  if ((self = [self initWithCapacity: length]) != nil && length > 0)
+    {
+      NSString	*tmp;
+
+      tmp = [NSString allocWithZone: NSDefaultMallocZone()];
+      tmp = [tmp initWithCharactersNoCopy: chars
+				   length: length
+			     freeWhenDone: flag];
+      [self replaceCharactersInRange: NSMakeRange(0,0) withString: tmp];
+      RELEASE(tmp);
+    }
+  return self;
+}
+
+- (id) initWithCStringNoCopy: (char*)chars
+		      length: (unsigned)length
+		freeWhenDone: (BOOL)flag
+{
+  if ((self = [self initWithCapacity: length]) != nil && length > 0)
+    {
+      NSString	*tmp;
+
+      tmp = [NSString allocWithZone: NSDefaultMallocZone()];
+      tmp = [tmp initWithCStringNoCopy: chars
+				length: length
+			  freeWhenDone: flag];
+      [self replaceCharactersInRange: NSMakeRange(0,0) withString: tmp];
+      RELEASE(tmp);
+    }
   return self;
 }
 
