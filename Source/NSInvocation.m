@@ -81,6 +81,7 @@ _arg_addr(NSInvocation *inv, int index)
 }
 
 #else
+static inline void *
 _get_arg(NSInvocation *inv, int index, void *buffer)
 {
   mframe_get_arg(inv->_argframe, &inv->_info[index+1], &buffer);
