@@ -25,8 +25,8 @@
    "Class without any instance variables".  A key feature of behaviors
    is that they give a degree of multiple inheritance.
 
-   Behavior methods override the class's superclass methods, but not 
-   the class's methods.
+   Behavior methods, when added to a class, override the class's
+   superclass methods, but not the class's methods.
 
    xxx not necessarily on the "no instance vars".  The behavior just has 
    to have the same layout as the class.
@@ -49,6 +49,7 @@
    */
 
 #include <objects/stdobjects.h>
+#include <objects/behavior.h>
 #include <assert.h>
 #include <Foundation/NSException.h>
 
@@ -64,8 +65,6 @@ static void __objc_class_add_protocols (Class class,
 static BOOL class_is_kind_of(Class self, Class class);
 static void check_class_methods(Class class);
 
-void class_add_methods_if_not_there(Class class, Class behavior);
-
 /* The uninstalled dispatch table, declared in gcc/objc/sendmsg.c. */
 extern struct sarray* __objc_uninstalled_dtable;
 
@@ -73,13 +72,13 @@ extern struct sarray* __objc_uninstalled_dtable;
    but, I think it will be slower than the current method. */
 
 void
-set_behavior_debug(int i)
+behavior_set_debug(int i)
 {
   behavior_debug = i;
 }
 
 void
-class_add_behavior (Class class, Class behavior)
+behavior_class_add_class (Class class, Class behavior)
 {
   Class behavior_super_class = class_get_super_class(behavior);
 
@@ -98,7 +97,8 @@ class_add_behavior (Class class, Class behavior)
 		 @"have subclassed the class.  There are two solutions:\n"
 		 @"(1) Don't subclass it; (2) Add placeholder instance\n"
 		 @"variables to the class, so the behavior-addition code\n"
-		 @"will not have to increase the instance size.");
+		 @"will not have to increase the instance size, (see\n"
+		 @"Foundation/NSNotification.h for a clean way to do this).");
       class->instance_size = behavior->instance_size;
     }
 
@@ -118,7 +118,7 @@ class_add_behavior (Class class, Class behavior)
       fprintf(stderr, "Adding instance methods from %s\n",
 	      behavior->name);
     }
-  class_add_methods_if_not_there(class, behavior);
+  behavior_class_add_methods (class, behavior->methods);
 
   /* Add class methods */
   if (behavior_debug)
@@ -126,20 +126,42 @@ class_add_behavior (Class class, Class behavior)
       fprintf(stderr, "Adding class methods from %s\n",
 	      behavior->class_pointer->name);
     }
-  class_add_methods_if_not_there(class->class_pointer, 
-				 behavior->class_pointer);
+  behavior_class_add_methods (class->class_pointer, 
+			      behavior->class_pointer->methods);
 
   /* Add behavior's superclass, if not already there. */
   {
     if (!class_is_kind_of(class, behavior_super_class))
-      class_add_behavior(class, behavior_super_class);
+      behavior_class_add_class (class, behavior_super_class);
   }
 
   return;
 }
 
+/* The old interface */
 void
-class_add_methods_if_not_there(Class class, Class behavior)
+class_add_behavior (Class class, Class behavior)
+{
+  behavior_class_add_class (class, behavior);
+}
+
+/* Need objc_lookup_class_category (const char *class_name
+                                    const char *category_name)
+				    */
+
+void
+behavior_class_add_category (Class class, struct objc_category *category)
+{
+  behavior_class_add_methods (class, 
+			      category->instance_methods);
+  behavior_class_add_methods (class->class_pointer, 
+			      category->class_methods);
+  /* xxx Add the protocols (category->protocols) too. */
+}
+
+void
+behavior_class_add_methods (Class class, 
+			    struct objc_method_list *methods)
 {
   static SEL initialize_sel = 0;
   MethodList_t mlist;
@@ -148,7 +170,7 @@ class_add_methods_if_not_there(Class class, Class behavior)
     initialize_sel = sel_register_name ("initialize");
 
   /* Add methods to class->dtable and class->methods */
-  for (mlist = behavior->methods; mlist; mlist = mlist->method_next)
+  for (mlist = methods; mlist; mlist = mlist->method_next)
     {
       int counter;
       MethodList_t new_list;
