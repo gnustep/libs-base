@@ -196,7 +196,7 @@
 
 - nextObjectWithEnumState: (void**)enumState
 {
-  return NSNextHashEnumeratorItem (((NSHashEnumerator*)enumState));
+  return NSNextHashEnumeratorItem ((*(NSHashEnumerator**)enumState));
 }
 
 - (void*) newEnumState
