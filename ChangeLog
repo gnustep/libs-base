@@ -1,3 +1,11 @@
+2001-03-04  Jonathan Gapen  <jagapen@home.com>
+
+	* Documentation/gsdoc/NSCharacterSet.gsdoc: Documented some methods.
+	* Headers/gnustep/unicode/caseconv.h: Updated case-mapping tables.
+	* Source/NSBitmapCharSet.m: Added sanity check to initWithBitmap:
+	* Source/Unicode.m: Changed uni_toupper() and uni_tolower() to use
+	direct lookup in two-level tables, rather than a linear search.
+
 2001-03-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Corrected 
