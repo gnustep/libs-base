@@ -264,6 +264,7 @@ enum {
 #endif
 
 #ifndef NO_GNUSTEP
+- (BOOL) boolValue;
 - (NSString*) descriptionForPropertyList;
 - (id) initWithCharactersNoCopy: (unichar*)chars
 			 length: (unsigned int)length

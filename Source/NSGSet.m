@@ -30,7 +30,6 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPortCoder.h>
-#include <gnustep/base/Coding.h>
 
 #define	FAST_MAP_HAS_VALUE	0
 
@@ -114,25 +113,13 @@
 {
     unsigned    count = map.nodeCount;
     FastMapNode node = map.firstNode;
+    SEL		sel = @selector(encodeObject:);
+    IMP		imp = [aCoder methodForSelector: sel];
 
-    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
-                                          at: &count
-                                    withName: @"Set content count"];
-
-    if ([aCoder isKindOfClass: [NSPortCoder class]] &&
-        [(NSPortCoder*)aCoder isBycopy]) {
-        while (node != 0) {
-            [(id<Encoding>)aCoder encodeBycopyObject: node->key.o
-                                            withName: @"Set content"];
-            node = node->nextInMap;
-        }
-    }
-    else {
-        while (node != 0) {
-            [(id<Encoding>)aCoder encodeObject: node->key.o
-                                      withName: @"Set content"];
-            node = node->nextInMap;
-        }
+    [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+    while (node != 0) {
+	(*imp)(aCoder, sel, node->key.o);
+	node = node->nextInMap;
     }
 }
 
@@ -140,14 +127,15 @@
 {
     unsigned    count;
     id          value;
+    SEL		sel = @selector(decodeValueOfObjCType:at:);
+    IMP		imp = [aCoder methodForSelector: sel];
+    const char	*type = @encode(id);
 
-    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-                                          at: &count
-                                    withName: NULL];
+    (*imp)(aCoder, sel, @encode(unsigned), &count);
 
     FastMapInitWithZoneAndCapacity(&map, [self zone], count);
     while (count-- > 0) {
-        [(id<Decoding>)aCoder decodeObjectAt: &value withName: NULL];
+	(*imp)(aCoder, sel, type, &value);
         FastMapAddKeyNoRetain(&map, (FastMapItem)value);
     }
 

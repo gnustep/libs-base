@@ -28,7 +28,6 @@
 #include <gnustep/base/behavior.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
-#include <gnustep/base/Coding.h>
 
 @interface NSGArray : NSArray
 {
@@ -105,46 +104,28 @@
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-    unsigned	i;
-
-    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
-					  at: &_count
-				    withName: @"Array content count"];
-
-    for (i = 0; i < _count; i++) {
-	[(id<Encoding>)aCoder encodeObject: _contents_array[i]
-				  withName: @"Array content"];
+    [aCoder encodeValueOfObjCType: @encode(unsigned)
+			       at: &_count];
+    if (_count > 0) {
+	[aCoder encodeArrayOfObjCType: @encode(id)
+				count: _count
+				   at: _contents_array];
     }
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-    unsigned    count;
-
-#if 0
-    unsigned dummy;
-
-    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-					  at: &dummy
-				    withName: NULL];
-    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-					  at: &dummy
-				    withName: NULL];
-#endif
-
-    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-					  at: &count
-				    withName: NULL];
-    if (count > 0) {
-	_contents_array = NSZoneMalloc([self zone], sizeof(id)*count);
+    [aCoder decodeValueOfObjCType: @encode(unsigned)
+			       at: &_count];
+    if (_count > 0) {
+	_contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
 	if (_contents_array == 0) {
 	    [NSException raise: NSMallocException
 			format: @"Unable to make array"];
 	}
-	while (_count < count) {
-	    [(id<Decoding>)aCoder decodeObjectAt: &_contents_array[_count++]
-					withName: NULL];
-	}
+	[aCoder decodeArrayOfObjCType: @encode(id)
+				count: _count
+				   at: _contents_array];
     }
     return self;
 }
@@ -245,16 +226,17 @@
 {
     unsigned    count;
 
-    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-					  at: &count
-				    withName: NULL];
+    [aCoder decodeValueOfObjCType: @encode(unsigned)
+			       at: &count];
     if ([self initWithCapacity: count] == nil) {
 	[NSException raise: NSMallocException
 		    format: @"Unable to make array"];
     }
-    while (_count < count) {
-	[(id<Decoding>)aCoder decodeObjectAt: &_contents_array[_count++]
-				    withName: NULL];
+    if (count > 0) {
+	[aCoder decodeArrayOfObjCType: @encode(id)
+				count: count
+				   at: _contents_array];
+	_count = count;
     }
     return self;
 }

@@ -44,6 +44,9 @@
 fastCls	_fastCls;	/* Structure to cache classes.	*/
 fastImp	_fastImp;	/* Structure to cache methods.	*/
 
+@class	NSDataMalloc;
+@class	NSMutableDataMalloc;
+
 void	_fastBuildCache()
 {
   /*
@@ -56,6 +59,8 @@ void	_fastBuildCache()
   _fastCls._NSGCString = [NSGCString class];
   _fastCls._NSGMutableCString = [NSGMutableCString class];
   _fastCls._NXConstantString = [NXConstantString class];
+  _fastCls._NSDataMalloc = [NSDataMalloc class];
+  _fastCls._NSMutableDataMalloc = [NSMutableDataMalloc class];
 
   /*
    *	Cache some method implementations for quick access later.

@@ -29,7 +29,6 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
-#include <gnustep/base/Coding.h>
 
 #include <gnustep/base/fast.x>
 
@@ -151,29 +150,14 @@ myEqual(NSObject *self, NSObject *other)
 {
     unsigned	count = map.nodeCount;
     FastMapNode	node = map.firstNode;
+    SEL		sel = @selector(encodeObject:);
+    IMP		imp = [aCoder methodForSelector: sel];
 
-    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
-					  at: &count
-				    withName: @"Dictionary content count"];
-
-    if ([aCoder isKindOfClass: [NSPortCoder class]] &&
-        [(NSPortCoder*)aCoder isBycopy]) {
-	while (node != 0) {
-	    [(id<Encoding>)aCoder encodeBycopyObject: node->key.o
-					    withName: @"Dictionary key"];
-	    [(id<Encoding>)aCoder encodeBycopyObject: node->value.o
-					    withName: @"Dictionary content"];
-	    node = node->nextInMap;
-	}
-    }
-    else {
-	while (node != 0) {
-	    [(id<Encoding>)aCoder encodeObject: node->key.o
-				      withName: @"Dictionary key"];
-	    [(id<Encoding>)aCoder encodeObject: node->value.o
-				      withName: @"Dictionary content"];
-	    node = node->nextInMap;
-	}
+    [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+    while (node != 0) {
+	(*imp)(aCoder, sel, node->key.o);
+	(*imp)(aCoder, sel, node->value.o);
+	node = node->nextInMap;
     }
 }
 
@@ -182,18 +166,19 @@ myEqual(NSObject *self, NSObject *other)
     unsigned    count;
     id		key;
     id		value;
+    SEL		sel = @selector(decodeValueOfObjCType:at:);
+    IMP		imp = [aCoder methodForSelector: sel];
+    const char	*type = @encode(id);
 
-    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
-					  at: &count
-				    withName: NULL];
+    [aCoder decodeValueOfObjCType: @encode(unsigned)
+			       at: &count];
 
     FastMapInitWithZoneAndCapacity(&map, fastZone(self), count);
     while (count-- > 0) {
-	[(id<Decoding>)aCoder decodeObjectAt: &key withName: NULL];
-	[(id<Decoding>)aCoder decodeObjectAt: &value withName: NULL];
+	(*imp)(aCoder, sel, type, &key);
+	(*imp)(aCoder, sel, type, &value);
 	FastMapAddPairNoRetain(&map, (FastMapItem)key, (FastMapItem)value);
     }
-    
     return self;
 }
 
