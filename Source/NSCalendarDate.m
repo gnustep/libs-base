@@ -24,6 +24,7 @@
 #include <config.h>
 #include <math.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
@@ -262,6 +263,14 @@ static inline int getDigits(const char *from, char *to, int limit)
   return i;
 }
 
+#define	hadY	1
+#define	hadM	2
+#define	hadD	4
+#define	hadh	8
+#define	hadm	16
+#define	hads	32
+#define	hadw	64
+
 - (id) initWithString: (NSString *)description 
        calendarFormat: (NSString *)fmt
                locale: (NSDictionary *)locale
@@ -283,13 +292,20 @@ static inline int getDigits(const char *from, char *to, int limit)
       BOOL		twelveHrClock = NO; 
       int		julianWeeks = -1, weekStartsMonday = 0, dayOfWeek = -1;
       const char	*source = [description cString];
-      int		sourceLen = strlen(source);
-      const char	*format;
-      int		formatLen;
-      int		formatIdx = 0;
-      int		sourceIdx = 0;
+      unsigned		sourceLen = strlen(source);
+      unichar		*format;
+      unsigned		formatLen;
+      unsigned		formatIdx = 0;
+      unsigned		sourceIdx = 0;
       char		tmpStr[20];
       int		tmpIdx;
+      unsigned		had = 0;
+      int		pos;
+      BOOL		hadPercent = NO;
+      NSString		*dForm;
+      NSString		*tForm;
+      NSString		*TForm;
+      NSMutableData	*fd;
       
       if (locale == nil)
 	{
@@ -302,14 +318,118 @@ static inline int getDigits(const char *from, char *to, int limit)
 	  if (fmt == nil)
 	    fmt = @"";
 	}
+
+      TForm = [locale objectForKey: NSTimeDateFormatString];
+      if (TForm == nil)
+	TForm = @"%X %x";
+      dForm = [locale objectForKey: NSShortDateFormatString];
+      if (dForm == nil)
+	dForm = @"%y-%m-%d";
+      tForm = [locale objectForKey: NSTimeFormatString];
+      if (tForm == nil)
+	tForm = @"%H-%M-%S";
+
+      /*
+       * Get format into a buffer, leaving room for expansion in case it has
+       * escapes that need to be converted.
+       */
+      formatLen = [fmt length];
+      fd = [[NSMutableData alloc]
+	initWithLength: (formatLen + 32) * sizeof(unichar)];
+      format = (unichar*)[fd mutableBytes];
+      [fmt getCharacters: format];
+
+      /*
+       * Expand any sequences to their basic components.
+       */
+      for (pos = 0; pos < formatLen; pos++)
+	{
+	  unichar	c = format[pos];
+
+	  if (c == '%')
+	    {
+	      if (hadPercent == YES)
+		{
+		  hadPercent = NO;
+		}
+	      else
+		{
+		  hadPercent = YES;
+		}
+	    }
+	  else
+	    {
+	      if (hadPercent == YES)
+		{
+		  NSString	*sub = nil;
+
+		  if (c == 'c')
+		    {
+		      sub = TForm;
+		    }
+		  else if (c == 'R')
+		    {
+		      sub = @"%H:%M";
+		    }
+		  else if (c == 'r')
+		    {
+		      sub = @"%I:%M:%S %p";
+		    }
+		  else if (c == 'X')
+		    {
+		      sub = tForm;
+		    }
+		  else if (c == 'x')
+		    {
+		      sub = dForm;
+		    }
+
+		  if (sub != nil)
+		    {
+		      unsigned	sLen = [sub length];
+		      unsigned	i;
+
+		      if (sLen > 2)
+			{
+			  [fd setLength:
+			    (formatLen + sLen - 2) * sizeof(unichar)];
+			  format = (unichar*)[fd mutableBytes];
+			  for (i = formatLen-1; i > pos; i--)
+			    {
+			      format[i+sLen-2] = format[i];
+			    }
+			}
+		      else
+			{
+			  for (i = pos+1; i < formatLen; i++)
+			    {
+			      format[i+sLen-2] = format[i];
+			    }
+			  [fd setLength:
+			    (formatLen + sLen - 2) * sizeof(unichar)];
+			  format = (unichar*)[fd mutableBytes];
+			}
+		      [sub getCharacters: &format[pos-1]];
+		      formatLen += sLen - 2;
+		      pos -= 2;	// Re-parse the newly substituted data.
+		    }
+		}
+	      hadPercent = NO;
+	    }
+	}
+
+      /*
+       * Set up calendar format.
+       */
+      if (formatLen > [fmt length])
+	{
+	  fmt = [NSString stringWithCharacters: format length: formatLen];
+	}
       ASSIGN(_calendar_format, fmt);
 
-      format = [fmt cString];
-      formatLen = strlen(format);
-      
       //
       // WARNING:
-      //   -%c, %F, %x, %X do NOT work. (NSTimeDateFormatString isn't defined 
+      //   %F, does NOT work.
       //    and the underlying call has granularity to the second.
       //   -Most locale stuff is dubious at best.
       //   -Long day and month names depend on a non-alpha character after the
@@ -416,6 +536,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 			    }
 			}
 		      dayOfWeek = tmpIdx; 
+		      had |= hadw;
 		    }
 		    break;
 
@@ -448,6 +569,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 			    }
 			}
 		      dayOfWeek = tmpIdx;
+		      had |= hadw;
 		    }
 		    break;
 
@@ -479,6 +601,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 			    }
 			}
 		      month = tmpIdx+1;
+		      had |= hadM;
 		    }
 		    break;
 
@@ -512,41 +635,45 @@ static inline int getDigits(const char *from, char *to, int limit)
 			    }
 			}
 		      month = tmpIdx+1;
+		      had |= hadM;
 		    }
 		    break;
-
-		    //	case 'c':
-		    //	break;
 
 		  case 'd': // fall through
 		  case 'e':
 		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    day = atoi(tmpStr);
+		    had |= hadD;
 		    break;
 
-		    //	case 'F':
-		    //	break;
+		  case 'F':
+		    NSLog(@"%F format ignored when creating date");
+		    break;
 
 		  case 'I': // fall through
 		    twelveHrClock = YES;
 		  case 'H':
 		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    hour = atoi(tmpStr);
+		    had |= hadh;
 		    break;
 
 		  case 'j':
 		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3);
 		    day = atoi(tmpStr);
+		    had |= hadD;
 		    break;
 
 		  case 'm':
 		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    month = atoi(tmpStr);
+		    had |= hadM;
 		    break;
 
 		  case 'M':
 		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    min = atoi(tmpStr);
+		    had |= hadm;
 		    break;
 
 		  case 'p':
@@ -581,11 +708,13 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  case 'S':
 		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    sec = atoi(tmpStr);
+		    had |= hads;
 		    break;
 
 		  case 'w':
 		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1);
 		    dayOfWeek = atoi(tmpStr);
+		    had |= hadw;
 		    break;
 
 		  case 'W': // Fall through
@@ -612,11 +741,13 @@ static inline int getDigits(const char *from, char *to, int limit)
 		      {
 			year += 2000;
 		      }
+		    had |= hadY;
 		    break;
 
 		  case 'Y':
 		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4);
 		    year = atoi(tmpStr);
+		    had |= hadY;
 		    break;
 
 		  case 'z':
@@ -677,11 +808,17 @@ static inline int getDigits(const char *from, char *to, int limit)
 		  default:
 		    [NSException raise: NSInvalidArgumentException
 				format: @"Invalid NSCalendar date, "
-			@"specifier %c not recognized in format %s",
-			format[formatIdx], format];
+			@"specifier %c not recognized in format %@",
+			format[formatIdx], fmt];
 		}
 	    } 
 	  formatIdx++;
+	}
+      RELEASE(fd);
+
+      if (tz == nil)
+	{
+	  tz = [NSTimeZone localTimeZone];
 	}
 
       if (twelveHrClock == YES)
@@ -694,11 +831,29 @@ static inline int getDigits(const char *from, char *to, int limit)
 
       if (julianWeeks != -1)
 	{
-	  NSTimeZone	*gmtZone;
+	  NSTimeZone		*gmtZone;
 	  NSCalendarDate	*d;
-	  int		currDay;
+	  int			currDay;
 
 	  gmtZone = [NSTimeZone timeZoneForSecondsFromGMT: 0];
+
+	  if ((had & (hadY|hadw)) != (hadY|hadw))
+	    {
+	      NSCalendarDate	*now = [NSCalendarDate  date];
+
+	      [now setTimeZone: gmtZone];
+	      if ((had | hadY) == 0)
+		{
+		  year = [now yearOfCommonEra];
+		  had |= hadY;
+		}
+	      if ((had | hadw) == 0)
+		{
+		  dayOfWeek = [now dayOfWeek];
+		  had |= hadw;
+		}
+	    }
+
 	  d  = [NSCalendarDate dateWithYear: year
 				      month: 1
 					day: 1
@@ -726,6 +881,32 @@ static inline int getDigits(const char *from, char *to, int limit)
 		}
 	    }
 	  day = dayOfWeek + (julianWeeks * 7 - (currDay - 1));
+	  had |= hadD;
+	}
+
+      /*
+       * Use current date/time information for anything missing.
+       */
+      if ((had & (hadY|hadM|hadD|hadh|hadm|hads))
+	!= (hadY|hadM|hadD|hadh|hadm|hads))
+	{
+	  NSCalendarDate	*now = [NSCalendarDate  date];
+	  int			Y, M, D, h, m, s;
+
+	  [now setTimeZone: tz];
+	  [now getYear: &Y month: &M day: &D hour: &h minute: &m second: &s];
+	  if ((had & hadY) == 0)
+	    year = Y;
+	  if ((had & hadM) == 0)
+	    month = M;
+	  if ((had & hadD) == 0)
+	    day = D;
+	  if ((had & hadh) == 0)
+	    hour = h;
+	  if ((had & hadm) == 0)
+	    min = m;
+	  if ((had & hads) == 0)
+	    sec = s;
 	}
 
       return [self initWithYear: year

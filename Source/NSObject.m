@@ -1306,54 +1306,71 @@ static BOOL deallocNotifications = NO;
 
 - (id) storedValueForKey: (NSString*)aKey
 {
-  SEL	sel;
+  SEL		sel = 0;
+  const char	*type = 0;
+  NSString	*name;
 
   if ([[self class] useStoredAccessor] == NO)
     {
       return [self valueForKey: aKey];
     }
 
-  sel = NSSelectorFromString([NSString stringWithFormat: @"_get%@",
-    [aKey capitalizedString]]);
-  if ([self respondsToSelector: sel] == YES)
+  name = [NSString stringWithFormat: @"_get%@", [aKey capitalizedString]];
+  sel = NSSelectorFromString(name);
+  if ([self respondsToSelector: sel] == NO)
     {
-      return [self performSelector: sel];
+      name = [NSString stringWithFormat: @"_%@", aKey];
+      sel = NSSelectorFromString(name);
+      if ([self respondsToSelector: sel] == NO)
+	{
+	  sel = 0;
+	}     
     }
-  sel = NSSelectorFromString([NSString stringWithFormat: @"_%@", aKey]);
-  if ([self respondsToSelector: sel] == YES)
+  if (sel == 0)
     {
-      return [self performSelector: sel];
+      if ([[self class] accessInstanceVariablesDirectly] == YES)
+	{
+	  name = [NSString stringWithFormat: @"_%@", aKey];
+	  type = GSInstanceVariableType(self, name);
+	  if (type == 0)
+	    {
+	      name = aKey;
+	      type = GSInstanceVariableType(self, name);
+	    }
+	}
+      if (type == 0)
+	{
+	  name = [NSString stringWithFormat: @"get%@",
+	    [aKey capitalizedString]];
+	  sel = NSSelectorFromString(name);
+	  if ([self respondsToSelector: sel] == NO)
+	    {
+	      name = aKey;
+	      sel = NSSelectorFromString(name);
+	      if ([self respondsToSelector: sel] == NO)
+		{
+		  sel = 0;
+		}
+	    }
+	}
     }
 
-  if ([[self class] accessInstanceVariablesDirectly] == YES)
+  if (sel != 0)
+    {
+      return [self performSelector: sel];
+    }
+  else if (type != 0)
     {
       id	v;
 
-      if (GSGetInstanceVariable(self, [NSString stringWithFormat: @"_%@", aKey],
-	(void*)&v) == YES)
-	{
-	  return v;
-	}
-      if (GSGetInstanceVariable(self, aKey, (void*)&v) == YES)
-	{
-	  return v;
-	}
+      GSGetInstanceVariable(self, name, (void*)&v);
+      return v;
     }
-
-  sel = NSSelectorFromString([NSString stringWithFormat: @"get%@",
-    [aKey capitalizedString]]);
-  if ([self respondsToSelector: sel] == YES)
+  else
     {
-      return [self performSelector: sel];
+      [self handleTakeValue: nil forUnboundKey: aKey];
+      return nil;
     }
-  sel = NSSelectorFromString(aKey);
-  if ([self respondsToSelector: sel] == YES)
-    {
-      return [self performSelector: sel];
-    }
-
-  [self handleTakeValue: nil forUnboundKey: aKey];
-  return nil;
 }
 
 - (void) takeStoredValue: (id)anObject forKey: (NSString*)aKey
