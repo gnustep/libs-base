@@ -1,3 +1,7 @@
+2001-10-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([+stringWithCString:]) check for nul pointer.
+
 2001-10-17  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in (GNUSTEP_LDIR): Look for libobjc in
