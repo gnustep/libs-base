@@ -1,8 +1,8 @@
 /* Interface for abstract superclass port for use with Connection
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: July 1994
+   Created: July 1994
    
    This file is part of the GNU Objective C Class Library.
 
@@ -25,37 +25,60 @@
 #define __Port_h_OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <objects/RetainingNotifier.h>
 #include <objects/Coding.h>
+#include <objects/MemoryStream.h>
 #include <objects/NSString.h>
 
-@class Connection;
+/* xxx Use something like this? */
+@protocol PacketSending
+@end
 
-@interface Port : RetainingNotifier
+@interface Port : NSObject
+{
+  unsigned is_valid:1;
+  unsigned tcp_port_filler:7;
+  unsigned retain_count:24;
+}
+- (void) invalidate;
+- (BOOL) isValid;
+- (void) close;
 
-/* xxx These will probably change */
-+ newRegisteredPortWithName: (id <String>)n;
-+ newPortFromRegisterWithName: (id <String>)n onHost: (id <String>)host;
-+ newPort;
+- (Class) packetClass;
 
-/* xxx These sending and receiving interfaces will change */
+@end
 
-- (int) sendPacket: (const char *)b length: (int)l
-   toPort: (Port*) remote;
-- (int) sendPacket: (const char *)b length: (int)l
-   toPort: (Port*)remote
-   timeout: (int) milliseconds;
 
-- (int) receivePacket: (char*)b length: (int)l
-   fromPort: (Port**) remote;
-- (int) receivePacket: (char*)b length: (int)l
-   fromPort: (Port**) remote
-   timeout: (int) milliseconds;
+@interface InPort : Port
 
-- (BOOL) isSoft;
++ newForReceiving;
++ newForReceivingFromRegisteredName: (id <String>)name;
 
-- (unsigned) hash;
-- (BOOL) isEqual: anotherPort;
+/* Get a packet from the net and return it.  If no packet is received 
+   within MILLISECONDS, then return nil.  The caller is responsible 
+   for releasing the packet. */
+- receivePacketWithTimeout: (int)milliseconds;
+
+@end
+
+
+@interface OutPort : Port
+
++ newForSendingToRegisteredName: (id <String>)name 
+                         onHost: (id <String>)hostname;
+- (BOOL) sendPacket: packet withTimeout: (int)milliseconds;
+
+@end
+
+extern NSString *PortBecameInvalidNotification;
+
+@interface Packet : MemoryStream
+{
+  id reply_port;
+}
+
+- initForSendingWithCapacity: (unsigned)c
+   replyPort: p;
+- replyPort;
 
 @end
 
