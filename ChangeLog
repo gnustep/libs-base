@@ -1,3 +1,27 @@
+Mon Sep 28 17:02:33 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* src/include/NSObject.h (-perform:, -perform:withObject:,
+	-perform:withObject:withObject:): Remove definitions (use
+	performSelector:... instead.
+	(+class, +superclass, +setVersion:, +version): Add.
+	Rearrange some other method definitions.
+	* src/include/NSProxy.h: Likewise.
+
+	* src/NSObject.m (+class): Add.
+	(-perform:, -perform:withObject:,
+	-perform:withObject:withObject:): Depreciate these methods.
+	* src/Proxy.m: Likewise.
+
+	* src/Collection.m: Use performSelector instead of perform.
+	* src/IndexedCollection.m: Likewise.
+	* src/NSArray.m: Likewise.
+	* src/NSRunLoop.m: Likewise.
+	* src/NSSet.m: Likewise.
+	* src/NSTimer.m: Likewise.
+	* src/NotificationDispatcher.m: Likewise.
+
+	* src/NSException (-initWithCoder:): Fix object decoding.
+	
 Fri Sep 18 10:20:55 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/include/preface.h.in (MIN, MAX): Rewrite macros (suggestion

@@ -42,28 +42,9 @@
 + (void) load;
 + (BOOL) respondsToSelector: (SEL)aSelector;
 
-- autorelease;
-- (Class) class;
-- (BOOL) conformsToProtocol: (Protocol*)aProtocol;
 - (void) dealloc;
-- (NSString*) description;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (unsigned int) hash;
-- (BOOL) isEqual: anObject;
-- (BOOL) isKindOfClass: (Class)aClass;
-- (BOOL) isMemberOfClass: (Class)aClass;
-- (BOOL) isProxy;
 - methodSignatureForSelector: (SEL)aSelector;
-- perform: (SEL)aSelector;
-- perform: (SEL)aSelector withObject: anObject;
-- perform: (SEL)aSelector withObject: anObject withObject: anotherObject;
-- (void) release;
-- (BOOL) respondsToSelector: (SEL)aSelector;
-- retain;
-- (unsigned int) retainCount;
-- self;
-- superclass;
-- (NSZone*)zone;
 
 @end
 

@@ -332,7 +332,7 @@ static int debug_run_loop = 0;
 	[[[NSRunLoop currentInstance] _timedPerformers]
 		removeObjectIdenticalTo: self];
     }
-    [target perform: selector withObject: argument];
+    [target performSelector: selector withObject: argument];
 }
 
 - initWithSelector: (SEL)aSelector

@@ -40,22 +40,23 @@
 @class Protocol;
 
 @protocol NSObject
-- autorelease;
 - (Class) class;
-- (BOOL) conformsToProtocol: (Protocol *)aProtocol;
-- (unsigned) hash;
+- (Class) superclass;
 - (BOOL) isEqual: anObject;
 - (BOOL) isKindOfClass: (Class)aClass;
 - (BOOL) isMemberOfClass: (Class)aClass;
 - (BOOL) isProxy;
-- perform: (SEL)aSelector;
-- perform: (SEL)aSelector withObject: anObject;
-- perform: (SEL)aSelector withObject: object1 withObject: object2;
-- (oneway void) release;
-- (BOOL) respondsToSelector: (SEL)aSelector;
-- retain;
-- (unsigned) retainCount;
+- (unsigned) hash;
 - self;
+- performSelector: (SEL)aSelector;
+- performSelector: (SEL)aSelector withObject: anObject;
+- performSelector: (SEL)aSelector withObject: object1 withObject: object2;
+- (BOOL) respondsToSelector: (SEL)aSelector;
+- (BOOL) conformsToProtocol: (Protocol *)aProtocol;
+- retain;
+- autorelease;
+- (oneway void) release;
+- (unsigned) retainCount;
 - (NSZone *) zone;
 - (NSString *) description;
 @end
@@ -88,8 +89,8 @@
 - (id) init;
 - (id) mutableCopy;
 
-- (Class) class;
-- (Class) superclass;
++ (Class) class;
++ (Class) superclass;
 
 + (BOOL) instancesRespondToSelector: (SEL)aSelector;
 
@@ -110,6 +111,9 @@
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
 - (Class) classForCoder;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
+
++ setVersion: (int)aVersion;
++ (int) version;
 
 @end
 
@@ -157,13 +161,6 @@ enum {NSNotFound = 0x7fffffff};
 - read: (TypedStream*)aStream;
 - write: (TypedStream*)aStream;
 @end
-
-@interface NSObject (OPENSTEP)
-- performSelector: (SEL)aSelector;
-- performSelector: (SEL)aSelector withObject: anObject;
-- performSelector: (SEL)aSelector withObject: object1 withObject: object2;
-@end
-
 
 #include <Foundation/NSDate.h>
 @interface NSObject (TimedPerformers)

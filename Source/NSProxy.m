@@ -176,7 +176,7 @@
     return nil;
 }
 
-- perform: (SEL)aSelector
+- performSelector: (SEL)aSelector
 {
     IMP msg = objc_msg_lookup(self, aSelector);
 
@@ -189,7 +189,7 @@
     return (*msg)(self, aSelector);
 }
 
-- perform: (SEL)aSelector withObject: anObject
+- performSelector: (SEL)aSelector withObject: anObject
 {
     IMP msg = objc_msg_lookup(self, aSelector);
 
@@ -202,7 +202,7 @@
     return (*msg)(self, aSelector, anObject);
 }
 
-- perform: (SEL)aSelector withObject: anObject withObject: anotherObject
+- performSelector: (SEL)aSelector withObject: anObject withObject: anotherObject
 {
     IMP msg = objc_msg_lookup(self, aSelector);
 

@@ -510,6 +510,11 @@ static BOOL double_release_check_enabled = NO;
   return self;
 }
 
++ (Class) class
+{
+  return self;
+}
+
 - (Class) class
 {
   return object_get_class(self);
@@ -568,7 +573,7 @@ static BOOL double_release_check_enabled = NO;
   return NO;
 }
 
-- perform: (SEL)aSelector
+- performSelector: (SEL)aSelector
 {
   IMP msg = objc_msg_lookup(self, aSelector);
   if (!msg)
@@ -581,7 +586,7 @@ static BOOL double_release_check_enabled = NO;
   return (*msg)(self, aSelector);
 }
 
-- perform: (SEL)aSelector withObject: anObject
+- performSelector: (SEL)aSelector withObject: anObject
 {
   IMP msg = objc_msg_lookup(self, aSelector);
   if (!msg)
@@ -594,7 +599,7 @@ static BOOL double_release_check_enabled = NO;
   return (*msg)(self, aSelector, anObject);
 }
 
-- perform: (SEL)aSelector withObject: object1 withObject: object2
+- performSelector: (SEL)aSelector withObject: object1 withObject: object2
 {
   IMP msg = objc_msg_lookup(self, aSelector);
   if (!msg)
@@ -682,6 +687,17 @@ static BOOL double_release_check_enabled = NO;
 
 - initWithCoder: (NSCoder*)aDecoder
 {
+  return self;
+}
+
++ (int)version
+{
+  return class_get_version(self);
+}
+
++ setVersion:(int)aVersion
+{
+  class_set_version(self, aVersion);
   return self;
 }
 
@@ -774,17 +790,6 @@ static BOOL double_release_check_enabled = NO;
   return self;
 }
 
-+ (int)version
-{
-  return class_get_version(self);
-}
-
-+ setVersion:(int)aVersion
-{
-  class_set_version(self, aVersion);
-  return self;
-}
-
 - notImplemented:(SEL)aSel
 {
   [NSException
@@ -803,12 +808,24 @@ static BOOL double_release_check_enabled = NO;
 
 - perform: (SEL)sel with: anObject
 {
-  return [self perform:sel withObject:anObject];
+  return [self performSelector:sel withObject:anObject];
 }
 
 - perform: (SEL)sel with: anObject with: anotherObject
 {
-  return [self perform:sel withObject:anObject withObject:anotherObject];
+  return [self performSelector:sel withObject:anObject 
+	       withObject:anotherObject];
+}
+
+- perform: (SEL)sel withObject: anObject
+{
+  return [self performSelector:sel withObject:anObject];
+}
+
+- perform: (SEL)sel withObject: anObject withObject: anotherObject
+{
+  return [self performSelector:sel withObject:anObject 
+	       withObject:anotherObject];
 }
 
 @end
@@ -941,53 +958,6 @@ static BOOL double_release_check_enabled = NO;
 {
   // [super awake];
   return self;
-}
-
-@end
-
-
-@implementation NSObject (OPENSTEP)
-
-/* OPENSTEP Object class extensions
-   as distinquished from the OpenStep specification. */
-
-- performSelector: (SEL)aSelector
-{
-  IMP msg = objc_msg_lookup(self, aSelector);
-  if (!msg)
-    {
-      [NSException
-	raise: NSGenericException
-	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
-      return nil;
-    }
-  return (*msg)(self, aSelector);
-}
-
-- performSelector: (SEL)aSelector withObject: anObject
-{
-  IMP msg = objc_msg_lookup(self, aSelector);
-  if (!msg)
-    {
-      [NSException
-	raise: NSGenericException
-	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
-      return nil;
-    }
-  return (*msg)(self, aSelector, anObject);
-}
-
-- performSelector: (SEL)aSelector withObject: object1 withObject: object2
-{
-  IMP msg = objc_msg_lookup(self, aSelector);
-  if (!msg)
-    {
-      [NSException
-	raise: NSGenericException
-	format: @"invalid selector passed to %s", sel_get_name(_cmd)];
-      return nil;
-    }
-  return (*msg)(self, aSelector, object1, object2);
 }
 
 @end
