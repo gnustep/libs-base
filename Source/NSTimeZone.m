@@ -1006,6 +1006,33 @@ static NSMapTable	*absolutes = 0;
   return abbreviationDictionary;
 }
 
+/**
+ * Returns an array of all known time zone names.
+ */
++ (NSArray*) knownTimeZoneNames
+{
+  static NSArray *namesArray = nil;
+  int i;
+  id temp_array;
+  NSArray *regionsArray, *array;
+
+  /* We create the array only when we need it to reduce overhead. */
+  if (namesArray != nil)
+    return namesArray;
+
+  temp_array = [NSMutableArray array];
+  regionsArray = [self timeZoneArray];
+
+  for (i = 0; i < [regionsArray count]; i++)
+    {
+      array = [regionsArray objectAtIndex:i];
+      [temp_array addObjectsFromArray: array];
+    }
+
+  namesArray = [[NSArray alloc] initWithArray: temp_array];
+  return namesArray;
+}
+
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSTimeZoneClass)

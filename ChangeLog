@@ -1,3 +1,7 @@
+2004-11-04  Georg Fleischmann
+	* Headers/Foundation/NSTimeZone.h, Source/NSTimeZone.m
+	(+knownTimeZoneNames:): New method.
+
 2004-11-03 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Revert change from september to fix memory

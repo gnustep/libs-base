@@ -40,6 +40,7 @@
 
 // Getting Time Zone Information
 + (NSDictionary*) abbreviationDictionary;
++ (NSArray*) knownTimeZoneNames;
 
 //Getting Arrays of Time Zones
 + (NSArray*) timeZoneArray;
