@@ -435,12 +435,16 @@ typedef struct {
 	    {
 	      case 'x': 
 	      case 'X': 
-		_scanLocation++;
+		_scanLocation++;	// Scan beyond the 0x prefix
 		break;
 	      default:
-		_scanLocation--;
+		_scanLocation--;	// Scan from the initial digit
 	        break;
 	    }
+	}
+      else
+	{
+	  _scanLocation--;	// Just scan the zero.
 	}
     }
   if ([self scanUnsignedInt_: value radix: 16 gotDigits: NO])
