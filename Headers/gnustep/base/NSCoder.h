@@ -11,7 +11,7 @@
 
 #include <foundation/NSObject.h>
 #include <foundation/NSGeometry.h>
-#include <foundation/zone.h>
+#include <foundation/NSZone.h>
 
 @class NSMutableData, NSData, NSString;
 
