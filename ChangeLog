@@ -1,3 +1,10 @@
+2002-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSRunLoop.h: revert
+	* Headers/Foundation/NSRunLoop.m: revert
+	Revert to earlier version temporarily, while I try to track down
+	an obscure bug causing problems with some DO applications.
+
 Tue Jan 29 13:49:23 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* configure.in: Removed garbage left over - doubled message
