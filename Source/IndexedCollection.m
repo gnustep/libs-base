@@ -327,7 +327,7 @@
 
 + (void) initialize
 {
-  if (self == [KeyedCollection class])
+  if (self == [IndexedCollection class])
     class_add_behavior(self, [Collection class]);
 }
 
