@@ -330,7 +330,7 @@ my_object_is_class(id object)
 	   withName:name];
 }
 
-- (void) encodeBytes: (const char *)b
+- (void) encodeBytes: (const void *)b
    count: (unsigned)c
    withName: (id <String>)name
 {
