@@ -40,7 +40,7 @@ static id tmp_kludge_protocol = nil;
 /* Required by NeXT runtime */
 + (void) initialize
 {
-  return self;
+  return;
 }
 
 #if NeXT_runtime
