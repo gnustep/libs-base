@@ -48,6 +48,11 @@
 {
   [collection freeEnumState: &enum_state];
   [collection release];
+/*	xxx
+ *	I don't understand this - but calling [super dealloc] screws up
+ *	so we use NSDeallocateObject() instead.
+ */
+  NSDeallocateObject(self);
 }
 
 @end
