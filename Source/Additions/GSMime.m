@@ -58,8 +58,8 @@ static unsigned		_count = 0;
 static NSString *makeUniqueString();
 
 static	NSCharacterSet	*whitespace = nil;
-static	NSCharacterSet	*rfc822specials = nil;
-static	NSCharacterSet	*rfc2045specials = nil;
+static	NSCharacterSet	*httpSpecials = nil;
+static	NSCharacterSet	*rfc2045Specials = nil;
 
 /*
  *	Name -		decodebase64()
@@ -1220,7 +1220,6 @@ parseCharacterSet(NSString *token)
   NSString		*name;
   NSString		*value;
   GSMimeHeader		*info;
-  NSCharacterSet	*skip;
 
   info = AUTORELEASE([GSMimeHeader new]);
 
@@ -1251,11 +1250,7 @@ parseCharacterSet(NSString *token)
   [info setName: name];
   name = [info name];
   
-  skip = RETAIN([scanner charactersToBeSkipped]);
-  [scanner setCharactersToBeSkipped: nil];
-  [scanner scanCharactersFromSet: skip intoString: 0];
-  [scanner setCharactersToBeSkipped: skip];
-  RELEASE(skip);
+  [self scanPastSpace: scanner];
 
   /*
    * Break header fields out into info dictionary.
@@ -1606,11 +1601,11 @@ parseCharacterSet(NSString *token)
 
   if (isHttp == YES)
     {
-      specials = rfc822specials;
+      specials = httpSpecials;
     }
   else
     {
-      specials = rfc2045specials;
+      specials = rfc2045Specials;
     }
   /*
    * Now return token delimiter (may be whitespace)
@@ -1719,11 +1714,11 @@ parseCharacterSet(NSString *token)
 
       if (isHttp == YES)
 	{
-	  specials = rfc822specials;
+	  specials = httpSpecials;
 	}
       else
 	{
-	  specials = rfc2045specials;
+	  specials = rfc2045Specials;
 	}
 
       /*
@@ -2654,19 +2649,19 @@ static NSCharacterSet	*tokenSet = nil;
 
       [m formUnionWithCharacterSet:
 	[NSCharacterSet characterSetWithCharactersInString:
-	@".()<>@,;:[]\"\\"]];
+	@".()<>@,;:[]\"\\="]];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet whitespaceAndNewlineCharacterSet]];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet controlCharacterSet]];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet illegalCharacterSet]];
-      rfc822specials = [m copy];
+      httpSpecials = [m copy];
       [m formUnionWithCharacterSet:
 	[NSCharacterSet characterSetWithCharactersInString:
-	@"/?="]];
+	@"/?"]];
       [m removeCharactersInString: @"."];
-      rfc2045specials = [m copy];
+      rfc2045Specials = [m copy];
       whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
     }
 }
