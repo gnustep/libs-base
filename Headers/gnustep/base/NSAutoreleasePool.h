@@ -26,12 +26,23 @@
 
 #include <gnustep/base/preface.h>
 
+/* Each pool holds its objects-to-be-released in a linked-list of 
+   these structures. */
 struct autorelease_array_list
 {
   struct autorelease_array_list *next;
   unsigned size;
   unsigned count;
   id objects[0];
+};
+
+/* This structure holds a per-thread cache of NSAutoreleasePool objects,
+   so they don't have to be alloc/dealloc'ed each time. */
+struct autorelease_cache
+{
+  id *cache;
+  int cache_size;
+  int cache_count;
 };
 
 @interface NSAutoreleasePool : NSObject 
