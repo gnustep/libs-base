@@ -33,6 +33,7 @@
 #include <objects/Dictionary.h>
 #include <objects/Queue.h>
 #include <objects/mframe.h>
+#include <objects/Notification.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotification.h>
 #include <assert.h>
@@ -222,7 +223,7 @@ static int messages_received_count;
       if ([aPort isEqual: [o inPort]])
 	count++;
     }
-  FOR_ARRAY_END;
+  END_FOR_ARRAY (connection_array);
   [connection_array_gate unlock];
   return count;
 }
@@ -1203,6 +1204,9 @@ static int messages_received_count;
      Well, perhaps it's a good idea just in case other side didn't really
      send us the shutdown; this way we let them know we're going away */
   [self shutdown];
+  [NotificationDispatcher 
+    postNotificationName: ConnectionBecameInvalidNotification
+    object: self];
 }
 
 /* This needs locks */
@@ -1231,3 +1235,9 @@ static int messages_received_count;
 }
 
 @end
+
+
+/* Notification Strings. */
+
+NSString *ConnectionBecameInvalidNotification 
+= @"ConnectionBecameInvalidNotification";
