@@ -52,6 +52,12 @@ __objc_dynamic_unlink(dl_handle_t handle)
     return 0;
 }
 
+static char *
+__objc_dynamic_get_symbol_path(dl_handle_t handle, dl_symbol_t symbol)
+{
+  return NULL;
+}
+
 /* Print an error message (prefaced by 'error_string') relevant to the
    last error encountered
 */

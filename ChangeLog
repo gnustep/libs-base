@@ -1,3 +1,10 @@
+2001-02-28  Adam Fedor  <fedor@gnu.org>
+
+	* Source/win32-load.h (__objc_dynamic_get_symbol_path): New function.
+
+	* Source/GSHTTPURLHandle.m ([GSHTTPURLHandle -loadInBackground]): Use
+	GSUnixSSLHandle only if not __MINGW__
+
 2001-02-27  Jonathan Gapen  <jagapen@home.com>
 
 	* NSCharacterSets/README.CharSet: Update notes.
