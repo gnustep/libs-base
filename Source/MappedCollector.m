@@ -104,6 +104,16 @@
   return [_domain containsKey: [_map objectAtKey:aKey]];
 }
 
+- (void*) newEnumState
+{
+  return [_domain newEnumState];
+}
+
+- (void) freeEnumState: (void**)enumState
+{
+  return [_domain freeEnumState: enumState];
+}
+
 - nextObjectAndKey: (id*)keyPtr withEnumState: (void**)enumState
 {
   id mapContent;
