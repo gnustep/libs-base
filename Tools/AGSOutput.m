@@ -570,6 +570,8 @@ static BOOL snuggleStart(NSString *t)
 
   if (chapters > 0)
     {
+      NSData	*d;
+
       // Output document appendix if available.
       tmp = [info objectForKey: @"back"];
       if (tmp != nil)
@@ -579,7 +581,8 @@ static BOOL snuggleStart(NSString *t)
 
       [str appendString: @"  </body>\n"];
       [str appendString: @"</gsdoc>\n"];
-      if ([str writeToFile: file atomically: YES] == YES)
+      d = [str dataUsingEncoding: NSUTF8StringEncoding];
+      if ([d writeToFile: file atomically: YES] == YES)
 	{
 	  [files addObject: file];
 	}
@@ -1948,6 +1951,7 @@ static BOOL snuggleStart(NSString *t)
   NSUserDefaults	*ud = [NSUserDefaults standardUserDefaults];
   NSString		*key = [kind stringByAppendingString: @"Template"];
   NSString		*name = [ud stringForKey: key];
+  NSData		*d;
   NSString		*file;
   NSFileManager		*mgr;
   NSString		*base;
@@ -2070,7 +2074,8 @@ static BOOL snuggleStart(NSString *t)
   range = NSMakeRange(NSMaxRange(start), end.location - NSMaxRange(start));
   [str replaceCharactersInRange: range withString: markup];
 
-  if ([str writeToFile: file atomically: YES] == NO)
+  d = [str dataUsingEncoding: NSUTF8StringEncoding];
+  if ([d writeToFile: file atomically: YES] == NO)
     {
       NSLog(@"Unable to write %@ markup to %@", kind, file);
       return nil;
