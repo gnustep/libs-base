@@ -755,11 +755,13 @@ static NSMapTable	*absolutes = 0;
       if (fread(zone_abbrevs, 1, names_size, file) != names_size)
 	[NSException raise: fileException format: errMess];
       abbrevsArray = NSZoneMalloc(NSDefaultMallocZone(), sizeof(id)*names_size);
-      i = 0;
-      while (i < names_size)
+      memset(abbrevsArray, '\0', sizeof(id)*names_size);
+      for (i = 0; i < n_types; i++)
 	{
-	  abbrevsArray[i] = [NSString stringWithCString: zone_abbrevs+i];
-	  i = (strchr(zone_abbrevs+i, '\0')-zone_abbrevs)+1;
+	  int	pos = types[i].abbr_idx;
+
+	  if (abbrevsArray[pos] == nil)
+	    abbrevsArray[pos] = [NSString stringWithCString: zone_abbrevs+pos];
 	}
       NSZoneFree(NSDefaultMallocZone(), zone_abbrevs);
 
@@ -976,14 +978,6 @@ static NSMapTable	*absolutes = 0;
   NSString *path = [NSBundle pathForGNUstepResource: fileName
 					     ofType: @""
 				        inDirectory: TIME_ZONE_DIR];
-  /*
-   * OpenStep does NOT put all the GMT+-* timezones in the Etc directory so all
-   * the OpenStep software will fail to work without this extra hack.
-   */
-  if (path == nil) 
-    {
-      path=[self getTimeZoneFile: [NSString stringWithFormat: @"Etc/%@", name]];
-    }
   return path;
 }
 
