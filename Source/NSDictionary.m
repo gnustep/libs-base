@@ -83,12 +83,12 @@ static SEL	appSel = @selector(appendString:);
 {
   if (self == [NSDictionary class])
     {
+      behavior_class_add_class (self, [NSDictionaryNonCore class]);
       NSArray_class = [NSArray class];
       NSDictionary_abstract_class = [NSDictionary class];
       NSMutableDictionary_abstract_class = [NSMutableDictionary class];
       NSDictionary_concrete_class = [NSGDictionary class];
       NSMutableDictionary_concrete_class = [NSGMutableDictionary class];
-      behavior_class_add_class (self, [NSDictionaryNonCore class]);
     }
 }
 

@@ -26,6 +26,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSPort.h>
+#include <Foundation/NSPortCoder.h>
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSAutoreleasePool.h>
@@ -40,12 +41,12 @@ NSString *NSPortTimeoutException
 
 + (NSPort*) port
 {
-  return AUTORELEASE([NSPort new]);
+  return AUTORELEASE([self new]);
 }
 
 + (NSPort*) portWithMachPort: (int)machPort
 {
-  return AUTORELEASE([[NSPort alloc] initWithMachPort: machPort]);
+  return AUTORELEASE([[self alloc] initWithMachPort: machPort]);
 }
 
 - (id) copyWithZone: (NSZone*)aZone
@@ -60,7 +61,7 @@ NSString *NSPortTimeoutException
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
+  [(NSPortCoder*)aCoder encodePortObject: self];
 }
 
 - (id) init
@@ -71,8 +72,14 @@ NSString *NSPortTimeoutException
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  id	obj = [(NSPortCoder*)aCoder decodePortObject];
+
+  if (obj != self)
+    {
+      RELEASE(self);
+      self = RETAIN(obj);
+    }
+  return self;
 }
 
 - (id) initWithMachPort: (int)machPort
