@@ -1,3 +1,7 @@
+2004-01-10  Bruno Haible  <bruno@clisp.org>
+
+	* Locale.aliases: Add many new locales. Fix typo for EcuadorSpanish.
+
 2004-01-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSCompatiblity.m: PString() fix erroneous use of unichar
