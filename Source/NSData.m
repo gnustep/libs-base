@@ -31,25 +31,55 @@
 
 @implementation NSData
 
+static Class NSData_concrete_class;
+static Class NSMutableData_concrete_class;
+
++ (void) _setConcreteClass: (Class)c
+{
+  NSData_concrete_class = c;
+}
+
++ (void) _setMutableConcreteClass: (Class)c
+{
+  NSMutableData_concrete_class = c;
+}
+
++ (Class) _concreteClass
+{
+  return NSData_concrete_class;
+}
+
++ (Class) _mutableConcreteClass
+{
+  return NSMutableData_concrete_class;
+}
+
++ (void) initialize
+{
+  NSData_concrete_class = [NSGData class];
+  NSMutableData_concrete_class = [NSGMutableData class];
+}
+
 // Allocating and Initializing a Data Object
 
 + (id) data
 {
-  return [[[NSGData alloc] init] 
+  return [[[[self _concreteClass] alloc] init] 
 	  autorelease];
 }
 
 + (id) dataWithBytes: (const void*)bytes
    length: (unsigned int)length
 {
-  return [[[NSGData alloc] initWithBytes:bytes length:length] 
+  return [[[[self _concreteClass] alloc] initWithBytes:bytes length:length] 
 	  autorelease];
 }
 
 + (id) dataWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
-  return [[[NSGData alloc] initWithBytesNoCopy:bytes length:length]
+  return [[[[self _concreteClass] alloc]
+	   initWithBytesNoCopy:bytes length:length]
 	  autorelease];
 }
 
@@ -58,13 +88,13 @@
  * though. */
 + (id)dataWithContentsOfFile: (NSString*)path
 {
-  return [[[NSGData alloc] initWithContentsOfFile:path] 
+  return [[[[self _concreteClass] alloc] initWithContentsOfFile:path] 
 	  autorelease];
 }
 
 + (id) dataWithContentsOfMappedFile: (NSString*)path
 {
-  return [[[NSGData alloc] initWithContentsOfMappedFile:path]
+  return [[[[self _concreteClass] alloc] initWithContentsOfMappedFile:path]
           autorelease];
 }
 
@@ -442,13 +472,14 @@
 
 + (id) dataWithCapacity: (unsigned int)numBytes
 {
-  return [[[[NSGMutableData class] alloc] initWithCapacity:numBytes]
+  return [[[[[self _mutableConcreteClass] class] alloc]
+	   initWithCapacity:numBytes]
 	  autorelease];
 }
 
 + (id) dataWithLength: (unsigned int)length
 {
-  return [[[[NSGMutableData class] alloc] initWithLength:length]
+  return [[[[[self _mutableConcreteClass] class] alloc] initWithLength:length]
 	  autorelease];
 }
 
