@@ -713,7 +713,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	    }
 	  if (f == nil)
 	    {
-	      NSLog(@"ref '%@' not found for %@", name, type);
+	      NSLog(@"ref '%@' not found for %@", r, type);
 	    }
 	  else
 	    {
