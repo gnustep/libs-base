@@ -1,5 +1,5 @@
 /* NSValue.h - Object encapsulation for C types.
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
@@ -42,6 +42,8 @@
     [self shouldNotImplement:_cmd];
 }
 
+/* xxx What's going on here?  This doesn't look right to me -mccallum. */
+#if 0
 + (id) newWithCoder: (NSCoder *)coder
 {
     char *type;
@@ -70,6 +72,7 @@
     [self autorelease];
     return [NSValueDecoder newWithCoder:coder];
 }
+#endif
 
 @end
 
