@@ -25,6 +25,7 @@
 #include <objects/CStream.h>
 #include <objects/NSString.h>
 #include <objects/StdioStream.h>
+#include <objects/CoderPrivate.h> /* for SIGNATURE_FORMAT_STRING */
 #include <Foundation/NSException.h>
 #include <assert.h>
 
@@ -53,13 +54,14 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 
 /* Signature methods. */
 
-#define SIGNATURE_FORMAT_STRING \
-@"GNU Objective C Class Library %s version %d\n"
-
 - (void) writeSignature
 {
   /* Careful: the string should not contain newlines. */
   [stream writeFormat: SIGNATURE_FORMAT_STRING,
+	  STRINGIFY(OBJECTS_PACKAGE_NAME),
+	  OBJECTS_MAJOR_VERSION,
+	  OBJECTS_MINOR_VERSION,
+	  OBJECTS_SUBMINOR_VERSION,
 	  object_get_class_name(self),
 	  format_version];
 }
@@ -69,10 +71,19 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
                    formatVersion: (int*) version
 {
   int got;
+  char package_name[64];
+  int major_version;
+  int minor_version;
+  int subminor_version;
 
   got = [s readFormat: SIGNATURE_FORMAT_STRING,
-	   name, version];
-  if (got != 2)
+	   &(package_name[0]), 
+	   &major_version,
+	   &minor_version,
+	   &subminor_version,
+	   name, 
+	   version];
+  if (got != 6)
     [NSException raise:CStreamSignatureMalformedException
       format: @"CStream found a malformed signature"];
 }
