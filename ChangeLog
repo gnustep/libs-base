@@ -4,6 +4,7 @@ Thu Jun  4 13:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	* Source/NSString.m: prepare for GC
 	* Source/NSTimer.m: tidied and added timeInterval method
 	* Source/include/NSTimer.h: tidied and added timeInterval method
+	* Source/NSArchiver.m: Fixed memory leak in ([-init])
 
 Tue Jun  2 10:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
