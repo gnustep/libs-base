@@ -752,7 +752,39 @@ static NSLock			*urlLock = nil;
 	}
       else if (state == list)
 	{
-	  if ([line hasPrefix: @"1"] == NO && [line hasPrefix: @"2"] == NO)
+	  if ([line hasPrefix: @"550"] == YES)
+	    {
+	      NSRange	r = [line rangeOfString: @"not a plain file"];
+
+	      /*
+	       * Some servers may return an error on listing even though
+	       * the path was a valid directory.  We try to catch some of
+	       * those cases and produce an empty listing instead.
+	       */
+	      if (r.location > 0)
+		{
+		  NSNotificationCenter	*nc;
+
+		  nc = [NSNotificationCenter defaultCenter];
+		  if (dHandle != nil)
+		    {
+		      [nc removeObserver: self name: nil object: dHandle];
+		      [dHandle closeFile];
+		      DESTROY(dHandle);
+		    }
+		  [nc removeObserver: self
+				name: GSTelnetNotification
+			      object: cHandle];
+		  DESTROY(cHandle);
+		  state = idle;
+		  [self didLoadBytes: [NSData data] loadComplete: YES];
+		}
+	      else
+		{
+		  e = line;
+		}
+	    }
+	  else if ([line hasPrefix: @"1"] == NO && [line hasPrefix: @"2"] == NO)
 	    {
 	      e = line;
 	    } 
