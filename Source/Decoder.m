@@ -42,8 +42,16 @@
 		    formatVersion: (int*) version
 {
   int got;
+  char package_name[64];
+  int major_version;
+  int minor_version;
+  int subminor_version;
 
   got = [[cs stream] readFormat: SIGNATURE_FORMAT_STRING,
+		     &package_name, 
+		     &major_version,
+		     &minor_version,
+		     &subminor_version,
 		     name, version];
   if (got != 2)
     [NSException raise: CoderSignatureMalformedException
