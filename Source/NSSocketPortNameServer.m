@@ -1,4 +1,4 @@
-/** Implementation of NSSocketPortNameServer class for Distributed Objects
+/* Implementation of NSSocketPortNameServer class for Distributed Objects
    Copyright (C) 1998,1999,2000 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -20,7 +20,6 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
-   <title>NSSocketPortNameServer class reference</title>
    $Date$ $Revision$
    */
 
@@ -558,7 +557,7 @@ typedef enum {
 }
 
 /**
- * Returns the shared name server object for the process.
+ * Returns the shared name server object for [NSSocketPort] objects.
  */
 + (id) sharedInstance
 {
@@ -588,11 +587,6 @@ typedef enum {
 {
   [NSException raise: NSGenericException
 	      format: @"attempt to deallocate default port name server"]; 
-}
-
-- (NSPort*) portForName: (NSString*)name
-{
-  return [self portForName: name onHost: nil];
 }
 
 - (BOOL) _lookupName: (NSString*)name onHost: (NSString*)host
@@ -810,6 +804,16 @@ typedef enum {
     }
 }
 
+/**
+ * Concrete implementation of [NSPortNameServer-portForName:onHost:]<br />
+ * Looks up and returns a port with the specified name and host.<br />
+ * If host is nil or an empty string, this performs a lookup for a
+ * port on the current host.<br />
+ * If host is an asterisk ('*') then the lookup returns the first
+ * port found with the specified name on any machine on the local
+ * network.<br />
+ * Returns nil if no matching port could be found.
+ */
 - (NSPort*) portForName: (NSString*)name
 		 onHost: (NSString*)host
 {
@@ -843,6 +847,13 @@ typedef enum {
     }
 }
 
+/**
+ * Concrete implementation of [NSPortNameServer-registerPort:forName:]<br />
+ * Registers the port with the specified name such that it is available
+ * on all the IP addresses of the host on which the process is running.<br />
+ * Returns YES on success, NO on failure (eg the name is already in use
+ * or there is a problem registering for some reason).
+ */
 - (BOOL) registerPort: (NSPort*)port
 	      forName: (NSString*)name
 {
@@ -861,10 +872,11 @@ typedef enum {
       [NSException raise: NSInvalidArgumentException
 		  format: @"attempt to register nil port"]; 
     }
-  if ([port isKindOfClass: [NSSocketPort class]] == NO)
+  if ([port isKindOfClass: portClass] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to register non-NSSocketPort (%@)", port]; 
+		  format: @"attempt to register port of unexpected class (%@)",
+	port]; 
     }
   len = [name cStringLength];
   if (len == 0)
@@ -1019,6 +1031,12 @@ typedef enum {
   return YES;
 }
 
+/**
+ * Concrete implementation of [NSPortNameServer-removePortForName:]<br />
+ * Unregisters the specified name from any associated port on the
+ * local host.<br />
+ * Returns YES on succes, NO on failure.
+ */
 - (BOOL) removePortForName: (NSString*)name
 {
   NSRunLoop	*loop = [NSRunLoop currentRunLoop];
@@ -1133,8 +1151,9 @@ typedef enum {
   return old;
 }
 
-/*
- * Return the names under which the port is currently registered.
+/**
+ * Return the names under which the port is currently registered by
+ * this process.
  */
 - (NSArray*) namesForPort: (NSPort*)port
 {
@@ -1154,9 +1173,9 @@ typedef enum {
   return names;
 }
 
-/*
- *	Remove all names for a particular port - used when a port is
- *	invalidated.
+/**
+ * Remove all names for a particular port - used when a port is
+ * invalidated.
  */
 - (BOOL) removePort: (NSPort*)port
 {
@@ -1188,8 +1207,8 @@ typedef enum {
   return ok;
 }
 
-/*
- * Remove name for port iff it is registered.
+/**
+ * Remove name for port iff it is registered by this process.
  */
 - (BOOL) removePort: (NSPort*)port forName: (NSString*)name
 {
