@@ -1,3 +1,10 @@
+2003-01-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Fixed bug in utf-8 output for three
+	byte sequences.
+	* Tools/AGSOutput.m: Fix loss of trailing info after a closing
+	square bracket round a class name.
+
 2003-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Added new MacOS-X method ...

@@ -2080,6 +2080,20 @@ static BOOL snuggleStart(NSString *t)
 			cName, cName];
 		    }
 		  [a replaceObjectAtIndex: l withObject: ref];
+		  if (ePos < [tmp length])
+		    {
+		      NSString	*end = [tmp substringFromIndex: ePos];
+
+		      if ([end isEqualToString: @"]"] == NO
+			&& [end hasPrefix: @"]"] == YES)
+			{
+			  end = [end substringFromIndex: 1];
+			}
+		      if ([end length] > 0)
+			{
+			  [a insertObject: end atIndex: ++l];
+			}
+		    }
 		}
 	    }
 	  continue;

@@ -1571,7 +1571,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 	      else
 		{
 		  ptr[dpos++] = (u >> 12) | 0xe0;
-		  ptr[dpos++] = (u >> 6) | 0x80;
+		  ptr[dpos++] = ((u >> 6) & 0x3f) | 0x80;
 		  ptr[dpos++] = (u & 0x3f) | 0x80;
 	        }
 	    }

@@ -1989,7 +1989,9 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
     {
       if ([node type] == XML_TEXT_NODE)
 	{
-	  [buf appendString: [node content]];
+	  NSString	*str = [node content];
+
+	  [buf appendString: str];
 	}
       else if ([node type] == XML_ENTITY_REF_NODE)
 	{
