@@ -25,7 +25,7 @@
 #define __Streaming_h__OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
-#include <objects/String.h>
+#include <objects/NSString.h>
 
 @protocol Streaming <NSObject>
 
