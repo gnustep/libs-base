@@ -59,6 +59,10 @@
   [aCoder finishEncodingInterconnectedObjects];
 }
 
+/* xxx See Collection _decodeContentsWithCoder:.
+   We shouldn't do an -addElement.  finishEncodingInterconnectedObjects
+   should take care of all that. */
+
 - (void) _decodeContentsWithCoder: (Coder*)aCoder
 {
   [aCoder startDecodingInterconnectedObjects];
