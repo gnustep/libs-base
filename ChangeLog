@@ -1,3 +1,27 @@
+Mon Sep 22 17:14:32 1997  Adam Fedor  <fedor@doc.com>
+
+	* checks/NSData-test.m: Change main to return int.
+	* checks/coder.m: Check for nil names -- Solaris can't print NULL
+	strings. 
+	* checks/nsattributedstring.m: Add test to main.
+	* checks/values.m: Remove exception handlers.
+
+	* doc/coding-standards.texi: New file.
+	* doc/Makefile.in: Add new texi file, CODING-STANDARDS target..
+
+	* src/Collection.m ([ConstantCollection
+	-_collectionReleaseContents]): Release only if count > 0.
+	* src/Set.m ([Set dealoc]): Set contents_hash to 0 and call super.
+	* src/Set.m ([Set count]): If !contents_hash return 0;
+
+	* src/Makefile.in: remove extra Collection.m.
+
+	* src/NSArray.m ([NSArray -initWithObjects:rest:]): REALLOC before
+	overflow of array.
+
+	* src/NSConcreteValue.m ([NSConcreteValue -initValue:withObjCType:]):
+	Change exceptions to NSLog and return nil.
+
 Fri Sep 22 09:50:52 2017  Scott Christley  <scottc@net-community.com>
 
 	* src/NSArray (initWithObjects:rest:): Fix count.

@@ -69,11 +69,17 @@ int main(int argc, char *argv[])
 
   /* Read in the Array */
   [archiver decodeObjectAt: &array withName: &name];
-  printf ("got object named %s\n", [name cStringNoCopy]);
+  if (name)
+    printf ("got object named %s\n", [name cStringNoCopy]);
+  else
+    printf ("got object named (unnamed)\n");
 
   /* Read in the Dictionary */
   [archiver decodeObjectAt: &dictionary withName: &name];
-  printf ("got object named %s\n", [name cStringNoCopy]);
+  if (name)
+    printf ("got object named %s\n", [name cStringNoCopy]);
+  else
+    printf ("got object named (unnamed)\n");
 
   /* Display what we read, to make sure it matches what we wrote */
   [array printForDebugger];

@@ -80,7 +80,8 @@
 - (void) dealloc
 {
   NSFreeHashTable (_contents_hash);
-  [super _collectionDealloc];
+  _contents_hash = 0;
+  [super dealloc];
 }
 
 // SET OPERATIONS;
@@ -180,6 +181,8 @@
 
 - (unsigned) count
 {
+  if (!_contents_hash)
+    return 0;
   return NSCountHashTable (_contents_hash);
 }
 

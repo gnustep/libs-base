@@ -377,7 +377,7 @@ NS_ENDHANDLER
     printf("2) String: (%s)\n", str);
 }
 
-void
+int
 main(int    argc,
      char   **argv)
 {
@@ -386,4 +386,5 @@ main(int    argc,
 
     /*  Test NSData.    */
     TestNSData();
+    return 0;
 }

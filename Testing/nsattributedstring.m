@@ -114,9 +114,9 @@ void testAttributedString(void)
   printAttrString([muAttrString2 attributedSubstringFromRange:NSMakeRange(10,7)]);
 }
 
-/* xxx umm this file needs a main */
 int
 main()
 {
+  testAttributedString();
   exit(0);
 }

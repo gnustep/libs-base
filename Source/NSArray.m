@@ -175,7 +175,7 @@ static Class NSMutableArray_concrete_class;
       objsArray[i] = tmpId;
 
       /*	If the index equals the current size, increase size.	*/
-      if (i == curSize)
+      if (i == curSize - 1)
 	{
 	  /*	Fibonacci series.  Supposedly, for this application,
 	   *	the fibonacci series will be more memory efficient.
