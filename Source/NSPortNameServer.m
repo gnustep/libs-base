@@ -37,6 +37,7 @@
 #include <Foundation/NSTask.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSTimer.h>
+#include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSDebug.h>
 #ifdef __MINGW__
@@ -56,9 +57,13 @@
  *	Macros to build text to start name server and to give an error
  *	message about it - they include installation path information.
  */
+#define MAKE_GDOMAP_CMD   [GSSystemRootDirectory() \
+			     stringByAppendingPathComponent: @"Tools/gdomap"]
+#define MAKE_GDOMAP_ERR   [NSString stringWithFormat: \
+				    @"check that %@/Tools/gdomap is running", \
+				    GSSystemRootDirectory()]
+
 #define stringify_it(X) #X
-#define make_gdomap_cmd(X)      stringify_it(X) "/Tools/gdomap"
-#define make_gdomap_err(X)      "check that " stringify_it(X) "/Tools/gdomap is running and owned by root."
 #define	make_gdomap_port(X)	stringify_it(X)
 
 /*
@@ -536,8 +541,7 @@ typedef enum {
       serverPort = RETAIN([NSString stringWithCString:
 	make_gdomap_port(GDOMAP_PORT_OVERRIDE)]);
 #endif
-      launchCmd = [NSString stringWithCString:
-	make_gdomap_cmd(GNUSTEP_INSTALL_PREFIX)]; 
+      launchCmd = MAKE_GDOMAP_CMD;
       portClass = [GSTcpPort class];
     }
 }

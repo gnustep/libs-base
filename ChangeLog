@@ -1,3 +1,17 @@
+2001-10-13  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSPathUtilities.h (GSSystemRootDirectory): 
+	New function.
+	* Source/GNUmakefile: Define GNUSTEP_LOCAL_ROOT and
+	GNUSTEP_NETWORK_ROOT paths on compile line.
+	* Source/NSUser.m (setupPathNames): Use compiled in paths as backup
+	if environment variables not found.
+	(GSStandardPathPrefixes): Make sure a non-nil result is returned.
+	(GSSystemRootDirectory). Implement.
+	* Source/NSDistributedNotificationCenter.m (_connect): Use it to
+	find gdnc.
+	* Source/NSPortNameServer.m (initialize): Use it to find gdomap.
+
 2001-10-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFFCallInvocation.m: Change #import to #include
@@ -105,7 +119,7 @@
 
 2001-09-19  Adam Fedor  <fedor@gnu.org>
 
-	* configure.in: But CPPFLAGS in quotes
+	* configure.in: Put CPPFLAGS in quotes
 
 2001-09-14  Adam Fedor  <fedor@gnu.org>
 

@@ -30,6 +30,7 @@
 #include	<Foundation/NSArchiver.h>
 #include	<Foundation/NSNotification.h>
 #include	<Foundation/NSDate.h>
+#include	<Foundation/NSPathUtilities.h>
 #include	<Foundation/NSRunLoop.h>
 #include	<Foundation/NSTask.h>
 #include	<Foundation/NSDistributedNotificationCenter.h>
@@ -40,9 +41,11 @@
  *      Macros to build text to start name server and to give an error
  *      message about it - they include installation path information.
  */
-#define stringify_it(X) #X
-#define make_gdnc_cmd(X)      stringify_it(X) "/Tools/gdnc"
-#define make_gdnc_err(X)      "check that " stringify_it(X) "/Tools/gdnc is running."
+#define MAKE_GDNC_CMD      [GSSystemRootDirectory() \
+			      stringByAppendingPathComponent: @"Tools/gdnc"]
+#define MAKE_GDNC_ERR      [NSString stringWithFormat: \
+				     @"check that %@/Tools/gdnc is running", \
+				     GSSystemRootDirectory()]
 
 /*
  *	Global variables for distributed notification center types.
@@ -343,8 +346,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	      static NSString	*cmd = nil;
 
 	      if (cmd == nil)
-		cmd = [NSString stringWithCString:
-			make_gdnc_cmd(GNUSTEP_INSTALL_PREFIX)];
+		cmd = MAKE_GDNC_CMD;
 
 NSLog(@"NSDistributedNotificationCenter failed to contact GDNC server.\n");
 NSLog(@"Attempting to start GDNC process - this will take several seconds.\n");
@@ -364,8 +366,8 @@ NSLog(@"Connection to GDNC server established.\n");
 	    { 
 	      recursion = NO;
 	      [NSException raise: NSInternalInconsistencyException
-			  format: @"unable to contact GDNC server - %s",
-		      make_gdnc_err(GNUSTEP_INSTALL_PREFIX)];
+			  format: @"unable to contact GDNC server - %@",
+			   MAKE_GDNC_ERR];
 	    }
 	}
     }

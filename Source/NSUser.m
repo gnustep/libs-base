@@ -46,6 +46,8 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+#define stringify(X) #X
+
 static NSString	*theUserName = nil;
 
 void
@@ -234,14 +236,25 @@ setupPathNames()
 		   * resources.  Use fprintf to avoid recursive calls.
 		   */
 		  warned = YES;
+		  gnustep_system_root = [NSString stringWithCString:
+					  stringify(GNUSTEP_INSTALL_PREFIX)];
+		  RETAIN(gnustep_system_root);
 		  fprintf (stderr, 
 		    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
-		    "- using /usr/GNUstep/System as a default\n");
-		  gnustep_system_root = @"/usr/GNUstep/System";
+		    "- using %s\n", [gnustep_system_root lossyCString]);
 		}
 
 	      gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
 	      TEST_RETAIN (gnustep_local_root);
+	      if (gnustep_local_root == nil)
+		{
+		  gnustep_local_root = [NSString stringWithCString:
+					  stringify(GNUSTEP_LOCAL_ROOT)];
+		  if ([gnustep_local_root length] == 0)
+		    gnustep_local_root = nil;
+		  else
+		    RETAIN(gnustep_local_root);
+		}
 	      if (gnustep_local_root == nil)
 		{
 		  if ([[gnustep_system_root lastPathComponent] isEqual:
@@ -270,6 +283,15 @@ setupPathNames()
 	      gnustep_network_root = [env objectForKey: 
 		@"GNUSTEP_NETWORK_ROOT"];
 	      TEST_RETAIN (gnustep_network_root);
+	      if (gnustep_network_root == nil)
+		{
+		  gnustep_network_root = [NSString stringWithCString:
+					  stringify(GNUSTEP_NETWORK_ROOT)];
+		  if ([gnustep_network_root length] == 0)
+		    gnustep_network_root = nil;
+		  else
+		    RETAIN(gnustep_network_root);
+		}
 	      if (gnustep_network_root == nil)
 		{
 		  if ([[gnustep_system_root lastPathComponent] isEqual:
@@ -324,7 +346,28 @@ setupPathNames()
     }
 }
 
+/** Returns a string containing the path to the GNUstep system
+    installation directory. This function is gaurenteed to return a non-nil
+    answer (unless something is seriously wrong, in which case the application
+    will probably crash anyway) */
+NSString *
+GSSystemRootDirectory(void)
+{
+  if (gnustep_system_root == nil)
+    {
+      setupPathNames();
+    }
+  return gnustep_system_root;
+}
 
+/** Returns an array of strings which contain paths that should be in
+    the standard search order for resources, etc. If the environment
+    variable GNUSTEP_PATHPREFIX_LIST is set. It returns the list of
+    paths set in that variable. Otherwise, it returns the user, local,
+    network, and system paths, in that order This function is
+    gaurenteed to return a non-nil answer (unless something is
+    seriously wrong, in which case the application will probably crash
+    anyway) */
 NSArray *
 GSStandardPathPrefixes(void)
 {
@@ -334,15 +377,21 @@ GSStandardPathPrefixes(void)
     
   env = [[NSProcessInfo processInfo] environment];
   prefixes = [env objectForKey: @"GNUSTEP_PATHPREFIX_LIST"];
-  if (prefixes != 0)
+  if (prefixes != nil)
     {
 #if	defined(__WIN32__)
       prefixArray = [prefixes componentsSeparatedByString: @";"];
 #else
       prefixArray = [prefixes componentsSeparatedByString: @":"];
 #endif
+      if ([prefixArray count] <= 1)
+	{
+	  /* This probably means there was some parsing error, but who
+	     knows. Play it safe though... */
+	  prefixArray = nil;
+	}
     }
-  else
+  if (prefixes == nil)
     {
       NSString	*strings[4];
       NSString	*str;
