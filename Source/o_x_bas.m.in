@@ -251,11 +251,13 @@ _o_@XX@_copy_with_zone(o_@XX@_t *xx, NSZone *zone)
 inline NSString *
 _o_@XX@_description(o_@XX@_t *xx)
 {
-  return [NSString stringWithFormat:@"magic_number = %#x;\nserial_number = %d;\nname = %@;\nextra = %@;\nzone = %@;\n",
-                   o_@XX@_magic_number(xx),
-                   o_@XX@_serial_number(xx),
-                   o_@XX@_name(xx),
-                   o_describe(o_@XX@_extra_callbacks(xx),
-                                    o_@XX@_extra(xx), xx),
-                   NSZoneName(o_@XX@_zone(xx))];
+  return [NSString
+	   stringWithFormat: @"magic_number = %#x;\nserial_number = %d;\n"
+	   @"name = %s;\nextra = %s;\nzone = %s;\n",
+	   o_@XX@_magic_number(xx),
+	   o_@XX@_serial_number(xx),
+	   [o_@XX@_name(xx) cStringNoCopy],
+	   [o_describe(o_@XX@_extra_callbacks(xx), o_@XX@_extra(xx), xx)
+		      cStringNoCopy],
+	   [NSZoneName(o_@XX@_zone(xx)) cStringNoCopy]];
 }
