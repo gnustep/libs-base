@@ -166,22 +166,50 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	
   /* Copy the evironment list */
   {
-    char *cp;
     NSMutableArray *keys = [NSMutableArray new];
     NSMutableArray *values = [NSMutableArray new];
     i = 0;
     while (env[i]) 
       {
-	cp = strchr(env[i],'=');
-	if (cp != NULL)
+#if defined(__WIN32__) || defined(_WIN32)
+	char	buf[1024];
+	char	*cp;
+	DWORD	len;
+	   
+	len = ExpandEnvironmentStrings(env[i], buf, 1022);
+	if (len > 1022)
 	  {
-	    /* Temporary set *cp to \0 for copying purposes */
-	    *cp = '\0';
-	    [keys addObject: [NSString stringWithCString:env[i]]];
-	    [values addObject: [NSString stringWithCString:cp+1]];
-	    /* Return the original value of environ[i] */
-	    *cp = '=';
+	    char	longbuf[len+2];
+
+	    len = ExpandEnvironmentStrings(env[i], longbuf, len);
+	    cp = strchr(longbuf, '=');
+	    *cp++ = '\0';
+	    [keys addObject: [NSString stringWithCString: longbuf]];
+	    [values addObject: [NSString stringWithCString: cp]];
 	  }
+	else
+	  {
+	    if (len == 0)
+	      strcpy(buf, env[i]);
+	    cp = strchr(buf, '=');
+	    *cp++ = '\0';
+	    [keys addObject: [NSString stringWithCString: buf]];
+	    [values addObject: [NSString stringWithCString: cp]];
+	  }
+#else
+        int	len = strlen(env[i]);
+	char	*cp = strchr(env[i], '=');
+	if (len && cp)
+	  {
+	    char	buf[len+2];
+
+	    strcpy(buf, env[i]);
+	    cp = &buf[cp - env[i]];
+	    *cp++ = '\0';
+	    [keys addObject: [NSString stringWithCString: buf]];
+	    [values addObject: [NSString stringWithCString: cp]];
+	  } 
+#endif
 	i++;
       }
     _gnu_environment = [[NSDictionary alloc] initWithObjects:values
@@ -399,12 +427,20 @@ int main(int argc, char *argv[], char *env[])
 
 - (NSString *)globallyUniqueString
 {
+  int	pid;
+
+#if defined(__WIN32__) || defined(_WIN32)
+  pid = (int)GetCurrentProcessId(),
+#else
+  pid = (int)getpid();
+#endif
+
   // $$$ The format of the string is not specified by the OpenStep 
   // specification. It could be useful to change this format after
   // NeXTSTEP release 4.0 comes out.
   return [NSString stringWithFormat:@"%s:%d:[%s]",
 		   [[self hostName] cString],
-		   (int)getpid(),
+		   pid,
 		   [[[NSDate date] description] cString]];
 }
 
