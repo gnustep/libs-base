@@ -58,6 +58,8 @@ static Class	NSConstantStringClass;
 @class	NSDataMalloc;
 @class	NSMutableDataMalloc;
 
+static BOOL deallocNotifications = NO;
+
 
 /*
  *	Reference count and memory management
@@ -656,23 +658,6 @@ static BOOL double_release_check_enabled = NO;
   NSDeallocateObject (self);
 }
 
-static BOOL deallocNotifications = NO;
-
-- (BOOL) deallocNotificationsActive
-{
-  return deallocNotifications;
-}
-
-- (void) setDeallocNotificationsActive: (BOOL)flag
-{
-  deallocNotifications = flag;
-}
-
-- (BOOL) _dealloc
-{
-  return YES;
-}
-
 - (id) free
 {
   [NSException raise: NSGenericException
@@ -809,42 +794,6 @@ static BOOL deallocNotifications = NO;
 + (NSString*) description
 {
   return [NSString stringWithCString: object_get_class_name(self)];
-}
-
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale
-{
-  return [self description];
-}
-
-+ (NSString*) descriptionWithLocale: (NSDictionary*)locale
-{
-  return [self description];
-}
-
-- (NSString*) descriptionWithLocale: (NSDictionary*)locale indent: (unsigned)c
-{
-  return [self descriptionWithLocale: locale];
-}
-
-+ (NSString*) descriptionWithLocale: (NSDictionary*)locale indent: (unsigned)c
-{
-  return [self descriptionWithLocale: locale];
-}
-
-- (void) descriptionWithLocale: (NSDictionary*)aLocale
-			indent: (unsigned)level
-			    to: (id<GNUDescriptionDestination>)output
-{
-  [output appendString:
-    [(id)self descriptionWithLocale: aLocale indent: level]];
-}
-
-+ (void) descriptionWithLocale: (NSDictionary*)aLocale
-			indent: (unsigned)level
-			    to: (id<GNUDescriptionDestination>)output
-{
-  [output appendString:
-    [(id)self descriptionWithLocale: aLocale indent: level]];
 }
 
 + (void) poseAsClass: (Class)aClassObject
@@ -2228,7 +2177,7 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 
 
-@implementation NSObject (GNUstep)
+@implementation NSObject (GNU)
 
 /* GNU Object class compatibility */
 
@@ -2248,24 +2197,24 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
   double_release_check_enabled = enable;
 }
 
-- (int) compare: (id)anotherObject
+- (int) compare: (id)anObject
 {
-  if (anotherObject == self)
+  if (anObject == self)
     {
       return NSOrderedSame;
     }
-  if (anotherObject == nil)
+  if (anObject == nil)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"nil argument for compare:"];
     }
-  if ([self isEqual: anotherObject])
+  if ([self isEqual: anObject])
     {
       return NSOrderedSame;
     }
   // Ordering objects by their address is pretty useless, 
   // so subclasses should override this is some useful way.
-  if (self > anotherObject)
+  if (self > anObject)
     {
       return NSOrderedDescending;
     }
@@ -2273,6 +2222,59 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
     {
       return NSOrderedAscending;
     }
+}
+
+- (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
+{
+  return [self description];
+}
+
++ (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
+{
+  return [self description];
+}
+
+- (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
+			     indent: (unsigned)level
+{
+  return [self descriptionWithLocale: aLocale];
+}
+
++ (NSString*) descriptionWithLocale: (NSDictionary*)aLocale
+			     indent: (unsigned)level
+{
+  return [self descriptionWithLocale: aLocale];
+}
+
+- (void) descriptionWithLocale: (NSDictionary*)aLocale
+			indent: (unsigned)level
+			    to: (id<GNUDescriptionDestination>)output
+{
+  [output appendString:
+    [(id)self descriptionWithLocale: aLocale indent: level]];
+}
+
++ (void) descriptionWithLocale: (NSDictionary*)aLocale
+			indent: (unsigned)level
+			    to: (id<GNUDescriptionDestination>)output
+{
+  [output appendString:
+    [(id)self descriptionWithLocale: aLocale indent: level]];
+}
+
+- (BOOL) deallocNotificationsActive
+{
+  return deallocNotifications;
+}
+
+- (void) setDeallocNotificationsActive: (BOOL)flag
+{
+  deallocNotifications = flag;
+}
+
+- (BOOL) _dealloc
+{
+  return YES;
 }
 
 - (BOOL) isMetaClass
