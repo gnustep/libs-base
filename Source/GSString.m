@@ -1927,7 +1927,10 @@ transmute(ivars self, NSString *aString)
 - (void) deleteCharactersInRange: (NSRange)range
 {
   GS_RANGE_CHECK(range, _count);
-  fillHole((ivars)self, range.location, range.length);
+  if (range.length > 0)
+    {
+      fillHole((ivars)self, range.location, range.length);
+    }
 }
 
 - (double) doubleValue
