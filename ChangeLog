@@ -1,3 +1,8 @@
+Tue Feb  9 14:08:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSProcessInfo.m: Fixed login in #if construct so things
+	will link again.
+
 1999-02-08  Adam Fedor  <fedor@gnu.org>
 
 	* Source/include/fake-main.h: Leave off __ELF__, only use
