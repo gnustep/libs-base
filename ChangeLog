@@ -1,3 +1,11 @@
+Tue Oct 28 10:12:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Modified (acceptInputForMode:beforeDate:) and
+	(runMode:beforeDate:) to poll input sources when given a date in the
+	past, rather than ignoring them entirely ... this seems more useful
+	and appears to be consistent with MacOS-X.
+	Updated method documentation.
+
 Mon Oct 27 13:37:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: Rewrite/simplify methods dealing with DO
