@@ -1,3 +1,7 @@
+2003-08-29  Adam Fedor  <fedor@gnu.org>
+
+	* config/procfs.m4: Disalbe procfs for solaris
+
 2003-08-26  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSMessagePort.m: For older OS comptibility, define some

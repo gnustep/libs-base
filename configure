@@ -11763,12 +11763,13 @@ else
   # works fine
     if (mount | grep 'proc' >/dev/null 2>/dev/null); then
       ac_cv_sys_procfs=yes
-	# Solaris has proc, but for some reason the dir is not readable
-	# 	elif (grep proc /etc/vfstab >/dev/null 2>/dev/null); then
-	# ac_cv_sys_procfs=yes
     else
       ac_cv_sys_procfs=no
     fi
+    case "$target_os" in
+      # Solaris has proc, but it is not readable
+      solaris*)    ac_cv_sys_procfs=no;;
+    esac
   elif test "$enable_procfs" = cross; then
     { echo "$as_me:$LINENO: WARNING: Pass --enable-procfs argument to enable use of /proc filesystem." >&5
 echo "$as_me: WARNING: Pass --enable-procfs argument to enable use of /proc filesystem." >&2;}
