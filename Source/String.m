@@ -27,22 +27,35 @@
 #include <stdarg.h>
 #include <assert.h>
 
+/* Deal with strchr: */
+#if STDC_HEADERS || HAVE_STRING_H
+#include <string.h>
+/* An ANSI string.h and pre-ANSI memory.h might conflict.  */
+#if !STDC_HEADERS && HAVE_MEMORY_H
+#include <memory.h>
+#endif /* not STDC_HEADERS and HAVE_MEMORY_H */
+#define rindex strrchr
+#define bcopy(s, d, n) memcpy ((d), (s), (n))
+#define bcmp(s1, s2, n) memcmp ((s1), (s2), (n))
+#define bzero(s, n) memset ((s), 0, (n))
+#else /* not STDC_HEADERS and not HAVE_STRING_H */
+#include <strings.h>
+/* memory.h and strings.h conflict on some systems.  */
+#endif /* not STDC_HEADERS and not HAVE_STRING_H */
+
+
 @implementation String
 
-/* Fill this with "notImplemented:" Do the same for Mutable and
-   Constant String. */
-
-+ initialize
++ (void) initialize
 {
   if (self == [String class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 // INITIALIZING;
 
 /* For now, this is the designated initializer for this class */
-- initFromCString: (const char*)aCharPtr range: (IndexRange)aRange
+- initWithCString: (const char*)aCharPtr range: (IndexRange)aRange
 {
   [self notImplemented:_cmd];
   return self;
@@ -71,70 +84,70 @@
   return self;
 }
 
-- initFromCString: (const char*)aCharPtr length: (unsigned)aLength
+- initWithCString: (const char*)aCharPtr length: (unsigned)aLength
 {
-  return [self initFromCString:aCharPtr 
+  return [self initWithCString:aCharPtr 
 	       range:((IndexRange){0,aLength})];
 }
 
-- initFromCString: (const char*)aCharPtr
+- initWithCString: (const char*)aCharPtr
 {
-  return [self initFromCString:aCharPtr
+  return [self initWithCString:aCharPtr
 	       range:((IndexRange){0, strlen(aCharPtr)})];
 }
 
 #if HAVE_VSPRINTF
-- initFromFormat: (String*)aFormatString arguments: (va_list)arg
+- initWithFormat: (String*)aFormatString arguments: (va_list)arg
 {
   char buf[128];		/* xxx horrible, disgusting, fix this */
   vsprintf(buf, [aFormatString cString], arg);
-  return [self initFromCString:buf];
+  return [self initWithCString:buf];
 }
 
-- initFromCFormat: (const char*)formatCharPtr arguments: (va_list)arg
+- initWithCFormat: (const char*)formatCharPtr arguments: (va_list)arg
 {
   char buf[128];		/* xxx horrible, disgusting, fix this */
   vsprintf(buf, formatCharPtr, arg);
-  return [self initFromCString:buf];
+  return [self initWithCString:buf];
 }
 #endif /* HAVE_VSPRINTF */
 
-- initFromFormat: (String*)aFormatString, ...
+- initWithFormat: (String*)aFormatString, ...
 {
   va_list ap;
   va_start(ap, aFormatString);
-  [self initFromCFormat:[aFormatString cString] arguments:ap];
+  [self initWithCFormat:[aFormatString cString] arguments:ap];
   va_end(ap);
   return self;
 }
 
-- initFromCFormat: (const char*)formatCharPtr, ...
+- initWithCFormat: (const char*)formatCharPtr, ...
 {
   va_list ap;
   va_start(ap, formatCharPtr);
-  [self initFromCFormat:formatCharPtr arguments:ap];
+  [self initWithCFormat:formatCharPtr arguments:ap];
   va_end(ap);
   return self;
 }
 
 - init
 {
-  return [self initFromCString:""];
+  return [self initWithCString:""];
 }
 
-- initFromString: (String*)aString range: (IndexRange)aRange
+- initWithString: (String*)aString range: (IndexRange)aRange
 {
-  return [self initFromCString:[aString cString] range:aRange];
+  return [self initWithCString:[aString cString] range:aRange];
 }
 
-- initFromString: (String*)aString length: (unsigned)aLength
+- initWithString: (String*)aString length: (unsigned)aLength
 {
-  return [self initFromCString:[aString cString]];
+  return [self initWithCString:[aString cString]];
 }
 
-- initFromString: (String*)aString
+- initWithString: (String*)aString
 {
-  return [self initFromCString:[aString cString]];
+  return [self initWithCString:[aString cString]];
 }
 
 
@@ -143,12 +156,6 @@
 + (String*) stringWithString: (String*)aString range: (IndexRange)aRange
 {
   return [[[CString alloc] initWithString:aString range:aRange]
-	  autorelease];
-}
-
-+ (String*) stringWithString: (String*)aString length: (unsigned)aLength
-{
-  return [[[CString alloc] initWithString:aString length:aLength]
 	  autorelease];
 }
 
@@ -177,28 +184,15 @@
 }
 
 + (String*) stringWithCString: (const char*)cp range: (IndexRange)r
-   noCopy: (BOOL)f
 {
-  [self notImplemented:_cmd];
-  return nil;
-}
-
-+ (String*) stringWithCString: (const char*)aCharPtr range: (IndexRange)aRange
-{
-  [self notImplemented:_cmd];
-  return nil;
-}
-
-+ (String*) stringWithCString: (const char*)aCharPtr length: (unsigned)aLength
-{
-  [self notImplemented:_cmd];
-  return nil;
+  return [[[CString alloc] initWithCString:cp range:r]
+	  autorelease];
 }
 
 + (String*) stringWithCString: (const char*)aCharPtr
 {
-  [self notImplemented:_cmd];
-  return nil;
+  return [[[CString alloc] initWithCString:aCharPtr]
+	  autorelease];
 }
 
 
@@ -343,7 +337,35 @@
   return ' ';
 }
 
+- (const char *) cString
+{
+  [self notImplemented:_cmd];
+  return NULL;
+}
 
+- (unsigned) cStringLength
+{
+  [self notImplemented:_cmd];
+  return 0;
+}
+
+- (void) getCString: (char*)buffer
+{
+  strcpy(buffer, [self cString]);
+}
+
+- (void) getCString: (char*)buffer range: (IndexRange)aRange
+{
+  
+  memcpy(buffer, 
+	 ([self cString] + aRange.start), 
+	 (aRange.end - aRange.start));
+}
+
+- (IndexRange) range
+{
+  return (IndexRange){0, [self count]};
+}
 
 // GETTING VALUES;
 
