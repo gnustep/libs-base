@@ -46,6 +46,8 @@
 @class	GSDictionary;
 @class	GSMutableDictionary;
 
+extern BOOL	GSMacOSXCompatiblePropertyLists(void);
+
 static Class NSArray_class;
 static Class NSDictionaryClass;
 static Class NSMutableDictionaryClass;
@@ -738,7 +740,6 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToFile: (NSString *)path atomically: (BOOL)useAuxiliaryFile
 {
-  extern BOOL	GSMacOSXCompatiblePropertyLists();
   NSDictionary	*loc;
   NSString	*desc;
 
@@ -774,7 +775,6 @@ compareIt(id o1, id o2, void* context)
  */
 - (BOOL) writeToURL: (NSURL *)url atomically: (BOOL)useAuxiliaryFile
 {
-  extern BOOL	GSMacOSXCompatiblePropertyLists();
   NSDictionary	*loc;
   NSString	*desc;
 

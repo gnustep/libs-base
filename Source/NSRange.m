@@ -44,7 +44,7 @@ static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
 static id 	(*scannerImp)(Class, SEL, NSString*);
 
 static inline void
-setupCache()
+setupCache(void)
 {
   if (NSStringClass == 0)
     {

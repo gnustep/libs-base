@@ -84,7 +84,7 @@
 - (id) initWithBytes: (const void*)value objCType: (const char*)type
 {
   typedef __typeof__(data) _dt;
-  data = *(_dt*)value;
+  data = *(const _dt*)value;
   return self;
 }
 

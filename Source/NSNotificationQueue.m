@@ -83,7 +83,7 @@ typedef struct {
 @end
 
 static NotificationQueueList*
-currentList()
+currentList(void)
 {
   NotificationQueueList	*list;
   NSMutableDictionary	*d;

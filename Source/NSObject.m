@@ -769,12 +769,12 @@ static BOOL double_release_check_enabled = NO;
 {
   if (self == [NSObject class])
     {
-      extern void		GSBuildStrings();	// See externs.m
-      extern const char*	GSSetLocaleC();		// See GSLocale.m
+      extern void		GSBuildStrings(void);	// See externs.m
+      extern const char*	GSSetLocaleC(const char*); // See GSLocale.m
 
 #ifdef __MINGW__
       // See libgnustep-base-entry.m
-      extern void gnustep_base_socket_init();	
+      extern void gnustep_base_socket_init(void);	
       gnustep_base_socket_init();	
 #endif
       
@@ -2018,24 +2018,24 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * The default (NSObject) implementation of this method simply calls
- * the -descriptionWithLocale:indent: method and appends
- * the value returned by that method to the output object.
+ * Uses the [NSString] implementation.
  */
 - (void) descriptionWithLocale: (NSDictionary*)aLocale
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output
 {
-  [output appendString:
-    [(id)self descriptionWithLocale: aLocale indent: level]];
+  NSString	*tmp =  [(id)self descriptionWithLocale: aLocale];
+
+  [tmp descriptionWithLocale: aLocale indent: level to: output];
 }
 
 + (void) descriptionWithLocale: (NSDictionary*)aLocale
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output
 {
-  [output appendString:
-    [(id)self descriptionWithLocale: aLocale indent: level]];
+  NSString	*tmp =  [(id)self descriptionWithLocale: aLocale];
+
+  [tmp descriptionWithLocale: aLocale indent: level to: output];
 }
 
 - (BOOL) _dealloc

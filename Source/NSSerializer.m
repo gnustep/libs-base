@@ -112,11 +112,11 @@ typedef struct {
 
 typedef struct {
   NSMutableData	*data;
-  void		(*appImp)();		// Append to data.
-  void*		(*datImp)();		// Bytes pointer.
-  unsigned int	(*lenImp)();		// Length of data.
-  void		(*serImp)();		// Serialize integer.
-  void		(*setImp)();		// Set length of data.
+  void		(*appImp)(NSData*,SEL,const void*,unsigned);
+  void*		(*datImp)(NSMutableData*,SEL);		// Bytes pointer.
+  unsigned int	(*lenImp)(NSData*,SEL);			// Length of data.
+  void		(*serImp)(NSMutableData*,SEL,int);	// Serialize integer.
+  void		(*setImp)(NSMutableData*,SEL,unsigned);	// Set length of data.
   unsigned	count;			// String counter.
   GSIMapTable_t	map;			// For uniquing.
   BOOL		shouldUnique;		// Do we do uniquing?
@@ -135,11 +135,11 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
 
   c = GSObjCClass(d);
   info->data = d; 
-  info->appImp = (void (*)())get_imp(c, appSel);
-  info->datImp = (void* (*)())get_imp(c, datSel);
-  info->lenImp = (unsigned int (*)())get_imp(c, lenSel);
-  info->serImp = (void (*)())get_imp(c, serSel);
-  info->setImp = (void (*)())get_imp(c, setSel);
+  info->appImp = (void (*)(NSData*,SEL,const void*,unsigned))get_imp(c, appSel);
+  info->datImp = (void* (*)(NSMutableData*,SEL))get_imp(c, datSel);
+  info->lenImp = (unsigned int (*)(NSData*,SEL))get_imp(c, lenSel);
+  info->serImp = (void (*)(NSMutableData*,SEL,int))get_imp(c, serSel);
+  info->setImp = (void (*)(NSMutableData*,SEL,unsigned))get_imp(c, setSel);
   info->shouldUnique = u;
   (*info->appImp)(d, appSel, &info->shouldUnique, 1);
   if (u)

@@ -41,7 +41,7 @@
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSNotification.h>
 
-extern BOOL	GSMacOSXCompatibleGeometry();	// Compatibility mode
+extern BOOL	GSMacOSXCompatibleGeometry(void);	// Compatibility mode
 
 static Class	NSStringClass = 0;
 static Class	NSScannerClass = 0;
@@ -53,7 +53,7 @@ static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
 static id 	(*scannerImp)(Class, SEL, NSString*);
 
 static inline void
-setupCache()
+setupCache(void)
 {
   if (NSStringClass == 0)
     {
