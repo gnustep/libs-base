@@ -2,6 +2,9 @@ Mon Sep  2 10:00:05 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.7.
 
+	* checks/nsbundle.m: Use new exception variable name.
+	* checks/values.m: Likewise.
+
 	* src/NSString.m ([NSString -substringFromRange:]): Implement it
  	using CString's for now so we can get it working; (we'll fix
  	everything for Unichar's in the next release).
