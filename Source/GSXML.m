@@ -91,8 +91,16 @@ setupCache()
 static xmlParserInputPtr
 loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
-
 /* Internal interfaces */
+
+@interface GSXMLNamespace (GSPrivate)
+- (void) _native: (BOOL)value;
+@end
+
+@interface GSXMLNode (GSPrivate)
+- (void) _native: (BOOL)value;
+@end
+
 @interface GSXMLParser (Private)
 - (BOOL) _initLibXML;
 - (void) _parseChunk: (NSData*)data;
@@ -176,6 +184,8 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 {
   void  *nodeLib = [node lib];
   void  *oldRoot = xmlDocSetRootElement(lib, nodeLib);
+
+  [node _native: NO];
   return oldRoot == NULL ? nil : [GSXMLNode nodeFrom: nodeLib];
 }
 
@@ -378,13 +388,9 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 @end
 
-/* Internal interface for GSXMLNamespace */
-@interface GSXMLNamespace (internal)
-- (void) native: (BOOL)value;
-@end
 
-@implementation GSXMLNamespace (Internal)
-- (void) native: (BOOL)value
+@implementation GSXMLNamespace (GSPrivate)
+- (void) _native: (BOOL)value
 {
   native = value;
 }
@@ -451,7 +457,7 @@ static NSMapTable	*nodeNames = 0;
     {
       if (ns != nil)
         {
-          [ns native: NO];
+          [ns _native: NO];
           lib = xmlNewNode((xmlNsPtr)[ns lib], [name cString]);
         }
       else
@@ -716,6 +722,13 @@ static NSMapTable	*nodeNames = 0;
     return NO;
 }
 
+@end
+
+@implementation GSXMLNode (GSPrivate)
+- (void) _native: (BOOL)value
+{
+  native = value;
+}
 @end
 
 
