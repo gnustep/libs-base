@@ -254,3 +254,10 @@ AC_SUBST(LIBOBJECTS_SO)
 #--------------------------------------------------------------------
 AC_OUTPUT(Makefile src/Makefile checks/Makefile examples/Makefile
 doc/Makefile NSCharacterSets/Makefile admin/Makefile src/objects/config.h)
+
+dnl Local Variables:
+dnl comment-start: "dnl "
+dnl comment-end: ""
+dnl comment-start-skip: "\\bdnl\\b\\s *"
+dnl compile-command: "autoconf"
+dnl End:
