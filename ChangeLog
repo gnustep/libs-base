@@ -1,3 +1,7 @@
+Fri Dec 17 17:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Fix error in last change.
+
 Fri Dec 17  7:03:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSGAttributedString.m: Patch (slightly modified) by Adam Fedor

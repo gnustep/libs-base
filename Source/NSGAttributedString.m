@@ -202,7 +202,7 @@ _attributesAtIndexEffectiveRange(
     {
       if (index == tmpLength)
 	{
-	  *_infoArray = index;
+	  *foundIndex = index;
 	  return nil;
 	}
       [NSException raise: NSRangeException
