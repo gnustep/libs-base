@@ -25,7 +25,7 @@
 #define __Streaming_h__OBJECTS_INCLUDE
 
 #include <gnustep/base/preface.h>
-#include <gnustep/base/NSString.h>
+#include <gnustep/base/String.h>
 
 @protocol Streaming <NSObject>
 
