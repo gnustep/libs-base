@@ -88,15 +88,6 @@ autogsdoc_DOC_INSTALL_DIR = Developer/Tools
 # Use local version of autogsdoc in case it is not installed
 AUTOGSDOC=./obj/autogsdoc
 
-SOURCES = gdomap.c gdnc.m defaults.m dread.m dremove.m dwrite.m \
-	autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
-
-HEADERS = gdomap.h gdnc.h \
-	AGSParser.h AGSOutput.h AGSIndex.h AGSHtml.h
-
-DIST_FILES = GNUmakefile Makefile.preamble Makefile.postamble \
-$(SOURCES) $(HEADERS)
-
 include Makefile.preamble
 
 -include GNUmakefile.local
