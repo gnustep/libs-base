@@ -101,6 +101,7 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 # GNU Class source files
 
 GNU_MFILES = \
+Archiver.m \
 Array.m \
 Bag.m \
 BinaryCStream.m \
@@ -170,6 +171,7 @@ GNU_OBJS = \
 	$(GNU_CFILES:.c=.o)
 
 GNU_HEADERS = \
+objects/Archiver.h \
 objects/Array.h \
 objects/ArrayPrivate.h \
 objects/Bag.h \
