@@ -1,3 +1,8 @@
+2002-06-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: ([-respondsToSelector:]) handle nul selectors.
+	Bug report by Andy Ruder <aeruder@yahoo.com>
+
 2002-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Change to quote strings in plist output
