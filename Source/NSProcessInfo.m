@@ -318,7 +318,9 @@ static char	**_gnu_noobjc_env;
   if (_gnu_noobjc_argv == NULL)
     goto malloc_error;
 
-  freopen(proc_file_name, "r", ifp);
+  fclose(ifp);
+  ifp=fopen(proc_file_name,"r");
+  //freopen(proc_file_name, "r", ifp);
   if (ifp == NULL)
     {
       free(_gnu_noobjc_argv);
@@ -341,7 +343,9 @@ static char	**_gnu_noobjc_env;
 	  length = 0;
 	}
     }
-  freopen(proc_file_name, "r", ifp);
+  fclose(ifp);
+  ifp=fopen(proc_file_name,"r");
+  //freopen(proc_file_name, "r", ifp);
   if (ifp == NULL)
     {
       for (c = 0; c < _gnu_noobjc_argc; c++)

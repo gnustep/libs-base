@@ -723,7 +723,10 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   _NSDeserializerInfo	info;
   id	o;
 
-  NSAssert(data != nil, NSInvalidArgumentException);
+  if (data == nil || [data isKindOfClass: [NSData class]] == NO)
+    {
+      return nil;
+    }
   NSAssert(cursor != 0, NSInvalidArgumentException);
   initDeserializerInfo(&info, data, cursor, flag);
   o = deserializeFromInfo(&info);
@@ -738,7 +741,10 @@ deserializeFromInfo(_NSDeserializerInfo* info)
   unsigned int	cursor = 0;
   id		o;
 
-  NSAssert(data != nil, NSInvalidArgumentException);
+  if (data == nil || [data isKindOfClass: [NSData class]] == NO)
+    {
+      return nil;
+    }
   initDeserializerInfo(&info, data, &cursor, flag);
   o = deserializeFromInfo(&info);
   endDeserializerInfo(&info);
@@ -750,7 +756,10 @@ deserializeFromInfo(_NSDeserializerInfo* info)
                                       length: (unsigned)length
                            mutableContainers: (BOOL)flag
 {
-  NSAssert(data != nil, NSInvalidArgumentException);
+  if (data == nil || [data isKindOfClass: [NSData class]] == NO)
+    {
+      return nil;
+    }
   NSAssert(cursor != 0, NSInvalidArgumentException);
   if (length > [data length] - *cursor)
     {

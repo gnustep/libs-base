@@ -552,7 +552,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
   /* Ensure the string can be found */
   strLength = GSEQ_OLEN;
   if (strLength > aRange.length || strLength == 0)
-    return (NSRange){0, 0};
+    return (NSRange){NSNotFound, 0};
 
   /*
    * Cache method implementations for getting characters and ranges
@@ -606,7 +606,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 		break;
 	      myIndex++;
 	    }
-	  return (NSRange){0, 0};
+	  return (NSRange){NSNotFound, 0};
 	}
 
       case BCLS : 
@@ -641,7 +641,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 		break;
 	      myIndex--;
 	    }
-	  return (NSRange){0, 0};
+	  return (NSRange){NSNotFound, 0};
 	}
 
       case FLS : 
@@ -675,7 +675,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 		break;
 	      myIndex++;
 	    }
-	  return (NSRange){0, 0};
+	  return (NSRange){NSNotFound, 0};
 	}
 
       case BLS : 
@@ -709,7 +709,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 		break;
 	      myIndex--;
 	    }
-	  return (NSRange){0, 0};
+	  return (NSRange){NSNotFound, 0};
 	}
 
       case FCS : 
@@ -783,7 +783,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 		    break;
 		}
 	    }
-	  return (NSRange){0, 0};
+	  return (NSRange){NSNotFound, 0};
 	}
 
       case BCS : 
@@ -860,7 +860,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 		    myIndex--;
 		}
 	    }
-	  return (NSRange){0, 0};
+	  return (NSRange){NSNotFound, 0};
 	}
 
       case BS : 
@@ -930,7 +930,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 		    myIndex--;
 		}
 	    }
-	  return (NSRange){0, 0};
+	  return (NSRange){NSNotFound, 0};
 	}
 
       case FS : 
@@ -998,10 +998,10 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 		    break;
 		}
 	    }
-	  return (NSRange){0, 0};
+	  return (NSRange){NSNotFound, 0};
 	}
     }
-  return (NSRange){0, 0};
+  return (NSRange){NSNotFound, 0};
 }
 #undef	GSEQ_STRRANGE
 #endif
