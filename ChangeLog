@@ -1,3 +1,7 @@
+2003-07-21  Roland Schwingel <Roland.Schwingel@onevision.de>
+
+	* Source/libgnustep-base-entry.m: Don't create unnecessary window.
+
 Mon Jul 21 11:03:48 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Tools/HTMLLinker.m: Removed.
