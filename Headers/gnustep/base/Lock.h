@@ -27,7 +27,7 @@
 #include <objects/stdobjects.h>
 #include <objects/Locking.h>
 
-@interface Lock : Object <Locking>
+@interface Lock : NSObject <Locking>
 {
 }
 @end
