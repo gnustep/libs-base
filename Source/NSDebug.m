@@ -48,6 +48,7 @@ typedef struct {
   int	count;
   int	lastc;
   int	total;
+  int   peak;
 } table_entry;
 
 static	int	num_classes = 0;
@@ -117,6 +118,10 @@ GSDebugAllocationAdd(Class c)
 		[uniqueLock lock];
 	      the_table[i].count++;
 	      the_table[i].total++;
+	      if (the_table[i].count > the_table[i].peak)
+		{
+		  the_table[i].peak = the_table[i].count;
+		}
 	      if (uniqueLock != nil)
 		[uniqueLock unlock];
 	      return;
@@ -149,6 +154,7 @@ GSDebugAllocationAdd(Class c)
       the_table[num_classes].count = 1;
       the_table[num_classes].lastc = 0;
       the_table[num_classes].total = 1;
+      the_table[num_classes].peak = 1;
       num_classes++;
       if (uniqueLock != nil)
 	[uniqueLock unlock];
@@ -168,6 +174,61 @@ GSDebugAllocationCount(Class c)
 	}
     }
   return 0;
+}
+
+int
+GSDebugAllocationTotal(Class c)
+{
+  int	i;
+
+  for (i = 0; i < num_classes; i++)
+    {
+      if (the_table[i].class == c)
+	{
+	  return the_table[i].total;
+	}
+    }
+  return 0;
+}
+
+int
+GSDebugAllocationPeak(Class c)
+{
+  int	i;
+
+  for (i = 0; i < num_classes; i++)
+    {
+      if (the_table[i].class == c)
+	{
+	  return the_table[i].peak;
+	}
+    }
+  return 0;
+}
+
+Class *
+GSDebugAllocationClassList()
+{
+  Class *ans;
+  size_t siz;
+  int	i;
+
+  if (uniqueLock != nil)
+    [uniqueLock lock];
+  
+  siz = sizeof(Class) * (num_classes + 1);
+  ans = NSZoneMalloc(NSDefaultMallocZone(), siz);
+
+  for (i = 0; i < num_classes; i++)
+    {
+      ans[i] = the_table[i].class;
+    }
+  ans[num_classes] = NULL;
+
+  if (uniqueLock != nil)
+    [uniqueLock unlock];
+
+  return ans;
 }
 
 /*
