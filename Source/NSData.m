@@ -48,10 +48,7 @@
 + (id) dataWithBytesNoCopy: (void*)bytes
    length: (unsigned int)length
 {
-  /* FIXME: Why do we switch to `self' here, when `NSGData' was used
-   * above and still seems more applicable?  If we just use `self' we
-   * don't get useful objects. */
-  return [[[self alloc] initWithBytesNoCopy:bytes length:length]
+  return [[[NSGData alloc] initWithBytesNoCopy:bytes length:length]
 	  autorelease];
 }
 
@@ -60,7 +57,8 @@
  * though. */
 + (id)dataWithContentsOfFile: (NSString*)path
 {
-  return [[[NSGData alloc] initWithContentsOfFile:path] autorelease];
+  return [[[NSGData alloc] initWithContentsOfFile:path] 
+	  autorelease];
 }
 
 + (id) dataWithContentsOfMappedFile: (NSString*)path
