@@ -68,7 +68,7 @@ enum
   PROXY_LOCAL_FOR_RECEIVER = 0,
   PROXY_LOCAL_FOR_SENDER,
   PROXY_REMOTE_FOR_BOTH
-};
+} proxyLocation;
 
 
 

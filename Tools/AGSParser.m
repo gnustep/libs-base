@@ -26,6 +26,7 @@
 
 - (void) dealloc
 {
+  DESTROY(wordMap);
   DESTROY(ifStack);
   DESTROY(declared);
   DESTROY(info);
@@ -272,6 +273,7 @@
   NSString		*s;
   BOOL			isTypedef = NO;
   BOOL			isPointer = NO;
+  BOOL			isFunction = NO;
   BOOL			baseConstant = NO;
   BOOL			needScalarType = NO;
 
@@ -574,6 +576,7 @@
       if (isPointer == NO || [d objectForKey: @"Suffix"] == nil)
 	{
 	  [d setObject: @"function" forKey: @"Kind"];
+	  isFunction = YES;
 	}
     }
 
@@ -595,6 +598,27 @@
 	}
       else
 	{
+	  if (isFunction == YES)
+	    {
+	      NSString	*ident = [self parseIdentifier];
+
+	      if ([ident isEqual: @"__attribute__"] == YES)
+		{
+		  if ([self skipSpaces] < length && buffer[pos] == '(')
+		    {
+		      [self skipBlock];	// Skip the attributes
+		    }
+		  else
+		    {
+		      [self log: @"strange format function attributes"];
+		    }
+		}
+	      else if (ident != nil)
+		{
+		  [self log: @"ignoring '%@' in function declaration", ident];
+		}
+	    }
+
 	  if (buffer[pos] == ';')
 	    {
 	      [self skipStatement];
@@ -631,7 +655,10 @@
 	    {
 	      [d setObject: comment forKey: @"Comment"];
 	    }
-	  [self log: @"parse '%@'", d];
+	  if (verbose == YES)
+	    {
+	      [self log: @"parse '%@'", d];
+	    }
 	  DESTROY(comment);
 	}
 
@@ -1021,10 +1048,19 @@ fail:
   return nil;
 }
 
+/**
+ * Attempt to parse an identifier/keyword (with optional whitespace in
+ * front of it).  Perform mappings using the wordMap dictionary.  If a
+ * mapping produces an empty string, we treat it as if we had read
+ * whitespace and try again.
+ * If we read end of data, or anything which is invalid inside an
+ * identifier, we return nil.
+ */
 - (NSString*) parseIdentifier
 {
   unsigned	start;
 
+try:
   [self skipWhiteSpace];
   if (pos >= length || [identStart characterIsMember: buffer[pos]] == NO)
     {
@@ -1035,8 +1071,21 @@ fail:
     {
       if ([identifier characterIsMember: buffer[pos]] == NO)
 	{
-	  return [NSString stringWithCharacters: &buffer[start]
-					 length: pos - start];
+	  NSString	*tmp;
+	  NSString	*val;
+
+	  tmp = [NSString stringWithCharacters: &buffer[start]
+					length: pos - start];
+	  val = [wordMap objectForKey: tmp];
+	  if (val == nil)
+	    {
+	      return tmp;	// No mapping found.
+	    }
+	  else if ([val length] > 0)
+	    {
+	      return val;	// Got mapped identifier.
+	    }
+	  goto try;		// Mapping removed the identifier.
 	}
       pos++;
     }
@@ -1850,6 +1899,24 @@ fail:
 }
 
 /**
+ * Control boolean option to do verbose logging of the parsing process.
+ */
+- (void) setVerbose: (BOOL)flag
+{
+  verbose = flag;
+}
+
+/**
+ * Sets up a dictionary used for mapping identifiers/keywords to other
+ * words.  This is used to help cope with cases where C preprocessor
+ * definitions are confusing the parsing process.
+ */
+- (void) setWordMap: (NSDictionary*)map
+{
+  ASSIGNCOPY(wordMap, map);
+}
+
+/**
  * Read in the file to be parsed and store it in a temporary unicode
  * buffer.  Perform basic transformations on the buffer to simplify
  * the parsing process later - including stripping out of escaped
@@ -2001,12 +2068,22 @@ fail:
 }
 
 /**
- * Skip until we encounter an '}' marking the end of a block.
+ * Skip a bracketed block.
  * Expect the current character position to be pointing to the
- * '{' at the start of a block.
+ * bracket at the start of a block.
  */
 - (unsigned) skipBlock
 {
+  unichar	term = '}';
+
+  if (buffer[pos] == '(')
+    {
+      term = ')';
+    }
+  else if (buffer[pos] == '[')
+    {
+      term = ']';
+    }
   pos++;
   while ([self skipWhiteSpace] < length)
     {
@@ -2029,8 +2106,21 @@ fail:
 	    [self skipBlock];
 	    break;
 
-	  case '}':
-	    return pos;
+	  case '(':
+	    pos--;
+	    [self skipBlock];
+	    break;
+
+	  case '[':
+	    pos--;
+	    [self skipBlock];
+	    break;
+
+	  default:
+	    if (c == term)
+	      {
+		return pos;
+	      }
         }
     }
   return pos;

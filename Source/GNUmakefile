@@ -381,7 +381,13 @@ Base_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
 	-Standards YES \
-	-Up Base
+	-WordMap '{\
+	FOUNDATION_EXPORT=extern;FOUNDATION_STATIC_INLINE="";\
+	GS_GEOM_SCOPE=extern;GS_GEOM_ATTR="";\
+	GS_EXPORT=extern;GS_DECLARE="";\
+	GS_RANGE_SCOPE=extern;GS_RANGE_ATTR="";\
+	GS_ZONE_SCOPE=extern;GS_ZONE_ATTR="";\
+	}' -Up Base
 
 -include Makefile.preamble
 

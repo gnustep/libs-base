@@ -1,3 +1,19 @@
+2002-02-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GNUmakefile: use -WordMap flag with autogsdoc to cope with
+	C-preprocessor constants that would otherwise confuse parsing.
+	* Source/NSDictionary.m: Tidy to match interface.
+	* Source/NSDistantObject.m: Tidy to match interface.
+	* Source/NSPortCoder.m: Tidy to match interface.
+	* Source/NSScanner.m: Tidy to match interface.  Remove some illegal
+	semicolons after method names.
+	* Source/NSTimer.m: Tidy to match interface.
+	* Tools/AGSParser.h: Handle word mappings.
+	* Tools/AGSParser.m: Handle word mappings and deal with function
+	attributes.
+	* Tools/autogsdoc.m: Handle word mappings and make default logging
+	less verbose.
+
 2002-02-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Fix some maptable problems when using non-local

@@ -354,12 +354,18 @@ static SEL	appSel;
   return [self initWithObjects: NULL forKeys: NULL count: 0];
 }
 
-- (id) initWithDictionary: (NSDictionary*)other
+- (id) initWithDictionary: (NSDictionary*)otherDictionary
 {
-  return [self initWithDictionary: other copyItems: NO];
+  return [self initWithDictionary: otherDictionary copyItems: NO];
 }
 
-- (id) initWithDictionary: (NSDictionary*)other copyItems: (BOOL)shouldCopy
+/**
+ * Initialise dictionary with the keys and values of otherDictionary.
+ * If the shouldCopy flag is YES then the values are copied into the
+ * newly initialised dictionary, otherwise they are simply retained.
+ */
+- (id) initWithDictionary: (NSDictionary*)other
+		copyItems: (BOOL)shouldCopy
 {
   unsigned	c = [other count];
 
@@ -1062,19 +1068,24 @@ static NSString	*indentStrings[] = {
     }
 }
 
-- (void) addEntriesFromDictionary: (NSDictionary*)other
+/**
+ * Merges information from otherDictionary into the receiver.
+ * If a key exists in both dictionaries, the value from otherDictionary
+ * replaces that which was originally in the reciever.
+ */
+- (void) addEntriesFromDictionary: (NSDictionary*)otherDictionary
 {
-  if (other != nil && other != self)
+  if (otherDictionary != nil && otherDictionary != self)
     {
       id		k;
-      NSEnumerator	*e = [other keyEnumerator];
+      NSEnumerator	*e = [otherDictionary keyEnumerator];
       IMP		nxtObj = [e methodForSelector: nxtSel];
-      IMP		getObj = [other methodForSelector: objSel];
+      IMP		getObj = [otherDictionary methodForSelector: objSel];
       IMP		setObj = [self methodForSelector: setSel];
 
       while ((k = (*nxtObj)(e, nxtSel)) != nil)
 	{
-	  (*setObj)(self, setSel, (*getObj)(other, objSel, k), k);
+	  (*setObj)(self, setSel, (*getObj)(otherDictionary, objSel, k), k);
 	}
     }
 }

@@ -46,25 +46,25 @@ static Class	NSDate_class;
     }
 }
 
-/*
+/**
  * <init />
  * Initialise a newly allocated NSTimer object.
  */
-- (id) initWithTimeInterval: (NSTimeInterval)seconds
-	 targetOrInvocation: (id)t
-		   selector: (SEL)sel
-		   userInfo: info
+- (id) initWithTimeInterval: (NSTimeInterval)ti
+	 targetOrInvocation: (id)object
+		   selector: (SEL)selector
+		   userInfo: (id)info
 		    repeats: (BOOL)f
 {
-  if (seconds <= 0)
+  if (ti <= 0)
     {
-      seconds = 0.0001;
+      ti = 0.0001;
     }
-  _interval = seconds;
+  _interval = ti;
   _date = [[NSDate_class allocWithZone: [self zone]]
-    initWithTimeIntervalSinceNow: seconds];
-  _target = t;
-  _selector = sel;
+    initWithTimeIntervalSinceNow: ti];
+  _target = object;
+  _selector = selector;
   _info = info;
   _repeats = f;
   return self;
