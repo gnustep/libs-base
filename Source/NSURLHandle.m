@@ -141,7 +141,7 @@ static Class		NSURLHandleClass = 0;
     }
   NS_ENDHANDLER
   [registryLock unlock];
-  return 0;
+  return c;
 }
 
 /*
