@@ -1092,6 +1092,15 @@ static BOOL isPlistObject(id o)
  */
 - (void) setObject: (id)value forKey: (NSString*)defaultName
 {
+  NSMutableDictionary	*dict;
+  id			obj;
+
+  if ([defaultName isKindOfClass: [NSString class]] == NO
+    || [defaultName length] == 0)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"attempt to set object with bad key (%@)", defaultName];
+    }
   if (value == nil)
     {
       [NSException raise: NSInvalidArgumentException
@@ -1104,28 +1113,21 @@ static BOOL isPlistObject(id o)
 	defaultName];
     }
 
-  if (defaultName != nil && ([defaultName length] > 0))
+  [_lock lock];
+  obj = [_persDomains objectForKey: processName];
+  if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
     {
-      NSMutableDictionary	*dict;
-      id			obj;
-
-      [_lock lock];
-      obj = [_persDomains objectForKey: processName];
-      if ([obj isKindOfClass: NSMutableDictionaryClass] == YES)
-	{
-	  dict = obj;
-	}
-      else
-	{
-	  dict = [obj mutableCopy];
-	  [_persDomains setObject: dict forKey: processName];
-	  RELEASE(dict);
-	}
-      [dict setObject: value forKey: defaultName];
-      [self __changePersistentDomain: processName];
-      [_lock unlock];
+      dict = obj;
     }
-  return;
+  else
+    {
+      dict = [obj mutableCopy];
+      [_persDomains setObject: dict forKey: processName];
+      RELEASE(dict);
+    }
+  [dict setObject: value forKey: defaultName];
+  [self __changePersistentDomain: processName];
+  [_lock unlock];
 }
 
 /**
