@@ -1689,9 +1689,12 @@ static inline int getDigits(const char *from, char *to, int limit)
    */
   if ([date isKindOfClass: [NSCalendarDate class]])
     tmp = (NSCalendarDate*)RETAIN(date);
-  else
+  else if ([date isKindOfClass: [NSDate class]])
     tmp = [[NSCalendarDate alloc] initWithTimeIntervalSinceReferenceDate:
 		[date timeIntervalSinceReferenceDate]];
+  else
+    [NSException raise: NSInvalidArgumentException
+		format: @"%@ invalid date given", NSStringFromSelector(_cmd)];
 
   end = (NSCalendarDate*)[self laterDate: tmp];
   if (end == self)
