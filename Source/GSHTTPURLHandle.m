@@ -591,7 +591,11 @@ static NSLock			*urlLock = nil;
       NSString	*key = [propertyKey lowercaseString];
       NSArray	*array = [document headersNamed: key];
 
-      if ([array count] == 1)
+      if ([array count] == 0)
+	{
+	  return nil;
+	}
+      else if ([array count] == 1)
 	{
 	  result = [[array objectAtIndex: 0] objectForKey: @"BaseValue"];
 	}

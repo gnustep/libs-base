@@ -2,6 +2,8 @@
 
 	* Source/NSPortNameServer.m: Log the host we are connecting to
 	when we produce a warning for a failure of a link to gdomap.
+	* Source/GSHTTPURLHandle.m: ([-propertyForKeyIfAvailable:]) return
+	nil if the property is not available.
 
 2001-08-01  Richard Frith-Macdonald <rfm@gnu.org>
 
