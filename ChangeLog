@@ -1,14 +1,14 @@
+2003-05-19  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.7.0.
+	* Documentation/news.texi: Updated.
+
 2003-05-20  David Ayers <d.ayers@inode.at>
 
 	* Headers/gnustep/base/GSObjCRuntime.h (GSObjCGetMethod(),
 	GSObjCReplaceMethod()):  Removed declarations for release as these
 	functions will be replaced by a more consistent approach.
 	
-2003-05-19  Adam Fedor  <fedor@gnu.org>
-
-	* Version 1.7.0.
-	* Documentation/news.texi: Updated.
-
 2003-05-19  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSObject (GSAtExit): New function.
