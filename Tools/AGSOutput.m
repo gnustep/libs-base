@@ -538,6 +538,10 @@ static BOOL snuggleStart(NSString *t)
 	  AUTORELEASE(m);
 	}
     }
+  if (standards == nil)
+    {
+      standards = [d objectForKey: @"Standards"];
+    }
 
   [str appendString: @"        <method type=\""];
   [str appendString: escapeType([d objectForKey: @"ReturnType"])];
@@ -597,12 +601,43 @@ static BOOL snuggleStart(NSString *t)
   NSString	*comment = [d objectForKey: @"Comment"];
   NSArray	*names;
   NSArray	*protocols;
+  NSString	*standards = nil;
   NSString	*tmp;
   NSString	*unit;
   NSRange	r;
   unsigned	ind;
   unsigned	i;
   unsigned	j;
+
+  r = [comment rangeOfString: @"<standards>"];
+  if (comment != nil && r.length > 0)
+    {
+      unsigned  i = r.location;
+
+      r = NSMakeRange(i, [comment length] - i);
+      r = [comment rangeOfString: @"</standards>"
+		     options: NSLiteralSearch
+		       range: r];
+      if (r.length > 0)
+	{
+	  NSMutableString	*m;
+
+	  r = NSMakeRange(i, NSMaxRange(r) - i);
+	  standards = [comment substringWithRange: r];
+	  m = [comment mutableCopy];
+	  [m deleteCharactersInRange: r];
+	  comment = m;
+	  AUTORELEASE(m);
+	}
+      else
+	{
+	  NSLog(@"unterminated <standards> in comment for %@", name);
+	}
+    }
+  if (standards == nil)
+    {
+      standards = [d objectForKey: @"Standards"];
+    }
 
   /*
    * Make sure we have a 'unit' part and a class 'desc' part (comment)
@@ -744,6 +779,10 @@ static BOOL snuggleStart(NSString *t)
       [self outputMethod: [methods objectForKey: mName] to: str];
     }
 
+  if (standards != nil)
+    {
+      [self reformat: standards withIndent: ind to: str];
+    }
   ind -= 2;
   for (j = 0; j < ind; j++) [str appendString: @" "];
   [str appendString: @"</"];

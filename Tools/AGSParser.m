@@ -26,6 +26,7 @@
 
 - (void) dealloc
 {
+  DESTROY(ifStack);
   DESTROY(declared);
   DESTROY(info);
   DESTROY(comment);
@@ -56,6 +57,7 @@
   identStart = RETAIN([NSCharacterSet characterSetWithCharactersInString:
     @"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
   info = [[NSMutableDictionary alloc] initWithCapacity: 6];
+  ifStack = [[NSMutableArray alloc] initWithCapacity: 4];
   return self;
 }
 
@@ -146,7 +148,7 @@
 	     * Some preprocessor directive ... must be on one line ... skip
 	     * past it and delete any comment accumulated while doing so.
 	     */
-	    [self skipRemainderOfLine];
+	    [self skipPreprocessor];
 	    DESTROY(comment);
 	    break;
 
@@ -352,6 +354,7 @@ fail:
   unitName = name;
 
   [dict setObject: @"class" forKey: @"Type"];
+  [self setStandards: dict];
 
   /*
    * After the class name, we may have a category name or
@@ -529,7 +532,7 @@ fail:
 	}
       else if (buffer[pos] == '#')
 	{
-	  [self skipRemainderOfLine];	// Ignore preprocessor directive.
+	  [self skipPreprocessor];	// Ignore preprocessor directive.
 	  DESTROY(comment);
 	}
       else
@@ -742,6 +745,10 @@ fail:
     }
 
   [method setObject: mname forKey: @"Name"];
+  if (flag == YES)
+    {
+      [self setStandards: method];
+    }
   itemName = mname;
 
   if (term == ';')
@@ -945,7 +952,7 @@ fail:
 	     * Some preprocessor directive ... must be on one line ... skip
 	     * past it and delete any comment accumulated while doing so.
 	     */
-	    [self skipRemainderOfLine];
+	    [self skipPreprocessor];
 	    DESTROY(comment);
 	    break;
 
@@ -1089,6 +1096,7 @@ fail:
       goto fail;
     }
   [dict setObject: name forKey: @"Name"];
+  [self setStandards: dict];
   unitName = [NSString stringWithFormat: @"(%@)", name];
 
   /*
@@ -1328,7 +1336,7 @@ fail:
       switch (c)
 	{
 	  case '#':		// preprocessor directive.
-	    [self skipRemainderOfLine];
+	    [self skipPreprocessor];
 	    break;
 
 	  case '\'':
@@ -1804,6 +1812,151 @@ fail:
   return pos;
 }
 
+/**
+ * Skip past a preprocessor statement, handling preprocessor
+ * conditionals in a rudimentary way.  We keep track of the
+ * level of conditional nesting, and we also track the use of
+ * #ifdef and #ifndef with some well-known constants to tell
+ * us which standards are currently supported.
+ */
+- (unsigned) skipPreprocessor
+{
+  while (pos < length && [spaces characterIsMember: buffer[pos]] == YES)
+    {
+      pos++;
+    }
+  if (pos < length && buffer[pos] != '\n')
+    {
+      NSString	*directive = [self parseIdentifier];
+
+      if ([directive isEqual: @"endif"] == YES)
+	{
+	  unsigned	c = [ifStack count];
+
+	  if (c == 0)
+	    {
+	      [self log: @"Unexpected #endif (no matching #if)"];
+	    }
+	  else
+	    {
+	      [ifStack removeObjectAtIndex: c - 1];
+	    }
+	}
+      else if ([directive isEqual: @"elif"] == YES)
+	{
+	  unsigned	c = [ifStack count];
+
+	  if (c == 0)
+	    {
+	      [self log: @"Unexpected #else (no matching #if)"];
+	    }
+	  else
+	    {
+	      [ifStack replaceObjectAtIndex: c - 1 withObject: @""];
+	    }
+	}
+      else if ([directive isEqual: @"else"] == YES)
+	{
+	  unsigned	c = [ifStack count];
+
+	  if (c == 0)
+	    {
+	      [self log: @"Unexpected #else (no matching #if)"];
+	    }
+	  else
+	    {
+	      NSString	*item = [ifStack objectAtIndex: --c];
+
+	      if ([item isEqual: @"GNUstep"] == YES)
+		{
+		  [ifStack replaceObjectAtIndex: c withObject: @"NotGNUstep"];
+		}
+	      else if ([item isEqual: @"NotGNUstep"] == YES)
+		{
+		  [ifStack replaceObjectAtIndex: c withObject: @"GNUstep"];
+		}
+	      else if ([item isEqual: @"OpenStep"] == YES)
+		{
+		  [ifStack replaceObjectAtIndex: c withObject: @"NotOpenStep"];
+		}
+	      else if ([item isEqual: @"NotOpenStep"] == YES)
+		{
+		  [ifStack replaceObjectAtIndex: c withObject: @"OpenStep"];
+		}
+	      else if ([item isEqual: @"MacOS-X"] == YES)
+		{
+		  [ifStack replaceObjectAtIndex: c withObject: @"NotMacOS-X"];
+		}
+	      else if ([item isEqual: @"NotMacOS-X"] == YES)
+		{
+		  [ifStack replaceObjectAtIndex: c withObject: @"MacOS-X"];
+		}
+	    }
+	}
+      else if ([directive isEqual: @"if"] == YES)
+	{
+	  [ifStack addObject: @""];
+	}
+      else if ([directive hasPrefix: @"if"] == YES)
+	{
+	  BOOL	isIfDef = [directive isEqual: @"ifdef"];
+
+	  while (pos < length && [spaces characterIsMember: buffer[pos]] == YES)
+	    {
+	      pos++;
+	    }
+	  if (pos < length && buffer[pos] != '\n')
+	    {
+	      NSString	*arg = [self parseIdentifier];
+	      NSString	*val = @"";
+
+	      if ([arg isEqual: @"NO_GNUSTEP"] == YES)
+		{
+		  if (isIfDef == YES)
+		    {
+		      val = @"NotGNUstep";
+		    }
+		  else
+		    {
+		      val = @"GNUstep";
+		    }
+		}
+	      else if ([arg isEqual: @"STRICT_MACOS_X"] == YES)
+		{
+		  if (isIfDef == YES)
+		    {
+		      val = @"MacOS-X";
+		    }
+		  else
+		    {
+		      val = @"NotMacOS-X";
+		    }
+		}
+	      else if ([arg isEqual: @"STRICT_OPENSTEP"] == YES)
+		{
+		  if (isIfDef == YES)
+		    {
+		      val = @"OpenStep";
+		    }
+		  else
+		    {
+		      val = @"NotOpenStep";
+		    }
+		}
+	      [ifStack addObject: val];
+	    }
+	}
+    }
+  while (pos < length)
+    {
+      if (buffer[pos++] == '\n')
+	{
+	  break;
+	}
+    }
+  return pos;
+}
+
 - (unsigned) skipRemainderOfLine
 {
   while (pos < length)
@@ -1845,7 +1998,7 @@ fail:
       switch (c)
 	{
 	  case '#':		// preprocessor directive.
-	    [self skipRemainderOfLine];
+	    [self skipPreprocessor];
 	    break;
 
 	  case '\'':
@@ -1899,7 +2052,7 @@ fail:
       switch (c)
 	{
 	  case '#':		// preprocessor directive.
-	    [self skipRemainderOfLine];
+	    [self skipPreprocessor];
 	    break;
 
 	  case '\'':
@@ -1954,5 +2107,42 @@ fail:
   return pos;
 }
 
+/**
+ * Store the current standards information derived from preprocessor
+ * conditionals in the supplied dictionary ... this will be used by
+ * the AGSOutput class to put standards markup in the gsdoc output.
+ */
+- (void) setStandards: (NSMutableDictionary*)dict
+{
+  unsigned		c = [ifStack count];
+
+  if (c > 0)
+    {
+      NSMutableString	*s = nil;
+      BOOL		found = NO;
+
+      s = [NSMutableString stringWithCString: "<standards>"];
+      while (c-- > 0)
+	{
+	  NSString	*name = [ifStack objectAtIndex: c];
+
+	  /*
+	   * We don't produce output for empty strings or
+	   * the 'NotGNUstep' string.
+	   */
+	  if ([name isEqualToString: @""] == NO
+	    && [name isEqualToString: @"NotGNUstep"] == NO)
+	    {
+	      found = YES;
+	      [s appendFormat: @"<%@ />", name];
+	    }
+	}
+      if (found == YES)
+	{
+	  [s appendString: @"</standards>"];
+	  [dict setObject: s forKey: @"Standards"];
+	}
+    }
+}
 @end
 
