@@ -20,7 +20,7 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
 
 #include <Foundation/NSException.h>
@@ -592,7 +592,7 @@
 	      CASE_TYPE(_C_DBL, double);
 	      CASE_TYPE(_C_PTR, void*);
 	      case _C_STRUCT_B:
-#if MFRAME_STRUCT_BYREF
+#if defined(sparc) || defined(powerpc)
 		/* FIXME: This only appears on sparc and ppc machines so far.
 		structures appear to be aligned on word boundaries. 
 		Hopefully there is a more general way to figure this out */

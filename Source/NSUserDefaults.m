@@ -19,7 +19,7 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
 #include <config.h>
@@ -327,7 +327,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   }
   if (processName == nil)
     processName = RETAIN([[NSProcessInfo processInfo] processName]);
-	
+
   // Create an empty search list
   searchList = [[NSMutableArray alloc] initWithCapacity: 10];
 	

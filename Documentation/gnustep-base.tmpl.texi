@@ -1,98 +1,277 @@
-\input texinfo  @c -*-texinfo-*-
-@c GNUstep BASE Library
-@c
-@c This file uses the special commands @url{} and @email{}.
+\input texinfo @c -*-texinfo-*-
 
-@c Let included files know they are within the main document
-@set GSTEP-BASE-MAIN
+@c %**start of header
+@settitle User's Guide to the GNUstep Base Library
+@setfilename gstep-base.info
+@c %**end of header
+@defcodeindex cl
+@defcodeindex pr
+@ignore
+I'm using cindex for concepts, findex for methods, functions and macros,
+prindex for protocols, and clindex for classes.
+@end ignore
 
-@iftex
-@global@let@email=@i
-@global@let@url=@samp
-@end iftex
-
-@ifset NO-TEXI2HTML
 @ifinfo
-@definfoenclose email, <, >
-@definfoenclose url `, '
+@format
+START-INFO-DIR-ENTRY
+* gstep-base::                      The GNUstep Base Library
+END-INFO-DIR-ENTRY
+@end format
 @end ifinfo
-@end ifset
 
-@settitle The GNUstep BASE Library
-@setfilename gnustep-base.info
-@include version.texi
+@c set the vars GNUSTEP-BASE-VERSION and GCC-VERSION
+@include version.tmpl.texi
 
 @ifinfo
-This file documents the GNUstep BASE Library.
+This file documents the features and implementation of The GNUstep 
+Base Library.
 
-@ifclear NO-TEXI2HTML
-@c @subtitle For GCC Version @value{GNUSTEP-BASE-GCC}
-@c @author Andrew McCallum and Adam Fedor
-@sp 1
-@end ifclear
-Copyright @copyright{} 1998 Free Software Foundation
+
+Copyright (C) 1999 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
 are preserved on all copies.
 
 Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that
-the entire resulting derived work is distributed under the terms of a
-permission notice identical to this one.
+manual under the conditions for verbatim copying, provided also that the
+section entitled ``GNU Library General Public License'' is included exactly as
+in the original, and provided that the entire resulting derived work is
+distributed under the terms of a permission notice identical to this one.
 
 Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions.
+into another language, under the above conditions for modified versions,
+except that the section entitled ``GNU Library General Public License'' and
+this permission notice may be included in translations approved by the
+Free Software Foundation instead of in the original English.
 @end ifinfo
 
 @iftex
-@setchapternewpage odd
 @finalout
+@c @smallbook
+@c @cropmarks
+@end iftex
+
+@setchapternewpage odd
+
 @titlepage
-@title The GNUstep BASE Library
-@c @subtitle DRAFT Edition for GNUstep BASE Library @value{GNUSTEP-BASE-VERSION}
-@c @subtitle Last revision Jan 1998
-@c @subtitle For GCC Version @value{GNUSTEP-BASE-GCC}
-@c @author Andrew McCallum
+@title User's Guide to the
+@title GNUstep Base Library
+@sp 3
+@subtitle Version @value{GNUSTEP-BASE-VERSION}
+@author Adam Fedor (fedor@@gnu.org)
 @page
-
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1998 Free Software Foundation
+Copyright @copyright{} 1999 Free Software Foundation, Inc.
 
-@sp 2
-GNUstep BASE Library Version @value{GNUSTEP-BASE-VERSION}@*
-@c For GCC Version @value{GCC-VERSION}@*
-@sp 1
-Last printed Jan, 1998.@*
-@sp 1
+
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
 are preserved on all copies.
 
 Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that
-the entire resulting derived work is distributed under the terms of a
-permission notice identical to this one.
+manual under the conditions for verbatim copying, provided also that the
+section entitled ``GNU Library General Public License'' is included exactly as
+in the original, and provided that the entire resulting derived work is
+distributed under the terms of a permission notice identical to this one.
 
 Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions.
+into another language, under the above conditions for modified versions,
+except that the section entitled ``GNU Library General Public License'' may be
+included in a translation approved by the author instead of in the original
+English.
+
 @end titlepage
-@end iftex
 
-@chapter Introduction
+@node Top, Overview, (dir), (dir)
+@top gstep-base
 
-@c README
-@include readme.texi
+This manual documents some configuration and installation issues
+with the GNUstep Base Library and also differences between the Base
+Library and libraries that implement the OpenStep Foundation specification
+and the MacOS-X Foundation implementation.
 
-@c Announcement
-@include announce.texi
+@menu
+* Overview::                    
+* Configuration::               
+* Classes::                     
+* Tools::                       
+* Installation::                
+* Implementation::              
+* Coding Standards::            
+* Contributing::                
+* Concept Index::               
+@end menu
 
-@c News
-@include news.texi
+@node Overview, Configuration, Top, Top
+@chapter Overview
 
-@c Generate Short Contents
-@shortcontents
+The GNUstep Base Library (gstep-base) requires the GNUstep Makefile
+Package (gstep-make) to compile. A recent GCC compiler may also be
+needed as well as other libraries. You should consult the
+@file{GNUstep-HOWTO} document that comes with the GNUstep Core Libraries
+package (gstep-core) or information on supported machines on the web
+site @url{http://www.gnustep.org/information}
 
-@c Generate Complete Contents
+@node Configuration, Classes, Overview, Top
+@chapter Configuration
+
+Configuration is performed by running the @file{configure} program at a
+shell prompt. You may want to use some of the optional arguments to the
+@file{configure} program. Type @code{configure --help}
+for a list of these. It is not likely that you will need to use the
+@code{--prefix} option, since gstep-base will automatically install in
+the directory specified by the @code{GNUSTEP_SYSTEM_ROOT} environment
+variable (specified when you installed gstep-make).
+
+The only feature you may want to use is the @code{--enable-fake-main}
+option. Normally, the configure script will determine if a program can
+read process information directly from the system (for use by the class
+NSProcessInfo) and enable or disable the fake-main hack automatically,
+but if you find that configure is not doing this correctly, you can
+force the fake-main hack to be used, which will always work. Note that
+if the fake-main hack is enabled, you need to include the header file
+GSConfig.h in you main program -- this is done by default if you include
+NSObject.h or Foundation.h.
+
+Most other important configuration options are already set when you
+configure the gstep-make package.
+
+@node Classes, Tools, Configuration, Top
+@chapter Special Features of gstep-base Classes
+
+@node Tools, Installation, Classes, Top
+@chapter Special Tools Included with gstep-base
+
+@node Installation, Implementation, Tools, Top
+@chapter Installing GNU Objective-C Class Library
+
+Type @code{make install} to install the libraries and programs
+
+@node Implementation, Coding Standards, Installation, Top
+@chapter Implementation Details
+
+@menu
+* Time Zone::                   
+@end menu
+
+@node Time Zone,  , Implementation, Implementation
+@section Time Zones
+
+If the GNUstep time zone datafiles become too out of date, one can
+download an updated database from <ftp://elsie.nci.nih.gov/pub/> and
+compile it as specified in the README file in the NSTimeZones
+directory.  (In fact, I believe it's about time they're updated.)
+
+@example
+    Time zone names in NSDates should be GMT, MET etc. not
+    Europe/Berlin, America/Washington etc.
+@end example
+
+The problem with this is that various time zones may use the same
+abbreviation (e.g. Australia/@{Brisbane,...@} and America/@{New_York,...@}
+both use EST), and some time zones may have different rules for
+daylight saving time even if the abbreviation and offsets from UTC are
+the same.
+
+The problems with depending on the OS for providing time zone info are
+that some methods for the NSTimeZone classes might be difficult to
+implement, and also that time zone names may vary wildly between OSes
+(this could be a big problem when archiving is used between different
+systems).
+
+@c ******************************************************************
+@node Coding Standards, Contributing, Implementation, Top
+@chapter Coding Standards
+
+This chapter explains the official coding standards which developers
+for GNUstep base should follow. Note that these standards are in addition
+to GNU coding standards, not a replacement of them.
+
+@menu
+* Error Handling::              
+@end menu
+
+@node Error Handling,  , Coding Standards, Coding Standards
+@section Error Handling
+
+Initialization methods (e.g. -init) should, upon failure to
+initialize the class, deallocate itself and return nil. This may mean
+in certain cases, that it should catch exceptions, since the calling
+method will be expecting a nil object rather than an exception on
+failure. However, init methods should endeavor to provide some
+information, via NSLog, on the failure.
+
+All other methods should cause an exception on failure*, unless
+returning nil is a valid response (e.g. [dictionary
+objectForKey: nil]) or if documented otherwise.
+
+Failure here is a relative term. I'd interpret failure to occur when
+either system resources have been exceeded, an operation was performed
+on invalid data, or a required precondition was not met.
+On the other hand, passing a nil object as a parameter (as in
+[(NSMutableData *)data appendData: nil]), or other "unusual"
+requests should succeed in a reasonable manner (or return nil, if
+appropriate) and/or reasonable default values could be used.
+
+If an error is recoverable or it does not damage the internal state of
+an object, it's ok not to raise an error. At the very least, though, a message
+should be printed through NSLog.
+
+Special care should be taken in methods that create resources like
+allocate memory or open files or obtain general system resources (locks,
+shared memory etc.) from the kernel. If an exception is generated
+between the allocation of the resource and its disposal, the resource
+will be simply lost without any possibility to release. The code should
+check for exceptions and if something bad occurs it should release all
+the allocated resources and reraise the exception.
+
+Unfortunately there is no nice way to do this automatically in OpenStep.
+Java has the "finally" block which is specifically designed for this task. A
+similar mechanism exists in libFoundation with the CLEANUP and FINALLY
+blocks.
+
+@node Contributing, Concept Index, Coding Standards, Top
+@chapter Contributing
+
+Contributing code is not difficult. Here are
+some general guidelines:
+
+@itemize @bullet
+
+@item
+FSF must maintain the right to accept or reject potential contributions.
+Generally, the only reasons for rejecting contributions are cases where
+they duplicate existing or nearly-released code, contain unremovable
+specific machine dependencies, or are somehow incompatible with the
+rest of the library. 
+
+@item
+Acceptance of contributions means that the code is accepted for adaptation
+into libgnustep-base.  FSF must reserve the right to make various editorial changes
+in code. Very often, this merely entails formatting, maintenance of various
+conventions, etc. Contributors are always given authorship credit and shown
+the final version for approval.
+
+@item
+Contributors must assign their copyright to FSF via a form sent out
+upon acceptance. Assigning copyright to FSF ensures that the code
+may be freely distributed.
+
+@item
+Assistance in providing documentation, test files, and debugging
+support is strongly encouraged.
+
+@end itemize
+
+Extensions, comments, and suggested modifications of existing libgnustep-base
+features are also very welcome.
+
+@node Concept Index,  , Contributing, Top
+@unnumbered Concept Index
+@printindex cp
+
+@summarycontents
 @contents
+
 @bye

@@ -4,40 +4,150 @@ Fri Sep  3 11:57:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	method for testing for path separators - also fixed appending
 	of path extensions and components to be according to spec.
 
+Sat Aug 21  6:26:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/gdomap.c: Fix for probing for other gdomap processes on the
+	net.
+
+1999-08-19  Michael Hanni  <mhanni@sprintmail.com>
+
+	* Source/NSObjCRuntime.m: patch from Tim Bissell to help in
+	debugging. (show which non-existant ivar you wanted.)
+
+1999-09-07  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 0.6.0
+
+	* configure.in: Add test for solaris libraries, freebsd threads.
+	* Source/mframe/config.guess: Update to latest version	
+	* Source/mframe/config.sub: Likewise.
+	
+Sun Sep  5  9:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* config/config_thread.m: new file
+	* configure.in: Update to check to see if obc runtime uses threads
+	so that we can include the thread library if necessary - and later
+	onbjc tests won't all fail on threaded systems.
+	Also - force use of fake-main stuff on bsd systems.
+	* Source/NSProcessInfo.m: Remove bsd workaround - didn't work.
+
+1999-08-29   Michael Hanni  <mhanni@sprintmail.com>
+
+	* Source/NSObjCRuntime.m: added a patch from Tim Bissell
+	<tim.bissell@dresdnerkb.com>. Adds better debugging information
+	for non-existent ivars.
+
+Sat Sep  4  6:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Various process-info related bugfixes.
+	* Source/NSBundle.m: Use arguments list for argv[0] for full path.
+	* Source/NSLog.m: use processName directly in log.
+	* Source/NSProcessInfo.m: Fix process name to be last path component
+	of argv[0], and add workaround for buggy /proc filesystems that
+	append a newline to arguments.
+	* Source/NSUserDefaults.m: use processName directly for domain name.
+
 Thu Sep  2  9:03:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * Source/NSTask.m: exec process with argv[0] set to full path of
-	the executable rather than just the program name.
+        the executable rather than just the program name.
 
 Tue Aug 31 15:47:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-        * Source/NSTimer.m: Set minimum timeout to 0.01s rather than 1.0s.
-        This seems a more reasonable value - a 1 second delay is too big.
+	* Source/NSTimer.m: Set minimum timeout to 0.01s rather than 1.0s.
+	This seems a more reasonable value - a 1 second delay is too big.
 
-Wed Aug 25 17:08:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+1999-08-29  Adam Fedor  <fedor@gnu.org>
 
-	Fixes for memory leak in property-list parsing and in NSTimeZone
-	merged in from dawn.
+	* Source/NSLog.m (_NSLog_standard_printf_handler): Use
+	cStringLength.
+
+Wed Aug 25 15:28:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Fixes for memory leaks in parsing property lists.
+	* Source/propList.h: release new strings asap
+	* Source/NSString.m: autorelease value returned by parsing plists.
+	* Source/NSGString.m: ditto.
+	* Source/NSGCString.m: ditto.
 
 Wed Aug 25 11:37:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/Makefile.postamble: Added rules to build some files without
 	optimisation, to avoid optimiser breaking them.
 
-Sat Aug 21  6:26:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+1999-08-23  Pedro Ivo Andrade Tavares  <ptavares@iname.com>
 
-	* Tools/gdomap.c: Fix for probing for other gdomap processes on the
-	net.
+        * Headers/gnustep/base/NSByteOrder.h: changed the NSByteStore struct
+        to comply to Mac OS X documentation.
+
+1999-08-22  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/gnustep-base.tmpl.texi: New with GNUstep specific
+	documentation.
+	* Documentation/news.tmpl.texi: update
 
 Fri Aug 20 16:17:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-        * NSNotificationQueue.m: notifyIdle() fix to send ASAP notifications
-        even when no idle notifications are waiting.
+	* NSNotificationQueue.m: notifyIdle() fix to send ASAP notifications
+	even when no idle notifications are waiting.
 
-1999-08-19  Michael Hanni  <mhanni@sprintmail.com>
+Thu Aug 19 16:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
-	* Source/NSObjCRuntime.m: patch from Tim Bissell to help in
-	debugging. (show which non-existant ivar you wanted.)
+	* Source/NSCalendarDate.m: Various memory-leak fixes.
+	* Source/NSTimeZone.m: Various memory leak fixes.
+
+Sat Aug  7 17:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Testing/tcpport-server.m: fixes to work with NSNotificationCenter.
+
+1999-08-10  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Move objc_conditioned_wait test so it gets proper
+	LIBS setup
+	* Source/mframe/configure: Regenerate using autoconf 2.13
+
+1999-08-08  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSPort.m (-sendBeforeDate:): Change return type to BOOL
+	as per the spec.  
+	* Source/NSPortMessage.m: Likewise. (patch from
+	Pedro Ivo Andrade Tavares <ptavares@iname.com>).
+
+	* configure.in: Rewrite +load method test.
+
+1999-08-08  Manuel Guesdon  <mguesdon@sbuilders.com>
+
+	* Source/NSGString.m (stringIncrementCountAndMakeHoleAt and stringDecrementCountAndFillHoleAt): 
+	Added a test for null length/size. 
+	Added NSCAssert on index/size/count/capacity
+	
+1999-08-05  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSLock.m ([NSConditionLock -lockWhenCondition:beforeDate:]): 
+	Implement (Patch from Patrick Stein <jolly@jinx.de>).
+	* configure.in: Check for objc_condition_timewait.
+
+	* Source/NSString.m (-initWithFormat:arguments:): Don't advance
+	vsprintf arguments on powerpc.
+
+	* Source/mframe/powerpc/linux-gnu (MFRAME_ARG_ENCODING): Fix
+	alignment of small structures.
+	
+	* many files: Changed FSF mailing address
+
+Fri Aug  6 13:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Portability fixes for compilers that don't leave enough space in an
+	NXConstantString object for the _hash ivar of NSGCString.
+	* Source/NSGCString.m: don't use _hash ivar of NXConstantString.
+	* Source/NSGString.m: don't use _hash ivar of NXConstantString.
+	* Source/Foundation/NSString.h: Add warning comment about the ivar
+	layout for NXConstantString.
+
+Thu Aug  5 10:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/gdomap.c: prb_add() maintain server info in date order.
+	prb_del() removed, bugfixes to notice when a server dies.
 
 Tue Aug  3 12:36:54 1999  Adam Fedor  <fedor@ultra.doc.com>
 

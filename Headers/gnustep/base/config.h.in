@@ -56,9 +56,6 @@
 /* The number of bytes in a void*.  */
 #undef SIZEOF_VOIDP
 
-/* Define if you have the asprintf function.  */
-#undef HAVE_ASPRINTF
-
 /* Define if you have the getcwd function.  */
 #undef HAVE_GETCWD
 
@@ -73,6 +70,9 @@
 
 /* Define if you have the mmap function.  */
 #undef HAVE_MMAP
+
+/* Define if you have the objc_condition_timedwait function.  */
+#undef HAVE_OBJC_CONDITION_TIMEDWAIT
 
 /* Define if you have the realpath function.  */
 #undef HAVE_REALPATH

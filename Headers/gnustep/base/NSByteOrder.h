@@ -18,7 +18,7 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */
 
 #ifndef __NSByteOrder_h_GNUSTEP_BASE_INCLUDE
@@ -33,8 +33,9 @@ typedef gsu32	NSSwappedFloat;
 typedef gsu64	NSSwappedDouble;
 
 typedef enum {
-  NSLittleEndian,
-  NSBigEndian
+  NS_UnknownByteOrder,
+  NS_LittleEndian,
+  NS_BigEndian
 } NSByteOrder;
 
 /*
@@ -425,7 +426,7 @@ NSSwapFloat(NSSwappedFloat num)
 static inline NSByteOrder
 NSHostByteOrder(void)
 {
-  return NSBigEndian;
+  return NS_BigEndian;
 }
 
 /*
@@ -674,7 +675,7 @@ NSSwapHostShortToLittle(unsigned short num)
 static inline NSByteOrder
 NSHostByteOrder(void)
 {
-  return NSLittleEndian;
+  return NS_LittleEndian;
 }
 
 
