@@ -464,7 +464,7 @@ BOOL NSDecrementExtraRefCountWasZero (id anObject)
 #undef FMT
 }
 
-- (const char *)name
+- (const char *) name
 {
   return object_get_class_name(self);
 }
