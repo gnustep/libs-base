@@ -84,7 +84,7 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 /* This method not in OpenStep */
 + (unsigned) autoreleaseCountForObject: anObject
 {
-  unsigned count;
+  unsigned count = 0;
   id pool = current_pool;
   while (pool)
     {
