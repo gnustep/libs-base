@@ -1,3 +1,8 @@
+2004-09-07  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/HtmlNav/docs-web.html: Update to work with current
+	web structure.
+
 2004-09-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSet.m: Fix possible stack overflows.
