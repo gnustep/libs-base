@@ -1709,7 +1709,7 @@ handle_printf_atsign (FILE *stream,
   return NO;
 }
 
-/*
+/**
  * Return 28-bit hash value (in 32-bit integer).  The top few bits are used
  * for other purposes in a bitfield in the concrete string subclasses, so we
  * must not use the full unsigned integer.
@@ -1891,6 +1891,11 @@ handle_printf_atsign (FILE *stream,
     }
 }
 
+/**
+ * Determines the smallest range of lines containing aRange and returns
+ * the information as a range.<br />
+ * Calls -getLineStart:end:contentsEnd:forRange: to do the work.
+ */
 - (NSRange) lineRangeForRange: (NSRange)aRange
 {
   unsigned startIndex;
@@ -1903,6 +1908,28 @@ handle_printf_atsign (FILE *stream,
   return NSMakeRange(startIndex, lineEndIndex - startIndex);
 }
 
+/**
+ * Determines the smallest range of lines containing aRange and returns
+ * the locations in that range.<br />
+ * Lines are delimited by any of these character sequences, the longest
+ * (CRLF) sequence preferred.
+ * <list>
+ *   <item>U+000A (linefeed)</item>
+ *   <item>U+000D (carriage return)</item>
+ *   <item>U+2028 (Unicode line separator)</item>
+ *   <item>U+2029 (Unicode paragraph separator)</item>
+ *   <item>U+000D U+000A (CRLF</item>
+ * </list>
+ * The index of the first character of the line at or before aRange is
+ * returned in startIndex.<br />
+ * The index of the first character of the next line after the line terminator
+ * is returned in endIndex.<br />
+ * The index of the last character bfore the line terminator is returned
+ * contentsEndIndex.<br />
+ * Raises an NSRangeException if the range is invalid, but permits the index
+ * arguments to be null pointers (in which case no value is returned in that
+ * argument).
+ */
 - (void) getLineStart: (unsigned int *)startIndex
                   end: (unsigned int *)lineEndIndex
           contentsEnd: (unsigned int *)contentsEndIndex
@@ -1980,7 +2007,6 @@ handle_printf_atsign (FILE *stream,
         }
       while (end < len)
 	{
-
 	   thischar = (*caiImp)(self, caiSel, end);
 	   switch (thischar)
 	     {
