@@ -3360,6 +3360,16 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
     {
       fprintf(stderr, "Probing for server on '%s'", inet_ntoa(*to));
       fprintf(stderr, " from '%s'\n", inet_ntoa(*from));
+      if (l > 0)
+	{
+	  int	i;
+
+	  fprintf(stderr, " %d additional local addresses sent -\n", l);
+	  for (i = 0; i < l; i++)
+	    {
+	      fprintf(stderr, " '%s'\n", inet_ntoa(e[i]));
+	    }
+	}
     }
   mzero(&sin, sizeof(sin));
   sin.sin_family = AF_INET;
