@@ -54,15 +54,12 @@
 #include <base/behavior.h>
 #include <Foundation/NSException.h>
 
-/* Darwin behavior */
 #if NeXT_RUNTIME
-#if !defined(Release3CompatibilityBuild)
 #define methods methodLists
-#define method_next obsolete
+static struct objc_method *search_for_method_in_list (struct objc_method_list **list, SEL op);
+#else
+static struct objc_method *search_for_method_in_list (struct objc_method_list *list, SEL op);
 #endif
-#endif
-
-static struct objc_method *search_for_method_in_list (struct objc_method_list * list, SEL op);
 static BOOL class_is_kind_of(Class self, Class class);
 
 static int behavior_debug = 0;
@@ -82,8 +79,18 @@ behavior_class_add_class (Class class, Class behavior)
   NSCAssert(CLS_ISCLASS(behavior), NSInvalidArgumentException);
 
 #if NeXT_RUNTIME
-  NSCAssert(class->instance_size >= behavior->instance_size,
-	    @"Trying to add behavior with instance size larger than class");
+  if (class->instance_size < behavior->instance_size)
+    {
+      /* We can allow this since we're pretty sure NXConstantString is not subclassed. */
+      if (strcmp(class_get_class_name(class), "NXConstantString") == 0)
+        {
+          class->instance_size = behavior->instance_size;
+        }
+      else
+        NSCAssert2(class->instance_size >= behavior->instance_size,
+	        @"Trying to add behavior (%s) with instance size larger than class (%s)",
+                class_get_class_name(behavior), class_get_class_name(class));
+    }
 #else
   /* If necessary, increase instance_size of CLASS. */
   if (class->instance_size < behavior->instance_size)
@@ -131,13 +138,112 @@ behavior_class_add_class (Class class, Class behavior)
   return;
 }
 
-/* The old interface */
+#if NeXT_RUNTIME
 void
-class_add_behavior (Class class, Class behavior)
+behavior_class_add_category (Class class, struct objc_category *category)
 {
-  behavior_class_add_class (class, behavior);
+  struct objc_method_list *mlists[2];
+
+  mlists[1] = 0;
+  mlists[0] = category->instance_methods;
+  behavior_class_add_methods (class, mlists);
+  mlists[0] = category->class_methods;
+  behavior_class_add_methods (class->class_pointer, mlists);
+  /* xxx Add the protocols (category->protocols) too. */
 }
 
+void 
+behavior_class_add_methods (Class class, struct objc_method_list **methodLists)
+{
+  static SEL initialize_sel = 0;
+  struct objc_method_list *mlist;
+
+  if (!initialize_sel)
+    initialize_sel = sel_register_name ("initialize");
+
+  /* Add methods to class->dtable and class->methods */
+  while ((mlist = *(methodLists++)))
+    {
+      int counter;
+      struct objc_method_list *new_list;
+
+      counter = mlist->method_count ? mlist->method_count - 1 : 1;
+
+      /* This is a little wasteful of memory, since not necessarily 
+	 all methods will go in here. */
+      new_list = (struct objc_method_list *)
+	objc_malloc (sizeof(struct objc_method_list) +
+		     sizeof(struct objc_method[counter+1]));
+      new_list->method_count = 0;
+
+      while (counter >= 0)
+        {
+          struct objc_method *method = &(mlist->method_list[counter]);
+
+	  if (behavior_debug)
+	    fprintf(stderr, "   processing method [%s]\n", 
+		    sel_get_name(method->method_name));
+
+	  if (!search_for_method_in_list(class->methodLists, method->method_name)
+	      && !sel_eq(method->method_name, initialize_sel))
+	    {
+	      /* As long as the method isn't defined in the CLASS,
+		 put the BEHAVIOR method in there.  Thus, behavior
+		 methods override the superclasses' methods. */
+	      new_list->method_list[new_list->method_count] = *method;
+	      (new_list->method_count)++;
+	    }
+          counter -= 1;
+        }
+      if (new_list->method_count)
+	{
+	  class_add_method_list(class, new_list);
+	}
+      else
+	{
+	  OBJC_FREE(new_list);
+	}
+    }
+}
+
+/* Given a linked list of method and a method's name.  Search for the named
+   method's method structure.  Return a pointer to the method's method
+   structure if found.  NULL otherwise. */
+static struct objc_method *
+search_for_method_in_list (struct objc_method_list **list, SEL op)
+{
+  struct objc_method_list *method_list = *(list++);
+
+  if (! sel_is_mapped (op))
+    return NULL;
+
+  /* If not found then we'll search the list.  */
+  while (method_list)
+    {
+      int i;
+
+      /* Search the method list.  */
+      for (i = 0; i < method_list->method_count; ++i)
+        {
+          struct objc_method *method = &method_list->method_list[i];
+
+          if (method->method_name)
+            {
+              if (sel_eq(method->method_name, op))
+                return method;
+            }
+        }
+
+      /* The method wasn't found.  Follow the link to the next list of
+         methods.  */
+      method_list = *(list++);
+    }
+
+  return NULL;
+}
+
+#else
+/* GNU runtime */
 void
 behavior_class_add_category (Class class, struct objc_category *category)
 {
@@ -195,14 +301,10 @@ behavior_class_add_methods (Class class,
         }
       if (new_list->method_count)
 	{
-#if NeXT_RUNTIME
 	  /* Not sure why this doesn't work for GNU runtime */
-	  class_add_method_list(class, new_list);
-#else
+	  //class_add_method_list(class, new_list);
 	  new_list->method_next = class->methods;
 	  class->methods = new_list;
-	  //__objc_update_dispatch_table_for_class (class);
-#endif
 	}
       else
 	{
@@ -233,8 +335,10 @@ search_for_method_in_list (struct objc_method_list *list, SEL op)
           struct objc_method *method = &method_list->method_list[i];
 
           if (method->method_name)
-            if (sel_eq(method->method_name, op))
-              return method;
+            {
+              if (sel_eq(method->method_name, op))
+                return method;
+            }
         }
 
       /* The method wasn't found.  Follow the link to the next list of
@@ -244,6 +348,7 @@ search_for_method_in_list (struct objc_method_list *list, SEL op)
 
   return NULL;
 }
+#endif /* NeXT runtime */
 
 static BOOL class_is_kind_of(Class self, Class aClassObject)
 {

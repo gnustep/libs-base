@@ -583,7 +583,7 @@ method_types_get_first_argument (struct objc_method* m,
                            const char** type)
 {
   *type = m->method_types;
-  return method_get_next_argument (argframe, type);
+  return method_types_get_next_argument (argframe, type);
 }
 
 int

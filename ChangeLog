@@ -1,3 +1,29 @@
+2001-12-27  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/objc-gnu2next.h: Disable __builtin functions
+	for GCC < 3.x (darwin).
+	
+	* Headers/gnustep/base/behavior.h: New defs for darwin/NeXT. Remove
+	depreciated function.
+	* Source/GSSet.m (+initialize): Use new behavior function in place
+	of depreciated one.
+	* Source/behavior.m (behavior_class_add_class): On darwin, allow
+	NXConstantString class to increase in size.
+	(behavior_class_add_category): New/rewrite for darwin methodLists 
+	structure.
+	(behavior_class_add_methods): Likewise.
+	(search_for_method_in_list): Likewise.
+	
+	* Source/NSObject.m: Move ALIGN definition outside of #if
+	(NSDecrementExtraRefCountWasZero): Change NSAssert to NSCAssert.
+
+	* Source/mframe.m (method_types_get_first_argument): Use
+	method_types_get_next_argument.
+
+	* Source/Makefile.preamble: Additional flags for darwin linking.
+
+	* Source/libgnustep-base.def: Updated for new/removed classes.
+
 2001-12-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m: Add options for better control of index file and

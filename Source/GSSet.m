@@ -438,7 +438,7 @@ static Class	mutableSetClass;
 {
   if (self == [GSMutableSet class])
     {
-      class_add_behavior(self, [GSSet class]);
+      behavior_class_add_class(self, [GSSet class]);
     }
 }
 
