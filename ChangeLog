@@ -1,3 +1,10 @@
+2004-08-07 02:26  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSPort.m (+initialize), Source/NSPortNameServer.m
+	(systemDefaultPortNameServer): Check the NSPortIsMessagePort to
+	get the default port class.
+	* Tools/gdnc.m (-init): Comment on some dead code.
+
 2004-05-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSMime.m: When using non-ascii default characterset

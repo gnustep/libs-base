@@ -33,6 +33,7 @@
 #include "Foundation/NSPortNameServer.h"
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSUserDefaults.h"
 
 
 @class NSMessagePort;
@@ -65,8 +66,17 @@ Class	NSPort_concrete_class;
   if (self == [NSPort class])
     {
       NSPort_abstract_class = self;
-      NSPort_concrete_class = [NSSocketPort class];
-//      NSPort_concrete_class = [NSMessagePort class];
+      /* Must be kept in sync with [NSPortNameServer
+      +systemDefaultPortNameServer]. */
+      if ([[NSUserDefaults standardUserDefaults]
+	boolForKey: @"NSPortIsMessagePort"])
+	{
+	  NSPort_concrete_class = [NSMessagePort class];
+	}
+      else
+	{
+	  NSPort_concrete_class = [NSSocketPort class];
+	}
     }
 }
 

@@ -392,6 +392,13 @@ ihandler(int sig)
    */
   if (0 && isLocal == YES && service != GDNC_NETWORK)
     {
+      /* If this code is reactivated, it needs to deal correctly with the
+      case where NSSocketPort shouldn't be used (because it isn't the
+      default port). Something like
+	NSPort *port = [NSMessagePort port];
+      or just
+	NSPort *port = [NSPort port];
+      */
       NSPort	*port = [NSSocketPort portWithNumber: 0
 					      onHost: [NSHost localHost]
 					forceAddress: @"127.0.0.1"
