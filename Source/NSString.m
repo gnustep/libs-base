@@ -76,8 +76,6 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#include <base/behavior.h>
-
 #include <base/Unicode.h>
 
 #include "GSPrivate.h"

@@ -31,6 +31,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 SUBPROJECT_NAME=Additions
 
 Additions_OBJC_FILES =\
+	GSObjCRuntime.m \
 	GCObject.m \
 	GCArray.m \
 	GCDictionary.m \

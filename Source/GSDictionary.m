@@ -31,7 +31,7 @@
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSDebug.h>
 
-#include <base/behavior.h>
+#include <base/GSObjCRuntime.h>
 
 /*
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
@@ -273,7 +273,7 @@ static SEL	objSel;
 {
   if (self == [GSMutableDictionary class])
     {
-      behavior_class_add_class(self, [GSDictionary class]);
+      GSObjCAddClassBehavior(self, [GSDictionary class]);
     }
 }
 

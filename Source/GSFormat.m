@@ -98,8 +98,6 @@ typedef unsigned long long uintmax_t;
 #endif
 #endif
 
-#include <base/behavior.h>
-
 #include <base/Unicode.h>
 
 struct printf_info

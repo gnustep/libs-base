@@ -40,7 +40,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSDebug.h>
-#include <base/behavior.h>
+#include <base/GSObjCRuntime.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -302,7 +302,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
       absAbrIMP = (NSString* (*)(id,SEL,id))
 	[absClass instanceMethodForSelector: abrSEL];
 
-      behavior_class_add_class(self, [NSGDate class]);
+      GSObjCAddClassBehavior(self, [NSGDate class]);
     }
 }
 

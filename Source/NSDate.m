@@ -41,7 +41,7 @@
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSUserDefaults.h>
 #include <base/preface.h>
-#include <base/behavior.h>
+#include <base/GSObjCRuntime.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -1346,7 +1346,7 @@ GSTimeNow(void)
   if (self == [GSDateSingle class])
     {
       [self setVersion: 1];
-      behavior_class_add_class(self, [NSGDate class]);
+      GSObjCAddClassBehavior(self, [NSGDate class]);
     }
 }
 

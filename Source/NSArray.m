@@ -30,7 +30,6 @@
    */
 
 #include <config.h>
-#include <base/behavior.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSData.h>

@@ -25,7 +25,6 @@
    */
 
 #include <config.h>
-#include <base/behavior.h>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSArray.h>
