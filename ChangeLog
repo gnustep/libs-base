@@ -21,6 +21,9 @@
 	windoze.
 	* Source/NSArray.m: Write non-xml property lists as ascii.
 	* Source/NSDictionary.m: Write non-xml property lists as ascii.
+	* Source/mframe.m: use objc_alignof_type() as suggested by Roland
+	Schwingel.  Long ago the objc runtime version was buggy so mframe
+	implemented its own algorithm.  Now the objc runtime one is better.
 
 2002-11-26  Richard Frith-Macdonald <rfm@gnu.org>
 
