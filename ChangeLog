@@ -1,3 +1,9 @@
+2004-02-21 Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m: (GSBinaryPLParser
+	-initWithData:mutability:, -offsetForIndex:, -readObjectIndexAt:)
+	Added support for binary pls with size == 3.
+
 2004-02-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: added a couple of uuencoding methods.
