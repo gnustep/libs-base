@@ -3553,19 +3553,11 @@ static NSCharacterSet	*tokenSet = nil;
     {
       GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
       NSString		*charset = [hdr parameterForKey: @"charset"];
+      NSStringEncoding	enc;
 
-      if (charset != nil)
-	{
-	  NSStringEncoding	enc;
-
-	  enc = [GSMimeDocument encodingFromCharset: charset];
-	  d = [content dataUsingEncoding: enc];
-	  if (d == nil)
-	    {
-	      charset = nil;	// String can't be converted to this charset
-	    }
-	}
-      if (charset == nil)
+      enc = [GSMimeDocument encodingFromCharset: charset];
+      d = [content dataUsingEncoding: enc];
+      if (d == nil)
 	{
 	  charset = selectCharacterSet(content, &d);
 	  [hdr setParameter: charset forKey: @"charset"];
@@ -3839,7 +3831,7 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*enc;
   GSMimeHeader	*hdr;
   NSData	*boundary;
-  BOOL		is7bit = YES;
+  BOOL		contentIs7bit = YES;
   unsigned int	count;
   unsigned int	i;
   CREATE_AUTORELEASE_POOL(arp);
@@ -3874,8 +3866,11 @@ static NSCharacterSet	*tokenSet = nil;
 	  /*
 	   * If any part of a multipart document is not 7bit then
 	   * the document as a whole must not be 7bit either.
+	   * It is important tol chack this *after* the part has been
+	   * processed by -rawMimeData:, so we know that the encoding
+	   * set for the part is valid.
 	   */ 
-	  if (is7bit == YES)
+	  if (contentIs7bit == YES)
 	    {
 	      NSString		*v;
 
@@ -3883,7 +3878,7 @@ static NSCharacterSet	*tokenSet = nil;
 	      v = [enc value];
 	      if ([v isEqual: @"8bit"] == YES || [v isEqual: @"binary"] == YES)
 		{
-		  is7bit = NO;
+		  contentIs7bit = NO;
 		}
 	    }
 	}
@@ -3921,33 +3916,55 @@ static NSCharacterSet	*tokenSet = nil;
   if (partData != nil)
     {
       NSString	*v;
+      BOOL	shouldSet;
 
       enc = [self headerNamed: @"content-transfer-encoding"];
       v = [enc value];
-      if (is7bit == NO && [v isEqual: @"7bit"] == YES)
+      if ([v isEqualToString: @"8bit"] || [v isEqualToString: @"binary"])
 	{
-	  enc = nil;	// Force a reset from 7bit to 8bit
+	  /*
+	   * For 8bit/binary encoding, we can just accept the setting.
+	   */
+	  shouldSet = NO;
 	}
-      if (enc == nil)
-        {
+      else if (v == nil || [v isEqualToString: @"7bit"] == YES)
+	{
+	  /*
+	   * For 7bit encoding, we can accept the setting if the content
+	   * is all 7bit data, otherwise we must change it to 8bit so
+	   * that the content can be handled properly.
+	   */
+	  if (contentIs7bit == YES)
+	    {
+	      shouldSet = NO;
+	    }
+	  else
+	    {
+	      shouldSet = YES;
+	    }
+	}
+      else
+	{
+	  /*
+	   * A multipart document can't have any other encoding, so we need
+	   * to fix it.
+	   */
+	  shouldSet = YES;
+	}
+
+      if (shouldSet == YES)
+	{
+	  /*
+	   * Force a change to the current transfer encoding setting.
+	   */
 	  enc = [GSMimeHeader alloc];
 	  enc = [enc initWithName: @"content-transfer-encoding"
-			    value: ((is7bit == YES) ? @"7bit" : @"8bit")
+			    value: ((contentIs7bit == YES) ? @"7bit" : @"8bit")
 		       parameters: nil];
 	  [self setHeader: enc];
 	  RELEASE(enc);
 	}
-      else
-	{
-	  if ([v isEqual: @"7bit"] == NO
-	    && [v isEqual: @"8bit"] == NO
-	    && [v isEqual: @"binary"] == NO)
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-		format: @"[%@ -%@] %@ illegal for multipart",
-		NSStringFromClass([self class]), NSStringFromSelector(_cmd), v];
-	    }
-	}
+
       v = [type parameterForKey: @"boundary"];
       if (v == nil)
 	{
@@ -4056,7 +4073,7 @@ static NSCharacterSet	*tokenSet = nil;
 	  GSMimeDocument	*part = [content objectAtIndex: i];
 	  NSMutableData		*rawPart = [partData objectAtIndex: i];
 
-	  if (is7bit == YES)
+	  if (contentIs7bit == YES)
 	    {
 	      NSString	*v;
 
