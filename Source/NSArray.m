@@ -3,7 +3,7 @@
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
-   Date: March 1995
+   Created: March 1995
    
    This file is part of the GNU Objective C Class Library.
    
@@ -130,7 +130,7 @@ static Class NSMutableArray_concrete_class;
   objects[c] = anObject;
   na = [[NSArray alloc] initWithObjects: objects count: c+1];
   OBJC_FREE (objects);
-  return na;
+  return [na autorelease];
 }
 
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
@@ -148,7 +148,7 @@ static Class NSMutableArray_concrete_class;
     objects[i] = [anotherArray objectAtIndex: i-c];
   na = [[NSArray alloc] initWithObjects: objects count: c+l];
   OBJC_FREE (objects);
-  return na;
+  return [na autorelease];
 }
 
 
@@ -345,7 +345,7 @@ static Class NSMutableArray_concrete_class;
   // Create the new array
   na = [[NSArray alloc] initWithObjects:objects count:j-i+1];
   OBJC_FREE(objects);
-  return na;
+  return [na autorelease];
 
 }
 
