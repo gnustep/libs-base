@@ -1,5 +1,5 @@
 /* Debugging utilities for GNUStep and OpenStep
-   Copyright (C) 1997,1999 Free Software Foundation, Inc.
+   Copyright (C) 1997,1999,2000 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: August 1997
@@ -24,6 +24,9 @@
 #include <config.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSLock.h>
+#include <Foundation/NSNotificationQueue.h>
+#include <Foundation/NSThread.h>
 
 #ifndef HAVE_STRERROR
 const char*
@@ -54,11 +57,47 @@ static table_entry*	the_table = 0;
 
 static BOOL	debug_allocation = NO;
 
+static NSLock	*uniqueLock;
+
+static const char*	_GSDebugAllocationList(BOOL difference);
+static const char*	_GSDebugAllocationListAll();
+
+@interface GSDebugAlloc : NSObject
++ (void) initialize;
++ (void) _becomeThreaded: (NSNotification*)notification;
+@end
+
+@implementation GSDebugAlloc
+
++ (void) initialize
+{
+  if ([NSThread isMultiThreaded])
+    {
+      [self _becomeThreaded: nil];
+    }
+  else
+    {
+      [[NSNotificationCenter defaultCenter]
+	addObserver: self
+	selector: @selector(_becomeThreaded:)
+	name: NSWillBecomeMultiThreadedNotification
+	object: nil];
+    }
+}
+
++ (void) _becomeThreaded: (NSNotification*)notification
+{
+  uniqueLock = [NSRecursiveLock new];
+}
+
+@end
+
 BOOL
 GSDebugAllocationActive(BOOL active)
 {
   BOOL	old = debug_allocation;
 
+  [GSDebugAlloc class];		/* Ensure thread support is working */
   debug_allocation = active;
   return old;
 }
@@ -70,12 +109,16 @@ GSDebugAllocationAdd(Class c)
     {
       int	i;
 
+      if (uniqueLock != nil)
+	[uniqueLock lock];
       for (i = 0; i < num_classes; i++)
 	{
 	  if (the_table[i].class == c)
 	    {
 	      the_table[i].count++;
 	      the_table[i].total++;
+	      if (uniqueLock != nil)
+		[uniqueLock unlock];
 	      return;
 	    }
 	}
@@ -88,6 +131,8 @@ GSDebugAllocationAdd(Class c)
 
 	  if (tmp == 0)
 	    {
+	      if (uniqueLock != nil)
+		[uniqueLock unlock];
 	      return;		/* Argh	*/
 	    }
 	  if (the_table)
@@ -102,6 +147,8 @@ GSDebugAllocationAdd(Class c)
       the_table[num_classes].lastc = 0;
       the_table[num_classes].total = 1;
       num_classes++;
+      if (uniqueLock != nil)
+	[uniqueLock unlock];
     }
 }
 
@@ -129,15 +176,27 @@ GSDebugAllocationCount(Class c)
 const char*
 GSDebugAllocationList(BOOL difference)
 {
+  const char *ans;
+  if (debug_allocation == NO)
+    {
+      return "Debug allocation system is not active!\n";
+    }
+  if (uniqueLock != nil)
+    [uniqueLock lock];
+  ans = _GSDebugAllocationList(difference);
+  if (uniqueLock != nil)
+    [uniqueLock unlock];
+  return ans;
+}
+
+static const char*
+_GSDebugAllocationList(BOOL difference)
+{
   int		pos = 0;
   int		i;
   static int	siz = 0;
   static char	*buf = 0;
 
-  if (debug_allocation == NO)
-    {
-      return "Debug allocation system is not active!\n";
-    }
   for (i = 0; i < num_classes; i++)
     {
       int	val = the_table[i].count;
@@ -162,6 +221,7 @@ GSDebugAllocationList(BOOL difference)
 	  return "I can find NO allocated object!\n";
 	}
     }
+
   pos++;
 
   if (pos > siz)
@@ -193,7 +253,7 @@ GSDebugAllocationList(BOOL difference)
 
 	  if (val != 0)
 	    {
-	      sprintf(&buf[pos], "%s\t%d\n", the_table[i].class->name, val);
+	      sprintf(&buf[pos], "%d\t%s\n", val, the_table[i].class->name);
 	      pos += strlen(&buf[pos]);
 	    }
 	}
@@ -204,15 +264,27 @@ GSDebugAllocationList(BOOL difference)
 const char*
 GSDebugAllocationListAll()
 {
+  const char *ans;
+  if (debug_allocation == NO)
+    {
+      return "Debug allocation system is not active!\n";
+    }
+  if (uniqueLock != nil)
+    [uniqueLock lock];
+  ans = _GSDebugAllocationListAll();
+  if (uniqueLock != nil)
+    [uniqueLock unlock];
+  return ans;
+}
+
+static const char*
+_GSDebugAllocationListAll()
+{
   int		pos = 0;
   int		i;
   static int	siz = 0;
   static char	*buf = 0;
 
-  if (debug_allocation == NO)
-    {
-      return "Debug allocation system is not active!\n";
-    }
   for (i = 0; i < num_classes; i++)
     {
       int	val = the_table[i].total;
@@ -251,7 +323,7 @@ GSDebugAllocationListAll()
 
 	  if (val != 0)
 	    {
-	      sprintf(&buf[pos], "%s\t%d\n", the_table[i].class->name, val);
+	      sprintf(&buf[pos], "%d\t%s\n", val, the_table[i].class->name);
 	      pos += strlen(&buf[pos]);
 	    }
 	}
@@ -270,7 +342,11 @@ GSDebugAllocationRemove(Class c)
 	{
 	  if (the_table[i].class == c)
 	    {
+	      if (uniqueLock != nil)
+		[uniqueLock lock];
 	      the_table[i].count--;
+	      if (uniqueLock != nil)
+		[uniqueLock unlock];
 	      return;
 	    }
 	}

@@ -1,3 +1,12 @@
+Thu Feb 10 23:01:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSDebug.m: Patch by David Relson to change memory allocation
+	report and add thread-safety.  Modified by me to automatically use
+	locking if necessary, to tidy up, and to fix a couple of bugs in
+	lock/unlock sequencing.  All new stuff - but since the previous
+	version was completely unusable in a multithreaded environment I
+	don't think we are running any risk by adding this here.
+
 Thu Feb 10 15:00:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Changes to fix possible crashes where task completion notifications
