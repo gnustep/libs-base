@@ -138,5 +138,6 @@ main ()
     }
 #endif
 
+  printf("Tests finished\n");
   exit (0);
 }
