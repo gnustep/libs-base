@@ -172,6 +172,40 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 
 /* Encoding/decoding indentation */
 
+- (void) encodeWithName: (id <String>) name
+	 valuesOfCTypes: (const char *) types, ...
+{
+  va_list ap;
+
+  [self encodeName: name];
+  va_start (ap, types);
+  while (*types)
+    {
+      [self encodeValueOfCType: types
+	    at: va_arg(ap, void*)
+	    withName: NULL];
+      types = objc_skip_typespec (types);
+    }
+  va_end (ap);
+}
+
+- (void) decodeWithName: (id <String> *)name
+	 valuesOfCTypes: (const char *)types, ...
+{
+  va_list ap;
+
+  [self decodeName: name];
+  va_start (ap, types);
+  while (*types)
+    {
+      [self decodeValueOfCType: types
+	    at: va_arg (ap, void*)
+	    withName: NULL];
+      types = objc_skip_typespec (types);
+    }
+  va_end (ap);
+}
+
 - (void) encodeIndent
 {
   /* Do nothing */
