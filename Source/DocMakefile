@@ -112,7 +112,7 @@ Base_AGSDOC_FLAGS = \
 	-ConstantsTemplate TypesAndConstants \
 	-FunctionsTemplate Functions \
 	-TypedefsTemplate TypesAndConstants \
-	- VariablesTemplate TypesAndConstants \
+	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
 	FOUNDATION_EXPORT=extern;FOUNDATION_STATIC_INLINE="";\
 	GS_GEOM_SCOPE=extern;GS_GEOM_ATTR="";\
