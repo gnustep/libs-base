@@ -27,6 +27,10 @@
 #include <objects/NSString.h>
 #include <objects/Connection.h>
 #include <objects/ConnectedCoder.h>
+#include <Foundation/NSException.h>
+
+/* xxx We are currently retaining the return value.
+   We shouldn't always do this.  Make is an option. */
 
 /* Deal with strrchr: */
 #if STDC_HEADERS || HAVE_STRING_H
@@ -494,6 +498,12 @@ my_method_get_next_argument (arglist_t argframe,
 
   if (! (sel_type = sel_get_type (sel)) )
     sel_type = sel_get_type ( sel_get_any_typed_uid (sel_get_name (sel)));
+  /* xxx Try harder to get this type by looking up the method in the target.
+     Hopefully the target can be found in the FRAME. */
+  if (!sel_type)
+    [NSException raise: @"SelectorWithoutType"
+		 format: @"Couldn't find encoding type for selector %s.", 
+		 sel_get_name (sel)];
   [self initWithArgframe: frame type: sel_type];
   if (!frame)
     *sel_pointer = sel;
@@ -624,7 +634,7 @@ my_method_get_next_argument (arglist_t argframe,
 
 - (void) invokeWithObject: anObj
 {
-  [self invokeWithTarget: anObj];
+  [self subclassResponsibility: _cmd];
 }
 
 - (SEL) selector
