@@ -362,7 +362,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	  [_remote setProtocolForProxy: p];
 
 	  /*
-	   *	Ask to be told if the copnnection goes away.
+	   *	Ask to be told if the connection goes away.
 	   */
 	  [[NSNotificationCenter defaultCenter]
 	    addObserver: self

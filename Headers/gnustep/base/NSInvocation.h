@@ -27,7 +27,6 @@
 
 #include <Foundation/NSMethodSignature.h>
 
-@class	NSArgumentInfo;
 
 @interface NSInvocation : NSObject
 {
@@ -37,7 +36,11 @@
   id			_target;
   SEL			_selector;
   int			_numArgs;
+#ifndef	STRICT_MACOS_X
   NSArgumentInfo	*_info;
+#else
+  void			*_dummy;
+#endif
   BOOL			_argsRetained;
   BOOL			_validReturn;
   BOOL			_sendToSuper;
