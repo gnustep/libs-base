@@ -3586,11 +3586,12 @@ static NSCharacterSet	*tokenSet = nil;
 	}
       type = [self headerNamed: @"content-type"];
     }
-  enc = [self headerNamed: @"content-transfer-encoding"];
+
   if ([[type objectForKey: @"Type"] isEqual: @"multipart"] == YES)
     {
       NSString	*v;
 
+      enc = [self headerNamed: @"content-transfer-encoding"];
       if (enc != nil)
 	{
 	  [NSException raise: NSInternalInconsistencyException
@@ -3605,35 +3606,39 @@ static NSCharacterSet	*tokenSet = nil;
 	}
       boundary = [v dataUsingEncoding: NSASCIIStringEncoding];
     }
-  else if (enc == nil)
+  else
     {
       d = [self convertToData];
-      enc = [GSMimeHeader alloc];
-      if ([[type objectForKey: @"Type"] isEqual: @"text"] == YES)
+      enc = [self headerNamed: @"content-transfer-encoding"];
+      if (enc == nil)
 	{
-	  NSString	*charset = [type parameterForKey: @"charset"];
-
-	  if ([charset isEqual: @"ascii"] || [charset isEqual: @"us-ascii"])
+	  enc = [GSMimeHeader alloc];
+	  if ([[type objectForKey: @"Type"] isEqual: @"text"] == YES)
 	    {
-	      enc = [enc initWithName: @"content-transfer-encoding"
-				value: @"7bit"
-			   parameters: nil];
+	      NSString	*charset = [type parameterForKey: @"charset"];
+
+	      if ([charset isEqual: @"ascii"] || [charset isEqual: @"us-ascii"])
+		{
+		  enc = [enc initWithName: @"content-transfer-encoding"
+				    value: @"7bit"
+			       parameters: nil];
+		}
+	      else
+		{
+		  enc = [enc initWithName: @"content-transfer-encoding"
+				    value: @"8bit"
+			       parameters: nil];
+		}
 	    }
 	  else
 	    {
 	      enc = [enc initWithName: @"content-transfer-encoding"
-				value: @"8bit"
+				value: @"base64"
 			   parameters: nil];
 	    }
+	  [self addHeader: enc];
+	  RELEASE(enc);
 	}
-      else
-	{
-	  enc = [enc initWithName: @"content-transfer-encoding"
-			    value: @"base64"
-		       parameters: nil];
-	}
-      [self addHeader: enc];
-      RELEASE(enc);
     }
 
   /*
