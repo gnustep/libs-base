@@ -23,10 +23,11 @@
 */
 
 /* Implementation for NSNotificationQueue for GNUStep
-   Copyright (C) 1997 Free Software Foundation, Inc.
+   Copyright (C) 1997-1999 Free Software Foundation, Inc.
 
    Modified by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: 1997
+   Rewritten: 1999
 
    This file is part of the GNUstep Base Library.
 
@@ -122,7 +123,7 @@ currentList()
   list->next = elem;
 }
 
-+ (void)unregisterQueue: (NSNotificationQueue*)q
++ (void) unregisterQueue: (NSNotificationQueue*)q
 {
   NotificationQueueList*	list;
 
@@ -246,21 +247,21 @@ add_to_queue(
     NSArray* modes,
     NSZone* zone)
 {
-    NSNotificationQueueRegistration* item =
-	    NSZoneCalloc(zone, 1, sizeof(NSNotificationQueueRegistration));
-	
-    item->notification = RETAIN(notification);
-    item->name = [notification name];
-    item->object = [notification object];
-    item->modes = [modes copyWithZone: [modes zone]];
+  NSNotificationQueueRegistration* item =
+	  NSZoneCalloc(zone, 1, sizeof(NSNotificationQueueRegistration));
+      
+  item->notification = RETAIN(notification);
+  item->name = [notification name];
+  item->object = [notification object];
+  item->modes = [modes copyWithZone: [modes zone]];
 
-    item->prev = NULL;
-    item->next = queue->tail;
-    queue->tail = item;
-    if (item->next)
-	item->next->prev = item;
-    if (!queue->head)
-	queue->head = item;
+  item->prev = NULL;
+  item->next = queue->tail;
+  queue->tail = item;
+  if (item->next)
+    item->next->prev = item;
+  if (!queue->head)
+    queue->head = item;
 }
 
 
@@ -271,7 +272,7 @@ add_to_queue(
 
 @implementation NSNotificationQueue
 
-+ (NSNotificationQueue*)defaultQueue
++ (NSNotificationQueue*) defaultQueue
 {
   NotificationQueueList	*list;
   NSNotificationQueue	*item;
@@ -282,19 +283,19 @@ add_to_queue(
     {
       item = (NSNotificationQueue*)NSAllocateObject(self,
 	0, NSDefaultMallocZone());
-      item = [item initWithNotificationCenter:
-          [NSNotificationCenter defaultCenter]];
+      item = [item initWithNotificationCenter: 
+	[NSNotificationCenter defaultCenter]];
     }
   return item;
 }
 
-- (id)init
+- (id) init
 {
   return [self initWithNotificationCenter: 
 	  [NSNotificationCenter defaultCenter]];
 }
 
-- (id)initWithNotificationCenter: (NSNotificationCenter*)notificationCenter
+- (id) initWithNotificationCenter: (NSNotificationCenter*)notificationCenter
 {
   zone = [self zone];
 
@@ -309,68 +310,70 @@ add_to_queue(
   return self;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
-    NSNotificationQueueRegistration* item;
+  NSNotificationQueueRegistration	*item;
 
-    // remove from classs instances list
-    [NotificationQueueList unregisterQueue: self];
+  // remove from class instances list
+  [NotificationQueueList unregisterQueue: self];
 
-    // release self
-    for (item = asapQueue->head; item; item=item->prev)
-	remove_from_queue(asapQueue, item, zone);
-    NSZoneFree(zone, asapQueue);
+  // release self
+  for (item = asapQueue->head; item; item=item->prev)
+    remove_from_queue(asapQueue, item, zone);
+  NSZoneFree(zone, asapQueue);
 
-    for (item = idleQueue->head; item; item=item->prev)
-	remove_from_queue(idleQueue, item, zone);
-    NSZoneFree(zone, idleQueue);
+  for (item = idleQueue->head; item; item=item->prev)
+    remove_from_queue(idleQueue, item, zone);
+  NSZoneFree(zone, idleQueue);
 
-    RELEASE(center);
-    [super dealloc];
+  RELEASE(center);
+  [super dealloc];
 }
 
 /* Inserting and Removing Notifications From a Queue */
 
-- (void)dequeueNotificationsMatching: (NSNotification*)notification
+- (void) dequeueNotificationsMatching: (NSNotification*)notification
   coalesceMask: (NSNotificationCoalescing)coalesceMask
 {
-    NSNotificationQueueRegistration* item;
-    NSNotificationQueueRegistration* next;
-    id name   = [notification name];
-    id object = [notification object];
+  NSNotificationQueueRegistration* item;
+  NSNotificationQueueRegistration* next;
+  id name   = [notification name];
+  id object = [notification object];
 
-    // find in ASAP notification in queue
-    for (item = asapQueue->tail; item; item=next) {
-	next = item->next;
-	if ((coalesceMask & NSNotificationCoalescingOnName)
-	    && [name isEqual: item->name])
-	    {
-		remove_from_queue(asapQueue, item, zone);
-		continue;
-	    }
-	if ((coalesceMask & NSNotificationCoalescingOnSender)
-	    && (object == item->object))
-	    {
-		remove_from_queue(asapQueue, item, zone);
-		continue;
-	    }
+  // find in ASAP notification in queue
+  for (item = asapQueue->tail; item; item=next)
+    {
+      next = item->next;
+      if ((coalesceMask & NSNotificationCoalescingOnName)
+	&& [name isEqual: item->name])
+	{
+	  remove_from_queue(asapQueue, item, zone);
+	  continue;
+	}
+      if ((coalesceMask & NSNotificationCoalescingOnSender)
+	&& (object == item->object))
+	{
+	  remove_from_queue(asapQueue, item, zone);
+	  continue;
+	}
     }
 
-    // find in idle notification in queue
-    for (item = idleQueue->tail; item; item=next) {
-	next = item->next;
-	if ((coalesceMask & NSNotificationCoalescingOnName)
-	    && [name isEqual: item->name])
-	    {
-		remove_from_queue(asapQueue, item, zone);
-		continue;
-	    }
-	if ((coalesceMask & NSNotificationCoalescingOnSender)
-	    && (object == item->object))
-	    {
-		remove_from_queue(asapQueue, item, zone);
-		continue;
-	    }
+  // find in idle notification in queue
+  for (item = idleQueue->tail; item; item=next)
+    {
+      next = item->next;
+      if ((coalesceMask & NSNotificationCoalescingOnName)
+	&& [name isEqual: item->name])
+	{
+	  remove_from_queue(asapQueue, item, zone);
+	  continue;
+	}
+      if ((coalesceMask & NSNotificationCoalescingOnSender)
+	&& (object == item->object))
+	{
+	  remove_from_queue(asapQueue, item, zone);
+	  continue;
+	}
     }
 }
 
@@ -387,35 +390,36 @@ add_to_queue(
     }
 }
 
-- (void)enqueueNotification: (NSNotification*)notification
+- (void) enqueueNotification: (NSNotification*)notification
   postingStyle: (NSPostingStyle)postingStyle	
 {
-    [self enqueueNotification: notification
-	    postingStyle: postingStyle
-	    coalesceMask: NSNotificationCoalescingOnName +
-			 NSNotificationCoalescingOnSender
-	    forModes: nil];
+  [self enqueueNotification: notification
+    postingStyle: postingStyle
+    coalesceMask: NSNotificationCoalescingOnName
+      + NSNotificationCoalescingOnSender
+    forModes: nil];
 }
 
-- (void)enqueueNotification: (NSNotification*)notification
+- (void) enqueueNotification: (NSNotification*)notification
   postingStyle: (NSPostingStyle)postingStyle
   coalesceMask: (NSNotificationCoalescing)coalesceMask
   forModes: (NSArray*)modes
 {
-    if (coalesceMask != NSNotificationNoCoalescing)
-	[self dequeueNotificationsMatching: notification
-		coalesceMask: coalesceMask];
+  if (coalesceMask != NSNotificationNoCoalescing)
+    [self dequeueNotificationsMatching: notification
+      coalesceMask: coalesceMask];
 
-    switch (postingStyle) {
-	case NSPostNow: 
-		[self postNotification: notification forModes: modes];
-		break;
-	case NSPostASAP: 
-		add_to_queue(asapQueue, notification, modes, zone);
-		break;
-	case NSPostWhenIdle: 
-		add_to_queue(idleQueue, notification, modes, zone);
-		break;
+  switch (postingStyle)
+    {
+      case NSPostNow: 
+	[self postNotification: notification forModes: modes];
+	break;
+      case NSPostASAP: 
+	add_to_queue(asapQueue, notification, modes, zone);
+	break;
+      case NSPostWhenIdle: 
+	add_to_queue(idleQueue, notification, modes, zone);
+	break;
     }
 }
 
