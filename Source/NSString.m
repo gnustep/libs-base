@@ -3154,8 +3154,10 @@ handle_printf_atsign (FILE *stream,
 			indent: (unsigned)level
 			    to: (id<GNUDescriptionDestination>)output
 {
-  extern BOOL	GSMacOSXCompatiblePropertyLists();
   unsigned	length;
+/*
+ * Don't think the following should be there.
+  extern BOOL	GSMacOSXCompatiblePropertyLists();
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
@@ -3164,6 +3166,7 @@ handle_printf_atsign (FILE *stream,
       [output appendString: GSXMLPlMake(self, aLocale, level)];
       return;
     }
+*/
 
   if ((length = [self length]) == 0)
     {
