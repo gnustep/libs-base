@@ -373,7 +373,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 
 - (NSZone *)zone
 {
-  return NULL;
+  return NSZoneFromPtr(self);
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder
