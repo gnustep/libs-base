@@ -390,7 +390,7 @@ static int messages_received_count;
     }
 }
 
-- (void) addRunloop: (NSRunLoop*)loop
+- (void) addRunLoop: (NSRunLoop*)loop
 {
   [self notImplemented: _cmd];
 }
