@@ -658,19 +658,20 @@ AC_DEFINE_UNQUOTED(HAVE_PTS_STREAM_MODULES, $HAVE_PTS_STREAM_MODULES,
 AC_SUBST(HAVE_PTS_STREAM_MODULES)
 
 AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
-	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h dnl
-	sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
+	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h sys/ioctl.h dnl
+	sys/stropts.h unistd.h utime.h stdint.h inttypes.h sys/inttypes.h)
 
-INCLUDE_STDINT=no
 if test $ac_cv_header_stdint_h = yes; then
 INCLUDE_STDINT="#include <stdint.h>"
-else
-if test $ac_cv_header_sys_inttypes_h = yes; then
+elif test $ac_cv_header_inttypes_h = yes; then
+INCLUDE_STDINT="#include <inttypes.h>"
+elif test $ac_cv_header_sys_inttypes_h = yes; then
 INCLUDE_STDINT="#include <sys/inttypes.h>"
-fi
+else
+INCLUDE_STDINT="no"
 fi
 
-if test "$INCLUDE_STDINT"="no"; then
+if test "$INCLUDE_STDINT" = "no"; then
 INCLUDE_STDINT=""
 DEFINE_INT8_T="#define int8_t gss8"
 DEFINE_UINT8_T="#define uint8_t gsu8"
