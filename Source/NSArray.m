@@ -24,6 +24,7 @@
 #include <objects/stdobjects.h>
 #include <foundation/NSArray.h>
 #include <objects/Array.h>
+#include <limits.h>
 
 @interface NSArray (libobjects) <IndexedCollecting>
 @end
@@ -40,7 +41,7 @@
   return [[[[self alloc] init] addObject: anObject] autorelease];
 }
 
-+ (id) arrayWithObject: firstObject, ...
++ (id) arrayWithObjects: firstObject, ...
 {
   va_list ap;
   Array *n = [[self alloc] init];
@@ -107,7 +108,7 @@
 {
   int i;
   for (i = 0; i < _count; i++)
-    if (anObject == _contents_array[i])
+    if (anObject == _contents_array[i].id_u)
       return i;
   return UINT_MAX;
 }
@@ -140,7 +141,7 @@
     {
       return [otherArray containsObject:o];
     }
-  id none_found(arglist_t)
+  id none_found(arglist_t a)
     {
       return nil;
     }
@@ -155,7 +156,7 @@
   if (_count != [otherArray count])
     return NO;
   for (i = 0; i < _count; i++)
-    if ([_contents_array[i] isEqual:[otherArray objectAtIndex:i]])
+    if ([_contents_array[i].id_u isEqual:[otherArray objectAtIndex:i]])
       return NO;
   return YES;
 }
@@ -177,7 +178,7 @@
   id n = [self copy];
   int compare(id o1, id o2)
     {
-      return [o1 perform:comparator with:o2];
+      return (int) [o1 perform:comparator with:o2];
     }
   [n sortObjectsByCalling:compare];
   return [n autorelease];
