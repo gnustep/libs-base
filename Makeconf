@@ -27,5 +27,9 @@
 # Put this first so it's the default
 all:
 
+# Default to empty, individual Makefile's can override this
+install:
+uninstall:
+
 rcs-list-locked:
 	@rlog -L -R $(RCS_FILES)
