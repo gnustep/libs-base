@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <objects/SocketPort.h>
-#include <objects/String.h>
+#include <gnustep/base/SocketPort.h>
+#include <gnustep/base/String.h>
 
 #define MSG "Hello from a client SocketPort."
 #define BUFFER_SIZE 80

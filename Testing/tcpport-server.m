@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include <objects/TcpPort.h>
-#include <objects/Notification.h>
-#include <objects/Invocation.h>
-#include <objects/RunLoop.h>
+#include <gnustep/base/TcpPort.h>
+#include <gnustep/base/Notification.h>
+#include <gnustep/base/Invocation.h>
+#include <gnustep/base/RunLoop.h>
 
 id announce_new_connection (id notification)
 {

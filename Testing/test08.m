@@ -1,6 +1,6 @@
 
-#include <objects/objects.h>
-#include <objects/BinaryCoder.h>
+#include <gnustep/base/objects.h>
+#include <gnustep/base/BinaryCoder.h>
 
 void test(id objects)
 {

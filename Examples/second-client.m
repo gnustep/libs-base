@@ -1,8 +1,8 @@
 #include "second-client.h"
-#include <objects/String.h>
-#include <objects/Notification.h>
-#include <objects/Invocation.h>
-#include <objects/RunLoop.h>
+#include <gnustep/base/String.h>
+#include <gnustep/base/Notification.h>
+#include <gnustep/base/Invocation.h>
+#include <gnustep/base/RunLoop.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
 

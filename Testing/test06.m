@@ -1,5 +1,5 @@
 
-#include <objects/objects.h>
+#include <gnustep/base/objects.h>
 
 #define N 20
 

@@ -1,8 +1,8 @@
 /* A simple demonstration of the GNU Dictionary object.
    In this example the Dictionary holds int's which are keyed by strings. */
 
-#include <objects/stdobjects.h>
-#include <objects/Dictionary.h>
+#include <gnustep/base/stdobjects.h>
+#include <gnustep/base/Dictionary.h>
 
 int main()
 {

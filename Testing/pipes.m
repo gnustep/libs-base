@@ -1,4 +1,4 @@
-#include <objects/StdioStream.h>
+#include <gnustep/base/StdioStream.h>
 
 int main()
 {  

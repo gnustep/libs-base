@@ -1,6 +1,6 @@
-#include <objects/objects.h>
+#include <gnustep/base/objects.h>
 #include <Foundation/NSValue.h>
-#include <objects/Invocation.h>
+#include <gnustep/base/Invocation.h>
 
 @interface ConstantCollection (TestingExtras)
 - printCount;

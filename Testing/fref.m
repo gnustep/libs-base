@@ -12,12 +12,12 @@ static int decode_substitutes;
 #define GNU_ARCHIVING (TRY_GNU_ARCHIVING && defined(OBJECTS_MAJOR_VERSION))
 
 #if GNU_ARCHIVING
-#include <objects/Archiver.h>
+#include <gnustep/base/Archiver.h>
 /* Use text coding instead of binary coding */
 #define TEXTCSTREAM 0
 #if TEXTCSTREAM
-#include <objects/Archiver.h>
-#include <objects/TextCStream.h>
+#include <gnustep/base/Archiver.h>
+#include <gnustep/base/TextCStream.h>
 #endif
 #endif /* GNU_ARCHIVING */
 

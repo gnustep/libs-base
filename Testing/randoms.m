@@ -1,7 +1,7 @@
 
-#include <objects/Random.h>
-#include <objects/RNGBerkeley.h>
-#include <objects/RNGAdditiveCongruential.h>
+#include <gnustep/base/Random.h>
+#include <gnustep/base/RNGBerkeley.h>
+#include <gnustep/base/RNGAdditiveCongruential.h>
 
 int main()
 {

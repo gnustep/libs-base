@@ -1,5 +1,5 @@
-#include <objects/RunLoop.h>
-#include <objects/Invocation.h>
+#include <gnustep/base/RunLoop.h>
+#include <gnustep/base/Invocation.h>
 #include <Foundation/NSTimer.h>
 
 @interface TestDouble : NSObject

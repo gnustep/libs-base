@@ -1,4 +1,4 @@
-#include <objects/objects.h>
+#include <gnustep/base/objects.h>
 #include <assert.h>
 
 int main()
