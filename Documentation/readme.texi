@@ -49,7 +49,11 @@ are under GNU LGPL" (Text in quotes provided by the author of ffcall).
 
 @item
 Give us feedback!  Tell us what you like; tell us what you think
-could be better.  Send bug reports to @email{bug-gnustep@@gnu.org}.
+could be better. 
+
+Please log bug reports on the GNUstep project page
+@url{http://savannah.gnu.org/support/?group=gnustep} or send bug
+reports to @email{bug-gnustep@@gnu.org}.
 
 @end itemize
 

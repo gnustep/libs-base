@@ -1,3 +1,8 @@
+2003-02-16  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.5.2
+	* Documentation: Update.
+
 2003-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSDictionary.m: ([-isEqualToDictionary:]) implement optimised
@@ -22,7 +27,7 @@
 	mingw.  Adjustments to conform to GNUstep style and use static
 	functions to avoid adding methods by RFM.
 
-2003-02-11  Adam Fedor  <fedor@Eldorado.local.>
+2003-02-11  Adam Fedor  <fedor@gnu.org>
 
 	* configure (LDFLAGS): Remove extra spaces that cause problems
 	on Darwin/gcc

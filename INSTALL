@@ -8,10 +8,10 @@ GNUstep-HOWTO is located in the gnustep-make package or at
 <http://www.gnustep.org>
 
    If you are installing the GNUstep libraries individually, make sure
-you have installed the GNUstep Makefile package (gnustep-make) already.
-In addition you should install an Objective-C library (gnustep-objc)
-if you are not using gcc 3.x, as well some other libraries (notably
-ffcall). See the GNUstep-HOWTO for more information.
+you have installed the GNUstep Makefile package (gnustep-make) already,
+and you have sourced the makefile script:
+     . $GNUSTEP_SYSTEM_ROOT/Makeifles/GNUstep.sh
+   See the GNUstep-HOWTO for more information.
 
    After installing this library you should install gnustep-gui if you
 are going to use graphical applications.
@@ -97,9 +97,16 @@ get this library from <ftp://www.gnustep.org/pub/gnustep/libs>.
    Support for the libffi library has also been added, although it is
 not as well tested as ffcall. Current versions of libffi are only
 distributed with gcc version 3.x, although it is not installed by
-default. To install it, after you have built gcc, go to the libffi
-build directory and type 'make install'. To enable this in the
-gnustep-base library, use the configure option `--enable-libffi'.
+default. To install it, after you have built gcc, do something like:
+     mkdir newlibffi
+     cd newlibffi
+     ../gcc-3.2.1/libffi/configure
+     make
+     ffitest
+     sudo make install
+
+   To enable this in the gnustep-base library, use the configure option
+`--enable-libffi'.
 
 OpenSSL
 -------

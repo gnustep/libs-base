@@ -1,7 +1,22 @@
 News
 ****
 
-The currently released version of the library is `1.5.1'.
+The currently released version of the library is `1.5.2'.
+
+Noteworthy changes in version `1.5.2'
+=====================================
+
+   * More MinGW support
+
+   * New MacOSX compatible methods.
+
+   * The Base Additions library compiles on native OSX.
+
+   * autogsdoc produces better, cleaner docs.
+
+   * Built-in garbage collecting classes.
+
+   * Any many many bug fixes and minor improvements.
 
 Noteworthy changes in version `1.5.1'
 =====================================
