@@ -4101,6 +4101,9 @@ unregister(const char *name, int port, int ptype)
     }
 }
 
+/**
+ * (A dummy comment to help autogsdoc realize this is a command-line tool.)
+ */
 int
 main(int argc, char** argv)
 {
