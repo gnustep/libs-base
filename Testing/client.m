@@ -7,7 +7,7 @@
 #include <Foundation/NSRunLoop.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSAutoreleasePool.h>
-#include <base/Coder.h>
+#include <Foundation/NSDebug.h>
 #include <base/BinaryCStream.h>
 #include <assert.h>
 #include "server.h"
@@ -45,7 +45,6 @@ GSDebugAllocationActive(YES);
   [NSDistantObject setDebug: 10];
   [TcpInPort setDebug: 10];
 
-  [Coder setDebugging:YES];
   [BinaryCStream setDebugging:YES];
 
 #if NeXT_runtime

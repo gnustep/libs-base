@@ -3,7 +3,6 @@
 
 #include <base/preface.h>
 #include <Foundation/NSConnection.h>
-#include <base/Array.h>
 
 typedef struct _small_struct {
   unsigned char z;

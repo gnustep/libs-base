@@ -1,3 +1,18 @@
+2000-06-30  Adam Fedor  <fedor@gnu.org>
+
+	libgstep-base now compiles (and links) into a DLL on Cygwin.
+	* configure.in: Typo in checking for cygwin.
+
+	* Headers/gnustep/base/NSHashTable.h: GS_EXPORT functions.
+	* Headers/gnustep/base/NSMapTable.h: Likewise.
+
+	* Source/Makefile.postamble (libgnustep-base.def) Target to generate
+	def file.
+	* Source/libgnustep-base.def: Updated.
+
+	* Source/NSProcessInfo.m: Error message if GS_PASS_ARGUMENTS. Don't
+	define main if GS_PASS_ARGUMENTS.
+
 2000-06-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSDate.h: Added GSTime() function

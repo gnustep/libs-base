@@ -158,7 +158,7 @@ typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
 /* Returns a (pointer to) an NSMapTable space for which is allocated
  * in the default zone.  If CAPACITY is small or 0, then the returned
  * table has a reasonable capacity. */
-NSMapTable *
+GS_EXPORT NSMapTable *
 NSCreateMapTable(NSMapTableKeyCallBacks keyCallBacks,
                  NSMapTableValueCallBacks valueCallBacks,
                  unsigned int capacity);
@@ -167,7 +167,7 @@ NSCreateMapTable(NSMapTableKeyCallBacks keyCallBacks,
  * in the memory zone ZONE, rather than in the default zone.  (Of course,
  * if you send 0 for ZONE, then the map table will be created in the
  * default zone.) */
-NSMapTable *
+GS_EXPORT NSMapTable *
 NSCreateMapTableWithZone(NSMapTableKeyCallBacks keyCallBacks,
                          NSMapTableValueCallBacks valueCallbacks,
                          unsigned int capacity,
@@ -177,7 +177,7 @@ NSCreateMapTableWithZone(NSMapTableKeyCallBacks keyCallBacks,
  * has (newly retained) copies of TABLE's keys and values.  As always,
  * if ZONE is 0, then the returned map table is allocated in the
  * default zone. */
-NSMapTable *
+GS_EXPORT NSMapTable *
 NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone);
 
 /** Freeing an NSMapTable... **/
@@ -185,12 +185,12 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone);
 /* Releases all the keys and values of TABLE (using the key and
  * value callbacks specified at the time of TABLE's creation),
  * and then proceeds to deallocate the space allocated for TABLE itself. */
-void
+GS_EXPORT void
 NSFreeMapTable(NSMapTable *table);
 
 /* Releases every key and value of TABLE, while preserving
  * TABLE's "capacity". */
-void
+GS_EXPORT void
 NSResetMapTable(NSMapTable *table);
 
 /** Comparing two NSMapTables... **/
@@ -198,13 +198,13 @@ NSResetMapTable(NSMapTable *table);
 /* Returns 'YES' if and only if every key of TABLE1 is a key
  * of TABLE2, and vice versa.  NOTE: This function only cares
  * about keys, never values. */
-BOOL
+GS_EXPORT BOOL
 NSCompareMapTables(NSMapTable *table1, NSMapTable *table2);
 
 /** Getting the number of items in an NSMapTable... **/
 
 /* Returns the total number of key/value pairs in TABLE. */
-unsigned int
+GS_EXPORT unsigned int
 NSCountMapTable(NSMapTable *table);
 
 /** Retrieving items from an NSMapTable... **/
@@ -212,7 +212,7 @@ NSCountMapTable(NSMapTable *table);
 /* Returns 'YES' iff TABLE contains a key that is "equal" to KEY.
  * If so, then ORIGINALKEY is set to that key of TABLE, while
  * VALUE is set to the value to which it maps in TABLE. */
-BOOL
+GS_EXPORT BOOL
 NSMapMember(NSMapTable *table,
             const void *key,
             void **originalKey,
@@ -221,20 +221,20 @@ NSMapMember(NSMapTable *table,
 /* Returns the value to which TABLE maps KEY, if KEY is a
  * member of TABLE.  If not, then 0 (the only completely
  * forbidden value) is returned. */
-void *
+GS_EXPORT void *
 NSMapGet(NSMapTable *table, const void *key);
 
 /* Returns an NSMapEnumerator structure (a pointer to) which
  * can be passed repeatedly to the function 'NSNextMapEnumeratorPair()'
  * to enumerate the key/value pairs of TABLE. */
-NSMapEnumerator
+GS_EXPORT NSMapEnumerator
 NSEnumerateMapTable(NSMapTable *table);
 
 /* Return 'NO' if ENUMERATOR has completed its enumeration of
  * its map table's key/value pairs.  If not, then 'YES' is
  * returned and KEY and VALUE are set to the next key and
  * value (respectively) in ENUMERATOR's table. */
-BOOL
+GS_EXPORT BOOL
 NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
                         void **key,
                         void **value);
@@ -242,13 +242,13 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 /* Returns an NSArray which contains all of the keys of TABLE.
  * WARNING: Call this function only when the keys of TABLE
  * are objects. */
-NSArray *
+GS_EXPORT NSArray *
 NSAllMapTableKeys(NSMapTable *table);
 
 /* Returns an NSArray which contains all of the values of TABLE.
  * WARNING: Call this function only when the values of TABLE
  * are objects. */
-NSArray *
+GS_EXPORT NSArray *
 NSAllMapTableValues(NSMapTable *table);
 
 /** Adding an item to an NSMapTable... **/
@@ -258,17 +258,17 @@ NSAllMapTableValues(NSMapTable *table);
  * value is released from TABLE, and VALUE is put in its place.
  * Raises an NSInvalidArgumentException if KEY is the "not a key
  * marker" for TABLE (as specified in its key callbacks). */
-void
+GS_EXPORT void
 NSMapInsert(NSMapTable *table, const void *key, const void *value);
 
 /* If KEY is already in TABLE, the pre-existing key is returned.
  * Otherwise, 0 is returned, and this is just like 'NSMapInsert()'. */
-void *
+GS_EXPORT void *
 NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value);
 
 /* Just like 'NSMapInsert()', with one exception: If KEY is already
  * in TABLE, then an NSInvalidArgumentException is raised. */
-void
+GS_EXPORT void
 NSMapInsertKnownAbsent(NSMapTable *table,
                        const void *key,
                        const void *value);
@@ -277,7 +277,7 @@ NSMapInsertKnownAbsent(NSMapTable *table,
 
 /* Releases KEY (and its associated value) from TABLE.  It is not
  * an error if KEY is not already in TABLE. */
-void
+GS_EXPORT void
 NSMapRemove(NSMapTable *table, const void *key);
 
 /** Getting an NSString representation of an NSMapTable **/
@@ -287,6 +287,6 @@ NSMapRemove(NSMapTable *table, const void *key);
  * appending the string "X = Y;\n", where X is the description of
  * the key, and Y is the description of the value (each obtained
  * from the respective callbacks, of course). */
-NSString *NSStringFromMapTable (NSMapTable *table);
+GS_EXPORT NSString *NSStringFromMapTable (NSMapTable *table);
 
 #endif /* __NSMapTable_h_GNUSTEP_BASE_INCLUDE */

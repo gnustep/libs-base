@@ -279,6 +279,19 @@ $(GNUSTEP_OBJ_DIR)/NSGCString.o \
 $(GNUSTEP_OBJ_DIR)/NSGeometry.o \
 	: Foundation/NSGeometry.h
 
+
+#
+# Make list of class names for DLL exports. Edit to suit
+#
+libgnustep-base.def: $(GNUSTEP_OBJ_DIR)/*o
+	rm -f libgnustep-base.def
+	rm -f _tmp.def
+	cat win32-def.top > libgnustep-base.def
+	nm $^ | grep '^........ [T] _' | sed 's/[^_]*_//' > _tmp.def
+	cat _tmp.def | grep "_class_name_" >> libgnustep-base.def
+	rm -rf _tmp.def
+
+
 TAGS: $(DIST_FILES)
 	etags $(DIST_FILES)
 
