@@ -5,6 +5,12 @@ Sat Nov 01 07:05:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 	not sure what the actual problem was, so this change may have merely
 	re-hidden a bug :-(
 	* Source/Additions/Unicode.m: Simplify to use non-recursive lock.
+	* Source/NSCharacterSet.m 
+	([NSCharacterSet _bitmapForSet:number:]): Restore caching while
+	retaining the intended behavior of the previous change (is that
+	intended behavior correct?).
+	Perhaps should maintain a separate cache for each subclass ...
+	or should that be the responsibility of the subclass itsself?
 
 2003-10-31  David Ayers  <d.ayers@inode.at>
 
