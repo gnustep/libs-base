@@ -27,6 +27,9 @@ I ignored the installation instructions, and instead did the following:
 cd pthreads-0.9.2
 tar -cf - lib | (cd /usr/local ; tar -xvf -)
 tar -cf - include | (cd /usr/local ; tar -xvf -)
+mkdirs /usr/local/src/linux_threads/kits/pthreads-0.9.2/lib/pthreads
+cd !$ ; ln -s /usr/local/lib/libpthreads.so.1 .
+cd /usr/local/lib ; ln -s libpthreads.so.1 libpthreads.so
 @end example
 
 (And on my system, I also had to comment out the code between
@@ -43,6 +46,9 @@ cd gcc-2.7.2.1
 patch -p1 < ../gstep-base*/gcc-2.7.2.1-objc.diff
 rm -f objc/list.h
 @end example
+
+When I did this, patch exited with code 5, but the only rejects were in
+documentation files, not source files.
 
 @item
 Make and install gcc, possibly like this:
