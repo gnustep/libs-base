@@ -1,3 +1,8 @@
+2000-09-13  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Do preface.h substitutions here.
+	* Source/Makefile.postamble (preface.h): Remove target.
+
 2000-09-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSCompatibility.m: new file for MacOSX compatibility flags
