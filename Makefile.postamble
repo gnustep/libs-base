@@ -80,9 +80,9 @@ after-distclean::
 # Things to do after checking
 # after-check::
 
-ifeq ($(GNUSTEP_TARGET_OS), mingw32)
+ifneq ($(LN_S), ln -s) 
 header-links: $(HEADER_LINK_DEPENDS)
-	-rm -f Headers/Foundation/*
+	-rm -rf Headers/Foundation
 	-mkdir Headers/Foundation
 	cp -f Headers/gnustep/base/*.h Headers/Foundation
 
