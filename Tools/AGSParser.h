@@ -56,6 +56,7 @@
   unsigned	pos;
   BOOL		commentsRead;
   NSString		*declared;	// Where classes were declared.
+  NSMutableArray	*ifStack;	// track preprocessor conditionals.
 
   NSString		*comment;	// Documentation accumulator.
   NSMutableDictionary	*info;		// All information parsed.
@@ -84,11 +85,13 @@
 - (unsigned) skipBlock;
 - (unsigned) skipComment;
 - (unsigned) skipLiteral;
+- (unsigned) skipPreprocessor;
 - (unsigned) skipRemainderOfLine;
 - (unsigned) skipSpaces;
 - (unsigned) skipStatement;
 - (unsigned) skipStatementLine;
 - (unsigned) skipUnit;
 - (unsigned) skipWhiteSpace;
+- (void) setStandards: (NSMutableDictionary*)dict;
 @end
 #endif

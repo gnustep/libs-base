@@ -975,7 +975,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	      children = [node next];
 	      if ([[children name] isEqual: @"standards"])
 		{
-		  tmp = [node children];
+		  tmp = [children children];
 		  if (tmp != nil)
 		    {
 		      [buf appendString: indent];
@@ -1515,7 +1515,7 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
     }
   if (node != nil && [[node name] isEqual: @"standards"] == YES)
     {
-      GSXMLNode	*tmp = node;
+      GSXMLNode	*tmp = [node children];
 
       if (tmp != nil)
 	{
