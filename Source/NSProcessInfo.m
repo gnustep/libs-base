@@ -337,6 +337,8 @@ static char	**_gnu_noobjc_env;
 #if (CMDLINE_TERMINATED == 0)
   _gnu_noobjc_argc++;
 #endif
+  fclose(ifp);
+
   /*
    * Now _gnu_noobcj_argc is the number of arguments;
    * allocate memory accordingly.
@@ -345,7 +347,7 @@ static char	**_gnu_noobjc_env;
   if (_gnu_noobjc_argv == NULL)
     goto malloc_error;
 
-  fclose(ifp);
+
   ifp=fopen(proc_file_name,"r");
   //freopen(proc_file_name, "r", ifp);
   if (ifp == NULL)
@@ -551,8 +553,9 @@ int main(int argc, char *argv[], char *env[])
     }
 
   if (!_gnu_sharedProcessInfoObject)
-    _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
-		
+    {
+      _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
+    }
   return _gnu_sharedProcessInfoObject;
 }
 

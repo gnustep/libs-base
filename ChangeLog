@@ -2,6 +2,11 @@
 
 	* Source/NSRunLoop.m: Correct returns from within exception handler.
 	* Source/NSUserDefaults.m: use NSDefaultRunLoopMode.
+	* Headers/gnustep/unicode/gsm0338.h: New character set mapping.
+	* Source/Unicode.m: Add support for the GSM default alphabet.
+	* Headers/gnustep/base/GSIMap.h: Add support for macros update when
+	built with GSM_NEW defined (for use with NSMapTable in future).
+	Various source files updated to use new GSI macros.
 
 Mon Jan 21 17:08:42 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 

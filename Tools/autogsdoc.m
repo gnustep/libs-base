@@ -430,6 +430,9 @@ main(int argc, char **argv, char **env)
   gFiles = [NSMutableArray array];
   hFiles = [NSMutableArray array];
   count = [files count];
+NSLog(@"Proc ... %@", proc);
+NSLog(@"Name ... %@", [proc processName]);
+NSLog(@"Files ... %@", files);
   for (i = 1; i < count; i++)
     {
       NSString *arg = [files objectAtIndex: i];

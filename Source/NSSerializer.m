@@ -50,12 +50,21 @@
 /*
  *	Setup for inline operation of string map tables.
  */
+#ifdef	GSI_NEW
+#define	GSI_MAP_RETAIN_KEY(M, X)	
+#define	GSI_MAP_RELEASE_KEY(M, X)	
+#define	GSI_MAP_RETAIN_VAL(M, X)	
+#define	GSI_MAP_RELEASE_VAL(M, X)	
+#define	GSI_MAP_HASH(M, X)	[(X).obj hash]
+#define	GSI_MAP_EQUAL(M, X,Y)	[(X).obj isEqualToString: (Y).obj]
+#else
 #define	GSI_MAP_RETAIN_KEY(X)	
 #define	GSI_MAP_RELEASE_KEY(X)	
 #define	GSI_MAP_RETAIN_VAL(X)	
 #define	GSI_MAP_RELEASE_VAL(X)	
 #define	GSI_MAP_HASH(X)	[(X).obj hash]
 #define	GSI_MAP_EQUAL(X,Y)	[(X).obj isEqualToString: (Y).obj]
+#endif
 
 #include <base/GSIMap.h>
 
