@@ -10,6 +10,16 @@ The currently released version of the library is
 @section Noteworthy changes in version @samp{0.9.1}
 
 @itemize @bullet
+@item New MacOSX compatible files for NSCalendarDate, NSTimeZone
+@item NSUserDefaults noew uses NSLanguages not Languages
+@item Various improvements for Windows platforms
+@item NSCharacterSets updated to v3.0.1 of Unicode data.
+@item Added some gettext compatible localization macros.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.9.1}
+
+@itemize @bullet
 @item Fixes for building on FreeBSD
 @item Unicode support for -initWithFormat:
 @item NSDate pass dates over DO bycopy unless explicit byref.

@@ -1,5 +1,6 @@
 2001-03-10  Adam Fedor  <fedor@gnu.org>
 
+	* Version 0.9.2
 	* Makefile.postamble (before-install): Remove extra '/' before
 	GNUSTEP_MAKEFILES
 
@@ -25,33 +26,6 @@
 	* Source/NSLog.m: ditto
 	* Source/NSString.m: ditto
 	* Source/NSTimeZone.m: ditto
-
-2001-03-06  Adam Fedor  <fedor@gnu.org>
-
-	* Source/libgnustep-base.def: Regenerate.
-
-2001-03-05  Richard Frith-Macdonald <rfm@gnu.org>
-
-	* Source/NSUserDefaults.m: Changed ([+setUserLanguages:]) to use
-	NSLanguages.
-	* Documentation/gsdoc/NSUserDefaults.gsdoc: documented the
-	([+setUserlanguages:]) method.
-
-2001-03-04  Jonathan Gapen  <jagapen@home.com>
-
-	* Documentation/gsdoc/NSCharacterSet.gsdoc: Documented some methods.
-	* Headers/gnustep/unicode/caseconv.h: Updated case-mapping tables.
-	* Source/NSBitmapCharSet.m: Added sanity check to initWithBitmap:
-	* Source/Unicode.m: Changed uni_toupper() and uni_tolower() to use
-	direct lookup in two-level tables, rather than a linear search.
-
-2001-03-03  Richard Frith-Macdonald <rfm@gnu.org>
-
-	* Source/NSBundle.m: Corrected 
-	([-_bundleResourcePathsWithRootPath:subPath:]) to use
-	([NSUserDefaults +userLanguages]) to get language array again.
-	* Documentation/gsdoc/NSUserDefaults.gsdoc: Updated and added
-	information about +userLanguages
 
 2001-03-07  Adam Fedor  <fedor@gnu.org>
 
