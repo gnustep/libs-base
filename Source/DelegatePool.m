@@ -1,5 +1,5 @@
 /* Implementation of Objective-C "collection of delegates" object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -22,6 +22,7 @@
    */ 
 
 #include <objects/DelegatePool.h>
+#include <objects/NSString.h>
 
 @implementation DelegatePool
 
