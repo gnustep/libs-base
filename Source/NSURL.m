@@ -440,37 +440,37 @@ NSString	*NSURLPartKey_query = @"query";
   return [[self explode] objectForKey: NSURLPartKey_host];
 }
 
-- (NSNumber*) port;
+- (NSNumber*) port
 {
   return [[self explode] objectForKey: NSURLPartKey_port];
 }
 
-- (NSString*) user;
+- (NSString*) user
 {
   return [[self explode] objectForKey: NSURLPartKey_user];
 }
 
-- (NSString*) password;
+- (NSString*) password
 {
   return [[self explode] objectForKey: NSURLPartKey_password];
 }
 
-- (NSString*) path;
+- (NSString*) path
 {
   return [[self explode] objectForKey: NSURLPartKey_path];
 }
 
-- (NSString*) fragment;
+- (NSString*) fragment
 {
   return [[self explode] objectForKey: NSURLPartKey_fragment];
 }
 
-- (NSString*) parameterString;
+- (NSString*) parameterString
 {
   return [[self explode] objectForKey: NSURLPartKey_parameterString];
 }
 
-- (NSString*) query;
+- (NSString*) query
 {
   return [[self explode] objectForKey: NSURLPartKey_query];
 }
@@ -647,7 +647,7 @@ NSString	*NSURLPartKey_query = @"query";
 }
 
 - (BOOL) setProperty: (id)property
-	      forKey: (NSString*)propertyKey;
+	      forKey: (NSString*)propertyKey
 {
   NSURLHandle	*handle = [self URLHandleUsingCache: YES];
 
