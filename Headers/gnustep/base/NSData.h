@@ -23,6 +23,7 @@
 
 #include <foundation/NSObject.h>
 #include <foundation/NSRange.h>
+#include <foundation/NSSerialization.h>
 
 @interface NSData : NSObject <NSCopying, NSMutableCopying>
 
