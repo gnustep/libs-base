@@ -56,7 +56,7 @@ communication or 'remote messaging'.
 @cindex NSRunLoop class
 
 GNUstep overcomes these limitations by providing you with classes that
-form, what is known as, a 'distributed objects' architecture that
+form what is known as a 'distributed objects' architecture that
 extends the capabilities of the run-time system.
 
 With the addition of a few lines of code in the client and server
@@ -90,34 +90,39 @@ Let us now take a look at the additional lines of code required to make
 this 'remote messaging' possible.
 
 @subsection Code at the Server 
-@cindex server code, GNUstep
-@cindex GNUstep server code
+@cindex distributed objects, client code
 
-In order to respond to client messages, the responding server object
-must be set as the 'root object' of an instance of the NSConnection
-class, and this NSConnection must be registered with the network by
-name. Making an object available to client processes in this way is
-known as 'vending' the object. The registered name for the NSConnection
-is used by the client when obtaining a proxy for the responding server
-object over the network.
+In order to respond to client messages, the responding server object must be
+set as the 'root object' of an instance of the @code{NSConnection} class, and
+this @code{NSConnection} must be registered with the network by name. Making
+an object available to client processes in this way is known as 'vending' the
+object. The registered name for the @code{NSConnection} is used by the client
+when obtaining a proxy for the responding server object over the network.
 
-The only other code you need to consider is the code that listens for
-incoming messages. This 'runloop' as it is known, is started by sending
-a @code{run} message to an instance of the NSRunLoop class.  Since an
-NSRunLoop object is created automatically for each process, there is no
-need to create one yourself. Simply get the default runloop, which is
-returned by the @code{currentRunLoop} class method.
+The only other code you need to consider is the code that listens for incoming
+messages. This 'runloop', as it is known, is started by sending a @code{run}
+message to an instance of the @code{NSRunLoop} class.  Since an
+@code{NSRunLoop} object is created automatically for each process, there is no
+need to create one yourself. Simply get the default runloop, which is returned
+by the @code{+currentRunLoop} class method.
 
-When the runloop detects an incoming message, the message is passed to
-the root object of the NSConnection, which performs a method in response
-to the message and returns a variable of the appropriate type. The
-NSConnection manages all inter-process communication, decoding incoming
+When the runloop detects an incoming message, the message is passed to the
+root object of the @code{NSConnection}, which performs a method in response to
+the message and returns a variable of the appropriate type. The
+@code{NSConnection} manages all inter-process communication, decoding incoming
 messages and encoding any returned values.
+@comment{Sequence diagram would be really useful here.}
 
 The code to vend the @code{telephoneDirectory} object and start the
 runloop would look something like this:
 
 @example
+/*
+ * The main() function: Set up the program 
+ * as a 'Distributed Objects Server'.
+ */
+int main(void)
+@{
   /*
    * Remember, create an instance of the 
    * NSAutoreleasePool class.
@@ -152,17 +157,18 @@ runloop would look something like this:
   
   /* Release the pool */
   RELEASE(pool);
+  return 0;
+@}
 @end example
 
 These additional lines of code turn a program into a distributed objects
 server, ready to respond to incoming client messages.
 
 @subsection Code at the Client 
-@cindex client code, GNUstep
-@cindex GNUstep client code
+@cindex distributed objects, client code
 
 At the client, all you need do is obtain a proxy for the responding
-server object, using the name that was registered for the NSConnection
+server object, using the name that was registered for the @code{NSConnection}
 at the server.
 
 @example
@@ -171,9 +177,9 @@ at the server.
 
   /* Get the proxy */
   id proxy = [NSConnection 
-              rootProxyForConnectionWithRegisteredName:
-	      @i{registeredServerName}
-	      host: @i{hostName}]; 
+                rootProxyForConnectionWithRegisteredName:
+	          @i{registeredServerName}
+	        host: @i{hostName}]; 
 	      
   /* The rest of your program code goes here */
   
@@ -186,16 +192,16 @@ object for managing the inter-process communication, so there is no need
 to create one yourself. If the @i{hostName} in this statement is 'nil',
 then only the local host will be searched to find the
 @i{registeredServerName}. If @i{hostName} is "*", then all hosts on the
-network will be searched.
+local network will be searched.
 
 In the telephone directory example, the code to obtain the proxy from
 any host on the network would be:
 
 @example
   id proxyForDirectory = [NSConnection
-                          rootProxyForConnectionWithRegisteredName: 
-                          @@"DirectoryServer" 
-			  host: "*"]; 
+                            rootProxyForConnectionWithRegisteredName: 
+                              @@"DirectoryServer" 
+			    host: "*"]; 
 @end example
 
 With this additional line of code in the client program, you can now
@@ -205,6 +211,7 @@ object.
 @example
   NSString *wantedNumber = [proxyForDirectory teleNumber: personName];
 @end example
+
 
 @subsection Using a Protocol 
 @cindex protocol for distributed objects
@@ -258,68 +265,163 @@ For example, @code{proxyForDirectory} at the client could be a proxy for
 an instance of the @code{TelephoneDirectory} class at the server, and
 this class could implement the @code{TelephoneDirectory} protocol.
 
-@section An Example Game Server
+
+@subsection Complete Code for Telephone Directory Application
+
+Here we provide the rest of the code needed for client and server to actually
+run the above example.
+
+@b{Code At Server}
+
+@example
+#include <Foundation/Foundation.h>
+
+/* Include the TelephoneDirectory protocol header file */
+#include "TelephoneDirectory.h"
+
+/*
+ * Declare the TelephoneDirectory class that 
+ * implements the 'teleNumber' instance method.
+ */
+@@interface TelephoneDirectory : NSObject <TelephoneDirectory>
+@@end
+
+/*
+ * Define the TelephoneDirectory class 
+ * and the instance method (teleNumber).
+ */
+@@implementation TelephoneDirectory : NSObject
+- (char *) teleNumber: (char *) personName
+@{
+  if (strcmp(personName, "Jack") == 0) return " 0123 456";
+  else if (strcmp(personName, "Jill") == 0) return " 0456 789";
+  else return " Number not found";
+@}
+@@end
+
+ /* main() function: Set up the program  as a 'Distibuted Objects Server'. */
+ /*   [use code from server example above ...] */
+@end example
+
+@b{Code at Client}
+
+
+@example
+#include <Foundation/Foundation.h>
+
+/* Include the TelephoneDirectory protocol header file */
+#include "TelephoneDirectory.h"
+
+/*
+ * The main() function: Get the telephone number for 
+ * 'personName' from the server registered as 'DirectoryServer'.
+ */
+int main(int argc, char *argv[])
+@{
+  char *personName = argv[1];
+  char *returnedNumber;
+  id<TelephoneDirectory> proxyForDirectory;
+  CREATE_AUTORELEASE_POOL(pool);
+
+  /* Acquire the remote reference. */
+  proxyForDirectory = (id<TelephoneDirectory>) [NSConnection 
+                       rootProxyForConnectionWithRegisteredName: 
+                       @@"DirectoryServer" 
+		       host: @@"*"];	       
+
+  if(proxyForDirectory == nil) 
+    printf("\n** WARNING: NO CONNECTION TO SERVER **\n");
+  else printf("\n** Connected to server **\n");
+  
+  if(argc == 2) // Command line name entered
+  @{
+    returnedNumber = (char *)[proxyForDirectory teleNumber: personName];
+    printf("\n%s%s%s%s%s\n", "** (In client) The telephone number for ",
+           personName, " is:",
+           returnedNumber, "  **");
+  @}
+  else printf("\n** No name entered **\n");
+  printf("\n%s\n\n", "** End of client program **");
+  RELEASE(pool);
+  return 0;
+@}
+@end example
+
+To get this running, all you need do is create two directories, one for the
+client and one for the server. Each directory will hold a makefile, the client
+or server source code, and a copy of the protocol header file. When the files
+compile, first run the server and then the client.  You can try this on the
+same machine, or on two different machines (with GNUstep installed) on the
+same LAN. What happens when you run the client without the server? How would
+you display a "No Server Connection" warning at the client?
+
+
+@subsection GNUstep Distributed Objects Name Server
+@cindex gdomap
+@cindex Distributed Objects Name Server, GNUstep
+
+You might wonder how the client finds the server, or, rather, how it finds the
+directory the server lists itself in.  In fact an auxiliary process will
+automatically be started on each machine, if it isn't running already, that
+handles this, allowing the server to register and the client to send a query
+behind the scenes.  This @i{GNUstep Distributed Objects Name Server} runs as
+'@code{gdomap}' and binds to port 538.  See the manual page or the HTML
+``GNUstep Base Tools'' @uref{../../Tools/Reference/index.html,
+documentation} for further information.
+
+
+@subsection Look Ma, No Stubs!
+
+One difference you may have noticed in the example we just looked at from
+other remote method invocation interfaces such as CORBA and Java RMI was that
+there are @i{no stub classes}.  The source of this great boon is described at
+the end of this chapter: @ref{Distributed Objects, , Language Support for
+Distributed Objects}.
+
+
+@section A More Involved Example
 @cindex distributed objects, example (no error checking)
-
-It would be tempting to show a complete example of the telephone
-directory program, but a minimal amount of additional code is required
-to turn the previous examples into a working implementation. Instead we
-will look at an example called GameServer that uses distributed objects
-in a client/server game.
-
-@i{Exercise: Create a working client/server telephone directory on your
-own by adding a few lines of code to the previous examples, perhaps with
-a telephone directory holding only two or three names and numbers. At
-first you could implement this as a single process and then when it
-works, modify the code to run as client/server processes running on the
-same machine. (Try passing the person's name into the client program as
-a command-line argument. The server need only test the name, e.g. if
-personName = "Fred" return "number".)}
-
-@i{All you need do is create two directories, one for the client and one
-for the server. Each directory will hold a GNUmakefile, the
-client/server source code, and a copy of the protocol header file. When
-the files compile, first run the server and then the client. What
-happens when you run the client without the server? How would you
-display a "No Server Connection" warning at the client? Appendix B
-contains a small working example that you can compare with your own
-implementation.}
-
-@subsection What GameServer Does
 @cindex game server example
 
-Although there is no actual game to play, and while the code to vend an
-object and connect to a remote process is similar to that already shown,
-the code does show a number of additional techniques that can be used in
-other client/server programs.
+Now we will look at an example called GameServer that uses distributed objects
+in a client/server game.
+
+Actually the game itself is not implemented, just its distributed support
+structure, and while the code to vend an object and connect to a remote
+process is similar to that already shown, the code does show a number of
+additional techniques that can be used in other client/server programs.  Here
+are the requirements we will implement:
 
 @itemize @bullet
-@item When the client attempts to join the game, the server checks that 
-the client is entitled to join, based on the last time the client
-played. 
-The rule is: if the client lost the last game, then they cannot re-play 
-for the next 2 hours; but if the client won the last game, then they can 
-re-play the game at any time (a reward for winning).@*@*
+@item
+When the client attempts to join the game, the server checks that the client
+is entitled to join, based on the last time the client played.  The rule is:
+if the client lost the last game, then they cannot re-play for the next 2
+hours; but if the client won the last game, then they can re-play the game at
+any time (a reward for winning).@*
 
-@item The server also makes sure the client is not already connected and 
-playing the game (i.e. they cannot play two games at the same time -
-that would be cheating).@*@*
+@item
+The server also makes sure the client is not already connected and playing the
+game (i.e. they cannot play two games at the same time - that would be
+cheating).@*
 
-@item In addition to a proxy for the server being obtained at the
-client, a proxy for the client is received at the server. This allows 
-two-way messaging, where the client can send messages to the server and 
-the server can send messages to the client (e.g. the state of play may
-be affected by the actions of other players, or by other events at the 
-server).@*@*
+@item
+In addition to a proxy for the server being obtained at the client, a proxy
+for the client is received at the server. This allows two-way messaging, where
+the client can send messages to the server and the server can send messages to
+the client (e.g. the state of play may be affected by the actions of other
+players, or by other events at the server).@*
 
 Two protocols will therefore be required, one for the methods
 implemented at the server and one for those implemented at the client.
 @end itemize
 
-Have a look at the program code and added comments. Can you work out
-what is happening at the server and client? If you have any difficulties
-then refer to the relevant sections in this manual, or to class
-documentation at the GNUstep or Apple web-sites.
+Have a look at the program code in the following sections and added
+comments. Can you work out what is happening at the server and client? If you
+have any difficulties then refer to the relevant sections in this manual, or
+to class documentation @uref{../Reference/index.html, here} or at the Apple
+web site.
+
 
 @subsection Protocol Adopted at Client 
 
@@ -471,17 +573,19 @@ int main(int argc, char **argv)
 To summarise the code at the client:
 
 @itemize @bullet
-@item We obtained a proxy for the server and can now communicate 
-with the server using the methods declared in the @code{GameServer} 
-protocol.@*@*
+@item
+We obtained a proxy for the server and can now communicate with the server
+using the methods declared in the @code{GameServer} protocol.@*
 
-@item We passed a @code{GameClient} object and our user-name to the 
-server (the @code{GameClient} object is received as a proxy at the 
-server).  The server can now communicate with the client using the 
-methods declared in the @code{GameClient} protocol.@*@*
+@item
+We passed a @code{GameClient} object and our user-name to the server (the
+@code{GameClient} object is received as a proxy at the server).  The server
+can now communicate with the client using the methods declared in the
+@code{GameClient} protocol.@*
 
-@item When the game is in progress, the server can alter the state 
-of the client object to reflect the success of the player.
+@item
+When the game is in progress, the server can alter the state of the client
+object to reflect the success of the player.
 @end itemize
 
 @subsection Code at the Server
@@ -718,32 +822,36 @@ int main(int argc, char** argv)
 To summarise the code at the server:
 
 @itemize @bullet
-@item We vend the server's root object and start a runloop, 
-allowing clients to connect with the server.@*@*
+@item
+We vend the server's root object and start a runloop, allowing clients to
+connect with the server.@*
 
-@item When we receive a proxy for a client object, we communicate 
-with that client using methods declared in the @code{ClientServer} 
-protocol.@*@*
+@item
+When we receive a proxy for a client object, we communicate with that client
+using methods declared in the @code{ClientServer} protocol.@*
 
-@item We create three dictionary objects, each referenced by player 
-name. @code{currentUsers} holds proxies for each of the current 
-players; @code{delayUntil} holds times when each player can re-join 
-the game; and @code{hasWon} holds a string for each player, which is 
-set to "YES" if the player wins.@*@*
+@item
+We create three dictionary objects, each referenced by player
+name. @code{currentUsers} holds proxies for each of the current players;
+@code{delayUntil} holds times when each player can re-join the game; and
+@code{hasWon} holds a string for each player, which is set to "YES" if the
+player wins.@*
 
-@item When the game is in progress, the server can alter the state of 
-each client object to reflect the success of each player.
+@item
+When the game is in progress, the server can alter the state of each client
+object to reflect the success of each player.
 @end itemize
 
 I hope you managed to understand most of the code in this example. If
 you are reading the on-screen version, then you can copy and paste the
 code to suitably named files, create makefiles, and then make and run
 each program. What message is displayed if you immediately try to
-re-join a game after loosing? And after winning?
+re-join a game after losing? And after winning?
 
 @i{Exercise: Modify the server code so that the server records the
 number of wins for each player, and displays this information at both
 the start and end of each game.}
+
 
 @section Language Support for Distributed Objects
 
@@ -751,7 +859,8 @@ Objective-C provides special 'type' qualifiers that can be used in a
 protocol to control the way that message arguments are passed between
 remote processes, while at run time, the run-time system transparently
 uses what is known as 'forward invocation' to forward messages to a
-remote process.
+remote process.  (See @ref{Advanced Messaging, , Forwarding}.)
+
 
 @subsection Protocol Type Qualifiers
 @cindex protocol type qualifiers
@@ -759,6 +868,7 @@ remote process.
 @cindex out, type qualifier
 @cindex oneway, type qualifier
 @cindex bycopy and byref type qualifiers
+
 When message arguments are passed by value then the receiving method can
 only alter the copy it receives, and not the value of the original
 variable. When an argument is passed by reference (as a pointer), the
@@ -891,19 +1001,21 @@ individual object).
 @subsection Message Forwarding
 @cindex message forwarding, distributed objects
 @cindex forward invocation, distributed objects
-When a proxy forwards a message to a remote object, the GNUstep run-time
-extensions automatically implement what is known as 'forward
-invocation'. At run-time, the message received at the proxy is
-automatically re-packaged and sent to the proxy's
-@code{forwardInvocation:} method. This method determines whether or not
-a remote object exists that can respond to the received message,
-forwarding the message on (or not), depending on the reply.@*
 
-While this handling of messages by the proxy is transparent to the
-distributed objects programmer, any object can implement forward
-invocation, allowing it to pass on messages for which it has no
-responding method. Forward invocation is discussed in more detail in the
-next chapter.
+If you have used other remote invocation mechanisms such as CORBA or Java
+RMI, you may have noticed a big difference from these in the GNUstep
+Distributed Object paradigm -- there are no ``stub'' classes, either on the
+client or the server.  This tremendously simplifies the use of remote
+invocation and is possible due to the Objective-C message-forwarding facility
+(@ref{Advanced Messaging, , Forwarding}).
+
+In GNUstep, there are proxies on the client and server side that handle
+network communications and serialization/deserialization of arguments and
+return values just as in CORBA and RMI, but when it comes to responding to the
+client and server protocol method calls themselves, they are intercepted
+through the use of the @code{forwardInvocation:} method, where they can be
+passed on to the registered client and server objects through the ordinary
+Objective-C message sending mechanism.
 
 
 @section Error Checking
@@ -941,7 +1053,8 @@ You can register an observer object to receive a notification, in the
 form of a @code{connectionDidDie:} message, when a registered connection
 fails. The argument to this message will be an @code{NSNotification}
 object that returns the failed connection when it receives an
-@code{object} message.
+@code{object} message.  See @ref{Base Library, , Event-Based Communications}
+for more information on notifications.
 
 To receive this 'notification' the observer must implement the
 @code{connectionDidDie:} method, but can be an instance of any class. The
@@ -950,11 +1063,8 @@ references to the failed connection and releasing proxies that used the
 connection. Registering an object to receive this notification is
 described in more detail in the @code{NSConnection} class documentation.
 
-@subsection GameServer Example with Error Checking
-
-Earlier on in this section we looked at an example client/server program
-called GameServer, and you will find a further example of this program,
-with additional error checking, in Appendix B.
+@comment{Need some comments on reference counting and disposal.}
 
 
+@page
 

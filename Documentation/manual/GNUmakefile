@@ -6,19 +6,21 @@ GNUSTEP_MAKEINFO_FLAGS = -D NO-TEXI2HTML
 DOCUMENT_NAME = manual
 
 manual_TEXI_FILES =              \
-	manual.texi              \
 	foreword.texi            \
-	Introduction.texi        \
-        ObjcLanguage.texi        \
-	WritingNewClasses.texi   \
-	WorkingWithObjects.texi  \
+	manual.texi              \
+	AdvancedMessaging.texi   \
+	BaseLibrary.texi         \
+	Compliance.texi          \
 	DistributedObjects.texi  \
-	AdvancedTopics.texi      \
-	Glossary.texi            \
-	ExampleCode.texi         \
+	ExceptionHandling.texi   \
 	GNUstepMake.texi         \
-	ObjcAndJava.texi         \
-	JavaAndGuile.texi
+	GSDoc.texi               \
+	Introduction.texi        \
+	ObjcAndJavaC++.texi      \
+	ObjcLanguage.texi        \
+	JavaAndGuile.texi        \
+	WorkingWithObjects.texi  \
+	WritingNewClasses.texi
 
 manual_DOC_INSTALL_DIR = Developer/Base/ProgrammingManual
 
