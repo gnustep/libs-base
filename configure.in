@@ -412,8 +412,15 @@ else
   AC_MSG_RESULT(no)
 fi
 
-LIBS="$saved_LIBS"
 CPPFLAGS="$saved_CPPFLAGS"
+# Don't revert LIBS, need it for the next test
+
+#--------------------------------------------------------------------
+# This function needed by NSLock.m for conditioned wait
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(objc_condition_timedwait)
+
+LIBS="$saved_LIBS"
 
 #--------------------------------------------------------------------
 # Generic settings needed by NSZone.m
@@ -529,17 +536,6 @@ AC_CHECK_FUNCS(usleep)
 # This function needed by NSDebug.m and NSProcessInfo.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(strerror)
-
-#--------------------------------------------------------------------
-# This function needed by NSLock.m for conditioned wait
-#--------------------------------------------------------------------
-saved_LIBS="$LIBS"
-LIBS="$LIBS -lobjc"
-if test x"$ac_cv_objc_threaded" != x""; then
-  LIBS="$LIBS $ac_cv_objc_threaded"
-fi
-AC_CHECK_FUNCS(objc_condition_timedwait)
-LIBS="$saved_LIBS"
 
 #--------------------------------------------------------------------
 # This function needed by NSString for handling of %@ printf directive.

@@ -1,3 +1,9 @@
+1999-08-10  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Move objc_conditioned_wait test so it gets proper
+	LIBS setup
+	* Source/mframe/configure: Regenerate using autoconf 2.13
+
 1999-08-08  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSPort.m (-sendBeforeDate:): Change return type to BOOL
