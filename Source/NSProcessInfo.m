@@ -349,26 +349,29 @@ static char	**_gnu_noobjc_env = NULL;
 
   /* open the kernel */
   kptr = kvm_open(NULL, "/dev/null", NULL, O_RDONLY, "NSProcessInfo");
-  if(!kptr) {
-    fprintf(stderr, "Error: Your system appears to provide libkvm, but the kernel open fails\n");
-    fprintf(stderr, "Try to reconfigure gnustep-base with --enable-fake-main. to work\n");
-    fprintf(stderr, "around this problem.");
-    abort();
-  }
+  if (!kptr)
+    {
+      fprintf(stderr, "Error: Your system appears to provide libkvm, but the kernel open fails\n");
+      fprintf(stderr, "Try to reconfigure gnustep-base with --enable-fake-main. to work\n");
+      fprintf(stderr, "around this problem.");
+      abort();
+    }
 
   /* find the process */
   proc_ptr = kvm_getprocs(kptr, KERN_PROC_PID, getpid(), &nprocs);
-  if(!proc_ptr || (nprocs != 1)) {
-    fprintf(stderr, "Error: libkvm cannot find the current process\n");
-    abort();
-  }
+  if (!proc_ptr || (nprocs != 1))
+    {
+      fprintf(stderr, "Error: libkvm cannot find the current process\n");
+      abort();
+    }
 
   /* get the environment vectors */
   vectors = kvm_getenvv(kptr, proc_ptr, 0);
-  if(!vectors) {
-    fprintf(stderr, "Error: libkvm does not return an environment for the current process\n");
-    abort();
-  }
+  if (!vectors)
+    {
+      fprintf(stderr, "Error: libkvm does not return an environment for the current process\n");
+      abort();
+    }
 
   /* copy the environment strings */
   for(count = 0; vectors[count]; count++)
@@ -386,10 +389,11 @@ static char	**_gnu_noobjc_env = NULL;
 
   /* get the argument vectors */
   vectors = kvm_getargv(kptr, proc_ptr, 0);
-  if(!vectors) {
-    fprintf(stderr, "Error: libkvm does not return arguments for the current process\n");
-    abort();
-  }
+  if (!vectors)
+    {
+      fprintf(stderr, "Error: libkvm does not return arguments for the current process\n");
+      abort();
+    }
 
   /* copy the argument strings */
   for(_gnu_noobjc_argc = 0; vectors[_gnu_noobjc_argc]; _gnu_noobjc_argc++)
