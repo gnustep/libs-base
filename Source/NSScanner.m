@@ -21,6 +21,9 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+   <title>NSScanner class reference</title>
+   $Date$ $Revision$
 */ 
 
 #include <config.h>
@@ -54,7 +57,7 @@ static Class		GSUnicodeStringClass;
 static Class		GSMutableStringClass;
 static Class		GSPlaceholderStringClass;
 static Class		NSConstantStringClass;
-static id		*_holder;
+static id		_holder;
 static NSCharacterSet	*defaultSkipSet;
 static SEL		memSel;
 

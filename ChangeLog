@@ -1,6 +1,7 @@
 2001-12-18  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Tools/AGSHtml.m: Fix 'standards' output.
+	Many source files modified to contain date, version, and title info.
+	* Tools/AGSHtml.m: Fix 'standards' output.  Implement date and version.
 	* Tools/AGSOutput.m: Add 'standards' support for class, category,
 	and protocol.  Use new standards info from parser.
 	* Tools/AGSParser.h: New method to set current standards.
