@@ -557,7 +557,7 @@ main(int argc, char **argv, char **env)
   NSLog(@"ERROR: The GNUstep Base Library was built\n"
 @"        without an available libxml library. Autogsdoc needs the libxml\n"
 @"        library to function. Aborting");
-  exit(1);
+  exit(EXIT_FAILURE);
 #endif
 
   defs = [NSUserDefaults standardUserDefaults];
@@ -604,7 +604,7 @@ main(int argc, char **argv, char **env)
   if (proc == nil)
     {
       NSLog(@"unable to get process information!");
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   /*
@@ -617,7 +617,7 @@ main(int argc, char **argv, char **env)
       if (files == nil)
 	{
 	  NSLog(@"Failed to load files from '%@'", obj);
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
       firstFile = 0;	// Not an argument list ... read from index 0
     }

@@ -61,7 +61,7 @@ main(int argc, char** argv, char **env)
     {
       NSLog(@"defaults: unable to get process information!\n");
       [pool release];
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
 
   args = [proc arguments];
@@ -97,7 +97,7 @@ main(int argc, char** argv, char **env)
 	  NSLog(@"defaults: unable to find encoding '%@'!\n"
 	    @"Known encoding names are -\n%@", n, names);
 	  [pool release];
-	  exit(0);
+	  exit(EXIT_SUCCESS);
 	}
     }
 

@@ -419,7 +419,7 @@
   if (connection == conn)
     {
       NSLog(@"argh - gdnc server root connection has been destroyed.");
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   else
     {
@@ -826,9 +826,9 @@ main(int argc, char** argv, char** env)
       if (_spawnv(_P_NOWAIT, argv[0], a) == -1)
 	{
 	  fprintf(stderr, "gdnc - spawn failed - bye.\n");
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
 #else
   if (shouldFork)
@@ -837,7 +837,7 @@ main(int argc, char** argv, char** env)
 	{
 	  case -1:
 	    fprintf(stderr, "gdnc - fork failed - bye.\n");
-	    exit(1);
+	    exit(EXIT_FAILURE);
 
 	  case 0:
 	    /*
@@ -851,7 +851,7 @@ main(int argc, char** argv, char** env)
 	    break;
 
 	  default:
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 #endif /* !MINGW */
@@ -891,6 +891,6 @@ main(int argc, char** argv, char** env)
       [[NSRunLoop currentRunLoop] run];
       RELEASE(pool);
     }
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
 

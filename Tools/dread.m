@@ -46,7 +46,7 @@ main(int argc, char** argv)
     if (proc == nil) {
 	NSLog(@"unable to get process information!\n");
 	[pool release];
-	exit(0);
+	exit(EXIT_SUCCESS);
     }
 
     args = [proc arguments];
@@ -81,7 +81,7 @@ main(int argc, char** argv)
 "dread [-u uname] key\n"
 "    read default named 'key' from the global domain.\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 
@@ -89,7 +89,7 @@ main(int argc, char** argv)
     if ([args count] <= i) {
 	NSLog(@"too few arguments supplied!\n");
 	[pool release];
-	exit(0);
+	exit(EXIT_SUCCESS);
     }
     
     if ([[args objectAtIndex: i] isEqual: @"-u"]) {
@@ -99,14 +99,14 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"no name supplied for -u option!\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 
     if ([args count] <= i) {
 	NSLog(@"too few arguments supplied!\n");
 	[pool release];
-	exit(0);
+	exit(EXIT_SUCCESS);
     }
 
     if ([[args objectAtIndex: i] isEqual: @"-g"]) {
@@ -117,7 +117,7 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"no key supplied for -g option!\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
     else if ([[args objectAtIndex: i] isEqual: @"-n"]) {
@@ -128,7 +128,7 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"no key supplied for -n option!\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
     else if ([[args objectAtIndex: i] isEqual: @"-o"]) {
@@ -139,7 +139,7 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"no domain name supplied for -o option!\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
     else if ([[args objectAtIndex: i] isEqual: @"-l"]) {
@@ -166,7 +166,7 @@ main(int argc, char** argv)
     if (defs == nil) {
 	NSLog(@"unable to access defaults database!\n");
 	[pool release];
-	exit(0);
+	exit(EXIT_SUCCESS);
     }
     /* We don't want dwrite in the defaults database - so remove it. */
     [defs removePersistentDomainForName: [proc processName]];
@@ -232,7 +232,7 @@ main(int argc, char** argv)
     }
 
     [pool release];
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 

@@ -72,14 +72,14 @@ main(int argc, char **argv, char **env)
   NSLog(@"ERROR: The GNUstep Base Library was built\n"
 @"        without an available libxml library. xmlparse needs the libxml\n"
 @"        library to function. Aborting");
-  exit(1);
+  exit(EXIT_FAILURE);
 #endif
 
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {
       NSLog(@"unable to get process information!");
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   files = [proc arguments];

@@ -52,7 +52,7 @@ main(int argc, char** argv, char **env)
     {
       NSLog(@"plmerge: unable to get process information!");
       [pool release];
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
 
   args = [procinfo arguments];
@@ -62,7 +62,7 @@ main(int argc, char** argv, char **env)
       GSPrintf(stderr, @"Usage: %@ input-file [destination-file]\n",
 	[procinfo processName]);
       [pool release];
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
 
   sourceName = [args objectAtIndex: 1];
@@ -92,7 +92,7 @@ main(int argc, char** argv, char **env)
       GSPrintf(stderr,
 	@"The source property list must contain an NSDictionary.\n");
       [pool release];
-      exit(1);
+      exit(EXIT_FAILURE);
     }
 
   fileContents = [NSMutableString stringWithCapacity: 200];
@@ -153,5 +153,5 @@ main(int argc, char** argv, char **env)
       GSPrintf(stderr, @"Error writing property list to '%@'\n", destName);
     }
   [pool release];
-  exit(0);
+  exit(EXIT_SUCCESS);
 }

@@ -57,7 +57,7 @@ main(int argc, char** argv, char **env)
     {
       GSPrintf(stderr, @"defaults: unable to get process information!\n");
       [pool release];
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
 
   args = [proc arguments];
@@ -116,7 +116,7 @@ main(int argc, char** argv, char **env)
 "defaults help\n"
 "    list options fo the defaults command.\n\n");
 	  [pool release];
-	  exit(0);
+	  exit(EXIT_SUCCESS);
 	}
       else if ([[args objectAtIndex: i] isEqual: @"plist"])
 	{
@@ -171,7 +171,7 @@ main(int argc, char** argv, char **env)
 "    Checksum = <01014b5b 123a8b20>\n"
 "}'\n\n");
 	  [pool release];
-	  exit(0);
+	  exit(EXIT_SUCCESS);
 	}
     }
 
@@ -180,7 +180,7 @@ main(int argc, char** argv, char **env)
     {
       GSPrintf(stderr, @"defaults: too few arguments supplied!\n");
       [pool release];
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
   if ([[args objectAtIndex: i] isEqual: @"-u"])
     {
@@ -192,7 +192,7 @@ main(int argc, char** argv, char **env)
 	{
 	  GSPrintf(stderr, @"defaults: no name supplied for -u option!\n");
 	  [pool release];
-	  exit(0);
+	  exit(EXIT_SUCCESS);
 	}
     }
   if (user)
@@ -208,7 +208,7 @@ main(int argc, char** argv, char **env)
     {
       GSPrintf(stderr, @"defaults: unable to access defaults database!\n");
       [pool release];
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
   /* We don't want this tool in the defaults database - so remove it. */
   [defs removePersistentDomainForName: [proc processName]];
@@ -217,7 +217,7 @@ main(int argc, char** argv, char **env)
     {
       GSPrintf(stderr, @"defaults: too few arguments supplied!\n");
       [pool release];
-      exit(0);
+      exit(EXIT_SUCCESS);
     }
 
   if ([[args objectAtIndex: i] isEqual: @"read"] ||
@@ -247,7 +247,7 @@ main(int argc, char** argv, char **env)
 	    {
 	      GSPrintf(stderr, @"defaults: too few arguments supplied!\n");
 	      [pool release];
-	      exit(0);
+	      exit(EXIT_SUCCESS);
 	    }
 	  owner = nil;
 	  name = [args objectAtIndex: i];
@@ -367,7 +367,7 @@ main(int argc, char** argv, char **env)
 		{
 		  printf("defaults write: invalid input - nul domain name\n");
 		  [pool release];
-		  exit(0);
+		  exit(EXIT_SUCCESS);
 		}
 	      for (str = start; *str; str++)
 		{
@@ -376,7 +376,7 @@ main(int argc, char** argv, char **env)
 		      printf("defaults write: invalid input - "
 				"space in domain name.\n");
 		      [pool release];
-		      exit(0);
+		      exit(EXIT_SUCCESS);
 		    }
 		}
 	      owner = [NSString stringWithCString: start];
@@ -403,7 +403,7 @@ main(int argc, char** argv, char **env)
 		  printf("defaults write: invalid input - "
 			"nul default name.\n");
 		  [pool release];
-		  exit(0);
+		  exit(EXIT_SUCCESS);
 		}
 	      for (str = start; *str; str++)
 		{
@@ -412,7 +412,7 @@ main(int argc, char** argv, char **env)
 		      printf("defaults write: invalid input - "
 				"space in default name.\n");
 		      [pool release];
-		      exit(0);
+		      exit(EXIT_SUCCESS);
 		    }
 		}
 	      name = [NSString stringWithCString: start];
@@ -448,7 +448,7 @@ main(int argc, char** argv, char **env)
 				  printf("defaults write: fatal error - "
 					    "out of memory.\n");
 				  [pool release];
-				  exit(0);
+				  exit(EXIT_SUCCESS);
 				}
 			    }
 			  if (fgets(ptr, BUFSIZ, stdin) == 0)
@@ -456,7 +456,7 @@ main(int argc, char** argv, char **env)
 			      printf("defaults write: invalid input - "
 					"no final quote.\n");
 			      [pool release];
-			      exit(0);
+			      exit(EXIT_SUCCESS);
 			    }
 			}
 		      if (*ptr == '\'')
@@ -489,7 +489,7 @@ main(int argc, char** argv, char **env)
 		  printf("defaults write: invalid input - "
 			    "empty property list\n");
 		  [pool release];
-		  exit(0);
+		  exit(EXIT_SUCCESS);
 		}
 
 	      /*
@@ -506,7 +506,7 @@ main(int argc, char** argv, char **env)
 		      printf("defaults write: invalid input - "
 				    "bad property list\n");
 		      [pool release];
-		      exit(0);
+		      exit(EXIT_SUCCESS);
 		    }
 		  else
 		    {
@@ -530,7 +530,7 @@ main(int argc, char** argv, char **env)
 	    {
 	      GSPrintf(stderr, @"defaults: no dictionary or key for write!\n");
 	      [pool release];
-	      exit(0);
+	      exit(EXIT_SUCCESS);
 	    }
 	  name = [args objectAtIndex: i++];
 	  if ([args count] > i)
@@ -549,7 +549,7 @@ main(int argc, char** argv, char **env)
 		      printf("defaults write: invalid input - "
 				    "bad property list\n");
 		      [pool release];
-		      exit(0);
+		      exit(EXIT_SUCCESS);
 		    }
 		}
 	      else
@@ -574,7 +574,7 @@ main(int argc, char** argv, char **env)
 		  GSPrintf(stderr,
 		    @"defaults write: domain is not a dictionary!\n");
 		  [pool release];
-		  exit(0);
+		  exit(EXIT_SUCCESS);
 		}
 	    }
 	}
@@ -615,7 +615,7 @@ main(int argc, char** argv, char **env)
 		{
 		  printf("defaults delete: invalid input\n");
 		  [pool release];
-		  exit(0);
+		  exit(EXIT_SUCCESS);
 		}
 	      owner = [NSString stringWithCString: start];
 	      start = ptr;
@@ -636,7 +636,7 @@ main(int argc, char** argv, char **env)
 		{
 		  printf("defaults delete: invalid input\n");
 		  [pool release];
-		  exit(0);
+		  exit(EXIT_SUCCESS);
 		}
 	      name = [NSString stringWithCString: start];
 	      domain = [[defs persistentDomainForName: owner] mutableCopy];
@@ -705,7 +705,7 @@ main(int argc, char** argv, char **env)
 	{
 	  GSPrintf(stderr, @"defaults: no arguments for find!\n");
 	  [pool release];
-	  exit(0);
+	  exit(EXIT_SUCCESS);
 	}
       name = [args objectAtIndex: i];
 
@@ -763,6 +763,6 @@ main(int argc, char** argv, char **env)
     }
 
   [pool release];
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
 

@@ -48,7 +48,7 @@ main(int argc, char** argv)
     if (proc == nil) {
 	NSLog(@"unable to get process information!\n");
 	[pool release];
-	exit(0);
+	exit(EXIT_SUCCESS);
     }
 
     args = [proc arguments];
@@ -77,7 +77,7 @@ main(int argc, char** argv)
 "    written.  Domain names, default keys, and default values must be\n"
 "    separated on each line by spaces.\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 
@@ -89,7 +89,7 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"no name supplied for -u option!\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 
@@ -102,7 +102,7 @@ main(int argc, char** argv)
     if (defs == nil) {
 	NSLog(@"unable to access defaults database!\n");
 	[pool release];
-	exit(0);
+	exit(EXIT_SUCCESS);
     }
     /* We don't want dwrite in the defaults database - so remove it. */
     [defs removePersistentDomainForName: [proc processName]];
@@ -130,13 +130,13 @@ main(int argc, char** argv)
 	    if (*start == '\0') {
 		printf("dwrite: invalid input - nul domain name\n");
 		[pool release];
-		exit(0);
+		exit(EXIT_SUCCESS);
 	    }
 	    for (str = start; *str; str++) {
 		if (isspace(*str)) {
 		    printf("dwrite: invalid input - space in domain name.\n");
 		    [pool release];
-		    exit(0);
+		    exit(EXIT_SUCCESS);
 		}
 	    }
 	    owner = [NSString stringWithCString: start];
@@ -155,13 +155,13 @@ main(int argc, char** argv)
 	    if (*start == '\0') {
 		printf("dwrite: invalid input - nul default name.\n");
 		[pool release];
-		exit(0);
+		exit(EXIT_SUCCESS);
 	    }
 	    for (str = start; *str; str++) {
 		if (isspace(*str)) {
 		    printf("dwrite: invalid input - space in default name.\n");
 		    [pool release];
-		    exit(0);
+		    exit(EXIT_SUCCESS);
 		}
 	    }
 	    name = [NSString stringWithCString: start];
@@ -173,7 +173,7 @@ main(int argc, char** argv)
 			if (fgets(ptr, sizeof(buf) - (ptr-buf), stdin) == 0) {
 			    printf("dwrite: invalid input - no final quote.\n");
 			    [pool release];
-			    exit(0);
+			    exit(EXIT_SUCCESS);
 			}
 		    }
 		    if (*ptr == '\'') {
@@ -199,7 +199,7 @@ main(int argc, char** argv)
 		if (*start == '\0') {
 		    printf("dwrite: invalid input - empty property list\n");
 		    [pool release];
-		    exit(0);
+		    exit(EXIT_SUCCESS);
 		}
 		obj = [NSString stringWithCString: start];
 		if (*start == '(' || *start == '{' || *start == '<') {
@@ -208,7 +208,7 @@ main(int argc, char** argv)
 		    if (tmp == nil) {
 		        printf("dwrite: invalid input - bad property list\n");
 			[pool release];
-		        exit(0);
+		        exit(EXIT_SUCCESS);
 		    }
 		    else {
 			obj = tmp;
@@ -231,7 +231,7 @@ main(int argc, char** argv)
 		if (isspace(*str)) {
 		    printf("dwrite: invalid input - space in default name.\n");
 		    [pool release];
-		    exit(0);
+		    exit(EXIT_SUCCESS);
 		}
 	    }
 	    value = [args objectAtIndex: ++i];
@@ -245,7 +245,7 @@ main(int argc, char** argv)
 	    if (obj == nil) {
 		printf("dwrite: invalid input - bad property list\n");
 		[pool release];
-		exit(0);
+		exit(EXIT_SUCCESS);
 	    }
 	    domain = [[defs persistentDomainForName: owner] mutableCopy];
 	    if (domain == nil) {
@@ -257,7 +257,7 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"too few arguments supplied!\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
     else {
@@ -267,7 +267,7 @@ main(int argc, char** argv)
 		if (isspace(*str)) {
 		    printf("dwrite: invalid input - space in domain name.\n");
 		    [pool release];
-		    exit(0);
+		    exit(EXIT_SUCCESS);
 		}
 	    }
 	    name = [args objectAtIndex: ++i];
@@ -275,7 +275,7 @@ main(int argc, char** argv)
 		if (isspace(*str)) {
 		    printf("dwrite: invalid input - space in default name.\n");
 		    [pool release];
-		    exit(0);
+		    exit(EXIT_SUCCESS);
 		}
 	    }
 	    value = [args objectAtIndex: ++i];
@@ -289,7 +289,7 @@ main(int argc, char** argv)
 	    if (obj == nil) {
 		printf("dwrite: invalid input - bad property list\n");
 		[pool release];
-		exit(0);
+		exit(EXIT_SUCCESS);
 	    }
 	    domain = [[defs persistentDomainForName: owner] mutableCopy];
 	    if (domain == nil) {
@@ -301,14 +301,14 @@ main(int argc, char** argv)
 	else {
 	    NSLog(@"too few arguments supplied!\n");
 	    [pool release];
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	}
     }
 
     [defs synchronize];
 
     [pool release];
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 
