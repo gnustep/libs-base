@@ -409,7 +409,8 @@ NSCTemplateValue.m \
 dld-load.h \
 hpux-load.h \
 null-load.h \
-simple-load.h 
+simple-load.h \
+NSCallBacks.h 
 
 GNUSTEP_OBJS = \
 	$(GNUSTEP_MFILES:.m=$(OEXT)) \
@@ -423,7 +424,6 @@ Foundation/NSArray.h \
 Foundation/NSAutoreleasePool.h \
 Foundation/NSBitmapCharSet.h \
 Foundation/NSBundle.h \
-Foundation/NSCallBacks.h \
 Foundation/NSCharacterSet.h \
 Foundation/NSCoder.h \
 Foundation/NSConcreteNumber.h \
