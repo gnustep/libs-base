@@ -117,17 +117,17 @@ after-distclean::
 $(NSVALUE_MFILES) : GSTemplateValue.m
 	rm -f $@
 	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
-	cat $(srcdir)/GSTemplateValue.m >> $@
+	cat GSTemplateValue.m >> $@
 $(NSNUMBER_MFILES) : NSConcreteNumber.m
 	rm -f $@
 	echo '#define TYPE_ORDER' `echo $@ | sed -e "s,[^0-9],,g"` >$@
-	cat $(srcdir)/NSConcreteNumber.m >> $@
+	cat NSConcreteNumber.m >> $@
 
 $(GNUSTEP_OBJ_DIR)/objc-load${OEXT}: dynamic-load.h
 
 dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
-	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
+	cp $(DYNAMIC_LINKER)-load.h dynamic-load.h
 
 $(GNUSTEP_OBJ_DIR)/preface${OEXT}: $(HEADER_DIR_BASE)/preface.h
 
