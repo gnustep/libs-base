@@ -1,3 +1,8 @@
+2003-10-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSArray.m: memory leak decoding a placeholder fixed.
+	Patch by <Roland.Schwingel@onevision.de>
+
 2003-10-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Added some checks that getting/setting uid/gid

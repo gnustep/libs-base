@@ -969,25 +969,13 @@ static Class	GSInlineArrayClass;
   unsigned	c;
 
   [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
-  a = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*c,
-    GSObjCZone(self));
+  a = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*c, GSObjCZone(self));
   a->_contents_array = (id*)&a[1];
   if (c > 0)
     {
-#if	!GS_WITH_GC
-      unsigned	i;
-#endif
-
       [aCoder decodeArrayOfObjCType: @encode(id)
 			      count: c
 				 at: a->_contents_array];
-#if	!GS_WITH_GC
-      for (i = 0; i < c; i++)
-	{
-	  a->_contents_array[i] = RETAIN(a->_contents_array[i]);
-	  a->_count = i;
-	}
-#endif
     }
   a->_count = c;
   return a;
