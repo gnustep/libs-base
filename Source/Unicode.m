@@ -74,7 +74,7 @@ static const char *unicode_enc = NULL;
 
 /* Check to see what type of internal unicode format the library supports */
 static const char *
-internal_unicode_enc()
+internal_unicode_enc(void)
 {
   iconv_t conv;
   unicode_enc = UNICODE_INT;
@@ -179,7 +179,7 @@ static struct _strenc_ str_encoding_table[] = {
 static struct _strenc_	**encodingTable = 0;
 static unsigned		encTableSize = 0;
 
-static void GSSetupEncodingTable()
+static void GSSetupEncodingTable(void)
 {
   if (encodingTable == 0)
     {

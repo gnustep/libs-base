@@ -40,9 +40,9 @@
 
 # Additional flags to pass to the preprocessor
 ADDITIONAL_CPPFLAGS = $(DEFS) $(CONFIG_SYSTEM_DEFS) -Wall \
+-Wcast-align \
 #-Wpointer-arith \
 #-Wcast-qual \
-#-Wcast-align \
 #-Wwrite-strings \
 #-Wstrict-prototypes \
 #-Wmissing-prototypes \
