@@ -150,9 +150,6 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
   for (i = 0; i < released_count; i++)
     {
       id anObject = released[i];
-      /* xxx When would this ever happen anyway?
-	 If the class_pointer is 0xdeadface, sendmsg won't work and we
-	 couldn't even have gotten here. */
       if (object_get_class(anObject) == (void*) 0xdeadface)
 	[self error:"Autoreleasing deallocated object. Debug after setting [NSObject enableDoubleReleaseCheck:YES] to check for release errors."];
       released[i]=0;
