@@ -1,3 +1,8 @@
+2000-05-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUser.m: NSHomeDirectoryForUser() protect with locks for
+	thread safety.
+
 2000-05-02  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Add check for word alignment. Also don't define
