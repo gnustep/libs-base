@@ -1,5 +1,5 @@
 /* Interface for Objective-C Dictionary collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -33,6 +33,11 @@
   int (*_comparison_function)(elt,elt);
 }
 
+- initWithType: (const char *)contentEncoding
+    keyType: (const char *)keyEncoding
+    capacity: (unsigned)aCapacity;
+- initWithType: (const char *)contentEncoding
+    capacity: (unsigned)aCapacity;
 
 @end
 
