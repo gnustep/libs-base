@@ -30,6 +30,11 @@
 
 @implementation NSArray
 
++ allocWithZone: (NSZone*)z
+{
+  return [NSGArray allocWithZone:z];
+}
+
 + array
 {
   return [[[NSGArray alloc] init] autorelease];
@@ -269,6 +274,11 @@
 @end
 
 @implementation NSMutableArray: NSArray
+
++ allocWithZone: (NSZone*)z
+{
+  return [NSGMutableArray allocWithZone:z];
+}
 
 + arrayWithCapacity: (unsigned)numItems
 {
