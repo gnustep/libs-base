@@ -37,6 +37,7 @@
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSHost.h>
+#include <Foundation/NSThread.h>
 #include <Foundation/NSDebug.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,6 +51,8 @@
 #include <sys/file.h>
 
 extern	int	errno;
+
+static	BOOL	multi_threaded = NO;
 
 /*
  * Largest chunk of data possible in DO
@@ -156,7 +159,6 @@ typedef enum {
 
 @interface GSTcpHandle : NSObject <GCFinalization, RunLoopEvents>
 {
-  NSLock		*myLock;	/* Lock for this handle.	*/
   int			desc;		/* File descriptor for I/O.	*/
   unsigned		wItem;		/* Index of item being written.	*/
   NSMutableData		*wData;		/* Data object being written.	*/
@@ -172,6 +174,7 @@ typedef enum {
   GSHandleState		state;		/* State of the handle.		*/
   int			addrNum;	/* Address number within host.	*/
 @public
+  NSLock		*myLock;	/* Lock for this handle.	*/
   BOOL			caller;		/* Did we connect to other end?	*/
   BOOL			valid;
   GSTcpPort		*recvPort;
@@ -360,7 +363,10 @@ static Class	runLoopClass;
   handle = (GSTcpHandle*)NSAllocateObject(self,0,NSDefaultMallocZone());
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
-  handle->myLock = [NSRecursiveLock new];
+  if (multi_threaded == YES)
+    {
+      handle->myLock = [NSRecursiveLock new];
+    }
   handle->valid = YES;
   return AUTORELEASE(handle);
 }
@@ -1080,14 +1086,69 @@ static NSRecursiveLock	*tcpPortLock = nil;
 static NSMapTable	*tcpPortMap = 0;
 static Class		tcpPortClass;
 
+/*
+ *	When the system becomes multithreaded, we set a flag to say so and
+ *	make sure that port and handle locking is enabled.
+ */
++ (void) _becomeThreaded: (NSNotification*)notification
+{
+  if (multi_threaded == NO)
+    {
+      NSMapEnumerator	pEnum;
+      GSTcpPort		*p;
+      void		*dummy;
+
+      multi_threaded = YES;
+      if (tcpPortLock == nil)
+	{
+	  tcpPortLock = [NSRecursiveLock new];
+	}
+      pEnum = NSEnumerateMapTable(tcpPortMap);
+      while (NSNextMapEnumeratorPair(&pEnum, &dummy, (void**)&p))
+	{
+	  NSMapEnumerator	hEnum;
+	  GSTcpHandle		*h;
+
+	  if (p->myLock == nil)
+	    {
+	      p->myLock = [NSRecursiveLock new];
+	    }
+	  hEnum = NSEnumerateMapTable(p->handles);
+	  while (NSNextMapEnumeratorPair(&hEnum, &dummy, (void**)&h))
+	    {
+	      if (h->myLock == nil)
+		{
+		  h->myLock = [NSRecursiveLock new];
+		}
+	    }
+	}
+    }
+  [[NSNotificationCenter defaultCenter]
+    removeObserver: self
+	      name: NSWillBecomeMultiThreadedNotification
+	    object: nil];
+}
+
 + (void) initialize
 {
   if (self == [GSTcpPort class])
     {
       tcpPortClass = self;
-      tcpPortLock = [NSRecursiveLock new];
       tcpPortMap = NSCreateMapTable(NSIntMapKeyCallBacks,
 			NSNonOwnedPointerMapValueCallBacks, 0);
+
+      if ([NSThread isMultiThreaded])
+	{
+	  [self _becomeThreaded: nil];
+	}
+      else
+	{
+	  [[NSNotificationCenter defaultCenter]
+	    addObserver: self
+	       selector: @selector(_becomeThreaded:)
+		   name: NSWillBecomeMultiThreadedNotification
+		 object: nil];
+	}
     }
 }
 
@@ -1182,7 +1243,10 @@ static Class		tcpPortClass;
       port->address = [addr copy];
       port->handles = NSCreateMapTable(NSIntMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
-      port->myLock = [NSRecursiveLock new];
+      if (multi_threaded == YES)
+	{
+	  port->myLock = [NSRecursiveLock new];
+	}
       port->_is_valid = YES;
 
       if (shouldListen == YES && [thisHost isEqual: aHost])

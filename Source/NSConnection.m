@@ -243,7 +243,7 @@ static NSTimer		*timer;
 static int debug_connection = 0;
 
 static NSHashTable	*connection_table;
-static NSLock		*connection_table_gate;
+static NSLock		*connection_table_gate = nil;
 
 /*
  * Locate an existing connection with the specified send and receive ports.
@@ -275,7 +275,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
 }
 
 static NSMapTable *root_object_map;
-static NSLock *root_object_map_gate;
+static NSLock *root_object_map_gate = nil;
 
 static id
 rootObjectForInPort(NSPort *aPort)
@@ -314,12 +314,52 @@ setRootObjectForInPort(id anObj, NSPort *aPort)
 static NSMapTable *objectToCounter = NULL;
 static NSMapTable *targetToCounter = NULL;
 static NSMapTable *targetToCached = NULL;
-static NSLock	*global_proxies_gate;
+static NSLock	*global_proxies_gate = nil;
 
+static BOOL	multi_threaded = NO;
 
 
 
 @implementation NSConnection
+
+/*
+ *	When the system becomes multithreaded, we set a flag to say so and
+ *	make sure that connection locking is enabled.
+ */
++ (void) _becomeThreaded: (NSNotification*)notification
+{
+  if (multi_threaded == NO)
+    {
+      NSHashEnumerator	enumerator;
+      NSConnection		*c;
+
+      multi_threaded = YES;
+      if (connection_table_gate == nil)
+	{
+	  connection_table_gate = [NSLock new];
+	}
+      if (global_proxies_gate == nil)
+	{
+	  global_proxies_gate = [NSLock new];
+	}
+      if (root_object_map_gate == nil)
+	{
+	  root_object_map_gate = [NSLock new];
+	}
+      enumerator = NSEnumerateHashTable(connection_table);
+      while ((c = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
+	{
+	  if (c->_refGate == nil)
+	    {
+	      c->_refGate = [NSRecursiveLock new];
+	    }
+	}
+    }
+  [[NSNotificationCenter defaultCenter]
+    removeObserver: self
+	      name: NSWillBecomeMultiThreadedNotification
+	    object: nil];
+}
 
 + (NSArray*) allConnections
 {
@@ -442,7 +482,6 @@ static NSLock	*global_proxies_gate;
 
       connection_table = 
 	NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
-      connection_table_gate = [NSLock new];
 
       objectToCounter =
 	NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
@@ -453,11 +492,22 @@ static NSLock	*global_proxies_gate;
       targetToCached =
 	NSCreateMapTable(NSIntMapKeyCallBacks,
 			  NSObjectMapValueCallBacks, 0);
-      global_proxies_gate = [NSLock new];
+
       root_object_map =
 	NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 			  NSObjectMapValueCallBacks, 0);
-      root_object_map_gate = [NSLock new];
+      if ([NSThread isMultiThreaded])
+	{
+	  [self _becomeThreaded: nil];
+	}
+      else
+	{
+	  [[NSNotificationCenter defaultCenter]
+	    addObserver: self
+	       selector: @selector(_becomeThreaded:)
+		   name: NSWillBecomeMultiThreadedNotification
+		 object: nil];
+	}
     }
 }
 
@@ -714,7 +764,10 @@ static NSLock	*global_proxies_gate;
 
   _requestDepth = 0;
   _delegate = nil;
-  _refGate = [NSRecursiveLock new];
+  if (multi_threaded == YES)
+    {
+      _refGate = [NSRecursiveLock new];
+    }
 
   /*
    * Some attributes are inherited from the parent if possible.
