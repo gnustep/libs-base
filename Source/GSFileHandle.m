@@ -682,7 +682,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   static NSString	*esocks = nil;
   static NSString	*dsocks = nil;
-  BOOL			beenHere = NO;
+  static BOOL		beenHere = NO;
   SOCKET		net;
   struct sockaddr_in	sin;
   NSString		*shost = nil;
