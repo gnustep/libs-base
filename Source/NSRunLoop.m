@@ -419,9 +419,18 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   NSZoneFree(timers->zone, (void*)timers);
   GSIArrayEmpty(watchers);
   NSZoneFree(watchers->zone, (void*)watchers);
-  NSFreeMapTable(_efdMap);
-  NSFreeMapTable(_rfdMap);
-  NSFreeMapTable(_wfdMap);
+  if (_efdMap != 0)
+    {
+      NSFreeMapTable(_efdMap);
+    }
+  if (_rfdMap != 0)
+    {
+      NSFreeMapTable(_rfdMap);
+    }
+  if (_wfdMap != 0)
+    {
+      NSFreeMapTable(_wfdMap);
+    }
 #if	HAVE_POLL
   if (pollfds != 0)
     {
