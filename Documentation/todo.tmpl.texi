@@ -40,10 +40,6 @@ an exception. [4, exceptions, threads] (980220)
 by Richard Frith-Macdonald  @email{richard@@brainstorm.co.uk}. Contact
 him for details. [3, guile] (980629)
 
-@item Change all the assert()'s (especially in the archiving code) to
-NSAssert()'s.  This will help make D.O. servers more safe from bad
-clients. [2, exceptions] (980220)
-
 @item Make NS... classes raise the NSExceptions they are supposed to.
 Change many NSParameterAssert()'s into NSAssert()'s with
 explanations. [2, exceptions] (970101)
