@@ -754,26 +754,16 @@ static BOOL deallocNotifications = NO;
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
   const char	*types;
+  struct objc_method *mth;
 
-#ifdef __FreeBSD__
-  types = NULL;
-#else
-  types = aSelector->sel_types;
-#endif
-
-  if (types == 0)
+  mth = (GSObjCIsInstance(self)
+    ? class_get_instance_method(GSObjCClass(self), aSelector)
+    : class_get_class_method(GSObjCClass(self), aSelector));
+  if (mth == 0)
     {
-      struct objc_method *mth;
-
-      mth = (GSObjCIsInstance(self)
-	? class_get_instance_method(GSObjCClass(self), aSelector)
-	: class_get_class_method(GSObjCClass(self), aSelector));
-      if (mth == 0)
-	{
-	  return nil;
-	}
-      types = mth->method_types;
+      return nil;
     }
+  types = mth->method_types;
   return [NSMethodSignature signatureWithObjCTypes: types];
 }
 

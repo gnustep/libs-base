@@ -1,3 +1,8 @@
+2001-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: ([methodSignatureForSelector:]) reliability
+	fix suggested by  Manuel Guesdon <ml@sbuilders.com>
+
 2001-03-06  Adam Fedor  <fedor@gnu.org>
 
 	* Source/libgnustep-base.def: Regenerate.
