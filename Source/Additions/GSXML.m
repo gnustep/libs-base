@@ -340,7 +340,7 @@ static NSMapTable	*attrNames = 0;
   xmlChar	*buf = NULL;
   int		length;
 
-  xmlDocDumpMemory(lib, &buf, &length);
+  xmlDocDumpFormatMemoryEnc(lib, &buf, &length, "utf-8", 1);
 
   if (buf != 0 && length > 0)
     {
@@ -883,6 +883,31 @@ static NSMapTable	*nodeNames = 0;
 {
   RELEASE(_parent);
   [super dealloc];
+}
+
+/**
+ * Returns a string representation of the node and all its children
+ * (ie the XML text) or nil if the node does not have reasonable contents.
+ */
+- (NSString*) description
+{
+  NSString		*string = nil;
+  xmlOutputBufferPtr	buf;
+
+  buf = xmlAllocOutputBuffer(0);
+  if (buf != 0)
+    {
+      xmlNodeDumpOutput(buf,
+	((xmlNodePtr)(lib))->doc,
+	(xmlNodePtr)(lib),
+	1,
+	1,
+	"utf-8");
+      xmlOutputBufferFlush(buf);
+      string = UTF8StrLen(buf->buffer->content, buf->buffer->use);
+      xmlOutputBufferClose(buf);
+    }
+  return string;
 }
 
 /**
