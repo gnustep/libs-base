@@ -51,11 +51,15 @@ nsdata \
 nsdictionary \
 nsfilehandle \
 nshost \
+nsinvocation \
 nsset \
 nsprocessinfo \
 nsarchiver \
 invocation \
-invocation2 \
+invocation_int \
+invocation_char \
+invocation_short \
+invocation_long \
 diningPhilosophers \
 nsmaptable \
 nshashtable \
@@ -98,13 +102,18 @@ nsdata_OBJC_FILES = nsdata.m
 nsdictionary_OBJC_FILES = nsdictionary.m
 nsfilehandle_OBJC_FILES = nsfilehandle.m
 nshost_OBJC_FILES = nshost.m
+nsinvocation_OBJC_FILES = nsinvocation.m
 nsset_OBJC_FILES = nsset.m
 nsprocessinfo_OBJC_FILES = nsprocessinfo.m
 nsarchiver_OBJC_FILES = nsarchiver.m
 oldclient_OBJC_FILES = oldclient.m
 oldserver_OBJC_FILES = oldserver.m
 invocation_OBJC_FILES = invocation.m
-invocation2_OBJC_FILES = invocation2.m
+invocation_int_OBJC_FILES = invocation_int.m
+invocation_char_OBJC_FILES = invocation_char.m
+invocation_short_OBJC_FILES = invocation_short.m
+invocation_long_OBJC_FILES = invocation_long.m
+invocation_float_OBJC_FILES = invocation_float.m
 diningPhilosophers_OBJC_FILES = diningPhilosophers.m
 nsmaptable_OBJC_FILES = nsmaptable.m
 nshashtable_OBJC_FILES = nshashtable.m
