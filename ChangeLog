@@ -1,4 +1,11 @@
+2004-05-21  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdomap.c (xgethostnames): New function
+	(nameServer, donames): Use it. (based on a patch from Matt Rice
+	<ratmice@yahoo.com>).
+
 2004-05-21 Roland Schwingel <roland.schwingel@onevision.de>
+
 	* Source/NSTimeZone.m: Fix errors in handling of windows registry.
 
 2004-05-18 Richard Frith-Macdonald <rfm@gnu.org>
