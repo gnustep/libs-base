@@ -3,7 +3,7 @@ AC_INIT(Collection.m)
 # configure.in for GNU Objective-C library
 # Process this file with autoconf to produce a configure script.
 #
-#   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+#   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
 #
 #   Written by:  R. Andrew McCallum <mccallum@cs.rochester.edu>
 #   Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
@@ -287,4 +287,4 @@ AC_CHECK_LIB(nsl, main)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(Makefile checks/Makefile examples/Makefile objects/config.h)
+AC_OUTPUT(Makefile checks/Makefile examples/Makefile doc/Makefile objects/config.h)
