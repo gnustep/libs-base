@@ -101,6 +101,7 @@ NSURLHandle.h \
 NSUndoManager.h \
 NSUserDefaults.h \
 NSValue.h \
+NSXMLParser.h \
 NSZone.h
 
 BaseAdditions_AGSDOC_FILES = \
