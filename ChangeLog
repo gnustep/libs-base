@@ -1,3 +1,7 @@
+Tue Nov 14 23:44:14 2000  Adam Fedor  <fedor@yogi.doc.com>
+
+	* Source/GSString.m: Add limits.h (for Solaris)
+
 2000-11-14  Adam Fedor  <fedor@gnu.org>
 
 	* Source/GSLocale.m: Put LANGINFO_H ifdefs around include of
