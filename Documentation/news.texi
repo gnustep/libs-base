@@ -42,7 +42,7 @@ Martin Michlmayr <tbm@@ihq.com> or Andrew McCallum
 
 @item
 Include the AUTHORS file, needed for legal reasons.  Include the
-@file{volunteers-gnustep} file.
+@file{GNUStep-volunteers} file.
 
 @item
 Several bug fixes:  Typo in Array.m; Linux header file frobbing in
