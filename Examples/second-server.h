@@ -3,9 +3,8 @@
 
 #include <Foundation/NSObject.h>
 #include <objects/Array.h>
-#include <objects/InvalidationListening.h>
 
-@interface SecondServer : NSObject <InvalidationListening>
+@interface SecondServer : NSObject
 {
   Array *array;
 }
