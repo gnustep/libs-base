@@ -23,13 +23,15 @@
 
 #include <objects/stdobjects.h>
 #include <Foundation/NSInvocation.h>
+#include <Foundation/NSMethodSignature.h>
+#include <objects/Invocation.h>
 
 @implementation NSInvocation
 
 + (void) initialize
 {
   if (self == [NSInvocation class])
-    class_add_behavior (self, [MethodInvocation class]);
+    class_add_behavior (self, [Invocation class]);
 }
 
 + (NSInvocation*) invocationWithObjCTypes: (const char*) types
@@ -37,11 +39,11 @@
   return [[self alloc] initWithArgframe: NULL type: types];
 }
 
-+ (NSInvocation*) invocationWithMethodSignature: (MethodSignature*)ms
++ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)ms
 {
   /* This assumes that the methodReturnType also includes the 
      parameter types. */
-  return [self invocationWithObjectTypes: [ms methodReturnType]];
+  return [self invocationWithObjCTypes: [ms methodReturnType]];
 }
 
 - (NSMethodSignature*) methodSignature
