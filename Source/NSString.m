@@ -24,7 +24,7 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA 02139, USA.
 */ 
 
 /* Caveats: 
@@ -536,10 +536,13 @@ handle_printf_atsign (FILE *stream,
 		format_to_go = formatter_pos+2;
 		continue;
 	      }
-	    /* Specifiers from K&R C 2nd ed. */
 	    spec_pos = strpbrk(formatter_pos+1, "dioxXucsfeEgGpn\0");
 	    switch (*spec_pos)
 	      {
+#ifndef powerpc
+	      /* FIXME: vsprintf on powerpc apparently advances the arg list
+	      so this doesn't need to be done. Make a more general check 
+	      for this */
 	      case 'd': case 'i': case 'o': 
 	      case 'x': case 'X': case 'u': case 'c': 
 		va_arg(arg_list, int);
@@ -558,8 +561,8 @@ handle_printf_atsign (FILE *stream,
 	      case 'n': 
 		va_arg(arg_list, int*);
 		break;
+#endif /* NOT powerpc */
 	      case '\0': 
-		/* Make sure loop exits on next iteration. */
 		spec_pos--;
 		break;
 	      }

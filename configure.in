@@ -22,7 +22,7 @@ AC_INIT(Source/Collection.m)
 #
 #   You should have received a copy of the GNU Library General Public
 #   License along with this library; if not, write to the Free
-#   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA
 
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
@@ -535,6 +535,17 @@ AC_CHECK_FUNCS(usleep)
 # This function needed by NSDebug.m and NSProcessInfo.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(strerror)
+
+#--------------------------------------------------------------------
+# This function needed by NSLock.m for conditioned wait
+#--------------------------------------------------------------------
+saved_LIBS="$LIBS"
+LIBS="$LIBS -lobjc"
+if test x"$ac_cv_objc_threaded" != x""; then
+  LIBS="$LIBS $ac_cv_objc_threaded"
+fi
+AC_CHECK_FUNCS(objc_condition_timedwait)
+LIBS="$saved_LIBS"
 
 #--------------------------------------------------------------------
 # This function needed by NSString for handling of %@ printf directive.

@@ -1,3 +1,17 @@
+1999-08-05  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSLock.m ([NSConditionLock -lockWhenCondition:beforeDate:]): 
+	Implement (Patch from Patrick Stein <jolly@jinx.de>).
+	* configure.in: Check for objc_condition_timewait.
+
+	* Source/NSString.m (-initWithFormat:arguments:): Don't advance
+	vsprintf arguments on powerpc.
+
+	* Source/mframe/powerpc/linux-gnu (MFRAME_ARG_ENCODING): Fix
+	alignment of small structures.
+	
+	* many files: Changed FSF mailing address
+
 Fri Aug  6 13:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Portability fixes for compilers that don't leave enough space in an
@@ -12,6 +26,7 @@ Thu Aug  5 10:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	* Tools/gdomap.c: prb_add() maintain server info in date order.
 	prb_del() removed, bugfixes to notice when a server dies.
 
+>>>>>>> 1.463.2.2
 Tue Aug  3 12:36:54 1999  Adam Fedor  <fedor@ultra.doc.com>
 
 	* Source/NSInvocation.m (-initWithTarget:selector:): Hack for
