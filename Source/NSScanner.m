@@ -185,11 +185,9 @@
     return NO;
   if (value)
     {
-      if (num > (negative ? -(unsigned int)INT_MIN : (unsigned int)INT_MAX))
-	overflow = YES;
-      if (overflow)
-	num = negative ? INT_MIN: INT_MAX;
-      if (negative)
+      if (overflow || (num > (negative ? (unsigned int)INT_MIN : (unsigned int)INT_MAX)))
+	*value = negative ? INT_MIN: INT_MAX;
+      else if (negative)
 	*value = -num;
       else
 	*value = num;
@@ -208,6 +206,108 @@
     return YES;
   scanLocation = saveScanLocation;
   return NO;
+}
+
+/*
+ * Scan an unsigned int of the given radix into value.
+ */
+- (BOOL)scanRadixUnsignedInt: (unsigned int *)value
+{
+  unsigned int num = 0;
+  unsigned int numLimit, digitLimit, digitValue, radix;
+  BOOL overflow = NO;
+  BOOL got_digits = NO;
+  unsigned int saveScanLocation = scanLocation;
+
+  /* Skip whitespace */
+  if (![self _skipToNextField])
+    {
+      scanLocation = saveScanLocation;
+      return NO;
+    }
+
+  /* Check radix */
+  radix = 10;
+  if ((scanLocation < len) && ([string characterAtIndex:scanLocation] == '0'))
+    {
+    radix = 8;
+    scanLocation++;
+    got_digits = YES;
+    if (scanLocation < len)
+      {
+      switch ([string characterAtIndex:scanLocation])
+	{
+	case 'x':
+	case 'X':
+	  scanLocation++;
+	  radix = 16;
+	  got_digits = NO;
+	  break;
+	}
+      }
+    }
+  numLimit = UINT_MAX / radix;
+  digitLimit = UINT_MAX % radix;
+
+  /* Process digits */
+  while (scanLocation < len)
+    {
+      unichar digit = [string characterAtIndex:scanLocation];
+      switch (digit)
+	{
+	case '0': digitValue = 0; break;
+	case '1': digitValue = 1; break;
+	case '2': digitValue = 2; break;
+	case '3': digitValue = 3; break;
+	case '4': digitValue = 4; break;
+	case '5': digitValue = 5; break;
+	case '6': digitValue = 6; break;
+	case '7': digitValue = 7; break;
+	case '8': digitValue = 8; break;
+	case '9': digitValue = 9; break;
+	case 'a': digitValue = 0xA; break;
+	case 'b': digitValue = 0xB; break;
+	case 'c': digitValue = 0xC; break;
+	case 'd': digitValue = 0xD; break;
+	case 'e': digitValue = 0xE; break;
+	case 'f': digitValue = 0xF; break;
+	case 'A': digitValue = 0xA; break;
+	case 'B': digitValue = 0xB; break;
+	case 'C': digitValue = 0xC; break;
+	case 'D': digitValue = 0xD; break;
+	case 'E': digitValue = 0xE; break;
+	case 'F': digitValue = 0xF; break;
+	default:
+	  digitValue = radix;
+	  break;
+	}
+      if (digitValue >= radix)
+	break;
+      if (!overflow)
+	{
+	if ((num > numLimit) || ((num == numLimit) && (digitValue > digitLimit)))
+	  overflow = YES;
+	else
+	  num = num * radix + digitValue;
+        }
+      scanLocation++;
+      got_digits = YES;
+    }
+
+  /* Save result */
+  if (!got_digits)
+    {
+      scanLocation = saveScanLocation;
+      return NO;
+    }
+  if (value)
+    {
+      if (overflow)
+	*value = UINT_MAX;
+      else
+	*value = num;
+    }
+  return YES;
 }
 
 /*
@@ -267,12 +367,9 @@
     }
   if (value)
     {
-      if (num > (unsigned long long)LONG_LONG_MAX)
-	/* xxx When would this ever be true?  Isn't is impossible? mccallum. */
-	overflow = YES;
-      if (overflow)
-	num = negative ? LONG_LONG_MIN: LONG_LONG_MAX;
-      if (negative)
+      if (overflow || (num > (negative ? (unsigned long long)LONG_LONG_MIN : (unsigned long long)LONG_LONG_MAX)))
+	*value = negative ? LONG_LONG_MIN: LONG_LONG_MAX;
+      else if (negative)
 	*value = -num;
       else
 	*value = num;
