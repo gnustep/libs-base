@@ -437,10 +437,11 @@ GSFinalize(void* object, void* data)
 inline NSObject *
 NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
 {
-  id	new = nil;
-  int	size = aClass->instance_size + extraBytes;
+  id	new;
+  int	size;
 
   NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
+  size = aClass->instance_size + extraBytes;
   if (zone == GSAtomicMallocZone())
     {
       new = NSZoneMalloc(zone, size);
@@ -522,14 +523,16 @@ NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 #ifndef	NDEBUG
   extern void GSDebugAllocationAdd(Class c, id o);
 #endif
-  id new = nil;
-  int size = aClass->instance_size + extraBytes + sizeof(struct obj_layout);
-  if (CLS_ISCLASS (aClass))
+  id	new;
+  int	size;
+
+  NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
+  size = aClass->instance_size + extraBytes + sizeof(struct obj_layout);
+  if (zone == 0)
     {
-      if (zone == 0)
-	zone = NSDefaultMallocZone();
-      new = NSZoneMalloc(zone, size);
+      zone = NSDefaultMallocZone();
     }
+  new = NSZoneMalloc(zone, size);
   if (new != nil)
     {
       memset (new, 0, size);
@@ -589,10 +592,12 @@ GSObjCZone(NSObject *object)
 inline NSObject *
 NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 {
-  id new = nil;
-  int size = aClass->instance_size + extraBytes;
-  if (CLS_ISCLASS (aClass))
-    new = NSZoneMalloc (zone, size);
+  id	new;
+  int	size;
+
+  NSCAssert((CLS_ISCLASS(aClass)), @"Bad class for new object");
+  size = aClass->instance_size + extraBytes;
+  new = NSZoneMalloc (zone, size);
   if (new != nil)
     {
       memset (new, 0, size);
