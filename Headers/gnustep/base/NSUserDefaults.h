@@ -74,11 +74,9 @@ Perhaps one day they will be part of OpenStep and we should implement them.
 */
 
 /* Get Information about a User */
-#ifndef NEXT_FOUNDATION
 extern NSString *NSUserName(void);
 extern NSString *NSHomeDirectory(void);
 extern NSString *NSHomeDirectoryForUser(NSString * userName);
-#endif
 
 
 /* General implementation notes:
