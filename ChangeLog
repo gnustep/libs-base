@@ -1,3 +1,8 @@
+Tue Jan 26  8:15:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSThread.m: ([-sleepUntilDate:]) cast argument of usleep() to
+	be integer rather than float - suggested by stark@easynet.fr
+
 Sun Jan 24  8:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSConnection.m: Preliminary work for handling DO between

@@ -196,9 +196,9 @@ void gnustep_base_thread_callback()
   while (delay > 0)
     {
 #ifdef	HAVE_USLEEP
-      usleep (delay*1000000);
+      usleep ((int)(delay*1000000));
 #else
-      sleep (delay);
+      sleep ((int)delay);
 #endif
       delay = [date timeIntervalSinceNow];
     }
