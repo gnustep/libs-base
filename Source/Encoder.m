@@ -34,7 +34,7 @@ static int default_format_version;
 static id default_stream_class;
 static id default_cstream_class;
 
-#define debug_coder 0
+static int debug_coder = 0;
 #define DEFAULT_FORMAT_VERSION 0
 
 
@@ -323,6 +323,41 @@ my_object_is_class(id object)
 - (void) _coderInternalCreateReferenceForObject: anObj
 {
   [self _coderCreateReferenceForObject: anObj];
+}
+
+
+/* Handling the in_progress_table.  These are called before and after
+   the actual object (not a forward or backward reference) is encoded.
+
+   One of these objects should also call
+   -_coderInternalCreateReferenceForObject:.  GNU archiving calls it
+   in the first, in order to force forward references to objects that
+   are in progress; this allows for -initWithCoder: methods that
+   deallocate self, and return another object.  OpenStep-style coding
+   calls it in the second, meaning that we never create forward
+   references to objects that are in progress; we encode a backward
+   reference to the in progress object, and assume that it will not
+   change location. */
+
+- (void) _objectWillBeInProgress: anObj
+{
+  if (!in_progress_table)
+    in_progress_table = 
+      /* This is "NonOwnedPointer", and not "Object", because
+	 with "Object" we would get an infinite loop with distributed
+	 objects when we try to put a Proxy in in the table, and
+	 send the proxy the -hash method. */ 
+      NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks, 
+			NSIntMapValueCallBacks, 0);
+  NSMapInsert (in_progress_table, anObj, (void*)1);
+}
+
+- (void) _objectNoLongerInProgress: anObj
+{
+  NSMapRemove (in_progress_table, anObj);
+  /* Register that we have encoded it so that future encoding can 
+     do backward references properly. */
+  [self _coderInternalCreateReferenceForObject: anObj];
 }
 
 
@@ -634,16 +669,10 @@ my_object_is_class(id object)
 	     the object. */
 	  unsigned fref;
 
-	  /* Register the object as being in progress of encoding. */
-	  if (!in_progress_table)
-	    in_progress_table = 
-	      /* This is "NonOwnedPointer", and not "Object", because
-		 with "Object" we would get an infinite loop with distributed
-		 objects when we try to put a Proxy in in the table, and
-		 send the proxy the -hash method. */ 
-	      NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks, 
-				NSIntMapValueCallBacks, 0);
-	  NSMapInsert (in_progress_table, anObj, (void*)1);
+	  /* Register the object as being in progress of encoding.  In
+	     OpenStep-style archiving, this method also calls
+	     -_coderInternalCreateReferenceForObject:. */
+	  [self _objectWillBeInProgress: anObj];
 
 	  /* Encode the object. */
 	  [self encodeTag: CODER_OBJECT];
@@ -687,12 +716,10 @@ my_object_is_class(id object)
 		    withName: @"Object forward cross-reference number"];
 	    }
 
-	  /* Register that we have encoded it so that future encoding can 
-	     do backward references properly. */
-	  [self _coderInternalCreateReferenceForObject: anObj];
-
-	  /* We're done encoding the object, it's no longer in progress. */
-	  NSMapRemove (in_progress_table, anObj);
+	  /* We're done encoding the object, it's no longer in progress.
+	     In GNU-style archiving, this method also calls
+	     -_coderInternalCreateReferenceForObject:. */
+	  [self _objectNoLongerInProgress: anObj];
 	}
     }
   [self encodeUnindent];
