@@ -1,3 +1,7 @@
+2000-09-24  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Check for rint in math library...
+
 2000-09-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/NSData.h: Added URL methods.
