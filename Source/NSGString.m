@@ -265,21 +265,27 @@
 
 - (void) encodeWithCoder: aCoder
 {
-  [aCoder encodeValueOfObjCType:@encode(int) at:&_count];
-  [aCoder encodeArrayOfObjCType:@encode(unichar)
- 	  count:_count
- 	  at:_contents_chars];
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &_count];
+  if (_count > 0)
+    {
+      [aCoder encodeArrayOfObjCType: @encode(unichar)
+			      count: _count
+				 at: _contents_chars];
+    }
 }
 
 - initWithCoder: aCoder
 {
-    [aCoder decodeValueOfObjCType:@encode(int) at:&_count];
-    _zone = fastZone(self);
-    _contents_chars = NSZoneMalloc(_zone, sizeof(unichar)*_count);
-    [aCoder decodeArrayOfObjCType:@encode(unichar)
-          count:_count
- 	  at:_contents_chars];
-    return self;
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &_count];
+  if (_count)
+    {
+      _zone = fastZone(self);
+      _contents_chars = NSZoneMalloc(_zone, sizeof(unichar)*_count);
+      [aCoder decodeArrayOfObjCType: @encode(unichar)
+			      count: _count
+				 at: _contents_chars];
+    }
+  return self;
 }
 
 
@@ -548,25 +554,19 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 				    range.location, range.length);
 }
 
-- (void) encodeWithCoder: aCoder    //  *** changed to unichar
-{
-  [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_capacity];
-  [aCoder encodeValueOfObjCType:@encode(int) at:&_count];
-  [aCoder encodeArrayOfObjCType:@encode(unichar)
-	  count:_count
-	  at:_contents_chars];
-}
-
 - initWithCoder: aCoder    //  *** changed to unichar
 {
   unsigned cap;
   
-  [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap];
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &cap];
   [self initWithCapacity:cap];
-  [aCoder decodeValueOfObjCType:@encode(int) at:&_count];
-  [aCoder decodeArrayOfObjCType:@encode(unichar)
-          count:_count
-	  at:_contents_chars];
+  _count = cap;
+  if (_count)
+    {
+      [aCoder decodeArrayOfObjCType: @encode(unichar)
+			      count: _count
+				 at: _contents_chars];
+    }
   return self;
 }
 
