@@ -136,7 +136,8 @@ LoadMe_RESOURCE_DIRS = English.lproj
 SRCS = $(TOOL_NAME:=.m)
 
 HDRS = \
-server.h
+server.h \
+oldserver.h
 
 DYNAMIC_MFILES = \
 LoadMe.m \

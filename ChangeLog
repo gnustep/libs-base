@@ -1,6 +1,15 @@
 Mon Oct 20 09:51:53 1997  Adam Fedor  <fedor@doc.com>
 
 	* Version: Update ftp sites.
+	* checks/Philosopher.h: Removed.
+	* checks/Philosopher.m: Likewise.
+	* checks/basic-old.m: Likewise.
+	* checks/nsarchiving.m: Likewise.
+	* src/Foundation/NSUser.h: Likewise.
+	* src/Foundation/x-basics.h.in: Likewise.
+	* src/Foundation/x-callbacks.h.in: Likewise.
+	* checks/Makefile (HDRS): Add oldserver.h.
+	* doc/Makefile: Add other texi files.
 	* NSCharacterSets/Makefile (DIST_FILES): Remove Makefile.preamble.
 	* NSTimeZones/Makefile (DIST_FILES): Likewise.
 	* NSCharacterSets/Makefile.postamble (copy-dist): Correct copy.
