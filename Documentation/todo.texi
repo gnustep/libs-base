@@ -59,6 +59,9 @@ a list of the claimed and unclaimed GNUStep classes.
 
 @itemize @bullet
 
+@item Resolve the method type conflicts between GNUStep and the
+Collection classes.
+
 @item Many code fixes and cleanups, indicated with @samp{xxx} in the source.
 
 @item In remote object messaging, send exceptions back to the requestor.
