@@ -1,3 +1,9 @@
+2003-08-23  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/AGSIndex.m: Add NSString compatibility interface
+	when compiling on apple-apple-apple.
+	* Tools/AGSHtml.m: idem.
+
 2003-08-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Trivial cast to avoid compiler warnings.

@@ -25,7 +25,10 @@
 #include "GNUstepBase/GNUstep.h"
 #include "GNUstepBase/GSCategories.h"
 #ifdef NeXT_Foundation_LIBRARY
-#include "GNUstepBase/GSCompatibility.h"
+@interface NSString(GSCompatibility)
+- (BOOL) boolValue;
+- (NSString*) substringFromRange:(NSRange)range;
+@end
 #endif
 
 static int      XML_ELEMENT_NODE;
