@@ -30,3 +30,4 @@ uninstall:
 
 PACKAGE_NAME = gstep-base
 LIBRARY_NAME = gnustep-base
+LIBRARY_VAR = GNUSTEP_BASE
