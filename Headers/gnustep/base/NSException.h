@@ -150,7 +150,7 @@ extern void _NSRemoveHandler( NSHandler *handler );
 		object:self 					\
 		file:[NSString stringWithCString:__FILE__] 	\
 		lineNumber:__LINE__ 				\
-		description:(desc), ## args]; 			\
+		description:(desc) , ## args]; 			\
 	}							\
     } while(0)
 
@@ -161,7 +161,7 @@ extern void _NSRemoveHandler( NSHandler *handler );
 	    handleFailureInFunction:[NSString stringWithCString:__PRETTY_FUNCTION__] 				\
 	    file:[NSString stringWithCString:__FILE__] 		\
 	    lineNumber:__LINE__ 				\
-	    description:(desc), ## args]; 			\
+	    description:(desc) , ## args]; 			\
 	}							\
     } while(0)
 
