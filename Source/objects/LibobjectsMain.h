@@ -46,7 +46,7 @@
 
 #ifndef __ELF__
 #define main LibobjectsMain
-extern int LibobjectsMain(int argc, char *argv[]);
+extern int LibobjectsMain(/* int argc, char *argv[] */);
 #endif /* __ELF__ */
 
 /*
