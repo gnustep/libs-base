@@ -26,7 +26,12 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSProcessInfo.h>
+#include <Foundation/NSLock.h>
 #include <Foundation/NSAutoreleasePool.h>
+
+#ifdef	HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
 
 #ifndef __WIN32__
 #include <unistd.h>
@@ -37,7 +42,16 @@ NSLog_printf_handler *_NSLog_printf_handler;
 static void
 _NSLog_standard_printf_handler (NSString* message)
 {
-  fputs ([message cString], stderr);
+#ifdef	HAVE_SYSLOG_H
+  const char	*txt = [message cString];
+
+  if (fputs(txt, stderr) == EOF)
+    {
+      syslog(LOG_INFO, "%s",  txt);
+    }
+#else
+  fputs([message cString], stderr);
+#endif
 }
 
 void 
@@ -53,9 +67,12 @@ NSLog (NSString* format, ...)
 void 
 NSLogv (NSString* format, va_list args)
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
-  NSString* prefix;
-  NSString* message;
+  static NSRecursiveLock	*myLock = nil;
+  NSAutoreleasePool		*arp;
+  NSString			*prefix;
+  NSString			*message;
+
+  arp = [NSAutoreleasePool new];
 
   if (_NSLog_printf_handler == NULL)
     _NSLog_printf_handler = *_NSLog_standard_printf_handler;
@@ -73,7 +90,22 @@ NSLogv (NSString* format, va_list args)
   message = [NSString stringWithFormat: format arguments: args];
 
   prefix = [prefix stringByAppendingString: message];
+
+  if (myLock == nil)
+    {
+      [gnustep_global_lock lock];
+      if (myLock == nil)
+	{
+	  myLock = [NSRecursiveLock new];
+	}
+      [gnustep_global_lock unlock];
+    }
+  [myLock lock];
+
   _NSLog_printf_handler (prefix);
+
+  [myLock unlock];
+
   [arp release];
 }
 

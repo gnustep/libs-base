@@ -1,3 +1,10 @@
+Tue Mar  9  5:16:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* configure.in: Added tests for syslog
+	* Source/include/config.h.in: Added definitions for syslog
+	* Source/NSLog.m: Added locking for multi-thread serialisation and
+	added syslog support when write to stderr fails.
+
 1999-03-08  Adam Fedor  <fedor@gnu.org>
 
 	* Merged dawn branch to main.

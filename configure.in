@@ -437,6 +437,12 @@ if test $ac_cv_header_sys_socket_h = no -o $ac_cv_header_netinet_in_h = no ; the
 fi
 
 #--------------------------------------------------------------------
+# These headers/functions needed by NSLog.m
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(syslog.h)
+AC_CHECK_FUNCS(syslog)
+
+#--------------------------------------------------------------------
 # This function needed by StdioStream.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(vsprintf)
@@ -471,6 +477,7 @@ AC_CHECK_FUNCS(times)
 #--------------------------------------------------------------------
 # These functions needed by NSData.m
 #--------------------------------------------------------------------
+AC_CHECK_FUNCS(mkstemp)
 AC_CHECK_FUNCS(shmctl)
 AC_CHECK_FUNCS(mmap)
 AC_CHECK_FUNCS(mkstemp)
