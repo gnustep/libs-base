@@ -1,3 +1,10 @@
+2003-03-26  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSKeyValueCoding.m: Added documentation. 
+	* Source/NSKeyValueCoding.m ([NSObject -takeValue:forKey:]),
+	([NSObject -valueForKey:]): Corrected search order of instance
+	variables.
+
 2003-03-25  Stephane Corthesy <stephane@sente.ch>
 
 	* macosx: New directory holding MacOSX project for building 
