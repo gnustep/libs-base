@@ -66,10 +66,10 @@
 <!ENTITY % text "#PCDATA | %xref; | %anchor; | %phrase; | footnote | br">
 
 <!-- Entity for definition elements. -->
-<!ENTITY % def "class|jclass|category|protocol|function|macro|type|variable|constant">
+<!ENTITY % def "class|jclass|category|protocol|function|macro|type|variable|constant|EOModel|EOEntity">
 
 <!-- Entity for list elements. -->
-<!ENTITY % list "list | enum | deflist | qalist">
+<!ENTITY % list "list | enum | deflist | qalist | dictionary">
 
 <!-- Entity for block elements like paragraphs. -->
 <!ENTITY % block "%def; | %list; | p | example | embed">
@@ -148,7 +148,7 @@
 <!ELEMENT ref (%text;)*>
 <!ATTLIST ref
   id CDATA #REQUIRED
-  type (class|protocol|method|function|type|macro|variable|constant|label) "label"
+  type (class|protocol|method|function|type|macro|variable|constant|label|EOModel|EOEntity) "label"
   class CDATA #IMPLIED
 >
 
@@ -354,6 +354,102 @@
   super CDATA #IMPLIED
 >
 
+<!--***** Elements for definitions of EOModels, etc. *****-->
+
+<!-- a dictionary Item. -->
+<!ELEMENT dictionaryItem (%block;)?>
+<!ATTLIST dictionaryItem
+  key CDATA #REQUIRED
+  value CDATA #IMPLIED
+>
+
+<!-- a dictionary -->
+<!ELEMENT dictionary (dictionaryItem+)>
+
+<!ELEMENT EOConnectionDictionary (dictionaryItem+)>
+
+<!ELEMENT EOUserDictionary (dictionaryItem+)>
+
+<!--***** Elements for definitions of EOModels, etc. *****-->
+
+<!-- EORelationshipComponent -->
+<!ELEMENT EORelationshipComponent (EORelationshipComponent*)>
+<!ATTLIST EORelationshipComponent
+  definition CDATA #REQUIRED
+>
+
+<!-- EOJoin -->
+<!ELEMENT EOJoin (desc?)>
+<!ATTLIST EOJoin
+  id CDATA #IMPLIED
+  relationshipName CDATA #IMPLIED
+  joinOperator CDATA #REQUIRED
+  joinSemantic CDATA #REQUIRED
+  sourceAttribute CDATA #REQUIRED
+  destinationAttribute CDATA #REQUIRED
+>
+
+<!-- EORelationship -->
+<!ELEMENT EORelationship ((EORelationshipComponent | (EOJoin*)), EOUserDictionary?, desc?)>
+<!ATTLIST EORelationship
+  id CDATA #IMPLIED
+  entityName CDATA #REQUIRED
+  destinationEntityName CDATA #REQUIRED
+  name CDATA #REQUIRED
+  isToMany CDATA #IMPLIED
+>
+
+<!-- EOAttributeRef -->
+<!ELEMENT EOAttributeRef EMPTY>
+<!ATTLIST EOAttributeRef
+  name CDATA #REQUIRED
+>
+
+<!-- EOPrimaryKeyAttributes -->
+<!ELEMENT EOPrimaryKeyAttributes (EOAttributeRef+)>
+
+<!-- EOClassProperties -->
+<!ELEMENT EOClassProperties ((EOAttributeRef)+)>
+
+<!-- EOAttributesUsedForLocking -->
+<!ELEMENT EOAttributesUsedForLocking (EOAttributeRef+)>
+
+<!-- EOAttribute -->
+<!ELEMENT EOAttribute (EOUserDictionary?, desc?)>
+<!ATTLIST EOAttribute
+  id CDATA #IMPLIED
+  columnName CDATA #IMPLIED
+  definition CDATA #IMPLIED
+  externalType CDATA #IMPLIED
+  name CDATA #REQUIRED
+  valueClassName CDATA #IMPLIED
+  valueType CDATA #IMPLIED
+  entityName CDATA #IMPLIED
+  isReadOnly CDATA #IMPLIED
+  isDerived CDATA #IMPLIED
+  isFlattened CDATA #IMPLIED
+>
+
+<!-- EOEntity -->
+<!ELEMENT EOEntity (EOAttribute*, EOAttributesUsedForLocking?, EOClassProperties?, EOPrimaryKeyAttributes?, EORelationship*, EOUserDictionary?, desc?)>
+<!ATTLIST EOEntity
+  id CDATA #IMPLIED
+  name CDATA #REQUIRED
+  externalName CDATA #IMPLIED
+  className CDATA #IMPLIED
+  modelName CDATA #IMPLIED
+  isReadOnly CDATA #IMPLIED
+>
+
+<!-- EOModel -->
+<!ELEMENT EOModel (EOConnectionDictionary?, (EOEntity+ | list), EOUserDictionary?, desc?)>
+<!ATTLIST EOModel
+  id CDATA #IMPLIED
+  name CDATA #REQUIRED
+  version CDATA #IMPLIED
+  adaptorName CDATA #REQUIRED
+  adaptorClassName CDATA #REQUIRED
+>
 
 <!--***** Elements for ordinary block level elements. *****-->
 
