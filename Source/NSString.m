@@ -772,7 +772,7 @@ handle_printf_atsign (FILE *stream,
 {
   NSRange range;
   range = [self rangeOfString:aString];
-  return (range.location == 0) ? YES : NO;
+  return ((range.location == 0) && (range.length != 0)) ? YES : NO;
 }
 
 - (BOOL) hasSuffix: (NSString*)aString
