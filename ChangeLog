@@ -3,6 +3,7 @@
 	* Source/NSCalendarDate.m: ([initWithString:calendarFormat:locale:])
 	add support for %F millisecond initialisation.
 	make trivial simplification of timezone handling.
+	on failure to parse zone using %z, use local time zone.
 
 2003-03-31  Stephane Corthesy <stephane@sente.ch>
 

@@ -1032,6 +1032,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    {
 		      int	sign = 1;
 		      int	zone;
+		      int	found;
 
 		      if (source[sourceIdx] == '+')
 			{
@@ -1042,11 +1043,18 @@ static inline int getDigits(const char *from, char *to, int limit)
 			  sign = -1;
 			  sourceIdx++;
 			}
-		      sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4);
-		      zone = atoi(tmpStr) * sign;
-
-		      tz = [NSTimeZone timeZoneForSecondsFromGMT: 
-			(zone / 100 * 60 + (zone % 100)) * 60];
+		      found += getDigits(&source[sourceIdx], tmpStr, 4);
+		      if (found > 0)
+			{
+			  sourceIdx += found;
+			  if (found == 2)
+			    {
+			      zone *= 100;	// Convert 2 digits to 4
+			    }
+			  zone = atoi(tmpStr);
+			  tz = [NSTimeZone timeZoneForSecondsFromGMT: 
+			    sign * ((zone / 100) * 60 + (zone % 100)) * 60];
+			}
 		    }
 		    break;
 
