@@ -21,10 +21,10 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSString.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSString.h"
 
 /* Only if using Microsoft's tools and libraries */
 #ifdef __MS_WIN32__

@@ -42,31 +42,31 @@
    Limited choice of default encodings.
 */
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
-#include <base/preface.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSCalendarDate.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSCharacterSet.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSRange.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSDebug.h>
-#include <base/GSMime.h>
-#include <base/GSFormat.h>
+#include "gnustep/base/preface.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSCalendarDate.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSCharacterSet.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSRange.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSURL.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSDebug.h"
+#include "gnustep/base/GSMime.h"
+#include "gnustep/base/GSFormat.h"
 #include <limits.h>
 #include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
@@ -76,7 +76,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#include <base/Unicode.h>
+#include "gnustep/base/Unicode.h"
 
 #include "GSPrivate.h"
 
@@ -196,7 +196,7 @@ static void setupWhitespace(void)
 #define	GSEQ_STRRANGE	strRangeNsNs
 #define	GSEQ_O	GSEQ_NS
 #define	GSEQ_S	GSEQ_NS
-#include <GSeq.h>
+#include "GSeq.h"
 
 
 static id	GSPropertyList(NSString *string);
@@ -4350,7 +4350,7 @@ handle_printf_atsign (FILE *stream,
 
 
 #ifdef	HAVE_LIBXML
-#include	<Foundation/GSXML.h>
+#include	"Foundation/GSXML.h"
 static int      XML_ELEMENT_NODE;
 #endif
 

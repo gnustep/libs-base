@@ -28,8 +28,8 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <base/preface.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
 #ifdef	HAVE_FLOAT_H
 #include <float.h>
 #endif
@@ -45,10 +45,10 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 #define	_IN_CONNECTION_M
-#include <Foundation/NSConnection.h>
+#include "Foundation/NSConnection.h"
 #undef	_IN_CONNECTION_M
 
 #include <mframe.h>
@@ -58,27 +58,27 @@
 #include "callframe.h"
 #endif
 
-#include <Foundation/NSPortCoder.h>
-#include <base/DistributedObjects.h>
+#include "Foundation/NSPortCoder.h"
+#include "gnustep/base/DistributedObjects.h"
 
-#include <Foundation/NSHashTable.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSPortMessage.h>
-#include <Foundation/NSPortNameServer.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSDebug.h>
-#include <base/GSInvocation.h>
+#include "Foundation/NSHashTable.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSPort.h"
+#include "Foundation/NSPortMessage.h"
+#include "Foundation/NSPortNameServer.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSDebug.h"
+#include "gnustep/base/GSInvocation.h"
 
 #define F_LOCK(X) {NSDebugFLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define F_UNLOCK(X) {NSDebugFLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}

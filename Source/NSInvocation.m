@@ -25,11 +25,11 @@
    $Date$ $Revision$
    */ 
 
-#include <Foundation/NSException.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSInvocation.h>
-#include <base/GSInvocation.h>
-#include <config.h>
+#include "Foundation/NSException.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSInvocation.h"
+#include "gnustep/base/GSInvocation.h"
+#include "config.h"
 #include <mframe.h>
 #if defined(USE_LIBFFI)
 #include "cifframe.h"

@@ -23,11 +23,11 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSObject.h>
-#include <Foundation/NSFileHandle.h>
-#include <Foundation/NSDebug.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSFileHandle.h"
+#include "Foundation/NSDebug.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

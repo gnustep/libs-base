@@ -22,13 +22,13 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */
 
-#include <config.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <base/preface.h>
+#include "config.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "gnustep/base/preface.h"
 
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER

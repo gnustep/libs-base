@@ -24,13 +24,13 @@
    $Date$ $Revision$
  */ 
 
-#include <config.h>
+#include "config.h"
 
 #define	IN_NSRANGE_M 1
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSRange.h>
-#include <Foundation/NSScanner.h>
+#include "Foundation/NSException.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSRange.h"
+#include "Foundation/NSScanner.h"
 
 @class	NSString;
 

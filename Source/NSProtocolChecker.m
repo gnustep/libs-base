@@ -25,11 +25,11 @@
    */ 
 
 #include "config.h"
-#include <base/preface.h>
-#include <Foundation/NSProtocolChecker.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSInvocation.h>
-#include <Foundation/NSMethodSignature.h>
+#include "gnustep/base/preface.h"
+#include "Foundation/NSProtocolChecker.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSInvocation.h"
+#include "Foundation/NSMethodSignature.h"
 
 @implementation NSProtocolChecker
 

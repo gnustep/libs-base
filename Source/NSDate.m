@@ -26,22 +26,22 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSCalendarDate.h>
-#include <Foundation/NSTimeZone.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSCharacterSet.h>
-#include <Foundation/NSScanner.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSUserDefaults.h>
-#include <base/preface.h>
-#include <base/GSObjCRuntime.h>
+#include "config.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSCalendarDate.h"
+#include "Foundation/NSTimeZone.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSCharacterSet.h"
+#include "Foundation/NSScanner.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSUserDefaults.h"
+#include "gnustep/base/preface.h"
+#include "gnustep/base/GSObjCRuntime.h"
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif

@@ -24,13 +24,13 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
+#include "config.h"
 #include <string.h>
-#include <Foundation/NSDistributedLock.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSDebug.h>
+#include "Foundation/NSDistributedLock.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSDebug.h"
 
 #include <fcntl.h>
 

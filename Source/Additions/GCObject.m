@@ -37,7 +37,7 @@
 #include <Foundation/Foundation.h>
 #endif
 
-#include <gnustep/base/GCObject.h>
+#include "gnustep/base/GCObject.h"
 #include "GSCompatibility.h"
 
 /*

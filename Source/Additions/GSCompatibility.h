@@ -29,9 +29,9 @@
 #include <string.h>
 #include <Foundation/Foundation.h>
 #include <CoreFoundation/CFString.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/GSObjCRuntime.h>
-#include <gnustep/base/GNUstep.h>
+#include "gnustep/base/preface.h"
+#include "gnustep/base/GSObjCRuntime.h"
+#include "gnustep/base/GNUstep.h"
 
 @class NSMutableSet;
 

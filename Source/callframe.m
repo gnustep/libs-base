@@ -22,12 +22,12 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
 
-#include <config.h>
+#include "config.h"
 #include <stdlib.h>
 #include "callframe.h"
-#include <Foundation/NSException.h>
-#include <Foundation/NSData.h>
-#include <base/GSInvocation.h>
+#include "Foundation/NSException.h"
+#include "Foundation/NSData.h"
+#include "gnustep/base/GSInvocation.h"
 
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;

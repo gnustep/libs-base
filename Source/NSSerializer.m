@@ -24,20 +24,20 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSProxy.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSSet.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSValue.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSProxy.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSValue.h"
 
 #include "GSPrivate.h"
 
@@ -61,7 +61,7 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	[(X).obj isEqualToString: (Y).obj]
 #define	GSI_MAP_NOCLEAN	1
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 /*
  *	Setup for inline operation of string arrays.
@@ -70,7 +70,7 @@
 #define	GSI_ARRAY_RELEASE(A, X)	
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ
 
-#include <base/GSIArray.h>
+#include "gnustep/base/GSIArray.h"
 
 /*
  *	Define constants for data types and variables to hold them.

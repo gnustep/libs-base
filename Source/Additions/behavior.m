@@ -50,8 +50,8 @@
 
 #include "config.h"
 #include <stdio.h>
-#include <gnustep/base/preface.h>
-#include <gnustep/base/behavior.h>
+#include "gnustep/base/preface.h"
+#include "gnustep/base/behavior.h"
 #ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>

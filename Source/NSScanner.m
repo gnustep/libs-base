@@ -26,12 +26,12 @@
    $Date$ $Revision$
 */ 
 
-#include <config.h>
-#include <base/Unicode.h>
-#include <Foundation/NSScanner.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSUserDefaults.h>
+#include "config.h"
+#include "gnustep/base/Unicode.h"
+#include "Foundation/NSScanner.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSUserDefaults.h"
 #include <float.h>
 #include <limits.h>
 #include <math.h>

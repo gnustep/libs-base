@@ -24,14 +24,14 @@
 */ 
 
 #include "config.h"
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSInvocation.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSUndoManager.h>
+#include "Foundation/NSObject.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSInvocation.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSUndoManager.h"
 
 /* Public notifications */
 NSString *NSUndoManagerCheckpointNotification =

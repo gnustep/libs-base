@@ -26,13 +26,13 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSThread.h>
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSThread.h"
 
 typedef struct {
   Class	class;

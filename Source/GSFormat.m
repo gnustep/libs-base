@@ -37,31 +37,31 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
-#include <base/preface.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSCharacterSet.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSRange.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSZone.h>
-#include <Foundation/NSDebug.h>
-#include <base/GSFormat.h>
-#include <base/GSLocale.h>
+#include "gnustep/base/preface.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSCharacterSet.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSUserDefaults.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSRange.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSURL.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSDebug.h"
+#include "gnustep/base/GSFormat.h"
+#include "gnustep/base/GSLocale.h"
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -98,7 +98,7 @@ typedef unsigned long long uintmax_t;
 #endif
 #endif
 
-#include <base/Unicode.h>
+#include "gnustep/base/Unicode.h"
 
 struct printf_info
 {

@@ -25,11 +25,11 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSSerialization.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSSerialization.h"
 
 @implementation NSCoder
 

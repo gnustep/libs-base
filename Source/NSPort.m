@@ -24,15 +24,15 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSPortNameServer.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSAutoreleasePool.h>
+#include "config.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSPort.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSPortNameServer.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSAutoreleasePool.h"
 
 @class	GSTcpPort;
 

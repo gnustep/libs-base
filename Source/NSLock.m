@@ -24,15 +24,15 @@
    $Date$ $Revision$
 */ 
 
-#include <config.h>
+#include "config.h"
 #include <errno.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <base/preface.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSDebug.h>
+#include "gnustep/base/preface.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSDebug.h"
 
 // Exceptions
 

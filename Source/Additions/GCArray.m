@@ -33,9 +33,9 @@
 #include <Foundation/Foundation.h>
 #endif
 
-#include <gnustep/base/GSObjCRuntime.h>
-#include <gnustep/base/GCObject.h>
-#include <gnustep/base/GNUstep.h>
+#include "gnustep/base/GSObjCRuntime.h"
+#include "gnustep/base/GCObject.h"
+#include "gnustep/base/GNUstep.h"
 
 @implementation GCArray
 

@@ -24,15 +24,15 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSInvocation.h>
-#include <Foundation/NSProxy.h>
-#include <Foundation/NSMethodSignature.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSObjCRuntime.h>
-#include "limits.h"
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSInvocation.h"
+#include "Foundation/NSProxy.h"
+#include "Foundation/NSMethodSignature.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSObjCRuntime.h"
+#include <limits.h>
 
 #ifndef NeXT_RUNTIME
 extern BOOL __objc_responds_to(id, SEL);

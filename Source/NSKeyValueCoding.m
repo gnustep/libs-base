@@ -23,19 +23,19 @@
    $Date$ $Revision$
    */ 
 
-#include <config.h>
-#include <Foundation/NSObject.h>
-#include <Foundation/NSMethodSignature.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSZone.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSKeyValueCoding.h>
-#include <Foundation/NSNull.h>
+#include "config.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSMethodSignature.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSKeyValueCoding.h"
+#include "Foundation/NSNull.h"
 
 /** An exception for an unknown key */
 NSString* const NSUnknownKeyException = @"NSUnknownKeyException";

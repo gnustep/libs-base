@@ -53,8 +53,8 @@
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
 
-#include <config.h>
-#include <base/preface.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -71,18 +71,18 @@
 #include <sys/fcntl.h>
 #endif
 
-#include <GSConfig.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/NSSet.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSHost.h>
-#include <Foundation/NSLock.h>
+#include "GSConfig.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/NSSet.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSHost.h"
+#include "Foundation/NSLock.h"
 #include "gnustep/base/GSCategories.h"
 
 #include "GSPrivate.h"

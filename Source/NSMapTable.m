@@ -29,14 +29,14 @@
 
 /**** Included Headers *******************************************************/
 
-#include <config.h>
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSZone.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSDebug.h>
+#include "config.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSDebug.h"
 #include "NSCallBacks.h"
 
 
@@ -66,7 +66,7 @@ typedef struct {
  (M->extra.v.retain)((NSMapTable*)M, X.ptr)
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 /**** Function Implementations ****/
 

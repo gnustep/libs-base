@@ -25,15 +25,15 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <base/preface.h>
-#include <base/DistributedObjects.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSMethodSignature.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSInvocation.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "gnustep/base/DistributedObjects.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSPort.h"
+#include "Foundation/NSMethodSignature.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSInvocation.h"
 
 #define DO_FORWARD_INVOCATION(_SELX, _ARG1)			\
   sig = [self methodSignatureForSelector: @selector(_SELX)];	\

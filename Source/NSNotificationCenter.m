@@ -30,10 +30,10 @@
 */
 
 #include "config.h"
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSThread.h>
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSThread.h"
 
 
 /**
@@ -191,7 +191,7 @@ static void obsFree(Observation *o);
 #define GSI_ARRAY_RELEASE(A, X)   obsFree(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)    obsRetain(X.ext)
 
-#include <base/GSIArray.h>
+#include "gnustep/base/GSIArray.h"
 
 #define GSI_MAP_RETAIN_KEY(M, X)  
 #define GSI_MAP_RELEASE_KEY(M, X) ({if ((((gsaddr)X.obj) & 1) == 0) \
@@ -206,7 +206,7 @@ static void obsFree(Observation *o);
 #define GSI_MAP_VEXTRA Observation*
 #define	GSI_MAP_EXTRA	void*
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 /*
  * An NC table is used to keep track of memory allocated to store

@@ -44,16 +44,16 @@
  */
 
 #include "config.h"
-#include <base/preface.h>
-#include <Foundation/NSAttributedString.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSRange.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSZone.h>
+#include "gnustep/base/preface.h"
+#include "Foundation/NSAttributedString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSRange.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSZone.h"
 
 #define		SANITY_CHECKS	0
 
@@ -103,7 +103,7 @@ static	NSDictionary	*blank;
 #define GSI_MAP_VTYPES	GSUNION_INT
 #define	GSI_MAP_NOCLEAN	1
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 static NSLock		*attrLock = nil;
 static GSIMapTable_t	attrMap;

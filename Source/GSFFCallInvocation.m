@@ -20,10 +20,10 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
-#include <Foundation/NSException.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSDistantObject.h>
-#include <base/GSInvocation.h>
+#include "Foundation/NSException.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSDistantObject.h"
+#include "gnustep/base/GSInvocation.h"
 #include <config.h>
 #include <objc/objc-api.h>
 #include <avcall.h>
@@ -114,7 +114,7 @@ ReturnTypeEqualsReturnType (vacallReturnTypeInfo *a, vacallReturnTypeInfo *b)
 #define GSI_MAP_RELEASE_VAL(M, X)
 #define	GSI_MAP_NOCLEAN	1
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 /* This determines the number of precomputed
    callback data entries.  The list is indexed

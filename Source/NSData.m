@@ -64,20 +64,20 @@
  *		
  */
 
-#include <config.h>
-#include <base/GSObjCRuntime.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSByteOrder.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSRange.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSZone.h>
+#include "config.h"
+#include "gnustep/base/GSObjCRuntime.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSRange.h"
+#include "Foundation/NSURL.h"
+#include "Foundation/NSZone.h"
 #include <stdio.h>
 #include <string.h>		/* for memset() */
 #ifdef HAVE_UNISTD_H

@@ -29,10 +29,10 @@
 #if !defined(__APPLE__) || !defined(GNU_RUNTIME)
 #include <ctype.h>
 #endif
-#include <Foundation/NSDecimal.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSUserDefaults.h>
+#include "Foundation/NSDecimal.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSUserDefaults.h"
 
 /*
   This file provides two implementations of the NSDecimal functions. 

@@ -32,19 +32,19 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
+#include "config.h"
 #include <string.h>
 
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSZone.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSByteOrder.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSString.h>
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSZone.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSPort.h"
+#include "Foundation/NSString.h"
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -57,7 +57,7 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).uint == (Y).uint)
 #define	GSI_MAP_NOCLEAN	1
 
-#include <base/GSIMap.h>
+#include "gnustep/base/GSIMap.h"
 
 /*
  *	Setup for inline operation of arrays.
@@ -66,15 +66,15 @@
 #define	GSI_ARRAY_RELEASE(A, X)	
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ|GSUNION_SEL|GSUNION_PTR
 
-#include <base/GSIArray.h>
+#include "gnustep/base/GSIArray.h"
 
 
 
 #define	_IN_PORT_CODER_M
-#include <Foundation/NSPortCoder.h>
+#include "Foundation/NSPortCoder.h"
 #undef	_IN_PORT_CODER_M
 
-#include <base/DistributedObjects.h>
+#include "gnustep/base/DistributedObjects.h"
 
 typedef	unsigned char	uchar;
 

@@ -30,19 +30,19 @@
    $Date$ $Revision$
 */ 
 
-#include <config.h>
-#include <base/preface.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#include <Foundation/NSThread.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSConnection.h>
-#include <Foundation/NSInvocation.h>
+#include "Foundation/NSThread.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSConnection.h"
+#include "Foundation/NSInvocation.h"
 
 @class	GSPerformHolder;
 

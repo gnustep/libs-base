@@ -23,14 +23,14 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSDictionary.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSArray.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSDictionary.h"
 #include <stdio.h>
 
 /**

@@ -21,12 +21,12 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */ 
 
-#include <config.h>
-#include <Foundation/NSString.h>
+#include "config.h"
+#include "Foundation/NSString.h"
 
 
-#include <Foundation/NSArray.h>
-#include <Foundation/NSException.h>
+#include "Foundation/NSArray.h"
+#include "Foundation/NSException.h"
 
 /* Global lock to be used by classes when operating on any global
    data that invoke other methods which also access global; thus,

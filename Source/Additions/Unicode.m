@@ -40,7 +40,7 @@
 #include <Foundation/Foundation.h>
 #endif
 #include "GSCompatibility.h"
-#include <gnustep/base/Unicode.h>
+#include "gnustep/base/Unicode.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

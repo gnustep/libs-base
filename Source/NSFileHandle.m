@@ -24,15 +24,15 @@
    $Date$ $Revision$
    */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSObject.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSFileHandle.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSBundle.h>
-#include <Foundation/GSFileHandle.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSObject.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSFileHandle.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSBundle.h"
+#include "Foundation/GSFileHandle.h"
 
 // GNUstep Notification names
 

@@ -24,10 +24,10 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
-#include <Foundation/NSBitmapCharSet.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSCoder.h>
+#include "config.h"
+#include "Foundation/NSBitmapCharSet.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSCoder.h"
 
 @implementation NSBitmapCharSet
 

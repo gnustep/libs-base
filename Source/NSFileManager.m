@@ -36,17 +36,17 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
+#include "config.h"
 #include <string.h>
-#include <base/preface.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/NSProcessInfo.h>
-#include <Foundation/NSEnumerator.h>
-#include <Foundation/NSSet.h>
+#include "gnustep/base/preface.h"
+#include "Foundation/NSFileManager.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/NSProcessInfo.h"
+#include "Foundation/NSEnumerator.h"
+#include "Foundation/NSSet.h"
 #include "GSPrivate.h"
 
 #include <stdio.h>
@@ -153,14 +153,14 @@
 
 /* include usual headers */
 
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSFileManager.h>
+#include "Foundation/NSArray.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSPathUtilities.h"
+#include "Foundation/NSFileManager.h"
 
 /*
  * GSAttrDictionary is a private NSDictionary subclass used to
@@ -1915,7 +1915,7 @@ inline void gsedRelease(GSEnumeratedDirectory X)
 #define GSI_ARRAY_RELEASE(A, X)   gsedRelease(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)
 
-#include <base/GSIArray.h>
+#include "gnustep/base/GSIArray.h"
 
 /* Portable replacement for strdup - return a copy of original.  */
 inline char *custom_strdup (const char *original)

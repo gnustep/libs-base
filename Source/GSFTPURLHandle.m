@@ -22,20 +22,20 @@
 */
 
 #include "config.h"
-#include <Foundation/NSArray.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSData.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSURLHandle.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSByteOrder.h>
-#include <Foundation/NSLock.h>
-#include <Foundation/NSFileHandle.h>
-#include <Foundation/NSDebug.h>
-#include <Foundation/GSMime.h>
+#include "Foundation/NSArray.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSData.h"
+#include "Foundation/NSURL.h"
+#include "Foundation/NSURLHandle.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSByteOrder.h"
+#include "Foundation/NSLock.h"
+#include "Foundation/NSFileHandle.h"
+#include "Foundation/NSDebug.h"
+#include "Foundation/GSMime.h"
  
 GS_EXPORT NSString * const GSTelnetNotification;
 GS_EXPORT NSString * const GSTelnetErrorKey;

@@ -24,11 +24,11 @@
    $Date$ $Revision$
    */ 
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSObjCRuntime.h>
-#include <Foundation/NSString.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSObjCRuntime.h"
+#include "Foundation/NSString.h"
 #include <mframe.h>
 #include <string.h>
 

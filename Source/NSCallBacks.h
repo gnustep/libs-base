@@ -28,8 +28,8 @@
 
 /**** Included Headers *******************************************************/
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSString.h>
+#include "Foundation/NSObject.h"
+#include "Foundation/NSString.h"
 
 /**** Type, Constant, and Macro Definitions **********************************/
 

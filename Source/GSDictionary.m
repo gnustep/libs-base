@@ -22,16 +22,16 @@
    */
 
 
-#include <config.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSUtilities.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSDebug.h>
+#include "config.h"
+#include "Foundation/NSDictionary.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSUtilities.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSDebug.h"
 
-#include <base/GSObjCRuntime.h>
+#include "gnustep/base/GSObjCRuntime.h"
 
 /*
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
@@ -44,7 +44,7 @@
 #define	GSI_MAP_RETAIN_KEY(M, X)	((id)(X).obj) = \
 				[((id)(X).obj) copyWithZone: map->zone]
 
-#include	<base/GSIMap.h>
+#include	"gnustep/base/GSIMap.h"
 
 @interface GSDictionary : NSDictionary
 {

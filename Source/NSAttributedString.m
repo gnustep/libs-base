@@ -47,14 +47,14 @@
  */
 
 #include "config.h"
-#include <base/preface.h>
-#include <base/Unicode.h>
+#include "gnustep/base/preface.h"
+#include "gnustep/base/Unicode.h"
 
-#include <Foundation/NSAttributedString.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSRange.h>
+#include "Foundation/NSAttributedString.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSRange.h"
 
 @class	GSAttributedString;
 @class	GSMutableAttributedString;

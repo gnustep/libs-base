@@ -28,17 +28,17 @@
 */
 
 #include <string.h>
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSNotification.h>
-#include <Foundation/NSConcreteNumber.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSCoder.h>
-#include <Foundation/NSPortCoder.h>
-#include <Foundation/NSObjCRuntime.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSException.h"
+#include "Foundation/NSString.h"
+#include "Foundation/NSNotification.h"
+#include "Foundation/NSConcreteNumber.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSCoder.h"
+#include "Foundation/NSPortCoder.h"
+#include "Foundation/NSObjCRuntime.h"
 
 @implementation NSNumber
 

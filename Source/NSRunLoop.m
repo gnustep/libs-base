@@ -28,18 +28,18 @@
    $Date$ $Revision$
 */
 
-#include <config.h>
-#include <base/preface.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSValue.h>
-#include <Foundation/NSAutoreleasePool.h>
-#include <Foundation/NSPort.h>
-#include <Foundation/NSTimer.h>
-#include <Foundation/NSNotificationQueue.h>
-#include <Foundation/NSRunLoop.h>
-#include <Foundation/NSThread.h>
-#include <Foundation/NSDebug.h>
+#include "config.h"
+#include "gnustep/base/preface.h"
+#include "Foundation/NSMapTable.h"
+#include "Foundation/NSDate.h"
+#include "Foundation/NSValue.h"
+#include "Foundation/NSAutoreleasePool.h"
+#include "Foundation/NSPort.h"
+#include "Foundation/NSTimer.h"
+#include "Foundation/NSNotificationQueue.h"
+#include "Foundation/NSRunLoop.h"
+#include "Foundation/NSThread.h"
+#include "Foundation/NSDebug.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -329,7 +329,7 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 #define GSI_ARRAY_RETAIN(A, X)	
 #endif
 
-#include <base/GSIArray.h>
+#include "gnustep/base/GSIArray.h"
 
 static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
 {
