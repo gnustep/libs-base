@@ -1,3 +1,11 @@
+2001-07-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/UnixFileHandle.m: Don't abort aread/write attempts that
+	fail on EAGAIN or EINTR ... retry them instead.  Avoid unexpected
+	exceptions when trying to write a large volume of data quicker
+	then the output device can handle.
+	* Source/WindowsFileHandle.m: ditto
+
 2001-07-19  Adam Fedor  <fedor@gnu.org>
 
 	* Documentation/readme.texi: Explain the license for GNUstep more

@@ -1041,7 +1041,8 @@ static Class	runLoopClass;
 	      else
 		{
 		  state = GS_H_UNCON;
-		  NSLog(@"connect write attempt failed - %s", GSLastErrorStr(errno));
+		  NSLog(@"connect write attempt failed - %s",
+		    GSLastErrorStr(errno));
 		}
 	      RELEASE(d);
 	    }
