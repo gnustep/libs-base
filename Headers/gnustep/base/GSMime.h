@@ -152,6 +152,7 @@
 - (BOOL) parse: (NSData*)d;
 - (BOOL) parseHeader: (NSString*)aHeader;
 - (BOOL) scanHeaderBody: (NSScanner*)scanner into: (GSMimeHeader*)info;
+- (NSString*) scanName: (NSScanner*)scanner;
 - (BOOL) scanPastSpace: (NSScanner*)scanner;
 - (NSString*) scanSpecial: (NSScanner*)scanner;
 - (NSString*) scanToken: (NSScanner*)scanner;
