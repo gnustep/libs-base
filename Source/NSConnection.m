@@ -2238,6 +2238,10 @@ static NSLock	*global_proxies_gate;
     {
       NSString	*text = stringFromMsgType(msgid);
 
+      if ([_sendPort isValid] == NO)
+	{
+	  text = [text stringByAppendingFormat: @" - port was invalidated"];
+	}
       if (raiseException == YES)
 	{
 	  [NSException raise: NSPortTimeoutException format: text];

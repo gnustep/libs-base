@@ -169,9 +169,9 @@ enum
 	 *	of this object is not on this host, not on the host the
 	 *	NSPortCoder is connected to, but on a *third* host.
 	 *	This is why I call this a "triangle connection".  In addition
-	 *	to decoding the target, we decode the OutPort object that we
+	 *	to decoding the target, we decode the NSPort object that we
 	 *	will use to talk directly to this third host.  We send
-	 *	[NSConnection +newForInPort:outPort:ancestorConnection:]; this
+	 *	[NSConnection +connectionWithReceivePort:sendPort:]; this
 	 *	will either return the connection already created for this
 	 *	inPort/outPort pair, or create a new connection if necessary.
 	 */
