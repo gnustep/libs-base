@@ -749,6 +749,7 @@ AC_ARG_ENABLE(fake-main,
 
 if test "$enable_pass_arguments" = "no"; then
   case "$target_os" in
+    freebsdelf*) ;;
     freebsd*)	enable_fake_main=yes;;
     netbsd*)	enable_fake_main=yes;;
     openbsd*)	enable_fake_main=yes;;

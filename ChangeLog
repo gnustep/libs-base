@@ -1,3 +1,10 @@
+2000-09-30  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Source/NSDistantObject.m ([GSDistantObjectPlaceHolder
+	+respondsToSelector:]): implemented.
+	* Source/NSProcessInfo.m ([NSProcessInfo +load]): bug fix for FreeBSD.
+	* configure.in: enable_fake_main not enabled by default for FreeBSD-elf
+
 2000-09-30  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/gnustep/base/Unicode.h:
