@@ -42,9 +42,9 @@
   fd_set active_fd_set;
   NSMapTable *client_sock_2_out_port;
   NSMapTable *client_sock_2_packet;
-  /* The RunLoop with which our file descriptors are registered. */
-  id _run_loop;
-  id _run_loop_mode;
+  /* The RunLoops with which our file descriptors are registered. */
+  Bag *_run_loops;
+  /* xxx run loop modes are currently ignored. */
 }
 
 + newForReceivingFromPortNumber: (unsigned short)n;
@@ -52,9 +52,7 @@
 /* Get a packet from the net and return it.  If no packet is received 
    within MILLISECONDS, then return nil.  The caller is responsible 
    for releasing the packet. */
-- newReceivedPacketBeforeDate: date;
-/* xxx Change this name to - newPacketReceivedWithTimeout: to emphasize
-   need to release the returned packet. */
+- newPacketReceivedBeforeDate: date;
 
 - (int) portNumber;
 - (id <Collecting>) connectedOutPorts;
