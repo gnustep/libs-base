@@ -1,3 +1,8 @@
+2004-11-04  Adrian Robert  <arobert@cogsci.ucsd.edu>
+	* Source/NSRunLoop.m (limitDateForMode:) Correction to housekeeper
+	timer logic so event polling times out within reasonable time.
+	Patch by Alexander Malmberg <alexander@malmberg.org>.
+
 2004-11-04  Georg Fleischmann
 	* Headers/Foundation/NSTimeZone.h, Source/NSTimeZone.m
 	(+knownTimeZoneNames:): New method.
