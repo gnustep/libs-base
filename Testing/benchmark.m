@@ -66,12 +66,42 @@ bench_object()
   PRINT_TIMER("Baseline: 10 method calls");
 
   START_TIMER;
-  for (i = 0; i < MAX_COUNT*10; i++)
+  for (i = 0; i < MAX_COUNT; i++)
     {
-      id i = [NSObject class];
+      /* Ten class methods with the more common class names */
+      id i;
+      i = [NSObject class];
+      i = [NSString class];
+      i = [NSDictionary class];
+      i = [NSArray class];
+      i = [NSData class];
+      i = [NSUserDefaults class];
+      i = [NSMutableArray class];
+      i = [NSFileManager class];
+      i = [NSMutableString class];
+      i = [NSMutableDictionary class];
     }
   END_TIMER;
   PRINT_TIMER("Class: 10 class method calls");
+  
+  START_TIMER;
+  for (i = 0; i < MAX_COUNT; i++)
+    {
+      /* Corresponding look ups */
+      id i;
+      i = NSClassFromString (@"NSObject");
+      i = NSClassFromString (@"NSString");
+      i = NSClassFromString (@"NSDictionary");
+      i = NSClassFromString (@"NSArray");
+      i = NSClassFromString (@"NSData");
+      i = NSClassFromString (@"NSUserDefaults");
+      i = NSClassFromString (@"NSMutableArray");
+      i = NSClassFromString (@"NSFileManager");
+      i = NSClassFromString (@"NSMutableString");
+      i = NSClassFromString (@"NSMutableDictionary");
+    }
+  END_TIMER;
+  PRINT_TIMER("Function: 10 NSClassFromStr");
 
   START_TIMER;
   myZone = NSCreateZone(2048, 2048, 1);
@@ -188,6 +218,7 @@ bench_object()
   END_TIMER;
   PRINT_TIMER("NSLock: 10 lock/unlock");
   [obj release];
+
 
   AUTO_END;
 }
