@@ -11,6 +11,9 @@
 	Manage memory used by decoded pointers (including c-strings).
 	* Source/NSUnarchiver.m: Structure encoding/decoding fixes.
 	* Source/NSConnectiom.m: Don't try to autorelease decoded pointers.
+	* Testing/server.h: Make large structure have tricky layout.
+	* Testing/nsconnection_client.m: Add harder structure test.
+	* Testing/nsconnection_server.m: Add harder structure test.
 
 2003-04-09  Richard Frith-Macdonald <rfm@gnu.org>
 
