@@ -1,3 +1,9 @@
+2002-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Port
+	([-stringWithFileSystemRepresentation:length:]) to windoze...
+	Have it convert backslashes to slashes etc.
+
 2002-04-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Improve handling of identifier mapping so that
