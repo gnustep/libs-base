@@ -4413,6 +4413,31 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * <p>Convenience method to set the content type of the document without
+ * altering any content.
+ * The supplied newType may be full type information including subtype
+ * and parameters as found after the colon in a mime Content-Type header.
+ * </p>
+ */
+- (void) setContentType: (id)newType
+{
+  CREATE_AUTORELEASE_POOL(arp);
+  GSMimeHeader	*hdr = nil;
+  GSMimeParser	*p = AUTORELEASE([GSMimeParser new]);
+  NSScanner	*scanner = [NSScanner scannerWithString: newType];
+
+  hdr = AUTORELEASE([GSMimeHeader new]);
+  [hdr setName: @"content-type"];
+  if ([p scanHeaderBody: scanner into: hdr] == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Unable to parse type information"];
+    }
+  [self setHeader: hdr];
+  RELEASE(arp);
+}
+
+/**
  * This method may be called to set a header in the document.
  * Any other headers with the same name will be removed from
  * the document.
