@@ -42,6 +42,7 @@
 #include <sys/time.h>
 #include <sys/param.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <signal.h>
 #endif /* WIN32 */
