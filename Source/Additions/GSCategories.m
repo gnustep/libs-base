@@ -137,6 +137,89 @@
   return AUTORELEASE(string);
 }
 
+/**
+ * Initialises the receiver with the supplied string data which contains
+ * a hexadecimal coding of the bytes.  The parsing of the string is
+ * fairly tolerant, ignoring whitespace and permitting both upper and
+ * lower case hexadecimal digits (the -hexadecimalRepresentation method
+ * produces a string using only uppercase digits with no white spaqce).<br />
+ * If the string does not contain one or more pairs of hexadecimal digits
+ * then an exception is raised. 
+ */
+- (id) initWithHexadecimalRepresentation: (NSString*)string
+{
+  CREATE_AUTORELEASE_POOL(arp);
+  NSData	*d;
+  const char	*src;
+  const char	*end;
+  unsigned char	*dst;
+  unsigned int	pos = 0;
+  unsigned char	byte = 0;
+  BOOL		high = NO;
+
+  d = [string dataUsingEncoding: NSASCIIStringEncoding
+	   allowLossyConversion: YES];
+  src = (const char*)[d bytes];
+  end = src + [d length];
+  dst = NSZoneMalloc(NSDefaultMallocZone(), [d length]/2 + 1);
+
+  while (src < end)
+    {
+      char		c = *src++;
+      unsigned char	v;
+
+      if (isspace(c))
+	{
+	  continue;
+	}
+      if (c >= '0' && c <= '9')
+	{
+	  v = c - '0';
+	}
+      else if (c >= 'A' && c <= 'F')
+	{
+	  v = c - 'A' + 10;
+	}
+      else if (c >= 'a' && c <= 'f')
+	{
+	  v = c - 'a' + 10;
+	}
+      else
+	{
+	  pos = 0;
+	  break;
+	}
+      if (high == NO)
+	{
+	  byte = v << 4;
+	  high = YES;
+	}
+      else
+	{
+	  byte |= v;
+	  high = NO;
+	  dst[pos++] = byte;
+	}
+    }
+  if (pos > 0 && high == NO)
+    {
+      self = [self initWithBytes: dst length: pos];
+    }
+  else
+    {
+      DESTROY(self);
+    }
+  NSZoneFree(NSDefaultMallocZone(), dst);
+  RELEASE(arp);
+  if (self == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@: invalid hexadeciaml string data",
+	NSStringFromSelector(_cmd)];
+    }
+  return self;
+}
+
 struct MD5Context
 {
   unsigned long buf[4];
