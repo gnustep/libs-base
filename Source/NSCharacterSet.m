@@ -49,7 +49,7 @@
 #ifndef SETBIT
 #define SETBIT(a,i)     ((a) |= 1<<(i))
 #define CLRBIT(a,i)     ((a) &= ~(1<<(i)))
-#define ISSET(a,i)      (((((a) & (1<<(i)))) > 0) ? YES : NO)
+#define ISSET(a,i)      ((a) & (1<<(i)))
 #endif
 
 @class	NSDataStatic;
