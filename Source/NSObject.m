@@ -553,7 +553,7 @@ static BOOL double_release_check_enabled = NO;
     return [self classForCoder];
 }
 
-- (id) replacementObjectForArchiver: (NSCoder*)anArchiver
+- (id) replacementObjectForArchiver: (NSArchiver*)anArchiver
 {
   return [self replacementObjectForCoder: (NSCoder*)anArchiver];
 }

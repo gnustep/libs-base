@@ -112,7 +112,7 @@
 - (Class) classForArchiver;
 - (Class) classForCoder;
 - (Class) classForPortCoder;
-- (id) replacementObjectForArchiver: (NSCoder*)anEncoder;
+- (id) replacementObjectForArchiver: (NSArchiver*)anEncoder;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
 - (id) replacementObjectForPortCoder: (NSPortCoder*)anEncoder;
 
