@@ -52,6 +52,7 @@
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSInvocation.h>
 
 /* libxml headers */
 #include <libxml/tree.h>
@@ -2869,8 +2870,8 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 + (void) forwardInvocation: (NSInvocation*)anInvocation
 {
   NSLog(@"Not built with libxml ... %@ unusable in %@",
-	NSStringFromClass([self class]), 
-	NSStringFromSelector([anInvocation selector]));
+    NSStringFromClass([self class]), 
+    NSStringFromSelector([anInvocation selector]));
   return;
 }
 - (id) init
