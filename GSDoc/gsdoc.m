@@ -389,6 +389,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   NSMutableString	*text = [NSMutableString string];
   NSString		*name = [self getProp: "name" fromNode: node];
   NSString		*email = nil;
+  NSString		*ename = nil;
   NSString		*url = nil;
   NSString		*desc = nil;
 
@@ -401,6 +402,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   if (node != 0 && strcmp(node->name, "email") == 0)
     {
       email = [self getProp: "email" fromNode: node];
+      ename = [self parseText: node->childs];
       node = node->next;
     }
   if (node != 0 && strcmp(node->name, "url") == 0)
@@ -425,9 +427,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     }
   if (email != nil)
     {
+      if ([ename length] == 0)
+	ename = email;
       [text appendFormat: @" (<a href=\"mailto:%@\"><code>%@</code></a>)\r\n",
-	email, email];
-
+	email, ename];
     }
   [text appendString: @"<dd>\r\n"];
   if (desc != nil)
@@ -1893,11 +1896,31 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		[text appendFormat: @" %@ ",
 		  [self addLink: ref withText: @"see footnote"]];
 	      }
+	    else if (strcmp(node->name, "ref") == 0)
+	      {
+		NSString	*elem = [self parseText: node->childs];
+		NSString	*typ = [self getProp: "type" fromNode: node];
+//		NSString	*cls = [self getProp: "class" fromNode: node];
+		NSString	*ref = [self getProp: "id" fromNode: node];
+
+		if ([elem length] == 0)
+		  {
+		    elem = ref;
+		  }
+		if (typ == nil)
+		  {
+		    typ = @"label";
+		  }
+		ref = [NSString stringWithFormat: @"%@-%@", typ, ref];
+		[text appendString: [self addLink: ref withText: elem]];
+	      }
 	    else if (strcmp(node->name, "uref") == 0)
 	      {
 		NSString	*elem = [self parseText: node->childs];
 		NSString	*ref = [self getProp: "url" fromNode: node];
 
+		if ([elem length] == 0)
+		  elem = ref;
 		[text appendFormat: @"<a href=\"%@\">%@</a>", ref, elem];
 	      }
 	    break;

@@ -142,7 +142,7 @@
  TYPE of reference, if implied, a reference to a label.
  CLASS specific class for a method
 -->
-<!ELEMENT ref EMPTY>
+<!ELEMENT ref (%text;)*>
 <!ATTLIST ref
   id CDATA #REQUIRED
   type (class|protocol|method|function|type|macro|variable|label) "label"
@@ -150,7 +150,7 @@
 >
 
 <!-- An e-mail address. -->
-<!ELEMENT email EMPTY>
+<!ELEMENT email (%text;)*>
 <!ATTLIST email
   address CDATA #IMPLIED
 >
@@ -162,7 +162,7 @@
 >
 
 <!-- A reference to a URL.
-  The text contained appears in the output unless
+  The text contained appears in the output.
 -->
 <!ELEMENT uref (%text;)*>
 <!ATTLIST uref
