@@ -71,6 +71,13 @@
 #include <sys/fcntl.h>
 #endif
 
+#ifdef HAVE_LIBKVM
+#include <kvm.h>
+#include <fcntl.h>
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#endif /* HAVE_LIBKVM */
+
 #include "GSConfig.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSArray.h"
@@ -308,23 +315,98 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   IF_NO_GC(RELEASE(arp));
 }
 
-#if !GS_FAKE_MAIN && (defined(HAVE_PROCFS) && defined(HAVE_LOAD_METHOD))
+#if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_LIBKVM)) && (defined(HAVE_LOAD_METHOD)))
 /*
  * We have to save program arguments and environment before main () is
  * executed, because main () could modify their values before we get a
  * chance to read them 
  */
-static int	_gnu_noobjc_argc;
-static char	**_gnu_noobjc_argv;
-static char	**_gnu_noobjc_env;
+static int	_gnu_noobjc_argc = 0;
+static char	**_gnu_noobjc_argv = NULL;
+static char	**_gnu_noobjc_env = NULL;
 
 /*
  * The +load method (an extension of the GNU compiler) is invoked
  * before main and +initialize (for this class) is executed.  This is
- * guaranteed if +load contains only pure C code, as we have here. 
+ * guaranteed if +load contains only pure C code, as we have here. The
+ * code in here either uses libkvm if available, or else procfs.
  */
 + (void) load 
 {
+#ifdef HAVE_LIBKVM
+  /*
+   * Use the kvm library to open the kernel and read the environment and
+   * arguments. As we are not running as root we cannot open the memory
+   * device and thus we fake it using /dev/null. This is allowed under
+   * FreeBSD, but may fail on other operating systems which check the
+   * file type. The kvm calls used are those which are supposedly backward
+   * compatible with Solaris rather than being FreeBSD specific
+   */
+  kvm_t *kptr = NULL;
+  struct kinfo_proc *proc_ptr = NULL;
+  int nprocs, i, count;
+  char **vectors;
+
+  /* open the kernel */
+  kptr = kvm_open(NULL, "/dev/null", NULL, O_RDONLY, "NSProcessInfo");
+  if(!kptr) {
+    fprintf(stderr, "Error: Your system appears to provide libkvm, but the kernel open fails\n");
+    fprintf(stderr. "Try to reconfigure gnustep-base with --enable-fake-main. to work\n");
+    fprintf(stderr, "around this problem.");
+    abort();
+  }
+
+  /* find the process */
+  proc_ptr = kvm_getprocs(kptr, KERN_PROC_PID, getpid(), &nprocs);
+  if(!proc_ptr || (nprocs != 1)) {
+    fprintf(stderr, "Error: libkvm cannot find the current process\n");
+    abort();
+  }
+
+  /* get the environment vectors */
+  vectors = kvm_getenvv(kptr, proc_ptr, 0);
+  if(!vectors) {
+    fprintf(stderr, "Error: libkvm does not return an environment for the current process\n");
+    abort();
+  }
+
+  /* copy the environment strings */
+  for(count = 0; vectors[count]; count++)
+    ;
+  _gnu_noobjc_env = (char**)malloc(sizeof(char*) * (count + 1));
+  if (!_gnu_noobjc_env)
+    goto malloc_error;
+  for (i = 0; i < count; i++)
+    {
+      _gnu_noobjc_env[i] = (char *)strdup(vectors[i]);
+      if (!_gnu_noobjc_env[i])
+	goto malloc_error;
+    }
+  _gnu_noobjc_env[i] = NULL;
+
+  /* get the argument vectors */
+  vectors = kvm_getargv(kptr, proc_ptr, 0);
+  if(!vectors) {
+    fprintf(stderr, "Error: libkvm does not return arguments for the current process\n");
+    abort();
+  }
+
+  /* copy the argument strings */
+  for(_gnu_noobjc_argc = 0; vectors[_gnu_noobjc_argc]; _gnu_noobjc_argc++)
+    ;
+  _gnu_noobjc_argv = (char**)malloc(sizeof(char*) * (_gnu_noobjc_argc + 1));
+  if (!_gnu_noobjc_argv)
+    goto malloc_error;
+  for (i = 0; i < _gnu_noobjc_argc; i++)
+    {
+      _gnu_noobjc_argv[i] = (char *)strdup(vectors[i]);
+      if (!_gnu_noobjc_argv[i])
+	goto malloc_error;
+    }
+  _gnu_noobjc_argv[i] = NULL;
+
+  return;
+#else /* !HAVE_LIBKVM (i.e. HAVE_PROCFS).  */
   /*
    * Now we have the problem of reading program arguments and
    * environment.  We take the environment from extern char **environ, and
@@ -506,6 +588,7 @@ static char	**_gnu_noobjc_env;
    */
   abort();
 #endif /* HAVE_PROGRAM_INVOCATION_NAME */
+#endif /* !HAVE_LIBKVM (e.g. HAVE_PROCFS) */
  malloc_error: 
   fprintf(stderr, "malloc() error when starting gnustep-base.\n");
   fprintf(stderr, "Free some memory and then re-run the program.\n");
@@ -546,7 +629,7 @@ _gnu_noobjc_free_vars(void)
       _gnu_noobjc_free_vars();
     }
 }
-#else /* !HAVE_PROCFS || !HAVE_LOAD_METHOD */
+#else /*! HAVE_PROCFS !HAVE_LOAD_METHOD !HAVE_LIBKVM */
 
 #ifdef __MINGW__
 /* For WindowsAPI Library, we know the global variables (argc, etc) */
