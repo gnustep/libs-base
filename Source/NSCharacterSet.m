@@ -36,7 +36,7 @@
 #include "Foundation/NSThread.h"
 #include "Foundation/NSNotification.h"
 
-#include "../NSCharacterSets/NSCharacterSetData.h"
+#include "NSCharacterSetData.h"
 
 /* A simple array for caching standard bitmap sets */
 #define MAX_STANDARD_SETS 15
@@ -88,10 +88,6 @@ static Class abstractClass = nil;
 
 @end
 
-/**
- *  Represents a set of unicode characters.  Used by [NSScanner] and [NSString]
- *  for parsing-related methods.
- */
 @implementation NSCharacterSet
 
 + (void) initialize
@@ -123,137 +119,81 @@ static Class abstractClass = nil;
   return cache_set[number];
 }
 
-/**
- *  Returns a character set containing letters, numbers, and diacritical
- *  marks.  Note that "letters" includes all alphabetic as well as Chinese
- *  characters, etc..
- */
 + (NSCharacterSet*) alphanumericCharacterSet
 {
   return [self _staticSet: alphanumericCharSet number: 0];
 }
 
-/**
- *  Returns a character set containing control and format characters.
- */
++ (NSCharacterSet*) capitalizedLetterCharacterSet
+{
+  return [self _staticSet: titlecaseLetterCharSet number: 13];
+}
+
 + (NSCharacterSet*) controlCharacterSet
 {
   return [self _staticSet: controlCharSet number: 1];
 }
 
-/**
- * Returns a character set containing characters that represent
- * the decimal digits 0 through 9.
- */
 + (NSCharacterSet*) decimalDigitCharacterSet
 {
   return [self _staticSet: decimalDigitCharSet number: 2];
 }
 
-/**
- * Returns a character set containing individual charactars that
- * can be represented also by a composed character sequence.
- */
 + (NSCharacterSet*) decomposableCharacterSet
 {
   return [self _staticSet: decomposableCharSet number: 3];
 }
 
-/**
- * Returns a character set containing unassigned (illegal)
- * character values.
- */
 + (NSCharacterSet*) illegalCharacterSet
 {
   return [self _staticSet: illegalCharSet number: 4];
 }
 
-/**
- *  Returns a character set containing letters, including all alphabetic as
- *  well as Chinese characters, etc..
- */
 + (NSCharacterSet*) letterCharacterSet
 {
   return [self _staticSet: letterCharSet number: 5];
 }
 
-/**
- * Returns a character set that contains the lowercase characters.
- * This set does not include caseless characters, only those that
- * have corresponding characters in uppercase and/or titlecase.
- */
 + (NSCharacterSet*) lowercaseLetterCharacterSet
 {
   return [self _staticSet: lowercaseLetterCharSet number: 6];
 }
 
-/**
- *  Returns a character set containing characters for diacritical marks, which
- *  are usually only rendered in conjunction with another character.
- */
 + (NSCharacterSet*) nonBaseCharacterSet
 {
   return [self _staticSet: nonBaseCharSet number: 7];
 }
 
-/**
- *  Returns a character set containing punctuation marks.
- */
 + (NSCharacterSet*) punctuationCharacterSet
 {
   return [self _staticSet: punctuationCharSet number: 8];
 }
 
-/**
- *  Returns a character set containing mathematical symbols, etc..
- */
 + (NSCharacterSet*) symbolAndOperatorCharacterSet
 {
   return [self _staticSet: symbolAndOperatorCharSet number: 9];
 }
 
-/**
- * Returns a character set that contains the uppercase characters.
- * This set does not include caseless characters, only those that
- * have corresponding characters in lowercase and/or titlecase.
- */
 + (NSCharacterSet*) uppercaseLetterCharacterSet
 {
   return [self _staticSet: uppercaseLetterCharSet number: 10];
 }
 
-/**
- * Returns a character set that contains the whitespace characters,
- * plus the newline characters, values 0x000A and 0x000D.
- */
 + (NSCharacterSet*) whitespaceAndNewlineCharacterSet
 {
   return [self _staticSet: whitespaceAndNlCharSet number: 11];
 }
 
-/**
- * Returns a character set that contains the whitespace characters.
- */
 + (NSCharacterSet*) whitespaceCharacterSet
 {
   return [self _staticSet: whitespaceCharSet number: 12];
 }
 
-// Creating custom character sets
-
-/**
- * Returns a character set containing characters as encoded in the
- * data object.
- */
 + (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
 {
   return AUTORELEASE([[NSBitmapCharSet alloc] initWithBitmap: data]);
 }
 
-/**
- *  Returns set with characters in aString, or empty set for empty string.
- *  Raises an exception if given a nil string.
- */
 + (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
 {
   unsigned	i;
@@ -280,9 +220,6 @@ static Class abstractClass = nil;
   return [self characterSetWithBitmapRepresentation: bitmap];
 }
 
-/**
- *  Returns set containing unicode index range given by aRange.
- */
 + (NSCharacterSet*)characterSetWithRange: (NSRange)aRange
 {
   unsigned	i;
@@ -304,12 +241,6 @@ static Class abstractClass = nil;
   return [self characterSetWithBitmapRepresentation: bitmap];
 }
 
-/**
- *  Initializes from a bitmap.  (See [NSBitmapCharSet].)  File must have
- *  extension "<code>.bitmap</code>".  (To get around this load the file
- *  into data yourself and use
- *  [NSCharacterSet -characterSetWithBitmapRepresentation].
- */
 + (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile
 {
   if ([@"bitmap" isEqual: [aFile pathExtension]])
@@ -321,20 +252,12 @@ static Class abstractClass = nil;
     return nil;
 }
 
-/**
- * Returns a bitmap representation of the receiver's character set
- * suitable for archiving or writing to a file, in an NSData object.
- */
 - (NSData*) bitmapRepresentation
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
-/**
- * Returns YES if the receiver contains <em>aCharacter</em>, NO if
- * it does not.
- */
 - (BOOL) characterIsMember: (unichar)aCharacter
 {
   [self subclassResponsibility: _cmd];
@@ -385,10 +308,6 @@ static Class abstractClass = nil;
   return NO;
 }
 
-/**
- * Returns a character set containing only characters that the
- * receiver does not contain.
- */
 - (NSCharacterSet*) invertedSet
 {
   unsigned	i;
@@ -425,9 +344,6 @@ static Class abstractClass = nil;
 
 @end
 
-/**
- *  An [NSCharacterSet] that can be modified.
- */
 @implementation NSMutableCharacterSet
 
 /* Provide a default object for allocation */
@@ -443,6 +359,11 @@ static Class abstractClass = nil;
 }
 
 + (NSCharacterSet*) alphanumericCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (NSCharacterSet*) capitalizedLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
@@ -507,61 +428,36 @@ static Class abstractClass = nil;
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-/* Mutable subclasses must implement ALL of these methods. */
-
-/**
- *  Adds characters specified by unicode indices in aRange to set.
- */
 - (void) addCharactersInRange: (NSRange)aRange
 {
   [self subclassResponsibility: _cmd];
 }
 
-/**
- *  Adds characters in aString to set.
- */
 - (void) addCharactersInString: (NSString*)aString
 {
   [self subclassResponsibility: _cmd];
 }
 
-/**
- *  Set union of character sets.
- */
 - (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet
 {
   [self subclassResponsibility: _cmd];
 }
 
-/**
- *  Set intersection of character sets.
- */
 - (void) formIntersectionWithCharacterSet: (NSCharacterSet*)otherSet
 {
   [self subclassResponsibility: _cmd];
 }
 
-/**
- *  Drop given range of characters.  No error for characters not currently in
- *  set.
- */
 - (void) removeCharactersInRange: (NSRange)aRange
 {
   [self subclassResponsibility: _cmd];
 }
 
-/**
- *  Drop characters in aString.  No error for characters not currently in
- *  set.
- */
 - (void) removeCharactersInString: (NSString*)aString
 {
   [self subclassResponsibility: _cmd];
 }
 
-/**
- *  Remove all characters currently in set and add all other characters.
- */
 - (void) invert
 {
   [self subclassResponsibility: _cmd];

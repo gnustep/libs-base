@@ -28,45 +28,185 @@
 
 @class NSData;
 
+/**
+ *  Represents a set of unicode characters.  Used by [NSScanner] and [NSString]
+ *  for parsing-related methods.
+ */
 @interface NSCharacterSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
-// Creating standard character sets
+/**
+ *  Returns a character set containing letters, numbers, and diacritical
+ *  marks.  Note that "letters" includes all alphabetic as well as Chinese
+ *  characters, etc..
+ */
 + (NSCharacterSet*) alphanumericCharacterSet;
+
+#ifndef	STRICT_OPENSTEP
+/**
+ *  Returns a character set containing letters in the unicode
+ *  Titlecase category.
+ */
++ (NSCharacterSet*) capitalizedLetterCharacterSet;
+#endif
+
+/**
+ *  Returns a character set containing control and format characters.
+ */
 + (NSCharacterSet*) controlCharacterSet;
+
+/**
+ * Returns a character set containing characters that represent
+ * the decimal digits 0 through 9.
+ */
 + (NSCharacterSet*) decimalDigitCharacterSet;
+
+/**
+ * Returns a character set containing individual charactars that
+ * can be represented also by a composed character sequence.
+ */
 + (NSCharacterSet*) decomposableCharacterSet;
+
+/**
+ * Returns a character set containing unassigned (illegal)
+ * character values.
+ */
 + (NSCharacterSet*) illegalCharacterSet;
+
+/**
+ *  Returns a character set containing letters, including all alphabetic as
+ *  well as Chinese characters, etc..
+ */
 + (NSCharacterSet*) letterCharacterSet;
+
+/**
+ * Returns a character set that contains the lowercase characters.
+ * This set does not include caseless characters, only those that
+ * have corresponding characters in uppercase and/or titlecase.
+ */
 + (NSCharacterSet*) lowercaseLetterCharacterSet;
+
+/**
+ *  Returns a character set containing characters for diacritical marks, which
+ *  are usually only rendered in conjunction with another character.
+ */
 + (NSCharacterSet*) nonBaseCharacterSet;
+
+/**
+ *  Returns a character set containing punctuation marks.
+ */
 + (NSCharacterSet*) punctuationCharacterSet;
+
+/**
+ *  Returns a character set containing mathematical symbols, etc..
+ */
 + (NSCharacterSet*) symbolAndOperatorCharacterSet;
+
+/**
+ * Returns a character set that contains the uppercase characters.
+ * This set does not include caseless characters, only those that
+ * have corresponding characters in lowercase and/or titlecase.
+ */
 + (NSCharacterSet*) uppercaseLetterCharacterSet;
+
+/**
+ * Returns a character set that contains the whitespace characters,
+ * plus the newline characters, values 0x000A and 0x000D and nextline
+ * 0x0085 character.
+ */
 + (NSCharacterSet*) whitespaceAndNewlineCharacterSet;
+
+/**
+ * Returns a character set that contains the whitespace characters.
+ */
 + (NSCharacterSet*) whitespaceCharacterSet;
 
-// Creating custom character sets
+/**
+ * Returns a character set containing characters as encoded in the
+ * data object (8192 bytes)
+ */
 + (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data;
+
+/**
+ *  Returns set with characters in aString, or empty set for empty string.
+ *  Raises an exception if given a nil string.
+ */
 + (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString;
+
+/**
+ *  Returns set containing unicode index range given by aRange.
+ */
 + (NSCharacterSet*) characterSetWithRange: (NSRange)aRange;
 
-- (NSData*) bitmapRepresentation;
-- (BOOL) characterIsMember: (unichar)aCharacter;
-- (NSCharacterSet*) invertedSet;
-
 #ifndef	STRICT_MACOS_X
+/**
+ *  Initializes from a bitmap.  (See [NSBitmapCharSet].)  File must have
+ *  extension "<code>.bitmap</code>".  (To get around this load the file
+ *  into data yourself and use
+ *  [NSCharacterSet -characterSetWithBitmapRepresentation].
+ */
 + (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile;
 #endif
+
+/**
+ * Returns a bitmap representation of the receiver's character set
+ * suitable for archiving or writing to a file, in an NSData object.
+ */
+- (NSData*) bitmapRepresentation;
+
+/**
+ * Returns YES if the receiver contains <em>aCharacter</em>, NO if
+ * it does not.
+ */
+- (BOOL) characterIsMember: (unichar)aCharacter;
+
+/**
+ * Returns a character set containing only characters that the
+ * receiver does not contain.
+ */
+- (NSCharacterSet*) invertedSet;
+
 @end
 
+/**
+ *  An [NSCharacterSet] that can be modified.
+ */
 @interface NSMutableCharacterSet : NSCharacterSet
 
+/**
+ *  Adds characters specified by unicode indices in aRange to set.
+ */
 - (void) addCharactersInRange: (NSRange)aRange;
+
+/**
+ *  Adds characters in aString to set.
+ */
 - (void) addCharactersInString: (NSString*)aString;
+
+/**
+ *  Set union of character sets.
+ */
 - (void) formUnionWithCharacterSet: (NSCharacterSet*)otherSet;
+
+/**
+ *  Set intersection of character sets.
+ */
 - (void) formIntersectionWithCharacterSet: (NSCharacterSet*)otherSet;
+
+/**
+ *  Drop given range of characters.  No error for characters not currently in
+ *  set.
+ */
 - (void) removeCharactersInRange: (NSRange)aRange;
+
+/**
+ *  Drop characters in aString.  No error for characters not currently in
+ *  set.
+ */
 - (void) removeCharactersInString: (NSString*)aString;
+
+/**
+ *  Remove all characters currently in set and add all other characters.
+ */
 - (void) invert;
 
 @end
