@@ -7,8 +7,9 @@
 
 	* Source/NSThread.m (GSRegisterCurrentThread): Call
 	objc_thread_add before creating the NSThread object using a method
-	call.
-
+	call.  (GSUnregisterCurrentThread): Post the NSThreadWillExit
+	notification.
+	
 2001-03-19  Jonathan Gapen  <jagapen@home.com>
 
 	* Source/NSString.m: In ([-rangeOfComposedCharacterSequenceAtIndex:]),

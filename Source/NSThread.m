@@ -475,15 +475,35 @@ void
 GSUnregisterCurrentThread (void)
 {
   NSThread *thread;
+  static NSNotificationCenter *nc = nil;
+  static Class notificationClass = Nil;
 
+  if (nc == nil)
+    {
+      nc = [NSNotificationCenter defaultCenter];
+      notificationClass = [NSNotification class];
+    }
+  
   thread = GSCurrentThread();
   
   if (thread->_active == YES)
     {
+      NSNotification	*n;
+      
       /*
        * Set the thread to be inactive to avoid any possibility of recursion.
        */
       thread->_active = NO;
+      
+      /*
+       * Let observers know this thread is exiting.
+       */
+      n = [notificationClass alloc];
+      n = [n initWithName: NSThreadWillExitNotification
+	           object: thread
+	         userInfo: nil];
+      [nc postNotification: n];
+      RELEASE(n);
 
       /*
        * destroy the thread object.
