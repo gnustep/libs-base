@@ -1,4 +1,5 @@
 /** Implementation of NSNotificationCenter for GNUstep
+  notification = (id)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
    Copyright (C) 1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -934,53 +935,26 @@ static NSNotificationCenter *default_center = nil;
 
 
 /**
- * Posts notification to all the observers that match its NAME and OBJECT.<br />
- * The GNUstep implementation calls -postNotificationName:object:userInfo: to
- * perform the actual posting.
+ * Private method to perform the actual posting of a notification.
+ * Release the notification before returning, or before we raise
+ * any exception ... to avoid leaks.
  */
-- (void) postNotification: (NSNotification*)notification
-{
-  [self postNotificationName: [notification name]
-		      object: [notification object]
-		    userInfo: [notification userInfo]];
-}
-
-/**
- * Creates and posts a notification using the
- * -postNotificationName:object:userInfo: passing a nil user info argument.
- */
-- (void) postNotificationName: (NSString*)name 
-		       object: (id)object
-{
-  [self postNotificationName: name object: object userInfo: nil];
-}
-
-/**
- * The preferred method for posting a notification.
- * <br />
- * For performance reasons, we don't wrap an exception handler round every
- * message sent to an observer.  This means that, if one observer raises
- * an exception, later observers in the lists will not get the notification.
- */
-- (void) postNotificationName: (NSString*)name 
-		       object: (id)object
-		     userInfo: (NSDictionary*)info
+- (void) _postAndRelease: (NSNotification*)notification 
 {
   Observation	*o;
   unsigned	count;
   volatile GSIArray	a;
   unsigned	arrayBase;
-  GSNotification	*notification;
+  NSString	*name = [notification name];
+  id		object;
 
   if (name == nil)
     {
+      RELEASE(notification);
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to post a notification with no name."];
     }
-  notification = (id)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
-  name = notification->_name = [name copyWithZone: GSObjCZone(self)];
-  object = notification->_object = TEST_RETAIN(object);
-  notification->_info = TEST_RETAIN(info);
+  object = TEST_RETAIN([notification object]);
   if (object != nil)
     {
       object = CHEATGC(object);
@@ -1207,7 +1181,7 @@ static NSNotificationCenter *default_center = nil;
       GSIArrayRemoveItemsFromIndex(ARRAY, arrayBase);
       unlockNCTable(TABLE);
 
-      DESTROY(notification);	// Get rid of notification we created.
+      RELEASE(notification);
       [localException raise];
     }
   NS_ENDHANDLER
@@ -1215,6 +1189,52 @@ static NSNotificationCenter *default_center = nil;
 
   unlockNCTable(TABLE);
   RELEASE(notification);
+}
+
+
+/**
+ * Posts notification to all the observers that match its NAME and OBJECT.<br />
+ * The GNUstep implementation calls -postNotificationName:object:userInfo: to
+ * perform the actual posting.
+ */
+- (void) postNotification: (NSNotification*)notification
+{
+  if (notification == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Tried to post a nil notification."];
+    }
+  [self _postAndRelease: RETAIN(notification)];
+}
+
+/**
+ * Creates and posts a notification using the
+ * -postNotificationName:object:userInfo: passing a nil user info argument.
+ */
+- (void) postNotificationName: (NSString*)name 
+		       object: (id)object
+{
+  [self postNotificationName: name object: object userInfo: nil];
+}
+
+/**
+ * The preferred method for posting a notification.
+ * <br />
+ * For performance reasons, we don't wrap an exception handler round every
+ * message sent to an observer.  This means that, if one observer raises
+ * an exception, later observers in the lists will not get the notification.
+ */
+- (void) postNotificationName: (NSString*)name 
+		       object: (id)object
+		     userInfo: (NSDictionary*)info
+{
+  GSNotification	*notification;
+
+  notification = (id)NSAllocateObject(concrete, 0, NSDefaultMallocZone());
+  name = notification->_name = [name copyWithZone: GSObjCZone(self)];
+  object = notification->_object = TEST_RETAIN(object);
+  notification->_info = TEST_RETAIN(info);
+  [self _postAndRelease: notification];
 }
 
 @end
