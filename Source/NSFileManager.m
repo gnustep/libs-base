@@ -508,7 +508,7 @@ static NSFileManager* defaultManager = nil;
 {
   NSArray	*contents;
 
-  if (handler)
+  if (handler != nil)
     [handler fileManager: self willProcessPath: path];
 
   contents = [self directoryContentsAtPath: path];
@@ -1047,11 +1047,17 @@ static NSFileManager* defaultManager = nil;
 {
   NSDirectoryEnumerator	*direnum;
   NSMutableArray	*content;
-  BOOL			isDir;
   IMP			nxtImp;
   IMP			addImp;
-    
-  if (![self fileExistsAtPath: path isDirectory: &isDir] || !isDir)
+  NSDictionary		*attr;
+  NSString		*type;
+
+  /*
+   * See if this is a directory (don't follow links).
+   */
+  attr = [self fileAttributesAtPath: path traverseLink: NO];
+  type = [attr objectForKey: NSFileType];
+  if ([type isEqualToString: NSFileTypeDirectory] == NO)
     return nil;
     
   direnum = [[NSDirectoryEnumerator alloc] initWithDirectoryPath: path 
