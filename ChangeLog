@@ -1,3 +1,14 @@
+2002-11-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Revert to remove unneeded notification setup.
+	* Source/NSThread.m: Rewrite pierres changes, scrapping all
+	conditionally compiled code that would never be used, rewriting
+	unix specific stuff (so it might run under windoze ... not yet tested)
+	removed unnecessary code and simplified, etc etc.
+	Fixed bugs in usage of condition locks so it actually works.
+	* Testing/thread.m: New test to try out
+	performSelectorOnMainThread:withObject:waitUntilDone:modes:
+
 2002-11-02  Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>
 
 	* Source/NSRunLoop.m ([NSRunLoop -init]): ask to be informed about
@@ -7,7 +18,7 @@
 	class.
 	([NSRunLoop -_willBecomeMultiThreaded:]): new method, sets up the 
 	lock, the socket and new run loop watcher that'll listen on the socket.
-	([NSObject -performSelectorOnMainThread:withObject:waitUntilDone:modes:]):
+	[NSObject -performSelectorOnMainThread:withObject:waitUntilDone:modes:]):
 	modified to use the previous changes.
 
 2002-11-01  Richard Frith-Macdonald <rfm@gnu.org>

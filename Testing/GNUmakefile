@@ -72,6 +72,7 @@ TEST_TOOL_NAME = \
 		nstimezone \
 		release \
 		string \
+		thread \
 		thread-except \
 		values \
 
@@ -116,6 +117,7 @@ prepend_OBJC_FILES = prepend.m
 release_OBJC_FILES = release.m
 string_OBJC_FILES = string.m
 testtool_OBJC_FILES = testtool.m
+thread_OBJC_FILES = thread.m
 thread-except_OBJC_FILES = thread-except.m
 values_OBJC_FILES = values.m
 
