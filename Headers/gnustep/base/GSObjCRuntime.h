@@ -123,7 +123,7 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
 
 #define GS_STATIC_INLINE static inline
 
-/*
+/**
  * GSObjCClass() return the class of an instance.
  * The argument to this function must NOT be nil.
  */
@@ -133,7 +133,7 @@ GSObjCClass(id obj)
   return obj->class_pointer;
 }
 
-/*
+/**
  * GSObjCIsInstance() tests to see if an id is an instance.
  * The argument to this function must NOT be nil.
  */
@@ -143,7 +143,7 @@ GSObjCIsInstance(id obj)
   return CLS_ISCLASS(obj->class_pointer);
 }
 
-/*
+/**
  * GSObjCIsKindOf() tests to see if a class inherits from another class
  * The argument to this function must NOT be nil.
  */
@@ -366,28 +366,33 @@ GSFlushMethodCacheForClass (Class class)
 }
 
 
-
+/**
+ * Returns the superclass of this.
+ */
 GS_STATIC_INLINE Class
 GSObjCSuper(Class this)
 {
   return class_get_super_class(this);
 }
 
+/**
+ * Returns the version number of this.
+ */
 GS_STATIC_INLINE int
 GSObjCVersion(Class this)
 {
   return class_get_version(this);
 }
 
-/*
- * Return the zone in which an object belongs, without using the zone method
- */
 #ifndef NeXT_Foundation_LIBRARY
 #include	<Foundation/NSZone.h>
 #else
 #include <Foundation/Foundation.h>
 #endif
 
+/**
+ * Return the zone in which an object belongs, without using the zone method
+ */
 GS_EXPORT NSZone *
 GSObjCZone(NSObject *obj);
 
@@ -397,7 +402,8 @@ GSObjCZone(NSObject *obj);
 GS_EXPORT void *
 GSAutoreleasedBuffer(unsigned size);
 
-/* Getting a system error message on a variety of systems */
+/** Returns a system error message on a variety of systems
+ */
 GS_EXPORT const char *
 GSLastErrorStr(long error_id);
 
