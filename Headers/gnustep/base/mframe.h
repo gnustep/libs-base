@@ -24,7 +24,7 @@
 #ifndef __mframe_h_OBJECTS_INCLUDE
 #define __mframe_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 
 /* These functions are used to pull apart method calls, and put them
    back together again.  They are useful for things like distributed

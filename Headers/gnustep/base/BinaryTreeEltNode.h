@@ -24,7 +24,7 @@
 #ifndef __BinaryTreeEltNode_h_INCLUDE_GNU
 #define __BinaryTreeEltNode_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/BinaryTreeNode.h>
 #include <gnustep/base/EltNodeCollector.h>
 

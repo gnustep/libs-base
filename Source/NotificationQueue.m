@@ -23,7 +23,7 @@
 
 /* The implementation for NotificationDispatcher. */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/NotificationQueue.h>
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/LinkedListNode.h>

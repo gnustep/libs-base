@@ -24,7 +24,7 @@
 #ifndef __Set_h_OBJECTS_INCLUDE
 #define __Set_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Collection.h>
 #include <Foundation/NSHashTable.h>
 

@@ -1,7 +1,7 @@
 #ifndef __RunLoop_h_OBJECTS_INCLUDE
 #define __RunLoop_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/NotificationDispatcher.h>
 #include <gnustep/base/Set.h>
 #include <Foundation/NSMapTable.h>

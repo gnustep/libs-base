@@ -35,7 +35,7 @@
 #ifndef __OrderedCollecting_h_OBJECTS_INCLUDE
 #define __OrderedCollecting_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/IndexedCollecting.h>
 
 @protocol OrderedCollecting <IndexedCollecting>

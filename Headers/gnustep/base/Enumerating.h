@@ -24,7 +24,7 @@
 #ifndef __Enumerating_h__OBJECTS_INCLUDE
 #define __Enumerating_h__OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 
 @protocol Enumerating <NSObject>
 

@@ -24,7 +24,7 @@
 #ifndef __CircularArrayPrivate_h_INCLUDE_GNU
 #define __CircularArrayPrivate_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/ArrayPrivate.h>
 
 #define CIRCULAR_TO_BASIC(INDEX) \

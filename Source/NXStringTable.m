@@ -32,7 +32,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <objc/NXStringTable.h>
 
 char *

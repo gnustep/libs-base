@@ -29,7 +29,7 @@
 #ifndef __BinaryTree_h_INCLUDE_GNU
 #define __BinaryTree_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/IndexedCollection.h>
 
 /* The <BinaryTreeComprising> protocol defines the interface to an object

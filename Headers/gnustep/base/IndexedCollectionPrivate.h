@@ -24,7 +24,7 @@
 #ifndef __IndexedCollectionPrivate_h_INCLUDE_GNU
 #define __IndexedCollectionPrivate_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/CollectionPrivate.h>
 #include <Foundation/NSException.h>
 #include <gnustep/base/NSString.h>

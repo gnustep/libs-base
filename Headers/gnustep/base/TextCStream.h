@@ -24,7 +24,7 @@
 #ifndef __TextCStream_h_OBJECTS_INCLUDE
 #define __TextCStream_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Stream.h>
 #include <gnustep/base/CStream.h>
 

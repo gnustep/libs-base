@@ -26,7 +26,7 @@
 #ifndef __GapArrayPrivate_h_INCLUDE_GNU
 #define __GapArrayPrivate_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/ArrayPrivate.h>
 #include <assert.h>
 

@@ -24,7 +24,7 @@
 #ifndef __Queue_h_INCLUDE_GNU
 #define __Queue_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/CircularArray.h>
 
 @interface Queue : CircularArray

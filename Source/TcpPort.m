@@ -31,7 +31,7 @@
    All the abort()'s should be Exceptions.
    */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/TcpPort.h>
 #include <gnustep/base/Array.h>
 #include <gnustep/base/Notification.h>

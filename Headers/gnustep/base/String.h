@@ -29,7 +29,7 @@
    Perhaps I'll just get rid of the GNU String objects and just
    transfer this functionality into NSSTring and friends. */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/IndexedCollection.h>
 #include <gnustep/base/ValueHolding.h>
 #include <Foundation/NSString.h>

@@ -24,7 +24,7 @@
 #ifndef __IndexedCollection_h_INCLUDE_GNU
 #define __IndexedCollection_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/KeyedCollection.h>
 #include <gnustep/base/IndexedCollecting.h>
 

@@ -51,7 +51,7 @@
 /* Alternate names: InputDemuxer, InputListener, EventListener.
    Alternate names for Notification classes: Dispatcher, EventDistributor, */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/RunLoop.h>
 #include <gnustep/base/Heap.h>
 #include <Foundation/NSMapTable.h>

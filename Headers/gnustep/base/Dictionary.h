@@ -24,7 +24,7 @@
 #ifndef __Dictionary_h_INCLUDE_GNU
 #define __Dictionary_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/KeyedCollection.h>
 #include <Foundation/NSMapTable.h>
 

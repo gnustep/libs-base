@@ -8,7 +8,7 @@
    extraneous stuff after the first type.
 */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Collection.h>
 #include <gnustep/base/Invoking.h>
 

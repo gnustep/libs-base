@@ -56,7 +56,7 @@
 
    */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/LinkedList.h>
 #include <gnustep/base/Array.h>
 #include <Foundation/NSMapTable.h>

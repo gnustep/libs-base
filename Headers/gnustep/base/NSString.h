@@ -24,7 +24,7 @@
 #ifndef __NSString_h_OBJECTS_INCLUDE
 #define __NSString_h_OBJECTS_INCLUDE
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <Foundation/NSRange.h>
 
 typedef unsigned short unichar;

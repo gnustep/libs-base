@@ -24,7 +24,7 @@
 #ifndef __Random_h_INCLUDE_GNU
 #define __Random_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/RandomGenerating.h>
 
 @interface Random : NSObject

@@ -24,7 +24,7 @@
 #ifndef __KeyedCollection_h_INCLUDE_GNU
 #define __KeyedCollection_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Collection.h>
 #include <gnustep/base/KeyedCollecting.h>
 

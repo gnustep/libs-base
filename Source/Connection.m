@@ -32,7 +32,7 @@
 /* RMC == Remote Method Coder, or Remote Method Call.
    It's an instance of ConnectedEncoder or ConnectedDecoder. */
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Proxy.h>
 #include <gnustep/base/ConnectedCoder.h>

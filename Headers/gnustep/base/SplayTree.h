@@ -34,7 +34,7 @@
 #ifndef __SplayTree_h_INCLUDE_GNU
 #define __SplayTree_h_INCLUDE_GNU
 
-#include <gnustep/base/prefix.h>
+#include <gnustep/base/preface.h>
 #include <gnustep/base/BinaryTree.h>
 
 @interface SplayTree : BinaryTree
