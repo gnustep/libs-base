@@ -2,6 +2,9 @@ Sat Sep  7 13:37:32 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.8.
 
+	* Makefile.in (DIST_FILES): Remove gcc-objc.patch.  Add
+ 	gcc-2.7.2-objc.diff and gcc-2.7.2.1-objc.diff.
+
 	* configure.in: Insert -lobjc before rest of LIBS, not after.
 
 	* src/include/NSThread.h: Remove underscore from front of
