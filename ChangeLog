@@ -2,6 +2,7 @@ Mon Sep 13  6:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Miscellaneous minor bugfixes plyus,
 	* Source/NSScanner.m: optimised (well, mostly).
+	* Headers/Foundation/NSScanner.h: update for optimisatio).
 
 Sun Sep 12 20:22:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
