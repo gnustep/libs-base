@@ -1285,9 +1285,12 @@ static Class		tcpPortClass;
 			  h->myLock = [NSRecursiveLock new];
 			}
 		    }
+		  NSEndMapTableEnumeration(&hEnum);
 		}
 	    }
+	  NSEndMapTableEnumeration(&mEnum);
 	}
+      NSEndMapTableEnumeration(&pEnum);
     }
   [[NSNotificationCenter defaultCenter]
     removeObserver: self
@@ -1656,6 +1659,7 @@ static Class		tcpPortClass;
 	  fds[(*count)++] = sock;
 	}
     }
+  NSEndMapTableEnumeration(&me);
   DO_UNLOCK(myLock);
 }
 
@@ -1675,9 +1679,11 @@ static Class		tcpPortClass;
       if ([handle recvPort] == recvPort)
 	{
 	  DO_UNLOCK(myLock);
+	  NSEndMapTableEnumeration(&me);
 	  return handle;
 	}
     }
+  NSEndMapTableEnumeration(&me);
   if (handle == nil)
     {
       int	opt = 1;

@@ -129,7 +129,12 @@ static Class	mutableSetClass;
 {
   if (map.nodeCount > 0)
     {
-      return map.firstNode->key.obj;
+      GSIMapBucket bucket = map.buckets;
+      while(1)
+	if(bucket->firstNode)
+	  return bucket->firstNode->key.obj;
+	else
+	  bucket++;
     }
   else
     {

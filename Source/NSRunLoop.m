@@ -1382,6 +1382,7 @@ if (0) {
 		    }
 		}
 	    }
+	  NSEndMapTableEnumeration(&enumerator);
 
 	  /*
 	   * Finally, fire the requests.
@@ -2115,6 +2116,7 @@ if (0) {
 	    }
 	}
     }
+  NSEndMapTableEnumeration(&enumerator);
 }
 
 - (void) configureAsServer

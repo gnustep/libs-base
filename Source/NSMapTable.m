@@ -99,6 +99,7 @@ NSAllMapTableKeys(NSMapTable *table)
     {
       [keyArray addObject: key];
     }
+  NSEndMapTableEnumeration(&enumerator);
   return keyArray;
 }
 
@@ -131,6 +132,7 @@ NSAllMapTableValues(NSMapTable *table)
     {
       [valueArray addObject: value];
     }
+  NSEndMapTableEnumeration(&enumerator);
   return valueArray;
 }
 
@@ -169,16 +171,15 @@ NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
     }
   else
     {
-      GSIMapNode	n = t1->firstNode;
-
-      while (n != 0)
-	{
-	  if (GSIMapNodeForKey(t2, n->key) == 0)
-	    {
-	      return NO;
-	    }
-	  n = n->nextInMap;
-	}
+      NSMapEnumerator enumerator = GSIMapEnumeratorForMap((GSIMapTable)t1);
+      GSIMapNode n;
+      while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
+        {
+          if (GSIMapNodeForKey(t2, n->key) == 0)
+            {
+              return NO;
+            }
+        }
       return YES;
     }
 }
@@ -191,7 +192,8 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
 {
   GSIMapTable	t;
   GSIMapNode	n;
-
+  NSMapEnumerator enumerator;
+  
   if (table == 0)
     {
       NSWarnFLog(@"Nul table argument supplied");
@@ -202,11 +204,10 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
   t->extra.k = ((GSIMapTable)table)->extra.k;
   t->extra.v = ((GSIMapTable)table)->extra.v;
-  n = ((GSIMapTable)table)->firstNode;
-  while (n != 0)
+  enumerator = GSIMapEnumeratorForMap((GSIMapTable)table);
+  while ((n = GSIMapEnumeratorNextNode(&enumerator)) != 0)
     {
       GSIMapAddPair(t, n->key, n->value);
-      n = n->nextInMap;
     }
 
   return (NSMapTable*)t;
@@ -284,7 +285,7 @@ NSCreateMapTableWithZone(
 
 /**
  * Function to be called when finished with the enumerator.
- * Not required in GNUstep ... just provided for MacOS-X compatibility.
+ * This permits memory used by the enumerator to be released!
  */
 void
 NSEndMapTableEnumeration(NSMapEnumerator *enumerator)
@@ -292,7 +293,11 @@ NSEndMapTableEnumeration(NSMapEnumerator *enumerator)
   if (enumerator == 0)
     {
       NSWarnFLog(@"Nul enumerator argument supplied");
+      return;
     }
+#if	GS_WITH_GC
+  memset(enumerator, 0, sizeof(*enumerator));
+#endif
 }
 
 /**
@@ -608,6 +613,7 @@ NSStringFromMapTable(NSMapTable *table)
 	(t->extra.k.describe)(table, key),
 	(t->extra.v.describe)(table, value)];
     }
+  NSEndMapTableEnumeration(&enumerator);
   return string;
 }
 

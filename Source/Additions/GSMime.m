@@ -3029,7 +3029,7 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Convenience method to set the content of the document aslong with
+ * Convenience method to set the content of the document along with
  * creating a content-type header for it.
  */
 - (BOOL) setContent: (id)newContent

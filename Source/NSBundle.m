@@ -517,13 +517,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
 	{
 	  if (bundle->_bundleType == NSBUNDLE_FRAMEWORK)
-	    continue;
-
+	    {
+	      continue;
+	    }
 	  if ([array indexOfObjectIdenticalTo: bundle] == NSNotFound)
 	    {
 	      [array addObject: bundle];
 	    }
 	}
+      NSEndMapTableEnumeration(&enumerate);
     }
   [load_lock unlock];
   return array;
@@ -546,6 +548,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  [array addObject: bundle];
 	}
     }
+  NSEndMapTableEnumeration(&enumerate);
   [load_lock unlock];
   return array;
 }

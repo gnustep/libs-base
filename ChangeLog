@@ -1,3 +1,29 @@
+2002-05-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/GSIMap.h:
+	* Headers/gnustep/base/NSHashTable.h:
+	* Headers/gnustep/base/NSMapTable.h:
+	* Source/GSArray.m:
+	* Source/GSSet.m:
+	* Source/GSTcpPort.m:
+	* Source/NSBundle.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSHashTable.m:
+	* Source/NSMapTable.m:
+	* Source/NSObject.m:
+	* Source/NSRunLoop.m:
+	Applied patches by James Knight, to improve memory efficiency and
+	insertion.deletion speed to hash and map tables.  Also fixes for
+	some GC problems.
+	Fixed minor problem in patch, and added code to call functions to
+	clean up after hash and map enumerations.  Modified cleanup function
+	to clear enumerator ... for memory release on GC system.
+	*WARNING* This introduces a binary incompatibility in that the size
+	of the map table and hash table enumeration types has grown.
+	If you have binaries which use the NSEnumerateHashTable() or the
+	NSEnumeratemapTable() functions, you need to rebuild them.
+
 2002-05-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/GSMime.h: Tidy up and add convenience methods.
