@@ -1,9 +1,6 @@
 /* Interface for NSObject for GNUStep
    Copyright (C) 1994 NeXT Computer, Inc.
    
-   Typed by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: August 1994
-   
    This file is part of the GNU Objective C Class Library.
 
    This library is free software; you can redistribute it and/or
@@ -38,7 +35,7 @@
 @protocol NSObject
 - autorelease;
 - (Class) class;
-- (BOOL)conformsToProtocol: (Protocol*)aProtocol;
+- (BOOL) conformsToProtocol: (Protocol*)aProtocol;
 - (unsigned) hash;
 - (BOOL) isEqual: anObject;
 - (BOOL) isKindOfClass: (Class)aClass;
@@ -66,8 +63,8 @@
 @end
 
 @protocol NSCoding
-//- (void)encodeWithCoder:(NSCoder *)aCoder; /* xxx Fix this! */
-//- initWithCoder:(NSCoder *)aDecoder;
+// - (void)encodeWithCoder:(NSCoder *)aCoder; /* xxx Fix this! */
+// - initWithCoder:(NSCoder *)aDecoder;
 @end
 
 
@@ -133,9 +130,14 @@ enum {NSNotFound = 0x7fffffff};
 @end
 
 @interface NSObject (GNU)
+- (int) compare: anObject;
 - (Class)transmuteClassTo:(Class)aClassObject;
 - subclassResponsibility:(SEL)aSel;
 - shouldNotImplement:(SEL)aSel;
++ (Class) autoreleaseClass;
++ (void) setAutoreleaseClass: (Class)aClass;
+- read: (TypedStream*)aStream;
+- write: (TypedStream*)aStream;
 @end
 
 #endif /* __NSObject_h_OBJECTS_INCLUDE */
