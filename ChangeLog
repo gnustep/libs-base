@@ -9,6 +9,7 @@
 	* Source/NSConnection.m: ditto
 	* Source/NSGDictionary.m: ditto
 	* Source/NSNotificationCenter.m: ditto
+	* Source/NSString.m: property list memory leak fixed.
 
 2000-12-18  Richard Frith-Macdonald <rfm@gnu.org>
 
