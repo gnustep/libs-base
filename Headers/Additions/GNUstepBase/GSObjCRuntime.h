@@ -481,7 +481,7 @@ GSAppendMethodToList (GSMethodList list,
  * of previous GSMethodFromList() calls with this list should be
  * considered invalid.  If the values they referenced are needed, they
  * must be copied to external buffers before this function is called.</p>
- * <p)Returns YES if the a matching method was found a removed,
+ * <p>Returns YES if the a matching method was found a removed,
  * NO otherwise.</p>
  * <p>The GNU runtime makes a difference between method lists
  * that are "free standing" and those that "attached" to classes.
@@ -533,7 +533,7 @@ GSMethodListForSelector(Class class,
 /**
  * <p>Returns the (first) GSMethod contained in the supplied list
  * that corresponds to sel.
- * Returns NULL if none is found.<p/>
+ * Returns NULL if none is found.</p>
  * <p>The GNU runtime makes a difference between method lists
  * that are "free standing" and those that "attached" to classes.
  * For "free standing" method lists (e.g. created with GSAllocMethodList()
@@ -623,7 +623,7 @@ GSAutoreleasedBuffer(unsigned size);
  * {
  *   static objc_mutex_t my_lock = NULL;
  *   if (my_lock == NULL)
- *     GSAllocateMutexAt(&my_lock);
+ *     GSAllocateMutexAt(&amp;my_lock);
  *   objc_mutex_lock(my_lock);
  *   do_work ();
  *   objc_mutex_unlock(my_lock);
