@@ -28,7 +28,17 @@
 
 @class NSArray, NSString, NSEnumerator;
 
-@interface NSDictionary : NSObject <NSCopying>
+@interface NSDictionary : NSObject
+- initWithObjects: (id*)objects
+	  forKeys: (NSObject**)keys
+	    count: (unsigned)count;
+- (unsigned) count;
+- objectForKey: (NSObject*)aKey;
+- (NSEnumerator*) keyEnumerator;
+- (NSEnumerator*) objectEnumerator;
+@end
+
+@interface NSDictionary (NonCore) <NSCopying>
 
 + allocWithZone: (NSZone*)zone;
 + dictionary;
@@ -38,14 +48,9 @@
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 + dictionaryWithObjectsAndKeys: (id)object, ...;
 - initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
-- initWithObjects: (id*)objects forKeys: (id*)keys
-	    count: (unsigned)count;
 - initWithDictionary: (NSDictionary*)otherDictionary;
 - initWithContentsOfFile: (NSString*)path;
 
-- (unsigned) count;
-- objectForKey: aKey;
-- (NSEnumerator*) keyEnumerator;
 - (BOOL) isEqualToDictionary: (NSDictionary*)other;
 - (NSString*) description;
 - (NSString*) descriptionWithIndent: (unsigned)level;
@@ -53,18 +58,20 @@
 - (NSArray*) allValues;
 - (NSArray*) allKeysForObject: anObject;
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
-- (NSEnumerator*) objectEnumerator;
 
 @end
 
 @interface NSMutableDictionary: NSDictionary
+- initWithCapacity: (unsigned)numItems;
+- (void) setObject:anObject forKey:(NSObject *)aKey;
+- (void) removeObjectForKey:(NSObject *)aKey;
+@end
+
+@interface NSMutableDictionary (NonCore)
 
 + allocWithZone: (NSZone*)zone;
 + dictionaryWithCapacity: (unsigned)numItems;
-- initWithCapacity: (unsigned)numItems;
 
-- (void) setObject: anObject forKey: aKey;
-- (void) removeObjectForKey: aKey;
 - (void) removeAllObjects;
 - (void) removeObjectsForKeys: (NSArray*)keyArray;
 - (void) addEntriesFromDictionary: (NSDictionary*)otherDictionary;

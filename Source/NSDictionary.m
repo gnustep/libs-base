@@ -30,6 +30,11 @@
 #include <gnustep/base/NSException.h>
 #include <assert.h>
 
+@interface NSDictionaryNonCore : NSDictionary
+@end
+@interface NSMutableDictionaryNonCore: NSMutableDictionary
+@end
+
 @implementation NSDictionary 
 
 static Class NSDictionary_concrete_class;
@@ -57,14 +62,55 @@ static Class NSMutableDictionary_concrete_class;
 
 + (void) initialize
 {
-  NSDictionary_concrete_class = [NSGDictionary class];
-  NSMutableDictionary_concrete_class = [NSGMutableDictionary class];
+  if (self == [NSDictionary class])
+    {
+      NSDictionary_concrete_class = [NSGDictionary class];
+      NSMutableDictionary_concrete_class = [NSGMutableDictionary class];
+      behavior_class_add_class (self, [NSDictionaryNonCore class]);
+    }
 }
 
 + allocWithZone: (NSZone*)z
 {
   return NSAllocateObject([self _concreteClass], 0, z);
 }
+
+/* This is the designated initializer */
+- initWithObjects: (id*)objects
+	  forKeys: (NSObject**)keys
+	    count: (unsigned)count
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
+- (unsigned) count
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
+- objectForKey: (NSObject*)aKey
+{
+  [self subclassResponsibility:_cmd];
+  return 0;
+}
+
+- (NSEnumerator*) keyEnumerator
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+- (NSEnumerator*) objectEnumerator
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+@end
+
+@implementation NSDictionaryNonCore
 
 + dictionary
 {
@@ -149,15 +195,6 @@ static Class NSMutableDictionary_concrete_class;
 	  autorelease];
 }
 
-/* This is the designated initializer */
-- initWithObjects: (id*)objects
-	  forKeys: (NSObject**)keys
-	    count: (unsigned)count
-{
-  [self subclassResponsibility:_cmd];
-  return 0;
-}
-
 /* Override superclass's designated initializer */
 - init
 {
@@ -203,24 +240,6 @@ static Class NSMutableDictionary_concrete_class;
 	   autorelease];
 }
 
-- (unsigned) count
-{
-  [self subclassResponsibility:_cmd];
-  return 0;
-}
-
-- objectForKey: (NSObject*)aKey
-{
-  [self subclassResponsibility:_cmd];
-  return 0;
-}
-
-- (NSEnumerator*) keyEnumerator
-{
-  [self subclassResponsibility:_cmd];
-  return nil;
-}
-
 - (BOOL) isEqual: other
 {
   if ([other isKindOfClass:[NSDictionary class]])
@@ -235,23 +254,18 @@ static Class NSMutableDictionary_concrete_class;
   {
     id k, e = [self keyEnumerator];
     while ((k = [e nextObject]))
+      {
+	id o1 = [self objectForKey: k];
+	id o2 = [other objectForKey: k];
+	if (![o1 isEqual: o2])
+	  return NO;
+	/*
       if (![[self objectForKey:k] isEqual:[other objectForKey:k]])
-	return NO;
+	return NO; */
+      }
   }
   /* xxx Recheck this. */
   return YES;
-}
-
-- (NSString*) description
-{
-  /* This method is overridden by [Dictionary -description] */
-  return nil;
-}
-
-- (NSString*) descriptionWithIndent: (unsigned)level
-{
-  /* This method is overridden by [Dictionary -descriptionWithIndent:] */
-  return nil;
 }
 
 - (NSArray*) allKeys
@@ -305,12 +319,6 @@ static Class NSMutableDictionary_concrete_class;
   return 0;
 }
 
-- (NSEnumerator*) objectEnumerator
-{
-  [self subclassResponsibility:_cmd];
-  return nil;
-}
-
 - copyWithZone: (NSZone*)z
 {
   /* a deep copy */
@@ -343,15 +351,18 @@ static Class NSMutableDictionary_concrete_class;
 
 @implementation NSMutableDictionary
 
++ (void)initialize
+{
+  if (self == [NSMutableDictionary class])
+    {
+      behavior_class_add_class (self, [NSMutableDictionaryNonCore class]);
+      behavior_class_add_class (self, [NSDictionaryNonCore class]);
+    }
+}
+
 + allocWithZone: (NSZone*)z
 {
   return NSAllocateObject([self _mutableConcreteClass], 0, z);
-}
-
-+ dictionaryWithCapacity: (unsigned)numItems
-{
-  return [[[self alloc] initWithCapacity:numItems]
-	  autorelease];
 }
 
 /* This is the designated initializer */
@@ -359,6 +370,26 @@ static Class NSMutableDictionary_concrete_class;
 {
   [self subclassResponsibility:_cmd];
   return 0;
+}
+
+- (void) setObject:anObject forKey:(NSObject *)aKey
+{
+  [self subclassResponsibility:_cmd];
+}
+
+- (void) removeObjectForKey:(NSObject *)aKey
+{
+  [self subclassResponsibility:_cmd];
+}
+
+@end
+
+@implementation NSMutableDictionaryNonCore
+
++ dictionaryWithCapacity: (unsigned)numItems
+{
+  return [[[self alloc] initWithCapacity:numItems]
+	  autorelease];
 }
 
 /* Override superclass's designated initializer */
@@ -370,16 +401,6 @@ static Class NSMutableDictionary_concrete_class;
   while (count--)
     [self setObject:objects[count] forKey:keys[count]];
   return self;
-}
-
-- (void) setObject:anObject forKey:(NSObject *)aKey
-{
-  [self subclassResponsibility:_cmd];
-}
-
-- (void) removeObjectForKey:(NSObject *)aKey
-{
-  [self subclassResponsibility:_cmd];
 }
 
 - (void) removeAllObjects

@@ -1,3 +1,51 @@
+Thu Oct 16 16:14:31 1997  Scott Christley  <scottc@net-community.com>
+
+	* checks/Makefile: Add variables to create bundle example.
+	* checks/NXStringTable.example: Move to English.lproj subdir.
+
+	* checks/nsarray.m: Turn off behaviour debugging.
+
+	* checks/nsdictionary.m: Add isEqual check.
+
+	* checks/values.m: Add isEqual check.
+
+	* src/Collection.m (isEqual:): Don't require that the classes
+	be the same.
+
+	* src/NSDictionary.m: Fix implementation by creating
+ 	NSDictionaryNonCore and NSMutableDictionaryNonCore classes; move
+	implemented methods to non-core classes.
+	* src/include/NSDictionary.h: Likewise.
+	* src/NSGDictionary.m: Add behaviour from non-core classes.
+
+	* src/ObjCRuntime.m (NSClassFromString): Use objc_lookup_class
+	instead of objc_get_class so that the program will not abort
+	if the class is not found.
+
+	* src/NSTimeZone.M (TIME_ZONE_DIR): Eliminate reference to
+	obsolete GNUSTEP_INSTALL_DIR macro.
+
+	* src/NSZone.m: Use default zone if zone is NULL.
+	* src/include/NSZone.h: Likewise.
+
+	* src/behavior.m (behavior_class_add_class): Add debug message.
+
+	* src/Makefile: Define macros for the target directory and
+	library combo that the library is compiled for.
+	* src/NSBundle.m (gnustep_target_dir, library_combo): New variables.
+	(bundle_object_name): Use the target directory and library
+	combo when determine where the executable file is located.
+	(+_bundleResourcePathsWithRootPath:subPath:): Don't search
+	directory specified by GNUSTEP_LIBRARY_PATH environment variable.
+
+	* src/NSCharacterSet.m (+_bitmapForSet:number:): Rewrite to search
+	the user, local, and system directories based upon environment
+	variable values.
+
+	* src/NSData.m (getBytes:range:): Fix range check.
+	(subdataWithRange:, replaceBytesInRange:withBytes:): Likewise.
+	(resetBytesInRange:): Likewise.
+
 Wed Oct  1 14:44:17 1997  Adam Fedor  <fedor@doc.com>
 
 	* src/NSConnection.m ([-registerName:]): Remove
@@ -145,6 +193,7 @@ Sat Sep 23 10:18:41 2017  Scott Christley  <scottc@net-community.com>
 	* checks/Makefile: New file.
 	* checks/Makefile.preamble: New file.
 	* checks/Makefile.in: Delete.
+	* checks/Makefile.sed.nt: Delete.
 	* examples/Makefile: New file.
 	* examples/Makefile.preamble: New file.
 	* examples/Makefile.in: Delete.

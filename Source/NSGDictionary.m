@@ -28,6 +28,9 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 
+@class NSDictionaryNonCore;
+@class NSMutableDictionaryNonCore;
+
 @interface NSGDictionaryKeyEnumerator : NSEnumerator
 {
   NSDictionary *dictionary;
@@ -81,7 +84,10 @@
 + (void) initialize
 {
   if (self == [NSGDictionary class])
-    behavior_class_add_class (self, [Dictionary class]);
+    {
+      behavior_class_add_class (self, [NSDictionaryNonCore class]);
+      behavior_class_add_class (self, [Dictionary class]);
+    }
 }
 
 - objectForKey: aKey
@@ -108,8 +114,13 @@
 + (void) initialize
 {
   if (self == [NSGMutableDictionary class])
-    behavior_class_add_class (self, [NSGDictionary class]);
+    {
+      behavior_class_add_class (self, [NSMutableDictionaryNonCore class]);
+      behavior_class_add_class (self, [NSGDictionary class]);
+      behavior_class_add_class (self, [Dictionary class]);
+    }
 }
+
 
 /* This is the designated initializer */
 /* Comes from Dictionary.m

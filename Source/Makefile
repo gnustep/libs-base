@@ -38,7 +38,8 @@ LIBRARY_NAME=libgnustep-base
 # the installing person may set it on the `make' command line.
 DEFS= -DGNUSTEP_INSTALL_PREFIX=$(GNUSTEP_SYSTEM_ROOT) \
 	-DPLATFORM_OS=\"@PLATFORM_OS@\" \
-	-DGNUSTEP_INSTALL_LIBDIR=\"$(gnustep_libdir)\"
+	-DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
+	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\"
 
 # Grep for these names to build the legally-required "AUTHORS" file.
 FILE_AUTHORS = \

@@ -40,7 +40,7 @@ NSSelectorFromString(NSString *aSelectorName)
 Class
 NSClassFromString(NSString *aClassName)
 {
-  return objc_get_class ([aClassName cString]);
+  return objc_lookup_class ([aClassName cString]);
 }
 
 NSString *NSStringFromClass(Class aClass)

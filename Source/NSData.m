@@ -347,8 +347,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   // NSRange location and length types will remain unsigned (hence
   // the lack of a less-than-zero check).
   size = [self length];
-  if (aRange.location >= size ||
-      aRange.length   >= size ||
+  if (aRange.location > size ||
+      aRange.length   > size ||
       NSMaxRange( aRange ) > size)
   {
     [NSException raise: NSRangeException
@@ -369,7 +369,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   // so that we can be sure that we don't get a range exception raised
   // after we have allocated memory.
   l = [self length];
-  if (aRange.location >= l || aRange.length >= l || NSMaxRange(aRange) > l)
+  if (aRange.location > l || aRange.length > l || NSMaxRange(aRange) > l)
     [NSException raise: NSRangeException
 		format: @"Range: (%u, %u) Size: %d",
 			aRange.location, aRange.length, l];
@@ -880,8 +880,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   // NSRange location and length types will remain unsigned (hence
   // the lack of a less-than-zero check).
   size = [self length];
-  if (aRange.location >= size ||
-      aRange.length   >= size ||
+  if (aRange.location > size ||
+      aRange.length   > size ||
       NSMaxRange( aRange ) > size)
   {
 	// Raise an exception.
@@ -902,8 +902,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   // NSRange location and length types will remain unsigned (hence
   // the lack of a less-than-zero check).
   size = [self length];
-  if (aRange.location >= size ||
-      aRange.length   >= size ||
+  if (aRange.location > size ||
+      aRange.length   > size ||
       NSMaxRange( aRange ) > size)
   {
 	// Raise an exception.
@@ -1434,22 +1434,10 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   [super dealloc];
 }
 
-- (id) init
-{
-  return [self initWithBytesNoCopy: 0 length: 0];
-}
-
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
 {
-  self = [super init];
-  if (self)
-    {
-      bytes = aBuffer;
-      if (bytes)
-        length = bufferSize;
-    }
-  return self;
+  return [super initWithBytesNoCopy: aBuffer length: bufferSize];
 }
 
 @end
