@@ -27,7 +27,7 @@
 #include <gnustep/base/NSString.h>
 #include <gnustep/base/StdioStream.h>
 #include <gnustep/base/TextCStream.h>
-#include <gnustep/base/MallocAddress.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <math.h>
 #ifndef __WIN32__
@@ -491,7 +491,7 @@ static int debug_binary_coder = 0;
 	(*(char**)d)[length] = '\0';
 	/* Autorelease the newly malloc'ed pointer?  Grep for (*objc_free)
 	   to see the places the may have to be changed
-	   [MallocAddress autoreleaseMallocAddress: *(char**)d]; */
+	   [NSData dataWithBytesNoCopy: *(void**)d length: length+1]; */
 	break;
       }
 
