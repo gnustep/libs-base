@@ -89,7 +89,7 @@ Parameters:
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <parser.h>
+#include <libxml/parser.h>
 
 NSString	*pathExtension_GSDocRefs = @"gsdocrefs";
 NSString	*pathExtension_GSDoc = @"gsdoc";
@@ -4240,6 +4240,8 @@ main(int argc, char **argv, char **env)
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
 #endif
+  NSLog(@"WARNING ... gsdoc is deprecated. please use autogsdoc instead");
+
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
     @"Yes", @"Monolithic", nil]];

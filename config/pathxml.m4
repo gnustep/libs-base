@@ -47,8 +47,8 @@ dnl
       AC_TRY_RUN([
 #include <stdlib.h>
 #include <stdio.h>
-#include <xmlversion.h>
-#include <parser.h>
+#include <libxml/xmlversion.h>
+#include <libxml/parser.h>
 
 int
 main()

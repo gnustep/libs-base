@@ -776,17 +776,9 @@ if (0) {
 	   */
 	  if (pollfds[fdIndex].revents & (POLLPRI|POLLERR|POLLHUP|POLLNVAL))
 	    {
-	      watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap,
-		(void*)fd);
+	      watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)fd);
 	      if (watcher != nil && watcher->_invalidated == NO)
 		{
-		  /*
-		   * The watcher is still valid - so call its
-		   * receivers event handling method.
-		   */
-		  (*watcher->handleEvent)(watcher->receiver,
-		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd, mode);
 		  i = [contexts count];
 		  while (i-- > 0)
 		    {
@@ -794,6 +786,13 @@ if (0) {
 
 		      if (c != self) [c endEvent: (void*)fd type: ET_EDESC];
 		    }
+		  /*
+		   * The watcher is still valid - so call its
+		   * receivers event handling method.
+		   */
+		  (*watcher->handleEvent)(watcher->receiver,
+		    eventSel, watcher->data, watcher->type,
+		    (void*)(gsaddr)fd, mode);
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -804,17 +803,9 @@ if (0) {
 	    }
 	  if (pollfds[fdIndex].revents & (POLLOUT|POLLERR|POLLHUP|POLLNVAL))
 	    {
-	      watcher = (GSRunLoopWatcher*)NSMapGet(_wfdMap,
-		(void*)fd);
+	      watcher = (GSRunLoopWatcher*)NSMapGet(_wfdMap, (void*)fd);
 	      if (watcher != nil && watcher->_invalidated == NO)
 		{
-		  /*
-		   * The watcher is still valid - so call its
-		   * receivers event handling method.
-		   */
-		  (*watcher->handleEvent)(watcher->receiver,
-		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd, mode);
 		  i = [contexts count];
 		  while (i-- > 0)
 		    {
@@ -822,6 +813,13 @@ if (0) {
 
 		      if (c != self) [c endEvent: (void*)fd type: ET_WDESC];
 		    }
+		  /*
+		   * The watcher is still valid - so call its
+		   * receivers event handling method.
+		   */
+		  (*watcher->handleEvent)(watcher->receiver,
+		    eventSel, watcher->data, watcher->type,
+		    (void*)(gsaddr)fd, mode);
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -832,17 +830,9 @@ if (0) {
 	    }
 	  if (pollfds[fdIndex].revents & (POLLIN|POLLERR|POLLHUP|POLLNVAL))
 	    {
-	      watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap,
-		(void*)fd);
+	      watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)fd);
 	      if (watcher != nil && watcher->_invalidated == NO)
 		{
-		  /*
-		   * The watcher is still valid - so call its
-		   * receivers event handling method.
-		   */
-		  (*watcher->handleEvent)(watcher->receiver,
-		    eventSel, watcher->data, watcher->type,
-		    (void*)(gsaddr)fd, mode);
 		  i = [contexts count];
 		  while (i-- > 0)
 		    {
@@ -850,6 +840,13 @@ if (0) {
 
 		      if (c != self) [c endEvent: (void*)fd type: ET_RDESC];
 		    }
+		  /*
+		   * The watcher is still valid - so call its
+		   * receivers event handling method.
+		   */
+		  (*watcher->handleEvent)(watcher->receiver,
+		    eventSel, watcher->data, watcher->type,
+		    (void*)(gsaddr)fd, mode);
 		}
 	      GSNotifyASAP();
 	      if (completed == YES)
@@ -1087,17 +1084,9 @@ if (0) {
 	{
 	  GSRunLoopWatcher	*watcher;
 
-	  watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap,
-	    (void*)fdIndex);
+	  watcher = (GSRunLoopWatcher*)NSMapGet(_efdMap, (void*)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
-	      /*
-	       * The watcher is still valid - so call its receivers
-	       * event handling method.
-	       */
-	      (*watcher->handleEvent)(watcher->receiver,
-		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, mode);
 	      i = [contexts count];
 	      while (i-- > 0)
 		{
@@ -1105,6 +1094,13 @@ if (0) {
 
 		  if (c != self) [c endEvent: (void*)fdIndex type: ET_EDESC];
 		}
+	      /*
+	       * The watcher is still valid - so call its receivers
+	       * event handling method.
+	       */
+	      (*watcher->handleEvent)(watcher->receiver,
+		eventSel, watcher->data, watcher->type,
+		(void*)(gsaddr)fdIndex, mode);
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -1117,16 +1113,9 @@ if (0) {
 	{
 	  GSRunLoopWatcher	*watcher;
 
-	  watcher = NSMapGet(_wfdMap, (void*)fdIndex);
+	  watcher = (GSRunLoopWatcher*)NSMapGet(_wfdMap, (void*)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
-	      /*
-	       * The watcher is still valid - so call its receivers
-	       * event handling method.
-	       */
-	      (*watcher->handleEvent)(watcher->receiver,
-		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, mode);
 	      i = [contexts count];
 	      while (i-- > 0)
 		{
@@ -1134,6 +1123,13 @@ if (0) {
 
 		  if (c != self) [c endEvent: (void*)fdIndex type: ET_WDESC];
 		}
+	      /*
+	       * The watcher is still valid - so call its receivers
+	       * event handling method.
+	       */
+	      (*watcher->handleEvent)(watcher->receiver,
+		eventSel, watcher->data, watcher->type,
+		(void*)(gsaddr)fdIndex, mode);
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
@@ -1149,13 +1145,6 @@ if (0) {
 	  watcher = (GSRunLoopWatcher*)NSMapGet(_rfdMap, (void*)fdIndex);
 	  if (watcher != nil && watcher->_invalidated == NO)
 	    {
-	      /*
-	       * The watcher is still valid - so call its receivers
-	       * event handling method.
-	       */
-	      (*watcher->handleEvent)(watcher->receiver,
-		eventSel, watcher->data, watcher->type,
-		(void*)(gsaddr)fdIndex, mode);
 	      i = [contexts count];
 	      while (i-- > 0)
 		{
@@ -1163,6 +1152,13 @@ if (0) {
 
 		  if (c != self) [c endEvent: (void*)fdIndex type: ET_RDESC];
 		}
+	      /*
+	       * The watcher is still valid - so call its receivers
+	       * event handling method.
+	       */
+	      (*watcher->handleEvent)(watcher->receiver,
+		eventSel, watcher->data, watcher->type,
+		(void*)(gsaddr)fdIndex, mode);
 	    }
 	  GSNotifyASAP();
 	  if (completed == YES)
