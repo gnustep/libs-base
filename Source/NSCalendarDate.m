@@ -104,22 +104,22 @@ static id long_day[7] = {@"Sunday",
 //
 // Getting an NSCalendar Date
 //
-+ (NSCalendarDate *)calendarDate
++ (id)calendarDate
 {
   return [[[self alloc] init] autorelease];
 }
 
-+ (NSCalendarDate *)dateWithString:(NSString *)description
-		    calendarFormat:(NSString *)format
++ (id)dateWithString:(NSString *)description
+      calendarFormat:(NSString *)format
 {
   NSCalendarDate *d = [[NSCalendarDate alloc] initWithString: description
 					      calendarFormat: format];
   return [d autorelease];
 }
 
-+ (NSCalendarDate *)dateWithString:(NSString *)description
-		    calendarFormat:(NSString *)format
-			    locale:(NSDictionary *)dictionary
++ (id)dateWithString:(NSString *)description
+      calendarFormat:(NSString *)format
+	      locale:(NSDictionary *)dictionary
 {
   NSCalendarDate *d = [[NSCalendarDate alloc] initWithString: description
 					      calendarFormat: format
@@ -127,13 +127,13 @@ static id long_day[7] = {@"Sunday",
   return [d autorelease];
 }
 
-+ (NSCalendarDate *)dateWithYear:(int)year
-			   month:(unsigned int)month
-			     day:(unsigned int)day
-			    hour:(unsigned int)hour
-			  minute:(unsigned int)minute
-			  second:(unsigned int)second
-			timeZone:(NSTimeZone *)aTimeZone
++ (id)dateWithYear:(int)year
+	     month:(unsigned int)month
+	       day:(unsigned int)day
+	      hour:(unsigned int)hour
+	    minute:(unsigned int)minute
+	    second:(unsigned int)second
+	  timeZone:(NSTimeZone *)aTimeZone
 {
   NSCalendarDate *d = [[NSCalendarDate alloc] initWithYear: year
 					      month: month
@@ -150,7 +150,7 @@ static id long_day[7] = {@"Sunday",
 {
   // +++ What is the locale?
   return [self initWithString: description
-	       calendarFormat: @"%Y-%m-%d %H:%M:%S %Z"
+	       calendarFormat: @"%Y-%m-%d %H:%M:%S %z"
 	       locale: nil];
 }
 
@@ -179,6 +179,7 @@ static id long_day[7] = {@"Sunday",
   BOOL mtag = NO, dtag = NO, ycent = NO;
   BOOL fullm = NO;
   char ms[80] = "", ds[80] = "", timez[80] = "", ampm[80] = "";
+  int tznum = 0;
   int yd = 0, md = 0, dd = 0, hd = 0, mnd = 0, sd = 0;
   void *pntr[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int order;
@@ -186,6 +187,7 @@ static id long_day[7] = {@"Sunday",
   int ampmord = 0;
   int i;
   NSTimeZone *tz;
+  BOOL zoneByAbbreviation = YES;
 
   // If either the string or format is nil then raise exception
   if (!description)
@@ -327,6 +329,16 @@ static id long_day[7] = {@"Sunday",
 	      pntr[tzord] = (void *)timez;
 	      break;
 
+	      // the time zone in numeric format
+	    case 'z':
+	      tzord = order;
+	      ++order;
+	      ++i;
+	      newf[i] = 'd';
+	      pntr[tzord] = (void *)&tznum;
+	      zoneByAbbreviation = NO;
+	      break;
+
 	      // AM PM indicator
 	    case 'p':
 	      ampmord = order;
@@ -401,11 +413,29 @@ static id long_day[7] = {@"Sunday",
 
   // +++ then there is the time zone
   if (tzord)
+    if (zoneByAbbreviation)
     {
       tz = [NSTimeZone timeZoneWithAbbreviation:
 			 [NSString stringWithCString: timez]];
       if (!tz)
 	tz = [NSTimeZone localTimeZone];
+    }
+    else
+    {
+      int tzm, tzh, sign;
+
+      if (tznum < 0)
+      {
+	sign = -1;
+	tznum = -tznum;
+      }
+      else
+	sign = 1;
+      tzm = tznum % 100;
+      tzh = tznum / 100;
+      tz = [NSTimeZone timeZoneForSecondsFromGMT: (tzh * 60 + tzm) * 60 * sign];
+      if (!tz)
+        tz = [NSTimeZone localTimeZone];
     }
   else
     tz = [NSTimeZone localTimeZone];
@@ -513,7 +543,7 @@ static id long_day[7] = {@"Sunday",
 {
   [super initWithTimeIntervalSinceReferenceDate: seconds];
   if (!calendar_format)
-    calendar_format = @"%Y-%m-%d %H:%M:%S %Z";
+    calendar_format = @"%Y-%m-%d %H:%M:%S %z";
   if (!time_zone)
     time_zone = [[NSTimeZone localTimeZone] timeZoneDetailForDate: self];
   return self;

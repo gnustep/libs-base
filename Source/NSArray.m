@@ -494,7 +494,7 @@ static Class NSMutableArray_concrete_class;
 {
   return [self descriptionWithLocale: locale indent: 0];
 }
-  
+
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {
@@ -566,7 +566,7 @@ static Class NSMutableArray_concrete_class;
 	item = [self objectAtIndex: i];
 	if ([item isKindOfClass: [NSString class]]) {
 	   item = [item descriptionForPropertyList];
- 	}
+	}
 	else if ([item respondsToSelector:
 		@selector(descriptionWithLocale:indent:)]) {
 	   item = [item descriptionWithLocale: locale indent: level];

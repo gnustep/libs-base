@@ -106,30 +106,34 @@
 
 // Allocation and initializing
 
-+ (NSDate*) date
++ (id) date
 {
   return [[[self alloc] init] autorelease];
 }
 
-+ (NSDate*) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds
++ (id) dateWithString: (NSString*)description
 {
-  return [[[self alloc] initWithTimeIntervalSinceNow: seconds]  
-	  autorelease];
+  return [[[self alloc] initWithString: description]  autorelease];
 }
 
-+ (NSDate *)dateWithTimeIntervalSince1970:(NSTimeInterval)seconds
++ (id) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds
+{
+  return [[[self alloc] initWithTimeIntervalSinceNow: seconds]  autorelease];
+}
+
++ (id)dateWithTimeIntervalSince1970:(NSTimeInterval)seconds
 {
   return [[[self alloc] initWithTimeIntervalSinceReferenceDate: 
 		       UNIX_REFERENCE_INTERVAL + seconds] autorelease];
 }
 
-+ (NSDate*) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
++ (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
   return [[[self alloc] initWithTimeIntervalSinceReferenceDate: seconds]
 	   autorelease];
 }
 
-+ (NSDate*) distantFuture
++ (id) distantFuture
 {
   static id df = nil;
   if (!df)
@@ -137,7 +141,7 @@
   return df;
 }
 
-+ (NSDate*) distantPast
++ (id) distantPast
 {
   static id dp = nil;
   if (!dp)
@@ -199,7 +203,7 @@
   return self;
 }
 
-- (NSDate*) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
+- (id) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
 		       sinceDate: (NSDate*)anotherDate;
 {
   // Get the other date's time, add the secs and init thyself
@@ -207,14 +211,14 @@
 	       [anotherDate timeIntervalSinceReferenceDate] + secsToBeAdded];
 }
 
-- (NSDate*) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
+- (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
 {
   // Get the current time, add the secs and init thyself
   return [self initWithTimeIntervalSinceReferenceDate:
 	       [[self class] timeIntervalSinceReferenceDate] + secsToBeAdded];
 }
 
-- (NSDate *)initWithTimeIntervalSince1970:(NSTimeInterval)seconds
+- (id)initWithTimeIntervalSince1970:(NSTimeInterval)seconds
 {
   return [self initWithTimeIntervalSinceReferenceDate: 
 		       UNIX_REFERENCE_INTERVAL + seconds];
@@ -288,7 +292,7 @@
 
 // Adding and getting intervals
 
-- (NSDate*) addTimeInterval: (NSTimeInterval)seconds
+- (id) addTimeInterval: (NSTimeInterval)seconds
 {
   /* xxx We need to check for overflow? */
   return [[self class] dateWithTimeIntervalSinceReferenceDate:

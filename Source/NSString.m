@@ -521,6 +521,7 @@ handle_printf_atsign (FILE *stream,
   const unsigned char *test=[d bytes];
   unsigned int len = [d length];
 
+  if (d == nil) return nil;
   if(((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE)))
     enc = NSUnicodeStringEncoding;
   else

@@ -86,7 +86,10 @@ NSStringEncoding GetDefEncoding()
           if(!(ret==_availableEncodings[count]))
             tmp=0;
           else
+	  {
             tmp=ret;
+	    break;
+	  }
           count++;
         };
         if(!tmp)

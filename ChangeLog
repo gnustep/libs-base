@@ -1,4 +1,9 @@
-Wed Jan  7 20:25:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+Wed Jan 21 09:41:46 1998  Adam Fedor  <fedor@spanky.doc.com>
+
+	* src/Makefile.postamble: Change $(LEX) to $(FLEX) and $(YACC) to
+	$(BISON). Add $(GNUSTEP_OBJC_DIR) to targets with ${OEXT}.
+
+Tue Jan 20 19:05:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* Tools/GNUmakefile: Added defaults.m
 
@@ -11,10 +16,17 @@ Wed Jan  7 20:25:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* Tools/dwrite.m: Added -u flag and made numerous bug fixes.
 
+	* checks/GNUmakefile (TEST_TOOL_NAME): Add nstask.
 	* checks/nsdate.m: Added some year-2000 tests.
+	* checks/nstask.m: New file.
 
 	* src/Dictionary.m: Removed ([-descriptionWithIndent:]) and the
 	([-description]) methods - no longer needed for property lists.
+
+	* src/GNUmakefile: Added NSTask
+
+	* src/GetDefEncoding.m: Fixed so that the encoding that is read from
+	the environment is accepted.
 
 	* src/Heap.m: Added implementation of ([-minObject]) to take
  	advantage of the known ordering of a heap - fixes performance
@@ -41,9 +53,16 @@ Wed Jan  7 20:25:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 	([+dataWithData:]), ([-setData:])
 	Modified ([-description]) to give tidier output.
 
+	* src/NSCalendarDate.m: Changed initialisation and creation methods to
+	return type id as in the Rhapsody docs, also changed default format for
+	description to use numeric timezone values as per Rhapsody docs.
+
 	* src/NSData.m: Implemented new methods for OPENSTEP -
 	([+dataWithData:]), ([-setData:])
 	Modified ([-description]) to give tidier output.
+
+	* NSDate.m: Changed initialisation and creation methods to return type
+	id as in the Rhapsody docs.
 
 	* src/NSDictionary.m: Implemented new methods for OPENSTEP -
 	([-keysSortedByValueUsingSelector:]),
@@ -56,6 +75,8 @@ Wed Jan  7 20:25:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/NSString.m: Removed ([-quotedCString]) and added new method
 	([-descriptionForPropertyList]) to do things more neatly.
+	Fixed ([-initWithContentsOfFile:]) to avoid crash when given a bad
+	file name.
 
 	* src/NSTask.m: Added this OPENSTEP/Rhapsody class.
 
@@ -73,6 +94,9 @@ Wed Jan  7 20:25:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/include/NSData.h: Changes to reflect the changes in methods
 	implemented in NSData.m
+
+	* src/include/NSDate.h: Changed return tpes of initialisation methods
+	to be (id) as in Rhapsody documentation.
 
 	* src/include/NSDictionary.h: Changes to reflect the changes in methods
 	implemented in NSData.m

@@ -118,26 +118,26 @@ gdomap:	gdomap.c gdomap.h
 	$(CC) $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $< $(LIBS)
 
 NXStringTable_scan.c: NXStringTable_scan.l
-	$(LEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
+	$(FLEX) $(LEXFLAGS) -t $(srcdir)/NXStringTable_scan.l \
 		> NXStringTable_scan.temp
 	sed "s/yy/NXlex_/g" < NXStringTable_scan.temp \
 		> NXStringTable_scan.c
 	$(RM) -f NXStringTable_scan.temp
 proplist.tab.m proplist.tab.h: proplist.y
 	rm -f proplist.tab.m.h
-	$(YACC) -d -p pl proplist.y -o proplist.tab.m
+	$(BISON) -d -p pl proplist.y -o proplist.tab.m
 	mv proplist.tab.m.h proplist.tab.h
 lex.pl.m: proplist.l proplist.tab.h
-	$(LEX) -t -B -Ppl proplist.l > $@
+	$(FLEX) -t -B -Ppl proplist.l > $@
 
 stringsfile.tab.m stringsfile.tab.h: stringsfile.y
 	rm -f stringsfile.tab.m.h
-	$(YACC) -d -p sf stringsfile.y -o stringsfile.tab.m
+	$(BISON) -d -p sf stringsfile.y -o stringsfile.tab.m
 	mv stringsfile.tab.m.h stringsfile.tab.h
 lex.sf.m: stringsfile.l stringsfile.tab.h
-	$(LEX) -t -B -Psf stringsfile.l > $@
+	$(FLEX) -t -B -Psf stringsfile.l > $@
 
-objc-load${OEXT}: dynamic-load.h
+$(GNUSTEP_OBJ_DIR)/objc-load${OEXT}: dynamic-load.h
 
 dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
@@ -154,7 +154,7 @@ include/preface.h: $(srcdir)/include/preface.h.in ../Version
 	sed -e "s/@LIBRARY_NAME@/$(LIBRARY_VAR)_LIBRARY_NAME $(LIBRARY_NAME)/" | \
 	sed -e "s/@PACKAGE_NAME@/$(LIBRARY_VAR)_PACKAGE_NAME $(PACKAGE_NAME)/" \
 	> $@
-preface${OEXT}: include/preface.h
+$(GNUSTEP_OBJ_DIR)/preface${OEXT}: include/preface.h
 
 #
 # The config.h file is specific to a target
@@ -163,12 +163,6 @@ $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/config.h: ../config.status
 	$(GNUSTEP_MAKEFILES)/mkinstalldirs \
 	   $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 	-mv include/config.h $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
-
-# Turn off warnings for o_vscanf.c, it generates a bunch of unimportant ones.
-o_vscanf${OEXT}: o_vscanf.c
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
-o_vscanf_pic${OEXT}: o_vscanf.c
-	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
 
 include/o_%_bas.h: include/o_x_bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@
