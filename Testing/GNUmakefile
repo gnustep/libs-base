@@ -56,6 +56,7 @@ nsarchiver \
 oldclient \
 oldserver \
 invocation \
+invocation2 \
 diningPhilosophers \
 nsmaptable \
 nshashtable \
@@ -104,6 +105,7 @@ nsarchiver_OBJC_FILES = nsarchiver.m
 oldclient_OBJC_FILES = oldclient.m
 oldserver_OBJC_FILES = oldserver.m
 invocation_OBJC_FILES = invocation.m
+invocation2_OBJC_FILES = invocation2.m
 diningPhilosophers_OBJC_FILES = diningPhilosophers.m
 nsmaptable_OBJC_FILES = nsmaptable.m
 nshashtable_OBJC_FILES = nshashtable.m
@@ -128,7 +130,7 @@ create-abbrevs_OBJC_FILES = create-abbrevs.m
 create-regions_OBJC_FILES = create-regions.m
 
 # The bundles to be compiled
-TEST_BUNDLE_NAME=LoadMe
+BUNDLE_NAME=LoadMe
 
 # The bundle Objective-C source files to be compiled
 LoadMe_OBJC_FILES = LoadMe.m MyCategory.m SecondClass.m
@@ -159,5 +161,6 @@ DIST_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
 -include Makefile.preamble
 
 include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/test-tool.make
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/bundle.make
 
 -include Makefile.postamble

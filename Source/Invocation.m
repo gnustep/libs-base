@@ -565,7 +565,7 @@ my_method_get_next_argument (arglist_t argframe,
 	  if (args_retained)
 	    [*(id*)datum retain];
 	  break;
-
+	  CASE_TYPE(_C_CLASS, Class);
 	  CASE_TYPE(_C_SEL, SEL);
 	  CASE_TYPE(_C_LNG, long);
 	  CASE_TYPE(_C_ULNG, unsigned long);
@@ -580,8 +580,13 @@ my_method_get_next_argument (arglist_t argframe,
 	  CASE_TYPE(_C_CHARPTR, char*);
 	  CASE_TYPE(_C_PTR, void*);
 	default:
-	  [self notImplemented: _cmd];
-	  // memcpy (datum, va_arg (ap, void*), objc_sizeof_type(tmptype));
+	  {
+	    int copysize;
+	    copysize = objc_sizeof_type(tmptype);
+	    memcpy(datum, 
+		   va_arg(ap, typeof(char[copysize])),
+		   copysize);
+	  } /* default */
 	}
       datum = my_method_get_next_argument (argframe, &tmptype);
     }

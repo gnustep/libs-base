@@ -49,6 +49,7 @@ before-install::
 after-install::
 	cp $(TIMEZONE_ARCHIVE) $(resourcedir); \
 	cd $(resourcedir); \
+	rm -rf NSTimeZones; \
 	tar -xf $(TIMEZONE_ARCHIVE); \
 	rm -f $(TIMEZONE_ARCHIVE)
 

@@ -64,7 +64,8 @@ of hard disk space while it compiles.
 Currently, you pretty much need to get and install the latest versions
 of the following packages:
 @display
-gcc, gdb, and assorted patches to make them work with Objective-C
+gcc or egcs
+gdb and patch to make it work with better Objective-C
 GNU make
 tiff library
 DGS or Adobe DPS
@@ -100,16 +101,14 @@ You need the following packages of either the version given or any later
 version, in order to compile GNUstep.
 
 @example
-gcc-2.8.0.tar.gz (The GCC compiler), or gcc-2.7.2.x.tar.gz with the patch
-listed below.
+gcc-2.8.0.tar.gz (The GCC compiler)
+  ftp://ftp.gnu.org/pub/gnu or from other GNU mirror sites.
+  You may also use egcs-1.0.1.tar.gz, from ftp://ftp.cygnus.com/pub/egcs
+
 gdb-4.16.tar.gz (The gdb debugger)
 make-3.75.tar.gz (You need GNU make to compile GNUstep).
   ftp://ftp.gnu.org/pub/gnu or from other GNU mirror sites.
 
-gcc-2.7.2.1-objc-970318.diff.gz (patch needed for using gcc 2.7.2.x)
-  From the gstep-base distribution (gcc-2.7.2.1-objc.diff) or
-  ftp://alpha.gnu.org/gnu/gnustep
-  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep/developer/releases
 gdb-4.16-objc-971112.diff.gz (A patch for easier debugging of Objective-C).
   ftp://alpha.gnu.org/gnu/gnustep
 
@@ -239,29 +238,17 @@ GNUstep system root as the prefix when you configure the package.
 @subsection Patching and Compiling GCC
 
 The following commands assume that all the aforementioned files have been
-copied to the /usr/src directory on your machine. GCC version 2.8.0 should 
-be released soon. If you have this version, you do NOT need to apply the
-following patch to it.  Version 2.8.0 already has the required changes 
-included.
+copied to the /usr/src directory on your machine.
 
 @table @asis
 @item 1. Uncompress gcc:
 
 @format
   cd /usr/src
-  tar fvxz gcc-2.7.2.1.tar.gz
+  tar fvxz gcc-2.8.0.tar.gz
 @end format
 
-@item 2. Apply the Objective-C runtime patch. 
-Go inside the GCC directory and issue
-the command (Make sure you have the correct patch for the version of gcc):
-
-@format
-  cd gcc-2.7.2.1
-  cat gcc-2.7.2.1-objc.diff | patch -p1
-@end format
-
-@item 3. Configure the gcc compiler's makefile for your machine:
+@item 2. Configure the gcc compiler's makefile for your machine:
 
 @format
   ./configure
@@ -271,27 +258,22 @@ the command (Make sure you have the correct patch for the version of gcc):
   installed with the GNUstep directory structure; then you should specify the
   GNUstep system root as the prefix when you configure the package.
 
+  To enable multiple threads in the Objective-C library use the
+  @var{--enable-threads=lib} argument to configure, where @var{lib} is the
+  thread library to use or @var{--disable-threads}
+  to use a single-threaded Objective-C runtime.
+
 @format
 ./configure --prefix=$GNUSTEP_SYSTEM_ROOT
 @end format
 
 @item 4. Compile gcc
 
-4.1 With a single-threaded Objective-C runtime:
-
-make OBJC_THREAD_FILE=thr-single
-
-or
-
-4.2 With thread support appropriate for your system
-
 make
 
 or
 
-4.3 With PCThreads support (Linux/GNU)
-
-make OBJC_THREAD_FILE=thr-pthreads
+make bootstrap
 
 @item 5. Wait
 
@@ -313,7 +295,7 @@ make OBJC_THREAD_FILE=thr-pthreads
 @item 7. Delete the gcc directory if you're low on disk space
 
 @format
-  rm -rf /usr/src/gcc-2.7.2.1
+  rm -rf /usr/src/gcc-2.8.0
 @end format
 @end table
 

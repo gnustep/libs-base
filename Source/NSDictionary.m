@@ -395,27 +395,24 @@ compareIt(id o1, id o2, void* context)
 - (NSString*) descriptionInStringsFileFormat
 {
     NSMutableString	*result;
-    NSMutableArray	*plists;
-    NSMutableArray	*theKeys;
-    int			numKeys;
     int			size;
-    NSAutoreleasePool	*arp;
     int			i;
+    NSAutoreleasePool	*arp = [[NSAutoreleasePool alloc] init];
+    NSArray		*keysArray = [self allKeys];
+    int			numKeys = [keysArray count];
+    NSString		*plists[numKeys];
+    NSString		*keys[numKeys];
 
-    arp = [[NSAutoreleasePool alloc] init];
+    [keysArray getObjects: keys];
 
     size = 1;
-
-    theKeys = [NSMutableArray arrayWithArray: [self allKeys]];
-    numKeys = [theKeys count];
-    plists = [NSMutableArray arrayWithCapacity: numKeys];
 
     for (i = 0; i < numKeys; i++) {
 	NSString	*newKey;
 	id		key;
 	id		item;
 
-	key = [theKeys objectAtIndex:i];
+	key = keys[i];
 	item = [self objectForKey: key];
 	if ([key respondsToSelector: @selector(descriptionForPropertyList)]) {
 	    newKey = [key descriptionForPropertyList];
@@ -423,10 +420,7 @@ compareIt(id o1, id o2, void* context)
 	else {
 	    newKey = [key description];
 	}
-	if (newKey != key) {
-	    key = newKey;
-	    [theKeys replaceObjectAtIndex: i withObject: key];
-	}
+	keys[i] = newKey;
 
 	if (item == nil) {
 	    item = @"";
@@ -437,9 +431,9 @@ compareIt(id o1, id o2, void* context)
 	else {
 	   item = [item description];
 	}
-	[plists addObject: item];
+	plists[i] = item;
 
-	size += [key length] + [item length];
+	size += [newKey length] + [item length];
 	if ([item length]) {
 	    size += 5;
 	}
@@ -450,9 +444,9 @@ compareIt(id o1, id o2, void* context)
 
     result = [[NSMutableString alloc] initWithCapacity: size];
     for (i = 0; i < numKeys; i++) {
-	NSString*	item = [plists objectAtIndex: i];
+	NSString*	item = plists[i];
 
-	[result appendString: [theKeys objectAtIndex: i]];
+	[result appendString: keys[i]];
 	if ([item length]) {
             [result appendString: @" = "];
 	    [result appendString: item];
@@ -475,21 +469,21 @@ compareIt(id o1, id o2, void* context)
 {
     NSMutableString	*result;
     NSEnumerator	*enumerator;
-    NSMutableArray	*plists;
-    NSMutableArray	*theKeys;
     id			key;
     BOOL		canCompare = YES;
-    int			numKeys;
     int			count;
     int			size;
-    NSAutoreleasePool	*arp;
     int			indentSize;
     int			indentBase;
     NSMutableString	*iBaseString;
     NSMutableString	*iSizeString;
     int			i;
-
-    arp = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool	*arp = [[NSAutoreleasePool alloc] init];
+    NSArray		*keyArray = [self allKeys];
+    NSMutableArray	*theKeys = [NSMutableArray arrayWithArray: keyArray];
+    int			numKeys = [theKeys count];
+    NSString		*plists[numKeys];
+    NSString		*keys[numKeys];
 
     /*
      *	Indentation is at four space intervals using tab characters to
@@ -546,21 +540,15 @@ compareIt(id o1, id o2, void* context)
     }
 
     if (canCompare) {
-	theKeys = [NSMutableArray arrayWithArray:
-	    [[self allKeys] sortedArrayUsingSelector: @selector(compare:)]];
-    }
-    else {
-	theKeys = [NSMutableArray arrayWithArray: [self allKeys]];
+	[theKeys sortUsingSelector: @selector(compare:)];
     }
 
-    numKeys = [theKeys count];
-    plists = [NSMutableArray arrayWithCapacity: numKeys];
-
+    [theKeys getObjects: keys];
     for (i = 0; i < numKeys; i++) {
 	NSString	*newKey;
 	id		item;
 
-	key = [theKeys objectAtIndex:i];
+	key = keys[i];
 	item = [self objectForKey: key];
 	if ([key respondsToSelector: @selector(descriptionForPropertyList)]) {
 	    newKey = [key descriptionForPropertyList];
@@ -568,10 +556,7 @@ compareIt(id o1, id o2, void* context)
 	else {
 	    newKey = [key description];
 	}
-	if (newKey != key) {
-	    key = newKey;
-	    [theKeys replaceObjectAtIndex: i withObject: key];
-	}
+	keys[i] = newKey;
 
 	if ([item isKindOfClass: [NSString class]]) {
 	   item = [item descriptionForPropertyList];
@@ -587,9 +572,9 @@ compareIt(id o1, id o2, void* context)
 	else {
 	   item = [item description];
 	}
-	[plists addObject: item];
+	plists[i] = item;
 
-	size += [key length] + [item length] + indentSize;
+	size += [newKey length] + [item length] + indentSize;
 	if (i == numKeys - 1) {
 	    size += 4;			/* ' = ' and newline	*/
 	}
@@ -602,9 +587,9 @@ compareIt(id o1, id o2, void* context)
     [result appendString: @"{\n"];
     for (i = 0; i < numKeys; i++) {
 	[result appendString: iSizeString];
-	[result appendString: [theKeys objectAtIndex: i]];
+	[result appendString: keys[i]];
         [result appendString: @" = "];
-	[result appendString: [plists objectAtIndex: i]];
+	[result appendString: plists[i]];
 	if (i == numKeys - 1) {
             [result appendString: @"\n"];
 	}

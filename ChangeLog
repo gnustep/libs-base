@@ -1,3 +1,93 @@
+Mon Feb  2 10:11:20 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* Version (GCC_VERSION): Change to 2.8.0
+	* gcc-2.7.2-objc.diff: Remove.
+	* gcc-2.7.2.1-objc.diff: Likewise.
+
+	* NSTimeZones/Makefile.postamble (after-install): Remove
+	directories before (re-)installing.
+
+	* checks/GNUmakefile: Include bundle.make.
+
+	* doc/gnustep-howto.tmpl.texi: Make gcc2.8.0 supported compiler.
+	* doc/news.tmpl.texi: Add recent changes.
+
+	* src/NSFileManager.m: Include sys/statvfs for mips-sgi-irix6.2
+	* Tools/gdomap.c: Add IPPORT_USERRESERVED def for sgi.
+	* src/TcpPort.m: Likewise.
+	* src/UdpPort.m: Likewise.
+	(patches from Mike Kienenberger <mkienen@arsc.edu>)
+
+Fri Jan 30 20:38:56 1998  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
+
+	* src/Invocation.m ([MethodInvocation
+ 	-initWithTarget:selector:,...]): Add _C_CLASS, a CASE_TYPE to the
+ 	switch-case labels.  Implement default: in the switch-case.  I
+ 	used typeof, a gcc extension.
+	
+	* src/NSMethodSignature.m ([NSMethodSignature -argumentInfoAtIndex:]): 
+	Implemented.
+	
+	* src/include/NSInvocation.h (NS_INVOCATION, NS_MESSAGE): New macros.
+
+Mon Feb  2 12:54:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* Tools/defaults.m: Modified to make sure that defaults are all
+	written correctly when reading multile defaults settings from stdin.
+
+	* src/NSArray.m: Modified or rewrote almost all methods to use
+	unsigned ints rather than ints and to avoid retain/release
+	sequences for the sake of efficiency.  Also rewrote property list
+	and sorting methods for much greater efficieny.
+
+	* src/NSData.m: (readContentsOfFile(NSString*, void**, unsigned*))
+	fixed bug leaving file open and modified to use
+	([NSString -fileSystemRepresentation]). Similarly modified
+	([-writeToFile:atomically;]) and ([-initWithContentsOfMappedFile:]).
+
+	* src/NSDictionary.m: Modified ([-descriptionInStringsFileFormat])
+ 	and ([-descriptionWithLocale:indent:]) for better performance.
+
+	* src/NSGArray.m: Added implementations of ([-getObjects:]) and
+	([-getObjects:range:]) so that it is possible to get high speed
+	access to array contents.  Added implementation of
+	([-sortUsingFunction:context:]) for faster sorting of array contents
+	so that property descriptions are generated more quickly.
+
+	* src/NSGCString.m: Modified various methods so that the _capacity
+ 	instance variable has the space available for characters in the
+ 	string without the terminator.  Added ([-getCharacters:]) and
+ 	([-getCharacters:range:]) implementations.
+
+	* src/NSGString.m: Modified various methods so that unicode
+ 	strings are no longer nul terminated and the _capacity instance
+ 	variable has the number of character spaces available in the
+ 	string.  Added ([-getCharacters:]) and ([-getCharacters:range:])
+ 	implementations.  Added ([-replaceCharactersInRange:withString:])
+ 	implementation.
+
+	* src/NSString.m: Fixed a few places where it was assumed that
+ 	string buffers include space for a nul terminator.  In
+ 	([-compare:options:range:]) made modifications so that literal
+ 	comparisons now work correctly for ranges other than the entire
+ 	string.  Made some changes to avoid use of malloc/free sequences
+ 	where not necessary.  Made efficiency improvements to append
+ 	methods.
+
+	* src/NSUserDefaults.m: ([-initWithContentsOfFile:]) changed to take
+	process name as being the last path component of the full process
+	name. Also added code to retry a few times if the database is locked.
+
+	* src/TcpPort.m: ([+newForSendingToSockaddr:withAcceptedSocket:pollingInPort:])
+	Vague attempt to make rapid shutdown/startup of DO more robust.
+
+	* src/UnixFileHandle.m: (getAddr()) Fixed error in handling service
+	names and permit nil service to mean 'any'.
+	Also use ([NSString -fileSystemRepresentation]) as appropriate.
+
+	* src/include/NSGArray.h: modified to contain same instance variables
+	as the Array class so we can access them directly in NSGArray.m
+
 Mon Jan 26 09:10:39 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/NSPage.m (NSRealMemoryAvailable): Add implementation for
@@ -33,22 +123,6 @@ Sat Jan 24 15:14:50 1998  Masatake Yamato  <masata-y@aist-nara.ac.jp>
 	([NSInvocation +invocationWithMethodSignature:]): Invoke
 	[NSMethodSignature -methodType] instead of 
 	[NSMethodSignature -methodReturnType].
-	
-Sat Jan 24 23:24:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
-
-	* src/NSGString.m: Re-wrote ([-replaceCharactersInRange:withString:])
-	as a primitive method for greater efficiency.
-
-	* src/NSString.m: ([-getCharacters:range:]) removed code which
-	incorrectly added nul terminator to characters copied.
-	The Rhapsody docs specifically say no terminator.
-	([-appendString:]) rewrote to be reasonably efficient by using the
-	([-replaceCharactersInRange:withString:]) method.
-
-	* src/NSUserDefaults.m: ([-syncronize]) fixed stupid bug I introduced
-	in checking for lock duration and breaking locks on files.
-	([-initWithContentsOfFile:]) Added code to retry a few times when
-	we are locked out.
 	
 Wed Jan 21 17:37:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 

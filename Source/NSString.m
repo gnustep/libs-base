@@ -357,10 +357,13 @@ handle_printf_atsign (FILE *stream,
 - (id) initWithString: (NSString*)string
 {
   unichar *s;
-  OBJC_MALLOC(s, unichar, [string length]+1);
+  unsigned length = [string length];
+  OBJC_MALLOC(s, unichar, length+1);
   [string getCharacters:s];
-  s[[string length]] = (unichar)0;
-  return [self initWithCharactersNoCopy:s length:[string length] freeWhenDone:YES];
+  s[length] = (unichar)0;
+  return [self initWithCharactersNoCopy: s
+				 length: length
+			   freeWhenDone: YES];
 }
 
 - (id) initWithFormat: (NSString*)format,...
@@ -608,15 +611,17 @@ handle_printf_atsign (FILE *stream,
 - (NSString*) stringByAppendingString: (NSString*)aString
 {
   unsigned len = [self length];
+  unsigned otherLength = [aString length];
   unichar *s;
   NSString *tmp;
-  OBJC_MALLOC(s, unichar, len + [aString length]+1);
+  OBJC_MALLOC(s, unichar, len+otherLength+1);
   [self getCharacters:s];
   [aString getCharacters:s+len];
-  s[len + [aString length]]=(unichar) 0;
-  tmp = [NSString stringWithCharacters:s length: len + [aString length]];
-  OBJC_FREE(s);
-  return tmp;
+  s[len + otherLength]=(unichar) 0;
+  tmp = [[[self class] alloc] initWithCharactersNoCopy: s
+						length: len+otherLength
+					  freeWhenDone: YES];
+  return [tmp autorelease];
 }
 
 // Dividing Strings into Substrings
@@ -669,9 +674,10 @@ handle_printf_atsign (FILE *stream,
     return @"";
   OBJC_MALLOC(buf, unichar, aRange.length+1);
   [self getCharacters:buf range:aRange];
-  ret = [[self class] stringWithCharacters:buf length:aRange.length];
-  OBJC_FREE(buf);
-  return ret;
+  ret = [[[self class] alloc] initWithCharactersNoCopy: buf
+						length: aRange.length
+					  freeWhenDone: YES];
+  return [ret autorelease];
 }
 
 - (NSString*) substringWithRange: (NSRange)aRange
@@ -1285,7 +1291,7 @@ handle_printf_atsign (FILE *stream,
    options: (unsigned int)mask
 {
   return [self compare:aString options:mask 
-	       range:((NSRange){0, MAX([self length], [aString length])})];
+	       range:((NSRange){0, [self length]})];
 }
 
 // xxx Should implement full POSIX.2 collate
@@ -1293,8 +1299,12 @@ handle_printf_atsign (FILE *stream,
    options: (unsigned int)mask
    range: (NSRange)aRange
 {
+  if (aRange.location > [self length])
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > ([self length] - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
 
-  if(((![self length]) && (![aString length])))
+  if((([self length] - aRange.location == 0) && (![aString length])))
     return NSOrderedSame;
   if(![self length])
     return NSOrderedAscending;
@@ -1303,22 +1313,24 @@ handle_printf_atsign (FILE *stream,
 
 if (mask & NSLiteralSearch)
 {
-  int i, start, end, increment;
-  unichar *s1;
-  unichar *s2;
+  int i;
+  int s1len = aRange.length;
+  int s2len = [aString length];
+  int end;
+  unichar s1[s1len+1];
+  unichar s2[s2len+1];
 
-  OBJC_MALLOC(s1, unichar,[self length] +1);
-  OBJC_MALLOC(s2, unichar,[aString length] +1);
-  [self getCharacters:s1];
+  [self getCharacters:s1 range: aRange];
+  s1[s1len] = (unichar)0;
   [aString getCharacters:s2];
-
-      start = aRange.location;
-      end = aRange.location + aRange.length;
-      increment = 1;
+  s2[s2len] = (unichar)0;
+  end = s1len+1;
+  if (s2len > s1len)
+    end = s2len+1;
 
   if (mask & NSCaseInsensitiveSearch)
     {
-      for (i = start; i < end; i += increment)
+      for (i = 0; i < end; i++)
 	{
 	  int c1 = uni_tolower(s1[i]);
 	  int c2 = uni_tolower(s2[i]);
@@ -1328,14 +1340,12 @@ if (mask & NSLiteralSearch)
     }
   else
     {
-      for (i = start; i < end; i += increment)
+      for (i = 0; i < end; i++)
 	{
 	  if (s1[i] < s2[i]) return NSOrderedAscending;
 	  if (s1[i] > s2[i]) return NSOrderedDescending;
 	}
     }
-  OBJC_FREE(s1);
-  OBJC_FREE(s2);
   return NSOrderedSame;
 }  /* if NSLiteralSearch */
 else
@@ -1368,9 +1378,10 @@ else
     if(result != NSOrderedSame)
       return result;
     } /* while */
+  if(strCount<[aString length])
+    return NSOrderedDescending;
   return NSOrderedSame;
  }  /* else */
-   return NSOrderedSame;
 }
 
 - (BOOL) hasPrefix: (NSString*)aString
@@ -1389,6 +1400,8 @@ else
 
 - (BOOL) isEqual: (id)anObject
 {
+  if (anObject == self)
+    return YES;
   if ([anObject isKindOf:[NSString class]])
     return [self isEqualToString:anObject];
   return NO;
@@ -1440,7 +1453,6 @@ else
     return YES;
   else
     return NO;
-  return YES;
 }
 
 - (unsigned int) hash
@@ -1794,6 +1806,7 @@ else
 
   OBJC_MALLOC(s, unichar,len +1);
   [self getCharacters:s];
+  s[len] = (unichar)0;
   while(count<len)
   {
     if([white characterIsMember:s[count]])
@@ -1831,7 +1844,9 @@ else
   for(count=0;count<len;count++)
     s[count]=uni_tolower([self characterAtIndex:count]);
   s[len] = (unichar)0;
-  return [NSString stringWithCharacters:s length:len];
+  return [[[[self class] alloc] initWithCharactersNoCopy: s
+						  length: len
+					    freeWhenDone: YES] autorelease];
 }
 
 - (NSString*) uppercaseString;
@@ -1843,7 +1858,9 @@ else
   for(count=0;count<len;count++)
     s[count]=uni_toupper([self characterAtIndex:count]);
   s[len] = (unichar)0;
-  return [NSString stringWithCharacters:s length:len];
+  return [[[[self class] alloc] initWithCharactersNoCopy: s
+						  length: len
+					    freeWhenDone: YES] autorelease];
 }
 
 // Storing the String
@@ -2260,10 +2277,9 @@ else
   NSString *homedir;
   NSRange first_slash_range;
   
-  OBJC_MALLOC(s, unichar,[self length] +1);
-  [self getCharacters:s];
-
-  if (s[0] != 0x007E)
+  if ([self length] == 0)
+    return [[self copy] autorelease];
+  if ([self characterAtIndex: 0] != 0x007E)
     return [[self copy] autorelease];
 
   first_slash_range = [self rangeOfString: @"/"];
@@ -2382,9 +2398,9 @@ else
   }
   *upoint = (unichar)0;
 
-  ret = [NSString stringWithCharacters:u
-        length: uslen(u)];
-  OBJC_FREE(u);
+  ret = [[[[self class] alloc] initWithCharactersNoCopy: u
+						 length: uslen(u)
+					   freeWhenDone: YES] autorelease];
   return ret;
 }
 
@@ -2639,9 +2655,8 @@ else
    length: (unsigned)length
 {
   id n;
-  n = [self stringWithCapacity:length];
-  [n setString: [NSString stringWithCharacters:characters length:length]];
-  return n;
+  n =  [[self alloc] initWithCharacters: characters length: length];
+  return [n autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*)byteString

@@ -74,10 +74,9 @@
    length: (unsigned int)length
 {
   unichar *s;
-  OBJC_MALLOC(s, unichar, length+1);
+  OBJC_MALLOC(s, unichar, length);
   if (chars)
     memcpy(s, chars,2*length);
-  s[length] = (unichar)0;
   return [self initWithCharactersNoCopy:s length:length freeWhenDone:YES];
 }
 
@@ -94,10 +93,7 @@
 
 - (id) init
 {
-  unichar *u;
-  OBJC_MALLOC(u, unichar,1);
-  u[0]=(unichar)0;
-  return [self initWithCharactersNoCopy:u length:0 freeWhenDone: YES];
+  return [self initWithCharactersNoCopy:0 length:0 freeWhenDone: NO];
 }
 
 // Getting a String's Length
@@ -111,9 +107,23 @@
 
 - (unichar) characterAtIndex: (unsigned int)index
 {
-  /* xxx This should raise an NSException. */
-  CHECK_INDEX_RANGE_ERROR(index, _count);
+  if (index >= _count)
+    [NSException raise: NSRangeException format:@"Invalid index."];
   return _contents_chars[index];
+}
+
+- (void)getCharacters: (unichar*)buffer
+{
+  memcpy(buffer, _contents_chars, _count*2);
+}
+
+- (void)getCharacters: (unichar*)buffer range: (NSRange)aRange
+{
+  if (aRange.location >= _count)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (_count - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+  memcpy(buffer, _contents_chars + aRange.location, aRange.length*2);
 }
 
 // Dividing Strings into Substrings
@@ -208,7 +218,6 @@
           count:_count
  	  at:_contents_chars
  	  withName:NULL];
-  _contents_chars[_count] = 0;
   _free_contents = YES;
   return self;
 }
@@ -314,16 +323,33 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 
 // Initializing Newly Allocated Strings
 
+- (id) init
+{
+  return [self initWithCapacity: 0];
+}
+
 // This is the designated initializer for this class
-// xxx Should capacity include the '\0' terminator?
-- initWithCapacity: (unsigned)capacity
+- (id) initWithCharactersNoCopy: (unichar*)chars
+			 length: (unsigned int)length
+		   freeWhenDone: (BOOL)flag
 {
   [super init];
-  _count = 0;
-  _capacity = MAX(capacity, 2);
-  OBJC_MALLOC(_contents_chars, unichar, _capacity);
-  _contents_chars[0] = 0;
-  _free_contents = YES;
+  _count = length;
+  _capacity = length;
+  _contents_chars = chars;
+  _free_contents = flag;
+  return self;
+}
+
+// NB capacity does not include the '\0' terminator.
+- initWithCapacity: (unsigned)capacity
+{
+  unichar *tmp;
+  if (capacity < 2)
+    capacity = 2;
+  OBJC_MALLOC(tmp, unichar, capacity);
+  [self initWithCharactersNoCopy: tmp length: 0 freeWhenDone: YES];
+  _capacity = capacity;
   return self;
 }
 
@@ -339,62 +365,60 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
    withString: (NSString*)aString
 {
   int offset;
-  int i;
+  unsigned stringLength;
 
   if (aRange.location > _count)
     [NSException raise: NSRangeException format:@"Invalid location."];
   if (aRange.length > (_count - aRange.location))
     [NSException raise: NSRangeException format:@"Invalid location+length."];
-  if (_count + [aString length] - aRange.length > _capacity)
+
+  stringLength = (aString == nil) ? 0 : [aString length];
+  offset = stringLength - aRange.length;
+
+  if (_count + stringLength > _capacity + aRange.length)
     {
-      _capacity += [aString length] - aRange.length;
+      _capacity += stringLength - aRange.length;
+      if (_capacity < 2)
+	_capacity = 2;
       OBJC_REALLOC(_contents_chars, unichar, _capacity);
     }
-  offset = [aString length] - aRange.length;
+
+#ifdef  HAVE_MEMMOVE
+  if (offset != 0)
+    {
+      unichar *src = _contents_chars + aRange.location + aRange.length;
+      memmove(src + offset, src, (_count - aRange.location - aRange.length)*2);
+    }
+#else
   if (offset > 0)
     {
       int first = aRange.location + aRange.length;
-      for (i = self->_count - 1; i >= first; i--)
-        self->_contents_chars[i+offset] = self->_contents_chars[i];
+      int i;
+      for (i = _count - 1; i >= first; i--)
+        _contents_chars[i+offset] = _contents_chars[i];
     }
   else if (offset < 0)
     {
-      for (i = aRange.location + aRange.length; i < self->_count; i++)
-        self->_contents_chars[i+offset] = self->_contents_chars[i];
+      int i;
+      for (i = aRange.location + aRange.length; i < _count; i++)
+        _contents_chars[i+offset] = _contents_chars[i];
     }
-  (self->_count) += offset;
-  [aString getCharacters: &self->_contents_chars[aRange.location]];
+#endif
+  [aString getCharacters: &_contents_chars[aRange.location]];
+  _count += offset;
 }
-
-//  xxx Check this
-- (void) insertString: (NSString*)aString atIndex:(unsigned)index
-{
-  unsigned c = [aString length];
-  unichar * u;
-  OBJC_MALLOC(u, unichar, c+1);
-  if (_count + c >= _capacity)
-    {
-      _capacity = MAX(_capacity*2, _count+2*c);
-      OBJC_REALLOC(_contents_chars, unichar, _capacity);
-    }
-  stringIncrementCountAndMakeHoleAt((NSGMutableStringStruct*)self, index, c);
-    [aString getCharacters:u];
-  memcpy(_contents_chars + index,u, 2*c);
-  OBJC_FREE(u);
-  _contents_chars[_count] = 0;
-}
-
 
 - (void) setString: (NSString*)aString
 {
   int len = [aString length];
-  if (_capacity < len+1)
+  if (_capacity < len)
     {
-      _capacity = len+1;
+      _capacity = len;
+      if (_capacity < 2)
+	_capacity = 2;
       OBJC_REALLOC(_contents_chars, unichar, _capacity);
     }
   [aString getCharacters: _contents_chars];
-  _contents_chars[len] = 0;
   _count = len;
 }
 
@@ -403,13 +427,14 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 /* xxx This method may be removed in future. */
 - (void) setCString: (const char *)byteString length: (unsigned)length
 {
-  if (_capacity < length+1)
+  if (_capacity < length)
     {
-      _capacity = length+1;
+      _capacity = length;
+      if (_capacity < 2)
+	_capacity = 2;
       OBJC_REALLOC(_contents_chars, unichar, _capacity);
     }
   strtoustr(_contents_chars, byteString, length);
-  _contents_chars[length] = 0;
   _count = length;
 }
 
@@ -423,27 +448,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
    freeWhenDone: flag];
   [self release];
   return a;
-}
-
-/* Override NSString's designated initializer for Unicode Strings. */
-- (id) initWithCharactersNoCopy: (unichar*)chars
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag
-{
-  [super init];
-  _count = length;
-  _capacity = length+1;
-  _contents_chars = chars;
-  _free_contents = flag;
-  return self;
-}
-
-- (id) init
-{
-  unichar *u;
-  OBJC_MALLOC(u, unichar,1);
-  u[0]=(unichar)0;
-  return [self initWithCharactersNoCopy:u length:0 freeWhenDone: YES];
 }
 
 /* For IndexedCollecting Protocol and other GNU libobjects conformity. */
@@ -480,9 +484,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
           count:_count
 	  at:_contents_chars
 	  withName:NULL];
-  _contents_chars[_count] = 0;
-  _capacity = cap;
-  _free_contents = YES;
   return self;
 }
 
@@ -502,14 +503,15 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 {
   CHECK_INDEX_RANGE_ERROR(index, _count+1);
   // one for the next char, one for the '\0';
-  if (_count+1 >= _capacity)
+  if (_count >= _capacity)
     {
-      _capacity *= 2;
+      _capacity = _count;
+      if (_capacity < 2)
+	_capacity = 2;
       OBJC_REALLOC(_contents_chars, unichar, _capacity);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableStringStruct*)self, index, 1);
   _contents_chars[index] = [newObject charValue];
-  _contents_chars[_count] = 0;
 }
 
 
@@ -517,7 +519,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
   stringDecrementCountAndFillHoleAt((NSGMutableStringStruct*)self, index, 1);
-  _contents_chars[_count] = 0;
 }
 
 @end

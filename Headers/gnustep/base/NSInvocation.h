@@ -53,4 +53,28 @@
 
 @end
 
+/* The second argument of the following macros must 
+   be SEL type. 
+   -initWithTarget:selector:, a method used in the macros
+   is come from the MethodInvocation behavior. 
+   So your gcc warns that NSInvocation doesn't have 
+   -initWithTarget:selector:.
+   
+   e.g.
+   NS_INVOCATION([NSObject class] , 
+                 @selector(isKindOfClass:), 
+                 [NSObject class]); 
+   NS_MESSAGE([NSObject new] , 
+              @selector(isKindOfClass:), [NSObject class]); */
+
+#define NS_INVOCATION(ACLASS, INSTANCEMESSAGE...)\
+([[[NSInvocation alloc]\
+   initWithTarget:nil selector: INSTANCEMESSAGE]\
+  autorelease])
+
+#define NS_MESSAGE(ANOBJECT, INSTANCEMESSAGE...)\
+([[[NSInvocation alloc]\
+   initWithTarget:(ANOBJECT) selector: INSTANCEMESSAGE]\
+     autorelease])
+
 #endif /* __NSInvocation_h_GNUSTEP_BASE_INCLUDE */

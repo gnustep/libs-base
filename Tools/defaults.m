@@ -461,6 +461,7 @@ property list which is set as the value of a default.\n\n");
 		    domain = [NSMutableDictionary dictionaryWithCapacity:1];
 		}
 		[domain setObject: obj forKey: name];
+	        [defs setPersistentDomain: domain forName: owner];
 	    }
 	    else {
 		domain = [name propertyList];
@@ -470,7 +471,6 @@ property list which is set as the value of a default.\n\n");
 		    exit(0);
 		}
 	    }
-	    [defs setPersistentDomain: domain forName: owner];
 	}
 
 	if ([defs synchronize] == NO) {

@@ -5,6 +5,10 @@
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
    Created: March 1995
    
+   Rewrite by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   January 1998 - new methods and changes as documented for Rhapsody plus 
+   changes of array indices to type unsigned, plus major efficiency hacks.
+
    This file is part of the GNUstep Base Library.
    
    This library is free software; you can redistribute it and/or
@@ -133,7 +137,7 @@ static Class NSMutableArray_concrete_class;
 - (NSArray*) arrayByAddingObject: anObject
 {
   id na;
-  int i, c;
+  unsigned i, c;
   id *objects;
  
   c = [self count];
@@ -149,7 +153,7 @@ static Class NSMutableArray_concrete_class;
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
 {
   id na;
-  int i, c, l;
+  unsigned i, c, l;
   id *objects;
  
   c = [self count];
@@ -166,10 +170,10 @@ static Class NSMutableArray_concrete_class;
 
 - initWithObjects: firstObject rest: (va_list) ap
 {
-  register	int			i;
-  register	int			curSize;
-  auto		int			prevSize;
-  auto		int			newSize;
+  register	unsigned		i;
+  register	unsigned		curSize;
+  auto		unsigned		prevSize;
+  auto		unsigned		newSize;
   auto		id			*objsArray;
   auto		id			tmpId;
 
@@ -236,7 +240,7 @@ static Class NSMutableArray_concrete_class;
 
 - initWithArray: (NSArray*)array
 {
-  int i, c;
+  unsigned i, c;
   id *objects;
  
   c = [array count];
@@ -250,14 +254,14 @@ static Class NSMutableArray_concrete_class;
 
 - (void) getObjects: (id*)aBuffer
 {
-  int i, c = [self count];
+  unsigned i, c = [self count];
   for (i = 0; i < c; i++)
     aBuffer[i] = [self objectAtIndex: i];
 }
 
 - (void) getObjects: (id*)aBuffer range: (NSRange)aRange
 {
-  int i, j = 0, c = [self count], e = aRange.location + aRange.length;
+  unsigned i, j = 0, c = [self count], e = aRange.location + aRange.length;
   if (c < e)
     e = c;
   for (i = aRange.location; i < c; i++)
@@ -266,7 +270,7 @@ static Class NSMutableArray_concrete_class;
 
 - (unsigned) indexOfObjectIdenticalTo:anObject
 {
-  int i, c = [self count];
+  unsigned i, c = [self count];
   for (i = 0; i < c; i++)
     if (anObject == [self objectAtIndex:i])
       return i;
@@ -275,7 +279,7 @@ static Class NSMutableArray_concrete_class;
 
 - (unsigned) indexOfObjectIdenticalTo:anObject inRange: (NSRange)aRange
 {
-  int i, e = aRange.location + aRange.length, c = [self count];
+  unsigned i, e = aRange.location + aRange.length, c = [self count];
   if (c < e)
     e = c;
   for (i = aRange.location; i < e; i++)
@@ -287,7 +291,7 @@ static Class NSMutableArray_concrete_class;
 /* Inefficient, should be overridden. */
 - (unsigned) indexOfObject: anObject
 {
-  int i, c = [self count];
+  unsigned i, c = [self count];
   for (i = 0; i < c; i++)
     if ([[self objectAtIndex:i] isEqual: anObject])
       return i;
@@ -297,7 +301,7 @@ static Class NSMutableArray_concrete_class;
 /* Inefficient, should be overridden. */
 - (unsigned) indexOfObject: anObject inRange: (NSRange)aRange
 {
-  int i, e = aRange.location + aRange.length, c = [self count];
+  unsigned i, e = aRange.location + aRange.length, c = [self count];
   if (c < e)
     e = c;
   for (i = aRange.location; i < e; i++)
@@ -323,7 +327,7 @@ static Class NSMutableArray_concrete_class;
 
 - (BOOL) isEqualToArray: (NSArray*)otherArray
 {
-  int i, c = [self count];
+  unsigned i, c = [self count];
  
   if (c != [otherArray count])
     return NO;
@@ -335,7 +339,7 @@ static Class NSMutableArray_concrete_class;
 
 - lastObject
 {
-  int count = [self count];
+  unsigned count = [self count];
   if (count == 0)
     return nil;
   return [self objectAtIndex: count-1];
@@ -343,8 +347,8 @@ static Class NSMutableArray_concrete_class;
 
 - (void) makeObjectsPerform: (SEL)aSelector
 {
-  int i, c = [self count];
-  for (i = c-1; i >= 0; i--)
+  unsigned i = [self count];
+  while (i-- > 0)
     [[self objectAtIndex:i] perform:aSelector];
 }
 
@@ -355,8 +359,8 @@ static Class NSMutableArray_concrete_class;
 
 - (void) makeObjectsPerform: (SEL)aSelector withObject:argument
 {
-  int i, c = [self count];
-  for (i = c-1; i >= 0; i--)
+  unsigned i = [self count];
+  while (i-- > 0)
     [[self objectAtIndex:i] perform:aSelector withObject:argument];
 }
 
@@ -403,7 +407,7 @@ static Class NSMutableArray_concrete_class;
 
 - (NSString*) componentsJoinedByString: (NSString*)separator
 {
-  int i, c = [self count];
+  unsigned i, c = [self count];
   id s = [NSMutableString stringWithCapacity:2]; /* arbitrary capacity */
   
   if (!c)
@@ -419,7 +423,7 @@ static Class NSMutableArray_concrete_class;
 
 - (NSArray*) pathsMatchingExtensions: (NSArray*)extensions
 {
-  int i, c = [self count];
+  unsigned i, c = [self count];
   NSMutableArray *a = [NSMutableArray arrayWithCapacity: 1];
   for (i = 0; i < c; i++)
     {
@@ -433,7 +437,7 @@ static Class NSMutableArray_concrete_class;
 
 - firstObjectCommonWithArray: (NSArray*)otherArray
 {
-  int i, c = [self count];
+  unsigned i, c = [self count];
   id o;
   for (i = 0; i < c; i++)
     if ([otherArray containsObject:(o = [self objectAtIndex:i])])
@@ -499,17 +503,17 @@ static Class NSMutableArray_concrete_class;
 			     indent: (unsigned int)level
 {
     NSMutableString	*result;
-    NSMutableArray	*plists;
-    int			count;
-    int			size;
-    NSAutoreleasePool	*arp;
-    int			indentSize;
-    int			indentBase;
+    unsigned		size;
+    unsigned		indentSize;
+    unsigned		indentBase;
     NSMutableString	*iBaseString;
     NSMutableString	*iSizeString;
-    int			i;
+    NSAutoreleasePool	*arp = [[NSAutoreleasePool alloc] init];
+    unsigned		count = [self count];
+    NSString		*plists[count];
+    unsigned		i;
 
-    arp = [[NSAutoreleasePool alloc] init];
+    [self getObjects: plists];
 
     /*
      *	Indentation is at four space intervals using tab characters to
@@ -558,12 +562,10 @@ static Class NSMutableArray_concrete_class;
     size = 4 + indentBase;
 
     count = [self count];
-    plists = [NSMutableArray arrayWithCapacity: count];
-
     for (i = 0; i < count; i++) {
 	id		item;
 
-	item = [self objectAtIndex: i];
+	item = plists[i];
 	if ([item isKindOfClass: [NSString class]]) {
 	   item = [item descriptionForPropertyList];
 	}
@@ -578,7 +580,7 @@ static Class NSMutableArray_concrete_class;
 	else {
 	   item = [item description];
 	}
-	[plists addObject: item];
+	plists[i] = item;
 
 	size += [item length] + indentSize;
 	if (i == count - 1) {
@@ -593,7 +595,7 @@ static Class NSMutableArray_concrete_class;
     [result appendString: @"(\n"];
     for (i = 0; i < count; i++) {
 	[result appendString: iSizeString];
-	[result appendString: [plists objectAtIndex: i]];
+	[result appendString: plists[i]];
 	if (i == count - 1) {
             [result appendString: @"\n"];
 	}
@@ -619,9 +621,9 @@ static Class NSMutableArray_concrete_class;
 - copyWithZone: (NSZone*)zone
 {
   /* a deep copy */
-  int count = [self count];
+  unsigned count = [self count];
   id objects[count];
-  int i;
+  unsigned i;
   for (i = 0; i < count; i++)
     objects[i] = [[self objectAtIndex:i] copyWithZone:zone];
   return [[[[self class] _concreteClass] allocWithZone:zone] 
@@ -676,13 +678,14 @@ static Class NSMutableArray_concrete_class;
 - (void) replaceObjectsInRange: (NSRange)aRange
 	  withObjectsFromArray: (NSArray*)anArray
 {
-  int	i;
+  unsigned	i;
 
   if ([self count] <= aRange.location)
     [NSException raise: NSRangeException
 		 format: @"Replacing objects beyond end of array."];
   [self removeObjectsInRange: aRange];
-  for (i = [anArray count] - 1; i >= 0; i--) 
+  i = [anArray count];
+  while (i-- > 0)
     [self insertObject: [anArray objectAtIndex: i] atIndex: aRange.location];
 }
 
@@ -742,7 +745,7 @@ static Class NSMutableArray_concrete_class;
 - initWithObjects: (id*)objects count: (unsigned)count
 {
   /* xxx Could be made more efficient by increasing capacity all at once. */
-  int i;
+  unsigned i;
   self = [self initWithCapacity: count];
   for (i = 0; i < count; i++)
     [self addObject:objects[i]];
@@ -751,7 +754,7 @@ static Class NSMutableArray_concrete_class;
 
 - (void) removeLastObject
 {
-  int count = [self count];
+  unsigned count = [self count];
   if (count == 0)
     [NSException raise: NSRangeException
 		 format: @"Trying to remove from an empty array."];
@@ -760,68 +763,82 @@ static Class NSMutableArray_concrete_class;
 
 - (void) removeObjectIdenticalTo: anObject
 {
-  unsigned index;
+  unsigned pos = NSNotFound;
+  unsigned i = [self count];
 
-  /* Retain the object.  Yuck, but necessary in case the array holds
-     the last reference to anObject. */
-  /* xxx Is there an alternative to this expensive retain/release? */
-  [anObject retain];
-
-  for (index = [self indexOfObjectIdenticalTo: anObject];
-       index != NO_INDEX;
-       index = [self indexOfObjectIdenticalTo: anObject])
-    [self removeObjectAtIndex: index];
-
-  [anObject release];
+  while (i-- > 0)
+    {
+      id o = [self objectAtIndex: i];
+      if (o == anObject)
+	{
+	  if (pos != NSNotFound)
+	    [self removeObjectAtIndex: pos];
+	  pos = i;
+	}
+    }
+  if (pos != NSNotFound)
+    [self removeObjectAtIndex: pos];
 }
 
 - (void) removeObject: anObject inRange:(NSRange)aRange
 {
-  int c = [self count], s = aRange.location;
-  int i = aRange.location + aRange.length;
+  unsigned c = [self count], s = aRange.location;
+  unsigned i = aRange.location + aRange.length;
+  unsigned pos = NSNotFound;
   if (i > c)
     i = c;
-  [anObject retain];
-  for (i--; i >= s; i--)
+  while (i-- > s)
     {
       id o = [self objectAtIndex: i];
       if (o == anObject || [o isEqual: anObject])
-	[self removeObjectAtIndex:i];
+	{
+	  if (pos != NSNotFound)
+	    [self removeObjectAtIndex: pos];
+	  pos = i;
+	}
     }
-  [anObject release];
+  if (pos != NSNotFound)
+    [self removeObjectAtIndex: pos];
 }
 
 - (void) removeObjectIdenticalTo: anObject inRange:(NSRange)aRange
 {
-  int c = [self count], s = aRange.location;
-  int i = aRange.location + aRange.length;
+  unsigned c = [self count], s = aRange.location;
+  unsigned i = aRange.location + aRange.length;
+  unsigned pos = NSNotFound;
   if (i > c)
     i = c;
-  [anObject retain];
-  for (i--; i >= s; i--)
+  while (i-- > s)
     {
       id o = [self objectAtIndex: i];
       if (o == anObject)
-	[self removeObjectAtIndex:i];
+	{
+	  if (pos != NSNotFound)
+	    [self removeObjectAtIndex: pos];
+	  pos = i;
+	}
     }
-  [anObject release];
+  if (pos != NSNotFound)
+    [self removeObjectAtIndex: pos];
 }
 
 - (void) removeObject: anObject
 {
-  unsigned index;
+  unsigned pos = NSNotFound;
+  unsigned i = [self count];
 
-  /* Retain the object.  Yuck, but necessary in case the array holds
-     the last reference to anObject. */
-  /* xxx Is there an alternative to this expensive retain/release? */
-  [anObject retain];
-
-  for (index = [self indexOfObject: anObject];
-       index != NO_INDEX;
-       index = [self indexOfObject: anObject])
-    [self removeObjectAtIndex: index];
-
-  [anObject release];
+  while (i-- > 0)
+    {
+      id o = [self objectAtIndex: i];
+      if (o == anObject || [o isEqual: anObject])
+	{
+	  if (pos != NSNotFound)
+	    [self removeObjectAtIndex: pos];
+	  pos = i;
+	}
+    }
+  if (pos != NSNotFound)
+    [self removeObjectAtIndex: pos];
 }
 
 - (void) removeAllObjects
@@ -833,7 +850,7 @@ static Class NSMutableArray_concrete_class;
 - (void) addObjectsFromArray: (NSArray*)otherArray
 {
   /* xxx Could be made more efficient by increasing capacity all at once. */
-  int i, c = [otherArray count];
+  unsigned i, c = [otherArray count];
   for (i = 0; i < c; i++)
     [self addObject: [otherArray objectAtIndex: i]];
 }
@@ -859,18 +876,18 @@ static Class NSMutableArray_concrete_class;
 
 - (void) removeObjectsInArray: (NSArray*)otherArray
 {
-  int i, c = [otherArray count];
+  unsigned i, c = [otherArray count];
   for (i = 0; i < c; i++)
     [self removeObject:[otherArray objectAtIndex:i]];
 }
 
 - (void) removeObjectsInRange: (NSRange)aRange
 {
-  int i, s = aRange.location, c = [self count];
+  unsigned i, s = aRange.location, c = [self count];
   i = aRange.location + aRange.length;
   if (c < i)
     i = c;
-  for (i--; i >= s; i--)
+  while (i-- > s)
     [self removeObjectAtIndex: i];
 }
 
@@ -890,7 +907,7 @@ static Class NSMutableArray_concrete_class;
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
 #define STRIDE_FACTOR 3	// good value for stride factor is not well-understood
                         // 3 is a fairly good choice (Sedgewick)
-  int c,d, stride;
+  unsigned c,d, stride;
   BOOL found;
   int count = [self count];
 
@@ -903,19 +920,21 @@ static Class NSMutableArray_concrete_class;
     stride = stride / STRIDE_FACTOR;
     for (c = stride; c < count; c++) {
       found = NO;
+      if (stride > c)
+	break;
       d = c - stride;
-      while ((d >= 0) && !found) {
+      while (!found) {
 	// move to left until correct place
 	id a = [self objectAtIndex:d + stride];
 	id b = [self objectAtIndex:d];
 	if ((*compare)(a, b, context) == NSOrderedAscending) {
 	  [a retain];
-	  [b retain];
 	  [self replaceObjectAtIndex:d + stride withObject:b];
 	  [self replaceObjectAtIndex:d withObject:a];
-	  d -= stride;		// jump by stride factor
 	  [a release];
-	  [b release];
+	  if (stride > d)
+	    break;
+	  d -= stride;		// jump by stride factor
 	}
 	else found = YES;
       }
