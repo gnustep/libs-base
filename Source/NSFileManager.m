@@ -60,13 +60,26 @@
 
 #define DIR_enum_state DIR
 
+#ifdef	__WIN32__
+#ifndef	_WIN32
+#define	_WIN32
+#endif
+#endif
+
+#if	defined(_WIN32)
+#define	WIN32ERR	((DWORD)0xFFFFFFFF)
+#endif
+
 /* determine filesystem max path length */
 
 #ifdef _POSIX_VERSION
 # include <limits.h>			/* for PATH_MAX */
 # include <utime.h>
 #else
-#ifndef __WIN32__
+#ifdef _WIN32
+# include <limits.h>
+# include <sys/utime.h>
+#else
 # include <sys/param.h>			/* for MAXPATHLEN */
 #endif
 #endif
@@ -178,7 +191,7 @@ static NSFileManager* defaultManager = nil;
 {
     const char* cpath = [self fileSystemRepresentationWithPath:path];
     
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(_WIN32)
     return SetCurrentDirectory(cpath);
 #else
     return (chdir(cpath) == 0);
@@ -188,7 +201,7 @@ static NSFileManager* defaultManager = nil;
 - (BOOL) createDirectoryAtPath:(NSString*)path
 		    attributes:(NSDictionary*)attributes
 {
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(_WIN32)
   return CreateDirectory([self fileSystemRepresentationWithPath: path], NULL);
 #else
   const char* cpath;
@@ -279,7 +292,7 @@ static NSFileManager* defaultManager = nil;
 {
     char path[PATH_MAX];
 
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(_WIN32)
     if (GetCurrentDirectory(PATH_MAX, path) > PATH_MAX)
       return nil;
 #else
@@ -585,70 +598,126 @@ static NSFileManager* defaultManager = nil;
 
 - (BOOL)fileExistsAtPath:(NSString*)path isDirectory:(BOOL*)isDirectory
 {
-#if defined(__WIN32__) || defined(_WIN32)
-  DWORD res = GetFileAttributes([self fileSystemRepresentationWithPath: path]);
-  if (res == -1)
+  const char* cpath = [self fileSystemRepresentationWithPath: path];
+
+  if (cpath == 0 || *cpath == '\0')
     return NO;
-
-  if (isDirectory)
+  else
     {
-      if (res & FILE_ATTRIBUTE_DIRECTORY)
-	*isDirectory = YES;
-      else
-	*isDirectory = NO;
-    }
-  return YES;
-#else
-    struct stat statbuf;
-    const char* cpath = [self fileSystemRepresentationWithPath:path];
+#if defined(_WIN32)
+      DWORD res;
 
-    if (stat(cpath, &statbuf) != 0)
+      res = GetFileAttributes(cpath);
+      if (res == WIN32ERR)
+	return NO;
+
+      if (isDirectory)
+	{
+	  if (res & FILE_ATTRIBUTE_DIRECTORY)
+	    *isDirectory = YES;
+	  else
+	    *isDirectory = NO;
+	}
+      return YES;
+#else
+      struct stat statbuf;
+
+      if (stat(cpath, &statbuf) != 0)
 	return NO;
     
-    if (isDirectory) {
-	*isDirectory = ((statbuf.st_mode & S_IFMT) == S_IFDIR);
-    }
+      if (isDirectory)
+	{
+	  *isDirectory = ((statbuf.st_mode & S_IFMT) == S_IFDIR);
+	}
     
-    return YES;
+      return YES;
 #endif /* WIN32 */
+    }
 }
 
 - (BOOL)isReadableFileAtPath:(NSString*)path
 {
-    const char* cpath = [self fileSystemRepresentationWithPath:path];
-    
-    return (access(cpath, R_OK) == 0);
+  const char* cpath = [self fileSystemRepresentationWithPath: path];
+
+  if (cpath == 0 || *cpath == '\0')
+    return NO;
+  else
+    {
+#if defined(_WIN32)
+      DWORD res= GetFileAttributes(cpath);
+
+      if (res == WIN32ERR)
+        return NO;
+      return YES;
+#else
+      return (access(cpath, R_OK) == 0);
+#endif
+    }
 }
 
 - (BOOL)isWritableFileAtPath:(NSString*)path
 {
-    const char* cpath = [self fileSystemRepresentationWithPath:path];
-    
-    return (access(cpath, W_OK) == 0);
+  const char* cpath = [self fileSystemRepresentationWithPath: path];
+
+  if (cpath == 0 || *cpath == '\0')
+    return NO;
+  else
+    {
+#if defined(_WIN32)
+      DWORD res= GetFileAttributes(cpath);
+
+      if (res == WIN32ERR)
+        return NO;
+      return (res & FILE_ATTRIBUTE_READONLY) ? NO : YES;
+#else
+      return (access(cpath, W_OK) == 0);
+#endif
+    }
 }
 
 - (BOOL)isExecutableFileAtPath:(NSString*)path
 {
-    const char* cpath = [self fileSystemRepresentationWithPath:path];
-    
-    return (access(cpath, X_OK) == 0);
+  const char* cpath = [self fileSystemRepresentationWithPath: path];
+
+  if (cpath == 0 || *cpath == '\0')
+    return NO;
+  else
+    {
+#if defined(_WIN32)
+      DWORD res= GetFileAttributes(cpath);
+      int len = strlen(cpath);
+
+      if (res == WIN32ERR)
+        return NO;
+      if (len > 4 && strcmp(&path[len-4], ".exe") == 0)
+	return YES;
+      return NO;
+#else
+      return (access(cpath, X_OK) == 0);
+#endif
+    }
 }
 
 - (BOOL)isDeletableFileAtPath:(NSString*)path
 {
-    // TODO - handle directories
-    const char* cpath;
+  if (path == nil)
+    return NO;
+  else
+    {
+      const char *cpath;
+      // TODO - handle directories
     
-    cpath = [self fileSystemRepresentationWithPath:
+      cpath = [self fileSystemRepresentationWithPath:
 	[path stringByDeletingLastPathComponent]];
     
-    if (access(cpath, X_OK || W_OK) != 0)
+      if (access(cpath, X_OK || W_OK) != 0)
 	return NO;
 
-    cpath = [self fileSystemRepresentationWithPath:
+      cpath = [self fileSystemRepresentationWithPath:
 	[path stringByDeletingLastPathComponent]];
     
-    return  (access(cpath, X_OK || W_OK) != 0);
+      return  (access(cpath, X_OK || W_OK) != 0);
+    }
 }
 
 - (NSDictionary*)fileAttributesAtPath:(NSString*)path traverseLink:(BOOL)flag
@@ -750,7 +819,7 @@ static NSFileManager* defaultManager = nil;
 
 - (NSDictionary*)fileSystemAttributesAtPath:(NSString*)path
 {
-#if defined(__WIN32__) || defined(_WIN32)
+#if defined(_WIN32)
     long long totalsize, freesize;
     id  values[5];
     id	keys[5] = {
@@ -835,7 +904,7 @@ static NSFileManager* defaultManager = nil;
   NSDate	*date;
   BOOL		allOk = YES;
 
-#ifndef __WIN32__
+#ifndef _WIN32
   num = [attributes objectForKey: NSFileOwnerAccountNumber];
   if (num)
     {
@@ -893,7 +962,7 @@ static NSFileManager* defaultManager = nil;
   if (date)
     {
       struct stat sb;
-#ifdef  _POSIX_VERSION
+#if  defined(_WIN32) || defined(_POSIX_VERSION)
       struct utimbuf ub;
 #else
       time_t ub[2];
@@ -903,7 +972,7 @@ static NSFileManager* defaultManager = nil;
 	allOk = NO;
       else
 	{
-#ifdef  _POSIX_VERSION
+#if  defined(_WIN32) || defined(_POSIX_VERSION)
 	  ub.actime = sb.st_atime;
 	  ub.modtime = [date timeIntervalSince1970];
 	  allOk &= (utime(cpath, &ub) == 0);
@@ -985,7 +1054,7 @@ static NSFileManager* defaultManager = nil;
     const char* lpath = [self fileSystemRepresentationWithPath:path];
     const char* npath = [self fileSystemRepresentationWithPath:otherPath];
     
-#ifdef __WIN32__
+#ifdef _WIN32
     return NO;
 #else
     return (symlink(lpath, npath) == 0);
@@ -1008,24 +1077,29 @@ static NSFileManager* defaultManager = nil;
 
 - (const char*)fileSystemRepresentationWithPath:(NSString*)path
 {
-#if defined(__WIN32__) || defined(_WIN32)
-  char cpath[4];
-  char *fspath = [path cString];
+#if 0 && defined(_WIN32)
+  unsigned	len = [path length];
+  NSMutableData	*d = [NSMutableData dataWithLength: len + 5];
+  char		*fspath = (char*)[d mutableBytes];
+  
+  [path getCString: &fspath[4]];
+  fspath[len+4] = '\0';
 
   // Check if path specifies drive number or is current drive
-  if (fspath[0] && (fspath[1] == ':'))
+  if (fspath[4] && (fspath[5] == ':'))
     {
-      cpath[0] = fspath[0];
-      cpath[1] = fspath[1];
-      cpath[2] = '\\';
-      cpath[3] = '\0';
+      fspath[0] = fspath[4];
+      fspath[1] = fspath[5];
+      fspath[2] = '\\';
+      fspath[3] = '\0';
     }
   else
     {
-      cpath[0] = '\\';
-      cpath[1] = '\0';
+      fspath = &fspath[2];
+      fspath[0] = '\\';
+      fspath[1] = '\0';
     }
-  return [[NSString stringWithCString: cpath] cString];
+  return fspath;
 #else
   return [path cString];
 #endif
@@ -1054,8 +1128,6 @@ static NSFileManager* defaultManager = nil;
 */
 - (void) recurseIntoDirectory: (NSString*)path relativeName: (NSString*)name
 {
-#ifdef __WIN32__
-#else
   const char* cpath;
   DIR*  dir;
     
@@ -1072,7 +1144,6 @@ static NSFileManager* defaultManager = nil;
   else
     NSLog(@"Failed to recurse into directory '%@' - %s",
 	path, strerror(errno));
-#endif
 }
 
 /*
@@ -1083,10 +1154,7 @@ static NSFileManager* defaultManager = nil;
 */
 - (void) backtrack
 {
-#ifdef __WIN32__
-#else
   closedir((DIR*)[[enumStack lastObject] pointerValue]);
-#endif
   [enumStack removeLastObject];
   [pathStack removeLastObject];
   DESTROY(currentFileName);
@@ -1106,8 +1174,6 @@ static NSFileManager* defaultManager = nil;
 */
 - (void) findNextFile
 {
-#ifdef __WIN32__
-#else
   NSFileManager*	manager = [NSFileManager defaultManager];
   DIR_enum_state*  	dir;
   DIR_enum_item*	dirbuf;
@@ -1162,7 +1228,6 @@ static NSFileManager* defaultManager = nil;
 	  [self backtrack];
 	}
     }
-#endif
 }
 
 // Initializing
