@@ -1,5 +1,5 @@
 /* Implementation for NSTask for GNUStep
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998,1999 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: 1998
@@ -24,6 +24,7 @@
 #include <config.h>
 #include <base/preface.h>
 #include <Foundation/NSObject.h>
+#include <Foundation/NSBundle.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSString.h>
@@ -107,21 +108,26 @@ static void handleSignal(int sig)
   [task setLaunchPath: path];
   [task setArguments: args];
   [task launch];
-  return [task autorelease];
+  return AUTORELEASE(task);
 }
 
-- (void) dealloc
+- (void) gcFinalize
 {
   [tasksLock lock];
   NSMapRemove(activeTasks, (void*)taskId);
   [tasksLock unlock];
-  [arguments release];
-  [environment release];
-  [launchPath release];
-  [currentDirectoryPath release];
-  [standardError release];
-  [standardInput release];
-  [standardOutput release];
+}
+
+- (void) dealloc
+{
+  [self gcFinalize];
+  RELEASE(arguments);
+  RELEASE(environment);
+  RELEASE(launchPath);
+  RELEASE(currentDirectoryPath);
+  RELEASE(standardError);
+  RELEASE(standardInput);
+  RELEASE(standardOutput);
   [super dealloc];
 }
 
@@ -197,9 +203,7 @@ static void handleSignal(int sig)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  [args retain];
-  [arguments release];
-  arguments = args;
+  ASSIGN(arguments, args);
 }
 
 - (void) setCurrentDirectoryPath: (NSString*)path
@@ -209,9 +213,7 @@ static void handleSignal(int sig)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  [path retain];
-  [currentDirectoryPath release];
-  currentDirectoryPath = path;
+  ASSIGN(currentDirectoryPath, path);
 }
 
 - (void) setEnvironment: (NSDictionary*)env
@@ -221,9 +223,7 @@ static void handleSignal(int sig)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  [env retain];
-  [environment release];
-  environment = env;
+  ASSIGN(environment, env);
 }
 
 - (void) setLaunchPath: (NSString*)path
@@ -233,9 +233,7 @@ static void handleSignal(int sig)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  [path retain];
-  [launchPath release];
-  launchPath = path;
+  ASSIGN(launchPath, path);
 }
 
 - (void) setStandardError: (id)hdl
@@ -247,9 +245,7 @@ static void handleSignal(int sig)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  [hdl retain];
-  [standardError release];
-  standardError = hdl;
+  ASSIGN(standardError, hdl);
 }
 
 - (void) setStandardInput: (NSFileHandle*)hdl
@@ -261,9 +257,7 @@ static void handleSignal(int sig)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  [hdl retain];
-  [standardInput release];
-  standardInput = hdl;
+  ASSIGN(standardInput, hdl);
 }
 
 - (void) setStandardOutput: (NSFileHandle*)hdl
@@ -275,9 +269,7 @@ static void handleSignal(int sig)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has been launched"];
     }
-  [hdl retain];
-  [standardOutput release];
-  standardOutput = hdl;
+  ASSIGN(standardOutput, hdl);
 }
 
 /*
@@ -328,9 +320,20 @@ static void handleSignal(int sig)
   [self notImplemented: _cmd];	/* Undocumented as yet	*/
 }
 
+/* Declaration from find_exec.c */
+extern char *objc_find_executable(const char *name);
+
 - (void) launch
 {
   NSMutableArray	*toClose;
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSString	*libs = [NSBundle _library_combo];
+  NSString	*arch = [NSBundle _gnustep_target_dir];
+  NSString	*prog;
+  NSString	*lpath;
+  NSString	*base_path;
+  NSString	*arch_path;
+  NSString	*full_path;
   int		pid;
   const char	*executable;
   const char	*path;
@@ -357,16 +360,71 @@ static void handleSignal(int sig)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - no launch path set"];
     }
-  else if ([[NSFileManager defaultManager] isExecutableFileAtPath:
-		launchPath] == NO)
+
+  /*
+   *	Set lpath to the actual path to use for the executable.
+   *	First choice - base_path/architecture/library_combo/prog.
+   *	Second choice - base_path/architecture/prog.
+   *	Third choice - base_path/prog.
+   *	Otherwise - try using PATH environment variable if possible.
+   */
+  prog = [launchPath lastPathComponent];
+  base_path = [launchPath stringByDeletingLastPathComponent];
+  if ([[base_path lastPathComponent] isEqualToString: libs] == YES)
+    base_path = [base_path stringByDeletingLastPathComponent];
+  if ([[base_path lastPathComponent] isEqualToString: arch] == YES)
+    base_path = [base_path stringByDeletingLastPathComponent];
+  arch_path = [base_path stringByAppendingPathComponent: arch];
+  full_path = [arch_path stringByAppendingPathComponent: libs];
+
+  lpath = [full_path stringByAppendingPathComponent: prog];
+  if ([mgr isExecutableFileAtPath: lpath] == NO)
     {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - launch path is not valid"];
+      lpath = [arch_path stringByAppendingPathComponent: prog];
+      if ([mgr isExecutableFileAtPath: lpath] == NO)
+	{
+	  lpath = [base_path stringByAppendingPathComponent: prog];
+	  if ([mgr isExecutableFileAtPath: lpath] == NO)
+	    {
+	      const char	*cpath = 0;
+
+	      /*
+	       * Last resort - if the launch path was simply a program name
+	       * get objc_find_executable() to try using the PATH environment
+	       * variable to find the executable.
+	       */
+	      if ([base_path isEqualToString: @""] == YES)
+		{
+
+		  cpath = objc_find_executable([prog cString]);
+		}
+	      if (cpath == 0)
+		{
+		  [NSException raise: NSInvalidArgumentException
+			      format: @"NSTask - launch path is not valid"];
+		}
+	      else
+		{
+		  lpath = [NSString stringWithCString: cpath];
+		  OBJC_FREE((void*)cpath);
+		}
+	    }
+	}
     }
+  /*
+   *	Make sure we have a standardised absolute path to pass to execve()
+   */
+  if ([lpath isAbsolutePath] == NO)
+    {
+      NSString	*current = [mgr currentDirectoryPath];
 
-  executable = [[self launchPath] cString];
+      lpath = [current stringByAppendingPathComponent: lpath];
+    }
+  lpath = [lpath stringByStandardizingPath];
 
-  args[0] = [[[self launchPath] lastPathComponent] cString];
+  executable = [lpath cString];
+  args[0] = [prog cString];
+
   for (i = 0; i < ac; i++)
     {
       args[i+1] = [[[a objectAtIndex: i] description] cString];
@@ -474,6 +532,7 @@ static void handleSignal(int sig)
     {
       taskId = pid;
       hasLaunched = YES;
+      ASSIGN(launchPath, lpath);	// Actual path used.
 
       [tasksLock lock];
       NSMapInsert(activeTasks, (void*)taskId, (void*)self);
@@ -523,7 +582,7 @@ static void handleSignal(int sig)
       limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 0.1];
       [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
 			       beforeDate: limit];
-      [limit release];
+      RELEASE(limit);
     }
 }
 @end

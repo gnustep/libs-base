@@ -1,7 +1,18 @@
-Wed Apr 14  9:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Apr 14 10:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSBundle: ([+allBundles]) implemented (ignoring the frameworks
-	issue).
+	issue). Extra internal GNUstep specific methods provided -
+	([+_gnustep_target_cpu]), ([+_gnustep_target_dir])
+	([+_gnustep_target_os]), ([+_library_combo])
+	So that we can easily determine wrapper path information.
+	* Source/NSTaks: Preparation for garbage collecting.
+	Major work on launching - now makes intelligent use of launch path.
+	Tries various GNUstep directories - if unable to find executable
+	that way, resorts to using the unix PATH environment variable.
+	* Source/NSPortNameServer.m: Removed a couple of unix specific calls.
+	* Source/NSDistributedNotificationCenter.m: Removed a couple of unix
+	specific calls.
+	* Tools/Makefile.postamble: Install gdnc in non-library specific dir.
 
 Tue Apr 13 22:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

@@ -919,4 +919,25 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   return nil;
 }
 
++ (NSString*) _gnustep_target_cpu
+{
+  return gnustep_target_cpu;
+}
+
++ (NSString*) _gnustep_target_dir
+{
+  return gnustep_target_dir;
+}
+
++ (NSString*) _gnustep_target_os
+{
+  return gnustep_target_os;
+}
+
++ (NSString*) _library_combo
+{
+  return library_combo;
+}
+
 @end
+
