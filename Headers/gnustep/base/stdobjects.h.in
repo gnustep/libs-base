@@ -58,6 +58,7 @@
 
 #include <foundation/NSObject.h>
 #include <objects/objc-malloc.h>
+@class String;
 
 /* The following two lines are maintained by the libobjects Makefile */
 #define OBJECTS_VERSION 0.1.4
