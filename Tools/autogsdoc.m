@@ -221,7 +221,16 @@
       documentation, the tool removes all gsdoc files generated in the
       project, and all html files generated from them (as well as any
       which would be generated from gsdoc files listed explicitly),
-      and finally removes the project index file.
+      and finally removes the project index file.<br />
+      The only exception to this is that template gsdoc files (ie those
+      specifield using ConstantsTemplate, FunctionsTemplate arguments etc)
+      are not deleted unless the CleanTemplates flag is set.
+    </item>
+    <item><strong>CleanTemplates</strong>
+      This flag specifies whether template gsdoc files are to be removed
+      along with other files when the Clean option is specified.
+      The default is for them not to be removed ... since these templates
+      may have been produced manually and just had data inserted into them.
     </item>
     <item><strong>ConstantsTemplate</strong>
       Specify the name of a template document into which documentation
@@ -665,16 +674,53 @@ main(int argc, char **argv, char **env)
 
   if ([defs boolForKey: @"Clean"] == YES)
     {
-      NSDictionary	*output = [[projectRefs refs] objectForKey: @"output"];
-      NSEnumerator	*enumerator = [output objectEnumerator];
+      NSDictionary	*output;
+      NSEnumerator	*enumerator;
       NSArray		*outputNames;
-      NSMutableSet	*allPaths = [NSMutableSet new];
+      NSMutableSet	*allPaths;
+      NSSet		*preserve = nil;
       NSString		*path;
+
+      /*
+       * Unless we are supposed to clean templates, we preserve any
+       * template gsdoc files.
+       */
+      if ([defs boolForKey: @"CleanTemplates"] == NO)
+	{
+	  NSArray	*keys = [NSArray arrayWithObjects:
+	    @"ConstantsTemplate",
+	    @"FunctionsTemplate",
+	    @"MacrosTemplate",
+	    @"TypesTemplate",
+	    @"VariablesTemplate",
+	    nil];
+	  NSMutableSet	*s = [NSMutableSet new];
+	
+	  enumerator = [keys objectEnumerator];
+	  while ((path = [enumerator nextObject]) != nil)
+	    {
+	      path = [defs stringForKey: path];
+	      if (path != nil)
+		{
+		  path = [path stringByAppendingPathExtension: @"gsdoc"];
+		  if ([path isAbsolutePath] == NO)
+		    {
+		      path = [documentationDirectory
+			stringByAppendingPathComponent: path];
+		    }
+		  [s addObject: path];
+		}
+	    }
+	  preserve = AUTORELEASE(s);
+	}
 
       /*
        * Build a list of all generated gsdoc files, then remove them
        * and their corresponding html documents.
        */
+      output = [[projectRefs refs] objectForKey: @"output"];
+      enumerator = [output objectEnumerator];
+      allPaths = [NSMutableSet new];
       while ((outputNames = [enumerator nextObject]) != nil)
 	{
 	  [allPaths addObjectsFromArray: outputNames];
@@ -682,11 +728,17 @@ main(int argc, char **argv, char **env)
       enumerator = [allPaths objectEnumerator];
       while ((path = [enumerator nextObject]) != nil)
 	{
-	  if ([mgr fileExistsAtPath: path] == YES)
+	  /*
+	   * Delete any gsdoc files which are not in the preserve set.
+	   */
+	  if ([preserve member: path] == nil)
 	    {
-	      if ([mgr removeFileAtPath: path handler: nil] == NO)
+	      if ([mgr fileExistsAtPath: path] == YES)
 		{
-		  NSLog(@"Cleaning ... failed to remove %@", path);
+		  if ([mgr removeFileAtPath: path handler: nil] == NO)
+		    {
+		      NSLog(@"Cleaning ... failed to remove %@", path);
+		    }
 		}
 	    }
 	  path = [path stringByDeletingPathExtension];
@@ -716,10 +768,11 @@ main(int argc, char **argv, char **env)
       enumerator = [gFiles objectEnumerator];
       while ((path = [enumerator nextObject]) != nil)
 	{
-	  path = [documentationDirectory
-	    stringByAppendingPathComponent: path];
+	  path = [path lastPathComponent];
 	  path = [path stringByDeletingPathExtension];
 	  path = [path stringByAppendingPathExtension: @"html"];
+	  path = [documentationDirectory
+	    stringByAppendingPathComponent: path];
 	  if ([mgr fileExistsAtPath: path] == YES)
 	    {
 	      if ([mgr removeFileAtPath: path handler: nil] == NO)
