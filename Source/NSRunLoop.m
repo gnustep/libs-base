@@ -759,7 +759,7 @@ if (0) {
    * inputs where multiple inputs are in use.  Note - fdStart can be
    * modified while we are in the loop (by recursive calls).
    */
-  if (fdStart >= end_inputs)
+  if (fdStart >= num_inputs)
     {
       fdStart = 0;
       fdIndex = 0;
@@ -873,7 +873,7 @@ if (0) {
 	      completed = YES;
 	    }  
 	}
-      if (++fdIndex >= end_inputs)
+      if (++fdIndex >= num_inputs)
 	{
 	  fdIndex = 0;
 	}
