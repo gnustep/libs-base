@@ -72,10 +72,21 @@
 #define M_LOCK(X) {NSDebugMLLog(@"GSConnection",@"Lock %@",X);[X lock];}
 #define M_UNLOCK(X) {NSDebugMLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
 
+/*
+ * Set up a type to permit us to have direct access into an NSDistantObject
+ */
+typedef struct {
+  @defs(NSDistantObject)
+} ProxyStruct;
+
+/*
+ * Cache various class pointers.
+ */
 static id	dummyObject;
 static Class	connectionClass;
 static Class	dateClass;
 static Class	distantObjectClass;
+static Class	localCounterClass;
 static Class	portCoderClass;
 static Class	runLoopClass;
 
@@ -108,27 +119,6 @@ stringFromMsgType(int type)
 	return @"unknown operation type!";
     }
 }
-
-@interface	NSDistantObject (NSConnection)
-- (id) localForProxy;
-- (void) setProxyTarget: (unsigned)target;
-- (unsigned) targetForProxy;
-@end
-
-@implementation	NSDistantObject (NSConnection)
-- (id) localForProxy
-{
-  return _object;
-}
-- (void) setProxyTarget: (unsigned)target
-{
-  _handle = target;
-}
-- (unsigned) targetForProxy
-{
-  return _handle;
-}
-@end
 
 /*
  *	GSLocalCounter is a trivial class to keep track of how
@@ -226,6 +216,10 @@ static unsigned local_object_counter = 0;
 - (void) _runInNewThread;
 + (void) setDebug: (int)val;
 
+- (void) addLocalObject: (NSDistantObject*)anObj;
+- (NSDistantObject*) localForObject: (id)object;
+- (void) removeLocalObject: (id)anObj;
+
 - (void) _doneInRmc: (NSPortCoder*)c;
 - (NSPortCoder*) _getReplyRmc: (int)sn;
 - (NSPortCoder*) _makeInRmc: (NSMutableArray*)components;
@@ -245,7 +239,7 @@ static unsigned local_object_counter = 0;
 
 
 /* class defaults */
-static NSTimer *timer;
+static NSTimer		*timer;
 
 static int debug_connection = 0;
 
@@ -318,9 +312,9 @@ setRootObjectForInPort(id anObj, NSPort *aPort)
   F_UNLOCK(root_object_map_gate);
 }
 
-static NSMapTable *all_connections_local_objects = NULL;
-static NSMapTable *all_connections_local_targets = NULL;
-static NSMapTable *all_connections_local_cached = NULL;
+static NSMapTable *objectToCounter = NULL;
+static NSMapTable *targetToCounter = NULL;
+static NSMapTable *targetToCached = NULL;
 static NSLock	*global_proxies_gate;
 
 
@@ -438,6 +432,7 @@ static NSLock	*global_proxies_gate;
       connectionClass = self;
       dateClass = [NSDate class];
       distantObjectClass = [NSDistantObject class];
+      localCounterClass = [GSLocalCounter class];
       portCoderClass = [NSPortCoder class];
       runLoopClass = [NSRunLoop class];
 
@@ -446,14 +441,14 @@ static NSLock	*global_proxies_gate;
       connection_table = 
 	NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
       connection_table_gate = [NSLock new];
-      /* xxx When NSHashTable's are working, change this. */
-      all_connections_local_objects =
+
+      objectToCounter =
 	NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 			  NSObjectMapValueCallBacks, 0);
-      all_connections_local_targets =
+      targetToCounter =
 	NSCreateMapTable(NSIntMapKeyCallBacks,
 			  NSNonOwnedPointerMapValueCallBacks, 0);
-      all_connections_local_cached =
+      targetToCached =
 	NSCreateMapTable(NSIntMapKeyCallBacks,
 			  NSObjectMapValueCallBacks, 0);
       global_proxies_gate = [NSLock new];
@@ -510,7 +505,7 @@ static NSLock	*global_proxies_gate;
   NSArray	*cached_locals;
   int	i;
 
-  cached_locals = NSAllMapTableValues(all_connections_local_cached);
+  cached_locals = NSAllMapTableValues(targetToCached);
   for (i = [cached_locals count]; i > 0; i--)
     {
       CachedLocalObject *item = [cached_locals objectAtIndex: i-1];
@@ -518,7 +513,7 @@ static NSLock	*global_proxies_gate;
       if ([item countdown] == NO)
 	{
 	  GSLocalCounter	*counter = [item obj];
-	  NSMapRemove(all_connections_local_cached, (void*)counter->target);
+	  NSMapRemove(targetToCached, (void*)counter->target);
 	}
     }
   if ([cached_locals count] == 0)
@@ -710,7 +705,8 @@ static NSLock	*global_proxies_gate;
   GSIMapInitWithZoneAndCapacity(_localTargets, z, 4);
 
   /*
-   * This maps [proxy targetForProxy] to proxy.  The proxy's are retained.
+   * This maps targets to remote proxies.
+   * The proxy's must be retained on addition and released on removal.
    */
   _remoteProxies = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
   GSIMapInitWithZoneAndCapacity(_remoteProxies, z, 4);
@@ -893,7 +889,7 @@ static NSLock	*global_proxies_gate;
 	}
       while (i-- > 0)
 	{
-	  id	t = [[targets objectAtIndex: i] localForProxy];
+	  id	t = ((ProxyStruct*)[targets objectAtIndex: i])->_object;
 
 	  [self removeLocalObject: t];
 	}
@@ -1846,7 +1842,7 @@ static NSLock	*global_proxies_gate;
 	  if (debug_connection > 3)
 	    NSLog(@"releasing object with target (0x%x) on (0x%x)",
 		target, (gsaddr)self);
-	  [self removeLocalObject: [prox localForProxy]];
+	  [self removeLocalObject: ((ProxyStruct*)prox)->_object];
 	}
       else if (debug_connection > 3)
 	NSLog(@"releasing object with target (0x%x) on (0x%x) - nothing to do",
@@ -1878,7 +1874,7 @@ static NSLock	*global_proxies_gate;
       GSLocalCounter	*counter;
 
       M_LOCK(global_proxies_gate);
-      counter = NSMapGet (all_connections_local_targets, (void*)target);
+      counter = NSMapGet (targetToCounter, (void*)target);
       if (counter == nil)
 	{
 	  /*
@@ -1887,15 +1883,15 @@ static NSLock	*global_proxies_gate;
 	   *	we move it back from the cache to the main maps so we can
 	   *	retain it on this connection.
 	   */
-	  counter = NSMapGet (all_connections_local_cached, (void*)target);
+	  counter = NSMapGet (targetToCached, (void*)target);
 	  if (counter)
 	    {
 	      unsigned	t = counter->target;
 	      id	o = counter->object;
 
-	      NSMapInsert(all_connections_local_objects, (void*)o, counter);
-	      NSMapInsert(all_connections_local_targets, (void*)t, counter);
-	      NSMapRemove(all_connections_local_cached, (void*)t);
+	      NSMapInsert(objectToCounter, (void*)o, counter);
+	      NSMapInsert(targetToCounter, (void*)t, counter);
+	      NSMapRemove(targetToCached, (void*)t);
 	      if (debug_connection > 3)
 		NSLog(@"target (0x%x) moved from cache", target);
 	    }
@@ -1969,7 +1965,7 @@ static NSLock	*global_proxies_gate;
   [rmc decodeValueOfObjCType: @encode(unsigned) at: &target];
   [self _doneInRmc: rmc];
   p = [self includesLocalTarget: target];
-  o = [p localForProxy];
+  o = ((ProxyStruct*)p)->_object;
 
   /* xxx We should make sure that TARGET is a valid object. */
   /* Not actually a Proxy, but we avoid the warnings "id" would have made. */
@@ -2241,40 +2237,39 @@ static NSLock	*global_proxies_gate;
 }
 
 
-
 
 /* Managing objects and proxies. */
-- (void) addLocalObject: (id)anObj
+- (void) addLocalObject: (NSDistantObject*)anObj
 {
-  id			object = [anObj localForProxy];
+  id			object;
   unsigned		target;
   GSLocalCounter	*counter;
   GSIMapNode    	node;
 
-
-  NSParameterAssert (_isValid);
   M_LOCK(_proxiesGate);
   M_LOCK(global_proxies_gate);
+  NSParameterAssert (_isValid);
 
   /*
    * Record the value in the _localObjects map, retaining it.
    */
+  object = ((ProxyStruct*)anObj)->_object;
   node = GSIMapNodeForKey(_localObjects, (GSIMapKey)object);
   IF_NO_GC(RETAIN(anObj));
-  if (node)
+  if (node == 0)
     {
-      RELEASE(node->value.obj);
-      node->value.obj = anObj;
+      GSIMapAddPair(_localObjects, (GSIMapKey)object, (GSIMapVal)anObj);
     }
   else
     {
-      GSIMapAddPair(_localObjects, (GSIMapKey)object, (GSIMapVal)anObj);
+      RELEASE(node->value.obj);
+      node->value.obj = anObj;
     }
 
   /*
    *	Keep track of local objects accross all connections.
    */
-  counter = NSMapGet(all_connections_local_objects, (void*)object);
+  counter = NSMapGet(objectToCounter, (void*)object);
   if (counter)
     {
       counter->ref++;
@@ -2282,13 +2277,13 @@ static NSLock	*global_proxies_gate;
     }
   else
     {
-      counter = [GSLocalCounter newWithObject: object];
+      counter = [localCounterClass newWithObject: object];
       target = counter->target;
-      NSMapInsert(all_connections_local_objects, (void*)object, counter);
-      NSMapInsert(all_connections_local_targets, (void*)target, counter);
+      NSMapInsert(objectToCounter, (void*)object, counter);
+      NSMapInsert(targetToCounter, (void*)target, counter);
       RELEASE(counter);
     }
-  [anObj setProxyTarget: target];
+  ((ProxyStruct*)anObj)->_handle = target;
   GSIMapAddPair(_localTargets, (GSIMapKey)target, (GSIMapVal)anObj);
   if (debug_connection > 2)
     NSLog(@"add local object (0x%x) target (0x%x) "
@@ -2319,19 +2314,6 @@ static NSLock	*global_proxies_gate;
   return p;
 }
 
-/* This should get called whenever an object free's itself */
-+ (void) removeLocalObject: (id)anObj
-{
-  NSHashEnumerator	enumerator;
-  NSConnection		*o;
-
-  enumerator = NSEnumerateHashTable(connection_table);
-  while ((o = (NSConnection*)NSNextHashEnumeratorItem(&enumerator)) != nil)
-    {
-      [o removeLocalObject: anObj];
-    }
-}
-
 - (void) removeLocalObject: (id)anObj
 {
   NSDistantObject	*prox;
@@ -2352,13 +2334,13 @@ static NSLock	*global_proxies_gate;
     {
       prox = node->value.obj;
     }
-  target = [prox targetForProxy];
+  target = ((ProxyStruct*)prox)->_handle;
 
   /*
    *	If all references to a local proxy have gone - remove the
    *	global reference as well.
    */
-  counter = NSMapGet(all_connections_local_objects, (void*)anObj);
+  counter = NSMapGet(objectToCounter, (void*)anObj);
   if (counter)
     {
       counter->ref--;
@@ -2381,14 +2363,14 @@ static NSLock	*global_proxies_gate;
 					  repeats: YES];
 		}
 	      item = [CachedLocalObject newWithObject: counter time: 30];
-	      NSMapInsert(all_connections_local_cached, (void*)target, item);
+	      NSMapInsert(targetToCached, (void*)target, item);
 	      RELEASE(item);
 	      if (debug_connection > 3)
 		NSLog(@"placed local object (0x%x) target (0x%x) in cache",
 			    (gsaddr)anObj, target);
 	    }
-	  NSMapRemove(all_connections_local_objects, (void*)anObj);
-	  NSMapRemove(all_connections_local_targets, (void*)target);
+	  NSMapRemove(objectToCounter, (void*)anObj);
+	  NSMapRemove(targetToCounter, (void*)target);
 	}
     }
 
@@ -2485,10 +2467,11 @@ static NSLock	*global_proxies_gate;
 
 - (void) removeProxy: (NSDistantObject*)aProxy
 {
-  unsigned target = [aProxy targetForProxy];
+  unsigned	target;
 
   /* Don't assert (_isValid); */
   M_LOCK(_proxiesGate);
+  target = ((ProxyStruct*)aProxy)->_handle;
   /* This also releases aProxy */
   GSIMapRemoveKey(_remoteProxies, (GSIMapKey)target);
   M_UNLOCK(_proxiesGate);
@@ -2522,13 +2505,14 @@ static NSLock	*global_proxies_gate;
 
 - (void) addProxy: (NSDistantObject*) aProxy
 {
-  unsigned	target = (unsigned int)[aProxy targetForProxy];
+  unsigned	target;
   GSIMapNode	node;
 
-  NSParameterAssert (_isValid);
+  M_LOCK(_proxiesGate);
+  NSParameterAssert(_isValid);
   NSParameterAssert(aProxy->isa == distantObjectClass);
   NSParameterAssert([aProxy connectionForProxy] == self);
-  M_LOCK(_proxiesGate);
+  target = ((ProxyStruct*)aProxy)->_handle;
   node = GSIMapNodeForKey(_remoteProxies, (GSIMapKey)target);
   if (node != 0)
     {
@@ -2612,7 +2596,7 @@ static NSLock	*global_proxies_gate;
 
   /* Don't assert (_isValid); */
   M_LOCK(global_proxies_gate);
-  ret = NSMapGet(all_connections_local_targets, (void*)target);
+  ret = NSMapGet(targetToCounter, (void*)target);
   M_UNLOCK(global_proxies_gate);
   return ret;
 }
@@ -4504,7 +4488,7 @@ static int messages_received_count;
 		{
 		  timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
 					 target: [NSConnection class]
-					 selector: @selector(_timeout: )
+					 selector: @selector(_timeout:)
 					 userInfo: nil
 					  repeats: YES];
 		}

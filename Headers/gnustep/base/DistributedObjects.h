@@ -39,13 +39,9 @@
 #include <Foundation/NSDistantObject.h>
 #include <Foundation/NSPortCoder.h>
 
-@class	InPacket;
-
 @class	NSDistantObject;
 @class	NSConnection;
 @class	NSPort;
-@class	PortDecoder;
-@class	PortEncoder;
 
 /*
  *	Distributed Objects identifiers
@@ -74,36 +70,8 @@ enum {
 + (NSDistantObject*) includesLocalTarget: (unsigned)target;
 - (NSDistantObject*) includesLocalTarget: (unsigned)target;
 - (NSDistantObject*) localForObject: (id)object;
-- (NSDistantObject*) localForTarget: (unsigned)target;
 - (NSDistantObject*) proxyForTarget: (unsigned)target;
-+ (void) removeLocalObject: (id)object;
-- (void) removeLocalObject: (id)object;
 - (void) retainTarget: (unsigned)target;
-@end
-
-
-/*
- *	Catagory containing the methods by which the public interface to
- *	NSPortCoder must be extended in order to allow it's use by
- *	by NSConnection et al for implementation of Distributed objects.
- */
-@interface NSPortCoder (Internal)
-
-+ newDecodingWithPacket: (InPacket*)packet
-	     connection: (NSConnection*)c;
-
-+ newDecodingWithConnection: (NSConnection*)c
-		    timeout: (int) timeout;
-
-+ newForWritingWithConnection: (NSConnection*)c
-	       sequenceNumber: (int)n
-		   identifier: (int)i;
-
-- (void) dismiss;
-- (unsigned) sequenceNumber;
-- (int) identifier;
-- (NSPort*) replyPort;
-
 @end
 
 #endif /* __DistributedObjects_h */
