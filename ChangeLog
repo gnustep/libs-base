@@ -1,3 +1,7 @@
+1999-01-28  Adam Fedor  <fedor@gnu.org>
+
+	* GNUmakefile (SUBPROJECTS): Change directory names
+
 Thu Jan 28 16:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/include/NSObject.h: Preliminaries for addition of GC
