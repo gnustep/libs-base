@@ -1,3 +1,7 @@
+2003-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSSet.h: Added a few non-openstep declarations
+
 2003-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Fix reference to zone of deallocated object.
