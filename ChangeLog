@@ -1,5 +1,11 @@
 2002-02-01  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Makefile.preamble: remove old GSI api support
+	* Headers/Foundation/NSHashTable.h: ditto
+	* Headers/Foundation/NSMapTable.h: ditto
+
+2002-02-01  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSAttributedString.m: Move to assuming new GSI api.
 	* Source/NSHashTable.m: ditto
 	* Source/NSMapTable.m: ditto
