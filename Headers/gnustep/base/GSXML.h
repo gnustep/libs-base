@@ -31,8 +31,13 @@
 #ifndef __GSXML_H__
 #define __GSXML_H__
 
+#ifdef	LIBXML2
+#include <libxml2/tree.h>
+#include <libxml2/entities.h>
+#else
 #include <libxml/tree.h>
 #include <libxml/entities.h>
+#endif
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>

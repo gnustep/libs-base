@@ -15,11 +15,6 @@ If you encounter a problem with NSZones, switch to using the
 default zone instead of creating one. Or better yet, fix the problem and
 submit a patch.
 
-@item Invocations (and by extension, Distributed Objects) have been well tested only
-on ix86 platforms. In particular, there are still minor problems on PPC and Sparc
-platforms.  
-
-@item Distributed Objects is now thread safe, but it hasn't been well
-tested.
+@item Distributed Objects is now thread safe, but it hasn't been well tested.
 
 @end itemize

@@ -80,6 +80,8 @@ Parameters:
 	.gsdoc files
 */
 
+#include <config.h>
+
 #include <Foundation/Foundation.h>
 
 #if	HAVE_LIBXML
@@ -87,7 +89,11 @@ Parameters:
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef	LIBXML2
+#include <libxml2/parser.h>
+#else
 #include <libxml/parser.h>
+#endif
 
 NSString	*pathExtension_GSDocRefs = @"gsdocrefs";
 NSString	*pathExtension_GSDoc = @"gsdoc";
