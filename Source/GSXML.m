@@ -45,7 +45,9 @@ extern int xmlGetWarningsDefaultValue;
  */
 static Class NSString_class;
 static IMP csImp;
+static IMP cslImp;
 static SEL csSel = @selector(stringWithCString:);
+static SEL cslSel = @selector(stringWithCString:length:);
 
 static BOOL cacheDone = NO;
 
@@ -57,6 +59,7 @@ setupCache()
       cacheDone = YES;
       NSString_class = [NSString class];
       csImp = [NSString_class methodForSelector: csSel];
+      cslImp = [NSString_class methodForSelector: cslSel];
     }
 }
 
@@ -808,6 +811,8 @@ static NSMapTable	*nodeNames = 0;
 
 @implementation GSXMLParser : NSObject
 
+static NSString	*endMarker = @"At end of incremental parse";
+
 + (void) initialize
 {
   if (cacheDone == NO)
@@ -898,16 +903,24 @@ static NSMapTable	*nodeNames = 0;
       else if ([source isKindOfClass: NSString_class])
         {
         }
+      else if ([source isKindOfClass: [NSURL class]])
+        {
+          NSLog(@"NSURL source not currently implemented");
+	  RELEASE(self);
+	  return nil;
+        }
+      else if ([source isKindOfClass: [NSURL class]])
+        {
+          NSLog(@"NSURL source not currently implemented");
+        }
       else
         {
-          NSLog(@"source must be NSString, NSData or NSURL type");
+          NSLog(@"source must be NSString, NSData, NSURL or nil");
+	  RELEASE(self);
+	  return nil;
         }
       src = [source copy];
       saxHandler = handler;
-    }
-  else
-    {
-     NSLog(@"Can't create GSXMLParser");
     }
 
   return self;
@@ -915,11 +928,19 @@ static NSMapTable	*nodeNames = 0;
 
 - (BOOL) parse
 {
-  if (lib != NULL)
+  id	tmp;
+
+  if (src == endMarker)
     {
-      xmlFreeDoc(((xmlParserCtxtPtr)lib)->myDoc);
-      xmlClearParserCtxt(lib);
+      NSLog(@"GSXMLParser -parse called on object that is already parsed");
+      return NO;
     }
+  if (src == nil)
+    {
+      NSLog(@"GSXMLParser -parse called on object with no source");
+      return NO;
+    }
+
   if ([src isKindOfClass: [NSData class]])
     {
       lib = (void*)xmlCreateMemoryParserCtxt((void*)[src bytes],
@@ -948,7 +969,7 @@ static NSMapTable	*nodeNames = 0;
     }
   else
     {
-       NSLog(@"source must be NSString, NSData or NSURL type");
+       NSLog(@"source for [-parse] must be NSString, NSData or NSURL type");
        return NO;
     }
 
@@ -961,12 +982,75 @@ static NSMapTable	*nodeNames = 0;
       [saxHandler parser: self];
     }
 
+  tmp = RETAIN(src);
+  ASSIGN(src, endMarker);
   xmlParseDocument(lib);
+  RELEASE(tmp);
 
   if (((xmlParserCtxtPtr)lib)->wellFormed)
     return YES;
   else
     return NO;
+}
+
+- (BOOL) parse: (NSData*)data
+{
+  /*
+   * Permit start of new parse after completed one.
+   */
+  if (src == endMarker)
+    {
+      xmlFreeDoc(((xmlParserCtxtPtr)lib)->myDoc);
+      xmlClearParserCtxt(lib);
+      lib = NULL;
+      src = nil;
+    }
+
+  if (src != nil)
+    {
+       NSLog(@"XMLParser -parse: called for parser not initialised with nil");
+       return NO;
+    }
+
+  if (data == nil || [data length] == 0)
+    {
+      /*
+       * At end of incremental parse.
+       */
+      if (lib != NULL)
+	{
+	  xmlParseChunk(lib, 0, 0, 1);
+	  src = endMarker;
+	  if (((xmlParserCtxtPtr)lib)->wellFormed)
+	    return YES;
+	  else
+	    return NO;
+	}
+      else
+	{
+	  NSLog(@"GSXMLParser -parse: terminated with no data");
+	  return NO;
+	}
+    }
+  else
+    {
+      if (lib == NULL)
+	{
+	  NSAssert([saxHandler parser] == nil, NSGenericException);
+	  [saxHandler parser: self];
+	  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], saxHandler,
+	    [data bytes], [data length], "incremental");
+	  if (lib == NULL)
+	    {
+	      return NO;
+	    }
+	}
+      else
+	{
+	  xmlParseChunk(lib, [data bytes], [data length], 0);
+	}
+      return YES;
+    }
 }
 
 - (GSXMLDocument*) doc
@@ -1029,7 +1113,7 @@ static NSMapTable	*nodeNames = 0;
     setupCache();
 }
 
-#define	HANDLER	(GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->userData)
+#define	HANDLER	(GSSAXHandler*)(ctx)
 
 void
 startDocumentFunction(void *ctx)
@@ -1169,8 +1253,7 @@ void endElementFunction(void *ctx, const char *name)
 void
 charactersFunction(void *ctx, const char *ch, int len)
 {
-  [HANDLER characters: [NSString_class stringWithCString: ch length: len]
-	       length: len];
+  [HANDLER characters: (*cslImp)(NSString_class, cslSel, ch, len)];
 }
 
 void
@@ -1182,7 +1265,7 @@ referenceFunction(void *ctx, const char *name)
 void
 ignorableWhitespaceFunction(void *ctx, const char *ch, int len)
 {
-  [HANDLER ignoreWhitespace: (*csImp)(NSString_class, csSel, ch) length: len];
+  [HANDLER ignoreWhitespace: (*cslImp)(NSString_class, cslSel, ch, len)];
 }
 
 void
@@ -1195,7 +1278,7 @@ processInstructionFunction(void *ctx, const char *target,  const char *data)
 void
 cdataBlockFunction(void *ctx, const char *value, int len)
 {
-  [HANDLER cdataBlock: (*csImp)(NSString_class, csSel, value) length: len];
+  [HANDLER cdataBlock: (*cslImp)(NSString_class, cslSel, value, len)];
 }
 
 void
@@ -1337,11 +1420,11 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
 }
 
-- (void) characters: (NSString*) name length: (int)len
+- (void) characters: (NSString*) name
 {
 }
 
-- (void) ignoreWhitespace: (NSString*) ch length: (int)len
+- (void) ignoreWhitespace: (NSString*) ch
 {
 }
 
@@ -1353,7 +1436,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
 }
 
-- (void) cdataBlock: (NSString*)value length: (int)len
+- (void) cdataBlock: (NSString*)value
 {
 }
 
