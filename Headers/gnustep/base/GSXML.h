@@ -50,7 +50,8 @@
 @interface GSXMLDocument : NSObject <NSCopying>
 {
   void	*lib;	// pointer to xmllib pointer of xmlDoc struct
-  BOOL	ownsLib;
+  BOOL	_ownsLib;
+  id	_parent;
 }
 + (GSXMLDocument*) documentWithVersion: (NSString*)version;
 
@@ -78,6 +79,7 @@
 @interface GSXMLNamespace : NSObject <NSCopying>
 {
   void	*lib;          /* pointer to struct xmlNs in the gnome xmllib */
+  id	_parent;
 }
 
 + (NSString*) descriptionFromType: (int)type;
@@ -98,6 +100,7 @@
 @interface GSXMLNode : NSObject <NSCopying>
 {
   void  *lib;      /* pointer to struct xmlNode from libxml */
+  id	_parent;
 }
 
 + (NSString*) descriptionFromType: (int)type;
