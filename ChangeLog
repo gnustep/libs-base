@@ -1,3 +1,12 @@
+2003-06-08  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSString.m
+	In [initWithContentsOfURL:] changed variable test to unichar* to
+	keep the compiler quiet.
+	* Source/Additions/Unicode.m
+	In GSFromUnicode() removed type cast of *_conv_base as the
+	gcc 3.3 compiler complained about it.
+
 2003-06-07  David Ayers  <d.ayers@inode.at>
 
 	* Headers/gnustep/base/GSObjCRuntime.h
