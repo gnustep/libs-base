@@ -1321,7 +1321,7 @@ handle_printf_atsign (FILE *stream,
   NSStringEncoding	enc = _DefaultStringEncoding;
   NSData		*d;
   unsigned int		len;
-  const unichar		*test;
+  const unsigned char	*data_bytes;
 
   d = [[NSDataClass alloc] initWithContentsOfFile: path];
   if (d == nil)
@@ -1336,15 +1336,20 @@ handle_printf_atsign (FILE *stream,
       RELEASE(self);
       return @"";
     }
-  test = [d bytes];
-  if ((test != NULL) && (len > 1))
+  data_bytes = [d bytes];
+  if ((data_bytes != NULL) && (len >= 2))
     {
-      if ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped))
+      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      if ((data_ucs2chars[0] == byteOrderMark)
+	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
 	{
 	  /* somebody set up us the BOM! */
 	  enc = NSUnicodeStringEncoding;
 	}
-      else if (len > 2 && test[0] == 0xEF && test[1] == 0xBB && test[2] == 0xBF)
+      else if (len >= 3
+	&& data_bytes[0] == 0xEF
+	&& data_bytes[1] == 0xBB
+	&& data_bytes[2] == 0xBF)
 	{
 	  enc = NSUTF8StringEncoding;
 	}
@@ -1363,7 +1368,7 @@ handle_printf_atsign (FILE *stream,
   NSStringEncoding	enc = _DefaultStringEncoding;
   NSData		*d = [NSDataClass dataWithContentsOfURL: url];
   unsigned int		len = [d length];
-  const unichar		*test;
+  const unsigned char	*data_bytes;
 
   if (d == nil)
     {
@@ -1376,14 +1381,19 @@ handle_printf_atsign (FILE *stream,
       RELEASE(self);
       return @"";
     }
-  test = [d bytes];
-  if ((test != NULL) && (len > 1))
+  data_bytes = [d bytes];
+  if ((data_bytes != NULL) && (len >= 2))
     {
-      if ((test[0] == byteOrderMark) || (test[0] == byteOrderMarkSwapped))
+      const unichar *data_ucs2chars = (const unichar *) data_bytes;
+      if ((data_ucs2chars[0] == byteOrderMark)
+	|| (data_ucs2chars[0] == byteOrderMarkSwapped))
 	{
 	  enc = NSUnicodeStringEncoding;
 	}
-      else if (len > 2 && test[0] == 0xEF && test[1] == 0xBB && test[2] == 0xBF)
+      else if (len >= 3
+	&& data_bytes[0] == 0xEF
+	&& data_bytes[1] == 0xBB
+	&& data_bytes[2] == 0xBF)
 	{
 	  enc = NSUTF8StringEncoding;
 	}
