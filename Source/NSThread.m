@@ -329,12 +329,26 @@ gnustep_base_thread_callback()
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Deallocating an active thread without [+exit]!"];
     }
-  _deallocating = YES;
   DESTROY(_thread_dictionary);
   DESTROY(_target);
   DESTROY(_arg);
   [NSAutoreleasePool _endThread: self];
 
+  if (_thread_dictionary != nil)
+    {
+      /*
+       * Try again to get rid of thread dictionary.
+       */
+      init_autorelease_thread_vars(&_autorelease_vars);
+      DESTROY(_thread_dictionary);
+      [NSAutoreleasePool _endThread: self];
+      if (_thread_dictionary != nil)
+	{
+	  init_autorelease_thread_vars(&_autorelease_vars);
+	  NSLog(@"Oops - leak - thread dictionary is %@", _thread_dictionary);
+	  [NSAutoreleasePool _endThread: self];
+	}
+    }
   NSDeallocateObject(self);
 }
 
@@ -395,7 +409,7 @@ gnustep_base_thread_callback()
  */
 - (NSMutableDictionary*) threadDictionary
 {
-  if (_thread_dictionary == nil && _deallocating == NO)
+  if (_thread_dictionary == nil)
     {
       _thread_dictionary = [NSMutableDictionary new];
     }

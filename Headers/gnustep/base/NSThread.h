@@ -44,7 +44,6 @@ typedef enum
   id			_arg;
   SEL			_selector;
   BOOL			_active;
-  BOOL			_deallocating;
 @public
   NSHandler		*_exception_handler;
   NSMutableDictionary	*_thread_dictionary;

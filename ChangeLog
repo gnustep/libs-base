@@ -1,3 +1,9 @@
+2001-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Revise scheme for deallocation of thread
+	dictionary ... keep it operating to avoid problems with stuff
+	trying to use it while deing deallocated.  Log memory leaks.
+	
 2001-03-16  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/Makefile.postamble (after-install): Removed old 
