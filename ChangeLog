@@ -1,3 +1,14 @@
+2004-06-05  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
+	* Source/Additions/GSObjCRuntime.m
+	(GSMethodList): Define new type.
+	(GSAllocMethodList, GSAppendMethodToList, GSRemoveMethodFromList)
+	(GSMethodListForSelector, GSMethodFromList)
+	(GSAddMethodList, GSRemoveMethodList): New functions.
+	* Testing/GNUmakefile
+	* Testing/gsbehavior.m: New tests.
+ 
 2004-06-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSDictionary.m: Make exceptions a little more informative.
@@ -7,7 +18,7 @@
 	* Source/GSString.m: New function to externalize a string.
 	implementations of init with format for concrete classes.
 
-2004-06-03  David Ayers  <d.ayers@inode.at>
+2004-06-04  David Ayers  <d.ayers@inode.at>
 
 	* Source/Additions/GSObjCRuntime.m (BDBGPrintf) New macro.
 	(GSObjCAddClassBehavior, GSObjCAddMethods): Use new macro.

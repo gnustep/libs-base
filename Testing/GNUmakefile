@@ -37,6 +37,7 @@ CHECKABLE_TOOLS = \
 		containers \
 		exported-strings \
 		fref \
+		gsbehavior \
 		gslock \
 		nsarchiver \
 		nsarray \
@@ -86,6 +87,7 @@ containers_OBJC_FILES = containers.m
 diningPhilosophers_OBJC_FILES = diningPhilosophers.m
 exported-strings_OBJC_FILES = exported-strings.m
 fref_OBJC_FILES = fref.m
+gsbehavior_OBJC_FILES = gsbehavior.m
 gslock_OBJC_FILES = gslock.m
 gstcpport-client_OBJC_FILES = gstcpport-client.m
 gstcpport-server_OBJC_FILES = gstcpport-server.m

@@ -816,6 +816,256 @@ GSGetClassMethodNotInhertited (Class class, SEL sel)
 }
 
 /* See header for documentation. */
+GSMethodList
+GSAllocMethodList (unsigned int count)
+{
+  GSMethodList list;
+  size_t size;
+
+  size = (sizeof (struct objc_method_list) +
+          sizeof (struct objc_method[count]));
+  list = objc_malloc (size);
+  memset(list, 0, size);
+
+  return list;
+}
+
+/* See header for documentation. */
+void
+GSAppendMethodToList (GSMethodList list,
+                      SEL sel,
+                      const char *types,
+                      IMP imp,
+                      BOOL isFree)
+{
+  unsigned int num;
+
+  num = (list->method_count)++;
+
+#ifdef GNU_RUNTIME
+  /* 
+     Deal with typed selectors: No matter what kind of selector we get
+     convert it into a c-string.  Cache that c-string incase the 
+     selector isn't found, then search for cooresponding typed selector.
+     If none is found use the cached name to register an new selector
+     with the cooresponding types.
+   */
+  sel = (SEL)GSNameFromSelector (sel);
+
+  if (isFree == NO)
+    {
+      const char *sel_save = (const char *)sel;
+
+      sel = sel_get_typed_uid (sel_save, types);
+      if (sel == 0)
+        {
+          sel = sel_register_typed_name (sel_save, types);
+        }
+    }
+#endif
+
+  list->method_list[num].method_name = sel;
+  list->method_list[num].method_types = types;
+  list->method_list[num].method_imp = imp;
+}
+
+/* See header for documentation. */
+BOOL
+GSRemoveMethodFromList (GSMethodList list,
+                        SEL sel,
+                        BOOL isFree)
+{
+  int i;
+
+#ifdef GNU_RUNTIME
+  if (isFree == YES)
+    {
+      sel = (SEL)GSNameFromSelector (sel);
+    }
+#else
+  /* Insure that we always use sel_eq on non GNU Runtimes.  */
+  isFree = NO;
+#endif
+
+  for (i = 0; i < list->method_count; i++)
+    {
+      SEL  method_name = list->method_list[i].method_name;
+
+      /* For the GNU runtime we have use strcmp instead of sel_eq
+	 for free standing method lists.  */
+      if ((isFree == YES && strcmp((char *)method_name, (char *)sel) == 0)
+          || (isFree == NO && sel_eq(method_name, sel)))
+        {
+	  /* Found the list.  Now fill up the gap.  */
+          for ((list->method_count)--; i < list->method_count; i++)
+            {
+              list->method_list[i].method_name
+                = list->method_list[i+1].method_name;
+              list->method_list[i].method_types
+                = list->method_list[i+1].method_types;
+              list->method_list[i].method_imp
+                = list->method_list[i+1].method_imp;
+            }
+
+	  /* Clear the last entry.  */
+          list->method_list[i].method_name = 0;
+          list->method_list[i].method_types = 0;
+          list->method_list[i].method_imp = 0;
+
+          return YES;
+        }
+    }
+  return NO;
+}
+
+/* See header for documentation. */
+GSMethodList
+GSMethodListForSelector(Class class,
+                        SEL selector,
+                        void **iterator,
+                        BOOL searchInstanceMethods)
+{
+  void *local_iterator = 0;
+
+  if (class == 0 || selector == 0)
+    {
+      return 0;
+    }
+
+  if (searchInstanceMethods == NO)
+    {
+      class = class->class_pointer;
+    }
+
+  if(sel_is_mapped(selector))
+    {
+      void **iterator_pointer;
+      GSMethodList method_list;
+
+      iterator_pointer = (iterator == 0 ? &local_iterator : iterator);
+      while((method_list = class_nextMethodList(class, iterator_pointer)))
+        {
+	  /* Search the method in the current list.  */
+	  if (GSMethodFromList(method_list, selector, NO) != 0)
+	    {
+	      return method_list;
+	    }
+        }
+    }
+
+  return 0;
+}
+
+/* See header for documentation. */
+GSMethod
+GSMethodFromList(GSMethodList list,
+                 SEL sel, 
+		 BOOL isFree)
+{
+  unsigned i;
+
+#ifdef GNU_RUNTIME
+  if (isFree)
+    {
+      sel = (SEL)GSNameFromSelector (sel);
+    }
+#else
+  isFree = NO;
+#endif
+
+  for(i = 0; i < list->method_count; ++i)
+    {
+      GSMethod method = &list->method_list[i];
+      SEL  method_name = method->method_name;
+
+      /* For the GNU runtime we have use strcmp instead of sel_eq
+	 for free standing method lists.  */
+      if ((isFree == YES && strcmp((char *)method_name, (char *)sel) == 0)
+          || (isFree == NO && sel_eq(method_name, sel)))
+	{
+	  return method;
+	}
+    }
+  return 0;
+}
+
+/* See header for documentation. */
+void
+GSAddMethodList(Class class,
+                GSMethodList list,
+                BOOL toInstanceMethods)
+{
+  if (class == 0 || list == 0)
+    {
+      return;
+    }
+
+  if (toInstanceMethods == NO)
+    {
+      class = class->class_pointer;
+    }
+
+  class_add_method_list(class, list);
+}
+
+/* See header for documentation. */
+void
+GSRemoveMethodList(Class class,
+                   GSMethodList list,
+                   BOOL fromInstanceMethods)
+{
+  if (class == 0 || list == 0)
+    {
+      return;
+    }
+
+  if (fromInstanceMethods == NO)
+    {
+      class = class->class_pointer;
+    }
+
+#ifdef NeXT_RUNTIME
+  class_removeMethods(class, list);
+#else
+  if (list == class->methods)
+    {
+      class->methods = list->method_next;
+      list->method_next = 0;
+    }
+  else
+    {
+      GSMethodList current_list;
+      for (current_list = class->methods;
+           current_list != 0;
+           current_list = current_list->method_next)
+        {
+          if (current_list->method_next == list)
+            {
+              int i;
+              current_list->method_next = list->method_next;
+              list->method_next = 0;
+
+              /*
+                 The list has become "free standing".
+                 Replace all selector references with selector names
+                 so the runtime can convert them again
+                 it the list gets reinserted.
+	      */
+              for (i = 0; i < list->method_count; i++)
+                {
+                  const char *name;
+
+                  name  = GSNameFromSelector(list->method_list[i].method_name);
+                  list->method_list[i].method_name = (SEL)name;
+                }
+            }
+        }
+    }
+#endif /* NeXT_RUNTIME */
+}
+
+
+/* See header for documentation. */
 GSIVar
 GSCGetInstanceVariableDefinition(Class class, const char *name)
 {
