@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <gnustep/base/SocketPort.h>
+#include <gnustep/base/TcpPort.h>
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Proxy.h>
 #include <gnustep/base/Coder.h>
