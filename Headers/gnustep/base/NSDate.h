@@ -1,8 +1,5 @@
 /* Interface for NSDate for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
-
-   Written by: Jeremy Bettis <jeremy@hksys.com>
-   Date: March 1995
+   Copyright (C) 1994 NeXT Computer, Inc.
 
    This file is part of the GNU Objective C Class Library.
 
@@ -28,9 +25,12 @@
 
 typedef double	NSTimeInterval;
 
+@class NSArray;
 @class NSCalendarDate;
+@class NSDictionary;
 @class NSString;
 @class NSTimeZone;
+@class NSTimeZoneDetail;
 
 @interface NSDate : NSObject <NSCopying>
 
@@ -77,6 +77,54 @@ typedef double	NSTimeInterval;
 - (NSDate*) earlierDate: (NSDate*)otherDate;
 - (BOOL) isEqual: (id)other;
 - (NSDate*) laterDate: (NSDate*)otherDate;
+
+@end
+
+@interface NSTimeZone : NSObject
+
+//Initializing the class
++ (void)initialize;
+
+//Creating and Initializing an NSTimeZone
++ (NSTimeZoneDetail *)defaultTimeZone;
++ (NSTimeZone *)localTimeZone;
++ (NSTimeZone *)timeZoneForSecondsFromGMT:(int)seconds;
++ (NSTimeZoneDetail *)timeZoneWithAbbreviation:(NSString *)abbreviation;  
++ (NSTimeZone *)timeZoneWithName:(NSString *)aTimeZoneName;
+- (NSTimeZoneDetail *)timeZoneDetailForDate:(NSDate *)date;
+
+//Managing Time Zones
++ (void)setDefaultTimeZone:(NSTimeZone *)aTimeZone;
+
+// Getting Time Zone Information
++ (NSDictionary *)abbreviationDictionary;
+- (NSString *)timeZoneName;
+
+//Getting Arrays of Time Zones
++ (NSArray *)timeZoneArray;
+- (NSArray *)timeZoneDetailArray;
+
+@end
+
+@interface NSTimeZone (NSCoding) <NSCoding>
+- (void)encodeWithCoder:(NSCoder *)aCoder;
+- (id)initWithCoder:(NSCoder *)aDecoder;
+@end
+
+@interface NSTimeZone (NSCopying) <NSCopying>
+- (id)copyWithZone:(NSZone *)zone;
+@end
+
+@interface NSTimeZoneDetail : NSTimeZone
+
+//Querying an NSTimeZoneDetail
+- (BOOL)isDaylightSavingTimeZone;
+- (NSString *)timeZoneAbbreviation;
+- (int)timeZoneSecondsFromGMT;
+
+// comparing
+- (BOOL)isEqual:anObject;
+- (unsigned int)hash;
 
 @end
 
