@@ -53,7 +53,7 @@
 		     &minor_version,
 		     &subminor_version,
 		     name, version];
-  if (got != 2)
+  if (got != 6)
     [NSException raise: CoderSignatureMalformedException
 		 format: @"Decoder found a malformed signature"];
 }
@@ -123,7 +123,7 @@
 	 Encoders, which start at 1. */
       [xref_2_object appendObject: [NSObject new]];
     }
-  [xref_2_object appendObject: anObj];
+  [xref_2_object appendObject: anObj]; // xxx but this will retain anObj.  NO.
   /* This return value should be the same as the index of anObj 
      in xref_2_object. */
   return ([xref_2_object count] - 1);
