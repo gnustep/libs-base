@@ -662,7 +662,14 @@ handle_printf_atsign (FILE *stream,
 - (void) getCharacters: (unichar*)buffer
 		 range: (NSRange)aRange
 {
-  int i;
+  unsigned	l = [self length];
+  unsigned	i;
+
+  if (aRange.location >= l)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (l - aRange.location))
+    [NSException raise:NSRangeException format:@"Invalid location+length"];
+
   for (i = 0; i < aRange.length; i++)
     {
       buffer[i] = [self characterAtIndex: aRange.location+i];
