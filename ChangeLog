@@ -1,5 +1,12 @@
 2001-04-19  Nicola Pero  <nicola@brainstorm.co.uk>
 
+	* Documentation/gsdoc/NSFunctions.gsdoc: Documented
+	GSDebugAllocation* functions.
+	* Documentation/gsdoc/NSRecursiveLock.gsdoc: Fixed syntax error.
+	* Documentation/gsdoc/*.html: Regenerated.
+	
+2001-04-19  Nicola Pero  <nicola@brainstorm.co.uk>
+
 	To help with debugging memory leaks, you can now ask to the
 	library to track all allocated instances of a certain class.
 	* Source/NSDebug.m (table_entry): Added fields to allow recording
