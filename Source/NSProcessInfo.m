@@ -152,7 +152,7 @@ static NSMutableSet	*_debug_set = nil;
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
 
-static void 
+void 
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
@@ -330,7 +330,9 @@ static char	**_gnu_noobjc_env;
       else if (c == EOF)
 	break;
     }
+#ifndef __FreeBSD__
   _gnu_noobjc_argc++;
+#endif
   /*
    * Now _gnu_noobcj_argc is the number of arguments;
    * allocate memory accordingly.

@@ -72,6 +72,7 @@ enum
 + (void) autorelease;
 + (void) release;
 + (id) retain;
++ (BOOL) respondsToSelector: (SEL)sel;
 @end
 
 @implementation	GSDistantObjectPlaceHolder
@@ -95,6 +96,11 @@ enum
     {
       distantObjectClass = [NSDistantObject class];
     }
+}
+
++ (BOOL) respondsToSelector: (SEL)sel
+{
+  return (IMP)class_get_instance_method(self, sel) != (IMP)0;
 }
 
 + (id) initWithCoder: (NSCoder*)aCoder
