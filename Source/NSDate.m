@@ -167,8 +167,11 @@ GSTimeNow(void)
 #endif /* __MINGW__ */
 }
 
-/* The implementation of NSDate. */
-
+/**
+ * NSDate is the abstract base class of a cluster of date classes.<br />
+ * An NSDate object encapsulates a constant date/time to a high
+ * resolution represented by the NSTimeInterval typedef.
+ */
 @implementation NSDate
 
 + (void) initialize
@@ -198,25 +201,83 @@ GSTimeNow(void)
     return NSAllocateObject(self, 0, z);
 }
 
+/**
+ * Returns the time interval between the current date and the
+ * reference date (1 January 2001, GMT).
+ */
 + (NSTimeInterval) timeIntervalSinceReferenceDate
 {
   return GSTimeNow();
 }
 
-// Allocation and initializing
-
+/**
+ * Returns an autoreleased instance representing the current date/time.
+ */
 + (id) date
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
 	initWithTimeIntervalSinceReferenceDate: GSTimeNow()]);
 }
 
+/**
+ * Returns an autoreleased instance representing the date and time given
+ * by string. The value of string may be a 'natural' specification as
+ * specified by the preferences in the user defaults database, allowing
+ * phrases like 'last tuesday'
+ */
 + (id) dateWithNaturalLanguageString: (NSString*)string
 {
   return [self dateWithNaturalLanguageString: string
 				      locale: nil];
 }
 
+/**
+ * <p>Returns an autoreleased instance representing the date and time given
+ * by string. The value of string may be a 'natural' specification as
+ * specified by the preferences in the user defaults database, allowing
+ * phrases like 'last tuesday'
+ * </p>
+ * The locale contains keys such as -
+ * <deflist>
+ *   <term>NSDateTimeOrdering</term>
+ *   <desc>Controls the use of ambiguous numbers. This is done as a
+ *   sequence of the letters D(ay), M(onth), Y(ear), and H(our).
+ *   YMDH means that the first number encountered is assumed to be a
+ *   year, the second a month, the third a day, and the last an hour.
+ *   </desc>
+ *   <term>NSEarlierTimeDesignations</term>
+ *   <desc>An array of strings for times in the past.<br />
+ *   Defaults are <em>ago</em>, <em>last</em>, <em>past</em>, <em>prior</em>
+ *   </desc>
+ *   <term>NSHourNameDesignations</term>
+ *   <desc>An array of arrays of strings identifying the time of day.
+ *   Each array has an hour as its first value, and one or more words
+ *   as subsequent values.<br />
+ *   Defaults are: (0, midnight), (10, mornint), (12, noon, lunch),
+ *   (14, afternoon), (19, dinner).
+ *   </desc>
+ *   <term>NSLaterTimeDesignations</term>
+ *   <desc>An array of strings for times in the future.<br />
+ *   Default is <em>next</em>
+ *   </desc>
+ *   <term>NSNextDayDesignations</term>
+ *   <desc>The day after today. Default is <em>tomorrow.</em>
+ *   </desc>
+ *   <term>NSNextNextDayDesignations</term>
+ *   <desc>The day after tomorrow. Default is <em>nextday.</em>
+ *   </desc>
+ *   <term>NSPriorDayDesignations</term>
+ *   <desc>The day before today. Default is <em>yesterday.</em>
+ *   </desc>
+ *   <term>NSThisDayDesignations</term>
+ *   <desc>Identifies the current day. Default is <em>today.</em>
+ *   </desc>
+ *   <term>NSYearMonthWeekDesignations</term>
+ *   <desc>An array giving the word for year, month, and week.<br />
+ *   Defaults are <em>year</em>, <em>month</em> and <em>week</em>.
+ *   </desc>
+ * </deflist>
+ */
 + (id) dateWithNaturalLanguageString: (NSString*)string
                               locale: (NSDictionary*)locale
 {
@@ -902,28 +963,49 @@ GSTimeNow(void)
     }
 }
 
+/**
+ * Returns an autoreleased instance with the date and time value given
+ * by the string using the ISO standard format YYYY-MM-DD HH:MM:SS +/-HHHMM
+ * (all the fields of which must be present).
+ */
 + (id) dateWithString: (NSString*)description
 {
   return AUTORELEASE([[self alloc] initWithString: description]);
 }
 
+/**
+ * Returns an autoreleased instance with the offset from the current
+ * date/time given by seconds (which may be fractional).
+ */
 + (id) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds
 {
   return AUTORELEASE([[self alloc] initWithTimeIntervalSinceNow: seconds]);
 }
 
+/**
+ * Returns an autoreleased instance with the offset from the unix system
+ * reference date of 1 January 1970, GMT.
+ */
 + (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds
 {
   return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
 		       -NSTimeIntervalSince1970 + seconds]);
 }
 
+/**
+ * Returns an autoreleased instance with the offset from the OpenStep
+ * reference date of 1 January 2001, GMT.
+ */
 + (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
   return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
     seconds]);
 }
 
+/**
+ * Returns an autoreleased instance with th date/time set in the far
+ * future.
+ */
 + (id) distantFuture
 {
   if (_distantFuture == nil)
@@ -931,6 +1013,10 @@ GSTimeNow(void)
   return _distantFuture;
 }
 
+/**
+ * Returns an autoreleased instance with th date/time set in the far
+ * past.
+ */
 + (id) distantPast
 {
   if (_distantPast == nil)
@@ -988,11 +1074,19 @@ GSTimeNow(void)
   return o;
 }
 
+/**
+ * Returns an instance initialised with the current date/time.
+ */
 - (id) init
 {
   return [self initWithTimeIntervalSinceReferenceDate: GSTimeNow()];
 }
 
+/**
+ * Returns an instance with the date and time value given
+ * by the string using the ISO standard format YYYY-MM-DD HH:MM:SS +/-HHHMM
+ * (all the fields of which must be present).
+ */
 - (id) initWithString: (NSString*)description
 {
   // Easiest to just have NSCalendarDate do the work for us
@@ -1012,6 +1106,9 @@ GSTimeNow(void)
     }
 }
 
+/**
+ * Returns an instance with the given offset from anotherDate.
+ */
 - (id) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
 		  sinceDate: (NSDate*)anotherDate
 {
@@ -1026,6 +1123,9 @@ GSTimeNow(void)
     otherTime(anotherDate) + secsToBeAdded];
 }
 
+/**
+ * Returns an instance with the offset from the current date/time.
+ */
 - (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded
 {
   // Get the current time, add the secs and init thyself
@@ -1033,20 +1133,31 @@ GSTimeNow(void)
     GSTimeNow() + secsToBeAdded];
 }
 
+/**
+ * Returns an instance with the offset from the unix system
+ * reference date of 1 January 1970, GMT.
+ */
 - (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds
 {
   return [self initWithTimeIntervalSinceReferenceDate:
     -NSTimeIntervalSince1970 + seconds];
 }
 
+/** <init />
+ * Returns an instance with the given offset from the OpenStep
+ * reference date of 1 January 2001, GMT.
+ */
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
   [self subclassResponsibility: _cmd];
   return self;
 }
 
-// Converting to NSCalendar
-
+/**
+ * Returns an autoreleased instance of the [NSCalendarDate] class whose
+ * date/time value is the same as that of the receiver, and which uses
+ * the formatString and timeZone specified.
+ */
 - (NSCalendarDate *) dateWithCalendarFormat: (NSString*)formatString
 				   timeZone: (NSTimeZone*)timeZone
 {
@@ -1057,8 +1168,10 @@ GSTimeNow(void)
   return AUTORELEASE(d);
 }
 
-// Representing dates
-
+/**
+ * Returns a string representation of the receiver formatted according
+ * to the default format string, time zone, and locale.
+ */
 - (NSString*) description
 {
   // Easiest to just have NSCalendarDate do the work for us
@@ -1070,6 +1183,10 @@ GSTimeNow(void)
   return s;
 }
 
+/**
+ * Returns a string representation of the receiver formatted according
+ * to the specified format string, time zone, and locale.
+ */
 - (NSString*) descriptionWithCalendarFormat: (NSString*)format
 				   timeZone: (NSTimeZone*)aTimeZone
 				     locale: (NSDictionary*)l
@@ -1092,6 +1209,10 @@ GSTimeNow(void)
   return s;
 }
 
+/**
+ * Returns a string representation of the receiver formatted according
+ * to the default format string and time zone, but using the given locale.
+ */
 - (NSString *) descriptionWithLocale: (NSDictionary *)locale
 {
   // Easiest to just have NSCalendarDate do the work for us
@@ -1103,8 +1224,10 @@ GSTimeNow(void)
   return s;
 }
 
-// Adding and getting intervals
-
+/**
+ * Returns an autoreleased NSDate instance whose value if offset from
+ * that of the receiver by seconds.
+ */
 - (id) addTimeInterval: (NSTimeInterval)seconds
 {
   /* xxx We need to check for overflow? */
@@ -1112,11 +1235,20 @@ GSTimeNow(void)
     otherTime(self) + seconds];
 }
 
+/**
+ * Returns the time interval between the receivers value and the
+ * unix system reference date of 1 January 1970, GMT.
+ */
 - (NSTimeInterval) timeIntervalSince1970
 {
   return otherTime(self) + NSTimeIntervalSince1970;
 }
 
+/**
+ * Returns the time interval between the receivers value and that of the
+ * otherDate argument.  If otherDate is earlier than the receiver, the
+ * returned value will be positive, if it is later it will be negative.
+ */
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
   if (otherDate == nil)
@@ -1127,19 +1259,32 @@ GSTimeNow(void)
   return otherTime(self) - otherTime(otherDate);
 }
 
+/**
+ * Returns the time interval between the receivers value and the
+ * current date/time.  If the receiver represents a date/time in
+ * the past this will be negative, if it is in the future the
+ * returned value will be positive.
+ */
 - (NSTimeInterval) timeIntervalSinceNow
 {
   return otherTime(self) - GSTimeNow();
 }
 
+/**
+ * Returns the time interval between the receivers value and the
+ * OpenStep reference date of 1 Jan 2001 GMT.
+ */
 - (NSTimeInterval) timeIntervalSinceReferenceDate
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
-// Comparing dates
-
+/**
+ * Returns NSOrderedDescending if the receiver is later than otherDate,
+ * Returns NSOrderedAscending if the receiver is earlier than otherDate,
+ * Otherwise, returns NSOrderedSame.
+ */
 - (NSComparisonResult) compare: (NSDate*)otherDate
 {
   if (otherDate == self)
@@ -1162,6 +1307,10 @@ GSTimeNow(void)
   return NSOrderedSame;
 }
 
+/**
+ * Returns the earlier of the receiver and otherDate.<br />
+ * If the two represent identical date/time values, returns the receiver.
+ */
 - (NSDate*) earlierDate: (NSDate*)otherDate
 {
   if (otherDate == nil)
@@ -1193,6 +1342,10 @@ GSTimeNow(void)
   return NO;
 }
 
+/**
+ * Returns the earlier of the receiver and otherDate.<br />
+ * If the two represent identical date/time values, returns the receiver.
+ */
 - (NSDate*) laterDate: (NSDate*)otherDate
 {
   if (otherDate == nil)
