@@ -1,5 +1,7 @@
 2001-04-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSData.m ([NSMutableDataMalloc
+	-replaceBytesInRange:withBytes:]): Check length, not capacity!
 	* Source/NSInvocation.m: _get_arg() indirection fix suggested by
 	Michael Scheibler.
 
