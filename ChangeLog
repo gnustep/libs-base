@@ -1,7 +1,8 @@
 2002-02-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile: Move xml and mime classes into an additional
-	library, and make base library depend on it.  EXPERIMENTAL.
+	library, and make base library depend on it.
+	EXPERIMENTAL - activate using 'make add=yes'
 
 2002-02-25  Richard Frith-Macdonald <rfm@gnu.org>
 

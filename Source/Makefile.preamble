@@ -67,7 +67,10 @@ ifeq ($(findstring darwin1, $(GNUSTEP_TARGET_OS)), darwin1)
 libgnustep-base_LIBRARIES_DEPEND_UPON += $(CONFIG_SYSTEM_LIBS) \
 	-flat_namespace
 endif
+
+ifeq ($(add),yes)
 libgnustep-base_LIBRARIES_DEPEND_UPON += -lgnustep-baseadd
+endif
 
 # Flags dealing with installing and uninstalling
 #
