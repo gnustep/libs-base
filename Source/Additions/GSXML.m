@@ -4399,6 +4399,8 @@ static void indentation(unsigned level, NSMutableString *str)
 
 
 
+#ifdef	HAVE_LIBXML
+
 /*
  * Implementation of categories to output objects for XMLRPC
  */
@@ -4730,8 +4732,6 @@ static void indentation(unsigned level, NSMutableString *str)
 @end
 
 
-
-#ifdef	HAVE_LIBXML
 
 /*
  * And now, the actual GSXMLRPC class.
