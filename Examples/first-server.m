@@ -1,7 +1,7 @@
 
 #include <gnustep/base/Connection.h>
 #include "first-server.h"
-#include <gnustep/base/String.h>
+#include <Foundation/NSString.h>
 #include <gnustep/base/RunLoop.h>
 #include <sys/file.h>
 

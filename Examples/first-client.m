@@ -2,7 +2,7 @@
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/Proxy.h>
 #include "first-server.h"
-#include <gnustep/base/String.h>
+#include <Foundation/NSString.h>
 
 int main(int argc, char *argv[])
 {
@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
       printf("Looking for connection named `firstserver' on host `%s'...\n",
 	     argv[2]);
       s = [Connection rootProxyAtName:@"firstserver" 
-		      onHost:[String stringWithCString:argv[2]]];
+		      onHost:[NSString stringWithCString:argv[2]]];
     }
   else
     {
