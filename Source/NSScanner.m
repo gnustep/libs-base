@@ -394,6 +394,24 @@ typedef struct {
       _scanLocation = saveScanLocation;
       return NO;
     }
+
+  if ((_scanLocation < myLength()) && (myCharacter(_scanLocation) == '0'))
+    {
+      _scanLocation++;
+      if (_scanLocation < myLength())
+	{
+	  switch (myCharacter(_scanLocation))
+	    {
+	      case 'x': 
+	      case 'X': 
+		_scanLocation++;
+		break;
+	      default:
+		_scanLocation--;
+	        break;
+	    }
+	}
+    }
   if ([self scanUnsignedInt_: value radix: 16 gotDigits: NO])
     return YES;
   _scanLocation = saveScanLocation;
