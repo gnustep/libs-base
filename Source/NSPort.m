@@ -34,7 +34,8 @@
 #include "Foundation/NSRunLoop.h"
 #include "Foundation/NSAutoreleasePool.h"
 
-@class	GSTcpPort;
+
+@class NSMessagePort;
 
 @implementation NSPort
 
@@ -60,13 +61,17 @@ Class	NSPort_concrete_class;
   if (self == [NSPort class])
     {
       NSPort_abstract_class = self;
-      NSPort_concrete_class = [GSTcpPort class];
+      NSPort_concrete_class = [NSSocketPort class];
+//      NSPort_concrete_class = [NSMessagePort class];
     }
 }
 
 + (NSPort*) port
 {
-  return AUTORELEASE([NSPort_concrete_class new]);
+  if (self == NSPort_abstract_class)
+    return AUTORELEASE([NSPort_concrete_class new]);
+  else
+    return AUTORELEASE([self new]);
 }
 
 + (NSPort*) portWithMachPort: (int)machPort
@@ -119,20 +124,13 @@ Class	NSPort_concrete_class;
  */
 - (void) invalidate
 {
-  NSAutoreleasePool	*arp;
+  CREATE_AUTORELEASE_POOL(arp);
 
-  [[NSPortNameServer systemDefaultPortNameServer] removePort: self];
   _is_valid = NO;
-  /*
-   * Use a local autorelease pool when invalidating so that we know that
-   * anything refering to this port during the invalidation process is
-   * released immediately.
-   */
-  arp = [NSAutoreleasePool new];
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSPortDidBecomeInvalidNotification
 		  object: self];
-  [arp release];
+  RELEASE(arp);
 }
 
 - (BOOL) isValid

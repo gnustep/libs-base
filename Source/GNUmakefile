@@ -194,7 +194,6 @@ NSObject.m \
 NSPage.m \
 NSPipe.m \
 NSPort.m \
-GSTcpPort.m \
 NSPortCoder.m \
 NSPortMessage.m \
 NSPortNameServer.m \
@@ -206,6 +205,8 @@ NSRunLoop.m \
 NSScanner.m \
 NSSerializer.m \
 NSSet.m \
+NSSocketPort.m \
+NSSocketPortNameServer.m \
 NSString.m \
 NSTask.m \
 NSThread.m \
@@ -221,6 +222,12 @@ NSValue.m \
 NSZone.m \
 externs.m \
 objc-load.m
+
+ifneq ($(GNUSTEP_TARGET_OS), mingw32)
+BASE_MFILES += \
+NSMessagePort.m \
+NSMessagePortNameServer.m
+endif
 
 ifeq ($(WITH_FFI),libffi)
 GNU_MFILES += cifframe.m
