@@ -31,9 +31,7 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include ../Version
 include ../config.mak
 
-srcdir = .
 PACKAGE_NAME = gnustep-base
-LIBRARY_VAR = GNUSTEP_BASE
 
 # The library to be compiled
 
