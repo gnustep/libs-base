@@ -237,3 +237,6 @@ __objc_class_name_GSXMLDummy
 __objc_class_name_GSXMLNamespace
 __objc_class_name_GSXMLNode
 __objc_class_name_GSXMLParser
+__objc_class_name_GCObject
+__objc_class_name_GCArray
+__objc_class_name_GCDictionary

@@ -1,3 +1,7 @@
+2002-11-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/libgnustep-base.def: Add garbage collecting classes.
+
 2002-11-20  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSBundle.m (+preferredLocalizationsFromArray:forPreferences:): 
