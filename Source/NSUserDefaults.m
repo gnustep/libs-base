@@ -696,13 +696,13 @@ static NSMutableString   *processName = nil;
 	val = [enumerator nextObject];
 	if (!val)
 	  {            // No more args
-	    [argDict setObject:nil forKey:key];
+	    [argDict setObject:@"" forKey:key];		// arg is empty.
 	    done = YES;
 	    continue;
 	  }
 	else if ([val hasPrefix:@"-"])
 	  {  // Yet another argument
-	    [argDict setObject:nil forKey:key];
+	    [argDict setObject:@"" forKey:key];		// arg is empty.
 	    key = val;
 	    continue;
 	  }
