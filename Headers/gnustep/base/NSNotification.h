@@ -95,4 +95,6 @@
 		     userInfo: (NSDictionary*)user_info;
 @end
 
+#include <gnustep/base/NotificationDispatcher.h>
+
 #endif /*__NSNotification_h_GNUSTEP_BASE_INCLUDE */
