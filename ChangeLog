@@ -1,5 +1,16 @@
 2004-06-22  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
+	* Tools/AGSHtml.m: Change default font for HTML main content to
+	"palatino linotype,times,serif" (now provides backups).
+	* Tools/AGSOutput.m: Improve GSdoc comments.
+	* Tools/AGSParser.m: Add GSdoc comments.
+	* Tools/autogsdoc.m: Change instanceVarsAtEnd option to default to
+	YES as stated in the documentation.
+	* Tools/gsdoc.gsdoc: Small wording changes.
+	* Tools/gdnc.m: Fix typo in GSdoc comments.
+
+2004-06-22  Adrian Robert  <arobert@cogsci.ucsd.edu>
+
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h: Fix typos in GSdoc
 	that were causing errors when autogsdoc is run.
 	* Headers/Foundation/*.h
