@@ -119,7 +119,7 @@ if test $NeXTCC = 0; then
       if test $HAVE_LIBOBJC = 0; then
         AC_MSG_ERROR(Couldn't find GCC Objective C runtime library, libobjc.a)
       else
-        LIBS="$LIBS -lobjc"
+        LIBS="-lobjc $LIBS"
       fi
     fi
 
