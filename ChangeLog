@@ -1,3 +1,9 @@
+2003-02-04  Adam Fedor  <fedor@Eldorado.local.>
+
+	* Headers/gnustep/base/.cvsignore: Don't include config.h.in
+	* Documentation/.cvsignore: Don't include *texi
+	* Source/Additions/GSXML.h: Fix up GSXLM.h include on MacOSX
+
 2003-02-02  Stephane Corthesy <stephane@sente.ch>
 	    Adam Fedor  <fedor@gnu.org>
 

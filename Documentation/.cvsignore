@@ -1,15 +1,6 @@
 =*
 version.tmpl.texi
 version.texi
-gnustep-base.texi
-gnustep-zones.texi
-announce.texi
-coding-standards.texi
-install.texi
-news.texi
-readme.texi
-status.texi
-todo.texi
 gnustep-base.info
 gnustep-base_toc.html
 gnustep-base_1.html
