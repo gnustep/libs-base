@@ -1,0 +1,431 @@
+@c -*-texinfo-*-
+@chapter Status Report
+
+@ifset TEXT-ONLY
+@include version.tmpl.texi
+@end ifset
+
+Please send corrections to @email{fedor@@gnu.org}.
+
+@emph{Key:}
+
+@table @strong
+@item [10]
+Complete and tested.
+@item [8]
+Missing a few non-core methods, definitely usable.
+@item [6]
+Missing several methods, but core is there, usable.
+@item [4]
+Begun, but missing core functionality, not usable.
+@item [2]
+Skeleton.
+@item [0]
+Nothing there.
+@item [?]
+Unknown status.
+@end table
+
+@section Classes
+
+(Many classes do not raise the proper NSExceptions yet.)
+
+@table @strong
+@item NSArchiver::			[8]
+	Doesn't yet call -awakeAfterUsingCoder:.
+@item NSArray::			[9]
+@item NSAssertionHandler::		[9]
+@item NSAutoreleasePool::		[9]
+	But not exception- safe
+@item NSBundle::			[8]
+@item NSCalendarDate::		[7]
+@item NSCharacterSet::		[8]
+	decomposableCharacterSet and illegalCharacter set missing
+@item NSCoder::			[8]
+	Missing class name substitution methods.
+@item NSConditionLock::		[8]
+@item NSConnection::		[7]
+	GNU Connection, however, needs:
+        @itemize @bullet
+	 @item to handle retain/release/dealloc properly
+	 @item to be integrated with NSInvocation
+	 @item to incorporate futzing with low-level TCP-backend for better speed
+	 @item to have UDP-backend work
+	 @item to cache ConnectedCoder's for better speed
+	 @item Thread-safety overhaul, this is major
+        @end itemize
+@item NSCountedSet::		[8]
+@item NSData::			[8]
+@item NSDate::			[8]
+@item NSDeserializer::		[7]
+@item NSDictionary::		[8]
+@item NSDistantObject::		[7]
+@item NSEnumerator::		[9]
+@item NSException::			[9]
+	But this needs integration with new, better
+@item NSInvocation::		[3]
+@item NSLock::			[8]
+@item NSMethodSignature::		[4]
+@item NSMutableArray::		[8]
+@item NSMutableCharacterSet::	[7]
+@item NSMutableData::		[8]
+@item NSMutableDictionary::		[8]
+@item NSMutableSet::		[8]
+@item NSMutableString::		[8]
+@item NSNotification::		[9]
+@item NSNotificationCenter::	[9]
+@item NSNotificationQueue::		[6]
+	Needs integration with NSRunLoop, and efficiency improvements
+@item NSNumber::			[9]
+@item NSObject::			[10]
+@item NSProcessInfo::		[9]
+@item NSProxy::			[7]
+@item NSRecursiveLock::		[8]
+@item NSRunLoop::			[8]
+	NSTimer's not yet working, but everything else should be
+@item NSScanner::			[8]
+@item NSSerializer::		[7]
+@item NSSet::			[8]
+@item NSString::			[8]
+	Careful, relationship with GNU String is tricky; this could
+	 also use fixing.
+@item NSThread::			[8]
+@item NSTimeZone::			[8]
+@item NSTimeZoneDetail::		[8]
+@item NSTimer::			[6]
+	Working out bugs with returning doubles.
+@item NSUnarchiver::		[8]
+	See NSArchvier
+@item NSUserDefaults::		[8]
+@item NSValue::			[9]
+@end table
+
+@section Cross-Class Projects, or GNU-related foundations for GNUstep classes
+
+@table @strong
+@item Finish subclasses of Port class: Ports based on UDP, pflocal
+  sockets, and shared memory.
+@item String classes will get some organizational work.
+@end table
+
+
+@section Protocols
+
+@table @strong
+@item NSCoding::				[9]
+@item NSCopying::				[9]
+@item NSLocking::				[9]
+@item NSMutableCopying::			[9]
+@item NSObjCTypeSerializationCallBack::	[9]
+@item NSObject (Protocol)::			[9]
+@end table
+
+@section Functions
+
+@subsection Memory Allocation Functions
+
+@table @strong
+@item [8] Get the Virtual Memory Page Size
+@example
+`unsigned NSPageSize (void)'
+`unsigned NSLogPageSize (void)'
+`unsigned NSRoundDownToMultipleOfPageSize (unsigned BYTECOUNT)'
+`unsigned NSRoundUpToMultipleOfPageSize (unsigned BYTECOUNT)'
+@end example
+
+@item [2] Get the Amount of Real Memory
+`unsigned NSRealMemoryAvailable (void)'
+
+@item [8] Allocate or Free Virtual Memory
+@example
+`void *NSAllocateMemoryPages (unsigned BYTECOUNT)'
+`void NSDeallocateMemoryPages (void *POINTER, unsigned BYTECOUNT)'
+`void NSCopyMemoryPages (const void *SOURCE, void *DESTINATION, unsigned BYTECOUNT)'
+@end example
+
+@item [8] Child and Merge Zones
+@example
+void NSMergeZone(NSZone *zonep)
+NSZone *NSCreateChildZone(NSZone *parentZone, size_t startSize, size_t granularity, int canFree)
+@end example
+
+@item [9] Get a Zone
+@example
+`NSZone *NSCreateZone (unsigned STARTSIZE, unsigned GRANULARITY, BOOL CANFREE)'
+`NSZone *NSDefaultMallocZone (void)'
+`NSZone *NSZoneFromPointer (void *POINTER)'
+@end example
+
+@item [10] Allocate or Free Memory in a Zone
+@example
+`void *NSZoneMalloc (NSZone *ZONE,'
+`void *NSZoneCalloc (NSZone *ZONE, unsigned NUMELEMS, unsigned NUMBYTES)'
+`void *NSZoneRealloc (NSZone *ZONE, void *POINTER, unsigned SIZE)'
+`void NSRecycleZone (NSZone *ZONE)'
+`void NSZoneFree (NSZone *ZONE, void *POINTER)'
+@end example
+
+@item [9] Name a Zone
+@example
+But the function names are wrong
+`void NSSetZoneName (NSZone *ZONE, NSString *name)'
+`NSString *NSZoneName (NSZone *ZONE)'
+@end example
+@end table
+
+@subsection Object Allocation Functions
+
+@table @strong
+@item [10] Allocate or Free an Object
+@example
+`NSObject *NSAllocateObject (Class ACLASS, unsigned EXTRABYTES, NSZone *ZONE)'
+`NSObject *NSCopyObject(NSObject *ANOBJECT, unsigned EXTRABYTES, NSZone *ZONE)'
+`void NSDeallocateObject (NSObject *ANOBJECT)'
+@end example
+
+@item [9] Decide Whether to Retain an Object
+`BOOL NSShouldRetainWithZone (NSObject *ANOBJECT, NSZone *REQUESTEDZONE)'
+
+@item [9] Modify the Number of References to an Object
+@example
+`BOOL NSDecrementExtraRefCountWasZero(id ANOBJECT)'
+`void NSIncrementExtraRefCount(id ANOBJECT)'
+@end example
+@end table
+
+@subsection Error-Handling Functions
+
+@table @strong
+@item [9] Change the Top-level Error Handler
+@example
+``NSUncaughtException'Handler *`NSGetUncaughtException'Handler(void)'
+`void `NSSetUncaughtException'Handler(`NSUncaughtException'Handler *HANDLER)'
+@end example
+
+@item [9] Macros to Handle an Exception
+@example
+`NS_DURING'
+`NS_ENDHANDLER'
+`NS_HANDLER'
+`NS_VALUERETURN(VALUE, TYPE)'
+`NS_VOIDRETURN'
+@end example
+
+@item [9] Call the Assertion Handler from the Body of an Objective-C Method
+@example
+`NSAssert(BOOL CONDITION, NSString *DESCRIPTION)'
+`NSAssert1(BOOL CONDITION, NSString *DESCRIPTION, ARG)'
+`NSAssert2(BOOL CONDITION, NSString *DESCRIPTION, ARG1, ARG2)'
+`NSAssert3(BOOL CONDITION, NSString *DESCRIPTION, ARG1, ARG2, ARG3)'
+`NSAssert4(BOOL CONDITION, NSString *DESCRIPTION, ARG1, ARG2, ARG3, ARG4)'
+`NSAssert5(BOOL CONDITION, NSString *DESCRIPTION, ARG1, ARG2, ARG3, ARG4, ARG5)'
+@end example
+
+@item [9] Call the Assertion Handler from the Body of a C Function
+@example
+`NSCAssert(BOOL CONDITION, NSString *DESCRIPTION)'
+`NSCAssert1(BOOL CONDITION, NSString *DESCRIPTION, ARG)'
+`NSCAssert2(BOOL CONDITION, NSString *DESCRIPTION, ARG1, ARG2)'
+`NSCAssert3(BOOL CONDITION, NSString *DESCRIPTION, ARG1, ARG2, ARG3)'
+`NSCAssert4(BOOL CONDITION, NSString *DESCRIPTION, arg1, ARG2, ARG3, ARG4)'
+`NSCAssert5(BOOL CONDITION, NSString *DESCRIPTION, ARG1, ARG2, ARG3, ARG4, ARG5)'
+@end example
+
+@item [9] Validate a Parameter
+@example
+`NSParameterAssert(BOOL CONDITION)'
+`NSCParameterAssert(BOOL CONDITION)'
+@end example
+@end table
+
+@subsection Geometric Functions
+
+@table @strong
+@item [10] Create Basic Structures
+@example
+`NSPoint NSMakePoint(float X, float Y)'
+`NSSize NSMakeSize(float W, float H)'
+`NSRect NSMakeRect(float X, float Y, float W, float H)'
+`NSRange NSMakeRange(unsigned int LOCATION, unsigned int LENGTH)'
+@end example
+
+@item [10] Get a Rectangle's Coordinates
+@example
+`float NSMaxX(NSRect ARECT)'
+`float NSMaxY(NSRect ARECT)'
+`float NSMidX(NSRect ARECT)'
+`float NSMidY(NSRect ARECT)'
+`float NSMinX(NSRect ARECT)'
+`float NSMinY(NSRect ARECT)'
+`float NSWidth(NSRect ARECT)'
+`float NSHeight(NSRect ARECT)'
+@end example
+
+@item [10] Modify a Copy of a Rectangle
+@example
+`NSRect NSInsetRect(NSRect ARECT, float DX, float DY)'
+`NSRect NSOffsetRect(NSRect ARECT, float DX, float DY)'
+`void NSDivideRect(NSRect INRECT, NSRect *SLICE, NSRect *REMAINDER, float AMOUNT, NSRectEdge EDGE)'
+`NSRect NSIntegralRect(NSRect ARECT)'
+@end example
+
+@item [10] Compute a Third Rectangle from Two Rectangles
+@example
+`NSRect NSUnionRect(NSRect ARECT, NSRect BRECT)'
+`NSRect NSIntersectionRect(NSRect ARECT, NSRect BRECT)'
+@end example
+
+@item [10] Test Geometric Relationships
+@example
+`BOOL NSEqualRects(NSRect ARECT, NSRect BRECT)'
+`BOOL NSEqualSizes(NSSize ASIZE, NSSize BSIZE)'
+`BOOL NSEqualPoints(NSPoint APOINT, NSPoint BPOINT)'
+`BOOL NSIsEmptyRect(NSRect ARECT)'
+`BOOL NSMouseInRect(NSPoint APOINT, NSRect ARECT, BOOL FLIPPED)'
+`BOOL NSPointInRect(NSPoint APOINT, NSRect ARECT)'
+`BOOL NSContainsRect(NSRect ARECT, NSRect BRECT)'
+@end example
+
+@item [10] Get a String Representation
+@example
+`NSString *NSStringFromPoint(NSPoint APOINT)'
+`NSString *NSStringFromRect(NSRect ARECT)'
+`NSString *NSStringFromSize(NSSize ASIZE)'
+@end example
+
+@end table
+
+@subsection Range Functions
+
+@table @strong
+@item [9] Query a Range
+@example
+`BOOL NSEqualRanges(NSRange RANGE1, NSRange RANGE2)'
+`unsigned NSMaxRange(NSRange RANGE)'
+`BOOL NSLocationInRange(unsigned LOCATION, NSRange RANGE)'
+@end example
+
+@item [9] Compute a Range from Two Other Ranges
+@example
+`NSRange NSUnionRange(NSRange RANGE1, NSRange RANGE2)'
+`NSRange NSIntersectionRange(NSRange RANGE1, NSRange RANGE2)'
+@end example
+
+@item [9] Get a String Representation
+`NSString *NSStringFromRange(NSRange RANGE)'
+@end table
+
+@subsection Hash Table Functions
+
+@table @strong
+@item [8]
+@example
+
+Create a Table
+`NSHashTable * NSCreateHashTable(NSHashTableCallBacks CALLBACKS, unsigned CAPACITY)'
+`NSHashTable * NSCreateHashTableWithZone(NSHashTableCallBacks CALLBACKS, unsigned CAPACITY, NSZone * ZONE)'
+`NSHashTable * NSCopyHashTableWithZone(NSHashTable * TABLE, NSZone * ZONE)'
+
+Free a Table
+`void NSFreeHashTable(NSHashTable * TABLE)'
+`void NSResetHashTable(NSHashTable * TABLE)'
+
+Compare Two Tables
+`BOOL NSCompareHashTables(NSHashTable * TABLE1, NSHashTable * TABLE2)'
+
+Get the Number of Items
+`unsigned NSCountHashTable(NSHashTable * TABLE)'
+     Returns the number of elements in TABLE.
+
+Retrieve Items
+`void * NSHashGet(NSHashTable * TABLE, const void * POINTER)'
+`NSArray * NSAllHashTableObjects(NSHashTable * TABLE)'
+`NSHashEnumerator NSEnumerateHashTable(NSHashTable * TABLE)'
+`void * NSNextHashEnumeratorItem(NSHashEnumerator * ENUMERATOR)'
+
+Add or Remove an Item
+`void NSHashInsert(NSHashTable * TABLE, const void * POINTER)'
+`void NSHashInsertKnownAbsent(NSHashTable * TABLE, const void * POINTER)'
+`void * NSHashInsertIfAbsent(NSHashTable * TABLE, const void * POINTER)'
+`void NSHashRemove(NSHashTable * TABLE, const void * POINTER)'
+
+Get a String Representation
+`NSString * NSStringFromHashTable(NSHashTable * TABLE)'
+@end example
+@end table
+
+@subsection Map Table Functions
+
+@table @strong
+@item [8]
+@example
+
+Create a Table
+`NSMapTable * NSCreateMapTable(NSMapTableKeyCallBacks KEYCALLBACKS, NSMapTableValueCallBacks VALUECALLBACKS, unsigned CAPACITY)'
+`NSMapTable * NSCreateMapTableWithZone(NSMapTableKeyCallBacks KEYCALLBACKS, NSMapTableValueCallBacks VALUECALLBACKS, unsigned CAPACITY,'
+`NSMapTable * NSCopyMapTableWithZone(NSMapTable * TABLE, NSZone * ZONE)'
+
+Free a Table
+`void NSFreeMapTable(NSMapTable * TABLE)'
+`void NSResetMapTable(NSMapTable * TABLE)'
+
+Compare Two Tables:
+`BOOL NSCompareMapTables(NSMapTable * TABLE1, NSMapTable * TABLE2)'
+
+Get the Number of Items
+`unsigned NSCountMapTable(NSMapTable * TABLE)'
+
+Retrieve Items
+`BOOL NSMapMember(NSMapTable * TABLE, const void * KEY, void ** ORIGINALKEY, void ** VALUE)'
+`void * NSMapGet(NSMapTable * TABLE,'
+`NSMapEnumerator NSEnumerateMapTable(NSMapTable * TABLE)'
+`BOOL NSNextMapEnumeratorPair(NSMapEnumerator * ENUMERATOR, void ** KEY, void ** VALUE)'
+`NSArray * NSAllMapTableKeys(NSMapTable * TABLE)'
+`NSArray * NSAllMapTableValues(NSMapTable * TABLE)'
+
+Add or Remove an Item
+`void NSMapInsert(NSMapTable * TABLE, const void * KEY, const void * VALUE)'
+`void * NSMapInsertIfAbsent(NSMapTable * TABLE, const void * KEY, const void * VALUE)'
+`void NSMapInsertKnownAbsent(NSMapTable * TABLE, const void * KEY, const void * VALUE)'
+`void NSMapRemove(NSMapTable * TABLE,'
+`NSString *NSStringFromMapTable(NSMapTable *TABLE)'
+@end example
+@end table
+
+@subsection Miscellaneous Functions
+
+@table @strong
+@item [7] Get Information about a User
+@example
+`NSString *NSUserName(void)'
+`NSString *NSHomeDirectory(void)'
+`NSString *NSHomeDirectoryForUser(NSString *USERNAME)'
+@end example
+
+@item [9] Log an Error Message
+@example
+`void NSLog(NSString *format,...'
+`void NSLogv(NSString * FORMAT, va_list ARGS)'
+@end example
+
+@item [8] Get Localized Versions of Strings
+@example
+`NSString * NSLocalizedString(NSString * KEY, NSString * COMMENT)'
+`NSString * NSLocalizedStringFromTable(NSString * KEY, NSString * TABLENAME, NSString * COMMENT)'
+`NSString * NSLocalizedStringFromTableInBundle(NSString * KEY, NSString * TABLENAME, NSBundle * ABUNDLE, NSString * COMMENT)'
+@end example
+
+@item [9] Convert to and from a String
+@example
+`Class NSClassFromString(NSString *ACLASSNAME)'
+`SEL NSSelectorFromString(NSString *ASELECTORNAME)'
+`NSString *NSStringFromClass(Class ACLASS)'
+`NSString *NSStringFromSelector(SEL ASELECTOR)'
+@end example
+
+@item [0] Compose a Message To Be Sent Later to an Object
+@example
+`NSInvocation *NS_INVOCATION(Class ACLASS, INSTANCEMESSAGE)'
+`NSInvocation *NS_MESSAGE(id ANOBJECT, INSTANCEMESSAGE)'
+@end example
+@end table
