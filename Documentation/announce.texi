@@ -8,16 +8,10 @@ available.
 
 @section What is the Gnustep Base Library?
 
-It is a library of general-purpose, non-graphical Objective C objects
-designed in the Smalltalk tradition.  It includes collection objects for
-maintaining groups of objects and C types, streams for I/O to various
-destinations, coders for formating objects and C types to streams, ports
-for network packet transmission, distributed objects (remote object
-messaging), pseudo-random number generators, character string classes,
-and time handling facilities.
+@include base-desc.texi
 
-The library also includes the foundation classes for the GNUStep
-project.
+There is more information available at the Gnustep Base Library homepage
+at @samp{http://www.cs.rochester.edu/u/mccallum/gnustep-base}.
 
 @ignore
 So that developers of non-free, commercial programs can use the library,
