@@ -144,6 +144,11 @@ static Class NSUnarchiver_concrete_class;
 
 // Initializing an unarchiver
 
++ allocWithZone:(NSZone *)zone
+{
+  return NSAllocateObject([self _concreteClass], 0, zone);
+}
+
 - (id) initForReadingWithData: (NSData*)data
 {
   [self subclassResponsibility:_cmd];
