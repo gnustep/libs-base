@@ -39,7 +39,7 @@
 #define NSIG    32
 #endif
 
-static int	is_daemon = 0;		/* Currently running as daemon.	 */
+static BOOL	is_daemon = NO;		/* Currently running as daemon.	 */
 static char	ebuf[2048];
 
 #ifdef HAVE_SYSLOG
@@ -1000,6 +1000,7 @@ main(int argc, char** argv, char** env)
   BOOL			subtask = YES;
   BOOL			debugging = NO;
   NSProcessInfo		*pInfo;
+  NSMutableArray	*args;
   CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
@@ -1007,9 +1008,30 @@ main(int argc, char** argv, char** env)
 #endif
   [NSObject enableDoubleReleaseCheck: YES];
   pInfo = [NSProcessInfo processInfo];
-  if ([[pInfo arguments] containsObject: @"-f"] == YES)
+  args = AUTORELEASE([[pInfo arguments] mutableCopy]);
+
+  if ([[pInfo arguments] containsObject: @"--help"] == YES)
+    {
+      printf("gdnc\n\n");
+      printf("GNU Distributed Notification Center\n");
+      printf("--help\tfor help\n");
+      printf("--no-fork\tavoid fork() to make debugging easy\n");
+      printf("--verbose\tMore verbose debug output\n");
+      exit(EXIT_SUCCESS);
+    }
+  if ([[pInfo arguments] containsObject: @"--daemon"] == YES)
     {
       subtask = NO;
+      is_daemon = YES;
+    }
+  if ([[pInfo arguments] containsObject: @"-f"] == YES
+    || [[pInfo arguments] containsObject: @"--no-fork"] == YES)
+    {
+      subtask = NO;
+    }
+  if ([[pInfo arguments] containsObject: @"--verbose"] == YES)
+    {
+      debugging = YES;
     }
   if ([[NSUserDefaults standardUserDefaults] boolForKey: @"debug"] == YES)
     {
@@ -1020,14 +1042,12 @@ main(int argc, char** argv, char** env)
   if (subtask)
     {
       NSFileHandle	*null;
-      NSMutableArray	*args;
       NSTask		*t;
 
       t = [NSTask new];
       NS_DURING
 	{
-	  args = [[pInfo arguments] mutableCopy];
-	  [args addObject: @"-f"];
+	  [args addObject: @"--daemon"];
 	  [t setLaunchPath: [[NSBundle mainBundle] executablePath]];
 	  [t setArguments: args];
 	  [t setEnvironment: [pInfo environment]];
@@ -1087,8 +1107,6 @@ main(int argc, char** argv, char** env)
 	[[NSFileHandle fileHandleWithStandardError] closeFile];
       }
 #endif
-
-    is_daemon = YES;
 
     RELEASE(pool);
   }
