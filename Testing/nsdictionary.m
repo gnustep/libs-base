@@ -47,7 +47,7 @@ main(int argc, char** argv, char** envp)
     printf("%s ", [b cString]);
   printf("\n");
 
-  behavior_set_debug(0);
+  //behavior_set_debug(0);
 
   objects = [NSArray arrayWithObjects:
 		     @"vache", @"poisson", @"cheval", @"poulet", nil];

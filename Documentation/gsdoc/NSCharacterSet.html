@@ -56,6 +56,12 @@
 <h3><a name ="method-1">characterSetWithBitmapRepresentation:</a></h3>
 + (NSCharacterSet*) <b>characterSetWithBitmapRepresentation:</b> (NSData*)data;<br>
 
+            <p>
+
+              Returns a character set containing characters as encoded in the
+              <em>data</em> object.
+            </p>
+
           
  <hr>
 <h3><a name ="method-2">characterSetWithCharactersInString:</a></h3>
@@ -81,15 +87,33 @@
 <h3><a name ="method-6">decimalDigitCharacterSet</a></h3>
 + (NSCharacterSet*) <b>decimalDigitCharacterSet</b>;<br>
 
+            <p>
+
+              Returns a character set containing characters that represent
+              the decimal digits 0 through 9.
+            </p>
+
           
  <hr>
 <h3><a name ="method-7">decomposableCharacterSet</a></h3>
 + (NSCharacterSet*) <b>decomposableCharacterSet</b>;<br>
 
+            <p>
+
+              Returns a character set containing individual charactars that
+              can be represented also by a composed character sequence.
+            </p>
+
           
  <hr>
 <h3><a name ="method-8">illegalCharacterSet</a></h3>
 + (NSCharacterSet*) <b>illegalCharacterSet</b>;<br>
+
+            <p>
+
+              Returns a character set containing unassigned (illegal)
+              character values.
+            </p>
 
           
  <hr>
@@ -100,6 +124,13 @@
  <hr>
 <h3><a name ="method-10">lowercaseLetterCharacterSet</a></h3>
 + (NSCharacterSet*) <b>lowercaseLetterCharacterSet</b>;<br>
+
+            <p>
+
+              Returns a character set that contains the lowercase characters.
+              This set does not include caseless characters, only those that
+              have corresponding characters in uppercase and/or titlecase.
+            </p>
 
           
  <hr>
@@ -116,15 +147,33 @@
 <h3><a name ="method-13">uppercaseLetterCharacterSet</a></h3>
 + (NSCharacterSet*) <b>uppercaseLetterCharacterSet</b>;<br>
 
+            <p>
+
+              Returns a character set that contains the uppercase characters.
+              This set does not include caseless characters, only those that
+              have corresponding characters in lowercase and/or titlecase.
+            </p>
+
           
  <hr>
 <h3><a name ="method-14">whitespaceAndNewlineCharacterSet</a></h3>
 + (NSCharacterSet*) <b>whitespaceAndNewlineCharacterSet</b>;<br>
 
+            <p>
+
+              Returns a character set that contains the whitespace characters,
+              plus the newline characters, values 0x000A and 0x000D.
+            </p>
+
           
  <hr>
 <h3><a name ="method-15">whitespaceCharacterSet</a></h3>
 + (NSCharacterSet*) <b>whitespaceCharacterSet</b>;<br>
+
+            <p>
+
+              Returns a character set that contains the whitespace characters.
+            </p>
 
           
  <hr>
@@ -132,15 +181,33 @@
 <h3><a name ="method-16">bitmapRepresentation</a></h3>
 - (NSData*) <b>bitmapRepresentation</b>;<br>
 
+            <p>
+
+              Returns a bitmap representation of the receiver's character set
+              suitable for archiving or writing to a file, in an NSData object.
+            </p>
+
           
  <hr>
 <h3><a name ="method-17">characterIsMember:</a></h3>
 - (BOOL) <b>characterIsMember:</b> (unichar)aCharacter;<br>
 
+            <p>
+
+              Returns YES if the receiver contains <em>aCharacter</em>, NO if
+              it does not.
+            </p>
+
           
  <hr>
 <h3><a name ="method-18">invertedSet</a></h3>
 - (NSCharacterSet*) <b>invertedSet</b>;<br>
+
+            <p>
+
+              Returns a character set containing only characters that the
+              receiver does not contain.
+            </p>
 
           
  <hr>

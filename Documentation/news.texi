@@ -7,11 +7,24 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{1.0.0}
+
+@itemize @bullet
+@item Fix parsing of arguments for new linux kernels.
+@item File manager and other fixes for mingw
+@item Fix alignment issues on CPUs that require it.
+@item Update unicode support and fixes
+@end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{0.9.1}
 
 @itemize @bullet
 @item New MacOSX compatible files for NSCalendarDate, NSTimeZone
-@item NSUserDefaults noew uses NSLanguages not Languages
+@item NSUserDefaults now uses NSLanguages not Languages
 @item Various improvements for Windows platforms
 @item NSCharacterSets updated to v3.0.1 of Unicode data.
 @item Added some gettext compatible localization macros.
@@ -25,10 +38,6 @@ The currently released version of the library is
 @item NSDate pass dates over DO bycopy unless explicit byref.
 @item Updated for Makefile package changes.
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{0.9.0}
 

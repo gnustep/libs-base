@@ -756,14 +756,29 @@ static BOOL deallocNotifications = NO;
   const char	*types;
   struct objc_method *mth;
 
+  if (aSelector == 0)
+    {
+      return nil;
+    }
   mth = (GSObjCIsInstance(self)
     ? class_get_instance_method(GSObjCClass(self), aSelector)
     : class_get_class_method(GSObjCClass(self), aSelector));
   if (mth == 0)
     {
+      types = 0;
+    }
+  else
+    {
+      types = mth->method_types;
+    }
+  if (types == 0)
+    {
+      types = aSelector->sel_types;
+    }
+  if (types == 0)
+    {
       return nil;
     }
-  types = mth->method_types;
   return [NSMethodSignature signatureWithObjCTypes: types];
 }
 

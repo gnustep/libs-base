@@ -32,7 +32,7 @@ include ../Version
 include ../config.mak
 
 # The documents to be generated
-DOCUMENT_NAME = coding-standards
+DOCUMENT_NAME = coding-standards gnustep-base
 
 # The text documents to be generated
 DOCUMENT_TEXT_NAME = \

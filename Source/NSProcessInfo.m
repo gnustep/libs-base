@@ -268,6 +268,7 @@ static char	**_gnu_noobjc_env;
   char		*proc_file_name = NULL;
   FILE		*ifp;
   int		c;
+  int		last;
   int		argument;
   int		length;
   int		position; 
@@ -323,6 +324,7 @@ static char	**_gnu_noobjc_env;
   ifp = fopen(proc_file_name, "r");
   if (ifp == NULL)
     goto proc_fs_error;
+  last = 0;
   while (1)
     {
       c = getc(ifp);
@@ -330,9 +332,11 @@ static char	**_gnu_noobjc_env;
 	_gnu_noobjc_argc++;
       else if (c == EOF)
 	break;
+      last = c;
     }
 #ifndef __FreeBSD__
-  _gnu_noobjc_argc++;
+  if (last != 0)
+    _gnu_noobjc_argc++;
 #endif
   /*
    * Now _gnu_noobcj_argc is the number of arguments;
@@ -352,7 +356,7 @@ static char	**_gnu_noobjc_env;
     }
   argument = 0;
   length = 0;
-  while (1)
+  while (argument < _gnu_noobjc_argc)
     {
       c = getc(ifp);
       length++;
@@ -362,7 +366,7 @@ static char	**_gnu_noobjc_env;
 	  if (_gnu_noobjc_argv[argument] == NULL)
 	    goto malloc_error;
 	  argument++;
-	  if (c == EOF) // End of command line
+	  if (argument == _gnu_noobjc_argc || c == EOF) // End of command line
 	    break;
 	  length = 0;
 	}

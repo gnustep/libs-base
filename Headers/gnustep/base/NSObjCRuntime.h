@@ -30,12 +30,14 @@
 
 #if BUILD_libgnustep_base_DLL
 #  define GS_EXPORT  __declspec(dllexport)
+#  define GS_DECLARE __declspec(dllexport)
 #elif libgnustep_base_ISDLL
 #  define GS_EXPORT  extern __declspec(dllimport)
+#  define GS_DECLARE __declspec(dllimport)
 #else
 #  define GS_EXPORT extern
+#  define GS_DECLARE
 #endif
-#define GS_DECLARE
 
 @class	NSObject;
 @class	NSString;

@@ -140,14 +140,21 @@
 
 @end
 
-NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
-void NSDeallocateObject(NSObject *anObject);
-NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
+GS_EXPORT NSObject *
+NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
+GS_EXPORT void
+NSDeallocateObject(NSObject *anObject);
+GS_EXPORT NSObject *
+NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
 
-BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
-unsigned NSExtraRefCount(id anObject);
-void NSIncrementExtraRefCount(id anObject);
-BOOL NSDecrementExtraRefCountWasZero(id anObject);
+GS_EXPORT BOOL
+NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
+GS_EXPORT unsigned
+NSExtraRefCount(id anObject);
+GS_EXPORT void
+NSIncrementExtraRefCount(id anObject);
+GS_EXPORT BOOL
+NSDecrementExtraRefCountWasZero(id anObject);
 
 typedef enum _NSComparisonResult 
 {
