@@ -37,14 +37,14 @@
 static void
 ihandler(int sig)
 {
-  int       count;
+  int       i;
 
   /*
    * Reset signals to avoid recursive call of handler.
    */
-  for (count = 0; count < NSIG; count++)
+  for (i = 0; i < NSIG; i++)
     {
-      signal((int)count, SIG_DFL);
+      signal(i, SIG_DFL);
     }
   /*
    * If asked to terminate, do so cleanly.
@@ -53,11 +53,33 @@ ihandler(int sig)
     {
       exit(EXIT_FAILURE);
     }
-  /*
-   * Terminate with an abort ... should give us a core dump so we can
-   * debug and find out why this happened.
-   */
-  abort();
+
+#ifdef	DEBUG
+  i = 1;		// abort() by default.
+#else
+  i = 0;		// kill() or exit() by default.
+#endif
+  e = getenv("CRASH_ON_ABORT");
+  if (e != 0)
+    {
+      if (strcasecmp(e, "yes") == 0 || strcasecmp(e, "true") == 0)
+	i = 1;
+      else if (strcasecmp(e, "no") == 0 || strcasecmp(e, "false") == 0)
+	i = 0;
+      else if (isdigit(*e) && *e != '0')
+	i = 1;
+      else
+	i = 0;
+    }
+
+  if (i == 1)
+    {
+      abort();
+    }
+  else
+    {
+      exit(sig);
+    }
 }
 
 
