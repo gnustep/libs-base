@@ -75,8 +75,8 @@ if test $NeXTCC = 0; then
                 #endif], NeXTSTEP=0, NeXTSTEP=1)
     if test $NeXTSTEP = 0; then
       AC_MSG_RESULT(no)
-      INSTALL_OBJS='$(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS)'
-      INSTALL_HEADERS='$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)'
+      OBJS_INSTALL='$(GNU_OBJS) $(NEXTSTEP_OBJS) $(GNUSTEP_OBJS)'
+      HEADERS_INSTALL='$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)'
       NEXT_INCLUDES='$(OBJECTS_NEXT_INCLUDES)'
       NeXT_runtime=0
       NeXT_cc=0
@@ -97,8 +97,8 @@ if test $NeXTCC = 0; then
         CC="$CC -fnext-runtime"
         # Make sure that we get NeXTs objc/*.h files
         NEXT_INCLUDES='$(NEXT_NEXT_INCLUDES)'
-        INSTALL_OBJS='$(GNU_OBJS)'
-        INSTALL_HEADERS='$(GNU_HEADERS)'
+        OBJS_INSTALL='$(GNU_OBJS)'
+        HEADERS_INSTALL='$(GNU_HEADERS)'
         NeXT_cc=0
       else
         AC_MSG_RESULT(yes)
@@ -106,8 +106,8 @@ if test $NeXTCC = 0; then
         CC="$CC -fgnu-runtime"
         # Get objc/List.h, etc. files from libobjects.
         NEXT_INCLUDES='$(OBJECTS_NEXT_INCLUDES)'
-        INSTALL_OBJS='$(GNU_OBJS) $(NeXT_OBJS) $(GNUSTEP_OBJS)'
-        INSTALL_HEADERS='$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)'
+        OBJS_INSTALL='$(GNU_OBJS) $(NeXT_OBJS) $(GNUSTEP_OBJS)'
+        HEADERS_INSTALL='$(GNU_HEADERS) $(NEXTSTEP_HEADERS) $(GNUSTEP_HEADERS)'
         NeXT_cc=0
       fi
     fi
@@ -151,16 +151,16 @@ else
       echo "to the later release of NEXTSTEP when it is available."
       exit
     fi
-    INSTALL_OBJS='$(GNU_OBJS)'
-    INSTALL_HEADERS='$(GNU_HEADERS)'
+    OBJS_INSTALL='$(GNU_OBJS)'
+    HEADERS_INSTALL='$(GNU_HEADERS)'
     LIBOBJC=''
     NeXT_runtime=1
     NeXT_cc=1
     # NeXT default cpp doesn't accept nested functions
     CC='cc -traditional-cpp'
 fi
-AC_SUBST(INSTALL_OBJS)
-AC_SUBST(INSTALL_HEADERS)
+AC_SUBST(OBJS_INSTALL)
+AC_SUBST(HEADERS_INSTALL)
 AC_SUBST(LIBOBJC)
 AC_SUBST(NeXT_runtime)
 AC_SUBST(NeXT_cc)
