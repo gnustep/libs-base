@@ -9,6 +9,8 @@
 	* Source/NSNotification.m: Made -description more informative.
 	* Testing/call.m: Trivial test program for tcp connections.
 	* SSL/GSUnixSSLHandle.m: Updated for socks.
+	* Additions/GSMime.m: Utilites to encode/decode base64
+	* Source/GSHTTPURLHandle.m: Use encoding.
 
 2002-06-10  Richard Frith-Macdonald <rfm@gnu.org>
 

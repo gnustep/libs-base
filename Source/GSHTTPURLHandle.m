@@ -78,7 +78,7 @@ char emp[64] = {
     reading,
   } connectionState;
 }
-- (NSString*) encodebase64: (NSString*) input;
+- (NSString*) encodebase64: (NSString*)s;
 - (void) setDebug: (BOOL)flag;
 @end
 
@@ -935,41 +935,15 @@ static void debugWrite(NSData *data)
   return YES;
 }
 
-- (NSString*) encodebase64: (NSString*) input
+- (NSString*) encodebase64: (NSString*)s
 {
-   char			*str = calloc([input length], sizeof(char));
-   char			*sptr = str;
-   NSMutableString	*nstr = [NSMutableString string];
-   int i;
+  NSData	*d;
 
-   strcpy(str, [input cString]);
- 
-   for (i=0; i < [input length]; i += 3) 
-     {
-       [nstr appendFormat: @"%c", emp[*sptr >> 2]];
-       [nstr appendFormat: @"%c", 
-	 emp[((*sptr << 4) & 060) | ((sptr[1] >> 4) & 017)]];
-       [nstr appendFormat: @"%c", 
-	 emp[((sptr[1] << 2) & 074) | ((sptr[2] >> 6) & 03)]];
-       [nstr appendFormat: @"%c", emp[sptr[2] & 077]];
-       sptr += 3;
-     }
- 
-   /* If len was not a multiple of 3, then we have encoded too
-    * many characters.  Adjust appropriately.
-    */
-   if (i == [input length] + 1) 
-     {
-       /* There were only 2 bytes in that last group */
-       [nstr deleteCharactersInRange: NSMakeRange([nstr length] - 1, 1)];
-     } 
-   else if (i == [input length] + 2) 
-     {
-       /* There was only 1 byte in that last group */
-       [nstr deleteCharactersInRange: NSMakeRange([nstr length] - 2, 2)];
-     }
-   free (str);
-   return (nstr);
+  d = [s dataUsingEncoding: NSASCIIStringEncoding
+      allowLossyConversion: YES];
+  d = [GSMimeDocument encodeBase64: d];
+  s = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding]; 
+  return AUTORELEASE(s);
 }
 @end
 

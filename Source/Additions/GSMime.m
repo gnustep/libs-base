@@ -73,6 +73,9 @@ decodebase64(unsigned char *dst, const char *src)
   dst[2] = ((src[2] & 0x03) << 6) |  (src[3] & 0x3F);
 }
 
+static char b64[]
+  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
 typedef	enum {
   WE_QUOTED,
   WE_BASE64
@@ -2669,6 +2672,142 @@ static NSCharacterSet	*tokenSet = nil;
  * </p>
  */
 @implementation	GSMimeDocument
+
+/**
+ * Decode the source data from base64 encoding and return the result.
+ */
++ (NSData*) decodeBase64: (NSData*)source
+{
+  int		length = [source length];
+  int		declen = ((length + 3) * 3)/4;
+  const signed char	*src = (const char*)[source bytes];
+  const signed char	*end = &src[length];
+  unsigned char *result;
+  unsigned char	*dst;
+  unsigned char	buf[4];
+  unsigned	pos = 0;
+
+  if (length == 0)
+    {
+      return [NSData data];
+    }
+  result = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), declen);
+  dst = result;
+
+  while (*src && (src != end))
+    {
+      int	c = *src++;
+
+      if (isupper(c))
+	{
+	  c -= 'A';
+	}
+      else if (islower(c))
+	{
+	  c = c - 'a' + 26;
+	}
+      else if (isdigit(c))
+	{
+	  c = c - '0' + 52;
+	}
+      else if (c == '/')
+	{
+	  c = 63;
+	}
+      else if (c == '+')
+	{
+	  c = 62;
+	}
+      else if  (c == '=')
+	{
+	  c = -1;
+	}
+      else if (c == '-')
+	{
+	  break;		/* end    */
+	}
+      else
+	{
+	  c = -1;		/* ignore */
+	}
+
+      if (c >= 0)
+	{
+	  buf[pos++] = c;
+	  if (pos == 4)
+	    {
+	      pos = 0;
+	      decodebase64(dst, buf);
+	      dst += 3;
+	    }
+	}
+    }
+
+  if (pos > 0)
+    {
+      unsigned	i;
+
+      for (i = pos; i < 4; i++)
+	buf[i] = '\0';
+      pos--;
+    }
+  decodebase64(dst, buf);
+  dst += pos;
+  return AUTORELEASE([[NSData allocWithZone: NSDefaultMallocZone()]
+    initWithBytesNoCopy: result length: dst - result]);
+}
+
+/**
+ * Encode the source data to base64 encoding and return the result.
+ */
++ (NSData*) encodeBase64: (NSData*)source
+{
+  int		length = [source length];
+  int		destlen = 4 * ((length - 1) / 3) + 5;
+  unsigned char *sBuf;
+  unsigned char *dBuf;
+  int		sIndex = 0;
+  int		dIndex = 0;
+
+  if (length == 0)
+    {
+      return [NSData data];
+    }
+  sBuf = (unsigned char*)[source bytes];
+  dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
+  dBuf[destlen - 1] = '\0';
+
+  for (sIndex = 0; sIndex < length; sIndex += 3)
+    {
+      dBuf[dIndex] = b64[sBuf[sIndex] >> 2];
+      dBuf[dIndex + 1]
+	= b64[((sBuf[sIndex] << 4) & 060)
+	| ((sBuf[sIndex + 1] >> 4) & 017)];
+      dBuf[dIndex + 2]
+	= b64[((sBuf[sIndex + 1] << 2) & 074)
+	| ((sBuf[sIndex + 2] >> 6) & 03)];
+      dBuf[dIndex + 3] = b64[sBuf[sIndex + 2] & 077];
+      dIndex += 3;
+    }
+
+   /* If len was not a multiple of 3, then we have encoded too
+    * many characters.  Adjust appropriately.
+    */
+   if (sIndex == length + 1)
+     {
+       /* There were only 2 bytes in that last group */
+       dBuf[dIndex - 1] = '=';
+     }
+   else if (sIndex == length + 2)
+     {
+       /* There was only 1 byte in that last group */
+       dBuf[dIndex - 1] = '=';
+       dBuf[dIndex - 2] = '=';
+     }
+
+  return AUTORELEASE([[NSData allocWithZone: NSDefaultMallocZone()]
+    initWithBytesNoCopy: dBuf length: dIndex]);
+}
 
 + (void) initialize
 {
