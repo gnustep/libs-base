@@ -254,23 +254,25 @@
 
 - (void) removeObject: (NSObject*)anObject
 {
-  if (anObject)
+  GSIMapBucket       bucket;
+
+  if (anObject == nil)
     {
-      GSIMapBucket       bucket;
+      NSLog(@"attempt to remove nil object");
+      return;
+    }
+  bucket = GSIMapBucketForKey(&map, (GSIMapKey)anObject);
+  if (bucket != 0)
+    {
+      GSIMapNode     node;
 
-      bucket = GSIMapBucketForKey(&map, (GSIMapKey)anObject);
-      if (bucket)
+      node = GSIMapNodeForKeyInBucket(bucket, (GSIMapKey)anObject);
+      if (node != 0)
 	{
-	  GSIMapNode     node;
-
-	  node = GSIMapNodeForKeyInBucket(bucket, (GSIMapKey)anObject);
-	  if (node)
+	  if (--node->value.uint == 0)
 	    {
-	      if (--node->value.uint == 0)
-		{
-		  GSIMapRemoveNodeFromMap(&map, bucket, node);
-		  GSIMapFreeNode(&map, node);
-		}
+	      GSIMapRemoveNodeFromMap(&map, bucket, node);
+	      GSIMapFreeNode(&map, node);
 	    }
 	}
     }

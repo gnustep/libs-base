@@ -1,3 +1,11 @@
+Thu Nov  4 10:52:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSArray.m: use NSLog() to warn about attempts to remove nil.
+	* Source/NSGArray.m: ditto
+	* Source/NSGCountedSet.m: ditto
+	* Source/NSGDictionary.m: ditto
+	* Source/NSGSet.m: ditto
+
 Fri Oct 29 10:08:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSInvocation.m: ([-initWithTarget:selector:]) possible fix
