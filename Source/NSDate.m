@@ -1227,8 +1227,9 @@ GSTimeNow()
   return self;
 }
 
-- (void) autorelease
+- (id) autorelease
 {
+  return self;
 }
 
 - (void) release
