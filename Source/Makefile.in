@@ -52,7 +52,7 @@ DEFS = @DEFS@
 
 # All these are optional.  You can redefine CFLAGS, CPPFLAGS and
 # INCLUDEFLAGS on the command line however you like.
-CFLAGS = -Wall -Wno-implicit -g
+CFLAGS = -Wno-implicit -g
 CPPFLAGS = 
 INCLUDEFLAGS =
 
