@@ -51,7 +51,7 @@
 @interface NSLock : NSObject <NSLocking>
 {
 @private
-    _objc_mutex_t mutex;
+   objc_mutex_t mutex;
 }
 
 - (BOOL)tryLock;
@@ -69,8 +69,8 @@
 @interface NSConditionLock : NSObject <NSLocking>
 {
 @private
-    _objc_mutex_t mutex;
-    int condition;
+   objc_mutex_t mutex;
+   int condition;
 }
 
 // Initialize lock with condition
@@ -102,7 +102,7 @@
 @interface NSRecursiveLock : NSObject <NSLocking>
 {
 @private
-    _objc_mutex_t mutex;
+   objc_mutex_t mutex;
 }
 
 - (BOOL)tryLock;
