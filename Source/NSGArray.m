@@ -157,10 +157,8 @@
     unsigned	i;
 
     for (i = 0; i < _count; i++) {
-	if ([_contents_array[i] hash] == hash) {
-	    if ([_contents_array[i] isEqual: anObject]) {
-		return i;
-	    }
+	if ([_contents_array[i] isEqual: anObject]) {
+	    return i;
 	}
     }
     return NSNotFound;
