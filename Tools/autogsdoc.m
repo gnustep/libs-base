@@ -525,7 +525,7 @@ main(int argc, char **argv, char **env)
 	      NSDate	*d;
 
 	      d = [attrs objectForKey: NSFileModificationDate];
-	      if (sDate == nil || [d earlierDate: sDate] == d)
+	      if (sDate == nil || [d earlierDate: sDate] == sDate)
 		{
 		  sDate = d;
 		  AUTORELEASE(RETAIN(sDate));

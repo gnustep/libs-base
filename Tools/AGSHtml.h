@@ -39,6 +39,16 @@
 }
 - (void) decIndent;
 - (void) incIndent;
+- (NSString*) makeAnchor: (NSString*)r
+		  ofType: (NSString*)t
+		    name: (NSString*)n;
+- (NSString*) makeLink: (NSString*)r
+		ofType: (NSString*)t
+		 isRef: (BOOL)f;
+- (NSString*) makeLink: (NSString*)r
+		ofType: (NSString*)t
+		inUnit: (NSString*)u
+		 isRef: (BOOL)f;
 - (NSString*) outputDocument: (GSXMLNode*)node;
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (void) outputNodeList: (GSXMLNode*)node to: (NSMutableString*)buf;

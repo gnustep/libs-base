@@ -61,12 +61,19 @@ plmerge_OBJC_FILES = plmerge.m
 plparse_OBJC_FILES = plparse.m
 sfparse_OBJC_FILES = sfparse.m
 pl2link_OBJC_FILES = pl2link.m
-
 locale_alias_OBJC_FILES = locale_alias.m
 
-SOURCES = gdomap.c gdnc.m defaults.m dread.m dremove.m dwrite.m
+DOCUMENT_NAME = autogsdoc
 
-HEADERS = gdomap.h gdnc.h
+# Files to be documented
+autogsdoc_AGSDOC_FILES = autogsdoc.m \
+	AGSParser.h AGSOutput.h AGSIndex.h AGSHtml.h
+
+SOURCES = gdomap.c gdnc.m defaults.m dread.m dremove.m dwrite.m \
+	autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
+
+HEADERS = gdomap.h gdnc.h \
+	AGSParser.h AGSOutput.h AGSIndex.h AGSHtml.h
 
 DIST_FILES = GNUmakefile Makefile.preamble Makefile.postamble \
 $(SOURCES) $(HEADERS)
@@ -78,6 +85,7 @@ include Makefile.preamble
 include $(GNUSTEP_MAKEFILES)/ctool.make
 include $(GNUSTEP_MAKEFILES)/tool.make
 include $(GNUSTEP_MAKEFILES)/test-tool.make
+include $(GNUSTEP_MAKEFILES)/documentation.make
 
 include Makefile.postamble
 

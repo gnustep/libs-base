@@ -1,3 +1,12 @@
+2001-12-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.h: new methods for cleaner indexing.
+	* Tools/AGSHtml.m: new methods for cleaner indexing.
+	* Tools/AGSParser.m: minor bugfixes.
+	* Tools/GNUmakefile: Build autogsdoc documentation using autogsdoc.
+	* Tools/autogsdoc.m: Fix minor dependency error.
+	* Tools/gsdoc-0_6_7.dtd: Fix ivar support
+
 2001-12-13  Adam Fedor  <fedor@gnu.org>
 
 	* Tools/pl2link.m: New file (from FredKiefer@gmx.de).

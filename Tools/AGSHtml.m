@@ -104,6 +104,170 @@ static NSMutableSet	*textNodes = nil;
   return self;
 }
 
+/**
+ * Calls -makeLink:ofType:isRef: or -makeLink:ofType:inUnit:isRef: to
+ * create the first part of an anchor, and fills in the text content
+ * of the anchor with n (the specified name).  Returns an entire anchor
+ * string as a result.<br />
+ * This method is used to create all the anchors in the html output.
+ */
+- (NSString*) makeAnchor: (NSString*)r
+		  ofType: (NSString*)t
+		    name: (NSString*)n
+{
+  NSString	*s;
+
+  if (n == nil)
+    {
+      n = @"";
+    }
+  if ([t isEqualToString: @"method"] || [t isEqualToString: @"ivariable"])
+    {
+      s = [self makeLink: r ofType: t inUnit: nil isRef: NO];
+    }
+  else
+    {
+      s = [self makeLink: r ofType: t isRef: NO];
+    }
+  if (s != nil)
+    {
+      n = [s stringByAppendingFormat: @"%@</a>", n];
+    }
+  return n;
+}
+
+/**
+ * Make a link for the element r with the specified type. Only the start of
+ * the html element is returned (&lt;a ...&gt;).
+ * If the boolean f is YES, then the link is a reference to somewhere,
+ * and the method will return nil if the destination is not found in the index.
+ * If f is NO, then the link is an anchor for some element being output, and
+ * the method is guaranteed to succeed and return the link.
+ */
+- (NSString*) makeLink: (NSString*)r
+		ofType: (NSString*)t
+		 isRef: (BOOL)f
+{
+  NSString	*s;
+  NSString	*kind = (f == YES) ? @"href" : @"name";
+
+  if (f == NO || (s = [localRefs globalRef: r type: t]) != nil)
+    {
+      s = [NSString stringWithFormat: @"<a %@=\"#%@$%@\">",
+	kind, t, r];
+    }
+  else if ((s = [globalRefs globalRef: r type: t]) != nil)
+    {
+      s = [s stringByAppendingPathExtension: @"html"];
+      s = [NSString stringWithFormat: @"<a %@=\"%@#%@$%@\">",
+	kind, s, t, r];
+    }
+  return s;
+}
+
+/**
+ * Make a link for the element r, with the specified type t,
+ * in a particular unit u. Only the start of
+ * the html element is returned (&lt;a ...&gt;).<br />
+ * If the boolean f is YES, then the link is a reference to somewhere,
+ * otherwise the link is an anchor for some element being output.<br />
+ * The method will try to infer the unit in which the emement was
+ * defined if the value of u is nil.<br />
+ * If there is an error, the method returns nil.
+ */
+- (NSString*) makeLink: (NSString*)r
+		ofType: (NSString*)t
+		inUnit: (NSString*)u
+		 isRef: (BOOL)f
+{
+  NSString	*s;
+  BOOL		isLocal = YES;
+  NSString	*kind = (f == YES) ? @"href" : @"name";
+
+  /*
+   * No unit specified ... try to infer it.
+   */
+  if (u == nil)
+    {
+      /*
+       * If we are currently inside a class, category, or protocol
+       * we see if the required item exists in that unit and if so,
+       * we assume that this is the unit to be used.
+       */
+      if (unit != nil)
+	{
+	  s = [localRefs unitRef: r type: t unit: unit];
+	  if (s != nil)
+	    {
+	      u = unit;
+	    }
+	}
+      /*
+       * If we are making a reference, and we have not found it in the
+       * current unit, we check all known references to see if the item
+       * is uniquely documented somewhere.
+       */
+      if (u == nil && f == YES)
+	{
+	  NSDictionary	*d;
+
+	  d = [localRefs unitRef: r type: t];
+	  if ([d count] == 0)
+	    {
+	      isLocal = NO;
+	      d = [globalRefs unitRef: r type: t];
+	    }
+	  if ([d count] == 1)
+	    {
+	      /*
+	       * Record the class where the item is documented
+	       * and the file where that documentation occurs.
+	       */
+	      u = [[d allKeys] objectAtIndex: 0];
+	      s = [d objectForKey: u];
+	    }
+	}
+    }
+  else
+    {
+      /*
+       * Simply look up the reference.
+       */
+      s = [localRefs unitRef: r type: t unit: u];
+      if (s == nil && f == YES)
+	{
+	  isLocal = NO;
+	  s = [globalRefs unitRef: r type: t unit: u];
+	}
+    }
+
+  /**
+   * There are only two types of unit specific element ... methods
+   * and instance variables.  The names within a unit are unique
+   * since you can't have two methods or two variables with the
+   * same name in a unit, and all method names contain either a
+   * a plus or minus as a prefix, while no variables do.<br />
+   * This means that we do not need to incorporate any type
+   * information into anchors and references for methods or
+   * instance varibales. 
+   */
+  if (s != nil)
+    {
+      if (isLocal == YES)
+	{
+	  s = [NSString stringWithFormat: @"<a %@=\"#%@%@\">",
+	    kind, u, r];
+	}
+      else
+	{
+	  s = [s stringByAppendingPathExtension: @"html"];
+	  s = [NSString stringWithFormat: @"<a %@=\"%@#%@%@\">",
+	    kind, s, u, r];
+	}
+    }
+  return s;
+}
+
 - (NSString*) outputDocument: (GSXMLNode*)node
 {
   NSMutableString	*buf;
@@ -163,11 +327,16 @@ static NSMutableSet	*textNodes = nil;
 	{
 	  NSString	*name = [prop objectForKey: @"name"];
 	  NSString	*cls = [prop objectForKey: @"class"];
+	  NSString	*s;
 
-	  cls = [self typeRef: cls];
+	  [buf appendString: indent];
+	  [buf appendString: @"<h2>"];
+	  [buf appendString: [self typeRef: cls]];
+	  [buf appendString: @"("];
 	  unit = [NSString stringWithFormat: @"%@(%@)", cls, name];
-	  [buf appendFormat: @"<h2>%@(<a name=\"category$%@\">%@</a>)</h2>\n",
-	    unit, cls, name];
+	  s = [self makeAnchor: unit ofType: @"category" name: name];
+	  [buf appendString: s];
+	  [buf appendString: @")</h2>\n"];
 	  [self outputUnit: node to: buf];
 	  unit = nil;
 	}
@@ -182,20 +351,17 @@ static NSMutableSet	*textNodes = nil;
 	  NSString	*sup = [prop objectForKey: @"super"];
 
 	  unit = name;
+	  [buf appendString: indent];
+	  [buf appendString: @"<h2>"];
+	  [buf appendString:
+	    [self makeAnchor: name ofType: @"class" name: name]];
 	  sup = [self typeRef: sup];
-	  if (sup == nil)
+	  if (sup != nil)
 	    {
-	      /*
-	       * This is a root class.
-	       */
-	      [buf appendFormat: @"<h3><a name=\"class$%@\">%@</a></h3>\n",
-		unit, name];
+	      [buf appendString: @" : "];
+	      [buf appendString: sup];
 	    }
-	  else
-	    {
-	      [buf appendFormat: @"<h3><a name=\"class$%@\">%@</a> : %@</h3>\n",
-		unit, name, sup];
-	    }
+	  [buf appendString: @"</h2>\n"];
 	  [self outputUnit: node to: buf];
 	  unit = nil;
 	}
@@ -259,7 +425,7 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      val = text;
 	    }
-	  [buf appendFormat: @"<a name=\"label$%@\"></a>", val];
+	  [buf appendString: [self makeAnchor: val ofType: @"label" name: @""]];
 	}
       else if ([name isEqual: @"example"] == YES)
 	{
@@ -447,6 +613,12 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: heading];
 	  [buf appendString: @">\n"];
 	}
+      else if ([name isEqual: @"ivar"] == YES)	// %phrase
+	{
+	  [buf appendString: @"<var>"];
+	  [self outputText: children to: buf];
+	  [buf appendString: @"</var>"];
+	}
       else if ([name isEqual: @"ivariable"] == YES)
 	{
 	  NSString	*tmp = [prop objectForKey: @"name"];
@@ -464,9 +636,8 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	    {
 	      val = text;
 	    }
-	  [buf appendFormat: @"<a name=\"label$%@\">", val];
-	  [self outputText: children to: buf];
-	  [buf appendString: @"</a>"];
+	  [buf appendString:
+	    [self makeAnchor: val ofType: @"label" name: text]];
 	}
       else if ([name isEqual: @"method"] == YES)
 	{
@@ -551,12 +722,25 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	    }
 	  if ([sel length] > 1)
 	    {
+	      NSString	*s;
+
 	      /*
 	       * Output selector heading.
 	       */
 	      [buf appendString: indent];
-	      [buf appendFormat: @"<h3><a name=\"%@%@\">%@</a></h3>\n",
-		unit, sel, [sel substringFromIndex: 1]];
+	      [buf appendString: @"<h3>"];
+	      s = [self makeLink: sel ofType: @"method" inUnit: nil isRef: NO];
+	      if (s == nil)
+		{
+		  [buf appendString: s];
+		  [buf appendString: [sel substringFromIndex: 1]];
+		  [buf appendString: @"</a>"];
+		}
+	      else
+		{
+		  [buf appendString: [sel substringFromIndex: 1]];
+		}
+	      [buf appendString: @"</h3>\n"];
 	      [buf appendString: indent];
 	      [buf appendString: str];
 	      [buf appendString: @";<br />\n"];
@@ -620,120 +804,26 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	{
 	  NSString	*type = [prop objectForKey: @"type"];
 	  NSString	*r = [prop objectForKey: @"id"];
-	  NSString	*f = nil;
-	  BOOL		isLocal = YES;
+	  NSString	*s;
 
-	  if ([type isEqual: @"method"] || [type isEqual: @"variable"])
+	  if ([type isEqual: @"method"] || [type isEqual: @"ivariable"])
 	    {
-	      NSString	*c = [prop objectForKey: @"class"];
-
-	      /*
-	       * No class specified ... try to infer it.
-	       */
-	      if (c == nil)
-		{
-		  /*
-		   * If we are currently inside a class, category, or protocol
-		   * we see if the required item exists in that unit and if so,
-		   * we assume that we need a local reference.
-		   */
-		  if (unit != nil)
-		    {
-		      f = [localRefs unitRef: r type: type unit: unit];
-		      if (f == nil)
-			{
-			  f = [globalRefs unitRef: r type: type unit: unit];
-			  if (f != nil)
-			    {
-			      isLocal = NO;
-			      c = unit;
-			    }
-			}
-		      else
-			{
-			  c = unit;
-			}
-		    }
-		  /*
-		   * If we have not found it in the current unit, we check
-		   * all known references to see if the item is uniquely
-		   * documented somewhere.
-		   */
-		  if (c == nil)
-		    {
-		      NSDictionary	*d;
-
-		      d = [localRefs unitRef: r type: type];
-		      if ([d count] == 0)
-			{
-			  isLocal = NO;
-			  d = [globalRefs unitRef: r type: type];
-			}
-		      if ([d count] == 1)
-			{
-			  /*
-			   * Record the class where the item is documented
-			   * and the file where that documentation occurs.
-			   */
-			  c = [[d allKeys] objectAtIndex: 0];
-			  f = [d objectForKey: c];
-			}
-		    }
-		}
-	      else
-		{
-		  /*
-		   * Simply look up the reference.
-		   */
-		  f = [localRefs unitRef: r type: type unit: c];
-		  if (f == nil)
-		    {
-		      isLocal = NO;
-		      f = [globalRefs unitRef: r type: type unit: c];
-		    }
-		}
-
-	      if (f != nil)
-		{
-		  f = [f stringByAppendingPathExtension: @"html"];
-		  if (isLocal == YES)
-		    {
-		      [buf appendFormat: @"<a href=\"#%@%@\">", c, r];
-		    }
-		  else
-		    {
-		      [buf appendFormat: @"<a href=\"%@#%@%@\">", f, c, r];
-		    }
-		}
+	      s = [prop objectForKey: @"class"];
+	      s = [self makeLink: r ofType: type inUnit: s isRef: YES];
 	    }
 	  else
 	    {
-	      f = [localRefs globalRef: r type: type];
-	      if (f == nil)
-		{
-		  isLocal = NO;
-		  f = [globalRefs globalRef: r type: type];
-		}
-	      if (f != nil)
-		{
-		  f = [f stringByAppendingPathExtension: @"html"];
-		  if (isLocal == YES)
-		    {
-		      [buf appendFormat: @"<a href=\"#%@$%@\">", type, r];
-		    }
-		  else
-		    {
-		      [buf appendFormat: @"<a href=\"%@#%@$%@\">", f, type, r];
-		    }
-		}
+	      s = [self makeLink: r ofType: type isRef: YES];
 	    }
-	  if (f == nil)
+	  if (s == nil)
 	    {
 	      NSLog(@"ref '%@' not found for %@", r, type);
 	      [self outputText: [node children] to: buf];
+	      [buf appendString: @"\n"];
 	    }
 	  else
 	    {
+	      [buf appendString: s];
 	      [self outputText: [node children] to: buf];
 	      [buf appendString: @"</a>\n"];
 	    }
@@ -743,8 +833,11 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  NSString	*name = [prop objectForKey: @"name"];
 
 	  unit = [NSString stringWithFormat: @"(%@)", name];
-	  [buf appendFormat:
-	    @"<h3><a name=\"protocol$%@\">&lt;%@&gt;</a></h3>\n", unit, name];
+	  [buf appendString: indent];
+	  [buf appendString: @"<h2>"];
+	  [buf appendString:
+	    [self makeAnchor: name ofType: @"protocol" name: name]];
+	  [buf appendString: @"</h2>\n"];
 	  [self outputUnit: node to: buf];
 	  unit = nil;
 	}
@@ -753,8 +846,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	|| [name isEqual: @"EOModel"] == YES
 	|| [name isEqual: @"function"] == YES
 	|| [name isEqual: @"macro"] == YES
-	|| [name isEqual: @"type"] == YES
-	|| [name isEqual: @"variable"] == YES)
+	|| [name isEqual: @"type"] == YES)
 	{
 	  NSString	*tmp = [prop objectForKey: @"name"];
 
@@ -790,11 +882,15 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
       else if ([name isEqual: @"type"] == YES)
 	{
 	  NSString	*n = [prop objectForKey: @"name"];
+	  NSString	*s;
 
 	  node = [node children];
+	  s = [NSString stringWithFormat: @"typedef %@ %@", [node content], n];
 	  [buf appendString: indent];
-	  [buf appendFormat: @"<h3><a name=\"type$%@\">typedef %@ %@</a></h3>",
-	    n, [node content], n];
+	  [buf appendString: @"<h3>"];
+	  [buf appendString:
+	    [self makeAnchor: n ofType: @"type" name: s]];
+	  [buf appendString: @"</h3>\n"];
 	  node = [node next];
 
 	  if (node != nil && [[node name] isEqual: @"declared"] == YES)
@@ -833,6 +929,10 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	  [buf appendString: @"<var>"];
 	  [self outputText: children to: buf];
 	  [buf appendString: @"</var>"];
+	}
+      else if ([name isEqual: @"variable"] == YES)
+	{
+NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 	}
       else
 	{
@@ -1124,15 +1224,10 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 
   t = [t stringByTrimmingSpaces];
   n = [NSString stringWithFormat: @"(%@)", t];
-  if ((s = [localRefs globalRef: n type: @"protocol"]) != nil)
+  s = [self makeLink: n ofType: @"protocol" isRef: YES];
+  if (s != nil)
     {
-      t = [NSString stringWithFormat: @"<a href=\"#protocol$%@\">%@</a>", n, t];
-    }
-  else if ((s = [globalRefs globalRef: t type: @"protocol"]) != nil)
-    {
-      s = [s stringByAppendingPathExtension: @"html"];
-      t = [NSString stringWithFormat: @"<a href=\"%@#protocol$%@\">%@</a>",
-	s, n, t];
+      t = [s stringByAppendingString: @"t</a>"];
     }
   return t;
 }
@@ -1186,28 +1281,15 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
     }
   t = [orig substringWithRange: NSMakeRange(start, end - start)];
 
-  if ((s = [localRefs globalRef: t type: @"type"]) != nil)
+  s = [self makeLink: t ofType: @"type" isRef: YES];
+  if (s == nil)
     {
-      s = [NSString stringWithFormat: @"<a href=\"#type$%@\">%@</a>", t, t];
+      s = [self makeLink: t ofType: @"class" isRef: YES];
     }
-  else if ((s = [localRefs globalRef: t type: @"class"]) != nil)
-    {
-      s = [NSString stringWithFormat: @"<a href=\"#class$%@\">%@</a>", t, t];
-    }
-  else if ((s = [globalRefs globalRef: t type: @"type"]) != nil)
-    {
-      s = [s stringByAppendingPathExtension: @"html"];
-      s = [NSString stringWithFormat: @"<a href=\"%@#type$%@\">%@</a>",
-	s, t, t];
-    }
-  else if ((s = [globalRefs globalRef: t type: @"class"]) != nil)
-    {
-      s = [s stringByAppendingPathExtension: @"html"];
-      s = [NSString stringWithFormat: @"<a href=\"%@#class$%@\">%@</a>",
-	s, t, t];
-    }
+
   if (s != nil)
     {
+      s = [s stringByAppendingFormat: @"%@</a>", t];
       if ([orig length] == [t length])
 	{
 	  return s;
@@ -1216,5 +1298,6 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
     }
   return orig;
 }
+
 @end
 
