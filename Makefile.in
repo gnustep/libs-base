@@ -378,7 +378,7 @@ ANNOUNCE announce.texi \
 INSTALL install.texi \
 TODO todo.texi \
 NEWS news.texi \
-AUTHORS CREDITS README.ULTRIX MACHINES volunteers-gnustep \
+AUTHORS CREDITS README.ULTRIX MACHINES GNUStep-volunteers \
 COPYING COPYING.LIB DISCUSSION ChangeLog \
 Makefile.in configure configure.in \
 objects/config.h.in objects/stdobjects.h.in \
@@ -593,6 +593,10 @@ realclean: distclean
 		objects/stdobjects.h objects/config.h
 		README TODO INSTALL NEWS ANNOUNCE
 
+GNUStep-volunteers: volunteers-gnustep
+	rm -f GNUStep-volunteers
+	cp volunteers-gnustep GNUStep-volunteers
+
 dist: $(DIST_FILES)
 	echo libobjects-$(OBJECTS_VERSION) > .fname
 	rm -rf `cat .fname`
@@ -602,7 +606,7 @@ dist: $(DIST_FILES)
 	mkdir `cat .fname`/foundation
 	# previously did this: -ln (DIST_FILES) `cat .fname`
 	for file in $(DIST_FILES); do \
-	  ln -s $$file `cat .fname`/$$file ; \
+	  ln $$file `cat .fname`/$$file ; \
 	done
 	touch `cat .fname`/Makefile.local
 	touch `cat .fname`/Makefile.depend
