@@ -290,7 +290,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 + (NSArray*) userLanguages
 {
-  NSArray  *currLang;
+  NSArray  *currLang = nil;
   NSString *locale;
 
   if (userLanguages)
@@ -328,7 +328,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	}
     }
 
-  if (currLang)
+  if (currLang != nil)
     [userLanguages addObjectsFromArray: currLang];
 
   /* Check if "English" is included. We do this to make sure all the

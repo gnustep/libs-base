@@ -9,8 +9,8 @@
     <author name="Richard Frith-Macdonald">
       <email address="rfm@gnu.org"/>
     </author>
-    <version>0.1</version>
-    <date>15 September, 2000</date>
+    <version>0.2</version>
+    <date>1 November, 2000</date>
   </head>
 
   <body>
@@ -359,17 +359,7 @@
           <sel>errNo</sel>
           <desc>
 	    <p>
-	      Return error code.
-            </p>
-          </desc>
-        </method>
-
-        <method type="void">
-          <sel>setExternalEntityLoader</sel>
-          <arg type="void*">function</arg>
-          <desc>
-	    <p>
-	      Set a external entity loader.
+	      Return error code for last parse operation.
             </p>
           </desc>
         </method>

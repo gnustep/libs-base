@@ -203,7 +203,6 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (int) errNo;
 - (BOOL) getWarnings: (BOOL)yesno;
 - (BOOL) keepBlanks: (BOOL)yesno;
-- (void) setExternalEntityLoader: (void*)function;
 - (BOOL) substituteEntities: (BOOL)yesno;
 
 @end
@@ -243,15 +242,17 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (void) cdataBlock: (NSString*)value;
 
 - (int) hasInternalSubset;
-- (void) internalSubset: (NSString*)name
+- (BOOL) internalSubset: (NSString*)name
              externalID: (NSString*)externalID
                systemID: (NSString*)systemID;
+
 - (int) hasExternalSubset;
-- (void) externalSubset: (NSString*)name
+- (BOOL) externalSubset: (NSString*)name
              externalID: (NSString*)externalID
                systemID: (NSString*)systemID;
-- (void*) resolveEntity: (NSString*)publicId
-	       systemID: (NSString*)systemID;
+
+- (NSString*) loadEntity: (NSString*)publicId
+		      at: (NSString*)locationURL;
 - (void*) getEntity: (NSString*)name;
 - (void*) getParameterEntity: (NSString*)name;
 

@@ -37,6 +37,8 @@
 #include <Foundation/NSURL.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSBundle.h>
+#include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSFileManager.h>
 
 extern int xmlDoValidityCheckingDefaultValue;
@@ -82,6 +84,9 @@ setupCache()
       usImp = [NSString_class methodForSelector: usSel];
     }
 }
+
+static xmlParserInputPtr
+loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 
 /* Internal interfaces */
@@ -833,6 +838,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 {
   if (cacheDone == NO)
     setupCache();
+  xmlSetExternalEntityLoader((xmlExternalEntityLoader)loadEntityFunction);
 }
 
 + (GSXMLParser*) parser
@@ -1159,11 +1165,6 @@ static NSString	*endMarker = @"At end of incremental parse";
   return !(xmlGetWarningsDefaultValue = yesno);
 }
 
-- (void) setExternalEntityLoader: (void*)function
-{
-  xmlSetExternalEntityLoader((xmlExternalEntityLoader)function);
-}
-
 - (int) errNo
 {
   return ((xmlParserCtxtPtr)lib)->errNo;
@@ -1246,6 +1247,143 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 #define	HANDLER	(GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private)
 
+static xmlParserInputPtr
+loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctx)
+{
+  extern xmlParserInputPtr	xmlNewInputFromFile();
+  NSString			*file;
+  xmlParserInputPtr		ret = 0;
+  NSString			*entityId;
+  NSString			*location ;
+  NSArray			*components;
+  NSMutableString		*local;
+  unsigned			count;
+  unsigned			index;
+
+  NSCAssert(ctx, @"No Context");
+  if (eid == 0 || url == 0)
+    return 0;
+
+  entityId = UTF8Str(eid);
+  location = UTF8Str(url);
+  components = [location pathComponents];
+  local = [NSMutableString string];
+
+  /*
+   * Build a local filename by replacing path separator characters with
+   * something else.
+   */
+  count = [components count];
+  if (count > 0)
+    {
+      count--;
+      for (index = 0; index < count; index++)
+	{
+	  [local appendString: [components objectAtIndex: index]];
+	  [local appendString: @"_"];
+	}
+      [local appendString: [components objectAtIndex: index]];
+    }
+
+  /*
+   * Now ask the SAXHandler callback for the name of a local file
+   */
+  file = [HANDLER loadEntity: entityId at: location];
+
+  if (file == nil)
+    {
+      /*
+       * Special case - GNUstep DTDs - should be installed in the GNUstep
+       * system bundle - so we look for them there.
+       */
+      if ([entityId hasPrefix: @"-//GNUstep//DTD "] == YES)
+	{
+	  NSCharacterSet	*ws = [NSCharacterSet whitespaceCharacterSet];
+	  NSMutableString	*name;
+	  NSString		*found;
+	  unsigned		len;
+	  NSRange		r;
+
+	  /*
+	   * Extract the relevent DTD name
+	   */
+	  name = AUTORELEASE([entityId mutableCopy]);
+	  r = NSMakeRange(0, 16);
+	  [name deleteCharactersInRange: r];
+	  len = [name length];
+	  r = [name rangeOfString: @"/" options: NSLiteralSearch];
+	  if (r.length > 0)
+	    {
+	      r.length = len - r.location;
+	      [name deleteCharactersInRange: r];
+	      len = [name length];
+	    }
+
+	  /*
+	   * Convert dots to underscores.
+	   */
+	  r = [name rangeOfString: @"." options: NSLiteralSearch];
+	  while (r.length > 0)
+	    {
+	      [name replaceCharactersInRange: r withString: @"_"];
+	      r.location++;
+	      r.length = len - r.location;
+	      r = [name rangeOfString: @"."
+			     options: NSLiteralSearch
+			       range: r];
+	    }
+
+	  /*
+	   * Convert whitespace to hyphens.
+	   */
+	  r = [name rangeOfCharacterFromSet: ws options: NSLiteralSearch];
+	  while (r.length > 0)
+	    {
+	      [name replaceCharactersInRange: r withString: @"-"];
+	      r.location++;
+	      r.length = len - r.location;
+	      r = [name rangeOfCharacterFromSet: ws
+				       options: NSLiteralSearch
+					 range: r];
+	    }
+
+	  found = [NSBundle pathForGNUstepResource: name
+					    ofType: @"dtd"
+				       inDirectory: @"DTDs"];
+	  if (found == nil)
+	    {
+	      NSLog(@"unable to find GNUstep DTD - '%@' for '%s'", name, eid);
+	    }
+	  else
+	    {
+	      file = found;
+	    }
+	}
+
+      /*
+       * DTD not found - so we look for it in standard locations.
+       */
+      if (file == nil)
+	{
+	  file = [[NSBundle mainBundle] pathForResource: local
+						 ofType: @""
+					    inDirectory: @"DTDs"];
+	  if (file == nil)
+	    {
+	      file = [NSBundle pathForGNUstepResource: local
+					       ofType: @""
+					  inDirectory: @"DTDs"];
+	    }
+	}
+    }
+
+  if ([file length] > 0)
+    {
+      ret = xmlNewInputFromFile(ctx, [file fileSystemRepresentation]);
+    }
+  return ret;
+}
+
 static void
 startDocumentFunction(void *ctx)
 {
@@ -1270,15 +1408,25 @@ isStandaloneFunction(void *ctx)
 static int
 hasInternalSubsetFunction(void *ctx)
 {
+  int	has;
+
   NSCAssert(ctx,@"No Context");
-  return [HANDLER hasInternalSubset];
+  has = [HANDLER hasInternalSubset];
+  if (has < 0)
+    has = (*xmlDefaultSAXHandler.hasInternalSubset)(ctx);
+  return has;
 }
 
 static int
 hasExternalSubsetFunction(void *ctx)
 {
+  int	has;
+
   NSCAssert(ctx,@"No Context");
-  return [HANDLER hasExternalSubset];
+  has = [HANDLER hasExternalSubset];
+  if (has < 0)
+    has = (*xmlDefaultSAXHandler.hasExternalSubset)(ctx);
+  return has;
 }
 
 static void
@@ -1286,9 +1434,10 @@ internalSubsetFunction(void *ctx, const char *name,
   const xmlChar *ExternalID, const xmlChar *SystemID)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER internalSubset: UTF8Str(name)
-	       externalID: UTF8Str(ExternalID)
-		 systemID: UTF8Str(SystemID)];
+  if ([HANDLER internalSubset: UTF8Str(name)
+		   externalID: UTF8Str(ExternalID)
+		     systemID: UTF8Str(SystemID)] == NO)
+    (*xmlDefaultSAXHandler.internalSubset)(ctx, name, ExternalID, SystemID);
 }
 
 static void
@@ -1296,17 +1445,10 @@ externalSubsetFunction(void *ctx, const char *name,
   const xmlChar *ExternalID, const xmlChar *SystemID)
 {
   NSCAssert(ctx,@"No Context");
-  [HANDLER externalSubset: UTF8Str(name)
-	       externalID: UTF8Str(ExternalID)
-		 systemID: UTF8Str(SystemID)];
-}
-
-static xmlParserInputPtr
-resolveEntityFunction(void *ctx, const char *publicId, const char *systemId)
-{
-  NSCAssert(ctx,@"No Context");
-  return [HANDLER resolveEntity: UTF8Str(publicId)
-		       systemID: UTF8Str(systemId)];
+  if ([HANDLER externalSubset: UTF8Str(name)
+		   externalID: UTF8Str(ExternalID)
+		     systemID: UTF8Str(SystemID)] == NO)
+    (*xmlDefaultSAXHandler.externalSubset)(ctx, name, ExternalID, SystemID);
 }
 
 static xmlEntityPtr
@@ -1491,9 +1633,6 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 
 #undef	HANDLER
 
-#undef	HANDLER
-
-
 + (GSSAXHandler*) handler
 {
   return AUTORELEASE([[self alloc] init]);
@@ -1576,9 +1715,10 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 {
 }
 
-- (void) resolveEntity: (NSString*)publicIdEntity
-          systemEntity: (NSString*)systemIdEntity
+- (NSString*) loadEntity: (NSString*)publicId
+		      at: (NSString*)location
 {
+  return nil;
 }
 
 - (void) namespaceDecl: (NSString*)name
@@ -1648,10 +1788,11 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   return 0;
 }
 
-- (void) internalSubset: (NSString*)name
-            externalID: (NSString*)externalID
-              systemID: (NSString*)systemID
+- (BOOL) internalSubset: (NSString*)name
+	     externalID: (NSString*)externalID
+	       systemID: (NSString*)systemID
 {
+  return NO;
 }
 
 - (int) hasExternalSubset
@@ -1659,10 +1800,11 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
   return 0;
 }
 
-- (void) externalSubset: (NSString*)name
-            externalID: (NSString*)externalID
-              systemID: (NSString*)systemID
+- (BOOL) externalSubset: (NSString*)name
+	     externalID: (NSString*)externalID
+		ystemID: (NSString*)systemID
 {
+  return NO;
 }
 
 - (void*) getEntity: (NSString*)name
@@ -1680,7 +1822,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
     return NO;
   else
     {
-      memset(lib, 0, sizeof(xmlSAXHandler));
+      memcpy(lib, &xmlDefaultSAXHandler, sizeof(htmlSAXHandler));
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
       LIB->internalSubset         = (void*) internalSubsetFunction;
@@ -1688,7 +1830,6 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
       LIB->isStandalone           = (void*) isStandaloneFunction;
       LIB->hasInternalSubset      = (void*) hasInternalSubsetFunction;
       LIB->hasExternalSubset      = (void*) hasExternalSubsetFunction;
-      LIB->resolveEntity          = (void*) resolveEntityFunction;
       LIB->getEntity              = (void*) getEntityFunction;
       LIB->entityDecl             = (void*) entityDeclFunction;
       LIB->notationDecl           = (void*) notationDeclFunction;
@@ -1728,7 +1869,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
     return NO;
   else
     {
-      memset(lib, 0, sizeof(htmlSAXHandler));
+      memcpy(lib, &xmlDefaultSAXHandler, sizeof(htmlSAXHandler));
 
 #define	LIB	((htmlSAXHandlerPtr)lib)
       LIB->internalSubset         = (void*) internalSubsetFunction;
@@ -1736,7 +1877,6 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
       LIB->isStandalone           = (void*) isStandaloneFunction;
       LIB->hasInternalSubset      = (void*) hasInternalSubsetFunction;
       LIB->hasExternalSubset      = (void*) hasExternalSubsetFunction;
-      LIB->resolveEntity          = (void*) resolveEntityFunction;
       LIB->getEntity              = (void*) getEntityFunction;
       LIB->entityDecl             = (void*) entityDeclFunction;
       LIB->notationDecl           = (void*) notationDeclFunction;
