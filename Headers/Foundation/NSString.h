@@ -539,9 +539,9 @@ enum {
  * Returns NO otherwise.<br />
  * An absolute path in unix mode is one which begins
  * with a slash or tilde.<br />
- * In windows mode a drive specification (eg C:) or a UNC server and share
- * (eg //host/share) followed by a slash or backslash, is an absolute path,
- * as is any path beginning with a tilde.<br />
+ * In windows mode a drive specification (eg C:) followed by a slash or
+ * backslash, is an absolute path, as is any path beginning with a tilde.<br />
+ * In any mode a UNC path (//host/share...) is always absolute.<br />
  * In gnustep path handling mode, the rules are the same as for windows,
  * except that a path whose root is a slash denotes an absolute path
  * when running on unix and a relative path when running under windows.

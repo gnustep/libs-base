@@ -4405,34 +4405,49 @@ static NSFileManager *fm = nil;
 
   if (l == 0)
     {
-      return NO;		// Empty string ... not absolute
+      return NO;		// Empty string ... relative
     }
   c = [self characterAtIndex: 0];
   if (c == (unichar)'~')
     {
       return YES;		// Begins with tilde ... absolute
     }
-#if !defined(__MINGW__)
-  if (c == '/' && GSPathHandlingWindows() == NO)
-    {
-      return YES;		// Begins with slash ... absolute on unix. 
-    }
-#endif
-  root = rootOf(self, l);
-  if (root > 0 && pathSepMember([self characterAtIndex: root-1]))
+
+  /*
+   * Any string beginning with '/' is absolute ... except in windows mode
+   * or on windows and not in unix mode.
+   */
+  if (c == '/')
     {
 #if defined(__MINGW__)
-      if (root == 1 && GSPathHandlingUnix() == NO)
+      if (GSPathHandlingUnix() == YES)
 	{
-	  return NO;		// Single slash/backslash is not absolute. 
+	  return YES;
+	}
+#else
+      if (GSPathHandlingWindows() == NO)
+	{
+	  return YES;
 	}
 #endif
-      if (root == 1 && c == '\\')
-	{
-	  return NO;		// Single backslash is not absolute
-	}
-      return YES;		// Root ends with separator ... absolute.
+     }
+
+  /*
+   * Any root over two characters long must be a drive specification with a
+   * slash (absolute) or a UNC path (always absolute).
+   */
+  root = rootOf(self, l);
+  if (root > 2)
+    {
+      return YES;		// UNC or C:/ ... absolute
     }
+
+  /*
+   * What we have left are roots of the form 'C:' or '\' or a path
+   * with no root, or a '/' (in windows mode only sence we already
+   * handled a single slash in unix mode) ...
+   * all these cases are relative paths.
+   */
   return NO;
 }
 
