@@ -28,6 +28,7 @@
 */
 
 #include <Foundation/NSDate.h>
+#include <Foundation/NSString.h>
 #include <sys/time.h>
 #include <time.h>
 #include <stdio.h>
@@ -197,10 +198,8 @@
 	
   secs = [self timeIntervalSinceReferenceDate];
   unix_secs = (time_t)secs - (time_t)UNIX_OFFSET;
-  theTime = localtime(unix_secs);
+  theTime = localtime(&unix_secs);
   strftime(buf, 64, "%Y-%m-%d %H:%M:%S", theTime);
-  sprintf(buf,"%s %+2d%2d", buf, theTime->tm_gmtoff / 3600,
-	  theTime->tm_gmtoff / 60 % 60);
   return [NSString stringWithCString: buf];
 }
 #if 0
@@ -215,7 +214,7 @@
 
 - (NSDate*) addTimeInterval: (NSTimeInterval)seconds
 {
-  return [[self class] dateWithTimeIntervalSinceRefrenceDate:
+  return [[self class] dateWithTimeIntervalSinceReferenceDate:
 		       [self timeIntervalSinceReferenceDate] + seconds];
 }
 
@@ -262,7 +261,7 @@
 
 - (BOOL) isEqual: (id)other
 {
-  if ([other isKindOf: NSDate] 
+  if ([other isKindOf: [NSDate class]] 
       && 1.0 > ([self timeIntervalSinceReferenceDate] -
 		[other timeIntervalSinceReferenceDate]))
     return YES;
