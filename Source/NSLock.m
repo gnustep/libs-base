@@ -23,6 +23,7 @@
 
 #include <gnustep/base/preface.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSException.h>
 
 // NSLock class
 // Simplest lock for protecting critical sections of code
@@ -36,7 +37,7 @@
   
   // Allocate the mutex from the runtime
   mutex = objc_mutex_allocate();
-  NSAssertParameter (mutex);
+  NSParameterAssert (mutex);
   return self;
 }
 
