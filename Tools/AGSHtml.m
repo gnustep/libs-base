@@ -1227,7 +1227,8 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
   s = [self makeLink: n ofType: @"protocol" isRef: YES];
   if (s != nil)
     {
-      t = [s stringByAppendingString: @"t</a>"];
+      t = [s stringByAppendingString: t];
+      t = [s stringByAppendingString: @"</a>"];
     }
   return t;
 }
