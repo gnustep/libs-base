@@ -1,3 +1,11 @@
+1999-09-07  Adam Fedor  <fedor@gnu.org>
+
+	* Version: Version 0.6.0
+
+	* configure.in: Add test for solaris libraries
+	* Source/mframe/config.guess: Update to latest version	
+	* Source/mframe/config.sub: Likewise.
+	
 Sun Sep  5  9:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* config/config_thread.m: new file
