@@ -3,6 +3,8 @@
 	* Version 1.7.0.
 	* Documentation/news.texi: Updated.
 
+	* NSObject: Revert last change
+
 2003-05-20  David Ayers <d.ayers@inode.at>
 
 	* Headers/gnustep/base/GSObjCRuntime.h (GSObjCGetMethod(),
