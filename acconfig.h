@@ -6,3 +6,5 @@
 
 #undef NeXT_cc
 #undef NeXT_runtime
+
+#undef VSPRINTF_RETURNS_LENGTH
