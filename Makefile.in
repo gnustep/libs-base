@@ -167,6 +167,7 @@ Storage.m
 GNUSTEP_MFILES = \
 NSAllocateObject.m \
 NSArray.m \
+NSArrayEnumerator.m \
 NSAutoreleasePool.m \
 NSBundle.m \
 NSCoder.m \
@@ -317,6 +318,7 @@ objc/zone.h
 
 GNUSTEP_HEADERS = \
 foundation/NSArray.h \
+foundation/NSArrayEnumerator.h \
 foundation/NSAutoreleasePool.h \
 foundation/NSBundle.h \
 foundation/NSCString.h \
