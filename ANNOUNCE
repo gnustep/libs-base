@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.5.1, is now available.
+The GNUstep Base Library, version 1.5.2, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -19,31 +19,32 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.5.1'
+   Note that versions that have a odd minor release number are unstable
+releases (like 1.5.2), which even minor release numbers (1.4.1) are
+stable releases.
+
+Noteworthy changes in version `1.5.2'
 =====================================
 
-   * Port NSThread to MingW
+   * More MinGW support
 
-   * Better framework support in NSBundle
+   * New MacOSX compatible methods.
 
-   * Added Thai string encodings.
+   * The Base Additions library compiles on native OSX.
 
-   * New makeImmutableCopyOnFail: method.
+   * autogsdoc produces better, cleaner docs.
 
-   * Lots of autogsdoc improvements, Updated gsdoc DTD to 1.0 version.
+   * Built-in garbage collecting classes.
 
-   * Added GSPrintf for logging to stdout.
-
-   * Warning logs selectable at runtime.
-
-   * NSTimeZone code rewritten for speed.
+   * Any many many bug fixes and minor improvements.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.5.1.tar.gz distribution file has been placed on
+   The gnustep-base-1.5.2.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
-   The library requires gcc 2.8.0 or higher.  See the `GNUstep-HOWTO'
-file for more instructions about compiling and installing the library.
+   Please log bug reports on the GNUstep project page
+<http://savannah.gnu.org/support/?group=gnustep> or send bug reports to
+<bug-gnustep@gnu.org>.
 

@@ -9,6 +9,19 @@ The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.5.2}
+
+@itemize @bullet
+@item More MinGW support
+@item New MacOSX compatible methods.
+@item The Base Additions library compiles on native OSX.
+@item autogsdoc produces better, cleaner docs.
+@item Built-in garbage collecting classes.
+@item Any many many bug fixes and minor improvements.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.5.1}
 
 @itemize @bullet
@@ -21,8 +34,6 @@ The currently released version of the library is
 @item Warning logs selectable at runtime.
 @item NSTimeZone code rewritten for speed.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.5.0}
 

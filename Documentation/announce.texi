@@ -22,6 +22,10 @@ portion of the OpenStep standard (the Foundation library).
 There is more information available at the GNUstep homepage
 at @samp{http://www.gnustep.org}.
 
+Note that versions that have a odd minor release number are unstable
+releases (like 1.5.2), which even minor release numbers (1.4.1) are stable
+releases.
+
 @ignore
 So that developers of non-free, commercial programs can use the library,
 the library is released under the GNU Library GPL.
@@ -45,6 +49,6 @@ been placed on @samp{@value{GNUSTEP-BASE-FTP-MACHINE}} in
 @samp{@value{GNUSTEP-BASE-FTP-DIRECTORY}}.
 @end ifset
 
-The library requires gcc @value{GCC-VERSION} or higher.
-See the @samp{GNUstep-HOWTO}
-file for more instructions about compiling and installing the library.
+Please log bug reports on the GNUstep project page
+@url{http://savannah.gnu.org/support/?group=gnustep} or send bug
+reports to @email{bug-gnustep@@gnu.org}.
