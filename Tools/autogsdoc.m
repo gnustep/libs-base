@@ -459,6 +459,8 @@ main(int argc, char **argv, char **env)
       NSLog(@"Proc ... %@", proc);
       NSLog(@"Name ... %@", [proc processName]);
       NSLog(@"Files ... %@", files);
+      NSLog(@"HeaderDirectory ... %@", headerDirectory);
+      NSLog(@"DocumentationDirectory ... %@", documentationDirectory);
     }
   for (i = 1; i < count; i++)
     {
@@ -626,7 +628,7 @@ main(int argc, char **argv, char **env)
 		}
 	      if (verbose == YES)
 		{
-		  NSLog(@"Sources for %@ are %@ ... %@", hfile, a, sDate);
+		  NSLog(@"Saved sources for %@ are %@ ... %@", hfile, a, sDate);
 		}
 
 	      /*
@@ -653,7 +655,7 @@ main(int argc, char **argv, char **env)
 		}
 	      if (verbose == YES)
 		{
-		  NSLog(@"Outputs for %@ are %@ ... %@", hfile, a, gDate);
+		  NSLog(@"Saved outputs for %@ are %@ ... %@", hfile, a, gDate);
 		}
 	    }
 
@@ -707,12 +709,20 @@ main(int argc, char **argv, char **env)
 			  [a replaceObjectAtIndex: j withObject: s];
 			}
 		    }
+		  if (verbose == YES)
+		    {
+		      NSLog(@"Computed outputs for %@ are %@", hfile, a);
+		    }
 		  [projectRefs setOutputs: a forHeader: hfile];
 		}
 	      a = [parser sources];
 	      if ([a count] > 0)
 		{
 		  [projectRefs setSources: a forHeader: hfile];
+		}
+	      if (verbose == YES)
+		{
+		  NSLog(@"Computed sources for %@ are %@", hfile, a);
 		}
 
 	      for (j = 0; j < [a count]; j++)
