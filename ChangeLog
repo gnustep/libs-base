@@ -1,3 +1,12 @@
+2002-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSValue.m: Fixed bug in archiving NSValue objects ... was
+	creating faulty archives which would crash on unarchiving.
+	If you have any archives created using the buggy code, try to
+	unarchive them by using the previous version of this file but
+	with the RELEASE() of the decoded NSData object removed.  This
+	*might* permit archive recovery, though it will cause a memory leak.
+
 2002-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUser.m: locking erro fixed by Stephen brandon
