@@ -1,3 +1,7 @@
+2003-03-27  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSBundle.m ([NSBundle -bundleIdentifier]): New.
+
 2003-03-27  Stephane Corthesy <stephane@sente.ch>
 
 	* Tools/autogsdoc.m, AGSHtml.m, AGSIndex.m, AGSOutput.m: Add

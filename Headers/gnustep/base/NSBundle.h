@@ -230,6 +230,10 @@ GS_EXPORT NSString* NSLoadedClasses;
 /** Returns the absolute path to the resources directory of the bundle.  */
 - (NSString*) resourcePath;
 
+/** Returns the bundle identifier, as defined by the CFBundleIdentifier
+    key in the infoDictionary */
+- (NSString *)bundleIdentifier;
+
 /** Returns the bundle version. */
 - (unsigned) bundleVersion;
 
