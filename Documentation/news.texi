@@ -9,6 +9,22 @@ The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.3.4}
+
+This is a first pre-release version for 1.4.
+
+This version also fixes a potentially destructive bug in gdomap. All
+users are urged to upgrade to this version as soon as possible.
+
+@itemize @bullet
+@item gdomap - don't write pidfile until after setuid away from root
+@item New combined Unix/Windows version of NSFileHandle
+@end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.3.3}
 
 Note there are interface and binary changes in this release that
@@ -23,10 +39,6 @@ require you to recompile all applications and tools that use gnustep-base.
 @item GC improvements
 @item Support for system-wide .GNUsteprc
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.3.2}
 
