@@ -4,7 +4,7 @@
 #include <gnustep/base/Proxy.h>
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/BinaryCStream.h>
-#include <gnustep/base/String.h>
+#include <Foundation/NSString.h>
 #include <gnustep/base/RunLoop.h>
 #include <Foundation/NSDate.h>
 #include <assert.h>
@@ -42,11 +42,11 @@ int main(int argc, char *argv[])
   if (argc > 1)
     {
       if (argc > 2)
-	p = [Connection rootProxyAtName: [String stringWithCString: argv[2]]
-			onHost: [String stringWithCString:argv[1]]];
+	p = [Connection rootProxyAtName: [NSString stringWithCString: argv[2]]
+			onHost: [NSString stringWithCString:argv[1]]];
       else
 	p = [Connection rootProxyAtName:@"test2server" 
-			onHost:[String stringWithCString:argv[1]]];
+			onHost:[NSString stringWithCString:argv[1]]];
     }
   else
     p = [Connection rootProxyAtName:@"test2server" 
