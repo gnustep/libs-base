@@ -1251,6 +1251,12 @@ handle_printf_atsign (FILE *stream,
   return [super initWithCoder:aDecoder];
 }
 
+- cStringNoCopy
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
 @end
 
 @implementation NSString (NSCStringAccess)
