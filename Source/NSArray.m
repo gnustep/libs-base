@@ -31,10 +31,16 @@
 @implementation NSArray
 
 static Class NSArray_concrete_class;
+static Class NSMutableArray_concrete_class;
 
 + (void) _setConcreteClass: (Class)c
 {
   NSArray_concrete_class = c;
+}
+
++ (void) _setMutableConcreteClass: (Class)c
+{
+  NSMutableArray_concrete_class = c;
 }
 
 + (Class) _concreteClass
@@ -42,9 +48,15 @@ static Class NSArray_concrete_class;
   return NSArray_concrete_class;
 }
 
++ (Class) _mutableConcreteClass
+{
+  return NSMutableArray_concrete_class;
+}
+
 + (void) initialize
 {
   NSArray_concrete_class = [NSGArray class];
+  NSMutableArray_concrete_class = [NSGMutableArray class];
 }
 
 + allocWithZone: (NSZone*)z
@@ -278,45 +290,37 @@ static Class NSArray_concrete_class;
 
 - copyWithZone: (NSZone*)zone
 {
-  return [[[self class] allocWithZone:zone] initWithArray:self];
+  /* a deep copy */
+  int count = [self count];
+  id objects[count];
+  int i;
+  for (i = 0; i < count; i++)
+    objects[i] = [[self objectAtIndex:i] copyWithZone:zone];
+  return [[[[self class] _concreteClass] allocWithZone:zone] 
+	  initWithObjects:objects count:count];
 }
 
 /* The NSMutableCopying Protocol */
 
 - mutableCopyWithZone: (NSZone*)zone
 {
-  return [[NSGMutableArray allocWithZone:zone] initWithArray:self];
+  /* a shallow copy */
+  return [[[[self class] _mutableConcreteClass] allocWithZone:zone] 
+	  initWithArray:self];
 }
 
 @end
 
 @implementation NSMutableArray: NSArray
 
-static Class NSMutableArray_concrete_class;
-
-+ (void) _setConcreteClass: (Class)c
-{
-  NSMutableArray_concrete_class = c;
-}
-
-+ (Class) _concreteClass
-{
-  return NSMutableArray_concrete_class;
-}
-
-+ (void) initialize
-{
-  NSMutableArray_concrete_class = [NSGMutableArray class];
-}
-
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _concreteClass], 0, z);
+  return NSAllocateObject([self _mutableConcreteClass], 0, z);
 }
 
 + arrayWithCapacity: (unsigned)numItems
 {
-  return [[[[self _concreteClass] alloc] initWithCapacity:numItems] 
+  return [[[[self _mutableConcreteClass] alloc] initWithCapacity:numItems] 
 	  autorelease];
 }
 
@@ -426,4 +430,3 @@ static Class NSMutableArray_concrete_class;
 }
 
 @end
-
