@@ -17,6 +17,7 @@ int main (int argc, char **argv)
   NSProcessInfo	*info = [NSProcessInfo processInfo];
   NSUserDefaults	*defaults;
   
+  NSLog(@"Temporary directory - %@", NSTemporaryDirectory());
   [info setProcessName: @"TestProcess"];
   defaults = [NSUserDefaults standardUserDefaults];
   NSLog(@"%@", [defaults  dictionaryRepresentation]);
