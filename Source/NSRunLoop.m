@@ -253,6 +253,7 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 		 target: (id)target
 	       argument: (id)argument
 		  delay: (NSTimeInterval)delay;
+- (void) invalidate;
 @end
 
 @implementation GSTimedPerformer
@@ -276,10 +277,7 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 
 - (void) gcFinalize
 {
-  if (timer != nil)
-    {
-      [timer invalidate];
-    }
+  [self invalidate];
 }
 
 - (id) initWithSelector: (SEL)aSelector
@@ -303,6 +301,16 @@ static inline BOOL timerInvalidated(NSTimer* timer)
     }
   return self;
 }
+
+- (void) invalidate
+{
+  if (timer != nil)
+    {
+      [timer invalidate];
+      DESTROY(timer);
+    }
+}
+
 @end
 
 
@@ -1198,6 +1206,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 	  if (p->target == target)
 	    {
+	      [p invalidate];
 	      [perf removeObjectAtIndex: count];
 	    }
 	}
@@ -1208,7 +1217,9 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 /**
  * Cancels any perform operations set up for the specified target
  * in the current loop, but only if the value of aSelector and argument
- * with which the performs were set up exactly match those supplied.
+ * with which the performs were set up match those supplied.<br />
+ * Matching of the argument may be either by pointer equality or by
+ * use of the [NSObject-isEqual:] method.
  */
 + (void) cancelPreviousPerformRequestsWithTarget: (id)target
 					selector: (SEL)aSelector
@@ -1229,8 +1240,9 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 	  GSTimedPerformer	*p = array[count];
 
 	  if (p->target == target && sel_eq(p->selector, aSelector)
-	    && [p->argument isEqual: arg])
+	    && (p->argument == arg || [p->argument isEqual: arg]))
 	    {
+	      [p invalidate];
 	      [perf removeObjectAtIndex: count];
 	    }
 	}
@@ -2138,7 +2150,9 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 /**
  * Cancels any perform operations set up for the specified target
  * in the receiver, but only if the value of aSelector and argument
- * with which the performs were set up exactly match those supplied.
+ * with which the performs were set up match those supplied.<br />
+ * Matching of the argument may be either by pointer equality or by
+ * use of the [NSObject-isEqual:] method.
  */
 - (void) cancelPerformSelector: (SEL)aSelector
 			target: (id) target
@@ -2163,7 +2177,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 	      p = GSIArrayItemAtIndex(performers, count).obj;
 	      if (p->target == target && sel_eq(p->selector, aSelector)
-		&& p->argument == argument)
+		&& (p->argument == argument || [p->argument isEqual: argument]))
 		{
 		  GSIArrayRemoveItemAtIndex(performers, count);
 		}
