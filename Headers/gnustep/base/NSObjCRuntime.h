@@ -165,6 +165,9 @@ NSZone	*GSObjCZone(NSObject *obj);
  */
 void	*_fastMallocBuffer(unsigned size);
 
+/* Getting a system error message on a variety of systems */
+GS_EXPORT const char *GSLastErrorStr(long error_id);
+
 #endif
 
 #endif /* __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */

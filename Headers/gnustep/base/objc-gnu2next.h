@@ -41,6 +41,7 @@ typedef void(*apply_t)(void);   /* function pointer */
 #define TypedStream void*
 
 #define class_pointer isa
+typedef struct objc_super Super;
 
 #define class_create_instance(CLASS) class_createInstance(CLASS, 0)
 
@@ -111,6 +112,18 @@ static inline BOOL
 class_is_class(Class class)
 {
   return CLS_ISCLASS(class);
+}
+
+static inline IMP
+method_get_imp(Method method)
+{
+  return (method!=METHOD_NULL)?method->method_imp:(IMP)0;
+}
+
+static inline BOOL
+object_is_instance(id object)
+{
+  return (object!=nil)&&CLS_ISCLASS(object->class_pointer);
 }
 
 /*

@@ -36,6 +36,7 @@
 #include <base/behavior.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 // Absolute Gregorian date for NSDate reference date Jan 01 2001
 //

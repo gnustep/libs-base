@@ -256,7 +256,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      NSLog(@"unable to create socket - %s", strerror(errno));
+      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
       RELEASE(self);
       return nil;
     }
@@ -268,7 +268,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  NSLog(@"unable to make connection to %s:%d - %s",
 		inet_ntoa(sin.sin_addr),
-		GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
+		GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
 	  RELEASE(self);
 	  return nil;
 	}
@@ -306,7 +306,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      NSLog(@"unable to create socket - %s", strerror(errno));
+      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
       RELEASE(self);
       return nil;
     }
@@ -322,7 +322,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  {
 	    NSLog(@"unable to make connection to %s:%d - %s",
 		inet_ntoa(sin.sin_addr),
-		GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
+		GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
 	    RELEASE(self);
 	    return nil;
 	  }
@@ -361,7 +361,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
-      NSLog(@"unable to create socket - %s", strerror(errno));
+      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
       RELEASE(self);
       return nil;
     }
@@ -372,7 +372,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       NSLog(@"unable to bind to port %s:%d - %s",
 		inet_ntoa(sin.sin_addr),
-		GSSwapBigI16ToHost(sin.sin_port), strerror(errno));
+		GSSwapBigI16ToHost(sin.sin_port), GSLastErrorStr(errno));
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -380,7 +380,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (listen(net, 5) < 0)
     {
-      NSLog(@"unable to listen on port - %s", strerror(errno));
+      NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -388,7 +388,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
     {
-      NSLog(@"unable to get socket name - %s", strerror(errno));
+      NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
       (void) close(net);
       RELEASE(self);
       return nil;
@@ -531,7 +531,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       if (fstat(desc, &sbuf) < 0)
 	{
-          NSLog(@"unable to get status of descriptor - %s", strerror(errno));
+          NSLog(@"unable to get status of descriptor - %s", GSLastErrorStr(errno));
 	  RELEASE(self);
 	  return nil;
 	}
@@ -706,7 +706,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"unable to read from descriptor - %s",
-                  strerror(errno)];
+                  GSLastErrorStr(errno)];
     }
   return d;
 }
@@ -729,7 +729,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"unable to read from descriptor - %s",
-                  strerror(errno)];
+                  GSLastErrorStr(errno)];
     }
   return d;
 }
@@ -752,7 +752,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  [NSException raise: NSFileHandleOperationException
 		      format: @"unable to read from descriptor - %s",
-		      strerror(errno)];
+		      GSLastErrorStr(errno)];
 	}
       [d setLength: got];
     }
@@ -775,7 +775,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    {
 	      [NSException raise: NSFileHandleOperationException
 			  format: @"unable to read from descriptor - %s",
-			  strerror(errno)];
+			  GSLastErrorStr(errno)];
 	    }
 	}
       while (len > 0 && got > 0);
@@ -808,7 +808,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"unable to write to descriptor - %s",
-                  strerror(errno)];
+                  GSLastErrorStr(errno)];
     }
 }
 
@@ -897,7 +897,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"failed to move to offset in file - %s",
-                  strerror(errno)];
+                  GSLastErrorStr(errno)];
     }
   return (unsigned long long)result;
 }
@@ -912,7 +912,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"failed to move to offset in file - %s",
-                  strerror(errno)];
+                  GSLastErrorStr(errno)];
     }
   return (unsigned long long)result;
 }
@@ -927,7 +927,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"failed to move to offset in file - %s",
-                  strerror(errno)];
+                  GSLastErrorStr(errno)];
     }
 }
 
@@ -1231,7 +1231,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      NSString	*s;
 
 	      s = [NSString stringWithFormat: @"Accept attempt failed - %s",
-		strerror(errno)];
+		GSLastErrorStr(errno)];
 	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
 	    }
 	  else
@@ -1276,7 +1276,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		  NSString	*s;
 
 		  s = [NSString stringWithFormat: @"Read attempt failed - %s",
-		    strerror(errno)];
+		    GSLastErrorStr(errno)];
 		  [readInfo setObject: s forKey: GSFileHandleNotificationError];
 		  [self postReadNotification];
 		}
@@ -1319,7 +1319,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		      NSString	*s;
 
 		      s = [NSString stringWithFormat:
-			@"Write attempt failed - %s", strerror(errno)];
+			@"Write attempt failed - %s", GSLastErrorStr(errno)];
 		      [info setObject: s forKey: GSFileHandleNotificationError];
 		      [self postWriteNotification];
 		    }
@@ -1345,7 +1345,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		NSString	*s;
 
 		s = [NSString stringWithFormat: @"Connect attempt failed - %s",
-		  strerror(result)];
+		  GSLastErrorStr(result)];
 		[info setObject: s forKey: GSFileHandleNotificationError];
 	    }
 	  else
@@ -1397,12 +1397,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
         e &= ~NBLK_OPT;
 
       if (fcntl(descriptor, F_SETFL, e) < 0)
-        NSLog(@"unable to set non-blocking mode - %s", strerror(errno));
+        NSLog(@"unable to set non-blocking mode - %s", GSLastErrorStr(errno));
       else
         isNonBlocking = flag;
     }
     else
-      NSLog(@"unable to get non-blocking mode - %s", strerror(errno));
+      NSLog(@"unable to get non-blocking mode - %s", GSLastErrorStr(errno));
 }
 
 - (NSString*) socketAddress
@@ -1485,7 +1485,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"unable to read from descriptor - %s",
-                  strerror(errno)];
+                  GSLastErrorStr(errno)];
     }
   return d;
 }
@@ -1520,7 +1520,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	{
 	  [NSException raise: NSFileHandleOperationException
 		      format: @"unable to read from descriptor - %s",
-		      strerror(errno)];
+		      GSLastErrorStr(errno)];
 	}
       [d setLength: got];
     }
@@ -1550,7 +1550,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	    {
 	      [NSException raise: NSFileHandleOperationException
 			  format: @"unable to read from descriptor - %s",
-			  strerror(errno)];
+			  GSLastErrorStr(errno)];
 	    }
 	}
       while (len > 0 && got > 0);
@@ -1586,7 +1586,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"unable to read from descriptor - %s",
-                  strerror(errno)];
+                  GSLastErrorStr(errno)];
     }
   return d;
 }
@@ -1615,7 +1615,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      NSString	*s;
 
 	      s = [NSString stringWithFormat: @"Accept attempt failed - %s",
-                      strerror(errno)];
+                      GSLastErrorStr(errno)];
 	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
 	    }
 	  else
@@ -1667,7 +1667,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		  NSString	*s;
 
 		  s = [NSString stringWithFormat: @"Read attempt failed - %s",
-		    strerror(errno)];
+		    GSLastErrorStr(errno)];
 		  [readInfo setObject: s forKey: GSFileHandleNotificationError];
 		  [self postReadNotification];
 		}
@@ -1719,7 +1719,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		      NSString	*s;
 
 		      s = [NSString stringWithFormat:
-			@"Write attempt failed - %s", strerror(errno)];
+			@"Write attempt failed - %s", GSLastErrorStr(errno)];
 		      [info setObject: s forKey: GSFileHandleNotificationError];
 		      [self postWriteNotification];
 		    }
@@ -1745,7 +1745,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		NSString	*s;
 
 		s = [NSString stringWithFormat: @"Connect attempt failed - %s",
-		  strerror(result)];
+		  GSLastErrorStr(result)];
 		[info setObject: s forKey: GSFileHandleNotificationError];
 	    }
 	  else
@@ -1832,7 +1832,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		NSLog(@"Want X509 Lookup Error");
 		break;
 	      case SSL_ERROR_SYSCALL:
-		NSLog(@"Syscall Error - %s", strerror(errno));
+		NSLog(@"Syscall Error - %s", GSLastErrorStr(errno));
 		break;
 	      case SSL_ERROR_SSL:
 		NSLog(@"SSL Error: really helpful");
@@ -1930,7 +1930,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     {
       [NSException raise: NSFileHandleOperationException
                   format: @"unable to write to descriptor - %s",
-                  strerror(errno)];
+                  GSLastErrorStr(errno)];
     }
 }
 @end

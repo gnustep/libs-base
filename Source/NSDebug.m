@@ -31,21 +31,6 @@
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSThread.h>
 
-#ifndef HAVE_STRERROR
-const char*
-strerror(int eno)
-{
-  extern char*	sys_errlist[];
-  extern int	sys_nerr;
-
-  if (eno < 0 || eno >= sys_nerr)
-    {
-      return("unknown error number");
-    }
-  return(sys_errlist[eno]);
-}
-#endif
-
 typedef struct {
   Class	class;
   /* The following are used for statistical info */

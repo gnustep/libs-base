@@ -26,6 +26,7 @@
 
 #if NeXT_RUNTIME
 #include <objc/objc.h>
+#include <objc/objc-class.h>
 #else
 #include <objc/objc-api.h>
 #endif

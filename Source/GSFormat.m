@@ -1672,7 +1672,7 @@ NSDictionary *locale)
     LABEL (form_strerror):
       /* Print description of error ERRNO.  */
       string =
-	(unichar *) strerror(save_errno);
+	(unichar *) GSLastErrorStr(save_errno);
       is_long = 0;		/* This is no wide-char string.  */
       goto LABEL (print_string);
     LABEL (form_character):

@@ -1082,7 +1082,7 @@ GSCheckTasks()
       if (result < 0)
         {
           NSLog(@"waitpid %d, result %d, error %s",
-                _taskId, result, strerror(errno));
+                _taskId, result, GSLastErrorStr(errno));
           [self _terminatedChild: -1];
         }
       else if (result == _taskId || (result > 0 && errno == 0))
@@ -1112,7 +1112,7 @@ GSCheckTasks()
 #ifdef  WAITDEBUG
       else
         NSLog(@"waitpid %d, result %d, error %s",
-                _taskId, result, strerror(errno));
+                _taskId, result, GSLastErrorStr(errno));
 #endif
     }
 }

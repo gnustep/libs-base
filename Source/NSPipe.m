@@ -59,7 +59,7 @@
         }
       else
 	{
-	  NSLog(@"Failed to create pipe ... %s", strerror(errno));
+	  NSLog(@"Failed to create pipe ... %s", GSLastErrorStr(errno));
 	  DESTROY(self);
 	}
 #else

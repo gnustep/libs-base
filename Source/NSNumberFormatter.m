@@ -268,3 +268,5 @@
 {
     ASSIGN(_minimum, aMinimum);
 }
+
+@end

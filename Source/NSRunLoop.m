@@ -1220,7 +1220,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	  /* xxx We can do something with exception_fds, instead of
 	     aborting here. */
 	  NSLog (@"select() error in -acceptInputForMode:beforeDate: '%s'",
-		strerror(errno));
+		GSLastErrorStr(errno));
 	  abort ();
 	}
     }
