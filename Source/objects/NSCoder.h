@@ -29,9 +29,9 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Coding.h>
-#include <foundation/NSConcreteCoder.h>
+#include <foundation/NSGCoder.h>
 
-@interface NSConcreteCoder (GNU) <Encoding, Decoding>
+@interface NSCoder (GNU) <Encoding, Decoding>
 @end
 
 #endif /* __objects_NSCoder_h_OBJECTS_INCLUDE */
