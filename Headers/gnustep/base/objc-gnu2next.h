@@ -31,7 +31,11 @@
 #include <objc/objc-class.h>
 #include <stddef.h>
 
-#define arglist_t marg_list
+typedef union {
+  char *arg_ptr;
+  char arg_regs[sizeof (char*)];
+} *arglist_t;                   /* argument frame */
+//#define arglist_t marg_list
 #define retval_t void*
 #define TypedStream void*
 
@@ -118,6 +122,18 @@ extern void *(*_objc_valloc)(size_t);
 extern void *(*_objc_realloc)(void *, size_t);
 extern void *(*_objc_calloc)(size_t, size_t);
 extern void (*_objc_free)(void *);
+
+/* encoding functions */
+extern int objc_sizeof_type(const char* type);
+extern int objc_alignof_type(const char* type);
+extern int objc_aligned_size (const char* type);
+extern int objc_promoted_size (const char* type);
+extern const char *objc_skip_type_qualifiers (const char* type);
+extern const char *objc_skip_typespec (const char* type);
+extern const char *objc_skip_argspec (const char* type);
+extern unsigned objc_get_type_qualifiers (const char* type);
+extern BOOL sel_types_match (const char* t1, const char* t2);
+
 
 #endif /* NeXT_RUNTIME */
 

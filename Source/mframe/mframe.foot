@@ -9,6 +9,9 @@ mframe_arg_addr(arglist_t argf, NSArgumentInfo *info)
       offset += sizeof(int) - info->size;
     }
 #endif
+#if NeXT_RUNTIME
+  return marg_getRef(argf, offset, void);
+#else
   if (info->isReg)
     {
       return(argf->arg_regs + offset);
@@ -17,6 +20,7 @@ mframe_arg_addr(arglist_t argf, NSArgumentInfo *info)
     {
       return(argf->arg_ptr + offset);
     }
+#endif
 }
 
 inline static void
