@@ -1,3 +1,9 @@
+2002-01-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Header/Foundation/GSXML.h: Correction standards complience
+	* Source/GSXML.m: A few documentation tidyups
+	* Tools/autogsdoc.m: Some tidyups for improved performance.
+
 2002-01-02  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Show openssl as enabled by default in help. Check for

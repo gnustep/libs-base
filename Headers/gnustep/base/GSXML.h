@@ -1,4 +1,3 @@
-
 /* Interface for XML parsing classes
 
    Copyright (C) 2000 Free Software Foundation, Inc.
@@ -34,6 +33,9 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSDictionary.h>
+
+#ifndef	STRICT_MACOS_X
+#ifndef	STRICT_OPENSTEP
 
 @class GSXMLAttribute;
 @class GSXMLDocument;
@@ -296,6 +298,9 @@
 
 @interface GSHTMLSAXHandler : GSSAXHandler
 @end
+
+#endif	/* STRICT_MACOS_X */
+#endif	/* STRICT_OPENSTEP */
 
 #endif /* __GSXML_H__ */
 
