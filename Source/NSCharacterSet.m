@@ -318,6 +318,23 @@ static NSLock* cache_lock = nil;
   return nil;
 }
 
+- (BOOL) isEqual: (id)anObject
+{
+  if (anObject == self)
+    return YES;
+  if ([anObject isKindOfClass:[NSCharacterSet class]])
+    {
+      int	i;
+
+      for (i = 0; i <= 0xffff; i++)
+        if ([self characterIsMember: (unichar)i] !=
+		[anObject characterIsMember: (unichar)i])
+	  return NO;
+      return YES;
+    }
+  return NO;
+}
+
 - (NSCharacterSet *)invertedSet
 {
   int   i, length;
