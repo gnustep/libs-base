@@ -1696,7 +1696,7 @@ static BOOL isPlistObject(id o)
 
   while (!done)
     {
-      if ([key hasPrefix: @"-"])
+      if ([key hasPrefix: @"-"] == YES && [key isEqual: @"-"] == NO)
 	{
 	  NSString	*old = nil;
 
@@ -1719,7 +1719,7 @@ static BOOL isPlistObject(id o)
 	      done = YES;
 	      continue;
 	    }
-	  else if ([val hasPrefix: @"-"] == YES)
+	  else if ([val hasPrefix: @"-"] == YES && [val isEqual: @"-"] == NO)
 	    {  // Yet another argument
 	      [argDict setObject: @"" forKey: key];		// arg is empty.
 	      if (old != nil)
