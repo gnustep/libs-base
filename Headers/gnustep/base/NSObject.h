@@ -206,12 +206,12 @@ if (value != object) \
   if (value) \
     { \
       [value retain]; \
-      if (object) \
-	{ \
-	  [object release]; \
-	} \
-      object = value; \
     } \
+  if (object) \
+    { \
+      [object release]; \
+    } \
+  object = value; \
 })
 
 /*
