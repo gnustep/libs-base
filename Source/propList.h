@@ -156,7 +156,7 @@ static BOOL skipSpace(pldata *pld)
 	  if (c == '/' && pld->pos < pld->end - 1)
 	    {
 	      /*
-	       * Check for comments beginning '//' or '/*'
+	       * Check for comments beginning '/' followed by '/' or '*'
 	       */
 	      if (pld->ptr[pld->pos + 1] == '/')
 		{

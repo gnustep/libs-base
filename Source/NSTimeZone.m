@@ -729,7 +729,7 @@ decode (const void *ptr)
 
 	detail = [[NSConcreteTimeZoneDetail alloc]
 			initWithTimeZone: zone
-			      withAbbrev: abbrevsArray[types[i].abbr_idx]
+			      withAbbrev: abbrevsArray[(int)types[i].abbr_idx]
 			      withOffset: types[i].offset
 				 withDST: (types[i].isdst > 0)];
 	[detailsArray addObject: detail];

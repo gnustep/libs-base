@@ -26,9 +26,9 @@
 /*
  *	Setup for inline operation of pointer map tables.
  */
-#define	GSI_MAP_RETAIN_KEY(X)	X
+#define	GSI_MAP_RETAIN_KEY(X)	
 #define	GSI_MAP_RELEASE_KEY(X)	
-#define	GSI_MAP_RETAIN_VAL(X)	X
+#define	GSI_MAP_RETAIN_VAL(X)	
 #define	GSI_MAP_RELEASE_VAL(X)	
 #define	GSI_MAP_HASH(X)	((X).uint)
 #define	GSI_MAP_EQUAL(X,Y)	((X).uint == (Y).uint)
@@ -248,8 +248,6 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 - (void) encodeValueOfObjCType: (const char*)type
 			    at: (const void*)buf
 {
-  uchar	info;
-
   switch (*type)
     {
       case _C_ID:
@@ -884,8 +882,6 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
 - (void) resetArchiver
 {
-  char        buf[strlen(PREFIX)+33];
-
   if (clsMap)
     {
       GSIMapCleanMap(clsMap);

@@ -510,7 +510,7 @@
     if ((scanLocation < len) && ((c == 'e') || (c == 'E')))
       {
         int expval;
-        int expScanLocation = scanLocation;
+
         scanLocation++;
         if ([self _scanInt: &expval])
 	  {

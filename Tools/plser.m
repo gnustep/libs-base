@@ -33,7 +33,6 @@ int
 main(int argc, char** argv)
 {
   NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-  NSUserDefaults	*defs;
   NSProcessInfo		*proc;
   NSArray		*args;
   unsigned		i;

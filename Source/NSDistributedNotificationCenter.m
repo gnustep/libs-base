@@ -52,7 +52,7 @@ NSString	*NSLocalNotificationCenterType =
 
 @interface	NSDistributedNotificationCenter (Private)
 - (void) _connect;
-- (id) _invalidated: (NSNotification*)notification;
+- (void) _invalidated: (NSNotification*)notification;
 - (void) postNotificationName: (NSString*)name
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
@@ -369,7 +369,7 @@ NSLog(@"Connection to GDNC server established.\n");
     }
 }
 
-- (id) _invalidated: (NSNotification*)notification
+- (void) _invalidated: (NSNotification*)notification
 {
   id connection = [notification object];
 

@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <base/behavior.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSSerialization.h>
@@ -148,8 +149,8 @@
   va_start(ap, types);
   while (*types)
     {
-      [self encodeValueOfObjCType:types
-	    at:va_arg(ap, void*)];
+      (*imp)(self, @selector(encodeValueOfObjCType:at:), types,
+	va_arg(ap, void*));
       types = objc_skip_typespec(types);
     }
   va_end(ap);
@@ -173,7 +174,6 @@
 {
   unsigned count;
   const char *type = @encode(unsigned char);
-  int i;
   unsigned char *where;
   unsigned char *array;
   IMP imp = [self methodForSelector:@selector(decodeValueOfObjCType:at:)];

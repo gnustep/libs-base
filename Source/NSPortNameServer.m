@@ -39,6 +39,7 @@
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSPortNameServer.h>
 #include <base/TcpPort.h>
+#include <arpa/inet.h>
 
 /*
  *	Protocol definition stuff for talking to gdomap process.
@@ -278,7 +279,7 @@ static NSPortNameServer	*defaultServer = nil;
 #ifndef HAVE_INET_ATON
       svrs->s_addr = inet_addr("127.0.0.1");
 #else
-      inet_aton("127.0.0.1", &svrs->s_addr);
+      inet_aton("127.0.0.1", (struct in_addr *)&svrs->s_addr);
 #endif
     }
 
@@ -549,6 +550,7 @@ static NSPortNameServer	*defaultServer = nil;
   NS_ENDHANDLER
   [self _close];
   [serverLock unlock];
+  return YES;
 }
 
 - (void) removePortForName: (NSString*)name

@@ -677,7 +677,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	    }
 	}
       if (wantRead == NO)
-	return;
+	return YES;
     }
 
   /*

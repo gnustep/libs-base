@@ -46,9 +46,9 @@
 /*
  *	Setup for inline operation of string map tables.
  */
-#define	GSI_MAP_RETAIN_KEY(X)	X
+#define	GSI_MAP_RETAIN_KEY(X)	
 #define	GSI_MAP_RELEASE_KEY(X)	
-#define	GSI_MAP_RETAIN_VAL(X)	X
+#define	GSI_MAP_RETAIN_VAL(X)	
 #define	GSI_MAP_RELEASE_VAL(X)	
 #define	GSI_MAP_HASH(X)	[(X).obj hash]
 #define	GSI_MAP_EQUAL(X,Y)	[(X).obj isEqualToString: (Y).obj]
@@ -58,7 +58,7 @@
 /*
  *	Setup for inline operation of string arrays.
  */
-#define	GSI_ARRAY_RETAIN(X)	X
+#define	GSI_ARRAY_RETAIN(X)	
 #define	GSI_ARRAY_RELEASE(X)	
 #define	GSI_ARRAY_TYPES	GSUNION_OBJ
 
@@ -149,7 +149,7 @@ endSerializerInfo(_NSSerializerInfo* info)
     GSIMapEmptyMap(&info->map);
 }
 
-static id
+static void
 serializeToInfo(id object, _NSSerializerInfo* info)
 {
   Class	c = fastClass(object);

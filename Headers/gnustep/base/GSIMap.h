@@ -741,7 +741,7 @@ GSIMapEmptyMap(GSIMapTable map)
   map->zone = 0;
 }
 
-static INLINE GSIMapTable 
+static INLINE void 
 GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, size_t capacity)
 {
   map->zone = zone;

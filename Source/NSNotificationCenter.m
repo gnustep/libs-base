@@ -27,10 +27,13 @@
 
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSMapTable.h>
-#include <Foundation/NSHashTable.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSThread.h>
+#include <base/fast.x>
 
+typedef struct {
+  @defs(NSNotification)
+} NotificationStruct;
 
 /*
  * Garbage collection considerations -
@@ -44,132 +47,440 @@
  * the garbage collector.
  */
 
+struct	NCTbl;		/* Notification Center Table structure	*/
 
 /*
  * Observation structure - One of these objects is created for
  * each -addObserver... request.  It holds the requested selector,
- * name and object.  Each struct is placed
- * (1) in one LinkedList, as keyed by the NAME/OBJECT parameters
- * (2) in an array, as keyed by the OBSERVER
+ * name and object.  Each struct is placed in one LinkedList,
+ * as keyed by the NAME/OBJECT parameters.
  */
 
 typedef	struct	Obs {
-  NSString	*name;
-  id		object;
-  id		observer;
-  SEL		selector;
-  IMP		method;
-  struct Obs	*next;
-  unsigned	retained;
+  id		observer;	/* Object to receive message.	*/
+  SEL		selector;	/* Method selector.		*/
+  IMP		method;		/* Method implementation.	*/
+  struct Obs	*next;		/* Next item in linked list.	*/
+  int		retained;	/* Retain count for structure.	*/
+  struct NCTbl	*link;		/* Pointer back to chunk table	*/
 } Observation;
 
 #define	ENDOBS	((Observation*)-1)
 
-static void FreeObs(Observation *o)
+static SEL	hSel = @selector(hash);
+static SEL	eqSel = @selector(isEqualToString:);
+
+static unsigned	(*cHash)(id, SEL);
+static unsigned	(*uHash)(id, SEL);
+static BOOL	(*cEqual)(id, SEL, id);
+static BOOL	(*uEqual)(id, SEL, id);
+
+static inline unsigned doHash(NSString* key)
 {
-  if (o->retained)
-    o->retained--;
+  if (key == nil)
+    {
+      return 0;
+    }
+  else if (((gsaddr)key) & 1)
+    {
+      return (unsigned)(gsaddr)key;
+    }
   else
-    NSZoneFree(NSDefaultMallocZone(), o);
+    {
+      Class	c = fastClassOfInstance(key);
+
+      if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString
+	|| c == _fastCls._NXConstantString)
+	return (*cHash)(key, hSel);
+      if (c == _fastCls._NSGString || c == _fastCls._NSGMutableString)
+	return (*uHash)(key, hSel);
+      return [key hash];
+    }
 }
 
-static void FreeList(Observation *list)
+static inline BOOL doEqual(NSString* key1, NSString* key2)
+{
+  if (key1 == key2)
+    {
+      return YES;
+    }
+  else if ((((gsaddr)key1) & 1) || key1 == nil)
+    {
+      return NO;
+    }
+  else
+    {
+      Class	c = fastClassOfInstance(key1);
+
+      if (c == _fastCls._NSGString)
+	return (*uEqual)(key1, eqSel, key2);
+      else
+	return (*cEqual)(key1, eqSel, key2);
+    }
+}
+
+/*
+ * Setup for inline operation on arrays of Observers.
+ */
+static void listFree(Observation *list);
+static void obsRetain(Observation *o);
+static void obsFree(Observation *o);
+
+#define GSI_ARRAY_TYPES       0
+#define GSI_ARRAY_EXTRA       Observation*
+
+#define GSI_ARRAY_RELEASE(X)   obsFree(X.ext)
+#define GSI_ARRAY_RETAIN(X)    obsRetain(X.ext)
+
+#include <base/GSIArray.h>
+
+#define GSI_MAP_RETAIN_KEY(X)  X
+#define GSI_MAP_RELEASE_KEY(X) ((((gsaddr)X.obj) & 1) == 0 \
+  ? RELEASE(X.obj) : X.obj)
+#define GSI_MAP_HASH(X)        doHash(X.obj)
+#define GSI_MAP_EQUAL(X,Y)     doEqual(X.obj, Y.obj)
+
+#define GSI_MAP_RETAIN_VAL(X)  X
+#define GSI_MAP_RELEASE_VAL(X)
+#define GSI_MAP_KTYPES GSUNION_OBJ|GSUNION_INT
+#define GSI_MAP_VTYPES GSUNION_PTR
+#define GSI_MAP_VEXTRA Observation*
+#define	GSI_MAP_EXTRA	1
+
+#include <base/GSIMap.h>
+
+/*
+ * An NC table is used to keep track of memory allocated to store
+ * Observation structures. When an Observation is removed from the
+ * notification center, it's memory is returned to the free list of
+ * the chunk table, rather than being released to the general
+ * memory allocation system.  This means that, once a large numbner
+ * of observers have been registered, memory usage will never shrink
+ * even if the observers are removed.  On the other hand, the process
+ * of adding and removing observers is speeded up.
+ *
+ * As another minor aid to performance, we also maintain a cache of
+ * the map tables used to keep mappings of notification objects to
+ * lists of Observations.  This lets us avoid the overhead of creating
+ * and destroying map tables when we are frequently adding and removing
+ * notification observations.
+ *
+ * Performance is however, not the primary reason for using this
+ * structure - it provides a neat way to ensure that observers pointed
+ * to by the Observation structures are not seen as being in use by
+ * the garbage collection mechanism.
+ */
+#define	CHUNKSIZE	128
+#define	CACHESIZE	16
+typedef struct NCTbl {
+  Observation		*wildcard;	/* Get ALL messages.		*/
+  GSIMapTable		nameless;	/* Get messages for any name.	*/
+  GSIMapTable		named;		/* Getting named messages only.	*/
+  GSIArray		array;		/* Temp store during posting.	*/
+  unsigned		lockCount;	/* Count recursive operations.	*/
+  NSRecursiveLock	*_lock;		/* Lock out other threads.	*/
+  IMP			lImp;
+  IMP			uImp;
+  BOOL			lockingDisabled;
+  BOOL			immutableInPost;
+
+  Observation	*freeList;
+  Observation	**chunks;
+  unsigned	numChunks;
+  GSIMapTable	cache[CACHESIZE];
+  short		chunkIndex;
+  short		cacheIndex;
+} NCTable;
+
+#define	TABLE		((NCTable*)table)
+#define	WILDCARD	(TABLE->wildcard)
+#define	NAMELESS	(TABLE->nameless)
+#define	NAMED		(TABLE->named)
+#define	ARRAY		(TABLE->array)
+#define	LOCKCOUNT	(TABLE->lockCount)
+
+static Observation *obsNew(NCTable* t)
+{
+  Observation	*obs;
+
+  if (t->freeList == 0)
+    {
+      Observation	*block;
+
+      if (t->chunkIndex == CHUNKSIZE)
+	{
+	  unsigned	size;
+
+	  t->numChunks++;
+	  size = t->numChunks * sizeof(Observation*);
+	  t->chunks = (Observation**)NSZoneRealloc(NSDefaultMallocZone(),
+	    t->chunks, size);
+	  size = CHUNKSIZE * sizeof(Observation);
+#if	GS_WITH_GC
+	  t->chunks[t->numChunks - 1]
+	    = (Observation*)NSZoneMallocAtomic(NSDefaultMallocZone(), size);
+#else
+	  t->chunks[t->numChunks - 1]
+	    = (Observation*)NSZoneMalloc(NSDefaultMallocZone(), size);
+#endif
+	  t->chunkIndex = 0;
+	}
+      block = t->chunks[t->numChunks - 1];
+      t->freeList = &block[t->chunkIndex];
+      t->chunkIndex++;
+      t->freeList->link = 0;
+    }
+  obs = t->freeList;
+  t->freeList = (Observation*)obs->link;
+  obs->link = (void*)t;
+  return obs;
+}
+
+static GSIMapTable	mapNew(NCTable *t)
+{
+  if (t->cacheIndex > 0)
+    return t->cache[--t->cacheIndex];
+  else
+    {
+      GSIMapTable	m;
+
+      m = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
+      GSIMapInitWithZoneAndCapacity(m, NSDefaultMallocZone(), 2);
+      return m;
+    }
+}
+
+static void	mapFree(NCTable *t, GSIMapTable m)
+{
+  if (t->cacheIndex < CACHESIZE)
+    t->cache[t->cacheIndex++] = m;
+  else
+    {
+      GSIMapEmptyMap(m);
+      NSZoneFree(NSDefaultMallocZone(), (void*)m);
+    }
+}
+
+static void endNCTable(NCTable *t)
+{
+  unsigned	i;
+  GSIMapNode		n0;
+  Observation		*l;
+
+  /*
+   * free the temporary storage area for observations about to receive msgs.
+   */
+  GSIArrayEmpty(t->array);
+  NSZoneFree(NSDefaultMallocZone(), (void*)t->array);
+
+  /*
+   * Free observations without notification names or numbers.
+   */
+  listFree(t->wildcard);
+
+  /*
+   * Free lists of observations without notification names.
+   */
+  n0 = t->nameless->firstNode;
+  while (n0 != 0)
+    {
+      l = (Observation*)n0->value.ptr;
+      n0 = n0->nextInMap;
+      listFree(l);
+    }
+  GSIMapEmptyMap(t->nameless);
+  NSZoneFree(NSDefaultMallocZone(), (void*)t->nameless);
+
+  /*
+   * Free lists of observations keyed by name and observer.
+   */
+  n0 = t->named->firstNode;
+  while (n0 != 0)
+    {
+      GSIMapTable	m = (GSIMapTable)n0->value.ptr;
+      GSIMapNode	n1 = m->firstNode;
+
+      n0 = n0->nextInMap;
+
+      while (n1 != 0)
+	{
+	  l = (Observation*)n1->value.ptr;
+	  n1 = n1->nextInMap;
+	  listFree(l);
+	}
+      GSIMapEmptyMap(m);
+      NSZoneFree(NSDefaultMallocZone(), (void*)m);
+    }
+  GSIMapEmptyMap(t->named);
+  NSZoneFree(NSDefaultMallocZone(), (void*)t->named);
+
+  for (i = 0; i < t->numChunks; i++)
+    NSZoneFree(NSDefaultMallocZone(), t->chunks[i]);
+  for (i = 0; i < t->cacheIndex; i++)
+    {
+      GSIMapEmptyMap(t->cache[i]);
+      NSZoneFree(NSDefaultMallocZone(), (void*)t->cache[i]);
+    }
+  NSZoneFree(NSDefaultMallocZone(), t->chunks);
+  NSZoneFree(NSDefaultMallocZone(), t);
+
+  TEST_RELEASE(t->_lock);
+}
+
+static NCTable *newNCTable()
+{
+  NCTable	*t;
+
+  t = (NCTable*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(NCTable));
+  memset((void*)t, '\0', sizeof(NCTable));
+  t->chunkIndex = CHUNKSIZE;
+  t->wildcard = ENDOBS;
+
+  t->nameless = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(t->nameless, NSDefaultMallocZone(), 16);
+
+  t->named = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(t->named, NSDefaultMallocZone(), 128);
+
+  t->array = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIArray_t));
+  GSIArrayInitWithZoneAndCapacity(t->array, NSDefaultMallocZone(), 16);
+
+  return t;
+}
+
+static inline void lockNCTable(NCTable* t)
+{
+  if (t->_lock != nil && t->lockingDisabled == NO)
+    (*t->lImp)(t->_lock, @selector(lock));
+  t->lockCount++;
+}
+
+static inline void unlockNCTable(NCTable* t)
+{
+  t->lockCount--;
+  if (t->_lock != nil && t->lockingDisabled == NO)
+    (*t->uImp)(t->_lock, @selector(unlock));
+}
+
+static void obsFree(Observation *o)
+{
+  NSCAssert(o->retained >= 0, NSInternalInconsistencyException);
+  if (o->retained-- == 0)
+    {
+      NCTable	*t = o->link;
+
+      o->link = (NCTable*)t->freeList;
+      t->freeList = o;
+    }
+}
+
+static void listFree(Observation *list)
 {
   while (list != ENDOBS)
     {
       Observation	*o = list;
 
       list = o->next;
-      FreeObs(o);
+      o->next = 0;
+      obsFree(o);
     }
 }
 
-static void *RetainObs(Observation *o)
+/*
+ *	NB. We need to explicitly set the 'next' field of any observation
+ *	we remove to be zero so that, if it currently exists in an array
+ *	of observations being posted, the posting code can notice that it
+ *	has been removed from its linked list.
+ */
+static Observation *listPurge(Observation *list, id observer)
+{
+  Observation	*tmp;
+
+  while (list != ENDOBS && list->observer == observer)
+    {
+      tmp = list->next;
+      list->next = 0;
+      obsFree(list);
+      list = tmp;
+    }
+  if (list != ENDOBS)
+    {
+      tmp = list;
+      while (tmp->next != ENDOBS)
+	{
+	  if (tmp->next->observer == observer)
+	    {
+	      Observation	*next = tmp->next;
+
+	      tmp->next = next->next;
+	      next->next = 0;
+	      obsFree(next);
+	    }
+	  else
+	    {
+	      tmp = tmp->next;
+	    }
+	}
+    }
+  return list;
+}
+
+static void obsRetain(Observation *o)
 {
   o->retained++;
-  return o;
 }
-
-static unsigned oHash(void* t, Observation *o)
-{
-  unsigned	hash;
-
-  hash = (unsigned)(gsaddr)o->object ^ (unsigned)(gsaddr)o->selector;
-  if (o->name != nil)
-    hash ^= [o->name hash];
-  return hash;
-}
-
-static BOOL oIsEqual(void* t, Observation *o1, Observation* o2)
-{
-  if (o1->object != o2->object)
-    return NO;
-  if (o1->selector != o2->selector)
-    return NO;
-  if (o1->name != o2->name)
-    return [o1->name isEqual: o2->name];
-  return YES;
-}
-
-static void* oRetain(void* t, Observation *o)
-{
-  o->retained++;
-}
-
-static void oRelease(void* t, Observation *o)
-{
-  if (o->retained)
-    o->retained--;
-  else
-    NSZoneFree(NSDefaultMallocZone(), o);
-}
-
-const NSHashTableCallBacks ObsCallBacks =
-{
-  (NSHT_hash_func_t) oHash,
-  (NSHT_isEqual_func_t) oIsEqual,
-  (NSHT_retain_func_t) oRetain,
-  (NSHT_release_func_t) oRelease,
-  (NSHT_describe_func_t) 0
-};
-
-const NSMapTableValueCallBacks ObsMapCallBacks =
-{
-  (NSMT_retain_func_t) oRetain,
-  (NSMT_release_func_t) oRelease,
-  (NSMT_describe_func_t) 0
-};
 
 /*
- * Setup for inline operation on arrays of Observers.
+ * Utility function to remove all the observations from a particular
+ * map table node that match the specified observer.  If the observer
+ * is nil, then all observations are removed.
+ * If the list of observations in the map node is emptied, the node is
+ * removed from the map.
  */
+static inline void
+purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
+{
+  Observation	*list = node->value.ext;
 
-#define GSI_ARRAY_TYPES       0
-#define GSI_ARRAY_EXTRA       Observation*
+  if (observer == 0)
+    {
+      listFree(list);
+      GSIMapRemoveKey(map, node->key);
+    }
+  else
+    {
+      Observation	*start = list;
 
-#define GSI_ARRAY_RELEASE(X)   FreeObs(((X).ext))
-#define GSI_ARRAY_RETAIN(X)    RetainObs(((X).ext))
+      list = listPurge(list, observer);
+      if (list == ENDOBS)
+	{
+	  /*
+	   * The list is empty so remove from map.
+	   */
+	  GSIMapRemoveKey(map, node->key);
+	}
+      else if (list != start)
+	{
+	  /*
+	   * The list is not empty, but we have changed its
+	   * start, so we must place the new head in the map.
+	   */
+	  node->value.ext = list;
+	}
+    }
+}
 
-#include <base/GSIArray.h>
-
-#define GSI_MAP_RETAIN_VAL(X)  X
-#define GSI_MAP_RELEASE_VAL(X)
-#define GSI_MAP_KTYPES GSUNION_OBJ
-#define GSI_MAP_VTYPES GSUNION_PTR
-
-#include <base/GSIMap.h>
-
-#if	GS_WITH_GC
 /*
  * In order to hide pointers from garbage collection, we OR in an
  * extra bit.  This should be ok for the objects we deal with
  * which are all aligned on 4 or 8 byte boundaries on all the machines
  * I know of.
+ *
+ * We also use this trick to differentiate between map table keys that
+ * should be treated as objects (notification names) and thise that
+ * should be treated as pointers (notification objects)
  */
-#define	CHEATGC(X)	(void*)(gsaddr)((X) | 1)
-#else
-#define	CHEATGC(X)	(void*)(gsaddr)(X)
-#endif
+#define	CHEATGC(X)	(id)(((gsaddr)X) | 1)
 
 
 
@@ -180,21 +491,26 @@ const NSMapTableValueCallBacks ObsMapCallBacks =
    There is no need to mutex locking of this variable. */
 
 static NSNotificationCenter *default_center = nil;
-static SEL	remSel = @selector(_removeObservationFromList:);
-static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 
 + (void) initialize
 {
   if (self == [NSNotificationCenter class])
     {
+      cHash = (unsigned (*)(id, SEL))
+	[NSGCString instanceMethodForSelector: hSel];
+      uHash = (unsigned (*)(id, SEL))
+	[NSGString instanceMethodForSelector: hSel];
+      cEqual = (BOOL (*)(id, SEL, id))
+	[NSGCString instanceMethodForSelector: eqSel];
+      uEqual = (BOOL (*)(id, SEL, id))
+	[NSGString instanceMethodForSelector: eqSel];
+
       /*
        * Do alloc and init separately so the default center can refer to
        * the 'default_center' variable during initialisation.
        */
       default_center = [self alloc];
       [default_center init];
-      remImp = (void (*)(NSNotificationCenter*, SEL, Observation*))
-	[self instanceMethodForSelector: remSel];
     }
 }
 
@@ -206,18 +522,41 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 
 /* Initializing. */
 
+- (void) _becomeThreaded: (NSNotification*)notification
+{
+  unsigned	count;
+
+  TABLE->_lock = [NSRecursiveLock new];
+  TABLE->lImp = [TABLE->_lock methodForSelector: @selector(lock)];
+  TABLE->uImp = [TABLE->_lock methodForSelector: @selector(unlock)];
+  count = LOCKCOUNT;
+  /*
+   * If we start locking inside a method that would normally have been
+   * locked, we must lock the lock enough times so that when we leave
+   * the method the number of unlocks will match.
+   */
+  while (count-- > 0)
+    {
+      (*TABLE->lImp)(TABLE->_lock, @selector(lock));
+    }
+}
+
 - (id) init
 {
   [super init];
-  wildcard = ENDOBS;
-  nameless = NSCreateMapTable(NSNonOwnedPointerOrNullMapKeyCallBacks,
-		      NSNonOwnedPointerMapValueCallBacks, 0);
-  observers = NSCreateMapTable(NSNonOwnedPointerOrNullMapKeyCallBacks,
-		      NSNonOwnedPointerMapValueCallBacks, 0);
-  named = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIMapTable_t));
-  GSIMapInitWithZoneAndCapacity((GSIMapTable)named,NSDefaultMallocZone(),128);
-
-  _lock = [NSRecursiveLock new];
+  TABLE = newNCTable();
+  if ([NSThread isMultiThreaded])
+    {
+      [self _becomeThreaded: nil];
+    }
+  else
+    {
+      [[NSNotificationCenter defaultCenter]
+	addObserver: self
+	   selector: @selector(_becomeThreaded:)
+	       name: NSWillBecomeMultiThreadedNotification
+	     object: nil];
+    }
 
   return self;
 }
@@ -226,56 +565,15 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 {
   [self gcFinalize];
 
-  TEST_RELEASE(_lock);
   [super dealloc];
 }
 
 - (void) gcFinalize
 {
-  NSMapEnumerator	enumerator;
-  id			o;
-  GSIMapTable		f = (GSIMapTable)named;
-  GSIMapNode		n;
-  Observation		*l;
-  NSHashTable		*h;
-  NSMapTable		*m;
-
   /*
-   * Free observations without notification names or numbers.
+   * Release all memory used to store Observations etc.
    */
-  FreeList(wildcard);
-
-  /*
-   * Free lists of observations without notification names.
-   */
-  enumerator = NSEnumerateMapTable(nameless);
-  while (NSNextMapEnumeratorPair(&enumerator, (void**)&o, (void**)&l))
-    {
-      FreeList(l);
-    }
-  NSFreeMapTable(nameless);
-
-  /*
-   * Free lists of observations keyed by name and observer.
-   */
-  n = f->firstNode;
-  while (n != 0)
-    {
-      NSFreeMapTable((NSMapTable*)n->value.ptr);
-      n = n->nextInMap;
-    }
-  GSIMapEmptyMap(f);
-  NSZoneFree(f->zone, named);
-
-  /*
-   * Free tables of observations keyed by observer.
-   */
-  enumerator = NSEnumerateMapTable(observers);
-  while (NSNextMapEnumeratorPair(&enumerator, (void**)&o, (void**)&h))
-    {
-      NSFreeHashTable(h);
-    }
-  NSFreeMapTable(observers);
+  endNCTable(TABLE);
 }
 
 
@@ -286,10 +584,11 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
                 name: (NSString*)name
 	      object: (id)object
 {
-  NSHashTable	*h;
+  IMP		method;
+  Observation	*list;
   Observation	*o;
-  unsigned	i;
-  IMP		m;
+  GSIMapTable	m;
+  GSIMapNode	n;
 
   if (observer == nil)
     [NSException raise: NSInvalidArgumentException
@@ -305,221 +604,262 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
       NSStringFromSelector(selector));
 #endif
 
-  m = [observer methodForSelector: selector];
-  if (m == 0)
+  method = [observer methodForSelector: selector];
+  if (method == 0)
     [NSException raise: NSInvalidArgumentException
 		format: @"Observer can not handle specified selector"];
 
-  /*
-   * NB. Do Atomic malloc for garbage collection - so objects pointed to by
-   * the Observation structure will be garbage collected.
-   */
-#if	GS_WITH_GC
-  o = (Observation*)NSZoneMallocAtomic(NSDefaultMallocZone(),
-    sizeof(Observation));
-#else
-  o = (Observation*)NSZoneMalloc(NSDefaultMallocZone(), sizeof(Observation));
-#endif
-  o->name = name;
-  o->object = object;
+  lockNCTable(TABLE);
+
+  if (TABLE->immutableInPost == YES && LOCKCOUNT > 1)
+    {
+      unlockNCTable(TABLE);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to add to immutable center."];
+    }
+
+  o = obsNew(TABLE);
   o->selector = selector;
-  o->method = m;
+  o->method = method;
   o->observer = observer;
   o->retained = 0;
   o->next = 0;
 
-  [_lock lock];
+  if (object != nil)
+    object = CHEATGC(object);
 
-  /* Record the Observation one of the linked lists */
+  /*
+   * Record the Observation in one of the linked lists.
+   *
+   * NB. It is possible to register an observr for a notification more than
+   * once - in which case, the observer will receive multiple messages when
+   * the notification is posted... odd, but the MacOS-X docs specify this.
+   */
 
   if (name)
     {
-      NSMapTable	*m;
-      Observation	*list;
-      GSIMapNode	n;
-
       /*
        * Locate the map table for this name - create it if not present.
        */
-      n = GSIMapNodeForKey((GSIMapTable)named, (GSIMapKey)name);
+      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
       if (n == 0)
 	{
-	  m = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-		      ObsMapCallBacks, 0);
+	  Class	c;
+
+	  m = mapNew(TABLE);
 	  /*
-	   * If this is the first observation for the given name, we take a
+	   * As this is the first observation for the given name, we take a
 	   * copy of the name so it cannot be mutated while in the map.
+	   * Also ensure the copy is one of our well-known string types so
+	   * we can optimise it's hash and isEqualToString:.
 	   */
 	  name = [name copyWithZone: NSDefaultMallocZone()];
-	  o->name = name;
-	  GSIMapAddPair((GSIMapTable)named, (GSIMapKey)name,
-	    (GSIMapVal)(void*)m);
-	  RELEASE(name);
+	  c = fastClassOfInstance(name);
+	  if (c != _fastCls._NSGString && c != _fastCls._NSGCString
+	    && c != _fastCls._NXConstantString)
+	    {
+	      id n = [[NSGString alloc] initWithString: name];
+	      RELEASE(name);
+	      name = n;
+	    }
+	  GSIMapAddPair(NAMED, (GSIMapKey)name, (GSIMapVal)(void*)m);
 	}
       else
 	{
-	  m = (NSMapTable*)n->value.ptr;
-	  /*
-	   * We record the name string that is used as the map key, so we
-	   * don't need to retain it in the observation.
-	   */
-	  o->name = n->key.obj;
+	  m = (GSIMapTable)n->value.ptr;
 	}
 
       /*
        * Add the observation to the list for the correct object.
        */
-      list = (Observation*)NSMapGet(m, CHEATGC(object));
-      if (list == 0)
+      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
+      if (n == 0)
 	{
 	  o->next = ENDOBS;
-	  NSMapInsert(m, CHEATGC(object), (void*)(gsaddr)o);
+	  GSIMapAddPair(m, (GSIMapKey)object, (GSIMapVal)o);
 	}
       else
 	{
+	  list = (Observation*)n->value.ptr;
 	  o->next = list->next;
 	  list->next = o;
 	}
     }
   else if (object)
     {
-      Observation	*list;
-
-      list = (Observation*)NSMapGet(nameless, CHEATGC(object));
-      if (list == 0)
+      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
+      if (n == 0)
 	{
 	  o->next = ENDOBS;
-	  NSMapInsert(nameless, CHEATGC(object), (void*)(gsaddr)o);
+	  GSIMapAddPair(NAMELESS, (GSIMapKey)object, (GSIMapVal)o);
 	}
       else
 	{
+	  list = (Observation*)n->value.ptr;
 	  o->next = list->next;
 	  list->next = o;
 	}
     }
   else
     {
-      o->next = wildcard;
-      wildcard = o;
+      o->next = WILDCARD;
+      WILDCARD = o;
     }
 
-  /*
-   * Record the notification request in a hash table keyed by OBSERVER.
-   * If it already exists, return without doing anything.
-   */
-  h = (NSHashTable*)NSMapGet(observers, CHEATGC(observer));
-  if (h == 0)
-    {
-      h = NSCreateHashTableWithZone(ObsCallBacks, 4, NSDefaultMallocZone());
-      NSMapInsert(observers, CHEATGC(observer), (void*)h);
-    }
-  if (NSHashGet(h, (void*)o) != 0)
-    {
-      NSZoneFree(NSDefaultMallocZone(), o);
-      [_lock unlock];
-      return;
-    }
-  NSHashInsert(h, (void*)o);
-
-  [_lock unlock];
+  unlockNCTable(TABLE);
 }
 
-/*
- * Method for internal use only.
- */
-- (void) _removeObservationFromList: (Observation*)o
+- (void) removeObserver: (id)observer
+		   name: (NSString*)name
+                 object: (id)object
 {
-  NSAssert(o->next != 0, NSInternalInconsistencyException);
+  if (name == nil && object == nil && observer == nil)
+    [NSException raise: NSInvalidArgumentException
+		format: @"Attempt to remove nil observer/name/object"];
 
-  /* Remove the Observation from its list */
+  /*
+   *	NB. The removal algorithm depends on an implementation characteristic
+   *	of our map tables - while enumerating a table, it is safe to remove
+   *	the entry returned by the enumerator.
+   */
 
-  if (o->name)
+  lockNCTable(TABLE);
+
+  if (TABLE->immutableInPost == YES && LOCKCOUNT > 1)
     {
-      NSMapTable	*m;
-      Observation	*list;
+      unlockNCTable(TABLE);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to remove from immutable center."];
+    }
+
+  if (object != nil)
+    object = CHEATGC(object);
+
+  if (name == nil && object == nil)
+    {
+      WILDCARD = listPurge(WILDCARD, observer);
+    }
+
+  if (name == nil)
+    {
+      GSIMapNode	n;
+
+      /*
+       * First try removing all named items set for this object.
+       */
+      n = NAMED->firstNode;
+      while (n != 0)
+	{
+	  GSIMapTable	m = (GSIMapTable)n->value.ptr;
+	  NSString	*thisName = (NSString*)n->key.obj;
+	  GSIMapNode	n1;
+
+	  n = n->nextInMap;
+	  if (object == nil)
+	    {
+	      /*
+	       * Nil object and nil name, so we step through all the maps
+	       * keyed under the current name and remove all the objects
+	       * that match the observer.
+	       */
+	      n1 = m->firstNode;
+	      while (n1 != 0)
+		{
+		  GSIMapNode	next = n1->nextInMap;
+
+		  purgeMapNode(m, n1, observer);
+		  n1 = next;
+		}
+	    }
+	  else
+	    {
+	      /*
+	       * Nil name, but non-nil object - we locate the map for the
+	       * specified object, and remove all the items that match
+	       * the observer.
+	       */
+	      n1 = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
+	      if (n1 != 0)
+		{
+		  purgeMapNode(m, n1, observer);
+		}
+	    }
+	  /*
+	   * If we removed all the observations keyed under this name, we
+	   * must remove the map table too.
+	   */
+	  if (m->nodeCount == 0)
+	    {
+	      mapFree(TABLE, m);
+	      GSIMapRemoveKey(NAMED, (GSIMapKey)thisName);
+	    }
+	}
+
+      /*
+       * Now remove unnamed items
+       */
+      if (object == nil)
+	{
+	  n = NAMELESS->firstNode;
+	  while (n != 0)
+	    {
+	      GSIMapNode	next = n->nextInMap;
+
+	      purgeMapNode(NAMELESS, n, observer);
+	      n = next;
+	    }
+	}
+      else
+	{
+	  n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
+	  if (n != 0)
+	    {
+	      purgeMapNode(NAMELESS, n, observer);
+	    }
+	}
+    }
+  else
+    {
+      GSIMapTable	m;
       GSIMapNode	n;
 
       /*
        * Locate the map table for this name.
        */
-      n = GSIMapNodeForKey((GSIMapTable)named, (GSIMapKey)o->name);
-      NSAssert(n != 0, NSInternalInconsistencyException);
-      m = (NSMapTable*)n->value.ptr;
-
-      list = (Observation*)NSMapGet(m, CHEATGC(o->object));
-      NSAssert(list != 0, NSInternalInconsistencyException);
-      if (list == o)
+      n = GSIMapNodeForKey(NAMED, (GSIMapKey)name);
+      if (n == 0)
 	{
-	  if (list->next == ENDOBS)
+	  unlockNCTable(TABLE);
+	  return;		/* Nothing to do.	*/
+	}
+      m = (GSIMapTable)n->value.ptr;
+
+      if (object == nil)
+	{
+	  n = m->firstNode;
+	  while (n != 0)
 	    {
-	      NSMapRemove(m, CHEATGC(o->object));
-	      if (NSCountMapTable(m) == 0)
-		{
-		  GSIMapRemoveKey((GSIMapTable)named, (GSIMapKey)o->name);
-		}
-	    }
-	  else
-	    {
-	      NSMapInsert(m, CHEATGC(o->object), (void*)(gsaddr)o->next);
+	      GSIMapNode	next = n->nextInMap;
+
+	      purgeMapNode(m, n, observer);
+	      n = next;
 	    }
 	}
       else
 	{
-	  while (list->next != o)
+	  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
+	  if (n != 0)
 	    {
-	      list = list->next;
+	      purgeMapNode(m, n, observer);
 	    }
-	  list->next = o->next;
+	}
+      if (m->nodeCount == 0)
+	{
+	  mapFree(TABLE, m);
+	  GSIMapRemoveKey(NAMED, (GSIMapKey)name);
 	}
     }
-  else if (o->object)
-    {
-      Observation	*list;
-
-      list = (Observation*)NSMapGet(nameless, CHEATGC(o->object));
-      NSAssert(list != 0, NSInternalInconsistencyException);
-      if (list == o)
-	{
-	  if (list->next == ENDOBS)
-	    {
-	      NSMapRemove(nameless, CHEATGC(o->object));
-	    }
-	  else
-	    {
-	      NSMapInsert(nameless, CHEATGC(o->object),
-		(void*)(gsaddr)o->next);
-	    }
-	}
-      else
-	{
-	  while (list->next != o)
-	    {
-	      list = list->next;
-	    }
-	  list->next = o->next;
-	}
-    }
-  else
-    {
-      if (wildcard == o)
-	{
-	  wildcard = o->next;
-	}
-      else
-	{
-	  Observation	*list = wildcard;
-
-	  while (list->next != o)
-	    {
-	      list = list->next;
-	    }
-	  list->next = o->next;
-	}
-    }
-  /*
-   * Mark this observation as not being in a list.
-   */
-  o->next = 0;
+  unlockNCTable(TABLE);
 }
 
 /* Remove all records pertaining to OBSERVER.  For instance, this 
@@ -527,193 +867,11 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
 
 - (void) removeObserver: (id)observer
 {
-  NSHashEnumerator	enumerator;
-  NSHashTable	*h;
-  Observation	*obs;
-
   if (observer == nil)
     [NSException raise: NSInvalidArgumentException
 		format: @"Nil observer passed to removeObserver:"];
 
-  [_lock lock];
-
-  h = (NSHashTable*)NSMapGet(observers, CHEATGC(observer));
-
-  if (h == 0)
-    return;
-
-  enumerator = NSEnumerateHashTable(h);
-  while ((obs = (Observation*)NSNextHashEnumeratorItem(&enumerator)) != 0)
-    {
-      (*remImp)(self, remSel, obs);
-    }
-
-  NSFreeHashTable(h);
-  NSMapRemove(observers, CHEATGC(observer));
-
-  [_lock unlock];
-}
-
-
-/* Remove the notification requests for the given parameters.  As with
-   adding an observation request, nil NAME or OBJECT act as wildcards. */
-
-- (void) removeObserver: (id)observer
-		   name: (NSString*)name
-                 object: (id)object
-{
-  GSIArray	a;
-
-  /*
-   * If both NAME and OBJECT are nil, this call is the same as 
-   * -removeObserver:, so just call it.
-   */
-  if (name == nil && object == nil)
-    {
-      [self removeObserver: observer];
-      return;
-    }
-
-  /* We are now guaranteed that at least one of NAME and OBJECT is non-nil. */
-
-  [_lock lock];
-
-  a = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIArray_t));
-  GSIArrayInitWithZoneAndCapacity(a, NSDefaultMallocZone(), 128);
-
-  if (name)
-    {
-      NSMapTable	*m;
-      GSIMapNode	n;
-
-      /*
-       * Locate items with specified name (if any).
-       */
-      n = GSIMapNodeForKey((GSIMapTable)named, (GSIMapKey)name);
-      if (n)
-	m = (NSMapTable*)n->value.ptr;
-      else
-	m = 0;
-      if (m != 0)
-	{
-	  if (object == nil)
-	    {
-	      Observation	*list;
-	      NSMapEnumerator	e;
-	      id		o;
-
-	      /*
-	       * Make a list of items for ALL objects.
-	       */
-	      e = NSEnumerateMapTable(m);
-	      while (NSNextMapEnumeratorPair(&e, (void**)&o, (void**)&list))
-		{
-		  while (list != ENDOBS)
-		    {
-		      if (observer == nil || observer == list->observer)
-			{
-			  GSIArrayAddItem(a, (GSIArrayItem)list);
-			}
-		      list = list->next;
-		    }
-		}
-	    }
-	  else
-	    {
-	      Observation	*list;
-
-	      /*
-	       * Make a list of items matching specific object.
-	       */
-	      list = (Observation*)NSMapGet(m, CHEATGC(object));
-	      if (list != 0)
-		{
-		  while (list != ENDOBS)
-		    {
-		      if (observer == nil || observer == list->observer)
-			{
-			  GSIArrayAddItem(a, (GSIArrayItem)list);
-			}
-		      list = list->next;
-		    }
-		}
-	    }
-	}
-    }
-  else
-    {
-      Observation	*list;
-      NSMapTable	*m;
-      GSIMapNode	n;
-
-      /*
-       * Make a list of items matching specific object with NO names
-       */
-      list = (Observation*)NSMapGet(nameless, CHEATGC(object));
-      if (list != 0)
-	{
-	  while (list != ENDOBS)
-	    {
-	      if (observer == nil || observer == list->observer)
-		{
-		  GSIArrayAddItem(a, (GSIArrayItem)list);
-		}
-	      list = list->next;
-	    }
-	}
-
-      /*
-       * Add items for ALL names.
-       */
-      n = ((GSIMapTable)named)->firstNode;
-      while (n != 0)
-	{
-	  m = (NSMapTable*)n->value.ptr;
-	  n = n->nextInMap;
-	  list = (Observation*)NSMapGet(m, CHEATGC(object));
-	  if (list != 0)
-	    {
-	      while (list != ENDOBS)
-		{
-		  if (observer == nil || observer == list->observer)
-		    {
-		      GSIArrayAddItem(a, (GSIArrayItem)list);
-		    }
-		  list = list->next;
-		}
-	    }
-	}
-    }
-
-  if (GSIArrayCount(a) > 0)
-    {
-      id		lastObs = nil;
-      NSHashTable	*h = 0;
-      unsigned		count = GSIArrayCount(a);
-      unsigned		i;
-      Observation	*o;
-
-      for (i = 0; i < count; i++)
-	{
-	  o = GSIArrayItemAtIndex(a, i).ext;
-	  (*remImp)(self, remSel, o);
-	  if (h == 0 || lastObs != o->observer)
-	    {
-	      h = (NSHashTable*)NSMapGet(observers, CHEATGC(o->observer));
-	      lastObs = o->observer;
-	    }
-	  NSHashRemove(h, (void*)o);
-	  if (NSCountHashTable(h) == 0)
-	    {
-	      NSMapRemove(observers, CHEATGC(lastObs));
-	    }
-	}
-    }
-
-  GSIArrayEmpty(a);
-  NSZoneFree(a->zone, (void*)a);
-
-  [_lock unlock];
+  [self removeObserver: observer name: nil object: nil];
 }
 
 
@@ -729,151 +887,246 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
   NSString	*n_name;
   id		n_object;
   Observation	*o;
-  GSIArray	a;
   unsigned	count;
-  unsigned	i;
+  volatile GSIArray	a;
+  unsigned	arrayBase;
 
   if (notification == nil)
     [NSException raise: NSInvalidArgumentException
 		format: @"Tried to post a nil notification."];
 
-  n_name = [notification name];
-  n_object = [notification object];
+  n_name = ((NotificationStruct*)notification)->_name;
+  n_object = ((NotificationStruct*)notification)->_object;
+  if (n_object != nil)
+    n_object = CHEATGC(n_object);
 
   if (n_name == nil)
     [NSException raise: NSInvalidArgumentException
 		format: @"Tried to post a notification with no name."];
 
-  [_lock lock];
+  lockNCTable(TABLE);
 
-  a = NSZoneMalloc(NSDefaultMallocZone(), sizeof(GSIArray_t));
-  GSIArrayInitWithZoneAndCapacity(a, NSDefaultMallocZone(), 16);
+  a = ARRAY;
+  /*
+   * If this is a recursive posting of a notification, the array will already
+   * be in use, so we restrict our operation to array indices beyond the end
+   * of those used by the posting that cuased this one.
+   */
+  arrayBase = GSIArrayCount(a);
 
+#if 0
   NS_DURING
+#endif
     {
-      /*
-       * Post the notification to all the observers that specified neither
-       * NAME nor OBJECT.
-       */
-      for (o = wildcard; o != ENDOBS; o = o->next)
-	{
-	  GSIArrayAddItem(a, (GSIArrayItem)o);
-	}
-      count = GSIArrayCount(a);
-      while (count-- > 0)
-	{
-	  o = GSIArrayItemAtIndex(a, count).ext;
-	  if (o->next != 0) 
-	    (*o->method)(o->observer, o->selector, notification);
-	  GSIArrayRemoveItemAtIndex(a, count);
-	}
+      GSIMapNode	n;
+      GSIMapTable	m;
 
       /*
-       * Post the notification to all the observers that specified OBJECT,
-       * but didn't specify NAME.
+       * If the notification center guarantees that it will be immutable
+       * while a notification is being posted, we can simply send the
+       * message to each matching Observation.  Otherwise, we put the
+       * Observations in a temporary array before starting sending the
+       * messages, so any changes to the tables don't mess us up.
        */
-      if (n_object)
+      if (TABLE->immutableInPost)
 	{
-	  o = (Observation*)NSMapGet(nameless, CHEATGC(n_object));
-	  if (o != 0)
+	  /*
+	   * Post the notification to all the observers that specified neither
+	   * NAME nor OBJECT.
+	   */
+	  for (o = WILDCARD; o != ENDOBS; o = o->next)
 	    {
-	      while (o != ENDOBS)
+	      (*o->method)(o->observer, o->selector, notification);
+	    }
+
+	  /*
+	   * Post the notification to all the observers that specified OBJECT,
+	   * but didn't specify NAME.
+	   */
+	  if (n_object)
+	    {
+	      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)n_object);
+	      if (n != 0)
+		{
+		  o = n->value.ext;
+		  while (o != ENDOBS)
+		    {
+		      (*o->method)(o->observer, o->selector, notification);
+		      o = o->next;
+		    }
+		}
+	    }
+
+	  /*
+	   * Post the notification to all the observers of NAME, except those
+	   * observers with a non-nil OBJECT that doesn't match the
+	   * notification's OBJECT).
+	   */
+	  if (n_name)
+	    {
+	      n = GSIMapNodeForKey(NAMED, (GSIMapKey)n_name);
+	      if (n)
+		m = (GSIMapTable)n->value.ptr;
+	      else
+		m = 0;
+	      if (m != 0)
+		{
+		  /*
+		   * First, observers with a matching object.
+		   */
+		  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)n_object);
+		  if (n != 0)
+		    {
+		      o = n->value.ext;
+		      while (o != ENDOBS)
+			{
+			  (*o->method)(o->observer, o->selector,
+			    notification);
+			  o = o->next;
+			}
+		    }
+
+		  if (n_object != nil)
+		    {
+		      /*
+		       * Now observers with a nil object.
+		       */
+		      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)nil);
+		      if (n != 0)
+			{
+			  o = n->value.ext;
+			  while (o != ENDOBS)
+			    {
+			      (*o->method)(o->observer, o->selector,
+				notification);
+			      o = o->next;
+			    }
+			}
+		    }
+		}
+	    }
+	}
+      else
+	{
+	  /*
+	   * Post the notification to all the observers that specified neither
+	   * NAME nor OBJECT.
+	   */
+	  if (o != ENDOBS)
+	    {
+	      for (o = WILDCARD; o != ENDOBS; o = o->next)
 		{
 		  GSIArrayAddItem(a, (GSIArrayItem)o);
-		  o = o->next;
 		}
 	      count = GSIArrayCount(a);
-	      while (count-- > 0)
+	      while (count-- > arrayBase)
 		{
 		  o = GSIArrayItemAtIndex(a, count).ext;
 		  if (o->next != 0) 
 		    (*o->method)(o->observer, o->selector, notification);
-		  GSIArrayRemoveItemAtIndex(a, count);
 		}
+	      GSIArrayRemoveItemsFromIndex(a, arrayBase);
 	    }
-	}
 
-      /*
-       * Post the notification to all the observers of NAME, except those
-       * observers with a non-nill OBJECT that doesn't match the
-       * notification's OBJECT).
-       */
-      if (n_name)
-	{
-	  NSMapTable	*m;
-	  GSIMapNode	n;
-
-	  n = GSIMapNodeForKey((GSIMapTable)named, (GSIMapKey)n_name);
-	  if (n)
-	    m = (NSMapTable*)n->value.ptr;
-	  else
-	    m = 0;
-	  if (m != 0)
+	  /*
+	   * Post the notification to all the observers that specified OBJECT,
+	   * but didn't specify NAME.
+	   */
+	  if (n_object)
 	    {
-	      /*
-	       * First, observers with a matching object.
-	       */
-	      o = (Observation*)NSMapGet(m, CHEATGC(n_object));
-	      if (o != 0)
+	      n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)n_object);
+	      if (n != 0)
 		{
+		  o = n->value.ext;
 		  while (o != ENDOBS)
 		    {
 		      GSIArrayAddItem(a, (GSIArrayItem)o);
 		      o = o->next;
 		    }
 		  count = GSIArrayCount(a);
-		  while (count-- > 0)
+		  while (count-- > arrayBase)
 		    {
 		      o = GSIArrayItemAtIndex(a, count).ext;
-		      if (o->next != 0)
+		      if (o->next != 0) 
 			(*o->method)(o->observer, o->selector, notification);
-		      GSIArrayRemoveItemAtIndex(a, count);
 		    }
+		  GSIArrayRemoveItemsFromIndex(a, arrayBase);
 		}
+	    }
 
-	      if (n_object != nil)
+	  /*
+	   * Post the notification to all the observers of NAME, except those
+	   * observers with a non-nill OBJECT that doesn't match the
+	   * notification's OBJECT).
+	   */
+	  if (n_name)
+	    {
+	      n = GSIMapNodeForKey(NAMED, (GSIMapKey)n_name);
+	      if (n)
+		m = (GSIMapTable)n->value.ptr;
+	      else
+		m = 0;
+	      if (m != 0)
 		{
 		  /*
-		   * Now observers with a nil object.
+		   * First, observers with a matching object.
 		   */
-		  o = (Observation*)NSMapGet(m, CHEATGC(0));
-		  if (o != 0)
+		  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)n_object);
+		  if (n != 0)
 		    {
+		      o = n->value.ext;
 		      while (o != ENDOBS)
 			{
 			  GSIArrayAddItem(a, (GSIArrayItem)o);
 			  o = o->next;
 			}
-		      count = GSIArrayCount(a);
-		      while (count-- > 0)
+		    }
+
+		  if (n_object != nil)
+		    {
+		      /*
+		       * Now observers with a nil object.
+		       */
+		      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)nil);
+		      if (n != 0)
 			{
-			  o = GSIArrayItemAtIndex(a, count).ext;
-			  if (o->next != 0)
-			    (*o->method)(o->observer, o->selector,
-			      notification);
-			  GSIArrayRemoveItemAtIndex(a, count);
+			  o = n->value.ext;
+			  while (o != ENDOBS)
+			    {
+			      GSIArrayAddItem(a, (GSIArrayItem)o);
+			      o = o->next;
+			    }
 			}
 		    }
+
+		  count = GSIArrayCount(a);
+		  while (count-- > arrayBase)
+		    {
+		      o = GSIArrayItemAtIndex(a, count).ext;
+		      if (o->next != 0)
+			(*o->method)(o->observer, o->selector,
+			  notification);
+		    }
+		  GSIArrayRemoveItemsFromIndex(a, arrayBase);
 		}
 	    }
 	}
     }
+#if 0
   NS_HANDLER
     {
       /*
        *    If we had a problem - release memory and unlock before going on.
        */
-      GSIArrayEmpty(a);
-      NSZoneFree(a->zone, (void*)a);
-      [_lock unlock];
+      GSIArrayRemoveItemsFromIndex(ARRAY, arrayBase);
+      unlockNCTable(TABLE);
 
       [localException raise];
     }
   NS_ENDHANDLER
+#endif
 
-  GSIArrayEmpty(a);
-  NSZoneFree(a->zone, (void*)a);
-  [_lock unlock];
+  unlockNCTable(TABLE);
 }
 
 - (void) postNotificationName: (NSString*)name 
@@ -890,6 +1143,60 @@ static void	(*remImp)(NSNotificationCenter*, SEL, Observation*) = 0;
   [self postNotification: [NSNotification notificationWithName: name
 							object: object
 						      userInfo: info]];
+}
+
+@end
+
+@implementation	NSNotificationCenter (GNUstep)
+
+- (BOOL) setImmutableInPost: (BOOL)flag
+{
+  BOOL	old;
+
+  lockNCTable(TABLE);
+
+  if (self == default_center)
+    {
+      unlockNCTable(TABLE);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Can't change behavior of default center."];
+    }
+  if (LOCKCOUNT > 1)
+    {
+      unlockNCTable(TABLE);
+      [NSException raise: NSInvalidArgumentException
+		format: @"Can't change behavior during post."];
+    }
+
+  old = TABLE->immutableInPost;
+  TABLE->immutableInPost = flag;
+  unlockNCTable(TABLE);
+  
+  return old;
+}
+
+- (BOOL) setLockingDisabled: (BOOL)flag
+{
+  BOOL	old;
+
+  lockNCTable(TABLE);
+  if (self == default_center)
+    {
+      unlockNCTable(TABLE);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Can't change locking of default center."];
+    }
+  if (LOCKCOUNT > 1)
+    {
+      unlockNCTable(TABLE);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Can't change locking during post."];
+    }
+
+  old = TABLE->lockingDisabled;
+  TABLE->lockingDisabled = flag;
+  unlockNCTable(TABLE);
+  return old;
 }
 
 @end

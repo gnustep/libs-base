@@ -537,7 +537,7 @@
    been -shallowCopy'ed can cause major memory leakage. */
 - copyAs: (id <Collecting>)aCollectionClass
 {
-  id newColl = [self emptyCopyAs:aCollectionClass];
+  id newColl = [self emptyCopyAs: (Class)aCollectionClass];
   id o;
 
   FOR_COLLECTION(self, o)

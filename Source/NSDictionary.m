@@ -166,11 +166,10 @@ static Class NSMutableDictionary_concrete_class;
   return [self count];
 }
 
-- initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
+- (id) initWithObjects: (NSArray*)objects forKeys: (NSArray*)keys
 {
   int objectCount = [objects count];
   id os[objectCount], ks[objectCount];
-  int i;
   
   if (objectCount != [keys count])
     {
@@ -465,7 +464,7 @@ compareIt(id o1, id o2, void* context)
   return (int)[o1 performSelector: f->s withObject: o2];
 }
 
-- (NSArray*)keysSortedByValueUsingSelector: (SEL)comp
+- (NSArray*) keysSortedByValueUsingSelector: (SEL)comp
 {
   struct foo	info;
   id	k;
@@ -474,6 +473,7 @@ compareIt(id o1, id o2, void* context)
   info.s = comp;
   info.i = [self methodForSelector: @selector(objectForKey:)];
   k = [[self allKeys] sortedArrayUsingFunction: compareIt context: &info];
+  return k;
 }
 
 - (NSArray*) objectsForKeys: (NSArray*)keys notFoundMarker: (id)marker

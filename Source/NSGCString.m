@@ -929,7 +929,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   return obj;
 }
 
-- mutableCopyWithZone: (NSZone*)z
+- (id) mutableCopyWithZone: (NSZone*)z
 {
   NSGMutableCString	*obj;
 
@@ -944,6 +944,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 	  obj->_hash = _hash;
 	}
     }
+  return obj;
 }
 
 - (void) deleteCharactersInRange: (NSRange)range

@@ -37,8 +37,11 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSTask.h>
+#include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
 
+#include <string.h>
+#include <unistd.h>
 #include <sys/signal.h>
 #include <sys/types.h>
 #include <sys/param.h>
@@ -548,7 +551,7 @@ extern char *objc_find_executable(const char *name);
 	}
 
       chdir(path);
-      execve(executable, args, envl);
+      execve(executable, (char**)args, (char**)envl);
       exit(-1);
     }
   else

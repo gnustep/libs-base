@@ -70,6 +70,7 @@ NSGetSizeAndAlignment(const char *typePtr, unsigned *sizep, unsigned *alignp)
     *sizep = info.size;
   if (alignp)
     *alignp = info.align;
+  return typePtr;
 }
 
 BOOL

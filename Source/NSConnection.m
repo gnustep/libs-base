@@ -187,7 +187,7 @@ static unsigned local_object_counter = 0;
 @interface NSConnection (Private)
 - _superInit;
 - (void) handlePortMessage: (NSPortMessage*)msg;
-+ setDebug: (int)val;
++ (void) setDebug: (int)val;
 @end
 
 #define proxiesHashGate refGate
@@ -217,18 +217,6 @@ static inline int
 compare_ints (const void *k1, const void *k2)
 {
   return !(k1 - k2);
-}
-
-static int
-type_get_number_of_arguments (const char *type)
-{
-  int i = 0;
-  while (*type)
-    {
-      type = objc_skip_argspec (type);
-      i += 1;
-    }
-  return i - 1;
 }
 
 /* class defaults */
@@ -1124,7 +1112,7 @@ static int messages_received_count;
   return self;
 }
 
-+ setDebug: (int)val
++ (void) setDebug: (int)val
 {
   debug_connection = val;
 }
@@ -2040,7 +2028,6 @@ static int messages_received_count;
 	{
 	  id		op;
 	  id		ip;
-	  unsigned int 	i;
 	  id		result;
 	  int seq_num = [self _newMsgNumber];
 

@@ -31,7 +31,7 @@
 #include <Foundation/NSPortCoder.h>
 
 
-#define	GSI_MAP_RETAIN_VAL(X)	X
+#define	GSI_MAP_RETAIN_VAL(X)	
 #define	GSI_MAP_RELEASE_VAL(X)	
 #define GSI_MAP_KTYPES	GSUNION_OBJ
 #define GSI_MAP_VTYPES	GSUNION_INT

@@ -1,3 +1,52 @@
+Thu Jun 24 20:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/include/GSIMap.h: Tweaks to avoid compiler warnings.
+	* Source/include/NSNotification.h: ditto.
+	* Source/propList.h: ditto.
+	* Source/Collection.m: ditto.
+	* Source/TcpPort.m: ditto.
+	* Source/UnixFileHandle.m: ditto.
+	* Source/NSArchiver.m: ditto.
+	* Source/NSArchiver.m: ditto.
+	* Source/NSCalendarDate.m: ditto.
+	* Source/NSCoder.m: ditto.
+	* Source/NSConcreteValue.m: ditto.
+	* Source/NSConnection.m: ditto.
+	* Source/NSData.m: ditto.
+	* Source/NSDate.m: ditto.
+	* Source/NSDictionary.m: ditto.
+	* Source/NSDistributedNotificationCenter.m: ditto.
+	* Source/NSGAttributedString.m: ditto.
+	* Source/NSGCountedSet.m: ditto.
+	* Source/NSGCString.m: ditto.
+	* Source/NSGDictionary.m: ditto.
+	* Source/NSHost.m: ditto.
+	* Source/NSLock.m: ditto.
+	* Source/NSNotificationCenter.m: ditto.
+	* Source/NSNotificationQueue.m: ditto.
+	* Source/NSNumber.m: ditto.
+	* Source/NSObjCRuntime.m: ditto.
+	* Source/NSObject.m: ditto.
+	* Source/NSPage.m: ditto.
+	* Source/NSPortNameServer.m: ditto.
+	* Source/NSScanner.m: ditto.
+	* Source/NSSerializer.m: ditto.
+	* Source/NSString.m: ditto.
+	* Source/NSTask.m: ditto.
+	* Source/NSTimeZone.m: ditto.
+	* Source/NSThread.m: ditto.
+	* Source/NSUnarchiver.m: ditto.
+	* Source/NSURL.m: ditto.
+	* Source/NSURLHandle.m: ditto.
+	* Source/NSUserDefaults.m: ditto.
+	* Source/NSZone.m: ditto.
+	* Tools/gdomap.c: ditto.
+	* Tools/gdnc.m: ditto.
+	* Tools/plparse.m: ditto.
+	* Tools/sfparse.m: ditto.
+	* Tools/pldes.m: ditto.
+	* Tools/plser.m: ditto.
+
 1999-06-24  Adam Fedor  <fedor@gnu.org>
 
 	* Source/include/GSIArray.h (GSIArrayRemoveLastItem): New function.

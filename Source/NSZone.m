@@ -1576,7 +1576,6 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
       ffree_zone *zone;
       ff_block *block;
       ff_block *chunk;
-      ff_block *header;
       ff_block *tailer;
 
       zone = objc_malloc(sizeof(ffree_zone));
@@ -1704,10 +1703,10 @@ NSZoneRealloc (NSZone *zone, void *ptr, size_t size)
 inline void
 NSRecycleZone (NSZone *zone)
 {
-    if (zone == 0)
-	zone == NSDefaultMallocZone();
+  if (zone == 0)
+    zone = NSDefaultMallocZone();
 
-    (zone->recycle)(zone);
+  (zone->recycle)(zone);
 }
 
 inline void
