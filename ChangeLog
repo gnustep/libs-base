@@ -1,3 +1,10 @@
+2004-01-31  Manuel Guesdon <mguesdon@orange-concept.com>
+	* Source/NSNumber.m: Modified numberWithXX: methods
+	to test against abstractClass. If class is not the abstract 
+	class, we alloc object of class instead of allocating 
+	NSXXNumber objects (cf [NSDecimalNumber numberWithDouble:x]
+	thread)
+			
 2004-01-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Added two new MacOS-X initialisers.

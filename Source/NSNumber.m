@@ -326,173 +326,302 @@ static Class	doubleNumberClass;
 
 + (NSNumber*) numberWithBool: (BOOL)value
 {
-  if (value == NO)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return boolN;
+      if (value == NO)
+        {
+          return boolN;
+        }
+      else
+        {
+          return boolY;
+        }
     }
-  else
+  else // alloc class and init with object intWithXX method
     {
-      return boolY;
+      return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+                           initWithBool: value]);
     }
 }
 
 + (NSNumber*) numberWithChar: (signed char)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL && value >= -GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL && value >= -GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(charNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(charNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithChar: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithDouble: (double)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  theObj = (NSNumber*)NSAllocateObject(doubleNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
+    {
+      theObj = (NSNumber*)NSAllocateObject(doubleNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
+    }
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithDouble: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithFloat: (float)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  theObj = (NSNumber*)NSAllocateObject(floatNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
+    {
+      theObj = (NSNumber*)NSAllocateObject(floatNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
+    }
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithFloat: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithInt: (signed int)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL && value >= -GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL && value >= -GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(intNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(intNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithInt: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithLong: (signed long)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL && value >= -GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL && value >= -GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(longNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(longNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithLong: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithLongLong: (signed long long)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL && value >= -GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL && value >= -GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(longLongNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(longLongNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithLongLong: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithShort: (signed short)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL && value >= -GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL && value >= -GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(shortNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(shortNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithShort: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithUnsignedChar: (unsigned char)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(uCharNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(uCharNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithUnsignedChar: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithUnsignedInt: (unsigned int)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(uIntNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(uIntNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithUnsignedInt: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithUnsignedLong: (unsigned long)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(uLongNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(uLongNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithUnsignedLong: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithUnsignedLongLong: (unsigned long long)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(uLongLongNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(uLongLongNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithUnsignedLongLong: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
 + (NSNumber*) numberWithUnsignedShort: (unsigned short)value
 {
-  NSNumber	*theObj;
+  NSNumber	*theObj = nil;
 
-  if (value <= GS_SMALL)
+  // if class is NSNumber, replace by appropriate object
+  if (self == abstractClass)
     {
-      return smallIntegers[value + GS_SMALL];
+      if (value <= GS_SMALL)
+        {
+          return smallIntegers[value + GS_SMALL];
+        }
+      theObj = (NSNumber*)NSAllocateObject(uShortNumberClass, 0,
+                                           NSDefaultMallocZone());
+      theObj = [theObj initWithBytes: &value objCType: NULL];
     }
-  theObj = (NSNumber*)NSAllocateObject(uShortNumberClass, 0,
-    NSDefaultMallocZone());
-  theObj = [theObj initWithBytes: &value objCType: NULL];
+  else // alloc class and init with object intWithXX method
+    {
+      theObj = [[self allocWithZone: NSDefaultMallocZone()]
+                 initWithUnsignedShort: value];
+    }
+
   return AUTORELEASE(theObj);
 }
 
