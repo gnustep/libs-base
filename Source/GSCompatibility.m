@@ -38,14 +38,14 @@ static double rint(double a)
  * Runtime MacOS-X compatibility flags.
  */
 
-BOOL GSMacOSXCompatibleGeometry()
+BOOL GSMacOSXCompatibleGeometry(void)
 {
   if (GSUserDefaultsFlag(GSOldStyleGeometry) == YES)
     return NO;
   return GSUserDefaultsFlag(GSMacOSXCompatible);
 }
 
-BOOL GSMacOSXCompatiblePropertyLists()
+BOOL GSMacOSXCompatiblePropertyLists(void)
 {
   if (GSUserDefaultsFlag(NSWriteOldStylePropertyLists) == YES)
     return NO;
@@ -114,7 +114,7 @@ encodeBase64(NSData *source)
 
 static NSCharacterSet *quotables = nil;
 
-static void setupQuotables()
+static void setupQuotables(void)
 {
   if (quotables == nil)
     {
