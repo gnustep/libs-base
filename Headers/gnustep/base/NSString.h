@@ -33,6 +33,7 @@ typedef unsigned short unichar;
 @class NSCharacterSet;
 @class NSData;
 @class NSDictionary;
+@class NSURL;
 
 #define NSMaximumStringLength	(INT_MAX-1)
 #define NSHashStringLength	63
@@ -44,21 +45,6 @@ enum
   NSBackwardsSearch = 4,
   NSAnchoredSearch = 8
 };
-
-/*
-typedef enum _NSStringEncoding 
-{
-  NSUnicodeStringEncoding = 0,
-  NSASCIIStringEncoding,
-  NSNEXTSTEPStringEncoding,
-  NSEUCStringEncoding,
-  NSUTFStringEncoding,
-  NSISOLatin1StringEncoding,
-  NSSymbolStringEncoding,
-  NSCyrillicStringEncoding,
-  NSNonLossyASCIIStringEncoding
-} NSStringEncoding;
-*/
 
 typedef enum _NSStringEncoding
 {
@@ -86,7 +72,14 @@ typedef enum _NSStringEncoding
   NSProprietaryStringEncoding = 31,
 
 // GNUstep additions
-  NSCyrillicStringEncoding = 22
+  NSCyrillicStringEncoding = 22,
+  NSKOI8RStringEncoding = 50,
+  NSISOLatin3StringEncoding = 51,
+  NSISOLatin4StringEncoding = 52,
+  NSArabicStringEncoding = 53,
+  NSGreekStringEncoding = 54,
+  NSHebrewStringEncoding = 55,
+  NSGB2312StringEncoding = 56
 
 } NSStringEncoding;
 
@@ -245,15 +238,26 @@ enum {
 + (id) stringWithFormat: (NSString*)format
 	      arguments: (va_list)argList;
 + (id) stringWithString: (NSString*) aString;
++ (id)stringWithContentsOfURL:(NSURL *)anURL;
++ (id)stringWithUTF8String:(const char *)bytes;
 - (id) initWithFormat: (NSString*)format
 	       locale: (NSDictionary*)dictionary;
 - (id) initWithFormat: (NSString*)format
 	       locale: (NSDictionary*)dictionary
 	    arguments: (va_list)argList;
+- (id)initWithUTF8String:(const char *)bytes;
+- (id)initWithContentsOfURL:(NSURL *)anURL;
 - (NSString*) substringWithRange: (NSRange)aRange;
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString;
+- (NSComparisonResult)compare:(NSString *)string 
+		      options:(unsigned)mask 
+			range:(NSRange)compareRange 
+		       locale:(NSDictionary *)dict;
+- (NSComparisonResult)localizedCompare:(NSString *)string;
+- (NSComparisonResult)localizedCaseInsensitiveCompare:(NSString *)string;
 - (BOOL) writeToFile: (NSString*)filename
 	  atomically: (BOOL)useAuxiliaryFile;
+- (BOOL)writeToURL:(NSURL *)anURL atomically:(BOOL)atomically;
 - (double) doubleValue;
 + (NSStringEncoding*) availableStringEncodings;
 + (NSString*) localizedNameOfStringEncoding: (NSStringEncoding)encoding;
@@ -263,6 +267,7 @@ enum {
              forRange: (NSRange)aRange;
 - (NSRange) lineRangeForRange: (NSRange)aRange;
 - (const char*) lossyCString;
+- (const char *)UTF8String;
 #endif
 
 #ifndef NO_GNUSTEP
