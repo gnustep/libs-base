@@ -1,5 +1,5 @@
 /* NSCharacterSet - Character set holder
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Apr 1995
@@ -25,13 +25,32 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSData.h>
+#include <Foundation/NSLock.h>
 
 /* FIXME: Where should bitmaps go? Maybe should be defined with configure */
 #ifndef BITMAP_PATH
 #define BITMAP_PATH @"/usr/local/share/objects"
 #endif
 
+/* A simple array for caching standard bitmap sets */
+#define MAX_STANDARD_SETS 12
+static NSCharacterSet* cache_set[MAX_STANDARD_SETS];
+static NSLock* cache_lock = nil;
+
 @implementation NSCharacterSet
+
++ (void) initialize
+{
+  static BOOL one_time = NO;
+
+  if (one_time == NO)
+    {
+      int i;
+      for (i = 0; i < MAX_STANDARD_SETS; i++)
+	cache_set[i] = 0;
+      one_time = YES;
+    }
+}
 
 /* Provide a default object for allocation */
 + allocWithZone:(NSZone *)zone
@@ -41,113 +60,111 @@
 
 // Creating standard character sets
 
-+ (NSData *)_bitmapForSet:(NSString *)setname
++ (NSCharacterSet *) _bitmapForSet: (NSString *)setname number: (int)number
 {
+  NSCharacterSet* set;
   NSString *path;
 
-  path = [NSBundle pathForResource:setname
-			ofType:@".dat"
+  if (!cache_lock)
+    cache_lock = [NSLock new];
+  [cache_lock lock];
+
+  set = nil; /* Quiet warnings */
+  if (cache_set[number] == nil)
+    {
+      NS_DURING
+	path = [NSBundle pathForResource:setname
+			ofType:@"dat"
 			inDirectory:BITMAP_PATH
 			withVersion:0];
-  /* This is for testing purposes */
-  if (path == nil || [path length] == 0)
-    {
-      path = [NSBundle pathForResource:setname
-			ofType:@".dat"
-			inDirectory:@"../share"
+        /* This is for testing purposes */
+        if (path == nil || [path length] == 0)
+	  {
+	    path = [NSBundle pathForResource:setname
+			ofType:@"dat"
+			inDirectory:@"../NSCharacterSets"
 			withVersion:0];
-    }
+	  }
 
-  if (path == nil || [path length] == 0)
-    {
-      [NSException raise:NSGenericException
-	  format:@"Could not find bitmap file %s", [setname cString]];
-      /* NOT REACHED */
-    }
+        if (path == nil || [path length] == 0)
+	  {
+	    [NSException raise:NSGenericException
+	      format:@"Could not find bitmap file %s", [setname cString]];
+	    /* NOT REACHED */
+	  }
 
-  return [NSData dataWithContentsOfFile:path];
+        set = [self characterSetWithBitmapRepresentation: 
+	        [NSData dataWithContentsOfFile: path]];
+        cache_set[number] = set;
+      NS_HANDLER
+	[cache_lock unlock];
+        [exception raise];
+      NS_ENDHANDLER
+    }
+  else
+    set = cache_set[number];
+
+  [cache_lock unlock];
+  return set;
 }
 
 
 + (NSCharacterSet *)alphanumericCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"alphanumCharSet"];
-
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"alphanumCharSet" number: 0];
 }
 
 + (NSCharacterSet *)controlCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"controlCharSet"];
-
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"controlCharSet" number: 1];
 }
 
 + (NSCharacterSet *)decimalDigitCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"decimalCharSet"];
-
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"decimalCharSet" number: 2];
 }
 
 + (NSCharacterSet *)decomposableCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"decomposableCharSet"];
-
   fprintf(stderr, "Warning: Decomposable set not yet fully specified\n");
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"decomposableCharSet" number: 3];
 }
 
 + (NSCharacterSet *)illegalCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"illegalCharSet"];
-
   fprintf(stderr, "Warning: Illegal set not yet fully specified\n");
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"illegalCharSet" number: 4];
 }
 
 + (NSCharacterSet *)letterCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"lettercharCharSet"];
-
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"lettercharCharSet" number: 5];
 }
 
 + (NSCharacterSet *)lowercaseLetterCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"lowercaseCharSet"];
-
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"lowercaseCharSet" number: 6];
 }
 
 + (NSCharacterSet *)nonBaseCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"nonbaseCharSet"];
-
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"nonbaseCharSet" number: 7];
 }
 
 + (NSCharacterSet *)uppercaseLetterCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"uppercaseCharSet"];
-
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"uppercaseCharSet" number: 8];
 }
 
 + (NSCharacterSet *)whitespaceAndNewlineCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"whitespaceandnlCharSet"];
-
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"whitespaceandnlCharSet" number: 9];
 }
 
 + (NSCharacterSet *)whitespaceCharacterSet
 {
-  NSData *data = [self _bitmapForSet:@"whitespaceCharSet"];
-
-  return [self characterSetWithBitmapRepresentation:data];
+  return [self _bitmapForSet:@"whitespaceCharSet" number: 10];
 }
-
 
 // Creating custom character sets
 
