@@ -3009,6 +3009,26 @@ transmute(ivars self, NSString *aString)
   [super dealloc];
 }
 
+- (id) copy
+{
+  return [_parent copy];
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return [_parent copyWithZone: z];
+}
+
+- (id) mutableCopy
+{
+  return [_parent mutableCopy];
+}
+
+- (id) mutableCopyWithZone: (NSZone*)z
+{
+  return [_parent mutableCopyWithZone: z];
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [_parent encodeWithCoder: aCoder];
