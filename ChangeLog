@@ -1,5 +1,122 @@
 Wed Apr 17 08:56:09 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
+	Major renaming!
+	"GNU Objective C Class Library" -> "Gnustep Base Library"
+	libobjects.a         ->      libgnustep-base.a
+	libobjects.tar.gz    ->      gstep-base.tar.gz
+	<objects/*.h>        ->      <gnustep/base/*.h>
+	OBJECTS_*            ->      GNUSTEP_BASE_*
+	objects_*()          ->      o_*()
+	R. Andrew McCallum   ->      Andrew Kachites McCallum
+	(my pre-marriage name)       (my post-marriage name)
+	...and more...
+
+	* src/include/*.h: Rename all #ifndef macro names to
+	...GNUSTEP_BASE_INCLUDE.
+
+	* Rename all `objects_' to `o_'.  This mostly affects Albin Jones'
+	map tables, hash table, etc.
+
+	* src/NSGSet.m ([NSGSet -isEqual:]): Call isEqualToSet: (in
+ 	superclass).
+
+	* checks/pipes.m: Include <Foundation/NSString.h>
+
+	* src/objc/HashTable.h: Use preface.h instead of stdobjects.h.
+
+	* src/CStream.m ([CStream -writeSignature]): Use new version macro
+ 	names.
+
+	* src/include/fake-main.h (main): Define as
+ 	gnustep_base_user_main, not LibobjectsMain.
+	* src/NSProcessInfo.m (__gnustep_base_subinit_args__): Renamed
+ 	from libobjects...
+	(main): Use gnustep_base_user_main, not LibobjectsMain.
+
+	* checks/fref.m (test_fref): Make ARRAY a NSMutableArray, not a
+ 	NSArray.
+	([SubFoo -encodeWithCoder:]): Add printf.
+	([Foo -encodeWithCoder:]): Likewise.
+
+	* src/o_vscanf.c: Include objc-malloc.h from gnustep/base.
+
+	* src/Makefile.in (Foundation): Add step to get rid of old
+ 	Foundation directory that would come from a CVS checkout.
+
+	* src/include/String.h: Don't include <Foundation/NSString.h>.
+  	Don't have String protocol inherit NSString protocol.  We were
+ 	having trouble with circular dependancies.
+	* src/include/Streaming.h: Include String.h, not NSString.h.
+
+	* src/include/preface.h.in: Use __preface_h_... instead of
+ 	__stdobjects_h... for wrapper.  Include files from gnustep/base.
+	Include fake-main.h, instead of LibobjectsMain.h.
+
+	* src/Makefile.in (include/preface.h): Make substitutions for
+ 	macro name, as well as value.
+
+	* Makeconf (LIBRARY_VAR): New variable.
+
+	* src/Makefile.in (all): Add dependancy on `Foundation'.
+	(Foundation): New target.
+
+	* Change all #include <objects/*.h> to #include <gnustep/base/*.h>.
+
+	* src/include/preface.h.in: All Makefile-maintained #defines, now
+ 	have the macro name inserted by Makefile, not just the value.
+  	Comment out objects_version global variable and friends.
+	(LAMBDA): Macro removed.
+	(LAMBDA_VOID_PERFORM): Macro removed.
+	(LAMBDA_ID_PERFORM): Macro removed.
+	(LAMBDA_BOOL_PERFORM): Macro removed.
+	* src/preface.m: Update names of global const char's.
+
+	* Makefile.in: Remove/rename all mention of `objects'.
+	* configure.in: Likewise.
+	* examples/Makefile.in: Likewise.
+	* checks/Makefile.in: Likewise.
+
+	* Makeconf (LIBRARY_NAME): Remove `lib' prefix.
+	* src/Makefile.in: Don't assume the `lib' prefix is included in
+ 	$(LIBRARY_NAME).
+
+	* Makeconf (PACKAGE_NAME): New variable.
+	(LIBRARY_NAME): New variable.
+	(rcs-list-locked): Target removed.
+
+	* Version: Removed `OBJECTS_' prefix.
+
+	* src/Makefile.in: Rename all occurrences of `objects/' to
+ 	`include/'.  Rename all occurrences of `Foundation/' to
+ 	`include/'.  Rename all occurrences of `libobjects' to
+ 	`$(LIBRARY_NAME)'.  Rename all occurrences of `OBJECTS_*VERSION'
+ 	to `*VERSION'.
+	(GNU_NEXT_INCLUDES): Renamed from OBJECTS_NEXT_INCLUDES.
+	(gnustep/base): New target; make symbolic link to `include'.
+	(all): Added dependancy on gnustep/base.
+	(install): Put the include files in gnustep/base.  Make a link from
+	$(includedir)/Foundation to $(includedir)/gnustep/base.
+	(installdirs): Make $(includedir)/gnustep/base, not objects and
+	Foundation include directories.
+	(GNU_MFILES): stdobjects.m renamed to preface.m.
+	(GNU_HEADERS): LibobjectsMain.h renamed to fake-main.h.  objects.h
+	renamed to all.h.
+	(HEADERS_INSTALL): stdobjects.h renamed to preface.h.
+	(maintainer-clean): Likewise.
+	(DIST_FILES): stdobjects.h.in renamed to preface.h.in.
+	(RCS_FILES): Likewise.
+	(include/preface.h): Target renamed from stdobjects.h.
+	(preface$(OEXT)): Likewise.
+	* src/preface.m: File renamed from stdobjects.m.
+	* src/include/preface.h: File renamed from stdobjects.h.
+	* src/include/fake-main.h: File renamed from LibobjectsMain.h.
+	* src/include/all.h: File renamed from objects.h.
+
+	* configure.in (AC_OUTPUT): do src/include/config.h, not
+ 	src/objects/config.h.
+
+	* src/objects/*, src/Foundation/*: Files moved to src/include.
+
 	* src/Foundation/NSString.h: Insert contents of
  	<objects/NSString.h>
 	* src/Foundation/NSSet.h: Insert contents of <objects/NSSet.h>

@@ -1,7 +1,7 @@
 /* Interface for NSDate for GNUStep
    Copyright (C) 1994, 1996 Free Software Foundation, Inc.
 
-   This file is part of the GNU Objective C Class Library.
+   This file is part of the Gnustep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
