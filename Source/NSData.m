@@ -84,8 +84,6 @@
 #include <unistd.h>             /* SEEK_* on SunOS 4 */
 #endif
 
-#define	USE_WINDOWS_IO	0
-
 #ifdef	HAVE_MMAP
 #include	<unistd.h>
 #include	<sys/mman.h>
@@ -134,14 +132,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
   FILE		*theFile = 0;
   void		*tmp = 0;
   int		c;
-#if USE_WINDOWS_IO && defined(__MINGW__)
-  HANDLE	fh;
-  DWORD		fileLength;
-  DWORD		high;
-  DWORD		got;
-#else
   long		fileLength;
-#endif
 
 #if	GS_WITH_GC == 1
   zone = GSAtomicMallocZone();	// Use non-GC memory inside NSData
@@ -153,65 +144,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
       NSWarnFLog(@"Open (%s) attempt failed - bad path", thePath);
       return NO;
     }
-
-#if USE_WINDOWS_IO && defined(__MINGW__)
-  fh = CreateFile(thePath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
-    FILE_ATTRIBUTE_NORMAL, 0);
-  if (fh == INVALID_HANDLE_VALUE)
-    {
-      NSWarnFLog(@"Open (%s) attempt failed - %s", thePath,
-	GSLastErrorStr(errno));
-      return NO;
-    }
-
-  fileLength = GetFileSize(fh, &high);
-  if ((fileLength == 0xFFFFFFFF) && (GetLastError() != NO_ERROR))
-    {
-      NSWarnFLog(@"Failed to determine size of - %s - %s", thePath,
-	GSLastErrorStr(errno));
-      CloseHandle(fh);
-      return NO;
-    }
-  if (high != 0)
-    {
-      NSWarnFLog(@"File to big to handle - %s - %s", thePath,
-	GSLastErrorStr(errno));
-      CloseHandle(fh);
-      return NO;
-    }
-
-  tmp = NSZoneMalloc(zone, fileLength);
-  if (tmp == 0)
-    {
-      CloseHandle(fh);
-      NSLog(@"Malloc failed for file (%s) of length %d - %s",
-	thePath, fileLength, GSLastErrorStr(errno));
-      return NO;
-    }
-  if (!ReadFile(fh, tmp, fileLength, &got, 0))
-    {
-      if (tmp != 0)
-	{
-	  NSWarnFLog(@"File read operation failed for %s - %s", thePath,
-	    GSLastErrorStr(errno));
-	  NSZoneFree(zone, tmp);
-	  CloseHandle(fh);
-	  return NO;
-	}
-    }
-  if (got != fileLength)
-    {
-      NSWarnFLog(@"File read operation short for %s - %s", thePath,
-	GSLastErrorStr(errno));
-      NSZoneFree(zone, tmp);
-      CloseHandle(fh);
-      return NO;
-    }
-  CloseHandle(fh);
-  *buf = tmp;
-  *len = fileLength;
-  return YES;
-#endif
 
   theFile = fopen(thePath, "rb");
 
@@ -849,14 +781,7 @@ static unsigned	gsu32Align;
   char		thePath[BUFSIZ*2+8];
   char		theRealPath[BUFSIZ*2];
   int		c;
-#if USE_WINDOWS_IO && defined(__MINGW__)
-  NSString	*tmppath = path;
-  HANDLE	fh;
-  DWORD		wroteBytes;
-#else
   FILE		*theFile;
-#endif
-
 
   if ([path getFileSystemRepresentation: theRealPath
 			      maxLength: sizeof(theRealPath)-1] == NO)
@@ -864,37 +789,6 @@ static unsigned	gsu32Align;
       NSWarnMLog(@"Open (%s) attempt failed - bad path", theRealPath);
       return NO;
     }
-
-#if USE_WINDOWS_IO && defined(__MINGW__)
-  if (useAuxiliaryFile)
-    {
-      tmppath = [path stringByAppendingPathExtension: @"tmp"];
-    }
-  if ([tmppath getFileSystemRepresentation: thePath
-			      maxLength: sizeof(thePath)-1] == NO)
-    {
-      NSWarnMLog(@"Open (%s) attempt failed - bad path", thePath);
-      return NO;
-    }
-  
-  fh = CreateFile(thePath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
-    FILE_ATTRIBUTE_NORMAL, NULL);
-  if (fh == INVALID_HANDLE_VALUE)
-    {
-      NSWarnMLog(@"Create (%s) attempt failed - %s", thePath,
-	GSLastErrorStr(errno));
-      return NO;
-    }
-
-  if (!WriteFile(fh, [self bytes], [self length], &wroteBytes, 0))
-    {
-      NSWarnMLog(@"Write (%s) attempt failed - %s", thePath,
-	GSLastErrorStr(errno));
-      CloseHandle(fh);
-      goto failure;
-    }
-  CloseHandle(fh);
-#else
 
 #ifdef	HAVE_MKSTEMP
   if (useAuxiliaryFile)
@@ -976,7 +870,6 @@ static unsigned	gsu32Align;
       NSWarnMLog(@"Fclose (%s) failed - %s", thePath, GSLastErrorStr(errno));
       goto failure;
     }
-#endif
 
   /* If we used a temporary file, we still need to rename() it be the
    * real file.  Also, we need to try to retain the file attributes of

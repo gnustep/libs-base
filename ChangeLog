@@ -4,6 +4,9 @@
 	string whose contents should not be freed.
 	Removed bogus TODO comments saying code broken when defEnc!=intEnc
 	in routines which should never be called when defEnc!=intEnc anyway.
+	* Source/NSData.m: Remove windows specific code for simplification
+	as the standard code actually works as well or better according to
+	<Roland.Schwingel@onevision.de>
 
 2003-05-05 15:28  Alexander Malmberg <alexander@malmberg.org>
 
