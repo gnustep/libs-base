@@ -234,6 +234,7 @@ objects/SplayTree.h \
 objects/Stack.h \
 objects/StdioStream.h \
 objects/Stream.h \
+objects/Streaming.h \
 objects/String.h \
 objects/TextCoder.h \
 objects/Time.h \
