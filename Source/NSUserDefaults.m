@@ -219,6 +219,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     {
       NSDictionary	*regDefs;
 
+      [sharedDefaults synchronize];	// Ensure changes are written.
       regDefs = RETAIN([sharedDefaults->_tempDomains
 	objectForKey: NSRegistrationDomain]);
       setSharedDefaults = NO;
