@@ -97,7 +97,7 @@ static BOOL debug_memory_stream = NO;
 	       size: s
 	       eofPosition: l
 	       prefix: p
-	       position: i]
+	       position: i];
 }
 
 /* xxx This method will disappear. */
