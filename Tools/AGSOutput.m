@@ -2085,8 +2085,11 @@ static BOOL snuggleStart(NSString *t)
 		    {
 		      NSString	*end = [tmp substringFromIndex: ePos];
 
-		      if ([end isEqualToString: @"]"] == NO
-			&& [end hasPrefix: @"]"] == YES)
+		      if ([end isEqualToString: @"]"] == YES)
+			{
+			  end = nil;
+			}
+		      if ([end hasPrefix: @"]"] == YES)
 			{
 			  end = [end substringFromIndex: 1];
 			}
