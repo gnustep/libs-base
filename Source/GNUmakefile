@@ -38,7 +38,7 @@ PACKAGE_NAME = gnustep-base
 LIBRARY_VAR = GNUSTEP_BASE
 
 # The library to be compiled
-LIBRARY_NAME=libgnustep-base
+LIBRARY_NAME=libgnustep-baseadd libgnustep-base
 
 ifeq ($(HAVE_OPENSSL), yes)
 
@@ -151,11 +151,9 @@ GSCountedSet.m \
 GSDictionary.m \
 GSFormat.m \
 GSHTTPURLHandle.m \
-GSMime.m \
 GSSet.m \
 GSString.m \
 GSValue.m \
-GSXML.m \
 NSAttributedString.m \
 NSArchiver.m \
 NSArray.m \
@@ -296,6 +294,7 @@ NSGeometry.h \
 NSHashTable.h \
 NSHost.h \
 NSInvocation.h \
+NSKeyValueCoding.h \
 NSLock.h \
 NSMapTable.h \
 NSMethodSignature.h \
@@ -332,7 +331,6 @@ FOUNDATION_HEADERS = \
 Foundation.h \
 NSByteOrder.h \
 NSConcreteNumber.h \
-NSKeyValueCoding.h \
 NSPathUtilities.h \
 NSSerialization.h \
 NSUtilities.h \
@@ -365,6 +363,8 @@ libgnustep-base_C_FILES = $(GNU_CFILES)
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES) $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
+
+libgnustep-baseadd_OBJC_FILES = GSMime.m GSXML.m
 
 # Extra DLL exports file
 libgnustep-base_DLL_DEF = libgnustep-base.def

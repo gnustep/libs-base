@@ -55,7 +55,7 @@ ADDITIONAL_INCLUDE_DIRS = -I../Headers/gnustep -I../Headers \
 ADDITIONAL_LDFLAGS = 
 
 # Additional library directories the linker should search
-ADDITIONAL_LIB_DIRS = 
+ADDITIONAL_LIB_DIRS = -L./$(GNUSTEP_OBJ_DIR)
 
 ifeq ($(GNUSTEP_TARGET_OS),mingw32)
 libgnustep-base_LIBRARIES_DEPEND_UPON += -lobjc
@@ -67,9 +67,8 @@ ifeq ($(findstring darwin1, $(GNUSTEP_TARGET_OS)), darwin1)
 libgnustep-base_LIBRARIES_DEPEND_UPON += $(CONFIG_SYSTEM_LIBS) \
 	-flat_namespace
 endif
+libgnustep-base_LIBRARIES_DEPEND_UPON += -lgnustep-baseadd
 
-
-#
 # Flags dealing with installing and uninstalling
 #
 

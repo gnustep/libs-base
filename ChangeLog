@@ -1,5 +1,10 @@
 2002-02-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GNUmakefile: Move xml and mime classes into an additional
+	library, and make base library depend on it.  EXPERIMENTAL.
+
+2002-02-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSObject.m: Rewrote key-value coding key manipulation to use
 	a char array for speed.  Moved functions for converting between object
 	internals in scalar types and NSNumbers etc to NSObjCRuntime.m.
