@@ -29,6 +29,7 @@
 #include <gnustep/base/MallocAddress.h>
 #include <Foundation/NSException.h>
 #include <math.h>
+#include <values.h>		// This gets BITSPERBYTE on Solaris
 
 #define DEFAULT_FORMAT_VERSION 0
 
