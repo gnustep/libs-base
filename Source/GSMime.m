@@ -29,7 +29,6 @@
 #include	<Foundation/NSDictionary.h>
 #include	<Foundation/NSScanner.h>
 #include	<Foundation/NSString.h>
-#include	<Foundation/NSUserDefaults.h>
 #include	<Foundation/NSException.h>
 #include	<Foundation/NSValue.h>
 #include	<Foundation/NSURL.h>
@@ -37,6 +36,7 @@
 #include	<Foundation/GSMime.h>
 #include	<string.h>
 #include	<ctype.h>
+#include	"GSUserDefaults.h"
 
 static	NSCharacterSet	*specials = nil;
 
@@ -1992,7 +1992,7 @@ parseCharacterSet(NSString *token)
   NSDictionary		*locale;
 
   desc = [NSMutableString stringWithFormat: @"GSMimeDocument <%0x> -\n", self];
-  locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  locale = GSUserDefaultsDictionaryRepresentation();
   [desc appendString: [headers descriptionWithLocale: locale]];
   [desc appendFormat: @"\nDocument content -\n%@", content];
   return desc;

@@ -25,12 +25,12 @@
 #include <base/Unicode.h>
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
 #include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
+#include "GSUserDefaults.h"
 
 /* BSD and Solaris have this */
 #if defined(HANDLE_LLONG_MAX) && !defined(HANDLE_LONG_LONG_MAX)
@@ -110,9 +110,7 @@ typedef struct {
 
   if (scanner != nil)
     {
-      NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
-
-      [scanner setLocale: [defs dictionaryRepresentation]];
+      [scanner setLocale: GSUserDefaultsDictionaryRepresentation()];
     }
   return scanner;
 }

@@ -50,7 +50,6 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSDictionary.h>
-#include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSFileManager.h>
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSPathUtilities.h>
@@ -73,6 +72,8 @@
 #include <base/behavior.h>
 
 #include <base/Unicode.h>
+
+#include "GSUserDefaults.h"
 
 @class	GSString;
 @class	GSMutableString;
@@ -3097,7 +3098,7 @@ handle_printf_atsign (FILE *stream,
     }
   else
     {
-      dict = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+      dict = GSUserDefaultsDictionaryRepresentation();
       ret = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
         initWithFormat: format locale: dict arguments: ap]);
     }
@@ -3125,8 +3126,7 @@ handle_printf_atsign (FILE *stream,
 
 - (NSComparisonResult) localizedCompare: (NSString *)string
 {
-  NSDictionary *dict =
-      [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
 
   return [self compare: string
                options: 0
@@ -3136,8 +3136,7 @@ handle_printf_atsign (FILE *stream,
 
 - (NSComparisonResult) localizedCaseInsensitiveCompare: (NSString *)string
 {
-  NSDictionary *dict =
-      [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  NSDictionary *dict = GSUserDefaultsDictionaryRepresentation();
 
   return [self compare: string
                options: NSCaseInsensitiveSearch 

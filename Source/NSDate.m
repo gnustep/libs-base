@@ -32,7 +32,6 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSObjCRuntime.h>
@@ -45,6 +44,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "GSUserDefaults.h"
 
 /* The number of seconds between 1/1/2001 and 1/1/1970 = -978307200. */
 /* This number comes from:
@@ -239,7 +239,7 @@ GSTimeNow()
   unsigned		dtoIndex;
 
   if (locale == nil)
-    locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+    locale = GSUserDefaultsDictionaryRepresentation();
 
   ws = [NSCharacterSet whitespaceAndNewlineCharacterSet];
   digits = [NSCharacterSet decimalDigitCharacterSet];

@@ -1,5 +1,28 @@
 2001-11-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Documentation/gsdoc/Base.gsdoc:
+	* Source/GSCompatibility.m:
+	* Source/GSMime.m:
+	* Source/GSUserDefaults.h:
+	* Source/NSArray.m:
+	* Source/NSCalendarDate.m:
+	* Source/NSDate.m:
+	* Source/NSDecimalNumber.m:
+	* Source/NSDictionary.m:
+	* Source/NSFileHandle.m:
+	* Source/NSGeometry.m:
+	* Source/NSLog.m:
+	* Source/NSScanner.m:
+	* Source/NSString.m:
+	* Source/NSUserDefaults.m: Modify user defaults usage to cache some
+	defaults used internally and provide private accessors for speed.
+	Add default to force logging to be done via syslog since logging
+	to stderr within code called via JIGS from a servlet engine may
+	cause severe problems if the servlet engine is using descriptor 2
+	for other purposes.
+
+2001-11-09  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSMime.m: modifications made to support HTTP continuation
 	responses for buggy webservers which send them when they shouldn't.
 

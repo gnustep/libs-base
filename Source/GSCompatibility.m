@@ -24,6 +24,8 @@
 #include <config.h>
 #include <Foundation/Foundation.h>
 
+#include "GSUserDefaults.h"
+
 #ifndef HAVE_RINT
 #include <math.h>
 static double rint(double a)
@@ -35,98 +37,19 @@ static double rint(double a)
 /*
  * Runtime MacOS-X compatibility flags.
  */
-static BOOL setupDone = NO;
-
-static BOOL	MacOSXCompatible = NO;
-static BOOL	MacOSXCompatibleGeometry = NO;
-static BOOL	MacOSXCompatiblePropertyLists = NO;
-
-/*
- * A trivial class to monitor user defaults to see how we should be
- * producing strings describing geometry structures.
- */
-@interface GSBaseDefaultObserver : NSObject
-+ (void) defaultsChanged: (NSNotification*)aNotification;
-@end
-@implementation GSBaseDefaultObserver
-+ (void) defaultsChanged: (NSNotification*)aNotification
-{
-  NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
-  id			def;
-  Class			sClass = [NSString class];
-
-  MacOSXCompatible = [defaults boolForKey: @"GSMacOSXCompatible"];
-
-  def = [defaults objectForKey: @"GSMacOSXCompatibleGeometry"];
-  if (def != nil && [def isKindOfClass: sClass] == YES)
-    {
-      MacOSXCompatibleGeometry = [def boolValue];
-    }
-  else
-    {
-      MacOSXCompatibleGeometry = MacOSXCompatible;
-    }
-  def = [defaults objectForKey: @"GSMacOSXCompatiblePropertyLists"];
-  if (def != nil && [def isKindOfClass: sClass] == YES)
-    {
-      MacOSXCompatiblePropertyLists = [def boolValue];
-    }
-  else
-    {
-      def = [defaults objectForKey: @"NSWriteOldStylePropertyLists"];
-      if (def != nil && [def isKindOfClass: sClass] == YES)
-	{
-	  if ([def boolValue] == YES)
-	    {
-	      MacOSXCompatiblePropertyLists = NO;
-	    }
-	  else
-	    {
-	      MacOSXCompatiblePropertyLists = YES;
-	    }
-	}
-	else
-	{
-	  MacOSXCompatiblePropertyLists = MacOSXCompatible;
-	}
-    }
-}
-@end
-
-static void
-compatibilitySetup()
-{
-  if (setupDone == NO)
-    {
-      setupDone = YES;
-      [[NSNotificationCenter defaultCenter]
-	addObserver: [GSBaseDefaultObserver class]
-	   selector: @selector(defaultsChanged:)
-	       name: NSUserDefaultsDidChangeNotification
-	     object: nil];
-      [[GSBaseDefaultObserver class] defaultsChanged: nil];
-    }
-}
-
-BOOL GSMacOSXCompatible()
-{
-  if (setupDone == NO)
-    compatibilitySetup();
-  return MacOSXCompatible;
-}
 
 BOOL GSMacOSXCompatibleGeometry()
 {
-  if (setupDone == NO)
-    compatibilitySetup();
-  return MacOSXCompatibleGeometry;
+  if (GSUserDefaultsFlag(GSOldStyleGeometry) == YES)
+    return NO;
+  return GSUserDefaultsFlag(GSMacOSXCompatible);
 }
 
 BOOL GSMacOSXCompatiblePropertyLists()
 {
-  if (setupDone == NO)
-    compatibilitySetup();
-  return MacOSXCompatiblePropertyLists;
+  if (GSUserDefaultsFlag(NSWriteOldStylePropertyLists) == YES)
+    return NO;
+  return GSUserDefaultsFlag(GSMacOSXCompatible);
 }
 
 #include <math.h>

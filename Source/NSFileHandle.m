@@ -359,6 +359,11 @@ NSString*	NSFileHandleOperationException =
   return nil;
 }
 
+- (BOOL) useCompression
+{
+  return NO;
+}
+
 - (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
 {
   [self subclassResponsibility: _cmd];

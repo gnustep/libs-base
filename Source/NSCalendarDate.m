@@ -32,11 +32,11 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSException.h>
-#include <Foundation/NSUserDefaults.h>
 #include <base/behavior.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "GSUserDefaults.h"
 
 // Absolute Gregorian date for NSDate reference date Jan 01 2001
 //
@@ -314,8 +314,7 @@ static inline int getDigits(const char *from, char *to, int limit)
       
       if (locale == nil)
 	{
-	  locale
-	    = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+	  locale = GSUserDefaultsDictionaryRepresentation();
 	}
       if (fmt == nil)
 	{
@@ -1222,7 +1221,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   int i, j, k, z;
 
   if (locale == nil)
-    locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+    locale = GSUserDefaultsDictionaryRepresentation();
   if (format == nil)
     format = [locale objectForKey: NSTimeDateFormatString];
 

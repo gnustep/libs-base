@@ -31,10 +31,10 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSFileManager.h>
-#include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSObjCRuntime.h>
+#include "GSUserDefaults.h"
 
 @implementation NSDictionary 
 
@@ -626,7 +626,7 @@ compareIt(id o1, id o2, void* context)
   NSDictionary	*loc;
   NSString	*desc;
 
-  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  loc = GSUserDefaultsDictionaryRepresentation();
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
@@ -655,7 +655,7 @@ compareIt(id o1, id o2, void* context)
   NSDictionary	*loc;
   NSString	*desc;
 
-  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  loc = GSUserDefaultsDictionaryRepresentation();
 
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
