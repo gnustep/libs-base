@@ -40,9 +40,8 @@
  * purpose to override the autorelease, retain, and release methods.
  * To Do      : 
  * 1) To test the class on more platforms;
- * 2) To change the format of the string renurned by globallyUniqueString;
  * Bugs       : Not known
- * Last update: 22-jul-1999
+ * Last update: 07-aug-2002
  * History    : 06-aug-1995    - Birth and the first beta version (v. 0.5);
  *              08-aug-1995    - V. 0.6 (tested on NS, SunOS, Solaris, OSF/1
  *              The use of the environ global var was changed to more 
@@ -589,24 +588,33 @@ int main(int argc, char *argv[], char *env[])
 }
 
 /**
- * Returns a string which may be used as a unique identifier for the
- * current process.
+ * Returns a string which may be used as a globally unique identifier.<br />
+ * The string contains the host name, the process ID, a timestamp and a
+ * counter (to ensure that multiple strings generated within the same
+ * process are unique).
  */
 - (NSString *) globallyUniqueString
 {
-  int	pid;
+  static int	pid = 0;
+  static int	counter = 0;
+  int		count;
 
+  if (pid == 0)
+    {
 #if defined(__MINGW__)
-  pid = (int)GetCurrentProcessId();
+      pid = (int)GetCurrentProcessId();
 #else
-  pid = (int)getpid();
+      pid = (int)getpid();
 #endif
+    }
+  [gnustep_global_lock lock];
+  count = counter++;
+  [gnustep_global_lock unlock];
 
   // $$$ The format of the string is not specified by the OpenStep 
-  // specification. It could be useful to change this format after
-  // NeXTSTEP release 4.0 comes out.
-  return [NSString stringWithFormat: @"%@:%d:[%@]",
-    [self hostName], pid, [NSDate date]];
+  // specification.
+  return [NSString stringWithFormat: @"%@_%d_%lf_%d",
+    [self hostName], pid, GSTimeNow(), count];
 }
 
 /**
