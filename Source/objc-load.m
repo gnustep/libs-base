@@ -152,6 +152,7 @@ objc_load_module (const char *filename,
 #else
   typedef void (*void_fn)();
   dl_handle_t handle;
+  void __objc_resolve_class_links(void);
 #if !defined(__ELF__) && !defined(CON_AUTOLOAD)
   void_fn *ctor_list;
   int i;
@@ -218,10 +219,11 @@ objc_load_module (const char *filename,
     }
 #endif /* not __ELF__ */
   
+  __objc_resolve_class_links(); /* fill in subclass_list and sibling_class */
   _objc_load_callback = 0;
   _objc_load_load_callback = 0;
   return 0;
-#endif
+#endif /* not NeXT_RUNTIME */
 }
 
 long 
