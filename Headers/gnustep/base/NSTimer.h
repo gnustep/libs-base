@@ -37,7 +37,7 @@
  */
 @interface NSTimer : NSObject
 {
-  NSTimeInterval _date;		/* Must be first - for NSRunLoop optimisation */
+  NSDate 	*_date;		/* Must be first - for NSRunLoop optimisation */
   BOOL		_invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
   BOOL		_repeats;
   NSTimeInterval _interval;

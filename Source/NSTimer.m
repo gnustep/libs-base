@@ -37,8 +37,11 @@
               userInfo: info
                repeats: (BOOL)f
 {
+  if (seconds <= 0)
+    seconds = 1;
   _interval = seconds;
-  _date = GSTimeNow() + seconds;
+  _date = [[NSDate allocWithZone: [self zone]]
+    initWithTimeIntervalSinceNow: seconds];
   _target = t;
   _selector = sel;
   _info = info;
@@ -96,6 +99,11 @@
   return t;
 }
 
+- (void) dealloc
+{
+  RELEASE(_date);
+  [super dealloc];
+}
 
 - (void) fire
 {
@@ -109,17 +117,21 @@
   else if (!_invalidated)
     {
       NSTimeInterval	now = GSTimeNow();
+      NSTimeInterval	nxt = [_date timeIntervalSinceReferenceDate];
       int		inc = -1;
 
-      while (_date <= now)		// xxx remove this
+      while (nxt <= now)		// xxx remove this
 	{
 	  inc++;
-	  _date += _interval;
+	  nxt += _interval;
 	}
 #ifdef	LOG_MISSED
       if (inc > 0)
 	NSLog(@"Missed %d timeouts at %f second intervals", inc, _interval);
 #endif
+      RELEASE(_date);
+      _date = [[NSDate allocWithZone: [self zone]]
+	initWithTimeIntervalSinceReferenceDate: nxt];
     }
 }
 
@@ -136,7 +148,7 @@
 
 - fireDate
 {
-  return [NSDate dateWithTimeIntervalSinceReferenceDate: _date];
+  return _date;
 }
 
 - userInfo
@@ -144,13 +156,9 @@
   return _info;
 }
 
-- (int) compare: (NSTimer*)anotherTimer
+- (NSComparisonResult) compare: (NSTimer*)anotherTimer
 {
-  if (_date < anotherTimer->_date)
-    return NSOrderedAscending;
-  else if (_date > anotherTimer->_date)
-    return NSOrderedDescending;
-  else
-    return NSOrderedSame;
+  return [_date compare: anotherTimer->_date];
 }
+
 @end

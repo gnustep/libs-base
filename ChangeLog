@@ -1,3 +1,11 @@
+Thu Apr 22 11:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        * Source/NSRunLoop.m: Optimisation and tidyup.
+        * Source/NSTimer.m: Minor bugfixes.
+        * Source/include/FastArray.x: Bugfix for array insertion.
+        * Source/include/NSRunLoop.h: Remove limit ivar.
+        * Source/include/NSTimer.h: Use NSDate again.
+
 Wed Apr 21 20:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSAttributedString.m: Tidied.
