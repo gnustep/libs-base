@@ -1781,7 +1781,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 + (NSBundle *) gnustepBundle
 {
-  /* Depreciated since 1.7.0 */
+  /* Deprecated since 1.7.0 */
   GSOnceMLog(@"Warning: Deprecated method %@ called. Use +bundleForLibrary: instead", 
     NSStringFromSelector(_cmd));
   return _gnustep_bundle;
@@ -1817,7 +1817,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 			       ofType: (NSString *)ext	
 			  inDirectory: (NSString *)bundlePath
 {
-  /* Depreciated since 1.7.0 */
+  /* Deprecated since 1.7.0 */
   GSOnceMLog(@"Warning: Deprecated method %@ called. Use +pathForLibraryResource:ofType:inDirectory: or +bundleForLibrary: instead",
 	NSStringFromSelector(_cmd));
   return [self pathForLibraryResource: name ofType: ext

@@ -1,3 +1,33 @@
+2005-03-14  Adam Fedor  <fedor@gnu.org>
+
+	* Continuation of NSPathUtilities patches
+	* configure.ac: Add config-file option
+	* Headers/Foundation/NSPathUtilities.h: Add GSFindNamedFile, more 
+	NSSearchPathDirectory enums.
+	* Source/GNUmakefile: Don't install Win32 headers.
+	* Source/NSPathUtilities.m (InitializePathUtilities, ...): Add
+	support for reading standard path locations from a configuration
+	file. Various support functions added/removed to fit.
+	(GSFindNamedFile): New function.
+	(GSSetUserName): Do nothing if the user is the same.
+	(NSHomeDirectoryForUser): Use Windows utilities to get user name
+	(on Windows, of course).
+	(NSFullUserName): Default to NSUserName on Windows.
+	(GSSystemRootDirectory): Mark as deprecated.
+	(GSDefaultsRootForUser): Correctly return the actual defaults
+	directory, not the user directory.
+	(GSStandardPathPrefixes): Mark as deprecated.
+	(NSSearchPathForDirectoriesInDomains): Add platform paths and
+	additional search directories.
+	* Source/NSUserDefaults (pathForUser): Correct use of
+	GSDefaultsRootForUser. Remove obsolete path checking and
+	defaults location checking. (Patches from Sheldon Gill
+	with some modifications).
+
+	* Documentation/Base.gsdoc: Update documentation.
+	* Headers/Additions/GNUstepBase/Win32_Utilities.h,
+	Source/win32/Win32_Utilities.m: Fix function arguments.
+
 2005-03-12  Sungjin Chun <chuns@embian.com>
 
 	* Source/Additions/GSXML.m: Port to MacOS-X
@@ -121,7 +151,7 @@
 2005-03-01  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSBundle.m (+gnustepBundle, 
-	+pathForGNUstepResource:ofType:inDirectory:]): Add depreciated
+	+pathForGNUstepResource:ofType:inDirectory:]): Add deprecated
 	log message.
 	* Source/NSNotificationQueue.m, Source/null-load.h: 
 	Fix copyright message.
@@ -277,7 +307,6 @@
 	Include malloc.h for systems where it is needed for alloca()
 	* Tools/gdomap.c: Avoid some warnings on mingw32
 
-M Source/mframe/mframe.head
 2005-02-21 14:10 Stefan Urbanek <stefan@agentfarms.net>
 
 	* Source/NSAttributedString.m: Fix loop decoding from archive.

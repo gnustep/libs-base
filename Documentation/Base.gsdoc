@@ -403,6 +403,74 @@
 
 	  </deflist>
 	</subsect>
+
+	<subsect>
+	  <heading>GNUstep Configuration File</heading>
+	  <p>
+	    This file is the master configuration file for GNUstep. It
+	    can be used to set the base location of all the standard
+	    paths that GNUstep programs use or know about. The
+	    location of this file depends on how the Base library was
+	    configured and what operating system it was configured
+	    on. On a GNU/Linux system, the default would be
+	    /etc/GNUstep/GNUstep.conf, for instance. This file is not
+	    required. If it does not appear, then default values will
+	    be used for the standard path locations.  System paths are
+	    defined by the following:
+	  </p>
+	    <deflist>
+	      <term>GNUSTEP_SYSTEM_ROOT</term>
+	      <desc>path in the file heirarchy for system/os things.</desc>
+	      <term>GNUSTEP_NETWORK_ROOT</term>
+	      <desc>path to network mounted resources.</desc>
+	      <term>GNUSTEP_LOCAL_ROOT</term>
+	      <desc>path for non-system resources for the specific machine.</desc>
+	    </deflist>
+	  <p>
+	    Paths for each user are defined by the following:
+	  </p>
+	    <deflist>
+	      <term>USER_GNUSTEP_DIR</term>
+	      <desc>Path under user's home directory for user specific GNUstep resources (eg. 'GNUstep')</desc>
+	      <term>USER_GNUSTEP_RC</term>
+	      <desc>Name of user configuration file (eg. '.GNUsteprc')</desc>
+	      <term>USER_GNUSTEP_DEFAULTS</term>
+	      <desc>Name of directory in USER_GNUSTEP_DIR for user defaults files.</desc>
+	    </deflist>
+	  <p>
+	    Support is provided to locate OS/PLATFORM directories. A conf file
+	    may provide the definitions below:
+	  </p>
+	      <deflist>
+		<term>SYS_PREFS</term>
+		<desc>Place for system/os preferences (eg. '/etc')</desc>
+		<term>SYS_APPS</term>
+		<desc>Place for system/os applications (eg. '/bin')</desc>
+		<term>SYS_LIBS</term>
+		<desc>Place for system/os shared libraries (eg. '/lib')</desc>
+		<term>SYS_ADMIN</term>
+		<desc>Place for system administration tools (eg. '/sbin')</desc>
+		<term>PLATFORM_APPS</term>
+		<desc>Place for non-gnustep applications (eg. '/usr/bin')</desc>
+		<term>PLATFORM_LIBS</term>
+		<desc>Place for application shared libraries (eg. '/usr/lib')</desc>
+		<term>PLATFORM_RESOURCES</term>
+		<desc>Place for shared application resources (eg. '/usr/share')</desc>
+		<term>PLATFORM_ADMIN</term>
+		<desc>Place for non-critical administrative tools (eg. '/usr/sbin')</desc>
+		<term>PLATFORM_LOCAL_APPS</term>
+		<desc>Place for machine local applications (eg. '/usr/local/bin')</desc>
+		<term>PLATFORM_LOCAL_LIBS</term>
+		<desc>Place for machine local shared libraries (eg. '/usr/local/lib/')</desc>
+		<term>PLATFORM_LOCAL_RESOURCES</term>
+		<desc>Place for machine local resources. (eg. '/usr/local/share')</desc>
+	      </deflist>
+	    <p>
+	      These add to the path for NSSystemDomainMask, or
+	      NSLocalDomainMask as appropriate.
+	    </p>
+	  </subsect>
+
 	<subsect>
 	  <heading>.GNUsteprc files</heading>
 	  <p>
@@ -423,7 +491,7 @@
 	    <term>GNUSTEP_DEFAULTS_ROOT=...</term>
 	    <desc>
 	      The text after the '=' is taken to be the path to the users
-	      files.  If it begins with a '~' character, the users home
+	      defaults files.  If it begins with a '~' character, the users home
 	      directory is prepended to it.
 	    </desc>
 	    <term>GNUSTEP_USER_ROOT=...</term>
@@ -434,11 +502,13 @@
 	    </desc>
 	  </deflist>
 	  <p>
-	    The presence of a <code>.GNUsteprc</code> file in the GNUstep
-	    system directory may provide default paths for all users and
-	    may even override user specific files.  The content of this file
-	    is as for the user specific file, but permits two additional
-	    commands -
+	    The presence of a <code>.GNUsteprc</code> file in the
+	    GNUstep system directory may provide default paths for all
+	    users and may even override user specific files.  This
+	    file has been deprecated in favor of the GNUstep
+	    Configuration File described above. The content of this
+	    file is as for the user specific file, but permits two
+	    additional commands:
 	  </p>
 	  <deflist>
 	    <term>FORCE_DEFAULTS_ROOT</term>

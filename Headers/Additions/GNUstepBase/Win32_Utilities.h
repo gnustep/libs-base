@@ -48,10 +48,10 @@ void Win32_Utilities_fini(void);
 NSString     *Win32NSStringFromEnvironmentVariable(const char * envVar);
 
 /* ---- Registry Functions ---- */
-HKEY          Win32OpenRegistry(DWORD hive, const char *key);
-NSString     *Win32NSStringFromRegistry(HKEY regkey, const char *regValue);
-// NSNumber     *Win32NSNumberFromRegistry(HKEY regkey, const char *regValue);
-// NSData       *Win32NSDataFromRegistry(HKEY regkey, const char *regValue);
+HKEY          Win32OpenRegistry(HKEY hive, const char *key);
+NSString     *Win32NSStringFromRegistry(HKEY regkey, NSString *regValue);
+// NSNumber     *Win32NSNumberFromRegistry(HKEY regkey, NSString *regValue);
+// NSData       *Win32NSDataFromRegistry(HKEY regkey, NSString *regValue);
 
 /* ---- Path Functions ---- */
 NSString     *Win32GetUserProfileDirectory(NSString *userName);
