@@ -70,6 +70,7 @@ FILE_AUTHORS = \
 
 GNU_MFILES = \
 GetDefEncoding.m \
+GSCompatibility.m \
 Unicode.m \
 behavior.m \
 o_array.m \
