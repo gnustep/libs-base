@@ -2,8 +2,8 @@
  <title>GSXMLNamespace</title>
 </head>
 <body>
-<a href ="GSXML.html">[Up]</a>
-<a href ="GSXMLNode.html">[Next]</a>
+<a href ="GSXML.html">[Up] </a>
+<a href ="GSXMLNode.html">[Next] </a>
 <h1>GSXMLNamespace</h1>
 <h3>Authors </h3>
  <dl>
@@ -27,15 +27,18 @@
 </ul>
 <h2>Methods </h2>
 <ul>
-<li><a href ="GSXMLNamespace.html#method-3">+namespaceFrom:</a>
-<li><a href ="GSXMLNamespace.html#method-0">+namespaceWithNode:prefix:href:</a>
-<li><a href ="GSXMLNamespace.html#method-7">-href</a>
-<li><a href ="GSXMLNamespace.html#method-4">-initFrom:</a>
-<li><a href ="GSXMLNamespace.html#method-2">-initWithNode:prefix:href:</a>
-<li><a href ="GSXMLNamespace.html#method-5">-lib</a>
-<li><a href ="GSXMLNamespace.html#method-9">-next</a>
-<li><a href ="GSXMLNamespace.html#method-6">-prefix</a>
-<li><a href ="GSXMLNamespace.html#method-8">-type</a>
+<li ><a href ="GSXMLNamespace.html#method-2">+descriptionFromType:</a>
+<li ><a href ="GSXMLNamespace.html#method-5">+namespaceFrom:</a>
+<li ><a href ="GSXMLNamespace.html#method-0">+namespaceWithNode:prefix:href:</a>
+<li ><a href ="GSXMLNamespace.html#method-3">+typeFromDescription:</a>
+<li ><a href ="GSXMLNamespace.html#method-9">-href</a>
+<li ><a href ="GSXMLNamespace.html#method-6">-initFrom:</a>
+<li ><a href ="GSXMLNamespace.html#method-4">-initWithNode:prefix:href:</a>
+<li ><a href ="GSXMLNamespace.html#method-7">-lib</a>
+<li ><a href ="GSXMLNamespace.html#method-10">-next</a>
+<li ><a href ="GSXMLNamespace.html#method-8">-prefix</a>
+<li ><a href ="GSXMLNamespace.html#method-11">-type</a>
+<li ><a href ="GSXMLNamespace.html#method-12">-typeDescription</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">namespaceWithNode:prefix:href:</a></h3>
@@ -78,7 +81,35 @@
 
           
  <hr>
-<h3><a name ="method-3">namespaceFrom:</a></h3>
+<h3><a name ="method-2">descriptionFromType:</a></h3>
++ (NSString*) <b>descriptionFromType:</b> (int)type;<br>
+
+	    <p>
+
+	      Return the string constant value for the namespace
+	      type given.
+            </p>
+
+          
+ <hr>
+<h3><a name ="method-3">typeFromDescription:</a></h3>
++ (int) <b>typeFromDescription:</b> (NSString*)desc;<br>
+
+	    <p>
+
+	      Return the numeric constant value for the namespace
+	      type named.  This method is inefficient, so the returned
+	      value should be saved for re-use later.  The possible
+	      values are -
+            </p>
+
+	    <ul>
+<li >XML_LOCAL_NAMESPACE
+</ul>
+
+          
+ <hr>
+<h3><a name ="method-5">namespaceFrom:</a></h3>
 + (GSXMLNamespace*) <b>namespaceFrom:</b> (void*)data;<br>
 
           <p>
@@ -89,7 +120,7 @@
           
  <hr>
 <hr><h2>Instances Methods </h2>
-<h3><a name ="method-2">initWithNode:prefix:href:</a></h3>
+<h3><a name ="method-4">initWithNode:prefix:href:</a></h3>
 - (id) <b>initWithNode:</b> (GSXMLNode*)node <b>prefix:</b> (NSString*)prefix <b>href:</b> (NSString*)href;<br>
 
           <p>
@@ -101,7 +132,7 @@
 
           
  <hr>
-<h3><a name ="method-4">initFrom:</a></h3>
+<h3><a name ="method-6">initFrom:</a></h3>
 <b>This is the designated initialiser </b><br>
 - (id) <b>initFrom:</b> (void*)data;<br>
 
@@ -112,7 +143,7 @@
 
           
  <hr>
-<h3><a name ="method-5">lib</a></h3>
+<h3><a name ="method-7">lib</a></h3>
 - (void*) <b>lib</b>;<br>
 
           <p>
@@ -122,7 +153,7 @@
 
           
  <hr>
-<h3><a name ="method-6">prefix</a></h3>
+<h3><a name ="method-8">prefix</a></h3>
 - (NSString*) <b>prefix</b>;<br>
 
           <p>
@@ -132,7 +163,7 @@
 
           
  <hr>
-<h3><a name ="method-7">href</a></h3>
+<h3><a name ="method-9">href</a></h3>
 - (NSString*) <b>href</b>;<br>
 
           <p>
@@ -142,22 +173,32 @@
 
           
  <hr>
-<h3><a name ="method-8">type</a></h3>
-- (GSXMLNamespaceType) <b>type</b>;<br>
-
-          <p>
-
-            Return type of namespace.
-          </p>
-
-          
- <hr>
-<h3><a name ="method-9">next</a></h3>
+<h3><a name ="method-10">next</a></h3>
 - (GSXMLNamespace*) <b>next</b>;<br>
 
           <p>
 
             Return next namespace.
+          </p>
+
+          
+ <hr>
+<h3><a name ="method-11">type</a></h3>
+- (int) <b>type</b>;<br>
+
+          <p>
+
+            Return numeric type code of namespace.
+          </p>
+
+          
+ <hr>
+<h3><a name ="method-12">typeDescription</a></h3>
+- (NSString*) <b>typeDescription</b>;<br>
+
+          <p>
+
+            Return string type code of namespace.
           </p>
 
           

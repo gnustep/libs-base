@@ -28,13 +28,6 @@
 
 #include <config.h>
 
-/* libxml headers */
-#include <parser.h>
-#include <parserInternals.h>
-#include <SAX.h>
-#include <HTMLparser.h>
-#include <xmlmemory.h>
-
 #include <Foundation/GSXML.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSValue.h>
@@ -44,6 +37,15 @@
 #include <Foundation/NSBundle.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSFileManager.h>
+
+/* libxml headers */
+#include <tree.h>
+#include <entities.h>
+#include <parser.h>
+#include <parserInternals.h>
+#include <SAX.h>
+#include <HTMLparser.h>
+#include <xmlmemory.h>
 
 extern int xmlDoValidityCheckingDefaultValue;
 extern int xmlGetWarningsDefaultValue;
@@ -263,10 +265,43 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 
 @implementation GSXMLNamespace : NSObject
 
+static NSMapTable	*nsNames = 0;
+
 + (void) initialize
 {
-  if (cacheDone == NO)
-    setupCache();
+  if (self == [GSXMLNamespace class])
+    {
+      if (cacheDone == NO)
+	setupCache();
+      nsNames = NSCreateMapTable(NSIntMapKeyCallBacks,
+	NSNonRetainedObjectMapValueCallBacks, 0);
+      NSMapInsert(nsNames,
+	(void*)XML_LOCAL_NAMESPACE, (void*)@"XML_LOCAL_NAMESPACE");
+    }
+}
+
++ (int) typeFromDescription: (NSString*)desc
+{
+  NSMapEnumerator	enumerator;
+  NSString		*val;
+  int			key;
+
+  enumerator = NSEnumerateMapTable(nsNames);
+  while (NSNextMapEnumeratorPair(&enumerator, (void**)&key, (void**)&val))
+    {
+      if ([desc isEqual: val] == YES)
+	{
+	  return key;
+	}
+    }
+  return -1;
+}
+
++ (NSString*) descriptionFromType: (int)type
+{
+  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)[self type]);
+
+  return desc;
 }
 
 /* This is the initializer of this class */
@@ -374,9 +409,20 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 }
 
 /* type of namespace */
-- (GSXMLNamespaceType) type
+- (int) type
 {
-  return (GSXMLNamespaceType)((xmlNsPtr)(lib))->type;
+  return (int)((xmlNsPtr)(lib))->type;
+}
+
+- (NSString*) typeDescription
+{
+  NSString	*desc = (NSString*)NSMapGet(nsNames, (void*)[self type]);
+
+  if (desc == nil)
+    {
+      desc = @"Unknown namespace type";
+    }
+  return desc;
 }
 
 - (GSXMLNamespace*) next
@@ -461,6 +507,30 @@ static NSMapTable	*nodeNames = 0;
       NSMapInsert(nodeNames,
 	(void*)XML_ENTITY_DECL, (void*)@"XML_ENTITY_DECL");
     }
+}
+
++ (int) typeFromDescription: (NSString*)desc
+{
+  NSMapEnumerator	enumerator;
+  NSString		*val;
+  int			key;
+
+  enumerator = NSEnumerateMapTable(nodeNames);
+  while (NSNextMapEnumeratorPair(&enumerator, (void**)&key, (void**)&val))
+    {
+      if ([desc isEqual: val] == YES)
+	{
+	  return key;
+	}
+    }
+  return -1;
+}
+
++ (NSString*) descriptionFromType: (int)type
+{
+  NSString	*desc = (NSString*)NSMapGet(nodeNames, (void*)[self type]);
+
+  return desc;
 }
 
 + (GSXMLNode*) nodeWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
@@ -579,10 +649,11 @@ static NSMapTable	*nodeNames = 0;
 
 - (NSMutableDictionary*) propertiesAsDictionary
 {
-  return [self propertiesAsDictionaryWithKeyTransformationSel:NULL];
-};
+  return [self propertiesAsDictionaryWithKeyTransformationSel: NULL];
+}
 
-- (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:(SEL)keyTransformSel
+- (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:
+  (SEL)keyTransformSel
 {
   xmlAttrPtr		prop;
   NSMutableDictionary	*d = [NSMutableDictionary dictionary];
@@ -592,10 +663,12 @@ static NSMapTable	*nodeNames = 0;
   while (prop != NULL)
     {
       const void	*name = prop->name;
-      NSString*key=UTF8Str(name);
-      if (keyTransformSel)
-        key=[key performSelector:keyTransformSel];
+      NSString		*key = UTF8Str(name);
 
+      if (keyTransformSel != 0)
+	{
+	  key = [key performSelector: keyTransformSel];
+	}
       if (prop->children != NULL)
 	{
 	   const void	*content = prop->children->content;
@@ -612,9 +685,9 @@ static NSMapTable	*nodeNames = 0;
   return d;
 }
 
-- (GSXMLElementType) type
+- (int) type
 {
-  return (GSXMLElementType)((xmlNodePtr)(lib))->type;
+  return (int)((xmlNodePtr)(lib))->type;
 }
 
 - (NSString*) typeDescription
@@ -760,15 +833,77 @@ static NSMapTable	*nodeNames = 0;
 
 @implementation GSXMLAttribute : GSXMLNode
 
+static NSMapTable	*attrNames = 0;
+
 + (void) initialize
 {
-  if (cacheDone == NO)
-    setupCache();
+  if (self == [GSXMLAttribute class])
+    {
+      if (cacheDone == NO)
+	setupCache();
+      attrNames = NSCreateMapTable(NSIntMapKeyCallBacks,
+	NSNonRetainedObjectMapValueCallBacks, 0);
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_CDATA, (void*)@"XML_ATTRIBUTE_CDATA");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_ID, (void*)@"XML_ATTRIBUTE_ID");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_IDREF, (void*)@"XML_ATTRIBUTE_IDREF");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_IDREFS, (void*)@"XML_ATTRIBUTE_IDREFS");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_ENTITY, (void*)@"XML_ATTRIBUTE_ENTITY");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_ENTITIES, (void*)@"XML_ATTRIBUTE_ENTITIES");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_NMTOKEN, (void*)@"XML_ATTRIBUTE_NMTOKEN");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_NMTOKENS, (void*)@"XML_ATTRIBUTE_NMTOKENS");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_ENUMERATION, (void*)@"XML_ATTRIBUTE_ENUMERATION");
+      NSMapInsert(attrNames,
+	(void*)XML_ATTRIBUTE_NOTATION, (void*)@"XML_ATTRIBUTE_NOTATION");
+    }
 }
 
-- (GSXMLAttributeType) type
++ (int) typeFromDescription: (NSString*)desc
 {
-  return (GSXMLAttributeType)((xmlAttrPtr)(lib))->atype;
+  NSMapEnumerator	enumerator;
+  NSString		*val;
+  int			key;
+
+  enumerator = NSEnumerateMapTable(attrNames);
+  while (NSNextMapEnumeratorPair(&enumerator, (void**)&key, (void**)&val))
+    {
+      if ([desc isEqual: val] == YES)
+	{
+	  return key;
+	}
+    }
+  return -1;
+}
+
++ (NSString*) descriptionFromType: (int)type
+{
+  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
+
+  return desc;
+}
+
+- (int) type
+{
+  return (int)((xmlAttrPtr)(lib))->atype;
+}
+
+- (NSString*) typeDescription
+{
+  NSString	*desc = (NSString*)NSMapGet(attrNames, (void*)[self type]);
+
+  if (desc == nil)
+    {
+      desc = @"Unknown attribute type";
+    }
+  return desc;
 }
 
 - (void*) lib
