@@ -25,6 +25,7 @@
 #include <objects/ArrayPrivate.h>
 #include <objects/NSString.h>
 #include <objects/OrderedCollection.h>
+#include <objects/behavior.h>
 
 @implementation ConstantArray
 
@@ -139,13 +140,19 @@
   int i;
   [self initWithCapacity: c];
   for (i = 0; i < c; i++)
-    [self insertObject: objs[i] atIndex:i]; // xxx this most efficient method?
+    [self insertObject: objs[i] atIndex: i]; // xxx this most efficient method?
+  return self;
 }
 
 /* This must work without sending any messages to content objects */
-- (void) _empty
+- (void) empty
 {
+  int i;
+
+  for (i = 0; i < _count; i++)
+    [_contents_array[i] release];
   _count = 0;
+  /* Note this may not work for subclassers.  Beware. */
 }
 
 // MANAGING CAPACITY;
