@@ -1362,7 +1362,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   RETAIN(address);
   service = [NSString stringWithFormat: @"%d",
 	(int)GSSwapBigI16ToHost(sin->sin_port)];
-  REYTAIN(service);
+  RETAIN(service);
   protocol = @"tcp";
 }
 
