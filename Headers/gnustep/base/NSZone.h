@@ -1,4 +1,4 @@
-/* Zone memory management. -*- Mode: ObjC -*-
+/** Zone memory management. -*- Mode: ObjC -*-
    Copyright (C) 1997,1998,1999 Free Software Foundation, Inc.
 
    Written by: Yoo C. Chung <wacko@laplace.snu.ac.kr>
@@ -18,7 +18,12 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA. */
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
+
+    AutogsdocSource:	NSZone.m
+    AutogsdocSource:	NSPage.m
+
+   */
 
 #ifndef __NSZone_h_GNUSTEP_BASE_INCLUDE
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
