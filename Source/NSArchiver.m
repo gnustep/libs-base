@@ -1,4 +1,4 @@
-/* of NSArchiver for GNUstep
+/* Implementation of NSArchiver for GNUstep
    Copyright (C) 1998 Free Software Foundation, Inc.
    
    Written by:  Richard frith-Macdonald <richard@brainstorm.co.Ik>

@@ -1,4 +1,4 @@
-/* of NSUnarchiver for GNUstep
+/* Implementation of NSUnarchiver for GNUstep
    Copyright (C) 1998 Free Software Foundation, Inc.
    
    Written by:  Richard frith-Macdonald <richard@brainstorm.co.Ik>
@@ -111,136 +111,111 @@ static SEL desSel = @selector(deserializeDataAt:ofObjCType:atCursor:context:);
 static SEL tagSel = @selector(deserializeTypeTagAtCursor:);
 static SEL xRefSel = @selector(deserializeCrossRefAtCursor:);
 static SEL dValSel = @selector(decodeValueOfObjCType:at:);
-static SEL aDatSel = @selector(allocWithZone:);
-static SEL iDatSel = @selector(initWithBytesNoCopy:length:fromZone:);
-static SEL rDatSel = @selector(autorelease);
 
-@interface	_GSClsInfo : NSObject
+@interface	NSUnarchiverClassInfo : NSObject
 {
+@public
   NSString	*original;
   NSString	*name;
   Class		class;
 }
 + (id) newWithName: (NSString*)n;
-- (NSString*) className;
-- (Class) classObject;
 - (void) mapToClass: (Class)c withName: (NSString*)name;
 @end
 
-@implementation	_GSClsInfo
+@implementation	NSUnarchiverClassInfo
 + (id) newWithName: (NSString*)n
 {
-  _GSClsInfo	*info = [_GSClsInfo alloc];
+  NSUnarchiverClassInfo	*info;
 
+  info = (NSUnarchiverClassInfo*)NSAllocateObject(self,0,NSDefaultMallocZone());
   if (info)
     {
-      info->original = [n copy];
+      info->original = [n copyWithZone: NSDefaultMallocZone()];
     }
   return info;
-}
-- (NSString*) className
-{
-  return name;
-}
-- (Class) classObject
-{
-  return class;
 }
 - (void) dealloc
 {
   [original release];
-  [name release];
-  [super dealloc];
+  if (name)
+    {
+      [name release];
+    }
+  NSDeallocateObject(self);
 }
 - (void) mapToClass: (Class)c withName: (NSString*)n
 {
-  [n retain];
-  [name release];
-  name = n;
+  if (n != name)
+    {
+      [n retain];
+      [name release];
+      name = n;
+    }
   class = c;
 }
 @end
 
 /*
- *	Dictionary used by NSUnarchiver class to keep track of _GSClsInfo
- *	objects used to map classes by name when unarchiving.
+ *	Dictionary used by NSUnarchiver class to keep track of
+ *	NSUnarchiverClassInfo objects used to map classes by name when
+ *	unarchiving.
  */
 static NSMutableDictionary	*clsDict;	/* Class information	*/
 
-@interface	_GSObjInfo : _GSClsInfo
+@interface	NSUnarchiverObjectInfo : NSUnarchiverClassInfo
 {
+@public
   unsigned	version;
-  _GSClsInfo	*overrides;
+  NSUnarchiverClassInfo	*overrides;
 }
-- (void) setVersion: (unsigned)v;
-- (unsigned) version;
 @end
 
-@implementation	_GSObjInfo
-+ (id) newWithName: (NSString*)n
+inline Class
+mapClassObject(NSUnarchiverObjectInfo *info)
 {
-  _GSObjInfo	*info = [_GSObjInfo alloc];
+  if (info->overrides == nil)
+    {
+      info->overrides = [clsDict objectForKey: info->original];
+    }
+  if (info->overrides)
+    {
+      return info->overrides->class;
+    }
+  else
+    {
+      return info->class;
+    }
+}
 
-  if (info)
-    {
-      info->original = [n copy];
-    }
-  return info;
-}
-- (NSString*) className
+inline NSString*
+mapClassName(NSUnarchiverObjectInfo *info)
 {
-  if (overrides == nil)
+  if (info->overrides == nil)
     {
-      overrides = [clsDict objectForKey: original];
+      info->overrides = [clsDict objectForKey: info->original];
     }
-  if (overrides)
+  if (info->overrides)
     {
-      return [overrides className];
+      return info->overrides->name;
     }
-  return name;
+  else
+   {
+      return info->name;
+   }
 }
-- (Class) classObject
-{
-  if (overrides == nil)
-    {
-      overrides = [clsDict objectForKey: original];
-    }
-  if (overrides)
-    {
-      return [overrides classObject];
-    }
-  return class;
-}
-- (void) setVersion: (unsigned)v
-{
-  version = v;
-}
-- (unsigned) version
-{
-  return version;
-}
+
+@implementation	NSUnarchiverObjectInfo
 @end
 
 
 @implementation NSUnarchiver
-
-static IMP	aDatImp;	/* To allocate a data object.	*/
-static IMP	iDatImp;	/* To initialise the data.	*/
-static IMP	rDatImp;	/* To autorelease it.		*/
 
 + (void) initialize
 {
   if ([self class] == [NSUnarchiver class])
     {
       clsDict = [[NSMutableDictionary alloc] initWithCapacity: 200];
-      /*
-       *	Grab method implementations so we can create NSData objects to
-       *	hold temporary memory for us.  If we have lots of strings etc
-       *	to unarchive, the performance of NSData creation is important.
-       */
-      aDatImp = [_fastCls._NSDataMalloc methodForSelector: aDatSel];
-      iDatImp = [_fastCls._NSDataMalloc instanceMethodForSelector: iDatSel];
-      rDatImp = [_fastCls._NSDataMalloc instanceMethodForSelector: rDatSel];
     }
 }
 
@@ -480,7 +455,7 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	{
 	  unsigned	xref;
 	  Class		c;
-	  _GSObjInfo	*classInfo;
+	  NSUnarchiverObjectInfo	*classInfo;
 	  Class		dummy;
 
 	  typeCheck(*type, _C_CLASS);
@@ -500,8 +475,8 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"class crossref missing - %d", xref];
 		}
-	      classInfo = (_GSObjInfo*)FastArrayItemAtIndex(clsMap, xref).o;
-	      *(Class*)address = [classInfo classObject];
+	      classInfo = (NSUnarchiverObjectInfo*)FastArrayItemAtIndex(clsMap, xref).o;
+	      *(Class*)address = mapClassObject(classInfo);
 	      return;
 	    }
 	  while (info == _C_CLASS)
@@ -521,18 +496,18 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 		  [NSException raise: NSInternalInconsistencyException
 			      format: @"decoded nil class"];
 		}
-	      className = [NSString stringWithCString: fastClassName(c)];
+	      className = NSStringFromClass(c);
 	      classInfo = [objDict objectForKey: className];
 	      if (classInfo == nil)
 		{
-		  classInfo = [_GSObjInfo newWithName: className];
+		  classInfo = [NSUnarchiverObjectInfo newWithName: className];
 		  [classInfo mapToClass: c withName: className];
 		  [objDict setObject: classInfo forKey: className];
 		  [classInfo release];
 		}
-	      [classInfo setVersion: cver];
+	      classInfo->version = cver;
 	      FastArrayAddItem(clsMap, (FastArrayItem)classInfo);
-	      *(Class*)address = [classInfo classObject];
+	      *(Class*)address = mapClassObject(classInfo);
 	      /*
 	       *	Point the address to a dummy location and read the
 	       *	next tag - if it is another class, loop to get it.
@@ -668,21 +643,13 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 	       *	add it to the crossref map.
 	       */
 	      size = objc_sizeof_type(++type);
-	      *(void**)address = NSZoneMalloc(zone, size);
+	      *(void**)address = _fastMallocBuffer(size);
 	      FastArrayAddItem(ptrMap, (FastArrayItem)*(void**)address);
 
 	      /*
 	       *	Decode value and add memory to map for crossrefs.
 	       */
 	      (*dValImp)(self, dValSel, type, *(void**)address);
-
-	      /*
-	       *	Allocate, initialise, and autorelease an NSData
-	       *	object to look after the memory.
-	       */
-	      dat = (*aDatImp)(_fastCls._NSDataMalloc, aDatSel, zone);
-	      dat = (*iDatImp)(dat, iDatSel, *(void**)address, size, zone);
-	      (*rDatImp)(dat, rDatSel);
 	    }
 	  return;
 	}
@@ -881,8 +848,8 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 
 + (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive
 {
-  _GSClsInfo	*info = [clsDict objectForKey: nameInArchive];
-  NSString	*alias = [info className];
+  NSUnarchiverClassInfo	*info = [clsDict objectForKey: nameInArchive];
+  NSString		*alias = info->name;
 
   if (alias)
     {
@@ -904,11 +871,11 @@ static IMP	rDatImp;	/* To autorelease it.		*/
     }
   else
     {
-      _GSClsInfo	*info = [clsDict objectForKey: nameInArchive];
+      NSUnarchiverClassInfo	*info = [clsDict objectForKey: nameInArchive];
 
       if (info == nil)
 	{
-	  info = [_GSClsInfo newWithName: nameInArchive];
+	  info = [NSUnarchiverClassInfo newWithName: nameInArchive];
 	  [clsDict setObject: info forKey: nameInArchive];
 	  [info release];
 	}
@@ -918,8 +885,8 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 
 - (NSString*) classNameDecodedForArchiveClassName: (NSString*)nameInArchive
 {
-  _GSObjInfo	*info = [objDict objectForKey: nameInArchive];
-  NSString	*alias = [info className];
+  NSUnarchiverObjectInfo	*info = [objDict objectForKey: nameInArchive];
+  NSString			*alias = mapClassName(info);
 
   if (alias)
     {
@@ -942,11 +909,11 @@ static IMP	rDatImp;	/* To autorelease it.		*/
     }
   else
     {
-      _GSObjInfo	*info = [objDict objectForKey: nameInArchive];
+      NSUnarchiverObjectInfo	*info = [objDict objectForKey: nameInArchive];
 
       if (info == nil)
 	{
-	  info = [_GSObjInfo newWithName: nameInArchive];
+	  info = [NSUnarchiverObjectInfo newWithName: nameInArchive];
 	  [objDict setObject: info forKey: nameInArchive];
 	  [info release];
 	}
@@ -972,7 +939,10 @@ static IMP	rDatImp;	/* To autorelease it.		*/
 
 - (unsigned) versionForClassName: (NSString*)className
 {
-  return [[objDict objectForKey: className] version];
+  NSUnarchiverObjectInfo	*info;
+
+  info = [objDict objectForKey: className];
+  return info->version;
 }
 
 @end

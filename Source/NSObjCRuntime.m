@@ -23,6 +23,7 @@
 
 #include <config.h>
 #include <gnustep/base/preface.h>
+#include <gnustep/base/fast.x>
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSString.h>
 #include <gnustep/base/mframe.h>
@@ -31,7 +32,8 @@ NSString *
 NSStringFromSelector(SEL aSelector)
 {
   if (aSelector != (SEL)0)
-    return [NSString stringWithCString: (char*)sel_get_name(aSelector)];
+    return [_fastCls._NSGCString stringWithCString:
+	(char*)sel_get_name(aSelector)];
   return nil;
 }
 
@@ -55,7 +57,7 @@ NSString *
 NSStringFromClass(Class aClass)
 {
   if (aClass != (Class)0)
-    return [NSString stringWithCString: (char*)class_get_class_name(aClass)];
+    return [_fastCls._NSGCString stringWithCString: fastClassName(aClass)];
   return nil;
 }
 
