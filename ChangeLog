@@ -1,3 +1,7 @@
+2002-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Removed obsolete code for shrinking data structures.
+
 2002-02-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Improve fetching interface info on mingw ...
