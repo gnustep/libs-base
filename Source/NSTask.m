@@ -36,6 +36,7 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSTask.h>
+#include <Foundation/NSDebug.h>
 
 #include <sys/signal.h>
 #include <sys/types.h>
