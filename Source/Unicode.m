@@ -42,24 +42,24 @@ unichar encode_chartouni(char c, NSStringEncoding enc)
     if((enc==NSNonLossyASCIIStringEncoding)
       || (enc==NSASCIIStringEncoding)
       || (enc==NSISOLatin1StringEncoding))
-        return (unichar)c;
+        return (unichar)((unsigned char)c);
 
     if((enc==NSNEXTSTEPStringEncoding))
       if((unsigned char)c<Next_conv_base)
-        return (unichar)c;
+        return (unichar)((unsigned char)c);
       else
         return(Next_char_to_uni_table[(unsigned char)c - Next_conv_base]);
 
     if((enc==NSCyrillicStringEncoding))
       if((unsigned char)c<Cyrillic_conv_base)
-        return (unichar)c;
+        return (unichar)((unsigned char)c);
       else
         return(Cyrillic_char_to_uni_table[(unsigned char)c - Cyrillic_conv_base]);
 
 #if 0
     if((enc==NSSymbolStringEncoding))
       if((unsigned char)c<Symbol_conv_base)
-        return (unichar)c;
+        return (unichar)((unsigned char)c);
       else
         return(Symbol_char_to_uni_table[(unsigned char)c - Symbol_conv_base]);
 #endif

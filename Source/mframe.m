@@ -529,7 +529,8 @@ mframe_do_call_opts (const char *encoded_types,
   if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B) {
     /* If we are passing a pointer to return a structure in, we must allocate
        the memory for it and put it at the start of the argframe. */
-      *(void**)argframe->arg_ptr = alloca(objc_sizeof_type(type));
+      if (stack_argsize)
+        *(void**)argframe->arg_ptr = alloca(objc_sizeof_type(type));
   }
 
   /* Put OBJECT and SELECTOR into the ARGFRAME. */

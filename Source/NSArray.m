@@ -223,6 +223,25 @@ static Class NSMutableArray_concrete_class;
   return self;
 }
 
+- initWithContentsOfFile: (NSString*)file
+{
+  NSString 	*myString;
+
+  myString = [[NSString alloc] initWithContentsOfFile:file];
+  if (myString)
+    {
+      id result = [myString propertyList];
+      if ( [result isKindOfClass: [NSArray class]] )
+	{
+	  [self initWithArray: result];
+	  return self;
+	}
+    }
+  NSLog(@"Contents of file does not contain an array");
+  [self dealloc];
+  return nil;
+}
+
 + arrayWithObjects: firstObject, ...
 {
   va_list ap;
@@ -733,24 +752,6 @@ static Class NSMutableArray_concrete_class;
 {
   return [[[self alloc] initWithCapacity:numItems] 
 	  autorelease];
-}
-
-- initWithContentsOfFile: (NSString*)file
-{
-  NSString 	*myString;
-
-  myString = [[NSString alloc] initWithContentsOfFile:file];
-  if (myString)
-    {
-      id result = [myString propertyList];
-      if ( [result isKindOfClass: [NSArray class]] )
-	{
-	  [self initWithArray: result];
-	  return self;
-	}
-    }
-  [self dealloc];
-  return nil;
 }
 
 - (BOOL)writeToFile:(NSString *)path atomically:(BOOL)useAuxiliaryFile

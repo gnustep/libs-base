@@ -7,6 +7,15 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{0.5.1}
+
+@itemize @bullet
+
+@item Additional runtime functions for interaction with Guile and
+ObjC-Guile library.
+
+#end itemize
+
 @section Noteworthy changes in version @samp{0.5.0}
 
 @itemize @bullet

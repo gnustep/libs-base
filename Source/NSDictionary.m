@@ -238,6 +238,7 @@ static Class NSMutableDictionary_concrete_class;
 	  return self;
 	}
     }
+  NSLog(@"Contents of file does not contain a dictionary");
   [self autorelease];
   return nil;
 }

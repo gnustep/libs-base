@@ -1,3 +1,18 @@
+Wed May 13 13:18:35 1998  Adam Fedor  <fedor@doc.com>
+
+	* src/NSArray.m ([NSArray -initWithContentsOfFile:]): Move
+	definition from NSMutableArray.
+	* NSBundle.m (+initialize): New method.
+	(+mainBundle): Use recursive lock.
+	(-initWithPath:) Likewise.
+	* Unicode.m (encode_chartouni): Cast char to unsigned before to
+	unichar (patch provided by David Fritzsche <david@dementia.wupper.de>).
+
+Fri May  1 14:26:50 1998  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
+
+        * src/mframe.m(mframe_do_call): before allocating a storage for
+        returned structure, check stack_argsize.
+
 Mon Apr 27 15:45:00 1998  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/include/mframe.h: Added three new functions to enable passing
