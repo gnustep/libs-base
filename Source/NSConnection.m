@@ -52,7 +52,7 @@
 #endif
 
 #include <Foundation/NSPortCoder.h>
-#include <Foundation/DistributedObjects.h>
+#include <base/DistributedObjects.h>
 
 #include <Foundation/NSHashTable.h>
 #include <Foundation/NSMapTable.h>

@@ -70,7 +70,7 @@
 #include <Foundation/NSPortCoder.h>
 #undef	_IN_PORT_CODER_M
 
-#include <Foundation/DistributedObjects.h>
+#include <base/DistributedObjects.h>
 
 typedef	unsigned char	uchar;
 

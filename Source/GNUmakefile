@@ -126,6 +126,7 @@ win32-def.top \
 libgnustep-base.def
 
 GNU_HEADERS = \
+DistributedObjects.h \
 GSLocale.h \
 GSUnion.h \
 GSIArray.h \
@@ -276,9 +277,8 @@ win32-load.h \
 NSCallBacks.h \
 tzfile.h
 
-BASE_HEADERS = \
+FOUNDATION_HEADERS = \
 Foundation.h \
-DistributedObjects.h \
 GSMime.h \
 NSArchiver.h \
 NSArray.h \
@@ -350,7 +350,7 @@ NSURL.h \
 NSURLHandle.h
 
 ifeq ($(HAVE_LIBXML),1)
-BASE_HEADERS += GSXML.h
+FOUNDATION_HEADERS += GSXML.h
 endif
 
 UNICODE_HEADERS = \
@@ -362,7 +362,7 @@ unicode/decomp.h \
 unicode/nextstep.h
 
 HEADERS_INSTALL = $(GNU_HEADERS) \
-                  $(BASE_HEADERS) \
+                  $(FOUNDATION_HEADERS) \
                   $(UNICODE_HEADERS)
 
 GENERATED_HFILES = \
@@ -389,7 +389,7 @@ libgnustep-base_DLL_DEF = libgnustep-base.def
 libgnustep-base_HEADER_FILES_DIR = $(HEADER_DIR)
 libgnustep-base_HEADER_FILES_INSTALL_DIR = /Foundation
 
-libgnustep-base_HEADER_FILES = $(BASE_HEADERS)
+libgnustep-base_HEADER_FILES = $(FOUNDATION_HEADERS)
 
 -include Makefile.preamble
 
