@@ -1,3 +1,9 @@
+2001-06-01  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSCalendarDate.m
+	([-descriptionWithCalendarFormat:locale:]): Fixed %w (day of the
+	week) to output a single digit number rather than a two digit one.
+
 2001-05-31  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/NSObjCRuntime.h (GSLastErrorStr): Define new
