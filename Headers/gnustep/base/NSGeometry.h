@@ -273,23 +273,8 @@ NSDivideRect(NSRect aRect,
 
 /* Returns a rectangle obtained by expanding ARECT minimally
  * so that all four of its defining components are integers. */
-GS_GEOM_SCOPE NSRect
-NSIntegralRect(NSRect aRect) GS_GEOM_ATTR;
-
-GS_GEOM_SCOPE NSRect
-NSIntegralRect(NSRect aRect)
-{
-  NSRect rect;
-
-  if (NSIsEmptyRect(aRect))
-    return NSMakeRect(0, 0, 0, 0);
-
-  rect.origin.x = floor(aRect.origin.x);
-  rect.origin.y = floor(aRect.origin.y);
-  rect.size.width = ceil(aRect.size.width);
-  rect.size.height = ceil(aRect.size.height);
-  return rect;
-}
+extern NSRect
+NSIntegralRect(NSRect aRect);
 
 /** Compute a Third Rectangle from Two Rectangles... **/
 
