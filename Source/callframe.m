@@ -35,8 +35,6 @@ typedef long long smallret_t;
 typedef int smallret_t;
 #endif
 
-extern BOOL sel_types_match(const char* t1, const char* t2);
-
 callframe_t *
 callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
 {
@@ -300,7 +298,7 @@ callframe_do_call (DOContext *ctxt,
   /* Make sure we successfully got the method type, and that its
      types match the ENCODED_TYPES. */
   NSCParameterAssert (type);
-  NSCParameterAssert (sel_types_match(encoded_types, type));
+  NSCParameterAssert (GSSelectorTypesMatch(encoded_types, type));
 
   /* Build the cif frame */
   sig = [NSMethodSignature signatureWithObjCTypes: type];

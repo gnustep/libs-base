@@ -81,7 +81,6 @@ typedef int smallret_t;
 #error FFI Sizeof LONG LONG case not handled
 #endif
 #endif
-extern BOOL sel_types_match(const char* t1, const char* t2);
 
 ffi_type *cifframe_type(const char *typePtr, const char **advance);
 
@@ -696,7 +695,7 @@ cifframe_do_call (DOContext *ctxt,
   /* Make sure we successfully got the method type, and that its
      types match the ENCODED_TYPES. */
   NSCParameterAssert (type);
-  NSCParameterAssert (sel_types_match(encoded_types, type));
+  NSCParameterAssert (GSSelectorTypesMatch(encoded_types, type));
 
   /* Build the cif frame */
   sig = [NSMethodSignature signatureWithObjCTypes: type];

@@ -1,4 +1,23 @@
-2004-08-17  David Ayers  <d.ayers@inode.at>
+2004-08-19  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
+	* Source/Additions/GSObjCRuntime.m (GSSelectorTypesMatch):
+	New Function.
+	(gs_skip_type_qualifier_and_layout_info): Ditto.
+
+	* Source/callframe.m (callframe_do_call): Use GSSelectorTypesMatch
+	instead of sel_types_match.
+	* Source/cifframe.m (cifframe_do_call): Ditto.
+	* Source/mframe.m (mframe_do_call): Ditto.
+
+	* Source/GSFFCallInvocation.m (GSInvocationCallback): Use
+	NSDebugFLog to NSWarnFLog.
+	* Source/GSFFIInvocation.m (GSFFIInvocationCallback): Ditto.
+
+	* Testing/nsmethodsignature.m: Use GSSelectorTypesMatch instead of
+	sel_types_match.  Test it.
+	
+2004-08-18  David Ayers  <d.ayers@inode.at>
 
 	* Testing/nsmethodsignature.m: Add more testing utilities.
 	
@@ -201,7 +220,7 @@
 	in NSPropertyList.m, so we only have one version to worry about.
 	* Source/NSString.m ditto.
 
-2004-07-01  David Ayers  <d.ayers@inode.at>
+2004-07-02  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Foundation/NSMethodSignature.h
 	* Source/NSMethodSignature.m

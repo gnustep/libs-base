@@ -58,7 +58,6 @@
 /* memory.h and strings.h conflict on some systems.  */
 #endif /* not STDC_HEADERS and not HAVE_STRING_H */
 
-extern BOOL sel_types_match(const char* t1, const char* t2);
 
 
 /* For encoding and decoding the method arguments, we have to know where
@@ -879,7 +878,7 @@ mframe_do_call (DOContext *ctxt,
   /* Make sure we successfully got the method type, and that its
      types match the ENCODED_TYPES. */
   NSCParameterAssert (type);
-  NSCParameterAssert (sel_types_match(encoded_types, type));
+  NSCParameterAssert (GSSelectorTypesMatch(encoded_types, type));
 
   /*
    *	The compiler/runtime doesn't always seem to get the encoding right

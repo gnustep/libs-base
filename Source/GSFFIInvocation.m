@@ -465,7 +465,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 	       * type qalifiers and sizes differ, and those where the
 	       * actual types differ.
 	       */
-	      NSWarnFLog(@"Changed type signature '%s' to '%s' for '%s'",
+	      NSDebugFLog(@"Changed type signature '%s' to '%s' for '%s'",
 		runtimeTypes, receiverTypes, runtimeName);
 	    }
 	}
