@@ -1,5 +1,10 @@
 2000-04-23  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSAttributedString.m: Optimised - cache method implementations
+	wherever possible in order to avoid objc runtime overheads.
+
+2000-04-23  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSAttributedString.m: Corrected code of
 	([-attribute:atIndex:longestEffectiveRange:inRange:]) so that it
 	compares attributes correctly.
