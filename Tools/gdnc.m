@@ -37,16 +37,19 @@
 static void
 ihandler(int sig)
 {
-  int       i;
-  char *e;
+  static BOOL	beenHere = NO;
+  BOOL		action;
+  const char	*e;
 
   /*
-   * Reset signals to avoid recursive call of handler.
+   * Deal with recursive call of handler.
    */
-  for (i = 0; i < NSIG; i++)
+  if (beenHere == YES)
     {
-      signal(i, SIG_DFL);
+      abort();
     }
+  beenHere = YES;
+
   /*
    * If asked to terminate, do so cleanly.
    */
@@ -56,29 +59,30 @@ ihandler(int sig)
     }
 
 #ifdef	DEBUG
-  i = 1;		// abort() by default.
+  action = YES;		// abort() by default.
 #else
-  i = 0;		// kill() or exit() by default.
+  action = NO;		// exit() by default.
 #endif
   e = getenv("CRASH_ON_ABORT");
   if (e != 0)
     {
       if (strcasecmp(e, "yes") == 0 || strcasecmp(e, "true") == 0)
-	i = 1;
+	action = YES;
       else if (strcasecmp(e, "no") == 0 || strcasecmp(e, "false") == 0)
-	i = 0;
+	action = NO;
       else if (isdigit(*e) && *e != '0')
-	i = 1;
+	action = YES;
       else
-	i = 0;
+	action = NO;
     }
 
-  if (i == 1)
+  if (action == YES)
     {
       abort();
     }
   else
     {
+      fprintf(stderr, "gdnc killed by signal %d\n", sig);
       exit(sig);
     }
 }

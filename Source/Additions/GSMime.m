@@ -3617,9 +3617,26 @@ static NSCharacterSet	*tokenSet = nil;
   return s;
 }
 
+/**
+ * Returns a copy of the receiver.
+ */
 - (id) copyWithZone: (NSZone*)z
 {
-  return RETAIN(self);
+  GSMimeDocument	*c = [GSMimeDocument allocWithZone: z];
+
+  c->headers = [[NSMutableArray allocWithZone: z] initWithArray: headers
+						      copyItems: YES];
+
+  if ([content isKindOfClass: [NSArray class]] == YES)
+    {
+      c->content = [[NSMutableArray allocWithZone: z] initWithArray: content
+							  copyItems: YES];
+    }
+  else
+    {
+      c->content = [content copy];
+    }
+  return c;
 }
 
 - (void) dealloc
