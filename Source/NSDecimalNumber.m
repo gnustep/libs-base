@@ -224,6 +224,21 @@ static NSDecimalNumber *one;
 					   locale: locale]);
 }
 
+/**
+ * Inefficient ... quick hack by converting double value to string,
+ * then initialising from string.
+ */
+- (id) initWithBytes: (const void*)value objCType: (const char*)type
+{
+  double	tmp;
+  NSString	*s;
+
+  memcpy(&tmp, value, sizeof(tmp));
+  s = [[NSString alloc] initWithFormat: @"%g", tmp];
+  self = [self initWithString: s];
+  RELEASE(s);
+  return self;
+}
 
 - (id) initWithDecimal: (NSDecimal)decimal
 {
@@ -277,6 +292,17 @@ static NSDecimalNumber *one;
 - (double) doubleValue
 {
   return NSDecimalDouble(&data);
+}
+
+/**
+ * Get the approximate value of the decimal number into a buffer
+ * as a double.
+ */
+- (void) getValue: (void*)buffer
+{
+  double	tmp = NSDecimalDouble(&data);
+
+  memcpy(buffer, &tmp, sizeof(tmp));
 }
 
 - (NSComparisonResult) compare: (NSNumber*)decimalNumber
