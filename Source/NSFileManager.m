@@ -1061,10 +1061,10 @@ static NSFileManager* defaultManager = nil;
   content = [NSMutableArray arrayWithCapacity: 128];
 
   nxtImp = [direnum methodForSelector: @selector(nextObject)];
-  addImp = [content methodForSelector: @selector(addObject: )];
+  addImp = [content methodForSelector: @selector(addObject:)];
 
   while ((path = (*nxtImp)(direnum, @selector(nextObject))) != nil)
-    (*addImp)(content, @selector(addObject: ), path);
+    (*addImp)(content, @selector(addObject:), path);
 
   RELEASE(direnum);
 
@@ -1099,10 +1099,10 @@ static NSFileManager* defaultManager = nil;
   content = [NSMutableArray arrayWithCapacity: 128];
     
   nxtImp = [direnum methodForSelector: @selector(nextObject)];
-  addImp = [content methodForSelector: @selector(addObject: )];
+  addImp = [content methodForSelector: @selector(addObject:)];
 
   while ((path = (*nxtImp)(direnum, @selector(nextObject))) != nil)
-    (*addImp)(content, @selector(addObject: ), path);
+    (*addImp)(content, @selector(addObject:), path);
 
   RELEASE(direnum);
 
