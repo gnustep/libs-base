@@ -167,7 +167,7 @@ libgnustep-base.def: $(OBJ_FILES_TO_LINK)
 	rm -f $@
 	rm -f _tmp.def
 	cat win32-def.top > $@
-	nm $^ | grep '^........ [T] _' | sed 's/[^_]*_//' > _tmp.def
+	nm $^ | grep '^........ [TR] _' | sed 's/[^_]*_//' > _tmp.def
 	cat _tmp.def | grep "_class_name_" >> $@
 	rm -rf _tmp.def
 
