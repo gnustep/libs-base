@@ -310,63 +310,94 @@ static void debugWrite(NSData *data)
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason: @"Response parse failed"];
     }
-  else if ([parser isComplete] == YES
-    || ([parser isInHeaders] == NO &&
-      [[[document headerNamed: @"content-length"] value] intValue] > 0))
-    {
-      GSMimeHeader	*info;
-      NSString		*val;
-
-      connectionState = idle;
-      [nc removeObserver: self
-		    name: NSFileHandleReadCompletionNotification
-		  object: sock];
-      [sock closeFile];
-      DESTROY(sock);
-
-      /*
-       * Retrieve essential keys from document
-       */
-      info = [document headerNamed: @"http"];
-      val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
-      if (val != nil)
-	{
-	  [pageInfo setObject: val
-		       forKey: NSHTTPPropertyServerHTTPVersionKey];
-	}
-      val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-      if (val != nil)
-	{
-	  [pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
-	}
-      val = [info objectForKey: NSHTTPPropertyStatusReasonKey];
-      if (val != nil)
-	{
-	  [pageInfo setObject: val forKey: NSHTTPPropertyStatusReasonKey];
-	}
-      /*
-       * Tell superclass that we have successfully loaded the data.
-       */
-      d = [parser data];
-      r = NSMakeRange(bodyPos, [d length] - bodyPos);
-      bodyPos = 0;
-      [self didLoadBytes: [d subdataWithRange: r]
-	    loadComplete: YES];
-    }
   else
     {
-      /*
-       * Report partial data if possible.
-       */
-      if ([parser isInBody])
+      BOOL	complete = [parser isComplete];
+
+      if (complete == NO && [parser isInHeaders] == NO)
 	{
+	  NSString	*enc;
+	  NSString	*len;
+	  int		ver;
+
+	  ver = [[[document headerNamed: @"http"]
+	    objectForKey: NSHTTPPropertyServerHTTPVersionKey] intValue];
+	  len = [[document headerNamed: @"content-length"] value];
+	  enc = [[document headerNamed: @"content-transfer-encoding"] value];
+	  if (enc == nil)
+	    {
+	      enc = [[document headerNamed: @"transfer-encoding"] value];
+	    }
+
+	  if ([enc isEqualToString: @"chunked"] == YES)	
+	    {
+	      complete = NO;	// Read chunked body data
+	    }
+	  else if (ver >= 1 && [len intValue] == 0)
+	    {
+	      complete = YES;	// No content
+	    }
+	  else
+	    {
+	      complete = NO;	// No
+	    }
+	}
+      if (complete == YES)
+	{
+	  GSMimeHeader	*info;
+	  NSString		*val;
+
+	  connectionState = idle;
+	  [nc removeObserver: self
+			name: NSFileHandleReadCompletionNotification
+		      object: sock];
+	  [sock closeFile];
+	  DESTROY(sock);
+
+	  /*
+	   * Retrieve essential keys from document
+	   */
+	  info = [document headerNamed: @"http"];
+	  val = [info objectForKey: NSHTTPPropertyServerHTTPVersionKey];
+	  if (val != nil)
+	    {
+	      [pageInfo setObject: val
+			   forKey: NSHTTPPropertyServerHTTPVersionKey];
+	    }
+	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+	  if (val != nil)
+	    {
+	      [pageInfo setObject: val forKey: NSHTTPPropertyStatusCodeKey];
+	    }
+	  val = [info objectForKey: NSHTTPPropertyStatusReasonKey];
+	  if (val != nil)
+	    {
+	      [pageInfo setObject: val forKey: NSHTTPPropertyStatusReasonKey];
+	    }
+	  /*
+	   * Tell superclass that we have successfully loaded the data.
+	   */
 	  d = [parser data];
 	  r = NSMakeRange(bodyPos, [d length] - bodyPos);
-	  bodyPos = [d length];
+	  bodyPos = 0;
 	  [self didLoadBytes: [d subdataWithRange: r]
-		loadComplete: NO];
+		loadComplete: YES];
 	}
-      [sock readInBackgroundAndNotify];
+      else
+	{
+	  /*
+	   * Report partial data if possible.
+	   */
+	  if ([parser isInBody])
+	    {
+	      d = [parser data];
+	      r = NSMakeRange(bodyPos, [d length] - bodyPos);
+	      bodyPos = [d length];
+	      [self didLoadBytes: [d subdataWithRange: r]
+		    loadComplete: NO];
+	    }
+	  [sock readInBackgroundAndNotify];
+	}
     }
 }
 

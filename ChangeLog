@@ -1,3 +1,10 @@
+2004-02-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Expect to read content data after headers
+	if content-length is non-zero
+	or if content-transfer-encoding is chunked
+	or if server http version is less than 1
+
 2004-02-09  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Add ffcall dir to INCLUDE_FLAGS.
