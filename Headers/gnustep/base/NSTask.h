@@ -31,7 +31,7 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSFileHandle.h>
 
-@interface NSTask : NSObject
+@interface NSTask : NSObject <GCFinalization>
 {
   NSString	*currentDirectoryPath;
   NSString	*launchPath;

@@ -87,6 +87,10 @@ extern NSString* NSLoadedClasses;
 #ifndef	NO_GNUSTEP
 @interface NSBundle (GNUstep)
 
++ (NSString*) _gnustep_target_cpu;
++ (NSString*) _gnustep_target_dir;
++ (NSString*) _gnustep_target_os;
++ (NSString*) _library_combo;
 + (NSString *) pathForGNUstepResource: (NSString *)name
 			       ofType: (NSString *)ext	
 			  inDirectory: (NSString *)bundlePath;
