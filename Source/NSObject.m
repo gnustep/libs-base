@@ -97,6 +97,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 				    elt_hash_void_ptr,
 				    (coll_compare_func_type)
 				    elt_compare_void_ptrs);
+      autorelease_class = [NSAutoreleasePool class];
     }
   return;
 }
