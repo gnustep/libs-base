@@ -40,10 +40,12 @@
   return [[self alloc] init];
 }
 
+/* This is the designated initializer for this class. */
 - init
 {
   _list = [[Array alloc] init];
   _send_behavior = SEND_TO_ALL;
+  _last_message_had_receivers = NO;
   return self;
 }
 
@@ -136,6 +138,10 @@
   return self;
 }
 
+- (BOOL) delegatePoolLastMessageHadReceivers
+{
+  return _last_message_had_receivers;
+}
 
 // FOR PASSING ALL OTHER MESSAGES TO DELEGATES;
 
@@ -144,13 +150,17 @@
   void *ret = 0;
   elt delegate;
   
+  _last_message_had_receivers = NO;
   switch (_send_behavior) 
     {
     case SEND_TO_ALL:
       FOR_ARRAY(_list, delegate)
 	{
 	  if ([delegate.id_u respondsTo:aSel]) 
-	    ret = [delegate.id_u performv:aSel :argFrame];
+	    {
+	      ret = [delegate.id_u performv:aSel :argFrame];
+	      _last_message_had_receivers = YES;
+	    }
 	}
       FOR_ARRAY_END;
       break;
@@ -159,7 +169,10 @@
       FOR_ARRAY(_list, delegate)
 	{
 	  if ([delegate.id_u respondsTo:aSel]) 
-	    return [delegate.id_u performv:aSel :argFrame];
+	    {
+	      _last_message_had_receivers = YES;
+	      return [delegate.id_u performv:aSel :argFrame];
+	    }
 	}
       FOR_ARRAY_END;
       break;
@@ -168,8 +181,11 @@
       FOR_ARRAY(_list, delegate)
 	{
 	  if ([delegate.id_u respondsTo:aSel]) 
-	    if ((ret = [delegate.id_u performv:aSel :argFrame]))
-	      return ret;
+	    {
+	      _last_message_had_receivers = YES;
+	      if ((ret = [delegate.id_u performv:aSel :argFrame]))
+		return ret;
+	    }
 	}
       FOR_ARRAY_END;
       break;
@@ -178,8 +194,11 @@
       FOR_ARRAY(_list, delegate)
 	{
 	  if ([delegate.id_u respondsTo:aSel]) 
-	    if (!(ret = [delegate.id_u performv:aSel :argFrame]))
-	      return ret;
+	    {
+	      _last_message_had_receivers = YES;
+	      if (!(ret = [delegate.id_u performv:aSel :argFrame]))
+		return ret;
+	    }
 	}
       FOR_ARRAY_END;
       break;
