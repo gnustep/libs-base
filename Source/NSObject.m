@@ -22,26 +22,119 @@
    */ 
 
 #include <objects/stdobjects.h>
+#include <stdarg.h>
 #include <foundation/NSObject.h>
-// #include <foundation/NSMethodSignature.h>
+#include "objc/Protocol.h"
+#include "objc/objc-api.h"
+#include <foundation/NSMethodSignature.h>
 // #include <foundation/NSArchiver.h>
 // #include <foundation/NSCoder.h>
+#include <foundation/NSInvocation.h>
+#include <foundation/NSAutoreleasePool.h>
+#include <objects/collhash.h>
+#include <objects/eltfuncs.h>
+
+extern void (*_objc_error)(id object, const char *format, va_list);
+extern int errno;
+
+NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
+{
+  id new = nil;
+  int size = aClass->instance_size + extraBytes;
+  if (CLS_ISCLASS(aClass))
+    new = (*objc_malloc) (size);
+  if (new != nil)
+    {
+      memset (new, 0, size);
+      new->class_pointer = aClass;
+    }
+  return new;
+}
+
+void NSDeallocateObject(NSObject *anObject)
+{
+  if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
+    (*objc_free) (anObject);
+  return;
+}
+
+NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone)
+{
+  id copy = NSAllocateObject(((id)anObject)->class_pointer, extraBytes, zone);
+  memcpy(copy, anObject, 
+	 ((id)anObject)->class_pointer->instance_size + extraBytes);
+  return copy;
+}
+
+
+/* Reference count management */
+
+/* Doesn't handle multi-threaded stuff.
+   Doesn't handle exceptions. */
+
+/* The hashtable of retain counts on objects */
+static coll_cache_ptr retain_counts = NULL;
+
+/* The Class responsible for handling autorelease's */
+id autorelease_class = nil;
+
+BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone)
+{
+  if (!requestedZone || [anObject zone] == requestedZone)
+    return YES;
+  else
+    return NO;
+}
+
+void NSIncrementExtraRefCount(id anObject)
+{
+  coll_node_ptr n;
+
+  n = coll_hash_node_for_key(retain_counts, anObject);
+  if (n)
+    (n->value.unsigned_int_u)++;
+  else
+    coll_hash_add(&retain_counts, anObject, (unsigned)1);
+}
+
+BOOL NSDecrementExtraRefCountWasZero(id anObject)
+{
+  coll_node_ptr n;
+
+  n = coll_hash_node_for_key(retain_counts, anObject);
+  if (n)
+    {
+      (n->value.unsigned_int_u)--;
+      if (n->value.unsigned_int_u)
+	return NO;
+      coll_hash_remove(retain_counts, anObject);
+    }
+  return YES;
+}
 
 @implementation NSObject
 
 + (void) initialize
 {
+  if (self == [NSObject class])
+    {
+      retain_counts = coll_hash_new(64,
+				    (coll_hash_func_type)
+				    elt_hash_void_ptr,
+				    (coll_compare_func_type)
+				    elt_compare_void_ptrs);
+    }
   return;
 }
 
 + (id) alloc
 {
-  return class_create_instance(self);
+  return [self allocWithZone:NS_NOZONE];
 }
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return [self alloc];		/* for now, until we get zones */
+  return NSAllocateObject(self, 0, z);
 }
 
 + (id) new
@@ -49,14 +142,19 @@
   return [[self alloc] init];
 }
 
+- copyWithZone:(NSZone *)zone;
+{
+  return NSCopyObject(self, 0, zone);
+}
+
 - (id) copy
 {
-  return [self copyWithZone:0];
+  return [self copyWithZone: NS_NOZONE];
 }
 
 - (void) dealloc
 {
-  return object_dispose(self);
+  return NSDeallocateObject(self);
 }
 
 - free
@@ -70,32 +168,32 @@
   return self;
 }
 
+- mutableCopyWithZone:(NSZone *)zone
+{
+  return [self copyWithZone:zone];
+}
+
 - (id) mutableCopy
 {
-  return [self mutableCopyWithZone:0];
+  return [self mutableCopyWithZone: NS_NOZONE];
 }
 
-+ (Class) class
+- (Class) superclass
 {
-  return *(object_get_class(self));
-}
-
-+ (Class) superclass
-{
-  return *(object_get_super_class(self));
+  return object_get_super_class(self);
 }
 
 + (BOOL) instancesRespondToSelector: (SEL)aSelector
 {
-  return class_get_instance_method(self, aSel)!=METHOD_NULL;
+  return (class_get_instance_method(self, aSelector) != METHOD_NULL);
 }
 
-+ (BOOL) conformsToProtocol: (Protocol*)aProtocol
+- (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
   int i;
   struct objc_protocol_list* proto_list;
 
-  for (proto_list = isa->protocols;
+  for (proto_list = ((struct objc_class*)self)->class_pointer->protocols;
        proto_list; proto_list = proto_list->next)
     {
       for (i=0; i < proto_list->count; i++)
@@ -105,22 +203,22 @@
       }
     }
 
-  if ([self superClass])
-    return [[self superClass] conformsTo: aProtocol];
+  if ([self superclass])
+    return [[self superclass] conformsToProtocol: aProtocol];
   else
     return NO;
 }
 
 + (IMP) instanceMethodForSelector: (SEL)aSelector
 {
-  return method_get_imp(class_get_instance_method(self, aSel));
+  return method_get_imp(class_get_instance_method(self, aSelector));
 }
   
 - (IMP) methodForSelector: (SEL)aSelector
 {
   return (method_get_imp(object_is_instance(self)
-                         ?class_get_instance_method(self->isa, aSel)
-                         :class_get_class_method(self->isa, aSel)));
+                         ?class_get_instance_method(self->isa, aSelector)
+                         :class_get_class_method(self->isa, aSelector)));
 }
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
@@ -129,9 +227,9 @@
   return nil;
 }
 
-- (BOOL) isProxy
+- (NSString*) description
 {
-  return NO;
+  return nil;
 }
 
 + (NSString*) description
@@ -139,31 +237,15 @@
   return nil;
 }
 
-+ (void) poseAsClass: (Class)aClass
++ (void) poseAsClass: (Class)aClassObject
 {
-  return class_pose_as(self, aClassObject);
+  class_pose_as(self, aClassObject);
 }
 
 - (void) doesNotRecognizeSelector: (SEL)aSelector
 {
-  return [self error:"%s does not recognize %s",
-                     object_get_class_name(self), sel_get_name(aSel)];
-}
-
-+ (void) cancelPreviousPerformRequestsWithTarget: (id)aTarget
-   selector: (SEL)aSelector
-   object: (id)anObject
-{
-  [self notImplemented:_cmd];
-  return;
-}
-
-- (void) performSelector: (SEL)aSelector
-   object: (id)anObject
-   afterDelay: (NSTimeInterval)delay
-{
-  [self notImplemented:_cmd];
-  return;
+  [self error:"%s does not recognize %s",
+	object_get_class_name(self), sel_get_name(aSelector)];
 }
 
 - (retval_t) forward:(SEL)aSel :(arglist_t)argFrame
@@ -173,7 +255,7 @@
   NSInvocation *inv = [NSInvocation invocationWithMethodSignature:ms
 				    frame:argFrame];
   /* is this right? */
-  retFrame = alloc([ms methodReturnLength]);
+  retFrame = (void*) alloc([ms methodReturnLength]);
   [self forwardInvocation:inv];
   [inv getReturnValue:retFrame];
   /* where do ms and inv get free'd? */
@@ -201,40 +283,339 @@
   return [self class];
 }
 
-- (id) replacementObjectForArchiveer: (NSArchiver*)anArchiver
+- (id) replacementObjectForCoder: (NSCoder*)anEncoder
 {
-  return [self replacementObjectForCoder:anArchiver];
+  return self;
 }
 
-- (id) replacementObjectForCoder: (NSCoder*)anEncoder
+- (id) replacementObjectForArchiveer: (NSArchiver*)anArchiver
+{
+  return [self replacementObjectForCoder:(NSCoder*)anArchiver];
+}
+
+/* NSObject protocol */
+
+- autorelease
+{
+  [autorelease_class addObject:self];
+  return self;
+}
+
+- (Class) class
+{
+  return isa;
+}
+
+- (unsigned) hash
+{
+  return (unsigned)self;
+}
+
+- (BOOL) isEqual: anObject
+{
+  return (self == anObject);
+}
+
+- (BOOL) isKindOfClass: (Class)aClass
+{
+  Class class;
+
+  for (class = self->isa; class!=Nil; class = class_get_super_class(class))
+    if (class==aClass)
+      return YES;
+  return NO;
+}
+
+- (BOOL) isMemberOfClass: (Class)aClass
+{
+  return self->isa==aClass;
+}
+
+- (BOOL) isProxy
+{
+  return NO;
+}
+
+- perform: (SEL)aSelector
+{
+  IMP msg = objc_msg_lookup(self, aSelector);
+  if (!msg)
+    return [self error:"invalid selector passed to %s", sel_get_name(_cmd)];
+  return (*msg)(self, aSelector);
+}
+
+- perform: (SEL)aSelector withObject: anObject
+{
+  IMP msg = objc_msg_lookup(self, aSelector);
+  if (!msg)
+    return [self error:"invalid selector passed to %s", sel_get_name(_cmd)];
+  return (*msg)(self, aSelector, anObject);
+}
+
+- perform: (SEL)aSelector withObject: object1 withObject: object2
+{
+  IMP msg = objc_msg_lookup(self, aSelector);
+  if (!msg)
+    return [self error:"invalid selector passed to %s", sel_get_name(_cmd)];
+  return (*msg)(self, aSelector, object1, object2);
+}
+
+- (oneway void) release
+{
+  if (NSDecrementExtraRefCountWasZero(self))
+    [self dealloc];
+  return;
+}
+
+- (BOOL) respondsToSelector: (SEL)aSelector
+{
+  return ((object_is_instance(self)
+           ?class_get_instance_method(self->isa, aSelector)
+           :class_get_class_method(self->isa, aSelector))!=METHOD_NULL);
+}
+
+- retain
+{
+  NSShouldRetainWithZone(self, [self zone]);
+  return self;
+}
+
+- (unsigned) retainCount
+{
+  coll_node_ptr n;
+
+  n = coll_hash_node_for_key(retain_counts, self);
+  if (n)
+    return n->value.unsigned_int_u;
+  else
+    return 0;
+}
+
+- self
+{
+  return self;
+}
+
+- (NSZone *)zone
+{
+  return NULL;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+  return;
+}
+
+- initWithCoder:(NSCoder *)aDecoder
 {
   return self;
 }
 
 @end
 
-NSObject *NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone)
+@implementation NSObject (NEXTSTEP)
+
+/* NEXTSTEP Object class compatibility */
+
+- error:(const char *)aString, ...
 {
-  
+#define FMT "error: %s (%s)\n%s\n"
+  char fmt[(strlen((char*)FMT)+strlen((char*)object_get_class_name(self))
+            +((aString!=NULL)?strlen((char*)aString):0)+8)];
+  va_list ap;
+
+  sprintf(fmt, FMT, object_get_class_name(self),
+                    object_is_instance(self)?"instance":"class",
+                    (aString!=NULL)?aString:"");
+  va_start(ap, aString);
+  (*_objc_error)(self, fmt, ap);
+  va_end(ap);
+  return nil;
+#undef FMT
 }
 
-void NSDeallocateObject(NSObject *anObject)
+- (const char *)name
 {
-  
+  return object_get_class_name(self);
 }
 
-NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone)
+- (BOOL)isKindOf:(Class)aClassObject
 {
+  return [self isKindOfClass:aClassObject];
 }
 
-BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone)
+- (BOOL)isMemberOf:(Class)aClassObject
 {
+  return [self isMemberOfClass:aClassObject];
 }
 
-void NSIncrementExtraRefCount(id anObject)
++ (BOOL)instancesRespondTo:(SEL)aSel
 {
+  return [self instancesRespondToSelector:aSel];
 }
 
-BOOL NSDecrementExtraRefCountWasZero(id anObject)
+- (BOOL)respondsTo:(SEL)aSel
 {
+  return [self respondsToSelector:aSel];
 }
+
++ (BOOL) conformsTo: (Protocol*)aProtocol
+{
+  return [self conformsToProtocol:aProtocol];
+}
+
+- (retval_t)performv:(SEL)aSel :(arglist_t)argFrame
+{
+  return objc_msg_sendv(self, aSel, argFrame);
+}
+
++ (IMP)instanceMethodFor:(SEL)aSel
+{
+  return [self instanceMethodForSelector:aSel];
+}
+
+- (IMP)methodFor:(SEL)aSel
+{
+  return [self methodForSelector:aSel];
+}
+
++ poseAs:(Class)aClassObject
+{
+  [self poseAsClass:aClassObject];
+  return self;
+}
+
++ (int)version
+{
+  return class_get_version(self);
+}
+
++ setVersion:(int)aVersion
+{
+  class_set_version(self, aVersion);
+  return self;
+}
+
+- notImplemented:(SEL)aSel
+{
+  return [self error:"method %s not implemented", sel_get_name(aSel)];
+}
+
+- shouldNotImplement:(SEL)aSel
+{
+  return [self error:"%s should not implement %s", 
+	             object_get_class_name(self), sel_get_name(aSel)];
+}
+
+- doesNotRecognize:(SEL)aSel
+{
+  return [self error:"%s does not recognize %s",
+                     object_get_class_name(self), sel_get_name(aSel)];
+}
+
+@end
+
+@implementation NSObject (GNU)
+
+/* GNU Object class compatibility */
+
+- (int)compare:anotherObject;
+{
+  if ([self isEqual:anotherObject])
+    return 0;
+  // Ordering objects by their address is pretty useless, 
+  // so subclasses should override this is some useful way.
+  else if (self > anotherObject)
+    return 1;
+  else 
+    return -1;
+}
+
+- (BOOL)isMetaClass
+{
+  return NO;
+}
+
+- (BOOL)isClass
+{
+  return object_is_class(self);
+}
+
+- (BOOL)isInstance
+{
+  return object_is_instance(self);
+}
+
+- (BOOL)isMemberOfClassNamed:(const char *)aClassName
+{
+  return ((aClassName!=NULL)
+          &&!strcmp(class_get_class_name(self->isa), aClassName));
+}
+
++ (struct objc_method_description *)descriptionForInstanceMethod:(SEL)aSel
+{
+  return ((struct objc_method_description *)
+           class_get_instance_method(self, aSel));
+}
+
+- (struct objc_method_description *)descriptionForMethod:(SEL)aSel
+{
+  return ((struct objc_method_description *)
+           (object_is_instance(self)
+            ?class_get_instance_method(self->isa, aSel)
+            :class_get_class_method(self->isa, aSel)));
+}
+
+- (Class)transmuteClassTo:(Class)aClassObject
+{
+  if (object_is_instance(self))
+    if (class_is_class(aClassObject))
+      if (class_get_instance_size(aClassObject)==class_get_instance_size(isa))
+        if ([self isKindOfClass:aClassObject])
+          {
+            Class old_isa = isa;
+            isa = aClassObject;
+            return old_isa;
+          }
+  return nil;
+}
+
+- subclassResponsibility:(SEL)aSel
+{
+  return [self error:"subclass should override %s", sel_get_name(aSel)];
+}
+
++ (int)streamVersion: (TypedStream*)aStream
+{
+  if (aStream->mode == OBJC_READONLY)
+    return objc_get_stream_class_version (aStream, self);
+  else
+    return class_get_version (self);
+}
+
+// These are used to write or read the instance variables 
+// declared in this particular part of the object.  Subclasses
+// should extend these, by calling [super read/write: aStream]
+// before doing their own archiving.  These methods are private, in
+// the sense that they should only be called from subclasses.
+
+- read: (TypedStream*)aStream
+{
+  // [super read: aStream];  
+  return self;
+}
+
+- write: (TypedStream*)aStream
+{
+  // [super write: aStream];
+  return self;
+}
+
+- awake
+{
+  // [super awake];
+  return self;
+}
+
+@end
+
