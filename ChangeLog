@@ -1,3 +1,8 @@
+2003-10-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: ([GSMimeDocument-makeBoundary])
+	fixed memory leak.
+
 2003-09-30  Adam Fedor  <fedor@gnu.org>
 
 	* config/procfs.m4: Force disable /proc on Irix. Force enable
