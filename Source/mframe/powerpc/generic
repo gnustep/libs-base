@@ -1,0 +1,118 @@
+/* See ../README for copyright */
+
+#define MFRAME_STACK_STRUCT     0
+#define MFRAME_STRUCT_BYREF     1
+#define MFRAME_SMALL_STRUCT     0
+#define MFRAME_ARGS_SIZE        144
+#define MFRAME_RESULT_SIZE      16
+#define	MFRAME_FLT_IN_FRAME_AS_DBL	1
+
+#define MFRAME_GET_STRUCT_ADDR(ARGS, TYPES) \
+((*(TYPES)==_C_STRUCT_B || *(TYPES)==_C_UNION_B || *(TYPES)==_C_ARY_B) ? \
+      *(void**)(((char*)(ARGS))+sizeof(void*)): (void*)0)
+
+#define MFRAME_SET_STRUCT_ADDR(ARGS, TYPES, ADDR) \
+({if (*(TYPES)==_C_STRUCT_B || *(TYPES)==_C_UNION_B || *(TYPES)==_C_ARY_B) \
+      *(void**)(((char*)(ARGS))+sizeof(void*)) = (ADDR);})
+
+/* The following macros are used to determine the encoding of a selector given
+   the types of arguments. This macros follows the similar ones defined in the
+   target machine description from the compiler sources. */
+
+/* Define a data type for recording info about the arguments list of a method.
+   A variable of this type is further used by FUNCTION_ARG_ENCODING to
+   determine the encoding of an argument. This type should record all info
+   about arguments processed so far. */
+
+/* On RS/6000 the first eight words of non-FP are normally in
+   registers and the rest are pushed.  The first 13 FP args are in
+   registers. */
+
+typedef struct rs6000_args 
+{
+    int int_args;       /* Number of integer arguments so far */
+    int float_args;     /* Number of float arguments so far */
+    int int_regs_position;  /* The current position for integers in
+                               the register's frame */
+    int stack_position; /* The current position in the stack frame */
+} MFRAME_ARGS;
+
+
+/* Initialize a variable of type CUMULATIVE_ARGS. This macro is called before
+   processing the first argument of a method. */
+
+#define MFRAME_INIT_ARGS(CUM, RTYPE) \
+    ({ (CUM).int_args = 0; \
+       (CUM).float_args = 0; \
+       (CUM).int_regs_position = 4; \
+       (CUM).stack_position = 0; \
+    })
+
+/* This macro determines the encoding of the next argument of a method. It is
+   called repetitively, starting with the first argument and continuing to the
+   last one. CUM is a variable of type CUMULATIVE_ARGS. TYPE is a string
+   which represents the type of the argument processed. This macro must
+   write into a string whose value represents the encoding and position of the
+   current argument. STACK is a variable that counts the number of bytes
+   occupied by the arguments on the stack. */
+
+
+#define MFRAME_ARG_ENCODING(CUM, TYPE, STACK, DEST) \
+({  \
+  const char* type = (TYPE); \
+\
+  if (*type == _C_FLT || *type == _C_DBL) \
+    { \
+      if (++(CUM).float_args > 13) \
+	{ \
+	  /* Place the argument on stack. Floats are pushed as doubles. */ \
+	  (CUM).stack_position += ROUND ((CUM).stack_position, \
+                                           __alignof__(double)); \
+	  sprintf((DEST), "%s%d", type, (CUM).stack_position); \
+	  (STACK) = ROUND ((CUM).stack_position, sizeof(double)); \
+        } \
+      else \
+	{ \
+	  /* Place the argument on register's frame. Floats are \
+	     pushed as doubles. The register's frame for floats and \
+	     doubles starts at index 40. */ \
+	  int offset = 40 + sizeof (double) * ((CUM).float_args - 1); \
+	  sprintf((DEST), "%s+%d", type, offset); \
+	  (CUM).int_regs_position += ROUND (objc_sizeof_type(type), \
+                                              objc_alignof_type(type)); \
+        } \
+    } \
+  else \
+    { \
+      int align, size; \
+\
+      if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B) \
+	{ \
+	  align = __alignof__(type); \
+	  size = objc_sizeof_type (type); \
+        } \
+      else \
+	{ \
+	  align = __alignof__(int); \
+	  size = objc_sizeof_type (type); \
+        } \
+\
+      if (++(CUM).int_args > 8) \
+	{ \
+	  /* We have a type to place on the stack */ \
+	  (CUM).stack_position += ROUND ((CUM).stack_position, align); \
+	  sprintf((DEST), "%s%d", type, (CUM).stack_position); \
+	  (STACK) = ROUND ((CUM).stack_position, size); \
+        } \
+      else \
+	{ \
+	  /* We have to place a value on the register's frame. The \
+	     register's frame for references and integers starts at 4. */ \
+            (CUM).int_regs_position = ROUND((CUM).int_regs_position, align); \
+	  sprintf(dest, "%s+%d", type, (CUM).int_regs_position); \
+	  (CUM).int_regs_position += ROUND (size, align); \
+        } \
+    } \
+  (DEST)=&(DEST)[strlen(DEST)]; \
+})
+
