@@ -880,6 +880,9 @@ if test $ac_cv_header_gmp_h = no; then
   AC_MSG_WARN(Could not find gmp headers)
 else
   AC_CHECK_LIB(gmp, mpf_abs, gmp_ok=yes, gmp_ok=no)
+  if test "$gmp_ok" = no; then
+    AC_CHECK_LIB(gmp, __gmpf_abs, gmp_ok=yes, gmp_ok=no)
+  fi
   if test "$gmp_ok" = yes; then
     base_libs="$LIBS"
     LIBS="$LIBS -lgmp"

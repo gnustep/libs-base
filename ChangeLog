@@ -1,5 +1,9 @@
 2001-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.in: Add check for rexcent versions of gmp
+
+2001-01-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSException.m: Modify default handler to permit simple
 	exit as well as abort.
 	* Documentation/gsdoc/Base.gsdoc: documented environmnet variable
