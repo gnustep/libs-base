@@ -123,7 +123,15 @@ objc_find_executable (const char *file)
 	if (*p) p++;
 
 	if (name[0] == '.' && name[1] == 0)
+#ifndef NeXT
 	    getcwd (name, MAXPATHLEN);
+#else
+	  /*
+	    Reported by Gregor Hoffleit <flight@mathi.uni-heidelberg.DE>
+	    Date: Fri, 12 Jan 96 16:00:42 +0100
+	    */
+	    getwd (name);
+#endif
 	
 	strcat (name, "/");
 	strcat (name, file);
