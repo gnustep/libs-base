@@ -67,8 +67,7 @@
 
 # Things to do after distcleaning
 after-distclean::
-	rm -rf SSL.bundle
-	rm -rf $(GNUSTEP_TARGET_DIR)
+	rm -rf $(GNUSTEP_TARGET_DIR)/config.h
 
 # Things to do before checking
 # before-check::
