@@ -407,9 +407,9 @@ dist: $(DIST_FILES)
 	rm -rf `cat .fname` .fname
 
 diff:
-	cd /tmp; zcat libobjects-$(OLD_OBJECTS_VERSION).tar.gz | tar -xf -
-	cd /tmp; zcat libobjects-$(OBJECTS_VERSION).tar.gz | tar -xf -
-	diff /tmp/libobjects-$(OLD_OBJECTS_VERSION) \
+	zcat libobjects-$(OLD_OBJECTS_VERSION).tar.gz | (cd /tmp; tar -xf -)
+	zcat libobjects-$(OBJECTS_VERSION).tar.gz | (cd /tmp; tar -xf -)
+	diff -rc2P /tmp/libobjects-$(OLD_OBJECTS_VERSION) \
 	/tmp/libobjects-$(OBJECTS_VERSION) \
 	> libobjects-$(OLD_OBJECTS_VERSION)-$(OBJECTS_VERSION).diff
 	rm -rf /tmp/libobjects-$(OLD_OBJECTS_VERSION) \
