@@ -70,7 +70,7 @@ char emp[64] = {
   NSMutableDictionary   *wProperties;
   NSData		*wData;
   NSMutableDictionary   *request;
-  unsigned int          contentLength;
+  unsigned int          bodyPos;
   enum {
     idle,
     connecting,
@@ -294,6 +294,7 @@ static void debugWrite(NSData *data)
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
   NSDictionary		*dict = [not userInfo];
   NSData		*d;
+  NSRange		r;
 
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(d);
@@ -326,10 +327,25 @@ static void debugWrite(NSData *data)
       /*
        * Tell superclass that we have successfully loaded the data.
        */
-      [self didLoadBytes: [parser data] loadComplete: YES];
+      d = [parser data];
+      r = NSMakeRange(bodyPos, [d length] - bodyPos);
+      bodyPos = 0;
+      [self didLoadBytes: [d subdataWithRange: r]
+	    loadComplete: YES];
     }
   else
     {
+      /*
+       * Report partial data if possible.
+       */
+      if ([parser isInBody])
+	{
+	  d = [parser data];
+	  r = NSMakeRange(bodyPos, [d length] - bodyPos);
+	  bodyPos = [d length];
+	  [self didLoadBytes: [d subdataWithRange: r]
+		loadComplete: NO];
+	}
       [sock readInBackgroundAndNotify];
     }
 }
@@ -404,7 +420,6 @@ static void debugWrite(NSData *data)
       [sock closeFile];
       DESTROY(sock);
     }
-  contentLength = 0;
   if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] == 0)
     {
       NSNumber	*p;
@@ -783,6 +798,7 @@ static void debugWrite(NSData *data)
 	}
       else
 	{
+	  bodyPos = 0;
 	  [nc addObserver: self
 	         selector: @selector(bgdRead:)
 		     name: NSFileHandleReadCompletionNotification

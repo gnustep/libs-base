@@ -1,3 +1,12 @@
+2002-06-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFTPURLHandle.m: partial implementation added (compiles
+	but does not work).
+	* Source/NSURLHandle.m: Register GSFTPURLHandle so once it works
+	it can be used.
+	* Source/GSHTTPURLHandle.m: modified so that data being read is
+	reported periodically during the read proces rather than just at end.
+
 2002-06-15  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSProcessInfo.m: Include sys/fcntl for Solaris.
