@@ -11,8 +11,6 @@ random number generators.
    It provides functionality that aims to implement the non-graphical
 portion of the OpenStep standard (the Foundation library).
 
-   Here is some introductory info to get you started:
-
 Initial reading
 ===============
 
@@ -20,6 +18,27 @@ Initial reading
 
    The files `INSTALL' or `GNUstep-HOWTO' (from the web site) gives
 instructions for installing the library.
+
+License
+=======
+
+   The GNUstep libraries are covered under the GNU Lesser Public
+License.  This means you can use these libraries in any program (even
+non-free programs). If you distribute the libraries along with your
+program, you must make the improvements you have made to the libraries
+freely available. You should read the COPYING.LIB file for more
+information.
+
+   GNUstep tools, test programs, and other files are covered under the
+GNU Public License. This means if you make changes to these programs,
+you cannot charge a fee, other than distribution fees, for others to
+use the program. You should read the COPYING file for more information.
+
+   With GNUstep-Base, we strongly recommend the use of the ffcall
+libraries, which provides stack frame handling for NSInvocation and
+NSConnection.  "Ffcall is under GNU GPL. As a special exception, if used
+in GNUstep or in derivate works of GNUstep, the included parts of ffcall
+are under GNU LGPL" (Text in quotes provided by the author of ffcall).
 
 How can you help?
 =================

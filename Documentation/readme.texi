@@ -3,9 +3,15 @@
 @c set the vars GNUSTEP-BASE-VERSION and GCC-VERSION
 @include version.texi
 
-@include base-desc.texi
+The GNUstep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+object collections, byte streams, typed coders, invocations,
+notifications, notification dispatchers, moments in time, network ports,
+remote object messaging support (distributed objects), event loops, and
+random number generators.
 
-Here is some introductory info to get you started:
+It provides functionality that aims to implement the non-graphical
+portion of the OpenStep standard (the Foundation library).  
 
 @section Initial reading
 
@@ -13,6 +19,26 @@ The file @samp{NEWS} has the library's feature history.
 
 The files @samp{INSTALL} or @samp{GNUstep-HOWTO} (from the web site)
 gives instructions for installing the library.
+
+@section License
+
+The GNUstep libraries are covered under the GNU Lesser Public License.
+This means you can use these libraries in any program (even non-free
+programs). If you distribute the libraries along with your program, 
+you must make the improvements you have made
+to the libraries freely available. You should read the COPYING.LIB file
+for more information.
+
+GNUstep tools, test programs, and other files are covered under the
+GNU Public License. This means if you make changes to these programs,
+you cannot charge a fee, other than distribution fees, for others to
+use the program. You should read the COPYING file for more information.
+
+With GNUstep-Base, we strongly recommend the use of the ffcall
+libraries, which provides stack frame handling for NSInvocation and
+NSConnection.  "Ffcall is under GNU GPL. As a special exception, if used
+in GNUstep or in derivate works of GNUstep, the included parts of ffcall
+are under GNU LGPL" (Text in quotes provided by the author of ffcall).
 
 @section How can you help?
 
