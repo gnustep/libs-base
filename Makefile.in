@@ -102,6 +102,7 @@ snap: $(DIST_FILES)
 	done
 
 snapshot: snap
+	ln README.first snap
 	rm -f .name
 	echo libobjects-`date +%y%m%d` >.name
 	mv snap `cat .name`
