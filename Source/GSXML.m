@@ -1177,7 +1177,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (BOOL) _initLibXML
 {
-  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, "");  
+  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, ".");  
   if (lib == NULL)
     {
       NSLog(@"Failed to create libxml parser context");
@@ -1206,7 +1206,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 - (BOOL) _initLibXML
 {
-  lib = (void*)htmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, "",
+  lib = (void*)htmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, ".",
     XML_CHAR_ENCODING_NONE);
   if (lib == NULL)
     {
