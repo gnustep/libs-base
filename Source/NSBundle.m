@@ -1331,19 +1331,23 @@ _bundle_load_callback(Class theClass, Category *theCategory)
       if ([mgr isExecutableFileAtPath: prefix])
 	return [prefix stringByStandardizingPath];
 #if defined(__WIN32__)
-      /* Also add common executable extensions on windows */
-      if ([path pathExtension] == nil)
-	{
-	  NSString *wpath;
-	  wpath = [prefix stringByAppendingPathExtension: @"exe"];
-	  if ([mgr isExecutableFileAtPath: wpath])
-	    return [wpath stringByStandardizingPath];
-	  wpath = [prefix stringByAppendingPathExtension: @"com"];
-	  if ([mgr isExecutableFileAtPath: wpath])
-	    return [wpath stringByStandardizingPath];
-	  wpath = [prefix stringByAppendingPathExtension: @"cmd"];
-	  if ([mgr isExecutableFileAtPath: wpath])
-	    return [wpath stringByStandardizingPath];
+      {
+	NSString	*ext = [path pathExtension];
+
+	/* Also add common executable extensions on windows */
+	if (ext == nil || [ext length] == 0)
+	  {
+	    NSString *wpath;
+	    wpath = [prefix stringByAppendingPathExtension: @"exe"];
+	    if ([mgr isExecutableFileAtPath: wpath])
+	      return [wpath stringByStandardizingPath];
+	    wpath = [prefix stringByAppendingPathExtension: @"com"];
+	    if ([mgr isExecutableFileAtPath: wpath])
+	      return [wpath stringByStandardizingPath];
+	    wpath = [prefix stringByAppendingPathExtension: @"cmd"];
+	    if ([mgr isExecutableFileAtPath: wpath])
+	      return [wpath stringByStandardizingPath];
+	  }
 	}
 #endif
     }
