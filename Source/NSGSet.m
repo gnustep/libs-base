@@ -1,8 +1,8 @@
 /* Concrete implementation of NSSet based on GNU Set class
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Created: Sep 1995
+   Created: September 1995
    
    This file is part of the GNU Objective C Class Library.
    
@@ -43,17 +43,13 @@
   [super init];
   set = d;
   [set retain];
-  enum_state = 0;
+  enum_state = [set newEnumState];
   return self;
 }
 
 - nextObject
 {
-  elt e;
-  if ([set getNextElement:&e withEnumState:&enum_state])
-    return e.id_u;
-  else
-    return nil;
+  return [set nextObjectWithEnumState: &enum_state];
 }
 
 - (void) dealloc
@@ -79,20 +75,14 @@
 }
 
 
-/* This is the designated initializer */
-- initWithObjects: (id*)objects
-	    count: (unsigned)count
-{
-  [self initWithType:@encode(id)
-	capacity:count];
-  while (count--)
-    [self addObject:objects[count]];
-  return self;
-}
+/* This is the designated initializer 
+   - initWithObjects: (id*)objects
+   count: (unsigned)count
+   Implemented by behavior. */
 
 - member: anObject
 {
-  return coll_hash_value_for_key(_contents_hash, anObject).id_u;
+  [self containsObject: anObject];
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -121,26 +111,18 @@
     }
 }
 
-/* This is the designated initializer */
-- initWithCapacity: (unsigned)numItems
-{
-  return [self initWithType:@encode(id)
-	       capacity:numItems];
-}
+/* This is the designated initializer
+   - initWithCapacity: (unsigned)numItems
+   implemented by behavior. */
 
-- (void) addObject: anObject
-{
-  [self addElement:anObject];
-}
+/* Implemented by behavior:
+   - (void) addObject: newObject;
+   - (void) removeObject: anObject
+   */
 
 - (void) removeAllObjects
 {
   [self empty];
-}
-
-- (void) removeObject: anObject
-{
-  [self removeElement:anObject];
 }
 
 /* To deal with behavior over-enthusiasm.  Will be fixed later. */

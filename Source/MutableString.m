@@ -43,10 +43,9 @@
 
 /* Subclasses need to implemented the next two methods */
 
-- removeRange: (IndexRange)range
+- (void) removeRange: (IndexRange)range
 {
   [self subclassResponsibility:_cmd];
-  return self;
 }
 
 - (void) insertString: (String*)string atIndex: (unsigned)index

@@ -27,517 +27,236 @@
 #include <objects/Array.h>
 #include <objects/NSString.h>
 
-@implementation KeyedCollection
+@implementation KeyEnumerator
 
-+ (void) initialize
-{
-  if (self == [KeyedCollection class])
-    [self setVersion:0];	/* beta release */
-}
+/* xxx What should be here? */
 
+@end
 
-// NON-OBJECT ELEMENT METHOD NAMES;
+@implementation ConstantKeyedCollection
 
+
 // INITIALIZING;
 
-/* This is the designated initializer of this class */
-- initWithType: (const char *)contentEncoding
-    keyType: (const char *)keyEncoding
+/* This is the designated initializer */
+- initWithObjects: (id*)objects forKeys: (id*)keys count: (unsigned)c
 {
-  [super initWithType:contentEncoding];
-  if (!elt_get_comparison_function(contentEncoding))
-    [self error:"There is no elt comparison function for type encoding %s",
-	  keyEncoding];
-  return self;
+  [self subclassResponsibility: _cmd];
 }
 
-- initKeyType: (const char *)keyEncoding
-{
-  // default contents are objects;
-  return [self initWithType:@encode(id) keyType:keyEncoding];
-}
-
-/* Override designated initializer of superclass */
-- initWithType: (const char *)contentEncoding
-{
-  // default keys are objects;
-  return [self initWithType:contentEncoding
-	       keyType:@encode(id)];
-}
-
-// ADDING OR REPLACING;
-
-- putElement: (elt)newContentElement atKey: (elt)aKey
-{
-  return [self subclassResponsibility:_cmd];
-}
-
-- addContentsOf: (id <KeyedCollecting>)aKeyedCollection
-{
-  id (*putElementAtKeyImp)(id,SEL,elt,elt) = (id(*)(id,SEL,elt,elt))
-    objc_msg_lookup(self, @selector(putElement:atKey:));
-  void doIt(elt k, elt c)
-    {
-      (*putElementAtKeyImp)(self, @selector(putElement:atKey:),
-			       c, k);
-    }
-  [aKeyedCollection withKeyElementsAndContentElementsCall:doIt];
-  return self;
-}
-
-/* The right thing?  Or should this be subclass responsibility? */
-- (elt) replaceElementAtKey: (elt)aKey with: (elt)newContentElement
-{
-  elt err(arglist_t argFrame)
-    {
-      return ELEMENT_NOT_FOUND_ERROR(aKey);
-    }
-  return [self replaceElementAtKey:aKey with:newContentElement
-	       ifAbsentCall:err];
-}
-
-- (elt) replaceElementAtKey: (elt)aKey with: (elt)newContentElement
-    ifAbsentCall: (elt(*)(arglist_t))excFunc;
-{
-  elt err(arglist_t argFrame)
-    {
-      RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-    }
-  elt ret;
-
-  ret = [self removeElementAtKey:aKey ifAbsentCall:err];
-  [self putElement:newContentElement atKey:aKey];
-  return ret;
-}
-
-- swapAtKeys: (elt)key1 : (elt)key2
-{
-  /* Use two tmp's so that when we add reference counting, the count will
-     stay correct. */
-  elt tmp1 = [self removeElementAtKey:key1];
-  elt tmp2 = [self removeElementAtKey:key2];
-  [self putElement:tmp2 atKey:key1];
-  [self putElement:tmp1 atKey:key2];
-  return self;
-}
-
-// REMOVING;
-
-- (elt) removeElementAtKey: (elt)aKey
-{
-  elt err(arglist_t argFrame)
-    {
-      return ELEMENT_NOT_FOUND_ERROR(aKey);
-    }
-  return [self removeElementAtKey:aKey ifAbsentCall:err];
-}
-
-- (elt) removeElementAtKey: (elt)aKey  
-    ifAbsentCall: (elt(*)(arglist_t))excFunc
-{
-  return [self subclassResponsibility:_cmd];
-}
-  
-- removeObjectAtKey: (elt)aKey
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self removeElementAtKey:aKey].id_u;
-}
-
-
+
 // GETTING ELEMENTS AND KEYS;
 
-- (elt) elementAtKey: (elt)aKey
+- objectAtKey: aKey
 {
-  elt err(arglist_t argFrame)
-    {
-      return ELEMENT_NOT_FOUND_ERROR(aKey);
-    }
-  return [self elementAtKey:aKey ifAbsentCall:err];
+  [self subclassResponsibility: _cmd];
 }
 
-- (elt) elementAtKey: (elt)aKey ifAbsentCall: (elt(*)(arglist_t))excFunc
+- keyOfObject: aContentObject
 {
-  return [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
-- (elt) keyElementOfElement: (elt)aContent
-{
-  elt err(arglist_t argFrame)
-    {
-      return ELEMENT_NOT_FOUND_ERROR(aContent);
-    }
-  return [self keyElementOfElement:aContent ifAbsentCall:err];
-}
-
-- (elt) keyElementOfElement: (elt)aContent
-    ifAbsentCall: (elt(*)(arglist_t))excFunc
-{
-  elt theKey;
-  BOOL notDone = YES;
-  int (*cf)(elt,elt) = [self comparisonFunction];
-  void doIt(elt key, elt content)
-    {
-      if (!((*cf)(aContent, content)))
-	{
-	  theKey = key;
-	  notDone = NO;
-	}
-    }
-  [self withKeyElementsAndContentElementsCall:doIt whileTrue:&notDone];
-  if (notDone)
-    RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-  return theKey;
-}
-
-- objectAtKey: (elt)aKey
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self elementAtKey:aKey].id_u;
-}
-
-- keyObjectOfObject: aContent
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self keyElementOfElement:aContent].id_u;
-}
-
-
+
 // TESTING;
 
-- (const char *) keyType
+- (BOOL) containsKey: aKey
 {
-  [self subclassResponsibility:_cmd];
-  return "";
+  if ([self objectAtKey: aKey] == NO_OBJECT)
+    return NO;
+  return YES;
 }
 
-- (BOOL) includesKey: (elt)aKey
-{
-  [self subclassResponsibility:_cmd];
-  return NO;
-}
-
-// COPYING;
-
-- shallowCopyAs: (Class)aCollectionClass
-{
-  id (*putElementAtKeyImp)(id,SEL,elt,elt);
-  id newColl;
-
-  void addKeysAndContents(const elt key, elt content)
-    {
-      putElementAtKeyImp(newColl, @selector(putElement:atKey:),
-			    content, key);
-    }
-
-  if ([(id)aCollectionClass conformsToProtocol:@protocol(KeyedCollecting)])
-    {
-      newColl = [self emptyCopyAs:aCollectionClass];
-      putElementAtKeyImp = (id(*)(id,SEL,elt,elt))
-	objc_msg_lookup(newColl, @selector(putElement:atKey:));
-      [self withKeyElementsAndContentElementsCall:addKeysAndContents];
-      return newColl;
-    }
-  else
-    return [super shallowCopyAs:aCollectionClass];
-}
-
-
-// ENUMERATING;
-
-- (BOOL) getNextKey: (elt*)aKeyPtr content: (elt*)anElementPtr 
-  withEnumState: (void**)enumState;
-{
-  [self subclassResponsibility:_cmd];
-  return NO;
-}
-
-- (BOOL) getNextElement:(elt *)anElementPtr withEnumState: (void**)enumState
-{
-  elt key;
-  return [self getNextKey:&key content:anElementPtr 
-	       withEnumState:enumState];
-}
-
-- withKeyElementsCall: (void(*)(const elt))aFunc
-{
-  void doIt(elt key, elt content)
-    {
-      (*aFunc)(key);
-    }
-  [self withKeyElementsAndContentElementsCall:doIt];
-  return self;
-}
-
-- safeWithKeyElementsCall: (void(*)(const elt))aFunc
-{
-  id tmpColl = [[Array alloc] initWithType:[self keyType]
-		capacity:[self count]];
-  void addKey(elt k, elt c)
-    {
-      [tmpColl addElement:k];
-    }
-  [self withKeyElementsAndContentElementsCall:addKey];
-  [tmpColl withElementsCall:aFunc];
-  [tmpColl release];
-  return self;
-}
-
-- withKeyObjectsCall: (void(*)(id))aFunc
-{
-  void doIt(elt key, elt content)
-    {
-      (*aFunc)(key.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withKeyElementsAndContentElementsCall:doIt];
-  return self;
-}
-
-- safeWithKeyObjectsCall: (void(*)(id))aFunc
-{
-  void doIt(elt key)
-    {
-      (*aFunc)(key.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self safeWithKeyElementsCall:doIt];
-  return self;
-}
-
-- withKeyElementsAndContentElementsCall: (void(*)(const elt,elt))aFunc
-{
-  BOOL flag = YES;
-
-  [self withKeyElementsAndContentElementsCall:aFunc whileTrue:&flag];
-  return self;
-}
-
-- safeWithKeyElementsAndContentElementsCall: (void(*)(const elt,elt))aFunc
-{
-  BOOL flag = YES;
-
-  [self safeWithKeyElementsAndContentElementsCall:aFunc whileTrue:&flag];
-  return self;
-}
-
-- withKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc
-{
-  BOOL flag = YES;
-  void doIt(elt k, elt c)
-    {
-      (*aFunc)(k.id_u, c.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withKeyElementsAndContentElementsCall:doIt whileTrue:&flag];
-  return self;
-}
-
-- safeWithKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc
-{
-  BOOL flag = YES;
-  void doIt(elt k, elt c)
-    {
-      (*aFunc)(k.id_u, c.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self safeWithKeyElementsAndContentElementsCall:doIt whileTrue:&flag];
-  return self;
-}
-
-- withKeyElementsAndContentElementsCall: (void(*)(const elt,elt))aFunc 
-    whileTrue: (BOOL *)flag
-{
-  void *s = [self newEnumState];
-  elt key, content;
-
-  while (*flag && [self getNextKey:&key content:&content withEnumState:&s])
-    (*aFunc)(key, content);
-  [self freeEnumState:&s];
-  return self;
-}
-
-- withKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc 
-    whileTrue: (BOOL *)flag
-{
-  void doIt(elt k, elt c)
-    {
-      (*aFunc)(k.id_u, c.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self withKeyElementsAndContentElementsCall:doIt whileTrue:flag];
-  return self;
-}
-
-- safeWithKeyObjectsAndContentObjectsCall: (void(*)(id,id))aFunc 
-    whileTrue: (BOOL *)flag
-{
-  void doIt(elt k, elt c)
-    {
-      (*aFunc)(k.id_u, c.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  [self safeWithKeyElementsAndContentElementsCall:doIt whileTrue:flag];
-  return self;
-}
-
-- safeWithKeyElementsAndContentElementsCall: (void(*)(elt,elt))aFunc 
-    whileTrue: (BOOL *)flag
-{
-  int i, count = [self count];
-  id keyTmpColl = [[Array alloc] initWithType:[self keyType]
-		   capacity:count];
-  id contentTmpColl = [[Array alloc] initWithType:[self contentType]
-		       capacity:count];
-  void appendKeyAndContent(elt k, elt c)
-    {
-      [keyTmpColl appendElement:k];
-      [contentTmpColl appendElement:c];
-    }
-  [self withKeyElementsAndContentElementsCall:appendKeyAndContent];
-  for (i = 0; *flag && i < count; i++)
-    (*aFunc)([keyTmpColl elementAtIndex:i], [contentTmpColl elementAtIndex:i]);
-  [keyTmpColl release];
-  [contentTmpColl release];
-  return self;
-}
-
-
-// ADDING OR REPLACING;
-
-- putObject: newContentObject atKey: (elt)aKey
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self putElement:newContentObject atKey:aKey];
-}
-
-- replaceObjectAtKey: (elt)aKey with: newContentObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self replaceElementAtKey:aKey with:newContentObject].id_u;
-}
-
-
-// GETTING COLLECTIONS OF CONTENTS SEPARATELY;
-
-- shallowCopyKeysAs: aCollectionClass;
-{
-  id newColl = [self emptyCopyAs:aCollectionClass];
-  id(*addElementImp)(id,SEL,elt) = (id(*)(id,SEL,elt))
-    objc_msg_lookup(newColl, @selector(addElement:));
-  void doIt(elt e)
-    {
-      addElementImp(newColl, @selector(addElement:), e);
-    }
-
-  [self withKeyElementsCall:doIt];
-  return self;
-}
-
-- shallowCopyContentsAs: aCollectionClass
-{
-  return [super shallowCopyAs:aCollectionClass];
-}
-
-
+
 // ENUMERATIONS;
 
-- printForDebugger
+- (id <Enumerating>) keyEnumerator
 {
-  const char *kd = [self keyType];
-  const char *cd = [self contentType];
-  void doIt(const elt key, elt content)
-    {
-      printf("(");
-      elt_fprintf_elt(stdout, kd, key);
-      printf(",");
-      elt_fprintf_elt(stdout, cd, content);
-      printf(") ");
-    }
-  [self withKeyElementsAndContentElementsCall:doIt];
-  printf(" :%s\n", [self name]);
-  return self;
+  return [[[KeyEnumerator alloc] initWithCollection: self]
+	   autorelease];
 }
+
+- withKeysInvoke: (id <Invoking>)anInvocation
+{
+  id o, k;
+
+  FOR_KEYED_COLLECTION(self, o, k)
+    {
+      [anInvocation invokeWithObject: k];
+    }
+  END_FOR_KEYED_COLLECTION(self);
+}
+
+- withKeysInvoke: (id <Invoking>)anInvocation
+    whileTrue: (BOOL *)flag
+{
+  id o, k;
+
+  FOR_KEYED_COLLECTION_WHILE_TRUE(self, o, k, *flag)
+    {
+      [anInvocation invokeWithObject: k];
+    }
+  END_FOR_KEYED_COLLECTION(self);
+}
+
+/* Override this Collection method */
+- nextObjectWithEnumState: (void**)enumState
+{
+  id k;
+  return [self nextObjectAndKey: &k withEnumState: enumState];
+}
+
+
+
+// LOW-LEVEL ENUMERATING;
+
+- nextObjectAndKey: (id*)keyPtr withEnumState: (void**)enumState
+{
+  [self subclassResponsibility: _cmd];
+}
+
+
+
+// COPYING;
+
+- shallowCopyValuesAs: (Class)aConstantCollectingClass
+{
+  int count = [self count];
+  id contents[count];
+  id k;
+  int i = 0;
+  id o;
+
+  FOR_KEYED_COLLECTION(self, o, k)
+    {
+      contents[i++] = o;
+    }
+  END_FOR_KEYED_COLLECTION(self);
+  return [[aConstantCollectingClass alloc] 
+	   initWithObjects: contents count: count];
+}
+
+- shallowCopyKeysAs: (Class)aCollectingClass;
+{
+  int count = [self count];
+  id contents[count];
+  id k;
+  int i = 0;
+  id o;
+
+  FOR_KEYED_COLLECTION(self, o, k)
+    {
+      contents[i++] = k;
+    }
+  END_FOR_KEYED_COLLECTION(self);
+  return [[aCollectingClass alloc] 
+	   initWithObjects: contents count: count];
+}
+
+- copyValuesAs: (Class)aCollectingClass
+{
+  [self notImplemented: _cmd];
+}
+
+- copyKeysAs: (Class)aCollectingClass;
+{
+  [self notImplemented: _cmd];
+}
+
+
+// ARCHIVING
 
 - (void) _encodeContentsWithCoder: (id <Encoding>)aCoder
 {
   unsigned int count = [self count];
-  const char *ce = [self contentType];
-  const char *ke = [self keyType];
-  void archiveKeyAndContent(elt key, elt content)
-    {
-      [aCoder encodeValueOfObjCType:ke
-	      at:elt_get_ptr_to_member(ke, &key)
-	      withName:@"KeyedCollection key element"];
-      [aCoder encodeValueOfObjCType:ce
-	      at:elt_get_ptr_to_member(ce, &content)
-	      withName:@"KeyedCollection content element"];
-    }
+  id o, k;
 
-  [aCoder encodeValueOfCType:@encode(unsigned)
-	  at:&count
-	  withName:@"Collection element count"];
-  [self withKeyElementsAndContentElementsCall:archiveKeyAndContent];
+  [aCoder encodeValueOfCType: @encode(unsigned)
+	  at: &count
+	  withName: @"Collection content count"];
+  FOR_KEYED_COLLECTION(self, o, k)
+    {
+      [aCoder encodeObject: k
+	      withName: @"KeyedCollection key"];
+      [aCoder encodeObject: o
+	      withName:@"KeyedCollection content"];
+    }
+  END_FOR_KEYED_COLLECTION(self);
 }
 
 - (void) _decodeContentsWithCoder: (id <Decoding>)aCoder
 {
   unsigned int count, i;
-  elt newKey, newContent;
-  const char *ce = [self contentType];
-  const char *ke = [self keyType];
+  id *objs, *keys;
 
   [aCoder decodeValueOfCType:@encode(unsigned)
 	  at:&count
 	  withName:NULL];
+  OBJC_MALLOC(objs, id, count);
+  OBJC_MALLOC(keys, id, count);
   for (i = 0; i < count; i++)
     {
-      [aCoder decodeValueOfObjCType:ke
-	      at:elt_get_ptr_to_member(ke, &newKey)
-	      withName:NULL];
-      [aCoder decodeValueOfObjCType:ce
-	      at:elt_get_ptr_to_member(ce, &newContent)
-	      withName:NULL];
-      [self putElement:newContent atKey:newKey];
+      [aCoder decodeObjectAt: &(objs[i])
+	      withName: NULL];
+      [aCoder decodeObjectAt: &(keys[i])
+	      withName: NULL];
     }
+  [self initWithObjects: objs forKeys: keys count: count];
+  OBJC_FREE(objs);
+  OBJC_FREE(keys);
 }
 
-
-- _writeContents: (TypedStream*)aStream
+- (id <String>) description
 {
-  unsigned int count = [self count];
-  const char *ce = [self contentType];
-  const char *ke = [self keyType];
-  void archiveKeyAndContent(elt key, elt content)
+  id s = [NSMutableString new];
+  id o, k;
+
+  FOR_KEYED_COLLECTION(self, o, k)
     {
-      objc_write_types(aStream, ke,
-		       elt_get_ptr_to_member(ke, &key));
-      objc_write_types(aStream, ce,
-		       elt_get_ptr_to_member(ce, &content));
+      [s appendFormat: @"(%@,%@) ", [k description], [o description]];
     }
-
-  objc_write_type(aStream, @encode(unsigned int), &count);
-  [self withKeyElementsAndContentElementsCall:archiveKeyAndContent];
-  return self;
-}
-
-- _readContents: (TypedStream*)aStream
-{
-  unsigned int count, i;
-  elt newKey, newContent;
-  const char *ce = [self contentType];
-  const char *ke = [self keyType];
-
-  objc_read_type(aStream, @encode(unsigned int), &count);
-  for (i = 0; i < count; i++)
-    {
-      objc_read_types(aStream, ke, 
-		      elt_get_ptr_to_member(ke, &newKey));
-      objc_read_types(aStream, ce, 
-		      elt_get_ptr_to_member(ce, &newContent));
-      [self putElement:newContent atKey:newKey];
-    }
-  return self;
+  END_FOR_KEYED_COLLECTION(self);
+  [s appendFormat: @" :%s\n", [self name]];
+  return [s autorelease];
 }
 
 @end
+
+
+
+@implementation KeyedCollection 
+
++ (void) initialize
+{
+  if (self == [KeyedCollection class])
+    class_add_behavior(self, [Collection class]);
+}
+
+// ADDING;
+- (void) putObject: newContentObject atKey: aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+
+// REPLACING AND SWAPPING;
+
+- (void) replaceObjectAtKey: aKey with: newContentObject
+{
+  [self subclassResponsibility: _cmd];
+}
+
+- (void) swapObjectsAtKeys: key1 : key2
+{
+  [self subclassResponsibility: _cmd];
+}
+
+
+// REMOVING;
+- (void) removeObjectAtKey: aKey
+{
+  [self subclassResponsibility: _cmd];
+}
+
+@end
+

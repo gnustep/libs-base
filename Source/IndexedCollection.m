@@ -2,7 +2,7 @@
    Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -27,577 +27,283 @@
 #include <objects/Array.h>
 #include <objects/NSString.h>
 
-@implementation IndexedCollection
+@implementation ReverseEnumerator
 
-+ (void) initialize
+- nextObject
 {
-  if (self == [IndexedCollection class])
-    [self setVersion:0];	/* beta release */
+  return [collection prevObjectWithEnumState: enum_state];
 }
 
-/* This is the designated initializer of this class */
-- initWithType: (const char *)contentEncoding
-{
-  [super initWithType:contentEncoding
-	 keyType:@encode(unsigned int)];
-  return self;
-}
-
-/* Override the designated initializer for our superclass KeyedCollection
-   to make sure we have unsigned int keys. */
-- initWithType: (const char *)contentEncoding
-    keyType: (const char *)keyEncoding
-{
-  if (strcmp(keyEncoding, @encode(unsigned int)))
-    [self error:"IndexedCollection key must be an unsigned integer."];
-  return [self initWithType:contentEncoding];
-}
-
-// ADDING;
-
-- insertElement: (elt)newElement atIndex: (unsigned)index
-{
-  return [self subclassResponsibility:_cmd];
-}
-
-/* Semantics:  You can "put" an element only at index "count" or less */
-- putElement: (elt)newElement atIndex: (unsigned)index
-{
-  unsigned c = [self count];
-
-  if (index < c)
-    [self replaceElementAtIndex:index with:newElement];
-  else if (index == c)
-    [self appendElement:newElement];
-  else
-    [self error:"in %s, can't put an element at index beyond [self count]"];
-  return self;
-}
-
-- putElement: (elt)newElement atKey: (elt)index
-{
-  return [self putElement: newElement atIndex: index.unsigned_int_u];
-}
-
-- insertObject: newObject atIndex: (unsigned)index
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self insertElement:newObject atIndex:index];
-}
-
-- insertElement: (elt)newElement before: (elt)oldElement
-{
-  unsigned err(arglist_t argFrame)
-    {
-      ELEMENT_NOT_FOUND_ERROR(oldElement);
-      return 0;
-    }
-  unsigned index = [self indexOfElement:oldElement ifAbsentCall:err];
-
-  [self insertElement:newElement atIndex:index];
-  return self;
-}
-
-- insertObject: newObject before: oldObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self insertElement:newObject before:oldObject];
-}
-
-- insertElement: (elt)newElement after: (elt)oldElement
-{
-  unsigned err(arglist_t argFrame)
-    {
-      ELEMENT_NOT_FOUND_ERROR(oldElement);
-      return 0;
-    }
-  unsigned index = [self indexOfElement:oldElement ifAbsentCall:err];
-
-  [self insertElement:newElement atIndex:index+1];
-  return self;
-}
-
-- insertObject: newObject after: oldObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self insertElement:newObject after:oldObject];
-}
-
-/* Possibly inefficient.  Should be overridden. */
-- appendElement: (elt)newElement
-{
-  return [self insertElement:newElement atIndex:[self count]];
-}
-
-- appendObject: newObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self appendElement:newObject];
-}
-
-/* Possibly inefficient.  Should be overridden. */
-- prependElement: (elt)newElement
-{
-  return [self insertElement:newElement atIndex:0];
-}
-
-- prependObject: newObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self prependElement:newObject];
-}
-
-- appendContentsOf: (id <Collecting>) aCollection
-{
-  void doIt(elt e)
-    {
-      [self appendElement:e];
-    }
-  if (aCollection == self)
-    [self safeWithElementsCall:doIt];
-  else
-    [aCollection withElementsCall:doIt];
-  return self;
-}
-
-- prependContentsOf: (id <Collecting>) aCollection
-{
-  void doIt(elt e)
-    {
-      /* could use objc_msg_lookup here */
-      [self prependElement:e];
-    }
-  if (aCollection == self)
-    [self safeWithElementsInReverseCall:doIt];
-  else
-    {
-      /* Can I assume that all Collections will inherit from NSObject? */
-      if ([(id)aCollection 
-	   respondsToSelector:@selector(withElementsInReverseCall:)])
-	[(id)aCollection withElementsInReverseCall:doIt];
-      else
-	[aCollection withElementsCall:doIt];
-    }
-  return self;
-}
-
-- addContentsOf: (id <Collecting>)aCollection
-{
-  [self appendContentsOf:aCollection];
-  return self;
-}
-
-- insertContentsOf: (id <Collecting>)aCollection atIndex: (unsigned)index
-{
-  void doIt(elt e)
-    {
-      [self insertElement: e atIndex: index];
-    }
-  if (aCollection == self)
-    [self safeWithElementsInReverseCall:doIt];
-  else
-    {
-      if ([(id)aCollection respondsToSelector:
-	   @selector(withElemetnsInReverseCall:)])
-	[(id)aCollection withElementsInReverseCall:doIt];
-      else
-	[aCollection withElementsCall:doIt];
-    }
-  return self;
-}
-
-/* We can now implement this <Collecting> protocol method */
-- addElement: (elt)newElement
-{
-  return [self appendElement:newElement];
-}
+@end
 
 
-// REPLACING;
+@implementation ConstantIndexedCollection
 
-/* Subclasses may require different ordering semantics */
-- (elt) replaceElement: (elt)oldElement with: (elt)newElement
-{
-  unsigned err(arglist_t argFrame)
-    {
-      ELEMENT_NOT_FOUND_ERROR(oldElement);
-      return 0;
-    }
-  unsigned index = [self indexOfElement:oldElement ifAbsentCall:err];
-
-  return [self replaceElementAtIndex:index with:newElement];
-}
-
-/* Inefficient.  Should be overridden */
-- (elt) replaceElementAtIndex: (unsigned)index with: (elt)newElement
-{
-  elt ret;
-
-  ret = [self removeElementAtIndex:index];
-  [self insertElement:newElement atIndex:index];
-  return ret;
-}
-
-- replaceObjectAtIndex: (unsigned)index with: newObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self replaceElementAtIndex:index with:newObject].id_u;
-}
-
-- replaceRange: (IndexRange)aRange
-    with: (id <Collecting>)aCollection
-{
-  CHECK_INDEX_RANGE_ERROR(aRange.location, [self count]);
-  CHECK_INDEX_RANGE_ERROR(aRange.location+aRange.length-1, [self count]);
-  [self removeRange:aRange];
-  [self insertContentsOf:aCollection atIndex:aRange.location];
-  return self;
-}
-
-- replaceRange: (IndexRange)aRange
-    using: (id <Collecting>)aCollection
-{
-  int i;
-  void *state = [aCollection newEnumState];
-  elt e;
-
-  CHECK_INDEX_RANGE_ERROR(aRange.location, [self count]);
-  CHECK_INDEX_RANGE_ERROR(aRange.location+aRange.length-1, [self count]);
-  for (i = aRange.location; 
-       i < aRange.location + aRange.length 
-       && [aCollection getNextElement:&e withEnumState:&state]; 
-       i++)
-    {
-      [self replaceElementAtIndex:i with:e];
-    }
-  [aCollection freeEnumState:&state];
-  return self;
-}
-
-
-// SWAPPING;
-
-/* Perhaps inefficient.  May be overridden. */
-- swapAtIndeces: (unsigned)index1 : (unsigned)index2
-{
-  elt tmp = [self elementAtIndex:index1];
-  [self replaceElementAtIndex:index1 with:[self elementAtIndex:index2]];
-  [self replaceElementAtIndex:index2 with:tmp];
-  return self;
-}
-
-
-// REMOVING;
-
-- (elt) removeElementAtIndex: (unsigned)index
-{
-  return [self subclassResponsibility:_cmd];
-}
-
-- removeObjectAtIndex: (unsigned)index
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self removeElementAtIndex:index].id_u;
-}
-
-- (elt) removeFirstElement
-{
-  return [self removeElementAtIndex:0];
-}
-
-- removeFirstObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self removeFirstElement].id_u;
-}
-
-- (elt) removeLastElement
-{
-  return [self removeElementAtIndex:[self count]-1];
-}
-
-- removeLastObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self removeLastElement].id_u;
-}
-
-- removeRange: (IndexRange)aRange
-{
-  int i;
-
-  CHECK_INDEX_RANGE_ERROR(aRange.location, [self count]);
-  CHECK_INDEX_RANGE_ERROR(aRange.location+aRange.length-1, [self count]);
-  for (i = aRange.location; i < aRange.location+aRange.length; i++)
-    [self removeElementAtIndex:aRange.location];
-  return self;
-}
-
-/* We can now implement this <Collecting> protocol method */
-- (elt) removeElement: (elt)oldElement
-{
-  unsigned err(arglist_t argFrame)
-    {
-      ELEMENT_NOT_FOUND_ERROR(oldElement);
-      return 0;
-    }
-  unsigned index = [self indexOfElement:oldElement ifAbsentCall:err];
-
-  return [self removeElementAtIndex:index];
-}
-  
-
+
 // GETTING MEMBERS BY INDEX;
-
-- (elt) elementAtIndex: (unsigned)index
-{
-  return [self subclassResponsibility:_cmd];
-}
 
 - objectAtIndex: (unsigned)index
 {
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self elementAtIndex:index].id_u;
-}
-
-- (elt) firstElement
-{
-  return [self elementAtIndex:0];
+  [self subclassResponsibility: _cmd];
 }
 
 - firstObject
 {
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self firstElement].id_u;
-}
-
-- (elt) lastElement
-{
-  return [self elementAtIndex:[self count]-1];
+  return [self objectAtIndex: 0];
 }
 
 - lastObject
 {
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self lastElement].id_u;
+  return [self objectAtIndex: [self count]-1];
 }
 
-
+
 // GETTING MEMBERS BY NEIGHBOR;
 
-// This method should be overridden by linkedlists and trees;
-- (elt) successorOfElement: (elt)oldElement
-{
-  unsigned err(arglist_t argFrame)
-    {
-      ELEMENT_NOT_FOUND_ERROR(oldElement);
-      return 0;
-    }
-  unsigned index = [self indexOfElement:oldElement ifAbsentCall:err];
-
-  return [self elementAtIndex:index+1];
-}
-
-// This method should be overridden by linkedlists and trees;
-- (elt) predecessorOfElement: (elt)oldElement
-{
-  unsigned err(arglist_t argFrame)
-    {
-      ELEMENT_NOT_FOUND_ERROR(oldElement);
-      return 0;
-    }
-  unsigned index = [self indexOfElement:oldElement ifAbsentCall:err];
-
-  return [self elementAtIndex:index-1];
-}
-
+/* Should be overriden by linked-list-type classes */
 - successorOfObject: anObject
 {
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self successorOfElement:anObject].id_u;
+  int last = [self count] - 1;
+  int index = [self indexOfObject: anObject];
+  if (index == last)
+    return nil;
+  return [self objectAtIndex: index+1];
 }
 
+/* Should be overriden by linked-list-type classes */
 - predecessorOfObject: anObject
 {
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self predecessorOfElement:anObject].id_u;
+  int index = [self indexOfObject: anObject];
+  if (index == 0)
+    return nil;
+  return [self objectAtIndex: index-1];
 }
 
-
-// GETTING INDICES BY ELEMENT;
-
-/* Possibly inefficient. */
-- (unsigned) indexOfElement: (elt)anElement
-{
-  unsigned err(arglist_t argFrame)
-    {
-      ELEMENT_NOT_FOUND_ERROR(anElement);
-      return 0;
-    }
-  return [self indexOfElement:anElement ifAbsentCall:err];
-}
-
-- (unsigned) indexOfElement: (elt)anElement
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc
-{
-  unsigned index = 0;
-  BOOL flag = YES;
-  int (*cf)(elt,elt) = [self comparisonFunction];
-  void doIt(elt e)
-    {
-      if (!((*cf)(anElement, e)))
-	flag = NO;
-      else
-	index++;
-    }
-
-  [self withElementsCall:doIt whileTrue:&flag];
-  if (flag)
-    RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
-  return index;
-}
+
+// GETTING INDICES BY MEMBER;
 
 - (unsigned) indexOfObject: anObject
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc
 {
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self indexOfElement:anObject ifAbsentCall:excFunc];
-}
-
-- (unsigned) indexOfElement: (elt)anElement inRange: (IndexRange)aRange
-{
-  unsigned err(arglist_t argFrame)
-    {
-      ELEMENT_NOT_FOUND_ERROR(anElement);
-      return 0;
-    }
-  return [self indexOfElement:anElement inRange:aRange ifAbsentCall:err];
+  int i, count = [self count];
+  for (i = 0; i < count; i++)
+    if ([anObject isEqual: [self objectAtIndex:i]])
+      return i;
+  return NO_INDEX;
 }
 
 - (unsigned) indexOfObject: anObject inRange: (IndexRange)aRange
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self indexOfElement:anObject inRange:aRange];
-}
-
-- (unsigned) indexOfElement: (elt)anElement inRange: (IndexRange)aRange
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc
 {
   int i;
-  int (*cf)(elt,elt) = [self comparisonFunction];
-
+  
+  /* xxx check that aRange is within count */
   for (i = aRange.location; i < aRange.location+aRange.length; i++)
-    if (!((*cf)(anElement, [self elementAtIndex:i])))
+    if ([anObject isEqual: [self objectAtIndex:i]])
       return i - aRange.location;
-  RETURN_BY_CALLING_EXCEPTION_FUNCTION(excFunc);
+  return NO_INDEX;
 }
 
-- (unsigned) indexOfObject: anObject inRange: (IndexRange)aRange
-    ifAbsentCall: (unsigned(*)(arglist_t))excFunc
+
+// TESTING;
+
+- (BOOL) contentsEqualInOrder: (id <ConstantIndexedCollecting>)aColl
 {
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self indexOfElement:anObject inRange:aRange ifAbsentCall:excFunc];
+  id o1, o2;
+  void *s1, *s2;
+
+  if ([self count] != [aColl count])
+    return NO;
+  s1 = [self newEnumState];
+  s2 = [aColl newEnumState];
+  while ((o1 = [self nextObjectWithEnumState:&s1])
+	 && (o2 = [aColl nextObjectWithEnumState:&s2]))
+    {
+      if (![o1 isEqual: o2])
+	{
+	  [self freeEnumState:&s1];
+	  [aColl freeEnumState:&s2];
+	  return NO;
+	}
+    }
+  [self freeEnumState:&s1];
+  [aColl freeEnumState:&s2];
+  return YES;
 }
 
-- (unsigned) indexOfFirstDifference: (id <IndexedCollecting>)aColl
+- (int) compareInOrderContentsOf: (id <Collecting>)aCollection
+{
+  void *es1 = [self newEnumState];
+  void *es2 = [aCollection newEnumState];
+  id o1, o2;
+  int comparison;
+  while ((o1 = [self nextObjectWithEnumState:&es1])
+	 && (o2 = [aCollection nextObjectWithEnumState:&es2]))
+    {
+      if ((comparison = [o1 compare: o2]))
+	{
+	  [self freeEnumState:&es1];
+	  [aCollection freeEnumState:&es2];
+	  return comparison;
+	}
+    }
+  if ((comparison = ([self count] - [aCollection count])))
+    return comparison;
+  return 0;
+}
+
+- (unsigned) indexOfFirstDifference: (id <ConstantIndexedCollecting>)aColl
 {
   unsigned i = 0;
   BOOL flag = YES;
   void *enumState = [self newEnumState];
-  int (*cf)(elt,elt);
-  elt e2;
-  void doIt(elt e1)
+  id o1, o2;
+  FOR_INDEXED_COLLECTION_WHILE_TRUE(self, o1, flag)
     {
-      if ((![self getNextElement:&e2 withEnumState:&enumState])
-	  || ((*cf)(e1, e2)))
+      if ((!(o2 = [self nextObjectWithEnumState: &enumState]))
+	  || [o1 isEqual: o2])
 	flag = NO;
       else
 	i++;
     }
-
-  if ((cf = [self comparisonFunction]) != [aColl comparisonFunction])
-    return 0;
-  [aColl withElementsCall:doIt whileTrue:&flag];
-  [self freeEnumState:&enumState];
+  END_FOR_INDEXED_COLLECTION_WHILE_TRUE(self);
+  [self freeEnumState: &enumState];
   return i;
 }
 
 /* Could be more efficient */
-- (unsigned) indexOfFirstIn: (id <Collecting>)aColl
+- (unsigned) indexOfFirstIn: (id <ConstantCollecting>)aCollection
 {
   unsigned index = 0;
   BOOL flag = YES;
-  void doIt(elt e)
+  id o;
+
+  FOR_INDEXED_COLLECTION_WHILE_TRUE(self, o, flag)
     {
-      if ([aColl includesElement:e])
+      if ([aCollection containsObject: o])
 	flag = NO;
       else
 	index++;
     }
-  if ([self comparisonFunction] != [aColl comparisonFunction])
-    return [self count];
-  [self withElementsCall:doIt whileTrue:&flag];
+  END_FOR_INDEXED_COLLECTION(self);
   return index;
 }
 
 /* Could be more efficient */
-- (unsigned) indexOfFirstNotIn: (id <Collecting>)aColl
+- (unsigned) indexOfFirstNotIn: (id <ConstantCollecting>)aCollection
 {
   unsigned index = 0;
   BOOL flag = YES;
-  void doIt(elt e)
+  id o;
+
+  FOR_INDEXED_COLLECTION_WHILE_TRUE(self, o, flag)
     {
-      if (![aColl includesElement:e])
+      if (![aCollection containsObject: o])
 	flag = NO;
       else
 	index++;
     }
-  if ([self comparisonFunction] != [aColl comparisonFunction])
-    return [self count];
-  [self withElementsCall:doIt whileTrue:&flag];
+  END_FOR_INDEXED_COLLECTION(self);
   return index;
 }
 
-- (unsigned) indexOfObject: anObject
+
+// ENUMERATING;
+
+- (id <Enumerating>) reverseObjectEnumerator
 {
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self indexOfElement:anObject];
+  return [[[ReverseEnumerator alloc] initWithCollection: self]
+	   autorelease];
 }
 
-// TESTING;
-
-- (const char *) keyDescription
+- (void) withObjectsInRange: (IndexRange)aRange
+		     invoke: (id <Invoking>)anInvocation
 {
-  return @encode(unsigned int);
+  int i;
+  for (i = aRange.location; i < aRange.location + aRange.length; i++)
+    [anInvocation invokeWithObject: [self objectAtIndex: i]];
 }
 
-- (BOOL) includesIndex: (unsigned)index
+- (void) withObjectsInReverseInvoke: (id <Invoking>)anInvocation
 {
-  if (index < [self count])
-    return YES;
-  else
-    return NO;
+  int i, count = [self count];
+  for (i = count-1; i >= 0; i--)
+    [anInvocation invokeWithObject: [self objectAtIndex: i]];
 }
 
-- (BOOL) contentsEqualInOrder: (id <IndexedCollecting>)anIndexedColl
+- (void) withObjectsInReverseInvoke: (id <Invoking>)anInvocation
+			  whileTrue:(BOOL *)flag
 {
-  elt e1, e2;
-  void *s1, *s2;
-  int (*cf)(elt,elt) = [self comparisonFunction];
+  int i, count = [self count];
+  for (i = count-1; *flag && i >= 0; i--)
+    [anInvocation invokeWithObject: [self objectAtIndex: i]];
+}
 
-  if ([self count] != [anIndexedColl count])
-    return NO;
-  s1 = [self newEnumState];
-  s2 = [anIndexedColl newEnumState];
-  while ([self getNextElement:&e1 withEnumState:&s1]
-	 && [anIndexedColl getNextElement:&e2 withEnumState:&s2])
+- (void) makeObjectsPerformInReverse: (SEL)aSel
+{
+  id o;
+  FOR_INDEXED_COLLECTION_REVERSE(self, o)
     {
-      if ((*cf)(e1, e2))
-	return NO;
+      [o perform: aSel];
     }
-  [self freeEnumState:&s1];
-  [anIndexedColl freeEnumState:&s2];
-  return YES;
+  END_FOR_INDEXED_COLLECTION_REVERSE(self);
+}
+
+- (void) makeObjectsPerformInReverse: (SEL)aSel withObject: argObject
+{
+  id o;
+  FOR_INDEXED_COLLECTION_REVERSE(self, o)
+    {
+      [o perform: aSel withObject: argObject];
+    }
+  END_FOR_INDEXED_COLLECTION_REVERSE(self);
+}
+
+
+
+// LOW-LEVEL ENUMERATING;
+
+- prevObjectWithEnumState: (void**)enumState
+{
+  /* *(unsigned*)enumState-1 is the index of the element 
+     that will be returned */
+  if (!(*enumState))
+    *(unsigned*)enumState = [self count]-1;
+  else
+    (*(unsigned*)enumState)--;
+  return [self objectAtIndex:(*(unsigned*)enumState)];
+}
+
+
+
+// COPYING;
+
+- shallowCopyRange: (IndexRange)aRange
+{
+  [self notImplemented: _cmd];
+}
+
+- shallowCopyInReverse
+{
+  [self notImplemented: _cmd];
+}
+
+- shallowCopyInReverseRange: (IndexRange)aRange
+{
+  [self notImplemented: _cmd];
+}
+
+
+// OVERRIDE SOME COLLECTION METHODS;
+
+- nextObjectWithEnumState: (void**)enumState
+{
+  id ret;
+  /* *(unsigned*)enumState is the index of the element that will be returned */
+  if ([self isEmpty]
+      || (*(unsigned*)enumState) > [self count]-1)
+    return NO_OBJECT;
+  ret = [self objectAtIndex:(*(unsigned*)enumState)];
+  *(unsigned*)enumState = *(unsigned*)enumState + 1;
+  return ret;
 }
 
 /* is this what we want? */
@@ -613,517 +319,82 @@
     return NO;
 }
 
-- (int) compareContentsOfInOrder: (id <Collecting>)aCollection
+@end
+
+
+
+@implementation IndexedCollection
+
++ (void) initialize
 {
-  int (*cf)(elt,elt) = [self comparisonFunction];
-  if ([aCollection comparisonFunction] == cf)
-    {
-      void *es1 = [self newEnumState];
-      void *es2 = [aCollection newEnumState];
-      elt e1, e2;
-      int comparison;
-      while ([self getNextElement:&e1 withEnumState:&es1]
-	     && [aCollection getNextElement:&e1 withEnumState:&es2])
-	{
-	  if ((comparison = (*cf)(e1,e2)))
-	    {
-	      [self freeEnumState:&es1];
-	      [aCollection freeEnumState:&es2];
-	      return comparison;
-	    }
-	}
-      if ((comparison = ([self count] - [aCollection count])))
-	return comparison;
-      return 0;
-    }
-  [self error:"Can't compare contents of collections with different "
-	"comparison functions"];
-  return -1;
+  if (self == [KeyedCollection class])
+    class_add_behavior(self, [Collection class]);
 }
 
+
+// REPLACING;
 
-// COPYING;
-  
-- shallowCopyRange: (IndexRange)aRange
+- replaceObjectAtIndex: (unsigned)index withObject: newObject
 {
-  id newColl = [self emptyCopyAs:[self species]];
-  unsigned i, myCount = [self count];
-  
-  for (i = aRange.location;
-       i < aRange.location+aRange.length && i < myCount;
-       i++)
-    [newColl addElement:[self elementAtIndex:i]];
-  return newColl;
+  [self subclassResponsibility: _cmd];
 }
 
-- withElementsInRange: (IndexRange)aRange call:(void(*)(elt))aFunc
+
+// REMOVING;
+
+- (void) removeObjectAtIndex: (unsigned)index
 {
-  unsigned i, myCount = [self count];
-  
-  for (i = aRange.location; 
-       i < aRange.location+aRange.length && 
-       i < myCount; i++)
-    (*aFunc)([self elementAtIndex:i]);
-  return self;
+  [self subclassResponsibility: _cmd];
 }
 
-- withObjectsInRange: (IndexRange)aRange call:(void(*)(id))aFunc
+- (void) removeFirstObject
 {
-  void doIt(elt e)
-    {
-      (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self withElementsInRange:aRange call:doIt];
+  [self removeObjectAtIndex: 0];
 }
 
-- safeWithElementsInRange: (IndexRange)aRange call:(void(*)(elt))aFunc
+- (void) removeLastObject
 {
-  unsigned i, myCount = [self count];
-  id tmpColl = [[Array alloc] initWithType:[self contentType]
-		capacity:aRange.length];
-  
-  for (i = aRange.location; 
-       i < aRange.location+aRange.length && 
-       i < myCount; i++)
-    [tmpColl addElement:[self elementAtIndex:i]];
-  [tmpColl withElementsCall:aFunc];
-  [tmpColl release];
-  return self;
+  [self removeObjectAtIndex: [self count]-1];
 }
 
-- shallowCopyReplaceRange: (IndexRange)aRange
-    with: (id <Collecting>)replaceCollection
+- (void) removeRange: (IndexRange)aRange
 {
-  id newColl = [self emptyCopyAs:[self species]];
-  unsigned i, myCount = [self count];
-  
-  for (i = 0; i < aRange.location && i < myCount; i++)
-    [newColl appendElement:[self elementAtIndex:i]];
-  [newColl appendContentsOf:replaceCollection];
-  for (i = aRange.location+aRange.length; i < myCount; i++)
-    [newColl appendElement:[self elementAtIndex:i]];
-  return newColl;
+  int count;
+
+  CHECK_INDEX_RANGE_ERROR(aRange.location, [self count]);
+  CHECK_INDEX_RANGE_ERROR(aRange.location+aRange.length-1, [self count]);
+  while (count--)
+    [self removeObjectAtIndex: aRange.location];
 }
 
-- shallowCopyReplaceRange: (IndexRange)aRange
-    using: (id <Collecting>)replaceCollection
-{
-  id newColl = [self shallowCopy];
-  unsigned index = aRange.location;
-  BOOL cont = YES;
-  unsigned end = aRange.location+aRange.length;
-  void doIt (elt e)
-    {
-      [newColl replaceElementAtIndex: index with: e];
-      cont = (++index != end);
-    }
-  [replaceCollection withElementsCall: doIt whileTrue: &cont];
-  return newColl;
-}
-
-- shallowCopyInReverseAs: aCollectionClass
-{
-  id newColl = [self emptyCopyAs:aCollectionClass];
-  void doIt(elt e)
-    {
-      [newColl appendElement:e];
-    }
-  [self withElementsInReverseCall:doIt];
-  return newColl;
-}
-
-
-// ENUMERATING;
-
-- (BOOL) getNextKey: (elt*)aKeyPtr content: (elt*)anElementPtr 
-  withEnumState: (void**)enumState
-{
-  /* *(unsigned*)enumState is the index of the element that will be returned */
-  if ((*(unsigned*)enumState) > [self count]-1)
-    return NO;
-  *anElementPtr = [self elementAtIndex:(*(unsigned*)enumState)];
-  *aKeyPtr = (*(unsigned*)enumState);
-  (*(unsigned*)enumState)++;
-  return YES;
-}
-
-- (BOOL) getNextElement:(elt *)anElementPtr withEnumState: (void**)enumState
-{
-  /* *(unsigned*)enumState is the index of the element that will be returned */
-  if ([self isEmpty]
-      || (*(unsigned*)enumState) > [self count]-1)
-    return NO;
-  *anElementPtr = [self elementAtIndex:(*(unsigned*)enumState)];
-  (*(unsigned*)enumState)++;
-  return YES;
-}
-
-- (BOOL) getPrevElement:(elt *)anElementPtr withEnumState: (void**)enumState
-{
-  /* *(unsigned*)enumState-1 is the index of the element 
-     that will be returned */
-  if (!(*enumState))
-    *(unsigned*)enumState = [self count]-1;
-  else
-    (*(unsigned*)enumState)--;
-  *anElementPtr = [self elementAtIndex:(*(unsigned*)enumState)];
-  return YES;
-}
-
-- (BOOL) getPrevObject:(id *)anObjectPtr withEnumState: (void**)enumState
-{
-  /* *(unsigned*)enumState-1 is the index of the element 
-     that will be returned */
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  if (!(*enumState))
-    *(unsigned*)enumState = [self count]-1;
-  else
-    (*(unsigned*)enumState)--;
-  *anObjectPtr = [self elementAtIndex:(*(unsigned*)enumState)].id_u;
-  return YES;
-}
-
-- withElementsInReverseCall: (void(*)(elt))aFunc;
-{
-  BOOL flag = YES;
-  [self withElementsInReverseCall:aFunc whileTrue:&flag];
-  return self;
-}
-
-- safeWithElementsInReverseCall: (void(*)(elt))aFunc;
-{
-  BOOL flag = YES;
-  [self safeWithElementsInReverseCall:aFunc whileTrue:&flag];
-  return self;
-}
-
-- withObjectsInReverseCall: (void(*)(id))aFunc
-{
-  void doIt(elt e)
-    {
-      (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self withElementsInReverseCall:doIt];
-}
-
-- safeWithObjectsInReverseCall: (void(*)(id))aFunc
-{
-  void doIt(elt e)
-    {
-      (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self safeWithElementsInReverseCall:doIt];
-}
-
-- withElementsInReverseCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag
-{
-  int i;
-
-  for (i = [self count]-1; *flag && i >= 0; i--)
-    (*aFunc)([self elementAtIndex:i]);
-  return self;
-}
-
-- safeWithElementsInReverseCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag
-{
-  id tmp = [[Array alloc] initWithContentsOf:self];
-  [tmp withElementsInReverseCall:aFunc whileTrue:flag];
-  [tmp release];
-  return self;
-}
-
-- withObjectsInReverseCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag
-{
-  void doIt(elt e)
-    {
-      (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self withElementsInReverseCall:doIt whileTrue:flag];
-}
-
-- safeWithObjectsInReverseCall: (void(*)(id))aFunc whileTrue:(BOOL *)flag
-{
-  void doIt(elt e)
-    {
-      (*aFunc)(e.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self safeWithElementsInReverseCall:doIt whileTrue:flag];
-}
-
-- makeObjectsPerformInReverse: (SEL)aSel
-{
-  void doIt(elt e)
-    {
-      [e.id_u perform:aSel];
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self withElementsInReverseCall:doIt];
-}
-
-- safeMakeObjectsPerformInReverse: (SEL)aSel
-{
-  void doIt(elt e)
-    {
-      [e.id_u perform:aSel];
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self safeWithElementsInReverseCall:doIt];
-}
-
-- makeObjectsPerformInReverse: (SEL)aSel with: argObject
-{
-  void doIt(elt e)
-    {
-      [e.id_u perform:aSel with:argObject];
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self withElementsInReverseCall:doIt];
-}
-
-- safeMakeObjectsPerformInReverse: (SEL)aSel with: argObject
-{
-  void doIt(elt e)
-    {
-      [e.id_u perform:aSel with:argObject];
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self safeWithElementsInReverseCall:doIt];
-}
-
-- withElementsCall: (void(*)(elt))aFunc whileTrue:(BOOL *)flag
-{
-  unsigned i;
-  unsigned count = [self count];
-
-  for (i = 0; *flag && i < count; i++)
-    (*aFunc)([self elementAtIndex:i]);
-  return self;
-}
-
-- withKeyElementsAndContentElementsCall: (void(*)(const elt,elt))aFunc 
-    whileTrue: (BOOL *)flag
-{
-  unsigned index = 0;
-  void doIt(elt e)
-    {
-      (*aFunc)(index, e);
-      index++;
-    }
-  [self withElementsCall:doIt];
-  return self;
-}
-
-  
+
 // SORTING;
 
-/* This could be hacked a bit to make it more efficient */
-- quickSortContentsFromIndex: (unsigned)p 
-    toIndex: (unsigned)r
-    byCalling: (int(*)(elt,elt))aFunc
+- (void) sortContents
 {
-  unsigned i ,j;
-  elt x;
-
-  if (p < r)
-    {
-      /* Partition */
-      x = [self elementAtIndex:p];
-      i = p - 1;
-      j = r + 1;
-      for (;;)
-	{
-	  do 
-	    j = j - 1; 
-	  while ((*aFunc)([self elementAtIndex:j],x) > 0);
-	  do 
-	    i = i + 1; 
-	  while ((*aFunc)([self elementAtIndex:i],x) < 0);
-	  if (i < j)
-	    [self swapAtIndeces:i :j];
-	  else
-	      break;
-	}
-      /* Sort partitions */
-      [self quickSortContentsFromIndex:p toIndex:j byCalling:aFunc];
-      [self quickSortContentsFromIndex:j+1 toIndex:r byCalling:aFunc];
-    }
-  return self;
+  [self notImplemented: _cmd];
 }
 
-- sortElementsByCalling: (int(*)(elt,elt))aFunc
+- (void) sortAddObject: newObject
 {
-  if ([self count] == 0)
-    return self;
-  [self quickSortContentsFromIndex:0 
-	toIndex:[self count]-1
-	byCalling:aFunc];
-  return self;
+  [self notImplemented: _cmd];
 }
 
-- sortObjectsByCalling: (int(*)(id,id))aFunc
+// OVERRIDE SOME COLLECTION METHODS;
+
+- (void) removeObject: anObject
 {
-  int comp(elt e1, elt e2)
-    {
-      return (*aFunc)(e1.id_u, e2.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self sortElementsByCalling:comp];
+  int index = [self indexOfObject: anObject];
+  if (index != NO_INDEX)
+    [self removeObjectAtIndex: index];
 }
 
-- sortContents
+- (void) replaceObject: oldObject withObject: newObject
 {
-  [self sortElementsByCalling:COMPARISON_FUNCTION];
-  return self;
+  int i = [self indexOfObject: oldObject];
+  [self replaceObjectAtIndex: i withObject: newObject];
 }
 
-- sortAddElement: (elt)newElement byCalling: (int(*)(elt,elt))aFunc
-{
-  unsigned insertionIndex = 0;
-  BOOL insertionNotFound = YES;
-  void test(elt e)
-    {
-      if ((*aFunc)(newElement, e) < 0)
-	insertionNotFound = NO;
-      else
-	insertionIndex++;
-    }
-  [self withElementsCall:test whileTrue:&insertionNotFound];
-  [self insertElement:newElement atIndex:insertionIndex];
-  return self;
-}
+@end
 
-- sortAddElement: (elt)newElement
-{
-  return [self sortAddElement:newElement byCalling:COMPARISON_FUNCTION];
-}
-
-- sortAddObject: newObject
-{
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return[self sortAddElement:newObject];
-}
-
-- sortAddObject: newObject byCalling: (int(*)(id,id))aFunc
-{
-  int comp(elt e1, elt e2)
-    {
-      return (*aFunc)(e1.id_u, e2.id_u);
-    }
-  CHECK_CONTAINS_OBJECTS_ERROR();
-  return [self sortAddElement:newObject byCalling:comp];
-}
-
-
-// RELATION WITH KeyedCollection;
-
-- insertElement: (elt)newContentElement atKey: (elt)aKey
-{
-  return [self insertElement:newContentElement atIndex:aKey.unsigned_int_u];
-}
-
-- (elt) replaceElementAtKey: (elt)aKey with: (elt)newContentElement
-{
-  return [self replaceElementAtIndex:aKey.unsigned_int_u 
-	       with:newContentElement];
-}
-
-- (elt) removeElementAtKey: (elt)aKey
-{
-  return [self removeElementAtIndex:aKey.unsigned_int_u];
-}
-
-- (elt) elementAtKey: (elt)aKey
-{
-  return [self elementAtIndex:aKey.unsigned_int_u];
-}
-
-- (BOOL) includesKey: (elt)aKey
-{
-  return [self includesIndex:aKey.unsigned_int_u];
-}
-
-- printForDebugger
-{
-  void doIt(elt e)
-    {
-      [self printElement:e];
-      printf(" ");
-    }
-  [self withElementsCall:doIt];
-  printf(" :%s\n", [self name]);
-  return self;
-}
-
-- (void) _encodeContentsWithCoder: (id <Encoding>)coder
-{
-  unsigned int count = [self count];
-  const char *encoding = [self contentType];
-  void archiveElement(elt e)
-    {
-      [coder encodeValueOfObjCType:encoding
-	     at:elt_get_ptr_to_member(encoding, &e)
-	     withName:@"IndexedCollection Element"];
-    }
-
-  [coder encodeValueOfCType:@encode(unsigned int)
-	 at:&count
-	 withName:@"IndexedCollection Contents Count"];
-  [self withElementsCall:archiveElement];
-}
-
-- (void) _decodeContentsWithCoder: (id <Decoding>)coder
-{
-  unsigned int count, i;
-  elt newElement;  
-  const char *encoding = [self contentType];
-
-  [coder decodeValueOfCType:@encode(unsigned int)
-	 at:&count
-	 withName:NULL];
-  for (i = 0; i < count; i++)
-    {
-      [coder decodeValueOfObjCType:encoding
-	     at:elt_get_ptr_to_member(encoding, &newElement)
-	     withName:NULL];
-      [self appendElement:newElement];
-    }
-}
-
-- _writeContents: (TypedStream*)aStream
-{
-  unsigned int count = [self count];
-  const char *encoding = [self contentType];
-  void archiveElement(elt e)
-    {
-      objc_write_types(aStream, encoding,
-		       elt_get_ptr_to_member(encoding, &e));
-    }
-
-  objc_write_type(aStream, @encode(unsigned int), &count);
-  [self withElementsCall:archiveElement];
-  return self;
-}
-
-- _readContents: (TypedStream*)aStream
-{
-  unsigned int count, i;
-  elt newElement;  
-  const char *encoding = [self contentType];
-
-  objc_read_type(aStream, @encode(unsigned int), &count);
-  for (i = 0; i < count; i++)
-    {
-      objc_read_types(aStream, encoding, 
-		      elt_get_ptr_to_member(encoding, &newElement));
-      [self appendElement:newElement];
-    }
-  return self;
-}
-
-@end    
 

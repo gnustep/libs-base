@@ -1,8 +1,8 @@
 /* Implementation for Objective-C Heap object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -21,6 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
+/* This class could be improved by somehow making is a subclass of
+   IndexedCollection, but not OrderedCollection. */
+
 #include <objects/Heap.h>
 #include <objects/ArrayPrivate.h>
 
@@ -31,20 +34,20 @@
 @implementation Heap
 
 /* We could take out the recursive call to make it a little more efficient */
-- heapifyFromIndex: (unsigned)index
+- (void) heapifyFromIndex: (unsigned)index
 {
   unsigned right, left, largest;
-  elt tmp;
+  id tmp;
 
   right = HEAP_RIGHT(index);
   left = HEAP_LEFT(index);
   if (left <= _count 
-      && COMPARE_ELEMENTS(_contents_array[left],_contents_array[index]) > 0)
+      && [_contents_array[left] compare: _contents_array[index]] > 0)
     largest = left;
   else
     largest = index;
   if (right <= _count
-      && COMPARE_ELEMENTS(_contents_array[right],_contents_array[largest]) > 0)
+      && [_contents_array[right] compare: _contents_array[largest]] > 0)
     largest = right;
   if (largest != index)
     {
@@ -53,47 +56,41 @@
       _contents_array[largest] = tmp;
       [self heapifyFromIndex:largest];
     }
-  return self;
 }
 
-- heapify
+- (void) heapify
 {
   int i;
 
   // could use objc_msg_lookup here;
   for (i = _count / 2; i >= 1; i--)
     [self heapifyFromIndex:i];
-  return self;
 }
 
-- (elt) removeFirstElement
+- (void) removeFirstObject
 {
-  elt ret;
-
   if (_count == 0)
-    NO_ELEMENT_FOUND_ERROR();
-  ret = _contents_array[0];
+    return;
+  [_contents_array[0] release];
   _contents_array[0] = _contents_array[_count-1];
   decrementCount(self);
   [self heapifyFromIndex:0];
-  return AUTORELEASE_ELT(ret);
 }
 
-- addElement: (elt)newElement
+- (void) addObject: newObject
 {
   int i;
 
   incrementCount(self);
-  RETAIN_ELT(newElement);
+  [newObject retain];
   for (i = _count-1; 
        i > 0 
-       && COMPARE_ELEMENTS(_contents_array[HEAP_PARENT(i)], newElement) < 0;
+       && [_contents_array[HEAP_PARENT(i)] compare: newObject] < 0;
        i = HEAP_PARENT(i))
     {
       _contents_array[i] = _contents_array[HEAP_PARENT(i)];
     }
-  _contents_array[i] = newElement;
-  return self;
+  _contents_array[i] = newObject;
 }
 
 @end
