@@ -1,3 +1,7 @@
+Mon Sep  4 11:06:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/gdomap.c: better debug output (hopefully)
+
 Wed Sep 29 21:34:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSData.m: More GC updates (atomic data buffer)

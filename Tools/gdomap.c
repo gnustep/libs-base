@@ -3156,16 +3156,15 @@ printf(
    *	Ensure we don't have any open file descriptors which may refer
    *	to sockets bound to ports we may try to use.
    *
-   *	Use '/dev/tty' to produce logging output and use '/dev/null'
-   *	for stdin and stdout.
+   *	Use '/dev/null' for stdin and stdout.  Assume stderr is ok.
    */
   for (c = 0; c < FD_SETSIZE; c++)
     {
-      (void)close(c);
+      if (c != 2)
+	(void)close(c);
     }
   (void)open("/dev/null", O_RDONLY);	/* Stdin.	*/
   (void)open("/dev/null", O_WRONLY);	/* Stdout.	*/
-  (void)open("/dev/tty", O_WRONLY);	/* Stderr.	*/
 
   init_my_port();	/* Determine port to listen on.		*/
   if (interfaces == 0)
