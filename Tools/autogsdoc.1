@@ -86,7 +86,9 @@ names as arguments ... the tool will automatically parse corresponding source
 files in the same directory as the headers (or the current directory, or the
 directory specified using the DocumentationDirectory default), and produce
 GSDoc and HTML files as output.  For best results this mode should be run from
-the directory containing the source files.
+the directory containing the source files.  (Note that since C is a subset of
+Objective C, this tool can operate to document functions and other C
+structures in plain C source.)
 .P
 GSDoc files may also be given directly in addition or by themselves, and will
 be converted to HTML.  See the GSDoc HTML documentation or the gsdoc(7) man
@@ -572,7 +574,7 @@ default should be a hand-edited GSDoc document which should have a
 .P
 .RS 0
 .SH FILES
-Source: .h, .m
+Source: .h, .m, .c
 .RS 0
 GSDoc:  .gsdoc
 .RS 0
