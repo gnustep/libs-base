@@ -1,5 +1,5 @@
 /* Interface for GNU Objective-C connection for remote object messaging
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -158,7 +158,7 @@
 
 @end
 
-@protocol ConnectedCoding
+@protocol ConnectedSelfCoding
 + (void) encodeObject: anObj withConnectedCoder: aRmc;
 @end
 
