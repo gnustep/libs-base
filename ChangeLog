@@ -12,6 +12,10 @@
 	So ... you can now either revert to 8bit charset filesystem support,
 	or download a more recent version of the mingw runtime from the
 	mingw site.
+	* Source/NSTask.m: Fix setting environment for mingw ... use own
+	method to get environment rather than examining instance variable,
+	as the variable may not be set.  Sort variables because windows needs
+	them in alphabetical order.  Fix conversion to unicode.
 
 2005-02-16 14:40 Richard Frith-Macdonald <rfm@gnu.org>
 

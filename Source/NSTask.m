@@ -1073,7 +1073,8 @@ quotedFromString(NSString *aString)
   wchar_t	*w_args;
   int		result;
   const wchar_t	*wexecutable;
-  const LPVOID	envp = 0;
+  LPVOID	envp = 0;
+  NSDictionary	*env;
   
   if (_hasLaunched)
     {
@@ -1097,25 +1098,42 @@ quotedFromString(NSString *aString)
     sizeof(wchar_t) * ([args length] + 1));
   [args getCharacters: (unichar*)w_args];
 
-  if ([_environment count] > 0)
+  env = [self environment];
+  if ([env count] > 0)
     {
       NSMutableData	*data = [NSMutableData dataWithCapacity: 10240];
       NSEnumerator	*enumerator;
       NSString		*key;
-      unichar 		terminator= (unichar)'\0';
-      unichar		separator = (unichar)'=';
+      unichar 		terminator = 0;
       CREATE_AUTORELEASE_POOL(pool);
       
-      enumerator = [_environment keyEnumerator];
+      // Win32 environment variables must be sorted by name
+      enumerator = [[[env allKeys]
+	sortedArrayUsingSelector: @selector(compare:)] objectEnumerator];
       while ((key = [enumerator nextObject]))
 	{
-	  NSString	*value;
+	  NSString	*value = [env objectForKey:key];
+	  NSString	*setting;
+	  unsigned	l;
+	  NSRange	r = NSMakeRange(0,0);
+	  unichar	buffer[1024];
 
-	  [data appendData: [key dataUsingEncoding: NSUnicodeStringEncoding]];
-	  [data appendBytes: &separator length: 2];
-	  value = [_environment objectForKey: key];
-	  [data appendData: [value dataUsingEncoding: NSUnicodeStringEncoding]];
-	  [data appendBytes: &terminator length: 2];	// end key-value pair
+	  setting = [NSString stringWithFormat: @"%@=%@", key, value];
+	  l = [setting length];
+	  while (r.location < l)
+	    {
+	      r.length = l - r.location;
+	      if (r.length > 1024)
+		{
+		  r.length = 1024;
+		}
+	      
+	      [setting getCharacters: buffer range: r];
+	      [data appendBytes: buffer length: (r.length)*sizeof(unichar)];
+	      
+	      r.location += r.length;
+	    }
+	  [data appendBytes: &terminator length: 2];	// end of setting
 	}
       [data appendBytes: &terminator length: 2];	// end of environment
       RELEASE(pool);
