@@ -81,8 +81,10 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
     NSString *reason;
     NSException *except;
     
-    reason = [[NSString alloc] initWithFormat:format arguments:argList];
-    [reason autorelease];
+    // OK?: not in OpenStep docs but is implmented by GNUStep
+    reason = [NSString stringWithFormat:format arguments:argList];
+    //reason = [[NSString alloc] initWithFormat:format arguments:argList];
+    //[reason autorelease];
     except = [self exceptionWithName:name reason:reason userInfo:nil];
     [except raise];
 }
@@ -137,7 +139,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
-    [super encodeWithCoder:aCoder];
+//FIXME    [super encodeWithCoder:aCoder];
     [aCoder encodeObject:e_name]; 
     [aCoder encodeObject:e_reason]; 
     [aCoder encodeObject:e_info]; 
@@ -145,7 +147,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 - (id)initWithCoder:(NSCoder *)aDecoder
 {
-    self = [super initWithCoder:aDecoder];
+//FIXME    self = [super initWithCoder:aDecoder];
     e_name = [[aDecoder decodeObject] retain]; 
     e_reason = [[aDecoder decodeObject] retain]; 
     e_info = [[aDecoder decodeObject] retain]; 

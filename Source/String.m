@@ -273,6 +273,11 @@
   return @encode(char);
 }
 
+- (const char *) contentType
+{
+  return @encode(char);
+}
+
 - (int(*)(elt,elt)) comparisonFunction
 {
   return elt_compare_chars;

@@ -37,10 +37,6 @@
 + (NSValue*) valueWithRect: (NSRect)rect;
 + (NSValue*) valueWithSize: (NSSize)size;
 
-/* Note: not in OpenStep specification */
-- initValue: (const void*)value
-      withObjCType: (const char*)type;
-
 // Accessing Data 
 
 - (void) getValue: (void*)value;
@@ -53,7 +49,7 @@
 
 @end
 
-@interface NSNumber : NSValue
+@interface NSNumber : NSValue <NSCoding>
 {
 }
 
@@ -92,6 +88,17 @@
 
 - (NSComparisonResult) compare: (NSNumber*)otherNumber;
 
+@end
+
+/* Note: These methods are not in the OpenStep spec, but they may make
+   subclassing easier. */
+@interface NSValue (Subclassing)
+
+/* Used by value:withObjCType: to determine the concrete subclass to alloc */
++ (Class)valueClassWithObjCType:(const char *)type;
+
+/* Designated initializer for all concrete subclasses */
+- initValue:(const void *)value withObjCType:(const char *)type;
 @end
 
 #endif /* __NSValue_h_OBJECTS_INCLUDE */

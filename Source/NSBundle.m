@@ -1,32 +1,54 @@
 /* Implementation of NSBundle class
- *
- * Copyright (C)  1993  The Board of Trustees of  
- * The Leland Stanford Junior University.  All Rights Reserved.
- *
- * Authors: Adam Fedor, Scott Francis, Fred Harris, Paul Kunz, Tom Pavel, 
- *	    Imran Qureshi, and Libing Wang
- *
- * This file is part of an Objective-C class library 
- *
- * NSBundle.m,v 1.8 1993/10/20 00:44:53 pfkeb Exp
- */
+   Copyright (C) 1993,1994,1995 Free Software Foundation, Inc.
 
-#include <stdio.h>
+   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Date: May 1993
+
+   This file is part of the GNU Objective C Class Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+*/
+
 #include <assert.h>
 #include <unistd.h>
-#include <sys/param.h>
+#include <sys/param.h>		/* Needed by sys/stat */
 #include <sys/stat.h>
 #include <objc/objc-api.h>
-#include <objects/objc-load.h>
+#include <objects/stdobjects.h>
+#include <foundation/objc-load.h>
 #include <foundation/NSBundle.h>
 #include <foundation/NSException.h>
 #include <foundation/NSString.h>
 #include <foundation/NSArray.h>
 
-#ifndef index
-#define index strchr
+/* Deal with strchr: */
+#if STDC_HEADERS || HAVE_STRING_H
+#include <string.h>
+/* An ANSI string.h and pre-ANSI memory.h might conflict.  */
+#if !STDC_HEADERS && HAVE_MEMORY_H
+#include <memory.h>
+#endif /* not STDC_HEADERS and HAVE_MEMORY_H */
 #define rindex strrchr
-#endif
+#define bcopy(s, d, n) memcpy ((d), (s), (n))
+#define bcmp(s1, s2, n) memcmp ((s1), (s2), (n))
+#define bzero(s, n) memset ((s), 0, (n))
+#else /* not STDC_HEADERS and not HAVE_STRING_H */
+#include <strings.h>
+/* memory.h and strings.h conflict on some systems.  */
+#endif /* not STDC_HEADERS and not HAVE_STRING_H */
 
 #ifndef FREE_OBJECT
 #define FFREE_OBJECT(id) ([id release],id=nil)
@@ -37,9 +59,10 @@
 #define BUNDLE_EXT	"bundle"
 
 /* By default, we transmorgrify extensions of type "nib" to type "xmib"
-   which is the common extension for IB files for the GnuStep project
+   which is the common extension for IB files for the GNUStep project
 */
-#define IB_EXT		"xmib"
+static NSString *bundle_nib_ext  = @"nib";
+static NSString *bundle_xmib_ext = @"xmib";
 
 /* Class variables - We keep track of all the bundles and all the classes
    that are in each bundle
@@ -52,10 +75,10 @@ static NSMutableArray	*_bundleClasses = nil;
 static NSArray   *_languages = nil;
 
 /* When we are linking in an object file, objc_load_modules calls our
-   callBack routine for every Class and Category loaded.  The following
+   callback routine for every Class and Category loaded.  The following
    variable stores the bundle that is currently doing the loading so we know
-   where to store the class names.  This is way non-thread-safe, but
-   apparently this is how NeXT does it (maybe?).
+   where to store the class names. 
+   FIXME:  This should be put into a NSThread dictionary
 */
 static int _loadingBundlePos = -1;
 
@@ -63,7 +86,7 @@ static BOOL _stripAfterLoading;
 
 /* Get the object file that should be located in the bundle of the same name */
 static NSString *
-object_name(NSString *path)
+bundle_object_name(NSString *path)
 {
     NSString *name;
     name = [[path lastPathComponent] stringByDeletingPathExtension];
@@ -74,37 +97,30 @@ object_name(NSString *path)
 /* Construct a path from the directory, language, name and extension.  Used by 
     pathForResource:...
 */
-static NSString *nib;
-static NSString *xmib;
-
 static NSString * 
-construct_path(NSString *path, NSString *lang, 
-	NSString *name, NSString *ext )
+bundle_resource_path(NSString *path, NSString *lang, NSString *name, 
+	NSString *ext )
 {
     NSString *fullpath;
+    NSString *name_ext;
     
+    name_ext = [name pathExtension];
     name = [name stringByDeletingPathExtension];
-    if ([ext compare:nib] == NSOrderedSame)
-    	ext = xmib;
-// FIXME: change when NSString can support %@ parameters
+    // FIXME: we could check to see if name_ext and ext match, but what
+    //        would we do if they didn't?
+    if (!ext)
+	ext = name_ext;
+    if ([ext compare:bundle_nib_ext] == NSOrderedSame)
+    	ext = bundle_xmib_ext;
     if (lang) {
 	fullpath = [NSString stringWithFormat:
-		TEMP_STRING("%s/%s.lproj/%s.%s"), [path cString], 
-			[lang cString], [name cString], [ext cString]];
+			@"%@/%@.lproj/%@", path, lang, name];
     } else {
-	fullpath = [NSString stringWithFormat:
-		TEMP_STRING("%s/%s.%s"), [path cString], 
-			[name cString], [ext cString]];
+	fullpath = [NSString stringWithFormat: @"%@/%@", path, name];
     }
-/*
-    if (lang) {
-	fullpath = [NSString stringWithFormat:
-		TEMP_STRING("%@/%@.lproj/%@.%@"), path, lang, name, ext];
-    } else {
-	fullpath = [NSString stringWithFormat:
-		TEMP_STRING("%@/%@.%@"), path, name, ext];
-    }
-*/
+    if (ext && [ext length] != 0)
+	fullpath = [NSString stringByAppendingPathExtension:ext];
+
 #ifdef DEBUG
     fprintf(stderr, "Debug (NSBundle): path is %s\n", [fullpath cString]);
 #endif
@@ -124,24 +140,17 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
 
 @implementation NSBundle
 
-+ (void)initialize
-{
-    nib = STATIC_STRING("nib");
-    xmib = STATIC_STRING("xmib");
-}
-
 + (NSBundle *)mainBundle
 {
     if ( !_mainBundle ) {
 	NSString *path;
 
 	path = [NSString stringWithCString:objc_executable_location()];
+	assert(path);
+	assert([path length]);
+
 	/* Strip off the name of the program */
 	path = [path stringByDeletingLastPathComponent];
-	if (!path || [path length] == 0) {
-	    fprintf(stderr, "Error (NSBundle): Cannot find main bundle.\n");
-	    return nil;
-	}
 
 #ifdef DEBUG
 	fprintf(stderr, "Debug (NSBundle): Found main in %s\n", 
@@ -165,6 +174,7 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
     int		i, count;
     NSBundle	*bundle = nil;
 
+    // FIXME: should this be an error if aClass == nil?
     if (!aClass)
 	return nil;
 
@@ -205,13 +215,13 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
 
     if (!path || [path length] == 0) {
     	[NSException raise:NSInvalidArgumentException
-		format:TEMP_STRING("No path specified for bundle")];
+		format:@"No path specified for bundle"];
 	/* NOT REACHED */
     }
 
     if (stat([path cString], &statbuf) != 0) {
     	[NSException raise:NSGenericException
-		format:TEMP_STRING("Path does not exist")];
+		format:@"Could not find path %s", [path cString]];
 	/* NOT REACHED */
     }
     _path = [path retain];
@@ -254,11 +264,11 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
 {
     int     j, class_count;
     NSArray *classList;
-    Class   *theClass = Nil;
+    Class   theClass = Nil;
     if (!_codeLoaded) {
 	if (self != _mainBundle && ![self principalClass]) {
     	    [NSException raise:NSGenericException
-		format:TEMP_STRING("Unable to get classes")];
+		format:@"No classes in bundle"];
 	    /* NOT REACHED */
     	}
     }
@@ -292,13 +302,13 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
     }
 
     if (!_codeLoaded) {
-	NSString *object = object_name(_path);
+	NSString *object = bundle_object_name(_path);
 	/* Link in the object file */
 	_loadingBundlePos = [_bundles indexOfObject:self];
 	if (objc_load_module([object cString], 
 		stderr, _bundle_load_callback, NULL, NULL)) {
     	    [NSException raise:NSGenericException
-		format:TEMP_STRING("Unable to load module")];
+		format:@"Unable to load module %s", [object cString]];
 	    /* NOT REACHED */
 	} else
 	    _codeLoaded = YES;
@@ -331,7 +341,7 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
     
     if (!name || [name length] == 0) {
     	[NSException raise:NSInvalidArgumentException
-		format:TEMP_STRING("No resource name specified.")];
+		format:@"No resource name specified."];
 	/* NOT REACHED */
     }
 
@@ -339,15 +349,14 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
 	unsigned i, count;
 	count = [_languages count];
 	for (i=0; i < count; i++) {
-    	    path = construct_path(bundlePath, [_languages objectAtIndex:i], 
-	    		name, ext );
+    	    path = bundle_resource_path(bundlePath, 
+			[_languages objectAtIndex:i], name, ext );
     	    if ( stat([path cString], &statbuf) == 0) 
 		break;
 	    path = nil;
-	    count++;
 	}
     } else {
-    	path = construct_path(bundlePath, TEMP_STRING("English"), name, ext );
+    	path = bundle_resource_path(bundlePath, @"English", name, ext );
     	if ( stat([path cString], &statbuf) != 0) {
 	    path = nil;
 	}
@@ -355,13 +364,12 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
     }
 
     if (!path) {
-	path = construct_path(bundlePath, nil, name, ext );
+	path = bundle_resource_path(bundlePath, nil, name, ext );
 	if ( stat([path cString], &statbuf) != 0) {
 	    path = nil;
 	}
     }
 
-    /* Note: path is already autoreleased */
     return path;
 }
 
@@ -390,8 +398,8 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
 
 + (void)setSystemLanguages:(NSArray *)languages
 {
-    static NSString *separator;
-    if (!separator) separator = STATIC_STRING(" ");
+    static NSString *separator = @" ";
+
     if (_languages) {
     	FREE_OBJECT(_languages);
     }
@@ -401,25 +409,11 @@ _bundle_load_callback(Class *theClass, Category *theCategory)
        string.
     */
     if (!languages) {
-        NSString *env = [NSString stringWithCString:getenv("LANGUAGE")];
+        NSString *env = [NSString stringWithCString:getenv("LANGUAGES")];
 	if (env && [env length] != 0)
             _languages = [[env componentsSeparatedByString:separator] retain];
     } else
     	_languages = [languages retain];
-
-}
-
-// FIXME: this is here to please IndexedCollection - NSObject doesn't have it
-- (int)compare:anotherObject
-{
-  if ([self isEqual:anotherObject])
-    return 0;
-  // Ordering objects by their address is pretty useless,
-  // so subclasses should override this is some useful way.
-  else if (self > anotherObject)
-    return 1;
-  else
-    return -1;
 
 }
 

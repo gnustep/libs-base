@@ -21,39 +21,15 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-/*    
-    FIXME - Some of NeXT's requirements escape me at this point. Why would
-    you need to override classForCoder in subclasses? Can we encode void *
-    or not?
-*/
-
-/* xxx This needs fixing because NSValue shouldn't have any 
-   instance variables. -mccallum */
-
-#include "NSValue.h"
-#include "NSObjectPrivate.h"	/* For standard exceptions */
-#include "NSString.h"
-#include "NSCoder.h"
-#include "object_zone.h"	/* Zone mallocing */
-
-#include <objects/stdobjects.h>
-#include <string.h>
+#include <foundation/NSConcreteValue.h>
+#include <foundation/NSCoder.h>
 
 @implementation NSValue
 
 // NSCopying
+/* deepening is done by concrete subclasses */
 - deepen
 {
-    void	*old_ptr;
-    unsigned	size;
-
-    size = objc_sizeof_type([objctype cString]);
-    old_ptr = _dataptr;
-    _dataptr = (void *)NSZoneMalloc([self zone], size);
-    NS_CHECK_MALLOC(_dataptr)
-    memcpy(_dataptr, old_ptr, size);
-
-    objctype = [objctype copyWithZone:[self zone]];
     return self;
 }
 
@@ -65,137 +41,132 @@
     	return [[super copyWithZone:zone] deepen];
 }
 
-// Allocating and Initializing 
-
-/* This method is apperently not in the OpenStep specification, but it makes
-   subclassing a lot easier */
-- initValue:(const void *)value
-      withObjCType:(const char *)type
+/* Returns the concrete class associated with the type encoding */
++ (Class)valueClassWithObjCType:(const char *)type
 {
-    unsigned	size;
+    Class theClass = [NSConcreteValue class];
+
+    /* Let someone else deal with this error */
+    if (!type)
+	return theClass;
+
+    if (strcmp(@encode(id), type) == 0)
+	theClass = [NSNonretainedObjectValue class];
+    else if (strcmp(@encode(NSPoint), type) == 0)
+	theClass = [NSPointValue class];
+    else if (strcmp(@encode(void *), type) == 0)
+	theClass = [NSPointerValue class];
+    else if (strcmp(@encode(NSRect), type) == 0)
+	theClass = [NSRectValue class];
+    else if (strcmp(@encode(NSSize), type) == 0)
+	theClass = [NSSizeValue class];
     
-    if (!value || !type) {
-    	[NSException raise:NSInvalidArgumentException
-		format:TEMP_STRING("NULL value or NULL type")];
-	/* NOT REACHED */
-    }
-
-    // FIXME: objc_sizeof_type will abort when it finds an invalid type, when
-    // we really want to just raise an exception
-    size = objc_sizeof_type(type);
-    if (size <= 0) {
-    	[NSException raise:NSInternalInconsistencyException
-		format:TEMP_STRING("Invalid Objective-C type")];
-	/* NOT REACHED */
-    }
-
-    _dataptr = (void *)NSZoneMalloc([self zone], size);
-    NS_CHECK_MALLOC(_dataptr)
-    memcpy(_dataptr, value, size);
-
-    objctype = [[NSString stringWithCString:type] retain];
-    return self;
+    return theClass;
 }
+
+// Allocating and Initializing 
 
 + (NSValue *)value:(const void *)value
       withObjCType:(const char *)type
 {
-    return [[[self alloc] initValue:value withObjCType:type] autorelease];
+    Class theClass = [self valueClassWithObjCType:type];
+    return [[[theClass alloc] initValue:value withObjCType:type]
+    		autorelease];
 }
 		
 + (NSValue *)valueWithNonretainedObject: (id)anObject
 {
-    return [self value:&anObject withObjCType:@encode(id)];
+    return [[[NSNonretainedObjectValue alloc] 
+    		initValue:&anObject withObjCType:@encode(id)]
+    		autorelease];
 }
 	
 + (NSValue *)valueWithPoint:(NSPoint)point
 {
-    return [self value:&point withObjCType:@encode(NSPoint)];
+    return [[[NSPointValue alloc] 
+    		initValue:&point withObjCType:@encode(NSPoint)]
+    		autorelease];
 }
  
 + (NSValue *)valueWithPointer:(const void *)pointer
 {
-    return [self value:&pointer withObjCType:@encode(void *)];
+    return [[[NSPointerValue alloc] 
+    		initValue:&pointer withObjCType:@encode(void*)]
+    		autorelease];
 }
 
 + (NSValue *)valueWithRect:(NSRect)rect
 {
-    return [self value:&rect withObjCType:@encode(NSRect)];
+    return [[[NSRectValue alloc] initValue:&rect withObjCType:@encode(NSRect)]
+    		autorelease];
 }
  
 + (NSValue *)valueWithSize:(NSSize)size
 {
-    return [self value:&size withObjCType:@encode(NSSize)];
-}
-
-- (void)dealloc
-{
-    [objctype release];
-    NSZoneFree([self zone], _dataptr);
-    [super dealloc];
+    return [[[NSSizeValue alloc] initValue:&size withObjCType:@encode(NSSize)]
+    		autorelease];
 }
 
 // Accessing Data 
+/* All the rest of these methods must be implemented by a subclass */
 - (void)getValue:(void *)value
 {
-    if (!value) {
-	[NSException raise:NSInvalidArgumentException
-	    format:TEMP_STRING("Cannot copy value into NULL buffer")];
-	/* NOT REACHED */
-    }
-    memcpy( value, _dataptr, objc_sizeof_type([objctype cString]) );
+    [self doesNotRecognizeSelector:_cmd];
 }
 
 - (const char *)objCType
 {
-    return [objctype cString];
+    [self doesNotRecognizeSelector:_cmd];
+    return 0;
 }
  
-// FIXME: need to check to make sure these hold the right values...
+// FIXME: Is this an error or an exception???
 - (id)nonretainedObjectValue
 {
-    return *((id *)_dataptr);
+    [self doesNotRecognizeSelector:_cmd];
+    return 0;
 }
  
 - (void *)pointerValue
 {
-    return *((void **)_dataptr);
+    [self doesNotRecognizeSelector:_cmd];
+    return 0;
 } 
 
 - (NSRect)rectValue
 {
-    return *((NSRect *)_dataptr);
+    [self doesNotRecognizeSelector:_cmd];
+    return NSMakeRect(0,0,0,0);
 }
  
 - (NSSize)sizeValue
 {
-    return *((NSSize *)_dataptr);
+    [self doesNotRecognizeSelector:_cmd];
+    return NSMakeSize(0,0);
 }
  
 - (NSPoint)pointValue
 {
-    return *((NSPoint *)_dataptr);
+    [self doesNotRecognizeSelector:_cmd];
+    return NSMakePoint(0,0);
 }
 
-// NSCoding
+// NSCoding (done by subclasses)
+- classForCoder
+{
+    return [self class];
+}
+
 - (void)encodeWithCoder:(NSCoder *)coder
 {
-    
-    [super encodeWithCoder:coder];
-    // FIXME: Do we need to check for encoding void, void * or will
-    // NSCoder do this for us?
-    [coder encodeObject:objctype];
-    [coder encodeValueOfObjCType:[objctype cString] at:&_dataptr];
+//FIXME    [super encodeWithCoder:coder];
 }
 
 - (id)initWithCoder:(NSCoder *)coder
 {
-    self = [super initWithCoder:coder];
-    objctype = [[coder decodeObject] retain];
-    [coder decodeValueOfObjCType:[objctype cString] at:&_dataptr];
+//FIXME    self = [super initWithCoder:coder];
     return self;
 }
-
 
 @end
 
