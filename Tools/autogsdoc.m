@@ -362,6 +362,13 @@ main(int argc, char **argv, char **env)
   [NSProcessInfo initializeWithArguments: argv count: argc environment: env];
 #endif
 
+#if HAVE_LIBXML == 0
+  NSLog(@"ERROR: The GNUstep Base Library was built\n"
+@"        without an available libxml library. Autogsdoc needs the libxml\n"
+@"        library to function. Aborting");
+  exit(1);
+#endif
+
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
     @"Untitled", @"Project",

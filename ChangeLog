@@ -11,6 +11,10 @@
 	* Documentation/install.texi: Update.
 	* Documentation/news.texi: Likewise.
 
+	* Tools/autogsdoc.m (main): When no libxml, abort with a useful error
+	message.
+
+
 2002-01-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSXML.m: Tidied some methods and added autogsdoc comments.
