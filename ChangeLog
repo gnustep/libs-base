@@ -1,3 +1,12 @@
+2000-06-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSConnection.h: Changed reply_depth ivar to be
+	called request_depth instead.
+	* Source/NSConnection.m: Changed reply_depth ivar to request_depth
+	and modified code to make independent conversation queueing
+	effective on the basis of incoming requests being handled rather than
+	outgoing replies.  This should make it work for oneway methods.
+
 Tue May 30 19:54:25 2000  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Source/NSProcessInfo.m ([NSProcessInfo +load]): If environ ==
