@@ -6,6 +6,27 @@ The currently released version of the library is
 @samp{@value{OBJECTS_VERSION}}.
 @end ifset
 
+@section Noteworthy changes since version @samp{0.1.13}
+
+@itemize
+
+@item NSProcessInfo class, thanks to Georg Tuparev.
+
+@item NSDate now more operational, thanks to Jeremy Bettis.
+
+@item Autorelease checking improved, thanks to Adam Fedor.
+
+@item NSString concrete classes now more configurable.  Several new
+methods implemented.
+
+@item Many bug fixes.
+
+@end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE_ONLY
+
 @section Noteworthy changes since version @samp{0.1.12}
 
 @itemize
@@ -40,10 +61,6 @@ NSCharacterSet and NSBitmapCharSet; all thanks to Adam Fedor.
 And several bug fixes.  See the ChangeLog for details.
 
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE_ONLY
 
 @section Noteworthy changes since version @samp{0.1.9}
 
