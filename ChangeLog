@@ -1,3 +1,7 @@
+2001-05-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone: ([-initWithName:]) fix for trivial locking bug.
+
 2001-04-30  Adam Fedor  <fedor@gnu.org>
 
 	* Source/behavior.m: Rewrite to work with NeXT runtime.
