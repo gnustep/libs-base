@@ -136,8 +136,12 @@ GS_EXPORT NSString* const NSLocale;
  */
 + (void) resetStandardUserDefaults;
 #endif
+#ifndef	STRICT_OPENSTEP
+#ifndef	STRICT_MACOS_X
 + (NSArray*) userLanguages;
 + (void) setUserLanguages: (NSArray*)languages;
+#endif
+#endif
 
 /* Initializing the User Defaults */
 - (id) init;

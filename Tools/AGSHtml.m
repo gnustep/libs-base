@@ -488,6 +488,27 @@ static NSMutableSet	*textNodes = nil;
 	      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
 	    }
 	}
+      else if ([name isEqual: @"declared"] == YES)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<blockquote>\n"];
+	  [self incIndent];
+	  [buf appendString: indent];
+	  [buf appendString: @"<dl>\n"];
+	  [self incIndent];
+	  [buf appendString: indent];
+	  [buf appendString: @"<dt><b>Declared in:</b></dt>\n"];
+	  [buf appendString: indent];
+	  [buf appendString: @"<dd>"];
+	  [self outputText: [node children] to: buf];
+	  [buf appendString: @"</dd>\n"];
+	  [self decIndent];
+	  [buf appendString: indent];
+	  [buf appendString: @"</dl>\n"];
+	  [self decIndent];
+	  [buf appendString: indent];
+	  [buf appendString: @"</blockquote>\n"];
+	}
       else if ([name isEqual: @"desc"] == YES)
 	{
 	  [buf appendString: indent];
@@ -985,19 +1006,7 @@ static NSMutableSet	*textNodes = nil;
 	      children = [node next];
 	      if ([[children name] isEqual: @"standards"])
 		{
-		  tmp = [children children];
-		  if (tmp != nil)
-		    {
-		      [buf appendString: indent];
-		      [buf appendString: @"<b>Standards:</b>"];
-		      while (tmp != nil)
-			{
-			  [buf appendString: @" "];
-			  [buf appendString: [tmp name]];
-			  tmp = [tmp next];
-			}
-		      [buf appendString: @"<br />\n"];
-		    }
+		  [self outputNode: children to: buf];
 		}
 
 	      if ((str = [prop objectForKey: @"init"]) != nil
@@ -1100,6 +1109,32 @@ static NSMutableSet	*textNodes = nil;
 	  [self outputText: children to: buf];
 	  [buf appendString: @"</code>"];
 	}
+      else if ([name isEqual: @"standards"])
+	{
+	  GSXMLNode	*tmp = [node children];
+	  BOOL		first = YES;
+
+	  if (tmp != nil)
+	    {
+	      [buf appendString: indent];
+	      [buf appendString: @"<b>Standards:</b>"];
+	      while (tmp != nil)
+		{
+		  if (first == YES)
+		    {
+		      first = NO;
+		      [buf appendString: @" "];
+		    }
+		  else
+		    {
+		      [buf appendString: @", "];
+		    }
+		  [buf appendString: [tmp name]];
+		  tmp = [tmp next];
+		}
+	      [buf appendString: @"<br />\n"];
+	    }
+	}
       else if ([name isEqual: @"strong"] == YES)
 	{
 	  [buf appendString: @"<strong>"];
@@ -1135,10 +1170,7 @@ static NSMutableSet	*textNodes = nil;
 
 	  if (node != nil && [[node name] isEqual: @"declared"] == YES)
 	    {
-	      [buf appendString: indent];
-	      [buf appendString: @"Declared: "];
-	      [self outputText: [node children] to: buf];
-	      [buf appendString: @"<br />\n"];
+	      [self outputNode: node to: buf];
 	      node = [node next];
 	    }
 	  if (node != nil && [[node name] isEqual: @"desc"] == YES)
@@ -1450,29 +1482,13 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 
 - (void) outputUnit: (GSXMLNode*)node to: (NSMutableString*)buf
 {
+  GSXMLNode		*t;
   NSMutableArray	*a;
 
   node = [node children];
   if (node != nil && [[node name] isEqual: @"declared"] == YES)
     {
-      [buf appendString: indent];
-      [buf appendString: @"<blockquote>\n"];
-      [self incIndent];
-      [buf appendString: indent];
-      [buf appendString: @"<dl>\n"];
-      [self incIndent];
-      [buf appendString: indent];
-      [buf appendString: @"<dt><b>Declared in:</b></dt>\n"];
-      [buf appendString: indent];
-      [buf appendString: @"<dd>"];
-      [self outputText: [node children] to: buf];
-      [buf appendString: @"</dd>\n"];
-      [self decIndent];
-      [buf appendString: indent];
-      [buf appendString: @"</dl>\n"];
-      [self decIndent];
-      [buf appendString: indent];
-      [buf appendString: @"</blockquote>\n"];
+      [self outputNode: node to: buf];
       node = [node next];
     }
 
@@ -1510,6 +1526,38 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       node = [node next];
     }
 
+  t = node;
+  while (t != nil && [[t name] isEqual: @"standards"] == NO)
+    {
+      t = [t next];
+    }
+  if (t != nil && [t children] != nil)
+    {
+      t = [t children];
+      [buf appendString: indent];
+      [buf appendString: @"<blockquote>\n"];
+      [self incIndent];
+      [buf appendString: indent];
+      [buf appendString: @"<b>Standards:</b>\n"];
+      [buf appendString: indent];
+      [buf appendString: @"<ul>\n"];
+      [self incIndent];
+      while (t != nil)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<li>"];
+	  [buf appendString: [t name]];
+	  [buf appendString: @"</li>\n"];
+	  t = [t next];
+	}
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</ul>\n"];
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</blockquote>\n"];
+    }
+
   a = [localRefs methodsInUnit: unit];
   if ([a count] > 0)
     {
@@ -1543,24 +1591,6 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
   while (node != nil && [[node name] isEqual: @"method"] == YES)
     {
       [self outputNode: node to: buf];
-      node = [node next];
-    }
-  if (node != nil && [[node name] isEqual: @"standards"] == YES)
-    {
-      GSXMLNode	*tmp = [node children];
-
-      if (tmp != nil)
-	{
-	  [buf appendString: indent];
-	  [buf appendString: @"<b>Standards:</b>"];
-	  while (tmp != nil)
-	    {
-	      [buf appendString: @" "];
-	      [buf appendString: [tmp name]];
-	      tmp = [tmp next];
-	    }
-	  [buf appendString: @"<br />\n"];
-	}
       node = [node next];
     }
 }

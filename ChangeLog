@@ -1,3 +1,11 @@
+2002-01-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GNUmakefile: Use new -Standards flag for autogsdoc
+	* Tools/AGSparser.[hm]: New support for standards and some tidyups
+	* Tools/AGSHtml.[hm]: Improved output and simplified a little.
+	* Tools/autogsdoc.m: New Standards flag to turn on support for
+	generation of standards complience notes in documentation.
+
 Tue Jan  1 11:18:35 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSFileManager.m (custom_strdup): New inline function

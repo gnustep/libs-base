@@ -57,7 +57,6 @@
   identStart = RETAIN([NSCharacterSet characterSetWithCharactersInString:
     @"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"]);
   info = [[NSMutableDictionary alloc] initWithCapacity: 6];
-  ifStack = [[NSMutableArray alloc] initWithCapacity: 4];
   return self;
 }
 
@@ -1207,6 +1206,96 @@ fail:
 }
 
 /**
+ * Turn on or off parsing of preprocessor conditional compilation info
+ * indicating the standards complied with.  When this is turned on, we
+ * assume that all standards are complied with by default.<br />
+ * You should only turn this on while parsing the GNUstep source code.
+ */
+- (void) setGenerateStandards: (BOOL)flag
+{
+  if (flag == NO)
+    {
+      DESTROY(ifStack);
+    }
+  else if (ifStack == nil)
+    {
+      ifStack = [[NSMutableArray alloc] initWithCapacity: 4];
+      [ifStack addObject: @"OpenStep"];
+      [ifStack addObject: @"MacOS-X"];
+      [ifStack addObject: @"GNUstep"];
+    }
+}
+
+/**
+ * Store the current standards information derived from preprocessor
+ * conditionals in the supplied dictionary ... this will be used by
+ * the AGSOutput class to put standards markup in the gsdoc output.
+ */
+- (void) setStandards: (NSMutableDictionary*)dict
+{
+  unsigned		c = [ifStack count];
+  BOOL			hadG = NO;
+  BOOL			hadM = NO;
+  BOOL			hadO = NO;
+
+  if (c > 0)
+    {
+      NSMutableString	*s = nil;
+      BOOL		found = NO;
+
+      s = [NSMutableString stringWithCString: "<standards>"];
+      while (c-- > 0)
+	{
+	  NSString	*name = [ifStack objectAtIndex: c];
+
+	  /*
+	   * We don't produce output for empty strings or
+	   * the 'NotGNUstep' string.
+	   */
+	  if ([name isEqualToString: @""] == YES
+	    || [name isEqualToString: @"NotGNUstep"] == YES)
+	    {
+	      continue;
+	    }
+	  if ([name isEqualToString: @"GNUstep"] == YES
+	    || [name isEqualToString: @"NotGNUstep"] == YES)
+	    {
+	      if (hadG == YES)
+		{
+		  continue;
+		}
+	      hadG = YES;
+	    }
+	  if ([name isEqualToString: @"OpenStep"] == YES
+	    || [name isEqualToString: @"NotOpenStep"] == YES)
+	    {
+	      if (hadO == YES)
+		{
+		  continue;
+		}
+	      hadO = YES;
+	    }
+	  if ([name isEqualToString: @"MacOS-X"] == YES
+	    || [name isEqualToString: @"NotMacOS-X"] == YES)
+	    {
+	      if (hadM == YES)
+		{
+		  continue;
+		}
+	      hadM = YES;
+	    }
+	  found = YES;
+	  [s appendFormat: @"<%@ />", name];
+	}
+      if (found == YES)
+	{
+	  [s appendString: @"</standards>"];
+	  [dict setObject: s forKey: @"Standards"];
+	}
+    }
+}
+
+/**
  * Read in the file to be parsed and store it in a temporary unicode
  * buffer.  Perform basic transformations on the buffer to simplify
  * the parsing process later - including stripping out of escaped
@@ -1821,6 +1910,14 @@ fail:
  */
 - (unsigned) skipPreprocessor
 {
+  /*
+   * If we are not doing preprocessor handling ... just skip to end of line.
+   */
+  if (ifStack == nil)
+    {
+      return [self skipRemainderOfLine];
+    }
+
   while (pos < length && [spaces characterIsMember: buffer[pos]] == YES)
     {
       pos++;
@@ -2107,42 +2204,5 @@ fail:
   return pos;
 }
 
-/**
- * Store the current standards information derived from preprocessor
- * conditionals in the supplied dictionary ... this will be used by
- * the AGSOutput class to put standards markup in the gsdoc output.
- */
-- (void) setStandards: (NSMutableDictionary*)dict
-{
-  unsigned		c = [ifStack count];
-
-  if (c > 0)
-    {
-      NSMutableString	*s = nil;
-      BOOL		found = NO;
-
-      s = [NSMutableString stringWithCString: "<standards>"];
-      while (c-- > 0)
-	{
-	  NSString	*name = [ifStack objectAtIndex: c];
-
-	  /*
-	   * We don't produce output for empty strings or
-	   * the 'NotGNUstep' string.
-	   */
-	  if ([name isEqualToString: @""] == NO
-	    && [name isEqualToString: @"NotGNUstep"] == NO)
-	    {
-	      found = YES;
-	      [s appendFormat: @"<%@ />", name];
-	    }
-	}
-      if (found == YES)
-	{
-	  [s appendString: @"</standards>"];
-	  [dict setObject: s forKey: @"Standards"];
-	}
-    }
-}
 @end
 
