@@ -24,7 +24,6 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <gnustep/base/objc-malloc.h>
-#include <gnustep/base/Array.h>
 #include <Foundation/NSException.h>
 #include <limits.h>
 
