@@ -40,6 +40,11 @@
 
 @implementation NSGCString
 
++ allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject (self, 0, z);
+}
+
 - (void)dealloc
 {
     if (_zone) {
@@ -478,6 +483,11 @@
 
 
 @implementation NSGMutableCString
+
++ allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject (self, 0, z);
+}
 
 + (void) initialize
 {
