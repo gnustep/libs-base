@@ -103,6 +103,7 @@ INCLUDEFLAGS='$(INCLUDEFLAGS)' DEFS='$(DEFS)'
 GNU_MFILES = \
 Array.m \
 Bag.m \
+BinaryCStream.m \
 BinaryTree.m \
 BinaryTreeEltNode.m \
 BinaryTreeNode.m \
@@ -113,6 +114,7 @@ CString.m \
 ConnectedCoder.m \
 Connection.m \
 ConstantString.m \
+CStream.m \
 DelegatePool.m \
 Dictionary.m \
 EltNodeCollector.m \
@@ -148,6 +150,7 @@ Stack.m \
 StdioStream.m \
 Stream.m \
 String.m \
+TextCStream.m \
 Time.m \
 stdobjects.m \
 mframe.m \
@@ -170,6 +173,7 @@ GNU_HEADERS = \
 objects/Array.h \
 objects/ArrayPrivate.h \
 objects/Bag.h \
+objects/BinaryCStream.h \
 objects/BinaryTree.h \
 objects/BinaryTreeEltNode.h \
 objects/BinaryTreeNode.h \
@@ -182,6 +186,7 @@ objects/Collection.h \
 objects/CollectionPrivate.h \
 objects/ConnectedCoder.h \
 objects/Connection.h \
+objects/CStream.h \
 objects/DelegatePool.h \
 objects/Dictionary.h \
 objects/EltNodeCollector.h \
@@ -233,6 +238,7 @@ objects/StdioStream.h \
 objects/Stream.h \
 objects/Streaming.h \
 objects/String.h \
+objects/TextCStream.h \
 objects/Time.h \
 objects/ValueHolding.h \
 objects/behavior.h \
