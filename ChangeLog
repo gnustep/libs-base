@@ -1,3 +1,9 @@
+2000-04-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: rewrite
+	* Source/NSCountedSet.m: minor fix in new unique method
+	* Source/NSGCountedSet.m: ditto
+
 2000-04-18  Adam Fedor  <fedor@gnu.org>
 
 	* base/configure.in: add a test to see whether a symlink
