@@ -428,15 +428,36 @@
 
 - (void) removeObject: anObject
 {
-  int index = [self indexOfObject: anObject];
-  if (index != NO_INDEX)
+  int index;
+
+  /* Retain the object.  Yuck, but necessary in case the array holds
+     the last reference to anObject. */
+  /* xxx Is there an alternative to this expensive retain/release? */
+  [anObject retain];
+
+  for (index = [self indexOfObject: anObject];
+       index != NO_INDEX;
+       index = [self indexOfObject: anObject])
     [self removeObjectAtIndex: index];
+
+  [anObject release];
 }
 
 - (void) replaceObject: oldObject withObject: newObject
 {
-  int i = [self indexOfObject: oldObject];
-  [self replaceObjectAtIndex: i withObject: newObject];
+  int index;
+
+  /* Retain the object.  Yuck, but necessary in case the array holds
+     the last reference to anObject. */
+  /* xxx Is there an alternative to this expensive retain/release? */
+  [oldObject retain];
+
+  for (index = [self indexOfObject: oldObject];
+       index != NO_INDEX;
+       index = [self indexOfObject: oldObject])
+    [self replaceObjectAtIndex: index withObject: newObject];
+
+  [oldObject release];
 }
 
 @end
