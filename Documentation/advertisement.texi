@@ -4,7 +4,7 @@
 @include version.texi
 
 The Gnustep Base Library (libobjects) is a library of
-general-purpose, non-graphical Objective C objects written by R. Andrew
+general-purpose, non-graphical Objective C objects written by Andrew
 McCallum.  What `libg++' is to GNU's C++, `libobjects' is to GNU's
 Objective C.
 
