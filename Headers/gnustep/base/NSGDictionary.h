@@ -27,7 +27,6 @@
 #include <objects/stdobjects.h>
 #include <Foundation/NSDictionary.h>
 #include <objects/Dictionary.h>
-#include <objects/elt.h>
 
 @interface NSGDictionary : NSDictionary
 @end
