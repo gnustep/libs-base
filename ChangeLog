@@ -1,3 +1,9 @@
+1999-02-08  Adam Fedor  <fedor@penitente>
+
+	* Source/include/fake-main.h: Leave off __ELF__, only use
+	autoload of init method if SYS_AUTOLOAD.
+	* Source/NSProcessInfo.m: Likewise.
+
 Mon Feb  8 10:05:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/NSByteOrder.h: Implemented a full set of byte-swapping
