@@ -731,7 +731,6 @@ nodeToObject(GSXMLNode* node)
 	  id	val;
 
 	  val = nodeToObject(children);
-NSLog(@"Array item %@", [children name], val);
           [container addObject: val];
           children = elementNode([children next]);
         }
@@ -747,10 +746,8 @@ NSLog(@"Array item %@", [children name], val);
 	  id		val;
 
 	  key = nodeToObject(children);
-NSLog(@"Key name (%@) %@", [children name], key);
           children = elementNode([children next]);
 	  val = nodeToObject(children);
-NSLog(@"Val name (%@) %@", [children name], val);
           children = elementNode([children next]);
           [container setObject: val forKey: key];
         }
@@ -783,7 +780,6 @@ static id parsePl(pldata* pld)
       memcpy(buf, pld->ptr, pld->end);
       buf[pld->end] = '\0';
       data = [NSData dataWithBytesNoCopy: buf length: pld->end+1]; 
-      NSLog(@"Parsing '%s'", buf);
       parser = [GSXMLParser parser: data];
       if ([parser parse] == YES)
 	{
@@ -793,7 +789,7 @@ static id parsePl(pldata* pld)
 		[[[parser doc] root] name]);
 	      return nil;
 	    }
-	  return nodeToObject([[[parser doc] root] children]);
+	  return RETAIN(nodeToObject([[[parser doc] root] children]));
 	}
       else
 	{

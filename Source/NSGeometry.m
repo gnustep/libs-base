@@ -37,7 +37,8 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSUserDefaults.h>
 
-static BOOL	MacOSX = NO;	// Compatibility mode
+extern BOOL	GSMacOSXCompatibleGeometry();	// Compatibility mode
+
 static Class	NSStringClass = 0;
 static Class	NSScannerClass = 0;
 static SEL	scanFloatSel = @selector(scanFloat:);
@@ -46,36 +47,6 @@ static SEL	scannerSel = @selector(scannerWithString:);
 static BOOL	(*scanFloatImp)(NSScanner*, SEL, float*);
 static BOOL	(*scanStringImp)(NSScanner*, SEL, NSString*, NSString**);
 static id 	(*scannerImp)(Class, SEL, NSString*);
-
-/*
- * A trivial class to monitor user defaults to see how we should be
- * producing strings describing geometry structures.
- */
-@interface GSGeometryDefaultObserver : NSObject
-+ (void) defaultsChanged: (NSNotification*)aNotification;
-@end
-
-@implementation GSGeometryDefaultObserver
-+ (void) defaultsChanged: (NSNotification*)aNotification
-{
-  NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
-  id			def;
-
-  def = [defaults objectForKey: @"GSMacOSXCompatibleGeometry"];
-  if (def == nil)
-    {
-      def = [defaults objectForKey: @"GSMacOSXCompatible"];
-    }
-  if (def != nil && [def isKindOfClass: NSStringClass] == YES)
-    {
-      MacOSX = [def boolValue];
-    }
-  else
-    {
-      MacOSX = NO;
-    }
-}
-@end
 
 static inline void
 setupCache()
@@ -90,13 +61,6 @@ setupCache()
 	[NSScannerClass instanceMethodForSelector: scanStringSel];
       scannerImp = (id (*)(Class, SEL, NSString*))
 	[NSScannerClass methodForSelector: scannerSel];
-
-      [[NSNotificationCenter defaultCenter]
-	addObserver: [GSGeometryDefaultObserver class]
-	   selector: @selector(defaultsChanged:)
-	       name: NSUserDefaultsDidChangeNotification
-	     object: nil];
-      [[GSGeometryDefaultObserver class] defaultsChanged: nil];
     }
 }
 
@@ -238,7 +202,7 @@ NSString*
 NSStringFromPoint(NSPoint aPoint)
 {
   setupCache();
-  if (MacOSX == YES)
+  if (GSMacOSXCompatibleGeometry() == YES)
     return [NSStringClass stringWithFormat:
       @"{%g, %g}", aPoint.x, aPoint.y];
   else
@@ -250,7 +214,7 @@ NSString*
 NSStringFromRect(NSRect aRect)
 {
   setupCache();
-  if (MacOSX == YES)
+  if (GSMacOSXCompatibleGeometry() == YES)
     return [NSStringClass stringWithFormat:
       @"{{%g, %g}, {%g, %g}}",
       aRect.origin.x, aRect.origin.y, aRect.size.width, aRect.size.height];
@@ -264,7 +228,7 @@ NSString*
 NSStringFromSize(NSSize aSize)
 {
   setupCache();
-  if (MacOSX == YES)
+  if (GSMacOSXCompatibleGeometry() == YES)
     return [NSStringClass stringWithFormat:
       @"{%g, %g}", aSize.width, aSize.height];
   else

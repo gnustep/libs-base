@@ -1,3 +1,12 @@
+2000-09-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSCompatibility.m: new file for MacOSX compatibility flags
+	* Source/GNUmakefile: add GSCompatibility.m
+	* Source/NSGeometry.m: Use GSMacOSXCompatibleGeometry() function to
+	decide whether to produce MacOS-X format strings.
+	* Source/propList.h: Parse MacOS-X format property lists as well as
+	OpenStep format ones.
+
 2000-09-12  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Check for symlin, readlink.
