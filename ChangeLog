@@ -1,3 +1,8 @@
+2001-12-11  Manuel Guesdon <mguesdon@orange-concept.com>
+
+	* Source/NSString.m: corrected  bug in +stringByTrimmingSpaces 
+		(there was an exception when the string contains only spaces).
+
 2001-12-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/gsdoc/NSDistantObjectRequest.gsdoc: note that the
