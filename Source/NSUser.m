@@ -199,6 +199,132 @@ NSFullUserName(void)
 #endif
 }
 
+
+/* We read these four only once */
+static NSString	*gnustep_user_root = nil;    /* GNUSTEP_USER_ROOT */
+static NSString	*gnustep_local_root = nil;   /* GNUSTEP_LOCAL_ROOT */
+static NSString	*gnustep_network_root = nil; /* GNUSTEP_NETWORK_ROOT */
+static NSString	*gnustep_system_root = nil;  /* GNUSTEP_SYSTEM_ROOT */
+
+static void
+setupPathNames()
+{
+  if (gnustep_system_root == nil)
+    {
+      NS_DURING
+	{
+	  NSDictionary	*env;
+	  
+	  [gnustep_global_lock lock];
+
+	  /* Double-Locking Pattern */
+	  if (gnustep_system_root == nil)
+	    {
+	      BOOL	warned = NO;
+
+	      env = [[NSProcessInfo processInfo] environment];
+	      /* Any of the following might be nil */
+	      gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+	      TEST_RETAIN (gnustep_system_root);
+	      if (gnustep_system_root == nil)
+		{
+		  /*
+		   * This is pretty important as we need it to load
+		   * character sets, language settings and similar
+		   * resources.  Use fprintf to avoid recursive calls.
+		   */
+		  warned = YES;
+		  fprintf (stderr, 
+		    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
+		    "- using /usr/GNUstep/System as a default\n");
+		  gnustep_system_root = @"/usr/GNUstep/System";
+		}
+
+	      gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+	      TEST_RETAIN (gnustep_local_root);
+	      if (gnustep_local_root == nil)
+		{
+		  if ([[gnustep_system_root lastPathComponent] isEqual:
+		    @"System"] == YES)
+		    {
+		      gnustep_local_root = [[gnustep_system_root
+			stringByDeletingLastPathComponent]
+			stringByAppendingPathComponent: @"Local"];
+		      TEST_RETAIN (gnustep_local_root);
+		    }
+		  else
+		    {
+		      gnustep_local_root = @"/usr/GNUstep/Local";
+		    }
+#ifndef	NDEBUG
+		  if (warned == NO)
+		    {
+		      warned = YES;
+		      fprintf (stderr, 
+			"Warning - GNUSTEP_LOCAL_ROOT is not set "
+			"- using %s\n", [gnustep_local_root lossyCString]);
+		    }
+#endif
+		}
+
+	      gnustep_network_root = [env objectForKey: 
+		@"GNUSTEP_NETWORK_ROOT"];
+	      TEST_RETAIN (gnustep_network_root);
+	      if (gnustep_network_root == nil)
+		{
+		  if ([[gnustep_system_root lastPathComponent] isEqual:
+		    @"System"] == YES)
+		    {
+		      gnustep_network_root = [[gnustep_system_root
+			stringByDeletingLastPathComponent]
+			stringByAppendingPathComponent: @"Network"];
+		      TEST_RETAIN (gnustep_network_root);
+		    }
+		  else
+		    {
+		      gnustep_network_root = @"/usr/GNUstep/Network";
+		    }
+#ifndef	NDEBUG
+		  if (warned == NO)
+		    {
+		      warned = YES;
+		      fprintf (stderr, 
+			"Warning - GNUSTEP_NETWORK_ROOT is not set "
+			"- using %s\n", [gnustep_network_root lossyCString]);
+		    }
+#endif
+		}
+
+	      gnustep_user_root = [env objectForKey: @"GNUSTEP_USER_ROOT"];
+	      TEST_RETAIN (gnustep_user_root);
+	      if (gnustep_user_root == nil)
+		{
+		  gnustep_user_root = [NSHomeDirectory()
+		    stringByAppendingPathComponent: @"GNUstep"];
+		  TEST_RETAIN (gnustep_user_root);
+		  if (warned == NO)
+		    {
+		      warned = YES;
+		      fprintf (stderr, 
+			"Warning - GNUSTEP_USER_ROOT is not set "
+			"- using %s\n", [gnustep_user_root lossyCString]);
+		    }
+		}
+	    }
+
+	  [gnustep_global_lock unlock];
+	}
+      NS_HANDLER
+	{
+	  // unlock then re-raise the exception
+	  [gnustep_global_lock unlock];
+	  [localException raise];
+	}
+      NS_ENDHANDLER
+    }
+}
+
+
 NSArray *
 GSStandardPathPrefixes(void)
 {
@@ -222,19 +348,23 @@ GSStandardPathPrefixes(void)
       NSString	*str;
       unsigned	count = 0;
 
-      str = [env objectForKey: @"GNUSTEP_USER_ROOT"];
+      if (gnustep_system_root == nil)
+	{
+	  setupPathNames();
+	}
+      str = gnustep_user_root;
       if (str != nil)
 	strings[count++] = str;
 
-      str = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+      str = gnustep_local_root;
       if (str != nil)
 	strings[count++] = str;
 
-      str = [env objectForKey: @"GNUSTEP_NETWORK_ROOT"];
+      str = gnustep_network_root;
       if (str != nil)
         strings[count++] = str;
 
-      str = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+      str = gnustep_system_root;
       if (str != nil)
 	strings[count++] = str;
 
@@ -375,11 +505,6 @@ NSArray *
 NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSSearchPathDomainMask domainMask, BOOL expandTilde)
 {
-  /* We read these four only once */
-  static NSString	*gnustep_user_root = nil;    /* GNUSTEP_USER_ROOT */
-  static NSString	*gnustep_local_root = nil;   /* GNUSTEP_LOCAL_ROOT */
-  static NSString	*gnustep_network_root = nil; /* GNUSTEP_NETWORK_ROOT */
-  static NSString	*gnustep_system_root = nil;  /* GNUSTEP_SYSTEM_ROOT */
   NSFileManager		*fm;
   NSString		*adminDir = @"Administrator";
   NSString		*appsDir = @"Apps";
@@ -395,112 +520,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
 
   if (gnustep_system_root == nil)
     {
-      NS_DURING
-	{
-	  NSDictionary	*env;
-	  
-	  [gnustep_global_lock lock];
-
-	  /* Double-Locking Pattern */
-	  if (gnustep_system_root == nil)
-	    {
-	      BOOL	warned = NO;
-
-	      env = [[NSProcessInfo processInfo] environment];
-	      /* Any of the following might be nil */
-	      gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
-	      TEST_RETAIN (gnustep_system_root);
-	      if (gnustep_system_root == nil)
-		{
-		  /*
-		   * This is pretty important as we need it to load
-		   * character sets, language settings and similar
-		   * resources.  Use fprintf to avoid recursive calls.
-		   */
-		  warned = YES;
-		  fprintf (stderr, 
-		    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
-		    "- using /usr/GNUstep/System as a default\n");
-		  gnustep_system_root = @"/usr/GNUstep/System";
-		}
-
-	      gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
-	      TEST_RETAIN (gnustep_local_root);
-	      if (gnustep_local_root == nil)
-		{
-		  if ([[gnustep_system_root lastPathComponent] isEqual:
-		    @"System"] == YES)
-		    {
-		      gnustep_local_root = [[gnustep_system_root
-			stringByDeletingLastPathComponent]
-			stringByAppendingPathComponent: @"Local"];
-		      TEST_RETAIN (gnustep_local_root);
-		    }
-		  else
-		    {
-		      gnustep_local_root = @"/usr/GNUstep/Local";
-		    }
-		  if (warned == NO)
-		    {
-		      warned = YES;
-		      fprintf (stderr, 
-			"Warning - GNUSTEP_LOCAL_ROOT is not set "
-			"- using %s\n", [gnustep_local_root lossyCString]);
-		    }
-		}
-
-	      gnustep_network_root = [env objectForKey: 
-		@"GNUSTEP_NETWORK_ROOT"];
-	      TEST_RETAIN (gnustep_network_root);
-	      if (gnustep_network_root == nil)
-		{
-		  if ([[gnustep_system_root lastPathComponent] isEqual:
-		    @"System"] == YES)
-		    {
-		      gnustep_network_root = [[gnustep_system_root
-			stringByDeletingLastPathComponent]
-			stringByAppendingPathComponent: @"Network"];
-		      TEST_RETAIN (gnustep_network_root);
-		    }
-		  else
-		    {
-		      gnustep_network_root = @"/usr/GNUstep/Network";
-		    }
-		  if (warned == NO)
-		    {
-		      warned = YES;
-		      fprintf (stderr, 
-			"Warning - GNUSTEP_NETWORK_ROOT is not set "
-			"- using %s\n", [gnustep_network_root lossyCString]);
-		    }
-		}
-
-	      gnustep_user_root = [env objectForKey: @"GNUSTEP_USER_ROOT"];
-	      TEST_RETAIN (gnustep_user_root);
-	      if (gnustep_user_root == nil)
-		{
-		  gnustep_user_root = [NSHomeDirectory()
-		    stringByAppendingPathComponent: @"GNUstep"];
-		  TEST_RETAIN (gnustep_user_root);
-		  if (warned == NO)
-		    {
-		      warned = YES;
-		      fprintf (stderr, 
-			"Warning - GNUSTEP_USER_ROOT is not set "
-			"- using %s\n", [gnustep_user_root lossyCString]);
-		    }
-		}
-	    }
-
-	  [gnustep_global_lock unlock];
-	}
-      NS_HANDLER
-	{
-	  // unlock then re-raise the exception
-	  [gnustep_global_lock unlock];
-	  [localException raise];
-	}
-      NS_ENDHANDLER
+      setupPathNames();
     }
 
   /*
