@@ -117,6 +117,7 @@
 - (void) deleteHeaderNamed: (NSString*)name;
 - (GSMimeHeader*) headerNamed: (NSString*)name;
 - (NSArray*) headersNamed: (NSString*)name;
+- (NSString*) makeBoundary;
 - (GSMimeHeader*) makeContentID;
 - (GSMimeHeader*) makeMessageID;
 - (NSMutableData*) rawMimeData;
@@ -129,7 +130,7 @@
 	       name: (NSString*)name;
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
-	    subType: (NSString*)subType
+	    subtype: (NSString*)subType
 	       name: (NSString*)name;
 - (void) setHeader: (GSMimeHeader*)info;
 

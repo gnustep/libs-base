@@ -55,11 +55,21 @@
 #include	<string.h>
 #include	<ctype.h>
 
-static NSString *makeUniqueString();
-
 static	NSCharacterSet	*whitespace = nil;
 static	NSCharacterSet	*rfc822Specials = nil;
 static	NSCharacterSet	*rfc2045Specials = nil;
+
+struct MD5Context
+{
+  unsigned long buf[4];
+  unsigned long bits[2];
+  unsigned char in[64];
+};
+static void MD5Init (struct MD5Context *context);
+static void MD5Update (struct MD5Context *context, unsigned char const *buf,
+unsigned len);
+static void MD5Final (unsigned char digest[16], struct MD5Context *context);
+static void MD5Transform (unsigned long buf[4], unsigned long const in[16]);
 
 /*
  *	Name -		decodebase64()
@@ -1377,11 +1387,23 @@ wordData(NSString *word)
     }
   else if ([name isEqualToString: @"content-type"] == YES)
     {
+      NSString	*tmp = [info parameterForKey: @"boundary"];
       NSString	*type;
       NSString	*subtype;
       BOOL	supported = NO;
 
       DESTROY(boundary);
+      if (tmp != nil)
+	{
+	  unsigned int	l = [tmp cStringLength] + 2;
+	  unsigned char	*b = NSZoneMalloc(NSDefaultMallocZone(), l + 1);
+
+	  b[0] = '-';
+	  b[1] = '-';
+	  [tmp getCString: &b[2]];
+	  boundary = [[NSData alloc] initWithBytesNoCopy: b length: l];
+	}
+
       type = [info objectForKey: @"Type"];
       if ([type length] == 0)
 	{
@@ -1399,24 +1421,12 @@ wordData(NSString *word)
 	}
       else if ([type isEqualToString: @"multipart"] == YES)
 	{
-	  NSString	*tmp = [info parameterForKey: @"boundary"];
-
 	  if (subtype == nil)
 	    {
 	      subtype = @"mixed";
 	    }
 	  supported = YES;
-	  if (tmp != nil)
-	    {
-	      unsigned int	l = [tmp cStringLength] + 2;
-	      unsigned char	*b = NSZoneMalloc(NSDefaultMallocZone(), l + 1);
-
-	      b[0] = '-';
-	      b[1] = '-';
-	      [tmp getCString: &b[2]];
-	      boundary = [[NSData alloc] initWithBytesNoCopy: b length: l];
-	    }
-	  else
+	  if (boundary == nil)
 	    {
 	      NSLog(@"multipart message without boundary");
 	      return NO;
@@ -3654,6 +3664,44 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
+ * <p>Make a probably unique string suitable for use as the
+ * boundary parameter in the content of a multipart document.
+ * </p>
+ * <p>This implementation provides base64 encoded data
+ * consisting of an MD5 digest of some pseudo random stuff,
+ * plus an incrementing counter.
+ * </p>
+ */
+- (NSString*) makeBoundary
+{
+  static int		count = 0;
+  struct MD5Context	ctx;
+  const char		*bytes;
+  unsigned int		i;
+  unsigned char		digest[20];
+  unsigned char		*encoded;
+  NSMutableData		*md;
+  NSString		*result;
+
+  md = [[NSMutableData alloc] initWithLength: 40];
+  encoded = (unsigned char*)[md mutableBytes];
+  MD5Init(&ctx);
+  bytes = [[[NSProcessInfo processInfo] globallyUniqueString] lossyCString];
+  MD5Update(&ctx, bytes, strlen(bytes));
+  count++;
+  MD5Update(&ctx, (unsigned char*)&count, sizeof(count));
+  MD5Final(digest, &ctx);
+  digest[16] = (count >> 24) & 0xff;
+  digest[17] = (count >> 16) & 0xff;
+  digest[18] = (count >> 8) & 0xff;
+  digest[19] = count & 0xff;
+  i = encodebase64(encoded, digest, 20);
+  [md setLength: i];
+  result = [[NSString alloc] initWithData: md encoding: NSASCIIStringEncoding];
+  return AUTORELEASE(result);
+}
+
+/**
  * Create new content ID header, set it as the content ID of the document
  * and return it.<br />
  * This is a convenience method which simply places angle brackets around
@@ -3719,6 +3767,7 @@ static NSCharacterSet	*tokenSet = nil;
   GSMimeHeader	*hdr;
   NSData	*boundary;
   BOOL		is7bit = YES;
+  BOOL		isMultipart = NO;
 
   if (isOuter == YES)
     {
@@ -3737,32 +3786,36 @@ static NSCharacterSet	*tokenSet = nil;
 	}
     }
 
+  if ([content isKindOfClass: [NSArray class]] == YES)
+    {
+      isMultipart = YES;
+    }
+
   type = [self headerNamed: @"content-type"];
   if (type == nil)
     {
       /*
        * Attempt to infer the content type from the content.
        */
-      if ([content isKindOfClass: [NSString class]] == YES)
+      if (isMultipart == YES)
+	{
+	  [self setContent: content
+		      type: @"multipart"
+		   subtype: @"mixed"
+		      name: nil];
+	}
+      else if ([content isKindOfClass: [NSString class]] == YES)
 	{
 	  [self setContent: content
 		      type: @"text"
-		   subType: @"plain"
+		   subtype: @"plain"
 		      name: nil];
 	}
       else if ([content isKindOfClass: [NSData class]] == YES)
 	{
 	  [self setContent: content
 		      type: @"application"
-		   subType: @"octet-stream"
-		      name: nil];
-	}
-      else if ([content isKindOfClass: [NSArray class]] == YES
-	&& [content count] > 0)
-	{
-	  [self setContent: content
-		      type: @"multipart"
-		   subType: @"mixed"
+		   subtype: @"octet-stream"
 		      name: nil];
 	}
       else
@@ -3774,7 +3827,7 @@ static NSCharacterSet	*tokenSet = nil;
       type = [self headerNamed: @"content-type"];
     }
 
-  if ([[type objectForKey: @"Type"] isEqual: @"multipart"] == YES)
+  if (isMultipart == YES)
     {
       NSString	*v;
 
@@ -3803,7 +3856,7 @@ static NSCharacterSet	*tokenSet = nil;
       v = [type parameterForKey: @"boundary"];
       if (v == nil)
 	{
-	  v = makeUniqueString();
+	  v = [self makeBoundary];
 	  [type setParameter: v forKey: @"boundary"];
 	}
       boundary = [v dataUsingEncoding: NSASCIIStringEncoding];
@@ -3857,7 +3910,7 @@ static NSCharacterSet	*tokenSet = nil;
       [md appendData: [hdr rawMimeData]];
     }
 
-  if ([[type objectForKey: @"Type"] isEqual: @"multipart"] == YES)
+  if (isMultipart == YES)
     {
       unsigned	count;
       unsigned	i;
@@ -3978,7 +4031,7 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Convenience method calling -setContent:type:subType:name: to set
+ * Convenience method calling -setContent:type:subtype:name: to set
  * content and type.  If the type argument contains a slash '/')
  * then it is split into type and subtype parts, otherwise, the
  * subtype is assumed to be nil.
@@ -4014,28 +4067,45 @@ static NSCharacterSet	*tokenSet = nil;
     }
   [self setContent: newContent
 	      type: type
-	   subType: subtype
+	   subtype: subtype
 	      name: name];
 }
 
+- (void) setContent: (id)newContent
+	       type: (NSString*)type
+	    subType: (NSString*)subtype
+	       name: (NSString*)name
+{
+  [self setContent: newContent type: type subtype: subtype name: name];
+}
+
 /**
- * Convenience method to set the content of the document along with
- * creating a content-type header for it.<br />
- * You can get the same effect by calling -setContent: to set the document
+ * <p>Convenience method to set the content of the document along with
+ * creating a content-type header for it.
+ * </p>
+ * <p>You can get the same effect by calling -setContent: to set the document
  * content, then creating a [GSMimeHeader] instance, initialising it with
  * the content type information you want using
  * [GSMimeHeader-initWithName:value:parameters:], and  calling the
  * -setHeader: method to attach it to the document.
+ * </p>
+ * <p>Using this method imposes a few extra checks and restrictions on the
+ * combination of content and type/subtype you may use ... so you may want
+ * to use the more primitive methods in order to bypass these checks if
+ * you are using unusual type/subtype information or if you need to provide
+ * additional paramters in the header.
+ * </p>
  */
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
-	    subType: (NSString*)subType
+	    subtype: (NSString*)subtype
 	       name: (NSString*)name
 {
   GSMimeHeader	*hdr;
   NSString	*val;
 
   if ([type isEqualToString: @"multipart"] == NO
+    && [type isEqualToString: @"application"] == NO
     && [content isKindOfClass: [NSArray class]] == YES)
     {
       [NSException raise: NSInvalidArgumentException
@@ -4045,11 +4115,11 @@ static NSCharacterSet	*tokenSet = nil;
 
   [self setContent: newContent];
 
-  val = [NSString stringWithFormat: @"%@/%@", type, subType];
+  val = [NSString stringWithFormat: @"%@/%@", type, subtype];
   hdr = [GSMimeHeader alloc];
   hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
   [hdr setObject: type forKey: @"Type"];
-  [hdr setObject: subType forKey: @"SubType"];
+  [hdr setObject: subtype forKey: @"SubType"];
   if (name != nil)
     {
       [hdr setParameter: name forKey: @"name"];
@@ -4119,18 +4189,6 @@ static NSCharacterSet	*tokenSet = nil;
 
 
 #include <Foundation/NSByteOrder.h>
-
-struct MD5Context
-{
-  unsigned long buf[4];
-  unsigned long bits[2];
-  unsigned char in[64];
-};
-static void MD5Init (struct MD5Context *context);
-static void MD5Update (struct MD5Context *context, unsigned char const *buf,
-unsigned len);
-static void MD5Final (unsigned char digest[16], struct MD5Context *context);
-static void MD5Transform (unsigned long buf[4], unsigned long const in[16]);
 
 /*
  * This code implements the MD5 message-digest algorithm.
@@ -4377,40 +4435,5 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   buf[1] += b;
   buf[2] += c;
   buf[3] += d;
-}
-
-/*
- * Make a probably unique string of base64 encoded data
- * consisting of an MD5 digest of some pseudo random stuff,
- * plus an incrementing counter.
- */
-static NSString *
-makeUniqueString()
-{
-  static int		count = 0;
-  struct MD5Context	ctx;
-  const char		*bytes;
-  unsigned int		i;
-  unsigned char		digest[20];
-  unsigned char		*encoded;
-  NSMutableData		*md;
-  NSString		*result;
-
-  md = [[NSMutableData alloc] initWithLength: 40];
-  encoded = (unsigned char*)[md mutableBytes];
-  MD5Init(&ctx);
-  bytes = [[[NSProcessInfo processInfo] globallyUniqueString] lossyCString];
-  MD5Update(&ctx, bytes, strlen(bytes));
-  count++;
-  MD5Update(&ctx, (unsigned char*)&count, sizeof(count));
-  MD5Final(digest, &ctx);
-  digest[16] = (count >> 24) & 0xff;
-  digest[17] = (count >> 16) & 0xff;
-  digest[18] = (count >> 8) & 0xff;
-  digest[19] = count & 0xff;
-  i = encodebase64(encoded, digest, 20);
-  [md setLength: i];
-  result = [[NSString alloc] initWithData: md encoding: NSASCIIStringEncoding];
-  return AUTORELEASE(result);
 }
 
