@@ -392,7 +392,7 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSString *path;
   unsigned i, count;
 
-  if (gnustep_user_root == nil)
+  if (gnustep_system_root == nil)
     {
       NS_DURING
 	{
@@ -400,26 +400,31 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
 	  
 	  [gnustep_global_lock lock];
 
-	  env = [[NSProcessInfo processInfo] environment];
-	  /* Any of the following might be nil */
-	  gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
-	  TEST_RETAIN (gnustep_system_root);
+	  /* Double-Locking Pattern */
 	  if (gnustep_system_root == nil)
 	    {
-	      /* This is pretty important as we need it to load
-		 character sets, language settings and similar
-		 resources.  Use fprintf to avoid recursive calls. */
-	      fprintf (stderr, 
-		       "Warning - GNUSTEP_SYSTEM_ROOT is not set "
-		       "- using /usr/GNUstep/System as a default\n");
-	      gnustep_system_root = @"/usr/GNUstep/System";
+	      env = [[NSProcessInfo processInfo] environment];
+	      /* Any of the following might be nil */
+	      gnustep_system_root = [env objectForKey: @"GNUSTEP_SYSTEM_ROOT"];
+	      TEST_RETAIN (gnustep_system_root);
+	      if (gnustep_system_root == nil)
+		{
+		  /* This is pretty important as we need it to load
+		     character sets, language settings and similar
+		     resources.  Use fprintf to avoid recursive calls. */
+		  fprintf (stderr, 
+			   "Warning - GNUSTEP_SYSTEM_ROOT is not set "
+			   "- using /usr/GNUstep/System as a default\n");
+		  gnustep_system_root = @"/usr/GNUstep/System";
+		}
+	      gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
+	      TEST_RETAIN (gnustep_local_root);
+	      gnustep_network_root = [env objectForKey: 
+					    @"GNUSTEP_NETWORK_ROOT"];
+	      TEST_RETAIN (gnustep_network_root);
+	      gnustep_user_root = [env objectForKey: @"GNUSTEP_USER_ROOT"];
+	      TEST_RETAIN (gnustep_user_root);
 	    }
-	  gnustep_local_root = [env objectForKey: @"GNUSTEP_LOCAL_ROOT"];
-	  TEST_RETAIN (gnustep_local_root);
-	  gnustep_network_root = [env objectForKey: @"GNUSTEP_NETWORK_ROOT"];
-	  TEST_RETAIN (gnustep_network_root);
-	  gnustep_user_root = [env objectForKey: @"GNUSTEP_USER_ROOT"];
-	  TEST_RETAIN (gnustep_user_root);
 
 	  [gnustep_global_lock unlock];
 	}
