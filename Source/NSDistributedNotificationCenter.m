@@ -33,6 +33,14 @@
 #include	"../Tools/gdnc.h"
 
 /*
+ *      Macros to build text to start name server and to give an error
+ *      message about it - they include installation path information.
+ */
+#define stringify_it(X) #X
+#define make_gdnc_cmd(X)      stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdnc &"
+#define make_gdnc_err(X)      "check that " stringify_it(X) "/Tools/"GNUSTEP_TARGET_DIR"/gdnc is running."
+
+/*
  *	Global variables for distributed notification center types.
  */
 NSString	*NSLocalNotificationCenterType =
@@ -45,7 +53,7 @@ NSString	*NSLocalNotificationCenterType =
 - (void) postNotificationName: (NSString*)name
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
-		     selector: (SEL)aSelector
+		     selector: (NSString*)aSelector
 			   to: (unsigned long)observer;
 @end
 
@@ -131,7 +139,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
       [NSException raise: NSInvalidArgumentException
 		  format: @"nul selector"];
     }
-  if (notificationName != nil ||
+  if (notificationName != nil &&
 	[notificationName isKindOfClass: [NSString class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
@@ -153,7 +161,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
     {
       [self _connect];
       [(id<GDNCProtocol>)remote addObserver: (unsigned long)anObserver
-				   selector: aSelector
+				   selector: NSStringFromSelector(aSelector)
 				       name: notificationName
 				     object: anObject
 			 suspensionBehavior: suspensionBehavior
@@ -323,8 +331,27 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 	}
       else
 	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"unable to contact GDNC server"];
+	  static BOOL recursion = NO;
+
+	  if (recursion == NO)
+	    {
+NSLog(@"NSDistributedNotificationCenter failed to contact GDNC server.\n");
+NSLog(@"Attempting to start GDNC process - this will take several seconds.\n");
+	      system(make_gdnc_cmd(GNUSTEP_INSTALL_PREFIX));
+	      sleep(8);
+NSLog(@"Retrying connection to the GDNC server.\n");
+	      recursion = YES;
+	      [self _connect];
+	      recursion = NO;
+NSLog(@"Connection to GDNC server established.\n");
+	    }
+	  else
+	    { 
+	      recursion = NO;
+	      [NSException raise: NSInternalInconsistencyException
+			  format: @"unable to contact GDNC server - %s",
+			      make_gdnc_err(GNUSTEP_INSTALL_PREFIX)];
+	    }
 	}
     }
 }
@@ -348,7 +375,7 @@ static NSDistributedNotificationCenter	*defCenter = nil;
 - (void) postNotificationName: (NSString*)name
 		       object: (NSString*)object
 		     userInfo: (NSData*)info
-		     selector: (SEL)aSelector
+		     selector: (NSString*)aSelector
 			   to: (unsigned long)observer
 {
   id			userInfo;
@@ -359,7 +386,8 @@ static NSDistributedNotificationCenter	*defCenter = nil;
   notification = [NSNotification notificationWithName: name
 					       object: object
 					     userInfo: userInfo];
-  [recipient performSelector: aSelector withObject: notification];
+  [recipient performSelector: sel_get_any_typed_uid([aSelector cString])
+		  withObject: notification];
 }
 
 @end
