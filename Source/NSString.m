@@ -3774,7 +3774,8 @@ handle_printf_atsign (FILE *stream,
 	strcpy(new_buf, &new_buf[8]);
     }
   return [[NSFileManager defaultManager]
-	     stringWithFileSystemRepresentation: new_buf];
+	     stringWithFileSystemRepresentation: new_buf
+	     length: strlen(new_buf)];
 #endif  /* (__MINGW__) */
 }
 
