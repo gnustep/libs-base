@@ -1,3 +1,9 @@
+Wed Jan  6 10:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        * mframe/alpha/linux-gnu: First rough attempt at making a config
+        file for the DEC alpha.
+        * mframe/alpha/gneric: ditto.
+
 Tue Jan  5 20:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * configure.in: New stuff for making byte-order and type-size

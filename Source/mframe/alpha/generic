@@ -1,0 +1,70 @@
+/* See ../README for copyright */
+
+/*
+ * All arguments are passed on the stack with small (< sizeof(void*)) values
+ * occupying the space of a pointer.
+ * If the method returns a structure, it's address is passed as an invisible
+ * first argument.
+ */
+
+#define MFRAME_STRUCT_BYREF     0
+#define MFRAME_SMALL_STRUCT     0
+#define MFRAME_ARGS_SIZE        104
+#define MFRAME_RESULT_SIZE      16
+#define MFRAME_FLT_IN_FRAME_AS_DBL      0
+
+/*
+ * Structures are passed by reference as an invisible first argument, so
+ * they go in the first space on the stack.
+ */
+#define MFRAME_GET_STRUCT_ADDR(ARGS, TYPES) \
+((*(TYPES)==_C_STRUCT_B || *(TYPES)==_C_UNION_B || *(TYPES)==_C_ARY_B) ? \
+      *(void**)(ARGS) : (void*)0)
+
+#define MFRAME_SET_STRUCT_ADDR(ARGS, TYPES, ADDR) \
+({if (*(TYPES)==_C_STRUCT_B || *(TYPES)==_C_UNION_B || *(TYPES)==_C_ARY_B) \
+      *(void**)(ARGS) = (ADDR);})
+
+/*
+ * Declare a type for keeping track of the arguments processed.
+ */
+typedef int MFRAME_ARGS;
+
+
+/*
+ * Initialize a variable to keep track of argument info while processing a
+ * method.  Keeps count of the offset of arguments on the stack.
+ * This offset is adjusted to take account of an invisible first argument
+ * used to return structures.
+ */
+
+#define MFRAME_INIT_ARGS(CUM, RTYPE) \
+({ \
+  (CUM) = \
+    ((*(RTYPE)==_C_STRUCT_B || *(RTYPE)==_C_UNION_B || *(RTYPE)==_C_ARY_B) ? \
+        sizeof(void*) : 0); \
+})
+
+#define MFRAME_ARG_ENCODING(CUM, TYPE, STACK, DEST) \
+({  \
+  const char* type = (TYPE); \
+  int align, size; \
+\
+  (TYPE) = objc_skip_typespec(type); \
+  align = objc_alignof_type (type); \
+  size = objc_sizeof_type (type); \
+\
+  (CUM) = ROUND ((CUM), align); \
+  sprintf((DEST), "%.*s%d", (TYPE)-type, type, (CUM)); \
+  (STACK) = (CUM) + size; \
+  (CUM) += ROUND(size, sizeof(void*)); \
+  (DEST)=&(DEST)[strlen(DEST)]; \
+  if (*(TYPE) == '+') \
+    { \
+      (TYPE)++; \
+    } \
+  while (isdigit(*(TYPE))) \
+    { \
+      (TYPE)++; \
+    } \
+})
