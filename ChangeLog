@@ -2,6 +2,7 @@
 
 	* Source/NSUser.m: NSSearchPathForDirectoriesInDomains() Set up
 	default values if environment variables are missing.
+	Use common code for getting path prefixes and search directories.
 
 2001-07-07  Richard Frith-Macdonald <rfm@gnu.org>
 
