@@ -1,3 +1,8 @@
+2003-02-18  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSFFIInvocation.m (GSFFIInvocationCallback): Cast
+	invocation to access ivars correctly. Check validReturn.
+
 2003-02-18  Tom Koelman <tkoelman@xs4all.nl>
 
 	* Source/NSProcessInfo.m (_gnu_process_args): If argv is 0 (e.g.
