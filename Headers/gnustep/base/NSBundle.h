@@ -241,6 +241,7 @@ GS_EXPORT NSString* NSLoadedClasses;
 + (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray 
 			       forPreferences: (NSArray *)preferencesArray;
 
+- (BOOL) isLoaded;
 - (NSArray*) pathsForResourcesOfType: (NSString*)extension
 			 inDirectory: (NSString*)bundlePath
 		     forLocalization: (NSString*)localizationName;
