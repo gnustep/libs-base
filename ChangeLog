@@ -1,3 +1,9 @@
+2003-02-19  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSKeyValueCoding.m ([-takeStoredValuesFromDictionary:]):
+	Implemented here instead of in GDL2.
+	* Headers/gnustep/base/NSKeyValueCoding.h: Ditto.
+	
 2003-02-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSObject.m: ([+instancesRespondToSelector:]),([-respondsToSelector])

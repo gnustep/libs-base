@@ -42,6 +42,7 @@
 - (void) handleTakeValue: (id)anObject forUnboundKey: (NSString*)aKey;
 - (id) storedValueForKey: (NSString*)aKey;
 - (void) takeStoredValue: (id)anObject forKey: (NSString*)aKey;
+- (void) takeStoredValuesFromDictionary: (NSDictionary*)aDictionary;
 - (void) takeValue: (id)anObject forKey: (NSString*)aKey;
 - (void) takeValue: (id)anObject forKeyPath: (NSString*)aKey;
 - (void) takeValuesFromDictionary: (NSDictionary*)aDictionary;
