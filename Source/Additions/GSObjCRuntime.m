@@ -38,6 +38,13 @@
 #include <mframe.h>
 #include <string.h>
 
+BOOL
+GSFindInstanceVariable(id obj, const char *name,
+  const char **type, unsigned int *size, int *offset)
+{
+  return GSFindInstanceVariable(obj, name, type, size, offset);
+}
+
 /**
  * This function is used to locate information about the instance
  * variable of obj called name.  It returns YES if the variable
@@ -46,7 +53,7 @@
  * they are null pointers).
  */
 BOOL
-GSFindInstanceVariable(id obj, const char *name,
+GSObjCFindInstanceVariable(id obj, const char *name,
   const char **type, unsigned int *size, int *offset)
 {
   Class			class;
@@ -94,6 +101,11 @@ GSFindInstanceVariable(id obj, const char *name,
 void
 GSGetVariable(id obj, int offset, unsigned int size, void *data)
 {
+  GSObjCGetVariable(obj, offset, size, data);
+}
+void
+GSObjCGetVariable(id obj, int offset, unsigned int size, void *data)
+{
   memcpy(data, ((void*)obj) + offset, size);
 }
 
@@ -104,6 +116,12 @@ GSGetVariable(id obj, int offset, unsigned int size, void *data)
  */
 void
 GSSetVariable(id obj, int offset, unsigned int size, const void *data)
+{
+  GSObjCSetVariable(obj, offset, size, data);
+}
+
+void
+GSObjCSetVariable(id obj, int offset, unsigned int size, const void *data)
 {
   memcpy(((void*)obj) + offset, data, size);
 }
