@@ -1,3 +1,9 @@
+2004-09-02  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
+	(GS_ATTRIB_DEPRECATED): New macro to use for deprecation attribute
+	which can be deactivated for older compilers.
+	
 2004-09-03 19:08  Alexander Malmberg <alexander@malmberg.org>
 
 	* Tools/gdnc.m
