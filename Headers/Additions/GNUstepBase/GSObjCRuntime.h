@@ -41,8 +41,17 @@ extern "C" {
 #ifdef GNUSTEP_WITH_DLL
  
 #if BUILD_libgnustep_base_DLL
+#
+# if defined(__MINGW32__)
+  /* On Mingw, the compiler will export all symbols automatically, so
+   * __declspec(dllexport) is not needed.
+   */
+#  define GS_EXPORT  extern
+#  define GS_DECLARE 
+# else
 #  define GS_EXPORT  __declspec(dllexport)
 #  define GS_DECLARE __declspec(dllexport)
+# endif
 #else
 #  define GS_EXPORT  extern __declspec(dllimport)
 #  define GS_DECLARE __declspec(dllimport)
