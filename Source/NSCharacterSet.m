@@ -113,9 +113,14 @@ static NSLock* cache_lock = nil;
 	if (set_path != nil)
 	  {
 	    NS_DURING
-	      /* Load the character set file */
-	      set = [self characterSetWithBitmapRepresentation:
-			    [NSData dataWithContentsOfFile: set_path]];
+	      {
+		NSData *data;
+
+		/* Load the character set file */
+		data = [NSData dataWithContentsOfFile: set_path];
+		set = [NSCharacterSet characterSetWithBitmapRepresentation: 
+					data];
+	      }
 	    NS_HANDLER
 	      NSLog(@"Unable to read NSCharacterSet file %@", set_path);
 	    set = nil;
@@ -145,6 +150,14 @@ static NSLock* cache_lock = nil;
     set = cache_set[number];
 
   [cache_lock unlock];
+
+  if ([self isSubclassOfClass: [NSCharacterSet class]])
+    {
+      NSData *data;
+      data = [set bitmapRepresentation];
+      set = [self characterSetWithBitmapRepresentation: data];
+    }
+
   return set;
 }
 
