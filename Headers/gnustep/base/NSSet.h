@@ -73,8 +73,10 @@
 - (void) minusSet: (NSSet*)other;
 - (void) removeAllObjects;
 - (void) removeObject: (id)anObject;
+#ifndef	STRICT_OPENSTEP
+- (void) setSet: (NSSet*)other;
+#endif
 - (void) unionSet: (NSSet*)other;
-
 @end
 
 @interface NSCountedSet : NSMutableSet

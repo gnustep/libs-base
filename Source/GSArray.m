@@ -470,7 +470,7 @@ static SEL	eqSel;
 
   if (anObject == nil)
     {
-      NSWarnMLog(@"attempt to remove nil object", 0);
+      NSWarnMLog(@"attempt to remove nil object");
       return;
     }
   index = _count;
@@ -540,7 +540,7 @@ static SEL	eqSel;
 
   if (anObject == nil)
     {
-      NSWarnMLog(@"attempt to remove nil object", 0);
+      NSWarnMLog(@"attempt to remove nil object");
       return;
     }
   index = _count;
@@ -653,7 +653,7 @@ static SEL	eqSel;
 #ifdef	GSWARN
   if (badComparison == YES)
     {
-      NSWarnMLog(@"Detected bad return value from comparison", 0);
+      NSWarnMLog(@"Detected bad return value from comparison");
     }
 #endif
 }

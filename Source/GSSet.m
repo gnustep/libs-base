@@ -566,7 +566,7 @@ static Class	mutableSetClass;
 {
   if (anObject == nil)
     {
-      NSWarnMLog(@"attempt to remove nil object", 0);
+      NSWarnMLog(@"attempt to remove nil object");
       return;
     }
   GSIMapRemoveKey(&map, (GSIMapKey)anObject);
@@ -577,21 +577,27 @@ static Class	mutableSetClass;
   if (other != self)
     {
       NSEnumerator	*e = [other objectEnumerator];
-      id		anObject;
 
-      while ((anObject = [e nextObject]) != nil)
+      if (e != nil)
 	{
-	  GSIMapNode node;
+	  id	anObject;
+	  SEL	sel = @selector(nextObject);
+	  IMP	imp = [e methodForSelector: sel];
 
-	  if (anObject == nil)
+	  while ((anObject = (*imp)(e, sel)) != nil)
 	    {
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to add nil to set"];
-	    }
-	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
-	  if (node == 0)
-	    {
-	      GSIMapAddKey(&map, (GSIMapKey)anObject);
+	      GSIMapNode node;
+
+	      if (anObject == nil)
+		{
+		  [NSException raise: NSInvalidArgumentException
+			      format: @"Tried to add nil to set"];
+		}
+	      node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
+	      if (node == 0)
+		{
+		  GSIMapAddKey(&map, (GSIMapKey)anObject);
+		}
 	    }
 	}
     }

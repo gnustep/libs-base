@@ -861,7 +861,7 @@ static NSString	*indentStrings[] = {
 #ifdef	GSWARN
 	  if (badComparison == YES)
 	    {
-	      NSWarnMLog(@"Detected bad return value from comparison", 0);
+	      NSWarnMLog(@"Detected bad return value from comparison");
 	    }
 #endif
 	}
