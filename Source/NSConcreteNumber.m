@@ -1,7 +1,7 @@
 # line 1 "NSConcreteNumber.m"	/* So gdb knows which file we are in */
 /* NSConcreteNumber - Object encapsulation of numbers
     
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
@@ -27,6 +27,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
+#include <objects/Coder.h>
 
 /* This file should be run through a preprocessor with the macro TYPE_ORDER
    defined to a number from 0 to 12 cooresponding to each number type */
@@ -188,26 +189,39 @@
 
 - (const char *)objCType
 {
-    typedef _dt = data;
-    return @encode(_dt);
+  typedef _dt = data;
+  return @encode(_dt);
+}
+
+- (unsigned) hash
+{
+  return (unsigned)data;
+}
+
+- (BOOL) isEqual: o
+{
+  if ([o isKindOf: [NSValue class]])
+    return ((unsigned)data == [o unsignedIntValue]) ? YES : NO;
+  return NO;
 }
 
 // NSCoding
-- (void)encodeWithCoder:(NSCoder *)coder
+- classForCoder
 {
-    const char *type;
-    [super encodeWithCoder:coder];
-    type = [self objCType];
-    [coder encodeValueOfObjCType:@encode(char *) at:&type];
-    [coder encodeValueOfObjCType:type at:&data];
+  return [self class];
 }
 
-- (id)initWithCoder:(NSCoder *)coder
+- (void) encodeWithCoder: coder
 {
-    // This should raise an exception - Use NSValueDecoder to decode NSNumber
-    self = [super initWithCoder:coder];
-    //[coder decodeValueOfObjCType:[self objCType] at:&data];
-    return self;
+  const char *type = [self objCType];
+  [coder encodeValueOfObjCType: type at: &data withName: @"NSNumber value"];
+}
+
+- (id) initWithCoder: coder
+{
+  const char *type = [self objCType];
+  [coder decodeValueOfObjCType: type at: &data withName: NULL];
+  return self;
 }
 
 @end
