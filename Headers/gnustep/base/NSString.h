@@ -54,7 +54,7 @@ typedef enum _NSStringEncoding
   NSNonLossyASCIIStringEncoding
 } NSStringEncoding;
 
-@interface NSString : NSObject <NSCoding, NSCopying, NSMutableCopying>
+@protocol NSString  <NSCoding, NSCopying, NSMutableCopying>
 
 // Creating Temporary Strings
 
@@ -221,13 +221,17 @@ typedef enum _NSStringEncoding
 
 @end
 
+@interface NSString : NSObject <NSString>
+@end
+
 /* This private method will go away later. */
 @interface NSString (NSCStringAccess)
 - (const char *) _cStringContents;
 @end
 
+@class NSMutableString;
 
-@interface NSMutableString : NSString
+@protocol NSMutableString <NSString>
 
 // Creating Temporary Strings
 
@@ -261,6 +265,8 @@ compiler warning.
 
 @end
 
+@interface NSMutableString : NSString <NSMutableString>
+@end
 
 /* Because the compiler thinks that @".." strings are NXConstantString's. */
 #include <foundation/NSCString.h>
