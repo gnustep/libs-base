@@ -1,5 +1,17 @@
 Mon Mar 18 13:31:38 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
+	Miscellaneous small fixes, found with -Wall.
+	* src/NSThread.m: Fix indentation.
+	([NSThread +currentThread]): Add parenthesis around assignment inside
+	while.
+	* src/NSString.m: Include <objects/behavior.h.
+	([NSString -componentsSeparatedByString:]): Initialize ARRAY!
+	* src/List.m: Include <objects/stdobjects.h> Use OBJC_MALLOC and
+ 	friends, instead of NX_MALLOC.
+	* src/Decoder.m ([Decoder -finishDecodingInterconnectedObjects]):
+ 	Comment out temporarily unused AWAKE_SEL local variable.
+	* src/Proxy.m: Raise NSExceptions instead of using -error:.
+
 	Debug bug the occurs when a client disconnects from the server,
 	and other clients have references to Proxy's of the disconnected
 	client.
