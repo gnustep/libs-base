@@ -39,22 +39,18 @@ typedef unsigned short Character;
    collection of characters.  So, all the collection methods are
    available.  Nice. */
 
-@protocol String <IndexedCollecting, ValueGetting>
+@protocol String <ValueGetting>
 
 // INITIALIZING NEWLY ALLOCATED STRINGS.  DON'T FORGET TO RELEASE THEM!;
 - init;
-- initWithString: (String*)aString range: (IndexRange)aRange;
-- initWithString: (String*)aString length: (unsigned)aLength;
 - initWithString: (String*)aString;
+- initWithString: (String*)aString range: (IndexRange)aRange;
 - initWithFormat: (String*)aFormatString, ...;
 - initWithFormat: (String*)aFormatString arguments: (va_list)arg;
-- initWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
-- initWithCString: (const char*)aCharPtr length: (unsigned)aLength;
 - initWithCString: (const char*)aCharPtr;
-- initWithCStringNoCopy: (const char*)cp length: (unsigned)l
-   freeWhenDone: (BOOL)f;
-- initWithStream: (Stream*)aStream;
-- initWithStream: (Stream*)aStream length: (unsigned)aLength;
+- initWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
+//- initWithStream: (Stream*)aStream;
+//- initWithStream: (Stream*)aStream length: (unsigned)aLength;
 
 // GETTING C CHARS;
 - (char) charAtIndex: (unsigned)index;
@@ -62,21 +58,14 @@ typedef unsigned short Character;
 - (unsigned) cStringLength;
 - (void) getCString: (char*)buffer;
 - (void) getCString: (char*)buffer range: (IndexRange)aRange;
-- (void) getCString: (char*)buffer length: (unsigned)aLength;
-
-- (unsigned) length;
 
 // GETTING NEW, AUTORELEASED STRING OBJECTS, NO NEED TO RELEASE THESE;
-+ (String*) stringWithString: (String*)aString range: (IndexRange)aRange;
-+ (String*) stringWithString: (String*)aString length: (unsigned)aLength;
 + (String*) stringWithString: (String*)aString;
++ (String*) stringWithString: (String*)aString range: (IndexRange)aRange;
 + (String*) stringWithFormat: (String*)aFormatString, ...;
 + (String*) stringWithFormat: (String*)aFormatString arguments: (va_list)arg;
-+ (String*) stringWithCString: (const char*)cp range: (IndexRange)r
-   noCopy: (BOOL)f;
-+ (String*) stringWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
-+ (String*) stringWithCString: (const char*)aCharPtr length: (unsigned)aLength;
 + (String*) stringWithCString: (const char*)aCharPtr;
++ (String*) stringWithCString: (const char*)aCharPtr range: (IndexRange)aRange;
 
 - (String*) stringByAppendingFormat: (String*)aString, ...;
 - (String*) stringByAppendingFormat: (String*)aString arguments: (va_list)arg;
@@ -85,34 +74,35 @@ typedef unsigned short Character;
 - (String*) stringByAppendingString: (String*)aString;
 - (String*) stringByPrependingString: (String*)aString;
 
-- (String*) substringWithRange: (IndexRange)aRange;
-- (String*) substringWithLength: (unsigned)l;
-- (String*) substringAfterIndex: (unsigned)i;
-- (id <IndexedCollecting>) substringsSeparatedByString: (String*)separator;
+//- (String*) substringWithRange: (IndexRange)aRange;
+//- (String*) substringWithLength: (unsigned)l;
+//- (String*) substringAfterIndex: (unsigned)i;
+//- (id <IndexedCollecting>) substringsSeparatedByString: (String*)separator;
 
-- (String*) capitalizedString;
-- (String*) lowercaseString;
-- (String*) uppercaseString;
+//- (String*) capitalizedString;
+//- (String*) lowercaseString;
+//- (String*) uppercaseString;
 
-// TESTING;
+// QUERYING
+- (unsigned) length;
+- (IndexRange) range;
 - (BOOL) isEqual: anObject;
 - (unsigned) hash;
 - (int) compare: anObject;
 - copy;
-- (IndexRange) range;
 - (unsigned) indexOfString: (String*)aString;
 - (unsigned) indexOfChar: (char)aChar;
 - (unsigned) indexOfLastChar: (char)aChar;
-- (unsigned) indexOfCharacter: (Character)aChar;
-- (unsigned) indexOfLastCharacter: (Character)aChar;
+//- (unsigned) indexOfCharacter: (Character)aChar;
+//- (unsigned) indexOfLastCharacter: (Character)aChar;
 
 // FOR FILE NAMES (don't use the name "path", gnu will not use it for this);
-- (IndexRange) fileRange;
-- (IndexRange) directoriesRange;
-- (IndexRange) extensionRange;
-- (IndexRange) fileWithoutExtensionRange;
-- (BOOL) isAbsolute;
-- (BOOL) isRelative;
+//- (IndexRange) fileRange;
+//- (IndexRange) directoriesRange;
+//- (IndexRange) extensionRange;
+//- (IndexRange) fileWithoutExtensionRange;
+//- (BOOL) isAbsolute;
+//- (BOOL) isRelative;
 
 @end
 
