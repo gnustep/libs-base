@@ -4,6 +4,9 @@
 	* configure.in: test for broken SO_REUSEADDR
 	* acconfig.h: Add BROKEN_SO_REUSEADDR
 	* configure: regenerated
+	* Source/UnixFileHandle.m: Use reuseaddr info.
+	* Source/GSTcpPort.m: Use reuseaddr info.
+	* Tools/gdomap.c: Use reuseaddr info.
 	* Source/NSPortNameServer.m: Improved warnings about launching
 	gdomap.
 	* Source/NSDistributedNotification.m: Improved warnings about

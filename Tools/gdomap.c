@@ -1651,12 +1651,12 @@ init_ports()
       sprintf(ebuf, "Opened UDP socket %d", udp_desc);
       gdomap_log(LOG_DEBUG);
     }
-#ifndef __MINGW__
+#ifndef BROKEN_SO_REUSEADDR
   /*
-   * Under windoze, REUSEADDR means something different from under unix.
-   * It lets multiple processes bind to the same port at once -
-   * which we don't want.  So we only set it under unix (to allow a process to
-   * bind to the same port immediately after one which was using the port exits.
+   * Under decent systems, SO_REUSEADDR means that the port can be reused
+   * immediately that this process exits.  Under some it means
+   * that multiple processes can serve the same port simultaneously.
+   * We don't want that broken behavior!
    */
   r = 1;
   if ((setsockopt(udp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
@@ -1744,12 +1744,12 @@ init_ports()
       sprintf(ebuf, "Opened TDP socket %d", tcp_desc);
       gdomap_log(LOG_DEBUG);
     }
-#ifndef	__MINGW__
+#ifndef BROKEN_SO_REUSEADDR
   /*
-   * Under windoze, REUSEADDR means something different from under unix.
-   * It lets multiple processes bind to the same port at once -
-   * which we don't want.  So we only set it under unix (to allow a process to
-   * bind to the same port immediately after one which was using the port exits.
+   * Under decent systems, SO_REUSEADDR means that the port can be reused
+   * immediately that this process exits.  Under some it means
+   * that multiple processes can serve the same port simultaneously.
+   * We don't want that broken behavior!
    */
   r = 1;
   if ((setsockopt(tcp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
@@ -2645,19 +2645,18 @@ handle_request(int desc)
 	    }
 	  else
 	    {
-#ifndef __MINGW__
+#ifndef BROKEN_SO_REUSEADDR
 	      int	r = 1;
 
 	      /*
-	       * Under windoze, REUSEADDR means something different from
-	       * under unix.
-	       * It lets multiple processes bind to the same port at once -
-	       * which we don't want.  So we only set it under unix (to allow
-	       * a process to bind to the same port immediately after one
-	       * which was using the port exits.
+	       * Under decent systems, SO_REUSEADDR means that the port can
+	       * be reused immediately that this process exits.  Under some
+	       * it means that multiple processes can serve the same port
+	       * simultaneously.
+	       * We don't want that broken behavior!
 	       */
 	      if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-			    (char*)&r, sizeof(r)) < 0)
+		(char*)&r, sizeof(r)) < 0)
 		{
 		  perror("unable to set socket options");
 		}
@@ -2747,16 +2746,15 @@ handle_request(int desc)
 	    }
 	  else
 	    {
-#ifndef __MINGW__
+#ifndef BROKEN_SO_REUSEADDR
 	      int	r = 1;
 
 	      /*
-	       * Under windoze, REUSEADDR means something different from
-	       * under unix.
-	       * It lets multiple processes bind to the same port at once -
-	       * which we don't want.  So we only set it under unix (to allow
-	       * a process to bind to the same port immediately after one
-	       * which was using the port exits.
+	       * Under decent systems, SO_REUSEADDR means that the port can
+	       * be reused immediately that this process exits.  Under some
+	       * it means that multiple processes can serve the same port
+	       * simultaneously.
+	       * We don't want that broken behavior!
 	       */
 	      if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 		(char*)&r, sizeof(r)) < 0)
