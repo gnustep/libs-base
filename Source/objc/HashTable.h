@@ -29,6 +29,7 @@
 #define __HashTable_h_INCLUDE_GNU
 
 #include <objc/Object.h>
+#include <objects/stdobjects.h>
 #include <objc/hash.h>
 
 typedef node_ptr NXHashState;
