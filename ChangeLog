@@ -1,3 +1,9 @@
+2004-09-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: ([_postAndRelease:]) lock table
+	while emptying array of observers to prevent another thread from
+	changing things at the same time.
+
 2004-09-27 23:26  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSDistantObject.m: Make proxyLocation an enum tag, not a
