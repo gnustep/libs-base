@@ -95,12 +95,30 @@
 
 @end /* NSFileManager */
 
-
+/**
+ * An informal protocol to which handler objects should conform
+ * if they wish to deal with copy and move operations performed
+ * by NSFileManager.
+ */
 @interface NSObject (NSFileManagerHandler)
+/**
+ * When an error occurs during a copy or move operation, the file manager
+ * will send this message to the handler, and will use the return value to
+ * determine whether the operation should proceed.  If the method returns
+ * YES then the operation will proceed after the error, if it returns NO
+ * then it will be aborted.
+ */
 - (BOOL) fileManager: (NSFileManager*)fileManager
   shouldProceedAfterError: (NSDictionary*)errorDictionary;
+
+/**
+ * The file manager sends this method to the handler immediately before
+ * performing part of a directory move or copy operation.  This provides
+ * the handler object with information it can use in the event of an
+ * error, to decide whether p[rocessing should proceed after the error.
+ */
 - (void) fileManager: (NSFileManager*)fileManager
-  willProcessPath: (NSString*)path;
+     willProcessPath: (NSString*)path;
 @end
 
 
