@@ -67,6 +67,7 @@
 
 static Class NSAttributedString_abstract_class;
 static Class NSAttributedString_concrete_class;
+static Class NSMutableAttributedString_abstract_class;
 static Class NSMutableAttributedString_concrete_class;
 
 //Internal methods
@@ -96,6 +97,8 @@ static Class NSMutableAttributedString_concrete_class;
     {
       NSAttributedString_abstract_class = self;
       NSAttributedString_concrete_class = [NSGAttributedString class];
+      NSMutableAttributedString_abstract_class
+	= [NSMutableAttributedString class];
       NSMutableAttributedString_concrete_class
 	= [NSGMutableAttributedString class];
     }
@@ -408,7 +411,10 @@ static Class NSMutableAttributedString_concrete_class;
 
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _mutableConcreteClass], 0, z);
+  if (self == NSMutableAttributedString_abstract_class)
+    return NSAllocateObject([self _mutableConcreteClass], 0, z);
+  else
+    return NSAllocateObject(self, 0, z);
 }
 
 //Retrieving character information
