@@ -1,9 +1,110 @@
+Sat May  3 12:28:48 1997  Andrew McCallum  <mccallum@jprc.com>
+
+Tue Mar  4 10:51:22 1997  Andrew McCallum  <mccallum@jprc.com>
+
+	* src/NSConnection.m: New file.
+	* src/include/NSConnection.h: Add copyright and fix method
+ 	declaration.
+
+	* src/Connection.m ([Connection -registerName:]): New method.
+	([Connection +newForInPort:outPort:ancestorConnection:]): Ask the
+	delegate for permission to create the new connection.  We were
+ 	already doing it GNUstep-style.  Do it OpenStep-style also.
+
+	* src/NSGArchiver.m ([NSGArchiver -archiverData]): New method.  No
+ 	implementation.
+
+	The above was actually checked in May 3 1997.
+
+	* src/Connection.m ([Connection
+ 	-forwardForProxy:selector:argFrame:]): In nested function
+ 	decoder(), always set IP to -1 after sending it -dismiss, i.e. in
+ 	both cases.  Fix the assertion at the bottom so that IP is allowed
+ 	to be nil, which will be the case when mframe_build_return() never
+ 	calls decoder(), which will happen when we are returning void.
+
+	* src/Decoder.m ([Decoder -finishDecodingInterconnectedObjects]):
+ 	Comment fixes.
+
+	* src/Proxy.m ([Proxy -awakeAfterUsingCoder:]): New method.
+  	Needed otherwise we get an infinite loop with Decoder trying to
+ 	send this message to a Proxy.
+
 Mon Mar  3 14:41:01 1997  Andrew McCallum  <mccallum@jprc.com>
+
+	* doc/install.texi: Describe what happens when libieee.a isn't
+ 	available.
+
+	* configure.in: Remove obsolete AC_C_CROSS.
 
 	* doc/Makefile.in (TEXI_FILES): Added gnustep-zones.texi.
 
 	* src/NSHost.m, src/include/NSHost.h: New files from Luke Howard
 	<lukeh@xedoc.com.au>.
+
+Tue Feb 25 17:12:52 1997  Scott Christley  <scottc@net-community.com>
+
+	* configure.in: Add macro to determine host, build, and target.
+	(whole_archive, no_whole_archive): Optional linker variables
+	for specifying when the linker should include the whole archive.
+	* configure: Regenerate for configure.in changes.
+	* Makefile.in: Force targets.
+	* config.sub: New file.
+	* NSCharacterSets/Makefile.in: Use configure datadir variable.
+	Install character set files in NSCharacterSets subdirectory
+	within GNUstep library install dir.
+	* checks/heap.m: random is rand on _WIN32.
+	* checks/nscharacterset.m: New file
+	* checks/Makefile.in: Add nscharacterset.m.
+	Surround gnustep-base library with new linker variables.
+	* checks/release.m: No malloc.h on _WIN32.
+	* examples/Makefile.in: Surround gnustep-base library with
+	new linker variables.
+	* doc/Makefile.in: Use configure infodir variable.
+
+	* src/NSFileManager.m: New file.
+	* src/include/NSFileManager.h: New file.
+	* src/Makefile.in: Add NSFileManager files.
+	(GNUSTEP_INSTALL_LIBDIR): New definition.
+	Use configure libdir and includedir variables.
+	Use the LN_S variable for soft links.  Slightly modify creation
+	of gnustep/base for platforms which don't support soft links.
+	(install:): Install only the NEXTSTEP_HEADERS into objc directory
+	and eliminate out-dated README file link.
+	(uninstall:): Remove only NEXTSTEP_HEADERS out of objc directory.
+	* src/NSCharacterSets.m (NSCharacterSet_PATH): Search for
+	character set files in NSCharacterSets subdirectory within
+	GNUstep library installation directory.
+
+	* src/NSDate.m (-initWithTimeIntervalSince1970:): New method.
+	(-timeIntervalSince1970): New method.
+	* src/include/NSDate.h (-initWithTimeIntervalSince1970:): New method.
+	(-timeIntervalSince1970): New method.
+
+	* src/NSDictionary.m: Changed key datatype from NSString to
+	NSObject to correspond with OpenStep specification.
+	* src/NSGDictionary.m: Likewise.
+	* src/include/NSDictionary.h: Likewise.
+	(+dictionaryWithObjectsAndKeys:,...): Define method.
+
+	* src/NSNumber.m (+numberWithLong:): Use correct class.
+
+	* src/NSString.m (-description:): Just return self.
+	(+stringWithContentsOfFile:): New method.
+	(-componentsSeparatedByString:): Fix range calculation and
+	make sure last component is added.
+	(-appendString:): Don't attempt append if nil string.
+
+	* src/NSUserDefaults.m (__changePersitentDomain:) Corrected
+	spelling of method.
+
+	* src/TcpPort.m (_socket): Rename to _port_socket to avoid conflict
+	with hidden system variables.
+	* src/include/TcpPort.h (_socket): Likewise.
+	* src/UdpPort.m (_socket): Likewise.
+	* src/include/UdpPort.h (_socket): Likewise.
+
+	* src/include/NSObject.h: Include fake-main.h.
 
 Thu Feb  6 09:20:05 1997  Yoo C. Chung  <wacko@power1.snu.ac.kr>
 
