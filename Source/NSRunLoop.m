@@ -275,7 +275,7 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   timer = nil;
   [target performSelector: selector withObject: argument];
   [[[NSRunLoop currentInstance] _timedPerformers]
-	    removeObjectIdenticalTo: self];
+    removeObjectIdenticalTo: self];
 }
 
 - (void) gcFinalize
@@ -455,17 +455,45 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
   if (performers != 0 && (count = GSIArrayCount(performers)) > 0)
     {
       GSRunLoopPerformer	*array[count];
+      NSMapEnumerator		enumerator;
+      GSIArray			tmp;
+      void			*mode;
       unsigned			i;
 
       /*
-       * Copy the array - so we don't get messed up by any changes caused
-       * by 'fire'ing the performers.
+       * Copy the array - because we have to cancel the requests before firing.
        */
       for (i = 0; i < count; i++)
 	{
 	  array[i] = RETAIN(GSIArrayItemAtIndex(performers, i).obj);
 	}
 
+      /*
+       * Remove the requests that we are about to fire from all modes.
+       */
+      enumerator = NSEnumerateMapTable(_mode_2_performers);
+      while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&tmp))
+	{
+	  unsigned	tmpCount = GSIArrayCount(tmp);
+
+	  while (tmpCount--)
+	    {
+	      GSRunLoopPerformer	*p;
+
+	      p = GSIArrayItemAtIndex(tmp, tmpCount).obj;
+	      for (i = 0; i < count; i++)
+		{
+		  if (p == array[i])
+		    {
+		      GSIArrayRemoveItemAtIndex(tmp, tmpCount);
+		    }
+		}
+	    }
+	}
+
+      /*
+       * Finally, fire the requests.
+       */
       for (i = 0; i < count; i++)
 	{
 	  [array[i] fire];
