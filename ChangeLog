@@ -1,9 +1,62 @@
 Tue Jan 23 11:54:54 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
+	* examples/textcoding.m: Update for new Coder organization.
+
+	* src/objects/Streaming.h (Streaming -writeFormat:arguments:): New
+ 	method.
+	(Streaming -readFormat:arguments:): New method.
+
+	* src/objects/Coding.h: Don't include <objects/String.h>
+	(Coding -encodeValueOfCType:at:withName:): New method.
+	(Coding -decodeValueOfCType:at:withName:): New method.
+	* src/objects/Coder.h: Declare new methods.
+
+	* src/Makefile.in (GNU_MFILES): Add BinaryCStream.m and CStream.m.
+	(GNU_HEADERS): Add objects/BinaryCStream.h and objects/CStream.h.
+
+	* src/NSString.m (handle_printf_atsign): Fix type for va_arg ().
+
+	* src/ConnectedCoder.m ([ConnectedCoder
+ 	+newEncodingWithConnection:sequenceNumber:identifier:]): Use new
+ 	Coder initializer.
+	([ConnectedCoder +newDecodingWithConnection:timeout:]): Likewise.
+	([ConnectedCoder -dismiss]): Fix typo: use cstream ivar.
+
+	* src/Coder.m ([Coder -writeSignature]): Write directly to stream
+ 	ivar.
+	([Coder +readSignatureFromCStream:getClassname:formatVersion:]):
+	Likewise.
+	([Coder -initForReadingFromStream:s]): New method.
+	([Coder -initForWritingToStream:s]): New method.
+	([Coder +coderWritingToStream:]): New method.
+	([Coder +coderWritingToFile:]): New method.
+
+	* src/KeyedCollection.m: Use <Encoding> and <Decoding> protocols
+ 	in argument types.
+	* src/IndexedCollection.m: Likewise.
+	* src/BinaryTree.m: Likewise.
+	* src/Array.m: Likewise.
+
+	* src/Makefile.in (GNU_MFILES): Remove BinaryCoder.m. and
+ 	TextCoder.m
+	(GNU_HEADERS): Remove objects/BinaryCoder.h and objects/TextCoder.h.
+
+        * src/Proxy.m, src/RBTreeNode.m, src/Set.m, src/SocketPort.m,
+ 	src/TextCoder.m, src/argframe.m, src/IndexedCollection.m,
+ 	src/KeyedCollection.m, src/MutableCString.m, src/NSGCString.m,
+ 	src/NSGCoder.m, src/NXConnection.m, src/Collection.m,
+ 	src/ConnectedCoder.m, src/Connection.m, src/DelegatePool.m,
+ 	src/EltNodeCollector.m, src/Array.m, src/BinaryCoder.m:
+        Use new-style method name "..ValueOfObjCType"
+        and "..ValueOfCType", instead of "..ValueOfType" and
+        "..ValueOfSimpleType".
+
 	* src/NSString.m: This new code, #if
  	HAVE_REGISTER_PRINTF_FUNCTION, a function defined by GNU libc.
 	(handle_printf_atsign): New function to handle %@ in printf strings.
 	([NSString +initialize]): Register the new printf-handler function.
+	* configure.in (register_printf_function): Check for this
+ 	function.
 
 	* src/objects/Coding.h: Use new-style method name
  	"..ValueOfObjCType", instead of "..ValueOfType".  Use (id
