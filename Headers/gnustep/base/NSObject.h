@@ -68,7 +68,7 @@
 @end
 
 
-@interface NSObject <NSObject, NSCoding>
+@interface NSObject <NSObject, NSCoding, NSCopying>
 {
   Class isa;
 }
