@@ -29,7 +29,7 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSDictionary.h>
-
+#include <stdio.h>
 #include <stdlib.h>		// for getenv()
 
 static void

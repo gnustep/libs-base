@@ -898,20 +898,10 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 - (const char *) selectorTypeForProxy: (SEL)selector
 {
 #if NeXT_RUNTIME
-  {
-    elt e;
-    const char *t;
-    e = coll_hash_value_for_key(_method_types, selector);
-    t = e.char_ptr_u;
-    if (!t)
-      {
-	/* This isn't what we want, unless the remote machine has
-	   the same architecture as us. */
-	t = [connection _typeForSelector:selector remoteTarget:target];
-	coll_hash_add(&_method_types, (void*)selector, t);
-      }
-    return t;
-  }
+  /* This isn't what we want, unless the remote machine has
+     the same architecture as us. */
+  t = [_connection typeForSelector:selector remoteTarget:target];
+  return t;
 #else /* NeXT_runtime */
   return sel_get_type (selector);
 #endif

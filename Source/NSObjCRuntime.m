@@ -26,6 +26,7 @@
 #include <Foundation/NSObjCRuntime.h>
 #include <Foundation/NSString.h>
 #include <mframe.h>
+#include <string.h>
 
 NSString *
 NSStringFromSelector(SEL aSelector)
@@ -142,4 +143,46 @@ GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)
     }
   memcpy(((void*)obj) + offset, data, size);
   return YES;
+}
+
+/* Getting a system error message on a variety of systems */
+#ifdef __MINGW__
+LPTSTR GetErrorMsg(DWORD msgId)
+{
+  LPVOID lpMsgBuf;
+
+  FormatMessage(
+    FORMAT_MESSAGE_ALLOCATE_BUFFER |
+    FORMAT_MESSAGE_FROM_SYSTEM |
+    FORMAT_MESSAGE_IGNORE_INSERTS,
+    NULL, msgId,
+    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+    (LPTSTR)&lpMsgBuf, 0, NULL);
+
+  return (LPTSTR)lpMsgBuf;
+}
+#else
+#ifndef HAVE_STRERROR
+const char*
+strerror(int eno)
+{
+  extern char*  sys_errlist[];
+  extern int    sys_nerr;
+
+  if (eno < 0 || eno >= sys_nerr)
+    {
+      return("unknown error number");
+    }
+  return(sys_errlist[eno]);
+}
+#endif
+#endif /* __MINGW__ */
+
+const char *GSLastErrorStr(long error_id)
+{
+#ifdef __MINGW__
+  return GetErrorMsg(GetLastError());
+#else
+  return strerror(error_id);
+#endif
 }

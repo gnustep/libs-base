@@ -32,7 +32,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <objc/objc-api.h>
+#ifndef NeXT_RUNTIME
 #include <objc/objc-list.h>
+#endif
 #include <config.h>
 #include <Foundation/objc-load.h>
 #include <Foundation/NSString.h>
@@ -66,7 +68,9 @@ static BOOL	dynamic_loaded;
 void (*_objc_load_load_callback)(Class, Category*) = 0;
 
 /* List of modules we have loaded (by handle) */
+#ifndef NeXT_RUNTIME
 static struct objc_list *dynamic_handles = NULL;
+#endif
 
 /* Check to see if there are any undefined symbols. Print them out.
 */
@@ -173,7 +177,9 @@ objc_load_module(
 	    __objc_dynamic_error(errorStream, "Error (objc-load)");
 	return 1;
     }
+#ifndef NeXT_RUNTIME
     dynamic_handles = list_cons(handle, dynamic_handles);
+#endif
 
     /* If there are any undefined symbols, we can't load the bundle */
     if (objc_check_undefineds(errorStream)) {

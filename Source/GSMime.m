@@ -36,6 +36,7 @@
 #include	<Foundation/NSURLHandle.h>
 #include	<Foundation/GSMime.h>
 #include	<string.h>
+#include	<ctype.h>
 
 static	NSCharacterSet	*specials = nil;
 

@@ -46,7 +46,7 @@
   if ([fileManager removeFileAtPath: _lockPath handler: nil] == NO)
     [NSException raise: NSGenericException 
 		format: @"Failed to remove lock directory '%@' - %s",
-		_lockPath, strerror(errno)];
+		_lockPath, GSLastErrorStr(errno)];
   RELEASE(_lockTime);
   _lockTime = nil;
 }
@@ -139,7 +139,7 @@
 	  if (locked == NO)
 	    {
 	      NSLog(@"Failed to create lock directory '%@' - %s",
-		    _lockPath, strerror(errno));
+		    _lockPath, GSLastErrorStr(errno));
 	    }
 	}
     }
@@ -180,7 +180,7 @@
       if ([fileManager removeFileAtPath: _lockPath handler: nil] == NO)
         [NSException raise: NSGenericException
 		    format: @"Failed to remove lock directory '%@' - %s",
-			_lockPath, strerror(errno)];
+			_lockPath, GSLastErrorStr(errno)];
     }
   else
     NSLog(@"lock '%@' already broken and in use again\n", _lockPath);

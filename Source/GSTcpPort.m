@@ -397,7 +397,7 @@ static Class	runLoopClass;
   dummy = 1;
   if (ioctlsocket(d, FIONBIO, &dummy) < 0)
     {
-      NSLog(@"unable to set non-blocking mode - %s", strerror(errno));
+      NSLog(@"unable to set non-blocking mode - %s", GSLastErrorStr(errno));
       return nil;
     }
 #else /* !__MINGW__ */
@@ -406,14 +406,14 @@ static Class	runLoopClass;
       e |= NBLK_OPT;
       if (fcntl(d, F_SETFL, e) < 0)
 	{
-	  NSLog(@"unable to set non-blocking mode - %s", strerror(errno));
+	  NSLog(@"unable to set non-blocking mode - %s", GSLastErrorStr(errno));
 	  return nil;
 	}
     }
 #endif
   else
     {
-      NSLog(@"unable to get non-blocking mode - %s", strerror(errno));
+      NSLog(@"unable to get non-blocking mode - %s", GSLastErrorStr(errno));
       return nil;
     }
   handle = (GSTcpHandle*)NSAllocateObject(self,0,NSDefaultMallocZone());
@@ -521,7 +521,7 @@ static Class	runLoopClass;
 	{
 	  NSLog(@"unable to make connection to %s:%d - %s",
 	      inet_ntoa(sockAddr.sin_addr),
-	      GSSwapBigI16ToHost(sockAddr.sin_port), strerror(errno));
+	      GSSwapBigI16ToHost(sockAddr.sin_port), GSLastErrorStr(errno));
 	  if (addrNum < [addrs count])
 	    {
 	      BOOL	result;
@@ -762,7 +762,7 @@ static Class	runLoopClass;
 	    {
 	      NSDebugMLLog(@"GSTcpHandle",
 		@"read failed - %s on 0x%x in thread 0x%x",
-		strerror(errno), self, GSCurrentThread());
+		GSLastErrorStr(errno), self, GSCurrentThread());
 	      DO_UNLOCK(myLock);
 	      [self invalidate];
 	      return;
@@ -1021,7 +1021,7 @@ static Class	runLoopClass;
 	    && res != 0)
 	    {
 	      state = GS_H_UNCON;
-	      NSLog(@"connect attempt failed - %s", strerror(res));
+	      NSLog(@"connect attempt failed - %s", GSLastErrorStr(res));
 	    }
 	  else
 	    {
@@ -1041,7 +1041,7 @@ static Class	runLoopClass;
 	      else
 		{
 		  state = GS_H_UNCON;
-		  NSLog(@"connect write attempt failed - %s", strerror(errno));
+		  NSLog(@"connect write attempt failed - %s", GSLastErrorStr(errno));
 		}
 	      RELEASE(d);
 	    }
@@ -1074,7 +1074,7 @@ static Class	runLoopClass;
 	    {
 	      if (errno != EINTR && errno != EAGAIN)
 		{
-		  NSLog(@"write attempt failed - %s", strerror(errno));
+		  NSLog(@"write attempt failed - %s", GSLastErrorStr(errno));
 		  DO_UNLOCK(myLock);
 		  [self invalidate];
 		  return;
@@ -1426,33 +1426,33 @@ static Class		tcpPortClass;
 	    }
 	  else if ((desc = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
 	    {
-	      NSLog(@"unable to create socket - %s", strerror(errno));
+	      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
 	      DESTROY(port);
 	    }
 	  else if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse,
 		sizeof(reuse)) < 0)
 	    {
 	      (void) close(desc);
-              NSLog(@"unable to set reuse on socket - %s", strerror(errno));
+              NSLog(@"unable to set reuse on socket - %s", GSLastErrorStr(errno));
               DESTROY(port);
 	    }
 	  else if (bind(desc, (struct sockaddr *)&sockaddr,
 	    sizeof(sockaddr)) < 0)
 	    {
 	      NSLog(@"unable to bind to port %s:%d - %s",
-		inet_ntoa(sockaddr.sin_addr), number, strerror(errno));
+		inet_ntoa(sockaddr.sin_addr), number, GSLastErrorStr(errno));
 	      (void) close(desc);
               DESTROY(port);
 	    }
 	  else if (listen(desc, 5) < 0)
 	    {
-	      NSLog(@"unable to listen on port - %s", strerror(errno));
+	      NSLog(@"unable to listen on port - %s", GSLastErrorStr(errno));
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
 	  else if (getsockname(desc, (struct sockaddr*)&sockaddr, &i) < 0)
 	    {
-	      NSLog(@"unable to get socket name - %s", strerror(errno));
+	      NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));
 	      (void) close(desc);
 	      DESTROY(port);
 	    }
@@ -1643,18 +1643,18 @@ static Class		tcpPortClass;
 
       if ((sock = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
 	{
-	  NSLog(@"unable to create socket - %s", strerror(errno));
+	  NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
 	}
       else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&opt,
 	sizeof(opt)) < 0)
 	{
 	  (void)close(sock);
-	  NSLog(@"unable to set reuse on socket - %s", strerror(errno));
+	  NSLog(@"unable to set reuse on socket - %s", GSLastErrorStr(errno));
 	}
       else if ((handle = [GSTcpHandle handleWithDescriptor: sock]) == nil)
 	{
 	  (void)close(sock);
-	  NSLog(@"unable to create GSTcpHandle - %s", strerror(errno));
+	  NSLog(@"unable to create GSTcpHandle - %s", GSLastErrorStr(errno));
 	}
       else
 	{

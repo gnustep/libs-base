@@ -1,3 +1,21 @@
+2001-05-31  Adam Fedor  <fedor@gnu.org>
+
+	* Headers/gnustep/base/NSObjCRuntime.h (GSLastErrorStr): Define new
+	OS-independant strerror like function.
+	* Source/GSFormat.m: Use it.
+	* Source/GSTcpPort.m, Source/NSData.m, Source/NSDistributedLock.m,
+	Source/NSFileManager.m, Source/NSPipe.m, Source/NSRunLoop.m, 
+	Source/NSTask.m, Source/UnixFileHandle.m, Source/WindowsFileHandle.m:
+	Likewise.
+	* Source/NSObjCRuntime.m (GSLastErrorStr): New function
+	(suggestion from "Michael Scheibler" <michael.scheibler@onevision.de>).
+
+	* Headers/gnustep/base/behavior.h: Include objc-class.h on 
+	NeXT_RUNTIME.
+	* Headers/gnustep/base/objc-gnu2next.h: New inline functions.
+	* Source/NSDistantObject.m (-selectorTypeForProxy): Simplify 
+	NeXT_RUNTIME implementation.
+
 2001-05-29  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.0.1

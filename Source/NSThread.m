@@ -38,7 +38,7 @@
 static Class threadClass = Nil;
 
 #ifndef NO_GNUSTEP
-#ifndef HAVE_OBJC_THREAD_ADD
+#if !defined(HAVE_OBJC_THREAD_ADD) && !defined(NeXT_RUNTIME)
 /* We need to access these private vars in the objc runtime - because
    the objc runtime's API is not enough powerful for the GNUstep
    extensions we want to add.  */

@@ -323,7 +323,7 @@ static NSFileManager* defaultManager = nil;
 	      NSString	*s;
 
 	      s = [NSString stringWithFormat: @"Could not create '%s' - '%s'",
-		dirpath, strerror(errno)];
+		dirpath, GSLastErrorStr(errno)];
 	      ASSIGN(_lastError, s);
 	      return NO;
 	    }
@@ -565,7 +565,7 @@ static NSFileManager* defaultManager = nil;
 
 	      info = [[NSMutableDictionary alloc] initWithCapacity: 3];
 	      [info setObject: path forKey: @"Path"];
-	      [info setObject: [NSString stringWithCString: strerror(errno)]
+	      [info setObject: [NSString stringWithCString: GSLastErrorStr(errno)]
 		       forKey: @"Error"];
 	      result = [handler fileManager: self
 		    shouldProceedAfterError: info];
@@ -609,7 +609,7 @@ static NSFileManager* defaultManager = nil;
 
 	      info = [[NSMutableDictionary alloc] initWithCapacity: 3];
 	      [info setObject: path forKey: @"Path"];
-	      [info setObject: [NSString stringWithCString: strerror(errno)]
+	      [info setObject: [NSString stringWithCString: GSLastErrorStr(errno)]
 		       forKey: @"Error"];
 	      result = [handler fileManager: self
 		    shouldProceedAfterError: info];
@@ -1415,7 +1415,7 @@ static SEL swfsSel = 0;
   else
     {
       NSLog(@"Failed to recurse into directory '%@' - %s",
-	    path, strerror(errno));
+	    path, GSLastErrorStr(errno));
     }
   
   return self;
@@ -1555,7 +1555,7 @@ static SEL swfsSel = 0;
 		  else
 		    {
 		      NSLog(@"Failed to recurse into directory '%s' - %s",
-			    _current_file_path, strerror(errno));
+			    _current_file_path, GSLastErrorStr(errno));
 		    }
 		}
 	    }

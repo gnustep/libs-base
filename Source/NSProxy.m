@@ -22,6 +22,7 @@
    */
 
 #include <config.h>
+#include <base/preface.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSProxy.h>
 #include <Foundation/NSMethodSignature.h>
