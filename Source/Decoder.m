@@ -295,14 +295,16 @@
 	   withName:namePtr];
 }
 
-- (void) decodeBytes: (char *)b
-   count: (unsigned*)c
+- (void) decodeBytes: (void *)b
+   count: (unsigned)c
    withName: (id <String> *) name
 {
+  int actual_count;
   /* xxx Is this what we want?  
      It won't be cleanly readable in TextCStream's. */
   [cstream decodeName: name];
-  [[cstream stream] readBytes: b length: c];
+  actual_count = [[cstream stream] readBytes: b length: c];
+  assert (actual_count == c);
 }
 
 - (unsigned char) decodeTag
