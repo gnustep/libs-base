@@ -104,7 +104,7 @@ typedef struct {
 - shallowCopy
 {
   Storage *c = [super shallowCopy];
-  c->dataPtr = (void*) (*objc_malloc)(maxElements * elementSize);
+  c->dataPtr = (void*) objc_malloc (maxElements * elementSize);
   memcpy(c->dataPtr, dataPtr, numElements * elementSize);
   return c;
 }
@@ -281,7 +281,7 @@ static inline void _shrinkIfDesired(Storage *self)
   [super read:aStream];
   objc_read_types(aStream, "III*", 
 		  &numElements, &maxElements, &elementSize, &description);
-  dataPtr = (void*) (*objc_malloc)(maxElements * elementSize);
+  dataPtr = (void*) objc_malloc (maxElements * elementSize);
   for (i = 0; i < numElements; i++)
     objc_read_type(aStream, description, STORAGE_NTH(i));
   return self;
