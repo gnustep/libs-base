@@ -30,6 +30,9 @@
 #include <objects/Set.h>
 #include <assert.h>
 
+/* The stacks of dictionaries are not necessary---one dictionary will do.
+   I fixed a bug with a quick fix; now I need to go back and clean it up. */
+
 #define CODER_FORMAT_VERSION 0
 
 enum {CODER_OBJECT_NIL = 0, CODER_OBJECT, CODER_ROOT_OBJECT, 
@@ -157,11 +160,12 @@ my_object_is_class(id object)
   //  [s retain];
   stream = s;
   object_table = nil;
-  in_progress_table = [[Set alloc] initWithType:@encode(unsigned)];
+  in_progress_table = [[Array alloc] initWithType:@encode(unsigned)];
   const_ptr_table = [[Dictionary alloc] initWithType:@encode(void*) 
 					keyType:@encode(unsigned)];
   root_object_tables = nil;
   forward_object_tables = nil;
+  interconnected_stack_height = 0;
   return self;
 }
 
@@ -787,6 +791,8 @@ exc_return_null(arglist_t f)
 
 - (void) startEncodingInterconnectedObjects
 {
+  if (interconnected_stack_height++)
+    return;
   doing_root_object = YES;
   [self _coderPushRootObjectTable];
   [self _coderPushForwardObjectTable];
@@ -797,6 +803,9 @@ exc_return_null(arglist_t f)
   /* xxx Perhaps we should look at the forward references and
      encode here any forward-referenced objects that haven't been
      encoded yet. */
+  assert (interconnected_stack_height);
+  if (--interconnected_stack_height)
+    return;
   doing_root_object = NO;
   [self _coderPopRootObjectTable];
   [self _coderPopForwardObjectTable];
@@ -804,6 +813,8 @@ exc_return_null(arglist_t f)
 
 - (void) startDecodingInterconnectedObjects
 {
+  if (interconnected_stack_height++)
+    return;
   doing_root_object = YES;
   [self _coderPushRootObjectTable];
   [self _coderPushForwardObjectTable];
@@ -813,6 +824,10 @@ exc_return_null(arglist_t f)
 {
   SEL awake_sel = sel_get_any_uid("awakeAfterUsingCoder:");
   
+  assert (interconnected_stack_height);
+  if (--interconnected_stack_height)
+    return;
+
   /* resolve object forward references */
   if (forward_object_tables)
     {
@@ -852,20 +867,19 @@ exc_return_null(arglist_t f)
 - (void) encodeRootObject: anObj
     withName: (const char *)name
 {
+  [self encodeName:"Root Object"];
+  [self encodeIndent];
   [self encodeTag:CODER_ROOT_OBJECT];
   [self startEncodingInterconnectedObjects];
-  [self encodeIndent];
   [self encodeObject:anObj withName:name];
-  [self encodeUnindent];
   [self finishEncodingInterconnectedObjects];
+  [self encodeUnindent];
 }
 
 - (void) _decodeRootObjectAt: (id*)ret withName: (const char **)name
 {
   [self startDecodingInterconnectedObjects];
-  [self decodeIndent];
   [self decodeObjectAt:ret withName:name];
-  [self decodeUnindent];
   [self finishDecodingInterconnectedObjects];
 }
 
@@ -1139,7 +1153,6 @@ exc_return_null(arglist_t f)
   const char *where = d;
 
   [self encodeName:name];
-  [self encodeValueOfType:@encode(unsigned) at:&c withName:"Array Count"];
   for (i = 0; i < c; i++)
     {
       [self encodeValueOfType:type
@@ -1151,7 +1164,7 @@ exc_return_null(arglist_t f)
 
 - (void) decodeArrayOfType: (const char *)type
    at: (void *)d
-   count: (unsigned *)c
+   count: (unsigned)c
    withName: (const char **)name
 {
   int i;
@@ -1159,8 +1172,7 @@ exc_return_null(arglist_t f)
   char *where = d;
 
   [self decodeName:name];
-  [self decodeValueOfType:@encode(unsigned) at:c withName:NULL];
-  for (i = 0; i < *c; i++)
+  for (i = 0; i < c; i++)
     {
       [self decodeValueOfType:type
 	    at:where
