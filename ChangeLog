@@ -1,3 +1,8 @@
+2004-10-29  Matt Rice  <ratmice@yahoo.com>
+
+	* Source/Additions/GSObjCRuntime.m (GSObjCAllSubclassesOfClass,
+	GSObjCDirectSubclassesOfClass): skip meta classes.
+
 2004-10-28  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.10.1
