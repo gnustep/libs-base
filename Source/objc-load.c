@@ -141,9 +141,11 @@ objc_load_module(
 
 {
     typedef void (*void_fn)();
-    // void_fn *ctor_list;
     dl_handle_t handle;
-    // int i;
+#if !defined(__ELF__) && !defined(CON_AUTOLOAD)
+    void_fn *ctor_list;
+    int i;
+#endif
 
     if (!dynamic_loaded)
         if (objc_initialize_loading(errorStream))
