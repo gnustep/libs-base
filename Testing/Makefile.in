@@ -30,7 +30,7 @@ VPATH = @srcdir@
 
 CC = @CC@
      
-CFLAGS = -Wall -Wno-implicit -g -O
+CFLAGS = -Wall -Wno-implicit -Wno-format -g -O
 CPPFLAGS =
 LDFLAGS =
      
@@ -68,15 +68,10 @@ ALL_LDFLAGS = $(LDFLAGS) $(LIBS)
 SRCS = \
 test01.m \
 test02.m \
-test03.m \
-test04.m \
-test05.m \
-test06.m \
-test07.m \
-test10.m \
-test11.m \
-test12.m \
-test13.m \
+heap.m \
+nxst.m \
+randoms.m \
+prepend.m \
 pipes.m \
 server.m \
 client.m \
