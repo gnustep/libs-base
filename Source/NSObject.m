@@ -446,7 +446,7 @@ static BOOL double_release_check_enabled = NO;
 #if 0
   return (class_get_instance_method(self, aSelector) != METHOD_NULL);
 #else
-  return __objc_responds_to(self, aSelector);
+  return __objc_responds_to((id)&self, aSelector);
 #endif
 }
 
@@ -784,7 +784,7 @@ static BOOL double_release_check_enabled = NO;
   else
     return (class_get_class_method(fastClass(self), aSelector)!=METHOD_NULL);
 #else
-  return __objc_responds_to(fastClass(self), aSelector);
+  return __objc_responds_to(self, aSelector);
 #endif
 }
 
