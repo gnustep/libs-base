@@ -1,3 +1,22 @@
+2003-09-21  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/cvtenc.m (main): Write using local/set encoding when
+	EscapeIn=YES.
+
+	* Tools/gdomap.c: Remove getopt function for MinGW
+	(patch from Leigh Smith <leigh@leighsmith.com>).
+	
+	* Documentation/coding-standards.texi: Add section about object
+	persistance.
+
+	* configure.ac: Make it possible to override --enable-pass-arguments
+	when on cygwin.
+	* configure: Regenerate using 2.57
+
+2003-09-20  yjchen <yjchenx@hotmail.com>
+
+	* Resources/Languages/TraditionalChinese: Quote escaped strings.
+
 2003-09-15  Adam Fedor  <fedor@gnu.org>
 
 	* Version 1.7.4

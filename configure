@@ -11949,6 +11949,11 @@ fi
 # On some systems - force redefinition to be used as the /proc stuff
 # doesn't work. Allow NSProcessInfo initialization method also.
 #--------------------------------------------------------------------
+PASS_ARG=no
+case "$target_os" in
+  cygwin*)	PASS_ARG=yes;;
+esac
+
 echo "$as_me:$LINENO: checking \"use of pass-through arguments\"" >&5
 echo $ECHO_N "checking \"use of pass-through arguments\"... $ECHO_C" >&6
 # Check whether --enable-pass-arguments or --disable-pass-arguments was given.
@@ -11956,12 +11961,9 @@ if test "${enable_pass_arguments+set}" = set; then
   enableval="$enable_pass_arguments"
 
 else
-  enable_pass_arguments=no
+  enable_pass_arguments=$PASS_ARG
 fi;
 
-case "$target_os" in
-  cygwin*)	enable_pass_arguments=yes;;
-esac
 if test "$enable_pass_arguments" = "yes"; then
   GS_PASS_ARGUMENTS=1
 else

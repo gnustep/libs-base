@@ -797,14 +797,16 @@ AC_CHECK_LIB(kvm, kvm_getenvv)
 # On some systems - force redefinition to be used as the /proc stuff
 # doesn't work. Allow NSProcessInfo initialization method also.
 #--------------------------------------------------------------------
+PASS_ARG=no
+case "$target_os" in
+  cygwin*)	PASS_ARG=yes;;
+esac
+
 AC_MSG_CHECKING("use of pass-through arguments")
 AC_ARG_ENABLE(pass-arguments,
   [  --enable-pass-arguments	Force user main call to NSProcessInfo initialize],,
-  enable_pass_arguments=no)
+  enable_pass_arguments=$PASS_ARG)
 
-case "$target_os" in
-  cygwin*)	enable_pass_arguments=yes;;
-esac
 if test "$enable_pass_arguments" = "yes"; then
   GS_PASS_ARGUMENTS=1
 else
