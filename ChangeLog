@@ -1,3 +1,12 @@
+Sun Sep  5  9:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* config/config_thread.m: new file
+	* configure.in: Update to check to see if obc runtime uses threads
+	so that we can include the thread library if necessary - and later
+	onbjc tests won't all fail on threaded systems.
+	Also - force use of fake-main stuff on bsd systems.
+	* Source/NSProcessInfo.m: Remove bsd workaround - didn't work.
+
 1999-08-29   Michael Hanni  <mhanni@sprintmail.com>
 
 	* Source/NSObjCRuntime.m: added a patch from Tim Bissell

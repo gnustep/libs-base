@@ -269,7 +269,6 @@ static char	**_gnu_noobjc_env;
   int		length;
   int		position; 
   int		env_terms;
-  BOOL		stripTrailingNewline = NO;
 #ifdef HAVE_PROGRAM_INVOCATION_NAME
   extern char	*program_invocation_name;
 #endif /* HAVE_PROGRAM_INVOCATION_NAME */
@@ -362,16 +361,6 @@ static char	**_gnu_noobjc_env;
       c = getc(ifp);
       if ((c == EOF) || (c == 0)) // End of a parameter 
 	{ 
-	  if (argument == 0 && position > 0
-	    && _gnu_noobjc_argv[argument][position-1] == '\n')
-	    {
-	      stripTrailingNewline = YES;
-	    }
-	  if (stripTrailingNewline == YES && position > 0
-	    && _gnu_noobjc_argv[argument][position-1] == '\n')
-	    {
-	      position--;
-	    }
 	  _gnu_noobjc_argv[argument][position] = '\0';
 	  argument++;
 	  if (c == EOF) // End of command line

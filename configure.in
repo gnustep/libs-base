@@ -170,6 +170,36 @@ AC_DEFINE_UNQUOTED(NeXT_cc, $NeXT_cc)
 AC_SUBST(NEXT_INCLUDES)
 
 #--------------------------------------------------------------------
+# Check if libobjc was compiled with thread support.
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(whether objc has thread support)
+saved_LIBS="$LIBS"
+objc_thread_lib=""
+if test $host_os = linux-gnu; then
+  LIBS="-lobjc -lpthread"
+  AC_TRY_RUN([#include "config/config_thread.m"], objc_threaded="-lpthread",
+	objc_threaded="", objc_threaded="-lpthread")
+  if test x"$objc_threaded" = x""; then
+    LIBS="-lobjc -lpcthread"
+    AC_TRY_RUN([#include "config_thread.m"], objc_threaded="-lpcthread",
+	objc_threaded="", objc_threaded="-lpcthread")
+  fi
+else
+  LIBS="-lobjc $LIBS"
+  AC_TRY_RUN([#include "config_thread.m"], objc_threaded="-lthread",
+	objc_threaded="", objc_threaded="-lthread")
+fi
+LIBS="$saved_LIBS"
+if test x"$objc_threaded" = x""; then
+  AC_MSG_RESULT(no)
+else
+  AC_MSG_RESULT(yes)
+fi
+ac_cv_objc_threaded=$objc_threaded
+AC_SUBST(objc_threaded)
+AC_SUBST(ac_cv_objc_threaded)
+
+#--------------------------------------------------------------------
 # Byte order information needed for foundation headers.
 #--------------------------------------------------------------------
 AC_C_BIGENDIAN
@@ -639,12 +669,20 @@ case "${target}" in
 esac
 
 #--------------------------------------------------------------------
-# Include redefinition of main () only if needed
+# Include redefinition of main () only if needed.
+# On some systems - force redefinition to be used.
 #--------------------------------------------------------------------
 echo "handling fake-main definition"
 AC_ARG_ENABLE(fake-main,
   [  --enable-fake-main  Force use of redefine of the main function],,
   enable_fake_main=no)
+
+case "$target_os" in
+  freebsd*)	enable_fake_main=yes;;
+  netbsd*)	enable_fake_main=yes;;
+  openbsd*)	enable_fake_main=yes;;
+esac
+
 if test "$enable_fake_main" = "yes"; then
   GS_FAKE_MAIN=1
 else
