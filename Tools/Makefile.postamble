@@ -19,7 +19,14 @@
 
 # Things to do after installing
 after-install::
-	$(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR)
+	if [ "`whoami`" != "root" ]; then \
+	  echo "WARNING: gdomap MUST be installed owned by rooot and with"; \
+	  echo "the 's-bit' set unless you defined 'GDOMAP_PORT_OVERRIDE' in"; \
+	  echo "gdomap.h before compiling gdomap.c and NSPortNameServer.m"; \
+	  echo "in which case you should install it by hand."; \
+	else \
+	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR); \
+	fi; \
 
 # Things to do before uninstalling
 # before-uninstall::
