@@ -401,8 +401,19 @@ static NSMutableString   *processName = nil;
 {
   if (value && defaultName && ([defaultName length] > 0))
     {
-      [[persDomains objectForKey:processName]
-	setObject:value forKey:defaultName];
+      id	obj = [persDomains objectForKey: processName];
+      NSMutableDictionary *dict;
+
+      if ([obj isKindOfClass: [NSMutableDictionary class]] == YES)
+	{
+	  dict = obj;
+	}
+      else
+	{
+	  dict = [obj mutableCopy];
+	  [persDomains setObject: dict forKey: processName];
+	}
+      [dict setObject:value forKey:defaultName];
       [self __changePersistentDomain:processName];
     }
   return;
