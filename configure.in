@@ -133,6 +133,25 @@ if test $ac_cv_header_objc_objc_h = no; then
 fi
 
 #--------------------------------------------------------------------
+# Check for strange network stuff used by gdomap
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(for gdomap network details)
+AC_MSG_CHECKING(for variable length socket addresses)
+AC_TRY_COMPILE([#include <net/if.h>],
+	       [struct ifreq s; s.ifr_addr.sa_len = 0;],
+	       sa_len=1, sa_len=0)
+if test $sa_len = 1; then
+  AC_MSG_RESULT([found])
+  AC_DEFINE(HAVE_SA_LEN)
+else
+  AC_MSG_RESULT([not found])
+fi
+
+#
+
+#
+AC_MSG_CHECKING(for objc threading flags)
+#--------------------------------------------------------------------
 # Check for thread flags for libobjc.
 #--------------------------------------------------------------------
 #

@@ -27,6 +27,10 @@
 /* Define if your Lib C defines program_invocation_name */
 #undef HAVE_PROGRAM_INVOCATION_NAME
 
+/* Define if your system has variable length network addresses */
+#undef HAVE_SA_LEN
+
+
 /* Define if using the libffi library for invocations */
 #undef USE_LIBFFI
 
