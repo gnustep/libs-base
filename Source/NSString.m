@@ -473,8 +473,24 @@ handle_printf_atsign (FILE *stream,
 
 - (id) initWithUTF8String:(const char *)bytes
 {
-  [self subclassResponsibility: _cmd];
-  return self;
+  unsigned	length = strlen(bytes);
+  NSZone	*z;
+  unichar	*s;
+
+  if (length > 0)
+    {
+      z = [self zone];
+      s = NSZoneMalloc(z, sizeof(unichar)*length);
+      length = encode_strtoustr(s, bytes, length+1, NSUTF8StringEncoding);
+    }
+  else
+    {
+      s = 0;
+      z = 0;
+    }
+  return [self initWithCharactersNoCopy: s
+				 length: length
+			       fromZone: z];
 }
 
 - (id) initWithFormat: (NSString*)format,...
@@ -1659,7 +1675,7 @@ handle_printf_atsign (FILE *stream,
 {
   NSData	*d;
 
-  // FIXME: This won't be NULL 
+  // FIXME: This won't be NULL terminated
   d = [self dataUsingEncoding: NSUTF8StringEncoding
     allowLossyConversion: NO];
   return (const char*)[d bytes];
