@@ -1,5 +1,5 @@
 /* Implementation for NSProcessInfo for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev, EMBL & Academia Naturalis, 
                 Heidelberg, Germany
@@ -153,11 +153,11 @@ const char **NSArgv;
  *************************************************************************/
 
 static void 
-_gnu_process_args(int argc, char *argv[], char *env[])
+_gnu_process_args(int argc, char **argv, char *env[])
 {
   int i;
 
-  NSArgv = (char**)argv;
+  NSArgv = argv;
 	
   /* Getting the process name */
   _gnu_processName = [[NSString alloc] initWithCString:argv[0]];
