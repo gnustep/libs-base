@@ -7,7 +7,23 @@
 
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
+
+See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
+
+@section Noteworthy changes in version @samp{1.9.2}
+
+@itemize @bullet
+@item GSMime parsing ignores extraneous data
+@item New log functions GSOnceFlag and GSOnceMLog
+@item New class NSError
+@item Multiple new function in GSObjCRuntime
+@item NSProtocolChecker rewritten
+@item autogsdoc support added for building frames
+@item Binary incompatibility:  NSUnarchiver, GSIMapTable have new ivars added
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.9.1}
 
@@ -17,8 +33,6 @@ with GNUSTEP_STRING_ENCODING.
 @item NSKeyedArchiver/NSKeyedUnarchiver classes added.
 @item NSPropertyLists class added, also decodes Mac OS X binary propery lists.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.9.0}
 

@@ -7,13 +7,13 @@ object collections, byte streams, typed coders, invocations,
 notifications, notification dispatchers, moments in time, network ports,
 remote object messaging support (distributed objects), and event loops.
 
-   It provides functionality that aims to implement the non-graphical
+It provides functionality that aims to implement the non-graphical
 portion of the OpenStep standard (the Foundation library).
 
 Initial reading
 ===============
 
-   The file `NEWS' has the library's feature history.
+The file `NEWS' has the library's feature history.
 
    The files `INSTALL' or `GNUstep-HOWTO' (from the web site) gives
 instructions for installing the library.
@@ -21,12 +21,11 @@ instructions for installing the library.
 License
 =======
 
-   The GNUstep libraries are covered under the GNU Lesser Public
-License.  This means you can use these libraries in any program (even
-non-free programs). If you distribute the libraries along with your
-program, you must make the improvements you have made to the libraries
-freely available. You should read the COPYING.LIB file for more
-information.
+The GNUstep libraries are covered under the GNU Lesser Public License.
+This means you can use these libraries in any program (even non-free
+programs). If you distribute the libraries along with your program, you
+must make the improvements you have made to the libraries freely
+available. You should read the COPYING.LIB file for more information.
 
    GNUstep tools, test programs, and other files are covered under the
 GNU Public License. This means if you make changes to these programs,
@@ -46,8 +45,8 @@ How can you help?
      could be better.
 
      Please log bug reports on the GNUstep project page
-     <http://savannah.gnu.org/support/?group=gnustep> or send bug
-     reports to <bug-gnustep@gnu.org>.
+     <http://savannah.gnu.org/bugs/?group=gnustep> or send bug reports
+     to <bug-gnustep@gnu.org>.
 
 
      Happy hacking!

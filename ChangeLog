@@ -1,3 +1,13 @@
+2004-06-10  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.9.2
+
+	* Documentation/ReleaseNotes.gsdoc: New file
+	* Documentation/GNUmakefile: Make and install it.
+
+	* Source/NSRunLoop.m: If _POLL_EMUL_H is defined, use select
+	instead of poll (e.g. Mac OS X).
+
 2004-06-08  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h

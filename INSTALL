@@ -1,9 +1,9 @@
 Introduction
 ============
 
-   If you are installing this package as part of the GNUstep core
-packages, read the file GNUstep-HOWTO for more complete instructions on
-how to install the entire GNUstep package (including this library).
+If you are installing this package as part of the GNUstep core packages,
+read the file GNUstep-HOWTO for more complete instructions on how to
+install the entire GNUstep package (including this library).
 GNUstep-HOWTO is located in the gnustep-make package or at
 <http://www.gnustep.org>
 
@@ -35,7 +35,7 @@ configure are described below.
 Configuration
 =============
 
-   Configuration is performed by running the `configure' program at a
+Configuration is performed by running the `configure' program at a
 shell prompt. You may want to use some of the optional arguments to the
 `configure' program. Type `configure --help' for a list of these. It is
 not likely that you will need to use the `--prefix' option, since
@@ -56,7 +56,7 @@ GNUstep-HOWTO and are also located at the GNUstep web site at
 Reading Command-Line Arguments
 ------------------------------
 
-   There are two features that change how GNUstep gets access to
+There are two features that change how GNUstep gets access to
 command-line arguments and environment variables (normally passed to
 the program in the `main()' function. These features are
 `--enable-pass-arguments' and the `--enable-fake-main' option(s).
@@ -90,13 +90,13 @@ application).
 FFI Library
 -----------
 
-   GNUstep's NSInvocations and Distributed Objects code involves
-detailed manipulation of the stack and function calls using a library
-that implements a Foreign-Function Interface (FFI), such as the ffcall
-or libffi libraries. Use of ffcall is automatically enabled if the
-ffcall libraries are found (and the same with libffi, although ffcall
-takes precedence), unless specifically disabled with `--disable-do'.
-If disabled, the code reverts to the builtin method for stack frame
+GNUstep's NSInvocations and Distributed Objects code involves detailed
+manipulation of the stack and function calls using a library that
+implements a Foreign-Function Interface (FFI), such as the ffcall or
+libffi libraries. Use of ffcall is automatically enabled if the ffcall
+libraries are found (and the same with libffi, although ffcall takes
+precedence), unless specifically disabled with `--disable-do'.  If
+disabled, the code reverts to the builtin method for stack frame
 handling, but this rarely works on non-ix86 machines and is not
 supported.
 
@@ -124,7 +124,7 @@ something like:
 OpenSSL
 -------
 
-   GNUstep base has optional support for using the OpenSSL libraries for
+GNUstep base has optional support for using the OpenSSL libraries for
 secure URL connections (with the NSURL classes). This functionality is
 compiled as a separate bundle since the OpenSSL license is not
 compatible with GPL, and in the hopes that if someone writes an openssl
@@ -135,7 +135,7 @@ this option add `--disable-openssl' when running the `configure' script.
 Compilation
 ===========
 
-   To compile this library, type make. After this is complete, type make
+To compile this library, type make. After this is complete, type make
 install (make sure you are the root user). Some additional options you
 can use with make are `debug=yes' to make a debugging version of the
 library and `shared=no' to make a static version of the library. See

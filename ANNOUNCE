@@ -1,17 +1,16 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.9.1, is now available.
+The GNUstep Base Library, version 1.9.2, is now available.
 
 What is the GNUstep Base Library?
 =================================
 
-   The GNUstep Base Library is a library of general-purpose,
-non-graphical Objective C objects.  For example, it includes classes
-for strings, object collections, byte streams, typed coders,
-invocations, notifications, notification dispatchers, moments in time,
-network ports, remote object messaging support (distributed objects),
-and event loops.
+The GNUstep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+object collections, byte streams, typed coders, invocations,
+notifications, notification dispatchers, moments in time, network ports,
+remote object messaging support (distributed objects), and event loops.
 
    It provides functionality that aims to implement the non-graphical
 portion of the OpenStep standard (the Foundation library).
@@ -19,24 +18,31 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.9.1'
+Noteworthy changes in version `1.9.2'
 =====================================
 
-   * Default string encoding taken from system nl_langinfo if not set
-     with GNUSTEP_STRING_ENCODING.
+   * GSMime parsing ignores extraneous data
 
-   * NSKeyedArchiver/NSKeyedUnarchiver classesadded.
+   * New log functions GSOnceFlag and GSOnceMLog
 
-   * NSPropertyLists class added, also decodes Mac OS X binary propery
-     lists.
+   * New class NSError
+
+   * Multiple new function in GSObjCRuntime
+
+   * NSProtocolChecker rewritten
+
+   * autogsdoc support added for building frames
+
+   * Binary incompatibility:  NSUnarchiver, GSIMapTable have new ivars
+     added
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.9.1.tar.gz distribution file has been placed on
+The gnustep-base-1.9.2.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
-   Please log bug reports on the GNUstep project page
-<http://savannah.gnu.org/support/?group=gnustep> or send bug reports to
+Please log bug reports on the GNUstep project page
+<http://savannah.gnu.org/bugs/?group=gnustep> or send bug reports to
 <bug-gnustep@gnu.org>.
 
