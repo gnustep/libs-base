@@ -1,8 +1,10 @@
-/* Interface for NSInvocation for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
-   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   Created: 1995
+/* Interface for NSInvocation for GNUStep
+   Copyright (C) 1998 Free Software Foundation, Inc.
+
+   Written:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Date: 1998
+   Based on code by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    
    This file is part of the GNUstep Base Library.
 
@@ -24,34 +26,66 @@
 #ifndef __NSInvocation_h_GNUSTEP_BASE_INCLUDE
 #define __NSInvocation_h_GNUSTEP_BASE_INCLUDE
 
-#include <gnustep/base/preface.h>
-
-@class NSMethodSignature;
+#include <Foundation/NSMethodSignature.h>
 
 @interface NSInvocation : NSObject
-@end
+{
+    NSMethodSignature	*sig;
+    arglist_t		argframe;
+    void		*retval;
+    id			target;
+    SEL			selector;
+    int			numArgs;
+    NSArgumentInfo	*info;
+    BOOL		argsRetained;
+}
 
-/* Put these in a category to avoid gcc complaints about methods
-   not being there; the method come from a behavior. */
-@interface NSInvocation (GNUstep)
+/*
+ *	Creating instances.
+ */
++ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)signature;
 
-+ (NSInvocation*) invocationWithMethodSignature: (NSMethodSignature*)ms;
-
-- (void) getArgument: (void*)argumentLocation atIndex: (int)index;
-- (void) getReturnValue: (void*)returnLocation;
-
-- (NSMethodSignature*) methodSignature;
+/*
+ *	Accessing message elements.
+ */
+- (void) getArgument: (void*)buffer
+	     atIndex: (int)index;
+- (void) getReturnValue: (void*)buffer;
 - (SEL) selector;
-- (void) setArgument: (void*)argumentLocation atIndex: (int)index;
-- (void) setReturnValue: (void*)returnLocation;
-- (void) setSelector: (SEL)aSelector;
+- (void) setArgument: (void*)buffer
+	     atIndex: (int)index;
+- (void) setReturnValue: (void*)buffer;
+- (void) setSelector: (SEL)selector;
 - (void) setTarget: (id)target;
 - (id) target;
 
+/*
+ *	Managing arguments.
+ */
+- (BOOL) argumentsRetained;
+- (void) retainArguments;
+
+/*
+ *	Dispatching an Invocation.
+ */
 - (void) invoke;
 - (void) invokeWithTarget: (id)target;
 
+/*
+ *	Getting the method signature.
+ */
+- (NSMethodSignature*)methodSignature;
+
 @end
+
+@interface NSInvocation (GNUstep)
+- (id) initWithArgframe: (arglist_t)frame selector: (SEL)aSelector;
+- (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
+- (id) initWithSelector: (SEL)aSelector;
+- (id) initWithTarget: target selector: (SEL)aSelector, ...;
+- (void*)returnFrame: (arglist_t)argFrame;
+@end
+
 
 /* -initWithTarget:selector:, a method used in the macros
    is come from the MethodInvocation behavior.
@@ -79,3 +113,4 @@
      autorelease])
 
 #endif /* __NSInvocation_h_GNUSTEP_BASE_INCLUDE */
+
