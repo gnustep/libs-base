@@ -196,9 +196,11 @@
   if (!description)
     [NSException raise: NSInvalidArgumentException
 		 format: @"NSCalendar date description is nil"];
-  if (!format)
-    [NSException raise: NSInvalidArgumentException
-		 format: @"NSCalendar date format is nil"];
+
+  if (locale == nil)
+    locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+  if (format == nil)
+    format = [locale objectForKey: NSTimeDateFormatString];
 
   // The strftime specifiers
   // %a   abbreviated weekday name according to locale
