@@ -1400,7 +1400,7 @@ else
 {
   NSRange range;
   range = [self rangeOfString:aString options:NSBackwardsSearch];
-  return (range.location == ([self length] - [aString length])) ? YES : NO;
+  return (range.length > 0 && range.location == ([self length] - [aString length])) ? YES : NO;
 }
 
 - (BOOL) isEqual: (id)anObject
