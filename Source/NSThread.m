@@ -64,7 +64,7 @@ static NSNotificationCenter *nc = nil;
 void
 GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
 {
-  extern NSTimeInterval	GSTimeNow();
+  extern NSTimeInterval GSTimeNow(void);
   NSTimeInterval delay;
 
   // delay is always the number of seconds we still need to wait
@@ -142,7 +142,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
 }
 
 static NSArray *
-commonModes()
+commonModes(void)
 {
   static NSArray	*modes = nil;
 
@@ -177,7 +177,7 @@ extern objc_mutex_t __objc_runtime_mutex;
 extern int __objc_runtime_threads_alive;
 extern int __objc_is_multi_threaded;
 
-inline static void objc_thread_add ()
+inline static void objc_thread_add (void)
 {
   objc_mutex_lock(__objc_runtime_mutex);
   __objc_is_multi_threaded = 1;
@@ -185,7 +185,7 @@ inline static void objc_thread_add ()
   objc_mutex_unlock(__objc_runtime_mutex);  
 }
 
-inline static void objc_thread_remove ()
+inline static void objc_thread_remove (void)
 {
   objc_mutex_lock(__objc_runtime_mutex);
   __objc_runtime_threads_alive--;
@@ -223,7 +223,7 @@ static NSThread	*defaultThread = nil;
  * </p>
  */
 inline NSThread*
-GSCurrentThread()
+GSCurrentThread(void)
 {
   NSThread	*t;
 
@@ -248,9 +248,9 @@ GSCurrentThread()
       if (t == nil)
 	{
 	  fprintf(stderr,
-"ALERT ... GSCurrentThread() ... objc_thread_get_data() call returned nil!\r\n"
-"Your application MUST call GSRegisterCurrentThread() before attempting to\r\n"
-"use any GNUstep code from a thread other than the main GNUstep thread.\r\n");
+"ALERT ... GSCurrentThread() ... objc_thread_get_data() call returned nil!\n"
+"Your application MUST call GSRegisterCurrentThread() before attempting to\n"
+"use any GNUstep code from a thread other than the main GNUstep thread.\n");
 	  fflush(stderr);	// Needed for windoze
 	}
     }
@@ -287,7 +287,7 @@ GSDictionaryForThread(NSThread *t)
  * Fast access function for thread dictionary of current thread.
  */
 NSMutableDictionary*
-GSCurrentThreadDictionary()
+GSCurrentThreadDictionary(void)
 {
   return GSDictionaryForThread(nil);
 }
@@ -303,7 +303,7 @@ GSCurrentThreadDictionary()
  * on-disk database.
  */
 static NSTimer	*housekeeper = nil;
-NSTimer	*GSHousekeeper()
+NSTimer	*GSHousekeeper(void)
 {
   return housekeeper;
 }
@@ -366,7 +366,7 @@ GSRunLoopForThread(NSThread *t)
  * Callback function so send notifications on becoming multi-threaded.
  */
 static void
-gnustep_base_thread_callback()
+gnustep_base_thread_callback(void)
 {
   /*
    * Protect this function with locking ... to avoid any possibility
@@ -400,8 +400,8 @@ gnustep_base_thread_callback()
 	  NS_HANDLER
 	    {
 	      fprintf(stderr,
-"ALERT ... exception while becoming multi-threaded ... system may not be\r\n"
-"properly initialised.\r\n");
+"ALERT ... exception while becoming multi-threaded ... system may not be\n"
+"properly initialised.\n");
 	      fflush(stderr);
 	    }
 	  NS_ENDHANDLER
@@ -488,7 +488,6 @@ gnustep_base_thread_callback()
    */
   if (objc_thread_detach(@selector(_sendThreadMethod), thread, nil) == NULL)
     {
-      entered_multi_threaded_state = NO;
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Unable to detach thread (unknown error)"];
     }
