@@ -1,33 +1,30 @@
-
 #include <objects/objects.h>
-
 
 int main()
 {
-  id dict = [[Dictionary alloc] initWithType:"*"
-	     keyType:"*"];
-  id translator = [[Dictionary alloc] initWithType:"*"
-		   keyType:"*"];
+  id dict = [Dictionary new];
+
+  id translator = [Dictionary new];
   id mc;
 
-  [dict putElement:"herd" atKey:"cow"];
-  [dict putElement:"pack" atKey:"dog"];
-  [dict putElement:"school" atKey:"fish"];
-  [dict putElement:"flock" atKey:"bird"];
-  [dict putElement:"pride" atKey:"cat"];
-  [dict putElement:"gaggle" atKey:"goose"];
+  [dict putObject:@"herd" atKey:@"cow"];
+  [dict putObject:@"pack" atKey:@"dog"];
+  [dict putObject:@"school" atKey:@"fish"];
+  [dict putObject:@"flock" atKey:@"bird"];
+  [dict putObject:@"pride" atKey:@"cat"];
+  [dict putObject:@"gaggle" atKey:@"goose"];
   [dict printForDebugger];
   printf("removing goose\n");
-  [dict removeElementAtKey:"goose"];
+  [dict removeObjectAtKey:@"goose"];
   [dict printForDebugger];
 
-  [translator putElement:"cow" atKey:"vache"];
-  [translator putElement:"dog" atKey:"chien"];
-  [translator putElement:"fish" atKey:"poisson"];
-  [translator putElement:"bird" atKey:"oisseau"];
-  [translator putElement:"cat" atKey:"chat"];
+  [translator putObject:@"cow" atKey:@"vache"];
+  [translator putObject:@"dog" atKey:@"chien"];
+  [translator putObject:@"fish" atKey:@"poisson"];
+  [translator putObject:@"bird" atKey:@"oisseau"];
+  [translator putObject:@"cat" atKey:@"chat"];
 
-  mc = [[MappedCollector alloc] initCollection:dict map:translator];
+  mc = [[MappedCollector alloc] initWithCollection:dict map:translator];
   [mc printForDebugger];
 
   [mc release];
