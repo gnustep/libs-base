@@ -1,3 +1,10 @@
+2004-02-17  Bruno Haible  <bruno@clisp.org>
+
+	* Source/Additions/Unicode.m (GetDefEncoding): Use the result of
+	nl_langinfo(CODESET) before falling back on ISO-8859-1.
+	* config/codeset.m4: New file, taken from GNU gettext.
+	* configure.ac: Include it, and invoke AM_LANGINFO_CODESET.
+
 2004-02-17  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Foundation/NSLock.h: Make types of _mutex and _condition

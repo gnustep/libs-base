@@ -26,6 +26,7 @@ builtin(include, config/objc-sys-dynamic.m4)dnl
 builtin(include, config/procfs-exe-link.m4)dnl
 builtin(include, config/procfs.m4)dnl
 builtin(include, config/pathxml.m4)dnl
+builtin(include, config/codeset.m4)dnl
 
 AC_INIT
 AC_CONFIG_SRCDIR([Source/NSArray.m])
@@ -1041,6 +1042,11 @@ if test "$USE_GMP" = "0"; then
   LIBS="$libs_temp";
 fi
 AC_SUBST(USE_GMP)
+
+#--------------------------------------------------------------------
+# Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
+#--------------------------------------------------------------------
+AM_LANGINFO_CODESET
 
 #--------------------------------------------------------------------
 # Check for iconv support (for Unicode conversion).
