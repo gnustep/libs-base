@@ -99,10 +99,10 @@ remove-header-links:
 	-rm -f Headers/Foundation
 endif
 
-base.make: base.make.in configure
+base.make: base.make.in
 	./configure
 
-config.mak: config.mak.in configure
+config.mak: config.mak.in
 	./configure
 
 # Regenerate automatically generated files

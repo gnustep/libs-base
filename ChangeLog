@@ -1,8 +1,9 @@
-Tue Jan 29 10:47:12 2002  Nicola Pero  <nicola@brainstorm.co.uk>
+Tue Jan 29 10:57:30 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 
 	* Makefile.postamble (configure): Rule removed.  It was causing
 	problems on systems without autoconf.
-
+	(base.make, config.mak): Do not depend on configure.
+	
 2002-01-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSRunLoop.h: More updates to ivars.
