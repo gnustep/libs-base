@@ -6,10 +6,12 @@
 	* Source/GNUmakefile: Rename value files to GS prefix and remove
 	concrete value header.
 	* Source/Makefile.postamble: Build GS value files. rather than NS
-	* Source/NSValue.m: Added range meethods and updated for change to
-	naming conventions.
+	* Source/NSValue.m: Added range methods and updated for change to
+	naming conventions.  Added abstract placeholder class.  Fixed encoding
+	to store the abstract class in the archive.
 	* Testing/values.m: Added range check
 	* Source/GSTemplateValue.m: Renamed for consistency.
+	Adapted encoding/decoding for storing abstract class in archive.
 	* Source/GSValue.m: ditto
 	* Headers/gnustep/base/NSConcreteValue.h: private info removed
 	* Source/NSCTemplateValue.m: Renamed for consistency

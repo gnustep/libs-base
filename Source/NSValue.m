@@ -3,6 +3,8 @@
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
+   Updated by:  Richard frith-Macdonald <rfm@gnu.org>
+   Date: Jan 2001
 
    This file is part of the GNUstep Base Library.
 
@@ -27,6 +29,13 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSZone.h>
+#include <Foundation/NSException.h>
+#include <Foundation/NSMapTable.h>
+#include <Foundation/NSLock.h>
+#include <Foundation/NSDebug.h>
+
+@interface	GSPlaceholderValue : NSValue
+@end
 
 @class	GSValue;
 @class	GSNonretainedObjectValue;
@@ -44,7 +53,12 @@ static Class	pointerValueClass;
 static Class	rangeValueClass;
 static Class	rectValueClass;
 static Class	sizeValueClass;
-  
+static Class	GSPlaceholderValueClass;
+
+
+static GSPlaceholderValue	*defaultPlaceholderValue;
+static NSMapTable		*placeholderMap;
+static NSLock			*placeholderLock;
 
 @implementation NSValue
 
@@ -60,23 +74,59 @@ static Class	sizeValueClass;
       rangeValueClass = [GSRangeValue class];
       rectValueClass = [GSRectValue class];
       sizeValueClass = [GSSizeValue class];
-    }
-}
+      GSPlaceholderValueClass = [GSPlaceholderValue class];
 
-+ (id) alloc
-{
-  if (self == abstractClass)
-    return NSAllocateObject(concreteClass, 0, NSDefaultMallocZone());
-  else
-    return NSAllocateObject(self, 0, NSDefaultMallocZone());
+      /*
+       * Set up infrastructure for placeholder values.
+       */
+      defaultPlaceholderValue = (GSPlaceholderValue*)
+	NSAllocateObject(GSPlaceholderValueClass, 0, NSDefaultMallocZone());
+      placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+	NSNonRetainedObjectMapValueCallBacks, 0);
+      placeholderLock = [NSLock new];
+    }
 }
 
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == abstractClass)
-    return NSAllocateObject(concreteClass, 0, z);
+    {
+      if (z == NSDefaultMallocZone() || z == 0)
+	{
+	  /*
+	   * As a special case, we can return a placeholder for a value
+	   * in the default malloc zone extremely efficiently.
+	   */
+	  return defaultPlaceholderValue;
+	}
+      else
+	{
+	  id	obj;
+
+	  /*
+	   * For anything other than the default zone, we need to
+	   * locate the correct placeholder in the (lock protected)
+	   * table of placeholders.
+	   */
+	  [placeholderLock lock];
+	  obj = (id)NSMapGet(placeholderMap, (void*)z);
+	  if (obj == nil)
+	    {
+	      /*
+	       * There is no placeholder object for this zone, so we
+	       * create a new one and use that.
+	       */
+	      obj = (id)NSAllocateObject(GSPlaceholderValueClass, 0, z);
+	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
+	    }
+	  [placeholderLock unlock];
+	  return obj;
+	}
+    }
   else
-    return NSAllocateObject(self, 0, z);
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 // NSCopying - always a simple retain.
@@ -198,10 +248,16 @@ static Class	sizeValueClass;
 {
   NSDictionary	*dict = [string propertyList];
 
-  if (!dict)
+  if (dict == nil)
     return nil;
 
-  if ([dict objectForKey: @"width"] && [dict objectForKey: @"x"])
+  if ([dict objectForKey: @"location"])
+    {
+      NSRange range;
+      range = NSMakeRange([[dict objectForKey: @"location"] intValue],
+			[[dict objectForKey: @"length"] intValue]);
+    }
+  else if ([dict objectForKey: @"width"] && [dict objectForKey: @"x"])
     {
       NSRect rect;
       rect = NSMakeRect([[dict objectForKey: @"x"] floatValue],
@@ -297,18 +353,149 @@ static Class	sizeValueClass;
   return NSMakePoint(0,0);
 }
 
-// NSCoding (done by subclasses)
+- (Class) classForCoder
+{
+  return abstractClass;
+}
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
-  [self subclassResponsibility: _cmd];
+  unsigned	size;
+  char		*data;
+  const char	*objctype = [self objCType];
+
+  size = strlen(objctype)+1;
+  [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
+  [coder encodeArrayOfObjCType: @encode(char) count: size at: objctype];
+  size = objc_sizeof_type(objctype);
+  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
+  [self getValue: (void*)data];
+  [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
+  [coder encodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
+  NSZoneFree(NSDefaultMallocZone(), data);
 }
 
 - (id) initWithCoder: (NSCoder *)coder
 {
-  [self subclassResponsibility: _cmd];
+  const char	*objctype;
+  Class		c;
+  id		o;
+  unsigned	size;
+
+  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
+  objctype = (void*)NSZoneMalloc(NSDefaultMallocZone(), size);
+  [coder decodeArrayOfObjCType: @encode(char) count: size at: (void*)objctype];
+  c = [abstractClass valueClassWithObjCType: objctype];
+  o = [c alloc];
+  /*
+   * Special case classes can decode themselves.
+   */
+  if (c == pointValueClass || c == rangeValueClass
+    || c == rectValueClass || c == sizeValueClass)
+    {
+      o = [o initWithCoder: coder];
+    }
+  else
+    {
+      char	*data;
+
+      size = objc_sizeof_type(objctype);
+      data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+      [coder decodeArrayOfObjCType: @encode(unsigned char)
+			     count: size
+				at: data];
+      o = [o initWithBytes: data objCType: objctype];
+      NSZoneFree(NSDefaultMallocZone(), data);
+    }
+  NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
+  RELEASE(self);
+  self = o;
   return self;
 }
 
+@end
+
+
+
+@implementation	GSPlaceholderValue
+
+- (id) autorelease
+{
+  NSWarnLog(@"-autorelease sent to uninitialised value");
+  return self;		// placeholders never get released.
+}
+
+- (void) dealloc
+{
+  return;		// placeholders never get deallocated.
+}
+
+- (void) getData: (void*)data
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"attempt to use uninitialised value"];
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  const char	*objctype;
+  Class		c;
+  id		o;
+  unsigned	size;
+
+  [coder decodeValueOfObjCType: @encode(unsigned) at: &size];
+  objctype = (void*)NSZoneMalloc(NSDefaultMallocZone(), size);
+  [coder decodeArrayOfObjCType: @encode(char) count: size at: (void*)objctype];
+  c = [abstractClass valueClassWithObjCType: objctype];
+  o = [c alloc];
+  /*
+   * Special case classes can decode themselves.
+   */
+  if (c == pointValueClass || c == rangeValueClass
+    || c == rectValueClass || c == sizeValueClass)
+    {
+      o = [o initWithCoder: coder];
+    }
+  else
+    {
+      char	*data;
+
+      size = objc_sizeof_type(objctype);
+      data = (void *)NSZoneMalloc(NSDefaultMallocZone(), size);
+      [coder decodeArrayOfObjCType: @encode(unsigned char)
+			     count: size
+				at: data];
+      o = [o initWithBytes: data objCType: objctype];
+      NSZoneFree(NSDefaultMallocZone(), data);
+    }
+  NSZoneFree(NSDefaultMallocZone(), (void*)objctype);
+  self = o;
+  return self;
+}
+
+- (id) initWithBytes: (const void*)data objCType: (const char*)type
+{
+  Class		c = [abstractClass valueClassWithObjCType: type];
+
+  self = (id)NSAllocateObject(c, 0, GSObjCZone(self));
+  return [self initWithBytes: data objCType: type];
+}
+
+- (const char*) objCType
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"attempt to use uninitialised value"];
+  return 0;
+}
+
+- (void) release
+{
+  return;		// placeholders never get released.
+}
+
+- (id) retain
+{
+  return self;		// placeholders never get retained.
+}
 @end
 
