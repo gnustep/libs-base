@@ -57,7 +57,7 @@
 #include <sys/socket.h>
 #include <sys/file.h>
 #include "config.h"
-#ifdef	HAVE_TIMR_H
+#ifdef	HAVE_TIME_H
 #include <time.h>
 #endif
 #ifdef	HAVE_PWD_H
@@ -151,8 +151,6 @@ static unsigned long	class_b_net;
 static struct in_addr	class_b_mask;
 static unsigned long	class_c_net;
 struct in_addr	class_c_mask;
-
-static int xx = 1;
 
 /*
  *	Predeclare some of the functions used.
@@ -277,7 +275,6 @@ static char	ebuf[2048];
 
 #ifdef HAVE_SYSLOG
 
-int	is_daemon = 0;
 int	log_perror = 0;
 int	log_priority;
 
@@ -668,8 +665,6 @@ queue_pop()
 /*
  *	Primitive mapping stuff.
  */
-static unsigned short	next_port = IPPORT_USERRESERVED;
-
 typedef struct {
   uptr			name;	/* Service name registered.	*/
   unsigned int		port;	/* Port it was mapped to.	*/
