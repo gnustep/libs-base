@@ -931,11 +931,14 @@ static NSString	*indentStrings[] = {
 	    {
 	      sorted[to++] = val;
 	    }
-	  else if (sorted[i] < val)
+	  else if (sorted[i] != val)
 	    {
 	      unsigned	j = to++;
 
-	      i++;
+	      if (sorted[i] < val)
+		{
+		  i++;
+		}
 	      while (j > i)
 		{
 		  sorted[j] = sorted[j-1];
@@ -947,7 +950,7 @@ static NSString	*indentStrings[] = {
 
       while (to--)
 	{
-	  [self removeObjectAtIndex: indices[to]];
+	  [self removeObjectAtIndex: sorted[to]];
 	}
     }
 }
