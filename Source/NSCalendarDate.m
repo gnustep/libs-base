@@ -229,6 +229,39 @@ GSTime(int day, int month, int year, int h, int m, int s)
 		       locale: nil];
 }
 
+/*
+ * read up to the specified number of characters, terminating at a non-digit
+ * except for leading whitespace characters.
+ */
+static inline int getDigits(const char *from, char *to, int limit)
+{
+  int	i = 0;
+  int	j = 0;
+  BOOL	foundDigit = NO;
+
+  while (i < limit)
+    {
+      if (isdigit(from[i]))
+	{
+	  to[j++] = from[i];
+	  foundDigit = YES;
+	}
+      else if (isspace(from[i]))
+	{
+	  if (foundDigit == YES)
+	    {
+	      break;
+	    }
+	}
+      else
+	{
+	  break;
+	}
+      i++;
+    }
+  to[j] = '\0';
+  return i;
+}
 
 - (id) initWithString: (NSString *)description 
        calendarFormat: (NSString *)fmt
@@ -311,7 +344,23 @@ GSTime(int day, int month, int year, int h, int m, int s)
 	  if (format[formatIdx] != '%')
 	    {
 	      // If it's not a format specifier, ignore it.
-	      sourceIdx++;
+	      if (isspace(format[formatIdx]))
+		{
+		  // Skip any amount of white space.
+		  while (source[sourceIdx] != 0 && isspace(source[sourceIdx]))
+		    {
+		      sourceIdx++;
+		    }
+		}
+	      else
+		{
+		  if (source[sourceIdx] != format[formatIdx])
+		    {
+		      NSLog(@"Expected literal '%c' but got '%c'",
+			format[formatIdx], source[sourceIdx]);
+		    }
+		  sourceIdx++;
+		}
 	    }
 	  else
 	    {
@@ -322,6 +371,11 @@ GSTime(int day, int month, int year, int h, int m, int s)
 		{
 		  case '%':
 		    // skip literal %
+		    if (source[sourceIdx] != '%')
+		      {
+			NSLog(@"Expected literal '%' but got '%c'",
+			  source[sourceIdx]);
+		      }
 		    sourceIdx++;
 		    break;
 
@@ -444,9 +498,7 @@ GSTime(int day, int month, int year, int h, int m, int s)
 
 		  case 'd': // fall through
 		  case 'e':
-		    memcpy(tmpStr, &source[sourceIdx], 2);
-		    tmpStr[2] = '\0';
-		    sourceIdx += 2;
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    day = atoi(tmpStr);
 		    break;
 
@@ -456,30 +508,22 @@ GSTime(int day, int month, int year, int h, int m, int s)
 		  case 'I': // fall through
 		    twelveHrClock = YES;
 		  case 'H':
-		    memcpy(tmpStr, &source[sourceIdx], 2);
-		    tmpStr[2] = '\0';
-		    sourceIdx += 2;
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    hour = atoi(tmpStr);
 		    break;
 
 		  case 'j':
-		    memcpy(tmpStr, &source[sourceIdx], 3);
-		    tmpStr[3] = '\0';
-		    sourceIdx += 3;
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 3);
 		    day = atoi(tmpStr);
 		    break;
 
 		  case 'm':
-		    memcpy(tmpStr, &source[sourceIdx], 2);
-		    tmpStr[2] = '\0';
-		    sourceIdx += 2;
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    month = atoi(tmpStr);
 		    break;
 
 		  case 'M':
-		    memcpy(tmpStr, &source[sourceIdx], 2);
-		    tmpStr[2] = '\0';
-		    sourceIdx += 2;
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    min = atoi(tmpStr);
 		    break;
 
@@ -509,24 +553,19 @@ GSTime(int day, int month, int year, int h, int m, int s)
 		    break;
 
 		  case 'S':
-		    memcpy(tmpStr, &source[sourceIdx], 2);
-		    tmpStr[2] = '\0';
-		    sourceIdx += 2;
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    sec = atoi(tmpStr);
 		    break;
 
 		  case 'w':
-		    tmpStr[0] = source[sourceIdx++];
-		    tmpStr[1] = '\0';
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1);
 		    dayOfWeek = atoi(tmpStr);
 		    break;
 
 		  case 'W': // Fall through
 		    weekStartsMonday = 1;
 		  case 'U':
-		    memcpy(tmpStr, &source[sourceIdx], 2);
-		    tmpStr[2] = '\0';
-		    sourceIdx += 2;
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 1);
 		    julianWeeks = atoi(tmpStr);
 		    break;
 
@@ -537,9 +576,7 @@ GSTime(int day, int month, int year, int h, int m, int s)
 		    //	break;
 
 		  case 'y':
-		    memcpy(tmpStr, &source[sourceIdx], 2);
-		    tmpStr[2] = '\0';
-		    sourceIdx += 2;
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 2);
 		    year = atoi(tmpStr);
 		    if (year >= 70)
 		      {
@@ -552,9 +589,7 @@ GSTime(int day, int month, int year, int h, int m, int s)
 		    break;
 
 		  case 'Y':
-		    memcpy(tmpStr, &source[sourceIdx], 4);
-		    tmpStr[4] = '\0';
-		    sourceIdx += 4;
+		    sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4);
 		    year = atoi(tmpStr);
 		    break;
 
@@ -572,11 +607,7 @@ GSTime(int day, int month, int year, int h, int m, int s)
 			  sign = -1;
 			  sourceIdx++;
 			}
-		      tmpStr[0] = source[sourceIdx++];
-		      tmpStr[1] = source[sourceIdx++];
-		      tmpStr[2] = source[sourceIdx++];
-		      tmpStr[3] = source[sourceIdx++];
-		      tmpStr[4] = '\0';
+		      sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4);
 		      zone = atoi(tmpStr) * sign;
 
 		      if ((tz = [NSTimeZone timeZoneForSecondsFromGMT: 

@@ -22,6 +22,13 @@ main()
 
   pool = [[NSAutoreleasePool alloc] init];
 
+if ([(NSDate*) [NSCalendarDate date] compare:
+        [NSCalendarDate dateWithString:@"Feb 2 00:00:00 2001"
+                        calendarFormat:@"%b %d %H:%M:%S %Y"]] == NSOrderedDescending) {
+
+        NSLog(@"This version of the PostgreSQL Adaptor will expire soon.\nVisit ¬http://www.turbocat.de/ to learn how to get a new one.");
+    }
+
   // NSDate tests
   printf("NSDate tests\n");
   {

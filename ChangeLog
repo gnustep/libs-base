@@ -1,3 +1,9 @@
+2000-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalnedarDate: ([-initWithString:calendarFormat:locale:])
+	modify parsing to be more tolerant of numeric fields that are smaller
+	than the expected size, but warn about unexpected format.
+
 2000-09-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAttributedString.m: Make -description produce output in
