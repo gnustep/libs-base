@@ -121,7 +121,8 @@ static int debug_coder = 0;
       xref_2_object = [Array new];
       /* Append an object so our xref numbers are in sync with the 
 	 Encoders, which start at 1. */
-      [xref_2_object appendObject: [NSObject new]];
+      /* xxx Change this to make it more efficient. */
+      [xref_2_object appendObject: [[NSObject new] autorelease]];
     }
   if (debug_coder)
     fprintf (stderr, "Decoder registering object xref %u\n",
