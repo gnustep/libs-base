@@ -62,6 +62,7 @@
 #include <libxml/SAX.h>
 #include <libxml/HTMLparser.h>
 #include <libxml/xmlmemory.h>
+#include <libxml/xpath.h>
 
 extern int xmlDoValidityCheckingDefaultValue;
 extern int xmlGetWarningsDefaultValue;
@@ -2825,6 +2826,187 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
     }
 }
 @end
+
+
+
+@implementation GSXPathObject
+- (id) init
+{
+  RELEASE(self);
+  return nil;
+}
+
+/* Internal method.  */
+- (id) _initWithNativePointer: (xmlXPathObject *)lib
+		      context: (GSXPathContext *)context
+{
+  _lib = lib;
+  /* We RETAIN our context because we might be holding references to nodes
+   * which belong to the document, and we must make sure the document is
+   * not freed before we are.  */
+  ASSIGN (_context, context);
+  return self;
+}
+
+/* This method is called by GSXPathContext when creating a
+ * GSXPathObject to wrap the results of a query.  It assumes that lib
+ * is a pointer created by xmlXPathEval (), and that we are now taking
+ * on responsibility for freeing it.  It then examines lib, and
+ * replaces itself with an object of the appropriate subclass.  */
++ (id) _newWithNativePointer: (xmlXPathObject *)lib
+		     context: (GSXPathContext *)context
+{
+  switch (lib->type)
+    {
+      case XPATH_NODESET:
+	return [[GSXPathNodeSet alloc] _initWithNativePointer: lib
+						      context: context];
+	break;
+      case XPATH_BOOLEAN:
+	return [[GSXPathBoolean alloc] _initWithNativePointer: lib
+						      context: context];
+	break;
+      case XPATH_NUMBER:
+	return [[GSXPathNumber alloc] _initWithNativePointer: lib
+						     context: context];
+	break;
+      case XPATH_STRING:
+	return [[GSXPathString alloc] _initWithNativePointer: lib
+						     context: context];
+	break;
+      default:
+	/* This includes: 
+	   case XPATH_UNDEFINED:
+	   case XPATH_POINT:
+	   case XPATH_RANGE:
+	   case XPATH_LOCATIONSET:
+	   case XPATH_USERS:
+	   case XPATH_XSLT_TREE:
+	*/
+	return [[self alloc] _initWithNativePointer: lib  context: context];
+    }
+}
+
+- (void) dealloc
+{
+  xmlXPathFreeObject (_lib);
+  RELEASE (_context);
+  [super dealloc];
+}
+@end
+
+@implementation GSXPathBoolean
+- (BOOL) booleanValue
+{
+  return ((xmlXPathObject*)_lib)->boolval;
+}
+- (NSString *) description
+{
+  return ([self booleanValue] ? @"true" : @"false");
+}
+@end
+
+@implementation GSXPathNumber
+- (double) doubleValue
+{
+  return ((xmlXPathObject*)_lib)->floatval;
+}
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%f", [self doubleValue]];
+}
+@end
+
+@implementation GSXPathString
+- (NSString *) stringValue
+{
+  xmlChar *string = ((xmlXPathObject*)_lib)->stringval;
+  return [NSString stringWithUTF8String: string];
+}
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@", [self stringValue]];
+}
+@end
+
+
+@implementation GSXPathNodeSet
+- (unsigned int) length
+{
+  if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
+    {
+      return 0;
+    }
+
+  return xmlXPathNodeSetGetLength (((xmlXPathObject*)_lib)->nodesetval);
+}
+
+- (GSXMLNode *) nodeAtIndex: (unsigned)index
+{
+  if (xmlXPathNodeSetIsEmpty (((xmlXPathObject*)_lib)->nodesetval))
+    {
+      return nil;
+    }
+  else
+    {
+      xmlNode	*node;
+      GSXMLNode *n;
+
+      node = xmlXPathNodeSetItem (((xmlXPathObject*)_lib)->nodesetval, index);
+      n = [GSXMLNode alloc];
+      
+      return [n _initFrom: node  parent: self];
+    }
+}
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"NodeSet (length %d)", [self length]];
+}
+@end
+
+
+@implementation GSXPathContext
+- (id) initWithDocument: (GSXMLDocument *)d
+{
+  ASSIGN (_document, d);
+  ((xmlXPathContext*)_lib) = xmlXPathNewContext ([_document lib]);
+  ((xmlXPathContext*)_lib)->node = xmlDocGetRootElement ([_document lib]);
+  
+  return self;
+}
+
+- (GSXPathObject *) evaluateExpression: (NSString *)XPathExpression
+{
+  xmlXPathCompExpr *comp;
+  xmlXPathObject   *res;
+  GSXPathObject *result;
+  
+  comp = xmlXPathCompile ([XPathExpression UTF8String]);
+  if (comp == NULL) 
+    {
+      /* Maybe an exception would be better ? */
+      return nil;
+    }
+
+  res = xmlXPathCompiledEval (comp, ((xmlXPathContext*)_lib));
+  
+  result = [GSXPathObject _newWithNativePointer: res  context: self];
+  AUTORELEASE (result);
+
+  xmlXPathFreeCompExpr (comp);
+
+  return result;
+}
+
+- (void) dealloc
+{
+  xmlXPathFreeContext (_lib);  
+  RELEASE (_document);
+  [super dealloc];
+}
+@end
+
+
 
 /*
  * need this to make the linker happy on Windows

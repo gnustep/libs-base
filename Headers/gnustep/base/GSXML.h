@@ -9,6 +9,7 @@
    
    Integrated by Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: September 2000
+   GSXPath by Nicola Pero <nicola@brainstorm.co.uk>
 
    This file is part of the GNUstep Base Library.
 
@@ -268,6 +269,74 @@
 
 @interface GSHTMLSAXHandler : GSSAXHandler
 @end
+
+@class GSXPathObject;
+
+/**
+ * Using this library class is trivial.  Get your GSXMLDocument.  Create
+ * a GSXPathContext for it.
+ *
+ * GSXPathContext *p = [[GSXPathContext alloc] initWithDocument: document];
+ *
+ * Then, you can use it to evaluate XPath expressions:
+ *
+ * GSXPathString *result = [p evaluateExpression: @"string(/body/text())"];
+ * NSLog (@"Got %@", [result stringValue]);
+ *
+ */
+@interface GSXPathContext : NSObject
+{
+  void		*_lib;		// xmlXPathContext
+  GSXMLDocument *_document;
+}
+- (id) initWithDocument: (GSXMLDocument*)d;
+- (GSXPathObject*) evaluateExpression: (NSString*)XPathExpression;
+@end
+
+/** XPath queries return a GSXPathObject.  GSXPathObject in itself is
+ * an abstract class; there are four types of completely different
+ * GSXPathObject types, listed below.  I'm afraid you need to check
+ * the returned type of each GSXPath query to make sure it's what you
+ * meant it to be.
+ */
+@interface GSXPathObject : NSObject
+{
+  void		*_lib;		// xmlXPathObject
+  GSXPathContext *_context;
+}
+@end
+
+/**
+ * For XPath queries returning true/false.
+ */
+@interface GSXPathBoolean : GSXPathObject
+- (BOOL) booleanValue;
+@end
+
+/**
+ * For XPath queries returning a number.
+ */
+@interface GSXPathNumber : GSXPathObject
+- (double) doubleValue;
+@end
+
+/**
+ * For XPath queries returning a string.
+ */
+@interface GSXPathString : GSXPathObject
+- (NSString *) stringValue;
+@end
+
+/**
+ * For XPath queries returning a node set.
+ */
+@interface GSXPathNodeSet : GSXPathObject
+- (unsigned int) length;
+
+/** Please note that index starts from 0.  */
+- (GSXMLNode *) nodeAtIndex: (unsigned)index;
+@end
+
 
 #endif	/* STRICT_MACOS_X */
 #endif	/* STRICT_OPENSTEP */
