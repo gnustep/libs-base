@@ -563,7 +563,12 @@ static int messagesReceivedCount;
   [ip registerForInvalidationNotification:newConn];
   [op registerForInvalidationNotification:newConn];
 
+  /* xxx This is weird, though.  When will newConn ever get dealloc'ed?
+     connectionArray will retain it, but connectionArray will never get
+     deallocated.  This sort of retain/release cirularity must be common
+     enough.  Think about this and fix it. */
   [connectionArray addObject:newConn];
+
   [connectionArrayGate unlock];
 
   return newConn;
