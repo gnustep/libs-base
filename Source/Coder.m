@@ -67,14 +67,13 @@ my_object_is_class(id object)
 
 @implementation Coder
 
-+ initialize
++ (void) initialize
 {
   if (self == [Coder class])
     {
       defaultStreamClass = [MemoryStream class];
       assert(sizeof(void*) == sizeof(unsigned)); 
     }
-  return self;
 }
 
 + setDebugging: (BOOL)f
@@ -281,7 +280,7 @@ exc_return_null(arglist_t f)
 - (void) _coderPopRootObjectTable
 {
   assert(root_object_tables);
-  [[root_object_tables popObject] free];
+  [[root_object_tables popObject] release];
 }
 
 - _coderTopRootObjectTable
@@ -304,7 +303,7 @@ exc_return_null(arglist_t f)
 - (void) _coderPopForwardObjectTable
 {
   assert(forward_object_tables);
-  [[forward_object_tables popObject] free];
+  [[forward_object_tables popObject] release];
 }
 
 - _coderTopForwardObjectTable
@@ -1150,15 +1149,15 @@ exc_return_null(arglist_t f)
     }
 }
 
-- free
+- (void) dealloc
 {
   /* xxx No. [self _finishDecodeRootObject]; */
-  [const_ptr_table free];
-  [object_table free];
-  [[forward_object_tables freeObjects] free];
-  [[root_object_tables freeObjects] free];
-  [stream free];		/* xxx should we do this? */
-  return [super free];
+  [const_ptr_table release];
+  [object_table release];
+  [[forward_object_tables releaseObjects] release];
+  [[root_object_tables releaseObjects] release];
+  [stream release];		/* xxx should we do this? */
+  [super dealloc];
 }
 
 - (void) encodeIndent
@@ -1232,7 +1231,7 @@ exc_return_null(arglist_t f)
 /* By combining these, we're working around the GCC 2.6 bug that
    causes not all the categories to be processed by the runtime. */
 
-@implementation Object (CoderAdditions)
+@implementation NSObject (CoderAdditions)
 
 - (void) encodeWithCoder: (Coder*)anEncoder
 {

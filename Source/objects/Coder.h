@@ -54,7 +54,7 @@
 - initDecoding;
 - init;
 
-- free;
+- (void) dealloc;
 - (BOOL) isDecoding;
 
 - (void) encodeValueOfType: (const char*)type 
@@ -140,7 +140,8 @@
 
 @end
 
-@interface Object (CoderAdditions) <Coding>
+@interface NSObject (CoderAdditions) <Coding>
+
 - (void) encodeWithCoder: (Coder*)anEncoder;
 + newWithCoder: (Coder*)aDecoder;
 
