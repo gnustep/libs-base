@@ -446,9 +446,10 @@ static NSString	*indentStrings[] = {
   @"\t\t\t\t\t\t"
 };
 
-#define	PLNEW	0
-#define	PLXML	1
-#define	PLOLD	2
+#define	PLNEW	0	// New extended OpenStep property list
+#define	PLXML	1	// New MacOS-X XML property list
+#define	PLOLD	2	// Old (standard) OpenStep property list
+#define	PLDSC	3	// Just a description
 /**
  * obj is the object to be written out<br />
  * loc is the locale for formatting (or nil to indicate no formatting)<br />
@@ -894,7 +895,11 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else
     {
-      if (x == PLXML)
+      if (x == PLDSC)
+	{
+	  Append([obj description], dest);
+	}
+      else if (x == PLXML)
 	{
 	  NSDebugLog(@"Non-property-list class (%@) encoded as string",
 	    NSStringFromClass([obj class]));
@@ -902,14 +907,10 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 	  XString([obj description], dest);
 	  Append(@"</string>\n", dest);
 	}
-      else if (x == PLNEW)
+      else
 	{
 	  NSDebugLog(@"Non-property-list class (%@) encoded as string",
 	    NSStringFromClass([obj class]));
-	  Append([obj description], dest);
-	}
-      else
-	{
 	  Append([obj description], dest);
 	}
     }
@@ -966,7 +967,11 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
     }
   dest = *str;
   
-  if (xml == YES)
+  if (forDescription)
+    {
+      style = PLDSC;
+    }
+  else if (xml == YES)
     {
       Append([NSMutableString stringWithCString:
 	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist "
@@ -975,7 +980,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	"<plist version=\"0.9\">\n"], dest);
       style = PLXML;
     }
-  else if (forDescription || GSUserDefaultsFlag(NSWriteOldStylePropertyLists))
+  else if (GSUserDefaultsFlag(NSWriteOldStylePropertyLists))
     {
       style = PLOLD;
     }
