@@ -1,3 +1,24 @@
+Wed Jul 29  9:10:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/TcpPort.m: typecast to get rid of warning
+	* src/NSCharacterSet.m: Added NSCoding methods.
+	* src/NSBitmapCharSet.m: Added NSCoding methods.
+	* src/NSHost.m: typecast to get rid of warning.
+	* src/NSData.m: ([-copy]) removed.
+	* src/NSDictionary.m: ([-copy]) removed.
+	* src/NSGSequence.m: ([-copy]) removed.
+	* src/NSScanner.m: ([-copy]) removed.
+	* src/NSArray.m: ([-copy]) removed.
+	* src/NSAttributedString.m: ([-copy]) removed.
+	* src/NSString.m: ([-copy]) removed.
+	* src/NSObject.m: ([-copyWithZone:]) modified to conform strictly
+	to Rhapsody docs.
+	* src/include/IndexedCollectionPrivate.h: fixed include for NSString.h
+	* src/Makefile.postamble: modified rule for building srcdir-include
+	stuff so that it works for me.
+	* src/NSException.m: ([-copyWithZone:]) typecast to get rid of warning.
+	* src/NSValue.m: ([-copyWithZone:]) typecast to get rid of warning.
+
 Tue Jul 28 12:57:54 1998  Adam Fedor  <fedor@ultra.doc.com>
 
 	* src/GNUmakefile: Remove NEXTSTEP classes.
