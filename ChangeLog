@@ -1,3 +1,15 @@
+2004-02-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Added class by Fred Kiefer to decode
+	MacOS-X binary property lists ... heavily modified to try to handle
+	object references and dates (guessed) and to support mutability
+	options.  Current code does not get called by the deserialisation
+	method as I need to figure out how to tell which format the property
+	list is in, and for that I need to loook at example archives, which
+	I haven't had time to do yet.  Code comitted mainly so it's saved
+	somewhere and so that Fred can have a look and see if I've messed
+	stuff up.
+
 2004-02-02 Roland Schwingel <roland.schwingel@onevision.de>
 
 	* Source/NSString.m: ([stringByAbbreviatingWithTildeInPath]) fix bug
