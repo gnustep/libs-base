@@ -1,5 +1,10 @@
 2001-07-07  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSUser.m: NSSearchPathForDirectoriesInDomains() Set up
+	default values if environment variables are missing.
+
+2001-07-07  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSData.m: readContentsOfFile() hack added to permit reading
 	of files like those in the /proc filesystem which don't support
 	lengths.
