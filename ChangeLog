@@ -1,3 +1,7 @@
+2002-08-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([-boolValue]) Accept 'true' as well as 'YES'
+
 2002-07-29  Adam Fedor  <fedor@gnu.org>
 
 	* Merge changes from 1.4.0 onto main branch.

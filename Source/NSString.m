@@ -2182,10 +2182,21 @@ handle_printf_atsign (FILE *stream,
 
 // xxx Sould we use NSScanner here ?
 
+/**
+ * If the string consists of the words 'true' or 'yes' (case insensitive)
+ * or begins with a non-zero numeric value, return YES, otherwise return
+ * NO.
+ */
 - (BOOL) boolValue
 {
   if ([self caseInsensitiveCompare: @"YES"] == NSOrderedSame)
-    return YES;
+    {
+      return YES;
+    }
+  if ([self caseInsensitiveCompare: @"true"] == NSOrderedSame)
+    {
+      return YES;
+    }
   return [self intValue] != 0 ? YES : NO;
 }
 
