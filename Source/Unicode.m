@@ -1431,12 +1431,17 @@ else \
  * is not big enough (unless dst is a nul pointer ... indicating that
  * converted data is to be discarded).
  * </p>
- * <p>The terminate argument indicates that the destination buffer size
- * supplied is actually one character shorter than the real buffer size,
- * and that a nul terminator is to be placed at the end of the output string.
- * Also, if the function grows the buffer, it must allow for an extra
- * termination character.
- * </p>
+ * The options argument controls some special behavior.
+ * <list>
+ * <item>If GSUniTerminate is set, the function is expected to nul terminate
+ * the output string, and will assume that it is safe to place the nul
+ * just beyond the ned of the stated buffer size.
+ * Also, if the function grows the buffer, it will allow for an extra
+ * termination character.</item>
+ * <item>If GSUniTemporary is set, the function will return the results in
+ * an autoreleased buffer rather than in a buffer that the caller must
+ * release.</item>
+ * </list>
  * <p>On return, the function result is a flag indicating success (YES)
  * or failure (NO), and on success, the value stored in size is the number
  * of characters in the converted string.  The converted string itsself is
@@ -1447,15 +1452,16 @@ else \
  * </p>
  */
 BOOL
-gsToUnicode(unichar **dst, unsigned *size, const char *src, unsigned slen,
-  NSStringEncoding enc, NSZone *zone, BOOL terminate)
+GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
+  unsigned int slen, NSStringEncoding enc, NSZone *zone,
+  unsigned int options)
 {
   unichar	buf[BUFSIZ];
   unichar	*ptr;
   unsigned	bsize;
   unsigned	dpos = 0;	// Offset into destination buffer.
   unsigned	spos = 0;	// Offset into source buffer.
-  unsigned	extra = (terminate == YES) ? sizeof(unichar) : 0;
+  unsigned	extra = (options & GSUniTerminate) ? sizeof(unichar) : 0;
   unichar	base = 0;
   unichar	*table = 0;
 
@@ -1470,7 +1476,7 @@ gsToUnicode(unichar **dst, unsigned *size, const char *src, unsigned slen,
   if (dst == 0 || *size == 0)
     {
       ptr = buf;
-      bsize = (terminate == YES) ? BUFSIZ - 1 : BUFSIZ;
+      bsize = (extra != 0) ? BUFSIZ - 1 : BUFSIZ;
     }
   else
     {
@@ -1618,21 +1624,37 @@ tables:
   /*
    * Post conversion ... set output values.
    */
-  if (terminate == YES)
+  if (extra != 0)
     {
       ptr[dpos] = (unichar)0;
     }
   *size = dpos;
   if (dst != 0)
     {
-      /*
-       * If resizing is permitted, try ensure we return a buffer which
-       * is just big enough to hold the converted string.
-       */
-      if (zone != 0 && bsize > dpos)
+      if (options & GSUniTemporary)
+	{
+	  unsigned	bytes = dpos * sizeof(unichar) + extra;
+	  void		*r;
+
+	  /*
+	   * Temporary string was requested ... make one.
+	   */
+	  r = _fastMallocBuffer(bytes);
+	  memcpy(r, ptr, bytes);
+	  if (ptr != buf && ptr != *dst)
+	    {
+	      NSZoneFree(zone, ptr);
+	    }
+	  ptr = r;
+	}
+      else if (zone != 0 && bsize > dpos)
 	{
 	  unsigned	bytes = dpos * sizeof(unichar) + extra;
 
+	  /*
+	   * Resizing is permitted, try ensure we return a buffer which
+	   * is just big enough to hold the converted string.
+	   */
 	  if (ptr == buf || ptr == *dst)
 	    {
 	      unichar	*tmp;
@@ -1736,12 +1758,21 @@ else \
  * is not big enough (unless dst is a nul pointer ... indicating that
  * converted data is to be discarded).
  * </p>
- * <p>The terminate argument indicates that the destination buffer size
- * supplied is actually one character shorter than the real buffer size,
- * and that a nul terminator is to be placed at the end of the output string.
- * Also, if the function grows the buffer, it must allow for an extra
- * termination character.
- * </p>
+ * The options argument controls some special behavior.
+ * <list>
+ * <item>If GSUniStrict is set, the function will fail if a character is
+ * encountered which can't be displayed in the source.  Otherwise, some
+ * approximation or marker will be placed in the destination.</item>
+ * </list>
+ * <item>If GSUniTerminate is set, the function is expected to nul terminate
+ * the output string, and will assume that it is safe to place the nul
+ * just beyond the ned of the stated buffer size.
+ * Also, if the function grows the buffer, it will allow for an extra
+ * termination character.</item>
+ * <item>If GSUniTemporary is set, the function will return the results in
+ * an autoreleased buffer rather than in a buffer that the caller must
+ * release.</item>
+ * </list>
  * <p>On return, the function result is a flag indicating success (YES)
  * or failure (NO), and on success, the value stored in size is the number
  * of characters in the converted string.  The converted string itsself is
@@ -1752,16 +1783,17 @@ else \
  * </p>
  */
 BOOL
-gsFromUnicode(unsigned char **dst, unsigned *size, const unichar *src,
-  unsigned slen, NSStringEncoding enc, NSZone *zone, BOOL terminate,
-  BOOL strict)
+GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
+  unsigned int slen, NSStringEncoding enc, NSZone *zone,
+  unsigned int options)
 {
   unsigned char	buf[BUFSIZ];
   unsigned char	*ptr;
   unsigned	bsize;
   unsigned	dpos = 0;	// Offset into destination buffer.
   unsigned	spos = 0;	// Offset into source buffer.
-  unsigned	extra = (terminate == YES) ? 1 : 0;
+  unsigned	extra = (options & GSUniTerminate) ? 1 : 0;
+  BOOL		strict = (options & GSUniStrict) ? YES : NO;
   unichar	base = 0;
   _ucc_		*table = 0;
   unsigned	tsize = 0;
@@ -1777,7 +1809,7 @@ gsFromUnicode(unsigned char **dst, unsigned *size, const unichar *src,
   if (dst == 0 || *size == 0)
     {
       ptr = buf;
-      bsize = (terminate == YES) ? BUFSIZ - 1 : BUFSIZ;
+      bsize = (extra != 0) ? BUFSIZ - 1 : BUFSIZ;
     }
   else
     {
@@ -2057,21 +2089,37 @@ tables:
   /*
    * Post conversion ... set output values.
    */
-  if (terminate == YES)
+  if (extra != 0)
     {
       ptr[dpos] = (unsigned char)0;
     }
   *size = dpos;
   if (dst != 0)
     {
-      /*
-       * If resizing is permitted, try ensure we return a buffer which
-       * is just big enough to hold the converted string.
-       */
-      if (zone != 0 && bsize > dpos)
+      if (options & GSUniTemporary)
+	{
+	  unsigned	bytes = dpos + extra;
+	  void		*r;
+
+	  /*
+	   * Temporary string was requested ... make one.
+	   */
+	  r = _fastMallocBuffer(bytes);
+	  memcpy(r, ptr, bytes);
+	  if (ptr != buf && ptr != *dst)
+	    {
+	      NSZoneFree(zone, ptr);
+	    }
+	  ptr = r;
+	}
+      else if (zone != 0 && bsize > dpos)
 	{
 	  unsigned	bytes = dpos + extra;
 
+	  /*
+	   * Resizing is permitted - try ensure we return a buffer
+	   * which is just big enough to hold the converted string.
+	   */
 	  if (ptr == buf || ptr == *dst)
 	    {
 	      unsigned char	*tmp;
