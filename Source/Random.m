@@ -217,7 +217,7 @@ static id defaultRNG = nil;
 /* return between 0 and numSides-1 */
 - (long) randomDie: (long)numSides
 {
-  return ([rng nextRandom] % (numSides+1) - 1);
+  return ([rng nextRandom] % numSides);
 }
 
 - (BOOL) randomCoin

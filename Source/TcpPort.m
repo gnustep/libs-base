@@ -1770,9 +1770,9 @@ static NSMapTable *out_port_bag = NULL;
 
 /* In and Out Packet classes. */
 
-/* If you change this "unsigned short", you must change the use
-   of ntohs() and htons() below. */
-#define PREFIX_LENGTH_TYPE unsigned short
+/* If you change this "unsigned long", you must change the use
+   of ntohl() and htonl() below. */
+#define PREFIX_LENGTH_TYPE unsigned long
 #define PREFIX_LENGTH_SIZE sizeof (PREFIX_LENGTH_TYPE)
 #define PREFIX_ADDRESS_TYPE struct sockaddr_in
 #define PREFIX_ADDRESS_SIZE sizeof (PREFIX_ADDRESS_TYPE)
@@ -1815,7 +1815,7 @@ static NSMapTable *out_port_bag = NULL;
 
   /* *size is the number of bytes in the packet, not including 
      the PREFIX_SIZE-byte header. */
-  *packet_size = ntohs (*(PREFIX_LENGTH_TYPE*) prefix_buffer);
+  *packet_size = ntohl (*(PREFIX_LENGTH_TYPE*) prefix_buffer);
   assert (packet_size);
 
   /* If the reply address is non-zero, and the TcpOutPort for this socket
@@ -1875,9 +1875,9 @@ static NSMapTable *out_port_bag = NULL;
 {
   int c;
 
-  /* Put the packet size in the first two bytes of the packet. */
+  /* Put the packet size in the first four bytes of the packet. */
   assert (prefix == PREFIX_SIZE);
-  *(PREFIX_LENGTH_TYPE*)[data mutableBytes] = htons (eof_position);
+  *(PREFIX_LENGTH_TYPE*)[data mutableBytes] = htonl (eof_position);
 
   /* Put the sockaddr_in for replies in the next bytes of the prefix
      region.  If there is no reply address specified, fill it with zeros. */

@@ -731,9 +731,16 @@ static int messages_received_count;
 
 + (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort
 {
-  id newInPort = [default_receive_port_class newForReceiving];
-  return [self rootProxyAtPort: anOutPort 
+  NSConnection	*c = [self connectionByOutPort: anOutPort];
+
+  if (c)
+    return [c rootProxy];
+  else
+    {
+      id newInPort = [default_receive_port_class newForReceiving];
+      return [self rootProxyAtPort: anOutPort 
 	       withInPort: [newInPort autorelease]];
+    }
 }
 
 + (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort 

@@ -1,3 +1,35 @@
+Fri Dec 19 13:09:28 1997  Adam Fedor  <fedor@doc.com>
+
+	* src/NSGeometry.m (NSPointFromString, NSSizeFromString,
+	NSRectFromString): New functions.
+	* src/include/NSGeometry.h: New function defs.
+	* NSCTemplateValue.m (-description): Use them.
+
+Tue Dec 16 22:35:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+	* src/Decoder.m: Modified to use a single, class-wide dummy object
+	as a placeholder in cross-reference tables.  This gives a slight
+	speed and memory usage improvement.
+
+	* src/MemoryStream.m: Avoid using autorelease where possible in order
+	to improve efficiency.
+
+	* src/NSConnection.m: ([+rootProxyAtPort:]) modified to refrain from
+	creating a new connection when we already have one for the given
+	output port.
+
+	* src/Random.m: ([-randomDie:]) Fixed to confirm to description in
+	comments.
+
+	* src/TcpPort.m: Changed size field in packets to be 4 bytes long
+	rather than 2.  This allows messages to be more than 64K bytes long
+	and is essential for things like pasteboard operations.
+
+Thu Dec 18 16:17:22 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+	* src/NSProcessInfo.m (_gnu_process_noobjc_args): Use malloc().
+	(_gnu_noobjc_free_vars): Use free().
+
 Thu Dec 11 13:58:39 1997  Adam Fedor  <fedor@doc.com>
 
 	* configure.in: Remove unneeded tests.

@@ -83,19 +83,18 @@ static BOOL debug_memory_stream = NO;
     {
       if (b)
 	if (f)
-	  data = [NSMutableData dataWithBytesNoCopy: b length: s];
+	  data = [[NSMutableData alloc] initWithBytesNoCopy: b length: s];
 	else
-	  data = [NSMutableData dataWithBytes: b length: s];
+	  data = [[NSMutableData alloc] initWithBytes: b length: s];
       else
 	{
-	  data = [NSMutableData dataWithCapacity: s];
+	  data = [[NSMutableData alloc] initWithCapacity: s];
 	  if (data)
 	    [data setLength: s];
 	}
 
       if (data)
 	{
-	  [data retain];
 	  prefix = p;
 	  position = i;
 	  eof_position = l;
