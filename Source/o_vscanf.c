@@ -44,8 +44,8 @@ Cambridge, MA 02139, USA.  */
    Fixed bug by adding "*f == 'a'" to type modifier checking.
    Declared extern strtod and strtol.
    Use function pointer argument to get next character.
-   Use (*objc_malloc)() instead of malloc()
-   Use (*objc_realloc)() instead of realloc()
+   Use objc_malloc() instead of malloc()
+   Use objc_realloc() instead of realloc()
 
    This is a solution for StdioStream and MemoryStream.
    It isn't ideal.  Anyone have other suggestions? */
@@ -304,7 +304,7 @@ o_vscanf (void *stream,
 		    conv_error ();					      \
 		  /* Allocate an initial buffer.  */			      \
 		  strsize = 100;					      \
-		  *strptr = str = (*objc_malloc) (strsize);		      \
+		  *strptr = str = objc_malloc (strsize);		      \
 		}							      \
 	      else							      \
 		str = va_arg (arg, char *);				      \
@@ -327,11 +327,11 @@ o_vscanf (void *stream,
 		  if (malloc_string && str == *strptr + strsize)	      \
 		    {							      \
 		      /* Enlarge the buffer.  */			      \
-		      str = (*objc_realloc) (*strptr, strsize * 2);	      \
+		      str = objc_realloc (*strptr, strsize * 2);	      \
 		      if (str == NULL)					      \
 			{						      \
 			  /* Can't allocate that much.  Last-ditch effort.  */\
-			  str = (*objc_realloc) (*strptr, strsize + 1);	      \
+			  str = objc_realloc (*strptr, strsize + 1);	      \
 			  if (str == NULL)				      \
 			    {						      \
 			      /* We lose.  Oh well.			      \
