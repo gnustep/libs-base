@@ -63,7 +63,6 @@
 
 /* Port objects */
 #include <objects/Port.h>
-#include <objects/SocketPort.h>
 
 /* Remote messaging support objects */
 #include <objects/Connection.h>
