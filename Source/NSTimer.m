@@ -201,6 +201,7 @@ static Class	NSDate_class;
     }
   else if (_invalidated == NO)
     {
+      extern NSTimeInterval GSTimeNow();
       NSTimeInterval	now = GSTimeNow();
       NSTimeInterval	nxt = [_date timeIntervalSinceReferenceDate];
       int		inc = -1;

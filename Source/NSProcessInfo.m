@@ -615,6 +615,8 @@ int main(int argc, char *argv[], char *env[])
   [gnustep_global_lock lock];
   if (host == nil)
     {
+      extern NSTimeInterval GSTimeNow();
+
       pid = [self processIdentifier];
       start = (unsigned long)GSTimeNow();
       host = [[self hostName] stringByReplacingString: @"." withString: @"_"];
