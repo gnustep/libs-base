@@ -33,6 +33,7 @@
 #include <parserInternals.h>
 #include <SAX.h>
 #include <HTMLparser.h>
+#include <xmlmemory.h>
 
 #include <Foundation/GSXML.h>
 #include <Foundation/NSData.h>
@@ -239,6 +240,23 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
 - (void) save: (NSString*) filename
 {
   xmlSaveFile([filename cString], lib);
+}
+
+- (NSString *) stringValue
+{
+  NSString *string = nil;
+  xmlChar  *buf = NULL;
+  int       length;
+
+  xmlDocDumpMemory(lib, &buf, &length);
+
+  if(buf && length)
+    {
+      string = [NSString_class stringWithCString: buf length: length];
+      xmlFree(buf);
+    }
+
+  return string;
 }
 
 @end
