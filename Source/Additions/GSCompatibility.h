@@ -65,6 +65,8 @@ typedef enum _NSGNUstepStringEncoding
   NSBIG5StringEncoding			// Traditional chinese
 } NSGNUstepStringEncoding;
 
+NSString *GetEncodingName(NSStringEncoding availableEncodingValue);
+
 #define GS_RANGE_CHECK(RANGE, SIZE) \
   if (RANGE.location > SIZE || RANGE.length > (SIZE - RANGE.location)) \
     [NSException raise: NSRangeException \

@@ -23,7 +23,7 @@
 
 */
 
-#include <config.h>
+#include "config.h"
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 

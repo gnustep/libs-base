@@ -39,7 +39,7 @@
    </chapter>
 */
 
-#include <config.h>
+#include "config.h"
 #include "GSCompatibility.h"
 
 #ifdef	HAVE_LIBXML

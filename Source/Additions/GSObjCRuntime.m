@@ -28,7 +28,7 @@
    $Date$ $Revision$
    */ 
 
-#include <config.h>
+#include "config.h"
 #include <base/preface.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>

@@ -21,7 +21,7 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
 */
-#include <config.h>
+#include "config.h"
 #include	<Foundation/Foundation.h>
 
 /**
@@ -421,4 +421,130 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 
 @end
 
+/** 
+ * Extension methods for the NSObject class
+ */
+@implementation NSObject (GSCategories)
 
+- (id) notImplemented: (SEL)aSel
+{
+  [NSException
+    raise: NSGenericException
+    format: @"method %s not implemented in %s(%s)",
+    aSel ? sel_get_name(aSel) : "(null)", 
+    object_get_class_name(self),
+    GSObjCIsInstance(self) ? "instance" : "class"];
+  return nil;
+}
+
+- (id) shouldNotImplement: (SEL)aSel
+{
+  [NSException
+    raise: NSGenericException
+    format: @"%s(%s) should not implement %s", 
+    object_get_class_name(self), 
+    GSObjCIsInstance(self) ? "instance" : "class",
+    aSel ? sel_get_name(aSel) : "(null)"];
+  return nil;
+}
+
+- (id) subclassResponsibility: (SEL)aSel
+{
+  [NSException raise: NSGenericException
+    format: @"subclass %s(%s) should override %s", 
+	       object_get_class_name(self),
+	       GSObjCIsInstance(self) ? "instance" : "class",
+	       aSel ? sel_get_name(aSel) : "(null)"];
+  return nil;
+}
+
+/**
+ * Compare the receiver with anObject to see which is greater.
+ * The default implementation orders by memory location.
+ */
+- (int) compare: (id)anObject
+{
+  if (anObject == self)
+    {
+      return NSOrderedSame;
+    }
+  if (anObject == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for compare:"];
+    }
+  if ([self isEqual: anObject])
+    {
+      return NSOrderedSame;
+    }
+  /*
+   * Ordering objects by their address is pretty useless, 
+   * so subclasses should override this is some useful way.
+   */
+  if (self > anObject)
+    {
+      return NSOrderedDescending;
+    }
+  else 
+    {
+      return NSOrderedAscending;
+    }
+}
+
+@end
+
+/** 
+ * Extension methods for the NSObject class
+ */
+@implementation NSString (GSCategories)
+
+/**
+ * Returns a string formed by removing the prefix string from the
+ * receiver.  Raises an exception if the prefix is not present.
+ */
+- (NSString*) stringByDeletingPrefix: (NSString*)prefix
+{
+  NSCAssert2([self hasPrefix: prefix],
+    @"'%@' does not have the prefix '%@'", self, prefix);
+  return [self substringFromIndex: [prefix length]];
+}
+
+/**
+ * Returns a string formed by removing the suffix string from the
+ * receiver.  Raises an exception if the suffix is not present.
+ */
+- (NSString*) stringByDeletingSuffix: (NSString*)suffix
+{
+  NSCAssert2([self hasSuffix: suffix],
+    @"'%@' does not have the suffix '%@'", self, suffix);
+  return [self substringToIndex: ([self length] - [suffix length])];
+}
+
+@end
+
+@implementation NSMutableString (GSCategories)
+
+/**
+ * Removes the specified suffix from the string.  Raises an exception
+ * if the suffix is not present.
+ */
+- (void) deleteSuffix: (NSString*)suffix
+{
+  NSCAssert2([self hasSuffix: suffix],
+    @"'%@' does not have the suffix '%@'", self, suffix);
+  [self deleteCharactersInRange:
+    NSMakeRange([self length] - [suffix length], [suffix length])];
+}
+
+/**
+ * Removes the specified prefix from the string.  Raises an exception
+ * if the prefix is not present.
+ */
+- (void) deletePrefix: (NSString*)prefix
+{
+  NSCAssert2([self hasPrefix: prefix],
+    @"'%@' does not have the prefix '%@'", self, prefix);
+  [self deleteCharactersInRange: NSMakeRange(0, [prefix length])];
+}
+
+@end
