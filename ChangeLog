@@ -1,3 +1,9 @@
+Mon Apr 28 12:09:44 BST 2003  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* NSCharacterSets/GNUmakefile (base-resources_RESOURCE_FILES_INSTALL_DIR): 
+	Define using the full relative path.
+	* Resources/GNUmakefile (base-resources_RESOURCE_FILES_INSTALL_DIR): Idem.
+	
 2003-04-27  Adam Fedor  <fedor@gnu.org>
 
 	* Updates for filesystem change.
