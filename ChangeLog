@@ -1,3 +1,9 @@
+2002-12-03  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Source/NSBundle.m ([NSBundle +initialize]): check for linked
+	framework in two passes, first collect all the framework classes, then
+	add it. The previous routine failed to add all the frameworks.
+
 2002-12-02  Adam Fedor  <fedor@gnu.org>
 
 	* Port baseadd to MacOSX.
