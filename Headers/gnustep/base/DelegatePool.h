@@ -1,8 +1,8 @@
 /* Interface for Objective-C "collection of delegates" object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This file is part of the GNU Objective C Class Library.
 
@@ -53,13 +53,13 @@ enum DelegatePoolSendBehavior {SEND_TO_ALL = 0,
 - (void) dealloc;
 
 // MANIPULATING COLLECTION OF DELEGATES;
-- delegatePoolAddObject: anObject;
-- delegatePoolAddObjectIfAbsent: anObject;
-- delegatePoolRemoveObject: anObject;
+- (void) delegatePoolAddObject: anObject;
+- (void) delegatePoolAddObjectIfAbsent: anObject;
+- (void) delegatePoolRemoveObject: anObject;
 - (BOOL) delegatePoolIncludesObject: anObject;
 - delegatePoolCollection;
 - (unsigned char) delegatePoolSendBehavior;
-- delegatePoolSetSendBehavior: (unsigned char)b;
+- (void) delegatePoolSetSendBehavior: (unsigned char)b;
 
 // FOR PASSING ALL OTHER MESSAGES TO DELEGATES;
 // RETURNS 0 IF NO OBJECTS RESPOND;
