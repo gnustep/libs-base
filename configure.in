@@ -347,11 +347,10 @@ AC_SUBST(_GSC_S_LNG_LNG)
 #--------------------------------------------------------------------
 OBJC_SYS_DYNAMIC_LINKER()
 
-#---------------------------------------------------------------------
-# Guess if we are using a compiler which allows us to change the class
-# to be used for constant strings by using the -fconstant-string-class
-# option.  If that is the case, we change it to NSConstantString.
-#---------------------------------------------------------------------
+#--------------------------------------------------------------------
+# Check whether Objective-C /really/ works
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(whether objc really works)
 saved_LIBS="$LIBS"
 saved_CPPFLAGS="$CPPFLAGS"
 LIBS="$LIBS $LIBOBJC"
@@ -360,6 +359,32 @@ if test x"$objc_threaded" != x""; then
   LIBS="$LIBS $objc_threaded"
 fi
 LIBS="$LIBS $extra_LIBS"
+AC_CACHE_VAL(objc_works,
+  AC_TRY_RUN([#include "$srcdir/config/config.objc.m"],
+  objc_works=yes, 
+  objc_works=no, 
+  objc_works=yes)
+)
+if test $objc_works = yes; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+  echo "I don't seem to be able to use your Objective-C compiler to produce"
+  echo "working binaries!  Please check your Objective-C compiler installation."
+  echo "If you are using gcc-3.x make sure that your compiler's libgcc_s and libobjc"
+  echo "can be found by the dynamic linker - usually that requires you to play"
+  echo "with LD_LIBRARY_PATH or /etc/ld.so.conf."
+  echo "Please refer to your compiler installation instructions for more help."
+  AC_MSG_ERROR(The Objective-C compiler doesn't work or is not installed properly.)
+fi
+
+# Don't rever any Objective-C flags as they are used in the next test
+
+#---------------------------------------------------------------------
+# Guess if we are using a compiler which allows us to change the class
+# to be used for constant strings by using the -fconstant-string-class
+# option.  If that is the case, we change it to NSConstantString.
+#---------------------------------------------------------------------
 CPPFLAGS="$CPPFLAGS -fconstant-string-class=NSConstantString"
 AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
 AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
