@@ -135,4 +135,26 @@
 
 @end
 
+@interface	NSArray (GNUstep)
+/*
+ *	Extension methods for working with sorted arrays - use a binary chop
+ *	to determine the insertion location for an nobject.  If equal objects
+ *	already exist in the array, they will be located immediately before
+ *	the insertion position.
+ * 
+ *	The comparator function takes two items as arguments, the first is the
+ *	item to be added, the second is the item already in the array.
+ *      The function should return NSOrderedAscending if the item to be
+ *      added is 'less than' the item in the array, NSOrderedDescending
+ *      if it is greater, and NSOrderedSame if it is equal.
+ *
+ *	The selector version works the same - returning NSOrderedAscending if
+ *	the reciever is 'less than' the item in the array.
+ */
+- (unsigned) insertionPosition: (id)item
+		 usingFunction: (NSComparisonResult (*)(id, id))sorter;
+- (unsigned) insertionPosition: (id)item
+		 usingSelector: (SEL)comp;
+@end
+
 #endif /* __NSArray_h_GNUSTEP_BASE_INCLUDE */

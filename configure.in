@@ -306,6 +306,7 @@ AC_SUBST(ac_cv_sizeof_float)
 AC_CHECK_SIZEOF(double)
 AC_SUBST(ac_cv_sizeof_double)
 
+AC_SUBST(ac_cv_sizeof_voidp)
 if test $ac_cv_sizeof_voidp = $ac_cv_sizeof_int; then
   GS_ADDR="unsigned int"
 else

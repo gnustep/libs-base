@@ -877,7 +877,7 @@ GSTimeNow()
   return abstractClass;
 }
 
-- replacementObjectForPortCoder: aRmc
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc
 {
   return self;
 }
@@ -928,13 +928,13 @@ GSTimeNow()
 {
   // Get the current time, add the secs and init thyself
   return [self initWithTimeIntervalSinceReferenceDate:
-	       GSTimeNow() + secsToBeAdded];
+    GSTimeNow() + secsToBeAdded];
 }
 
 - (id)initWithTimeIntervalSince1970: (NSTimeInterval)seconds
 {
   return [self initWithTimeIntervalSinceReferenceDate:
-		       UNIX_REFERENCE_INTERVAL + seconds];
+    UNIX_REFERENCE_INTERVAL + seconds];
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
@@ -1017,6 +1017,11 @@ GSTimeNow()
 
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for timeIntervalSinceDate:"];
+    }
   return otherTime(self) - otherTime(otherDate);
 }
 
@@ -1035,17 +1040,33 @@ GSTimeNow()
 
 - (NSComparisonResult) compare: (NSDate*)otherDate
 {
+  if (otherDate == self)
+    {
+      return NSOrderedSame;
+    }
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for compare:"];
+    }
   if (otherTime(self) > otherTime(otherDate))
-    return NSOrderedDescending;
-
+    {
+      return NSOrderedDescending;
+    }
   if (otherTime(self) < otherTime(otherDate))
-    return NSOrderedAscending;
-
+    {
+      return NSOrderedAscending;
+    }
   return NSOrderedSame;
 }
 
 - (NSDate*) earlierDate: (NSDate*)otherDate
 {
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for earlierDate:"];
+    }
   if (otherTime(self) > otherTime(otherDate))
     return otherDate;
   return self;
@@ -1053,6 +1074,8 @@ GSTimeNow()
 
 - (BOOL) isEqual: (id)other
 {
+  if (other == nil)
+    return NO;
   if ([other isKindOf: abstractClass]
       && 1.0 > ABS(otherTime(self) - otherTime(other)))
     return YES;
@@ -1061,6 +1084,8 @@ GSTimeNow()
 
 - (BOOL) isEqualToDate: (NSDate*)other
 {
+  if (other == nil)
+    return NO;
   if (1.0 > ABS(otherTime(self) - otherTime(other)))
     return YES;
   return NO;
@@ -1068,6 +1093,11 @@ GSTimeNow()
 
 - (NSDate*) laterDate: (NSDate*)otherDate
 {
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for laterDate:"];
+    }
   if (otherTime(self)
     < otherTime(otherDate))
     return otherDate;
@@ -1091,19 +1121,21 @@ GSTimeNow()
   return [self class];
 }
 
-- replacementObjectForPortCoder: aRmc
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc
 {
   return self;
 }
 
 - (void) encodeWithCoder: (NSCoder*)coder
 {
-  [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
+  [coder encodeValueOfObjCType: @encode(NSTimeInterval)
+			    at: &_seconds_since_ref];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
-  [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
+  [coder decodeValueOfObjCType: @encode(NSTimeInterval)
+			    at: &_seconds_since_ref];
   return self;
 }
 
@@ -1123,6 +1155,11 @@ GSTimeNow()
 
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for timeIntervalSinceDate:"];
+    }
   return _seconds_since_ref - otherTime(otherDate);
 }
 
@@ -1140,17 +1177,33 @@ GSTimeNow()
 
 - (NSComparisonResult) compare: (NSDate*)otherDate
 {
+  if (otherDate == self)
+    {
+      return NSOrderedSame;
+    }
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for compare:"];
+    }
   if (_seconds_since_ref > otherTime(otherDate))
-    return NSOrderedDescending;
-
+    {
+      return NSOrderedDescending;
+    }
   if (_seconds_since_ref < otherTime(otherDate))
-    return NSOrderedAscending;
-
+    {
+      return NSOrderedAscending;
+    }
   return NSOrderedSame;
 }
 
 - (NSDate*) earlierDate: (NSDate*)otherDate
 {
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for earlierDate:"];
+    }
   if (_seconds_since_ref > otherTime(otherDate))
     return otherDate;
   return self;
@@ -1158,6 +1211,8 @@ GSTimeNow()
 
 - (BOOL) isEqual: (id)other
 {
+  if (other == nil)
+    return NO;
   if ([other isKindOfClass: abstractClass]
       && 1.0 > ABS(_seconds_since_ref - otherTime(other)))
     return YES;
@@ -1166,6 +1221,8 @@ GSTimeNow()
 
 - (BOOL) isEqualToDate: (NSDate*)other
 {
+  if (other == nil)
+    return NO;
   if (1.0 > ABS(_seconds_since_ref - otherTime(other)))
     return YES;
   return NO;
@@ -1173,6 +1230,11 @@ GSTimeNow()
 
 - (NSDate*) laterDate: (NSDate*)otherDate
 {
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for laterDate:"];
+    }
   if (_seconds_since_ref < otherTime(otherDate))
     return otherDate;
   return self;
@@ -1202,7 +1264,7 @@ GSTimeNow()
   return [self class];
 }
 
-- replacementObjectForPortCoder: aRmc
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aRmc
 {
   return self;
 }

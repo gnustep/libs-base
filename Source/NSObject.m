@@ -1332,16 +1332,31 @@ static BOOL deallocNotifications = NO;
   double_release_check_enabled = enable;
 }
 
-- (int) compare: (id)anotherObject;
+- (int) compare: (id)anotherObject
 {
-  if ([self isEqual:anotherObject])
-    return 0;
+  if (anotherObject == self)
+    {
+      return NSOrderedSame;
+    }
+  if (anotherObject == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for compare:"];
+    }
+  if ([self isEqual: anotherObject])
+    {
+      return NSOrderedSame;
+    }
   // Ordering objects by their address is pretty useless, 
   // so subclasses should override this is some useful way.
-  else if (self > anotherObject)
-    return 1;
+  if (self > anotherObject)
+    {
+      return NSOrderedDescending;
+    }
   else 
-    return -1;
+    {
+      return NSOrderedAscending;
+    }
 }
 
 - (BOOL) isMetaClass

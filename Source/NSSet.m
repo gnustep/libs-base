@@ -23,8 +23,10 @@
 
 #include <config.h>
 #include <base/behavior.h>
+#include <base/fast.x>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSGSet.h>
+#include <Foundation/NSCoder.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
@@ -52,26 +54,6 @@ static Class NSMutableSet_concrete_class;
       NSMutableSet_concrete_class = [NSGMutableSet class];
       behavior_class_add_class(self, [NSSetNonCore class]);
     }
-}
-
-+ (void) _setConcreteClass: (Class)c
-{
-  NSSet_concrete_class = c;
-}
-
-+ (void) _setMutableConcreteClass: (Class)c
-{
-  NSMutableSet_concrete_class = c;
-}
-
-+ (Class) _concreteClass
-{
-  return NSSet_concrete_class;
-}
-
-+ (Class) _mutableConcreteClass
-{
-  return NSMutableSet_concrete_class;
 }
 
 + (id) set
@@ -118,8 +100,13 @@ static Class NSMutableSet_concrete_class;
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSSet_abstract_class)
-    return NSAllocateObject(NSSet_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSSet_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 /* This is the designated initializer */
@@ -132,13 +119,37 @@ static Class NSMutableSet_concrete_class;
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  unsigned	count;
+  Class		c = fastClass(self);
+
+  if (c == NSSet_abstract_class)
+    {
+      RELEASE(self);
+      self = [NSSet_concrete_class allocWithZone: NSDefaultMallocZone()];
+      return [self initWithCoder: aCoder];
+    }
+  else if (c == NSMutableSet_abstract_class)
+    {
+      RELEASE(self);
+      self = [NSMutableSet_concrete_class allocWithZone: NSDefaultMallocZone()];
+      return [self initWithCoder: aCoder];
+    }
+  [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+  {
+    id	objs[count];
+    unsigned	i;
+
+    for (i = 0; i < count; i++)
+      {
+	[aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
+      }
+    return [self initWithObjects: objs count: count];
+  }
 }
 
-- (void) encodeWithCoder: (NSCoder*)aCoder
+- (Class) classForCoder
 {
-  [self subclassResponsibility: _cmd];
+  return NSSet_abstract_class;
 }
 
 - (unsigned) count
@@ -147,7 +158,20 @@ static Class NSMutableSet_concrete_class;
   return 0;
 }
 
-- (id) member: anObject
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+  unsigned	count = [self count];
+  NSEnumerator	*e = [self objectEnumerator];
+  id		o;
+
+  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+  while ((o = [e nextObject]) != nil)
+    {
+      [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+    }
+}
+
+- (id) member: (id)anObject
 {
   return [self subclassResponsibility: _cmd];
   return 0;  
@@ -165,8 +189,7 @@ static Class NSMutableSet_concrete_class;
 
 - (id) mutableCopyWithZone: (NSZone*)z
 {
-  return [[[[self class] _mutableConcreteClass] allocWithZone: z] 
-	  initWithSet: self];
+  return [[NSMutableSet_concrete_class allocWithZone: z] initWithSet: self];
 }
 
 @end
@@ -307,7 +330,12 @@ static Class NSMutableSet_concrete_class;
     }
 }
 
-- (BOOL) containsObject: anObject
+- (Class) classForCoder
+{
+  return NSSet_abstract_class;
+}
+
+- (BOOL) containsObject: (id)anObject
 {
   return (([self member: anObject]) ? YES : NO);
 }
@@ -395,7 +423,7 @@ static Class NSMutableSet_concrete_class;
   return YES;
 }
 
-- (BOOL) isEqual: other
+- (BOOL) isEqual: (id)other
 {
   if ([other isKindOfClass: [NSSet class]])
     return [self isEqualToSet: other];
@@ -450,13 +478,18 @@ static Class NSMutableSet_concrete_class;
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSMutableSet_abstract_class)
-    return NSAllocateObject(NSMutableSet_concrete_class, 0, z);
-  return [super allocWithZone: z];
+    {
+      return NSAllocateObject(NSMutableSet_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
 }
 
 - (id) copyWithZone: (NSZone*)z
 {
-  return [[[[self class] _concreteClass] allocWithZone: z] initWithSet: self];
+  return [[NSSet_concrete_class allocWithZone: z] initWithSet: self];
 }
 
 /* This is the designated initializer */
@@ -465,12 +498,12 @@ static Class NSMutableSet_concrete_class;
   return [self subclassResponsibility: _cmd];
 }
 
-- (void) addObject: anObject
+- (void) addObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void) removeObject: anObject
+- (void) removeObject: (id)anObject
 {
   [self subclassResponsibility: _cmd];
 }
@@ -479,13 +512,14 @@ static Class NSMutableSet_concrete_class;
 
 @implementation NSMutableSetNonCore
 
-/* Override superclass's designated initializer */
-- initWithObjects: (id*)objects
-	    count: (unsigned)count
+- (id) initWithObjects: (id*)objects
+		 count: (unsigned)count
 {
   [self initWithCapacity: count];
   while (count--)
-    [self addObject: objects[count]];
+    {
+      [self addObject: objects[count]];
+    }
   return self;
 }
 
@@ -494,35 +528,58 @@ static Class NSMutableSet_concrete_class;
   unsigned	i, c = [array count];
 
   for (i = 0; i < c; i++)
-    [self addObject: [array objectAtIndex: i]];
+    {
+      [self addObject: [array objectAtIndex: i]];
+    }
 }
 
 - (void) unionSet: (NSSet*) other
 {
-  id keys = [other objectEnumerator];
-  id key;
+  if (other != self)
+    {
+      id keys = [other objectEnumerator];
+      id key;
 
-  while ((key = [keys nextObject]))
-    [self addObject: key];
+      while ((key = [keys nextObject]))
+	{
+	  [self addObject: key];
+	}
+    }
 }
 
 - (void) intersectSet: (NSSet*) other
 {
-  id keys = [self objectEnumerator];
-  id key;
+  if (other != self)
+    {
+      id keys = [self objectEnumerator];
+      id key;
 
-  while ((key = [keys nextObject]))
-    if ([other containsObject: key] == NO)
-      [self removeObject: key];
+      while ((key = [keys nextObject]))
+	{
+	  if ([other containsObject: key] == NO)
+	    {
+	      [self removeObject: key];
+	    }
+	}
+    }
 }
 
 - (void) minusSet: (NSSet*) other
 {
-  id keys = [other objectEnumerator];
-  id key;
+  if (other == self)
+    {
+      [self removeAllObjects];
+    }
+  else
+    {
+      id keys = [other objectEnumerator];
+      id key;
 
-  while ((key = [keys nextObject]))
-    [self removeObject: key];
+      while ((key = [keys nextObject]))
+	{
+	  [self removeObject: key];
+	}
+    }
 }
 
 - (void) removeAllObjects

@@ -26,79 +26,79 @@
 
 @interface NSBoolNumber : NSNumber
 {
-    BOOL data;
+  BOOL	data;
 }
 @end
 
 @interface NSUCharNumber : NSNumber
 {
-    unsigned char data;
+  unsigned char	data;
 }
 @end
 
 @interface NSCharNumber : NSNumber
 {
-    char data;
+  signed char	data;
 }
 @end
 
 @interface NSUShortNumber : NSNumber
 {
-    unsigned short data;
+  unsigned short	data;
 }
 @end
 
 @interface NSShortNumber : NSNumber
 {
-    short data;
+  signed short	data;
 }
 @end
 
 @interface NSUIntNumber : NSNumber
 {
-    unsigned int data;
+  unsigned int	data;
 }
 @end
 
 @interface NSIntNumber : NSNumber
 {
-    int data;
+  signed int	data;
 }
 @end
 
 @interface NSULongNumber : NSNumber
 {
-    unsigned long data;
+  unsigned long	data;
 }
 @end
 
 @interface NSLongNumber : NSNumber
 {
-    long data;
+  signed long	data;
 }
 @end
 
 @interface NSULongLongNumber : NSNumber
 {
-    unsigned long long data;
+  unsigned long long	data;
 }
 @end
 
 @interface NSLongLongNumber : NSNumber
 {
-    long long data;
+  signed long long	data;
 }
 @end
 
 @interface NSFloatNumber : NSNumber
 {
-    float data;
+  float	data;
 }
 @end
 
 @interface NSDoubleNumber : NSNumber
 {
-    double data;
+  double	data;
 }
 @end
 

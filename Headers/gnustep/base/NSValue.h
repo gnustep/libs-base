@@ -65,13 +65,13 @@
 // Allocating and Initializing
 
 + (NSNumber*) numberWithBool: (BOOL)value; 
-+ (NSNumber*) numberWithChar: (char)value;
++ (NSNumber*) numberWithChar: (signed char)value;
 + (NSNumber*) numberWithDouble: (double)value;
 + (NSNumber*) numberWithFloat: (float)value;
-+ (NSNumber*) numberWithInt: (int)value;
-+ (NSNumber*) numberWithLong: (long)value;
-+ (NSNumber*) numberWithLongLong: (long long)value;
-+ (NSNumber*) numberWithShort: (short)value;
++ (NSNumber*) numberWithInt: (signed int)value;
++ (NSNumber*) numberWithLong: (signed long)value;
++ (NSNumber*) numberWithLongLong: (signed long long)value;
++ (NSNumber*) numberWithShort: (signed short)value;
 + (NSNumber*) numberWithUnsignedChar: (unsigned char)value;
 + (NSNumber*) numberWithUnsignedInt: (unsigned int)value;
 + (NSNumber*) numberWithUnsignedLong: (unsigned long)value;
@@ -79,13 +79,13 @@
 + (NSNumber*) numberWithUnsignedShort: (unsigned short)value;
 
 - (id) initWithBool: (BOOL)value;
-- (id) initWithChar: (char)value;
+- (id) initWithChar: (signed char)value;
 - (id) initWithDouble: (double)value;
 - (id) initWithFloat: (float)value;
-- (id) initWithInt: (int)value;
-- (id) initWithLong: (long)value;
-- (id) initWithLongLong: (long long)value;
-- (id) initWithShort: (short)value;
+- (id) initWithInt: (signed int)value;
+- (id) initWithLong: (signed long)value;
+- (id) initWithLongLong: (signed long long)value;
+- (id) initWithShort: (signed short)value;
 - (id) initWithUnsignedChar: (unsigned char)value;
 - (id) initWithUnsignedInt: (unsigned int)value;
 - (id) initWithUnsignedLong: (unsigned long)value;
@@ -95,13 +95,13 @@
 // Accessing Data 
 
 - (BOOL) boolValue;
-- (char) charValue;
+- (signed char) charValue;
 - (double) doubleValue;
 - (float) floatValue;
-- (int) intValue;
-- (long long) longLongValue;
-- (long) longValue;
-- (short) shortValue;
+- (signed int) intValue;
+- (signed long long) longLongValue;
+- (signed long) longValue;
+- (signed short) shortValue;
 - (NSString*) stringValue;
 - (unsigned char) unsignedCharValue;
 - (unsigned int) unsignedIntValue;

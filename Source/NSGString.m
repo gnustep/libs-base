@@ -306,7 +306,7 @@
   char *r = (char*)_fastMallocBuffer(_count+1);
 
   if (_count > 0)
-    ustrtostr(r,_contents_chars, _count);
+    ustrtostr(r, _contents_chars, _count);
   r[_count] = '\0';
   return r;
 }
@@ -496,6 +496,81 @@
     return strRangeUsCs(self, aString, mask, aRange);
   else
     return strRangeUsNs(self, aString, mask, aRange);
+}
+
+
+- (BOOL) boolValue
+{
+  if (_count == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      char	buf[_count+1];
+
+      ustrtostr(buf, _contents_chars, _count);
+      buf[_count] = '\0';
+      if (_count == 3
+	&& (_contents_chars[0] == 'Y' || _contents_chars[0] == 'y')
+	&& (_contents_chars[1] == 'E' || _contents_chars[1] == 'e')
+	&& (_contents_chars[2] == 'S' || _contents_chars[2] == 's'))
+	{
+	  return YES;
+	}
+      else
+	{
+	  return atoi(buf);
+	}
+    }
+}
+
+- (double) doubleValue
+{
+  if (_count == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      char	buf[_count+1];
+
+      ustrtostr(buf, _contents_chars, _count);
+      buf[_count] = '\0';
+      return atof(buf);
+    }
+}
+
+- (float) floatValue
+{
+  if (_count == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      char	buf[_count+1];
+
+      ustrtostr(buf, _contents_chars, _count);
+      buf[_count] = '\0';
+      return (float) atof(buf);
+    }
+}
+
+- (int) intValue
+{
+  if (_count == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      char	buf[_count+1];
+
+      ustrtostr(buf, _contents_chars, _count);
+      buf[_count] = '\0';
+      return atoi(buf);
+    }
 }
 
 @end

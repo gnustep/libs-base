@@ -39,7 +39,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = $(DEFS) -Wall -DGS_NEW_DO=1
+ADDITIONAL_CPPFLAGS = $(DEFS) -Wall
 
 # Additional flags to pass to the Objective-C compiler
 ADDITIONAL_OBJCFLAGS = 

@@ -77,7 +77,7 @@
  */
 
 #define main gnustep_base_user_main
-GS_IMPORT int gnustep_base_user_main (/* int argc, char *argv[] */);
+extern int gnustep_base_user_main (/* int argc, char *argv[] */);
 
 #endif	/* GS_FAKE_MAIN */
 
@@ -97,6 +97,7 @@ GS_IMPORT int gnustep_base_user_main (/* int argc, char *argv[] */);
 #define	GS_SIZEOF_LONG_LONG	@ac_cv_sizeof_long_long@
 #define	GS_SIZEOF_FLOAT		@ac_cv_sizeof_float@
 #define	GS_SIZEOF_DOUBLE	@ac_cv_sizeof_double@
+#define	GS_SIZEOF_VOIDP		@ac_cv_sizeof_voidp@
 
 /*
  *	Size information to be places in bits 5 and 6 of type encoding bytes
