@@ -6,6 +6,9 @@
 	requires iconv (which it usually will on a system where iconv is
 	not built into the standard c library).
 	* confingure: Regenerate
+	* Source/Additions/GSXML.m: Set memory allocation functions to be
+	used by libxml2, so we can use objc_free() to release strings returned
+	by the library, and avoid linker problem with xmlFree() on mingw.
 
 2005-02-15 08:00 Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -124,12 +124,21 @@ static BOOL cacheDone = NO;
 @end
 #endif
 
+static char * objc_strdup(const char *from)
+{
+  unsigned	len = (from == 0) ? 1 : (strlen(from) + 1);
+  char		*to = objc_malloc(len);
+  strcpy(to, from);
+  return to;
+}
+
 static void
 setupCache()
 {
   if (cacheDone == NO)
     {
       cacheDone = YES;
+      xmlMemSetup(objc_free, objc_malloc, objc_realloc, objc_strdup);
 
 #if	HAVE_LIBXML_SAX2_H
       xmlDefaultSAXHandlerInit();
@@ -376,7 +385,7 @@ static NSMapTable	*attrNames = 0;
   if (buf != 0 && length > 0)
     {
       string = UTF8StrLen(buf, length);
-      xmlFree(buf);
+      objc_free(buf);
     }
   return string;
 }
