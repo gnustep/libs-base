@@ -1,4 +1,4 @@
-Tue Sep 28  9:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Tue Sep 28 11:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSArray.m: ([+allocWithZone:]) tiny optimisation.
 	* Source/NSCountedSet.m: Some optimisation.
@@ -9,6 +9,11 @@ Tue Sep 28  9:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	([-volatileDomainForName:]) return constant dictionary.
 	([-setPersistentDomain:forName:]) make mutable copy.
 	([-setVolatileDomain:forName:]) ditto
+	* Source/NSObject.m: GC tweaks
+	* Source/NSZone.m: added zone for atomic GC
+	* Headers/Foundation/NSZone.h: added zone GSAtomicMallocZone()
+	* Headers/Foundation/GSIArray.h: Remove special case for zero zone
+	* Headers/Foundation/GSIMap.h: ditto.
 
 Tue Sep 28  5:54:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 

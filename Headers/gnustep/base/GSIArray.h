@@ -428,17 +428,7 @@ GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
   array->cap = capacity;
   array->old = capacity/2;
   size = capacity*sizeof(GSIArrayItem);
-#if	GS_WITH_GC
-  /*
-   *	If we use a nil zone, objects we point to are subject to GC
-   */
-  if (zone == 0)
-    array->ptr = (GSIArrayItem*)GC_MALLOC_ATOMIC(size);
-  else
-    array->ptr = (GSIArrayitem)GC_MALLOC(zone, size);
-#else
   array->ptr = (GSIArrayItem*)NSZoneMalloc(zone, size);
-#endif
   return array;
 }
 
