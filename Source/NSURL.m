@@ -559,18 +559,23 @@ static void unescape(const char *from, char * to)
 /**
  * Initialise as a file URL with the specified path (which must
  * be a valid path on the local filesystem).<br />
+ * Converts relative paths to absolute ones.<br />
  * Appends a trailing slash to the path when necessary if it
  * specifies a directory.<br />
  * Calls -initWithScheme:host:path:
  */
 - (id) initFileURLWithPath: (NSString*)aPath
 {
-  if ([aPath hasSuffix: @"/"] == NO)
-    {
-      BOOL	flag = NO;
+  BOOL	flag = NO;
 
-      if ([[NSFileManager defaultManager] fileExistsAtPath: aPath
-	isDirectory: &flag] == YES && flag == YES)
+  if ([[NSFileManager defaultManager] fileExistsAtPath: aPath
+    isDirectory: &flag] == YES)
+    {
+      if ([aPath isAbsolutePath] == NO)
+	{
+	  aPath = [aPath stringByStandardizingPath];
+	}
+      if (flag == YES && [aPath hasSuffix: @"/"] == NO)
 	{
 	  aPath = [aPath stringByAppendingString: @"/"];
 	}
