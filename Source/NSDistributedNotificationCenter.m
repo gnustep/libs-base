@@ -575,9 +575,11 @@ static NSDistributedNotificationCenter	*netCenter = nil;
       if (_remote != nil)
 	{
 	  NSConnection	*c = [_remote connectionForProxy];
+#if 0	// When all compilers support this
 	  Protocol	*p = @protocol(GDNCProtocol);
 
 	  [_remote setProtocolForProxy: p];
+#endif
 	  
 	  /*
            * Ensure that this center can be used safely from different

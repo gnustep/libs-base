@@ -832,7 +832,6 @@ enum
       else
 	{
 	  id		m;
-	  const char	*types;
 #ifdef USE_FFCALL
 	  id		inv;
 	  id		sig;
@@ -854,8 +853,13 @@ enum
 	  retframe = [self forward: _cmd : args];
 	  m = retframe_id(retframe);
 #endif
-	  types = [m methodType];
-	  return [NSMethodSignature signatureWithObjCTypes: types];
+	  if ([m isProxy] == YES)
+	    {
+	      const char	*types = [m methodType];
+
+	      m = [NSMethodSignature signatureWithObjCTypes: types];
+	    }
+	  return m;
 	}
     }
 }
