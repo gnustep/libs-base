@@ -418,9 +418,9 @@ handle_printf_atsign (FILE *stream,
    range: (NSRange)aRange
 {
   int i;
-  for (i = aRange.location + aRange.length - 1; i >= aRange.location; i--)
+  for (i = 0; i < aRange.length; i++)
     {
-      buffer[i] = [self characterAtIndex:i];
+      buffer[i] = [self characterAtIndex: aRange.location+i];
     }
 }
 
@@ -564,14 +564,102 @@ handle_printf_atsign (FILE *stream,
 		range:all];
 }
 
-- (NSRange) rangeOfString: (NSString*)aString
-   options: (unsigned int)mask
-   range: (NSRange)aRange
+- (NSRange) rangeOfString:(NSString *) aString
+   options:(unsigned int) mask
+   range:(NSRange) aRange
 {
-  [self notImplemented:_cmd];
-  return ((NSRange){0,0});
-}
+  int stepDirection;
+  unsigned int myIndex, myLength, myEndIndex;
+  unsigned int strLength;
+  unichar strFirstCharacter;
 
+  /* Check that the search range is reasonable */
+  myLength = [self length];
+  if (aRange.location > myLength)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  if (aRange.length > (myLength - aRange.location))
+    [NSException raise: NSRangeException format:@"Invalid location+length."];
+
+  /* Ensure the string can be found */
+  strLength = [aString length];
+  if (strLength > aRange.length)
+    return (NSRange){0, 0};
+
+  /* Decide where to start and end the search */
+  if (mask & NSBackwardsSearch)
+    {
+      stepDirection = -1;
+      myIndex = aRange.location + aRange.length - strLength;
+      myEndIndex = aRange.location;
+    }
+  else
+    {
+      stepDirection = 1;
+      myIndex = aRange.location;
+      myEndIndex = aRange.location + aRange.length - strLength;
+    }
+  /* FIXME: I am guessing that this is what NSAnchoredSearch does. */
+  if (mask & NSAnchoredSearch)
+    myEndIndex = myIndex;
+
+  /* Start searching.  For efficiency there are separate loops for
+     case-sensitive and case-insensitive searches. */
+  strFirstCharacter = [aString characterAtIndex:0];
+  if (mask & NSCaseInsensitiveSearch)
+    {
+      for (;;)
+      {
+        unsigned int i = 1;
+        unichar myCharacter = [self characterAtIndex:myIndex];
+        unichar strCharacter = strFirstCharacter;
+
+        for (;;)
+          {
+            /* FIXME: I have no idea how to make case-insensitive
+	       comparisons work over the full range of Unicode characters. */
+            if ((myCharacter != strCharacter) &&
+                (!isascii (myCharacter)
+                 || !isalpha (myCharacter)
+                 || !isascii (strCharacter)
+                 || !isalpha (strCharacter)
+                 || (tolower (myCharacter) != tolower (strCharacter))))
+              break;
+            if (i == strLength)
+              return (NSRange){myIndex, strLength};
+            myCharacter = [self characterAtIndex:myIndex + i];
+            strCharacter = [aString characterAtIndex:i];
+            i++;
+          }
+        if (myIndex == myEndIndex)
+          break;
+        myIndex += stepDirection;
+      }
+    }
+  else
+    {
+      for (;;)
+      {
+        unsigned int i = 1;
+        unichar myCharacter = [self characterAtIndex:myIndex];
+        unichar strCharacter = strFirstCharacter;
+
+        for (;;)
+          {
+            if (myCharacter != strCharacter)
+              break;
+            if (i == strLength)
+              return (NSRange){myIndex, strLength};
+            myCharacter = [self characterAtIndex:myIndex + i];
+            strCharacter = [aString characterAtIndex:i];
+            i++;
+          }
+        if (myIndex == myEndIndex)
+          break;
+        myIndex += stepDirection;
+      }
+    }
+  return (NSRange){0, 0};
+}
 
 // Determining Composed Character Sequences
 
