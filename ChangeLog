@@ -1,3 +1,8 @@
+2004-12-12  Adam Fedor  <fedor@gnu.org>
+
+	* configure.ac: Avoid improper use of -fXXX-runtime. Add -x objective-c
+	when testing Objective-C programs (Followup for bug #11188).
+
 2004-12-09  Matt Rice  <ratmice@yahoo.com>
 
 	* Source/NSUndoManager.m 
