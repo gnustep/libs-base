@@ -127,6 +127,8 @@ static NSString		*pathSepString = @"/";
 static NSString		*rootPath = @"/";
 #endif
 
+static BOOL (*sepMember)(NSCharacterSet*, SEL, unichar) = 0;
+static NSCharacterSet	*myPathSeps = nil;
 /*
  *	We can't have a 'pathSeps' variable initialized in the  +initialize
  *	method 'cos that would cause recursion.
@@ -134,19 +136,28 @@ static NSString		*rootPath = @"/";
 static NSCharacterSet*
 pathSeps()
 {
-  static NSCharacterSet	*pathSeps = nil;
-
-  if (pathSeps == nil)
+  if (myPathSeps == nil)
     {
 #if defined(__WIN32__)
-      pathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
+      myPathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
 #else
-      pathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
+      myPathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
 #endif
-      RETAIN(pathSeps);
+      RETAIN(myPathSeps);
+      sepMember = [myPathSeps methodForSelector: @selector(characterIsMember:)];
     }
-  return pathSeps;
+  return myPathSeps;
 }
+
+static BOOL
+pathSepMember(unichar c)
+{
+  if (sepMember == 0)
+    pathSeps();
+  
+  return (*sepMember)(myPathSeps, @selector(characterIsMember:), c);
+}
+
 
 
 @implementation NSString
@@ -1770,67 +1781,33 @@ handle_printf_atsign (FILE *stream,
    is not, a '/' is appended before appending aString */
 - (NSString*) stringByAppendingPathComponent: (NSString*)aString
 {
-  NSRange  range;
-  NSString *newstring;
+  unsigned	length;
 
   if ([aString length] == 0)
     return AUTORELEASE([self copy]);
+  length = [self length];
+  if (length == 0)
+    return AUTORELEASE([aString copy]);
 
-  range = [aString rangeOfCharacterFromSet: pathSeps()];
-  if (range.length != 0 && range.location == 0)
-      [NSException raise: NSGenericException
-		     format: @"attempt to append illegal path component"];
+  if (pathSepMember([aString characterAtIndex: 0]) == YES)
+    [NSException raise: NSGenericException
+		format: @"attempt to append illegal path component"];
 
-  range = [self rangeOfCharacterFromSet: pathSeps() options: NSBackwardsSearch];
-  if ((range.length == 0 || range.location != [self length] - 1)
-    && [self length] > 0)
-    newstring = [self stringByAppendingString: pathSepString];
+  if (pathSepMember([self characterAtIndex: length-1]) == YES)
+    return [self stringByAppendingString: aString];
   else
-    newstring = self;
-
-  return [newstring stringByAppendingString: aString];
+    return [self stringByAppendingFormat: @"%@%@", pathSepString, aString];
 }
 
 /* Returns a new string with the path extension given in aString
-   appended to the receiver.  Raises an exception if aString starts with
-   a '.'.  Checks the receiver to see if the last letter is a '.', if it
-   is not, a '.' is appended before appending aString */
+   appended to the receiver.
+   A '.' is appended before appending aString */
 - (NSString*) stringByAppendingPathExtension: (NSString*)aString
 {
-  NSRange  range;
-  NSString *newstring;
-
   if ([aString length] == 0)
-    return AUTORELEASE([self copy]);
-
-  range = [aString rangeOfString: @"."];
-  if (range.length != 0 && range.location == 0)
-    [NSException raise: NSGenericException
-	     format: @"attempt to append illegal path extension"];
-
-/* This is contrary to the Foundation docs, which say explicitely that:
- *
- * Returns a string made by appending to the receiver an extension
- * separator followed by aString. The following table illustrates the
- * effect of this method on a variety of different paths, assuming that
- * aString is supplied as @"tiff":
- *  Receiver's String Value	Resulting String
- *  "/tmp/scratch.old"		"/tmp/scratch.old.tiff"
- *  "/tmp/scratch."		"/tmp/scratch..tiff"
- *  "/tmp/"			"/tmp/.tiff"
- *  "scratch"			"scratch.tiff"
- */
-#if 0
-  range = [self rangeOfString: @"." options: NSBackwardsSearch];
-  if (range.length == 0 || range.location != [self length] - 1)
-#endif
-    newstring = [self stringByAppendingString: @"."];
-#if 0
+    return [self stringByAppendingString: @"."];
   else
-    newstring = self;
-#endif
-
-  return [newstring stringByAppendingString: aString];
+    return [self stringByAppendingFormat: @".%@", aString];
 }
 
 /* Returns a new string with the last path component removed from the
@@ -2091,13 +2068,13 @@ handle_printf_atsign (FILE *stream,
       unichar	c1 = [s characterAtIndex: r.location + 1];
 
       if (r.location + r.length + 1 <= length
-	&& [pathSeps() characterIsMember: c1])
+	&& pathSepMember(c1) == YES)
 	{
 	  [s deleteCharactersInRange: r];
 	}
       else if (r.location + r.length + 2 <= length
 	&& c1 == (unichar)'.'
-	&& [pathSeps() characterIsMember: [s characterAtIndex: r.location + 2]])
+	&& pathSepMember([s characterAtIndex: r.location + 2]) == YES)
 	{
 	  r.length++;
 	  [s deleteCharactersInRange: r];
@@ -2129,7 +2106,7 @@ handle_printf_atsign (FILE *stream,
       if (r.location + r.length + 3 <= [s length]
 	&& [s characterAtIndex: r.location + 1] == (unichar)'.'
 	&& [s characterAtIndex: r.location + 2] == (unichar)'.'
-	&& [pathSeps() characterIsMember: [s characterAtIndex: r.location + 3]])
+	&& pathSepMember([s characterAtIndex: r.location + 3]) == YES)
 	{
 	  if (r.location > 0)
 	    {
