@@ -49,12 +49,12 @@
 #include <Foundation/NSPortMessage.h>
 #include <Foundation/NSPortNameServer.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSHost.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #if	!defined(__WIN32__) || defined(__CYGWIN__)
 #include <unistd.h>		/* for gethostname() */
-#include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <netinet/in.h>		/* for inet_ntoa() */
 #include <fcntl.h>
 #include <arpa/inet.h>
@@ -1110,8 +1110,7 @@ static NSMapTable* port_number_2_port;
      that when we encode the address, another machine can find us. */
   {
     struct hostent *hp;
-    char hostname[MAXHOSTNAMELEN];
-    int len = MAXHOSTNAMELEN;
+    NSString	*hostname;
     int	r;
 
     /* Set the re-use socket option so that we don't get this socket
@@ -1186,25 +1185,13 @@ static NSMapTable* port_number_2_port;
        machine so that, when we encoded our _LISTENING_ADDRESS for a
        Distributed Objects connection to another machine, they get our
        unique host address that can identify us across the network. */
-    if (gethostname (hostname, len) < 0)
-      {
-	[p release];
-	[NSException raise: NSInternalInconsistencyException
-	  format: @"[TcpInPort +newForReceivingFromPortNumber:] gethostname(): %s",
-	  strerror(errno)];
-      }
-    /* Terminate the name at the first dot. */
-    {
-      char *first_dot = strchr (hostname, '.');
-      if (first_dot)
-	*first_dot = '\0';
-    }
-    hp = gethostbyname (hostname);
+    hostname = [[NSHost currentHost] name];
+    hp = gethostbyname ([hostname cString]);
     if (!hp)
       hp = gethostbyname ("localhost");
     if (hp == 0)
       {
-	NSLog(@"Unable to get IP address of '%s' or of 'localhost'", hostname);
+	NSLog(@"Unable to get IP address of '%@' or of 'localhost'", hostname);
 #ifndef HAVE_INET_ATON
 	p->_listening_address.sin_addr.s_addr = inet_addr("127.0.0.1");
 #else
@@ -1934,27 +1921,13 @@ static NSMapTable *out_port_bag = NULL;
   struct hostent *hp;
   const char *host_cstring;
   struct sockaddr_in addr;
-  /* Only used if no hostname is passed in. */
-  char local_hostname[MAXHOSTNAMELEN];
 
   /* Look up the hostname. */
   if (!hostname || ![hostname length])
     {
-      int len = sizeof (local_hostname);
-      char *first_dot;
-      if (gethostname (local_hostname, len) < 0)
-	{
-	  [NSException raise: NSInternalInconsistencyException
-	      format: @"[TcpInPort newForSendingToPortNumber:onHost:] gethostname(): %s",
-	      strerror(errno)];
-	}
-      host_cstring = local_hostname;
-      first_dot = strchr (host_cstring, '.');
-      if (first_dot)
-	*first_dot = '\0';
+      hostname = [[NSHost currentHost] name];
     }
-  else
-    host_cstring = [hostname cString];
+  host_cstring = [hostname cString];
   hp = gethostbyname ((char*)host_cstring);
   if (!hp)
     [self error: "unknown host: \"%s\"", host_cstring];

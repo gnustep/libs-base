@@ -54,13 +54,6 @@
 #include <config.h>
 #include <base/preface.h>
 
-/* One of these two should have MAXHOSTNAMELEN */
-#if	!defined(__WIN32__) || defined(__CYGWIN__)
-#include <unistd.h>
-#include <sys/param.h>
-#include <netdb.h>
-#endif /* !__WIN32__ */
-
 #ifdef HAVE_STRERROR 
 #include <errno.h>
 #endif /* HAVE_STRERROR */
@@ -76,6 +69,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSAutoreleasePool.h>
+#include <Foundation/NSHost.h>
 
 /* This error message should be called only if the private main function
  * was not executed successfully. This may happen ONLY if another library
@@ -540,10 +534,7 @@ int main(int argc, char *argv[], char *env[])
 {
   if (!_gnu_hostName) 
     {
-      char hn[MAXHOSTNAMELEN];
-
-      gethostname(hn, MAXHOSTNAMELEN);
-      _gnu_hostName = [[NSString alloc] initWithCString: hn];
+      _gnu_hostName = [[[NSHost currentHost] name] copy];
     }
   return _gnu_hostName;
 }
