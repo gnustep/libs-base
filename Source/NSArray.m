@@ -324,12 +324,14 @@ static Class NSMutableArray_concrete_class;
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[NSArrayEnumerator alloc] initWithArray:self];
+  return [[[NSArrayEnumerator alloc] initWithArray:self]
+	  autorelease];
 }
 
 - (NSEnumerator*) reverseObjectEnumerator
 {
-  return [[NSArrayEnumeratorReverse alloc] initWithArray:self];
+  return [[[NSArrayEnumeratorReverse alloc] initWithArray:self]
+	  autorelease];
 }
 
 - (NSString*) description
