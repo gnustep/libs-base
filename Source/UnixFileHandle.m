@@ -192,8 +192,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   if (descriptor != -1)
     {
-      if (isNonBlocking != wasNonBlocking)
-	[self setNonBlocking: wasNonBlocking];
+      [self setNonBlocking: wasNonBlocking];
       if (closeOnDealloc == YES)
 	{
 	  close(descriptor);
@@ -945,8 +944,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
-  if (isNonBlocking != wasNonBlocking)
-    [self setNonBlocking: wasNonBlocking];
+  [self setNonBlocking: wasNonBlocking];
   (void)close(descriptor);
   descriptor = -1;
   acceptOK = NO;
