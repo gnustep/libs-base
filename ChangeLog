@@ -1,3 +1,11 @@
+2000-10-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: New inline string classes added to avoid calls
+	to malloc in some cases.  Changed all deallocation methods to call
+	NSDeallocateObject() directy for efficiency.
+	* Source/NSString.m: Use new inline string classes for creation of
+	strings where we know the length of the data in advaance.
+
 2000-10-28  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Headers/gnustep/base/NSBundle.h: added ivar.

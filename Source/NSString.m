@@ -8,7 +8,7 @@
    Date: February 1997
 
    Optimisations by Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Date: October 1998
+   Date: October 1998 - 2000
 
    This file is part of the GNUstep Base Library.
 
@@ -75,6 +75,8 @@
 @class	GSString;
 @class	GSMString;
 @class	GSUString;
+@class	GSCInlineString;
+@class	GSUInlineString;
 @class	NSGMutableArray;
 @class	NSGMutableDictionary;
 
@@ -89,6 +91,8 @@ static Class	NSMutableStringClass;
 static Class	GSStringClass;
 static Class	GSMStringClass;
 static Class	GSUStringClass;
+static Class	GSCInlineStringClass;
+static Class	GSUInlineStringClass;
 
 static Class	plArray;
 static id	(*plAdd)(id, SEL, id) = 0;
@@ -281,6 +285,8 @@ handle_printf_atsign (FILE *stream,
       GSStringClass = [GSString class];
       GSMStringClass = [GSMString class];
       GSUStringClass = [GSUString class];
+      GSCInlineStringClass = [GSCInlineString class];
+      GSUInlineStringClass = [GSUInlineString class];
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
       if (register_printf_function ('@', 
@@ -324,21 +330,34 @@ handle_printf_atsign (FILE *stream,
 + (id) stringWithCharacters: (const unichar*)chars
 		     length: (unsigned)length
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithCharacters: chars length: length]);
+  NSString	*obj;
+
+  obj = (NSString*)NSAllocateObject(GSUInlineStringClass, length*2,
+    NSDefaultMallocZone());
+  obj = [obj initWithCharacters: chars length: length];
+  return AUTORELEASE(obj);
 }
 
 + (id) stringWithCString: (const char*) byteString
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithCString: byteString]);
+  NSString	*obj;
+  unsigned	length = strlen(byteString);
+
+  obj = (NSString*)NSAllocateObject(GSCInlineStringClass, length,
+    NSDefaultMallocZone());
+  obj = [obj initWithCString: byteString length: length];
+  return AUTORELEASE(obj);
 }
 
 + (id) stringWithCString: (const char*)byteString
 		  length: (unsigned)length
 {
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithCString: byteString length: length]);
+  NSString	*obj;
+
+  obj = (NSString*)NSAllocateObject(GSCInlineStringClass, length,
+    NSDefaultMallocZone());
+  obj = [obj initWithCString: byteString length: length];
+  return AUTORELEASE(obj);
 }
 
 + (id) stringWithUTF8String: (const char *)bytes
@@ -1410,7 +1429,7 @@ handle_printf_atsign (FILE *stream,
 	      prefix_len++;
 	    }
 	}
-      return [NSString stringWithCharacters: u length: prefix_len];
+      return [NSStringClass stringWithCharacters: u length: prefix_len];
     }
   else
     {
@@ -2450,7 +2469,7 @@ handle_printf_atsign (FILE *stream,
       if (lstat(&new_buf[8], &st) == 0)
 	strcpy(new_buf, &new_buf[8]);
     }
-  return [NSString stringWithCString: new_buf];
+  return [NSStringClass stringWithCString: new_buf];
 #endif  /* (__MINGW__) */  
 }
 
