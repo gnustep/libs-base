@@ -294,7 +294,11 @@ static BOOL GSEncodingSupported(NSStringEncoding enc)
   return NO;
 }
 
-NSStringEncoding *GetAvailableEncodings()
+/**
+ * Returns a nul terminated array of the available string encodings.
+ */
+NSStringEncoding *
+GetAvailableEncodings()
 {
   if (_availableEncodings == 0)
     {
@@ -579,6 +583,9 @@ GSIsByteEncoding(NSStringEncoding encoding)
   return encodingTable[encoding]->eightBit;
 }
 
+/**
+ * Returns the standard name for the specified encoding.
+ */
 NSString*
 GSEncodingName(NSStringEncoding encoding)
 {
@@ -589,6 +596,9 @@ GSEncodingName(NSStringEncoding encoding)
   return [NSString stringWithCString: encodingTable[encoding]->ename];
 }
 
+/**
+ * <strong>deprecated</strong> Use GSEncodingName()
+ */
 NSString*
 GetEncodingName(NSStringEncoding encoding)
 {
@@ -605,6 +615,10 @@ iconv_stringforencoding(NSStringEncoding encoding)
   return encodingTable[encoding]->iconv;
 }
 
+/**
+ * <strong>deprecated</strong>
+ * See GSToUnicode() and GSFromUnicode()
+ */
 unichar
 encode_chartouni(unsigned char c, NSStringEncoding enc)
 {
@@ -621,6 +635,10 @@ encode_chartouni(unsigned char c, NSStringEncoding enc)
   return u;
 }
 
+/**
+ * <strong>deprecated</strong>
+ * See GSToUnicode() and GSFromUnicode()
+ */
 unsigned char
 encode_unitochar(unichar u, NSStringEncoding enc)
 {
@@ -637,6 +655,10 @@ encode_unitochar(unichar u, NSStringEncoding enc)
   return c;
 }
 
+/**
+ * <strong>deprecated</strong>
+ * See GSToUnicode() and GSFromUnicode()
+ */
 unsigned
 encode_unitochar_strict(unichar u, NSStringEncoding enc)
 {
@@ -653,6 +675,10 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
   return c;
 }
 
+/**
+ * <strong>deprecated</strong>
+ * See GSToUnicode() and GSFromUnicode()
+ */
 unichar
 chartouni(unsigned char c)
 {
@@ -663,6 +689,10 @@ chartouni(unsigned char c)
   return encode_chartouni(c, defEnc);
 }
 
+/**
+ * <strong>deprecated</strong>
+ * See GSToUnicode() and GSFromUnicode()
+ */
 unsigned char
 unitochar(unichar u)
 {
@@ -673,8 +703,8 @@ unitochar(unichar u)
   return encode_unitochar(u, defEnc);
 }
 
-/*
- * These two functions use direct access into a two-level table to map cases.
+/**
+ * Uses direct access into a two-level table to map cases.<br />
  * The two-level table method is less space efficient (but still not bad) than
  * a single table and a linear search, but it reduces the number of
  * conditional statements to just one.
@@ -687,6 +717,12 @@ uni_tolower(unichar ch)
   return result ? result : ch;
 }
  
+/**
+ * Uses direct access into a two-level table to map cases.<br />
+ * The two-level table method is less space efficient (but still not bad) than
+ * a single table and a linear search, but it reduces the number of
+ * conditional statements to just one.
+ */
 unichar
 uni_toupper(unichar ch)
 {
@@ -797,7 +833,10 @@ uni_is_decomp(unichar u)
     }
 }
 
-
+/**
+ * <strong>deprecated</strong>
+ * See GSToUnicode() and GSFromUnicode()
+ */
 int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl, 
   NSStringEncoding enc, BOOL strict)
 {
@@ -815,7 +854,8 @@ int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
 }
 
 /**
- * Convert to unicode .. return the number of unicode characters produced.
+ * <strong>deprecated</strong>
+ * See GSToUnicode() and GSFromUnicode()
  */
 int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl, 
   NSStringEncoding enc)
@@ -923,7 +963,6 @@ else \
  * release.</item>
  * <item>If GSUniBOM is set, the function will write the first unicode
  * character as a byte order marker.</item>
- * </list>
  * <item>If GSUniShortOk is set, the function will return a buffer containing
  * any decoded characters even if the whole conversion fails.</item>
  * </list>
@@ -1393,7 +1432,6 @@ static inline int chop(unichar c, _ucc_ *table, int hi)
  * <item>If GSUniStrict is set, the function will fail if a character is
  * encountered which can't be displayed in the source.  Otherwise, some
  * approximation or marker will be placed in the destination.</item>
- * </list>
  * <item>If GSUniTerminate is set, the function is expected to null terminate
  * the output string, and will assume that it is safe to place the nul
  * just beyond the ned of the stated buffer size.
@@ -1406,7 +1444,6 @@ static inline int chop(unichar c, _ucc_ *table, int hi)
  * character as a byte order marker.</item>
  * <item>If GSUniShortOk is set, the function will return a buffer containing
  * any decoded characters even if the whole conversion fails.</item>
- * </list>
  * </list>
  * <p>On return, the function result is a flag indicating success (YES)
  * or failure (NO), and on success, the value stored in size is the number
