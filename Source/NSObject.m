@@ -42,7 +42,9 @@
 #include <Foundation/NSObjCRuntime.h>
 #include <limits.h>
 
+#ifndef NeXT_RUNTIME
 extern BOOL __objc_responds_to(id, SEL);
+#endif
 
 @class	_FastMallocBuffer;
 static Class	fastMallocClass;

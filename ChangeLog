@@ -1,3 +1,8 @@
+2001-08-03  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSObject.m: Don't decl __objc_responds_to on Darwin
+	* Source/NSProxy.m: Likewise.
+
 2001-08-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/Unicode.h: API Change
