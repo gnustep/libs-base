@@ -164,7 +164,7 @@ test_fref ()
 {
   id array;
   id foo, sub_foo;
-  printf ("Test encoding of forward references\n");
+  printf ("\nTest encoding of forward references\n");
   decode_substitutes = 0;
 
   array = [[NSMutableArray alloc] init];
@@ -194,7 +194,7 @@ void
 test_self_fref ()
 {
   id foo, sub_foo;
-  printf ("Test encoding of self-referential forward references\n");
+  printf ("\nTest encoding of self-referential forward references\n");
   decode_substitutes = 1;
 
   foo = [[Foo alloc] init];
