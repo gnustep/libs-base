@@ -230,7 +230,7 @@
 // OVERRIDE SOME KEYED COLLECTION METHODS;
 
 /* Semantics:  You can "put" an element only at index "count" or less */
-- putObject: newObject atIndex: (unsigned)index
+- (void) putObject: newObject atIndex: (unsigned)index
 {
   unsigned c = [self count];
 
@@ -239,8 +239,9 @@
   else if (index == c)
     [self appendObject: newObject];
   else
-    [self error:"in %s, can't put an element at index beyond [self count]"];
-  return self;
+    [NSException 
+      raise: NSRangeException
+      format: @"in %s, can't put an element at index beyond [self count]"];
 }
 
 - putObject: newObject atKey: index
