@@ -1,5 +1,5 @@
 /* Interface to concrete implementation of NSArray based on GNU Array
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
@@ -29,29 +29,9 @@
 #include <objects/elt.h>
 
 @interface NSGArray : NSArray
-{
-  /* For now, these must match the instance variables in objects/Array.h.
-     This will change. */
-  int (*_comparison_function)(elt,elt);
-  elt *_contents_array;
-  unsigned int _count;
-  unsigned int _capacity;
-  unsigned int _grow_factor;
-}
-
 @end
 
 @interface NSGMutableArray : NSMutableArray
-{
-  /* For now, these must match the instance variables in objects/Array.h.
-     This will change. */
-  int (*_comparison_function)(elt,elt);
-  elt *_contents_array;
-  unsigned int _count;
-  unsigned int _capacity;
-  unsigned int _grow_factor;
-}
-
 @end
 
 #endif /* __NSGArray_h_OBJECTS_INCLUDE */
