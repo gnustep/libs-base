@@ -1,11 +1,27 @@
 /*
     objc-load - Dynamically load in Obj-C modules (Classes, Categories)
 
-    Written by Adam Fedor, Pedja Bogdanovich
+    Written by: Adam Fedor, Pedja Bogdanovich
 
-    $Id$
+    This file is part of the GNU Objective C Class Library.
+ 
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Library General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+    
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Library General Public License for more details.
+    
+    You should have received a copy of the GNU Library General Public
+    License along with this library; if not, write to the Free
+    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    */ 
 
-    BUGS:
+/*
+    CAVEATS:
 	- unloading modules not implemented
 	- would like to raise exceptions without having to turn this into
 	  a .m file (right now NSBundle does this for us, ok?)
@@ -162,7 +178,7 @@ objc_load_module(
 	return 1;
     }
 
-#if !defined(__ELF__) && !defined(SYS_AUTOLOAD)
+#if !defined(__ELF__) && !defined(CON_AUTOLOAD)
     /* Get the constructor list and load in the objects */
     ctor_list = (void_fn *)__objc_dynamic_find_symbol(handle, CTOR_LIST);
     if (!ctor_list) {
