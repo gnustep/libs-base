@@ -450,6 +450,11 @@ static SEL	eqSel = @selector(isEqual:);
 		}
 	      _count--;
 	      RELEASE(obj);
+	      /*
+	       * Bail out now or run the risk of comparing against a garbage
+	       * pointer.
+	       */
+	      return;
 	    }
 	}
     }
@@ -500,6 +505,11 @@ static SEL	eqSel = @selector(isEqual:);
 	    }
 	  _count--;
 	  RELEASE(obj);
+	  /*
+	   * Bail out now or run the risk of comparing against a garbage
+	   * pointer.
+	   */
+	  return;
 	}
     }
 }

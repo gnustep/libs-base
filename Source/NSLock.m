@@ -1,5 +1,5 @@
 /* Mutual exclusion locking classes
-   Copyright (C) 1996 Free Software Foundation< Inc.
+   Copyright (C) 1996 Free Software Foundation, Inc.
 
    Author:  Scott Christley <scottc@net-community.com>
    Created: 1996
@@ -9,7 +9,7 @@
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
-   version 2 of the License< or (at your option) any later version.
+   version 2 of the License, or (at your option) any later version.
    
    This library is distributed in the hope that it will be useful, 
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,12 +17,13 @@
    Library General Public License for more details.
 
    You should have received a copy of the GNU Library General Public
-   License along with this library; if not< write to the Free
-   Software Foundation< Inc.< 59 Temple Place< Suite 330< Boston< MA 02111 USA.
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
 #include <config.h>
 #include <errno.h>
+#include <unistd.h>
 #include <base/preface.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
@@ -94,19 +95,52 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 // Does not block
 - (BOOL) tryLock
 {
-  CHECK_RECURSIVE_LOCK(_mutex);
-
   // Ask the runtime to acquire a lock on the mutex
   if (objc_mutex_trylock(_mutex) == -1)
-    return NO;
-  else
-    return YES;
+	{
+      return NO;
+	} else {
+	  /*
+	   * The recursive lock check goes here to support openstep's 
+	   * implementation.  In openstep you can lock in one thread trylock in the
+	   *  same thread and have another thread release the lock.
+	   *  
+	   *  This is dangerous and broken IMHO.
+	   */
+	  CHECK_RECURSIVE_LOCK(_mutex);
+	  return YES;
+	}
 }
 
 - (BOOL) lockBeforeDate: (NSDate *)limit
 {
-  [self notImplemented: _cmd];
-  return NO;
+  int x;
+
+  while ((x = objc_mutex_trylock (_mutex)) == -1 )
+	{
+	  NSDate *current = [NSDate date];
+	  NSComparisonResult compare;
+	  
+	  compare = [current compare: limit];
+	  if ( compare == NSOrderedSame || compare == NSOrderedDescending )
+		{
+		  return NO;
+		}
+	  /*
+	   * This should probably be more accurate like usleep(250)
+	   * but usleep is known to NOT be thread safe under all architectures.
+	   */
+	  sleep(1);
+	}
+  /*
+   * The recursive lock check goes here to support openstep's implementation.
+   * In openstep you can lock in one thread trylock in the same thread and have
+   * another thread release the lock.
+   *  
+   *  This is dangerous and broken IMHO.
+   */
+  CHECK_RECURSIVE_LOCK(_mutex);
+  return YES;
 }
 
 // NSLocking protocol
@@ -236,7 +270,7 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
     }
 
   // If the depth is only 1 then we just acquired
-  // the lock above< bogus unlock so abort
+  // the lock above, bogus unlock so abort
   if (depth == 1)
     {
       [NSException raise:NSConditionLockException
@@ -297,9 +331,26 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 // Acquiring the lock with a date condition
 - (BOOL) lockBeforeDate: (NSDate*)limit
-{
-  [self notImplemented: _cmd];
-  return NO;
+{ 
+  CHECK_RECURSIVE_CONDITION_LOCK(_mutex);
+
+  while ( objc_mutex_trylock (_mutex) == -1 )
+	{
+	  NSDate *current = [NSDate date];
+	  NSComparisonResult compare;
+	  
+	  compare = [current compare: limit];
+	  if ( compare == NSOrderedSame || compare == NSOrderedDescending )
+		{
+		  return NO;
+		}
+	  /*
+	   * This should probably be more accurate like usleep(250)
+	   * but usleep is known to NOT be thread safe under all architectures.
+	   */
+	  sleep(1);
+	}
+  return YES;
 }
 
 
@@ -437,8 +488,23 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
 
 - (BOOL) lockBeforeDate: (NSDate *)limit
 {
-  [self notImplemented: _cmd];
-  return NO;
+  while ( objc_mutex_trylock (_mutex) == -1 )
+	{
+	  NSDate *current = [NSDate date];
+	  NSComparisonResult compare;
+	  
+	  compare = [current compare: limit];
+	  if ( compare == NSOrderedSame || compare == NSOrderedDescending )
+		{
+		  return NO;
+		}
+	  /*
+	   * This should probably be more accurate like usleep(250)
+	   * but usleep is known to NOT be thread safe under all architectures.
+	   */
+	  sleep(1);
+	}
+  return YES;
 }
 
 // NSLocking protocol
