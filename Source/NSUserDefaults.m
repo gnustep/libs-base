@@ -87,9 +87,11 @@ static NSMutableString   *processName = nil;
     convenience; other instances may also be created.
     */
 {
-  if (sharedDefaults)
+  static BOOL	beenHere = NO;	/* Flag to prevent infinite recursion */
+
+  if (beenHere)
     return sharedDefaults;
-	
+  beenHere = YES;
   // Create new sharedDefaults (NOTE: Not added to the autorelease pool!)
   sharedDefaults = [[self alloc] init];
 	
