@@ -29,7 +29,7 @@
 @implementation CString
 
 /* This is the designated initializer for this class */
-- initWithCString: (char*)aCharPtr range: (IndexRange)aRange
+- initWithCString: (const char*)aCharPtr range: (IndexRange)aRange
 {
   [super initWithType:@encode(char)];
   _count = aRange.length;
