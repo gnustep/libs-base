@@ -127,6 +127,8 @@ static IMP	initImp;
 {
   if (!_released_head)
     {
+      addImp = (void (*)(id, SEL, id))
+	[self methodForSelector: @selector(addObject:)];
       /* Allocate the array that will be the new head of the list of arrays. */
       _released = (struct autorelease_array_list*)
 	objc_malloc (sizeof(struct autorelease_array_list) + 
@@ -226,9 +228,8 @@ static IMP	initImp;
 {
   NSAutoreleasePool	*pool = ARP_THREAD_VARS->current_pool;
 
-NSAssert(anObj, NSInvalidArgumentException);
   if (pool)
-    [pool addObject: anObj];
+    (*pool->addImp)(pool, @selector(addObject:), anObj);
   else
     {
       NSAutoreleasePool	*arp = [NSAutoreleasePool new];
@@ -244,7 +245,6 @@ NSAssert(anObj, NSInvalidArgumentException);
 
 - (void) addObject: anObj
 {
-NSAssert(anObj, NSInvalidArgumentException);
   /* If the global, static variable AUTORELEASE_ENABLED is not set,
      do nothing, just return. */
   if (!autorelease_enabled)
@@ -345,7 +345,6 @@ NSAssert(anObj, NSInvalidArgumentException);
 		@"to check for release errors."];
 #endif
 	    released->objects[i] = nil;
-NSAssert(anObject, NSInternalInconsistencyException);
 	    [anObject release];
 	  }
 	released->count = 0;
