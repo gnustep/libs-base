@@ -39,21 +39,9 @@
 #include <objects/KeyedCollecting.h>
 
 typedef struct _IndexRange { 
-  unsigned start;
-  unsigned end;
+  unsigned location;
+  unsigned length;
 } IndexRange;
-/* Includes elements from start to end-1  Is this ugly?
-   I do this so I can specify a NULL range 
-   How about this instead:
-   typedef struct _IndexRange {
-     unsigned start;
-     unsigned length;
-   }
-*/
-
-//#define MakeIndexRange(START,END) \
-//  ({ IndexRange __ir = {(START), (END)}; __ir; })
-// USE:  ((IndexRange) {(START),(END)})
 
 #define IndexRangeInside(RANGE1,RANGE2) \
   ({IndexRange __a=(RANGE1), __b=(RANGE2); \
