@@ -10,6 +10,7 @@
 	* Source/NSUserDefaults.m: Use GSDefaultsRootForUser()
 	Fix a few bugs in setting up defaults database.
 	Move defaults database to the Defaults subdirectory.
+	* Source/Headers/GSIMpa.h: Fix error in last commit.
 
 2002-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
