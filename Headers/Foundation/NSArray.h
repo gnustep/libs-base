@@ -52,6 +52,7 @@
 - (unsigned) indexOfObject: (id)anObject inRange: (NSRange)aRange;
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject;
 - (unsigned) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
+- (id) init;
 - (id) initWithArray: (NSArray*)array;
 #ifndef	STRICT_OPENSTEP
 - (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;

@@ -184,6 +184,7 @@ enum {
 + (id) stringWithContentsOfFile:(NSString *)path;
 
 // Initializing Newly Allocated Strings
+- (id) init;
 #ifndef	STRICT_OPENSTEP
 - (id) initWithBytes: (const void*)bytes
 	      length: (unsigned int)length

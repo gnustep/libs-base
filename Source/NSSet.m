@@ -272,14 +272,46 @@ static Class NSMutableSet_concrete_class;
 }
 
 /**
- *  Initialize to contain (unique elements of) objects.
- * <init />
+ * <p>In MacOS-X class clusters do not have designated initialisers,
+ * and there is a general rule that -init is treated as the designated
+ * initialiser of the class cluster, but that other intitialisers
+ * may not work s expected an would need to be individually overridden
+ * in any subclass.
+ * </p>
+ * <p>GNUstep tries to make it easier to subclass a class cluster,
+ * by making class clusters follow the same convention as normal
+ * classes, so the designated initialiser is the <em>richest</em>
+ * initialiser.  This means that all other initialisers call the
+ * documented designated initialiser (which calls -init only for
+ * MacOS-X compatibility), and anyone writing a subclass only needs
+ * to override that one initialiser in order to have all the other
+ * ones work.
+ * </p>
+ * <p>For MacOS-X compatibility, you may also need to override various
+ * other initialisers.  Exactly which ones, you will need to determine
+ * by trial on a MacOS-X system ... and may vary between releases of
+ * MacOS-X.  So to be safe, on MacOS-X you probably need to re-implement
+ * <em>all</em> the class cluster initialisers you might use in conjunction
+ * with your subclass.
+ * </p>
+ */
+- (id) init
+{
+  self = [super init];
+  return self;
+}
+
+/** <init /> <override-subclass />
+ * Initialize to contain (unique elements of) objects.<br />
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
  */
 - (id) initWithObjects: (id*)objects
 		 count: (unsigned)count
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  self = [self init];
+  return self;
 }
 
 /**
@@ -321,12 +353,6 @@ static Class NSMutableSet_concrete_class;
   GS_USEIDLIST(firstObject,
     self = [self initWithObjects: __objects count: __count]);
   return self;
-}
-
-/* Override superclass's designated initializer */
-- (id) init
-{
-  return [self initWithObjects: NULL count: 0];
 }
 
 /**
@@ -613,16 +639,20 @@ static Class NSMutableSet_concrete_class;
   return NSMutableSet_concrete_class;
 }
 
-/** <init />
+/** <init /> <override-subclass />
  * Initialises a newly allocated set to contain no objects but
  * to have space available to hold the specified number of items.<br />
  * Additions of items to a set initialised
  * with an appropriate capacity will be more efficient than addition
- * of items otherwise.
+ * of items otherwise.<br />
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
  */
 - (id) initWithCapacity: (unsigned)numItems
 {
-  return [self subclassResponsibility: _cmd];
+  self = [self init];
+  return self;
 }
 
 /**
