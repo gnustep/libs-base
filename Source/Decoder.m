@@ -1,5 +1,5 @@
 /* Abstract class for reading objects from a stream
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: February 1996, with core from Coder, created 1994.
@@ -47,6 +47,7 @@ static int debug_coder = 0;
   int minor_version;
   int subminor_version;
 
+  /* SIGNATURE_FORMAT_STRING is defined in gnustep/base/CoderPrivate.h */
   got = [[cs stream] readFormat: SIGNATURE_FORMAT_STRING,
 		     &package_name, 
 		     &major_version,
@@ -133,6 +134,11 @@ static int debug_coder = 0;
   return ([xref_2_object count] - 1);
 }
 
+- (void) _coderSubstituteObject: anObj atReference: (unsigned)xref
+{
+  [xref_2_object replaceObjectAtIndex: xref withObject: anObj];
+}
+
 - _coderObjectAtReference: (unsigned)xref
 {
   assert (xref_2_object);
@@ -140,7 +146,10 @@ static int debug_coder = 0;
 }
 
 
-/* The methods for the root object table */
+/* The methods for the root object table.  The *root* object table
+   (XREF_2_OBJECT_ROOT) isn't really used for much right now, but it
+   may be in the future.  For now, most of the work is don't by
+   XREF_2_OBJECT. */
 
 - (void) _coderPushRootObjectTable
 {
@@ -289,6 +298,12 @@ static int debug_coder = 0;
   if (DOING_ROOT_OBJECT)
     [self _coderCreateReferenceForInterconnectedObject: anObj];
   return xref;
+}
+
+- (void) _coderInternalSubstituteObject: anObj atReference: (unsigned)xref
+{
+  [self _coderSubstituteObject: anObj atReference: xref];
+  /* xxx If we ever use the root object table, do something with it also. */
 }
 
 
@@ -490,10 +505,6 @@ static int debug_coder = 0;
 
 - (void) finishDecodingInterconnectedObjects
 {
-#if 0
-  SEL awake_sel = sel_get_any_uid("awakeAfterUsingCoder:");
-#endif
-  
   assert (interconnect_stack_height);
 
   /* xxx This might not be the right thing to do; perhaps we should do
@@ -507,25 +518,34 @@ static int debug_coder = 0;
   /* xxx fix the use of _coderPopForwardObjectTable and
      _coderPopRootObjectTable. */
 
+#if 0
+  /* Send "-awakeAfterUsingCoder:" to all the objects that were read */
+  {
+    SEL awake_sel = sel_get_any_uid("awakeAfterUsingCoder:");
+    if (awake_sel)
+      {
+	int i;
+	id table = [self _coderTopRootObjectTable];
+
+	/* Loop through all objects that we decoded by this Decoder */
+	for (i = [table count]-1; i >= 0; i--)
+	  {
+	    id o = [table objectAtIndex: i];
+	    if (__objc_responds_to(o, awake_sel))
+	      {
+		replacement_obj = 
+		  (*objc_msg_lookup(e.id_u,awake_sel))(o, awake_sel, self);
+		/* xxx Make the replacement in the decoder's object tables. */
+	      }
+	  }
+      }
+  }
+#endif
+
   /* resolve object forward references */
   [self _coderResolveTopForwardReferences];
   [self _coderPopForwardObjectTable];
 
-#if 0
-  When should this be done? 
-  /* send "-awakeAfterUsingCoder:" to all the objects that were read */
-  /* xxx But this doesn't currently handle the return of a different 
-     object than was messaged! */
-  if (awake_sel)
-    {
-      void ask_awake(elt e)
-	{
-	  if (__objc_responds_to(e.id_u, awake_sel))
-	    (*objc_msg_lookup(e.id_u,awake_sel))(e.id_u, awake_sel, self);
-	}
-      [[self _coderTopRootObjectTable] withElementsCall:ask_awake];
-    }
-#endif
   [self _coderPopRootObjectTable];
 }
 
@@ -618,6 +638,8 @@ static int debug_coder = 0;
 	SEL new_sel = sel_get_any_uid ("newWithCoder:");
 	Method* new_method;
 	BOOL create_ref_before_init = [self _createReferenceBeforeInit];
+	/* Initialize this to <0 so we can tell below if it's been set */
+	int xref = -1;
 
 	[self decodeIndent];
 	object_class = [self decodeClass];
@@ -630,19 +652,52 @@ static int debug_coder = 0;
 	  *anObjPtr = (*(new_method->method_imp))(object_class, new_sel, self);
 	else
 	  {
-	    SEL init_sel = sel_get_any_uid("initWithCoder:");
+	    SEL init_sel = sel_get_any_uid ("initWithCoder:");
 	    Method *init_method = 
-	      class_get_instance_method(object_class, init_sel);
+	      class_get_instance_method (object_class, init_sel);
 	    /* xxx Or should I send +alloc? */
 	    *anObjPtr = (id) NSAllocateObject (object_class, 0, zone);
 	    if (create_ref_before_init)
-	      [self _coderInternalCreateReferenceForObject: *anObjPtr];
+	      xref = [self _coderInternalCreateReferenceForObject: *anObjPtr];
 	    if (init_method)
 	      *anObjPtr = 
 		(*(init_method->method_imp))(*anObjPtr, init_sel, self);
 	    /* xxx else what, error? */
 	  }
-	/* xxx Should I sent -awakeUsingCoder: here instead of above? */
+
+	/* Send -awakeAfterUsingCoder: */
+	/* xxx Unknown whether -awakeUsingCoder: should be sent here, or
+	   when Decoder is deallocated, or after a root object is finished
+	   decoding. */
+	/* NOTE: Use of this with the NeXT archiving methods is
+	   tricky, because if [*anObj initWithCoder:] creates any
+	   objects that references *anObj, and if [*anObj
+	   awakeAfterUsingCoder:] replaces itself, then the
+	   subobject's references will not be to the replacement.
+	   There is no way to magically fix this circular dependancy;
+	   users must be aware.  We should just make sure we require
+	   the same cautions as NeXT's implementation.  Note that, with
+	   the GNU archiving methods, this problem doesn't occur because
+	   we don't register the object until after it has been fully
+	   initialized and awakened. */
+	{
+	  SEL awake_sel = sel_get_any_uid ("awakeAfterUsingCoder:");
+	  IMP awake_imp = objc_msg_lookup (*anObjPtr, awake_sel);
+	  id replacement;
+
+	  if (awake_imp)
+	    {
+	      replacement = (*awake_imp) (*anObjPtr, awake_sel, self);
+	      if (replacement != *anObjPtr)
+		{
+		  if (xref > 0)
+		    [self _coderInternalSubstituteObject: replacement
+			  atReference: xref];
+		  *anObjPtr = replacement;
+		}
+	    }
+	}
+
 	[self decodeUnindent];
 
 	/* If this was a CODER_OBJECT_FORWARD_SATISFIER, then remember it. */
