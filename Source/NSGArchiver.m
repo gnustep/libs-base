@@ -34,7 +34,17 @@
     class_add_behavior([NSGArchiver class], [Coder class]);
 }
 
-#define self ((Coder*)self)
-/* In case any other methods are defined here later... */
+@end
+
+@implementation NSGUnarchiver
+
++ (void) initialize
+{
+  if (self == [NSGUnarchiver class])
+    class_add_behavior([NSGUnarchiver class], [Coder class]);
+}
 
 @end
+
+/* Use this if you want to define any other methods... */
+#define self ((Coder*)self)
