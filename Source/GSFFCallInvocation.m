@@ -162,10 +162,11 @@ static void gs_free_callback(void)
 */
    
 void
-GSFFCallInvokeWithTargetAndImp(NSInvocation_t *inv, id anObject, IMP imp)
+GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 {
   int      i;
   av_alist alist;
+  NSInvocation_t *inv = _inv;
 
   /* Do an av call starting with the return type */
 #undef CASE_TYPE
