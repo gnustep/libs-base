@@ -75,7 +75,7 @@
 - (NSData*) sortedArrayHint;
 - (NSArray*) sortedArrayUsingFunction: (NSComparisonResult (*)(id, id, void*))comparator 
 			      context: (void*)context;
-- (NSArray*) sortedArrayUsingFunction: (NSComparisonReslut (*)(id, id, void*))comparator 
+- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult (*)(id, id, void*))comparator 
 			      context: (void*)context
 				 hint: (NSData*)hint;
 - (NSArray*) sortedArrayUsingSelector: (SEL)comparator;
@@ -132,7 +132,7 @@
 - (void) removeObjectsFromIndices: (unsigned*)indices 
 		       numIndices: (unsigned)count;
 
-- (void) sortUsingFunction: (NSComparisionResult (*)(id,id,void*))compare 
+- (void) sortUsingFunction: (NSComparisonResult (*)(id,id,void*))compare 
 		   context: (void*)context;
 - (void) sortUsingSelector: (SEL)comparator;
 

@@ -1,3 +1,7 @@
+2003-02-19  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
+
+	* Headers/gnustep/base/NSArray.h: fixed declarations.
+
 2003-02-19  David Ayers  <d.ayers@inode.at>
 
 	* Source/NSArray.m (compare()),
