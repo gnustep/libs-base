@@ -51,11 +51,15 @@
 
 - firstObject
 {
+  if ([self isEmpty])
+    return nil;
   return [self objectAtIndex: 0];
 }
 
 - lastObject
 {
+  if ([self isEmpty])
+    return nil;
   return [self objectAtIndex: [self count]-1];
 }
 
@@ -272,15 +276,19 @@
 
   /* If there are not objects in this collection, or we are being
      asked for the object before the first object, return nil. */
-  if ([self isEmpty] || (*(int*)enumState) == 0)
-    return NO_OBJECT;
+  if ([self isEmpty] || ((*(int*)enumState) == 0)
+       || ((*(int*)enumState) == -1))
+    {
+      (*(int*)enumState) == -1;
+      return NO_OBJECT;
+    }
 
   if (*(int*)enumState == -2)
     /* enumState was just initialized by -newEnumState, start
        at the end of the sequence. */
     *(int*)enumState = [self count]-1;
   else
-    /* ...otherwise go to the previous index.*/
+    /* ...otherwise go the previous index. */
     (*(int*)enumState)--;
 
   return [self objectAtIndex:(*(unsigned*)enumState)];
@@ -325,8 +333,11 @@
 
   /* If there are not objects in this collection, or we are being
      asked for the object after the last object, return nil. */
-  if ([self isEmpty] || (*(int*)enumState) > [self count]-1)
-    return NO_OBJECT;
+  if ([self isEmpty] || ((*(int*)enumState) >= (int)([self count]-1)))
+    {
+      (*(int*)enumState) = [self count];
+      return NO_OBJECT;
+    }
 
   if (*(int*)enumState == -2)
     /* enumState was just initialized by -newEnumState, start
