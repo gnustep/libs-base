@@ -1,3 +1,7 @@
+Fri Oct 24 07:55:00 2003  Stefan Urbanek <stefanu@altair.des.elf.stuba.sk>
+
+	* Source/GSArray.m: make exception messages more informative.
+
 Thu Oct 23 17:45:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPort.m:
