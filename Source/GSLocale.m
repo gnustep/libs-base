@@ -31,10 +31,10 @@
 #include <locale.h>
 #ifdef HAVE_LANGINFO_H
 /*
- * Define __USE_GNU to get YESSTR and NOSTR in glibc-2.2.2
+ * Define _GNU_SOURCE to get YESSTR and NOSTR in glibc-2.2.2
  */
-#ifndef	__USE_GNU
-#define	__USE_GNU
+#ifndef	_GNU_SOURCE
+#define	_GNU_SOURCE
 #endif
 #include <langinfo.h>
 #endif
