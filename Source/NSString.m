@@ -4097,25 +4097,25 @@ handle_printf_atsign (FILE *stream,
 @implementation NSString (GNUstep)
 
 /**
- * Returns a string formed by removing the suffix string from the
- * receiver.  Raises an exception if the suffix is not present.
- */
-- (NSString*) stringByRemovingSuffix: (NSString*)suffix
-{
-  NSCAssert2([self hasSuffix: suffix],
-    @"'%@' does not have the suffix '%@'", self, suffix);
-  return [self substringToIndex: ([self length] - [suffix length])];
-}
-
-/**
  * Returns a string formed by removing the prefix string from the
  * receiver.  Raises an exception if the prefix is not present.
  */
-- (NSString*) stringByRemovingPrefix: (NSString*)prefix
+- (NSString*) stringByDeletingPrefix: (NSString*)prefix
 {
   NSCAssert2([self hasPrefix: prefix],
     @"'%@' does not have the prefix '%@'", self, prefix);
   return [self substringFromIndex: [prefix length]];
+}
+
+/**
+ * Returns a string formed by removing the suffix string from the
+ * receiver.  Raises an exception if the suffix is not present.
+ */
+- (NSString*) stringByDeletingSuffix: (NSString*)suffix
+{
+  NSCAssert2([self hasSuffix: suffix],
+    @"'%@' does not have the suffix '%@'", self, suffix);
+  return [self substringToIndex: ([self length] - [suffix length])];
 }
 
 /**
@@ -4253,6 +4253,29 @@ handle_printf_atsign (FILE *stream,
 @class	NSImmutableString;
 @class	GSImmutableString;
 /**
+ * Removes the specified suffix from the string.  Raises an exception
+ * if the suffix is not present.
+ */
+- (void) deleteSuffix: (NSString*)suffix
+{
+  NSCAssert2([self hasSuffix: suffix],
+    @"'%@' does not have the suffix '%@'", self, suffix);
+  [self deleteCharactersInRange:
+    NSMakeRange([self length] - [suffix length], [suffix length])];
+}
+
+/**
+ * Removes the specified prefix from the string.  Raises an exception
+ * if the prefix is not present.
+ */
+- (void) deletePrefix: (NSString*)prefix;
+{
+  NSCAssert2([self hasPrefix: prefix],
+    @"'%@' does not have the prefix '%@'", self, prefix);
+  [self deleteCharactersInRange: NSMakeRange(0, [prefix length])];
+}
+
+/**
  * Returns a proxy to the receiver which will allow access to the
  * receiver as an NSString, but which will not allow any of the
  * extra NSMutableString methods to be used.  You can use this method
@@ -4269,29 +4292,6 @@ handle_printf_atsign (FILE *stream,
     {
       return AUTORELEASE([[NSImmutableString alloc] initWithString: self]);
     }
-}
-
-/**
- * Removes the specified suffix from the string.  Raises an exception
- * if the suffix is not present.
- */
-- (void) removeSuffix: (NSString*)suffix
-{
-  NSCAssert2([self hasSuffix: suffix],
-    @"'%@' does not have the suffix '%@'", self, suffix);
-  [self deleteCharactersInRange:
-    NSMakeRange([self length] - [suffix length], [suffix length])];
-}
-
-/**
- * Removes the specified prefix from the string.  Raises an exception
- * if the prefix is not present.
- */
-- (void) removePrefix: (NSString*)prefix;
-{
-  NSCAssert2([self hasPrefix: prefix],
-    @"'%@' does not have the prefix '%@'", self, prefix);
-  [self deleteCharactersInRange: NSMakeRange(0, [prefix length])];
 }
 
 /**
