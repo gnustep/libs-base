@@ -1,3 +1,9 @@
+2003-06-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: Documented.
+	* Headers/gnustep/base/NSObject.h: Documented memory management macros
+	for autogsdoc.
+
 2003-06-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Better attempt to infer charset from

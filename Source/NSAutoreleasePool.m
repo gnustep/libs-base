@@ -2,6 +2,7 @@
    Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: January 1995
    
    This file is part of the GNUstep Base Library.
@@ -121,8 +122,28 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 
 /**
  * <p>
- *   This class maintains a stack of autorelease pools objects
- *   in each thread.
+ *   The standard OpenStep system of memory management employs retain counts.
+ *   When an object is created, it has a retain count of 1.  When an object
+ *   is retained, the retain count is incremented.  When it is released the
+ *   retain count is decremented, and when the retain count goes to zero the
+ *   object gets deallocated.
+ * </p>
+ * <p>
+ *   A simple retain/release mechanism is not very interesting ...
+ *   so it's spiced up with autorelease pools.  You can use the
+ *   AUTORELEASE() macro to call the [NSObject-autorelease]
+ *   method, which adds an object to the current autorelease pool by
+ *   calling [NSAutoreleasePool+addObject:].<br />
+ *   An autorelease pool simply maintains a reference to each object
+ *   added to it, and for each addition, the autorelease pool will
+ *   call the [NSObject-release] method of the object when the pool
+ *   is released.  So doing an AUTORELEASE() is just the same as
+ *   doing a RELEASE(), but deferred until the current autorelease
+ *   pool is deallocated.
+ * </p>
+ * <p>
+ *   The NSAutoreleasePool class maintains a separate stack of
+ *   autorelease pools objects in each thread.
  * </p>
  * <p>
  *   When an autorelease pool is created, it is automatically
@@ -132,6 +153,50 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
  *   When a pool is destroyed, it (and any pool later in
  *   the stack) is removed from the stack.
  * </p>
+ * <p>
+ *   This mechanism provides a simple but controllable and reasonably
+ *   efficient way of managing temporary objects.  An object can be
+ *   autoreleased and then passed around and used until the topmost 
+ *   pool in the stack is destroyed.
+ * </p>   
+ * <p>
+ *   Most methods return objects which are either owned by autorelease
+ *   pools or by the receiver of the method, so the lifetime of the
+ *   returned object can be assumed to be the shorter of the lifetime
+ *   of the current autorelease pool, or that of the receiver on which
+ *   the method was called.<br />
+ *   The exceptions to this are those object returned by -
+ * </p>
+ * <deflist>
+ *   <term>[NSObject+alloc], [NSObject+allocWithZone:]</term>
+ *   <desc>
+ *     Methods whose names begin with alloc return an uninitialised
+ *     object, owned by the caller.
+ *   </desc>
+ *   <term>[NSObject-init]</term>
+ *   <desc>
+ *     Methods whose names begin with init return an initialised
+ *     version of the receiving object, owned by the caller.<br />
+ *     NB. The returned object may not actualy be the same as the
+ *     receiver ... sometimes an init method releases the original
+ *     receiver and returns an alternative.
+ *   </desc>
+ *   <term>[NSObject+new]</term>
+ *   <desc>
+ *     Methods whose names begin with new combine the effects of
+ *     allocation and initialisation.
+ *   </desc>
+ *   <term>[NSObject-copy], [(NSCopying)-copyWithZone:]</term>
+ *   <desc>
+ *     Methods whose names begin with copy create a copy of the receiver
+ *     which is owned by the caller.
+ *   </desc>
+ *   <term>[NSObject-mutableCopy], [(NSMutableCopying)-mutableCopyWithZone:]</term>
+ *   <desc>
+ *     Methods whose names begin with mutableCopy create a copy of the receiver
+ *     which is owned by the caller.
+ *   </desc>
+ * </deflist>
  */
 @implementation NSAutoreleasePool
 
@@ -293,7 +358,7 @@ static IMP	initImp;
 /**
  * Adds the specified object to the current autorelease pool.
  * If there is no autorelease pool in the thread,
- * a warning is logged.
+ * a warning is logged and the object is leaked (ie it will not be released).
  */
 + (void) addObject: (id)anObj
 {
@@ -494,11 +559,20 @@ static IMP	initImp;
   free_pool_cache(tv);
 }
 
+/**
+ * Resets (to zero) the count of autoreleased objects in the current thread.
+ */
 + (void) resetTotalAutoreleasedObjects
 {
   ARP_THREAD_VARS->total_objects_count = 0;
 }
 
+/**
+ * Returns the number of objects which have been autoreleased in the
+ * current thread since the last call to +resetTotalAutoreleasedObjects.<br />
+ * NB. This is not normally supported ... enable it as a compile time option
+ * by editing NSAutoreleasePool.m when building the base library.
+ */
 + (unsigned) totalAutoreleasedObjects
 {
   return ARP_THREAD_VARS->total_objects_count;
@@ -554,3 +628,4 @@ static IMP	initImp;
 }
 
 @end
+
