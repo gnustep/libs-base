@@ -28,7 +28,11 @@
 
 #ifndef	NO_GNUSTEP
 
-#ifdef NeXT_Foundation_LIBRARY
+#ifndef NeXT_Foundation_LIBRARY
+#include <Foundation/NSCalendarDate.h>
+#include <Foundation/NSData.h>
+#include <Foundation/NSString.h>
+#else
 #include <Foundation/Foundation.h>
 #endif
 

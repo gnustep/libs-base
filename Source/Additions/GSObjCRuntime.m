@@ -653,7 +653,7 @@ GSObjCAddMethods (Class class, struct objc_method_list *methods)
 static Method_t
 search_for_method_in_class (Class class, SEL op)
 {
-  return search_for_method_in_list(class->methods, op);
+  return class != NULL ? search_for_method_in_list(class->methods, op) : NULL;
 }
 
 #endif /* NeXT runtime */
@@ -671,7 +671,24 @@ flush_method_cache_for_class (Class class)
 }
 
 IMP
-GSObjCReplaceImplementation (Class class, SEL sel, IMP imp)
+GSObjCGetMethod (Class class, SEL sel)
+{
+  struct objc_method *method;
+  IMP imp;
+
+  imp = NULL;
+  method = search_for_method_in_class (class, sel);
+
+  if (method != NULL)
+    {
+      imp = method->method_imp;
+    }
+
+  return imp;
+}
+
+IMP
+GSObjCReplaceMethod (Class class, SEL sel, IMP imp)
 {
   struct objc_method *method;
   IMP oImp; 
@@ -694,7 +711,7 @@ GSObjCReplaceImplementation (Class class, SEL sel, IMP imp)
       if (behavior_debug)
 	{
 	  fprintf(stderr, "could not replaced implementation for %s in %s.\n",
-		  sel_get_name(sel), class->name); 
+		  sel_get_name(sel), class != NULL ? class->name : "<NULL>"); 
 	}
     }
   return oImp;
