@@ -66,7 +66,7 @@
 <!ENTITY % text "#PCDATA | %xref; | %anchor; | %phrase; | footnote | br">
 
 <!-- Entity for definition elements. -->
-<!ENTITY % def "class|jclass|category|protocol|function|macro|type|variable">
+<!ENTITY % def "class|jclass|category|protocol|function|macro|type|variable|constant">
 
 <!-- Entity for list elements. -->
 <!ENTITY % list "list | enum | deflist | qalist">
@@ -88,6 +88,9 @@
 
 <!-- The content is a metasyntactic variable name. -->
 <!ELEMENT var (%text;)*>
+
+<!-- The content is a metasyntactic ivariable name. -->
+<!ELEMENT ivar (%text;)*>
 
 <!-- Emphasize the content. -->
 <!ELEMENT em (%text;)*>
@@ -145,7 +148,7 @@
 <!ELEMENT ref (%text;)*>
 <!ATTLIST ref
   id CDATA #REQUIRED
-  type (class|protocol|method|function|type|macro|variable|label) "label"
+  type (class|protocol|method|function|type|macro|variable|constant|label) "label"
   class CDATA #IMPLIED
 >
 
@@ -274,6 +277,31 @@
   id CDATA #IMPLIED
   name CDATA #REQUIRED
   type CDATA #REQUIRED
+  posttype CDATA #REQUIRED
+  value CDATA #IMPLIED
+  role (except|defaults|notify|key) #IMPLIED
+>
+
+<!-- Ivariable definition.
+  VALUE may be set for a constant or a default value
+-->
+<!ELEMENT ivariable (declared?, desc?, standards?)>
+<!ATTLIST ivariable
+  id CDATA #IMPLIED
+  name CDATA #REQUIRED
+  type CDATA #REQUIRED
+  posttype CDATA #REQUIRED
+  value CDATA #IMPLIED
+  role (except|defaults|notify|key) #IMPLIED
+>
+
+<!-- Constant definition.
+  VALUE may be set for a constant or a default value
+-->
+<!ELEMENT constant (declared?, desc?, standards?)>
+<!ATTLIST constant
+  id CDATA #IMPLIED
+  name CDATA #REQUIRED
   value CDATA #IMPLIED
   role (except|defaults|notify|key) #IMPLIED
 >
@@ -304,14 +332,14 @@
 <!-- Show a protocol a class conforms to. -->
 <!ELEMENT conform (#PCDATA)*>
 
-<!ELEMENT class (declared?, conform*, desc?, method*, standards?)>
+<!ELEMENT class (declared?, conform*, desc?, ivariable*, method*, standards?)>
 <!ATTLIST class
   id CDATA #IMPLIED
   name CDATA #REQUIRED
   super CDATA #IMPLIED
 >
 
-<!ELEMENT jclass (declared?, conform*, desc?, jmethod*, standards?)>
+<!ELEMENT jclass (declared?, conform*, desc?, ivariable*, jmethod*, standards?)>
 <!ATTLIST jclass
   id CDATA #IMPLIED
   name CDATA #REQUIRED
@@ -388,7 +416,7 @@
 <!-- Index -->
 <!ELEMENT index EMPTY>
 <!ATTLIST index
-  type (class|protocol|method|function|type|macro|variable|label) "label"
+  type (class|protocol|method|function|type|macro|variable|constant|label) "label"
 >
 
 
@@ -445,5 +473,6 @@
   next CDATA #IMPLIED
   prev CDATA #IMPLIED
   up CDATA #IMPLIED
+  stylesheeturl CDATA #IMPLIED
 >
 

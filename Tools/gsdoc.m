@@ -42,6 +42,40 @@
  very welcome.
  */
 
+/*
+Parameters:
+	--makeRefs=ReferencesFileName
+			With this option, gsdoc reads gsdoc files and create ReferencesFileName.gsdocrefs files which can be used as --refs to make links between elements
+
+	--projectName=TheProjectName
+			Set the project name to "TheProjectName"
+			It is used fo index titles,...
+
+	--refs=ARefFile (or --refs=ARefDirectory)
+			Use ARefFile.gsdocrefs (or files whith extensions .gsdocrefs in ARefDirectory directory) as references files.
+			It's enable to make links bettwen documentations
+
+	--makeIndex=MyIndexFileName
+			Create an index of the parsed files and save it as MyIndexName.gsdoc
+			You have to set --makeIndexTemplate option
+
+    --makeIndexTemplate=MyIndexTemplateFileName
+			The file used as index template for makeIndex option
+
+	--define-XXX=YYY
+			Used to define a constant named XXX with value YYY
+			in .gsdoc file, all [[infoDictionary.XXX]] texts are replaced with YYY
+
+	 --verbose=X
+	 		Level of traces from 0 to ...
+
+	 --location=file://usr/doc/gnustep/MyProject (or --location=http://www.gnustep.org/gnustep/MyProject)
+	 		Location of the installed documentation (it helps to make kinks between projects)
+
+	 file1 file2
+	 		.gsdoc files
+*/
+
 #include <Foundation/Foundation.h>
 
 #if	HAVE_LIBXML
@@ -51,15 +85,42 @@
 #include <stdlib.h>
 #include <libxml/parser.h>
 
+NSString* PathExtension_GSDocRefs=@"gsdocrefs";
+NSString* PathExtension_GSDoc=@"gsdoc";
+int verbose=0;
+NSString* location=nil;
 
+//--------------------------------------------------------------------
+// In text, replace keys from variables with their values
+// variables is like something like this
+// {
+//		"[[key1]]" = "value1";
+//		"[[key2]]" = "value2";
+// };
+NSString* TextByReplacingVariablesInText(NSString* text,NSDictionary* variables)
+{  
+  NSEnumerator* variablesEnum = [variables keyEnumerator];
+  id key=nil; 
+  while ((key = [variablesEnum nextObject]))
+	{
+	  id value=[variables objectForKey:key];
+	  text=[text stringByReplacingString:key
+				 withString:[value description]];
+	};
+  return text;
+};
+
+// ====================================================================
+// GSDocParser
 @interface	GSDocParser : NSObject
 {
   NSString		*baseName;
   NSString		*currName;
   NSString		*fileName;
-  NSString		*nextName;
-  NSString		*prevName;
-  NSString		*upName;
+  NSString		*nextName;	//"Next" Link filename
+  NSString		*prevName;	//"Previous" Link filename
+  NSString		*upName;	//"Up" Link filename
+  NSString		*styleSheetURL;	// Style sheet
   NSMutableDictionary	*indexes;
   NSUserDefaults	*defs;
   NSFileManager		*mgr;
@@ -119,6 +180,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   return ret;
 }
 
+// ====================================================================
 @implementation	GSDocParser
 
 - (void) dealloc
@@ -134,6 +196,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   DESTROY(nextName);
   DESTROY(prevName);
   DESTROY(upName);
+  DESTROY(styleSheetURL);
   DESTROY(currName);
   DESTROY(fileName);
   [super dealloc];
@@ -169,86 +232,90 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
 - (id) initWithFileName: (NSString*)name
 {
-  xmlNodePtr	cur;
-  extern int	xmlDoValidityCheckingDefaultValue;
-  xmlExternalEntityLoader	ldr;
-  NSString			*s;
-  NSFileManager			*m;
+  if ((self=[self init]))
+	{
+	  xmlNodePtr	cur;
+	  extern int	xmlDoValidityCheckingDefaultValue;
+	  xmlExternalEntityLoader	ldr;
+	  NSString			*s;
+	  NSFileManager			*m;
 
-  xmlDoValidityCheckingDefaultValue = 1;
-  ldr = xmlGetExternalEntityLoader();
-  if (ldr != (xmlExternalEntityLoader)loader)
-    {
-      xmlSetExternalEntityLoader((xmlExternalEntityLoader)loader);
-    }
+	  xmlDoValidityCheckingDefaultValue = 1;
+	  ldr = xmlGetExternalEntityLoader();
+	  if (ldr != (xmlExternalEntityLoader)loader)
+		{
+		  xmlSetExternalEntityLoader((xmlExternalEntityLoader)loader);
+		}
 
-  /*
+	  /*
    * Ensure we have a valid file name.
    */
-  s = [name pathExtension];
-  m = [NSFileManager defaultManager];
-  if ([m fileExistsAtPath: name] == NO && [s length] == 0)
-    {
-      s = [name stringByAppendingPathExtension: @"gsdoc"];
-      if ([m fileExistsAtPath: s] == NO)
-	{
-	  NSLog(@"No such document - %@", name);
-	  [self dealloc];
-	  return nil;
-	}
-      name = s;
-    }
-  fileName = [name copy];
-  /*
-   * Build an XML tree from the file.
+	  s = [name pathExtension];
+	  m = [NSFileManager defaultManager];
+	  if ([m fileExistsAtPath: name] == NO && [s length] == 0)
+		{
+		  s = [name stringByAppendingPathExtension:PathExtension_GSDoc];
+		  if ([m fileExistsAtPath: s] == NO)
+			{
+			  NSLog(@"No such document - %@", name);
+			  [self dealloc];
+			  return nil;
+			}
+		  name = s;
+		}
+	  fileName = [name copy];
+	  /*
+	   * Build an XML tree from the file.
    */
-  doc = xmlParseFile([name cString]);
-  if (doc == NULL)
-    {
-      NSLog(@"unparseable document - %@", fileName);
-      [self dealloc];
-      return nil;
-    }
-  /*
+	  doc = xmlParseFile([name cString]);
+	  if (doc == NULL)
+		{
+		  NSLog(@"unparseable document - %@", fileName);
+		  [self dealloc];
+		  return nil;
+		}
+	  /*
    * Check that the document is of the right kind
    */
-  cur = doc->children;
-  if (cur == NULL)
-    {
-      NSLog(@"empty document - %@", fileName);
-      [self dealloc];
-      return nil;
-    }
-  cur = cur->next;
+	  cur = doc->children;
+	  if (cur == NULL)
+		{
+		  NSLog(@"empty document - %@", fileName);
+		  [self dealloc];
+		  return nil;
+		}
+	  cur = cur->next;
 
-  if (strcmp(cur->name, "gsdoc") != 0)
-    {
-      NSLog(@"document of the wrong type, root node != gsdoc");
-      [self dealloc];
-      return nil;
-    }
+	  if (strcmp(cur->name, "gsdoc") != 0)
+		{
+		  NSLog(@"document of the wrong type, root node != gsdoc");
+		  [self dealloc];
+		  return nil;
+		}
 
-  baseName = [self getProp: "base" fromNode: cur];
-  if (baseName == nil)
-    {
-      baseName = @"gsdoc";
-    }
-  else
-    {
-      RETAIN(baseName);
-    }
-  nextName = RETAIN([self getProp: "next" fromNode: cur]);
-  prevName = RETAIN([self getProp: "prev" fromNode: cur]);
-  upName = RETAIN([self getProp: "up" fromNode: cur]);
-  defs = RETAIN([NSUserDefaults standardUserDefaults]);
-  s = [defs stringForKey: @"BaseName"];
-  if (s != nil)
-    {
-      ASSIGN(baseName, s);
-    }
-  currName = [baseName copy];
+	  baseName = [self getProp: "base" fromNode: cur];
+	  if (baseName == nil)
+		{
+		  baseName = @"gsdoc";
+		}
+	  else
+		{
+		  RETAIN(baseName);
+		}
+	  nextName = RETAIN([self getProp: "next" fromNode: cur]);	// get the "next" link
+	  prevName = RETAIN([self getProp: "prev" fromNode: cur]);	// get the "prev" link
+	  upName = RETAIN([self getProp: "up" fromNode: cur]);		// get the "up" link
+	  styleSheetURL = RETAIN([self getProp: "stylesheeturl" fromNode: cur]);//Get the style sheet if any
+	  defs = RETAIN([NSUserDefaults standardUserDefaults]);
+	  s = [defs stringForKey: @"BaseName"];
+	  if (s != nil)
+		{
+		  ASSIGN(baseName, s);
+		}
+	  currName = [baseName copy];
   
-  indexes = [NSMutableDictionary new];
+	  indexes = [NSMutableDictionary new];
+	};
   return self;
 }
 
@@ -275,6 +342,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
 
 
+// ====================================================================
 @interface	GSDocHtml : GSDocParser
 {
   NSMutableDictionary	*refToFile;
@@ -283,7 +351,15 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   unsigned		labelIndex;
   unsigned		footnoteIndex;
   unsigned		contentsIndex;
+  NSMutableDictionary* fileReferences;			// References for the current file (constructed when parsing this file)
+  NSMutableDictionary* generalReferences;		// General References (coming from documentations References)
+  NSMutableDictionary* variablesDictionary;		// "User Variables"
+  NSString*     currentClassName;				// Currently Parsed Class Name if any
+  NSString*     currentCategoryName;			// Currently Parsed Category Name if any
+  NSString*     currentProtocolName;			// Currently Parsed Protocol Name if any
+  BOOL writeFlag;								// YES if we'll write the result
 }
+- (id)init;
 - (NSString*) addLink: (NSString*)ref withText: (NSString*)text;
 - (void) appendContents: (NSArray*)array toString: (NSMutableString*)text;
 - (void) appendFootnotesToString: (NSMutableString*)text;
@@ -301,17 +377,41 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 - (NSString*) parseHead: (xmlNodePtr)node;
 - (NSString*) parseItem: (xmlNodePtr)node;
 - (NSString*) parseList: (xmlNodePtr)node;
+- (NSString*) parseVariable: (xmlNodePtr)node;
+- (NSString*) parseIVariable: (xmlNodePtr)node;
+- (NSString*) parseConstant: (xmlNodePtr)node;
 - (NSString*) parseMacro: (xmlNodePtr)node;
 - (NSString*) parseMethod: (xmlNodePtr)node;
 - (NSArray*) parseStandards: (xmlNodePtr)node;
 - (NSString*) parseText: (xmlNodePtr)node end: (xmlNodePtr*)endNode;
 - (void) setEntry: (NSString*)entry
-	  withRef: (NSString*)ref
+withExternalCompleteRef: (NSString*)externalCompleteRef
+  withExternalRef: (NSString*)externalRef
+		  withRef: (NSString*)ref
     inIndexOfType: (NSString*)type;
+-(NSArray*)contents;
+-(NSDictionary*)fileReferences;
+-(void)setGeneralReferences:(NSDictionary*)dict;
+-(void)setVariablesDictionary:(NSDictionary*)dict;
+-(NSString*)linkedTypeWithType:(NSString*)type;
+-(NSString*)linkedClassWithClass:(NSString*)class_;
+-(NSDictionary*)findSymbolForKey:(NSString*)key_;
+-(NSString*)linkForSymbol:(NSDictionary*)symbol
+				 withText:(NSString*)text;
+-(void)setWriteFlag:(BOOL)flag;
 @end
 
-
+// ====================================================================
 @implementation	GSDocHtml
+
+- (id)init
+{
+  if ((self=[super init]))
+	{
+	  writeFlag=YES;
+	};
+  return self;
+};
 
 - (NSString*) addLink: (NSString*)ref withText: (NSString*)text
 {
@@ -398,6 +498,12 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 {
   DESTROY(contents);
   DESTROY(footnotes);
+  DESTROY(fileReferences);
+  DESTROY(generalReferences);
+  DESTROY(variablesDictionary);
+  DESTROY(currentClassName);
+  DESTROY(currentCategoryName);
+  DESTROY(currentProtocolName);
   [super dealloc];
 }
 
@@ -511,7 +617,9 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     || strcmp(node->name, "function") == 0
     || strcmp(node->name, "macro") == 0
     || strcmp(node->name, "type") == 0
-    || strcmp(node->name, "variable") == 0)
+    || strcmp(node->name, "variable") == 0
+    || strcmp(node->name, "ivariable") == 0
+    || strcmp(node->name, "constant") == 0)
     {
       return [self parseDef: node];
     }
@@ -612,15 +720,15 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       node = node->children;
 
       while (node != 0 && strcmp(node->name, "chapter") == 0)
-	{
-	  chapter = [self parseChapter: node contents: contents];
-	  if (chapter == nil)
-	    {
-	      return nil;
-	    }
-	  [back addObject: chapter];
-	  node = node->next;
-	}
+		{
+		  chapter = [self parseChapter: node contents: contents];
+		  if (chapter == nil)
+			{
+			  return nil;
+			}
+		  [back addObject: chapter];
+		  node = node->next;
+		}
     }
 
   /*
@@ -682,10 +790,12 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   const char		*h;
   NSString		*head;
   NSString		*ref;
+  NSString* nodeId=nil;
   NSMutableDictionary	*dict;
   NSMutableArray	*subs;
 
-  ref = [self getProp: "id" fromNode: node];
+  nodeId=[self getProp: "id" fromNode: node];
+  ref = nodeId;
   if (ref == nil)
     {
       ref = [NSString stringWithFormat: @"cont-%u", contentsIndex++];
@@ -721,6 +831,15 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       next = "";
       h = "h5";
     }
+
+  if (nodeId)
+	{
+	  [self setEntry:head
+			withExternalCompleteRef:[NSString stringWithFormat:@"%@##%@",currName,head]
+			withExternalRef:head
+			withRef: ref
+			inIndexOfType:[NSString stringWithCString:type]];
+	};
 
   /*
    * Build content information and add it to the array at this level.
@@ -782,8 +901,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       NSString	*declared = nil;
       NSString	*desc = nil;
       NSMutableArray	*conform = [NSMutableArray array];
-      NSMutableArray	*methods = [NSMutableArray array];
-      NSMutableArray	*standards = [NSMutableArray array];
+      NSMutableArray	*ivariables = [NSMutableArray array];//Instance Variables
+      NSMutableArray	*factoryMethods = [NSMutableArray array]; //Factory Methods
+      NSMutableArray	*instanceMethods = [NSMutableArray array]; // Instance Methods
+      NSMutableArray	*standards = [NSMutableArray array]; // Standards
 
       if (className == nil)
 	{
@@ -794,6 +915,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	{
 	  ref = className;
 	}
+	  // We're working on "className"
+	  ASSIGN(currentClassName,className);
 
       /*
        * Clear the methods index so it will contain only values from this class.
@@ -806,6 +929,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  declared = [self parseText: node->children];
 	  node = node->next;
 	}
+
       while (node != 0 && strcmp(node->name, "conform") == 0)
 	{
 	  NSString	*s = [self parseText: node->children];
@@ -821,17 +945,34 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  desc = [self parseDesc: node];
 	  node = node->next;
 	}
+
+      while (node != 0 && strcmp(node->name, "ivariable") == 0)
+	{
+	  NSString	*s = [self parseIVariable:node];
+	  if (s != nil)
+	    {
+	      [ivariables addObject: s];
+	    }
+	  node = node->next;
+	}
+
       while (node != 0 && ((strcmp(node->name, "method") == 0)
 	|| (strcmp(node->name, "jmethod") == 0)))
 	{
+	  // Is It a factory method ?
+	  BOOL factoryMethod=[[self getProp: "factory" fromNode: node] boolValue];
 	  NSString	*s = [self parseMethod: node];
 
 	  if (s != nil)
 	    {
-	      [methods addObject: s];
+		  if (factoryMethod)
+			[factoryMethods addObject: s];
+		  else
+			[instanceMethods addObject: s];
 	    }
 	  node = node->next;
 	}
+
       while (node != 0 && strcmp(node->name, "standard") == 0)
 	{
 	  NSString	*s = [self parseText: node->children];
@@ -843,9 +984,13 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  node = node->next;
 	}
 
-      [self setEntry: className withRef: ref inIndexOfType: @"class"];
+      [self setEntry: className
+			withExternalCompleteRef:className
+			withExternalRef:className
+			withRef: ref
+			inIndexOfType: @"class"];
       [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n",
-	ref, className];
+			ref, className];
       if (declared != nil)
 	{
 	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
@@ -885,18 +1030,45 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
 	}
 
+	  [text appendString: @"<h2>Instance Variables</h2>\r\n"];
+      [self appendIndex: @"ivariable" toString:text];
+
+	  [text appendString: @"<h2>Methods</h2>\r\n"];
       [self appendIndex: @"method" toString: text];
 
-      if ([methods count] > 0)
+      if ([ivariables count] > 0)
 	{
 	  unsigned	i;
 
-	  [text appendString: @"<hr>\r\n"];
-	  for (i = 0; i < [methods count]; i++)
+	  [text appendString: @"<hr><h2>Instance Variables</h2>\r\n"];
+	  for (i = 0; i < [ivariables count]; i++)
 	    {
-	      [text appendString: [methods objectAtIndex: i]];
+	      [text appendString: [ivariables objectAtIndex: i]];
 	    }
 	}
+
+      if ([factoryMethods count] > 0)
+	{
+	  unsigned	i;
+	  [text appendString: @"<hr><h2>Class Methods</h2>\r\n"];
+	  for (i = 0; i < [factoryMethods count]; i++)
+		{
+		  [text appendString: [factoryMethods objectAtIndex: i]];
+		};
+	};
+
+      if ([instanceMethods count] > 0)
+	{
+	  unsigned	i;
+	  [text appendString: @"<hr><h2>Instances Methods</h2>\r\n"];
+	  for (i = 0; i < [instanceMethods count]; i++)
+		{
+		  [text appendString: [instanceMethods objectAtIndex: i]];
+		};
+	};
+
+	  // We've finished working on "className"
+	  ASSIGN(currentClassName,nil);
       return text;
     }
   else if (strcmp(node->name, "category") == 0)
@@ -906,7 +1078,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       NSString	*ref = [self getProp: "id" fromNode: node];
       NSString	*declared = nil;
       NSString	*desc = nil;
-      NSMutableArray	*methods = [NSMutableArray array];
+      NSMutableArray	*factoryMethods = [NSMutableArray array];
+      NSMutableArray	*instanceMethods = [NSMutableArray array];
       NSMutableArray	*standards = [NSMutableArray array];
       NSString	*name;
 
@@ -921,6 +1094,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  ref = name;
 	}
 
+	  // We works on a category
+	  ASSIGN(currentCategoryName,([NSString stringWithFormat: @"%@(%@)",className,catName]));
       /*
        * Clear the methods index so it will contain only values from this class.
        */
@@ -937,16 +1112,22 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  desc = [self parseDesc: node];
 	  node = node->next;
 	}
+
       while (node != 0 && strcmp(node->name, "method") == 0)
 	{
+	  BOOL factoryMethod=[[self getProp: "factory" fromNode: node] boolValue];
 	  NSString	*s = [self parseMethod: node];
 
 	  if (s != nil)
 	    {
-	      [methods addObject: s];
+		  if (factoryMethod)
+			[factoryMethods addObject: s];
+		  else
+			[instanceMethods addObject: s];
 	    }
 	  node = node->next;
 	}
+
       while (node != 0 && strcmp(node->name, "standard") == 0)
 	{
 	  NSString	*s = [self parseText: node->children];
@@ -958,9 +1139,16 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  node = node->next;
 	}
 
-      [self setEntry: name withRef: ref inIndexOfType: @"category"];
-      [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n",
-	ref, name];
+      [self setEntry: name
+			withExternalCompleteRef:[NSString stringWithFormat:@"%@(%@)",className,catName]
+			withExternalRef:[NSString stringWithFormat:@"%@(%@)",className,catName]
+			withRef:ref
+			inIndexOfType: @"category"];
+
+      [text appendFormat: @"<h2>%@ <a name=\"%@\">(%@)</a></h2>\r\n",
+			[self linkedClassWithClass:className],
+			ref,
+			catName];
       if (declared != nil)
 	{
 	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
@@ -983,18 +1171,32 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
 	}
 
+	  [text appendString: @"<h2>Methods</h2>\r\n"];
       [self appendIndex: @"method" toString: text];
 
-      if ([methods count] > 0)
+      if ([factoryMethods count] > 0)
 	{
 	  unsigned	i;
 
-	  [text appendString: @"<hr>\r\n"];
-	  for (i = 0; i < [methods count]; i++)
+	  [text appendString: @"<hr><h2>Class Methods</h2>\r\n"];
+	  for (i = 0; i < [factoryMethods count]; i++)
 	    {
-	      [text appendString: [methods objectAtIndex: i]];
+	      [text appendString: [factoryMethods objectAtIndex: i]];
 	    }
 	}
+
+      if ([instanceMethods count] > 0)
+	{
+	  unsigned	i;
+
+	  [text appendString: @"<hr><h2>Instances Methods</h2>\r\n"];
+	  for (i = 0; i < [instanceMethods count]; i++)
+	    {
+	      [text appendString: [instanceMethods objectAtIndex: i]];
+	    }
+	}
+	  // We've finished working on this category
+	  ASSIGN(currentCategoryName,nil);
       return text;
     }
   else if (strcmp(node->name, "protocol") == 0)
@@ -1016,6 +1218,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  ref = protName;
 	}
 
+	  // Works on "protName"
+	  ASSIGN(currentProtocolName,protName);
       /*
        * Clear the methods index so it will contain only values from this class.
        */
@@ -1027,6 +1231,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  declared = [self parseText: node->children];
 	  node = node->next;
 	}
+
       if (node != 0 && strcmp(node->name, "desc") == 0)
 	{
 	  desc = [self parseDesc: node];
@@ -1042,6 +1247,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	    }
 	  node = node->next;
 	}
+
       while (node != 0 && strcmp(node->name, "standard") == 0)
 	{
 	  NSString	*s = [self parseText: node->children];
@@ -1053,9 +1259,13 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  node = node->next;
 	}
 
-      [self setEntry: protName withRef: ref inIndexOfType: @"protocol"];
+      [self setEntry: protName
+			withExternalCompleteRef:protName
+			withExternalRef:protName
+			withRef: ref
+			inIndexOfType: @"protocol"];
       [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n",
-	ref, protName];
+			ref, protName];
       if (declared != nil)
 	{
 	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
@@ -1090,6 +1300,9 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	      [text appendString: [methods objectAtIndex: i]];
 	    }
 	}
+
+	  // Finished working on "protName"
+	  ASSIGN(currentProtocolName,nil);
       return text;
     }
   else if (strcmp(node->name, "function") == 0)
@@ -1135,11 +1348,13 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  declared = [self parseText: node->children];
 	  node = node->next;
 	}
+
       if (node != 0 && strcmp(node->name, "desc") == 0)
 	{
 	  desc = [self parseDesc: node];
 	  node = node->next;
 	}
+
       while (node != 0 && strcmp(node->name, "standard") == 0)
 	{
 	  NSString	*s = [self parseText: node->children];
@@ -1151,9 +1366,12 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  node = node->next;
 	}
 
-      [self setEntry: typeName withRef: ref inIndexOfType: @"type"];
-      [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n",
-	ref, typeName];
+      [self setEntry: typeName 
+			withExternalCompleteRef:typeName
+			withExternalRef:typeName
+			withRef: ref inIndexOfType: @"type"];
+      [text appendFormat: @"<h3><a name=\"%@\">%@</a></h3>\r\n",
+			ref, typeName];
       if (declared != nil)
 	{
 	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
@@ -1175,104 +1393,18 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
       if (desc != nil)
 	{
-	  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
+	  [text appendFormat: @"\r\n%@\r\n<hr>\r\n", desc];
 	}
 
       return text;
     }
   else if (strcmp(node->name, "variable") == 0)
     {
-      NSString	*name = [self getProp: "name" fromNode: node];
-      NSString	*type = [self getProp: "type" fromNode: node];
-      NSString	*value = [self getProp: "value" fromNode: node];
-      NSString	*role = [self getProp: "role" fromNode: node];
-      NSString	*ref = [self getProp: "id" fromNode: node];
-      NSString	*declared = nil;
-      NSString	*desc = nil;
-      NSMutableArray	*standards = [NSMutableArray array];
-
-      if (name == nil || type == nil)
-	{
-	  NSLog(@"Missing variable type or name");
-	  return nil;
-	}
-      if (ref == nil)
-	{
-	  ref = name;
-	}
-      node = node->children;
-      if (node != 0 && strcmp(node->name, "declared") == 0)
-	{
-	  declared = [self parseText: node->children];
-	  node = node->next;
-	}
-      if (node != 0 && strcmp(node->name, "desc") == 0)
-	{
-	  desc = [self parseDesc: node];
-	  node = node->next;
-	}
-      while (node != 0 && strcmp(node->name, "standard") == 0)
-	{
-	  NSString	*s = [self parseText: node->children];
-
-	  if (s != nil)
-	    {
-	      [standards addObject: s];
-	    }
-	  node = node->next;
-	}
-
-      [self setEntry: name withRef: ref inIndexOfType: @"variable"];
-      [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n", ref, name];
-      if (declared != nil)
-	{
-	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
-	}
-      if ([standards count] > 0)
-	{
-	  unsigned	i;
-
-	  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
-	    [standards objectAtIndex: 0]];
-	  for (i = 1; i < [standards count]; i++)
-	    {
-	      [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
-	    }
-	  [text appendString: @"</p>\r\n"];
-	}
-
-      if ([role isEqual: @"except"])
-	{
-	  [text appendString: @"<p>Exception name</p>\r\n"];
-	}
-      else if ([role isEqual: @"defaults"])
-	{
-	  [text appendString: @"<p>Defaults system key</p>\r\n"];
-	}
-      else if ([role isEqual: @"notify"])
-	{
-	  [text appendString: @"<p>Notification name</p>\r\n"];
-	}
-      else if ([role isEqual: @"key"])
-	{
-	  [text appendString: @"<p>Dictionary key</p>\r\n"];
-	}
-
-      if (value == nil)
-	{
-	  [text appendFormat: @"%@ <b>%@</b><br>\r\n", type, name];
-	}
-      else
-	{
-	  [text appendFormat: @"%@ <b>%@</b> = %@<br>\r\n", type, name, value];
-	}
-
-      if (desc != nil)
-	{
-	  [text appendFormat: @"<hr>\r\n%@\r\n", desc];
-	}
-
-      return text;
+	  return [self parseVariable:node];
+    }
+  else if (strcmp(node->name, "constant") == 0)
+    {
+	  return [self parseConstant:node];
     }
   else
     {
@@ -1364,10 +1496,16 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
   text = [NSString stringWithFormat: @"<html>%@%@\r\n</html>\r\n", head, body];
 
-  if ([defs boolForKey: @"Monolithic"] == YES)
+  // Don't write result if !writeFlag
+  if (writeFlag && [defs boolForKey: @"Monolithic"] == YES)
     {
+	  // Replace "UserVariables" in text
+	  text=TextByReplacingVariablesInText(text,variablesDictionary);
+
+	  // Write the result
       [text writeToFile: currName atomically: YES];
     }
+
   return text;
 }
 
@@ -1393,12 +1531,20 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     }
   if (cap == nil)
     {
-      [self setEntry: @"example" withRef: ref inIndexOfType: @"label"];
+      [self setEntry: @"example"
+			withExternalCompleteRef:nil
+			withExternalRef:nil
+			withRef: ref
+			inIndexOfType: @"label"];
       [text appendFormat: @"<a name=\"%@\">example</a>\r\n", ref];
     }
   else
     {
-      [self setEntry: cap withRef: ref inIndexOfType: @"label"];
+      [self setEntry: cap
+			withExternalCompleteRef:nil
+			withExternalRef:nil
+			withRef:ref
+			inIndexOfType: @"label"];
       [text appendFormat: @"<a name=\"%@\">%@</a>\r\n", ref, cap];
     }
   [text appendFormat: @"<pre>\r\n%@\r\n</pre>\r\n", elem];
@@ -1423,6 +1569,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     {
       type = @"int";
     }
+  //Avoid ((xxx))
+  else if ([type hasPrefix:@"("] && [type hasSuffix:@")"])
+	type =[[type stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
+  type=[self linkedTypeWithType:type];
 
   node = node->children;
   while (node != 0 && strcmp(node->name, "arg") == 0)
@@ -1430,50 +1580,64 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       NSString	*arg = [self parseText: node->children];
       NSString	*typ = [self getProp: "type" fromNode: node];
 
-      if (arg == nil) return nil;
+      if (arg == nil)
+		return nil;
+
       if ([args length] > 1)
-	{
-	  [args appendString: @", "];
-	}
+		{
+		  [args appendString: @", "];
+		}
+
       if (typ != nil)
-	{
-	  [args appendString: typ];
-	  [args appendString: @" "];
-	}
+		{
+		  //Avoid ((xxx))
+		  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
+			typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
+		  typ=[self linkedTypeWithType:typ];
+		  [args appendString: typ];
+		  [args appendString: @" "];
+		}
       [args appendString: arg];
       node = node->next;
     }
+
   if (node != 0 && strcmp(node->name, "vararg") == 0)
     {
       if ([args length] > 1)
-	{
-	  [args appendString: @", ..."];
-	}
+		{
+		  [args appendString: @", ..."];
+		}
       else
-	{
-	  [args appendString: @"..."];
-	}
+		{
+		  [args appendString: @"..."];
+		}
       node = node->next;
     }
   [args appendString: @")"];
+
   if (node != 0 && strcmp(node->name, "declared") == 0)
     {
       declared = [self parseText: node->children];
       node = node->next;
     }
+
   if (node != 0)
     {
       if (strcmp(node->name, "desc") == 0)
-	{
-	  desc = [self parseDesc: node];
-	}
+		{
+		  desc = [self parseDesc: node];
+		}
       else
-	{
-	  NSLog(@"Unexpected node in function definition - %s", node->name);
-	  return nil;
-	}
+		{
+		  NSLog(@"Unexpected node in function definition - %s", node->name);
+		  return nil;
+		}
     }
-  [self setEntry: name withRef: ref inIndexOfType: @"function"];
+  [self setEntry: name
+		withExternalCompleteRef:name
+		withExternalRef:name
+		withRef: ref
+		inIndexOfType: @"function"];
   [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n", ref, name];
   if (declared != nil)
     {
@@ -1510,29 +1674,53 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     }
   [text appendFormat: @"<head>\r\n<title>%@</title>\r\n", title];
 
+      NSLog(@"currName=%@",currName);
+  [self setEntry:title
+		withExternalCompleteRef:currName
+		withExternalRef:currName
+		withRef: currName
+		inIndexOfType:@"file"];
+
+  if ([styleSheetURL length]>0)
+	  [text appendFormat: @"<link rel=stylesheet type=\"text/css\" href=\"%@\">\r\n",styleSheetURL];
+
   [text appendString: @"</head>\r\n"];
   [text appendString: @"<body>\r\n"];
-  if (prevName != nil)
+  if ([prevName length]>0)
     {
-      if ([[prevName pathExtension] isEqual: @"html"] == YES)
-	[text appendFormat: @"<a href=\"%@\">[Previous]</a>\n", prevName];
-      else
-	[text appendFormat: @"<a href=\"%@.html\">[Previous]</a>\n", prevName];
+	  //Avoid empty link
+	  NSString* test=TextByReplacingVariablesInText(prevName,variablesDictionary);
+	  if ([test length]>0)
+		{
+		  if ([[prevName pathExtension] isEqual: @"html"] == YES)
+			[text appendFormat: @"<a href=\"%@\">[Previous]</a>\n", prevName];
+		  else
+			[text appendFormat: @"<a href=\"%@.html\">[Previous]</a>\n", prevName];
+		};
     }
-  if (upName != nil)
+  if ([upName length]>0)
     {
-      if ([[upName pathExtension] isEqual: @"html"] == YES)
-	[text appendFormat: @"<a href=\"%@\">[Up]</a>\n", upName];
-      else
-	[text appendFormat: @"<a href=\"%@.html\">[Up]</a>\n", upName];
+	  NSString* test=TextByReplacingVariablesInText(upName,variablesDictionary);
+	  if ([test length]>0)
+		{
+		  if ([[upName pathExtension] isEqual: @"html"] == YES)
+			[text appendFormat: @"<a href=\"%@\">[Up]</a>\n", upName];
+		  else
+			[text appendFormat: @"<a href=\"%@.html\">[Up]</a>\n", upName];
+		};
     }
-  if (nextName != nil)
+  if ([nextName length]>0)
     {
-      if ([[nextName pathExtension] isEqual: @"html"] == YES)
-	[text appendFormat: @"<a href=\"%@\">[Next]</a>\n", nextName];
-      else
-	[text appendFormat: @"<a href=\"%@.html\">[Next]</a>\n", nextName];
-    }
+	  //Avoid empty link
+	  NSString* test=TextByReplacingVariablesInText(nextName,variablesDictionary);
+	  if ([test length]>0)
+		{
+		  if ([[nextName pathExtension] isEqual: @"html"] == YES)
+			[text appendFormat: @"<a href=\"%@\">[Next]</a>\n", nextName];
+		  else
+			[text appendFormat: @"<a href=\"%@.html\">[Next]</a>\n", nextName];
+		};
+    };
 
   [text appendFormat: @"<h1>%@</h1>\r\n", title];
 
@@ -1599,7 +1787,9 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     || strcmp(node->name, "function") == 0
     || strcmp(node->name, "macro") == 0
     || strcmp(node->name, "type") == 0
-    || strcmp(node->name, "variable") == 0)
+    || strcmp(node->name, "variable") == 0
+    || strcmp(node->name, "ivariable") == 0
+    || strcmp(node->name, "constant") == 0)
     {
       return [self parseDef: node];
     }
@@ -1657,6 +1847,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       node = node->children;
       while (node != 0 && strcmp(node->name, "item") == 0)
 	{
+  NSDebugMLog(@"parseList node=%p node->name=%s node->content=%s",node, node ? node->name : NULL,node ? node->content : NULL);//MG
 	  [text appendFormat: @"<li>%@\r\n", [self parseItem: node]];
 	  node = node->next;
 	}
@@ -1674,6 +1865,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		[self parseText: node->children]];
 	      node = node->next;
 	    }
+
 	  if (node == 0 || strcmp(node->name, "desc") != 0)
 	    {
 	      NSLog(@"term without desc");
@@ -1696,6 +1888,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		[self parseText: node->children]];
 	      node = node->next;
 	    }
+
 	  if (node == 0 || strcmp(node->name, "answer") != 0)
 	    {
 	      NSLog(@"term without desc");
@@ -1708,6 +1901,152 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     }
   return text;
 }
+
+// Parse Variable, IVariable or constant
+- (NSString*) parseVariable: (xmlNodePtr)variableNode
+				 orConstant: (xmlNodePtr)constantNode
+					 ofType:(NSString*)type_
+{
+  xmlNodePtr node=(variableNode ? variableNode : constantNode);
+  NSMutableString	*text = [NSMutableString string];
+  NSString	*name = [self getProp: "name" fromNode: node];
+  NSString	*type = variableNode ? [self getProp: "type" fromNode: node] : nil;
+  NSString	*posttype = variableNode ? [self getProp: "posttype" fromNode: node] : nil;
+  NSString	*value = [self getProp: "value" fromNode: node];
+  NSString	*role = [self getProp: "role" fromNode: node];
+  NSString	*ref = [self getProp: "id" fromNode: node];
+  NSString	*declared = nil;
+  NSString	*desc = nil;
+  NSMutableArray	*standards = [NSMutableArray array];
+  NSString  *completeRefName=nil;//MG
+
+  if (name == nil)
+	{
+	  NSLog(@"Missing variable/constant name");
+	  return nil;
+	}
+
+  if (variableNode!=NULL && type == nil)
+	{
+	  NSLog(@"Missing variable type");
+	  return nil;
+	}
+  
+  if (ref == nil)
+	{
+	  ref = name;
+	}
+  node = node->children;
+
+  if (node != 0 && strcmp(node->name, "declared") == 0)
+	{
+	  declared = [self parseText: node->children];
+	  node = node->next;
+	}
+
+  if (node != 0 && strcmp(node->name, "desc") == 0)
+	{
+	  desc = [self parseDesc: node];
+	  node = node->next;
+	}
+
+  while (node != 0 && strcmp(node->name, "standard") == 0)
+	{
+	  NSString	*s = [self parseText: node->children];
+	  
+	  if (s != nil)
+	    {
+	      [standards addObject: s];
+	    }
+	  node = node->next;
+	}
+
+  if (currentClassName)
+	completeRefName=[NSString stringWithFormat:@"%@::%@",currentClassName,name];
+  else
+	completeRefName=name;
+
+  [self setEntry: name
+		withExternalCompleteRef:completeRefName
+		withExternalRef:name
+		withRef: ref
+		inIndexOfType:type_];
+
+  [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n", ref, name];
+  if (declared != nil)
+	{
+	  [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
+	}
+  if ([standards count] > 0)
+	{
+	  unsigned	i;
+	  
+	  [text appendFormat: @"<p><b>Standards:</b> %@\r\n",
+			[standards objectAtIndex: 0]];
+	  for (i = 1; i < [standards count]; i++)
+	    {
+	      [text appendFormat: @", %@\r\n", [standards objectAtIndex: i]];
+	    }
+	  [text appendString: @"</p>\r\n"];
+	}
+  
+  if ([role isEqual: @"except"])
+	{
+	  [text appendString: @"<p>Exception name</p>\r\n"];
+	}
+  else if ([role isEqual: @"defaults"])
+	{
+	  [text appendString: @"<p>Defaults system key</p>\r\n"];
+	}
+  else if ([role isEqual: @"notify"])
+	{
+	  [text appendString: @"<p>Notification name</p>\r\n"];
+	}
+  else if ([role isEqual: @"key"])
+	{
+	  [text appendString: @"<p>Dictionary key</p>\r\n"];
+	}
+  
+  if (value == nil)
+	{
+	  [text appendFormat: @"%@ <b>%@</b>%@<br>\r\n", type ? type : @"", name, (posttype ? posttype : @"")];//MG
+	}
+  else
+	{
+	  [text appendFormat: @"%@ <b>%@</b>%@ = %@<br>\r\n", type ? type : @"", name, (posttype ? posttype : @""), value];//MG
+	}
+  
+  if (desc != nil)
+	{
+	  [text appendFormat: @"\r\n%@\r\n", desc];
+	}
+  
+  return text;
+}
+
+//Parse Variable
+- (NSString*) parseVariable: (xmlNodePtr)node
+{
+  return [self parseVariable:node
+			   orConstant:NULL
+			   ofType:@"variable"];
+};
+
+//Parse Instance Variable
+- (NSString*) parseIVariable: (xmlNodePtr)node
+{
+  return [self parseVariable:node
+			   orConstant:NULL
+			   ofType:@"ivariable"];
+};
+
+// Parse Constant
+- (NSString*) parseConstant: (xmlNodePtr)node
+{
+  return [self parseVariable:NULL
+			   orConstant:node
+			   ofType:@"constant"];
+};
 
 - (NSString*) parseMacro: (xmlNodePtr)node
 {
@@ -1742,6 +2081,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       [args appendString: arg];
       node = node->next;
     }
+
   if (node != 0 && strcmp(node->name, "vararg") == 0)
     {
       if ([args length] > 1)
@@ -1762,11 +2102,13 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     {
       [args appendString: @")"];
     }
+
   if (node != 0 && strcmp(node->name, "declared") == 0)
     {
       declared = [self parseText: node->children];
       node = node->next;
     }
+
   if (node != 0)
     {
       if (strcmp(node->name, "desc") == 0)
@@ -1779,8 +2121,12 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  return nil;
 	}
     }
-  [self setEntry: name withRef: ref inIndexOfType: @"macro"];
-  [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n", ref, name];
+  [self setEntry: name
+		withExternalCompleteRef:name
+		withExternalRef:name
+		withRef: ref
+		inIndexOfType: @"macro"];
+  [text appendFormat: @"<h3><a name=\"%@\">%@</a></h3>\r\n", ref, name];
   if (declared != nil)
     {
       [text appendFormat: @"<p><b>Declared in:</b> %@</p>\r\n", declared];
@@ -1816,6 +2162,29 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   BOOL		isJava = (strcmp(node->name, "jmethod") == 0);
   NSString	*desc = nil;
   NSArray	*standards = nil;
+  NSString  *methodBlockName=nil;
+  NSString  *methodCompleteBlockName=nil;
+
+  if (currentClassName)
+	{
+	  methodBlockName=currentClassName;
+	  methodCompleteBlockName=currentClassName;
+	}
+  else if (currentCategoryName)
+	{
+	  methodBlockName=currentClassName;
+	  methodCompleteBlockName=currentCategoryName;
+	}
+  else if (currentProtocolName)
+	{
+	  methodBlockName=currentProtocolName;
+	  methodCompleteBlockName=currentProtocolName;
+	}
+  else	
+	{
+	  methodBlockName=@"unknown";
+	  methodCompleteBlockName=methodBlockName;
+	};
 
   if (ref == nil)
     {
@@ -1833,11 +2202,16 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  [decl appendString: @"static "];
 	}
       if (type == nil)
-	type = @"Object";
+		type = @"Object";
+	  //Avoid ((xxx))
+	  else if ([type hasPrefix:@"("] && [type hasSuffix:@")"])
+		type =[[type stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
+	  type=[self linkedTypeWithType:type];
       [decl appendString: type];
       [decl appendString: @" "];
 
       node = node->children;
+
       while (node != 0 && strcmp(node->name, "arg") == 0)
 	{
 	  NSString	*arg = [self parseText: node->children];
@@ -1850,12 +2224,17 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	    }
 	  if (typ != nil)
 	    {
+		  //Avoid ((xxx))
+		  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
+			typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
+		  typ=[self linkedTypeWithType:typ];
 	      [args appendString: typ];
 	      [args appendString: @" "];
 	    }
 	  [args appendString: arg];
 	  node = node->next;
 	}
+
       if (node != 0 && strcmp(node->name, "vararg") == 0)
 	{
 	  if ([args length] > 1)
@@ -1890,7 +2269,12 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  [lText appendString: @"- ("];
 	}
       if (type == nil)
-	type = @"id";
+		type = @"id";
+	  //Avoid ((xxx))
+	  else if ([type hasPrefix:@"("] && [type hasSuffix:@")"])
+		type =[[type stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
+	  type=[self linkedTypeWithType:type];
+
       [lText appendString: type];
       [lText appendString: @")"];
 
@@ -1908,16 +2292,21 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	      NSString	*arg = [self parseText: node->children];
 	      NSString	*typ = [self getProp: "type" fromNode: node];
 
-	      if (arg == nil) return nil;
+	      if (arg == nil)
+			return nil;
 	      if (typ != nil)
-		{
-		  [lText appendFormat: @" (%@)%@", typ, arg];
-		}
+			{
+			  //Avoid ((xxx))
+			  if ([typ hasPrefix:@"("] && [typ hasSuffix:@")"])
+				typ =[[typ stringWithoutPrefix:@"("] stringWithoutSuffix:@")"];
+			  typ=[self linkedTypeWithType:typ];
+			  [lText appendFormat: @" (%@)%@", typ, arg];
+			}
 	      else
-		{
-		  [lText appendString: @" "];
-		  [lText appendString: arg];
-		}
+			{
+			  [lText appendString: @" "];
+			  [lText appendString: arg];
+			}
 	      node = node->next;
 	      if (node != 0 && strcmp(node->name, "vararg") == 0)
 		{
@@ -1938,6 +2327,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       desc = [self parseDesc: node];
       node = node->next;
     }
+
   if (node != 0)
     {
       standards = [self parseStandards: node];
@@ -1945,22 +2335,34 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
   if (isJava)
     {
-      [self setEntry: sText withRef: ref inIndexOfType: @"method"];
+      [self setEntry: sText
+			withExternalCompleteRef:[NSString stringWithFormat:@"%@::%@",methodCompleteBlockName,sText]
+			withExternalRef:[NSString stringWithFormat:@"%@::%@",methodBlockName,sText]
+			withRef: ref
+			inIndexOfType: @"method"];
     }
   else
     {
       if (factory)
 	{
 	  NSString	*s = [@"+" stringByAppendingString: sText];
-	  [self setEntry: s withRef: ref inIndexOfType: @"method"];
+	  [self setEntry: s
+			withExternalCompleteRef:[NSString stringWithFormat:@"+%@::%@",methodCompleteBlockName,sText]
+			withExternalRef:[NSString stringWithFormat:@"+%@::%@",methodBlockName,sText]
+			withRef: ref
+			inIndexOfType: @"method"];
 	}
       else
 	{
 	  NSString	*s = [@"-" stringByAppendingString: sText];
-	  [self setEntry: s withRef: ref inIndexOfType: @"method"];
+	  [self setEntry: s
+			withExternalCompleteRef:[NSString stringWithFormat:@"-%@::%@",methodCompleteBlockName,sText]
+			withExternalRef:[NSString stringWithFormat:@"-%@::%@",methodBlockName,sText]
+			withRef: ref
+			inIndexOfType: @"method"];
 	}
     }
-  [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n", ref, sText];
+  [text appendFormat: @"<h3><a name=\"%@\">%@</a></h3>\r\n", ref, sText];
   if (desInit)
     {
       [text appendString: @"<b>This is the designated initialiser</b><br>\r\n"];
@@ -2069,7 +2471,13 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		    ref = [NSString stringWithFormat: @"label-%u",
 		      labelIndex++];
 		  }
-		[self setEntry: elem withRef: ref inIndexOfType: @"label"];
+
+		[self setEntry: elem
+			  withExternalCompleteRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
+			  withExternalRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
+			  withRef: ref
+			  inIndexOfType: @"label"];
+
 		if (strcmp(node->name, "label") == 0)
 		  {
 		    [text appendFormat: @"<a name=\"%@\">%@</a>", ref, elem];
@@ -2087,7 +2495,13 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		elem = [self parseText: node->children];
 		ref = [NSString stringWithFormat: @"foot-%u",
 		  [footnotes count]];
-		[self setEntry: elem withRef: ref inIndexOfType: @"footnote"];
+
+		[self setEntry: elem
+			  withExternalCompleteRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
+			  withExternalRef:[NSString stringWithFormat:@"%@::%@",@"***unknown",elem]
+			  withRef: ref
+			  inIndexOfType: @"footnote"];
+
 		[footnotes addObject: elem];
 		[text appendFormat: @" %@ ",
 		  [self addLink: ref withText: @"see footnote"]];
@@ -2130,83 +2544,872 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 }
 
 - (void) setEntry: (NSString*)entry
-	  withRef: (NSString*)ref
+withExternalCompleteRef:(NSString*)externalCompleteRef
+  withExternalRef: (NSString*)externalRef
+		  withRef: (NSString*)ref
     inIndexOfType: (NSString*)type
 {
   NSMutableDictionary	*index = [self indexForType: type];
-
+  NSAssert(entry,@"No entry");
+  NSAssert(ref,@"No ref");
   [index setObject: entry forKey: ref];
   [refToFile setObject: currName forKey: ref];
-}
+
+  if (externalCompleteRef && externalRef)
+  {
+	NSMutableDictionary* thisEntry=nil;
+	thisEntry = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+									   entry, @"title",
+									 externalRef, @"ref",
+									 externalCompleteRef,@"completeRef",
+									 ref, @"fragment",
+									 type, @"type",
+									 currName, @"fileName",
+									 nil];
+	if (!fileReferences)
+	  {
+		fileReferences=[NSMutableDictionary new];
+	  };
+	[fileReferences setObject:thisEntry 
+					forKey:externalCompleteRef];
+  };
+};
+
+-(NSArray*)contents
+{
+  return contents;
+};
+
+-(NSDictionary*)fileReferences
+{
+  return fileReferences;
+};
+
+-(void)setGeneralReferences:(NSDictionary*)dict
+{
+  ASSIGN(generalReferences,dict);
+};
+
+-(void)setVariablesDictionary:(NSDictionary*)dict
+{
+  DESTROY(variablesDictionary);
+  variablesDictionary=[dict mutableCopy];
+};
+
+-(NSString*)linkedClassWithClass:(NSString*)class_
+{
+  //TODO
+  return [self linkedTypeWithType:class_];
+};
+
+//Return a link for type (something like: <A HREF="TheFile.html#fragment">TheType</A>)
+-(NSString*)linkedTypeWithType:(NSString*)type
+{
+  NSString* linked=nil;
+  NSRange foundRange=[type rangeOfCharacterFromSet:[NSCharacterSet alphanumericCharacterSet]];
+  if (foundRange.length>0)
+	{
+	  NSString* goodType=nil;
+	  NSDictionary* symbol=nil;
+	  NSRange goodRange=NSMakeRange(foundRange.location,1);
+	  while (foundRange.length>0 && foundRange.location+foundRange.length<[type length])
+		{
+		  foundRange=[type rangeOfCharacterFromSet:[NSCharacterSet alphanumericCharacterSet]
+						   options:0
+						   range:NSMakeRange(foundRange.location+1,1)];
+		  if (foundRange.length>0)
+			goodRange.length++;
+		};
+	  goodType=[type substringWithRange:goodRange];
+	  symbol=[self findSymbolForKey:goodType];
+	  if (symbol)
+		{
+		  linked=[self linkForSymbol:symbol
+					   withText:goodType];
+		  if (goodRange.location>0)
+			{
+			  linked=[NSString stringWithFormat:@"%@%@",
+							   [type substringWithRange:NSMakeRange(0,goodRange.location-1)],
+							   linked];
+			};
+		  if (goodRange.location+goodRange.length<[type length])
+			{
+			  linked=[NSString stringWithFormat:@"%@%@",
+							   linked,
+							   [type substringWithRange:NSMakeRange(goodRange.location+goodRange.length,
+																	[type length]-(goodRange.location+goodRange.length))]];
+			};
+		};
+	};
+  if (!linked)
+	linked=type;
+  return linked;
+};
+
+
+//Return the symbol for key
+-(NSDictionary*)findSymbolForKey:(NSString*)key_
+{
+  NSDictionary* symbol=nil;
+  symbol=[generalReferences objectForKey:key_];
+  return symbol;
+};
+
+
+//Return a link for symbol with label text
+-(NSString*)linkForSymbol:(NSDictionary*)symbol
+				 withText:(NSString*)text
+{
+  NSString* symbolLocation=[[symbol objectForKey:@"projectInfo"] objectForKey:@"location"];  
+  NSString* common=nil;
+  NSString* prefix=@"";
+  if (location)
+	{
+	  //Equal: no prefix
+	  if (![location isEqual:symbolLocation])
+		{
+		  common=[symbolLocation commonPrefixWithString:location
+								 options:0];
+		  if ([common length]>0)
+			{
+			  NSString* tmp=[location stringWithoutPrefix:common];
+			  NSString* previous=nil;
+			  symbolLocation=[symbolLocation stringWithoutPrefix:common];
+			  while([tmp length]>0 && ![tmp isEqual:previous])
+				{
+				  previous=tmp;
+				  tmp=[tmp stringByDeletingLastPathComponent];
+				  symbolLocation=[@".." stringByAppendingPathComponent:symbolLocation];
+				};
+			};
+		  prefix=symbolLocation;
+		};
+	}
+  else
+	// No Project Location==> take symbol location
+	prefix=symbolLocation;
+  return [NSString stringWithFormat:@"<A HREF=\"%@#%@\">%@</A>",
+				   [prefix stringByAppendingPathComponent:[symbol objectForKey:@"fileName"]],
+				   [symbol objectForKey:@"fragment"],
+				   text];
+};
+
+-(void)setWriteFlag:(BOOL)flag
+{
+  writeFlag=flag;
+};
 
 @end
 
 
-int
-main(int argc, char **argv, char **env)
+//--------------------------------------------------------------------
+//Return a dictionary of sybols classified by types
+//
+// symbols:
+// {
+//	  	"NSString" = { type = "class"; ...};
+//		"NSArray" = { type = "class"; ... };
+// };
+//
+// Return:
+// {
+//		class = {
+//					"NSString" = { ...};
+//					"NSArray" = { ... };
+//				};
+//		function = {
+//						...
+//				};
+// ...
+// };
+NSDictionary* SymbolsReferencesByType(NSDictionary* symbols)
+{
+  NSMutableDictionary* symbolsByType=[[NSMutableDictionary new] autorelease];
+  NSEnumerator* symbolsEnumerator = [symbols keyEnumerator];
+  id symbolKey=nil;          
+  while ((symbolKey = [symbolsEnumerator nextObject]))
+	{
+	  NSDictionary* symbol=[symbols objectForKey:symbolKey];
+	  id symbolType=[symbol objectForKey:@"type"];
+	  NSMutableDictionary* typeDict=[symbolsByType objectForKey:symbolType];
+	  NSCAssert1(symbolType,@"No symbol type in symbol %@",symbol);
+	  if (!typeDict)
+		{
+		  typeDict=[[NSMutableDictionary new] autorelease];
+		  [symbolsByType setObject:typeDict
+						 forKey:symbolType];
+		};
+	  [typeDict setObject:symbol
+				forKey:symbolKey];
+	};			  
+  return symbolsByType;
+};
+
+//--------------------------------------------------------------------
+// Return files list of files in symbols
+//
+// symbols:
+// {
+//	  	"NSString" = { fileName = "NSString.gsdoc"; ...};
+//		"NSArray" = { fileName = "NSArray.gsdoc"; ... };
+// }
+//
+// Return:
+// ( NSString.gsdoc, NSArray.gsdoc, ... )
+NSArray* FilesFromSymbols(NSDictionary* symbols)
+{
+  NSArray* sortedFiles=nil;
+  NSMutableArray* files=[[NSMutableArray new] autorelease];
+  NSEnumerator* symbolsEnumerator = [symbols keyEnumerator];
+  id symbolKey=nil;          
+  while ((symbolKey = [symbolsEnumerator nextObject]))
+	{
+	  NSDictionary* symbol=[symbols objectForKey:symbolKey];
+	  id file=[symbol objectForKey:@"fileName"];
+	  if (![files containsObject:file])
+		[files addObject:file];	  
+	};
+  sortedFiles=[files sortedArrayUsingSelector:@selector(compare:)];
+  return sortedFiles;
+};
+
+//--------------------------------------------------------------------
+// Return list of files found in dir (deep search) which have extension extension
+NSArray* FilesInPathWithExtension(NSString* dir,NSString* extension)
+{
+  NSMutableArray* files=[NSMutableArray array];
+  NSString *file=nil;
+  NSFileManager* fm=[NSFileManager defaultManager];
+  NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:dir];  
+  while ((file = [enumerator nextObject]))
+	{
+	  BOOL isDirectory=NO;
+	  if ([fm fileExistsAtPath:file isDirectory:&isDirectory] && !isDirectory && [[file pathExtension] isEqualToString:extension])
+		[files addObject:file];
+	};
+  return files;
+};
+
+void AddSymbolsToReferencesWithProjectInfo(NSDictionary* symbols,NSMutableDictionary* references,NSDictionary* projectInfo)
+{
+  NSEnumerator* symbolsEnumerator = [symbols keyEnumerator];			  
+  id symbolKey=nil;          
+  while ((symbolKey = [symbolsEnumerator nextObject]))
+	{					  
+	  NSDictionary* symbol=[symbols objectForKey:symbolKey];
+	  NSMutableDictionary* symbolNew=[NSMutableDictionary dictionaryWithDictionary:symbol];
+	  if (verbose>=4)
+		{
+		  NSLog(@"Project %@ Processing reference %@",
+				[projectInfo objectForKey:@"projectName"],
+				symbolKey);
+		};
+	  [symbolNew setObject:projectInfo forKey:@"projectInfo"];
+	  NSCAssert(symbolKey,@"No symbolKey");
+	  [references setObject:symbolNew forKey:symbolKey];
+	  NSCAssert1([symbolNew objectForKey:@"ref"],@"No ref for symbol %@",symbolKey);
+	  [references setObject:symbolNew forKey:[symbolNew objectForKey:@"ref"]];
+	};
+};
+
+//--------------------------------------------------------------------
+int main(int argc, char **argv, char **env)
 {
   NSAutoreleasePool	*pool;
   NSProcessInfo		*proc;
   NSArray		*args;
   unsigned		i;
   NSUserDefaults	*defs;
+  NSString* makeRefsFileName=nil;	// makeRefs file name
+  NSString* projectName=nil;		// project Name
+  NSMutableArray* files=nil;		// Files to parse
+  NSMutableArray* references=nil;	// Array of References files/directories
+  NSMutableDictionary* generalReferences=nil;	// References (information coming from references files/directories)
+  NSMutableDictionary* projectReferences=nil;	// Project References (references founds by parsing files)
+  NSString* makeIndexFileName=nil;				// makeIndex file name
+  NSString* makeIndexTemplateFileName=nil;		// makeIndex template file name
+  NSMutableDictionary* infoDictionary=nil;		// user info
+  NSDictionary* variablesDictionary=nil;		// variables dictionary
+  NSMutableDictionary* projectInfo=nil;			// Information On Project
+  BOOL goOn=YES;
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
   pool = [NSAutoreleasePool new];
   defs = [NSUserDefaults standardUserDefaults];
-  [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
-    @"Yes", @"Monolithic",
-    nil]];
+  [defs registerDefaults:[NSDictionary dictionaryWithObjectsAndKeys:
+										 @"Yes", @"Monolithic",
+									   nil]];
 
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
     {
       NSLog(@"unable to get process information!");
-      [pool release];
-      exit(0);
-    }
+	  goOn=NO;
+    };
 
-  args = [proc arguments];
-
-  if ([args count] <= 1)
-    {
-      NSLog(@"No file names given to parse.");
-    }
-  else
-    {
-      for (i = 1; i < [args count]; i++)
+  if (goOn)
 	{
-	  NSString	*file = [args objectAtIndex: i];
+	  args = [proc arguments];
 
-	  NS_DURING
-	    {
-	      GSDocHtml	*p;
-
-	      p = [GSDocHtml alloc];
-	      p = [p initWithFileName: file];
-	      if (p != nil)
+	  // First, process arguments
+	  for (i=1;goOn && i<[args count];i++)
 		{
-		  NSString	*result = [p parseDocument];
+		  NSString* arg = [args objectAtIndex: i];
+		  // is this an option ?
+		  if ([arg hasPrefix:@"--"])
+			{
+			  NSString* argWithoutPrefix=[arg stringWithoutPrefix:@"--"];
+			  NSString* key=nil;
+			  NSString* value=nil;
+			  NSArray* parts=[argWithoutPrefix componentsSeparatedByString:@"="];
+			  key=[parts objectAtIndex:0];
+			  if ([parts count]>1)
+				value=[[parts subarrayWithRange:NSMakeRange(1,[parts count]-1)] componentsJoinedByString:@"="];
 
-		  if (result == nil)
-		    NSLog(@"Error parsing %@", file);
+			  // makeRefs option
+			  if ([key isEqualToString:@"makeRefs"])
+				{
+				  makeRefsFileName=value;
+				  if (makeRefsFileName)
+					{
+					  if (![[makeRefsFileName pathExtension] isEqual:PathExtension_GSDocRefs])
+						makeRefsFileName=[makeRefsFileName stringByAppendingPathExtension:PathExtension_GSDocRefs];
+					}
+				  else
+					makeRefsFileName=@"";
+				}
+			  // projectName option
+			  else if ([key isEqualToString:@"projectName"])
+				{
+				  projectName=value;
+				  NSCAssert([projectName length],@"No project name");
+				}
+			  // refs option
+			  else if ([key isEqualToString:@"refs"])
+				{
+				  if (!references)
+					references=[[NSMutableArray new] autorelease];
+				  NSCAssert([value length],@"No index");
+				  [references addObject:value];
+				}
+			  // makeIndex option
+			  else if ([key isEqualToString:@"makeIndex"])
+				{
+				  makeIndexFileName=value;
+				  if (!makeIndexFileName)
+					makeIndexFileName=@"index";
+				  if (![[makeIndexFileName pathExtension] isEqual:PathExtension_GSDoc])
+						makeIndexFileName=[makeIndexFileName stringByAppendingPathExtension:PathExtension_GSDoc];
+				}
+			  // makeIndexTemplate option
+			  else if ([key isEqualToString:@"makeIndexTemplate"])
+				{
+				  makeIndexTemplateFileName=value;
+				  NSCAssert([makeIndexTemplateFileName length],@"No makeIndexTemplate filename");
+				}
+			  // Verbose
+			  else if ([key hasPrefix:@"verbose"])
+				{
+				  NSCAssert1(value,@"No value for %@",key);
+				  verbose=[value intValue];
+				  NSLog(@"Verbose=%d %@",verbose,value);
+				}
+			  // Location
+			  else if ([key hasPrefix:@"location"])
+				{
+				  NSCAssert1(value,@"No value for %@",key);
+				  location=value;
+				}
+			  // define option
+			  else if ([key hasPrefix:@"define-"])
+				{
+				  if (!infoDictionary)
+					infoDictionary=[NSMutableDictionary dictionary];
+				  NSCAssert1(value,@"No value for %@",key);
+				  [infoDictionary setObject:value
+								  forKey:[key stringWithoutPrefix:@"define-"]];
+				}
+			  // unknown option
+			  else
+				{
+				  NSLog(@"Unknown option %@",arg);
+				  goOn=NO;
+				};
+			}
+		  // file to parse
 		  else
-		    NSLog(@"Parsed %@ - OK", file);
-		  RELEASE(p);
+			{
+			  if (!files)
+				files=[NSMutableArray array];
+			  [files addObject:arg];
+			};
+		};
+	};
+
+  //Default Values
+  if (goOn)
+	{
+	  if (!projectName)
+		projectName=@"unknown";
+
+	  if ([makeRefsFileName length]==0)
+		  makeRefsFileName=[projectName stringByAppendingPathExtension:PathExtension_GSDocRefs];
+	};
+
+  // Verify option compatibilities
+  if (goOn)
+	{
+	};
+
+  // Construct project references
+  if (goOn)
+	{
+	  projectReferences=[[NSMutableDictionary new] autorelease];
+	  [projectReferences setObject:[[NSMutableDictionary new] autorelease] forKey:@"symbols"];
+	  projectInfo=[NSMutableDictionary dictionaryWithObjectsAndKeys:
+										 projectName, @"projectName",
+									   nil];
+	  if (location)
+		[projectInfo setObject:location
+					 forKey:@"location"];
+	};
+
+  // Process references (construct a dictionary of all references)
+  if (goOn)
+	{
+	  generalReferences=[[NSMutableDictionary new] autorelease];
+	  if ([references count]>0)
+		{
+		  NSFileManager* fileManager=[NSFileManager defaultManager];
+		  for (i=0;goOn && i<[references count];i++)
+			{
+			  NSString* file = [references objectAtIndex: i];
+			  BOOL isDirectory=NO;
+			  if (![fileManager fileExistsAtPath:file isDirectory:&isDirectory])
+				{
+				  NSLog(@"Index File %@ doesn't exist",file);				  
+				}
+			  else
+				{
+				  if (isDirectory)
+					{
+					  NSArray* tmpReferences=FilesInPathWithExtension(file,PathExtension_GSDocRefs);
+					  if (verbose>=3)
+						{
+						  NSLog(@"Processing references directory %@",file);
+						};
+					  [references addObjectsFromArray:tmpReferences];
+					}
+				  else
+					{
+					  NSDictionary* generalIndexTmp=nil;
+					  if (verbose>=2)
+						{
+						  NSLog(@"Processing references file %@",file);
+						};
+					  generalIndexTmp=[NSDictionary dictionaryWithContentsOfFile:file];				
+					  if (!generalIndexTmp)
+						{
+						  NSLog(@"File %@ isn't a dictionary",file);
+						  goOn=NO;
+						}
+					  else
+						{
+						  NSDictionary* fileProjectInfo=[generalIndexTmp objectForKey:@"project"];
+						  NSDictionary* symbols=[generalIndexTmp objectForKey:@"symbols"];
+						  NSCAssert1(fileProjectInfo,@"No Project Info in %@",file);
+						  NSCAssert1(symbols,@"No symbols %@",file);
+						  AddSymbolsToReferencesWithProjectInfo(symbols,generalReferences,fileProjectInfo);
+						};
+					};
+				};
+			};
+		};
+	};
+	  //Variables
+  if (goOn)
+	{		  
+	  NSMutableDictionary* variablesMutableDictionary=[NSMutableDictionary dictionary];
+	  NSEnumerator* enumer = [infoDictionary keyEnumerator];
+	  id key=nil;          
+	  while ((key = [enumer nextObject]))
+		{
+		  id value=[infoDictionary objectForKey:key];
+		  [variablesMutableDictionary setObject:value
+									  forKey:[NSString stringWithFormat:@"[[infoDictionary.%@]]",key]];
+		};			  
+	  [variablesMutableDictionary setObject:[NSCalendarDate calendarDate]
+								  forKey:@"[[timestampString]]"];
+	  if (makeIndexFileName)
+		{
+		  [variablesMutableDictionary setObject:makeIndexFileName
+									  forKey:@"[[indexFileName]]"];
+		  [variablesMutableDictionary setObject:[makeIndexFileName stringByDeletingPathExtension]
+									  forKey:@"[[indexBaseFileName]]"];
+		};
+	  if (projectName)
+		[variablesMutableDictionary setObject:projectName
+									forKey:@"[[projectName]]"];
+	  variablesDictionary=[[variablesMutableDictionary copy] autorelease];
+
+	  if (verbose>=3)
+		{
+		  NSEnumerator* enumer = [variablesDictionary keyEnumerator];
+		  id key=nil;          
+		  while ((key = [enumer nextObject]))
+			{
+			  NSLog(@"Variables: %@=%@",
+					key,
+					[variablesDictionary objectForKey:key]);
+			};		  
+		};
+	};
+
+  // Find Files to parse
+  if (goOn)
+	{
+	  if ([files count]<1)
+		{
+		  NSLog(@"No file names given to parse.");
+		  goOn=NO;
 		}
-	    }
-	  NS_HANDLER
-	    {
-	      NSLog(@"Parsing '%@' - %@", file, [localException reason]);
-	    }
-	  NS_ENDHANDLER
-	}
-    }
+	  else
+		{
+		  NSFileManager* fileManager=[NSFileManager defaultManager];
+		  NSMutableArray* tmpNewFiles=[NSMutableArray array];
+		  for (i=0;goOn && i<[files count];i++)
+			{
+			  NSString* file = [files objectAtIndex: i];
+			  BOOL isDirectory=NO;
+			  if (![fileManager fileExistsAtPath:file isDirectory:&isDirectory])
+				{
+				  NSLog(@"File %@ doesn't exist",file);				  
+				  goOn=NO;
+				}
+			  else
+				{
+				  if (isDirectory)
+					{
+					  NSArray* tmpFiles=FilesInPathWithExtension(file,PathExtension_GSDoc);
+					  [tmpNewFiles addObjectsFromArray:tmpFiles];
+					}
+				  else
+					{
+					  [tmpNewFiles addObject:file];
+					};
+				};
+			};
+		  files=tmpNewFiles;
+		};
+	};
+
+  if (goOn)
+	{
+	  int pass=0;
+	  //1st pass: don't write file, just parse them and construct project references
+	  //2nd pass: parse and write files
+	  for (pass=0;goOn && pass<=2;pass++)
+		{
+		  for (i=0;goOn && i<[files count];i++)
+			{
+			  NSString* file = [files objectAtIndex: i];
+			  if ([file isEqual:makeIndexFileName])//Don't process generated index file
+				{
+				  if (verbose>=1)
+					{
+					  NSLog(@"Ignoring Index File %@ (Process it later)",file);
+					};
+				}
+			  else
+				{
+				  if (verbose>=1)
+					{
+					  NSLog(@"Processing %@",file);
+					};
+				  NS_DURING
+					{
+					  GSDocHtml	*p=nil;			  
+					  p = [GSDocHtml alloc];
+					  p = [p initWithFileName: file];
+					  if (p != nil)
+						{
+						  NSString* previousFile=((i>0) ? [files objectAtIndex:i-1] : @"");
+						  NSString* nextFile=(((i+1)<[files count]) ? [files objectAtIndex:i+1] : @"");
+						  NSMutableDictionary* variablesMutableDictionary=nil;
+						  NSString	*result = nil;
+						  [p setGeneralReferences:generalReferences];
+						  variablesMutableDictionary=[variablesDictionary mutableCopy];
+						  [variablesMutableDictionary setObject:[previousFile stringByDeletingPathExtension]
+													  forKey:@"[[prev]]"];
+						  [variablesMutableDictionary setObject:[nextFile stringByDeletingPathExtension]
+													  forKey:@"[[next]]"];
+						  if (makeIndexFileName)
+							[variablesMutableDictionary setObject:[makeIndexFileName stringByDeletingPathExtension]
+														forKey:@"[[up]]"];
+						  [p setVariablesDictionary:variablesMutableDictionary];
+						  [p setWriteFlag:(pass==1)];
+						  result=[p parseDocument];				  
+						  if (result == nil)
+							{
+							  NSLog(@"Error parsing %@", file);
+							  goOn=NO;
+							}
+						  else
+							{
+							  if (verbose>=1)
+								{
+								  NSLog(@"Parsed %@ - OK", file);
+								};
+							  [[projectReferences objectForKey:@"symbols"]addEntriesFromDictionary:[p fileReferences]];
+							  AddSymbolsToReferencesWithProjectInfo([p fileReferences],generalReferences,projectInfo);
+							};
+						  RELEASE(p);
+						}
+					}
+				  NS_HANDLER
+					{
+					  NSLog(@"Parsing '%@' - %@", file, [localException reason]);
+					  goOn=NO;
+					}
+				  NS_ENDHANDLER
+					}
+			};
+		};
+	};
+
+  // Process Project References to generate Project Reference File
+  if (goOn)
+	{
+	  if (makeRefsFileName)
+		{
+		  [projectReferences setObject:projectInfo forKey:@"project"];
+		  if (verbose>=1)
+			{
+			  NSLog(@"Writing References File %@",makeRefsFileName);
+			};
+		  if (![projectReferences writeToFile:makeRefsFileName
+								  atomically:YES])
+			{
+			  NSLog(@"Error creating %@",makeRefsFileName);
+			  goOn=NO;
+			};
+		};
+	};
+
+  // Process Project References to generate Index File
+  if (goOn)
+	{
+	  if (makeIndexFileName)
+		{
+		  NSString* textTemplate=[NSString stringWithContentsOfFile:makeIndexTemplateFileName];
+		  NSMutableString* textStart=[NSMutableString string];
+		  NSMutableString* textChapters=[NSMutableString string];
+		  NSMutableString* textClasses=[NSMutableString string];
+		  NSMutableString* textCategories=[NSMutableString string];
+		  NSMutableString* textProtocols=[NSMutableString string];
+		  NSMutableString* textFunctions=[NSMutableString string];
+		  NSMutableString* textTypes=[NSMutableString string];
+		  NSMutableString* textConstants=[NSMutableString string];
+		  NSMutableString* textVariables=[NSMutableString string];
+		  NSMutableString* textOthers=[NSMutableString string];
+		  NSMutableString* textFiles=[NSMutableString string];
+		  NSMutableString* textStop=[NSMutableString string];
+		  NSMutableString* text=nil;
+		  NSMutableDictionary* variablesMutableDictionary=nil;
+		  NSString* typeTitle=nil;
+		  NSString* finalText=nil;
+		  NSDictionary* symbolsByType=SymbolsReferencesByType([projectReferences objectForKey:@"symbols"]);
+		  NSString* firstFileName=nil;
+		  NSEnumerator* typesEnumerator = [symbolsByType keyEnumerator];
+		  id typeKey=nil;    
+		  if (verbose>=1)
+			{
+			  NSLog(@"Making Index");
+			};
+		  [textStart appendFormat:@"<chapter>\n<heading>%@</heading>\n",projectName];
+		  while ((typeKey = [typesEnumerator nextObject]))
+			{
+			  if (verbose>=2)
+				{
+				  NSLog(@"Making Index for type %@",typeKey);
+				};
+			  text=nil;
+			  if ([typeKey isEqual:@"ivariable"])
+				{
+				  text=nil;
+				  typeTitle=@"Instance Variables";
+				}
+			  else if ([typeKey isEqual:@"method"])
+				{
+				  text=nil;
+				  typeTitle=@"Methods";
+				}
+			  else if ([typeKey isEqual:@"file"])
+				{
+				  text=textFiles;
+				  typeTitle=@"Files";
+				}
+			  else if ([typeKey isEqual:@"chapter"])
+				{
+				  text=textChapters;
+				  typeTitle=@"Chapters";
+				}
+			  else if ([typeKey isEqual:@"section"])
+				{
+				  text=nil;
+				  typeTitle=@"Section";
+				}
+			  else if ([typeKey isEqual:@"ubsect"])
+				{
+				  text=nil;
+				  typeTitle=@"Subsections";
+				}
+			  else if ([typeKey isEqual:@"class"] || [typeKey isEqual:@"jclass"])
+				{
+				  text=textClasses;
+				  typeTitle=@"Classes";
+				}
+			  else if ([typeKey isEqual:@"protocol"])
+				{
+				  text=textProtocols;
+				  typeTitle=@"Protocols";
+				}
+			  else if ([typeKey isEqual:@"category"])
+				{
+				  text=textProtocols;
+				  typeTitle=@"Categories";
+				}
+			  else if ([typeKey isEqual:@"function"])
+				{
+				  text=textFunctions;
+				  typeTitle=@"Functions";
+				}
+			  else if ([typeKey isEqual:@"macro"])
+				{
+				  text=textFunctions;
+				  typeTitle=@"Macros";
+				}
+			  else if ([typeKey isEqual:@"constant"])
+				{
+				  text=textConstants;
+				  typeTitle=@"Constants";
+				}
+			  else if ([typeKey isEqual:@"variable"])
+				{
+				  text=textVariables;
+				  typeTitle=@"Global Variables";
+				}
+			  else
+				{
+				  text=textOthers;
+				  typeTitle=@"Others";
+				};
+			  if (text)
+				{
+				  NSArray* symbolKeys = nil;
+				  NSEnumerator* symbolsEnumerator=nil;
+				  id symbolKey=nil;
+				  NSDictionary* typeDict=[symbolsByType objectForKey:typeKey];
+				  [text appendFormat:@"<section>\n<heading>%@</heading>\n<list>\n",typeTitle];
+				  symbolKeys = [typeDict keysSortedByValueUsingSelector: @selector(compare:)];
+				  symbolsEnumerator = [symbolKeys objectEnumerator];
+				  while ((symbolKey = [symbolsEnumerator nextObject]))
+					{
+					  NSDictionary* symbol=[typeDict objectForKey:symbolKey];
+					  if (text==textFiles && !firstFileName)
+						firstFileName=[symbol objectForKey:@"fileName"];
+					  if (verbose>=4)
+						{
+						  NSLog(@"Making Index for symbol %@",[symbol objectForKey:@"title"]);
+						};
+					  [text appendFormat:@"<item><uref url=\"%@#%@\">%@</uref></item>\n",
+							[symbol objectForKey:@"fileName"],
+							[symbol objectForKey:@"fragment"],
+							[symbol objectForKey:@"title"]];
+					};
+				  [text appendString:@"</list>\n</section>\n"];
+				};
+			};		  
+		  [textStop appendString:@"</chapter>\n"];
+		  finalText=[NSString stringWithFormat:@"%@\n%@\n%@\n%@\n%@\n%@\n%@\n%@\n%@\n%@\n%@\n%@\n",
+							  textStart,
+							  textChapters,
+							  textClasses,
+							  textCategories,
+							  textProtocols,
+							  textFunctions,
+							  textTypes,
+							  textConstants,
+							  textVariables,
+							  textOthers,
+							  textFiles,
+							  textStop];
+		  variablesMutableDictionary=[variablesDictionary mutableCopy];
+		  [variablesMutableDictionary setObject:finalText
+									  forKey:@"[[content]]"];
+		  [variablesMutableDictionary setObject:[firstFileName stringByDeletingPathExtension]
+									  forKey:@"[[next]]"];
+		  finalText=TextByReplacingVariablesInText(textTemplate,variablesMutableDictionary);
+		  if (verbose>=1)
+			{
+			  NSLog(@"Writing Index %@",makeIndexFileName);
+			};
+		  if (![finalText writeToFile:makeIndexFileName
+						  atomically: YES])
+			{
+			  NSLog(@"Error creating %@",makeIndexFileName);
+			  goOn=NO;
+			};
+		};
+	};
+
+  // Finally, parse index
+  if (goOn)
+	{
+	  if (makeIndexFileName)
+		{
+		  if (verbose>=1)
+			{
+			  NSLog(@"Processing %@",makeIndexFileName);
+			};
+		  NS_DURING
+			{
+			  GSDocHtml	*p=nil;			  
+			  p = [GSDocHtml alloc];
+			  p = [p initWithFileName:makeIndexFileName];
+			  if (p != nil)
+				{
+				  NSString	*result = nil;
+				  [p setVariablesDictionary:variablesDictionary];
+				  result=[p parseDocument];				  
+				  if (result == nil)
+					{
+					  NSLog(@"Error parsing %@",makeIndexFileName);
+					  goOn=NO;
+					}
+				  else
+					{
+					  if (verbose>=1)
+						{
+						  NSLog(@"Parsed %@ - OK",makeIndexFileName);
+						};
+					};
+				  RELEASE(p);
+				}
+			}
+		  NS_HANDLER
+			{
+			  NSLog(@"Parsing '%@' - %@",makeIndexFileName, [localException reason]);
+			  goOn=NO;
+			}
+		  NS_ENDHANDLER;
+		}
+	};
   [pool release];
-  return 0;
-}
+  return (goOn ? 0 : 1);
+};
 
 #else
 int
