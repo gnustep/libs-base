@@ -1355,7 +1355,6 @@ static NSMapTable* port_number_2_port;
   /* We are actually encoding a "send right" (ala Mach), 
      not a receive right.  
      These values must match those expected by [TcpOutPort +newWithCoder] */
-  [super encodeWithCoder: aCoder];
   /* Encode these at bytes, not as C-variables, because they are
      already in "network byte-order". */
   [aCoder encodeBytes: &_listening_address.sin_port
@@ -1858,7 +1857,6 @@ static NSMapTable *out_port_bag = NULL;
 - (void) encodeWithCoder: aCoder
 {
   NSAssert(is_valid, NSInternalInconsistencyException);
-  [super encodeWithCoder: aCoder];
   NSAssert(!_polling_in_port 
 	  || (ntohs (_remote_in_port_address.sin_port)
       != [_polling_in_port portNumber]), NSInternalInconsistencyException);
