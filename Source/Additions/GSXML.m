@@ -961,108 +961,16 @@ static NSMapTable	*nodeNames = 0;
 
 /**
  * This performs the same function as the -content method, but retains
- * the standard five entities (&amp;lt;, &amp;gt;, &amp;apos;, &amp;quot;,
- * and &amp;amp;) which are normally replaced with their standard equivalents
- * (&lt;, &gt;, &apos;, &quot;, and &amp;).<br />
+ * escaped character information (like the standard five entities &amp;lt;,
+ * &amp;gt;, &amp;apos;, &amp;quot;, and &amp;amp;) which are normally
+ * replaced with their standard equivalents
+ * (&lt;, &gt;, &apos;, &quot;, and &amp;).
  */
 - (NSString*) escapedContent
 {
   NSString		*str = [self content];
 
-  if (str != nil)
-    {
-      static NSCharacterSet	*set = nil;
-
-      if (set == nil)
-	{
-	  set = [NSCharacterSet characterSetWithCharactersInString: @"<>'\"&"];
-	  RETAIN(set);
-	}
-      if ([str rangeOfCharacterFromSet: set].length > 0)
-	{
-	  unichar	*base;
-	  unichar	*map;
-	  unichar	c;
-	  unsigned	len;
-	  unsigned	rpos;
-	  unsigned	wpos;
-	  unsigned	end = [str length];
-
-	  base = NSZoneMalloc(NSDefaultMallocZone(), end * sizeof(unichar));
-	  [str getCharacters: base];
-	  for (len = rpos = 0; rpos < end; rpos++)
-	    {
-	      c = base[rpos];
-	      switch (c)
-		{
-		  case '&': 
-		    len += 5;
-		    break;
-		  case '<': 
-		  case '>': 
-		    len += 4;
-		    break;
-		  case '\'': 
-		  case '"': 
-		    len += 6;
-		    break;
-		  default: 
-		    len++;
-		    break;
-		}
-	    }
-	  map = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
-	  for (wpos = rpos = 0; rpos < end; rpos++)
-	    {
-	      c = base[rpos];
-	      switch (c)
-		{
-		  case '&': 
-		    map[wpos++] = '&';
-		    map[wpos++] = 'a';
-		    map[wpos++] = 'm';
-		    map[wpos++] = 'p';
-		    map[wpos++] = ';';
-		    break;
-		  case '<': 
-		    map[wpos++] = '&';
-		    map[wpos++] = 'l';
-		    map[wpos++] = 't';
-		    map[wpos++] = ';';
-		    break;
-		  case '>': 
-		    map[wpos++] = '&';
-		    map[wpos++] = 'g';
-		    map[wpos++] = 't';
-		    map[wpos++] = ';';
-		    break;
-		  case '\'': 
-		    map[wpos++] = '&';
-		    map[wpos++] = 'a';
-		    map[wpos++] = 'p';
-		    map[wpos++] = 'o';
-		    map[wpos++] = 's';
-		    map[wpos++] = ';';
-		    break;
-		  case '"': 
-		    map[wpos++] = '&';
-		    map[wpos++] = 'q';
-		    map[wpos++] = 'u';
-		    map[wpos++] = 'o';
-		    map[wpos++] = 't';
-		    map[wpos++] = ';';
-		    break;
-		  default: 
-		    map[wpos++] = c;
-		    break;
-		}
-	    }
-	  NSZoneFree(NSDefaultMallocZone(), base);
-	  str = [[NSString_class alloc] initWithCharacters: map length: len];
-	  AUTORELEASE(str);
-	}
-    }
-  return str;
+  return [str stringByEscapingXML];
 }
 
 /**
@@ -4120,5 +4028,244 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 
 #endif
 
+
 
+@implementation	NSString (GSXML)
+- (NSString*) stringByEscapingXML
+{
+  unsigned	length = [self length];
+  unsigned	output = length;
+  unichar	*from;
+  unsigned	i = 0;
+
+  from = NSZoneMalloc (NSDefaultMallocZone(), sizeof(unichar) * length);
+  [self getCharacters: from];
+
+  for (i = 0; i < length; i++)
+    {
+      unichar	c = from[i];
+
+      if (c >= 0x20 || c == 0x9 || c == 0xa || c == 0xd)
+	{
+	  switch (c)
+	    {
+	      case '"':
+	      case '\'':
+		output += 6;
+	        break;
+
+	      case '&':
+		output += 5;
+	        break;
+
+	      case '<':
+	      case '>':
+		output += 4;
+	        break;
+
+	      default:
+		/*
+		 * For non-ascii characters, we can use &#nnnn; escapes
+		 */
+		if (c > 127)
+		  {
+		    output += 5;
+		    while (c >= 1000)
+		      {
+			output++;
+			c /= 10;
+		      }
+		  }
+		break;
+	    }
+	}
+    }
+
+  if (output > length)
+    {
+      unichar	*to;
+      unsigned	j = 0;
+
+      to = NSZoneMalloc (NSDefaultMallocZone(), sizeof(unichar) * output);
+
+      for (i = 0; i < length; i++)
+	{
+	  unichar	c = from[i];
+
+	  if (c >= 0x20 || c == 0x9 || c == 0xa || c == 0xd)
+	    {
+	      switch (c)
+		{
+		  case '"':
+		    to[j++] = '&';
+		    to[j++] = 'q';
+		    to[j++] = 'u';
+		    to[j++] = 'o';
+		    to[j++] = 't';
+		    to[j++] = ';';
+		    break;
+
+		  case '\'':
+		    to[j++] = '&';
+		    to[j++] = 'a';
+		    to[j++] = 'p';
+		    to[j++] = 'o';
+		    to[j++] = 's';
+		    to[j++] = ';';
+		    break;
+
+		  case '&':
+		    to[j++] = '&';
+		    to[j++] = 'a';
+		    to[j++] = 'm';
+		    to[j++] = 'p';
+		    to[j++] = ';';
+		    break;
+
+		  case '<':
+		    to[j++] = '&';
+		    to[j++] = 'l';
+		    to[j++] = 't';
+		    to[j++] = ';';
+		    break;
+
+		  case '>':
+		    to[j++] = '&';
+		    to[j++] = 'g';
+		    to[j++] = 't';
+		    to[j++] = ';';
+		    break;
+
+		  default:
+		    if (c > 127)
+		      {
+			char	buf[12];
+			char	*ptr = buf;
+
+			to[j++] = '&';
+			to[j++] = '#';
+			sprintf(buf, "%u", c);
+			while (*ptr != '\0')
+			  {
+			    to[j++] = *ptr++;
+			  }
+			to[j++] = ';';
+		      }
+		    else
+		      {
+			to[j++] = c;
+		      }
+		    break;
+		}
+	    }
+	}
+      self = [[NSString alloc] initWithCharacters: to length: output];
+      NSZoneFree (NSDefaultMallocZone (), to);
+      AUTORELEASE(self);
+    }
+  else
+    {
+      self = AUTORELEASE([self copyWithZone: NSDefaultMallocZone()]);
+    }
+  NSZoneFree (NSDefaultMallocZone (), from);
+  return self;
+}
+
+- (NSString*) stringByUnescapingXML
+{
+  unsigned		length = [self length];
+  NSRange		r = NSMakeRange(0, length);
+
+  r = [self rangeOfString: @"&" options: NSLiteralSearch range: r];
+  if (r.length > 0)
+    {
+      NSMutableString	*m = [self mutableCopy];
+
+      while (r.length > 0)
+	{
+	  NSRange	e;
+	  unsigned	s0 = NSMaxRange(r);
+
+	  e = [m rangeOfString: @";"
+		       options: NSLiteralSearch
+			 range: NSMakeRange(s0, length - s0)];
+	  if (e.length > 0)
+	    {
+	      unsigned	s1 = NSMaxRange(e);
+	      NSString	*s = [m substringWithRange: NSMakeRange(s0, s1 - s0)];
+
+	      if ([s hasPrefix: @"&#"] == YES)
+		{
+		  unichar	u;
+
+		  if ([s hasPrefix: @"&#0x"] || [s hasPrefix: @"&#0X"])
+		    {
+		      unsigned	val = 0;
+
+		      s = [s substringFromIndex: 4];
+		      sscanf([s UTF8String], "%x", &val);
+		      u = val;
+		    }
+		  else
+		    {
+		      s = [s substringFromIndex: 2];
+		      u = [s intValue];
+		    }
+		  if (u == 0)
+		    {
+		      u = ' ';
+		    }
+		  s = [[NSString alloc] initWithCharacters: &u length: 1];
+		  s = AUTORELEASE(s);
+		}
+	      else if ([s isEqualToString: @"amp"])
+		{
+		  s = @"&";
+		}
+	      else if ([s isEqualToString: @"apos"])
+		{
+		  s = @"'";
+		}
+	      else if ([s isEqualToString: @"quot"])
+		{
+		  s = @"\"";
+		}
+	      else if ([s isEqualToString: @"lt"])
+		{
+		  s = @"<";
+		}
+	      else if ([s isEqualToString: @"gt"])
+		{
+		  s = @">";
+		}
+	      else
+		{
+		  // Unknown escape ... don't change.
+		  s = [NSString stringWithFormat: @"&%@;", s];
+		}
+
+
+	      [m replaceCharactersInRange: NSMakeRange(s0, s1 - s0)
+			       withString: s];
+	      r.length = [s length];
+	      length += r.length - (s1 - s0);
+	      r.location = NSMaxRange(r);
+	      r.length = length - r.location;
+	      r = [m rangeOfString: @"&" options: NSLiteralSearch range: r];
+	    }
+	  else
+	    {
+	      r.length = 0;
+	    }
+	}
+      self = AUTORELEASE(m);
+    }
+  else
+    {
+      self = AUTORELEASE([self copyWithZone: NSDefaultMallocZone()]);
+    }
+
+  return self;
+}
+@end
 
