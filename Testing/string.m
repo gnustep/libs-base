@@ -44,7 +44,6 @@ int main()
   if( data )
     printf(" YES \n");
   printf(" NO\n");
-  exit(0);
 }
 #if 0
 {	// GSM test

@@ -325,7 +325,7 @@ GetAvailableEncodings()
 	  GSSetupEncodingTable();
 	  encodings = objc_malloc(sizeof(NSStringEncoding) * (encTableSize+1));
 	  pos = 0;
-	  for (i = 0; i < encTableSize; i++)
+	  for (i = 0; i < encTableSize+1; i++)
 	    {
 	      if (GSEncodingSupported(i) == YES)
 		{
