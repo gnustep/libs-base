@@ -6,6 +6,8 @@ Thu Nov  6 10:14:39 1997  Adam Fedor  <fedor@doc.com>
 	* src/ostream.m (ostream_getc, ostream_read, ostream_vscanf):
 	Return EOF if stream_obj returned 0.
 
+	* doc/gnustep-howto.texi: Use today's date.
+
 Wed Nov  5 16:10:32 1997  Scott Christley  <scottc@speedy.net-community.com>
 
 	* src/Invocation.m (-setArgument:atIndex:): Add OpenStep method.
