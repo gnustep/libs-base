@@ -240,3 +240,5 @@ __objc_class_name_GSXMLParser
 __objc_class_name_GCObject
 __objc_class_name_GCArray
 __objc_class_name_GCDictionary
+__objc_class_name_GCMutableArray
+__objc_class_name_GCMutableDictionary
