@@ -1,3 +1,10 @@
+2004-02-28 17:52  Alexander Malmberg <alexander@malmberg.org>
+
+	* configure.ac, configure: Define GS_UINT64 properly if there is
+	no 64-bit integer type.
+
+	* Source/NSIndexSet.m: Don't use casts as lvalues.
+
 2004-02-27    <woudshoo@agilisys.com>
 
 	* Tools/gdomap.c: when using MinGW do not try to chdir to /tmp
