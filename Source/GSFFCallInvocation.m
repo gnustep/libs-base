@@ -464,7 +464,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 }
 
 /*
- *	This is the de-signated initialiser.
+ *	This is the designated initialiser.
  */
 - (id) initWithMethodSignature: (NSMethodSignature*)aSignature
 {
@@ -472,10 +472,6 @@ static IMP gs_objc_msg_forward (SEL sel)
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
   _cframe = callframe_from_info(_info, _numArgs, &_retval);
-  if (_retval == 0 && _info[0].size > 0)
-    {
-      _retval = NSZoneMalloc(NSDefaultMallocZone(), _info[0].size);
-    }
   return self;
 }
 

@@ -1,5 +1,19 @@
 2001-09-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Headers/gnustep/base/DistributedObjects.h:
+        * Source/GSFFCallInvocation.m:
+        * Source/NSConnection.m:
+        * Source/NSInvocation.m:
+        * Source/callframe.h:
+        * Source/callframe.m:
+	Modifications to callframe handling to store pointers to data to
+	be freed in order to be able to tidy up after an exception ...
+	Appears to cure memory leak in ffcall code on server side.
+	No fix yest for mframe or ffi code, or for client side leak
+	when an exception occurs in the server.
+
+2001-09-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Testing/nsconnection_client.m: Added simple exception tests
 	* Testing/nsconnection_server.m: Added simple exception tests
 	* Testing/server.h: Added simple exception tests

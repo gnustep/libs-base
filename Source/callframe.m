@@ -75,7 +75,33 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
         }
     }
 
-  cframe = buf = malloc(size);
+  /*
+   * If we need space allocated to store a return value,
+   * make room for it at the end of the callframe so we
+   * only need to do a single malloc.
+   */
+  if (retval)
+    {
+      unsigned	full = size;
+      unsigned	pos;
+
+      if (full % align != 0)
+	{
+	  full += (align - full % align);
+	}
+      pos = full;
+      full += MAX(info[0].size, sizeof(smallret_t));
+      cframe = buf = NSZoneMalloc(NSDefaultMallocZone(), full);
+      if (cframe)
+	{
+	  *retval = buf + pos;
+	}
+    }
+  else
+    {
+      cframe = buf = NSZoneMalloc(NSDefaultMallocZone(), size);
+    }
+
   if (cframe)
     {
       cframe->nargs = numargs;
@@ -98,18 +124,7 @@ callframe_from_info (NSArgumentInfo *info, int numargs, void **retval)
         }
     }
 
-  if (retval)
-    {
-      *retval = NSZoneMalloc(NSDefaultMallocZone(),
-                            MAX(info[0].size, sizeof(smallret_t)) );
-    }
   return cframe;
-}
-
-void
-callframe_free(callframe_t *cframe)
-{
-  free(cframe);
 }
 
 void
@@ -232,8 +247,6 @@ callframe_do_call (DOContext *ctxt,
   unsigned flags;
   /* Which argument number are we processing now? */
   int argnum;
-  /* A pointer to the memory holding the return value of the method. */
-  void *retval;
   /* The cif information for calling the method */
   callframe_t *cframe;
   /* Does the method have any arguments that are passed by reference?
@@ -243,6 +256,7 @@ callframe_do_call (DOContext *ctxt,
   NSInvocation_t *inv;
   /* Signature information */
   NSMethodSignature *sig;
+  void	*retval;
   const char *encoded_types = ctxt->type;
 
   /* Decode the object, (which is always the first argument to a method),
@@ -297,6 +311,7 @@ callframe_do_call (DOContext *ctxt,
   sig = [NSMethodSignature signatureWithObjCTypes: type];
   cframe = callframe_from_info([sig methodInfo], [sig numberOfArguments], 
 			       &retval);
+  ctxt->datToFree = cframe;
 
   /* Put OBJECT and SELECTOR into the ARGFRAME. */
 
@@ -428,8 +443,10 @@ callframe_do_call (DOContext *ctxt,
   inv->_cframe = cframe;
   inv->_info = [sig methodInfo];
   inv->_numArgs = [sig numberOfArguments];
+  ctxt->objToFree = (id)inv;
   GSFFCallInvokeWithTargetAndImp((NSInvocation *)inv, object, 
 				 method_implementation);
+  ctxt->objToFree = nil;
   NSDeallocateObject((NSInvocation *)inv);
 
   /* Encode the return value and pass-by-reference values, if there
@@ -536,9 +553,8 @@ callframe_do_call (DOContext *ctxt,
 	}
     }
 
-  if (retval != 0)
-    NSZoneFree(NSDefaultMallocZone(), retval);
-  callframe_free(cframe);
+  NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
+  ctxt->datToFree = 0;
 
   return;
 }
@@ -580,6 +596,7 @@ callframe_build_return (NSInvocation *inv,
   sig = [NSMethodSignature signatureWithObjCTypes: type];
   cframe = callframe_from_info([sig methodInfo], [sig numberOfArguments], 
 			       &retval);
+  ctxt->datToFree = cframe;
 
   /* Get the return type qualifier flags, and the return type. */
   flags = objc_get_type_qualifiers(type);
@@ -722,9 +739,11 @@ callframe_build_return (NSInvocation *inv,
       (*decoder) (ctxt);	/* Tell it we have finished.	*/
     }
 
-  if (retval != 0)
-    NSZoneFree(NSDefaultMallocZone(), retval);
-  callframe_free(cframe);
+  if (ctxt->datToFree != 0)
+    {
+      NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
+      ctxt->datToFree = 0;
+    }
 
   return;
 }

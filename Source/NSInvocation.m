@@ -169,7 +169,10 @@ _arg_addr(NSInvocation *inv, int index)
 #else
 #ifdef USE_FFCALL
   if (_cframe)
-    callframe_free((callframe_t *)_cframe);
+    {
+      NSZoneFree(NSDefaultMallocZone(), _cframe);
+      _retval = 0;	// Part of _cframe
+    }
 #endif
 #endif
   if (_argframe)

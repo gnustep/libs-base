@@ -86,6 +86,12 @@ typedef struct {
   NSPortCoder	*decoder;	// The coder to use
   NSPortCoder	*encoder;	// The coder to use
   unsigned	seq;		// Sequence number
+  /*
+   * These next fields can store allocated memory that will need to be
+   * tidied up iff an exception occurs before they can be tidied normally.
+   */
+  void		*datToFree;	// Data needing NSZoneFree()
+  id		objToFree;	// Data needing NSDeallocateObject()
 } DOContext;
 
 #endif /* __DistributedObjects_h */

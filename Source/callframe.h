@@ -38,7 +38,6 @@ typedef struct _callframe_t {
 
 extern callframe_t *callframe_from_info (NSArgumentInfo *info, int numargs,
 					 void **retval);
-extern void callframe_free(callframe_t *cframe);
 extern void callframe_set_arg(callframe_t *cframe, int index, void *buffer,
 			      int size);
 extern void callframe_get_arg(callframe_t *cframe, int index, void *buffer,

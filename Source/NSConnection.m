@@ -1541,13 +1541,30 @@ static void retDecoder(DOContext *ctxt)
 	  [coder decodeValueOfObjCType: @encode(id) at: &exc];
 	  ctxt->decoder = nil;
 	  [ctxt->connection _doneInRmc: coder];
+	  if (ctxt->datToFree != 0)
+	    {
+	      NSZoneFree(NSDefaultMallocZone(), ctxt->datToFree);
+	      ctxt->datToFree = 0;
+	    }
+	  if (ctxt->objToFree != nil)
+	    {
+	      NSDeallocateObject(ctxt->objToFree);
+	      ctxt->objToFree = nil;
+	    }
 	  [exc raise];
 	}
     }
-  [coder decodeValueOfObjCType: type at: ctxt->datum];
   if (*type == _C_ID)
     {
-      AUTORELEASE(*(id*)ctxt->datum);
+      *(id*)ctxt->datum = [coder decodeObject];
+    }
+  else
+    {
+      [coder decodeValueOfObjCType: type at: ctxt->datum];
+      if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)ctxt->datum != 0)
+	{
+	  [NSData dataWithBytesNoCopy: *(void**)ctxt->datum length: 1];
+	}
     }
 }
 
@@ -1557,13 +1574,19 @@ static void retEncoder (DOContext *ctxt)
     {
     case _C_ID: 
       if (ctxt->flags & _F_BYCOPY)
-	[ctxt->encoder encodeBycopyObject: *(id*)ctxt->datum];
+	{
+	  [ctxt->encoder encodeBycopyObject: *(id*)ctxt->datum];
+	}
 #ifdef	_F_BYREF
       else if (ctxt->flags & _F_BYREF)
-	[ctxt->encoder encodeByrefObject: *(id*)ctxt->datum];
+	{
+	  [ctxt->encoder encodeByrefObject: *(id*)ctxt->datum];
+	}
 #endif
       else
-	[ctxt->encoder encodeObject: *(id*)ctxt->datum];
+	{
+	  [ctxt->encoder encodeObject: *(id*)ctxt->datum];
+	}
       break;
     default: 
       [ctxt->encoder encodeValueOfObjCType: ctxt->type at: ctxt->datum];
@@ -2050,8 +2073,6 @@ static void retEncoder (DOContext *ctxt)
 static void callDecoder (DOContext *ctxt)
 {
   const char	*type = ctxt->type;
-  void		*datum = ctxt->datum;
-  NSPortCoder	*coder = ctxt->decoder;
 
   /*
    * We need this "dismiss" to happen here and not later so that Coder
@@ -2059,37 +2080,45 @@ static void callDecoder (DOContext *ctxt)
    * objects is invoked.  We clear the 'decoder' field in the context to
    * show that it is no longer valid.
    */
-  if (datum == 0 && type == 0)
+  if (type == 0)
     {
+      NSPortCoder	*coder = ctxt->decoder;
+
       ctxt->decoder = nil;
       [ctxt->connection _doneInRmc: coder];
       return;
     }
 
-  [coder decodeValueOfObjCType: type at: datum];
-#ifdef USE_FFCALL
+  /*
+   * The coder may have an optimised method for decoding objects
+   * so we use that one if we are expecting an object, otherwise
+   * we use thegeneric method.
+   */
   if (*type == _C_ID)
-#else
-  /* -decodeValueOfObjCType: at: malloc's new memory
-     for char*'s.  We need to make sure it gets freed eventually
-     so we don't have a memory leak.  Request here that it be
-     autorelease'ed. Also autorelease created objects. */
-  if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
     {
-      [NSData dataWithBytesNoCopy: *(void**)datum length: 1];
+      *(id*)ctxt->datum = [ctxt->decoder decodeObject];
     }
-  else if (*type == _C_ID)
-#endif
+  else
     {
-      AUTORELEASE(*(id*)datum);
+      void	*datum = ctxt->datum;
+
+      [ctxt->decoder decodeValueOfObjCType: type at: datum];
+      /*
+       * -decodeValueOfObjCType:at: malloc's new memory
+       * for pointers.  We need to make sure it gets freed eventually
+       * so we don't have a memory leak.  Request here that it be
+       * autorelease'ed.
+       */
+      if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
+	{
+	  [NSData dataWithBytesNoCopy: *(void**)datum length: 1];
+	}
     }
 }
 
 static void callEncoder (DOContext *ctxt)
 {
   const char		*type = ctxt->type;
-  void			*datum = ctxt->datum;
-  int			flags = ctxt->flags;
   NSPortCoder		*coder = ctxt->encoder;
 
   if (coder == nil)
@@ -2111,27 +2140,35 @@ static void callEncoder (DOContext *ctxt)
        * later use if/when we are called again.  We encode a flag to
        * say that this is not an exception.
        */
-      coder = [ctxt->connection _makeOutRmc: ctxt->seq
-				   generate: 0
-				      reply: NO];
-      ctxt->encoder = coder;
+      ctxt->encoder = [ctxt->connection _makeOutRmc: ctxt->seq
+					   generate: 0
+					      reply: NO];
+      coder = ctxt->encoder;
       [coder encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
     }
 
-  switch (*type)
+  if (*type == _C_ID)
     {
-      case _C_ID: 
-	if (flags & _F_BYCOPY)
-	  [coder encodeBycopyObject: *(id*)datum];
+      int	flags = ctxt->flags;
+
+      if (flags & _F_BYCOPY)
+	{
+	  [coder encodeBycopyObject: *(id*)ctxt->datum];
+	}
 #ifdef	_F_BYREF
-	else if (flags & _F_BYREF)
-	  [coder encodeByrefObject: *(id*)datum];
+      else if (flags & _F_BYREF)
+	{
+	  [coder encodeByrefObject: *(id*)ctxt->datum];
+	}
 #endif
-	else
-	  [coder encodeObject: *(id*)datum];
-	break;
-      default: 
-	[coder encodeValueOfObjCType: type at: datum];
+      else
+	{
+	  [coder encodeObject: *(id*)ctxt->datum];
+	}
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: type at: ctxt->datum];
     }
 }
 
@@ -2196,6 +2233,16 @@ static void callEncoder (DOContext *ctxt)
 	    {
 	      NSPortCoder	*op;
 
+	      if (ctxt.datToFree != 0)
+		{
+		  NSZoneFree(NSDefaultMallocZone(), ctxt.datToFree);
+		  ctxt.datToFree = 0;
+		}
+	      if (ctxt.objToFree != nil)
+		{
+		  NSDeallocateObject(ctxt.objToFree);
+		  ctxt.objToFree = nil;
+		}
 	      if (ctxt.decoder != nil)
 		{
 		  [self _failInRmc: ctxt.decoder];
