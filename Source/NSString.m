@@ -33,6 +33,7 @@
 */
 
 #include <objects/stdobjects.h>
+#include <objects/Coding.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCharacterSet.h>
@@ -92,8 +93,13 @@ static Class NSMutableString_c_concrete_class;
 }
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
-int handle_printf_atsign (FILE *stream, const struct printf_info *info,
-			  va_list *ap_pointer)
+#include <stdio.h>
+#include <printf.h>
+#include <stdarg.h>
+int
+handle_printf_atsign (FILE *stream, 
+		      const struct printf_info *info,
+		      va_list *ap_pointer)
 {
   id string_object;
   int len;
@@ -122,7 +128,9 @@ int handle_printf_atsign (FILE *stream, const struct printf_info *info,
       NSMutableString_c_concrete_class = [NSGMutableCString class];
 
 #if HAVE_REGISTER_PRINTF_FUNCTION
-      if (register_printf_function ('@', handle_printf_atsign, NULL))
+      if (register_printf_function ('@', 
+				    (printf_function)handle_printf_atsign, 
+				    NULL))
 	[self error: "register printf handling of %%@ failed"];
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
     }
