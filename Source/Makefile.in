@@ -143,6 +143,8 @@ MappedCollector.m \
 MemoryStream.m \
 MutableCString.m \
 MutableString.m \
+Notification.m \
+NotificationDispatcher.m \
 OrderedCollection.m \
 Port.m \
 Proxy.m \
@@ -154,7 +156,6 @@ RBTreeNode.m \
 RNGAdditiveCongruential.m \
 RNGBerkeley.m \
 Set.m \
-SocketPort.m \
 SplayTree.m \
 Stack.m \
 StdioStream.m \
@@ -271,6 +272,8 @@ objects/Magnitude.h \
 objects/MallocAddress.h \
 objects/MappedCollector.h \
 objects/MemoryStream.h \
+objects/Notification.h \
+objects/NotificationDispatcher.h \
 objects/NSArray.h \
 objects/NSCoder.h \
 objects/NSDictionary.h \
@@ -292,7 +295,6 @@ objects/RawCStream.h \
 objects/Retaining.h \
 objects/RetainingNotifier.h \
 objects/Set.h \
-objects/SocketPort.h \
 objects/SplayTree.h \
 objects/Stack.h \
 objects/StdioStream.h \
