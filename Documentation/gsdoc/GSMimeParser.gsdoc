@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="GSMimeParser" prev="GSMimeDocument" up="GSMime">
+  <head>
+    <title>GSMimeParser</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>26 October, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>GSMimeParser</heading>
+      <class name="GSMimeParser" super="NSObject">
+        <declared>Foundation/GSMime.h</declared>
+        <conform>NSObject</conform>
+	<desc>
+	  <p>
+	    This class provides support for parsing MIME messages
+	    into GSMimeDocument objects.  It is imtimately related
+	    to the GSMimeDocument class and relys on that class for
+	    aspects of the parsing operation.
+	  </p>
+	</desc>
+        <method type="GSMimeParser*" factory="yes">
+          <sel>mimeParser</sel>
+          <desc>
+	    Create a parser.
+          </desc>
+        </method>
+        <method type="BOOL">
+          <sel>parse:</sel>
+          <arg type="NSData*">rawData</arg>
+          <desc>
+	    This method is called repeatedly to pass raw mime data into
+	    the parser.  It should be called with a nil argument at the
+	    end of the data - to inform the parser that it has been given
+	    all the available information.
+          </desc>
+        </method>
+        <method type="GSMimeDocument*">
+          <sel>document</sel>
+          <desc>
+	    Returns the object into which raw mime data is being parsed.
+          </desc>
+        </method>
+        <method type="BOOL">
+          <sel>parsingHeaders</sel>
+          <desc>
+	    Returns YES if the parser is expecting to read mime headers,
+	    Returns NO is the parser has already been passed all the
+	    data containing headers, and is now waiting for the body of
+            trhe mime message (or has been passed all data).
+          </desc>
+        </method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

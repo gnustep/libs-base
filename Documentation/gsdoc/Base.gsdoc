@@ -158,6 +158,7 @@
       <section>
 	<heading>The GNUstep extension classes</heading>
 	<list>
+	  <item><uref url="GSMime.html">GSMime</uref></item>
 	  <item><uref url="GSXML.html">GSXML</uref></item>
 	</list>
       </section>

@@ -5,6 +5,13 @@
 	selector into a program where no objects implements it (we might
 	still want to use it over DO or to store in another archive).
 	Change suggested by N.Pero.
+	* Source/GSMime.m: Mime parser classes partially written.
+	* Headers/Foundation/GSMime.h: mime class headers
+	* Documentation/gsdoc/GSMime.gsdoc: documentation
+	* Documentation/gsdoc/GSMimeDocument.gsdoc: documentation
+	* Documentation/gsdoc/GSMimeParser.gsdoc: documentation
+	Various files partially implemented to add MIME parsing support.
+	Intended to aid implementation of HTTP version of NSURLHandle.
 
 2000-10-24  Adam Fedor  <fedor@gnu.org>
 

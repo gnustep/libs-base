@@ -1,0 +1,208 @@
+<html><head>
+ <title>GSMimeDocument</title>
+</head>
+<body>
+<a href ="GSMime.html">[Up]</a>
+<a href ="GSMimeParser.html">[Next]</a>
+<h1>GSMimeDocument</h1>
+<h3>Authors </h3>
+ <dl>
+<dt><a href ="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
+<dd>
+</dl>
+<p>Version: 0.1</p>
+<p>Date: 25 October, 2000</p>
+<h2><a name ="cont-0">GSMimeDocument</a></h2>
+<h2><a name ="GSMimeDocument">GSMimeDocument</a></h2>
+<p><b>Declared in: </b> Foundation/GSMime.h</p>
+<p><b>Inherits from: </b> NSObject</p>
+<p><b>Conforms to: </b> NSObject
+</p>
+<hr>
+
+	  <p>
+
+	    This class is intended to provide a wrapper for MIME messages
+	    permitting easy access to the contents of a message and
+	    providing a basis for parsing an unparsing messages that
+	    have arrived via email or as a web document.
+	  </p>
+
+	  <p>
+
+	    The class keeps track of all the document headers, and provides
+	    methods for modifying the headers that apply to a document and
+	    for looking at the header structures, by providing an info
+	    dictionary containing the various parts of a header.
+	  </p>
+
+	  <p>
+
+	    The common dictionary keys used for elements provided for
+	    <em>all</em> headers are -
+	  </p>
+
+	  <dl>
+<dt>RawHeader
+<dd>This is the unmodified text of the header
+	    
+<dt>BaseName
+<dd>This is the header name.
+	    
+<dt>BaseValue
+<dd>This is the text after the header name and colon.
+	    
+<dt>Name
+<dd>This is a lowercase representation of the header name.
+	    
+<dt>Value
+<dd>This is the value of the header (normally lower case).
+	    
+</dl>
+
+	  <p>
+
+	  </p>
+
+	
+<h2>Instance Variables </h2>
+<ul>
+</ul>
+<h2>Methods </h2>
+<ul>
+<li><a href ="GSMimeDocument.html#method-0">+mimeDocument</a>
+<li><a href ="GSMimeDocument.html#method-1">-addHeader:</a>
+<li><a href ="GSMimeDocument.html#method-2">-boundary</a>
+<li><a href ="GSMimeDocument.html#method-3">-content</a>
+<li><a href ="GSMimeDocument.html#method-4">-deleteHeader:</a>
+<li><a href ="GSMimeDocument.html#method-5">-deleteHeaderNamed:</a>
+<li><a href ="GSMimeDocument.html#method-6">-infoForAllHeaders</a>
+<li><a href ="GSMimeDocument.html#method-7">-infoForHeaderNamed:</a>
+<li><a href ="GSMimeDocument.html#method-8">-infoForHeadersNamed:</a>
+<li><a href ="GSMimeDocument.html#method-9">-parseHeader:named:inTo:</a>
+<li><a href ="GSMimeDocument.html#method-10">-setContent:</a>
+<li><a href ="GSMimeDocument.html#method-11">-setHeader:</a>
+</ul>
+<hr><h2>Class Methods </h2>
+<h3><a name ="method-0">mimeDocument</a></h3>
++ (GSMimeDocument*) <b>mimeDocument</b>;<br>
+
+	    Create an empty MIME document.
+          
+ <hr>
+<hr><h2>Instances Methods </h2>
+<h3><a name ="method-1">addHeader:</a></h3>
+- (BOOL) <b>addHeader:</b> (NSString*)aHeader;<br>
+
+	    This method may be called to add a header to the document.
+	    The header must be a single line of text in the standard
+	    format (begining with a name and a colon).  It will be
+	    added after all other headers in the document.
+          
+ <hr>
+<h3><a name ="method-2">boundary</a></h3>
+- (NSData*) <b>boundary</b>;<br>
+
+	    For a multipart document, return the raw data used to
+	    delimit the parts of the document.
+	    Otherwise, return nil.
+          
+ <hr>
+<h3><a name ="method-3">content</a></h3>
+- (id) <b>content</b>;<br>
+
+	    This returns the content data of the document in the
+	    appropriate format for the type of data -
+	    <dl>
+<dt>text
+<dd>an NSString object
+<dt>binary
+<dd>an NSData object
+<dt>multipart
+<dd>an NSArray object containing GSMimeDocument objects
+</dl>
+
+          
+ <hr>
+<h3><a name ="method-4">deleteHeader:</a></h3>
+- (void) <b>deleteHeader:</b> (NSString*)aHeader;<br>
+
+	    This method removes all occurrances of headers whose raw data
+	    exactly matches the supplied string.
+	  
+ <hr>
+<h3><a name ="method-5">deleteHeaderNamed:</a></h3>
+- (void) <b>deleteHeaderNamed:</b> (NSString*)aName;<br>
+
+	    This method removes all occurrances of headers whose name
+	    matches the supplied string.
+	  
+ <hr>
+<h3><a name ="method-6">infoForAllHeaders</a></h3>
+- (NSArray) <b>infoForAllHeaders</b>;<br>
+
+	    This method returns an array containing info dictionaries that
+	    represent all the headers of the document.
+	  
+ <hr>
+<h3><a name ="method-7">infoForHeaderNamed:</a></h3>
+- (NSDictionary*) <b>infoForHeaderNamed:</b> (NSString*)aName;<br>
+
+	    This method returns the info dictionary for the first header
+	    whose name equals the supplied argument.
+	  
+ <hr>
+<h3><a name ="method-8">infoForHeadersNamed:</a></h3>
+- (NSArray*) <b>infoForHeadersNamed:</b> (NSString*)aName;<br>
+
+	    This method returns an array of info dictionaries for all headers
+	    whose names equal the supplied argument.
+	  
+ <hr>
+<h3><a name ="method-9">parseHeader:named:inTo:</a></h3>
+- (BOOL) <b>parseHeader:</b> (NSScanner*)aScanner <b>named:</b> (NSString*)aName <b>inTo:</b> (NSMutableDictionary*)info;<br>
+
+	    This method is called to parse a header line and split its
+	    contents into an info dictionary.
+	    <p>
+
+	      On entry, the dictionary is already partially filled,
+	      the name argument is a lowercase representation of the
+	      header name, and the scanner is set to a scan location
+              immediately after the colon in the header string.
+	    </p>
+
+	    <p>
+
+	      If the header is parsed successfully, the method should
+	      return YES, otherwise NO.
+	    </p>
+
+	    <p>
+
+	      You should not call this method directly yourself, but may
+	      override it to support parsing of new headers.
+	    </p>
+
+	  
+ <hr>
+<h3><a name ="method-10">setContent:</a></h3>
+- (BOOL) <b>setContent:</b> (id)newContent;<br>
+
+	    Sets a new value for the content of the document.
+	  
+ <hr>
+<h3><a name ="method-11">setHeader:</a></h3>
+- (BOOL) <b>setHeader:</b> (NSString*)aHeader;<br>
+
+	    This method may be called to set a header in the document.
+	    The header must be a single line of text in the standard
+	    format (begining with a name and a colon).  It will be
+	    added after all other headers in the document.
+	    Any other headers with the same name will be removed from
+	    the document.
+          
+ <hr>
+</body>
+
+ </html>

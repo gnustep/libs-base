@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="GSMimeDocument" next="GSMimeParser" up="GSMime">
+  <head>
+    <title>GSMimeDocument</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>25 October, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>GSMimeDocument</heading>
+      <class name="GSMimeDocument" super="NSObject">
+        <declared>Foundation/GSMime.h</declared>
+        <conform>NSObject</conform>
+	<desc>
+	  <p>
+	    This class is intended to provide a wrapper for MIME messages
+	    permitting easy access to the contents of a message and
+	    providing a basis for parsing an unparsing messages that
+	    have arrived via email or as a web document.
+	  </p>
+	  <p>
+	    The class keeps track of all the document headers, and provides
+	    methods for modifying the headers that apply to a document and
+	    for looking at the header structures, by providing an info
+	    dictionary containing the various parts of a header.
+	  </p>
+	  <p>
+	    The common dictionary keys used for elements provided for
+	    <em>all</em> headers are -
+	  </p>
+	  <deflist>
+	    <term>RawHeader</term>
+	    <desc>This is the unmodified text of the header
+	    </desc>
+	    <term>BaseName</term>
+	    <desc>This is the header name.
+	    </desc>
+	    <term>BaseValue</term>
+	    <desc>This is the text after the header name and colon.
+	    </desc>
+	    <term>Name</term>
+	    <desc>This is a lowercase representation of the header name.
+	    </desc>
+	    <term>Value</term>
+	    <desc>This is the value of the header (normally lower case).
+	    </desc>
+	  </deflist>
+	  <p>
+	  </p>
+	</desc>
+        <method type="GSMimeDocument*" factory="yes">
+          <sel>mimeDocument</sel>
+          <desc>
+	    Create an empty MIME document.
+          </desc>
+        </method>
+        <method type="BOOL">
+          <sel>addHeader:</sel>
+          <arg type="NSString*">aHeader</arg>
+          <desc>
+	    This method may be called to add a header to the document.
+	    The header must be a single line of text in the standard
+	    format (begining with a name and a colon).  It will be
+	    added after all other headers in the document.
+          </desc>
+        </method>
+        <method type="NSData*">
+          <sel>boundary</sel>
+          <desc>
+	    For a multipart document, return the raw data used to
+	    delimit the parts of the document.
+	    Otherwise, return nil.
+          </desc>
+        </method>
+        <method type="id">
+          <sel>content</sel>
+          <desc>
+	    This returns the content data of the document in the
+	    appropriate format for the type of data -
+	    <deflist>
+	      <term>text</term>
+	      <desc>an NSString object</desc>
+	      <term>binary</term>
+	      <desc>an NSData object</desc>
+	      <term>multipart</term>
+	      <desc>an NSArray object containing GSMimeDocument objects</desc>
+	    </deflist>
+          </desc>
+        </method>
+        <method type="void">
+          <sel>deleteHeader:</sel>
+          <arg type="NSString*">aHeader</arg>
+          <desc>
+	    This method removes all occurrances of headers whose raw data
+	    exactly matches the supplied string.
+	  </desc>
+	</method>
+        <method type="void">
+          <sel>deleteHeaderNamed:</sel>
+          <arg type="NSString*">aName</arg>
+          <desc>
+	    This method removes all occurrances of headers whose name
+	    matches the supplied string.
+	  </desc>
+	</method>
+        <method type="NSArray">
+          <sel>infoForAllHeaders</sel>
+          <desc>
+	    This method returns an array containing info dictionaries that
+	    represent all the headers of the document.
+	  </desc>
+	</method>
+        <method type="NSDictionary*">
+          <sel>infoForHeaderNamed:</sel>
+          <arg type="NSString*">aName</arg>
+          <desc>
+	    This method returns the info dictionary for the first header
+	    whose name equals the supplied argument.
+	  </desc>
+	</method>
+        <method type="NSArray*">
+          <sel>infoForHeadersNamed:</sel>
+          <arg type="NSString*">aName</arg>
+          <desc>
+	    This method returns an array of info dictionaries for all headers
+	    whose names equal the supplied argument.
+	  </desc>
+	</method>
+        <method type="BOOL">
+          <sel>parseHeader:</sel>
+          <arg type="NSScanner*">aScanner</arg>
+          <sel>named:</sel>
+          <arg type="NSString*">aName</arg>
+          <sel>inTo:</sel>
+          <arg type="NSMutableDictionary*">info</arg>
+          <desc>
+	    This method is called to parse a header line and split its
+	    contents into an info dictionary.
+	    <p>
+	      On entry, the dictionary is already partially filled,
+	      the name argument is a lowercase representation of the
+	      header name, and the scanner is set to a scan location
+              immediately after the colon in the header string.
+	    </p>
+	    <p>
+	      If the header is parsed successfully, the method should
+	      return YES, otherwise NO.
+	    </p>
+	    <p>
+	      You should not call this method directly yourself, but may
+	      override it to support parsing of new headers.
+	    </p>
+	  </desc>
+	</method>
+        <method type="BOOL">
+          <sel>setContent:</sel>
+          <arg type="id">newContent</arg>
+          <desc>
+	    Sets a new value for the content of the document.
+	  </desc>
+	</method>
+        <method type="BOOL">
+          <sel>setHeader:</sel>
+          <arg type="NSString*">aHeader</arg>
+          <desc>
+	    This method may be called to set a header in the document.
+	    The header must be a single line of text in the standard
+	    format (begining with a name and a colon).  It will be
+	    added after all other headers in the document.
+	    Any other headers with the same name will be removed from
+	    the document.
+          </desc>
+        </method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>
