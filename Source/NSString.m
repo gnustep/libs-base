@@ -983,4 +983,34 @@
 
 
 @implementation NXConstantString
+
+- (void)dealloc
+{
+}
+
+- (const char*) cString
+{
+  return _contents_chars;
+}
+
+- retain
+{
+  return self;
+}
+
+- release
+{
+  return self;
+}
+
+- autorelease
+{
+  return self;
+}
+
+- copyWithZone: (NSZone*)z
+{
+  return self;
+}
+
 @end
