@@ -25,7 +25,6 @@
 #include <objects/NSSet.h>
 #include <objects/behavior.h>
 #include <objects/Set.h>
-#include <objects/eltfuncs.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 
