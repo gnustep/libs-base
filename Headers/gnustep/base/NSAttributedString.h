@@ -6,9 +6,9 @@
    Copyright (C) 1997 Free Software Foundation, Inc.
 
    Written by: ANOQ of the sun <anoq@vip.cybercity.dk>
-   Date: June 1997
+   Date: November 1997
    
-   This file is part of ...
+   This file is part of GNUStep-base
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -28,6 +28,23 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+//FIXME: 1) The NSMutableString object returned from the -mutableString method
+//       in NSMutableAttributedString is NOT tracked for changes to update
+//       NSMutableAttributedString's attributes as it should.
+
+//FIXME: 2) If out-of-memory exceptions are raised in some methods,
+//       inconsistencies may develop, because the two internal arrays in
+//       NSGAttributedString and NSGMutableAttributedString called
+//       attributeArray and locateArray must always be syncronized.
+
+//FIXME: 3) The method _setAttributesFrom: must be overridden by
+//          concrete subclasses of NSAttributedString which is WRONG and
+//          VERY bad! I haven't found any other way to make
+//          - initWithString:attributes: the designated initializer 
+//          in NSAttributedString and still implement
+//          - initWithAttributedString: without having to override it
+//          in the concrete subclass.
+
 #ifndef _NSXKit_H_NSAttributedString
 #define _NSXKit_H_NSAttributedString
 
@@ -35,17 +52,6 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCoder.h>
-
-NSString *NSFontAttributeName;
-NSString *NSForegroundColorAttributeName;
-NSString *NSBackgroundColorAttributeName;
-NSString *NSUnderlineStyleAttributeName;
-NSString *NSSuperscriptAttributeName;
-NSString *NSBaselineOffsetAttributeName;
-NSString *NSKernAttributeName;
-NSString *NSLigatureAttributeName;
-NSString *NSParagraphStyleAttributeName;
-NSString *NSAttachmentAttributeName;
 
 @interface NSAttributedString : NSObject <NSCoding, NSCopying, NSMutableCopying>
 {
@@ -105,6 +111,5 @@ NSString *NSAttachmentAttributeName;
 
 @end //NSMutableAttributedString
 
-#include "NSGAttributedString.h"
-
 #endif //_NSXKit_H_NSAttributedString
+
