@@ -190,7 +190,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 {
   int n;
 
-  n = name_2_port_number ([name cStringNoCopy]);
+  n = name_2_port_number ([name cString]);
   return [self newForReceivingFromPortNumber: n];
 }
 
@@ -397,7 +397,7 @@ static Array *udp_out_port_array;
   if (!hostname || ![hostname length])
     host_cstring = "localhost";
   else
-    host_cstring = [hostname cStringNoCopy];
+    host_cstring = [hostname cString];
   hp = gethostbyname ((char*)host_cstring);
   if (hp == 0)
     [self error: "unknown host: \"%s\"", host_cstring];

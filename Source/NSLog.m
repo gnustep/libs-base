@@ -37,7 +37,7 @@ NSLog_printf_handler *_NSLog_printf_handler;
 static void
 _NSLog_standard_printf_handler (NSString* message)
 {
-  fprintf (stderr, [message cStringNoCopy]);
+  fprintf (stderr, [message cString]);
 }
 
 void 

@@ -1110,14 +1110,14 @@ o_hash_description(o_hash_t *hash)
 
   [string appendFormat:@"element_count = %d;\n", o_hash_count(hash)];
   [string appendFormat:@"not_an_element_marker = %s;\n",
-          [DESCRIBE(o_hash_not_an_element_marker(hash)) cStringNoCopy]];
+          [DESCRIBE(o_hash_not_an_element_marker(hash)) cString]];
   [string appendString:@"elements = {\n"];
 
   while (o_hash_enumerator_next_element(&enumerator, &element))
-    [string appendFormat:@"%s,\n", [DESCRIBE(element) cStringNoCopy]];
+    [string appendFormat:@"%s,\n", [DESCRIBE(element) cString]];
 
   [string appendFormat:@"%s};\n",
-          [DESCRIBE(o_hash_not_an_element_marker(hash)) cStringNoCopy]];
+          [DESCRIBE(o_hash_not_an_element_marker(hash)) cString]];
 
 #undef DESCRIBE
 

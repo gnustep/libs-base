@@ -231,9 +231,7 @@
 
   FOR_KEYED_COLLECTION(self, o, k)
     {
-      [s appendFormat: @"(%s,%s) ",
-	 [[k description] cStringNoCopy],
-	 [[o description] cStringNoCopy]];
+      [s appendFormat: @"(%@,%@) ", [k description], [o description]];
     }
   END_FOR_KEYED_COLLECTION(self);
   [s appendFormat: @" :%s\n", object_get_class_name (self)];

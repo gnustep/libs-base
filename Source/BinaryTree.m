@@ -473,7 +473,7 @@ static id nilBinaryTreeNode;
 - _tmpPrintFromNode: aNode indent: (int)count
 {
   printf("%-*s", count, "");
-  printf("%s\n", [[aNode description] cStringNoCopy]);
+  printf("%s\n", [[aNode description] cString]);
   printf("%-*s.", count, "");
   if ([aNode leftNode] != [self nilNode])
     [self _tmpPrintFromNode:[aNode leftNode] indent:count+2];

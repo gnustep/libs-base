@@ -31,7 +31,7 @@
 #include <config.h>
 #include <gnustep/base/preface.h>
 #include <gnustep/base/mframe.h>
-#include <gnustep/base/MallocAddress.h>
+#include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -675,7 +675,7 @@ mframe_dissect_call (arglist_t argframe, const char *type,
      -decodeValueOfCType:at:withName: to decode a char* string, you
      should remember that -decodeValueOfCType:at:withName: malloc's
      new memory to hold the string, and DECODER should autorelease the
-     malloc'ed pointer, using the MallocAddress class.
+     malloc'ed pointer, using the NSData class.
 
 
    ENCODER should be a pointer to a function that records the method's
@@ -901,7 +901,7 @@ mframe_do_call_opts (const char *encoded_types,
 	     Note: the decoder allocates memory for holding the
 	     string, and it is also responsible for making sure that
 	     the memory gets freed eventually, (usually through the
-	     autorelease of MallocAddress object). */
+	     autorelease of NSData object). */
 	  if ((flags & _F_IN) || !(flags & _F_OUT))
 	    (*decoder) (argnum, datum, tmptype);
 
@@ -1283,15 +1283,19 @@ mframe_build_return_opts (arglist_t argframe,
 		(*decoder) (-1, retframe, tmptype, flags);
 	      }
 	      else {
+		unsigned retLength;
+
 		/* We are returning a pointer to something. */
 		/* Increment TYPE so we can see what it is a pointer to. */
 		tmptype++;
+		retLength = objc_sizeof_type(tmptype);
 		/* Allocate some memory to hold the value we're pointing to. */
 		*(void**)retframe = 
-		  objc_malloc (objc_sizeof_type (tmptype));
+		  objc_malloc (retLength);
 		/* We are responsible for making sure this memory gets free'd
-		   eventually.  Ask MallocAddress class to autorelease it. */
-		[MallocAddress autoreleaseMallocAddress: *(void**)retframe];
+		   eventually.  Ask NSData class to autorelease it. */
+		[NSData dataWithBytesNoCopy: *(void**)retframe
+				     length: retLength];
 		/* Decode the return value into the memory we allocated. */
 		(*decoder) (-1, *(void**)retframe, tmptype, flags);
 	      }

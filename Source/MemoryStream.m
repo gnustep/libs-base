@@ -319,7 +319,7 @@ void unchar_func(void *s, int c)
   [data setLength: size];
   
   ret = VSPRINTF_LENGTH (vsprintf([data mutableBytes]+prefix+position,
-				[format cStringNoCopy], arg));
+				[format cString], arg));
   position += ret;
   /* xxx Make sure we didn't overrun our buffer.
      As per above kludge, this would happen if we happen to have more than
@@ -345,7 +345,7 @@ void unchar_func(void *s, int c)
 
   va_start(ap, format);
   ret = o_vscanf(self, inchar_func, unchar_func, 
-		       [format cStringNoCopy], ap);
+		       [format cString], ap);
   va_end(ap);
   return ret;
 }

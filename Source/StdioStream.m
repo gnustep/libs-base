@@ -114,7 +114,7 @@ o_vscanf (void *stream,
 
 - initWithFilename: (NSString*)name fmode: (const char *)m
 {
-  FILE *afp = fopen([name cStringNoCopy], (char*)m);
+  FILE *afp = fopen([name cString], (char*)m);
   if (!afp)
     {
       id message;
@@ -152,7 +152,7 @@ o_vscanf (void *stream,
   return nil;
 #else
   return [self initWithFilePointer:
-	       popen([systemCommand cStringNoCopy], "w")
+	       popen([systemCommand cString], "w")
 	       fmode:"w"];
 #endif
 }
@@ -163,7 +163,7 @@ o_vscanf (void *stream,
   return nil;
 #else
   return [self initWithFilePointer:
-	       popen([systemCommand cStringNoCopy], "r")
+	       popen([systemCommand cString], "r")
 	       fmode:"r"];
 #endif
 }
@@ -203,7 +203,7 @@ o_vscanf (void *stream,
 - (int) writeFormat: (NSString*)format
 	  arguments: (va_list)arg
 {
-  return vfprintf(fp, [format cStringNoCopy], arg);
+  return vfprintf(fp, [format cString], arg);
 }
 
 static int
@@ -236,7 +236,7 @@ stdio_unchar_func(void *s, int c)
 
   va_start(ap, format);
   ret = o_vscanf(fp, stdio_inchar_func, stdio_unchar_func, 
-		       [format cStringNoCopy], ap);
+		       [format cString], ap);
   va_end(ap);
   return ret;
 }

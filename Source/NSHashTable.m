@@ -304,7 +304,7 @@ NSHashInsertKnownAbsent(NSHashTable *table, const void *element)
      * date. */
     [NSException raise:NSInvalidArgumentException
                  format:@"NSHashTable: illegal reinsertion of: %s",
-                 [NSHT_DESCRIBE(table, element) cStringNoCopy]];
+                 [NSHT_DESCRIBE(table, element) cString]];
   }
   else
   {
@@ -358,7 +358,7 @@ NSStringFromHashTable(NSHashTable *table)
    * each to the mutable string STRING. */
   while ((pointer = NSNextHashEnumeratorItem(&enumerator)) != 0)
     [string appendFormat:@"%s;\n", 
-	    [NSHT_DESCRIBE(table, pointer) cStringNoCopy]];
+	    [NSHT_DESCRIBE(table, pointer) cString]];
 
   /* STRING is already autoreleased. */
   return (NSString *) string;

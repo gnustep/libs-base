@@ -58,7 +58,6 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#include <gnustep/base/MallocAddress.h>
 #include <gnustep/base/behavior.h>
 
 #include <gnustep/base/NSGSequence.h>
@@ -210,7 +209,7 @@ handle_printf_atsign (FILE *stream,
 #endif
   len = fprintf(stream, "%*s",
 		(info->left ? - info->width : info->width),
-		[[string_object description] cStringNoCopy]);
+		[[string_object description] cString]);
   return len;
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
@@ -380,7 +379,7 @@ handle_printf_atsign (FILE *stream,
    arguments: (va_list)arg_list
 {
 #if HAVE_VSPRINTF
-  const char *format_cp = [format cStringNoCopy];
+  const char *format_cp = [format cString];
   int format_len = strlen (format_cp);
   /* xxx horrible disgusting BUFFER_EXTRA arbitrary limit; fix this! */
   #define BUFFER_EXTRA 1024*500
@@ -455,7 +454,7 @@ handle_printf_atsign (FILE *stream,
 	    format_to_go = spec_pos+1;
 	  }
 	/* Get a C-string (char*) from the String object, and print it. */
-	cstring = [[(id) va_arg (arg_list, id) description] cStringNoCopy];
+	cstring = [[(id) va_arg (arg_list, id) description] cString];
 	if (!cstring)
 	  cstring = "<null string>";
 	strcat (buf+printed_len, cstring);
@@ -1261,7 +1260,7 @@ handle_printf_atsign (FILE *stream,
 {
   id obj;
   void *bufstate;
-  bufstate = (void *)pl_scan_string([self cStringNoCopy]);
+  bufstate = (void *)pl_scan_string([self cString]);
   obj = (id)plparse();
   pl_delete_buffer(bufstate);
   return obj;
@@ -1273,7 +1272,7 @@ handle_printf_atsign (FILE *stream,
    id dict = [[[NSMutableDictionary alloc] init] autorelease];
    void *bufstate;
 
-   bufstate = (void *)sf_scan_string([self cStringNoCopy]);
+   bufstate = (void *)sf_scan_string([self cString]);
    sfSetDict(dict);
    sfparse(dict);
    sf_delete_buffer(bufstate);
@@ -1949,17 +1948,17 @@ else
 
 - (double) doubleValue
 {
-  return atof([self cStringNoCopy]);
+  return atof([self cString]);
 }
 
 - (float) floatValue
 {
-  return (float) atof([self cStringNoCopy]);
+  return (float) atof([self cString]);
 }
 
 - (int) intValue
 {
-  return atoi([self cStringNoCopy]);
+  return atoi([self cString]);
 }
 
 // Working With Encodings
@@ -2097,7 +2096,7 @@ else
 
 - (BOOL)getFileSystemRepresentation: (char*)buffer maxLength: (unsigned int)size
 {
-  const char* ptr = [self cStringNoCopy];
+  const char* ptr = [self cString];
   if (strlen(ptr) > size)
     return NO;
   strcpy(buffer, ptr);
@@ -2520,7 +2519,7 @@ else
 
     if ([self length] == 0 ||
 	[self rangeOfCharacterFromSet: quotables].length > 0) {
-	const char	*cstring = [self cStringNoCopy];
+	const char	*cstring = [self cString];
 	const char	*from;
 	int		len = 0;
 
@@ -2640,12 +2639,6 @@ else
   return [super allocWithZone:z];
 }
 
-/* xxx This method may be removed in future. */
-- (void) setCString: (const char *)byteString length: (unsigned)length
-{
-  [self subclassResponsibility:_cmd];
-}
-
 // Creating Temporary Strings
 
 + (NSMutableString*) stringWithCapacity:(unsigned)capacity
@@ -2668,12 +2661,12 @@ else
   return [self stringWithCString:byteString length:strlen(byteString)];
 }
 
-+ (NSString*) stringWithCString: (const char*)bytes
-   length:(unsigned)length
++ (NSString*) stringWithCString: (const char*)byteString
+   length: (unsigned int)length
 {
-  id n = [[self alloc] initWithCapacity:length];
-  [n setCString:bytes length:length];
-  return n;
+  return [[[self alloc]
+	   initWithCString:byteString length:length]
+	  autorelease];
 }
 
 /* xxx Change this when we have non-CString classes */

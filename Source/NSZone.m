@@ -365,7 +365,7 @@ fmalloc (NSZone *zone, size_t size)
           if (zone->name != nil)
             [NSException raise: NSMallocException
                          format: @"Zone %s has run out of memory",
-                         [zone->name cStringNoCopy]];
+                         [zone->name cString]];
           else
             [NSException raise: NSMallocException
                          format: @"Out of memory"];
@@ -456,7 +456,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
               if (zone->name != nil)
                 [NSException raise: NSMallocException
                              format: @"Zone %s has run out of memory",
-                             [zone->name cStringNoCopy]];
+                             [zone->name cString]];
               else
                 [NSException raise: NSMallocException
                              format: @"Out of memory"];
@@ -987,7 +987,7 @@ nmalloc (NSZone *zone, size_t size)
               if (zone->name != nil)
                 [NSException raise: NSMallocException
                              format: @"Zone %s has run out of memory",
-                             [zone->name cStringNoCopy]];
+                             [zone->name cString]];
               else
                 [NSException raise: NSMallocException
                              format: @"Out of memory"];
@@ -1031,7 +1031,7 @@ nrealloc (NSZone *zone, void *ptr, size_t size)
   if (zone->name != nil)
     [NSException raise: NSGenericException
                  format: @"Trying to reallocate in nonfreeable zone %s",
-                 [zone->name cStringNoCopy]];
+                 [zone->name cString]];
   else
     [NSException raise: NSGenericException
                  format: @"Trying to reallocate in nonfreeable zone"];
@@ -1044,7 +1044,7 @@ nfree (NSZone *zone, void *ptr)
   if (zone->name != nil)
     [NSException raise: NSGenericException
                  format: @"Trying to free memory from nonfreeable zone %s",
-                 [zone->name cStringNoCopy]];
+                 [zone->name cString]];
   else
     [NSException raise: NSGenericException
                  format: @"Trying to free memory from nonfreeable zone"];

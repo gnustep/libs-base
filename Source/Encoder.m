@@ -855,7 +855,7 @@ my_object_is_class(id object)
 
 #if 0
   if (classname_2_classname)
-    return NSMapGet (classname_2_classname, [trueName cStringNoCopy]);
+    return NSMapGet (classname_2_classname, [trueName cString]);
   return trueName;
 #endif
 }
