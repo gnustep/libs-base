@@ -51,7 +51,7 @@
  *	are only stored once.  If the property-list has a lot of repeated
  *	strings in it, this will be both faster and more space efficient
  *	but it will be slower if the property-list has few repeated
- *	strings.  The default is to generate compact versions of the data.
+ *	strings.  The default is NOT to generate compact versions of the data.
  *
  *	The [+shouldBeCompact:] method sets default behavior.
  *	The [+serializePropertyList:intoData:compact:] method lets you

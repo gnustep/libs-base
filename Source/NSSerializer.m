@@ -273,7 +273,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 
 @implementation NSSerializer
 
-static BOOL	shouldBeCompact = YES;
+static BOOL	shouldBeCompact = NO;
 
 + (void) initialize
 {
