@@ -23,6 +23,16 @@ make
 make install
 @end example
 
+If you are running GNU/Linux and have an older version of libc, then the
+Objective C runtime will not work unless you pass @samp{-lieee} to the
+linker.  You can do that like this:
+
+@example
+LIBS=-lieee ./configure --prefix=/usr/local
+make
+make install
+@end example
+
 Here are more detailed instructions.
 
 @enumerate
