@@ -130,6 +130,7 @@ typedef xmlNsType		GSXMLNamespaceType;
 - (GSXMLNode*) prev;
 - (GSXMLAttribute*) properties;
 - (NSMutableDictionary*) propertiesAsDictionary;
+- (NSMutableDictionary*) propertiesAsDictionaryWithKeyTransformationSel:(SEL)keyTransformSel;
 - (GSXMLElementType) type;
 - (NSString*) typeDescription;
 
