@@ -913,9 +913,11 @@ AC_CONFIG_SUBDIRS(Source/mframe)
 #--------------------------------------------------------------------
 # Record the version
 #--------------------------------------------------------------------
+AC_MSG_CHECKING(for the version of gnustep-base we are compiling)
 if test -f "Version"; then
   . ./Version
 fi
+AC_MSG_RESULT($VERSION)
 AC_SUBST(VERSION)
 AC_SUBST(MAJOR_VERSION)
 AC_SUBST(MINOR_VERSION)
