@@ -238,8 +238,10 @@
       on other files.
     </item>
     <item><strong>SourceDirectory</strong>
-      May be used to specify the directory to be searched for header files.
-      If this is not specified, headers are looked for relative to the
+      May be used to specify the directory to be searched for source
+      (anything other than <code>.h</code> files ... which are controlled
+      by the HeaderDirectory default).<br />
+      If this is not specified, sources are looked for relative to the
       current directory or using absolute path names if given.
     </item>
     <item><strong>SystemProjects</strong>
@@ -307,7 +309,6 @@ main(int argc, char **argv, char **env)
   NSString		*up = nil;
   NSString		*prev = nil;
   BOOL			showDependencies = YES;
-  id			o;
   CREATE_AUTORELEASE_POOL(outer);
   CREATE_AUTORELEASE_POOL(pool);
 
@@ -496,7 +497,7 @@ main(int argc, char **argv, char **env)
 	}
       else if ([arg hasSuffix: @".h"] == YES
 	|| [arg hasSuffix: @".m"] == YES
-	|| [arg hasSuffix: @".gsdoc"]== YES)
+	|| [arg hasSuffix: @".gsdoc"] == YES)
 	{
 	  NSString	*gsdocfile;
 	  NSString	*hfile;
@@ -560,61 +561,66 @@ main(int argc, char **argv, char **env)
 		  AUTORELEASE(RETAIN(sDate));
 		}
 	    }
-	  attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
-	  gDate = [attrs objectForKey: NSFileModificationDate];
-	  AUTORELEASE(RETAIN(gDate));
 
-	  if (gDate == nil || [sDate earlierDate: gDate] == gDate)
+	  if (isDocumentation == NO)
 	    {
-	      if (showDependencies == YES)
-		{
-		  NSLog(@"%@: source %@, gsdoc %@ ==> regenerate",
-		    file, sDate, gDate);
-		}
-	      [parser reset];
+	      /*
+	       * The file we are processing is not a gsdoc file ... so
+	       * we need to try to generate the gsdoc from source code.
+	       */
+	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
+	      gDate = [attrs objectForKey: NSFileModificationDate];
+	      AUTORELEASE(RETAIN(gDate));
 
-	      if (isSource == NO && isDocumentation == NO)
+	      if (gDate == nil || [sDate earlierDate: gDate] == gDate)
 		{
-		  /*
-		   * Try to parse header to see what needs documenting.
-		   */
-		  if ([mgr isReadableFileAtPath: hfile] == NO)
+		  if (showDependencies == YES)
 		    {
-		      NSLog(@"No readable header at '%@' ... skipping",
-			hfile);
-		      continue;
+		      NSLog(@"%@: source %@, gsdoc %@ ==> regenerate",
+			file, sDate, gDate);
 		    }
-		  if (declared != nil)
-		    {
-		      [parser setDeclared:
-			[declared stringByAppendingPathComponent:
-			  [hfile lastPathComponent]]];
-		    }
-		  [parser parseFile: hfile isSource: NO];
-		}
-	      else if (isSource == YES)
-		{
-		  /*
-		   * Try to parse source *as-if-it-was-a-header*
-		   * to see what needs documenting.
-		   */
-		  if ([mgr isReadableFileAtPath: sfile] == NO)
-		    {
-		      NSLog(@"No readable source at '%@' ... skipping",
-			sfile);
-		      continue;
-		    }
-		  if (declared != nil)
-		    {
-		      [parser setDeclared:
-			[declared stringByAppendingPathComponent:
-			  [sfile lastPathComponent]]];
-		    }
-		  [parser parseFile: sfile isSource: NO];
-		}
+		  [parser reset];
 
-	      if (isDocumentation == NO)
-		{
+		  if (isSource == NO)
+		    {
+		      /*
+		       * Try to parse header to see what needs documenting.
+		       */
+		      if ([mgr isReadableFileAtPath: hfile] == NO)
+			{
+			  NSLog(@"No readable header at '%@' ... skipping",
+			    hfile);
+			  continue;
+			}
+		      if (declared != nil)
+			{
+			  [parser setDeclared:
+			    [declared stringByAppendingPathComponent:
+			      [hfile lastPathComponent]]];
+			}
+		      [parser parseFile: hfile isSource: NO];
+		    }
+		  else if (isSource == YES)
+		    {
+		      /*
+		       * Try to parse source *as-if-it-was-a-header*
+		       * to see what needs documenting.
+		       */
+		      if ([mgr isReadableFileAtPath: sfile] == NO)
+			{
+			  NSLog(@"No readable source at '%@' ... skipping",
+			    sfile);
+			  continue;
+			}
+		      if (declared != nil)
+			{
+			  [parser setDeclared:
+			    [declared stringByAppendingPathComponent:
+			      [sfile lastPathComponent]]];
+			}
+		      [parser parseFile: sfile isSource: NO];
+		    }
+
 		  /*
 		   * If we can read a source file, parse it for any
 		   * additional information on items found in the header.
@@ -671,7 +677,24 @@ main(int argc, char **argv, char **env)
 		    }
 		}
 	    }
+	  else
+	    {
+	      /*
+	       * Our source file is a gsdoc file ... so it may be located
+	       * in the source (input) directory rather than the documentation
+	       * (output) directory.
+	       */
+	      if ([mgr isReadableFileAtPath: gsdocfile] == NO)
+		{
+		  gsdocfile = [sdir stringByAppendingPathComponent: file];
+		  gsdocfile = [gsdocfile stringByAppendingPathExtension:
+		    @"gsdoc"];
+		}
+	    }
 
+	  /*
+	   * Now we try to process the gsdoc data to make index info.
+	   */
 	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)
 	    {
 	      GSXMLParser	*parser;
@@ -750,6 +773,28 @@ main(int argc, char **argv, char **env)
 	  gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
 	  htmlfile = [ddir stringByAppendingPathComponent: file];
 	  htmlfile = [htmlfile stringByAppendingPathExtension: @"html"];
+
+	  /*
+	   * If the gsdoc file name was specified as a source file,
+	   * it may be in the source directory rather than the documentation
+	   * directory.
+	   */
+	  if ([mgr isReadableFileAtPath: gsdocfile] == NO
+	    && [arg hasSuffix: @".gsdoc"] == YES)
+	    {
+	      NSString	*sdir = [arg stringByDeletingLastPathComponent];
+
+	      if ([sdir length] == 0)
+		{
+		  sdir = sourceDirectory;
+		}
+	      else if ([sdir isAbsolutePath] == NO)
+		{
+		  sdir = [sourceDirectory stringByAppendingPathComponent: sdir];
+		}
+	      gsdocfile = [sdir stringByAppendingPathComponent: file];
+	      gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
+	    }
 
 	  /*
 	   * When were the files last modified?

@@ -282,7 +282,7 @@ static NSMutableSet	*textNodes = nil;
 
   [buf appendString: @"<html>\n"];
   [self incIndent];
-  [self outputNodeList: [node children] to: buf];
+  [self outputNodeList: node to: buf];
   [self decIndent];
   [buf appendString: @"</html>\n"];
 
@@ -316,6 +316,25 @@ static NSMutableSet	*textNodes = nil;
 	{
 	  /* Should already be in html body */
 	  [self outputNodeList: children to: buf];
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<br />\n"];
+	  if (prevFile != nil)
+	    {
+	      [buf appendString: indent];
+	      [buf appendFormat: @"<a href=\"%@\">Prev</a>\n", prevFile];
+	    }
+	  if (upFile != nil)
+	    {
+	      [buf appendString: indent];
+	      [buf appendFormat: @"<a href=\"%@\">Up</a>\n", upFile];
+	    }
+	  if (nextFile != nil)
+	    {
+	      [buf appendString: indent];
+	      [buf appendFormat: @"<a href=\"%@\">Next</a>\n", nextFile];
+	    }
+
 	  [self decIndent];
 	  [buf appendString: indent];
 	  [buf appendString: @"</body>\n"];
@@ -388,7 +407,7 @@ static NSMutableSet	*textNodes = nil;
 	      unsigned	l = 0;
 
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr />\n"];
+	      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
 	      [buf appendString: indent];
 	      [buf appendString: @"<h3>Contents -</h3>\n"];
 
@@ -465,7 +484,7 @@ static NSMutableSet	*textNodes = nil;
 		  l--;
 		}
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr />\n"];
+	      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
 	    }
 	}
       else if ([name isEqual: @"desc"] == YES)
@@ -562,7 +581,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 	  nextFile = [prop objectForKey: @"next"];
 	  nextFile = [nextFile stringByAppendingPathExtension: @"html"];
-	  prevFile = [prop objectForKey: @"pref"];
+	  prevFile = [prop objectForKey: @"prev"];
 	  prevFile = [prevFile stringByAppendingPathExtension: @"html"];
 	  upFile = [prop objectForKey: @"up"];
 	  upFile = [upFile stringByAppendingPathExtension: @"html"];
@@ -586,6 +605,25 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: indent];
 	  [buf appendString: @"<body>\n"];
 	  [self incIndent];
+
+	  if (prevFile != nil)
+	    {
+	      [buf appendString: indent];
+	      [buf appendFormat: @"<a href=\"%@\">Prev</a>\n", prevFile];
+	    }
+	  if (upFile != nil)
+	    {
+	      [buf appendString: indent];
+	      [buf appendFormat: @"<a href=\"%@\">Up</a>\n", upFile];
+	    }
+	  if (nextFile != nil)
+	    {
+	      [buf appendString: indent];
+	      [buf appendFormat: @"<a href=\"%@\">Next</a>\n", nextFile];
+	    }
+	  [buf appendString: indent];
+	  [buf appendString: @"<br />\n"];
+
 	  [buf appendString: indent];
 	  [buf appendString: @"<h1>"];
 	  [self outputText: [children children] to: buf];
@@ -854,7 +892,8 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 		  tmp = [node children];
 		  if (tmp != nil)
 		    {
-		      [buf appendString: @"Standards:"];
+		      [buf appendString: indent];
+		      [buf appendString: @"<b>Standards:</b>"];
 		      while (tmp != nil)
 			{
 			  [buf appendString: @" "];
@@ -888,7 +927,7 @@ NSLog(@"Element '%@' not implemented", name); 	    // FIXME
 		  [self outputNode: node to: buf];
 		}
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr />\n"];
+	      [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
 	    }
 	}
       else if ([name isEqual: @"p"] == YES)
@@ -1289,26 +1328,60 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
   if (node != nil && [[node name] isEqual: @"declared"] == YES)
     {
       [buf appendString: indent];
-      [buf appendString: @"Declared: "];
-      [self outputText: [node children] to: buf];
-      [buf appendString: @"<br />\n"];
-      node = [node next];
-    }
-  while (node != nil && [[node name] isEqual: @"conform"] == YES)
-    {
-      NSString	*text = [[node children] content];
-
+      [buf appendString: @"<blockquote>\n"];
+      [self incIndent];
       [buf appendString: indent];
-      [buf appendString: @"Conform: "];
-      [buf appendString: [self protocolRef: text]];
-      [buf appendString: @"<br />\n"];
+      [buf appendString: @"<dl>\n"];
+      [self incIndent];
+      [buf appendString: indent];
+      [buf appendString: @"<dt><b>Declared in:</b></dt>\n"];
+      [buf appendString: indent];
+      [buf appendString: @"<dd>"];
+      [self outputText: [node children] to: buf];
+      [buf appendString: @"</dd>\n"];
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</dl>\n"];
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</blockquote>\n"];
       node = [node next];
     }
+
+  if (node != nil && [[node name] isEqual: @"conform"] == YES)
+    {
+      [buf appendString: indent];
+      [buf appendString: @"<blockquote>\n"];
+      [self incIndent];
+      [buf appendString: indent];
+      [buf appendString: @"<dl>\n"];
+      [self incIndent];
+      [buf appendString: indent];
+      [buf appendString: @"<dt><b>Conforms to:</b></dt>\n"];
+      while (node != nil && [[node name] isEqual: @"conform"] == YES)
+	{
+	  NSString	*text = [[node children] content];
+
+	  [buf appendString: indent];
+	  [buf appendString: @"<dd>"];
+	  [buf appendString: [self protocolRef: text]];
+	  [buf appendString: @"</dd>\n"];
+	  node = [node next];
+	}
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</dl>\n"];
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</blockquote>\n"];
+    }
+
   if (node != nil && [[node name] isEqual: @"desc"] == YES)
     {
       [self outputNode: node to: buf];
       node = [node next];
     }
+
   a = [localRefs methodsInUnit: unit];
   if ([a count] > 0)
     {
@@ -1317,7 +1390,9 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
 
       [a sortUsingSelector: @selector(compare:)];
       [buf appendString: indent];
-      [buf appendString: @"<h2>Methods</h2>\n"];
+      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+      [buf appendString: indent];
+      [buf appendString: @"<h2>Method summary</h2>\n"];
       [buf appendString: indent];
       [buf appendString: @"<ul>\n"];
       [self incIndent];
@@ -1334,6 +1409,8 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
       [self decIndent];
       [buf appendString: indent];
       [buf appendString: @"</ul>\n"];
+      [buf appendString: indent];
+      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
     }
   while (node != nil && [[node name] isEqual: @"method"] == YES)
     {
@@ -1342,7 +1419,20 @@ NSLog(@"Element '%@' not implemented", name); // FIXME
     }
   if (node != nil && [[node name] isEqual: @"standards"] == YES)
     {
-      [self outputNode: node to: buf];
+      GSXMLNode	*tmp = node;
+
+      if (tmp != nil)
+	{
+	  [buf appendString: indent];
+	  [buf appendString: @"<b>Standards:</b>"];
+	  while (tmp != nil)
+	    {
+	      [buf appendString: @" "];
+	      [buf appendString: [tmp name]];
+	      tmp = [tmp next];
+	    }
+	  [buf appendString: @"<br />\n"];
+	}
       node = [node next];
     }
 }
