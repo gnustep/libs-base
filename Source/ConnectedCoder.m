@@ -1,5 +1,5 @@
 /* Implementation of coder object for remote messaging
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -89,7 +89,7 @@ static BOOL debug_connected_coder = NO;
 	 timeout:timeout];
   if (len < 0)			/* timeout */
     {
-      [self free];
+      (*objc_free)(b);
       return nil;
     }
   
