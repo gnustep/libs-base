@@ -50,19 +50,12 @@
 #include <stdlib.h>
 #include "GSPrivate.h"
 
-/* The number of seconds between 1/1/2001 and 1/1/1970 = -978307200. */
-/* This number comes from:
--(((31 years * 365 days) + 8 days for leap years) =total number of days
-  * 24 hours
-  * 60 minutes
-  * 60 seconds)
-  This ignores leap-seconds. */
-#define UNIX_REFERENCE_INTERVAL -978307200.0
-
 /* I hope 100,000 years is distant enough. */
 #define DISTANT_YEARS 100000.0
 #define DISTANT_FUTURE	(DISTANT_YEARS * 365.0 * 24 * 60 * 60)
 #define DISTANT_PAST	(-DISTANT_FUTURE)
+
+const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
 
 
 
@@ -138,7 +131,7 @@ GSTimeNow()
   struct timeval tp;
 
   gettimeofday (&tp, NULL);
-  interval = UNIX_REFERENCE_INTERVAL;
+  interval = -NSTimeIntervalSince1970;
   interval += tp.tv_sec;
   interval += (double)tp.tv_usec / 1000000.0;
   return interval;
@@ -922,7 +915,7 @@ GSTimeNow()
 + (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds
 {
   return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
-		       UNIX_REFERENCE_INTERVAL + seconds]);
+		       -NSTimeIntervalSince1970 + seconds]);
 }
 
 + (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
@@ -1043,7 +1036,7 @@ GSTimeNow()
 - (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds
 {
   return [self initWithTimeIntervalSinceReferenceDate:
-    UNIX_REFERENCE_INTERVAL + seconds];
+    -NSTimeIntervalSince1970 + seconds];
 }
 
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
@@ -1121,7 +1114,7 @@ GSTimeNow()
 
 - (NSTimeInterval) timeIntervalSince1970
 {
-  return otherTime(self) - UNIX_REFERENCE_INTERVAL;
+  return otherTime(self) + NSTimeIntervalSince1970;
 }
 
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
@@ -1248,7 +1241,7 @@ GSTimeNow()
 
 - (NSTimeInterval) timeIntervalSince1970
 {
-  return _seconds_since_ref - UNIX_REFERENCE_INTERVAL;
+  return _seconds_since_ref + NSTimeIntervalSince1970;
 }
 
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
