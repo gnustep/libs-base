@@ -1,4 +1,17 @@
+Thu Jan 31 15:35:21 2002  Nicola Pero  <nicola@brainstorm.co.uk>
+
+	* Source/NSObject.m ([-doesNotRecognizeSelector:]): Modified
+	exception message to print out if we are an instance or a class
+	object.  For example, no longer 'IvarProxy does not recognize
+	initWithClass:' but rather 'IvarProxy(class) does not recognize
+	initWithClass:'.
+	([-doesNotRecognize:]): Idem.
+	([-subclassResponsibility:]): Similar change.
+	([-shouldNotImplement:]): Similar change.
+	([-notImplemented:]): Similar change.
+
 2002-01-31  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/gnustep/base/GSIArray.h: Use array as parameter to macros.
 	* Source/GSAttributedString.m: Update for GSIArray change.
 	* Source/GSCountedSet.m: Update for GSIArray change.
@@ -25,6 +38,7 @@
 	* configure.in: Improve check for sa_len
 
 2002-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/gnustep/base/GSIMap.h: Fix bug cleaning table and add
 	option to specify type of enumerator structure externally.
 	* Headers/gnustep/base/NSHashTable.h: Modify to conform to MacOS-X
