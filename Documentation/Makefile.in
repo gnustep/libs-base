@@ -47,12 +47,12 @@ libobjects.texi \
 news.texi \
 objective-c.texi \
 readme.texi \
-todo.texi
+todo.texi \
+machines.texi
 
 all: 
 
-info: libobjects.info objective-c.info \
-	TODO INSTALL NEWS README ANNOUNCE ADVERTISEMENT
+info: TODO INSTALL NEWS README ANNOUNCE ADVERTISEMENT
 dvi: libobjects.dvi objective-c.dvi
 
 version.texi: $(srcdir)/../Version
@@ -75,8 +75,10 @@ objective-c.dvi: objective-c.texi
 
 libobjects.info: libobjects.texi todo.texi version.texi
 	@echo Sorry, makeinfo does not yet support Objective C documentation.
+	:$(MAKEINFO) $(srcdir)/libobjects.texi
 objective-c.info: objective-c.texi
-	$(MAKEINFO) $(srcdir)/objective-c.texi
+	@echo Sorry, makeinfo does not yet support Objective C documentation.
+	:$(MAKEINFO) $(srcdir)/objective-c.texi
 TODO: todo.texi version.texi
 	$(MAKEINFO) -o TODO -D TODO_ONLY \
 	--no-header --no-split $(srcdir)/todo.texi
