@@ -102,7 +102,8 @@ FastArrayAddItem(FastArray array, FastArrayItem item)
       array->old = array->cap;
       array->cap = next;
     }
-  array->ptr[array->count++] = FAST_ARRAY_RETAIN(item);
+  FAST_ARRAY_RETAIN(item);
+  array->ptr[array->count++] = item;
 }
 
 static INLINE void
@@ -122,7 +123,8 @@ FastArraySetItemAtIndex(FastArray array, FastArrayItem item, unsigned index)
   if (array->ptr[index].o != item.o)
     {
       FAST_ARRAY_RELEASE(array->ptr[index]);
-      array->ptr[index] = FAST_ARRAY_RETAIN(item);
+      FAST_ARRAY_RETAIN(item);
+      array->ptr[index] = item;
     }
 }
 

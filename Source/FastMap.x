@@ -93,6 +93,7 @@
 
 typedef	union {
   id		o;
+  NSObject	*O;
   Class		c;
   SEL		C;
   int		i;
@@ -529,8 +530,8 @@ FastMapAddPair(FastMapTable map, FastMapItem key, FastMapItem value)
 {
   FastMapNode node;
 
-  key = FAST_MAP_RETAIN_KEY(key);
-  value = FAST_MAP_RETAIN_VAL(value);
+  FAST_MAP_RETAIN_KEY(key);
+  FAST_MAP_RETAIN_VAL(value);
   node = FastMapNewNode(map, key, value);
 
   if (node != 0)
@@ -561,7 +562,7 @@ FastMapAddKey(FastMapTable map, FastMapItem key)
 {
   FastMapNode node;
 
-  key = FAST_MAP_RETAIN_KEY(key);
+  FAST_MAP_RETAIN_KEY(key);
   node = FastMapNewNode(map, key);
 
   if (node != 0)

@@ -102,7 +102,8 @@ myEqual(id self, id other)
  */
 #define	FAST_MAP_HASH(X)	myHash(X.o)
 #define	FAST_MAP_EQUAL(X,Y)	myEqual(X.o,Y.o)
-#define	FAST_MAP_RETAIN_KEY(X)	[((id)(X).o) copyWithZone: map->zone]
+#define	FAST_MAP_RETAIN_KEY(X)	((id)(X).o) = \
+				[((id)(X).o) copyWithZone: map->zone]
 
 #include	"FastMap.x"
 
