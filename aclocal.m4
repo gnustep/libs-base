@@ -122,7 +122,7 @@ int main()
   return 0;
 }
 EOF
-${CC-cc} -o conftest $CFLAGS $CPPFLAGS $LDFLAGS conftest.constructor.$ac_ext $LIBS 1>&5
+${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.constructor.$ac_ext $LIBS 1>&5
 if test -n "`nm conftest | grep _ctors_aux`"; then 
   objc_cv_con_autoload=yes
 else
