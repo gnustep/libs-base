@@ -1,3 +1,18 @@
+Tue Apr 20 16:50:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/Makefile.postamble: NSRunLoop.m uses FastArray.x
+	* Source/NSConnection.m: Tiny performance optimisation.
+	* Source/NSDate.m: Minor fixes to class cluster.
+	* Source/NSGDictionary.m: fixed typo.
+	* Source/NSNotificationQueue.m: Optimised runloop interaction.
+	* Source/NSRunLoop.m: Optimisaed notification queue interaction.
+	* Source/NSTimer.m: Optimisation for run loop.
+	* Source/NSUnarchiver.m: Fixed typo.
+	* Source/include/FastArray.x: Support sorted insertion.
+	* Source/include/NSDate.h: Tidied.
+	* Source/include/NSNotificationQueue.h: Change runloop interface.
+	* Source/include/NSTimer.h: Change runloop interface.
+
 Mon Apr 19 14:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSThread.m: Fast thread access (GSCurrentThread()) etc.
