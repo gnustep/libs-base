@@ -135,7 +135,7 @@ NSLogv (NSString* format, va_list args)
   prefix = [NSString
 	     stringWithFormat: @"%@ %@[%d] ",
 	     [[NSCalendarDate calendarDate] 
-	       descriptionWithCalendarFormat: @"%b %d %H:%M:%S"],
+	       descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
 	     [[NSProcessInfo processInfo] processName],
 	     pid];
 
