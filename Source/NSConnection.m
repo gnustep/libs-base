@@ -141,6 +141,15 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 
 @implementation	CachedLocalObject
 
++ (CachedLocalObject*) itemWithObject: (id)o time: (int)t
+{
+    CachedLocalObject	*item = [[self alloc] init];
+
+    item->obj = [o retain];
+    item->time = t;
+    return [item autorelease];
+}
+
 - (void) dealloc
 {
     [obj release];
@@ -157,16 +166,6 @@ NSString *NSConnectionProxyCount = @"NSConnectionProxyCount";
 - (id) obj
 {
     return obj;
-}
-
-+ (CachedLocalObject*) itemWithObject: (id)o time: (int)t
-{
-    CachedLocalObject	*item = [self alloc];
-
-    item = [super init];
-    item->obj = [o retain];
-    item->time = t;
-    return [item autorelease];
 }
 
 @end
