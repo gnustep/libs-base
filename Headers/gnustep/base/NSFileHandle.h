@@ -149,7 +149,7 @@ GS_EXPORT NSString*	NSFileHandleOperationException;
  */
 @class	GSUnixSSLHandle;
 @interface NSFileHandle (GNUstepOpenSSL)
-- (void) sslConnect;
+- (BOOL) sslConnect;
 - (void) sslDisconnect;
 - (void) sslSetCertificate: (NSString*)certFile
                 privateKey: (NSString*)privateKey
