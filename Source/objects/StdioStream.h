@@ -1,5 +1,5 @@
 /* Interface for GNU Objective C stdio stream
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -38,12 +38,15 @@
 + standardOut;
 + standardError;
 
++ streamWithFilename: (id <String>)name fmode: (const char *)m;
+/* xxx Add the others too. */
+
 - initWithFilePointer: (FILE*)afp fmode: (const char *)m;
-- initWithFilename: (const char *)name fmode: (const char *)m;
+- initWithFilename: (id <String>)name fmode: (const char *)m;
 - initWithFileDescriptor: (int)fd fmode: (const char *)m;
 
-- initWithPipeTo: (const char *)systemCommand;
-- initWithPipeFrom: (const char *)systemCommand;
+- initWithPipeTo: (id <String>)systemCommand;
+- initWithPipeFrom: (id <String>)systemCommand;
 
 @end
 
