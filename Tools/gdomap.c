@@ -4466,20 +4466,6 @@ printf(
 	}
     }
 
-  if (pidfile)
-    {
-      FILE	*fptr = fopen(pidfile, "at");
-
-      if (fptr == 0)
-	{
-	  sprintf(ebuf, "Unable to open pid file - '%s'", pidfile);
-	  gdomap_log(LOG_CRIT);
-	  exit(1);
-	}
-      fprintf(fptr, "%d\n", (int) getpid());
-      fclose(fptr);
-    }
-
   /*
    *	Ensure we don't have any open file descriptors which may refer
    *	to sockets bound to ports we may try to use.
