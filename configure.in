@@ -248,6 +248,17 @@ AC_ARG_ENABLE(shared, Build the library as a shared library,
     SHARED_LIBRARY=)
 AC_SUBST(SHARED_LIBRARY)
 
+#--------------------------------------------------------------------
+# What flags to pass for making a shared library?
+# xxx This should be smarter and more general
+#--------------------------------------------------------------------
+echo Checking what flags to use for making a shared lib...
+if (./config.guess | grep solaris); then
+  CFLAGS_SHAREDLIB='$(CFLAGS_SHAREDLIB_SOLARIS)'
+else
+  CFLAGS_SHAREDLIB='$(CFLAGS_SHAREDLIB_GNU)'
+fi
+AC_SUBST(CFLAGS_SHAREDLIB)
 
 #--------------------------------------------------------------------
 # Write the Makefiles
