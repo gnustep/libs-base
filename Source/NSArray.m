@@ -30,21 +30,38 @@
 
 @implementation NSArray
 
+static Class NSArray_concrete_class;
+
++ (void) _setConcreteClass: (Class)c
+{
+  NSArray_concrete_class = c;
+}
+
++ (Class) _concreteClass
+{
+  return NSArray_concrete_class;
+}
+
++ (void) initialize
+{
+  NSArray_concrete_class = [NSGArray class];
+}
+
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([NSGArray class], 0, z);
+  return NSAllocateObject([self _concreteClass], 0, z);
 }
 
 + array
 {
-  return [[[NSGArray alloc] init] autorelease];
+  return [[[[self _concreteClass] alloc] init] 
+	  autorelease];
 }
 
 + arrayWithObject: anObject
 {
-  id a = [[[NSGArray class] alloc] init];
-  [a addObject: anObject];
-  return [a autorelease];
+  return [[[[self _concreteClass] alloc] initWithObjects:&anObject count:1]
+	  autorelease];
 }
 
 /* This is the designated initializer for NSArray. */
@@ -93,7 +110,7 @@
 {
   va_list ap;
   va_start(ap, firstObject);
-  self = [[NSGArray alloc] initWithObjects:firstObject rest:ap];
+  self = [[[self _concreteClass alloc] initWithObjects:firstObject rest:ap];
   va_end(ap);
   return [self autorelease];
 }
@@ -275,14 +292,31 @@
 
 @implementation NSMutableArray: NSArray
 
+static Class NSMutableArray_concrete_class;
+
++ (void) _setConcreteClass: (Class)c
+{
+  NSMutableArray_concrete_class = c;
+}
+
++ (Class) _concreteClass
+{
+  return NSMutableArray_concrete_class;
+}
+
++ (void) initialize
+{
+  NSMutableArray_concrete_class = [NSGMutableArray class];
+}
+
 + allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([NSGMutableArray class], 0, z);
+  return NSAllocateObject([self _concreteClass], 0, z);
 }
 
 + arrayWithCapacity: (unsigned)numItems
 {
-  return [[[[NSGMutableArray class] alloc] initWithCapacity:numItems] 
+  return [[[[self _concreteClass] alloc] initWithCapacity:numItems] 
 	  autorelease];
 }
 
@@ -293,10 +327,12 @@
   return nil;
 }
 
+#if 0
 /* Not in OpenStep. */
 - (void) addObjects: (id*)objects count: (unsigned)count
 {
 }
+#endif
 
 /* Override our superclass's designated initializer to go our's */
 - initWithObjects: (id*)objects count: (unsigned)count
