@@ -448,7 +448,7 @@ static int messagesReceivedCount;
    if we're connecting to another Connection that already registered 
    with that name. */
 
-+ (Connection*) newRegisteringAtName: (const char*)n withRootObject: anObj
++ (Connection*) newRegisteringAtName: (String*)n withRootObject: anObj
 {
   id newPort;
   id newConn;
@@ -460,12 +460,12 @@ static int messagesReceivedCount;
   return newConn;
 }
 
-+ (Proxy*) rootProxyAtName: (const char*)n;
++ (Proxy*) rootProxyAtName: (String*)n;f
 {
   return [self rootProxyAtName:n onHost:""];
 }
 
-+ (Proxy*) rootProxyAtName: (const char*)n onHost: (const char*)h;
++ (Proxy*) rootProxyAtName: (String*)n onHost: (String*)h;
 {
   id p = [default_port_class newPortFromRegisterWithName:n onHost:h];
   return [self rootProxyAtPort:p];
