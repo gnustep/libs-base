@@ -26,11 +26,10 @@
 
 @implementation Stack 
   
-+ initialize
++ (void) initialize
 {
   if (self == [Stack class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 - pushElement: (elt)anElement
