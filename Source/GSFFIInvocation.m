@@ -53,19 +53,19 @@ void GSFFIInvocationCallback(ffi_cif*, void*, void **, void*);
  * we work around it.
  */
 
-static INLINE Method_t
+static INLINE GSMethod
 gs_method_for_receiver_and_selector (id receiver, SEL sel)
 {
   if (receiver)
     {
       if (object_is_instance (receiver))
         {
-          return class_get_instance_method (object_get_class
+          return GSGetInstanceMethod (object_get_class
                                               (receiver), sel);
         }
       else if (object_is_class (receiver))
         {
-          return class_get_class_method (object_get_meta_class
+          return GSGetClassMethod (object_get_class
                                            (receiver), sel);
         }
     }
@@ -125,7 +125,7 @@ gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
 
   if (receiver)
     {
-      Method_t method;
+      GSMethod method;
 
       method = gs_method_for_receiver_and_selector (receiver, sel);
       /* CHECKME:  Can we assume that:
@@ -320,10 +320,10 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   else
     {
       imp = method_get_imp(object_is_instance(_target) ?
-	class_get_instance_method(
+	GSGetInstanceMethod(
 	  ((struct objc_class*)_target)->class_pointer, _selector)
-	: class_get_class_method(
-	  ((struct objc_class*)_target)->class_pointer, _selector));
+	: GSGetClassMethod(
+	  (struct objc_class*)_target, _selector));
       /*
        * If fast lookup failed, we may be forwarding or something ...
        */
@@ -359,7 +359,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   SEL			selector;
   GSFFIInvocation	*invocation;
   NSMethodSignature	*sig;
-  Method_t              fwdInvMethod;
+  GSMethod              fwdInvMethod;
   
   obj      = *(id *)args[0];
   selector = *(SEL *)args[1];
@@ -405,7 +405,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
    *
    *   [obj forwardInvocation: invocation];
    *
-   * but we have already the Method_t for forwardInvocation
+   * but we have already the GSMethod for forwardInvocation
    * so the line below is somewhat faster. */
   fwdInvMethod->method_imp (obj, fwdInvMethod->method_name, invocation);
 

@@ -114,7 +114,7 @@ enum
 
 + (BOOL) respondsToSelector: (SEL)sel
 {
-  return (IMP)class_get_instance_method(self, sel) != (IMP)0;
+  return GSGetClassMethod(self, sel) != (GSMethod)0;
 }
 
 + (id) initWithCoder: (NSCoder*)aCoder
@@ -1002,7 +1002,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 {
 #if NeXT_runtime
   {
-    Method m = class_get_instance_method(isa, selector);
+    Method m = GSGetInstanceMethod(isa, selector);
     if (m)
       return m->method_types;
     else

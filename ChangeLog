@@ -1,3 +1,34 @@
+2003-06-24  David Ayers  <d.ayers@inode.at>
+
+	* Source/GSFFCallInvocation.m
+	(gs_method_for_receiver_and_selector): Replace usage of
+	class_get_instance/class_method with GSGetInstance/ClassMethod and
+	Method_t with GSMethod.
+	(gs_find_by_receiver_best_typed_sel): Ditto.
+	(GSInvocationCallback): Ditto.
+	([GSFFCallInvocation -invokeWithTarget:]): Ditto.
+	* Source/GSFFIInvocation.m
+	(gs_method_for_receiver_and_selector): Ditto.
+	(gs_find_by_receiver_best_typed_sel): Ditto.
+	(GSFFIInvocationCallback): Ditto.
+	([GSFFIInvocation -invokeWithTarget:]): Ditto.
+	* Source/NSConnection.m
+	([NSConnection -_service_typeForSelector:]): Ditto.
+	* Source/NSInvocation.m
+	([NSInvocation -invokeWithTarget:]): Ditto.
+	* Source/NSObject.m
+	([NSObject +instanceMethodSignatureForSelector:]): Ditto.
+	([NDObject -methodSignatureForSelector:]): Ditto.
+	([NSObject +descriptionForInstanceMethod:]): Ditto.
+	([NSOnject -descriptionForMethod:]: Ditto.
+	* Source/NSProxy.m 
+	([NSProxy +methodSignatureForSelector:]): Ditto.
+	([NSProxy -methodSignatureForSelector:]): Ditto.
+	* Source/NSDistantObject.m
+	([NSObject -selectorTypeForProxy:]): Ditto.
+	([NSDistantObject +respondsToSelector:]): Ditto. Corrected
+	implementation to check class methods instead of instance methods.
+	
 2003-06-23  Adam Fedor  <fedor@gnu.org>
 
 	* Testing/diningPhilosophers.m: Locking and output fixes (from

@@ -1226,7 +1226,7 @@ static BOOL double_release_check_enabled = NO;
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  mth = class_get_instance_method(self, aSelector);
+  mth = GSGetInstanceMethod(self, aSelector);
   return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
     : nil;
 }
@@ -1246,8 +1246,8 @@ static BOOL double_release_check_enabled = NO;
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   mth = (GSObjCIsInstance(self)
-    ? class_get_instance_method(GSObjCClass(self), aSelector)
-    : class_get_class_method(GSObjCClass(self), aSelector));
+    ? GSGetInstanceMethod(GSObjCClass(self), aSelector)
+    : GSGetClassMethod((Class)self, aSelector));
   if (mth == 0)
     {
       return nil;
@@ -1858,7 +1858,7 @@ static BOOL double_release_check_enabled = NO;
     [NSException raise: NSInvalidArgumentException
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
-  mth = class_get_instance_method(self, aSelector);
+  mth = GSGetInstanceMethod(self, aSelector);
   return mth ? [NSMethodSignature signatureWithObjCTypes:mth->method_types]
     : nil;
 }
@@ -2008,7 +2008,7 @@ static BOOL double_release_check_enabled = NO;
 		format: @"%@ null selector given", NSStringFromSelector(_cmd)];
 
   return ((struct objc_method_description *)
-           class_get_instance_method(self, aSel));
+           GSGetInstanceMethod(self, aSel));
 }
 
 - (struct objc_method_description *) descriptionForMethod: (SEL)aSel
@@ -2019,8 +2019,8 @@ static BOOL double_release_check_enabled = NO;
 
   return ((struct objc_method_description *)
            (GSObjCIsInstance(self)
-            ?class_get_instance_method(GSObjCClass(self), aSel)
-            :class_get_class_method(GSObjCClass(self), aSel)));
+            ? GSGetInstanceMethod(GSObjCClass(self), aSel)
+            : GSGetClassMethod((Class)self, aSel)));
 }
 
 /**

@@ -2594,7 +2594,7 @@ static void callEncoder (DOContext *ctxt)
 
   /* xxx We should make sure that TARGET is a valid object. */
   /* Not actually a Proxy, but we avoid the warnings "id" would have made. */
-  m = class_get_instance_method(((NSDistantObject*)o)->isa, sel);
+  m = GSGetInstanceMethod(((NSDistantObject*)o)->isa, sel);
   /* Perhaps I need to be more careful in the line above to get the
      version of the method types that has the type qualifiers in it.
      Search the protocols list. */
