@@ -2666,10 +2666,19 @@ else
 
 - (BOOL) isAbsolutePath
 {
-    if ([self length] > 0 && [self characterAtIndex: 0] == (unichar)'/') {
-	return YES;
-    }
+  if ([self length] == 0)
     return NO;
+
+#if defined(__WIN32__) || defined(_WIN32)
+  if ([self indexOfString: @":"] != NSNotFound)
+    return YES;
+#else
+  if ([self characterAtIndex: 0] == (unichar)'/')
+    return YES;
+  if ([self characterAtIndex: 0] == (unichar)'~')
+    return YES;
+#endif
+  return NO;
 }
 
 - (NSArray*) pathComponents
