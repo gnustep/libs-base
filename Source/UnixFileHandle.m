@@ -898,6 +898,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     [NSException raise: NSFileHandleOperationException
 		format: @"attempt to close closed file"];
 
+  [self ignoreReadDescriptor];
+  [self ignoreWriteDescriptor];
+
   (void)close(descriptor);
   descriptor = -1;
   acceptOK = NO;
@@ -915,8 +918,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
                    forKey: GSFileHandleNotificationError];
       [self postReadNotification];
     }
-  else
-    [self ignoreReadDescriptor];
 
   if ([writeInfo count])
     {
@@ -927,8 +928,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       [self postWriteNotification];
       [writeInfo removeAllObjects];
     }
-  else
-    [self ignoreWriteDescriptor];
 }
 
 - (void)synchronizeFile
