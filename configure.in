@@ -670,7 +670,8 @@ esac
 
 #--------------------------------------------------------------------
 # Include redefinition of main () only if needed.
-# On some systems - force redefinition to be used.
+# On some systems - force redefinition to be used as the /proc stuff
+# doesn't work.
 #--------------------------------------------------------------------
 echo "handling fake-main definition"
 AC_ARG_ENABLE(fake-main,
@@ -681,6 +682,7 @@ case "$target_os" in
   freebsd*)	enable_fake_main=yes;;
   netbsd*)	enable_fake_main=yes;;
   openbsd*)	enable_fake_main=yes;;
+  *sysv*)	enable_fake_main=yes;;
 esac
 
 if test "$enable_fake_main" = "yes"; then
