@@ -152,6 +152,7 @@
 - (void) setDelegate: anObj;
 
 - (void) invalidate;
+- (BOOL) isValid;
 
 /* Only subclassers and power-users need worry about these */
 - (Proxy*) proxyForTarget: (unsigned)target;
