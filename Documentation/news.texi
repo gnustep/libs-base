@@ -10,7 +10,7 @@ The currently released version of the library is
 
 @itemize
 
-@item Can be made as a shared library by passing `--enabled-shared' to
+@item Can be made as a shared library by passing @samp{--enabled-shared} to
 `configure'.  Thanks to Jan Kybic <kybic@@earn.cvut.cz> and Bryan Headley
 <bwh@@mail.lnd.coretech.com> for suggestions.
 
