@@ -23,7 +23,13 @@
 */ 
 
 #include <config.h>
-#include <base/objc-gnu2next.h>
+#include <base/preface.h>
+
+#ifndef ROUND
+#define ROUND(V, A) \
+  ({ typeof(V) __v=(V); typeof(A) __a=(A); \
+     __a*((__v+__a-1)/__a); })
+#endif
 
 /*
   return the size of an object specified by type 
@@ -516,4 +522,50 @@ objc_free(void *mem)
   (*_objc_free)(mem);
 }
 
+/*
+** Error handler function
+** NULL so that default is to just print to stderr
+*/
+static objc_error_handler _objc_error_handler = NULL;
+
+/* Trigger an objc error */
+void
+objc_error(id object, int code, const char* fmt, ...)
+{
+  va_list ap;
+
+  va_start(ap, fmt);
+  objc_verror(object, code, fmt, ap);
+  va_end(ap);
+}
+
+/* Trigger an objc error */
+void
+objc_verror(id object, int code, const char* fmt, va_list ap)
+{
+  BOOL result = NO;
+
+  /* Call the error handler if its there
+     Otherwise print to stderr */
+  if (_objc_error_handler)
+    result = (*_objc_error_handler)(object, code, fmt, ap);
+  else
+    vfprintf (stderr, fmt, ap);
+
+  /* Continue if the error handler says its ok
+     Otherwise abort the program */
+  if (result)
+    return;
+  else
+    abort();
+}
+
+/* Set the error handler */
+objc_error_handler
+objc_set_error_handler(objc_error_handler func)
+{
+  objc_error_handler temp = _objc_error_handler;
+  _objc_error_handler = func;
+  return temp;
+}
 
