@@ -1,3 +1,7 @@
 Makefile
 
+*errs
+
+dictionary textcoding
+
 stdio-stream.txt textcoding.txt
