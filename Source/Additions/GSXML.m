@@ -745,17 +745,17 @@ static NSMapTable	*nodeNames = 0;
     {
       const void	*name = prop->name;
       NSString		*key = UTF8Str(name);
+      NSString		*value = @"";
+      xmlNodePtr	child = prop->children;
 
-      if (prop->children != NULL)
+      while (child != NULL)
 	{
-	   const void	*content = prop->children->content;
+	  const void	*content = child->content;
 
-	   [d setObject: UTF8Str(content) forKey: key];
+	  value = [value stringByAppendingString: UTF8Str(content)];
+	  child = child->next;
 	}
-      else
-	{
-	   [d setObject: @"" forKey: key];
-	}
+      [d setObject: value forKey: key];
       prop = prop->next;
   }
 
@@ -1168,17 +1168,26 @@ static NSMapTable	*nodeNames = 0;
 
       if ([key isEqualToString: n] == YES)
         {
-	  if (prop->children != NULL)
-	    {
-	       const void	*content = prop->children->content;
+	  xmlNodePtr	child = prop->children;
 
-	       value = UTF8Str(content);
+	  while (child != NULL)
+	    {
+	      const void	*content = child->content;
+
+	      if (value == nil)
+		{
+		  value = UTF8Str(content);
+		}
+	      else
+		{
+		  value = [value stringByAppendingString: UTF8Str(content)];
+		}
+	      child = child->next;
 	    }
 	  break;
 	}
       prop = prop->next;
-  }
-
+    }
   return value;
 }
 
@@ -1263,25 +1272,25 @@ static NSMapTable	*nodeNames = 0;
 
   while (prop != NULL)
     {
+      xmlNodePtr	child = prop->children;
       const void	*name = prop->name;
       NSString		*key = UTF8Str(name);
+      NSString		*value = @"";
 
       if (keyTransformSel != 0)
 	{
 	  key = [key performSelector: keyTransformSel];
 	}
-      if (prop->children != NULL)
+      while (child != NULL)
 	{
-	   const void	*content = prop->children->content;
+	  const void	*content = child->content;
 
-	   [d setObject: UTF8Str(content) forKey: key];
+	  value = [value stringByAppendingString: UTF8Str(content)];
+	  child = child->next;
 	}
-      else
-	{
-	   [d setObject: @"" forKey: key];
-	}
+      [d setObject: value forKey: key];
       prop = prop->next;
-  }
+    }
 
   return d;
 }
