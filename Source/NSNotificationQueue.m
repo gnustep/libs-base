@@ -100,22 +100,25 @@ currentList()
 
 + (void) registerQueue: (NSNotificationQueue*)q
 {
-  NotificationQueueList*	list;
-  NotificationQueueList*	elem;
-
-  if (q == nil)
-    return;			/* Can't register nil object.	*/
+  NotificationQueueList	*list;
+  NotificationQueueList	*elem;
 
   list = currentList();	/* List of queues for thread.	*/
 
   if (list->queue == nil)
-    list->queue = q;		/* Make this the default.	*/
+    {
+      list->queue = q;		/* Make this the default.	*/
+    }
 
   while (list->queue != q && list->next != nil)
-    list = list->next;
+    {
+      list = list->next;
+    }
 
   if (list->queue == q)
-    return;			/* Queue already registered.	*/
+    {
+      return;			/* Queue already registered.	*/
+    }
 
   elem = (NotificationQueueList*)NSAllocateObject(self, 0,
     NSDefaultMallocZone());
@@ -125,10 +128,7 @@ currentList()
 
 + (void) unregisterQueue: (NSNotificationQueue*)q
 {
-  NotificationQueueList*	list;
-
-  if (q == nil)
-    return;
+  NotificationQueueList	*list;
 
   list = currentList();
 
@@ -139,13 +139,15 @@ currentList()
       d = GSCurrentThreadDictionary();
       if (list->next)
         {
-	  NotificationQueueList*	tmp = list->next;
+	  NotificationQueueList	*tmp = list->next;
 
           [d setObject: tmp forKey: tkey];
 	  RELEASE(tmp);			/* retained in dictionary.	*/
         }
       else
-	[d removeObjectForKey: tkey];
+	{
+	  [d removeObjectForKey: tkey];
+	}
     }
   else
     {
@@ -153,7 +155,7 @@ currentList()
 	{
 	  if (list->next->queue == q)
 	    {
-	      NotificationQueueList*	tmp = list->next;
+	      NotificationQueueList	*tmp = list->next;
 
 	      list->next = tmp->next;
 	      RELEASE(tmp);
@@ -171,20 +173,20 @@ currentList()
 
 typedef struct _NSNotificationQueueRegistration
 {
-  struct _NSNotificationQueueRegistration* next;
-  struct _NSNotificationQueueRegistration* prev;
-  NSNotification* notification;
-  id name;
-  id object;
-  NSArray* modes;
+  struct _NSNotificationQueueRegistration	*next;
+  struct _NSNotificationQueueRegistration	*prev;
+  NSNotification				*notification;
+  id						name;
+  id						object;
+  NSArray					*modes;
 } NSNotificationQueueRegistration;
 
 struct _NSNotificationQueueList;
 
 typedef struct _NSNotificationQueueList
 {
-  struct _NSNotificationQueueRegistration* head;
-  struct _NSNotificationQueueRegistration* tail;
+  struct _NSNotificationQueueRegistration	*head;
+  struct _NSNotificationQueueRegistration	*tail;
 } NSNotificationQueueList;
 
 /*
@@ -197,9 +199,8 @@ typedef struct _NSNotificationQueueList
  */
 
 static inline void
-remove_from_queue_no_release(
-    NSNotificationQueueList* queue,
-    NSNotificationQueueRegistration* item)
+remove_from_queue_no_release(NSNotificationQueueList *queue,
+  NSNotificationQueueRegistration *item)
 {
   if (item->prev)
     {
@@ -229,10 +230,8 @@ remove_from_queue_no_release(
 }
 
 static void
-remove_from_queue(
-    NSNotificationQueueList* queue,
-    NSNotificationQueueRegistration* item,
-    NSZone* _zone)
+remove_from_queue(NSNotificationQueueList *queue,
+  NSNotificationQueueRegistration *item, NSZone *_zone)
 {
   remove_from_queue_no_release(queue, item);
   RELEASE(item->notification);
@@ -241,14 +240,12 @@ remove_from_queue(
 }
 
 static void
-add_to_queue(
-    NSNotificationQueueList* queue,
-    NSNotification* notification,
-    NSArray* modes,
-    NSZone* _zone)
+add_to_queue(NSNotificationQueueList *queue, NSNotification *notification,
+  NSArray *modes, NSZone *_zone)
 {
-  NSNotificationQueueRegistration* item =
-	  NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueRegistration));
+  NSNotificationQueueRegistration	*item;
+
+  item = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueRegistration));
       
   item->notification = RETAIN(notification);
   item->name = [notification name];
@@ -259,9 +256,13 @@ add_to_queue(
   item->next = queue->tail;
   queue->tail = item;
   if (item->next)
-    item->next->prev = item;
+    {
+      item->next->prev = item;
+    }
   if (!queue->head)
-    queue->head = item;
+    {
+      queue->head = item;
+    }
 }
 
 
@@ -304,7 +305,9 @@ add_to_queue(
   _asapQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
   _idleQueue = NSZoneCalloc(_zone, 1, sizeof(NSNotificationQueueList));
 
-  // insert in global queue list
+  /*
+   * insert in global queue list
+   */
   [NotificationQueueList registerQueue: self];
 
   return self;
@@ -314,16 +317,24 @@ add_to_queue(
 {
   NSNotificationQueueRegistration	*item;
 
-  // remove from class instances list
+  /*
+   * remove from class instances list
+   */
   [NotificationQueueList unregisterQueue: self];
 
-  // release self
+  /*
+   * release self from queues
+   */
   for (item = _asapQueue->head; item; item=item->prev)
-    remove_from_queue(_asapQueue, item, _zone);
+    {
+      remove_from_queue(_asapQueue, item, _zone);
+    }
   NSZoneFree(_zone, _asapQueue);
 
   for (item = _idleQueue->head; item; item=item->prev)
-    remove_from_queue(_idleQueue, item, _zone);
+    {
+      remove_from_queue(_idleQueue, item, _zone);
+    }
   NSZoneFree(_zone, _idleQueue);
 
   RELEASE(_center);
@@ -335,44 +346,85 @@ add_to_queue(
 - (void) dequeueNotificationsMatching: (NSNotification*)notification
   coalesceMask: (NSNotificationCoalescing)coalesceMask
 {
-  NSNotificationQueueRegistration* item;
-  NSNotificationQueueRegistration* next;
-  id name   = [notification name];
-  id object = [notification object];
+  NSNotificationQueueRegistration	*item;
+  NSNotificationQueueRegistration	*next;
+  id					name   = [notification name];
+  id					object = [notification object];
 
-  // find in ASAP notification in queue
-  for (item = _asapQueue->tail; item; item=next)
+  if ((coalesceMask & NSNotificationCoalescingOnName)
+    && (coalesceMask & NSNotificationCoalescingOnSender))
     {
-      next = item->next;
-      if ((coalesceMask & NSNotificationCoalescingOnName)
-	&& [name isEqual: item->name])
+      /*
+       * find in ASAP notification in queue matching both
+       */
+      for (item = _asapQueue->tail; item; item = next)
 	{
-	  remove_from_queue(_asapQueue, item, _zone);
-	  continue;
+          next = item->next;
+          if ((object == item->object) && [name isEqual: item->name])
+	    {
+              remove_from_queue(_asapQueue, item, _zone);
+	    }
 	}
-      if ((coalesceMask & NSNotificationCoalescingOnSender)
-	&& (object == item->object))
+      /*
+       * find in idle notification in queue matching both
+       */
+      for (item = _idleQueue->tail; item; item = next)
 	{
-	  remove_from_queue(_asapQueue, item, _zone);
-	  continue;
+          next = item->next;
+          if ((object == item->object) && [name isEqual: item->name])
+	    {
+              remove_from_queue(_idleQueue, item, _zone);
+	    }
 	}
     }
-
-  // find in idle notification in queue
-  for (item = _idleQueue->tail; item; item=next)
+  else if ((coalesceMask & NSNotificationCoalescingOnName))
     {
-      next = item->next;
-      if ((coalesceMask & NSNotificationCoalescingOnName)
-	&& [name isEqual: item->name])
+      /*
+       * find in ASAP notification in queue matching name
+       */
+      for (item = _asapQueue->tail; item; item = next)
 	{
-	  remove_from_queue(_asapQueue, item, _zone);
-	  continue;
+          next = item->next;
+          if ([name isEqual: item->name])
+	    {
+              remove_from_queue(_asapQueue, item, _zone);
+	    }
 	}
-      if ((coalesceMask & NSNotificationCoalescingOnSender)
-	&& (object == item->object))
+      /*
+       * find in idle notification in queue matching name
+       */
+      for (item = _idleQueue->tail; item; item = next)
 	{
-	  remove_from_queue(_asapQueue, item, _zone);
-	  continue;
+          next = item->next;
+          if ([name isEqual: item->name])
+	    {
+              remove_from_queue(_idleQueue, item, _zone);
+	    }
+	}
+    }
+  else if ((coalesceMask & NSNotificationCoalescingOnSender))
+    {
+      /*
+       * find in ASAP notification in queue matching sender
+       */
+      for (item = _asapQueue->tail; item; item = next)
+	{
+          next = item->next;
+          if (object == item->object)
+	    {
+              remove_from_queue(_asapQueue, item, _zone);
+	    }
+	}
+      /*
+       * find in idle notification in queue matching sender
+       */
+      for (item = _idleQueue->tail; item; item = next)
+	{
+          next = item->next;
+          if (object == item->object)
+	    {
+              remove_from_queue(_idleQueue, item, _zone);
+	    }
 	}
     }
 }
@@ -440,8 +492,8 @@ static inline void notifyASAP(NSNotificationQueue *q)
   while (list->head)
     {
       NSNotificationQueueRegistration	*item = list->head;
-      NSNotification	*notification = item->notification;
-      NSArray		*modes = item->modes;
+      NSNotification			*notification = item->notification;
+      NSArray				*modes = item->modes;
 
       remove_from_queue_no_release(list, item);
       [q postNotification: notification forModes: modes];
@@ -457,8 +509,12 @@ GSNotifyASAP()
   NotificationQueueList	*item;
 
   for (item = currentList(); item; item = item->next)
-    if (item->queue)
-      notifyASAP(item->queue);
+    {
+      if (item->queue)
+	{
+	  notifyASAP(item->queue);
+	}
+    }
 }
 
 static inline void notifyIdle(NSNotificationQueue *q)
@@ -471,8 +527,8 @@ static inline void notifyIdle(NSNotificationQueue *q)
   if (list->head)
     {
       NSNotificationQueueRegistration	*item = list->head;
-      NSNotification	*notification = item->notification;
-      NSArray		*modes = item->modes;
+      NSNotification			*notification = item->notification;
+      NSArray				*modes = item->modes;
 
       remove_from_queue_no_release(list, item);
       [q postNotification: notification forModes: modes];
@@ -492,8 +548,12 @@ GSNotifyIdle()
   NotificationQueueList	*item;
 
   for (item = currentList(); item; item = item->next)
-    if (item->queue)
-      notifyIdle(item->queue);
+    {
+      if (item->queue)
+	{
+	  notifyIdle(item->queue);
+	}
+    }
 }
 
 BOOL
@@ -502,8 +562,12 @@ GSNotifyMore()
   NotificationQueueList	*item;
 
   for (item = currentList(); item; item = item->next)
-    if (item->queue && ((accessQueue)item->queue)->_idleQueue->head)
-      return YES;
+    {
+      if (item->queue && ((accessQueue)item->queue)->_idleQueue->head)
+	{
+	  return YES;
+	}
+    }
   return NO;
 }
 
