@@ -1,5 +1,12 @@
 2001-06-15  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/NSFileManager.m: ([-removeFileAtpath:handler:])
+	Check for illegal paths as specified in the MacOS-X documentation.
+	* Source/Makefile.postamble: Update to rebuild files for XML and SSL
+	support when config.h changes.
+
+2001-06-14  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Source/NSuserDefaults.m: Fix +resetUserDefaults to retain the
         NSRegistrationDomain information ... was losing it when this method
         was called in response to the user name being initially set.
