@@ -26,9 +26,9 @@
 
 #include <base/preface.h>
 #include <Foundation/NSCoder.h>
-#include <base/Port.h>
 
 @class NSConnection;
+@class NSPort;
 
 @interface NSPortCoder : NSCoder
 {
