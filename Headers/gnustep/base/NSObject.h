@@ -27,9 +27,9 @@
 /*
  *	Check consistency of definitions for system compatibility.
  */
-#if	defined(STRICT_OpenStep)
+#if	defined(STRICT_OPENSTEP)
 #define	NO_GNUSTEP	1
-#elif	defined(STRICT_MacOS_X)
+#elif	defined(STRICT_MACOS_X)
 #define	NO_GNUSTEP	1
 #else
 #undef	NO_GNUSTEP
