@@ -1,3 +1,9 @@
+2003-04-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: ([synchronize]) fix locking to permit
+	recursive call to this method, ensuring the distributed lock is
+	only obtained once.
+
 2003-04-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSCategories.h:

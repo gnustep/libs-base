@@ -1321,10 +1321,13 @@ static BOOL isPlistObject(id o)
   NSDate		*started = [NSDateClass date];
   unsigned long		desired;
   unsigned long		attributes;
+  static BOOL		isLocked = NO;
+  BOOL			wasLocked;
 
   [_lock lock];
 
-  if (_fileLock != nil)
+  wasLocked = isLocked;
+  if (isLocked == NO && _fileLock != nil)
     {
       while ([_fileLock tryLock] == NO)
 	{
@@ -1364,6 +1367,7 @@ static BOOL isPlistObject(id o)
 	    }
 	  RELEASE(arp);
 	}
+      isLocked = YES;
     }
 
   /*
@@ -1403,7 +1407,11 @@ static BOOL isPlistObject(id o)
 	}
       if (wantRead == NO)
 	{
-	  [_fileLock unlock];
+	  if (wasLocked == NO)
+	    {
+	      [_fileLock unlock];
+	      isLocked = NO;
+	    }
 	  [_lock unlock];
 	  return YES;
 	}
@@ -1431,7 +1439,11 @@ static BOOL isPlistObject(id o)
       if (newDict == nil)
 	{
 	  NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
-	  [_fileLock unlock];
+	  if (wasLocked == NO)
+	    {
+	      [_fileLock unlock];
+	      isLocked = NO;
+	    }
 	  [_lock unlock];
 	  return NO;
 	}
@@ -1488,7 +1500,11 @@ static BOOL isPlistObject(id o)
 	{
 	  if (![_persDomains writeToFile: _defaultsDatabase atomically: YES])
 	    {
-	      [_fileLock unlock];
+	      if (wasLocked == NO)
+		{
+		  [_fileLock unlock];
+		  isLocked = NO;
+		}
 	      [_lock unlock];
 	      return NO;
 	    }
@@ -1513,7 +1529,11 @@ static BOOL isPlistObject(id o)
 	}
     }
 
-  [_fileLock unlock];
+  if (wasLocked == NO)
+    {
+      [_fileLock unlock];
+      isLocked = NO;
+    }
   [_lock unlock];
   return YES;
 }
