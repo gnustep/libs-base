@@ -28,13 +28,14 @@
 
 @class NSNumber;
 
-GS_EXPORT NSString* NSURLFileScheme; //file
+GS_EXPORT NSString* NSURLFileScheme;
 
-//============================================================================
 @interface NSURL: NSObject <NSCoding, NSCopying, NSURLHandleClient>
 {
   NSString	*_urlString;
   NSURL		*_baseURL;
+  void		*_clients;
+  void		*_data;
 }
         
 + (id) fileURLWithPath: (NSString*)aPath;
@@ -42,58 +43,34 @@ GS_EXPORT NSString* NSURLFileScheme; //file
 + (id) URLWithString: (NSString*)aUrlString
        relativeToURL: (NSURL*)aBaseUrl;
 
-- (id) initWithScheme: (NSString*)aScheme
-		 host: (NSString*)aHost
-		 path: (NSString*)aPath;
-
-//Non Standard Function
-- (id) initWithScheme: (NSString*)aScheme
-		 host: (NSString*)aHost
-		 port: (NSNumber*)aPort
-		 path: (NSString*)aPath;
-
-//Do a initWithScheme: NSFileScheme host: nil path: path
 - (id) initFileURLWithPath: (NSString*)aPath;
-
-// urlString is escaped
+- (id) initWithScheme: (NSString*)aScheme
+		 host: (NSString*)aHost
+		 path: (NSString*)aPath;
 - (id) initWithString: (NSString*)aUrlString;
-
-//URLString!=nil !
-// urlString is escaped
 - (id) initWithString: (NSString*)aUrlString
 	relativeToURL: (NSURL*)aBaseUrl;
 
-- (NSString*) description;
 - (NSString*) absoluteString;
-- (NSString*) relativeString;
-
-- (NSURL*) baseURL;
 - (NSURL*) absoluteURL;
-
-- (NSString*) scheme;
-- (NSString*) resourceSpecifier;
-
+- (NSURL*) baseURL;
+- (NSString*) fragment;
 - (NSString*) host;
-- (NSNumber*) port;
-- (NSString*) user;
+- (BOOL) isFileURL;
+- (NSString*) parameterString;
 - (NSString*) password;
 - (NSString*) path;
-- (NSString*) fragment;
-- (NSString*) parameterString;
+- (NSNumber*) port;
 - (NSString*) query;
 - (NSString*) relativePath;
-
-- (BOOL) isFileURL;
-
+- (NSString*) relativeString;
+- (NSString*) resourceSpecifier;
+- (NSString*) scheme;
 - (NSURL*) standardizedURL;
-
-//FIXME: delete these fn when NSURL will be validated
-+ (void) test;
-+ (void) testPrint: (NSURL*)url;
+- (NSString*) user;
 
 @end
 
-//=============================================================================
 @interface NSURL (NSURLLoading)
 - (NSData*) resourceDataUsingCache: (BOOL)shouldUseCache;
 
@@ -110,7 +87,6 @@ GS_EXPORT NSString* NSURLFileScheme; //file
 
 @end
 
-//=============================================================================
 @interface NSObject (NSURLClient)
 - (void) URL: (NSURL*)sender
   resourceDataDidBecomeAvailable: (NSData*)newBytes;
