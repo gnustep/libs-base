@@ -77,7 +77,7 @@ tasks: ../doc/todo.texi
 	cp ../doc/TODO ./tasks
 
 copy-dist: $(DIST_FILES)
-	mkdir $(srcdir)/../snap/admin
+	mkdir ../snap/admin
 	for f in $(DIST_FILES); do \
-	  cp $$f $(srcdir)/../snap/admin ; \
+	  cp $$f ../snap/admin ; \
 	done

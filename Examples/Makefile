@@ -46,12 +46,14 @@ first-client_OBJC_FILES = first-client.m
 second-server_OBJC_FILES = second-server.m
 second-client_OBJC_FILES = second-client.m
 
+SRCS = $(TOOL_NAME:=.m)
+
 HDRS = \
 first-server.h \
 second-server.h \
 second-client.h
 
-RCS_FILES = $(SRCS) $(HDRS) Makefile \
+DIST_FILES = $(SRCS) $(HDRS) Makefile Makefile.postamble Makefile.preamble \
 Makefile.example.in \
 configure.example.in \
 custom-zone.m

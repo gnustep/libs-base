@@ -1,0 +1,188 @@
+#
+#  Makefile.postamble
+#
+#  Copyright (C) 1997 Free Software Foundation, Inc.
+#
+#  Author: Scott Christley <scottc@net-community.com>
+#
+#  This file is part of the GNUstep Base Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Library General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Library General Public License for more details.
+#
+#  If you are interested in a warranty or support for this source code,
+#  contact Scott Christley at scottc@net-community.com
+#
+#  You should have received a copy of the GNU Library General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, write to the Free Software Foundation,
+#  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+#
+#   Makefile.postamble
+#
+#   Project specific makefile rules
+#
+#   Uncomment the targets you want.
+#   The double colons (::) are important, do not make them single colons
+#   otherwise the normal makefile rules will not be performed.
+#
+
+# Things to do before compiling
+# before-all::
+
+# Things to do after compiling
+# after-all::
+
+# Things to do before installing
+# before-install::
+
+# Things to do after installing
+# after-install::
+
+# Things to do before uninstalling
+# before-uninstall::
+
+# Things to do after uninstalling
+# after-uninstall::
+
+# Things to do before cleaning
+# before-clean::
+
+# Things to do after cleaning
+after-clean::
+	rm -f version.texi
+	rm -f $(TEXT_FILES)
+	rm -f *.info
+	rm -f gnustep-base.dvi gnustep-base.aux gnustep-base.log \
+	gnustep-base.toc gnustep-base.cl \
+	gnustep-base.cp gnustep-base.cps gnustep-base.fn gnustep-base.fns \
+	gnustep-base.ky gnustep-base.pg gnustep-base.pr gnustep-base.tp \
+	gnustep-base.vr 
+
+# Things to do before distcleaning
+# before-distclean::
+
+# Things to do after distcleaning
+# after-distclean::
+
+# Things to do before checking
+# before-check::
+
+# Things to do after checking
+# after-check::
+
+srcdir=.
+
+info: version.texi $(TEXT_FILES)
+dvi: gnustep-base.dvi objective-c.dvi
+
+version.texi: $(srcdir)/../Version
+	rm -f version.texi
+	echo '@set GNUSTEP_BASE_VERSION' $(VERSION) \
+		> version.texi
+	echo '@set GNUSTEP_BASE_GCC_VERSION $(GCC_VERSION)' \
+		>> version.texi
+	if [ $(FTP_MACHINE) ]; then \
+		echo '@set GNUSTEP_BASE_FTP_MACHINE $(FTP_MACHINE)' \
+		>> version.texi; fi
+	if [ $(FTP_DIRECTORY) ]; then \
+		echo '@set GNUSTEP_BASE_FTP_DIRECTORY $(FTP_DIRECTORY)' \
+		>> version.texi; fi
+
+gnustep-base.dvi: gnustep-base.texi version.texi
+	$(TEXI2DVI) $(srcdir)/gnustep-base.texi
+objective-c.dvi: objective-c.texi 
+	$(TEXI2DVI) $(srcdir)/objective-c.texi
+
+MAKEINFO_FLAGS = -I $(srcdir)
+
+gnustep-base.info: gnustep-base.texi todo.texi version.texi
+	@echo Sorry, makeinfo does not yet support Objective C documentation.
+	:$(MAKEINFO) $(MAKEINFO_FLAGS) $(srcdir)/gnustep-base.texi
+objective-c.info: objective-c.texi
+	@echo Sorry, makeinfo does not yet support Objective C documentation.
+	:$(MAKEINFO) $(MAKEINFO_FLAGS) $(srcdir)/objective-c.texi
+TODO: todo.texi version.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o TODO -D TODO_ONLY \
+	--no-header --no-split $(srcdir)/todo.texi
+INSTALL: install.texi version.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o INSTALL -D INSTALL_ONLY \
+	--no-header --no-split $(srcdir)/install.texi
+CODING-STANDARDS: codign-standards.texi version.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o CODING-STANDARDS -D CODING_ONLY \
+	--no-header --no-split $(srcdir)/coding-standards.texi
+README: readme.texi version.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o README -D README_ONLY \
+	--no-header --no-split $(srcdir)/readme.texi
+ANNOUNCE: announce.texi version.texi news.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o ANNOUNCE -D ANNOUNCE_ONLY \
+	--no-header --no-split $(srcdir)/announce.texi
+NEWS: news.texi version.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o NEWS -D NEWS_ONLY \
+	--no-header --no-split $(srcdir)/news.texi
+ADVERTISEMENT: advertisement.texi version.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o ADVERTISEMENT -D ADVERTISEMENT_ONLY \
+	--no-header --no-split $(srcdir)/advertisement.texi
+
+# Unused for now, but may be used in the future.
+#%: %.texi
+#	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $@ -D ${@}_ONLY \
+#	--no-header --no-split $(srcdir)/$<
+#
+#%.texi: %.www.texi
+#	rm -f $@
+#	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+#	  $(srcdir)/$< \
+#	  | sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+#	    > $@
+#
+#%.html: %.www.texi
+#	rm -f $@.texi
+#	sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
+#	  $(srcdir)/$< \
+#	  | sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
+#	  | sed -e 's,^ *$$,@br{},g' \
+#	    > $<.html.texi
+#	texi2html -expandinfo $(MAKEINFO_FLAGS) $<.html.texi
+#	mv -f $<.html.html $*.html
+
+# Make substitutions for @email{} and @url{} before passing to makeinfo.
+# These substitution scripts could be cleaned up.
+GNUstep-FAQ: gnustep-faq.texi version.texi
+	rm -f GNUstep-FAQ.texi
+	sed -e 's,@email{\([^}]*\)},<\1>,g' \
+	  $(srcdir)/gnustep-faq.texi \
+	  | sed -e 's,@url{\([^}]*\)},@samp{\1},g' \
+	    > GNUstep-FAQ.texi
+	$(MAKEINFO) $(MAKEINFO_FLAGS) -o $@ \
+	  --no-header --no-split GNUstep-FAQ.texi
+	rm -f GNUstep-FAQ.texi
+# Make substitutions for @email{} and @url{}, and add @br{} before @item
+# before passing to texi2html.  Note: I think that this `@br{}' should 
+# actually be a `@br', but the extra `{}' is necessary to work around a
+# bug in texi@html.
+# These substitution scripts could be cleaned up.
+GNUstep-FAQ.html: gnustep-faq.texi version.texi
+	rm -f GNUstep-FAQ.texi
+	sed -e 's,@email{\([^}]*\)},<A HREF="mailto:\1">\1</A>,g' \
+	  $(srcdir)/gnustep-faq.texi \
+	  | sed -e 's,@url{\([^}]*\)},<A HREF="\1">\1</A>,g' \
+	  | sed -e 's,^ *$$,@br{},g' \
+	    > GNUstep-FAQ.texi
+	texi2html -expandinfo $(MAKEINFO_FLAGS) GNUstep-FAQ.texi
+
+#	  | awk -- '/@item/ { print "@br{}" } /@end itemize/ { print "@br{}" } ; { print }' 
+#<A HREF="http://www.cl.cam.ac.uk/texinfodoc/dir.html">GNU "info" manuals</A>
+
+copy-dist: $(DIST_FILES)
+	mkdir ../snap/doc
+	ln $(DIST_FILES) ../snap/doc
+	ln $(TOP_DOC_FILES) ../snap

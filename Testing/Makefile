@@ -117,6 +117,8 @@ thread-except_OBJC_FILES = thread-except.m
 nscharacterset_OBJC_FILES = nscharacterset.m
 NSData-test_OBJC_FILES = NSData-test.m
 
+SRCS = $(TOOL_NAME:=.m)
+
 HDRS = \
 server.h
 
@@ -130,6 +132,9 @@ DYNAMIC_HFILES = \
 LoadMe.h \
 MyCategory.h \
 SecondClass.h
+
+DIST_FILES = $(SRCS) $(HDRS) $(DYNAMIC_MFILES) $(DYNAMIC_HFILES) \
+	Makefile Makefile.preamble Makefile.postamble NXStringTable.example
 
 -include Makefile.preamble
 

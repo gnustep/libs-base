@@ -26,7 +26,7 @@ Classes
 
 * NSBundle::			[8]
 
-* NSCalendarDate::		[0]
+* NSCalendarDate::		[5]
 
 * NSCharacterSet::		[8]
 	decomposableCharacterSet and illegalCharacter set missing
@@ -37,8 +37,7 @@ Classes
 
 * NSConditionLock::		[8]
 
-* NSConnection::		[0]
-	But GNU Connection is there as a base.  
+* NSConnection::		[7]
 	GNU Connection, however, needs:
 	 * to handle retain/release/dealloc properly
 	 * to be integrated with NSInvocation
@@ -53,13 +52,11 @@ Classes
 
 * NSDate::			[8]
 
-* NSDeserializer::		[0]
+* NSDeserializer::		[7]
 
 * NSDictionary::		[8]
 
-* NSDistantObject::		[0]
-	But GNU Proxy is there as a base.
-	See todo's for NSConnection.
+* NSDistantObject::		[7]
 
 * NSEnumerator::		[9]
 
@@ -74,7 +71,7 @@ Classes
 
 * NSMutableArray::		[8]
 
-* NSMutableCharacterSet::	[4]
+* NSMutableCharacterSet::	[7]
 
 * NSMutableData::		[8]
 
@@ -88,7 +85,7 @@ Classes
 
 * NSNotificationCenter::	[9]
 
-* NSNotificationQueue::		[4]
+* NSNotificationQueue::		[6]
 	Needs integration with NSRunLoop, and efficiency improvements
 
 * NSNumber::			[9]
@@ -97,9 +94,7 @@ Classes
 
 * NSProcessInfo::		[9]
 
-* NSProxy::			[0]
-	But GNU Proxy is there as a base.
-	See todo's for NSConnection
+* NSProxy::			[7]
 
 * NSRecursiveLock::		[8]
 
@@ -108,7 +103,7 @@ Classes
 
 * NSScanner::			[8]
 
-* NSSerializer::		[0]
+* NSSerializer::		[7]
 
 * NSSet::			[8]
 
@@ -122,7 +117,7 @@ Classes
 
 * NSTimeZoneDetail::		[8]
 
-* NSTimer::			[4]
+* NSTimer::			[6]
 	Working out bugs with returning doubles.
 
 * NSUnarchiver::		[8]
@@ -173,7 +168,7 @@ Memory Allocation Functions
 `void NSDeallocateMemoryPages (void *POINTER, unsigned BYTECOUNT)'
 `void NSCopyMemoryPages (const void *SOURCE, void *DESTINATION, unsigned BYTECOUNT)'
 
-[6] Child and Merge Zones
+[8] Child and Merge Zones
 void NSMergeZone(NSZone *zonep)
 NSZone *NSCreateChildZone(NSZone *parentZone, size_t startSize, size_t granularity, int canFree)
 
@@ -375,16 +370,16 @@ Add or Remove an Item
 Miscellaneous Functions
 -----------------------
 
-[0] Get Information about a User
+[7] Get Information about a User
 `NSString *NSUserName(void)'
 `NSString *NSHomeDirectory(void)'
 `NSString *NSHomeDirectoryForUser(NSString *USERNAME)'
 
-[0] Log an Error Message
+[9] Log an Error Message
 `void NSLog(NSString *format,...'
 `void NSLogv(NSString * FORMAT, va_list ARGS)'
 
-[0] Get Localized Versions of Strings
+[8] Get Localized Versions of Strings
 `NSString * NSLocalizedString(NSString * KEY, NSString * COMMENT)'
 `NSString * NSLocalizedStringFromTable(NSString * KEY, NSString * TABLENAME, NSString * COMMENT)'
 `NSString * NSLocalizedStringFromTableInBundle(NSString * KEY, NSString * TABLENAME, NSBundle * ABUNDLE, NSString * COMMENT)'
