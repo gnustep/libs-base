@@ -26,31 +26,38 @@
 
 #include <objects/stdobjects.h>
 #include <objects/Coding.h>
+#include <objects/Streaming.h>
+#include <objects/String.h>
 
-@class Stream;
+@class CStream;
 @class Dictionary;
 @class Stack;
-@class Array;
+@class Array;			/* xxx Change this to "Set" */
 
 @interface Coder : NSObject <Encoding, Decoding>
 {
   int format_version;
-  int concrete_format_version;
-  Stream *stream;
+  CStream *cstream;
   BOOL is_decoding;
+  Dictionary *classname_map;         /* for changing class names on r/w */
   Dictionary *object_table;	     /* read/written objects */
   Dictionary *const_ptr_table;       /* read/written const *'s */
   Dictionary *root_object_table;     /* table of interconnected objects */
   Dictionary *forward_object_table;  /* table of forward references */
   Array *in_progress_table;          /* objects started r/w, but !finished */
   int interconnected_stack_height;   /* number of nested root objects */
-
-    /* Not all these ivars are really necessary.  I fixed a bug with
-       a quick fix; now I need to go back and clean it up. -mccallum */
 }
+
++ coderReadingFromStream: (id <Streaming>)stream;
++ coderReadingFromFile: (id <String>) filename;
+
++ decodeObjectFromStream: (id <Streaming>)stream;
++ decodeObjectFromFile: (id <String>) filename;
 
 + (void) setDefaultStreamClass: sc;
 + defaultStreamClass;
++ (int) defaultFormatVersion;
+
 + setDebugging: (BOOL)f;
 
 @end
