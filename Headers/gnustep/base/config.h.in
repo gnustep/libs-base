@@ -129,9 +129,6 @@
 /* Define if you have the vsprintf function.  */
 #undef HAVE_VSPRINTF
 
-/* Define if you have the windows function.  */
-#undef HAVE_WINDOWS
-
 /* Define if you have the <dirent.h> header file.  */
 #undef HAVE_DIRENT_H
 
@@ -203,3 +200,6 @@
 
 /* Define if you have the <values.h> header file.  */
 #undef HAVE_VALUES_H
+
+/* Define if you have the <windows.h> header file.  */
+#undef HAVE_WINDOWS_H
