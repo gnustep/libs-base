@@ -27,6 +27,8 @@
 
 #include <Foundation/NSMethodSignature.h>
 
+@class	NSArgumentInfo;
+
 @interface NSInvocation : NSObject
 {
   NSMethodSignature	*_sig;
