@@ -229,7 +229,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 
 @implementation NSBundle (Private)
 
-/* Nicola:
+/* Nicola & Mirko:
 
    Frameworks can be used in an application in two different ways:
 
@@ -247,17 +247,23 @@ _bundle_name_first_match(NSString* directory, NSString* name)
    disk, and we have no way of knowing what the class list is, or the
    version.  So the trick we use in this case to work around those
    problems is that gnustep-make generates a 'NSFramework_xxx' class
-   and compiles it into each framework.  By asking the class, we can
-   get the version information, the list of classes which were
-   compiled into the framework, and the path were the framework bundle
-   was supposed to be installed (this is not completely reliable as
-   the programmer might change it later on by specifying a different
+   and compiles it into each framework.  By asking to the class, we
+   can get the version information and the list of classes which were
+   compiled into the framework.  To get the location of the framework
+   on disk, we try using advanced dynamic linker features to get the
+   shared object file on disk from which the NSFramework_xxx class was
+   loaded.  If that doesn't work, because the dynamic linker can't
+   provide this information on this platform (or maybe because the
+   framework was statically linked into the application), we have a
+   fallback trick :-) we can ask to the NSFramework_xxx class the path
+   to were the framework bundle was supposed to be installed (this is
+   recorded the first time when the NSFramework_xxx class is generated
+   at compile time; it's not completely reliable - for example the
+   programmer might change it later on by specifying a different
    GNUSTEP_INSTALLATION_DIR when installing ... (TODO - modify
    gnustep-make so that it issues a warning if you do that, suggesting
-   you to recompile before installing!)). (FIXME/TODO: If the linker
-   supports it, we should be asking the path on disk to the shared
-   object containing the NSFramework_xxx class ... and we can very
-   reliably guess the framework path from that path!!!!).
+   you to recompile before installing!)), and search for the framework
+   there.
 
    So at startup, we scan all classes which were compiled into the
    application.  For each NSFramework_ class, we call the following
@@ -265,17 +271,18 @@ _bundle_name_first_match(NSString* directory, NSString* name)
    the classes belonging to it, and tries to determine the path
    on disk to the framework bundle.
 
-   Mirko:
-
-   Bundles (ie frameworks) could depend to other frameworks (linked
-   togheter on platform that supports this behaviour) so in
-   _bundle_load_callback() we construct a list of all NSFramework_* classes
-   loaded and call this method to build the correct list of bundles.
+   Bundles (and frameworks if dynamically loaded as bundles) could
+   depend on other frameworks (linked togheter on platform that
+   supports this behaviour) so whenever we dynamically load a bundle,
+   we need to spot out any additional NSFramework_* classes which are
+   loaded, and call this method (exactly as for frameworks linked into
+   the main application) to record them, and try finding the path on
+   disk to those framework bundles.
 
 */
 + (void) _addFrameworkFromClass: (Class)frameworkClass
 {
-  NSBundle	 *bundle;
+  NSBundle	 *bundle = nil;
   NSString	**fmClasses;
   NSString	 *bundlePath = nil;
   int		  len;
@@ -290,63 +297,150 @@ _bundle_name_first_match(NSString* directory, NSString* name)
   if (len > 12 * sizeof(char)
       && !strncmp("NSFramework_", frameworkClass->name, 12))
     {
-      NSString *varEnv, *path, *name;
-
       /* The name of the framework.  */
-      name = [NSString stringWithCString: &frameworkClass->name[12]];
-      
-      /* Create the framework bundle if the bundle was linked into the 
-	 application.  */
+      NSString *name = [NSString stringWithCString: &frameworkClass->name[12]];
 
-      /* NICOLA: I think if we could get the path to the NSFramework_
-	 class from the linker, then we could build the framework path
-	 reliably.  I consider the following only a hack.  */
+      /* Try getting the path to the framework using the dynamic
+       * linker.  When it works it's really cool :-) This is the only
+       * really universal way of getting the framework path ... we can
+       * locate the framework no matter where it is on disk!
+       */
+      bundlePath = objc_get_symbol_path (frameworkClass, NULL);
 
-      /* varEnv is something like GNUSTEP_LOCAL_ROOT.  */
-      varEnv = [frameworkClass frameworkEnv];
-      if (varEnv != nil  &&  [varEnv length] > 0)
+      if ([bundlePath isEqualToString: _executable_path])
 	{
-	  /* FIXME - I don't think we should be reading it from
-	     the environment directly!  */
-	  bundlePath = [[[NSProcessInfo processInfo] environment]
-			 objectForKey: varEnv];
+	  /* Ops ... the NSFramework_xxx class is linked in the main
+	   * executable.  Maybe the framework was statically linked
+	   * into the application ... resort to searching the
+	   * framework bundle on the filesystem manually.
+	   */
+	  bundlePath = nil;
 	}
       
-      /* FIXME - path is something like ?.  */
-      path = [frameworkClass frameworkPath];
-      if (path && [path length])
+      if (bundlePath != nil)
 	{
-	  if (bundlePath)
+	  NSString *pathComponent;
+
+	  /* Dereference symlinks, and standardize path.  This will
+	   * only work properly if the original bundlePath is
+	   * absolute.  This should normally be the case if, as
+	   * recommended, you use only absolute paths in
+	   * LD_LIBRARY_PATH.
+	   */
+	  bundlePath = [bundlePath stringByStandardizingPath];
+
+	  /* We now have the location of the shared library object
+	   * file inside the framework directory.  We need to walk up
+	   * the directory tree up to the top of the framework.  To do
+	   * so, we need to chop off the extra subdirectories, the
+	   * library combo and the target cpu/os if they exist.  The
+	   * framework and this library should match so we can use the
+	   * compiled-in settings.
+	   */
+	  /* library name */
+	  bundlePath = [bundlePath stringByDeletingLastPathComponent];
+	  /* library combo */
+	  pathComponent = [bundlePath lastPathComponent];
+	  if ([pathComponent isEqual: library_combo])
 	    {
-	      bundlePath = [bundlePath stringByAppendingPathComponent: path];
+	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
+	    }
+	  /* target os */
+	  pathComponent = [bundlePath lastPathComponent];
+	  if ([pathComponent isEqual: gnustep_target_os])
+	    {
+	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
+	    }
+	  /* target cpu */
+	  pathComponent = [bundlePath lastPathComponent];
+	  if ([pathComponent isEqual: gnustep_target_cpu])
+	    {
+	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
+	    }
+	  /* version name */
+	  bundlePath = [bundlePath stringByDeletingLastPathComponent];
+
+	  pathComponent = [bundlePath lastPathComponent];
+          if ([pathComponent isEqual: @"Versions"])
+	    {
+	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
+	      pathComponent = [bundlePath lastPathComponent];
+	      
+	      if ([pathComponent isEqualToString: 
+				   [NSString stringWithFormat: @"%@%@",
+					     name, @".framework"]])
+		{
+		  /* Try creating the bundle.  */
+		  bundle = [[self alloc] initWithPath: bundlePath];
+		}
+	    }
+	  
+	  /* Failed - buu - try the fallback trick.  */
+	  if (bundle == nil)
+	    {
+	      bundlePath = nil;
+	    }
+	}
+
+      if (bundlePath == nil)
+	{
+	  /* NICOLA: In an ideal world, the following is just a hack
+	   * for when objc_get_symbol_path() fails!  But in real life
+	   * objc_get_symbol_path() is risky (some platforms don't
+	   * have it at all!), so this hack might be used a lot!  It
+	   * must be quite robust.  We try to look for the framework
+	   * in the standard GNUstep installation dirs.  This should
+	   * be reasonably safe if the user is not being too clever
+	   * ... :-)
+	  */
+	  NSString *varEnv, *path;
+	  
+	  /* varEnv is something like GNUSTEP_LOCAL_ROOT.  */
+	  varEnv = [frameworkClass frameworkEnv];
+	  if (varEnv != nil  &&  [varEnv length] > 0)
+	    {
+	      /* FIXME - I don't think we should be reading it from
+		 the environment directly!  */
+	      bundlePath = [[[NSProcessInfo processInfo] environment]
+			     objectForKey: varEnv];
+	    }
+	  
+	  /* FIXME - path is something like ?.  */
+	  path = [frameworkClass frameworkPath];
+	  if (path && [path length])
+	    {
+	      if (bundlePath)
+		{
+		  bundlePath = [bundlePath stringByAppendingPathComponent: 
+					     path];
+		}
+	      else
+		{
+		  bundlePath = path;
+		}
 	    }
 	  else
 	    {
-	      bundlePath = path;
+	      bundlePath = [bundlePath stringByAppendingPathComponent: 
+					 @"Library/Frameworks"];
 	    }
-	}
-      else
-	{
-	  bundlePath = [bundlePath stringByAppendingPathComponent: 
-				     @"Library/Frameworks"];
-	}
-      
-      bundlePath = [bundlePath stringByAppendingPathComponent:
-				 [NSString stringWithFormat: 
-					     @"%@.framework", 
-					   name]];
-      
-      /* Try creating the bundle.  */
-      bundle = [[self alloc] initWithPath: bundlePath];
+	  
+	  bundlePath = [bundlePath stringByAppendingPathComponent:
+				     [NSString stringWithFormat: 
+						 @"%@.framework", 
+					       name]];
 
+	  /* Try creating the bundle.  */
+	  bundle = [[self alloc] initWithPath: bundlePath];
+	}
+      
       if (bundle == nil)
 	{
 	  /* TODO: We couldn't locate the framework in the expected
 	     location.  NICOLA: We should be trying to locate it in
 	     some other obvious location, iterating over
 	     user/network/local/system dirs ...  TODO.  */
-	  NSLog (@"Problem locating framework locating for framework %@",
-		 name);
+	  NSLog (@"Problem locating framework %@", name);
 	  return;
 	}
       
@@ -372,9 +466,18 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	  fmClasses++;
 	}
 
-      if (_loadingBundle)
-	[(NSMutableArray *)[_loadingBundle _bundleClasses]
-			   removeObjectsInArray: [bundle _bundleClasses]];
+      /* If _loadingBundle is not nil, it means we reached this point
+       * while loading a bundle.  This can happen if the framework is
+       * linked into the bundle (then, the dynamic linker
+       * automatically drags in the framework when the bundle is
+       * loaded).  But then, the classes in the framework should be
+       * removed from the list of classes in the bundle.
+       */
+      if (_loadingBundle != nil)
+	{
+	  [(NSMutableArray *)[_loadingBundle _bundleClasses]
+			     removeObjectsInArray: [bundle _bundleClasses]];
+	}
     }
 }
 
@@ -665,7 +768,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
           && ([s hasSuffix: @".debug"] == NO)
           && ([s hasSuffix: @".profile"] == NO))
           // GNUstep Web
-          && (([s hasSuffix: @".gswa"] == NO) && ([s hasSuffix: @".woa"] == NO)))
+          && (([s hasSuffix: @".gswa"] == NO)
+	      && ([s hasSuffix: @".woa"] == NO)))
         {
           isApplication = NO;
         }
@@ -756,7 +860,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   /* Check if we were already initialized for this directory */
   [load_lock lock];
-  if (_bundles) 
+  if (_bundles)
     {
       NSBundle* bundle = (NSBundle *)NSMapGet(_bundles, path);
       if (bundle)
