@@ -526,12 +526,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (id)initWithNativeHandle: (void*)hdl
 {
-    return [self initWithFileDescriptor: (int)hdl closeOnDealloc: NO];
+  return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: NO];
 }
 
 - (id)initWithNativeHandle: (void*)hdl closeOnDealloc: (BOOL)flag
 {
-  return [self initWithFileDescriptor: (int)hdl closeOnDealloc: flag];
+  return [self initWithFileDescriptor: (gsaddr)hdl closeOnDealloc: flag];
 }
 
 - (void)checkAccept
@@ -1048,14 +1048,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l removeEvent: (void*)descriptor
+	  [l removeEvent: (void*)(gsaddr)descriptor
 		    type: ET_RDESC
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
         }
     }
   else
-    [l removeEvent: (void*)descriptor
+    [l removeEvent: (void*)(gsaddr)descriptor
 	      type: ET_RDESC
 	   forMode: NSDefaultRunLoopMode
 	       all: YES];
@@ -1085,14 +1085,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l removeEvent: (void*)descriptor
+	  [l removeEvent: (void*)(gsaddr)descriptor
 		    type: ET_WDESC
 		 forMode: [modes objectAtIndex: i]
 		     all: YES];
         }
     }
   else
-    [l removeEvent: (void*)descriptor
+    [l removeEvent: (void*)(gsaddr)descriptor
 	      type: ET_WDESC
 	   forMode: NSDefaultRunLoopMode
 	       all: YES];
@@ -1113,7 +1113,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       for (i = 0; i < [modes count]; i++)
 	{
-	  [l addEvent: (void*)descriptor
+	  [l addEvent: (void*)(gsaddr)descriptor
 		 type: ET_RDESC
 	      watcher: self
 	      forMode: [modes objectAtIndex: i]];
@@ -1122,7 +1122,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      [l addEvent: (void*)descriptor
+      [l addEvent: (void*)(gsaddr)descriptor
 	     type: ET_RDESC
 	  watcher: self
 	  forMode: NSDefaultRunLoopMode];
@@ -1150,7 +1150,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 	  for (i = 0; i < [modes count]; i++)
 	    {
-	      [l addEvent: (void*)descriptor
+	      [l addEvent: (void*)(gsaddr)descriptor
 		     type: ET_WDESC
 		  watcher: self
 		  forMode: [modes objectAtIndex: i]];
@@ -1158,7 +1158,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	}
       else
 	{
-	  [l addEvent: (void*)descriptor
+	  [l addEvent: (void*)(gsaddr)descriptor
 		 type: ET_WDESC
 	      watcher: self
 	      forMode: NSDefaultRunLoopMode];
