@@ -218,7 +218,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     if (hasCollected == NO) {
 	[self _collectChild];
     }
-    if (hasTerminated == NO) return NO;
+    if (hasTerminated == YES) return NO;
     return YES;
 }
 
@@ -231,7 +231,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     if (hasCollected == NO) {
 	[self _collectChild];
     }
-    if (hasTerminated) {
+    if (hasTerminated == NO) {
 	[NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet terminated"];
     }
@@ -259,7 +259,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     int			ec = [e count];
     int			ac = [a count];
     const char	*args[ac+2];
-    const char	*envp[ec+1];
+    const char	*envl[ec+1];
     int		i;
 
     if (hasLaunched) {
@@ -287,12 +287,18 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
     for (i = 0; i < ec; i++) {
 	NSString	*s;
 	id		key = [k objectAtIndex: i];
-	id		val = [e objectForKey: k];
+	id		val = [e objectForKey: key];
 
-	s = [NSString stringWithFormat: @"%s=%s", [key cString], [val cString]];
-	envp[i] = [s cString];
+	if (val) {
+	    s = [NSString stringWithFormat: @"%s=%s",
+			[key cString], [val cString]];
+	}
+	else {
+	    s = [NSString stringWithFormat: @"%s=", [key cString]];
+	}
+	envl[i] = [s cString];
     }
-    envp[ec] = 0;
+    envl[ec] = 0;
 
     path = [[self currentDirectoryPath] cString];
     idesc = [[self standardInput] fileDescriptor];
@@ -309,7 +315,7 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 	if (odesc != 1) dup2(odesc, 1);
 	if (edesc != 2) dup2(edesc, 2);
 	chdir(path);
-	execve(executable, args, envp);
+	execve(executable, args, envl);
 	exit(-1);
     }
     else {
@@ -358,10 +364,13 @@ NSString *NSTaskDidTerminateNotification = @"NSTaskDidTerminateNotification";
 {
     if (hasCollected == NO) {
         if (waitpid(taskId, &terminationStatus, WNOHANG) == taskId) {
-	    hasCollected = YES;
-	    hasTerminated = YES;
-	    if (hasNotified == NO) {
-		[self _sendNotification];
+	    if (WIFEXITED(terminationStatus)) {
+		terminationStatus = WEXITSTATUS(terminationStatus);
+		hasCollected = YES;
+		hasTerminated = YES;
+		if (hasNotified == NO) {
+		    [self _sendNotification];
+		}
 	    }
 	}
     }

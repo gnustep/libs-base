@@ -525,7 +525,7 @@ static id long_day[7] = {@"Sunday",
 	  oldOffset = [time_zone timeZoneSecondsFromGMT];
 	  time_zone = z;
 	  newOffset = [time_zone timeZoneSecondsFromGMT];
-	  s += oldOffset - newOffset;
+	  s += newOffset - oldOffset;
 	}
       else
 	{
