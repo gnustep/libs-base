@@ -73,7 +73,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
-#include <foundation/zone.h>
+#include <foundation/NSZone.h>
 
 
 #define DEFAULTLISTSIZE 10
