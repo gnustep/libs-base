@@ -27,11 +27,11 @@ GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-DOCUMENT_NAME = BaseGeneral
+DOCUMENT_NAME = General
 
-BaseGeneral_DOC_INSTALL_DIR = Developer
+General_DOC_INSTALL_DIR = Developer/Base
 
-BaseGeneral_AGSDOC_FILES = \
+General_AGSDOC_FILES = \
 Debugging.gsdoc \
 OpenStepCompliance.gsdoc \
 
@@ -41,7 +41,7 @@ OpenStepCompliance.gsdoc \
 # used by the make package, and puts our output in the documentation
 # directory.
 #
-#BaseGeneral_AGSDOC_FLAGS = -DocumentationDirectory .
+#General_AGSDOC_FLAGS = -DocumentationDirectory .
 
 # Use local version of autogsdoc in case it is not installed
 AUTOGSDOC=../../Tools/obj/autogsdoc
@@ -59,9 +59,9 @@ include $(GNUSTEP_MAKEFILES)/documentation.make
 # Clean up temporary files used while generating documentation.
 #
 after-clean::
-	if [ -d BaseGeneral ]; then \
-	  $(RM) BaseGeneral/stamp; \
-	  $(RM) BaseGeneral/dependencies; \
-	  rmdir BaseGeneral; \
+	if [ -d General ]; then \
+	  $(RM) General/stamp; \
+	  $(RM) General/dependencies; \
+	  rmdir General; \
 	fi
 

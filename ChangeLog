@@ -1,3 +1,8 @@
+2004-01-26  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/General/GNUmakefile: Update install
+	location
+
 2004-01-25  Adam Fedor  <fedor@gnu.org>
 
 	* base.make.in: Move LIBXML variable outside gnu-foundation check.
