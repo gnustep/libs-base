@@ -1,5 +1,5 @@
 /* NSHashTable interface for GNUStep.
- * Copyright (C) 1994, 1995, 1996  Free Software Foundation, Inc.
+ * Copyright (C) 1994, 1995, 1996, 1997  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:56:03 EST 1994
@@ -69,7 +69,7 @@ extern const NSHashTableCallBacks NSIntHashCallBacks;
 extern const NSHashTableCallBacks NSNonOwnedPointerHashCallBacks;
 
 /* For sets of objects without retaining and releasing. */
-extern const NSHashTableCallBacks NSNonRetainedObjectsHashCallBacks;
+extern const NSHashTableCallBacks NSNonRetainedObjectHashCallBacks;
 
 /* For sets of objects; similar to NSSet. */
 extern const NSHashTableCallBacks NSObjectsHashCallBacks;
