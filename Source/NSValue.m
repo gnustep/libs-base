@@ -23,16 +23,25 @@
 
 #include <config.h>
 #include <base/preface.h>
-#include <Foundation/NSConcreteValue.h>
+#include <Foundation/NSValue.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSZone.h>
+
+@class	GSValue;
+@class	GSNonretainedObjectValue;
+@class	GSPointValue;
+@class	GSPointerValue;
+@class	GSRangeValue;
+@class	GSRectValue;
+@class	GSSizeValue;
 
 static Class	abstractClass;
 static Class	concreteClass;
 static Class	nonretainedObjectValueClass;
 static Class	pointValueClass;
 static Class	pointerValueClass;
+static Class	rangeValueClass;
 static Class	rectValueClass;
 static Class	sizeValueClass;
   
@@ -44,12 +53,13 @@ static Class	sizeValueClass;
   if (self == [NSValue class])
     {
       abstractClass = self;
-      concreteClass = [NSConcreteValue class];
-      nonretainedObjectValueClass = [NSNonretainedObjectValue class];
-      pointValueClass = [NSPointValue class];
-      pointerValueClass = [NSPointerValue class];
-      rectValueClass = [NSRectValue class];
-      sizeValueClass = [NSSizeValue class];
+      concreteClass = [GSValue class];
+      nonretainedObjectValueClass = [GSNonretainedObjectValue class];
+      pointValueClass = [GSPointValue class];
+      pointerValueClass = [GSPointerValue class];
+      rangeValueClass = [GSRangeValue class];
+      rectValueClass = [GSRectValue class];
+      sizeValueClass = [GSSizeValue class];
     }
 }
 
@@ -96,6 +106,8 @@ static Class	sizeValueClass;
     theClass = pointValueClass;
   else if (strcmp(@encode(void *), type) == 0)
     theClass = pointerValueClass;
+  else if (strcmp(@encode(NSRange), type) == 0)
+    theClass = rangeValueClass;
   else if (strcmp(@encode(NSRect), type) == 0)
     theClass = rectValueClass;
   else if (strcmp(@encode(NSSize), type) == 0)
@@ -132,7 +144,7 @@ static Class	sizeValueClass;
 {
   NSValue	*theObj;
 
-  theObj = [NSNonretainedObjectValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [nonretainedObjectValueClass allocWithZone: NSDefaultMallocZone()];
   theObj = [theObj initWithBytes: &anObject objCType: @encode(id)];
   return AUTORELEASE(theObj);
 }
@@ -141,7 +153,7 @@ static Class	sizeValueClass;
 {
   NSValue	*theObj;
 
-  theObj = [NSPointValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [pointValueClass allocWithZone: NSDefaultMallocZone()];
   theObj = [theObj initWithBytes: &point objCType: @encode(NSPoint)];
   return AUTORELEASE(theObj);
 }
@@ -150,16 +162,25 @@ static Class	sizeValueClass;
 {
   NSValue	*theObj;
 
-  theObj = [NSPointerValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [pointerValueClass allocWithZone: NSDefaultMallocZone()];
   theObj = [theObj initWithBytes: &pointer objCType: @encode(void*)];
   return AUTORELEASE(theObj);
 }
 
++ (NSValue*) valueWithRange: (NSRange)range
+{
+  NSValue	*theObj;
+
+  theObj = [rangeValueClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &range objCType: @encode(NSRange)];
+  return AUTORELEASE(theObj);
+}
+ 
 + (NSValue*) valueWithRect: (NSRect)rect
 {
   NSValue	*theObj;
 
-  theObj = [NSRectValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [rectValueClass allocWithZone: NSDefaultMallocZone()];
   theObj = [theObj initWithBytes: &rect objCType: @encode(NSRect)];
   return AUTORELEASE(theObj);
 }
@@ -168,7 +189,7 @@ static Class	sizeValueClass;
 {
   NSValue	*theObj;
 
-  theObj = [NSSizeValue allocWithZone: NSDefaultMallocZone()];
+  theObj = [sizeValueClass allocWithZone: NSDefaultMallocZone()];
   theObj = [theObj initWithBytes: &size objCType: @encode(NSSize)];
   return AUTORELEASE(theObj);
 }
@@ -252,6 +273,12 @@ static Class	sizeValueClass;
   return 0;
 } 
 
+- (NSRange) rangeValue
+{
+  [self subclassResponsibility: _cmd];
+  return NSMakeRange(0,0);
+}
+ 
 - (NSRect) rectValue
 {
   [self subclassResponsibility: _cmd];

@@ -37,6 +37,7 @@
 + (NSValue*) valueWithNonretainedObject: (id)anObject;
 + (NSValue*) valueWithPoint: (NSPoint)point;
 + (NSValue*) valueWithPointer: (const void*)pointer;
++ (NSValue*) valueWithRange: (NSRange)range;
 + (NSValue*) valueWithRect: (NSRect)rect;
 + (NSValue*) valueWithSize: (NSSize)size;
 
@@ -54,6 +55,7 @@
 - (const char*) objCType;
 - (id) nonretainedObjectValue;
 - (void*) pointerValue;
+- (NSRange) rangeValue;
 - (NSRect) rectValue;
 - (NSSize) sizeValue;
 - (NSPoint) pointValue;

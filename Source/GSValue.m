@@ -1,4 +1,4 @@
-/* NSConcreteValue - Object encapsulation for C types.
+/* GSValue - Object encapsulation for C types.
    Copyright (C) 1993,1994,1995,1999 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -22,7 +22,7 @@
 */
 
 #include <config.h>
-#include <Foundation/NSConcreteValue.h>
+#include <Foundation/NSValue.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSException.h>
@@ -31,11 +31,18 @@
 #include <Foundation/NSObjCRuntime.h>
 #include <base/preface.h>
 
+@interface GSValue : NSValue
+{
+  void *data;
+  char *objctype;
+}
+@end
+
 /* This is the real, general purpose value object.  I've implemented all the
    methods here (like pointValue) even though most likely, other concrete
    subclasses were created to handle these types */
 
-@implementation NSConcreteValue
+@implementation GSValue
 
 // Allocating and Initializing 
 
@@ -108,13 +115,13 @@
     return NO;
   if (GSObjCClass(aValue) != GSObjCClass(self))
     return NO;
-  if (strcmp(objctype, ((NSConcreteValue*)aValue)->objctype) != 0)
+  if (strcmp(objctype, ((GSValue*)aValue)->objctype) != 0)
     return NO;
   else
     {
       unsigned	size = objc_sizeof_type(objctype);
 
-      if (memcmp(((NSConcreteValue*)aValue)->data, data, size) != 0)
+      if (memcmp(((GSValue*)aValue)->data, data, size) != 0)
 	return NO;
       return YES;
     }
