@@ -1960,6 +1960,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 {
   NSString	*charset;
 
+  GSOnceMLog(@"Deprecated method ... use setDefaultCharset: instead.");
   charset = [documentClass charsetFromEncoding: encoding];
   [self setDefaultCharset: charset];
 }

@@ -16,6 +16,8 @@ main ()
   NSCalendarDate *date;
   CREATE_AUTORELEASE_POOL(pool);
 
+  GSPrintf(stdout, @"GMT time zone %x\n",
+    [NSTimeZone timeZoneWithAbbreviation:@"GMT"]);
   GSPrintf(stdout, @"System time zone\n");
   system = [NSTimeZone systemTimeZone];
   GSPrintf(stdout, @"  %@\n\n", [system description]);
