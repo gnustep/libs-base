@@ -1,3 +1,11 @@
+2004-07-28  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
+
+	* Source/GSFileHandle.m ([GSFileHandle -gcFinalize]): if __MINGW__ also
+	close ordinary file descriptor, not only the socket.
+	([GSFileHandle -closeFile]): in __MINGW__ defined block:
+	changed test of !isStandardFile to isSocket, and make sure that the
+	ordinary file descriptor is also closed.
+	
 2004-07-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: don't escape tab,cr,lf in output of old
