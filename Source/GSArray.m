@@ -168,13 +168,22 @@ static Class	GSInlineArrayClass;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [aCoder encodeValueOfObjCType: @encode(unsigned)
-			     at: &_count];
-  if (_count > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      [aCoder encodeArrayOfObjCType: @encode(id)
-			      count: _count
-				 at: _contents_array];
+      [super encodeWithCoder: aCoder];
+    }
+  else
+    {
+      /* For performace we encode directly ... must exactly match the
+       * superclass implemenation. */
+      [aCoder encodeValueOfObjCType: @encode(unsigned)
+				 at: &_count];
+      if (_count > 0)
+	{
+	  [aCoder encodeArrayOfObjCType: @encode(id)
+				  count: _count
+				     at: _contents_array];
+	}
     }
 }
 
@@ -182,27 +191,26 @@ static Class	GSInlineArrayClass;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
-						@"NS.objects"];
-
-      [self initWithArray: array];
+      self = [super initWithCoder: aCoder];
     }
   else
     {
-	[aCoder decodeValueOfObjCType: @encode(unsigned)
-			           at: &_count];
-	if (_count > 0)
-	  {
-	    _contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
-	    if (_contents_array == 0)
-	      {
-		[NSException raise: NSMallocException
-			    format: @"Unable to make array"];
-	      }
-	    [aCoder decodeArrayOfObjCType: @encode(id)
-			            count: _count
-				       at: _contents_array];
-	  }
+      /* for performance, we decode directly into memory rather than
+       * using the superclass method. Must exactly match superclass. */
+      [aCoder decodeValueOfObjCType: @encode(unsigned)
+				 at: &_count];
+      if (_count > 0)
+	{
+	  _contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
+	  if (_contents_array == 0)
+	    {
+	      [NSException raise: NSMallocException
+			  format: @"Unable to make array"];
+	    }
+	  [aCoder decodeArrayOfObjCType: @encode(id)
+				  count: _count
+				     at: _contents_array];
+	}
     }
   return self;
 }

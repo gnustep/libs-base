@@ -357,18 +357,45 @@ static SEL	rlSel;
 {
   unsigned	count = [self count];
 
-  [aCoder encodeValueOfObjCType: @encode(unsigned)
-			     at: &count];
-
-  if (count > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      GS_BEGINIDBUF(a, count)
+      /* HACK ... MacOS-X seems to code differently if the coder is an
+       * actual instance of NSKeyedArchiver
+       */
+      if ([aCoder class] == [NSKeyedArchiver class])
+	{
+	  [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: self
+						   forKey: @"NS.objects"];
+	}
+      else
+	{
+	  unsigned	i;
 
-      [self getObjects: a];
-      [aCoder encodeArrayOfObjCType: @encode(id)
-                              count: count
-                                 at: a];
-      GS_ENDIDBUF()
+	  for (i = 0; i < count; i++)
+	    {
+	      NSString	*key;
+
+	      key = [NSString stringWithFormat: @"NS.object.%u", i];
+	      [(NSKeyedArchiver*)aCoder encodeObject: [self objectAtIndex: i]
+					      forKey: key];
+	    }
+	}
+    }
+  else
+    {
+      [aCoder encodeValueOfObjCType: @encode(unsigned)
+				 at: &count];
+
+      if (count > 0)
+	{
+	  GS_BEGINIDBUF(a, count)
+
+	  [self getObjects: a];
+	  [aCoder encodeArrayOfObjCType: @encode(id)
+				  count: count
+				     at: a];
+	  GS_ENDIDBUF()
+	}
     }
 }
 
@@ -556,10 +583,30 @@ static SEL	rlSel;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
-						@"NS.objects"];
+      id	array;
 
-      [self initWithArray: array];
+      array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+						@"NS.objects"];
+      if (array == nil)
+	{
+	  unsigned	i = 0;
+	  NSString	*key;
+	  id		val;
+
+	  array = [NSMutableArray arrayWithCapacity: 2];
+	  key = [NSString stringWithFormat: @"NS.object.%u", i];
+	  val = [(NSKeyedUnarchiver*)aCoder decodeObjectForKey: key];
+
+	  while (val != nil)
+	    {
+	      [array addObject: val];
+	      i++;
+	      key = [NSString stringWithFormat: @"NS.object.%u", i];
+	      val = [(NSKeyedUnarchiver*)aCoder decodeObjectForKey: key];
+	    }
+	}
+
+      self = [self initWithArray: array];
     }
   else
     {

@@ -115,6 +115,13 @@ static NSMapTable	globalClassMap = 0;
     }
   return o;
 }
+
+- (id) _decodePropertyListForKey: (NSString*)aKey
+{
+  id	o = [_keyMap objectForKey: aKey];
+
+  return o;
+}
 @end
 
 @implementation NSKeyedUnarchiver (Private)

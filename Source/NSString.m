@@ -3859,22 +3859,32 @@ handle_printf_atsign (FILE *stream,
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  unsigned	count = [self length];
-
-  [aCoder encodeValueOfObjCType: @encode(unsigned int) at: &count];
-  if (count > 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      NSStringEncoding	enc = NSUnicodeStringEncoding;
-      unichar		*chars;
+// FIXME
+[NSException raise: NSInvalidArgumentException
+	    format: @"%@ doesn't know how to encode with keyed coder",
+  NSStringFromClass([self class])];
+    }
+  else
+    {
+      unsigned	count = [self length];
 
-      [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
+      [aCoder encodeValueOfObjCType: @encode(unsigned int) at: &count];
+      if (count > 0)
+	{
+	  NSStringEncoding	enc = NSUnicodeStringEncoding;
+	  unichar		*chars;
 
-      chars = NSZoneMalloc(NSDefaultMallocZone(), count*sizeof(unichar));
-      [self getCharacters: chars];
-      [aCoder encodeArrayOfObjCType: @encode(unichar)
-			      count: count
-				 at: chars];
-      NSZoneFree(NSDefaultMallocZone(), chars);
+	  [aCoder encodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
+
+	  chars = NSZoneMalloc(NSDefaultMallocZone(), count*sizeof(unichar));
+	  [self getCharacters: chars];
+	  [aCoder encodeArrayOfObjCType: @encode(unichar)
+				  count: count
+				     at: chars];
+	  NSZoneFree(NSDefaultMallocZone(), chars);
+	}
     }
 }
 
@@ -3917,7 +3927,7 @@ handle_printf_atsign (FILE *stream,
 				       freeWhenDone: YES];
 	    }
 	  else if (enc == NSASCIIStringEncoding
-		   || enc == _DefaultStringEncoding)
+	    || enc == _DefaultStringEncoding)
 	    {
 	      unsigned char	*chars;
 	      

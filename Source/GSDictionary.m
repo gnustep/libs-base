@@ -104,20 +104,27 @@ static SEL	objSel;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  unsigned	count = map.nodeCount;
-  SEL		sel = @selector(encodeObject:);
-  IMP		imp = [aCoder methodForSelector: sel];
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-  GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
-
-  [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
-  while (node != 0)
+  if ([aCoder allowsKeyedCoding])
     {
-      (*imp)(aCoder, sel, node->key.obj);
-      (*imp)(aCoder, sel, node->value.obj);
-      node = GSIMapEnumeratorNextNode(&enumerator);
+      self = [super initWithCoder: aCoder];
     }
-  GSIMapEndEnumerator(&enumerator);
+  else
+    {
+      unsigned		count = map.nodeCount;
+      SEL		sel = @selector(encodeObject:);
+      IMP		imp = [aCoder methodForSelector: sel];
+      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
+
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+      while (node != 0)
+	{
+	  (*imp)(aCoder, sel, node->key.obj);
+	  (*imp)(aCoder, sel, node->value.obj);
+	  node = GSIMapEnumeratorNextNode(&enumerator);
+	}
+      GSIMapEndEnumerator(&enumerator);
+    }
 }
 
 - (unsigned) hash
@@ -129,12 +136,7 @@ static SEL	objSel;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSArray *keys = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
-					       @"NS.keys"];
-      NSArray *objects = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
-						  @"NS.objects"];
-
-      self = [self initWithObjects: objects forKeys: keys];
+      self = [super initWithCoder: aCoder];
     }
   else
     {

@@ -1,7 +1,16 @@
 2004-01-28 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyedUnrchiver.m: Store objects in map while they are
-	decoding themselves, s they can be self referential.
+	decoding themselves so they can be self referential.
+	* Source/GSArray.m:
+        * Source/NSArray.m:
+        * Source/GSSet.m:
+        * Source/NSSet.m:
+        * Source/GSDictionary.m:
+        * Source/NSDictionary.m:
+        * Source/NSString.m:
+	Made keyed decoding able to handle more variations.
+	Added keyed encoding support.
 
 2004-01-27  Fred Kiefer <FredKiefer@gmx.de>
 
