@@ -28,6 +28,12 @@
 
 @implementation NSCoder
 
++ (void) initialize
+{
+  if (self == [NSCoder class])
+    behavior_class_add_class (self, [NSCoderNonCore class]);
+}
+
 - (void) encodeValueOfObjCType: (const char*)type
    at: (const void*)address;
 {
@@ -57,6 +63,9 @@
   return 0;
 }
 
+@end
+
+@implementation NSCoderNonCore
 
 // Encoding Data
 
