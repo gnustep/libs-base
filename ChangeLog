@@ -1,6 +1,17 @@
+Wed Apr 17 08:56:09 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
+
+	* src/Foundation/NSString.h: Insert contents of
+ 	<objects/NSString.h>
+	* src/Foundation/NSSet.h: Insert contents of <objects/NSSet.h>
+	* src/Foundation/NSDictionary.h: Insert contents of
+ 	<objects/NSDictionary.h>
+	* src/Foundation/NSCoder.h: Insert contents of <objects/NSCoder.h>
+	* src/Foundation/NSArray.h: Insert contents of <objects/NSArray.h>
+
 Tue Apr 16 17:29:02 1996  Andrew McCallum  <mccallum@cs.rochester.edu>
 
-	* Version (OBJECTS_SUBMINOR_VERSION): Version 0.2.1.
+	* Version (OBJECTS_SUBMINOR_VERSION): Version 0.2.1.  Last version
+	before renaming from libobjects to gnustep-base.
 
 	* checks/Makefile.in (CFLAGS): Add -Wno-format.
 	(SRCS): Use new, more descriptive file names.
