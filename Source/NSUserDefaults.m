@@ -435,22 +435,29 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	}
       else if (added_locale == NO)
 	{
-	  NSString *locale;
+	  NSString	*locale = nil;
+
 #ifdef HAVE_LOCALE_H
 	  locale = GSSetLocale(LC_MESSAGES, nil);
 #endif
 	  if (locale == nil)
-	    continue;
+	    {
+	      continue;
+	    }
 	  /* See if we can get the dictionary from i18n functions.
 	     Note that we get the dict from the current locale regardless
 	     of what 'lang' is, since it should match anyway. */
 	  /* Also, I don't think that the i18n routines can handle more than
 	     one locale, but tell me if I'm wrong... */
 	  if (GSLanguageFromLocale(locale))
-	    lang = GSLanguageFromLocale(locale);
+	    {
+	      lang = GSLanguageFromLocale(locale);
+	    }
 	  dict = GSDomainFromDefaultLocale();
-	  if (dict)
-	    [sharedDefaults setVolatileDomain: dict forName: lang];
+	  if (dict != nil)
+	    {
+	      [sharedDefaults setVolatileDomain: dict forName: lang];
+	    }
 	  added_locale = YES;
 	}
     }
@@ -475,8 +482,11 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 + (NSArray*) userLanguages
 {
   NSArray	*currLang = nil;
-  NSString	*locale;
+  NSString	*locale = nil;
 
+#ifdef HAVE_LOCALE_H
+  locale = GSSetLocale(LC_MESSAGES, nil);
+#endif
   [classLock lock];
   if (userLanguages != nil)
     {
@@ -516,12 +526,12 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       currLang
 	= [[self standardUserDefaults] stringArrayForKey: @"NSLanguages"];
     }
-  if (currLang == nil && locale != 0 && GSLanguageFromLocale(locale))
+  if (currLang == nil && locale != nil && GSLanguageFromLocale(locale))
     {
       currLang = [NSArray arrayWithObject: GSLanguageFromLocale(locale)];
     }
 #ifdef __MINGW__
-  if (currLang == nil && locale != 0)
+  if (currLang == nil && locale != nil)
     {
       /* Check for language as the first part of the locale string */
       NSRange under = [locale rangeOfString: @"_"];
