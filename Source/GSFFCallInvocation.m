@@ -30,21 +30,120 @@
 #include <callback.h>
 #include "callframe.h"
 
+#ifndef INLINE
+#define INLINE inline
+#endif
+
 typedef struct _NSInvocation_t {
   @defs(NSInvocation)
 } NSInvocation_t;
 
+
+/*
+  Wim Oudshoorn (3 aug 2001)
+
+  This information is used by GSInvocationCallback
+  actually the last three arguments are only used
+  when type == __VAstruct, but the code becomes
+  more difficult when you try to optimize for
+  it.  And what are 15 * 4 * 3 = 180 bytes anyway.
+*/
+typedef struct _vacallReturnTypeInfo_t
+{
+  enum __VAtype type;
+  unsigned structSize;
+  unsigned structAlign;
+  unsigned structSplit;
+} vacallReturnTypeInfo;
+
+/* 
+   Create the map table for the forwarding functions
+ */
+#define GSI_MAP_KTYPES GSUNION_PTR
+#define GSI_MAP_VTYPES GSUNION_PTR
+
+/*
+  Wim Oudshoorn (6 aug 2001)
+
+  Hash function for the mapping
+  return_type --> callback functions
+
+  Rationale for the magic constants.
+  ----------------------------------
+  We want to avoid hash colissions.
+  So we encode the hash value as follows:
+
+  +------+--------+----------+-------+
+  | Size |alignmnt|splittable| vaType|
+  | 24bit| 3bit   | 1bit     | 4bit  |
+  +------+--------+----------+-------+
+ */
+
+static INLINE unsigned int
+ReturnTypeHash (vacallReturnTypeInfo *ret_type)
+{
+  return ret_type->type
+    ^ ret_type->structSplit << 4 
+    ^ ret_type->structAlign << 5 
+    ^ ret_type->structSize << 8;
+}
+
+/*
+  Wim Oudshoorn (6 aug 2001)
+
+  Comparison function, used by the hash
+  table.  I tried to order the comparison
+  so that the earlier comparisons
+  fail more often than later comparisons.
+ */
+static INLINE BOOL
+ReturnTypeEqualsReturnType (vacallReturnTypeInfo *a, vacallReturnTypeInfo *b)
+{
+  return (a->structSize == b->structSize)
+    && (a->structAlign == b->structAlign)
+    && (a->structSplit == b->structSplit)
+    && (a->type == b->type);
+}
+
+#define GSI_MAP_HASH(X)        ReturnTypeHash (X.ptr)
+#define GSI_MAP_EQUAL(X,Y)     ReturnTypeEqualsReturnType (X.ptr, Y.ptr)
+#define GSI_MAP_RETAIN_KEY(X)  ;
+#define GSI_MAP_RETAIN_VAL(X)  ;
+#define GSI_MAP_RELEASE_KEY(X) ;
+#define GSI_MAP_RELEASE_VAL(X) ;
+
+#import <base/GSIMap.h>
+
+/* This determines the number of precomputed
+   callback data entries.  The list is indexed
+   by __VAtype and only usefull for non-struct
+   types.  Therefore it is of no use increasing
+   the size of this table.  Except if the
+   callback module of ffcall changes
+*/
+#define STATIC_CALLBACK_LIST_SIZE 15
+
+/* Callback functions for forwarding methods */
+
+static void         *ff_callback [STATIC_CALLBACK_LIST_SIZE];
+static GSIMapTable_t ff_callback_map;
+
+/* Lock that protects the ff_callback_map */
+
+static objc_mutex_t  ff_callback_map_lock = NULL;
+
+/* Static pre-computed return type info */ 
+
+static vacallReturnTypeInfo returnTypeInfo [STATIC_CALLBACK_LIST_SIZE];
+
+/* Function that implements the actual forwarding */
 void
 GSInvocationCallback(void *callback_data, va_alist args);
 
-/* Callback for forwarding methods */
-static void *ff_callback;
-
-/* Callback data (which will hold the selector) */
-static SEL callback_sel;
-
-/* Recursively calculate the offset using the offset of the previous
-   sub-type */
+/*
+ * Recursively calculate the offset using the offset of the previous
+ * sub-type
+ */
 static int
 gs_offset(const char *type, int index)
 {
@@ -66,7 +165,7 @@ gs_offset(const char *type, int index)
    See the avcall or vacall man pages for more info. FIXME: I'm betting
    this won't work if a structure contains another structure */
 int
-gs_splittable(const char *type)
+gs_splittable (const char *type)
 {
   int i, numtypes;
   const char *subtype;
@@ -95,26 +194,232 @@ gs_splittable(const char *type)
   return result;
 }
 
+/* 
+ * Selectors are not unique, and not all selectors have
+ * type information.  This method tries to find the
+ * best equivalent selector with type information.
+ *
+ * the conversion sel -> name -> sel
+ * is not what we want.  However
+ * I can not see a way to dispose of the
+ * name, except if we can access the 
+ * internal data structures of the runtime.
+ * 
+ * This has the additional advantage that
+ * we can check if we check for incompatible
+ * return types.
+ */
+
+static INLINE SEL 
+gs_find_best_typed_sel (SEL sel)
+{
+  if (!sel_get_type (sel))
+    {
+      const char *name = sel_get_name (sel);
+      
+      if (name)
+	{
+	  SEL tmp_sel = sel_get_any_typed_uid (name);
+	  if (sel_get_type (tmp_sel))
+	    return tmp_sel;
+	}
+    }
+  return sel;
+}
+
+/*
+ * Take the receiver into account for finding the best
+ * selector.  If no receiver is given fallback
+ * to gs_find_best_typed_sel
+ */  
+static INLINE SEL
+gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
+{
+  if (sel_get_type (sel))
+    return sel;
+
+  if (receiver)
+    {
+      Method_t method = 0;
+
+      if (object_is_instance (receiver))
+	{
+	  method = class_get_instance_method (object_get_class
+	    (receiver), sel);
+	}
+      else if (object_is_meta_class (receiver))
+	{
+	  method = class_get_class_method (object_get_meta_class
+	    (receiver), sel);
+	}
+      
+      /* CHECKME:  Can we assume that:
+	 (a) method_name is a selector (compare libobjc header files)
+	 (b) this selector IS really typed?
+	 At the moment I assume (a) but not (b)
+      */
+      if (method)
+	sel = method->method_name;
+    }
+  return gs_find_best_typed_sel (sel);
+}
+
+/*
+  Convert objc selector type to a vacallReturnTypeInfo.
+  Only passes the first part.  Is used for determining
+  the return type for the vacall macros.
+*/ 
+void 
+gs_sel_type_to_callback_type (const char *sel_type, 
+  vacallReturnTypeInfo *vatype)
+{
+  switch (*sel_type)
+    {
+      case _C_ID:
+      case _C_CLASS:
+      case _C_SEL:
+      case _C_PTR:
+      case _C_CHARPTR: 
+	vatype->type = __VAvoidp;
+	break;
+      case _C_CHR: 
+	vatype->type = __VAchar; 
+	break;
+      case _C_UCHR:
+	vatype->type = __VAuchar; 
+	break;
+      case _C_SHT:
+	vatype->type = __VAshort; 
+	break;
+      case _C_USHT:
+	vatype->type = __VAushort; 
+	break;
+      case _C_INT:
+	vatype->type = __VAint; 
+	break;
+      case _C_UINT:
+	vatype->type = __VAuint; 
+	break;
+      case _C_LNG:
+	vatype->type = __VAlong; 
+	break;
+      case _C_ULNG:
+	vatype->type = __VAulong; 
+	break;
+      case _C_LNG_LNG:
+	vatype->type = __VAlonglong; 
+	break;
+      case _C_ULNG_LNG:
+	vatype->type = __VAulonglong; 
+	break;
+      case _C_FLT:
+	vatype->type = __VAfloat; 
+	break;
+      case _C_DBL:
+	vatype->type = __VAdouble; 
+	break;
+      case _C_STRUCT_B:
+	vatype->structSize = objc_sizeof_type (sel_type);
+	if (vatype->structSize > sizeof (long)
+	  && vatype->structSize <= 2 * sizeof (long))
+	  vatype->structSplit = gs_splittable (sel_type);
+	vatype->structAlign = objc_alignof_type (sel_type);
+	vatype->type = __VAstruct;
+	break;
+      case _C_VOID:
+	vatype->type = __VAvoid;
+	break;
+      default:
+	NSCAssert1 (0, @"GSFFCallInvocation: Return Type '%s' not implemented",
+	  sel_type);
+	break;
+    }
+}
+
+
 @implementation GSFFCallInvocation
 
 static IMP gs_objc_msg_forward (SEL sel)
 {
-  callback_sel = sel;
-  return ff_callback;
-}
+  const char		*sel_type;
+  vacallReturnTypeInfo	returnInfo;
+  void			*forwarding_callback;
 
-static void gs_free_callback(void)
-{
-  if (ff_callback)
+  /*
+   * 1. determine return type.
+   */
+  sel = gs_find_best_typed_sel (sel);
+  sel_type = sel_get_type (sel);
+
+  if (!sel_type)
     {
-      free_callback(ff_callback);
-      ff_callback = NULL;
+      NSLog(@"Invalid selector %s (no type information)", sel_get_name (sel));
+      sel_type = "@";	// Default to id return type
     }
+
+  sel_type = objc_skip_type_qualifiers (sel_type);
+  gs_sel_type_to_callback_type (sel_type, &returnInfo);
+  
+  /*
+   * 2. Check if we have already a callback
+   */
+  if ((returnInfo.type < STATIC_CALLBACK_LIST_SIZE)
+    && (returnInfo.type != __VAstruct))
+    {
+      // 2.a Do we have a statically precomputed callback
+      forwarding_callback = ff_callback [returnInfo.type];
+    }
+  else
+    {
+      // 2.b Or do we have it already in our hash table
+      GSIMapNode node;
+      
+      // Lock
+      objc_mutex_lock (ff_callback_map_lock);
+
+      node = GSIMapNodeForKey (&ff_callback_map,
+	(GSIMapKey) ((void *) &returnInfo));
+      
+      if (node)
+	{
+	  // 2.b.1 YES, we have it in our cache
+	  forwarding_callback =  node->value.ptr;
+	}
+      else
+	{
+	  // 2.b.2 NO, we do not have it.
+	  vacallReturnTypeInfo *ret_info;
+
+	  ret_info = objc_malloc (sizeof (vacallReturnTypeInfo));
+	  *ret_info = returnInfo; 
+	  
+	  forwarding_callback
+	    = alloc_callback (&GSInvocationCallback, ret_info);
+	
+	  GSIMapAddPairNoRetain (&ff_callback_map, 
+	    (GSIMapKey) (void *) ret_info,
+	    (GSIMapVal) forwarding_callback);
+	}
+      // Unlock
+      objc_mutex_unlock (ff_callback_map_lock);
+    }
+  return forwarding_callback;
 }
 
-+ (void)load
++ (void) load
 {
-  ff_callback = alloc_callback(&GSInvocationCallback, &callback_sel);
+  int index;
+
+  ff_callback_map_lock = objc_mutex_allocate ();
+
+  for (index = 0; index < STATIC_CALLBACK_LIST_SIZE; ++index)
+    {
+      returnTypeInfo[index].type = index;
+      ff_callback[index] = alloc_callback (&GSInvocationCallback,
+	&returnTypeInfo [index]);
+    }
+  
+  GSIMapInitWithZoneAndCapacity (&ff_callback_map, 0, 9);
 
   __objc_msg_forward = gs_objc_msg_forward;
 }
@@ -124,7 +429,7 @@ static void gs_free_callback(void)
   /* We should never get here */
   NSDeallocateObject(self);
   [NSException raise: NSInternalInconsistencyException
-	       format: @"Runtime incorrectly configured to pass argframes"];
+	      format: @"Runtime incorrectly configured to pass argframes"];
   return nil;
 }
 
@@ -144,16 +449,17 @@ static void gs_free_callback(void)
   return self;
 }
 
-/* This is implemented as a function so it can be used by other
-   routines (like the DO forwarding)
-*/
+/*
+ * This is implemented as a function so it can be used by other
+ * routines (like the DO forwarding)
+ */
 void
 GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 {
-  int      i;
-  av_alist alist;
-  NSInvocation_t *inv = (NSInvocation_t*)_inv;
-  void *retval = inv->_retval;
+  int			i;
+  av_alist		alist;
+  NSInvocation_t	*inv = (NSInvocation_t*)_inv;
+  void			*retval = inv->_retval;
 
   /* Do an av call starting with the return type */
 #undef CASE_TYPE
@@ -164,50 +470,54 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 
   switch (*inv->_info[0].type)
     {
-    case _C_ID:
-      av_start_ptr(alist, imp, id, retval);
-      break;
-    case _C_CLASS:
-      av_start_ptr(alist, imp, Class, retval);
-      break;
-    case _C_SEL:
-      av_start_ptr(alist, imp, SEL, retval);
-      break;
-    case _C_PTR:
-      av_start_ptr(alist, imp, void *, retval);
-      break;
-    case _C_CHARPTR:
-      av_start_ptr(alist, imp, char *, retval);
-      break;
-	
-      CASE_TYPE(_C_CHR,  char, av_start_char)
-      CASE_TYPE(_C_UCHR, unsigned char, av_start_uchar)
-      CASE_TYPE(_C_SHT,  short, av_start_short)
-      CASE_TYPE(_C_USHT, unsigned short, av_start_ushort)
-      CASE_TYPE(_C_INT,  int, av_start_int)
-      CASE_TYPE(_C_UINT, unsigned int, av_start_uint)
-      CASE_TYPE(_C_LNG,  long, av_start_long)
-      CASE_TYPE(_C_ULNG, unsigned long, av_start_ulong)
-      CASE_TYPE(_C_LNG_LNG,  long long, av_start_longlong)
-      CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_start_ulonglong)
-      CASE_TYPE(_C_FLT,  float, av_start_float)
-      CASE_TYPE(_C_DBL,  double, av_start_double)
-
-    case _C_STRUCT_B:
-      {
-	int split = 0;
-	if (inv->_info[0].size > sizeof(long) && inv->_info[0].size <= 2*sizeof(long))
-	  split = gs_splittable(inv->_info[0].type);
-	_av_start_struct(alist, imp, inv->_info[0].size, split, retval);
+      case _C_ID:
+	av_start_ptr(alist, imp, id, retval);
 	break;
-      }
-    case _C_VOID:
-      av_start_void(alist, imp);
-      break;
-    default:
-      NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented", 
-		 inv->_info[0].type);
-      break;
+      case _C_CLASS:
+	av_start_ptr(alist, imp, Class, retval);
+	break;
+      case _C_SEL:
+	av_start_ptr(alist, imp, SEL, retval);
+	break;
+      case _C_PTR:
+	av_start_ptr(alist, imp, void *, retval);
+	break;
+      case _C_CHARPTR:
+	av_start_ptr(alist, imp, char *, retval);
+	break;
+	  
+	CASE_TYPE(_C_CHR,  char, av_start_char)
+	CASE_TYPE(_C_UCHR, unsigned char, av_start_uchar)
+	CASE_TYPE(_C_SHT,  short, av_start_short)
+	CASE_TYPE(_C_USHT, unsigned short, av_start_ushort)
+	CASE_TYPE(_C_INT,  int, av_start_int)
+	CASE_TYPE(_C_UINT, unsigned int, av_start_uint)
+	CASE_TYPE(_C_LNG,  long, av_start_long)
+	CASE_TYPE(_C_ULNG, unsigned long, av_start_ulong)
+	CASE_TYPE(_C_LNG_LNG,  long long, av_start_longlong)
+	CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_start_ulonglong)
+	CASE_TYPE(_C_FLT,  float, av_start_float)
+	CASE_TYPE(_C_DBL,  double, av_start_double)
+
+      case _C_STRUCT_B:
+	{
+	  int split = 0;
+
+	  if (inv->_info[0].size > sizeof(long)
+	    && inv->_info[0].size <= 2*sizeof(long))
+	    {
+	      split = gs_splittable(inv->_info[0].type);
+	    }
+	  _av_start_struct(alist, imp, inv->_info[0].size, split, retval);
+	  break;
+	}
+      case _C_VOID:
+	av_start_void(alist, imp);
+	break;
+      default:
+	NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented", 
+	  inv->_info[0].type);
+	break;
     }
 
   /* Set target and selector */
@@ -217,8 +527,8 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   /* Set the rest of the arguments */
   for (i = 2; i < inv->_numArgs; i++)
     {
-      const char *type = inv->_info[i+1].type;
-      unsigned	 size = inv->_info[i+1].size;
+      const char	*type = inv->_info[i+1].type;
+      unsigned		size = inv->_info[i+1].size;
       void              *datum;
 
       datum = callframe_arg_addr((callframe_t *)inv->_cframe, i);
@@ -235,61 +545,62 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 
       switch (*type)
 	{
-	case _C_ID:
-	  {
-	    id obj;
-	    memcpy(&obj, datum, size);
-	    av_ptr(alist, id, obj);
+	  case _C_ID:
+	    {
+	      id obj;
+	      memcpy(&obj, datum, size);
+	      av_ptr(alist, id, obj);
+	      break;
+	    }
+	  case _C_CLASS:
+	    {
+	      Class obj;
+	      memcpy(&obj, datum, size);
+	      av_ptr(alist, Class, obj);
+	      break;
+	    }
+	  case _C_SEL:
+	    {
+	      SEL sel;
+	      memcpy(&sel, datum, size);
+	      av_ptr(alist, SEL, sel);
+	      break;
+	    }
+	  case _C_PTR:
+	    {
+	      void *ptr;
+	      memcpy(&ptr, datum, size);
+	      av_ptr(alist, void *, ptr);
+	      break;
+	    }
+	  case _C_CHARPTR:
+	    {
+	      char *ptr;
+	      memcpy(&ptr, datum, size);
+	      av_ptr(alist, char *, ptr);
+	      break;
+	    }
+	    
+	    CASE_TYPE(_C_CHR,  char, av_char)
+	    CASE_TYPE(_C_UCHR, unsigned char, av_uchar)
+	    CASE_TYPE(_C_SHT,  short, av_short)
+	    CASE_TYPE(_C_USHT, unsigned short, av_ushort)
+	    CASE_TYPE(_C_INT,  int, av_int)
+	    CASE_TYPE(_C_UINT, unsigned int, av_uint)
+	    CASE_TYPE(_C_LNG,  long, av_long)
+	    CASE_TYPE(_C_ULNG, unsigned long, av_ulong)
+	    CASE_TYPE(_C_LNG_LNG,  long long, av_longlong)
+	    CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_ulonglong)
+	    CASE_TYPE(_C_FLT,  float, av_float)
+	    CASE_TYPE(_C_DBL,  double, av_double)
+	    
+	  case _C_STRUCT_B:
+	    _av_struct(alist, size, inv->_info[i+1].align, datum);
 	    break;
-	  }
-	case _C_CLASS:
-	  {
-	    Class obj;
-	    memcpy(&obj, datum, size);
-	    av_ptr(alist, Class, obj);
+	  default:
+	    NSCAssert1(0, @"GSFFCallInvocation: Type '%s' not implemented",
+	      type);
 	    break;
-	  }
-	case _C_SEL:
-	  {
-	    SEL sel;
-	    memcpy(&sel, datum, size);
-	    av_ptr(alist, SEL, sel);
-	    break;
-	  }
-	case _C_PTR:
-	  {
-	    void *ptr;
-	    memcpy(&ptr, datum, size);
-	    av_ptr(alist, void *, ptr);
-	    break;
-	  }
-	case _C_CHARPTR:
-	  {
-	    char *ptr;
-	    memcpy(&ptr, datum, size);
-	    av_ptr(alist, char *, ptr);
-	    break;
-	  }
-	  
-	  CASE_TYPE(_C_CHR,  char, av_char)
-	  CASE_TYPE(_C_UCHR, unsigned char, av_uchar)
-	  CASE_TYPE(_C_SHT,  short, av_short)
-	  CASE_TYPE(_C_USHT, unsigned short, av_ushort)
-	  CASE_TYPE(_C_INT,  int, av_int)
-	  CASE_TYPE(_C_UINT, unsigned int, av_uint)
-	  CASE_TYPE(_C_LNG,  long, av_long)
-	  CASE_TYPE(_C_ULNG, unsigned long, av_ulong)
-	  CASE_TYPE(_C_LNG_LNG,  long long, av_longlong)
-	  CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_ulonglong)
-	  CASE_TYPE(_C_FLT,  float, av_float)
-	  CASE_TYPE(_C_DBL,  double, av_double)
-	  
-	case _C_STRUCT_B:
-	  _av_struct(alist, size, inv->_info[i+1].align, datum);
-	  break;
-	default:
-	  NSCAssert1(0, @"GSFFCallInvocation: Type '%s' not implemented", type);
-	  break;
 	}
     }
 
@@ -338,14 +649,16 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
     {
       imp = method_get_imp(object_is_instance(_target) ?
 	class_get_instance_method(
-		    ((struct objc_class*)_target)->class_pointer, _selector)
+	  ((struct objc_class*)_target)->class_pointer, _selector)
 	: class_get_class_method(
-		    ((struct objc_class*)_target)->class_pointer, _selector));
+	  ((struct objc_class*)_target)->class_pointer, _selector));
       /*
-       *	If fast lookup failed, we may be forwarding or something ...
+       * If fast lookup failed, we may be forwarding or something ...
        */
       if (imp == 0)
-	imp = objc_msg_lookup(_target, _selector);
+	{
+	  imp = objc_msg_lookup(_target, _selector);
+	}
     }
 
   [self setTarget: old_target];
@@ -361,123 +674,65 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 }
 @end
 
-void GSInvocationCallback(void *callback_data, va_alist args)
+/*
+ * Wim Oudshoorn (6 aug 2001)
+ *
+ * The function that performs the actual forwarding
+ * `callback_data' contains the information needed
+ * in order pop off the receiver and selector from
+ * the va_list `args'
+ *
+ * TODO:
+ * Add a check that the return type the selector
+ * expects matches the the `callback_data' 
+ * information.
+ */
+
+void 
+GSInvocationCallback (void *callback_data, va_alist args)
 {
-  id obj;
-  SEL callback_sel, selector;
-  int i, num_args;
-  void *retval;
-  const char *callback_type;
-  NSArgumentInfo *info;
-  GSFFCallInvocation *invocation;
-  NSMethodSignature *sig;
-  
-  callback_sel = *(SEL *)callback_data;
-  callback_type = sel_get_type(callback_sel);
-
-  /*
-   * Make a guess at what the type signature might be by asking the
-   * runtime for a selector with the same name as the untyped one we
-   * were given.
-   */
-  if (callback_type == NULL)
+  id			obj;
+  SEL			selector;
+  int			i;
+  int			num_args;
+  void			*retval;
+  vacallReturnTypeInfo	*typeinfo;
+  NSArgumentInfo	*info;
+  GSFFCallInvocation	*invocation;
+  NSMethodSignature	*sig;
+    
+  typeinfo = (vacallReturnTypeInfo *) callback_data;
+    
+  if (typeinfo->type != __VAstruct)
     {
-      const char *name = sel_get_name(callback_sel);
-
-      if (name != NULL)
-	{
-	  SEL	sel = sel_get_any_typed_uid(name);
-
-	  if (sel != NULL)
-	    {
-	      callback_sel = sel;
-	      callback_type = sel_get_type(callback_sel);
-	    }
-	}
+      __va_start (args, typeinfo->type);
     }
-
-  if (callback_type == NULL)
-    [NSException raise: NSInvalidArgumentException
-                format: @"Invalid selector %s (no type information)",
-		sel_get_name(callback_sel)];
-
-  callback_type = objc_skip_type_qualifiers(callback_type);
-
-#undef CASE_TYPE
-#define CASE_TYPE(_T, _V, _F)				\
-	case _T:					\
-	  _F(args);       		                \
-          break;
-
-  switch (*callback_type)
+  else
     {
-    case _C_ID:
-      va_start_ptr(args, id);
-      break;
-    case _C_CLASS:
-      va_start_ptr(args, Class);
-      break;
-    case _C_SEL:
-      va_start_ptr(args, SEL);
-      break;
-    case _C_PTR:
-      va_start_ptr(args, void *);
-      break;
-    case _C_CHARPTR:
-      va_start_ptr(args, char *);
-      break;
-	
-      CASE_TYPE(_C_CHR,  char, va_start_char)
-      CASE_TYPE(_C_UCHR, unsigned char, va_start_uchar)
-      CASE_TYPE(_C_SHT,  short, va_start_short)
-      CASE_TYPE(_C_USHT, unsigned short, va_start_ushort)
-      CASE_TYPE(_C_INT,  int, va_start_int)
-      CASE_TYPE(_C_UINT, unsigned int, va_start_uint)
-      CASE_TYPE(_C_LNG,  long, va_start_long)
-      CASE_TYPE(_C_ULNG, unsigned long, va_start_ulong)
-      CASE_TYPE(_C_LNG_LNG,  long long, va_start_longlong)
-      CASE_TYPE(_C_ULNG_LNG, unsigned long long, va_start_ulonglong)
-      CASE_TYPE(_C_FLT,  float, va_start_float)
-      CASE_TYPE(_C_DBL,  double, va_start_double)
-
-    case _C_STRUCT_B:
-      {
-	int split, ssize;
-	ssize = objc_sizeof_type(callback_type);
-	if (ssize > sizeof(long) && ssize <= 2*sizeof(long))
-	  split = gs_splittable(callback_type);
-	_va_start_struct(args, ssize, objc_alignof_type(callback_type), split);
-	break;
-      }
-    case _C_VOID:
-      va_start_void(args);
-      break;
-    default:
-      NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented", 
-		 callback_type);
-      break;
+      _va_start_struct (args, typeinfo->structSize, 
+	typeinfo->structAlign, typeinfo->structSplit);
     }
 
   obj      = va_arg_ptr(args, id);
   selector = va_arg_ptr(args, SEL);
-  /* Invoking a NSDistantObject method is likely to cause infinite recursion.
-     So make sure we really can't find the selector locally .*/
+
+  selector = gs_find_by_receiver_best_typed_sel (obj, selector);
+
   sig = nil;
-  if ([obj isKindOfClass: [NSDistantObject class]])
+  
+  if (sel_get_type (selector))
     {
-      const char *type = sel_get_type(selector);
-      if (type)
-	sig = [NSMethodSignature signatureWithObjCTypes: type];
+      sig = [NSMethodSignature signatureWithObjCTypes: sel_get_type(selector)];
     }
+
   if (!sig)
     {
-      //NSLog(@"looking up sel %@", NSStringFromSelector(selector));
       sig = [obj methodSignatureForSelector: selector];
     }
+  
   NSCAssert1(sig, @"No signature for selector %@", 
-	     NSStringFromSelector(selector));
-
-
+    NSStringFromSelector(selector));
+    
   invocation = [[GSFFCallInvocation alloc] initWithMethodSignature: sig];
   AUTORELEASE(invocation);
   [invocation setTarget: obj];
@@ -489,50 +744,50 @@ void GSInvocationCallback(void *callback_data, va_alist args)
   for (i = 2; i < num_args; i++)
     {
       const char	*type = info[i+1].type;
-      unsigned	size = info[i+1].size;
+      unsigned		size = info[i+1].size;
 
 #undef CASE_TYPE
 #define CASE_TYPE(_T, _V, _F)				\
-	case _T:					\
-	  {						\
-	    _V c = _F(args);				\
-	    [invocation setArgument: &c atIndex: i];	\
-	    break;					\
-	  }
+	  case _T:					\
+	    {						\
+	      _V c = _F(args);				\
+	      [invocation setArgument: &c atIndex: i];	\
+	      break;					\
+	    }
 
       switch (*type)
 	{
-	case _C_ID:
-	  {
-	    id obj = va_arg_ptr (args, id);
-	    [invocation setArgument: &obj atIndex: i];
-	    break;
-	  }
-	case _C_CLASS:
-	  {
-	    Class obj = va_arg_ptr (args, Class);
-	    [invocation setArgument: &obj atIndex: i];
-	    break;
-	  }
-	case _C_SEL:
-	  {
-	    SEL sel = va_arg_ptr (args, SEL);
-	    [invocation setArgument: &sel atIndex: i];
-	    break;
-	  }
-	case _C_PTR:
-	  {
-	    void *ptr = va_arg_ptr (args, void *);
-	    [invocation setArgument: &ptr atIndex: i];
-	    break;
-	  }
-	case _C_CHARPTR:
-	  {
-	    char *ptr = va_arg_ptr (args, char *);
-	    [invocation setArgument: &ptr atIndex: i];
-	    break;
-	  }
-	  
+	  case _C_ID:
+	    {
+	      id obj = va_arg_ptr (args, id);
+	      [invocation setArgument: &obj atIndex: i];
+	      break;
+	    }
+	  case _C_CLASS:
+	    {
+	      Class obj = va_arg_ptr (args, Class);
+	      [invocation setArgument: &obj atIndex: i];
+	      break;
+	    }
+	  case _C_SEL:
+	    {
+	      SEL sel = va_arg_ptr (args, SEL);
+	      [invocation setArgument: &sel atIndex: i];
+	      break;
+	    }
+	  case _C_PTR:
+	    {
+	      void *ptr = va_arg_ptr (args, void *);
+	      [invocation setArgument: &ptr atIndex: i];
+	      break;
+	    }
+	  case _C_CHARPTR:
+	    {
+	      char *ptr = va_arg_ptr (args, char *);
+	      [invocation setArgument: &ptr atIndex: i];
+	      break;
+	    }
+	    
 	  CASE_TYPE(_C_CHR,  char, va_arg_char)
 	  CASE_TYPE(_C_UCHR, unsigned char, va_arg_uchar)
 	  CASE_TYPE(_C_SHT,  short, va_arg_short)
@@ -545,17 +800,18 @@ void GSInvocationCallback(void *callback_data, va_alist args)
 	  CASE_TYPE(_C_ULNG_LNG, unsigned long long, va_arg_ulonglong)
 	  CASE_TYPE(_C_FLT,  float, va_arg_float)
 	  CASE_TYPE(_C_DBL,  double, va_arg_double)
-	  
-	case _C_STRUCT_B:
-	  {
-	    /* Here we actually get a ptr to the struct */
-	    void *ptr = _va_arg_struct(args, size, info[i+1].align);
-	    [invocation setArgument: ptr atIndex: i];
+	    
+	  case _C_STRUCT_B:
+	    {
+	      /* Here we actually get a ptr to the struct */
+	      void *ptr = _va_arg_struct(args, size, info[i+1].align);
+	      [invocation setArgument: ptr atIndex: i];
+	      break;
+	    }
+	  default:
+	    NSCAssert1(0, @"GSFFCallInvocation: Type '%s' not implemented",
+	      type);
 	    break;
-	  }
-	default:
-	  NSCAssert1(0, @"GSFFCallInvocation: Type '%s' not implemented", type);
-	  break;
 	}
     }
   
@@ -567,28 +823,20 @@ void GSInvocationCallback(void *callback_data, va_alist args)
 
 #undef CASE_TYPE
 #define CASE_TYPE(_T, _V, _F)				\
-	case _T:					\
-	  _F(args, *(_V *)retval);       		\
-          break;
+      case _T:					\
+	_F(args, *(_V *)retval);       		\
+	break;
 
   switch (*info[0].type)
     {
-    case _C_ID:
-      va_return_ptr(args, id, *(id *)retval);
-      break;
-    case _C_CLASS:
-      va_return_ptr(args, Class, *(Class *)retval);
-      break;
-    case _C_SEL:
-      va_return_ptr(args, SEL, *(SEL *)retval);
-      break;
-    case _C_PTR:
-      va_return_ptr(args, void *, *(void **)retval);
-      break;
-    case _C_CHARPTR:
-      va_return_ptr(args, char *, *(char **)retval);
-      break;
-	
+      case _C_ID:
+      case _C_CLASS:
+      case _C_SEL:
+      case _C_PTR:
+      case _C_CHARPTR:
+	va_return_ptr(args, void *, *(void **)retval);
+	break;
+	  
       CASE_TYPE(_C_CHR,  char, va_return_char)
       CASE_TYPE(_C_UCHR, unsigned char, va_return_uchar)
       CASE_TYPE(_C_SHT,  short, va_return_short)
@@ -602,15 +850,16 @@ void GSInvocationCallback(void *callback_data, va_alist args)
       CASE_TYPE(_C_FLT,  float, va_return_float)
       CASE_TYPE(_C_DBL,  double, va_return_double)
 
-    case _C_STRUCT_B:
-      _va_return_struct(args, info[0].size, info[0].align, retval);
-      break;
-    case _C_VOID:
-      va_return_void(args);
-      break;
-    default:
-      NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented", info[0].type);
-      break;
+      case _C_STRUCT_B:
+	_va_return_struct(args, info[0].size, info[0].align, retval);
+	break;
+      case _C_VOID:
+	va_return_void(args);
+	break;
+      default:
+	NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented",
+	  info[0].type);
+	break;
     }
 }
 
@@ -620,108 +869,146 @@ void GSInvocationCallback(void *callback_data, va_alist args)
    to send over the wire */
 - (BOOL) encodeWithDistantCoder: (NSCoder*)coder passPointers: (BOOL)passp
 {
-  int i;
-  BOOL out_parameters = NO;
-  const char *type = [_sig methodType];
+  int		i;
+  BOOL		out_parameters = NO;
+  const char	*type = [_sig methodType];
 
   [coder encodeValueOfObjCType: @encode(char*) at: &type];
 
   for (i = 0; i < _numArgs; i++)
     {
-      int flags = _info[i+1].qual;
-      const char *type = _info[i+1].type;
-      void *datum;
+      int		flags = _info[i+1].qual;
+      const char	*type = _info[i+1].type;
+      void		*datum;
       
       if (i == 0)
-	datum = &_target;
+	{
+	  datum = &_target;
+	}
       else if (i == 1)
-	datum = &_selector;
+	{
+	  datum = &_selector;
+	}
       else
-        datum = callframe_arg_addr((callframe_t *)_cframe, i);
+	{
+	  datum = callframe_arg_addr((callframe_t *)_cframe, i);
+	}
 
-      /* Decide how, (or whether or not), to encode the argument
-	 depending on its FLAGS and TYPE.  Only the first two cases
-	 involve parameters that may potentially be passed by
-	 reference, and thus only the first two may change the value
-	 of OUT_PARAMETERS. */
+      /*
+       * Decide how, (or whether or not), to encode the argument
+       * depending on its FLAGS and TYPE.  Only the first two cases
+       * involve parameters that may potentially be passed by
+       * reference, and thus only the first two may change the value
+       * of OUT_PARAMETERS.
+       */
 
       switch (*type)
 	{
-	case _C_ID: 
-	  if (flags & _F_BYCOPY)
-	    [coder encodeBycopyObject: *(id*)datum];
+	  case _C_ID: 
+	    if (flags & _F_BYCOPY)
+	      {
+		[coder encodeBycopyObject: *(id*)datum];
+	      }
 #ifdef	_F_BYREF
-	  else if (flags & _F_BYREF)
-	    [coder encodeByrefObject: *(id*)datum];
+	    else if (flags & _F_BYREF)
+	      {
+		[coder encodeByrefObject: *(id*)datum];
+	      }
 #endif
-	  else
-	    [coder encodeObject: *(id*)datum];
-	  break;
-	case _C_CHARPTR:
-	  /* Handle a (char*) argument. */
-	  /* If the char* is qualified as an OUT parameter, or if it
-	     not explicitly qualified as an IN parameter, then we will
-	     have to get this char* again after the method is run,
-	     because the method may have changed it.  Set
-	     OUT_PARAMETERS accordingly. */
-	  if ((flags & _F_OUT) || !(flags & _F_IN))
-	    out_parameters = YES;
-	  /* If the char* is qualified as an IN parameter, or not
-             explicity qualified as an OUT parameter, then encode
-             it. */
-	  if ((flags & _F_IN) || !(flags & _F_OUT))
-	    [coder encodeValueOfObjCType: type at: datum];
-	  break;
-
-	case _C_PTR:
-	  /* If the pointer's value is qualified as an OUT parameter,
-	     or if it not explicitly qualified as an IN parameter,
-	     then we will have to get the value pointed to again after
-	     the method is run, because the method may have changed
-	     it.  Set OUT_PARAMETERS accordingly. */
-	  if ((flags & _F_OUT) || !(flags & _F_IN))
-	    out_parameters = YES;
-	  if (passp) 
-	    {
-	      if ((flags & _F_IN) || !(flags & _F_OUT))
+	    else
+	      {
+		[coder encodeObject: *(id*)datum];
+	      }
+	    break;
+	  case _C_CHARPTR:
+	    /*
+	     * Handle a (char*) argument.
+	     * If the char* is qualified as an OUT parameter, or if it
+	     * not explicitly qualified as an IN parameter, then we will
+	     * have to get this char* again after the method is run,
+	     * because the method may have changed it.  Set
+	     * OUT_PARAMETERS accordingly.
+	     */
+	    if ((flags & _F_OUT) || !(flags & _F_IN))
+	      {
+		out_parameters = YES;
+	      }
+	    /*
+	     * If the char* is qualified as an IN parameter, or not
+	     * explicity qualified as an OUT parameter, then encode
+	     * it.
+	     */
+	    if ((flags & _F_IN) || !(flags & _F_OUT))
+	      {
 		[coder encodeValueOfObjCType: type at: datum];
-	    }
-	  else 
-	    {
-	      /* Handle an argument that is a pointer to a non-char.  But
-		 (void*) and (anything**) is not allowed. */
-	      /* The argument is a pointer to something; increment TYPE
-		 so we can see what it is a pointer to. */
-	      type++;
-	      /* If the pointer's value is qualified as an IN parameter,
-		 or not explicity qualified as an OUT parameter, then
-		 encode it. */
-	      if ((flags & _F_IN) || !(flags & _F_OUT))
-		[coder encodeValueOfObjCType: type at: *(void**)datum];
-	    }
-	  break;
+	      }
+	    break;
 
-	case _C_STRUCT_B:
-	case _C_UNION_B:
-	case _C_ARY_B:
-	  /* Handle struct and array arguments. */
-	  /* Whether DATUM points to the data, or points to a pointer
-	     that points to the data, depends on the value of
-	     CALLFRAME_STRUCT_BYREF.  Do the right thing
-	     so that ENCODER gets a pointer to directly to the data. */
-	  [coder encodeValueOfObjCType: type at: datum];
-	  break;
+	  case _C_PTR:
+	    /*
+	     * If the pointer's value is qualified as an OUT parameter,
+	     * or if it not explicitly qualified as an IN parameter,
+	     * then we will have to get the value pointed to again after
+	     * the method is run, because the method may have changed
+	     * it.  Set OUT_PARAMETERS accordingly.
+	     */
+	    if ((flags & _F_OUT) || !(flags & _F_IN))
+	      {
+		out_parameters = YES;
+	      }
+	    if (passp) 
+	      {
+		if ((flags & _F_IN) || !(flags & _F_OUT))
+		  {
+		    [coder encodeValueOfObjCType: type at: datum];
+		  }
+	      }
+	    else 
+	      {
+		/*
+		 * Handle an argument that is a pointer to a non-char.  But
+		 * (void*) and (anything**) is not allowed.
+		 * The argument is a pointer to something; increment TYPE
+		 * so we can see what it is a pointer to.
+		 */
+		type++;
+		/*
+		 * If the pointer's value is qualified as an IN parameter,
+		 * or not explicity qualified as an OUT parameter, then
+		 * encode it.
+		 */
+		if ((flags & _F_IN) || !(flags & _F_OUT))
+		  {
+		    [coder encodeValueOfObjCType: type at: *(void**)datum];
+		  }
+	      }
+	    break;
 
-	default:
-	  /* Handle arguments of all other types. */
-	  [coder encodeValueOfObjCType: type at: datum];
+	  case _C_STRUCT_B:
+	  case _C_UNION_B:
+	  case _C_ARY_B:
+	    /*
+	     * Handle struct and array arguments.
+	     * Whether DATUM points to the data, or points to a pointer
+	     * that points to the data, depends on the value of
+	     * CALLFRAME_STRUCT_BYREF.  Do the right thing
+	     * so that ENCODER gets a pointer to directly to the data.
+	     */
+	    [coder encodeValueOfObjCType: type at: datum];
+	    break;
+
+	  default:
+	    /* Handle arguments of all other types. */
+	    [coder encodeValueOfObjCType: type at: datum];
 	}
     }
 
-  /* Return a BOOL indicating whether or not there are parameters that
-     were passed by reference; we will need to get those values again
-     after the method has finished executing because the execution of
-     the method may have changed them.*/
+  /*
+   * Return a BOOL indicating whether or not there are parameters that
+   * were passed by reference; we will need to get those values again
+   * after the method has finished executing because the execution of
+   * the method may have changed them.
+   */
   return out_parameters;
 }
 
