@@ -256,6 +256,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   int	net;
   struct sockaddr_in	sin;
 
+  if (a == nil || [a isEqualToString: @""])
+    a = @"localhost";
   if (s == nil)
     {
       NSLog(@"bad argument - service is nil");

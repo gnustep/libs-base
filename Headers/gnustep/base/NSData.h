@@ -91,19 +91,89 @@
 @end
 
 #ifndef NO_GNUSTEP
+
+/*
+ *	We include special support for coding/decoding - adding methods for
+ *	serializing/deserializing type-tags and cross-references.
+ *
+ *	A type-tag is a byte containing -
+ *	Bit7	Set to indicate that the tag is for a cross-reference.
+ *	Bit5-6	A value for the size of the type or cross-reference.
+ *	Bit0-4	A value representing an Objective-C type.
+ */
+
+#define	_GSC_NONE	0x00		/* No type information.		*/
+#define	_GSC_XREF	0x80		/* Cross reference to an item.	*/
+#define	_GSC_SIZE	0x60		/* Type-size info mask.		*/
+#define	_GSC_MASK	0x1f		/* Basic type info mask.	*/
+
+/*
+ *	If the tag is for a cross-reference, the size field defines the
+ *	size of the cross-reference value -
+ *	_GSC_X_0 (no crossref), _GSC_X_1, _GSC_X_2, _GSC_X_4
+ */
+#define	_GSC_X_0	0x00		/* nil or null pointer		*/
+#define	_GSC_X_1	0x20		/* 8-bit cross-ref		*/
+#define	_GSC_X_2	0x40		/* 16-bit cross-ref		*/
+#define	_GSC_X_4	0x60		/* 32-bit cross-ref		*/
+
+/*
+ *	If the tag is for an integer value, the size field defines the
+ *	size of the the encoded integer -
+ *	_GSC_I16, _GSC_I32, _GSC_I64, _GSC_I128
+ *      The file GSConfig.h (produced by the configure script) defines the
+ *	size codes for this machines 'natural' integers -
+ *	_GSC_S_SHT, _GSC_S_INT, _GSC_S_LNG, _GSC_S_LNG_LNG
+ */
+#define	_GSC_I16	0x00
+#define	_GSC_I32	0x20
+#define	_GSC_I64	0x40
+#define	_GSC_I128	0x60
+
+/*
+ *	For the first sixteen types, the size information applies to the
+ *	size of the type, for the second sixteen it applies to the
+ *	following cross-reference number (or is zero if no crossref follows).
+ */
+#define	_GSC_MAYX	0x10		/* Item may have crossref.	*/
+
+/*
+ *	These are the types that can be archived -
+ */
+#define	_GSC_CHR	0x01
+#define	_GSC_UCHR	0x02
+#define	_GSC_SHT	0x03
+#define	_GSC_USHT	0x04
+#define	_GSC_INT	0x05
+#define	_GSC_UINT	0x06
+#define	_GSC_LNG	0x07
+#define	_GSC_ULNG	0x08
+#define	_GSC_LNG_LNG	0x09
+#define	_GSC_ULNG_LNG	0x0a
+#define	_GSC_FLT	0x0b
+#define	_GSC_DBL	0x0c
+
+#define	_GSC_ID		0x10
+#define	_GSC_CLASS	0x11
+#define	_GSC_SEL	0x12
+#define	_GSC_PTR	0x13
+#define	_GSC_CHARPTR	0x14
+#define	_GSC_ARY_B	0x15
+#define	_GSC_STRUCT_B	0x16
+
 @interface NSData (GNUstepExtensions)
 + (id) dataWithShmID: (int)anID length: (unsigned) length;
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned) length;
 + (id) dataWithStaticBytes: (const void*)bytes length: (unsigned) length;
 
 /*
- *	-deserializeTypeTagAtCursor:
- *	-deserializeCrossRefAtCursor:
- *	These methods are provided in order to give the GNUstep version of
+ *	-deserializeTypeTag:andCrossRef:atCursor:
+ *	This method is provided in order to give the GNUstep version of
  *	NSUnarchiver maximum possible performance.
  */
-- (unsigned char) deserializeTypeTagAtCursor: (unsigned*)cursor;
-- (unsigned) deserializeCrossRefAtCursor: (unsigned*)cursor;
+- (void) deserializeTypeTag: (unsigned char*)tag
+		andCrossRef: (unsigned int*)xref
+		   atCursor: (unsigned*)cursor;
 
 /*
  *	-initWithBytesNoCopy:length:fromZone:
@@ -192,12 +262,13 @@
 
 /*
  *	-serializeTypeTag:
- *	-serializeCrossRef:
+ *	-serializeTypeTag:andCrossRef:
  *	These methods are provided in order to give the GNUstep version of
  *	NSArchiver maximum possible performance.
  */
 - (void) serializeTypeTag: (unsigned char)tag;
-- (void) serializeCrossRef: (unsigned)xref;
+- (void) serializeTypeTag: (unsigned char)tag
+	      andCrossRef: (unsigned)xref;
 
 @end
 #endif

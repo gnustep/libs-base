@@ -217,6 +217,18 @@ $(GNUSTEP_OBJ_DIR)/NSObjCRuntime.o \
 	: $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h
 
 #
+#	Files that need a rebuild if GSConfig.h is changed.
+#
+$(GNUSTEP_OBJ_DIR)/mframe.o \
+$(GNUSTEP_OBJ_DIR)/NSArchiver.o \
+$(GNUSTEP_OBJ_DIR)/NSConnection.o \
+$(GNUSTEP_OBJ_DIR)/NSData.o \
+$(GNUSTEP_OBJ_DIR)/NSInvocation.o \
+$(GNUSTEP_OBJ_DIR)/NSMethodSignature.o \
+$(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
+	: $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h 
+
+#
 #	Files that include FastArray.x will need a rebuild if it is changed.
 #
 $(GNUSTEP_OBJ_DIR)/NSSerializer.o \

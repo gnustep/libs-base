@@ -55,7 +55,7 @@ typedef	unsigned char	uchar;
 
 static SEL serSel = @selector(serializeDataAt:ofObjCType:context:);
 static SEL tagSel = @selector(serializeTypeTag:);
-static SEL xRefSel = @selector(serializeCrossRef:);
+static SEL xRefSel = @selector(serializeTypeTag:andCrossRef:);
 static SEL eObjSel = @selector(encodeObject:);
 static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
@@ -195,33 +195,33 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
   switch (*type)
     {
-      case _C_ID:	info = _C_NONE;	break;
-      case _C_CHR:	info = _C_CHR;	break;
-      case _C_UCHR:	info = _C_UCHR; break;
-      case _C_SHT:	info = _C_SHT;	break;
-      case _C_USHT:	info = _C_USHT; break;
-      case _C_INT:	info = _C_INT;	break;
-      case _C_UINT:	info = _C_UINT;	break;
-      case _C_LNG:	info = _C_LNG;	break;
-      case _C_ULNG:	info = _C_ULNG; break;
+      case _C_ID:	info = _GSC_NONE;		break;
+      case _C_CHR:	info = _GSC_CHR;		break;
+      case _C_UCHR:	info = _GSC_UCHR; 		break;
+      case _C_SHT:	info = _GSC_SHT | _GSC_S_SHT;	break;
+      case _C_USHT:	info = _GSC_USHT | _GSC_S_SHT;	break;
+      case _C_INT:	info = _GSC_INT | _GSC_S_INT;	break;
+      case _C_UINT:	info = _GSC_UINT | _GSC_S_INT;	break;
+      case _C_LNG:	info = _GSC_LNG | _GSC_S_LNG;	break;
+      case _C_ULNG:	info = _GSC_ULNG | _GSC_S_LNG; break;
 #ifdef	_C_LNG_LNG
-      case _C_LNG_LNG:	info = _C_LNG_LNG;	break;
-      case _C_ULNG_LNG:	info = _C_ULNG_LNG;	break;
+      case _C_LNG_LNG:	info = _GSC_LNG_LNG | _GSC_S_LNG_LNG;	break;
+      case _C_ULNG_LNG:	info = _GSC_ULNG_LNG | _GSC_S_LNG_LNG;	break;
 #endif
-      case _C_FLT:	info = _C_FLT;	break;
-      case _C_DBL:	info = _C_DBL;	break;
-      default:		info = _C_NONE; break;
+      case _C_FLT:	info = _GSC_FLT;	break;
+      case _C_DBL:	info = _GSC_DBL;	break;
+      default:		info = _GSC_NONE;	break;
     }
 
   /*
    *	Simple types can be serialized immediately, more complex ones
    *	are dealt with by our [encodeValueOfObjCType:at:] method.
    */
-  if (info == _C_NONE)
+  if (info == _GSC_NONE)
     {
       if (isInPreparatoryPass == NO)
 	{
-	  (*tagImp)(dst, tagSel, _C_ARY_B);
+	  (*tagImp)(dst, tagSel, _GSC_ARY_B);
 	  (*serImp)(dst, serSel, &count, @encode(unsigned), nil);
 	}
       for (i = 0; i < count; i++)
@@ -232,7 +232,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
     }
   else if (isInPreparatoryPass == NO)
     {
-      (*tagImp)(dst, tagSel, _C_ARY_B);
+      (*tagImp)(dst, tagSel, _GSC_ARY_B);
       (*serImp)(dst, serSel, &count, @encode(unsigned), nil);
 
       (*tagImp)(dst, tagSel, info);
@@ -264,10 +264,6 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	      type++;
 	    }
 
-	  if (isInPreparatoryPass == NO)
-	    {
-	      (*tagImp)(dst, tagSel, _C_ARY_B);
-	    }
 	  [self encodeArrayOfObjCType: type count: count at: buf];
 	}
 	return;
@@ -278,7 +274,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 
 	  if (isInPreparatoryPass == NO)
 	    {
-	      (*tagImp)(dst, tagSel, _C_STRUCT_B);
+	      (*tagImp)(dst, tagSel, _GSC_STRUCT_B);
 	    }
 
 	  while (*type != _C_STRUCT_E && *type++ != '='); /* skip "<name>=" */
@@ -314,8 +310,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		/*
 		 *	Special case - a nul pointer gets an xref of zero
 		 */
-		(*tagImp)(dst, tagSel, _C_PTR | _C_XREF);
-		(*xRefImp)(dst, xRefSel, 0);
+		(*tagImp)(dst, tagSel, _GSC_PTR | _GSC_XREF | _GSC_X_0);
 	      }
 	  }
 	else
@@ -352,8 +347,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		  {
 		    node->value.I = ++xRefP;
 		  }
-		(*tagImp)(dst, tagSel, _C_PTR);
-		(*xRefImp)(dst, xRefSel, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_PTR, node->value.I);
 		type++;
 		buf = *(char**)buf;
 		(*eValImp)(self, eValSel, type, buf);
@@ -363,8 +357,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		/*
 		 *	Second pass, write a cross-reference number.
 		 */
-		(*tagImp)(dst, tagSel, _C_PTR | _C_XREF);
-		(*xRefImp)(dst, xRefSel, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_PTR | _GSC_XREF, node->value.I);
 	      }
 	  }
 	return;
@@ -385,8 +378,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    /*
 	     *	Special case - a nul pointer gets an xref of zero
 	     */
-	    (*tagImp)(dst, tagSel, _C_CLASS | _C_XREF);
-	    (*xRefImp)(dst, xRefSel, 0);
+	    (*tagImp)(dst, tagSel, _GSC_CLASS | _GSC_XREF | _GSC_X_0);
 	  }
 	else
 	  {
@@ -398,8 +390,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    
 	    if (node != 0)
 	      {
-		(*tagImp)(dst, tagSel, _C_CLASS | _C_XREF);
-		(*xRefImp)(dst, xRefSel, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_CLASS | _GSC_XREF, node->value.I);
 		return;
 	      }
 	    while (done == NO)
@@ -418,8 +409,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 		/*
 		 *	Encode tag and crossref number.
 		 */
-		(*tagImp)(dst, tagSel, _C_CLASS);
-		(*xRefImp)(dst, xRefSel, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_CLASS, node->value.I);
 		/*
 		 *	Encode class, and version.
 		 */
@@ -445,7 +435,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    /*
 	     *	Encode an empty tag to terminate the list of classes.
 	     */
-	    (*tagImp)(dst, tagSel, _C_NONE);
+	    (*tagImp)(dst, tagSel, _GSC_NONE);
 	  }
 	return;
 
@@ -455,8 +445,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    /*
 	     *	Special case - a nul pointer gets an xref of zero
 	     */
-	    (*tagImp)(dst, tagSel, _C_SEL | _C_XREF);
-	    (*xRefImp)(dst, xRefSel, 0);
+	    (*tagImp)(dst, tagSel, _GSC_SEL | _GSC_XREF | _GSC_X_0);
 	  }
 	else
 	  {
@@ -467,8 +456,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	      {
 		node = FastMapAddPair(ptrMap,
 			(FastMapItem)(void*)s, (FastMapItem)++xRefP);
-		(*tagImp)(dst, tagSel, _C_SEL);
-		(*xRefImp)(dst, xRefSel, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_SEL, node->value.I);
 		/*
 		 *	Encode selector.
 		 */
@@ -476,8 +464,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	      }
 	    else
 	      {
-		(*tagImp)(dst, tagSel, _C_SEL | _C_XREF);
-		(*xRefImp)(dst, xRefSel, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_SEL | _GSC_XREF, node->value.I);
 	      }
 	  }
 	return;
@@ -488,8 +475,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	    /*
 	     *	Special case - a nul pointer gets an xref of zero
 	     */
-	    (*tagImp)(dst, tagSel, _C_CHARPTR | _C_XREF);
-	    (*xRefImp)(dst, xRefSel, 0);
+	    (*tagImp)(dst, tagSel, _GSC_CHARPTR | _GSC_XREF | _GSC_X_0);
 	  }
 	else
 	  {
@@ -500,77 +486,75 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	      {
 		node = FastMapAddPair(ptrMap,
 			(FastMapItem)*(char**)buf, (FastMapItem)++xRefP);
-		(*tagImp)(dst, tagSel, _C_CHARPTR);
-		(*xRefImp)(dst, xRefSel, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_CHARPTR, node->value.I);
 		(*serImp)(dst, serSel, buf, type, nil);
 	      }
 	    else
 	      {
-		(*tagImp)(dst, tagSel, _C_CHARPTR | _C_XREF);
-		(*xRefImp)(dst, xRefSel, node->value.I);
+		(*xRefImp)(dst, xRefSel, _GSC_CHARPTR|_GSC_XREF, node->value.I);
 	      }
 	  }
 	return;
 
       case _C_CHR:
-	(*tagImp)(dst, tagSel, _C_CHR);
+	(*tagImp)(dst, tagSel, _GSC_CHR);
 	(*serImp)(dst, serSel, (void*)buf, @encode(char), nil);
 	return;
 
       case _C_UCHR:
-	(*tagImp)(dst, tagSel, _C_UCHR);
+	(*tagImp)(dst, tagSel, _GSC_UCHR);
 	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned char), nil);
 	return;
 
       case _C_SHT:
-	(*tagImp)(dst, tagSel, _C_SHT);
+	(*tagImp)(dst, tagSel, _GSC_SHT | _GSC_S_SHT);
 	(*serImp)(dst, serSel, (void*)buf, @encode(short), nil);
 	return;
 
       case _C_USHT:
-	(*tagImp)(dst, tagSel, _C_USHT);
+	(*tagImp)(dst, tagSel, _GSC_USHT | _GSC_S_SHT);
 	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned short), nil);
 	return;
 
       case _C_INT:
-	(*tagImp)(dst, tagSel, _C_INT);
+	(*tagImp)(dst, tagSel, _GSC_INT | _GSC_S_INT);
 	(*serImp)(dst, serSel, (void*)buf, @encode(int), nil);
 	return;
 
       case _C_UINT:
-	(*tagImp)(dst, tagSel, _C_UINT);
+	(*tagImp)(dst, tagSel, _GSC_UINT | _GSC_S_INT);
 	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned int), nil);
 	return;
 
       case _C_LNG:
-	(*tagImp)(dst, tagSel, _C_LNG);
+	(*tagImp)(dst, tagSel, _GSC_LNG | _GSC_S_LNG);
 	(*serImp)(dst, serSel, (void*)buf, @encode(long), nil);
 	return;
 
       case _C_ULNG:
-	(*tagImp)(dst, tagSel, _C_ULNG);
+	(*tagImp)(dst, tagSel, _GSC_ULNG | _GSC_S_LNG);
 	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned long), nil);
 	return;
 
 #ifdef	_C_LNG_LNG
       case _C_LNG_LNG:
-	(*tagImp)(dst, tagSel, _C_LNG_LNG);
+	(*tagImp)(dst, tagSel, _GSC_LNG_LNG | _GSC_S_LNG_LNG);
 	(*serImp)(dst, serSel, (void*)buf, @encode(long long), nil);
 	return;
 
       case _C_ULNG_LNG:
-	(*tagImp)(dst, tagSel, _C_ULNG_LNG);
+	(*tagImp)(dst, tagSel, _GSC_ULNG_LNG | _GSC_S_LNG_LNG);
 	(*serImp)(dst, serSel, (void*)buf, @encode(unsigned long long), nil);
 	return;
 
 #endif
       case _C_FLT:
-	(*tagImp)(dst, tagSel, _C_FLT);
+	(*tagImp)(dst, tagSel, _GSC_FLT);
 	(*serImp)(dst, serSel, (void*)buf, @encode(float), nil);
 	return;
 
       case _C_DBL:
-	(*tagImp)(dst, tagSel, _C_DBL);
+	(*tagImp)(dst, tagSel, _GSC_DBL);
 	(*serImp)(dst, serSel, (void*)buf, @encode(double), nil);
 	return;
 
@@ -699,8 +683,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	  /*
 	   *	Special case - encode a nil pointer as a crossref of zero.
 	   */
-	  (*tagImp)(dst, tagSel, _C_ID | _C_XREF);
-	  (*xRefImp)(dst, xRefSel, 0);
+	  (*tagImp)(dst, tagSel, _GSC_ID | _GSC_XREF, _GSC_X_0);
 	}
     }
   else if (fastIsInstance(anObject) == NO)
@@ -748,7 +731,6 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	{
 	  Class	cls;
 	  id	obj;
-	  uchar	info = _C_ID;
 
 	  if (node == 0)
 	    {
@@ -763,8 +745,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	  obj = [anObject replacementObjectForArchiver: self];
 	  cls = [anObject classForArchiver];
 
-	  (*tagImp)(dst, tagSel, _C_ID);
-	  (*xRefImp)(dst, xRefSel, node->value.I);
+	  (*xRefImp)(dst, xRefSel, _GSC_ID, node->value.I);
 	  if (namMap->nodeCount)
 	    {
 	      FastMapNode	node;
@@ -781,8 +762,7 @@ static SEL eValSel = @selector(encodeValueOfObjCType:at:);
 	}
       else if(!isInPreparatoryPass)
 	{
-	  (*tagImp)(dst, tagSel, _C_ID | _C_XREF);
-	  (*xRefImp)(dst, xRefSel, node->value.I);
+	  (*xRefImp)(dst, xRefSel, _GSC_ID | _GSC_XREF, node->value.I);
 	}
     }
 }
