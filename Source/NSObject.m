@@ -1399,6 +1399,10 @@ static BOOL double_release_check_enabled = NO;
  */
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
+  if (aSelector == 0)
+    {
+      return NO;
+    }
   return __objc_responds_to(self, aSelector);
 }
 
