@@ -1,3 +1,9 @@
+2003-07-08 03:44  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/Additions/Unicode.m (GSToUnicode, GSFromUnicode): In iconv
+	case, only try to expand the buffer when we really need extra space.
+	Correctly handle all output from flushing iconv.
+
 2003-07-08 03:03  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSConnection.m (-locateLocalTarget:): The targetToCached
