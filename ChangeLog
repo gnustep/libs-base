@@ -1,3 +1,10 @@
+2002-12-02  Adam Fedor  <fedor@gnu.org>
+
+	* base.make.in (CONFIG_SYSTEM_LIBS): Set only if shared=no.
+	* config.make.in (CONFIG_SYSTEM_LIBS): Set only if shared=yes.
+	* Source/Makefile.preamble (libgnustep-base_LIBRARIES_DEPEND_UPON):
+	Depend on $(CONFIG_SYSTEM_LIBS) if shared=yes.
+
 2002-11-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/plparse.m: Stefan Urbaneks patch to return 1 on failure.
