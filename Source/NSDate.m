@@ -212,7 +212,11 @@
    Date: Fri, 12 Jan 96 16:00:42 +0100
    */
 #ifdef NeXT
-  buf[0] = '\0';
+  sprintf(buf,"%4d-%02d-%02d %02d:%02d:%02d %c%02d%02d",
+	  1900+theTime->tm_year, theTime->tm_mon+1, theTime->tm_mday,
+	  theTime->tm_hour, theTime->tm_min, theTime->tm_sec,
+	  (theTime->tm_gmtoff>0)?'+':'-', abs(theTime->tm_gmtoff)/3600,
+	  (abs(theTime->tm_gmtoff)/60)%60);
 #else
   strftime(buf, 64, "%Y-%m-%d %H:%M:%S", theTime);
 #endif
