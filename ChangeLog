@@ -1,15 +1,19 @@
+Wed Apr 7 12:22:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSCharacterSet.m: Use punctuationCharSet.dat
+
 1999-04-06  Adam Fedor  <fedor@gnu.org>
 
 	* NSCharacterSets/punctuationCharSet.dat: New file
 
-Mopn Apr 5  7:33:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Mon 5  7:33:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSRange.m: Moved most functions into header file, while
 	including header to generate linkable versions.
 	* Source/include/NSGeometry.h: Define MIN and MAX if required.
 	* Source/include/NSRange.h: Define MIN and MAX if required and make
 	most range functions a efficiency.
-e
+
 Thu Mar 11 10:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSDebug.m: Added two new functions for logging messags.

@@ -53,7 +53,7 @@ static NSLock* cache_lock = nil;
 }
 
 /* Provide a default object for allocation */
-+ allocWithZone:(NSZone *)zone
++ allocWithZone: (NSZone *)zone
 {
   return NSAllocateObject([NSBitmapCharSet self], 0, zone);
 }
@@ -106,17 +106,17 @@ static NSLock* cache_lock = nil;
 
 	/* Gather up the paths */
 	/* Search user first */
-	user_path = [user_bundle pathForResource:setname
-				 ofType:@"dat"
-				 inDirectory:NSCharacterSet_PATH];
+	user_path = [user_bundle pathForResource: setname
+				 ofType: @"dat"
+				 inDirectory: NSCharacterSet_PATH];
         /* Search local second */
-        local_path = [local_bundle pathForResource:setname
-				   ofType:@"dat"
-				   inDirectory:NSCharacterSet_PATH];
+        local_path = [local_bundle pathForResource: setname
+				   ofType: @"dat"
+				   inDirectory: NSCharacterSet_PATH];
 	/* Search system last */
-	system_path = [system_bundle pathForResource:setname
-				     ofType:@"dat"
-				     inDirectory:NSCharacterSet_PATH];
+	system_path = [system_bundle pathForResource: setname
+				     ofType: @"dat"
+				     inDirectory: NSCharacterSet_PATH];
 
 	/* Try to load the set from the user path */
         set = nil;
@@ -164,8 +164,8 @@ static NSLock* cache_lock = nil;
 	/* If we didn't load a set then raise an exception */
 	if (!set)
 	  {
-	    [NSException raise:NSGenericException
-			 format:@"Could not find bitmap file %s",
+	    [NSException raise: NSGenericException
+			 format: @"Could not find bitmap file %s",
 			 [setname cString]];
 	    /* NOT REACHED */
 	  }
@@ -189,83 +189,83 @@ static NSLock* cache_lock = nil;
 
 + (NSCharacterSet *)alphanumericCharacterSet
 {
-  return [self _bitmapForSet:@"alphanumCharSet" number: 0];
+  return [self _bitmapForSet: @"alphanumCharSet" number: 0];
 }
 
 + (NSCharacterSet *)controlCharacterSet
 {
-  return [self _bitmapForSet:@"controlCharSet" number: 1];
+  return [self _bitmapForSet: @"controlCharSet" number: 1];
 }
 
 + (NSCharacterSet *)decimalDigitCharacterSet
 {
-  return [self _bitmapForSet:@"decimalCharSet" number: 2];
+  return [self _bitmapForSet: @"decimalCharSet" number: 2];
 }
 
 + (NSCharacterSet *)decomposableCharacterSet
 {
   fprintf(stderr, "Warning: Decomposable set not yet fully specified\n");
-  return [self _bitmapForSet:@"decomposableCharSet" number: 3];
+  return [self _bitmapForSet: @"decomposableCharSet" number: 3];
 }
 
 + (NSCharacterSet *)illegalCharacterSet
 {
   fprintf(stderr, "Warning: Illegal set not yet fully specified\n");
-  return [self _bitmapForSet:@"illegalCharSet" number: 4];
+  return [self _bitmapForSet: @"illegalCharSet" number: 4];
 }
 
 + (NSCharacterSet *)letterCharacterSet
 {
-  return [self _bitmapForSet:@"lettercharCharSet" number: 5];
+  return [self _bitmapForSet: @"lettercharCharSet" number: 5];
 }
 
 + (NSCharacterSet *)lowercaseLetterCharacterSet
 {
-  return [self _bitmapForSet:@"lowercaseCharSet" number: 6];
+  return [self _bitmapForSet: @"lowercaseCharSet" number: 6];
 }
 
 + (NSCharacterSet *)nonBaseCharacterSet
 {
-  return [self _bitmapForSet:@"nonbaseCharSet" number: 7];
+  return [self _bitmapForSet: @"nonbaseCharSet" number: 7];
 }
 
 + (NSCharacterSet *)punctuationCharacterSet;
 {
-  return [self notImplemented: _cmd];
+  return [self _bitmapForSet: @"punctuationCharSet" number: 8];
 }
 
 + (NSCharacterSet *)uppercaseLetterCharacterSet
 {
-  return [self _bitmapForSet:@"uppercaseCharSet" number: 8];
+  return [self _bitmapForSet: @"uppercaseCharSet" number: 9];
 }
 
 + (NSCharacterSet *)whitespaceAndNewlineCharacterSet
 {
-  return [self _bitmapForSet:@"whitespaceandnlCharSet" number: 9];
+  return [self _bitmapForSet: @"whitespaceandnlCharSet" number: 10];
 }
 
 + (NSCharacterSet *)whitespaceCharacterSet
 {
-  return [self _bitmapForSet:@"whitespaceCharSet" number: 10];
+  return [self _bitmapForSet: @"whitespaceCharSet" number: 11];
 }
 
 // Creating custom character sets
 
-+ (NSCharacterSet *)characterSetWithBitmapRepresentation:(NSData *)data
++ (NSCharacterSet *)characterSetWithBitmapRepresentation: (NSData *)data
 {
-  return [[[NSBitmapCharSet alloc] initWithBitmap:data] autorelease];
+  return [[[NSBitmapCharSet alloc] initWithBitmap: data] autorelease];
 }
 
-+ (NSCharacterSet *)characterSetWithCharactersInString:(NSString *)aString
++ (NSCharacterSet *)characterSetWithCharactersInString: (NSString *)aString
 {
   int   i, length;
   char *bytes;
-  NSMutableData *bitmap = [NSMutableData dataWithLength:BITMAP_SIZE];
+  NSMutableData *bitmap = [NSMutableData dataWithLength: BITMAP_SIZE];
 
   if (!aString)
     {
-      [NSException raise:NSInvalidArgumentException
-	  format:@"Creating character set with nil string"];
+      [NSException raise: NSInvalidArgumentException
+	  format: @"Creating character set with nil string"];
       /* NOT REACHED */
     }
 
@@ -273,23 +273,23 @@ static NSLock* cache_lock = nil;
   bytes  = [bitmap mutableBytes];
   for (i=0; i < length; i++)
     {
-      unichar letter = [aString characterAtIndex:i];
+      unichar letter = [aString characterAtIndex: i];
       SETBIT(bytes[letter/8], letter % 8);
     }
 
-  return [self characterSetWithBitmapRepresentation:bitmap];
+  return [self characterSetWithBitmapRepresentation: bitmap];
 }
 
-+ (NSCharacterSet *)characterSetWithRange:(NSRange)aRange
++ (NSCharacterSet *)characterSetWithRange: (NSRange)aRange
 {
   int   i;
   char *bytes;
-  NSMutableData *bitmap = [NSMutableData dataWithLength:BITMAP_SIZE];
+  NSMutableData *bitmap = [NSMutableData dataWithLength: BITMAP_SIZE];
 
   if (NSMaxRange(aRange) > UNICODE_SIZE)
     {
-      [NSException raise:NSInvalidArgumentException
-          format:@"Specified range exceeds character set"];
+      [NSException raise: NSInvalidArgumentException
+          format: @"Specified range exceeds character set"];
       /* NOT REACHED */
     }
 
@@ -297,7 +297,7 @@ static NSLock* cache_lock = nil;
   for (i=aRange.location; i < NSMaxRange(aRange); i++)
       SETBIT(bytes[i/8], i % 8);
 
-  return [self characterSetWithBitmapRepresentation:bitmap];
+  return [self characterSetWithBitmapRepresentation: bitmap];
 }
 
 + (NSCharacterSet *)characterSetWithContentsOfFile: (NSString *)aFile
@@ -313,24 +313,24 @@ static NSLock* cache_lock = nil;
 
 - (NSData *)bitmapRepresentation
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
-- (BOOL)characterIsMember:(unichar)aCharacter
+- (BOOL)characterIsMember: (unichar)aCharacter
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
@@ -338,7 +338,7 @@ static NSLock* cache_lock = nil;
 {
   if (anObject == self)
     return YES;
-  if ([anObject isKindOfClass:[NSCharacterSet class]])
+  if ([anObject isKindOfClass: [NSCharacterSet class]])
     {
       int	i;
 
@@ -363,12 +363,12 @@ static NSLock* cache_lock = nil;
   for (i=0; i < length; i++)
       bytes[i] = ~bytes[i];
 
-  return [[self class] characterSetWithBitmapRepresentation:bitmap];
+  return [[self class] characterSetWithBitmapRepresentation: bitmap];
 }
 
 
 // NSCopying, NSMutableCopying
-- (id)copyWithZone:(NSZone *)zone
+- (id)copyWithZone: (NSZone *)zone
 {
   if (NSShouldRetainWithZone(self, zone))
       return [self retain];
@@ -376,11 +376,11 @@ static NSLock* cache_lock = nil;
       return NSCopyObject (self, 0, zone);
 }
 
-- (id)mutableCopyWithZone:(NSZone *)zone
+- (id)mutableCopyWithZone: (NSZone *)zone
 {
   NSData *bitmap;
   bitmap = [self bitmapRepresentation];
-  return [[NSMutableBitmapCharSet allocWithZone:zone] initWithBitmap:bitmap];
+  return [[NSMutableBitmapCharSet allocWithZone: zone] initWithBitmap: bitmap];
 }
 
 @end
@@ -388,64 +388,64 @@ static NSLock* cache_lock = nil;
 @implementation NSMutableCharacterSet
 
 /* Provide a default object for allocation */
-+ allocWithZone:(NSZone *)zone
++ allocWithZone: (NSZone *)zone
 {
   return NSAllocateObject([NSMutableBitmapCharSet self], 0, zone);
 }
 
 /* Override this from NSCharacterSet to create the correct class */
-+ (NSCharacterSet *)characterSetWithBitmapRepresentation:(NSData *)data
++ (NSCharacterSet *)characterSetWithBitmapRepresentation: (NSData *)data
 {
-  return [[[NSMutableBitmapCharSet alloc] initWithBitmap:data] autorelease];
+  return [[[NSMutableBitmapCharSet alloc] initWithBitmap: data] autorelease];
 }
 
 /* Mutable subclasses must implement ALL of these methods.  */
-- (void)addCharactersInRange:(NSRange)aRange
+- (void)addCharactersInRange: (NSRange)aRange
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
-- (void)addCharactersInString:(NSString *)aString
+- (void)addCharactersInString: (NSString *)aString
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
-- (void)formUnionWithCharacterSet:(NSCharacterSet *)otherSet
+- (void)formUnionWithCharacterSet: (NSCharacterSet *)otherSet
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
-- (void)formIntersectionWithCharacterSet:(NSCharacterSet *)otherSet
+- (void)formIntersectionWithCharacterSet: (NSCharacterSet *)otherSet
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
-- (void)removeCharactersInRange:(NSRange)aRange
+- (void)removeCharactersInRange: (NSRange)aRange
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
-- (void)removeCharactersInString:(NSString *)aString
+- (void)removeCharactersInString: (NSString *)aString
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 - (void)invert
 {
-  [self subclassResponsibility:_cmd];
+  [self subclassResponsibility: _cmd];
 }
 
 // NSCopying, NSMutableCopying
-- (id)copyWithZone:(NSZone *)zone
+- (id)copyWithZone: (NSZone *)zone
 {
   NSData *bitmap;
   bitmap = [self bitmapRepresentation];
-  return [[NSBitmapCharSet allocWithZone:zone] initWithBitmap:bitmap];
+  return [[NSBitmapCharSet allocWithZone: zone] initWithBitmap: bitmap];
 }
 
-- (id)mutableCopyWithZone:(NSZone *)zone
+- (id)mutableCopyWithZone: (NSZone *)zone
 {
-  return [super mutableCopyWithZone:zone];
+  return [super mutableCopyWithZone: zone];
 }
 
 @end
