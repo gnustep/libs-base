@@ -72,15 +72,7 @@
 
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 
-/* Accessing file attributes */
-- (NSString *) fileGroupOwnerAccountName;
-- (NSDate *) fileModificationDate;
-- (NSString *) fileOwnerAccountName;
-- (unsigned long) filePosixPermissions;
-- (unsigned long long) fileSize;
-- (unsigned long) fileSystemFileNumber;
-- (unsigned long) fileSystemNumber;
-- (NSString *) fileType;
+/* Accessing file attributes is a catagory declared in NSFileManager.h */
 
 @end
 

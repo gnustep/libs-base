@@ -36,42 +36,42 @@
 @class NSData;
 
 /* Standard domains */
-extern NSString* NSArgumentDomain;
-extern NSString* NSGlobalDomain;
-extern NSString* NSRegistrationDomain;
+extern NSString* const NSArgumentDomain;
+extern NSString* const NSGlobalDomain;
+extern NSString* const NSRegistrationDomain;
 
 /* Public notification */
-extern NSString *NSUserDefaultsDidChangeNotification;
+extern NSString* const NSUserDefaultsDidChangeNotification;
 /* Backwards compatibility */
 #define	NSUserDefaultsChanged NSUserDefaultsDidChangeNotification
 
 /* Keys for language-dependent information */
-extern NSString *NSWeekDayNameArray;
-extern NSString *NSShortWeekDayNameArray;
-extern NSString *NSMonthNameArray;
-extern NSString *NSShortMonthNameArray;
-extern NSString *NSTimeFormatString;
-extern NSString *NSDateFormatString;
-extern NSString *NSTimeDateFormatString;
-extern NSString *NSShortTimeDateFormatString;
-extern NSString *NSCurrencySymbol;
-extern NSString *NSDecimalSeparator;
-extern NSString *NSThousandsSeparator;
-extern NSString *NSInternationalCurrencyString;
-extern NSString *NSCurrencyString;
-extern NSString *NSDecimalDigits;
-extern NSString *NSAMPMDesignation;
+extern NSString* const NSWeekDayNameArray;
+extern NSString* const NSShortWeekDayNameArray;
+extern NSString* const NSMonthNameArray;
+extern NSString* const NSShortMonthNameArray;
+extern NSString* const NSTimeFormatString;
+extern NSString* const NSDateFormatString;
+extern NSString* const NSTimeDateFormatString;
+extern NSString* const NSShortTimeDateFormatString;
+extern NSString* const NSCurrencySymbol;
+extern NSString* const NSDecimalSeparator;
+extern NSString* const NSThousandsSeparator;
+extern NSString* const NSInternationalCurrencyString;
+extern NSString* const NSCurrencyString;
+extern NSString* const NSDecimalDigits;
+extern NSString* const NSAMPMDesignation;
 
 #ifndef	STRICT_OPENSTEP
-extern NSString *NSHourNameDesignations;
-extern NSString *NSYearMonthWeekDesignations;
-extern NSString *NSEarlierTimeDesignations;
-extern NSString *NSLaterTimeDesignations;
-extern NSString *NSThisDayDesignations;
-extern NSString *NSNextDayDesignations;
-extern NSString *NSNextNextDayDesignations;
-extern NSString *NSPriorDayDesignations;
-extern NSString *NSDateTimeOrdering;
+extern NSString* const NSHourNameDesignations;
+extern NSString* const NSYearMonthWeekDesignations;
+extern NSString* const NSEarlierTimeDesignations;
+extern NSString* const NSLaterTimeDesignations;
+extern NSString* const NSThisDayDesignations;
+extern NSString* const NSNextDayDesignations;
+extern NSString* const NSNextNextDayDesignations;
+extern NSString* const NSPriorDayDesignations;
+extern NSString* const NSDateTimeOrdering;
 #endif
 
 /* Get Information about a User */

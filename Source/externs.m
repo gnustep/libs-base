@@ -88,70 +88,71 @@ NSString* StreamException = @"StreamException";
 
 /* File Attributes */
 
-NSString* NSFileSize = @"NSFileSize";
-NSString* NSFileModificationDate = @"NSFileModificationDate";
-NSString* NSFileOwnerAccountNumber = @"NSFileOwnerAccountNumber";
-NSString* NSFileOwnerAccountName = @"NSFileOwnerAccountName";
-NSString* NSFileGroupOwnerAccountNumber = @"NSFileGroupOwnerAccountNumber";
-NSString* NSFileReferenceCount = @"NSFileReferenceCount";
-NSString* NSFileIdentifier = @"NSFileIdentifier";
-NSString* NSFileDeviceIdentifier = @"NSFileDeviceIdentifier";
-NSString* NSFilePosixPermissions = @"NSFilePosixPermissions";
-NSString* NSFileType = @"NSFileType";
+NSString* const NSFileDeviceIdentifier = @"NSFileDeviceIdentifier";
+NSString* const NSFileGroupOwnerAccountName = @"NSFileGroupOwnerAccountName";
+NSString* const NSFileGroupOwnerAccountNumber = @"NSFileGroupOwnerAccountNumber";
+NSString* const NSFileModificationDate = @"NSFileModificationDate";
+NSString* const NSFileOwnerAccountName = @"NSFileOwnerAccountName";
+NSString* const NSFileOwnerAccountNumber = @"NSFileOwnerAccountNumber";
+NSString* const NSFilePosixPermissions = @"NSFilePosixPermissions";
+NSString* const NSFileReferenceCount = @"NSFileReferenceCount";
+NSString* const NSFileSize = @"NSFileSize";
+NSString* const NSFileSystemFileNumber = @"NSFileSystemFileNumber";
+NSString* const NSFileSystemNumber = @"NSFileSystemNumber";
+NSString* const NSFileType = @"NSFileType";
 
 /* File Types */
 
-NSString* NSFileTypeDirectory = @"NSFileTypeDirectory";
-NSString* NSFileTypeRegular = @"NSFileTypeRegular";
-NSString* NSFileTypeSymbolicLink = @"NSFileTypeSymbolicLink";
-NSString* NSFileTypeSocket = @"NSFileTypeSocket";
-NSString* NSFileTypeFifo = @"NSFileTypeFifo";
-NSString* NSFileTypeCharacterSpecial = @"NSFileTypeCharacterSpecial";
-NSString* NSFileTypeBlockSpecial = @"NSFileTypeBlockSpecial";
-NSString* NSFileTypeUnknown = @"NSFileTypeUnknown";
+NSString* const NSFileTypeDirectory = @"NSFileTypeDirectory";
+NSString* const NSFileTypeRegular = @"NSFileTypeRegular";
+NSString* const NSFileTypeSymbolicLink = @"NSFileTypeSymbolicLink";
+NSString* const NSFileTypeSocket = @"NSFileTypeSocket";
+NSString* const NSFileTypeFifo = @"NSFileTypeFifo";
+NSString* const NSFileTypeCharacterSpecial = @"NSFileTypeCharacterSpecial";
+NSString* const NSFileTypeBlockSpecial = @"NSFileTypeBlockSpecial";
+NSString* const NSFileTypeUnknown = @"NSFileTypeUnknown";
 
 /* FileSystem Attributes */
 
-NSString* NSFileSystemSize = @"NSFileSystemSize";
-NSString* NSFileSystemFreeSize = @"NSFileSystemFreeSize";
-NSString* NSFileSystemNodes = @"NSFileSystemNodes";
-NSString* NSFileSystemFreeNodes = @"NSFileSystemFreeNodes";
-NSString* NSFileSystemNumber = @"NSFileSystemNumber";
+NSString* const NSFileSystemSize = @"NSFileSystemSize";
+NSString* const NSFileSystemFreeSize = @"NSFileSystemFreeSize";
+NSString* const NSFileSystemNodes = @"NSFileSystemNodes";
+NSString* const NSFileSystemFreeNodes = @"NSFileSystemFreeNodes";
 
 /* Standard domains */
-NSString* NSArgumentDomain = @"NSArgumentDomain";
-NSString* NSGlobalDomain = @"NSGlobalDomain";
-NSString* NSRegistrationDomain = @"NSRegistrationDomain";
+NSString* const NSArgumentDomain = @"NSArgumentDomain";
+NSString* const NSGlobalDomain = @"NSGlobalDomain";
+NSString* const NSRegistrationDomain = @"NSRegistrationDomain";
 
 /* Public notification */
-NSString *NSUserDefaultsDidChangeNotification = @"NSUserDefaultsDidChangeNotification";
+NSString* const NSUserDefaultsDidChangeNotification = @"NSUserDefaultsDidChangeNotification";
 
 /* Keys for language-dependent information */
-NSString *NSWeekDayNameArray = @"NSWeekDayNameArray";
-NSString *NSShortWeekDayNameArray = @"NSShortWeekDayNameArray";
-NSString *NSMonthNameArray = @"NSMonthNameArray";
-NSString *NSShortMonthNameArray = @"NSShortMonthNameArray";
-NSString *NSTimeFormatString = @"NSTimeFormatString";
-NSString *NSDateFormatString = @"NSDateFormatString";
-NSString *NSTimeDateFormatString = @"NSTimeDateFormatString";
-NSString *NSShortTimeDateFormatString = @"NSShortTimeDateFormatString";
-NSString *NSCurrencySymbol = @"NSCurrencySymbol";
-NSString *NSDecimalSeparator = @"NSDecimalSeparator";
-NSString *NSThousandsSeparator = @"NSThousandsSeparator";
-NSString *NSInternationalCurrencyString = @"NSInternationalCurrencyString";
-NSString *NSCurrencyString = @"NSCurrencyString";
-NSString *NSDecimalDigits = @"NSDecimalDigits";
-NSString *NSAMPMDesignation = @"NSAMPMDesignation";
+NSString* const NSWeekDayNameArray = @"NSWeekDayNameArray";
+NSString* const NSShortWeekDayNameArray = @"NSShortWeekDayNameArray";
+NSString* const NSMonthNameArray = @"NSMonthNameArray";
+NSString* const NSShortMonthNameArray = @"NSShortMonthNameArray";
+NSString* const NSTimeFormatString = @"NSTimeFormatString";
+NSString* const NSDateFormatString = @"NSDateFormatString";
+NSString* const NSTimeDateFormatString = @"NSTimeDateFormatString";
+NSString* const NSShortTimeDateFormatString = @"NSShortTimeDateFormatString";
+NSString* const NSCurrencySymbol = @"NSCurrencySymbol";
+NSString* const NSDecimalSeparator = @"NSDecimalSeparator";
+NSString* const NSThousandsSeparator = @"NSThousandsSeparator";
+NSString* const NSInternationalCurrencyString = @"NSInternationalCurrencyString";
+NSString* const NSCurrencyString = @"NSCurrencyString";
+NSString* const NSDecimalDigits = @"NSDecimalDigits";
+NSString* const NSAMPMDesignation = @"NSAMPMDesignation";
 
-NSString *NSHourNameDesignations = @"NSHourNameDesignations";
-NSString *NSYearMonthWeekDesignations = @"NSYearMonthWeekDesignations";
-NSString *NSEarlierTimeDesignations = @"NSEarlierTimeDesignations";
-NSString *NSLaterTimeDesignations = @"NSLaterTimeDesignations";
-NSString *NSThisDayDesignations = @"NSThisDayDesignations";
-NSString *NSNextDayDesignations = @"NSNextDayDesignations";
-NSString *NSNextNextDayDesignations = @"NSNextNextDayDesignations";
-NSString *NSPriorDayDesignations = @"NSPriorDayDesignations";
-NSString *NSDateTimeOrdering = @"NSDateTimeOrdering";
+NSString* const NSHourNameDesignations = @"NSHourNameDesignations";
+NSString* const NSYearMonthWeekDesignations = @"NSYearMonthWeekDesignations";
+NSString* const NSEarlierTimeDesignations = @"NSEarlierTimeDesignations";
+NSString* const NSLaterTimeDesignations = @"NSLaterTimeDesignations";
+NSString* const NSThisDayDesignations = @"NSThisDayDesignations";
+NSString* const NSNextDayDesignations = @"NSNextDayDesignations";
+NSString* const NSNextNextDayDesignations = @"NSNextNextDayDesignations";
+NSString* const NSPriorDayDesignations = @"NSPriorDayDesignations";
+NSString* const NSDateTimeOrdering = @"NSDateTimeOrdering";
 
 /* Standard MapTable callbacks */
 

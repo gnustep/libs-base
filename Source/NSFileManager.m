@@ -600,76 +600,98 @@ static NSFileManager* defaultManager = nil;
 
 - (NSDictionary*)fileAttributesAtPath:(NSString*)path traverseLink:(BOOL)flag
 {
-    struct stat statbuf;
-    const char* cpath = [self fileSystemRepresentationWithPath:path];
+  struct stat statbuf;
+  const char* cpath = [self fileSystemRepresentationWithPath:path];
 #if HAVE_PWD_H
-    struct passwd *pw;
+  struct passwd *pw;
 #endif
-    int mode;
-    int count = 10;
+#if HAVE_GETGRENT_H
+  struct group *gp;
+#endif
+  int mode;
+  int count = 12;
 		
-    id  values[10];
-    id	keys[10] = {
-	    NSFileSize,
-	    NSFileModificationDate,
-	    NSFileOwnerAccountNumber,
-	    NSFileGroupOwnerAccountNumber,
-	    NSFileReferenceCount,
-	    NSFileIdentifier,
-	    NSFileDeviceIdentifier,
-	    NSFilePosixPermissions,
-	    NSFileType,
-	    NSFileOwnerAccountName
-	};
+  id values[12];
+  id keys[12] = {
+    NSFileSize,
+    NSFileModificationDate,
+    NSFileOwnerAccountNumber,
+    NSFileGroupOwnerAccountNumber,
+    NSFileReferenceCount,
+    NSFileSystemNumber,
+    NSFileSystemFileNumber,
+    NSFileDeviceIdentifier,
+    NSFilePosixPermissions,
+    NSFileType,
+    NSFileOwnerAccountName,
+    NSFileGroupOwnerAccountName
+  };
 
-    if (stat(cpath, &statbuf) != 0)
-	return nil;
+  if (stat(cpath, &statbuf) != 0)
+    return nil;
     
-    values[0] = [NSNumber numberWithUnsignedLongLong:statbuf.st_size];
-    values[1] = [NSDate dateWithTimeIntervalSince1970:statbuf.st_mtime];
-    values[2] = [NSNumber numberWithUnsignedInt:statbuf.st_uid];
-    values[3] = [NSNumber numberWithUnsignedInt:statbuf.st_gid];
-    values[4] = [NSNumber numberWithUnsignedInt:statbuf.st_nlink];
-    values[5] = [NSNumber numberWithUnsignedLong:statbuf.st_ino];
-    values[6] = [NSNumber numberWithUnsignedInt:statbuf.st_dev];
-    values[7] = [NSNumber numberWithUnsignedInt:statbuf.st_mode];
-    
-    mode = statbuf.st_mode & S_IFMT;
+  values[0] = [NSNumber numberWithUnsignedLongLong: statbuf.st_size];
+  values[1] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
+  values[2] = [NSNumber numberWithUnsignedInt: statbuf.st_uid];
+  values[3] = [NSNumber numberWithUnsignedInt: statbuf.st_gid];
+  values[4] = [NSNumber numberWithUnsignedInt: statbuf.st_nlink];
+  values[5] = [NSNumber numberWithUnsignedLong: statbuf.st_dev];
+  values[6] = [NSNumber numberWithUnsignedLong: statbuf.st_ino];
+  values[7] = [NSNumber numberWithUnsignedInt: statbuf.st_dev];
+  values[8] = [NSNumber numberWithUnsignedInt: statbuf.st_mode];
+  
+  mode = statbuf.st_mode & S_IFMT;
 
-    if      (mode == S_IFREG)
-	values[8] = NSFileTypeRegular;
-    else if (mode == S_IFDIR)
-	values[8] = NSFileTypeDirectory;
-    else if (mode == S_IFCHR)
-	values[8] = NSFileTypeCharacterSpecial;
-    else if (mode == S_IFBLK)
-	values[8] = NSFileTypeBlockSpecial;
+  if (mode == S_IFREG)
+    values[9] = NSFileTypeRegular;
+  else if (mode == S_IFDIR)
+    values[9] = NSFileTypeDirectory;
+  else if (mode == S_IFCHR)
+    values[9] = NSFileTypeCharacterSpecial;
+  else if (mode == S_IFBLK)
+    values[9] = NSFileTypeBlockSpecial;
 #ifdef S_IFLNK
-    else if (mode == S_IFLNK)
-	values[8] = NSFileTypeSymbolicLink;
+  else if (mode == S_IFLNK)
+    values[9] = NSFileTypeSymbolicLink;
 #endif
-    else if (mode == S_IFIFO)
-	values[8] = NSFileTypeFifo;
+  else if (mode == S_IFIFO)
+    values[9] = NSFileTypeFifo;
 #ifdef S_IFSOCK
-    else if (mode == S_IFSOCK)
-	values[8] = NSFileTypeSocket;
+  else if (mode == S_IFSOCK)
+    values[9] = NSFileTypeSocket;
 #endif
-    else
-	values[8] = NSFileTypeUnknown;
+  else
+    values[9] = NSFileTypeUnknown;
 #if HAVE_PWD_H	
-	pw = getpwuid(statbuf.st_uid);
-	
-	if(pw)
-	{
-		values[9] = [NSString stringWithCString:pw->pw_name];
-	}
-	else
+  pw = getpwuid(statbuf.st_uid);
+
+  if (pw)
+    {
+      values[10] = [NSString stringWithCString: pw->pw_name];
+    }
+  else
 #endif /* HAVE_PWD_H */
-	{
-		count = 9;
-	}
-    return [[[NSDictionary alloc]
-	initWithObjects:values forKeys:keys count:count]
+    {
+      values[10] = @"UnknownUser";
+    }
+#if HAVE_GETGRENT_H
+  setgrent();
+  while ((gp = getgrent()) != 0)
+    if (gp->gr_gid == statbuf.st_uid)
+      break;
+  endgrent();
+
+  if (gp)
+    {
+      values[11] = [NSString stringWithCString: gp->gr_name];
+    }
+  else
+#endif
+    {
+      values[11] = @"UnknownGroup";
+    }
+  return [[[NSDictionary alloc]
+	initWithObjects: values forKeys: keys count: count]
 	autorelease];
 }
 
@@ -745,7 +767,7 @@ static NSFileManager* defaultManager = nil;
     values[1] = [NSNumber numberWithLongLong:freesize];
     values[2] = [NSNumber numberWithLong:statfsbuf.f_files];
     values[3] = [NSNumber numberWithLong:statfsbuf.f_ffree];
-    values[4] = [NSNumber numberWithUnsignedInt:statbuf.st_dev];
+    values[4] = [NSNumber numberWithUnsignedLong:statbuf.st_dev];
     
     return [[[NSDictionary alloc]
 	initWithObjects:values forKeys:keys count:5]
@@ -1115,24 +1137,62 @@ static NSFileManager* defaultManager = nil;
  */
 
 @implementation NSDictionary(NSFileAttributes)
-- (NSNumber*)fileSize
-  {return [self objectForKey:NSFileSize];}
-- (NSString*)fileType;
-  {return [self objectForKey:NSFileType];}
-- (NSNumber*)fileOwnerAccountNumber;
-  {return [self objectForKey:NSFileOwnerAccountNumber];}
-- (NSNumber*)fileGroupOwnerAccountNumber;
-  {return [self objectForKey:NSFileGroupOwnerAccountNumber];}
-- (NSDate*)fileModificationDate;
-  {return [self objectForKey:NSFileModificationDate];}
-- (NSNumber*)filePosixPermissions;
-  {return [self objectForKey:NSFilePosixPermissions];}
+- (unsigned long long) fileSize
+{
+  return [[self objectForKey: NSFileSize] unsignedLongLongValue];
+}
 
+- (NSString*) fileType
+{
+  return [self objectForKey: NSFileType];
+}
+
+- (NSString*) fileOwnerAccountName
+{
+  return [self objectForKey: NSFileOwnerAccountName];
+}
+
+- (unsigned long) fileOwnerAccountNumber
+{
+  return [[self objectForKey: NSFileOwnerAccountNumber] unsignedIntValue];
+}
+
+- (NSString*) fileGroupOwnerAccountName
+{
+  return [self objectForKey: NSFileGroupOwnerAccountName];
+}
+
+- (unsigned long) fileGroupOwnerAccountNumber
+{
+  return [[self objectForKey: NSFileGroupOwnerAccountNumber] unsignedIntValue];
+}
+
+- (NSDate*) fileModificationDate
+{
+  return [self objectForKey: NSFileModificationDate];
+}
+
+- (unsigned long) filePosixPermissions
+{
+  return [[self objectForKey: NSFilePosixPermissions] unsignedLongValue];
+}
+
+- (unsigned long) fileSystemNumber
+{
+  return [[self objectForKey: NSFileSystemNumber] unsignedLongValue];
+}
+
+- (unsigned long) fileSystemFileNumber
+{
+  return [[self objectForKey: NSFileSystemFileNumber] unsignedLongValue];
+}
+@end
 
 @implementation NSFileManager (PrivateMethods)
 
-- (BOOL)_copyFile:(NSString*)source toFile:(NSString*)destination
-  handler:handler
+- (BOOL)_copyFile:(NSString*)source
+	   toFile:(NSString*)destination
+	  handler:handler
 {
     NSDictionary* attributes;
     int i, bufsize = 8096;

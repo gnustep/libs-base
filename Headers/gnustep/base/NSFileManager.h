@@ -28,6 +28,8 @@
 #define __NSFileManager_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
+
+#ifndef	STRICT_OPENSTEP
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSDictionary.h>
 
@@ -135,46 +137,58 @@
 @end /* NSDirectoryEnumerator */
 
 /* File Attributes */
-extern NSString* NSFileSize;
-extern NSString* NSFileModificationDate;
-extern NSString* NSFileOwnerAccountNumber;
-extern NSString* NSFileOwnerAccountName;
-extern NSString* NSFileGroupOwnerAccountNumber;
-extern NSString* NSFileReferenceCount;
-extern NSString* NSFileIdentifier;
-extern NSString* NSFileDeviceIdentifier;
-extern NSString* NSFilePosixPermissions;
-extern NSString* NSFileType;
+extern NSString* const NSFileDeviceIdentifier;
+extern NSString* const NSFileGroupOwnerAccountName;
+extern NSString* const NSFileDeviceIdentifier;
+extern NSString* const NSFileModificationDate;
+extern NSString* const NSFileOwnerAccountName;
+extern NSString* const NSFilePosixPermissions;
+extern NSString* const NSFileReferenceCount;
+extern NSString* const NSFileSize;
+extern NSString* const NSFileSystemFileNumber;
+extern NSString* const NSFileSystemNumber;
+extern NSString* const NSFileType;
+
+#ifndef	STRICT_MACOS_X
+extern NSString* const NSFileGroupOwnerAccountNumber;
+extern NSString* const NSFileOwnerAccountNumber;
+#endif
 
 /* File Types */
 
-extern NSString* NSFileTypeDirectory;
-extern NSString* NSFileTypeRegular;
-extern NSString* NSFileTypeSymbolicLink;
-extern NSString* NSFileTypeSocket;
-extern NSString* NSFileTypeFifo;
-extern NSString* NSFileTypeCharacterSpecial;
-extern NSString* NSFileTypeBlockSpecial;
-extern NSString* NSFileTypeUnknown;
+extern NSString* const NSFileTypeDirectory;
+extern NSString* const NSFileTypeRegular;
+extern NSString* const NSFileTypeSymbolicLink;
+extern NSString* const NSFileTypeSocket;
+extern NSString* const NSFileTypeFifo;
+extern NSString* const NSFileTypeCharacterSpecial;
+extern NSString* const NSFileTypeBlockSpecial;
+extern NSString* const NSFileTypeUnknown;
 
 /* FileSystem Attributes */
 
-extern NSString* NSFileSystemSize;
-extern NSString* NSFileSystemFreeSize;
-extern NSString* NSFileSystemNodes;
-extern NSString* NSFileSystemFreeNodes;
-extern NSString* NSFileSystemNumber;
+extern NSString* const NSFileSystemSize;
+extern NSString* const NSFileSystemFreeSize;
+extern NSString* const NSFileSystemNodes;
+extern NSString* const NSFileSystemFreeNodes;
 
 /* Easy access to attributes in a dictionary */
 
 @interface NSDictionary(NSFileAttributes)
-- (NSNumber*)fileSize;
-- (NSString*)fileType;
-- (NSNumber*)fileOwnerAccountNumber;
-- (NSNumber*)fileGroupOwnerAccountNumber;
-- (NSDate*)fileModificationDate;
-- (NSNumber*)filePosixPermissions;
+- (unsigned long long) fileSize;
+- (NSString*) fileType;
+- (NSString*) fileOwnerAccountName;
+- (NSString*) fileGroupOwnerAccountName;
+- (NSDate*) fileModificationDate;
+- (unsigned long) filePosixPermissions;
+- (unsigned long) fileSystemNumber;
+- (unsigned long) fileSystemFileNumber;
+
+#ifndef	STRICT_MACOS_X
+- (unsigned long) fileOwnerAccountNumber;
+- (unsigned long) fileGroupOwnerAccountNumber;
+#endif
 @end
 
-
+#endif
 #endif /* __NSFileManager_h_GNUSTEP_BASE_INCLUDE */
