@@ -286,9 +286,14 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	case _C_PTR:
 	    info->size = sizeof(char*);
 	    info->align = __alignof__(char*);
-	    typePtr = mframe_next_arg(typePtr, &local);
-	    info->isReg = local.isReg;
-	    info->offset = local.offset;
+	    if (*typePtr == '?') {
+	      typePtr++;
+	    }
+	    else {
+	      typePtr = mframe_next_arg(typePtr, &local);
+	      info->isReg = local.isReg;
+	      info->offset = local.offset;
+	    }
 	    break;
 
 	case _C_ATOM:
@@ -399,7 +404,7 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
      *	(and skipped past) the argframe offset information - so we
      *	don't need to (and can't) do it here.
      */
-    if (*info->type != _C_PTR) {
+    if (info->type[0] != _C_PTR || info->type[1] == '?') {
 	/*
 	 *	May tell the caller if the item is stored in a register.
 	 */
