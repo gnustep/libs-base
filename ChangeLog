@@ -1,3 +1,8 @@
+Tue Nov 18 14:13:13 1997  Adam Fedor  <fedor@doc.com>
+
+	* src/NSNotification.h: Correct placeholder size (bug submitted by
+	Ville-Pertti Keinonen <will@cc.hut.fi>.
+
 Wed Nov 12 10:10:33 1997  Adam Fedor  <fedor@doc.com>
 
 	* src/NSString.m (-initWithFormat:args:): Print a "null string"
