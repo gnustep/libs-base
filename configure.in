@@ -72,8 +72,6 @@ if test $gcc_nested = 0; then
   echo "this machine. "
   echo "Read the bug-report instructions in the GCC texinfo manual"
   echo "and submit a bug report."
-  echo "I'm not even sure gstep-base uses nested functions anymore"
-  echo "but if it does, gstep-base will not compile. Try it"
   echo "The program this configure script used to test nested functions"
   echo "can be found in the file 'config/config.nested.c'"
 else
@@ -531,6 +529,20 @@ else
 	AC_MSG_RESULT([not found])
 fi
 
+AC_MSG_CHECKING([whether precompiler handles LONG_LONG_MAX])
+AC_TRY_CPP([#include <stdint.h>
+	#include <limits.h>
+	#if defined(LONG_LONG_MAX)
+	#if LONG_MAX != LONG_LONG_MAX
+	#endif
+	#endif
+	], llmax=yes, llmax=no)
+if test $llmax = yes; then
+	AC_MSG_RESULT(yes)
+        AC_DEFINE(HANDLE_LONG_LONG_MAX)
+else
+	AC_MSG_RESULT(no)
+fi
 AC_CHECK_HEADERS(wchar.h)
 
 #--------------------------------------------------------------------

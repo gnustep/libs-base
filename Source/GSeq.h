@@ -40,11 +40,12 @@
 #define __GSeq_h_GNUSTEP_BASE_INCLUDE
 
 /*
- *	Some standard selectors for frequently used methods.
+ *	Some standard selectors for frequently used methods. Set in NSString
+ *      +initialize.
  */
-static SEL	caiSel = @selector(characterAtIndex:);
-static SEL	gcrSel = @selector(getCharacters:range:);
-static SEL	ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
+static SEL	caiSel = NULL;
+static SEL	gcrSel = NULL;
+static SEL	ranSel = NULL;
 
 /*
  *	The maximum decompostion level for composite unicode characters.

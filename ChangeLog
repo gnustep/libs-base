@@ -1,3 +1,12 @@
+2001-05-22  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Check CPP handling of LONG_LONG_MAX
+	* Source/GSFormat.m: Undef LONG_LONG_MAX if not handled
+
+	* Source/GSeq.h: Set static selectors to NULL.
+	* Source/NSString.m (+initialize): Set selectors here instead.
+	* Source/GSString.m (setup): ...And here.
+
 2001-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 	* Headers/Foundation/NSSet.h: Added ([-setSet:])
 	* Source/GSSet.m: Optimise ([-unionSet:])
