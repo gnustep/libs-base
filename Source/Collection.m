@@ -72,7 +72,7 @@
 }
 
 /* May be inefficient.  Could be overridden; */
-- releaseObjects
+- empty
 {
   if (CONTAINS_OBJECTS)
     [self safeMakeObjectsPerform:@selector(release)];
@@ -257,7 +257,7 @@
 
 /* This must work without sending any messages to content objects.
    Content objects already may be dealloc'd when this is executed. */
-- empty
+- _empty
 {
   [self subclassResponsibility:_cmd];
   return self;
