@@ -103,6 +103,11 @@ LAMBDA(BOOL, (id _o), {if ([_o perform:SELECTOR]) return YES; else return NO;})
          _a < _b ? _a : _b; })
 #endif
 
+#ifndef STRINGIFY
+#define STRINGIFY(s) XSTRINGIFY(s)
+#define XSTRINGIFY(s) #s
+#endif
+
 #ifndef PTR2LONG
 #define PTR2LONG(P) (((char*)(P))-(char*)0)
 #endif
