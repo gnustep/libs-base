@@ -39,28 +39,16 @@
 @class	NSString;
 @class	NSMutableString;
 
-typedef	enum {
-  GSMimeEncodingBase64,
-  GSMimeEncodingQuotedPrintable,
-  GSMimeEncodingSevenBit,
-  GSMimeEncodingEightBit,
-  GSMimeEncodingBinary,
-  GSMimeEncodingChunked,		// HTTP/1.1 chunked transfer
-  GSMimeEncodingUnknown
-} GSMimeEncoding;
-
 /*
  * A trivial class for mantaining state while decoding/encoding data.
+ * Each encoding type requires its own subclass.
  */
-@interface	GSMimeEncodingContext : NSObject
+@interface	GSMimeCodingContext : NSObject
 {
-@public
-  GSMimeEncoding	type;	/* The encoding type to be used.	*/
-  unsigned char		buf[8];	/* Temporary data storage area.		*/
-  int			pos;	/* Context position count.		*/
-  BOOL			foot;	/* Reading footer near end of data.	*/
-  BOOL			atEnd;	/* Flag to say that data has ended.	*/
+  BOOL		atEnd;	/* Flag to say that data has ended.	*/
 }
+- (BOOL) atEnd;
+- (void) setAtEnd: (BOOL)flag;
 @end
 
 @interface	GSMimeDocument : NSObject
@@ -96,15 +84,16 @@ typedef	enum {
   NSData		*boundary;
   GSMimeDocument	*document;
   GSMimeParser		*child;
-  GSMimeEncodingContext	*context;
+  GSMimeCodingContext	*context;
 }
 
 + (GSMimeParser*) mimeParser;
 
+- (GSMimeCodingContext*) contextFor: (NSDictionary*)headerInfo;
 - (BOOL) decodeData: (NSData*)sData
 	  fromRange: (NSRange)aRange
 	   intoData: (NSMutableData*)dData
-	withContext: (GSMimeEncodingContext*)ctxt;
+	withContext: (GSMimeCodingContext*)ctxt;
 - (GSMimeDocument*) document;
 - (BOOL) parse: (NSData*)input;
 - (BOOL) parseHeader: (NSString*)aRawHeader;

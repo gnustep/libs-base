@@ -31,6 +31,28 @@
           </desc>
         </method>
 
+        <method type="GSMimeCodingContext*">
+          <sel>contextFor:</sel>
+          <arg type="NSDictionary*">headerInfo</arg>
+	  <desc>
+	    Return a coding context object to be used for decoding data
+	    according to the scheme specified in the header.
+	    <p>
+	      The default implementation supports the following transfer
+	      encodings specified in either a <code>transfer-encoding</code>
+	      of <code>content-transfer-encoding</code> header -
+	    </p>
+	    <list>
+	      <item>base64</item>
+	      <item>quoted-printable</item>
+	      <item>binary</item>
+	      <item>7bit</item>
+	      <item>8bit</item>
+	      <item>chunked (for HTTP/1.1)</item>
+	    </list>
+	  </desc>
+	</method>
+
         <method type="BOOL">
           <sel>decodeData:</sel>
           <arg type="NSData*">sourceData</arg>
@@ -39,7 +61,7 @@
           <sel>intoData:</sel>
           <arg type="NSMutableData*">destinationData</arg>
           <sel>withContext:</sel>
-          <arg type="GSMimeEncodingContext*">ctxt</arg>
+          <arg type="GSMimeCodingContext*">ctxt</arg>
           <desc>
 	    <p>
 	      Decodes the raw data from the specified range in the source

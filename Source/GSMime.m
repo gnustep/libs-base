@@ -189,8 +189,104 @@ parseCharacterSet(NSString *token)
   return NSASCIIStringEncoding;
 }
 
-@implementation	GSMimeEncodingContext
+@implementation	GSMimeCodingContext
+- (BOOL) atEnd
+{
+  return atEnd;
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return RETAIN(self);
+}
+
+- (void) setAtEnd: (BOOL)flag
+{
+  atEnd = flag;
+}
 @end
+
+@interface	GSMimeBase64DecoderContext : GSMimeCodingContext
+{
+@public
+  unsigned char	buf[4];
+  unsigned	pos;
+}
+@end
+@implementation	GSMimeBase64DecoderContext
+@end
+
+@interface	GSMimeQuotedDecoderContext : GSMimeCodingContext
+{
+@public
+  unsigned char	buf[4];
+  unsigned	pos;
+}
+@end
+@implementation	GSMimeQuotedDecoderContext
+@end
+
+@interface	GSMimeChunkedDecoderContext : GSMimeCodingContext
+{
+@public
+  unsigned char	buf[8];
+  unsigned	pos;
+  enum {
+    ChunkSize,		// Reading chunk size
+    ChunkExt,		// Reading cjhunk extensions
+    ChunkEol1,		// Reading end of line after size;ext
+    ChunkData,		// Reading chunk data
+    ChunkEol2,		// Reading end of line after data
+    ChunkFoot,		// Reading chunk footer after newline
+    ChunkFootA		// Reading chunk footer
+  } state;
+  NSMutableData	*data;
+}
+@end
+@implementation	GSMimeChunkedDecoderContext
+- (void) dealloc
+{
+  RELEASE(data);
+  [super dealloc];
+}
+- (id) init
+{
+  self = [super init];
+  if (self != nil)
+    {
+      data = [NSMutableData new];
+    }
+  return self;
+}
+@end
+
+
+
+@interface	GSMimeBinaryDecoderContext : GSMimeCodingContext
+@end
+@implementation	GSMimeBinaryDecoderContext
+- (id) autorelease
+{
+  return self;
+}
+- (id) copyWithZone: (NSZone*)z
+{
+  return self;
+}
+- (void) dealloc
+{
+  NSLog(@"Error - attempt to deallocate GSMimeBinaryDecoderContext");
+}
+- (id) retain
+{
+  return self;
+}
+- (void) release
+{
+}
+@end
+
+
 
 
 @interface GSMimeParser (Private)
@@ -216,10 +312,66 @@ parseCharacterSet(NSString *token)
   [super dealloc];
 }
 
+- (GSMimeCodingContext*) contextFor: (NSDictionary*)info
+{
+  NSString	*name;
+  NSString	*value;
+  static	GSMimeCodingContext	*defaultContext = nil;
+
+  if (defaultContext == nil)
+    {
+      defaultContext = [GSMimeBinaryDecoderContext new];
+    }
+  if (info == nil)
+    {
+      NSLog(@"contextFor: - nil header ... assumed binary encoding");
+      return defaultContext;
+    }
+
+  name = [info objectForKey: @"Name"];
+  if ([name isEqualToString: @"content-transfer-encoding"] == YES
+   || [name isEqualToString: @"transfer-encoding"] == YES)
+    {
+      value = [info objectForKey: @"Value"];
+      if ([value length] == 0)
+	{
+	  NSLog(@"Bad value for %@ header - assume binary encoding", name);
+	  return defaultContext;
+	}
+      if ([value isEqualToString: @"base64"] == YES)
+	{
+	  return AUTORELEASE([GSMimeBase64DecoderContext new]);
+	}
+      else if ([value isEqualToString: @"quoted-printable"] == YES)
+	{
+	  return AUTORELEASE([GSMimeQuotedDecoderContext new]);
+	}
+      else if ([value isEqualToString: @"binary"] == YES)
+	{
+	  return defaultContext;
+	}
+      else if ([value characterAtIndex: 0] == '7')
+	{
+	  return defaultContext;
+	}
+      else if ([value characterAtIndex: 0] == '8')
+	{
+	  return defaultContext;
+	}
+      else if ([value isEqualToString: @"chunked"] == YES)
+	{
+	  return AUTORELEASE([GSMimeChunkedDecoderContext new]);
+	}
+    }
+
+  NSLog(@"contextFor: - unknown header (%@) ... assumed binary encoding", name);
+  return defaultContext;
+}
+
 - (BOOL) decodeData: (NSData*)sData
 	  fromRange: (NSRange)aRange
 	   intoData: (NSMutableData*)dData
-	withContext: (GSMimeEncodingContext*)ctxt
+	withContext: (GSMimeCodingContext*)con
 {
   unsigned		size = [dData length];
   unsigned		len = [sData length];
@@ -227,21 +379,14 @@ parseCharacterSet(NSString *token)
   unsigned char		*dst;
   const char		*src;
   const char		*end;
+  Class			ccls;
 
-  if (dData == nil || ctxt == nil)
+  if (dData == nil || [con isKindOfClass: [GSMimeCodingContext class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"Bad data or context"];
+		  format: @"Bad destination data for decode"];
     }
   GS_RANGE_CHECK(aRange, len);
-
-  /*
-   * A nil data item as input represents end of data.
-   */
-  if (sData == nil)
-    {
-      ctxt->atEnd = YES;
-    }
 
   /*
    * Get pointers into source data buffer.
@@ -250,278 +395,353 @@ parseCharacterSet(NSString *token)
   src += aRange.location;
   end = src + aRange.length;
   
-  switch (ctxt->type)
+  ccls = [con class];
+  if (ccls == [GSMimeBase64DecoderContext class])
     {
-      case GSMimeEncodingBase64:
-	/*
-	 * Expand destination data buffer to have capacity to handle info.
-	 */
-	[dData setLength: size + (3 * (end + 8 - src))/4];
-	dst = (unsigned char*)[dData mutableBytes];
-	beg = dst;
+      GSMimeBase64DecoderContext	*ctxt;
 
-	/*
-	 * Now decode data into buffer, keeping count and temporary
-	 * data in context.
-	 */
-	while (src < end)
-	  {
-	    int	cc = *src++;
+      ctxt = (GSMimeBase64DecoderContext*)con;
 
-	    if (isupper(cc))
-	      {
-		cc -= 'A';
-	      }
-	    else if (islower(cc))
-	      {
-		cc = cc - 'a' + 26;
-	      }
-	    else if (isdigit(cc))
-	      {
-		cc = cc - '0' + 52;
-	      }
-	    else if (cc == '+')
-	      {
-		cc = 62;
-	      }
-	    else if (cc == '/')
-	      {
-		cc = 63;
-	      }
-	    else if  (cc == '=')
-	      {
-		ctxt->atEnd = YES;
-		cc = -1;
-	      }
-	    else if (cc == '-')
-	      {
-		ctxt->atEnd = YES;
-		break;
-	      }
-	    else
-	      {
-		cc = -1;		/* ignore */
-	      }
+      /*
+       * Expand destination data buffer to have capacity to handle info.
+       */
+      [dData setLength: size + (3 * (end + 8 - src))/4];
+      dst = (unsigned char*)[dData mutableBytes];
+      beg = dst;
 
-	    if (cc >= 0)
-	      {
-		ctxt->buf[ctxt->pos++] = cc;
-		if (ctxt->pos == 4)
+      /*
+       * Now decode data into buffer, keeping count and temporary
+       * data in context.
+       */
+      while (src < end)
+	{
+	  int	cc = *src++;
+
+	  if (isupper(cc))
+	    {
+	      cc -= 'A';
+	    }
+	  else if (islower(cc))
+	    {
+	      cc = cc - 'a' + 26;
+	    }
+	  else if (isdigit(cc))
+	    {
+	      cc = cc - '0' + 52;
+	    }
+	  else if (cc == '+')
+	    {
+	      cc = 62;
+	    }
+	  else if (cc == '/')
+	    {
+	      cc = 63;
+	    }
+	  else if  (cc == '=')
+	    {
+	      [ctxt setAtEnd: YES];
+	      cc = -1;
+	    }
+	  else if (cc == '-')
+	    {
+	      [ctxt setAtEnd: YES];
+	      break;
+	    }
+	  else
+	    {
+	      cc = -1;		/* ignore */
+	    }
+
+	  if (cc >= 0)
+	    {
+	      ctxt->buf[ctxt->pos++] = cc;
+	      if (ctxt->pos == 4)
+		{
+		  ctxt->pos = 0;
+		  decodebase64(dst, ctxt->buf);
+		  dst += 3;
+		}
+	    }
+	}
+
+      /*
+       * Odd characters at end of decoded data need to be added separately.
+       */
+      if ([ctxt atEnd] == YES && ctxt->pos > 0)
+	{
+	  unsigned	len = ctxt->pos - 1;;
+
+	  while (ctxt->pos < 4)
+	    {
+	      ctxt->buf[ctxt->pos++] = '\0';
+	    }
+	  ctxt->pos = 0;
+	  decodebase64(dst, ctxt->buf);
+	  size += len;
+	}
+      [dData setLength: size + dst - beg];
+    }
+  else if (ccls == [GSMimeQuotedDecoderContext class])
+    {
+      GSMimeQuotedDecoderContext	*ctxt;
+
+      ctxt = (GSMimeQuotedDecoderContext*)con;
+
+      /*
+       * Expand destination data buffer to have capacity to handle info.
+       */
+      [dData setLength: size + (end - src)];
+      dst = (unsigned char*)[dData mutableBytes];
+      beg = dst;
+
+      while (src < end)
+	{
+	  if (ctxt->pos > 0)
+	    {
+	      if ((*src == '\n') || (*src == '\r'))
+		{
+		  ctxt->pos = 0;
+		}
+	      else
+		{
+		  ctxt->buf[ctxt->pos++] = '=';
+		  if (ctxt->pos == 3)
+		    {
+		      int	c;
+		      int	val;
+
+		      ctxt->pos = 0;
+		      c = ctxt->buf[1];
+		      val = isdigit(c) ? (c - '0') : (c - 55);
+		      val *= 0x10;
+		      c = ctxt->buf[2];
+		      val += isdigit(c) ? (c - '0') : (c - 55);
+		      *dst++ = val;
+		    }
+		}
+	    }
+	  else if (*src == '=')
+	    {
+	      ctxt->buf[ctxt->pos++] = '=';
+	    }
+	  else
+	    {
+	      *dst++ = *src;
+	    }
+	  src++;
+	}
+      [dData setLength: size + dst - beg];
+    }
+  else if (ccls == [GSMimeChunkedDecoderContext class])
+    {
+      GSMimeChunkedDecoderContext	*ctxt;
+      const char			*footers = src;
+
+      ctxt = (GSMimeChunkedDecoderContext*)con;
+
+      dst = beg = 0;
+      while ([ctxt atEnd] == NO && src < end)
+	{
+	  switch (ctxt->state)
+	    {
+	      case ChunkSize:
+		if (isxdigit(*src) && ctxt->pos < sizeof(ctxt->buf))
 		  {
-		    ctxt->pos = 0;
-		    decodebase64(dst, ctxt->buf);
-		    dst += 3;
+		    ctxt->buf[ctxt->pos++] = *src;
 		  }
-	      }
-	  }
-
-	/*
-	 * Odd characters at end of decoded data need to be added separately.
-	 */
-	if (ctxt->atEnd == YES && ctxt->pos > 0)
-	  {
-	    unsigned	len = ctxt->pos - 1;;
-
-	    while (ctxt->pos < 4)
-	      {
-		ctxt->buf[ctxt->pos++] = '\0';
-	      }
-	    ctxt->pos = 0;
-	    decodebase64(dst, ctxt->buf);
-	    size += len;
-	  }
-	[dData setLength: size + dst - beg];
-	break;
-
-      case GSMimeEncodingQuotedPrintable:
-	/*
-	 * Expand destination data buffer to have capacity to handle info.
-	 */
-	[dData setLength: size + (end - src)];
-	dst = (unsigned char*)[dData mutableBytes];
-	beg = dst;
-
-	while (src < end)
-	  {
-	    if (ctxt->pos > 0)
-	      {
-		if ((*src == '\n') || (*src == '\r'))
+		else if (*src == ';')
 		  {
-		    ctxt->pos = 0;
+		    ctxt->state = ChunkExt;
 		  }
-		else
+		else if (*src == '\r')
 		  {
-		    ctxt->buf[ctxt->pos++] = '=';
-		    if (ctxt->pos == 3)
-		      {
-		        int	c;
-			int	val;
-
-			ctxt->pos = 0;
-			c = ctxt->buf[1];
-			val = isdigit(c) ? (c - '0') : (c - 55);
-			val *= 0x10;
-			c = ctxt->buf[2];
-			val += isdigit(c) ? (c - '0') : (c - 55);
-			*dst++ = val;
-		      }
+		    ctxt->state = ChunkEol1;
 		  }
-	      }
-	    else if (*src == '=')
-	      {
-		ctxt->buf[ctxt->pos++] = '=';
-	      }
-	    else
-	      {
-		*dst++ = *src;
-	      }
-	    src++;
-	  }
-	[dData setLength: size + dst - beg];
-	break;
-
-      case GSMimeEncodingChunked:
-	while (ctxt->atEnd == NO && src < end)
-	  {
-	    /*
-	     * If we are reading a chunk footer, look for a blank line
-	     * that terminates it.
-	     */
-	    if (ctxt->foot == YES)
-	      {
-		if (*src == '\r')
+		else if (*src == '\n')
 		  {
-		    src++;
+		    ctxt->state = ChunkData;
 		  }
-		else if (*src != '\n' || ctxt->buf[0] != '\n')
+		src++;
+		if (ctxt->state != ChunkSize)
 		  {
-		    ctxt->buf[0] = *src++;
-		  }
-		else
-		  {
-		    ctxt->foot = NO;
-		    ctxt->atEnd = YES;
-		    src++;
-		    break;
-		  }
-		continue;
-	      }
-
-	    /*
-	     * Keep track of chunk size in the context.
-	     * A negative 'pos' indicates that we are reading the chunk size.
-	     * A positive 'pos' indicates that we are reading the chunk itsself.
-	     */
-	    if (ctxt->pos <= 0)
-	      {
-		BOOL	foundChunkSize = NO;
-
-		/*
-		 * If we have a negative 'pos', convert it to a positive
-		 * count of bytes read for the chunk size.
-		 */
-		if (ctxt->pos < 0)
-		  {
-		    ctxt->pos = -ctxt->pos;
-		  }
-		while (src < end)
-		  {
-		    if (isxdigit(*src))
-		      {
-			ctxt->buf[ctxt->pos++] = *src++;
-			if (ctxt->pos == sizeof(ctxt->buf))
-			  {
-			    NSLog(@"Bad chunk size field");
-			    ctxt->pos = 0;
-			  }
-		      }
-		    else
-		      {
-			if (*src == '\r')
-			  {
-			    src++;
-			  }
-			if (*src == '\n')
-			  {
-			    src++;
-			  }
-			foundChunkSize = YES;
-			break;
-		      }
-		  }
-		if (foundChunkSize == YES)
-		  {
-		    int	size = 0;
+		    int	val = 0;
 		    int	index;
 
 		    for (index = 0; index < ctxt->pos; index++)
 		      {
-			size *= 16;
+			val *= 16;
 			if (isdigit(ctxt->buf[index]))
 			  {
-			    size += ctxt->buf[index] - '0';
+			    val += ctxt->buf[index] - '0';
 			  }
 			else if (isupper(ctxt->buf[index]))
 			  {
-			    size += ctxt->buf[index] - 'A' + 10;
+			    val += ctxt->buf[index] - 'A' + 10;
 			  }
 			else
 			  {
-			    size += ctxt->buf[index] - 'a' + 10;
+			    val += ctxt->buf[index] - 'a' + 10;
 			  }
 		      }
-		    ctxt->pos = size;
+		    ctxt->pos = val;
 		    /*
-		     * Check to see if this is the terminator for the
-		     * document content.
+		     * If we have read a chunk already, make sure that our
+		     * destination size is updated correctly before growing
+		     * the buffer for another chunk.
 		     */
-		    if (ctxt->pos == 0)
-		      {
-			ctxt->foot = YES;
-			ctxt->buf[0] = src[-1];	// last char read
-		      }
+		    size += (dst - beg);
+		    [dData setLength: size + val];
+		    dst = (unsigned char*)[dData mutableBytes];
+		    dst += size;
+		    beg = dst;
 		  }
-		else
-		  {
-		    ctxt->pos = -ctxt->pos;
-		  }
-	      }
-	    if (ctxt->pos > 0)
-	      {
-		/*
-		 * Expand destination data buffer to have capacity to
-		 * handle remainder of chunk.
-		 */
-		[dData setLength: size + ctxt->pos];
-		dst = (unsigned char*)[dData mutableBytes];
-		beg = dst;
-		/*
-	  	 * Read the specified chunk length (excluding carriage returns)
-		 */
-		while (ctxt->pos > 0 && src < end)
-		  {
-		    if (*src != '\r')
-		      {
-			*dst++ = *src;
-			ctxt->pos--;
-		      }
-		    src++;
-		  }
-		[dData setLength: size + dst - beg];
-	      }
-	  }
-	break;
+		break;
 
-      default:
-	NSLog(@"Content encoding %d not known - assume binary", ctxt->type);
-      case GSMimeEncodingBinary:
-      case GSMimeEncodingSevenBit:
-      case GSMimeEncodingEightBit:
-	[dData setLength: size + (end - src)];
-	dst = (unsigned char*)[dData mutableBytes];
-	memcpy(&dst[size], src, (end - src));
-	[dData setLength: size + end - src];
-	break;
+	    case ChunkExt:
+	      if (*src == '\r')
+		{
+		  ctxt->state = ChunkEol1;
+		}
+	      else if (*src == '\n')
+		{
+		  ctxt->state = ChunkData;
+		}
+	      src++;
+	      break;
+
+	    case ChunkEol1:
+	      if (*src == '\n')
+		{
+		  ctxt->state = ChunkData;
+		}
+	      src++;
+	      break;
+
+	    case ChunkData:
+	      /*
+	       * If the pos is non-zero, we have a data chunk to read.
+	       * otherwise, what we actually want it to read footers.
+	       */
+	      if (ctxt->pos > 0)
+		{
+		  *dst++ = *src++;
+		  if (--ctxt->pos == 0)
+		    {
+		      ctxt->state = ChunkEol2;
+		    }
+		}
+	      else
+		{
+		  footers = src;		// Record start position.
+		  ctxt->state = ChunkFoot;
+		}
+	      break;
+
+	    case ChunkEol2:
+	      if (*src == '\n')
+		{
+		  ctxt->state = ChunkSize;
+		}
+	      src++;
+	      break;
+
+	    case ChunkFoot:
+	      if (*src == '\r')
+		{
+		  src++;
+		}
+	      else if (*src == '\n')
+		{
+		  [ctxt setAtEnd: YES];
+		}
+	      else
+		{
+		  ctxt->state = ChunkFootA;
+		}
+	      break;
+
+	    case ChunkFootA:
+	      if (*src == '\n')
+		{
+		  ctxt->state = ChunkFootA;
+		}
+	      src++;
+	      break;
+	    }
+	}
+      if (ctxt->state == ChunkFoot || ctxt->state == ChunkFootA)
+	{
+	  [ctxt->data appendBytes: footers length: src - footers];
+	  if ([ctxt atEnd] == YES)
+	    {
+	      NSMutableData	*old;
+
+	      /*
+	       * Pretend we are back parsing the original headers ...
+	       */
+	      old = data;
+	      data = ctxt->data;
+	      bytes = (unsigned char*)[data mutableBytes];
+	      dataEnd = [data length];
+	      inBody = NO;
+
+	      /*
+	       * Duplicate the normal header parsing process for our footers.
+	       */
+	      while (inBody == NO)
+		{
+		  if ([self _unfoldHeader] == NO)
+		    {
+		      break;
+		    }
+		  if (inBody == NO)
+		    {
+		      NSString		*header;
+
+		      header = [self _decodeHeader];
+		      if (header == nil)
+			{
+			  break;
+			}
+		      if ([self parseHeader: header] == NO)
+			{
+			  break;
+			}
+		    }
+		}
+
+	      /*
+	       * restore original data.
+	       */
+	      ctxt->data = data;
+	      data = old;
+	      bytes = (unsigned char*)[data mutableBytes];
+	      dataEnd = [data length];
+	      inBody = YES;
+	    }
+	}
+      /*
+       * Append any data.
+       */	
+      [dData setLength: size + dst - beg];
+    }
+  else
+    {
+      /*
+       * Assume binary (no) decoding required.
+       */
+      [dData setLength: size + (end - src)];
+      dst = (unsigned char*)[dData mutableBytes];
+      memcpy(&dst[size], src, (end - src));
+      [dData setLength: size + end - src];
+    }
+
+  /*
+   * A nil data item as input represents end of data.
+   */
+  if (sData == nil)
+    {
+      [con setAtEnd: YES];
     }
 
   return YES;
@@ -548,7 +768,7 @@ parseCharacterSet(NSString *token)
     {
       data = [[NSMutableData alloc] init];
       document = [[GSMimeDocument alloc] init];
-      context = [[GSMimeEncodingContext alloc] init];
+      context = [[GSMimeCodingContext alloc] init];
     }
   return self;
 }
@@ -706,55 +926,6 @@ parseCharacterSet(NSString *token)
       if (sscanf([value lossyCString], "%d.%d", &majv, &minv) != 2)
 	{
 	  NSLog(@"Bad value for mime-version header");
-	  return NO;
-	}
-      [document deleteHeaderNamed: name];	// Should be unique
-    }
-  else if ([name isEqualToString: @"content-transfer-encoding"] == YES
-   || [name isEqualToString: @"transfer-encoding"] == YES)
-    {
-      BOOL	supported = NO;
-
-      value = [info objectForKey: @"Value"];
-      if ([value length] == 0)
-	{
-	  NSLog(@"Bad value for %@ header", name);
-	  return NO;
-	}
-      if ([value isEqualToString: @"quoted-printable"] == YES)
-	{
-	  context->type = GSMimeEncodingQuotedPrintable;
-	  supported = YES;
-	}
-      else if ([value isEqualToString: @"base64"] == YES)
-	{
-	  context->type = GSMimeEncodingBase64;
-	  supported = YES;
-	}
-      else if ([value isEqualToString: @"binary"] == YES)
-	{
-	  context->type = GSMimeEncodingBinary;
-	  supported = YES;
-	}
-      else if ([value characterAtIndex: 0] == '7')
-	{
-	  context->type = GSMimeEncodingSevenBit;
-	  supported = YES;
-	}
-      else if ([value characterAtIndex: 0] == '8')
-	{
-	  context->type = GSMimeEncodingEightBit;
-	  supported = YES;
-	}
-      else if ([value isEqualToString: @"chunked"] == YES)
-	{
-	  context->type = GSMimeEncodingChunked;
-	  supported = YES;
-	}
-      if (supported == NO)
-	{
-	  context->type = GSMimeEncodingBinary;
-	  NSLog(@"Unsupported/unknown content-transfer-encoding");
 	  return NO;
 	}
       [document deleteHeaderNamed: name];	// Should be unique
@@ -1320,7 +1491,7 @@ parseCharacterSet(NSString *token)
 	}
       else
 	{
-	  if (context->atEnd == YES)
+	  if ([context atEnd] == YES)
 	    {
 	      if ([d length] > 0)
 		{
@@ -1334,7 +1505,7 @@ parseCharacterSet(NSString *token)
 		  intoData: data
 	       withContext: context];
 
-	  if (context->atEnd == YES)
+	  if ([context atEnd] == YES)
 	    {
 	      /*
 	       * If no content type is supplied, we assume text.
@@ -1533,7 +1704,8 @@ parseCharacterSet(NSString *token)
 	   */
 	  if (lineEnd == lineStart)
 	    {
-	      unsigned	lengthRemaining;
+	      unsigned		lengthRemaining;
+	      NSDictionary	*hdr;
 
 	      /*
 	       * Overwrite the header data with the body, ready to start
@@ -1551,7 +1723,19 @@ parseCharacterSet(NSString *token)
 	      lineStart = 0;
 	      lineEnd = 0;
 	      input = 0;
-	      inBody = YES;	/* At end of headers.	*/
+
+	      /*
+	       * At end of headers - set up context for decoding data.
+	       */
+	      inBody = YES;
+	      DESTROY(context);
+	      hdr = [document headerNamed: @"content-transfer-encoding"];
+	      if (hdr == nil)
+		{
+		  hdr = [document headerNamed: @"transfer-encoding"];
+		}
+	      context = [self contextFor: hdr];
+	      RETAIN(context);
 	    }
 	}
     }
