@@ -523,21 +523,6 @@ int main(int argc, char *argv[], char *env[])
 
 #endif /* HAS_LOAD_METHOD && HAS_PROCFS */ 
 
-/**
- * Fallback method. The developer must call this method to initialize
- * the |NSProcessInfo system if none of the system-specific hacks to
- * auto initiailise it are working.
- */
-+ (void) initializeWithArguments: (char**)argv
-                           count: (int)argc
-                     environment: (char**)env
-{
-  if (!_gnu_processName && !_gnu_arguments && !_gnu_environment)
-    {
-      _gnu_process_args(argc, argv, env);
-    }
-}
-
 /*************************************************************************
  *** Getting an NSProcessInfo Object
  *************************************************************************/
@@ -565,18 +550,6 @@ int main(int argc, char *argv[], char *env[])
 - (NSArray *) arguments
 {
   return _gnu_arguments;
-}
-
-/**
- * This method returns a set of debug levels set using the
- * --GNU-Debug=... command line option.<br />
- * You can modify this set to change the debug logging under
- * your programs control ... but such modifications are not
- * thread-safe.
- */
-- (NSMutableSet*) debugSet
-{
-  return _debug_set;
 }
 
 - (NSDictionary *) environment
@@ -637,6 +610,36 @@ int main(int argc, char *argv[], char *env[])
     _gnu_processName = [newName copyWithZone: [self zone]];
   }
   return;
+}
+
+@end
+
+@implementation	NSProcessInfo (GNUstep)
+/**
+ * Fallback method. The developer must call this method to initialize
+ * the NSProcessInfo system if none of the system-specific hacks to
+ * auto initiailise it are working.
+ */
++ (void) initializeWithArguments: (char**)argv
+                           count: (int)argc
+                     environment: (char**)env
+{
+  if (!_gnu_processName && !_gnu_arguments && !_gnu_environment)
+    {
+      _gnu_process_args(argc, argv, env);
+    }
+}
+
+/**
+ * This method returns a set of debug levels set using the
+ * --GNU-Debug=... command line option.<br />
+ * You can modify this set to change the debug logging under
+ * your programs control ... but such modifications are not
+ * thread-safe.
+ */
+- (NSMutableSet*) debugSet
+{
+  return _debug_set;
 }
 
 @end
