@@ -1,7 +1,24 @@
 News
 ****
 
-The currently released version of the library is `1.6.0'.
+The currently released version of the library is `1.7.0'.
+
+Noteworthy changes in version `1.7.0'
+=====================================
+
+   See gnustep-make for comments on the filesystem change. Some
+components of gnustep-base are now stored in different directories and
+in some cases you should use different methods to look for them. Use
++pathForLibraryResource:ofType:inDirectory: instead of
++pathForGNUstepResource:. Also try using +bundleForLibrary:.
+
+   gnustep-base is now documentated as OpenStep complient. Other
+changes:
+
+   * Add GSApplicationSupportDirectory for
+     NSSearchPathForDirectoriesInDomains.
+
+   * Added man page for gdomap
 
 Noteworthy changes in version `1.6.0'
 =====================================
