@@ -991,7 +991,21 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	_va_return_struct(args, info[0].size, info[0].align, retval);
 	break;
       case _C_VOID:
-	va_return_void(args);
+	/* FIXME ... evil hack ... where the compiler did not know
+	 * selector types, if may have had to assume a method returning
+	 * an id, but the actual method may have returned void ...
+	 * we check for that case here, and use the fact that in the case
+	 * of a void return value, passing retval back as a voipd will
+	 * look like the method actually returned nil.
+	 */
+	if (typeinfo->type == __VAvoidp)
+	  {
+	    va_return_ptr(args, void *, *(void **)retval);
+	  }
+	else
+	  {
+	    va_return_void(args);
+	  }
 	break;
       default:
 	NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented",

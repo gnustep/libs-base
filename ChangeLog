@@ -1,3 +1,10 @@
+2003-07-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFFCALLInvocation.m: Add evil hack to cope with cases
+	where type info was not available and we assumed a method returning
+	an id but the actual method returned void.
+	* config/procfs.m4: Test for procfs using 'mount'
+
 2003-07-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedNotificationCenter.m: Partially reverted last

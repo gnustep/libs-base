@@ -12,7 +12,7 @@ AC_DEFUN(AC_SYS_PROCFS,
   #  if test -d /proc/0; then
   # but it doesn't work on my linux - /proc/0 does not exist, but /proc
   # works fine
-    if (grep proc /etc/fstab >/dev/null 2>/dev/null); then 
+    if (mount | grep 'proc' >/dev/null 2>/dev/null); then 
       ac_cv_sys_procfs=yes
 	# Solaris has proc, but for some reason the dir is not readable
 	# 	elif (grep proc /etc/vfstab >/dev/null 2>/dev/null); then 
