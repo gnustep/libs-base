@@ -92,8 +92,8 @@
  */
 #define _GNU_MISSING_MAIN_FUNCTION_CALL @"Libobjects internal error: \
 the private libobjects function to establish the argv and environment \
-variables was not called. Please contact libobjects authors for further \
-information."
+variables was not called. Please contact Tuparev@EMBL-Heidelberg.de for \
+further information."
 
 /*************************************************************************
  *** _NSConcreteProcessInfo
