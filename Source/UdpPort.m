@@ -29,7 +29,6 @@
 #include <gnustep/base/Coder.h>
 #include <gnustep/base/Array.h>
 #include <gnustep/base/ConnectedCoder.h>
-#include <gnustep/base/String.h>
 #include <assert.h>
 #ifndef __WIN32__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
