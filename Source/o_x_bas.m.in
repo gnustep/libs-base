@@ -27,7 +27,7 @@
 #include <Foundation/NSZone.h>
 #include <Foundation/NSString.h>
 #include <gnustep/base/numbers.h>
-#include <gnustep/base/o-@XX@.h>
+#include <gnustep/base/o_@XX@.h>
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
