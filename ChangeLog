@@ -1,6 +1,12 @@
+2003-08-31  Adam Fedor  <fedor@gnu.org>
+
+	* Tools/gdnc.m (main): Close any open file descriptors so we can
+	be a proper daemon.  
+	Fixes #4938.
+
 2003-08-29  Adam Fedor  <fedor@gnu.org>
 
-	* config/procfs.m4: Disalbe procfs for solaris
+	* config/procfs.m4: Disable procfs for solaris
 
 2003-08-26  Adam Fedor  <fedor@gnu.org>
 
