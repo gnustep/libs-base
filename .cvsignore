@@ -4,3 +4,4 @@
 =* *errs *.tar.gz *.patch *-patch
 config.cache config.guess config.log config.status
 config.mak
+base.make
