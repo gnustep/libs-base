@@ -252,7 +252,7 @@ AC_SUBST(SHARED_LIBRARY)
 # What flags to pass for making a shared library?
 # xxx This should be smarter and more general
 #--------------------------------------------------------------------
-echo Checking for flags to use when making a shared lib...
+AC_CHECKING(for flags to use when making a shared lib...)
 if ($srcdir/config.guess | grep solaris); then
   CFLAGS_SHAREDLIB='$(CFLAGS_SHAREDLIB_SOLARIS)'
 else
