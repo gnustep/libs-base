@@ -1782,21 +1782,23 @@ handle_printf_atsign (FILE *stream,
 	    }
 	  if (start == 0)
 	    {
-	       thischar = (*caiImp)(self, caiSel, start);
-	       switch (thischar)
-		 {
-		   case (unichar)0x000A: 
-		   case (unichar)0x000D: 
-		   case (unichar)0x2028: 
-		   case (unichar)0x2029: 
-		     start++;
-		     break;
-		   default: 
-		     break;
-		 }
+	      thischar = (*caiImp)(self, caiSel, start);
+	      switch (thischar)
+		{
+		  case (unichar)0x000A: 
+		  case (unichar)0x000D: 
+		  case (unichar)0x2028: 
+		  case (unichar)0x2029: 
+		    start++;
+		    break;
+		  default: 
+		    break;
+		}
 	    }
 	  else
-	    start++;
+	    {
+	      start++;
+	    }
 	  *startIndex = start;
 	}
     }
@@ -1824,33 +1826,31 @@ handle_printf_atsign (FILE *stream,
 	   if (done)
 	     break;
 	}
-      if (end < len)
+      if (lineEndIndex)
 	{
-	  if ((*caiImp)(self, caiSel, end) == (unichar)0x000D)
+	  if (end < len
+	    && ((*caiImp)(self, caiSel, end) == (unichar)0x000D)
+	    && ((*caiImp)(self, caiSel, end+1) == (unichar)0x000A))
 	    {
-	      if ((*caiImp)(self, caiSel, end+1) == (unichar)0x000A)
-		*lineEndIndex = end+1;
-	      else
-		*lineEndIndex = end;
+	      *lineEndIndex = end+1;
 	    }
 	  else
-	    *lineEndIndex = end;
+	    {
+	      *lineEndIndex = end;
+	    }
 	}
-      else
-	*lineEndIndex = end;
-    }
-
-  if (contentsEndIndex)
-    {
-      if (end < len)
+      if (contentsEndIndex)
 	{
-	  *contentsEndIndex = end-1;
-	}
-      else
-	{
-	  /* xxx OPENSTEP documentation does not say what to do if last
-	     line is not terminated. Assume this */
-	  *contentsEndIndex = end;
+	  if (end < len)
+	    {
+	      *contentsEndIndex = end-1;
+	    }
+	  else
+	    {
+	      /* xxx OPENSTEP documentation does not say what to do if last
+		 line is not terminated. Assume this */
+	      *contentsEndIndex = end;
+	    }
 	}
     }
 }
