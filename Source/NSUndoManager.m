@@ -345,8 +345,11 @@
 	      [_redoStack removeObjectAtIndex: 0];
 	    }
 
-	  if([[g actions] count] > 0)
-	    [_redoStack addObject: g];
+	  if(g != nil) 
+	    {
+	      if([[g actions] count] > 0)
+		[_redoStack addObject: g];
+	    }
 	}
       else
 	{
@@ -355,8 +358,11 @@
 	      [_undoStack removeObjectAtIndex: 0];
 	    }
 
-	  if([[g actions] count] > 0)
-	    [_undoStack addObject: g];
+	  if(g != nil)
+	    {
+	      if([[g actions] count] > 0)
+		[_undoStack addObject: g];  
+	    }
 	}
     }
   else if ([g actions] != nil)
