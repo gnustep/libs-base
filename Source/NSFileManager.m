@@ -2080,7 +2080,7 @@ static int sparc_warn = 0;
 	{
 	  sparc_warn = 1;
 	  /* Can't be NSLog - causes recursion in [NSUser -synchronize] */
-          fprintf(stderr, "WARNING (NSFileManager): Disabling group enums (setgrent, etc) since this crashes gdb on sparc machines");
+          fprintf(stderr, "WARNING (NSFileManager): Disabling group enums (setgrent, etc) since this crashes gdb on sparc machines\n");
 	}
 #endif
       values[9] = @"UnknownGroup";
