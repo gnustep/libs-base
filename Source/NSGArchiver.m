@@ -1,8 +1,8 @@
 /* Concrete NSArchiver for GNUStep based on GNU Coder class
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: April 1995
+   Created: April 1995
    
    This file is part of the GNU Objective C Class Library.
    
@@ -23,26 +23,18 @@
 
 #include <objects/stdobjects.h>
 #include <Foundation/NSGArchiver.h>
-#include <Foundation/NSGCoder.h>
+#include <objects/Coder.h>
 #include <objects/behavior.h>
 
 @implementation NSGArchiver
 
 + (void) initialize
 {
-  static int done = 0;
-  [self error:"This class not ready for business yet."];
-  if (!done)
-    {
-      done = 1;
-      class_add_behavior([NSGArchiver class], [NSGCoder class]);
-    }
+  if (self == [NSGArchiver class])
+    class_add_behavior([NSGArchiver class], [Coder class]);
 }
 
-/* This is the designated initializer */
-- (id) initForWritingWithMutableData: (NSMutableData*)mdata
-{
-  //[self initEncodingOnStream:mdata];
-  return self;
-}
+#define self ((Coder*)self)
+/* In case any other methods are defined here later... */
+
 @end
