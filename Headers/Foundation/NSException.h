@@ -88,11 +88,9 @@ typedef struct _NSHandler
 } NSHandler;
 
 /**
- *  This is the exception handler called when an exception is generated and
- *  not caught by the programmer (by enclosing in <code>NS_DURING</code> and
- *  <code>NS_HANDLER</code>...<code>NS_ENDHANDLER</code>).  It prints an error
- *  message and exits the program.  You can change this behavior by calling
- *  <code>NSSetUncaughtExceptionHandler(fn_ptr)</code>.
+ *  This is the type of the exception handler called when an exception is
+ *  generated and not caught by the programmer.  See
+ *  NSGetUncaughtExceptionHandler(), NSSetUncaughtExceptionHandler().
  */
 typedef void NSUncaughtExceptionHandler(NSException *exception);
 
@@ -101,7 +99,23 @@ typedef void NSUncaughtExceptionHandler(NSException *exception);
  *  function NSSetUncaughtExceptionHandler() to set.
  */
 GS_EXPORT NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler;
+
+/**
+ *  Returns the exception handler called when an exception is generated and
+ *  not caught by the programmer (by enclosing in <code>NS_DURING</code> and
+ *  <code>NS_HANDLER</code>...<code>NS_ENDHANDLER</code>).  The default prints
+ *  an error message and exits the program.  You can change this behavior by
+ *  calling NSSetUncaughtExceptionHandler().
+ */
 #define NSGetUncaughtExceptionHandler() _NSUncaughtExceptionHandler
+
+/**
+ *  Sets the exception handler called when an exception is generated and
+ *  not caught by the programmer (by enclosing in <code>NS_DURING</code> and
+ *  <code>NS_HANDLER</code>...<code>NS_ENDHANDLER</code>).  The default prints
+ *  an error message and exits the program.  proc should take a single argument
+ *  of type <code>NSException *</code>.
+ */
 #define NSSetUncaughtExceptionHandler(proc) \
 			(_NSUncaughtExceptionHandler = (proc))
 

@@ -207,8 +207,8 @@ NSIntersectionRange (NSRange aRange, NSRange bRange)
 /** Returns string of form {location=a, length=b}. */
 GS_EXPORT NSString *NSStringFromRange(NSRange range);
 
-/** Parses range from string of form {location=a, length=b}, otherwise returns
-    range with 0 location and length if this fails. */
+/** Parses range from string of form {location=a, length=b}; returns range
+    with 0 location and length if this fails. */
 GS_EXPORT NSRange NSRangeFromString(NSString *aString);
 
 #ifdef	GS_DEFINED_MAX

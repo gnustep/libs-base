@@ -246,12 +246,13 @@ GS_EXPORT NSString* NSLoadedClasses;
 		       ofType: (NSString*)ext;
 
 /**
-   Returns the value for the key found in the strings file tableName, or
-   Localizable.strings if tableName is nil.  Behavior depends on whether the
-   user default <code>NSShowNonLocalizedStrings</code> is set.  If set, the
+   <p>Returns the value for the key found in the strings file tableName, or
+   Localizable.strings if tableName is nil.</p>
+
+   <p>If the user default <code>NSShowNonLocalizedStrings</code> is set, the
    value of the key will be returned as an uppercase string rather than any
-   localized equivalent found.  This can be useful during development to
-   check where a given string in the UI is "coming from".
+   localized equivalent found.  This can be useful during development to check
+   where a given string in the UI is "coming from".</p>
  */
 - (NSString*) localizedStringForKey: (NSString*)key
 			      value: (NSString*)value

@@ -120,9 +120,9 @@ GS_EXPORT NSString* const NSAMPMDesignation;
 #ifndef	STRICT_OPENSTEP
 
 /**
- *  Array of arrays, first member of specifying a time, next members one or
- *  more colloquial names for the time, as in "(0, midnight), (12, noon,
- *  lunch)".
+ *  Array of arrays of NSStrings, first member of each specifying a time,
+ *  followed by one or more colloquial names for the time, as in "(0,
+ *  midnight), (12, noon, lunch)".
  */
 GS_EXPORT NSString* const NSHourNameDesignations;
 
@@ -173,9 +173,9 @@ GS_EXPORT NSString* const NSLocale;
 
 /* General implementation notes: 
 
-   OpenStep spec currently is either complete nor consistent. Therefore
-   we had to take several implementation decisions which may vary in
-   different OpenStep implementations.
+   OpenStep spec currently is neither complete nor consistent. Therefore
+   we had to make several implementation decisions which may vary in
+   other OpenStep implementations.
   
   - We add a new instance method initWithFile:  as a designated 
     initialization method because it allows to create user defaults

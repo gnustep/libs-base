@@ -374,7 +374,7 @@ NSUnionRect(NSRect aRect, NSRect bRect)
 GS_GEOM_SCOPE NSRect
 NSIntersectionRect(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
-/** Returns the largest rectange which lies in both aRect and
+/** Returns the largest rectangle which lies in both aRect and
  * bRect.  If aRect and bRect have empty intersection (or, rather,
  * intersection of measure zero, since this includes having their
  * intersection be only a point or a line), then the empty
