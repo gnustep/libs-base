@@ -1,3 +1,11 @@
+2001-01-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSDate.h: Partial support added for MacOS-X
+	* Source/NSTimeZone.m: Updates to encode all time zones as the
+	abstract class, and added MacOS-X methods.
+	* Source/NSCalendarDate.m: Use NSTimeZone rather than NSTimeZoneDetail
+	throughout ... provide MacOS-X compatibility.
+
 2001-01-29  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Remove check for alternate libobjc and Headers
