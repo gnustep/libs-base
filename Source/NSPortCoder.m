@@ -475,38 +475,3 @@ static BOOL debug_connected_coder = NO;
 
 @end
 
-
-@implementation NSObject (NSPortCoder)
-
-/* By default, Object's encode themselves as proxies across Connection's */
-- (Class) classForPortCoder
-{
-    return [self classForCoder];
-}
-
-static inline BOOL class_is_kind_of (Class self, Class aClassObject)
-{
-    Class class;
-
-    for (class = self; class!=Nil; class = class_get_super_class(class))
-        if (class==aClassObject)
-            return YES;
-    return NO;
-}
-
-- replacementObjectForPortCoder: (NSPortCoder*)aRmc
-{
-    if ([aRmc isBycopy]) {
-	return self;
-    }
-    else if (class_is_kind_of(object_get_class(self->isa),
-	[NSDistantObject class])) {
-	return self;
-    }
-    else {
-	return [NSDistantObject proxyWithLocal: self
-				    connection: [aRmc connection]];
-    }
-}
-
-@end

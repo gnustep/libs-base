@@ -55,6 +55,7 @@
 + (void) initialize
 {
     if (self == [NSGArray class]) {
+	[self setVersion: 1];
         behavior_class_add_class(self, [NSArrayNonCore class]);
     }
 }
@@ -97,6 +98,11 @@
     return self;
 }
 
+- (Class) classForCoder
+{
+    return [NSArray class];
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
     unsigned	i;
@@ -105,18 +111,9 @@
 					  at: &_count
 				    withName: @"Array content count"];
 
-    if ([aCoder isKindOfClass: [NSPortCoder class]] &&
-	[(NSPortCoder*)aCoder isBycopy]) {
-	for (i = 0; i < _count; i++) {
-	    [(id<Encoding>)aCoder encodeBycopyObject: _contents_array[i]
-					    withName: @"Array content"];
-	}
-    }
-    else {
-	for (i = 0; i < _count; i++) {
-	    [(id<Encoding>)aCoder encodeObject: _contents_array[i]
-				      withName: @"Array content"];
-	}
+    for (i = 0; i < _count; i++) {
+	[(id<Encoding>)aCoder encodeObject: _contents_array[i]
+				  withName: @"Array content"];
     }
 }
 
@@ -124,6 +121,15 @@
 {
     unsigned    count;
 
+    if ([aCoder systemVersion] == 0) {
+	unsigned dummy;
+	[(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
+					      at: &dummy
+					withName: NULL];
+	[(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
+					      at: &dummy
+					withName: NULL];
+    }
     [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
 					  at: &count
 				    withName: NULL];
@@ -216,6 +222,7 @@
 + (void) initialize
 {
     if (self == [NSGMutableArray class]) {
+	[self setVersion: 1];
         behavior_class_add_class(self, [NSMutableArrayNonCore class]);
         behavior_class_add_class(self, [NSGArray class]);
     }
@@ -267,6 +274,11 @@
 	_count = count;
     }
     return self;
+}
+
+- (Class) classForCoder
+{
+    return [NSMutableArray class];
 }
 
 - (void) insertObject: (id)anObject atIndex: (unsigned)index

@@ -62,7 +62,7 @@
 - (unsigned int) versionForClassName: (NSString*)className
 {
   [self subclassResponsibility:_cmd];
-  return 0;
+  return NSNotFound;
 }
 
 @end

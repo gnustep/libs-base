@@ -29,6 +29,7 @@
 #include <config.h>
 #include <gnustep/base/behavior.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSCoder.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSGArray.h>
 #include <limits.h>
@@ -133,13 +134,40 @@ static Class NSMutableArray_concrete_class;
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility:_cmd];
+    unsigned	count = [self count];
+
+    [aCoder encodeValueOfObjCType: @encode(unsigned)
+			       at: &count];
+
+    if (count > 0) {
+        unsigned	i;
+
+	for (i = 0; i < count; i++) {
+	    [aCoder encodeObject: [self objectAtIndex: i]];
+	}
+    }
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
 {
-  [self subclassResponsibility:_cmd];
-  return nil;
+    unsigned    count;
+
+    if ([aCoder systemVersion] == 0) {
+	unsigned dummy;
+	[aCoder decodeValueOfObjCType: @encode(unsigned) at: &dummy];
+	[aCoder decodeValueOfObjCType: @encode(unsigned) at: &dummy];
+    }
+    [aCoder decodeValueOfObjCType: @encode(unsigned) at: &count];
+    if (count > 0) {
+	id	contents[count];
+	int	i;
+
+	for (i = 0; i < count; i++) {
+	    contents[i] = [aCoder decodeObject];
+	}
+	return [self initWithObjects: contents count: count];
+    }
+    return [self initWithObjects: 0 count: 0];
 }
 
 /* The NSCopying Protocol */

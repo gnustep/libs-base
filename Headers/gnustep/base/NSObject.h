@@ -109,17 +109,17 @@
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
 
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
+- (Class) classForArchiver;
 - (Class) classForCoder;
+- (Class) classForPortCoder;
+- (id) replacementObjectForArchiver: (NSCoder*)anEncoder;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
+- (id) replacementObjectForPortCoder: (NSPortCoder*)anEncoder;
+
 
 + setVersion: (int)aVersion;
 + (int) version;
 
-@end
-
-@interface NSObject (NSPortCoder)
-- (Class) classForPortCoder;
-- (id) replacementObjectForPortCoder: (NSPortCoder*)anEncoder;
 @end
 
 /* Global lock to be used by classes when operating on any global
@@ -142,6 +142,10 @@ typedef enum _NSComparisonResult
 NSComparisonResult;
 
 enum {NSNotFound = 0x7fffffff};
+
+@interface NSObject (GNUstep)
++ (id) newWithCoder: (NSCoder*)aCoder inZone: (NSZone*)aZone;
+@end
 
 @interface NSObject (NEXTSTEP)
 - error:(const char *)aString, ...;

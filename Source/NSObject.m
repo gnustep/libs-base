@@ -34,6 +34,8 @@
 #include <Foundation/NSString.h>
 #include <gnustep/base/o_map.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSPortCoder.h>
+#include <Foundation/NSDistantObject.h>
 #include <Foundation/NSZone.h>
 #include <limits.h>
 
@@ -513,14 +515,43 @@ static BOOL double_release_check_enabled = NO;
   return self;
 }
 
+- (Class) classForArchiver
+{
+  return [self classForCoder];
+}
+
 - (Class) classForCoder
 {
   return [self class];
 }
 
+- (Class) classForPortCoder
+{
+    return [self classForCoder];
+}
+
+- (id) replacementObjectForArchiver: (NSCoder*)anArchiver
+{
+  return [self replacementObjectForCoder: (NSCoder*)anArchiver];
+}
+
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder
 {
   return self;
+}
+
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+{
+    if ([aCoder isBycopy]) {
+	return self;
+    }
+    else if ([self isKindOfClass: [NSDistantObject class]]) {
+	return self;
+    }
+    else {
+	return [NSDistantObject proxyWithLocal: self
+				    connection: [aCoder connection]];
+    }
 }
 
 
@@ -747,6 +778,26 @@ static BOOL double_release_check_enabled = NO;
 @end
 
 
+@implementation NSObject (GNUstep)
+
+/*
+ *	GNUstep extensions to the OpenStep standard.
+ */
+
++ (id) newWithCoder: (NSCoder*)coder inZone: (NSZone*)zone
+{
+    id	obj;
+
+    obj = [self allocWithZone: zone]; 
+    if (obj) {
+	obj = [obj initWithCoder: coder];
+    }
+    return obj;
+}
+
+@end
+
+
 @implementation NSObject (NEXTSTEP)
 
 /* NEXTSTEP Object class compatibility */
@@ -855,17 +906,6 @@ static BOOL double_release_check_enabled = NO;
 }
 
 - perform: (SEL)sel with: anObject with: anotherObject
-{
-  return [self performSelector:sel withObject:anObject 
-	       withObject:anotherObject];
-}
-
-- perform: (SEL)sel withObject: anObject
-{
-  return [self performSelector:sel withObject:anObject];
-}
-
-- perform: (SEL)sel withObject: anObject withObject: anotherObject
 {
   return [self performSelector:sel withObject:anObject 
 	       withObject:anotherObject];
