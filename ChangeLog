@@ -1,3 +1,11 @@
+2001-03-19  Jonathan Gapen  <jagapen@home.com>
+
+	* Source/NSString.m: In ([-rangeOfComposedCharacterSequenceAtIndex:]),
+	use the NSCharacterSet non-base character set to identify non-base
+	characters.  In ([-cStringLength]), do not allow lossy string
+	conversion.  In ([+localizedNameOfStringEncoding:]), use NSBundle's
+	([-gnustepBundle]) rather than looking in root path.
+
 2001-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSThread.h: Remove unused ivar.
