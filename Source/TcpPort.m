@@ -48,6 +48,7 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSPortMessage.h>
 #include <Foundation/NSPortNameServer.h>
+#include <Foundation/NSLock.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
