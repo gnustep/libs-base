@@ -1,3 +1,9 @@
+2000-04-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAttributedString.m: Corrected code of
+	([-attribute:atIndex:longestEffectiveRange:inRange:]) so that it
+	compares attributes correctly.
+
 2000-04-20  Jonathan Gapen  <jagapen@whitewater.chem.wisc.edu>
 
 	* Tools/plmerge.m: New tool to merge property lists.

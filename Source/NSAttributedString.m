@@ -300,21 +300,26 @@ static Class NSMutableAttributedString_concrete_class;
   id		attrValue;
   id		tmpAttrValue;
   NSRange	tmpRange;
+  BOOL		(*eImp)(id,SEL,id);
 
   if (rangeLimit.location < 0 || NSMaxRange(rangeLimit) > [self length])
     {
       [NSException raise: NSRangeException
 		  format: @"RangeError in method -attribute:atIndex:longestEffectiveRange:inRange: in class NSAttributedString"];
     }
+  if (attributeName == nil)
+    return nil;
   
   attrValue = [self attribute: attributeName
 		      atIndex: index
 	       effectiveRange: aRange];
-
-  if (attributeName == nil)
-    return nil;
   if (aRange == 0)
     return attrValue;
+
+  /*
+   * If attrValue == nil then eImp will be zero
+   */
+  eImp = (BOOL(*)(id,SEL,id))[attrValue methodForSelector: @selector(isEqual:)];
   
   while (aRange->location > rangeLimit.location)
     {
@@ -322,7 +327,8 @@ static Class NSMutableAttributedString_concrete_class;
       tmpDictionary = [self attributesAtIndex: aRange->location-1
 			       effectiveRange: &tmpRange];
       tmpAttrValue = [tmpDictionary objectForKey: attributeName];
-      if (tmpAttrValue == attrValue)
+      if (tmpAttrValue == attrValue
+	|| (eImp != 0 && (*eImp)(attrValue, @selector(isEqual), tmpAttrValue)))
 	{
 	  aRange->length = NSMaxRange(*aRange) - tmpRange.location;
 	  aRange->location = tmpRange.location;
@@ -338,7 +344,8 @@ static Class NSMutableAttributedString_concrete_class;
       tmpDictionary = [self attributesAtIndex: NSMaxRange(*aRange)
 			       effectiveRange: &tmpRange];
       tmpAttrValue = [tmpDictionary objectForKey: attributeName];
-      if (tmpAttrValue == attrValue)
+      if (tmpAttrValue == attrValue
+	|| (eImp != 0 && (*eImp)(attrValue, @selector(isEqual), tmpAttrValue)))
 	{
 	  aRange->length = NSMaxRange(tmpRange) - aRange->location;
 	}
