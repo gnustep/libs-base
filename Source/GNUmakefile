@@ -45,24 +45,6 @@ else
 LIBRARY_NAME=libgnustep-base
 endif
 
-ifeq ($(HAVE_OPENSSL), yes)
-
-# The bundles to be compiled
-BUNDLE_NAME=SSL
-
-# Additional search directories for linking
-SSL_LIB_DIRS += -L$(GNUSTEP_OBJ_DIR)
-
-# The bundle Objective-C source files to be compiled
-SSL_OBJC_FILES = GSUnixSSLHandle.m
-
-# The principal class in the bundle
-SSL_PRINCIPAL_CLASS = GSUnixSSLHandle
-
-SSL_BUNDLE_LIBS = -lgnustep-base -lobjc $(SSLLIBS)
-
-endif
-
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
 # the installing person may set it on the `make' command line.
 
@@ -406,7 +388,6 @@ Base_AGSDOC_FLAGS = \
 -include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/library.make
-include $(GNUSTEP_MAKEFILES)/bundle.make
 
 # Only build the doc if doc=yes was passed on the command line
 ifeq ($(doc),yes)

@@ -1,5 +1,27 @@
 2002-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* GNUmakefile: build SSL aggregate project
+	* config.mak.in: Remove SSL info
+	* configure.in: Remove SSL configuration
+	* configure: Regenerate
+	* SSL/GNUmakefile: Build SSL bundle
+	* SSL/GSUnixSSLHandle.m: SSL bundle source from Source directory
+	* SSL/Makefile.postamble: Build SSL bundle
+	* SSL/Makefile.preamble: Build SSL bundle
+	* SSL/config.h.in: Trivial config for SSL bundle
+	* SSL/config.mak.in: SSL info for building bundle.
+	* SSL/configure.in: Configuration for SSKL bundle.
+	* Source/GNUmakefile: Don't build SSL bundle.
+	* Source/GSUnixSSLHandle.m: Moved to SSL directory.
+	* Source/Makefile.postamble: Don't build SSL bundle.
+	* Source/Makefile.preamble: Don't build SSL bundle.
+	Alterations to make the SSL bundle capable of standalone
+	building - for use on systems where the base package has
+	only been installed in binary form.
+	Initial attempt!
+
+2002-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSAttributedString.m: Applied fix for left-over attributes
 	at end of string.  Patch supplied by Alexander Malmberg
 	<alexander@malmberg.org>.  Reformatting to conform to GNUstep
