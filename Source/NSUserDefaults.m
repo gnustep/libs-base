@@ -33,21 +33,23 @@
 #include <errno.h>
 
 #include <Foundation/NSUserDefaults.h>
-#include <Foundation/NSFileManager.h>
-#include <Foundation/NSPathUtilities.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSUtilities.h>
 #include <Foundation/NSArchiver.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSBundle.h>
+#include <Foundation/NSDate.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSDistributedLock.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSFileManager.h>
+#include <Foundation/NSLock.h>
 #include <Foundation/NSNotification.h>
-#include <Foundation/NSTimer.h>
+#include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSRunLoop.h>
-#include <Foundation/NSBundle.h>
+#include <Foundation/NSThread.h>
+#include <Foundation/NSTimer.h>
+#include <Foundation/NSUtilities.h>
 #include <Foundation/NSValue.h>
-#include <Foundation/NSLock.h>
 #include <base/GSLocale.h>
 
 #include "GSPrivate.h"
@@ -712,6 +714,9 @@ static NSString	*pathForUser(NSString *user)
     {
       _defaultsDatabase = [pathForUser(NSUserName()) copy];
     }
+  _fileLock = [[NSDistributedLock alloc] initWithPath:
+    [_defaultsDatabase stringByAppendingPathExtension: @"lck"]];
+  _lock = [NSRecursiveLock new];
 
   // Create an empty search list
   _searchList = [[NSMutableArray alloc] initWithCapacity: 10];
@@ -765,20 +770,22 @@ static NSString	*pathForUser(NSString *user)
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
 
-  _lock = [NSRecursiveLock new];
   return self;
 }
 
 - (void) dealloc
 {
-  if (_tickingTimer)
-    [_tickingTimer invalidate];
+  if (_tickingTimer != nil)
+    {
+      [_tickingTimer invalidate];
+    }
   RELEASE(_lastSync);
   RELEASE(_searchList);
   RELEASE(_persDomains);
   RELEASE(_tempDomains);
   RELEASE(_changedDomains);
   RELEASE(_dictionaryRep);
+  RELEASE(_fileLock);
   RELEASE(_lock);
   [super dealloc];
 }
@@ -1173,6 +1180,23 @@ static NSString	*pathForUser(NSString *user)
 
   [_lock lock];
 
+  while ([_fileLock tryLock] == NO)
+    {
+      CREATE_AUTORELEASE_POOL(arp);
+      NSDate	*when;
+
+      when = [NSDate dateWithTimeIntervalSinceNow: 0.1];
+      if ([when timeIntervalSinceDate: [_fileLock lockDate]] > 5.0)
+	{
+	  [_fileLock breakLock];
+	}
+      else
+	{
+	  [NSThread sleepUntilDate: when];
+	}
+      RELEASE(arp);
+    }
+
   if (_tickingTimer == nil)
     {
       _tickingTimer = [NSTimer scheduledTimerWithTimeInterval: 30
@@ -1188,7 +1212,7 @@ static NSString	*pathForUser(NSString *user)
    */
   attr = [mgr fileAttributesAtPath: _defaultsDatabase
 		      traverseLink: YES];
-  if (_changedDomains == NO)
+  if (_changedDomains == nil)
     {
       BOOL		wantRead = NO;
 
@@ -1215,6 +1239,7 @@ static NSString	*pathForUser(NSString *user)
 	}
       if (wantRead == NO)
 	{
+	  [_fileLock unlock];
 	  [_lock unlock];
 	  return YES;
 	}
@@ -1239,6 +1264,7 @@ static NSString	*pathForUser(NSString *user)
       if (newDict == nil)
 	{
 	  NSLog(@"Unable to load defaults from '%@'", _defaultsDatabase);
+	  [_fileLock unlock];
 	  [_lock unlock];
 	  return NO;
 	}
@@ -1269,25 +1295,23 @@ static NSString	*pathForUser(NSString *user)
 			 atPath: _defaultsDatabase];
     }
 
-  if (_changedDomains)
+  if (_changedDomains != nil)
     {           // Synchronize both dictionaries
       NSEnumerator	*enumerator = [_changedDomains objectEnumerator];
-      IMP		nextImp;
-      IMP		pImp;
-      id		obj, dict;
+      NSString		*domainName;
+      NSDictionary	*domain;
 
-      nextImp = [enumerator methodForSelector: nextObjectSel];
-      pImp = [_persDomains methodForSelector: objectForKeySel];
-      while ((obj = (*nextImp)(enumerator, nextObjectSel)) != nil)
+      DESTROY(_changedDomains);	// Retained by enumerator.
+      while ((domainName = [enumerator nextObject]) != nil)
 	{
-	  dict = (*pImp)(_persDomains, objectForKeySel, obj);
-	  if (dict)       // Domain was added or changed
+	  domain = [_persDomains objectForKey: domainName];
+	  if (domain != nil)	// Domain was added or changed
 	    {
-	      [newDict setObject: dict forKey: obj];
+	      [newDict setObject: domain forKey: domainName];
 	    }
-	  else            // Domain was removed
+	  else			// Domain was removed
 	    {
-	      [newDict removeObjectForKey: obj];
+	      [newDict removeObjectForKey: domainName];
 	    }
 	}
       RELEASE(_persDomains);
@@ -1295,6 +1319,7 @@ static NSString	*pathForUser(NSString *user)
       // Save the changes
       if (![_persDomains writeToFile: _defaultsDatabase atomically: YES])
 	{
+	  [_fileLock unlock];
 	  [_lock unlock];
 	  return NO;
 	}
@@ -1318,6 +1343,7 @@ static NSString	*pathForUser(NSString *user)
 	}
     }
 
+  [_fileLock unlock];
   [_lock unlock];
   return YES;
 }
@@ -1575,32 +1601,21 @@ static NSString	*pathForUser(NSString *user)
 
 - (void) __changePersistentDomain: (NSString*)domainName
 {
-  NSEnumerator	*enumerator = nil;
-  IMP		nImp;
-  id		obj;
-
   [_lock lock];
   DESTROY(_dictionaryRep);
-  if (!_changedDomains)
+  if (_changedDomains == nil)
     {
-      _changedDomains = [[NSMutableArray alloc] initWithCapacity: 5];
+      _changedDomains = [[NSMutableArray alloc] initWithObjects: &domainName
+							  count: 1];
       updateCache(self);
       [[NSNotificationCenter defaultCenter]
 	postNotificationName: NSUserDefaultsDidChangeNotification
 		      object: self];
     }
-
-  enumerator = [_changedDomains objectEnumerator];
-  nImp = [enumerator methodForSelector: nextObjectSel];
-  while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
+  else if ([_changedDomains containsObject: domainName] == NO)
     {
-      if ([obj isEqualToString: domainName])
-	{
-	  [_lock unlock];
-	  return;
-	}
+      [_changedDomains addObject: domainName];
     }
-  [_changedDomains addObject: domainName];
   [_lock unlock];
   return;
 }
