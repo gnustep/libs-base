@@ -3547,7 +3547,6 @@ static NSFileManager *fm = nil;
 	      if (pathSepMember(buf[aLength-1]) == YES)
 		{
 		  unsigned	pos;
-		  unsigned	n = 1;
 
 		  buf[aLength-1] = '/';	// Standardise
 		  for (pos = aLength+1; pos < length; pos++)
