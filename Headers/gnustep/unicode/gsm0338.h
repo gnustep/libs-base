@@ -136,9 +136,7 @@ unichar GSM0338_char_to_uni_table[] =
   0x00E0
 };
 
-const unsigned int GSM0338_uni_to_char_table_size = 128;
-
-struct _ucc_ GSM0338_uni_to_char_table[]=
+_ucc_ GSM0338_uni_to_char_table[] =
 {
   {0x0080,0x80},
   {0x0081,0x81},
@@ -267,6 +265,23 @@ struct _ucc_ GSM0338_uni_to_char_table[]=
   {0x02D8,0xA2},
   {0x02D9,0xFF},
   {0x02DB,0xB2},
-  {0x02DD,0xBD},
+  {0x02DD,0xBD}
 };
+#define	GSM0338_tsize	(sizeof(GSM0338_uni_to_char_table)/sizeof(_ucc_))
+
+_ucc_ GSM0338_escapes[] =
+{
+  {0x000C,0x0A},
+  {0x005B,0x3C},
+  {0x005C,0x2F},
+  {0x005D,0x3E},
+  {0x005E,0x14},
+  {0x007B,0x28},
+  {0x007C,0x40},
+  {0x007D,0x29},
+  {0x007E,0x3D},
+  {0x20AC,0x65}
+};
+
+#define	GSM0338_esize	(sizeof(GSM0338_escapes)/sizeof(_ucc_))
 

@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct _ucc_ {unichar from; char to;};
+typedef struct {unichar from; char to;} _ucc_;
 
 #include "unicode/cyrillic.h"
 #include "unicode/latin2.h"
@@ -548,7 +548,7 @@ encode_unitochar(unichar u, NSStringEncoding enc)
       case NSGSM0338StringEncoding:
 	{
 	  while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
-	    && (i < GSM0338_uni_to_char_table_size));
+	    && (i < GSM0338_tsize));
 	  return res ? '*' : GSM0338_uni_to_char_table[--i].to;
 	}
 #if 0
@@ -642,7 +642,7 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
       case NSGSM0338StringEncoding:
 	{
 	  while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
-	    && (i < GSM0338_uni_to_char_table_size));
+	    && (i < GSM0338_tsize));
 	  return res ? 0 : GSM0338_uni_to_char_table[--i].to;
 	}
 
@@ -944,23 +944,49 @@ int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
 	    return count;
 
 	  case NSGSM0338StringEncoding:
-	    for (count = 0; count < sl && count < dl; count++)
-	      {
-		int res;
-		int i = 0;
+	    {
+	      int	dc;
 
-		u = src[count];
+	      for (dc = count = 0; count < sl && dc < dl; count++, dc++)
+		{
+		  int res;
+		  int i = 0;
 
-		while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
-		  && (i < GSM0338_uni_to_char_table_size));
-		if (!res)
-		  dst[count] = GSM0338_uni_to_char_table[--i].to;
-		else
-		  return 0;
-	      }
-	    if (count < sl)
-	      return 0;		// Not all characters converted.
-	    return count;
+		  u = src[count];
+
+		  while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
+		    && (i < GSM0338_tsize));
+		  if (!res)
+		    {
+		      dst[dc] = GSM0338_uni_to_char_table[--i].to;
+		    }
+		  else if (dc < dl - 1)
+		    {
+		      for (i = 0; i < GSM0338_esize; i++)
+			{
+			  if (GSM0338_escapes[i].from == u)
+			    {
+			      dst[dc++] = 0x1b;
+			      dst[dc] = GSM0338_escapes[i].to;
+			      break;
+			    }
+			}
+		      if (i == GSM0338_esize)
+			{
+			  return 0;
+			}
+		    }
+		  else
+		    {
+		      return 0;
+		    }
+		}
+	      if (count < sl)
+		{
+		  return 0;		// Not all characters converted.
+		}
+	      return dc;
+	    }
 
 #if 0
 	  case NSSymbolStringEncoding:
@@ -1103,20 +1129,49 @@ int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
 	    return count;
 
 	  case NSGSM0338StringEncoding:
-	    for (count = 0; count < sl && count < dl; count++)
-	      {
-		int res;
-		int i = 0;
+	    {
+	      int	dc;
 
-		u = src[count];
+	      for (dc = count = 0; count < sl && dc < dl; count++, dc++)
+		{
+		  int res;
+		  int i = 0;
 
-		while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
-		  && (i < GSM0338_uni_to_char_table_size));
-		dst[count] = res ? '*' : GSM0338_uni_to_char_table[--i].to;
-	      }
-	    if (count < sl)
-	      return 0;		// Not all characters converted.
-	    return count;
+		  u = src[count];
+
+		  while (((res = u - GSM0338_uni_to_char_table[i++].from) > 0)
+		    && (i < GSM0338_tsize));
+		  if (!res)
+		    {
+		      dst[dc] = GSM0338_uni_to_char_table[--i].to;
+		    }
+		  else if (dc < dl - 1)
+		    {
+		      for (i = 0; i < GSM0338_esize; i++)
+			{
+			  if (GSM0338_escapes[i].from == u)
+			    {
+			      dst[dc++] = 0x1b;
+			      dst[dc] = GSM0338_escapes[i].to;
+			      break;
+			    }
+			}
+		      if (i == GSM0338_esize)
+			{
+			  dst[dc] = '*';
+			}
+		    }
+		  else
+		    {
+		      dst[dc] = '*';
+		    }
+		}
+	      if (count < sl)
+		{
+		  return 0;		// Not all characters converted.
+		}
+	      return dc;
+	    }
 
 #if 0
 	  case NSSymbolStringEncoding:
@@ -1151,6 +1206,9 @@ int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
     }
 }
 
+/**
+ * Convert to unicode .. return the number of unicode characters produced.
+ */
 int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl, 
   NSStringEncoding enc)
 {
@@ -1213,15 +1271,34 @@ int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl,
 	return count;
 	    
       case NSGSM0338StringEncoding:
-	for (count = 0; count < sl && count < dl; count++)
-	  {
-	    unc c = (unc)src[count];
+	{
+	  int	dc;
 
-	    dst[count] = GSM0338_char_to_uni_table[c];
-	  }
-	if (count < sl)
-	  return 0;		// Not all characters converted.
-	return count;    
+	  for (dc = count = 0; count < sl && dc < dl; count++, dc++)
+	    {
+	      unc c = (unc)src[count];
+
+	      dst[dc] = GSM0338_char_to_uni_table[c];
+	      if (c == 0x1b && count < sl)
+		{
+		  unsigned	i = 0;
+
+		  c = (unc)src[count+1];
+		  while (i < sizeof(GSM0338_escapes)/sizeof(GSM0338_escapes[0]))
+		    {
+		      if (GSM0338_escapes[i].to == c)
+			{
+			  dst[dc] = GSM0338_escapes[i].from;
+			  count++;
+			  break;
+			}
+		    }
+		}
+	    }
+	  if (count < sl)
+	    return 0;		// Not all characters converted.
+	  return dc;    
+	}
 
 #if 0
       case NSSymbolStringEncoding:
