@@ -1,3 +1,8 @@
+Thu Mar 16 11:37:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSRange.m: NSRangeFromString() bugfix by karl@nfox.com
+	* Source/NSData.m: ([-hash]) new implementation by karl
+
 Sat Mar 11 21:04:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* GSDoc/gsdoc.m: Updated for recent version of xml library.
