@@ -2698,7 +2698,7 @@ static NSCharacterSet	*tokenSet = nil;
 /**
  * Adds a part to a multipart document
  */
-- (void) addContent: (GSMimeDocument*)newContent
+- (void) addContent: (id)newContent
 {
   if (content == nil)
     {

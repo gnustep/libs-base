@@ -103,57 +103,91 @@
 + (void) initialize;
 + (id) allocWithZone: (NSZone*)z;
 + (id) alloc;
-+ (id) new;
-- (id) copy;
-- (void) dealloc;
-- (id) init;
-- (id) mutableCopy;
-
 + (Class) class;
-+ (Class) superclass;
-
-+ (BOOL) instancesRespondToSelector: (SEL)aSelector;
-
-+ (IMP) instanceMethodForSelector: (SEL)aSelector;
-- (IMP) methodForSelector: (SEL)aSelector;
-+ (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector;
-- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
-
-- (NSString*) description;
 + (NSString*) description;
-
++ (IMP) instanceMethodForSelector: (SEL)aSelector;
++ (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector;
++ (BOOL) instancesRespondToSelector: (SEL)aSelector;
++ (id) new;
 + (void) poseAsClass: (Class)aClassObject;
++ (id) setVersion: (int)aVersion;
++ (Class) superclass;
++ (int) version;
 
-- (void) doesNotRecognizeSelector: (SEL)aSelector;
-
-- (void) forwardInvocation: (NSInvocation*)anInvocation;
-
+- (id) autorelease;
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
+- (Class) class;
 - (Class) classForArchiver;
 - (Class) classForCoder;
 - (Class) classForPortCoder;
+- (BOOL) conformsToProtocol: (Protocol *)aProtocol;
+- (id) copy;
+- (void) dealloc;
+- (NSString*) description;
+- (void) doesNotRecognizeSelector: (SEL)aSelector;
+- (void) forwardInvocation: (NSInvocation*)anInvocation;
+- (unsigned) hash;
+- (id) init;
+- (BOOL) isEqual: anObject;
+- (BOOL) isKindOfClass: (Class)aClass;
+- (BOOL) isMemberOfClass: (Class)aClass;
+- (BOOL) isProxy;
+- (IMP) methodForSelector: (SEL)aSelector;
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
+- (id) mutableCopy;
+- (id) performSelector: (SEL)aSelector;
+- (id) performSelector: (SEL)aSelector withObject: anObject;
+- (id) performSelector: (SEL)aSelector withObject: object1 withObject: object2;
+- (void) release;
 - (id) replacementObjectForArchiver: (NSArchiver*)anArchiver;
 - (id) replacementObjectForCoder: (NSCoder*)anEncoder;
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder;
-
-
-+ (id) setVersion: (int)aVersion;
-+ (int) version;
-
+- (BOOL) respondsToSelector: (SEL)aSelector;
+- (id) retain;
+- (unsigned) retainCount;
+- (id) self;
+- (Class) superclass;
+- (NSZone*) zone;
 @end
 
+/**
+ * Used to allocate memory to hold an object, and initialise the
+ * class of the object to be aClass etc.  The allocated memory will
+ * be extraBytes larger than the space actually needed to hold the
+ * instance variables of the object.<br />
+ * This function is used by the [NSObject-allocWithZone:] mnethod.
+ */
 GS_EXPORT NSObject *
 NSAllocateObject(Class aClass, unsigned extraBytes, NSZone *zone);
+
+/**
+ * Used to release the memory used by an object.<br />
+ * This function is used by the [NSObject-dealloc] mnethod.
+ */
 GS_EXPORT void
 NSDeallocateObject(NSObject *anObject);
+
+/**
+ * Used to copy anObject.  This makes a bitwise copy of anObject to
+ * memory allocated from zone.  The allocated memory will be extraBytes
+ * longer than that necessary to actually store the instance variables
+ * of the copied object.<br />
+ * This is used by the [NSObject-copyWithZone:] method.
+ */
 GS_EXPORT NSObject *
 NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
 
+/**
+ * Returns a flag to indicate whether anObject should be retained or
+ * copied in order to make a copy in the specified zone.<br />
+ * Basically, this tests to see if anObject was allocated from
+ * requestedZone and returns YES if it was.
+ */
 GS_EXPORT BOOL
 NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
 
 /**
- * Return the extra reference count of anObject.  The reference count
+ * Return the extra reference count of anObject.  The retain count
  * for an object is this value plus one.
  */
 GS_EXPORT unsigned
@@ -161,7 +195,7 @@ NSExtraRefCount(id anObject);
 
 /**
  * Increment the extra reference count for anObject.  This is used
- * by the -retain method.
+ * by the [NSObject-retain] method.
  */
 GS_EXPORT void
 NSIncrementExtraRefCount(id anObject);
@@ -169,7 +203,8 @@ NSIncrementExtraRefCount(id anObject);
 /**
  * Examines the extra reference count for the object and, if non-zero
  * decrements it.  Returns a flag to say whether the count was zero
- * (and hence whether the extra refrence count was decremented).
+ * (and hence whether the extra refrence count was decremented).<br />
+ * This us used by the [NSObject-release] method.
  */
 GS_EXPORT BOOL
 NSDecrementExtraRefCountWasZero(id anObject);
