@@ -105,6 +105,7 @@ snapshot: snap
 	ln README.first snap
 	rm -f .name
 	echo libobjects-`date +%y%m%d` >.name
+	rm -rf `cat .name`
 	mv snap `cat .name`
 	tar -chvf `cat .name`.tar `cat .name`
 	rm -f `cat .name`.tar.gz
