@@ -344,11 +344,11 @@ id __value = (id)(value); \
 id __object = (id)(object); \
 if (__value != __object) \
   { \
-    object = __value; \
     if (__value != nil) \
       { \
 	[__value retain]; \
       } \
+    object = __value; \
     if (__object != nil) \
       { \
 	[__object release]; \
@@ -364,17 +364,18 @@ if (__value != __object) \
 #ifndef	ASSIGNCOPY
 #define	ASSIGNCOPY(object,value)	({\
 id __value = (value); \
-if (__value != (id)object) \
+id __object = (id)(object); \
+if (__value != __object) \
   { \
-    if (__value) \
+    if (__value != nil) \
       { \
 	__value = [__value copy]; \
       } \
-    if (object) \
-      { \
-	[(id)object release]; \
-      } \
     (id)object = __value; \
+    if (__object != nil) \
+      { \
+	[__object release]; \
+      } \
   } \
 })
 #endif
