@@ -2645,7 +2645,7 @@ handle_printf_atsign (FILE *stream,
 
       if (first_slash_range.length != 0)
 	{
-	  uname_len = first_slash_range.length - 1;
+	  uname_len = first_slash_range.location - 1;
 	}
       else
 	{

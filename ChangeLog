@@ -1,3 +1,8 @@
+2002-02-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([stringByExpandingTildeInPath]) fix bug in
+	handling ~username/... format.
+
 2002-02-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: support for merging types and functions etc.
