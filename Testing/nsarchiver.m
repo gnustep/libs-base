@@ -32,7 +32,7 @@ int main()
   [set release];
 
   /* Read it back in from the file */
-  set = [NSArchiver unarchiveObjectWithFile: @"./nsarchiver.dat"];
+  set = [NSUnarchiver unarchiveObjectWithFile: @"./nsarchiver.dat"];
 
   /* Display what we read, to make sure it matches what we wrote */
   printf("\nReading:\n");
