@@ -114,6 +114,9 @@
 - (void) setContent: (id)newContent;
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
+	       name: (NSString*)name;
+- (void) setContent: (id)newContent
+	       type: (NSString*)type
 	    subType: (NSString*)subType
 	       name: (NSString*)name;
 - (void) setHeader: (GSMimeHeader*)info;
