@@ -53,25 +53,6 @@
  *************************************************************************/
 
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
-
-#ifdef NeXT
-#ifdef SCITOOLS
-#import <basekit/LibobjectsMain.h>
-#import <foundation/NSString.h>
-#import <foundation/NSArray.h>
-#import <foundation/NSDictionary.h>
-#import <foundation/NSDate.h>
-#import <foundation/NSException.h>
-#import <basekit/NSProcessInfo.h>
-#else   /* SCITOOLS */
-#import <foundation/NSString.h>
-#import <foundation/NSArray.h>
-#import <foundation/NSDictionary.h>
-#import <foundation/NSDate.h>
-#import <foundation/NSException.h>
-#import <foundation/NSProcessInfo.h>
-#endif  /* SCITOOLS */
-#else
 #include <string.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
@@ -79,7 +60,6 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSProcessInfo.h>
-#endif  /* NeXT */
 
 /* This error message should be called only if the private main function
  * was not executed successfully. This may heppen ONLY if onother library
