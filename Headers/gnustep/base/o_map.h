@@ -84,7 +84,6 @@ struct _o_map
    * And all structures have them in the same order. */
   int magic_number;
   size_t serial_number;
-  NSZone *zone;
   NSString *name;
   const void *extra;
   o_callbacks_t extra_callbacks;

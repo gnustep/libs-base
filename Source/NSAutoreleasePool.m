@@ -25,6 +25,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSThread.h>
+#include <Foundation/NSZone.h>
 #include <limits.h>
 
 /* TODO:
@@ -299,7 +300,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 	for (i = 0; i < released->count; i++)
 	  {
 	    id anObject = released->objects[i];
-	    if (object_get_class(anObject) == (void*) 0xdeadface)
+	    if (!NSZoneMemInUse(anObject))
 	      [NSException 
 		raise: NSGenericException
 		format: @"Autoreleasing deallocated object.\n"

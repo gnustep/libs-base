@@ -1,7 +1,12 @@
+Mon Mar  3 14:41:01 1997  Andrew McCallum  <mccallum@jprc.com>
+
+	* src/NSHost.m, src/include/NSHost.h: New files from Luke Howard
+	<lukeh@xedoc.com.au>.
+
 Sun Jan 12 13:46:38 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.12.  There seems to be
-	a problem with Richard and my patches to distributed objects, but
+	a problem with Richard's and my patches to distributed objects, but
 	many other bug fixes have been added, NSZone has a complete
 	re-write, -awakeAfterUsingCoder: is now called, and NSString is
 	all cleaned up and ready to go.  Richard and I will work on fixing

@@ -743,7 +743,7 @@ o_hash_alloc_with_zone(NSZone * zone)
 o_hash_t *
 o_hash_alloc(void)
 {
-  return o_hash_alloc_with_zone(0);
+  return o_hash_alloc_with_zone(NSDefaultMallocZone());
 }
 
 o_hash_t *
@@ -994,7 +994,7 @@ o_hash_copy_with_zone(o_hash_t *old_hash, NSZone * zone)
 o_hash_t *
 o_hash_copy(o_hash_t *old_hash)
 {
-  return o_hash_copy_with_zone(old_hash, 0);
+  return o_hash_copy_with_zone(old_hash, NSDefaultMallocZone());
 }
 
 /** Mapping... **/

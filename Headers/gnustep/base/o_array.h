@@ -53,7 +53,6 @@ struct _o_array
   /* Identifying information. */
   int magic_number;
   size_t serial_number;
-  NSZone *zone;
   NSString *name;
   const void *extra;
   o_callbacks_t extra_callbacks;

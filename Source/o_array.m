@@ -415,7 +415,7 @@ o_array_alloc_with_zone(NSZone *zone)
 o_array_t *
 o_array_alloc(void)
 {
-  return o_array_alloc_with_zone(0);
+  return o_array_alloc_with_zone(NSDefaultMallocZone());
 }
 
 o_array_t *

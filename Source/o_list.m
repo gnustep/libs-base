@@ -608,7 +608,7 @@ o_list_alloc_with_zone (NSZone *zone)
 o_list_t *
 o_list_alloc (void)
 {
-  return o_list_alloc_with_zone (0);
+  return o_list_alloc_with_zone (NSDefaultMallocZone());
 }
 
 o_list_t *
@@ -782,7 +782,7 @@ o_list_at_index_insert_list(o_list_t *base_list,
 o_list_t *
 o_list_copy (o_list_t *old_list)
 {
-  return o_list_copy_with_zone (old_list, 0);
+  return o_list_copy_with_zone (old_list, NSDefaultMallocZone());
 }
 
 o_list_t *
