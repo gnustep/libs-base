@@ -704,7 +704,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return d;
 }
 
-- (NSData*)readDataToEndOfFile
+- (NSData*) readDataToEndOfFile
 {
   char			buf[NETBUF_SIZE];
   NSMutableData*	d;
@@ -727,24 +727,52 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   return d;
 }
 
-- (NSData*)readDataOfLength: (unsigned int)len
+- (NSData*) readDataOfLength: (unsigned)len
 {
   NSMutableData*	d;
-  int			pos;
-  char			*buf;
+  int			got;
 
   [self checkRead];
   if (isNonBlocking == YES)
     [self setNonBlocking: NO];
-  buf = objc_malloc(len);
-  d = [NSMutableData dataWithBytesNoCopy: buf length: len];
-  if ((pos = read(descriptor, [d mutableBytes], len)) < 0)
+  if (len <= 65536)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"unable to read from descriptor - %s",
-                  strerror(errno)];
+      char	*buf;
+
+      buf = NSZoneMalloc(NSDefaultMallocZone(), len);
+      d = [NSMutableData dataWithBytesNoCopy: buf length: len];
+      if ((got = read(descriptor, [d mutableBytes], len)) < 0)
+	{
+	  [NSException raise: NSFileHandleOperationException
+		      format: @"unable to read from descriptor - %s",
+		      strerror(errno)];
+	}
+      [d setLength: got];
     }
-  [d setLength: pos];
+  else
+    {
+      char	buf[NETBUF_SIZE];
+
+      d = [NSMutableData dataWithCapacity: 0];
+      do
+	{
+	  int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
+
+	  got = read(descriptor, buf, chunk);
+	  if (got > 0)
+	    {
+	      [d appendBytes: buf length: got];
+	      len -= got;
+	    }
+	  else if (got < 0)
+	    {
+	      [NSException raise: NSFileHandleOperationException
+			  format: @"unable to read from descriptor - %s",
+			  strerror(errno)];
+	    }
+	}
+      while (len > 0 && got > 0);
+    }
   return d;
 }
 
