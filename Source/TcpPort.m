@@ -35,6 +35,9 @@
 #include <objects/TcpPort.h>
 #include <objects/Array.h>
 #include <objects/Notification.h>
+#include <objects/RunLoop.h>
+#include <objects/Invocation.h>
+#include <Foundation/NSDate.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>		/* for gethostname() */
@@ -53,8 +56,9 @@ static int debug_tcp_port = 0;
 @interface TcpInPort (Private)
 - (int) _socket;
 - (struct sockaddr_in*) _listeningSockaddr;
-- (void) _addOutPort: p;
+- (void) _addClientOutPort: p;
 - (void) _connectedOutPortInvalidated: p;
+- _tryToGetPacketFromReadableFD: (int)fd_index;
 @end
 
 @interface TcpOutPort (Private)
@@ -299,9 +303,32 @@ static NSMapTable* port_number_2_port;
 
 - receivePacketWithTimeout: (int)milliseconds
 {
+  id saved_packet_invocation = _packet_invocation;
+  id packet = nil;
+  id handle_packet (id p)
+    {
+      packet = p;
+      return nil;
+    }
+  id _packet_invocation = [[ObjectFunctionInvocation alloc]
+			    initWithObjectFunction: handle_packet];
+  id date = [NSDate dateWithTimeIntervalSinceNow: milliseconds / 1000.0];
+
+  if (!_run_loop)
+    [self addToRunLoop: [RunLoop defaultInstance]
+	  forMode: nil];
+  while ([[RunLoop defaultInstance] runMode: nil
+				    beforeDate: date]
+	 && !packet)
+    return packet;
+}
+
+
+/* The use of this method is deprecated. */
+- old_receivePacketWithTimeout: (int)milliseconds
+{
   static int fd_index = 0;
   fd_set read_fd_set;
-  struct sockaddr_in clientname;
   struct timeval timeout;
   void *select_timeout;
   int sel_ret;
@@ -341,101 +368,181 @@ static NSMapTable* port_number_2_port;
       for (fd_index = 0; fd_index < FD_SETSIZE; fd_index++)
 	if (FD_ISSET (fd_index, &read_fd_set))
 	  {
-	    if (fd_index == _socket)
-	      {
-		/* This is a connection request on the original socket. */
-		int new;
-		int size;
-		volatile id op;
-
-		size = sizeof (clientname);
-		new = accept (_socket, (struct sockaddr*)&clientname, &size);
-		if (new < 0)
-		  {
-		    perror ("[TcpInPort receivePacketWithTimeout:] accept()");
-		    abort ();
-		  }
-		op = [TcpOutPort _newWithAcceptedSocket: new 
-				 peeraddr: &clientname
-				 inPort: self];
-		[self _addOutPort: op];
-		if (debug_tcp_port)
-		  fprintf (stderr, 
-			   "%s: Accepted connection from\n %s.\n",
-			   object_get_class_name (self),
-			   [[op description] cStringNoCopy]);
-		[NotificationDispatcher
-		  postNotificationName: InPortAcceptedClientNotification
-		  object: self
-		  userInfo: op];
-	      }
-	    else
-	      {
-		/* Data has arrived on an already-connected socket. */
-		TcpPacket *packet;
-		int remaining;
-
-		/* See if there is already a Packet object waiting for
-		   more data from this socket. */
-		if (!(packet = NSMapGet (client_sock_2_packet,
-					 (void*)fd_index)))
-		  {
-		    /* This is the beginning of a new packet on this socket.
-		       Create a new Packet object for gathering the data. */
-
-		    /* First, get the packet size and reply port, (which is
-		       encoded in the first few bytes of the stream). */
-		    int packet_size;
-		    id reply_port;
-		    [TcpPacket _getPacketSize: &packet_size
-			       andReplyPort: &reply_port
-			       fromSocket: fd_index
-			       inPort: self];
-		    /* If we got an EOF when trying to read the packet prefix,
-		       invalidate the port, and keep on waiting for incoming
-		       data on other sockets. */
-		    if (packet_size == EOF)
-		      {
-			[(id) NSMapGet (client_sock_2_out_port,
-					(void*)fd_index)
-			      invalidate];
-			continue;
-		      }
-		    else
-		      {
-			packet = [[TcpPacket alloc] 
-				   _initForReceivingWithSize: packet_size
-				   replyPort: reply_port];
-		      }
-		    /* The packet has now been created with correct capacity */
-		  }
-
-		/* Suck bytes from the socket into the packet; find out
-		   how many more bytes are needed before packet will be
-		   complete. */
-		remaining = [packet _fillFromSocket: (int)fd_index];
-		if (remaining == EOF)
-		  {
-		    /* We got an EOF when trying to read packet data;
-		       release the packet and invalidate the corresponding
-		       port, and keep on waiting for incoming data on
-		       other sockets. */
-		    [packet release];
-		    [(id) NSMapGet (client_sock_2_out_port, (void*)fd_index)
-			  invalidate];
-		    continue;
-		  }
-		else if (remaining == 0)
-		  /* No bytes are remaining to be read for this packet; 
-		     the packet is complete; return it. */
-		  return packet;
-	      }
+	    id packet = [self _tryToGetPacketFromReadableFD: fd_index];
+	    if (packet)
+	      return packet;
 	  }
+    }
+}
+
+/* Sneaky, sneaky!  We use ourselves as the invocation object
+   and then implement the -invokeWithObject: method to handle the
+   FileDescriptor argument that the RunLoop will pass. 
+   This strategy is not necessarily condoned; in fact, in the future,
+   I may change this code to no longer do this. */
+- (void) invokeWithObject: file_desc
+{
+  int fd = [file_desc intValue];
+  id packet = [self _tryToGetPacketFromReadableFD: fd];
+  if (packet)
+    [_packet_invocation invokeWithObject: packet];
+}
+
+- _tryToGetPacketFromReadableFD: (int)fd_index
+{
+  if (fd_index == _socket)
+    {
+      /* This is a connection request on the original socket. */
+      int new;
+      int size;
+      volatile id op;
+      struct sockaddr_in clientname;
+
+      size = sizeof (clientname);
+      new = accept (_socket, (struct sockaddr*)&clientname, &size);
+      if (new < 0)
+	{
+	  perror ("[TcpInPort receivePacketWithTimeout:] accept()");
+	  abort ();
+	}
+      op = [TcpOutPort _newWithAcceptedSocket: new 
+		       peeraddr: &clientname
+		       inPort: self];
+      [self _addClientOutPort: op];
+      if (debug_tcp_port)
+	fprintf (stderr, 
+		 "%s: Accepted connection from\n %s.\n",
+		 object_get_class_name (self),
+		 [[op description] cStringNoCopy]);
+      [NotificationDispatcher
+	postNotificationName: InPortAcceptedClientNotification
+	object: self
+	userInfo: op];
+    }
+  else
+    {
+      /* Data has arrived on an already-connected socket. */
+      TcpPacket *packet;
+      int remaining;
+
+      /* See if there is already a Packet object waiting for
+	 more data from this socket. */
+      if (!(packet = NSMapGet (client_sock_2_packet,
+			       (void*)fd_index)))
+	{
+	  /* This is the beginning of a new packet on this socket.
+	     Create a new Packet object for gathering the data. */
+
+	  /* First, get the packet size and reply port, (which is
+	     encoded in the first few bytes of the stream). */
+	  int packet_size;
+	  id reply_port;
+	  [TcpPacket _getPacketSize: &packet_size
+		     andReplyPort: &reply_port
+		     fromSocket: fd_index
+		     inPort: self];
+	  /* If we got an EOF when trying to read the packet prefix,
+	     invalidate the port, and keep on waiting for incoming
+	     data on other sockets. */
+	  if (packet_size == EOF)
+	    {
+	      [(id) NSMapGet (client_sock_2_out_port,
+			      (void*)fd_index)
+		    invalidate];
+	      return nil;
+	    }
+	  else
+	    {
+	      packet = [[TcpPacket alloc] 
+			 _initForReceivingWithSize: packet_size
+			 replyPort: reply_port];
+	    }
+	  /* The packet has now been created with correct capacity */
+	}
+
+      /* Suck bytes from the socket into the packet; find out
+	 how many more bytes are needed before packet will be
+	 complete. */
+      remaining = [packet _fillFromSocket: (int)fd_index];
+      if (remaining == EOF)
+	{
+	  /* We got an EOF when trying to read packet data;
+	     release the packet and invalidate the corresponding
+	     port, and keep on waiting for incoming data on
+	     other sockets. */
+	  [packet release];
+	  [(id) NSMapGet (client_sock_2_out_port, (void*)fd_index)
+		invalidate];
+	  return nil;
+	}
+      else if (remaining == 0)
+	{
+	  /* No bytes are remaining to be read for this packet; 
+	     the packet is complete; return it. */
+	  assert (packet && [packet class]);
+	  return packet;
+	}
     }
   return nil;
 }
 
-- (void) _addOutPort: p
+
+/* Dealing with the relationship to our monitoring _run_loop. */
+
+/* Sneaky, sneaky!  We use ourselves as the invocation object
+   and then implement the -invokeWithObject: method to handle the
+   FileDescriptor argument that the RunLoop will pass. 
+   This strategy is not necessarily condoned; in fact, in the future,
+   I may change this code to no longer do this. */
+
+- (void) _addClientOutPort: p toRunLoop: rl forMode: (id <String>)mode
+{
+  [rl addFileDescriptor: [p _socket]
+      invocation: self
+      forMode: mode];
+}
+
+- (void) addToRunLoop: rl forMode: (id <String>)mode
+{
+  NSMapEnumerator me;
+  int sock;
+  id out_port;
+  
+  /* Yipes.  How do we handle being added to multiple RunLoops/modes? */
+  assert (!_run_loop);
+  _run_loop = rl;
+  _run_loop_mode = mode;
+  [rl addFileDescriptor: _socket invocation: self forMode: mode];
+  me = NSEnumerateMapTable (client_sock_2_out_port);
+  while (NSNextMapEnumeratorPair (&me, (void*)&sock, (void*)&out_port))
+    [self _addClientOutPort: out_port toRunLoop: rl forMode: mode];
+}
+
+- (void) _removeClientOutPort: p
+		  fromRunLoop: rl
+		      forMode: (id <String>)mode
+{
+  [rl removeFileDescriptor: [p _socket] 
+      forMode: mode];
+}
+
+- (void) removeFromRunLoop: rl forMode: (id <String>)mode
+{
+  NSMapEnumerator me;
+  int sock;
+  id out_port;
+
+  [rl removeFileDescriptor: _socket forMode: mode];
+  me = NSEnumerateMapTable (client_sock_2_out_port);
+  while (NSNextMapEnumeratorPair (&me, (void*)&sock, (void*)out_port))
+    [self _removeClientOutPort: out_port fromRunLoop: rl forMode: mode];
+  _run_loop = nil;
+}
+
+
+/* Add and removing out port's from the collection of connections we handle. */
+
+- (void) _addClientOutPort: p
 {
   int s = [p _socket];
 
@@ -446,6 +553,8 @@ static NSMapTable* port_number_2_port;
  /* Add it, and put its socket in the set of file descriptors we poll. */
   NSMapInsert (client_sock_2_out_port, (void*)s, p);
   FD_SET (s, &active_fd_set);
+
+  [self _addClientOutPort: p toRunLoop: _run_loop forMode: _run_loop_mode];
 }
 
 /* Called by an OutPort in its -invalidate method. */
@@ -469,6 +578,10 @@ static NSMapTable* port_number_2_port;
     }
   NSMapRemove (client_sock_2_out_port, (void*)s);
   FD_CLR(s, &active_fd_set);
+
+  [self _removeClientOutPort: p 
+	fromRunLoop: _run_loop 
+	forMode: _run_loop_mode];
 
   /* xxx Should this be earlier, so that the notification recievers
      can still use client_sock_2_out_port before the out port P is removed? */
@@ -856,7 +969,7 @@ static NSMapTable *out_port_bag = NULL;
   if (_polling_in_port == nil && reply_port != nil)
     {
       _polling_in_port = [reply_port retain];
-      [_polling_in_port _addOutPort: self];
+      [_polling_in_port _addClientOutPort: self];
     }
   else if (_polling_in_port != reply_port)
     [self error: "Instances of %s can't change their reply port once set.",
