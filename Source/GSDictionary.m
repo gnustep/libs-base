@@ -39,17 +39,10 @@
  */
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
 #define	GSI_MAP_VTYPES		GSUNION_OBJ
-#ifdef	GSI_NEW
 #define	GSI_MAP_HASH(M, X)		[X.obj hash]
 #define	GSI_MAP_EQUAL(M, X,Y)		[X.obj isEqual: Y.obj]
 #define	GSI_MAP_RETAIN_KEY(M, X)	((id)(X).obj) = \
 				[((id)(X).obj) copyWithZone: map->zone]
-#else
-#define	GSI_MAP_HASH(X)		[X.obj hash]
-#define	GSI_MAP_EQUAL(X,Y)		[X.obj isEqual: Y.obj]
-#define	GSI_MAP_RETAIN_KEY(X)	((id)(X).obj) = \
-				[((id)(X).obj) copyWithZone: map->zone]
-#endif
 
 #include	<base/GSIMap.h>
 

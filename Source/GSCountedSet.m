@@ -32,14 +32,8 @@
 #include <Foundation/NSDebug.h>
 
 
-#ifdef	GSI_NEW
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
-#else
-#define	GSI_MAP_RETAIN_VAL(X)	
-#define	GSI_MAP_RELEASE_VAL(X)	
-#endif
-
 #define GSI_MAP_KTYPES	GSUNION_OBJ
 #define GSI_MAP_VTYPES	GSUNION_INT
 
@@ -298,11 +292,7 @@
     {
       GSIMapNode     node;
 
-#ifdef	GSI_NEW
       node = GSIMapNodeForKeyInBucket(&map, bucket, (GSIMapKey)anObject);
-#else
-      node = GSIMapNodeForKeyInBucket(bucket, (GSIMapKey)anObject);
-#endif
       if (node != 0)
 	{
 	  if (--node->value.uint == 0)

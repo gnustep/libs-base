@@ -106,21 +106,12 @@ ReturnTypeEqualsReturnType (vacallReturnTypeInfo *a, vacallReturnTypeInfo *b)
     && (a->type == b->type);
 }
 
-#ifdef	GSI_NEW
 #define GSI_MAP_HASH(M, X)        ReturnTypeHash (X.ptr)
 #define GSI_MAP_EQUAL(M, X,Y)     ReturnTypeEqualsReturnType (X.ptr, Y.ptr)
 #define GSI_MAP_RETAIN_KEY(M, X)
 #define GSI_MAP_RETAIN_VAL(M, X)
 #define GSI_MAP_RELEASE_KEY(M, X)
 #define GSI_MAP_RELEASE_VAL(M, X)
-#else
-#define GSI_MAP_HASH(X)        ReturnTypeHash (X.ptr)
-#define GSI_MAP_EQUAL(X,Y)     ReturnTypeEqualsReturnType (X.ptr, Y.ptr)
-#define GSI_MAP_RETAIN_KEY(X)
-#define GSI_MAP_RETAIN_VAL(X)
-#define GSI_MAP_RELEASE_KEY(X)
-#define GSI_MAP_RELEASE_VAL(X)
-#endif
 
 #include <base/GSIMap.h>
 

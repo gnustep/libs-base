@@ -37,21 +37,12 @@
 /*
  *	Setup for inline operation of pointer map tables.
  */
-#ifdef	GSI_NEW
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
 #define	GSI_MAP_HASH(M, X)	((X).uint ^ ((X).uint >> 3))
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
-#else
-#define	GSI_MAP_RETAIN_KEY(X)	
-#define	GSI_MAP_RELEASE_KEY(X)	
-#define	GSI_MAP_RETAIN_VAL(X)	
-#define	GSI_MAP_RELEASE_VAL(X)	
-#define	GSI_MAP_HASH(X)	((X).uint ^ ((X).uint >> 3))
-#define	GSI_MAP_EQUAL(X,Y)	((X).ptr == (Y).ptr)
-#endif
 
 #include <base/GSIMap.h>
 
