@@ -36,15 +36,13 @@
 #include <Foundation/NSNotificationQueue.h>
 
 #ifndef NO_GNUSTEP
+#ifndef HAVE_OBJC_THREAD_ADD
 /* We need to access these private vars in the objc runtime - because
    the objc runtime's API is not enough powerful for the GNUstep
    extensions we want to add.  */
+#include <objc/runtime.h>
 extern int __objc_is_multi_threaded;
-extern objc_mutex_t __objc_runtime_mutex;
-extern int __objc_runtime_threads_alive;
 
-/* TODO: Submit patches to the objc runtime to add the following 
-   two functions */
 inline static void objc_thread_add ()
 {
   objc_mutex_lock(__objc_runtime_mutex);
@@ -59,6 +57,7 @@ inline static void objc_thread_remove ()
   __objc_runtime_threads_alive--;
   objc_mutex_unlock(__objc_runtime_mutex);  
 }
+#endif /* not HAVE_OBJC_THREAD_ADD */
 #endif
 
 @interface	NSThread (Private)
