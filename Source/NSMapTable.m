@@ -458,8 +458,7 @@ NSAllMapTableKeys(NSMapTable *table)
   while (NSNextMapEnumeratorPair (&enumerator, (void**)&key, 0))
     [keyArray addObject: key];
 
-  /* FIXME: Should ARRAY returned be `autorelease'd? */
-  return [keyArray autorelease];
+  return keyArray;
 }
 
 NSArray *
@@ -479,8 +478,7 @@ NSAllMapTableValues(NSMapTable *table)
   while (NSNextMapEnumeratorPair (&enumerator, 0, (void**)&value))
     [valueArray addObject:value];
 
-  /* FIXME: Should ARRAY returned be `autorelease'd? */
-  return [valueArray autorelease];
+  return valueArray;
 }
 
 /** Adding items to an NSMapTable **/
