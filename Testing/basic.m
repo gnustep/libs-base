@@ -3,11 +3,41 @@
 
 
 #if 1
+
+static void test1(void)
+{
+    NSURL *baseURL = [NSURL fileURLWithPath:@"/usr/local/bin"];
+    NSURL *url = [NSURL URLWithString:@"filename" relativeToURL:baseURL];
+    NSString *result = [url absoluteString];
+    NSString *expected = @"file:/usr/local/bin/filename";
+
+    if ([result isEqualToString:expected])
+        NSLog(@"test 1 ok");
+    else
+        NSLog(@"-[NSURL absoluteString] returned \"%@\", expected \"%@\"", result, expected);
+}
+
+static void test2(void)
+{
+    NSURL *url = [NSURL fileURLWithPath:@"/tmp/foo"];
+    NSString *result = [url path];
+    NSString *expected = @"/tmp/foo";
+
+    if ([result isEqualToString:expected])
+        NSLog(@"Test 2 ok");
+    else
+        NSLog(@"-[NSURL path] returned \"%@\", expected \"%@\"", result, expected);
+}
+
 int main ()
 {
   id	pool = [NSAutoreleasePool new];
   id	o = [NSObject new];
   NSArray	*a = [NSArray arrayWithObjects: @"a", @"b", nil];
+
+
+    test1();
+    test2();
 
   printf ("Hello from object at 0x%x\n", (unsigned)[o self]);
 

@@ -1,7 +1,14 @@
-2002-08-23  Richard Frith-Macdonald <rfm@gnu.org>
+2002-08-24  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSURL.m: Hack for compatibility with MacOS-X in returning
-	path of a file URL ... the RFC says we shouldn't.
+	* Source/NSURL.m: Hacks for compatibility with MacOS-X in returning
+	path of a file URL ... the RFC says we shouldn't, but MacOS-X does.
+	Also when creating relative file URLs the MacOS-X code doesn't
+	strip the last patch component of the base URL as it should ...
+	we emulate that too.
+	Final note ... the MacOS-X code inserts 'localhost' as a host name
+	for a file URL which it shouldnt (a file URL has no host part) but
+	we don't emulate that at present (perhaps never as I can't see it
+	being very useful).
 
 2002-08-22  Richard Frith-Macdonald <rfm@gnu.org>
 
