@@ -79,6 +79,9 @@ static NSLock* cache_lock = nil;
   if (cache_set[number] == nil)
     {
       NS_DURING
+#if 1
+	path = nil;
+#else
 	path = [gstep_base_bundle pathForResource:setname
 				  ofType:@"dat"
 				  inDirectory:NSCharacterSet_PATH];
@@ -89,6 +92,7 @@ static NSLock* cache_lock = nil;
 				      ofType:@"dat"
 				      inDirectory:@"../NSCharacterSets"];
 	  }
+#endif
 
         if (path == nil || [path length] == 0)
 	  {

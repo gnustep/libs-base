@@ -274,6 +274,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   return [[[NSBundle alloc] initWithPath: path] autorelease];
 }
 
+#if 0
 + (NSString *) pathForResource: (NSString *)name
 		ofType: (NSString *)ext	
 		inDirectory: (NSString *)bundlePath
@@ -283,16 +284,22 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 		     inDirectory:bundlePath
 		     withVersion:0];
 }
+#endif
 
 + (NSString *) pathForResource: (NSString *)name
 		ofType: (NSString *)ext	
 		inDirectory: (NSString *)bundlePath
 		withVersion: (int)version
 {
-    NSBundle*	bundle = [NSBundle bundleWithPath:bundlePath];
+#if 1
+  [self notImplemented:_cmd];
+  return nil;
+#else
+  NSBundle*	bundle = [NSBundle bundleWithPath:bundlePath];
 
-    [bundle setBundleVersion:version];
-    return [bundle pathForResource:name ofType:ext inDirectory:nil];
+  [bundle setBundleVersion:version];
+  return [bundle pathForResource:name ofType:ext inDirectory:nil];
+#endif
 }
 
 - initWithPath:(NSString *)path;
@@ -523,9 +530,14 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 - (NSString *) pathForResource: (NSString *)name
 		ofType: (NSString *)ext;
 {
+#if 1
+  [self notImplemented: _cmd];
+  return nil;
+#else
   return [self pathForResource: name
 	   ofType: ext 
 	   inDirectory: nil];
+#endif
 }
 
 + (NSString *) pathForResource: (NSString *)name
