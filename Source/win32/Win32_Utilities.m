@@ -45,7 +45,7 @@ Win32OpenRegistry(DWORD hive, const char *key)
 {
   HKEY regkey;
   
-  if (ERROR_SUCCESS == RegOpenKeyEx(hive, key, 0, KEY_READ, &regkey))
+  if (ERROR_SUCCESS == RegOpenKeyEx((HKEY)hive, key, 0, KEY_READ, &regkey))
     {
       return regkey;
     }

@@ -1061,7 +1061,7 @@ static NSString	*pathForUser(NSString *user)
 
   while ((dN = (*nImp)(enumerator, nextObjectSel)) != nil)
     {
-      id	dict;
+      NSDictionary	*dict;
 
       dict = (*pImp)(_persDomains, objectForKeySel, dN);
       if (dict != nil && (object = [dict objectForKey: defaultName]))
@@ -1084,7 +1084,8 @@ static NSString	*pathForUser(NSString *user)
   id	obj;
 
   [_lock lock];
-  obj = [[_persDomains objectForKey: processName] objectForKey: defaultName];
+  obj = [_persDomains objectForKey: processName];
+  obj = [(NSDictionary*)obj objectForKey: defaultName];
   if (obj != nil)
     {
       NSMutableDictionary	*dict;
@@ -1182,7 +1183,7 @@ static BOOL isPlistObject(id o)
 	    {
 	      return NO;
 	    }
-	  tmp = [o objectForKey: tmp];
+	  tmp = [(NSDictionary*)o objectForKey: tmp];
 	  if (isPlistObject(tmp) == NO)
 	    {
 	      return NO;

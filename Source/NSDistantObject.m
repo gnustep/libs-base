@@ -28,6 +28,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "GNUstepBase/DistributedObjects.h"
+#include "GNUstepBase/GSObjCRuntime.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSLock.h"
 #include "Foundation/NSPort.h"
@@ -148,7 +149,7 @@ enum proxyLocation
 
 + (void) initialize
 {
-  if (self == [GSDistantObjectPlaceHolder class])
+  if (self == GSClassFromName("GSDistantObjectPlaceHolder"))
     {
       distantObjectClass = [NSDistantObject class];
     }
@@ -392,7 +393,7 @@ enum proxyLocation
 {
   if (self == [NSDistantObject class])
     {
-      placeHolder = [GSDistantObjectPlaceHolder class];
+      placeHolder = GSClassFromName("GSDistantObjectPlaceHolder");
     }
 }
 
