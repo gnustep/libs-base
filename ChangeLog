@@ -1,4 +1,14 @@
-Thu Aug  3 35:00:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Fri Aug  4 09:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/GNUmakefile: Removed NSAllocateObject.m and
+	NSDeallocateObject.m (contents merged into NSObject.m).
+	* src/NSObject.m: Modified to perform storage of retain counts local
+	to the objects concerned in order to speed up performance - also
+	modified to cache an objects zone with it - in order to maintain
+	(or better) current performance when we get the NSZone code fixed
+	to work with malloced memory.
+
+Thu Aug  3 15:35:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/include/NSGCString.h: Added _hash instance variable.
 	* src/include/NSGString.h: Added _hash instance variable.
