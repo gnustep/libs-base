@@ -1,5 +1,17 @@
 Mon Jan  6 16:06:21 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
 
+	* src/NSDictionary.m ([NSDictionary -initWithContentsOfFile:]):
+ 	Implemented.  (By David Wetzel <dave@turbocat.de>.)
+
+	* src/NSAssertionHandler.m [NSAssertionHandler
+ 	-handleFailureInMethod:object:file: lineNumber:description:]: Use
+ 	the FORMAT argument!  (Reported by Wolfgang Baron
+ 	<wbaron@ixpoint.de>.)
+
+	* src/NSString.m ([NSString -hasPrefix:]): Fix logic to return
+ 	correct value.
+	(Reported by David Wetzel <dave@turbocat.de>.)
+
 	* src/NSString.m ([NSString -description]): Free DEST to prevent
  	memory leak!
 	(Reported by Wolfgang Baron <wbaron@ixpoint.de>.)
@@ -11,6 +23,50 @@ Mon Jan  6 16:06:21 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
  	after #include's guess that it's 8.
 
 	* checks/nsscanner.m: Removed RCS keyword.
+
+Sat Nov 16 23:39:11 1996  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/NSPage.m (NSLogPageSize): Fix logic to return correct value.
+
+Wed Nov 13 16:27:39 1996  Adam Fedor  <fedor@wave.Colorado.edu>
+
+	*  aclocal.m4 (OBJC_SYS_DYNAMIC_FLAGS): Check if executable needs
+	dynamic ldflags.
+	* checks/Makefile.in (LDFLAGS): Include dynamic ldflags.
+	(BUNDLE_NAME.bundle): Add new Resources directory.
+
+	* configure.in: Provide platform definition. Check DIR
+	definitions.
+	* src/Makefile.in (DEFS): Use platform definition.
+
+	* src/NSBundle.m: Rewrite of NSBundle class to cache bundles and
+	update searching of resources. _bundles and _releasedBundles are
+	static NSMapTables for caching bundles.
+	(bundle_object_name): Use executable name, if provided.
+	(_bundle_resource_path): Use NSString methods.
+	(_bundle_path_for_name): New function.
+	([NSBundle -_bundleClasses]): New private method.
+	([NSBundle +mainBundle]): Use NSString methods.
+	([NSBundle +bundleForClass]): New search process using map
+	tables.
+	([NSBundle -initWithPath]): Likewise.
+	([NSBundle -release]): New method.
+	([NSBundle -retain]): New method.
+	([NSBundle -retainCount]): New method.
+	([NSBundle -dealloc]): Release new ivars.
+	([NSBundle -classNamed:]): Search from new _bundleClasses ivar.
+	([NSBundle -principalClass:]): New loading protocol.
+	([NSBundle -_bundleResourcePathsWithDirectory:]): New method.
+	([NSBundle -pathForResource:ofType:inDirectory:]): New search
+	protocol.
+	([NSBundle -pathsForResourcesOfType:inDirectory:]): New method.
+	([NSBundle -localizedStringForKey:value:table:]): Implement.
+	([NSBundle -resourcePath]): New method.
+	([NSBundle -infoDictionary]): New method.
+	([NSBundle -bundleVersion]): Removed.
+	([NSBundle -setBundleVersion:]): Removed.
+	* NSBundle.h: Add new ivars. Add new OpenStep methods, remove
+	obsolete methods. New localization macros.
 
 Wed Nov 13 14:10:00 1996  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
