@@ -494,6 +494,17 @@ static BOOL	multi_threaded = NO;
 	       */
 	      recvPort = [NSPort port];
 	    }
+	  else if (![recvPort isMemberOfClass: [sendPort class]])
+	    {
+	      /*
+	      We can only use the port of the default connection for
+	      connections using the same port class. For other port classes,
+	      we must use a receiving port of the same class as the sending
+	      port, so we allocate one here.
+	      */
+	      recvPort = [[sendPort class] port];
+	    }
+
 	  con = existingConnection(recvPort, sendPort);
 	  if (con == nil)
 	    {
