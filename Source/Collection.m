@@ -97,6 +97,8 @@ send_release(elt e)
 /* May be inefficient.  Could be overridden; */
 - empty
 {
+  if ([self isEmpty])
+    return self;
   if (CONTAINS_OBJECTS)
     [self _safeWithElementsCallNoRetain:send_release];
   [self _empty];
