@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.7.3, is now available.
+The GNUstep Base Library, version 1.9.0, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -23,22 +23,27 @@ portion of the OpenStep standard (the Foundation library).
 number, y, in x.y.z) are unstable releases (like 1.5.2), while even
 minor release numbers (1.4.1) are stable releases.
 
-Noteworthy changes in version `1.7.3'
+Noteworthy changes in version `1.9.0'
 =====================================
 
-   Note in this version there have been large changes to the location of
-header files (both in the package and when installed). It's possible
-(though unlikely) that certain applications that rely on GNUstep
-specific headers may not compile because of this.
+   * Lazy locking implemented (see GSLock documentation)
 
-   * A number of Protocol and DO fixes.
+   * MacOSX PB files updated to 10.3
 
-   * New TraditionalChinese language.
+   * DO retain/release implementation simplified and also handles some
+     complex DO retain/release problems.
+
+   * GNUSTEP_STRING_ENCODING now supports any valid iconv name.
+
+   * gdomap uid/gid fixes
+
+   * NSString subclass heirarchy reorganized to fix problems with
+     copying and ownership of data.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.7.3.tar.gz distribution file has been placed on
+   The gnustep-base-1.9.0.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    Please log bug reports on the GNUstep project page

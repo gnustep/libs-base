@@ -1,7 +1,41 @@
 News
 ****
 
-The currently released version of the library is `1.7.3'.
+The currently released version of the library is `1.9.0'.
+
+Noteworthy changes in version `1.9.0'
+=====================================
+
+   * Lazy locking implemented (see GSLock documentation)
+
+   * MacOSX PB files updated to 10.3
+
+   * DO retain/release implementation simplified and also handles some
+     complex DO retain/release problems.
+
+   * GNUSTEP_STRING_ENCODING now supports any valid iconv name.
+
+   * gdomap uid/gid fixes
+
+   * NSString subclass heirarchy reorganized to fix problems with
+     copying and ownership of data.
+
+Noteworthy changes in version `1.8.0'
+=====================================
+
+   Read the NEWS file for a compete list of changes since the last
+stable version. The major change is that the header files (both in the
+package and when installed) are in different locations. Also, due to
+filesystem changes in gnustep-make, several components of gnustep-base
+are located in different locations. Generally this should not affect the
+compilation or running of applications and tools.
+
+Noteworthy changes in version `1.7.4'
+=====================================
+
+   * Added Korean encoding
+
+   * Updated use of ObjCRuntime functions.
 
 Noteworthy changes in version `1.7.3'
 =====================================
