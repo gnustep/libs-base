@@ -1800,7 +1800,10 @@ fail:
       name = [name stringByAppendingFormat: @"(%@)", category];
       unitName = name;
       [dict setObject: @"category" forKey: @"Type"];
-      if ([category caseInsensitiveCompare: @"Private"] == NSOrderedSame)
+      if ([category length] >= 7
+	&& [category compare: @"Private"
+		     options: NSCaseInsensitiveSearch
+		       range: NSMakeRange(0, 7)] == NSOrderedSame)
 	{
 	  NSString	*c;
 
