@@ -1,3 +1,8 @@
+Mon May 11  15:00:00 1999  Manuel Guesdon <mguesdon@sbuilders.com>
+
+        * Source/NSArray.m: getObjects: (id*)aBuffer range: (NSRange)aRange
+                corrected bug in for: replace c by e
+	
 Tue May 11 10:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/preface.h: Attempt to standardise win32 conditional
