@@ -505,6 +505,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     }
 
   if (strcmp(node->name, "class") == 0
+    || strcmp(node->name, "jclass") == 0
     || strcmp(node->name, "category") == 0
     || strcmp(node->name, "protocol") == 0
     || strcmp(node->name, "function") == 0
@@ -772,7 +773,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 {
   NSMutableString	*text = [NSMutableString string];
 
-  if (strcmp(node->name, "class") == 0)
+  if ((strcmp(node->name, "class") == 0)
+    || (strcmp(node->name, "jclass") == 0))
     {
       NSString	*className = [self getProp: "name" fromNode: node];
       NSString	*superName = [self getProp: "super" fromNode: node];
@@ -819,7 +821,8 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	  desc = [self parseDesc: node];
 	  node = node->next;
 	}
-      while (node != 0 && strcmp(node->name, "method") == 0)
+      while (node != 0 && ((strcmp(node->name, "method") == 0)
+	|| (strcmp(node->name, "jmethod") == 0)))
 	{
 	  NSString	*s = [self parseMethod: node];
 
@@ -1315,7 +1318,15 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	}
       else
 	{
+	  xmlNodePtr	old = node;
+
 	  [text appendString: [self parseText: node end: &node]];
+	  /*
+	   * If we found text, the node will have been advanced, but if
+	   * it failed we need to advance ourselves.
+           */
+	  if (node == old)
+	    node = node->next;
 	  continue;
 	}
 
@@ -1502,11 +1513,26 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   [text appendString: @"</head>\r\n"];
   [text appendString: @"<body>\r\n"];
   if (prevName != nil)
-    [text appendFormat: @"<a href=\"%@\">[Previous]</a>\n", prevName];
+    {
+      if ([[prevName pathExtension] isEqual: @"html"] == YES)
+	[text appendFormat: @"<a href=\"%@\">[Previous]</a>\n", prevName];
+      else
+	[text appendFormat: @"<a href=\"%@.html\">[Previous]</a>\n", prevName];
+    }
   if (upName != nil)
-    [text appendFormat: @"<a href=\"%@\">[Up]</a>\n", upName];
+    {
+      if ([[upName pathExtension] isEqual: @"html"] == YES)
+	[text appendFormat: @"<a href=\"%@\">[Up]</a>\n", upName];
+      else
+	[text appendFormat: @"<a href=\"%@.html\">[Up]</a>\n", upName];
+    }
   if (nextName != nil)
-    [text appendFormat: @"<a href=\"%@\">[Next]</a>\n", nextName];
+    {
+      if ([[nextName pathExtension] isEqual: @"html"] == YES)
+	[text appendFormat: @"<a href=\"%@\">[Next]</a>\n", nextName];
+      else
+	[text appendFormat: @"<a href=\"%@.html\">[Next]</a>\n", nextName];
+    }
 
   [text appendFormat: @"<h1>%@</h1>\r\n", title];
 
@@ -1783,11 +1809,11 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   NSString	*ref = [self getProp: "id" fromNode: node];
   NSString	*type = [self getProp: "type" fromNode: node];
   NSString	*over = [self getProp: "override" fromNode: node];
-//  NSString	*role = [self getProp: "role" fromNode: node];
   BOOL		factory = [[self getProp: "factory" fromNode: node] boolValue];
   BOOL		desInit = [[self getProp: "init" fromNode: node] boolValue];
   NSMutableString	*lText = [NSMutableString string];
   NSMutableString	*sText = [NSMutableString string];
+  BOOL		isJava = (strcmp(node->name, "jmethod") == 0);
   NSString	*desc = nil;
   NSArray	*standards = nil;
 
@@ -1796,56 +1822,117 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       ref = [NSString stringWithFormat: @"method-%u",
 	labelIndex++];
     }
-  if (factory)
+  if (isJava)
     {
-      [lText appendString: @"+ ("];
-    }
-  else
-    {
-      [lText appendString: @"- ("];
-    }
-  if (type == nil)
-    type = @"id";
-  [lText appendString: type];
-  [lText appendString: @")"];
+      NSMutableString	*decl = [NSMutableString string];
+      NSMutableString	*args = [NSMutableString stringWithString: @"("];
+      NSString		*name = [self getProp: "name" fromNode: node];
 
-  node = node->children;
-  while (node != 0 && strcmp(node->name, "sel") == 0)
-    {
-      NSString	*sel = [self parseText: node->children];
+      if (factory)
+	{
+	  [decl appendString: @"static "];
+	}
+      if (type == nil)
+	type = @"Object";
+      [decl appendString: type];
+      [decl appendString: @" "];
 
-      if (sel == nil) return nil;
-      [sText appendString: sel];
-      [lText appendFormat: @" <b>%@</b>", sel];
-      node = node->next;
-      if (node != 0 && strcmp(node->name, "arg") == 0)
+      node = node->children;
+      while (node != 0 && strcmp(node->name, "arg") == 0)
 	{
 	  NSString	*arg = [self parseText: node->children];
 	  NSString	*typ = [self getProp: "type" fromNode: node];
 
-	  if (arg == nil) return nil;
+	  if (arg == nil) break;
+	  if ([args length] > 1)
+	    {
+	      [args appendString: @", "];
+	    }
 	  if (typ != nil)
 	    {
-	      [lText appendFormat: @" (%@)%@", typ, arg];
+	      [args appendString: typ];
+	      [args appendString: @" "];
+	    }
+	  [args appendString: arg];
+	  node = node->next;
+	}
+      if (node != 0 && strcmp(node->name, "vararg") == 0)
+	{
+	  if ([args length] > 1)
+	    {
+	      [args appendString: @", ..."];
 	    }
 	  else
 	    {
-	      [lText appendString: @" "];
-	      [lText appendString: arg];
+	      [args appendString: @"..."];
 	    }
 	  node = node->next;
-	  if (node != 0 && strcmp(node->name, "vararg") == 0)
-	    {
-	      [lText appendString: @", ..."];
-	      node = node->next;
-	      break;
-	    }
+	}
+      [args appendString: @")"];
+
+      [lText appendString: decl];
+      [lText appendString: @"<b>"];
+      [lText appendString: name];
+      [lText appendString: @"</b>"];
+      [lText appendString: args];
+      [sText appendString: decl];
+      [sText appendString: name];
+      [sText appendString: args];
+    }
+  else
+    {
+      if (factory)
+	{
+	  [lText appendString: @"+ ("];
 	}
       else
 	{
-	  break;	/* Just a selector	*/
+	  [lText appendString: @"- ("];
+	}
+      if (type == nil)
+	type = @"id";
+      [lText appendString: type];
+      [lText appendString: @")"];
+
+      node = node->children;
+      while (node != 0 && strcmp(node->name, "sel") == 0)
+	{
+	  NSString	*sel = [self parseText: node->children];
+
+	  if (sel == nil) return nil;
+	  [sText appendString: sel];
+	  [lText appendFormat: @" <b>%@</b>", sel];
+	  node = node->next;
+	  if (node != 0 && strcmp(node->name, "arg") == 0)
+	    {
+	      NSString	*arg = [self parseText: node->children];
+	      NSString	*typ = [self getProp: "type" fromNode: node];
+
+	      if (arg == nil) return nil;
+	      if (typ != nil)
+		{
+		  [lText appendFormat: @" (%@)%@", typ, arg];
+		}
+	      else
+		{
+		  [lText appendString: @" "];
+		  [lText appendString: arg];
+		}
+	      node = node->next;
+	      if (node != 0 && strcmp(node->name, "vararg") == 0)
+		{
+		  [lText appendString: @", ..."];
+		  node = node->next;
+		  break;
+		}
+	    }
+	  else
+	    {
+	      break;	/* Just a selector	*/
+	    }
 	}
     }
+
   if (node != 0 && strcmp(node->name, "desc") == 0)
     {
       desc = [self parseDesc: node];
@@ -1856,22 +1943,29 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       standards = [self parseStandards: node];
     }
 
-  if (factory)
+  if (isJava)
     {
-      NSString	*s = [@"+" stringByAppendingString: sText];
-      [self setEntry: s withRef: ref inIndexOfType: @"method"];
+      [self setEntry: sText withRef: ref inIndexOfType: @"method"];
     }
   else
     {
-      NSString	*s = [@"-" stringByAppendingString: sText];
-      [self setEntry: s withRef: ref inIndexOfType: @"method"];
+      if (factory)
+	{
+	  NSString	*s = [@"+" stringByAppendingString: sText];
+	  [self setEntry: s withRef: ref inIndexOfType: @"method"];
+	}
+      else
+	{
+	  NSString	*s = [@"-" stringByAppendingString: sText];
+	  [self setEntry: s withRef: ref inIndexOfType: @"method"];
+	}
     }
   [text appendFormat: @"<h2><a name=\"%@\">%@</a></h2>\r\n", ref, sText];
   if (desInit)
     {
       [text appendString: @"<b>This is the designated initialiser</b><br>\r\n"];
     }
-  [text appendFormat: @"%@<br>\r\n", lText];
+  [text appendFormat: @"%@;<br>\r\n", lText];
   if ([over isEqual: @"subclass"])
     {
       [text appendString: @"Your subclass <em>must</em> override this "
@@ -1946,7 +2040,11 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	    break;
 
 	  case XML_ELEMENT_NODE:
-	    if (strcmp(node->name, "code") == 0
+	    if (strcmp(node->name, "br") == 0)
+	      {
+		[text appendString: @"<br>"];
+	      }
+	    else if (strcmp(node->name, "code") == 0
 	      || strcmp(node->name, "em") == 0
 	      || strcmp(node->name, "file") == 0
 	      || strcmp(node->name, "site") == 0

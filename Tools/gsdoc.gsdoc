@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
 <gsdoc base="gsdoc">
   <head>
     <title>GNUstep Documentation XML markup language (GSDoc)</title>
@@ -10,8 +10,8 @@
 	A person who has devotes far too much time to GNUstep development.
       </desc>
     </author>
-    <version>0.1</version>
-    <date>4 march, 2000</date>
+    <version>0.2</version>
+    <date>21 June, 2000</date>
     <abstract>
       This documents the GNUstep Documentation markup language and tools
     </abstract>
@@ -118,8 +118,8 @@
 	</p>
 	<example>
 &lt;?xml version="1.0"?&gt;
-&lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml"&gt;
-&lt;gsdoc base="MyDoc" prev="First.html" next="Last.html" up="Overview.html"&gt;
+&lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml"&gt;
+&lt;gsdoc base="MyDoc" prev="First" next="Last" up="Overview"&gt;
   &lt;head&gt;
   ... your document head here
   &lt;/head&gt;
@@ -184,22 +184,22 @@
 	  document head that must be present.
 	</p>
 	<example>
-  &lt;head&gt;
-    &lt;title&gt;GNUstep Documentation XML markup language (GSDoc)&lt;/title&gt;
-    &lt;author name="Richard Frith-Macdonald"&gt;
-      &lt;email address="rfm@gnu.org"/&gt;
-      &lt;url url="http://www.gnustep.org/developers/whoiswho.html"/&gt;
-      &lt;desc&gt;
-	A person who has devotes far too much time to GNUstep development.
-      &lt;/desc&gt;
-    &lt;/author&gt;
-    &lt;version&gt;0.1&lt;/version&gt;
-    &lt;date&gt;4 march, 2000&lt;/date&gt;
-    &lt;abstract&gt;
-      This documents the GNUstep Documentation markup language and tools
-    &lt;/abstract&gt;
-    &lt;copy&gt;Free Software Foundation, Inc.&lt;/copy&gt;
-  &lt;/head&gt;
+&lt;head&gt;
+  &lt;title&gt;GNUstep Documentation XML markup language (GSDoc)&lt;/title&gt;
+  &lt;author name="Richard Frith-Macdonald"&gt;
+    &lt;email address="rfm@gnu.org"/&gt;
+    &lt;url url="http://www.gnustep.org/developers/whoiswho.html"/&gt;
+    &lt;desc&gt;
+      A person who has devotes far too much time to GNUstep development.
+    &lt;/desc&gt;
+  &lt;/author&gt;
+  &lt;version&gt;0.1&lt;/version&gt;
+  &lt;date&gt;4 march, 2000&lt;/date&gt;
+  &lt;abstract&gt;
+    This documents the GNUstep Documentation markup language and tools
+  &lt;/abstract&gt;
+  &lt;copy&gt;Free Software Foundation, Inc.&lt;/copy&gt;
+&lt;/head&gt;
 	</example>
 	<p>
 	  The above example shows all the elements possible in a document head -
@@ -250,6 +250,63 @@
 	  parts of the document would be expected to have their own separate
 	  page numbering schemes.
 	</p>
+	<example>
+&lt;body&gt;
+  &lt;front&gt;
+    &lt;contents/&gt;
+    &lt;chapter&gt;
+      &lt;heading&gt;Preface&lt;/heading&gt;
+      &lt;p&gt;
+	Here is an introductory chapter for a dummy document.
+      &lt;/p&gt;
+    &lt;/chapter&gt;
+  &lt;/front&gt;
+  &lt;chapter&gt;
+    &lt;heading&gt;Main text&lt;/heading&gt;
+    &lt;p&gt;
+      Here is the main text of a chapter in the document.
+    &lt;/p&gt;
+  &lt;/chapter&gt;
+  &lt;back&gt;
+    &lt;chapter&gt;
+      &lt;heading&gt;Afterword&lt;/heading&gt;
+      &lt;p&gt;
+	Adn after the main part of the doucment we can have some other stuff.
+      &lt;/p&gt;
+    &lt;/chapter&gt;
+    &lt;index type="class"/&gt;
+  &lt;/back&gt;
+&lt;/body&gt;
+	</example>
+	<p>
+	  The above example shows all the elements possible in a document body -
+	</p>
+	<deflist>
+	<term><label id="title">front</label></term>
+	<desc>
+	  This is an optional part of the document that can come before the
+	  main text.  Typically, this could be used to contain an automatically
+	  generated contents page and possibly an introduction.
+	  When output is generated in book form, this part of the document
+	  would probably have a different page numbering scheme from the
+	  main part.
+	</desc>
+	<term><label id="chapter">chapter</label></term>
+	<desc>
+	  <p>
+	    After the <em>front</em> part of the document body comes a
+	    mandatory sequence of one or more chapters.  This is where
+	    the main part of the document resides.
+	  </p>
+	</desc>
+	<term><label id="back">back</label></term>
+	<desc>
+	  After the chapters making up the main part of the body of the
+	  document is an optional <em>back</em> part which may contain
+	  chapters (such as appendices) possibly followed by an automatically
+	  generated index.
+	</desc>
+	</deflist>
       </section>
     </chapter>
 
