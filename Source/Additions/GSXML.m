@@ -749,7 +749,7 @@ static NSMapTable	*nodeNames = 0;
 /**
  * Return the children of this node
  * <example>
- *    - (GSXMLNode*) nextElement: (GSXMLNode*)node
+ *    - (GSXMLNode*) elementRecursive: (GSXMLNode*)node
  *    {
  *      while (node != nil)
  *        {
@@ -759,7 +759,7 @@ static NSMapTable	*nodeNames = 0;
  *            }
  *          if ([node children] != nil)
  *            {
- *              node = [self nextElement: [node children]];
+ *              node = [self elementRecursive: [node children]];
  *            }
  *          else
  *            {
@@ -853,7 +853,7 @@ static NSMapTable	*nodeNames = 0;
 }
 
 /**
- * initialisae node
+ * initialise node
  */
 - (id) initWithNamespace: (GSXMLNamespace*) ns name: (NSString*) name
 {
@@ -993,7 +993,10 @@ static NSMapTable	*nodeNames = 0;
 }
 
 /**
- * return the next node at this level.
+ * Return the next node at this level.  This method can return any type
+ * of node, and it may be more convenient to use the -nextElement node
+ * if you are parsing a document where you wish to ignore non-element
+ * nodes such as whitespace text separating elements.
  */
 - (GSXMLNode*) next
 {
@@ -1005,6 +1008,26 @@ static NSMapTable	*nodeNames = 0;
     {
       return nil;
     }
+}
+
+/**
+ * Returns the next element node, skipping past any oyther node types
+ * (such as text nodes).  If there is no element node to be returned,
+ * this method returns nil.
+ */
+- (GSXMLNode*) nextElement
+{
+  xmlNodePtr	ptr = ((xmlNodePtr)(lib))->next;
+
+  while (ptr->next != NULL)
+    {
+      if (ptr->type == XML_ELEMENT_NODE)
+	{
+	  return [GSXMLNode nodeFrom: ptr->next];
+	}
+      ptr = ptr->next;
+    }
+  return nil;
 }
 
 /**

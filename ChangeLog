@@ -1,3 +1,8 @@
+2002-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m: New method ([-nextElement]) to traverse
+	tree skipping non-element nodes.
+
 Thu Apr 11 15:34:33 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/GSAttributedString.m ([GSMutableAttributedString
