@@ -1317,8 +1317,7 @@ GSGetValue(NSObject *self, NSString *key, SEL sel,
     }
   if (type == NULL)
     {
-      [self handleTakeValue: nil forUnboundKey: key];
-      return nil;
+      return [self handleQueryWithUnboundKey: key];
     }
   else
     {
