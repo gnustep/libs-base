@@ -94,6 +94,12 @@
   return r;
 }
 
+- (const char *) cStringNoCopy
+{
+  return _contents_chars;
+}
+
+/* xxx Remove this method, now that we have cStringNoCopy */
 - (const char *) _cStringContents
 {
   return _contents_chars;
