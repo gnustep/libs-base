@@ -46,8 +46,6 @@
 
 static int	debug_run_loop = 0;
 static NSDate	*theFuture = nil;
-static NSTimeInterval	futureInterval;
-static NSTimeInterval	pastInterval;
 
 
 
@@ -89,7 +87,7 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
 @interface RunLoopWatcher: NSObject
 {
 @public
-  NSTimeInterval	_date;		/* First to match layout of NSTimer */
+  NSDate		*_date;		/* First to match layout of NSTimer */
   BOOL			_invalidated;	/* 2nd to match layout of NSTimer */
   IMP			handleEvent;	/* New-style event handling */
   void			*data;
@@ -106,6 +104,7 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
 
 - (void) dealloc
 {
+  RELEASE(_date);
   RELEASE(receiver);
   [super dealloc];
 }
@@ -141,7 +140,7 @@ static SEL	eventSel = @selector(receivedEvent:type:extra:forMode:);
  *	the NSTimer class is known to be the same as RunLoopWatcher for the
  *	first two elements.
  */
-static inline NSTimeInterval timerDate(NSTimer* timer)
+static inline NSDate* timerDate(NSTimer* timer)
 {
   return ((RunLoopWatcher*)timer)->_date;
 }
@@ -153,12 +152,7 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 
 static int aSort(RunLoopWatcher *i0, RunLoopWatcher *i1)
 {
-  if (i0->_date < i1->_date)
-    return -1;
-  else if (i0->_date > i1->_date)
-    return 1;
-  else
-    return 0;
+  return [i0->_date compare: i1->_date];
 }
 
 
@@ -430,7 +424,7 @@ static int aSort(RunLoopWatcher *i0, RunLoopWatcher *i1)
     {
       NSDate	*d = [obj limitDateForMode: mode];
 
-      item->_date = [d timeIntervalSinceReferenceDate];
+      item->_date = RETAIN(d);
     }
   else if ([obj respondsToSelector: @selector(delegate)])
     {
@@ -439,13 +433,13 @@ static int aSort(RunLoopWatcher *i0, RunLoopWatcher *i1)
 	{
 	  NSDate	*d = [obj limitDateForMode: mode];
 
-	  item->_date = [d timeIntervalSinceReferenceDate];
+	  item->_date = RETAIN(d);
 	}
       else
-	item->_date = futureInterval;
+	item->_date = RETAIN(theFuture);
     }
   else
-    item->_date = futureInterval;
+    item->_date = RETAIN(theFuture);
   FastArrayInsertSorted(watchers, (FastArrayItem)item, aSort);
 }
 
@@ -703,8 +697,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
-      futureInterval = [theFuture timeIntervalSinceReferenceDate];
-      pastInterval = [[NSDate distantPast] timeIntervalSinceReferenceDate];
 #if	GS_WITH_GC == 0
       wRelImp = [[RunLoopWatcher class] instanceMethodForSelector: wRelSel];
       wRetImp = [[RunLoopWatcher class] instanceMethodForSelector: wRetSel];
@@ -744,14 +736,12 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 				  WatcherMapValueCallBacks, 0);
   _wfdMap = NSCreateMapTable (NSIntMapKeyCallBacks,
 				  WatcherMapValueCallBacks, 0);
-  _limit = RETAIN([NSDate date]);
   return self;
 }
 
 - (void) dealloc
 {
   [self gcFinalize];
-  RELEASE(_limit);
   RELEASE(_performers);
   RELEASE(_timedPerformers);
   [super dealloc];
@@ -797,7 +787,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
   id			saved_mode;
-  NSTimeInterval	when;
+  NSDate		*when;
   FastArray		timers;
   FastArray		watchers;
   NSTimer		*min_timer = nil;
@@ -819,7 +809,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	      continue;
 	    }
 
-	  if (timerDate(min_timer) > GSTimeNow())
+	  if ([timerDate(min_timer) timeIntervalSinceNow] > 0)
 	    {
 	      break;
 	    }
@@ -857,7 +847,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	      continue;
 	    }
 
-	  if (min_watcher->_date > GSTimeNow())
+	  if ([min_watcher->_date timeIntervalSinceNow] > 0)
 	    {
 	      break;
 	    }
@@ -871,6 +861,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	       *	timeouts - inform it and give it a chance to set a
 	       *	revised limit date.
 	       */
+	      FastArrayRemoveItemAtIndexNoRelease(watchers, 0);
 	      obj = min_watcher->receiver;
 	      if ([obj respondsToSelector: 
 		      @selector(timedOutEvent:type:forMode:)])
@@ -896,20 +887,18 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 		   *	If the watcher has been given a revised limit date -
 		   *	re-insert it into the queue in the correct place.
 		   */
-		  FastArrayRemoveItemAtIndexNoRelease(watchers, 0);
-		  min_watcher->_date = [nxt timeIntervalSinceReferenceDate];
+		  ASSIGN(min_watcher->_date, nxt);
 		  FastArrayInsertSortedNoRetain(watchers,
 		    (FastArrayItem)min_watcher, aSort);
 		}
 	      else
 		{
 		  /*
-		   *	If the watcher is now useless - invalidate it and
-		   *	remove it from the queue so that we don't need to
-		   *	check it again.
+		   *	If the watcher is now useless - invalidate and
+		   *	release it.
 		   */
 		  min_watcher->_invalidated = YES;
-		  FastArrayRemoveItemAtIndex(watchers, 0);
+		  RELEASE(min_watcher);
 		}
 	      min_watcher = nil;
 	    }
@@ -927,7 +916,8 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   if (min_timer)
     {
       when = timerDate(min_timer);
-      if (min_watcher && min_watcher->_date < when)
+      if (min_watcher != nil
+	&& [min_watcher->_date compare: when] == NSOrderedAscending)
 	{
 	  when = min_watcher->_date;
 	}
@@ -943,11 +933,11 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
   if (debug_run_loop)
     {
-      printf ("\tNSRunLoop limit date %f\n", when);
+      printf ("\tNSRunLoop limit date %f\n",
+	[when timeIntervalSinceReferenceDate]);
     }
 
-  _limit = [_limit initWithTimeIntervalSinceReferenceDate: when];
-  return _limit;
+  return when;
 }
 
 - (RunLoopWatcher*) _getWatcher: (void*)data
@@ -1270,6 +1260,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 {
   id	d;
 
+  NSAssert(mode && date, NSInvalidArgumentException);
   /* If date has already passed, simply return. */
   if ([date timeIntervalSinceNow] < 0)
     {
@@ -1294,18 +1285,13 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   /* Use the earlier of the two dates we have. */
   d = [d earlierDate: date];
 
-  /*
-   *	If the date is not our own ivar, we must retain it so it doesn't
-   *	get destroyed inside the run loop
-   */
-  if (d != _limit)
-    RETAIN(d);
+  RETAIN(d);
 
   /* Wait, listening to our input sources. */
   [self acceptInputForMode: mode beforeDate: d];
 
-  if (d != _limit)
-    RELEASE(d);
+  RELEASE(d);
+
   return YES;
 }
 
