@@ -81,6 +81,7 @@
 	    withObject: (id)newObject;
 @end
 
+#ifndef	NO_GNUSTEP
 @interface	NSArchiver (GNUstep)
 
 /*
@@ -147,6 +148,7 @@
 - (void) encodeObject: (id)anObject
 	     withName: (id)name;
 @end
+#endif
 
 
 
@@ -199,6 +201,7 @@
 - (void) replaceObject: (id)anObject withObject: (id)replacement;
 @end
 
+#ifndef	NO_GNUSTEP
 @interface	NSUnarchiver (GNUstep)
 
 /*
@@ -264,7 +267,7 @@
 - (void) decodeObjectAt: (id*)anObject
 	       withName: (id*)name;
 @end
-
+#endif
 
 
 /* Exceptions */

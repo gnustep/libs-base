@@ -82,6 +82,7 @@ extern NSString* NSLoadedClasses;
 
 @end
 
+#ifndef	NO_GNUSTEP
 @interface NSBundle (GNUstep)
 
 + (NSString *) pathForGNUstepResource: (NSString *)name
@@ -89,6 +90,7 @@ extern NSString* NSLoadedClasses;
 			  inDirectory: (NSString *)bundlePath;
 
 @end
+#endif
 
 #define NSLocalizedString(key, comment) \
   [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]

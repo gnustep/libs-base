@@ -51,6 +51,7 @@ extern NSString *NSPortTimeoutException; /* OPENSTEP */
 
 @end
 
+#ifndef	NO_GNUSTEP
 @interface NSPort (GNUstep)
 
 - (void) close;
@@ -59,6 +60,7 @@ extern NSString *NSPortTimeoutException; /* OPENSTEP */
 - (Class) outPacketClass;
 
 @end
+#endif
 
 extern	NSString*	NSPortDidBecomeInvalidNotification;
 

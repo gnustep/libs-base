@@ -1,5 +1,5 @@
 /* Implementation of functions for dissecting/making method calls 
-   Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: Oct 1994
@@ -76,104 +76,113 @@
 char*
 mframe_build_signature(const char *typePtr, int *size, int *narg, char *buf)
 {
-    MFRAME_ARGS	cum;
-    BOOL	doMalloc = NO;
-    const char	*types;
-    char	*start;
-    char	*dest;
-    int		total = 0;
-    int		count = 0;
+  MFRAME_ARGS	cum;
+  BOOL		doMalloc = NO;
+  const		char	*types;
+  char		*start;
+  char		*dest;
+  int		total = 0;
+  int		count = 0;
 
-    /*
-     *	If we have not been given a buffer - allocate space on the stack for
-     *	the largest concievable type encoding.
-     */
-    if (buf == 0) {
-	doMalloc = YES;
-	buf = alloca((strlen(typePtr)+1)*16);
+  /*
+   *	If we have not been given a buffer - allocate space on the stack for
+   *	the largest concievable type encoding.
+   */
+  if (buf == 0)
+    {
+      doMalloc = YES;
+      buf = alloca((strlen(typePtr)+1)*16);
     }
 
-    /*
-     *	Copy the return type info (including qualifiers) into the buffer.
-     */
-    types = objc_skip_typespec(typePtr);
-    strncpy(buf, typePtr, types - typePtr);
-    buf[types-typePtr] = '\0'; 
+  /*
+   *	Copy the return type info (including qualifiers) into the buffer.
+   */
+  types = objc_skip_typespec(typePtr);
+  strncpy(buf, typePtr, types - typePtr);
+  buf[types-typePtr] = '\0'; 
 
-    /*
-     *	Point to the return type, initialise size of stack args, and skip
-     *	to the first argument.
-     */
-    types = objc_skip_type_qualifiers(typePtr);
-    MFRAME_INIT_ARGS(cum, types);
-    types = objc_skip_typespec(types);
-    if (*types == '+') {
-	types++;
+  /*
+   *	Point to the return type, initialise size of stack args, and skip
+   *	to the first argument.
+   */
+  types = objc_skip_type_qualifiers(typePtr);
+  MFRAME_INIT_ARGS(cum, types);
+  types = objc_skip_typespec(types);
+  if (*types == '+')
+    {
+      types++;
     }
-    while (isdigit(*types)) {
-	types++;
+  while (isdigit(*types))
+    {
+      types++;
     }
 
-    /*
-     *	Where to start putting encoding information - leave enough room for
-     *	the size of the stack args to be stored after the return type.
-     */
-    start = &buf[strlen(buf)+10];
-    dest = start;
+  /*
+   *	Where to start putting encoding information - leave enough room for
+   *	the size of the stack args to be stored after the return type.
+   */
+  start = &buf[strlen(buf)+10];
+  dest = start;
 
-    /*
-     *	Now step through all the arguments - copy any type qualifiers, but
-     *	let the macro write all the other info into the buffer.
-     */
-    while (types && *types) {
-	const char	*qual = types;
+  /*
+   *	Now step through all the arguments - copy any type qualifiers, but
+   *	let the macro write all the other info into the buffer.
+   */
+  while (types && *types)
+    {
+      const char	*qual = types;
 
-	/*
-	 *	If there are any type qualifiers - copy the through to the
-	 *	destination.
-	 */
-	types = objc_skip_type_qualifiers(types);
-	while (qual < types) {
-	    *dest++ = *qual++;
+      /*
+       *	If there are any type qualifiers - copy the through to the
+       *	destination.
+       */
+      types = objc_skip_type_qualifiers(types);
+      while (qual < types)
+	{
+	  *dest++ = *qual++;
 	}
-	MFRAME_ARG_ENCODING(cum, types, total, dest);
-	count++;
+      MFRAME_ARG_ENCODING(cum, types, total, dest);
+      count++;
     }
-    *dest = '\0';
+  *dest = '\0';
 
-    /*
-     *	Write the total size of the stack arguments after the return type,
-     *	then copy the remaining type information to fill the gap.
-     */
-    sprintf(&buf[strlen(buf)], "%d", total);
-    dest = &buf[strlen(buf)];
-    while (*start) {
-	*dest++ = *start++;
+  /*
+   *	Write the total size of the stack arguments after the return type,
+   *	then copy the remaining type information to fill the gap.
+   */
+  sprintf(&buf[strlen(buf)], "%d", total);
+  dest = &buf[strlen(buf)];
+  while (*start)
+    {
+      *dest++ = *start++;
     }
-    *dest = '\0';
+  *dest = '\0';
 
-    /*
-     *	If we have written into a local buffer - we need to allocate memory
-     *	in which to return our result.
-     */
-    if (doMalloc) {
-	char	*tmp = objc_malloc(dest - buf + 1);
+  /*
+   *	If we have written into a local buffer - we need to allocate memory
+   *	in which to return our result.
+   */
+  if (doMalloc)
+    {
+      char	*tmp = objc_malloc(dest - buf + 1);
 
-	strcpy(tmp, buf);
-	buf = tmp;
+      strcpy(tmp, buf);
+      buf = tmp;
     }
 
-    /*
-     *	If the caller wants to know the total size of the stack and/or the
-     *	number of arguments, return them in the appropriate variables.
-     */
-    if (size) {
-	*size = total;
+  /*
+   *	If the caller wants to know the total size of the stack and/or the
+   *	number of arguments, return them in the appropriate variables.
+   */
+  if (size)
+    {
+      *size = total;
     }
-    if (narg) {
-	*narg = count;
+  if (narg)
+    {
+      *narg = count;
     }
-    return buf;
+  return buf;
 }
 
 
@@ -183,250 +192,285 @@ mframe_build_signature(const char *typePtr, int *size, int *narg, char *buf)
 const char *
 mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 {
-    NSArgumentInfo	local;
-    BOOL	flag;
+  NSArgumentInfo	local;
+  BOOL			flag;
 
-    if (info == 0) {
-	info = &local;
+  if (info == 0)
+    {
+      info = &local;
     }
-    /*
-     *	Skip past any type qualifiers - if the caller wants them, return them.
-     */
-    flag = YES;
-    info->qual = 0;
-    while (flag) {
-	switch (*typePtr) {
-	    case _C_CONST:  info->qual |= _F_CONST; break;
-	    case _C_IN:     info->qual |= _F_IN; break;
-	    case _C_INOUT:  info->qual |= _F_INOUT; break;
-	    case _C_OUT:    info->qual |= _F_OUT; break;
-	    case _C_BYCOPY: info->qual |= _F_BYCOPY; break;
+  /*
+   *	Skip past any type qualifiers - if the caller wants them, return them.
+   */
+  flag = YES;
+  info->qual = 0;
+  while (flag)
+    {
+      switch (*typePtr)
+	{
+	  case _C_CONST:  info->qual |= _F_CONST; break;
+	  case _C_IN:     info->qual |= _F_IN; break;
+	  case _C_INOUT:  info->qual |= _F_INOUT; break;
+	  case _C_OUT:    info->qual |= _F_OUT; break;
+	  case _C_BYCOPY: info->qual |= _F_BYCOPY; break;
 #ifdef	_C_BYREF
-	    case _C_BYREF:  info->qual |= _F_BYREF; break;
+	  case _C_BYREF:  info->qual |= _F_BYREF; break;
 #endif
-	    case _C_ONEWAY: info->qual |= _F_ONEWAY; break;
-	    default: flag = NO;
+	  case _C_ONEWAY: info->qual |= _F_ONEWAY; break;
+	  default: flag = NO;
 	}
-	if (flag) {
-	    typePtr++;
+      if (flag)
+	{
+	  typePtr++;
 	}
     }
 
-    info->type = typePtr;
+  info->type = typePtr;
 
-    /*
-     *	Scan for size and alignment information.
-     */
-    switch (*typePtr++) {
-	case _C_ID:
-	    info->size = sizeof(id);
-	    info->align = __alignof__(id);
-	    break;
+  /*
+   *	Scan for size and alignment information.
+   */
+  switch (*typePtr++)
+    {
+      case _C_ID:
+	info->size = sizeof(id);
+	info->align = __alignof__(id);
+	break;
 
-	case _C_CLASS:
-	    info->size = sizeof(Class);
-	    info->align = __alignof__(Class);
-	    break;
+      case _C_CLASS:
+	info->size = sizeof(Class);
+	info->align = __alignof__(Class);
+	break;
 
-	case _C_SEL:
-	    info->size = sizeof(SEL);
-	    info->align = __alignof__(SEL);
-	    break;
+      case _C_SEL:
+	info->size = sizeof(SEL);
+	info->align = __alignof__(SEL);
+	break;
 
-	case _C_CHR:
-	    info->size = sizeof(char);
-	    info->align = __alignof__(char);
-	    break;
+      case _C_CHR:
+	info->size = sizeof(char);
+	info->align = __alignof__(char);
+	break;
 
-	case _C_UCHR:
-	    info->size = sizeof(unsigned char);
-	    info->align = __alignof__(unsigned char);
-	    break;
+      case _C_UCHR:
+	info->size = sizeof(unsigned char);
+	info->align = __alignof__(unsigned char);
+	break;
 
-	case _C_SHT:
-	    info->size = sizeof(short);
-	    info->align = __alignof__(short);
-	    break;
+      case _C_SHT:
+	info->size = sizeof(short);
+	info->align = __alignof__(short);
+	break;
 
-	case _C_USHT:
-	    info->size = sizeof(unsigned short);
-	    info->align = __alignof__(unsigned short);
-	    break;
+      case _C_USHT:
+	info->size = sizeof(unsigned short);
+	info->align = __alignof__(unsigned short);
+	break;
 
-	case _C_INT:
-	    info->size = sizeof(int);
-	    info->align = __alignof__(int);
-	    break;
+      case _C_INT:
+	info->size = sizeof(int);
+	info->align = __alignof__(int);
+	break;
 
-	case _C_UINT:
-	    info->size = sizeof(unsigned int);
-	    info->align = __alignof__(unsigned int);
-	    break;
+      case _C_UINT:
+	info->size = sizeof(unsigned int);
+	info->align = __alignof__(unsigned int);
+	break;
 
-	case _C_LNG:
-	    info->size = sizeof(long);
-	    info->align = __alignof__(long);
-	    break;
+      case _C_LNG:
+	info->size = sizeof(long);
+	info->align = __alignof__(long);
+	break;
 
-	case _C_ULNG:
-	    info->size = sizeof(unsigned long);
-	    info->align = __alignof__(unsigned long);
-	    break;
+      case _C_ULNG:
+	info->size = sizeof(unsigned long);
+	info->align = __alignof__(unsigned long);
+	break;
 
-	case _C_FLT:
-	    info->size = sizeof(float);
-	    info->align = __alignof__(float);
-	    break;
+#ifdef	_C_LNG_LNG
+      case _C_LNG_LNG:
+	info->size = sizeof(long long);
+	info->align = __alignof__(long long);
+	break;
 
-	case _C_DBL:
-	    info->size = sizeof(double);
-	    info->align = __alignof__(double);
-	    break;
+      case _C_ULNG_LNG:
+	info->size = sizeof(unsigned long long);
+	info->align = __alignof__(unsigned long long);
+	break;
 
-	case _C_PTR:
-	    info->size = sizeof(char*);
-	    info->align = __alignof__(char*);
-	    if (*typePtr == '?') {
+#endif
+      case _C_FLT:
+	info->size = sizeof(float);
+	info->align = __alignof__(float);
+	break;
+
+      case _C_DBL:
+	info->size = sizeof(double);
+	info->align = __alignof__(double);
+	break;
+
+      case _C_PTR:
+	info->size = sizeof(char*);
+	info->align = __alignof__(char*);
+	if (*typePtr == '?')
+	  {
+	    typePtr++;
+	  }
+	else
+	  {
+	    typePtr = mframe_next_arg(typePtr, &local);
+	    info->isReg = local.isReg;
+	    info->offset = local.offset;
+	  }
+	break;
+
+      case _C_ATOM:
+      case _C_CHARPTR:
+	info->size = sizeof(char*);
+	info->align = __alignof__(char*);
+	break;
+
+      case _C_ARY_B:
+	{
+	  int	length = atoi(typePtr);
+
+	  while (isdigit(*typePtr))
+	    {
 	      typePtr++;
 	    }
-	    else {
+	  typePtr = mframe_next_arg(typePtr, &local);
+	  info->size = length * ROUND(local.size, local.align);
+	  info->align = local.align;
+	  typePtr++;	/* Skip end-of-array	*/
+	}
+	break; 
+
+      case _C_STRUCT_B:
+	{
+	  struct { int x; double y; } fooalign;
+	  int acc_size = 0;
+	  int acc_align = __alignof__(fooalign);
+
+	  /*
+	   *	Skip "<name>=" stuff.
+	   */
+	  while (*typePtr != _C_STRUCT_E)
+	    {
+	      if (*typePtr++ == '=')
+		{
+		  break;
+		}
+	    }
+	  /*
+	   *	Base structure alignment on first element.
+	   */
+	  if (*typePtr != _C_STRUCT_E)
+	    {
 	      typePtr = mframe_next_arg(typePtr, &local);
-	      info->isReg = local.isReg;
-	      info->offset = local.offset;
+	      if (typePtr == 0)
+		{
+		  return 0;		/* error	*/
+		}
+	      acc_size = ROUND(acc_size, local.align);
+	      acc_size += local.size;
+	      acc_align = MAX(local.align, __alignof__(fooalign));
 	    }
-	    break;
-
-	case _C_ATOM:
-	case _C_CHARPTR:
-	    info->size = sizeof(char*);
-	    info->align = __alignof__(char*);
-	    break;
-
-	case _C_ARY_B:
+	  /*
+	   *	Continue accumulating structure size.
+	   */
+	  while (*typePtr != _C_STRUCT_E)
 	    {
-		int	length = atoi(typePtr);
-
-		while (isdigit(*typePtr)) {
-		    typePtr++;
+	      typePtr = mframe_next_arg(typePtr, &local);
+	      if (typePtr == 0)
+		{
+		  return 0;		/* error	*/
 		}
-		typePtr = mframe_next_arg(typePtr, &local);
-	        info->size = length * ROUND(local.size, local.align);
-		info->align = local.align;
-		typePtr++;	/* Skip end-of-array	*/
+	      acc_size = ROUND(acc_size, local.align);
+	      acc_size += local.size;
 	    }
-	    break; 
+	  info->size = acc_size;
+	  info->align = acc_align;
+	  typePtr++;	/* Skip end-of-struct	*/
+	}
+	break;
 
-	case _C_STRUCT_B:
+      case _C_UNION_B:
+	{
+	  int	max_size = 0;
+	  int	max_align = 0;
+
+	  /*
+	   *	Skip "<name>=" stuff.
+	   */
+	  while (*typePtr != _C_UNION_E)
 	    {
-		struct { int x; double y; } fooalign;
-		int acc_size = 0;
-		int acc_align = __alignof__(fooalign);
-
-		/*
-		 *	Skip "<name>=" stuff.
-		 */
-		while (*typePtr != _C_STRUCT_E) {
-		    if (*typePtr++ == '=') {
-			break;
-		    }
+	      if (*typePtr++ == '=')
+		{
+		  break;
 		}
-		/*
-		 *	Base structure alignment on first element.
-		 */
-		if (*typePtr != _C_STRUCT_E) {
-		    typePtr = mframe_next_arg(typePtr, &local);
-		    if (typePtr == 0) {
-			return 0;		/* error	*/
-		    }
-		    acc_size = ROUND(acc_size, local.align);
-		    acc_size += local.size;
-		    acc_align = MAX(local.align, __alignof__(fooalign));
-		}
-		/*
-		 *	Continue accumulating structure size.
-		 */
-		while (*typePtr != _C_STRUCT_E) {
-		    typePtr = mframe_next_arg(typePtr, &local);
-		    if (typePtr == 0) {
-			return 0;		/* error	*/
-		    }
-		    acc_size = ROUND(acc_size, local.align);
-		    acc_size += local.size;
-		}
-	        info->size = acc_size;
-		info->align = acc_align;
-		typePtr++;	/* Skip end-of-struct	*/
 	    }
-	    break;
-
-	case _C_UNION_B:
+	  while (*typePtr != _C_UNION_E)
 	    {
-		int	max_size = 0;
-		int	max_align = 0;
-
-		/*
-		 *	Skip "<name>=" stuff.
-		 */
-		while (*typePtr != _C_UNION_E) {
-		    if (*typePtr++ == '=') {
-			break;
-		    }
+	      typePtr = mframe_next_arg(typePtr, &local);
+	      if (typePtr == 0)
+		{
+		  return 0;		/* error	*/
 		}
-		while (*typePtr != _C_UNION_E) {
-		    typePtr = mframe_next_arg(typePtr, &local);
-		    if (typePtr == 0) {
-			return 0;		/* error	*/
-		    }
-		    max_size = MAX(max_size, local.size);
-		    max_align = MAX(max_align, local.align);
-		}
-	        info->size = max_size;
-		info->align = max_align;
-		typePtr++;	/* Skip end-of-union	*/
+	      max_size = MAX(max_size, local.size);
+	      max_align = MAX(max_align, local.align);
 	    }
-	    break;
-	  
-	case _C_VOID:
-	    info->size = 0;
-	    info->align = __alignof__(char*);
-	    break;
+	  info->size = max_size;
+	  info->align = max_align;
+	  typePtr++;	/* Skip end-of-union	*/
+	}
+	break;
 
-	default:
-	    return 0;
-    }
+      case _C_VOID:
+	info->size = 0;
+	info->align = __alignof__(char*);
+	break;
 
-    if (typePtr == 0) {		/* Error condition.	*/
+      default:
 	return 0;
     }
 
-    /*
-     *	If we had a pointer argument, we will already have gathered
-     *	(and skipped past) the argframe offset information - so we
-     *	don't need to (and can't) do it here.
-     */
-    if (info->type[0] != _C_PTR || info->type[1] == '?') {
-	/*
-	 *	May tell the caller if the item is stored in a register.
-	 */
-	if (*typePtr == '+') {
-	    typePtr++;
-	    info->isReg = YES;
+  if (typePtr == 0)
+    {		/* Error condition.	*/
+      return 0;
+    }
+
+  /*
+   *	If we had a pointer argument, we will already have gathered
+   *	(and skipped past) the argframe offset information - so we
+   *	don't need to (and can't) do it here.
+   */
+  if (info->type[0] != _C_PTR || info->type[1] == '?')
+    {
+      /*
+       *	May tell the caller if the item is stored in a register.
+       */
+      if (*typePtr == '+')
+	{
+	  typePtr++;
+	  info->isReg = YES;
 	}
-	else if (info->isReg) {
-	    info->isReg = NO;
+      else if (info->isReg)
+	{
+	  info->isReg = NO;
 	}
 
-	/*
-	 *	May tell the caller what the stack/register offset is for
-	 *	this argument.
-	 */
-	info->offset = 0;
-	while (isdigit(*typePtr)) {
-	    info->offset = info->offset * 10 + (*typePtr++ - '0');
+      /*
+       *	May tell the caller what the stack/register offset is for
+       *	this argument.
+       */
+      info->offset = 0;
+      while (isdigit(*typePtr))
+	{
+	  info->offset = info->offset * 10 + (*typePtr++ - '0');
 	}
     }
 
-    return typePtr;
+  return typePtr;
 }
 
 
@@ -438,6 +482,7 @@ int
 method_types_get_number_of_arguments (const char *type)
 {
   int i = 0;
+
   while (*type)
     {
       type = objc_skip_argspec (type);
@@ -462,10 +507,15 @@ int
 method_types_get_size_of_register_arguments(const char *types)
 {
   const char* type = strrchr(types, '+');
+
   if (type)
-    return atoi(++type) + sizeof(void*);
+    {
+      return atoi(++type) + sizeof(void*);
+    }
   else
-    return 0;
+    {
+      return 0;
+    }
 }
 
 
@@ -481,20 +531,25 @@ method_types_get_next_argument (arglist_t argf, const char **type)
   argframe = (void*)argf;
 
   if (*t == '\0')
-    return 0;
-
+    {
+      return 0;
+    }
   *type = t;
   t = objc_skip_typespec (t);
 
   if (*t == '+')
-    return argframe->arg_regs + atoi(++t);
+    {
+      return argframe->arg_regs + atoi(++t);
+    }
   else
-    /* xxx What's going on here?  This -8 needed on my 68k NeXT box. */
+    {
+      /* xxx What's going on here?  This -8 needed on my 68k NeXT box. */
 #if NeXT
-    return argframe->arg_ptr + (atoi(t) - 8);
+      return argframe->arg_ptr + (atoi(t) - 8);
 #else
-    return argframe->arg_ptr + atoi(t);
+      return argframe->arg_ptr + atoi(t);
 #endif
+    }
 }
 
 
@@ -626,7 +681,7 @@ BOOL
 mframe_dissect_call (arglist_t argframe, const char *type,
 		     void (*encoder)(int,void*,const char*,int))
 {
-    return mframe_dissect_call_opts(argframe, type, encoder, NO);
+  return mframe_dissect_call_opts(argframe, type, encoder, NO);
 }
 
 
@@ -828,14 +883,15 @@ mframe_do_call_opts (const char *encoded_types,
   else
     argframe->arg_ptr = 0;
 
-  if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B) {
+  if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B)
+    {
       void	*buf;
 
     /* If we are passing a pointer to return a structure in, we must allocate
        the memory for it and put it in the correct place in the argframe. */
       buf = alloca(objc_sizeof_type(type));
       MFRAME_SET_STRUCT_ADDR(argframe, type, buf);
-  }
+    }
 
   /* Put OBJECT and SELECTOR into the ARGFRAME. */
 
@@ -915,27 +971,29 @@ mframe_do_call_opts (const char *encoded_types,
 	     it.  Set OUT_PARAMETERS accordingly. */
 	  if ((flags & _F_OUT) || !(flags & _F_IN))
 	    out_parameters = YES;
-	  if (pass_pointers) {
-	    if ((flags & _F_IN) || !(flags & _F_OUT))
-	      (*decoder) (argnum, datum, tmptype);
-	  }
-	  else {
-	    /* Handle an argument that is a pointer to a non-char.  But
-	       (void*) and (anything**) is not allowed. */
-	    /* The argument is a pointer to something; increment TYPE
-		 so we can see what it is a pointer to. */
-	    tmptype++;
-	    /* Allocate some memory to be pointed to, and to hold the
-	       value.  Note that it is allocated on the stack, and
-	       methods that want to keep the data pointed to, will have
-	       to make their own copies. */
-	    *(void**)datum = alloca (objc_sizeof_type (tmptype));
-	    /* If the pointer's value is qualified as an IN parameter,
-	       or not explicity qualified as an OUT parameter, then
-	       decode it. */
-	    if ((flags & _F_IN) || !(flags & _F_OUT))
-	      (*decoder) (argnum, *(void**)datum, tmptype);
-	  }
+	  if (pass_pointers)
+	    {
+	      if ((flags & _F_IN) || !(flags & _F_OUT))
+		(*decoder) (argnum, datum, tmptype);
+	    }
+	  else
+	    {
+	      /* Handle an argument that is a pointer to a non-char.  But
+		 (void*) and (anything**) is not allowed. */
+	      /* The argument is a pointer to something; increment TYPE
+		   so we can see what it is a pointer to. */
+	      tmptype++;
+	      /* Allocate some memory to be pointed to, and to hold the
+		 value.  Note that it is allocated on the stack, and
+		 methods that want to keep the data pointed to, will have
+		 to make their own copies. */
+	      *(void**)datum = alloca (objc_sizeof_type (tmptype));
+	      /* If the pointer's value is qualified as an IN parameter,
+		 or not explicity qualified as an OUT parameter, then
+		 decode it. */
+	      if ((flags & _F_IN) || !(flags & _F_OUT))
+		(*decoder) (argnum, *(void**)datum, tmptype);
+	    }
 	  break;
 
 	case _C_STRUCT_B:
@@ -1014,16 +1072,18 @@ mframe_do_call_opts (const char *encoded_types,
       break;
 
     case _C_PTR:
-      if (pass_pointers) {
-        (*encoder) (-1, retframe, tmptype, flags);
-      }
-      else {
-	/* The argument is a pointer to something; increment TYPE
-	   so we can see what it is a pointer to. */
-	tmptype++;
-	/* Encode the value that was pointed to. */
-	(*encoder) (-1, *(void**)retframe, tmptype, flags);
-      }
+      if (pass_pointers)
+	{
+	  (*encoder) (-1, retframe, tmptype, flags);
+	}
+      else
+	{
+	  /* The argument is a pointer to something; increment TYPE
+	     so we can see what it is a pointer to. */
+	  tmptype++;
+	  /* Encode the value that was pointed to. */
+	  (*encoder) (-1, *(void**)retframe, tmptype, flags);
+	}
       break;
 
     case _C_STRUCT_B:
@@ -1145,7 +1205,7 @@ mframe_do_call (const char *encoded_types,
 		void(*decoder)(int,void*,const char*),
 		void(*encoder)(int,void*,const char*,int))
 {
-    mframe_do_call_opts(encoded_types, decoder, encoder, NO);
+  mframe_do_call_opts(encoded_types, decoder, encoder, NO);
 }
 
 
@@ -1238,10 +1298,11 @@ mframe_build_return_opts (arglist_t argframe,
       return __builtin_apply((apply_t)return_short, args, sizeof(void*));
     }
 
-  if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B) {
-    tmptype = alloca((strlen(type)+1)*10);
-    type = mframe_build_signature(type, 0, 0, (char*)tmptype);
-  }
+  if (*type == _C_STRUCT_B || *type == _C_UNION_B || *type == _C_ARY_B)
+    {
+      tmptype = alloca((strlen(type)+1)*10);
+      type = mframe_build_signature(type, 0, 0, (char*)tmptype);
+    }
   /* Get the return type qualifier flags, and the return type. */
   flags = objc_get_type_qualifiers(type);
   tmptype = objc_skip_type_qualifiers(type);
@@ -1279,26 +1340,28 @@ mframe_build_return_opts (arglist_t argframe,
 	  switch (*tmptype)
 	    {
 	    case _C_PTR:
-	      if (pass_pointers) {
-		(*decoder) (-1, retframe, tmptype, flags);
-	      }
-	      else {
-		unsigned retLength;
+	      if (pass_pointers)
+		{
+		  (*decoder) (-1, retframe, tmptype, flags);
+		}
+	      else
+		{
+		  unsigned retLength;
 
-		/* We are returning a pointer to something. */
-		/* Increment TYPE so we can see what it is a pointer to. */
-		tmptype++;
-		retLength = objc_sizeof_type(tmptype);
-		/* Allocate some memory to hold the value we're pointing to. */
-		*(void**)retframe = 
-		  objc_malloc (retLength);
-		/* We are responsible for making sure this memory gets free'd
-		   eventually.  Ask NSData class to autorelease it. */
-		[NSData dataWithBytesNoCopy: *(void**)retframe
-				     length: retLength];
-		/* Decode the return value into the memory we allocated. */
-		(*decoder) (-1, *(void**)retframe, tmptype, flags);
-	      }
+		  /* We are returning a pointer to something. */
+		  /* Increment TYPE so we can see what it is a pointer to. */
+		  tmptype++;
+		  retLength = objc_sizeof_type(tmptype);
+		  /* Allocate memory to hold the value we're pointing to. */
+		  *(void**)retframe = 
+		    objc_malloc (retLength);
+		  /* We are responsible for making sure this memory gets free'd
+		     eventually.  Ask NSData class to autorelease it. */
+		  [NSData dataWithBytesNoCopy: *(void**)retframe
+				       length: retLength];
+		  /* Decode the return value into the memory we allocated. */
+		  (*decoder) (-1, *(void**)retframe, tmptype, flags);
+		}
 	      break;
 
 	    case _C_STRUCT_B: 
@@ -1448,7 +1511,7 @@ mframe_build_return (arglist_t argframe,
 		     BOOL out_parameters,
 		     void(*decoder)(int,void*,const char*,int))
 {
-    return mframe_build_return_opts(argframe,type,out_parameters,decoder,NO);
+  return mframe_build_return_opts(argframe,type,out_parameters,decoder,NO);
 }
 
 
@@ -1456,43 +1519,48 @@ mframe_build_return (arglist_t argframe,
 arglist_t
 mframe_create_argframe(const char *types, void** retbuf)
 {
-    arglist_t	argframe = objc_calloc(MFRAME_ARGS_SIZE, 1);
-    const char*	rtype = objc_skip_type_qualifiers(types);
-    int	stack_argsize = atoi(objc_skip_typespec(rtype));
+  arglist_t	argframe = objc_calloc(MFRAME_ARGS_SIZE, 1);
+  const char*	rtype = objc_skip_type_qualifiers(types);
+  int	stack_argsize = atoi(objc_skip_typespec(rtype));
 
     /*
      *	Allocate the space for variables passed on the stack.
      */
-    if (stack_argsize) {
-	argframe->arg_ptr = objc_calloc(stack_argsize, 1);
+  if (stack_argsize)
+    {
+      argframe->arg_ptr = objc_calloc(stack_argsize, 1);
     }
-    else {
-	argframe->arg_ptr = 0;
+  else
+    {
+      argframe->arg_ptr = 0;
     }
-    if (*rtype == _C_STRUCT_B || *rtype == _C_UNION_B || *rtype == _C_ARY_B) {
-	/*
-	 *	If we haven't been passed a pointer to the location in which
-	 *	to store a returned structure - allocate space and return
-	 *	the address of the allocated space.
-	 */
-	if (*retbuf == 0) {
-	    *retbuf = objc_calloc(objc_sizeof_type(rtype), 1);
+  if (*rtype == _C_STRUCT_B || *rtype == _C_UNION_B || *rtype == _C_ARY_B)
+    {
+      /*
+       *	If we haven't been passed a pointer to the location in which
+       *	to store a returned structure - allocate space and return
+       *	the address of the allocated space.
+       */
+      if (*retbuf == 0)
+	{
+	  *retbuf = objc_calloc(objc_sizeof_type(rtype), 1);
 	}
-	MFRAME_SET_STRUCT_ADDR(argframe, rtype, *retbuf);
+      MFRAME_SET_STRUCT_ADDR(argframe, rtype, *retbuf);
     }
-    return argframe;
+  return argframe;
 }
 
 void
 mframe_destroy_argframe(const char *types, arglist_t argframe)
 {
-    const char*	rtype = objc_skip_type_qualifiers(types);
-    int	stack_argsize = atoi(objc_skip_typespec(rtype));
+  const char*	rtype = objc_skip_type_qualifiers(types);
+  int	stack_argsize = atoi(objc_skip_typespec(rtype));
 
-    if (stack_argsize) {
-	objc_free(argframe->arg_ptr);
+  if (stack_argsize)
+    {
+      objc_free(argframe->arg_ptr);
     }
-    objc_free(argframe);
+  objc_free(argframe);
 }
 
 
@@ -1581,6 +1649,19 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
 	break;
       }
 
+#ifdef	_C_LNG_LNG
+    case _C_LNG_LNG:
+    case _C_ULNG_LNG:
+      {
+	inline unsigned long long retframe_longlong(void *rframe)
+	{
+	  __builtin_return (rframe);
+	}
+	*(unsigned long long*)buffer = retframe_longlong(retframe);
+	break;
+      }
+#endif
+
     case _C_FLT:
       {
 	inline float retframe_float(void *rframe)
@@ -1642,98 +1723,101 @@ mframe_decode_return (const char *type, void* buffer, void* retframe)
 void*
 mframe_handle_return(const char* type, void* retval, arglist_t argframe)
 {
-    retval_t	retframe;
-    typedef struct { id many[8];} __big;
-    __big return_block (void* data)
-    {
-      return *(__big*)data;
-    }
-    /* For returning a char (or unsigned char) */
-    char return_char (char data)
-    {
-      return data;
-    }
-    /* For returning a double */
-    double return_double (double data)
-    {
-      return data;
-    }
-    /* For returning a float */
-    float return_float (float data)
-    {
-      return data;
-    }
-    /* For returning a short (or unsigned short) */
-    short return_short (short data)
-    {
-      return data;
-    }
-    retval_t apply_block(void* data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_block, args, sizeof(void*));
-    }
-    retval_t apply_char(char data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_char, args, sizeof(void*));
-    }
-    retval_t apply_float(float data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_float, args, sizeof(float));
-    }
-    retval_t apply_double(double data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_double, args, sizeof(double));
-    }
-    retval_t apply_short(short data)
-    {
-      void* args = __builtin_apply_args();
-      return __builtin_apply((apply_t)return_short, args, sizeof(void*));
-    }
+  retval_t	retframe;
+  typedef struct { id many[8];} __big;
+  __big return_block (void* data)
+  {
+    return *(__big*)data;
+  }
+  /* For returning a char (or unsigned char) */
+  char return_char (char data)
+  {
+    return data;
+  }
+  /* For returning a double */
+  double return_double (double data)
+  {
+    return data;
+  }
+  /* For returning a float */
+  float return_float (float data)
+  {
+    return data;
+  }
+  /* For returning a short (or unsigned short) */
+  short return_short (short data)
+  {
+    return data;
+  }
+  retval_t apply_block(void* data)
+  {
+    void* args = __builtin_apply_args();
+    return __builtin_apply((apply_t)return_block, args, sizeof(void*));
+  }
+  retval_t apply_char(char data)
+  {
+    void* args = __builtin_apply_args();
+    return __builtin_apply((apply_t)return_char, args, sizeof(void*));
+  }
+  retval_t apply_float(float data)
+  {
+    void* args = __builtin_apply_args();
+    return __builtin_apply((apply_t)return_float, args, sizeof(float));
+  }
+  retval_t apply_double(double data)
+  {
+    void* args = __builtin_apply_args();
+    return __builtin_apply((apply_t)return_double, args, sizeof(double));
+  }
+  retval_t apply_short(short data)
+  {
+    void* args = __builtin_apply_args();
+    return __builtin_apply((apply_t)return_short, args, sizeof(void*));
+  }
 
-    retframe = alloca(MFRAME_RESULT_SIZE);
+  retframe = alloca(MFRAME_RESULT_SIZE);
 
-    switch (*type) {
-	case _C_VOID:
-	    break;
-	case _C_CHR:
-	case _C_UCHR:
-	    return apply_char(*(char*)retval);
-	case _C_DBL:
-	    return apply_double(*(double*)retval);
-	case _C_FLT:
-	    return apply_float(*(float*)retval);
-	case _C_SHT:
-	case _C_USHT:
-	    return apply_short(*(short*)retval);
-	case _C_ARY_B:
-	case _C_UNION_B:
-	case _C_STRUCT_B:
-	    {
-		int    size = objc_sizeof_type(type);
+  switch (*type)
+    {
+      case _C_VOID:
+	break;
+      case _C_CHR:
+      case _C_UCHR:
+	return apply_char(*(char*)retval);
+      case _C_DBL:
+	return apply_double(*(double*)retval);
+      case _C_FLT:
+	return apply_float(*(float*)retval);
+      case _C_SHT:
+      case _C_USHT:
+	return apply_short(*(short*)retval);
+      case _C_ARY_B:
+      case _C_UNION_B:
+      case _C_STRUCT_B:
+	{
+	  int    size = objc_sizeof_type(type);
 #if 1
-		void	*dest;
+	  void	*dest;
 
-		dest = MFRAME_GET_STRUCT_ADDR(argframe, type);
-		memcpy(dest, retval, size);
+	  dest = MFRAME_GET_STRUCT_ADDR(argframe, type);
+	  memcpy(dest, retval, size);
 #else
-		if (size > 8) {
-		    return apply_block(*(void**)retval);
-		}
-		else {
-		    memcpy(retframe, retval, size);
-		}
-#endif
+	  if (size > 8)
+	    {
+	      return apply_block(*(void**)retval);
 	    }
-	    break;
-	default:
-	    memcpy(retframe, retval, objc_sizeof_type(type));
-	    break;
+	  else
+	    {
+	      memcpy(retframe, retval, size);
+	    }
+#endif
+	  break;
+	}
+      default:
+	memcpy(retframe, retval, objc_sizeof_type(type));
+	break;
     }
 
-    return retframe;
+  return retframe;
 }
 
