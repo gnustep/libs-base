@@ -242,15 +242,15 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   xmlSaveFile([filename cString], lib);
 }
 
-- (NSString *) stringValue
+- (NSString*) stringValue
 {
-  NSString *string = nil;
-  xmlChar  *buf = NULL;
-  int       length;
+  NSString	*string = nil;
+  xmlChar	*buf = NULL;
+  int		length;
 
   xmlDocDumpMemory(lib, &buf, &length);
 
-  if(buf && length)
+  if (buf != 0 && length > 0)
     {
       string = [NSString_class stringWithCString: buf length: length];
       xmlFree(buf);

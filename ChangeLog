@@ -1,3 +1,9 @@
+2001-01-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHost.m: New method ([-_addName:]) to add a name to a host.
+	Use it to add the local hostname to the 127.0.0.1 host if there is
+	no IP address set up for the local machine.
+
 2001-01-17  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/GSXML.m|.h ([GSXMLDocument -stringValue]): dump document in a
