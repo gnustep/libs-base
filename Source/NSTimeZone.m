@@ -33,9 +33,9 @@
    2038 problem.)
 
    The local time zone can be specified with the user defaults
-   database, the TZ environment variable, the file LOCAL_TIME_FILE, or
-   the fallback time zone (which is UTC), with the ones listed first
-   having precedence.
+   database, the GNUSTEP_TZ environment variable, the file LOCAL_TIME_FILE,
+   the TZ environment variable, or the fallback time zone (which is UTC),
+   with the ones listed first having precedence.
 
    Any time zone must be a file name in ZONES_DIR.
 
@@ -571,41 +571,61 @@ static NSMapTable	*absolutes = 0;
       zoneDictionary = [[NSMutableDictionary alloc] init];
 
       localZoneString = [[NSUserDefaults standardUserDefaults]
-			  stringForKey: LOCALDBKEY];
+	stringForKey: LOCALDBKEY];
       if (localZoneString == nil)
-        /* Try to get timezone from environment. */
-	localZoneString = [[[NSProcessInfo processInfo]
-			     environment] objectForKey: @"TZ"];
+	{
+	  /*
+	   * Try to get timezone from GNUSTEP_TZ environment variable.
+	   */
+	  localZoneString = [[[NSProcessInfo processInfo]
+	    environment] objectForKey: @"GNUSTEP_TZ"];
+	}
       if (localZoneString == nil)
-       /* Try to get timezone from LOCAL_TIME_FILE. */
-       {
-	 NSString *f = [NSTimeZone getLocalTimeFile];
-         char zone_name[80];
-         FILE *fp;
+	{
+	  /*
+	   * Try to get timezone from LOCAL_TIME_FILE.
+	   */
+	  NSString	*f = [NSTimeZone getLocalTimeFile];
+	  char		zone_name[80];
+	  FILE		*fp;
 
-	 if (f)
-	   {
-#if	defined(__WIN32__)
-	     fp = fopen([f fileSystemRepresentation], "rb");
-#else
-	     fp = fopen([f fileSystemRepresentation], "r");
-#endif
-	     if (fp != NULL)
-	       {
-                 if (fscanf(fp, "%79s", zone_name) == 1)
-                  localZoneString = [NSString stringWithCString: zone_name];
-		 fclose(fp);
-	       }
-	   }
-       }
+	  if (f != 0)
+	    {
+ #if	defined(__WIN32__)
+	      fp = fopen([f fileSystemRepresentation], "rb");
+ #else
+	      fp = fopen([f fileSystemRepresentation], "r");
+ #endif
+	      if (fp != NULL)
+		{
+		  if (fscanf(fp, "%79s", zone_name) == 1)
+		   localZoneString = [NSString stringWithCString: zone_name];
+		  fclose(fp);
+		}
+	    }
+	}
+      if (localZoneString == nil)
+	{
+	  /*
+	   * Try to get timezone from standard unix environment variable.
+	   */
+	  localZoneString = [[[NSProcessInfo processInfo]
+	    environment] objectForKey: @"TZ"];
+	}
       if (localZoneString != nil)
-	localTimeZone = [NSTimeZone timeZoneWithName: localZoneString];
+	{
+	  localTimeZone = [NSTimeZone timeZoneWithName: localZoneString];
+	}
       else
-        NSLog(@"No local time zone specified.");
+	{
+	  NSLog(@"No local time zone specified.");
+	}
 
-      /* If local time zone fails to allocate, then allocate something
-         that is sure to succeed (unless we run out of memory, of
-         course). */
+      /*
+       * If local time zone fails to allocate, then allocate something
+       * that is sure to succeed (unless we run out of memory, of
+       * course).
+       */
       if (localTimeZone == nil)
         {
           NSLog(@"Using time zone with absolute offset 0.");
