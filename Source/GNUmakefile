@@ -293,7 +293,7 @@ NSGSet.h \
 NSHashTable.h \
 NSHost.h \
 NSInvocation.h \
-NSKeyValueEncoding.h \
+NSKeyValueCoding.h \
 NSLock.h \
 NSMapTable.h \
 NSMethodSignature.h \
