@@ -729,10 +729,17 @@ int main(int argc, char *argv[], char *env[])
 
 /**
  * Returns an array containing the arguments supplied to start this
- * process.  NB. In GNUstep, any arguments of the form --GNU-Debug=...
+ * process.<br />
+ * NB. In GNUstep, any arguments of the form --GNU-Debug=...
  * are <em>not</em> included in this array ... they are part of the
  * debug mechanism, and are hidden so that setting debug variables
- * will not effect the normal operation of the program.
+ * will not effect the normal operation of the program.<br />
+ * Please note, the special <code>--GNU-Debug=...</code> syntax differs from
+ * that which is used to specify values for the [NSUserDefaults] system.<br />
+ * User defaults are set on the command line by specifying the default name
+ * (with a leading hyphen) as one argument, and the default value as the
+ * following argument.  The arguments used to set user defaults are
+ * present in the array returned by this method.
  */
 - (NSArray *) arguments
 {

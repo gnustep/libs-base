@@ -161,7 +161,13 @@ static void updateCache(NSUserDefaults *self)
  *   <term><code>NSArgumentDomain</code> ... volatile</term>
  *   <desc>
  *     Contains defaults read from the arguments provided
- *     to the application at startup.
+ *     to the application at startup.<br />
+ *     Pairs of arguments are used for this, with the first argument in
+ *     each pair being the name of a default (with a hyphen prepended)
+ *     and the second argument of the pair being the value of the defalt.<br />
+ *     NB. In GNUstep special arguments of the form <code>--GNU-Debug=...</code>
+ *     are used to enable debugging.  Despite beginning with a hyphen, these
+ *     are not treated as default keys.
  *   </desc>
  *   <term>Application (name of the current process) ... persistent</term>
  *   <desc>
