@@ -212,14 +212,11 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
 {
   if (receiver)
     {
-      if (GSObjCIsInstance(receiver))
-        {
-          return GSGetInstanceMethod(GSObjCClass(receiver), sel);
-        }
-      else if (GSObjCIsClass(receiver))
-        {
-          return GSGetClassMethod(receiver, sel);
-        }
+      return GSGetMethod((GSObjCIsInstance(receiver)
+			  ? GSObjCClass(receiver) : (Class)receiver),
+			 sel,
+			 GSObjCIsInstance(receiver),
+			 YES);
     }
 
   return METHOD_NULL;
@@ -685,11 +682,14 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
     }
   else
     {
-      imp = method_get_imp(GSObjCIsInstance(_target) ?
-	GSGetInstanceMethod(
-	  ((struct objc_class*)_target)->class_pointer, _selector)
-	: GSGetClassMethod(
-	  ((struct objc_class*)_target), _selector));
+      GSMethod method;
+      method = GSGetMethod((GSObjCIsInstance(_target)
+                            ? GSObjCClass(_target)
+                            : _target),
+                           _selector,
+                           GSObjCIsInstance(_target),
+                           YES);
+      imp = method_get_imp(method);
       /*
        * If fast lookup failed, we may be forwarding or something ...
        */

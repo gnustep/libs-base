@@ -8,6 +8,26 @@
 
 2004-08-20  David Ayers  <d.ayers@inode.at>
 
+	* Headers/Foundation/NSMethodSignature.h: 
+	(NSArgumentInfo): Document limitations of NSArgumentInfo's offset
+	and registier information.  Match size for NO_GNUSTEP.
+	(NSMethodSignature): Match ivar name with runtime information.
+	
+	* Source/GSFFCallInvocation.m
+	* Source/GSFFIInvocation.m
+	* Source/NSInvocation.m
+	(gs_method_for_receiver_and_selector)
+	([-invokeWithTarget:]): Use GSGetMethod instead of deprecated
+	GSGetInstanceMethod and GSGetClassMethod.
+	* Source/NSConnection.m ([-_service_typeForSelector]): Ditto.
+	* Source/NSDistantObject.m ([+respondsToSelector]): Ditto.
+	* Source/NSObject.m ([+instanceMethodSignatureForSelector:])
+	([-methodSignatureForSelector:])
+	([+descriptionForInstanceMethod], [-descriptionForMethod]): Ditto.
+	* Source/NSProtocolChecker.m ([-methodSignatureForSelector]): Ditto.
+	* Source/NSProxy.m ([+methodSignatureForSelector])
+	([-methodSignatureForSelector]): Ditto.
+	
 	* Headers/Additions/GNUstepBase/GSObjCRuntime.h
 	(GSFindInstanceVariable, GSGetVariable, GSSetVariable)
 	(GSGetValue, GSSetValue, GSObjCName, GSObjCSelectorName)

@@ -45,6 +45,10 @@ typedef struct	{
   BOOL		isReg;  // extension, available only ifndef NO_GNUSTEP
 } NSArgumentInfo;
  </example>
+ *      <p>NB. The offset and register information my not always be reliable.
+ *      In the past it was dependant of locally maintained platform dependent 
+ *      information.  In the future it may depend on layout information
+ *      supplied by the compiler.<p>
  */
 typedef struct	{
   int		offset;
@@ -54,6 +58,10 @@ typedef struct	{
   unsigned	align;
   unsigned	qual;
   BOOL		isReg;
+#else
+  unsigned	_reserved1;
+  unsigned	_reserved2;
+  BOOL		_reserved3;
 #endif
 } NSArgumentInfo;
 #endif
@@ -77,7 +85,7 @@ typedef struct	{
   unsigned		_argFrameLength;
   unsigned		_numArgs;
 #ifdef STRICT_MACOS_X
-  void			*_dummy;
+  void			*_info;
 #else
   NSArgumentInfo	*_info;
 #endif

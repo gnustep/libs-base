@@ -156,7 +156,7 @@ enum
 
 + (BOOL) respondsToSelector: (SEL)sel
 {
-  return GSGetClassMethod(self, sel) != (GSMethod)0;
+  return GSGetMethod(self, sel, NO, YES) != (GSMethod)0;
 }
 
 + (id) initWithCoder: (NSCoder*)aCoder
