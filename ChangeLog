@@ -1,3 +1,9 @@
+Sat Oct  5 19:53:03 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSData.m ([NSDataMappedFile
+	-initWithContentsOfMappedFile:]): release self and return nil -
+	rather than returning NO, if the path is bad.
+
 2002-10-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSOutput.m: Improve warning code, support text output
