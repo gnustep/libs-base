@@ -1,3 +1,9 @@
+1999-08-29   Michael Hanni  <mhanni@sprintmail.com>
+
+	* Source/NSObjCRuntime.m: added a patch from Tim Bissell
+	<tim.bissell@dresdnerkb.com>. Adds better debugging information
+	for non-existent ivars.
+
 Sat Sep  4  6:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Various process-info related bugfixes.
