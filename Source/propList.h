@@ -684,8 +684,9 @@ nodeToObject(GSXMLNode* node)
       return nil;
     }
   name = [node name];
-  children = elementNode([node children]);
+  children = [node children];
   content = [children content];
+  children = elementNode(children);
 
   if ([name isEqualToString: @"string"])
     {
@@ -727,7 +728,11 @@ nodeToObject(GSXMLNode* node)
 
       while (children != nil)
         {
-          [container addObject: nodeToObject(children)];
+	  id	val;
+
+	  val = nodeToObject(children);
+NSLog(@"Array item %@", [children name], val);
+          [container addObject: val];
           children = elementNode([children next]);
         }
       return container;
@@ -738,11 +743,16 @@ nodeToObject(GSXMLNode* node)
 
       while (children != nil)
         {
-	  NSString	*key = nodeToObject(children);
+	  NSString	*key;
+	  id		val;
 
+	  key = nodeToObject(children);
+NSLog(@"Key name (%@) %@", [children name], key);
           children = elementNode([children next]);
-          [container setObject: nodeToObject(children) forKey: key];
+	  val = nodeToObject(children);
+NSLog(@"Val name (%@) %@", [children name], val);
           children = elementNode([children next]);
+          [container setObject: val forKey: key];
         }
       return container;
     }
