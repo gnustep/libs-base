@@ -1,3 +1,7 @@
+2002-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSeq.h: Fix bug matching sequences with zero length range.
+
 2002-05-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLog.m: Altered logging format for compatibility with
