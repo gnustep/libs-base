@@ -1,3 +1,10 @@
+2000-05-10  Adam Fedor  <fedor@gnu.org>
+
+	* NSBundle.m (-classNamed:): Hacks for getting classes from 
+	_gnustep_bundle.
+	(-principalClass): Likewise.
+	(-load): Don't try to call load bundle if we are _gnustep_bundle.
+
 2000-05-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m: ([-methodSignatureForSelector:])
