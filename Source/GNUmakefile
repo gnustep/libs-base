@@ -226,7 +226,6 @@ Unicode.h \
 UnixFileHandle.h \
 ValueHolding.h \
 behavior.h \
-fake-main.h \
 numbers.h \
 ostream.h \
 o_array.h \

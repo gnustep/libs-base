@@ -1,3 +1,21 @@
+Thu Jul 22 13:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSTimeZone.m:  ([-initWithOffset:]) bugfix by Kai Henningsen
+	* acconfig.h: Removed old libc method of getting NSProcessInfo stuff.
+	* aclocal.m4: Removed old libc method of getting NSProcessInfo stuff.
+	* configure.in: Added new '/proc' method of getting NSProcessInfo stuff
+	by Nico Pero, with modifications and --enable-fake-main
+	* Headers/GSConfig.h.in: New NSProcessInfo stuff
+	* Headers/NSObject.h: Remove fake-main include - use GSConfig.h
+	* Headers/config.h.in: Remove fake-main include - use GSConfig.h
+	* Headers/preface.h.in: Remove fake-main include - use GSConfig.h
+	* Source/GNUmakefile: Remove fake-main.h
+	* Source/Makefile.postamble: NSProcessInfo.o depends on GSConfig.h
+	* Source/NSLog.m: Bugfix - set up pointer to log function.
+	* Source/NSProcessInfo.m: Remove old hack for getting process info
+	and add new '/proc' method, along with improvements to the fake-main
+	mechanism.
+
 Tue Jul 20 15:45:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSCalendarDate.m: ([initWithString:calendarFormat:locale:])

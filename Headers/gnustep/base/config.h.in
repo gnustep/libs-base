@@ -16,7 +16,6 @@
    byte first (like Motorola and SPARC, unlike Intel and VAX).  */
 #undef WORDS_BIGENDIAN
 
-#undef SYS_AUTOLOAD
 #undef CON_AUTOLOAD
 
 #undef NeXT_cc
@@ -26,6 +25,15 @@
 
 /* Define if you have the register_printf_function function.  */
 #undef HAVE_REGISTER_PRINTF_FUNCTION
+
+/* Define if your kernel supports the /proc filesystem */
+#undef HAVE_PROC_FS
+
+/* Define if your Obj-C compiler calls +load methods before main */
+#undef HAVE_LOAD_METHOD 
+
+/* Define if your Lib C defines program_invocation_name */
+#undef HAVE_PROGRAM_INVOCATION_NAME
 
 /* The number of bytes in a double.  */
 #undef SIZEOF_DOUBLE
@@ -47,6 +55,9 @@
 
 /* The number of bytes in a void*.  */
 #undef SIZEOF_VOIDP
+
+/* Define if you have the asprintf function.  */
+#undef HAVE_ASPRINTF
 
 /* Define if you have the getcwd function.  */
 #undef HAVE_GETCWD

@@ -62,45 +62,9 @@ else
 fi
 ])
 
-AC_DEFUN(OBJC_SYS_AUTOLOAD,
-#--------------------------------------------------------------------
-# Guess if we are using a object file format that supports automatic
-# loading of init functions.
-#
-# Makes the following substitutions:
-#	Defines SYS_AUTOLOAD (whether initializer functions are autoloaded)
-#--------------------------------------------------------------------
-[AC_MSG_CHECKING(loading of initializer functions)
-AC_CACHE_VAL(objc_cv_subinit_worked,
-[AC_TRY_RUN([
-static char *argv0 = 0;
-static char *env0 = 0;
-static void args_test (int argc, char *argv[], char *env[])
-{
-  argv0 = argv[0];
-  env0 = env[0];
-}
-static void * __libobjects_subinit_args__
-__attribute__ ((section ("__libc_subinit"))) = &(args_test);
-int main(int argc, char *argv[])
-{
-  if (argv[0] == argv0 && env[0] == env0)
-    exit (0);
-  exit (1);
-}
-], objc_cv_subinit_worked=yes, objc_cv_subinit_worked=no, objc_cv_subinit_worked=no)])
-if test $objc_cv_subinit_worked = yes; then
-  AC_DEFINE(SYS_AUTOLOAD)
-  AC_MSG_RESULT(yes)
-else
-  AC_MSG_RESULT(no)
-fi
-])
-
 AC_DEFUN(OBJC_SYS_DYNAMIC_LINKER,
 [dnl
 AC_REQUIRE([OBJC_CON_AUTOLOAD])dnl
-AC_REQUIRE([OBJC_SYS_AUTOLOAD])dnl
 #--------------------------------------------------------------------
 # Guess the type of dynamic linker for the system
 #
@@ -126,7 +90,6 @@ AC_SUBST(DYNAMIC_LINKER)dnl
 AC_DEFUN(OBJC_SYS_DYNAMIC_FLAGS,
 [dnl
 AC_REQUIRE([OBJC_CON_AUTOLOAD])dnl
-AC_REQUIRE([OBJC_SYS_AUTOLOAD])dnl
 AC_REQUIRE([OBJC_SYS_DYNAMIC_LINKER])dnl
 #--------------------------------------------------------------------
 # Set the flags for compiling dynamically loadable objects

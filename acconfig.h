@@ -1,7 +1,6 @@
 /* Macros that may be defined by the aclocal.m4 extentions to `configure' 
    for GNUstep Base Library. */
 
-#undef SYS_AUTOLOAD
 #undef CON_AUTOLOAD
 
 #undef NeXT_cc
@@ -117,3 +116,12 @@
 
 /* Define if you have the <values.h> header file.  */
 #undef HAVE_VALUES_H
+
+/* Define if your kernel supports the /proc filesystem */
+#undef HAVE_PROC_FS
+
+/* Define if your Obj-C compiler calls +load methods before main */
+#undef HAVE_LOAD_METHOD 
+
+/* Define if your Lib C defines program_invocation_name */
+#undef HAVE_PROGRAM_INVOCATION_NAME

@@ -1,5 +1,5 @@
 /* Implementation for NSProcessInfo for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995-1999 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev, EMBL & Academia Naturalis, 
                 Heidelberg, Germany
@@ -24,7 +24,6 @@
 
 /*************************************************************************
  * File Name  : NSProcessInfo.m
- * Version    : 0.6 beta
  * Date       : 06-aug-1995
  *************************************************************************
  * Notes      : 
@@ -40,14 +39,14 @@
  * 1) To test the class on more platforms;
  * 2) To change the format of the string renurned by globallyUniqueString;
  * Bugs       : Not known
- * Last update: 08-aug-1995
+ * Last update: 22-jul-1999
  * History    : 06-aug-1995    - Birth and the first beta version (v. 0.5);
  *              08-aug-1995    - V. 0.6 (tested on NS, SunOS, Solaris, OSF/1
  *              The use of the environ global var was changed to more 
  *              conventional env[] (main function) so now the class could be
  *              used on SunOS and Solaris. [GT]
  *************************************************************************
- * Acknowledgments:
+ * Acknowledgments: 
  * - Adam Fedor, Andrew McCallum, and Paul Kunz for their help;
  * - To the NEXTSTEP/GNUStep community
  *************************************************************************/
@@ -62,6 +61,10 @@
 #include <netdb.h>
 #endif /* !__WIN32__ */
 
+#ifdef HAVE_STRERROR 
+#include <errno.h>
+#endif /* HAVE_STRERROR */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,34 +78,44 @@
 #include <Foundation/NSAutoreleasePool.h>
 
 /* This error message should be called only if the private main function
- * was not executed successfully. This may heppen ONLY if onother library
+ * was not executed successfully. This may happen ONLY if another library
  * or kit defines its own main function (as gnustep-base does).
  */
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"GNUSTEP Internal Error: \
-The private GNUstep function to establish the argv and environment \
-variables was not called. Please report this error to bug-gnustep@gnu.org."
+#if GS_FAKE_MAIN
+#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
+The private GNUstep function to establish the argv and environment\n\
+variables was not called.\n\
+Perhaps your program failed to #include <Foundation/NSObject.h> or\n\
+<Foundation/Foundation.h>?\n\
+If that is not the problem, Please report the error to bug-gnustep@gnu.org.\n\n"
+#else
+#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
+The private GNUstep function to establish the argv and environment\n\
+variables was not called.\n\
+Please report the error to bug-gnustep@gnu.org.\n\n"
+#endif
 
 /*************************************************************************
  *** _NSConcreteProcessInfo
  *************************************************************************/
-@interface _NSConcreteProcessInfo:NSProcessInfo
-- (id)autorelease;
-- (void)release;
-- (id)retain;
+@interface _NSConcreteProcessInfo: NSProcessInfo
+- (id) autorelease;
+- (void) release;
+- (id) retain;
 @end
 
 @implementation _NSConcreteProcessInfo
-- (id)autorelease
+- (id) autorelease
 {
   return self;
 }
 
-- (void)release
+- (void) release
 {
   return;
 }
 
-- (id)retain
+- (id) retain
 {
   return self;
 }
@@ -116,25 +129,25 @@ variables was not called. Please report this error to bug-gnustep@gnu.org."
  *** Static global vars
  *************************************************************************/
 // The shared NSProcessInfo instance
-static NSProcessInfo* _gnu_sharedProcessInfoObject = nil;
+static NSProcessInfo	*_gnu_sharedProcessInfoObject = nil;
 
 // Host name of the CPU executing the process
-static NSString* _gnu_hostName = nil;   
+static NSString		*_gnu_hostName = nil;   
 
 // Current process name
-static NSString* _gnu_processName = nil;
+static NSString		*_gnu_processName = nil;
 
 // Array of NSStrings (argv[1] .. argv[argc-1])
-static NSArray* _gnu_arguments = nil;
+static NSArray		*_gnu_arguments = nil;
 
 // Dictionary of environment vars and their values
-static NSMutableDictionary* _gnu_environment = nil;
+static NSMutableDictionary	*_gnu_environment = nil;
 
 // Array of debug levels set.
-static NSMutableSet* _debug_set = nil;
+static NSMutableSet	*_debug_set = nil;
 
 /*************************************************************************
- *** Implementing the Libobjects main function
+ *** Implementing the gnustep_base_user_main function
  *************************************************************************/
 
 static void 
@@ -144,31 +157,33 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   int i;
 
   /* Getting the process name */
-  _gnu_processName = [[NSString alloc] initWithCString:argv[0]];
-	
+  _gnu_processName = [[NSString alloc] initWithCString: argv[0]];
+
   /* Copy the argument list */
   {
     NSMutableSet	*mySet;
-    id obj_argv[argc];
-    int added = 0;
+    id			obj_argv[argc];
+    int			added = 0;
 
-    mySet = [[NSMutableSet alloc] init];
+    mySet = [NSMutableSet new];
     for (i = 0; i < argc; i++) 
       {
-	NSString	*str = [NSString stringWithCString:argv[i]];
+	NSString	*str = [NSString stringWithCString: argv[i]];
+
 	if ([str hasPrefix: @"--GNU-Debug="])
 	  [mySet addObject: [str substringFromIndex: 12]];
 	else
           obj_argv[added++] = str;
       }
-    _gnu_arguments = [[NSArray alloc] initWithObjects:obj_argv count:added];
+    _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
     _debug_set = mySet;
   }
 	
   /* Copy the evironment list */
   {
-    NSMutableArray *keys = [NSMutableArray new];
-    NSMutableArray *values = [NSMutableArray new];
+    NSMutableArray	*keys = [NSMutableArray new];
+    NSMutableArray	*values = [NSMutableArray new];
+
     i = 0;
     while (env[i]) 
       {
@@ -200,6 +215,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 #else
         int	len = strlen(env[i]);
 	char	*cp = strchr(env[i], '=');
+
 	if (len && cp)
 	  {
 	    char	buf[len+2];
@@ -213,86 +229,191 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 #endif
 	i++;
       }
-    _gnu_environment = [[NSDictionary alloc] initWithObjects:values
-					     forKeys:keys];
-    /* Do this explicitly, because we probably don't have 
-       a NSAutoreleasePool initialized yet. */
+    _gnu_environment = [[NSDictionary alloc] initWithObjects: values
+						     forKeys: keys];
     [keys release];
     [values release];
   }
   [arp release];
 }
 
-/* Place the _gnu_process_args function in the _libc_subinit section so
-   that it automatically gets called before main with the argument and
-   environment pointers. FIXME: Would like to do something similar
-   for other formats besides ELF. */
-#if (!defined(__FreeBSD__)) && defined(SYS_AUTOLOAD)
-#ifdef linux
-
-/* Under linux the functions in __libc_subinit are called before the
- * global constructiors, therefore, we cannot send methods to any objects
+#if !GS_FAKE_MAIN && (defined(HAVE_PROC_FS) && defined(HAVE_LOAD_METHOD))
+/*
+ * We have to save program arguments and environment before main () is
+ * executed, because main () could modify their values before we get a
+ * chance to read them 
  */
+static int	_gnu_noobjc_argc;
+static char	**_gnu_noobjc_argv;
+static char	**_gnu_noobjc_env;
 
-static int _gnu_noobjc_argc;
-static char **_gnu_noobjc_argv;
-static char **_gnu_noobjc_env;
-
-static void 
-_gnu_process_noobjc_args(int argc, char *argv[], char *env[])
+/*
+ * The +load method (an extension of the GNU compiler) is invoked
+ * before main and +initialize (for this class) is executed.  This is
+ * guaranteed if +load contains only pure C code, as we have here. 
+ */
++ (void) load 
 {
-  int i;
-
-  /* We have to copy these in case the main() modifies their values
-   * somehow before we get a change to use them
+  /*
+   * Now we have the problem of reading program arguments and
+   * environment.  We take the environment from extern char **environ, and
+   * the program arguments from the /proc filesystem. 
    */
-
-  _gnu_noobjc_argc = argc;
-  i = 0;
-  while (argv[i])
-    i++;
-  _gnu_noobjc_argv = malloc(sizeof(char *)*(i+1));
-  if (_gnu_noobjc_argv == NULL)
-    goto error;
-  i = 0;
-  while (*argv)
-    {
-      _gnu_noobjc_argv[i] = malloc(strlen(*argv)+1);
-      if (_gnu_noobjc_argv[i] == NULL)
-	goto error;
-      strcpy(_gnu_noobjc_argv[i],*argv);
-      argv++;
-      i++;
-    }
-  _gnu_noobjc_argv[i] = 0;
-  i = 0;
-  while (env[i])
-    i++;
-  _gnu_noobjc_env = malloc(sizeof(char *)*(i+1));
+  extern char	**environ;
+  char		*proc_file_name = NULL;
+  FILE		*ifp;
+  int		c;
+  int		argument;
+  int		length;
+  int		position; 
+  int		env_terms;
+#ifdef HAVE_PROGRAM_INVOCATION_NAME
+  extern char	*program_invocation_name;
+#endif /* HAVE_PROGRAM_INVOCATION_NAME */
+  
+  // Read environment 
+  c = 0;
+  while (environ[c] != NULL)
+    c++;
+  env_terms = c;
+  _gnu_noobjc_env = (char**)malloc(sizeof(char*) * (env_terms + 1));
   if (_gnu_noobjc_env == NULL)
-    goto error;
-  i = 0;
-  while(*env)
+    goto malloc_error;
+  for (c = 0; c < env_terms; c++)
     {
-      _gnu_noobjc_env[i] = malloc(strlen(*env)+1);
-      if (_gnu_noobjc_env[i] == NULL)
-	goto error;
-      strcpy(_gnu_noobjc_env[i],*env);
-      env++;
-      i++;
+      _gnu_noobjc_env[c] = (char *)strdup(environ[c]);
+      if (_gnu_noobjc_env[c] == NULL)
+	goto malloc_error;
     }
-  _gnu_noobjc_env[i] = 0;
+  _gnu_noobjc_env[c] = NULL;
+
+  // Read commandline 
+  proc_file_name = (char *)malloc(sizeof(char) * 2048);
+  sprintf(proc_file_name, "/proc/%d/cmdline", (int) getpid());
+
+  /*
+   * We read the /proc file thrice. 
+   * First, to know how many arguments there are and allocate memory for them.
+   * Second, to know how long each argument is, and allocate memory accordingly.
+   * Third, to actually copy the arguments into memory. 
+   */
+  _gnu_noobjc_argc = 0;
+#ifdef HAVE_STRERROR
+  errno = 0;
+#endif /* HAVE_STRERROR */
+  ifp = fopen(proc_file_name, "r");
+  if (ifp == NULL)
+    goto proc_fs_error;
+  while (1)
+    {
+      c = getc(ifp);
+      if (c == 0)
+	_gnu_noobjc_argc++;
+      else if (c == EOF)
+	break;
+    }
+  _gnu_noobjc_argc++;
+  /*
+   * Now _gnu_noobcj_argc is the number of arguments;
+   * allocate memory accordingly.
+   */
+  _gnu_noobjc_argv = (char **)malloc((sizeof(char *)) * (_gnu_noobjc_argc + 1));
+  if (_gnu_noobjc_argv == NULL)
+    goto malloc_error;
+
+  freopen(proc_file_name, "r", ifp);
+  if (ifp == NULL)
+    {
+      free(_gnu_noobjc_argv);
+      goto proc_fs_error;
+    }
+  argument = 0;
+  length = 0;
+  while (1)
+    {
+      c = getc(ifp);
+      length++;
+      if ((c == EOF) || (c == 0)) // End of a parameter 
+	{ 
+	  _gnu_noobjc_argv[argument] = (char*)malloc((sizeof(char))*length);
+	  if (_gnu_noobjc_argv[argument] == NULL)
+	    goto malloc_error;
+	  argument++;
+	  if (c == EOF) // End of command line
+	    break;
+	  length = 0;
+	}
+    }
+  freopen(proc_file_name, "r", ifp);
+  if (ifp == NULL)
+    {
+      for (c = 0; c < _gnu_noobjc_argc; c++)
+	free(_gnu_noobjc_argv[c]);
+      free(_gnu_noobjc_argv);
+      goto proc_fs_error;
+    }
+  argument = 0;
+  position = 0;
+  while (1)
+    {
+      c = getc(ifp);
+      if ((c == EOF) || (c == 0)) // End of a parameter 
+	{ 
+	  _gnu_noobjc_argv[argument][position] = '\0';
+	  argument++;
+	  if (c == EOF) // End of command line
+	    break;
+	  position = 0;
+	  continue;
+	}
+      _gnu_noobjc_argv[argument][position] = c;
+      position++;
+    }
+  _gnu_noobjc_argv[argument] = NULL;
+  fclose(ifp);
+  free(proc_file_name);
   return;
 
- error:
-  fputs("malloc() error when starting gstep-base\n", stderr);
+ proc_fs_error: 
+#ifdef HAVE_STRERROR
+  fprintf(stderr, "Couldn't open file %s when starting gnustep-base; %s\n", 
+	   proc_file_name, strerror(errno));
+#else  /* !HAVE_FUNCTION_STRERROR */ 
+  fprintf(stderr, "Couldn't open file %s when starting gnustep-base.\n", 
+	   proc_file_name);
+#endif /* HAVE_FUNCTION_STRERROR */
+  fprintf(stderr, "Your gnustep-base library is compiled for a kernel supporting the /proc filesystem, but it can't access it.\n"); 
+  fprintf(stderr, "You should recompile or change your kernel.\n");
+#ifdef HAVE_PROGRAM_INVOCATION_NAME 
+  fprintf(stderr, "We try to go on anyway; but the program will ignore any argument which were passed to it.\n");
+  _gnu_noobjc_argc = 1;
+  _gnu_noobjc_argv = malloc(sizeof(char *) * 2);
+  if (_gnu_noobjc_argv == NULL)
+    goto malloc_error;
+  _gnu_noobjc_argv[0] = strdup(program_invocation_name);
+  if (_gnu_noobjc_argv[0] == NULL)
+    goto malloc_error;
+  _gnu_noobjc_argv[1] = NULL;
+  return;
+#else /* !HAVE_PROGRAM_INVOCATION_NAME */
+  /*
+   * There is really little sense in going on here, because NSBundle
+   * will anyway crash later if we just put something like "_Unknown_"
+   * as the program name.  
+   */
+  abort();
+#endif /* HAVE_PROGRAM_INVOCATION_NAME */
+ malloc_error: 
+  fprintf(stderr, "malloc() error when starting gnustep-base.\n");
+  fprintf(stderr, "Free some memory and then re-run the program.\n");
   abort();
 }
 
-static void _gnu_noobjc_free_vars(void)
+static void 
+_gnu_noobjc_free_vars(void)
 {
   char **p;
-
+  
   p = _gnu_noobjc_argv;
   while (*p)
     {
@@ -312,33 +433,25 @@ static void _gnu_noobjc_free_vars(void)
   _gnu_noobjc_env = 0;
 }
 
-void * __gnustep_base_subinit_args__
-__attribute__ ((section ("__libc_subinit"))) = &(_gnu_process_noobjc_args);
-
 + (void) initialize
 {
   if (!_gnu_processName && !_gnu_arguments && !_gnu_environment)
     {
       NSAssert(_gnu_noobjc_argv && _gnu_noobjc_env,
-			_GNU_MISSING_MAIN_FUNCTION_CALL);
-      _gnu_process_args(_gnu_noobjc_argc,_gnu_noobjc_argv,_gnu_noobjc_env);
+	_GNU_MISSING_MAIN_FUNCTION_CALL);
+      _gnu_process_args(_gnu_noobjc_argc, _gnu_noobjc_argv, _gnu_noobjc_env);
       _gnu_noobjc_free_vars();
     }
 }
+#else /* !HAVE_PROC_FS || !HAVE_LOAD_METHOD */
 
-#else
-static void * __gnustep_base_subinit_args__
-__attribute__ ((section ("_libc_subinit"))) = &(_gnu_process_args);
-#endif /* linux */
-
-#else
 #ifdef __MINGW32__
 /* For Windows32API Library, we know the global variables */
 extern int __argc;
 extern char** __argv;
 extern char** _environ;
 
-+ (void)initialize
++ (void) initialize
 {
   if (self == [NSProcessInfo class])
     _gnu_process_args(__argc, __argv, _environ);
@@ -366,15 +479,16 @@ int main(int argc, char *argv[], char *env[])
   _gnu_process_args(argc, argv, env);
 
   /* Call the user defined main function */
-  return gnustep_base_user_main (argc, argv, env);
+  return gnustep_base_user_main(argc, argv, env);
 }
 #endif /* __MINGW32__ */
-#endif /* __ELF__ */
+
+#endif /* HAS_LOAD_METHOD && HAS_PROC_FS */ 
 
 /*************************************************************************
  *** Getting an NSProcessInfo Object
  *************************************************************************/
-+ (NSProcessInfo *)processInfo
++ (NSProcessInfo *) processInfo
 {
   // Check if the main() function was successfully called
   // We can't use NSAssert, which calls NSLog, which calls NSProcessInfo...
@@ -382,7 +496,7 @@ int main(int argc, char *argv[], char *env[])
     {
       _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
       [NSException raise: NSInternalInconsistencyException
-	       format: _GNU_MISSING_MAIN_FUNCTION_CALL];
+	          format: _GNU_MISSING_MAIN_FUNCTION_CALL];
     }
 
   if (!_gnu_sharedProcessInfoObject)
@@ -394,7 +508,7 @@ int main(int argc, char *argv[], char *env[])
 /*************************************************************************
  *** Returning Process Information
  *************************************************************************/
-- (NSArray *)arguments
+- (NSArray *) arguments
 {
   return _gnu_arguments;
 }
@@ -404,29 +518,29 @@ int main(int argc, char *argv[], char *env[])
   return _debug_set;
 }
 
-- (NSDictionary *)environment
+- (NSDictionary *) environment
 {
   return _gnu_environment;
 }
 
-- (NSString *)hostName
+- (NSString *) hostName
 {
   if (!_gnu_hostName) 
     {
       char hn[MAXHOSTNAMELEN];
 
       gethostname(hn, MAXHOSTNAMELEN);
-      _gnu_hostName = [[NSString alloc] initWithCString:hn];
+      _gnu_hostName = [[NSString alloc] initWithCString: hn];
     }
   return _gnu_hostName;
 }
 
-- (NSString *)processName
+- (NSString *) processName
 {
   return _gnu_processName;
 }
 
-- (NSString *)globallyUniqueString
+- (NSString *) globallyUniqueString
 {
   int	pid;
 
@@ -439,7 +553,7 @@ int main(int argc, char *argv[], char *env[])
   // $$$ The format of the string is not specified by the OpenStep 
   // specification. It could be useful to change this format after
   // NeXTSTEP release 4.0 comes out.
-  return [NSString stringWithFormat:@"%s:%d:[%s]",
+  return [NSString stringWithFormat: @"%s: %d: [%s]",
 		   [[self hostName] cString],
 		   pid,
 		   [[[NSDate date] description] cString]];
@@ -448,11 +562,11 @@ int main(int argc, char *argv[], char *env[])
 /*************************************************************************
  *** Specifying a Process Name
  *************************************************************************/
-- (void)setProcessName:(NSString *)newName
+- (void) setProcessName: (NSString *)newName
 {
   if (newName && [newName length]) {
     [_gnu_processName autorelease];
-    _gnu_processName = [newName copyWithZone:[self zone]];
+    _gnu_processName = [newName copyWithZone: [self zone]];
   }
   return;
 }

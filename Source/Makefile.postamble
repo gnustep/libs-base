@@ -195,6 +195,7 @@ $(GNUSTEP_OBJ_DIR)/NSConnection.o \
 $(GNUSTEP_OBJ_DIR)/NSData.o \
 $(GNUSTEP_OBJ_DIR)/NSInvocation.o \
 $(GNUSTEP_OBJ_DIR)/NSMethodSignature.o \
+$(GNUSTEP_OBJ_DIR)/NSProcessInfo.o \
 $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
 	: $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/GSConfig.h 
 
