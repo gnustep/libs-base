@@ -269,6 +269,29 @@ NSString *NSConnectionLocalCount;
 
 NSString *NSConnectionProxyCount;
 
+/*
+ * Keys for NSURLHandle
+ */
+NSString *NSHTTPPropertyStatusCodeKey;
+
+NSString *NSHTTPPropertyStatusReasonKey;
+
+NSString *NSHTTPPropertyServerHTTPVersionKey;
+ 
+NSString *NSHTTPPropertyRedirectionHeadersKey;
+
+NSString *NSHTTPPropertyErrorPageDataKey;
+ 
+/* These are GNUstep extras */
+NSString *GSHTTPPropertyMethodKey;
+
+NSString *GSHTTPPropertyProxyHostKey;
+
+NSString *GSHTTPPropertyProxyPortKey;
+ 
+NSString *GSHTTPBodyKey;
+
+
 
 /*
  *	Setup function called when NSString is initialised.
@@ -475,6 +498,26 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "PortBecameInvalidNotification"];
       StreamException
 	= [[SClass alloc] initWithCString: "StreamException"];
+
+      NSHTTPPropertyStatusCodeKey
+	= [[SClass alloc] initWithCString: "HTTPPropertyStatusCodeKey"];
+      NSHTTPPropertyStatusReasonKey
+	= [[SClass alloc] initWithCString: "HTTPPropertyStatusReasonKey"];
+      NSHTTPPropertyServerHTTPVersionKey
+	= [[SClass alloc] initWithCString: "HTTPPropertyServerHTTPVersionKey"];
+      NSHTTPPropertyRedirectionHeadersKey
+	= [[SClass alloc] initWithCString: "HTTPPropertyRedirectionHeadersKey"];
+      NSHTTPPropertyErrorPageDataKey
+	= [[SClass alloc] initWithCString: "HTTPPropertyErrorPageDataKey"];
+
+      GSHTTPPropertyMethodKey
+	= [[SClass alloc] initWithCString: "GSHTTPPropertyMethodKey"];
+      GSHTTPPropertyProxyHostKey
+	= [[SClass alloc] initWithCString: "GSHTTPPropertyProxyHostKey"];
+      GSHTTPPropertyProxyPortKey
+	= [[SClass alloc] initWithCString: "GSHTTPPropertyProxyPortKey"];
+      GSHTTPBodyKey
+	= [[SClass alloc] initWithCString: "GSHTTPBodyKey"];
     }
 }
 

@@ -37,6 +37,13 @@ GS_EXPORT NSString *NSHTTPPropertyServerHTTPVersionKey;
 GS_EXPORT NSString *NSHTTPPropertyRedirectionHeadersKey;
 GS_EXPORT NSString *NSHTTPPropertyErrorPageDataKey;
 
+#ifndef	NO_GNUSTEP
+GS_EXPORT NSString *GSHTTPPropertyMethodKey;
+GS_EXPORT NSString *GSHTTPPropertyProxyHostKey;
+GS_EXPORT NSString *GSHTTPPropertyProxyPortKey;
+GS_EXPORT NSString *GSHTTPBodyKey;
+#endif
+
 typedef enum
 {
   NSURLHandleNotLoaded = 0,

@@ -81,6 +81,7 @@
   unsigned		lineEnd;
   unsigned		input;
   BOOL			inBody;
+  BOOL			complete;
   NSData		*boundary;
   GSMimeDocument	*document;
   GSMimeParser		*child;
@@ -90,6 +91,7 @@
 + (GSMimeParser*) mimeParser;
 
 - (GSMimeCodingContext*) contextFor: (NSDictionary*)headerInfo;
+- (NSData*) data;
 - (BOOL) decodeData: (NSData*)sData
 	  fromRange: (NSRange)aRange
 	   intoData: (NSMutableData*)dData

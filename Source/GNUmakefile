@@ -327,6 +327,7 @@ NSURLHandle.h
 ifeq ($(HAVE_LIBXML),1)
 BASE_HEADERS += GSXML.h
 endif
+BASE_HEADERS += GSMime.h
 
 UNICODE_HEADERS = \
 unicode/caseconv.h \
