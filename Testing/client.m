@@ -98,7 +98,11 @@ int main(int argc, char *argv[])
   printf(">>returned foo: i=%d s=%s l=%lu\n",
 	 f2.i, f2.s, f2.l);
 #endif
-  [p sendDouble:dbl andFloat:98.6];
+  {
+    float f = 98.6f;
+    printf(">>sending double %f, float %f\n", dbl, f);
+    [p sendDouble:dbl andFloat:f];
+  }
   dbl_ptr = [p doDoublePointer:&dbl];
   printf(">>got double %f from server\n", *dbl_ptr);
   [p sendCharPtrPtr:&string];
