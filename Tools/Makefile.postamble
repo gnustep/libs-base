@@ -19,15 +19,29 @@
 
 # Things to do after installing
 after-install::
-	if [ "`whoami`" != "root" ]; then \
+	@if [ "`whoami`" != "root" ]; then \
+	  echo ""; \
+	  echo "************************************************************"; \
 	  echo "WARNING: gdomap MUST be installed owned by root and with"; \
 	  echo "the 's-bit' set unless you defined 'GDOMAP_PORT_OVERRIDE' in"; \
 	  echo "gdomap.h before compiling gdomap.c and NSPortNameServer.m"; \
 	  echo "in which case you should install it by hand."; \
+	  echo "************************************************************"; \
+	  echo ""; \
 	else \
+	  echo "Installing gdomap and gdnc in $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR)"; \
 	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdomap $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR); \
-	  $(INSTALL) -m 05755 $(GNUSTEP_OBJ_DIR)/gdnc $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR); \
+	  $(INSTALL) -m 0755 $(GNUSTEP_OBJ_DIR)/gdnc $(GNUSTEP_INSTALLATION_DIR)/Tools/$(GNUSTEP_TARGET_DIR); \
 	fi; \
+	echo "************************************************************"; \
+	echo "WARNING: if gdomap is started automatically, it will probe"; \
+	echo "all machines on your network periodically so that it can make"; \
+	echo "services on remote systems available to your local programs"; \
+	echo "If this is not what you want, gdomap must be started with the"; \
+	echo "-p flag (to disable probing) or the -c flag (to specify which"; \
+	echo "remote systems should be probed), and you should addd this"; \
+	echo "startup command to your system boot scripts!"; \
+	echo "************************************************************"; \
 
 # Things to do before uninstalling
 # before-uninstall::
