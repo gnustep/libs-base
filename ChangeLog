@@ -1,3 +1,8 @@
+2004-01-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Added two new MacOS-X initialisers.
+	* Headers/Foundation/NSString.h: ditto
+
 2004-01-28  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSString.m:
