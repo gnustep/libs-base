@@ -20,6 +20,7 @@
 
 #include "config.h"
 #include	<Foundation/NSArray.h>
+#include	<Foundation/NSData.h>
 #include	<Foundation/NSException.h>
 #include	<Foundation/NSString.h>
 #include	<Foundation/NSProcessInfo.h>
@@ -27,6 +28,71 @@
 #include	<Foundation/NSDebug.h>
 #include	<Foundation/NSAutoreleasePool.h>
 
+int
+convert_unicode(NSArray *args)
+{
+  int i;
+
+  for (i = 2; i < [args count]; i++)
+    {
+      NSString	*file = [args objectAtIndex: i];
+      
+      NS_DURING
+	{
+	  NSData        *data;
+	  NSString	*myString;
+	  NSString      *output;
+
+	  data = [NSData dataWithContentsOfFile: file];
+	  myString = [[NSString alloc] initWithData: data
+				       encoding: NSUTF8StringEncoding];
+	  AUTORELEASE(myString);
+	  if ([myString length] == 0)
+	    myString = [[NSString alloc] initWithData: data
+					 encoding: [NSString defaultCStringEncoding]];
+	  output = [[file lastPathComponent]
+		     stringByAppendingPathExtension: @"unicode"];
+	  data = [myString dataUsingEncoding: NSUnicodeStringEncoding];
+	  [data writeToFile: output atomically: YES];
+	}
+      NS_HANDLER
+	{
+	  NSLog(@"Converting '%@' - %@", file, [localException reason]);
+	}
+      NS_ENDHANDLER
+    }
+  return 0;
+}
+
+int
+convert_utf8(NSArray *args)
+{
+  int i;
+
+  for (i = 2; i < [args count]; i++)
+    {
+      NSString	*file = [args objectAtIndex: i];
+      
+      NS_DURING
+	{
+	  NSData        *data;
+	  NSString	*myString;
+	  NSString      *output;
+
+	  myString = [NSString stringWithContentsOfFile: file];
+	  output = [[file lastPathComponent]
+		     stringByAppendingPathExtension: @"utf8"];
+	  data = [myString dataUsingEncoding: NSUTF8StringEncoding];
+	  [data writeToFile: output atomically: YES];
+	}
+      NS_HANDLER
+	{
+	  NSLog(@"Converting '%@' - %@", file, [localException reason]);
+	}
+      NS_ENDHANDLER
+    }
+  return 0;
+}
 
 int
 main(int argc, char** argv, char **env)
@@ -50,9 +116,20 @@ main(int argc, char** argv, char **env)
 
   args = [proc arguments];
 
-  if ([args count] <= 1)
+  if ([args count] <= 1 || [[args objectAtIndex: 1] isEqual: @"--help"]
+      || [[args objectAtIndex: 1] isEqual: @"-h"])
     {
-      NSLog(@"No file names given to parse.");
+      printf("Usage: sfparse [--utf8] filename.\n");
+      printf("--unicode    - convert an ASCII or UTF8 file to Unicode\n");
+      printf("--utf8       - convert an ASCII or Unicode to UTF8\n");
+    }
+  else if ([[args objectAtIndex: 1] isEqual: @"--unicode"])
+    {
+      convert_unicode(args);
+    }
+  else if ([[args objectAtIndex: 1] isEqual: @"--utf8"])
+    {
+      convert_utf8(args);
     }
   else
     {
