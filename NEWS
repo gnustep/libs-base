@@ -1,7 +1,16 @@
 News
 ****
 
-The currently released version of the library is `1.4.0'.
+The currently released version of the library is `1.5.0'.
+
+Noteworthy changes in version `1.5.0'
+=====================================
+
+   * New MacOSX methods implemented (NSString, NSArray, NSObject)
+
+   * Fixed bug that occationally deleted user defaults.
+
+   * Tcp connections use runloop in NSConnectionReplyMode.
 
 Noteworthy changes in version `1.4.0'
 =====================================
