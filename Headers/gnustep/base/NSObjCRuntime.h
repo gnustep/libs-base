@@ -77,8 +77,9 @@ GS_EXPORT void			NSLogv (NSString* format, va_list args);
  * Get the type encoding for a named ivar,
  * and copy a value into an ivar.
  */
+GS_EXPORT BOOL GSInstanceVariableInfo(id obj, NSString *iVarName,
+  const char **type, unsigned *size, unsigned *offset);
 GS_EXPORT BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
-GS_EXPORT const char *GSInstanceVariableType(id obj, NSString *name);
 GS_EXPORT BOOL GSSetInstanceVariable(id obj, NSString *name, const void* data);
 
 /*
