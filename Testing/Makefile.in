@@ -94,7 +94,8 @@ nsmaptable.m \
 nshashtable.m \
 tcpport-server.m \
 tcpport-client.m \
-nsnotification.m
+nsnotification.m \
+nstimer.m
 
 # nsarchiving.m
 
