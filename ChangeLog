@@ -1,3 +1,7 @@
+2000-09-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/externs.m: Removed unused NXConstantString assignments.
+
 2000-09-26  Lyndon Tremblay  <humasect@home.com>
 
 	* Headers/Foundation/NSObject.h (CREATE_AUTORELEASE_POOL): Saves 1
