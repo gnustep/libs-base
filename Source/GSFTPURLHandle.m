@@ -588,9 +588,26 @@ static NSLock			*urlLock = nil;
 
   if (e == nil)
     {
+      NSEnumerator	*enumerator;
+
       text = [info objectForKey: GSTelnetTextKey];
-      line = [text objectAtIndex: 0];
 // NSLog(@"Ctl: %@", text);
+      /*
+       * Find first reply line which is not a continuation of another.
+       */
+      enumerator = [text objectEnumerator];
+      while ((line = [enumerator nextObject]) != nil)
+	{
+	  if ([line length] > 4 && [line characterAtIndex: 3] != '-')
+	    {
+	      break;
+	    }
+	}
+      if (line == nil)
+	{
+	  return;
+	}
+      
       if (state == cConnect)
 	{
 	  if ([line hasPrefix: @"2"] == YES)
