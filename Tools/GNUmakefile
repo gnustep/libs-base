@@ -99,7 +99,9 @@ include $(GNUSTEP_MAKEFILES)/ctool.make
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 
 ifeq ($(GNUSTEP_BASE_HAVE_LIBXML),1)
+ifeq ($(doc),yes)
 include $(GNUSTEP_MAKEFILES)/documentation.make
+endif
 endif
 
 include Makefile.postamble
