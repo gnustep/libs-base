@@ -85,7 +85,7 @@ static void handleSignal(int sig)
 @interface NSConcreteUnixTask : NSTask
 {
   char	slave_name[32];
-  BOOL	usePseudoTerminal;
+  BOOL	_usePseudoTerminal;
 }
 @end
 #define NSConcreteTask NSConcreteUnixTask
@@ -781,7 +781,7 @@ GSCheckTasks()
 {
   BOOL	found = NO;
 
-  if (hadChildSignal)
+  if (hadChildSignal == YES)
     {
       int result;
       int status;
@@ -793,36 +793,28 @@ GSCheckTasks()
 	  result = waitpid(-1, &status, WNOHANG);
 	  if (result > 0)
 	    {
-	      if (WIFEXITED(status))
-		{
-		  NSTask    *t;
+	      NSTask    *t;
 
-		  [tasksLock lock];
-		  t = (NSTask*)NSMapGet(activeTasks, (void*)result);
-		  [tasksLock unlock];
-		  if (t)
+	      [tasksLock lock];
+	      t = (NSTask*)NSMapGet(activeTasks, (void*)result);
+	      [tasksLock unlock];
+	      if (t != nil)
+		{
+		  if (WIFEXITED(status))
 		    {
 		      [t _terminatedChild: WEXITSTATUS(status)];
 		      found = YES;
 		    }
-		}
-	      else if (WIFSIGNALED(status))
-		{
-		  NSTask    *t;
-
-		  [tasksLock lock];
-		  t = (NSTask*)NSMapGet(activeTasks, (void*)result);
-		  [tasksLock unlock];
-		  if (t)
+		  else if (WIFSIGNALED(status))
 		    {
 		      [t _terminatedChild: WTERMSIG(status)];
 		      found = YES;
 		    }
-		}
-	      else
-		{
-		  NSLog(@"Warning ... task %d neither exited nor signalled",
-		    result);
+		  else
+		    {
+		      NSLog(@"Warning ... task %d neither exited nor signalled",
+			result);
+		    }
 		}
 	    }
 	}
@@ -955,7 +947,7 @@ GSCheckTasks()
 #endif
 #endif
 
-      if (usePseudoTerminal == YES)
+      if (_usePseudoTerminal == YES)
 	{
 	  int	s;
 
@@ -1049,6 +1041,36 @@ GSCheckTasks()
     }
 }
 
+- (void) setStandardError: (id)hdl
+{
+  if (_usePseudoTerminal == YES)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - set error for task on pseudo terminal"];
+    }
+  [super setStandardError: hdl];
+}
+
+- (void) setStandardInput: (id)hdl
+{
+  if (_usePseudoTerminal == YES)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - set input for task on pseudo terminal"];
+    }
+  [super setStandardInput: hdl];
+}
+
+- (void) setStandardOutput: (id)hdl
+{
+  if (_usePseudoTerminal == YES)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - set output for task on pseudo terminal"];
+    }
+  [super setStandardOutput: hdl];
+}
+
 - (void) _collectChild
 {
   if (_hasCollected == NO)
@@ -1100,7 +1122,7 @@ GSCheckTasks()
   int		master;
   NSFileHandle	*fh;
 
-  if (usePseudoTerminal == YES)
+  if (_usePseudoTerminal == YES)
     {
       return YES;
     }
@@ -1123,7 +1145,7 @@ GSCheckTasks()
 				     closeOnDealloc: YES];
   [self setStandardError: fh];
   RELEASE(fh);
-  usePseudoTerminal = YES;
+  _usePseudoTerminal = YES;
   return YES;
 }
 
