@@ -110,17 +110,18 @@ typedef struct {
  */
 - (id) initWithString: (NSString *)aString
 {
-  [super init];
+  if ((self = [super init]) == nil)
+    return nil;
   /*
    * Ensure that we have an NSGString so we can access its internals directly.
    */
   if (aString == nil)
     {
-      RELEASE(self);
       NSLog(@"Scanner initialised with nil string");
-      return nil;
+      aString = @"";
     }
-  else if (fastClass(aString) == NSGString_class)
+
+  if (fastClass(aString) == NSGString_class)
     {
       _isUnicode = YES;
       _string = RETAIN(aString);

@@ -1,11 +1,11 @@
-Tue Dec 14  5:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Tue Dec 14  8:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSTimeZone.m: ([+getTimeZoneFile:]) Removed misleading comment
 	and hack.
 	([+timeZoneWithName:]) Fixed bug in loading timezone data file (unusual
 	formats could cause a crash).
 	* Source/NSScanner.m: ([-initWithString:]) fix to handle being passed
-	a nil string (return nil and log a warning).
+	a nil string (use an empty string and log an error).
 	* NSTimeZones/NSTimeZones.tar: updated to latest info and made sure
 	files are in the correct place.
 
