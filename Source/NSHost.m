@@ -1,27 +1,27 @@
 /* Implementation of host class
    Copyright (C) 1996, 1997,1999 Free Software Foundation, Inc.
-   
-   Written by: Luke Howard <lukeh@xedoc.com.au> 
+
+   Written by: Luke Howard <lukeh@xedoc.com.au>
    Date: 1996
    Rewrite by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: 1999
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-  */ 
+  */
 
 #include <config.h>
 #include <base/preface.h>
@@ -97,7 +97,6 @@ static NSMutableDictionary	*_hostCache = nil;
       [_addresses addObject: addr];
     }
 
-  [_hostCacheLock lock];
   if (_hostCacheEnabled == YES)
     {
       NSEnumerator	*enumerator;
@@ -114,8 +113,7 @@ static NSMutableDictionary	*_hostCache = nil;
 	  [_hostCache setObject: self forKey: key];
 	}
     }
-  [_hostCacheLock unlock];
-	
+
   return self;
 }
 
@@ -133,7 +131,7 @@ static NSMutableDictionary	*_hostCache = nil;
 {
   if (self == [NSHost class])
     {
-      _hostCacheLock = [[NSRecursiveLock alloc] init];
+      _hostCacheLock = [[NSLock alloc] init];
       _hostCache = [NSMutableDictionary new];
     }
 }
@@ -147,7 +145,7 @@ static NSMutableDictionary	*_hostCache = nil;
 {
   char		name[GSMAXHOSTNAMELEN+1];
   int		res;
-	
+
   res = gethostname(name, GSMAXHOSTNAMELEN);
   if (res < 0)
     {
@@ -177,7 +175,7 @@ static NSMutableDictionary	*_hostCache = nil;
       struct hostent	*h;
 
       h = gethostbyname((char*)[name cString]);
-	
+
       host = [[self alloc] _initWithHostEntry: h];
       AUTORELEASE(host);
     }
@@ -206,7 +204,7 @@ static NSMutableDictionary	*_hostCache = nil;
       struct hostent	*h;
       struct in_addr	hostaddr;
       BOOL		addrOk = YES;
-	
+
 #ifndef	HAVE_INET_ATON
       hostaddr.s_addr = inet_addr([address cString]);
       if (hostaddr.s_addr == INADDR_NONE)
@@ -240,11 +238,11 @@ static NSMutableDictionary	*_hostCache = nil;
 + (BOOL) isHostCacheEnabled;
 {
   BOOL res;
-	
+
   [_hostCacheLock lock];
   res = _hostCacheEnabled;
   [_hostCacheLock unlock];
-	
+
   return res;
 }
 
