@@ -528,7 +528,8 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
       if (fstat(desc, &sbuf) < 0)
 	{
-          NSLog(@"unable to get status of descriptor - %s", GSLastErrorStr(errno));
+          NSLog(@"unable to get status of descriptor - %s",
+	    GSLastErrorStr(errno));
 	  RELEASE(self);
 	  return nil;
 	}
