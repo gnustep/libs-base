@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective-C coder object for use serializing
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -982,7 +982,7 @@ exc_return_null(arglist_t f)
     case CODER_OBJECT:
       {
 	unsigned xref;
-	SEL decode_sel = sel_get_any_uid("newWithCoder:");
+	SEL new_sel = sel_get_any_uid("newWithCoder:");
 	Class object_class;
 	IMP imp;
 
@@ -991,10 +991,17 @@ exc_return_null(arglist_t f)
 	      withName:NULL];
 	[self decodeIndent];
 	object_class = [self decodeClass];
-	if ((imp = objc_msg_lookup(object_class, decode_sel)))
-	  *anObjPtr = (*imp)(object_class, decode_sel, self);
+	if ((imp = objc_msg_lookup(object_class, new_sel)))
+	  *anObjPtr = (*imp)(object_class, new_sel, self);
 	else
-	  *anObjPtr = class_create_instance(object_class);
+	  {
+	    SEL init_sel = sel_get_any_uid("initWithCoder:");
+	    IMP imp = objc_msg_lookup(object_class, init_sel);
+	    *anObjPtr = class_create_instance(object_class);
+	    if (imp)
+	      *anObjPtr = (*imp)(*anObjPtr, init_sel, self);
+	    /* xxx else, error? */
+	  }
 	/* Would get error here with Connection-wide object references
 	   because addProxy gets called in +newRemote:connection: */
 	if ([self _coderHasObjectReference:xref])
@@ -1233,14 +1240,19 @@ exc_return_null(arglist_t f)
 
 @implementation NSObject (CoderAdditions)
 
-- (void) encodeWithCoder: (Coder*)anEncoder
+- (void) encodeWithCoder: (id <Encoding>)anEncoder
 {
   return;
 }
 
-+ newWithCoder: (Coder*)aDecoder
+- initWithCoder: (id <Decoding>)aDecoder
 {
-  return NSAllocateObject(self, 0, NULL);
+  return self;
+}
+
++ newWithCoder: (id <Decoding>)aDecoder
+{
+  return NSAllocateObject(self, 0, NULL); /* xxx Fix this NULL */
 }
 
 
