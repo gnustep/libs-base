@@ -326,15 +326,10 @@ parseCharacterSet(NSString *token)
 {
   NSString	*name;
   NSString	*value;
-  static	GSMimeCodingContext	*defaultContext = nil;
 
-  if (defaultContext == nil)
-    {
-      defaultContext = [GSMimeBinaryDecoderContext new];
-    }
   if (info == nil)
     {
-      return defaultContext;
+      return AUTORELEASE([GSMimeBinaryDecoderContext new]);
     }
 
   name = [info objectForKey: @"Name"];
@@ -345,7 +340,7 @@ parseCharacterSet(NSString *token)
       if ([value length] == 0)
 	{
 	  NSLog(@"Bad value for %@ header - assume binary encoding", name);
-	  return defaultContext;
+	  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
 	}
       if ([value isEqualToString: @"base64"] == YES)
 	{
@@ -357,15 +352,15 @@ parseCharacterSet(NSString *token)
 	}
       else if ([value isEqualToString: @"binary"] == YES)
 	{
-	  return defaultContext;
+	  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
 	}
       else if ([value characterAtIndex: 0] == '7')
 	{
-	  return defaultContext;
+	  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
 	}
       else if ([value characterAtIndex: 0] == '8')
 	{
-	  return defaultContext;
+	  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
 	}
       else if ([value isEqualToString: @"chunked"] == YES)
 	{
@@ -374,7 +369,7 @@ parseCharacterSet(NSString *token)
     }
 
   NSLog(@"contextFor: - unknown header (%@) ... assumed binary encoding", name);
-  return defaultContext;
+  return AUTORELEASE([GSMimeBinaryDecoderContext new]);
 }
 
 - (BOOL) decodeData: (NSData*)sData
@@ -817,6 +812,8 @@ parseCharacterSet(NSString *token)
     }
   if ([d length] > 0)
     {
+      NSDictionary	*info;
+
       if (inBody == NO)
 	{
 	  [data appendBytes: [d bytes] length: [d length]];
@@ -853,9 +850,40 @@ parseCharacterSet(NSString *token)
 	  [data setLength: 0];
 	}
 
+      /*
+       * We may have http continuation header(s)
+       */
+      info = [[document headersNamed: @"http"] lastObject];
+      if (info != nil)
+	{
+	  NSString	*val;
+
+	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+	  if (val != nil)
+	    {
+	      int	v = [val intValue];
+
+	      if (v >= 100 && v < 200)
+		{
+		  /*
+		   * This is an intermediary response ... so we have to
+		   * restart the parsing operation!
+		   */
+		  inBody = NO;
+		}
+	    }
+	}
+
       if ([d length] > 0)
 	{
-	  [self _decodeBody: d];
+	  if (inBody == YES)
+	    {
+	      [self _decodeBody: d];
+	    }
+	  else
+	    {
+	      return [self parse: d];
+	    }
 	}
       return YES;	/* Want more data for body */
     }
@@ -1071,6 +1099,8 @@ parseCharacterSet(NSString *token)
       int	major;
       int	minor;
       int	status;
+      unsigned	count;
+      NSArray	*hdrs;
 
       if ([scanner scanInt: &major] == NO || major < 0)
 	{
@@ -1105,6 +1135,16 @@ parseCharacterSet(NSString *token)
       [info setObject: value
 	       forKey: NSHTTPPropertyStatusReasonKey];
       value = nil;
+      /*
+       * Get rid of preceeding headers in case this is a continuation.
+       */
+      hdrs = [document allHeaders];
+      for (count = 0; count < [hdrs count]; count++)
+	{
+	  NSDictionary	*h = [hdrs objectAtIndex: count];
+
+	  [document deleteHeader: [h objectForKey: @"RawHeader"]];
+	}
     }
   else if ([name isEqualToString: @"content-transfer-encoding"] == YES
     || [name isEqualToString: @"transfer-encoding"] == YES)
@@ -1525,6 +1565,7 @@ parseCharacterSet(NSString *token)
     {
       NSDictionary	*hdr;
 
+      expect = 0;
       /*
        * Check for expected content length.
        */
@@ -1559,7 +1600,8 @@ parseCharacterSet(NSString *token)
       complete = YES;
       if ([d length] > 0)
 	{
-	  NSLog(@"Additional data ignored after parse complete");
+	  NSLog(@"Additional data (%*.*s) ignored after parse complete",
+	    [d length], [d length], [d bytes]);
 	}
       result = YES;	/* Nothing more to do	*/
     }
@@ -1756,8 +1798,8 @@ parseCharacterSet(NSString *token)
 
 - (BOOL) _unfoldHeader
 {
-  char	c = 0;
-  BOOL	unwrappingComplete = NO;
+  char		c = 0;
+  BOOL		unwrappingComplete = NO;
 
   lineStart = lineEnd;
   /*
@@ -1768,13 +1810,39 @@ parseCharacterSet(NSString *token)
    */
   while (input < dataEnd && unwrappingComplete == NO)
     {
-      /*
-       * Copy data up to end of line, and skip past end.
-       */
-      while (input < dataEnd && (c = bytes[input]) != '\r' && c != '\n')
+      unsigned	pos = input;
+
+      if ((c = bytes[pos]) != '\r' && c != '\n')
 	{
-	  bytes[lineEnd++] = bytes[input++];
+	  while (pos < dataEnd && (c = bytes[pos]) != '\r' && c != '\n')
+	    {
+	      pos++;
+	    }
+	  if (pos == dataEnd)
+	    {
+	      return NO;	/* need more data */
+	    }
+	  pos++;
+	  if (c == '\r' && pos < dataEnd && bytes[pos] == '\n')
+	    {
+	      pos++;
+	    }
+	  if (pos == dataEnd)
+	    {
+	      return NO;	/* need more data */
+	    }
+	  /*
+	   * Copy data up to end of line, and skip past end.
+	   */
+	  while (input < dataEnd && (c = bytes[input]) != '\r' && c != '\n')
+	    {
+	      bytes[lineEnd++] = bytes[input++];
+	    }
 	}
+
+      /*
+       * Eat a newline that is part of a cr-lf sequence.
+       */
       input++;
       if (c == '\r' && input < dataEnd && bytes[input] == '\n')
 	{
@@ -1784,8 +1852,7 @@ parseCharacterSet(NSString *token)
       /*
        * See if we have a wrapped line.
        */
-      if (input >= dataEnd || (c = bytes[input]) == '\r' || c == '\n'
-	|| isspace(c) == 0)
+      if ((c = bytes[input]) == '\r' || c == '\n' || isspace(c) == 0)
 	{
 	  unwrappingComplete = YES;
 	  bytes[lineEnd] = '\0';
