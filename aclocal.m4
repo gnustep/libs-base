@@ -1,6 +1,6 @@
 # aclocal.m4 - configure macros for libobjects and projects that depend on it.
 #
-#   Copyright (C) 1995 Free Software Foundation, Inc.
+#   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 #
 #   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
 #
@@ -33,11 +33,33 @@ AC_DEFUN(OBJC_SYS_AUTOLOAD,
 # Makes the following substitutions:
 #	Defines SYS_AUTOLOAD
 #--------------------------------------------------------------------
-AC_CACHE_VAL(objc_cv_sys_autoload,
-[AC_CHECK_HEADER(elf.h, [objc_cv_sys_autoload=yes], [objc_cv_sys_autoload=no])
-])
-if test $objc_cv_sys_autoload = yes; then
+AC_CACHE_VAL(objc_subinit_worked,
+[AC_MSG_CHECKING(loading of contructor functions)
+AC_TRY_RUN([
+static int did_subinit = 0;
+static char *name;
+static void args_test (int argc, char *argv[], char *env[])
+{
+  did_subinit = 1;
+  name = argv[0];
+  printf("argv[0] %s\n", argv[0]);
+  printf("env[0] %s\n", env[0]);
+  exit (0);
+}
+static void * __libobjects_subinit_args__
+__attribute__ ((section ("__libc_subinit"))) = &(args_test);
+int main(int argc, char *argv[])
+{
+  if (did_subinit && argv[0] == name)
+    exit (0);
+  exit (1);
+}
+], objc_subinit_worked=1, objc_subinit_worked=0, objc_subinit_worked=0)])
+if test $objc_subinit_worked = 1; then
   AC_DEFINE(SYS_AUTOLOAD)
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
 fi
 ])
 
@@ -92,7 +114,7 @@ if test $DYNAMIC_LINKER = dld; then
     DYNAMIC_LDFLAGS="-static"
     DYNAMIC_CFLAGS=""
 elif test $DYNAMIC_LINKER = simple; then
-    if test $objc_cv_sys_autoload = yes; then 
+    if test $objc_subinit_worked = yes; then 
       DYNAMIC_BUNDLER_LINKER="$(CC) -Xlinker -r"
     else
       DYNAMIC_BUNDLER_LINKER="$(CC) -nostdlib"
