@@ -48,6 +48,7 @@
   self = [super init];
   if (self)
     {
+#ifndef __MINGW__
       int	p[2];
 
       if (pipe(p) == 0)
@@ -55,6 +56,15 @@
           readHandle = [[NSFileHandle alloc] initWithFileDescriptor:p[0]];
           writeHandle = [[NSFileHandle alloc] initWithFileDescriptor:p[1]];
         }
+#else
+      HANDLE readh, writeh;
+
+      if (CreatePipe(&readh, &writeh, NULL, 0) != 0)
+        {
+          readHandle = [[NSFileHandle alloc] initWithNativeHandle: readh];
+          writeHandle = [[NSFileHandle alloc] initWithNativeHandle: writeh];
+        }
+#endif
     }
   return self;
 }

@@ -224,6 +224,7 @@ static NSFileManager* defaultManager = nil;
 #if defined(__MINGW__)
   NSEnumerator *paths = [[path pathComponents] objectEnumerator];
   NSString *subPath;
+  NSString *completePath = nil;
 
   while ((subPath = [paths nextObject]))
     {
@@ -237,7 +238,7 @@ static NSFileManager* defaultManager = nil;
 	{
 	  if (!isDir) 
 	    NSLog(@"WARNING: during creation of directory %@:"
-		  " sub path %@ exists, but is not a directory !",
+		  @" sub path %@ exists, but is not a directory !",
 		  path, completePath);
         }
       else 
@@ -250,7 +251,7 @@ static NSFileManager* defaultManager = nil;
     }
 
   // change attributes of last directory
-  return [self changeFileAttributes:a ttributes atPath: path];
+  return [self changeFileAttributes: attributes atPath: path];
 
 #else
   const char	*cpath;
@@ -621,12 +622,12 @@ static NSFileManager* defaultManager = nil;
 		 contents: (NSData*)contents
 	       attributes: (NSDictionary*)attributes
 {
-  int		len;
-  int		written;
   const char	*cpath = [self fileSystemRepresentationWithPath: path];
 
 #if	defined(__MINGW__)
   HANDLE fh;
+  DWORD	written = 0;
+  DWORD	len = [contents length];
 
   fh = CreateFile(cpath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
     FILE_ATTRIBUTE_NORMAL, 0);
@@ -636,8 +637,6 @@ static NSFileManager* defaultManager = nil;
     }
   else
     {
-      DWORD	len = [contents length];
-      DWORD	written = 0;
 
       if (len > 0)
 	{
@@ -651,6 +650,8 @@ static NSFileManager* defaultManager = nil;
     }
 #else
   int	fd;
+  int		len;
+  int		written;
 
   fd = open (cpath, O_WRONLY|O_TRUNC|O_CREAT, 0644);
   if (fd < 0)
@@ -1352,6 +1353,7 @@ static NSFileManager* defaultManager = nil;
   	  if (_flags.isRecursive == YES)
 	    {
 	      // Do not follow links
+#ifdef S_IFLNK
 	      if (!_flags.isFollowing)
 		{
 		  if (lstat(cpath, &statbuf) != 0)
@@ -1361,6 +1363,7 @@ static NSFileManager* defaultManager = nil;
 		    break;
 		}
 	      else
+#endif
 		{
 		  if (stat(cpath, &statbuf) != 0)
 		    break;
@@ -1749,11 +1752,13 @@ static NSFileManager* defaultManager = nil;
       if (stat(cpath, &statbuf) != 0)
 	return nil;
     }
+#ifdef S_IFLNK
   else
     {
       if (lstat(cpath, &statbuf) != 0)
 	return nil;
     }
+#endif
     
   values[0] = [NSNumber numberWithUnsignedLongLong: statbuf.st_size];
   values[1] = [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
@@ -1845,10 +1850,12 @@ static NSFileManager* defaultManager = nil;
        * If we are running setuid to root - we need to specify the user
        * to be the owner of copied files.
        */
+#if HAVE_GETEUID
       if (geteuid() == 0 && [@"root" isEqualToString: u] == NO)
 	{
 	  values[count++] = u;
 	}
+#endif
     }
 
   return [NSDictionary dictionaryWithObjects: values

@@ -65,6 +65,9 @@ before-all:: header-links
 # Things to do after distcleaning
 after-distclean::
 	rm -f config.status config.log config.cache TAGS config.mak
+	rm -f Headers/gnustep/base/config.h \
+		Headers/gnustep/base/GSConfig.h \
+		Headers/gnustep/base/preface.h
 	cd Headers; rm -f Foundation
 	cd Source; rm -f Foundation
 
@@ -79,16 +82,12 @@ header-links: $(HEADER_LINK_DEPENDS)
 	-rm -f Headers/Foundation/*
 	-mkdir Headers/Foundation
 	cp -f Headers/gnustep/base/*.h Headers/Foundation
-	-rm -f Source/Foundation/*
-	-mkdir Source/Foundation
-	cp -f Headers/gnustep/base/*.h Source/Foundation
 
 else
 header-links: $(HEADER_LINK_DEPENDS)
 	-rm -f Headers/Foundation
 	-rm -f Source/Foundation
 	$(LN_S) gnustep/base Headers/Foundation
-	$(LN_S) ../Headers/gnustep/base Source/Foundation
 endif
 
 configure: configure.in

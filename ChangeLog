@@ -1,5 +1,20 @@
 2000-09-13  Adam Fedor  <fedor@gnu.org>
 
+	* Remove dependance on Source/Foundation link, additional MINGW ports.
+	* Makefile.postamble (header-links): Remove Source/Foundation link.
+	* Source/Makefile.preamble (HEADER_DIR): New variable.
+	(ADDITIONAL_INCLUDE_DIRS): Include ../Headers.
+	* Source/GNUmakefile (GENERATED_HEADERS): Change Foundation 
+	to $(HEADER_DIR).
+	* Source/Makefile.postamble: Likewise.
+
+	* Source/GSTcpPost.m: Update to handle MINGW (mostly copied from
+	gdomap.c).
+	* Source/NSFileManager.m (-findNextFile): Check if lstat,
+	geteuid implemented.
+	* Source/NSHost.m: Change includes for MINGW.
+	* Source/NSPipe.m (init): Port to MINGW.
+
 	* configure.in: Do preface.h substitutions here.
 	* Source/Makefile.postamble (preface.h): Remove target.
 
