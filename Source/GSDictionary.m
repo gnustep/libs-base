@@ -106,7 +106,7 @@ static SEL	objSel;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      self = [super initWithCoder: aCoder];
+      [super encodeWithCoder: aCoder];
     }
   else
     {
