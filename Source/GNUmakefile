@@ -285,7 +285,6 @@ NSFileHandle.m \
 NSFileManager.m \
 NSFormatter.m \
 NSGeometry.m \
-NSGArchiver.m \
 NSGArray.m \
 NSGAttributedString.m \
 NSGCountedSet.m \
@@ -388,7 +387,6 @@ Foundation/NSFileHandle.h \
 Foundation/NSFileManager.h \
 Foundation/NSFormatter.h \
 Foundation/NSGeometry.h \
-Foundation/NSGArchiver.h \
 Foundation/NSGArray.h \
 Foundation/NSGAttributedString.h \
 Foundation/NSGCString.h \
