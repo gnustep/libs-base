@@ -134,17 +134,6 @@ dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
 
-Foundation/preface.h: $(srcdir)/Foundation/preface.h.in ../Version
-	rm -f $@
-	sed -e "s/@VERSION@/$(LIBRARY_VAR)_VERSION $(VERSION)/" \
-	< $(srcdir)/Foundation/preface.h.in | \
-	sed -e "s/@MAJOR_VERSION@/$(LIBRARY_VAR)_MAJOR_VERSION $(MAJOR_VERSION)/" | \
-	sed -e "s/@MINOR_VERSION@/$(LIBRARY_VAR)_MINOR_VERSION $(MINOR_VERSION)/" | \
-	sed -e "s/@SUBMINOR_VERSION@/$(LIBRARY_VAR)_SUBMINOR_VERSION $(SUBMINOR_VERSION)/" | \
-	sed -e "s/@GCC_VERSION@/$(LIBRARY_VAR)_GCC_VERSION $(GCC_VERSION)/" | \
-	sed -e "s/@LIBRARY_NAME@/$(LIBRARY_VAR)_LIBRARY_NAME $(LIBRARY_NAME)/" | \
-	sed -e "s/@PACKAGE_NAME@/$(LIBRARY_VAR)_PACKAGE_NAME $(PACKAGE_NAME)/" \
-	> $@
 $(GNUSTEP_OBJ_DIR)/preface${OEXT}: Foundation/preface.h
 
 #

@@ -802,9 +802,22 @@ AC_SUBST(no_whole_archive)
 AC_CONFIG_SUBDIRS(Source/mframe)
 
 #--------------------------------------------------------------------
+# Record the version
+#--------------------------------------------------------------------
+if test -f "Version"; then
+  . Version
+fi
+AC_SUBST(VERSION)
+AC_SUBST(MAJOR_VERSION)
+AC_SUBST(MINOR_VERSION)
+AC_SUBST(SUBMINOR_VERSION)
+AC_SUBST(GCC_VERSION)
+
+#--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_OUTPUT(config.mak Headers/gnustep/base/GSConfig.h)
+AC_OUTPUT(config.mak Headers/gnustep/base/GSConfig.h 
+	  Headers/gnustep/base/preface.h)
 
 dnl Local Variables:
 dnl comment-start: "dnl "
