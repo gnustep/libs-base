@@ -534,7 +534,7 @@ GetDefEncoding()
 	{
 	  count = 0;
 	  while (str_encoding_table[count].enc
-		 && strcmp(str_encoding_table[count].ename, encoding))
+	    && strcmp(str_encoding_table[count].ename, encoding))
 	    {
 	      count++;
 	    }
