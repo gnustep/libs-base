@@ -1956,61 +1956,76 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
   ret = SSL_set_fd(ssl, descriptor);
   loop = [NSRunLoop currentRunLoop];
-  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
   ret = SSL_connect(ssl);
   if (ret != 1)
     {
-      int	count = 1;
+      int		e = errno;
+      NSDate		*final;
+      NSDate		*when;
+      NSTimeInterval	last = 0.0;
+      NSTimeInterval	limit = 0.1;
+
+      final = [[NSDate alloc] initWithTimeIntervalSinceNow: 20.0];
+      when = [NSDate alloc];
 
       err = SSL_get_error(ssl, ret);
-      while (err == SSL_ERROR_WANT_READ && count < 10)
+      while ((err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
+	&& [final timeIntervalSinceNow] > 0.0)
 	{
-	  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+	  NSTimeInterval	tmp = limit;
+
+	  limit += last;
+	  last = tmp;
+	  when = [when initWithTimeIntervalSinceNow: limit];
+	  [loop runUntilDate: when];
 	  ret = SSL_connect(ssl);
 	  if (ret != 1)
 	    {
+	      e = errno;
 	      err = SSL_get_error(ssl, ret);
-	      count++;
 	    }
 	  else
 	    {
-	      err = 0;
+	      err = SSL_ERROR_NONE;
 	    }
 	}
-      //NSLog(@"Number of attempts: %d", count);
+      RELEASE(when);
+      RELEASE(final);
       if (err != SSL_ERROR_NONE)
 	{
-	  NSString	*err;
+	  NSString	*str;
 
-	  switch (SSL_get_error(ssl, ret))
+	  switch (err)
 	    {
 	      case SSL_ERROR_NONE:
-		err = @"No error: really helpful";
+		str = @"No error: really helpful";
 		break;
 	      case SSL_ERROR_ZERO_RETURN:
-		err = @"Zero Return error";
+		str = @"Zero Return error";
 		break;
 	      case SSL_ERROR_WANT_READ:
-		err = @"Want Read Error";
+		str = @"Want Read Error";
 		break;
 	      case SSL_ERROR_WANT_WRITE:
-		err = @"Want Write Error";
+		str = @"Want Write Error";
 		break;
 	      case SSL_ERROR_WANT_X509_LOOKUP:
-		err = @"Want X509 Lookup Error";
+		str = @"Want X509 Lookup Error";
 		break;
 	      case SSL_ERROR_SYSCALL:
-		err = @"Syscall Error - %s", GSLastErrorStr(errno);
+		str = [NSString stringWithFormat: @"Syscall error %d - %s",
+		  e, GSLastErrorStr(e)];
 		break;
 	      case SSL_ERROR_SSL:
-		err = @"SSL Error: really helpful";
+		str = @"SSL Error: really helpful";
 		break;
 	      default:
-		err = @"Standard Unix Error: really helpful";
+		str = @"Standard Unix Error: really helpful";
 		break;
 	    }
 	  NSLog(@"unable to make SSL connection to %@:%@ - %@",
-	    address, service, err);
+	    address, service, str);
 	  return NO;
 	}
     }
