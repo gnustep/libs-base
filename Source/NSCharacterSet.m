@@ -33,7 +33,7 @@
 static NSString* NSCharacterSet_PATH = @"gnustep/NSCharacterSets";
 
 /* A simple array for caching standard bitmap sets */
-#define MAX_STANDARD_SETS 12
+#define MAX_STANDARD_SETS 15
 static NSCharacterSet* cache_set[MAX_STANDARD_SETS];
 static NSLock* cache_lock = nil;
 
@@ -189,7 +189,7 @@ static NSLock* cache_lock = nil;
 
 + (NSCharacterSet *)alphanumericCharacterSet
 {
-  return [self _bitmapForSet: @"alphanumCharSet" number: 0];
+  return [self _bitmapForSet: @"alphanumericCharSet" number: 0];
 }
 
 + (NSCharacterSet *)controlCharacterSet
@@ -199,34 +199,32 @@ static NSLock* cache_lock = nil;
 
 + (NSCharacterSet *)decimalDigitCharacterSet
 {
-  return [self _bitmapForSet: @"decimalCharSet" number: 2];
+  return [self _bitmapForSet: @"decimalDigitCharSet" number: 2];
 }
 
 + (NSCharacterSet *)decomposableCharacterSet
 {
-  fprintf(stderr, "Warning: Decomposable set not yet fully specified\n");
   return [self _bitmapForSet: @"decomposableCharSet" number: 3];
 }
 
 + (NSCharacterSet *)illegalCharacterSet
 {
-  fprintf(stderr, "Warning: Illegal set not yet fully specified\n");
   return [self _bitmapForSet: @"illegalCharSet" number: 4];
 }
 
 + (NSCharacterSet *)letterCharacterSet
 {
-  return [self _bitmapForSet: @"lettercharCharSet" number: 5];
+  return [self _bitmapForSet: @"letterCharSet" number: 5];
 }
 
 + (NSCharacterSet *)lowercaseLetterCharacterSet
 {
-  return [self _bitmapForSet: @"lowercaseCharSet" number: 6];
+  return [self _bitmapForSet: @"lowercaseLetterCharSet" number: 6];
 }
 
 + (NSCharacterSet *)nonBaseCharacterSet
 {
-  return [self _bitmapForSet: @"nonbaseCharSet" number: 7];
+  return [self _bitmapForSet: @"nonBaseCharSet" number: 7];
 }
 
 + (NSCharacterSet *)punctuationCharacterSet;
@@ -234,19 +232,24 @@ static NSLock* cache_lock = nil;
   return [self _bitmapForSet: @"punctuationCharSet" number: 8];
 }
 
++ (NSCharacterSet *)symbolAndOperatorCharacterSet;
+{
+  return [self _bitmapForSet: @"symbolAndOperatorCharSet" number: 9];
+}
+
 + (NSCharacterSet *)uppercaseLetterCharacterSet
 {
-  return [self _bitmapForSet: @"uppercaseCharSet" number: 9];
+  return [self _bitmapForSet: @"uppercaseLetterCharSet" number: 10];
 }
 
 + (NSCharacterSet *)whitespaceAndNewlineCharacterSet
 {
-  return [self _bitmapForSet: @"whitespaceandnlCharSet" number: 10];
+  return [self _bitmapForSet: @"whitespaceAndNlCharSet" number: 11];
 }
 
 + (NSCharacterSet *)whitespaceCharacterSet
 {
-  return [self _bitmapForSet: @"whitespaceCharSet" number: 11];
+  return [self _bitmapForSet: @"whitespaceCharSet" number: 12];
 }
 
 // Creating custom character sets

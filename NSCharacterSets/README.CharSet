@@ -4,9 +4,15 @@
    character sets.
    
    These file were generated automatically from the the latest version
-   of the Unicode character set by unisort.  The Unicode character set is
-   stored in electronic form as UnicodeData-1.1.4.txt from ftp://unicode.org
+   of the Unicode character set by unisort.  The Unicode character set 
+   can be obtained from http://www.unicode.org
 
-   Contact Adam Fedor <fedor@colorado.edu> for more information on the 
-   unisort program.
+   The current character sets are based on UnicodeData-2.1.8.txt.
 
+   NOTE: There are a number of differences between these sets and the
+   sets provided by NeXT in their OPENSTEP system. It may be because
+   I haven't read all the Unicode documentation and don't completly
+   understand the classifications. In any case, the differences seem
+   relatively minor and confined to the upper reaches of the Unicode
+   character set (characters usually pertaining to relatively rare
+   languages -- at least for computer users).
