@@ -3699,7 +3699,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 	(int)index);
       n = [GSXMLNode alloc];
       n = [n _initFrom: node  parent: self];
-      return AUTORELEASE(m);
+      return AUTORELEASE(n);
     }
 }
 - (NSString *) description
