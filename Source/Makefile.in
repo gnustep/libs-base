@@ -64,7 +64,6 @@ INCLUDEFLAGS =
 #### End of system configuration section. ####
 
 include $(srcdir)/../Makeconf
-
 include $(srcdir)/../Version
 
 # Grep for these names to build the legally-required "AUTHORS" file.
@@ -81,7 +80,7 @@ FILE_AUTHORS = \
 DYNAMIC_LINKER=@DYNAMIC_LINKER@
 
 NEXT_NEXT_INCLUDES = -I/usr/include
-OBJECTS_NEXT_INCLUDES = -I$(srcdir)
+GNU_NEXT_INCLUDES = -I$(srcdir)
 NEXT_INCLUDES = @NEXT_INCLUDES@
 
 ALL_INCLUDE_FLAGS = -I. -I$(srcdir) $(NEXT_INCLUDES) $(INCLUDEFLAGS)
@@ -184,7 +183,7 @@ list-cbs.m \
 map.m \
 map-bas.m \
 map-cbs.m \
-stdobjects.m \
+preface.m \
 mframe.m \
 objc-gnu2next.m \
 objc-malloc.m
@@ -197,8 +196,8 @@ o_vscanf.c
 GNU_OTHER_SRCFILES = \
 x-bas.m.in \
 x-cbs.m.in \
-objects/x-bas.h.in \
-objects/x-cbs.h.in \
+include/x-bas.h.in \
+include/x-cbs.h.in \
 md5.h
 
 GNU_OBJS = \
@@ -206,104 +205,104 @@ GNU_OBJS = \
 	$(GNU_CFILES:.c=$(OEXT))
 
 GNU_HEADERS = \
-objects/Archiver.h \
-objects/Array.h \
-objects/ArrayPrivate.h \
-objects/Bag.h \
-objects/BinaryCStream.h \
-objects/BinaryTree.h \
-objects/BinaryTreeNode.h \
-objects/CircularArray.h \
-objects/CircularArrayPrivate.h \
-objects/Coder.h \
-objects/CoderPrivate.h \
-objects/Coding.h \
-objects/Collecting.h \
-objects/Collection.h \
-objects/CollectionPrivate.h \
-objects/ConnectedCoder.h \
-objects/Connection.h \
-objects/CStream.h \
-objects/CStreaming.h \
-objects/DelegatePool.h \
-objects/Dictionary.h \
-objects/Enumerating.h \
-objects/GapArray.h \
-objects/GapArrayPrivate.h \
-objects/Heap.h \
-objects/IndexedCollecting.h \
-objects/IndexedCollection.h \
-objects/IndexedCollectionPrivate.h \
-objects/InvalidationListening.h \
-objects/Invocation.h \
-objects/Invoking.h \
-objects/KeyedCollecting.h \
-objects/KeyedCollection.h \
-objects/LibobjectsMain.h \
-objects/LinkedList.h \
-objects/LinkedListNode.h \
-objects/Lock.h \
-objects/Locking.h \
-objects/MachPort.h \
-objects/Magnitude.h \
-objects/MallocAddress.h \
-objects/MappedCollector.h \
-objects/MemoryStream.h \
-objects/Notification.h \
-objects/NotificationDispatcher.h \
-objects/NSArray.h \
-objects/NSCoder.h \
-objects/NSDictionary.h \
-objects/NSSet.h \
-objects/NSString.h \
-objects/Ordering.h \
-objects/OrderedCollecting.h \
-objects/OrderedCollection.h \
-objects/Port.h \
-objects/Proxy.h \
-objects/Queue.h \
-objects/RBTree.h \
-objects/RBTreeNode.h \
-objects/RNGAdditiveCongruential.h \
-objects/RNGBerkeley.h \
-objects/Random.h \
-objects/RandomGenerating.h \
-objects/RawCStream.h \
-objects/Retaining.h \
-objects/RetainingNotifier.h \
-objects/RunLoop.h \
-objects/Set.h \
-objects/SplayTree.h \
-objects/Stack.h \
-objects/StdioStream.h \
-objects/Stream.h \
-objects/Streaming.h \
-objects/String.h \
-objects/TcpPort.h \
-objects/TextCStream.h \
-objects/Time.h \
-objects/UdpPort.h \
-objects/ValueHolding.h \
-objects/array.h \
-objects/array-bas.h \
-objects/array-cbs.h \
-objects/behavior.h \
-objects/callbacks.h \
-objects/hash.h \
-objects/hash-bas.h \
-objects/hash-cbs.h \
-objects/list.h \
-objects/list-bas.h \
-objects/list-cbs.h \
-objects/map.h \
-objects/map-bas.h \
-objects/map-cbs.h \
-objects/mframe.h \
-objects/numbers.h \
-objects/objc-gnu2next.h \
-objects/objc-malloc.h \
-objects/objects.h \
-objects/README 
+include/Archiver.h \
+include/Array.h \
+include/ArrayPrivate.h \
+include/Bag.h \
+include/BinaryCStream.h \
+include/BinaryTree.h \
+include/BinaryTreeNode.h \
+include/CircularArray.h \
+include/CircularArrayPrivate.h \
+include/Coder.h \
+include/CoderPrivate.h \
+include/Coding.h \
+include/Collecting.h \
+include/Collection.h \
+include/CollectionPrivate.h \
+include/ConnectedCoder.h \
+include/Connection.h \
+include/CStream.h \
+include/CStreaming.h \
+include/DelegatePool.h \
+include/Dictionary.h \
+include/Enumerating.h \
+include/GapArray.h \
+include/GapArrayPrivate.h \
+include/Heap.h \
+include/IndexedCollecting.h \
+include/IndexedCollection.h \
+include/IndexedCollectionPrivate.h \
+include/InvalidationListening.h \
+include/Invocation.h \
+include/Invoking.h \
+include/KeyedCollecting.h \
+include/KeyedCollection.h \
+include/LinkedList.h \
+include/LinkedListNode.h \
+include/Lock.h \
+include/Locking.h \
+include/MachPort.h \
+include/Magnitude.h \
+include/MallocAddress.h \
+include/MappedCollector.h \
+include/MemoryStream.h \
+include/Notification.h \
+include/NotificationDispatcher.h \
+include/NSArray.h \
+include/NSCoder.h \
+include/NSDictionary.h \
+include/NSSet.h \
+include/NSString.h \
+include/Ordering.h \
+include/OrderedCollecting.h \
+include/OrderedCollection.h \
+include/Port.h \
+include/Proxy.h \
+include/Queue.h \
+include/RBTree.h \
+include/RBTreeNode.h \
+include/RNGAdditiveCongruential.h \
+include/RNGBerkeley.h \
+include/Random.h \
+include/RandomGenerating.h \
+include/RawCStream.h \
+include/Retaining.h \
+include/RetainingNotifier.h \
+include/RunLoop.h \
+include/Set.h \
+include/SplayTree.h \
+include/Stack.h \
+include/StdioStream.h \
+include/Stream.h \
+include/Streaming.h \
+include/String.h \
+include/TcpPort.h \
+include/TextCStream.h \
+include/Time.h \
+include/UdpPort.h \
+include/ValueHolding.h \
+include/array.h \
+include/array-bas.h \
+include/array-cbs.h \
+include/behavior.h \
+include/callbacks.h \
+include/fake-main.h \
+include/hash.h \
+include/hash-bas.h \
+include/hash-cbs.h \
+include/list.h \
+include/list-bas.h \
+include/list-cbs.h \
+include/map.h \
+include/map-bas.h \
+include/map-cbs.h \
+include/mframe.h \
+include/numbers.h \
+include/objc-gnu2next.h \
+include/objc-malloc.h \
+include/all.h \
+include/README 
 
 # NEXTSTEP source files
 
@@ -413,55 +412,55 @@ GNUSTEP_OBJS = \
 	$(NSNUMBER_MFILES:.m=$(OEXT))
 
 GNUSTEP_HEADERS = \
-Foundation/NSArchiver.h \
-Foundation/NSArray.h \
-Foundation/NSAutoreleasePool.h \
-Foundation/NSBitmapCharSet.h \
-Foundation/NSBundle.h \
-Foundation/NSCharacterSet.h \
-Foundation/NSCoder.h \
-Foundation/NSConcreteNumber.h \
-Foundation/NSConcreteValue.h \
-Foundation/NSData.h \
-Foundation/NSDate.h \
-Foundation/NSDictionary.h \
-Foundation/NSException.h \
-Foundation/NSGeometry.h \
-Foundation/NSGArchiver.h \
-Foundation/NSGArray.h \
-Foundation/NSGCString.h \
-Foundation/NSGData.h \
-Foundation/NSGDictionary.h \
-Foundation/NSGSet.h \
-Foundation/NSHashTable.h \
-Foundation/NSInvocation.h \
-Foundation/NSLock.h \
-Foundation/NSMapTable.h \
-Foundation/NSMethodSignature.h \
-Foundation/NSNotification.h \
-Foundation/NSObjCRuntime.h \
-Foundation/NSObject.h \
-Foundation/NSProcessInfo.h \
-Foundation/NSRange.h \
-Foundation/NSRunLoop.h \
-Foundation/NSSerialization.h \
-Foundation/NSSet.h \
-Foundation/NSString.h \
-Foundation/NSThread.h \
-Foundation/NSTimer.h \
-Foundation/NSUtilities.h \
-Foundation/NSValue.h \
-Foundation/NSZone.h \
-Foundation/objc-load.h
+include/NSArchiver.h \
+include/NSArray.h \
+include/NSAutoreleasePool.h \
+include/NSBitmapCharSet.h \
+include/NSBundle.h \
+include/NSCharacterSet.h \
+include/NSCoder.h \
+include/NSConcreteNumber.h \
+include/NSConcreteValue.h \
+include/NSData.h \
+include/NSDate.h \
+include/NSDictionary.h \
+include/NSException.h \
+include/NSGeometry.h \
+include/NSGArchiver.h \
+include/NSGArray.h \
+include/NSGCString.h \
+include/NSGData.h \
+include/NSGDictionary.h \
+include/NSGSet.h \
+include/NSHashTable.h \
+include/NSInvocation.h \
+include/NSLock.h \
+include/NSMapTable.h \
+include/NSMethodSignature.h \
+include/NSNotification.h \
+include/NSObjCRuntime.h \
+include/NSObject.h \
+include/NSProcessInfo.h \
+include/NSRange.h \
+include/NSRunLoop.h \
+include/NSSerialization.h \
+include/NSSet.h \
+include/NSString.h \
+include/NSThread.h \
+include/NSTimer.h \
+include/NSUtilities.h \
+include/NSValue.h \
+include/NSZone.h \
+include/objc-load.h
 
 HEADERS_INSTALL = @HEADERS_INSTALL@ \
-                  objects/stdobjects.h
+                  include/preface.h
 OBJS_INSTALL = @OBJS_INSTALL@ 
 OBJS_INSTALL_PIC = $(OBJS_INSTALL:$(OEXT)=_pic$(OEXT))
 
 DIST_FILES = \
         Makefile.in AUTHORS \
-        objects/config.h.in objects/stdobjects.h.in \
+        include/config.h.in include/preface.h.in \
         $(GNU_MFILES) \
         $(GNU_CFILES) \
         $(GNU_HEADERS) \
@@ -478,7 +477,7 @@ DIST_FILES = \
 
 RCS_FILES = \
         Makefile.in Makefile.sed.nt \
-        objects/config.h.in objects/stdobjects.h.in \
+        include/config.h.in include/preface.h.in \
         $(GNU_MFILES) \
         $(GNU_CFILES) \
         $(GNU_HEADERS) \
@@ -492,58 +491,59 @@ RCS_FILES = \
         $(GNUSTEP_HEADERS) \
         $(GNUSTEP_OTHER_SRCFILES)
 
-all: libobjects$(LIBEXT) @LIBOBJECTS_SO@
+all: gnustep/base $(LIBRARY_NAME)$(LIBEXT) @SHARED_LIBRARY@
 
-libobjects.so.$(OBJECTS_VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC) 
-	$(CC) -shared -o libobjects.so.$(OBJECTS_VERSION) \
-		-Wl,-soname,libobjects.so.$(OBJECTS_MAJOR_VERSION) \
+$(LIBRARY_NAME).so.$(VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC) 
+	$(CC) -shared -o $(LIBRARY_NAME).so.$(VERSION) \
+		-Wl,-soname,$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
 		$(OBJS_INSTALL_PIC)
-	rm -f libobjects.so.$(OBJECTS_MAJOR_VERSION) 
-	rm -f libobjects.so
-	ln -s libobjects.so.$(OBJECTS_VERSION) \
-		libobjects.so.$(OBJECTS_MAJOR_VERSION)
-	ln -s libobjects.so.$(OBJECTS_MAJOR_VERSION) \
-		libobjects.so
+	rm -f $(LIBRARY_NAME).so.$(MAJOR_VERSION) 
+	rm -f $(LIBRARY_NAME).so
+	ln -s $(LIBRARY_NAME).so.$(VERSION) \
+		$(LIBRARY_NAME).so.$(MAJOR_VERSION)
+	ln -s $(LIBRARY_NAME).so.$(MAJOR_VERSION) \
+		$(LIBRARY_NAME).so
 
-libobjects$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) 
-	$(AR) $(ARFLAGS) $(AROUT)libobjects$(LIBEXT) $(OBJS_INSTALL)
-	$(RANLIB) libobjects$(LIBEXT)
+$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) 
+	$(AR) $(ARFLAGS) $(AROUT)$(LIBRARY_NAME)$(LIBEXT) $(OBJS_INSTALL)
+	$(RANLIB) $(LIBRARY_NAME)$(LIBEXT)
+
+gnustep/base:
+	mkdir gnustep
+	ln -s $(srcdir)/include gnustep/base
+	ln -s $(srcdir)/include Foundation
 
 install: installdirs all
 	# Install the library
-	$(INSTALL_DATA) libobjects$(LIBEXT) $(libdir)
-	$(RANLIB) $(libdir)/libobjects$(LIBEXT); \
-	if [ -n "@LIBOBJECTS_SO@" ]; then \
-	  $(INSTALL_DATA) libobjects.so.$(OBJECTS_VERSION) $(libdir) ; \
-	  rm -f $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
-	  rm -f $(libdir)/libobjects.so ; \
-	  ln -s $(libdir)/libobjects.so.$(OBJECTS_VERSION) \
-		$(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) ; \
-	  ln -s $(libdir)/libobjects.so.$(OBJECTS_MAJOR_VERSION) \
-		$(libdir)/libobjects.so ; \
+	$(INSTALL_DATA) $(LIBRARY_NAME)$(LIBEXT) $(libdir)
+	$(RANLIB) $(libdir)/$(LIBRARY_NAME)$(LIBEXT); \
+	if [ -n "@SHARED_LIBRARY@" ]; then \
+	  $(INSTALL_DATA) $(LIBRARY_NAME).so.$(VERSION) $(libdir) ; \
+	  rm -f $(libdir)/$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
+	  rm -f $(libdir)/$(LIBRARY_NAME).so ; \
+	  ln -s $(libdir)/$(LIBRARY_NAME).so.$(VERSION) \
+		$(libdir)/$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
+	  ln -s $(libdir)/$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
+		$(libdir)/$(LIBRARY_NAME).so ; \
 	fi
 	# Install the headers
 	for file in $(HEADERS_INSTALL); do \
-	  $(INSTALL_DATA) $(srcdir)/$$file $(includedir)/$$file ; \
+	  $(INSTALL_DATA) $(srcdir)/$$file \
+	    $(includedir)/gnustep/base/`basename $$file` ; \
 	done
-	$(INSTALL_DATA) objects/config.h $(includedir)/objects/config.h
-	cd $(includedir)/Foundation; rm -f README; ln -s ../objects/README .
-	cd $(includedir)/objc; rm -f README; ln -s ../objects/README .
+	$(INSTALL_DATA) include/config.h $(includedir)/gnustep/base/config.h
+	cd $(includedir); rm -f Foundation; ln -s ./gnustep/base ./Foundation
+	cd $(includedir)/objc; rm -f README; ln -s ../include/README .
 
 installdirs:
 	$(srcdir)/../mkinstalldirs \
 		$(libdir) \
-		$(includedir)/objects \
-		$(includedir)/objc \
-		$(includedir)/Foundation
+		$(includedir)/gnustep/base
 
 uninstall:
-	rm -f $(libdir)/libobjects$(LIBEXT)
-	rm -rf $(includedir)/objects \
-		$(includedir)/Foundation 
-	for file in $(NEXTSTEP_HEADERS); do \
-	  rm -f $(includedir)/$$file ; \
-	done
+	rm -f $(libdir)/$(LIBRARY_NAME)$(LIBEXT)
+	rm -rf $(includedir)/gnustep/base
+	rm -f $(includedir)/Foundation
 
 # Creation of NSValue and NSNumber concrete classes from templates
 $(NSVALUE_MFILES) : NSCTemplateValue.m
@@ -568,16 +568,16 @@ dynamic-load.h: ../config.status
 	rm -f dynamic-load.h
 	cp $(srcdir)/$(DYNAMIC_LINKER)-load.h dynamic-load.h
 
-objects/stdobjects.h: objects/stdobjects.h.in ../Version
+include/preface.h: include/preface.h.in ../Version
 	rm -f $@
-	sed -e "s/@OBJECTS_VERSION@/$(OBJECTS_VERSION)/" \
+	sed -e "s/@VERSION@/$(VERSION)/" \
 	< $< | \
-	sed -e "s/@OBJECTS_MAJOR_VERSION@/$(OBJECTS_MAJOR_VERSION)/" | \
-	sed -e "s/@OBJECTS_MINOR_VERSION@/$(OBJECTS_MINOR_VERSION)/" | \
-	sed -e "s/@OBJECTS_SUBMINOR_VERSION@/$(OBJECTS_SUBMINOR_VERSION)/" | \
-	sed -e "s/@OBJECTS_GCC_VERSION@/$(OBJECTS_GCC_VERSION)/" \
+	sed -e "s/@MAJOR_VERSION@/$(MAJOR_VERSION)/" | \
+	sed -e "s/@MINOR_VERSION@/$(MINOR_VERSION)/" | \
+	sed -e "s/@SUBMINOR_VERSION@/$(SUBMINOR_VERSION)/" | \
+	sed -e "s/@GCC_VERSION@/$(GCC_VERSION)/" \
 	> $@
-stdobjects$(OEXT): objects/stdobjects.h
+preface$(OEXT): include/preface.h
 
 # Turn off warnings for o_vscanf.c, it generates a bunch of unimportant ones.
 o_vscanf$(OEXT): o_vscanf.c
@@ -585,26 +585,26 @@ o_vscanf$(OEXT): o_vscanf.c
 o_vscanf_pic$(OEXT): o_vscanf.c
 	$(CC) -c $(ALL_CPPFLAGS) $(DEFS) $(ALL_OBJCFLAGS) -w -o $@ $<
 
-objects/%-bas.h: objects/x-bas.h.in
+include/%-bas.h: include/x-bas.h.in
 	sed -e "s/@XX@/$*/g" $< > $@
 
-objects/%-cbs.h: objects/x-cbs.h.in
+include/%-cbs.h: include/x-cbs.h.in
 	sed -e "s/@YY@/$*/g" $< > $@
 
-%-bas.m: x-bas.m.in objects/%.h
+%-bas.m: x-bas.m.in include/%.h
 	sed -e "s/@XX@/$*/g" $< > $@
 
-%-cbs.m: x-cbs.m.in objects/%.h
+%-cbs.m: x-cbs.m.in include/%.h
 	sed -e "s/@YY@/$*/g" $< > $@
 
-array.o: array.m objects/array.h
-objects/array.h: objects/array-bas.h objects/array-cbs.h objects/hash.h
-hash.o: hash.m objects/hash.h
-objects/hash.h: objects/hash-bas.h objects/hash-cbs.h
-list.o: list.m objects/list.h
-objects/list.h: objects/list-bas.h objects/list-cbs.h objects/array.h objects/hash.h
-map.o: map.m objects/map.h
-objects/map.h: objects/map-bas.h objects/map-cbs.h objects/hash.h
+array.o: array.m include/array.h
+include/array.h: include/array-bas.h include/array-cbs.h include/hash.h
+hash.o: hash.m include/hash.h
+include/hash.h: include/hash-bas.h include/hash-cbs.h
+list.o: list.m include/list.h
+include/list.h: include/list-bas.h include/list-cbs.h include/array.h include/hash.h
+map.o: map.m include/map.h
+include/map.h: include/map-bas.h include/map-cbs.h include/hash.h
 
 
 Makefile: $(srcdir)/Makefile.in ../config.status
@@ -631,23 +631,21 @@ AUTHORS: Makefile.in
 mostlyclean:
 	rm -f  core \
 	*~ \
-	objects/*~ \
-	Foundation/*~ \
+	include/*~ \
 	objc/*~
 clean: mostlyclean
-	rm -f libobjects$(LIBEXT) *$(OEXT)
+	rm -f $(LIBRARY_NAME)$(LIBEXT) *$(OEXT)
 	rm -f $(NSVALUE_MFILES) $(NSNUMBER_MFILES)
 distclean: clean
 	rm -f Makefile 
 	rm -f dynamic-load.h
 maintainer-clean: distclean
-	rm -f TAGS objects/stdobjects.h objects/config.h
+	rm -f TAGS include/preface.h include/config.h
 
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/src
-	mkdir ../snap/src/objects
+	mkdir ../snap/src/include
 	mkdir ../snap/src/objc
-	mkdir ../snap/src/Foundation
 	for file in $(DIST_FILES); do \
 	  ln $$file ../snap/src/$$file ; \
 	done
