@@ -57,7 +57,8 @@ a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @item Reorganize some of the Categories to make a minimal NSObject-using
 program smaller.  Currently it is huge becuase it pulls in archiving and
-therefore many of the collection classes.
+therefore many of the collection classes.  (But perhaps this doesn't
+matter, since we recommend using shared libraries anyway.)
 
 @item Make sure that Encoder's properly release their CStream and
 Stream's.  It seems that the Stream is not getting -delloc'ed, and
@@ -75,8 +76,6 @@ Change many NSParameterAssert()'s into NSAssert()'s with explanations.
 
 @item Make UdpPort work; make MachPort work.
 
-@item Write NSRunLoop class, on top of GNU RunLoop.
-
 @item Finish NotificationQueue, and make it interoperate with the
 RunLoop properly.
 
@@ -86,7 +85,8 @@ properly.
 @item Clean up and finish the String object situation.
 
 @item Fix many memory allocation inconsistencies.  Methods that return
-malloced buffers should autorelease those buffers, (like readFormat:).
+malloc'ed buffers should autorelease those buffers, (like readFormat:).
+(I think these are all fixed now.)
 
 @item Many code fixes and cleanups, indicated with @samp{xxx} in the
 source.
@@ -96,9 +96,8 @@ source.
 @item Finish Collection heirarchy clean ups.  We need non-mutable
 version for many of the classes.
 
-@item
-Possibly change @code{-(int)compare:anObject} for Collection.  How
-should non-Indexed collections be ordered?
+@item Possibly change implementation of @code{-(int)compare:anObject}
+for Collection.  How should non-Indexed collections be ordered?
 
 @item
 Finish HashTable.m.  Implement freeKeys:values: (What is this supposed
