@@ -1,3 +1,8 @@
+2003-09-10  David Ayers  <d.ayers@inode.at>
+
+	* Headers/Additions/GNUstepBase/GSObjCRuntime.h (GSObjCSuper):
+	Added test for uninitialized superclass reference.
+
 2003-09-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Tidy use of GSObjCRuntime a little.
