@@ -105,12 +105,6 @@ static NSBundle* _loadingBundle = nil;
 static NSLock* load_lock = nil;
 static BOOL _strip_after_loading = NO;
 
-static NSString* platform = 
-#ifdef PLATFORM_OS
-  @PLATFORM_OS;
-#else
-  nil;
-#endif
 static NSString* gnustep_target_dir = 
 #ifdef GNUSTEP_TARGET_DIR
   @GNUSTEP_TARGET_DIR;
@@ -582,12 +576,12 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 		        [NSString stringWithFormat: @"%@.%@", name, ext]];
 	  if ( stat([fullpath cString], &statbuf) == 0) 
 	    {
-	      if (platform)
+	      if (gnustep_target_os)
 		{
 		  NSString* platpath;
 		  platpath = [path stringByAppendingPathComponent:
 			      [NSString stringWithFormat: @"%@-%@.%@", 
-			       name, platform, ext]];
+			       name, gnustep_target_os, ext]];
 		  if ( stat([platpath cString], &statbuf) == 0) 
 		    fullpath = platpath;
 		}
@@ -602,12 +596,12 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 		        [NSString stringWithFormat: @"%@", name]];
 	  if ( stat([fullpath cString], &statbuf) == 0) 
 	    {
-	      if (platform)
+	      if (gnustep_target_os)
 		{
 		  NSString* platpath;
 		  platpath = [path stringByAppendingPathComponent:
 			      [NSString stringWithFormat: @"%@-%@", 
-			       name, platform]];
+			       name, gnustep_target_os]];
 		  if ( stat([platpath cString], &statbuf) == 0) 
 		    fullpath = platpath;
 		}
@@ -615,12 +609,12 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  else
 	    {
 	      fullpath = _bundle_path_for_name(path, name);
-	      if (fullpath && platform)
+	      if (fullpath && gnustep_target_os)
 		{
 		  NSString* platpath;
 		  platpath = _bundle_path_for_name(path, 
 				 [NSString stringWithFormat: @"%@-%@", 
-					   name, platform]);
+					   name, gnustep_target_os]);
 		  if (platpath)
 		    fullpath = platpath;
 		}

@@ -182,7 +182,7 @@ running configure:
 
 @example
 LIBS=-lthread; ./configure --prefix=/usr/local/GNUstep
-@end
+@end example
 
 After this you should add the shell script @file{GNUstep.sh} in the makefile
 package to you initialization file (such as @file{.profile}). For instance:
