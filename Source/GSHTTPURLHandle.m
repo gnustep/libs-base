@@ -22,6 +22,7 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */
 
+#include "config.h"
 #include <Foundation/NSArray.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
@@ -39,6 +40,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/file.h>
+
+#ifdef HAVE_SYS_FCNTL_H
+#include <sys/fcntl.h>		// For O_WRONLY, etc
+#endif
 
 static NSString	*httpVersion = @"1.1";
 
