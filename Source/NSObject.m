@@ -158,7 +158,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
   return (class_get_instance_method(self, aSelector) != METHOD_NULL);
 }
 
-- (BOOL) conformsToProtocol: (Protocol*)aProtocol
++ (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
   int i;
   struct objc_protocol_list* proto_list;
@@ -168,7 +168,7 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
     {
       for (i=0; i < proto_list->count; i++)
       {
-        if ([proto_list->list[i] conformsTo: aProtocol])
+        if ([proto_list->list[i] conformsToProtocol: aProtocol])
           return YES;
       }
     }
@@ -177,6 +177,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
     return [[self superclass] conformsToProtocol: aProtocol];
   else
     return NO;
+}
+
+- (BOOL) conformsToProtocol: (Protocol*)aProtocol
+{
+  return [[self class] conformsToProtocol:aProtocol];
 }
 
 + (IMP) instanceMethodForSelector: (SEL)aSelector
@@ -437,6 +442,11 @@ BOOL NSDecrementExtraRefCountWasZero(id anObject)
 }
 
 + (BOOL) conformsTo: (Protocol*)aProtocol
+{
+  return [self conformsToProtocol:aProtocol];
+}
+
+- (BOOL) conformsTo: (Protocol*)aProtocol
 {
   return [self conformsToProtocol:aProtocol];
 }
