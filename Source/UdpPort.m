@@ -31,6 +31,7 @@
 #include <objects/ConnectedCoder.h>
 #include <objects/String.h>
 #include <assert.h>
+#include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #if _AIX
 #include <sys/select.h>
 #endif /* _AIX */
@@ -189,6 +190,7 @@ static NSMapTable *port_number_2_in_port = NULL;
    want to wait for one directly from a port, you can use this method. */
 - newPacketReceivedBeforeDate: date
 {
+  return nil;
 }
 
 
