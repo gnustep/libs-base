@@ -52,7 +52,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#ifndef __WIN32__
+#if	!defined(__WIN32__) || defined(__CYGWIN__)
 #include <unistd.h>		/* for gethostname() */
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <netinet/in.h>		/* for inet_ntoa() */
@@ -80,7 +80,7 @@
 
 #endif /* !__WIN32__ */
 #include <string.h>		/* for memset() and strchr() */
-#ifndef __WIN32__
+#if	!defined(__WIN32__) || defined(__CYGWIN__)
 #include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
