@@ -26,10 +26,13 @@
 #include <objects/stdobjects.h>
 #include <objects/Proxy.h>
 #include <objects/Connection.h>
+#include <objects/Port.h>
+#include <objects/TcpPort.h>
 #include <objects/ConnectedCoder.h>
+#include <Foundation/NSException.h>
 #include <assert.h>
 
-static BOOL debug_proxy = NO;
+static int debug_proxy = 1;
 
 #if NeXT_runtime
 static id tmp_kludge_protocol = nil;
@@ -51,31 +54,41 @@ static id tmp_kludge_protocol = nil;
 }
 #endif
 
+
 /* This is the designated initializer. */
-+ newForRemoteTarget: (unsigned)aTarget connection: (Connection*)c
+
++ newForRemoteTarget: (unsigned)target connection: (Connection*)connection
 {
-  Proxy *newProxy;
+  Proxy *new_proxy;
 
-  if ((newProxy = [c proxyForTarget: aTarget]))
-    return newProxy;
+  /* If there already is a proxy for this target/connection combination,
+     don't create a new one, just return the old one. */
+  if ((new_proxy = [connection proxyForTarget: target]))
+    return new_proxy;
 
-  newProxy = class_create_instance ([Proxy class]);
-  newProxy->target = aTarget;
-  newProxy->connection = c;
-  newProxy->retain_count = 0;
+  /* There isn't one already created; make a new proxy object, 
+     and set its ivars. */
+  new_proxy = class_create_instance (self);
+  new_proxy->_target = target;
+  new_proxy->_connection = connection;
+  new_proxy->_retain_count = 0;
 #if NeXT_runtime
-  newProxy->_method_types = coll_hash_new(32, 
+  new_proxy->_method_types = coll_hash_new(32, 
 					  elt_hash_void_ptr,
 					  elt_compare_void_ptrs);
-  newProxy->protocol = nil;
+  new_proxy->protocol = nil;
 #endif
 
   if (debug_proxy)
-    printf("%s: proxy=0x%x name %u\n", 
-	   sel_get_name(_cmd), (unsigned)newProxy, newProxy->target);
+    printf("Created new proxy=0x%x target 0x%x conn 0x%x\n", 
+	   (unsigned)new_proxy,
+	   (unsigned)new_proxy->_target,
+	   (unsigned)connection);
 
-  [c addProxy: newProxy];
-  return newProxy;
+  /* Register this proxy with the connection. */
+  [connection addProxy: new_proxy];
+
+  return new_proxy;
 }
 
 - notImplemented: (SEL)aSel
@@ -101,11 +114,10 @@ static id tmp_kludge_protocol = nil;
 }
 #endif
 
-- invalidateProxy
+- (void) invalidateProxy
 {
   /* What should go here? */
-  [connection removeProxy: self];
-  return self;
+  [_connection removeProxy: self];
 }
 
 - (BOOL) isProxy
@@ -124,7 +136,7 @@ static id tmp_kludge_protocol = nil;
   return object_get_class (self);
 }
 
-static inline BOOL class_is_kind_of(Class self, Class aClassObject)
+static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 {
   Class class;
 
@@ -134,123 +146,203 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
   return NO;
 }
 
+
+/* Encoding and Decoding Proxies on the wire. */
+
+/* This is the proxy tag; it indicates where the local object is,
+   and determines whether the reply port to the Connection-where-the-
+   proxy-is-local needs to encoded/decoded or not. */
+enum
+{
+  PROXY_LOCAL_FOR_RECEIVER = 0,
+  PROXY_LOCAL_FOR_SENDER,
+  PROXY_REMOTE_FOR_BOTH
+};
+
 + (void) encodeObject: anObject withConnectedCoder: aRmc
 {
-  unsigned aTarget;
-  BOOL willBeLocal;
-  assert([aRmc connection]);
-  if (class_is_kind_of (object_get_class (anObject), [Proxy class]))
+  unsigned proxy_target;
+  unsigned char proxy_tag;
+  Connection *encoder_connection;
+
+  encoder_connection = [aRmc connection];
+  assert (encoder_connection);
+
+  /* Find out if anObject is a proxy or not. */
+  if (class_is_kind_of (object_get_class (anObject), self))
     {
       /* anObject is a Proxy, or a Proxy subclass */
-      aTarget = [anObject targetForProxy];
-      if ([aRmc connection] == [anObject connectionForProxy])
+      Connection *proxy_connection = [anObject connectionForProxy];
+      proxy_target = [anObject targetForProxy];
+      if (encoder_connection == proxy_connection)
 	{
-	  /* This proxy is local on the other side */
-	  willBeLocal = YES;
-	  /* xxx Perhaps we could re-order these encodings, and
-	     not bother to send this `nil' if willBeLocal is YES. */
-	  [aRmc encodeBycopyObject:nil
-		withName:@"Proxy is local on other side"];
-	  [aRmc encodeValueOfObjCType: @encode(unsigned)
-		at: &aTarget 
-		withName: @"Object Proxy target"];
-	  [aRmc encodeValueOfObjCType: @encode(BOOL)
-		at: &willBeLocal 
-		withName: @"Proxy willBeLocal"];
+	  /* This proxy is a local object on the other side */
+	  proxy_tag = PROXY_LOCAL_FOR_RECEIVER;
+	  if (debug_proxy)
+	    fprintf(stderr, "Sending a proxy, will be local 0x%x "
+		    "connection 0x%x\n",
+		    [anObject targetForProxy],
+		    (unsigned)proxy_connection);
+	  [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
+		at: &proxy_tag
+		withName: @"Proxy is local for receiver"];
+	  [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
+		at: &proxy_target 
+		withName: @"Proxy target"];
 	}
       else
 	{
 	  /* This proxy will still be remote on the other side */
-	  id op = [[anObject connectionForProxy] outPort];
-	  willBeLocal = NO;
+	  OutPort *proxy_connection_out_port = [proxy_connection outPort];
+
+	  assert (proxy_connection_out_port);
+	  assert (proxy_connection_out_port != [encoder_connection outPort]);
+	  /* xxx Remove this after debugging, because it won't be true
+	     for connections across different hosts. */
+	  assert ([(id)proxy_connection_out_port portNumber]
+		  != [(id)[encoder_connection outPort] portNumber]);
+	  assert ([proxy_connection inPort] == [encoder_connection inPort]);
+	  proxy_tag = PROXY_REMOTE_FOR_BOTH;
 	  if (debug_proxy)
-	    fprintf(stderr, "Sending a triangle-connection proxy\n");
+	    fprintf(stderr, "Sending triangle-connection proxy 0x%x "
+		    "proxy-conn 0x%x to-conn 0x%x\n",
+		    [anObject targetForProxy],
+		    (unsigned)proxy_connection, (unsigned)encoder_connection);
 	  /* It's remote here, so we need to tell other side where to form
 	     triangle connection to */
-	  [aRmc encodeBycopyObject: op
+	  [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
+		at: &proxy_tag
+		withName: @"Proxy is remote for both sender and receiver"];
+	  [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
+		at: &proxy_target 
+		withName: @"Proxy target"];
+	  [aRmc encodeBycopyObject: proxy_connection_out_port
 		withName: @"Proxy outPort"];
-	  [aRmc encodeValueOfObjCType: @encode(unsigned)
-		at: &aTarget 
-		withName: @"Object Proxy target"];
-	  [aRmc encodeValueOfObjCType: @encode(BOOL)
-		at: &willBeLocal 
-		withName: @"Proxy willBeLocal"];
 	}
     }
   else
     {
       /* anObject is a non-Proxy object, e.g. NSObject. */
-      /* Now were sending this object across the wire in proxy form. */
-      aTarget = PTR2LONG(anObject);
-      willBeLocal = NO;
-      /* Let the connection know that we're going, this also retains anObj */
+      /* But now were sending this object across the wire in proxy form. */
+      proxy_target = PTR2LONG(anObject);
+      proxy_tag = PROXY_LOCAL_FOR_SENDER;
+      if (debug_proxy)
+	fprintf(stderr, "Sending a proxy for local 0x%x\n",
+		(unsigned)anObject);
+      /* Let the connection know that we're going;  this also retains anObj; 
+	 it's OK to send -addLocalObject: more than once for the same
+	 object, because it will only really get added and retained once. */
       [[aRmc connection] addLocalObject: anObject];
-      /* if nil port, other connection will use ConnectedCoder replyPort */
-      [aRmc encodeBycopyObject: nil 
-	    withName: @"Proxy outPort == remotePort"];
-      [aRmc encodeValueOfObjCType: @encode(unsigned)
-	    at: &aTarget 
-	    withName: @"Object Proxy target"];
-      [aRmc encodeValueOfObjCType: @encode(BOOL)
-	    at: &willBeLocal 
-	    withName: @"Proxy willBeLocal"];
+
+      [aRmc encodeValueOfCType: @encode(typeof(proxy_tag))
+	    at: &proxy_tag
+	    withName: @"Proxy is local for the sender"];
+      [aRmc encodeValueOfCType: @encode(typeof(proxy_target))
+	    at: &proxy_target 
+	    withName: @"Proxy target"];
     }
 }
 
 + newWithCoder: aRmc
 {
-  unsigned new_target;
-  id newConnectionOutPort;
-  id c;
-  BOOL willBeLocal;
+  unsigned char proxy_tag;
+  unsigned target;
+  id proxy_connection;
+  id decoder_connection;
 
-  if ([aRmc class] != [ConnectedCoder class])
-    [self error:"Proxy objects only code with ConnectedCoder class"];
-  assert([aRmc connection]);
-  [aRmc decodeObjectAt: &newConnectionOutPort withName: NULL];
-  [aRmc decodeValueOfObjCType: @encode(unsigned) 
-	at: &new_target 
-	withName: NULL];
-  [aRmc decodeValueOfObjCType: @encode(BOOL) 
-	at: &willBeLocal 
-	withName: NULL];
-  if (newConnectionOutPort)
-    {
-      c = [Connection newForInPort:[[aRmc connection] inPort]
-                        outPort:newConnectionOutPort
-			ancestorConnection:[aRmc connection]];
-    }
-  else
-    {
-      c = [aRmc connection];
-    }
+  if ([aRmc class] != [ConnectedDecoder class])
+    [self error:"Proxy objects only decode with ConnectedDecoder class"];
 
-  if (!willBeLocal)
+  decoder_connection = [aRmc connection];
+  assert (decoder_connection);
+
+  /* First get the tag, so we know what values need to be decoded. */
+  [aRmc decodeValueOfCType: @encode(typeof(proxy_tag))
+	at: &proxy_tag
+	withName: NULL];
+
+  switch (proxy_tag)
     {
+
+    case PROXY_LOCAL_FOR_RECEIVER:
+      /* This was a proxy on the other side of the connection, but
+	 here it's local.  Just get the target address, make sure
+	 that it is indeed the address of a local object that we
+	 vended to the remote connection, then simply return the target
+	 casted to (id). */
+      [aRmc decodeValueOfCType: @encode(typeof(target))
+	    at: &target 
+	    withName: NULL];
       if (debug_proxy)
-	printf("returning remote Proxy, target=0x%x\n", new_target);
-      return [self newForRemoteTarget: new_target connection: c];
-    }
-  else
-    {
-      assert(new_target);
+	fprintf(stderr, "Recieving a proxy for local object 0x%x "
+		"connection 0x%x\n", target, (unsigned)decoder_connection);
+      if (![[decoder_connection class] includesLocalObject: (id)target])
+	[NSException raise: @"ProxyDecodedBadTarget"
+		     format: @"No local object with given address"];
+      return (id) target;
+
+    case PROXY_LOCAL_FOR_SENDER:
+      /* This was a local object on the other side of the connection,
+	 but here it's a proxy object.  Get the target address, and
+	 send [Proxy +newForRemoteTarget:connection:]; this will return 
+	 the proxy object we already created for this target, or create
+	 a new proxy object if necessary. */
+      [aRmc decodeValueOfCType: @encode(typeof(target))
+	    at: &target 
+	    withName: NULL];
       if (debug_proxy)
-	printf("returning local Object, target=0x%x\n", new_target);
-      /* xxx I should add something that makes sure this number is a
-	 valid object address... offer a little protection against bad
-	 clients. */
-      return (id)new_target;
+	fprintf(stderr, "Receiving a proxy, was local 0x%x connection 0x%x\n",
+		(unsigned)target, (unsigned)decoder_connection);
+      return [self newForRemoteTarget: target 
+		   connection: decoder_connection];
+
+    case PROXY_REMOTE_FOR_BOTH:
+      /* This was a proxy on the other side of the connection, and it
+	 will be a proxy on this side too; that is, the local version
+	 of this object is not on this host, not on the host the
+	 ConnectedDecoder is connected to, but on a *third* host.
+	 This is why I call this a "triangle connection".  In addition
+	 to decoding the target, we decode the OutPort object that we
+	 will use to talk directly to this third host.  We send
+	 [Connection +newForInPort:outPort:ancestorConnection:]; this
+	 will either return the connection already created for this
+	 inPort/outPort pair, or create a new connection if necessary. */
+      {
+	Connection *proxy_connection;
+	id proxy_connection_out_port = nil;
+
+	[aRmc decodeValueOfCType: @encode(typeof(target))
+	      at: &target 
+	      withName: NULL];
+	[aRmc decodeObjectAt: &proxy_connection_out_port
+	      withName: NULL];
+	assert (proxy_connection_out_port);
+	proxy_connection = [[decoder_connection class]
+			     newForInPort: [decoder_connection inPort]
+			     outPort: proxy_connection_out_port
+			     ancestorConnection: decoder_connection];
+	assert (proxy_connection != decoder_connection);
+	if (debug_proxy)
+	  fprintf(stderr, "Receiving a triangle-connection proxy 0x%x "
+		  "connection 0x%x\n", target, (unsigned)proxy_connection);
+	return [self newForRemoteTarget: target 
+		     connection: proxy_connection];
+      }
+    default:
+      [self error: "Bad proxy tag"];
     }
+  /* Not reached. */
+  return nil;
 }
 
 - (unsigned) targetForProxy
 {
-  return target;
+  return _target;
 }
 
 - connectionForProxy
 {
-  return connection;
+  return _connection;
 }
 
 - (const char *) selectorTypeForProxy: (SEL)selector
@@ -290,8 +382,8 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
     return t;
   }
 #endif /* 1 */
-#else
-  return sel_get_type(selector);
+#else /* NeXT_runtime */
+  return sel_get_type (selector);
 #endif
 }
 
@@ -299,7 +391,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 
 - (oneway void) release
 {
-  if (!retain_count--)
+  if (!_retain_count--)
     {
       [self invalidateProxy];
       [self dealloc];
@@ -308,15 +400,15 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 
 - retain
 {
-  retain_count++;
+  _retain_count++;
   return self;
 }
 
 - (void) dealloc
 {
 #if NeXT_runtime
-  coll_hash_delete(_method_types);
-  object_dispose((Object*)self);
+  coll_hash_delete (_method_types);
+  object_dispose ((Object*)self);
 #else
   NSDeallocateObject ((id)self);
 #endif
@@ -326,9 +418,9 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 {
   if (debug_proxy)
     printf("Proxy forwarding %s\n", sel_get_name(aSel));
-  return [connection forwardForProxy: self
-		     selector: aSel
-		     argFrame: frame];
+  return [_connection forwardForProxy: self
+		      selector: aSel
+		      argFrame: frame];
 }
 
 /* We need to make an effort to pass errors back from the server 
@@ -336,7 +428,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 
 - (unsigned) retainCount
 {
-  return retain_count;
+  return _retain_count;
 }
 
 - autorelease
@@ -366,7 +458,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
       return NULL;
   }
 #else
-  return sel_get_type(selector);
+  return sel_get_type (selector);
 #endif
 }
 @end
