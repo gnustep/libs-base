@@ -990,7 +990,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   NSEnumerator* enumerate;
 
   array = [NSMutableArray arrayWithCapacity: 8];
-  languages = [[NSUserDefaults standardUserDefaults] stringArrayForKey: @"NSLanguages"];
+  languages = [NSUserDefaults userLanguages];
 
   primary = [rootPath stringByAppendingPathComponent: @"Resources"];
   [array addObject: _bundle_resource_path(primary, bundlePath, nil)];
