@@ -32,9 +32,6 @@
     parse corresponding source files in the same directory (or the
     directory specified using the DocumentationDirectory default),
     and produce gsdoc files as output.<br />
-    If you list one or more source (.m) files after a header file,
-    the tool will parse those files to find documentation for the
-    things declared in the preceeding header.
   </p>
   <p>
     Even without any human assistance, this tool will produce skeleton
@@ -256,13 +253,6 @@
       is part of GNUstep and possibly complies with the OpenStep standard
       or implements MacOS-X compatible methods.
     </item>
-    <item><strong>SourceDirectory</strong>
-      May be used to specify the directory to be searched for source
-      (anything other than <code>.h</code> files ... which are controlled
-      by the HeaderDirectory default).<br />
-      If this is not specified, sources are looked for relative to the
-      current directory or using absolute path names if given.
-    </item>
     <item><strong>SystemProjects</strong>
       This value is used to control the automatic inclusion of system
       external projects into the indexing system for generation of
@@ -340,7 +330,6 @@ main(int argc, char **argv, char **env)
   NSString		*documentationDirectory;
   NSString		*declared;
   NSString		*headerDirectory;
-  NSString		*sourceDirectory;
   NSString		*project;
   NSDictionary		*originalIndex;
   AGSIndex		*projectRefs;
@@ -404,12 +393,6 @@ main(int argc, char **argv, char **env)
   if (headerDirectory == nil)
     {
       headerDirectory = @"";
-    }
-
-  sourceDirectory = [defs stringForKey: @"SourceDirectory"];
-  if (sourceDirectory == nil)
-    {
-      sourceDirectory = @"";
     }
 
   documentationDirectory = [defs stringForKey: @"DocumentationDirectory"];
@@ -551,35 +534,13 @@ main(int argc, char **argv, char **env)
 	   */
 	  if ([arg isAbsolutePath] == NO)
 	    {
-	      if ([[arg pathExtension] isEqual: @"m"] == YES)
-		{
-		  if ([sourceDirectory length] > 0)
-		    {
-		      arg = [sourceDirectory stringByAppendingPathComponent:
-			[arg lastPathComponent]];
-		      [a replaceObjectAtIndex: 0 withObject: arg];
-		    }
-		}
-	      else
+	      if ([[arg pathExtension] isEqual: @"h"] == YES)
 		{
 		  if ([headerDirectory length] > 0)
 		    {
 		      arg = [headerDirectory stringByAppendingPathComponent:
 			[arg lastPathComponent]];
 		      [a replaceObjectAtIndex: 0 withObject: arg];
-		    }
-		}
-	    }
-	  for (i = 1; i < [a count]; i++)
-	    {
-	      arg = [a objectAtIndex: i];
-	      if ([arg isAbsolutePath] == NO)
-		{
-		  if ([sourceDirectory length] > 0)
-		    {
-		      arg = [sourceDirectory stringByAppendingPathComponent:
-			[arg lastPathComponent]];
-		      [a replaceObjectAtIndex: i withObject: arg];
 		    }
 		}
 	    }
@@ -749,15 +710,12 @@ main(int argc, char **argv, char **env)
 
 	  /*
 	   * Our source file is a gsdoc file ... so it may be located
-	   * in the source (input) directory rather than the documentation
+	   * in the current (input) directory rather than the documentation
 	   * (output) directory.
 	   */
 	  if ([mgr isReadableFileAtPath: gsdocfile] == NO)
 	    {
-	      gsdocfile = [sourceDirectory
-		stringByAppendingPathComponent: file];
-	      gsdocfile = [gsdocfile stringByAppendingPathExtension:
-		@"gsdoc"];
+	      gsdocfile = [file stringByAppendingPathExtension: @"gsdoc"];
 	    }
 	  if (ignoreDependencies == NO)
 	    {
@@ -1031,18 +989,7 @@ main(int argc, char **argv, char **env)
 	  if ([mgr isReadableFileAtPath: gsdocfile] == NO
 	    && [arg hasSuffix: @".gsdoc"] == YES)
 	    {
-	      NSString	*sdir = [arg stringByDeletingLastPathComponent];
-
-	      if ([sdir length] == 0)
-		{
-		  sdir = sourceDirectory;
-		}
-	      else if ([sdir isAbsolutePath] == NO)
-		{
-		  sdir = [sourceDirectory stringByAppendingPathComponent: sdir];
-		}
-	      gsdocfile = [sdir stringByAppendingPathComponent: file];
-	      gsdocfile = [gsdocfile stringByAppendingPathExtension: @"gsdoc"];
+	      gsdocfile = [file stringByAppendingPathExtension: @"gsdoc"];
 	    }
 
 	  if (ignoreDependencies == NO)
@@ -1134,12 +1081,12 @@ main(int argc, char **argv, char **env)
 	    }
 	  file = [file lastPathComponent];
 
-	  src = [sourceDirectory stringByAppendingPathComponent: file];
+	  src = file;
 	  dst = [documentationDirectory stringByAppendingPathComponent: file];
 
 	  /*
 	   * If we can't find the file in the source directory, assume
-	   * it is in the ddocumentation directory already, and just needs
+	   * it is in the documentation directory already, and just needs
 	   * cross-refs rebuilding.
 	   */
 	  if ([mgr isReadableFileAtPath: src] == NO)
