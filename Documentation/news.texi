@@ -10,7 +10,7 @@ The currently released version of the library is
 
 @itemize @bullet
 
-@item The library has changed its name from @samp{libgnustep-base} to
+@item The library has changed its name from @samp{libobjects} to
 @samp{libgnustep-base}.  The Apr 17 ChangeLog entry contains a list of
 the way various other names were changed.
 

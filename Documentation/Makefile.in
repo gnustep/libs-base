@@ -41,6 +41,7 @@ include $(srcdir)/../Version
 
 TEXI_FILES = \
 announce.texi \
+base-desc.texi \
 install.texi \
 gnustep-base.texi \
 news.texi \
@@ -63,13 +64,13 @@ version.texi: $(srcdir)/../Version
 	rm -f version.texi
 	echo '@set GNUSTEP_BASE_VERSION' $(VERSION) \
 		> version.texi
-	echo '@set GNUSTEP_BASE_GCC_VERSION' $(GCC_VERSION) \
+	echo '@set GNUSTEP_BASE_GCC_VERSION $(GCC_VERSION)' \
 		>> version.texi
 	if [ $(FTP_MACHINE) ]; then \
-		echo '@set GNUSTEP_BASE_FTP_MACHINE' $(FTP_MACHINE) \
+		echo '@set GNUSTEP_BASE_FTP_MACHINE $(FTP_MACHINE)' \
 		>> version.texi; fi
 	if [ $(FTP_DIRECTORY) ]; then \
-		echo '@set GNUSTEP_BASE_FTP_DIRECTORY' $(FTP_DIRECTORY) \
+		echo '@set GNUSTEP_BASE_FTP_DIRECTORY $(FTP_DIRECTORY)' \
 		>> version.texi; fi
 
 gnustep-base.dvi: gnustep-base.texi version.texi

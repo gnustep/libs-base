@@ -1,7 +1,9 @@
-@chapter GNU Objective-C Class Library README
+@chapter Gnustep Base Library README
 
 @c set the vars GNUSTEP_BASE_VERSION and GCC_VERSION
 @include version.texi
+
+@include base-desc.texi
 
 Here is some introductory info to get you started:
 

@@ -337,7 +337,7 @@ The Gnustep Base Library is a library of general-purpose, non-graphical
 Objective C objects.  For example, it includes classes for strings,
 collections, byte streams, typed coders, invocations, notifications,
 notification dispatchers, times, network ports, remote object messaging
-support, and random number generators.
+support, event loops and random number generators.
 
 It provides functionality that aims to implement the
 @samp{FoundationKit} portion of the OpenStep standard.  In many cases,
