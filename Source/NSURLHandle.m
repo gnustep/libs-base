@@ -47,7 +47,7 @@
  * Keys for NSURLHandle
  */
 NSString * const NSHTTPPropertyStatusCodeKey
-  = "@NSHTTPPropertyStatusCodeKey";
+  = @"NSHTTPPropertyStatusCodeKey";
 
 NSString * const NSHTTPPropertyStatusReasonKey
   = @"NSHTTPPropertyStatusReasonKey";

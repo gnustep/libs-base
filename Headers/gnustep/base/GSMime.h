@@ -86,6 +86,9 @@
   id			content;
 }
 
++ (NSData*) decodeBase64: (NSData*)source;
++ (NSData*) encodeBase64: (NSData*)source;
+
 - (void) addContent: (id)newContent;
 - (void) addHeader: (GSMimeHeader*)info;
 - (NSArray*) allHeaders;
