@@ -66,7 +66,7 @@ enum {
   int identifier;
 }
 
-+ newDecodingWithPacket: (Packet*)packet
++ newDecodingWithPacket: (InPacket*)packet
 	     connection: (Connection*)c;
 + newDecodingWithConnection: (Connection*)c
    timeout: (int) timeout;
