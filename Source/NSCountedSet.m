@@ -236,7 +236,7 @@ GSUPurge(unsigned level)
     }
 }
 
-void
+id
 GSUSet(id obj, unsigned level)
 {
   id		found;
@@ -249,6 +249,7 @@ GSUSet(id obj, unsigned level)
   found = [uniqueSet member: obj];
   if (found == nil)
     {
+      found = obj;
       for (i = 0; i < level; i++)
 	{
 	  [uniqueSet addObject: obj];
@@ -256,12 +257,12 @@ GSUSet(id obj, unsigned level)
     }
   else
     {
-      i = [uniqueSet countForObject: obj];
+      i = [uniqueSet countForObject: found];
       if (i < level)
 	{
 	  while (i < level)
 	    {
-	      [uniqueSet addObject: obj];
+	      [uniqueSet addObject: found];
 	      i++;
 	    }
 	}
@@ -269,7 +270,7 @@ GSUSet(id obj, unsigned level)
 	{
 	  while (i > level)
 	    {
-	      [uniqueSet removeObject: obj];
+	      [uniqueSet removeObject: found];
 	      i--;
 	    }
 	}
@@ -278,6 +279,7 @@ GSUSet(id obj, unsigned level)
     {
       (*unlockImp)(uniqueLock, @selector(unlock));
     }
+  return found;
 }
 
 id

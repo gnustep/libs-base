@@ -176,14 +176,14 @@
 	</desc>
 	<standards><GNUstep/><NotOpenStep/><NotMacOS-X/></standards>
       </function>
-      <function name="GSUSet" type="void">
+      <function name="GSUSet" type="id">
 	<arg type="id">anObject</arg>
 	<arg type="unsigned int">count</arg>
 	<desc>
 	  This function sets the count for the specified object.  If the
 	  count for the object is set to zero then the object is removed
           from the global uniquing set.  The object is added to the set
-	  if necessary.
+	  if necessary.  The object returned is the one stored in the set.
 	  The function handles locking as necessary.  It can be used to
           alter the set even when uniquing is turned off.
 	</desc>
