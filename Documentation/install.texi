@@ -17,7 +17,15 @@ To compile and install @samp{libobjects}:
 
 Here is a quick-and-dirty example of installation commands:
 
-First install the GNU Objective C runtime patch, objc.patch; then
+First install the GNU Objective C runtime patch, objc.patch; possibly
+like this:
+
+@example
+cd gcc-2.7.2
+patch -p0 <../libobjects/objc.patch
+@end example
+
+then
 
 @example
 ./configure --prefix=/usr/local
