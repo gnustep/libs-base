@@ -330,6 +330,28 @@ parseCharacterSet(NSString *token)
 @implementation	GSMimeParser
 
 /**
+ * Convenience method to parse a single data item as a MIME message
+ * and return the resulting document.
+ */
++ (GSMimeDocument*) documentFromData: (NSData*)mimeData
+{
+  GSMimeDocument	*newDocument = nil;
+  GSMimeParser		*parser = [GSMimeParser new];
+
+  if ([parser parse: mimeData] == YES)
+    {
+      [parser parse: nil];
+    }
+  if ([parser isComplete] == YES)
+    {
+      newDocument = [parser document];
+      RETAIN(newDocument);
+    }
+  RELEASE(parser);
+  return AUTORELEASE(newDocument);
+}
+
+/**
  * Create and return a parser.
  */
 + (GSMimeParser*) mimeParser
@@ -850,6 +872,23 @@ parseCharacterSet(NSString *token)
 }
 
 /**
+ * This method may be called to tell the parser that it should not expect
+ * to parse any headers, and that the data it will receive is body data.<br />
+ * If the parse is already in the body, or is complete, this method has
+ * no effect.<br />
+ * This is for use when some other utility has been used to parse headers,
+ * and you have set the headers of the document owned by the parser
+ * accordingly.  You can then use the GSMimeParser to read the body data
+ * into the document.
+ */
+- (void) expectNoHeaders
+{
+  if (complete == NO)
+    {
+      inBody = YES;
+    }
+}
+/**
  * Returns YES if the document parsing is known to be completed.
  */
 - (BOOL) isComplete
@@ -1034,8 +1073,22 @@ parseCharacterSet(NSString *token)
  * <p>
  *   This method is called to parse a header line <em>for the
  *   current document</em>, split its contents into a GSMimeHeader
- *   object, and add that information to the document.
+ *   object, and add that information to the document.<br />
+ *   The method is normally used internally by the -parse: method,
+ *   but you may also call it to parse an entire header line and
+ *   add it to the document (this may be useful in conjunction
+ *   with the -expectNoHeaders method, to parse a document body data
+ *   into a document where the headers are available from a
+ *   separate source).
  * </p>
+ * <example>
+ *   GSMimeParser *parser = [GSMimeParser mimeParser];
+ *
+ *   [parser parseHeader: @"content-type: text/plain"];
+ *   [parser expectNoHeaders];
+ *   [parser parse: bodyData];
+ *   [parser parse: nil];
+ * </example>
  * <p>
  *   The standard implementation of this method scans the header
  *   name and then calls -scanHeaderBody:into: to complete the
@@ -1595,23 +1648,6 @@ parseCharacterSet(NSString *token)
     }
 }
 
-/**
- * This method may be called to tell the parser that it should not expect
- * to parse any headers, and that the data it will receive is body data.<br />
- * If the parse is already in the body, or is complete, this method has
- * no effect.<br />
- * This is for use when some other utility has been used to parse headers,
- * and you have set the headers of the document owned by the parser
- * accordingly.  You can then use the GSMimeParser to read the body data
- * into the document.
- */
-- (void) setNoHeaders
-{
-  if (complete == NO)
-    {
-      inBody = YES;
-    }
-}
 @end
 
 @implementation	GSMimeParser (Private)
@@ -2197,6 +2233,23 @@ static NSCharacterSet	*tokenSet = nil;
   return t;
 }
 
+- (id) copyWithZone: (NSZone*)z
+{
+  GSMimeHeader	*c = [GSMimeHeader allocWithZone: z];
+  NSEnumerator	*e;
+  NSString	*k;
+
+  c = [c initWithName: [self name]
+		value: [self value]
+	   parameters: [self parameters]];
+  e = [objects keyEnumerator];
+  while ((k = [e nextObject]) != nil)
+    {
+      [c setObject: [self objectForKey: k] forKey: k];
+    }
+  return c;
+}
+
 - (void) dealloc
 {
   RELEASE(name);
@@ -2253,6 +2306,11 @@ static NSCharacterSet	*tokenSet = nil;
 - (id) objectForKey: (NSString*)k
 {
   return [objects objectForKey: k];
+}
+
+- (NSDictionary*) objects
+{
+  return AUTORELEASE([objects copy]);
 }
 
 /**
@@ -2515,6 +2573,27 @@ static NSCharacterSet	*tokenSet = nil;
   return content;
 }
 
+- (NSString*) contentID
+{
+  GSMimeHeader	*hdr = [self headerNamed: @"content-id"];
+
+  return [hdr value];
+}
+
+- (NSString*) contentSubType
+{
+  GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+
+  return [hdr objectForKey: @"SubType"];
+}
+
+- (NSString*) contentType
+{
+  GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+
+  return [hdr objectForKey: @"Type"];
+}
+
 - (id) copyWithZone: (NSZone*)z
 {
   return RETAIN(self);
@@ -2591,7 +2670,7 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * This method returns an array of HSMimeHeader objects for all headers
+ * This method returns an array of GSMimeHeader objects for all headers
  * whose names equal the supplied argument.  For some special cases, the
  * method will try to generate headers if they are not present.
  */
@@ -2628,6 +2707,41 @@ static NSCharacterSet	*tokenSet = nil;
 					     value: val
 					parameters: nil];
 	  [self addHeader: hdr];
+	  [array addObject: hdr];
+	  RELEASE(hdr);
+	}
+      /*
+       * If we have been asked for a Content-Tyoe and there is none set,
+       * we can try to infer one from the actual content we have (if any)
+       * but we don't set it, since it may well be changed.
+       */
+      if ([name isEqualToString: @"content-type"] == YES)
+	{
+	  GSMimeHeader	*hdr;
+
+	  hdr = [[GSMimeHeader alloc] initWithName: name
+					     value: @""
+					parameters: nil];
+
+	  if (content == nil || [content isKindOfClass: [NSString class]])
+	    {
+	      [hdr setValue: @"text/plain"];
+	      [hdr setObject: @"text" forKey: @"Type"];
+	      [hdr setObject: @"plain" forKey: @"SubType"];
+	    }
+	  else if ([content isKindOfClass: [NSData class]])
+	    {
+	      [hdr setValue: @"application/octet-stream"];
+	      [hdr setObject: @"application" forKey: @"Type"];
+	      [hdr setObject: @"octet-stream" forKey: @"SubType"];
+	    }
+	  else
+	    {
+	      [hdr setValue: @"multipart/mixed"];
+	      [hdr setObject: @"multipart" forKey: @"Type"];
+	      [hdr setObject: @"mixed" forKey: @"SubType"];
+	    }
+
 	  [array addObject: hdr];
 	  RELEASE(hdr);
 	}

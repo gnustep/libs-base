@@ -67,6 +67,7 @@
 	 parameters: (NSDictionary*)p;
 - (NSString*) name;
 - (id) objectForKey: (NSString*)k;
+- (NSDictionary*) objects;
 - (NSString*) parameterForKey: (NSString*)k;
 - (NSDictionary*) parameters;
 - (void) setName: (NSString*)s;
@@ -91,6 +92,9 @@
 - (BOOL) addHeader: (GSMimeHeader*)info;
 - (NSArray*) allHeaders;
 - (id) content;
+- (NSString*) contentID;
+- (NSString*) contentSubType;
+- (NSString*) contentType;
 - (void) deleteHeader: (GSMimeHeader*)aHeader;
 - (void) deleteHeaderNamed: (NSString*)name;
 - (GSMimeHeader*) headerNamed: (NSString*)name;
@@ -119,6 +123,7 @@
   GSMimeCodingContext	*context;
 }
 
++ (GSMimeDocument*) documentFromData: (NSData*)mimeData;
 + (GSMimeParser*) mimeParser;
 
 - (GSMimeCodingContext*) contextFor: (GSMimeHeader*)info;
@@ -128,6 +133,7 @@
 	   intoData: (NSMutableData*)dData
 	withContext: (GSMimeCodingContext*)con;
 - (GSMimeDocument*) document;
+- (void) expectNoHeaders;
 - (BOOL) isComplete;
 - (BOOL) isInBody;
 - (BOOL) isInHeaders;
@@ -137,7 +143,6 @@
 - (BOOL) scanPastSpace: (NSScanner*)scanner;
 - (NSString*) scanSpecial: (NSScanner*)scanner;
 - (NSString*) scanToken: (NSScanner*)scanner;
-- (void) setNoHeaders;
 @end
 
 #endif
