@@ -2759,6 +2759,10 @@ static NSCharacterSet	*tokenSet = nil;
 
 
 
+@interface GSMimeDocument (Private)
+- (unsigned) _indexOfHeaderNamed: (NSString*)name;
+@end
+
 /**
  * <p>
  *   This class is intended to provide a wrapper for MIME messages
@@ -3127,6 +3131,14 @@ static NSCharacterSet	*tokenSet = nil;
  *   The header must be a mutable dictionary object that contains
  *   at least the fields that are standard for all headers.
  * </p>
+ * <p>
+ *   Certain well-known headers are restricted to one occurrance in
+ *   an email, and when extra copies are added they replace originals.
+ * </p>
+ * <p>
+ *  The mime-version header is special ... it is inserted before any
+ *  other mime headers rather than being added at the end.
+ * </p>
  */
 - (void) addHeader: (GSMimeHeader*)info
 {
@@ -3138,7 +3150,49 @@ static NSCharacterSet	*tokenSet = nil;
 		  format: @"[%@ -%@:] header with invalid name",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  [headers addObject: info];
+  if ([name isEqualToString: @"mime-version"] == YES
+    || [name isEqualToString: @"content-disposition"] == YES
+    || [name isEqualToString: @"content-transfer-encoding"] == YES
+    || [name isEqualToString: @"content-type"] == YES
+    || [name isEqualToString: @"subject"] == YES)
+    {
+      unsigned	index = [self _indexOfHeaderNamed: name];
+
+      if (index != NSNotFound)
+	{
+	  [headers replaceObjectAtIndex: index withObject: info];
+	}
+      else if ([name isEqualToString: @"mime-version"] == YES)
+	{
+	  unsigned	tmp;
+
+	  index = [headers count];
+	  tmp = [self _indexOfHeaderNamed: @"content-disposition"];
+	  if (tmp != NSNotFound && tmp < index)
+	    {
+	      index = tmp;
+	    }
+	  tmp = [self _indexOfHeaderNamed: @"content-transfer-encoding"];
+	  if (tmp != NSNotFound && tmp < index)
+	    {
+	      index = tmp;
+	    }
+	  tmp = [self _indexOfHeaderNamed: @"content-type"];
+	  if (tmp != NSNotFound && tmp < index)
+	    {
+	      index = tmp;
+	    }
+	  [headers insertObject: info atIndex: index];
+	}
+      else
+	{
+	  [headers addObject: info];
+	}
+    }
+  else
+    {
+      [headers addObject: info];
+    }
 }
 
 /**
@@ -3894,6 +3948,31 @@ static NSCharacterSet	*tokenSet = nil;
 
 @end
 
+@implementation GSMimeDocument (Private)
+/**
+ * Returns the index of the first header matching the specified name
+ * or NSNotFound if no match is found.<br />
+ * NB. The supplied name <em>must</em> be lowercase.<br />
+ * This method is for internal use
+ */
+- (unsigned) _indexOfHeaderNamed: (NSString*)name
+{
+  unsigned		count = [headers count];
+  unsigned		index;
+
+  for (index = 0; index < count; index++)
+    {
+      GSMimeHeader	*hdr = [headers objectAtIndex: index];
+
+      if ([name isEqualToString: [hdr name]] == YES)
+	{
+	  return index;
+	}
+    } 
+  return NSNotFound;
+}
+
+@end
 
 
 
