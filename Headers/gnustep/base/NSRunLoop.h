@@ -92,7 +92,7 @@ typedef	enum {
     ET_RDESC,	/* Watch for descriptor becoming readable.	*/
     ET_WDESC,	/* Watch for descriptor becoming writeable.	*/
     ET_RPORT,	/* Watch for message arriving on port.		*/
-    ET_EDESC	/* Watch for descriptor with exception data.	*/
+    ET_EDESC	/* Watch for descriptor with out-of-band data.	*/
 } RunLoopEventType;
 
 @protocol RunLoopEvents
