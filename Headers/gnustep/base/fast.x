@@ -21,6 +21,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
+#ifndef fast_x_INCLUDE
+#define fast_x_INCLUDE
+
 #include <gnustep/base/preface.h>
 #include <objc/objc-api.h>
 
@@ -211,3 +214,4 @@ fastSelectorTypes(SEL s)
  */
 extern NSZone	*fastZone(NSObject* obj);
 
+#endif
