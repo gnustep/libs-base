@@ -249,7 +249,7 @@
   id o;
   FOR_INDEXED_COLLECTION_REVERSE(self, o)
     {
-      [o perform: aSel];
+      [o performSelector: aSel];
     }
   END_FOR_INDEXED_COLLECTION_REVERSE(self);
 }
@@ -259,7 +259,7 @@
   id o;
   FOR_INDEXED_COLLECTION_REVERSE(self, o)
     {
-      [o perform: aSel withObject: argObject];
+      [o performSelector: aSel withObject: argObject];
     }
   END_FOR_INDEXED_COLLECTION_REVERSE(self);
 }

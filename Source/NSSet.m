@@ -237,14 +237,14 @@ static Class NSMutableSet_concrete_class;
 {
   id o, e = [self objectEnumerator];
   while ((o = [e nextObject]))
-    [o perform:aSelector];
+    [o performSelector:aSelector];
 }
 
 - (void) makeObjectsPerform: (SEL)aSelector withObject:argument
 {
   id o, e = [self objectEnumerator];
   while ((o = [e nextObject]))
-    [o perform:aSelector withObject: argument];
+    [o performSelector:aSelector withObject: argument];
 }
 
 - (BOOL) intersectsSet: (NSSet*) otherSet

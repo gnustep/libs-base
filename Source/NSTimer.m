@@ -111,7 +111,7 @@
 - (void) fire
 {
   if (_selector)
-    [_target perform: _selector withObject: self];
+    [_target performSelector: _selector withObject: self];
   else
     [_target invoke];
 

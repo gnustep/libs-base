@@ -183,7 +183,7 @@
 
 - (void) postNotification: n
 {
-  [_target perform: _selector withObject: n];
+  [_target performSelector: _selector withObject: n];
 }
 
 @end

@@ -147,9 +147,9 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 - (id)initWithCoder: aDecoder
 {
     self = [super initWithCoder:aDecoder];
-    [aDecoder decodeObjectAt: &e_name];
-    [aDecoder decodeObjectAt: &e_reason];
-    [aDecoder decodeObjectAt: &e_info];
+    e_name = [[aDecoder decodeObject] retain];
+    e_reason = [[aDecoder decodeObject] retain];
+    e_info = [[aDecoder decodeObject] retain];
     return self;
 }
 
