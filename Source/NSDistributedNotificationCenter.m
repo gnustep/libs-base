@@ -566,7 +566,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	    stringForKey: @"NSHost"];
 	  if (host == nil)
 	    {
-	      host = @"";
+	      host = @"localhost";
 	    }
 	  else
 	    {
@@ -593,7 +593,9 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		  host = [h name];
 		}
 	    }
-	  if ([host length] == 0)
+	  if ([host length] == 0
+	    || [host isEqualToString: @"localhost"] == YES
+	    || [host isEqualToString: @"127.0.0.1"] == YES)
 	    {
 	      description = @"local host";
 	    }

@@ -1,3 +1,9 @@
+2003-07-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedNotificationCenter.m: Use loopback network
+	interface for local center.
+	* Tools/gdnc.m: ditto.
+
 2003-07-11  David Ayers  <d.ayers@inode.at>
 
 	* Source/GNUmakefile: Make GNUstep.h public.
