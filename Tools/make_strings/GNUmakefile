@@ -38,5 +38,4 @@ make_strings_OBJC_FILES = \
 include GNUmakefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/tool.make
-include $(GNUSTEP_MAKEFILES)/ctool.make
 
