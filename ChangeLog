@@ -1,3 +1,14 @@
+Thu Oct 29 13:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/UnixFileHandle.m: Improved handling of error conditions on
+	background connection operations.  Disable SIGPIPE to avoid abort
+	when we attempt to write to a socket that's closed by the other end.
+	* src/TCPPort.m: Modified to use NSPortNameServer, also changed to
+	disable SIGPIPE on initialisation only, not on every write.
+	* src/include/NSPortNameServer.h: new class.
+	* src/NSPortNameServer.m: new class.
+	* src/GNUmakefile: Added NSPortNameServer.
+
 Wed Oct 28 14:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/gdomap.c: Added command-line options to lookup, register, and
