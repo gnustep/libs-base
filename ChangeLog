@@ -1,6 +1,10 @@
 2002-01-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/autogsdoc.m: Simplify by removing SourceDirectory default.
+	Change mechanism for handling multiple source files for one header
+	(need capability to write dependency rules for make).
+	* Tools/AGSPasrser.[hm]: Add mechanism to return list of source
+	files on which a document depends.
 	* Source/GNUmakefile (Base_AGSDOC_FLAGS): Remove the SourceDirectory
 	option ... now assumed to be the current directory for simplicity.
 

@@ -52,6 +52,14 @@
     placed into appropriate locations in the output document -
   </p>
   <list>
+    <item><strong>AutogsdocSource</strong>
+      In any line where <code>AutogsdocSource</code>: is found, the remainder
+      of the line is taken as a source file name to be used instead of
+      making the assumption that each .h file processed uses a .m file
+      of the same name.  You may supply multiple <code>AutogsdocSource</code>:
+      lines where a header file declares items which are defined in
+      multiple source files.
+    </item>
     <item><strong>&lt;abstract&gt;</strong>
       An abstract of the content of the document ... placed in the head
       of the gsdoc output.
@@ -62,8 +70,9 @@
       head of the gsdoc output.<br />
       As an aid to readability of the source, some special additional
       processing is performed related to the document author -<br />
-      Any line of the form 'Author: name &lt;email-address&gt;', or
-      'By: name &lt;email-address&gt;', or 'Author: name' or 'By: name'
+      Any line of the form '<code>Author</code>: name &lt;email-address&gt;',
+      or '<code>By</code>: name &lt;email-address&gt;',
+      or '<code>Author</code>: name' or '<code>By</code>: name'
       will be recognised and converted to an <em>author</em> element,
       possibly containing an <em>email</em> element.
     </item>
@@ -346,7 +355,6 @@ main(int argc, char **argv, char **env)
   NSMutableArray	*sFiles = nil;	// Source
   NSMutableArray	*gFiles = nil;	// GSDOC
   NSMutableArray	*hFiles = nil;	// HTML
-  NSMutableArray	*tmpArray;
   CREATE_AUTORELEASE_POOL(outer);
   CREATE_AUTORELEASE_POOL(pool);
 
@@ -415,7 +423,6 @@ main(int argc, char **argv, char **env)
   sFiles = [NSMutableArray array];
   gFiles = [NSMutableArray array];
   hFiles = [NSMutableArray array];
-  tmpArray = nil;
   count = [files count];
   for (i = 1; i < count; i++)
     {
@@ -427,27 +434,11 @@ main(int argc, char **argv, char **env)
 	}
       else if ([arg hasSuffix: @".h"] == YES)
 	{
-	  if (tmpArray != nil)
-	    {
-	      [sFiles addObject: tmpArray];
-	    }
-	  tmpArray = [NSMutableArray array];
-	  [tmpArray addObject: arg];
+	  [sFiles addObject: arg];
 	}
       else if ([arg hasSuffix: @".m"] == YES)
 	{
-	  if (tmpArray == nil)
-	    {
-	      // NSLog(@"Source file %@ with no preceeding header", arg);
-	      tmpArray = [NSMutableArray array];
-	      [tmpArray addObject: arg];
-	      [sFiles addObject: tmpArray];
-	      tmpArray = nil;
-	    }
-	  else
-	    {
-	      [tmpArray addObject: arg];
-	    }
+	  [sFiles addObject: arg];
 	}
       else if ([arg hasSuffix: @".gsdoc"] == YES)
 	{
@@ -462,10 +453,6 @@ main(int argc, char **argv, char **env)
 	  // Skip this value ... not a known file type.
 	  NSLog(@"Unknown argument '%@' ... ignored", arg);
 	}
-    }
-  if (tmpArray != nil)
-    {
-      [sFiles addObject: tmpArray];
     }
 
   if ([sFiles count] == 0 && [gFiles count] == 0 && [hFiles count] == 0)
@@ -496,10 +483,10 @@ main(int argc, char **argv, char **env)
 
       for (i = 0; i < count; i++)
 	{
-	  NSMutableArray	*a = [sFiles objectAtIndex: i];
-	  NSString	*arg = [a objectAtIndex: 0];
+	  NSString	*hfile = [sFiles objectAtIndex: i];
 	  NSString	*gsdocfile;
 	  NSString	*file;
+	  NSArray	*a;
 	  NSString	*generated;
 	  NSDictionary	*attrs;
 	  NSDate	*sDate = nil;
@@ -513,34 +500,24 @@ main(int argc, char **argv, char **env)
 	    }
 
 	  /*
-	   * If no source files are specified, make a source file name
-	   * corresponding to the header file.
-	   */
-	  file = [arg stringByDeletingPathExtension];
-	  if ([a count] == 1)
-	    {
-	      [a addObject: [file stringByAppendingPathExtension: @"m"]];
-	    }
-
-	  /*
 	   * Note the name of the header file without path or extension.
 	   * This will be used to generate the outut file.
 	   */
+	  file = [hfile stringByDeletingPathExtension];
 	  file = [file lastPathComponent];
 
 	  /*
-	   * Ensure that all file names are set up using the source and
-	   * header directories specified unless they are absolute.
+	   * Ensure that header file name is set up using the
+	   * header directory specified unless is is absolute.
 	   */
-	  if ([arg isAbsolutePath] == NO)
+	  if ([hfile isAbsolutePath] == NO)
 	    {
-	      if ([[arg pathExtension] isEqual: @"h"] == YES)
+	      if ([[hfile pathExtension] isEqual: @"h"] == YES)
 		{
 		  if ([headerDirectory length] > 0)
 		    {
-		      arg = [headerDirectory stringByAppendingPathComponent:
-			[arg lastPathComponent]];
-		      [a replaceObjectAtIndex: 0 withObject: arg];
+		      hfile = [headerDirectory stringByAppendingPathComponent:
+			[hfile lastPathComponent]];
 		    }
 		}
 	    }
@@ -551,14 +528,29 @@ main(int argc, char **argv, char **env)
 
 	  if (ignoreDependencies == NO)
 	    {
+	      NSDate	*d;
+
+	      attrs = [mgr fileAttributesAtPath: hfile
+				   traverseLink: YES];
+	      d = [attrs objectForKey: NSFileModificationDate];
+	      if (sDate == nil || [d earlierDate: sDate] == sDate)
+		{
+		  sDate = d;
+		  AUTORELEASE(RETAIN(sDate));
+		}
 	      /*
-	       * When were the files last modified?
+	       * FIXME work out dependencies for .m files.
+	       * for the moment, hack in an assumption that the .h simply
+	       * depends on the corresponding .m
 	       */
+	      a = [NSArray arrayWithObject:
+		[[[hfile lastPathComponent] stringByDeletingPathExtension]
+		  stringByAppendingPathExtension: @"m"]];
 	      for (i = 0; i < [a count]; i++)
 		{
-		  NSDate	*d;
+		  NSString	*sfile = [a objectAtIndex: i];
 
-		  attrs = [mgr fileAttributesAtPath: [a objectAtIndex: i]
+		  attrs = [mgr fileAttributesAtPath: sfile
 				       traverseLink: YES];
 		  d = [attrs objectForKey: NSFileModificationDate];
 		  if (sDate == nil || [d earlierDate: sDate] == sDate)
@@ -567,6 +559,7 @@ main(int argc, char **argv, char **env)
 		      AUTORELEASE(RETAIN(sDate));
 		    }
 		}
+
 	      attrs = [mgr fileAttributesAtPath: gsdocfile traverseLink: YES];
 	      gDate = [attrs objectForKey: NSFileModificationDate];
 	      AUTORELEASE(RETAIN(gDate));
@@ -574,8 +567,6 @@ main(int argc, char **argv, char **env)
 
 	  if (gDate == nil || [sDate earlierDate: gDate] == gDate)
 	    {
-	      NSString	*hfile = [a objectAtIndex: 0];
-
 	      if (showDependencies == YES)
 		{
 		  NSLog(@"%@: source %@, gsdoc %@ ==> regenerate",
@@ -601,7 +592,8 @@ main(int argc, char **argv, char **env)
 		}
 	      [parser parseFile: hfile isSource: NO];
 
-	      for (i = 1; i < [a count]; i++)
+	      a = [parser source];
+	      for (i = 0; i < [a count]; i++)
 		{
 		  NSString	*sfile = [a objectAtIndex: i];
 
