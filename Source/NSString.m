@@ -47,7 +47,6 @@
   if (!done)
     {
       class_add_behavior([NSString class], [String class]);
-      class_add_behavior([NSString class], [IndexedCollection class]);
       done = 1;
     }
 }
