@@ -19,9 +19,8 @@
 	<desc>
 	  <p>
 	    This class provides support for parsing MIME messages
-	    into GSMimeDocument objects.  It is imtimately related
-	    to the GSMimeDocument class and relys on that class for
-	    aspects of the parsing operation.
+	    into GSMimeDocument objects.  Each parser object maintains
+	    an associated document into which data is stored.
 	  </p>
 	</desc>
 
@@ -101,6 +100,24 @@
 	      subclasses override <code>scanHeaders:named:into:</code> to
 	      implement custom scanning.
 	    </p>
+	    <p>
+	      As a special case, for HTTP support, this method also parses
+	      lines in the format of HTTP responses as if they were headers
+	      named <code>http</code>.  The resulting header info dictionary
+	      contains -
+	    </p>
+	    <deflist>
+	      <term>HttpVersion</term>
+	      <desc>The full HTTP protocol version number</desc>
+	      <term>HttpMajorVersion</term>
+	      <desc>The first part of the version number</desc>
+	      <term>HttpMinorVersion</term>
+	      <desc>The second part of the version number</desc>
+	      <term>HttpStatus</term>
+	      <desc>The HTTP status code</desc>
+	      <term>Value</term>
+	      <desc>The text message (if any) after the status code</desc>
+	    </deflist>
 	  </desc>
 	</method>
 
@@ -110,7 +127,7 @@
 	    Returns YES if the parser is expecting to read mime headers,
 	    Returns NO is the parser has already been passed all the
 	    data containing headers, and is now waiting for the body of
-            trhe mime message (or has been passed all data).
+            the mime message (or has been passed all data).
           </desc>
         </method>
 
@@ -140,6 +157,89 @@
 	      You should not call this method directly yourself, but may
 	      override it to support parsing of new headers.
 	    </p>
+	    <p>
+	      You should be aware of the parsing that the standard
+	      implementation performs, and that <em>needs</em> to be
+	      done for certain headers in order to permit the parser to
+	      work generally -
+	    </p>
+	    <deflist>
+
+	      <term>content-disposition</term>
+	      <desc>
+		<deflist>
+		  <term>Parameters</term>
+		  <desc>
+		    A dictionary containing parameters as key-value pairs
+		    in lowercase
+		  </desc>
+		  <term>Value</term>
+		  <desc>
+		    The content disposition (excluding parameters) as a
+		    lowercase string.
+		  </desc>
+		</deflist>
+	      </desc>
+
+	      <term>content-type</term>
+	      <desc>
+		<deflist>
+		  <term>Parameters</term>
+		  <desc>
+		    A dictionary containing parameters as key-value pairs
+		    in lowercase.
+		  </desc>
+		  <term>SubType</term>
+		  <desc>The MIME subtype lowercase</desc>
+		  <term>Type</term>
+		  <desc>The MIME type lowercase</desc>
+		  <term>value</term>
+		  <desc>The full MIME type (xxx/yyy) in lowercase</desc>
+		</deflist>
+	      </desc>
+
+	      <term>content-transfer-encoding</term>
+	      <desc>
+		<deflist>
+		  <term>Value</term>
+		  <desc>The transfer encoding type in lowercase</desc>
+		</deflist>
+	      </desc>
+
+	      <term>http</term>
+	      <desc>
+		<deflist>
+		  <term>HttpVersion</term>
+		  <desc>The HTTP protocol version number</desc>
+		  <term>HttpMajorVersion</term>
+		  <desc>The first component of the version number</desc>
+		  <term>HttpMinorVersion</term>
+		  <desc>The second component of the version number</desc>
+		  <term>HttpStatus</term>
+		  <desc>The response status value (numeric code)</desc>
+		  <term>Value</term>
+		  <desc>The text message (if any)</desc>
+		</deflist>
+	      </desc>
+
+	      <term>transfer-encoding</term>
+	      <desc>
+		<deflist>
+		  <term>Value</term>
+		  <desc>The transfer encoding type in lowercase</desc>
+		</deflist>
+	      </desc>
+	    </deflist>
+	  </desc>
+	</method>
+
+        <method type="BOOL">
+          <sel>scanSpace:</sel>
+          <arg type="NSScanner*">aScanner</arg>
+          <desc>
+	    A convenience method to scan past any whitespace in the scanner
+	    in preparation for scanning something more interesting that
+	    comes after it.  Returns YES if any space was read, NO otherwise.
 	  </desc>
 	</method>
 

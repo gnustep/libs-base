@@ -23,9 +23,8 @@
 	  <p>
 
 	    This class provides support for parsing MIME messages
-	    into GSMimeDocument objects.  It is imtimately related
-	    to the GSMimeDocument class and relys on that class for
-	    aspects of the parsing operation.
+	    into GSMimeDocument objects.  Each parser object maintains
+	    an associated document into which data is stored.
 	  </p>
 
 	
@@ -41,8 +40,9 @@
 <li><a href ="GSMimeParser.html#method-4">-parseHeader:</a>
 <li><a href ="GSMimeParser.html#method-5">-parsingHeaders</a>
 <li><a href ="GSMimeParser.html#method-6">-scanHeader:named:inTo:</a>
-<li><a href ="GSMimeParser.html#method-7">-scanSpecial:</a>
-<li><a href ="GSMimeParser.html#method-8">-scanToken:</a>
+<li><a href ="GSMimeParser.html#method-7">-scanSpace:</a>
+<li><a href ="GSMimeParser.html#method-8">-scanSpecial:</a>
+<li><a href ="GSMimeParser.html#method-9">-scanToken:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">mimeParser</a></h3>
@@ -121,6 +121,27 @@
 	      implement custom scanning.
 	    </p>
 
+	    <p>
+
+	      As a special case, for HTTP support, this method also parses
+	      lines in the format of HTTP responses as if they were headers
+	      named <code>http</code>.  The resulting header info dictionary
+	      contains -
+	    </p>
+
+	    <dl>
+<dt>HttpVersion
+<dd>The full HTTP protocol version number
+<dt>HttpMajorVersion
+<dd>The first part of the version number
+<dt>HttpMinorVersion
+<dd>The second part of the version number
+<dt>HttpStatus
+<dd>The HTTP status code
+<dt>Value
+<dd>The text message (if any) after the status code
+</dl>
+
 	  
  <hr>
 <h3><a name ="method-5">parsingHeaders</a></h3>
@@ -129,7 +150,7 @@
 	    Returns YES if the parser is expecting to read mime headers,
 	    Returns NO is the parser has already been passed all the
 	    data containing headers, and is now waiting for the body of
-            trhe mime message (or has been passed all data).
+            the mime message (or has been passed all data).
           
  <hr>
 <h3><a name ="method-6">scanHeader:named:inTo:</a></h3>
@@ -161,9 +182,93 @@
 	      override it to support parsing of new headers.
 	    </p>
 
+	    <p>
+
+	      You should be aware of the parsing that the standard
+	      implementation performs, and that <em>needs</em> to be
+	      done for certain headers in order to permit the parser to
+	      work generally -
+	    </p>
+
+	    <dl>
+<dt>content-disposition
+<dd>
+		<dl>
+<dt>Parameters
+<dd>
+		    A dictionary containing parameters as key-value pairs
+		    in lowercase
+		  
+<dt>Value
+<dd>
+		    The content disposition (excluding parameters) as a
+		    lowercase string.
+		  
+</dl>
+
+	      
+<dt>content-type
+<dd>
+		<dl>
+<dt>Parameters
+<dd>
+		    A dictionary containing parameters as key-value pairs
+		    in lowercase.
+		  
+<dt>SubType
+<dd>The MIME subtype lowercase
+<dt>Type
+<dd>The MIME type lowercase
+<dt>value
+<dd>The full MIME type (xxx/yyy) in lowercase
+</dl>
+
+	      
+<dt>content-transfer-encoding
+<dd>
+		<dl>
+<dt>Value
+<dd>The transfer encoding type in lowercase
+</dl>
+
+	      
+<dt>http
+<dd>
+		<dl>
+<dt>HttpVersion
+<dd>The HTTP protocol version number
+<dt>HttpMajorVersion
+<dd>The first component of the version number
+<dt>HttpMinorVersion
+<dd>The second component of the version number
+<dt>HttpStatus
+<dd>The response status value (numeric code)
+<dt>Value
+<dd>The text message (if any)
+</dl>
+
+	      
+<dt>transfer-encoding
+<dd>
+		<dl>
+<dt>Value
+<dd>The transfer encoding type in lowercase
+</dl>
+
+	      
+</dl>
+
 	  
  <hr>
-<h3><a name ="method-7">scanSpecial:</a></h3>
+<h3><a name ="method-7">scanSpace:</a></h3>
+- (BOOL) <b>scanSpace:</b> (NSScanner*)aScanner;<br>
+
+	    A convenience method to scan past any whitespace in the scanner
+	    in preparation for scanning something more interesting that
+	    comes after it.  Returns YES if any space was read, NO otherwise.
+	  
+ <hr>
+<h3><a name ="method-8">scanSpecial:</a></h3>
 - (NSString*) <b>scanSpecial:</b> (NSScanner*)aScanner;<br>
 
 	    A convenience method to use a scanner (that is set up to scan a
@@ -173,7 +278,7 @@
 	    will contain a single space character.
 	  
  <hr>
-<h3><a name ="method-8">scanToken:</a></h3>
+<h3><a name ="method-9">scanToken:</a></h3>
 - (NSString*) <b>scanToken:</b> (NSScanner*)aScanner;<br>
 
 	    A convenience method to use a scanner (that is set up to scan a
