@@ -164,7 +164,7 @@ static BOOL debug_memory_stream = NO;
   if (nl)
     {
       int len = nl-buffer-prefix-position;
-      ret = (*objc_malloc)(len+1);
+      ret = objc_malloc (len+1);
       strncpy(ret, buffer+prefix+position, len);
       ret[len] = '\0';
       position += len+1;
