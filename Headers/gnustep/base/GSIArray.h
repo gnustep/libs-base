@@ -112,6 +112,12 @@ typedef	struct	_GSIArray	GSIArray_t;
 typedef	struct	_GSIArray	*GSIArray;
 
 static INLINE unsigned
+GSIArrayCapacity(GSIArray array)
+{
+  return array->cap;
+}
+
+static INLINE unsigned
 GSIArrayCount(GSIArray array)
 {
   return array->count;
@@ -125,6 +131,30 @@ GSIArrayGrow(GSIArray array)
   GSIArrayItem	*tmp;
 
   next = array->cap + array->old;
+  size = next*sizeof(GSIArrayItem);
+  tmp = NSZoneRealloc(array->zone, array->ptr, size);
+
+  if (tmp == 0)
+    {
+      [NSException raise: NSMallocException
+		  format: @"failed to grow GSIArray"];
+    }
+  array->ptr = tmp;
+  array->old = array->cap;
+  array->cap = next;
+}
+
+static INLINE void
+GSIArrayGrowTo(GSIArray array, unsigned next)
+{
+  unsigned	size;
+  GSIArrayItem	*tmp;
+
+  if (next < array->count)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"attempt to shrink below count"];
+    }
   size = next*sizeof(GSIArrayItem);
   tmp = NSZoneRealloc(array->zone, array->ptr, size);
 
