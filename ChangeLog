@@ -3,6 +3,10 @@
 	* Headers/Foundation/NSURLHandle.h:
 	* Source/GSHTTPURLHandle.m:
 	* Source/NSURLHandle.m: Fix property key names
+	* Source/NSString.m: copy and autorelease potentially mutable strings
+	before returning them.
+	* Headers/Foundation/NSString.h: Document policy and warnings about
+	lifetime and mutablity of strings returned from methods.
 
 2004-08-25  Adrian Robert  <arobert@cogsci.ucsd.edu>
 
