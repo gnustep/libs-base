@@ -52,13 +52,25 @@ typedef	unsigned char	uchar;
 
 #define	PREFIX		"GNUstep archive"
 
-static SEL serSel = @selector(serializeDataAt:ofObjCType:context:);
-static SEL tagSel = @selector(serializeTypeTag:);
-static SEL xRefSel = @selector(serializeTypeTag:andCrossRef:);
-static SEL eObjSel = @selector(encodeObject:);
-static SEL eValSel = @selector(encodeValueOfObjCType:at:);
-
 @implementation NSArchiver
+
+static SEL serSel;
+static SEL tagSel;
+static SEL xRefSel;
+static SEL eObjSel;
+static SEL eValSel;
+
++ (void) initialize
+{
+  if (self == [NSArchiver class])
+    {
+      serSel = @selector(serializeDataAt:ofObjCType:context:);
+      tagSel = @selector(serializeTypeTag:);
+      xRefSel = @selector(serializeTypeTag:andCrossRef:);
+      eObjSel = @selector(encodeObject:);
+      eValSel = @selector(encodeValueOfObjCType:at:);
+    }
+}
 
 - (id) init
 {

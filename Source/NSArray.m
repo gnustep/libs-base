@@ -50,31 +50,46 @@
 @interface NSMutableArrayNonCore : NSMutableArray
 @end
 
+@class	NSGInlineArray;
+
 static Class NSArray_abstract_class;
 static Class NSArray_concrete_class;
 static Class NSMutableArray_abstract_class;
 static Class NSMutableArray_concrete_class;
-
-static SEL	addSel = @selector(addObject:);
-static SEL	appSel = @selector(appendString:);
-static SEL	countSel = @selector(count);
-static SEL	eqSel = @selector(isEqual:);
-static SEL	oaiSel = @selector(objectAtIndex:);
-static SEL	remSel = @selector(removeObjectAtIndex:);
-static SEL	rlSel = @selector(removeLastObject);
+static Class NSGInlineArrayClass;
 
 
 @implementation NSArray
+
+static SEL	addSel;
+static SEL	appSel;
+static SEL	countSel;
+static SEL	eqSel;
+static SEL	oaiSel;
+static SEL	remSel;
+static SEL	rlSel;
 
 + (void) initialize
 {
   if (self == [NSArray class])
     {
+      [self setVersion: 1];
+
+      addSel = @selector(addObject:);
+      appSel = @selector(appendString:);
+      countSel = @selector(count);
+      eqSel = @selector(isEqual:);
+      oaiSel = @selector(objectAtIndex:);
+      remSel = @selector(removeObjectAtIndex:);
+      rlSel = @selector(removeLastObject);
+
       NSArray_abstract_class = [NSArray class];
+      behavior_class_add_class (self, [NSArrayNonCore class]);
       NSMutableArray_abstract_class = [NSMutableArray class];
       NSArray_concrete_class = [NSGArray class];
       NSMutableArray_concrete_class = [NSGMutableArray class];
-      behavior_class_add_class (self, [NSArrayNonCore class]);
+      NSMutableArray_concrete_class = [NSGMutableArray class];
+      NSGInlineArrayClass = [NSGInlineArray class];
     }
 }
 
@@ -107,13 +122,16 @@ static SEL	rlSel = @selector(removeLastObject);
     initWithContentsOfFile: file]);
 }
 
-+ (id) arrayWithObject: anObject
++ (id) arrayWithObject: (id)anObject
 {
+  id	o;
+
   if (anObject == nil)
     [NSException raise: NSInvalidArgumentException
 		 format: @"Tried to add nil"];
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: &anObject count: 1]);
+  o = NSAllocateObject(NSGInlineArrayClass, sizeof(id), NSDefaultMallocZone());
+  o = [o initWithObjects: &anObject count: 1];
+  return AUTORELEASE(o);
 }
 
 /* This is the designated initializer for NSArray. */
@@ -805,6 +823,14 @@ static NSString	*indentStrings[] = {
     {
       return NSAllocateObject(self, 0, z);
     }
+}
+
++ (id) arrayWithObject: (id)anObject
+{
+  NSMutableArray	*obj = [self allocWithZone: NSDefaultMallocZone()];
+
+  obj = [obj initWithObjects: &anObject count: 1];
+  return AUTORELEASE(self);
 }
 
 - (Class) classForCoder

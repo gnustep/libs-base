@@ -3,6 +3,30 @@
 	* Headers/gnustep/base/NSInvocation.h: Removed non-standard macros
 	* Headers/gnustep/base/behavior.h: Removed unused macro
 	CALL_METHOD_IN_CLASS()
+	* Source/GSString.m:
+	* Source/GSXML.m:
+	* Source/NSArchiver.m:
+	* Source/NSArray.m:
+	* Source/NSAttributedString.m:
+	* Source/NSData.m:
+	* Source/NSDictionary.m:
+	* Source/NSGArray.m:
+	* Source/NSGAttributedString.m:
+	* Source/NSGCString.m:
+	* Source/NSGDictionary.m:
+	* Source/NSGeometry.m:
+	* Source/NSObject.m:
+	* Source/NSPortCoder.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSRange.m:
+	* Source/NSRunLoop.m:
+	* Source/NSScanner.m:
+	* Source/NSSerializer.m:
+	* Source/NSString.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSUserDefaults.m:
+	Updated to move static SEL variable initialisation to +initialize
+	methods so that it should (I think) work with the Apple runtime.
 
 2000-10-29  Adam Fedor  <fedor@gnu.org>
 

@@ -196,9 +196,9 @@ typeCheck(char t1, char t2)
 
 #define	PREFIX		"GNUstep archive"
 
-static SEL desSel = @selector(deserializeDataAt:ofObjCType:atCursor:context:);
-static SEL tagSel = @selector(deserializeTypeTag:andCrossRef:atCursor:);
-static SEL dValSel = @selector(decodeValueOfObjCType:at:);
+static SEL desSel;
+static SEL tagSel;
+static SEL dValSel;
 
 @interface	NSUnarchiverClassInfo : NSObject
 {
@@ -298,6 +298,9 @@ mapClassName(NSUnarchiverObjectInfo *info)
 {
   if ([self class] == [NSUnarchiver class])
     {
+      desSel = @selector(deserializeDataAt:ofObjCType:atCursor:context:);
+      tagSel = @selector(deserializeTypeTag:andCrossRef:atCursor:);
+      dValSel = @selector(decodeValueOfObjCType:at:);
       clsDict = [[NSMutableDictionary alloc] initWithCapacity: 200];
     }
 }

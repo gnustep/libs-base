@@ -55,18 +55,19 @@
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSRange.h>
 
-static SEL	eqSel = @selector(isEqual:);
-static SEL	setSel = @selector(setAttributes:range:);
-static SEL	getSel = @selector(attributesAtIndex:effectiveRange:);
-static SEL	addDictSel = @selector(addEntriesFromDictionary:);
-static SEL	setDictSel = @selector(setObject:forKey:);
-static SEL	relDictSel = @selector(release);
-static SEL	remDictSel = @selector(removeObjectForKey:);
-
 @class	NSGMutableDictionary;
 static Class	dictionaryClass = 0;
-static SEL	allocDictSel = @selector(allocWithZone:);
-static SEL	initDictSel = @selector(initWithDictionary:);
+
+static SEL	eqSel;
+static SEL	setSel;
+static SEL	getSel;
+static SEL	allocDictSel;
+static SEL	initDictSel;
+static SEL	addDictSel;
+static SEL	setDictSel;
+static SEL	relDictSel;
+static SEL	remDictSel;
+
 static IMP	allocDictImp;
 static IMP	initDictImp;
 static IMP	addDictImp;
@@ -100,6 +101,17 @@ static Class NSMutableAttributedString_concrete_class;
       NSMutableAttributedString_concrete_class
 	= [NSGMutableAttributedString class];
       dictionaryClass = [NSGMutableDictionary class];
+
+      eqSel = @selector(isEqual:);
+      setSel = @selector(setAttributes:range:);
+      getSel = @selector(attributesAtIndex:effectiveRange:);
+      allocDictSel = @selector(allocWithZone:);
+      initDictSel = @selector(initWithDictionary:);
+      addDictSel = @selector(addEntriesFromDictionary:);
+      setDictSel = @selector(setObject:forKey:);
+      relDictSel = @selector(release);
+      remDictSel = @selector(removeObjectForKey:);
+
       allocDictImp = [dictionaryClass methodForSelector: allocDictSel];
       initDictImp = [dictionaryClass instanceMethodForSelector: initDictSel];
       addDictImp = [dictionaryClass instanceMethodForSelector: addDictSel];

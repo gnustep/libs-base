@@ -556,8 +556,8 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
    need mutex protection, since it is simply a pointer that gets read
    and set. */
 static id autorelease_class = nil;
-static SEL autorelease_sel = @selector(addObject:);
-static IMP autorelease_imp = 0;
+static SEL autorelease_sel;
+static IMP autorelease_imp;
 
 /* When this is `YES', every call to release/autorelease, checks to
    make sure isn't being set up to release itself too many times.
@@ -609,6 +609,7 @@ static BOOL double_release_check_enabled = NO;
       // Create the global lock
       gnustep_global_lock = [[NSRecursiveLock alloc] init];
       autorelease_class = [NSAutoreleasePool class];
+      autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
       fastMallocClass = [_FastMallocBuffer class];
 #if	GS_WITH_GC == 0

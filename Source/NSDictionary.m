@@ -52,11 +52,12 @@ static Class NSMutableDictionary_abstract_class;
 static Class NSDictionary_concrete_class;
 static Class NSMutableDictionary_concrete_class;
 
-static SEL	nxtSel = @selector(nextObject);
-static SEL	objSel = @selector(objectForKey:);
-static SEL	remSel = @selector(removeObjectForKey:);
-static SEL	setSel = @selector(setObject:forKey:);
-static SEL	appSel = @selector(appendString:);
+static SEL	eqSel;
+static SEL	nxtSel;
+static SEL	objSel;
+static SEL	remSel;
+static SEL	setSel;
+static SEL	appSel;
 
 + (void) initialize
 {
@@ -68,6 +69,13 @@ static SEL	appSel = @selector(appendString:);
       NSMutableDictionary_abstract_class = [NSMutableDictionary class];
       NSDictionary_concrete_class = [NSGDictionary class];
       NSMutableDictionary_concrete_class = [NSGMutableDictionary class];
+
+      eqSel = @selector(isEqual:);
+      nxtSel = @selector(nextObject);
+      objSel = @selector(objectForKey:);
+      remSel = @selector(removeObjectForKey:);
+      setSel = @selector(setObject:forKey:);
+      appSel = @selector(appendString:);
     }
 }
 
@@ -543,7 +551,6 @@ static SEL	appSel = @selector(appendString:);
     }
   else
     {
-      static SEL	eqSel = @selector(isEqual:);
       NSEnumerator	*e = [self keyEnumerator];
       IMP		nxtObj = [e methodForSelector: nxtSel];
       IMP		myObj = [self methodForSelector: objSel];

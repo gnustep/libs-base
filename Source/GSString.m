@@ -186,12 +186,12 @@ static Class GSUInlineStringClass = 0;
 static Class GSMStringClass = 0;
 static Class NXConstantStringClass = 0;
 
-static SEL	convertSel = @selector(canBeConvertedToEncoding:);
-static BOOL	(*convertImp)(id, SEL, NSStringEncoding) = 0;
-static SEL	equalSel = @selector(isEqualToString:);
-static BOOL	(*equalImp)(id, SEL, id) = 0;
-static SEL	hashSel = @selector(hash);
-static unsigned (*hashImp)(id, SEL) = 0;
+static SEL	convertSel;
+static BOOL	(*convertImp)(id, SEL, NSStringEncoding);
+static SEL	equalSel;
+static BOOL	(*equalImp)(id, SEL, id);
+static SEL	hashSel;
+static unsigned (*hashImp)(id, SEL);
 
 static NSStringEncoding defEnc = 0;
 
@@ -220,10 +220,13 @@ setup()
       GSMStringClass = [GSMString class];
       NXConstantStringClass = [NXConstantString class];
 
+      convertSel = @selector(canBeConvertedToEncoding:);
       convertImp = (BOOL (*)(id, SEL, NSStringEncoding))
 	[NSStringClass instanceMethodForSelector: convertSel];
+      equalSel = @selector(isEqualToString:);
       equalImp = (BOOL (*)(id, SEL, id))
 	[NSStringClass instanceMethodForSelector: equalSel];
+      hashSel = @selector(hash);
       hashImp = (unsigned (*)(id, SEL))
 	[NSStringClass instanceMethodForSelector: hashSel];
 

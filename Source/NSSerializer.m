@@ -124,11 +124,11 @@ typedef struct {
   BOOL		shouldUnique;		// Do we do uniquing?
 } _NSSerializerInfo;
 
-static SEL	appSel = @selector(appendBytes:length:);
-static SEL	datSel = @selector(mutableBytes);
-static SEL	lenSel = @selector(length);
-static SEL	serSel = @selector(serializeInt:);
-static SEL	setSel = @selector(setLength:);
+static SEL	appSel;
+static SEL	datSel;
+static SEL	lenSel;
+static SEL	serSel;
+static SEL	setSel;
 
 static void
 initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
@@ -299,6 +299,11 @@ static BOOL	shouldBeCompact = NO;
 {
   if (self == [NSSerializer class])
     {
+      appSel = @selector(appendBytes:length:);
+      datSel = @selector(mutableBytes);
+      lenSel = @selector(length);
+      serSel = @selector(serializeInt:);
+      setSel = @selector(setLength:);
       ArrayClass = [NSArray class];
       MutableArrayClass = [NSMutableArray class];
       DataClass = [NSData class];
@@ -381,15 +386,15 @@ typedef struct {
   GSIArray_t	array;
 } _NSDeserializerInfo;
 
-static SEL debSel = @selector(deserializeBytes:length:atCursor:);
-static SEL deiSel = @selector(deserializeIntAtCursor:);
-static SEL csInitSel = @selector(initWithCStringNoCopy:length:freeWhenDone:);
-static SEL usInitSel = @selector(initWithCharactersNoCopy:length:freeWhenDone:);
-static SEL dInitSel = @selector(initWithBytesNoCopy:length:);
-static SEL iaInitSel = @selector(initWithObjects:count:);
-static SEL maInitSel = @selector(initWithObjects:count:);
-static SEL idInitSel = @selector(initWithObjects:forKeys:count:);
-static SEL mdInitSel = @selector(initWithObjects:forKeys:count:);
+static SEL debSel;
+static SEL deiSel;
+static SEL csInitSel;
+static SEL usInitSel;
+static SEL dInitSel;
+static SEL iaInitSel;
+static SEL maInitSel;
+static SEL idInitSel;
+static SEL mdInitSel;
 static IMP csInitImp;
 static IMP usInitImp;
 static IMP dInitImp;
@@ -674,6 +679,15 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 {
   if (self == [NSDeserializer class])
     {
+      debSel = @selector(deserializeBytes:length:atCursor:);
+      deiSel = @selector(deserializeIntAtCursor:);
+      csInitSel = @selector(initWithCStringNoCopy:length:freeWhenDone:);
+      usInitSel = @selector(initWithCharactersNoCopy:length:freeWhenDone:);
+      dInitSel = @selector(initWithBytesNoCopy:length:);
+      iaInitSel = @selector(initWithObjects:count:);
+      maInitSel = @selector(initWithObjects:count:);
+      idInitSel = @selector(initWithObjects:forKeys:count:);
+      mdInitSel = @selector(initWithObjects:forKeys:count:);
       IACls = [NSGArray class];
       MACls = [NSGMutableArray class];
       DCls = [NSDataMalloc class];
