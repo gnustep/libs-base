@@ -47,7 +47,7 @@ typedef unsigned short Character;
 
 /* Think about changing these names to avoid conflicts with OpenStep? */
 
-@protocol String <ValueGetting, IndexedCollecting, NSString>
+@protocol String <NSObject, ValueGetting, IndexedCollecting, NSString>
 
 // INITIALIZING NEWLY ALLOCATED STRINGS.  DON'T FORGET TO RELEASE THEM!;
 - init;
