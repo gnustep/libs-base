@@ -34,19 +34,6 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#ifdef NeXT
-#include <foundation/NSUserDefaults.h>
-#include <foundation/NSPathUtilities.h>
-#include <foundation/NSDictionary.h>
-#include <foundation/NSArray.h>
-#include <foundation/NSDate.h>
-#include <foundation/NSUtilities.h>
-#include <foundation/NSArchiver.h>
-#include <foundation/NSException.h>
-#include <foundation/NSNotification.h>
-#include <foundation/NSTimer.h>
-#include <foundation/NSProcessInfo.h>
-#else  
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSDictionary.h>
@@ -58,7 +45,6 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSTimer.h>
 #include <Foundation/NSProcessInfo.h>
-#endif  /* NeXT */
 
 /* Wait for access */
 #define _MAX_COUNT 5          /* Max 10 sec. */
