@@ -26,7 +26,7 @@
 
 #ifndef	STRICT_OPENSTEP
 
-#include <Foundation/GSConfig.h>
+#include <GSConfig.h>
 
 #if	HAVE_GMP
 #include <gmp.h>
