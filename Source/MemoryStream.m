@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective C memory stream
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -144,14 +144,7 @@ static BOOL debug_memory_stream = NO;
   return l;
 }
 
-- (void) writeLine: (const char *)l
-{
-  [self writeBytes:l length:strlen(l)];
-  [self writeBytes:"\n" length:1];
-}
-
-/* This malloc's the buffer pointed to by the return value */
-- (char *) readLine
+- (id <String>) readLine
 {
   char *nl = memchr(buffer+prefix+position, '\n', eofPosition-position);
   char *ret = NULL;
@@ -163,7 +156,7 @@ static BOOL debug_memory_stream = NO;
       ret[len] = '\0';
       position += len+1;
     }
-  return ret;
+  return [NSString stringWithCStringNoCopy:ret];
 }
 
 /* Making these nested functions (which is what I'd like to do) is
@@ -193,7 +186,7 @@ void unchar_func(void *s, int c)
 }
 
 #if HAVE_VSPRINTF
-- (int) writeFormat: (const char *)format, ...
+- (int) writeFormat: (id <String>)format, ...
 {
   int ret;
   va_list ap;
@@ -207,7 +200,7 @@ void unchar_func(void *s, int c)
     [self setStreamBufferCapacity:size*2];
 
   va_start(ap, format);
-  ret = vsprintf(buffer+prefix+position, format, ap);
+  ret = vsprintf(buffer+prefix+position, [format cStringNoCopy], ap);
   va_end(ap);
   position += ret;
   /* xxx Make sure we didn't overrun our buffer.
@@ -226,13 +219,14 @@ void unchar_func(void *s, int c)
 }
 #endif
 
-- (int) readFormat: (const char *)format, ...
+- (int) readFormat: (id <String>)format, ...
 {
   int ret;
   va_list ap;
 
   va_start(ap, format);
-  ret = objects_vscanf(self, inchar_func, unchar_func, format, ap);
+  ret = objects_vscanf(self, inchar_func, unchar_func, 
+		       [format cStringNoCopy], ap);
   va_end(ap);
   return ret;
 }
