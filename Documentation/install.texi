@@ -23,10 +23,12 @@ GNUstep-HOWTO is located in the gnustep-make package or at
 @url{http://www.gnustep.org}
 
 If you are installing the GNUstep libraries individually, make sure you
-have installed the GNUstep Makefile package (gnustep-make) already.  In
-addition you should install an Objective-C library (gnustep-objc) if you
-are not using gcc 3.x, as well some other libraries (notably
-ffcall). See the GNUstep-HOWTO for more information.
+have installed the GNUstep Makefile package (gnustep-make) already, and
+you have sourced the makefile script:
+@example
+. $GNUSTEP_SYSTEM_ROOT/Makeifles/GNUstep.sh
+@end example
+See the GNUstep-HOWTO for more information.
 
 After installing this library you should install gnustep-gui if you are
 going to use graphical applications.
@@ -160,8 +162,3 @@ If you can't install gstep-base as root, be sure to edit the
 @file{Tools/gdomap.h} file and uncomment the last line.
 
 @bye
-
-
-
-
-
