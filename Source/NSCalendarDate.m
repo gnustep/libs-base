@@ -1568,6 +1568,9 @@ static inline int getDigits(const char *from, char *to, int limit)
  *     %b   abbreviated month name according to locale
  *   </item>
  *   <item>
+ *     %c   this is the same as %X %x
+ *   </item>
+ *   <item>
  *     %B   full month name according to locale
  *   </item>
  *   <item>
@@ -1610,6 +1613,12 @@ static inline int getDigits(const char *from, char *to, int limit)
  *     %w   day of the week as decimal number (Sunday = 0)
  *   </item>
  *   <item>
+ *     %x   date formatted according to the locale
+ *   </item>
+ *   <item>
+ *     %X   time formatted according to the locale
+ *   </item>
+ *   <item>
  *     %y   year as a decimal number without century (minimum 0)
  *   </item>
  *   <item>
@@ -1630,10 +1639,8 @@ static inline int getDigits(const char *from, char *to, int limit)
 				     locale: (NSDictionary*)locale
 {
   char buf[1024];
-  const char *f;
+  char f [1024];
   int lf;
-  BOOL mtag = NO, dtag = NO, ycent = NO;
-  BOOL mname = NO, dname = NO;
   double s;
   int yd = 0, md = 0, mnd = 0, sd = 0, dom = -1, dow = -1, doy = -1;
   int hd = 0, nhd, mil;
@@ -1648,7 +1655,7 @@ static inline int getDigits(const char *from, char *to, int limit)
   if (!format)
     return @"";
 
-  f = [format cString];
+  strcpy (f, [format cString]);
   lf = strlen(f);
 
   GSBreakTime(_seconds_since_ref + offset(_time_zone, self),
@@ -1658,13 +1665,20 @@ static inline int getDigits(const char *from, char *to, int limit)
   // Find the order of date elements
   // and translate format string into printf ready string
   j = 0;
-  for (i = 0;i < lf; ++i)
+  i = 0;
+  
+  while (i < lf)
     {
+      BOOL mtag = NO, dtag = NO, ycent = NO;
+      BOOL mname = NO, dname = NO;
+      const char *insertionString = NULL;
+      
       // Only care about a format specifier
       if (f[i] == '%')
 	{
+          ++i;
 	  // check the character that comes after
-	  switch (f[i+1])
+	  switch (f[i])
 	    {
 	      // literal %
 	    case '%':
@@ -1673,6 +1687,40 @@ static inline int getDigits(const char *from, char *to, int limit)
 	      ++j;
 	      break;
 
+            case 'c':
+              insertionString = [[NSString stringWithFormat: @"%@ %@",
+                                           [locale objectForKey: NSTimeFormatString],
+                                           [locale objectForKey: NSDateFormatString]]
+                                  cString];
+            case 'X':
+              if (insertionString == NULL)
+                {
+                  insertionString = [[locale objectForKey: NSTimeFormatString] cString];
+                }
+            case 'x':
+              {
+                int lengthOfInsertion;
+                if (insertionString == NULL)
+                  {
+                    insertionString = [[locale objectForKey: NSDateFormatString] cString];
+                  }
+                lengthOfInsertion = strlen (insertionString);
+                // Insert the insertion string in the format 
+                // + 1 for the nul byte terminating the string
+                // Note: i is pointing to the x in %x, we remove %x and insert
+                // the string.  The +1 for the length is there to copy the string
+                // terminator.
+                memmove (f + i - 1 + lengthOfInsertion, f + i + 1,
+                         strlen (f + i + 1) + 1);
+                memcpy (f + i - 1, insertionString, lengthOfInsertion);
+                // update the lvar containing the length
+                lf += lengthOfInsertion;
+                // update the reader position, we removed %x and the i was pointing to
+                // the x.
+                --i;
+                break;
+              }
+                    
 	      // is it the year
 	    case 'Y':
 	      ycent = YES;
@@ -1853,8 +1901,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 	      // Anything else is unknown so just copy
 	    default:
-	      buf[j] = f[i];
-	      ++i;
+	      buf[j] = f[i - 1];
 	      ++j;
 	      buf[j] = f[i];
 	      ++i;
@@ -1866,6 +1913,7 @@ static inline int getDigits(const char *from, char *to, int limit)
 	{
 	  buf[j] = f[i];
 	  ++j;
+          ++i;
 	}
     }
   buf[j] = '\0';
