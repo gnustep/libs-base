@@ -11,6 +11,7 @@ Any hints?
 */
 
 #include <objects/Queue.h>
+#include <Foundation/NSValue.h>
 
 int main ()
 {
