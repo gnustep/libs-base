@@ -1,5 +1,5 @@
 /* Implementation for NSCalendarDate for GNUstep
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1998 Free Software Foundation, Inc.
 
    Author:  Scott Christley <scottc@net-community.com>
    Date: October 1996
@@ -982,6 +982,23 @@ static id long_day[7] = {@"Sunday",
   return [NSString stringWithCString: buf];
 }
 
+- (id) copyWithZone:(NSZone*)zone
+{
+    NSCalendarDate	*newDate;
+
+    if (NSShouldRetainWithZone(self, zone)) {
+	newDate = [self retain];
+    }
+    else {
+	newDate = (NSCalendarDate*)NSCopyObject(self, 0, zone);
+
+	if (newDate) {
+	    newDate->calendar_format = [calendar_format copyWithZone: zone];
+	}
+    }
+    return newDate;
+}
+
 - (NSString *)descriptionWithLocale:(NSDictionary *)locale
 {
   return [self descriptionWithCalendarFormat: calendar_format
@@ -996,6 +1013,7 @@ static id long_day[7] = {@"Sunday",
 
 - (void)setCalendarFormat:(NSString *)format
 {
+  [calendar_format release];
   calendar_format = [format copyWithZone: [self zone]];
 }
 

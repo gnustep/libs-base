@@ -94,7 +94,7 @@
 
 
 static BOOL
-readContentsOfFile(NSString* path, void** buf, unsigned* len)
+readContentsOfFile(NSString* path, void** buf, unsigned* len, NSZone* zone)
 {
   char		thePath[BUFSIZ*2];
   FILE		*theFile = 0;
@@ -133,7 +133,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
       goto failure;
     }
 
-  tmp = objc_malloc(fileLength);
+  tmp = NSZoneMalloc(zone, fileLength);
   if (tmp == 0)
     {
       NSLog(@"Malloc failed for file of length %d- %s",
@@ -165,7 +165,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   /* Just in case the failure action needs to be changed. */
  failure:
   if (tmp)
-    objc_free(tmp);
+    NSZoneFree(zone, tmp);
   if (theFile)
     fclose(theFile);
   return NO;
@@ -176,6 +176,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   unsigned int	length;
   void		*bytes;
+  NSZone	*zone;
 }
 @end
 
@@ -184,6 +185,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   unsigned int	capacity;
   unsigned int	length;
   void		*bytes;
+  NSZone	*zone;
 }
 @end
 
@@ -261,18 +263,29 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 				       length: [data length]] autorelease];
 }
 
-- (id) initWithBytes: (const void*)bytes
-	      length: (unsigned int)length
+- (id) init
+{
+  return [self initWithBytesNoCopy: 0 length: 0];
+}
+
+- (id) initWithBytes: (const void*)aBuffer
+	      length: (unsigned int)bufferSize
 {
   [self subclassResponsibility:_cmd];
   return nil;
 }
 
-- (id) initWithBytesNoCopy: (void*)bytes
-		    length: (unsigned int)length
+- (id) initWithBytesNoCopy: (void*)aBuffer
+		    length: (unsigned int)bufferSize
 {
-  [self subclassResponsibility:_cmd];
-  return nil;
+  if (aBuffer)
+    return [self initWithBytesNoCopy: aBuffer
+			      length: bufferSize
+			    fromZone: NSZoneFromPointer(aBuffer)];
+  else
+    return [self initWithBytesNoCopy: aBuffer
+			      length: bufferSize
+			    fromZone: [self zone]];
 }
 
 - (id) initWithContentsOfFile: (NSString *)path
@@ -308,11 +321,12 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   char		*dest;
   int		length = [self length];
   int		i,j;
+  NSZone	*z = [self zone];
 
 #define num2char(num) ((num) < 0xa ? ((num)+'0') : ((num)+0x57))
 
   /* we can just build a cString and convert it to an NSString */
-  dest = (char*) objc_malloc (2*length+length/4+3);
+  dest = (char*) NSZoneMalloc(z, 2*length+length/4+3);
   if (dest == 0)
     [NSException raise:NSMallocException
 		format:@"No memory for description of NSData object"];
@@ -327,8 +341,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
     }
   dest[j++] = '>';
   dest[j] = '\0';
-  str = [NSString stringWithCString: dest];
-  objc_free(dest);
+  str = [[[NSString alloc] initWithCStringNoCopy: dest length: j fromZone: z]
+		autorelease];
   return str;
 }
 
@@ -384,7 +398,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 		format: @"Range: (%u, %u) Size: %d",
 			aRange.location, aRange.length, l];
 
-  buffer = objc_malloc(aRange.length);
+  buffer = NSZoneMalloc([self zone], aRange.length);
   if (buffer == 0)
     [NSException raise:NSMallocException
 		format:@"No memory for subdata of NSData object"];
@@ -554,7 +568,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	    else {
 		unsigned len = (length+1)*sizeof(char);
 
-		*(char**)data = (char*)objc_malloc(len);
+		*(char**)data = (char*)NSZoneMalloc([self zone], len);
 		adr = [NSData dataWithBytesNoCopy: *(void**)data length: len];
 	    }
 
@@ -605,7 +619,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	    unsigned len = objc_sizeof_type(++type);
 	    id adr;
 
-	    *(char**)data = (char*)objc_malloc(len);
+	    *(char**)data = (char*)NSZoneMalloc([self zone], len);
 	    adr = [NSData dataWithBytesNoCopy: *(void**)data length: len];
 
 	    [self deserializeDataAt:*(char**)data
@@ -780,9 +794,16 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	  autorelease];
 }
 
+- (id) initWithBytesNoCopy: (void*)bytes
+		    length: (unsigned)length
+		  fromZone: (NSZone*)zone
+{
+  [self subclassResponsibility:_cmd];
+}
+
 - (void*) relinquishAllocatedBytes
 {
-    return 0;	/* No data from objc_malloc - return nul pointer	*/
+    return 0;	/* No data from NSZoneMalloc - return nul pointer	*/
 }
 @end
 
@@ -1171,7 +1192,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   if (bytes)
     {
-      objc_free(bytes);
+      NSZoneFree(zone, bytes);
       bytes = 0;
       length = 0;
     }
@@ -1180,13 +1201,13 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [aCoder encodeValueOfObjCType:"I" at: &length];
-  [aCoder encodeArrayOfObjCType:"C" count:length at: bytes];
+  [aCoder encodeValueOfObjCType: @encode(unsigned long) at: &length];
+  [aCoder encodeArrayOfObjCType: @encode(unsigned char) count:length at: bytes];
 }
 
 - (id) init
 {
-  return [self initWithBytesNoCopy: 0 length: 0];
+  return [self initWithBytesNoCopy: 0 length: 0 fromZone: [self zone]];
 }
 
 - (id) initWithBytes: (const void*)aBuffer length: (unsigned int)bufferSize
@@ -1195,7 +1216,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
   if (aBuffer != 0 && bufferSize > 0)
     {
-      tmp = objc_malloc(bufferSize);
+      zone = [self zone];
+      tmp = NSZoneMalloc(zone, bufferSize);
       if (tmp == 0)
 	{
 	  NSLog(@"[NSDataMalloc -initWithBytes:length:] unable to allocate %lu bytes", bufferSize);
@@ -1207,23 +1229,37 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 	  memcpy(tmp, aBuffer, bufferSize);
 	}
     }
-  self = [self initWithBytesNoCopy:tmp length:bufferSize];
+  self = [self initWithBytesNoCopy:tmp length:bufferSize fromZone: zone];
   return self;
 }
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
 {
-  self = [super init];
-  if (self)
+  NSZone *z = NSZoneFromPointer(aBuffer);
+
+  return [self initWithBytesNoCopy: aBuffer length: bufferSize fromZone: z];
+}
+
+- (id) initWithBytesNoCopy: (void*)aBuffer
+		    length: (unsigned)bufferSize
+		  fromZone: (NSZone*)aZone
+{
+  if (aZone == 0)
     {
-      bytes = aBuffer;
-      if (bytes)
-        length = bufferSize;
+      NSData	*data;
+
+      data = [[NSDataStatic alloc] initWithBytesNoCopy: aBuffer
+						length: bufferSize];
+      [self dealloc];
+      return data;
     }
-  else
-    if (aBuffer)
-      objc_free(aBuffer);
+
+  zone = aZone;
+  bytes = aBuffer;
+  if (bytes)
+    length = bufferSize;
+
   return self;
 }
 
@@ -1232,22 +1268,29 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   unsigned int	l;
   void*		b;
 
-  [aCoder decodeValueOfObjCType:"I" at: &l];
-  b = objc_malloc(l);
-  if (b == 0)
+  zone = [self zone];
+
+  [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
+  if (l)
     {
-      NSLog(@"[NSDataMalloc -initWithCode:] unable to allocate %lu bytes", l);
-      [self dealloc];
-      return nil;
+      b = NSZoneMalloc(zone, l);
+      if (b == 0)
+        {
+          NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %lu bytes", l);
+          [self dealloc];
+          return nil;
+        }
+      [aCoder decodeArrayOfObjCType: @encode(unsigned char) count: l at: b];
     }
-  [aCoder decodeArrayOfObjCType:"C" count: l at: b];
-  return [self initWithBytesNoCopy: b length: l];
+  else
+    b = 0;
+  return [self initWithBytesNoCopy: b length: l fromZone: zone];
 }
 
 - (id) initWithContentsOfFile: (NSString *)path
 {
-  self = [super init];
-  if (readContentsOfFile(path, &bytes, &length) == NO)
+  zone = [self zone];
+  if (readContentsOfFile(path, &bytes, &length, zone) == NO)
     {
       [self dealloc];
       self = nil;
@@ -1269,7 +1312,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (id) initWithData: (NSData*)anObject
 {
   if (anObject == nil)
-    return [self initWithBytesNoCopy: 0 length: 0];
+    return [self initWithBytesNoCopy: 0 length: 0 fromZone: [self zone]];
     
   if ([anObject isKindOfClass:[NSData class]] == NO)
     {
@@ -1404,9 +1447,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   struct shmid_ds	buf;
 
-  self = [super init];
-  if (self == nil)
-    return nil;
   shmid = -1;
   if (aBuffer && bufferSize)
     {
@@ -1438,10 +1478,6 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (id) initWithShmID: (int)anId length: (unsigned)bufferSize
 {
   struct shmid_ds	buf;
-
-  self = [super init];
-  if (self == nil)
-    return nil;
 
   shmid = anId;
   if (shmctl(shmid, IPC_STAT, &buf) < 0)
@@ -1492,9 +1528,12 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 }
 
 - (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (unsigned int)bufferSize
+		    length: (unsigned)bufferSize
+		  fromZone: (NSZone*)aZone
 {
-  return [super initWithBytesNoCopy: aBuffer length: bufferSize];
+  bytes = aBuffer;
+  length = bufferSize;
+  return self;  
 }
 
 @end
@@ -1529,7 +1568,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   if (bytes)
     {
-      objc_free(bytes);
+      NSZoneFree(zone, bytes);
       bytes = 0;
       length = 0;
       capacity = 0;
@@ -1539,8 +1578,8 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
-  [aCoder encodeValueOfObjCType:"I" at: &length];
-  [aCoder encodeArrayOfObjCType:"C" count:length at: bytes];
+  [aCoder encodeValueOfObjCType: @encode(unsigned long) at: &length];
+  [aCoder encodeArrayOfObjCType: @encode(unsigned char) count:length at: bytes];
 }
 
 - (id) init
@@ -1565,43 +1604,55 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (unsigned int)bufferSize
 {
-  self = [self initWithCapacity: 0];
-  if (self)
-    {
-      bytes = aBuffer;
-      if (bytes)
-        {
-	  length = bufferSize;
-	  capacity = bufferSize;
-	}
-    }
-  else
-    if (aBuffer)
-      objc_free(aBuffer);
-  return self;
+  NSZone	*aZone = NSZoneFromPointer(aBuffer);
+  return [self initWithBytesNoCopy: aBuffer length: bufferSize fromZone: aZone];
 }
 
 /*
  *	THIS IS THE DESIGNATED INITIALISER
  */
+- (id) initWithBytesNoCopy: (void*)aBuffer
+		    length: (unsigned)bufferSize
+		  fromZone: (NSZone*)aZone
+{
+  if (aZone == 0)
+    {
+      self = [self initWithBytes: aBuffer length: bufferSize];
+      return self;
+    }
+
+  if (aBuffer == 0)
+    {
+      self = [self initWithCapacity: bufferSize];
+      if (self)
+	[self setLength: bufferSize];
+      return self;
+    }
+
+  zone = aZone;
+  bytes = aBuffer;
+  length = bufferSize;
+  capacity = bufferSize;
+
+  return self;
+}
+
 - (id) initWithCapacity: (unsigned)size
 {
-  self = [super init];
-  if (self)
+  zone = [self zone];
+  if (size)
     {
-      if (size)
-        {
-          bytes = objc_malloc(size);
-	  if (bytes == 0)
-            {
-	      NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory for %u bytes - %s", size, strerror(errno));
-	      [self dealloc];
-              return nil;
-            }
-        }
-      capacity = size;
-      length = 0;
+      bytes = NSZoneMalloc(zone, size);
+      if (bytes == 0)
+	{
+	  NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory for %u bytes - %s", size, strerror(errno));
+	  [self dealloc];
+	  return nil;
+	}
     }
+  capacity = size;
+  length = 0;
+
   return self;
 }
 
@@ -1610,16 +1661,20 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   unsigned int	l;
   void*		b;
 
-  [aCoder decodeValueOfObjCType:"I" at: &l];
-  b = objc_malloc(l);
-  if (b == 0)
+  [aCoder decodeValueOfObjCType: @encode(unsigned long) at: &l];
+  if (l)
     {
-      NSLog(@"[NSMutableDataMalloc -initWithCode:] unable to allocate %lu bytes", l);
-      [self dealloc];
-      return nil;
+      [self initWithCapacity: l];
+      if (bytes == 0)
+	{
+	  NSLog(@"[NSMutableDataMalloc -initWithCoder:] unable to allocate %lu bytes", l);
+	  [self dealloc];
+	  return nil;
+	}
+      [aCoder decodeArrayOfObjCType: @encode(unsigned char) count: l at: bytes];
+      length = l;
     }
-  [aCoder decodeArrayOfObjCType:"C" count: l at: b];
-  return [self initWithBytesNoCopy: b length: l];
+  return self;
 }
 
 - (id) initWithLength: (unsigned)size
@@ -1636,7 +1691,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 - (id) initWithContentsOfFile: (NSString *)path
 {
   self = [self initWithCapacity: 0];
-  if (readContentsOfFile(path, &bytes, &length) == NO)
+  if (readContentsOfFile(path, &bytes, &length, zone) == NO)
     {
       [self dealloc];
       self = nil;
@@ -1681,9 +1736,9 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
       void*	tmp;
 
       if (bytes)
-        tmp = objc_realloc(bytes, size);
+        tmp = NSZoneRealloc(zone, bytes, size);
       else
-        tmp = objc_malloc(size);
+        tmp = NSZoneMalloc(zone, size);
 
       if (tmp == 0)
 	[NSException raise:NSMallocException
@@ -1762,31 +1817,28 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   struct shmid_ds	buf;
   int			e;
 
-  self = [super initWithCapacity: 0];
-  if (self)
+  shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_ACCESS);
+  if (shmid == -1)			/* Created memory? */
     {
-      shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_ACCESS);
-      if (shmid == -1)			/* Created memory? */
-	{
-	  NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory get failed for %u - %s", bufferSize, strerror(errno));
-	  [self dealloc];
-	  self = [NSMutableDataMalloc alloc];
-	  return [self initWithCapacity: bufferSize];
-	}
-
-      bytes = shmat(shmid, 0, 0);
-      e = errno;
-      if (bytes == (void*)-1)
-	{
-	  NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory attach failed for %u - %s", bufferSize, strerror(e));
-	  bytes = 0;
-	  [self dealloc];
-	  self = [NSMutableDataMalloc alloc];
-	  return [self initWithCapacity: bufferSize];
-	}
-      length = 0;
-      capacity = bufferSize;
+      NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory get failed for %u - %s", bufferSize, strerror(errno));
+      [self dealloc];
+      self = [NSMutableDataMalloc alloc];
+      return [self initWithCapacity: bufferSize];
     }
+
+  bytes = shmat(shmid, 0, 0);
+  e = errno;
+  if (bytes == (void*)-1)
+    {
+      NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory attach failed for %u - %s", bufferSize, strerror(e));
+      bytes = 0;
+      [self dealloc];
+      self = [NSMutableDataMalloc alloc];
+      return [self initWithCapacity: bufferSize];
+    }
+  length = 0;
+  capacity = bufferSize;
+
   return self;
 }
 
@@ -1794,33 +1846,30 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   struct shmid_ds	buf;
 
-  self = [super initWithCapacity: 0];
-  if (self)
+  shmid = anId;
+  if (shmctl(shmid, IPC_STAT, &buf) < 0)
     {
-      shmid = anId;
-      if (shmctl(shmid, IPC_STAT, &buf) < 0)
-	{
-	  NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory control failed - %s", strerror(errno));
-	  [self dealloc];	/* Unable to access memory. */
-	  return nil;
-	}
-      if (buf.shm_segsz < bufferSize)
-	{
-	  NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory segment too small");
-	  [self dealloc];	/* Memory segment too small. */
-	  return nil;
-	}
-      bytes = shmat(shmid, 0, 0);
-      if (bytes == (void*)-1)
-	{
-	  NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory attach failed - %s", strerror(errno));
-	  bytes = 0;
-	  [self dealloc];	/* Unable to attach to memory. */
-	  return nil;
-	}
-      length = bufferSize;
-      capacity = length;
+      NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory control failed - %s", strerror(errno));
+      [self dealloc];	/* Unable to access memory. */
+      return nil;
     }
+  if (buf.shm_segsz < bufferSize)
+    {
+      NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory segment too small");
+      [self dealloc];	/* Memory segment too small. */
+      return nil;
+    }
+  bytes = shmat(shmid, 0, 0);
+  if (bytes == (void*)-1)
+    {
+      NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory attach failed - %s", strerror(errno));
+      bytes = 0;
+      [self dealloc];	/* Unable to attach to memory. */
+      return nil;
+    }
+  length = bufferSize;
+  capacity = length;
+
   return self;
 }
 

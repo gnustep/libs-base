@@ -52,10 +52,12 @@ struct _NSZone
   void (*free)(struct _NSZone *zone, void *ptr);
   void (*recycle)(struct _NSZone *zone);
   BOOL (*check)(struct _NSZone *zone);
+  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
   struct NSZoneStats (*stats)(struct _NSZone *zone);
   
   size_t gran; // Zone granularity
   NSString *name; // Name of zone (default is 'nil')
+  NSZone *next;
 };
 
 
@@ -96,16 +98,6 @@ extern void NSSetZoneName (NSZone *zone, NSString *name);
 extern inline NSString* NSZoneName (NSZone *zone)
 { if (!zone) zone = NSDefaultMallocZone();
 return zone->name; }
-
-/* Not in OpenStep */
-extern void NSZoneRegisterRegion (NSZone *zone, void *low, void *high);
-
-extern void NSDeregisterZone (NSZone *zone); // Not in OpenStep
-
-/* Not in OpenStep */
-extern void* NSZoneRegisterChunk (NSZone *zone, void *chunk);
-
-extern size_t NSZoneChunkOverhead (void); // Not in OpenStep
 
 extern inline BOOL NSZoneCheck (NSZone *zone) // Not in OpenStep
 { if (!zone) zone = NSDefaultMallocZone();

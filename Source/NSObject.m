@@ -87,7 +87,7 @@ void	_fastBuildCache()
  */
 
 #define	REFCNT_LOCAL	1
-/* #define	CACHE_ZONE	1	*/
+#define	CACHE_ZONE	1
 
 #if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
 
@@ -104,12 +104,14 @@ typedef struct obj_layout_unpadded {
     NSZone	*zone;
 #endif
 } unp;
+#define	UNP sizeof(unp)
 
 /*
  *	Now do the REAL version - using the other version to determine
  *	what padding (if any) is required to get the alignment of the
  *	structure correct.
  */
+#define	ALIGN __alignof__(double)
 struct obj_layout {
 #if	defined(REFCNT_LOCAL)
     unsigned	retained;
@@ -117,7 +119,7 @@ struct obj_layout {
 #if	defined(CACHE_ZONE)
     NSZone	*zone;
 #endif
-    char	padding[__alignof(double) - sizeof(unp)%__alignof__(double)];
+    char	padding[ALIGN - ((UNP % ALIGN) ? (UNP % ALIGN) : ALIGN)];
 };
 typedef	struct obj_layout *obj;
 
@@ -218,6 +220,28 @@ extraRefCount (id anObject)
  */
 #if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
 
+#if defined(CACHE_ZONE)
+
+inline NSZone *
+fastZone(NSObject *object)
+{
+    if (fastClass(object) == _fastCls._NXConstantString)
+	return NSDefaultMallocZone();
+    return ((obj)object)[-1].zone;
+}
+
+#else	/* defined(CACHE_ZONE)	*/
+
+inline NSZone *
+fastZone(NSObject *object)
+{
+    if (fastClass(object) == _fastCls._NXConstantString)
+	return NSDefaultMallocZone();
+    return NSZoneFromPointer(&((obj)object)[-1]);
+}
+
+#endif	/* defined(CACHE_ZONE)	*/
+
 NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 {
   id new = nil;
@@ -236,10 +260,10 @@ NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 #endif
       new = (id)&((obj)new)[1];
       new->class_pointer = aClass;
-    }
 #ifndef	NDEBUG
-  GSDebugAllocationAdd(aClass);
+      GSDebugAllocationAdd(aClass);
 #endif
+    }
   return new;
 }
 
@@ -247,16 +271,11 @@ void NSDeallocateObject(NSObject *anObject)
 {
   if ((anObject!=nil) && CLS_ISCLASS(((id)anObject)->class_pointer))
     {
-      NSZone	*z;
       obj	o = &((obj)anObject)[-1];
+      NSZone	*z = fastZone(anObject);
 
 #ifndef	NDEBUG
       GSDebugAllocationRemove(((id)anObject)->class_pointer);
-#endif
-#if defined(CACHE_ZONE)
-      z = o->zone;
-#else
-      z = [anObject zone];
 #endif
       ((id)anObject)->class_pointer = (void*) 0xdeadface;
       NSZoneFree(z, o);
@@ -265,6 +284,14 @@ void NSDeallocateObject(NSObject *anObject)
 }
 
 #else
+
+inline NSZone *
+fastZone(NSObject *object)
+{
+    if (fastClass(object) == _fastCls._NXConstantString)
+	return NSDefaultMallocZone();
+    return NSZoneFromPointer(object);
+}
 
 NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
 {
@@ -276,10 +303,10 @@ NSObject *NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
     {
       memset (new, 0, size);
       new->class_pointer = aClass;
-    }
 #ifndef	NDEBUG
-  GSDebugAllocationAdd(aClass);
+      GSDebugAllocationAdd(aClass);
 #endif
+    }
   return new;
 }
 
@@ -300,21 +327,12 @@ void NSDeallocateObject(NSObject *anObject)
 
 #endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
 
-#if defined(CACHE_ZONE)
 BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 {
-  return (!requestedZone || requestedZone == NSDefaultMallocZone()
-	  || ((obj)anObject)[-1].zone == requestedZone);
+    return (!requestedZone || requestedZone == NSDefaultMallocZone()
+	  || fastZone(anObject) == requestedZone);
 }
-#else
-BOOL
-NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
-{
-  return (!requestedZone || requestedZone == NSDefaultMallocZone()
-	  || [anObject zone] == requestedZone);
-}
-#endif
 
 
 
@@ -739,15 +757,7 @@ static BOOL double_release_check_enabled = NO;
 
 - (NSZone *)zone
 {
-#if defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
-#if defined(CACHE_ZONE)
-  return ((obj)self)[-1].zone;
-#else
-  return NSZoneFromPointer(&((obj)self)[-1]);
-#endif
-#else
-  return NSZoneFromPointer(self);
-#endif
+    return fastZone(self);
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder

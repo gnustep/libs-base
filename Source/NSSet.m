@@ -105,6 +105,12 @@ static Class NSMutableSet_concrete_class;
   return [self autorelease];
 }
 
++ setWithSet: (NSSet*)aSet
+{
+  return [[[self alloc] initWithSet: aSet]
+	  autorelease];
+}
+
 + allocWithZone: (NSZone*)z
 {
   return NSAllocateObject([self _concreteClass], 0, z);
@@ -148,33 +154,31 @@ static Class NSMutableSet_concrete_class;
 
 - copyWithZone: (NSZone*)z
 {
-  /* a deep copy */
-  int count = [self count];
-  id objects[count];
-  id enumerator = [self objectEnumerator];
-  id o;
-  NSSet *newSet;
-  int i;
-  BOOL needCopy = [self isKindOfClass: [NSMutableSet class]];
+    /* a deep copy */
+    int		count = [self count];
+    id		objects[count];
+    id		enumerator = [self objectEnumerator];
+    id		o;
+    NSSet	*newSet;
+    int		i;
+    BOOL	needCopy = [self isKindOfClass: [NSMutableSet class]];
 
-  if (NSShouldRetainWithZone(self, z) == NO)
-    needCopy = YES;
+    if (NSShouldRetainWithZone(self, z) == NO)
+	needCopy = YES;
 
-  for (i = 0; (o = [enumerator nextObject]); i++)
-    {
-      objects[i] = [o copyWithZone:z];
-      if (objects[i] != o)
-        needCopy = YES;
+    for (i = 0; (o = [enumerator nextObject]); i++) {
+	objects[i] = [o copyWithZone:z];
+	if (objects[i] != o)
+	    needCopy = YES;
     }
-  if (needCopy)
-    newSet = [[[[self class] _concreteClass] allocWithZone: z] 
-	  initWithObjects:objects
-	  count:count];
-  else
-    newSet = [self retain];
-  for (i = 0; i < count; i++) 
-    [objects[i] release];
-  return newSet;
+    if (needCopy)
+	newSet = [[[[self class] _concreteClass] allocWithZone: z] 
+	      initWithObjects:objects count:count];
+    else
+	newSet = [self retain];
+    for (i = 0; i < count; i++) 
+	[objects[i] release];
+    return newSet;
 }
 
 - mutableCopyWithZone: (NSZone*)z

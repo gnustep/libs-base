@@ -38,7 +38,7 @@
 {
   char * _contents_chars;
   int _count;
-  BOOL _free_contents;
+  NSZone *_zone;
   unsigned _hash;
 }
 @end
@@ -47,7 +47,7 @@
 {
   char * _contents_chars;
   int _count;
-  BOOL _free_contents;
+  NSZone *_zone;
   unsigned _hash;
   int _capacity;
 }

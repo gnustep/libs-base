@@ -69,51 +69,38 @@ static Class NSCountedSet_concrete_class;
 
 - copyWithZone: (NSZone*)z
 {
-  /* a deep copy */
-  int count = [self count];
-  id objects[count];
-  id enumerator = [self objectEnumerator];
-  id o;
-  NSSet *newSet;
-  int i;
-  BOOL needCopy = [self isKindOfClass: [NSMutableSet class]];
+    NSSet	*newSet;
+    int		count = [self count];
+    id		objects[count];
+    id		enumerator = [self objectEnumerator];
+    id		o;
+    int		i;
 
-  if (NSShouldRetainWithZone(self, z) == NO)
-    needCopy = YES;
+    for (i = 0; (o = [enumerator nextObject]); i++)
+        objects[i] = [o copyWithZone:z];
 
-  for (i = 0; (o = [enumerator nextObject]); i++)
-    {
-      objects[i] = [o copyWithZone:z];
-      if (objects[i] != o)
-        needCopy = YES;
-    }
-  if (needCopy)
-    {
-      int	j;
+    newSet = [[[self class] allocWithZone: z] initWithObjects: objects
+							count: count];
 
-      newSet = [[[[self class] _concreteClass] allocWithZone: z] 
-		  initWithObjects:objects count:count];
+    for (i = 0; (o = [enumerator nextObject]); i++) {
+        unsigned	extra;
 
-      for (j = 0; j < i; j++)
-	{
-          unsigned	extra = [self countForObject: objects[j]];
+	extra = [self countForObject: o];
 
-	  if (extra > 1)
-	    while (--extra)
-	      [newSet addObject: objects[j]];
+	if (extra > 1) {
+	    while (--extra) {
+	        [newSet addObject: o];
+	    }
 	}
+	[o release];
     }
-  else
-    newSet = [self retain];
-  for (i = 0; i < count; i++) 
-    [objects[i] release];
-  return newSet;
+
+    return newSet;
 }
 
 - mutableCopyWithZone: (NSZone*)z
 {
-  /* a shallow copy */
-  return [[[[self class] _concreteClass] allocWithZone: z] initWithSet: self];
+    return [self copyWithZone: z];
 }
 
 - initWithCoder: aCoder

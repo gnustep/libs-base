@@ -1,8 +1,10 @@
 /* Implementation for GNUStep of NSStrings with C-string backing
-   Copyright (C) 1993,1994, 1996, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996, 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
+   Optimised by:  Richard frith-Macdoanld <richard@brainstorm.co.uk>
+   Date: October 1998
 
    This file is part of the GNUstep Base Library.
 
@@ -25,6 +27,7 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSData.h>
+#include <Foundation/NSCoder.h>
 #include <gnustep/base/NSGString.h>
 #include <gnustep/base/NSGCString.h>
 #include <gnustep/base/IndexedCollection.h>
@@ -39,9 +42,11 @@
 
 - (void)dealloc
 {
-  if (_free_contents)
-    OBJC_FREE(_contents_chars);
-  [super dealloc];
+    if (_zone) {
+	NSZoneFree(_zone, (void*)_contents_chars);
+	_zone = 0;
+    }
+    [super dealloc];
 }
 
 - (unsigned) hash
@@ -51,33 +56,66 @@
   return _hash;
 }
 
-/* This is the designated initializer for this class. */
+/* This is the GNUstep designated initializer for this class. */
 - (id) initWithCStringNoCopy: (char*)byteString
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag
+		      length: (unsigned int)length
+		    fromZone: (NSZone*)zone
 {
-  /* assert(!flag); xxx need to make a subclass to handle this. */
-  [super init];
-  _count = length;
-  _contents_chars = byteString;
-  _free_contents = flag;
-  return self;
+    self = [super init];
+    if (self) {
+	_count = length;
+	_contents_chars = byteString;
+	_zone = byteString ? zone : 0;
+    }
+    return self;
+}
+
+/* This is the OpenStep designated initializer for this class. */
+- (id) initWithCStringNoCopy: (char*)byteString
+		      length: (unsigned int)length
+		freeWhenDone: (BOOL)flag
+{
+    self = [super init];
+    if (self) {
+	_count = length;
+	_contents_chars = byteString;
+	if (flag) {
+	    _zone = NSZoneFromPointer(byteString);
+	}
+	else {
+	    _zone = 0;
+	}
+    }
+    return self;
+}
+
+- (id) initWithCharactersNoCopy: (unichar*)chars
+			 length: (unsigned int)length
+		       fromZone: (NSZone*)zone
+{
+    NSZone	*z = zone ? zone : fastZone(self);
+    id a = [[NSGString allocWithZone: z] initWithCharactersNoCopy: chars
+							   length: length
+						         fromZone: z];
+    [self release];
+    return a;
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
    length: (unsigned int)length
    freeWhenDone: (BOOL)flag
 {
-  id a = [[NSGString alloc] initWithCharactersNoCopy: chars
-   length: length
-   freeWhenDone: flag];
-  [self release];
-  return a;
+    NSZone	*z = fastZone(self);
+    id a = [[NSGString allocWithZone: z] initWithCharactersNoCopy: chars
+							   length: length
+						     freeWhenDone: flag];
+    [self release];
+    return a;
 }
 
 - (id) init
 {
-  return [self initWithCString:""];
+  return [self initWithCStringNoCopy: 0 length: 0 fromZone: 0];
 }
 
 - (void) _collectionReleaseContents
@@ -87,21 +125,17 @@
 
 - (void) _collectionDealloc
 {
-  if (_free_contents)
-      OBJC_FREE(_contents_chars);
-}
-
-- (Class) classForConnectedCoder: aRmc
-{
-  /* Make sure that Connection's always send us bycopy,
-     i.e. as our own class, not a Proxy class. */
-  return [self class];
+    if (_zone) {
+	NSZoneFree(_zone, (void*)_contents_chars);
+	_zone = 0;
+    }
 }
 
 - (Class) classForPortCoder
 {
   return [self class];
 }
+
 - replacementObjectForPortCoder:(NSPortCoder*)aCoder
 {
     return self;
@@ -109,17 +143,35 @@
 
 - (void) encodeWithCoder: aCoder
 {
-  [aCoder encodeValueOfObjCType:@encode(char*) at:&_contents_chars 
-	  withName:@"Concrete String content_chars"];
+  [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_count
+		       withName:@"Concrete String count"];
+  [aCoder encodeArrayOfObjCType:@encode(unsigned char)
+			  count:_count
+			     at:_contents_chars
+		       withName:@"Concrete String content_chars"];
 }
 
 - initWithCoder: aCoder
 {
-  [aCoder decodeValueOfObjCType:@encode(char*) at:&_contents_chars
-	  withName:NULL];
-  _count = strlen(_contents_chars);
-  _free_contents = YES;
-  return self;
+#if 0
+    [aCoder decodeValueOfObjCType:@encode(char*) at:&_contents_chars
+          withName:NULL];
+    _count = strlen(_contents_chars);
+    _zone = NSZoneFromPointer(_contents_chars);
+#else
+    [aCoder decodeValueOfObjCType:@encode(unsigned)
+			       at:&_count
+			 withName:NULL];
+    if (_count > 0) {
+	_zone = fastZone(self);
+	_contents_chars = NSZoneMalloc(_zone, _count);
+	[aCoder decodeArrayOfObjCType:@encode(unsigned char)
+				count:_count
+				   at:_contents_chars
+			     withName:NULL];
+    }
+#endif
+    return self;
 }
 
 - (const char *) cString
@@ -133,11 +185,6 @@
   return r;
 }
 
-- (const char *) cStringNoCopy
-{
-  return _contents_chars;
-}
-
 - (void) getCString: (char*)buffer
 {
   memcpy(buffer, _contents_chars, _count);
@@ -145,7 +192,7 @@
 }
 
 - (void) getCString: (char*)buffer
-    maxLength: (unsigned int)maxLength
+	  maxLength: (unsigned int)maxLength
 {
   if (maxLength > _count)
     maxLength = _count;
@@ -336,7 +383,12 @@
 
 - (id) initWithString: (NSString*)string
 {
-  return [self initWithCString:[string cString]];
+    NSZone	*z = fastZone(self);
+    unsigned	length = [string cStringLength];
+    char	*buf = NSZoneMalloc(z, length+1);  // getCString appends a nul.
+
+    [string getCString: buf];
+    return [self initWithCStringNoCopy: buf length: length fromZone: z];
 }
 
 - (NSString*) descriptionForPropertyList
@@ -362,7 +414,7 @@
 		case '\f':
 		case '\\':
 		case '"' :
-		    length += 2;
+		    length += 1;
 		    break;
 
 		default:
@@ -370,14 +422,15 @@
 			needQuote = YES;
 		    }
 		    else if (isprint(val) == 0) {
-			length += 4;
+			length += 3;
 		    }
 		    break;
 	    }
 	}
 
 	if (needQuote || length != _count) {
-	    char	*buf = objc_malloc(length+3);
+	    NSZone	*z = fastZone(self);
+	    char	*buf = NSZoneMalloc(z, length+3);
 	    char	*ptr = buf;
 	    NSString	*result;
 
@@ -413,7 +466,7 @@
 	    *ptr++ = '"';
 	    *ptr = '\0';
 	    result = [[[_fastCls._NSGCString alloc] initWithCStringNoCopy: buf
-			length: length+2 freeWhenDone: YES] autorelease];
+			length: length+2 fromZone: z] autorelease];
 	    return result;
 	}
 	return self;
@@ -477,16 +530,38 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 }
 
 /* This is the designated initializer for this class */
-/* NB. capacity does not include the '\0' terminator */
 - initWithCapacity: (unsigned)capacity
 {
   [super init];
   _count = 0;
   _capacity = MAX(capacity, 3);
-  OBJC_MALLOC(_contents_chars, char, _capacity+1);
-  _contents_chars[0] = '\0';
-  _free_contents = YES;
+  _zone = fastZone(self);
+  _contents_chars = NSZoneMalloc(_zone, _capacity);
   return self;
+}
+
+- (id) initWithCharactersNoCopy: (unichar*)chars
+			 length: (unsigned int)length
+		       fromZone: (NSZone*)zone
+{
+    NSZone	*z = zone ? zone : fastZone(self);
+    id a = [[NSGMutableString allocWithZone: z] initWithCharactersNoCopy: chars
+							   length: length
+						         fromZone: z];
+    [self release];
+    return a;
+}
+
+- (id) initWithCharactersNoCopy: (unichar*)chars
+   length: (unsigned int)length
+   freeWhenDone: (BOOL)flag
+{
+    NSZone	*z = fastZone(self);
+    id a = [[NSGMutableString allocWithZone: z] initWithCharactersNoCopy: chars
+							   length: length
+						     freeWhenDone: flag];
+    [self release];
+    return a;
 }
 
 - (void) deleteCharactersInRange: (NSRange)range
@@ -506,72 +581,71 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 - (void) insertString: (NSString*)aString atIndex:(unsigned)index
 {
   unsigned c = [aString cStringLength];
-  if (_count + c > _capacity)
+  char	save;
+  if (_count + c >= _capacity)
     {
-      _capacity = MAX(_capacity*2, _count+c);
-      OBJC_REALLOC(_contents_chars, char, _capacity+1);
+      _capacity = MAX(_capacity*2, _count+c+1);
+      NSZoneRealloc(_zone, _contents_chars, _capacity);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, c);
+  save = _contents_chars[index+c];	// getCString will put a nul here.
   [aString getCString: _contents_chars + index];
-  _contents_chars[_count] = '\0';
+  _contents_chars[index+c] = save;
 }
 
 - (void) appendString: (NSString*)aString
 {
-  unsigned c = [aString cStringLength];
-  if (_count + c > _capacity)
+  Class	c;
+
+  if (aString == nil || (c = fastClassOfInstance(aString)) == nil)
+    return;
+  if (c == _fastCls._NSGCString || c == _fastCls._NSGMutableCString)
     {
-      _capacity = MAX(_capacity*2, _count+c);
-      OBJC_REALLOC(_contents_chars, char, _capacity+1);
+      NSGMutableCString	*other = (NSGMutableCString*)aString;
+      unsigned		l = other->_count;
+
+      if (_count + l > _capacity)
+        {
+          _capacity = MAX(_capacity*2, _count+l);
+          _contents_chars =
+		    NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
+        }
+      memcpy(_contents_chars + _count, other->_contents_chars, l);
+      _count += l;
+      _hash = 0;
     }
-  [aString getCString: _contents_chars + _count];
-  _count += c;
-  _contents_chars[_count] = '\0';
-  _hash = 0;
+  else
+    {
+      unsigned l = [aString cStringLength];
+      if (_count + l >= _capacity)
+        {
+          _capacity = MAX(_capacity*2, _count+l+1);
+          _contents_chars =
+		    NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
+        }
+      [aString getCString: _contents_chars + _count];
+      _count += l;
+      _hash = 0;
+    }
 }
 
 - (void) setString: (NSString*)aString
 {
   unsigned length = [aString cStringLength];
-  if (_capacity < length)
+  if (_capacity <= length)
     {
-      _capacity = length;
-      OBJC_REALLOC(_contents_chars, char, _capacity+1);
+      _capacity = length+1;
+      _contents_chars =
+		NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
     }
   [aString getCString: _contents_chars];
-  _contents_chars[length] = '\0';
   _count = length;
   _hash = 0;
 }
 
-/* Override NSString's designated initializer for CStrings. */
-- (id) initWithCStringNoCopy: (char*)byteString
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag
-{
-  [super init];
-  _count = length;
-  _capacity = length;
-  _contents_chars = byteString;
-  _free_contents = flag;
-  return self;
-}
-
-/* Override NSString's designated initializer for Unicode Strings. */
-- (id) initWithCharactersNoCopy: (unichar*)chars
-   length: (unsigned int)length
-   freeWhenDone: (BOOL)flag
-{
-  id a = [[NSGMutableString alloc] initWithCharactersNoCopy: chars
-   length: length
-   freeWhenDone: flag];
-  [self release];
-  return a;
-}
-
 - (id) init
 {
-  return [self initWithCString:""];
+  return [self initWithCStringNoCopy: 0 length: 0 fromZone: 0];
 };
 
 /* For IndexedCollecting Protocol and other GNU libobjects conformity. */
@@ -584,25 +658,17 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 				    range.location, range.length);
 }
 
-- (void) encodeWithCoder: aCoder
-{
-  [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_capacity
-	  withName:@"String capacity"];
-  [aCoder encodeValueOfObjCType:@encode(char*) at:&_contents_chars 
-	  withName:@"String content_chars"];
-}
-
 - initWithCoder: aCoder
 {
   unsigned cap;
   
   [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap withName:NULL];
   [self initWithCapacity:cap];
-  [aCoder decodeValueOfObjCType:@encode(char*) at:&_contents_chars
-	  withName:NULL];
-  _count = strlen(_contents_chars);
-  _capacity = cap;
-  _free_contents = YES;
+  _count = cap;
+  [aCoder decodeArrayOfObjCType:@encode(unsigned char)
+			  count:_count
+			     at:_contents_chars
+		       withName:NULL];
   return self;
 }
 
@@ -624,18 +690,16 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
   if (_count >= _capacity)
     {
       _capacity *= 2;
-      OBJC_REALLOC(_contents_chars, char, _capacity+1);
+      NSZoneRealloc(fastZone(self), _contents_chars, _capacity);
     }
   stringIncrementCountAndMakeHoleAt((NSGMutableCStringStruct*)self, index, 1);
   _contents_chars[index] = [newObject charValue];
-  _contents_chars[_count] = '\0';
 }
 
 - (void) removeObjectAtIndex: (unsigned)index
 {
   CHECK_INDEX_RANGE_ERROR(index, _count);
   stringDecrementCountAndFillHoleAt((NSGMutableCStringStruct*)self, index, 1);
-  _contents_chars[_count] = '\0';
 }
 
 @end

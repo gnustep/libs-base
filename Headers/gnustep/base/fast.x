@@ -158,3 +158,15 @@ fastInstanceIsKindOfClass(NSObject *obj, Class c)
     return fastClassIsKindOfClass(ic, c);
 }
 
+
+/*
+ *	fastZone(NSObject *obj)
+ *	This function gets the zone that would be returned by the
+ *	[NSObject -zone] instance method.  Using this could mess you up in
+ *	the unlikely event that you had an object that had overridden the
+ *	'-zone' method.
+ *	This function DOES know about NXConstantString, so it's pretty safe
+ *	for normal use.
+ */
+extern NSZone	*fastZone(NSObject* obj);
+
