@@ -1,3 +1,13 @@
+Tue Dec 15 13:25:10 1998  Adam Fedor  <fedor@doc.com>
+
+	* src/NSUser.m (NSFullUserName): New function (not implemented).
+	(NSStandardApplicationPaths): Likewise.
+	(NSStandardLibraryPaths): Likewise.
+	(NSTemporaryDirectory): New function (implemented).
+	(NSOpenStepRootDirectory): Likewise.
+	* src/include/NSPathUtilities.h: Defined new functions.
+	* src/include/NSUserDefaults.h: Removed duplicate definitions.
+
 Mon Dec 14  6:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/GNUmakefile: Put mframe.h in a machine/os specific directory.

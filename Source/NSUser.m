@@ -26,6 +26,11 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSPathUtilities.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSDictionary.h>
+#include <Foundation/NSFileManager.h>
+#include <Foundation/NSValue.h>
+
 #include <stdlib.h>		// for getenv()
 #if !defined(__WIN32__) && !defined(_WIN32)
 #include <unistd.h>		// for getlogin()
@@ -110,3 +115,60 @@ NSHomeDirectoryForUser (NSString *login_name)
     }
 #endif
 }
+
+NSString *NSFullUserName(void)
+{
+  NSLog(@"Warning: NSFullUserName not implemented\n");
+  return NSUserName();
+}
+
+NSArray *NSStandardApplicationPaths(void)
+{
+  NSLog(@"Warning: NSStandardApplicationPaths not implemented\n");
+  return [NSArray array];
+}
+
+NSArray *NSStandardLibraryPaths(void)
+{
+  NSLog(@"Warning: NSStandardLibraryPaths not implemented\n");
+  return [NSArray array];
+}
+
+NSString *NSTemporaryDirectory(void)
+{
+  NSFileManager *manager;
+  NSString *tempDirName, *baseTempDirName;
+#ifdef WIN32
+  char buffer[1024];
+  if (GetTempPath(1024, buffer))
+    baseTempDirName = [NSString stringWithCString: buffer];
+  else 
+    baseTempDirName = @"C:\\";
+#else
+  baseTempDirName = @"/tmp";
+#endif
+
+  tempDirName = [baseTempDirName stringByAppendingPathComponent: NSUserName()];
+  manager = [NSFileManager defaultManager];
+  if ([manager fileExistsAtPath: tempDirName] == NO)
+    {
+      NSDictionary *attr;
+      attr = [NSDictionary dictionaryWithObject: [NSNumber numberWithInt: 0700]
+			   forKey: NSFilePosixPermissions];
+      if ([manager createDirectoryAtPath: tempDirName attributes: attr] == NO)
+	tempDirName = baseTempDirName;
+    }
+
+  return tempDirName;
+}
+
+NSString *NSOpenStepRootDirectory(void)
+{
+#ifdef WIN32
+  return @"C:\\";
+#else
+  return @"/";
+#endif
+}
+
+

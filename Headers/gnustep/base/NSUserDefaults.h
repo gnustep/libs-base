@@ -74,12 +74,6 @@ extern NSString* const NSPriorDayDesignations;
 extern NSString* const NSDateTimeOrdering;
 #endif
 
-/* Get Information about a User */
-extern NSString *NSUserName(void);
-extern NSString *NSHomeDirectory(void);
-extern NSString *NSHomeDirectoryForUser(NSString * userName);
-
-
 /* General implementation notes: 
 
    OpenStep spec currently is either complete nor consitent. Therefor
