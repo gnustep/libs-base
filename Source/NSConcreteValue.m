@@ -113,9 +113,36 @@
     memcpy( value, data, objc_sizeof_type([objctype cString]) );
 }
 
--(BOOL) isEqualToValue: (NSValue*)aValue
+- (unsigned) hash
 {
+  const char*	type = [objctype cString];
+  unsigned	size = objc_sizeof_type(type);
+  unsigned	hash = 0;
+
+  while (size-- > 0)
+    hash += ((unsigned char*)data)[size];
+  return hash;
+}
+
+- (BOOL) isEqualToValue: (NSValue*)aValue
+{
+  const char*	type;
+
+  if ([aValue class] != [self class])
     return NO;
+  type = [objctype cString];
+  if (strcmp(type, [aValue objCType]) != 0)
+    return NO;
+  else
+    {
+      unsigned	size = objc_sizeof_type(type);
+      char	buf[size];
+
+      [aValue getValue: buf];
+      if (memcmp(buf, data, size) != 0)
+	return NO;
+      return YES;
+    }
 }
 
 - (const char *)objCType
