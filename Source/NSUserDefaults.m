@@ -121,7 +121,7 @@ static NSMutableString   *processName = nil;
 	
   [sharedDefaults __createStandardSearchList];
 	
-  return nil;
+  return sharedDefaults;
 }
 
 
