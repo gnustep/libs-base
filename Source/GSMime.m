@@ -650,6 +650,7 @@ parseCharacterSet(NSString *token)
     {
       unsigned	int	bLength = [boundary length];
       unsigned char	*bBytes = (unsigned char*)[boundary bytes];
+      unsigned char	bInit = bBytes[0];
       BOOL		done = NO;
 
       while (done == NO)
@@ -657,9 +658,10 @@ parseCharacterSet(NSString *token)
 	  /*
 	   * Search our data for the next boundary.
 	   */
-	  while (dataEnd - lineStart < bLength)
+	  while (dataEnd - lineStart >= bLength)
 	    {
-	      if (memcmp(&bytes[lineStart], bBytes, bLength) == 0)
+	      if (bytes[lineStart] == bInit
+		&& memcmp(&bytes[lineStart], bBytes, bLength) == 0)
 		{
 		  if (lineStart == 0 || bytes[lineStart-1] == '\r'
 		    || bytes[lineStart-1] == '\n')
@@ -686,12 +688,20 @@ parseCharacterSet(NSString *token)
 	    }
 	  else
 	    {
-	      NSData		*d;
+	      NSData	*d;
+	      BOOL	endedFinalPart = NO;
 
 	      /*
 	       * Found boundary at the end of a section.
-	       * Skip past line terminator for boundary at start of section.
+	       * Skip past line terminator for boundary at start of section
+	       * or past marker for end of multipart document.
 	       */
+	      if (bytes[sectionStart] == '-' && sectionStart < dataEnd
+		&& bytes[sectionStart+1] == '-')
+		{
+		  sectionStart += 2;
+		  endedFinalPart = YES;
+		}
 	      if (bytes[sectionStart] == '\r')
 		sectionStart++;
 	      if (bytes[sectionStart] == '\n')
@@ -738,6 +748,7 @@ parseCharacterSet(NSString *token)
 	      lineStart += bLength;
 	      sectionStart = lineStart;
 	      memcpy(bytes, &bytes[sectionStart], dataEnd - sectionStart);
+	      dataEnd -= sectionStart;
 	      [data setLength: dataEnd];
 	      bytes = (unsigned char*)[data mutableBytes];
 	      lineStart -= sectionStart;
@@ -1411,15 +1422,6 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   return YES;
 }
 
-- (NSString*) scanDate: (NSScanner*)scanner
-{
-  int	day;
-
-  if ([scanner scanString: @"Mon," intoString: 0] == YES)
-    {
-    }
-}
-
 - (NSString*) scanSpecial: (NSScanner*)scanner
 {
   NSCharacterSet	*skip;
@@ -1583,10 +1585,8 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   NSScanner	*scanner = [NSScanner scannerWithString: aHeader];
   NSString	*name;
   NSString	*value;
-  NSString	*token;
   NSMutableDictionary	*info;
   NSCharacterSet	*skip;
-  unsigned	scanLocation;
   unsigned	count;
 
   info = [NSMutableDictionary dictionary];
@@ -1624,19 +1624,10 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
   RELEASE(skip);
 
   /*
-   * Set remainder of header as a default value.
+   * Set remainder of header as a base value.
    */
-  scanLocation = [scanner scanLocation];
-  [info setObject: [[scanner string] substringFromIndex: scanLocation]
+  [info setObject: [[scanner string] substringFromIndex: [scanner scanLocation]]
 	   forKey: @"BaseValue"];
-  value = [self scanToken: scanner];
-  while ((token = [self scanToken: scanner]) != nil)
-    {
-      value = [value stringByAppendingFormat: @" %@", token];
-    }
-  [scanner setScanLocation: scanLocation];
-  value = [value lowercaseString];
-  [info setObject: value forKey: @"Value"];
 
   /*
    * Break header fields out into info dictionary.
@@ -1736,8 +1727,8 @@ int unmimeline(mstate* ptr, unsigned char *buf, int *len)
 	  supported = YES;
 	  if (tmp != nil)
 	    {
-	      unsigned int	l = [tmp cStringLength] + 3;
-	      unsigned char	*b = NSZoneMalloc(NSDefaultMallocZone(), l);
+	      unsigned int	l = [tmp cStringLength] + 2;
+	      unsigned char	*b = NSZoneMalloc(NSDefaultMallocZone(), l + 1);
 
 	      b[0] = '-';
 	      b[1] = '-';
