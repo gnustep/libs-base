@@ -211,6 +211,12 @@ handle_printf_atsign (FILE *stream,
 	  autorelease];
 }
 
++ (NSString*) stringWithContentsOfFile:(NSString *)path
+{
+  return [[[self alloc]
+	      initWithContentsOfFile: path] autorelease];
+}
+
 + (NSString*) stringWithCharacters: (const unichar*)chars
    length: (unsigned int)length
 {
@@ -502,9 +508,8 @@ handle_printf_atsign (FILE *stream,
   NSRange search;
   NSRange found;
   NSMutableArray *array = [NSMutableArray array];
-  int myLength = [self length];
 
-  search = NSMakeRange (0, myLength);
+  search = NSMakeRange (0, [self length]);
   found = [self rangeOfString: separator];
   while (found.length)
     {
@@ -512,12 +517,14 @@ handle_printf_atsign (FILE *stream,
       current = NSMakeRange (search.location,
 			     found.location - search.location);
       [array addObject: [self substringFromRange: current]];
-      search = NSMakeRange (found.location + found.length,
-			    myLength - (found.location + found.length));
+      search = NSMakeRange (found.location + 1,
+			    search.length - found.location - 1);
       found = [self rangeOfString: separator 
 		    options: 0
 		    range: search];
     }
+  // Add the last search string range
+  [array addObject: [self substringFromRange: search]];
 
   // FIXME: Need to make mutable array into non-mutable array?
   return array;
@@ -838,6 +845,8 @@ handle_printf_atsign (FILE *stream,
 
 - (NSString*) description
 {
+  return self;
+#if 0
   const char *src = [self cString];
   char *dest;
   char *src_ptr,*dest_ptr;
@@ -909,6 +918,7 @@ handle_printf_atsign (FILE *stream,
   ret = [NSString stringWithCString:dest];
   objc_free (dest);
   return ret;
+#endif
 }
 
 - (BOOL) writeToFile: (NSString*)filename
@@ -1475,7 +1485,10 @@ handle_printf_atsign (FILE *stream,
 /* Inefficient. */
 - (void) appendString: (NSString*)aString
 {
-  id tmp = [self stringByAppendingString:aString];
+  id tmp;
+  if (!aString)
+    return;
+  tmp = [self stringByAppendingString:aString];
   [self setString:tmp];
 }
 

@@ -94,7 +94,7 @@
 /* 
    Comes from Dictionary.m 
    - initWithObjects: (id*)objects
-	  forKeys: (NSString**)keys
+	  forKeys: (NSObject**)keys
 	    count: (unsigned)count
    - (unsigned) count 
    - (NSEnumerator*) keyEnumerator
@@ -116,12 +116,12 @@
    - initWithCapacity: (unsigned)numItems
    */
 
-- (void) setObject:anObject forKey:(NSString *)aKey
+- (void) setObject:anObject forKey:(NSObject *)aKey
 {
   [self putObject: anObject atKey: aKey];
 }
 
-- (void) removeObjectForKey:(NSString *)aKey
+- (void) removeObjectForKey:(NSObject *)aKey
 {
   [self removeObjectAtKey: aKey];
 }

@@ -27,6 +27,7 @@
 #include <objc/objc.h>
 #include <objc/Protocol.h>
 #include <Foundation/NSZone.h>
+#include <gnustep/base/fake-main.h>
 
 @class NSArchiver;
 @class NSCoder;

@@ -64,15 +64,15 @@ all: src
 src doc checks examples: FORCE
 	cd $@; $(MAKE) $(MAKEDEFINES)
 
-install uninstall TAGS:
+install uninstall TAGS: FORCE
 	for i in $(SUBDIRS); do \
 	  (cd $$i; $(MAKE) $(MAKEDEFINES) $@); \
 	done
 
-info dvi:
+info dvi: FORCE
 	cd doc; $(MAKE) $(MAKEDEFINES) $@
 
-check: 
+check: FORCE
 	cd checks; $(MAKE) $(MAKEDEFINES)
 
 Makefile: Makefile.in config.status

@@ -10,7 +10,7 @@
 long lrand48();
 #define random lrand48
 #else
-#if WIN32
+#if _WIN32 || __WIN32__
 #define random rand
 #else
 long random();

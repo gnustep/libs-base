@@ -73,7 +73,7 @@ static Class NSMutableDictionary_concrete_class;
 }
 
 + dictionaryWithObjects: (id*)objects 
-		forKeys: (NSString**)keys
+		forKeys: (NSObject**)keys
 		  count: (unsigned)count
 {
   return [[[self alloc] initWithObjects:objects
@@ -151,7 +151,7 @@ static Class NSMutableDictionary_concrete_class;
 
 /* This is the designated initializer */
 - initWithObjects: (id*)objects
-	  forKeys: (NSString**)keys
+	  forKeys: (NSObject**)keys
 	    count: (unsigned)count
 {
   [self subclassResponsibility:_cmd];
@@ -205,7 +205,7 @@ static Class NSMutableDictionary_concrete_class;
   return 0;
 }
 
-- objectForKey: (NSString*)aKey
+- objectForKey: (NSObject*)aKey
 {
   [self subclassResponsibility:_cmd];
   return 0;
@@ -326,7 +326,7 @@ static Class NSMutableDictionary_concrete_class;
   /* a deep copy */
   int count = [self count];
   id objects[count];
-  NSString *keys[count];
+  NSObject *keys[count];
   id enumerator = [self keyEnumerator];
   id key;
   int i;
@@ -373,7 +373,7 @@ static Class NSMutableDictionary_concrete_class;
 
 /* Override superclass's designated initializer */
 - initWithObjects: (id*)objects
-	  forKeys: (NSString**)keys
+	  forKeys: (NSObject**)keys
 	    count: (unsigned)count
 {
   [self initWithCapacity:count];
@@ -382,12 +382,12 @@ static Class NSMutableDictionary_concrete_class;
   return self;
 }
 
-- (void) setObject:anObject forKey:(NSString *)aKey
+- (void) setObject:anObject forKey:(NSObject *)aKey
 {
   [self subclassResponsibility:_cmd];
 }
 
-- (void) removeObjectForKey:(NSString *)aKey
+- (void) removeObjectForKey:(NSObject *)aKey
 {
   [self subclassResponsibility:_cmd];
 }

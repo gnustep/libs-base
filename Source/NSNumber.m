@@ -120,7 +120,7 @@
 
 + (NSNumber *)numberWithLong:(long)value
 {
-    return [[[NSNumber alloc] initValue:&value withObjCType:NULL] autorelease];
+    return [[[NSLongNumber alloc] initValue:&value withObjCType:NULL] autorelease];
 }
 
 + (NSNumber *)numberWithLongLong:(long long)value

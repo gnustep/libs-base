@@ -110,7 +110,7 @@ static NSMapTable *port_number_2_in_port = NULL;
   p = [[self alloc] init];
 
   /* Make a new socket for the port object */
-  if ((p->_socket = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
+  if ((p->_port_socket = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
     {
       perror("[UdpInPort +newForReceivingFromPortNumber:] socket()");
       abort ();
@@ -141,7 +141,7 @@ static NSMapTable *port_number_2_in_port = NULL;
     p->_address.sin_port = htons (n);
     /* N may be zero, in which case bind() will choose a port number
        for us. */
-    if (bind (p->_socket,
+    if (bind (p->_port_socket,
 	      (struct sockaddr*) &(p->_address),
 	      sizeof (p->_address)) 
 	< 0)
@@ -157,7 +157,7 @@ static NSMapTable *port_number_2_in_port = NULL;
     /* xxx Perhaps I should do this unconditionally? */
     {
       int size = sizeof (p->_address);
-      if (getsockname (p->_socket,
+      if (getsockname (p->_port_socket,
 		       (struct sockaddr*)&(p->_address),
 		       &size)
 	  < 0)
@@ -174,7 +174,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 
   if (udp_port_debug)
     fprintf(stderr, "created new UdpInPort 0x%x, fd=%d port_number=%d\n",
-	   (unsigned)p, p->_socket, htons(p->_address.sin_port));
+	   (unsigned)p, p->_port_socket, htons(p->_address.sin_port));
 
   return p;
 }
@@ -218,8 +218,8 @@ static NSMapTable *port_number_2_in_port = NULL;
       timeout.tv_sec = milliseconds / 1000;
       timeout.tv_usec = (milliseconds % 1000) * 1000;
       FD_ZERO(&ready);
-      FD_SET(_socket, &ready);
-      if ((r = select(_socket + 1, &ready, 0, 0, &timeout)) < 0)
+      FD_SET(_port_socket, &ready);
+      if ((r = select(_port_socket + 1, &ready, 0, 0, &timeout)) < 0)
 	{
 	  perror("select");
 	  abort ();
@@ -227,7 +227,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 
       if (r == 0)		/* timeout */
 	return nil;
-      if (!FD_ISSET(_socket, &ready))
+      if (!FD_ISSET(_port_socket, &ready))
 	[self error:"select lied"];
     }
 
@@ -238,7 +238,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 
   /* Fill it with the UDP packet data. */
   remote_len = sizeof(remote_addr);
-  if (recvfrom (_socket, [packet streamBuffer], MAX_PACKET_SIZE, 0,
+  if (recvfrom (_port_socket, [packet streamBuffer], MAX_PACKET_SIZE, 0,
 		(struct sockaddr*)&remote_addr, &remote_len)
       < 0)
     {
@@ -258,7 +258,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 {
   if (is_valid)
     {
-      close (_socket);
+      close (_port_socket);
       [super invalidate];
     }
 }
@@ -271,7 +271,7 @@ static NSMapTable *port_number_2_in_port = NULL;
 
 - (int) socket
 {
-  return _socket;
+  return _port_socket;
 }
 
 - (int) portNumber

@@ -39,7 +39,7 @@
 
 @interface TcpInPort : InPort
 {
-  int _socket;
+  int _port_socket;
   struct sockaddr_in _listening_address;
   NSMapTable *_client_sock_2_out_port;
   NSMapTable *_client_sock_2_packet;
@@ -61,13 +61,13 @@
 
 @interface TcpOutPort : OutPort
 {
-  int _socket;
+  int _port_socket;
   /* This is actually the address of the listen()'ing socket of the remote
-     TcpInPort we are connected to, not the address of the _socket ivar. */
+     TcpInPort we are connected to, not the address of the _port_socket ivar. */
   struct sockaddr_in _remote_in_port_address;
   /* This is the address of our remote peer socket. */
   struct sockaddr_in _peer_address;
-  /* The TcpInPort that is polling our _socket with select(). */
+  /* The TcpInPort that is polling our _port_socket with select(). */
   id _polling_in_port;
 }
 

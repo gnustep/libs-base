@@ -30,6 +30,11 @@ AC_INIT(src/Collection.m)
 AC_CONFIG_HEADER(src/include/config.h)
 
 #--------------------------------------------------------------------
+# Determine the host, build, and target systems
+#--------------------------------------------------------------------
+AC_CANONICAL_SYSTEM
+
+#--------------------------------------------------------------------
 # Find the compiler
 #--------------------------------------------------------------------
 AC_PROG_CC
@@ -296,6 +301,30 @@ else
   CFLAGS_SHAREDLIB='$(CFLAGS_SHAREDLIB_GNU)'
 fi
 AC_SUBST(CFLAGS_SHAREDLIB)
+
+#--------------------------------------------------------------------
+# Custom configuration based upon the target
+#--------------------------------------------------------------------
+
+# On some platforms, ld doesn't link in the complete library which
+# can cause problems with the dynamic nature of ObjC.  Programs call
+# methods for classes which don't exist in the executable!!
+# The variables turn on/off the behaviour of ld to include the
+# whole archive.
+# Note that executable sizes will be larger.
+# Note that these variables are passed to GCC not ld directly
+whole_archive=''
+no_whole_archive=''
+
+case "${target}" in
+  i[[345]]86-*-cygwin32)
+        whole_archive='-Wl,--whole-archive'
+	no_whole_archive='-Wl,--no-whole-archive'
+	;;
+esac
+
+AC_SUBST(whole_archive)
+AC_SUBST(no_whole_archive)
 
 #--------------------------------------------------------------------
 # Write the Makefiles

@@ -34,7 +34,7 @@
 
 @interface UdpInPort : InPort
 {
-  int _socket;
+  int _port_socket;
   struct sockaddr_in _address;
 }
 

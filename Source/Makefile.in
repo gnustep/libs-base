@@ -31,8 +31,9 @@ VPATH = @srcdir@
 # Installation locations
 prefix = @prefix@
 exec_prefix = @exec_prefix@
-libdir = $(exec_prefix)/lib
-includedir = $(prefix)/include
+libdir = @libdir@
+gnustep_libdir = $(libdir)/gnustep
+includedir = @includedir@
 
 CC = @CC@ -pipe
 RANLIB = @RANLIB@
@@ -51,7 +52,8 @@ YACC = bison
 
 # GNUSTEP_INSTALL_PREFIX must be defined here and not in config.h because
 # the installing person may set it on the `make' command line.
-DEFS= -DGNUSTEP_INSTALL_PREFIX=$(prefix) -DPLATFORM_OS=\"@PLATFORM_OS@\" @DEFS@
+DEFS= -DGNUSTEP_INSTALL_PREFIX=$(prefix) -DPLATFORM_OS=\"@PLATFORM_OS@\" \
+	-DGNUSTEP_INSTALL_LIBDIR=$(gnustep_libdir) @DEFS@
 
 # File name extensions
 OEXT = .o
@@ -367,6 +369,7 @@ NSDeallocateObject.m \
 NSDictionary.m \
 NSEnumerator.m \
 NSException.m \
+NSFileManager.m \
 NSGeometry.m \
 NSGArchiver.m \
 NSGArray.m \
@@ -443,6 +446,7 @@ include/NSData.h \
 include/NSDate.h \
 include/NSDictionary.h \
 include/NSException.h \
+include/NSFileManager.h \
 include/NSGeometry.h \
 include/NSGArchiver.h \
 include/NSGArray.h \
@@ -509,9 +513,9 @@ lib$(LIBRARY_NAME).so.$(VERSION): $(HEADERS_INSTALL) $(OBJS_INSTALL_PIC)
 		$(OBJS_INSTALL_PIC)
 	rm -f lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) 
 	rm -f lib$(LIBRARY_NAME).so
-	ln -s lib$(LIBRARY_NAME).so.$(VERSION) \
+	$(LN_S) lib$(LIBRARY_NAME).so.$(VERSION) \
 		lib$(LIBRARY_NAME).so.$(MAJOR_VERSION)
-	ln -s lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
+	$(LN_S) lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
 		lib$(LIBRARY_NAME).so
 
 lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL) 
@@ -519,24 +523,24 @@ lib$(LIBRARY_NAME)$(LIBEXT): $(HEADERS_INSTALL) $(OBJS_INSTALL)
 	$(RANLIB) lib$(LIBRARY_NAME)$(LIBEXT)
 
 # Local links to the include files
-gnustep/base:
-	rm -f gnustep base
-	ln -s . gnustep
-	ln -s ./include base
+gnustep/base: $(HEADERS_INSTALL)
+	rm -rf gnustep
+	mkdir gnustep
+	cd gnustep ; $(LN_S) ../include base
 	# Make necessary links to source headers if compiling in seperate dir
 	# These are separate directories because one contains the .h files
 	# generated during the build; the other contains the unchanged sources.
 	if [ ! -r ./include/Collection.h ]; then \
 	  mkdir srcdir-include; \
 	  mkdir srcdir-include/gnustep; \
-	  (cd srcdir-include/gnustep; ln -s ../../$(srcdir)/include ./base) ; \
-	  (cd srcdir-include; ln -s ../$(srcdir)/include ./Foundation) ; \
+	  (cd srcdir-include/gnustep; $(LN_S) ../../$(srcdir)/include ./base) ; \
+	  (cd srcdir-include; $(LN_S) ../$(srcdir)/include ./Foundation) ; \
 	fi
 # This deletion is necessary, because the CVS repository contains
 # an emtpy `Foundation' directory that used to hold the OpenStep headers.
-Foundation: ../configure
+Foundation: ../configure $(HEADERS_INSTALL)
 	rm -rf Foundation
-	ln -s $(srcdir)/include Foundation
+	$(LN_S) $(srcdir)/include Foundation
 
 install: installdirs all
 	# Install the library
@@ -546,9 +550,9 @@ install: installdirs all
 	  $(INSTALL_DATA) lib$(LIBRARY_NAME).so.$(VERSION) $(libdir) ; \
 	  rm -f $(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
 	  rm -f $(libdir)/lib$(LIBRARY_NAME).so ; \
-	  ln -s $(libdir)/lib$(LIBRARY_NAME).so.$(VERSION) \
+	  $(LN_S) $(libdir)/lib$(LIBRARY_NAME).so.$(VERSION) \
 		$(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) ; \
-	  ln -s $(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
+	  $(LN_S) $(libdir)/lib$(LIBRARY_NAME).so.$(MAJOR_VERSION) \
 		$(libdir)/lib$(LIBRARY_NAME).so ; \
 	fi
 	# Install the headers
@@ -556,19 +560,25 @@ install: installdirs all
 	  $(INSTALL_DATA) $(srcdir)/$$file \
 	    $(includedir)/gnustep/base/`basename $$file` ; \
 	done
-	cd $(includedir); rm -f Foundation; ln -s ./gnustep/base ./Foundation
-	cd $(includedir); rm -f objc; ln -s ./gnustep/base ./objc
-	cd $(includedir)/objc; rm -f README; ln -s ../include/README .
+	cd $(includedir); rm -rf Foundation; $(LN_S) ./gnustep/base ./Foundation
+	for file in $(NEXTSTEP_HEADERS); do \
+	  $(INSTALL_DATA) $(srcdir)/$$file \
+	    $(includedir)/objc/`basename $$file` ; \
+	done
 
 installdirs:
 	$(srcdir)/../mkinstalldirs \
 		$(libdir) \
-		$(includedir)/gnustep/base
+		$(includedir)/gnustep/base \
+		$(includedir)/objc
 
 uninstall:
 	rm -f $(libdir)/lib$(LIBRARY_NAME)$(LIBEXT)
 	rm -rf $(includedir)/gnustep/base
-	rm -f $(includedir)/Foundation
+	rm -rf $(includedir)/Foundation
+	for file in $(NEXTSTEP_HEADERS); do \
+	    rm -rf $(includedir)/objc/`basename $$file` ; \
+	done
 
 # Creation of NSValue and NSNumber concrete classes from templates
 $(NSVALUE_MFILES) : NSCTemplateValue.m
