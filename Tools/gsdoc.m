@@ -150,7 +150,15 @@ loader(const char *url, const char *eid, xmlParserCtxtPtr *ctxt)
   extern xmlParserInputPtr xmlNewInputFromFile();
   xmlParserInputPtr	ret = 0;
 
-  if (strncmp(eid, "-//GNUstep//DTD ", 16) == 0)
+  if (url == 0)
+    {
+      url = "";
+    }
+  if (eid == 0)
+    {
+      ret = xmlNewInputFromFile(ctxt, url);
+    }
+  else if (strncmp(eid, "-//GNUstep//DTD ", 16) == 0)
     {
       char	buf[BUFSIZ];
       char	*ptr;

@@ -1,3 +1,8 @@
+2002-02-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gsdoc.m: loader() if entity id is missing, try to load url as
+	a file.
+
 2002-02-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile: use -WordMap flag with autogsdoc to cope with
