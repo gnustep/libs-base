@@ -49,5 +49,5 @@ include $(GNUSTEP_MAKEFILES)/ctool.make
 after-all::	NSCharacterSetData.h
 
 NSCharacterSetData.h: $(CHARSET_FILES)
-	obj/dataToHeader $(CHARSET_FILES)
+	$(GNUSTEP_OBJ_DIR_NAME)/dataToHeader $(CHARSET_FILES)
 

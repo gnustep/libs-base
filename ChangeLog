@@ -1,3 +1,9 @@
+2005-02-28 17:45 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSCharacterSets/GNUmakefile: Use GNUSTEP_OBJ_DIR_NAME to run
+	data conversion tool, since Tom Koelman points out that the 'obj'
+	subdirectory does not work on windoze due to lack of symlinks.
+
 2005-02-28 17:10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m:
