@@ -108,7 +108,7 @@
 
 - (void) decodeArrayOfType: (const char *)type
    at: (void *)d
-   count: (unsigned *)c
+   count: (unsigned)c
    withName: (const char **)name;
 
 - (void) decodeObjectAt: (id*)anObjPtr
