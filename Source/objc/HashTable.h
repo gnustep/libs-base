@@ -1,8 +1,8 @@
 /* Interface for Objective C NeXT-compatible HashTable object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
-   Date: May 1993
+   Created: May 1993
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -29,7 +29,7 @@
 #define __HashTable_h_INCLUDE_GNU
 
 #include <objc/Object.h>
-#include <gnustep/base/stdobjects.h>
+#include <gnustep/base/preface.h>
 #include <objc/hash.h>
 
 typedef node_ptr NXHashState;
