@@ -706,13 +706,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (!path || [path length] == 0) 
     {
       NSLog(@"No path specified for bundle");
+      [self dealloc];
       return nil;
     }
   if ([path isAbsolutePath] == NO)
     {
       NSLog(@"WARNING: NSBundle -initWithPath: requires absolute path names!");
       path = [[[NSFileManager defaultManager] currentDirectoryPath]
-        stringByAppendingPathComponent: path];
+	       stringByAppendingPathComponent: path];
     }
 
   /* Check if we were already initialized for this directory */
@@ -746,8 +747,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (bundle_directory_readable(path) == NO)
     {
       NSDebugMLLog(@"NSBundle", @"Could not access path %@ for bundle", path);
-      //[self dealloc];
-      //return nil;
+      [self dealloc];
+      return nil;
     }
 
   _path = [path copy];
