@@ -357,7 +357,10 @@
           <sel>replyTimeout</sel>
           <desc>
 	    Returns the timeout interval used when waiting for a reply to
-	    a request sent on the NSConnection.
+	    a request sent on the NSConnection.  This value is inherited
+	    from the parent connection or may be set using the
+	    setReplyTimeout: method.  The default value is the maximum
+	    delay (effectively infinite).
           </desc>
         </method>
         <method type="NSArray*">
@@ -371,7 +374,10 @@
           <sel>requestTimeout</sel>
           <desc>
 	    Returns the timeout interval used when waiting for a send
-	    operation to complete.
+	    operation to complete.  This value is inherited
+	    from the parent connection or may be set using the
+	    setRequestTimeout: method.  The default value is the maximum
+	    delay (effectively infinite).
           </desc>
         </method>
         <method type="id">
@@ -441,7 +447,7 @@
           <sel>setRequestTimeout:</sel>
           <arg type="NSTimeInterval">seconds</arg>
           <desc>
-	    Sets the time interval that the NSConnection will to send
+	    Sets the time interval that the NSConnection will wait to send
 	    one of its requests before raising an NSPortTimeoutException.
           </desc>
         </method>

@@ -399,7 +399,10 @@ Standards:  GNUstep MacOS-X NotOpenStep<br>
 - (NSTimeInterval) <b>replyTimeout</b>;<br>
 
 	    Returns the timeout interval used when waiting for a reply to
-	    a request sent on the NSConnection.
+	    a request sent on the NSConnection.  This value is inherited
+	    from the parent connection or may be set using the
+	    setReplyTimeout: method.  The default value is the maximum
+	    delay (effectively infinite).
           
  <hr>
 <h3><a name ="method-24">requestModes</a></h3>
@@ -413,7 +416,10 @@ Standards:  GNUstep MacOS-X NotOpenStep<br>
 - (NSTimeInterval) <b>requestTimeout</b>;<br>
 
 	    Returns the timeout interval used when waiting for a send
-	    operation to complete.
+	    operation to complete.  This value is inherited
+	    from the parent connection or may be set using the
+	    setRequestTimeout: method.  The default value is the maximum
+	    delay (effectively infinite).
           
  <hr>
 <h3><a name ="method-26">rootObject</a></h3>
@@ -479,7 +485,7 @@ Standards:  GNUstep MacOS-X NotOpenStep<br>
 <h3><a name ="method-33">setRequestTimeout:</a></h3>
 - (void) <b>setRequestTimeout:</b> (NSTimeInterval)seconds;<br>
 
-	    Sets the time interval that the NSConnection will to send
+	    Sets the time interval that the NSConnection will wait to send
 	    one of its requests before raising an NSPortTimeoutException.
           
  <hr>
