@@ -576,7 +576,7 @@ handle_printf_atsign (FILE *stream,
  * is released and nil is returned.
  */
 - (id) initWithBytes: (const void*)bytes
-	      length: (unsigned)length
+	      length: (unsigned int)length
 	    encoding: (NSStringEncoding)encoding
 {
   if (length == 0)
@@ -734,7 +734,7 @@ handle_printf_atsign (FILE *stream,
  * is released and nil is returned.
  */
 - (id) initWithBytesNoCopy: (const void*)bytes
-		    length: (unsigned)length
+		    length: (unsigned int)length
 		  encoding: (NSStringEncoding)encoding
 	      freeWhenDone: (BOOL)flag
 {

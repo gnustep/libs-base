@@ -1,8 +1,13 @@
 2004-03-27 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* NSMessagePort.m:
-	* NSMessagePortNameServer.m: Use base library methods for file
+	* Source/NSMessagePort.m:
+	* Source/NSMessagePortNameServer.m: Use base library methods for file
 	management rather than unix syscalls.
+	* Headers/Foundation/NSRunLoop.h:
+	* Source/NSRunLoop.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	Various minor documentation tweaks.
 
 2004-03-27 Alexander Malmberg <alexander@malmberg.org>
 

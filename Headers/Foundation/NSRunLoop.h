@@ -97,23 +97,28 @@ typedef	enum {
     ET_EDESC	/* Watch for descriptor with out-of-band data.	*/
 } RunLoopEventType;
 
+/**
+ * This protocol documents the callback messages that an object
+ * receives if it has registered to receive run loop events using
+ * [NSRunLoop-addEvent:type:watcher:forMode:]
+ */
 @protocol RunLoopEvents
-/*
- *	Callback message sent to object waiting for an event in the
- *	runloop when the limit-date for the operation is reached.
- *	If an NSDate object is returned, the operation is restarted
- *	with the new limit-date, otherwise it is removed from the
- *	run loop.
+/**
+ * Callback message sent to object waiting for an event in the
+ * runloop when the limit-date for the operation is reached.
+ * If an NSDate object is returned, the operation is restarted
+ * with the new limit-date, otherwise it is removed from the
+ * run loop.
  */
 - (NSDate*) timedOutEvent: (void*)data
 		     type: (RunLoopEventType)type
 		  forMode: (NSString*)mode;
-/*
- *	Callback message sent to object when the event it it waiting
- *	for occurs.  The 'data' and 'type' valueds are those passed in the
- *	original addEvent:type:watcher:forMode: method.
- *	The 'extra' value may be additional data returned depending
- *	on the type of event.
+/**
+ * Callback message sent to object when the event it it waiting
+ * for occurs.  The 'data' and 'type' valueds are those passed in the
+ * original addEvent:type:watcher:forMode: method.
+ * The 'extra' value may be additional data returned depending
+ * on the type of event.
  */
 - (void) receivedEvent: (void*)data
 		  type: (RunLoopEventType)type
@@ -121,22 +126,39 @@ typedef	enum {
 	       forMode: (NSString*)mode;
 @end
 
+/**
+ * These are general purpose methods for letting objects ask
+ * the runloop to watch for events for them.  Only one object
+ * at a time may be watching for a particular event in a mode, but
+ * that object may add itsself as a watcher many times as long as
+ * each addition is matched by a removal (the run loop keeps count).
+ * Alternatively, the 'removeAll' parameter may be set to 'YES' for
+ * [-removeEvent:type:forMode:all:] in order to remove the watcher
+ * irrespective of the number of times it has been added.
+ */
 @interface NSRunLoop(GNUstepExtensions)
 
-/*
- *	These are general purpose methods for letting objects ask
- *	the runloop to watch for events for them.  Only one object
- *	at a time may be watching for a particular event in a mode, but
- *	that object may add itsself as a watcher many times as long as
- *	each addition is matched by a removal (the run loop keeps count).
- *	Alternatively, the 'removeAll' parameter may be set to 'YES' for
- *	[-removeEvent:type:forMode:all:] in order to remove the watcher
- *	irrespective of the number of times it has been added.
+/**
+ * Adds a runloop watcher matching the specified data and type in this
+ * runloop.  If the mode is nil, either the -currentMode is used (if the
+ * loop is running) or NSDefaultRunLoopMode is used.<br />
+ * NB. The watcher is <em>not</em> retained by the run loop and must
+ * be removed from the loop before deallocation ... otherwise the loop
+ * might try to send a message to the deallocated watcher object
+ * resulting in a crash. You use -removeEvent:type:forMode:all: to do this.
  */
 - (void) addEvent: (void*)data
 	     type: (RunLoopEventType)type
 	  watcher: (id<RunLoopEvents>)watcher
 	  forMode: (NSString*)mode;
+
+/**
+ * Removes a runloop watcher matching the specified data and type in this
+ * runloop.  If the mode is nil, either the -currentMode is used (if the
+ * loop is running) or NSDefaultRunLoopMode is used.<br />
+ * The additional removeAll flag may be used to remove all instances of
+ * the watcher rather than just a single one.
+ */
 - (void) removeEvent: (void*)data
 	        type: (RunLoopEventType)type
 	     forMode: (NSString*)mode

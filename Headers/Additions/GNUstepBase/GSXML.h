@@ -368,10 +368,10 @@
 		             params: (NSDictionary*)params;
 			
 + (GSXMLDocument*) xsltTransformXml: (NSData*)xmlData
-                         stylesheet: (NSData*)xsltSylesheet;
+                         stylesheet: (NSData*)xsltStylesheet;
 			
 - (GSXMLDocument*) xsltTransform: (GSXMLDocument*)xsltStylesheet
-                          params: (NSDictionary*)parameters;
+                          params: (NSDictionary*)params;
 			
 - (GSXMLDocument*) xsltTransform: (GSXMLDocument*)xsltStylesheet;
 @end
