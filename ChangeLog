@@ -8,6 +8,9 @@
 	decoded as the host to which the GSTcpHandle is talking.
 	Modified in various places to keep a record of the IP address of the
 	remote end of the connection, so we can pass this to decodePort()
+	([-getFds:count:]) fixed error in determining set of file descriptors
+	to listen to - resulted in two threads listening to the same descriptor
+	at the same time!
 
 2000-11-13  Richard Frith-Macdonald <rfm@gnu.org>
 
