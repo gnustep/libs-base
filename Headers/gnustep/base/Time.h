@@ -23,8 +23,8 @@
 
 /* This is a combination of Smalltalk's Time and Date objects */
 
-#ifndef __Time_h_OBJECTS_INCLUDE
-#define __Time_h_OBJECTS_INCLUDE
+#ifndef __Time_h_GNUSTEP_BASE_INCLUDE
+#define __Time_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Magnitude.h>
@@ -99,4 +99,4 @@ struct timezone {
 
 @end
 
-#endif /* __Time_h_OBJECTS_INCLUDE */
+#endif /* __Time_h_GNUSTEP_BASE_INCLUDE */

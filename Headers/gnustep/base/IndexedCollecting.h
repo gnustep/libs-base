@@ -32,8 +32,8 @@
    may be accessed, inserted, replaced and removed by their index.  
 */
 
-#ifndef __IndexedCollecting_h_OBJECTS_INCLUDE
-#define __IndexedCollecting_h_OBJECTS_INCLUDE
+#ifndef __IndexedCollecting_h_GNUSTEP_BASE_INCLUDE
+#define __IndexedCollecting_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Collecting.h>
@@ -132,4 +132,4 @@ typedef struct _IndexRange {
 
 */
 
-#endif /* __IndexedCollecting_h_OBJECTS_INCLUDE */
+#endif /* __IndexedCollecting_h_GNUSTEP_BASE_INCLUDE */

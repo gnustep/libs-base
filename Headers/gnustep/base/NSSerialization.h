@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSSerialization_h_OBJECTS_INCLUDE
-#define __NSSerialization_h_OBJECTS_INCLUDE
+#ifndef __NSSerialization_h_GNUSTEP_BASE_INCLUDE
+#define __NSSerialization_h_GNUSTEP_BASE_INCLUDE
 
 @class NSData, NSMutableData;
 
@@ -36,4 +36,4 @@
    intoData: (NSMutableData*)data;
 @end
 
-#endif /* __NSSerialization_h_OBJECTS_INCLUDE */
+#endif /* __NSSerialization_h_GNUSTEP_BASE_INCLUDE */

@@ -32,8 +32,8 @@
 
 /**** Function Implementations ***********************************************/
 
-#ifndef __atoz_h_OBJECTS_INCLUDE
-#define __atoz_h_OBJECTS_INCLUDE 1
+#ifndef __atoz_h_GNUSTEP_BASE_INCLUDE
+#define __atoz_h_GNUSTEP_BASE_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -49,4 +49,4 @@
 o_allocs_t
 o_allocs_for_zone (NSZone * zone);
 
-#endif /* __atoz_h_OBJECTS_INCLUDE */
+#endif /* __atoz_h_GNUSTEP_BASE_INCLUDE */

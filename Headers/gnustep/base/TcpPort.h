@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __TcpPort_h__OBJECTS_INCLUDE
-#define __TcpPort_h__OBJECTS_INCLUDE
+#ifndef __TcpPort_h__GNUSTEP_BASE_INCLUDE
+#define __TcpPort_h__GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Port.h>
@@ -88,5 +88,5 @@
 extern NSString *InPortClientBecameInvalidNotification;
 extern NSString *InPortAcceptedClientNotification;
 
-#endif /* __TcpPort_h__OBJECTS_INCLUDE */
+#endif /* __TcpPort_h__GNUSTEP_BASE_INCLUDE */
 

@@ -22,8 +22,8 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
-#ifndef __data_h_OBJECTS_INCLUDE
-#define __data_h_OBJECTS_INCLUDE 1
+#ifndef __data_h_GNUSTEP_BASE_INCLUDE
+#define __data_h_GNUSTEP_BASE_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -236,4 +236,4 @@ o_data_t * _o_data_decode_with_x_uuencode (o_data_t * data);
 
 o_data_t * o_data_decode_with_encoding (o_data_t * data, o_data_encoding_t enc);
 
-#endif /* __data_h_OBJECTS_INCLUDE */
+#endif /* __data_h_GNUSTEP_BASE_INCLUDE */

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#ifndef __ValueHolding_h_INCLUDE_GNU
-#define __ValueHolding_h_INCLUDE_GNU
+#ifndef __ValueHolding_h_GNUSTEP_BASE_INCLUDE
+#define __ValueHolding_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 
@@ -47,4 +47,4 @@
 @protocol ValueHolding <ValueGetting, ValueSetting>
 @end
 
-#endif /* __ValueHolding_h_INCLUDE_GNU */
+#endif /* __ValueHolding_h_GNUSTEP_BASE_INCLUDE */

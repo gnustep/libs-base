@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef _NSSet_h_OBJECTS_INCLUDE
-#define _NSSet_h_OBJECTS_INCLUDE
+#ifndef _NSSet_h_GNUSTEP_BASE_INCLUDE
+#define _NSSet_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 

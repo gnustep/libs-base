@@ -22,8 +22,8 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
-#ifndef __callbacks_h_OBJECTS_INCLUDE
-#define __callbacks_h_OBJECTS_INCLUDE 1
+#ifndef __callbacks_h_GNUSTEP_BASE_INCLUDE
+#define __callbacks_h_GNUSTEP_BASE_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -175,5 +175,5 @@ const void *o_id_retain(id obj);
 void o_id_release(id obj);
 NSString *o_id_describe(id obj);
 
-#endif /* __callbacks_h_OBJECTS_INCLUDE */
+#endif /* __callbacks_h_GNUSTEP_BASE_INCLUDE */
 

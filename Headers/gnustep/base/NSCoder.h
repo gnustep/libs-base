@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSCoder_h_OBJECTS_INCLUDE
-#define __NSCoder_h_OBJECTS_INCLUDE
+#ifndef __NSCoder_h_GNUSTEP_BASE_INCLUDE
+#define __NSCoder_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSGeometry.h>
@@ -86,4 +86,4 @@
 
 #endif /* NO_GNUSTEP */
 
-#endif	/* __NSCoder_h_OBJECTS_INCLUDE */
+#endif	/* __NSCoder_h_GNUSTEP_BASE_INCLUDE */

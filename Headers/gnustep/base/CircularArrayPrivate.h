@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __CircularArrayPrivate_h_INCLUDE_GNU
-#define __CircularArrayPrivate_h_INCLUDE_GNU
+#ifndef __CircularArrayPrivate_h_GNUSTEP_BASE_INCLUDE
+#define __CircularArrayPrivate_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/ArrayPrivate.h>
@@ -72,4 +72,4 @@ circularFillHoleAt(CircularArray *self, unsigned basicIndex)
     }
 }
 
-#endif /* __CircularArrayPrivate_h_INCLUDE_GNU */
+#endif /* __CircularArrayPrivate_h_GNUSTEP_BASE_INCLUDE */

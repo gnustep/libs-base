@@ -25,8 +25,8 @@
    protocol, without using any instance variables.
 */
 
-#ifndef __Collection_h_INCLUDE_GNU
-#define __Collection_h_INCLUDE_GNU
+#ifndef __Collection_h_GNUSTEP_BASE_INCLUDE
+#define __Collection_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <Foundation/NSObject.h>
@@ -99,5 +99,5 @@
 
 */
 
-#endif /* __Collection_h_INCLUDE_GNU */
+#endif /* __Collection_h_GNUSTEP_BASE_INCLUDE */
 

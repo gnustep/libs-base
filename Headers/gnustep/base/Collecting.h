@@ -31,8 +31,8 @@
    the same C type.
 */
 
-#ifndef __Collecting_h_INCLUDE_GNU
-#define __Collecting_h_INCLUDE_GNU
+#ifndef __Collecting_h_GNUSTEP_BASE_INCLUDE
+#define __Collecting_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Coding.h>
@@ -128,4 +128,4 @@
 
 #define NO_OBJECT nil
 
-#endif /* __Collecting_h_INCLUDE_GNU */
+#endif /* __Collecting_h_GNUSTEP_BASE_INCLUDE */

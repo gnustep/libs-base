@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __mframe_h_OBJECTS_INCLUDE
-#define __mframe_h_OBJECTS_INCLUDE
+#ifndef __mframe_h_GNUSTEP_BASE_INCLUDE
+#define __mframe_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 
@@ -64,4 +64,4 @@ mframe_build_return (arglist_t argframe, const char *types,
 		     BOOL out_parameters,
 		     void(*decoder)(int,void*,const char*,int));
 
-#endif /* __mframe_h_OBJECTS_INCLUDE */
+#endif /* __mframe_h_GNUSTEP_BASE_INCLUDE */

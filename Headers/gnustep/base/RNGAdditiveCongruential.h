@@ -24,8 +24,8 @@
 /* Additive Congruential Method,
    from Robert Sedgewick, "Algorithms" */
 
-#ifndef __RNGAdditiveCongruential_h_INCLUDE_GNU
-#define __RNGAdditiveCongruential_h_INCLUDE_GNU
+#ifndef __RNGAdditiveCongruential_h_GNUSTEP_BASE_INCLUDE
+#define __RNGAdditiveCongruential_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/RandomGenerating.h>
@@ -41,4 +41,4 @@
 
 @end
 
-#endif /* __RNGAdditiveCongruential_h_INCLUDE_GNU */
+#endif /* __RNGAdditiveCongruential_h_GNUSTEP_BASE_INCLUDE */

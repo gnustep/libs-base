@@ -1,5 +1,5 @@
-#ifndef __RunLoop_h_OBJECTS_INCLUDE
-#define __RunLoop_h_OBJECTS_INCLUDE
+#ifndef __RunLoop_h_GNUSTEP_BASE_INCLUDE
+#define __RunLoop_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/NotificationDispatcher.h>
@@ -59,4 +59,4 @@ extern id RunLoopDefaultMode;
 - (void) getFds: (int*)fds count: (int*)count;
 @end
 
-#endif /* __RunLoop_h_OBJECTS_INCLUDE */
+#endif /* __RunLoop_h_GNUSTEP_BASE_INCLUDE */

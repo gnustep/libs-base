@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSObject_h_OBJECTS_INCLUDE
-#define __NSObject_h_OBJECTS_INCLUDE
+#ifndef __NSObject_h_GNUSTEP_BASE_INCLUDE
+#define __NSObject_h_GNUSTEP_BASE_INCLUDE
 
 #include <objc/objc.h>
 #include <objc/Protocol.h>
@@ -145,4 +145,4 @@ enum {NSNotFound = 0x7fffffff};
 - write: (TypedStream*)aStream;
 @end
 
-#endif /* __NSObject_h_OBJECTS_INCLUDE */
+#endif /* __NSObject_h_GNUSTEP_BASE_INCLUDE */

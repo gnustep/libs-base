@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __MachPort_h_INCLUDE_GNU
-#define __MachPort_h_INCLUDE_GNU
+#ifndef __MachPort_h_GNUSTEP_BASE_INCLUDE
+#define __MachPort_h_GNUSTEP_BASE_INCLUDE
 
 #if __mach__
 
@@ -37,4 +37,4 @@
 
 #endif /* __mach__ */
 
-#endif /* __MachPort_h_INCLUDE_GNU */
+#endif /* __MachPort_h_GNUSTEP_BASE_INCLUDE */

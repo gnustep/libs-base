@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __CoderPrivate_h_OBJECTS_INCLUDE
-#define __CoderPrivate_h_OBJECTS_INCLUDE
+#ifndef __CoderPrivate_h_GNUSTEP_BASE_INCLUDE
+#define __CoderPrivate_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Coder.h>
@@ -64,4 +64,4 @@ format_version
 
 #define NO_SEL_TYPES "none"
 
-#endif /* __CoderPrivate_h_OBJECTS_INCLUDE */
+#endif /* __CoderPrivate_h_GNUSTEP_BASE_INCLUDE */

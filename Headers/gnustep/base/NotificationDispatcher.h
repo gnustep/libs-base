@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __NotificationDispatcher_h_OBJECTS_INCLUDE
-#define __NotificationDispatcher_h_OBJECTS_INCLUDE
+#ifndef __NotificationDispatcher_h_GNUSTEP_BASE_INCLUDE
+#define __NotificationDispatcher_h_GNUSTEP_BASE_INCLUDE
 
 /* A class for posting notifications to observer objects that request 
    them.
@@ -215,4 +215,4 @@
 + defaultCenter;
 @end
 
-#endif /* __NotificationDispatcher_h_OBJECTS_INCLUDE */
+#endif /* __NotificationDispatcher_h_GNUSTEP_BASE_INCLUDE */

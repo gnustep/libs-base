@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-#ifndef __NSGArchiver_h_OBJECTS_INCLUDE
-#define __NSGArchiver_h_OBJECTS_INCLUDE
+#ifndef __NSGArchiver_h_GNUSTEP_BASE_INCLUDE
+#define __NSGArchiver_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <Foundation/NSArchiver.h>
@@ -40,4 +40,4 @@
 @interface NSGUnarchiver (GNU) <Decoding>
 @end
 
-#endif /* __NSGArchiver_h_OBJECTS_INCLUDE */
+#endif /* __NSGArchiver_h_GNUSTEP_BASE_INCLUDE */

@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __RandomGenerating_h_INCLUDE_GNU
-#define __RandomGenerating_h_INCLUDE_GNU
+#ifndef __RandomGenerating_h_GNUSTEP_BASE_INCLUDE
+#define __RandomGenerating_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 
@@ -33,4 +33,4 @@
 
 @end
 
-#endif /* __RandomGenerating_h_INCLUDE_GNU */
+#endif /* __RandomGenerating_h_GNUSTEP_BASE_INCLUDE */

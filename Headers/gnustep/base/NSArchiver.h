@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSArchiver_h_OBJECTS_INCLUDE
-#define __NSArchiver_h_OBJECTS_INCLUDE
+#ifndef __NSArchiver_h_GNUSTEP_BASE_INCLUDE
+#define __NSArchiver_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSCoder.h>
 
@@ -86,4 +86,4 @@ extern NSString *NSInconsistentArchiveException;
 - replacementObjectForArchiver: (NSArchiver*) archiver;
 @end
 
-#endif	/* __NSArchiver_h_OBJECTS_INCLUDE */
+#endif	/* __NSArchiver_h_GNUSTEP_BASE_INCLUDE */

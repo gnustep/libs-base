@@ -23,8 +23,8 @@
 
 /* This file is by no means complete. */
 
-#ifndef __objc_gnu2next_h_INCLUDE_GNU
-#define __objc_gnu2next_h_INCLUDE_GNU
+#ifndef __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE
+#define __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 
@@ -278,4 +278,4 @@ list_free(struct objc_list* list)
 
 #endif /* NeXT_runtime */
 
-#endif /* __objc_gnu2next_h_INCLUDE_GNU */
+#endif /* __objc_gnu2next_h_GNUSTEP_BASE_INCLUDE */

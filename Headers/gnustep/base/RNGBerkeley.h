@@ -20,8 +20,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __RNGBerkeley_h_INCLUDE_GNU
-#define __RNGBerkeley_h_INCLUDE_GNU
+#ifndef __RNGBerkeley_h_GNUSTEP_BASE_INCLUDE
+#define __RNGBerkeley_h_GNUSTEP_BASE_INCLUDE
 
 /*
  * Copyright (c) 1983 Regents of the University of California.
@@ -71,4 +71,4 @@
 
 @end
 
-#endif /* __RNGBerkeley_h_INCLUDE_GNU */
+#endif /* __RNGBerkeley_h_GNUSTEP_BASE_INCLUDE */

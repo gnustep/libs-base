@@ -22,8 +22,8 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */ 
 
-#ifndef __hash_h_OBJECTS_INCLUDE
-#define __hash_h_OBJECTS_INCLUDE 1
+#ifndef __hash_h_GNUSTEP_BASE_INCLUDE
+#define __hash_h_GNUSTEP_BASE_INCLUDE 1
 
 /**** Included Headers *******************************************************/
 
@@ -389,5 +389,5 @@ o_hash_minus_hash(o_hash_t *hash, o_hash_t *other_hash);
 o_hash_t *
 o_hash_union_hash(o_hash_t *hash, o_hash_t *other_hash);
 
-#endif /* __hash_h_OBJECTS_INCLUDE */
+#endif /* __hash_h_GNUSTEP_BASE_INCLUDE */
 

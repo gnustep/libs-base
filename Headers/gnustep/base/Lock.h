@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __Lock_h_OBJECTS_INCLUDE
-#define __Lock_h_OBJECTS_INCLUDE
+#ifndef __Lock_h_GNUSTEP_BASE_INCLUDE
+#define __Lock_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Locking.h>
@@ -32,4 +32,4 @@
 }
 @end
 
-#endif /* __Lock_h_OBJECTS_INCLUDE */
+#endif /* __Lock_h_GNUSTEP_BASE_INCLUDE */

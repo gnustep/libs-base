@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __IndexedCollectionPrivate_h_INCLUDE_GNU
-#define __IndexedCollectionPrivate_h_INCLUDE_GNU
+#ifndef __IndexedCollectionPrivate_h_GNUSTEP_BASE_INCLUDE
+#define __IndexedCollectionPrivate_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/CollectionPrivate.h>
@@ -38,4 +38,4 @@ if (INDEX >= OVER) \
                format: @"in %s, index %d is out of range", \
                sel_get_name (_cmd), INDEX]
 
-#endif /* __IndexedCollectionPrivate_h_INCLUDE_GNU */
+#endif /* __IndexedCollectionPrivate_h_GNUSTEP_BASE_INCLUDE */

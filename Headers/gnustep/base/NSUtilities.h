@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#ifndef __NSUtilties_h_OBJECTS_INCLUDE
-#define __NSUtilties_h_OBJECTS_INCLUDE
+#ifndef __NSUtilties_h_GNUSTEP_BASE_INCLUDE
+#define __NSUtilties_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
 
@@ -30,4 +30,4 @@
 - (id) nextObject;
 @end
 
-#endif /* __NSUtilties_h_OBJECTS_INCLUDE */
+#endif /* __NSUtilties_h_GNUSTEP_BASE_INCLUDE */

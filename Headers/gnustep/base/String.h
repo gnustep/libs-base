@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#ifndef __String_h_OBJECTS_INCLUDE
-#define __String_h_OBJECTS_INCLUDE
+#ifndef __String_h_GNUSTEP_BASE_INCLUDE
+#define __String_h_GNUSTEP_BASE_INCLUDE
 
 /* xxx These method names need to be fixed because we will get
    type conflicts with GNUSTEP.
@@ -173,4 +173,4 @@ typedef unsigned short Character;
 @interface ConstantString : CString
 @end
 
-#endif /* __String_h_OBJECTS_INCLUDE */
+#endif /* __String_h_GNUSTEP_BASE_INCLUDE */

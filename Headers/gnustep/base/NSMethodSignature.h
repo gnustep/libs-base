@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */ 
 
-#ifndef __NSMethodSignature_h_INCLUDE_GNU
-#define __NSMethodSignature_h_INCLUDE_GNU
+#ifndef __NSMethodSignature_h_GNUSTEP_BASE_INCLUDE
+#define __NSMethodSignature_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
 
@@ -55,4 +55,4 @@ typedef struct
 
 @end
 
-#endif /* __NSMethodSignature_h_INCLUDE_GNU */
+#endif /* __NSMethodSignature_h_GNUSTEP_BASE_INCLUDE */

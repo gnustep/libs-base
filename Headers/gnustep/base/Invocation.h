@@ -1,5 +1,5 @@
-#ifndef __Invocation_h_OBJECTS_INCLUDE
-#define __Invocation_h_OBJECTS_INCLUDE
+#ifndef __Invocation_h_GNUSTEP_BASE_INCLUDE
+#define __Invocation_h_GNUSTEP_BASE_INCLUDE
 
 /* 
    Use these for notifications!
@@ -96,4 +96,4 @@
 @end
 #endif
 
-#endif /* __Invocation_h_OBJECTS_INCLUDE */
+#endif /* __Invocation_h_GNUSTEP_BASE_INCLUDE */

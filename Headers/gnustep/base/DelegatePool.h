@@ -25,8 +25,8 @@
    delegates.  Send a message to this object and the message will get
    forwarded to the delegates on the list. */
 
-#ifndef __DelegatePool_h_OBJECTS_INCLUDE
-#define __DelegatePool_h_OBJECTS_INCLUDE
+#ifndef __DelegatePool_h_GNUSTEP_BASE_INCLUDE
+#define __DelegatePool_h_GNUSTEP_BASE_INCLUDE
 
 #include <gnustep/base/preface.h>
 #include <gnustep/base/Array.h>
@@ -72,4 +72,4 @@ enum DelegatePoolSendBehavior {SEND_TO_ALL = 0,
 
 @end
 
-#endif /* __DelegatePool_h_OBJECTS_INCLUDE */
+#endif /* __DelegatePool_h_GNUSTEP_BASE_INCLUDE */

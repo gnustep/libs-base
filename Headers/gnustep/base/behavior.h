@@ -21,8 +21,8 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */ 
 
-#ifndef __behavior_h_OBJECTS_INCLUDE
-#define __behavior_h_OBJECTS_INCLUDE
+#ifndef __behavior_h_GNUSTEP_BASE_INCLUDE
+#define __behavior_h_GNUSTEP_BASE_INCLUDE
 
 /* Call this method from CLASS's +initialize method to add a behavior
    to CLASS.  A "behavior" is like a protocol with an implementation.
@@ -62,4 +62,4 @@ void class_add_behavior (Class class, Class behavior);
 /* Set to non-zero if you want debugging messages on stderr. */
 void set_behavior_debug(int i);
 
-#endif /* __behavior_h_OBJECTS_INCLUDE */
+#endif /* __behavior_h_GNUSTEP_BASE_INCLUDE */
