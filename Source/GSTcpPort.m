@@ -51,6 +51,11 @@
 
 extern	int	errno;
 
+/*
+ * Largest chunk of data possible in DO
+ */
+static gsu32	maxDataLength = 10 * 1024 * 1024;
+
 #if 0
 #define	DO_LOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"lock %@",X); [X lock];}
 #define	DO_UNLOCK(X) {NSDebugMLLog(@"GSTcpHandle",@"unlock %@",X); [X unlock];}
@@ -171,6 +176,7 @@ typedef enum {
   BOOL			valid;
   GSTcpPort		*recvPort;
   GSTcpPort		*sendPort;
+  struct sockaddr_in	clientname;	/* Far end of connection.	*/
 }
 
 + (GSTcpHandle*) handleWithDescriptor: (int)d;
@@ -502,6 +508,12 @@ static Class	runLoopClass;
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"Handle (%d) to %s:%d",
+    desc, inet_ntoa(clientname.sin_addr), ntohs(clientname.sin_port)];
+}
+
 - (int) descriptor
 {
   return desc;
@@ -673,48 +685,71 @@ static Class	runLoopClass;
 		  l = GSSwapBigI32ToHost(h->length);
 		  if (rType == GSP_PORT)
 		    {
+		      if (l > 32)
+			{
+			  NSLog(@"%@ - unreasonable length (%u) for port",
+			    self, l);
+			  [self invalidate];
+			  return;
+			}
 		      /*
 		       * For a port, we leave the item header in the data
 		       * so that our decode function can check length info.
 		       */
 		      rWant += l;
 		    }
-		  else if (rType == GSP_DATA && l == 0)
+		  else if (rType == GSP_DATA)
 		    {
-		      NSData	*d;
+		      if (l == 0)
+			{
+			  NSData	*d;
 
-		      /*
-		       * For a zero-length data chunk, we create an empty
-		       * data object and add it to the current message.
-		       */
-		      rType = GSP_NONE;	/* ready for a new item	*/
-		      rLength -= rWant;
-		      if (rLength > 0)
-			{
-			  memcpy(bytes, bytes + rWant, rLength);
+			  /*
+			   * For a zero-length data chunk, we create an empty
+			   * data object and add it to the current message.
+			   */
+			  rType = GSP_NONE;	/* ready for a new item	*/
+			  rLength -= rWant;
+			  if (rLength > 0)
+			    {
+			      memcpy(bytes, bytes + rWant, rLength);
+			    }
+			  rWant = sizeof(GSPortItemHeader);
+			  d = [mutableDataClass new];
+			  [rItems addObject: d];
+			  RELEASE(d);
+			  if (nItems == [rItems count])
+			    {
+			      [self dispatch];
+			    }
 			}
-		      rWant = sizeof(GSPortItemHeader);
-		      d = [mutableDataClass new];
-		      [rItems addObject: d];
-		      RELEASE(d);
-		      if (nItems == [rItems count])
+		      else
 			{
-			  [self dispatch];
+			  if (l > maxDataLength)
+			    {
+			      NSLog(@"%@ - unreasonable length (%u) for data",
+				self, l);
+			      [self invalidate];
+			      return;
+			    }
+			  /*
+			   * If not a port or zero length data,
+			   * we discard the data read so far and fill the
+			   * data object with the data item from the msg.
+			   */
+			  rLength -= rWant;
+			  if (rLength > 0)
+			    {
+			      memcpy(bytes, bytes + rWant, rLength);
+			    }
+			  rWant = l;
 			}
 		    }
 		  else
 		    {
-		      /*
-		       * If not a port or zero length data,
-		       * we discard the data read so far and fill the
-		       * data object with the data item from the msg.
-		       */
-		      rLength -= rWant;
-		      if (rLength > 0)
-			{
-			  memcpy(bytes, bytes + rWant, rLength);
-			}
-		      rWant = l;
+		      NSLog(@"%@ - bad data recieived on port handle", self);
+		      [self invalidate];
+		      return;
 		    }
 		}
 		break;
@@ -1530,6 +1565,7 @@ static Class		tcpPortClass;
        * the other end.
        */
       handle = [GSTcpHandle handleWithDescriptor: desc];
+      memcpy(&handle->clientname, &clientname, sizeof(clientname));
       [handle setState: GS_H_ACCEPT];
       [self addHandle: handle forSend: NO];
     }
