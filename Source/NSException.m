@@ -139,7 +139,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 - (void)encodeWithCoder:(NSCoder *)aCoder
 {
-//FIXME    [super encodeWithCoder:aCoder];
+    [super encodeWithCoder:aCoder];
     [aCoder encodeObject:e_name]; 
     [aCoder encodeObject:e_reason]; 
     [aCoder encodeObject:e_info]; 
@@ -147,7 +147,7 @@ _NSFoundationUncaughtExceptionHandler(NSException *exception)
 
 - (id)initWithCoder:(NSCoder *)aDecoder
 {
-//FIXME    self = [super initWithCoder:aDecoder];
+    self = [super initWithCoder:aDecoder];
     e_name = [[aDecoder decodeObject] retain]; 
     e_reason = [[aDecoder decodeObject] retain]; 
     e_info = [[aDecoder decodeObject] retain]; 
