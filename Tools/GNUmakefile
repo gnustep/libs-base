@@ -26,16 +26,18 @@ GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/common.make
 
 # The application to be compiled
-OBJC_PROGRAM_NAME = gdomap dread dwrite dremove
+TOOL_NAME = dread dwrite dremove
+OBJC_PROGRAM_NAME = gdomap
 
 # The source files to be compiled
 gdomap_C_FILES = gdomap.c
-dread_C_FILES = dread.c
-dremove_C_FILES = dremove.c
-dwrite_C_FILES = dwrite.c
+dread_OBJC_FILES = dread.m
+dremove_OBJC_FILES = dremove.m
+dwrite_OBJC_FILES = dwrite.m
 
 -include Makefile.preamble
 
 include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/objc.make
+include $(GNUSTEP_SYSTEM_ROOT)/Makefiles/tool.make
 
 -include Makefile.postamble

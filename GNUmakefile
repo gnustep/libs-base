@@ -38,18 +38,16 @@ DIST_FILES = \
 	config/config.nested.c config/config.nextcc.h config/config.nextrt.m \
 	config/config.vsprintf.c \
 	README.ULTRIX README.ucblib \
-	STATUS RELEASE-NOTES \
-	COPYING COPYING.LIB ChangeLog \
+	STATUS COPYING COPYING.LIB ChangeLog \
 	configure Version \
 	config.guess mkinstalldirs install-sh config.sub \
-	NSBundle.README \
 	gcc-2.7.2-objc.diff \
 	gcc-2.7.2.1-objc.diff
 
 #
 # The list of subproject directories
 #
-SUBPROJECTS = Tools src doc checks examples NSCharacterSets NSTimeZones admin
+SUBPROJECTS = src Tools doc checks examples NSCharacterSets NSTimeZones admin
 
 -include Makefile.preamble
 

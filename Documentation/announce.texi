@@ -10,8 +10,8 @@ available.
 
 @include base-desc.texi
 
-There is more information available at the GNUstep Base Library homepage
-at @samp{http://www.cs.rochester.edu/u/mccallum/gnustep-base}.
+There is more information available at the GNUstep homepage
+at @samp{http://www.gnustep.org}.
 
 @ignore
 So that developers of non-free, commercial programs can use the library,
@@ -24,9 +24,6 @@ For more details, see the @samp{README} file that comes with the
 distribution.
 @end ignore
 
-@c @section What's new in this release?
-@include news.texi
-
 @section Where can you get it?  How can you compile it?
 
 @ifset GNUSTEP_BASE_FTP_MACHINE
@@ -38,10 +35,6 @@ placed on @samp{@value{GNUSTEP_BASE_FTP_MACHINE}} in
 The libgnustep-base-@value{GNUSTEP_BASE_VERSION}.tar.gz distribution file has not
 been made available by anonymous ftp.
 @end ifclear
-
-More information about the library, including a list of machines on
-which it has been successfully compiled and used, can be found at
-@samp{http://www.cs.rochester.edu/u/mccallum/libgnustep-base}.
 
 The library requires gcc @value{GNUSTEP_BASE_GCC_VERSION} or higher.
 Significant sections of the library do not work with the NeXT runtime,
@@ -56,7 +49,7 @@ For info about FTP via email, send email to
 with line one @samp{help} and line two @samp{quit}.
 
 The most recent (not necessarily tested) snapshots of the library will
-be placed in @samp{ftp://alpha.gnu.ai.mit.edu/gnu}.
+be placed in @samp{ftp://alpha.gnu.org/gnu/gnustep}.
 
 @display
 Happy Hacking!

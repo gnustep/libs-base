@@ -13,244 +13,153 @@ as you preserve this copyright notice and permission notice.
 @chapter Installing @samp{libgnustep-base}
 @end ifset
 
+Most of the information below is also included in the general GNUstep
+installation instruction GNUstep-HOWTO located at the same ftp sites
+as this library, notable @file{ftp://ftp.gnustep.org/pub/gnustep}.
 To compile and install @samp{libgnustep-base}:
 
 @enumerate
 
 @item
-If you are running GNU/Linux, first install pthreads.  A copy that is
-known to work with GNU Objective C can be found at
-@file{ftp://ftp.ocbi.com/pub/GNUstep/pthreads.tar.gz}
-I ignored the installation instructions, and instead did the following:
+Get and compile GNU make, if you don't already have GNU make.
 
 @example
-cd pthreads-0.9.2
-tar -cf - lib | (cd /usr/local ; tar -xvf -)
-tar -cf - include | (cd /usr/local ; tar -xvf -)
-mkdirs /usr/local/src/linux_threads/kits/pthreads-0.9.2/lib/pthreads
-cd !$ ; ln -s /usr/local/lib/libpthreads.so.1 .
-cd /usr/local/lib ; ln -s libpthreads.so.1 libpthreads.so
+  cd /usr/src
+  tar fvxz make-XXX.tar.gz
+  cd make-XXX
+  ./configure
+  make
+  su root
+  make install
 @end example
-
-(And on my system, I also had to comment out the code between
-@code{#ifndef _TIMESPEC_} and the following @code{#endif} in
-@file{/usr/local/include/pthreads/typedefs.h}.)
 
 @item
-Then install the GNU Objective C runtime patch (both gcc-2.7.2-objc.diff
-and gcc-2.7.2.1-objc.diff are included with this gnustep-base release),
-possibly like this:
+Decide where you want the GNUstep files to go, and use this as
+an argument to configure in the makefile package. If you don't choose
+a location, the default is /usr/GNUstep.  The example below shows how
+to configure the packages for installation in /usr/local/GNUstep.
 
 @example
-cd gcc-2.7.2.1
-patch -p1 < ../gstep-base*/gcc-2.7.2.1-objc.diff
-rm -f objc/list.h
+  tar fvxz gstep-make-XXXXXX.tar.gz
+  cd gstep-make-XXXXXX
+  ./configure --prefix=/usr/local/GNUstep
+  su root
+  make install
 @end example
 
-When I did this, patch exited with code 5, but the only rejects were in
-documentation files, not source files.
+After this you should add the shell script GNUstep.sh in the makefile
+package to you initialization file (such as .profile). For instance:
+
+@example
+. /usr/local/GNUstep/Makefiles/GNUstep.sh
+@end example
+
+in your .profile file will work. It defines environment variables that
+are needed to find GNUstep files and executables.  Users of csh neet
+to change the GNUstep.sh script so it will work with csh. Read the
+README for more info.
+
+GNUstep packages will automatically install in this directory structure. You
+can install other packages (such as gcc) in the same structure if you specify
+the GNUstep system root as the prefix when you configure the package.
+
+@example
+./configure --prefix=$GNUSTEP_SYSTEM_ROOT
+@end example
 
 @item
-Make and install gcc, possibly like this:
+For Linux/GNU systems on Intel x86 processors, the PCThreads library is
+known to work with GNUstep.  PCThreads version 1.1.0 is an enhanced version
+of PCThread 1.0.0 with better support for GNUstep.
 
 @example
-./configure --prefix=/usr/local
-make OBJC_THREAD_FILE=thr-pthreads
-make OBJC_THREAD_FILE=thr-pthreads install
+cd /usr/src
+tar fvxz pcthreads-1.1.0.tar.gz
+cd pcthreads-1.1.0
+./configure
+make
+su root
+make install
 @end example
 
-If you are not sure that threads are available on your system, and you
-don't need to use threads, you can substitute @samp{thr-single} for
-@samp{thr-pthreads}.
+If you are using the GNUstep makefile package and wish PCThreads to be
+installed with the GNUstep directory structure; then you should specify the
+GNUstep system root as the prefix when you configure the package.
+
+@example
+./configure --prefix=$GNUSTEP_SYSTEM_ROOT
+@end example
+
+@item
+The following commands assume that all the aforementioned files have been
+copied to the /usr/src directory on your machine.
+
+@example
+1. Uncompress gcc:
+
+  cd /usr/src
+  tar fvxz gcc-2.7.2.1.tar.gz
+
+2. Apply the Objective-C runtime patch. Go inside the GCC directory and issue
+the command (Make sure you have the correct patch for the version of gcc):
+
+  cd gcc-2.7.2.1
+  cat gcc-2.7.2.1-objc.diff | patch -p1
+
+3. Configure the gcc compiler's makefile for your machine:
+
+  ./configure
+
+  If you are using the GNUstep makefile package and wish gcc to be
+  installed with the GNUstep directory structure; then you should specify the
+  GNUstep system root as the prefix when you configure the package.
+
+./configure --prefix=$GNUSTEP_SYSTEM_ROOT
+
+4. Compile gcc
+
+	4.1 With a single-threaded Objective-C runtime:
+
+	make OBJC_THREAD_FILE=thr-single
+
+	or
+
+	4.2 With thread support appropriate for your system
+
+	make
+
+	or
+
+	4.3 With PCThreads support (Linux/GNU)
+
+	make OBJC_THREAD_FILE=thr-pthreads
+
+5. Wait
+
+  If you have a Pentium Pro, go drink a coffee.
+  If you have a fast Pentium, count from 0 to 100 in your head.
+  If you have a slow Pentium, go eat a bagel.
+  If you have a 486, go watch the news.
+  If you have a 386, come back tomorrow.
+
+6. Install gcc
+
+  su root
+  make install
+
+7. Delete the gcc directory if you're low on disk space
+
+  rm -rf /usr/src/gcc-2.7.2.1
+@end example
 
 @item
 Then configure and make libgnustep-base:
 
 @example
-./configure --prefix=/usr/local
+./configure
 make
 make install
 @end example
-
-Alternatively, if you are running GNU/Linux and have an older version of
-libc, then the Objective C runtime will not work unless you pass
-@samp{-lieee} to the linker.  If you use the pthreads library that will
-also have to be linked in.  You can do that like this:
-
-@example
-LIBS="-lieee -lpthreads" ./configure --prefix=/usr/local
-make
-make install
-@end example
-
-If you don't have @samp{libieee.a} on your system, @file{configure} will
-say 
-@example
-configure: error: installation or configuration problem: 
-C compiler cannot create executables.
-@end example
-
-If you are running on a NeXT machine, @samp{gcc} probably configured
-itself to use the NeXT Objective C runtime by default.  Currently
-GNUstep only supports the GNU runtime.  To make @samp{gcc} use the GNU
-runtime, set @samp{CFLAGS} before you runtime configure.  For example: 
-
-@example
-CFLAGS=-fgnu-runtime ./configure 
-@end example
-
-If your system supports dynamically loaded shared libraries, you can
-request the building and installation of a @samp{.so} version of the
-library by passing @samp{--enable-shared} to @samp{configure}.  If in
-doubt, do not include this option.  
-
-If you have trouble with the Makefile, it may be that our makefiles use
-features that your @code{make} does not support; use GNU make.
-
-@item
-Then install libgnustep-base:
-
-@example
-make install
-@end example
-
-If you set any environment variables when running @samp{make} to build
-libgnustep-base, you should set them again here; for example:
-
-@example
-CFLAGS=-fgnu-runtime ./configure 
-@end example
-
-@end enumerate
-
-Here are general instructions for @file{configure}, that explain
-@file{configure}'s options.
-
-@enumerate
-
-@item
-Configure the package for your system.  In the directory that this file
-is in, type @samp{./configure}.  If you're using @samp{csh} on an old
-version of System V, you might need to type @samp{sh configure} instead
-to prevent @samp{csh} from trying to execute @samp{configure} itself.
-
-The @samp{configure} shell script attempts to guess correct values for
-various system-dependent variables used during compilation, and creates
-the Makefile(s) (one in each subdirectory of the source directory).  In
-some packages it creates a C header file containing system-dependent
-definitions.  It also creates a file @samp{config.status} that you can
-run in the future to recreate the current configuration.
-
-Running @samp{configure} takes less than a minute or two.  While it is
-running, it prints some messages that tell what it is doing.  If you
-don't want to see the messages, run @samp{configure} with its standard
-output redirected to @samp{/dev/null}; for example:
-@smallexample 
-./configure >/dev/null
-@end smallexample
-
-To compile the package in a different directory from the one containing
-the source code, you must use a version of make that supports the VPATH
-variable, such as GNU make.  @samp{cd} to the directory where you want
-the object files and executables to go and run @samp{configure}.
-@samp{configure} automatically checks for the source code in the
-directory that @samp{configure} is in and in @samp{..}.  If for some
-reason @samp{configure} is not in the source code directory that you are
-configuring, then it will report that it can't find the source code.  In
-that case, run @samp{configure} with the option @samp{--srcdir=DIR},
-where DIR is the directory that contains the source code.
-
-By default, @samp{make install} will install the package's files in
-/usr/local/bin, /usr/local/lib, /usr/local/man, etc.  You can specify
-an installation prefix other than /usr/local by giving @samp{configure} the
-option @samp{--prefix=PATH}.  Alternately, you can do so by giving a value
-for the @samp{prefix} variable when you run @samp{make}, e.g.,
-@smallexample
-make prefix=/usr/gnu
-@end smallexample
-
-You can specify separate installation prefixes for architecture-specific
-files and architecture-independent files.  If you give @samp{configure}
-the option @samp{--exec_prefix=PATH} or set the @samp{make} variable
-@samp{exec_prefix} to PATH, the package will use PATH as the prefix for
-installing programs and libraries.  Data files and documentation will
-still use the regular prefix.  Normally, all files are installed using
-the regular prefix.
-
-You can tell @samp{configure} to figure out the configuration for your
-system, and record it in @samp{config.status}, without actually
-configuring the package (creating @samp{Makefile}s and perhaps a
-configuration header file).  To do this, give @samp{configure} the
-@samp{--no-create} option.  Later, you can run @samp{./config.status} to
-actually configure the package.  This option is useful mainly in
-@samp{Makefile} rules for updating @samp{config.status} and
-@samp{Makefile}.  You can also give @samp{config.status} the
-@samp{--recheck} option, which makes it re-run @samp{configure} with the
-same arguments you used before.  This is useful if you change
-@samp{configure}.
-
-@samp{configure} ignores any other arguments that you give it.
-
-If your system requires unusual options for compilation or linking that
-@samp{configure} doesn't know about, you can give @samp{configure}
-initial values for some variables by setting them in the environment.
-In Bourne-compatible shells, you can do that on the command line like
-this:
-@smallexample
-CC='gcc -traditional' DEFS=-D_POSIX_SOURCE ./configure
-@end smallexample
-
-The @samp{make} variables that you might want to override with environment
-variables when running @samp{configure} are:
-
-(For these variables, any value given in the environment overrides the
-value that @samp{configure} would choose:)
-@table @samp
-
-@item CC
-C compiler program.  Default is @samp{cc}, or @samp{gcc} if @samp{gcc}
-is in your PATH. 
-
-@item INSTALL
-Program to use to install files.
-Default is @samp{install} if you have it, @samp{install.sh} otherwise.
-@end table
-
-
-(For these variables, any value given in the environment is added to
-the value that @samp{configure} chooses:)
-@table @samp
-
-@item DEFS
-Configuration options, in the form @samp{-Dfoo -Dbar ...}
-
-@item LIBS
-Libraries to link with, in the form @samp{-lfoo -lbar ...}
-@end table
-
-If you need to do unusual things to compile the package, we encourage
-you to figure out how @samp{configure} could check whether to do them, and
-mail diffs or instructions to the address given in the @samp{README} so we
-can include them in the next release.
-
-
-@item
-Type @samp{make} to compile the package.  If you want, you can override
-the @samp{make} variables @samp{CFLAGS} and @samp{LDFLAGS} like this:
-@smallexample
-	make CFLAGS=-O2 LDFLAGS=-s
-@end smallexample
-
-You will get some warnings from @samp{#warning} lines I've added to the
-code.  Ignore them.
-
-You may get some warnings like @samp{stdobjects.m:0: warning:
-`_OBJC_SELECTOR_TABLE' defined but not used}.  Ignore them. 
-They are bogus warnings due to a bug in cc1obj.
-
-You may get some warnings like @samp{ar: filename BinaryTreeEltNode.o
-truncated to BinaryTreeEltNo}.  Ignore them.
-
 
 @item
 If you want to compile the self-tests, cd to @samp{checks} and type
@@ -273,3 +182,11 @@ need it if you want to regenerate @samp{configure} using a newer version
 of @samp{autoconf}.
 
 @end enumerate
+
+
+Notes:
+
+If you are running GNU/Linux and have an older version of
+libc, then the Objective C runtime will not work unless you pass
+@samp{-lieee} to the linker.
+
