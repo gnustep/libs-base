@@ -81,8 +81,7 @@
 /* xxx Deal with this. */
 - autorelease
 {
-  [self notImplemented:_cmd];
-  return nil;
+  return [super autorelease];
 }
 
 - registerForInvalidationNotification:  (id <InvalidationListening>)anObject
