@@ -1,3 +1,8 @@
+1999-04-27  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Check for sys/mount.h for NSFileManager functions
+	on FreeBSD
+
 Fri Apr 23 23:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSCalendarDate.m: Applied bugfixes by Jeremy Bettis
