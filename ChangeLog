@@ -1,3 +1,9 @@
+Wed Jun 13 19:43:16 2001  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSFileManager.m
+	([-createSymbolicLinkAtPath:pathContent:]): Fixed - the call to
+	symlink was using old path instead of new path and viceversa.
+	
 2001-06-12  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.0.2
