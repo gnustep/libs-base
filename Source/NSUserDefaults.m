@@ -435,6 +435,7 @@ static NSString	*pathForUser(NSString *user)
   NSFileManager	*mgr = [NSFileManager defaultManager];
   NSString	*home;
   NSString	*path;
+  NSString      *libpath;
   BOOL		isDir;
 	
   home = NSHomeDirectoryForUser(user);
@@ -461,6 +462,10 @@ static NSString	*pathForUser(NSString *user)
       NSLog(@"ERROR - '%@' is not a directory!", path);
       return nil;
     }
+  /* Create this path also. The GUI/font cache depends on it being there */
+  libpath = [path stringByAppendingPathComponent: @"Library"];
+  if ([mgr fileExistsAtPath: libpath isDirectory: &isDir] == NO)
+    [mgr createDirectoryAtPath: libpath attributes: nil];
   path = [path stringByAppendingPathComponent: GNU_UserDefaultsDatabase];
   return path;
 }
