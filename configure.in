@@ -176,6 +176,16 @@ AC_SUBST(NEXT_INCLUDES)
 OBJC_SYS_DYNAMIC_FLAGS()
 
 #--------------------------------------------------------------------
+# Determine the target platform 
+#--------------------------------------------------------------------
+if test "x$target" = "xNONE"; then
+  PLATFORM_OS=`config.guess`
+else
+  PLATFORM_OS="$target"
+fi
+AC_SUBST(PLATFORM_OS)
+
+#--------------------------------------------------------------------
 # Find some programs
 #--------------------------------------------------------------------
 AC_PROG_INSTALL
@@ -228,6 +238,12 @@ if [ $HAVE_VSPRINTF ] ; then
 		VSPRINTF_RETURNS_LENGTH=1)
     AC_DEFINE(VSPRINTF_RETURNS_LENGTH)
 fi
+
+
+#--------------------------------------------------------------------
+# DIR definitions needed by NSBundle.m
+#--------------------------------------------------------------------
+AC_HEADER_DIRENT
 
 #--------------------------------------------------------------------
 # This function needed by objc-malloc.c

@@ -156,7 +156,12 @@ elif test $DYNAMIC_LINKER = simple; then
     else
       DYNAMIC_BUNDLER_LINKER='$(CC) -nostdlib'
     fi
-    DYNAMIC_LDFLAGS=""
+    save_LDFLAGS=$LDFLAGS
+    LDFLAGS="-rdynamic"
+    AC_TRY_RUN([], objc_dynamic_ldflag="-rdynamic", objc_dynamic_ldflag="",
+	objc_dynamic_ldflag="")
+    LDFLAGS=$save_LDFLAGS
+    DYNAMIC_LDFLAGS="$objc_dynamic_ldflag"
     DYNAMIC_CFLAGS="-fPIC"
 elif test $DYNAMIC_LINKER = hpux; then
     DYNAMIC_BUNDLER_LINKER='$(CC) -nostdlib -Xlinker -b'

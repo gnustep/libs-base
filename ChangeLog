@@ -1,3 +1,84 @@
+Mon Jan  6 16:06:21 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/NSString.m ([NSString -description]): Free DEST to prevent
+ 	memory leak!
+	(Reported by Wolfgang Baron <wbaron@ixpoint.de>.)
+
+	* src/NSException.m (_NSUncaughtExceptionHandler): Don't declare
+ 	it static.  (Reported by John Hethcox <johnhe@vnet.net>.)
+
+	* src/BinaryCStream.m (BITSPERBYTE): If it hasn't been defined
+ 	after #include's guess that it's 8.
+
+	* checks/nsscanner.m: Removed RCS keyword.
+
+Wed Nov 13 14:10:00 1996  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
+
+        * src/Connection.m ([Connection +rootProxyAtName:onHost:]):
+        Return nil if we fail to create a port for talking to a remote server.
+        ([Connection forwardForProxy:selector:argFrame:]):
+        Changes to ensure that ConnectedDecoder is correctly dismissed in the
+	case where a DO method returns an object but does not have any
+	parameter values returned.
+
+        * src/mframe.m (mframe_build_return()):
+	Cooperate with [Connection forwardForProxy:selector:argFrame:] so
+	that it's callback function is called to tell it dismiss the
+	ConnectedDecoder.
+
+        * src/RunLoop.m ([RunLoop -limitDateForMode:]):
+        Various changes to get timeouts working reliably.
+	Ensure that _current_mode is restored correctly on exit.
+
+        * src/RunLoop.m ([RunLoop -acceptInputForMode:beforeDate:]):
+	Ensure that _current_mode is restored correctly on exit.
+
+Wed Nov  6 11:59:08 1996  Adam Fedor  <fedor@boulder.Colorado.edu>
+
+	* src/NSLog.m: New file
+	* src/Makefile.in (GNUSTEP_MFILES): Add NSLog.m
+	* src/include/NSObjCRuntime.h: Add NSLog definitions.
+	
+Mon Nov  4 12:30:05 1996  Adam Fedor  <fedor@wave.Colorado.edu>
+
+	*  src/objc-load.c: Include <gnustep/base/config.h>.
+
+Sat Sep 21 15:18:47 1996  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/NSZone.m: Use constructor attribute with initialize().
+
+Thu Sep 19 22:09:08 1996  Yoo C. Chung  <wacko@power1.snu.ac.kr>
+
+	* src/DelegatePool.m:
+	Use NSDefaultMallocZone() instead of NS_NOZONE.
+	* src/NSProcessInfo.m: Likewise.
+	
+	* src/NSObject.m:
+	Use NSDefaultMallocZone() instead of NS_NOZONE.
+	Use NSZoneFromPointer() instead of NSZoneFromPtr().
+	
+	* src/NSProcessInfo.m: Use NSDefaultMallocZone() instead of 0.
+  	And cosmetic changes.
+
+	* src/NSHashTable.m: Use NSDefaultMallocZone() instead of 0.
+	* src/NSMapTable.m: Likewise.
+	* src/o_map.m: Likewise.
+
+	* src/NSPage.m:
+	Use valloc() in NSAllocateMemoryPages().
+	Cosmetic style changes.
+
+	* src/NSZone.m: Complete rewrite.
+	* src/include/NSZone.h: Extensive modifications.
+
+Thu Dec  5 17:20:58 1996  Nick Christopher  <nwc@mindspring.com>
+
+	* NSString.m  [NSString -componentsSeparatedByString]: Didn't
+	handle strings with separators longer than a single character
+	and in other cases.
+
+	* stringsfile.l: The definition of LABEL needed expanding.
+
 Sun Jan  5 17:41:37 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	Further changes for the NSString implementation.

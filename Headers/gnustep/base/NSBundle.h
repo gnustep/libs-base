@@ -28,42 +28,54 @@
 
 @class NSString;
 @class NSArray;
+@class NSDictionary;
+
+extern NSString* NSBundleDidLoadNotification;
+extern NSString* NSShowNonLocalizedStrings;
+extern NSString* NSLoadedClasses;
 
 @interface NSBundle : NSObject
 {
     NSString	*_path;
-    Class	_principalClass;
+    NSArray*    _bundleClasses;
+    Class       _principalClass;
+    id          _infoDict;
+    unsigned int _retainCount;
+    unsigned int _bundleType;
     BOOL	_codeLoaded;
-    int		_bundleVersion;
 }
 
-+ (NSBundle *)mainBundle;
-+ (NSBundle *)bundleForClass:aClass;
-+ (NSBundle *)bundleWithPath:(NSString *)path;
-- initWithPath:(NSString *)path;
-- (NSString *)bundlePath;
-- classNamed:(NSString *)className;
-- principalClass;
++ (NSBundle *) mainBundle;
++ (NSBundle *) bundleForClass: (Class)aClass;
++ (NSBundle *) bundleWithPath: (NSString *)path;
+- initWithPath: (NSString *)path;
+- (NSString *) bundlePath;
+- (Class) classNamed: (NSString *)className;
+- (Class) principalClass;
 
-+ (NSString *)pathForResource:(NSString *)name
-		ofType:(NSString *)ext	
-		inDirectory:(NSString *)bundlePath
-		withVersion:(int)version;
+- (NSArray *) pathsForResourcesOfType: (NSString *)extension
+		inDirectory: (NSString *)bundlePath;
+- (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext	
+		inDirectory: (NSString *)bundlePath;
+- (NSString *) pathForResource: (NSString *)name
+		ofType: (NSString *)ext;
+- (NSString *) localizedStringForKey: (NSString *)key	
+		value: (NSString *)value
+		table: (NSString *)tableName;
+- (NSString *) resourcePath;
 
-- (NSString *)pathForResource:(NSString *)name
-		ofType:(NSString *)ext;
-
-+ (void)stripAfterLoading:(BOOL)flag;
-
-- (NSString *)localizedStringForKey:(NSString *)key	
-		value:(NSString *)value
-		table:(NSString *)tableName;
-
-- (unsigned)bundleVersion;
-- (void)setBundleVersion:(unsigned)version;
-
-+ (void)setSystemLanguages:(NSArray *)languages;
+#ifndef STRICT_OPENSTEP
+- (NSDictionary *) infoDictionary;
+#endif
 
 @end
+
+#define NSLocalizedString(key, comment) \
+  [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]
+#define NSLocalizedStringFromTable(key, tbl, comment) \
+  [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:(tbl)]
+#define NSLocalizedStringFromTableInBundle(key, tbl, bundle, comment) \
+  [bundle localizedStringForKey:(key) value:@"" table:(tbl)]
 
 #endif	/* __NSBundle_h_GNUSTEP_BASE_INCLUDE */
