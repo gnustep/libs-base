@@ -1,5 +1,5 @@
 /* Code for implementation for Objective-C EltNode objects
-   Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@cs.rochester.edu>
    Dept. of Computer Science, U. of Rochester, Rochester, NY  14627
@@ -33,6 +33,7 @@
 */
 
 #include <objects/eltfuncs.h>
+#include <objects/NSString.h>
 
 - initElement: (elt)anElement 
     encoding: (const char *)eltEncoding
@@ -51,11 +52,11 @@
 
   [super encodeWithCoder:aCoder];
   encoding = elt_get_encoding(_elt_comparison_function);
-  [aCoder encodeValueOfType:@encode(char*) at:&encoding 
-	  withName:"EltNode Content Type Encoding"];
-  [aCoder encodeValueOfType:encoding 
+  [aCoder encodeValueOfCType:@encode(char*) at:&encoding 
+	  withName:@"EltNode Content Type Encoding"];
+  [aCoder encodeValueOfCType:encoding 
 	  at:elt_get_ptr_to_member(encoding, &_element)
-	  withName:"EltNode Content Element"];
+	  withName:@"EltNode Content Element"];
 }
 
 - (elt*) _elementDataPtr
@@ -73,11 +74,11 @@
   char *encoding;
 
   [super initWithCoder:aCoder];
-  [aCoder decodeValueOfType:@encode(char*)
+  [aCoder decodeValueOfCType:@encode(char*)
 	  at:&encoding
 	  withName:NULL];
   *[self _eltComparisonFunctionPtr] = elt_get_comparison_function(encoding);
-  [aCoder decodeValueOfType:encoding
+  [aCoder decodeValueOfCType:encoding
 	  at:[self _elementDataPtr]
 	  withName:NULL];
   return self;
