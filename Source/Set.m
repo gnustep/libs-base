@@ -80,8 +80,11 @@
 
 - (void) dealloc
 {
-  NSFreeHashTable (_contents_hash);
-  _contents_hash = 0;
+  if (_contents_hash)
+    {
+      NSFreeHashTable (_contents_hash);
+      _contents_hash = 0;
+    }
   [super dealloc];
 }
 
