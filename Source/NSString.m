@@ -4370,111 +4370,118 @@ nodeToObject(GSXMLNode* node)
   if ([name isEqualToString: @"string"]
     || [name isEqualToString: @"key"])
     {
-      NSRange	r;
-
-      r = [content rangeOfString: @"\\"];
-      if (r.length == 1)
+      if (content == nil)
 	{
-	  unsigned	len = [content length];
-	  unichar	buf[len];
-	  unsigned	pos = r.location;
+	  content = @"";
+	}
+      else
+	{
+	  NSRange	r;
 
-	  [content getCharacters: buf];
-	  while (pos < len)
+	  r = [content rangeOfString: @"\\"];
+	  if (r.length == 1)
 	    {
-	      if (++pos < len)
+	      unsigned	len = [content length];
+	      unichar	buf[len];
+	      unsigned	pos = r.location;
+
+	      [content getCharacters: buf];
+	      while (pos < len)
 		{
-		  if (buf[pos] == '/')
+		  if (++pos < len)
 		    {
-		      len--;
-		      memcpy(&buf[pos], &buf[pos+1],
-			(len - pos) * sizeof(unichar));
-		    }
-		  else if (buf[pos] == 'U')
-		    {
-		      unichar	val = 0;
-		      unsigned	i;
+		      if (buf[pos] == '/')
+			{
+			  len--;
+			  memcpy(&buf[pos], &buf[pos+1],
+			    (len - pos) * sizeof(unichar));
+			}
+		      else if (buf[pos] == 'U')
+			{
+			  unichar	val = 0;
+			  unsigned	i;
 
-		      if (len < pos + 4)
+			  if (len < pos + 4)
+			    {
+			      [NSException raise: NSInternalInconsistencyException
+					  format: @"Short escape sequence"];
+			    }
+			  for (i = 1; i < 5; i++)
+			    {
+			      unichar	c = buf[pos + i];
+
+			      if (c >= '0' && c <= '9')
+				{
+				  val = (val << 4) + c - '0';
+				}
+			      else if (c >= 'A' && c <= 'F')
+				{
+				  val = (val << 4) + c - 'A' + 10;
+				}
+			      else if (c >= 'a' && c <= 'f')
+				{
+				  val = (val << 4) + c - 'a' + 10;
+				}
+			      else
+				{
+				  [NSException raise:
+				    NSInternalInconsistencyException
+				    format: @"bad hex escape sequence"];
+				}
+			    }
+			  len -= 5;
+			  memcpy(&buf[pos], &buf[pos+5],
+			    (len - pos) * sizeof(unichar));
+			  buf[pos - 1] = val;
+			}
+		      else if (buf[pos] >= '0' && buf[pos] <= '7')
+			{
+			  unichar	val = 0;
+			  unsigned	i;
+
+			  if (len < pos + 2)
+			    {
+			      [NSException raise: NSInternalInconsistencyException
+					  format: @"Short escape sequence"];
+			    }
+			  for (i = 0; i < 3; i++)
+			    {
+			      unichar	c = buf[pos + i];
+
+			      if (c >= '0' && c <= '7')
+				{
+				  val = (val << 3) + c - '0';
+				}
+			      else
+				{
+				  [NSException raise:
+				    NSInternalInconsistencyException
+				    format: @"bad octal escape sequence"];
+				}
+			    }
+			  len -= 3;
+			  memcpy(&buf[pos], &buf[pos+3],
+			    (len - pos) * sizeof(unichar));
+			  buf[pos - 1] = val;
+			}
+		      else
 			{
 			  [NSException raise: NSInternalInconsistencyException
 				      format: @"Short escape sequence"];
 			}
-		      for (i = 1; i < 5; i++)
+		      while (pos < len && buf[pos] != '\\')
 			{
-			  unichar	c = buf[pos + i];
-
-			  if (c >= '0' && c <= '9')
-			    {
-			      val = (val << 4) + c - '0';
-			    }
-			  else if (c >= 'A' && c <= 'F')
-			    {
-			      val = (val << 4) + c - 'A' + 10;
-			    }
-			  else if (c >= 'a' && c <= 'f')
-			    {
-			      val = (val << 4) + c - 'a' + 10;
-			    }
-			  else
-			    {
-			      [NSException raise:
-				NSInternalInconsistencyException
-				format: @"bad hex escape sequence"];
-			    }
+			  pos++;
 			}
-		      len -= 5;
-		      memcpy(&buf[pos], &buf[pos+5],
-			(len - pos) * sizeof(unichar));
-		      buf[pos - 1] = val;
-		    }
-		  else if (buf[pos] >= '0' && buf[pos] <= '7')
-		    {
-		      unichar	val = 0;
-		      unsigned	i;
-
-		      if (len < pos + 2)
-			{
-			  [NSException raise: NSInternalInconsistencyException
-				      format: @"Short escape sequence"];
-			}
-		      for (i = 0; i < 3; i++)
-			{
-			  unichar	c = buf[pos + i];
-
-			  if (c >= '0' && c <= '7')
-			    {
-			      val = (val << 3) + c - '0';
-			    }
-			  else
-			    {
-			      [NSException raise:
-				NSInternalInconsistencyException
-				format: @"bad octal escape sequence"];
-			    }
-			}
-		      len -= 3;
-		      memcpy(&buf[pos], &buf[pos+3],
-			(len - pos) * sizeof(unichar));
-		      buf[pos - 1] = val;
 		    }
 		  else
 		    {
 		      [NSException raise: NSInternalInconsistencyException
 				  format: @"Short escape sequence"];
 		    }
-		  while (pos < len && buf[pos] != '\\')
-		    {
-		      pos++;
-		    }
 		}
-	      else
-		{
-		  [NSException raise: NSInternalInconsistencyException
-			      format: @"Short escape sequence"];
-		}
+	      content = [NSString stringWithCharacters: buf length: len];
 	    }
-	  content = [NSString stringWithCharacters: buf length: len];
 	}
       return content;
     }
@@ -4488,14 +4495,26 @@ nodeToObject(GSXMLNode* node)
     }
   else if ([name isEqualToString: @"integer"])
     {
+      if (content == nil)
+	{
+	  content = @"0";
+	}
       return [NSNumber numberWithInt: [content intValue]];
     }
   else if ([name isEqualToString: @"real"])
     {
+      if (content == nil)
+	{
+	  content = @"0.0";
+	}
       return [NSNumber numberWithDouble: [content doubleValue]];
     }
   else if ([name isEqualToString: @"date"])
     {
+      if (content == nil)
+	{
+	  content = @"";
+	}
       return [NSCalendarDate dateWithString: content
                              calendarFormat: @"%Y-%m-%d %H:%M:%S %z"];
     }

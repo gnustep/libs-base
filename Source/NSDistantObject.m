@@ -37,7 +37,7 @@
   inv = [NSInvocation invocationWithMethodSignature: sig];	\
   [inv setSelector: @selector(_SELX)];				\
   [inv setTarget: self];					\
-  [inv setArgument: (void*)&_ARG1 atIndex: 2];			       	\
+  [inv setArgument: (void*)&_ARG1 atIndex: 2];			\
   [self forwardInvocation: inv];				\
   [inv getReturnValue: &m]
 
@@ -773,6 +773,24 @@ enum
     }
   else
     {
+      /*
+       * Evil hack to prevent recursion - if we are asking a remote
+       * object for a method signature, we can't ask it for the
+       * signature of methodSignatureForSelector:, so we hack in
+       * the signature required manually :-(
+       */
+      if (sel_eq(aSelector, _cmd))
+	{
+	  static	NSMethodSignature	*sig = nil;
+
+	  if (sig == nil)
+	    {
+	      sig = [NSMethodSignature signatureWithObjCTypes: "@@::"];
+	      RETAIN(sig);
+	    }
+	  return sig;
+	}
+
       if (_protocol != nil)
 	{
 	  const char	*types = 0;
@@ -799,28 +817,10 @@ enum
 	  id		m;
 	  const char	*types;
 #ifdef USE_FFCALL
-	  /*
-	   * Evil hack to prevent recursion - if we are asking a remote
-	   * object for a method signature, we can't ask it for the
-	   * signature of methodSignatureForSelector:, so we hack in
-	   * the signature required manually :-(
-	   */
-	  if (sel_eq(aSelector, _cmd))
-	    {
-	      static	NSMethodSignature	*sig = nil;
+	  id		inv;
+	  id		sig;
 
-	      if (sig == nil)
-		{
-		  sig = [NSMethodSignature signatureWithObjCTypes: "@@::"];
-		  RETAIN(sig);
-		}
-	      return sig;
-	    }
-	  else
-	    {
-	      id	inv, sig;
-	      DO_FORWARD_INVOCATION(methodSignatureForSelector:, aSelector);
-	    }
+	  DO_FORWARD_INVOCATION(methodSignatureForSelector:, aSelector);
 #else
 	  arglist_t	args;
 	  void		*retframe;
@@ -838,7 +838,6 @@ enum
 	  m = retframe_id(retframe);
 #endif
 	  types = [m methodType];
-
 	  return [NSMethodSignature signatureWithObjCTypes: types];
 	}
     }
