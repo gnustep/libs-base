@@ -1,5 +1,5 @@
 /* Protocol for GNU Objective C byte streams
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: April 1995
@@ -34,14 +34,12 @@
 - (int) writeBytes: (const void*)b length: (int)l;
 - (int) readBytes: (void*)b length: (int)l;
 
-- (int) writeFormat: (const char *)format, ...;
-- (int) readFormat: (const char *)format, ...;
+- (int) writeFormat: (id <String>)format, ...;
+- (int) readFormat: (id <String>)format, ...;
 
-- (void) writeLine: (const char *)l;
-- (char *) readLine;
+- (void) writeLine: (id <String>)l;
+- (id <String>) readLine;
 
-- (void) rewindStream;
-- (void) setStreamPosition: (unsigned)i;
 - (unsigned) streamPosition;
 - (BOOL) isAtEof;
 - (void) flushStream;
@@ -49,6 +47,14 @@
 - (BOOL) isWritable;
 
 @end
+
+@protocol SeekableStreaming
+
+- (void) rewindStream;
+- (void) setStreamPosition: (unsigned)i;
+
+@end
+
 
 #endif /* __Streaming_h__OBJECTS_INCLUDE */
 
