@@ -4,24 +4,19 @@
 @include version.texi
 @end ifset
 
+This TODO list is out of date.
+
 @section Projects Looking for Volunteers
 
 If you think you can do one of these projects, please let me know.  Your
 help is greatly appreciated.  Send email to
-@samp{mccallum@@gnu.ai.mit.edu}. 
+@samp{mccallum@@gnu.org}. 
 
 @itemize @bullet
 
 @item Help write a test-suite for the library.  Use dejagnu.  (Contact
 Richard Frith-Macdonald <richard@@brainstorm.co.uk>, who has volunteered
 to coordinate these efforts.)
-
-@item Write a proper name server for Port's.  Currently we're just
-hashing the name to a socket port number---we could get unwanted hash
-collisions.  This will also allow us to name a SocketPort after it's
-been created.  (Contact Richard Frith-Macdonald
-<richard@@brainstorm.co.uk>, who has volunteered to coordinate these
-efforts.)
 
 @ignore
 @item Add some features to the compiler:  
@@ -38,18 +33,8 @@ argument to @@encode() and get a type string like the selector types.
 @end enumerate
 @end ignore
 
-@item Improve the code to deal with `%@@' in printf-style format strings
-for systems that do not have the GNU C library.  See src/NSString.m for
-the current implementation, which does not handle formatting modifiers.
-(Those with the GNU C Library can just use
-@samp{register_printf_function}.)
-
 @item Implement efficient SmallInt and SmallFloat classes in the same
 sort of way that Smalltalk does.  Talk to me.  mccallum@@gnu.ai.mit.edu.
-
-@item See
-http://www.cs.rochester.edu/u/mccallum/libobjects/volunteers.html for
-a list of the claimed and unclaimed GNUStep Foundation classes.
 
 @end itemize
 
@@ -57,11 +42,6 @@ a list of the claimed and unclaimed GNUStep Foundation classes.
 @section McCallum's To Do's
 
 @itemize @bullet
-
-@item Overhaul the string classes.
-
-@item Make sets/dictionaries hashtables/maps copy their keys, not retain
-them.  This is specified in the OpenStep standard.
 
 @item Separate core and non-core code in NSDictionary, NSSet, etc, the
 same way I did for NSArray.
@@ -113,13 +93,6 @@ version for many of the classes.
 
 @item Possibly change implementation of @code{-(int)compare:anObject}
 for Collection.  How should non-Indexed collections be ordered?
-
-@item
-Finish HashTable.m.  Implement freeKeys:values: (What is this supposed
-to do anyway?).  Handle archiving of atom string, "%", keys.
-
-@item
-Finish Time.m.  Many methods are not yet implemented.
 
 @item
 Many implementations could be made more efficient.  The library hasn't

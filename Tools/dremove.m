@@ -26,6 +26,7 @@
 #include	<Foundation/NSString.h>
 #include	<Foundation/NSProcessInfo.h>
 #include	<Foundation/NSUserDefaults.h>
+#include        <errno.h>
 
 
 int

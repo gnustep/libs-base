@@ -6,6 +6,39 @@ The currently released version of the library is
 @samp{@value{GNUSTEP_BASE_VERSION}}.
 @end ifset
 
+@section Noteworthy changes since version @samp{0.2.1}
+
+@itemize @bullet
+
+@item Use the new GNUstep Makefile Package to compile the library, tools
+checks, and everything else.
+
+@item NSData implemented as a class cluster including a class to
+allocate shared VM memory.
+
+@item Big NSTimeZone improvements, as well as inclusion of time zone files,
+from Yoo C. Chung  <wacko@@laplace.snu.ac.kr>.
+
+@item Major improvements to distributed objects and many related clases
+from Richard Frith-Macdonald <richard@@brainstorm.co.uk>. Also added a
+nameserver.
+
+@item Major rewrite of NSString, include Unicode strings from Stevo
+Crvenkovski  <stevoc@@lotus.mpt.com.mk> 
+
+@item A rewrite of the NSBundle class from Adam Fedor <fedor@@gnu.org>.
+
+@item Addition of a C-language style stream package.
+
+@item Better support for threads and locking.
+
+@item Support for running on Windows from Scott Christley
+<scottc@@net-community.com> 
+
+@item Many, many, many, many bug fixes and new classes. 
+
+@end itemize
+
 @section Noteworthy changes since version @samp{0.1.19}
 
 @itemize @bullet

@@ -81,8 +81,6 @@ after-clean::
 
 srcdir=.
 
-all:: text
-
 text: $(TEXT_FILES)
 info: version.texi $(INFO_FILES)
 ps: $(PS_FILES)

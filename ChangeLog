@@ -1,3 +1,25 @@
+Fri Oct 31 15:16:46 1997  Adam Fedor  <fedor@doc.com>
+
+	* NSBundle.README: Removed obsolete file.
+	* README.threads: Likewise.
+	* RELEASE-NOTES: Likewise.
+	* GNUmakefile: Remove obsolete files from DIST. Make Tools the
+	second build target.
+
+	* Tools/GNUmakefile: Include tool.make and make dread, etc as
+	tools. 
+	* Tools/Makefile.preamble: Add uninstalled includes and libraries
+	from ../src.
+
+	* Tools/dremove.m: Add errno.h.
+
+	* doc/GNUmakefile: Remove unneeded top-level text files.
+	* doc/announce.texi: Update.
+	* doc/install.texi: Likewise.
+	* doc/news.texi: Likewise.
+	* doc/readme.texi: Likewise.
+	* doc/todo.texi: Likewise.
+
 Fri Oct 31 10:26:16 1997  Adam Fedor  <fedor@doc.com>
 
 	* GNUmakefile: Renamed from Makefile.

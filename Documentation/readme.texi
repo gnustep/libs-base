@@ -9,9 +9,6 @@ Here is some introductory info to get you started:
 
 @section Initial reading
 
-The file @file{doc/GNUstep-FAQ} contains a brief overview of the
-library.  It also tells you where to get the most recent version.
-
 The file @samp{NEWS} has the library's feature history.
 
 The file @samp{INSTALL} gives instructions for installing the library.
@@ -103,72 +100,12 @@ separately.
 @samp{NotificationDispatcher}
 @end ignore
 
-@item The distributed object support classes are @samp{Connection},
-@samp{Proxy}, @samp{ConnectedCoder}, @samp{Port} and @samp{TcpPort}.
+@item The distributed object support classes are @samp{NSConnection},
+@samp{NSProxy}, @samp{ConnectedCoder}, @samp{Port} and @samp{TcpPort}.
 This version of the distributed objects only works with sockets.  A Mach
 port back-end should be on the way.
 
-See @file{doc/GNUstep-FAQ} for a detailed description of the cabilities
-and non-capabilities of GNU Distributed Objects.
-
-To begin using distributed objects, you only need to know about
-@samp{Connection} class.  You can see the full (documented!) interface
-in @samp{src/include/Connection.h}.  The long list of methods may be a
-little daunting, but actually, a lot can be done with just a few key
-methods:
-
-@smallexample
-- (Connection*) newRegisteringAtName: name
-    withRootObject: anObj;
-      For registering your server object with the network.
-
-- (void) runConnection;
-      For running the connection object returned by the above
-      method, so that your server can start handling requests from
-      clients. 
-
-- (Proxy*) rootProxyAtName: name 
-    onHost: host;
-      For connecting to a remote server.  You get a proxy object for 
-      the remote server object, which, for messaging purposes, you 
-      can treat as if it were local.
-@end smallexample
-
-@section Where else to look
-
-@subsection Examples
-
-A few simple example programs can be found in @samp{examples}.
-Read and enjoy.  To compile them (after having compiled the library),
-type @samp{make} in the @samp{examples} directory.
-
-@itemize @bullet
-
-@item @samp{dictionary.m} demonstrates the basic features of the
-Dictionary object.
-
-@item @samp{stdio-stream.m} creates a StdioStream object that points to
-a file, writes to the file, then reads from the file.
-
-@item @samp{textcoding.m} shows how you can archive an object to a file 
-in a human-readable text format, and then read it back in again.  This
-format is handy for editing archived objects with a text editor, and is
-great when you want to modify/create an archive using a scripting
-language like @samp{perl} or @samp{awk}.
-
-@item @samp{first-server.m} and @samp{first-client.m} show the
-distributed object version of ``Hello, world''.
-
-@item @samp{second-server.m} and @samp{second-client.m} contain a more
-complex demonstration of distributed objects, with multiple clients,
-connection delegates, and invalidation notification.
-
-@item @samp{tcpport-server.m} and @samp{tcpport-client.m} show a simple
-use of TcpPort objects.
-
-@end itemize
-
-@subsection Test Programs
+@section Test Programs
 
 Some of the programs I've used to test the library are in
 @samp{./checks}.  Many of them are pretty messy, (desperately trying to
@@ -198,5 +135,8 @@ framework, I'd be happy to include them.
 @example
 Happy hacking!
        Andrew McCallum
-       mccallum@@gnu.ai.mit.edu
+       mccallum@@gnu.org
+
+       Adam Fedor
+       fedor@@gnu.org
 @end example
