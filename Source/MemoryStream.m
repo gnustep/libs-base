@@ -56,7 +56,7 @@ enum {
 #define DEFAULT_MEMORY_STREAM_SIZE 64
 
 extern int
-objects_vscanf (void *stream, 
+o_vscanf (void *stream, 
 		int (*inchar_func)(void*), 
 		void (*unchar_func)(void*,int),
 		const char *format, va_list argptr);
@@ -238,7 +238,7 @@ void unchar_func(void *s, int c)
   va_list ap;
 
   va_start(ap, format);
-  ret = objects_vscanf(self, inchar_func, unchar_func, 
+  ret = o_vscanf(self, inchar_func, unchar_func, 
 		       [format cStringNoCopy], ap);
   va_end(ap);
   return ret;

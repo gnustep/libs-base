@@ -74,7 +74,7 @@ extern double strtod(const char *str, char **ptr);
    FORMAT, using the argument list in ARG.
    Return the number of assignments made, or -1 for an input error.  */
 int
-objects_vfscanf (FILE *s, const char *format, va_list argptr)
+o_vfscanf (FILE *s, const char *format, va_list argptr)
 {
   va_list arg = (va_list) argptr;
 

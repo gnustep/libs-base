@@ -34,32 +34,32 @@
 /** Background functions **/
 
 static inline size_t
-_objects_array_fold_index(size_t index, size_t slot_count)
+_o_array_fold_index(size_t index, size_t slot_count)
 {
   return (slot_count ? (index % slot_count) : 0);
 }
 
 static inline size_t
-_objects_array_internal_index(objects_array_t *array, size_t index)
+_o_array_internal_index(o_array_t *array, size_t index)
 {
-  return _objects_array_fold_index (index, array->slot_count);
+  return _o_array_fold_index (index, array->slot_count);
 }
 
-static inline objects_array_slot_t *
-_objects_array_slot_for_index(objects_array_t *array, size_t index)
+static inline o_array_slot_t *
+_o_array_slot_for_index(o_array_t *array, size_t index)
 {
-  return (array->slots + _objects_array_internal_index (array, index));
+  return (array->slots + _o_array_internal_index (array, index));
 }
 
-static inline objects_array_bucket_t *
-_objects_array_bucket_for_index (objects_array_t *array, size_t index)
+static inline o_array_bucket_t *
+_o_array_bucket_for_index (o_array_t *array, size_t index)
 {
-  objects_array_slot_t *slot;
-  objects_array_bucket_t *bucket;
+  o_array_slot_t *slot;
+  o_array_bucket_t *bucket;
 
   /* First, we translate the index into a bucket index to find our
    * candidate for the bucket. */
-  slot = _objects_array_slot_for_index (array, index);
+  slot = _o_array_slot_for_index (array, index);
   bucket = *slot;
 
   /* But we need to check to see whether this is really the bucket we
@@ -73,16 +73,16 @@ _objects_array_bucket_for_index (objects_array_t *array, size_t index)
     return 0;
 }
 
-static inline objects_array_bucket_t *
-_objects_array_new_bucket (objects_array_t *array, size_t index, const void *element)
+static inline o_array_bucket_t *
+_o_array_new_bucket (o_array_t *array, size_t index, const void *element)
 {
-  objects_array_bucket_t *bucket;
+  o_array_bucket_t *bucket;
 
-  bucket = (objects_array_bucket_t *) NSZoneMalloc(objects_array_zone(array),
-					     sizeof(objects_array_bucket_t));
+  bucket = (o_array_bucket_t *) NSZoneMalloc(o_array_zone(array),
+					     sizeof(o_array_bucket_t));
   if (bucket != 0)
   {
-    objects_retain(objects_array_element_callbacks(array), element, array);
+    o_retain(o_array_element_callbacks(array), element, array);
     bucket->index = index;
     bucket->element = element;
   }
@@ -90,44 +90,44 @@ _objects_array_new_bucket (objects_array_t *array, size_t index, const void *ele
 }
 
 static inline void
-_objects_array_free_bucket(objects_array_t *array,
-                           objects_array_bucket_t *bucket)
+_o_array_free_bucket(o_array_t *array,
+                           o_array_bucket_t *bucket)
 {
   if (bucket != 0)
   {
-    objects_release(objects_array_element_callbacks (array),
+    o_release(o_array_element_callbacks (array),
                     (void *)(bucket->element),
                     array);
-      NSZoneFree(objects_array_zone(array), bucket);
+      NSZoneFree(o_array_zone(array), bucket);
   }
 
   return;
 }
 
-static inline objects_array_slot_t *
-_objects_array_new_slots(objects_array_t *array, size_t slot_count)
+static inline o_array_slot_t *
+_o_array_new_slots(o_array_t *array, size_t slot_count)
 {
-  return (objects_array_slot_t *) NSZoneCalloc(objects_array_zone(array),
+  return (o_array_slot_t *) NSZoneCalloc(o_array_zone(array),
                                                slot_count,
-                                               sizeof(objects_array_slot_t));
+                                               sizeof(o_array_slot_t));
 }
 
 static inline void
-_objects_array_free_slots(objects_array_t *array,
-                          objects_array_slot_t *slots)
+_o_array_free_slots(o_array_t *array,
+                          o_array_slot_t *slots)
 {
   if (slots != 0)
-    NSZoneFree(objects_array_zone(array), slots);
+    NSZoneFree(o_array_zone(array), slots);
   return;
 }
 
 static inline void
-_objects_array_empty_slot (objects_array_t *array, objects_array_slot_t * slot)
+_o_array_empty_slot (o_array_t *array, o_array_slot_t * slot)
 {
   if (*slot != 0)
     {
       /* Get rid of the bucket. */
-      _objects_array_free_bucket (array, *slot);
+      _o_array_free_bucket (array, *slot);
 
       /* Mark the slot as empty. */
       *slot = 0;
@@ -141,18 +141,18 @@ _objects_array_empty_slot (objects_array_t *array, objects_array_slot_t * slot)
 }
 
 static inline void
-_objects_array_insert_bucket(objects_array_t *array,
-                             objects_array_bucket_t * bucket)
+_o_array_insert_bucket(o_array_t *array,
+                             o_array_bucket_t * bucket)
 {
-  objects_array_slot_t *slot;
+  o_array_slot_t *slot;
 
-  slot = _objects_array_slot_for_index (array, bucket->index);
+  slot = _o_array_slot_for_index (array, bucket->index);
 
   /* We're adding a bucket, so the current set of sorted slots is now
    * invalidated. */
   if (array->sorted_slots != 0)
     {
-      _objects_array_free_slots (array, array->sorted_slots);
+      _o_array_free_slots (array, array->sorted_slots);
       array->sorted_slots = 0;
     }
 
@@ -170,7 +170,7 @@ _objects_array_insert_bucket(objects_array_t *array,
       /* There's a bucket there, and it has the same index as `bucket'.
        * So we get rid of the old one, and put the new one in its
        * place. */
-      _objects_array_free_bucket (array, *slot);
+      _o_array_free_bucket (array, *slot);
       *slot = bucket;
       return;
     }
@@ -180,7 +180,7 @@ _objects_array_insert_bucket(objects_array_t *array,
        * better place... */
 
       size_t new_slot_count;
-      objects_array_slot_t *new_slots;	/* This guy holds the buckets while we
+      o_array_slot_t *new_slots;	/* This guy holds the buckets while we
 					 * muck about with them. */
       size_t d;			/* Just a counter */
 
@@ -196,14 +196,14 @@ _objects_array_insert_bucket(objects_array_t *array,
       do
 	{
 	  /* First we make a new pile of slots for the buckets. */
-	  new_slots = _objects_array_new_slots (array, new_slot_count);
+	  new_slots = _o_array_new_slots (array, new_slot_count);
 
 	  if (new_slots == 0)
             /* FIXME: Make this a *little* more friendly. */
 	    abort();
 
 	  /* Then we put the new bucket in the pile. */
-	  new_slots[_objects_array_fold_index (bucket->index,
+	  new_slots[_o_array_fold_index (bucket->index,
 					       new_slot_count)] = bucket;
 
 	  /* Now loop and try to place the others.  Upon collision
@@ -215,7 +215,7 @@ _objects_array_insert_bucket(objects_array_t *array,
 		{
 		  size_t i;
 
-		  i = _objects_array_fold_index (array->slots[d]->index,
+		  i = _o_array_fold_index (array->slots[d]->index,
 						 new_slot_count);
 
 		  if (new_slots[i] == 0)
@@ -227,7 +227,7 @@ _objects_array_insert_bucket(objects_array_t *array,
 		      /* A collision.  Clean up and try again. */
 
 		      /* Free the current set of new buckets. */
-		      _objects_array_free_slots (array, new_slots);
+		      _o_array_free_slots (array, new_slots);
 
 		      /* Bump up the number of new buckets. */
 		      ++new_slot_count;
@@ -241,7 +241,7 @@ _objects_array_insert_bucket(objects_array_t *array,
       while (d < array->slot_count);
 
       if (array->slots != 0)
-	_objects_array_free_slots (array, array->slots);
+	_o_array_free_slots (array, array->slots);
 
       array->slots = new_slots;
       array->slot_count = new_slot_count;
@@ -252,8 +252,8 @@ _objects_array_insert_bucket(objects_array_t *array,
 }
 
 static inline int
-_objects_array_compare_slots (const objects_array_slot_t *slot1,
-			      const objects_array_slot_t *slot2)
+_o_array_compare_slots (const o_array_slot_t *slot1,
+			      const o_array_slot_t *slot2)
 {
   if (slot1 == slot2)
     return 0;
@@ -273,9 +273,9 @@ _objects_array_compare_slots (const objects_array_slot_t *slot1,
 typedef int (*qsort_compare_func_t) (const void *, const void *);
 
 static inline void
-_objects_array_make_sorted_slots (objects_array_t *array)
+_o_array_make_sorted_slots (o_array_t *array)
 {
-  objects_array_slot_t *new_slots;
+  o_array_slot_t *new_slots;
 
   /* If there're already some sorted slots, then they're valid, and
    * we're done. */
@@ -283,15 +283,15 @@ _objects_array_make_sorted_slots (objects_array_t *array)
     return;
 
   /* Make some new slots. */
-  new_slots = _objects_array_new_slots (array, array->slot_count);
+  new_slots = _o_array_new_slots (array, array->slot_count);
 
   /* Copy the pointers to buckets into the new slots. */
   memcpy (new_slots, array->slots, (array->slot_count
-				    * sizeof (objects_array_slot_t)));
+				    * sizeof (o_array_slot_t)));
 
   /* Sort the new slots. */
-  qsort (new_slots, array->slot_count, sizeof (objects_array_slot_t),
-	 (qsort_compare_func_t) _objects_array_compare_slots);
+  qsort (new_slots, array->slot_count, sizeof (o_array_slot_t),
+	 (qsort_compare_func_t) _o_array_compare_slots);
 
   /* Put the newly sorted slots in the `sorted_slots' element of the
    * array structure. */
@@ -300,8 +300,8 @@ _objects_array_make_sorted_slots (objects_array_t *array)
   return;
 }
 
-static inline objects_array_bucket_t *
-_objects_array_enumerator_next_bucket (objects_array_enumerator_t *enumerator)
+static inline o_array_bucket_t *
+_o_array_enumerator_next_bucket (o_array_enumerator_t *enumerator)
 {
   if (enumerator->is_sorted)
     {
@@ -312,7 +312,7 @@ _objects_array_enumerator_next_bucket (objects_array_enumerator_t *enumerator)
 
 	  if (enumerator->index < enumerator->array->element_count)
 	    {
-	      objects_array_bucket_t *bucket;
+	      o_array_bucket_t *bucket;
 
 	      bucket = enumerator->array->sorted_slots[enumerator->index];
 	      ++(enumerator->index);
@@ -328,7 +328,7 @@ _objects_array_enumerator_next_bucket (objects_array_enumerator_t *enumerator)
 
 	  if (enumerator->index > 0)
 	    {
-	      objects_array_bucket_t *bucket;
+	      o_array_bucket_t *bucket;
 
 	      --(enumerator->index);
 	      bucket = enumerator->array->sorted_slots[enumerator->index];
@@ -340,7 +340,7 @@ _objects_array_enumerator_next_bucket (objects_array_enumerator_t *enumerator)
     }
   else
     {
-      objects_array_bucket_t *bucket;
+      o_array_bucket_t *bucket;
 
       if (enumerator->array->slots == 0)
 	return 0;
@@ -360,118 +360,118 @@ _objects_array_enumerator_next_bucket (objects_array_enumerator_t *enumerator)
 /** Statistics **/
 
 size_t
-objects_array_count(objects_array_t *array)
+o_array_count(o_array_t *array)
 {
   return array->element_count;
 }
 
 size_t
-objects_array_capacity (objects_array_t *array)
+o_array_capacity (o_array_t *array)
 {
   return array->slot_count;
 }
 
 int
-objects_array_check(objects_array_t *array)
+o_array_check(o_array_t *array)
 {
   /* FIXME: Code this. */
   return 0;
 }
 
 int
-objects_array_is_empty(objects_array_t *array)
+o_array_is_empty(o_array_t *array)
 {
-  return objects_array_count (array) != 0;
+  return o_array_count (array) != 0;
 }
 
 /** Emptying **/
 
 void
-objects_array_empty(objects_array_t *array)
+o_array_empty(o_array_t *array)
 {
   size_t c;
 
   /* Just empty each slot out, one by one. */
   for (c = 0; c < array->slot_count; ++c)
-    _objects_array_empty_slot (array, array->slots + c);
+    _o_array_empty_slot (array, array->slots + c);
 
   return;
 }
 
 /** Creating **/
 
-objects_array_t *
-objects_array_alloc_with_zone(NSZone *zone)
+o_array_t *
+o_array_alloc_with_zone(NSZone *zone)
 {
-  objects_array_t *array;
+  o_array_t *array;
 
   /* Get a new array. */
-  array = _objects_array_alloc_with_zone(zone);
+  array = _o_array_alloc_with_zone(zone);
 
   return array;
 }
 
-objects_array_t *
-objects_array_alloc(void)
+o_array_t *
+o_array_alloc(void)
 {
-  return objects_array_alloc_with_zone(0);
+  return o_array_alloc_with_zone(0);
 }
 
-objects_array_t *
-objects_array_with_zone(NSZone *zone)
+o_array_t *
+o_array_with_zone(NSZone *zone)
 {
-  return objects_array_init(objects_array_alloc_with_zone(zone));
+  return o_array_init(o_array_alloc_with_zone(zone));
 }
 
-objects_array_t *
-objects_array_with_zone_with_callbacks(NSZone *zone,
-                                       objects_callbacks_t callbacks)
+o_array_t *
+o_array_with_zone_with_callbacks(NSZone *zone,
+                                       o_callbacks_t callbacks)
 {
-  return objects_array_init_with_callbacks(objects_array_alloc_with_zone(zone),
+  return o_array_init_with_callbacks(o_array_alloc_with_zone(zone),
 					   callbacks);
 }
 
-objects_array_t *
-objects_array_with_callbacks(objects_callbacks_t callbacks)
+o_array_t *
+o_array_with_callbacks(o_callbacks_t callbacks)
 {
-  return objects_array_init_with_callbacks(objects_array_alloc(), callbacks);
+  return o_array_init_with_callbacks(o_array_alloc(), callbacks);
 }
 
-objects_array_t *
-objects_array_of_char_p(void)
+o_array_t *
+o_array_of_char_p(void)
 {
-  return objects_array_with_callbacks(objects_callbacks_for_char_p);
+  return o_array_with_callbacks(o_callbacks_for_char_p);
 }
 
-objects_array_t *
-objects_array_of_non_owned_void_p(void)
+o_array_t *
+o_array_of_non_owned_void_p(void)
 {
-  return objects_array_with_callbacks(objects_callbacks_for_non_owned_void_p);
+  return o_array_with_callbacks(o_callbacks_for_non_owned_void_p);
 }
 
-objects_array_t *
-objects_array_of_owned_void_p(void)
+o_array_t *
+o_array_of_owned_void_p(void)
 {
-  return objects_array_with_callbacks(objects_callbacks_for_owned_void_p);
+  return o_array_with_callbacks(o_callbacks_for_owned_void_p);
 }
 
-objects_array_t *
-objects_array_of_int(void)
+o_array_t *
+o_array_of_int(void)
 {
-  return objects_array_with_callbacks(objects_callbacks_for_int);
+  return o_array_with_callbacks(o_callbacks_for_int);
 }
 
-objects_array_t *
-objects_array_of_id(void)
+o_array_t *
+o_array_of_id(void)
 {
-  return objects_array_with_callbacks(objects_callbacks_for_id);
+  return o_array_with_callbacks(o_callbacks_for_id);
 }
 
 /** Initializing **/
 
-objects_array_t *
-objects_array_init_with_callbacks(objects_array_t *array,
-                                  objects_callbacks_t callbacks)
+o_array_t *
+o_array_init_with_callbacks(o_array_t *array,
+                                  o_callbacks_t callbacks)
 {
   if (array != 0)
     {
@@ -479,14 +479,14 @@ objects_array_init_with_callbacks(objects_array_t *array,
       size_t capacity = 15;
 
       /* Record the element callbacks. */
-      array->callbacks = objects_callbacks_standardize(callbacks);
+      array->callbacks = o_callbacks_standardize(callbacks);
 
       /* Initialize ARRAY's information. */
       array->element_count = 0;
       array->slot_count = capacity + 1;
 
       /* Make some new slots. */
-      array->slots = _objects_array_new_slots(array, capacity + 1);
+      array->slots = _o_array_new_slots(array, capacity + 1);
 
       /* Get the sorted slots ready for later use. */
       array->sorted_slots = 0;
@@ -495,33 +495,33 @@ objects_array_init_with_callbacks(objects_array_t *array,
   return array;
 }
 
-objects_array_t *
-objects_array_init (objects_array_t *array)
+o_array_t *
+o_array_init (o_array_t *array)
 {
-  return objects_array_init_with_callbacks (array,
-					    objects_callbacks_standard());
+  return o_array_init_with_callbacks (array,
+					    o_callbacks_standard());
 }
 
-objects_array_t *
-objects_array_init_from_array (objects_array_t *array, objects_array_t *old_array)
+o_array_t *
+o_array_init_from_array (o_array_t *array, o_array_t *old_array)
 {
-  objects_array_enumerator_t enumerator;
+  o_array_enumerator_t enumerator;
   size_t index;
   const void *element;
 
   /* Initialize ARRAY in the usual way. */
-  objects_array_init_with_callbacks (array,
-			       objects_array_element_callbacks (old_array));
+  o_array_init_with_callbacks (array,
+			       o_array_element_callbacks (old_array));
 
   /* Get an enumerator for OLD_ARRAY. */
-  enumerator = objects_array_enumerator (old_array);
+  enumerator = o_array_enumerator (old_array);
 
   /* Step through OLD_ARRAY's elements, putting them at the proper
    * index in ARRAY. */
-  while (objects_array_enumerator_next_index_and_element (&enumerator,
+  while (o_array_enumerator_next_index_and_element (&enumerator,
 							  &index, &element))
     {
-      objects_array_at_index_put_element (array, index, element);
+      o_array_at_index_put_element (array, index, element);
     }
 
   return array;
@@ -530,20 +530,20 @@ objects_array_init_from_array (objects_array_t *array, objects_array_t *old_arra
 /** Destroying **/
 
 void
-objects_array_dealloc(objects_array_t *array)
+o_array_dealloc(o_array_t *array)
 {
   if (array != 0)
     {
       /* Empty out ARRAY. */
-      objects_array_empty (array);
+      o_array_empty (array);
 
       /* Free up its slots. */
-      _objects_array_free_slots (array, array->slots);
+      _o_array_free_slots (array, array->slots);
 
       /* FIXME: What about ARRAY's sorted slots? */
 
       /* Free up ARRAY itself. */
-      _objects_array_dealloc (array);
+      _o_array_dealloc (array);
     }
 
   return;
@@ -552,29 +552,29 @@ objects_array_dealloc(objects_array_t *array)
 /** Searching **/
 
 const void *
-objects_array_element_at_index (objects_array_t *array, size_t index)
+o_array_element_at_index (o_array_t *array, size_t index)
 {
-  objects_array_bucket_t *bucket = _objects_array_bucket_for_index (array, index);
+  o_array_bucket_t *bucket = _o_array_bucket_for_index (array, index);
 
   if (bucket != 0)
     return bucket->element;
   else
     /* If `bucket' is 0, then the requested index is unused. */
     /* There's no bucket, so... */
-    return objects_array_not_an_element_marker (array);
+    return o_array_not_an_element_marker (array);
 }
 
 size_t
-objects_array_index_of_element (objects_array_t *array, const void *element)
+o_array_index_of_element (o_array_t *array, const void *element)
 {
   size_t i;
 
   for (i = 0; i < array->slot_count; ++i)
     {
-      objects_array_bucket_t *bucket = array->slots[i];
+      o_array_bucket_t *bucket = array->slots[i];
 
       if (bucket != 0)
-	if (objects_is_equal (objects_array_element_callbacks (array),
+	if (o_is_equal (o_array_element_callbacks (array),
 			      bucket->element,
 			      element,
 			      array))
@@ -585,82 +585,82 @@ objects_array_index_of_element (objects_array_t *array, const void *element)
 }
 
 int
-objects_array_contains_element (objects_array_t *array, const void *element)
+o_array_contains_element (o_array_t *array, const void *element)
 {
   /* Note that this search is quite inefficient. */
-  return objects_array_index_of_element (array, element) < (array->slot_count);
+  return o_array_index_of_element (array, element) < (array->slot_count);
 }
 
 const void **
-objects_array_all_elements (objects_array_t *array)
+o_array_all_elements (o_array_t *array)
 {
-  objects_array_enumerator_t enumerator;
+  o_array_enumerator_t enumerator;
   const void **elements;
   size_t count, i;
 
-  count = objects_array_count (array);
+  count = o_array_count (array);
 
   /* Set aside space to hold the elements. */
-  elements = (const void **)NSZoneCalloc(objects_array_zone(array),
+  elements = (const void **)NSZoneCalloc(o_array_zone(array),
 				         count + 1,
 				         sizeof(const void *));
 
-  enumerator = objects_array_enumerator(array);
+  enumerator = o_array_enumerator(array);
 
   for (i = 0; i < count; ++i)
-    objects_array_enumerator_next_element (&enumerator, elements + i);
+    o_array_enumerator_next_element (&enumerator, elements + i);
 
-  elements[i] = objects_array_not_an_element_marker(array);
+  elements[i] = o_array_not_an_element_marker(array);
 
   /* We're done, so heave it back. */
   return elements;
 }
 
 const void **
-objects_array_all_elements_ascending (objects_array_t *array)
+o_array_all_elements_ascending (o_array_t *array)
 {
-  objects_array_enumerator_t enumerator;
+  o_array_enumerator_t enumerator;
   const void **elements;
   size_t count, i;
 
-  count = objects_array_count (array);
+  count = o_array_count (array);
 
   /* Set aside space to hold the elements. */
-  elements = (const void **)NSZoneCalloc(objects_array_zone(array),
+  elements = (const void **)NSZoneCalloc(o_array_zone(array),
 				         count + 1,
 				         sizeof(const void *));
 
-  enumerator = objects_array_ascending_enumerator (array);
+  enumerator = o_array_ascending_enumerator (array);
 
   for (i = 0; i < count; ++i)
-    objects_array_enumerator_next_element (&enumerator, elements + i);
+    o_array_enumerator_next_element (&enumerator, elements + i);
 
-  elements[i] = objects_array_not_an_element_marker (array);
+  elements[i] = o_array_not_an_element_marker (array);
 
   /* We're done, so heave it back. */
   return elements;
 }
 
 const void **
-objects_array_all_elements_descending (objects_array_t *array)
+o_array_all_elements_descending (o_array_t *array)
 {
-  objects_array_enumerator_t enumerator;
+  o_array_enumerator_t enumerator;
   const void **elements;
   size_t count, i;
 
-  count = objects_array_count (array);
+  count = o_array_count (array);
 
   /* Set aside space to hold the elements. */
-  elements = (const void **)NSZoneCalloc(objects_array_zone(array),
+  elements = (const void **)NSZoneCalloc(o_array_zone(array),
 				         count + 1,
 				         sizeof(const void *));
 
-  enumerator = objects_array_descending_enumerator (array);
+  enumerator = o_array_descending_enumerator (array);
 
   for (i = 0; i < count; ++i)
-    objects_array_enumerator_next_element (&enumerator, elements + i);
+    o_array_enumerator_next_element (&enumerator, elements + i);
 
-  elements[i] = objects_array_not_an_element_marker (array);
+  elements[i] = o_array_not_an_element_marker (array);
 
   /* We're done, so heave it back. */
   return elements;
@@ -669,36 +669,36 @@ objects_array_all_elements_descending (objects_array_t *array)
 /** Removing **/
 
 void
-objects_array_remove_element_at_index (objects_array_t *array, size_t index)
+o_array_remove_element_at_index (o_array_t *array, size_t index)
 {
-  objects_array_bucket_t *bucket;
+  o_array_bucket_t *bucket;
 
   /* Get the bucket that might be there. */
-  bucket = _objects_array_bucket_for_index (array, index);
+  bucket = _o_array_bucket_for_index (array, index);
 
   /* If there's a bucket at the index, then we empty its slot out. */
   if (bucket != 0)
-    _objects_array_empty_slot (array, _objects_array_slot_for_index (array, index));
+    _o_array_empty_slot (array, _o_array_slot_for_index (array, index));
 
   /* Finally, we return. */
   return;
 }
 
 void
-objects_array_remove_element_known_present (objects_array_t *array,
+o_array_remove_element_known_present (o_array_t *array,
 					    const void *element)
 {
-  objects_array_remove_element_at_index (array,
-				      objects_array_index_of_element (array,
+  o_array_remove_element_at_index (array,
+				      o_array_index_of_element (array,
 								  element));
   return;
 }
 
 void
-objects_array_remove_element (objects_array_t *array, const void *element)
+o_array_remove_element (o_array_t *array, const void *element)
 {
-  if (objects_array_contains_element (array, element))
-    objects_array_remove_element_known_present (array, element);
+  if (o_array_contains_element (array, element))
+    o_array_remove_element_known_present (array, element);
 
   return;
 }
@@ -706,62 +706,62 @@ objects_array_remove_element (objects_array_t *array, const void *element)
 /** Adding **/
 
 const void *
-objects_array_at_index_put_element (objects_array_t *array,
+o_array_at_index_put_element (o_array_t *array,
 				    size_t index,
 				    const void *element)
 {
-  objects_array_bucket_t *bucket;
+  o_array_bucket_t *bucket;
 
   /* Clean out anything that's already there. */
-  objects_array_remove_element_at_index (array, index);
+  o_array_remove_element_at_index (array, index);
 
   /* Make a bucket for our information. */
-  bucket = _objects_array_new_bucket (array, index, element);
+  bucket = _o_array_new_bucket (array, index, element);
 
   /* Put our bucket in the array. */
-  _objects_array_insert_bucket (array, bucket);
+  _o_array_insert_bucket (array, bucket);
 
   return element;
 }
 
 /** Enumerating **/
 
-objects_array_enumerator_t
-objects_array_ascending_enumerator (objects_array_t *array)
+o_array_enumerator_t
+o_array_ascending_enumerator (o_array_t *array)
 {
-  objects_array_enumerator_t enumerator;
+  o_array_enumerator_t enumerator;
 
   enumerator.array = array;
   enumerator.is_sorted = 1;
   enumerator.is_ascending = 1;
   enumerator.index = 0;
 
-  _objects_array_make_sorted_slots (array);
+  _o_array_make_sorted_slots (array);
 
   return enumerator;
 }
 
-objects_array_enumerator_t
-objects_array_descending_enumerator (objects_array_t *array)
+o_array_enumerator_t
+o_array_descending_enumerator (o_array_t *array)
 {
-  objects_array_enumerator_t enumerator;
+  o_array_enumerator_t enumerator;
 
   enumerator.array = array;
   enumerator.is_sorted = 1;
   enumerator.is_ascending = 0;
   /* The `+ 1' is so that we have `0' as a known ending condition.
-   * See `_objects_array_enumerator_next_bucket()'. */
+   * See `_o_array_enumerator_next_bucket()'. */
   enumerator.index = array->element_count + 1;
 
-  _objects_array_make_sorted_slots (array);
+  _o_array_make_sorted_slots (array);
 
   return enumerator;
 }
 
-objects_array_enumerator_t
-objects_array_enumerator (objects_array_t *array)
+o_array_enumerator_t
+o_array_enumerator (o_array_t *array)
 {
-  objects_array_enumerator_t enumerator;
+  o_array_enumerator_t enumerator;
 
   enumerator.array = array;
   enumerator.is_sorted = 0;
@@ -772,13 +772,13 @@ objects_array_enumerator (objects_array_t *array)
 }
 
 int
-objects_array_enumerator_next_index_and_element (objects_array_enumerator_t * enumerator,
+o_array_enumerator_next_index_and_element (o_array_enumerator_t * enumerator,
 						 size_t * index,
 						 const void **element)
 {
-  objects_array_bucket_t *bucket;
+  o_array_bucket_t *bucket;
 
-  bucket = _objects_array_enumerator_next_bucket (enumerator);
+  bucket = _o_array_enumerator_next_bucket (enumerator);
 
   if (bucket != 0)
     {
@@ -791,7 +791,7 @@ objects_array_enumerator_next_index_and_element (objects_array_enumerator_t * en
   else
     {
       if (element != 0)
-	*element = objects_array_not_an_element_marker (enumerator->array);
+	*element = o_array_not_an_element_marker (enumerator->array);
       if (index != 0)
 	*index = 0;
       return 0;
@@ -799,19 +799,19 @@ objects_array_enumerator_next_index_and_element (objects_array_enumerator_t * en
 }
 
 int
-objects_array_enumerator_next_element (objects_array_enumerator_t * enumerator,
+o_array_enumerator_next_element (o_array_enumerator_t * enumerator,
 				       const void **element)
 {
-  return objects_array_enumerator_next_index_and_element (enumerator,
+  return o_array_enumerator_next_index_and_element (enumerator,
 							  0,
 							  element);
 }
 
 int
-objects_array_enumerator_next_index (objects_array_enumerator_t * enumerator,
+o_array_enumerator_next_index (o_array_enumerator_t * enumerator,
 				     size_t * index)
 {
-  return objects_array_enumerator_next_index_and_element (enumerator,
+  return o_array_enumerator_next_index_and_element (enumerator,
 							  index,
 							  0);
 }
@@ -819,14 +819,14 @@ objects_array_enumerator_next_index (objects_array_enumerator_t * enumerator,
 /** Comparing **/
 
 int
-objects_array_is_equal_to_array (objects_array_t *array1, objects_array_t *array2)
+o_array_is_equal_to_array (o_array_t *array1, o_array_t *array2)
 {
   size_t a, b;
   const void *m, *n;
-  objects_array_enumerator_t e, f;
+  o_array_enumerator_t e, f;
 
-  a = objects_array_count (array1);
-  b = objects_array_count (array2);
+  a = o_array_count (array1);
+  b = o_array_count (array2);
 
   if (a < b)
     return (b - a);
@@ -834,11 +834,11 @@ objects_array_is_equal_to_array (objects_array_t *array1, objects_array_t *array
     return (a - b);
 
   /* Get ascending enumerators for each of the two arrays. */
-  e = objects_array_ascending_enumerator (array1);
-  e = objects_array_ascending_enumerator (array1);
+  e = o_array_ascending_enumerator (array1);
+  e = o_array_ascending_enumerator (array1);
 
-  while (objects_array_enumerator_next_index_and_element (&e, &a, &m)
-	 && objects_array_enumerator_next_index_and_element (&f, &b, &n))
+  while (o_array_enumerator_next_index_and_element (&e, &a, &m)
+	 && o_array_enumerator_next_index_and_element (&f, &b, &n))
     {
       int c, d;
 
@@ -847,11 +847,11 @@ objects_array_is_equal_to_array (objects_array_t *array1, objects_array_t *array
       if (a > b)
 	return (a - b);
 
-      c = objects_compare (objects_array_element_callbacks (array1), m, n, array1);
+      c = o_compare (o_array_element_callbacks (array1), m, n, array1);
       if (c != 0)
 	return c;
 
-      d = objects_compare (objects_array_element_callbacks (array2), n, m, array2);
+      d = o_compare (o_array_element_callbacks (array2), n, m, array2);
       if (d != 0)
 	return d;
     }
@@ -861,8 +861,8 @@ objects_array_is_equal_to_array (objects_array_t *array1, objects_array_t *array
 
 /** Mapping **/
 
-objects_array_t *
-objects_array_map_elements(objects_array_t *array,
+o_array_t *
+o_array_map_elements(o_array_t *array,
 			   const void *(*fcn) (const void *, const void *),
 			   const void *user_data)
 {
@@ -872,38 +872,38 @@ objects_array_map_elements(objects_array_t *array,
 
 /** Miscellaneous **/
 
-objects_hash_t *
-objects_hash_init_from_array (objects_hash_t * hash, objects_array_t *array)
+o_hash_t *
+o_hash_init_from_array (o_hash_t * hash, o_array_t *array)
 {
-  objects_array_enumerator_t enumerator;
+  o_array_enumerator_t enumerator;
   const void *element;
 
   /* NOTE: If ARRAY contains multiple elements of the same equivalence
    * class, it is indeterminate which will end up in HASH.  This
    * shouldn't matter, though. */
-  enumerator = objects_array_enumerator (array);
+  enumerator = o_array_enumerator (array);
 
   /* Just walk through ARRAY's elements and add them to HASH. */
-  while (objects_array_enumerator_next_element (&enumerator, &element))
-    objects_hash_add_element (hash, element);
+  while (o_array_enumerator_next_element (&enumerator, &element))
+    o_hash_add_element (hash, element);
 
   return hash;
 }
 
-// objects_chash_t *
-// objects_chash_init_from_array (objects_chash_t * chash, objects_array_t *array)
+// o_chash_t *
+// o_chash_init_from_array (o_chash_t * chash, o_array_t *array)
 // {
-//   objects_array_enumerator_t enumerator;
+//   o_array_enumerator_t enumerator;
 //   const void *element;
 // 
 //   /* NOTE: If ARRAY contains multiple elements of the same equivalence
 //    * class, it is indeterminate which will end up in CHASH.  This
 //    * shouldn't matter, though. */
-//   enumerator = objects_array_enumerator (array);
+//   enumerator = o_array_enumerator (array);
 // 
 //   /* Just walk through ARRAY's elements and add them to CHASH. */
-//   while (objects_array_enumerator_next_element (&enumerator, &element))
-//     objects_chash_add_element (chash, element);
+//   while (o_array_enumerator_next_element (&enumerator, &element))
+//     o_chash_add_element (chash, element);
 // 
 //   return chash;
 // }

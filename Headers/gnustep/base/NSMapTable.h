@@ -35,10 +35,10 @@
 /**** Type, Constant, and Macro Definitions **********************************/
 
 /* Map table type. */
-typedef objects_map_t NSMapTable;
+typedef o_map_t NSMapTable;
 
 /* Private type for enumerating. */
-typedef objects_map_enumerator_t NSMapEnumerator;
+typedef o_map_enumerator_t NSMapEnumerator;
 
 /* Callback functions for a key. */
 typedef struct _NSMapTableKeyCallBacks NSMapTableKeyCallBacks;
@@ -81,8 +81,8 @@ struct _NSMapTableValueCallBacks
 };
 
 /* Quantities that are never map keys. */
-#define NSNotAnIntMapKey     objects_not_an_int_marker
-#define NSNotAPointerMapKey  objects_not_a_void_p_marker
+#define NSNotAnIntMapKey     o_not_an_int_marker
+#define NSNotAPointerMapKey  o_not_a_void_p_marker
 
 /* For keys that are pointer-sized or smaller quantities. */
 extern const NSMapTableKeyCallBacks NSIntMapKeyCallBacks;

@@ -34,12 +34,12 @@
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
-typedef struct _objects_array objects_array_t;
-typedef struct _objects_array_bucket objects_array_bucket_t;
-typedef objects_array_bucket_t *objects_array_slot_t;
-typedef struct _objects_array_enumerator objects_array_enumerator_t;
+typedef struct _o_array o_array_t;
+typedef struct _o_array_bucket o_array_bucket_t;
+typedef o_array_bucket_t *o_array_slot_t;
+typedef struct _o_array_enumerator o_array_enumerator_t;
 
-struct _objects_array_bucket
+struct _o_array_bucket
 {
   /* The bucket's real (or external) index */
   size_t index;
@@ -48,7 +48,7 @@ struct _objects_array_bucket
   const void *element;
 };
 
-struct _objects_array
+struct _o_array
 {
   /* Identifying information. */
   int magic_number;
@@ -56,23 +56,23 @@ struct _objects_array
   NSZone *zone;
   NSString *name;
   const void *extra;
-  objects_callbacks_t extra_callbacks;
+  o_callbacks_t extra_callbacks;
 
   /* Callbacks for the items in the array. */
-  objects_callbacks_t callbacks;
+  o_callbacks_t callbacks;
 
   /* Internal counters */
   size_t slot_count;
   size_t element_count;
 
   /* Databanks */
-  objects_array_slot_t *slots;
-  objects_array_slot_t *sorted_slots;
+  o_array_slot_t *slots;
+  o_array_slot_t *sorted_slots;
 };
 
-struct _objects_array_enumerator
+struct _o_array_enumerator
 {
-  objects_array_t *array;
+  o_array_t *array;
   size_t index;
   int is_sorted;
   int is_ascending;
@@ -87,76 +87,76 @@ struct _objects_array_enumerator
 
 /** Creating **/
 
-objects_array_t *
-objects_array_alloc(void);
+o_array_t *
+o_array_alloc(void);
 
-objects_array_t *
-objects_array_alloc_with_zone(NSZone *zone);
+o_array_t *
+o_array_alloc_with_zone(NSZone *zone);
 
-objects_array_t *
-objects_array(void);
+o_array_t *
+o_array(void);
 
-objects_array_t *
-objects_array_with_zone(NSZone *zone);
+o_array_t *
+o_array_with_zone(NSZone *zone);
 
-objects_array_t *
-objects_array_with_zone_with_callbacks(NSZone *zone,
-                                       objects_callbacks_t callbacks);
+o_array_t *
+o_array_with_zone_with_callbacks(NSZone *zone,
+                                       o_callbacks_t callbacks);
 
-objects_array_t *
-objects_array_with_callbacks(objects_callbacks_t callbacks);
+o_array_t *
+o_array_with_callbacks(o_callbacks_t callbacks);
 
-objects_array_t *
-objects_array_of_char_p(void);
+o_array_t *
+o_array_of_char_p(void);
 
-objects_array_t *
-objects_array_of_non_owned_void_p(void);
+o_array_t *
+o_array_of_non_owned_void_p(void);
 
-objects_array_t *
-objects_array_of_owned_void_p(void);
+o_array_t *
+o_array_of_owned_void_p(void);
 
-objects_array_t *
-objects_array_of_int(void);
+o_array_t *
+o_array_of_int(void);
 
-objects_array_t *
-objects_array_of_id(void);
+o_array_t *
+o_array_of_id(void);
 
 /** Initializing **/
 
-objects_array_t *
-objects_array_init(objects_array_t *array);
+o_array_t *
+o_array_init(o_array_t *array);
 
-objects_array_t *
-objects_array_init_with_callbacks(objects_array_t *array,
-                                  objects_callbacks_t callbacks);
+o_array_t *
+o_array_init_with_callbacks(o_array_t *array,
+                                  o_callbacks_t callbacks);
 
-objects_array_t *
-objects_array_init_with_array(objects_array_t *array,
-                              objects_array_t *other_array);
+o_array_t *
+o_array_init_with_array(o_array_t *array,
+                              o_array_t *other_array);
 
 /** Copying **/
 
-objects_array_t *
-objects_array_copy(objects_array_t *array);
+o_array_t *
+o_array_copy(o_array_t *array);
 
-objects_array_t *
-objects_array_copy_with_zone(objects_array_t *array, NSZone *zone);
+o_array_t *
+o_array_copy_with_zone(o_array_t *array, NSZone *zone);
 
 /** Destroying **/
 
 void
-objects_array_dealloc(objects_array_t *array);
+o_array_dealloc(o_array_t *array);
 
 /** Comparing **/
 
 int
-objects_array_is_equal_to_array(objects_array_t *array,
-                                objects_array_t *other_array);
+o_array_is_equal_to_array(o_array_t *array,
+                                o_array_t *other_array);
 
 /** Adding **/
 
 const void *
-objects_array_at_index_put_element(objects_array_t *array,
+o_array_at_index_put_element(o_array_t *array,
                                    size_t index,
                                    const void *element);
 
@@ -165,84 +165,84 @@ objects_array_at_index_put_element(objects_array_t *array,
 /** Removing **/
 
 void
-objects_array_remove_element_at_index(objects_array_t *array, size_t index);
+o_array_remove_element_at_index(o_array_t *array, size_t index);
 
 void
-objects_array_remove_element(objects_array_t *array, const void *element);
+o_array_remove_element(o_array_t *array, const void *element);
 
 void
-objects_array_remove_element_known_present(objects_array_t *array,
+o_array_remove_element_known_present(o_array_t *array,
                                            const void *element);
 
 /** Emptying **/
 
 void
-objects_array_empty(objects_array_t *array);
+o_array_empty(o_array_t *array);
 
 /** Searching **/
 
 int
-objects_array_contains_element(objects_array_t *array, const void *element);
+o_array_contains_element(o_array_t *array, const void *element);
 
 const void *
-objects_array_element(objects_array_t *array, const void *element);
+o_array_element(o_array_t *array, const void *element);
 
 size_t
-objects_array_index_of_element(objects_array_t *array, const void *element);
+o_array_index_of_element(o_array_t *array, const void *element);
 
 const void *
-objects_array_element_at_index(objects_array_t *array, size_t index);
+o_array_element_at_index(o_array_t *array, size_t index);
 
 const void **
-objects_array_all_elements(objects_array_t *array);
+o_array_all_elements(o_array_t *array);
 
 const void **
-objects_array_all_elements_ascending(objects_array_t *array);
+o_array_all_elements_ascending(o_array_t *array);
 
 const void **
-objects_array_all_element_descending(objects_array_t *array);
+o_array_all_element_descending(o_array_t *array);
 
 /** Enumerating **/
 
-objects_array_enumerator_t
-objects_array_enumerator(objects_array_t *array);
+o_array_enumerator_t
+o_array_enumerator(o_array_t *array);
 
-objects_array_enumerator_t
-objects_array_ascending_enumerator(objects_array_t *array);
+o_array_enumerator_t
+o_array_ascending_enumerator(o_array_t *array);
 
-objects_array_enumerator_t
-objects_array_descending_enumerator(objects_array_t *array);
+o_array_enumerator_t
+o_array_descending_enumerator(o_array_t *array);
 
 int
-objects_array_enumerator_next_index_and_element(objects_array_enumerator_t *enumerator,
+o_array_enumerator_next_index_and_element(o_array_enumerator_t *enumerator,
                                                 size_t *index,
                                                 const void **element);
 
 int
-objects_array_enumerator_next_element(objects_array_enumerator_t *enumerator,
+o_array_enumerator_next_element(o_array_enumerator_t *enumerator,
                                       const void **element);
 
 int
-objects_array_enumerator_next_index(objects_array_enumerator_t *enumerator,
+o_array_enumerator_next_index(o_array_enumerator_t *enumerator,
                                     size_t *element);
 
 /** Statistics **/
 
 int
-objects_array_is_empty(objects_array_t *array);
+o_array_is_empty(o_array_t *array);
 
 size_t
-objects_array_count(objects_array_t *array);
+o_array_count(o_array_t *array);
 
 size_t
-objects_array_capacity(objects_array_t *array);
+o_array_capacity(o_array_t *array);
 
 int
-objects_array_check(objects_array_t *array);
+o_array_check(o_array_t *array);
 
 /** Miscellaneous **/
 
-objects_hash_t *
-objects_hash_init_from_array(objects_hash_t *hash, objects_array_t *array);
+o_hash_t *
+o_hash_init_from_array(o_hash_t *hash, o_array_t *array);
 
 #endif /* __array_h_OBJECTS_INCLUDE */

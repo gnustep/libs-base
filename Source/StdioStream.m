@@ -36,7 +36,7 @@ enum {
 };
 
 extern int
-objects_vscanf (void *stream, 
+o_vscanf (void *stream, 
 		int (*inchar_func)(void*), 
 		void (*unchar_func)(void*,int),
 		const char *format, va_list argptr);
@@ -198,7 +198,7 @@ stdio_unchar_func(void *s, int c)
 #endif
 
   va_start(ap, format);
-  ret = objects_vscanf(fp, stdio_inchar_func, stdio_unchar_func, 
+  ret = o_vscanf(fp, stdio_inchar_func, stdio_unchar_func, 
 		       [format cStringNoCopy], ap);
   va_end(ap);
   return ret;

@@ -1,4 +1,4 @@
-/* Implementation of objects_vscanf for GNU Objective C Class Library
+/* Implementation of o_vscanf for GNU Objective C Class Library
    
    Reworked by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -89,7 +89,7 @@ extern long strtol(const char *str, char** ptr, int base);
    FORMAT, using the argument list in ARGPTR.
    Return the number of assignments made, or -1 for an input error.  */
 int
-objects_vscanf (void *stream, 
+o_vscanf (void *stream, 
 		int (*inchar_func)(void*), 
 		void (*unchar_func)(void*,int),
 		const char *format, va_list argptr)

@@ -35,10 +35,10 @@
 /**** Type, Constant, and Macro Definitions **********************************/
 
 /* Hash table type. */
-typedef objects_hash_t NSHashTable;
+typedef o_hash_t NSHashTable;
 
 /* Private type for enumerating. */
-typedef objects_hash_enumerator_t NSHashEnumerator;
+typedef o_hash_enumerator_t NSHashEnumerator;
 
 /* Callback functions. */
 typedef struct _NSHashTableCallBacks NSHashTableCallBacks;

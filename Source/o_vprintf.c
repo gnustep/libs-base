@@ -1,4 +1,4 @@
-/* Implementation of objects_vprintf for GNU Objective C Class Library
+/* Implementation of o_vprintf for GNU Objective C Class Library
    
    Reworked by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -96,7 +96,7 @@ Cambridge, MA 02139, USA.  */
 
 
 int
-objects_vprintf(void *stream,
+o_vprintf(void *stream,
 		int (*write_func)(void*, char*, int len), 
 		const char *format, va_list args)
 {

@@ -34,16 +34,16 @@
 /* FIXME: Is this right?!? */
 #define _OBJECTS_NOT_AN_ID_MARKER (const void *)(-1)
 
-const void *objects_not_an_id_marker = _OBJECTS_NOT_AN_ID_MARKER;
+const void *o_not_an_id_marker = _OBJECTS_NOT_AN_ID_MARKER;
 
-objects_callbacks_t objects_callbacks_for_id = 
+o_callbacks_t o_callbacks_for_id = 
 {
-  (objects_hash_func_t) objects_id_hash,
-  (objects_compare_func_t) objects_id_compare,
-  (objects_is_equal_func_t) objects_id_is_equal,
-  (objects_retain_func_t) objects_id_retain,
-  (objects_release_func_t) objects_id_release,
-  (objects_describe_func_t) objects_id_describe,
+  (o_hash_func_t) o_id_hash,
+  (o_compare_func_t) o_id_compare,
+  (o_is_equal_func_t) o_id_is_equal,
+  (o_retain_func_t) o_id_retain,
+  (o_release_func_t) o_id_release,
+  (o_describe_func_t) o_id_describe,
   _OBJECTS_NOT_AN_ID_MARKER
 };
 
@@ -57,38 +57,38 @@ objects_callbacks_t objects_callbacks_for_id =
  * that there was already a built-in call to do this sort of thing. */
 
 size_t
-objects_id_hash(id obj)
+o_id_hash(id obj)
 {
   return (size_t)[obj hash];
 }
 
 int
-objects_id_compare(id obj, id jbo)
+o_id_compare(id obj, id jbo)
 {
   return (int)[obj compare:jbo];
 }
 
 int
-objects_id_is_equal(id obj, id jbo)
+o_id_is_equal(id obj, id jbo)
 {
   return (int)[obj isEqual:jbo];
 }
 
 const void *
-objects_id_retain(id obj)
+o_id_retain(id obj)
 {
   return (const void *)[obj retain];
 }
 
 void
-objects_id_release(id obj)
+o_id_release(id obj)
 {
   [obj release];
   return;
 }
 
 NSString *
-objects_id_describe(id obj)
+o_id_describe(id obj)
 {
   return [obj description];
 }

@@ -56,30 +56,30 @@
 /* Internal counters for the three functions below.  They are placed here
  * purely for your viewing pleasure.  WARNING: Do not mess with these
  * unless you know what you're doing. */
-extern size_t ___objects_number_allocated;
-extern size_t ___objects_number_deallocated;
-extern size_t ___objects_number_serialized;
+extern size_t ___o_number_allocated;
+extern size_t ___o_number_deallocated;
+extern size_t ___o_number_serialized;
 
 /**** Function Prototypes ****************************************************/
 
 /* Returns the number of hash tables, map tables, lists,
  * and sparse arrays allocated thus far. */
 size_t
-_objects_number_allocated(void);
+_o_number_allocated(void);
 
 /* Returns the number of hash tables, map tables, lists,
  * and sparse arrays deallocated thus far. */
 size_t 
-_objects_number_deallocated(void);
+_o_number_deallocated(void);
 
 /* Returns (but does not increment) the number of hash tables,
  * map tables, lists, and sparse arrays given serial numbers thus far. */
 size_t 
-_objects_number_serialized(void);
+_o_number_serialized(void);
 
 /* Returns the least power of two strictly greater than BOUND. */
 size_t
-_objects_next_power_of_two(size_t bound);
+_o_next_power_of_two(size_t bound);
 
 #endif /* __numbers_h_OBJECTS_INCLUDE */
 
