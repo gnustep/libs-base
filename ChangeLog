@@ -1,3 +1,7 @@
+Thu Dec 17 14:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	NSCoder.m: ([-decodePropertyList:]) bugfix - use NSDeserializer
+
 Thu Dec 17  9:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	NSCalendarDate.m: Try to cope gracefully when locale info is not
