@@ -1,3 +1,14 @@
+Thu May  6 17:06:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSString.m: Minor optimisations - use ([-allocWithZone:])
+	* Source/NSGCString.m: ditto
+	* Source/NSGDictionary.m: ditto
+	* Source/NSArray.m: ditto
+	* Source/NSDictionary.m: ditto
+	* Source/NSSet.m: ditto
+	* Source/NSGCountedSet.m: ditto
+	* Source/NSData.m: ditto
+
 Thu May  6 13:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/propList.h: new file

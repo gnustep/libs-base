@@ -590,8 +590,8 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 	    }
 	  *ptr++ = '"';
 	  *ptr = '\0';
-	  result = [[_fastCls._NSGCString alloc] initWithCStringNoCopy: buf
-			length: length+2 fromZone: z];
+	  result = [[_fastCls._NSGCString allocWithZone: NSDefaultMallocZone()]
+	    initWithCStringNoCopy: buf length: length+2 fromZone: z];
 	  [output appendString: result];
 	  [result release];
 	}

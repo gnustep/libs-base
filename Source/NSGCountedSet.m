@@ -248,7 +248,8 @@
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSGCountedSetEnumerator alloc] initWithSet: self] autorelease];
+  return [[[NSGCountedSetEnumerator allocWithZone: NSDefaultMallocZone()]
+    initWithSet: self] autorelease];
 }
 
 - (void) removeObject: (NSObject*)anObject

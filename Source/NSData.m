@@ -268,46 +268,45 @@ failure:
 
 + (id) data
 {
-  return [[[NSDataStatic alloc] initWithBytesNoCopy: 0 length: 0] 
-	  autorelease];
+  return [[[NSDataStatic allocWithZone: NSDefaultMallocZone()]
+    initWithBytesNoCopy: 0 length: 0] autorelease];
 }
 
 + (id) dataWithBytes: (const void*)bytes
 	      length: (unsigned)length
 {
-  return [[[dataMalloc alloc] initWithBytes: bytes length: length] 
-	  autorelease];
+  return [[[dataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithBytes: bytes length: length] autorelease];
 }
 
 + (id) dataWithBytesNoCopy: (void*)bytes
 		    length: (unsigned)length
 {
-  return [[[dataMalloc alloc] initWithBytesNoCopy: bytes
-					   length: length]
-	  autorelease];
+  return [[[dataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithBytesNoCopy: bytes length: length] autorelease];
 }
 
 + (id) dataWithContentsOfFile: (NSString*)path
 {
-  return [[[dataMalloc alloc] initWithContentsOfFile: path] 
-	  autorelease];
+  return [[[dataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: path] autorelease];
 }
 
 + (id) dataWithContentsOfMappedFile: (NSString*)path
 {
 #if	HAVE_MMAP
-  return [[[NSDataMappedFile alloc] initWithContentsOfMappedFile: path]
-          autorelease];
+  return [[[NSDataMappedFile allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfMappedFile: path] autorelease];
 #else
-  return [[[dataMalloc alloc] initWithContentsOfMappedFile: path]
-          autorelease];
+  return [[[dataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfMappedFile: path] autorelease];
 #endif
 }
 
 + (id) dataWithData: (NSData*)data
 {
-  return [[[dataMalloc alloc] initWithBytes: [data bytes]
-				       length: [data length]] autorelease];
+  return [[[dataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithBytes: [data bytes] length: [data length]] autorelease];
 }
 
 - (id) init
@@ -1006,8 +1005,8 @@ failure:
 + (id) dataWithShmID: (int)anID length: (unsigned)length
 {
 #if	HAVE_SHMCTL
-  return [[[NSDataShared alloc] initWithShmID: anID length: length]
-	  autorelease];
+  return [[[NSDataShared allocWithZone: NSDefaultMallocZone()]
+    initWithShmID: anID length: length] autorelease];
 #else
   NSLog(@"[NSData -dataWithSmdID:length:] no shared memory support");
   return nil;
@@ -1017,18 +1016,18 @@ failure:
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned)length
 {
 #if	HAVE_SHMCTL
-  return [[[NSDataShared alloc] initWithBytes: bytes length: length]
-	  autorelease];
+  return [[[NSDataShared allocWithZone: NSDefaultMallocZone()]
+    initWithBytes: bytes length: length] autorelease];
 #else
-  return [[[dataMalloc alloc] initWithBytes: bytes length: length]
-	  autorelease];
+  return [[[dataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithBytes: bytes length: length] autorelease];
 #endif
 }
 
 + (id) dataWithStaticBytes: (const void*)bytes length: (unsigned)length
 {
-  return [[[NSDataStatic alloc] initWithBytesNoCopy: (void*)bytes
-					     length: length] autorelease];
+  return [[[NSDataStatic allocWithZone: NSDefaultMallocZone()]
+    initWithBytesNoCopy: (void*)bytes length: length] autorelease];
 }
 
 - (id) initWithBytesNoCopy: (void*)bytes
@@ -1111,55 +1110,52 @@ failure:
 
 + (id) data
 {
-  return [[[mutableDataMalloc alloc] initWithCapacity: 0]
-		autorelease];
+  return [[[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: 0] autorelease];
 }
 
 + (id) dataWithBytes: (const void*)bytes
 	      length: (unsigned)length
 {
-  return [[[mutableDataMalloc alloc] initWithBytes: bytes
-							length: length] 
-	  autorelease];
+  return [[[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithBytes: bytes length: length] autorelease];
 }
 
 + (id) dataWithBytesNoCopy: (void*)bytes
 		    length: (unsigned)length
 {
-  return [[[mutableDataMalloc alloc] initWithBytesNoCopy: bytes
-							      length: length]
-	  autorelease];
+  return [[[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithBytesNoCopy: bytes length: length] autorelease];
 }
 
 + (id) dataWithCapacity: (unsigned)numBytes
 {
-  return [[[mutableDataMalloc alloc] initWithCapacity: numBytes]
-	  autorelease];
+  return [[[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: numBytes] autorelease];
 }
 
 + (id) dataWithContentsOfFile: (NSString*)path
 {
-  return [[[mutableDataMalloc alloc] initWithContentsOfFile: path] 
-	  autorelease];
+  return [[[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: path] autorelease];
 }
 
 + (id) dataWithContentsOfMappedFile: (NSString*)path
 {
-  return [[[mutableDataMalloc alloc] initWithContentsOfFile: path] 
-	  autorelease];
+  return [[[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfFile: path] autorelease];
 }
 
 + (id) dataWithData: (NSData*)data
 {
-  return [[[mutableDataMalloc alloc] initWithBytes: [data bytes]
-					      length: [data length]]
-		autorelease];
+  return [[[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithBytes: [data bytes] length: [data length]] autorelease];
 }
 
 + (id) dataWithLength: (unsigned)length
 {
-  return [[[mutableDataMalloc alloc] initWithLength: length]
-	  autorelease];
+  return [[[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithLength: length] autorelease];
 }
 
 - (const void*) bytes
@@ -1501,8 +1497,8 @@ failure:
 + (id) dataWithShmID: (int)anID length: (unsigned)length
 {
 #if	HAVE_SHMCTL
-  return [[[NSMutableDataShared alloc] initWithShmID: anID length: length]
-	  autorelease];
+  return [[[NSMutableDataShared allocWithZone: NSDefaultMallocZone()]
+    initWithShmID: anID length: length] autorelease];
 #else
   NSLog(@"[NSMutableData -dataWithSmdID:length:] no shared memory support");
   return nil;
@@ -1512,11 +1508,11 @@ failure:
 + (id) dataWithSharedBytes: (const void*)bytes length: (unsigned)length
 {
 #if	HAVE_SHMCTL
-  return [[[NSMutableDataShared alloc] initWithBytes: bytes length: length]
-	  autorelease];
+  return [[[NSMutableDataShared allocWithZone: NSDefaultMallocZone()]
+    initWithBytes: bytes length: length] autorelease];
 #else
-  return [[[mutableDataMalloc alloc] initWithBytes: bytes length: length]
-	  autorelease];
+  return [[[mutableDataMalloc allocWithZone: NSDefaultMallocZone()]
+    initWithBytes: bytes length: length] autorelease];
 #endif
 }
 
@@ -2041,20 +2037,20 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (id) copy
 {
-    if (NSShouldRetainWithZone(self, NSDefaultMallocZone()))
-	return [self retain];
-    else
-	return [[dataMalloc allocWithZone: NSDefaultMallocZone()]
-	    initWithBytes: bytes length: length];
+  if (NSShouldRetainWithZone(self, NSDefaultMallocZone()))
+    return [self retain];
+  else
+    return [[dataMalloc allocWithZone: NSDefaultMallocZone()]
+      initWithBytes: bytes length: length];
 }
 
 - (id) copyWithZone: (NSZone*)z
 {
-    if (NSShouldRetainWithZone(self, z))
-	return [self retain];
-    else
-	return [[dataMalloc allocWithZone: z]
-	    initWithBytes: bytes length: length];
+  if (NSShouldRetainWithZone(self, z))
+    return [self retain];
+  else
+    return [[dataMalloc allocWithZone: z]
+      initWithBytes: bytes length: length];
 }
 
 - (void) dealloc
@@ -2110,8 +2106,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       NSData	*data;
 
-      data = [[NSDataStatic alloc] initWithBytesNoCopy: aBuffer
-						length: bufferSize];
+      data = [[NSDataStatic allocWithZone: NSDefaultMallocZone()]
+	initWithBytesNoCopy: aBuffer length: bufferSize];
       [self release];
       return data;
     }
@@ -2263,7 +2259,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       NSLog(@"[NSDataMappedFile -initWithContentsOfMappedFile:] mapping failed for %s - %s", thePath, strerror(errno));
       close(fd);
       [self release];
-      self = [dataMalloc alloc];
+      self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
       self = [self initWithContentsOfFile: path];
     }
   close(fd);
@@ -2320,7 +2316,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  NSLog(@"[-initWithBytes:length:] shared mem get failed for %u - %s",
 		    bufferSize, strerror(errno));
 	  [self release];
-	  self = [dataMalloc alloc];
+	  self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
 	  return [self initWithBytes: aBuffer length: bufferSize];
 	}
 
@@ -2331,7 +2327,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		  bufferSize, strerror(errno));
 	bytes = 0;
 	[self release];
-	self = [dataMalloc alloc];
+	self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
 	return [self initWithBytes: aBuffer length: bufferSize];
       }
       length = bufferSize;
@@ -2414,7 +2410,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 - (id) copy
 {
   return [[dataMalloc allocWithZone: NSDefaultMallocZone()]
-	    initWithBytes: bytes length: length];
+    initWithBytes: bytes length: length];
 }
 
 - (id) copyWithZone: (NSZone*)z
@@ -2989,7 +2985,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory get failed for %u - %s", bufferSize, strerror(errno));
       [self release];
-      self = [mutableDataMalloc alloc];
+      self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
       return [self initWithCapacity: bufferSize];
     }
 
@@ -3000,7 +2996,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory attach failed for %u - %s", bufferSize, strerror(e));
       bytes = 0;
       [self release];
-      self = [mutableDataMalloc alloc];
+      self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
       return [self initWithCapacity: bufferSize];
     }
   length = 0;
