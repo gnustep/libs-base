@@ -1373,7 +1373,6 @@ handle_printf_atsign (FILE *stream,
 				 range: all];
 }
 
-/* xxx FIXME */
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 			    options: (unsigned)mask
 			      range: (NSRange)aRange
@@ -1397,7 +1396,7 @@ handle_printf_atsign (FILE *stream,
     {
       start = aRange.location; stop = NSMaxRange(aRange); step = 1;
     }
-  range.location = 0;
+  range.location = NSNotFound;
   range.length = 0;
 
   cImp = (unichar(*)(id,SEL,unsigned)) [self methodForSelector: caiSel];

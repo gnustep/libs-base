@@ -1,3 +1,9 @@
+2002-02-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([-rangeOfCharacterFromSet:options:range:])
+	fix to return NSNotFound as location if character not present -
+	bug reported by Nicola Pero.
+
 2002-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gsdoc.m: loader() if entity id is missing, try to load url as
