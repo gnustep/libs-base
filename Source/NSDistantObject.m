@@ -791,6 +791,22 @@ enum
 	    }
 	  return sig;
 	}
+      /*
+       * Simlarly, when we fetch a method signature form the remote end,
+       * we get a proxy, and when we build a local signature we need to
+       * ask the proxy for its types ... and must avoid recursion again.
+       */
+      if (sel_eq(aSelector, @selector(methodType)))
+	{
+	  static	NSMethodSignature	*sig = nil;
+
+	  if (sig == nil)
+	    {
+	      sig = [NSMethodSignature signatureWithObjCTypes: "*@:"];
+	      RETAIN(sig);
+	    }
+	  return sig;
+	}
 
       if (_protocol != nil)
 	{

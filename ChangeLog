@@ -1,3 +1,7 @@
+2003-07-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistantObject.m: Avoid recursion fetching method signature
+
 2003-07-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate: ([-initWithString:calendarFormat:]) default
