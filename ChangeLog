@@ -1,5 +1,9 @@
 2002-02-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSUser.m: locking erro fixed by Stephen brandon
+
+2002-02-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSInvocation.h: Remove _argframe ivar
 	* Source/NSInvocation.m: Simplify by removing _argframe ivar and
 	using _frame throughout to hold arguments. Fix checks for valid frame.
