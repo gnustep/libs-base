@@ -32,6 +32,8 @@
 
 @protocol CommonCoding
 - (BOOL) isDecoding;
+- (void) closeCoder;
+- (BOOL) isClosed;
 + (int) defaultFormatVersion;
 @end
 
