@@ -28,6 +28,9 @@
 
 */
 
+/* Remove `inline' because they crash newer compilers */
+#define inline 
+
 #include <config.h>
 #include <base/preface.h>
 #include <mframe.h>
