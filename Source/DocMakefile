@@ -209,6 +209,14 @@ before-all::	../Documentation/Base \
 	../Documentation/BaseAdditions
 
 #
+# Work around our screwy doc generation implementation, sigh...
+#
+before-clean::
+	if [ -e obj ]; then \
+	  mv obj obj-save-link; \
+	fi
+
+#
 # Clean up temporary files used while generating documentation.
 #
 after-clean::
@@ -221,5 +229,8 @@ after-clean::
 	  $(RM) BaseAdditions/stamp; \
 	  $(RM) BaseAdditions/dependencies; \
 	  rmdir BaseAdditions; \
+	fi
+	if [ -e obj-save-link ]; then \
+	  mv obj-save-link obj; \
 	fi
 
