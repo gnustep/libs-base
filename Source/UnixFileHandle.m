@@ -21,7 +21,11 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
    */
 
+
 #include <config.h>
+#if	HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
+#endif
 #include <base/preface.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSData.h>
@@ -1221,7 +1225,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      NSString	*s;
 
 	      s = [NSString stringWithFormat: @"Accept attempt failed - %s",
-                      strerror(errno)];
+		strerror(errno)];
 	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
 	    }
 	  else
@@ -1266,7 +1270,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		  NSString	*s;
 
 		  s = [NSString stringWithFormat: @"Read attempt failed - %s",
-                          strerror(errno)];
+		    strerror(errno)];
 		  [readInfo setObject: s forKey: GSFileHandleNotificationError];
 		  [self postReadNotification];
 		}
@@ -1309,7 +1313,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 		      NSString	*s;
 
 		      s = [NSString stringWithFormat:
-				@"Write attempt failed - %s", strerror(errno)];
+			@"Write attempt failed - %s", strerror(errno)];
 		      [info setObject: s forKey: GSFileHandleNotificationError];
 		      [self postWriteNotification];
 		    }
@@ -1330,12 +1334,12 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  int	len = sizeof(result);
 
 	  if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
-		(char*)&result, &len) == 0 && result != 0)
+	    (char*)&result, &len) == 0 && result != 0)
 	    {
 		NSString	*s;
 
 		s = [NSString stringWithFormat: @"Connect attempt failed - %s",
-			      strerror(result)];
+		  strerror(result)];
 		[info setObject: s forKey: GSFileHandleNotificationError];
 	    }
 	  else
@@ -1412,4 +1416,547 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 @end
 
+
+
+#if	HAVE_OPENSSL_SSL_H
+@interface	GSUnixSSLHandle : UnixFileHandle <GCFinalization>
+{
+  SSL_CTX	*ctx;
+  SSL		*ssl;
+  BOOL		connected;
+}
+- (BOOL) sslConnect;
+- (void) sslDisconnect;
+- (void) sslSetCertificate: (NSString*)certFile
+		privateKey: (NSString*)privateKey
+		 PEMpasswd: (NSString*)PEMpasswd;
+@end
+
+@implementation	GSUnixSSLHandle
++ (void) initialize
+{
+  if (self == [GSUnixSSLHandle class])
+    {
+      SSL_library_init();
+    }
+}
+
+- (NSData*) availableData
+{
+  char		buf[NETBUF_SIZE];
+  NSMutableData	*d;
+  int		len;
+
+  [self checkRead];
+  if (isNonBlocking == YES)
+    [self setNonBlocking: NO];
+  d = [NSMutableData dataWithCapacity: 0];
+  if (isStandardFile)
+    {
+      while ((len = read(descriptor, buf, sizeof(buf))) > 0)
+	{
+	  [d appendBytes: buf length: len];
+	}
+    }
+  else
+    {
+      if (connected)
+	{
+	  if ((len = SSL_read(ssl, buf, sizeof(buf))) > 0)
+	    {
+	      [d appendBytes: buf length: len];
+	    }
+	}
+      else
+	{
+	  if ((len = read(descriptor, buf, sizeof(buf))) > 0)
+	    {
+	      [d appendBytes: buf length: len];
+	    }
+	}
+    }
+  if (len < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"unable to read from descriptor - %s",
+                  strerror(errno)];
+    }
+  return d;
+}
+
+- (void) closeFile
+{
+  [self sslDisconnect];
+  [super closeFile];
+}
+
+- (void) gcFinalize
+{
+  [self sslDisconnect];
+  [super gcFinalize];
+}
+
+- (NSData*) readDataOfLength: (unsigned)len
+{
+  NSMutableData	*d;
+  int		got;
+
+  [self checkRead];
+  if (isNonBlocking == YES)
+    [self setNonBlocking: NO];
+  if (len <= 65536)
+    {
+      char	*buf;
+
+      buf = NSZoneMalloc(NSDefaultMallocZone(), len);
+      d = [NSMutableData dataWithBytesNoCopy: buf length: len];
+      if ((got = SSL_read(ssl, [d mutableBytes], len)) < 0)
+	{
+	  [NSException raise: NSFileHandleOperationException
+		      format: @"unable to read from descriptor - %s",
+		      strerror(errno)];
+	}
+      [d setLength: got];
+    }
+  else
+    {
+      char	buf[NETBUF_SIZE];
+
+      d = [NSMutableData dataWithCapacity: 0];
+      do
+	{
+	  int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
+
+	  if (connected)
+	    {
+	      got = SSL_read(ssl, buf, chunk);
+	    }
+	  else
+	    {
+	      got = read(descriptor, buf, chunk);
+	    }
+	  if (got > 0)
+	    {
+	      [d appendBytes: buf length: got];
+	      len -= got;
+	    }
+	  else if (got < 0)
+	    {
+	      [NSException raise: NSFileHandleOperationException
+			  format: @"unable to read from descriptor - %s",
+			  strerror(errno)];
+	    }
+	}
+      while (len > 0 && got > 0);
+    }
+  return d;
+}
+
+- (NSData*) readDataToEndOfFile
+{
+  char		buf[NETBUF_SIZE];
+  NSMutableData	*d;
+  int		len;
+
+  [self checkRead];
+  if (isNonBlocking == YES)
+    [self setNonBlocking: NO];
+  d = [NSMutableData dataWithCapacity: 0];
+  if (connected)
+    {
+      while ((len = SSL_read(ssl, buf, sizeof(buf))) > 0)
+	{
+	  [d appendBytes: buf length: len];
+	}
+    }
+  else
+    {
+      while ((len = read(descriptor, buf, sizeof(buf))) > 0)
+	{
+	  [d appendBytes: buf length: len];
+	}
+    }
+  if (len < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"unable to read from descriptor - %s",
+                  strerror(errno)];
+    }
+  return d;
+}
+
+- (void) receivedEvent: (void*)data
+                  type: (RunLoopEventType)type
+		 extra: (void*)extra
+	       forMode: (NSString*)mode
+{
+  NSString	*operation;
+
+  if (isNonBlocking == NO)
+    [self setNonBlocking: YES];
+  if (type == ET_RDESC)
+    {
+      operation = [readInfo objectForKey: NotificationKey];
+      if (operation == NSFileHandleConnectionAcceptedNotification)
+	{
+	  struct sockaddr_in	buf;
+	  int			desc;
+	  int			blen = sizeof(buf);
+
+	  desc = accept(descriptor, (struct sockaddr*)&buf, &blen);
+	  if (desc < 0)
+	    {
+	      NSString	*s;
+
+	      s = [NSString stringWithFormat: @"Accept attempt failed - %s",
+                      strerror(errno)];
+	      [readInfo setObject: s forKey: GSFileHandleNotificationError];
+	    }
+	  else
+	    { // Accept attempt completed.
+	      UnixFileHandle		*h;
+	      struct sockaddr_in	sin;
+	      int			size = sizeof(sin);
+
+	      h = [[GSUnixSSLHandle alloc] initWithFileDescriptor: desc
+						   closeOnDealloc: YES];
+	      getpeername(desc, (struct sockaddr*)&sin, &size);
+	      [h setAddr: &sin];
+	      [readInfo setObject: h
+			   forKey: NSFileHandleNotificationFileHandleItem];
+	      RELEASE(h);
+	    }
+	  [self postReadNotification];
+	}
+      else if (operation == NSFileHandleDataAvailableNotification)
+	{
+	  [self postReadNotification];
+	}
+      else
+	{
+	  NSMutableData	*item;
+	  int		length;
+	  int		received = 0;
+	  char		buf[NETBUF_SIZE];
+
+	  item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
+	  length = [item length];
+
+	  if (connected)
+	    {
+	      received = SSL_read(ssl, buf, sizeof(buf));
+	    }
+	  else
+	    {
+	      received = read(descriptor, buf, sizeof(buf));
+	    }
+	  if (received == 0)
+	    { // Read up to end of file.
+	      [self postReadNotification];
+	    }
+	  else if (received < 0)
+	    {
+	      if (errno != EAGAIN)
+		{
+		  NSString	*s;
+
+		  s = [NSString stringWithFormat: @"Read attempt failed - %s",
+		    strerror(errno)];
+		  [readInfo setObject: s forKey: GSFileHandleNotificationError];
+		  [self postReadNotification];
+		}
+	    }
+	  else
+	    {
+	      [item appendBytes: buf length: received];
+	      if (operation == NSFileHandleReadCompletionNotification)
+		{
+		  // Read a single chunk of data
+		  [self postReadNotification];
+		}
+	    }
+	}
+    }
+  else if (type == ET_WDESC)
+    {
+      NSMutableDictionary	*info;
+
+      info = [writeInfo objectAtIndex: 0];
+      operation = [info objectForKey: NotificationKey];
+      if (operation == GSFileHandleWriteCompletionNotification)
+	{
+	  NSData	*item;
+	  int		length;
+	  const void	*ptr;
+
+	  item = [info objectForKey: NSFileHandleNotificationDataItem];
+	  length = [item length];
+	  ptr = [item bytes];
+	  if (writePos < length)
+	    {
+	      int	written;
+
+	      if (connected)
+		{
+		  written = SSL_write(ssl, (char*)ptr + writePos, 
+		    length - writePos);
+		}
+	      else
+		{
+		  written = write(descriptor, (char*)ptr + writePos, 
+		    length - writePos);
+		}
+	      if (written <= 0)
+		{
+		  if (errno != EAGAIN)
+		    {
+		      NSString	*s;
+
+		      s = [NSString stringWithFormat:
+			@"Write attempt failed - %s", strerror(errno)];
+		      [info setObject: s forKey: GSFileHandleNotificationError];
+		      [self postWriteNotification];
+		    }
+		}
+	      else
+		{
+		  writePos += written;
+		}
+	    }
+	  if (writePos >= length)
+	    { // Write operation completed.
+	      [self postWriteNotification];
+	    }
+	}
+      else
+	{ // Connection attempt completed.
+	  int	result;
+	  int	len = sizeof(result);
+
+	  if (getsockopt(descriptor, SOL_SOCKET, SO_ERROR,
+	    (char*)&result, &len) == 0 && result != 0)
+	    {
+		NSString	*s;
+
+		s = [NSString stringWithFormat: @"Connect attempt failed - %s",
+		  strerror(result)];
+		[info setObject: s forKey: GSFileHandleNotificationError];
+	    }
+	  else
+	    {
+	      readOK = YES;
+	      writeOK = YES;
+	    }
+	  connectOK = NO;
+	  [self postWriteNotification];
+	}
+    }
+}
+
+- (BOOL) sslConnect
+{
+  int		ret;
+  int		err;
+  NSRunLoop	*loop;
+
+  if (connected == YES)
+    {
+      return YES;	/* Already connected.	*/
+    }
+  if (isStandardFile == YES)
+    {
+      NSLog(@"Attempt to make ssl connection to a standard file");
+      return NO;
+    }
+
+  /*
+   * Ensure we have a context and handle to connect with.
+   */
+  if (ctx == 0)
+    {
+      ctx = SSL_CTX_new(SSLv23_client_method());
+    }
+  if (ssl == 0)
+    {
+      ssl = SSL_new(ctx);
+    }
+
+  ret = SSL_set_fd(ssl, descriptor);
+  loop = [NSRunLoop currentRunLoop];
+  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+  ret = SSL_connect(ssl);
+  if (ret != 1)
+    {
+      int	count = 1;
+
+      err = SSL_get_error(ssl, ret);
+      while (err == SSL_ERROR_WANT_READ && count < 10)
+	{
+	  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
+	  ret = SSL_connect(ssl);
+	  if (ret != 1)
+	    {
+	      err = SSL_get_error(ssl, ret);
+	      count++;
+	    }
+	  else
+	    {
+	      err = 0;
+	    }
+	}
+      //NSLog(@"Number of attempts: %d", count);
+      if (err != SSL_ERROR_NONE)
+	{
+	  NSLog(@"unable to make SSL connection");
+	  switch (SSL_get_error(ssl, ret))
+	    {
+	      case SSL_ERROR_NONE:
+		NSLog(@"No error: really helpful");
+		break;
+	      case SSL_ERROR_ZERO_RETURN:
+		NSLog(@"Zero Return error");
+		break;
+	      case SSL_ERROR_WANT_READ:
+		NSLog(@"Want Read Error");
+		break;
+	      case SSL_ERROR_WANT_WRITE:
+		NSLog(@"Want Write Error");
+		break;
+	      case SSL_ERROR_WANT_X509_LOOKUP:
+		NSLog(@"Want X509 Lookup Error");
+		break;
+	      case SSL_ERROR_SYSCALL:
+		NSLog(@"Syscall Error - %s", strerror(errno));
+		break;
+	      case SSL_ERROR_SSL:
+		NSLog(@"SSL Error: really helpful");
+		break;
+	      default:
+		NSLog(@"Standard Unix Error: really helpful");
+		break;
+	    }
+	  return NO;
+	}
+    }
+  connected = YES;
+  return YES;
+}
+
+- (void) sslDisconnect
+{
+  if (ssl != 0)
+    {
+      if (connected == YES)
+	{
+	  SSL_shutdown(ssl);
+	}
+      SSL_clear(ssl);
+      SSL_free(ssl);
+      ssl = 0;
+    }
+  if (ctx != 0)
+    {
+      SSL_CTX_free(ctx);
+      ctx = 0;
+    }
+  connected = NO;
+}
+
+- (void) sslSetCertificate: (NSString*)certFile
+		privateKey: (NSString*)privateKey
+		 PEMpasswd: (NSString*)PEMpasswd
+{
+  if (isStandardFile == YES)
+    {
+      NSLog(@"Attempt to set ssl certificate for a standard file");
+      return;
+    }
+  /*
+   * Ensure we have a context to set the certificate for.
+   */
+  if (ctx == 0)
+    {
+      ctx = SSL_CTX_new(SSLv23_client_method());
+    }
+  if ([PEMpasswd length] > 0)
+    {
+      SSL_CTX_set_default_passwd_cb_userdata(ctx, (char*)[PEMpasswd cString]);
+    }
+  if ([certFile length] > 0)
+    {
+      SSL_CTX_use_certificate_file(ctx, [certFile cString], X509_FILETYPE_PEM);
+    }
+  if ([privateKey length] > 0)
+    {
+      SSL_CTX_use_PrivateKey_file(ctx, [privateKey cString], X509_FILETYPE_PEM);
+    }
+}
+
+- (void) writeData: (NSData*)item
+{
+  int		rval = 0;
+  const void	*ptr = [item bytes];
+  unsigned int	len = [item length];
+  unsigned int	pos = 0;
+
+  [self checkWrite];
+  if (isNonBlocking == YES)
+    [self setNonBlocking: NO];
+  while (pos < len)
+    {
+      int	toWrite = len - pos;
+
+      if (toWrite > NETBUF_SIZE)
+        toWrite = NETBUF_SIZE;
+      if (connected)
+	{
+	  rval = SSL_write(ssl, (char*)ptr+pos, toWrite);
+	}
+      else
+	{
+	  rval = write(descriptor, (char*)ptr+pos, toWrite);
+	}
+      if (rval < 0)
+        break;
+      pos += rval;
+    }
+  if (rval < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"unable to write to descriptor - %s",
+                  strerror(errno)];
+    }
+}
+@end
+
+#else
+
+@interface	GSUnixSSLHandle : UnixFileHandle
+{
+}
+- (BOOL) sslConnect;
+- (void) sslDisconnect;
+- (void) sslSetCertificate: (NSString*)certFile
+		privateKey: (NSString*)privateKey
+		 PEMpasswd: (NSString*)PEMpasswd;
+@end
+
+@implementation	GSUnixSSLHandle
+- (BOOL) sslConnect
+{
+  NSLog(@"SSL method called on system built without OpenSSL");
+  return NO;
+}
+- (void) sslDisconnect
+{
+  NSLog(@"SSL method called on system built without OpenSSL");
+}
+- (void) sslSetCertificate: (NSString*)certFile
+		privateKey: (NSString*)privateKey
+		 PEMpasswd: (NSString*)PEMpasswd
+{
+  NSLog(@"SSL method called on system built without OpenSSL");
+}
+@end
+#endif	/* HAVE_OPENSSL_SSL_H */
 

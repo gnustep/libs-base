@@ -562,7 +562,7 @@ dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
 AC_CHECK_HEADERS(sys/time.h sys/rusage.h ucbinclude/sys/resource.h)
 
 #--------------------------------------------------------------------
-# These headers/functions needed by TcpPort.m
+# These headers/functions needed by GSTcpPort.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/socket.h netinet/in.h)
 dnl AC_REPLACE_FUNCS(recvfrom)
@@ -832,6 +832,56 @@ if test "$HAVE_LIBXML" = "0"; then
   CPPFLAGS="$cppflags_temp";
   LIBS="$libs_temp";
 fi
+
+#--------------------------------------------------------------------
+# Check OpenSSL for HTTPS support in future.
+#--------------------------------------------------------------------
+echo "Checking for OpenSSL"
+AC_ARG_WITH(openssl-include,
+  [  --with-openssl-include=PATH  include path for openssl headers],
+  openssl_incdir="$withval", openssl_incdir="no")
+
+AC_ARG_WITH(openssl-library,
+  [  --with-openssl-library=PATH  library path for openssl libraries],
+  openssl_libdir="$withval", openssl_libdir="no")
+
+cppflags_temp=$CFLAGS
+libs_temp=$LIBS
+
+if test "$openssl_incdir" != "no"; then
+  CPPFLAGS="$CPPFLAGS -I$openssl_incdir"
+fi
+if test "$openssl_libdir" != "no"; then
+  LIBS="$LIBS -L$openssl_libdir"
+fi
+
+AC_CHECK_HEADERS(openssl/ssl.h)
+if test $ac_cv_header_openssl_ssl_h = no; then
+  echo "Could not find openssl headers"
+  echo "Check to make sure you have a recent version of openssl installed"
+  AC_MSG_WARN(Could not find openssl headers)
+else
+  AC_CHECK_LIB(crypto, CRYPTO_malloc, ssl_ok=yes, ssl_ok=no)
+  if test "$ssl_ok" = yes; then
+    base_libs="$LIBS"
+    LIBS="$LIBS -lcrypto"
+    AC_CHECK_LIB(ssl, ssl2_clear, ssl_ok=yes, ssl_ok=no)
+    if test "$ssl_ok" = yes; then
+      LIBS="$base_libs -lssl -lcrypto"
+      AC_SUBST(LIBS)
+    fi
+  fi
+fi
+
+if test "$HAVE_LIBSSL" = "0"; then
+  CPPFLAGS="$cppflags_temp";
+  LIBS="$libs_temp";
+fi
+if test "$HAVE_LIBCRYPTO" = "0"; then
+  CPPFLAGS="$cppflags_temp";
+  LIBS="$libs_temp";
+fi
+
 
 
 AC_SUBST(whole_archive)
