@@ -2301,11 +2301,14 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       // FIXME: Get more of the details
       [plData getBytes: postfix range: NSMakeRange(length-32, 32)];
       size = postfix[6];
-      if (size < 1 || size > 2)
+      table_start = 256*256*postfix[29] + 256*postfix[30] + postfix[31];
+      if (size < 1 || size > 3)
 	{
+	  [NSException raise: NSGenericException
+		      format: @"Unknown table size %d", size];
 	  DESTROY(self);	// Bad format
 	}
-      else if ((table_start = 256*postfix[30] + postfix[31]) > length - 32)
+      else if (table_start > length - 32)
 	{
 	  DESTROY(self);	// Bad format
 	}
@@ -2347,8 +2350,16 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else
     {
-      [NSException raise: NSGenericException
-		   format: @"Unknown table size %d", size];
+      unsigned char buffer[size];
+      int i;
+      unsigned num = 0;
+	
+      [data getBytes: &buffer range: NSMakeRange(table_start + size*index, size)];
+      for (i = 0; i < size; i++)
+        {
+	  num = num*256 + buffer[i];
+	}
+      return num;
     }
   return 0;
 }
@@ -2363,7 +2374,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       *counter += 1;  
       return oid;
     }
-  else if (size == 2)
+  else if ((size == 2) || (size == 3))
     {
       unsigned short oid;
 
