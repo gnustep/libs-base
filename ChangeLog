@@ -1,4 +1,10 @@
+2004-01-06  Adam Fedor  <fedor@gnu.org>
+
+	* Documentation/Base: New directory
+	* Documentation/Base/Debugging.gsdoc: New.
+
 2004-01-06  Manuel Guesdon <mguesdon@orange-concept.com>
+	
 	* Headers/Foundation/NSArray.h/.m: added -setValue:forKey:
 		and -valueForKey: to comply to Mac OS X v10.3 and 
 		later documentation.
