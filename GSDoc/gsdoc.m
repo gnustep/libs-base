@@ -124,11 +124,11 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     {
       attr = attr->next;
     }
-  if (attr == 0 || attr->val == 0)
+  if (attr == 0 || attr->children == 0)
     {
       return nil;
     }
-  return [self parseText: attr->val];
+  return [self parseText: attr->children];
 }
 
 - (NSMutableDictionary*) indexForType: (NSString*)type
@@ -172,13 +172,14 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   /*
    * Check that the document is of the right kind
    */
-  cur = doc->root;
+  cur = doc->children;
   if (cur == NULL)
     {
       NSLog(@"empty document - %@", fileName);
       [self dealloc];
       return nil;
     }
+  cur = cur->next;
 
   if (strcmp(cur->name, "gsdoc") != 0)
     {
@@ -399,11 +400,11 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       NSLog(@"Missing or illegal author name");
       return nil;
     }
-  node = node->childs;
+  node = node->children;
   if (node != 0 && strcmp(node->name, "email") == 0)
     {
       email = [self getProp: "email" fromNode: node];
-      ename = [self parseText: node->childs];
+      ename = [self parseText: node->children];
       node = node->next;
     }
   if (node != 0 && strcmp(node->name, "url") == 0)
@@ -470,7 +471,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
   if (strcmp(node->name, "p") == 0)
     {
-      NSString	*elem = [self parseText: node->childs];
+      NSString	*elem = [self parseText: node->children];
 
       if (elem == nil)
 	{
@@ -505,14 +506,14 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   unsigned		count;
   unsigned		i;
 
-  node = node->childs;
+  node = node->children;
   /*
    * Parse the front (unnumbered chapters) storing the html for each
    * chapter as a separate string in the 'front' array.
    */
   if (node != 0 && strcmp(node->name, "front") == 0)
     {
-      xmlNodePtr	f = node->childs;
+      xmlNodePtr	f = node->children;
 
       if (f != 0 && strcmp(f->name, "contents") == 0)
 	{
@@ -553,7 +554,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
    */
   if (node != 0 && strcmp(node->name, "back") == 0)
     {
-      node = node->childs;
+      node = node->children;
 
       while (node != 0 && strcmp(node->name, "chapter") == 0)
 	{
@@ -635,13 +636,13 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       ref = [NSString stringWithFormat: @"cont-%u", contentsIndex++];
     }
 
-  node = node->childs;
+  node = node->children;
   if (node == 0 || strcmp(node->name, "heading") != 0)
     {
       NSLog(@"%s without heading", type);
       return nil;
     }
-  head = [self parseText: node->childs];
+  head = [self parseText: node->children];
   node = node->next;
 
 
@@ -743,15 +744,15 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
        */
       [[self indexForType: @"method"] removeAllObjects];
 
-      node = node->childs;
+      node = node->children;
       if (node != 0 && strcmp(node->name, "declared") == 0)
 	{
-	  declared = [self parseText: node->childs];
+	  declared = [self parseText: node->children];
 	  node = node->next;
 	}
       while (node != 0 && strcmp(node->name, "conform") == 0)
 	{
-	  NSString	*s = [self parseText: node->childs];
+	  NSString	*s = [self parseText: node->children];
 
 	  if (s != nil)
 	    {
@@ -776,7 +777,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	}
       while (node != 0 && strcmp(node->name, "standard") == 0)
 	{
-	  NSString	*s = [self parseText: node->childs];
+	  NSString	*s = [self parseText: node->children];
 
 	  if (s != nil)
 	    {
@@ -868,10 +869,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
        */
       [[self indexForType: @"method"] removeAllObjects];
 
-      node = node->childs;
+      node = node->children;
       if (node != 0 && strcmp(node->name, "declared") == 0)
 	{
-	  declared = [self parseText: node->childs];
+	  declared = [self parseText: node->children];
 	  node = node->next;
 	}
       if (node != 0 && strcmp(node->name, "desc") == 0)
@@ -891,7 +892,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	}
       while (node != 0 && strcmp(node->name, "standard") == 0)
 	{
-	  NSString	*s = [self parseText: node->childs];
+	  NSString	*s = [self parseText: node->children];
 
 	  if (s != nil)
 	    {
@@ -963,10 +964,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
        */
       [[self indexForType: @"method"] removeAllObjects];
 
-      node = node->childs;
+      node = node->children;
       if (node != 0 && strcmp(node->name, "declared") == 0)
 	{
-	  declared = [self parseText: node->childs];
+	  declared = [self parseText: node->children];
 	  node = node->next;
 	}
       if (node != 0 && strcmp(node->name, "desc") == 0)
@@ -986,7 +987,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	}
       while (node != 0 && strcmp(node->name, "standard") == 0)
 	{
-	  NSString	*s = [self parseText: node->childs];
+	  NSString	*s = [self parseText: node->children];
 
 	  if (s != nil)
 	    {
@@ -1060,10 +1061,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	{
 	  ref = typeName;
 	}
-      node = node->childs;
+      node = node->children;
       if (node != 0 && strcmp(node->name, "typespec") == 0)
 	{
-	  spec = [self parseText: node->childs];
+	  spec = [self parseText: node->children];
 	  node = node->next;
 	}
       if (spec == nil)
@@ -1074,7 +1075,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
       if (node != 0 && strcmp(node->name, "declared") == 0)
 	{
-	  declared = [self parseText: node->childs];
+	  declared = [self parseText: node->children];
 	  node = node->next;
 	}
       if (node != 0 && strcmp(node->name, "desc") == 0)
@@ -1084,7 +1085,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	}
       while (node != 0 && strcmp(node->name, "standard") == 0)
 	{
-	  NSString	*s = [self parseText: node->childs];
+	  NSString	*s = [self parseText: node->children];
 
 	  if (s != nil)
 	    {
@@ -1142,10 +1143,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	{
 	  ref = name;
 	}
-      node = node->childs;
+      node = node->children;
       if (node != 0 && strcmp(node->name, "declared") == 0)
 	{
-	  declared = [self parseText: node->childs];
+	  declared = [self parseText: node->children];
 	  node = node->next;
 	}
       if (node != 0 && strcmp(node->name, "desc") == 0)
@@ -1155,7 +1156,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	}
       while (node != 0 && strcmp(node->name, "standard") == 0)
 	{
-	  NSString	*s = [self parseText: node->childs];
+	  NSString	*s = [self parseText: node->children];
 
 	  if (s != nil)
 	    {
@@ -1227,7 +1228,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 {
   NSMutableString	*text = [NSMutableString string];
 
-  node = node->childs;
+  node = node->children;
   if (node == 0)
     {
       return @"";
@@ -1243,7 +1244,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	}
       else if (strcmp(node->name, "p") == 0)
 	{
-	  NSString	*elem = [self parseText: node->childs];
+	  NSString	*elem = [self parseText: node->children];
 
 	  if (elem != nil)
 	    {
@@ -1270,7 +1271,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
 - (NSString*) parseDocument
 {
-  xmlNodePtr	cur = doc->root->childs;
+  xmlNodePtr	cur = doc->children->next->children;
   NSString	*text;
   NSString	*body;
   NSString	*head;
@@ -1312,7 +1313,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 - (NSString*) parseExample: (xmlNodePtr)node
 {
   NSMutableString	*text = [NSMutableString string];
-  NSString		*elem = [self parseText: node->childs];
+  NSString		*elem = [self parseText: node->children];
   NSString		*ref = [self getProp: "id" fromNode: node];
   NSString		*cap = [self getProp: "caption" fromNode: node];
 
@@ -1357,10 +1358,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       type = @"int";
     }
 
-  node = node->childs;
+  node = node->children;
   while (node != 0 && strcmp(node->name, "arg") == 0)
     {
-      NSString	*arg = [self parseText: node->childs];
+      NSString	*arg = [self parseText: node->children];
       NSString	*typ = [self getProp: "type" fromNode: node];
 
       if (arg == nil) return nil;
@@ -1391,7 +1392,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   [args appendString: @")"];
   if (node != 0 && strcmp(node->name, "declared") == 0)
     {
-      declared = [self parseText: node->childs];
+      declared = [self parseText: node->children];
       node = node->next;
     }
   if (node != 0)
@@ -1433,10 +1434,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   NSString		*version;
   BOOL			hadAuthor = NO;
 
-  node = node->childs;
+  node = node->children;
 
   if (node == 0 || strcmp(node->name, "title") != 0
-    || (title = [self parseText: node->childs]) == nil)
+    || (title = [self parseText: node->children]) == nil)
     {
       NSLog(@"head without title");
       return nil;
@@ -1478,28 +1479,28 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
   if (node != 0 && strcmp(node->name, "version") == 0)
     {
-      version = [self parseText: node->childs];
+      version = [self parseText: node->children];
       node = node->next;
       [text appendFormat: @"<p>Version: %@</p>\r\n", version];
     }
 
   if (node != 0 && strcmp(node->name, "date") == 0)
     {
-      date = [self parseText: node->childs];
+      date = [self parseText: node->children];
       node = node->next;
       [text appendFormat: @"<p>Date: %@</p>\r\n", date];
     }
 
   if (node != 0 && strcmp(node->name, "abstract") == 0)
     {
-      abstract = [self parseText: node->childs];
+      abstract = [self parseText: node->children];
       node = node->next;
       [text appendFormat: @"<blockquote>%@</blockquote>\r\n", abstract];
     }
 
   if (node != 0 && strcmp(node->name, "copy") == 0)
     {
-      copyright = [self parseText: node->childs];
+      copyright = [self parseText: node->children];
       node = node->next;
       [text appendFormat: @"<p>Copyright: %@</p>\r\n", copyright];
     }
@@ -1509,7 +1510,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
 - (NSString*) parseItem: (xmlNodePtr)node
 {
-  node = node->childs;
+  node = node->children;
 
   if (strcmp(node->name, "class") == 0
     || strcmp(node->name, "category") == 0
@@ -1532,7 +1533,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 
   if (strcmp(node->name, "p") == 0)
     {
-      NSString	*elem = [self parseText: node->childs];
+      NSString	*elem = [self parseText: node->children];
 
       if (elem == nil)
 	{
@@ -1561,7 +1562,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   if (strcmp(node->name, "list") == 0)
     {
       [text appendString: @"<ul>\r\n"];
-      node = node->childs;
+      node = node->children;
       while (node != 0 && strcmp(node->name, "item") == 0)
 	{
 	  [text appendFormat: @"<li>%@\r\n", [self parseItem: node]];
@@ -1572,7 +1573,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   else if (strcmp(node->name, "enum") == 0)
     {
       [text appendString: @"<ol>\r\n"];
-      node = node->childs;
+      node = node->children;
       while (node != 0 && strcmp(node->name, "item") == 0)
 	{
 	  [text appendFormat: @"<li>%@\r\n", [self parseItem: node]];
@@ -1583,13 +1584,13 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   else if (strcmp(node->name, "deflist") == 0)
     {
       [text appendString: @"<dl>\r\n"];
-      node = node->childs;
+      node = node->children;
       while (node != 0)
 	{
 	  if (strcmp(node->name, "term") == 0)
 	    {
 	      [text appendFormat: @"<dt>%@\r\n",
-		[self parseText: node->childs]];
+		[self parseText: node->children]];
 	      node = node->next;
 	    }
 	  if (node == 0 || strcmp(node->name, "desc") != 0)
@@ -1605,13 +1606,13 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   else
     {
       [text appendString: @"<dl>\r\n"];
-      node = node->childs;
+      node = node->children;
       while (node != 0)
 	{
 	  if (strcmp(node->name, "question") == 0)
 	    {
 	      [text appendFormat: @"<dt>%@\r\n",
-		[self parseText: node->childs]];
+		[self parseText: node->children]];
 	      node = node->next;
 	    }
 	  if (node == 0 || strcmp(node->name, "answer") != 0)
@@ -1619,7 +1620,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	      NSLog(@"term without desc");
 	      return nil;
 	    }
-	  [text appendFormat: @"<dt>%@\r\n", [self parseBlock: node->childs]];
+	  [text appendFormat: @"<dt>%@\r\n", [self parseBlock: node->children]];
 	  node = node->next;
 	}
       [text appendString: @"</dl>\r\n"];
@@ -1641,10 +1642,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       ref = [NSString stringWithFormat: @"macro-%u", labelIndex++];
     }
 
-  node = node->childs;
+  node = node->children;
   while (node != 0 && strcmp(node->name, "arg") == 0)
     {
-      NSString	*arg = [self parseText: node->childs];
+      NSString	*arg = [self parseText: node->children];
       NSString	*typ = [self getProp: "type" fromNode: node];
 
       if (arg == nil) return nil;
@@ -1682,7 +1683,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
     }
   if (node != 0 && strcmp(node->name, "declared") == 0)
     {
-      declared = [self parseText: node->childs];
+      declared = [self parseText: node->children];
       node = node->next;
     }
   if (node != 0)
@@ -1753,10 +1754,10 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
   [lText appendString: type];
   [lText appendString: @")"];
 
-  node = node->childs;
+  node = node->children;
   while (node != 0 && strcmp(node->name, "sel") == 0)
     {
-      NSString	*sel = [self parseText: node->childs];
+      NSString	*sel = [self parseText: node->children];
 
       if (sel == nil) return nil;
       [sText appendString: sel];
@@ -1764,7 +1765,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
       node = node->next;
       if (node != 0 && strcmp(node->name, "arg") == 0)
 	{
-	  NSString	*arg = [self parseText: node->childs];
+	  NSString	*arg = [self parseText: node->children];
 	  NSString	*typ = [self getProp: "type" fromNode: node];
 
 	  if (arg == nil) return nil;
@@ -1856,7 +1857,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	{
 	  NSMutableArray	*a = [NSMutableArray array];
 
-	  node = node->childs;
+	  node = node->children;
 	  while (node != 0 && node->name != 0)
 	    {
 	      [a addObject: [NSString stringWithCString: node->name]];
@@ -1896,7 +1897,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	      || strcmp(node->name, "strong") == 0
 	      || strcmp(node->name, "var") == 0)
 	      {
-		NSString	*elem = [self parseText: node->childs];
+		NSString	*elem = [self parseText: node->children];
 
 		[text appendFormat: @"<%s>%@</%s>",
 		  node->name, elem, node->name];
@@ -1907,7 +1908,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		NSString		*elem;
 		NSString		*ref;
 
-		elem = [self parseText: node->childs];
+		elem = [self parseText: node->children];
 		ref = [self getProp: "id" fromNode: node];
 		if (ref == nil)
 		  {
@@ -1929,7 +1930,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 		NSString		*elem;
 		NSString		*ref;
 
-		elem = [self parseText: node->childs];
+		elem = [self parseText: node->children];
 		ref = [NSString stringWithFormat: @"foot-%u",
 		  [footnotes count]];
 		[self setEntry: elem withRef: ref inIndexOfType: @"footnote"];
@@ -1939,7 +1940,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	      }
 	    else if (strcmp(node->name, "ref") == 0)
 	      {
-		NSString	*elem = [self parseText: node->childs];
+		NSString	*elem = [self parseText: node->children];
 //		NSString	*typ = [self getProp: "type" fromNode: node];
 //		NSString	*cls = [self getProp: "class" fromNode: node];
 		NSString	*ref = [self getProp: "id" fromNode: node];
@@ -1952,7 +1953,7 @@ loader(const char *url, const char* eid, xmlParserCtxtPtr *ctxt)
 	      }
 	    else if (strcmp(node->name, "uref") == 0)
 	      {
-		NSString	*elem = [self parseText: node->childs];
+		NSString	*elem = [self parseText: node->children];
 		NSString	*ref = [self getProp: "url" fromNode: node];
 
 		if ([elem length] == 0)
