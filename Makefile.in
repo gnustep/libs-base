@@ -281,6 +281,7 @@ objc/zone.h
 GNUSTEP_MFILES = \
 NSAllocateObject.m \
 NSArray.m \
+NSAssertionHandler.m \
 NSArrayEnumerator.m \
 NSAutoreleasePool.m \
 NSBundle.m \
