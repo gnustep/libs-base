@@ -1,5 +1,5 @@
 /* Implementation of GNU Objective-C Proxy for remote object messaging
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -148,7 +148,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 	{
 	  /* This proxy is local on the other side */
 	  willBeLocal = YES;
-	  [aRmc encodeObjectBycopy:nil
+	  [aRmc encodeBycopyObject:nil
 		withName:@"Proxy is local on other side"];
 	  [aRmc encodeValueOfObjCType:@encode(unsigned)
 		at:&aTarget 
@@ -166,7 +166,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
 	    fprintf(stderr, "Sending a triangle-connection proxy\n");
 	  /* It's remote here, so we need to tell other side where to form
 	     triangle connection to */
-	  [aRmc encodeObjectBycopy:op
+	  [aRmc encodeBycopyObject:op
 		withName:@"Proxy outPort"];
 	  [aRmc encodeValueOfObjCType:@encode(unsigned)
 		at:&aTarget 
@@ -184,7 +184,7 @@ static inline BOOL class_is_kind_of(Class self, Class aClassObject)
       /* Let the connection know that we're going, this also retains anObj */
       [[aRmc connection] addLocalObject:anObject];
       /* if nil port, other connection will use ConnectedCoder remotePort */
-      [aRmc encodeObjectBycopy:nil 
+      [aRmc encodeBycopyObject:nil 
 	    withName:@"Proxy outPort == remotePort"];
       [aRmc encodeValueOfObjCType:@encode(unsigned)
 	    at:&aTarget 
