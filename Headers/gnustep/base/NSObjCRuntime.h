@@ -202,7 +202,7 @@ GSNameFromSelector(SEL this)
 /**
  * Return a selector matching the specified name, or nil if no name is
  * supplied.  The returned selector could be any one with the name.<br />
- * If no selector already exists, creates one.
+ * If no selector exists, returns nil.
  */
 FOUNDATION_STATIC_INLINE SEL
 GSSelectorFromName(const char *name)
@@ -213,20 +213,15 @@ GSSelectorFromName(const char *name)
     }
   else
     {
-      SEL	s = sel_get_any_uid(name);
-
-      if (s == 0)
-	{
-	  s = sel_get_uid(name);
-	}
-      return s;
+      return sel_get_any_uid(name);
     }
 }
 
 /**
  * Return the selector for the specified name and types.  Returns a nul
  * pointer if the name is nul.  Uses any available selector if the types
- * argument is nul.  Creates a new selector if necessary.
+ * argument is nul. <br />
+ * Creates a new selector if necessary.
  */
 FOUNDATION_STATIC_INLINE SEL
 GSSelectorFromNameAndTypes(const char *name, const char *types)
