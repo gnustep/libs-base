@@ -1,3 +1,7 @@
+Sat Jul 21 23:25:14 2001  Wim Oudshoorn
+	* Source/NSHost.m ([NSHost +hostWithName:]):
+	Added forgotten argument to NSLog().
+
 2001-07-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/UnixFileHandle.m: Don't abort aread/write attempts that
