@@ -1,5 +1,5 @@
 /* Control of executable units within a shared virtual memory space
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996-2000 Free Software Foundation, Inc.
 
    Original Author:  Scott Christley <scottc@net-community.com>
    Rewritten by: Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -32,82 +32,51 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotificationQueue.h>
 
+@interface	NSThread (Private)
+- (id) _initWithSelector: (SEL)s toTarget: (id)t withObject: (id)o;
+- (void) _sendThreadMethod;
+@end
+
 /*
- *	A class to defer the use of the real thread method until we have
- *	an autlorelease pool so that target and arg can be safely released
- *	once they are no longer needed.
+ * Flag indicating whether the objc runtime ever went multi-threaded.
  */
-@interface GSThreadLauncher : NSObject
-{
-  id	target;
-  id	arg;
-  SEL	sel;
-}
-+ (GSThreadLauncher*) newWithTarget: (id)t selector: (SEL)s arg: (id)a;
-- (void) sendThreadMethod;
-@end
+static BOOL	entered_multi_threaded_state = NO;
 
-@implementation	GSThreadLauncher
-+ (GSThreadLauncher*) newWithTarget: (id)t selector: (SEL)s arg: (id)a
-{
-  GSThreadLauncher	*l;
+/*
+ * Default thread.
+ */
+static NSThread	*defaultThread = nil;
 
-  l = (GSThreadLauncher*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-  l->target = RETAIN(t);
-  l->arg = RETAIN(a);
-  l->sel = s;
-  return l;
-}
-
-- (void) dealloc
-{
-  RELEASE(target);
-  RELEASE(arg);
-  NSDeallocateObject(self);
-}
-
-- (void) sendThreadMethod
-{
-  /*
-   * We are running in the new thread - so we store ourself in the thread
-   * dictionary and release ourself - thus, when the thread exits, we will
-   * be deallocated cleanly.
-   */
-  [[[NSThread currentThread] threadDictionary] setObject: self
-						  forKey: @"GSThreadLauncher"];
-  RELEASE(self);
-  [target performSelector: sel withObject: arg];
-  [NSThread exit];
-}
-@end
-
-// Class variables
-
-/* Flag indicating whether the objc runtime ever went multi-threaded. */
-static BOOL entered_multi_threaded_state;
-
+/*
+ * Fast access function to get current thread.
+ */
 inline NSThread*
 GSCurrentThread()
 {
-  id t = (id) objc_thread_get_data ();
-
-  /* If an NSThread object for this thread has already been created
-     and stashed away, return it.  This depends on the objc runtime
-     initializing objc_thread_get_data() to 0 for newly-created
-     threads. */
-  if (t)
-    return t;
-
-  /* We haven't yet created an NSThread object for this thread; create
-     it.  (Doing this here instead of in +detachNewThread.. not only
-     avoids the race condition, it also nicely provides an NSThread on
-     request for the single thread that exists at application
-     start-up, and for thread's created by calling
-     objc_thread_detach() directly.) */
-  t = [[NSThread alloc] init];
-  return t;
+  if (entered_multi_threaded_state == NO)
+    {
+      /*
+       * If the NSThread class has been initialized, we will have a default
+       * thread set up - otherwise we must make sure the class is initialised.
+       */
+      if (defaultThread == nil)
+	{
+	  return [NSThread currentThread];
+	}
+      else
+	{
+	  return defaultThread;
+	}
+    }
+  else
+    {
+      return (NSThread*)objc_thread_get_data();
+    }
 }
 
+/*
+ * Fast access function for thread dictionary of current thread.
+ */
 NSMutableDictionary*
 GSCurrentThreadDictionary()
 {
@@ -115,18 +84,24 @@ GSCurrentThreadDictionary()
   NSMutableDictionary	*dict = thread->_thread_dictionary;
 
   if (dict == nil)
-    dict = [thread threadDictionary];
+    {
+      dict = [thread threadDictionary];
+    }
   return dict; 
 }
 
-void gnustep_base_thread_callback()
+/*
+ * Callback function so send notifications on becoming multi-threaded.
+ */
+static void
+gnustep_base_thread_callback()
 {
   /*
    * Post a notification if this is the first new thread to be created.
    * Won't work properly if threads are not all created by this class,
    * but it's better than nothing.
    */
-  if (!entered_multi_threaded_state)
+  if (entered_multi_threaded_state == NO)
     {
       NSNotification	*n;
 
@@ -143,12 +118,98 @@ void gnustep_base_thread_callback()
 
 @implementation NSThread
 
-// Class initialization
+/*
+ * Return the current thread
+ */
++ (NSThread*) currentThread
+{
+  return GSCurrentThread();
+}
+
+/*
+ * Create a new thread - use this method rather than alloc-init
+ */
++ (void) detachNewThreadSelector: (SEL)aSelector
+		        toTarget: (id)aTarget
+                      withObject: (id)anArgument
+{
+  NSThread	*thread;
+
+  /*
+   * Make sure the notification is posted BEFORE the new thread starts.
+   */
+  gnustep_base_thread_callback();
+
+  /*
+   * Create the new thread.
+   */
+  thread = (NSThread*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+  thread = [thread _initWithSelector: aSelector
+			    toTarget: aTarget
+			  withObject: anArgument];
+
+  /*
+   * Have the runtime detach the thread
+   */
+  if (objc_thread_detach(@selector(_sendThreadMethod), thread, nil) == NULL)
+    {
+      /* This should probably be an exception */
+      NSLog(@"Unable to detach thread (unknown error)");
+    }
+}
+
+/*
+ * Terminating a thread
+ * What happens if the thread doesn't call +exit - it doesn't terminate!
+ */
++ (void) exit
+{
+  NSThread		*t;
+
+  t = GSCurrentThread();
+  if (t->_active == YES)
+    {
+      NSNotification	*n;
+
+      /*
+       * Set the thread to be inactive to avoid any possibility of recursion.
+       */
+      t->_active = NO;
+
+      /*
+       * Let observers know this thread is exiting.
+       */
+      n = [NSNotification alloc];
+      n = [n initWithName: NSThreadWillExitNotification
+		   object: t
+		 userInfo: nil];
+      [[NSNotificationCenter defaultCenter] postNotification: n];
+      RELEASE(n);
+
+      /*
+       * Release anything in our autorelease pools
+       */
+      [NSAutoreleasePool _endThread];
+
+      /*
+       * destroy the thread object.
+       */
+      DESTROY(t);
+
+      /*
+       * Tell the runtime to exit the thread
+       */
+      objc_thread_exit();
+    }
+}
+
+/*
+ * Class initialization
+ */
 + (void) initialize
 {
   if (self == [NSThread class])
     {
-      entered_multi_threaded_state = NO;
       /*
        * The objc runtime calls this callback AFTER creating a new thread -
        * which is not correct for us, but does at least mean that we can tell
@@ -156,88 +217,28 @@ void gnustep_base_thread_callback()
        * rather than via the NSThread class.
        */
       objc_set_thread_callback(gnustep_base_thread_callback);
+
+      /*
+       * Ensure that the default thread exists.
+       */
+      defaultThread
+	= (NSThread*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      defaultThread = [defaultThread _initWithSelector: (SEL)0
+					      toTarget: nil
+					    withObject: nil];
+      defaultThread->_active = YES;
+      objc_thread_set_data(defaultThread);
     }
 }
-
-
-// Initialization
-
-- (void) dealloc
-{
-  TEST_RELEASE(_thread_dictionary);
-  [super dealloc];
-}
-
-- (id) init
-{
-  /* Make it easy and fast to get this NSThread object from the thread. */
-  objc_thread_set_data (self);
-
-  /* initialize our ivars. */
-  _thread_dictionary = nil;	// Initialize this later only when needed
-  _exception_handler = NULL;
-  init_autorelease_thread_vars(&_autorelease_vars);
-
-  return self;
-}
-
-
-// Creating an NSThread
-
-+ (NSThread*) currentThread
-{
-  return GSCurrentThread();
-}
-
-+ (void) detachNewThreadSelector: (SEL)aSelector
-		        toTarget: (id)aTarget
-                      withObject: (id)anArgument
-{
-  GSThreadLauncher	*launcher;
-  /*
-   * Make sure the notification is posted BEFORE the new thread starts.
-   */
-  gnustep_base_thread_callback();
-  /*
-   * Have the runtime detach the thread
-   */
-  launcher = [GSThreadLauncher newWithTarget: aTarget
-				    selector: aSelector
-					 arg: anArgument];
-
-  if (objc_thread_detach(@selector(sendThreadMethod), launcher, nil) == NULL)
-    {
-      /* This should probably be an exception */
-      NSLog(@"Unable to detach thread (unknown error)");
-    }
-
-  /* NOTE we can't create the new NSThread object for this thread here
-     because there would be a race condition.  The newly created
-     thread might ask for its NSThread object before we got to create
-     it. */
-}
-
-
-// Querying a thread
 
 + (BOOL) isMultiThreaded
 {
   return entered_multi_threaded_state;
 }
 
-/* Thread dictionary
-   NB. This cannot be autoreleased, since we cannot be sure that the
-   autorelease pool for the thread will continue to exist for the entire
-   life of the thread!
+/*
+ * Delaying a thread
  */
-- (NSMutableDictionary*) threadDictionary
-{
-  if (!_thread_dictionary)
-    _thread_dictionary = [NSMutableDictionary new];
-  return _thread_dictionary;
-}
-
-// Delaying a thread
 + (void) sleepUntilDate: (NSDate*)date
 {
   NSTimeInterval delay;
@@ -278,35 +279,71 @@ void gnustep_base_thread_callback()
     }
 }
 
-// Terminating a thread
-// What happens if the thread doesn't call +exit?
-+ (void) exit
+
+
+/*
+ * Thread instance methods.
+ */
+
+- (void) dealloc
 {
-  NSThread		*t;
-  NSNotification	*n;
+  if (_active == YES)
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Deallocating an active thread without [+exit]!"];
+    }
+  DESTROY(_thread_dictionary);
+  DESTROY(_target);
+  DESTROY(_arg);
+  NSDeallocateObject(self);
+}
 
-  // the current NSThread
-  t = GSCurrentThread();
+- (id) init
+{
+  RELEASE(self);
+  return [NSThread currentThread];
+}
 
-  // Post the notification
-  n = [NSNotification alloc];
-  n = [n initWithName: NSThreadWillExitNotification
-	       object: t
-	     userInfo: nil];
-  [[NSNotificationCenter defaultCenter] postNotification: n];
-  RELEASE(n);
+- (id) _initWithSelector: (SEL)s toTarget: (id)t withObject: (id)o
+{
+  /* initialize our ivars. */
+  _selector = s;
+  _target = RETAIN(t);
+  _arg = RETAIN(o);
+  _thread_dictionary = nil;	// Initialize this later only when needed
+  _exception_handler = NULL;
+  _active = NO;
+  init_autorelease_thread_vars(&_autorelease_vars);
+  return self;
+}
 
+- (void) _sendThreadMethod
+{
   /*
-   * Release anything in our autorelease pools
+   * We are running in the new thread - so we store ourself in the thread
+   * dictionary and release ourself - thus, when the thread exits, we will
+   * be deallocated cleanly.
    */
-  [NSAutoreleasePool _endThread];
+  objc_thread_set_data(self);
+  _active = YES;
+  [_target performSelector: _selector withObject: _arg];
+  [NSThread exit];
+}
 
-  RELEASE(t);
-
-  // xxx Clean up any outstanding NSAutoreleasePools here.
-
-  // Tell the runtime to exit the thread
-  objc_thread_exit ();
+/*
+ * Thread dictionary
+ * NB. This cannot be autoreleased, since we cannot be sure that the
+ * autorelease pool for the thread will continue to exist for the entire
+ * life of the thread!
+ */
+- (NSMutableDictionary*) threadDictionary
+{
+  if (_thread_dictionary == nil)
+    {
+      _thread_dictionary = [NSMutableDictionary new];
+    }
+  return _thread_dictionary;
 }
 
 @end
+
