@@ -35,7 +35,6 @@
 {
   if (self == [NSCoder class])
     {
-      behavior_class_add_class (self, [NSCoderNonCore class]);
     }
 }
 
@@ -67,10 +66,6 @@
   [self subclassResponsibility: _cmd];
   return NSNotFound;
 }
-
-@end
-
-@implementation NSCoderNonCore
 
 // Encoding Data
 
