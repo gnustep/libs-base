@@ -27,9 +27,15 @@ SHELL = /bin/sh
 srcdir = @srcdir@
 VPATH = @srcdir@
 
+prefix = @prefix@
+datadir = $(prefix)/share
+charsetdir = $(datadir)/NSCharacterSets
+
 #### End of system configuration section. ####
 
 include $(srcdir)/../Makeconf
+
+all: 
 
 CHARSET_FILES = \
 alphanumCharSet.dat \
@@ -43,10 +49,20 @@ uppercaseCharSet.dat \
 whitespaceCharSet.dat \
 whitespaceandnlCharSet.dat
 
-all: 
-
 RCS_FILES = Makefile.in
 DIST_FILES = $(RCS_FILES) $(CHARSET_FILES) README.CharSet
+INSTALL_FILES = $(CHARSET_FILES) README.CharSet
+
+installdirs:
+	$(srcdir)/../mkinstalldirs $(charsetdir)
+install:
+	for file in $(INSTALL_FILES); do \
+	  $(INSTALL_DATA) $$file $(charsetdir)/$$file ; \
+	done
+uninstall:
+	for file in $(INSTALL_FILES); do \
+	  rm -f $(charsetdir)/$$file ; \
+	done
 
 mostlyclean:
 	rm -f *~
