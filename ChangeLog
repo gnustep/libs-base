@@ -1,3 +1,23 @@
+2001-09-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: rewrite ethod call code.
+	* Source/callframe.h: ditto
+	* Source/callframe.m: ditto
+	* Source/cifframe.h: ditto
+	* Source/cifframe.m: ditto
+	* Source/mframe.m: ditto
+	* Source/mframe/mframe.head: ditto
+	* Headers/gnustep/base/DistributedObjects.h: Adde new DOContext struct.
+	Rewrite code for moving data to/from method call stackframes and
+	encoding/decoding it.  The functions to encode/decode each data item
+	are no longer nested, and pass a context structure around which
+	provides for more information to be passed between the various layers
+	of the process so that the whole thing is thread-safe and we don't
+	get cases where code in one place tries to work with an object that
+	was released in another place.
+	Tested pretty extensively for libffcall stuff, with the simple test
+	programs for maframe, and not at all for libffi.
+
 2001-09-19  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: But CPPFLAGS in quotes

@@ -483,10 +483,9 @@ cifframe_decode_return (const char *type, void* buffer)
 */
 
 void
-cifframe_do_call_opts (const char *encoded_types,
-		void(*decoder)(int,void*,const char*),
-		void(*encoder)(int,void*,const char*,int),
-		BOOL pass_pointers)
+cifframe_do_call_opts (DOContext *ctxt,
+		void(*decoder)(DOContext*),
+		void(*encoder)(DOContext*))
 {
   /* The method type string obtained from the target's OBJC_METHOD 
      structure for the selector we're sending. */
@@ -501,8 +500,6 @@ cifframe_do_call_opts (const char *encoded_types,
   SEL selector;
   /* The OBJECT's implementation of the SELECTOR. */
   IMP method_implementation;
-  /* A pointer into the ARGFRAME; points at individual arguments. */
-  char *datum;
   /* Type qualifier flags; see <objc/objc-api.h>. */
   unsigned flags;
   /* Which argument number are we processing now? */
@@ -514,16 +511,21 @@ cifframe_do_call_opts (const char *encoded_types,
   /* Does the method have any arguments that are passed by reference?
      If so, we need to encode them, since the method may have changed them. */
   BOOL out_parameters = NO;
+  const char *encoded_types = ctxt->type;
 
   /* Decode the object, (which is always the first argument to a method),
      into the local variable OBJECT. */
-  (*decoder) (0, &object, @encode(id));
+  ctxt->type = @encode(id);
+  ctxt->datum = &object;
+  (*decoder) (ctxt);
   NSCParameterAssert (object);
 
   /* Decode the selector, (which is always the second argument to a
      method), into the local variable SELECTOR. */
   /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
-  (*decoder) (1, &selector, ":");
+  ctxt->type = @encode(SEL);
+  ctxt->datum = &selector;
+  (*decoder) (ctxt);
   NSCParameterAssert (selector);
 
   /* Get the "selector type" for this method.  The "selector type" is
@@ -596,7 +598,9 @@ cifframe_do_call_opts (const char *encoded_types,
 	 in <objc/objc-api.h> */
       tmptype = objc_skip_type_qualifiers(tmptype);
 
-      datum = cifframe_arg_addr(cframe, argnum);
+      ctxt->flags = flags;
+      ctxt->type = tmptype;
+      ctxt->datum = cifframe_arg_addr(cframe, argnum);
 
       /* Decide how, (or whether or not), to decode the argument
 	 depending on its FLAGS and TMPTYPE.  Only the first two cases
@@ -625,7 +629,7 @@ cifframe_do_call_opts (const char *encoded_types,
 	     the memory gets freed eventually, (usually through the
 	     autorelease of NSData object). */
 	  if ((flags & _F_IN) || !(flags & _F_OUT))
-	    (*decoder) (argnum, datum, tmptype);
+	    (*decoder) (ctxt);
 
 	  break;
 
@@ -637,36 +641,30 @@ cifframe_do_call_opts (const char *encoded_types,
 	     it.  Set OUT_PARAMETERS accordingly. */
 	  if ((flags & _F_OUT) || !(flags & _F_IN))
 	    out_parameters = YES;
-	  if (pass_pointers)
-	    {
-	      if ((flags & _F_IN) || !(flags & _F_OUT))
-		(*decoder) (argnum, datum, tmptype);
-	    }
-	  else
-	    {
-	      /* Handle an argument that is a pointer to a non-char.  But
-		 (void*) and (anything**) is not allowed. */
-	      /* The argument is a pointer to something; increment TYPE
-		   so we can see what it is a pointer to. */
-	      tmptype++;
-	      /* Allocate some memory to be pointed to, and to hold the
-		 value.  Note that it is allocated on the stack, and
-		 methods that want to keep the data pointed to, will have
-		 to make their own copies. */
-	      *(void**)datum = alloca (objc_sizeof_type (tmptype));
-	      /* If the pointer's value is qualified as an IN parameter,
-		 or not explicity qualified as an OUT parameter, then
-		 decode it. */
-	      if ((flags & _F_IN) || !(flags & _F_OUT))
-		(*decoder) (argnum, *(void**)datum, tmptype);
-	    }
+	  /* Handle an argument that is a pointer to a non-char.  But
+	     (void*) and (anything**) is not allowed. */
+	  /* The argument is a pointer to something; increment TYPE
+	       so we can see what it is a pointer to. */
+	  tmptype++;
+	  ctxt->type = tmptype;
+	  /* Allocate some memory to be pointed to, and to hold the
+	     value.  Note that it is allocated on the stack, and
+	     methods that want to keep the data pointed to, will have
+	     to make their own copies. */
+	  *(void**)datum = alloca (objc_sizeof_type (tmptype));
+	  ctxt->datum = *(void**)datum;
+	  /* If the pointer's value is qualified as an IN parameter,
+	     or not explicity qualified as an OUT parameter, then
+	     decode it. */
+	  if ((flags & _F_IN) || !(flags & _F_OUT))
+	    (*decoder) (ctxt);
 	  break;
 
 	case _C_STRUCT_B:
 	case _C_UNION_B:
 	case _C_ARY_B:
 	  /* Handle struct and array arguments. */
-	  (*decoder) (argnum, datum, tmptype);
+	  (*decoder) (ctxt);
 	  break;
 
 	default:
@@ -676,11 +674,13 @@ cifframe_do_call_opts (const char *encoded_types,
 	     object; the object may be autoreleased; if the method
 	     wants to keep a reference to the object, it will have to
 	     -retain it. */
-	  (*decoder) (argnum, datum, tmptype);
+	  (*decoder) (ctxt);
 	}
     }
   /* End of the for() loop that enumerates the method's arguments. */
-  (*decoder) (-1, 0, 0);
+  ctxt->type = 0;
+  ctxt->datum = 0;
+  (*decoder) (ctxt);
 
 
   /* Invoke the method! */
@@ -711,30 +711,31 @@ cifframe_do_call_opts (const char *encoded_types,
 
   /* If there is a return value, encode it. */
   cifframe_decode_return(tmptype, retval);
+  ctxt->flags = flags;
+  ctxt->type = tmptype;
+  ctxt->datum = retval
   switch (*tmptype)
     {
     case _C_VOID:
       if ((flags & _F_ONEWAY) == 0)
 	{
 	   int	dummy = 0;
-          (*encoder) (-1, (void*)&dummy, @encode(int), 0);
+
+	   ctxt->type = @encode(int);
+	   ctxt->datum = &dummy;
+	   (*encoder) (ctxt);
 	}
       /* No return value to encode; do nothing. */
       break;
 
     case _C_PTR:
-      if (pass_pointers)
-	{
-	  (*encoder) (-1, retval, tmptype, flags);
-	}
-      else
-	{
-	  /* The argument is a pointer to something; increment TYPE
-	     so we can see what it is a pointer to. */
-	  tmptype++;
-	  /* Encode the value that was pointed to. */
-	  (*encoder) (-1, *(void**)retval, tmptype, flags);
-	}
+      /* The argument is a pointer to something; increment TYPE
+	 so we can see what it is a pointer to. */
+      tmptype++;
+      ctxt->type = tmptype;
+      ctxt->datum = *(void**)retval;
+      /* Encode the value that was pointed to. */
+      (*encoder) (ctxt);
       break;
 
     case _C_STRUCT_B:
@@ -742,32 +743,32 @@ cifframe_do_call_opts (const char *encoded_types,
     case _C_ARY_B:
       /* The argument is a structure or array returned by value.
 	 (In C, are array's allowed to be returned by value?) */
-      (*encoder)(-1, retval, tmptype, flags);
+      (*encoder)(ctxt);
       break;
 
     case _C_FLT:
       {
-	(*encoder) (-1, retval, tmptype, flags);
+	(*encoder) (ctxt);
 	break;
       }
 
     case _C_DBL:
       {
-	(*encoder) (-1, retval, tmptype, flags);
+	(*encoder) (ctxt);
 	break;
       }
 
     case _C_SHT:
     case _C_USHT:
       {
-	(*encoder) (-1, retval, tmptype, flags);
+	(*encoder) (ctxt);
 	break;
       }
 
     case _C_CHR:
     case _C_UCHR:
       {
-	(*encoder) (-1, retval, tmptype, flags);
+	(*encoder) (ctxt);
 	break;
       }
 
@@ -775,7 +776,7 @@ cifframe_do_call_opts (const char *encoded_types,
       /* case _C_INT: case _C_UINT: case _C_LNG: case _C_ULNG:
 	 case _C_CHARPTR: case: _C_ID: */
       /* xxx I think this assumes that sizeof(int)==sizeof(void*) */
-      (*encoder) (-1, retval, tmptype, flags);
+      (*encoder) (ctxt);
     }
 
 
@@ -806,8 +807,12 @@ cifframe_do_call_opts (const char *encoded_types,
 	     depending on its FLAGS and TMPTYPE. */
 	  datum = cifframe_arg_addr(cframe, argnum);
 
+	  ctxt->flags = flags;
+	  ctxt->type = tmptype;
+	  ctxt->datum = datum;
+
 	  if ((*tmptype == _C_PTR) 
-	      && ((flags & _F_OUT) || !(flags & _F_IN)))
+	    && ((flags & _F_OUT) || !(flags & _F_IN)))
 	    {
 	      /* The argument is a pointer (to a non-char), and the
 		 pointer's value is qualified as an OUT parameter, or
@@ -816,11 +821,13 @@ cifframe_do_call_opts (const char *encoded_types,
 	      /* The argument is a pointer to something; increment TYPE
 		 so we can see what it is a pointer to. */
 	      tmptype++;
+	      ctxt->type = tmptype;
+	      ctxt->datum = *(void**)ctxt->datum;
 	      /* Encode it. */
-	      (*encoder) (argnum, *(void**)datum, tmptype, flags);
+	      (*encoder) (ctxt);
 	    }
 	  else if (*tmptype == _C_CHARPTR
-		   && ((flags & _F_OUT) || !(flags & _F_IN)))
+	    && ((flags & _F_OUT) || !(flags & _F_IN)))
 	    {
 	      /* The argument is a pointer char string, and the
 		 pointer's value is qualified as an OUT parameter, or
@@ -830,7 +837,7 @@ cifframe_do_call_opts (const char *encoded_types,
 		 a copy of the string before the method call, and then
 		 comparing it to this string; if it didn't change, don't
 		 bother to send it back again. */
-	      (*encoder) (argnum, datum, tmptype, flags);
+	      (*encoder) (ctxt);
 	    }
 	}
     }
@@ -838,10 +845,3 @@ cifframe_do_call_opts (const char *encoded_types,
   return;
 }
 
-void
-cifframe_do_call (const char *encoded_types,
-		void(*decoder)(int,void*,const char*),
-		void(*encoder)(int,void*,const char*,int))
-{
-  cifframe_do_call_opts(encoded_types, decoder, encoder, NO);
-}

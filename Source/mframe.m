@@ -609,9 +609,8 @@ method_types_get_sizeof_arguments (struct objc_method* mth)
    e.g. an argument declared (out char*). */
 
 BOOL
-mframe_dissect_call_opts (arglist_t argframe, const char *type,
-		     void (*encoder)(int,void*,const char*,int),
-			BOOL pass_pointers)
+mframe_dissect_call (arglist_t argframe, const char *type,
+		     void (*encoder)(DOContext *), DOContext *ctxt)
 {
   unsigned flags;
   char *datum;
@@ -645,6 +644,10 @@ mframe_dissect_call_opts (arglist_t argframe, const char *type,
 	 reference, and thus only the first two may change the value
 	 of OUT_PARAMETERS. */
 
+      ctxt->type = type;
+      ctxt->flags = flags;
+      ctxt->datum = datum;
+
       switch (*type)
 	{
 
@@ -661,7 +664,7 @@ mframe_dissect_call_opts (arglist_t argframe, const char *type,
              explicity qualified as an OUT parameter, then encode
              it. */
 	  if ((flags & _F_IN) || !(flags & _F_OUT))
-	    (*encoder) (argnum, datum, type, flags);
+	    (*encoder) (ctxt);
 	  break;
 
 	case _C_PTR:
@@ -672,22 +675,18 @@ mframe_dissect_call_opts (arglist_t argframe, const char *type,
 	     it.  Set OUT_PARAMETERS accordingly. */
 	  if ((flags & _F_OUT) || !(flags & _F_IN))
 	    out_parameters = YES;
-	  if (pass_pointers) {
-	    if ((flags & _F_IN) || !(flags & _F_OUT))
-	      (*encoder) (argnum, datum, type, flags);
-	  }
-	  else {
-	    /* Handle an argument that is a pointer to a non-char.  But
-	       (void*) and (anything**) is not allowed. */
-	    /* The argument is a pointer to something; increment TYPE
-		 so we can see what it is a pointer to. */
-	    type++;
-	    /* If the pointer's value is qualified as an IN parameter,
-	       or not explicity qualified as an OUT parameter, then
-	       encode it. */
-	    if ((flags & _F_IN) || !(flags & _F_OUT))
-	      (*encoder) (argnum, *(void**)datum, type, flags);
-	  }
+	  /* Handle an argument that is a pointer to a non-char.  But
+	     (void*) and (anything**) is not allowed. */
+	  /* The argument is a pointer to something; increment TYPE
+	       so we can see what it is a pointer to. */
+	  type++;
+	  ctxt->type = type;
+	  ctxt->datum = *(void**)datum;
+	  /* If the pointer's value is qualified as an IN parameter,
+	     or not explicity qualified as an OUT parameter, then
+	     encode it. */
+	  if ((flags & _F_IN) || !(flags & _F_OUT))
+	    (*encoder) (ctxt);
 	  break;
 
 	case _C_STRUCT_B:
@@ -699,15 +698,14 @@ mframe_dissect_call_opts (arglist_t argframe, const char *type,
 	     MFRAME_STRUCT_BYREF.  Do the right thing
 	     so that ENCODER gets a pointer to directly to the data. */
 #if MFRAME_STRUCT_BYREF
-	  (*encoder) (argnum, *(void**)datum, type, flags);
-#else
-	  (*encoder) (argnum, datum, type, flags);
+	  ctxt->datum = *(void**)datum;
 #endif
+	  (*encoder) (ctxt);
 	  break;
 
 	default:
 	  /* Handle arguments of all other types. */
-	  (*encoder) (argnum, datum, type, flags);
+	  (*encoder) (ctxt);
 	}
     }
 
@@ -716,13 +714,6 @@ mframe_dissect_call_opts (arglist_t argframe, const char *type,
      after the method has finished executing because the execution of
      the method may have changed them.*/
   return out_parameters;
-}
-
-BOOL
-mframe_dissect_call (arglist_t argframe, const char *type,
-		     void (*encoder)(int,void*,const char*,int))
-{
-  return mframe_dissect_call_opts(argframe, type, encoder, NO);
 }
 
 
@@ -799,10 +790,9 @@ mframe_dissect_call (arglist_t argframe, const char *type,
 */
 
 void
-mframe_do_call_opts (const char *encoded_types,
-		void(*decoder)(int,void*,const char*),
-		void(*encoder)(int,void*,const char*,int),
-		BOOL pass_pointers)
+mframe_do_call (DOContext *ctxt,
+		void(*decoder)(DOContext*),
+		void(*encoder)(DOContext*))
 {
   /* The method type string obtained from the target's OBJC_METHOD 
      structure for the selector we're sending. */
@@ -834,6 +824,7 @@ mframe_do_call_opts (const char *encoded_types,
   /* Does the method have any arguments that are passed by reference?
      If so, we need to encode them, since the method may have changed them. */
   BOOL out_parameters = NO;
+  const char *encoded_types = ctxt->type;
   /* For extracting a return value of type `float' from RETFRAME. */
   float retframe_float (void *rframe)
     {
@@ -857,13 +848,17 @@ mframe_do_call_opts (const char *encoded_types,
 
   /* Decode the object, (which is always the first argument to a method),
      into the local variable OBJECT. */
-  (*decoder) (0, &object, @encode(id));
+  ctxt->datum = &object;
+  ctxt->type = @encode(id);
+  (*decoder) (ctxt);
   NSCParameterAssert (object);
 
   /* Decode the selector, (which is always the second argument to a
      method), into the local variable SELECTOR. */
   /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
-  (*decoder) (1, &selector, ":");
+  ctxt->datum = &selector;
+  ctxt->type = @encode(SEL);
+  (*decoder) (ctxt);
   NSCParameterAssert (selector);
 
   /* Get the "selector type" for this method.  The "selector type" is
@@ -981,6 +976,9 @@ mframe_do_call_opts (const char *encoded_types,
 	 the code in mframe_dissect_call(); that function should
 	 encode exactly what we decode here. *** */
 
+      ctxt->type = tmptype;
+      ctxt->datum = datum;
+
       switch (*tmptype)
 	{
 
@@ -1000,7 +998,7 @@ mframe_do_call_opts (const char *encoded_types,
 	     the memory gets freed eventually, (usually through the
 	     autorelease of NSData object). */
 	  if ((flags & _F_IN) || !(flags & _F_OUT))
-	    (*decoder) (argnum, datum, tmptype);
+	    (*decoder) (ctxt);
 
 	  break;
 
@@ -1012,29 +1010,23 @@ mframe_do_call_opts (const char *encoded_types,
 	     it.  Set OUT_PARAMETERS accordingly. */
 	  if ((flags & _F_OUT) || !(flags & _F_IN))
 	    out_parameters = YES;
-	  if (pass_pointers)
-	    {
-	      if ((flags & _F_IN) || !(flags & _F_OUT))
-		(*decoder) (argnum, datum, tmptype);
-	    }
-	  else
-	    {
-	      /* Handle an argument that is a pointer to a non-char.  But
-		 (void*) and (anything**) is not allowed. */
-	      /* The argument is a pointer to something; increment TYPE
-		   so we can see what it is a pointer to. */
-	      tmptype++;
-	      /* Allocate some memory to be pointed to, and to hold the
-		 value.  Note that it is allocated on the stack, and
-		 methods that want to keep the data pointed to, will have
-		 to make their own copies. */
-	      *(void**)datum = alloca (objc_sizeof_type (tmptype));
-	      /* If the pointer's value is qualified as an IN parameter,
-		 or not explicity qualified as an OUT parameter, then
-		 decode it. */
-	      if ((flags & _F_IN) || !(flags & _F_OUT))
-		(*decoder) (argnum, *(void**)datum, tmptype);
-	    }
+	  /* Handle an argument that is a pointer to a non-char.  But
+	     (void*) and (anything**) is not allowed. */
+	  /* The argument is a pointer to something; increment TYPE
+	       so we can see what it is a pointer to. */
+	  tmptype++;
+	  /* Allocate some memory to be pointed to, and to hold the
+	     value.  Note that it is allocated on the stack, and
+	     methods that want to keep the data pointed to, will have
+	     to make their own copies. */
+	  *(void**)datum = alloca (objc_sizeof_type (tmptype));
+	  /* If the pointer's value is qualified as an IN parameter,
+	     or not explicity qualified as an OUT parameter, then
+	     decode it. */
+	  ctxt->type = tmptype;
+	  ctxt->datum = *(void**)datum;
+	  if ((flags & _F_IN) || !(flags & _F_OUT))
+	    (*decoder) (ctxt);
 	  break;
 
 	case _C_STRUCT_B:
@@ -1051,10 +1043,9 @@ mframe_do_call_opts (const char *encoded_types,
 	     methods that want to keep the data pointed to, will have
 	     to make their own copies. */
 	  *(void**)datum = alloca (objc_sizeof_type(tmptype));
-	  (*decoder) (argnum, *(void**)datum, tmptype);
-#else
-	  (*decoder) (argnum, datum, tmptype);
+	  ctxt->datum = datum;
 #endif
+	  (*decoder) (ctxt);
 	  break;
 
 	default:
@@ -1064,11 +1055,13 @@ mframe_do_call_opts (const char *encoded_types,
 	     object; the object may be autoreleased; if the method
 	     wants to keep a reference to the object, it will have to
 	     -retain it. */
-	  (*decoder) (argnum, datum, tmptype);
+	  (*decoder) (ctxt);
 	}
     }
   /* End of the for() loop that enumerates the method's arguments. */
-  (*decoder) (-1, 0, 0);
+  ctxt->type = 0;
+  ctxt->datum = 0;
+  (*decoder) (ctxt);
 
 
   /* Invoke the method! */
@@ -1100,31 +1093,32 @@ mframe_do_call_opts (const char *encoded_types,
      a non-oneway void return value, or if there are values that were
      passed by reference. */
 
+  ctxt->type = tmptype;
+  ctxt->datum = retframe;
+  ctxt->flags = flags;
   /* If there is a return value, encode it. */
   switch (*tmptype)
     {
     case _C_VOID:
       if ((flags & _F_ONEWAY) == 0)
 	{
-	   int	dummy = 0;
-          (*encoder) (-1, (void*)&dummy, @encode(int), 0);
+	  int	dummy = 0;
+
+	  ctxt->datum = &dummy;
+	  ctxt->type = @encode(int);
+	  (*encoder) (ctxt);
 	}
       /* No return value to encode; do nothing. */
       break;
 
     case _C_PTR:
-      if (pass_pointers)
-	{
-	  (*encoder) (-1, retframe, tmptype, flags);
-	}
-      else
-	{
-	  /* The argument is a pointer to something; increment TYPE
-	     so we can see what it is a pointer to. */
-	  tmptype++;
-	  /* Encode the value that was pointed to. */
-	  (*encoder) (-1, *(void**)retframe, tmptype, flags);
-	}
+      /* The argument is a pointer to something; increment TYPE
+	 so we can see what it is a pointer to. */
+      tmptype++;
+      ctxt->type = tmptype;
+      ctxt->datum = *(void**)retframe;
+      /* Encode the value that was pointed to. */
+      (*encoder) (ctxt);
       break;
 
     case _C_STRUCT_B:
@@ -1132,20 +1126,23 @@ mframe_do_call_opts (const char *encoded_types,
     case _C_ARY_B:
       /* The argument is a structure or array returned by value.
 	 (In C, are array's allowed to be returned by value?) */
-      (*encoder)(-1, MFRAME_GET_STRUCT_ADDR(argframe, tmptype), tmptype, flags);
+      ctxt->datum = MFRAME_GET_STRUCT_ADDR(argframe, tmptype);
+      (*encoder)(ctxt);
       break;
 
     case _C_FLT:
       {
 	float ret = retframe_float (retframe);
-	(*encoder) (-1, &ret, tmptype, flags);
+	ctxt->datum = &ret;
+	(*encoder) (ctxt);
 	break;
       }
 
     case _C_DBL:
       {
 	double ret = retframe_double (retframe);
-	(*encoder) (-1, &ret, tmptype, flags);
+	ctxt->datum = &ret;
+	(*encoder) (ctxt);
 	break;
       }
 
@@ -1158,7 +1155,8 @@ mframe_do_call_opts (const char *encoded_types,
 	 it. */
       {
 	short ret = retframe_short (retframe);
-	(*encoder) (-1, &ret, tmptype, flags);
+	ctxt->datum = &ret;
+	(*encoder) (ctxt);
 	break;
       }
 
@@ -1171,7 +1169,8 @@ mframe_do_call_opts (const char *encoded_types,
 	 it. */
       {
 	char ret = retframe_char (retframe);
-	(*encoder) (-1, &ret, tmptype, flags);
+	ctxt->datum = &ret;
+	(*encoder) (ctxt);
 	break;
       }
 
@@ -1179,7 +1178,7 @@ mframe_do_call_opts (const char *encoded_types,
       /* case _C_INT: case _C_UINT: case _C_LNG: case _C_ULNG:
 	 case _C_CHARPTR: case: _C_ID: */
       /* xxx I think this assumes that sizeof(int)==sizeof(void*) */
-      (*encoder) (-1, retframe, tmptype, flags);
+      (*encoder) (ctxt);
     }
 
 
@@ -1206,11 +1205,14 @@ mframe_do_call_opts (const char *encoded_types,
 	     in <objc/objc-api.h> */
 	  tmptype = objc_skip_type_qualifiers (tmptype);
 
+	  ctxt->type = tmptype;
+	  ctxt->datum = datum;
+
 	  /* Decide how, (or whether or not), to encode the argument
 	     depending on its FLAGS and TMPTYPE. */
 
 	  if ((*tmptype == _C_PTR) 
-	      && ((flags & _F_OUT) || !(flags & _F_IN)))
+	    && ((flags & _F_OUT) || !(flags & _F_IN)))
 	    {
 	      /* The argument is a pointer (to a non-char), and the
 		 pointer's value is qualified as an OUT parameter, or
@@ -1219,11 +1221,13 @@ mframe_do_call_opts (const char *encoded_types,
 	      /* The argument is a pointer to something; increment TYPE
 		 so we can see what it is a pointer to. */
 	      tmptype++;
+	      ctxt->type = tmptype;
+	      ctxt->datum = *(void**)datum;
 	      /* Encode it. */
-	      (*encoder) (argnum, *(void**)datum, tmptype, flags);
+	      (*encoder) (ctxt);
 	    }
 	  else if (*tmptype == _C_CHARPTR
-		   && ((flags & _F_OUT) || !(flags & _F_IN)))
+	    && ((flags & _F_OUT) || !(flags & _F_IN)))
 	    {
 	      /* The argument is a pointer char string, and the
 		 pointer's value is qualified as an OUT parameter, or
@@ -1233,7 +1237,7 @@ mframe_do_call_opts (const char *encoded_types,
 		 a copy of the string before the method call, and then
 		 comparing it to this string; if it didn't change, don't
 		 bother to send it back again. */
-	      (*encoder) (argnum, datum, tmptype, flags);
+	      (*encoder) (ctxt);
 	    }
 	}
     }
@@ -1241,15 +1245,7 @@ mframe_do_call_opts (const char *encoded_types,
   return;
 }
 
-void
-mframe_do_call (const char *encoded_types,
-		void(*decoder)(int,void*,const char*),
-		void(*encoder)(int,void*,const char*,int))
-{
-  mframe_do_call_opts(encoded_types, decoder, encoder, NO);
-}
-
-  /* For returning strucutres etc */
+  /* For returning structures etc */
   typedef struct { id many[8];} __big;
 static  __big return_block (void* data)
     {
@@ -1319,11 +1315,11 @@ static  retval_t apply_short(short data)
 */
 
 retval_t 
-mframe_build_return_opts (arglist_t argframe, 
+mframe_build_return (arglist_t argframe, 
 		     const char *type, 
 		     BOOL out_parameters,
-		     void(*decoder)(int,void*,const char*,int),
-		     BOOL pass_pointers)
+		     void(*decoder)(DOContext*),
+		     DOContext *ctxt)
 {
   /* A pointer to the memory that will hold the return value. */
   retval_t retframe = NULL;
@@ -1357,9 +1353,6 @@ mframe_build_return_opts (arglist_t argframe,
     /* xxx What happens with method declared "- (in char *) bar;" */
     /* xxx Is this right?  Do we also have to check _F_ONEWAY? */
     {
-      /* ARGNUM == -1 signifies to DECODER() that this is the return
-         value, not an argument. */
-
       /* If there is a return value, decode it, and put it in retframe. */
       if (*tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
 	{
@@ -1378,31 +1371,32 @@ mframe_build_return_opts (arglist_t argframe,
 	     just always alloca(RETFRAME_SIZE == sizeof(void*)*4) */
 	  retframe = alloca (MAX(retsize, sizeof(void*)*4));
 	  
+	  ctxt->type = tmptype;
+	  ctxt->datum = retframe;
+	  ctxt->flags = flags;
+
 	  switch (*tmptype)
 	    {
 	    case _C_PTR:
-	      if (pass_pointers)
-		{
-		  (*decoder) (-1, retframe, tmptype, flags);
-		}
-	      else
-		{
-		  unsigned retLength;
+	      {
+		unsigned retLength;
 
-		  /* We are returning a pointer to something. */
-		  /* Increment TYPE so we can see what it is a pointer to. */
-		  tmptype++;
-		  retLength = objc_sizeof_type(tmptype);
-		  /* Allocate memory to hold the value we're pointing to. */
-		  *(void**)retframe = 
-		    NSZoneMalloc(NSDefaultMallocZone(), retLength);
-		  /* We are responsible for making sure this memory gets free'd
-		     eventually.  Ask NSData class to autorelease it. */
-		  [NSData dataWithBytesNoCopy: *(void**)retframe
-				       length: retLength];
-		  /* Decode the return value into the memory we allocated. */
-		  (*decoder) (-1, *(void**)retframe, tmptype, flags);
-		}
+		/* We are returning a pointer to something. */
+		/* Increment TYPE so we can see what it is a pointer to. */
+		tmptype++;
+		retLength = objc_sizeof_type(tmptype);
+		/* Allocate memory to hold the value we're pointing to. */
+		*(void**)retframe = 
+		  NSZoneMalloc(NSDefaultMallocZone(), retLength);
+		/* We are responsible for making sure this memory gets free'd
+		   eventually.  Ask NSData class to autorelease it. */
+		[NSData dataWithBytesNoCopy: *(void**)retframe
+				     length: retLength];
+		ctxt->type = tmptype;
+		ctxt->datum = *(void**)retframe;
+		/* Decode the return value into the memory we allocated. */
+		(*decoder) (ctxt);
+	      }
 	      break;
 
 	    case _C_STRUCT_B: 
@@ -1412,43 +1406,24 @@ mframe_build_return_opts (arglist_t argframe,
 		 (In C, are array's allowed to be returned by value?) */
 	      *(void**)retframe = MFRAME_GET_STRUCT_ADDR(argframe, tmptype);
 	      /* Decode the return value into the memory we allocated. */
-	      (*decoder) (-1, *(void**)retframe, tmptype, flags);
+	      ctxt->datum = *(void**)retframe;
+	      (*decoder) (ctxt);
 	      break;
 
 	    case _C_FLT: 
 	    case _C_DBL:
-	      (*decoder) (-1, ((char*)retframe), tmptype, flags);
+	      (*decoder) (ctxt);
 	      break;
 
 	    case _C_VOID:
 		{
-		  (*decoder) (-1, retframe, @encode(int), 0);
+		  ctxt->type = @encode(int);
+		  (*decoder) (ctxt);
 		}
 		break;
 
 	    default:
-	      /* (Among other things, _C_CHARPTR is handled here). */
-	      /* Special case BOOL (and other types smaller than int)
-		 because retframe doesn't actually point to the char */
-	      /* xxx What about structures smaller than int's that
-		 are passed by reference on true structure reference-
-		 passing architectures? */
-	      /* xxx Is this the right test?  Use sizeof(int) instead? */
-	      if (retsize < sizeof(void*))
-		{
-#if 1
-		  /* Frith-Macdonald said this worked better 21 Nov 96. */
-		  (*decoder) (-1, retframe, tmptype, flags);
-#else
-		  *(void**)retframe = 0;
-		  (*decoder) (-1, ((char*)retframe)+sizeof(void*)-retsize,
-			      tmptype, flags);
-#endif
-		}
-	      else
-		{
-		  (*decoder) (-1, retframe, tmptype, flags);
-		}
+	      (*decoder) (ctxt);
 	    }
 	}
       
@@ -1487,16 +1462,19 @@ mframe_build_return_opts (arglist_t argframe,
 		  /* The argument is a pointer to something; increment
 		     TYPE so we can see what it is a pointer to. */
 		  tmptype++;
+		  ctxt->flags = flags;
+		  ctxt->type = tmptype;
+		  ctxt->datum = *(void**)datum;
 		  /* xxx Note that a (char**) is malloc'ed anew here.
 		     Yucky, or worse than yucky.  If the returned string
 		     is smaller than the original, we should just put it
 		     there; if the returned string is bigger, I don't know
 		     what to do. */
 		  /* xxx __builtin_return can't return structures by value? */
-		  (*decoder) (argnum, *(void**)datum, tmptype, flags);
+		  (*decoder) (ctxt);
 		}
 	      else if (*tmptype == _C_CHARPTR
-		       && ((flags & _F_OUT) || !(flags & _F_IN)))
+		&& ((flags & _F_OUT) || !(flags & _F_IN)))
 		{
 		  /* The argument is a pointer char string, and the
 		     pointer's value is qualified as an OUT parameter,
@@ -1508,11 +1486,16 @@ mframe_build_return_opts (arglist_t argframe,
 		     call, and then comparing it to this string; if it
 		     didn't change, don't bother to send it back
 		     again. */
-		  (*decoder) (argnum, datum, tmptype, flags);
+		  ctxt->flags = flags;
+		  ctxt->type = tmptype;
+		  ctxt->datum = datum;
+		  (*decoder) (ctxt);
 		}
 	    }
 	}
-      (*decoder) (0, 0, 0, 0);	/* Tell it we have finished.	*/
+      ctxt->type = 0;
+      ctxt->datum = 0;
+      (*decoder) (ctxt);	/* Tell it we have finished.	*/
     }
   else	/* matches `if (out_parameters)' */
     {
@@ -1544,15 +1527,6 @@ mframe_build_return_opts (arglist_t argframe,
 
   /* Return the retval_t pointer to the return value. */
   return retframe;
-}
-
-retval_t 
-mframe_build_return (arglist_t argframe, 
-		     const char *type, 
-		     BOOL out_parameters,
-		     void(*decoder)(int,void*,const char*,int))
-{
-  return mframe_build_return_opts(argframe,type,out_parameters,decoder,NO);
 }
 
 

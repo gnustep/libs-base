@@ -27,12 +27,6 @@
 
 #include <config.h>
 #include <base/preface.h>
-#include <mframe.h>
-#if defined(USE_LIBFFI)
-#include "cifframe.h"
-#elif defined(USE_FFCALL)
-#include "callframe.h"
-#endif
 
 /*
  *	Setup for inline operation of pointer map tables.
@@ -49,6 +43,13 @@
 #define	_IN_CONNECTION_M
 #include <Foundation/NSConnection.h>
 #undef	_IN_CONNECTION_M
+
+#include <mframe.h>
+#if defined(USE_LIBFFI)
+#include "cifframe.h"
+#elif defined(USE_FFCALL)
+#include "callframe.h"
+#endif
 
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/DistributedObjects.h>
@@ -226,6 +227,7 @@ static unsigned local_object_counter = 0;
 - (NSDistantObject*) localForObject: (id)object;
 - (void) removeLocalObject: (id)anObj;
 
+- (void) _doneInReply: (NSPortCoder*)c;
 - (void) _doneInRmc: (NSPortCoder*)c;
 - (void) _failInRmc: (NSPortCoder*)c;
 - (void) _failOutRmc: (NSPortCoder*)c;
@@ -1483,7 +1485,10 @@ static int	    seq_num;
 		  [exc raise];
 		}
 	    }
-	  [ip decodeValueOfObjCType: type at: datum];
+	  if (*type == _C_PTR)
+	  else
+	    [ip decodeValueOfObjCType: type+1 at: datum];
+	    [ip decodeValueOfObjCType: type at: datum];
 	  /* -decodeValueOfObjCType:at: malloc's new memory
 	     for pointers.  We need to make sure it gets freed eventually
 	     so we don't have a memory leak.  Request here that it be
@@ -1498,6 +1503,73 @@ static int	    seq_num;
 	}
 #endif
 
+static void retDecoder(DOContext *ctxt)
+{
+  NSPortCoder	*coder = ctxt->decoder;
+  const char	*type = ctxt->type;
+
+  if (type == 0)
+    {
+      if (coder != nil)
+	{
+	  ctxt->decoder = nil;
+	  [ctxt->connection _doneInReply: coder];
+	}
+      return;
+    }
+  /* If we didn't get the reply packet yet, get it now. */
+  if (coder == nil)
+    {
+      BOOL	is_exception;
+
+      if ([ctxt->connection isValid] == NO)
+	{
+	  [NSException raise: NSGenericException
+	    format: @"connection waiting for request was shut down"];
+	}
+      ctxt->decoder = [ctxt->connection _getReplyRmc: ctxt->seq];
+      coder = ctxt->decoder;
+      /*
+       * Find out if the server is returning an exception instead
+       * of the return values.
+       */
+      [coder decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
+      if (is_exception == YES)
+	{
+	  /* Decode the exception object, and raise it. */
+	  id exc;
+	  [coder decodeValueOfObjCType: @encode(id) at: &exc];
+	  ctxt->decoder = nil;
+	  [ctxt->connection _doneInRmc: coder];
+	  [exc raise];
+	}
+    }
+  [coder decodeValueOfObjCType: type at: ctxt->datum];
+  if (*type == _C_ID)
+    {
+      AUTORELEASE(*(id*)ctxt->datum);
+    }
+}
+
+static void retEncoder (DOContext *ctxt)
+{
+  switch (*ctxt->type)
+    {
+    case _C_ID: 
+      if (ctxt->flags & _F_BYCOPY)
+	[ctxt->encoder encodeBycopyObject: *(id*)ctxt->datum];
+#ifdef	_F_BYREF
+      else if (ctxt->flags & _F_BYREF)
+	[ctxt->encoder encodeByrefObject: *(id*)ctxt->datum];
+#endif
+      else
+	[ctxt->encoder encodeObject: *(id*)ctxt->datum];
+      break;
+    default: 
+      [ctxt->encoder encodeValueOfObjCType: ctxt->type at: ctxt->datum];
+    }
+}
+
 /*
  * NSDistantObject's -forward: : method calls this to send the message
  * over the wire.
@@ -1506,38 +1578,15 @@ static int	    seq_num;
 		    selector: (SEL)sel
                     argFrame: (arglist_t)argframe
 {
-#ifndef BROKEN_NESTED_FUNCTIONS
-  NSPortCoder	*op;
-  int		seq_num;
-#endif
   BOOL		outParams;
   BOOL		needsResponse;
   const char	*type;
   retval_t	retframe;
+  DOContext	ctxt;
 
-#ifndef BROKEN_NESTED_FUNCTIONS
-  /* The callback for encoding the args of the method call. */
-  void encoder (int argnum, void *datum, const char *type, int flags)
-    {
-#define ENCODED_ARGNAME @"argument value"
-      switch (*type)
-	{
-	case _C_ID: 
-	  if (flags & _F_BYCOPY)
-	    [op encodeBycopyObject: *(id*)datum];
-#ifdef	_F_BYREF
-	  else if (flags & _F_BYREF)
-	    [op encodeByrefObject: *(id*)datum];
-#endif
-	  else
-	    [op encodeObject: *(id*)datum];
-	  break;
-	default: 
-	  [op encodeValueOfObjCType: type at: datum];
-	}
-    }
-#endif
-
+  memset(&ctxt, 0, sizeof(ctxt));
+  ctxt.connection = self;
+  
   /* Encode the method on an RMC, and send it. */
 
   NSParameterAssert (_isValid);
@@ -1562,23 +1611,23 @@ static int	    seq_num;
   NSParameterAssert(type);
   NSParameterAssert(*type);
 
-  op = [self _makeOutRmc: 0 generate: &seq_num reply: YES];
+  ctxt.encoder = [self _makeOutRmc: 0 generate: &ctxt.seq reply: YES];
 
   if (debug_connection > 4)
-    NSLog(@"building packet seq %d", seq_num);
+    NSLog(@"building packet seq %d", ctxt.seq);
 
   /* Send the types that we're using, so that the performer knows
      exactly what qualifiers we're using.
      If all selectors included qualifiers, and if I could make
      sel_types_match() work the way I wanted, we wouldn't need to do
      this. */
-  [op encodeValueOfObjCType: @encode(char*) at: &type];
+  [ctxt.encoder encodeValueOfObjCType: @encode(char*) at: &type];
 
   /* xxx This doesn't work with proxies and the NeXT runtime because
      type may be a method_type from a remote machine with a
      different architecture, and its argframe layout specifiers
      won't be right for this machine! */
-  outParams = mframe_dissect_call (argframe, type, encoder);
+  outParams = mframe_dissect_call (argframe, type, retEncoder, &ctxt);
 
   if (outParams == YES)
     {
@@ -1605,7 +1654,8 @@ static int	    seq_num;
 	}
     }
 
-  [self _sendOutRmc: op type: METHOD_REQUEST];
+  [self _sendOutRmc: ctxt.encoder type: METHOD_REQUEST];
+  ctxt.encoder = nil;
   NSDebugMLLog(@"NSConnection", @"Sent message to 0x%x", (gsaddr)self);
 
   if (needsResponse == NO)
@@ -1618,7 +1668,7 @@ static int	    seq_num;
        * a response, we must check for it and scrap it if necessary.
        */
       M_LOCK(_refGate);
-      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)seq_num);
+      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)ctxt.seq);
       if (node != 0 && node->value.obj != dummyObject)
 	{
 	  BOOL	is_exception = NO;
@@ -1631,78 +1681,20 @@ static int	    seq_num;
 	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
 	  [self _doneInRmc: node->value.obj];
 	}
-      GSIMapRemoveKey(_replyMap, (GSIMapKey)seq_num);
+      GSIMapRemoveKey(_replyMap, (GSIMapKey)ctxt.seq);
       M_UNLOCK(_refGate);
       retframe = alloca(sizeof(void*));	 /* Dummy value for void return. */
     }
   else
     {
-#ifndef BROKEN_NESTED_FUNCTIONS
-      NSPortCoder	*ip = nil;
-      BOOL		is_exception = NO;
-
-      void decoder(int argnum, void *datum, const char *type, int flags)
-	{
-	  if (type == 0)
-	    {
-	      if (ip != nil)
-		{
-		  [self _doneInRmc: ip];
-		  /* this must be here to avoid trashing alloca'ed retframe */
-		  ip = (id)-1;
-		  _repInCount++;	/* received a reply */
-		}
-	      return;
-	    }
-	  /* If we didn't get the reply packet yet, get it now. */
-	  if (ip == nil)
-	    {
-	      if (_isValid == NO)
-		{
-		  [NSException raise: NSGenericException
-		    format: @"connection waiting for request was shut down"];
-		}
-	      ip = [self _getReplyRmc: seq_num];
-	      /*
-	       * Find out if the server is returning an exception instead
-	       * of the return values.
-	       */
-	      [ip decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-	      if (is_exception == YES)
-		{
-		  /* Decode the exception object, and raise it. */
-		  id exc;
-		  [ip decodeValueOfObjCType: @encode(id) at: &exc];
-		  [self _doneInRmc: ip];
-		  ip = (id)-1;
-		  /* xxx Is there anything else to clean up in
-		     dissect_method_return()? */
-		  [exc raise];
-		}
-	    }
-	  [ip decodeValueOfObjCType: type at: datum];
-	  /* -decodeValueOfObjCType:at: malloc's new memory
-	     for pointers.  We need to make sure it gets freed eventually
-	     so we don't have a memory leak.  Request here that it be
-	     autorelease'ed. Also autorelease created objects. */
-	  if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
-	    [NSData dataWithBytesNoCopy: *(void**)datum length: 1];
-	  else if (*type == _C_ID)
-	    AUTORELEASE(*(id*)datum);
-	}
-#else
-      c_self = self;
-      second_decode = NO;
-#endif /* not BROKEN_NESTED_FUNCTIONS */
-	
-
-      retframe = mframe_build_return (argframe, type, outParams, decoder);
+      retframe = mframe_build_return (argframe, type, outParams,
+	retDecoder, &ctxt);
       /* Make sure we processed all arguments, and dismissed the IP.
 	 IP is always set to -1 after being dismissed; the only places
 	 this is done is in this function DECODER().  IP will be nil
 	 if mframe_build_return() never called DECODER(), i.e. when
 	 we are just returning (void).*/
-      NSAssert(ip == (id)-1 || ip == nil, NSInternalInconsistencyException);
+      NSAssert(ctxt.decoder == nil, NSInternalInconsistencyException);
     }
   return retframe;
 }
@@ -1718,7 +1710,7 @@ static int	    seq_num;
   BOOL		outParams;
   BOOL		needsResponse;
   const char	*type;
-  int		seq_num;
+  DOContext	ctxt;
 
   /* Encode the method on an RMC, and send it. */
 
@@ -1737,12 +1729,15 @@ static int	    seq_num;
   NSParameterAssert(type);
   NSParameterAssert(*type);
 
-  op = [self _makeOutRmc: 0 generate: &seq_num reply: YES];
+  memset(&ctxt, 0, sizeof(ctxt));
+  ctxt.connection = self;
+
+  op = [self _makeOutRmc: 0 generate: &ctxt.seq reply: YES];
 
   if (debug_connection > 4)
-    NSLog(@"building packet seq %d", seq_num);
+    NSLog(@"building packet seq %d", ctxt.seq);
 
-  outParams = [inv encodeWithDistantCoder: op passPointers: YES];
+  outParams = [inv encodeWithDistantCoder: op passPointers: NO];
 
   if (outParams == YES)
     {
@@ -1782,7 +1777,7 @@ static int	    seq_num;
        * a response, we must check for it and scrap it if necessary.
        */
       M_LOCK(_refGate);
-      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)seq_num);
+      node = GSIMapNodeForKey(_replyMap, (GSIMapKey)ctxt.seq);
       if (node != 0 && node->value.obj != dummyObject)
 	{
 	  BOOL	is_exception = NO;
@@ -1796,72 +1791,20 @@ static int	    seq_num;
 	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
 	  [self _doneInRmc: node->value.obj];
 	}
-      GSIMapRemoveKey(_replyMap, (GSIMapKey)seq_num);
+      GSIMapRemoveKey(_replyMap, (GSIMapKey)ctxt.seq);
       M_UNLOCK(_refGate);
     }
   else
     {
-#ifndef BROKEN_NESTED_FUNCTIONS
-      NSPortCoder	*ip = nil;
-      BOOL		is_exception = NO;
-
-      void decoder(int argnum, void *datum, const char *type, int flags)
-	{
-	  if (type == 0)
-	    {
-	      if (ip != nil)
-		{
-		  [self _doneInRmc: ip];
-		  /* this must be here to avoid trashing alloca'ed retframe */
-		  ip = (id)-1;
-		  _repInCount++;	/* received a reply */
-		}
-	      return;
-	    }
-	  /* If we didn't get the reply packet yet, get it now. */
-	  if (ip == nil)
-	    {
-	      if (_isValid == NO)
-		{
-		  [NSException raise: NSGenericException
-		    format: @"connection waiting for request was shut down"];
-		}
-	      ip = [self _getReplyRmc: seq_num];
-	      /*
-	       * Find out if the server is returning an exception instead
-	       * of the return values.
-	       */
-	      [ip decodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-	      if (is_exception == YES)
-		{
-		  /* Decode the exception object, and raise it. */
-		  id exc;
-		  [ip decodeValueOfObjCType: @encode(id) at: &exc];
-		  [self _doneInRmc: ip];
-		  ip = (id)-1;
-		  /* xxx Is there anything else to clean up in
-		     dissect_method_return()? */
-		  [exc raise];
-		}
-	    }
-	  [ip decodeValueOfObjCType: type at: datum];
-	  if (*type == _C_ID)
-	    AUTORELEASE(*(id*)datum);
-	}
-#else
-      c_self = self;
-      second_decode = YES;
-#endif /* not BROKEN_NESTED_FUNCTIONS */
-
 #ifdef USE_FFCALL
-      callframe_build_return (inv, type, outParams, decoder);
+      callframe_build_return (inv, type, outParams, retDecoder, &ctxt);
 #endif
       /* Make sure we processed all arguments, and dismissed the IP.
 	 IP is always set to -1 after being dismissed; the only places
 	 this is done is in this function DECODER().  IP will be nil
 	 if mframe_build_return() never called DECODER(), i.e. when
 	 we are just returning (void).*/
-      NSAssert(ip == (id)-1 || ip == nil, NSInternalInconsistencyException);
+      NSAssert(ctxt.decoder == nil, NSInternalInconsistencyException);
     }
 }
 
@@ -2104,187 +2047,164 @@ static int	    seq_num;
   debug_connection = val;
 }
 
-#ifdef BROKEN_NESTED_FUNCTIONS
-#define decoder service_decoder
-#define encoder service_encoder
-static id              op;
-static int             reply_sno;
-static NSConnection   *c_self;
-static NSConnection_t *c_self_t;
-static NSPortCoder    *c_aRmc;
-  void service_decoder (int argnum, void *datum, const char *type)
+static void callDecoder (DOContext *ctxt)
+{
+  const char	*type = ctxt->type;
+  void		*datum = ctxt->datum;
+  NSPortCoder	*coder = ctxt->decoder;
+
+  /*
+   * We need this "dismiss" to happen here and not later so that Coder
+   * "-awake..." methods will get sent before the method using the
+   * objects is invoked.  We clear the 'decoder' field in the context to
+   * show that it is no longer valid.
+   */
+  if (datum == 0 && type == 0)
     {
-      /* We need this "dismiss" to happen here and not later so that Coder
-	 "-awake..." methods will get sent before the __builtin_apply! */
-      if (argnum == -1 && datum == 0 && type == 0)
+      ctxt->decoder = nil;
+      [ctxt->connection _doneInRmc: coder];
+      return;
+    }
+
+  [coder decodeValueOfObjCType: type at: datum];
+#ifdef USE_FFCALL
+  if (*type == _C_ID)
+#else
+  /* -decodeValueOfObjCType: at: malloc's new memory
+     for char*'s.  We need to make sure it gets freed eventually
+     so we don't have a memory leak.  Request here that it be
+     autorelease'ed. Also autorelease created objects. */
+  if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
+    {
+      [NSData dataWithBytesNoCopy: *(void**)datum length: 1];
+    }
+  else if (*type == _C_ID)
+#endif
+    {
+      AUTORELEASE(*(id*)datum);
+    }
+}
+
+static void callEncoder (DOContext *ctxt)
+{
+  const char		*type = ctxt->type;
+  void			*datum = ctxt->datum;
+  int			flags = ctxt->flags;
+  NSPortCoder		*coder = ctxt->encoder;
+
+  if (coder == nil)
+    {
+      BOOL is_exception = NO;
+
+      /*
+       * It is possible that our connection died while the method was
+       * being called - in this case we mustn't try to send the result
+       * back to the remote application!
+       */
+      if ([ctxt->connection isValid] == NO)
 	{
-	  [c_self _doneInRmc: c_aRmc];
 	  return;
 	}
 
-      [c_aRmc decodeValueOfObjCType: type at: datum];
-#ifdef USE_FFCALL
-      if (*type == _C_ID)
-#else
-      /* -decodeValueOfObjCType: at: malloc's new memory
-	 for char*'s.  We need to make sure it gets freed eventually
-	 so we don't have a memory leak.  Request here that it be
-	 autorelease'ed. Also autorelease created objects. */
-      if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
-	[NSData dataWithBytesNoCopy: *(void**)datum length: 1];
-      else if (*type == _C_ID)
-#endif
-        AUTORELEASE(*(id*)datum);
+      /*
+       * We create a new coder object and set it in the context for
+       * later use if/when we are called again.  We encode a flag to
+       * say that this is not an exception.
+       */
+      coder = [ctxt->connection _makeOutRmc: ctxt->seq
+				   generate: 0
+				      reply: NO];
+      ctxt->encoder = coder;
+      [coder encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
     }
 
-  void service_encoder (int argnum, void *datum, const char *type, int flags)
+  switch (*type)
     {
-      c_self_t = (NSConnection_t *)c_self;
-      if (op == nil)
-	{
-	  BOOL is_exception = NO;
-	  /* It is possible that our connection died while the method was
-	     being called - in this case we mustn't try to send the result
-	     back to the remote application!	*/
-	  if (c_self_t->_isValid == NO)
-	    return;
-	  op = [c_self _makeOutRmc: reply_sno generate: 0 reply: NO];
-	  [op encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-	}
-      switch (*type)
-	{
-	  case _C_ID: 
-	    if (flags & _F_BYCOPY)
-	      [op encodeBycopyObject: *(id*)datum];
+      case _C_ID: 
+	if (flags & _F_BYCOPY)
+	  [coder encodeBycopyObject: *(id*)datum];
 #ifdef	_F_BYREF
-	    else if (flags & _F_BYREF)
-	      [op encodeByrefObject: *(id*)datum];
+	else if (flags & _F_BYREF)
+	  [coder encodeByrefObject: *(id*)datum];
 #endif
-	    else
-	      [op encodeObject: *(id*)datum];
-	    break;
-	  default: 
-	    [op encodeValueOfObjCType: type at: datum];
-	}
+	else
+	  [coder encodeObject: *(id*)datum];
+	break;
+      default: 
+	[coder encodeValueOfObjCType: type at: datum];
     }
+}
 
-#endif
 
 /* NSConnection calls this to service the incoming method request. */
 - (void) _service_forwardForProxy: (NSPortCoder*)aRmc
 {
-  char	*forward_type = 0;
-#ifndef BROKEN_NESTED_FUNCTIONS
-  id	op = nil;
-  int	reply_sno;
+  char		*forward_type = 0;
+  DOContext	ctxt;
 
-  void decoder (int argnum, void *datum, const char *type)
-    {
-      /* We need this "dismiss" to happen here and not later so that Coder
-	 "-awake..." methods will get sent before the __builtin_apply! */
-      if (argnum == -1 && datum == 0 && type == 0)
-	{
-	  [self _doneInRmc: aRmc];
-	  return;
-	}
+  memset(&ctxt, 0, sizeof(ctxt));
+  ctxt.connection = self;
+  ctxt.decoder = aRmc;
 
-      [aRmc decodeValueOfObjCType: type at: datum];
-#ifdef USE_FFCALL
-      if (*type == _C_ID)
-#else
-      /* -decodeValueOfObjCType: at: malloc's new memory
-	 for char*'s.  We need to make sure it gets freed eventually
-	 so we don't have a memory leak.  Request here that it be
-	 autorelease'ed. Also autorelease created objects. */
-      if ((*type == _C_CHARPTR || *type == _C_PTR) && *(void**)datum != 0)
-	[NSData dataWithBytesNoCopy: *(void**)datum length: 1];
-      else if (*type == _C_ID)
-#endif
-        AUTORELEASE(*(id*)datum);
-    }
-
-  void encoder (int argnum, void *datum, const char *type, int flags)
-    {
-      if (op == nil)
-	{
-	  BOOL is_exception = NO;
-	  /* It is possible that our connection died while the method was
-	     being called - in this case we mustn't try to send the result
-	     back to the remote application!	*/
-	  if (_isValid == NO)
-	    return;
-	  op = [self _makeOutRmc: reply_sno generate: 0 reply: NO];
-	  [op encodeValueOfObjCType: @encode(BOOL) at: &is_exception];
-	}
-      switch (*type)
-	{
-	  case _C_ID: 
-	    if (flags & _F_BYCOPY)
-	      [op encodeBycopyObject: *(id*)datum];
-#ifdef	_F_BYREF
-	    else if (flags & _F_BYREF)
-	      [op encodeByrefObject: *(id*)datum];
-#endif
-	    else
-	      [op encodeObject: *(id*)datum];
-	    break;
-	  default: 
-	    [op encodeValueOfObjCType: type at: datum];
-	}
-    }
-#else
-  c_self = self;
-  c_aRmc = aRmc;
-#endif /* not BROKEN_NESTED_FUNCTIONS */
-
-  /* Make sure don't let exceptions caused by servicing the client's
-     request cause us to crash. */
+  /*
+   * Make sure don't let exceptions caused by servicing the client's
+   * request cause us to crash.
+   */
   NS_DURING
     {
       NSParameterAssert (_isValid);
 
       /* Save this for later */
-      [aRmc decodeValueOfObjCType: @encode(int) at: &reply_sno];
+      [aRmc decodeValueOfObjCType: @encode(int) at: &ctxt.seq];
 
-      /* Get the types that we're using, so that we know
-	 exactly what qualifiers the forwarder used.
-	 If all selectors included qualifiers and I could make
-	 sel_types_match() work the way I wanted, we wouldn't need
-	 to do this. */
+      /*
+       * Get the types that we're using, so that we know
+       * exactly what qualifiers the forwarder used.
+       * If all selectors included qualifiers and I could make
+       * sel_types_match() work the way I wanted, we wouldn't need
+       * to do this.
+       */
       [aRmc decodeValueOfObjCType: @encode(char*) at: &forward_type];
+      ctxt.type = forward_type;
 
       if (debug_connection > 1)
-        NSLog(@"Handling message from 0x%x", (gsaddr)self);
-      _reqInCount++;	/* Handling an incoming request. */
-#if defined(USE_LIBFFI)
-      cifframe_do_call (forward_type, decoder, encoder);
-#elif defined(USE_FFCALL)
-      callframe_do_call (forward_type, decoder, encoder);
-#else
-      mframe_do_call (forward_type, decoder, encoder);
-#endif
-      if (op != nil)
 	{
-	  [self _sendOutRmc: op type: METHOD_REPLY];
+	  NSLog(@"Handling message from 0x%x", (gsaddr)self);
+	}
+      _reqInCount++;	/* Handling an incoming request. */
+
+#if defined(USE_LIBFFI)
+      cifframe_do_call (&ctxt, callDecoder, callEncoder);
+#elif defined(USE_FFCALL)
+      callframe_do_call (&ctxt, callDecoder, callEncoder);
+#else
+      mframe_do_call (&ctxt, callDecoder, callEncoder);
+#endif
+      if (ctxt.encoder != nil)
+	{
+	  [self _sendOutRmc: ctxt.encoder type: METHOD_REPLY];
 	}
     }
-
-  /* Make sure we pass all exceptions back to the requestor. */
   NS_HANDLER
     {
-      BOOL is_exception = YES;
-
-      [self _failInRmc: aRmc];
       /* Send the exception back to the client. */
       if (_isValid == YES)
 	{
+	  BOOL is_exception = YES;
+
 	  NS_DURING
 	    {
-	      if (op != nil)
+	      NSPortCoder	*op;
+
+	      if (ctxt.decoder != nil)
 		{
-		  [self _failOutRmc: op];
+		  [self _failInRmc: ctxt.decoder];
 		}
-	      op = [self _makeOutRmc: reply_sno generate: 0 reply: NO];
+	      if (ctxt.encoder != nil)
+		{
+		  [self _failOutRmc: ctxt.encoder];
+		}
+	      op = [self _makeOutRmc: ctxt.seq generate: 0 reply: NO];
 	      [op encodeValueOfObjCType: @encode(BOOL)
 				     at: &is_exception];
 	      [op encodeBycopyObject: localException];
@@ -2601,6 +2521,12 @@ static NSPortCoder    *c_aRmc;
     }
   NSDebugMLLog(@"NSConnection", @"Consuming reply RMC %d on %x", sn, self);
   return rmc;
+}
+
+- (void) _doneInReply: (NSPortCoder*)c
+{
+  [self _doneInRmc: c];
+  _repInCount++;
 }
 
 - (void) _doneInRmc: (NSPortCoder*)c
