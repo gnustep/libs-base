@@ -818,6 +818,11 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
   return (NSData*)NSAllocateObject([NSMutableDataMalloc class], 0, z);
 }
 
++ (id) data
+{
+  return [[[NSMutableDataMalloc alloc] initWithCapacity: 0] autorelease];
+}
+
 + (id) dataWithBytes: (const void*)bytes
 	      length: (unsigned int)length
 {
