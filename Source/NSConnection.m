@@ -23,7 +23,7 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    */
 
-/* To do:
+/* To do: 
    Make it thread-safe.
    */
 
@@ -266,7 +266,7 @@ static int messages_received_count;
 {
     NSDistantObject	*proxy;
 
-    proxy = [self rootProxyForConnectionWithRegisteredName:n host:h];
+    proxy = [self rootProxyForConnectionWithRegisteredName: n host: h];
     if (proxy) {
 	return [proxy connectionForProxy];
     }
@@ -286,19 +286,19 @@ static int messages_received_count;
   NSMutableDictionary	*d;
 
   d = GSCurrentThreadDictionary();
-  c = (NSConnection*)[d objectForKey:tkey];
+  c = (NSConnection*)[d objectForKey: tkey];
   if (c != nil && [c isValid] == NO) {
     /*
      *	If the default connection for this thread has been invalidated -
      *	release it and create a new one.
      */
-    [d removeObjectForKey:tkey];
+    [d removeObjectForKey: tkey];
     c = nil;
   }
   if (c == nil) {
     c = [NSConnection new];
-    [d setObject:c forKey:tkey];
-    [c release];	/* retained in dictionary.	*/
+    [d setObject: c forKey: tkey];
+    RELEASE(c);
   }
   return c;
 }
@@ -318,11 +318,11 @@ static int messages_received_count;
   all_connections_local_cached =
     NSCreateMapTable (NSIntMapKeyCallBacks,
 		      NSObjectMapValueCallBacks, 0);
-  received_request_rmc_queue = [[NSMutableArray alloc] initWithCapacity:32];
+  received_request_rmc_queue = [[NSMutableArray alloc] initWithCapacity: 32];
   received_request_rmc_queue_gate = [NSLock new];
-  received_reply_rmc_queue = [[NSMutableArray alloc] initWithCapacity:32];
+  received_reply_rmc_queue = [[NSMutableArray alloc] initWithCapacity: 32];
   received_reply_rmc_queue_gate = [NSLock new];
-  root_object_dictionary = [[NSMutableDictionary alloc] initWithCapacity:8];
+  root_object_dictionary = [[NSMutableDictionary alloc] initWithCapacity: 8];
   root_object_dictionary_gate = [NSLock new];
   receive_port_2_ancestor =
     NSCreateMapTable (NSNonOwnedPointerMapKeyCallBacks,
@@ -340,9 +340,9 @@ static int messages_received_count;
 + new
 {
   id newPort = [[default_receive_port_class newForReceiving] autorelease];
-  id newConn = [NSConnection newForInPort:newPort
-				  outPort:nil
-		       ancestorConnection:nil];
+  id newConn = [NSConnection newForInPort: newPort
+				  outPort: nil
+		       ancestorConnection: nil];
   return newConn;
 }
 
@@ -384,8 +384,8 @@ static int messages_received_count;
 
 - (void) addRequestMode: (NSString*)mode
 {
-    if (![request_modes containsObject:mode]) {
-	[request_modes addObject:mode];
+    if (![request_modes containsObject: mode]) {
+	[request_modes addObject: mode];
         [[NSRunLoop currentRunLoop] addPort: receive_port forMode: mode];
     }
 }
@@ -432,9 +432,9 @@ static int messages_received_count;
 - (id) init
 {
   id newPort = [[default_receive_port_class newForReceiving] autorelease];
-  id newConn = [NSConnection newForInPort:newPort
-				  outPort:nil
-		       ancestorConnection:nil];
+  id newConn = [NSConnection newForInPort: newPort
+				  outPort: nil
+		       ancestorConnection: nil];
   [self release];
   return newConn;
 }
@@ -482,7 +482,7 @@ static int messages_received_count;
     RETAIN(targets);
     for (i = 0; i < [targets count]; i++)
       {
-	id	t = [[targets objectAtIndex:i] localForProxy];
+	id	t = [[targets objectAtIndex: i] localForProxy];
 
 	[self removeLocalObject: t];
       }
@@ -541,9 +541,9 @@ static int messages_received_count;
 
 - (void) removeRequestMode: (NSString*)mode
 {
-  if ([request_modes containsObject:mode])
+  if ([request_modes containsObject: mode])
     {
-      [request_modes removeObject:mode];
+      [request_modes removeObject: mode];
       [[NSRunLoop currentRunLoop] removePort: receive_port forMode: mode];
     }
 }
@@ -690,8 +690,8 @@ static int messages_received_count;
 
   /* Remove rootObject from root_object_dictionary
      if this is last connection */
-  if (![NSConnection connectionsCountWithInPort:receive_port])
-    [NSConnection setRootObject:nil forInPort:receive_port];
+  if (![NSConnection connectionsCountWithInPort: receive_port])
+    [NSConnection setRootObject: nil forInPort: receive_port];
 
   /* Remove receive port from run loop. */
   [self setRequestMode: nil];
@@ -819,14 +819,14 @@ static int messages_received_count;
   newPort = [[default_receive_port_class newForReceiving] autorelease];
   newConn = [self newForInPort: newPort outPort: nil
 		  ancestorConnection: nil];
-  [self setRootObject:anObj forInPort:newPort];
+  [self setRootObject: anObj forInPort: newPort];
   return newConn;
 }
 
 /* I want this method name to clearly indicate that we're not connecting
    to a pre-existing registration name, we're registering a new name,
    and this method will fail if that name has already been registered.
-   This is why I don't like "newWithRegisteredName:" --- it's unclear
+   This is why I don't like "newWithRegisteredName: " --- it's unclear
    if we're connecting to another NSConnection that already registered
    with that name. */
 
@@ -860,7 +860,7 @@ static int messages_received_count;
 
 + (NSDistantObject*) rootProxyAtName: (NSString*)n onHost: (NSString*)h
 {
-  return [self rootProxyForConnectionWithRegisteredName:n host:h];
+  return [self rootProxyForConnectionWithRegisteredName: n host: h];
 }
 
 + (NSDistantObject*) rootProxyAtPort: (NSPort*)anOutPort
@@ -989,7 +989,7 @@ static int messages_received_count;
    *	Set up request modes array and make sure the receiving port is
    *	added to the run loop to get data.
    */
-  newConn->request_modes = [[NSMutableArray arrayWithObject:
+  newConn->request_modes = [[NSMutableArray arrayWithObject: 
 		NSDefaultRunLoopMode] retain];
   [[NSRunLoop currentRunLoop] addPort: (NSPort*)ip
 			      forMode: NSDefaultRunLoopMode];
@@ -999,7 +999,7 @@ static int messages_received_count;
   /* Ssk the delegate for permission, (OpenStep-style and GNUstep-style). */
 
   /* Preferred OpenStep version, which just allows the returning of BOOL */
-  if ([[ancestor delegate] respondsTo:@selector(connection:shouldMakeNewConnection:)])
+  if ([[ancestor delegate] respondsTo: @selector(connection: shouldMakeNewConnection: )])
     {
       if (![[ancestor delegate] connection: ancestor
 		   shouldMakeNewConnection: (NSConnection*)newConn])
@@ -1010,7 +1010,7 @@ static int messages_received_count;
 	}
     }
   /* Deprecated OpenStep version, which just allows the returning of BOOL */
-  if ([[ancestor delegate] respondsTo:@selector(makeNewConnection:sender:)])
+  if ([[ancestor delegate] respondsTo: @selector(makeNewConnection: sender: )])
     {
       if (![[ancestor delegate] makeNewConnection: (NSConnection*)newConn
 				sender: ancestor])
@@ -1023,20 +1023,20 @@ static int messages_received_count;
   /* Here is the GNUstep version, which allows the delegate to specify
      a substitute.  Note: The delegate is responsible for freeing
      newConn if it returns something different. */
-  if ([[ancestor delegate] respondsTo:@selector(connection:didConnect:)])
-    newConn = [[ancestor delegate] connection:ancestor
-	       didConnect:newConn];
+  if ([[ancestor delegate] respondsTo: @selector(connection: didConnect: )])
+    newConn = [[ancestor delegate] connection: ancestor
+	       didConnect: newConn];
 
   /* Register ourselves for invalidation notification when the
      ports become invalid. */
   nCenter = [NSNotificationCenter defaultCenter];
   [nCenter addObserver: newConn
-	      selector: @selector(portIsInvalid:)
+	      selector: @selector(portIsInvalid: )
 		  name: NSPortDidBecomeInvalidNotification
 		object: ip];
   if (op)
     [nCenter addObserver: newConn
-		selector: @selector(portIsInvalid:)
+		selector: @selector(portIsInvalid: )
 		    name: NSPortDidBecomeInvalidNotification
 		  object: op];
   /* if OP is nil, making this notification request would have
@@ -1150,7 +1150,7 @@ static int messages_received_count;
 
 /* Methods for handling client and server, requests and replies */
 
-/* NSDistantObject's -forward:: method calls this to the the message over the wire. */
+/* NSDistantObject's -forward: : method calls this to the the message over the wire. */
 - (retval_t) forwardForProxy: (NSDistantObject*)object
 		    selector: (SEL)sel
                     argFrame: (arglist_t)argframe
@@ -1163,7 +1163,7 @@ static int messages_received_count;
 #define ENCODED_ARGNAME @"argument value"
       switch (*type)
 	{
-	case _C_ID:
+	case _C_ID: 
 	  if (flags & _F_BYCOPY)
 	    [op encodeBycopyObject: *(id*)datum withName: ENCODED_ARGNAME];
 #ifdef	_F_BYREF
@@ -1173,7 +1173,7 @@ static int messages_received_count;
 	  else
 	    [op encodeObject: *(id*)datum withName: ENCODED_ARGNAME];
 	  break;
-	default:
+	default: 
 	  [op encodeValueOfObjCType: type at: datum withName: ENCODED_ARGNAME];
 	}
     }
@@ -1192,7 +1192,7 @@ static int messages_received_count;
     [NSException
       raise: NSGenericException
       format: @"Sorry, distributed objects does not work with NeXT runtime"];
-    /* type = [object selectorTypeForProxy:sel]; */
+    /* type = [object selectorTypeForProxy: sel]; */
 #else
     type = sel_get_type(sel);
 #endif
@@ -1255,7 +1255,7 @@ static int messages_received_count;
 		}
 	      /* xxx Why do we get the reply packet in here, and not
 		 just before calling dissect_method_return() below? */
-	      ip = [self _getReceivedReplyRmcWithSequenceNumber:seq_num];
+	      ip = [self _getReceivedReplyRmcWithSequenceNumber: seq_num];
 	      /* Find out if the server is returning an exception instead
 		 of the return values. */
 	      [ip decodeValueOfCType: @encode(BOOL)
@@ -1275,7 +1275,7 @@ static int messages_received_count;
 		}
 	    }
 	  [ip decodeValueOfObjCType: type at: datum withName: NULL];
-	  /* -decodeValueOfCType:at:withName: malloc's new memory
+	  /* -decodeValueOfCType: at: withName: malloc's new memory
 	     for char*'s.  We need to make sure it gets freed eventually
 	     so we don't have a memory leak.  Request here that it be
 	     autorelease'ed. Also autorelease created objects. */
@@ -1316,10 +1316,10 @@ static int messages_received_count;
 	  return;
 	}
 
-      [aRmc decodeValueOfObjCType:type
-	    at:datum
-	    withName:NULL];
-      /* -decodeValueOfCType:at:withName: malloc's new memory
+      [aRmc decodeValueOfObjCType: type
+	    at: datum
+	    withName: NULL];
+      /* -decodeValueOfCType: at: withName: malloc's new memory
 	 for char*'s.  We need to make sure it gets freed eventually
 	 so we don't have a memory leak.  Request here that it be
 	 autorelease'ed. Also autorelease created objects. */
@@ -1340,7 +1340,7 @@ static int messages_received_count;
 	     back to the remote application!	*/
 	  if (!is_valid)
 	    return;
-	  op = [self newSendingReplyRmcWithSequenceNumber:
+	  op = [self newSendingReplyRmcWithSequenceNumber: 
 		       reply_sequence_number];
 	  [op encodeValueOfCType: @encode(BOOL)
 	      at: &is_exception
@@ -1348,18 +1348,18 @@ static int messages_received_count;
 	}
       switch (*type)
 	{
-	case _C_ID:
+	case _C_ID: 
 	  if (flags & _F_BYCOPY)
-	    [op encodeBycopyObject:*(id*)datum withName:ENCODED_RETNAME];
+	    [op encodeBycopyObject: *(id*)datum withName: ENCODED_RETNAME];
 #ifdef	_F_BYREF
 	  else if (flags & _F_BYREF)
 	    [op encodeByrefObject: *(id*)datum withName: ENCODED_ARGNAME];
 #endif
 	  else
-	    [op encodeObject:*(id*)datum withName:ENCODED_RETNAME];
+	    [op encodeObject: *(id*)datum withName: ENCODED_RETNAME];
 	  break;
-	default:
-	  [op encodeValueOfObjCType:type at:datum withName:ENCODED_RETNAME];
+	default: 
+	  [op encodeValueOfObjCType: type at: datum withName: ENCODED_RETNAME];
 	}
     }
 
@@ -1377,9 +1377,9 @@ static int messages_received_count;
 	 If all selectors included qualifiers and I could make
 	 sel_types_match() work the way I wanted, we wouldn't need
 	 to do this. */
-      [aRmc decodeValueOfCType:@encode(char*)
-	    at:&forward_type
-	    withName:NULL];
+      [aRmc decodeValueOfCType: @encode(char*)
+	    at: &forward_type
+	    withName: NULL];
 
       if (debug_connection > 1)
         NSLog(@"Handling message from 0x%x\n", (gsaddr)self);
@@ -1417,7 +1417,7 @@ static int messages_received_count;
 
 - (void) _service_rootObject: rmc
 {
-  id rootObject = [NSConnection rootObjectForInPort:receive_port];
+  id rootObject = [NSConnection rootObjectForInPort: receive_port];
   NSPortCoder* op = [[self encodingClass]
 			newForWritingWithConnection: [rmc connection]
 			sequenceNumber: [rmc sequenceNumber]
@@ -1593,17 +1593,17 @@ static int messages_received_count;
 	newForWritingWithConnection: self
 	sequenceNumber: seq_num
 	identifier: METHODTYPE_REQUEST];
-  [op encodeValueOfObjCType:":"
-      at:&sel
-      withName:NULL];
-  [op encodeValueOfCType:@encode(unsigned)
-      at:&target
-      withName:NULL];
+  [op encodeValueOfObjCType: ": "
+      at: &sel
+      withName: NULL];
+  [op encodeValueOfCType: @encode(unsigned)
+      at: &target
+      withName: NULL];
   [op dismiss];
-  ip = [self _getReceivedReplyRmcWithSequenceNumber:seq_num];
-  [ip decodeValueOfCType:@encode(char*)
-      at:&type
-      withName:NULL];
+  ip = [self _getReceivedReplyRmcWithSequenceNumber: seq_num];
+  [ip decodeValueOfCType: @encode(char*)
+      at: &type
+      withName: NULL];
   [ip dismiss];
   return type;
 }
@@ -1626,12 +1626,12 @@ static int messages_received_count;
 	sequenceNumber: [rmc sequenceNumber]
 	identifier: METHODTYPE_REPLY];
 
-  [rmc decodeValueOfObjCType:":"
-       at:&sel
-       withName:NULL];
-  [rmc decodeValueOfCType:@encode(unsigned)
-       at:&target
-       withName:NULL];
+  [rmc decodeValueOfObjCType: ": "
+       at: &sel
+       withName: NULL];
+  [rmc decodeValueOfCType: @encode(unsigned)
+       at: &target
+       withName: NULL];
   p = [self includesLocalTarget: target];
   o = [p localForProxy];
 
@@ -1645,9 +1645,9 @@ static int messages_received_count;
     type = m->method_types;
   else
     type = "";
-  [op encodeValueOfCType:@encode(char*)
-      at:&type
-      withName:@"Requested Method Type for Target"];
+  [op encodeValueOfCType: @encode(char*)
+      at: &type
+      withName: @"Requested Method Type for Target"];
   [op dismiss];
   [rmc dismiss];
 }
@@ -1675,17 +1675,17 @@ static int messages_received_count;
 
   switch (ident)
     {
-    case ROOTPROXY_REQUEST:
+    case ROOTPROXY_REQUEST: 
       /* It won't take much time to handle this, so go ahead and service
 	 it, even if we are waiting for a reply. */
       [conn _service_rootObject: rmc];
       break;
-    case METHODTYPE_REQUEST:
+    case METHODTYPE_REQUEST: 
       /* It won't take much time to handle this, so go ahead and service
 	 it, even if we are waiting for a reply. */
       [conn _service_typeForSelector: rmc];
       break;
-    case METHOD_REQUEST:
+    case METHOD_REQUEST: 
       /* We just got a new request; we need to decide whether to queue
 	 it or service it now.
 	 If the REPLY_DEPTH is 0, then we aren't in the middle of waiting
@@ -1708,31 +1708,31 @@ static int messages_received_count;
 	  [received_request_rmc_queue_gate unlock];
 	}
       break;
-    case ROOTPROXY_REPLY:
-    case METHOD_REPLY:
-    case METHODTYPE_REPLY:
-    case RETAIN_REPLY:
+    case ROOTPROXY_REPLY: 
+    case METHOD_REPLY: 
+    case METHODTYPE_REPLY: 
+    case RETAIN_REPLY: 
       /* Remember multi-threaded callbacks will have to be handled specially */
       [received_reply_rmc_queue_gate lock];
       [received_reply_rmc_queue addObject: rmc];
       [received_reply_rmc_queue_gate unlock];
       break;
-    case CONNECTION_SHUTDOWN:
+    case CONNECTION_SHUTDOWN: 
       {
 	[conn _service_shutdown: rmc forConnection: self];
 	break;
       }
-    case PROXY_RELEASE:
+    case PROXY_RELEASE: 
       {
 	[conn _service_release: rmc forConnection: self];
 	break;
       }
-    case PROXY_RETAIN:
+    case PROXY_RETAIN: 
       {
 	[conn _service_retain: rmc forConnection: self];
 	break;
       }
-    default:
+    default: 
       [rmc dismiss];
       [NSException raise: NSGenericException
 		   format: @"unrecognized NSPortCoder identifier"];
@@ -1952,7 +1952,7 @@ static int messages_received_count;
 		{
 		  timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
 					 target: [NSConnection class]
-					 selector: @selector(_timeout:)
+					 selector: @selector(_timeout: )
 					 userInfo: nil
 					  repeats: YES];
 		}
@@ -2210,7 +2210,7 @@ static int messages_received_count;
   id ro;
 
   [root_object_dictionary_gate lock];
-  ro = [root_object_dictionary objectForKey:aPort];
+  ro = [root_object_dictionary objectForKey: aPort];
   [root_object_dictionary_gate unlock];
   return ro;
 }
@@ -2299,12 +2299,12 @@ static int messages_received_count;
 
 - (void) encodeWithCoder: anEncoder
 {
-  [self shouldNotImplement:_cmd];
+  [self shouldNotImplement: _cmd];
 }
 
 + newWithCoder: aDecoder;
 {
-  [self shouldNotImplement:_cmd];
+  [self shouldNotImplement: _cmd];
   return self;
 }
 
@@ -2329,7 +2329,7 @@ static int messages_received_count;
 	/* We shouldn't be getting any port invalidation notifications,
 	    except from our own ports; this is how we registered ourselves
 	    with the NSNotificationCenter in
-	    +newForInPort:outPort:ancestorConnection. */
+	    +newForInPort: outPort: ancestorConnection. */
 	NSParameterAssert (port == receive_port || port == send_port);
 
 	[self invalidate];
@@ -2347,7 +2347,7 @@ static int messages_received_count;
 {
     NSConnection	*c;
 
-    c = [self newForInPort:r outPort:s ancestorConnection:nil];
+    c = [self newForInPort: r outPort: s ancestorConnection: nil];
     return [c autorelease];
 }
 
@@ -2355,7 +2355,7 @@ static int messages_received_count;
 	     sendPort: (NSPort*)s
 {
     [self dealloc];
-    return [NSConnection newForInPort:r outPort:s ancestorConnection:nil];
+    return [NSConnection newForInPort: r outPort: s ancestorConnection: nil];
 }
 
 - (NSPort*) receivePort
