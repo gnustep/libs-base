@@ -817,9 +817,21 @@ static int messages_received_count;
       [rmc dismiss];
       break;
     case METHOD_REQUEST:
-      if (([rmc connection] == self)
-	  && (reply_depth == 0
-	      || !delay_dialog_interruptions))
+      /* We just got a new request; we need to decide whether to queue
+	 it or service it now.
+	 If the REPLY_DEPTH is 0, then we aren't in the middle of waiting
+	 for a reply, we are waiting for requests---so service it now.
+	 If REPLY_DEPTH is non-zero, we may still want to service it now
+	 if it is a request made as a callback from our peer---the request
+	 is part of the remote code necessary to finish calculating our
+	 reply; we know it's a callback from our peer if the [RMC CONNECTION]
+	 is self.
+	 If REPLY_DEPTH is non-zero, and the [RMC CONNECTION] is not self,
+	 then we may still want to service it now if DELAY_DIALOG_INTERRUPTIONS
+	 is false. */
+      if (reply_depth == 0
+	  || [rmc connection] == self
+	  || !delay_dialog_interruptions)
 	{
 	  [[rmc connection] _service_forwardForProxy: rmc];
 	  /* Service any requests that were queued while we
