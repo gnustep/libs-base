@@ -1,0 +1,38 @@
+Received: from cayuga.cs.rochester.edu (cayuga.cs.rochester.edu [192.5.53.209]) by slate.cs.rochester.edu (8.6.9/G) with ESMTP id LAA28657 for <mccallum>; Wed, 23 Aug 1995 11:56:35 -0400
+Received: from mode.Colorado.EDU (mode.Colorado.EDU [128.138.248.167]) by cayuga.cs.rochester.edu (8.6.9/G) with ESMTP id LAA06539 for <mccallum@cs.rochester.edu>; Wed, 23 Aug 1995 11:56:34 -0400
+Received: (from fedor@localhost) by mode.Colorado.EDU (8.6.12/8.6.11/UnixOps/Hesiod(SDM)) id JAA01294; Wed, 23 Aug 1995 09:56:31 -0600
+Date: Wed, 23 Aug 1995 09:56:30 -0600 (MDT)
+From: Adam Fedor <fedor@mode.Colorado.EDU>
+Subject: Re: Georg Tuparev: include path
+To: Andrew McCallum <mccallum@cs.rochester.edu>
+In-Reply-To: <199508231454.KAA24578@slate.cs.rochester.edu>
+Message-ID: <Pine.3.89.9508230949.A1285-0100000@mode.Colorado.EDU>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+
+
+The OpenStep docs all have Foundation.  It's a bit cumbersome to switch 
+between them, but I assume when NeXT 4.0 comes out, they will have all 
+switched to capital "Foundation". I don't really know though.  For now I 
+have this in my configure:
+
+AC_CHECK_HEADER(foundation/NSObject.h, found_objects=1 next_foundation=1, 
+	found_objects=0 next_foundation=0)
+if test $next_foundation = 1; then
+    AC_DEFINE(NEXT_FOUNDATION)
+    AC_DEFINE(NS_BLOCK_ASSERTIONS)
+fi
+
+and in each header file:
+
+#ifdef NEXT_FOUNDATION
+#import <foundation/NSObject.h>
+#else
+#include <Foundation/NSObject.h>
+#endif
+
+
+As I said, cumbersome, but it should work with ANY OpenStep complient 
+foundation.
+
+
