@@ -144,7 +144,7 @@ NSComparisonResult;
 enum {NSNotFound = 0x7fffffff};
 
 @interface NSObject (GNUstep)
-+ (id) newWithCoder: (NSCoder*)aCoder inZone: (NSZone*)aZone;
+
 @end
 
 @interface NSObject (NEXTSTEP)

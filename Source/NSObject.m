@@ -790,21 +790,6 @@ static BOOL double_release_check_enabled = NO;
 
 @implementation NSObject (GNUstep)
 
-/*
- *	GNUstep extensions to the OpenStep standard.
- */
-
-+ (id) newWithCoder: (NSCoder*)coder inZone: (NSZone*)zone
-{
-    id	obj;
-
-    obj = [self allocWithZone: zone]; 
-    if (obj) {
-	obj = [obj initWithCoder: coder];
-    }
-    return obj;
-}
-
 @end
 
 
