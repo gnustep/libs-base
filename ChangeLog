@@ -2,7 +2,8 @@
 
 	* Source/NSDictionary.m: Don't use stack as temporary storage for
 	large numbers of objects ... reduce chances of stack overflow.
-	* Source/NSIndexSet.m: Added a few range checks.
+	* Source/NSIndexSet.m: Added a few range checks, implemented many
+	methods of mutable class.
 
 2004-03-16  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 

@@ -189,6 +189,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       while (i < count)
 	{
 	  total += GSIArrayItemAtIndex(_array, i).ext.length;
+	  i++;
 	}
       return total;
     }
@@ -203,6 +204,25 @@ static unsigned posForIndex(GSIArray array, unsigned index)
       _data = 0;
     }
   [super dealloc];
+}
+
+- (NSString*) description
+{
+  NSMutableString	*m;
+  unsigned		c = GSIArrayCount(_array);
+  unsigned		i;
+
+  m = [NSMutableString stringWithFormat:
+    @"%@[number of indexes: %u (in %u ranges), indexes: ",
+    [super description], [self count], c];
+  for (i = 0; i < c; i++)
+    {
+      NSRange	r = GSIArrayItemAtIndex(_array, i).ext;
+
+      [m appendFormat: @"(%u-%u) ", r.location, NSMaxRange(r) - 1];
+    }
+  [m appendString: @"]"];
+  return m;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -260,7 +280,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 	  aRange->location += skip;
 	  aRange->length -= skip;
 	}
-      else if (NSLocationInRange(aRange->location, r))
+      if (NSLocationInRange(aRange->location, r))
 	{
 	  while (aRange->length > 0 && i < aCount
 	    && aRange->location < NSMaxRange(r))
@@ -327,6 +347,10 @@ static unsigned posForIndex(GSIArray array, unsigned index)
   if (NSLocationInRange(anIndex, r))
     {
       return anIndex;
+    }
+  if (r.location > anIndex)
+    {
+      return r.location;
     }
   if (++pos >= GSIArrayCount(_array))
     {
@@ -501,9 +525,9 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (BOOL) isEqualToIndexSet: (NSIndexSet*)aSet
 {
-  unsigned	count = GSIArrayCount(_other);
+  unsigned	count = _other ? GSIArrayCount(_other) : 0;
 
-  if (count != GSIArrayCount(_array))
+  if (count != (_array ? GSIArrayCount(_array) : 0))
     {
       return NO;
     }
@@ -531,7 +555,7 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     {
       return NSNotFound;
     }
-  return GSIArrayItemAtIndex(_array, GSIArrayCount(_array)-1).ext.location;
+  return NSMaxRange(GSIArrayItemAtIndex(_array, GSIArrayCount(_array)-1).ext)-1;
 }
 
 - (id) mutableCopyWithZone: (NSZone*)aZone
@@ -594,10 +618,64 @@ static unsigned posForIndex(GSIArray array, unsigned index)
     }
   else
     {
-      unsigned	p1 = posForIndex(_array, aRange.location);
-      unsigned	p2 = posForIndex(_array, NSMaxRange(aRange)-1);
+      unsigned	pos = posForIndex(_array, aRange.location);
 
-      [self notImplemented:_cmd];
+      if (pos >= GSIArrayCount(_array))
+	{
+	  /*
+	   * The start of the range to add lies beyond the existing
+	   * ranges, so we can simply append it.
+	   */
+	  GSIArrayAddItem(_array, (GSIArrayItem)aRange);
+	}
+      else
+	{
+	  NSRange	r = GSIArrayItemAtIndex(_array, pos-1).ext;
+
+	  if (NSLocationInRange(aRange.location, r))
+	    {
+	      pos++;
+	    }
+	  GSIArrayInsertItem(_array, (GSIArrayItem)aRange, pos);
+	}
+
+      /*
+       * Combine with the preceding ranges if possible.
+       */
+      while (pos > 0)
+	{
+	  NSRange	r = GSIArrayItemAtIndex(_array, pos-1).ext;
+
+	  if (NSMaxRange(r) < aRange.location)
+	    {
+	      break;
+	    }
+	  r.length += (NSMaxRange(aRange) - NSMaxRange(r));
+	  GSIArrayRemoveItemAtIndex(_array, pos--);
+	  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+	}
+
+      /*
+       * Combine with any following ranges where possible.
+       */
+      while (pos + 1 < GSIArrayCount(_array))
+	{
+	  NSRange	r = GSIArrayItemAtIndex(_array, pos+1).ext;
+
+	  if (NSMaxRange(aRange) < r.location)
+	    {
+	      break;
+	    }
+	  GSIArrayRemoveItemAtIndex(_array, pos + 1);
+	  if (NSMaxRange(r) > NSMaxRange(aRange))
+	    {
+	      int	offset = NSMaxRange(r) - NSMaxRange(aRange);
+
+	      r = GSIArrayItemAtIndex(_array, pos).ext;
+	      r.length += offset;
+	      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+	    }
+	}
     }
 }
 
@@ -618,28 +696,233 @@ static unsigned posForIndex(GSIArray array, unsigned index)
 
 - (void) removeIndex: (unsigned int)anIndex
 {
-  [self notImplemented:_cmd];
+  [self removeIndexesInRange: NSMakeRange(anIndex, 1)];
 }
 
 - (void) removeIndexes: (NSIndexSet*)aSet
 {
-  [self notImplemented:_cmd];
+  unsigned	count = GSIArrayCount(_other);
+
+  if (count > 0)
+    {
+      unsigned	i;
+
+      for (i = 0; i < count; i++)
+	{
+	  NSRange	r = GSIArrayItemAtIndex(_other, i).ext;
+
+	  [self removeIndexesInRange: r];
+	}
+    }
 }
 
 - (void) removeIndexesInRange: (NSRange)aRange
 {
+  unsigned	pos;
+
   if (NSNotFound - aRange.length < aRange.location)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@-%@]: Bad range",
         NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
-  [self notImplemented:_cmd];
+  if (aRange.length == 0 || _array == 0 || GSIArrayCount(_array) == 0)
+    {
+      return;	// Already empty
+    }
+  pos = posForIndex(_array, aRange.location);
+
+  /*
+   * Remove any ranges contained entirely in the one to be removed.
+   */
+  while (pos < GSIArrayCount(_array))
+    {
+      NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
+
+      if (r.location < aRange.location || NSMaxRange(r) > NSMaxRange(aRange))
+	{
+	  break;
+	}
+      GSIArrayRemoveItemAtIndex(_array, pos);
+    }
+
+  if (pos < GSIArrayCount(_array))
+    {
+      NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
+
+      if (r.location <= aRange.location)
+	{
+	  /*
+	   * The existing range might overlap or mcontain the range to remove.
+	   */
+	  if (NSMaxRange(r) >= NSMaxRange(aRange))
+	    {
+	      /*
+	       * Range to remove is contained in the range we found ...
+	       */
+	      if (r.location == aRange.location)
+		{
+		  /*
+		   * Remove from start of range.
+		   */
+		  r.length -= aRange.length;
+		  r.location += aRange.length;
+		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+		}
+	      else if (NSMaxRange(r) == NSMaxRange(aRange))
+		{
+		  /*
+		   * Remove from end of range.
+		   */
+		  r.length -= aRange.length;
+		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+		}
+	      else
+		{
+		  NSRange	t;
+		  unsigned	p;
+
+		  /*
+		   * Split the range.
+		   */
+		  p = NSMaxRange(aRange);
+		  t = NSMakeRange(p, NSMaxRange(r) - p);
+		  GSIArrayInsertItem(_array, (GSIArrayItem)t, pos+1);
+		  r.length = aRange.location - r.location;
+		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+		}
+	    }
+	  else if (NSMaxRange(r) >= aRange.location)
+	    {
+	      /*
+	       * The range to remove overlaps the one we found.
+	       */
+	      r.length = aRange.location - r.location;
+	      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+
+	      if (++pos < GSIArrayCount(_array))
+		{
+		  NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
+
+		  if (r.location < NSMaxRange(aRange))
+		    {
+		      /*
+		       * and also overlaps the following range.
+		       */
+		      r.length -= NSMaxRange(aRange) - r.location;
+		      r.location = NSMaxRange(aRange);
+		      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, pos);
+		    }
+		}
+	    }
+	}
+    }
 }
 
 - (void) shiftIndexesStartingAtIndex: (unsigned int)anIndex by: (int)amount
 {
-  [self notImplemented:_cmd];
+  if (amount != 0 && _array != 0 && GSIArrayCount(_array) > 0)
+    {
+      unsigned	c;
+      unsigned	pos;
+
+      if (amount > 0)
+	{
+	  c = GSIArrayCount(_array);
+	  pos = posForIndex(_array, anIndex);
+
+	  if (pos < c)
+	    {
+	      NSRange	r = GSIArrayItemAtIndex(_array, pos).ext;
+
+	      /*
+	       * If anIndex is within an existing range, we split
+	       * that range so we have one starting at anIndex.
+	       */
+	      if (r.location < anIndex)
+		{
+		  NSRange	t;
+
+		  /*
+		   * Split the range.
+		   */
+		  t = NSMakeRange(r.location, anIndex - r.location);
+		  GSIArrayInsertItem(_array, (GSIArrayItem)t, pos);
+		  c++;
+		  r.length = NSMaxRange(r) - anIndex;
+		  r.location = anIndex;
+		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, ++pos);
+		}
+
+	      /*
+	       * Shift all higher ranges to the right.
+	       */
+	      while (c > pos)
+		{
+		  NSRange	r = GSIArrayItemAtIndex(_array, --c).ext;
+
+		  if (NSNotFound - amount <= r.location)
+		    {
+		      GSIArrayRemoveItemAtIndex(_array, c);
+		    }
+		  else if (NSNotFound - amount < NSMaxRange(r))
+		    {
+		      r.location += amount;
+		      r.length = NSNotFound - r.location;
+		      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, c);
+		    }
+		  else
+		    {
+		      r.location += amount;
+		      GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, c);
+		    }
+		}
+	    }
+	}
+      else
+	{
+	  amount = -amount;
+
+	  /*
+	   * Delete range which will be overwritten.
+	   */
+	  if (amount >= anIndex)
+	    {
+	      [self removeIndexesInRange: NSMakeRange(0, anIndex)];
+	    }
+	  else
+	    {
+	      [self removeIndexesInRange:
+		NSMakeRange(anIndex - amount, amount)];
+	    }
+	  pos = posForIndex(_array, anIndex);
+
+	  /*
+	   * Now shift everything left into the hole we made.
+	   */
+	  c = GSIArrayCount(_array);
+	  while (c > pos)
+	    {
+	      NSRange	r = GSIArrayItemAtIndex(_array, --c).ext;
+
+	      if (NSMaxRange(r) <= amount)
+		{
+		  GSIArrayRemoveItemAtIndex(_array, c);
+		}
+	      else if (r.location <= amount)
+		{
+		  r.length += (r.location - amount);
+		  r.location = 0;
+		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, c);
+		}
+	      else
+		{
+		  r.location -= amount;
+		  GSIArraySetItemAtIndex(_array, (GSIArrayItem)r, c);
+		}
+	    }
+	}
+    }
 } 
 
 @end

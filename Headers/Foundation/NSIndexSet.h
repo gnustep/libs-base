@@ -33,7 +33,7 @@
 #include	<Foundation/NSRange.h>
 
 /**
- * <strong> NOT YET IMPLEMENTED/TESTED </strong>
+ * <strong> NOT YET FULLY IMPLEMENTED/TESTED </strong>
  * Instances of this class are collections of unsigned integers in the
  * range 0 to NSNotFound-1.<br />
  * Each integer can appear in a collection only once.
@@ -161,13 +161,51 @@
 
 @interface	NSMutableIndexSet : NSIndexSet
 
+/**
+ * Adds anIndex to the set of indexes stored in the receiver.
+ */
 - (void) addIndex: (unsigned int)anIndex;
+
+/**
+ * Adds all the indexes from aSet to the set of indexes stored in the receiver.
+ */
 - (void) addIndexes: (NSIndexSet*)aSet;
+
+/**
+ * Adds all the indexes in aRange to the set of indexes stored in the receiver.
+ */
 - (void) addIndexesInRange: (NSRange)aRange;
+
+/**
+ * Removes all indexes stored in the receiver.
+ */
 - (void) removeAllIndexes;
+
+/**
+ * Removes anIndex from the set of indexes stored in the receiver.
+ */
 - (void) removeIndex: (unsigned int)anIndex;
+
+/**
+ * Removes all the indexes in aSet from the set of indexes
+ * stored in the receiver.
+ */
 - (void) removeIndexes: (NSIndexSet*)aSet;
+
+/**
+ * Removes all the indexes in aRange from the set of indexes
+ * stored in the receiver.
+ */
 - (void) removeIndexesInRange: (NSRange)aRange;
+
+/**
+ * Not implemented.<br />
+ * Moves all the indexes from anIndex upwards by the amount specified.<br />
+ * If amount is negative, index values below anIndex will be overwritten
+ * by the shifted values.<br />
+ * If amount is positive, a 'hole' will be left in the index range after
+ * anIndex.
+ */
 - (void) shiftIndexesStartingAtIndex: (unsigned int)anIndex by: (int)amount;   
 
 @end

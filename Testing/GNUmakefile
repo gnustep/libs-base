@@ -51,7 +51,7 @@ CHECKABLE_TOOLS = \
 		nsfilemanager \
 		nshashtable \
 		nshost \
-		nsinvocation \
+		nsindexset \
 		nsmaptable \
 		nsnotification \
 		nsprocessinfo \
@@ -104,6 +104,7 @@ nsfilehandle_OBJC_FILES = nsfilehandle.m
 nsfilemanager_OBJC_FILES = nsfilemanager.m
 nshashtable_OBJC_FILES = nshashtable.m
 nshost_OBJC_FILES = nshost.m
+nsindexset_OBJC_FILES = nsindexset.m
 nsinvocation_OBJC_FILES = nsinvocation.m
 nsmaptable_OBJC_FILES = nsmaptable.m
 nsnotification_OBJC_FILES = nsnotification.m
