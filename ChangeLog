@@ -1,3 +1,7 @@
+2002-06-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Implemented and documented -className
+
 2002-06-06  Adam Fedor  <fedor@gnu.org>
 
 	* Source/cifframe.m (cifframe_from_info): Set value locations
