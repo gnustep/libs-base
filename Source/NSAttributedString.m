@@ -181,7 +181,7 @@ static Class GSMutableAttributedStringClass;
 	  m = [NSMutableAttributedString alloc];
 	  m = [m initWithString: string attributes: nil];
 	  [m setAttributes: attrs range: r];
-	  while (index < length);
+	  while (index < length)
 	    {
 	      [aDecoder decodeValueOfObjCType: @encode(unsigned int)
 					   at: &index];
