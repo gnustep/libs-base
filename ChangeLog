@@ -3,6 +3,8 @@
 	* configure.ac: Add NetBSD header/ldflag support (Patch from
 	Peter Cooper).
 
+	* Headers/gnustep/base/GNUstep.h: New compatibility file.
+
 2002-08-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* SSL/GNUmakefile: Added -lgnustep-base and -lobjc to SSL_BUNDLE_LIBS
