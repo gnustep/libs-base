@@ -1,5 +1,11 @@
 2001-03-19  Jonathan Gapen  <jagapen@home.com>
 
+	* Source/NSString.m: Implement ([-localizedStringWithFormat:]).
+	Fix ([-localizedCompare:]) and ([-localizedCaseInsensitiveCompare:]).
+	(They will work when ([-compare:options:range:locale:]) works.)
+
+2001-03-19  Jonathan Gapen  <jagapen@home.com>
+
 	* Source/NSAutoreleasePool.m, Source/NSCharacterSet.m,
 	Source/NSHashTable.m, Source/NSMapTable.m, Source/NSZone.m:
 	Update from %s/([-cString]) to %@ for format strings.
