@@ -158,8 +158,8 @@ id CStreamSignatureMismatchException  = @"CStreamSignatureMismatchException";
 
 - initForWritingToStream: (id <Streaming>) s
 {
-  [self initForWritingToStream: s
-	withFormatVersion: [[self class] defaultFormatVersion]];
+  return [self initForWritingToStream: s
+	       withFormatVersion: [[self class] defaultFormatVersion]];
 }
 
 - initForWritingToFile: (id <String>) file
