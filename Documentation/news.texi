@@ -7,6 +7,18 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{1.0.2}
+
+Mostly a bug fix release to work with the new gcc 3.0.
+
+@itemize @bullet
+@item Added support for special gcc 3.0 options (constant string support).
+@end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.0.1}
 
 @itemize @bullet
@@ -18,10 +30,6 @@ bridges from other languages).
 @item Works better with gcc 3.x, newer kernels.
 @item More memory debugging support.
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.0.0}
 

@@ -1,3 +1,11 @@
+2001-06-12  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 1.0.2
+	* Documentation/news.texi: Update
+
+	* Documentation/gsdoc/NSArray.gsdoc: Updates (from
+        Pierre-Yves Rivaille <pyrivail@ens-lyon.fr>).
+
 2001-06-11  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in (enable-openssl): New option, disabled by default.
