@@ -41,9 +41,9 @@ extern NSString* NSGlobalDomain;
 extern NSString* NSRegistrationDomain;
 
 /* Public notification */
-extern NSString *NSUserDefaultsDidChange;
+extern NSString *NSUserDefaultsDidChangeNotification;
 /* Backwards compatibility */
-#define	NSUserDefaultsChanged NSUserDefaultsDidChange
+#define	NSUserDefaultsChanged NSUserDefaultsDidChangeNotification
 
 /* Keys for language-dependent information */
 extern NSString *NSWeekDayNameArray;
