@@ -3373,8 +3373,8 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * This returns the content data of the document in the
- * appropriate format for the type of data -
+ * This returns the content data of the document in the same format in
+ * which the data was placed in the document.  This may be one of -
  * <deflist>
  *   <term>text</term>
  *   <desc>an NSString object</desc>
@@ -3383,6 +3383,8 @@ static NSCharacterSet	*tokenSet = nil;
  *   <term>multipart</term>
  *   <desc>an NSArray object containing GSMimeDocument objects</desc>
  * </deflist>
+ * If you want to be sure that you get a particular type of data, use the
+ * -convertToData or -convertToText method.
  */
 - (id) content
 {
@@ -3556,7 +3558,9 @@ static NSCharacterSet	*tokenSet = nil;
  * Return the content as an NSData object (unless it is multipart)<br />
  * Perform conversion from text to data using the charset specified in
  * the content-type header, or infer the charset, and update the header
- * accordingly.
+ * accordingly.<br />
+ * If the content can not be represented as a plain NSData object, this
+ * method returns nil.
  */
 - (NSData*) convertToData
 {
@@ -3589,6 +3593,7 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Return the content as an NSString object (unless it is multipart)
+ * If the content cannot be represented as text, this returns nil.
  */
 - (NSString*) convertToText
 {
