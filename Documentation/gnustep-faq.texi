@@ -1,0 +1,563 @@
+@chapter GNUstep Frequently Asked Questions with Answers
+
+Last updated 3 March 1996.
+Maintained by Andrew McCallum <mccallum@@gnu.ai.mit.edu>, with
+contributions by Pascal Forget <pascal@@wsc.com>, Scott Christley
+<scottc@@ocbi.com>, and Randy Chapman <chapman@@u.washington.edu>.
+Please send corrections to <mccallum@@gnu.ai.mit.edu>.
+
+The intended audience of this FAQ is future and present code developers
+for GNUstep.  This FAQ serves a purpose complementary to the GNUstep WWW
+pages---since it is written and maintained directly by those writing
+code for GNUstep, it emphasizes (although not exclusively): (1)
+technical details and organization, (2) the functionality is coded and
+working now.  This FAQ is intended to provide a succinct document in
+which to find GNUstep information without hype.
+
+@section GNUstep General Information
+
+@enumerate
+
+
+@item What is GNUstep?
+
+GNUstep is the Free Software Foundation's effort to implement NeXT
+Computer Inc.'s OpenStep Standard.  The project is not finished, however
+some components are useable now.
+
+The GNUstep project consists of the following sub-projects:
+
+@itemize @bullet
+
+@item GNUstep Base Library - code for non-graphical objects, such as
+strings, collections, archiving support and distributed objects
+messaging.  (Including functionality similar to OpenStep's
+@samp{FoundationKit}.)
+
+@item GNUstep GUI Library - code for graphical objects used in making a
+Graphical User Interface (GUI).  This includes buttons, sliders, text
+fields, windows, menus, etc.  (Including functionality similar to
+OpenStep's @samp{AppKit}.)
+
+@item GNUstep DisplayGhostScript Server - a server that draws PostScript
+graphics to the screen, and receives events from the keyboard and
+mouse.  It is based on GhostScript.
+
+@item GNUstep Interface Modeller Application - an application for
+graphically assembling application interfaces.
+
+@end itemize
+
+More detailed information about each of these sub-projects can be found
+in their own sections below.
+
+There are several projects related to GNUstep that are not officially
+part of the GNU project and GNUstep, but may become so in the future.
+These include: the @samp{G3DKit} project, (contact Thoman Engle
+<tsengel@@cip.informatik.uni-erlangen.de>); an application library based
+on OpenGL, (contact Georg Tuparev <Tuparev@@EMBL-Heidelberg>); and
+@samp{ProjectCenter}, a source code management and development
+environment, (contact unknown).  If you know of others, please contact
+the FAQ maintainer.
+
+The initial target platforms for GNUstep are Linux and other UN*X's.
+There has been some OS/2 WARP work, but I have not seen any ongoing work
+on this platform.
+
+
+@item What is the OpenStep standard?
+
+OpenStep is an Application Programming Interface (API) for creating
+applications using the Objective C language.  It was published by NeXT
+Computer Inc. in 1994.  It is being used by Sun Microsystems as part of
+their Common Desktop Environment (CDE).
+
+OpenStep consists of three parts: the @samp{FoundationKit}, a library of
+non-graphical objects; the @samp{AppKit}, a library of objects usful in
+creating graphical applications; and @samp{DisplayPostscript}, an
+interface for drawing to the screen using the PostScript graphics
+language.
+
+You can obtain a copy of the OpenStep standard in 
+
+@itemize @bullet
+@item texinfo at @samp{http://www.dartmouth.edu/~ajones/Projects/ OpenStepSpec.tar.gz}.
+@item HTML at @samp{http://www.nmr.embl-heidelberg.de/GNUstep/ GNUOpenStep/OpenStepSpec/OpenStepSpec.html}.
+@item PostScript and RTF at @samp{ftp://ftp.next.com/pub/OpenStepSpec/}.
+@end itemize
+
+
+@item Who is currently involved in writing GNUstep code?
+
+For the sake of being social and getting to know each other, here is a
+list of the folks who are currently, actively contributing GNUstep code.
+The list includes a brief descriptions of each person's background and
+involvement in the GNUstep coding efforts.
+
+@itemize @bullet
+
+@item Adam Fedor <fedor@@mode.colorado.edu> continues his excellent, long
+service as user, tester, and code contributor to both the Base Library
+and the GUI Library.
+
+@item Andrew McCallum <mccallum@@gnu.ai.mit.edu> was appointed chief
+maintainer of the GNUstep project by Richard Stallman in January 1996.
+He has been involved and hacking in the NeXT community since NeXTSTEP
+version 0.8; he has been working on GNU Objective C and the Base Library
+since 1993.
+
+@item Pascal Forget <pascal@@wsc.com> is working on the GUI Library in
+conjunction with Scott Christley.  He has worked with Randy Chapman's
+DisplayGhostScript and X Windows as a GNUstep GUI backend.
+
+@item Randy Chapman <chapman@@u.washington.edu> has been working on the
+GNUstep DisplayGhostScript Server, adding DPS extensions to GhostScript,
+including pswrap work.
+
+@item Scott Christley <scottc@@ocbi.com> is in charge of the
+InterfaceModeler project, which is currently in the design stages.  He
+is working on the GUI Library in conjunction with Pascal Forget.  He has
+already written much of the GUI Library frontend.
+
+@end itemize
+
+There are many others who have made significant contributions to
+GNUstep, but who are not currently contributing code, (such as Kresten
+Thorup and Paul Kunz).  For more information about GNUstep history, see
+the GNUstep WWW pages.
+
+There are also several others who have contributed individual classes to
+GNUstep, but who are not actively contributing to general GNUstep work.
+This list is not intended to be a complete list of GNUstep code
+contributors; that information is available in each of the GNUstep code
+packages.
+
+There are also other code developers who are writing Objective C code
+related to GNUstep, but for projects that are not officially part of the
+GNU project and GNUstep.  We hope that some of these projects will join
+the GNU project and GNUstep in the future.
+
+Please send corrections to the FAQ maintainer.
+
+
+@item Is there a WWW site for GNUstep?  Are there mailing lists for GNUstep?
+
+There is a WWW site at @samp{http://www.gnustep.org}, (and its mirror
+@samp{http://www.NMR.EMBL-Heidelberg.DE/GNUstep), that contains many
+useful pointers.  The technical information in this FAQ may be more up
+to date than the WWW pages since this FAQ is maintained directly by the
+people who are developing GNUstep code.
+
+There are several mailing lists:
+
+@itemize @bullet
+
+@item @samp{discussion@@gnustep.org} is a mailing list for general
+discussion of GNUstep developments.  Announcements about GNUstep
+progress are also made there.  The list is maintained by Georg Tuparev
+<Tuparev@@EMBL-Heidelberg.de>.
+
+To join, send mail to @samp{discussion-request@@gnustep.org}.
+
+@item @samp{webmasters@@gnustep.org} is a mailing list for discussion of
+the GNUstep WWW site.
+
+To join, send mail to @samp{webmasters-request@@gnustep.org}.
+
+@item @samp{g3dkit@@gnustep.org} is a mailing list for discussion of a
+library for drawing 3D graphics; it is based on OpenGL and RenderMan.
+The Free Software Foundation is hoping that this work can become an
+official part of the GNU project and the GNUstep project.
+
+To join, send mail to @samp{g3dkit@@gnustep.org}.
+
+@item There is also a private mailing list for the core active
+developers of GNUstep.  Those people who contribute large sections of
+code and who are interested in making and planning further contributions
+may be invited to join.  We apologize in advance, but, for the sake of
+efficient communication, the list is not open to people who are not
+actively contributing significant coding work to the project; don't
+bother asking to be added unless you have already been in contact with
+Andrew McCallum about source code contributions.  If you would like to
+make code contributions, by all means, contact McCallum.  This list is
+maintained by McCallum <mccallum@@gnu.ai.mit.edu>.
+
+@end itemize
+
+
+@item What is the current state of the project?  When can I expect it to
+be completed?
+
+The Base Library is about 85 percent done.  Significant useful work can
+already be done using the library.  The GUI library is a little less
+than half done.  It can already put up windows with working buttons,
+sliders and textfields, but significant work needs to be done before it
+is ready for generic application development work.  The
+DisplayPostscript and drawing support is in transition now.
+
+More detailed information about the state of each of the sub-projects
+can be found below.
+
+With free software, you should never, ever, believe promises about when
+a project will be finished.  ...However, that said: there are certain
+GNUstep developers that are counting on having useful Base and GUI
+libraries working by Summer 1996.
+
+@item How can I help?
+
+If you have a specific piece of functionality that you would like to
+contribute, or if you would like to ask for suggestions about what
+coding work you can do to help, contact the GNUstep Chief Maintainer,
+Andrew McCallum <mccallum@@gnu.ai.mit.edu>.
+
+@end enumerate
+@c GNUstep General
+
+More detailed inforation about each of the GNUstep sub-projects can be
+found below.
+
+
+@section GNUstep Base Library
+
+@enumerate
+
+@item What is the GNUstep Base Library?
+
+The GNUstep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+collections, byte streams, typed coders, invocations, notifications,
+notification dispatchers, times, network ports, remote object messaging
+support, and random number generators.
+
+It provides functionality that aims to implement the
+@samp{FoundationKit} portion of the OpenStep standard.  In many cases,
+the @samp{NS*} classes are implemented as wrappers around more
+featureful GNU classes.
+
+There is more (although perhaps out-of-date) information available at
+the libobjects homepage at
+@samp{http://www.cs.rochester.edu/u/mccallum/libobjects}.
+
+
+@item What is its current state of development?
+
+It is about 85 percent of the way to having all the OpenStep classes.
+Significant useful work can already be done using the library since the
+missing 15 percent are the less-often-used classes, such as NSByteStore.
+Over 60,000 lines of code have already been written.
+
+The following OpenStep classes and class clusters are pretty much done
+and usable: NSArchiver, NSArray, NSAssertionHandler, NSAutoreleasePool,
+NSBitmapCharSet, NSBundle, NSCharacterSet, NSCoder, NSCountedSet,
+NSData, NSDate, NSDictionary, NSEnumerator, NSException, NSInvocation,
+NSLock, NSMethodSignature, NSNotification, NSNotificationCenter,
+NSNumber, NSObject, NSProcessInfo, NSSet, NSString, NSThread,
+NSTimeZone, NSValue.
+
+Most of the C functions are also implemented, including NSHashTable and
+NSMaptable.
+
+A GNU implementation of Distributed Object works.  However, the wrappers
+for creating the NSConnection, NSDistantObject, NSProxy wrappers have
+not yet been made.
+
+The following classes are unstarted or unusable: NSBTreeBlock,
+NSBTreeCursor, NSByteStore, NSByteStoreFile, NSCalendarDate,
+NSDeserializer, NSRunLoop, NSScanner, NSSerializer, NSTimer,
+NSUserDefaults.
+
+
+@item In what ways is the Base Library different from OpenStep's
+FoundationKit?
+
+It contains several enhancements:
+
+@enumerate 
+
+@item OpenStep has a single NSInvocation class, which is based on
+sending a message to an object.  The GNUstep Base Library has a
+heirarchy of Invocation classes with various capabilities.  Two of the
+Invocation subclasses can cause C functions to be called, instead of
+sending messages to objects; these subclasses are useful when one would
+otherwise have to write a new class and method to implement some simple,
+stateless functionality.  Other subclasses of Invocation could hold
+GUILE or TCL code to be run, or could record their invocation
+information to a file.
+
+All of them respond to a new method called @samp{-invokeWithObject:}
+that is useful for enumerations.
+
+@item I have been told that OpenStep's NSNotificationCenter is slow.
+GNUstep's NotificationDispatcher class is based on interesting use of
+linked lists and hash tables in such a way that it should be
+comparatively very fast.
+
+OpenStep notifications must be method selectors sent to objects.
+GNUstep notifications can invoke an Invocation instead, thus taking
+advantage of the flexbility and context-holding capability of Invocation
+objects.
+
+@item OpenStep takes a disconnected ``class forest'' approach to
+collection classes.  GNUstep has all the OpenStep collection classes,
+however they are build from underlying GNU collection classes that are
+organized as a deep class heirarchy.  Because of the deep heirarchy,
+there is a built-in uniformity of method names, and there are common
+abstract superclasses in which to add new common functionality.  
+
+Unlike OpenStep, the Base Library also has additional collection classes
+for heaps, stacks, queues, trees and linked lists.  There is also a rich
+variety of enumeration methods based on invocations.
+
+@item OpenStep's archiving mechanism provides only one choice of backend
+format.  By backend format, I mean a format for writing C types, such as
+ints, floats and C strings.  The GNUstep archiving mechanism has a clear
+separation between frontend and backend.  Different backends backend's
+are provided.  One writes in human-readable and human-editable ASCII
+text, (including programmer-provided text name labels for each of the
+items.)  Another writes in a compact, stream machine-independent bits.
+A third writes in an even more compact stream of machine-dependent bits;
+this is useful for a distributed objects connection on machines of the
+same architecture.
+
+I'm not sure how OpenStep's archiving system implements forward
+references, (that is, calls to -encodeConditionalObject: for which the
+object argument has not yet been encoded, but will be encoded later.)
+According to its restricted interface, NeXT's implementation must either
+(1) make two passes through all the -encodeWithCoder: methods of the
+objects to be encoded, or (2) not handle forward references with
+-encodeConditionalObject:, only backward references.  GNU's archiving
+system, on the other hand, implements forward references efficiently,
+without making two passes.  It does this by using an object decoding
+method (-decodeObjectAt:...) that back-patches id-pointers when the
+conditionally encoded objects are found in the coded stream.
+
+@item OpenStep's distributed objects mechanism requires four network
+``hops'' when sending and responding to each new method---one to send
+the request, one for the server to request the method type from the
+client, one for the client to respond with the method type, and one to
+respond with the return value of the method call.  GNUstep distributed
+objects takes advantage of the superior GNU Objective C runtime, which
+includes the method type locally with the selector.  Since the method
+type can already be found on the server, there is no need to ask the
+client for the type, and GNU distributed objects takes two less network
+hops.
+
+@item NeXT's Objective C runtime becomes very slow when thread-safety is
+turned on since the runtime must acquire a global mutual-exclusion lock
+each time an Objective C message is sent.  GNUstep takes advantage of
+the superior GNU Objective C runtime, which is requires zero extra time
+to send a message when thread safe---not even one instruction more is
+required for a thread-safe message send.  Mutual exclusion locks are
+only necessary in the relatively infrequent times in which classes are
+initialized or @samp{+poseAs:} is called.  Galen Hunt implemented the
+patches to make the runtime thread-safe.
+
+@end enumerate
+
+
+@item What is the general organization of the non-OpenStep, GNU classes?
+
+(This FAQ does not describe the OpenStep standard classes, because a
+detailed description of those can be found in the OpenStep
+documentation.)
+
+Here are some of the public GNU classes.  See the source header files
+for more information.
+
+@format
+The collection class heirarchy:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Collection                 Root all the collection classes (abstract)
+  Set                      Unordered collection, no duplicates
+  Bag                      Unordered collection, may have duplicates
+  KeyedCollection          Contents accessible by object key (abstract)
+    Dictionary             Concrete implementation
+    MappedCollection       One collection maps into another
+  IndexedCollection        Contents accessible by integer (abstract)
+    BinaryTree             Basic, sorted binary tree
+      RBTree               Red-Black tree, sorted, more balanced
+      SplayTree            Splay operation keeps tree balanced
+    OrderedCollection      Can insert at arbitrary index (abstract)
+      Array                Basic array
+        Queue              First in, first out
+        Stack              First in, last out
+        GapArray           Efficient handle middle insert and delete
+      LinkedList           More efficient than arrays for many ops
+
+Strings (as in Smalltalk, part of the collection class heirarchy):
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      ConstantString        Root of string classes, not changable
+        String              contents can be changed
+        *CString            Strings based on 1-byte characters
+
+Writing/reading bytes, C-type variables, and connected groups of objects:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Stream                     Source and Destination for stream of bytes
+  StdioStream              Stream based on FILE* (files, pipes, etc)
+  MemoryStream             Stream based on memory buffer
+CStream                    Write/Read C-type variables on stream
+  TextCStream              use human-readable format
+  BinaryCStream            use compact machine independent format
+  RawCStream               use even more compact machine depedent format
+Coder                      Write/Read groups of objects on CStream
+  Encoder                  Writing
+    Archiver               for files
+    ConnectedEncoder       for distributed objects
+  Decoder                  Reading
+    Unarchiver             for files
+    ConnectedDecoder       for distributed objects
+
+Holding code to be run on request:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Invocation                 Contains code that can be run
+  ArgframeInvocation       based on gcc __builtin_apply()
+    MethodInvocation       invokes a method on an object
+    ObjectMethodInvocation the method takes at least one object arg
+  ObjectFunctionInvocation calls a function with type (id(*)(id))
+  VoidFunctionInvocation   calls a functions with type (void(*)())
+
+Posting information about happenings:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Notification               for posting information others may want
+NotificationRequest        a record of an observers request
+  NotificationInvocation   will be posted by invoking an Invocation
+  NotificationPerformer    will be posted by -perform:withObject
+NotificationDispatcher     distributes Notification's among requestors
+
+Distributed Objects Support:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Connection                 between two machines on which messages sent
+Proxy                      Representative of a remote object
+Port                       A mailbox for packets
+  InPort                   for receiving packets
+  OutPort                  for sending packets
+    Tcp*Port               based on TCP/IP
+    Udp*Port               based on UDP/IP
+    Mach*Port              based on Mach ports
+Packet                     holds data and reply port
+@end format
+
+
+@item Where can I get a copy?
+
+The most recently released ``official'' version can be obtained from
+@samp{ftp://prep.ai.mit.edu}.
+
+The most recently released alpha version can be obtained from
+@samp{ftp://alpha.gnu.ai.mit.edu}.
+
+The most recent developer's snapshot can be obtained from
+@samp{ftp://ftp.cs.rochester.edu/pub/u/mccallum/libobjects}.  These
+releases are there for exchange between active GNUstep coders, and for
+curious code-readers, not for naive users; read the README.first file in
+the FTP directory.
+
+
+@end enumerate
+@c GNUstep Base Library
+
+
+
+@section GNUstep GUI Library
+
+@enumerate
+
+
+@item What is the GUI Library?
+
+The GNUstep GUI Library is a library of objects useful for writing
+graphical applications.  For example, it includes classes for windows,
+menus, buttons, sliders, text fields, and events.
+
+It provides functionality that aims to implement the @samp{AppKit}
+portion of the OpenStep standard.
+
+
+@item What is its current state of development?
+
+Much of the front-end is implemented, including...
+
+The X Window / DPS back-end ...
+
+
+@item Explain the organization of the front- and back-ends.
+
+The GNUstep GUI Library is divided into a front- and back-end.  The
+front-end contains the majority of implementation, but leaves out the
+low-level drawing and event code.  A back-end can override whatever
+methods necessary in order to implement low-level drawing event
+receiving.  Different back-ends will make GNUstep available on various
+platforms.  The default GNU back-end will run on top of X Windows and
+the DisplayGhostScript Server.  Other back-ends could allow GNUstep to
+run on OpenGL, OS/2, WindowsNT, graphics/event platforms.  Much work
+will be saved by this clean separation between front- and back-end,
+because it allows different platforms to share the large amount of
+front-end code.
+
+The front-end does not specify what mechanism to use in order to "plug
+in" the back-end---that is the back-end implementor's choice.  At least
+two backends will use @samp{+poseAs:} method, for example, running
+@samp{[XDPSWindow poseAs: [NSWindow class]]}.  Using @samp{+poseAs:} is
+more flexible than using Categories because it allows the the back-end
+implementor to choose what to override in the front-end, instead of
+having the interface between front- and back-end fixed by the front-end.
+
+
+@item Where can I get a copy?
+
+It is not yet publically available.  When it is available you will be
+able to find it in @samp{ftp://alpha.gnu.ai.mit.edu/gnu}.
+
+@end enumerate
+@c GNUstep GUI Library
+
+
+
+@section GNUstep DisplayGhostScript Server
+
+@enumerate
+
+@item What is the DisplayGhostScript Server?
+
+
+@item What is its current state of development?
+
+
+@item What is the relationship between the DisplayGhostScript Server and X Windows?
+
+
+@end enumerate
+@c GNUstep GUI Library
+
+
+
+@section GNUstep Interface Modeller Application
+
+@enumerate
+
+@item What is the Interface Modeller?
+
+
+@item What is its current state of development?
+
+It is in the planning stages.
+
+@end enumerate
+@c GNUstep IM
+
+@format
+
+[Notes to FAQ contributors: Be succinct.  Stick to the facts.  Emphasize
+technical features that are already implemented; avoid writing about
+vague features without concrete ideas about their implementation; (the
+IM section, for example, may be short?).  Your audience is future and
+present code contributors to GNUstep, not managers or publicity people.]
+
+
+All trademarks mentioned on in this FAQ belong to their respectful
+owners.
+@end format
+
+@c Local variables:
+@c page-delimiter: "^\n\n"
+@c end:
