@@ -571,12 +571,14 @@ failure:
   NSZone	*z;
   extern BOOL	GSMacOSXCompatiblePropertyLists();
 
+/* Don't think we want this
   if (GSMacOSXCompatiblePropertyLists() == YES)
     {
       extern NSString	*GSXMLPlMake(id obj, NSDictionary *loc, unsigned lev);
 
       return GSXMLPlMake(self, nil, 0);
     }
+*/
 
   src = [self bytes];
   length = [self length];
