@@ -833,7 +833,7 @@ mframe_build_return (arglist_t argframe,
 	      tmptype++;
 	      /* Allocate some memory to hold the value we're pointing to. */
 	      *(void**)retframe = 
-		(*objc_malloc) (objc_sizeof_type (tmptype));
+		objc_malloc (objc_sizeof_type (tmptype));
 	      /* We are responsible for making sure this memory gets free'd
 		 eventually.  Ask MallocAddress class to autorelease it. */
 	      [MallocAddress autoreleaseMallocAddress: *(void**)retframe];
