@@ -1,4 +1,4 @@
-#import <Foundation/Foundation.h>
+#include <Foundation/Foundation.h>
 
 @interface XX : NSObject
 - (void) fire;

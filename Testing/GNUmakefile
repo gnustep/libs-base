@@ -32,26 +32,19 @@ include ../Version
 include ../config.mak
 
 # The tools to be compiled
-TEST_TOOL_NAME = \
+CHECKABLE_TOOLS = \
 		awake \
 		basic \
 		benchmark \
 		call \
 		containers \
-		create-abbrevs \
-		create-regions \
-		diningPhilosophers \
 		fref \
-		gstcpport-client \
-		gstcpport-server \
 		nsarchiver \
 		nsarray \
 		nsattributedstring \
 		nsbundle \
 		nscharacterset \
 		nsconnection \
-		nsconnection_client \
-		nsconnection_server \
 		nsdata \
 		nsdate \
 		nsdictionary \
@@ -74,6 +67,12 @@ TEST_TOOL_NAME = \
 		thread-except \
 		values \
 
+TEST_TOOL_NAME = $(CHECKABLE_TOOLS) \
+		diningPhilosophers \
+		gstcpport-client \
+		gstcpport-server \
+		nsconnection_client \
+		nsconnection_server \
 
 # The tool Objective-C source files to be compiled
 awake_OBJC_FILES = awake.m
@@ -81,8 +80,6 @@ basic_OBJC_FILES = basic.m
 benchmark_OBJC_FILES = benchmark.m
 call_OBJC_FILES = call.m
 containers_OBJC_FILES = containers.m
-create-abbrevs_OBJC_FILES = create-abbrevs.m
-create-regions_OBJC_FILES = create-regions.m
 diningPhilosophers_OBJC_FILES = diningPhilosophers.m
 fref_OBJC_FILES = fref.m
 gstcpport-client_OBJC_FILES = gstcpport-client.m
