@@ -32,6 +32,7 @@
 #include <gnustep/base/preface.h>
 #ifndef NeXT_Foundation_LIBRARY
 #include <Foundation/NSArray.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSEnumerator.h>
 #include <Foundation/NSException.h>
@@ -1278,6 +1279,40 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
 			format: @"key-value set method has unsupported type"];
 	}
     }
+}
+
+
+void *
+GSAutoreleasedBuffer(unsigned size)
+{
+#if GS_WITH_GC
+  return GC_malloc(size);
+#else
+#ifdef ALIGN
+#undef ALIGN
+#endif
+#define ALIGN __alignof__(double)
+
+  static Class	nsobject_class = 0;
+  static Class	autorelease_class;
+  static SEL	autorelease_sel;
+  static IMP	autorelease_imp;
+  static int	offset;
+  NSObject	*o;
+
+  if (nsobject_class == 0)
+    {
+      nsobject_class = [NSObject class];
+      offset = nsobject_class->instance_size % ALIGN;
+      autorelease_class = [NSAutoreleasePool class];
+      autorelease_sel = @selector(addObject:);
+      autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
+    }
+  o = (NSObject*)NSAllocateObject(nsobject_class,
+    size + offset, NSDefaultMallocZone());
+  (*autorelease_imp)(autorelease_class, autorelease_sel, o);
+  return ((void*)&o[1]) + offset;
+#endif
 }
 
 

@@ -311,10 +311,10 @@ GSObjCVersion(Class this)
 
 GS_EXPORT NSZone *GSObjCZone(NSObject *obj);
 
-/*
- * Quickly return autoreleased data.
+/**
+ * Quickly return autoreleased data storage area.
  */
-void	*_fastMallocBuffer(unsigned size);
+GS_EXPORT void	*GSAutoreleasedBuffer(unsigned size);
 
 /* Getting a system error message on a variety of systems */
 GS_EXPORT const char *GSLastErrorStr(long error_id);

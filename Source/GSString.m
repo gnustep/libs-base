@@ -543,7 +543,7 @@ UTF8String_c(ivars self)
     {
       unsigned	i = self->_count;
 
-      r = (unsigned char*)_fastMallocBuffer(self->_count+1);
+      r = (unsigned char*)GSAutoreleasedBuffer(self->_count+1);
       while (i-- > 0)
 	{
 	  r[i] = self->_contents.c[i] & 0x7f;
@@ -777,7 +777,7 @@ cString_c(ivars self)
     }
   if (defEnc == intEnc)
     {
-      r = (unsigned char*)_fastMallocBuffer(self->_count+1);
+      r = (unsigned char*)GSAutoreleasedBuffer(self->_count+1);
 
       if (self->_count > 0)
 	{
@@ -1350,7 +1350,7 @@ lossyCString_c(ivars self)
     }
   if (defEnc == intEnc)
     {
-      r = (char*)_fastMallocBuffer(self->_count+1);
+      r = (char*)GSAutoreleasedBuffer(self->_count+1);
 
       if (self->_count > 0)
 	{

@@ -1313,7 +1313,7 @@ tables:
 	  /*
 	   * Temporary string was requested ... make one.
 	   */
-	  r = _fastMallocBuffer(bytes);
+	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
 	  if (ptr != buf && (dst == 0 || ptr != *dst))
 	    {
@@ -1913,7 +1913,7 @@ tables:
 	  /*
 	   * Temporary string was requested ... make one.
 	   */
-	  r = _fastMallocBuffer(bytes);
+	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
 	  if (ptr != buf && (dst == 0 || ptr != *dst))
 	    {
