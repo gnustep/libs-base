@@ -359,7 +359,7 @@ static Class NSMutableArray_concrete_class;
   unsigned i, j = 0, c = [self count], e = aRange.location + aRange.length;
   if (c < e)
     e = c;
-  for (i = aRange.location; i < c; i++)
+  for (i = aRange.location; i < e; i++)
     aBuffer[j++] = [self objectAtIndex: i];
 }
 
