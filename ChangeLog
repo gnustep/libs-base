@@ -1,3 +1,7 @@
+Sat Feb 14 13:41:39 1998  Scott Christley  <scottc@net-community.com>
+
+	* src/include/config.h.in: Create and add back into repository.
+
 Thu Feb 12 13:31:00 1998  Adam Fedor  <fedor@doc.com>
 
 	* src/NSDictionary.m ([-copy]): New method.
