@@ -48,7 +48,6 @@
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
-#include <signal.h>
 
 #include "GSPrivate.h"
 
@@ -1803,6 +1802,7 @@ GSDescriptionForClassMethod(pcl self, SEL aSel)
 	}
       return NO;
     }
+
   return __objc_responds_to(self, aSelector);
 }
 

@@ -1,3 +1,7 @@
+Thu Oct 16 15:57:39 2003  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/NSObject.m: Do not include signal.h.
+
 Wed Oct 15 12:36:33 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* SSL/Makefile.postamble: Removed regenerate, TAGS and FORCE
