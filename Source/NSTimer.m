@@ -78,7 +78,7 @@ static Class	NSDate_class;
   if (fd == nil)
     {
       _date = [[NSDate_class allocWithZone: NSDefaultMallocZone()]
-        initWithTimeIntervalSinceReferenceDate: _interval];
+        initWithTimeIntervalSinceNow: _interval];
     }
   else
     {
@@ -140,8 +140,8 @@ static Class	NSDate_class;
 				    repeats: (BOOL)f
 {
   id t = [self timerWithTimeInterval: ti
-	       invocation: invocation
-	       repeats: f];
+			  invocation: invocation
+			     repeats: f];
   [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
   return t;
 }
