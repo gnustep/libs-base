@@ -1,3 +1,16 @@
+Sat Oct 18 07:10:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Allow GNUSTEP_STRING_ENCODING to give
+	any supported iconv name in additiuon to OpenStep names.  Make check
+	case insensitive.
+	Documentation/Base.gsdoc: Remove obsolete comment that
+	GNUSTEP_STRING_ENCODING may not specify a mu7ltibyte encoding.
+
+2003-10-16  Bruno Haible  <bruno@clisp.org>
+
+        * Source/NSString.m (initWithContentsOfFile:, initWithContentsOfURL:):
+        Fix recognition of UTF-8 BOM.
+
 Fri Oct 17 14:28:49 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/GNUmakefile (LIBRARY_VAR): Unused variable removed.

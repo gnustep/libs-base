@@ -198,8 +198,7 @@
 	      <p>
 		This is used to specify the default encoding for 8-bit
 		strings.  It defaults to NSISOLatin1StringEncoding, but
-		may be any of the 8-bit encodings supported by your system
-		(excluding multi-byte encodings).
+		may be any of the 8-bit encodings supported by your system.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_HOST_CPU</term>
