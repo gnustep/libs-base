@@ -55,6 +55,15 @@
 
 static int behavior_debug = 0;
 
+#ifndef HAVE_OBJC_GET_UNINSTALLED_DTABLE
+extern void *__objc_uninstalled_dtable;
+static void *
+objc_get_uninstalled_dtable()
+{
+  return __objc_uninstalled_dtable;
+}
+#endif
+
 static Method_t search_for_method_in_list (MethodList_t list, SEL op);
 static void __objc_send_initialize(Class class);
 #if 0
@@ -204,7 +213,6 @@ behavior_class_add_methods (Class class,
 		 the dtable sarray, but if it isn't, let 
 		 __objc_install_dispatch_table_for_class do it. */
 
-#ifdef HAVE_OBJC_GET_UNINSTALLED_DTABLE
 	      if (class->dtable != objc_get_uninstalled_dtable())
 		{
 		  sarray_at_put_safe (class->dtable,
@@ -214,7 +222,6 @@ behavior_class_add_methods (Class class,
 		    fprintf(stderr, "\tinstalled method\n");
 		}
 	      else
-#endif
 		{
 		  if (behavior_debug)
 		    fprintf(stderr, "\tappended method\n");

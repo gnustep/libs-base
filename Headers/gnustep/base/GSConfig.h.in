@@ -28,6 +28,13 @@
 #ifndef	included_GSConfig_h
 #define	included_GSConfig_h
 
+/* An alternate to GS_FAKE_MAIN which forces the user to call the 
+   NSProcessInfo initialization in 'main', GS_FAKE_MAIN must also
+   be undefined. */
+#if @GS_PASS_ARGUMENTS@
+#define GS_PASS_ARGUMENTS @GS_PASS_ARGUMENTS@
+#endif
+
 #define GS_FAKE_MAIN	@GS_FAKE_MAIN@
 #if	GS_FAKE_MAIN
 

@@ -28,9 +28,9 @@
 #import		<Foundation/NSString.h>
 
 int
-main(int argc, char** argv)
+main(int argc, char** argv, char **env)
 {
-  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  NSAutoreleasePool	*pool;
   NSProcessInfo		*procinfo;
   NSArray		*args;
   NSString		*destName;
@@ -38,6 +38,10 @@ main(int argc, char** argv)
   NSMutableDictionary	*plist;
   unsigned		i;
 
+#ifdef GS_PASS_ARGUMENTS
+  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+#endif
+  pool = [NSAutoreleasePool new];
   procinfo = [NSProcessInfo processInfo];
   if (procinfo == nil)
     {

@@ -510,6 +510,19 @@ int main(int argc, char *argv[], char *env[])
 
 #endif /* HAS_LOAD_METHOD && HAS_PROC_FS */ 
 
+/* Fallback method. User must call this method if none of the other
+   above hacks is being used
+*/
++ (void)initializeWithArguments:(char**)argv
+                          count:(int)argc
+                    environment:(char**)env;
+{
+  if (!_gnu_processName && !_gnu_arguments && !_gnu_environment)
+    {
+      _gnu_process_args(argc, argv, env);
+    }
+}
+
 /*************************************************************************
  *** Getting an NSProcessInfo Object
  *************************************************************************/
