@@ -38,7 +38,7 @@ DIST_FILES = \
 	config/config.nested.c config/config.nextcc.h config/config.nextrt.m \
 	config/config.vsprintf.c \
 	README.ULTRIX README.ucblib \
-	STATUS COPYING COPYING.LIB ChangeLog \
+	COPYING COPYING.LIB ChangeLog \
 	configure Version \
 	config.guess mkinstalldirs install-sh config.sub \
 	gcc-2.7.2-objc.diff \

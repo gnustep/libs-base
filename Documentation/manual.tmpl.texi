@@ -19,8 +19,8 @@ END-INFO-DIR-ENTRY
 @end format
 @end ifinfo
 
-@c set the vars GNUSTEP_BASE_VERSION and GCC_VERSION
-@include version.texi
+@c set the vars GNUSTEP-BASE-VERSION and GCC-VERSION
+@include version.tmpl.texi
 
 @ifinfo
 This file documents the features and implementation of The GNU
@@ -65,8 +65,8 @@ Free Software Foundation instead of in the original English.
 @title GNU Objective C Class Library
 @sp 3
 @c @subtitle last updated Oct 26, 1993
-@subtitle Version @value{GNUSTEP_BASE_VERSION}
-@subtitle (for use with @samp{gcc} version @value{GCC_VERSION})
+@subtitle Version @value{GNUSTEP-BASE-VERSION}
+@subtitle (for use with @samp{gcc} version @value{GCC-VERSION})
 @author Andrew Kachites McCallum (mccallum@@gnu.ai.mit.edu)
 @page
 @vskip 0pt plus 1filll
@@ -134,8 +134,8 @@ saved copy
 
 This manual documents how to install and use the GNU Objective-C
 Class Library (or @samp{libgnustep-base}), version
-@value{GNUSTEP_BASE_VERSION}, for use with @samp{gcc} version
-@value{GCC_VERSION}.
+@value{GNUSTEP-BASE-VERSION}, for use with @samp{gcc} version
+@value{GCC-VERSION}.
 
 It is nothing but a skeleton now, mostly containing rough notes.
 In the future it will be fleshed out and the text will be polished.

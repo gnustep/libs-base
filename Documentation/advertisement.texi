@@ -1,7 +1,7 @@
 @chapter GNU Objective-C Class Library
 
-@c set the vars GNUSTEP_BASE_VERSION and GCC_VERSION
-@include version.texi
+@c set the vars GNUSTEP-BASE-VERSION and GCC-VERSION
+@include version.tmpl.texi
 
 The GNUstep Base Library (libgnustep-base) is a library of
 general-purpose, non-graphical Objective C objects written by Andrew
@@ -134,7 +134,7 @@ does *not* do:
 
 The library is available by anonymous ftp at URL:
 @smallexample
-ftp://prep.ai.mit.edu/pub/gnu/libgnustep-base-@value{GNUSTEP_BASE_VERSION}.tar.gz
+ftp://prep.ai.mit.edu/pub/gnu/libgnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz
 @end smallexample
 Since @samp{prep} is heavily loaded, you are encouraged to use GNU
 mirror sites.

@@ -1,9 +1,9 @@
 \input texinfo @c -*-texinfo-*-
 
 @setfilename gnustep-howto.texi
-@chapter GNUstep Installation
+@chapter Installation
 
-@paragraphindent 4
+@c @paragraphindent 4
 
 @ignore
 This file gives a quick introduction to installing GNUstep.
@@ -109,11 +109,9 @@ make-3.75.tar.gz (You need GNU make to compile GNUstep).
 gcc-2.7.2.1-objc-970318.diff.gz (patch needed for using gcc 2.7.2.x)
   From the gstep-base distribution (gcc-2.7.2.1-objc.diff) or
   ftp://alpha.gnu.org/gnu/gnustep
-  ftp://ftp.gnustep.org/pub/gnustep/developer
   ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep/developer/releases
 gdb-4.16-objc-971112.diff.gz (A patch for easier debugging of Objective-C).
   ftp://alpha.gnu.org/gnu/gnustep
-  ftp://ftp.gnustep.org/pub/gnustep/developer
 
 tiff-v3.4beta036-tar.gz (The TIFF library), or
 tiff-970711.tar.gz
@@ -130,28 +128,27 @@ gstep-base-0.4.0.tar.gz (Foundation)
 gstep-gui-0.4.0.tar.gz (AppKit)
 gstep-xdps-0.4.0.tar.gz (X11/PostScript backend)
   ftp://ftp.gnu.org/pub/gnu
-  ftp://ftp.gnustep.org/pub/gnustep
+  ftp://alpha.gnu.org/gnu/gnustep
   ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
 
 libFoundation-0.8.0.tar.gz (Foundation)
-  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
   ftp://alpha.gnu.org/gnu/gnustep
+  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
 
 FoundationExt-0.8.1.tar.gz (Foundation extentions (optional))
   ftp://ftp.gnu.org/pub/gnu
-  ftp://ftp.gnustep.org/pub/gnustep
-  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
   ftp://alpha.gnu.org/gnu/gnustep
+  ftp://zarquon.mathi.uni-heidelberg.de/pub/GNUstep
 @end example
 
 You may get either one of the Foundations libraries (you only need to 
 take one of them, not both) gstep-base or libFoundation.
 
-Note that you should get the latest version available, not
-necessarily the one listed here. For the more adventurous, and since the
-project is still in development, it might be better to get the latest snapshot
-located in the snap or snapshot subdirectories at alpha.gnu.org/gnu/gnustep
-or the other ftp locations.
+Note that you should get the latest version available, not necessarily
+the one listed here. For the more adventurous, and since the project is
+still in development, it might be better to get the latest snapshot
+located in the snap or snapshot subdirectories at
+ftp://alpha.gnu.org/gnu/gnustep or the other appropriate ftp locations.
 
 For the following instructions, some version numbers are replaced by XXX.
 You shoule replace the 'X's with the version of the package you have.

@@ -34,9 +34,11 @@ TEXI2HTML = texi2html
 
 ORIG_FILES = \
 version.tmpl.texi \
-gnustep-gui.tmpl.texi \
+gnustep-base.tmpl.texi \
 gnustep-howto.tmpl.texi \
+gnustep-zones.tmpl.texi \
 announce.tmpl.texi \
+coding-standards.tmpl.texi \
 install.tmpl.texi \
 news.tmpl.texi \
 readme.tmpl.texi \
@@ -46,17 +48,17 @@ faq.tmpl.texi
 
 TEXI_FILES = \
 version.texi \
-gnustep-gui.texi \
+gnustep-base.texi \
+gnustep-howto.texi \
+gnustep-zones.texi \
 announce.texi \
+coding-standards.texi \
 install.texi \
 news.texi \
 readme.texi \
 status.texi \
 todo.texi \
 faq.texi \
-coding-standards.texi \
-gnustep-howto.texi \
-gnustep-zones.texi
 
 TEXT_FILES = \
 TODO INSTALL NEWS CODING-STANDARDS README ANNOUNCE FAQ STATUS GNUstep-HOWTO
@@ -66,9 +68,9 @@ PS_FILES = gnustep-base.dvi
 HTML_FILES = gnustep-base_toc.html
 DVI_FILES = gnustep-base.dvi
 
-TOP_DOC_FILES = README INSTALL NEWS GNUstep-HOWTO
-RCS_FILES =  $(TEXI_FILES) GNUmakefile Makefile.postamble
-DIST_FILES = $(RCS_FILES) texinfo.tex $(TEXT_FILES)
+TOP_DOC_FILES = TODO README INSTALL NEWS ANNOUNCE STATUS GNUstep-HOWTO
+RCS_FILES =  $(ORIG_FILES) GNUmakefile Makefile.postamble
+DIST_FILES = $(RCS_FILES) $(TEXT_FILES)
 
 -include Makefile.preamble
 

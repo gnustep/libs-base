@@ -1,12 +1,10 @@
-@include version.texi
-@ifset NEWS_ONLY
-@chapter News about GNUstep Base Library
+@include version.tmpl.texi
+@chapter News
 
 The currently released version of the library is
-@samp{@value{GNUSTEP_BASE_VERSION}}.
-@end ifset
+@samp{@value{GNUSTEP-BASE-VERSION}}.
 
-@section Noteworthy changes since version @samp{0.2.1}
+@section Noteworthy changes in version @samp{0.4.0}
 
 @itemize @bullet
 
@@ -21,23 +19,23 @@ checks, and everything else.
 allocate shared VM memory.
 
 @item Big NSTimeZone improvements, as well as inclusion of time zone files,
-from Yoo C. Chung  <wacko@@laplace.snu.ac.kr>.
+from Yoo C. Chung  @email{wacko@@laplace.snu.ac.kr}.
 
 @item Major improvements to distributed objects and many related clases
-from Richard Frith-Macdonald <richard@@brainstorm.co.uk>. Also added a
+from Richard Frith-Macdonald @email{richard@@brainstorm.co.uk}. Also added a
 nameserver.
 
 @item Major rewrite of NSString, include Unicode strings from Stevo
-Crvenkovski  <stevoc@@lotus.mpt.com.mk> 
+Crvenkovski  @email{stevoc@@lotus.mpt.com.mk} 
 
-@item A rewrite of the NSBundle class from Adam Fedor <fedor@@gnu.org>.
+@item A rewrite of the NSBundle class from Adam Fedor @email{fedor@@gnu.org}
 
 @item Addition of a C-language style stream package.
 
 @item Better support for threads and locking.
 
 @item Support for running on Windows from Scott Christley
-<scottc@@net-community.com> 
+@email{scottc@@net-community.com} 
 
 @item Many, many, many, many bug fixes and new classes. 
 
@@ -54,17 +52,17 @@ the way various other names were changed.
 @item The library now requires a patch to gcc-2.7.2.  The patch adds
 thread-safe features to the GNU Objective C runtime.  Each thread has
 its own exception handler and assertion handler, thanks to Yoo C. Chung
-<wacko@@power1.snu.ac.kr>.
+@email{wacko@@power1.snu.ac.kr}.
 
 @item Distributed Objects is much improved.  Exceptions in the server
 are sent back to the client.  Ungracefully closed connections are
 gracefully handled.
 
 @item NSUserDefaults has been implemented, thanks to Georg Tuparev
-<tuparev@@NMR.EMBL-Heidelberg.DE>.
+@email{tuparev@@NMR.EMBL-Heidelberg.DE}.
 
 @item NSScanner has been implemented, thanks to Eric Norum
-<Eric.Norum@@usask.ca>.
+@email{Eric.Norum@@usask.ca}.
 
 @item NSCharacterSet has a new caching scheme, and is now faster than
 NeXT's implementation, thanks to Adam Fedor.
@@ -80,12 +78,12 @@ NSAutoreleasePool should be thread-safe.
 better commented.
 
 @item The NSHashTable and NSMapTable functions have been implemented,
-thanks to Albin Jones <albin.jones@@dartmouth.edu>.  Albin has also
+thanks to Albin Jones @email{albin.jones@@dartmouth.edu}.  Albin has also
 implemented underlying GNU functions that provide functions for arrays
 and linked lists of C-type variables.
 
 @item The NSThread class has been implemented.  Thanks to Scott
-Christley <scottc@@net-community.com>, the NSLock class has been
+Christley @email{scottc@@net-community.com}, the NSLock class has been
 implemented.
 
 @item A RunLoop class has been implemented, and is used for listening to
@@ -156,8 +154,8 @@ NSAllocateMemoryPages, NSDeallocateMemoryPages, NSCopyMemoryPages.
 @itemize @bullet
 
 @item Can be made as a shared library by passing @samp{--enabled-shared} to
-`configure'.  Thanks to Jan Kybic <kybic@@earn.cvut.cz> and Bryan Headley
-<bwh@@mail.lnd.coretech.com> for suggestions.
+`configure'.  Thanks to Jan Kybic @email{kybic@@earn.cvut.cz} and Bryan Headley
+@email{bwh@@mail.lnd.coretech.com} for suggestions.
 
 @item New classes NSSet, NSMutableSet, NSCountedSet.  New concrete
 classes NSGSet, NSGMutableSet, NSGCountedSet.  New test program nsset.m.
@@ -175,7 +173,7 @@ a Tree, and a LinkedList that winds its way through the leaves of the
 tree; the LinkedList nodes also have pointers back to the tree nodes.)
 
 @item NSTimeZone implemented, thanks to Peter Burka
-<peter@@bert.psyc.upei.ca>
+@email{peter@@bert.psyc.upei.ca}
 
 @item NSData fixes, thanks to Adam Fedor.
 
@@ -283,8 +281,8 @@ Eventually I'll separate the classes too.
 @item
 Included an outline for the GNU Objective C Language Manual.  The GNU
 project is looking for volunteers to help flesh it out.  Send email to
-Martin Michlmayr <tbm@@ihq.com> or Andrew McCallum
-<mccallum@@gnu.ai.mit.edu>.
+Martin Michlmayr @email{tbm@@ihq.com} or Andrew McCallum
+@email{mccallum@@gnu.ai.mit.edu}.
 
 @item
 Include the AUTHORS file, needed for legal reasons.  Include the
@@ -303,7 +301,7 @@ implementations back in Collection.m.
 @itemize @bullet
 
 @item
-Thanks to Adam Fedor <fedor@@boulder.colorado.edu>, classes NSBundle,
+Thanks to Adam Fedor @email{fedor@@boulder.colorado.edu}, classes NSBundle,
 NSNumber and NSValue are now operational.  He also provided stubs for
 NSArray, NSCoder and NSDictionary.  
 
@@ -343,19 +341,19 @@ Newly implemented classes: MallocAddress, NSString, NSMutableString,
 NSCString, NSMutableCString.
 
 @item
-Thanks to Pieter Schoenmakers <tiggr@@es.ele.tue.nl> we have a new
+Thanks to Pieter Schoenmakers @email{tiggr@@es.ele.tue.nl} we have a new
 version of the gcc-string.patch that should apply more smoothly.
 
 @item
-Thanks to Adam Fedor <fedor@@boulder.colorado.edu> for a bug fix to
+Thanks to Adam Fedor @email{fedor@@boulder.colorado.edu} for a bug fix to
 NXStringTable's.
 
 @item
-Thanks to Mark Lakata <lakata@@nsdssp.lbl.gov> for a bug fix to NSZone.c.
+Thanks to Mark Lakata @email{lakata@@nsdssp.lbl.gov} for a bug fix to NSZone.c.
 
 @ignore
 @item
-Thanks to Jeremy Bettis <jbettis@cse.unl.edu> for implementing NSDate. 
+Thanks to Jeremy Bettis @email{jbettis@cse.unl.edu} for implementing NSDate. 
 (We're waiting for the assignment paperwork to go through before it's
 included in the release.)
 @end ignore
@@ -431,7 +429,7 @@ InvalidationListening.
 @item Some bug fixes:  Fixed the assert typo in Storage.m.  The Time
 class now compiles under Solaris.  Fixed insertion bug in CircularArray.
 NXStringTable_scan.l can now be compiled with lex, not just flex,
-(thanks to Adam Fedor <adam@@bastille.rmnug.org>).  Properly detect the
+(thanks to Adam Fedor @email{adam@@bastille.rmnug.org}).  Properly detect the
 difference between gcc running under NEXTSTEP and NeXT's cc.  Using 
 autoconf version 2.0.  Renamed DelegateList to DelegatePool.  Renamed
 some collection hierarchy methods for better consistency.
@@ -449,7 +447,7 @@ NeXT-compatible zone functions.
 @itemize @bullet
 
 @item A NeXT-compatible NXStringTable object, thanks to Adam Fedor
-<adam@@bastille.rmnug.org>.
+@email{adam@@bastille.rmnug.org}.
 
 @item
 SplayTree and RBTree classes now operational.  More methods in Time

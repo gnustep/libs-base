@@ -1,17 +1,23 @@
-Fri Jan  2 13:04:53 1998  Adam Fedor  <fedor@spanky.doc.com>
+Fri Jan  2 13:04:53 1998  Adam Fedor  <fedor@doc.com>
 
-	* doc/Makefile.postamble: Generate texi from tmpl.texi files.
+	* doc/Makefile.postamble: Generate html,texi from tmpl.texi files.
 	* doc/announce.tmpl.texi: Renamed from announce.texi
 	* doc/faq.tmpl.texi: Likewise.
 	* doc/gnustep-base.tmpl.texi: Likewise.
 	* doc/gnustep-howto.tmpl.texi: Likewise.
 	* doc/gnustep-zones.tmpl.texi: Likewise.
+	* doc/coding-standards.tmpl.texi: Likewise.
 	* doc/install.tmpl.texi: Likewise.
 	* doc/manual.tmpl.texi: Likewise.
 	* doc/news.tmpl.texi: Likewise.
 	* doc/readme.tmpl.texi: Likewise.
 	* doc/todo.tmpl.texi: Likewise.
-
+	* NSZone.texi: Removed.
+	
+	* STATUS: removed.
+	* MACHINES: removed.
+	* doc/status.tmpl.texi: New file.
+	
 Wed Dec 31 13:58:51 1997  Adam Fedor  <fedor@doc.com>
 
 	* STATUS: Updated status on a few classes.
