@@ -525,8 +525,7 @@ static Class	runLoopClass;
 
 - (void) gcFinalize
 {
-  (void)close(desc);
-  desc = -1;
+  [self invalidate];
 }
 
 - (void) invalidate
@@ -535,6 +534,8 @@ static Class	runLoopClass;
   if (valid == YES)
     { 
       valid = NO;
+      (void)close(desc);
+      desc = -1;
       NSDebugMLLog(@"GSTcpHandle", @"invalidated", 0);
       [[self recvPort] removeHandle: self];
       [[self sendPort] removeHandle: self];
