@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSThread" prev="NSTask.html" next="NSTimeZone.html" up="Foundation.html">
+  <head>
+    <title>NSThread</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSThread</heading>
+      <class name="NSThread" super="NSObject">
+        <declared>Foundation/NSThread.h</declared>
+        <conform>NSObject</conform>
+        <desc>
+        </desc>
+        <method type="NSThread*" factory="yes"><sel>currentThread</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void" factory="yes"><sel>detachNewThreadSelector:</sel><arg type="SEL">aSelector</arg><sel>toTarget:(id)aTarget  withObject:</sel><arg type="id">anArgument</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void" factory="yes"><sel>exit</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL" factory="yes"><sel>isMultiThreaded</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void" factory="yes"><sel>sleepUntilDate:</sel><arg type="NSDate*">aDate</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSMutableDictionary*"><sel>threadDictionary</sel>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

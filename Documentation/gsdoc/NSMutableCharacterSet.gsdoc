@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSMutableCharacterSet" prev="NSMutableAttributedString.html" next="NSMutableData.html" up="Foundation.html">
+  <head>
+    <title>NSMutableCharacterSet</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSMutableCharacterSet</heading>
+      <class name="NSMutableCharacterSet" super="NSCharacterSet">
+        <declared>Foundation/NSCharacterSet.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="void"><sel>addCharactersInRange:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>addCharactersInString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>formIntersectionWithCharacterSet:</sel><arg type="NSCharacterSet*">otherSet</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>formUnionWithCharacterSet:</sel><arg type="NSCharacterSet*">otherSet</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>invert</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeCharactersInRange:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeCharactersInString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

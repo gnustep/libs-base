@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSMutableArray" prev="NSMethodSignature.html" next="NSMutableAttributedString.html" up="Foundation.html">
+  <head>
+    <title>NSMutableArray</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSMutableArray</heading>
+      <class name="NSMutableArray" super="NSArray">
+        <declared>Foundation/NSArray.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="id" factory="yes"><sel>arrayWithCapacity:</sel><arg type="unsignedint">numItems</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>addObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>addObjectsFromArray:</sel><arg type="NSArray*">otherArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithCapacity:</sel><arg type="unsignedint">numItems</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>insertObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeAllObjects</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeLastObject</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeObjectAtIndex:</sel><arg type="unsignedint">index</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeObjectIdenticalTo:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeObjectIdenticalTo:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeObjectsFromIndices:</sel><arg type="unsignedint*">indices</arg><sel>numIndices:</sel><arg type="unsignedint">count</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeObjectsInArray:</sel><arg type="NSArray*">otherArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>removeObjectsInRange:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>replaceObjectAtIndex:</sel><arg type="unsignedint">index</arg><sel>withObject:</sel><arg type="id">anObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>replaceObjectsInRange:</sel><arg type="NSRange">aRange</arg><sel>withObjectsFromArray:</sel><arg type="NSArray*">otherArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>replaceObjectsInRange:</sel><arg type="NSRange">aRange</arg><sel>withObjectsFromArray:</sel><arg type="NSArray*">otherArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setArray:</sel><arg type="NSArray*">otherArray</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>sortUsingFunction:</sel><arg type="int(*">(id,</arg><sel>id, void *))compare context:</sel><arg type="void*">context</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>sortUsingSelector:</sel><arg type="SEL">comparator</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

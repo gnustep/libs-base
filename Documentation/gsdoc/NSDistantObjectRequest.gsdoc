@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSDistantObjectRequest" prev="NSDistantObject.html" next="NSDistributedLock.html" up="Foundation.html">
+  <head>
+    <title>NSDistantObjectRequest</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSDistantObjectRequest</heading>
+      <class name="NSDistantObjectRequest" super="NSObject">
+        <declared>Foundation/NSConnection.h</declared>
+        <desc>
+        </desc>
+        <method type="NSConnection*"><sel>connection</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>conversation</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSInvocation*"><sel>invocation</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>replyWithException:</sel><arg type="NSException*">exception</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSDecimalNumberHandler" prev="NSDecimalNumber.html" next="NSDeserializer.html" up="Foundation.html">
+  <head>
+    <title>NSDecimalNumberHandler</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSDecimalNumberHandler</heading>
+      <class name="NSDecimalNumberHandler" super="NSObject">
+        <declared>Foundation/NSDecimalNumber.h</declared>
+        <conform>NSDecimalNumberBehaviors</conform>
+        <desc>
+        </desc>
+        <method type="id" factory="yes"><sel>defaultDecimalNumberHandler</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>decimalNumberHandlerWithRoundingMode:</sel><arg type="NSRoundingMode">roundingMode</arg><sel>scale:(short)scale  raiseOnExactness:</sel><arg type="BOOL">raiseOnExactness</arg><sel>raiseOnOverflow:(BOOL)raiseOnOverflow  raiseOnUnderflow:</sel><arg type="BOOL">raiseOnUnderflow</arg><sel>raiseOnDivideByZero:</sel><arg type="BOOL">raiseOnDivideByZero</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithRoundingMode:</sel><arg type="NSRoundingMode">roundingMode</arg><sel>scale:(short)scale raiseOnExactness:</sel><arg type="BOOL">raiseOnExactness</arg><sel>raiseOnOverflow:(BOOL)raiseOnOverflow raiseOnUnderflow:</sel><arg type="BOOL">raiseOnUnderflow</arg><sel>raiseOnDivideByZero:</sel><arg type="BOOL">raiseOnDivideByZero</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

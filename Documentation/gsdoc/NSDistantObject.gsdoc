@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSDistantObject" prev="NSDirectoryEnumerator.html" next="NSDistantObjectRequest.html" up="Foundation.html">
+  <head>
+    <title>NSDistantObject</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSDistantObject</heading>
+      <class name="NSDistantObject" super="NSProxy">
+        <declared>Foundation/NSDistantObject.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="NSDistantObject*" factory="yes"><sel>proxyWithLocal:</sel><arg type="id">anObject</arg><sel>connection:</sel><arg type="NSConnection*">aConnection</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSDistantObject*" factory="yes"><sel>proxyWithTarget:</sel><arg type="id">remoteObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSConnection*"><sel>connectionForProxy</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithLocal:</sel><arg type="id">anObject</arg><sel>connection:</sel><arg type="NSConnection*">aConnection</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithTarget:</sel><arg type="id">remoteObject</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setProtocolForProxy:</sel><arg type="Protocol*">aProtocol</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

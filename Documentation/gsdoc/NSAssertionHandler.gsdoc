@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSAssertionHandler" prev="NSArray.html" next="NSAttributedString.html" up="Foundation.html">
+  <head>
+    <title>NSAssertionHandler</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSAssertionHandler</heading>
+      <class name="NSAssertionHandler" super="NSObject">
+        <declared>Foundation/NSException.h</declared>
+        <conform>NSObject</conform>
+        <desc>
+        </desc>
+        <method type="NSAssertionHandler*" factory="yes"><sel>currentHandler</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>handleFailureInFunction:</sel><arg type="NSString*">functionName</arg><sel>file:(NSString *)fileName lineNumber:</sel><arg type="int">line</arg><sel>description:</sel><arg type="NSString*">format,...</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>handleFailureInMethod:</sel><arg type="SEL">selector</arg><sel>object:(id)object file:</sel><arg type="NSString*">fileName</arg><sel>lineNumber:</sel><arg type="int">line</arg><sel>description:</sel><arg type="NSString*">format,...</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

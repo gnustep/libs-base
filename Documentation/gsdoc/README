@@ -1,0 +1,10 @@
+Skeleton class documentation in gsdoc format.
+
+Run the gsdoc tool giving it the names of the .gsdoc files in this directory
+in order to generate html output.
+
+To build/install the gsdoc tool - see the core/base/GSDoc directory.
+
+The DTD describing the gsdoc documentation markup language can be found
+in the GSDoc directory.
+

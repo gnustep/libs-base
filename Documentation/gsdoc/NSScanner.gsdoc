@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSScanner" prev="NSRunLoop.html" next="NSSerializer.html" up="Foundation.html">
+  <head>
+    <title>NSScanner</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSScanner</heading>
+      <class name="NSScanner" super="NSObject">
+        <declared>Foundation/NSScanner.h</declared>
+        <conform>NSCopying</conform>
+        <desc>
+        </desc>
+        <method type="id" factory="yes"><sel>localizedScannerWithString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id" factory="yes"><sel>scannerWithString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>caseSensitive</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSCharacterSet*"><sel>charactersToBeSkipped</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>isAtEnd</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="NSDictionary*"><sel>locale</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanCharactersFromSet:</sel><arg type="NSCharacterSet*">scanSet</arg><sel>intoString:</sel><arg type="NSString**">stringValue</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanDecimal:</sel><arg type="NSDecimal*">decimalValue</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanDouble:</sel><arg type="double*">doubleValue</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanFloat:</sel><arg type="float*">floatValue</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanHexInt:</sel><arg type="unsignedint*">intValue</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanInt:</sel><arg type="int*">intValue</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="unsignedint"><sel>scanLocation</sel>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanLongLong:</sel><arg type="longlong*">longLongValue</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanString:</sel><arg type="NSString*">string</arg><sel>intoString:</sel><arg type="NSString**">stringValue</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanUpToCharactersFromSet:</sel><arg type="NSCharacterSet*">stopSet</arg><sel>intoString:</sel><arg type="NSString**">stringValue</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="BOOL"><sel>scanUpToString:</sel><arg type="NSString*">stopString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setCaseSensitive:</sel><arg type="BOOL">flag</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setCharactersToBeSkipped:</sel><arg type="NSCharacterSet*">skipSet</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setLocale:</sel><arg type="NSDictionary*">aLocale</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setScanLocation:</sel><arg type="unsignedint">index</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="NSString*"><sel>string</sel>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.5//EN" "http://www.gnustep.org/gsdoc-0_6_5.xml">
+<gsdoc base="NSMutableString" prev="NSMutableSet.html" next="NSNotification.html" up="Foundation.html">
+  <head>
+    <title>NSMutableString</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>0.1</version>
+    <date>28 February, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSMutableString</heading>
+      <class name="NSMutableString" super="NSString">
+        <declared>Foundation/NSString.h</declared>
+        <conform>NSCoding</conform>
+        <desc>
+        </desc>
+        <method type="NSMutableString*" factory="yes"><sel>stringWithCapacity:</sel><arg type="unsignedint">capacity</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>appendFormat:</sel><arg type="NSString*">format,</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>appendString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>deleteCharactersInRange:</sel><arg type="NSRange">aRange</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="id"><sel>initWithCapacity:</sel><arg type="unsignedint">capacity</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>insertString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>replaceCharactersInRange:</sel><arg type="NSRange">aRange</arg><sel>withString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+        <method type="void"><sel>setString:</sel><arg type="NSString*">aString</arg>
+        <desc>
+        </desc>
+</method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>
