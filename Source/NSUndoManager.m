@@ -59,9 +59,8 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 - (id) initWithParent: (PrivateUndoGroup*)parent;
 - (void) orphan;
 - (PrivateUndoGroup*) parent;
-- (void) redo;
+- (void) perform;
 - (BOOL) removeActionsForTarget: (id)target;
-- (void) undo;
 @end
 
 @implementation	PrivateUndoGroup
@@ -108,13 +107,13 @@ NSString *NSUndoManagerWillUndoChangeNotification =
     return parent;
 }
 
-- (void) redo
+- (void) perform
 {
     if (actions != nil) {
 	int	i;
 
-	for (i = 0; i < [actions count]; i++) {
-	    [[actions objectAtIndex: i] invoke];
+	for (i = [actions count]; i > 0; i--) {
+	    [[actions objectAtIndex: i-1] invoke];
 	}
     }
 }
@@ -136,17 +135,6 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 	}
     }
     return NO;
-}
-
-- (void) undo
-{
-    if (actions != nil) {
-	int	i;
-
-	for (i = [actions count]; i > 0; i--) {
-	    [[actions objectAtIndex: i-1] invoke];
-	}
-    }
 }
 
 @end
@@ -316,7 +304,9 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 	[anInvocation setTarget: nextTarget];
 	nextTarget = nil;
 	[group addInvocation: anInvocation];
-	[redoStack removeAllObjects];
+	if (isUndoing == NO) {
+	    [redoStack removeAllObjects];
+	}
 	registeredUndo = YES;
     }
 }
@@ -404,11 +394,10 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 	oldGroup = group;
 	group = nil;
 	isRedoing = YES;
-	[self disableUndoRegistration];
-	[groupToRedo redo];
-	[undoStack addObject: groupToRedo];
+	[self beginUndoGrouping];
+	[groupToRedo perform];
 	[groupToRedo release];
-	[self enableUndoRegistration];
+	[self endUndoGrouping];
 	isRedoing = NO;
 	group = oldGroup;
 	[[NSNotificationCenter defaultCenter]
@@ -463,7 +452,9 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 	[inv setSelector: aSelector];
 	[inv setArgument: &anObject atIndex: 2];
 	[g addInvocation: inv];
-	[redoStack removeAllObjects];
+	if (isUndoing == NO) {
+	    [redoStack removeAllObjects];
+	}
 	registeredUndo = YES;
     }
 }
@@ -630,11 +621,10 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 	[groupToUndo retain];
 	[undoStack removeObjectAtIndex: [undoStack count] - 1];
     }
-    [self disableUndoRegistration];
-    [groupToUndo undo];
-    [redoStack addObject: groupToUndo];
+    [self beginUndoGrouping];
+    [groupToUndo perform];
     [groupToUndo release];
-    [self enableUndoRegistration];
+    [self endUndoGrouping];
     isUndoing = NO;
     group = oldGroup;
     [[NSNotificationCenter defaultCenter]
