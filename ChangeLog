@@ -2,6 +2,8 @@
 
 	* Source/NSObject.m: use NSString implementation of
 	([descriptionWithLocale:indent:to:])
+	* Source/NSUserDefaults.m: ([setObject:forKey:]) validate and raise
+	exceptions if given bad info.
 
 2002-11-07 02:21  Alexander Malmberg <alexander@malmberg.org>
 

@@ -1030,6 +1030,60 @@ static NSString	*pathForUser(NSString *user)
   return;
 }
 
+static BOOL isPlistObject(id o)
+{
+  if ([o isKindOfClass: [NSString class]] == YES)
+    {
+      return YES;
+    }
+  if ([o isKindOfClass: [NSData class]] == YES)
+    {
+      return YES;
+    }
+  if ([o isKindOfClass: [NSDate class]] == YES)
+    {
+      return YES;
+    }
+  if ([o isKindOfClass: [NSNumber class]] == YES)
+    {
+      return YES;
+    }
+  if ([o isKindOfClass: [NSArray class]] == YES)
+    {
+      NSEnumerator	*e = [o objectEnumerator];
+      id		tmp;
+
+      while ((tmp = [e nextObject]) != nil)
+	{
+	  if (isPlistObject(tmp) == NO)
+	    {
+	      return NO;
+	    }
+	}
+      return YES;
+    }
+  if ([o isKindOfClass: [NSDictionary class]] == YES)
+    {
+      NSEnumerator	*e = [o keyEnumerator];
+      id		tmp;
+
+      while ((tmp = [e nextObject]) != nil)
+	{
+	  if (isPlistObject(tmp) == NO)
+	    {
+	      return NO;
+	    }
+	  tmp = [o objectForKey: tmp];
+	  if (isPlistObject(tmp) == NO)
+	    {
+	      return NO;
+	    }
+	}
+      return YES;
+    }
+  return NO;
+}
+
 /**
  * Sets an object value for defaultName in the application domain.
  * <br />Causes a NSUserDefaultsDidChangeNotification to be posted
@@ -1038,7 +1092,19 @@ static NSString	*pathForUser(NSString *user)
  */
 - (void) setObject: (id)value forKey: (NSString*)defaultName
 {
-  if (value && defaultName && ([defaultName length] > 0))
+  if (value == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"attempt to set nil object for key (%@)", defaultName];
+    }
+  if (isPlistObject(value) == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+	format: @"attempt to set non propetrty list object for key (%@)",
+	defaultName];
+    }
+
+  if (defaultName != nil && ([defaultName length] > 0))
     {
       NSMutableDictionary	*dict;
       id			obj;
