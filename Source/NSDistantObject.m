@@ -35,14 +35,15 @@
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSInvocation.h"
 
-#define DO_FORWARD_INVOCATION(_SELX, _ARG1)			\
+#define DO_FORWARD_INVOCATION(_SELX, _ARG1) ({			\
   sig = [self methodSignatureForSelector: @selector(_SELX)];	\
+  if (sig != nil) {						\
   inv = [NSInvocation invocationWithMethodSignature: sig];	\
   [inv setSelector: @selector(_SELX)];				\
   [inv setTarget: self];					\
   [inv setArgument: (void*)&_ARG1 atIndex: 2];			\
   [self forwardInvocation: inv];				\
-  [inv getReturnValue: &m]
+  [inv getReturnValue: &m]; }})
 
 
 static int	debug_proxy = 0;
@@ -842,7 +843,7 @@ enum
 	}
       else
 	{
-	  id		m;
+	  id		m = nil;
 #ifdef USE_FFCALL
 	  id		inv;
 	  id		sig;
@@ -992,7 +993,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
 #ifdef USE_FFCALL
-  BOOL m;
+  BOOL m = NO;
   id inv, sig;
   DO_FORWARD_INVOCATION(conformsToProtocol:, aProtocol);
   return m;
@@ -1017,7 +1018,7 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
 #ifdef USE_FFCALL
-  BOOL m;
+  BOOL m = NO;
   id inv, sig;
   DO_FORWARD_INVOCATION(respondsToSelector:, aSelector);
   return m;

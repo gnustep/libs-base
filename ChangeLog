@@ -3,6 +3,8 @@
 	* Source/NSDistributedNotificationCenter.m: Use -setProtocolForProxy:
 	and implement dummy class to work around bug in old compilers.
 	* Tools/gdnc.m: ditto
+	* Source/NSDistantObject.m: Fix for calls to remote system where we
+	can get no method signature.
 
 2003-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
