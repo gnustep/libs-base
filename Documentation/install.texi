@@ -7,7 +7,7 @@
 
 @ifset INSTALL_ONLY
 This file documents the installation of the GNUstep Base Library,
-@samp{libgnustep-base}.  Copyright (C) 1993, 1994, 1996 Free Software 
+@samp{libgnustep-base}.  Copyright (C) 1993, 1994, 1996, 1997 Free Software 
 Foundation, Inc.  You may copy, distribute, and modify it freely as long
 as you preserve this copyright notice and permission notice.
 @chapter Installing @samp{libgnustep-base}
@@ -81,6 +81,13 @@ also have to be linked in.  You can do that like this:
 LIBS="-lieee -lpthreads" ./configure --prefix=/usr/local
 make
 make install
+@end example
+
+If you don't have @samp{libieee.a} on your system, @prog{configure} will
+say 
+@example
+configure: error: installation or configuration problem: 
+C compiler cannot create executables.
 @end example
 
 If you are running on a NeXT machine, @samp{gcc} probably configured
