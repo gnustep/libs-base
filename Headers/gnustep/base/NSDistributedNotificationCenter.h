@@ -39,11 +39,15 @@ typedef enum {
 } NSNotificationSuspensionBehavior;
 
 GS_EXPORT NSString	*NSLocalNotificationCenterType;
+#ifndef NO_GNUSTEP
+GS_EXPORT NSString	*GSNetworkNotificationCenterType;
+#endif
 
 @interface	NSDistributedNotificationCenter : NSNotificationCenter
 {
   NSRecursiveLock *_centerLock;	/* For thread safety.		*/
-  id		_remote;		/* Proxy for center.		*/
+  NSString	*_type;		/* Type of notification center.	*/
+  id		_remote;	/* Proxy for center.		*/
   BOOL		_suspended;	/* Is delivery suspended?	*/
 }
 + (NSNotificationCenter*) defaultCenter;

@@ -1,3 +1,15 @@
+2002-12-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSDistributedNotificationCenter.h: add type
+	for LAN-wide notifications.  Add ivar to support this.
+	* Source/NSDistributedNotificationCenter.m: Implement support for
+	a LAN-wide notification center.  Fully document class.
+	* Tools/gdnc.m: Add new GSNetwork flag to operate as LAN-wide
+	notification center.
+	* Tools/AGSHtml.m: Don't output contents section if there is
+	nothing to show (ie must have at least two sections to index).
+	* Source/NSConnection.m: Add locks to protect proxy cache in timeout.
+
 2002-12-10  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Enable libffi on darwin by default.

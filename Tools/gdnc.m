@@ -216,6 +216,7 @@
 - (id) init
 {
   NSString	*hostname;
+  NSString	*service = GDNC_SERVICE;
 
   connections = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		NSNonOwnedPointerMapValueCallBacks, 0);
@@ -225,13 +226,18 @@
   conn = [NSConnection defaultConnection];
   [conn setRootObject: self];
 
+  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSNetwork"] == YES)
+    {
+      service = GDNC_NETWORK;
+    }
   hostname = [[NSUserDefaults standardUserDefaults] stringForKey: @"NSHost"];
   if ([hostname length] == 0
-    ||  [[NSHost hostWithName: hostname] isEqual: [NSHost currentHost]] == YES)
+    || [[NSHost hostWithName: hostname] isEqual: [NSHost currentHost]] == YES)
     {
-      if ([conn registerName: GDNC_SERVICE] == NO)
+      if ([conn registerName: service] == NO)
 	{
-	  NSLog(@"gdnc - unable to register with name server - quiting.");
+	  NSLog(@"gdnc - unable to register with name server as %@ - quiting.",
+	    service);
 	  DESTROY(self);
 	  return self;
 	}
@@ -256,7 +262,7 @@
 	{
 	  NSString	*name = [a objectAtIndex: c];
 
-	  name = [GDNC_SERVICE stringByAppendingFormat: @"-%@", name];
+	  name = [service stringByAppendingFormat: @"-%@", name];
 	  if ([ns registerPort: port forName: name] == NO)
 	    {
 	    }
@@ -267,7 +273,7 @@
 	{
 	  NSString	*name = [a objectAtIndex: c];
 
-	  name = [GDNC_SERVICE stringByAppendingFormat: @"-%@", name];
+	  name = [service stringByAppendingFormat: @"-%@", name];
 	  if ([ns registerPort: port forName: name] == NO)
 	    {
 	    }
@@ -555,8 +561,8 @@
 	   *		the queue is empty	([obs->queue count] == 0)
 	   *		the observer is removed	(obs is not in allObservers)
 	   */
-	  while (obs != nil && [obs->queue count] > 0 &&
-		    NSHashGet(allObservers, obs) != 0)
+	  while (obs != nil && [obs->queue count] > 0
+	    && NSHashGet(allObservers, obs) != 0)
 	    {
 	      NS_DURING
 		{

@@ -22,6 +22,7 @@
    */
 
 #define	GDNC_SERVICE	@"GDNCServer"
+#define	GDNC_NETWORK	@"GDNCNetwork"
 
 @protocol	GDNCClient
 - (oneway void) postNotificationName: (NSString*)name

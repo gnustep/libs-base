@@ -662,6 +662,7 @@ static BOOL	multi_threaded = NO;
   NSArray	*cached_locals;
   int	i;
 
+  M_LOCK(global_proxies_gate);
   cached_locals = NSAllMapTableValues(targetToCached);
   for (i = [cached_locals count]; i > 0; i--)
     {
@@ -678,6 +679,7 @@ static BOOL	multi_threaded = NO;
       [t invalidate];
       timer = nil;
     }
+  M_UNLOCK(global_proxies_gate);
 }
 
 /**
@@ -3107,12 +3109,12 @@ static void callEncoder (DOContext *ctxt)
   node = GSIMapNodeForKey(_localObjects, (GSIMapKey)anObj);
   if (node == 0)
     {
-      prox = nil;
+      M_LOCK(global_proxies_gate);
+      M_LOCK(_proxiesGate);
+      [NSException raise: NSInternalInconsistencyException
+      		  format: @"Attempt to remove non-existent local %@", anObj];
     }
-  else
-    {
-      prox = node->value.obj;
-    }
+  prox = node->value.obj;
   target = ((ProxyStruct*)prox)->_handle;
 
   /*
