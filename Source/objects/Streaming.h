@@ -25,8 +25,9 @@
 #define __Streaming_h__OBJECTS_INCLUDE
 
 #include <objects/stdobjects.h>
+#include <objects/String.h>
 
-@protocol Streaming
+@protocol Streaming <NSObject>
 
 - (int) writeByte: (unsigned char)b;
 - (int) readByte: (unsigned char*)b;
