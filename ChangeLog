@@ -1,3 +1,9 @@
+2002-06-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m: Cope with a URL where the path is missing.
+	Check user, password, host, port parts for illegal characters.
+	Thanks to bug report by Marco Manfredini <mldb@gmx.org>
+
 2002-06-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimer.m: Retain target and user info on initialisation

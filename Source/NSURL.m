@@ -70,6 +70,7 @@ typedef struct {
   char	*query;
   char	*fragment;
   BOOL	pathIsAbsolute;
+  BOOL	hasNoPath;
   BOOL	isGeneric;
 } parsedURL;
 
@@ -188,7 +189,10 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
   tmp = ptr;
   if (rel->pathIsAbsolute == YES)
     {
-      *tmp++ = '/';
+      if (rel->hasNoPath == NO)
+	{
+	  *tmp++ = '/';
+	}
       strcpy(tmp, rel->path);
     }
   else if (base == 0)
@@ -197,7 +201,10 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
     }
   else if (rel->path[0] == 0)
     {
-      *tmp++ = '/';
+      if (base->hasNoPath == NO)
+	{
+	  *tmp++ = '/';
+	}
       strcpy(tmp, base->path);
     }
   else
@@ -286,6 +293,14 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
 	      strcpy(tmp, next);
 	    }
 	}
+      /*
+       * if we have an empty path, we standardize to a single slash.
+       */
+      tmp = ptr;
+      if (*tmp == '\0')
+	{
+	  strcpy(tmp, "/");
+	}
     }
   ptr = &ptr[strlen(ptr)];
   
@@ -339,6 +354,43 @@ static char *findUp(char *str)
       str++;
     }
   return 0;
+}
+
+/*
+ * Check a string to see if it contains only legal data characters
+ * or percent escape sequences.
+ */
+static BOOL legal(const char *str, const char *extras)
+{
+  const char	*mark = "-_.!~*'()";
+
+  if (str != 0)
+    {
+      while (*str != 0)
+	{
+	  if (*str == '%' && isxdigit(str[1]) && isxdigit(str[2]))
+	    {
+	      str += 3;
+	    }
+	  else if (isalnum(*str))
+	    {
+	      str++;
+	    }
+	  else if (strchr(mark, *str) != 0)
+	    {
+	      str++;
+	    }
+	  else if (strchr(extras, *str) != 0)
+	    {
+	      str++;
+	    }
+	  else
+	    {
+	      return NO;
+	    }
+	}
+    }
+  return YES;
 }
 
 /*
@@ -629,8 +681,18 @@ static void unescape(const char *from, char * to)
 	    {
 	      buf->isGeneric = YES;
 	      start = end = &end[2];
+
+	      /*
+	       * Set 'end' to point to the start of the path, or just past
+	       * the 'authority' if there is no path.
+	       */
 	      end = strchr(start, '/');
-	      if (end != 0)
+	      if (end == 0)
+		{
+		  buf->hasNoPath = YES;
+		  end = &start[strlen(start)];
+		}
+	      else
 		{
 		  *end++ = '\0';
 		}
@@ -644,6 +706,11 @@ static void unescape(const char *from, char * to)
 		  buf->user = start;
 		  *ptr++ = '\0';
 		  start = ptr;
+		  if (legal(buf->user, ";:&=+$,") == NO)
+		    {
+		      [NSException raise: NSGenericException format:
+			@"illegal character in user/password part"];
+		    }
 		  ptr = strchr(buf->user, ':');
 		  if (ptr != 0)
 		    {
@@ -659,10 +726,72 @@ static void unescape(const char *from, char * to)
 	      ptr = strchr(buf->host, ':');
 	      if (ptr != 0)
 		{
+		  const char	*str;
+
 		  *ptr++ = '\0';
 		  buf->port = ptr;
+		  str = buf->port;
+		  while (*str != 0)
+		    {
+		      if (*str == '%' && isxdigit(str[1]) && isxdigit(str[2]))
+			{
+			  unsigned char	c;
+
+			  str++;
+			  if (*str <= '9')
+			    {
+			      c = *str - '0';
+			    }
+			  else if (*str <= 'A')
+			    {
+			      c = *str - 'A' + 10;
+			    }
+			  else
+			    {
+			      c = *str - 'a' + 10;
+			    }
+			  c <<= 4;
+			  str++;
+			  if (*str <= '9')
+			    {
+			      c |= *str - '0';
+			    }
+			  else if (*str <= 'A')
+			    {
+			      c |= *str - 'A' + 10;
+			    }
+			  else
+			    {
+			      c |= *str - 'a' + 10;
+			    }
+
+			  if (isdigit(c))
+			    {
+			      str++;
+			    }
+			  else
+			    {
+			      [NSException raise: NSGenericException format:
+				@"illegal port part"];
+			    }
+			}
+		      else if (isdigit(*str))
+			{
+			  str++;
+			}
+		      else
+			{
+			  [NSException raise: NSGenericException format:
+			    @"illegal character in port part"];
+			}
+		    }
 		}
 	      start = end;
+	      if (legal(buf->host, "-") == NO)
+		{
+		  [NSException raise: NSGenericException format:
+		    @"illegal character in user/password part"];
+		}
 
 	      /*
 	       * If we have an authority component,
@@ -1064,7 +1193,10 @@ static void unescape(const char *from, char * to)
 
       if (myData->pathIsAbsolute == YES)
 	{
-	  *tmp++ = '/';
+	  if (myData->hasNoPath == NO)
+	    {
+	      *tmp++ = '/';
+	    }
 	  strcpy(tmp, myData->path);
 	}
       else if (_baseURL == nil)
@@ -1073,7 +1205,10 @@ static void unescape(const char *from, char * to)
 	}
       else if (*myData->path == 0)
 	{
-	  *tmp++ = '/';
+	  if (baseData->hasNoPath == NO)
+	    {
+	      *tmp++ = '/';
+	    }
 	  strcpy(tmp, baseData->path);
 	}
       else
