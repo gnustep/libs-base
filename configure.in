@@ -57,7 +57,6 @@ AC_EXEEXT
 case "$target_os" in
   freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LIBS="$LIBS -L/usr/local/lib";;
-  darwin1.3*)	CPPFLAGS="$CPPFLAGS -force_cpusubtype_ALL";;
 
 esac
 

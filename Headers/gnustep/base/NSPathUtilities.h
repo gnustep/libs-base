@@ -37,7 +37,9 @@
  * to use the defaults belonging to the new user.
  */
 GS_EXPORT void	GSSetUserName(NSString *name);
-GS_EXPORT NSArray	*GSStandardPathPrefixes(void);
+
+GS_EXPORT NSString *GSSystemRootDirectory(void);
+GS_EXPORT NSArray  *GSStandardPathPrefixes(void);
 #endif
 GS_EXPORT NSString *NSUserName();
 GS_EXPORT NSString *NSHomeDirectory();
