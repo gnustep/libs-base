@@ -267,7 +267,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctxt);
   return self;
 }
 
-- (BOOL) isEqualTo: (id)other
+- (BOOL) isEqual: (id)other
 {
   if ([other isKindOfClass: [self class]] == YES
     && [other lib] == lib)
@@ -567,7 +567,7 @@ static NSMapTable	*nsNames = 0;
   return self;
 }
 
-- (BOOL) isEqualTo: (id)other
+- (BOOL) isEqual: (id)other
 {
   if ([other isKindOfClass: [self class]] == YES && [other lib] == lib)
     return YES;
@@ -880,7 +880,7 @@ static NSMapTable	*nodeNames = 0;
   return self;
 }
 
-- (BOOL) isEqualTo: (id)other
+- (BOOL) isEqual: (id)other
 {
   if ([other isKindOfClass: [self class]] == YES
     && [other lib] == lib)
