@@ -34,7 +34,7 @@ exec_prefix = @exec_prefix@
 libdir = $(exec_prefix)/lib
 includedir = $(prefix)/include
 
-CC = @CC@
+CC = @CC@ -pipe
 RANLIB = @RANLIB@
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
