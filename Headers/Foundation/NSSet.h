@@ -119,7 +119,7 @@
 /**
  * <p>
  *   If the supplied object (or one equal to it as determined by
- *   the [-isEqual:] method) is already present in the set, the
+ *   the [NSObject-isEqual:] method) is already present in the set, the
  *   count for that object is incremented, the supplied object
  *   is released, and the object in the set is retained and returned.
  *   Otherwise, the supplied object is added to the set and returned.
