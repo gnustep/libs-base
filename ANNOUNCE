@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.3.0, is now available.
+The GNUstep Base Library, version 1.3.2, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -19,26 +19,28 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.3.0'
+Noteworthy changes in version `1.3.2'
 =====================================
 
-   * Moved additional classes into subprojects and/or bundles to make it
-     easier to port these to other Foundation libraries..
+   * Corrections for handling Windows file paths, etc
 
-   * Traditional Chinese extensions added.
+   * Other fixes for Windows - DO now works on Windows
 
-   * Better support for resources (bundles)
+   * New localization/internationalization tool make_strings
 
-   * Ports and DO work on MingW.
+   * Experimental libffi support.
 
-   * Better KeyValueCoding support (for EOF).
+   * Handle running tools/apps on other hosts
 
-   * New, partially finished Objective-C/Foundation programming manual.
+   * Updated files and new tool for handling different encodings
+     (cvtenc).
+
+   * Unicode and UTF8 handling improvements.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-   The gnustep-base-1.3.0.tar.gz distribution file has been placed on
+   The gnustep-base-1.3.2.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
    The library requires gcc 2.8.0 or higher.  See the `GNUstep-HOWTO'
