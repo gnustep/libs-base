@@ -753,45 +753,44 @@ static IMP	wRelImp;
 static IMP	wRetImp;
 
 static void
-wRelease(void* t, id w)
+wRelease(NSMapTable* t, const void* w)
 {
-  (*wRelImp)(w, wRelSel);
+  (*wRelImp)((id)w, wRelSel);
 }
 
-static id
-wRetain(void* t, id w)
+static void
+wRetain(NSMapTable* t, const void* w)
 {
-  return (*wRetImp)(w, wRetSel);
+  (*wRetImp)((id)w, wRetSel);
 }
 
 const NSMapTableValueCallBacks WatcherMapValueCallBacks = 
 {
-  (NSMT_retain_func_t) wRetain,
-  (NSMT_release_func_t) wRelease,
-  (NSMT_describe_func_t) 0
+  wRetain,
+  wRelease,
+  0
 };
 #else
 #define	WatcherMapValueCallBacks	NSOwnedPointerMapValueCallBacks 
 #endif
 
-static void*
-aRetain(void* t, GSIArray a)
+static void
+aRetain(NSMapTable* t, const void* a)
 {
-  return t;
 }
 
 static void
-aRelease(void* t, GSIArray a)
+aRelease(NSMapTable* t, const void* a)
 {
-  GSIArrayEmpty(a);
-  NSZoneFree(a->zone, (void*)a);
+  GSIArrayEmpty((GSIArray)a);
+  NSZoneFree(((GSIArray)a)->zone, (void*)a);
 }
 
 const NSMapTableValueCallBacks ArrayMapValueCallBacks = 
 {
-  (NSMT_retain_func_t) aRetain,
-  (NSMT_release_func_t) aRelease,
-  (NSMT_describe_func_t) 0
+  aRetain,
+  aRelease,
+  0
 };
 
 
@@ -1137,7 +1136,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	    printf ("\tNSRunLoop limit date past, returning\n");
 	  _current_mode = saved_mode;
 	  RELEASE(arp);
-	  return;
+          NS_VOIDRETURN;
 	}
       else
 	{
@@ -1317,7 +1316,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 	  [self _checkPerformers];
 	  _current_mode = saved_mode;
 	  RELEASE(arp);
-	  return;
+          NS_VOIDRETURN;
 	}
       
       /*

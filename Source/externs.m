@@ -532,8 +532,15 @@ GSBuildStrings()
 
 
 
-/* Standard MapTable callbacks */
+/* These are to increase readabilty locally. */
+typedef unsigned int (*NSMT_hash_func_t)(NSMapTable *, const void *);
+typedef BOOL (*NSMT_is_equal_func_t)(NSMapTable *, const void *, const void *);
+typedef void (*NSMT_retain_func_t)(NSMapTable *, const void *);
+typedef void (*NSMT_release_func_t)(NSMapTable *, const void *);
+typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
 
+
+/* Standard MapTable callbacks */
 const NSMapTableKeyCallBacks NSIntMapKeyCallBacks = 
 {
   (NSMT_hash_func_t) _NS_int_hash,
@@ -541,7 +548,7 @@ const NSMapTableKeyCallBacks NSIntMapKeyCallBacks =
   (NSMT_retain_func_t) _NS_int_retain,
   (NSMT_release_func_t) _NS_int_release,
   (NSMT_describe_func_t) _NS_int_describe,
-  0
+  NSNotAnIntMapKey
 };
 
 const NSMapTableKeyCallBacks NSNonOwnedPointerMapKeyCallBacks = 
@@ -551,7 +558,7 @@ const NSMapTableKeyCallBacks NSNonOwnedPointerMapKeyCallBacks =
   (NSMT_retain_func_t) _NS_non_owned_void_p_retain,
   (NSMT_release_func_t) _NS_non_owned_void_p_release,
   (NSMT_describe_func_t) _NS_non_owned_void_p_describe,
-  0
+  NSNotAPointerMapKey
 };
 
 const NSMapTableKeyCallBacks NSNonOwnedPointerOrNullMapKeyCallBacks = 
@@ -561,10 +568,7 @@ const NSMapTableKeyCallBacks NSNonOwnedPointerOrNullMapKeyCallBacks =
   (NSMT_retain_func_t) _NS_non_owned_void_p_retain,
   (NSMT_release_func_t) _NS_non_owned_void_p_release,
   (NSMT_describe_func_t) _NS_non_owned_void_p_describe,
-  /* FIXME: Oh my.  Is this really ok?  I did it in a moment of
-   * weakness.  A fit of madness, I say!  And if this is wrong, what
-   * *should* it be?!? */
-  (const void *)-1
+  NSNotAPointerMapKey
 };
 
 const NSMapTableKeyCallBacks NSNonRetainedObjectMapKeyCallBacks = 
@@ -574,7 +578,7 @@ const NSMapTableKeyCallBacks NSNonRetainedObjectMapKeyCallBacks =
   (NSMT_retain_func_t) _NS_non_retained_id_retain,
   (NSMT_release_func_t) _NS_non_retained_id_release,
   (NSMT_describe_func_t) _NS_non_retained_id_describe,
-  0
+  NSNotAPointerMapKey
 };
 
 const NSMapTableKeyCallBacks NSObjectMapKeyCallBacks = 
@@ -584,7 +588,7 @@ const NSMapTableKeyCallBacks NSObjectMapKeyCallBacks =
   (NSMT_retain_func_t) _NS_id_retain,
   (NSMT_release_func_t) _NS_id_release,
   (NSMT_describe_func_t) _NS_id_describe,
-  0
+  NSNotAPointerMapKey
 };
 
 const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks = 
@@ -594,7 +598,7 @@ const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks =
   (NSMT_retain_func_t) _NS_owned_void_p_retain,
   (NSMT_release_func_t) _NS_owned_void_p_release,
   (NSMT_describe_func_t) _NS_owned_void_p_describe,
-  0
+  NSNotAPointerMapKey
 };
 
 const NSMapTableValueCallBacks NSIntMapValueCallBacks = 
@@ -632,6 +636,14 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
   (NSMT_describe_func_t) _NS_owned_void_p_describe
 };
 
+/* These are to increase readabilty locally. */
+typedef unsigned int (*NSHT_hash_func_t)(NSHashTable *, const void *);
+typedef BOOL (*NSHT_isEqual_func_t)(NSHashTable *, const void *, const void *);
+typedef void (*NSHT_retain_func_t)(NSHashTable *, const void *);
+typedef void (*NSHT_release_func_t)(NSHashTable *, const void *);
+typedef NSString *(*NSHT_describe_func_t)(NSHashTable *, const void *);
+
+/**** Function Prototypes ****************************************************/
 /** Standard NSHashTable callbacks... **/
      
 const NSHashTableCallBacks NSIntHashCallBacks =
@@ -686,104 +698,5 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   (NSHT_retain_func_t) _NS_int_p_retain,
   (NSHT_release_func_t) _NS_int_p_release,
   (NSHT_describe_func_t) _NS_int_p_describe
-};
-
-/* Callbacks for (NUL-terminated) arrays of `char'. */
-
-/* FIXME: Is this right?!? */
-#define _OBJECTS_NOT_A_CHAR_P_MARKER (const void *)(-1)
-
-const void *o_not_a_char_p_marker = _OBJECTS_NOT_A_CHAR_P_MARKER;
-
-const o_callbacks_t o_callbacks_for_char_p = 
-{
-  (o_hash_func_t) o_char_p_hash,
-  (o_compare_func_t) o_char_p_compare,
-  (o_is_equal_func_t) o_char_p_is_equal,
-  (o_retain_func_t) o_char_p_retain,
-  (o_release_func_t) o_char_p_release,
-  (o_describe_func_t) o_char_p_describe,
-  _OBJECTS_NOT_A_CHAR_P_MARKER
-};
-
-/* Callbacks for `int' (and smaller) things. */
-
-/* FIXME: This isn't right.  Fix it. */
-#define _OBJECTS_NOT_AN_INT_MARKER (const void *)(-1)
-
-const void *o_not_an_int_marker = _OBJECTS_NOT_AN_INT_MARKER;
-
-const o_callbacks_t o_callbacks_for_int = 
-{
-  (o_hash_func_t) o_int_hash,
-  (o_compare_func_t) o_int_compare,
-  (o_is_equal_func_t) o_int_is_equal,
-  (o_retain_func_t) o_int_retain,
-  (o_release_func_t) o_int_release,
-  (o_describe_func_t) o_int_describe,
-  _OBJECTS_NOT_AN_INT_MARKER
-};
-
-/* Callbacks for the Objective-C object type. */
-
-/* FIXME: Is this right?!? */
-#define _OBJECTS_NOT_AN_ID_MARKER (const void *)(-1)
-
-const void *o_not_an_id_marker = _OBJECTS_NOT_AN_ID_MARKER;
-
-const o_callbacks_t o_callbacks_for_id = 
-{
-  (o_hash_func_t) o_id_hash,
-  (o_compare_func_t) o_id_compare,
-  (o_is_equal_func_t) o_id_is_equal,
-  (o_retain_func_t) o_id_retain,
-  (o_release_func_t) o_id_release,
-  (o_describe_func_t) o_id_describe,
-  _OBJECTS_NOT_AN_ID_MARKER
-};
-
-/* Callbacks for pointers to `int'. */
-
-/* FIXME: Is this right?!? */
-#define _OBJECTS_NOT_AN_INT_P_MARKER (const void *)(-1)
-
-const void *o_not_an_int_p_marker = _OBJECTS_NOT_AN_INT_P_MARKER;
-
-const o_callbacks_t o_callbacks_for_int_p = 
-{
-  (o_hash_func_t) o_int_p_hash,
-  (o_compare_func_t) o_int_p_compare,
-  (o_is_equal_func_t) o_int_p_is_equal,
-  (o_retain_func_t) o_int_p_retain,
-  (o_release_func_t) o_int_p_release,
-  (o_describe_func_t) o_int_p_describe,
-  _OBJECTS_NOT_AN_INT_P_MARKER
-};
-
-/* Callbacks for pointers to `void'. */
-
-/* FIXME: Is this right?!? */
-#define _OBJECTS_NOT_A_VOID_P_MARKER (const void *)(-1)
-
-const void *o_not_a_void_p_marker = _OBJECTS_NOT_A_VOID_P_MARKER;
-
-const o_callbacks_t o_callbacks_for_non_owned_void_p = 
-{
-  (o_hash_func_t) o_non_owned_void_p_hash,
-  (o_compare_func_t) o_non_owned_void_p_compare,
-  (o_is_equal_func_t) o_non_owned_void_p_is_equal,
-  (o_retain_func_t) o_non_owned_void_p_retain,
-  (o_release_func_t) o_non_owned_void_p_release,
-  _OBJECTS_NOT_A_VOID_P_MARKER
-};
-
-const o_callbacks_t o_callbacks_for_owned_void_p = 
-{
-  (o_hash_func_t) o_owned_void_p_hash,
-  (o_compare_func_t) o_owned_void_p_compare,
-  (o_is_equal_func_t) o_owned_void_p_is_equal,
-  (o_retain_func_t) o_owned_void_p_retain,
-  (o_release_func_t) o_owned_void_p_release,
-  _OBJECTS_NOT_A_VOID_P_MARKER
 };
 

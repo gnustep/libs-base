@@ -37,11 +37,11 @@
 
 /** For `int's **/
 
-unsigned int _NS_int_hash(void *table, int i);
-BOOL _NS_int_is_equal(void *table, int i, int j);
-void _NS_int_retain(void *table, int i);
-void _NS_int_release(void *table, int i);
-NSString *_NS_int_describe(void *table, int i);
+unsigned int _NS_int_hash(void *table, void* i);
+BOOL _NS_int_is_equal(void *table, void* i, void* j);
+void _NS_int_retain(void *table, void* i);
+void _NS_int_release(void *table, void* i);
+NSString *_NS_int_describe(void *table, void* i);
 
 /** For owned `void *' **/
 

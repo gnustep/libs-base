@@ -41,31 +41,31 @@
 /** For `int's **/
 
 unsigned int
-_NS_int_hash(void *table, int i)
+_NS_int_hash(void *table, void* i)
 {
   return (unsigned int) i;
 }
 
 BOOL
-_NS_int_is_equal(void *table, int i, int j)
+_NS_int_is_equal(void *table, void* i, void* j)
 {
   return (i == j) ? YES : NO;
 }
 
 void
-_NS_int_retain(void *table, int i)
+_NS_int_retain(void *table, void* i)
 {
   return;
 }
 
 void
-_NS_int_release(void *table, int i)
+_NS_int_release(void *table, void* i)
 {
   return;
 }
 
 NSString *
-_NS_int_describe(void *table, int i)
+_NS_int_describe(void *table, void* i)
 {
   return [NSString stringWithFormat: @"%d", i];
 }

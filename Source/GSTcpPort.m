@@ -30,7 +30,6 @@
 #include <Foundation/NSByteOrder.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSDate.h>
-#include <Foundation/NSHashTable.h>
 #include <Foundation/NSHost.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSPortMessage.h>
@@ -1814,7 +1813,18 @@ static Class		tcpPortClass;
       DO_UNLOCK(myLock);
       if (handle == nil)
 	{
-	  NSLog(@"No handle for event on descriptor %d", desc);
+	  const char	*t;
+
+	  if (type == ET_RDESC) t = "rdesc";
+	  else if (type == ET_WDESC) t = "wdesc";
+	  else if (type == ET_EDESC) t = "edesc";
+	  else if (type == ET_RPORT) t = "rport";
+	  else t = "unknown";
+	  NSLog(@"No handle for event %s on descriptor %d", t, desc);
+	  [[runLoopClass currentRunLoop] removeEvent: extra
+						type: type
+					     forMode: mode
+						 all: YES];
 	}
       else
 	{

@@ -33,7 +33,6 @@
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>
-#include <base/o_map.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
@@ -44,6 +43,9 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSObjCRuntime.h>
 #include <limits.h>
+
+#define	REFCNT_LOCAL	0
+
 
 #ifndef NeXT_RUNTIME
 extern BOOL __objc_responds_to(id, SEL);
@@ -223,69 +225,86 @@ NSDecrementExtraRefCountWasZero(id anObject)
 
 #else
 
+#define  GSI_NEW
+#define GSI_MAP_EQUAL(M, X, Y)	(X.obj == Y.obj)
+#define GSI_MAP_HASH(M, X)	(X.ptr >> 2)
+#define GSI_MAP_RETAIN_KEY(M, X)
+#define GSI_MAP_RELEASE_KEY(M, X)
+#define GSI_MAP_RETAIN_VAL(M, X)
+#define GSI_MAP_RELEASE_VAL(M, X)
+#define GSI_MAP_KTYPES  GSUNION_OBJ
+#define GSI_MAP_VTYPES  GSUNION_INT
+
+#include <base/GSIMap.h>
+
 /* The maptable of retain counts on objects */
-static o_map_t *retain_counts = NULL;
+static GSIMapTable_t	retain_counts;
 
 void
 NSIncrementExtraRefCount (id anObject)
 {
-  o_map_node_t *node;
-  extern o_map_node_t *o_map_node_for_key(o_map_t *m, const void *k);
+  GSIMapNode	node;
 
   if (retain_counts_gate != 0)
     {
       objc_mutex_lock(retain_counts_gate);
-      node = o_map_node_for_key (retain_counts, anObject);
-      if (node)
-	((int)(node->value))++;
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node != 0)
+	{
+	  (node->value.uint)++;
+	}
       else
-	o_map_at_key_put_value_known_absent (retain_counts, anObject, (void*)1);
+	{
+	  GSIMapAddPair(&retain_count, (GSIMapKey)anObject, (GSIMapKey)1);
+	}
       objc_mutex_unlock(retain_counts_gate);
     }
   else
     {
-      node = o_map_node_for_key (retain_counts, anObject);
-      if (node)
-	((int)(node->value))++;
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node != 0)
+	{
+	  (node->value.uint)++;
+	}
       else
-	o_map_at_key_put_value_known_absent (retain_counts, anObject, (void*)1);
+	{
+	  GSIMapAddPair(&retain_count, (GSIMapKey)anObject, (GSIMapKey)1);
+	}
     }
 }
 
 BOOL
 NSDecrementExtraRefCountWasZero (id anObject)
 {
-  o_map_node_t *node;
-  extern o_map_node_t *o_map_node_for_key (o_map_t *m, const void *k);
-  extern void o_map_remove_node (o_map_node_t *node);
+  GSIMapNode	node;
 
   if (retain_counts_gate != 0)
     {
       objc_mutex_lock(retain_counts_gate);
-      node = o_map_node_for_key (retain_counts, anObject);
-      if (!node)
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
 	{
 	  objc_mutex_unlock(retain_counts_gate);
 	  return YES;
 	}
-      NSCAssert((int)(node->value) > 0, NSInternalInconsistencyException);
-      if (!--((int)(node->value)))
+      NSCAssert(node->value.uint > 0, NSInternalInconsistencyException);
+      if (--(node->value.uint) == 0)
 	{
-	  o_map_remove_node (node);
+	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
 	}
       objc_mutex_unlock(retain_counts_gate);
     }
   else
     {
-      node = o_map_node_for_key (retain_counts, anObject);
-      if (!node)
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
 	{
 	  return YES;
 	}
-      NSCAssert((int)(node->value) > 0, NSInternalInconsistencyException);
-      if (!--((int)(node->value)))
+      NSCAssert(node->value.uint > 0, NSInternalInconsistencyException);
+      if (--(node->value.uint) == 0)
 	{
-	  o_map_remove_node (node);
+	  GSIMapRemoveKey((GSIMapTable)&retain_counts, (GSIMapKey)anObject);
 	}
     }
   return NO;
@@ -294,26 +313,33 @@ NSDecrementExtraRefCountWasZero (id anObject)
 unsigned
 NSExtraRefCount (id anObject)
 {
-  unsigned ret;
+  GSIMapNode	node;
+  unsigned	ret;
 
   if (retain_counts_gate != 0)
     {
       objc_mutex_lock(retain_counts_gate);
-      ret = (unsigned) o_map_value_at_key(retain_counts, anObject);
-      if (ret == (unsigned)o_map_not_a_key_marker(retain_counts)
-	|| ret == (unsigned)o_map_not_a_value_marker(retain_counts))
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
 	{
 	  ret = 0;
+	}
+      else
+	{
+	  ret = node->value.uint;
 	}
       objc_mutex_unlock(retain_counts_gate);
     }
   else
     {
-      ret = (unsigned) o_map_value_at_key(retain_counts, anObject);
-      if (ret == (unsigned)o_map_not_a_key_marker(retain_counts)
-	|| ret == (unsigned)o_map_not_a_value_marker(retain_counts))
+      node = GSIMapNodeForKey(&retain_counts, (GSIMapKey)anObject);
+      if (node == 0)
 	{
 	  ret = 0;
+	}
+      else
+	{
+	  ret = node->value.uint;
 	}
     }
   return ret;	/* ExtraRefCount + 1	*/
@@ -610,8 +636,7 @@ static BOOL double_release_check_enabled = NO;
       fastMallocClass = [_FastMallocBuffer class];
 #if	GS_WITH_GC == 0
 #if	!defined(REFCNT_LOCAL)
-      retain_counts = o_map_with_callbacks (o_callbacks_for_non_owned_void_p,
-					    o_callbacks_for_int);
+      GSIMapInitWithZoneAndCapacity(&retain-count, NSDefaultMallocZone(), 1024);
 #endif
       fastMallocOffset = fastMallocClass->instance_size % ALIGN;
 #else

@@ -1,10 +1,11 @@
 /** NSMapTable implementation for GNUStep.
- * Copyright (C) 1994, 1995, 1996  Free Software Foundation, Inc.
+ * Copyright (C) 1994, 1995, 1996, 2002  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:59:57 EST 1994
  * Updated: Sun Mar 17 18:37:12 EST 1996
  * Serial: 96.03.17.31
+ * Rewrite by: Richard Frith-Macdonald <rfm@gnu.org>
  * 
  * This file is part of the GNUstep Base Library.
  * 
@@ -21,9 +22,9 @@
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-
-   <title>NSMapTable class reference</title>
-   $Date$ $Revision$
+ *
+ * <title>NSMapTable class reference</title>
+ * $Date$ $Revision$
  */
 
 /**** Included Headers *******************************************************/
@@ -35,423 +36,450 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSZone.h>
 #include <Foundation/NSMapTable.h>
-#include <base/o_map.h>
 #include "NSCallBacks.h"
 
-/** Dummy callbacks... **/
 
-size_t
-_NSMT_key_hash (const void *element, const void *table)
-{
-  return NSMT_KEY_CALLBACKS(table).hash((NSMapTable *)table,
-                                        element);
-}
+typedef struct {
+  NSMapTableKeyCallBacks	k;
+  NSMapTableValueCallBacks	v;
+} extraData;
 
-int
-_NSMT_key_compare (const void *element1, const void *element2, 
-		   const void *table)
-{
-  return !(NSMT_KEY_CALLBACKS(table).isEqual((NSMapTable *)table,
-                                             element1,
-                                             element2));
-}
+#define GSI_NEW	1
 
-int
-_NSMT_key_is_equal (const void *element1, const void *element2, 
-		    const void *table)
-{
-  return NSMT_KEY_CALLBACKS(table).isEqual((NSMapTable *) table,
-                                           element1,
-                                           element2);
-}
+/*
+ *      The 'Fastmap' stuff provides an inline implementation of a mapping
+ *      table - for maximum performance.
+ */
+#define	GSI_MAP_EXTRA		extraData
+#define GSI_MAP_KTYPES		GSUNION_PTR
+#define GSI_MAP_VTYPES		GSUNION_PTR
+#define GSI_MAP_HASH(M, X)\
+ (M->extra.k.hash)((NSMapTable*)M, X.ptr)
+#define GSI_MAP_EQUAL(M, X, Y)\
+ (M->extra.k.isEqual)((NSMapTable*)M, X.ptr, Y.ptr)
+#define GSI_MAP_RELEASE_KEY(M, X)\
+ (M->extra.k.release)((NSMapTable*)M, X.ptr)
+#define GSI_MAP_RETAIN_KEY(M, X)\
+ (M->extra.k.retain)((NSMapTable*)M, X.ptr)
+#define GSI_MAP_RELEASE_VAL(M, X)\
+ (M->extra.v.release)((NSMapTable*)M, X.ptr)
+#define GSI_MAP_RETAIN_VAL(M, X)\
+ (M->extra.v.retain)((NSMapTable*)M, X.ptr)
+#define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
-void *
-_NSMT_key_retain (const void *element, const void *table)
-{
-  NSMT_KEY_CALLBACKS(table).retain((NSMapTable *)table, element);
-  return (void*) element;
-}
-
-void
-_NSMT_key_release (void *element, void *table)
-{
-  NSMT_KEY_CALLBACKS(table).release ((NSMapTable*)table, element);
-  return;
-}
-
-NSString *
-_NSMT_key_describe(const void *element, void *table)
-{
-  return nil;
-}
-
-void *
-_NSMT_value_retain (const void *element, const void *table)
-{
-  NSMT_VALUE_CALLBACKS(table).retain((NSMapTable *)table, element);
-  return (void *) element;
-}
-
-void
-_NSMT_value_release (void *element, const void *table)
-{
-  NSMT_VALUE_CALLBACKS(table).release((NSMapTable *)table, element);
-  return;
-}
-
-NSString *
-_NSMT_value_describe(const void *element, const void *table)
-{
-  /* FIXME: Code this. */
-  return nil;
-}
-
-/* These are wrappers for getting at the real callbacks. */
-o_callbacks_t _NSMT_key_callbacks = 
-{
-  (o_hash_func_t) _NSMT_key_hash,
-  (o_compare_func_t) _NSMT_key_compare,
-  (o_is_equal_func_t) _NSMT_key_is_equal,
-  (o_retain_func_t) _NSMT_key_retain,
-  (o_release_func_t) _NSMT_key_release,
-  (o_describe_func_t) _NSMT_key_describe,
-  0 /* This gets changed...See just below. */
-};
-
-static inline o_callbacks_t
-_NSMT_callbacks_for_key_callbacks(NSMapTableKeyCallBacks keyCallBacks)
-{
-  o_callbacks_t cbs = _NSMT_key_callbacks;
-
-  cbs.not_an_item_marker = keyCallBacks.notAKeyMarker;
-
-  return cbs;
-}
-
-o_callbacks_t _NSMT_value_callbacks = 
-{
-  (o_hash_func_t) o_non_owned_void_p_hash,
-  (o_compare_func_t) o_non_owned_void_p_compare,
-  (o_is_equal_func_t) o_non_owned_void_p_is_equal,
-  (o_retain_func_t) _NSMT_value_retain,
-  (o_release_func_t) _NSMT_value_release,
-  (o_describe_func_t) _NSMT_value_describe,
-  0 /* Not needed, really, for OpenStep...And so, ignored here. */
-};
-
-/** Extra, extra **/
-
-/* Make a copy of a hash table's callbacks. */
-const void *
-_NSMT_extra_retain(_NSMT_extra_t *extra, NSMapTable *table)
-{
-  /* A pointer to some space for new callbacks. */
-  _NSMT_extra_t *new_extra;
-
-  /* Set aside space for our new callbacks in the right zone. */
-  new_extra = (_NSMT_extra_t *)NSZoneMalloc(o_map_zone(table),
-                                            sizeof(_NSMT_extra_t));
-
-  /* Copy the old callbacks into NEW_EXTRA. */
-  *new_extra = *extra;
-
-  /* Return our new EXTRA. */
-  return new_extra;
-}
-
-void
-_NSMT_extra_release(void *extra, NSMapTable *table)
-{
-  if (extra != 0)
-    NSZoneFree(o_map_zone(table), extra);
-
-  return;
-}
-
-NSString *
-_NSMT_extra_describe(const void *extra, NSMapTable *table)
-{
-  /* FIXME: Code this. */
-  return nil;
-}
-
-/* The basic idea here is that these callbacks ensure that the
- * NSMapTable...Callbacks which are associated with a given NSMapTable
- * remain so throughout the life of the table and its copies. */
-o_callbacks_t _NSMT_extra_callbacks = 
-{
-  (o_hash_func_t) o_non_owned_void_p_hash,
-  (o_compare_func_t) o_non_owned_void_p_compare,
-  (o_is_equal_func_t) o_non_owned_void_p_is_equal,
-  (o_retain_func_t) _NSMT_extra_retain,
-  (o_release_func_t)_NSMT_extra_release,
-  (o_describe_func_t)_NSMT_extra_describe,
-  0
-};
+#include <base/GSIMap.h>
 
 /**** Function Implementations ****/
 
-/** Creating an NSMapTable **/
-
-inline NSMapTable *
-NSCreateMapTableWithZone(NSMapTableKeyCallBacks keyCallBacks,
-			 NSMapTableValueCallBacks valueCallBacks,
-			 unsigned capacity,
-                         NSZone *zone)
-{
-  NSMapTable *table;
-  o_callbacks_t key_callbacks, value_callbacks;
-
-  /* Transform the callbacks we were given. */
-  key_callbacks = _NSMT_callbacks_for_key_callbacks(keyCallBacks);
-  value_callbacks = _NSMT_value_callbacks;
-  
-  /* Create a map table. */
-  table = o_map_with_zone_with_callbacks(zone, key_callbacks,
-                                               value_callbacks);
-
-  /* Adjust the capacity of TABLE. */
-  o_map_resize(table, capacity);
-
-  if (table != 0)
-  {
-    _NSMT_extra_t extra;
-
-    /* Set aside space for TABLE's extra. */
-    extra.keyCallBacks = keyCallBacks;
-    extra.valueCallBacks = valueCallBacks;
-
-    /* These callbacks are defined above. */
-    o_map_set_extra_callbacks(table, _NSMT_extra_callbacks);
-
-    /* We send a pointer because that's all the room we have.  
-     * The callbacks make a copy of these extras, so we needn't
-     * worry about the way they disappear real soon now. */
-    o_map_set_extra(table, &extra);
-  }
-
-  return table;
-}
-
-NSMapTable *
-NSCreateMapTable(NSMapTableKeyCallBacks keyCallBacks,
-		 NSMapTableValueCallBacks valueCallBacks,
-		 unsigned int capacity)
-{
-  return NSCreateMapTableWithZone(keyCallBacks, valueCallBacks,
-				  capacity, NSDefaultMallocZone());
-}
-
-NSMapTable *
-NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
-{
-  NSMapTable *new_table;
-
-  new_table = o_map_copy_with_zone(table, zone);
-
-  return new_table;
-}
-
-/** Freeing an NSMapTable **/
-
-void
-NSFreeMapTable(NSMapTable *table)
-{
-  o_map_dealloc(table);
-  return;
-}
-
-void
-NSResetMapTable(NSMapTable *table)
-{
-  o_map_empty(table);
-  return;
-}
-
-/** Comparing two NSMapTables... **/
-
-BOOL
-NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
-{
-  return o_map_is_equal_to_map(table1, table2) ? YES : NO;
-}
-
-/** Getting the number of items in an NSMapTable **/
-
-unsigned int
-NSCountMapTable(NSMapTable *table)
-{
-  return (unsigned int) o_map_count(table);
-}
-
-/** Retrieving items from an NSMapTable **/
-
-BOOL
-NSMapMember(NSMapTable *table, const void *key,
-	    void **originalKey, void **value)
-{
-  int i;
-
-  /* Check for K in TABLE. */
-  i = o_map_key_and_value_at_key(table, (const void **)originalKey,
-                                       (const void **)value, key);
-
-  /* Indicate our state of success. */
-  return i ? YES : NO;
-}
-
-void *
-NSMapGet(NSMapTable *table, const void *key)
-{
-  return (void *) o_map_value_at_key(table, key);
-}
-
-NSMapEnumerator
-NSEnumerateMapTable(NSMapTable *table)
-{
-  return o_map_enumerator_for_map(table);
-}
-
-BOOL
-NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
-			void **key, void **value)
-{
-  int i;
-
-  /* Get the next pair. */
-  i = o_map_enumerator_next_key_and_value(enumerator, 
-						(const void **)key, 
-						(const void **)value);
-
-  /* Indicate our success or failure. */
-  return i ? YES : NO;
-}
-
+/**
+ * Returns an array of all the keys in the table.
+ * NB. The table <em>must</em> contain objects for its keys.
+ */
 NSArray *
 NSAllMapTableKeys(NSMapTable *table)
 {
-  NSMutableArray *keyArray;
-  NSMapEnumerator enumerator;
-  id key = nil;
+  NSMutableArray	*keyArray;
+  NSMapEnumerator	enumerator;
+  id			key = nil;
 
   /* Create our mutable key array. */
-  keyArray = [NSMutableArray arrayWithCapacity:NSCountMapTable(table)];
+  keyArray = [NSMutableArray arrayWithCapacity: NSCountMapTable(table)];
 
   /* Get an enumerator for TABLE. */
   enumerator = NSEnumerateMapTable(table);
 
   /* Step through TABLE... */
   while (NSNextMapEnumeratorPair(&enumerator, (void **)(&key), 0))
-    [keyArray addObject:key];
-
+    {
+      [keyArray addObject: key];
+    }
   return keyArray;
 }
 
+/**
+ * Returns an array of all the values in the table.
+ * NB. The table <em>must</em> contain objects for its values.
+ */
 NSArray *
 NSAllMapTableValues(NSMapTable *table)
 {
-  NSMapEnumerator enumerator;
-  NSMutableArray *valueArray;
-  id value = nil;
+  NSMapEnumerator	enumerator;
+  NSMutableArray	*valueArray;
+  id			value = nil;
 
   /* Create our mutable value array. */
-  valueArray = [NSMutableArray arrayWithCapacity:NSCountMapTable(table)];
+  valueArray = [NSMutableArray arrayWithCapacity: NSCountMapTable(table)];
 
   /* Get an enumerator for TABLE. */
   enumerator = NSEnumerateMapTable(table);
 
   /* Step through TABLE... */
   while (NSNextMapEnumeratorPair(&enumerator, 0, (void **)(&value)))
-    [valueArray addObject:value];
-
+    {
+      [valueArray addObject: value];
+    }
   return valueArray;
 }
 
-/** Adding items to an NSMapTable... **/
+/**
+ * Compares the two map tables for equality.
+ * If the tables are different sizes, returns NO.
+ * Otherwise, compares the keys <em>(not the values)</em>
+ * in the two map tables and returns NO if they differ.<br />
+ * The GNUstep implementation enumerates the keys in table1
+ * and uses the hash and isEqual functions of table2 for comparison.
+ */
+BOOL
+NSCompareMapTables(NSMapTable *table1, NSMapTable *table2)
+{
+  GSIMapTable	t1 = (GSIMapTable)table1;
+  GSIMapTable	t2 = (GSIMapTable)table2;
 
+  if (t1->nodeCount != t2->nodeCount)
+    {
+      return NO;
+    }
+  else
+    {
+      GSIMapNode	n = t1->firstNode;
+
+      while (n != 0)
+	{
+	  if (GSIMapNodeForKey(t2, n->key) == 0)
+	    {
+	      return NO;
+	    }
+	  n = n->nextInMap;
+	}
+      return YES;
+    }
+}
+
+/**
+ * Copy the supplied map table creating the new table in the specified zone.
+ */
+NSMapTable *
+NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
+{
+  GSIMapTable	t;
+  GSIMapNode	n;
+
+  t = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
+  t->extra.k = ((GSIMapTable)table)->extra.k;
+  t->extra.v = ((GSIMapTable)table)->extra.v;
+  n = ((GSIMapTable)table)->firstNode;
+  while (n != 0)
+    {
+      GSIMapAddPair(t, n->key, n->value);
+      n = n->nextInMap;
+    }
+
+  return (NSMapTable*)t;
+}
+
+/**
+ * Returns the number of keys in the table.
+ */
+unsigned int
+NSCountMapTable(NSMapTable *table)
+{
+  return ((GSIMapTable)table)->nodeCount;
+}
+
+/**
+ * Create a new map table by calling NSCreateMapTableWithZone() using
+ * NSDefaultMallocZone().
+ */
+NSMapTable *
+NSCreateMapTable(
+  NSMapTableKeyCallBacks keyCallBacks,
+  NSMapTableValueCallBacks valueCallBacks,
+  unsigned int capacity)
+{
+  return NSCreateMapTableWithZone(keyCallBacks, valueCallBacks,
+    capacity, NSDefaultMallocZone());
+}
+
+/**
+ * Create a new map table using the supplied callbacks structures.
+ * If any functions in the callback structures are null the default
+ * values are used ... as for non-owned pointers.
+ * The table will be created with the specified capacity ... ie ready
+ * to hold at lest that many items.
+ */
+NSMapTable *
+NSCreateMapTableWithZone(
+  NSMapTableKeyCallBacks keyCallBacks,
+  NSMapTableValueCallBacks valueCallBacks,
+  unsigned capacity,
+  NSZone *zone)
+{
+  GSIMapTable	table;
+
+  table = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t));
+  GSIMapInitWithZoneAndCapacity(table, zone, capacity);
+  table->extra.k = keyCallBacks;
+  table->extra.v = valueCallBacks;
+
+  if (table->extra.k.hash == 0)
+    table->extra.k.hash = NSNonOwnedPointerMapKeyCallBacks.hash;
+  if (table->extra.k.isEqual == 0)
+    table->extra.k.isEqual = NSNonOwnedPointerMapKeyCallBacks.isEqual;
+  if (table->extra.k.retain == 0)
+    table->extra.k.retain = NSNonOwnedPointerMapKeyCallBacks.retain;
+  if (table->extra.k.release == 0)
+    table->extra.k.release = NSNonOwnedPointerMapKeyCallBacks.release;
+  if (table->extra.k.describe == 0)
+    table->extra.k.describe = NSNonOwnedPointerMapKeyCallBacks.describe;
+
+  if (table->extra.v.retain == 0)
+    table->extra.v.retain = NSNonOwnedPointerMapValueCallBacks.retain;
+  if (table->extra.v.release == 0)
+    table->extra.v.release = NSNonOwnedPointerMapValueCallBacks.release;
+  if (table->extra.v.describe == 0)
+    table->extra.v.describe = NSNonOwnedPointerMapValueCallBacks.describe;
+
+  return (NSMapTable*)table;
+}
+
+/**
+ * Function to be called when finished with the enumerator.
+ * Not required in GNUstep ... just provided for MacOS-X compatibility.
+ */
+void
+NSEndMapTableEnumeration(NSMapEnumerator *enumerator)
+{
+}
+
+/**
+ * Return an enumerator for stepping through a map table using the
+ * NSNextMapEnumeratorPair() function.
+ */
+NSMapEnumerator
+NSEnumerateMapTable(NSMapTable *table)
+{
+  return GSIMapEnumeratorForMap((GSIMapTable)table);
+}
+
+/**
+ * Destroy the map table and relase its contents.
+ */
+void
+NSFreeMapTable(NSMapTable *table)
+{
+  NSZone	*z = ((GSIMapTable)table)->zone;
+
+  GSIMapEmptyMap((GSIMapTable)table);
+  NSZoneFree(z, table);
+}
+
+/**
+ * Returns the value for the specified key, or a nul pointer if the
+ * key is not found in the table.
+ */
+void *
+NSMapGet(NSMapTable *table, const void *key)
+{
+  GSIMapNode	n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
+
+  if (n == 0)
+    {
+      return 0;
+    }
+  else
+    {
+      return n->value.ptr;
+    }
+}
+
+/**
+ * Adds the key and value to table.<br />
+ * If an equal key is already in table, replaces its mapped value
+ * with the new one, without changing the key itsself.<br />
+ * If key is equal to the notAKeyMarker field of the tables
+ * NSMapTableKeyCallBacks, raises an NSInvalidArgumentException.
+ */
 void
 NSMapInsert(NSMapTable *table, const void *key, const void *value)
 {
-  /* Put KEY -> VALUE into TABLE. */
-  o_map_at_key_put_value(table, key, value);
+  GSIMapTable	t = (GSIMapTable)table;
 
-  return;
+  if (key == t->extra.k.notAKeyMarker)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to place notAKeyMarker in map table"];
+    }
+  GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);  
 }
 
+/**
+ * Adds the key and value to table and returns nul.<br />
+ * If an equal key is already in table, returns the old key
+ * instead of adding the new key-value pair.<br />
+ * If key is equal to the notAKeyMarker field of the tables
+ * NSMapTableKeyCallBacks, raises an NSInvalidArgumentException.
+ */
 void *
 NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
 {
-  if (o_map_contains_key (table, key))
-    return (void *) o_map_key_at_key(table, key);
+  GSIMapTable	t = (GSIMapTable)table;
+  GSIMapNode	n;
+
+  if (key == t->extra.k.notAKeyMarker)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to place notAKeyMarker in map table"];
+    }
+  n = GSIMapNodeForKey(t, (GSIMapKey)key);
+  if (n == 0)
+    {
+      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);  
+      return 0;
+    }
   else
-  {
-    /* Put KEY -> VALUE into TABLE. */
-    o_map_at_key_put_value_known_absent (table, key, value);
-    return 0;
-  }
+    {
+      return n->key.ptr;
+    }
 }
 
+/**
+ * Adds the key and value to table and returns nul.<br />
+ * If an equal key is already in table, raises an NSInvalidArgumentException.
+ * <br />If key is equal to the notAKeyMarker field of the tables
+ * NSMapTableKeyCallBacks, raises an NSInvalidArgumentException.
+ */
 void
 NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
 {
-  /* Is the key already in the table? */
-  if (o_map_contains_key(table, key))
-  {
-    /* FIXME: I should make this give the user/programmer more
-     * information.  Not difficult to do, just something for a later
-     * date. */
-    [NSException raise:NSInvalidArgumentException
-                 format:@"NSMapTable: illegal reinsertion of: %@ -> %@",
-                 NSMT_DESCRIBE_KEY(table, key),
-                 NSMT_DESCRIBE_VALUE(table, value)];
-  }
-  else
-  {
-    /* Well, we know it's not there, so... */
-    o_map_at_key_put_value_known_absent (table, key, value);
-  }
+  GSIMapTable	t = (GSIMapTable)table;
+  GSIMapNode	n;
 
-  /* Yah-hoo! */
-  return;
+  if (key == t->extra.k.notAKeyMarker)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Attempt to place notAKeyMarker in map table"];
+    }
+  n = GSIMapNodeForKey(t, (GSIMapKey)key);
+  if (n == 0)
+    {
+      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);  
+    }
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"NSMapInsertKnownAbsent ... key not absent"];
+    }
 }
 
-/** Removing items from an NSMapTable **/
+/**
+ * Returns a flag to say whether the table contains the specified key.
+ * Returns the original key and the value it maps to.<br />
+ * The GNUstep implementation checks originalKey and value to see if
+ * they are nul pointers, and only updates them if non-null.
+ */
+BOOL
+NSMapMember(NSMapTable *table, const void *key,
+  void **originalKey, void **value)
+{
+  GSIMapNode	n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
 
+  if (n == 0)
+    {
+      return NO;
+    }
+  else
+    {
+      if (originalKey != 0)
+	{
+	  *originalKey = n->key.ptr;
+	}
+      if (value != 0)
+	{
+	  *value = n->value.ptr;
+	}
+      return YES;
+    }
+}
+
+/**
+ * Remove the specified key from the table.
+ */
 void
 NSMapRemove(NSMapTable *table, const void *key)
 {
-  o_map_remove_key (table, key);
-  return;
+  GSIMapRemoveKey((GSIMapTable)table, (GSIMapKey)key);
 }
 
-/** Getting an NSString representation of an NSMapTable **/
+/**
+ * Step through the map table ... return the next key-value pair and
+ * return YES, or hit the end of the table and return NO.<br />
+ * The GNUstep implementation permits either key or value to be a
+ * nul pointer, and refrains from attempting to return the appropriate
+ * result in that case.
+ */
+BOOL
+NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
+			void **key, void **value)
+{
+  GSIMapNode	n = GSIMapEnumeratorNextNode((GSIMapEnumerator)enumerator);
+  
+  if (n == 0)
+    {
+      return NO;
+    }
+  else
+    {
+      if (key != 0)
+	{
+	  *key = n->key.ptr;
+	}
+      if (value != 0)
+	{
+	  *value = n->value.ptr;
+	}
+      return YES;
+    }
+}
 
+/**
+ * Empty the map table, but preserve its capacity.
+ */
+void
+NSResetMapTable(NSMapTable *table)
+{
+  GSIMapCleanMap((GSIMapTable)table);
+}
+
+/**
+ * Returns a string describing the table contents.<br />
+ * For each key-value pair, a string of the form "key = value;\n"
+ * is appended.  The appropriate describe functions are used to generate
+ * the strings for each key and value.
+ */
 NSString *
 NSStringFromMapTable(NSMapTable *table)
 {
-  NSMutableString *string;
-  NSMapEnumerator enumerator;
-  NSMapTableKeyCallBacks keyCallBacks;
-  NSMapTableValueCallBacks valueCallBacks;
-  void *key, *value;
+  GSIMapTable		t = (GSIMapTable)table;
+  NSMutableString	*string;
+  NSMapEnumerator	enumerator;
+  void			*key;
+  void			*value;
 
-  /* Get an empty mutable string. */
-  string = [NSMutableString stringWithCapacity:0];
-
-  /* Pull the NSMapTable...CallBacks out of the mess. */
-  keyCallBacks = NSMT_KEY_CALLBACKS(table);
-  valueCallBacks = NSMT_VALUE_CALLBACKS(table);
-
-  /* Get an enumerator for our table. */
+  string = [NSMutableString stringWithCapacity: 0];
   enumerator = NSEnumerateMapTable(table);
 
-  /* Now, just step through the elements of the table, and add their
-   * descriptions to the string. */
-  while (NSNextMapEnumeratorPair(&enumerator, &key, &value))
-    [string appendFormat:@"%@ = %@;",
-	    (keyCallBacks.describe)(table, key),
-	    (valueCallBacks.describe)(table, value)];
-
-  /* Note that this string'll need to be `retain'ed. */
+  /*
+   * Now, just step through the elements of the table, and add their
+   * descriptions to the string.
+   */
+  while (NSNextMapEnumeratorPair(&enumerator, &key, &value) == YES)
+    {
+      [string appendFormat: @"%@ = %@;\n",
+	(t->extra.k.describe)(table, key),
+	(t->extra.v.describe)(table, value)];
+    }
   return string;
 }
+
+
