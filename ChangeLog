@@ -1,27 +1,33 @@
-Fri Feb  4 17:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Fri Feb  6 14:54:00 2000  Manuel Guesdon <mguesdon@sbuilders.com>
+
+	* Source/NSCalendarDate.m: handle nil and empry string in 
+		-initWithString:calendarFormat:locale:
+	* ChangeLog: Replace 1999 by 2000 for last modifications :-)
+
+Fri Feb  4 17:20:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSPortNameServer.m: New methods for use by NSConnection
 	* Foundation/NSPortNameServer.h: ditto
 	* Source/NSConnection.m: Tidied a little and added ([-registerName:])
 	* Source/NSConnection.h: ditto
 
-Sun Jan 16  9:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Sun Jan 16  9:10:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Moved objc-load.c to objc-load.m and filnd-exec.c to find-exec.m
 	Added logging functions to objc-load.m so that logging can be
 	enabled at runtime using --GNU-Debug=NSBundle
 
-Sun Jan  9 15:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Sun Jan  9 15:20:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSGAttributedString.m: ([-attributesAtIndex:effectiveRange:])
 	fixed illegal parameter - reported by jagapen@whitewater.chem.wisc.edu
 
-Wed Jan  5 16:22:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Jan  5 16:22:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSData.m: when serializing selectors, cope with untyped
 	selectors instead of crashing.
 
-Wed Jan  5 14:37:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Jan  5 14:37:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSTimeZone.m: Changed order of lookup to determine the local
 	timezone:
@@ -34,7 +40,7 @@ Wed Jan  5 14:37:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	non-GNUstep timezones as long as GNUSTEP_TZ is defined (or a localtime)
 	file exists.
 
-Wed Jan  5 10:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Wed Jan  5 10:00:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* NSTimeZones/NSTimeZones.tar: Made a revised set of timezones with
 	timezone names offset from GMT corresponding to common usage
@@ -42,7 +48,7 @@ Wed Jan  5 10:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	Also added detailed instructions to the README file and added a
 	small makefile to build the abbreviations/regions tools.
 
-Tue Jan  4 22:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+Tue Jan  4 22:40:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSCalendarDate.m: ([-yearOfCommonEra]) fix rounding error.
 
