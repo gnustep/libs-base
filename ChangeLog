@@ -1,3 +1,10 @@
+2004-07-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Unicode.m: GSToUnicode() be strict about converting ASCII
+	to unicode.  
+	GetDefEncoding() don't override default (latin1) encoding to be
+	ascii if we only have the return value of nl_langinfo() to go on.
+
 2004-07-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Added two new methods from MacOS-X
