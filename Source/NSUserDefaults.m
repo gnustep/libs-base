@@ -422,10 +422,8 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 {
   id obj = [self stringForKey: defaultName];
 	
-  if (obj
-      && ([obj isEqualToString: @"YES"] || [obj isEqualToString: @"yes"]
-	  || [obj intValue]))
-    return YES;
+  if (obj)
+    return [obj boolValue];
   return NO;
 }
 
