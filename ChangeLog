@@ -1,7 +1,13 @@
 2002-04-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/AGSParser.m: Improve handling of identifier mapping so that
+	an identifier mapped to an empty string (or //) an any place where
+	whitespace is permissable is treated as part of that white space.
+
+2002-04-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Tools/AGSParser.m: Interpret a mapping to '//' in the WordMap as
-	meaning that the resto of the line containing the mapped value
+	meaning that the rest of the line containing the mapped value
 	should be ignored.
 
 2002-04-24  Gregory John Casamento <greg_casamento@yahoo.com>
