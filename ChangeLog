@@ -1,3 +1,8 @@
+2002-08-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProxy.m: Documented all methods and corrected implementation
+	of some introspection methods.
+
 2002-08-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Base.gsdoc: Moved to Documentation.

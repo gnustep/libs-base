@@ -1935,6 +1935,10 @@ _fastMallocBuffer(unsigned size)
   return [NSString stringWithFormat: @"<%s: %lx>",
     object_get_class_name(self), (unsigned long)self];
 }
+- (BOOL) isProxy
+{
+  return NO;
+}
 - (void) release
 {
   return;

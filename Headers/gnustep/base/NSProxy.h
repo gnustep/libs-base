@@ -36,19 +36,38 @@
 
 + (id) alloc;
 + (id) allocWithZone: (NSZone*)z;
++ (id) autorelease;
 + (Class) class;
++ (NSString*) description;
++ (BOOL) isKindOfClass: (Class)aClass;
++ (BOOL) isMemberOfClass: (Class)aClass;
 + (void) load;
++ (void) release;
 + (BOOL) respondsToSelector: (SEL)aSelector;
++ (id) retain;
++ (unsigned int) retainCount;
 
+- (id) autorelease;
+- (Class) class;
+- (BOOL) conformsToProtocol: (Protocol*)aProtocol;
 - (void) dealloc;
 - (NSString*) description;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
-
-@end
-
-@interface Object (IsProxy)
+- (unsigned int) hash;
+- (id) init;
+- (BOOL) isEqual: (id)anObject;
+- (BOOL) isKindOfClass: (Class)aClass;
+- (BOOL) isMemberOfClass: (Class)aClass;
 - (BOOL) isProxy;
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
+- (void) release;
+- (BOOL) respondsToSelector: (SEL)aSelector;
+- (id) retain;
+- (unsigned int) retainCount;
+- (id) self;
+- (Class) superclass;
+- (NSZone*) zone;
+
 @end
 
 #endif /* __NSProxy_h_GNUSTEP_BASE_INCLUDE */
