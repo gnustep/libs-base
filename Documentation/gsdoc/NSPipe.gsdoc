@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="NSPipe" prev="NSObject" next="NSPort" up="Base">
+  <head>
+    <title>NSPipe</title>
+    <author name="Pierre-Yves Rivaille">
+      <email address="pyrivail@ens-lyon.fr"/>
+    </author>
+    <version>$Revision$</version>
+    <date>$Date$</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>NSPipe</heading>
+      <class name="NSPipe">
+        <declared>Foundation/NSFileHandle.h</declared>
+        <conform>NSObject</conform>
+          <desc>
+	    The NSPipe provides an encapsulation of the UNIX concept of pipe. With NSPipe, it
+	    is possible to redirect the standard input o
+          </desc>
+        <method type="id" factory="yes">
+          <sel>pipe</sel>
+          <desc>
+	    Returns a newly allocated and initialized NSPipe object that has been sent an
+	    autorelease message.
+          </desc>
+        </method>
+        <method type="id" factory="no">
+          <sel>init</sel>
+          <desc>
+          </desc>
+        </method>
+        <method type="id" factory="no">
+          <sel>fileHandleForReading</sel>
+          <desc>
+          </desc>
+        </method>
+        <method type="id" factory="no">
+          <sel>fileHandleForWriting</sel>
+          <desc>
+          </desc>
+        </method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>

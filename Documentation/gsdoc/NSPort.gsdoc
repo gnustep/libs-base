@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
-<gsdoc base="NSPort" prev="NSObject" next="NSPortCoder" up="Base">
+<gsdoc base="NSPort" prev="NSPipe" next="NSPortCoder" up="Base">
   <head>
     <title>NSPort</title>
     <author name="Richard Frith-Macdonald">

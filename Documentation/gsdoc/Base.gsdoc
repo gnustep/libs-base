@@ -340,6 +340,7 @@
 	  <item><uref url="NSNumber.html">NSNumber</uref></item>
 	  <item><uref url="NSNumberFormatter.html">NSNumberFormatter</uref></item>
 	  <item><uref url="NSObject.html">NSObject</uref></item>
+	  <item><uref url="NSPipe.html">NSPipe</uref></item>
 	  <item><uref url="NSPort.html">NSPort</uref></item>
 	  <item><uref url="NSPortCoder.html">NSPortCoder</uref></item>
 	  <item><uref url="NSPortMessage.html">NSPortMessage</uref></item>
