@@ -308,7 +308,7 @@
 >
 
 <!-- Protocol definition. -->
-<!ELEMENT protocol (declared?, desc?, method*, standards?)>
+<!ELEMENT protocol (declared?, conform*, desc?, method*, standards?)>
 <!ATTLIST protocol
   name CDATA #REQUIRED
 >
@@ -485,7 +485,7 @@
 <!-- Table of contents. -->
 <!ELEMENT contents EMPTY>
 
-<!-- Index -->
+<!-- Index  ... generates an index of the specified type of elements. -->
 <!ELEMENT index EMPTY>
 <!ATTLIST index
   type (class | protocol | method | ivariable | function | type | macro | variable | constant | label) "label"
