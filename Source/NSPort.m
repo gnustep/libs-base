@@ -154,7 +154,7 @@ NSString *NSPortTimeoutException
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
-             components: (NSArray*)components
+             components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
                reserved: (unsigned) length
 {
