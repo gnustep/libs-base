@@ -138,6 +138,10 @@
 	  [a addObject: @"("];
 	  pos++;
 	  result = [self parseDeclaratorInto: a];
+	  if ([self skipWhiteSpace] < length && buffer[pos] == '(')
+	    {
+	      [self parseDeclaratorInto: a];	// parse function args.
+	    }
 	  if ([self skipWhiteSpace] < length && buffer[pos] == ')')
 	    {
 	      [a addObject: @")"];
@@ -256,32 +260,7 @@
 	}
     }
 
-  /*
-   * FIXME ... the next code should cope with bracketing and with
-   * pointers to functions etc.  It doesn't!
-   */
-  while ([self skipWhiteSpace] < length)
-    {
-      while (buffer[pos] == '*')
-	{
-	  [a2 addObject: @"*"];
-	  pos++;
-	}
-      if (buffer[pos] == '(')
-	{
-	}
-      s = [self parseIdentifier];
-      if ([s isEqualToString: @"const"] || [s isEqualToString: @"volatile"])
-	{
-	  [a2 addObject: s];
-	}
-      else
-	{
-	  break;	// Parsed all asterisks, consts, and volatiles
-	}
-    }
-
-  declName = s;
+  declName = [self parseDeclaratorInto: a2];
   if (declName == nil)
     {
       /*
