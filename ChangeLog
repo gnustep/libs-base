@@ -13,6 +13,8 @@
 	like MacOS and OpenStep spec by having a central mechanism for
 	generating property lists rather than spreading the code across the
 	plist classes.
+	Also ... maintain allocation debug accounting when making objects
+	immutable.
 
 2002-11-09  Richard Frith-Macdonald <rfm@gnu.org>
 
