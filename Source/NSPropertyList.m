@@ -57,7 +57,6 @@ extern BOOL GSScanDouble(unichar*, unsigned, double*);
   unsigned		size;		// Number of bytes per table entry
   unsigned		table_start;	// Start address of object table
   unsigned		table_len;	// Length of object table
-  NSMutableArray	*_objects;	// All decoded objects.
 }
 
 - (id) initWithData: (NSData*)plData
@@ -2282,7 +2281,6 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 - (void) dealloc
 {
   DESTROY(data);
-  DESTROY(_objects);
   [super dealloc];
 }
 
@@ -2314,7 +2312,6 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       else
 	{
 	  table_len = length - table_start - 32;
-	  _objects = [NSMutableArray new];
 	  ASSIGN(data, plData);
 	  _bytes = (const unsigned char*)[data bytes];
 	  mutability = m;
@@ -2605,7 +2602,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       unsigned char	index;
 
       [data getBytes: &index range: NSMakeRange(counter,1)];
-      result = [_objects objectAtIndex: index];
+      result = [NSDictionary dictionaryWithObject: 
+				 [NSNumber numberWithInt: index] 
+			     forKey: @"CF$UID"];
     }
   else if (next == 0x81)
     {
@@ -2613,7 +2612,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 
       [data getBytes: &index range: NSMakeRange(counter,2)];
       index = NSSwapBigShortToHost(index);
-      result = [_objects objectAtIndex: index];
+      result = [NSDictionary dictionaryWithObject: 
+				 [NSNumber numberWithInt: index] 
+			     forKey: @"CF$UID"];
     }
   else if ((next >= 0xA0) && (next < 0xAF))
     {
@@ -2750,7 +2751,6 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 		   format: @"Unknown control byte = %d", next];
     }
 
-  [_objects addObject: result];
   return result;
 }
 
