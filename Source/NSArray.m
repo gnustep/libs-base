@@ -43,7 +43,7 @@
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSDebug.h>
-#include "GSUserDefaults.h"
+#include "GSPrivate.h"
 
 @class NSArrayEnumerator;
 @class NSArrayEnumeratorReverse;

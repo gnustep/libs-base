@@ -146,7 +146,7 @@ GSSetVariable(id obj, int offset, unsigned int size, const void *data)
   memcpy(((void*)obj) + offset, data, size);
 }
 
-/** <deprecated />
+/** ## deprecated ##
  */
 BOOL
 GSInstanceVariableInfo(id obj, NSString *iVarName,
@@ -157,7 +157,7 @@ GSInstanceVariableInfo(id obj, NSString *iVarName,
   return GSFindInstanceVariable(obj, name, type, size, offset);
 }
 
-/** <deprecated />
+/** ## deprecated ##
  */
 BOOL
 GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
@@ -174,7 +174,7 @@ GSGetInstanceVariable(id obj, NSString *iVarName, void *data)
   return NO;
 }
 
-/** <deprecated />
+/** ## deprecated ##
  */
 BOOL
 GSSetInstanceVariable(id obj, NSString *iVarName, const void *data)

@@ -325,25 +325,34 @@ enum {
 @interface NSMutableString : NSString <NSMutableString>
 @end
 
-/*
- * Information for NXConstantString
+/**
+ * <p>The NXConstantString class is used to hold constant 8-bit character
+ * string objects produced by the compiler where it sees @"..." in the
+ * source.  The compiler generates the instances of this class - which
+ * has three instance variables -</p>
+ * <list>
+ * <item>a pointer to the class (this is the sole ivar of NSObject)</item>
+ * <item>a pointer to the 8-bit data</item>
+ * <item>the length of the string</item>
+ * </list>
+ * <p>In older versions of the compiler, the isa variable is always set to
+ * the NXConstantString class.  In newer versions a compiler option was
+ * added for GNUstep, to permit the isa variable to be set to another
+ * class, and GNUstep uses this to avoid conflicts with the default
+ * implementation of NXConstantString in the ObjC runtime library (the
+ * preprocessor is used to change all occurances of NXConstantString
+ * in the source code to NSConstantString).</p>
+ * <p>Since GNUstep will generally use the GNUstep extension to the
+ * compiler, you should never refer to the constnat string class by
+ * name, but should use the [NSString+constantStringClass] method to
+ * get the actual class being used for constant strings.</p>
+ * What follows is a dummy declaration of the class to keep the compiler
+ * happy.
  */
 @interface NXConstantString : NSString
 {
-#if defined(__APPLE__) && __GCC__ >= 3
-  /* Up to gcc 2.95.2 the compiler slipped these two in automatically.
-	 With the advent of ObjC++ this is no longer possible (?).
-	 There is no Apple modified gcc between 2.95.2 and 3.1.
-	 This info ia as of 2002-03-04 and regarding the experimental
-	 Apple gcc 3.1. Markus Hitter, mah@jump-ing.de */
-  char *cString;
-  unsigned int len;
-#endif
-  union {
-    unichar		*u;
-    unsigned char	*c;
-  } _contents;
-  unsigned int	_count;
+  const char * const nxcsptr;
+  const unsigned int nxcslen;
 }
 @end
 
@@ -354,28 +363,6 @@ extern struct objc_class _NSConstantStringClassReference;
 #endif
 
 #ifndef NO_GNUSTEP
-/*
- * Private concrete string classes.
- * NB. All these concrete string classes MUST have the same initial ivar
- * layout so that we can swap between them as necessary.
- * The initial layout must also match that of NXConstantString (which is
- * determined by the compiler).
- */
-@interface GSString : NSString
-{
-  union {
-    unichar		*u;
-    unsigned char	*c;
-  } _contents;
-  unsigned int	_count;
-  struct {
-    unsigned int	wide: 1;	// 16-bit characters in string?
-    unsigned int	free: 1;	// Should free memory?
-    unsigned int	unused: 2;
-    unsigned int	hash: 28;
-  } _flags;
-}
-@end
 
 @interface NSString (GSString)
 - (NSString*) stringWithoutSuffix: (NSString*)_suffix;

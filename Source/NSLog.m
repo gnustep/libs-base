@@ -44,7 +44,7 @@
 #include <unistd.h>
 #endif
 
-#include "GSUserDefaults.h"
+#include "GSPrivate.h"
 
 static void
 _NSLog_standard_printf_handler (NSString* message)

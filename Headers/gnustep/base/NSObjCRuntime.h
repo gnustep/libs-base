@@ -143,7 +143,7 @@ GSObjCIsKindOf(Class this, Class other)
   return NO;
 }
 
-/** <deprecated />
+/** ## deprecated ##
  */
 FOUNDATION_STATIC_INLINE const char*
 GSObjCName(Class this)
@@ -151,7 +151,7 @@ GSObjCName(Class this)
   return class_get_class_name(this);
 }
 
-/** <deprecated />
+/** ## deprecated ##
  */
 FOUNDATION_STATIC_INLINE const char*
 GSObjCSelectorName(SEL this)
@@ -161,7 +161,7 @@ GSObjCSelectorName(SEL this)
   return sel_get_name(this);
 }
 
-/** <deprecated />
+/** ## deprecated ##
  */
 FOUNDATION_STATIC_INLINE const char*
 GSObjCSelectorTypes(SEL this)

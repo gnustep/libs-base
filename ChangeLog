@@ -1,3 +1,28 @@
+2002-03-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSObjCRuntime.h: Remove bad markup in comments.
+	* Headers/gnustep/base/NSString.h: Remove private class declaration
+	and hide internals of NXConstantString behind dummy interface while
+	improving comments.
+	* Source/GSUserDefaults.h: removed
+	* Source/GSPrivate.h: added
+	* Source/GSCompatibility.m: fix for hidden private info.
+	* Source/GSString.m: ditto
+	* Source/NSArray.m: ditto
+	* Source/NSCalendarDate.m: ditto
+	* Source/NSDate.m: ditto
+	* Source/NSDecimalNumber.m: ditto
+	* Source/NSDictionary.m: ditto
+	* Source/NSLog.m: ditto
+	* Source/NSObjCRuntime.m: ditto
+	* Source/NSScanner.m: ditto
+	* Source/NSSerializer.m: ditto
+	* Source/NSString.m: ditto
+	* Source/NSUser.m: ditto
+	* Source/NSUserDefaults.m: ditto
+	General tidyups to hide some internal workings which should really
+	not be exposed in public headers.
+
 2002-03-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: regenerated with latest data.

@@ -24,7 +24,7 @@
 #include <config.h>
 #include <Foundation/Foundation.h>
 
-#include "GSUserDefaults.h"
+#include "GSPrivate.h"
 
 #ifndef HAVE_RINT
 #include <math.h>

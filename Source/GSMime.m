@@ -67,7 +67,6 @@
 #include	<Foundation/GSMime.h>
 #include	<string.h>
 #include	<ctype.h>
-#include	"GSUserDefaults.h"
 
 static	NSCharacterSet	*specials = nil;
 

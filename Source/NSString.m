@@ -63,6 +63,7 @@
 #include <Foundation/NSURL.h>
 #include <Foundation/NSMapTable.h>
 #include <Foundation/NSLock.h>
+#include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSDebug.h>
 #include <base/GSFormat.h>
 #include <limits.h>
@@ -78,7 +79,7 @@
 
 #include <base/Unicode.h>
 
-#include "GSUserDefaults.h"
+#include "GSPrivate.h"
 
 @class	GSString;
 @class	GSMutableString;
