@@ -1,3 +1,9 @@
+2002-02-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObjCRuntime.h: Fix error in last change ...
+	GSSelectorFromName() should not create a new selector while
+	HSSelectorFromNameAndTypes() should.
+
 2002-02-22  Alexander Malmberg <alexander@malmberg.org>
 
 	* Headers/gnustep/base/NSArray.h: insertion position api update.
