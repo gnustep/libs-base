@@ -70,42 +70,6 @@
     [super dealloc];
 }
 
-#if 0
-- (void)_verifySignature
-{
-    const char* types;
-    struct objc_method_description* mth;
-
-    if(!target)
-	THROW([NullTargetException new]);
-
-    if(!selector)
-	THROW([NullSelectorException new]);
-
-    mth = (struct objc_method_description*)
-	(CLS_ISCLASS(((struct objc_class*)target)->class_pointer) ?
-	      class_get_instance_method(
-		    ((struct objc_class*)target)->class_pointer, selector)
-	    : class_get_class_method(
-		    ((struct objc_class*)target)->class_pointer, selector));
-    selector = mth ? mth->name : (SEL)0;
-
-    if(!selector)
-	THROW([NullSelectorException new]);
-
-    types = mth->types;
-    if(!types)
-	THROW([[CouldntGetTypeForSelector alloc] initForSelector:selector]);
-
-    if(sig) {
-	if(!sel_types_match(types, [sig types]))
-	    THROW([[TypesDontMatchException alloc]
-			    initWithTypes:types :[sig types]]);
-    }
-    else sig = [[NSMethodSignature sigWithObjCTypes:types] retain];
-}
-#endif
-
 /*
  *      Accessing message elements.
  */
@@ -411,18 +375,13 @@
     newSig = [NSMethodSignature signatureWithObjCTypes: types];
     self = [self initWithMethodSignature: newSig];
  
-    target = [aCoder decodeObject];
+    [aCoder decodeValueOfObjCType: @encode(id) at: &target];
 
     [aCoder decodeValueOfObjCType: @encode(SEL) at: &selector];
 
     for (i = 3; i <= numArgs; i++) {
-	const char	*type = info[i].type;
-
 	datum = mframe_arg_addr(argframe, &info[i]);
-	if (*type == _C_ID)
-	    *(id*)datum = [aCoder decodeObject];
-	else
-            [aCoder decodeValueOfObjCType: type at: datum];
+        [aCoder decodeValueOfObjCType: info[i].type at: datum];
     }
     argsRetained = YES;
 }
