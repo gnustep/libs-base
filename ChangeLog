@@ -1,3 +1,9 @@
+2003-06-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Better attempt to infer charset from
+	string only when needed.
+	Don't insert transer encoding header if not needed.
+
 2003-06-11  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSNumberFormatter.m
