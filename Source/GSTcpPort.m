@@ -456,11 +456,16 @@ static Class	runLoopClass;
       wVersionRequested = MAKEWORD(2, 0);
       WSAStartup(wVersionRequested, &wsaData);
 #else
+      void	(*handler)(int);
       /*
-       * If SIGPIPE is not ignored, we will abort on any attempt to
-       * write to a pipe/socket that has been closed by the other end!
+       * If SIGPIPE is not handled or ignored, we will abort on any attempt
+       * to write to a pipe/socket that has been closed by the other end!
        */
-      signal(SIGPIPE, SIG_IGN);
+      handler = signal(SIGPIPE, SIG_IGN);
+      if (handler != SIG_DFL)
+	{
+	  signal(SIGPIPE, handler);
+	}
 #endif
       mutableArrayClass = [NSMutableArray class];
       mutableDataClass = [NSMutableData class];

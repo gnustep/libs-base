@@ -1,3 +1,14 @@
+Thu Oct 16 16:45:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m: Only ignore SIGPIPE if there is no
+	handler set up for it.  If some other code has set up a handler
+        before GNUstep code is used, we should not be overriding that
+	handler as the external code may later depend on receiving the
+	signal.  Many thanks to Nicola for the investigative work
+	leading up to this realisation.
+
 Thu Oct 16 15:57:39 2003  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSObject.m: Do not include signal.h.
