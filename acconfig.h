@@ -9,6 +9,9 @@
 #undef VSPRINTF_RETURNS_LENGTH
 #undef VASPRINTF_RETURNS_LENGTH
 
+/* Define if your system needs to have short/int word aligned */
+#undef NEED_WORD_ALIGNMENT
+
 /* The number of bytes in a int.  */
 #undef SIZEOF_INT
 
