@@ -224,7 +224,7 @@ gnustep_base_thread_callback()
   return t;
 }
 
-/*
+/**
  * Create a new thread - use this method rather than alloc-init
  */
 + (void) detachNewThreadSelector: (SEL)aSelector
@@ -256,7 +256,7 @@ gnustep_base_thread_callback()
     }
 }
 
-/*
+/**
  * Terminating a thread
  * What happens if the thread doesn't call +exit - it doesn't terminate!
  */
@@ -326,13 +326,39 @@ gnustep_base_thread_callback()
     }
 }
 
+/**
+ * Returns a flag to say whether the application is multi-threaded or not.
+ * An application is considered to be multi-threaded if any thread other
+ * than the main thread has been started, irrespective of whether that
+ * thread has since terminated.
+ */
 + (BOOL) isMultiThreaded
 {
   return entered_multi_threaded_state;
 }
 
-/*
- * Delaying a thread
+/**
+ * Set the priority of the current thread.  This is a value in the
+ * range 0.0 (lowest) to 1.0 (highest) which is mapped to the underlying
+ * system priorities.  The current gnu objc runtime supports three
+ * priority levels which you can obtain using values of 0.0, 0.5, and 1.0
+ */
++ (void) setThreadPriority: (double)pri
+{
+  int	p;
+
+  if (pri <= 0.3)
+    p = OBJC_THREAD_LOW_PRIORITY;
+  else if (pri <= 0.6)
+    p = OBJC_THREAD_BACKGROUND_PRIORITY;
+  else
+    p = OBJC_THREAD_INTERACTIVE_PRIORITY;
+
+  objc_thread_set_priority(p);
+}
+
+/**
+ * Delaying a thread ... pause until the specified date.
  */
 + (void) sleepUntilDate: (NSDate*)date
 {
@@ -372,6 +398,23 @@ gnustep_base_thread_callback()
 #endif
       delay = [date timeIntervalSinceNow];
     }
+}
+
+/**
+ * Return the priority of the current thread.
+ */
++ (double) threadPriority
+{
+  int	p = objc_thread_get_priority();
+
+  if (p == OBJC_THREAD_LOW_PRIORITY)
+    return 0.0;
+  else if (p == OBJC_THREAD_BACKGROUND_PRIORITY)
+    return 0.5;
+  else if (p == OBJC_THREAD_INTERACTIVE_PRIORITY)
+    return 1.0;
+  else
+    return 0.0;	// Unknown.
 }
 
 
@@ -456,8 +499,9 @@ gnustep_base_thread_callback()
   [NSThread exit];
 }
 
-/*
- * Thread dictionary
+/**
+ * Return the thread dictionary.  This dictionary can be used to store
+ * arbitrary thread specific data.<br />
  * NB. This cannot be autoreleased, since we cannot be sure that the
  * autorelease pool for the thread will continue to exist for the entire
  * life of the thread!

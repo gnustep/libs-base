@@ -3,6 +3,8 @@
 	* Source/Additions/GSXML.m: Integrated GSXPath code by Nicola Pero
 	provides an API to use the xpath support built into libxml from
 	version 2.3 onwards.
+	* Source/NSThread.m: Implement new priority methods.
+	* Source/NSObject.m: Raise exception when passed null selector.
 
 2002-08-27  Richard Frith-Macdonald <rfm@gnu.org>
 

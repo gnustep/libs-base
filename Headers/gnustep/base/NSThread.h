@@ -33,13 +33,6 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSAutoreleasePool.h> // for struct autorelease_thread_vars
 
-typedef enum
-{
-  NSInteractiveThreadPriority,
-  NSBackgroundThreadPriority,
-  NSLowThreadPriority
-} NSThreadPriority;
-
 @interface NSThread : NSObject
 {
   id			_target;
@@ -57,12 +50,13 @@ typedef enum
 + (void) detachNewThreadSelector: (SEL)aSelector
 		        toTarget: (id)aTarget
 		      withObject: (id)anArgument;
-
-+ (BOOL) isMultiThreaded;
-- (NSMutableDictionary*) threadDictionary;
-
-+ (void) sleepUntilDate: (NSDate*)date;
 + (void) exit;
++ (BOOL) isMultiThreaded;
++ (void) setThreadPriority: (double)pri;
++ (void) sleepUntilDate: (NSDate*)date;
++ (double) threadPriority;
+
+- (NSMutableDictionary*) threadDictionary;
 
 @end
 
