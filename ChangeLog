@@ -1,3 +1,8 @@
+2004-02-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Integrate new parser to
+	NSPropertyListSerialisation
+
 2004-02-04 01:10  Alexander Malmberg <alexander@malmberg.org>
 
 	* Headers/Foundation/NSObject.h (ASSIGNCOPY),
