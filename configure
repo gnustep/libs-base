@@ -850,6 +850,7 @@ Optional Features:
   --enable-fake-main  		Force redefine of user main function
   --enable-libffi  		Enable use of libffi library
   --enable-ffcall  		Enable use of ffcall library
+  --disable-do			Compile even if DO-dependencies are not met
   --disable-xmltest        Do not try to compile and run a test XML program
 
 Optional Packages:
@@ -11922,6 +11923,14 @@ else
   enable_ffcall=yes
 fi;
 
+# Check whether --enable-do or --disable-do was given.
+if test "${enable_do+set}" = set; then
+  enableval="$enable_do"
+
+else
+  enable_do=yes
+fi;
+
 if test "${ac_cv_header_ffi_h+set}" = set; then
   echo "$as_me:$LINENO: checking for ffi.h" >&5
 echo $ECHO_N "checking for ffi.h... $ECHO_C" >&6
@@ -12252,12 +12261,25 @@ echo "${ECHO_T}ffcall" >&6
 else
   echo "$as_me:$LINENO: result: none" >&5
 echo "${ECHO_T}none" >&6
+  echo
+  echo "GNUstep requires the ffcall library to do invocations and DO."
+  echo "Make sure this library is installed (see installation instructions)."
+  echo "Otherwise DO will not be compatible with other systems, and you will not"
+  echo "be able to use gnustep-gui."
+  if test $enable_do = yes; then
+    echo
+    echo "You most likely do not want to build -base without DO support. Many"
+    echo "things, including all applications, won't work at all without DO."
+    echo "If you really want to build -base without DO support, add --disable-do"
+    echo "to the configure arguments."
+    echo "For more information, read the GNUstep build guide, ffcall section:"
+    echo "http://documents.made-it.com/GNUstep/buildguide.html"
+    { { echo "$as_me:$LINENO: error: No ffcall interface library found." >&5
+echo "$as_me: error: No ffcall interface library found." >&2;}
+   { (exit 1); exit 1; }; }
+  fi
   { echo "$as_me:$LINENO: WARNING: No ffcall interface library found" >&5
 echo "$as_me: WARNING: No ffcall interface library found" >&2;}
-  echo
-  echo "GNUstep requires the ffcall library to do invocations and DO"
-  echo "Make sure this library is installed (see installation instructions)"
-  echo "Otherwise DO will not be compatible with other systems"
 fi
 
 
