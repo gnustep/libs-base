@@ -52,6 +52,7 @@
 extern	int	errno;
 
 #define	GS_CONNECTION_MSG	0
+#define	NETBLOCK	8192
 
 /*
  *	Stuff for setting the sockets into non-blocking mode.
@@ -578,18 +579,17 @@ static NSMapTable	*tcpHandleTable = 0;
       unsigned	want;
       void	*bytes;
       int	res;
-#define	RDBLOCK	8192
 
       /*
        * Make sure we have a buffer big enough to hold all the data we are
-       * expecting, or RDBLOCK bytes, whichever is greater.
+       * expecting, or NETBLOCK bytes, whichever is greater.
        */
       if (rData == nil)
 	{
-	  rData = [[NSMutableData alloc] initWithLength: RDBLOCK];
+	  rData = [[NSMutableData alloc] initWithLength: NETBLOCK];
 	  rWant = sizeof(GSPortItemHeader);
 	  rLength = 0;
-	  want = RDBLOCK;
+	  want = NETBLOCK;
 	}
       else
 	{
@@ -599,9 +599,9 @@ static NSMapTable	*tcpHandleTable = 0;
 	      want = rWant;
 	      [rData setLength: want];
 	    }
-	  if (want < RDBLOCK)
+	  if (want < NETBLOCK)
 	    {
-	      want = RDBLOCK;
+	      want = NETBLOCK;
 	      [rData setLength: want];
 	    }
 	}
@@ -1556,32 +1556,35 @@ static NSMapTable	*tcpPortMap = 0;
   h = [self handleForPort: (GSTcpPort*)receivingPort beforeDate: when];
   if (h != nil)
     {
-      NSMutableData	*d;
+      NSMutableData	*header;
+      unsigned		hLength;
       unsigned		l;
       GSPortItemHeader	*pih;
       GSPortMsgHeader	*pmh;
       unsigned		c = [components count];
       unsigned		i;
+      BOOL		pack = YES;
 
       /*
        * Ok - ensure we have space to insert header info.
        */
       if (length == 0 && rl != 0)
 	{
-	  NSMutableData	*header = [NSMutableData new];
+	  header = [[NSMutableData alloc] initWithCapacity: NETBLOCK];
 
 	  [header setLength: rl];
 	  [components insertObject: header atIndex: 0];
 	  RELEASE(header);
 	} 
 
-      d = [components objectAtIndex: 0];
+      header = [components objectAtIndex: 0];
       /*
        * The Item header contains the item type and the length of the
        * data in the item (excluding the item header itsself).
        */
-      l = [d length] - sizeof(GSPortItemHeader);
-      pih = (GSPortItemHeader*)[d mutableBytes];
+      hLength = [header length];
+      l = hLength - sizeof(GSPortItemHeader);
+      pih = (GSPortItemHeader*)[header mutableBytes];
       pih->type = GSSwapHostI32ToBig(GSP_HEAD);
       pih->length = GSSwapHostI32ToBig(l);
 
@@ -1596,6 +1599,9 @@ static NSMapTable	*tcpPortMap = 0;
 
       /*
        * Now insert item header information as required.
+       * Pack as many items into the initial data object as possible, up to
+       * a maximum of NETBLOCK bytes.  This is to try to get a single,
+       * efficient write operation if possible.
        */
       c = [components count];
       for (i = 1; i < c; i++)
@@ -1604,25 +1610,57 @@ static NSMapTable	*tcpPortMap = 0;
 
 	  if ([o isKindOfClass: [NSData class]])
 	    {
-	      NSMutableData	*d;
 	      GSPortItemHeader	*pih;
 	      unsigned		h = sizeof(GSPortItemHeader);
 	      unsigned		l = [o length];
 	      void		*b;
 
-	      d = [NSMutableData dataWithLength: l + h];
-	      b = [d mutableBytes];
-	      pih = (GSPortItemHeader*)b;
-	      memcpy(b+h, [o bytes], l);
-	      pih->type = GSSwapHostI32ToBig(GSP_DATA);
-	      pih->length = GSSwapHostI32ToBig(l);
-	      [components replaceObjectAtIndex: i
-				    withObject: d];
+	      if (pack == YES && hLength + l + h <= NETBLOCK)
+		{
+		  [header setLength: hLength + l + h];
+		  b = [header mutableBytes];
+		  b += hLength;
+		  hLength += l + h;
+		  pih = (GSPortItemHeader*)b;
+		  memcpy(b+h, [o bytes], l);
+		  pih->type = GSSwapHostI32ToBig(GSP_DATA);
+		  pih->length = GSSwapHostI32ToBig(l);
+		}
+	      else
+		{
+		  NSMutableData	*d;
+
+		  pack = NO;
+		  d = [NSMutableData dataWithLength: l + h];
+		  b = [d mutableBytes];
+		  pih = (GSPortItemHeader*)b;
+		  memcpy(b+h, [o bytes], l);
+		  pih->type = GSSwapHostI32ToBig(GSP_DATA);
+		  pih->length = GSSwapHostI32ToBig(l);
+		  [components replaceObjectAtIndex: i
+					withObject: d];
+		}
 	    }
 	  else if ([o isKindOfClass: [GSTcpPort class]])
 	    {
-	      [components replaceObjectAtIndex: i
-				    withObject: encodePort(o)];
+	      NSData	*d = encodePort(o);
+	      unsigned	dLength = [d length];
+
+	      if (pack == YES && hLength + dLength <= NETBLOCK)
+		{
+		  void	*b;
+
+		  [header setLength: hLength + dLength];
+		  b = [header mutableBytes];
+		  b += hLength;
+		  hLength += dLength;
+		  memcpy(b, [d bytes], dLength);
+		}
+	      else
+		{
+		  pack = NO;
+		  [components replaceObjectAtIndex: i withObject: d];
+		}
 	    }
 	}
 
