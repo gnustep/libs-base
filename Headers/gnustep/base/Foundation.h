@@ -66,6 +66,7 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSNotificationQueue.h>
 #include <Foundation/NSNull.h>
+#include <Foundation/NSNumberFormatter.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSPortMessage.h>

@@ -1,3 +1,7 @@
+2001-11-22  Laurent Julliard  <Laurent.Julliard@xrce.xerox.com>
+
+	* Headers/gnustep/base/Foundation.h: Fixed NSNumberFormatter.h missing.
+
 Thu Nov 22 00:52:57 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* GNUmakefile (CVS_MODULE_NAME): Define.
