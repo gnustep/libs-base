@@ -1,3 +1,8 @@
+Thu Sep  2  9:03:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        * Source/NSTask.m: exec process with argv[0] set to full path of
+        the executable rather than just the program name.
+
 Tue Aug 31 15:47:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSTimer.m: Set minimum timeout to 0.01s rather than 1.0s.

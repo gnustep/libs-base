@@ -434,7 +434,7 @@ extern char *objc_find_executable(const char *name);
   lpath = [lpath stringByStandardizingPath];
 
   executable = [lpath cString];
-  args[0] = [prog cString];
+  args[0] = executable;
 
   for (i = 0; i < ac; i++)
     {
