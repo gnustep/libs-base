@@ -2,6 +2,6 @@ Makefile
 
 test?? 
 pipes server client string values nsarray nsbundle nsdictionary nsset
-nsprocessinfo nsarchiver invocation diningPhilosophers
+nsprocessinfo nsarchiver invocation diningPhilosophers nsmaptable nshashtable
 
 textcoding.txt nsarchiver.dat
