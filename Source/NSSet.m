@@ -1,5 +1,5 @@
 /* NSSet - Set object to store key/value pairs
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: Sep 1995
@@ -346,7 +346,10 @@ static Class NSMutableSet_concrete_class;
 
 - (void) addObjectsFromArray: (NSArray*)array
 {
-  [self notImplemented:_cmd];
+  int i, c = [array count];
+
+  for (i = 0; i < c; i++)
+    [self addObject: [array objectAtIndex: i]];
 }
 
 - (void) unionSet: (NSSet*) other
