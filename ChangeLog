@@ -1,5 +1,10 @@
 2000-08-03  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSHost: ([_initWithHostEntry:key:]) workaround for buggy
+	host entries with missing h_aliases
+	
+2000-08-03  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* NSTimeZones/NSTimeZones.tar: Updated to latest (July 31st) info
 
 2000-08-02  Adam Fedor  <fedor@gnu.org>

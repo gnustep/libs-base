@@ -169,22 +169,26 @@ static NSString			*myHostName = nil;
       h_name = [NSString stringWithCString: entry->h_name];
       [names addObject: h_name];
 
-      i = 0;
-      while ((ptr = entry->h_aliases[i++]) != 0)
+      if (entry->h_aliases != 0)
 	{
-	  [names addObject: [NSString stringWithCString: ptr]];
+	  i = 0;
+	  while ((ptr = entry->h_aliases[i++]) != 0)
+	    {
+	      [names addObject: [NSString stringWithCString: ptr]];
+	    }
 	}
-
-      i = 0;
-      while ((ptr = entry->h_addr_list[i++]) != 0)
+      if (entry->h_addr_list != 0)
 	{
-	  NSString	*addr;
+	  i = 0;
+	  while ((ptr = entry->h_addr_list[i++]) != 0)
+	    {
+	      NSString	*addr;
 
-	  memcpy((void*)&in.s_addr, (const void*)ptr, entry->h_length);
-	  addr = [NSString stringWithCString: (char*)inet_ntoa(in)];
-	  [addresses addObject: addr];
+	      memcpy((void*)&in.s_addr, (const void*)ptr, entry->h_length);
+	      addr = [NSString stringWithCString: (char*)inet_ntoa(in)];
+	      [addresses addObject: addr];
+	    }
 	}
-
       entry = 0;
     }
 
