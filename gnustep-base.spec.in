@@ -6,7 +6,7 @@ Summary: 	GNUstep Base library package
 Packager:	Adam Fedor <fedor@gnu.org>
 Vendor:		The GNUstep Project
 URL:		http://www.gnustep.org/
-Requires:	gnustep-make >= 0.9.0
+Requires:	gnustep-make >= 1.3.0
 
 %description
 The GNUstep Base Library is a powerful fast library of general-purpose,

@@ -22,7 +22,6 @@
 int 
 main(int argc, char *argv[], char **env) 
 {
-    NSBundle *main;
     NSBundle *bundle;
     NSString *path;
     id object;
@@ -35,18 +34,26 @@ main(int argc, char *argv[], char **env)
     
     printf("  GNUstep bundle directory is %s\n", [[[NSBundle gnustepBundle] bundlePath] cString]);
 
-    main = [NSBundle mainBundle];
-    printf("Looking for main bundle...\n");
-    if (!main) {
-	fprintf(stderr, "* ERROR: Can't get main bundle\n");
+    path = [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
+    printf("  Executable is in %s\n", [path cString]);
+    path = [NSBundle _absolutePathOfExecutable: path];
+    if (!path) {
+	fprintf(stderr, "* ERROR: Can't find executable\n");
 	exit(1);
     }
-    printf("  Main bundle directory is %s\n", [[main bundlePath] cString]);
+    printf("  Full directory is %s\n", [path cString]);
 
     printf("Looking for LoadMe bundle...\n");
-    path = [main pathForResource:@"LoadMe" ofType:@"bundle"];
+    path = [path stringByDeletingLastPathComponent];
+    path = [path stringByDeletingLastPathComponent];
+    path = [path stringByDeletingLastPathComponent];
+    path = [path stringByDeletingLastPathComponent];
+    path = [path stringByDeletingLastPathComponent];
+    printf("  Bundle directory is %s\n", [path cString]);
+    path = [NSBundle pathForResource:@"LoadMe" ofType:@"bundle"
+                     inDirectory: path];
     if (!path) {
-	fprintf(stderr, "* ERROR: Can't find LoadMe bundle in main bundle\n");
+	fprintf(stderr, "* ERROR: Can't find LoadMe bundle\n");
 	exit(1);
     }
     printf("  Found LoadMe in: %s\n\n", [path cString]);
