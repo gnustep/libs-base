@@ -945,7 +945,8 @@ static BOOL	debugTemporarilyDisabled = NO;
 
 /**
  * This method returns a set of debug levels set using the
- * --GNU-Debug=... command line option.<br />
+ * --GNU-Debug=... command line option and/or the GNU-Debug
+ * user default.<br />
  * You can modify this set to change the debug logging under
  * your programs control ... but such modifications are not
  * thread-safe.

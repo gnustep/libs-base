@@ -80,6 +80,15 @@
 	<subsect>
 	  <heading>User defaults</heading>
 	  <deflist>
+	    <term>GNU-Debug</term>
+	    <desc>
+              <p>
+              An array of strings that lists debug levels to be used
+	      within the program.  These debug levels are merged with
+	      any which were set on the command line or added programmatically
+	      to the set given by the [NSProcessInfo-debugSet] method.
+              </p>
+	    </desc>
 	    <term>GSLogSyslog</term>
 	    <desc>
 	      <p>
