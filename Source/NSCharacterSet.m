@@ -338,7 +338,7 @@
       _length = other_length;
       _data = [_obj mutableBytes];
     }
-  for (i = 0; i < _length; i++)
+  for (i = 0; i < other_length; i++)
     {
       _data[i] = (_data[i] | other_bytes[i]);
     }
