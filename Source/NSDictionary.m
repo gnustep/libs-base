@@ -37,6 +37,7 @@
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSObjCRuntime.h>
+#include <Foundation/NSValue.h>
 #include "GSUserDefaults.h"
 
 @implementation NSDictionary 
@@ -942,7 +943,28 @@ static NSString	*indentStrings[] = {
  */
 - (id) valueForKey: (NSString*)key
 {
-  return	[self objectForKey: key];
+  id	o = [self objectForKey: key];
+
+  if (o == nil)
+    {
+      if ([key isEqualToString: @"count"] == YES)
+	{
+	  o = [NSNumber numberWithUnsignedInt: [self count]];
+	}
+      else if ([key isEqualToString: @"allKeys"] == YES)
+	{
+	  o = [self allKeys];
+	}
+      else if ([key isEqualToString: @"allValues"] == YES)
+	{
+	  o = [self allValues];
+	}
+      if (o != nil)
+	{
+	  NSWarnMLog(@"Key '%@' would return nil in MacOS-X Foundation", key);
+	}
+    }
+  return o;
 }
 @end
 

@@ -13,6 +13,7 @@
 	* Source/NSKeyValueCoding.m: Fix termination of method names with nuls
 	from report by Manuel Guesdon.
 	* Source/NSDictionary.m: Implement MacOS-X compatible KVC behavior.
+	Include webobjects/eof extension, with warnings.
 	* Headers/Foundation/NSProtocolChecker.h: Change deprecated import to
 	include.
 
