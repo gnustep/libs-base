@@ -1,3 +1,9 @@
+2003-11-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSCompatibility.m: Add dummy gcFinalize
+	implementations for NSLock and NSRecursiveLock so that the
+	lazy locking classes can safely call them under MacOS-X
+
 2003-11-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Fix based on email by Chris Vetter to correct
