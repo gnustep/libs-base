@@ -2,6 +2,8 @@
 
 	* Source/GSFormat.m: Fix buffer overrun by strlen() when printing
 	c-strings without nul terminators using '%*.*s' format.
+	* Source/Additions/GSMime.m: Fix cases of possible access beyond buffer
+	and rare overflow writing decoded base64 data.
 
 2004-02-23  Adam Fedor  <fedor@gnu.org>
 

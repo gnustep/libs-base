@@ -85,8 +85,8 @@ encodebase64(char *dst, const unsigned char *src, int length)
   for (sIndex = 0; sIndex < length; sIndex += 3)
     {
       int	c0 = src[sIndex];
-      int	c1 = src[sIndex+1];
-      int	c2 = src[sIndex+2];
+      int	c1 = (sIndex+1 < length) ? src[sIndex+1] : 0;
+      int	c2 = (sIndex+2 < length) ? src[sIndex+2] : 0;
 
       dst[dIndex++] = b64[(c0 >> 2) & 077];
       dst[dIndex++] = b64[((c0 << 4) & 060) | ((c1 >> 4) & 017)];
@@ -3183,7 +3183,7 @@ static NSCharacterSet	*tokenSet = nil;
   result = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), declen);
   dst = result;
 
-  while (*src && (src != end))
+  while ((src != end) && *src != '\0')
     {
       int	c = *src++;
 
@@ -3237,11 +3237,18 @@ static NSCharacterSet	*tokenSet = nil;
       unsigned	i;
 
       for (i = pos; i < 4; i++)
-	buf[i] = '\0';
+	{
+	  buf[i] = '\0';
+	}
       pos--;
+      if (pos > 0)
+	{
+	  unsigned char	tail[3];
+	  decodebase64(tail, buf);
+	  memcpy(dst, tail, pos);
+	  dst += pos;
+	}
     }
-  decodebase64(dst, buf);
-  dst += pos;
   return AUTORELEASE([[NSData allocWithZone: NSDefaultMallocZone()]
     initWithBytesNoCopy: result length: dst - result]);
 }
