@@ -1,3 +1,10 @@
+2000-08-13  Manuel Guesdon <mguesdon@orange-concept.com>
+
+	* Tools/gsdoc-0_6_6.dtd: added ivariable, constant and stylesheet
+	* Tools/gsdoc.m: added ivariable, constant and stylesheet support
+		added index generation
+	* Tools/gsdoc.gsdoc: added parameters documentation
+	
 2000-08-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/all.h: Moved to Old as obsolete file.
