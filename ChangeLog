@@ -1,3 +1,11 @@
+2004-05-17 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/Foundation.h: Add NSError.h
+	* Headers/Foundation/NSError.h: New MacOS-X compatibility header
+	* Source/DocMakefile: Add NSError
+	* Source/GNUmakefile: Add NSError
+	* Source/NSError.m: new MacOS-X compatibility class.
+
 2004-05-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m: Corrected value for cdata in sax-like

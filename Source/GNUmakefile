@@ -166,6 +166,7 @@ NSDistantObject.m \
 NSDistributedLock.m \
 NSDistributedNotificationCenter.m \
 NSEnumerator.m \
+NSError.m \
 NSException.m \
 NSFileHandle.m \
 NSFileManager.m \
@@ -283,6 +284,7 @@ NSDistantObject.h \
 NSDistributedLock.h \
 NSDistributedNotificationCenter.h \
 NSEnumerator.h \
+NSError.h \
 NSException.h \
 NSFileHandle.h \
 NSFileManager.h \
