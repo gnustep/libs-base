@@ -23,8 +23,6 @@
 /*
     StringTable - Hash table for strings in the NeXT StringTable style
 
-    $Id$
-
     TODO:  Should I reject duplicate keys on readFromStream?
 	   the real MAX_STRINGTABLE_LENGTH is in NXStringTable.l, even though
 	   it also appears in StringTable.h

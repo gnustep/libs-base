@@ -23,7 +23,6 @@
 /*
     StringTable.h - Hash table for strings in the NeXT StringTable style
     
-    $Id$
 */
 
 #ifndef __NXStringTable_h_INCLUDE_GNU

@@ -29,7 +29,9 @@
 #include <libc.h>
 /* If POSIX then:  #include <unistd.h> */
 #endif /* 0 */
+#ifndef __WIN32__
 #include <pwd.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>

@@ -53,7 +53,7 @@ touch 12
 echo "include subdirectory"
 cd include
 rm -f config.h
-sed -f config-win32.sed config.h.in >>config.h
+cat config.h.in >config.h
 cat config-win32.h >>config.h
 cd ..
 cd ..

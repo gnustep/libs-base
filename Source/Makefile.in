@@ -670,9 +670,10 @@ clean: mostlyclean
 distclean: clean
 	rm -f Makefile 
 	rm -f dynamic-load.h
-maintainer-clean: distclean
-	rm -f TAGS include/preface.h include/config.h
+	rm -f include/preface.h include/config.h
 	rm -f o_*_bas.m o_*_cbs.m include/o_*_bas.h include/o_*_cbs.h
+maintainer-clean: distclean
+	rm -f TAGS
 
 copy-dist: $(DIST_FILES)
 	mkdir ../snap/src

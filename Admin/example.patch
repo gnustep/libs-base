@@ -245,11 +245,10 @@ diff -c libobjects/src/Foundation/objc-load.h:1.6 libobjects/src/Foundation/objc
 *** libobjects/src/Foundation/objc-load.h:1.6   Fri Aug  4 13:57:18 1995
 --- libobjects/src/Foundation/objc-load.h       Fri Aug  4 13:57:19 1995
 ***************
-*** 3,16 ****
+*** 3,15 ****
   
       Copyright (C) 1993, Adam Fedor.
       
-!     $Id$
   */
   
   #ifndef __objc_load_h_INCLUDE
@@ -260,11 +259,10 @@ diff -c libobjects/src/Foundation/objc-load.h:1.6 libobjects/src/Foundation/objc
   
   extern char *objc_executable_location();
   
---- 3,16 ----
+--- 3,15 ----
   
       Copyright (C) 1993, Adam Fedor.
       
-!     $Id$
   */
   
   #ifndef __objc_load_h_INCLUDE

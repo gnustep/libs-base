@@ -12,7 +12,6 @@
 	to another module whose name is a super-string of the desired
 	module name.
 
-    $Id$
 */
 
 #ifndef __dld_load_h_INCLUDE
