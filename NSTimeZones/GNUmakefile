@@ -39,6 +39,8 @@ DIST_FILES = GNUmakefile Makefile.postamble $(TIMEZONE_ARCHIVE)
 
 -include Makefile.preamble
 
+-include GNUmakefile.local
+
 # We don't actually build anything in this directory so
 # just include the common makefile rules
 include $(GNUSTEP_MAKEFILES)/rules.make

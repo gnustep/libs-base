@@ -27,6 +27,9 @@ GNUSTEP_MAKEFILES = $(GNUSTEP_SYSTEM_ROOT)/Makefiles
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
+include ../Version
+include ../config.mak
+
 # The application to be compiled
 TOOL_NAME = gdnc defaults dread dwrite dremove
 OBJC_PROGRAM_NAME = gdomap

@@ -73,7 +73,8 @@ STATUS_TEXI_FILES = version.tmpl.texi
 STATUS_TEXT_MAIN = status.tmpl.texi
 
 -include Makefile.preamble
--include Makefile.local
+
+-include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/documentation.make
 

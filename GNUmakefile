@@ -51,6 +51,8 @@ SUBPROJECTS = src Tools doc NSCharacterSets NSTimeZones admin
 
 -include Makefile.preamble
 
+-include GNUmakefile.local
+
 include $(GNUSTEP_MAKEFILES)/aggregate.make
 
 -include Makefile.postamble
