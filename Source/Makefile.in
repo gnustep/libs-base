@@ -374,9 +374,9 @@ NSGData.m \
 NSGDictionary.m \
 NSGSet.m \
 NSLock.m \
-NSHashTable.m \
-NSMapTable.m \
 NSMethodSignature.m \
+NSNotification.m \
+NSNotificationCenter.m \
 NSNumber.m \
 NSObjCRuntime.m \
 NSObject.m \
@@ -442,6 +442,7 @@ Foundation/NSHashTable.h \
 Foundation/NSInvocation.h \
 Foundation/NSMapTable.h \
 Foundation/NSMethodSignature.h \
+Foundation/NSNotification.h \
 Foundation/NSObjCRuntime.h \
 Foundation/NSObject.h \
 Foundation/NSProcessInfo.h \
