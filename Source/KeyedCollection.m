@@ -1,5 +1,5 @@
 /* Implementation for Objective-C KeyedCollection collection object
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -25,6 +25,7 @@
 #include <objects/CollectionPrivate.h>
 #include <stdio.h>
 #include <objects/Array.h>
+#include <objects/NSString.h>
 
 @implementation KeyedCollection
 
@@ -458,7 +459,7 @@
   return self;
 }
 
-- (void) _encodeContentsWithCoder: (Coder*)aCoder
+- (void) _encodeContentsWithCoder: (id <Encoding>)aCoder
 {
   unsigned int count = [self count];
   const char *ce = [self contentType];
@@ -467,19 +468,19 @@
     {
       [aCoder encodeValueOfObjCType:ke
 	      at:elt_get_ptr_to_member(ke, &key)
-	      withName:"KeyedCollection key element"];
+	      withName:@"KeyedCollection key element"];
       [aCoder encodeValueOfObjCType:ce
 	      at:elt_get_ptr_to_member(ce, &content)
-	      withName:"KeyedCollection content element"];
+	      withName:@"KeyedCollection content element"];
     }
 
   [aCoder encodeValueOfCType:@encode(unsigned)
 	  at:&count
-	  withName:"Collection element count"];
+	  withName:@"Collection element count"];
   [self withKeyElementsAndContentElementsCall:archiveKeyAndContent];
 }
 
-- (void) _decodeContentsWithCoder: (Coder*)aCoder
+- (void) _decodeContentsWithCoder: (id <Decoding>)aCoder
 {
   unsigned int count, i;
   elt newKey, newContent;

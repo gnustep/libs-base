@@ -1,5 +1,5 @@
 /* Implementation for Objective-C BinaryTree collection object
-   Copyright (C) 1993,1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -66,14 +66,14 @@ static id nilBinaryTreeNode;
   return self;
 }
 
-- (void) _encodeContentsWithCoder: (Coder*)aCoder
+- (void) _encodeContentsWithCoder: (id <Encoding>)aCoder
 {
   [aCoder startEncodingInterconnectedObjects];
   [super _encodeContentsWithCoder:aCoder];
   [aCoder finishEncodingInterconnectedObjects];
 }
 
-- (void) _decodeContentsWithCoder: (Coder*)aCoder
+- (void) _decodeContentsWithCoder: (id <Decoding>)aCoder
 {
   [aCoder startDecodingInterconnectedObjects];
   [super _decodeContentsWithCoder:aCoder];
