@@ -48,7 +48,11 @@ static Class	NSDate_class;
 
 /**
  * <init />
- * Initialise a newly allocated NSTimer object.
+ * Initialise a newly allocated NSTimer object.<br />
+ * The ti argument specifies the time (in seconds) between the firing.<br />
+ * The f argument specifies whether the timer will fire repeatedly.<br />
+ * The object and info arguments will be retained until the timer is
+ * invalidated.<br />
  */
 - (id) initWithTimeInterval: (NSTimeInterval)ti
 	 targetOrInvocation: (id)object
@@ -70,6 +74,11 @@ static Class	NSDate_class;
   return self;
 }
 
+/**
+ * Create a timer wchich will fire after ti seconds and, if f is YES,
+ * every ti seconds thereafter. On firing, invocation will be performed.<br />
+ * NB. To make the timer operate, you must add it to a run loop.
+ */
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 		        invocation: (NSInvocation*)invocation
 			   repeats: (BOOL)f
@@ -81,6 +90,13 @@ static Class	NSDate_class;
 						repeats: f]);
 }
 
+/**
+ * Create a timer wchich will fire after ti seconds and, if f is YES,
+ * every ti seconds thereafter. On firing, the target object will be
+ * sent a message specified by selector and with the object info as an
+ * argument.<br />
+ * NB. To make the timer operate, you must add it to a run loop.
+ */
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 			    target: (id)object
 			  selector: (SEL)selector
@@ -94,6 +110,12 @@ static Class	NSDate_class;
 						repeats: f]);
 }
 
+/**
+ * Create a timer wchich will fire after ti seconds and, if f is YES,
+ * every ti seconds thereafter. On firing, invocation will be performed.<br />
+ * This timer will automatically be added to the current run loop and
+ * will fire in the defaut run loop mode.
+ */
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
 				 invocation: (NSInvocation*)invocation
 				    repeats: (BOOL)f
@@ -105,6 +127,14 @@ static Class	NSDate_class;
   return t;
 }
 
+/**
+ * Create a timer wchich will fire after ti seconds and, if f is YES,
+ * every ti seconds thereafter. On firing, the target object will be
+ * sent a message specified by selector and with the object info as an
+ * argument.<br />
+ * This timer will automatically be added to the current run loop and
+ * will fire in the defaut run loop mode.
+ */
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
 				     target: (id)object
 				   selector: (SEL)selector
@@ -130,6 +160,11 @@ static Class	NSDate_class;
   [super dealloc];
 }
 
+/**
+ * Fires the timer ... either performs an invocation or ssends a message
+ * to a target object, depending on how the timer was set up.<br />
+ * If the timer is not set to repeat, it is automatically invalidated.
+ */
 - (void) fire
 {
   if (_selector == 0)
@@ -168,6 +203,12 @@ static Class	NSDate_class;
     }
 }
 
+/**
+ * Marks the timer as invalid, causing its target/invocation and user info
+ * objects to be released.<br />
+ * Invalidated timers are automatically removed from the run loop when it
+ * detects them.
+ */
 - (void) invalidate
 {
   if (_target != nil)
@@ -183,6 +224,9 @@ static Class	NSDate_class;
   _invalidated = YES;
 }
 
+/**
+ * Checks to see if the timer has been invalidated.
+ */
 - (BOOL) isValid
 {
   if (_invalidated == NO)
@@ -195,21 +239,34 @@ static Class	NSDate_class;
     }
 }
 
+/**
+ * Returns the date/time at which the timer is next due to fire.
+ */
 - (NSDate*) fireDate
 {
   return _date;
 }
 
+/**
+ * Returns the interval beteen firings.
+ */
 - (NSTimeInterval) timeInterval
 {
   return _interval;
 }
 
+/**
+ * Returns the user info which was set for the timer when it was created,
+ * or nil if none was set or the timer is invalid.
+ */
 - (id) userInfo
 {
   return _info;
 }
 
+/**
+ * Compares timers based on the date at which they should next fire.
+ */
 - (NSComparisonResult) compare: (NSTimer*)anotherTimer
 {
   if (anotherTimer == self)
