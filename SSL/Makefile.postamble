@@ -68,6 +68,7 @@
 # Things to do after distcleaning
 after-distclean::
 	rm -rf SSL.bundle
+	rm -rf $(GNUSTEP_TARGET_DIR)
 
 # Things to do before checking
 # before-check::
@@ -77,6 +78,17 @@ after-distclean::
 
 config.mak:	config.mak.in
 	./configure
+
+$(GNUSTEP_OBJ_DIR)/GSUnixSSLHandle.o \
+        : $(GNUSTEP_TARGET_DIR)/config.h
+
+#
+# The config.h file is specific to a target
+#
+$(GNUSTEP_TARGET_DIR)/config.h: ../config.status
+	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
+	-mv config.h $(GNUSTEP_TARGET_DIR)
+	-touch $(GNUSTEP_TARGET_DIR)/config.h
 
 TAGS: $(DIST_FILES)
 	etags $(DIST_FILES)

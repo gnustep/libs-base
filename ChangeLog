@@ -1,3 +1,9 @@
+2002-03-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL/Makefile.posramble: store config.h in system specific subdir.
+	* SSL/Makefile.preamble: Include headers from Source directory
+	so we pick up GSConfig.h
+
 2002-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/autogsdoc.m: store and fetch dependency info in .igsdoc
