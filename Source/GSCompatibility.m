@@ -168,9 +168,7 @@ encodeBase64(NSData *source)
     }
 
   return [[NSGCString allocWithZone: NSDefaultMallocZone()]
-    initWithCStringNoCopy: dBuf
-		   length: destlen-1
-		 fromZone: NSDefaultMallocZone()];
+    initWithCStringNoCopy: dBuf length: destlen-1];
 }
 
 static NSString*

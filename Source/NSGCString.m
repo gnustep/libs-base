@@ -69,10 +69,10 @@
 #define	GSPLUNI	0
 #include "propList.h"
 
-static	SEL	csInitSel = @selector(initWithCStringNoCopy: length: fromZone:);
-static	SEL	msInitSel = @selector(initWithCapacity:);
-static	IMP	csInitImp;	/* designated initialiser for cString	*/
-static	IMP	msInitImp;	/* designated initialiser for mutable	*/
+static	SEL csInitSel = @selector(initWithCStringNoCopy:length:freeWhenDone:);
+static	SEL msInitSel = @selector(initWithCapacity:);
+static	IMP csInitImp;	/* designated initialiser for cString	*/
+static	IMP msInitImp;	/* designated initialiser for mutable	*/
 
 @interface NSGMutableCString (GNUDescription)
 - (unsigned char*) _extendBy: (unsigned)len;
@@ -118,54 +118,26 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   return _hash;
 }
 
-/*
- *	This is the GNUstep designated initializer for this class.
- *	NB. this does NOT change the '_hash' instance variable, so the copy
- *	methods can safely allocate a new object, copy the _hash into place,
- *	and then invoke this method to complete the copy operation.
- */
-- (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned int)length
-		    fromZone: (NSZone*)zone
-{
-  _count = length;
-  _contents_chars = (unsigned char*)byteString;
-#if	GS_WITH_GC
-  _zone = byteString ? GSAtomicMallocZone() : 0;
-#else
-  _zone = byteString ? zone : 0;
-#endif
-  return self;
-}
-
 /* This is the OpenStep designated initializer for this class. */
 - (id) initWithCStringNoCopy: (char*)byteString
 		      length: (unsigned int)length
 		freeWhenDone: (BOOL)flag
 {
-  NSZone	*z;
-
-  if (flag && byteString)
+  _count = length;
+  _contents_chars = (unsigned char*)byteString;
+  if (flag == NO)
     {
-      z = NSZoneFromPointer(byteString);
+      _zone = 0;
     }
   else
     {
-      z = 0;
+#if	GS_WITH_GC
+      _zone = byteString ? GSAtomicMallocZone() : 0;
+#else
+      _zone = byteString ? NSZoneFromPointer(byteString) : 0;
+#endif
     }
-  return (*csInitImp)(self, csInitSel, byteString, length, z);
-}
-
-- (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned int)length
-		       fromZone: (NSZone*)zone
-{
-  NSZone	*z = zone ? zone : fastZone(self);
-  id a = [[NSGString allocWithZone: z] initWithCharactersNoCopy: chars
-							 length: length
-						       fromZone: z];
-  RELEASE(self);
-  return a;
+  return self;
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
@@ -182,21 +154,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 
 - (id) init
 {
-  return [self initWithCStringNoCopy: 0 length: 0 fromZone: 0];
-}
-
-- (void) _collectionReleaseContents
-{
-  return;
-}
-
-- (void) _collectionDealloc
-{
-  if (_zone)
-    {
-      NSZoneFree(_zone, (void*)_contents_chars);
-      _zone = 0;
-    }
+  return [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -236,20 +194,19 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   if (NSShouldRetainWithZone(self, z) == NO)
     {
       NSGCString	*obj;
-      unsigned char	*tmp;
 
       obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
-      if (_count)
+      if (_count > 0)
 	{
-	  tmp = NSZoneMalloc(z, _count);
+	  unsigned char	*tmp = NSZoneMalloc(z, _count);
+
 	  memcpy(tmp, _contents_chars, _count);
+	  obj = (*csInitImp)(obj, csInitSel, tmp, _count, YES);
 	}
       else
 	{
-	  tmp = 0;
-	  z = 0;
+	  obj = (*csInitImp)(obj, csInitSel, 0, 0, NO);
 	}
-      obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
       if (_hash && obj)
         {
 	  obj->_hash = _hash;
@@ -267,20 +224,19 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   if (NSShouldRetainWithZone(self, z) == NO)
     {
       NSGCString	*obj;
-      unsigned char	*tmp;
 
       obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
       if (_count)
 	{
-	  tmp = NSZoneMalloc(z, _count);
+	  unsigned char	*tmp = NSZoneMalloc(z, _count);
+
 	  memcpy(tmp, _contents_chars, _count);
+	  obj = (*csInitImp)(obj, csInitSel, tmp, _count, YES);
 	}
       else
 	{
-	  tmp = 0;
-	  z = 0;
+	  obj = (*csInitImp)(obj, csInitSel, 0, 0, NO);
 	}
-      obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
       if (_hash && obj)
         {
 	  obj->_hash = _hash;
@@ -619,21 +575,20 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 - (id) initWithString: (NSString*)string
 {
   unsigned	length = [string cStringLength];
-  NSZone	*z;
-  unsigned char	*buf;
 
   if (length > 0)
     {
-      z = fastZone(self);
-      buf = NSZoneMalloc(z, length+1);  // getCString appends a nul.
+      unsigned char	*buf = NSZoneMalloc(fastZone(self), length+1); 
+
+      // getCString appends a nul.
       [string getCString: buf];
+      self = [self initWithCStringNoCopy: buf length: length freeWhenDone: YES];
     }
   else
     {
-      z = 0;
-      buf = 0;
+      return [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
     }
-  return [self initWithCStringNoCopy: buf length: length fromZone: z];
+  return self;
 }
 
 - (void) descriptionWithLocale: (NSDictionary*)aLocale
@@ -745,7 +700,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
 	      NSString	*result;
 
 	      result = [[_fastCls._NSGCString allocWithZone: z]
-		initWithCStringNoCopy: buf length: length fromZone: z];
+		initWithCStringNoCopy: buf length: length freeWhenDone: YES];
 	      [output appendString: result];
 	      RELEASE(result);
 	    }
@@ -1029,33 +984,28 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (id) initWithCStringNoCopy: (char*)byteString
 		      length: (unsigned int)length
-		    fromZone: (NSZone*)zone
+		freeWhenDone: (BOOL)flag
 {
   self = (*msInitImp)(self, msInitSel, 0);
-  if (self)
+  if (self != nil)
     {
       _count = length;
       _capacity = length;
       _contents_chars = (unsigned char*)byteString;
+      if (flag == YES)
+	{
 #if	GS_WITH_GC
-      _zone = byteString ? GSAtomicMallocZone() : 0;
+	  _zone = (byteString != 0) ? GSAtomicMallocZone() : 0;
 #else
-      _zone = byteString ? zone : 0;
+	  _zone = (byteString != 0) ? NSZoneFromPointer(byteString) : 0;
 #endif
+	}
+      else
+	{
+	  _zone = 0;
+	}
     }
   return self;
-}
-
-- (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned int)length
-		       fromZone: (NSZone*)zone
-{
-  NSZone	*z = zone ? zone : fastZone(self);
-  id a = [[NSGMutableString allocWithZone: z] initWithCharactersNoCopy: chars
-							 length: length
-						       fromZone: z];
-  RELEASE(self);
-  return a;
 }
 
 - (id) initWithCharactersNoCopy: (unichar*)chars
@@ -1072,22 +1022,21 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (id) copy
 {
-  unsigned char	*tmp;
   NSGCString	*obj;
   NSZone	*z = NSDefaultMallocZone();
 
   obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
   if (_count)
     {
-      tmp = NSZoneMalloc(z, _count);
+      unsigned char	*tmp = NSZoneMalloc(z, _count);
+
       memcpy(tmp, _contents_chars, _count);
+      obj = (*csInitImp)(obj, csInitSel, tmp, _count, YES);
     }
   else
     {
-      tmp = 0;
-      z = 0;
+      obj = (*csInitImp)(obj, csInitSel, 0, 0, NO);
     }
-  obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
   if (_hash && obj)
     {
       NSGMutableCString	*tmp = (NSGMutableCString*)obj;	// Same ivar layout
@@ -1099,21 +1048,20 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (id) copyWithZone: (NSZone*)z
 {
-  unsigned char	*tmp;
   NSGCString	*obj;
 
   obj = (NSGCString*)NSAllocateObject(_fastCls._NSGCString, 0, z);
   if (_count)
     {
-      tmp = NSZoneMalloc(z, _count);
+      unsigned char	*tmp = NSZoneMalloc(z, _count);
+
       memcpy(tmp, _contents_chars, _count);
+      obj = (*csInitImp)(obj, csInitSel, tmp, _count, YES);
     }
   else
     {
-      tmp = 0;
-      z = 0;
+      obj = (*csInitImp)(obj, csInitSel, 0, 0, NO);
     }
-  obj = (*csInitImp)(obj, csInitSel, tmp, _count, z);
   if (_hash && obj)
     {
       NSGMutableCString	*tmp = (NSGMutableCString*)obj;	// Same ivar layout
@@ -1279,7 +1227,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (id) init
 {
-  return [self initWithCStringNoCopy: 0 length: 0 fromZone: 0];
+  return [self initWithCStringNoCopy: 0 length: 0 freeWhenDone: NO];
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -1330,7 +1278,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 
 - (id) initWithCStringNoCopy: (char*)byteString
 		      length: (unsigned int)length
-		    fromZone: (NSZone*)zone
+		freeWhenDone: (BOOL)flag
 {
   [NSException raise: NSGenericException
 	      format: @"Attempt to init an NXConstantString"];

@@ -111,8 +111,8 @@ void	_fastBuildCache()
 static objc_mutex_t retain_counts_gate = NULL;
 
 #if	GS_WITH_GC == 0
-#define	REFCNT_LOCAL	1
-#define	CACHE_ZONE	1
+#define	REFCNT_LOCAL	0
+#define	CACHE_ZONE	0
 #endif
 
 #if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)

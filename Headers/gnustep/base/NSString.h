@@ -274,12 +274,6 @@ enum {
 
 #ifndef NO_GNUSTEP
 - (BOOL) boolValue;
-- (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (unsigned int)length
-		       fromZone: (NSZone*)zone;
-- (id) initWithCStringNoCopy: (char*)byteString
-		      length: (unsigned int)length
-		    fromZone: (NSZone*)zone;
 #endif /* NO_GNUSTEP */
 
 @end

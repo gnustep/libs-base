@@ -1,5 +1,13 @@
 2000-09-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSCompatibility.m: Use OpenStep standard string initialisation.
+	* Source/NSSerializer.m: Use OpenStep stanrd initializers.
+	* Source/NSUnarchiver.m: ditto
+	* Source/NSData.m: Simplify by removing memory management extensions.
+	* Source/NSGCString.m: ditto
+	* Source/NSGString.m: ditto
+	* Source/NSObject.m: ditto
+	* Source/NSString.m: ditto
 	* Source/externs.m: Removed unused NXConstantString assignments.
 
 2000-09-26  Lyndon Tremblay  <humasect@home.com>

@@ -371,9 +371,9 @@ typedef struct {
 
 static SEL debSel = @selector(deserializeBytes:length:atCursor:);
 static SEL deiSel = @selector(deserializeIntAtCursor:);
-static SEL csInitSel = @selector(initWithCStringNoCopy:length:fromZone:);
-static SEL usInitSel = @selector(initWithCharactersNoCopy:length:fromZone:);
-static SEL dInitSel = @selector(initWithBytesNoCopy:length:fromZone:);
+static SEL csInitSel = @selector(initWithCStringNoCopy:length:freeWhenDone:);
+static SEL usInitSel = @selector(initWithCharactersNoCopy:length:freeWhenDone:);
+static SEL dInitSel = @selector(initWithBytesNoCopy:length:);
 static SEL iaInitSel = @selector(initWithObjects:count:);
 static SEL maInitSel = @selector(initWithObjects:count:);
 static SEL idInitSel = @selector(initWithObjects:forKeys:count:);
@@ -429,7 +429,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	
 	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
 	  s = (NSGCString*)NSAllocateObject(CSCls, 0, NSDefaultMallocZone());
-	  s = (*csInitImp)(s, csInitSel, b, size-1, NSDefaultMallocZone());
+	  s = (*csInitImp)(s, csInitSel, b, size-1, YES);
 
 	  /*
 	   * If we are supposed to be doing uniquing of strings, handle it.
@@ -453,7 +453,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 	
 	  (*info->debImp)(info->data, debSel, b, size*2, info->cursor);
 	  s = (NSGString*)NSAllocateObject(USCls, 0, NSDefaultMallocZone());
-	  s = (*usInitImp)(s, usInitSel, b, size, NSDefaultMallocZone());
+	  s = (*usInitImp)(s, usInitSel, b, size, YES);
 
 	  /*
 	   * If we are supposed to be doing uniquing of strings, handle it.
@@ -570,11 +570,19 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       case ST_DATA:
 	{
 	  NSData	*d;
-	  void		*b = NSZoneMalloc(NSDefaultMallocZone(), size);
-	
-	  (*info->debImp)(info->data, debSel, b, size, info->cursor);
+
 	  d = (NSData*)NSAllocateObject(DCls, 0, NSDefaultMallocZone());
-	  d = (*dInitImp)(d, dInitSel, b, size, NSDefaultMallocZone());
+	  if (size > 0)
+	    {
+	      void	*b = NSZoneMalloc(NSDefaultMallocZone(), size);
+	
+	      (*info->debImp)(info->data, debSel, b, size, info->cursor);
+	      d = (*dInitImp)(d, dInitSel, b, size);
+	    }
+	  else
+	    {
+	      d = (*dInitImp)(d, dInitSel, 0, 0);
+	    }
 	  return d;
 	}
 
