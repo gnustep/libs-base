@@ -26,6 +26,12 @@
             <item><uref url="GSXMLDocument.html">GSXMLDocument</uref></item>
             <item><uref url="GSXMLParser.html">GSXMLParser</uref></item>
             <item><uref url="GSSAXHandler.html">GSSAXHandler</uref></item>
+            <item>GSHTMLParser - HTML specific subclass of GSXMLParser. No
+	      new API intorduced.
+	    </item>
+            <item>GSHTMLSAXHandler - HTML specific subclass of
+	    GSXMLSAXHandler. No new API intorduced.
+	    </item>
           </list>
       </section>
     </chapter>
