@@ -52,7 +52,7 @@ main(int argc, char** argv)
 
     args = [proc arguments];
 
-    for (i = 0; i < [args count]; i++) {
+    for (i = 1; i < [args count]; i++) {
 	if ([[args objectAtIndex: i] isEqual: @"--help"] ||
 	    [[args objectAtIndex: i] isEqual: @"help"]) {
 	    printf(
@@ -160,7 +160,7 @@ property list which is set as the value of a default.\n\n");
 	}
     }
 
-    i = 0;
+    i = 1;
     if ([args count] <= i) {
 	NSLog(@"defaults: too few arguments supplied!\n");
 	[pool release];

@@ -49,7 +49,7 @@ main(int argc, char** argv)
 
     args = [proc arguments];
 
-    for (i = 0; i < [args count]; i++) {
+    for (i = 1; i < [args count]; i++) {
         if ([[args objectAtIndex: i] isEqual: @"--help"]) {
 	    printf(
 "The 'dremove' command lets you delete entries in a user's defaults database.\n"
@@ -76,7 +76,7 @@ main(int argc, char** argv)
 	}
     }
 
-    i = 0;
+    i = 1;
     if ([args count] > i && [[args objectAtIndex: i] isEqual: @"-u"]) {
 	if ([args count] > ++i) {
 	    user = [args objectAtIndex: i++];

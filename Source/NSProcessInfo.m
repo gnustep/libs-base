@@ -151,7 +151,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     int added = 0;
 
     _debug_array = [[NSMutableArray alloc] init];
-    for (i = 1; i < argc; i++) 
+    for (i = 0; i < argc; i++) 
       {
 	NSString	*str = [NSString stringWithCString:argv[i]];
 	if ([str hasPrefix: @"--GNU-Debug="])

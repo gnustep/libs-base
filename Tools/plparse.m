@@ -46,13 +46,13 @@ main(int argc, char** argv)
 
   args = [proc arguments];
 
-  if ([args count] == 0)
+  if ([args count] <= 1)
     {
       NSLog(@"No file names given to parse.");
     }
   else
     {
-      for (i = 0; i < [args count]; i++)
+      for (i = 1; i < [args count]; i++)
 	{
 	  NSString	*file = [args objectAtIndex: i];
 
