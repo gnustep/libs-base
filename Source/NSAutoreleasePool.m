@@ -24,52 +24,164 @@
 #include <objects/stdobjects.h>
 #include <Foundation/NSAutoreleasePool.h>
 #include <objects/objc-malloc.h>
+#include <objects/Array.h>
 #include <Foundation/NSException.h>
 #include <limits.h>
 
-/* Doesn't handle multi-threaded stuff.
-   Doesn't handle exceptions. */
+/* TODO:
+   Doesn't work multi-threaded.
 
-/* Put the stuff from initialize into a runtime init function. 
    This class should be made more efficient, especially:
-     [[NSAutorelease alloc] init]
-     [current_pool addObject:o] (REALLOC-case)
+   [[NSAutorelease alloc] init]
+   [current_pool addObject:o] (REALLOC-case)
    */
 
+/* The current, default NSAutoreleasePool; the one that will hold
+   objects that are arguments to [NSAutoreleasePool +addObject:]. */
 static NSAutoreleasePool *current_pool = nil;
 
-/* When this is `NO', autoreleased objects are never actually sent a 
-   `release' message.  Memory use grows, and grows, and... */
+/* When this is `NO', autoreleased objects are never actually recorded
+   in an NSAutoreleasePool, and are not sent a `release' message.
+   Thus memory for objects use grows, and grows, and... */
 static BOOL autorelease_enabled = YES;
 
-/* When the released_count gets over this value, we raise an exception. */
+/* When the _released_count of the current pool gets over this value,
+   we raise an exception. */
 static unsigned pool_count_warning_threshhold = UINT_MAX;
 
-#define DEFAULT_SIZE 64
+/* The total number of objects autoreleased since the program was
+   started, or since -resetTotalAutoreleasedObjects was called. */
+static unsigned total_autoreleased_objects_count = 0;
 
+/* The size of the first _released array. */
+#define BEGINNING_POOL_SIZE 32
+
+
+@interface NSAutoreleasePool (Private)
+- _parentAutoreleasePool;
+- (unsigned) autoreleaseCount;
+- (unsigned) autoreleaseCountForObject: anObject;
++ (unsigned) autoreleaseCountForObject: anObject;
++ currentPool;
+- (void) _setChildPool: pool;
+@end
+
+/* A cache of NSAutoreleasePool's already alloc'ed.  Caching old pools
+   instead of deallocating and re-allocating them will save time. */
+static id *autorelease_pool_cache;
+static int autorelease_pool_cache_size = 32;
+static int autorelease_pool_cache_count = 0;
+
+static void
+push_pool_to_cache (id p)
+{
+  if (autorelease_pool_cache_count == autorelease_pool_cache_size)
+    {
+      autorelease_pool_cache_size *= 2;
+      OBJC_REALLOC (autorelease_pool_cache, id, autorelease_pool_cache_size);
+    }
+  autorelease_pool_cache[autorelease_pool_cache_count++] = p;
+}
+
+static id
+pop_pool_from_cache ()
+{
+  assert (autorelease_pool_cache_count);
+  return autorelease_pool_cache[--autorelease_pool_cache_count];
+}
+
+
 @implementation NSAutoreleasePool
 
-/* This method not in OpenStep */
-- parentAutoreleasePool
++ (void) initialize
 {
-  return parent;
+  if (self == [NSAutoreleasePool class])
+    OBJC_MALLOC (autorelease_pool_cache, id, autorelease_pool_cache_size);
+}
+
++ allocWithZone: (NSZone*)z
+{
+  /* If there is an already-allocated NSAutoreleasePool available,
+     save time by just returning that, rather than allocating a new one. */
+  if (autorelease_pool_cache_count)
+    return pop_pool_from_cache ();
+
+  return NSAllocateObject (self, 0, z);
+}
+
+- init
+{
+  if (!_released_head)
+    {
+      /* Allocate the array that will be the new head of the list of arrays. */
+      _released = (struct autorelease_array_list*)
+	(*objc_malloc) (sizeof(struct autorelease_array_list) + 
+			(BEGINNING_POOL_SIZE * sizeof(id)));
+      /* Currently no NEXT array in the list, so NEXT == NULL. */
+      _released->next = NULL;
+      _released->size = BEGINNING_POOL_SIZE;
+      _released->count = 0;
+      _released_head = _released;
+    }
+  else
+    /* Already initialized; (it came from autorelease_pool_cache);
+       we don't have to allocate new array list memory. */
+    {
+      _released = _released_head;
+      _released->count = 0;
+    }
+
+  /* This NSAutoreleasePool contains no objects yet. */
+  _released_count = 0;
+
+  /* Install ourselves as the current pool. */
+  _parent = current_pool;
+  _child = nil;
+  [current_pool _setChildPool: self];
+  current_pool = self;
+
+  return self;
+}
+
+- (void) _setChildPool: pool
+{
+  assert (!_child);
+  _child = pool;
+}
+
+/* This method not in OpenStep */
+- _parentAutoreleasePool
+{
+  return _parent;
 }
 
 /* This method not in OpenStep */
 - (unsigned) autoreleaseCount
 {
-  return released_count;
+  unsigned count = 0;
+  struct autorelease_array_list *released = _released_head;
+  while (released && released->count)
+    {
+      count += released->count;
+      released = released->next;
+    }
+  return count;
 }
 
 /* This method not in OpenStep */
 - (unsigned) autoreleaseCountForObject: anObject
 {
   unsigned count = 0;
+  struct autorelease_array_list *released = _released_head;
   int i;
 
-  for (i = 0; i < released_count; i++)
-    if (released[i] == anObject)
-      count++;
+  while (released && released->count)
+    {
+      for (i = 0; i < released->count; i++)
+	if (released->objects[i] == anObject)
+	  count++;
+      released = released->next;
+    }
   return count;
 }
 
@@ -80,8 +192,8 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
   id pool = current_pool;
   while (pool)
     {
-      count += [pool autoreleaseCountForObject:anObject];
-      pool = [pool parentAutoreleasePool];
+      count += [pool autoreleaseCountForObject: anObject];
+      pool = [pool _parentAutoreleasePool];
     }
   return count;
 }
@@ -93,35 +205,56 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 
 + (void) addObject: anObj
 {
-  [current_pool addObject:anObj];
+  [current_pool addObject: anObj];
 }
 
 - (void) addObject: anObj
 {
+  /* If the global, static variable AUTORELEASE_ENABLED is not set,
+     do nothing, just return. */
   if (!autorelease_enabled)
     return;
 
-  if (released_count >= pool_count_warning_threshhold)
+  if (_released_count >= pool_count_warning_threshhold)
     [NSException raise: NSGenericException
 		 format: @"AutoreleasePool count threshhold exceeded."];
 
-  if (released_count == released_size)
+  /* Get a new array for the list, if the current one is full. */
+  if (_released->count == _released->size)
     {
-      released_size *= 2;
-      OBJC_REALLOC(released, id, released_size);
+      if (_released->next)
+	{
+	  /* There is an already-allocated one in the chain; use it. */
+	  _released = _released->next;
+	  _released->count = 0;
+	}
+      else
+	{
+	  /* We are at the end of the chain, and need to allocate a new one. */
+	  struct autorelease_array_list *new_released;
+	  unsigned new_size = _released->size * 2;
+	  
+	  new_released = (struct autorelease_array_list*)
+	    (*objc_malloc) (sizeof(struct autorelease_array_list) + 
+			    (new_size * sizeof(id)));
+	  new_released->next = NULL;
+	  new_released->size = new_size;
+	  new_released->count = 0;
+	  _released->next = new_released;
+	  _released = new_released;
+	}
     }
-  released[released_count] = anObj;
-  released_count++;
-}
 
-- init
-{
-  parent = current_pool;
-  current_pool = self;
-  OBJC_MALLOC(released, id, DEFAULT_SIZE);
-  released_size = DEFAULT_SIZE;
-  released_count = 0;
-  return self;
+  /* Put the object at the end of the list. */
+  _released->objects[_released->count] = anObj;
+  (_released->count)++;
+
+  /* Keep track of the total number of objects autoreleased across all
+     pools. */
+  total_autoreleased_objects_count++;
+
+  /* Keep track of the total number of objects autoreleased in this pool */
+  _released_count++;
 }
 
 - (id) retain
@@ -138,28 +271,48 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
 
 - (void) dealloc
 {
-  int i;
+  /* If there are NSAutoreleasePool below us in the stack of
+     NSAutoreleasePools, then deallocate them also.  The (only) way we
+     could get in this situation (in correctly written programs, that
+     don't release NSAutoreleasePools in weird ways), is if an
+     exception threw us up the stack. */
+  if (_child)
+    [_child dealloc];
 
-  /* Make debugging easier by checking to see if we already dealloced the
-     object before trying to release it.  Also, take the object out of the
-     released list just before releasing it, so if we are doing 
-     "double_release_check"ing, then autoreleaseCountForObject: won't find the 
-     object we are currently releasing. */
-  for (i = 0; i < released_count; i++)
-    {
-      id anObject = released[i];
-      if (object_get_class(anObject) == (void*) 0xdeadface)
-	[NSException 
-	  raise: NSGenericException
-	  format: @"Autoreleasing deallocated object.\n"
-	  @"Suggest you debug after setting [NSObject "
-	  @"enableDoubleReleaseCheck:YES]\nto check for release errors."];
-      released[i]=0;
-      [anObject release];
-    }
-  OBJC_FREE(released);
-  current_pool = parent;
-  NSDeallocateObject(self);
+  /* Make debugging easier by checking to see if the user already
+     dealloced the object before trying to release it.  Also, take the
+     object out of the released list just before releasing it, so if
+     we are doing "double_release_check"ing, then
+     autoreleaseCountForObject: won't find the object we are currently
+     releasing. */
+  {
+    struct autorelease_array_list *released = _released_head;
+    int i;
+
+    while (released)
+      {
+	for (i = 0; i < released->count; i++)
+	  {
+	    id anObject = released->objects[i];
+	    if (object_get_class(anObject) == (void*) 0xdeadface)
+	      [NSException 
+		raise: NSGenericException
+		format: @"Autoreleasing deallocated object.\n"
+		@"Suggest you debug after setting [NSObject "
+		@"enableDoubleReleaseCheck:YES]\n"
+		@"to check for release errors."];
+	    released->objects[i] = nil;
+	    [anObject release];
+	  }
+	released = released->next;
+      }
+  }
+
+  /* Uninstall ourselves as the current pool; install our parent parent. */
+  current_pool = _parent;
+
+  /* Don't deallocate ourself, just save us for later use. */
+  push_pool_to_cache (self);
 }
 
 - autorelease
@@ -167,6 +320,16 @@ static unsigned pool_count_warning_threshhold = UINT_MAX;
   [NSException raise: NSGenericException
 	       format: @"Don't call `-autorelease' on a NSAutoreleasePool"];
   return self;
+}
+
++ (void) resetTotalAutoreleasedObjects
+{
+  total_autoreleased_objects_count = 0;
+}
+
++ (unsigned) totalAutoreleasedObjects
+{
+  return total_autoreleased_objects_count;
 }
 
 + (void) enableRelease: (BOOL)enable
