@@ -21,7 +21,7 @@
 
 - afterLoad
 {
-    printf("%s's instance variable is %i\n", [self name], var);
+    printf("%s's instance variable is %i\n", [self description], var);
     return self;
 }
 

@@ -369,7 +369,7 @@ if test $ac_cv_sizeof_long = 4; then
 else
   if test $ac_cv_sizeof_long = 8; then
     _GSC_S_LNG=_GSC_I64
-v  else
+  else
     if test $ac_cv_sizeof_long = 16; then
       _GSC_S_LNG=_GSC_I128
     fi

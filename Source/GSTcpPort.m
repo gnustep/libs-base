@@ -288,6 +288,12 @@ decodePort(NSData *data, NSString *defaultAddress)
   length = GSSwapBigI32ToHost(pih->length);
   pi = (GSPortInfo*)&pih[1];
   pnum = GSSwapBigI16ToHost(pi->num);
+  if (strncmp(pi->addr, "VER", 3) == 0)
+    {
+      NSLog(@"Remote version of GNUstep at %s:%d is more recent than this one",
+	pi->addr, pnum); 
+      return nil;
+    }
   addr = [NSString stringWithCString: pi->addr];
 
   NSDebugFLLog(@"NSPort", @"Decoded port as '%@:%d'", addr, pnum);
@@ -1028,6 +1034,13 @@ static Class	runLoopClass;
 
 		  rType = GSP_NONE;	/* ready for a new item	*/
 		  p = decodePort(rData, defaultAddress);
+		  if (p == nil)
+		    {
+		      NSLog(@"%@ - unable to decode remote port", self);
+		      DO_UNLOCK(myLock);
+		      [self invalidate];
+		      return;
+		    }
 		  /*
 		   * Set up to read another item header.
 		   */

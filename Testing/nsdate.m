@@ -3,7 +3,6 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSTimeZone.h>
-#include <Foundation/GSCategories.h>
 
 #ifdef __MS_WIN32__
 int _MB_init_runtime()

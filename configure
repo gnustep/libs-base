@@ -2656,7 +2656,7 @@ fi
 # The following one is so that headers of custom libraries into
 # $GNUSTEP_HDIR are used before the standard ones
 #
-CPPFLAGS="$CPPFLAGS -I $GNUSTEP_HDIR"
+CPPFLAGS="$CPPFLAGS -I$GNUSTEP_HDIR"
 LDFLAGS="$LDFLAGS -L$GNUSTEP_LDIR/$LIBRARY_COMBO -L$GNUSTEP_LDIR"
 
 #--------------------------------------------------------------------
@@ -6020,7 +6020,7 @@ else
 #     64-bit ints not supported - but we need a dummy type for byte-swapping
 #     of 64-bit values arriving from another system.
       GS_SINT64="struct { gsu8 a8; }"
-      GS_SINT64="struct { gsu8 a9; }"
+      GS_SINT64="struct { gsu8 a8; }"
       GS_HAVE_I64=0
     fi
   fi
@@ -6099,7 +6099,7 @@ if test $ac_cv_sizeof_long = 4; then
 else
   if test $ac_cv_sizeof_long = 8; then
     _GSC_S_LNG=_GSC_I64
-v  else
+  else
     if test $ac_cv_sizeof_long = 16; then
       _GSC_S_LNG=_GSC_I128
     fi

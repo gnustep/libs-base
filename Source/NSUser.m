@@ -280,7 +280,7 @@ NSHomeDirectoryForUser(NSString *loginName)
 	  /* The environment variable HOMEPATH holds the home directory
 	     for the user on Windows NT; Win95 has no concept of home. */
 	  s = GSStringFromWin32EnvironmentVariable("HOMEPATH");
-	  if (s != nil)
+	  if (s != nil && ([s length] < 2 || [s characterAtIndex: 1] != ':'))
 	    {
 	      s = [GSStringFromWin32EnvironmentVariable("HOMEDRIVE")
 		stringByAppendingString: s];

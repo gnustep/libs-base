@@ -1243,10 +1243,14 @@ static NSFileManager* defaultManager = nil;
 	}
       return (res & FILE_ATTRIBUTE_READONLY) ? NO : YES;
 #else
-      cpath = [self fileSystemRepresentationWithPath: 
-	[path stringByDeletingLastPathComponent]];
+      path = [path stringByDeletingLastPathComponent];
+      if ([path length] == 0)
+	{
+	  path = @".";
+	}
+      cpath = [self fileSystemRepresentationWithPath: path]; 
     
-      return  (access(cpath, X_OK || W_OK) != 0);
+      return  (access(cpath, X_OK | W_OK) == 0);
 #endif
     }
 }

@@ -1053,14 +1053,14 @@ fillHole(ivars self, unsigned index, unsigned size)
 
     if (self->_flags.wide == 1)
       {
-	for (i = index; i <= self->_count; i++)
+	for (i = index; i < self->_count; i++)
 	  {
 	    self->_contents.u[i] = self->_contents.u[i+size];
 	  }
       }
     else
       {
-	for (i = index; i <= self->_count; i++)
+	for (i = index; i < self->_count; i++)
 	  {
 	    self->_contents.c[i] = self->_contents.c[i+size];
 	  }
@@ -1069,14 +1069,14 @@ fillHole(ivars self, unsigned index, unsigned size)
 #else
   if (self->_flags.wide == 1)
     {
-      memcpy(self->_contents.u + index + size,
-	self->_contents.u + index,
+      memcpy(self->_contents.u + index,
+	self->_contents.u + index + size,
 	sizeof(unichar)*(self->_count - index));
     }
   else
     {
-      memcpy(self->_contents.c + index + size,
-	self->_contents.c + index, (self->_count - index));
+      memcpy(self->_contents.c + index,
+	self->_contents.c + index + size, (self->_count - index));
     }
 #endif // STABLE_MEMCPY
   self->_flags.hash = 0;

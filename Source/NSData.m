@@ -634,8 +634,9 @@ failure:
 - (id) initWithContentsOfMappedFile: (NSString *)path
 {
 #ifdef	HAVE_MMAP
+  NSZone	*z = GSObjCZone(self);
   RELEASE(self);
-  self = [NSDataMappedFile allocWithZone: GSObjCZone(self)];
+  self = [NSDataMappedFile allocWithZone: z];
   return [self initWithContentsOfMappedFile: path];
 #else
   return [self initWithContentsOfFile: path];
@@ -2813,7 +2814,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       if (shmid == -1)			/* Created memory? */
 	{
 	  NSLog(@"[-initWithBytes:length:] shared mem get failed for %u - %s",
-		    bufferSize, GSLastErrorStr(errno));
+	    bufferSize, GSLastErrorStr(errno));
 	  RELEASE(self);
 	  self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
 	  return [self initWithBytes: aBuffer length: bufferSize];
@@ -3476,12 +3477,23 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       struct shmid_ds	buf;
 
       if (shmctl(shmid, IPC_STAT, &buf) < 0)
-        NSLog(@"[NSMutableDataShared -dealloc] shared memory control failed - %s", GSLastErrorStr(errno));
+	{
+	  NSLog(@"[NSMutableDataShared -dealloc] shared memory "
+	    @"control failed - %s", GSLastErrorStr(errno));
+	}
       else if (buf.shm_nattch == 1)
-	if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
-          NSLog(@"[NSMutableDataShared -dealloc] shared memory delete failed - %s", GSLastErrorStr(errno));
+	{
+	  if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
+	    {
+	      NSLog(@"[NSMutableDataShared -dealloc] shared memory "
+		@"delete failed - %s", GSLastErrorStr(errno));
+	    }
+	}
       if (shmdt(bytes) < 0)
-        NSLog(@"[NSMutableDataShared -dealloc] shared memory detach failed - %s", GSLastErrorStr(errno));
+	{
+	  NSLog(@"[NSMutableDataShared -dealloc] shared memory "
+	    @"detach failed - %s", GSLastErrorStr(errno));
+	}
       bytes = 0;
       length = 0;
       capacity = 0;
@@ -3509,7 +3521,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   shmid = shmget(IPC_PRIVATE, bufferSize, IPC_CREAT|VM_ACCESS);
   if (shmid == -1)			/* Created memory? */
     {
-      NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory get failed for %u - %s", bufferSize, GSLastErrorStr(errno));
+      NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory "
+	@"get failed for %u - %s", bufferSize, GSLastErrorStr(errno));
       RELEASE(self);
       self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
       return [self initWithCapacity: bufferSize];
@@ -3519,7 +3532,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   e = errno;
   if (bytes == (void*)-1)
     {
-      NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory attach failed for %u - %s", bufferSize, GSLastErrorStr(e));
+      NSLog(@"[NSMutableDataShared -initWithCapacity:] shared memory "
+	@"attach failed for %u - %s", bufferSize, GSLastErrorStr(e));
       bytes = 0;
       RELEASE(self);
       self = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
@@ -3538,20 +3552,23 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   shmid = anId;
   if (shmctl(shmid, IPC_STAT, &buf) < 0)
     {
-      NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory control failed - %s", GSLastErrorStr(errno));
+      NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory "
+	@"control failed - %s", GSLastErrorStr(errno));
       RELEASE(self);	/* Unable to access memory. */
       return nil;
     }
   if (buf.shm_segsz < bufferSize)
     {
-      NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory segment too small");
+      NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory "
+	@"segment too small");
       RELEASE(self);	/* Memory segment too small. */
       return nil;
     }
   bytes = shmat(shmid, 0, 0);
   if (bytes == (void*)-1)
     {
-      NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory attach failed - %s", GSLastErrorStr(errno));
+      NSLog(@"[NSMutableDataShared -initWithShmID:length:] shared memory "
+	@"attach failed - %s", GSLastErrorStr(errno));
       bytes = 0;
       RELEASE(self);	/* Unable to attach to memory. */
       return nil;
@@ -3571,32 +3588,49 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
       newid = shmget(IPC_PRIVATE, size, IPC_CREAT|VM_ACCESS);
       if (newid == -1)			/* Created memory? */
-	[NSException raise: NSMallocException
-		    format: @"Unable to create shared memory segment - %s.",
-		    GSLastErrorStr(errno)];
+	{
+	  [NSException raise: NSMallocException
+	    format: @"Unable to create shared memory segment (size:%u) - %s.",
+	    size, GSLastErrorStr(errno)];
+	}
       tmp = shmat(newid, 0, 0);
       if ((int)tmp == -1)			/* Attached memory? */
-	[NSException raise: NSMallocException
-		    format: @"Unable to attach to shared memory segment."];
+	{
+	  [NSException raise: NSMallocException
+		      format: @"Unable to attach to shared memory segment."];
+	}
       memcpy(tmp, bytes, length);
       if (bytes)
 	{
           struct shmid_ds	buf;
 
           if (shmctl(shmid, IPC_STAT, &buf) < 0)
-            NSLog(@"[NSMutableDataShared -setCapacity:] shared memory control failed - %s", GSLastErrorStr(errno));
+	    {
+	      NSLog(@"[NSMutableDataShared -setCapacity:] shared memory "
+		@"control failed - %s", GSLastErrorStr(errno));
+	    }
           else if (buf.shm_nattch == 1)
-	    if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
-              NSLog(@"[NSMutableDataShared -setCapacity:] shared memory delete failed - %s", GSLastErrorStr(errno));
+	    {
+	      if (shmctl(shmid, IPC_RMID, &buf) < 0)	/* Mark for deletion. */
+		{
+		  NSLog(@"[NSMutableDataShared -setCapacity:] shared memory "
+		    @"delete failed - %s", GSLastErrorStr(errno));
+		}
+	    }
 	  if (shmdt(bytes) < 0)				/* Detach memory. */
-              NSLog(@"[NSMutableDataShared -setCapacity:] shared memory detach failed - %s", GSLastErrorStr(errno));
+	    {
+              NSLog(@"[NSMutableDataShared -setCapacity:] shared memory "
+		@"detach failed - %s", GSLastErrorStr(errno));
+	    }
 	}
       bytes = tmp;
       shmid = newid;
       capacity = size;
     }
   if (size < length)
-    length = size;
+    {
+      length = size;
+    }
   return self;
 }
 

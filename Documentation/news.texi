@@ -9,7 +9,7 @@ The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 @end ifclear
 
-@section Noteworthy changes in version @samp{1.5.2}
+@section Noteworthy changes in version @samp{1.6.0}
 
 @itemize @bullet
 @item More MinGW support

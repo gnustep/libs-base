@@ -1344,6 +1344,31 @@
 		}
 	    }
 
+	  if (buffer[pos] == '_')
+	    {
+	      NSString	*ident = [self parseIdentifier];
+
+	      if ([ident isEqualToString: @"__attribute__"] == YES)
+		{
+		  [self skipSpaces];
+		  if (pos < length && buffer[pos] == '(')
+		    {
+		      [self skipBlock];
+		      [self skipSpaces];
+		    }
+		}
+	      else
+		{
+		  [self log: @"Underscore is not from __attribute__"];
+		  goto fail;
+		}
+	      if (pos >= length)
+		{
+		  [self log: @"Unexpected end of declaration"];
+		  goto fail;
+		}
+	    }
+
 	  if (buffer[pos] == ';')
 	    {
 	      [self skipStatement];

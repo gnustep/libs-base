@@ -953,5 +953,6 @@ main (int argc, char **argv)
 	runtest (testScanUpToString);
 	runtest (testScanCharactersFromSet);
 	runtest (testScanUpToCharactersFromSet);
+    printf("Finished Tests\n");
     return 0;
 }
