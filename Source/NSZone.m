@@ -22,10 +22,10 @@
 
 /*  Design goals:
 
-    - Allocation and deallocation should be reasonably effecient.
+    - Allocation and deallocation should be reasonably efficient.
 
     - Finding the zone containing a given pointer should be very
-    effecient, since objects in Objective-C use that information to
+    efficient, since objects in Objective-C use that information to
     deallocate themselves. */
 
 
@@ -33,9 +33,13 @@
 
    - All memory chunks allocated in a zone is preceded by a pointer to
    the zone.  This makes locating the zone containing the memory chunk
-   extermemely fast.  However, this creates an additional 4 byte
+   extremely fast.  However, this creates an additional 4 byte
    overhead for 32 bit machines (8 bytes on 64 bit machines!).
 
+   - The default zone uses objc_malloc() and friends.  We assume that
+   they're thread safe and that they return NULL if we're out of
+   memory.  We also need to prepend a zone pointer.
+   
    - For freeable zones, a small linear buffer is used for
    deallocating and allocating.  Anything that can't go into the
    buffer then uses a more general purpose segregated fit algorithm
@@ -51,17 +55,17 @@
 
 /* Other information:
 
-   - This uses some GCC specific extensions. But since the library is
+   - This uses some GCC specific extensions.  But since the library is
    supposed to compile on GCC 2.7.2 (patched) or higher, and the only
-   other Objective-C compiler I know of (other than NeXT's) is the
-   StepStone compiler, which I haven't the foggiest idea why anyone
-   would prefer it to GCC ;), it should be OK.
+   other Objective-C compiler I know of (other than NeXT's, which is
+   based on GCC as far as I know) is the StepStone compiler, which I
+   haven't the foggiest idea why anyone would prefer it to GCC ;), it
+   should be OK.
 
-   - This uses its own routines for NSDefaultMallocZone() instead of
-   using malloc() and friends.  Making it use them would be a somewhat
-   intractable problem if we want to have a fast NSZoneFromPointer(),
-   since we would have to search all the zones to see if they
-   contained the pointer.
+   - We cannot use malloc() and friends (or objc_malloc() and friends)
+   for memory allocated from zones if we want a fast
+   NSZoneFromPointer(), since we would have to search all the zones to
+   see if they contained the pointer.
 
    - These functions should be thread safe, but I haven't really
    tested them extensively in multithreaded cases. */
@@ -69,15 +73,17 @@
 /* Define to turn off assertions. */
 #define NDEBUG
 
+
 #include <gnustep/base/preface.h>
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
-#include <objc/thr.h>
+#include <objc/objc-api.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPage.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSZone.h>
+
 
 #define ALIGN 8 /* Alignment.  FIXME: Make this portable. */
 #define MINGRAN 256 /* Minimum granularity. */
@@ -104,6 +110,7 @@
 #define NF_HEAD (roundupto(sizeof(nf_block)+ZPTRSZ, ALIGN)-ZPTRSZ)
 
 #define CLTOSZ(n) ((n)*MINCHUNK) /* Converts classes to sizes. */
+
 
 typedef struct _ffree_free_link ff_link;
 typedef struct _nfree_block_struct nf_block;
@@ -137,6 +144,7 @@ struct _ffree_block_struct
 struct _ffree_zone_struct
 {
   NSZone common;
+  objc_mutex_t lock;
   ff_block *blocks; // Linked list of blocks
   size_t *segheadlist[MAX_SEG]; // Segregated list, holds heads
   size_t *segtaillist[MAX_SEG]; // Segregated list, holds tails
@@ -149,20 +157,21 @@ struct _ffree_zone_struct
 struct _nfree_zone_struct
 {
   NSZone common;
+  objc_mutex_t lock;
   /* Linked list of blocks in decreasing order of free space,
      except maybe for the first block. */
   nf_block *blocks;
 };
 
-/* Initializing functions. */
-static void initialize (void) __attribute__ ((constructor));
-static void become_threaded (void);
 
 /* Rounds up N to nearest multiple of BASE. */
 static inline size_t roundupto (size_t n, size_t base);
 
-/* Dummy lock, unlock function. */
-static int dummy_lock (objc_mutex_t mutex);
+/* Default zone functions for default zone. */
+static void* default_malloc (NSZone *zone, size_t size);
+static void* default_realloc (NSZone *zone, void *ptr, size_t size);
+static void default_free (NSZone *zone, void *ptr);
+static void default_recycle (NSZone *zone);
 
 /* Memory management functions for freeable zones. */
 static void* fmalloc (NSZone *zone, size_t size);
@@ -180,59 +189,23 @@ static void flush_buf (ffree_zone *zone);
 /* Memory management functions for nonfreeable zones. */
 static void* nmalloc (NSZone *zone, size_t size);
 static void nrecycle (NSZone *zone);
+static void* nrealloc (NSZone *zone, void *ptr, size_t size);
+static void nfree (NSZone *zone, void *ptr);
 
-/* Saves callback when mulithreading starts. */
-static objc_thread_callback thread_callback;
-
-/* Mutex function pointers. */
-static int (*lock)(objc_mutex_t mutex) = dummy_lock;
-static int (*unlock)(objc_mutex_t mutex) = dummy_lock;
 
 /* Error message. */
 static NSString *outmemstr = @"Out of memory";
 
-static ffree_zone default_zone =
+static NSZone default_zone =
 {
-  { fmalloc, frealloc, ffree, NULL, DEFBLOCK, (objc_mutex_t)0, nil },
-  NULL,
-  {
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-  },
-  {
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-  },
-  0,
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-  {
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-  }  
+  default_malloc, default_realloc, default_free, default_recycle,
+  DEFBLOCK, nil
 };
 
 /* Default zone.  Name is hopelessly long so that no one will ever
    want to use it. ;) */
-NSZone* __nszone_private_hidden_default_zone = (NSZone*)(&default_zone);
+NSZone* __nszone_private_hidden_default_zone = &default_zone;
 
-/* It would be nice if the Objective-C runtime had something like
-   pthread's PTHREAD_MUTEX_INITIALIZER macro.  Then we wouldn't need
-   to do any initialization at all.  Oh well. */
-static void
-initialize (void)
-{
-  thread_callback = objc_set_thread_callback(become_threaded);
-}
-
-static void
-become_threaded (void)
-{
-  if (thread_callback != NULL)
-    thread_callback();
-  lock = objc_mutex_lock;
-  unlock = objc_mutex_unlock;
-  default_zone.common.lock = objc_mutex_allocate();
-}
 
 static inline size_t
 roundupto (size_t n, size_t base)
@@ -242,10 +215,41 @@ roundupto (size_t n, size_t base)
   return (n-a)? (a+base): n;
 }
 
-static int
-dummy_lock (objc_mutex_t mutex)
+static void*
+default_malloc (NSZone *zone, size_t size)
 {
-  return 0; // Do nothing.
+  NSZone **mem;
+
+  mem = objc_malloc(ZPTRSZ+size);
+  if (mem == NULL)
+    [NSException raise: NSMallocException format: outmemstr];
+  *mem = zone;
+  return mem+1;
+}
+
+static void*
+default_realloc (NSZone *zone, void *ptr, size_t size)
+{
+  NSZone **mem = ptr-ZPTRSZ;
+
+  mem = objc_realloc(mem, size+ZPTRSZ);
+  if ((size != 0) && (mem == NULL))
+    [NSException raise: NSMallocException format: outmemstr];
+  return mem+1;
+}
+
+static void
+default_free (NSZone *zone, void *ptr)
+{
+  objc_free(ptr-ZPTRSZ);
+}
+
+static void
+default_recycle (NSZone *zone)
+{
+  /* Recycle the default zone?  Thou hast got to be kiddin'. */
+  [NSException raise: NSGenericException
+	       format: @"Trying to recycle default zone"];
 }
 
 /* Search the buffer to see if there is any memory chunks large enough
@@ -269,7 +273,7 @@ fmalloc (NSZone *zone, size_t size)
 
   if (size == 0)
     return NULL;
-  lock(zone->lock);
+  objc_mutex_lock(zptr->lock);
   bufsize = zptr->bufsize;
   while ((i < bufsize) && (chunksize > size_buf[i]))
     i++;
@@ -314,14 +318,14 @@ fmalloc (NSZone *zone, size_t size)
       chunkhead = get_chunk(zptr, chunksize);
       if (chunkhead == NULL)
 	{
-	  unlock(zone->lock);
+	  objc_mutex_unlock(zptr->lock);
 	  [NSException raise: NSMallocException format: outmemstr];
 	}
 
       assert(*chunkhead & INUSE);
       assert((*chunkhead & ~SIZE_BITS)%MINCHUNK == 0);
     }
-  unlock(zone->lock);
+  objc_mutex_unlock(zptr->lock);
   return (void*)chunkhead+(SZSZ+ZPTRSZ);
 }
 
@@ -347,7 +351,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
     }
   if (ptr == NULL)
     return fmalloc(zone, size);
-  lock(zone->lock);
+  objc_mutex_lock(zptr->lock);
   chunkhead = ptr-(SZSZ+ZPTRSZ);
   realsize = *chunkhead & ~SIZE_BITS;
 
@@ -399,7 +403,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
 	  newchunk = get_chunk(zptr, chunksize);
 	  if (newchunk == NULL)
 	    {
-	      unlock(zone->lock);
+	      objc_mutex_unlock(zptr->lock);
 	      [NSException raise: NSMallocException format: outmemstr];
 	    }
 	  memcpy((void*)newchunk+SZSZ+ZPTRSZ, (void*)chunkhead+SZSZ+ZPTRSZ,
@@ -409,7 +413,7 @@ frealloc (NSZone *zone, void *ptr, size_t size)
 	}
       /* FIXME: consider other cases where we can get more memory. */
     }
-  unlock(zone->lock);
+  objc_mutex_unlock(zptr->lock);
   return (void*)chunkhead+(SZSZ+ZPTRSZ);
 }
 
@@ -417,20 +421,16 @@ frealloc (NSZone *zone, void *ptr, size_t size)
 static void
 ffree (NSZone *zone, void *ptr)
 {
-  lock(zone->lock);
+  objc_mutex_lock(((ffree_zone*)zone)->lock);
   add_buf((ffree_zone*)zone, ptr-(SZSZ+ZPTRSZ));
-  unlock(zone->lock);
+  objc_mutex_unlock(((ffree_zone*)zone)->lock);
 }
 
 /* Recycle the zone.  We should give objects that are still alive to
    the default zone by looking into each block and resetting the zone
    pointers in each used memory chunks and adding the free chunks to
    the default zone's buffer, but I'm lazy, so I'll do it later.  For
-   now, we just release all the blocks.
-
-   No locking is done.  Making sure that nothing tries to use this
-   zone when and after it's recycled should be the programmer's
-   responsibility. */
+   now, we just release all the blocks. */
 static void
 frecycle (NSZone *zone)
 {
@@ -438,7 +438,7 @@ frecycle (NSZone *zone)
   ff_block *block = zptr->blocks;
   ff_block *nextblock;
 
-  objc_mutex_deallocate(zone->lock);
+  objc_mutex_deallocate(zptr->lock);
   while (block != NULL)
     {
       nextblock = block->next;
@@ -504,23 +504,10 @@ get_chunk (ffree_zone *zone, size_t size)
 	  ff_block *block;
 
 	  blocksize = roundupto(size+FF_HEAD+SZSZ+ZPTRSZ, zone->common.gran);
-	  if (zone == &default_zone)
-	    {
-	      block = NSAllocateMemoryPages(blocksize);
-	      if (block == NULL)
-		return NULL;
-	    }
-	  else
-	    {
-	      /* Any clean way to make gcc shut up here? */
-	      NS_DURING
-		block = fmalloc(NSDefaultMallocZone(), blocksize);
-	      NS_HANDLER
-		return NULL;
-	      NS_ENDHANDLER
-	    }
-	  assert(block != NULL);
-	  
+	  block = objc_malloc(blocksize);
+	  if (block == NULL)
+	    return NULL;
+
 	  block->size = blocksize;
 	  block->next = zone->blocks;
 	  zone->blocks = block;
@@ -752,7 +739,7 @@ nmalloc (NSZone *zone, size_t size)
   size_t chunksize = roundupto(size+ZPTRSZ, ALIGN);
   NSZone **chunkhead;
 
-  lock(zone->lock);
+  objc_mutex_lock(zptr->lock);
   top = zptr->blocks->top;
   /* No need to worry about (block == NULL), since a nonfreeable zone
      always starts with a block. */
@@ -787,13 +774,12 @@ nmalloc (NSZone *zone, size_t size)
 	{
 	  size_t blocksize = roundupto(chunksize+NF_HEAD, zone->gran);
 
-	  /* Any clean way to make gcc shut up here? */
-	  NS_DURING
-	    block = fmalloc(NSDefaultMallocZone(), blocksize);
-	  NS_HANDLER
-	    unlock(zone->lock);
-	    [localException raise];
-	  NS_ENDHANDLER
+	  block = objc_malloc(blocksize);
+	  if (block == NULL)
+	    {
+	      objc_mutex_unlock(zptr->lock);
+	      [NSException raise: NSMallocException format: outmemstr];
+	    }
 	  block->next = zptr->blocks;
 	  block->size = blocksize;
 	  block->top = NF_HEAD;
@@ -803,7 +789,7 @@ nmalloc (NSZone *zone, size_t size)
       *chunkhead = zone;
       zptr->blocks->top += chunksize;
     }
-  unlock(zone->lock);
+  objc_mutex_unlock(zptr->lock);
   return chunkhead+1;
 }
 
@@ -819,7 +805,7 @@ nrecycle (NSZone *zone)
   nf_block *nextblock;
   nf_block *block = ((nfree_zone*)zone)->blocks;
 
-  objc_mutex_deallocate(zone->lock);
+  objc_mutex_deallocate(((nfree_zone*)zone)->lock);
   while (block != NULL)
     {
       nextblock = block->next;
@@ -829,6 +815,21 @@ nrecycle (NSZone *zone)
   if (zone->name != nil)
     [zone->name release];
   ffree(NSDefaultMallocZone(), zone);
+}
+
+static void*
+nrealloc (NSZone *zone, void *ptr, size_t size)
+{
+  [NSException raise: NSGenericException
+	       format: @"Trying to reallocate in nonfreeable zone"];
+  return NULL; // Useless return
+}
+
+static void
+nfree (NSZone *zone, void *ptr)
+{
+  [NSException raise: NSGenericException
+	       format: @"Trying to free memory from nonfreeable zone"];
 }
 
 NSZone*
@@ -851,27 +852,29 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
       size_t *header, *tailer;
       NSZone **zoneptr;
 
-      zone = fmalloc(NSDefaultMallocZone(), sizeof(ffree_zone));
+      zone = objc_malloc(sizeof(ffree_zone));
+      if (zone == NULL)
+	[NSException raise: NSMallocException format: outmemstr];
       zone->common.malloc = fmalloc;
       zone->common.realloc = frealloc;
       zone->common.free = ffree;
       zone->common.recycle = frecycle;
       zone->common.gran = granularity;
-      zone->common.lock = objc_mutex_allocate();
       zone->common.name = nil;
+      zone->lock = objc_mutex_allocate();
       for (i = 0; i < MAX_SEG; i++)
 	{
 	  zone->segheadlist[i] = NULL;
 	  zone->segtaillist[i] = NULL;
 	}
       zone->bufsize = 0;
-      NS_DURING
-	zone->blocks = fmalloc(NSDefaultMallocZone(), startsize);
-      NS_HANDLER
-	objc_mutex_deallocate(zone->common.lock);
-        ffree(NSDefaultMallocZone(), zone);
-        [localException raise];
-      NS_ENDHANDLER
+      zone->blocks = objc_malloc(startsize);
+      if (zone->blocks == NULL)
+	{
+	  objc_mutex_deallocate(zone->lock);
+	  objc_free(zone);
+	  [NSException raise: NSMallocException format: outmemstr];
+	}
       block = zone->blocks;
       block->next = NULL;
       block->size = startsize;
@@ -889,21 +892,21 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
       nf_block *block;
       nfree_zone *zone;
 
-      zone = fmalloc(NSDefaultMallocZone(), sizeof(nfree_zone));
+      zone = objc_malloc(sizeof(nfree_zone));
       zone->common.malloc = nmalloc;
-      zone->common.realloc = NULL;
-      zone->common.free = NULL;
+      zone->common.realloc = nrealloc;
+      zone->common.free = nfree;
       zone->common.recycle = nrecycle;
       zone->common.gran = granularity;
-      zone->common.lock = objc_mutex_allocate();
       zone->common.name = nil;
-      NS_DURING
-	zone->blocks = fmalloc(NSDefaultMallocZone(), startsize);
-      NS_HANDLER
-	objc_mutex_deallocate(zone->common.lock);
-        ffree(NSDefaultMallocZone(), zone);
-	[localException raise];
-      NS_ENDHANDLER
+      zone->lock = objc_mutex_allocate();
+      zone->blocks = objc_malloc(startsize);
+      if (zone->blocks == NULL)
+	{
+	  objc_mutex_deallocate(zone->lock);
+	  objc_free(zone);
+	  [NSException raise: NSMallocException format: outmemstr];
+	}
       block = zone->blocks;
       block->next = NULL;
       block->size = startsize;
@@ -916,6 +919,13 @@ inline NSZone*
 NSDefaultMallocZone (void)
 {
   return __nszone_private_hidden_default_zone;
+}
+
+// Not in OpenStep
+void
+NSSetDefaultMallocZone (NSZone *zone)
+{
+  __nszone_private_hidden_default_zone = zone;
 }
 
 inline NSZone*
@@ -957,37 +967,17 @@ NSZoneFree (NSZone *zone, void *ptr)
 void
 NSSetZoneName (NSZone *zone, NSString *name)
 {
-  lock(zone->lock);
+  /* FIXME: Not thread safe.  But will it matter? */
   if (zone->name != nil)
     [zone->name release];
   if (name == nil)
     zone->name = nil;
   else
     zone->name = [name copy];
-  unlock(zone->lock);
 }
 
 inline NSString*
 NSZoneName (NSZone *zone)
 {
   return zone->name;
-}
-
-/* FIXME: not thread safe. */
-BOOL
-NSZoneMemInUse (void *ptr)
-{
-  size_t *header = ptr-ZPTRSZ-SZSZ;
-
-  if (*header & INUSE)
-    {
-      size_t i;
-      ffree_zone *zone = (ffree_zone*)NSZoneFromPointer(ptr);
-
-      for (i = 0; i < zone->bufsize; i++)
-	if (zone->ptr_buf[i] == ptr)
-	  return NO;
-      return YES;
-    }
-  return NO;
 }

@@ -1,5 +1,5 @@
 /* Implementation of auto release pool for delayed disposal
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: January 1995
@@ -300,13 +300,19 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 	for (i = 0; i < released->count; i++)
 	  {
 	    id anObject = released->objects[i];
+#if 0
+	    /* There is no general method to find out whether a memory
+               chunk has been deallocated or not, especially when
+               custom zone functions might be used.  So we #if this
+               out. */
 	    if (!NSZoneMemInUse(anObject))
-	      [NSException 
-		raise: NSGenericException
-		format: @"Autoreleasing deallocated object.\n"
-		@"Suggest you debug after setting [NSObject "
+              [NSException 
+                raise: NSGenericException
+                format: @"Autoreleasing deallocated object.\n"
+                @"Suggest you debug after setting [NSObject "
 		@"enableDoubleReleaseCheck:YES]\n"
 		@"to check for release errors."];
+#endif
 	    released->objects[i] = nil;
 	    [anObject release];
 	  }
