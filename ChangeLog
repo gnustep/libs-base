@@ -4,6 +4,8 @@ Wed Nov 12 10:10:33 1997  Adam Fedor  <fedor@doc.com>
 	when string in format is nil.
 	* src/objc-load.c: Remove ifdef HAVE_CONFIG_H.
 
+	* doc/gnustep-howto.texi: Update for new gdb patch file.
+
 Wed Nov 12 12:30:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/Collection.m: ([Enumerator -dealloc]) added call dealloction
