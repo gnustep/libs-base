@@ -1624,7 +1624,7 @@ failure:
 	{
 	  [self setLength: need];
 	}
-      memcpy([self mutableBytes] + aRange.location, bytes, aRange.length);
+      memmove([self mutableBytes] + aRange.location, bytes, aRange.length);
     }
 }
 
