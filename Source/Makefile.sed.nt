@@ -113,7 +113,7 @@ lib$(LIBRARY_NAME).dll: $(HEADERS_INSTALL) $(OBJS_INSTALL) $(INIT_LIB_OBJ) lib$(
 	link -out:lib$(LIBRARY_NAME).dll $(DLLFLAGS) \\\
 		lib$(LIBRARY_NAME)-dll.exp \\\
 		lib$(LIBRARY_NAME)$(LIBEXT) \\\
-		win32-entry$(OEXT) libgcc.lib libobjc.lib \\\
+		win32-entry$(OEXT) libgcc.lib libobjc-dll.lib \\\
 		libcmt.lib oldnames.lib user32.lib kernel32.lib wsock32.lib \\\
 		advapi32.lib\
 \

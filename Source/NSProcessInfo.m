@@ -261,6 +261,21 @@ __attribute__ ((section ("_libc_subinit"))) = &(_gnu_process_args);
 #undef main
 int main(int argc, char *argv[], char *env[])
 {
+#ifdef __WIN32__
+  WSADATA lpWSAData;
+
+  // Initialize Windows Sockets
+  if (WSAStartup(MAKEWORD(1,1), &lpWSAData))
+    {
+      printf("Could not startup Windows Sockets\n");
+      exit(1);
+    }
+#endif /* __WIN32__ */
+
+#ifdef __MS_WIN32__
+  _MB_init_runtime();
+#endif /* __MS_WIN32__ */
+
   _gnu_process_args(argc, argv, env);
 
   /* Call the user defined main function */

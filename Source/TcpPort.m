@@ -581,7 +581,11 @@ static NSMapTable* port_number_2_port;
 	 getting it.  This may help Connection invalidation confusion. 
 	 However, then the process might run out of FD's if the close()
 	 was delayed too long. */
+#ifdef __WIN32__
+      closesocket (_socket);
+#else
       close (_socket);
+#endif
 
       /* These are here, and not in -dealloc, to prevent 
 	 +newForReceivingFromPortNumber: from returning invalid sockets. */
@@ -988,7 +992,11 @@ static NSMapTable *out_port_bag = NULL;
 
   /* xxx Perhaps should delay this close() to keep another port from
      getting it.  This may help Connection invalidation confusion. */
+#ifdef __WIN32__
+  if (closesocket (_socket) < 0)
+#else
   if (close (_socket) < 0)
+#endif
     {
       perror ("[TcpOutPort -invalidate] close()");
       abort ();
@@ -1112,7 +1120,11 @@ static NSMapTable *out_port_bag = NULL;
   char prefix_buffer[PREFIX_SIZE];
   int c;
   
+#ifdef __WIN32__
+  c = recv (s, prefix_buffer, PREFIX_SIZE, 0);
+#else
   c = read (s, prefix_buffer, PREFIX_SIZE);
+#endif
   if (c == 0)
     {
       *packet_size = EOF;  *rp = nil;
@@ -1159,7 +1171,11 @@ static NSMapTable *out_port_bag = NULL;
 
   remaining = size - eof_position;
   /* xxx We need to make sure this read() is non-blocking. */
+#ifdef __WIN32__
+  c = recv (s, buffer + prefix + eof_position, remaining, 0);
+#else
   c = read (s, buffer + prefix + eof_position, remaining);
+#endif
   if (c == 0)
     return EOF;
   eof_position += c;
@@ -1194,7 +1210,11 @@ static NSMapTable *out_port_bag = NULL;
     memset (buffer + PREFIX_LENGTH_SIZE, 0, PREFIX_ADDRESS_SIZE);
 
   /* Write the packet on the socket. */
+#ifdef __WIN32__
+  c = send (s, buffer, prefix + eof_position, 0);
+#else
   c = write (s, buffer, prefix + eof_position);
+#endif
   if (c < 0)
     {
       perror ("[TcpOutPort -_writeToSocket:] write()");

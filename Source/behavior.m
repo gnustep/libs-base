@@ -65,9 +65,6 @@ static void __objc_class_add_protocols (Class class,
 static BOOL class_is_kind_of(Class self, Class class);
 static void check_class_methods(Class class);
 
-/* The uninstalled dispatch table, declared in gcc/objc/sendmsg.c. */
-extern struct sarray* __objc_uninstalled_dtable;
-
 /* xxx consider using sendmsg.c:__objc_update_dispatch_table_for_class,
    but, I think it will be slower than the current method. */
 
@@ -203,7 +200,7 @@ behavior_class_add_methods (Class class,
 		 the dtable sarray, but if it isn't, let 
 		 __objc_install_dispatch_table_for_class do it. */
 
-	      if (class->dtable != __objc_uninstalled_dtable)
+	      if (class->dtable != objc_get_uninstalled_dtable())
 		{
 		  sarray_at_put_safe (class->dtable,
 				      (sidx) method->method_name->sel_id,
@@ -436,7 +433,7 @@ check_class_methods(Class class)
   int counter;
   MethodList_t mlist;
 
-  if (class->dtable == __objc_uninstalled_dtable)
+  if (class->dtable == objc_get_uninstalled_dtable())
     return;
 
   for (mlist = class->methods; mlist; mlist = mlist->method_next)
