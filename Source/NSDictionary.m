@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include <base/behavior.h>
+#include <base/fast.x>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSUtilities.h>
@@ -656,6 +657,7 @@ static NSString	*indentStrings[] = {
   NSString		*plists[numKeys];
   NSString		*keys[numKeys];
   IMP			appImp;
+  Class			lastClass = 0;
 
   appImp = [(NSObject*)result methodForSelector: appSel];
 
@@ -672,11 +674,14 @@ static NSString	*indentStrings[] = {
   [keyArray getObjects: keys];
   for (i = 0; i < numKeys; i++)
     {
+      if (fastClass(keys[i]) == lastClass)
+	continue;
       if ([keys[i] respondsToSelector: @selector(compare:)] == NO)
 	{
 	  canCompare = NO;
 	  break;
 	}
+      lastClass = fastClass(keys[i]);
     }
 
   if (canCompare)
@@ -688,13 +693,14 @@ static NSString	*indentStrings[] = {
  */
 #define STRIDE_FACTOR 3
       unsigned c,d, stride;
-      BOOL found;
+      BOOL	found;
+      NSComparisonResult	(*comp)(id, SEL, id);
       int count = numKeys;
 
       stride = 1;
       while (stride <= count)
 	stride = stride * STRIDE_FACTOR + 1;
-	
+      lastClass = 0;
       while(stride > (STRIDE_FACTOR - 1))
 	{
 	  // loop to sort for each value of stride
@@ -708,9 +714,18 @@ static NSString	*indentStrings[] = {
 	      while (!found)
 		{
 		  // move to left until correct place
-		  id a = keys[d + stride];
-		  id b = keys[d];
-		  if ([a compare: b] == NSOrderedAscending)
+		  id	a = keys[d + stride];
+		  id	b = keys[d];
+		  Class	x;
+
+		  x = fastClass(a);
+		  if (x != lastClass)
+		    {
+		      lastClass = x;
+		      comp = (NSComparisonResult (*)(id, SEL, id))
+			[a methodForSelector: @selector(compare:)];
+		    }
+		  if ((*comp)(a, @selector(compare:), b) == NSOrderedAscending)
 		    {
 		      keys[d + stride] = b;
 		      keys[d] = a;
