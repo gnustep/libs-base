@@ -1,3 +1,15 @@
+1999-02-04 Adam Fedor <fedor@gnu.org>
+
+	* config/config.printf.c: New file.
+	* configure.in: Test for broken register_printf function.
+
+	* Source/NSLog.m (_NSLog_standard_printf_handler): Use fputs to
+	avoid possible double expansion of format chars.
+
+1999-02-04  Matthias Klose  <doko@cs.tu-berlin.de>
+
+	* Source/include/NSObject.h: eval value in ASSIGN macro only once.
+
 Thu Feb  4 13:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSString.m: ([-dataUsingEncoding:allowLossyConversion:])
