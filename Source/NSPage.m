@@ -34,6 +34,14 @@
 #define getpagesize() vm_page_size
 #endif
 
+#ifdef __SOLARIS__
+#define getpagesize() sysconf(_SC_PAGESIZE)
+#endif
+
+#if __mach__
+#define getpagesize vm_page_size
+#endif
+
 /* Cache the size of a memory page here, so we don't have to make the
    getpagesize() system call repeatedly. */
 static unsigned ns_page_size = 0;
@@ -43,11 +51,7 @@ unsigned
 NSPageSize (void)
 {
   if (!ns_page_size)
-#if __mach__
-    ns_page_size = (unsigned) vm_page_size ();
-#else
     ns_page_size = (unsigned) getpagesize ();
-#endif
   return ns_page_size;
 }
 
