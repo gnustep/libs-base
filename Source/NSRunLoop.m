@@ -164,7 +164,7 @@ static inline BOOL timerInvalidated(NSTimer* timer)
 #define GSI_ARRAY_RETAIN(X)	[(X).obj retain]
 #else
 #define GSI_ARRAY_RELEASE(X)	
-#define GSI_ARRAY_RETAIN(X)	(X).obj
+#define GSI_ARRAY_RETAIN(X)	
 #endif
 
 #include <base/GSIArray.h>
@@ -314,8 +314,8 @@ static NSComparisonResult aSort(GSIArrayItem i0, GSIArrayItem i1)
     {
       GSTimedPerformer	*array[count];
 
-      RETAIN(target);
-      RETAIN(arg);
+      IF_NO_GC(RETAIN(target));
+      IF_NO_GC(RETAIN(arg));
       [perf getObjects: array];
       while (count-- > 0)
 	{
@@ -786,13 +786,13 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 
 - (NSDate*) limitDateForMode: (NSString*)mode
 {
-  CREATE_AUTORELEASE_POOL(arp);
   id			saved_mode;
   NSDate		*when;
   GSIArray		timers;
   GSIArray		watchers;
   NSTimer		*min_timer = nil;
   GSRunLoopWatcher	*min_watcher = nil;
+  CREATE_AUTORELEASE_POOL(arp);
 
   saved_mode = _current_mode;
   _current_mode = mode;
@@ -1011,7 +1011,6 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
 - (void) acceptInputForMode: (NSString*)mode 
 		 beforeDate: limit_date
 {
-  CREATE_AUTORELEASE_POOL(arp);
   NSTimeInterval ti;
   struct timeval timeout;
   void *select_timeout;
@@ -1023,6 +1022,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
   int fd_index;
   id saved_mode;
   int num_inputs = 0;
+  CREATE_AUTORELEASE_POOL(arp);
 
   NSAssert(mode, NSInvalidArgumentException);
   saved_mode = _current_mode;
@@ -1298,7 +1298,7 @@ const NSMapTableValueCallBacks ArrayMapValueCallBacks =
    * releases it.
    */
   d = [d earlierDate: date];
-  RETAIN(d);
+  IF_NO_GC(RETAIN(d));
 
   /* Wait, listening to our input sources. */
   [self acceptInputForMode: mode beforeDate: d];

@@ -260,6 +260,8 @@ extern NSRecursiveLock *gnustep_global_lock;
 #define	CREATE_AUTORELEASE_POOL(X)	
 #endif
 
+#define	IF_NO_GC(X)	
+
 #else
 
 /*
@@ -296,17 +298,18 @@ extern NSRecursiveLock *gnustep_global_lock;
 #ifndef	ASSIGN
 #define	ASSIGN(object,value)	({\
 id __value = (id)(value); \
-if (__value != (id)object) \
+id __object = (id)(object); \
+if (__value != __object) \
   { \
-    if (__value) \
+    object = __value; \
+    if (__value != nil) \
       { \
 	[__value retain]; \
       } \
-    if (object) \
+    if (__object != nil) \
       { \
-	[(id)object release]; \
+	[__object release]; \
       } \
-    (id)object = __value; \
   } \
 })
 #endif
@@ -334,16 +337,19 @@ if (__value != (id)object) \
 #endif
 
 /*
- *	DESTROY() is a release operation which also sets the object to be
+ *	DESTROY() is a release operation which also sets the variable to be
  *	a nil pointer for tidyness - we can't accidentally use a DESTROYED
- *	object later.
+ *	object later.  It also makes sure to set the variable to nil before
+ *	releasing the object - to avoid side-effects of the release trying
+ *	to reference the object being released through the variable.
  */
 #ifndef	DESTROY
 #define	DESTROY(object) 	({ \
   if (object) \
     { \
-      [object release]; \
+      id __o = object; \
       object = nil; \
+      [__o release]; \
     } \
 })
 #endif
@@ -352,6 +358,8 @@ if (__value != (id)object) \
 #define	CREATE_AUTORELEASE_POOL(X)	\
   NSAutoreleasePool *(X) = [NSAutoreleasePool new]
 #endif
+
+#define	IF_NO_GC(X)	X
 
 #endif
 

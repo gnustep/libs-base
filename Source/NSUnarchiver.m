@@ -518,7 +518,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 		   *	order to give the appearance that it's actually a
 		   *	new object.
 		   */
-		  RETAIN(obj);
+		  IF_NO_GC(RETAIN(obj));
 		}
 	      else
 		{
@@ -964,7 +964,7 @@ mapClassName(NSUnarchiverObjectInfo *info)
 	  d = [[NSData allocWithZone: zone] initWithBytesNoCopy: b
 							 length: l
 						       fromZone: zone];
-	  AUTORELEASE(d);
+	  IF_NO_GC(AUTORELEASE(d));
 	  [self decodeArrayOfObjCType: @encode(unsigned char)
 				count: l
 				   at: b];

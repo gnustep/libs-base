@@ -544,10 +544,10 @@ static NSFileManager* defaultManager = nil;
 
       for (i = 0; i < count; i++)
 	{
-	  CREATE_AUTORELEASE_POOL(arp);
 	  NSString		*item;
 	  NSString		*next;
 	  BOOL			result;
+	  CREATE_AUTORELEASE_POOL(arp);
 
 	  item = [contents objectAtIndex: i];
 	  next = [path stringByAppendingPathComponent: item];
@@ -673,10 +673,10 @@ static NSFileManager* defaultManager = nil;
 
       for (index = 0; ok == YES && index < [a1 count]; index++)
 	{
-	  CREATE_AUTORELEASE_POOL(pool);
 	  NSString	*n = [a1 objectAtIndex: index];
 	  NSString	*p1;
 	  NSString	*p2;
+	  CREATE_AUTORELEASE_POOL(pool);
 
 	  p1 = [path1 stringByAppendingPathComponent: n];
 	  p2 = [path2 stringByAppendingPathComponent: n];
@@ -1342,7 +1342,7 @@ static NSFileManager* defaultManager = nil;
       _directoryAttributes = [[NSFileManager defaultManager]
 	fileAttributesAtPath: _topPath
 		traverseLink: _flags.isFollowing];
-      RETAIN(_directoryAttributes);
+      IF_NO_GC(RETAIN(_directoryAttributes));
     }
   return _directoryAttributes;
 }
@@ -1354,7 +1354,7 @@ static NSFileManager* defaultManager = nil;
       _fileAttributes = [[NSFileManager defaultManager]
 	fileAttributesAtPath: _currentFilePath
 		traverseLink: _flags.isFollowing];
-      RETAIN(_fileAttributes);
+      IF_NO_GC(RETAIN(_fileAttributes));
     }
   return _fileAttributes;
 }

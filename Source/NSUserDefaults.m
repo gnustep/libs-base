@@ -107,11 +107,8 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 + (void) resetUserDefaults
 {
-  id	defs = sharedDefaults;
-
   setSharedDefaults = NO;
-  sharedDefaults = nil;
-  RELEASE(defs);
+  DESTROY(sharedDefaults);
 }
 
 + (NSUserDefaults*) standardUserDefaults
@@ -328,25 +325,25 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
         _defaultsDatabase = (NSMutableString*)[path mutableCopy];
       else
 	{
-	  _defaultsDatabase =
-	    (NSMutableString*)[NSMutableString stringWithFormat: @"%@/%@",
-			  NSHomeDirectoryForUser(NSUserName()),
-			  GNU_UserDefaultsDatabase];
-	  RETAIN(_defaultsDatabase);
+	  _defaultsDatabase = (NSMutableString*)
+	    [NSMutableString stringWithFormat: @"%@/%@",
+	    NSHomeDirectoryForUser(NSUserName()),
+	    GNU_UserDefaultsDatabase];
+	  IF_NO_GC([_defaultsDatabase retain]);
 	}
 
       if ([[_defaultsDatabase lastPathComponent] isEqual: 
 	[GNU_UserDefaultsDatabase lastPathComponent]] == YES)
-	_defaultsDatabaseLockName =
-	  (NSMutableString*)[NSMutableString stringWithFormat: @"%@/%@",
-			  [_defaultsDatabase stringByDeletingLastPathComponent],
-			  [GNU_UserDefaultsDatabaseLock lastPathComponent]];
+	_defaultsDatabaseLockName = (NSMutableString*)
+	  [NSMutableString stringWithFormat: @"%@/%@",
+	  [_defaultsDatabase stringByDeletingLastPathComponent],
+	  [GNU_UserDefaultsDatabaseLock lastPathComponent]];
       else
-        _defaultsDatabaseLockName =
-	  (NSMutableString*)[NSMutableString stringWithFormat: @"%@/%@",
-			  NSHomeDirectoryForUser(NSUserName()),
-			  GNU_UserDefaultsDatabaseLock];
-      RETAIN(_defaultsDatabaseLockName);
+        _defaultsDatabaseLockName = (NSMutableString*)
+	  [NSMutableString stringWithFormat: @"%@/%@",
+	  NSHomeDirectoryForUser(NSUserName()),
+	  GNU_UserDefaultsDatabaseLock];
+      IF_NO_GC([_defaultsDatabaseLockName retain]);
       _defaultsDatabaseLock =
 	RETAIN([NSDistributedLock lockWithPath: _defaultsDatabaseLockName]);
     }

@@ -143,7 +143,7 @@ pathSeps()
 #else
       myPathSeps = [NSCharacterSet characterSetWithCharactersInString: @"/"];
 #endif
-      RETAIN(myPathSeps);
+      IF_NO_GC(RETAIN(myPathSeps));
       sepMember = (BOOL (*)(NSCharacterSet*, SEL, unichar))
 	[myPathSeps methodForSelector: @selector(characterIsMember:)];
     }

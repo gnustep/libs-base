@@ -212,13 +212,13 @@ myEqual(id self, id other)
 
       if (keys[i] == nil)
 	{
-	  AUTORELEASE(self);
+	  IF_NO_GC(AUTORELEASE(self));
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil key"];
 	}
       if (objs[i] == nil)
 	{
-	  AUTORELEASE(self);
+	  IF_NO_GC(AUTORELEASE(self));
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init dictionary with nil value"];
 	}
@@ -226,7 +226,7 @@ myEqual(id self, id other)
       node = GSIMapNodeForKey(&map, (GSIMapKey)keys[i]);
       if (node)
 	{
-	  RETAIN(objs[i]);
+	  IF_NO_GC(RETAIN(objs[i]));
 	  RELEASE(node->value.obj);
 	  node->value.obj = objs[i];
 	}
@@ -267,7 +267,7 @@ myEqual(id self, id other)
 	  k = [k copyWithZone: z];
 	  if (k == nil)
 	    {
-	      AUTORELEASE(self);
+	      IF_NO_GC(AUTORELEASE(self));
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init dictionary with nil key"];
 	    }
@@ -281,7 +281,7 @@ myEqual(id self, id other)
 	    }
 	  if (o == nil)
 	    {
-	      AUTORELEASE(self);
+	      IF_NO_GC(AUTORELEASE(self));
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Tried to init dictionary with nil value"];
 	    }
@@ -364,7 +364,7 @@ myEqual(id self, id other)
   node = GSIMapNodeForKey(&map, (GSIMapKey)aKey);
   if (node)
     {
-      RETAIN(anObject);
+      IF_NO_GC(RETAIN(anObject));
       RELEASE(node->value.obj);
       node->value.obj = anObject;
     }

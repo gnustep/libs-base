@@ -127,11 +127,7 @@ GSIArrayGrow(GSIArray array)
 
   next = array->cap + array->old;
   size = next*sizeof(GSIArrayItem);
-#if	GS_WITH_GC
-  tmp = (GSIArrayItem*)GC_REALLOC(size);
-#else
   tmp = NSZoneRealloc(array->zone, array->ptr, size);
-#endif
 
   if (tmp == 0)
     {
@@ -372,11 +368,7 @@ GSIArrayClear(GSIArray array)
 {
   if (array->ptr)
     {
-#if	GS_WITH_GC
-      GC_FREE((void*)array->ptr);
-#else
       NSZoneFree(array->zone, (void*)array->ptr);
-#endif
       array->ptr = 0;
       array->cap = 0;
     }

@@ -401,7 +401,7 @@ static Class NSMutableAttributedString_concrete_class;
       RELEASE(m);
     }
 
-  AUTORELEASE(newAttrString);
+  IF_NO_GC(AUTORELEASE(newAttrString));
   return newAttrString;
 }
 
@@ -453,7 +453,7 @@ static Class NSMutableAttributedString_concrete_class;
     effectiveRange = NSIntersectionRange(aRange,effectiveRange);
     
     newDict = [[NSMutableDictionary alloc] initWithDictionary: attrDict];
-    AUTORELEASE(newDict);
+    IF_NO_GC(AUTORELEASE(newDict));
     [newDict setObject: value forKey: name];
     [self setAttributes: newDict range: effectiveRange];
     
@@ -495,7 +495,7 @@ static Class NSMutableAttributedString_concrete_class;
     effectiveRange = NSIntersectionRange(aRange,effectiveRange);
     
     newDict = [[NSMutableDictionary alloc] initWithDictionary: attrDict];
-    AUTORELEASE(newDict);
+    IF_NO_GC(AUTORELEASE(newDict));
     [newDict addEntriesFromDictionary: attributes];
     [self setAttributes: newDict range: effectiveRange];
     
@@ -527,7 +527,7 @@ static Class NSMutableAttributedString_concrete_class;
     effectiveRange = NSIntersectionRange(aRange,effectiveRange);
     
     newDict = [[NSMutableDictionary alloc] initWithDictionary: attrDict];
-    AUTORELEASE(newDict);
+    IF_NO_GC(AUTORELEASE(newDict));
     [newDict removeObjectForKey: name];
     [self setAttributes: newDict range: effectiveRange];
     

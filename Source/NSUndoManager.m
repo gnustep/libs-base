@@ -99,10 +99,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 
 - (void) orphan
 {
-  id	p = parent;
-
-  parent = nil;
-  RELEASE(p);
+  DESTROY(parent);
 }
 
 - (PrivateUndoGroup*) parent
@@ -427,7 +424,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
 	  postNotificationName: NSUndoManagerWillRedoChangeNotification
 		    object: self];
       groupToRedo = [_redoStack objectAtIndex: [_redoStack count] - 1];
-      RETAIN(groupToRedo);
+      IF_NO_GC([groupToRedo retain]);
       [_redoStack removeObjectAtIndex: [_redoStack count] - 1];
       oldGroup = _group;
       _group = nil;
@@ -684,7 +681,7 @@ NSString *NSUndoManagerWillUndoChangeNotification =
   else
     {
       groupToUndo = [_undoStack objectAtIndex: [_undoStack count] - 1];
-      RETAIN(groupToUndo);
+      IF_NO_GC([groupToUndo retain]);
       [_undoStack removeObjectAtIndex: [_undoStack count] - 1];
     }
   [self beginUndoGrouping];

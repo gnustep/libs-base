@@ -599,7 +599,7 @@ failure:
       if ([mgr fileExistsAtPath: path])
 	{
 	  att = [[mgr fileAttributesAtPath:path traverseLink:YES] mutableCopy];
-	  TEST_AUTORELEASE(att);
+	  IF_NO_GC(TEST_AUTORELEASE(att));
 	}
 
       c = rename(thePath, theRealPath);
@@ -702,7 +702,7 @@ failure:
 	      d = [d initWithBytesNoCopy: *(void**)data
 				  length: len
 			        fromZone: z];
-	      AUTORELEASE(d);
+	      IF_NO_GC(AUTORELEASE(d));
 	    }
 
 	  [self deserializeBytes: *(char**)data
@@ -772,7 +772,7 @@ failure:
 	  d = [d initWithBytesNoCopy: *(void**)data
 			      length: len
 			    fromZone: z];
-	  AUTORELEASE(d);
+	  IF_NO_GC(AUTORELEASE(d));
 	  [self deserializeDataAt: *(char**)data
 		       ofObjCType: type
 			 atCursor: cursor

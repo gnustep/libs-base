@@ -75,7 +75,7 @@ typedef struct {
   if (self == [NSScanner class])
     {
       defaultSkipSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-      RETAIN(defaultSkipSet);
+      IF_NO_GC(RETAIN(defaultSkipSet));
       NSString_class = [NSString class];
       NSGString_class = [NSGString class];
       NSGCString_class = [NSGCString class];

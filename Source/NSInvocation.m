@@ -163,7 +163,7 @@
 
 	      mframe_get_arg(_argframe, &_info[i], &old);
 	      mframe_set_arg(_argframe, &_info[i], buffer);
-	      RETAIN(*(id*)buffer);
+	      IF_NO_GC(RETAIN(*(id*)buffer));
 	      if (old != nil)
 		{
 		  RELEASE(old);
@@ -258,7 +258,7 @@
       int	i;
 
       _argsRetained = YES;
-      RETAIN(_target);
+      IF_NO_GC(RETAIN(_target));
       if (_argframe == 0)
 	{
 	  return;
@@ -274,7 +274,7 @@
 		  mframe_get_arg(_argframe, &_info[i], &old);
 		  if (old != nil)
 		    {
-		      RETAIN(old);
+		      IF_NO_GC(RETAIN(old));
 		    }
 		}
 	      else
@@ -563,7 +563,7 @@
 		*(id*)datum = va_arg (ap, id);
 		if (_argsRetained)
 		  {
-		    RETAIN(*(id*)datum);
+		    IF_NO_GC(RETAIN(*(id*)datum));
 		  }
 		break;
 	      case _C_CHARPTR:

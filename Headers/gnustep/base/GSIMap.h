@@ -717,11 +717,7 @@ GSIMapEmptyMap(GSIMapTable map)
     {
       for (i = 0; i < map->chunkCount; i++)
 	{
-#if	GS_WITH_GC
-	  GC_FREE(map->nodeChunks[i]);
-#else
 	  NSZoneFree(map->zone, map->nodeChunks[i]);
-#endif
 	}
       map->chunkCount = 0;
       NSZoneFree(map->zone, map->nodeChunks);

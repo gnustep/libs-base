@@ -164,7 +164,7 @@
 
       if (objs[i] == nil)
 	{
-	  AUTORELEASE(self);
+	  IF_NO_GC(AUTORELEASE(self));
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init set with nil value"];
 	}

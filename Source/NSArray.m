@@ -1143,7 +1143,7 @@ static NSString	*indentStrings[] = {
 	      id b = [self objectAtIndex: d];
 	      if ((*compare)(a, b, context) == NSOrderedAscending)
 		{
-		  RETAIN(a);
+		  IF_NO_GC(RETAIN(a));
 		  [self replaceObjectAtIndex: d + stride withObject: b];
 		  [self replaceObjectAtIndex: d withObject: a];
 		  RELEASE(a);
@@ -1175,7 +1175,7 @@ static NSString	*indentStrings[] = {
 {
   [super init];
   array = anArray;
-  RETAIN(array);
+  IF_NO_GC(RETAIN(array));
   pos = 0;
   get = [array methodForSelector: oaiSel];
   cnt = (unsigned (*)(NSArray*, SEL))[array methodForSelector: countSel];
