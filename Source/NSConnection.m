@@ -1151,6 +1151,9 @@ static int messages_received_count;
 #endif
     if (type == 0 || *type == '\0') {
 	type = [[object methodSignatureForSelector: sel] methodType];
+	if (type) {
+	    sel_register_typed_name(sel_get_name(sel), type);
+	}
     }
     NSParameterAssert(type);
     NSParameterAssert(*type);

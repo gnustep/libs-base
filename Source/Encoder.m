@@ -503,8 +503,7 @@ my_object_is_class(id object)
 	    [NSException raise: NSGenericException
 			 format: @"ObjC runtime didn't provide SEL name"];
 	  if (!sel_types || !*sel_types)
-	    [NSException raise: NSGenericException
-			 format: @"ObjC runtime didn't provide SEL type"];
+	    sel_types = NO_SEL_TYPES;
 
 	  [self _coderCreateReferenceForConstPtr: sel];
 	  [self encodeValueOfCType: @encode(char*) 
