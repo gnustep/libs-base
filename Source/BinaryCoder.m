@@ -105,9 +105,11 @@ static BOOL debug_binary_coder = NO;
       }
 
     case _C_CHR:
+#ifndef __CHAR_UNSIGNED__
       if (*(char*)d < 0)
 	[stream writeByte:1];
       else
+#endif
 	[stream writeByte:0];
     case _C_UCHR:
       [stream writeByte:*(unsigned char*)d];
