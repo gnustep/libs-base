@@ -127,6 +127,28 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
     }
 }
 
+/**
+ * This class is used to build and manipulate a dictionary of
+ * cross-reference information.<br />
+ * The references are held in a tree consisting of dictionaries
+ * with strings at the leaves -<br />
+ * method method-name class-name file-name<br />
+ * method method-name category-name file-name<br />
+ * method method-name protocol-name file-name<br />
+ * ivariable variable-name class-name file-name<br />
+ * class class-name file-name<br />
+ * category category-name file-name<br />
+ * protocol protocol-name file-name<br />
+ * function function-name file-name<br />
+ * type type-name file-name<br />
+ * constant constant-name file-name<br />
+ * variable variable-name file-name<br />
+ * entry entry-name file-name ref<br />
+ * label label-name file-name ref<br />
+ * contents ref text<br />
+ * super class-name superclass-name<br />
+ * title file-name text<br />
+ */
 @implementation	AGSIndex
 
 + (void) initialize
@@ -163,24 +185,8 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 
 /**
  * Given the root node of a gsdoc document, we traverse the tree
- * looking for interestng nodes, and recording their names in a
- * dictionary of references.  The references are held in a tree
- * consisting of dictionaries with strings at the leaves -<br />
- * method method-name class-name file-name<br />
- * method method-name category-name file-name<br />
- * method method-name protocol-name file-name<br />
- * ivariable variable-name class-name file-name<br />
- * class class-name file-name<br />
- * category category-name file-name<br />
- * protocol protocol-name file-name<br />
- * function function-name file-name<br />
- * type type-name file-name<br />
- * constant constant-name file-name<br />
- * variable variable-name file-name<br />
- * entry entry-name file-name ref<br />
- * label label-name file-name ref<br />
- * In addition to the tree providing file reference information we
- * store a record of the superclasses of each class.
+ * looking for interesting nodes, and recording their names in a
+ * dictionary of references.
  */
 - (void) makeRefs: (GSXMLNode*)node
 {
@@ -370,6 +376,22 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
       else if ([name isEqual: @"subsubsect"] == YES)
 	{
 	  sssect++;
+	}
+      else if ([name isEqual: @"title"] == YES)
+	{
+	  NSMutableDictionary	*d;
+
+	  d = [refs objectForKey: @"title"];
+	  if (d == nil)
+	    {
+	      d = [[NSMutableDictionary alloc] initWithCapacity: 8];
+	      [refs setObject: d forKey: @"title"];
+	      RELEASE(d);
+	    }
+
+	  [d setObject: [[children content] stringByTrimmingSpaces]
+		forKey: base];
+	  children = nil;
 	}
       else
 	{
