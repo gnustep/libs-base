@@ -1,3 +1,9 @@
+2001-01-03  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Change test for objc forwarding hook to match gcc
+	patch.
+	* Source/GSFFCallInvocation.m: Use new forwarding hook.
+
 2001-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: fix for checking windows executable file

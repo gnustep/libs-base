@@ -797,10 +797,9 @@ AC_ARG_ENABLE(ffcall,
 
 AC_CHECK_HEADER(ffi.h, , enable_libffi=no)
 
-AC_TRY_CPP([#include "objc/objc-api.h"
-  #ifndef OBJC_METHOD_LOOKUP_HOOKS 
-  #error
-  #endif], , enable_ffcall=no)
+AC_MSG_CHECKING("for forwarding callback in runtime")
+AC_EGREP_HEADER(__objc_msg_forward, objc/objc-api.h, AC_MSG_RESULT(yes), 
+	        AC_MSG_RESULT(no); enable_ffcall=no)
 AC_CHECK_HEADERS(callback.h, , enable_ffcall=no)
 
 AC_MSG_CHECKING("FFI library usage")
