@@ -1,0 +1,111 @@
+/* Basic functions for @XX@ structures.
+ * Copyright (C) 1995, 1996  Free Software Foundation, Inc.
+ * 
+ * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
+ * Created: Mon Dec 11 01:24:48 EST 1995
+ * Updated: Sat Feb 10 09:56:21 EST 1996
+ * Serial: 96.02.10.01
+ * 
+ * This file is part of the GNU Objective C Class Library.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free
+ * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * 
+ */ 
+
+#ifndef __@XX@_xx_h_OBJECTS_INCLUDE
+#define __@XX@_xx_h_OBJECTS_INCLUDE 1
+
+/**** Included Headers *******************************************************/
+
+#include <stdlib.h>
+#include <objects/allocs.h>
+#include <objects/number.h>
+#include <objects/magic.h>
+
+/**** Type, Constant, and Macro Definitions **********************************/
+
+#define __@XX@__ 1
+
+/**** Function Implementations ***********************************************/
+
+/** Magic **/
+
+/* Returns XX's magic number. */
+int objects_@XX@_magic (objects_@XX@_t *xx);
+
+/** Allocs **/
+
+/* Returns the allocs used to create and maintain XX. */
+objects_allocs_t objects_@XX@_allocs (objects_@XX@_t *xx);
+
+/** Names **/
+
+/* Returns the name that was given to XX. */
+const char *objects_@XX@_name (objects_@XX@_t *xx);
+
+/* Gives XX a name.  Space is allocated, and the contents of the
+ * NUL-terminated NAME are copied.  Deallocating XX frees up the
+ * space.  I.e., it is not the responsibility of the programmer to
+ * keep track of space allocated for this procedure. */
+const char *objects_@XX@_set_name (objects_@XX@_t *xx, const char *name);
+
+/* Takes away XX's name. */
+void objects_@XX@_unset_name (objects_@XX@_t *xx);
+
+/** Number **/
+
+/* Returns the (process-wide) unique number given to the Libfn
+ * structure XX.  See <objects/number.h> for more info. */
+size_t objects_@XX@_serial_number (objects_@XX@_t *xx);
+
+/* Gives XX a new (process-wide) unique number.  Numbers are not
+ * reused.  See <objects/number.h> for more info. */
+size_t _objects_@XX@_set_serial_number (objects_@XX@_t *xx);
+
+/** Extras **/
+
+/* Sets the callbacks associated with XX's ``extra''.  NOTE: This must
+ * be done before calling `objects_@XX@_set_extra()', as these callbacks
+ * are used in that routine. */
+objects_callbacks_t objects_@XX@_set_extra_callbacks (objects_@XX@_t *xx, objects_callbacks_t callbacks);
+
+/* Returns the callbacks associated with XX's ``extra''. */
+objects_callbacks_t objects_@XX@_extra_callbacks (objects_@XX@_t *xx, objects_callbacks_t callbacks);
+
+/* Returns XX's ``extra'', a little extra space that each Libobjects
+ * structure carries around with it.  Its use is
+ * implementation-dependent. */
+const void *objects_@XX@_extra (objects_@XX@_t *xx);
+
+/* Sets XX's ``extra'', a little extra space that each Libobjets structure
+ * carries around with it.  Its use is implementation-dependent. */
+const void *objects_@XX@_set_extra (objects_@XX@_t *xx, const void *extra);
+
+/* Resets XX's ``extra''. */
+void objects_@XX@_unset_extra (objects_@XX@_t *xx);
+
+/** Low-level Creation and Destruction **/
+
+/* Handles the universal, low-level allocation of Libobjects structures. */
+objects_@XX@_t *_objects_@XX@_alloc_with_allocs (objects_allocs_t allocs);
+
+/* Handles the universal, low-level deallocation of Libobjects structures. */
+void _objects_@XX@_dealloc (objects_@XX@_t *xx);
+
+/* Handles the low-level copying of Libobjects structures. */
+objects_@XX@_t *_objects_@XX@_copy_with_allocs (objects_@XX@_t *xx, objects_allocs_t allocs);
+
+#endif /* __@XX@_xx_h_OBJECTS_INCLUDE */
+
