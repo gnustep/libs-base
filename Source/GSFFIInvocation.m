@@ -471,17 +471,22 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 	}
     }
   
-  if (sig == nil && sel_get_type (selector) != 0)
+  if (sig == nil)
+    {
+      selector = gs_find_best_typed_sel (selector);
+
+      if (sel_get_type (selector) != 0)
     {
       sig = [NSMethodSignature signatureWithObjCTypes: sel_get_type(selector)];
+    }
     }
 
   if (sig == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"%s(%s) does not recognize %s",
+                   format: @"Can not determine type information for %s[%s %s]",
+                   GSObjCIsInstance(obj) ? "-" : "+",
 	 GSClassNameFromObject(obj),
-	 GSObjCIsInstance(obj) ? "instance" : "class",
 	 selector ? GSNameFromSelector(selector) : "(null)"];
     }
     
