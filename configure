@@ -11351,6 +11351,7 @@ fi
 
 echo "$as_me:$LINENO: checking whether precompiler handles LONG_LONG_MAX" >&5
 echo $ECHO_N "checking whether precompiler handles LONG_LONG_MAX... $ECHO_C" >&6
+# We need to define _GNU_SOURCE for some systems to enable LONG_LONG_MAX
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -11358,7 +11359,10 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#ifdef HAVE_STDINT_H
+#ifndef _GNU_SOURCE
+	#define _GNU_SOURCE
+	#endif
+        #ifdef HAVE_STDINT_H
 	#include <stdint.h>
 	#endif
 	#include <limits.h>
@@ -11414,7 +11418,6 @@ fi
 #
 echo "$as_me:$LINENO: checking whether we have LLONG_MAX" >&5
 echo $ECHO_N "checking whether we have LLONG_MAX... $ECHO_C" >&6
-
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */

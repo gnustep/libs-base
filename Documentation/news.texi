@@ -9,6 +9,17 @@ The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.9.1}
+
+@itemize @bullet
+@item Default string encoding taken from system nl_langinfo if not set
+with GNUSTEP_STRING_ENCODING.
+@item NSKeyedArchiver/NSKeyedUnarchiver classes added.
+@item NSPropertyLists class added, also decodes Mac OS X binary propery lists.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.9.0}
 
 @itemize @bullet
@@ -21,8 +32,6 @@ complex DO retain/release problems.
 @item NSString subclass heirarchy reorganized to fix problems with copying
 and ownership of data.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.8.0}
 

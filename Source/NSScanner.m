@@ -32,6 +32,11 @@
 #include "Foundation/NSException.h"
 #include "Foundation/NSObjCRuntime.h"
 #include "Foundation/NSUserDefaults.h"
+
+/* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <float.h>
 #include <limits.h>
 #include <math.h>

@@ -10,7 +10,7 @@ GNUstep-HOWTO is located in the gnustep-make package or at
    If you are installing the GNUstep libraries individually, make sure
 you have installed the GNUstep Makefile package (gnustep-make) already,
 and you have sourced the makefile script:
-     . $GNUSTEP_SYSTEM_ROOT/Makeifles/GNUstep.sh
+     . $GNUSTEP_SYSTEM_ROOT/Library/Makefiles/GNUstep.sh
    See the GNUstep-HOWTO for more information.
 
    After installing this library you should install gnustep-gui if you
@@ -94,10 +94,11 @@ FFI Library
 detailed manipulation of the stack and function calls using a library
 that implements a Foreign-Function Interface (FFI), such as the ffcall
 or libffi libraries. Use of ffcall is automatically enabled if the
-ffcall libraries are found, unless specifically disabled with
-`--disable-ffcall'.  If disabled, the code reverts to the builtin
-method for stack frame handling, but this rarely works on non-ix86
-machines and is not supported.
+ffcall libraries are found (and the same with libffi, although ffcall
+takes precedence), unless specifically disabled with `--disable-do'.
+If disabled, the code reverts to the builtin method for stack frame
+handling, but this rarely works on non-ix86 machines and is not
+supported.
 
    You need to have the ffcall libraries, which you can get from
 <ftp://www.gnustep.org/pub/gnustep/libs/> or
@@ -106,12 +107,12 @@ version of the Objective-C library if you are not using gcc 3.x (before
 gcc 3.0 the required hooks were not in the standard library). You can
 get this library from <ftp://www.gnustep.org/pub/gnustep/libs>.
 
-   Support for the libffi library has also been added, although it is
-not as well tested as ffcall. Current versions of libffi are only
-distributed with gcc version 3.x, although it is not installed by
-default. To install it, after you have built gcc, do something like:
-     mkdir newlibffi
-     cd newlibffi
+   Support for the libffi library has also been added.  Current versions
+of libffi are only distributed with gcc version 3.x, although it is not
+installed by default. To install it, after you have built gcc, do
+something like:
+     mkdir libffi-build
+     cd libffi-build
      ../gcc-3.2.1/libffi/configure
      make
      ffitest

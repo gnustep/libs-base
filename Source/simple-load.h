@@ -12,8 +12,8 @@
 
 */
 
-#ifndef __sunos_load_h_INCLUDE
-#define __sunos_load_h_INCLUDE
+#ifndef __simple_load_h_INCLUDE
+#define __simple_load_h_INCLUDE
 
 #ifndef __USE_GNU
 #define __USE_GNU
@@ -25,6 +25,9 @@
 
 #ifndef RTLD_GLOBAL
 #define RTLD_GLOBAL 0
+#endif
+#ifndef RTLD_DEFAULT
+#define RTLD_DEFAULT 0
 #endif
 
 /* Types defined appropriately for the dynamic linker */

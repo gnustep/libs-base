@@ -1,3 +1,14 @@
+2004-02-28  Adam Fedor  <fedor@gnu.org>
+
+	* Version 1.9.1
+	* Documentation/install.texi, news.texi: Update
+
+	* configure.ac: Define _GNU_SOURCE for LONG_LONG check
+	* Source/GSFormat.m: Idem.
+	* Source/NSScanner.m: Idem.
+
+	* Source/simple-load.h: Define RTLD_DEFAULT if not defined.
+
 2004-02-28 17:52  Alexander Malmberg <alexander@malmberg.org>
 
 	* configure.ac, configure: Define GS_UINT64 properly if there is
