@@ -1948,6 +1948,10 @@ static SEL swfsSel = 0;
   return YES;
 }
 
+#if (defined(sparc) && defined(DEBUG))
+static int sparc_warn = 0;
+#endif
+
 - (NSDictionary*) _attributesAtPath: (NSString*)path
 		       traverseLink: (BOOL)traverse
 			    forCopy: (BOOL)copy
@@ -2048,7 +2052,7 @@ static SEL swfsSel = 0;
       values[8] = @"UnknownUser";
 #endif /* HAVE_PWD_H */
 
-#if HAVE_GRP_H
+#if defined(HAVE_GRP_H) && !(defined(sparc) && defined(DEBUG))
       {
 	struct group *gp;
 
@@ -2071,6 +2075,13 @@ static SEL swfsSel = 0;
 	endgrent();
       }
 #else
+#if (defined(sparc) && defined(DEBUG))
+      if (sparc_warn == 0)
+	{
+	  sparc_warn = 1;
+          NSLog(@"WARNING (NSFileManager): Disabling group enums (setgrent, etc) since this crashes gdb on sparc machines");
+	}
+#endif
       values[9] = @"UnknownGroup";
 #endif
       values[10] = [NSNumber numberWithUnsignedInt: statbuf.st_uid];

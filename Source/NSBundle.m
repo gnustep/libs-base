@@ -1329,6 +1329,12 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   mgr = [NSFileManager defaultManager];
   env = [[NSProcessInfo processInfo] environment];
   pathlist = [env objectForKey:@"PATH"];
+
+/* Windows 2000 and perhaps others have "Path" not "PATH" */
+  if (pathlist == nil)
+    {
+      pathlist = [env objectForKey:@"Path"];
+    }
 #if defined(__MINGW__)
   patharr = [pathlist componentsSeparatedByString:@";"];
 #else
