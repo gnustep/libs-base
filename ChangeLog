@@ -1,3 +1,13 @@
+Sat Dec 12 17:40:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/include/GSConfig.h.in: Added new file for machine/os specific
+	info that is relevent to things outside the base library.
+	* configure.in: Build GSConfig.h
+	* configure: Build GSConfig.h
+	* src/GNUmakefile: Move GSConfig.h into place
+	* src/Makefile.postamble: Install GSConfig.h
+	* src/include/NSByteOrder.h: include GSConfig.h
+
 Sat Dec 12 15:40:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Tools/Makefile.postamble: Added check that you are installing gdomap
