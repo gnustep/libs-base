@@ -1,3 +1,9 @@
+1999-04-09  Adam Fedor  <fedor@gnu.org>
+
+	* NSCharacterSets: Updated sets to Version 2.1.8
+	* Souce/NSCharacterSet.m: Updated to reflect new names of character
+	sets.
+
 1999-04-08  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Remove test for libobjc.a
