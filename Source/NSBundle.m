@@ -787,7 +787,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   if (_infoDict)
     return _infoDict;
 
-  path = [self pathForResource: @"Info" ofType: @"plist"];
+  path = [self pathForResource: @"Info-gnustep" ofType: @"plist"];
   if (path)
     _infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
   else
