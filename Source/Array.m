@@ -139,9 +139,8 @@
   return self;
 }
 
-- (void) dealloc
+- (void) _collectionDealloc
 {
-  [self empty];
   OBJC_FREE(_contents_array);
   [super dealloc];
 }
