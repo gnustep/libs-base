@@ -18,6 +18,7 @@
 	(-initWithCallback:returnp:values:frame:signature:): Simplify
 	setting values. Structs passed by ref when MFRAME_STRUCT_BYREF.
 	(GSFFIInvokeWithTargetAndImp): Encoding values unneedded now.
+	(gs_objc_msg_forward): Free the closure via NSData.
 
 	* Source/mframe/powerpc/generic: Fix offset for structs.
 	* Source/mframe/powerpc/linux-gnu: Idem.
