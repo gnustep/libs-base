@@ -1,3 +1,9 @@
+2004-09-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHost.m: Use isEqualToString rather than == to test for
+	the special local host name.  Fix check for nil hostname in
+	([_initWithHostEntry:key:])
+
 2004-09-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: ([_getReplyRmc:]) improve timeout code.
