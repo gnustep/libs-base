@@ -223,13 +223,57 @@ static Class NSCountedSet_concrete_class;
 
 
 void
-GSUPurge(int level)
+GSUPurge(unsigned level)
 {
   if (uniqueLock != nil)
     {
       (*lockImp)(uniqueLock, @selector(lock));
     }
   [uniqueSet purge: level];
+  if (uniqueLock != nil)
+    {
+      (*unlockImp)(uniqueLock, @selector(unlock));
+    }
+}
+
+void
+GSUSet(id obj, unsigned level)
+{
+  id		found;
+  unsigned	i;
+
+  if (uniqueLock != nil)
+    {
+      (*lockImp)(uniqueLock, @selector(lock));
+    }
+  found = [uniqueSet member: obj];
+  if (found == nil)
+    {
+      for (i = 0; i < level; i++)
+	{
+	  [uniqueSet addObject: obj];
+	}
+    }
+  else
+    {
+      i = [uniqueSet countForObject: obj];
+      if (i < level)
+	{
+	  while (i < level)
+	    {
+	      [uniqueSet addObject: obj];
+	      i++;
+	    }
+	}
+      else if (i > level)
+	{
+	  while (i > level)
+	    {
+	      [uniqueSet removeObject: obj];
+	      i--;
+	    }
+	}
+    }
   if (uniqueLock != nil)
     {
       (*unlockImp)(uniqueLock, @selector(unlock));

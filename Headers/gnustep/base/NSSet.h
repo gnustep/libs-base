@@ -119,8 +119,15 @@ id	GSUnique(id anObject);
 
 /*
  * Management functions -
+ *
+ * GSUPurge() can be used to purge infrequently referenced objects from the
+ * set by removing any objec whose count is less than or equal to that given.
+ *
+ * GSUSet() can be used to artificially set the count for a particular object
+ * Setting the count to zero will remove the object from the global set.
  */
-void	GSUPurge(int count);	/* Purge infrequently referenced objs	*/
+void	GSUPurge(unsigned count);
+void	GSUSet(id anObject, unsigned count);
 
 #include <base/KeyedCollecting.h>
 
