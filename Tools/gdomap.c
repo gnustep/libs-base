@@ -97,7 +97,7 @@ typedef	unsigned char	*uptr;
 int	debug = 0;		/* Extra debug logging.			*/
 int	nofork = 0;		/* turn off fork() for debugging.	*/
 int	noprobe = 0;		/* turn off probe for unknown servers.	*/
-int	interval = 300;		/* Minimum time (sec) between probes.	*/
+int	interval = 600;		/* Minimum time (sec) between probes.	*/
 
 int	udp_sent = 0;
 int	tcp_sent = 0;
@@ -509,17 +509,17 @@ typedef struct	{
 } prb_type;
 prb_type	**prb = 0;
 
-static prb_type	*prb_get(struct in_addr *old);
-
 /*
  *	Name -		prb_add()
- *	Purpose -	Create a new probe entry in the list in the
- *			appropriate position.
+ *	Purpose -	Create a new probe entry in the list.
+ *			The new entry is always placed at the end of the list
+ *			so that the list remains in the order in which hosts
+ *			have been contancted.
  */
 static void
 prb_add(struct in_addr *p)
 {
-  prb_type	*n;
+  prb_type	*n = 0;
   int		i;
 
   if (is_local_host(*p) != 0)
@@ -531,16 +531,37 @@ prb_add(struct in_addr *p)
       return;
     }
     
-  n = prb_get(p);
-  if (n)
+  /*
+   * If we already have an entry for this address, remove it from the list
+   * ready for re-insertion in the correct place.
+   */
+  for (i = 0; i < prb_used; i++)
     {
-      n->when = time(0);
-      return;
+      if (memcmp(&prb[i]->sin, p, IASIZE) == 0)
+	{
+	  n = prb[i];
+	  for (i++; i < prb_used; i++)
+	    {
+	      prb[i-1] = prb[i];
+	    }
+	  prb_used--;
+	}
     }
-  n = (prb_type*)malloc(sizeof(prb_type));
-  n->sin = *p;
+
+  /*
+   * Create a new entry structure if necessary.
+   * Set the current time in the structure, so we know when we last had contact.
+   */
+  if (n == 0)
+    {
+      n = (prb_type*)malloc(sizeof(prb_type));
+      n->sin = *p;
+    }
   n->when = time(0);
 
+  /*
+   * Grow the list if we need more space.
+   */
   if (prb_used >= prb_size)
     {
       int	size = (prb_size + 16) * sizeof(prb_type*);
@@ -556,57 +577,14 @@ prb_add(struct in_addr *p)
 	  prb_size = 16;
 	}
     }
-  for (i = 0; i < prb_used; i++)
-    {
-      if (memcmp((char*)&prb[i]->sin, (char*)&n->sin, IASIZE) > 0)
-	{
-	  int	j;
 
-	  for (j = prb_used+1; j > i; j--)
-	    {
-	      prb[j] = prb[j-1];
-	    }
-	  break;
-	}
-    }
-  prb[i] = n;
+  /*
+   * Append the new item at the end of the list.
+   */
+  prb[prb_used] = n;
   prb_used++;
 }
 
-/*
- *	Name -		prb_get()
- *	Purpose -	Search the list for an entry for a particular addr
- */
-static prb_type*
-prb_get(struct in_addr *p)
-{
-  int		lower = 0;
-  int		upper = prb_used;
-  int		index;
-
-  for (index = upper/2; upper != lower; index = lower + (upper - lower)/2)
-    {
-      int	i = memcmp(&prb[index]->sin, p, IASIZE);
-
-      if (i < 0)
-	{
-	  lower = index + 1;
-        }
-      else if (i > 0)
-	{
-	  upper = index;
-        }
-      else
-	{
-	  break;
-        }
-    }
-  if (index<prb_used && memcmp(&prb[index]->sin,p,IASIZE)==0)
-    {
-      return prb[index];
-    }
-  return 0;
-}
 
 /*
  *	Name -		prb_del()
@@ -1972,15 +1950,24 @@ handle_request(int desc)
   else if (type == GDO_SERVERS)
     {
       int	i;
+      int	j;
 
       free(w_info[desc].buf);
       w_info[desc].buf = (char*)malloc(sizeof(unsigned long) +
 		(prb_used+1)*IASIZE);
       *(unsigned long*)w_info[desc].buf = htonl(prb_used+1);
       mcopy(&w_info[desc].buf[4], &r_info[desc].addr.sin_addr, IASIZE);
-      for (i = 0; i < prb_used; i++)
+
+      /*
+       * Copy the addresses of the hosts we have probed into the buffer.
+       * During the copy, reverse the order of the addresses so that the
+       * address we have contacted most recently is first.  This should
+       * ensure that the client process will attempt to contact live
+       * hosts before dead ones.
+       */
+      for (i = 0, j = prb_used; i < prb_used; i++)
 	{
-	  mcopy(&w_info[desc].buf[4+(i+1)*IASIZE], &prb[i]->sin, IASIZE);
+	  mcopy(&w_info[desc].buf[4+(i+1)*IASIZE], &prb[--j]->sin, IASIZE);
 	}
       w_info[desc].len = 4 + (prb_used+1)*IASIZE;
     }
@@ -2197,9 +2184,7 @@ handle_send()
 		  fprintf(stderr, "failed sendto for %s\n",
 			    inet_ntoa(entry->addr.sin_addr));
 		}
-	      u_queue = entry->next;
-	      free(entry->dat);
-	      free(entry);
+	      queue_pop();
 	    }
 	}
       else
@@ -2903,7 +2888,7 @@ main(int argc, char** argv)
 	    printf("-c file		use config file for probe.\n");
 	    printf("-d		extra debug logging.\n");
 	    printf("-f		avoid fork() to make debugging easy\n");
-	    printf("-i seconds	re-probe at this interval (roughly)\n");
+	    printf("-i seconds	re-probe at this interval (roughly), min 60\n");
 	    printf("-p		obsolete no-op\n");
 	    printf("\n");
 	    exit(0);

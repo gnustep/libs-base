@@ -1,3 +1,8 @@
+Sat Aug 21  6:26:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Tools/gdomap.c: Fix for probing for other gdomap processes on the
+	net.
+
 Fri Aug 20 16:17:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * NSNotificationQueue.m: notifyIdle() fix to send ASAP notifications
