@@ -294,6 +294,7 @@ NSDictionary.m \
 NSEnumerator.m \
 NSException.m \
 NSGeometry.m \
+NSGNUCoder.m \
 NSNumber.m \
 NSObject.m \
 NSRange.m \
@@ -340,6 +341,7 @@ foundation/NSConcreteValue.h \
 foundation/NSDictionary.h \
 foundation/NSException.h \
 foundation/NSGeometry.h \
+foundation/NSGNUCoder.h \
 foundation/NSInvocation.h \
 foundation/NSMethodSignature.h \
 foundation/NSObjCRuntime.h \
