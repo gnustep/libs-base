@@ -11,6 +11,9 @@
 	* Source/mframe.m: When scanning arguments, skip type information
 	for things poionted to by a pointer - more efficient than scanning
 	the fine structure and then throwing away the scanned information.
+	* Source/additions/GSMime.m: Fill in 'type' field in multipart/related
+	and fix bug in seaarch by content id.  Also minor consistency change
+	to API.
 
 2002-11-27  Manuel Guesdon <mguesdon@orange-concept.com>
 
