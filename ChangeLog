@@ -1,5 +1,10 @@
 2002-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSTask.m: When launching under windoze, don't forget to
+	use the fileSystemrepresentation of the program name.
+
+2002-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSXML.m: Fix function prototype ... gets rid of
 	compiler warning.
 	* Source/GNUmakefile: remove o_vscanf.c ... unused
