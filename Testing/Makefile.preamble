@@ -45,7 +45,8 @@ ADDITIONAL_OBJCFLAGS = -g
 ADDITIONAL_CFLAGS = 
 
 # Additional include directories the compiler should search
-ADDITIONAL_INCLUDE_DIRS = -I../src -I../src/srcdir-include
+ADDITIONAL_INCLUDE_DIRS = -I../src -I../src/srcdir-include \
+	-I../src/$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
 
 # Additional LDFLAGS to pass to the linker
 ADDITIONAL_LDFLAGS = 
