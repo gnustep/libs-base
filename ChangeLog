@@ -1,3 +1,8 @@
+Tue Mar 12 11:13:51 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/Additions/GSXML.m ([-isEqualTo:]): Renamed everywhere to
+	isEqual:
+
 Tue Mar 12 09:21:20 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSAssertionHandler.m
