@@ -1,3 +1,11 @@
+Wed Aug 25 15:28:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	Fixes for memory leaks in parsing property lists.
+	* Source/propList.h: release new strings asap
+	* Source/NSString.m: autorelease value returned by parsing plists.
+	* Source/NSGString.m: ditto.
+	* Source/NSGCString.m: ditto.
+
 Wed Aug 25 11:37:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/Makefile.postamble: Added rules to build some files without

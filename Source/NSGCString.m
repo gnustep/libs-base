@@ -338,6 +338,15 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
   return (const char*)r;
 }
 
+- (const char *) lossyCString
+{
+  unsigned char	*r = (unsigned char*)_fastMallocBuffer(_count+1);
+
+  memcpy(r, _contents_chars, _count);
+  r[_count] = '\0';
+  return (const char*)r;
+}
+
 - (void) getCString: (char*)buffer
 {
   memcpy(buffer, _contents_chars, _count);
@@ -718,7 +727,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (NSDictionary*) propertyListFromStringsFileFormat
@@ -741,7 +750,7 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (unsigned)anIndex

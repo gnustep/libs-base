@@ -1401,8 +1401,21 @@ handle_printf_atsign (FILE *stream,
 
 - (const char*) cString
 {
-  [self subclassResponsibility: _cmd];
-  return NULL;
+  NSData	*d = [self dataUsingEncoding: _DefaultStringEncoding
+			allowLossyConversion: NO];
+  if (d == nil)
+    {
+      [NSException raise: NSCharacterConversionException
+		  format: @"unable to convert to cString"];
+    }
+  return (const char*)[d bytes];
+}
+
+- (const char*) lossyCString
+{
+  NSData	*d = [self dataUsingEncoding: _DefaultStringEncoding
+			allowLossyConversion: YES];
+  return (const char*)[d bytes];
 }
 
 - (unsigned) cStringLength
@@ -1554,7 +1567,7 @@ handle_printf_atsign (FILE *stream,
       char t;
       unsigned char *buff;
 
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len);
+      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
       if (!flag)
 	{
 	  for (count = 0; count < len; count++)
@@ -1590,6 +1603,7 @@ handle_printf_atsign (FILE *stream,
 		}
 	    }
 	}
+      buff[count] = '\0';
       return [NSData dataWithBytesNoCopy: buff length: count];
     }
   else if (encoding == NSUnicodeStringEncoding)
@@ -2441,7 +2455,7 @@ handle_printf_atsign (FILE *stream,
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (NSDictionary*) propertyListFromStringsFileFormat
@@ -2467,7 +2481,7 @@ handle_printf_atsign (FILE *stream,
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 @end

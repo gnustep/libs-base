@@ -406,7 +406,7 @@
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (NSDictionary*) propertyListFromStringsFileFormat
@@ -429,7 +429,7 @@
       [NSException raise: NSGenericException
 		  format: @"%@ at line %u", data.err, data.lin];
     }
-  return result;
+  return AUTORELEASE(result);
 }
 
 
