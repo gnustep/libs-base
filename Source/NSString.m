@@ -368,8 +368,45 @@
    options: (unsigned int)mask
    range: (NSRange)aRange
 {
-  [self notImplemented:_cmd];
-  return 0;
+  /* xxx ignores NSAnchoredSearch in mask.  Fix this. */
+  /* xxx only handles C-string encoding */
+
+  int i, start, end, increment;
+  const char *s1 = [self _cStringContents];
+  const char *s2 = [aString _cStringContents];
+
+  if (mask & NSBackwardsSearch) 
+    {
+      start = aRange.location + aRange.length;
+      end = aRange.location;
+      increment = -1;
+    }
+  else
+    {
+      start = aRange.location;
+      end = aRange.location + aRange.length;
+      increment = 1;
+    }
+
+  if (mask & NSCaseInsensitiveSearch)
+    {
+      for (i = start; i < end; i += increment)
+	{
+	  int c1 = tolower(s1[i]);
+	  int c2 = tolower(s2[i]);
+	  if (c1 < c2) return NSOrderedAscending;
+	  if (c1 > c2) return NSOrderedDescending;
+	}
+    }
+  else
+    {
+      for (i = start; i < end; i += increment)
+	{
+	  if (s1[i] < s2[i]) return NSOrderedAscending;
+	  if (s1[i] > s2[i]) return NSOrderedDescending;
+	}
+    }
+  return NSOrderedSame;
 }
 
 - (BOOL) hasPrefix: (NSString*)aString
