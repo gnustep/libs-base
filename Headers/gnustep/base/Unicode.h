@@ -40,10 +40,10 @@ GS_EXPORT NSStringEncoding *GetAvailableEncodings();
 GS_EXPORT NSStringEncoding GetDefEncoding();
 GS_EXPORT NSString* GetEncodingName(NSStringEncoding encoding);
 
-GS_EXPORT unichar chartouni(char c);
-GS_EXPORT char unitochar(unichar u);
-GS_EXPORT unichar encode_chartouni(char c, NSStringEncoding enc);
-GS_EXPORT char encode_unitochar(unichar u, NSStringEncoding enc);
+GS_EXPORT unichar chartouni(unsigned char c);
+GS_EXPORT unsigned char unitochar(unichar u);
+GS_EXPORT unichar encode_chartouni(unsigned char c, NSStringEncoding enc);
+GS_EXPORT unsigned char encode_unitochar(unichar u, NSStringEncoding enc);
 GS_EXPORT unsigned encode_unitochar_strict(unichar u, NSStringEncoding enc);
 
 GS_EXPORT int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl, 

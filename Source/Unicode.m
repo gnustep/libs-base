@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct {unichar from; char to;} _ucc_;
+typedef struct {unichar from; unsigned char to;} _ucc_;
 
 #include "unicode/cyrillic.h"
 #include "unicode/latin2.h"
@@ -447,7 +447,7 @@ iconv_ustrtocstr(char *s2, int size2, const unichar *u1, int size1,
 #endif
 
 unichar
-encode_chartouni(char c, NSStringEncoding enc)
+encode_chartouni(unsigned char c, NSStringEncoding enc)
 {
   /* All that I could find in Next documentation
     on NSNonLossyASCIIStringEncoding was << forthcoming >>. */
@@ -504,7 +504,7 @@ encode_chartouni(char c, NSStringEncoding enc)
     }
 }
 
-char
+unsigned char
 encode_unitochar(unichar u, NSStringEncoding enc)
 {
   int	res;
@@ -514,26 +514,26 @@ encode_unitochar(unichar u, NSStringEncoding enc)
     {
       case NSNonLossyASCIIStringEncoding:
 	if (u < 128)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  return '*';
 
       case NSASCIIStringEncoding:
 	if (u < 128)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  return '*';
 
       case NSISOLatin1StringEncoding:
       case NSUnicodeStringEncoding:	  
 	if (u < 256)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  return '*';
 
       case NSNEXTSTEPStringEncoding:
 	if (u < (unichar)Next_conv_base)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  {
 	    while (((res = u - Next_uni_to_char_table[i++].from) > 0)
@@ -543,7 +543,7 @@ encode_unitochar(unichar u, NSStringEncoding enc)
 
       case NSISOCyrillicStringEncoding:
 	if (u < (unichar)Cyrillic_conv_base)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  {
 	    while (((res = u - Cyrillic_uni_to_char_table[i++].from) > 0)
@@ -553,7 +553,7 @@ encode_unitochar(unichar u, NSStringEncoding enc)
 
       case NSISOLatin2StringEncoding:
 	if (u < (unichar)Latin2_conv_base)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  {
 	    while (((res = u - Latin2_uni_to_char_table[i++].from) > 0)
@@ -570,7 +570,7 @@ encode_unitochar(unichar u, NSStringEncoding enc)
 #if 0
       case NSSymbolStringEncoding:
 	if (u < (unichar)Symbol_conv_base)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  {
 	    while (((res = u - Symbol_uni_to_char_table[i++].from) > 0)
@@ -606,19 +606,19 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
     {
       case NSNonLossyASCIIStringEncoding:
 	if (u < 128)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  return 0;
 
       case NSASCIIStringEncoding:
 	if (u < 128)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  return 0;
 
       case NSISOLatin1StringEncoding:
 	if (u < 256)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  return 0;
 
@@ -627,7 +627,7 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
 
       case NSNEXTSTEPStringEncoding:
 	if (u < (unichar)Next_conv_base)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  {
 	    while (((res = u - Next_uni_to_char_table[i++].from) > 0)
@@ -637,7 +637,7 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
 
       case NSISOCyrillicStringEncoding:
 	if (u < (unichar)Cyrillic_conv_base)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  {
 	    while (((res = u - Cyrillic_uni_to_char_table[i++].from) > 0)
@@ -647,7 +647,7 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
 
       case NSISOLatin2StringEncoding:
 	if (u < (unichar)Latin2_conv_base)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  {
 	    while (((res = u - Latin2_uni_to_char_table[i++].from) > 0)
@@ -665,7 +665,7 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
 #if 0
       case NSSymbolStringEncoding:
 	if (u < (unichar)Symbol_conv_base)
-	  return (char)u;
+	  return (unsigned char)u;
 	else
 	  {
 	    while (((res = u - Symbol_uni_to_char_table[i++].from) > 0)
@@ -698,7 +698,7 @@ encode_unitochar_strict(unichar u, NSStringEncoding enc)
 }
 
 unichar
-chartouni(char c)
+chartouni(unsigned char c)
 {
   if (defEnc == GSUndefinedEncoding)
     {
@@ -707,7 +707,7 @@ chartouni(char c)
   return encode_chartouni(c, defEnc);
 }
 
-char
+unsigned char
 unitochar(unichar u)
 {
   if (defEnc == GSUndefinedEncoding)
