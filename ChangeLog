@@ -2,6 +2,8 @@
 
 	* Source/GSFormat.m: Fixed error in PAD() macro - it was failing to
 	decrement a counter - and looping forever.
+	Fixed error in formatted output of string arguments ... was
+	crashing with range exception.
 
 2001-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 

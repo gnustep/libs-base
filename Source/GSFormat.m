@@ -1585,11 +1585,13 @@ NSDictionary *locale)
 	  {
 	    /* This is complicated.  We have to transform the multibyte
 	       string into a unicode string.  */
-	    NSString *str;
-	    NSRange r;
+	    const char		*str = (const char*)string;
+	    unsigned		slen = strlen(str);
+	    NSStringEncoding	enc = GetDefEncoding();
 
-	    str = [NSString stringWithCString: (const char *)string];
-	    len = prec != -1 ? prec : [str length];
+	    len = prec != -1 ? prec : slen;
+	    if (len > slen)
+	      len = slen;
 
 	    /* Allocate dynamically an array which definitely is long
 	       enough for the wide character version.  */
@@ -1600,9 +1602,8 @@ NSDictionary *locale)
 	    else
 	      string_malloced = 1;
 
-	    r.location = 0;
-	    r.length = len;
-	    [str getCharacters: string range: r];
+	    for (slen = 0; slen < len; slen++)
+	      string[slen] = encode_chartouni(str[slen], enc);
 	  }
 	else
 	  {
@@ -1632,7 +1633,7 @@ NSDictionary *locale)
 	    while (prc--) *sp = *wsp;
 	  }
 
-	if ((width -= len) < 0)
+	if ((width -= len) <= 0)
 	  {
 	    outstring (string, len);
 	    break;
