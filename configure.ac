@@ -661,17 +661,16 @@ AC_CHECK_HEADERS(libc.h limits.h malloc.h memory.h string.h signal.h dnl
 	sys/signal.h sys/wait.h sys/file.h sys/fcntl.h dnl
 	sys/ioctl.h sys/stropts.h unistd.h utime.h stdint.h sys/inttypes.h)
 
+INCLUDE_STDINT=no
 if test $ac_cv_header_stdint_h = yes; then
 INCLUDE_STDINT="#include <stdint.h>"
-DEFINE_INT8_T=""
-DEFINE_UINT8_T=""
-DEFINE_INT16_T=""
-DEFINE_UINT16_T=""
-DEFINE_INT32_T=""
-DEFINE_UINT32_T=""
-DEFINE_INT64_T=""
-DEFINE_UINT64_T=""
 else
+if test $ac_cv_header_sys_inttypes_h = yes; then
+INCLUDE_STDINT="#include <sys/inttypes.h>"
+endif
+endif
+
+if test $INCLUDE_STDINT = no; then
 INCLUDE_STDINT=""
 DEFINE_INT8_T="#define int8_t gss8"
 DEFINE_UINT8_T="#define uint8_t gsu8"
@@ -681,7 +680,17 @@ DEFINE_INT32_T="#define int32_t gss32"
 DEFINE_UINT32_T="#define uint32_t gsu32"
 DEFINE_INT64_T="#define int64_t gss64"
 DEFINE_UINT64_T="#define uint64_t gsu64"
+else
+DEFINE_INT8_T=""
+DEFINE_UINT8_T=""
+DEFINE_INT16_T=""
+DEFINE_UINT16_T=""
+DEFINE_INT32_T=""
+DEFINE_UINT32_T=""
+DEFINE_INT64_T=""
+DEFINE_UINT64_T=""
 fi
+
 AC_SUBST(INCLUDE_STDINT)
 AC_SUBST(DEFINE_INT8_T)
 AC_SUBST(DEFINE_UINT8_T)
