@@ -135,7 +135,7 @@ static id dummyObject;
 {
   if (!xref_2_object)
     {
-      xref_2_object = [NSArray new];
+      xref_2_object = [NSMutableArray new];
       /* Append an object so our xref numbers are in sync with the 
 	 Encoders, which start at 1. */
       [xref_2_object addObject: dummyObject];
@@ -169,7 +169,7 @@ static id dummyObject;
 - (void) _coderPushRootObjectTable
 {
   if (!xref_2_object_root)
-    xref_2_object_root = [NSArray new];
+    xref_2_object_root = [NSMutableArray new];
 }
 
 - (void) _coderPopRootObjectTable
@@ -186,7 +186,7 @@ static id dummyObject;
 {
   if (!xref_2_object_root)
     {
-      xref_2_object_root = [NSArray new];
+      xref_2_object_root = [NSMutableArray new];
       /* Append an object so our xref numbers are in sync with the 
 	 Encoders, which start at 1. */
       [xref_2_object_root addObject: dummyObject];
