@@ -44,6 +44,37 @@
 
 @implementation GSValue
 
+static inline int
+typeSize(const char* type)
+{
+  switch (*type)
+    {
+      case _C_ID:	return sizeof(id);
+      case _C_CLASS:	return sizeof(Class);
+      case _C_SEL:	return sizeof(SEL);
+      case _C_CHR:	return sizeof(char);
+      case _C_UCHR:	return sizeof(unsigned char);
+      case _C_SHT:	return sizeof(short);
+      case _C_USHT:	return sizeof(unsigned short);
+      case _C_INT:	return sizeof(int);
+      case _C_UINT:	return sizeof(unsigned int);
+      case _C_LNG:	return sizeof(long);
+      case _C_ULNG:	return sizeof(unsigned long);
+      case _C_LNG_LNG:	return sizeof(long long);
+      case _C_ULNG_LNG:	return sizeof(unsigned long long);
+      case _C_FLT:	return sizeof(float);
+      case _C_DBL:	return sizeof(double);
+      case _C_PTR:	return sizeof(void*);
+      case _C_CHARPTR:	return sizeof(char*);
+      case _C_BFLD:
+      case _C_ARY_B:
+      case _C_UNION_B:
+      case _C_STRUCT_B:	return objc_sizeof_type(type);
+      case _C_VOID:	return 0;
+      default:		return -1;
+    }
+}
+
 // Allocating and Initializing 
 
 - (id) initWithBytes: (const void *)value
@@ -59,43 +90,19 @@
   self = [super init];
   if (self != nil)
     {
-      int	size;
+      int	size = typeSize(type);
   
-      switch (*type)
-	{
-	  case _C_ID:		size = sizeof(id);		break;
-	  case _C_CLASS:	size = sizeof(Class);		break;
-	  case _C_SEL:		size = sizeof(SEL);		break;
-	  case _C_CHR:		size = sizeof(char);		break;
-	  case _C_UCHR:		size = sizeof(unsigned char);	break;
-	  case _C_SHT:		size = sizeof(short);		break;
-	  case _C_USHT:		size = sizeof(unsigned short);	break;
-	  case _C_INT:		size = sizeof(int);		break;
-	  case _C_UINT:		size = sizeof(unsigned int);	break;
-	  case _C_LNG:		size = sizeof(long);		break;
-	  case _C_ULNG:		size = sizeof(unsigned long);	break;
-	  case _C_LNG_LNG:	size = sizeof(long long);	break;
-	  case _C_ULNG_LNG:	size = sizeof(unsigned long long);	break;
-	  case _C_FLT:		size = sizeof(float);		break;
-	  case _C_DBL:		size = sizeof(double);		break;
-	  case _C_PTR:		size = sizeof(void*);		break;
-	  case _C_CHARPTR:	size = sizeof(char*);		break;
-	  case _C_BFLD:
-	  case _C_ARY_B:
-	  case _C_UNION_B:
-	  case _C_STRUCT_B:	size = objc_sizeof_type(type);	break;
-	  default:		size = 0;			break;
-	}
-      if (size <= 0) 
+      if (size < 0) 
 	{
 	  NSLog(@"Tried to create NSValue with invalid Objective-C type");
 	  RELEASE(self);
 	  return nil;
 	}
-
-      data = (void *)NSZoneMalloc(GSObjCZone(self), size);
-      memcpy(data, value, size);
-
+      if (size > 0)
+	{
+	  data = (void *)NSZoneMalloc(GSObjCZone(self), size);
+	  memcpy(data, value, size);
+	}
       objctype = (char *)NSZoneMalloc(GSObjCZone(self), strlen(type)+1);
       strcpy(objctype, type);
     }
@@ -104,9 +111,9 @@
 
 - (void) dealloc
 {
-  if (objctype)
+  if (objctype != 0)
     NSZoneFree(GSObjCZone(self), objctype);
-  if (data)
+  if (data != 0)
     NSZoneFree(GSObjCZone(self), data);
   [super dealloc];
 }
@@ -114,22 +121,30 @@
 // Accessing Data 
 - (void) getValue: (void *)value
 {
-  if (!value)
+  unsigned	size;
+
+  size = (unsigned)typeSize(objctype);
+  if (size > 0)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Cannot copy value into NULL buffer"];
-      /* NOT REACHED */
+      if (value != 0)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Cannot copy value into NULL buffer"];
+	  /* NOT REACHED */
+	}
+      memcpy(value, data, size);
     }
-  memcpy(value, data, objc_sizeof_type(objctype));
 }
 
 - (unsigned) hash
 {
-  unsigned	size = objc_sizeof_type(objctype);
+  unsigned	size = typeSize(objctype);
   unsigned	hash = 0;
 
   while (size-- > 0)
-    hash += ((unsigned char*)data)[size];
+    {
+      hash += ((unsigned char*)data)[size];
+    }
   return hash;
 }
 
@@ -143,7 +158,7 @@
     return NO;
   else
     {
-      unsigned	size = objc_sizeof_type(objctype);
+      unsigned	size = (unsigned)typeSize(objctype);
 
       if (memcmp(((GSValue*)aValue)->data, data, size) != 0)
 	return NO;
@@ -156,38 +171,72 @@
   return objctype;
 }
  
-// FIXME: need to check to make sure these hold the right values...
 - (id) nonretainedObjectValue
 {
+  unsigned	size = (unsigned)typeSize(objctype);
+
+  if (size != sizeof(void*))
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Return value of size %u as object", size];
+    }
   return *((id *)data);
 }
  
+- (NSPoint) pointValue
+{
+  unsigned	size = (unsigned)typeSize(objctype);
+
+  if (size != sizeof(NSPoint))
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Return value of size %u as NSPoint", size];
+    }
+  return *((NSPoint *)data);
+}
+
 - (void *) pointerValue
 {
+  unsigned	size = (unsigned)typeSize(objctype);
+
+  if (size != sizeof(void*))
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Return value of size %u as pointer", size];
+    }
   return *((void **)data);
-} 
+}
 
 - (NSRect) rectValue
 {
+  unsigned	size = (unsigned)typeSize(objctype);
+
+  if (size != sizeof(NSRect))
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Return value of size %u as NSRect", size];
+    }
   return *((NSRect *)data);
 }
  
 - (NSSize) sizeValue
 {
+  unsigned	size = (unsigned)typeSize(objctype);
+
+  if (size != sizeof(NSSize))
+    {
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Return value of size %u as NSSize", size];
+    }
   return *((NSSize *)data);
 }
  
-- (NSPoint) pointValue
-{
-  return *((NSPoint *)data);
-}
-
 - (NSString *) description
 {
   unsigned	size;
   NSData	*rep;
 
-  size = objc_sizeof_type(objctype);
+  size = (unsigned)typeSize(objctype);
   rep = [NSData dataWithBytes: data length: size];
   return [NSString stringWithFormat: @"(%s) %@", objctype, [rep description]];
 }
@@ -200,7 +249,7 @@
   size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(char) count: size at: objctype];
-  size = objc_sizeof_type(objctype);
+  size = (unsigned)typeSize(objctype);
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(unsigned char) count: size at: data];
 }

@@ -12,7 +12,9 @@
 	before any attempt is made to use locale dependent code.
 	* Source/NSString.m: ([-stringByExpandingTildeInPath:]) fix suggested
 	by David Wetzel.
-	* Source/GSValue.m: Fix abort when initialising value with illegal type.
+	* Source/GSValue.m: Fix abort when initialising value with illegal
+	type.  Also fix all other uses of objc_sizeof_type(), add some checks
+	to conform to documentation, and some optimisations.
 
 2001-04-22  Nicola Pero  <n.pero@mi.flashnet.it>
 
