@@ -1,7 +1,7 @@
 2003-04-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSInvocation: Added NS_INVOCATION asnd NS_MESSAGE
-	* Source/NSInvocation.m: Support the two new macros.
+	* Source/NSInvocation.m: Support the two new macros. Documented.
 	* Testing/nsinvocation.m: Trivial tests added.
         * Documentation/OpenStepCompliance.gsdoc: Updated.
 

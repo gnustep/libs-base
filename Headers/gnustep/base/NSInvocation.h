@@ -1,7 +1,7 @@
 /* Interface for NSInvocation for GNUStep
-   Copyright (C) 1998 Free Software Foundation, Inc.
+   Copyright (C) 1998,2003 Free Software Foundation, Inc.
 
-   Written:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Author:	Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: 1998
    Based on code by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    
@@ -103,12 +103,25 @@
 + (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy;
 @end
 
+/**
+ *  Creates and returns an autoreleased invocation containing a
+ *  message to an instance of the class.  The 'message' consists
+ *  of selector and arguments like a standard ObjectiveC method
+ *  call.<br />
+ *  Before using the returned invocation, you need to set its target.
+ */
 #define NS_INVOCATION(class, message...) ({\
   id __proxy = [NSInvocation _newProxyForInvocation: class]; \
   [__proxy message]; \
   [NSInvocation _returnInvocationAndDestroyProxy: __proxy]; \
 })
 
+/**
+ *  Creates and returns an autoreleased invocation containing a
+ *  message to the target object.  The 'message' consists
+ *  of selector and arguments like a standard ObjectiveC method
+ *  call.
+ */
 #define NS_MESSAGE(target, message...) ({\
   id __proxy = [NSInvocation _newProxyForMessage: target]; \
   [__proxy message]; \
