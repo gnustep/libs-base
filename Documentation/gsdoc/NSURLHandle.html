@@ -10,9 +10,11 @@
  <dl>
 <dt><a href ="http://www.gnustep.org/developers/whoiswho.html">Richard Frith-Macdonald</a>
 <dd>
+<dt><a href ="http://www.brainstorm.co.uk">Mark Allison</a>
+<dd>
 </dl>
-<p>Version: 0.1</p>
-<p>Date: 28 February, 2000</p>
+<p>Version: 0.2</p>
+<p>Date: 22 November, 2000</p>
 <h2><a name ="cont-0">NSURLHandle</a></h2>
 <h2><a name ="NSURLHandle">NSURLHandle</a></h2>
 <p><b>Declared in: </b> Foundation/NSURLHandle.h</p>
@@ -34,6 +36,23 @@
 	      can register new subclasses to extend (or replace) the
 	      standard ones.
 	    </p>
+
+	    <p>
+
+	      GNUstep comes with private subclasses to handle the common
+	      URL schemes -
+	    </p>
+
+	    <ul>
+<li>
+		<a href ="#GSFileURLHandle">GSFileURLHandle</a> for
+		<code>file:</code> (local file I/O)
+	      
+<li>
+		<a href ="#GSHTTPURLHandle">GSHTTPURLHandle</a> for
+		<code>http</code> and <code>shttp</code> (webserver) access.
+	      
+</ul>
 
           
 <h2>Instance Variables </h2>
@@ -63,7 +82,7 @@
 <li><a href ="NSURLHandle.html#method-15">-resourceData</a>
 <li><a href ="NSURLHandle.html#method-16">-status</a>
 <li><a href ="NSURLHandle.html#method-17">-writeData:</a>
-<li><a href ="NSURLHandle.html#method-18">-writeProperty:</a>
+<li><a href ="NSURLHandle.html#method-18">-writeProperty:forKey:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">URLHandleClassForURL:</a></h3>
@@ -241,8 +260,8 @@ Your subclass <em>must </em> override this abstract method.<br>
 	    NO on failure.
           
  <hr>
-<h3><a name ="method-18">writeProperty:</a></h3>
-- (BOOL) <b>writeProperty:</b> (id)propertyValue;<br>
+<h3><a name ="method-18">writeProperty:forKey:</a></h3>
+- (BOOL) <b>writeProperty:</b> (id)propertyValue <b>forKey:</b> (NSString*)key;<br>
 Your subclass <em>must </em> override this abstract method.<br>
 
 	    Attempts to set property for handle.
@@ -271,7 +290,7 @@ Your subclass <em>must </em> override this abstract method.<br>
 <h3><a name ="method-20">URLHandleResourceDidCancelLoading:</a></h3>
 - (void) <b>URLHandleResourceDidCancelLoading:</b> (NSURLHandle*)sender;<br>
 
-	    Sent by the NSURLHandle object when resource loading is cancelled
+	    Sent by the NSURLHandle object when resource loading is canceled
 	    by programmatic request (rather than by failure).
           
  <hr>
@@ -311,6 +330,235 @@ Your subclass <em>must </em> override this abstract method.<br>
 </ul>
 
 	
+ <hr>
+<h2><a name ="cont-1">GSFileURLHandle</a></h2>
+<h2><a name ="GSFileURLHandle">GSFileURLHandle</a></h2>
+<p><b>Inherits from: </b> NSURLHandle</p>
+<hr>
+
+	  <p>
+
+	    This is a <em>PRIVATE</em> subclass of NSURLHandle.
+	    It is documented here in order to give you information about the
+	    default behavior of an NSURLHandle created to deal with a URL
+	    that has the FILE scheme.  The name and/or other
+	    implementation details of this class may be changed at any time.
+	  </p>
+
+	  <p>
+
+	    A GSFileURLHandle instance is used to manage files on the local
+	    file-system of your machine.
+	  </p>
+
+	
+<h2>Instance Variables </h2>
+<ul>
+</ul>
+<h2>Methods </h2>
+<ul>
+<li><a href ="NSURLHandle.html#method-24">-propertyForKey:</a>
+<li><a href ="NSURLHandle.html#method-25">-writeData:</a>
+<li><a href ="NSURLHandle.html#method-26">-writeProperty:forKey:</a>
+</ul>
+<hr><h2>Instances Methods </h2>
+<h3><a name ="method-24">propertyForKey:</a></h3>
+- (id) <b>propertyForKey:</b> (NSString*)propertyKey;<br>
+
+	    Gets file attribute information for the file represented by
+	    the handle, using the same dictionary keys as the
+	    NSFileManager class.
+          
+ <hr>
+<h3><a name ="method-25">writeData:</a></h3>
+- (BOOL) <b>writeData:</b> (NSData*)data;<br>
+
+	    Writes the specified data as the contents of the file
+	    represented by the handle.
+          
+ <hr>
+<h3><a name ="method-26">writeProperty:forKey:</a></h3>
+- (BOOL) <b>writeProperty:</b> (id)propertyValue <b>forKey:</b> (NSString*)key;<br>
+
+	    Changes the attributes of the file represented by this handle.
+	    This method uses the same dictionary keys as the NSFileManger
+	    class.
+          
+ <hr>
+<h2><a name ="cont-2">GSHTTPURLHandle</a></h2>
+<h2><a name ="GSHTTPURLHandle">GSHTTPURLHandle</a></h2>
+<p><b>Inherits from: </b> NSURLHandle</p>
+<hr>
+
+	  <p>
+
+	    This is a <em>PRIVATE</em> subclass of NSURLHandle.
+	    It is documented here in order to give you information about the
+	    default behavior of an NSURLHandle created to deal with a URL
+	    that has either the <code>http</code> or <code>https</code> scheme.
+	    The name and/or other implementation details of this class
+	    may be changed at any time.
+	  </p>
+
+	  <p>
+
+	    A GSHTTPURLHandle instance is used to manage connections to
+	    <code>http</code> and <code>https</code> URLs.
+	     Secure connections are handled automatically
+	    (using openSSL) for URLs with the scheme <code>https</code>.
+	    Connection via proxy server is supported, as is proxy tunneling
+	    for secure connections.  Basic parsing of <code>http</code>
+	    headers is performed to extract <code>http</code> status
+	    information, cookies etc.  Cookies are
+	    retained and automatically sent during subsequent requests where
+	    the cookie is valid.
+	  </p>
+
+	  <p>
+
+	    Header information from the current page may be obtained using
+	    -propertyForKey and -propertyForKeyIfAvailable.  <code>HTTP</code>
+	    status information can be retrieved as by calling either of these 
+	    methods specifying one of the following keys:
+	  </p>
+
+	  <ul>
+<li>
+	      NSHTTPPropertyStatusCodeKey - numeric status code
+	    
+<li>
+	      NSHTTPPropertyStatusReasonKey - text describing status
+	    
+<li>
+	      NSHTTPPropertyServerHTTPVersionKey - <code>http</code>
+	      version supported by remote server
+	    
+</ul>
+
+	  <p>
+
+	    According to MacOS-X headers, the following should also
+	    be supported, but currently are not:
+	  </p>
+
+	  <ul>
+<li>NSHTTPPropertyRedirectionHeadersKey
+<li>NSHTTPPropertyErrorPageDataKey
+</ul>
+
+	  <p>
+
+	    The omission of these headers is not viewed as important at
+	    present, since the MacOS-X public beta implementation doesn't
+	    work either.
+	  </p>
+
+	  <p>
+
+	    Other calls to -propertyForKey and -propertyForKeyIfAvailable may
+	    be made specifying a <code>http</code> header field name.
+	    For example specifying a key name of "Content-Length"
+	    would return the value of the "Content-Length" header
+	    field.
+	  </p>
+
+	  <p>
+
+	    <a href ="#GSHTTPURLHandle-writeProperty:forKey:">
+	    -writeProperty:forKey:</a> can be used to specify the parameters
+	    for the <code>http</code> request.  The default request uses the
+	    "GET" method when fetching a page, and the
+	    "POST" method when using -writeData:.
+	    This can be over-ridden by calling -writeProperty:forKey: with
+	    the key name "GSHTTPPropertyMethodKey" and specifying an 
+	    alternative method (i.e "PUT").
+	  </p>
+
+	  <p>
+
+	    A Proxy may be specified by calling -writeProperty:forKey:
+	    with the keys "GSHTTPPropertyProxyHostKey" and
+	    "GSHTTPPropertyProxyPortKey" to set the host and port
+	    of the proxy server respectively.  The GSHTTPPropertyProxyHostKey
+	    property can be set to either the IP address or the hostname of
+	    the proxy server.  If an attempt is made to load a page via a
+	    secure connection when a proxy is specified, GSHTTPURLHandle will
+	    attempt to open an SSL Tunnel through the proxy.
+	  </p>
+
+	
+<h2>Instance Variables </h2>
+<ul>
+</ul>
+<h2>Methods </h2>
+<ul>
+<li><a href ="NSURLHandle.html#method-27">-propertyForKey:</a>
+<li><a href ="NSURLHandle.html#method-28">-writeData:</a>
+<li><a href ="NSURLHandle.html#GSHTTPURLHandle-writeProperty:forKey:">-writeProperty:forKey:</a>
+</ul>
+<hr><h2>Instances Methods </h2>
+<h3><a name ="method-27">propertyForKey:</a></h3>
+- (id) <b>propertyForKey:</b> (NSString*)propertyKey;<br>
+
+	    If necessary, this method calls -loadInForeground to send a
+	    request to the webserver, and get a page back.  It then returns
+	    the property for the specified key -
+	    <ul>
+<li>
+		NSHTTPPropertyStatusCodeKey - numeric status code returned
+		by the last request.
+	      
+<li>
+		NSHTTPPropertyStatusReasonKey - text describing status of
+		the last request
+	      
+<li>
+		NSHTTPPropertyServerHTTPVersionKey - <code>http</code>
+		version supported by remote server
+	      
+<li>
+		Other keys are taken to be the names of <code>http</code>
+		headers and the corresponding header value (or nil if there
+		is none) is returned.
+	      
+</ul>
+
+          
+ <hr>
+<h3><a name ="method-28">writeData:</a></h3>
+- (BOOL) <b>writeData:</b> (NSData*)data;<br>
+
+	    Writes the specified data as the body of an <code>http</code>
+	    or <code>https</code> request to the web server.
+	    Returns YES on success,
+	    NO on failure.  By default, this method performs a POST operation.
+	    On completion, the resource data for this handle is set to the
+	    page returned by the request.
+          
+ <hr>
+<h3><a name ="GSHTTPURLHandle-writeProperty:forKey:">writeProperty:forKey:</a></h3>
+- (BOOL) <b>writeProperty:</b> (id)propertyValue <b>forKey:</b> (NSString*)key;<br>
+
+	    Sets a property to be used in the next request made by this handle.
+	    The property is set as a header in the next request, unless it is
+	    one of the following -
+	    <ul>
+<li>
+		GSHTTPPropertyMethodKey - override the default method of
+		the request (eg. "PUT").
+	      
+<li>
+		GSHTTPPropertyProxyHostKey - specify the name or IP address
+		of a host to proxy through.
+	      
+<li>
+		GSHTTPPropertyProxyPortKey - specify the port number to 
+		connect to on the proxy host.  If not give, this defaults
+		to 8080 for <code>http</code> and 4430 for <code>https</code>.
+	      
+</ul>
+
+          
  <hr>
 </body>
 

@@ -8,6 +8,7 @@
 	* Source/GSTcpPort.m: ([-connectToPort:beforeDate:]) added locking to
 	prevent possible problems with two threads trying to get root object
 	of a new connection at the same time.
+	* Documentation/gsdoc/NSURLHandle.gsdoc: Added subclass information.
 
 2000-11-22  Richard Frith-Macdonald <rfm@gnu.org>
 
