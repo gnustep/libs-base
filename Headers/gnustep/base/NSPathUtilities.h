@@ -46,7 +46,7 @@ GS_EXPORT NSArray  *GSStandardPathPrefixes(void);
 #endif
 GS_EXPORT NSString *NSUserName(void);
 GS_EXPORT NSString *NSHomeDirectory(void);
-GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *userName);
+GS_EXPORT NSString *NSHomeDirectoryForUser(NSString *loginName);
 
 #ifndef STRICT_OPENSTEP
 typedef enum
@@ -72,7 +72,7 @@ typedef unsigned int NSSearchPathDomainMask;
 #define NSSystemDomainMask	0x00000008
 #define NSAllDomainsMask	0xffffffff
 
-GS_EXPORT NSArray *NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directory, NSSearchPathDomainMask domainMask, BOOL expandTilde);
+GS_EXPORT NSArray *NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey, NSSearchPathDomainMask domainMask, BOOL expandTilde);
 GS_EXPORT NSString *NSFullUserName(void);
 GS_EXPORT NSArray *NSStandardApplicationPaths(void);
 GS_EXPORT NSArray *NSStandardLibraryPaths(void);
