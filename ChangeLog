@@ -1,11 +1,15 @@
 2004-01-12  Adam Fedor  <fedor@gnu.org>
 
+	* SSL/GNUmakefile: Include ../config.mak
+
+2004-01-12  Adam Fedor  <fedor@gnu.org>
+
 	* Source/Makefile.preamble: Add library depends for baseadd
 	* Source/Additions/GSLock.m: Include GSCategories.
 	* Source/Additions/GSObjCRuntime.m: Define -methodForSelector:
 	since Apple doesn't.
 	* Source/Additions/GSXML.m: Idem as well as GSXPathObject method.
-	Change warnings varialbe to NSHashTable*.
+	Change warnings variable to NSHashTable*.
 
 	* Tools/AGSHtml.m ([AGSHtml -outputNode:to:]): Change name
 	of block variable to avoid clash

@@ -25,6 +25,7 @@
 # Install into the system root by default
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_SYSTEM_ROOT)
 
+-include ../config.mak
 -include config.mak
 
 GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES=../base.make
