@@ -171,13 +171,16 @@ typedef enum {
       [self close];
       if (state == GSPC_LOPEN)
 	{
+	  NSRunLoop	*loop = [NSRunLoop currentRunLoop];
+	  NSTimer	*timer;
+
 	  NSLog(@"NSPortNameServer attempting to start gdomap on local host"); 
 	  [NSTask launchedTaskWithLaunchPath: launchCmd arguments: nil];
-	  [NSTimer scheduledTimerWithTimeInterval: 5.0
-				       invocation: nil
-					  repeats: NO];
-	  [[NSRunLoop currentRunLoop] runUntilDate:
-	    [NSDate dateWithTimeIntervalSinceNow: 5.0]];
+	  timer = [NSTimer timerWithTimeInterval: 5.0
+				      invocation: nil
+					 repeats: NO];
+	  [loop addTimer: timer forMode: [loop currentMode]];
+	  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 5.0]];
 	  NSLog(@"NSPortNameServer retrying connection attempt to gdomap"); 
 	  state = GSPC_RETRY;
 	  [self open: nil];
