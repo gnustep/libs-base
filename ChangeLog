@@ -4,6 +4,9 @@
 	we return nil on initialisation failure rather than raising an
 	exception.  I believe that init failures should deallocate their
 	objects and return nil.
+	* Source/NSArray.m: ([-initWithContentsOfFile:]) include filename in
+	NSWarnMLog() message.
+	* Source/NSDictionary.m: ([-initWithContentsOfFile:]) use NSWarnMLog
 
 2001-05-14  Adam Fedor  <fedor@gnu.org>
 

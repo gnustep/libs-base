@@ -441,7 +441,7 @@ static SEL	rlSel;
 	  return self;
 	}
     }
-  NSWarnMLog(@"Contents of file does not contain an array", 0);
+  NSWarnMLog(@"Contents of file '%@' does not contain an array", file);
   RELEASE(self);
   return nil;
 }
