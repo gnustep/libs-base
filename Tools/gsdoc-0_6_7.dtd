@@ -54,7 +54,7 @@
 <!ENTITY % boolean "(yes|no)">
 
 <!-- Entity for phrase elements. -->
-<!ENTITY % phrase "var | em | code | strong | file | site">
+<!ENTITY % phrase "var | ivar | em | code | strong | file | site">
 
 <!-- Entity for cross references. -->
 <!ENTITY % xref "ref | uref | url | email | prjref">
@@ -149,7 +149,7 @@
 <!ELEMENT ref (%text;)*>
 <!ATTLIST ref
   id CDATA #REQUIRED
-  type (class|protocol|method|function|type|macro|variable|constant|label|EOModel|EOEntity) "label"
+  type (class|protocol|method|ivariable|function|type|macro|variable|constant|label|EOModel|EOEntity) "label"
   class CDATA #IMPLIED
 >
 
@@ -488,7 +488,7 @@
 <!-- Index -->
 <!ELEMENT index EMPTY>
 <!ATTLIST index
-  type (class | protocol | method | function | type | macro | variable | constant | label) "label"
+  type (class | protocol | method | ivariable | function | type | macro | variable | constant | label) "label"
 >
 
 

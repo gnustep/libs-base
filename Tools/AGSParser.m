@@ -1279,6 +1279,9 @@ fail:
  * comments (with an additional asterisk after the start of the block
  * comment) and extracts their contents, accumulating them into the
  * 'comment' instance variable.<br />
+ * When the data provided by a comment is appended to the data
+ * stored in the 'comment' instance variable, a line break (&lt;br /&gt;)is
+ * automatically forced to separate it from the proceding info.<br />
  * In addition, the first extracted documentation is checked for the
  * prsence of file header markup, which is extracted into the 'info'
  * dictionary.
@@ -1392,7 +1395,7 @@ fail:
 	      tmp = [NSString stringWithCharacters: start length: end - start];
 	      if (comment != nil)
 		{
-		  tmp = [comment stringByAppendingString: tmp];
+		  tmp = [comment stringByAppendingFormat: @"<br />\n%@", tmp];
 		}
 	      ASSIGN(comment, tmp);
 	    }
