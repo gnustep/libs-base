@@ -28,30 +28,38 @@
 #include <objects/Coding.h>
 #include <objects/Streaming.h>
 #include <objects/String.h>
+#include <Foundation/NSHashTable.h>
+#include <Foundation/NSMapTable.h>
 
 @class CStream;
-@class Dictionary;
-@class Stack;
-@class Array;			/* xxx Change this to "Set" */
 
-/* xxx Should I split this into Encoder and Decoder classes? */
+
+/* The root abstract class for archiving */
 
-@interface Coder : NSObject <Encoding, Decoding>
+@interface Coder : NSObject
 {
   int format_version;
   CStream *cstream;
-  BOOL is_decoding;
-  Dictionary *classname_map;         /* for changing class names on r/w */
-  Dictionary *object_table;	     /* read/written objects */
-  Dictionary *const_ptr_table;       /* read/written const *'s */
-  Dictionary *root_object_table;     /* table of interconnected objects */
-  Dictionary *forward_object_table;  /* table of forward references */
-  Array *in_progress_table;          /* objects started r/w, but !finished */
-  int interconnected_stack_height;   /* number of nested root objects */
-  NSZone *zone;
+  NSMapTable *classname_2_classname; /* for changing class names on r/w */
+  int interconnect_stack_height;     /* number of nested root objects */
 }
 
-/* Encoding */
++ setDebugging: (BOOL)f;
+
+@end
+
+
+/* An abstract class for writing an archive */
+
+@interface Encoder : Coder
+{
+  /* xxx in_progress_table should actually be an NSHashTable,
+     but we are working around a bug right now. */
+  NSMapTable *in_progress_table;    /* objects begun writing, but !finished */
+  NSMapTable *object_2_xref;         /* objects already written */
+  NSMapTable *object_2_fref;         /* table of forward references */
+  NSMapTable *const_ptr_2_xref;      /* const pointers already written */
+}
 
 - initForWritingToFile: (id <String>) filename;
 - initForWritingToFile: (id <String>) filename
@@ -76,9 +84,34 @@
   	         withName: (id <String>) name
 		 toStream: (id <Streaming>)stream;
 
-/* Decoding */
-/* These are class methods because the header of the file or stream
-   determines which (sub)class of Coder is created. */
+/* Defaults */
++ (void) setDefaultStreamClass: sc;
++ defaultStreamClass;
++ (void) setDefaultFormatVersion: (int)fv;
++ (int) defaultFormatVersion;
+
+@end
+
+@interface Encoder (Encoding) <Encoding>
+@end
+
+
+
+/* An abstract class for reading an archive. */
+
+@interface Decoder : Coder
+{
+  NSZone *zone;			  /* zone in which to create objects */
+  id xref_2_object;               /* objects already read */
+  id xref_2_object_root;          /* objs read since last -startDecodoingI.. */
+  NSMapTable *xref_2_const_ptr;   /* const pointers already written */
+  NSMapTable *fref_2_object;      /* table of forward references */
+  NSMapTable *address_2_fref;     /* table of forward references */
+}
+
+/* These are class methods (and not instance methods) because the
+   header of the file or stream determines which subclass of Decoder
+   is created. */
 
 + newReadingFromFile: (id <String>) filename;
 + newReadingFromStream: (id <Streaming>)stream;
@@ -88,17 +121,13 @@
 + decodeObjectWithName: (id <String> *) name
 	    fromStream: (id <Streaming>)stream;
 
-
-/* Querying */
-
-+ (void) setDefaultStreamClass: sc;
-+ defaultStreamClass;
-+ (int) defaultFormatVersion;
-
-
-+ setDebugging: (BOOL)f;
-
 @end
+
+@interface Decoder (Decoding) <Decoding>
+@end
+
+
+/* Extensions to NSObject for encoding and decoding. */
 
 @interface NSObject (OptionalNewWithCoder)
 + newWithCoder: (Coder*)aDecoder;
@@ -106,11 +135,11 @@
 
 @interface NSObject (CoderAdditions) 
 /* <SelfCoding> not needed because of NSCoding */
-
 /* These methods here temporarily until ObjC runtime category bug fixed */
 - classForConnectedCoder:aRmc;
 + (void) encodeObject: anObject withConnectedCoder: aRmc;
-
 @end
+
+extern id CoderSignatureMalformedException;
 
 #endif /* __Coder_h_OBJECTS_INCLUDE */
