@@ -1,3 +1,11 @@
+2001-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: Use RETAIN/RELEASE
+	* Source/GSLocale.m: Set up NSDecimalSeparator and NSThousandsSeparator
+	from locale if possible.  Fix bug dereferencing nil pointer.
+	* Source/GSFormat.m: Hack to rewrite output from sprintf of floats and
+	doubles to use the value in NSDecimalSeparator.
+
 2001-04-27  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSString.m: Minor optimization for parsing property

@@ -61,6 +61,7 @@
 #include <Foundation/NSZone.h>
 #include <Foundation/NSDebug.h>
 #include <base/GSFormat.h>
+#include <base/GSLocale.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>
@@ -1368,116 +1369,240 @@ NSDictionary *locale)
     LABEL (form_float):
       {
 	/* Floating-point number.  This is handled by the native sprintf.  */
-	    	char buf1[32], *bp, buf2[specs[nspecs_done].info.width+specs[nspecs_done].info.prec+32];
-		  unichar work_buffer[MAX (specs[nspecs_done].info.width, specs[nspecs_done].info.spec) + 32];
-		  unichar *const workend
-		    = &work_buffer[sizeof (work_buffer) / sizeof (unichar)];
-		  register unichar *w;
+	char buf1[32], *bp;
+	char buf2[specs[nspecs_done].info.width
+	  +specs[nspecs_done].info.prec+32];
+	unichar work_buffer[MAX (specs[nspecs_done].info.width,
+	  specs[nspecs_done].info.spec) + 32];
+	unichar *const workend
+	  = &work_buffer[sizeof (work_buffer) / sizeof (unichar)];
+	register unichar *w;
+	NSString	*decimal_sep;
 
-		bp = buf1;
+	decimal_sep = [locale objectForKey: NSDecimalSeparator];
 
-		*bp++ = '%';
+	bp = buf1;
 
-		  if (specs[nspecs_done].info.alt)
-		    *bp++ = '#';
-		  if (specs[nspecs_done].info.group)
-		    *bp++ = '\'';
-		  if (specs[nspecs_done].info.showsign)
-		    *bp++ = '+';
-		  else if (specs[nspecs_done].info.space)
-		    *bp++ = ' ';
-		  if (specs[nspecs_done].info.left)
-		    *bp++ = '-';
-		  if (specs[nspecs_done].info.pad == '0')
-		    *bp++ = '0';
-		  if (specs[nspecs_done].info.i18n)
-		    *bp++ = 'I';
+	*bp++ = '%';
 
-		  if (specs[nspecs_done].info.width != 0)
-		    {
-		      w = _itowa_word (specs[nspecs_done].info.width, workend, 10, 0);
-		      while (w < workend)
-			*bp++ = *w++;
-		    }
+	if (specs[nspecs_done].info.alt)
+	  *bp++ = '#';
+	if (specs[nspecs_done].info.group)
+	  *bp++ = '\'';
+	if (specs[nspecs_done].info.showsign)
+	  *bp++ = '+';
+	else if (specs[nspecs_done].info.space)
+	  *bp++ = ' ';
+	if (specs[nspecs_done].info.left)
+	  *bp++ = '-';
+	if (specs[nspecs_done].info.pad == '0')
+	  *bp++ = '0';
+	if (specs[nspecs_done].info.i18n)
+	  *bp++ = 'I';
 
-		  if (specs[nspecs_done].info.prec != -1)
-		    {
-		      *bp++ = '.';
-		      w = _itowa_word (specs[nspecs_done].info.prec, workend, 10, 0);
-		      while (w < workend)
-			*bp++ = *w++;
-		    }
+	if (specs[nspecs_done].info.width != 0)
+	  {
+	    w = _itowa_word (specs[nspecs_done].info.width, workend, 10, 0);
+	    while (w < workend)
+	      *bp++ = *w++;
+	  }
 
-		  if (specs[nspecs_done].info.spec != '\0')
-		    *bp++ = specs[nspecs_done].info.spec;
+	if (specs[nspecs_done].info.prec != -1)
+	  {
+	    *bp++ = '.';
+	    w = _itowa_word (specs[nspecs_done].info.prec, workend, 10, 0);
+	    while (w < workend)
+	      *bp++ = *w++;
+	  }
 
-		  *bp++ = '\0';
+	if (specs[nspecs_done].info.spec != '\0')
+	  *bp++ = specs[nspecs_done].info.spec;
 
-		if (specs[nspecs_done].info.is_long_double)
-			sprintf(buf2, buf1, args_value[specs[nspecs_done].data_arg].pa_long_double);
-		else
-			sprintf(buf2, buf1, args_value[specs[nspecs_done].data_arg].pa_double);
+	*bp++ = '\0';
 
-		bp = buf2;
-		while (*bp) outchar(*bp++);
+	if (specs[nspecs_done].info.is_long_double)
+	  {
+	    sprintf(buf2, buf1,
+	      args_value[specs[nspecs_done].data_arg].pa_long_double);
+	  }
+	else
+	  {
+	    sprintf(buf2, buf1,
+	      args_value[specs[nspecs_done].data_arg].pa_double);
+	  }
+
+	/*
+	 * FIXME - hack to rewrite decimal separator into correct locale
+	 * if necessary.
+	 */
+	if (decimal_sep != nil)
+	  {
+	    NSDictionary	*def = GSDomainFromDefaultLocale();
+	    NSString		*sep = [def objectForKey: NSDecimalSeparator];
+
+	    if (sep == nil)
+	      sep = @".";
+	    if ([decimal_sep isEqual: sep] == NO && [sep length] == 1)
+	      {
+		unichar	m = [sep characterAtIndex: 0];
+		char	*p = &buf2[strlen(buf2)];
+
+		/*
+		 * Assume that we won't be finding an escape in the string
+		 * so we can use it as a marker.
+		 */
+		while (p-- > buf2)
+		  {
+		    if (*p == m)
+		      {
+			*p = '\033';
+			break;
+		      }
+		  }
+	      }
+	  }
+
+	bp = buf2;
+	while (*bp)
+	  {
+	    if (*bp == '\033')
+	      {
+		int	i = 0;
+		int	c = [decimal_sep length];
+		unichar	b[c];
+
+		[decimal_sep getCharacters: b];
+		while (i < c)
+		  {
+		    outchar(b[i++]);
+		  }
+		bp++;
+	      }
+	    else
+	      {
+		outchar(*bp++);
+	      }
+	  }
       }
       break;
 
     LABEL (form_floathex):
       {
-        /* Floating point number printed as hexadecimal number.  */
-	    	char buf1[32], *bp, buf2[specs[nspecs_done].info.width+specs[nspecs_done].info.prec+32];
-		  unichar work_buffer[MAX (specs[nspecs_done].info.width, specs[nspecs_done].info.spec) + 32];
-		  unichar *const workend
-		    = &work_buffer[sizeof (work_buffer) / sizeof (unichar)];
-		  register unichar *w;
+	/* Floating point number printed as hexadecimal number.  */
+	char buf1[32], *bp;
+	char buf2[specs[nspecs_done].info.width
+	  +specs[nspecs_done].info.prec+32];
+	unichar work_buffer[MAX (specs[nspecs_done].info.width,
+	  specs[nspecs_done].info.spec) + 32];
+	unichar *const workend
+	  = &work_buffer[sizeof (work_buffer) / sizeof (unichar)];
+	register unichar *w;
+	NSString	*decimal_sep;
 
-		bp = buf1;
+	decimal_sep = [locale objectForKey: NSDecimalSeparator];
 
-		*bp++ = '%';
+	bp = buf1;
 
-		  if (specs[nspecs_done].info.alt)
-		    *bp++ = '#';
-		  if (specs[nspecs_done].info.group)
-		    *bp++ = '\'';
-		  if (specs[nspecs_done].info.showsign)
-		    *bp++ = '+';
-		  else if (specs[nspecs_done].info.space)
-		    *bp++ = ' ';
-		  if (specs[nspecs_done].info.left)
-		    *bp++ = '-';
-		  if (specs[nspecs_done].info.pad == '0')
-		    *bp++ = '0';
-		  if (specs[nspecs_done].info.i18n)
-		    *bp++ = 'I';
+	*bp++ = '%';
 
-		  if (specs[nspecs_done].info.width != 0)
-		    {
-		      w = _itowa_word (specs[nspecs_done].info.width, workend, 10, 0);
-		      while (w < workend)
-			*bp++ = *w++;
-		    }
+	if (specs[nspecs_done].info.alt)
+	  *bp++ = '#';
+	if (specs[nspecs_done].info.group)
+	  *bp++ = '\'';
+	if (specs[nspecs_done].info.showsign)
+	  *bp++ = '+';
+	else if (specs[nspecs_done].info.space)
+	  *bp++ = ' ';
+	if (specs[nspecs_done].info.left)
+	  *bp++ = '-';
+	if (specs[nspecs_done].info.pad == '0')
+	  *bp++ = '0';
+	if (specs[nspecs_done].info.i18n)
+	  *bp++ = 'I';
 
-		  if (specs[nspecs_done].info.prec != -1)
-		    {
-		      *bp++ = '.';
-		      w = _itowa_word (specs[nspecs_done].info.prec, workend, 10, 0);
-		      while (w < workend)
-			*bp++ = *w++;
-		    }
+	if (specs[nspecs_done].info.width != 0)
+	  {
+	    w = _itowa_word (specs[nspecs_done].info.width, workend, 10, 0);
+	    while (w < workend)
+	      *bp++ = *w++;
+	  }
 
-		  if (specs[nspecs_done].info.spec != '\0')
-		    *bp++ = specs[nspecs_done].info.spec;
+	if (specs[nspecs_done].info.prec != -1)
+	  {
+	    *bp++ = '.';
+	    w = _itowa_word (specs[nspecs_done].info.prec, workend, 10, 0);
+	    while (w < workend)
+	      *bp++ = *w++;
+	  }
 
-		  *bp++ = '\0';
+	if (specs[nspecs_done].info.spec != '\0')
+	  *bp++ = specs[nspecs_done].info.spec;
 
-		if (specs[nspecs_done].info.is_long_double)
-			sprintf(buf2, buf1, args_value[specs[nspecs_done].data_arg].pa_long_double);
-		else
-			sprintf(buf2, buf1, args_value[specs[nspecs_done].data_arg].pa_double);
+	*bp++ = '\0';
 
-		bp = buf2;
-		while (*bp) outchar(*bp++);
+	if (specs[nspecs_done].info.is_long_double)
+	  {
+	    sprintf(buf2, buf1,
+	      args_value[specs[nspecs_done].data_arg].pa_long_double);
+	  }
+	else
+	  {
+	    sprintf(buf2, buf1,
+	      args_value[specs[nspecs_done].data_arg].pa_double);
+	  }
+
+	/*
+	 * FIXME - hack to rewrite decimal separator into correct locale
+	 * if necessary.
+	 */
+	if (decimal_sep != nil)
+	  {
+	    NSDictionary	*def = GSDomainFromDefaultLocale();
+	    NSString		*sep = [def objectForKey: NSDecimalSeparator];
+
+	    if (sep == nil)
+	      sep = @".";
+	    if ([decimal_sep isEqual: sep] == NO && [sep length] == 1)
+	      {
+		unichar	m = [sep characterAtIndex: 0];
+		char	*p = &buf2[strlen(buf2)];
+
+		/*
+		 * Assume that we won't be finding an escape in the string
+		 * so we can use it as a marker.
+		 */
+		while (p-- > buf2)
+		  {
+		    if (*p == m)
+		      {
+			*p = '\033';
+			break;
+		      }
+		  }
+	      }
+	  }
+
+	bp = buf2;
+	while (*bp)
+	  {
+	    if (*bp == '\033')
+	      {
+		int	i = 0;
+		int	c = [decimal_sep length];
+		unichar	b[c];
+
+		[decimal_sep getCharacters: b];
+		while (i < c)
+		  {
+		    outchar(b[i++]);
+		  }
+		bp++;
+	      }
+	    else
+	      {
+		outchar(*bp++);
+	      }
+	  }
       }
       break;
 
