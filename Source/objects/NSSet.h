@@ -36,11 +36,9 @@
 @end
 
 @interface NSMutableSet (GNU)
-#if 0
 + (unsigned) defaultCapacity;
 - initWithType: (const char *)contentEncoding
     capacity: (unsigned)aCapacity;
-#endif
 @end
 
 @interface NSCountedSet (GNU) <Collecting>
