@@ -15,6 +15,7 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <stdio.h>
 #include <errno.h>
 
 #ifndef	INADDR_NONE
