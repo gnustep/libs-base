@@ -3552,6 +3552,7 @@ static NSFileManager *fm = nil;
 		      buf[pos-1] = buf[pos];
 		    }
 		  length--;
+	          aLength--;
 		}
 	      buf[aLength] = '/';	// Standardise
 	    }

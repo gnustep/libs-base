@@ -1,3 +1,8 @@
+2005-04-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: ([sttringByAppendingPathComponent:]) Fix bug
+	eliding multiple slashes in path.
+
 2005-04-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: Fix missing nul terminator to arguments under win32
