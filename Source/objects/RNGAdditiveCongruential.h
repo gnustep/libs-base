@@ -30,7 +30,7 @@
 #include <objects/stdobjects.h>
 #include <objects/RandomGenerating.h>
 
-@interface RNGAdditiveCongruential : Object <RandomGenerating>
+@interface RNGAdditiveCongruential : NSObject <RandomGenerating>
 {
   long *table;
   int table_size;

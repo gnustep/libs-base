@@ -28,7 +28,7 @@
 #include <objc/Object.h>
 #include <objects/Ordering.h>
 
-@interface Magnitude : Object <Ordering>
+@interface Magnitude : NSObject <Ordering>
 
 @end
 

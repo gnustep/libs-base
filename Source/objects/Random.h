@@ -27,7 +27,7 @@
 #include <objects/stdobjects.h>
 #include <objects/RandomGenerating.h>
 
-@interface Random : Object
+@interface Random : NSObject
 {
   id <RandomGenerating> rng;
 }

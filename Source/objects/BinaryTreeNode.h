@@ -28,7 +28,7 @@
 #include <objects/BinaryTree.h>
 #include <objects/Coding.h>
 
-@interface BinaryTreeNode : Object <BinaryTreeComprising, Coding>
+@interface BinaryTreeNode : NSObject <BinaryTreeComprising, Coding>
 {
   id _left;
   id _right;

@@ -28,7 +28,7 @@
 #include <objects/LinkedList.h>
 #include <objects/Coding.h>
 
-@interface LinkedListNode : Object <LinkedListComprising, Coding>
+@interface LinkedListNode : NSObject <LinkedListComprising, Coding>
 {
   id <LinkedListComprising> _next;
   id <LinkedListComprising> _prev;
