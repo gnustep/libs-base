@@ -7,6 +7,9 @@ Mon Feb 25 15:26:38 2002  Nicola Pero  <nicola@brainstorm.co.uk>
 2002-02-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile: Move xml and mime classes into an additional
+	library, and make base library depend on it.  EXPERIMENTAL.
+	* Tools/gdomap.c: Try to get output working again after last changes.
+	Add first attempt at MINGW support for getting network interface info.
 	library, and make base library depend on it.
 	EXPERIMENTAL - activate using 'make add=yes'
 
