@@ -42,6 +42,8 @@ AC_PROG_CPP
 
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 
+AC_EXEEXT
+
 #--------------------------------------------------------------------
 # specific target_os options
 #--------------------------------------------------------------------
