@@ -1,21 +1,24 @@
 #!/bin/sh -e
 
-dir=/com/share/ftp/roland
+# The directory in which to find the last snapshot
+dir=../releases
 
-module=libc
+# The name of this module
+module=gstep-base
 
 date=`date +%y%m%d`
 snap=${module}-${date}
 
-cvs -Q rtag -F $snap $module
+cvs -Q rtag -F snapshot-$date $module
 
 rm -rf $snap
+# Checkout the $module into a directory named $snap
 cvs -Q checkout -d $snap -r $snap $module
 tar -f - -co $snap | gzip -9v -c > $snap.tar.gz
 
-find $snap \( -name CVS -prune \) -o \( -type f -print \) |
-xargs md5sum | gzip -9v -c > $snap.md5sum.gz
+#find $snap \( -name CVS -prune \) -o \( -type f -print \) |
+#xargs md5sum | gzip -9v -c > $snap.md5sum.gz
 
 rm -rf $snap &
 
-mv -f $snap.tar.gz $snap.md5sum.gz $dir
+mv -f $snap.tar.gz $dir
