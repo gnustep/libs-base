@@ -44,6 +44,8 @@ extern void (*objc_free)(void *);
    ((VAR) = (TYPE *) (*objc_calloc)((unsigned)(NUM), sizeof(TYPE)))
 #define OBJC_FREE(PTR) (*objc_free)((PTR))
 
+#ifdef __OBJC__
 extern id MemoryExhaustedException;
+#endif
 
 #endif /* __objc_malloc_h_INCLUDE_GNU */
