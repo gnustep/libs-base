@@ -125,7 +125,7 @@ static BOOL debug_memory_stream = YES;
 {
   if (prefix+position+l > size)
     {
-      size *= 2;
+      size = MAX(prefix+position+l, size*2);
       buffer = (*objc_realloc)(buffer, size);
     }
   memcpy(buffer+prefix+position, b, l);
