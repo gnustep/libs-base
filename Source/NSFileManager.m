@@ -538,19 +538,42 @@ static NSFileManager* defaultManager = nil;
 - (BOOL) removeFileAtPath: (NSString*)path
 		  handler: handler
 {
-  BOOL		exists, is_dir;
+  BOOL		is_dir;
+  const char	*cpath;
 
   if (handler != nil)
     [handler fileManager: self willProcessPath: path];
 
-  exists = [self fileExistsAtPath: path isDirectory: &is_dir];
-  if (!exists)
-    return NO;
+  cpath = [self fileSystemRepresentationWithPath: path];
+  if (cpath == 0 || *cpath == '\0')
+    {
+      return NO;
+    }
+  else
+    {
+#if defined(__MINGW__)
+      DWORD res;
+
+      res = GetFileAttributes(cpath);
+      if (res == WIN32ERR)
+	return NO;
+
+      if (res & FILE_ATTRIBUTE_DIRECTORY)
+	is_dir = YES;
+      else
+	is_dir = NO;
+#else
+      struct stat statbuf;
+
+      if (lstat(cpath, &statbuf) != 0)
+	return NO;
+    
+      is_dir = ((statbuf.st_mode & S_IFMT) == S_IFDIR);
+#endif /* MINGW */
+    }
 
   if (!is_dir)
     {
-      const char	*cpath = [path fileSystemRepresentation];
-
 #if defined(__MINGW__)
       if (DeleteFile(cpath) == FALSE)
 #else
@@ -565,7 +588,8 @@ static NSFileManager* defaultManager = nil;
 
 	      info = [[NSMutableDictionary alloc] initWithCapacity: 3];
 	      [info setObject: path forKey: @"Path"];
-	      [info setObject: [NSString stringWithCString: GSLastErrorStr(errno)]
+	      [info setObject: [NSString stringWithCString:
+		GSLastErrorStr(errno)]
 		       forKey: @"Error"];
 	      result = [handler fileManager: self
 		    shouldProceedAfterError: info];
@@ -609,7 +633,8 @@ static NSFileManager* defaultManager = nil;
 
 	      info = [[NSMutableDictionary alloc] initWithCapacity: 3];
 	      [info setObject: path forKey: @"Path"];
-	      [info setObject: [NSString stringWithCString: GSLastErrorStr(errno)]
+	      [info setObject: [NSString stringWithCString:
+		GSLastErrorStr(errno)]
 		       forKey: @"Error"];
 	      result = [handler fileManager: self
 		    shouldProceedAfterError: info];
@@ -1415,7 +1440,7 @@ static SEL swfsSel = 0;
   else
     {
       NSLog(@"Failed to recurse into directory '%@' - %s",
-	    path, GSLastErrorStr(errno));
+	path, GSLastErrorStr(errno));
     }
   
   return self;
@@ -1555,7 +1580,7 @@ static SEL swfsSel = 0;
 		  else
 		    {
 		      NSLog(@"Failed to recurse into directory '%s' - %s",
-			    _current_file_path, GSLastErrorStr(errno));
+			_current_file_path, GSLastErrorStr(errno));
 		    }
 		}
 	    }
