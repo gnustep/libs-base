@@ -715,6 +715,12 @@ GSSetValue(NSObject *self, NSString *key, id val, SEL sel,
 	   unsigned size,
 	   int offset) GS_ATTRIB_DEPRECATED;
 
+GS_EXPORT NSArray *
+GSObjCAllSubclassesOfClass(Class cls);
+
+GS_EXPORT NSArray *
+GSObjCDirectSubclassesOfClass(Class cls);
+
 /** ## deprecated ##
  */
 GS_STATIC_INLINE const char*

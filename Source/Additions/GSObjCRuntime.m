@@ -2124,6 +2124,57 @@ GSObjCSetValue(NSObject *self, NSString *key, id val, SEL sel,
 }
 
 
+/** Returns an autoreleased array of subclasses of Class cls, including 
+ *  subclasses of subclasses. */
+NSArray *GSObjCAllSubclassesOfClass(Class cls)
+{
+  if (!cls)
+    {
+      return nil;
+    }
+  else
+    {
+      Class aClass;
+      NSMutableArray *result = [[NSMutableArray alloc] init];
+
+#ifdef GNU_RUNTIME
+      for (aClass = cls->subclass_list; aClass; aClass=aClass->sibling_class)
+	{
+	  [result addObject:aClass];
+	  [result addObjectsFromArray: GSObjCAllSubclassesOfClass(aClass)];
+	}
+#else
+#warning not implemented for the NeXT_RUNTIME
+#endif
+      return AUTORELEASE(result);
+    }
+}
+
+/** Returns an autoreleased array containing subclasses directly descendent of
+ *  Class cls. */
+NSArray *GSObjCDirectSubclassesOfClass(Class cls)
+{
+  if (!cls)
+    {
+      return nil;
+    }
+  else
+    {
+      NSMutableArray *result=[[NSMutableArray alloc] init];
+      Class aClass;
+    
+#ifdef GNU_RUNTIME
+      for (aClass = cls->subclass_list;aClass;aClass=aClass->sibling_class)
+	{
+	  [result addObject:aClass];
+	}
+#else
+#warning not implemented for the NeXT_RUNTIME
+#endif
+      return AUTORELEASE(result);
+    }
+}
+
 void *
 GSAutoreleasedBuffer(unsigned size)
 {
