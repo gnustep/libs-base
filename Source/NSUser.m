@@ -826,7 +826,7 @@ if (domainMask & mask) \
     {
       NSString *devAppsDir = [devDir stringByAppendingPathComponent: appsDir];
 
-      ADD_PATH (NSUserDomainMask, gnustep_local_root, devAppsDir);
+      ADD_PATH (NSUserDomainMask, gnustep_user_root, devAppsDir);
       ADD_PATH (NSLocalDomainMask, gnustep_local_root, devAppsDir);
       ADD_PATH (NSNetworkDomainMask, gnustep_network_root, devAppsDir);
       ADD_PATH (NSSystemDomainMask, gnustep_system_root, devAppsDir);
