@@ -3673,7 +3673,10 @@ handle_printf_atsign (FILE *stream,
 	}
       if (start > 0 || end < length-1)
 	{
-	  return [self substringFromRange: NSMakeRange(start, end + 1 - start)];
+          if (start<end)
+            return [self substringFromRange: NSMakeRange(start, end + 1 - start)];
+          else
+            return [NSStringClass string];
 	}
     }
   return self;
