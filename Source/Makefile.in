@@ -296,6 +296,7 @@ NSGDictionary.m \
 NSGUnarchiver.m \
 NSNumber.m \
 NSObject.m \
+NSProcessInfo.m \
 NSRange.m \
 NSString.m \
 NSUnarchiver.m \
@@ -356,6 +357,7 @@ Foundation/NSInvocation.h \
 Foundation/NSMethodSignature.h \
 Foundation/NSObjCRuntime.h \
 Foundation/NSObject.h \
+Foundation/NSProcessInfo.h \
 Foundation/NSRange.h \
 Foundation/NSSerialization.h \
 Foundation/NSString.h \
