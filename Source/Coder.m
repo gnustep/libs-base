@@ -38,6 +38,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSData.h>
+#include <Foundation/NSArchiver.h>
 #include <assert.h>
 
 
@@ -81,6 +82,10 @@ my_object_is_class(id object)
   else
     return NO;
 }
+
+@interface Coder (Private)
+- (BOOL) _coderHasObjectReference: (unsigned)xref;
+@end
 
 
 @implementation Coder
@@ -514,18 +519,25 @@ exc_return_null(arglist_t f)
 
 - (void) encodeTag: (unsigned char)t
 {
-  [self encodeValueOfCType:@encode(unsigned char) 
-	at:&t 
-	withName:@"Coder tag"];
+  if ([cstream respondsToSelector: @selector(encodeTag:)])
+    [(id)cstream encodeTag:t];
+  else
+    [self encodeValueOfCType:@encode(unsigned char) 
+	  at:&t 
+	  withName:@"Coder tag"];
 }
 
 - (unsigned char) decodeTag
 {
-  unsigned char t;
-  [self decodeValueOfCType:@encode(unsigned char)
-	at:&t 
-	withName:NULL];
-  return t;
+  if ([cstream respondsToSelector: @selector(decodeTag)])
+    return [(id)cstream decodeTag];
+  {
+    unsigned char t;
+    [self decodeValueOfCType:@encode(unsigned char)
+	  at:&t 
+	  withName:NULL];
+    return t;
+  }
 }
 
 - (void) encodeClass: aClass 
@@ -552,6 +564,9 @@ exc_return_null(arglist_t f)
 
 	  assert(class_name);
 	  assert(*class_name);
+	  /* Do classname substitution, ala encodeClassName:intoClassName */
+	  if ([classname_map includesKey: class_name])
+	    class_name = [classname_map elementAtKey: class_name].char_ptr_u;
 	  [self encodeTag: CODER_CLASS];
 	  [self encodeValueOfCType:@encode(unsigned)
 		at:&xref
@@ -930,9 +945,23 @@ exc_return_null(arglist_t f)
 
 - (void) _doEncodeBycopyObject: anObj
 {
-  [self encodeClass:object_get_class(anObj)];
+  id encoded_object, encoded_class;
+  if ([[self class] isKindOf: [NSCoder class]]
+      && ! [[self class] isKindOf: [NSArchiver class]])
+    /* Make sure we don't do this for the Coder class, because
+       by default Coder should behave like NSArchiver. */
+    {
+      encoded_object = [anObj replacementObjectForCoder: (NSCoder*)self];
+      encoded_class = [encoded_object classForCoder];
+    }
+  else
+    {
+      encoded_object = [anObj replacementObjectForArchiver: (NSArchiver*)self];
+      encoded_class = [encoded_object classForArchiver];
+    }
+  [self encodeClass: encoded_class];
   /* xxx Make sure it responds to this selector! */
-  [anObj encodeWithCoder:(id)self];
+  [encoded_object encodeWithCoder: (NSCoder*)self];
 }
 
 /* This method overridden by ConnectedCoder */
@@ -1271,15 +1300,20 @@ exc_return_null(arglist_t f)
 
 /* Substituting Classes */
 
-+ (id <String>) classNameEncodedForTrueClassName: (id <String>) trueName
+- (id <String>) classNameEncodedForTrueClassName: (id <String>) trueName
 {
-  [self notImplemented:_cmd];
+  assert ( ! [self isDecoding]);
+  return [NSString stringWithCString:
+		     [classname_map elementAtKey: 
+				      [trueName cStringNoCopy]].char_ptr_u];
 }
 
 - (void) encodeClassName: (id <String>) trueName
    intoClassName: (id <String>) inArchiveName
 {
-  [self notImplemented:_cmd];
+  assert ( ! [self isDecoding]);
+  [classname_map putElement: [inArchiveName cStringNoCopy] 
+		 atKey: [trueName cStringNoCopy]];
 }
 
 + (NSString*) classNameDecodedForArchiveClassName: (NSString*) inArchiveName
@@ -1335,60 +1369,7 @@ exc_return_null(arglist_t f)
 
 @end
 
-
-/* Here temporarily until GCC category bug is fixed */
-#include <objects/Connection.h>
-#include <objects/Proxy.h>
-#include <objects/ConnectedCoder.h>
-
-
-/* Eventually put these directly in Object */
-
-/* By combining these, we're working around the GCC 2.6 bug that
-   causes not all the categories to be processed by the runtime. */
-
-@implementation NSObject (CoderAdditions)
-
-/* Now in NSObject.m */
-#if 0
-- (void) encodeWithCoder: (id <Encoding>)anEncoder
-{
-  return;
-}
-
-- initWithCoder: (id <Decoding>)aDecoder
-{
-  return self;
-}
-
-+ newWithCoder: (id <Decoding>)aDecoder
-{
-  return NSAllocateObject(self, 0, NULL); /* xxx Fix this NULL */
-}
-#endif
-
-
-
-/* @implementation Object (ConnectionRequests) */
-
-
-/* By default, Object's encode themselves as proxies across Connection's */
-- classForConnectedCoder:aRmc
-{
-  return [[aRmc connection] proxyClass];
-}
-
-/* But if any object overrides the above method to return [Object class]
-   instead, the Object implementation of the coding method will actually
-   encode the object itself, not a proxy */
-+ (void) encodeObject: anObject withConnectedCoder: aRmc
-{
-  [anObject encodeWithCoder:aRmc];
-}
-
-@end
-
-
+
 @implementation Coder (NSCoderCompatibility)
 
 
@@ -1407,6 +1388,11 @@ exc_return_null(arglist_t f)
   [self encodeArrayOfObjCType: type count: count at: array withName: NULL];
 }
 
+- (void) encodeObject: (id)anObject
+{
+  [self encodeObject: anObject withName: NULL];
+}
+
 - (void) encodeBycopyObject: (id)anObject
 {
   [self encodeBycopyObject: anObject withName: NULL];
@@ -1414,17 +1400,29 @@ exc_return_null(arglist_t f)
 
 - (void) encodeConditionalObject: (id)anObject
 {
+  /* Apparently, NeXT's implementation doesn't actually 
+     handle *forward* references, (hence it's use of -decodeObject, 
+     instead of decodeObjectAt:.)
+     So here, we only encode the object for real if the object has 
+     already been written. 
+     This means that if you encode a web of objects with the more 
+     powerful GNU Coder, and then try to decode them with NSArchiver,
+     you could get corrupt data on the stack when Coder resolves its 
+     forward references.  I recommend just using the GNU Coder. */
+#if 1
+  unsigned xref = PTR2LONG(anObject);
+  if ([self _coderHasObjectReference:xref])
+    [self encodeObject: anObject];
+  else
+    [self encodeObject: nil];
+#else
   [self encodeObjectReference: anObject withName: NULL];
+#endif
 }
 
 - (void) encodeDataObject: (NSData*)data
 {
   [self notImplemented:_cmd];
-}
-
-- (void) encodeObject: (id)anObject
-{
-  [self encodeObject: anObject withName: NULL];
 }
 
 - (void) encodePropertyList: (id)plist
