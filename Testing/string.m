@@ -95,6 +95,9 @@ int main()
     printf("%x,%x\n", [base characterAtIndex: i], [want characterAtIndex: i]);
   
   printf("%u\n", [want isEqual: base]);
+  for (i = 0; i < 1000; i++)
+    [base appendString: want];
+  print_string(base);
 }
   [arp release];
   exit(0);

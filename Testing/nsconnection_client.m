@@ -11,6 +11,7 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSUserDefaults.h>
 #include <assert.h>
 #include "server.h"
 
