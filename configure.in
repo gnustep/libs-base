@@ -708,7 +708,7 @@ GS_FAKE_MAIN=0
 if test "$enable_fake_main" = "yes"; then
   GS_FAKE_MAIN=1
 elif test "$enable_pass_arguments" = "no"; then
-  if test "$objc_load_method_worked" = yes -a "$ac_sys_procfs" = yes; then
+  if test "$objc_load_method_worked" = yes -a "$ac_cv_sys_procfs" = yes; then
     GS_FAKE_MAIN=0
   else
     GS_FAKE_MAIN=1
