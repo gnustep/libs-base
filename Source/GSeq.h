@@ -370,7 +370,8 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 #endif
 
 #if	GSEQ_S == GSEQ_NS
-      sgImp = (void (*)())[(id)s methodForSelector: gcrSel];
+      sgImp = (void (*)(NSString*,SEL,unichar*,NSRange))
+	[(id)s methodForSelector: gcrSel];
       GSEQ_SGETR(sBuf, aRange);
 #else
 #if	GSEQ_S == GSEQ_CS
@@ -380,7 +381,8 @@ GSEQ_STRCOMP(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
 #endif
 #endif
 #if	GSEQ_O == GSEQ_NS
-      ogImp = (void (*)())[(id)o methodForSelector: gcrSel];
+      ogImp = (void (*)(NSString*,SEL,unichar*,NSRange))
+	[(id)o methodForSelector: gcrSel];
       GSEQ_OGETR(oBuf, NSMakeRange(0, oLen));
 #else
 #if	GSEQ_O == GSEQ_CS
@@ -559,18 +561,24 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, unsigned mask, NSRange aRange)
    * Cache method implementations for getting characters and ranges
    */
 #if	GSEQ_S == GSEQ_NS
-  scImp = (unichar (*)())[(id)s methodForSelector: caiSel];
-  sgImp = (void (*)())[(id)s methodForSelector: gcrSel];
+  scImp = (unichar (*)(NSString*,SEL,unsigned))
+    [(id)s methodForSelector: caiSel];
+  sgImp = (void (*)(NSString*,SEL,unichar*,NSRange))
+    [(id)s methodForSelector: gcrSel];
 #endif
 #if	GSEQ_O == GSEQ_NS
-  ocImp = (unichar (*)())[(id)o methodForSelector: caiSel];
-  ogImp = (void (*)())[(id)o methodForSelector: gcrSel];
+  ocImp = (unichar (*)(NSString*,SEL,unsigned))
+    [(id)o methodForSelector: caiSel];
+  ogImp = (void (*)(NSString*,SEL,unichar*,NSRange))
+    [(id)o methodForSelector: gcrSel];
 #endif
 #if	GSEQ_S == GSEQ_NS || GSEQ_S == GSEQ_US
-  srImp = (NSRange (*)())[(id)s methodForSelector: ranSel];
+  srImp = (NSRange (*)(NSString*,SEL,unsigned))
+    [(id)s methodForSelector: ranSel];
 #endif
 #if	GSEQ_O == GSEQ_NS || GSEQ_O == GSEQ_US
-  orImp = (NSRange (*)())[(id)o methodForSelector: ranSel];
+  orImp = (NSRange (*)(NSString*,SEL,unsigned))
+    [(id)o methodForSelector: ranSel];
 #endif
 
   switch (mask)

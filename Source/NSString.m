@@ -122,7 +122,7 @@ static SEL	cMemberSel = 0;
 static unsigned const char *hexdigitsBitmapRep = NULL;
 #define GS_IS_HEXDIGIT(X) IS_BIT_SET(hexdigitsBitmapRep[(X)/8], (X) % 8)
 
-static void setupHexdigits()
+static void setupHexdigits(void)
 {
   if (hexdigitsBitmapRep == NULL)
     {
@@ -141,7 +141,7 @@ static NSCharacterSet *oldQuotables = nil;
 static unsigned const char *quotablesBitmapRep = NULL;
 #define GS_IS_QUOTABLE(X) IS_BIT_SET(quotablesBitmapRep[(X)/8], (X) % 8)
 
-static void setupQuotables()
+static void setupQuotables(void)
 {
   if (quotablesBitmapRep == NULL)
     {
@@ -170,7 +170,7 @@ static void setupQuotables()
 static unsigned const char *whitespaceBitmapRep = NULL;
 #define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespaceBitmapRep[(X)/8], (X) % 8)
 
-static void setupWhitespace()
+static void setupWhitespace(void)
 {
   if (whitespaceBitmapRep == NULL)
     {
@@ -214,7 +214,7 @@ static NSCharacterSet	*myPathSeps = nil;
  * method 'cos that would cause recursion.
  */
 static NSCharacterSet*
-pathSeps()
+pathSeps(void)
 {
   if (myPathSeps == nil)
     {
@@ -1436,7 +1436,8 @@ handle_printf_atsign (FILE *stream,
 
   GS_RANGE_CHECK(aRange, l);
 
-  caiImp = (unichar (*)())[self methodForSelector: caiSel];
+  caiImp = (unichar (*)(NSString*,SEL,unsigned))
+    [self methodForSelector: caiSel];
 
   for (i = 0; i < aRange.length; i++)
     {
@@ -1585,7 +1586,8 @@ handle_printf_atsign (FILE *stream,
   range.location = NSNotFound;
   range.length = 0;
 
-  cImp = (unichar(*)(id,SEL,unsigned int)) [self methodForSelector: caiSel];
+  cImp = (unichar(*)(id,SEL,unsigned int))
+    [self methodForSelector: caiSel];
   mImp = (BOOL(*)(id,SEL,unichar))
     [aSet methodForSelector: cMemberSel];
 
@@ -1690,7 +1692,8 @@ handle_printf_atsign (FILE *stream,
 
   if (anIndex >= length)
     [NSException raise: NSRangeException format:@"Invalid location."];
-  caiImp = (unichar (*)())[self methodForSelector: caiSel];
+  caiImp = (unichar (*)(NSString*,SEL,unsigned))
+    [self methodForSelector: caiSel];
 
   for (start = anIndex; start > 0; start--)
     {
@@ -1890,8 +1893,10 @@ handle_printf_atsign (FILE *stream,
       if (!oLength)
 	return aString;
 
-      scImp = (unichar (*)())[self methodForSelector: caiSel];
-      ocImp = (unichar (*)())[aString methodForSelector: caiSel];
+      scImp = (unichar (*)(NSString*,SEL,unsigned))
+	[self methodForSelector: caiSel];
+      ocImp = (unichar (*)(NSString*,SEL,unsigned))
+	[aString methodForSelector: caiSel];
 
       while ((sIndex < sLength) && (oIndex < oLength))
 	{
