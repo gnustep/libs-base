@@ -1516,7 +1516,10 @@ static inline int getDigits(const char *from, char *to, int limit)
 		         seconds: second];
 }
 
-// Getting String Descriptions of Dates
+/**
+ * Calls -descriptionWithCalendarFormat:locale: passing the receviers
+ * calendar format and a nil locale.
+ */
 - (NSString*) description
 {
   return [self descriptionWithCalendarFormat: _calendar_format locale: nil];
@@ -1932,14 +1935,13 @@ static inline int getDigits(const char *from, char *to, int limit)
 
 @end
 
-//
-// Routines for manipulating Gregorian dates
-//
+/**
+ * Routines for manipulating Gregorian dates
+ */
 // The following code is based upon the source code in
 // ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
 // Software---Practice & Experience, vol. 20, no. 9 (September, 1990),
 // pp. 899--928.
-//
 
 @implementation NSCalendarDate (GregorianDate)
 
@@ -1984,6 +1986,9 @@ static inline int getDigits(const char *from, char *to, int limit)
 @end
 
 
+/**
+ * Methods present in OpenStep but later removed from MacOS-X
+ */
 @implementation NSCalendarDate (OPENSTEP)
 
 /**
