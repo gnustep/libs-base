@@ -81,7 +81,7 @@ nscharacterset \
 NSData-test \
 nstimezone \
 create-abbrevs \
-create-regions 
+create-regions
 
 # The tool Objective-C source files to be compiled
 benchmark_OBJC_FILES = benchmark.m
