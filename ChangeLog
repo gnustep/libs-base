@@ -1,3 +1,10 @@
+2002-09-13  Adam Fedor  <fedor@gnu.org>
+
+	* Source/cifframe.m (cifframe_guess_struct_size): Recurse if
+	element contains structures.
+	(cifframe_from_info): Alloc room for return value even if caller
+	doesn't use it.
+
 Thu Sep 12 11:02:03 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSObject.m ([+_becomeMultiThreaded:]): Fixed typo - this
