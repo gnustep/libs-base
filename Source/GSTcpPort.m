@@ -681,31 +681,34 @@ static Class	runLoopClass;
 
 - (void) invalidate
 {
-  DO_LOCK(myLock);
   if (valid == YES)
-    { 
-      NSRunLoop	*l;
+    {
+      DO_LOCK(myLock);
+      if (valid == YES)
+	{ 
+	  NSRunLoop	*l;
 
-      valid = NO;
-      l = [runLoopClass currentRunLoop];
-      [l removeEvent: (void*)(gsaddr)desc
-		type: ET_RDESC
-	     forMode: nil
-		 all: YES];
-      [l removeEvent: (void*)(gsaddr)desc
-		type: ET_WDESC
-	     forMode: nil
-		 all: YES];
-      [l removeEvent: (void*)(gsaddr)desc
-		type: ET_EDESC
-	     forMode: nil
-		 all: YES];
-      NSDebugMLLog(@"GSTcpHandle", @"invalidated 0x%x in thread 0x%x",
-	self, GSCurrentThread());
-      [[self recvPort] removeHandle: self];
-      [[self sendPort] removeHandle: self];
+	  valid = NO;
+	  l = [runLoopClass currentRunLoop];
+	  [l removeEvent: (void*)(gsaddr)desc
+		    type: ET_RDESC
+		 forMode: nil
+		     all: YES];
+	  [l removeEvent: (void*)(gsaddr)desc
+		    type: ET_WDESC
+		 forMode: nil
+		     all: YES];
+	  [l removeEvent: (void*)(gsaddr)desc
+		    type: ET_EDESC
+		 forMode: nil
+		     all: YES];
+	  NSDebugMLLog(@"GSTcpHandle", @"invalidated 0x%x in thread 0x%x",
+	    self, GSCurrentThread());
+	  [[self recvPort] removeHandle: self];
+	  [[self sendPort] removeHandle: self];
+	}
+      DO_UNLOCK(myLock);
     }
-  DO_UNLOCK(myLock);
 }
 
 - (BOOL) isValid
@@ -1791,50 +1794,53 @@ static Class		tcpPortClass;
 
 - (void) invalidate
 {
-  DO_LOCK(myLock);
-
-  if ([self isValid])
+  if ([self isValid] == YES)
     {
-      NSMapTable	*thePorts;
-      NSArray		*handleArray;
-      unsigned		i;
+      DO_LOCK(myLock);
 
-      [tcpPortLock lock];
-      thePorts = NSMapGet(tcpPortMap, (void*)(gsaddr)portNum);
-      if (thePorts != 0)
+      if ([self isValid] == YES)
 	{
-	  if (listener >= 0)
-	    {
-	      (void) close(listener);
-	      listener = -1;
-	    }
-	  NSMapRemove(thePorts, (void*)host);
-	}
-      [tcpPortLock unlock];
+	  NSMapTable	*thePorts;
+	  NSArray	*handleArray;
+	  unsigned	i;
 
-      if (handles != 0)
-	{
-	  handleArray = NSAllMapTableValues(handles);
-	  i = [handleArray count];
-	  while (i-- > 0)
+	  [tcpPortLock lock];
+	  thePorts = NSMapGet(tcpPortMap, (void*)(gsaddr)portNum);
+	  if (thePorts != 0)
 	    {
-	      GSTcpHandle	*handle = [handleArray objectAtIndex: i];
-
-	      [handle invalidate];
+	      if (listener >= 0)
+		{
+		  (void) close(listener);
+		  listener = -1;
+		}
+	      NSMapRemove(thePorts, (void*)host);
 	    }
-	  /*
-	   * We permit mutual recursive invalidation, so the handles map
-	   * may already have been destroyed.
-	   */
+	  [tcpPortLock unlock];
+
 	  if (handles != 0)
 	    {
-	      NSFreeMapTable(handles);
-	      handles = 0;
+	      handleArray = NSAllMapTableValues(handles);
+	      i = [handleArray count];
+	      while (i-- > 0)
+		{
+		  GSTcpHandle	*handle = [handleArray objectAtIndex: i];
+
+		  [handle invalidate];
+		}
+	      /*
+	       * We permit mutual recursive invalidation, so the handles map
+	       * may already have been destroyed.
+	       */
+	      if (handles != 0)
+		{
+		  NSFreeMapTable(handles);
+		  handles = 0;
+		}
 	    }
+	  [super invalidate];
 	}
-      [super invalidate];
+      DO_UNLOCK(myLock);
     }
-  DO_UNLOCK(myLock);
 }
 
 - (BOOL) isEqual: (id)anObject
