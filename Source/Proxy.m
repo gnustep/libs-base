@@ -254,7 +254,6 @@ enum
 {
   unsigned char proxy_tag;
   unsigned target;
-  id proxy_connection;
   id decoder_connection;
 
   if ([aRmc class] != [ConnectedDecoder class])
