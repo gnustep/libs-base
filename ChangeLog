@@ -1,3 +1,8 @@
+Tue Aug 31 15:47:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSTimer.m: Set minimum timeout to 0.01s rather than 1.0s.
+	This seems a more reasonable value - a 1 second delay is too big.
+
 1999-08-29  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSLog.m (_NSLog_standard_printf_handler): Use

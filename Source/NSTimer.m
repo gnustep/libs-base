@@ -38,7 +38,7 @@
                repeats: (BOOL)f
 {
   if (seconds <= 0)
-    seconds = 1;
+    seconds = 0.01;
   _interval = seconds;
   _date = [[NSDate allocWithZone: [self zone]]
     initWithTimeIntervalSinceNow: seconds];
