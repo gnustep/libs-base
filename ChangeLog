@@ -1,3 +1,7 @@
+2000-10-02  Adam Fedor  <fedor@gnu.org>
+
+	* configure.in: Update required libxml version to 2.2.3
+
 2000-09-30  Mirko Viviani  <mirko.viviani@rccr.cremona.it>
 
 	* Source/NSDistantObject.m ([GSDistantObjectPlaceHolder
