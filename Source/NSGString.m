@@ -42,7 +42,6 @@
 #include <base/IndexedCollectionPrivate.h>
 #include <Foundation/NSValue.h>
 #include <base/behavior.h>
-#include <base/NSGSequence.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
 #include <base/fast.x>

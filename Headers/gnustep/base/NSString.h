@@ -232,7 +232,6 @@ enum {
 
 // for methods working with decomposed strings
 - (int) _baseLength;
-- (NSString*) _normalizedString;
 
 #ifndef STRICT_OPENSTEP
 + (NSString*) pathWithComponents: (NSArray*)components;

@@ -67,11 +67,11 @@
 
 #include <base/behavior.h>
 
-#include <base/NSGSequence.h>
 #include <base/Unicode.h>
 #include <base/GetDefEncoding.h>
 #include <base/NSGString.h>
 #include <base/NSGCString.h>
+#include <GSeq.h>
 
 #include <base/fast.x>
 
@@ -100,9 +100,10 @@
     };
 
 static Class	NSString_class;		/* For speed	*/
-static Class	NSGSequence_class;	/* For speed	*/
 
 static SEL	caiSel = @selector(characterAtIndex:);
+static SEL	gcrSel = @selector(getCharacters:range:);
+static SEL	ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
 
 /*
  *	Include property-list parsing code configured for unicode characters.
@@ -253,7 +254,6 @@ handle_printf_atsign (FILE *stream,
     {
       _DefaultStringEncoding = GetDefEncoding();
       NSString_class = self;
-      NSGSequence_class = [NSGSequence class];
       NSString_concrete_class = [NSGString class];
       NSString_c_concrete_class = [NSGCString class];
       NSMutableString_concrete_class = [NSGMutableString class];
@@ -799,14 +799,13 @@ handle_printf_atsign (FILE *stream,
   range.location = 0;
   range.length = 0;
 
-  cImp = (unichar(*)(id,SEL,unsigned)) 
-    [self methodForSelector: @selector(characterAtIndex: )];
+  cImp = (unichar(*)(id,SEL,unsigned)) [self methodForSelector: caiSel];
   mImp = (BOOL(*)(id,SEL,unichar))
     [aSet methodForSelector: cMemberSel];
 
   for (i = start; i != stop; i += step)
     {
-      unichar letter = (unichar)(*cImp)(self, @selector(characterAtIndex: ), i);
+      unichar letter = (unichar)(*cImp)(self, caiSel, i);
       if ((*mImp)(aSet, cMemberSel, letter))
 	{
 	  range = NSMakeRange(i, 1);
@@ -826,7 +825,7 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSRange) rangeOfString: (NSString*)string
-   options: (unsigned int)mask
+		  options: (unsigned int)mask
 {
   NSRange all = NSMakeRange(0, [self length]);
   return [self rangeOfString: string
@@ -834,409 +833,37 @@ handle_printf_atsign (FILE *stream,
 		range: all];
 }
 
-- (NSRange) _searchForwardCaseInsensitiveLiteral: (NSString *) aString
-   options: (unsigned int) mask
-   range: (NSRange) aRange
-{
-  unsigned int myIndex, myEndIndex;
-  unsigned int strLength;
-  unichar strFirstCharacter;
-
-  strLength = [aString length];
-
-  myIndex = aRange.location;
-  myEndIndex = aRange.location + aRange.length - strLength;
-
-  if (mask & NSAnchoredSearch)
-    myEndIndex = myIndex;
-
-  strFirstCharacter = [aString characterAtIndex: 0];
-
-  for (;;)
-    {
-      unsigned int i = 1;
-      unichar myCharacter = [self characterAtIndex: myIndex];
-      unichar strCharacter = strFirstCharacter;
-
-      for (;;)
-	{
-	  if ((myCharacter != strCharacter) &&
-	      ((uni_tolower (myCharacter) != uni_tolower (strCharacter))))
-	    break;
-	  if (i == strLength)
-	    return (NSRange){myIndex, strLength};
-	  myCharacter = [self characterAtIndex: myIndex + i];
-	  strCharacter = [aString characterAtIndex: i];
-	  i++;
-	}
-      if (myIndex == myEndIndex)
-	break;
-      myIndex ++;
-    }
-  return (NSRange){0, 0};
-}
-
-- (NSRange) _searchBackwardCaseInsensitiveLiteral: (NSString *) aString
-   options: (unsigned int) mask
-   range: (NSRange) aRange
-{
-  unsigned int myIndex, myEndIndex;
-  unsigned int strLength;
-  unichar strFirstCharacter;
-
-  strLength = [aString length];
-
-  myIndex = aRange.location + aRange.length - strLength;
-  myEndIndex = aRange.location;
-
-
-  if (mask & NSAnchoredSearch)
-    myEndIndex = myIndex;
-
-  strFirstCharacter = [aString characterAtIndex: 0];
-
-      for (;;)
-      {
-        unsigned int i = 1;
-        unichar myCharacter = [self characterAtIndex: myIndex];
-        unichar strCharacter = strFirstCharacter;
-
-        for (;;)
-          {
-            if ((myCharacter != strCharacter) &&
-                ((uni_tolower (myCharacter) != uni_tolower (strCharacter))))
-              break;
-            if (i == strLength)
-              return (NSRange){myIndex, strLength};
-            myCharacter = [self characterAtIndex: myIndex + i];
-            strCharacter = [aString characterAtIndex: i];
-            i++;
-          }
-        if (myIndex == myEndIndex)
-          break;
-        myIndex --;
-      }
-  return (NSRange){0, 0};
-}
-
-- (NSRange) _searchForwardLiteral: (NSString *) aString
-   options: (unsigned int) mask
-   range: (NSRange) aRange
-{
-  unsigned int myIndex, myEndIndex;
-  unsigned int strLength;
-  unichar strFirstCharacter;
-
-  strLength = [aString length];
-
-  myIndex = aRange.location;
-  myEndIndex = aRange.location + aRange.length - strLength;
-
-  if (mask & NSAnchoredSearch)
-    myEndIndex = myIndex;
-
-  strFirstCharacter = [aString characterAtIndex: 0];
-
-      for (;;)
-      {
-        unsigned int i = 1;
-        unichar myCharacter = [self characterAtIndex: myIndex];
-        unichar strCharacter = strFirstCharacter;
-
-        for (;;)
-          {
-            if (myCharacter != strCharacter)
-              break;
-            if (i == strLength)
-              return (NSRange){myIndex, strLength};
-            myCharacter = [self characterAtIndex: myIndex + i];
-            strCharacter = [aString characterAtIndex: i];
-            i++;
-          }
-        if (myIndex == myEndIndex)
-          break;
-        myIndex ++;
-      }
-  return (NSRange){0, 0};
-}
-
-- (NSRange) _searchBackwardLiteral: (NSString *) aString
-   options: (unsigned int) mask
-   range: (NSRange) aRange
-{
-  unsigned int myIndex, myEndIndex;
-  unsigned int strLength;
-  unichar strFirstCharacter;
-
-  strLength = [aString length];
-
-  myIndex = aRange.location + aRange.length - strLength;
-  myEndIndex = aRange.location;
-
-
-  if (mask & NSAnchoredSearch)
-    myEndIndex = myIndex;
-
-  strFirstCharacter = [aString characterAtIndex: 0];
-
-      for (;;)
-      {
-        unsigned int i = 1;
-        unichar myCharacter = [self characterAtIndex: myIndex];
-        unichar strCharacter = strFirstCharacter;
-
-        for (;;)
-          {
-            if (myCharacter != strCharacter)
-              break;
-            if (i == strLength)
-              return (NSRange){myIndex, strLength};
-            myCharacter = [self characterAtIndex: myIndex + i];
-            strCharacter = [aString characterAtIndex: i];
-            i++;
-          }
-        if (myIndex == myEndIndex)
-          break;
-        myIndex --;
-      }
-  return (NSRange){0, 0};
-}
-
-
-- (NSRange) _searchForwardCaseInsensitive: (NSString *) aString
-   options: (unsigned int) mask
-   range: (NSRange) aRange
-{
-  unsigned int myIndex, myEndIndex;
-  unsigned int strLength, strBaseLength;
-  id strFirstCharacterSeq;
-
-  strLength = [aString length];
-  strBaseLength = [aString _baseLength];
-
-  myIndex = aRange.location;
-  myEndIndex = aRange.location + aRange.length - strBaseLength;
-
-  if (mask & NSAnchoredSearch)
-    myEndIndex = myIndex;
-
-  strFirstCharacterSeq = [NSGSequence_class sequenceWithString: aString
-    range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
-
-      for (;;)
-      {
-        NSRange myRange;
-        NSRange mainRange;
-        NSRange strRange;
-        unsigned int myCount = 1;
-        unsigned int strCount = 1;
-        id myCharacter = [NSGSequence_class sequenceWithString: self
-    range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
-        id strCharacter = strFirstCharacterSeq;
-        for (;;)
-          {
-            if (![[myCharacter normalize] isEqual: [strCharacter normalize]] 
-            && ![[[myCharacter lowercase] normalize] isEqual: [[strCharacter lowercase] normalize]])
-
-              break;
-            if (strCount >= strLength)
-              return (NSRange){myIndex, myCount};
-            myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
-            myCharacter = [NSGSequence_class sequenceWithString: self range: myRange];
-            strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
-            strCharacter = [NSGSequence_class sequenceWithString: aString range: strRange];
-            myCount += myRange.length;
-            strCount += strRange.length;
-          }  /* for */
-        if (myIndex >= myEndIndex)
-          break;
-            mainRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
-          myIndex += mainRange.length;
-      } /* for */
-  return (NSRange){0, 0};
-}
-
-- (NSRange) _searchBackwardCaseInsensitive: (NSString *) aString
-   options: (unsigned int) mask
-   range: (NSRange) aRange
-{
-  unsigned int myIndex, myEndIndex;
-  unsigned int strLength, strBaseLength;
-  id strFirstCharacterSeq;
-
-  strLength = [aString length];
-  strBaseLength = [aString _baseLength];
-
-  myIndex = aRange.location + aRange.length - strBaseLength;
-  myEndIndex = aRange.location;
-
-  if (mask & NSAnchoredSearch)
-    myEndIndex = myIndex;
-
-  strFirstCharacterSeq = [NSGSequence_class sequenceWithString: aString
-    range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
-
-      for (;;)
-      {
-        NSRange myRange;
-        NSRange strRange;
-        unsigned int myCount = 1;
-        unsigned int strCount = 1;
-        id myCharacter = [NSGSequence_class sequenceWithString: self
-    range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
-        id strCharacter = strFirstCharacterSeq;
-        for (;;)
-          {
-            if (![[myCharacter normalize] isEqual: [strCharacter normalize]] 
-            && ![[[myCharacter lowercase] normalize] isEqual: [[strCharacter lowercase] normalize]])
-
-              break;
-            if (strCount >= strLength)
-              return (NSRange){myIndex, myCount};
-            myCharacter = [NSGSequence_class sequenceWithString: self range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount]];
-            myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
-            strCharacter = [NSGSequence_class sequenceWithString: aString range: [aString rangeOfComposedCharacterSequenceAtIndex: strCount]];
-            strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
-            myCount += myRange.length;
-            strCount += strRange.length;
-          }  /* for */
-        if (myIndex <= myEndIndex)
-          break;
-          myIndex--;
-          while (uni_isnonsp([self characterAtIndex: myIndex])&&(myIndex>0))
-            myIndex--;
-      } /* for */
-  return (NSRange){0, 0};
-}
-
-
-- (NSRange) _searchForward: (NSString *) aString
-   options: (unsigned int) mask
-   range: (NSRange) aRange
-{
-  unsigned int myIndex, myEndIndex;
-  unsigned int strLength, strBaseLength;
-  id strFirstCharacterSeq;
-
-  strLength = [aString length];
-  strBaseLength = [aString _baseLength];
-
-  myIndex = aRange.location;
-  myEndIndex = aRange.location + aRange.length - strBaseLength;
-
-  if (mask & NSAnchoredSearch)
-    myEndIndex = myIndex;
-
-  strFirstCharacterSeq = [NSGSequence_class sequenceWithString: aString
-    range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
-
-      for (;;)
-      {
-        NSRange myRange;
-        NSRange strRange;
-        NSRange mainRange;
-        unsigned int myCount = 1;
-        unsigned int strCount = 1;
-        id myCharacter = [NSGSequence_class sequenceWithString: self
-    range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
-        id strCharacter = strFirstCharacterSeq;
-        for (;;)
-          {
-            if (![[myCharacter normalize] isEqual: [strCharacter normalize]])
-              break;
-            if (strCount >= strLength)
-              return (NSRange){myIndex, myCount};
-            myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
-            myCharacter = [NSGSequence_class sequenceWithString: self range: myRange];
-            strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
-            strCharacter = [NSGSequence_class sequenceWithString: aString range: strRange];
-            myCount += myRange.length;
-            strCount += strRange.length;
-          }  /* for */
-        if (myIndex >= myEndIndex)
-          break;
-            mainRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
-          myIndex += mainRange.length;
-      } /* for */
- return (NSRange){0, 0};
-}
-
-
-- (NSRange) _searchBackward: (NSString *) aString
-   options: (unsigned int) mask
-   range: (NSRange) aRange
-{
-  unsigned int myIndex, myEndIndex;
-  unsigned int strLength, strBaseLength;
-  id strFirstCharacterSeq;
-
-  strLength = [aString length];
-  strBaseLength = [aString _baseLength];
-
-  myIndex = aRange.location + aRange.length - strBaseLength;
-  myEndIndex = aRange.location;
-
-  if (mask & NSAnchoredSearch)
-    myEndIndex = myIndex;
-
-  strFirstCharacterSeq = [NSGSequence_class sequenceWithString: aString
-    range: [aString rangeOfComposedCharacterSequenceAtIndex: 0]];
-
-      for (;;)
-      {
-        NSRange myRange;
-        NSRange strRange;
-        unsigned int myCount = 1;
-        unsigned int strCount = 1;
-        id myCharacter = [NSGSequence_class sequenceWithString: self
-    range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex]];
-        id strCharacter = strFirstCharacterSeq;
-        for (;;)
-          {
-            if (![[myCharacter normalize] isEqual: [strCharacter normalize]])
-           
-              break;
-            if (strCount >= strLength)
-              return (NSRange){myIndex, myCount};
-            myCharacter = [NSGSequence_class sequenceWithString: self range: [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount]];
-            myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex + myCount];
-            strCharacter = [NSGSequence_class sequenceWithString: aString range: [aString rangeOfComposedCharacterSequenceAtIndex: strCount]];
-            strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strCount];
-            myCount += myRange.length;
-            strCount += strRange.length;
-          }  /* for */
-        if (myIndex <= myEndIndex)
-          break;
-          myIndex--;
-          while (uni_isnonsp([self characterAtIndex: myIndex])&&(myIndex>0))
-            myIndex--;
-      } /* for */
- return (NSRange){0, 0};
-}
-
 - (NSRange) rangeOfString: (NSString *) aString
    options: (unsigned int) mask
    range: (NSRange) aRange
 {
+#define FCLS  3
+#define BCLS  7
+#define FLS  2
+#define BLS 6
+#define FCS  1
+#define BCS  5
+#define FS  0
+#define BS  4
+#define FCLAS  11
+#define BCLAS  15
+#define FLAS  10
+#define BLAS 14
+#define FCAS  9
+#define BCAS  13
+#define FAS  8
+#define BAS  12
 
- #define FCLS  3
- #define BCLS  7
- #define FLS  2
- #define BLS 6
- #define FCS  1
- #define BCS  5
- #define FS  0
- #define BS  4
- #define FCLAS  11
- #define BCLAS  15
- #define FLAS  10
- #define BLAS 14
- #define FCAS  9
- #define BCAS  13
- #define FAS  8
- #define BAS  12
-
-  unsigned int myLength, strLength;
+  unsigned	myLength;
+  unsigned	myIndex;
+  unsigned	myEndIndex;
+  unsigned	strLength;
+  unichar	(*scImp)(NSString*, SEL, unsigned);
+  unichar	(*ocImp)(NSString*, SEL, unsigned);
+  void		(*sgImp)(NSString*, SEL, unichar*, NSRange);
+  void		(*ogImp)(NSString*, SEL, unichar*, NSRange);
+  NSRange	(*srImp)(NSString*, SEL, unsigned);
+  NSRange	(*orImp)(NSString*, SEL, unsigned);
   
   /* Check that the search range is reasonable */
   myLength = [self length];
@@ -1251,66 +878,470 @@ handle_printf_atsign (FILE *stream,
   if (strLength > aRange.length || strLength == 0)
     return (NSRange){0, 0};
 
- switch (mask)
- {
-  case FCLS : 
-  case FCLAS : 
-     return [self _searchForwardCaseInsensitiveLiteral: aString
-               options: mask
-               range: aRange];
-           break;
+  /*
+   * Cache method implementations fo getting characters and ranges
+   */
+  scImp = (unichar (*)())[self methodForSelector: caiSel];
+  ocImp = (unichar (*)())[aString methodForSelector: caiSel];
+  sgImp = (void (*)())[self methodForSelector: gcrSel];
+  ogImp = (void (*)())[aString methodForSelector: gcrSel];
+  srImp = (NSRange (*)())[self methodForSelector: ranSel];
+  orImp = (NSRange (*)())[aString methodForSelector: ranSel];
 
-  case BCLS : 
-  case BCLAS : 
-     return [self _searchBackwardCaseInsensitiveLiteral: aString
-               options: mask
-               range: aRange];
-           break;
+  switch (mask)
+    {
+      case FCLS : 
+      case FCLAS : 
+	{
+	  unichar	strFirstCharacter = (*ocImp)(aString, caiSel, 0);
 
-  case FLS : 
-  case FLAS : 
-    return [self _searchForwardLiteral: aString
-               options: mask 
-               range: aRange];
-           break;
+	  myIndex = aRange.location;
+	  myEndIndex = aRange.location + aRange.length - strLength;
 
-  case BLS : 
-  case BLAS : 
-    return [self _searchBackwardLiteral: aString
-               options: mask
-               range: aRange];
-           break;
+	  if (mask & NSAnchoredSearch)
+	    myEndIndex = myIndex;
 
-  case FCS : 
-  case FCAS : 
-    return [self _searchForwardCaseInsensitive: aString
-               options: mask
-               range: aRange];
-               break;
+	  for (;;)
+	    {
+	      unsigned	i = 1;
+	      unichar	myCharacter = (*scImp)(self, caiSel, myIndex);
+	      unichar	strCharacter = strFirstCharacter;
 
-  case BCS : 
-  case BCAS : 
-    return [self _searchBackwardCaseInsensitive: aString
-               options: mask
-               range: aRange];
-               break;
+	      for (;;)
+		{
+		  if ((myCharacter != strCharacter) &&
+		      ((uni_tolower(myCharacter) != uni_tolower(strCharacter))))
+		    break;
+		  if (i == strLength)
+		    return (NSRange){myIndex, strLength};
+		  myCharacter = (*scImp)(self, caiSel, myIndex + i);
+		  strCharacter = (*ocImp)(aString, caiSel, i);
+		  i++;
+		}
+	      if (myIndex == myEndIndex)
+		break;
+	      myIndex++;
+	    }
+	  return (NSRange){0, 0};
+	}
 
-  case BS : 
-  case BAS : 
-    return [self _searchBackward: aString
-               options: mask
-               range: aRange];
-               break;
+      case BCLS : 
+      case BCLAS : 
+	{
+	  unichar	strFirstCharacter = (*ocImp)(aString, caiSel, 0);
 
-  case FS : 
-  case FAS : 
-  default : 
-    return [self _searchForward: aString
-           options: mask
-           range: aRange];
-           break;
- }
- return (NSRange){0, 0};
+	  myIndex = aRange.location + aRange.length - strLength;
+	  myEndIndex = aRange.location;
+
+	  if (mask & NSAnchoredSearch)
+	    myEndIndex = myIndex;
+
+	  for (;;)
+	    {
+	      unsigned	i = 1;
+	      unichar	myCharacter = (*scImp)(self, caiSel, myIndex);
+	      unichar	strCharacter = strFirstCharacter;
+
+	      for (;;)
+		{
+		  if ((myCharacter != strCharacter) &&
+		      ((uni_tolower(myCharacter) != uni_tolower(strCharacter))))
+		    break;
+		  if (i == strLength)
+		    return (NSRange){myIndex, strLength};
+		  myCharacter = (*scImp)(self, caiSel, myIndex + i);
+		  strCharacter = (*ocImp)(aString, caiSel, i);
+		  i++;
+		}
+	      if (myIndex == myEndIndex)
+		break;
+	      myIndex--;
+	    }
+	  return (NSRange){0, 0};
+	}
+
+      case FLS : 
+      case FLAS : 
+	{
+	  unichar	strFirstCharacter = (*ocImp)(aString, caiSel, 0);
+
+	  myIndex = aRange.location;
+	  myEndIndex = aRange.location + aRange.length - strLength;
+
+	  if (mask & NSAnchoredSearch)
+	    myEndIndex = myIndex;
+
+	  for (;;)
+	    {
+	      unsigned	i = 1;
+	      unichar	myCharacter = (*scImp)(self, caiSel, myIndex);
+	      unichar	strCharacter = strFirstCharacter;
+
+	      for (;;)
+		{
+		  if (myCharacter != strCharacter)
+		    break;
+		  if (i == strLength)
+		    return (NSRange){myIndex, strLength};
+		  myCharacter = (*scImp)(self, caiSel, myIndex + i);
+		  strCharacter = (*ocImp)(aString, caiSel, i);
+		  i++;
+		}
+	      if (myIndex == myEndIndex)
+		break;
+	      myIndex++;
+	    }
+	  return (NSRange){0, 0};
+	}
+
+      case BLS : 
+      case BLAS : 
+	{
+	  unichar	strFirstCharacter = (*ocImp)(aString, caiSel, 0);
+
+	  myIndex = aRange.location + aRange.length - strLength;
+	  myEndIndex = aRange.location;
+
+	  if (mask & NSAnchoredSearch)
+	    myEndIndex = myIndex;
+
+	  for (;;)
+	    {
+	      unsigned	i = 1;
+	      unichar	myCharacter = (*scImp)(self, caiSel, myIndex);
+	      unichar	strCharacter = strFirstCharacter;
+
+	      for (;;)
+		{
+		  if (myCharacter != strCharacter)
+		    break;
+		  if (i == strLength)
+		    return (NSRange){myIndex, strLength};
+		  myCharacter = (*scImp)(self, caiSel, myIndex + i);
+		  strCharacter = (*ocImp)(aString, caiSel, i);
+		  i++;
+		}
+	      if (myIndex == myEndIndex)
+		break;
+	      myIndex--;
+	    }
+	  return (NSRange){0, 0};
+	}
+
+      case FCS : 
+      case FCAS : 
+	{
+	  unsigned	strBaseLength;
+	  NSRange	iRange;
+
+	  strBaseLength = [aString _baseLength];
+
+	  myIndex = aRange.location;
+	  myEndIndex = aRange.location + aRange.length - strBaseLength;
+
+	  if (mask & NSAnchoredSearch)
+	    myEndIndex = myIndex;
+
+	  iRange = (*orImp)(aString, ranSel, 0);
+	  if (iRange.length)
+	    {
+	      GSEQ_MAKE(iBuf, iSeq, iRange.length);
+
+	      (*ogImp)(aString, gcrSel, iBuf, iRange);
+	      GSeq_normalize(&iSeq);
+	      GSeq_lowercase(&iSeq);
+
+	      for (;;)
+		{
+		  NSRange	sRange = (*srImp)(self, ranSel, myIndex);
+		  GSEQ_MAKE(sBuf, sSeq, sRange.length);
+
+		  (*sgImp)(self, gcrSel, sBuf, sRange);
+		  GSeq_normalize(&sSeq);
+		  GSeq_lowercase(&sSeq);
+
+		  if (GSeq_compare(&iSeq, &sSeq) == NSOrderedSame)
+		    {
+		      unsigned	myCount = sRange.length;
+		      unsigned	strCount = iRange.length;
+
+		      if (strCount >= strLength)
+			{
+			  return (NSRange){myIndex, myCount};
+			}
+		      for (;;)
+			{
+			  NSRange	r0 =
+			    (*srImp)(self, ranSel, myIndex + myCount);
+			  GSEQ_MAKE(b0, s0, r0.length);
+			  NSRange	r1 =
+			    (*orImp)(aString, ranSel, strCount);
+			  GSEQ_MAKE(b1, s1, r1.length);
+
+			  (*sgImp)(self, gcrSel, b0, r0);
+			  (*ogImp)(aString, gcrSel, b1, r1);
+
+			  GSeq_normalize(&s0);
+			  GSeq_normalize(&s1);
+			  if (GSeq_compare(&s0, &s1) != NSOrderedSame)
+			    {
+			      GSeq_lowercase(&s0);
+			      GSeq_lowercase(&s1);
+			      if (GSeq_compare(&s0, &s1) != NSOrderedSame)
+				{
+				  break;
+				}
+			    }
+			  myCount += r0.length;
+			  strCount += r1.length;
+			  if (strCount >= strLength)
+			    {
+			      return (NSRange){myIndex, myCount};
+			    }
+			}
+		    }
+		  myIndex += sRange.length;
+		  if (myIndex >= myEndIndex)
+		    break;
+		}
+	    }
+	  return (NSRange){0, 0};
+	}
+
+      case BCS : 
+      case BCAS : 
+	{
+	  unsigned	strBaseLength;
+	  NSRange	iRange;
+
+	  strBaseLength = [aString _baseLength];
+
+	  myIndex = aRange.location + aRange.length - strBaseLength;
+	  myEndIndex = aRange.location;
+
+	  if (mask & NSAnchoredSearch)
+	    myEndIndex = myIndex;
+
+	  iRange = (*orImp)(aString, ranSel, 0);
+	  if (iRange.length)
+	    {
+	      GSEQ_MAKE(iBuf, iSeq, iRange.length);
+
+	      (*ogImp)(aString, gcrSel, iBuf, iRange);
+	      GSeq_normalize(&iSeq);
+	      GSeq_lowercase(&iSeq);
+
+	      for (;;)
+		{
+		  NSRange	sRange = (*srImp)(self, ranSel, myIndex);
+		  GSEQ_MAKE(sBuf, sSeq, sRange.length);
+
+		  (*sgImp)(self, gcrSel, sBuf, sRange);
+		  GSeq_normalize(&sSeq);
+		  GSeq_lowercase(&sSeq);
+
+		  if (GSeq_compare(&iSeq, &sSeq) == NSOrderedSame)
+		    {
+		      unsigned	myCount = sRange.length;
+		      unsigned	strCount = iRange.length;
+
+		      if (strCount >= strLength)
+			{
+			  return (NSRange){myIndex, myCount};
+			}
+		      for (;;)
+			{
+			  NSRange	r0 =
+			    (*srImp)(self, ranSel, myIndex + myCount);
+			  GSEQ_MAKE(b0, s0, r0.length);
+			  NSRange	r1 =
+			    (*orImp)(aString, ranSel, strCount);
+			  GSEQ_MAKE(b1, s1, r1.length);
+
+			  (*sgImp)(self, gcrSel, b0, r0);
+			  (*ogImp)(aString, gcrSel, b1, r1);
+
+			  GSeq_normalize(&s0);
+			  GSeq_normalize(&s1);
+			  if (GSeq_compare(&s0, &s1) != NSOrderedSame)
+			    {
+			      GSeq_lowercase(&s0);
+			      GSeq_lowercase(&s1);
+			      if (GSeq_compare(&s0, &s1) != NSOrderedSame)
+				{
+				  break;
+				}
+			    }
+			  myCount += r0.length;
+			  strCount += r1.length;
+			  if (strCount >= strLength)
+			    {
+			      return (NSRange){myIndex, myCount};
+			    }
+			}
+		    }
+		  if (myIndex <= myEndIndex)
+		    break;
+		  myIndex--;
+		  while (uni_isnonsp((*scImp)(self, caiSel, myIndex))
+		    && (myIndex > 0))
+		    myIndex--;
+		}
+	    }
+	  return (NSRange){0, 0};
+	}
+
+      case BS : 
+      case BAS : 
+	{
+	  unsigned	strBaseLength;
+	  NSRange	iRange;
+
+	  strBaseLength = [aString _baseLength];
+
+	  myIndex = aRange.location + aRange.length - strBaseLength;
+	  myEndIndex = aRange.location;
+
+	  if (mask & NSAnchoredSearch)
+	    myEndIndex = myIndex;
+
+	  iRange = (*orImp)(aString, ranSel, 0);
+	  if (iRange.length)
+	    {
+	      GSEQ_MAKE(iBuf, iSeq, iRange.length);
+
+	      (*ogImp)(aString, gcrSel, iBuf, iRange);
+	      GSeq_normalize(&iSeq);
+
+	      for (;;)
+		{
+		  NSRange	sRange = (*srImp)(self, ranSel, myIndex);
+		  GSEQ_MAKE(sBuf, sSeq, sRange.length);
+
+		  (*sgImp)(self, gcrSel, sBuf, sRange);
+		  GSeq_normalize(&sSeq);
+
+		  if (GSeq_compare(&iSeq, &sSeq) == NSOrderedSame)
+		    {
+		      unsigned	myCount = sRange.length;
+		      unsigned	strCount = iRange.length;
+
+		      if (strCount >= strLength)
+			{
+			  return (NSRange){myIndex, myCount};
+			}
+		      for (;;)
+			{
+			  NSRange	r0 =
+			    (*srImp)(self, ranSel, myIndex + myCount);
+			  GSEQ_MAKE(b0, s0, r0.length);
+			  NSRange	r1 =
+			    (*orImp)(aString, ranSel, strCount);
+			  GSEQ_MAKE(b1, s1, r1.length);
+
+			  (*sgImp)(self, gcrSel, b0, r0);
+			  (*ogImp)(aString, gcrSel, b1, r1);
+
+			  GSeq_normalize(&s0);
+			  GSeq_normalize(&s1);
+			  if (GSeq_compare(&s0, &s1) != NSOrderedSame)
+			    {
+			      break;
+			    }
+			  myCount += r0.length;
+			  strCount += r1.length;
+			  if (strCount >= strLength)
+			    {
+			      return (NSRange){myIndex, myCount};
+			    }
+			}
+		    }
+		  if (myIndex <= myEndIndex)
+		    break;
+		  myIndex--;
+		  while (uni_isnonsp((*scImp)(self, caiSel, myIndex))
+		    && (myIndex > 0))
+		    myIndex--;
+		}
+	    }
+	  return (NSRange){0, 0};
+	}
+
+      case FS : 
+      case FAS : 
+      default : 
+	{
+	  unsigned	strBaseLength;
+	  NSRange	iRange;
+
+	  strBaseLength = [aString _baseLength];
+
+	  myIndex = aRange.location;
+	  myEndIndex = aRange.location + aRange.length - strBaseLength;
+
+	  if (mask & NSAnchoredSearch)
+	    myEndIndex = myIndex;
+
+	  iRange = (*orImp)(aString, ranSel, 0);
+	  if (iRange.length)
+	    {
+	      GSEQ_MAKE(iBuf, iSeq, iRange.length);
+
+	      (*ogImp)(aString, gcrSel, iBuf, iRange);
+	      GSeq_normalize(&iSeq);
+
+	      for (;;)
+		{
+		  NSRange	sRange = (*srImp)(self, ranSel, myIndex);
+		  GSEQ_MAKE(sBuf, sSeq, sRange.length);
+
+		  (*sgImp)(self, gcrSel, sBuf, sRange);
+		  GSeq_normalize(&sSeq);
+
+		  if (GSeq_compare(&iSeq, &sSeq) == NSOrderedSame)
+		    {
+		      unsigned	myCount = sRange.length;
+		      unsigned	strCount = iRange.length;
+
+		      if (strCount >= strLength)
+			{
+			  return (NSRange){myIndex, myCount};
+			}
+		      for (;;)
+			{
+			  NSRange	r0 =
+			    (*srImp)(self, ranSel, myIndex + myCount);
+			  GSEQ_MAKE(b0, s0, r0.length);
+			  NSRange	r1 =
+			    (*orImp)(aString, ranSel, strCount);
+			  GSEQ_MAKE(b1, s1, r1.length);
+
+			  (*sgImp)(self, gcrSel, b0, r0);
+			  (*ogImp)(aString, gcrSel, b1, r1);
+
+			  GSeq_normalize(&s0);
+			  GSeq_normalize(&s1);
+			  if (GSeq_compare(&s0, &s1) != NSOrderedSame)
+			    {
+			      break;
+			    }
+			  myCount += r0.length;
+			  strCount += r1.length;
+			  if (strCount >= strLength)
+			    {
+			      return (NSRange){myIndex, myCount};
+			    }
+			}
+		    }
+		  myIndex += sRange.length;
+		  if (myIndex >= myEndIndex)
+		    break;
+		}
+	    }
+	  return (NSRange){0, 0};
+	}
+    }
+  return (NSRange){0, 0};
 }
 
 // Determining Composed Character Sequences
@@ -1341,107 +1372,155 @@ handle_printf_atsign (FILE *stream,
 }
 
 - (NSComparisonResult) compare: (NSString*)aString	
-   options: (unsigned int)mask
+		       options: (unsigned int)mask
 {
   return [self compare: aString options: mask 
-	       range: ((NSRange){0, [self length]})];
+		 range: ((NSRange){0, [self length]})];
 }
 
 // xxx Should implement full POSIX.2 collate
 - (NSComparisonResult) compare: (NSString*)aString
-   options: (unsigned int)mask
-   range: (NSRange)aRange
+		       options: (unsigned int)mask
+			 range: (NSRange)aRange
 {
-  if (aRange.location > [self length])
+  unsigned	oLength;			/* Length of other.	*/
+  unsigned	sLength = [self length];
+
+  if (aRange.location > sLength)
     [NSException raise: NSRangeException format: @"Invalid location."];
-  if (aRange.length > ([self length] - aRange.location))
+  if (aRange.length > (sLength - aRange.location))
     [NSException raise: NSRangeException format: @"Invalid location+length."];
 
-  if (aRange.length == 0)
-    return NSOrderedSame;
-  if ((([self length] - aRange.location == 0) && (![aString length])))
-    return NSOrderedSame;
-  if (![self length])
-    return NSOrderedAscending;
-  if (![aString length])
-    return NSOrderedDescending;
-
-if (mask & NSLiteralSearch)
-{
-  int i;
-  int s1len = aRange.length;
-  int s2len = [aString length];
-  int end;
-  unichar s1[s1len+1];
-  unichar s2[s2len+1];
-
-  [self getCharacters: s1 range: aRange];
-  s1[s1len] = (unichar)0;
-  [aString getCharacters: s2];
-  s2[s2len] = (unichar)0;
-  end = s1len+1;
-  if (s2len < s1len)
-    end = s2len+1;
-
-  if (mask & NSCaseInsensitiveSearch)
+  oLength = [aString length];
+  if (sLength - aRange.location == 0)
     {
-      for (i = 0; i < end; i++)
+      if (oLength == 0)
 	{
-	  int c1 = uni_tolower(s1[i]);
-	  int c2 = uni_tolower(s2[i]);
-	  if (c1 < c2) return NSOrderedAscending;
-	  if (c1 > c2) return NSOrderedDescending;
+	  return NSOrderedSame;
 	}
-    }
-  else
-    {
-      for (i = 0; i < end; i++)
-	{
-	  if (s1[i] < s2[i]) return NSOrderedAscending;
-	  if (s1[i] > s2[i]) return NSOrderedDescending;
-	}
-    }
-  if (s1len > s2len)
-    return NSOrderedDescending;
-  else if (s1len < s2len)
-    return NSOrderedAscending;
-  else
-    return NSOrderedSame;
-}  /* if NSLiteralSearch */
-else
-{
-  int start, end, myCount, strCount;
-  NSRange myRange, strRange;
-  id mySeq, strSeq;
-  NSComparisonResult result;
-
-  start = aRange.location;
-  end = aRange.location + aRange.length;
-  myCount = start;
-  strCount = start;
-  while (myCount < end)
-  {
-    if (strCount>=[aString length])
-      return NSOrderedDescending;
-    if (myCount>=[self length])
       return NSOrderedAscending;
-    myRange = [self rangeOfComposedCharacterSequenceAtIndex:  myCount];
-    myCount += myRange.length;
-    strRange = [aString rangeOfComposedCharacterSequenceAtIndex:  strCount];
-    strCount += strRange.length;
-    mySeq = [NSGSequence_class sequenceWithString: self range: myRange];
-    strSeq = [NSGSequence_class sequenceWithString: aString range: strRange];
-    if (mask & NSCaseInsensitiveSearch)
-      result = [[mySeq lowercase] compare: [strSeq lowercase]];
-    else
-      result = [mySeq compare: strSeq];
-    if (result != NSOrderedSame)
-      return result;
-    } /* while */
-  if (strCount<[aString length])
-    return NSOrderedAscending;
-  return NSOrderedSame;
- }  /* else */
+    }
+  else if (oLength == 0)
+    {
+      return NSOrderedDescending;
+    }
+
+  if (mask & NSLiteralSearch)
+    {
+      unsigned	i;
+      unsigned	sLen = aRange.length;
+      unsigned	oLen = oLength;
+      unsigned	end;
+      unichar	s[sLen+1];
+      unichar	o[oLen+1];
+
+      [self getCharacters: s range: aRange];
+      s[sLen] = (unichar)0;
+      [aString getCharacters: o];
+      o[oLen] = (unichar)0;
+      if (oLen < sLen)
+	end = oLen + 1;
+      else
+	end = sLen + 1;
+
+      if (mask & NSCaseInsensitiveSearch)
+	{
+	  for (i = 0; i < end; i++)
+	    {
+	      unichar	c1 = uni_tolower(s[i]);
+	      unichar	c2 = uni_tolower(o[i]);
+
+	      if (c1 < c2)
+		return NSOrderedAscending;
+	      if (c1 > c2)
+		return NSOrderedDescending;
+	    }
+	}
+      else
+	{
+	  for (i = 0; i < end; i++)
+	    {
+	      if (s[i] < o[i])
+		return NSOrderedAscending;
+	      if (s[i] > o[i])
+		return NSOrderedDescending;
+	    }
+	}
+      if (sLen > oLen)
+	return NSOrderedDescending;
+      else if (sLen < oLen)
+	return NSOrderedAscending;
+      else
+	return NSOrderedSame;
+    }
+  else
+    {
+      unsigned		start = aRange.location;
+      unsigned		end = start + aRange.length;
+      unsigned		sCount = start;
+      unsigned		oCount = 0;
+      void		(*sgImp)(NSString*, SEL, unichar*, NSRange);
+      void		(*ogImp)(NSString*, SEL, unichar*, NSRange);
+      NSRange		(*srImp)(NSString*, SEL, unsigned);
+      NSRange		(*orImp)(NSString*, SEL, unsigned);
+      NSComparisonResult result;
+
+      sgImp = (void (*)())[self methodForSelector: gcrSel];
+      ogImp = (void (*)())[aString methodForSelector: gcrSel];
+      srImp = (NSRange (*)())[self methodForSelector: ranSel];
+      orImp = (NSRange (*)())[aString methodForSelector: ranSel];
+
+      while (sCount < end)
+	{
+	  if (oCount >= oLength)
+	    {
+	      return NSOrderedDescending;
+	    }
+	  else if (sCount >= sLength)
+	    {
+	      return NSOrderedAscending;
+	    }
+	  else
+	    {
+	      NSRange	sRange = (*srImp)(self, ranSel, sCount);
+	      NSRange	oRange = (*orImp)(aString, ranSel, oCount);
+	      GSEQ_MAKE(sBuf, sSeq, sRange.length);
+	      GSEQ_MAKE(oBuf, oSeq, oRange.length);
+
+	      (*sgImp)(self, gcrSel, sBuf, sRange);
+	      (*ogImp)(aString, gcrSel, oBuf, oRange);
+
+	      GSeq_normalize(&sSeq);
+	      GSeq_normalize(&oSeq);
+
+	      result = GSeq_compare(&sSeq, &oSeq);
+
+	      if (result != NSOrderedSame)
+		{
+		  if (mask & NSCaseInsensitiveSearch)
+		    {
+		      GSeq_lowercase(&oSeq);
+		      GSeq_lowercase(&sSeq);
+		      result = GSeq_compare(&sSeq, &oSeq);
+		      if (result != NSOrderedSame)
+			{
+			  return result;
+			}
+		    }
+		  else
+		    {
+		      return result;
+		    }
+		}
+
+	      sCount += sRange.length;
+	      oCount += oRange.length;
+	    }
+	}
+      if (oCount < oLength)
+	return NSOrderedAscending;
+      return NSOrderedSame;
+   }
 }
 
 - (BOOL) hasPrefix: (NSString*)aString
@@ -1477,19 +1556,18 @@ else
 
 - (BOOL) isEqualToString: (NSString*)aString
 {
-  id		mySeq;
-  id		strSeq;
-  NSRange	myRange;
-  NSRange	strRange;
   unsigned	myLength;
   unsigned	strLength;
   unsigned	myIndex = 0;
   unsigned	strIndex = 0;
-  static SEL	ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
   unichar	(*scImp)(NSString*, SEL, unsigned);
   unichar	(*ocImp)(NSString*, SEL, unsigned);
+  void		(*sgImp)(NSString*, SEL, unichar*, NSRange);
+  void		(*ogImp)(NSString*, SEL, unichar*, NSRange);
   NSRange	(*srImp)(NSString*, SEL, unsigned);
   NSRange	(*orImp)(NSString*, SEL, unsigned);
+  BOOL		gotRangeImps = NO;
+  BOOL		gotFetchImps = NO;
 
   if ([self hash] != [aString hash])
     return NO;
@@ -1504,8 +1582,6 @@ else
 
   scImp = (unichar (*)())[self methodForSelector: caiSel];
   ocImp = (unichar (*)())[aString methodForSelector: caiSel];
-  srImp = (NSRange (*)())[self methodForSelector: ranSel];
-  orImp = (NSRange (*)())[aString methodForSelector: ranSel];
 
   while ((myIndex < myLength) && (strIndex < strLength))
     if ((*scImp)(self, caiSel, myIndex) == (*ocImp)(aString, caiSel, strIndex))
@@ -1515,18 +1591,38 @@ else
       }
     else
       {
-	myRange = (*srImp)(self, ranSel, myIndex);
-	strRange = (*orImp)(aString, ranSel, strIndex);
-	if ((myRange.length < 2) || (strRange.length < 2))
+	NSRange	r0;
+	NSRange	r1;
+
+	if (gotRangeImps == NO)
+	  {
+	    gotRangeImps = YES;
+	    srImp = (NSRange (*)())[self methodForSelector: ranSel];
+	    orImp = (NSRange (*)())[aString methodForSelector: ranSel];
+	  }
+	r0 = (*srImp)(self, ranSel, myIndex);
+	r1 = (*orImp)(aString, ranSel, strIndex);
+	if ((r0.length < 2) || (r1.length < 2))
 	  return NO;
 	else
 	  {
-	    mySeq = [NSGSequence_class sequenceWithString: self range: myRange];
-	    strSeq = [NSGSequence_class sequenceWithString: aString range: strRange];
-	    if ([mySeq isEqual: strSeq])
+	    unichar	buf0[r0.length * MAXDEC + 1];
+	    unichar	buf1[r1.length * MAXDEC + 1];
+	    GSeqStruct	s0 = { buf0, r0.length, r0.length * MAXDEC, 0 };
+	    GSeqStruct	s1 = { buf1, r1.length, r1.length * MAXDEC, 0 };
+
+	    if (gotFetchImps == NO)
 	      {
-		myIndex += myRange.length;
-		strIndex += strRange.length;
+		gotFetchImps = YES;
+		sgImp = (void (*)())[self methodForSelector: gcrSel];
+		ogImp = (void (*)())[aString methodForSelector: gcrSel];
+	      }
+	    (*sgImp)(self, gcrSel, buf0, r0);
+	    (*ogImp)(aString, gcrSel, buf1, r1);
+	    if (GSeq_compare(&s0, &s1) == NSOrderedSame)
+	      {
+		myIndex += r0.length;
+		strIndex += r1.length;
 	      }
 	    else
 	      return NO;
@@ -1540,117 +1636,37 @@ else
 
 - (unsigned int) hash
 {
-  #define MAXDEC 18
-
   unsigned ret = 0;
-  unsigned ctr = 0;
-  unsigned char_count = 0;
-  unichar *source,*p;
-
-  unichar *target;
-  unichar *spoint;
-  unichar *tpoint;
-  unichar *dpoint;
-  BOOL notdone;
-
-  unichar  *first,*second,tmp;
-  int count,len2;
 
   int len = [self length];
 
+  if (len > NSHashStringLength)
+    len = NSHashStringLength;
   if (len)
-  {
-    if (len > NSHashStringLength)
-      len = NSHashStringLength;
-    source = alloca(sizeof(unichar)*(len*MAXDEC+1));
-    [self getCharacters: source range: NSMakeRange(0,len)];
-    source[len]=(unichar)0;
-
-// decompose
-    target = alloca(sizeof(unichar)*(len*MAXDEC+1));
-    spoint = source;
-    tpoint = target;
-    do
     {
-      notdone=NO;
-      do
-      {
-        if (!(dpoint=uni_is_decomp(*spoint)))
-          *tpoint++ = *spoint;
-        else
-        {
-          while (*dpoint)
-            *tpoint++=*dpoint++;
-          notdone=YES;
-        }
-      } while (*spoint++);
-      *tpoint=(unichar)0;
-      memcpy(source, target,2*(len*MAXDEC+1));
-      tpoint = target;
-      spoint = source;
-    } while (notdone);
+      unichar		buf[len * MAXDEC + 1];
+      GSeqStruct	s = { buf, len, len * MAXDEC, 0 };
+      unichar		*p;
+      unsigned		char_count = 0;
 
-// order
+      [self getCharacters: buf range: NSMakeRange(0,len)];
+      GSeq_normalize(&s);
 
-  len2 = uslen(source);
-  if (len2>1)
-  do
-  {
-    notdone=NO;
-    first=source;
-    second=first+1;
-    for(count=1;count<len2;count++)
-    {
-      if (uni_cop(*second))
-      {
-         if (uni_cop(*first)>uni_cop(*second))
-         {
-            tmp= *first;
-            *first= *second;
-            *second=tmp;
-            notdone=YES;
-         }
-         if (uni_cop(*first)==uni_cop(*second))
-           if (*first>*second)
-           {
-              tmp= *first;
-              *first= *second;
-              *second=tmp;
-              notdone=YES;
-           }
-      }
-      first++;
-      second++;
+      p = buf;
+
+      while (*p && char_count++ < NSHashStringLength)
+	{
+	  ret = (ret << 5) + ret + *p++;
+	}
+
+      /*
+       * The hash caching in our concrete string classes uses zero to denote
+       * an empty cache value, so we MUST NOT return a hash of zero.
+       */
+      if (ret == 0)
+	ret = 0xffffffff;
+      return ret;
     }
-  } while (notdone);
-
-  p = source;
-
-  while (*p && char_count++ < NSHashStringLength)
-    {
-#if 1
-      ret = (ret << 5) + ret + *p++;
-#else
-#if 1
-      ret = (ret << 4) + *p++;
-      ctr = ret & 0xf0000000L;
-      if (ctr != 0)
-         ret ^= ctr ^ (ctr >> 24);
-#else
-      ret ^= *p++ << ctr;
-      ctr = (ctr + 4) % 20;
-#endif
-#endif
-    }
-
-  /*
-   *	The hash caching in our concrete strin classes uses zero to denote
-   *	an empty cache value, so we MUST NOT return a hash of zero.
-   */
-  if (ret == 0)
-    ret = 0xffffffff;
-  return ret;
-  }
   else
     return 0xfffffffe;	/* Hash for an empty string.	*/
 }
@@ -1658,117 +1674,142 @@ else
 // Getting a Shared Prefix
 
 - (NSString*) commonPrefixWithString: (NSString*)aString
-   options: (unsigned int)mask
+			     options: (unsigned int)mask
 {
- if (mask & NSLiteralSearch)
- {
-  int prefix_len = 0;
-  unichar *u,*w;
-  unichar a1[[self length]+1];
-  unichar *s1 = a1;
-  unichar a2[[aString length]+1];
-  unichar *s2 = a2;
-  u=s1;
-  [self getCharacters: s1];
-  s1[[self length]] = (unichar)0;
-  [aString getCharacters: s2];
-  s2[[aString length]] = (unichar)0;
-  u=s1;
-  w=s2;
- if (mask & NSCaseInsensitiveSearch)
-  while (*s1 && *s2 
-	 && (uni_tolower(*s1) == uni_tolower(*s2)))
+  if (mask & NSLiteralSearch)
     {
-      s1++;
-      s2++;
-      prefix_len++;
-    }
- else
-  while (*s1 && *s2 
-	 && (*s1 == *s2))	     
-    {
-      s1++;
-      s2++;
-      prefix_len++;
-    }
-    return [NSString stringWithCharacters: u length: prefix_len];
- }
- else
- {
-  id mySeq, strSeq;
-  NSRange myRange, strRange;
-  unsigned int myLength = [self length];
-  unsigned int strLength = [aString length];
-  unsigned int myIndex = 0;
-  unsigned int strIndex = 0;
-  if (!myLength)
-    return self;
-  if (!strLength)
-    return aString;
- if (mask & NSCaseInsensitiveSearch)
- {
-  while ((myIndex < myLength) && (strIndex < strLength))
-    if (uni_tolower([self characterAtIndex: myIndex]) ==
-       uni_tolower([aString characterAtIndex: strIndex]))
-    {
-      myIndex++;
-      strIndex++;
-    }
-    else
-    {
-      myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
-      strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strIndex];
-      if ((myRange.length < 2) || (strRange.length < 2))
-        return [self substringFromRange: NSMakeRange(0, myIndex)];
+      int prefix_len = 0;
+      unichar *u,*w;
+      unichar a1[[self length]+1];
+      unichar *s1 = a1;
+      unichar a2[[aString length]+1];
+      unichar *s2 = a2;
+
+      u = s1;
+      [self getCharacters: s1];
+      s1[[self length]] = (unichar)0;
+      [aString getCharacters: s2];
+      s2[[aString length]] = (unichar)0;
+      u = s1;
+      w = s2;
+
+      if (mask & NSCaseInsensitiveSearch)
+	{
+	  while (*s1 && *s2 && (uni_tolower(*s1) == uni_tolower(*s2)))
+	    {
+	      s1++;
+	      s2++;
+	      prefix_len++;
+	    }
+	}
       else
-      {
-        mySeq = [NSGSequence_class sequenceWithString: self range: myRange];
-        strSeq = [NSGSequence_class sequenceWithString: aString range: strRange];
-        if ([[mySeq lowercase] isEqual: [strSeq lowercase]])
-        {
-          myIndex += myRange.length;
-          strIndex += strRange.length;
-        }
-        else
-         return [self substringFromRange: NSMakeRange(0, myIndex)];
-      }
+	{
+	  while (*s1 && *s2 && (*s1 == *s2))	     
+	    {
+	      s1++;
+	      s2++;
+	      prefix_len++;
+	    }
+	}
+      return [NSString stringWithCharacters: u length: prefix_len];
     }
-  return [self substringFromRange: NSMakeRange(0, myIndex)];
- }
- else
- {
-  while ((myIndex < myLength) && (strIndex < strLength))
-    if ([self characterAtIndex: myIndex] ==
-       [aString characterAtIndex: strIndex])
+  else
     {
-      myIndex++;
-      strIndex++;
+      unichar	(*scImp)(NSString*, SEL, unsigned);
+      unichar	(*ocImp)(NSString*, SEL, unsigned);
+      void	(*sgImp)(NSString*, SEL, unichar*, NSRange);
+      void	(*ogImp)(NSString*, SEL, unichar*, NSRange);
+      NSRange	(*srImp)(NSString*, SEL, unsigned);
+      NSRange	(*orImp)(NSString*, SEL, unsigned);
+      BOOL	gotRangeImps = NO;
+      BOOL	gotFetchImps = NO;
+      NSRange	sRange;
+      NSRange	oRange;
+      unsigned	sLength = [self length];
+      unsigned	oLength = [aString length];
+      unsigned	sIndex = 0;
+      unsigned	oIndex = 0;
+
+      if (!sLength)
+	return self;
+      if (!oLength)
+	return aString;
+
+      scImp = (unichar (*)())[self methodForSelector: caiSel];
+      ocImp = (unichar (*)())[aString methodForSelector: caiSel];
+
+      while ((sIndex < sLength) && (oIndex < oLength))
+	{
+	  unichar	sc = (*scImp)(self, caiSel, sIndex);
+	  unichar	oc = (*ocImp)(aString, caiSel, oIndex);
+
+	  if (sc == oc)
+	    {
+	      sIndex++;
+	      oIndex++;
+	    }
+	  else if ((mask & NSCaseInsensitiveSearch)
+	    && (uni_tolower(sc) == uni_tolower(oc)))
+	    {
+	      sIndex++;
+	      oIndex++;
+	    }
+	  else
+	    {
+	      if (gotRangeImps == NO)
+		{
+		  gotRangeImps = YES;
+		  srImp=(NSRange (*)())[self methodForSelector: ranSel];
+		  orImp=(NSRange (*)())[aString methodForSelector: ranSel];
+		}
+	      sRange = (*srImp)(self, ranSel, sIndex);
+	      oRange = (*orImp)(aString, ranSel, oIndex);
+
+	      if ((sRange.length < 2) || (oRange.length < 2))
+		return [self substringFromRange: NSMakeRange(0, sIndex)];
+	      else
+		{
+		  GSEQ_MAKE(sBuf, sSeq, sRange.length);
+		  GSEQ_MAKE(oBuf, oSeq, oRange.length);
+
+		  if (gotFetchImps == NO)
+		    {
+		      gotFetchImps = YES;
+		      sgImp=(void (*)())[self methodForSelector: gcrSel];
+		      ogImp=(void (*)())[aString methodForSelector: gcrSel];
+		    }
+		  (*sgImp)(self, gcrSel, sBuf, sRange);
+		  (*ogImp)(aString, gcrSel, oBuf, oRange);
+
+		  GSeq_normalize(&sSeq);
+		  GSeq_normalize(&oSeq);
+		  if (GSeq_compare(&sSeq, &oSeq) == NSOrderedSame)
+		    {
+		      sIndex += sRange.length;
+		      oIndex += oRange.length;
+		    }
+		  else if (mask & NSCaseInsensitiveSearch)
+		    {
+		      GSeq_lowercase(&sSeq);
+		      GSeq_lowercase(&oSeq);
+		      if (GSeq_compare(&sSeq, &oSeq) == NSOrderedSame)
+			{
+			  sIndex += sRange.length;
+			  oIndex += oRange.length;
+			}
+		      else
+			return [self substringFromRange: NSMakeRange(0,sIndex)];
+		    }
+		  else
+		    return [self substringFromRange: NSMakeRange(0,sIndex)];
+		}
+	    }
+	}
+      return [self substringFromRange: NSMakeRange(0, sIndex)];
     }
-    else
-    {
-      myRange = [self rangeOfComposedCharacterSequenceAtIndex: myIndex];
-      strRange = [aString rangeOfComposedCharacterSequenceAtIndex: strIndex];
-      if ((myRange.length < 2) || (strRange.length < 2))
-        return [self substringFromRange: NSMakeRange(0, myIndex)];
-      else
-      {
-        mySeq = [NSGSequence_class sequenceWithString: self range: myRange];
-        strSeq = [NSGSequence_class sequenceWithString: aString range: strRange];
-        if ([mySeq isEqual: strSeq])
-        {
-          myIndex += myRange.length;
-          strIndex += strRange.length;
-        }
-        else
-         return [self substringFromRange: NSMakeRange(0, myIndex)];
-      }
-    }
-  return [self substringFromRange: NSMakeRange(0, myIndex)];
- }
- }
 }
 
-- (NSRange)lineRangeForRange: (NSRange)aRange
+- (NSRange) lineRangeForRange: (NSRange)aRange
 {
   unsigned int startIndex;
   unsigned int lineEndIndex;
@@ -2589,36 +2630,6 @@ else
     }
   return blen;
 } 
-
-
-- (NSString*) _normalizedString
-{
-  #define MAXDEC 18
-
-  NSZone *z = fastZone(self);
-  unichar *u, *upoint;
-  NSRange r;
-  id seq,ret;
-  int len = [self length];
-  int count = 0;
-
-  u = NSZoneMalloc(z, sizeof(unichar)*(len*MAXDEC+1));
-  upoint = u;
-
-  while (count < len)
-  {
-    r = [self rangeOfComposedCharacterSequenceAtIndex: count];
-    seq=[NSGSequence_class sequenceWithString: self range: r];
-    [[seq normalize] getCharacters: upoint];
-    upoint += [seq length];
-    count += r.length;
-  }
-  *upoint = (unichar)0;
-
-  ret = [[[[self class] allocWithZone: NSDefaultMallocZone()]
-    initWithCharactersNoCopy: u length: uslen(u) fromZone: z] autorelease];
-  return ret;
-}
 
 + (NSString*) pathWithComponents: (NSArray*)components
 {
