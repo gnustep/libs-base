@@ -136,6 +136,7 @@
 - (void) setContent: (id)newContent
 	       type: (NSString*)type
 	       name: (NSString*)name;
+- (void) setContentType: (NSString*)newType;
 - (void) setHeader: (GSMimeHeader*)info;
 
 @end
