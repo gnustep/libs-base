@@ -1,3 +1,9 @@
+Thu Oct 16 21:45:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSPrivate.h: Try to think of better macro names and documentation
+	for stack/heap allocation.
+	* NSArray.m: Use new macro names.
+
 Thu Oct 16 19:30:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check for sigaction()

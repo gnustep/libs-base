@@ -23,17 +23,30 @@
 #ifndef __GSPrivate_h_
 #define __GSPrivate_h_
 
+#include "GNUstepBase/GSObjCRuntime.h"
 
-/*
- * Macros to manage memory for chunks of code that need to work with
- * arrays of objects.  Use OBUFBEGIN() to start the block of code using
- * the array and OBUFEND() to end it.  The idea is to ensure that small
+/**
+ * Macro to manage memory for chunks of code that need to work with
+ * arrays of objects.  Use this to start the block of code using
+ * the array and GS_ENDIDBUF() to end it.  The idea is to ensure that small
  * arrays are allocated on the stack (for speed), but large arrays are
  * allocated from the heap (to avoid stack overflow).
  */
-#define	OBUFMAX	1024
-#define	OBUFBEGIN(P, S) { id _obuf[(S) <= OBUFMAX ? (S) : 0]; id *_base = ((S) <= OBUFMAX) ? _obuf : (id*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(id)); id *(P) = _base;
-#define	OBUFEND() if (_base != _obuf) NSZoneFree(NSDefaultMallocZone(), _base); }
+#define	GS_BEGINIDBUF(P, S) { \
+  id _obuf[(S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 0]; \
+  id *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _obuf \
+    : (id*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(id)); \
+  id *(P) = _base;
+
+/**
+ * Macro to manage memory for chunks of code that need to work with
+ * arrays of objects.  Use GS_BEGINIDBUF() to start the block of code using
+ * the array and this macro to end it.
+ */
+#define	GS_ENDIDBUF() \
+  if (_base != _obuf) \
+    NSZoneFree(NSDefaultMallocZone(), _base); \
+  }
 
 /*
  * Function to get the name of a string encoding as an NSString.
