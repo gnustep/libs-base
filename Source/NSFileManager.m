@@ -109,6 +109,9 @@
 #if HAVE_PWD_H
 #include <pwd.h>     /* For struct passwd */
 #endif
+#if HAVE_GRP_H
+#include <grp.h>     /* For struct group */
+#endif
 #if HAVE_UTIME_H
 # include <utime.h>
 #endif
@@ -605,7 +608,7 @@ static NSFileManager* defaultManager = nil;
 #if HAVE_PWD_H
   struct passwd *pw;
 #endif
-#if HAVE_GETGRENT_H
+#if HAVE_GRP_H
   struct group *gp;
 #endif
   int mode;
@@ -674,7 +677,7 @@ static NSFileManager* defaultManager = nil;
     {
       values[10] = @"UnknownUser";
     }
-#if HAVE_GETGRENT_H
+#if HAVE_GRP_H
   setgrent();
   while ((gp = getgrent()) != 0)
     if (gp->gr_gid == statbuf.st_uid)

@@ -75,6 +75,9 @@
 /* Define if you have the <pwd.h> header file.  */
 #undef HAVE_PWD_H
 
+/* Define if you have the <getgrent.h> header file.  */
+#undef HAVE_GRP_H
+
 /* Define if you have the <string.h> header file.  */
 #undef HAVE_STRING_H
 
