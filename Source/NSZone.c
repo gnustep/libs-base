@@ -1,5 +1,5 @@
 /* Zone memory management.
-   Copyright (C) 1994  Free Software Foundation, Inc.
+   Copyright (C) 1995  Free Software Foundation, Inc.
  
    Author: Mark Lakata
    Date: January 1995
@@ -75,7 +75,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <foundation/NSZone.h>
-
+#include <objects/objc-malloc.h>
 
 #define DEFAULTLISTSIZE 10
 
