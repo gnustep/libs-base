@@ -41,22 +41,6 @@ setupCache()
 }
 
 NSRange
-NSMakeRange(unsigned int location, unsigned int length)
-{
-  NSRange range;
-  unsigned int end = location + length;
-
-  if (end < location || end < length)
-    {
-      [NSException raise: NSRangeException
-                  format: @"Range location + length too great"];
-    }
-  range.location = location;
-  range.length   = length;
-  return range;
-}
-
-NSRange
 NSRangeFromString(NSString* string)
 {
   NSScanner	*scanner;
@@ -86,3 +70,8 @@ NSStringFromRange(NSRange range)
     range.location, range.length];
 }
 
+void _NSRangeExceptionRaise ()
+{
+  [NSException raise: NSRangeException
+	       format: @"Range location + length too great"];
+}
