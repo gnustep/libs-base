@@ -4,6 +4,7 @@
 	decoded. Fixes problem reported by Willem Rein Oudshoorn where
 	an object used by more than one object being decoded could be
 	released by one object before being used by the other.
+	Fix -init to call the primary initialiser.
 
 2004-04-09  Willem Rein Oudshoorn  <Wim.Oudshoorn@agilisys.com>
 
