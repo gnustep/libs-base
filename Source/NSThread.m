@@ -32,6 +32,53 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSNotificationQueue.h>
 
+/*
+ *	A class to defer the use of the real thread method until we have
+ *	an autlorelease pool so that target and arg can be safely released
+ *	once they are no longer needed.
+ */
+@interface GSThreadLauncher : NSObject
+{
+  id	target;
+  id	arg;
+  SEL	sel;
+}
++ (GSThreadLauncher*) newWithTarget: (id)t selector: (SEL)s arg: (id)a;
+- (void) sendThreadMethod;
+@end
+
+@implementation	GSThreadLauncher
++ (GSThreadLauncher*) newWithTarget: (id)t selector: (SEL)s arg: (id)a
+{
+  GSThreadLauncher	*l;
+
+  l = (GSThreadLauncher*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+  l->target = RETAIN(t);
+  l->arg = RETAIN(a);
+  l->sel = s;
+  return l;
+}
+
+- (void) dealloc
+{
+  RELEASE(target);
+  RELEASE(arg);
+  NSDeallocateObject(self);
+}
+
+- (void) sendThreadMethod
+{
+  /*
+   * We are running in the new thread - so an autorelease puts us in the
+   * pool for the thread.  If the thread object calls [NSThread exit] the
+   * pool will be released, otherwise, we call it ourself.
+   */
+  AUTORELEASE(self);
+  [target performSelector: sel withObject: arg];
+  [NSThread exit];
+}
+@end
+
 // Class variables
 
 /* Flag indicating whether the objc runtime ever went multi-threaded. */
@@ -144,6 +191,7 @@ void gnustep_base_thread_callback()
 		        toTarget: (id)aTarget
                       withObject: (id)anArgument
 {
+  GSThreadLauncher	*launcher;
   /*
    * Make sure the notification is posted BEFORE the new thread starts.
    */
@@ -151,7 +199,11 @@ void gnustep_base_thread_callback()
   /*
    * Have the runtime detach the thread
    */
-  if (objc_thread_detach (aSelector, aTarget, anArgument) == NULL)
+  launcher = [GSThreadLauncher newWithTarget: aTarget
+				    selector: aSelector
+					 arg: anArgument];
+
+  if (objc_thread_detach(@selector(sendThreadMethod), launcher, nil) == NULL)
     {
       /* This should probably be an exception */
       NSLog(@"Unable to detach thread (unknown error)");
