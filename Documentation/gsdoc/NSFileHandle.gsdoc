@@ -56,7 +56,7 @@
           <desc>
           </desc>
         </method>
-        <method type="unsignedlonglong">
+        <method type="unsigned long long">
           <sel>offsetInFile</sel>
           <desc>
           </desc>
@@ -94,14 +94,14 @@
           <desc>
           </desc>
         </method>
-        <method type="unsignedlonglong">
+        <method type="unsigned long long">
           <sel>seekToEndOfFile</sel>
           <desc>
           </desc>
         </method>
         <method type="void">
           <sel>seekToFileOffset:</sel>
-          <arg type="unsignedlonglong">offset</arg>
+          <arg type="unsigned long long">offset</arg>
           <desc>
           </desc>
         </method>
@@ -112,7 +112,7 @@
         </method>
         <method type="void">
           <sel>truncateFileAtOffset:</sel>
-          <arg type="unsignedlonglong">offset</arg>
+          <arg type="unsigned long long">offset</arg>
           <desc>
           </desc>
         </method>

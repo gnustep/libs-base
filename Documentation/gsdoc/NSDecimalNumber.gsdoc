@@ -25,7 +25,7 @@
         </method>
         <method type="NSDecimalNumber*" factory="yes">
           <sel>decimalNumberWithMantissa:</sel>
-          <arg type="unsignedlonglong">mantissa</arg>
+          <arg type="unsigned long long">mantissa</arg>
           <sel>exponent:</sel>
           <arg type="short">exponent</arg>
           <sel>isNegative:</sel>
@@ -193,7 +193,7 @@
         </method>
         <method type="NSDecimalNumber*">
           <sel>initWithMantissa:</sel>
-          <arg type="unsignedlonglong">mantissa</arg>
+          <arg type="unsigned long long">mantissa</arg>
           <sel>exponent:</sel>
           <arg type="short">exponent</arg>
           <sel>isNegative:</sel>
