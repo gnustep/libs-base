@@ -1,3 +1,8 @@
+2005-01-14 05:43 Gregory John Casamento <greg_casamento@yahoo.com>
+
+	* Source/NSUndoManager.m: Fix forward invocation to not add
+	a group when it doesn't contain any actions. 
+
 2005-01-08  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSCalendarDate.m: fix time zone for %z format with 

@@ -340,19 +340,23 @@
     {
       if (_isUndoing)
 	{
-	  if (_levelsOfUndo > 0 && [_redoStack count] == _levelsOfUndo)
+	  if (_levelsOfUndo > 0 && [_redoStack count] == _levelsOfUndo && [[g actions] count] > 0)
 	    {
 	      [_redoStack removeObjectAtIndex: 0];
 	    }
-	  [_redoStack addObject: g];
+
+	  if([[g actions] count] > 0)
+	    [_redoStack addObject: g];
 	}
       else
 	{
-	  if (_levelsOfUndo > 0 && [_undoStack count] == _levelsOfUndo)
+	  if (_levelsOfUndo > 0 && [_undoStack count] == _levelsOfUndo && [[g actions] count] > 0)
 	    {
 	      [_undoStack removeObjectAtIndex: 0];
 	    }
-	  [_undoStack addObject: g];
+
+	  if([[g actions] count] > 0)
+	    [_undoStack addObject: g];
 	}
     }
   else if ([g actions] != nil)
