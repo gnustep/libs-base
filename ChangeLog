@@ -1,12 +1,11 @@
 2001-03-01  Nicola Pero  <n.pero@mi.flashnet.it>
 
-	* aclocal.m4 (AC_SYS_PROCFS): Reverted last change (not documented
-	in this ChangeLog) in code to detect the /proc filesystem as it
-	didn't work on my gnu-linux: /proc/0 does not exist, but the /proc
-	filesystem works perfectly.
-	* configure.in (GS_FAKE_MAIN): Fixed typo in last change (not
-	documented in this ChangeLog) which caused fake main definition to
-	take place even when both +load and /proc worked.
+	* aclocal.m4 (AC_SYS_PROCFS): Reverted last change in code to detect
+	the /proc filesystem as it didn't work on my gnu-linux: /proc/0 does
+	not exist, but the /proc filesystem works perfectly.
+	* configure.in (GS_FAKE_MAIN): Fixed typo in last change which
+	caused fake main definition to take place even when both +load and
+	/proc worked.
 	* configure: Regenerated.
 
 2001-02-28  Jonathan Gapen  <jagapen@home.com>
