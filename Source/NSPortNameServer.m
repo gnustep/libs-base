@@ -541,7 +541,7 @@ typedef enum {
       serverPort = RETAIN([NSString stringWithCString:
 	make_gdomap_port(GDOMAP_PORT_OVERRIDE)]);
 #endif
-      launchCmd = MAKE_GDOMAP_CMD;
+      launchCmd = RETAIN(MAKE_GDOMAP_CMD);
       portClass = [GSTcpPort class];
     }
 }
