@@ -1,6 +1,7 @@
 
 #include <objects/Connection.h>
 #include "first-server.h"
+#include <objects/String.h>
 
 @implementation FirstServer
 - sayHiTo: (char *)name
@@ -19,7 +20,7 @@ int main()
 
   /* Register a connection that provides the server object to the network */
   printf("Registering a connection for the server using name `firstserver'\n");
-  c = [Connection newRegisteringAtName:"firstserver"
+  c = [Connection newRegisteringAtName:@"firstserver"
 		  withRootObject:s];
   
   /* Run the connection */

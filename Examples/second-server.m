@@ -1,6 +1,7 @@
 #include "second-server.h"
 #include "second-client.h"
 #include <objects/Connection.h>
+#include <objects/String.h>
 
 @implementation SecondServer
 
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
 
   s = [[SecondServer alloc] init];
 
-  c = [Connection newRegisteringAtName:"secondserver" withRootObject:s];
+  c = [Connection newRegisteringAtName:@"secondserver" withRootObject:s];
   printf("Regsitered server object on localhost with name `secondserver'\n");
 
   [c setDelegate:s];
