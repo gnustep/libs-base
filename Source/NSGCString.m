@@ -267,16 +267,48 @@ static Class	mutableClass;
   return [NSString defaultCStringEncoding];
 }
 
+- (BOOL) isEqual: (id)anObject
+{
+  Class	c;
+  if (anObject == self)
+    return YES;
+  c = ((NSGCString*)anObject)->isa;		/* Hack.	*/
+  if (c == immutableClass || c == mutableClass)
+    {
+      NSGCString	*other = (NSGCString*)anObject;
+
+      if (_count != other->_count)
+	return NO;
+      if (_hash == 0)
+         if ((_hash = [super hash]) == 0)
+           _hash = 0xffffffff;
+      if (other->_hash == 0) [other hash];
+      if (_hash != other->_hash)
+	return NO;
+      if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
+	return NO;
+      return YES;
+    }
+  else if ([c isKindOfClass: [NSString class]])
+    return [super isEqualToString: (NSString*)anObject];
+  else
+    return [super isEqual: anObject];
+}
+
 - (BOOL) isEqualToString: (NSString*)aString
 {
-  Class	c = [aString class];
+  Class	c;
+
+  c = ((NSGCString*)aString)->isa;		/* Hack.	*/
   if (c == immutableClass || c == mutableClass)
     {
       NSGCString	*other = (NSGCString*)aString;
 
       if (_count != other->_count)
 	return NO;
-      if (_hash && other->_hash && (_hash != other->_hash))
+      if (_hash == 0) [self hash];
+      if (other->_hash == 0) [other hash];
+      if (_hash != other->_hash)
 	return NO;
       if (memcmp(_contents_chars, other->_contents_chars, _count) != 0)
 	return NO;
@@ -284,7 +316,6 @@ static Class	mutableClass;
     }
   else
     return [super isEqualToString: aString];
-  return YES;
 }
 
 

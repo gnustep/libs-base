@@ -43,6 +43,20 @@
 
 @implementation NSGString
 
+static Class	immutableClass;
+static Class	mutableClass;
+
++ (void) initialize
+{
+  static int done = 0;
+  if (!done)
+    {
+      done = 1;
+      immutableClass = [NSGString class];
+      mutableClass = [NSGMutableString class];
+    }
+}
+
 - (void)dealloc
 {
   if (_free_contents)
@@ -59,6 +73,26 @@
     if ((_hash = [super hash]) == 0)
       _hash = 0xffffffff;
   return _hash;
+}
+
+- (BOOL) isEqual: (id)anObject
+{
+  Class	c;
+  if (anObject == self)
+    return YES;
+  c = [anObject class];
+  if (c == immutableClass || c == mutableClass)
+    {
+      NSGString	*other = (NSGString*)anObject;
+
+      if (_hash == 0) [self hash];
+      if (other->_hash == 0) [other hash];
+      if (_hash != other->_hash)
+	return NO;
+      return [self isEqualToString: other];
+    }
+  else
+    return [super isEqual: anObject];
 }
 
 // Initializing Newly Allocated Strings

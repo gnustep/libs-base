@@ -1406,7 +1406,7 @@ else
 {
   if (anObject == self)
     return YES;
-  if ([anObject isKindOf:[NSString class]])
+  if ([anObject isKindOfClass:[NSString class]] == YES)
     return [self isEqualToString:anObject];
   return NO;
 }
