@@ -20,7 +20,7 @@ before-install::
 
 # Things to do after installing
 after-install::
-	@if [ ! -f $(dtddir) ]; then \
+	$(ECHO_NOTHING)if [ ! -f $(dtddir) ]; then \
 	  $(MKDIRS) $(dtddir); \
 	fi; \
 	for file in $(DTD_FILES); do \
@@ -77,6 +77,7 @@ after-install::
 	echo "remote systems should be probed), and you should addd this"; \
 	echo "startup command to your system boot scripts!"; \
 	echo "************************************************************"; \
+	$(END_ECHO)
 
 # Things to do before uninstalling
 # before-uninstall::
