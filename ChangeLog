@@ -1,3 +1,8 @@
+2000-11-14  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GSLocale.m: Put LANGINFO_H ifdefs around include of
+	langinfo.h.
+
 2000-11-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTcpPort.m: ([GSTcpHandle -receivedEvent:type:extra:forMode:])

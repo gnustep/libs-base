@@ -29,7 +29,9 @@
 #ifdef HAVE_LOCALE_H
 
 #include <locale.h>
+#ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
+#endif
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSBundle.h>
 
