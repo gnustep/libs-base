@@ -1,7 +1,12 @@
 News
 ****
 
-The currently released version of the library is `1.4.0'.
+The currently released version of the library is `1.4.1'.
+
+Noteworthy changes in version `1.4.1'
+=====================================
+
+   * Fixed bug that occationally deleted user defaults.
 
 Noteworthy changes in version `1.4.0'
 =====================================

@@ -1,3 +1,15 @@
+2002-08-30  Adam Fedor  <fedor@gnu.org>
+
+	* Version: 1.4.1
+
+2002-08-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: ([-writeToFile:atomically:]) Removed bogus line
+	which deleted files when it shouldn't.
+	* Source/NSUserDefaults.m: Use distributed lock to ensure that there
+	is no possible window when the defaults file is invalid ... not all
+	systems guarantee that the rename() system call is atomic.
+
 2002-08-06  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSString.m (-getLineStart:end:contentsEnd:forRange:):
