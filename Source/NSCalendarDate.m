@@ -589,7 +589,7 @@ static inline int getDigits(const char *from, char *to, int limit)
     {
       int		year = 0, month = 1, day = 1;
       int		hour = 0, min = 0, sec = 0;
-      NSTimeZone	*tz = localTZ;
+      NSTimeZone	*tz = nil;
       BOOL		ampm = NO;
       BOOL		twelveHrClock = NO; 
       int		julianWeeks = -1, weekStartsMonday = 0, dayOfWeek = -1;
@@ -1045,11 +1045,8 @@ static inline int getDigits(const char *from, char *to, int limit)
 		      sourceIdx += getDigits(&source[sourceIdx], tmpStr, 4);
 		      zone = atoi(tmpStr) * sign;
 
-		      if ((tz = [NSTimeZone timeZoneForSecondsFromGMT: 
-			(zone / 100 * 60 + (zone % 100)) * 60]) == nil)
-			{
-			  tz = localTZ;
-			}
+		      tz = [NSTimeZone timeZoneForSecondsFromGMT: 
+			(zone / 100 * 60 + (zone % 100)) * 60];
 		    }
 		    break;
 
@@ -1075,10 +1072,6 @@ static inline int getDigits(const char *from, char *to, int limit)
 		      if (tz == nil)
 			{
 			  tz = [NSTimeZone timeZoneWithAbbreviation: z];
-			}
-		      if (tz == nil)
-			{
-			  tz = localTZ;
 			}
 		    }
 		    break;
