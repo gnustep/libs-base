@@ -3,8 +3,9 @@ Thu May 27 11:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 	* Source/NSArchiver.m: Fix memory leak reported by
 	frederic.chauvin@lemel.fr and ready for garbage collection.
 	* Source/NSUnarchiver.m: Ready for garbage collection.
-	* Source/NSCalendarDate.m: Fix memory leak reported by
-	frederic.chauvin@lemel.fr.  Fix bug in decrementing date past start
+	* Source/NSTimeZone.m: Fix memory leak reported by
+	frederic.chauvin@lemel.fr. Ready for garbage collection.
+	* Source/NSCalendarDate.m: Fix bug in decrementing date past start
 	of month.  Ready for garbage collection.
 
 Wed May 26 18:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
