@@ -2,6 +2,8 @@
 
 	* Source/GNUmakefile: Make GNUstep.h public.
 	* Source/Additions/GSXML.m: Use cached NSString class variable. 
+	* Source/Additions/GSObjCRuntime.m
+	(GSCGetInstanceVariableDefinition): Make more robust.
 
 2003-07-11  Richard Frith-Macdonald <rfm@gnu.org>
 
