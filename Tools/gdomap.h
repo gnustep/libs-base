@@ -222,10 +222,16 @@ typedef	struct	{
  *	as root and will not even let you modify /etc/services to point
  *	gdomap to another port, you can uncomment the next #define to
  *	run gdomap on port 6006 (or modify this to a port of your choice).
+ *	Whatever port you choose, you should make sure that no other
+ *	processes running on your network use that number!
  *
  *	When you have done this you must recompile gdomap.c and
  *	NSPortNameServer.m and re-install the base library with
  *	the new NSPortNameServer.o
+ *
+ *	NB. Doing this will render your system unable to communicate with
+ * 	other systems which have not performed the same remapping.  You
+ *	should not do it unless you have no choice.
  */
 /* #define	GDOMAP_PORT_OVERRIDE	6006 */
 

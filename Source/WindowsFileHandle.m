@@ -37,6 +37,8 @@
 #include <Foundation/NSHost.h>
 #include <Foundation/NSByteOrder.h>
 
+#include "../Tools/gdomap.h"
+
 #include <winsock2.h>
 #include <fcntl.h>
 
@@ -71,7 +73,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
   struct servent	*sp;
 
   if (pcl)
-    proto = [pcl cString];
+    proto = [pcl lossyCString];
 
   memset(sin, '\0', sizeof(*sin));
   sin->sin_family = AF_INET;
@@ -89,11 +91,11 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	name = [host address];
 
 #ifndef	HAVE_INET_ATON
-      sin->sin_addr.s_addr = inet_addr([name cString]);
+      sin->sin_addr.s_addr = inet_addr([name lossyCString]);
       if (sin->sin_addr.s_addr == INADDR_NONE)
 	return NO;
 #else
-      if (inet_aton([name cString], &sin->sin_addr) == 0)
+      if (inet_aton([name lossyCString], &sin->sin_addr) == 0)
 	return NO;
 #endif
     }
@@ -105,9 +107,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       sin->sin_port = 0;
       return YES;
     }
-  else if ((sp = getservbyname([svc cString], proto)) == 0)
+  else if ((sp = getservbyname([svc lossyCString], proto)) == 0)
     {
-      const char*     ptr = [svc cString];
+      const char*     ptr = [svc lossyCString];
       int             val = atoi(ptr);
 
       while (isdigit(*ptr))
@@ -120,8 +122,21 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	  sin->sin_port = GSSwapHostI16ToBig(v);
 	  return YES;
         }
+      else if (strcmp(ptr, "gdomap") == 0)
+	{
+	  gsu16       v;
+#ifdef	GDOMAP_PORT_OVERRIDE
+	  v = GDOMAP_PORT_OVERRIDE
+#else
+	  v = 538;	// IANA allocated port
+#endif
+	  sin->sin_port = GSSwapHostI16ToBig(v);
+	  return YES;
+	}
       else
-	return NO;
+	{
+	  return NO;
+	}
     }
   else
     {
@@ -306,8 +321,6 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
       [self release];
       return nil;
     }
-
-  setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
 
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {

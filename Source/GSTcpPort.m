@@ -1447,14 +1447,22 @@ static Class		tcpPortClass;
 	      NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
 	      DESTROY(port);
 	    }
+#ifndef	__MINGW__
+      /*
+       * Under unix, SO_REUSEADDR means that the port can be reused
+       * immediately that this porcess exits.  Under windoze it means
+       * that multiple processes can serve the same port simultaneously.
+       * We don't want that windows behavior!
+       */
 	  else if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse,
-		sizeof(reuse)) < 0)
+	    sizeof(reuse)) < 0)
 	    {
 	      (void) close(desc);
               NSLog(@"unable to set reuse on socket - %s",
 		GSLastErrorStr(errno));
               DESTROY(port);
 	    }
+#endif
 	  else if (bind(desc, (struct sockaddr *)&sockaddr,
 	    sizeof(sockaddr)) < 0)
 	    {
@@ -1664,12 +1672,20 @@ static Class		tcpPortClass;
 	{
 	  NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
 	}
+#ifndef	__MINGW__
+      /*
+       * Under unix, SO_REUSEADDR means that the port can be reused
+       * immediately that this porcess exits.  Under windoze it means
+       * that multiple processes can serve the same port simultaneously.
+       * We don't want that windows behavior!
+       */
       else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&opt,
 	sizeof(opt)) < 0)
 	{
 	  (void)close(sock);
 	  NSLog(@"unable to set reuse on socket - %s", GSLastErrorStr(errno));
 	}
+#endif
       else if ((handle = [GSTcpHandle handleWithDescriptor: sock]) == nil)
 	{
 	  (void)close(sock);

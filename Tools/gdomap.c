@@ -127,7 +127,7 @@
 
 typedef	unsigned char	*uptr;
 static int	is_daemon = 0;		/* Currently running as daemon.	 */
-static int	debug = 0;		/* Extra debug gdomap_logging.		 */
+static int	debug = 0;		/* Extra debug gdomap_logging.	 */
 static int	nobcst = 0;		/* turn off broadcast probing.	 */
 static int	nofork = 0;		/* turn off fork() for debugging. */
 static int	noprobe = 0;		/* disable probe for unknown servers. */
@@ -1646,12 +1646,20 @@ init_ports()
       gdomap_log(LOG_CRIT);
       exit(1);
     }
+#ifndef __MINGW__
+  /*
+   * Under windoze, REUSEADDR means something different from under unix.
+   * It lets multiple processes bind to the same port at once -
+   * which we don't want.  So we only set it under unix (to allow a process to
+   * bind to the same port immediately after one which was using the port exits.
+   */
   r = 1;
   if ((setsockopt(udp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
     {
       sprintf(ebuf, "Unable to set 're-use' on UDP socket");
       gdomap_log(LOG_WARNING);
     }
+#endif
   if (nobcst == 0)
     {
       r = 1;
@@ -1698,7 +1706,8 @@ init_ports()
   sa.sin_port = my_port;
   if (bind(udp_desc, (void*)&sa, sizeof(sa)) < 0)
     {
-      sprintf(ebuf, "Unable to bind address to UDP socket");
+      sprintf(ebuf,
+"Unable to bind address to UDP socket. Perhaps gdomap is already running");
       gdomap_log(LOG_ERR);
       if (errno == EACCES)
 	{
@@ -1725,12 +1734,21 @@ init_ports()
       gdomap_log(LOG_CRIT);
       exit(1);
     }
+#ifndef	__MINGW__
+  /*
+   * Under windoze, REUSEADDR means something different from under unix.
+   * It lets multiple processes bind to the same port at once -
+   * which we don't want.  So we only set it under unix (to allow a process to
+   * bind to the same port immediately after one which was using the port exits.
+   */
   r = 1;
   if ((setsockopt(tcp_desc,SOL_SOCKET,SO_REUSEADDR,(char*)&r,sizeof(r)))<0)
     {
       sprintf(ebuf, "Unable to set 're-use' on TCP socket");
       gdomap_log(LOG_WARNING);
     }
+#endif
+
 #ifdef __MINGW__
   dummy = 1;
   if (ioctlsocket(tcp_desc, FIONBIO, &dummy) < 0)
@@ -1764,7 +1782,8 @@ init_ports()
   sa.sin_port = my_port;
   if (bind(tcp_desc, (void*)&sa, sizeof(sa)) < 0)
     {
-      sprintf(ebuf, "Unable to bind address to UDP socket");
+      sprintf(ebuf,
+"Unable to bind address to TCP socket. Perhaps gdomap is already running");
       gdomap_log(LOG_ERR);
       if (errno == EACCES)
 	{
@@ -2616,13 +2635,24 @@ handle_request(int desc)
 	    }
 	  else
 	    {
+#ifndef __MINGW__
 	      int	r = 1;
+
+	      /*
+	       * Under windoze, REUSEADDR means something different from
+	       * under unix.
+	       * It lets multiple processes bind to the same port at once -
+	       * which we don't want.  So we only set it under unix (to allow
+	       * a process to bind to the same port immediately after one
+	       * which was using the port exits.
+	       */
 	      if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 			    (char*)&r, sizeof(r)) < 0)
 		{
 		  perror("unable to set socket options");
 		}
 	      else
+#endif
 		{
 		  struct sockaddr_in	sa;
 		  int			result;
@@ -2707,11 +2737,17 @@ handle_request(int desc)
 	    }
 	  else
 	    {
-	      /* FIXME: This is weird -- Unix lets you set
-		 SO_REUSEADDR and still returns -1 upon bind() to that
-		 addr? - bjoern */
 #ifndef __MINGW__
 	      int	r = 1;
+
+	      /*
+	       * Under windoze, REUSEADDR means something different from
+	       * under unix.
+	       * It lets multiple processes bind to the same port at once -
+	       * which we don't want.  So we only set it under unix (to allow
+	       * a process to bind to the same port immediately after one
+	       * which was using the port exits.
+	       */
 	      if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 		(char*)&r, sizeof(r)) < 0)
 		{
@@ -4368,7 +4404,27 @@ printf(
 	}
     }
 
-#ifndef __MINGW__ /* On Win32, we don't fork */
+#ifdef __MINGW__ /* On Win32, we don't fork */
+  if (nofork == 0)
+    {
+      char	**a = malloc((argc+2) * sizeof(char*));
+
+      memcpy(a, argv, argc*sizeof(char*));
+      a[argc] = "-f";
+      a[argc+1] = 0;
+      if (_spawnv(_P_NOWAIT, argv[0], a) == -1)
+	{
+	  fprintf(stderr, "gdomap - spawn failed - bye.\n");
+	  exit(1);
+	}
+      if (debug)
+        {
+	  sprintf(ebuf, "initialisation complete.");
+	  gdomap_log(LOG_DEBUG);
+        }
+      exit(0);
+    }
+#else
   if (nofork == 0)
     {
       is_daemon = 1;
@@ -4401,7 +4457,6 @@ printf(
 	    exit(0);
 	}
     }
-#endif /* !__MINGW__ */
 
   if (pidfile) {
     {
@@ -4427,12 +4482,18 @@ printf(
   for (c = 0; c < FD_SETSIZE; c++)
     {
       if (c != 2)
-	(void)close(c);
+	{
+	  (void)close(c);
+	}
     }
   (void)open("/dev/null", O_RDONLY);	/* Stdin.	*/
   (void)open("/dev/null", O_WRONLY);	/* Stdout.	*/
 
+#endif /* !__MINGW__ */
+
   init_my_port();	/* Determine port to listen on.		*/
+  init_ports();		/* Create ports to handle requests.	*/
+
   if (interfaces == 0)
     {
       init_iface();	/* Build up list of network interfaces.	*/
@@ -4463,7 +4524,6 @@ printf(
 	  exit(1);
 	}
     }
-  init_ports();	/* Create ports to handle requests.	*/
 
 #ifndef __MINGW__
   /*

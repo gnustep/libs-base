@@ -3,6 +3,14 @@
 	* Source/GSString.m: lossyCString_u() handle case where cString
 	contains more bytes than unicode string has characters.
 	* Tools/gdomap.c: Suppress unnecessary warnings except under debug.
+	Implement spawning to run as daemon under windoze.
+	* Source/GSTcpPort.m: Fix to stop multiple servers trying to use
+	the same port under windoze.
+	* Source/WindowsFileHandle.m: Fix to stop multiple servers trying to use
+	the same port under windoze.  Fix to return gdomap port even if
+	getservbyname() doesn't.
+	* Source/UnixFileHandle.m: Fix to return gdomap port even if
+	getservbyname() doesn't.
 
 2002-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
