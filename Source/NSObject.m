@@ -33,6 +33,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSString.h>
 #include <gnustep/base/o_map.h>
+#include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSDistantObject.h>
@@ -515,12 +516,31 @@ static BOOL double_release_check_enabled = NO;
 
 - (NSString*) description
 {
-  return [NSString stringWithCString: object_get_class_name(self)];
+  return [NSString stringWithFormat: @"<%s %lx>",
+	object_get_class_name(self), (unsigned long)self];
 }
 
 + (NSString*) description
 {
-  return [NSString stringWithCString: class_get_class_name(self)];
+  return [NSString stringWithFormat: @"<%s>", object_get_class_name(self)];
+}
+
+- (void) descriptionTo: (id<GNUDescriptionDestination>)output
+{
+  [output appendString: [self description]];
+}
+
+- (void) descriptionWithLocale: (NSDictionary*)aLocale
+			    to: (id<GNUDescriptionDestination>)output
+{
+  [output appendString: [(id)self descriptionWithLocale: aLocale]];
+}
+
+- (void) descriptionWithLocale: (NSDictionary*)aLocale
+			indent: (unsigned)level
+			    to: (id<GNUDescriptionDestination>)output
+{
+  [output appendString: [(id)self descriptionWithLocale: aLocale indent: level]];
 }
 
 + (void) poseAsClass: (Class)aClassObject

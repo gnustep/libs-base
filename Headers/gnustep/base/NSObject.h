@@ -43,8 +43,10 @@
 @class NSArchiver;
 @class NSArray;
 @class NSCoder;
+@class NSDictionary;
 @class NSPortCoder;
 @class NSMethodSignature;
+@class NSMutableString;
 @class NSRecursiveLock;
 @class NSString;
 @class NSInvocation;
@@ -162,8 +164,24 @@ enum {NSNotFound = 0x7fffffff};
    creating the potential for deadlock. */
 extern NSRecursiveLock *gnustep_global_lock;
 
+/*
+ * The GNUDescriptionDestination protocol declares a single method used
+ * to append a property-list description string to some output destination
+ * so that property-lists can be converted to strings in a stream avoiding
+ * the use of ridiculous amounts of memory for deeply nested data structures.
+ */
+@protocol       GNUDescriptionDestination
+- (void) appendString: (NSString*)str;
+@end
+
 @interface NSObject (GNU)
 - (int) compare: anObject;
+- (void) descriptionTo: (id<GNUDescriptionDestination>)output;
+- (void) descriptionWithLocale: (NSDictionary*)aLocale
+			    to: (id<GNUDescriptionDestination>)output;
+- (void) descriptionWithLocale: (NSDictionary*)aLocale
+			indent: (unsigned)level
+			    to: (id<GNUDescriptionDestination>)output;
 - (Class)transmuteClassTo:(Class)aClassObject;
 - subclassResponsibility:(SEL)aSel;
 - shouldNotImplement:(SEL)aSel;

@@ -1,3 +1,22 @@
+Fri Dec 18 18:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        Foundation.h: Added NSPathUtilities.h
+        NSObject.h: Added GNUstep specific methods for describing a
+        property-list to a stream.
+        NSDate.h: Moved natural language methods to right place.
+	NSObject.m: Added GNUstep specific extensions for describing a
+        property-list to a stream, updated -description to spec.
+	NSProxy.m: Tidied format and description method.
+	NSArray.m: Added GNUstep specific extensions for describing a
+        property-list to a stream.
+	NSDictionary.m: ditto
+	NSAttributedString.m: Tidied ([-replacementObjectForPortCoder:])
+	NSGAttributedString.m: ditto
+	NSGCString.m: ditto
+	NSGString.m: ditto
+	NSString.m: ditto
+        NSConcreteNumber.m: Added ([-replacementObjectForPortCoder:])
+
 Thu Dec 17 16:12:18 1998  Matthias Klose  <doko@cs.tu-berlin.de>
 
         * {,*}/GNUmakefile: Include Version and GNUmakefile.local where

@@ -35,43 +35,48 @@
 
 + (id) alloc
 {
-    return [self allocWithZone: NSDefaultMallocZone()];
+  return [self allocWithZone: NSDefaultMallocZone()];
 }
 
 + (id) allocWithZone: (NSZone*)z
 {
-    NSProxy*	ob = (NSProxy*) NSAllocateObject (self, 0, z);
-    return ob;
+  NSProxy*	ob = (NSProxy*) NSAllocateObject(self, 0, z);
+  return ob;
 }
 
-+ autorelease
++ (id) autorelease
 {
-    return self;
+  return self;
 }
 
 + (Class) class
 {
-    return self;
+  return self;
 }
 
 + (void) load
 {
-    /* Do nothing	*/
+  /* Do nothing	*/
+}
+
++ (NSString*) description
+{
+  return [NSString stringWithFormat: @"<%s>", object_get_class_name(self)];
 }
 
 + (BOOL) respondsToSelector: (SEL)aSelector
 {
-    return (class_get_class_method(self, aSelector) != METHOD_NULL);
+  return (class_get_class_method(self, aSelector) != METHOD_NULL);
 }
 
 + (void) release
 {
-    /* Do nothing	*/
+  /* Do nothing	*/
 }
 
-+ retain
++ (id) retain
 {
-    return self;
+  return self;
 }
 
 + (Class) superclass
@@ -79,175 +84,185 @@
   return class_get_super_class (self);
 }
 
-- autorelease
+- (id) autorelease
 {
-    [NSAutoreleasePool addObject:self];
-    return self;
+  [NSAutoreleasePool addObject:self];
+  return self;
 }
 
 - (Class) class
 {
-    return object_get_class(self);
+  return object_get_class(self);
 }
 
 #if 0
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol
 {
-    NSInvocation*	inv;
-    NSMethodSignature*	sig;
-    BOOL		result;
+  NSInvocation		*inv;
+  NSMethodSignature	*sig;
+  BOOL			result;
 
-    sig = [self methodSignatureForSelector:@selector(conformsToProtocol:)];
-    inv = [NSInvocation invocationWithMethodSignature:sig];
-    [inv setSelector:@selector(conformsToProtocol:)];
-    [inv setArgument:aProtocol atIndex:2];
-    [self forwardInvocation:inv];
-    [inv getReturnValue: &result];
-    return result;
+  sig = [self methodSignatureForSelector:@selector(conformsToProtocol:)];
+  inv = [NSInvocation invocationWithMethodSignature:sig];
+  [inv setSelector:@selector(conformsToProtocol:)];
+  [inv setArgument:aProtocol atIndex:2];
+  [self forwardInvocation:inv];
+  [inv getReturnValue: &result];
+  return result;
 }
 #endif
 
 - (void) dealloc
 {
-    NSDeallocateObject((NSObject*)self);
+  NSDeallocateObject((NSObject*)self);
 }
 
 - (NSString*) description
 {
-    return [NSString stringWithCString: object_get_class_name(self)];
+  return [NSString stringWithFormat: @"<%s %lx>",
+	object_get_class_name(self), (unsigned long)self];
 }
 
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
-    [NSException raise: NSInvalidArgumentException
-		format: @"NSProxy should not implement '%s'",
+  [NSException raise: NSInvalidArgumentException
+	      format: @"NSProxy should not implement '%s'",
 				sel_get_name(_cmd)];
 }
 
 - (unsigned int) hash
 {
-    return (unsigned int)self;
+  return (unsigned int)self;
 }
 
-- init
+- (id) init
 {
-    return self;
+  return self;
 }
 
-- (BOOL) isEqual: anObject
+- (BOOL) isEqual: (id)anObject
 {
-    return (self == anObject);
+  return (self == anObject);
 }
 
 - (BOOL) isKindOfClass: (Class)aClass
 {
-    Class class = self->isa;
+  Class class = self->isa;
 
-    while (class != nil) {
-	if (class == aClass) {
-	    return YES;
+  while (class != nil)
+    {
+      if (class == aClass)
+	{
+	  return YES;
 	}
-	class = class_get_super_class(class);
+      class = class_get_super_class(class);
     }
-    return NO;
+  return NO;
 }
 
 - (BOOL) isMemberOfClass: (Class)aClass
 {
-    return(self->isa == aClass);
+  return(self->isa == aClass);
 }
 
 - (BOOL) isProxy
 {
-    return YES;
+  return YES;
 }
 
-- notImplemented: (SEL)aSel
+- (id) notImplemented: (SEL)aSel
 {
-    [NSException raise: NSGenericException
-               format: @"NSProxy notImplemented %s", sel_get_name(aSel)];
-    return self;
+  [NSException raise: NSGenericException
+	      format: @"NSProxy notImplemented %s", sel_get_name(aSel)];
+  return self;
 }
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-    [NSException raise: NSInvalidArgumentException format:
+  [NSException raise: NSInvalidArgumentException format:
 	@"NSProxy should not implement 'methodSignatureForSelector:'"];
-    return nil;
+  return nil;
 }
 
-- performSelector: (SEL)aSelector
+- (id) performSelector: (SEL)aSelector
 {
-    IMP msg = objc_msg_lookup(self, aSelector);
+  IMP msg = objc_msg_lookup(self, aSelector);
 
-    if (!msg) {
-	[NSException raise: NSGenericException
-		    format: @"invalid selector passed to %s",
+  if (!msg)
+    {
+      [NSException raise: NSGenericException
+		  format: @"invalid selector passed to %s",
 				sel_get_name(_cmd)];
-	return nil;
+      return nil;
     }
-    return (*msg)(self, aSelector);
+  return (*msg)(self, aSelector);
 }
 
-- performSelector: (SEL)aSelector withObject: anObject
+- (id) performSelector: (SEL)aSelector
+	    withObject: (id)anObject
 {
-    IMP msg = objc_msg_lookup(self, aSelector);
+  IMP msg = objc_msg_lookup(self, aSelector);
 
-    if (!msg) {
-	[NSException raise: NSGenericException
-		    format: @"invalid selector passed to %s",
+  if (!msg)
+    {
+      [NSException raise: NSGenericException
+		  format: @"invalid selector passed to %s",
 				sel_get_name(_cmd)];
-	return nil;
+      return nil;
     }
-    return (*msg)(self, aSelector, anObject);
+  return (*msg)(self, aSelector, anObject);
 }
 
-- performSelector: (SEL)aSelector withObject: anObject withObject: anotherObject
+- (id) performSelector: (SEL)aSelector
+	    withObject: (id)anObject
+	    withObject: (id)anotherObject
 {
-    IMP msg = objc_msg_lookup(self, aSelector);
+  IMP msg = objc_msg_lookup(self, aSelector);
 
-    if (!msg) {
-	[NSException raise: NSGenericException
-		    format: @"invalid selector passed to %s",
+  if (!msg)
+    {
+      [NSException raise: NSGenericException
+		  format: @"invalid selector passed to %s",
 				sel_get_name(_cmd)];
-	return nil;
+      return nil;
     }
-    return (*msg)(self, aSelector, anObject, anotherObject);
+  return (*msg)(self, aSelector, anObject, anotherObject);
 }
 
 - (void) release
 {
-    if (_retain_count-- == 0) {
-	[self dealloc];
+  if (_retain_count-- == 0)
+    {
+      [self dealloc];
     }
 }
 
 #if 0
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-    NSInvocation*       inv;
-    NSMethodSignature*  sig;
-    BOOL		result;
+  NSInvocation*       inv;
+  NSMethodSignature*  sig;
+  BOOL		result;
 
-    sig = [self methodSignatureForSelector:@selector(respondsToSelector:)];
-    inv = [NSInvocation invocationWithMethodSignature:sig];
-    [inv setSelector:@selector(respondsToSelector:)];
-    [inv setArgument:(void*)aSelector atIndex:2];
-    [self forwardInvocation:inv];
-    [inv getReturnValue: &result];
-    return result;
+  sig = [self methodSignatureForSelector:@selector(respondsToSelector:)];
+  inv = [NSInvocation invocationWithMethodSignature:sig];
+  [inv setSelector:@selector(respondsToSelector:)];
+  [inv setArgument:(void*)aSelector atIndex:2];
+  [self forwardInvocation:inv];
+  [inv getReturnValue: &result];
+  return result;
 }
 #endif
 
-- retain
+- (id) retain
 {
-    _retain_count++;
-    return self;
+  _retain_count++;
+  return self;
 }
 
 - (unsigned int) retainCount
 {
-    return _retain_count + 1;
+  return _retain_count + 1;
 }
 
 + (unsigned) retainCount
@@ -255,19 +270,19 @@
   return UINT_MAX;
 }
 
-- self
+- (id) self
 {
-    return self;
+  return self;
 }
 
 - (Class) superclass
 {
-    return object_get_super_class(self);
+  return object_get_super_class(self);
 }
 
-- (NSZone*)zone
+- (NSZone*) zone
 {
-    return NSZoneFromPointer(self);
+  return NSZoneFromPointer(self);
 }
 
 @end

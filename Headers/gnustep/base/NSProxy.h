@@ -36,20 +36,21 @@
     unsigned int	_retain_count;
 }
 
-+ alloc;
-+ allocWithZone: (NSZone*)zone;
++ (id) alloc;
++ (id) allocWithZone: (NSZone*)zone;
 + (Class) class;
 + (void) load;
 + (BOOL) respondsToSelector: (SEL)aSelector;
 
 - (void) dealloc;
+- (NSString*) description;
 - (void) forwardInvocation: (NSInvocation*)anInvocation;
-- methodSignatureForSelector: (SEL)aSelector;
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
 
 @end
 
 @interface NSProxy(GNUstepExtensions)
-- forward: (SEL)aSel :(arglist_t)frame;
+- (id) forward: (SEL)aSel :(arglist_t)frame;
 @end
 
 @interface Object (IsProxy)

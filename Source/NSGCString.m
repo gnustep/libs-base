@@ -161,26 +161,6 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     }
 }
 
-- (Class) classForArchiver
-{
-  return [self class];
-}
-
-- (Class) classForCoder
-{
-  return [self class];
-}
-
-- (Class) classForPortCoder
-{
-  return [self class];
-}
-
-- replacementObjectForPortCoder:(NSPortCoder*)aCoder
-{
-  return self;
-}
-
 - (void) encodeWithCoder: aCoder
 {
   [aCoder encodeValueOfObjCType:@encode(unsigned) at:&_count];
@@ -511,88 +491,104 @@ static	IMP	msInitImp;	/* designated initialiser for mutable	*/
     return [self initWithCStringNoCopy: buf length: length fromZone: z];
 }
 
-- (NSString*) descriptionForPropertyList
+- (void) descriptionTo: (NSMutableString*)output
 {
-    if (_count == 0) {
-	return @"\"\"";
+  if (_count == 0)
+    {
+      [output appendString: @"\"\""];
     }
-    else {
-	unsigned	i;
-	unsigned	length = _count;
-	BOOL		needQuote = NO;
+  else
+    {
+      unsigned	i;
+      unsigned	length = _count;
+      BOOL	needQuote = NO;
 
-	for (i = 0; i < _count; i++) {
-	    char	val = _contents_chars[i];
+      for (i = 0; i < _count; i++)
+	{
+	  char	val = _contents_chars[i];
 
-	    if (isalnum(val)) {
-		continue;
+	  if (isalnum(val))
+	    {
+	      continue;
 	    }
-	    switch (val) {
-		case '\a':
-		case '\b':
-		case '\t':
-		case '\r':
-		case '\n':
-		case '\v':
-		case '\f':
-		case '\\':
-		case '"' :
-		    length += 1;
-		    break;
+	  switch (val)
+	    {
+	      case '\a':
+	      case '\b':
+	      case '\t':
+	      case '\r':
+	      case '\n':
+	      case '\v':
+	      case '\f':
+	      case '\\':
+	      case '"' :
+		length += 1;
+		break;
 
-		default:
-		    if (val == ' ' || isprint(val)) {
-			needQuote = YES;
-		    }
-		    else {
-			length += 3;
-		    }
-		    break;
+	      default:
+		if (val == ' ' || isprint(val))
+		  {
+		    needQuote = YES;
+		  }
+		else
+		  {
+		    length += 3;
+		  }
+		break;
 	    }
 	}
 
-	if (needQuote || length != _count) {
-	    NSZone	*z = fastZone(self);
-	    char	*buf = NSZoneMalloc(z, length+3);
-	    char	*ptr = buf;
-	    NSString	*result;
+      if (needQuote || length != _count)
+	{
+	  NSZone	*z = fastZone(self);
+	  char		*buf = NSZoneMalloc(z, length+3);
+	  char		*ptr = buf;
+	  NSString	*result;
 
-	    *ptr++ = '"';
-	    for (i = 0; i < _count; i++) {
-		char	val = _contents_chars[i];
+	  *ptr++ = '"';
+	  for (i = 0; i < _count; i++)
+	    {
+	      char	val = _contents_chars[i];
 
-		switch (val) {
-		    case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
-		    case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
-		    case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
-		    case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
-		    case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
-		    case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
-		    case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
-		    case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
-		    case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
+	      switch (val)
+		{
+		  case '\a':	*ptr++ = '\\'; *ptr++ = 'a';  break;
+		  case '\b':	*ptr++ = '\\'; *ptr++ = 'b';  break;
+		  case '\t':	*ptr++ = '\\'; *ptr++ = 't';  break;
+		  case '\r':	*ptr++ = '\\'; *ptr++ = 'r';  break;
+		  case '\n':	*ptr++ = '\\'; *ptr++ = 'n';  break;
+		  case '\v':	*ptr++ = '\\'; *ptr++ = 'v';  break;
+		  case '\f':	*ptr++ = '\\'; *ptr++ = 'f';  break;
+		  case '\\':	*ptr++ = '\\'; *ptr++ = '\\'; break;
+		  case '"' :	*ptr++ = '\\'; *ptr++ = '"';  break;
 
-		    default:
-			if (isprint(val) || val == ' ') {
-			    *ptr++ = val;
-			}
-			else {
-			    *ptr++ = '\\';
-			    *ptr++ = '0';
-			    *ptr++ = ((val&0700)>>6)+'0';
-			    *ptr++ = ((val&070)>>3)+'0';
-			    *ptr++ = (val&07)+'0';
-			}
-			break;
+		  default:
+		    if (isprint(val) || val == ' ')
+		      {
+			*ptr++ = val;
+		      }
+		    else
+		      {
+			*ptr++ = '\\';
+			*ptr++ = '0';
+			*ptr++ = ((val&0700)>>6)+'0';
+			*ptr++ = ((val&070)>>3)+'0';
+			*ptr++ = (val&07)+'0';
+		      }
+		    break;
 		}
 	    }
-	    *ptr++ = '"';
-	    *ptr = '\0';
-	    result = [[[_fastCls._NSGCString alloc] initWithCStringNoCopy: buf
-			length: length+2 fromZone: z] autorelease];
-	    return result;
+	  *ptr++ = '"';
+	  *ptr = '\0';
+	  result = [[_fastCls._NSGCString alloc] initWithCStringNoCopy: buf
+			length: length+2 fromZone: z];
+	  [output appendString: result];
+	  [result release];
 	}
-	return self;
+      else
+	{
+	  [output appendString: self];
+	}
     }
 }
 @end

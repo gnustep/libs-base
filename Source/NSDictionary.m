@@ -527,215 +527,144 @@ compareIt(id o1, id o2, void* context)
 
 - (NSString*) descriptionInStringsFileFormat
 {
-    NSMutableString	*result;
-    int			size;
-    int			i;
-    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-    NSArray		*keysArray = [self allKeys];
-    int			numKeys = [keysArray count];
-    NSString		*plists[numKeys];
-    NSString		*keys[numKeys];
+  NSMutableString	*result = [NSMutableString stringWithCapacity: 1024];
+  NSEnumerator		*enumerator;
+  id                    key;
 
-    [keysArray getObjects: keys];
+  enumerator = [self keyEnumerator];
+  while ((key = [enumerator nextObject]) != nil)
+    {
+      id val = [self objectForKey: key];
 
-    size = 1;
-
-    for (i = 0; i < numKeys; i++) {
-	NSString	*newKey;
-	id		key;
-	id		item;
-
-	key = keys[i];
-	item = [self objectForKey: key];
-	if ([key respondsToSelector: @selector(descriptionForPropertyList)]) {
-	    newKey = [key descriptionForPropertyList];
-	}
-	else {
-	    newKey = [key description];
-	}
-	keys[i] = newKey;
-
-	if (item == nil) {
-	    item = @"";
-	}
-	else if ([item isKindOfClass: [NSString class]]) {
-	   item = [item descriptionForPropertyList];
-	}
-	else {
-	   item = [item description];
-	}
-	plists[i] = item;
-
-	size += [newKey length] + [item length];
-	if ([item length]) {
-	    size += 5;
-	}
-	else {
-	    size += 2;
-	}
+      [key descriptionWithLocale: nil
+                              to: (id<GNUDescriptionDestination>)result];
+      if (val != nil && [val isEqualToString: @""] == NO)
+        {
+          [result appendString: @" = "];
+          [val descriptionWithLocale: nil
+                                  to: (id<GNUDescriptionDestination>)result];
+        }
+      [result appendString: @";\n"];
     }
 
-    result = [[NSMutableString alloc] initWithCapacity: size];
-    for (i = 0; i < numKeys; i++) {
-	NSString*	item = plists[i];
-
-	[result appendString: keys[i]];
-	if ([item length]) {
-            [result appendString: @" = "];
-	    [result appendString: item];
-	}
-	[result appendString: @";\n"];
-    }
-
-    [arp release];
-
-    return [result autorelease];
+  return result;
 }
 
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
-    return [self descriptionWithLocale: locale indent: 0];
+  return [self descriptionWithLocale: locale indent: 0];
 }
 
 - (NSString*) descriptionWithLocale: (NSDictionary*)locale
 			     indent: (unsigned int)level
 {
-    NSMutableString	*result;
-    NSEnumerator	*enumerator;
-    id			key;
-    BOOL		canCompare = YES;
-    int			count;
-    int			size;
-    int			indentSize;
-    int			indentBase;
-    NSMutableString	*iBaseString;
-    NSMutableString	*iSizeString;
-    int			i;
-    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-    NSArray		*keyArray = [self allKeys];
-    NSMutableArray	*theKeys = [NSMutableArray arrayWithArray: keyArray];
-    int			numKeys = [theKeys count];
-    NSString		*plists[numKeys];
-    NSString		*keys[numKeys];
+  NSMutableString	*result;
 
-    /*
-     *	Indentation is at four space intervals using tab characters to
-     *	replace multiples of eight spaces.
-     *
-     *	We work out the sizes of the strings needed to perform indentation for
-     *	this level and build strings to make up the indentation.
-     */
-    indentBase = level << 2;
-    count = indentBase >> 3;
-    if ((indentBase % 8) == 0) {
-	indentBase = count;
-    }
-    else {
-	indentBase == count + 4;
-    }
-    iBaseString = [NSMutableString stringWithCapacity: indentBase];
-    for (i = 0; i < count; i++) {
-	[iBaseString appendString: @"\t"];
-    }
-    if (count != indentBase) {
-	[iBaseString appendString: @"    "];
-    }
+  result = [NSMutableString stringWithCapacity: 20*[self count]];
+  [self descriptionWithLocale: locale
+		       indent: level
+			   to: (id<GNUDescriptionDestination>)result];
+  return result;
+}
 
-    level++;
-    indentSize = level << 2;
-    count = indentSize >> 3;
-    if ((indentSize % 8) == 0) {
-	indentSize = count;
-    }
-    else {
-	indentSize == count + 4;
-    }
-    iSizeString = [NSMutableString stringWithCapacity: indentSize];
-    for (i = 0; i < count; i++) {
-	[iSizeString appendString: @"\t"];
-    }
-    if (count != indentSize) {
-	[iSizeString appendString: @"    "];
-    }
+static NSString	*indentStrings[] = {
+  @"",
+  @"    ",
+  @"\t",
+  @"\t    ",
+  @"\t\t",
+  @"\t\t    ",
+  @"\t\t\t",
+  @"\t\t\t    ",
+  @"\t\t\t\t",
+  @"\t\t\t\t    ",
+  @"\t\t\t\t\t",
+  @"\t\t\t\t\t    ",
+  @"\t\t\t\t\t\t"
+};
 
-    /*
-     *	Basic size is - opening bracket, newline, closing bracket,
-     *	indentation for the closing bracket, and a nul terminator.
-     */
-    size = 4 + indentBase;
+- (void) descriptionWithLocale: (NSDictionary*)locale
+			indent: (unsigned int)level
+			    to: (id<GNUDescriptionDestination>)result
+{
+  NSEnumerator		*enumerator;
+  id			key;
+  BOOL			canCompare = YES;
+  NSString		*iBaseString;
+  NSString		*iSizeString;
+  int			i;
+  NSArray		*keyArray = [self allKeys];
+  NSMutableArray	*theKeys = [NSMutableArray arrayWithArray: keyArray];
+  int			numKeys = [theKeys count];
+  NSString		*plists[numKeys];
+  NSString		*keys[numKeys];
+  SEL			appSel;
+  IMP			appImp;
 
-    enumerator = [self keyEnumerator];
-    while ((key = [enumerator nextObject]) != nil) {
-	if ([key respondsToSelector: @selector(compare:)] == NO) {
-	    canCompare = NO;
-	    break;
+  appSel = @selector(appendString:);
+  appImp = [(NSObject*)result methodForSelector: appSel];
+
+  if (level < sizeof(indentStrings)/sizeof(NSString*))
+    iBaseString = indentStrings[level];
+  else
+    iBaseString = indentStrings[sizeof(indentStrings)/sizeof(NSString*)-1];
+  level++;
+  if (level < sizeof(indentStrings)/sizeof(NSString*))
+    iSizeString = indentStrings[level];
+  else
+    iSizeString = indentStrings[sizeof(indentStrings)/sizeof(NSString*)-1];
+
+  enumerator = [self keyEnumerator];
+  while ((key = [enumerator nextObject]) != nil)
+    {
+      if ([key respondsToSelector: @selector(compare:)] == NO)
+	{
+	  canCompare = NO;
+	  break;
 	}
     }
 
-    if (canCompare) {
-	[theKeys sortUsingSelector: @selector(compare:)];
+  if (canCompare)
+    {
+      [theKeys sortUsingSelector: @selector(compare:)];
     }
 
-    [theKeys getObjects: keys];
-    for (i = 0; i < numKeys; i++) {
-	NSString	*newKey;
-	id		item;
-
-	key = keys[i];
-	item = [self objectForKey: key];
-	if ([key respondsToSelector: @selector(descriptionForPropertyList)]) {
-	    newKey = [key descriptionForPropertyList];
-	}
-	else {
-	    newKey = [key description];
-	}
-	keys[i] = newKey;
-
-	if ([item isKindOfClass: [NSString class]]) {
-	   item = [item descriptionForPropertyList];
-	}
-	else if ([item respondsToSelector:
-		@selector(descriptionWithLocale:indent:)]) {
-	   item = [item descriptionWithLocale: locale indent: level];
-	}
-	else if ([item respondsToSelector:
-		@selector(descriptionWithLocale:)]) {
-	   item = [item descriptionWithLocale: locale];
-	}
-	else {
-	   item = [item description];
-	}
-	plists[i] = item;
-
-	size += [newKey length] + [item length] + indentSize;
-	if (i == numKeys - 1) {
-	    size += 4;			/* ' = ' and newline	*/
-	}
-	else {
-	    size += 5;			/* ' = ' and ';' and newline	*/
-	}
+  [theKeys getObjects: keys];
+  for (i = 0; i < numKeys; i++)
+    {
+      plists[i] = [self objectForKey: keys[i]];
     }
 
-    result = [[NSMutableString alloc] initWithCapacity: size];
-    [result appendString: @"{\n"];
-    for (i = 0; i < numKeys; i++) {
-	[result appendString: iSizeString];
-	[result appendString: keys[i]];
-        [result appendString: @" = "];
-	[result appendString: plists[i]];
-	if (i == numKeys - 1) {
-            [result appendString: @"\n"];
+  (*appImp)(result, appSel, @"{\n");
+  for (i = 0; i < numKeys; i++)
+    {
+      id	item = plists[i];
+
+      (*appImp)(result, appSel, iSizeString);
+
+      [keys[i] descriptionTo: result];
+
+      (*appImp)(result, appSel, @" = ");
+
+      if ([item respondsToSelector:
+	      @selector(descriptionWithLocale:indent:)])
+	{
+	  [item descriptionWithLocale: locale indent: level to: result];
 	}
-	else {
-            [result appendString: @";\n"];
+      else if ([item respondsToSelector:
+	      @selector(descriptionWithLocale:)])
+	{
+	  [item descriptionWithLocale: locale to: result];
 	}
+      else
+	{
+	  [item descriptionTo: result];
+	}
+
+      (*appImp)(result, appSel, @";\n");
     }
-    [result appendString: iBaseString];
-    [result appendString: @"}"];
-
-    [arp release];
-
-    return [result autorelease];
+  (*appImp)(result, appSel, iBaseString);
+  (*appImp)(result, appSel, @"}");
 }
 
 @end
