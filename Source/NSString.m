@@ -65,6 +65,7 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSDebug.h>
+#include <base/GSMime.h>
 #include <base/GSFormat.h>
 #include <limits.h>
 #include <sys/stat.h>
@@ -4387,63 +4388,7 @@ handle_printf_atsign (FILE *stream,
 
 #ifdef	HAVE_LIBXML
 #include	<Foundation/GSXML.h>
-
 static int      XML_ELEMENT_NODE;
-
-static void
-decodeBase64Unit(const char* ptr, unsigned char *out)
-{
-  out[0] =  (ptr[0]         << 2) | ((ptr[1] & 0x30) >> 4);
-  out[1] = ((ptr[1] & 0x0F) << 4) | ((ptr[2] & 0x3C) >> 2);
-  out[2] = ((ptr[2] & 0x03) << 6) |  (ptr[3] & 0x3F);
-  out[3] = 0;
-}
-
-static NSData*
-decodeBase64(const char *source)
-{
-  int		length = strlen(source);
-  char		*sourceBuffer;
-  NSMutableData	*data;
-  int		i;
-  int		j;
-  unsigned char	tmp[4];
-
-  if (length == 0)
-    {
-      return [NSData data];
-    }
-
-  data = [NSMutableData dataWithCapacity: 0];
-  sourceBuffer = objc_malloc(length+1);
-  strcpy(sourceBuffer, source);
-  j = 0;
-
-  for (i = 0; i < length; i++)
-    {
-      if (!isspace(source[i]))
-        {
-          sourceBuffer[j++] = source[i];
-        }
-    }
-
-  sourceBuffer[j] = '\0';
-  length = strlen(sourceBuffer);
-  while (length > 0 && sourceBuffer[length-1] == '=')
-    {
-      sourceBuffer[--length] = '\0';
-    }
-  for (i = 0; i < length; i += 4)
-    {
-       decodeBase64Unit(&sourceBuffer[i], tmp);
-       [data appendBytes: tmp length: strlen(tmp)];
-    }
-
-  objc_free(sourceBuffer);
-
-  return data;
-}
-
 #endif
 
 #define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
@@ -5120,7 +5065,7 @@ nodeToObject(GSXMLNode* node)
     }
   else if ([name isEqualToString: @"data"])
     {
-      return decodeBase64([content cString]);
+      return [GSMimeDocument decodeBase64String: content];
     }
   // container class
   else if ([name isEqualToString: @"array"])

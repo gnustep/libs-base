@@ -8,6 +8,8 @@
 	Documented the class.
 	* Source/NSData.m: ([-writeToFile:atomically:]) implement workaround
 	for bug in windoze implementation of rename()
+	* Source/NSString.m: Remove some redundant code duplicating stuff in
+	GSMime.m
 
 2002-09-15  Richard Frith-Macdonald <rfm@gnu.org>
 
