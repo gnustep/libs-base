@@ -3,7 +3,6 @@
 	* config/pathxml.m4: Adjust path to headers.
 	* Tools/gsdoc.m: Adjust path to headers.  Add warning about
 	deprecation.
-	* SSL/Makefile.postamble: remove unnecessary instruction
 	Patch by e.sammer <eric@linuxstep.org>
 
 2002-06-13  Richard Frith-Macdonald <rfm@gnu.org>
