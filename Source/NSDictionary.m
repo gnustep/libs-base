@@ -229,9 +229,9 @@ static Class NSMutableDictionary_concrete_class;
   int c = 0;
 
   while ((k = [e nextObject]))
-    if ([anObject isEqual:[k objectForKey:k]])
+    if ([anObject isEqual: [self objectForKey: k]])
       a[c++] = k;
-  return [[[NSArray alloc] initWithObjects:a count:c]
+  return [[[NSArray alloc] initWithObjects: a count: c]
 	  autorelease];
 }
 
