@@ -51,9 +51,9 @@
 @implementation	GDNCNotification
 - (void) dealloc
 {
-  [name release];
-  [object release];
-  [info release];
+  RELEASE(name);
+  RELEASE(object);
+  RELEASE(info);
   [super dealloc];
 }
 + (GDNCNotification*) notificationWithName: (NSString*)notificationName
@@ -62,10 +62,10 @@
 {
   GDNCNotification	*tmp = [GDNCNotification alloc];
 
-  tmp->name = [notificationName retain];
-  tmp->object = [notificationObject retain];
-  tmp->info = [notificationData retain];
-  return [tmp autorelease];
+  tmp->name = RETAIN(notificationName);
+  tmp->object = RETAIN(notificationObject);
+  tmp->info = RETAIN(notificationData);
+  return AUTORELEASE(tmp);
 }
 @end
 
@@ -85,7 +85,7 @@
 @implementation	GDNCClient
 - (void) dealloc
 {
-  [observers release];
+  RELEASE(observers);
   [super dealloc];
 }
 
@@ -118,10 +118,10 @@
 
 - (void) dealloc
 {
-  [queue release];
-  [selector release];
-  [notificationName release];
-  [notificationObject release];
+  RELEASE(queue);
+  RELEASE(selector);
+  RELEASE(notificationName);
+  RELEASE(notificationObject);
   [super dealloc];
 }
 
@@ -149,8 +149,8 @@
   suspensionBehavior: (NSNotificationSuspensionBehavior)suspensionBehavior
 		 for: (id<GDNCClient>)client;
 
-- (NSConnection*) connection: (NSConnection*)ancestor
-                  didConnect: (NSConnection*)newConn;
+- (BOOL) connection: (NSConnection*)ancestor
+  shouldMakeNewConnection: (NSConnection*)newConn;
 
 - (id) connectionBecameInvalid: (NSNotification*)notification;
 
@@ -187,8 +187,7 @@
       [nc removeObserver: self
 		    name: NSConnectionDidDieNotification
 		  object: conn];
-      [conn release];
-      conn = nil;
+      DESTROY(conn);
     }
 
   /*
@@ -215,8 +214,8 @@
   /*
    *	And release the maps of notification names and objects.
    */
-  [observersForNames release];
-  [observersForObjects release];
+  RELEASE(observersForNames);
+  RELEASE(observersForObjects);
   [super dealloc];
 }
 
@@ -227,13 +226,13 @@
   allObservers = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);
   observersForNames = [NSMutableDictionary new];
   observersForObjects = [NSMutableDictionary new];
-  conn = [NSConnection newRegisteringAtName: GDNC_SERVICE
-			     withRootObject: self];
-  if (conn == nil)
+  conn = [NSConnection defaultConnection];
+  [conn setRootObject: self];
+  if ([conn registerName: GDNC_SERVICE] == NO)
     {
       NSLog(@"gdnc - unable to register with name server - quiting.\n");
-      [self release];
-      return nil;
+      DESTROY(self);
+      return self;
     }
 
   /*
@@ -284,7 +283,7 @@
   obs->behavior = suspensionBehavior;
   obs->selector = [aSelector copy];
   [info->observers addObject: obs];
-  [obs release];
+  RELEASE(obs);
   NSHashInsert(allObservers, obs);
 
   /*
@@ -300,7 +299,7 @@
 	{
 	  objList = [NSMutableArray new];
 	  [observersForObjects setObject: objList forKey: anObject];
-	  [objList release];
+	  RELEASE(objList);
 	}
       /*
        *	If possible use an existing string as the key.
@@ -311,7 +310,7 @@
 
 	  anObject = tmp->notificationObject;
 	}
-      obs->notificationObject = [anObject retain];
+      obs->notificationObject = RETAIN(anObject);
       [objList addObject: obs];
     }
 
@@ -324,7 +323,7 @@
 	{
 	  namList = [NSMutableArray new];
 	  [observersForNames setObject: namList forKey: notificationName];
-	  [namList release];
+	  RELEASE(namList);
 	}
       /*
        *	If possible use an existing string as the key.
@@ -335,14 +334,14 @@
 
 	  notificationName = tmp->notificationObject;
 	}
-      obs->notificationName = [notificationName retain];
+      obs->notificationName = RETAIN(notificationName);
       [namList addObject: obs];
     }
 
 }
 
-- (NSConnection*) connection: (NSConnection*)ancestor
-                  didConnect: (NSConnection*)newConn
+- (BOOL) connection: (NSConnection*)ancestor
+  shouldMakeNewConnection: (NSConnection*)newConn;
 {
   NSMapTable	*table;
 
@@ -360,7 +359,7 @@
   table = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		NSObjectMapValueCallBacks, 0);
   NSMapInsert(connections, newConn, table);
-  return newConn;
+  return YES;
 }
 
 - (id) connectionBecameInvalid: (NSNotification*)notification
@@ -415,7 +414,7 @@
   info = [GDNCClient new];
   info->client = client;
   NSMapInsert(table, client, info);
-  [info release];
+  RELEASE(info);
 }
 
 - (void) postNotificationName: (NSString*)notificationName
@@ -524,19 +523,18 @@
 		{
 		  GDNCNotification	*n;
 
-		  n = [[obs->queue objectAtIndex: 0] retain];
+		  n = RETAIN([obs->queue objectAtIndex: 0]);
 		  [obs->queue removeObjectAtIndex: 0];
 		  [obs->client->client postNotificationName: n->name
 						     object: n->object
 						   userInfo: n->info
 						   selector: obs->selector
 							 to: obs->observer];
-		  [n release];
+		  RELEASE(n);
 		}
 	      NS_HANDLER
 		{
-		  [obs release];
-		  obs = nil;
+		  DESTROY(obs);
 		}
 	      NS_ENDHANDLER
 	    }
@@ -753,20 +751,19 @@ int
 main(int argc, char** argv, char** env)
 {
   GDNCServer		*server;
-  NSAutoreleasePool	*pool;
   NSString		*str;
   BOOL			shouldFork = YES;
+  CREATE_AUTORELEASE_POOL(pool);
 
 #ifdef GS_PASS_ARGUMENTS
   [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
-  pool = [NSAutoreleasePool new];
   str = [[NSUserDefaults standardUserDefaults] stringForKey: @"debug"];
   if (str != nil && [str caseInsensitiveCompare: @"yes"] == NSOrderedSame)
     {
       shouldFork = NO;
     }
-  [pool release];
+  RELEASE(pool);
 
   if (shouldFork)
     {
@@ -792,9 +789,12 @@ main(int argc, char** argv, char** env)
 	}
     }
 
-  pool = [NSAutoreleasePool new];
-  server = [GDNCServer new];
-  [pool release];
+  {
+    CREATE_AUTORELEASE_POOL(pool);
+    server = [GDNCServer new];
+    RELEASE(pool);
+  }
+
   if (server != nil)
     {
       [[NSRunLoop currentRunLoop] run];

@@ -10,9 +10,10 @@
 	* Source/NSPort.m: Create GSTcpPort by default.
 	* Source/externs.m: GSBuildStrings() now used to make string
 	constants that support cached hash values
-	* Tools/client.m: Added simple benchmarking.
-	* Tools/server.m: Added method for simple benchmarking.
-	* Tools/server.h: Added method for simple benchmarking.
+	* Testing/client.m: Added simple benchmarking.
+	* Testing/server.m: Added method for simple benchmarking.
+	* Testing/server.h: Added method for simple benchmarking.
+	* Tools/gdnc.m: String OPENSTEP use of DO
 
 2000-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
