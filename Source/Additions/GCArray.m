@@ -184,7 +184,7 @@ static Class	gcClass = 0;
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
   return [[GCMutableArray allocWithZone: zone]
-    initWithArray: self copyItems: YES];
+    initWithArray: self copyItems: NO];
 }
 
 - (id) objectAtIndex: (unsigned int)index
@@ -340,7 +340,7 @@ static Class	gcClass = 0;
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
   return [[GCMutableArray allocWithZone: zone] 
-    initWithArray: self copyItems: YES];
+    initWithArray: self copyItems: NO];
 }
 
 - (void) removeAllObjects
