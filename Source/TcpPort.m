@@ -28,6 +28,7 @@
 /* TODO:
    Make the sockets non-blocking. 
    Change so we don't wait on incoming packet prefix.
+   All the abort()'s should be Exceptions.
    */
 
 #include <objects/stdobjects.h>
@@ -36,6 +37,8 @@
 #include <objects/Notification.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>		/* for gethostname() */
+#include <sys/param.h>		/* for MAXHOSTNAMELEN */
 
 #ifndef WIN32
 #include <sys/time.h>
@@ -157,7 +160,10 @@ static NSMapTable* port_number_2_port;
   /* If there already is a TcpInPort listening to this port number,
      don't create a new one, just return the old one. */
   if ((p = (id) NSMapGet (port_number_2_port, (void*)((int)n))))
-    return p;
+    {
+      assert (p->is_valid);
+      return p;
+    }
 
   /* There isn't already a TcpInPort for this port number, so create
      a new one. */
@@ -169,7 +175,7 @@ static NSMapTable* port_number_2_port;
   p->_socket = socket (AF_INET, SOCK_STREAM, 0);
   if (p->_socket < 0)
     {
-      perror ("[TcpInPort +newForReceivingFromPortNumber] socket()");
+      perror ("[TcpInPort +newForReceivingFromPortNumber:] socket()");
       abort ();
     }
 
@@ -180,10 +186,23 @@ static NSMapTable* port_number_2_port;
   /* Give the socket a name using bind(). */
   {
     struct hostent *hp;
-    hp = gethostbyname ("localhost"); // xxx No! Not "localhost" the host name
-    /* Use localhost's address, and not INADDR_ANY, so that went we
+    char hostname[MAXHOSTNAMELEN];
+    int len = MAXHOSTNAMELEN;
+    if (gethostname (hostname, len) < 0)
+      {
+	perror ("[TcpInPort +newForReceivingFromPortNumber:] gethostname()");
+	abort ();
+      }
+    hp = gethostbyname (hostname);
+    if (!hp)
+      /* xxx This won't work with port connections on a network, though.
+         Fix this.  Perhaps there is a better way of getting the address
+	 of the local host. */
+      hp = gethostbyname ("localhost");
+    assert (hp);
+    /* Use host's address, and not INADDR_ANY, so that went we
        encode our _listening_address for a D.O. operation, they get
-       our unique host address. */
+       our unique host address that can identify us across the network. */
     memcpy (&(p->_listening_address.sin_addr), hp->h_addr, hp->h_length);
     p->_listening_address.sin_family = AF_INET;
     p->_listening_address.sin_port = htons (n);
@@ -274,6 +293,7 @@ static NSMapTable* port_number_2_port;
 
 - (struct sockaddr_in*) _listeningSockaddr
 {
+  assert (is_valid);
   return &_listening_address;
 }
 
@@ -285,6 +305,8 @@ static NSMapTable* port_number_2_port;
   struct timeval timeout;
   void *select_timeout;
   int sel_ret;
+
+  assert (is_valid);
 
   /* If MILLISECONDS is less than 0, wait forever. */
   if (milliseconds >= 0)
@@ -388,10 +410,12 @@ static NSMapTable* port_number_2_port;
 		  {
 		    /* We got an EOF when trying to read packet data;
 		       release the packet and invalidate the corresponding
-		       port. */
+		       port, and keep on waiting for incoming data on
+		       other sockets. */
 		    [packet release];
 		    [(id) NSMapGet (client_sock_2_out_port, (void*)fd_index)
 			  invalidate];
+		    continue;
 		  }
 		else if (remaining == 0)
 		  /* No bytes are remaining to be read for this packet; 
@@ -407,6 +431,7 @@ static NSMapTable* port_number_2_port;
 {
   int s = [p _socket];
 
+  assert (is_valid);
   /* Make sure it hasn't already been added. */
   assert (!NSMapGet (client_sock_2_out_port, (void*)s));
 
@@ -421,6 +446,7 @@ static NSMapTable* port_number_2_port;
   id packet;
   int s = [p _socket];
 
+  assert (is_valid);
   if (debug_tcp_port)
     fprintf (stderr, 
 	     "%s: Closed connection from\n %s\n",
@@ -478,6 +504,12 @@ static NSMapTable* port_number_2_port;
 
       close (_socket);
 
+      /* These are here, and not in -dealloc, to prevent 
+	 +newForReceivingFromPortNumber from returning invalid sockets. */
+      NSMapRemove (socket_2_port, (void*)_socket);
+      NSMapRemove (port_number_2_port,
+		   (void*)(int) ntohs(_listening_address.sin_port));
+
       /* This also posts a PortBecameInvalidNotification. */
       [super invalidate];
     }
@@ -486,12 +518,9 @@ static NSMapTable* port_number_2_port;
 - (void) dealloc
 {
   [self invalidate];
-  NSMapRemove (port_number_2_port,
-	       (void*)(int) ntohs(_listening_address.sin_port));
   /* assert that these are empty? */
   NSFreeMapTable (client_sock_2_out_port);
   NSFreeMapTable (client_sock_2_packet);
-  NSMapRemove (socket_2_port, (void*)_socket);
   [super dealloc];
 }
 
@@ -513,8 +542,9 @@ static NSMapTable* port_number_2_port;
 - description
 {
   return [NSString
-	   stringWithFormat: @"%s 0x%x port %hd socket %d",
+	   stringWithFormat: @"%s%c0x%x port %hd socket %d",
 	   object_get_class_name (self),
+	   is_valid ? ' ' : '-',
 	   (unsigned)self,
 	   ntohs (_listening_address.sin_port),
 	   _socket];
@@ -529,6 +559,7 @@ static NSMapTable* port_number_2_port;
 
 - (void) encodeWithCoder: aCoder
 {
+  assert (is_valid);
   /* We are actually encoding a "send right" (ala Mach), 
      not a receive right.  
      These values must match those expected by [TcpOutPort +newWithCoder] */
@@ -618,13 +649,16 @@ static NSMapTable *out_port_bag = NULL;
 	{
 	  /* xxx Do I need to make sure connectedInPort is the same too? */
 	  /* xxx Come up with a way to do this with a hash key, not a list. */
-	  if ((sockaddr->sin_port 
+	  if ((sockaddr->sin_port
 	       == p->_remote_in_port_address.sin_port)
-	      && (sockaddr->sin_addr.s_addr 
+	      && (sockaddr->sin_addr.s_addr
 		  == p->_remote_in_port_address.sin_addr.s_addr))
 	    /* Assume that sin_family is equal.  Using memcmp() doesn't
 	       work because sin_zero's may differ. */
-	    return p;
+	    {
+	      assert (p->is_valid);
+	      return p;
+	    }
 	}
     }
   /* xxx When the AcceptedSocket-style OutPort get's it's 
@@ -662,6 +696,7 @@ static NSMapTable *out_port_bag = NULL;
 		      sizeof (p->_remote_in_port_address));
 	    }
 	}
+      assert (p->is_valid);
       return p;
     }
 
@@ -692,9 +727,14 @@ static NSMapTable *out_port_bag = NULL;
       assert (sockaddr->sin_port);
       memcpy (&(p->_remote_in_port_address), sockaddr, sizeof(*sockaddr));
     }
-  /* Else, _remote_in_port_address will remain as zero's for the
-     time being, and may get set later by calling +newForSendingToSockaddr..
-     with a non-zero socket, and a non-NULL sockaddr. */
+  else
+    {
+      /* Else, _remote_in_port_address will remain as zero's for the
+	 time being, and may get set later by calling
+	 +newForSendingToSockaddr..  with a non-zero socket, and a
+	 non-NULL sockaddr. */
+      p->_remote_in_port_address.sin_family = 0;
+    }
 
   /* xxx Do I need to bind(_socket) to this address?  I don't think so. */
 
@@ -793,6 +833,8 @@ static NSMapTable *out_port_bag = NULL;
   int c, l;
   id reply_port = [packet replyPort];
 
+  assert (is_valid);
+
   /* If the socket of this TcpOutPort isn't already being polled
      for incoming data by a TcpInPort, and if the packet's REPLY_PORT
      is non-nil, then set up this TcpOutPort's socket to be polled by
@@ -842,32 +884,34 @@ static NSMapTable *out_port_bag = NULL;
 
 - (void) invalidate
 {
-  if (is_valid)
-    {
-      if (close (_socket) < 0)
-	{
-	  perror ("[TcpOutPort -invalidate] close()");
-	  abort ();
-	}
-      [_polling_in_port _connectedOutPortInvalidated: self];
-      [_polling_in_port release];
-      _polling_in_port = nil;
-      
-      /* This is here, and not in -dealloc, because invalidated
-	 but not dealloc'ed ports should not be returned from
-	 the out_port_bag in +newForSendingToSockaddr:... */
-      NSMapRemove (out_port_bag, (void*)self);
+  assert (is_valid);
 
-      /* This also posts a PortBecameInvalidNotification. */
-      [super invalidate];
+  if (close (_socket) < 0)
+    {
+      perror ("[TcpOutPort -invalidate] close()");
+      abort ();
     }
+  [_polling_in_port _connectedOutPortInvalidated: self];
+  [_polling_in_port release];
+  _polling_in_port = nil;
+      
+  /* This is here, and not in -dealloc, because invalidated
+     but not dealloc'ed ports should not be returned from
+     the out_port_bag in +newForSendingToSockaddr:... */
+  NSMapRemove (out_port_bag, (void*)self);
+  /* This is here, and not in -dealloc, because invalidated
+     but not dealloc'ed ports should not be returned from
+     the socket_2_port in +newForSendingToSockaddr:... */
+  NSMapRemove (socket_2_port, (void*)_socket);
+
+  /* This also posts a PortBecameInvalidNotification. */
+  [super invalidate];
 }
 
 - (void) dealloc
 {
   if (is_valid)
     [self invalidate];
-  NSMapRemove (socket_2_port, (void*)_socket);
   [super dealloc];
 }
 
@@ -891,8 +935,9 @@ static NSMapTable *out_port_bag = NULL;
 - description
 {
   return [NSString 
-	   stringWithFormat: @"%s 0x%x host %s port %hd socket %d",
+	   stringWithFormat: @"%s%c0x%x host %s port %hd socket %d",
 	   object_get_class_name (self),
+	   is_valid ? ' ' : '-',
 	   (unsigned)self,
 	   inet_ntoa (_remote_in_port_address.sin_addr),
 	   ntohs (_remote_in_port_address.sin_port),
@@ -901,16 +946,17 @@ static NSMapTable *out_port_bag = NULL;
 
 - (void) encodeWithCoder: aCoder
 {
+  assert (is_valid);
   [super encodeWithCoder: aCoder];
   assert (!_polling_in_port 
 	  || (ntohs (_remote_in_port_address.sin_port)
 	      != [_polling_in_port portNumber]));
   [aCoder encodeValueOfCType: @encode(typeof(_remote_in_port_address.sin_port))
-	  at: &_remote_in_port_address.sin_port
+	  at: &(_remote_in_port_address.sin_port)
 	  withName: @"socket number"];
   [aCoder encodeValueOfCType: 
 	    @encode(typeof(_remote_in_port_address.sin_addr.s_addr))
-	  at: &_remote_in_port_address.sin_addr.s_addr
+	  at: &(_remote_in_port_address.sin_addr.s_addr)
 	  withName: @"inet address"];
 }
 
@@ -920,10 +966,10 @@ static NSMapTable *out_port_bag = NULL;
 
   addr.sin_family = AF_INET;
   [aCoder decodeValueOfCType: @encode(typeof(addr.sin_port))
-	  at: &addr.sin_port 
+	  at: &(addr.sin_port)
 	  withName: NULL];
   [aCoder decodeValueOfCType: @encode(typeof(addr.sin_addr.s_addr))
-	  at: &addr.sin_addr.s_addr
+	  at: &(addr.sin_addr.s_addr)
 	  withName: NULL];
   return [TcpOutPort newForSendingToSockaddr: &addr
 		     withAcceptedSocket: 0
@@ -967,6 +1013,7 @@ static NSMapTable *out_port_bag = NULL;
 	 eofPosition: 0
 	 prefix: PREFIX_SIZE
 	 position: 0];
+  assert ([p isValid]);
   reply_port = p;
   return self;
 }
@@ -1012,11 +1059,19 @@ static NSMapTable *out_port_bag = NULL;
   c = read (s, prefix_buffer, PREFIX_SIZE);
   if (c == 0)
     {
-      *packet_size = EOF;
+      *packet_size = EOF;  *rp = nil;
       return;
     }
   if (c != PREFIX_SIZE)
-    [self error: "Failed to get packet prefix from socket."];
+    {
+      /* Was: [self error: "Failed to get packet prefix from socket."]; */
+      /* xxx Currently treating this the same as EOF, but perhaps
+	 we should treat it differently. */
+      fprintf (stderr, "[%s %s]: Got %d chars instead of full prefix\n",
+	       class_get_class_name (self), sel_get_name (_cmd));
+      *packet_size = EOF;  *rp = nil;
+      return;
+    }      
 
   /* *size is the number of bytes in the packet, not including 
      the PREFIX_SIZE-byte header. */
