@@ -308,10 +308,22 @@ handle_printf_atsign (FILE *stream,
     NSDefaultMallocZone()] initWithCString: byteString length: length]);
 }
 
++ (id)stringWithUTF8String:(const char *)bytes
+{
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithUTF8String: bytes]);
+}
+
 + (id) stringWithContentsOfFile: (NSString *)path
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithContentsOfFile: path]);
+}
+
++ (id) stringWithContentsOfURL: (NSURL *)url
+{
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithContentsOfURL: url]);
 }
 
 + (id) stringWithFormat: (NSString*)format,...
@@ -457,6 +469,12 @@ handle_printf_atsign (FILE *stream,
   return [self initWithCharactersNoCopy: s
 				 length: length
 			       fromZone: z];
+}
+
+- (id) initWithUTF8String:(const char *)bytes
+{
+  [self subclassResponsibility: _cmd];
+  return self;
 }
 
 - (id) initWithFormat: (NSString*)format,...
@@ -833,6 +851,24 @@ handle_printf_atsign (FILE *stream,
 {
   NSStringEncoding	enc;
   NSData		*d = [NSData_class dataWithContentsOfFile: path];
+  const unsigned char	*test;
+
+  if (d == nil)
+    return nil;
+  if ([d length] < 2)
+    return @"";
+  test = [d bytes];
+  if (test && (((test[0]==0xFF) && (test[1]==0xFE)) || ((test[1]==0xFF) && (test[0]==0xFE))))
+    enc = NSUnicodeStringEncoding;
+  else
+    enc = [NSString defaultCStringEncoding];
+  return [self initWithData: d encoding: enc];
+}
+
+- (id) initWithContentsOfURL: (NSURL*)url
+{
+  NSStringEncoding	enc;
+  NSData		*d = [NSData_class dataWithContentsOfURL: url];
   const unsigned char	*test;
 
   if (d == nil)
@@ -1616,6 +1652,16 @@ handle_printf_atsign (FILE *stream,
 
   d = [self dataUsingEncoding: _DefaultStringEncoding
     allowLossyConversion: YES];
+  return (const char*)[d bytes];
+}
+
+- (const char *)UTF8String
+{
+  NSData	*d;
+
+  // FIXME: This won't be NULL 
+  d = [self dataUsingEncoding: NSUTF8StringEncoding
+    allowLossyConversion: NO];
   return (const char*)[d bytes];
 }
 
@@ -2491,6 +2537,33 @@ handle_printf_atsign (FILE *stream,
 		 range: ((NSRange){0, [self length]})];
 }
 
+- (NSComparisonResult)compare:(NSString *)string 
+		      options:(unsigned)mask 
+			range:(NSRange)compareRange 
+		       locale:(NSDictionary *)dict
+{
+  // FIXME: This does only a normal compare
+  return [self compare: string
+	       options: mask
+		 range: compareRange];
+}
+
+- (NSComparisonResult)localizedCompare:(NSString *)string
+{
+  // FIXME: This does only a normal compare
+  return [self compare: string
+	       options: 0
+		 range: ((NSRange){0, [self length]})];
+}
+
+- (NSComparisonResult)localizedCaseInsensitiveCompare:(NSString *)string
+{
+  // FIXME: This does only a normal compare
+  return [self compare: string
+	       options: NSCaseInsensitiveSearch 
+		 range: ((NSRange){0, [self length]})];
+}
+
 - (BOOL) writeToFile: (NSString*)filename
 	  atomically: (BOOL)useAuxiliaryFile
 {
@@ -2498,6 +2571,14 @@ handle_printf_atsign (FILE *stream,
   if (!(d = [self dataUsingEncoding: [NSString defaultCStringEncoding]]))
     d = [self dataUsingEncoding: NSUnicodeStringEncoding];
   return [d writeToFile: filename atomically: useAuxiliaryFile];
+}
+
+- (BOOL)writeToURL:(NSURL *)anURL atomically:(BOOL)atomically
+{
+  id d;
+  if (!(d = [self dataUsingEncoding: [NSString defaultCStringEncoding]]))
+    d = [self dataUsingEncoding: NSUnicodeStringEncoding];
+  return [d writeToURL: anURL atomically: atomically];
 }
 
 - (void) descriptionWithLocale: (NSDictionary*)aLocale
