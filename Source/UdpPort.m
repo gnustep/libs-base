@@ -27,7 +27,6 @@
 #include <base/UdpPort.h>
 #include <base/Coder.h>
 #include <base/ConnectedCoder.h>
-#include <base/Array.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHost.h>
@@ -191,14 +190,6 @@ static NSMapTable *port_number_2_in_port = NULL;
   return [self newForReceivingFromPortNumber: n];
 }
 
-/* Usually, you would run the run loop to get packets, but if you
-   want to wait for one directly from a port, you can use this method. */
-- newPacketReceivedBeforeDate: date
-{
-  return nil;
-}
-
-
 /* Returns nil on timeout.
    Pass -1 for milliseconds to ignore timeout parameter and block indefinitely.
 */
@@ -340,13 +331,13 @@ static NSMapTable *port_number_2_in_port = NULL;
 
 @implementation UdpOutPort
 
-static Array *udp_out_port_array;
+static NSArray *udp_out_port_array;
 
 + (void) initialize
 {
   if (self == [UdpOutPort class])
     {
-      udp_out_port_array = [Array new];
+      udp_out_port_array = [NSArray new];
     }
 }
 
@@ -362,16 +353,18 @@ static Array *udp_out_port_array;
 + newForSendingToSockaddr: (struct sockaddr_in*)sockaddr
 {
   UdpOutPort *p;
+  unsigned	i;
+  unsigned	c = [udp_out_port_array count];
 
   /* See if there already exists a port for this sockaddr;
      if so, just return it. */
-  FOR_ARRAY (udp_out_port_array, p)
+  for (i = 0; i < c; i++)
     {
+      p = [udp_out_port_array objectAtIndex: i];
       /* xxx Come up with a way to do this with a hashtable, not a list. */
       if (SOCKADDR_EQUAL (sockaddr, &(p->_address)))
 	return p;
     }
-  END_FOR_ARRAY (udp_out_port_array);
 
   /* Create a new port. */
   p = [[self alloc] init];

@@ -1,3 +1,26 @@
+2000-06-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/gnustep/base/NSGArchiver.h: removed obsolete file.
+	* Source/NSGArchiver.m: removed obsolete file.
+	* configure.in: Check for existence of NSArray.m to find source
+	* Headers/gnustep/base/NSDictionary.h: Remove unused headers.
+	* Headers/gnustep/base/Port.h: ditto
+	* Headers/gnustep/base/NSConnection.h: ditto
+	* Headers/gnustep/base/TcpPort.h: ditto
+	* Headers/gnustep/base/NSGArray.h: ditto
+	* Headers/gnustep/base/NSSet.h: ditto
+	* Headers/gnustep/base/NSGSet.h: ditto
+	* Headers/gnustep/base/NSRange.h: ditto
+	* Source/Coder.m: Removed dependencies on some old classes
+	* Source/Decoder.m: ditto
+	* Source/Port.m: ditto
+	* Source/TcpPort.m: ditto
+	* Source/UdpPort.m: ditto
+	* Source/NSGCString.m: ditto
+	* Source/NSGString.m: ditto
+	* Source/NSObject.m: ditto
+	* Source/NSString.m: ditto
+
 2000-06-15  Adam Fedor  <fedor@gnu.org>
 
 	* Headers/gnustep/base/NSObject.h: Add base/preface include

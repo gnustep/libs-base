@@ -55,11 +55,9 @@
 #include <Foundation/NSPortCoder.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSRange.h>
-
-#include <base/IndexedCollection.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSData.h>
 #include <Foundation/NSBundle.h>
-#include <base/IndexedCollectionPrivate.h>
 #include <limits.h>
 #include <string.h>		// for strstr()
 #include <sys/stat.h>

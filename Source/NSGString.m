@@ -39,8 +39,7 @@
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSCharacterSet.h>
 #include <Foundation/NSRange.h>
-#include <base/IndexedCollection.h>
-#include <base/IndexedCollectionPrivate.h>
+#include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
 #include <base/behavior.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
@@ -754,11 +753,7 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
   _hash = 0;
 }
 
-/* For IndexedCollecting Protocol and other GNU libobjects conformity. */
-
-/* xxx This should be made to return void, but we need to change
-   IndexedCollecting and its conformers */
-- (void) removeRange: (IndexRange)range
+- (void) removeRange: (NSRange)range
 {
   stringDecrementCountAndFillHoleAt((NSGMutableStringStruct*)self, 
 				    range.location, range.length);
@@ -779,8 +774,6 @@ stringDecrementCountAndFillHoleAt(NSGMutableStringStruct *self,
     }
   return self;
 }
-
-/* For IndexedCollecting protocol */
 
 - (char) charAtIndex: (unsigned)index
 {

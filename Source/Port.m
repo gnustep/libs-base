@@ -118,7 +118,7 @@
   return nil;
 }
 
-- (void) setReceivedPacketInvocation: (id <Invoking>)invocation
+- (void) setReceivedPacketInvocation: (id)invocation
 {
   NSAssert(!_packet_invocation, NSInternalInconsistencyException);
   _packet_invocation = invocation;

@@ -28,8 +28,6 @@
 #include <base/CoderPrivate.h>
 #include <base/MemoryStream.h>
 #include <base/Coding.h>
-#include <base/Stack.h>
-#include <base/Set.h>
 #include <base/Streaming.h>
 #include <base/Stream.h>
 #include <base/CStreaming.h>

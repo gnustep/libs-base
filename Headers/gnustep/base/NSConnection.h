@@ -195,7 +195,7 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 /* When you get an invalidation notification from a connection, use
    this method in order to find out if any of the proxy objects you're
    using are going away. */
-- (id <Collecting>) proxies;
+- (id) proxies;
 
 
 /* For getting the root object of a connection or port */
@@ -222,10 +222,9 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 - (void) removeProxy: (NSDistantObject*)aProxy;
 
 // It seems to be a non pure-OPENSTEP definition...
-//- (id <Collecting>) localObjects;
 //
 // new def :
-- (NSArray *)localObjects;
+- (NSArray*)localObjects;
 - (void) addLocalObject: anObj;
 - (id) includesLocalObject: anObj;
 - (void) removeLocalObject: anObj;

@@ -95,12 +95,7 @@
 
 #ifndef NO_GNUSTEP
 
-#include <base/KeyedCollecting.h>
 #include <Foundation/NSDictionary.h>
-
-/* Eventually we'll make a Constant version of this protocol.*/
-@interface NSDictionary (GNU) <KeyedCollecting>
-@end
 
 @interface NSMutableDictionary (GNU)
 + (unsigned) defaultCapacity;

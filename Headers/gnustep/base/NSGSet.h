@@ -25,8 +25,6 @@
 #define __NSGSet_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSSet.h>
-#include <base/Set.h>
-#include <base/Bag.h>
 
 @interface NSGSet : NSSet
 @end
