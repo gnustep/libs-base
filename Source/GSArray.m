@@ -64,12 +64,36 @@ static Class	GSInlineArrayClass;
 }
 @end
 
+@interface GSMutableArray (GSArrayBehavior)
+- (void) _raiseRangeExceptionWithIndex: (unsigned)index from: (SEL)sel;
+@end
+
 @interface GSPlaceholderArray : NSArray
 {
 }
 @end
 
 @implementation GSArray
+
+- (void) _raiseRangeExceptionWithIndex: (unsigned)index from: (SEL)sel
+{
+  NSDictionary *info;
+  NSException  *exception;
+  NSString     *reason;
+
+  info = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSNumber numberWithUnsignedInt: index], @"Index",
+    [NSNumber numberWithUnsignedInt: _count], @"Count",
+    self, @"Array", nil, nil];
+                              
+  reason = [NSString stringWithFormat: @"Index %d is out of range %d (in '%@')",
+    index, _count, NSStringFromSelector(sel)];
+
+  exception = [NSException exceptionWithName: NSRangeException
+		                      reason: reason
+                                    userInfo: info];
+  [exception raise];
+}
 
 + (void) initialize
 {
@@ -315,27 +339,6 @@ static Class	GSInlineArrayClass;
       aBuffer[j++] = _contents_array[i];
     }
 }
-
-- (void) _raiseRangeExceptionWithIndex: (int)index from: (SEL)sel
-{
-  NSDictionary *info;
-  NSException  *exception;
-  NSString     *reason;
-
-  info = [NSDictionary dictionaryWithObjectsAndKeys:
-    [NSNumber numberWithInt: index], @"Index",
-    [NSNumber numberWithInt: _count], @"Count",
-    self, @"Array", nil, nil];
-                              
-  reason = [NSString stringWithFormat: @"Index %d is out of range %d (in '%@')",
-    index, _count, NSStringFromSelector(sel)];
-
-  exception = [NSException exceptionWithName: NSRangeException
-		                      reason: reason
-                                    userInfo: info];
-  [exception raise];
-}
-
 @end
 
 @implementation	GSInlineArray
@@ -510,7 +513,7 @@ static Class	GSInlineArrayClass;
       NSDictionary *info;
 
       info = [NSDictionary dictionaryWithObjectsAndKeys:
-	[NSNumber numberWithInt: index], @"Index",
+	[NSNumber numberWithUnsignedInt: index], @"Index",
 	self, @"Array", nil, nil];
 
       exception = [NSException exceptionWithName: NSInvalidArgumentException
@@ -681,7 +684,7 @@ static Class	GSInlineArrayClass;
 
   if (index >= _count)
     {
-      [self _raiseRangeExceptionForIndex: index];
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
   /*
    *	Swap objects in order so that there is always a valid object in the
@@ -693,7 +696,7 @@ static Class	GSInlineArrayClass;
   RELEASE(obj);
 }
 
-- (void) sortUsingFunction: (int(*)(id,id,void*))compare 
+- (void) sortUsingFunction: (NSComparisonResult(*)(id,id,void*))compare 
 		   context: (void*)context
 {
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
