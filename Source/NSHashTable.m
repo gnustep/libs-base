@@ -242,7 +242,7 @@ NSEndHashTableEnumeration(NSHashEnumerator *enumerator)
 
 /**
  * Return an enumerator for stepping through a map table using the
- * NSNextHashEnumeratorPair() function.
+ * NSNextHashEnumeratorItem() function.
  */
 NSHashEnumerator
 NSEnumerateHashTable(NSHashTable *table)

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.7//EN" "http://www.gnustep.org/gsdoc-0_6_7.xml">
+<gsdoc base="Functions" up="Base">
+  <head>
+    <title>Functions</title>
+    <author name="Richard Frith-Macdonald"></author>
+  </head>
+  <body>
+    <front>
+      <contents />
+      <chapter>
+	<heading>Function index</heading>
+	<index type="function" scope="file" />
+      </chapter>
+      <chapter>
+	<heading>Macro index</heading>
+	<index type="macro" scope="file" />
+      </chapter>
+    </front>
+  </body>
+</gsdoc>

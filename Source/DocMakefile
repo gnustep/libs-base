@@ -76,6 +76,7 @@ NSNull.h \
 NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
+NSPathUtilities.h \
 NSPort.h \
 NSPortCoder.h \
 NSPortMessage.h \
@@ -132,9 +133,19 @@ include $(GNUSTEP_MAKEFILES)/documentation.make
 # directory, and temporarily copy the base source file here for autogsdoc
 # to use.
 #
-before-all::
-	$(MKDIRS) ../Documentation/Base
+before-all::	../Documentation/Base \
+	../Documentation/Base/Functions.gsdoc \
+	../Documentation/Base/TypesAndConstants.gsdoc
 	cp ../Documentation/Base.gsdoc .
+
+../Documentation/Base:
+	$(MKDIRS) ../Documentation/Base
+
+../Documentation/Base/Functions.gsdoc: ../Documentation/Functions.gsdoc
+	cp ../Documentation/Functions.gsdoc ../Documentation/Base
+
+../Documentation/Base/TypesAndConstants.gsdoc: ../Documentation/TypesAndConstants.gsdoc
+	cp ../Documentation/TypesAndConstants.gsdoc ../Documentation/Base
 
 #
 # Clean up temporary files used while generating documentation.
