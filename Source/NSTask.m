@@ -27,6 +27,7 @@
 #include "config.h"
 #include "GNUstepBase/preface.h"
 #include "Foundation/NSObject.h"
+#include "Foundation/NSAutoreleasePool.h"
 #include "Foundation/NSBundle.h"
 #include "Foundation/NSCharacterSet.h"
 #include "Foundation/NSData.h"
@@ -1109,18 +1110,14 @@ quotedFromString(NSString *aString)
       while ((key = [enumerator nextObject]))
 	{
 	  NSString	*value;
-	  NSString	*expression;
-	  unsigned	l;
-	  NSRange	r = NSMakeRange(0,0);
-	  unichar	buffer[1024];
 
-	  [data appendData: [key dataUsingEncoding: NSUnicodeStringEncoding];
-	  [data appendBytes: separator length: 2];
+	  [data appendData: [key dataUsingEncoding: NSUnicodeStringEncoding]];
+	  [data appendBytes: &separator length: 2];
 	  value = [_environment objectForKey: key];
-	  [data appendData: [value dataUsingEncoding: NSUnicodeStringEncoding];
-	  [data appendBytes: terminator length: 2];	// end key-value pair
+	  [data appendData: [value dataUsingEncoding: NSUnicodeStringEncoding]];
+	  [data appendBytes: &terminator length: 2];	// end key-value pair
 	}
-      [data appendBytes: terminator length: 2];		// end of environment
+      [data appendBytes: &terminator length: 2];	// end of environment
       RELEASE(pool);
       envp = [data bytes];
     }
