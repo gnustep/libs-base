@@ -73,7 +73,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
+#ifndef __NeXT__
+# include <malloc.h>
+#endif
 #include <Foundation/NSZone.h>
 #include <objects/objc-malloc.h>
 
