@@ -344,7 +344,7 @@ parseCharacterSet(NSString *token)
     }
   if ([parser isComplete] == YES)
     {
-      newDocument = [parser document];
+      newDocument = [parser mimeDocument];
       RETAIN(newDocument);
     }
   RELEASE(parser);
@@ -2018,6 +2018,7 @@ parseCharacterSet(NSString *token)
 	  else
 	    {
 	      NSData	*d;
+	      unsigned	pos;
 	      BOOL	endedFinalPart = NO;
 
 	      /*
@@ -2038,10 +2039,22 @@ parseCharacterSet(NSString *token)
 
 	      /*
 	       * Create data object for this section and pass it to the
-	       * child parser to deal with.
+	       * child parser to deal with.  NB. As lineStart points to
+	       * the start of the end boundary, we need to step back to
+	       * before the end of line introducing it in order to have
+	       * the correct length of body data for the child document.
 	       */
+	      pos = lineStart;
+	      if (pos > 0 && bytes[pos-1] == '\n')
+		{
+		  pos--;
+		}
+	      if (pos > 0 && bytes[pos-1] == '\r')
+		{
+		  pos--;
+		}
 	      d = [NSData dataWithBytes: &bytes[sectionStart]
-				 length: lineStart - sectionStart];
+				 length: pos - sectionStart];
 	      if ([child parse: d] == YES)
 		{
 		  /*
@@ -2058,7 +2071,7 @@ parseCharacterSet(NSString *token)
 		   * Store the document produced by the child, and
 		   * create a new parser for the next section.
 	           */
-		  doc = [child document];
+		  doc = [child mimeDocument];
 		  if (doc != nil)
 		    {
 		      [document addContent: doc];
