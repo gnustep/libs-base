@@ -1,3 +1,260 @@
+/* NSArray - Array object to hold other objects.
+   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+
+   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Date: Mar 1995
+
+   This file is part of the GNU Objective C Class Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+   
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
+
+#include <foundation/NSArray.h>
+#include <foundation/NSString.h>
+
+@implementation NSArray
+
++ allocWithZone:(NSZone *)zone
+{
+    return [[[NSArray alloc] init] autorelease];
+}
+
++ array
+{
+    return [[[self alloc] init] autorelease];
+}
+
++ arrayWithObject:anObject
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
++ arrayWithObjects:firstObj, ...
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+- initWithObjects:(id *)objects count:(unsigned)count
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+- initWithObjects:firstObj, ...
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+- initWithArray:(NSArray *)array
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+
+- (unsigned)count
+{
+    return [super count];
+}
+
+- objectAtIndex:(unsigned)index
+{
+    return [super objectAtIndex:index];
+}
+
+- (unsigned)indexOfObjectIdenticalTo:anObject
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+- (unsigned)indexOfObject:anObject
+{
+    return [super indexOfObject:anObject];
+}
+
+- (BOOL)containsObject:anObject
+{
+    return [super includesObject:anObject];
+}
+
+- (BOOL)isEqualToArray:(NSArray *)otherArray;
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+- lastObject
+{
+    return [super lastObject];
+}
+
+- (void)makeObjectsPerform:(SEL)aSelector
+{
+    [self notImplemented:_cmd];
+}
+
+- (void)makeObjectsPerform:(SEL)aSelector withObject:argument
+{
+    [self notImplemented:_cmd];
+}
+
+    
+- (NSArray *)sortedArrayUsingSelector:(SEL)comparator
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+- (NSArray *)sortedArrayUsingFunction:(int (*)(id, id, void *))comparator 
+	context:(void *)context
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+- (NSString *)componentsJoinedByString:(NSString *)separator
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+
+- firstObjectCommonWithArray:(NSArray *)otherArray
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+- (NSArray *)subarrayWithRange:(NSRange)range
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+//- (NSEnumerator *)objectEnumerator
+//{
+//    [self notImplemented:_cmd];
+//}
+
+//- (NSEnumerator *)reverseObjectEnumerator
+//{
+//    [self notImplemented:_cmd];
+//    return 0;
+//}
+
+- (NSString *)description
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+- (NSString *)descriptionWithIndent:(unsigned)level
+{
+    [self notImplemented:_cmd];
+    return 0;
+}
+
+
+@end
+
+@implementation NSMutableArray: NSArray
+
++ allocWithZone:(NSZone *)zone
+{
+    return [[[NSMutableArray alloc] init] autorelease];
+}
+
++ arrayWithCapacity:(unsigned)numItems
+{
+    return [[[self alloc] initWithCapacity:numItems] autorelease];
+}
+
+- initWithCapacity:(unsigned)numItems
+{
+    return [super initWithCapacity:numItems];
+}
+
+- (void)addObject:anObject
+{
+    [super addObject:[anObject retain]];
+}
+
+- (void)replaceObjectAtIndex:(unsigned)index withObject:anObject
+{
+    id old;
+    old = [super replaceObjectAtIndex:index with:[anObject retain]];
+    [old release];
+}
+
+- (void)removeLastObject
+{
+    [[super removeLastObject] release];
+}
+
+- (void)insertObject:anObject atIndex:(unsigned)index
+{
+    [super insertObject:[anObject retain] atIndex:index];
+}
+
+- (void)removeObjectAtIndex:(unsigned)index
+{
+    [[super removeObjectAtIndex:index] release];
+}
+
+- (void)removeObjectIdenticalTo:anObject
+{
+    [self notImplemented:_cmd];
+}
+
+- (void)removeObject:anObject
+{
+    [[super removeObjectAtIndex:[super indexOfObject:anObject]] release];
+}
+
+- (void)removeAllObjects
+{
+    [self notImplemented:_cmd];
+}
+
+- (void)addObjectsFromArray:(NSArray *)otherArray
+{
+    [self notImplemented:_cmd];
+}
+
+- (void)removeObjectsFromIndices:(unsigned *)indices numIndices:(unsigned)count
+{
+    [self notImplemented:_cmd];
+}
+
+- (void)removeObjectsInArray:(NSArray *)otherArray
+{
+    [self notImplemented:_cmd];
+}
+
+- (void)sortUsingFunction:(int (*)(id, id, void *))compare 
+	context:(void *)context
+{
+    [self notImplemented:_cmd];
+}
+
+@end
+
 /* Implementation of NSArray for GNUStep
    Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
