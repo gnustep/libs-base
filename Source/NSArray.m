@@ -306,12 +306,16 @@ static SEL	rlSel;
 }
 
 /**
- * The default NSArray implemntation of a copy is simply to -retain
- * the receiver and return it.
+ * Returns a new copy of the receiver.<br />
+ * The default abstract implementation of a copy is to use the
+ * -initWithArray:copyItems: method with the flag set to YES.<br />
+ * Immutable subclasses generally simply retain and return the receiver.
  */
 - (id) copyWithZone: (NSZone*)zone
 {
-  return RETAIN(self);
+  NSArray	*copy = [NSArrayClass allocWithZone: zone];
+
+  return [copy initWithArray: self copyItems: YES];
 }
 
 /** <override-subclass />
@@ -669,12 +673,16 @@ static SEL	rlSel;
 
 /**
  * Returns an NSMutableArray instance containing the same objects as
- * the receiver.
+ * the receiver.<br />
+ * The default implementation does this by calling the
+ * -initWithArray:copyItems: method on a newly created object,
+ * and passing it NO to tell it just to retain the items.
  */
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  return [[GSMutableArrayClass allocWithZone: zone] 
-    initWithArray: self];
+  NSMutableArray	*copy = [NSMutableArrayClass allocWithZone: zone];
+
+  return [copy initWithArray: self copyItems: NO];
 }
 
 /** <override-subclass />
@@ -828,7 +836,7 @@ static int compare(id elem1, id elem2, void* context)
   NSMutableArray	*sortedArray;
 
   sortedArray = [[NSMutableArrayClass allocWithZone:
-    NSDefaultMallocZone()] initWithArray: self];
+    NSDefaultMallocZone()] initWithArray: self copyItems: NO];
   [sortedArray sortUsingFunction: comparator context: context];
 
   return AUTORELEASE([sortedArray makeImmutableCopyOnFail: NO]);
@@ -1106,32 +1114,6 @@ static int compare(id elem1, id elem2, void* context)
 - (Class) classForCoder
 {
   return NSMutableArrayClass;
-}
-
-/* The NSCopying Protocol */
-
-- (id) copyWithZone: (NSZone*)zone
-{
-  /* a deep copy */
-  unsigned	count = [self count];
-  id		objects[count];
-  NSArray	*newArray;
-  unsigned	i;
-
-  [self getObjects: objects];
-  for (i = 0; i < count; i++)
-    {
-      objects[i] = [objects[i] copyWithZone: zone];
-    }
-  newArray = [[GSArrayClass allocWithZone: zone]
-    initWithObjects: objects count: count];
-#if GS_WITH_GC == 0
-  while (i > 0)
-    {
-      [objects[--i] release];
-    }
-#endif
-  return newArray;
 }
 
 /** <init />

@@ -34,6 +34,8 @@
 
 static SEL	eqSel;
 
+static Class	GSInlineArrayClass;
+
 @class	GSArrayEnumerator;
 @class	GSArrayEnumeratorReverse;
 
@@ -73,6 +75,7 @@ static SEL	eqSel;
     {
       [self setVersion: 1];
       eqSel = @selector(isEqual:);
+      GSInlineArrayClass = [GSInlineArray class];
     }
 }
 
@@ -81,6 +84,11 @@ static SEL	eqSel;
   GSArray	*array = NSAllocateObject(self, 0, zone);
 
   return array;
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  return RETAIN(self);	// Optimised version
 }
 
 - (void) dealloc
@@ -355,6 +363,17 @@ static SEL	eqSel;
     }
   _contents_array[_count] = RETAIN(anObject);
   _count++;	/* Do this AFTER we have retained the object.	*/
+}
+
+/**
+ * Optimised code for copying
+ */
+- (id) copyWithZone: (NSZone*)zone
+{
+  NSArray       *copy;
+
+  copy = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*_count, zone);
+  return [copy initWithObjects: _contents_array count: _count];
 }
 
 - (void) exchangeObjectAtIndex: (unsigned int)i1 
@@ -891,8 +910,6 @@ static SEL	eqSel;
 @end
 
 @implementation	GSPlaceholderArray
-
-static Class	GSInlineArrayClass;
 
 + (void) initialize
 {

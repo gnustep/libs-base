@@ -90,17 +90,47 @@
 @end
 
 /**
- * This protocol must be adopted by any class wishing to support copying.
+ * This protocol must be adopted by any class wishing to support copying -
+ * ie where instances of the class should be able to create new instances
+ * which are copies of the original and, where a class has mutable and
+ * immutable versions, where the copies are immutable.
  */
 @protocol NSCopying
+/**
+ * Called by [NSObject-copy] passing NSDefaultMallocZone() as zone.<br />
+ * This method returns a copy of the receiver and, where the receiver is a
+ * mutable variant of a class which has an immutable partner class, the
+ * object returned is an instance of that immutable class.<br />
+ * The new object is <em>not</em> autoreleased, and is considered to be
+ * 'owned' by the calling code ... which is therefore responsible for
+ * releasing it.<br />
+ * In the case where the receiver is an instance of a container class,
+ * it is undefined whether contained objects are merely retained in the
+ * new copy, or are themselves copied, or whether some other mechanism
+ * entirely is used.
+ */
 - (id) copyWithZone: (NSZone*)zone;
 @end
 
 /**
  * This protocol must be adopted by any class wishing to support
- * mutable copying.
+ * mutable copying - ie where instances of the class should be able
+ * to create mutable copies of themselves.
  */
 @protocol NSMutableCopying
+/**
+ * Called by [NSObject-mutableCopy] passing NSDefaultMallocZone() as zone.<br />
+ * This method returns a copy of the receiver and, where the receiver is an
+ * immmutable variant of a class which has a mutable partner class, the
+ * object returned is an instance of that mutable class.
+ * The new object is <em>not</em> autoreleased, and is considered to be
+ * 'owned' by the calling code ... which is therefore responsible for
+ * releasing it.<br />
+ * In the case where the receiver is an instance of a container class,
+ * it is undefined whether contained objects are merely retained in the
+ * new copy, or are themselves copied, or whether some other mechanism
+ * entirely is used.
+ */
 - (id) mutableCopyWithZone: (NSZone*)zone;
 @end
 

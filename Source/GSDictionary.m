@@ -84,6 +84,11 @@ static SEL	objSel;
     }
 }
 
+- (id) copyWithZone: (NSZone*)zone
+{
+  return RETAIN(self);
+}
+
 - (unsigned) count
 {
   return map.nodeCount;
@@ -275,6 +280,13 @@ static SEL	objSel;
     {
       GSObjCAddClassBehavior(self, [GSDictionary class]);
     }
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  NSDictionary	*copy = [GSDictionary allocWithZone: zone];
+
+  return [copy initWithDictionary: self copyItems: NO];
 }
 
 /* Designated initialiser */
