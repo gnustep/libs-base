@@ -386,20 +386,23 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSCAssert(_loadingBundle, NSInternalInconsistencyException);
 
+  /* We never record categories - if this is a category, just do nothing.  */
+  if (theCategory != 0)
+    {
+      return;
+    }
+
   /* Don't store the internal NSFramework_xxx class into the list of
      bundle classes.  */
-  if (strlen (theClass->name) > 12
-      &&  !strncmp("NSFramework_", theClass->name, 12))
+  if (strlen (theClass->name) > 12   &&  !strncmp ("NSFramework_", 
+						   theClass->name, 12))
     {
       return; 
     }
 
-  /* Store classes, but don't store categories */
-  if (theCategory == 0)
-    {
-      [(NSMutableArray *)[_loadingBundle _bundleClasses] addObject:
-			   [NSValue valueWithNonretainedObject: (id)theClass]];
-    }
+  /* Store classes (but don't store categories) */
+  [(NSMutableArray *)[_loadingBundle _bundleClasses] addObject:
+		       [NSValue valueWithNonretainedObject: (id)theClass]];
 }
 
 
