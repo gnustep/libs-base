@@ -66,6 +66,8 @@
 #include "Foundation/NSLock.h"
 #include "Foundation/NSUserDefaults.h"
 #include "Foundation/NSDebug.h"
+// For private method _decodePropertyListForKey:
+#include "Foundation/NSKeyedArchiver.h"
 #include "GNUstepBase/GSMime.h"
 #include "GSFormat.h"
 #include <limits.h>
@@ -3861,10 +3863,7 @@ handle_printf_atsign (FILE *stream,
 {
   if ([aCoder allowsKeyedCoding])
     {
-// FIXME
-[NSException raise: NSInvalidArgumentException
-	    format: @"%@ doesn't know how to encode with keyed coder",
-  NSStringFromClass([self class])];
+      [(NSKeyedArchiver*)aCoder _encodePropertyList: self forKey: @"NS.string"];
     }
   else
     {
@@ -3892,7 +3891,8 @@ handle_printf_atsign (FILE *stream,
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSString *string = [aCoder decodeObjectForKey: @"NS.string"];
+      NSString *string = (NSString*)[(NSKeyedUnarchiver*)aCoder 
+			     _decodePropertyListForKey: @"NS.string"];
 
       self = [self initWithString: string];
     }
