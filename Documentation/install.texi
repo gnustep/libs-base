@@ -49,8 +49,16 @@ output redirected to @samp{/dev/null}; for example:
 ./configure >/dev/null
 @end smallexample
 
-The libobjects makefiles do not currently support compiling the package
-in a different directory from the one containing the source code.
+To compile the package in a different directory from the one containing
+the source code, you must use a version of make that supports the VPATH
+variable, such as GNU make.  @samp{cd} to the directory where you want
+the object files and executables to go and run @samp{configure}.
+@samp{configure} automatically checks for the source code in the
+directory that @samp{configure} is in and in @samp{..}.  If for some
+reason @samp{configure} is not in the source code directory that you are
+configuring, then it will report that it can't find the source code.  In
+that case, run @samp{configure} with the option @samp{--srcdir=DIR},
+where DIR is the directory that contains the source code.
 
 By default, @samp{make install} will install the package's files in
 /usr/local/bin, /usr/local/lib, /usr/local/man, etc.  You can specify
