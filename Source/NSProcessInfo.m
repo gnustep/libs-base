@@ -90,9 +90,10 @@
  * was not executed successfully. This may heppen ONLY if onother library
  * or kit defines its own main function (as libobjects does).
  */
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"libobjects internal error: \
-the private libobjects main() function was not called. Please contact \
-libobjects authors for furrther information"
+#define _GNU_MISSING_MAIN_FUNCTION_CALL @"Libobjects internal error: \
+the private libobjects function to establish the argv and environment \
+variables was not called. Please contact libobjects authors for further \
+information."
 
 /*************************************************************************
  *** _NSConcreteProcessInfo
@@ -145,9 +146,9 @@ static NSMutableDictionary* _gnu_environment = nil;
 /*************************************************************************
  *** Implementing the Libobjects main function
  *************************************************************************/
-#undef main
 
-int main(int argc, char *argv[], char *env[])
+static void 
+_gnu_process_args(int argc, char *argv[], char *env[])
 {
 	int i;
 	
@@ -175,10 +176,25 @@ int main(int argc, char *argv[], char *env[])
 		*cp = '=';
 		i++;
 	}
-	
-	/* Call the user defined main function */
-	return LibobjectsMain(argc,argv);
 }
+
+/* Place the _gnu_process_args function in the _libc_subinit section so
+   that it automatically gets called before main with the argument and
+   environment pointers. FIXME: Would like to do something similar
+   for other formats besides ELF. */
+#ifdef __ELF__
+static void * __libobjects_subinit_args__
+	__attribute__ ((section ("_libc_subinit"))) = &(_gnu_process_args);
+#else
+#undef main
+int main(int argc, char *argv[], char *env[])
+{
+  _gnu_process_args(argc, argv, env);
+
+  /* Call the user defined main function */
+  return LibobjectsMain(argc,argv);
+}
+#endif
 
 /*************************************************************************
  *** Getting an NSProcessInfo Object
@@ -251,3 +267,4 @@ int main(int argc, char *argv[], char *env[])
 }
 
 @end
+
