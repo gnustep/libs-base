@@ -1,3 +1,12 @@
+2004-10-09  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSPropertyList.m: 
+	Corrected implementation of class GSBinaryPLParser to support more
+	features of binary property lists. Based on information by
+	Gerriet M. Denkmann <gerriet@mdenkmann.de>.
+	* Source/NSAttributedString.m (-initWithCoder:):
+	* Source/NSNumberFormatter.m (-initWithCoder:): Implemented keyed decoding.
+	
 2004-10-05  Adam Fedor  <fedor@gnu.org>
 
 	* Source/Makefile.postamble (libgnustep-base.def): Search for both
