@@ -96,15 +96,11 @@ Classes
 
 * NSMutableString::		[8]
 
-* NSNotification::		[0]
-	But supposedly Georg has it almost finished.  
-	He's been saying this for months, though.
+* NSNotification::		[9]
 
-* NSNotificationCenter::	[0]
-	See NSNotification
+* NSNotificationCenter::	[6]
 
-* NSNotificationQueue::		[0]
-	See NSNotification
+* NSNotificationQueue::		[?]
 
 * NSNumber::			[9]
 
@@ -327,7 +323,7 @@ Range Functions
 Hash Table Functions
 --------------------
 
-[0]
+[8]
 	NSHashTable functions have been implemented by Albin Jones.
 	However, integrating the code is not necessarily trivial
 
@@ -365,7 +361,7 @@ Get a String Representation
 Map Table Functions
 -------------------
 
-[0]
+[8]
 	NSMapTable functions have been implemented by Albin Jones.
 	However, integrating the code is not necessarily trivial
 
