@@ -1,8 +1,8 @@
 /* Interface for NSArray for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
-   Date: 1995
+   Created: 1995
    
    This file is part of the GNU Objective C Class Library.
 
@@ -53,8 +53,6 @@
 @end
 
 @interface NSNumber : NSValue <NSCoding>
-{
-}
 
 // Allocating and Initializing
 
