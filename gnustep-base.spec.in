@@ -3,7 +3,7 @@ Source: 	ftp://ftp.gnustep.org/pub/gnustep/core/%{gs_name}-%{gs_version}.tar.gz
 Copyright: 	LGPL
 Group: 		Development/Libraries
 Summary: 	GNUstep Base library package
-Packager:	Adam Fedor <fedor@gnu.org>
+Packager:       GNUstep Development <bug-gnustep@gnu.org>
 Vendor:		The GNUstep Project
 URL:		http://www.gnustep.org/
 Requires:	gnustep-make >= 1.7.0
