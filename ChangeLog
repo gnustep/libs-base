@@ -1,3 +1,8 @@
+Thu Aug 20 11:50:23 1998  Adam Fedor  <fedor@doc.com>
+
+	* src/mframe.m (mframe_next_arg): Fixes from Richard
+	Frith-Macdonald <richard@brainstorm.co.uk>. 
+
 Tud Aug 13 21:15:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Rewrite of maframe stuff and associated things to get DO and

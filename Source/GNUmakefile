@@ -111,7 +111,6 @@ TextCStream.m \
 UdpPort.m \
 Unicode.m \
 UnixFileHandle.m \
-$(GNU_EXTRAS_MFILES) \
 behavior.m \
 lex.pl.m \
 lex.sf.m \
