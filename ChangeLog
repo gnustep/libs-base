@@ -1,3 +1,15 @@
+Mon Nov  6 16:55:26 2000  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Documentation/GNUmakefile: Install ANNOUNCE, NEWS, INSTALL,
+	BUGS, README, STATUS into
+	Documentation/Developer/Base/ReleaseNotes/$(VERSION); install
+	CODING-STANDARDS and coding-standards into
+	Documentation/Developer/CodingStandards; install gnustep-base into
+	Documentation/Developer/Base/Manual.
+	* Documentation/gsdoc/GNUmakefile
+	(Base_DOCUMENTATION_INSTALL_DIR): Install gsdoc reference in
+	Documentation/Developer/Base/Reference.
+
 2000-11-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: handle_printf_atsign() - use lossyCString to
