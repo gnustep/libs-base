@@ -456,14 +456,14 @@ _bundle_load_callback(Class theClass, Category *theCategory)
    avoid deallocating any bundle */
 - (oneway void) release
 {
-  if (self == NSMapGet(_releasedBundles, _path))
-    {
-      [NSException raise: NSGenericException
-        format: @"Bundle for path %@ released too many times", _path];
-    }
-  
   if ([self retainCount] == 0)
     {
+      if (self == NSMapGet(_releasedBundles, _path))
+	{
+	  [NSException raise: NSGenericException
+	    format: @"Bundle for path %@ released too many times", _path];
+	}
+  
       /* Cache all bundles */
       if (_bundleType == NSBUNDLE_APPLICATION
 	  || _bundleType == NSBUNDLE_LIBRARY
