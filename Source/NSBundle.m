@@ -291,6 +291,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	  OBJC_FREE(output);
 #endif
 
+	  RETAIN(_executable_path);
 	  _gnustep_bundle = RETAIN([NSBundle bundleWithPath: system]);
 	}
     }
