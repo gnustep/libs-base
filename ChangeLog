@@ -1,3 +1,16 @@
+2003-09-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/Additions/Makefile.preamble: Add DLL build flag for cyginw
+
+	* Testing/Makefile.postamble (check): Make CHECKABLE_TOOLS only
+
+	* Tools/AGSHtml.m: Remove duplicate interface (on *-apple-*)
+	* Tools/AGSIndex.m: Idem.
+
+2003-09-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSTimeZone.m (+systemTimeZone): Remove tzname extern decl.
+
 2003-09-22  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Check for getopt
