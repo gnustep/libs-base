@@ -29,7 +29,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSHashTable.h>
-#include <gnustep/base/hash.h>
+#include <gnustep/base/o-hash.h>
 #include "NSCallBacks.h"
 
 /**** Type, Constant, and Macro Definitions **********************************/

@@ -29,7 +29,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSMapTable.h>
-#include <gnustep/base/map.h>
+#include <gnustep/base/o-map.h>
 #include "NSCallBacks.h"
 
 /**** Type, Constant, and Macro Definitions **********************************/
