@@ -1777,27 +1777,45 @@ handle_printf_atsign (FILE *stream,
 }
 
 /* Returns a new string with the path component given in aString
-   appended to the receiver.  Raises an exception if aString starts with
-   a '/'.  Checks the receiver to see if the last letter is a '/', if it
-   is not, a '/' is appended before appending aString */
+ * appended to the receiver.
+ * Removes trailing separators and multiple separators.
+ */
 - (NSString*) stringByAppendingPathComponent: (NSString*)aString
 {
-  unsigned	length;
+  unsigned	length = [self length];
+  unsigned	aLength = [aString length];
+  unichar	buf[length+aLength+1];
 
-  if ([aString length] == 0)
-    return AUTORELEASE([self copy]);
-  length = [self length];
-  if (length == 0)
-    return AUTORELEASE([aString copy]);
+  [self getCharacters: buf];
+  if (aLength > 0)
+    {
+      buf[length++] = pathSepChar;
+      [aString getCharacters: &buf[length]];
+    }
+  length += aLength;
+  while (length > 1 && pathSepMember(buf[length-1]) == YES)
+    {
+      length--;
+    }
+  aLength = length - 1;
+  while (aLength > 1)
+    {
+      if (pathSepMember(buf[aLength]) == YES)
+	{
+	  if (pathSepMember(buf[aLength-1]) == YES)
+	    {
+	      unsigned	pos;
 
-  if (pathSepMember([aString characterAtIndex: 0]) == YES)
-    [NSException raise: NSGenericException
-		format: @"attempt to append illegal path component"];
-
-  if (pathSepMember([self characterAtIndex: length-1]) == YES)
-    return [self stringByAppendingString: aString];
-  else
-    return [self stringByAppendingFormat: @"%@%@", pathSepString, aString];
+	      for (pos = aLength+1; pos < length; pos++)
+		{
+		  buf[pos-1] = buf[pos];
+		}
+	      length--;
+	    }
+	}
+      aLength--;
+    }
+  return [NSString stringWithCharacters: buf length: length];
 }
 
 /* Returns a new string with the path extension given in aString
@@ -2192,30 +2210,34 @@ handle_printf_atsign (FILE *stream,
 
 - (NSArray*) pathComponents
 {
-    NSMutableArray	*a;
-    NSArray		*r;
+  NSMutableArray	*a;
+  NSArray		*r;
 
-    a = [[self componentsSeparatedByString: pathSepString] mutableCopy];
-    if ([a count] > 0) {
-	int	i;
+  a = [[self componentsSeparatedByString: pathSepString] mutableCopy];
+  if ([a count] > 0)
+    {
+      int	i;
 
-	/* If the path began with a '/' then the first path component must
-	 * be a '/' rather than an empty string so that our output could be
-	 * fed into [+pathWithComponents: ]
-         */
-	if ([[a objectAtIndex: 0] length] == 0) {
-	    [a replaceObjectAtIndex: 0 withObject: pathSepString];
+      /* If the path began with a '/' then the first path component must
+       * be a '/' rather than an empty string so that our output could be
+       * fed into [+pathWithComponents: ]
+       */
+      if ([[a objectAtIndex: 0] length] == 0)
+	{
+	  [a replaceObjectAtIndex: 0 withObject: pathSepString];
 	}
-	/* Any empty path components (except a trailing one) must be removed. */
-	for (i = [a count] - 2; i > 0; i--) {
-	    if ([[a objectAtIndex: i] length] == 0) {
-		[a removeObjectAtIndex: i];
+      /* Any empty path components (except a trailing one) must be removed. */
+      for (i = [a count] - 2; i > 0; i--)
+	{
+	  if ([[a objectAtIndex: i] length] == 0)
+	    {
+	      [a removeObjectAtIndex: i];
 	    }
 	}
     }
-    r = [a copy];
-    RELEASE(a);
-    return AUTORELEASE(r);
+  r = [a copy];
+  RELEASE(a);
+  return AUTORELEASE(r);
 }
 
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths

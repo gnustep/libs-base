@@ -1,10 +1,12 @@
 # line 1 "NSConcreteNumber.m"	/* So gdb knows which file we are in */
 /* NSConcreteNumber - Object encapsulation of numbers
     
-   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996, 2000 Free Software Foundation, Inc.
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Mar 1995
+   Rewrite: Richard Frith-Macdonald <rfm@gnu.org>
+   Date: Mar 2000
 
    This file is part of the GNUstep Base Library.
 
@@ -36,112 +38,57 @@
    defined to a number from 0 to 12 cooresponding to each number type */
 #if TYPE_ORDER == 0
 #  define NumberTemplate	NSBoolNumber
-#  define TYPE_METHOD	boolValue
 #  define TYPE_FORMAT	@"%u"
-#  define NEXT_ORDER	1
-#  define NEXT_TYPE	char
-#  define NEXT_METHOD	charValue
+#  define TYPE_TYPE	BOOL
 #elif TYPE_ORDER == 1
 #  define NumberTemplate	NSCharNumber
-#  define TYPE_METHOD	charValue
 #  define TYPE_FORMAT	@"%c"
-#  define NEXT_ORDER	3
-#  define NEXT_TYPE	short
-#  define NEXT_METHOD	shortValue
+#  define TYPE_TYPE	char
 #elif TYPE_ORDER == 2
 #  define NumberTemplate	NSUCharNumber
-#  define TYPE_METHOD	unsignedCharValue
 #  define TYPE_FORMAT	@"%c"
-#  define NEXT_ORDER	3
-#  define NEXT_TYPE	short
-#  define NEXT_METHOD	shortValue
+#  define TYPE_TYPE	unsigned char
 #elif TYPE_ORDER == 3
 #  define NumberTemplate	NSShortNumber
-#  define TYPE_METHOD	shortValue
 #  define TYPE_FORMAT	@"%hd"
-#  define NEXT_ORDER	5
-#  define NEXT_TYPE	int
-#  define NEXT_METHOD	intValue
+#  define TYPE_TYPE	short
 #elif TYPE_ORDER == 4
 #  define NumberTemplate	NSUShortNumber
-#  define TYPE_METHOD	unsignedShortValue
 #  define TYPE_FORMAT	@"%hu"
-#  define NEXT_ORDER	5
-#  define NEXT_TYPE	int
-#  define NEXT_METHOD	intValue
+#  define TYPE_TYPE	unsigned short
 #elif TYPE_ORDER == 5
 #  define NumberTemplate	NSIntNumber
-#  define TYPE_METHOD	intValue
 #  define TYPE_FORMAT	@"%d"
-#  define NEXT_ORDER	7
-#  define NEXT_TYPE	long
-#  define NEXT_METHOD	longValue
+#  define TYPE_TYPE	int
 #elif TYPE_ORDER == 6
 #  define NumberTemplate	NSUIntNumber
-#  define TYPE_METHOD	unsignedIntValue
 #  define TYPE_FORMAT	@"%u"
-#  define NEXT_ORDER	7
-#  define NEXT_TYPE	long
-#  define NEXT_METHOD	longValue
+#  define TYPE_TYPE	unsigned int
 #elif TYPE_ORDER == 7
 #  define NumberTemplate	NSLongNumber
-#  define TYPE_METHOD	longValue
 #  define TYPE_FORMAT	@"%ld"
-#  define NEXT_ORDER	9
-#  define NEXT_TYPE	long long
-#  define NEXT_METHOD	longLongValue
+#  define TYPE_TYPE	long
 #elif TYPE_ORDER == 8
 #  define NumberTemplate	NSULongNumber
-#  define TYPE_METHOD	unsignedLongValue
 #  define TYPE_FORMAT	@"%lu"
-#  define NEXT_ORDER	9
-#  define NEXT_TYPE	long long
-#  define NEXT_METHOD	longLongValue
+#  define TYPE_TYPE	unsigned long
 #elif TYPE_ORDER == 9
 #  define NumberTemplate	NSLongLongNumber
-#  define TYPE_METHOD	longLongValue
 #  define TYPE_FORMAT	@"%lld"
-#  define NEXT_ORDER	11
-#  define NEXT_TYPE	float
-#  define NEXT_METHOD	floatValue
+#  define TYPE_TYPE	long long
 #elif TYPE_ORDER == 10
 #  define NumberTemplate	NSULongLongNumber
-#  define TYPE_METHOD	unsignedLongLongValue
 #  define TYPE_FORMAT	@"%llu"
-#  define NEXT_ORDER	11
-#  define NEXT_TYPE	float
-#  define NEXT_METHOD	floatValue
+#  define TYPE_TYPE	unsigned long long
 #elif TYPE_ORDER == 11
 #  define NumberTemplate	NSFloatNumber
-#  define TYPE_METHOD	floatValue
 #  define TYPE_FORMAT	@"%f"
-#  define NEXT_ORDER	12
-#  define NEXT_TYPE	double
-#  define NEXT_METHOD	doubleValue
+#  define TYPE_TYPE	float
 #elif TYPE_ORDER == 12
 #  define NumberTemplate	NSDoubleNumber
-#  define TYPE_METHOD	doubleValue
 #  define TYPE_FORMAT	@"%g"
-#  define NEXT_ORDER	12
-#  define NEXT_TYPE	double
-#  define NEXT_METHOD	doubleValue
+#  define TYPE_TYPE	double
 #endif
-
-@interface NSNumber (Private)
-- (int) _typeNext;
-- (int) _typeOrder;
-@end
-
-@implementation NumberTemplate (Private)
-- (int) _typeNext
-{
-  return NEXT_ORDER;
-}
-- (int) _typeOrder
-{
-  return TYPE_ORDER;
-}
-@end
 
 @implementation NumberTemplate
 
@@ -192,67 +139,67 @@
 
 - (BOOL) boolValue
 {
-  return data;
+  return (BOOL)data;
 }
 
 - (char) charValue
 {
-  return data;
+  return (char)data;
 }
 
 - (double) doubleValue
 {
-  return data;
+  return (double)data;
 }
 
 - (float) floatValue
 {
-  return data;
+  return (float)data;
 }
 
 - (int) intValue
 {
-  return data;
+  return (int)data;
 }
 
 - (long long) longLongValue
 {
-  return data;
+  return (long long)data;
 }
 
 - (long) longValue
 {
-  return data;
+  return (long)data;
 }
 
 - (short) shortValue
 {
-  return data;
+  return (short)data;
 }
 
 - (unsigned char) unsignedCharValue
 {
-  return data;
+  return (unsigned char)data;
 }
 
 - (unsigned int) unsignedIntValue
 {
-  return data;
+  return (unsigned int)data;
 }
 
 - (unsigned long long) unsignedLongLongValue
 {
-  return data;
+  return (unsigned long long)data;
 }
 
 - (unsigned long) unsignedLongValue
 {
-  return data;
+  return (unsigned long)data;
 }
 
 - (unsigned short) unsignedShortValue
 {
-  return data;
+  return (unsigned short)data;
 }
 
 - (NSComparisonResult) compare: (NSNumber*)other
@@ -265,68 +212,168 @@
     }
   info = GSNumberInfoFromObject(other);
 
-  /*
-   * If the two types are the same, or the other type can be promoted to ours.
-   */
-  if (TYPE_ORDER == info->typeOrder || TYPE_ORDER >= info->typeNext)
+  switch (info->typeLevel)
     {
-      typedef __typeof__(data) _dt;
-      _dt other_data = (*(info->TYPE_METHOD))(other, @selector(TYPE_METHOD));
-  
-      if (data == other_data)
+      case 0:
 	{
-	  return NSOrderedSame;
-	}
-      else if (data < other_data)
-	{
-	  return  NSOrderedAscending;
-	}
-      else
-	{
-	  return NSOrderedDescending;
-	}
-    }
+	  BOOL	oData;
 
-  /*
-   * If we and the other object both promote to the same type
-   */
-  if (NEXT_ORDER == info->typeNext)
-    {
-      int	res;
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      case 1:
+	{
+	  char	oData;
 
-      res = ((NEXT_TYPE)data)
-	- (*(info->NEXT_METHOD))(other, @selector(NEXT_METHOD));
-      if (res == 0)
-	{
-	  return NSOrderedSame;
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
 	}
-      else if (res < 0)
+      case 2:
 	{
-	  return  NSOrderedAscending;
-	}
-      else
-	{
-	  return  NSOrderedDescending;
-	}
-    }
-  else
-    {
-      NSComparisonResult	r;
+	  unsigned char	oData;
 
-      /*
-       * We must be promoted to match the other.
-       */
-      r = (*(info->compValue))(other, @selector(compare:), self); 
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      case 3:
+	{
+	  short	oData;
 
-      if (r == NSOrderedAscending)
-	{
-	  return NSOrderedDescending;
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
 	}
-      if (r == NSOrderedDescending)
+      case 4:
 	{
-	  return NSOrderedAscending;
+	  unsigned short	oData;
+
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
 	}
-      return r;
+      case 5:
+	{
+	  int	oData;
+
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      case 6:
+	{
+	  unsigned int	oData;
+
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      case 7:
+	{
+	  long	oData;
+
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      case 8:
+	{
+	  unsigned long	oData;
+
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      case 9:
+	{
+	  long long	oData;
+
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      case 10:
+	{
+	  unsigned long long	oData;
+
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      case 11:
+	{
+	  float	oData;
+
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      case 12:
+	{
+	  double	oData;
+
+	  (*(info->getValue))(other, @selector(getValue:), (void*)&oData);
+	  if (data == oData)
+	    return NSOrderedSame;
+	  else if (data < oData)
+	    return NSOrderedAscending;
+	  else
+	    return NSOrderedDescending;
+	}
+      default:
+	[NSException raise: NSInvalidArgumentException
+		    format: @"number type value for comparison"];
+	return NSOrderedSame;
     }
 }
 
@@ -339,22 +386,47 @@
 #endif
 }
 
+- (id) copy
+{
+  if (NSShouldRetainWithZone(self, NSDefaultMallocZone()))
+    return RETAIN(self);
+  else
+    return NSCopyObject(self, 0, NSDefaultMallocZone());
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  if (NSShouldRetainWithZone(self, zone))
+    return RETAIN(self);
+  else
+    return NSCopyObject(self, 0, zone);
+}
+
 // Override these from NSValue
 - (void) getValue: (void*)value
 {
   if (value == 0)
     {
       [NSException raise: NSInvalidArgumentException
-	      format: @"Cannot copy value into NULL pointer"];
+		  format: @"Cannot copy value into NULL pointer"];
       /* NOT REACHED */ 
     }
-  memcpy(value, &data, objc_sizeof_type([self objCType]));
+  memcpy(value, &data, objc_sizeof_type(@encode(TYPE_TYPE)));
 }
 
 - (const char*) objCType
 {
-  typedef __typeof__(data) _dt;
-  return @encode(_dt);
+  return @encode(TYPE_TYPE);
+}
+
+- (id) nonretainedObjectValue
+{
+  return (id)(void*)&data;
+}
+
+- (void*) pointerValue
+{
+  return (void*)&data;
 }
 
 // NSCoding
@@ -370,16 +442,14 @@
   return [super replacementObjectForPortCoder: aCoder];
 }
 
-- (void) encodeWithCoder: coder
+- (void) encodeWithCoder: (NSCoder*)coder
 {
-  const char *type = [self objCType];
-  [coder encodeValueOfObjCType: type at: &data];
+  [coder encodeValueOfObjCType: @encode(TYPE_TYPE) at: &data];
 }
 
-- (id) initWithCoder: coder
+- (id) initWithCoder: (NSCoder*)coder
 {
-  const char *type = [self objCType];
-  [coder decodeValueOfObjCType: type at: &data];
+  [coder decodeValueOfObjCType: @encode(TYPE_TYPE) at: &data];
   return self;
 }
 
