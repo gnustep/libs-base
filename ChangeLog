@@ -1,3 +1,8 @@
+2000-09-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSCompatibility.m: Fix stupid error in last modification -
+	missed part of method name.
+
 2000-09-29  Manuel Guesdon <mguesdon@orange-concept.com>
 	-- You'll need libxml2 v >= 2.2.3 to compile GSXML --
 	* Headers/Foundation/GSXML.h: added GSHTMLParser and GSHTMLSAXHandler
