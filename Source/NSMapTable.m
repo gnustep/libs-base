@@ -345,11 +345,6 @@ NSMapGet(NSMapTable *table, const void *key)
       NSWarnLog(@"Nul table argument supplied");
       return 0;
     }
-  if (key == 0)
-    {
-      NSWarnLog(@"Nul key argument supplied");
-      return 0;
-    }
   n = GSIMapNodeForKey((GSIMapTable)table, (GSIMapKey)key);
   if (n == 0)
     {
