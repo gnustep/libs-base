@@ -1,3 +1,9 @@
+2000-10-05  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/Unicode.m: 
+	Changed available encodings if HAVE_ICONV is defined. This is
+	still a static definition.
+	
 2000-10-02  Adam Fedor  <fedor@gnu.org>
 
 	* configure.in: Update required libxml version to 2.2.3
