@@ -29,6 +29,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSDictionary.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSProcessInfo.h>
 #include <Foundation/NSValue.h>
 
 #include <stdlib.h>		// for getenv()
