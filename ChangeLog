@@ -1,3 +1,9 @@
+Mon Feb 11 15:11:31 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/GSString.m (NSImmutableString): Implemented copy,
+	copyWithZone:, mutableCopy, mutableCopyWithZone:, so that the
+	string can be copied, and the copy no longer tracks the parent.
+
 2002-02-10  Michael Hanni <mhanni@sprintmail.com>
 
         * Source/NSObjCRuntime.m: changed NSAssert() to NSCAssert() from
