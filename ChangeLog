@@ -1,3 +1,8 @@
+2000-11-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLHandle.m: Implemented setting and gettign of properties
+	for file handles using NSFileManager.
+
 2000-11-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/GSMime.h: Added GSMimeEncodingContext etc
