@@ -6316,7 +6316,20 @@ fi
 
 fi
 
+echo "$as_me:$LINENO: checking for dynamic linker type" >&5
+echo $ECHO_N "checking for dynamic linker type... $ECHO_C" >&6
+echo "$as_me:$LINENO: result: $DYNAMIC_LINKER" >&5
+echo "${ECHO_T}$DYNAMIC_LINKER" >&6
+
 if test $DYNAMIC_LINKER = simple; then
+  echo "$as_me:$LINENO: checking checking if dladdr() is available" >&5
+echo $ECHO_N "checking checking if dladdr() is available... $ECHO_C" >&6
+  old_LDFLAGS="$LDFLAGS"
+  case "$target_os" in
+    linux-gnu*) LDFLAGS="$old_LDFLAGS -ldl";;
+    solaris*) LDFLAGS="$old_LDFLAGS -ldl";;
+    sysv4.2*) LDFLAGS="$old_LDFLAGS -ldl";;
+  esac
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
@@ -6352,11 +6365,16 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_DLADDR 1
 _ACEOF
 
+	      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
 else
   echo "$as_me: failed program was:" >&5
 cat conftest.$ac_ext >&5
+echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
 fi
 rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+  LDFLAGS="$old_LDFLAGS"
 fi
 
 
