@@ -1,5 +1,10 @@
 2000-03-28  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDictionary.m: Fix to avoid crash on being asked to init
+	with contents of a nil dictionary.
+
+2000-03-28  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/gnustep/base/NSRunLoop.h: Added event type for exceptional
 	conditions on a file descriptor and removed obsolete methods.
 	* Source/NSRunLoop.m: Added support for monitoring for exceptional
