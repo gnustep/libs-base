@@ -576,15 +576,33 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 	}
       else
 	{
-	  fullpath = _bundle_path_for_name(path, name);
-	  if (fullpath && platform)
+	  struct stat statbuf;
+	  fullpath = [path stringByAppendingPathComponent:
+		        [NSString stringWithFormat: @"%@", name]];
+	  if ( stat([fullpath cString], &statbuf) == 0) 
 	    {
-	      NSString* platpath;
-	      platpath = _bundle_path_for_name(path, 
-		             [NSString stringWithFormat: @"%@-%@", 
-			        name, platform]);
-	      if (platpath)
-		fullpath = platpath;
+	      if (platform)
+		{
+		  NSString* platpath;
+		  platpath = [path stringByAppendingPathComponent:
+			      [NSString stringWithFormat: @"%@-%@", 
+			       name, platform]];
+		  if ( stat([platpath cString], &statbuf) == 0) 
+		    fullpath = platpath;
+		}
+	    }
+	  else
+	    {
+	      fullpath = _bundle_path_for_name(path, name);
+	      if (fullpath && platform)
+		{
+		  NSString* platpath;
+		  platpath = _bundle_path_for_name(path, 
+				 [NSString stringWithFormat: @"%@-%@", 
+					   name, platform]);
+		  if (platpath)
+		    fullpath = platpath;
+		}
 	    }
 	}
       if (fullpath)
@@ -757,3 +775,73 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 
 @end
 
+@implementation NSBundle (GNUstep)
+
+/* This is a convenience method for searching for resource files
+   within the GNUstep directory structure specified by the environment
+   variables. */
+
++ (NSString *) pathForGNUstepResource: (NSString *)name
+			       ofType: (NSString *)ext	
+			  inDirectory: (NSString *)bundlePath;
+{
+  NSString *user_path, *local_path, *system_path;
+  NSBundle *user_bundle = nil, *local_bundle = nil, *system_bundle = nil;
+  NSProcessInfo *pInfo;
+  NSDictionary *env;
+  NSMutableString *user, *local, *system;
+
+  /*
+    The path of where to search for the resource files
+    is based upon environment variables.
+    GNUSTEP_USER_ROOT
+    GNUSTEP_LOCAL_ROOT
+    GNUSTEP_SYSTEM_ROOT
+    */
+  pInfo = [NSProcessInfo processInfo];
+  env = [pInfo environment];
+  user = [[[env objectForKey: @"GNUSTEP_USER_ROOT"]
+	    mutableCopy] autorelease];
+  [user appendString: @"/Libraries"];
+  local = [[[env objectForKey: @"GNUSTEP_LOCAL_ROOT"]
+	    mutableCopy] autorelease];
+  [local appendString: @"/Libraries"];
+  system = [[[env objectForKey: @"GNUSTEP_SYSTEM_ROOT"]
+	    mutableCopy] autorelease];
+  [system appendString: @"/Libraries"];
+
+  if (user)
+    user_bundle = [NSBundle bundleWithPath: user];
+  if (local)
+    local_bundle = [NSBundle bundleWithPath: local];
+  if (system)
+    system_bundle = [NSBundle bundleWithPath: system];
+
+  /* Gather up the paths */
+
+  /* Search user first */
+  user_path = [user_bundle pathForResource: name
+			   ofType: ext
+			   inDirectory: bundlePath];
+  if (user_path)
+    return user_path;
+
+  /* Search local second */
+  local_path = [local_bundle pathForResource: name
+			     ofType: ext
+			     inDirectory: bundlePath];
+  if (local_path)
+    return local_path;
+
+  /* Search system last */
+  system_path = [system_bundle pathForResource: name
+			       ofType: ext
+			       inDirectory: bundlePath];
+  if (system_path)
+    return system_path;
+
+  /* Didn't find it */
+  return nil;
+}
+
+@end

@@ -39,7 +39,7 @@
 
    FIXME?: use leap seconds? */
 
-
+#include <gnustep/base/preface.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,7 +56,7 @@
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSZone.h>
-#include <gnustep/base/config.h>
+#include <Foundation/NSBundle.h>
 
 #define NOID
 #include "tzfile.h"
@@ -71,25 +71,35 @@
 #endif
 
 /* Directory that contains the time zone data. */
-#define TIME_ZONE_DIR "NSTimeZones/"
+#define TIME_ZONE_DIR @"gnustep/NSTimeZones"
 
 /* Location of time zone abbreviation dictionary.  It is a text file
    with each line comprised of the abbreviation, a whitespace, and the
    name.  Neither the abbreviation nor the name can contain
    whitespace, and each line must not be longer than 80 characters. */
-#define ABBREV_DICT TIME_ZONE_DIR "abbreviations"
+#define ABBREV_DICT @"abbreviations"
 
 /* File holding regions grouped by latitude.  It is a text file with
    each line comprised of the latitude region, whitespace, and the
    name.  Neither the abbreviation not the name can contain
    whitespace, and each line must not be longer than 80 characters. */
-#define REGIONS_FILE TIME_ZONE_DIR "regions"
+#define REGIONS_FILE @"regions"
 
 /* Name of the file that contains the name of the local time zone. */
-#define LOCAL_TIME_FILE TIME_ZONE_DIR "localtime"
+#define LOCAL_TIME_FILE @"localtime"
 
 /* Directory that contains the actual time zones. */
-#define ZONES_DIR TIME_ZONE_DIR "zones/"
+#define ZONES_DIR @"zones/"
+
+/* Private methods */
+@interface NSTimeZone (Private)
+
++ (NSString *)getAbbreviationFile;
++ (NSString *)getRegionsFile;
++ (NSString *)getLocalTimeFile;
++ (NSString *)getTimeZoneFile: (NSString *)name;
+
+@end
 
 
 @class NSInternalTimeTransition;
@@ -503,16 +513,22 @@ decode (const void *ptr)
       if (localZoneString == nil)
        /* Try to get timezone from LOCAL_TIME_FILE. */
        {
+	 NSString *f = [NSTimeZone getLocalTimeFile];
          char zone_name[80];
          FILE *fp;
 
-         fp = fopen(LOCAL_TIME_FILE, "r");
-         if (fp != NULL)
-           {
-             fscanf(fp, "%79s", zone_name);
-             localZoneString = [NSString stringWithCString: zone_name];
-             fclose(fp);
-           }
+	 if (f)
+	   {
+	     fp = fopen([f cStringNoCopy], "r");
+	     if (fp != NULL)
+	       {
+		 fscanf(fp, "%79s", zone_name);
+		 localZoneString = [NSString stringWithCString: zone_name];
+		 fclose(fp);
+	       }
+	   }
+	 else
+	   NSLog(@"NSTimeZone unable to find the `%@' file.", LOCAL_TIME_FILE);
        }
       if (localZoneString != nil)
 	localTimeZone = [NSTimeZone timeZoneWithName: localZoneString];
@@ -580,13 +596,14 @@ decode (const void *ptr)
 + (NSTimeZone*)timeZoneWithName: (NSString*)aTimeZoneName
 {
   static NSString *fileException = @"fileException";
-  id zone, fileName, transArray, detailsArray;
+  id zone, transArray, detailsArray;
   int i, n_trans, n_types, names_size;
   id *abbrevsArray;
   char *trans, *type_idxs, *zone_abbrevs;
   struct tzhead header;
   struct ttinfo *types; // Temporary array for details
   FILE *file;
+  NSString *fileName;
 
   [zone_mutex lock];
   zone = [zoneDictionary objectForKey: aTimeZoneName];
@@ -606,7 +623,7 @@ decode (const void *ptr)
       return nil;
     }
 
-  fileName = [NSString stringWithFormat: @"%s%@", ZONES_DIR, aTimeZoneName];
+  fileName = [NSTimeZone getTimeZoneFile: aTimeZoneName];
   file = fopen([fileName cStringNoCopy], "rb");
   if (file == NULL)
     {
@@ -721,13 +738,15 @@ decode (const void *ptr)
   static NSMutableDictionary *abbreviationDictionary = nil;
   FILE *file; // For the file containing the abbreviation dictionary
   char abbrev[80], name[80];
+  NSString *fileName;
 
   if (abbreviationDictionary != nil)
     return abbreviationDictionary;
 
   /* Read dictionary from file. */
   abbreviationDictionary = [[NSMutableDictionary alloc] init];
-  file = fopen(ABBREV_DICT, "r");
+  fileName = [NSTimeZone getAbbreviationFile];
+  file = fopen([fileName cStringNoCopy], "r");
   if (file == NULL)
     [NSException raise: NSInternalInconsistencyException
 		 format: @"Failed to open time zone abbreviation dictionary"];
@@ -764,6 +783,7 @@ decode (const void *ptr)
   char name[80];
   FILE *file;
   id temp_array[24];
+  NSString *fileName;
 
   if (regionsArray != nil)
     return regionsArray;
@@ -771,7 +791,8 @@ decode (const void *ptr)
   for (i = 0; i < 24; i++)
     temp_array[i] = [[NSMutableArray alloc] init];
 
-  file = fopen(REGIONS_FILE, "r");
+  fileName = [NSTimeZone getRegionsFile];
+  file = fopen([fileName cStringNoCopy], "r");
   if (file == NULL)
     [NSException raise: NSInternalInconsistencyException
 		 format: @"Failed to open regions array file"];
@@ -816,8 +837,36 @@ decode (const void *ptr)
 
 @end
 
+@implementation NSTimeZone (Private)
 
++ (NSString *)getAbbreviationFile
+{
+  return [NSBundle pathForGNUstepResource: ABBREV_DICT
+		   ofType: @""
+		   inDirectory: TIME_ZONE_DIR];
+}
 
++ (NSString *)getRegionsFile
+{
+  return [NSBundle pathForGNUstepResource: REGIONS_FILE
+		   ofType: @""
+		   inDirectory: TIME_ZONE_DIR];
+}
 
++ (NSString *)getLocalTimeFile
+{
+  return [NSBundle pathForGNUstepResource: LOCAL_TIME_FILE
+		   ofType: @""
+		   inDirectory: TIME_ZONE_DIR];
+}
 
++ (NSString *)getTimeZoneFile: (NSString *)name
+{
+  NSString *fileName = [NSString stringWithFormat: @"%@%@",
+				 ZONES_DIR, name];
+  return [NSBundle pathForGNUstepResource: fileName
+		   ofType: @""
+		   inDirectory: TIME_ZONE_DIR];
+}
 
+@end

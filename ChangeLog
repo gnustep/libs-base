@@ -1,3 +1,35 @@
+Sat Oct 18 12:27:56 1997  Scott Christley  <scottc@net-community.com>
+
+	* Get NSTimeZone to work in GNUstep directory structure.
+	* src/NSTimeZone.m (+getAbbreviationFile): New method.
+	(+getRegionsFiles, +getLocalTimeFile): New methods.
+	(+getTimeZoneFile:): New method.
+	(TIME_ZONE_DIR, ABBREV_DICT, REGIONS_FILE, LOCAL_TIME_FILE, ZONES_DIR):
+	Correct paths.
+	(+initialize): Use private method to get resource file name.
+	(+timeZoneWithName:, +abbreviationMap, +timeZoneArray): Likewise.
+	* checks/create-abbrevs.m: New file.
+	* checks/create-regions.m: New file.
+	* checks/nstimezone.m: New file.
+	* checks/Makefile: Add new checks.
+
+	* src/NSBundle.m 
+	(+pathForResource:ofType:inRootPath:inDirectory:withVersion:):
+	If no extension then look for file without extension before
+	calling _bundle_path_for_name() which does not handle the case
+	where the resource name contains a directory path within it.
+
+	* src/NSBundle.m
+ 	(+pathForGNUstepResource:ofType:InDirectory:): New method.
+	* src/include/NSBundle.h
+ 	(+pathForGNUstepResource:ofType:InDirectory:): New method.
+
+Fri Oct 17 12:44:18 1997  Scott Christley  <scottc@net-community.com>
+
+	* src/NotificationDispatcher.m (-init): Make the key callbacks
+	be NSObject for the notification name map table so that
+	isEqual: is used for comparison.
+
 Fri Oct 17 09:16:36 1997  Adam Fedor  <fedor@doc.com>
 
 	* checks/Makefile.postamble: Add English.lproj dir to copy-dist.
