@@ -103,8 +103,7 @@ typedef struct _IndexRange {
 
 @end
 
-#include <limits.h>
-#define NO_INDEX UINT_MAX
+#define NO_INDEX NSNotFound
 
 /* xxx Fix this comment: */
 
