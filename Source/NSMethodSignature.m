@@ -54,10 +54,10 @@ types_get_number_of_arguments (const char *types)
   NSMethodSignature *newMs = [NSMethodSignature alloc];
   len = strlen(t);
   OBJC_MALLOC(newMs->types, char, len);
-  bcopy(t, newMs->types, len);
+  memcpy(newMs->types, t, len);
   len = strlen(t);	                                 /* xxx */
   OBJC_MALLOC(newMs->returnTypes, char, len);
-  bcopy(t, newMs->returnTypes, len);
+  memcpy(newMs->returnTypes, t, len);
   newMs->returnTypes[len-1] = '\0';
   newMs->argFrameLength = types_get_size_of_arguments(t);
   newMs->returnFrameLength = objc_sizeof_type(t);
