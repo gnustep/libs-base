@@ -71,9 +71,6 @@
 {
   static int done = 0;
 
-  /* xxx This class not yet ready for action. */
-  [self notImplemented:_cmd];
-
   if (!done)
     {
       done = 1;
@@ -86,8 +83,11 @@
 - initWithObjects: (id*)objects
 	    count: (unsigned)count
 {
-  return [self initWithType:@encode(id)
-	       capacity:count];
+  [self initWithType:@encode(id)
+	capacity:count];
+  while (count--)
+    [self addObject:objects[count]];
+  return self;
 }
 
 - member: anObject
@@ -101,6 +101,11 @@
 	  autorelease];
 }
 
+/* To deal with behavior over-enthusiasm.  Will be fixed later. */
+- (BOOL) isEqual: other
+{
+  return [super isEqual:other];
+}
 @end
 
 @implementation NSGMutableSet
@@ -108,9 +113,6 @@
 + (void) initialize
 {
   static int done = 0;
-
-  /* xxx This class not yet ready for action. */
-  [self notImplemented:_cmd];
 
   if (!done)
     {
@@ -139,6 +141,12 @@
 - (void) removeObject: anObject
 {
   [self removeElement:anObject];
+}
+
+/* To deal with behavior over-enthusiasm.  Will be fixed later. */
+- (BOOL) isEqual: other
+{
+  return [super isEqual:other];
 }
 
 @end
