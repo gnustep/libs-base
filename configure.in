@@ -344,7 +344,7 @@ if test $ac_cv_sizeof_long = 4; then
   _GSC_S_LNG=_GSC_I32
 else
   if test $ac_cv_sizeof_long = 8; then
-    _GSC_S_LNG=_GSC_I_64
+    _GSC_S_LNG=_GSC_I64
   else
     if test $ac_cv_sizeof_long = 16; then
       _GSC_S_LNG=_GSC_I128
