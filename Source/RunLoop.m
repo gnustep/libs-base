@@ -67,7 +67,7 @@
    Just define it to use memset(). */
 #define bzero(PTR, LEN) memset (PTR, 0, LEN)
 
-static int debug_run_loop = 1;
+static int debug_run_loop = 0;
 
 @implementation RunLoop
 
