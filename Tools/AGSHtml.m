@@ -1574,13 +1574,13 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"protocol"] == YES)
 	{
-	  NSString	*name = [prop objectForKey: @"name"];
+	  NSString	*value = [prop objectForKey: @"name"];
 
-	  unit = [NSString stringWithFormat: @"(%@)", name];
+	  unit = [NSString stringWithFormat: @"(%@)", value];
 	  [buf appendString: indent];
 	  [buf appendString: @"<h2>"];
 	  [buf appendString:
-	    [self makeAnchor: unit ofType: @"protocol" name: name]];
+	    [self makeAnchor: unit ofType: @"protocol" name: value]];
 	  [buf appendString: @"</h2>\n"];
 	  [self outputUnit: node to: buf];
 	  unit = nil;

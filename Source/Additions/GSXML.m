@@ -119,6 +119,15 @@ static xmlParserInputPtr
 loadEntityFunction(const unsigned char *url, const unsigned char *eid,
   xmlParserCtxtPtr ctxt);
 
+@interface NSObject (MissingFromMacOSX)
+- (IMP) methodForSelector: (SEL)aSelector;
+@end
+
+@interface GSXPathObject(Private)
++ (id) _newWithNativePointer: (xmlXPathObject *)lib
+                     context: (GSXPathContext *)context;
+@end
+
 @interface GSXMLDocument (GSPrivate)
 - (id) _initFrom: (void*)data parent: (id)p ownsLib: (BOOL)f;
 @end
@@ -1643,7 +1652,7 @@ static NSMapTable	*nodeNames = 0;
  */
 @implementation GSXMLParser
 
-static NSMapTable	*warnings = 0;
+static NSHashTable	*warnings = 0;
 
 static NSString	*endMarker = @"At end of incremental parse";
 

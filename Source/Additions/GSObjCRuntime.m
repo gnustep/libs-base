@@ -53,6 +53,10 @@
 
 @class	NSNull;
 
+@interface NSObject (MissingFromMacOSX)
+- (IMP) methodForSelector: (SEL)aSelector;
+@end
+
 /**  Deprecated ... use GSObjCFindVariable() */
 BOOL
 GSFindInstanceVariable(id obj, const char *name,

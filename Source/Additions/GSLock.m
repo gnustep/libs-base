@@ -31,6 +31,7 @@
 #include <Foundation/NSThread.h>
 #include "GNUstepBase/GSLock.h"
 #include "GNUstepBase/GNUstep.h"
+#include "GNUstepBase/GSCategories.h"
 
 /**
  * This implements a class which, when used in single-threaded mode,
