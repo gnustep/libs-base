@@ -2159,7 +2159,8 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @end
 @interface GSSAXHandler : GSXMLDummy
 @end
-
+@interface GSXMLParser : GSXMLDummy
+@end
 @implementation GSXMLDummy
 + (id) allocWithZone: (NSZone*)z
 {
@@ -2194,6 +2195,7 @@ fatalErrorFunction(void *ctx, const char *msg, ...)
 @end
 @implementation GSSAXHandler
 @end
-
+@implementation GSXMLParser
+@end
 #endif
 

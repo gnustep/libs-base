@@ -46,7 +46,8 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-#define stringify(X) #X
+#define lowlevelstringify(X) #X
+#define stringify(X) lowlevelstringify(X)
 
 static NSString	*theUserName = nil;
 
@@ -124,7 +125,7 @@ NSUserName(void)
 	GSSetUserName([NSString stringWithCString: login_name]);
       else
 	[NSException raise: NSInternalInconsistencyException
-		    format: @"Unable to determine curren user name"];
+		    format: @"Unable to determine current user name"];
     }
   return theUserName;
 }
@@ -135,6 +136,36 @@ NSHomeDirectory(void)
 {
   return NSHomeDirectoryForUser (NSUserName ());
 }
+
+#if defined(__MINGW__)
+NSString *
+GSStringFromWin32EnvironmentVariable(const char * envVar)
+{
+  char buf[1024], *nb;
+  DWORD n;
+  NSString *s = nil;
+
+  [gnustep_global_lock lock];
+  n = GetEnvironmentVariable(envVar, buf, 1024);
+  if (n > 1024)
+    {
+      /* Buffer not big enough, so dynamically allocate it */
+      nb = (char *)NSZoneMalloc(NSDefaultMallocZone(), sizeof(char)*(n+1));
+      n = GetEnvironmentVariable(envVar, nb, n+1);
+      nb[n] = '\0';
+      s = [NSString stringWithCString: nb];
+      NSZoneFree(NSDefaultMallocZone(), nb);
+    }
+  else if (n > 0)
+    {
+      /* null terminate it and return the string */
+      buf[n] = '\0';
+      s = [NSString stringWithCString: buf];
+    }
+  [gnustep_global_lock unlock];
+  return s;
+}
+#endif
 
 /* Return LOGIN_NAME's home directory as an NSString object. */
 NSString *
@@ -150,37 +181,14 @@ NSHomeDirectoryForUser(NSString *login_name)
 #else
   /* Then environment variable HOMEPATH holds the home directory
      for the user on Windows NT; Win95 has no concept of home. */
-  char buf[1024], *nb;
-  DWORD n;
   NSString *s;
 
   [gnustep_global_lock lock];
-  n = GetEnvironmentVariable("HOMEPATH", buf, 1024);
-  if (n > 1024)
-    {
-      /* Buffer not big enough, so dynamically allocate it */
-      nb = (char *)NSZoneMalloc(NSDefaultMallocZone(), sizeof(char)*(n+1));
-      n = GetEnvironmentVariable("HOMEPATH", nb, n+1);
-      nb[n] = '\0';
-      s = [NSString stringWithCString: nb];
-      NSZoneFree(NSDefaultMallocZone(), nb);
-    }
-  else if (n > 0)
-    {
-      /* null terminate it and return the string */
-      buf[n] = '\0';
-      s = [NSString stringWithCString: buf];
-    }
-  else
-    {
-      s = nil;
-    }
-
+  s = GSStringFromWin32EnvironmentVariable("HOMEPATH");
   if (s != nil)
     {
-      n = GetEnvironmentVariable("HOMEDRIVE", buf, 1024);
-      buf[n] = '\0';
-      s = [[NSString stringWithCString: buf] stringByAppendingString: s];
+      s = [GSStringFromWin32EnvironmentVariable("HOMEDRIVE")
+        stringByAppendingString: s];
     }
   [gnustep_global_lock unlock];
   return s;
@@ -211,6 +219,9 @@ static NSString	*gnustep_system_root = nil;  /* GNUSTEP_SYSTEM_ROOT */
 static void
 setupPathNames()
 {
+#if defined (__MINGW32__)
+  NSString *systemDrive = GSStringFromWin32EnvironmentVariable("SystemDrive");
+#endif
   if (gnustep_system_root == nil)
     {
       NS_DURING
@@ -238,6 +249,11 @@ setupPathNames()
 		  warned = YES;
 		  gnustep_system_root = [NSString stringWithCString:
 					  stringify(GNUSTEP_INSTALL_PREFIX)];
+#if defined (__MINGW32__)
+                  gnustep_system_root = [systemDrive stringByAppendingString:
+                                          gnustep_system_root];
+#endif
+
 		  RETAIN(gnustep_system_root);
 		  fprintf (stderr, 
 		    "Warning - GNUSTEP_SYSTEM_ROOT is not set "
@@ -250,6 +266,10 @@ setupPathNames()
 		{
 		  gnustep_local_root = [NSString stringWithCString:
 					  stringify(GNUSTEP_LOCAL_ROOT)];
+#if defined (__MINGW32__)
+                  gnustep_local_root = [systemDrive stringByAppendingString:
+                                         gnustep_local_root];
+#endif
 		  if ([gnustep_local_root length] == 0)
 		    gnustep_local_root = nil;
 		  else
@@ -287,6 +307,10 @@ setupPathNames()
 		{
 		  gnustep_network_root = [NSString stringWithCString:
 					  stringify(GNUSTEP_NETWORK_ROOT)];
+#if defined (__MINGW32__)
+                  gnustep_network_root = [systemDrive stringByAppendingString:
+                                           gnustep_network_root];
+#endif
 		  if ([gnustep_network_root length] == 0)
 		    gnustep_network_root = nil;
 		  else

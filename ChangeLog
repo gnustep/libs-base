@@ -1,3 +1,21 @@
+2001-10-16  Adam Fedor  <fedor@gnu.org>
+
+	* Source/GNUmakefile: Strip drive names from paths.
+
+	* Source/GSXML.m: Add dummy GSXMLParser when not using libxml.
+	* Source/NSBundle.m (_absolutePathOfExecutable:): Check for
+	'Path' variable also (for Windows).
+	* Source/NSUser.m (GSStringFromWin32EnvironmentVariable): New
+	function.
+	(NSHomeDirectoryForUser): Use it.
+	(setupPathNames): Prepend systemDrive to compiled in root
+	paths.
+	(patches from stephen@brandonitconsulting.co.uk).
+
+	* Source/NSFileManager.m (_attributesAtPath:traverseLink:forCopy:):
+	On (sparc && DEBUG) disable the setgrent functions which cause gdb
+	to crash.
+
 2001-10-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GNUmakefile:

@@ -208,4 +208,6 @@ __objc_class_name_NSUndoManager
 __objc_class_name_PrivateUndoGroup
 __objc_class_name_NSUserDefaults
 __objc_class_name_GSPlaceholderValue
+__objc_class_name_GSXMLNode
+__objc_class_name_GSXMLParser
 __objc_class_name_NSValue
