@@ -13,7 +13,65 @@
   <body>
     <chapter>
       <heading>Functions</heading>
+      <function name="GSCurrentThread" type="NSThread*">
+        <declared>Foundation/NSThread.h</declared>
+	<desc>
+	  <p>
+	    This function is a GNUstep extension.  It pretty much
+	    duplicates the functionality of [NSThread +currentThread]
+	    but is more efficient and is used internally throughout
+	    GNUstep.
+	  </p>
+	  <p>
+	    Returns the current thread.  Could perhaps return <code>nil</code>
+	    if executing a thread that was started outside the GNUstep
+	    environment and not registered (this should not happen in a
+	    well-coded application).
+	  </p>
+	</desc>
+	<standards><NotOpenStep/><NotMacOS-X/><GNUstep/></standards>
+      </function>
+
+      <function name="GSRegisterCurrentThread" type="BOOL">
+        <declared>Foundation/NSThread.h</declared>
+	<desc>
+	  <p>
+	    This functiion is provided to let threads started by some other
+	    software library register themselves to be used with the
+	    GNUstep system.  All such threads should call this function
+	    before attempting to use any GNUstep objects.
+	  </p>
+	  <p>
+	    Returns <code>YES</code> if the thread can be registered,
+	    <code>NO</code> if it is already registered.
+	  </p>
+	  <p>
+	    Sends out a <code>NSWillBecomeMultiThreadedNotification</code>
+	    if the process was not already multithreaded.
+	  </p>
+	</desc>
+	<standards><NotOpenStep/><NotMacOS-X/><GNUstep/></standards>
+      </function>
+
+      <function name="GSUnregisterCurrentThread" type="void">
+        <declared>Foundation/NSThread.h</declared>
+	<desc>
+	  <p>
+	    This functiion is provided to let threads started by some other
+	    software library unregister themselves from the GNUstep threading
+	    system.
+	  </p>
+	  <p>
+	    Calling this function causes a
+	    <code>NSThreadWillExitNotification</code>
+	    to be sent out, and destroys the GNUstep NSThread object
+	    associated with the thread.
+	  </p>
+	</desc>
+	<standards><NotOpenStep/><NotMacOS-X/><GNUstep/></standards>
+      </function>
     </chapter>
+
     <chapter>
       <heading>Types</heading>
       <type name="NSRange">
