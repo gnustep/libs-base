@@ -4562,6 +4562,7 @@ printf(
 #endif
       setuid (uid);
       setgid (gid);
+      setgroups (0, 0);	/* Empty additional groups list */
     }
 #endif /* __MINGW__ */
 
