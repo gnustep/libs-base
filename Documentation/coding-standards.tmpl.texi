@@ -60,6 +60,7 @@ into another language, under the above conditions for modified versions.
 * Introduction::                
 * ChangeLog Entries::           
 * Coding Style::                
+* Memory Management::              
 * Error Handling::              
 @end menu
 
@@ -100,7 +101,7 @@ was changed. It's more appropriate to put that in the source code, where
 someone can find it, or in the documentation.
 
 @c ******************************************************************
-@node Coding Style, Error Handling, ChangeLog Entries, Top
+@node Coding Style, Memory Management, ChangeLog Entries, Top
 @section Coding Style
 
 The point is not what style is 'better' in the abstract -- it's what
@@ -122,10 +123,39 @@ function/method implementations should be separated by a blank line.
 Tabstops should be 8 spaces.
 
 All binary operators should be surrounded by white space with the
-exception of the comma (only a trailing white space).  Brackets should
-have space only before the leading bracket and after the trailing
-bracket (as in this example).  This applies to square brackets too.  The
-placement of curly brackets is part of the indentation rules. the
+exception of the comma (only a trailing white space), and the
+@code{.} and @code{->} structure member references (no space).
+@example
+x = y + z;
+x += 2;
+x = ptr->field;
+x = record.member;
+x++, y++;
+@end example
+
+Brackets should have space only before the leading bracket and after
+the trailing bracket (as in this example).
+This applies to square brackets too.
+
+Where round brackets are used specially (type-casts and function/macro calls)
+different rules may be applied.
+
+For brackets in function and macro calls or specifications, there is normally
+no space between the function/macro name and the opening bracket -
+@example
+a = AMACRO();
+b = aFunctionCallWithArguments(c, d);
+@end example
+
+For type-casts and specification of method argument types, there is normally
+no space between the closing bracket and the expression whose type is being
+specified -
+@example
+a = (int)b;
+- (void) methodWithArg1: (int)arg1 andArg2: (float)arg2;
+@end example
+
+The placement of curly brackets is part of the indentation rules. the
 correct GNU style is
 @example
   if (...)
@@ -137,13 +167,40 @@ correct GNU style is
 For function implementations, the function names must begin on column zero
 (types on the preceeding line).  For function predeclaration, the types and
 the name should appear on the same line if possible.
+@example
+static int myFunction(int a, int b);
+
+static int
+myFunction(int a, int b)
+@{
+  return a + b;
+@}
+@end example
 
 The curly brackets enclosing function and method implementations should be
 based in column 0.  Indentation is in steps of two spaces.
+@example
+int
+myMax(int a, int b)
+@{
+  if (a < b)
+    @{
+      return b;
+    @}
+  return a;
+@}
+@end example
 
 Lines longer than 80 columns must be split up, if possible with the
 line wrap occurring immediately before an operator.  The wrapped lines
 are indented by two spaces form the original.
+@example
+  if ((conditionalTestVariable1 > conditionaltestVariable2)
+    && (conditionalTestvariable3 > conditionalTestvariable4))
+    @{
+      // Do something here.
+    @}
+@end example
 
 Some things the standards seem to think are 'should' rather than 'must':
 
@@ -199,7 +256,40 @@ of code is involved
 @end example
 
 @c ******************************************************************
-@node Error Handling,  , Coding Style, Top
+@node Memory Management, Error Handling , Coding Style, Top
+@section Memory Management
+
+In anticipation of the day when we can make the use of a Garbage Collector
+possible for all GNUstep apps (it's almost-usable/usable-with-care for
+non-gui apps now), the normal use of retain/release/autorelease is
+deprecated.
+
+You should always use the macros RETAIN(), RELEASE() and AUTORELEASE()
+(defined in NSObject.h) instead.
+
+There are also some extra macros that may be of use -
+@itemize @bullet
+@item
+ASSIGN(object,value) to assign an object variable, preforming the appropriate retain/release as necessary.
+@item
+ASSIGNCOPY(object,value) to copy the value and assign it to the object.
+@item
+DESTROY(object) to release an object variable and set it to nil.
+@item
+TEST_RETAIN(object) to retain an object if it is non-nil
+@item
+TEST_RELEASE(object) to release an object if it is non-nil
+@item
+TEST_AUTORELEASE(object) to autorelease an object if it is non-nil
+@item
+CREATE_AUTORELEASE_POOL(name) to create an autorelease pool wiyth the
+specified name.
+@item IF_NO_GC(X) compile the code 'X' only if GarbageCollection is not
+in use.
+@end itemize
+
+@c ******************************************************************
+@node Error Handling,  , Memory Management, Top
 @section Error Handling
 
 Initialization methods (e.g. -init) should, upon failure to
