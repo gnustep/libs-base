@@ -1,5 +1,5 @@
 /* Definitions to allow compilation of GNU objc code with NeXT runtime
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993,1994, 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -269,12 +269,6 @@ list_free(struct objc_list* list)
       (*objc_free)(list);
     }
 }
-
-/* GNU Object.[hm] defines -compare:, NeXT doesn't, libobjects needs it. */
-@interface Object (GNUExtensions)
-- (int)compare:anotherObject;
-- shouldNotImplement:(SEL)op;
-@end
 
 #endif /* NeXT_runtime */
 
