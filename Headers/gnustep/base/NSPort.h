@@ -1,4 +1,4 @@
-/* Interface for abstract superclass NSPort for use with NSConnection
+/** Interface for abstract superclass NSPort for use with NSConnection
    Copyright (C) 1997,2002 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
@@ -115,17 +115,17 @@ typedef int NSSocketNativeHandle;
 - (id) initWithProtocolFamily: (int)family
                    socketType: (int)type
                      protocol: (int)protocol
-                      address: (NSData *)addressData;
+                      address: (NSData *)addrData;
 - (id) initWithProtocolFamily: (int)family
                    socketType: (int)type
                      protocol: (int)protocol
-                       socket: (NSSocketNativeHandle)sock;
+                       socket: (NSSocketNativeHandle)socket;
 - (id) initRemoteWithTCPPort: (unsigned short)portNumber
-                        host: (NSString *)host;
+                        host: (NSString *)hostname;
 - (id) initRemoteWithProtocolFamily: (int)family
                          socketType: (int)type
                            protocol: (int)protocol
-                            address: (NSData *)addressData;
+                            address: (NSData *)addrData;
 
 - (NSData *) address;
 - (int) protocol;

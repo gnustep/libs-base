@@ -1,4 +1,4 @@
-/* Interface to file path utilities for GNUStep
+/** Interface to file path utilities for GNUStep
    Copyright (C) 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -20,7 +20,7 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
  
-AutogsdocSource:	NSUser.m
+   AutogsdocSource:	NSUser.m
    */ 
 
 #ifndef __NSPathUtilities_h_GNUSTEP_BASE_INCLUDE
