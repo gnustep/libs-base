@@ -168,11 +168,24 @@
 	<standards><GNUstep/><NotOpenStep/><NotMacOS-X/></standards>
       </function>
       <function name="GSUPurge" type="void">
-	<arg type="int">count</arg>
+	<arg type="unsigned int">count</arg>
 	<desc>
 	  This function purges the global NSCountedSet object used for
 	  uniquing.  It handles locking as necessary.  It can be used to
           purge the set even when uniquing is turned off.
+	</desc>
+	<standards><GNUstep/><NotOpenStep/><NotMacOS-X/></standards>
+      </function>
+      <function name="GSUSet" type="void">
+	<arg type="id">anObject</arg>
+	<arg type="unsigned int">count</arg>
+	<desc>
+	  This function sets the count for the specified object.  If the
+	  count for the object is set to zero then the object is removed
+          from the global uniquing set.  The object is added to the set
+	  if necessary.
+	  The function handles locking as necessary.  It can be used to
+          alter the set even when uniquing is turned off.
 	</desc>
 	<standards><GNUstep/><NotOpenStep/><NotMacOS-X/></standards>
       </function>
