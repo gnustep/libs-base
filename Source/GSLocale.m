@@ -30,6 +30,10 @@
 
 #include <locale.h>
 #ifdef HAVE_LANGINFO_H
+/*
+ * Define __USE_GNU to get YESSTR and NOSTR in glibc-2.2.2
+ */
+#define	__USE_GNU
 #include <langinfo.h>
 #endif
 #include <Foundation/NSUserDefaults.h>
@@ -47,17 +51,23 @@ GSSetLocale(NSString *locale)
   const char *clocale;
 
   clocale = NULL;
-  if (locale)
-    clocale = [locale cString];
+  if (locale != nil)
+    {
+      clocale = [locale cString];
+    }
   clocale = setlocale(LC_ALL, clocale);
 
   if (clocale == NULL || strcmp(clocale, "C") == 0 
-      || strcmp(clocale, "POSIX") == 0) 
-    clocale = NULL;
+    || strcmp(clocale, "POSIX") == 0) 
+    {
+      clocale = NULL;
+    }
 
   locale = nil;
-  if (clocale)
-    locale = [NSString stringWithCString: clocale];
+  if (clocale != 0)
+    {
+      locale = [NSString stringWithCString: clocale];
+    }
   return locale;
 }
 
@@ -70,74 +80,102 @@ NSDictionary *
 GSDomainFromDefaultLocale(void)
 {
 #ifdef HAVE_LANGINFO_H
-  int i;
-  struct lconv *lconv;
-  NSMutableDictionary *dict;
-  NSMutableArray *arr;
-  NSString *str1, *str2;
+  int			i;
+  struct lconv		*lconv;
+  NSMutableDictionary	*dict;
+  NSMutableArray	*arr;
+  NSString		*str1;
+  NSString		*str2;
 
   dict = [NSMutableDictionary dictionary];
 
   /* Time/Date Information */
   arr = [NSMutableArray arrayWithCapacity: 7];
   for (i = 0; i < 7; i++)
-    [arr addObject: GSLanginfo(DAY_1+i)];
+    {
+      [arr addObject: GSLanginfo(DAY_1+i)];
+    }
   [dict setObject: arr forKey: NSWeekDayNameArray];
 
   arr = [NSMutableArray arrayWithCapacity: 7];
   for (i = 0; i < 7; i++)
-    [arr addObject: GSLanginfo(ABDAY_1+i)];
+    {
+      [arr addObject: GSLanginfo(ABDAY_1+i)];
+    }
   [dict setObject: arr forKey: NSShortWeekDayNameArray];
 
   arr = [NSMutableArray arrayWithCapacity: 12];
   for (i = 0; i < 12; i++)
-    [arr addObject: GSLanginfo(MON_1+i)];
+    {
+      [arr addObject: GSLanginfo(MON_1+i)];
+    }
   [dict setObject: arr forKey: NSMonthNameArray];
 
   arr = [NSMutableArray arrayWithCapacity: 12];
   for (i = 0; i < 12; i++)
-    [arr addObject: GSLanginfo(ABMON_1+i)];
+    {
+      [arr addObject: GSLanginfo(ABMON_1+i)];
+    }
   [dict setObject: arr forKey: NSShortMonthNameArray];
 
   str1 = GSLanginfo(AM_STR);
   str2 = GSLanginfo(PM_STR);
-  if (str1 && str2)
-    [dict setObject: [NSArray arrayWithObjects: str1, str2, nil]
-	  forKey: NSAMPMDesignation];
+  if (str1 != nil && str2 != nil)
+    {
+      [dict setObject: [NSArray arrayWithObjects: str1, str2, nil]
+	       forKey: NSAMPMDesignation];
+    }
 
-  [dict setObject: GSLanginfo(D_T_FMT) forKey: NSTimeDateFormatString];
-  [dict setObject: GSLanginfo(D_FMT)   forKey: NSShortDateFormatString];
-  [dict setObject: GSLanginfo(T_FMT)   forKey: NSTimeFormatString];
+  [dict setObject: GSLanginfo(D_T_FMT)
+	   forKey: NSTimeDateFormatString];
+  [dict setObject: GSLanginfo(D_FMT)
+	   forKey: NSShortDateFormatString];
+  [dict setObject: GSLanginfo(T_FMT)
+	   forKey: NSTimeFormatString];
 
   lconv = localeconv();
 
   /* Currency Information */
   if (lconv->currency_symbol)
-    [dict setObject: [NSString stringWithCString: lconv->currency_symbol ]
-	  forKey: NSCurrencySymbol];
+    {
+      [dict setObject: [NSString stringWithCString: lconv->currency_symbol]
+	       forKey: NSCurrencySymbol];
+    }
   if (lconv->int_curr_symbol)
-    [dict setObject:  [NSString stringWithCString: lconv->int_curr_symbol]
-	  forKey: NSInternationalCurrencyString ];
+    {
+      [dict setObject: [NSString stringWithCString: lconv->int_curr_symbol]
+	       forKey: NSInternationalCurrencyString];
+    }
   if (lconv->mon_decimal_point)
-    [dict setObject:  [NSString stringWithCString: lconv->mon_decimal_point]
-	  forKey: NSInternationalCurrencyString ];
+    {
+      [dict setObject: [NSString stringWithCString: lconv->mon_decimal_point]
+	       forKey: NSInternationalCurrencyString];
+    }
   if (lconv->mon_thousands_sep)
-    [dict setObject:  [NSString stringWithCString: lconv->mon_thousands_sep]
-	  forKey: NSInternationalCurrencyString ];
+    {
+      [dict setObject: [NSString stringWithCString: lconv->mon_thousands_sep]
+	       forKey: NSInternationalCurrencyString];
+    }
   /* FIXME: Get currency format from localeconv */
 
 
   /* Miscellaneous */
   if (nl_langinfo(YESSTR))
-    [dict setObject: GSLanginfo(YESSTR)   forKey: @"NSYesStr"];
+    {
+      [dict setObject: GSLanginfo(YESSTR) forKey: @"NSYesStr"];
+    }
   if (nl_langinfo(NOSTR))
-    [dict setObject: GSLanginfo(NOSTR)   forKey: @"NSNoStr"];
+    {
+      [dict setObject: GSLanginfo(NOSTR) forKey: @"NSNoStr"];
+    }
 
   str1 = [NSString stringWithCString: setlocale(LC_ALL, NULL)];
   [dict setObject: str1	forKey: NSLocale];
   str2 = GSLanguageFromLocale(str1);
   if (str2)
-    [dict setObject: str2 forKey: NSLanguageName];
+    {
+      [dict setObject: str2 forKey: NSLanguageName];
+    }
 
   return dict;
 #else /* HAVE_LANGINFO_H */
@@ -148,8 +186,8 @@ GSDomainFromDefaultLocale(void)
 NSString *
 GSLanguageFromLocale(NSString *locale)
 {
-  NSString *language = nil;
-  NSString *aliases = nil;
+  NSString	*language = nil;
+  NSString	*aliases = nil;
 
   if (locale == nil || [locale isEqual: @"C"] || [locale isEqual: @"POSIX"])
     return @"English";
@@ -157,12 +195,13 @@ GSLanguageFromLocale(NSString *locale)
   aliases = [NSBundle pathForGNUstepResource: @"Locale"
 		                      ofType: @"aliases"
 		                 inDirectory: @"Resources/Languages"];  
-  if (aliases)
+  if (aliases != nil)
     {
-      NSDictionary *dict;
+      NSDictionary	*dict;
+
       dict = [NSDictionary dictionaryWithContentsOfFile: aliases];
       language = [dict objectForKey: locale];
-      if (language == nil && [locale pathExtension])
+      if (language == nil && [locale pathExtension] != nil)
 	{
 	  locale = [locale stringByDeletingPathExtension];
 	  language = [dict objectForKey: locale];
@@ -197,7 +236,5 @@ GSLanguageFromLocale(NSString *locale)
 }
 
 #endif /* !HAVE_LOCALE_H */
-
-
 
 

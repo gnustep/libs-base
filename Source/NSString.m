@@ -4083,11 +4083,24 @@ GSPropertyList(NSString *string)
   pldata	*pld = &_pld;
   unsigned	length = [string length];
   NSData	*d;
+  id		pl;
 #if	HAVE_LIBXML
   unsigned	index = 0;
+#endif
 
+  /*
+   * An empty string is a nil property list.
+   */
+  if (length == 0)
+    {
+      return nil;
+    }
+
+#if	HAVE_LIBXML
   if (whitespce == nil)
-    setupWhitespce();
+    {
+      setupWhitespce();
+    }
   while (index < length)
     {
       unsigned	c = [string characterAtIndex: index];
@@ -4122,7 +4135,8 @@ GSPropertyList(NSString *string)
 	    [[[parser doc] root] name]);
 	  return nil;
 	}
-      return AUTORELEASE(RETAIN(nodeToObject([[[parser doc] root] children])));
+      pl = AUTORELEASE(RETAIN(nodeToObject([[[parser doc] root] children])));
+      return pl;
     }
 #endif
   d = [string dataUsingEncoding: NSUnicodeStringEncoding];
@@ -4132,8 +4146,16 @@ GSPropertyList(NSString *string)
   _pld.err = nil;
   _pld.lin = 1;
   if (plAlloc == 0)
-    setupPl();
-  return AUTORELEASE(parsePlItem(pld));
+    {
+      setupPl();
+    }
+  pl = AUTORELEASE(parsePlItem(pld));
+  if (pl == nil && _pld.err != nil)
+    {
+      NSLog(@"Parse failed at line %d (char %d) - %@",
+	_pld.lin, _pld.pos, _pld.err);
+    }
+  return pl;
 }
 
 static id
@@ -4145,6 +4167,14 @@ GSPropertyListFromStringsFormat(NSString *string)
   unsigned		length = [string length];
   NSData		*d;
 
+  /*
+   * An empty string is a nil property list.
+   */
+  if (length == 0)
+    {
+      return nil;
+    }
+
   d = [string dataUsingEncoding: NSUnicodeStringEncoding];
   _pld.ptr = (unichar*)[d bytes];
   _pld.pos = 1;
@@ -4152,7 +4182,9 @@ GSPropertyListFromStringsFormat(NSString *string)
   _pld.err = nil;
   _pld.lin = 1;
   if (plAlloc == 0)
-    setupPl();
+    {
+      setupPl();
+    }
 
   dict = [[plDictionary allocWithZone: NSDefaultMallocZone()]
     initWithCapacity: 0];
@@ -4162,16 +4194,24 @@ GSPropertyListFromStringsFormat(NSString *string)
       id	val;
 
       if (pld->ptr[pld->pos] == '"')
-	key = parseQuotedString(pld);
+	{
+	  key = parseQuotedString(pld);
+	}
       else
-	key = parseUnquotedString(pld);
+	{
+	  key = parseUnquotedString(pld);
+	}
       if (key == nil)
-	return nil;
+	{
+	  DESTROY(dict);
+	  break;
+	}
       if (skipSpace(pld) == NO)
 	{
 	  pld->err = @"incomplete final entry (no semicolon?)";
 	  RELEASE(key);
-	  return nil;
+	  DESTROY(dict);
+	  break;
 	}
       if (pld->ptr[pld->pos] == ';')
 	{
@@ -4185,43 +4225,57 @@ GSPropertyListFromStringsFormat(NSString *string)
 	  if (skipSpace(pld) == NO)
 	    {
 	      RELEASE(key);
-	      return nil;
+	      DESTROY(dict);
+	      break;
 	    }
 	  if (pld->ptr[pld->pos] == '"')
-	    val = parseQuotedString(pld);
+	    {
+	      val = parseQuotedString(pld);
+	    }
 	  else
-	    val = parseUnquotedString(pld);
+	    {
+	      val = parseUnquotedString(pld);
+	    }
 	  if (val == nil)
 	    {
 	      RELEASE(key);
-	      return nil;
+	      DESTROY(dict);
+	      break;
 	    }
 	  if (skipSpace(pld) == NO)
 	    {
 	      pld->err = @"missing final semicolon";
 	      RELEASE(key);
 	      RELEASE(val);
-	      return nil;
+	      DESTROY(dict);
+	      break;
 	    }
 	  (*plSet)(dict, @selector(setObject:forKey:), val, key);
 	  RELEASE(key);
 	  RELEASE(val);
 	  if (pld->ptr[pld->pos] == ';')
-	    pld->pos++;
+	    {
+	      pld->pos++;
+	    }
 	  else
 	    {
 	      pld->err = @"unexpected character (wanted ';')";
-	      RELEASE(dict);
-	      return nil;
+	      DESTROY(dict);
+	      break;
 	    }
 	}
       else
 	{
-	  RELEASE(key);
-	  RELEASE(dict);
 	  pld->err = @"unexpected character (wanted '=' or ';')";
-	  return nil;
+	  RELEASE(key);
+	  DESTROY(dict);
+	  break;
 	}
+    }
+  if (dict == nil && _pld.err != nil)
+    {
+      NSLog(@"Parse failed at line %d (char %d) - %@",
+	_pld.lin, _pld.pos, _pld.err);
     }
   return AUTORELEASE(dict);
 }
