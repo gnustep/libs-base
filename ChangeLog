@@ -3,6 +3,7 @@
 	* Source/GSString.m: lossyCString_c() fix in line with recent
 	changes ... cope with case where internal coding is not same as
 	external coding.
+	lossyCString_u() fix encoding used.
 
 2002-03-18  Adam Fedor  <fedor@gnu.org>
 

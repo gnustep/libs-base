@@ -1264,7 +1264,7 @@ lossyCString_u(ivars self)
   unsigned	l = self->_count;
   unsigned char	*r = (unsigned char*)_fastMallocBuffer(l + 1);
 
-  GSFromUnicode(&r, &l, self->_contents.u, l, intEnc, 0, GSUniTerminate);
+  GSFromUnicode(&r, &l, self->_contents.u, l, defEnc, 0, GSUniTerminate);
   return (const char*)r;
 }
 
