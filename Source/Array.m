@@ -142,7 +142,7 @@
 - (void) _collectionDealloc
 {
   OBJC_FREE(_contents_array);
-  [super dealloc];
+  [super _collectionDealloc];
 }
 
 - initWithContentsOf: (id <Collecting>)aCollection
