@@ -218,6 +218,10 @@ pty_slave(const char* name)
 @end
 
 
+/**
+ * The NSTask class provides a mechanism to run separate tasks
+ * under (limited) control of your program.
+ */
 @implementation NSTask
 
 + (id) allocWithZone: (NSZone*)zone
@@ -250,6 +254,11 @@ pty_slave(const char* name)
     }
 }
 
+/**
+ * Creates and launches a task, returning an autoreleased task object.
+ * Supplies the path to the executable and an array of argument.
+ * The task inherits the parents environment and I/O.
+ */
 + (NSTask*) launchedTaskWithLaunchPath: (NSString*)path
 			     arguments: (NSArray*)args
 {
@@ -281,16 +290,17 @@ pty_slave(const char* name)
   [super dealloc];
 }
 
-
-/*
- *	Querying task parameters.
+/**
+ * Returns the arguments set for the task.
  */
-
 - (NSArray*) arguments
 {
   return _arguments;
 }
 
+/**
+ * Returns the working directory set for the task.
+ */
 - (NSString*) currentDirectoryPath
 {
   if (_currentDirectoryPath == nil)
@@ -301,6 +311,9 @@ pty_slave(const char* name)
   return _currentDirectoryPath;
 }
 
+/**
+ * Returns the environment set for the task.
+ */
 - (NSDictionary*) environment
 {
   if (_environment == nil)
@@ -310,165 +323,13 @@ pty_slave(const char* name)
   return _environment;
 }
 
-- (NSString*) launchPath
-{
-  return _launchPath;
-}
-
-- (id) standardError
-{
-  if (_standardError == nil)
-    {
-      [self setStandardError: [NSFileHandle fileHandleWithStandardError]];
-    }
-  return _standardError;
-}
-
-- (id) standardInput
-{
-  if (_standardInput == nil)
-    {
-      [self setStandardInput: [NSFileHandle fileHandleWithStandardInput]];
-    }
-  return _standardInput;
-}
-
-- (id) standardOutput
-{
-  if (_standardOutput == nil)
-    {
-      [self setStandardOutput: [NSFileHandle fileHandleWithStandardOutput]];
-    }
-  return _standardOutput;
-}
-
-/*
- *	Setting task parameters.
- */
-
-- (void) setArguments: (NSArray*)args
-{
-  if (_hasLaunched)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has been launched"];
-    }
-  ASSIGN(_arguments, args);
-}
-
-- (void) setCurrentDirectoryPath: (NSString*)path
-{
-  if (_hasLaunched)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has been launched"];
-    }
-  ASSIGN(_currentDirectoryPath, path);
-}
-
-- (void) setEnvironment: (NSDictionary*)env
-{
-  if (_hasLaunched)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has been launched"];
-    }
-  ASSIGN(_environment, env);
-}
-
-- (void) setLaunchPath: (NSString*)path
-{
-  if (_hasLaunched)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has been launched"];
-    }
-  ASSIGN(_launchPath, path);
-}
-
-- (void) setStandardError: (id)hdl
-{
-  NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
-	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
-  if (_hasLaunched)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has been launched"];
-    }
-  ASSIGN(_standardError, hdl);
-}
-
-- (void) setStandardInput: (id)hdl
-{
-  NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
-	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
-  if (_hasLaunched)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has been launched"];
-    }
-  ASSIGN(_standardInput, hdl);
-}
-
-- (void) setStandardOutput: (id)hdl
-{
-  NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
-	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
-  if (_hasLaunched)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has been launched"];
-    }
-  ASSIGN(_standardOutput, hdl);
-}
-
-/*
- *	Obtaining task state
- */
-
-- (BOOL) isRunning
-{
-  if (_hasLaunched == NO)
-    {
-      return NO;
-    }
-  if (_hasCollected == NO)
-    {
-      [self _collectChild];
-    }
-  if (_hasTerminated == YES)
-    {
-      return NO;
-    }
-  return YES;
-}
-
-- (int) processIdentifier
-{
-  return _taskId;
-}
-
-- (int) terminationStatus
-{
-  if (_hasLaunched == NO)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has not yet launched"];
-    }
-  if (_hasCollected == NO)
-    {
-      [self _collectChild];
-    }
-  if (_hasTerminated == NO)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has not yet terminated"];
-    }
-  return _terminationStatus;
-}
-
-/*
- *	Handling a task.
+/**
+ * Sends an interrupt signal to the receiver and any subtasks.<br />
+ * If the task has not been launched, raises an
+ * NSInvalidArgumentException.<br />
+ * Has no effect on a task that has already terminated.<br />
+ * This is rather like the terminate method, but the child
+ * process may not choose to terminate in response to an interrupt.
  */
 - (void) interrupt
 {
@@ -491,11 +352,58 @@ pty_slave(const char* name)
 #endif
 }
 
+/**
+ * Checks to see if the task is currently running.
+ */
+- (BOOL) isRunning
+{
+  if (_hasLaunched == NO)
+    {
+      return NO;
+    }
+  if (_hasCollected == NO)
+    {
+      [self _collectChild];
+    }
+  if (_hasTerminated == YES)
+    {
+      return NO;
+    }
+  return YES;
+}
+
+/**
+ * Launches the task.<br />
+ * Raises an NSInvalidArgumentException if the launch path is not
+ * set or if the subtask cannot be started for some reason
+ * (eg. the executable does not exist).
+ */
 - (void) launch
 {
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Returns the launch path set for the task.
+ */
+- (NSString*) launchPath
+{
+  return _launchPath;
+}
+
+/**
+ * Returns the number identifying the child process on this system.
+ */
+- (int) processIdentifier
+{
+  return _taskId;
+}
+
+/**
+ * Sends a cont signal to the receiver and any subtasks.<br />
+ * If the task has not been launched, raises an
+ * NSInvalidArgumentException.<br />
+ */
 - (BOOL) resume
 {
   if (_hasLaunched == NO)
@@ -513,6 +421,180 @@ pty_slave(const char* name)
   return YES;
 }
 
+/**
+ * Sets an array of arguments to be supplied to the task when it
+ * is launched.  The default is an empty array.  This method cannot
+ * be used after a task is launched ...
+ * it raises an NSInvalidArgumentException.
+ */
+- (void) setArguments: (NSArray*)args
+{
+  if (_hasLaunched)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has been launched"];
+    }
+  ASSIGN(_arguments, args);
+}
+
+/**
+ * Sets the home directory in which the task is to be run.
+ * The default is the parent processes directory.
+ * This method cannot be used after a task is launched ...
+ * it raises an NSInvalidArgumentException.
+ */
+- (void) setCurrentDirectoryPath: (NSString*)path
+{
+  if (_hasLaunched)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has been launched"];
+    }
+  ASSIGN(_currentDirectoryPath, path);
+}
+
+/**
+ * Sets the environment variables for the task to be run.
+ * The default is the parent processes environment.
+ * This method cannot be used after a task is launched ...
+ * it raises an NSInvalidArgumentException.
+ */
+- (void) setEnvironment: (NSDictionary*)env
+{
+  if (_hasLaunched)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has been launched"];
+    }
+  ASSIGN(_environment, env);
+}
+
+/**
+ * Sets the path to the executable file to be run.
+ * There is no default for this - you must set the launch path.
+ * This method cannot be used after a task is launched ...
+ * it raises an NSInvalidArgumentException.
+ */
+- (void) setLaunchPath: (NSString*)path
+{
+  if (_hasLaunched)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has been launched"];
+    }
+  ASSIGN(_launchPath, path);
+}
+
+/**
+ * Sets the standard error stream for the task.<br />
+ * This is normally a writable NSFileHandle object.
+ * If this is an NSPipe, the write end of the pipe is
+ * automatically closed on launching.<br />
+ * The default behavior is to inherit the parent processes
+ * stderr output.<br />
+ * This method cannot be used after a task is launched ...
+ * it raises an NSInvalidArgumentException.
+ */
+- (void) setStandardError: (id)hdl
+{
+  NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
+	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
+  if (_hasLaunched)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has been launched"];
+    }
+  ASSIGN(_standardError, hdl);
+}
+
+/**
+ * Sets the standard input stream for the task.<br />
+ * This is normally a readable NSFileHandle object.
+ * If this is an NSPipe, the read end of the pipe is
+ * automatically closed on launching.<br />
+ * The default behavior is to inherit the parent processes
+ * stdin stream.<br />
+ * This method cannot be used after a task is launched ...
+ * it raises an NSInvalidArgumentException.
+ */
+- (void) setStandardInput: (id)hdl
+{
+  NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
+	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
+  if (_hasLaunched)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has been launched"];
+    }
+  ASSIGN(_standardInput, hdl);
+}
+
+/**
+ * Sets the standard output stream for the task.<br />
+ * This is normally a writable NSFileHandle object.
+ * If this is an NSPipe, the write end of the pipe is
+ * automatically closed on launching.<br />
+ * The default behavior is to inherit the parent processes
+ * stdout stream.<br />
+ * This method cannot be used after a task is launched ...
+ * it raises an NSInvalidArgumentException. 
+ */
+- (void) setStandardOutput: (id)hdl
+{
+  NSAssert([hdl isKindOfClass: [NSFileHandle class]] ||
+	   [hdl isKindOfClass: [NSPipe class]], NSInvalidArgumentException);
+  if (_hasLaunched)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has been launched"];
+    }
+  ASSIGN(_standardOutput, hdl);
+}
+
+/**
+ * Returns the standard error stream for the task - an NSFileHandle
+ * unless an NSPipe was passed to -setStandardError:
+ */
+- (id) standardError
+{
+  if (_standardError == nil)
+    {
+      [self setStandardError: [NSFileHandle fileHandleWithStandardError]];
+    }
+  return _standardError;
+}
+
+/**
+ * Returns the standard input stream for the task - an NSFileHandle
+ * unless an NSPipe was passed to -setStandardInput:
+ */
+- (id) standardInput
+{
+  if (_standardInput == nil)
+    {
+      [self setStandardInput: [NSFileHandle fileHandleWithStandardInput]];
+    }
+  return _standardInput;
+}
+
+/**
+ * Returns the standard output stream for the task - an NSFileHandle
+ * unless an NSPipe was passed to -setStandardOutput:
+ */
+- (id) standardOutput
+{
+  if (_standardOutput == nil)
+    {
+      [self setStandardOutput: [NSFileHandle fileHandleWithStandardOutput]];
+    }
+  return _standardOutput;
+}
+
+/**
+ * Sends a stop signal to the receiver and any subtasks.<br />
+ * If the task has not been launched, raises an
+ * NSInvalidArgumentException.<br />
+ */
 - (BOOL) suspend
 {
   if (_hasLaunched == NO)
@@ -530,6 +612,15 @@ pty_slave(const char* name)
   return YES;
 }
 
+/**
+ * Sends a terminate signal to the receiver and any subtasks.<br />
+ * If the task has not been launched, raises an
+ * NSInvalidArgumentException.<br />
+ * Has no effect on a task that has already terminated.<br />
+ * When a task temrinates, either due to this method being called,
+ * or normal termination, an NSTaskDidTerminateNotification is
+ * posted.
+ */
 - (void) terminate
 {
   if (_hasLaunched == NO)
@@ -552,46 +643,61 @@ pty_slave(const char* name)
 #endif
 }
 
+/**
+ * Returns the termination status of the task.<br />
+ * If the task has not completed running, raises an
+ * NSInvalidArgumentException.
+ */
+- (int) terminationStatus
+{
+  if (_hasLaunched == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has not yet launched"];
+    }
+  if (_hasCollected == NO)
+    {
+      [self _collectChild];
+    }
+  if (_hasTerminated == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has not yet terminated"];
+    }
+  return _terminationStatus;
+}
+
+/**
+ * If the system supports it, this method sets the standard
+ * input, output, and error streams to a pseudo-terminal so
+ * that, when launched, the child task will act as if it was
+ * running interactively on a terminal.  The file handles
+ * can then be used to communicate with the child.<br />
+ * This method cannot be used after a task is launched ...
+ * it raises an NSInvalidArgumentException.<br />
+ * The standard input, output and error streams cannot be
+ * changed after calling this method.<br />
+ * The method returns YES on success, NO on failure.
+ */
 - (BOOL) usePseudoTerminal
 {
   return NO;
 }
 
-- (void) waitUntilExit
+/**
+ * Returns a validated launch path or nil.<br />
+ * Allows for the GNUstep host, operating system, and library combination
+ * subdirectories in a path, appending them as necessary to try to locate
+ * the actual binary to be used.<br />
+ * Checks that the binary file exists and is executable.<br />
+ * Even tries searching the directories in the PATH environment variable
+ * to locate a binary if the original alunch path set was not absolute.
+ */
+- (NSString*) validatedLaunchPath
 {
-  NSTimer	*timer = nil;
-
-  while ([self isRunning])
-    {
-      NSDate	*limit;
-
-      /*
-       *	Poll at 0.1 second intervals.
-       */
-      limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 0.1];
-      if (timer == nil)
-	{
-	  timer = [NSTimer scheduledTimerWithTimeInterval: 0.1
-						   target: nil
-						 selector: @selector(class)
-						 userInfo: nil
-						  repeats: YES];
-	}
-      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
-			       beforeDate: limit];
-      RELEASE(limit);
-    }
-  [timer invalidate];
-}
-@end
-
-@implementation	NSTask (Private)
-
-- (NSString *) _fullLaunchPath
-{
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  NSString	*libs = [NSBundle _library_combo];
-  NSString	*arch = [NSBundle _gnustep_target_dir];
+  NSFileManager	*mgr;
+  NSString	*libs;
+  NSString	*arch;
   NSString	*prog;
   NSString	*lpath;
   NSString	*base_path;
@@ -600,9 +706,12 @@ pty_slave(const char* name)
 
   if (_launchPath == nil)
     {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - no launch path set"];
+      return nil;
     }
+
+  mgr = [NSFileManager defaultManager];
+  libs = [NSBundle _library_combo];
+  arch = [NSBundle _gnustep_target_dir];
 
   /*
    *	Set lpath to the actual path to use for the executable.
@@ -636,29 +745,84 @@ pty_slave(const char* name)
 	       */
 	      if ([base_path isEqualToString: @""] == YES)
 		{
-		   lpath = [NSBundle _absolutePathOfExecutable: prog];
+		  lpath = [NSBundle _absolutePathOfExecutable: prog];
 		}
-	      if (lpath == nil)
+	      if (lpath != nil && [mgr isExecutableFileAtPath: lpath] == NO)
 		{
-		  [NSException raise: NSInvalidArgumentException
-			      format: @"NSTask - launch path (%@) not valid",
-				_launchPath];
+		  lpath = nil;
 		}
 	    }
 	}
     }
-  /*
-   *	Make sure we have a standardised absolute path to pass to execve()
-   */
-  if ([lpath isAbsolutePath] == NO)
+  if (lpath != nil)
     {
-      NSString	*current = [mgr currentDirectoryPath];
+      /*
+       * Make sure we have a standardised absolute path to pass to execve()
+       */
+      if ([lpath isAbsolutePath] == NO)
+	{
+	  NSString	*current = [mgr currentDirectoryPath];
 
-      lpath = [current stringByAppendingPathComponent: lpath];
+	  lpath = [current stringByAppendingPathComponent: lpath];
+	}
+      lpath = [lpath stringByStandardizingPath];
     }
-  lpath = [lpath stringByStandardizingPath];
-
   return lpath;
+}
+
+/**
+ * Suspends the current thread until the task terminates, by
+ * waiting in NSRunLoop (NSDefaultRunLoopMode) for the task
+ * termination.<br />
+ * Returns immediately if the task is not running.
+ */
+- (void) waitUntilExit
+{
+  NSTimer	*timer = nil;
+
+  while ([self isRunning])
+    {
+      NSDate	*limit;
+
+      /*
+       *	Poll at 0.1 second intervals.
+       */
+      limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 0.1];
+      if (timer == nil)
+	{
+	  timer = [NSTimer scheduledTimerWithTimeInterval: 0.1
+						   target: nil
+						 selector: @selector(class)
+						 userInfo: nil
+						  repeats: YES];
+	}
+      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
+			       beforeDate: limit];
+      RELEASE(limit);
+    }
+  [timer invalidate];
+}
+@end
+
+@implementation	NSTask (Private)
+
+- (NSString *) _fullLaunchPath
+{
+  NSString	*val;
+
+  if (_launchPath == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - no launch path set"];
+    }
+  val = [self validatedLaunchPath];
+  if (val == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"NSTask - launch path (%@) not valid", _launchPath];
+    }
+
+  return val;
 }
 
 - (void) _sendNotification
