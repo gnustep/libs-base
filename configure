@@ -2335,6 +2335,10 @@ fi
 #--------------------------------------------------------------------
 # specific target_os options
 #--------------------------------------------------------------------
+# CPPFLAGS are not used anywhere except during configuration. If they
+# are needed, they should have been set when configuring gnustep-make
+# INCLUDE_FLAGS will go into base.make(CONFIG_SYSTEM_INCL)
+INCLUDE_FLAGS=""
 case "$target_os" in
   freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
@@ -6316,6 +6320,8 @@ fi
 
 fi
 
+# NB: This is used as follows: in Source/Makefile.postamble we copy
+# $(DYNAMIC_LINKER)-load.h into dynamic-load.h
 echo "$as_me:$LINENO: checking for dynamic linker type" >&5
 echo $ECHO_N "checking for dynamic linker type... $ECHO_C" >&6
 echo "$as_me:$LINENO: result: $DYNAMIC_LINKER" >&5
@@ -11577,6 +11583,7 @@ echo "${ECHO_T}no" >&6
 
 if test $enable_libxml = yes; then
   CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
+  INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
   LIBS="$LIBS $XML_LIBS"
   HAVE_LIBXML=1
 
@@ -11618,6 +11625,7 @@ libs_temp=$LIBS
 
 if test "$gmp_incdir" != "no"; then
   CPPFLAGS="$CPPFLAGS -I$gmp_incdir"
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gmp_incdir"
 fi
 if test "$gmp_libdir" != "no"; then
   LIBS="$LIBS -L$gmp_libdir"
@@ -11970,6 +11978,7 @@ fi;
 
   if test "$libiconv_libdir" != "no"; then
     CPPFLAGS="$CPPFLAGS -L$libiconv_libdir"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS  -L$libiconv_libdir"
   fi
 
   # BSDs install this lib as libgiconv
@@ -12761,7 +12770,7 @@ s,@XML_CFLAGS@,$XML_CFLAGS,;t t
 s,@XML_LIBS@,$XML_LIBS,;t t
 s,@HAVE_LIBXML@,$HAVE_LIBXML,;t t
 s,@USE_GMP@,$USE_GMP,;t t
-s,@SYSTEM_DEFS@,$SYSTEM_DEFS,;t t
+s,@INCLUDE_FLAGS@,$INCLUDE_FLAGS,;t t
 s,@subdirs@,$subdirs,;t t
 s,@VERSION@,$VERSION,;t t
 s,@MAJOR_VERSION@,$MAJOR_VERSION,;t t

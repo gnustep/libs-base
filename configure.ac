@@ -60,6 +60,10 @@ AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 #--------------------------------------------------------------------
 # specific target_os options
 #--------------------------------------------------------------------
+# CPPFLAGS are not used anywhere except during configuration. If they
+# are needed, they should have been set when configuring gnustep-make
+# INCLUDE_FLAGS will go into base.make(CONFIG_SYSTEM_INCL)
+INCLUDE_FLAGS=""
 case "$target_os" in
   freebsd*)	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
@@ -891,6 +895,7 @@ saved_CFLAGS="$CFLAGS"
 AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
 if test $enable_libxml = yes; then
   CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
+  INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
   LIBS="$LIBS $XML_LIBS"
   HAVE_LIBXML=1
   AC_DEFINE(HAVE_LIBXML,1,
@@ -919,6 +924,7 @@ libs_temp=$LIBS
 
 if test "$gmp_incdir" != "no"; then
   CPPFLAGS="$CPPFLAGS -I$gmp_incdir"
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I$gmp_incdir"
 fi
 if test "$gmp_libdir" != "no"; then
   LIBS="$LIBS -L$gmp_libdir"
@@ -958,6 +964,7 @@ if test $ac_cv_func_iconv = no; then
 
   if test "$libiconv_libdir" != "no"; then
     CPPFLAGS="$CPPFLAGS -L$libiconv_libdir"
+    INCLUDE_FLAGS="$INCLUDE_FLAGS  -L$libiconv_libdir"
   fi
 
   # BSDs install this lib as libgiconv
@@ -974,7 +981,7 @@ if test $ac_cv_func_iconv = no; then
   CPPFLAGS="$cppflags_temp"
 fi
 
-AC_SUBST(SYSTEM_DEFS)
+AC_SUBST(INCLUDE_FLAGS)
 
 AC_CONFIG_SUBDIRS(Source/mframe SSL)
 
