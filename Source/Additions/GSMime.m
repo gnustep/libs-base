@@ -2853,11 +2853,20 @@ static NSCharacterSet	*tokenSet = nil;
 
 /**
  * Method to store specific information for particular types of
- * header.  This is used for non-standard parts of headers.
+ * header.  This is used for non-standard parts of headers.<br />
+ * Setting a nil value for o will remove any existing value set
+ * using the k as its key.
  */
 - (void) setObject: (id)o forKey: (NSString*)k
 {
-  [objects setObject: o forKey: k];
+  if (o == nil)
+    {
+      [objects removeObjectForKey: k];
+    }
+  else
+    {
+      [objects setObject: o forKey: k];
+    }
 }
 
 /**
