@@ -461,7 +461,7 @@ enum {
  *   @"//host/share/file" produces @"//host/share/"
  *   @"//host/share/" produces @"/host/share/"
  *   @"//host/share" produces @"/host/share"
- * <example>
+ * </example>
  */
 - (NSString*) stringByDeletingLastPathComponent;
 

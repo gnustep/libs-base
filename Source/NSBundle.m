@@ -895,13 +895,13 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   if (!path || [path length] == 0)
     {
-      NSLog(@"No path specified for bundle");
+      NSDebugMLog(@"No path specified for bundle");
       [self dealloc];
       return nil;
     }
   if ([path isAbsolutePath] == NO)
     {
-      NSLog(@"WARNING: NSBundle -initWithPath: requires absolute path names!");
+      NSWarnMLog(@"NSBundle -initWithPath: requires absolute path names!");
       path = [[[NSFileManager defaultManager] currentDirectoryPath]
 	       stringByAppendingPathComponent: path];
     }
