@@ -141,7 +141,7 @@ static void setupQuotables()
       NSData *bitmap;
 
       s = [[NSCharacterSet characterSetWithCharactersInString:
-	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$./_"]
+	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$._"]
 	mutableCopy];
       [s invert];
       quotables = [s copy];
