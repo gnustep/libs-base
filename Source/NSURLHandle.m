@@ -41,6 +41,7 @@
 #include <Foundation/NSFileManager.h>
 
 @class	GSFileURLHandle;
+@class	GSFTPURLHandle;
 @class	GSHTTPURLHandle;
 
 /*
@@ -155,6 +156,7 @@ static Class		NSURLHandleClass = 0;
       registry = [NSMutableArray new];
       registryLock = [NSLock new];
       [self registerURLHandleClass: [GSFileURLHandle class]];
+      [self registerURLHandleClass: [GSFTPURLHandle class]];
       [self registerURLHandleClass: [GSHTTPURLHandle class]];
     }
 }

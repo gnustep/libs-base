@@ -142,6 +142,7 @@ GSAttributedString.m \
 GSCountedSet.m \
 GSDictionary.m \
 GSFormat.m \
+GSFTPURLHandle.m \
 GSHTTPURLHandle.m \
 GSSet.m \
 GSString.m \
