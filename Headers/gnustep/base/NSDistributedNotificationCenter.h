@@ -28,9 +28,8 @@
 
 #include	<Foundation/NSObject.h>
 #include	<Foundation/NSLock.h>
+#include	<Foundation/NSNotification.h>
 
-@class	NSNotification;
-@class	NSString;
 
 typedef enum {
   NSNotificationSuspensionBehaviorDrop,
