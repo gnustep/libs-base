@@ -28,6 +28,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSZone.h>
 #include <Foundation/NSMapTable.h>
 #include <gnustep/base/o_map.h>
 #include "NSCallBacks.h"
@@ -360,7 +361,7 @@ NSCreateMapTable(NSMapTableKeyCallBacks keyCallBacks,
 		 unsigned int capacity)
 {
   return NSCreateMapTableWithZone(keyCallBacks, valueCallBacks,
-				  capacity, 0);
+				  capacity, NSDefaultMallocZone());
 }
 
 NSMapTable *

@@ -245,7 +245,7 @@ NSHashTable *
 NSCreateHashTable(NSHashTableCallBacks callBacks,
 		  unsigned int capacity)
 {
-  return NSCreateHashTableWithZone(callBacks, capacity, 0);
+  return NSCreateHashTableWithZone(callBacks, capacity, NSDefaultMallocZone());
 }
 
 /** Copying **/
