@@ -59,6 +59,7 @@
 	concrete string classes in archives.
 	* Source/externs.m: Modified to use new concrete strings.
 	* Source/propList.h: Modified to use new concrete strings.
+	* Source/GSString.m: New string classes, plus decoding for old ones.
 
 2000-10-05  Richard Frith-Macdonald <rfm@gnu.org>
 
