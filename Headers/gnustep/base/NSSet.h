@@ -1,4 +1,4 @@
-/* Interface for NSSet for GNUStep
+/* Interface for NSSet, NSMutableSet, NSCountedSet for GNUStep
    Copyright (C) 1995 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
@@ -76,5 +76,20 @@
 - (void) removeObject: anObject;
 
 @end
+
+@interface NSCountedSet : NSMutableSet <NSCoding, NSCopying>
+
++ allocWithZone: (NSZone*)zone;
+- initWithCapacity: (unsigned)numItems;
+- initWithArray: (NSArray*)array;
+- initWithSet: (NSSet*)otherSet;
+
+- (void) addObject: anObject;
+- (void) removeObject: anObject;
+- (unsigned int) countForObject: anObject;
+- (NSEnumerator*) objectEnumerator;
+
+@end
+
 
 #endif
