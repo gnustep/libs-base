@@ -1,3 +1,9 @@
+Tue Jul 16 16:43:59 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Headers/gnustep/base/GSXML.h ([GSXMLNode -setNamespace:]): Added
+	missing method essential to use namespaces.
+	* Source/Additions/GSXML.m ([GSXMLNode -setNamespace:]): Implemented.
+	
 2002-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSFileManager.m: Don't standardise path before converting to
