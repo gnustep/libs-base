@@ -341,6 +341,39 @@ GS_EXPORT BOOL NSDeallocateZombies;
 #define NSDebugMRLog(object, msg)
 #endif
 
+/**
+ * Macro to log a message only the first time it is encountered.<br />
+ * Not entirely thread safe ... but that's not really important,
+ * it just means that it's possible for the message to be logged
+ * more than once if two threads call it simultaneously when it
+ * has not already been called.<br />
+ * Use this from inside a function.  Pass an NSString as a format,
+ * followed by zero or more arguments for the format string.
+ * Example: GSOnceMLog(@"This function is deprecated, use another");
+ */
+#define GSOnceFLog(format, args...) \
+  do { static BOOL beenHere = NO; if (beenHere == NO) {\
+    NSString *fmt = GSDebugFunctionMsg( \
+	__PRETTY_FUNCTION__, __FILE__, __LINE__, format); \
+    beenHere = YES; \
+    NSLog(fmt , ## args); }} while (0)
+/**
+ * Macro to log a message only the first time it is encountered.<br />
+ * Not entirely thread safe ... but that's not really important,
+ * it just means that it's possible for the message to be logged
+ * more than once if two threads call it simultaneously when it
+ * has not already been called.<br />
+ * Use this from inside a method. Pass an NSString as a format
+ * followed by zero or more arguments for the format string.<br />
+ * Example: GSOnceMLog(@"This method is deprecated, use another");
+ */
+#define GSOnceMLog(format, args...) \
+  do { static BOOL beenHere = NO; if (beenHere == NO) {\
+    NSString *fmt = GSDebugMethodMsg( \
+	self, _cmd, __FILE__, __LINE__, format); \
+    beenHere = YES; \
+    NSLog(fmt , ## args); }} while (0)
+
 
 
 #ifdef GSWARN
