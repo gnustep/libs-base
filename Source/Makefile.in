@@ -375,6 +375,7 @@ NSGData.m \
 NSGDictionary.m \
 NSGSet.m \
 NSHashTable.m \
+NSInvocation.m \
 NSLock.m \
 NSMapTable.m \
 NSMethodSignature.m \
