@@ -3,26 +3,26 @@
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: November 1996
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
    <title>NSLog reference</title>
    $Date$ $Revision$
-   */ 
+   */
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -106,7 +106,7 @@ _NSLog_standard_printf_handler (NSString* message)
       buf = (const char*)[d bytes];
       len = [d length];
     }
- 
+
 #ifdef	HAVE_SYSLOG
 
   if (GSUserDefaultsFlag(GSLogSyslog) == YES
@@ -193,7 +193,7 @@ NSLog_printf_handler *_NSLog_printf_handler = _NSLog_standard_printf_handler;
  * GSObjCRuntime.h.
  * </p>
  */
-void 
+void
 NSLog (NSString* format, ...)
 {
   va_list ap;
@@ -223,7 +223,7 @@ NSLog (NSString* format, ...)
  *   <ref type="variable" id="_NSLog_printf_handler">_NSLog_printf_handler</ref>
  * </p>
  */
-void 
+void
 NSLogv (NSString* format, va_list args)
 {
   NSString	*prefix;
@@ -247,7 +247,7 @@ NSLogv (NSString* format, va_list args)
 #endif
     prefix = [NSString
 	     stringWithFormat: @"%@ %@[%d] ",
-	     [[NSCalendarDate calendarDate] 
+	     [[NSCalendarDate calendarDate]
 	       descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
 	     [[NSProcessInfo processInfo] processName],
 	     pid];

@@ -1,23 +1,23 @@
 /**
    Copyright (C) 1995, 1996, 1997, 2000, 2002 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
    Rewritten by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: September 1997
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -228,7 +228,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 			}
 			if (tmp == 0)
 			{
-				NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath, 
+				NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath,
 				fileLength + c, GSLastErrorStr(errno));
 				goto failure;
 			}
@@ -241,7 +241,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 		tmp = NSZoneMalloc(zone, fileLength);
 		if (tmp == 0)
 		{
-			NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath, 
+			NSLog(@"Malloc failed for file (%@) of length %d - %s",localPath,
 			fileLength, GSLastErrorStr(errno));
 			goto failure;
 		}
@@ -249,7 +249,7 @@ readContentsOfFile(NSString* path, void** buf, unsigned int* len, NSZone* zone)
 		c = fread(tmp, 1, fileLength, theFile);
 		if (c != (int)fileLength)
 		{
-			NSWarnFLog(@"read of file (%@) contents failed - %s",localPath, 
+			NSWarnFLog(@"read of file (%@) contents failed - %s",localPath,
 			GSLastErrorStr(errno));
 			goto failure;
 		}
@@ -301,7 +301,7 @@ failure:
   unsigned	capacity;
   unsigned	growth;
 }
-/* Increase capacity to at least the specified minimum value.	*/ 
+/* Increase capacity to at least the specified minimum value.	*/
 - (void) _grow: (unsigned int)minimum;
 @end
 
@@ -407,7 +407,7 @@ static unsigned	gsu32Align;
 /**
  * Returns an autoreleased data object encapsulating the data at bytes
  * and with the specified length.  Invokes
- * -initWithBytesNoCopy:length:freeWhenDone: with YES 
+ * -initWithBytesNoCopy:length:freeWhenDone: with YES
  */
 + (id) dataWithBytesNoCopy: (void*)bytes
 		    length: (unsigned int)length
@@ -649,7 +649,7 @@ static unsigned	gsu32Align;
 }
 
 
-// Accessing Data 
+// Accessing Data
 
 /** <override-subclass>
  * Returns a pointer to the data encapsulated by the receiver.
@@ -748,7 +748,7 @@ static unsigned	gsu32Align;
   unsigned char	buf[64];
   unsigned	l = [self length];
   unsigned	ret =0;
-  
+
   l = MIN(l,64);
 
   /*
@@ -758,12 +758,12 @@ static unsigned	gsu32Align;
     {
       return 0xfffffffe;
     }
-  
+
   [self getBytes: &buf range: NSMakeRange(0, l)];
 
   while (l-- > 0)
     {
-      ret = (ret << 5 ) + ret + buf[l];
+      ret = (ret << 5) + ret + buf[l];
     }
   // Again, match NSString
   if (ret == 0)
@@ -842,7 +842,7 @@ static unsigned	gsu32Align;
 	{	
 		const char *local_c_path = [localPath cString];
 		if (local_c_path != NULL && strlen(local_c_path) < (BUFSIZ*2))
-		{	  
+		{	
 			strcpy(theRealPath,local_c_path);
 			error_BadPath = NO;
 		}	
@@ -893,7 +893,7 @@ static unsigned	gsu32Align;
 		wcscat(wthePath, L"XXXXXX");
 		if (_wmktemp(wthePath) == 0)
 		{
-			NSWarnMLog(@"mktemp (%@) failed - %s", 
+			NSWarnMLog(@"mktemp (%@) failed - %s",
 			[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
 			GSLastErrorStr(errno));
 			goto failure;
@@ -930,8 +930,8 @@ static unsigned	gsu32Align;
                                  * even able to open the file. */
     {
 #if defined(__MINGW__)
-      NSWarnMLog(@"Open (%@) failed - %s", 
-		[NSString stringWithCharacters:wthePath length:wcslen(wthePath)], 
+      NSWarnMLog(@"Open (%@) failed - %s",
+		[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
 		GSLastErrorStr(errno));
 #else
       NSWarnMLog(@"Open (%s) failed - %s", thePath, GSLastErrorStr(errno));
@@ -948,8 +948,8 @@ static unsigned	gsu32Align;
                                  * some reason. */
     {
 #if defined(__MINGW__)
-      NSWarnMLog(@"Fwrite (%@) failed - %s", 
-		[NSString stringWithCharacters:wthePath length:wcslen(wthePath)], 
+      NSWarnMLog(@"Fwrite (%@) failed - %s",
+		[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
 		GSLastErrorStr(errno));
 #else
       NSWarnMLog(@"Fwrite (%s) failed - %s", thePath, GSLastErrorStr(errno));
@@ -965,8 +965,8 @@ static unsigned	gsu32Align;
                                  * so we need to deal with it. */
     {
 #if defined(__MINGW__)
-      NSWarnMLog(@"Fclose (%@) failed - %s", 
-		[NSString stringWithCharacters:wthePath length:wcslen(wthePath)], 
+      NSWarnMLog(@"Fclose (%@) failed - %s",
+		[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
 		GSLastErrorStr(errno));
 #else
       NSWarnMLog(@"Fclose (%s) failed - %s", thePath, GSLastErrorStr(errno));
@@ -1022,7 +1022,7 @@ static unsigned	gsu32Align;
         {
 #if defined(__MINGW__)
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %s",
-			 	[NSString stringWithCharacters:wthePath length:wcslen(wthePath)], 
+			 	[NSString stringWithCharacters:wthePath length:wcslen(wthePath)],
 				[NSString stringWithCharacters:wtheRealPath length:wcslen(wtheRealPath)],
 				GSLastErrorStr(errno));
 #else
@@ -1562,7 +1562,7 @@ failure:
 		   atCursor: (unsigned int*)cursor
 {
   [self deserializeDataAt: (void*)tag
-	       ofObjCType: @encode(gsu8) 
+	       ofObjCType: @encode(gsu8)
 		 atCursor: cursor
 		  context: nil];
   if (*tag & _GSC_MAYX)
@@ -1578,7 +1578,7 @@ failure:
 	      gsu8	x;
 
 	      [self deserializeDataAt: (void*)&x
-			   ofObjCType: @encode(gsu8) 
+			   ofObjCType: @encode(gsu8)
 			     atCursor: cursor
 			      context: nil];
 	      *ref = (unsigned int)x;
@@ -1589,7 +1589,7 @@ failure:
 	      gsu16	x;
 
 	      [self deserializeDataAt: (void*)&x
-			   ofObjCType: @encode(gsu16) 
+			   ofObjCType: @encode(gsu16)
 			     atCursor: cursor
 			      context: nil];
 	      *ref = (unsigned int)x;
@@ -1600,7 +1600,7 @@ failure:
 	      gsu32	x;
 
 	      [self deserializeDataAt: (void*)&x
-			   ofObjCType: @encode(gsu32) 
+			   ofObjCType: @encode(gsu32)
 			     atCursor: cursor
 			      context: nil];
 	      *ref = (unsigned int)x;
@@ -1925,7 +1925,7 @@ failure:
 {
   unsigned	size = [self length];
   unsigned	end = NSMaxRange(aRange);
-  int		shift = length - aRange.length; 
+  int		shift = length - aRange.length;
   unsigned	need = size + shift;
   void		*buf;
 
@@ -2863,7 +2863,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 #else
 	const char *thePath;
 	thePath = [localPath fileSystemRepresentation];
-#endif  
+#endif
 
 	if (thePath == NULL)	
 	{
@@ -2872,9 +2872,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 		return nil;
 	}
 
-	 
+	
 #if defined(__MINGW__)
-	fd = _wopen(thePath, _O_RDONLY);  
+	fd = _wopen(thePath, _O_RDONLY);
 #else
 	fd = open(thePath, O_RDONLY);
 #endif
@@ -2888,7 +2888,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	length = lseek(fd, 0, SEEK_END);
 	if (length < 0)
 	{
-		NSWarnMLog(@"unable to seek to eof %@ - %s",localPath, 
+		NSWarnMLog(@"unable to seek to eof %@ - %s",localPath,
 			GSLastErrorStr(errno));
 		close(fd);
 		RELEASE(self);
@@ -2897,7 +2897,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	/* Position at start of file. */
 	if (lseek(fd, 0, SEEK_SET) != 0)
 	{
-		NSWarnMLog(@"unable to seek to sof %@ - %s", localPath, 
+		NSWarnMLog(@"unable to seek to sof %@ - %s", localPath,
 			GSLastErrorStr(errno));
 		close(fd);
 		RELEASE(self);

@@ -505,7 +505,7 @@ static NSLock	*cached_proxies_gate = nil;
 
       dummyObject = [NSObject new];
 
-      connection_table = 
+      connection_table =
 	NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
 
       targetToCached =
@@ -567,7 +567,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       proxy = [connection rootProxy];
     }
-  
+
   return proxy;
 }
 
@@ -592,7 +592,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       proxy = [connection rootProxy];
     }
-  
+
   return proxy;
 }
 
@@ -720,7 +720,7 @@ static NSLock	*cached_proxies_gate = nil;
 }
 
 /** <init />
- * Initialises an NSConnection with the receive port r and the 
+ * Initialises an NSConnection with the receive port r and the
  * send port s.<br />
  * Behavior varies with the port values as follows -
  * <deflist>
@@ -913,8 +913,8 @@ static NSLock	*cached_proxies_gate = nil;
       loop = GSRunLoopForThread(nil);
       _runLoops = [[NSMutableArray alloc] initWithObjects: &loop count: 1];
       _requestModes = [[NSMutableArray alloc] initWithCapacity: 2];
-      [self addRequestMode: NSDefaultRunLoopMode]; 
-      [self addRequestMode: NSConnectionReplyMode]; 
+      [self addRequestMode: NSDefaultRunLoopMode];
+      [self addRequestMode: NSConnectionReplyMode];
 
       /*
        * If we have no parent, we must handle incoming packets on our
@@ -970,7 +970,7 @@ static NSLock	*cached_proxies_gate = nil;
 		      name: NSPortDidBecomeInvalidNotification
 		    object: s];
     }
-  
+
   /* In order that connections may be deallocated - there is an
      implementation of [-release] to automatically remove the connection
      from this array when it is the only thing retaining it. */
@@ -1723,7 +1723,7 @@ static void retEncoder (DOContext *ctxt)
 {
   switch (*ctxt->type)
     {
-    case _C_ID: 
+    case _C_ID:
       if (ctxt->flags & _F_BYCOPY)
 	{
 	  [ctxt->encoder encodeBycopyObject: *(id*)ctxt->datum];
@@ -1739,7 +1739,7 @@ static void retEncoder (DOContext *ctxt)
 	  [ctxt->encoder encodeObject: *(id*)ctxt->datum];
 	}
       break;
-    default: 
+    default:
       [ctxt->encoder encodeValueOfObjCType: ctxt->type at: ctxt->datum];
     }
 }
@@ -1762,7 +1762,7 @@ static void retEncoder (DOContext *ctxt)
 
   memset(&ctxt, 0, sizeof(ctxt));
   ctxt.connection = self;
-  
+
   /* Encode the method on an RMC, and send it. */
 
   NSParameterAssert (_isValid);
@@ -1893,8 +1893,8 @@ static void retEncoder (DOContext *ctxt)
  * NSDistantObject's -forwardInvocation: method calls this to send the message
  * over the wire.
  */
-- (void) forwardInvocation: (NSInvocation*)inv 
-		  forProxy: (NSDistantObject*)object 
+- (void) forwardInvocation: (NSInvocation*)inv
+		  forProxy: (NSDistantObject*)object
 {
   NSPortCoder	*op;
   BOOL		outParams;
@@ -1916,7 +1916,7 @@ static void retEncoder (DOContext *ctxt)
 	  [self addRunLoop: runLoop];
 	}
     }
-  
+
   /* Encode the method on an RMC, and send it. */
 
   NSParameterAssert (_isValid);
@@ -2136,19 +2136,19 @@ static void retEncoder (DOContext *ctxt)
 
   switch (type)
     {
-      case ROOTPROXY_REQUEST: 
+      case ROOTPROXY_REQUEST:
 	/* It won't take much time to handle this, so go ahead and service
 	   it, even if we are waiting for a reply. */
 	[conn _service_rootObject: rmc];
 	break;
 
-      case METHODTYPE_REQUEST: 
+      case METHODTYPE_REQUEST:
 	/* It won't take much time to handle this, so go ahead and service
 	   it, even if we are waiting for a reply. */
 	[conn _service_typeForSelector: rmc];
 	break;
 
-      case METHOD_REQUEST: 
+      case METHOD_REQUEST:
 	/*
 	 * We just got a new request; we need to decide whether to queue
 	 * it or service it now.
@@ -2190,10 +2190,10 @@ static void retEncoder (DOContext *ctxt)
        * store it in a map using thee sequence number as the key.  That way
        * it's easy for the connection to find replies by their numbers.
        */
-      case ROOTPROXY_REPLY: 
-      case METHOD_REPLY: 
-      case METHODTYPE_REPLY: 
-      case RETAIN_REPLY: 
+      case ROOTPROXY_REPLY:
+      case METHOD_REPLY:
+      case METHODTYPE_REPLY:
+      case RETAIN_REPLY:
 	{
 	  int		sequence;
 	  GSIMapNode	node;
@@ -2224,22 +2224,22 @@ static void retEncoder (DOContext *ctxt)
 	}
 	break;
 
-      case CONNECTION_SHUTDOWN: 
+      case CONNECTION_SHUTDOWN:
 	{
 	  [conn _service_shutdown: rmc];
 	  break;
 	}
-      case PROXY_RELEASE: 
+      case PROXY_RELEASE:
 	{
 	  [conn _service_release: rmc];
 	  break;
 	}
-      case PROXY_RETAIN: 
+      case PROXY_RETAIN:
 	{
 	  [conn _service_retain: rmc];
 	  break;
 	}
-      default: 
+      default:
 	[NSException raise: NSGenericException
 		    format: @"unrecognized NSPortCoder identifier"];
     }

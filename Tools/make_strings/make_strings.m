@@ -531,7 +531,7 @@ int main(int argc, char **argv)
   /* Remove any empty language from the list.  */
   {
     int k;
-    
+
     for (k = [languages count] - 1; k >= 0; k--)
       {
 	NSString *language = [languages objectAtIndex: k];
@@ -541,7 +541,7 @@ int main(int argc, char **argv)
 	  }
       }
   }
-  
+
 
   if (![languages count])
     {

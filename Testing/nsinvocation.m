@@ -222,7 +222,7 @@ printf("Calling proxy\n");
     printf("OK\n");
   else
     printf("ERROR ... expecting 6 and got %d\n", i);
-  
+
   printf("Testing NS_INVOCATION ... ");
   inv = NS_INVOCATION([Target class], loopInt: 7);
   [inv setTarget: t];
@@ -232,7 +232,7 @@ printf("Calling proxy\n");
     printf("OK\n");
   else
     printf("ERROR ... expecting 8 and got %d\n", i);
-  
+
 #define	SETUP(X) \
   sig = [t methodSignatureForSelector: @selector(X)]; \
   inv = [NSInvocation invocationWithMethodSignature: sig]; \

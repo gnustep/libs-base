@@ -1,4 +1,4 @@
-/** 
+/**
    NSAttributedString.m
 
    Implementation of string class with attributes
@@ -9,14 +9,14 @@
    Date: November 1997
    Rewrite by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Date: April 1999
-   
+
    This file is part of GNUstep-base
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -24,7 +24,7 @@
 
    If you are interested in a warranty or support for this source code,
    contact Scott Christley <scottc@net-community.com> for more information.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -90,7 +90,7 @@ static IMP	remDictImp;
  *  be associated to ranges of characters.  Used for text rendering by the
  *  GUI/AppKit framework, in which fonts, sizes, etc. are stored under standard
  *  attributes in the dictionaries.
- *  
+ *
  */
 @implementation NSAttributedString
 
@@ -167,10 +167,10 @@ static Class GSMutableAttributedStringClass;
     {
       NSString *string = [aDecoder decodeObjectForKey: @"NSString"];
       NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
-      
+
       self = [self initWithString: string attributes: attributes];
     }
-  else 
+  else
     {
       NSString	*string = [aDecoder decodeObject];
       unsigned	length = [string length];
@@ -183,7 +183,7 @@ static Class GSMutableAttributedStringClass;
         {
 	  unsigned		index;
 	  NSDictionary	*attrs;
-	  
+	
 	  [aDecoder decodeValueOfObjCType: @encode(unsigned int) at: &index];
 	  attrs = [aDecoder decodeObject];
 	  if (index == length)
@@ -195,7 +195,7 @@ static Class GSMutableAttributedStringClass;
 	      NSRange	r = NSMakeRange(0, index);
 	      unsigned	last = index;
 	      NSMutableAttributedString	*m;
-	      
+	
 	      m = [NSMutableAttributedString alloc];
 	      m = [m initWithString: string attributes: nil];
 	      [m setAttributes: attrs range: r];
@@ -349,7 +349,7 @@ static Class GSMutableAttributedStringClass;
   attrDictionary = (*getImp)(self, getSel, index, aRange);
   if (aRange == 0)
     return attrDictionary;
-  
+
   while (aRange->location > rangeLimit.location)
     {
       //Check extend range backwards
@@ -407,7 +407,7 @@ static Class GSMutableAttributedStringClass;
         }
       return nil;
     }
-  attrValue = [tmpDictionary objectForKey: attributeName];  
+  attrValue = [tmpDictionary objectForKey: attributeName];
   return attrValue;
 }
 
@@ -436,7 +436,7 @@ static Class GSMutableAttributedStringClass;
 
   if (attributeName == nil)
     return nil;
-  
+
   attrValue = [self attribute: attributeName
 		      atIndex: index
 	       effectiveRange: aRange];
@@ -449,7 +449,7 @@ static Class GSMutableAttributedStringClass;
    */
   eImp = (BOOL(*)(id,SEL,id))[attrValue methodForSelector: eqSel];
   getImp = [self methodForSelector: getSel];
-  
+
   while (aRange->location > rangeLimit.location)
     {
       //Check extend range backwards
@@ -501,7 +501,7 @@ static Class GSMutableAttributedStringClass;
     return NO;
   if (![[otherString string] isEqual: [self string]])
     return NO;
-  
+
   length = [otherString length];
   if (length<=0)
     return YES;
@@ -511,7 +511,7 @@ static Class GSMutableAttributedStringClass;
   otherDictionary = [otherString attributesAtIndex: 0
 				    effectiveRange: &otherEffectiveRange];
   result = YES;
-    
+
   while (YES)
     {
       if (NSIntersectionRange(ownEffectiveRange, otherEffectiveRange).length > 0
@@ -562,7 +562,7 @@ static Class GSMutableAttributedStringClass;
   unsigned		len = [self length];
 
   GS_RANGE_CHECK(aRange, len);
-  
+
   newSubstring = [[self string] substringWithRange: aRange];
 
   attrs = [self attributesAtIndex: aRange.location effectiveRange: &range];
@@ -707,7 +707,7 @@ static Class GSMutableAttributedStringClass;
 
   tmpLength = [self length];
   GS_RANGE_CHECK(aRange, tmpLength);
-  
+
   getImp = [self methodForSelector: getSel];
   attrDict = (*getImp)(self, getSel, aRange.location, &effectiveRange);
 
@@ -721,14 +721,14 @@ static Class GSMutableAttributedStringClass;
       while (effectiveRange.location < NSMaxRange(aRange))
 	{
 	  effectiveRange = NSIntersectionRange(aRange, effectiveRange);
-	  
+	
 	  newDict = (*allocDictImp)(dictionaryClass, allocDictSel,
 	    NSDefaultMallocZone());
 	  newDict = (*initDictImp)(newDict, initDictSel, attrDict);
 	  (*setDictImp)(newDict, setDictSel, value, name);
 	  (*setImp)(self, setSel, newDict, effectiveRange);
 	  IF_NO_GC((*relDictImp)(newDict, relDictSel));
-	  
+	
 	  if (NSMaxRange(effectiveRange) >= NSMaxRange(aRange))
 	    {
 	      effectiveRange.location = NSMaxRange(aRange);// stop the loop...
@@ -753,7 +753,7 @@ static Class GSMutableAttributedStringClass;
   NSMutableDictionary	*newDict;
   unsigned int		tmpLength;
   IMP			getImp;
-  
+
   if (!attributes)
     {
       [NSException raise: NSInvalidArgumentException
@@ -767,7 +767,7 @@ static Class GSMutableAttributedStringClass;
 		  format: @"RangeError in method -addAttribute:value:range: "
 			  @"in class NSMutableAttributedString"];
     }
-  
+
   getImp = [self methodForSelector: getSel];
   attrDict = (*getImp)(self, getSel, aRange.location, &effectiveRange);
 
@@ -781,14 +781,14 @@ static Class GSMutableAttributedStringClass;
       while (effectiveRange.location < NSMaxRange(aRange))
 	{
 	  effectiveRange = NSIntersectionRange(aRange,effectiveRange);
-	  
+	
 	  newDict = (*allocDictImp)(dictionaryClass, allocDictSel,
 	    NSDefaultMallocZone());
 	  newDict = (*initDictImp)(newDict, initDictSel, attrDict);
 	  (*addDictImp)(newDict, addDictSel, attributes);
 	  (*setImp)(self, setSel, newDict, effectiveRange);
 	  IF_NO_GC((*relDictImp)(newDict, relDictSel));
-	  
+	
 	  if (NSMaxRange(effectiveRange) >= NSMaxRange(aRange))
 	    {
 	      effectiveRange.location = NSMaxRange(aRange);// stop the loop...
@@ -813,10 +813,10 @@ static Class GSMutableAttributedStringClass;
   NSMutableDictionary	*newDict;
   unsigned int		tmpLength;
   IMP			getImp;
-  
+
   tmpLength = [self length];
   GS_RANGE_CHECK(aRange, tmpLength);
-  
+
   getImp = [self methodForSelector: getSel];
   attrDict = (*getImp)(self, getSel, aRange.location, &effectiveRange);
 
@@ -830,14 +830,14 @@ static Class GSMutableAttributedStringClass;
       while (effectiveRange.location < NSMaxRange(aRange))
 	{
 	  effectiveRange = NSIntersectionRange(aRange,effectiveRange);
-	  
+	
 	  newDict = (*allocDictImp)(dictionaryClass, allocDictSel,
 	    NSDefaultMallocZone());
 	  newDict = (*initDictImp)(newDict, initDictSel, attrDict);
 	  (*remDictImp)(newDict, remDictSel, name);
 	  (*setImp)(self, setSel, newDict, effectiveRange);
 	  IF_NO_GC((*relDictImp)(newDict, relDictSel));
-	  
+	
 	  if (NSMaxRange(effectiveRange) >= NSMaxRange(aRange))
 	    {
 	      effectiveRange.location = NSMaxRange(aRange);// stop the loop...
@@ -881,7 +881,7 @@ static Class GSMutableAttributedStringClass;
   NSDictionary	*attrDict;
   NSString	*tmpStr;
   unsigned	max;
-  
+
   if (attributedString == nil)
     {
       [self replaceCharactersInRange: aRange withString: nil];
@@ -1025,7 +1025,7 @@ static Class GSMutableAttributedStringClass;
 - (int) _baseLength
 {
   return [[_owner string] _baseLength];
-} 
+}
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
@@ -1040,7 +1040,7 @@ static Class GSMutableAttributedStringClass;
 - (void) replaceCharactersInRange: (NSRange)aRange
 		       withString: (NSString*)aString
 {
-  [_owner replaceCharactersInRange: aRange withString: aString]; 
+  [_owner replaceCharactersInRange: aRange withString: aString];
 }
 
 @end

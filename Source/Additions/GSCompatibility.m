@@ -11,7 +11,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -59,7 +59,7 @@ void NSDecimalFromComponents(NSDecimal *result,
 			     unsigned long long mantissa,
 			     short exponent, BOOL negative)
 {
-  *result = [[NSDecimalNumber decimalNumberWithMantissa:mantissa 
+  *result = [[NSDecimalNumber decimalNumberWithMantissa:mantissa
 			      exponent:exponent
 			      isNegative:negative] decimalValue];
 }
@@ -141,7 +141,7 @@ GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
 
 + (void) setDebug: (int)val
 {
-  if([self respondsToSelector:@selector(_enableLogging:)])
+  if ([self respondsToSelector:@selector(_enableLogging:)])
     [self _enableLogging:!!val];
 }
 @end
@@ -250,21 +250,21 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
   int    net;
   struct sockaddr_in    sin;
   int    size = sizeof(sin);
-  
+
   if (getAddr(a, s, p, &sin) == NO)
     {
       RELEASE(self);
       NSLog(@"bad address-service-protocol combination");
       return  nil;
     }
-  
+
   if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
       NSLog(@"unable to create socket - %s", GSLastErrorStr(errno));
       RELEASE(self);
       return nil;
     }
-  
+
 #ifndef    BROKEN_SO_REUSEADDR
   /*
    * Under decent systems, SO_REUSEADDR means that the port can be  reused
@@ -274,7 +274,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
    */
   setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status,  sizeof(status));
 #endif
-  
+
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
       NSLog(@"unable to bind to port %s:%d - %s",  inet_ntoa(sin.sin_addr),
@@ -283,7 +283,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
       RELEASE(self);
       return nil;
     }
-  
+
   if (listen(net, 5) < 0)
     {
       NSLog(@"unable to listen on port - %s",  GSLastErrorStr(errno));
@@ -291,7 +291,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
       RELEASE(self);
       return nil;
     }
-  
+
   if (getsockname(net, (struct sockaddr*)&sin, &size) < 0)
     {
       NSLog(@"unable to get socket name - %s",  GSLastErrorStr(errno));
@@ -299,9 +299,9 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
       RELEASE(self);
       return nil;
     }
-  
+
   self = [self initWithFileDescriptor: net closeOnDealloc: YES];
-  
+
   return self;
 }
 
@@ -310,7 +310,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
                           protocol: (NSString*)protocol
 {
   id    o = [self allocWithZone: NSDefaultMallocZone()];
-  
+
   return AUTORELEASE([o initAsServerAtAddress: address
                                       service: service
                                      protocol: protocol]);
@@ -320,14 +320,14 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct  sockaddr_in *sin)
 {
   struct sockaddr_in    sin;
   int    size = sizeof(sin);
-  
+
   if (getsockname([self fileDescriptor], (struct sockaddr*)&sin,  &size) < 0)
     {
       NSLog(@"unable to get socket name - %s",  GSLastErrorStr(errno));
       return nil;
     }
-  
-  return [[[NSString alloc] initWithCString:  (char*)inet_ntoa(sin.sin_addr)] 
+
+  return [[[NSString alloc] initWithCString:  (char*)inet_ntoa(sin.sin_addr)]
 	   autorelease];
 }
 
@@ -363,7 +363,7 @@ BOOL GSDebugSet(NSString *level)
 - (NSMutableSet *) debugSet
 // Derived from GNUStep's
 {
-    if(_debug_set == nil){
+    if (_debug_set == nil){
         int				argc = [[self arguments] count];
         NSMutableSet	*mySet;
         int				i;
@@ -409,7 +409,7 @@ BOOL GSDebugSet(NSString *level)
 {
   return [self substringWithRange:range];
 }
- 
+
 @end
 
 @implementation NSInvocation(GSCompatibility)

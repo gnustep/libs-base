@@ -45,7 +45,7 @@ NSLock	*lock = nil;
 int main(int argc, char **argv, char **env)
 {
   CREATE_AUTORELEASE_POOL(arp);
-  
+
   NSLog(@"Start in main");
   lock = [NSLock new];
   [lock lock];
@@ -60,7 +60,7 @@ int main(int argc, char **argv, char **env)
 
   [[NSRunLoop currentRunLoop] runUntilDate:
     [NSDate dateWithTimeIntervalSinceNow: 10.0]];
-  
+
   NSLog(@"Done main thread");
 
   DESTROY(arp);

@@ -103,7 +103,7 @@ typedef enum {
   unsigned		expecting;
   NSMutableData		*data;
   NSFileHandle		*handle;
-  GSPortComState	state; 
+  GSPortComState	state;
   struct in_addr	addr;
 }
 - (struct in_addr) addr;
@@ -172,7 +172,7 @@ typedef enum {
     {
       NSDebugMLLog(@"NSSocketPortNameServer",
 	@"failed connect to gdomap on %@ - %@",
-	[[notification object] socketAddress], e); 
+	[[notification object] socketAddress], e);
       /*
        * Remove our file handle, then either retry or fail.
        */
@@ -193,7 +193,7 @@ typedef enum {
 @"Trying to launch gdomap from %@ or a machine/operating-system subdirectory.\n"
 @"It is recommended that you start up gdomap at login time or (better) when\n"
 @"your computer is started instead.",
-[launchCmd stringByDeletingLastPathComponent]); 
+[launchCmd stringByDeletingLastPathComponent]);
 	  [NSTask launchedTaskWithLaunchPath: launchCmd arguments: nil];
 	  timer = [NSTimer timerWithTimeInterval: 5.0
 				      invocation: nil
@@ -201,7 +201,7 @@ typedef enum {
 	  [loop addTimer: timer forMode: [loop currentMode]];
 	  [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 5.0]];
 	  NSDebugMLLog(@"NSSocketPortNameServer",
-	    @"retrying local connection to gdomap"); 
+	    @"retrying local connection to gdomap");
 	  state = GSPC_RETRY;
 	  [self open: nil];
 	}
@@ -238,7 +238,7 @@ typedef enum {
     {
       [self fail];
       NSLog(@"NSSocketPortNameServer lost connection to gdomap on %@",
-	[[notification object] socketAddress]); 
+	[[notification object] socketAddress]);
     }
   else
     {
@@ -308,7 +308,7 @@ typedef enum {
     {
       [self fail];
       NSLog(@"NSSocketPortNameServer failed write to gdomap on %@ - %@",
-	[[notification object] socketAddress], e); 
+	[[notification object] socketAddress], e);
     }
   else
     {
@@ -538,7 +538,7 @@ typedef enum {
 + (id) allocWithZone: (NSZone*)aZone
 {
   [NSException raise: NSGenericException
-	      format: @"attempt to create extra port name server"]; 
+	      format: @"attempt to create extra port name server"];
   return nil;
 }
 
@@ -586,7 +586,7 @@ typedef enum {
 - (void) dealloc
 {
   [NSException raise: NSGenericException
-	      format: @"attempt to deallocate default port name server"]; 
+	      format: @"attempt to deallocate default port name server"];
 }
 
 - (BOOL) _lookupName: (NSString*)name onHost: (NSString*)host
@@ -606,20 +606,20 @@ typedef enum {
   if (name == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to lookup port with nil name"]; 
+		  format: @"attempt to lookup port with nil name"];
     }
 
   len = [name cStringLength];
   if (len == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to lookup port with no name"]; 
+		  format: @"attempt to lookup port with no name"];
     }
   if (len > GDO_NAME_MAX_LEN)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"name of port is too long (max %d) bytes",
-			GDO_NAME_MAX_LEN]; 
+			GDO_NAME_MAX_LEN];
     }
 
   limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
@@ -658,7 +658,7 @@ typedef enum {
 	  if ([com state] != GSPC_DONE)
 	    {
 	      [NSException raise: NSPortTimeoutException
-			  format: @"timed out listing name servers"]; 
+			  format: @"timed out listing name servers"];
 	    }
           /*
            * Retain and autorelease the data item so the buffer won't disappear
@@ -865,30 +865,30 @@ typedef enum {
   if (name == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to register port with nil name"]; 
+		  format: @"attempt to register port with nil name"];
     }
   if (port == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to register nil port"]; 
+		  format: @"attempt to register nil port"];
     }
   if ([port isKindOfClass: portClass] == NO)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"attempt to register port of unexpected class (%@)",
-	port]; 
+	port];
     }
   len = [name cStringLength];
   if (len == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to register port with no name"]; 
+		  format: @"attempt to register port with no name"];
     }
   if (len > GDO_NAME_MAX_LEN)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"name of port is too long (max %d) bytes",
-			GDO_NAME_MAX_LEN]; 
+			GDO_NAME_MAX_LEN];
     }
 
   limit = [NSDate dateWithTimeIntervalSinceNow: timeout];
@@ -913,7 +913,7 @@ typedef enum {
 
       /*
        *	If this port has never been registered under any name, first
-       *	send an unregister message to gdomap to ensure that any old 
+       *	send an unregister message to gdomap to ensure that any old
        *	names for the port (perhaps from a server that crashed without
        *	unregistering its ports) are no longer around.
        */
@@ -931,7 +931,7 @@ typedef enum {
 	  if ([com state] != GSPC_DONE)
 	    {
 	      [NSException raise: NSPortTimeoutException
-			  format: @"timed out unregistering port"]; 
+			  format: @"timed out unregistering port"];
 	    }
 	  DESTROY(com);
 	}
@@ -947,7 +947,7 @@ typedef enum {
       if ([com state] != GSPC_DONE)
 	{
 	  [NSException raise: NSPortTimeoutException
-		      format: @"timed out registering port %@", name]; 
+		      format: @"timed out registering port %@", name];
 	}
       else
 	{
@@ -1048,20 +1048,20 @@ typedef enum {
   if (name == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to remove port with nil name"]; 
+		  format: @"attempt to remove port with nil name"];
     }
 
   len = [name cStringLength];
   if (len == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to remove port with no name"]; 
+		  format: @"attempt to remove port with no name"];
     }
   if (len > GDO_NAME_MAX_LEN)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"name of port is too long (max %d) bytes",
-			GDO_NAME_MAX_LEN]; 
+			GDO_NAME_MAX_LEN];
     }
 
   /*
@@ -1084,7 +1084,7 @@ typedef enum {
       if ([com state] != GSPC_DONE)
 	{
 	  [NSException raise: NSPortTimeoutException
-		      format: @"timed out unregistering port"]; 
+		      format: @"timed out unregistering port"];
 	}
       else
 	{
@@ -1162,7 +1162,7 @@ typedef enum {
   if (port == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"attempt to get names for nil port"]; 
+		  format: @"attempt to get names for nil port"];
     }
   /*
    *	Lock out other threads while grabbing port names.

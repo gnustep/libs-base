@@ -2,10 +2,10 @@
 /* call - Program to test NSFileHandle TCP/IP connection.
 
    Copyright (C) 2002 Free Software Foundation, Inc.
-   
+
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: Jun 2002
-	 
+	
    This file is part of the GNUstep Base Library.
 */
 

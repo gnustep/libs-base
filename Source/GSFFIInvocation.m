@@ -1,25 +1,25 @@
 /** Implementation of GSFFIInvocation for GNUStep
    Copyright (C) 2000 Free Software Foundation, Inc.
-   
+
    Written: Adam Fedor <fedor@gnu.org>
    Date: Apr 2002
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-   */ 
+   */
 #include "Foundation/NSException.h"
 #include "Foundation/NSCoder.h"
 #include "Foundation/NSDistantObject.h"
@@ -69,8 +69,8 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
   return METHOD_NULL;
 }
 
-        
-/* 
+
+/*
  * Selectors are not unique, and not all selectors have
  * type information.  This method tries to find the
  * best equivalent selector with type information.
@@ -78,21 +78,21 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
  * the conversion sel -> name -> sel
  * is not what we want.  However
  * I can not see a way to dispose of the
- * name, except if we can access the 
+ * name, except if we can access the
  * internal data structures of the runtime.
- * 
+ *
  * If we can access the private data structures
  * we can also check for incompatible
  * return types between all equivalent selectors.
  */
 
-static INLINE SEL 
+static INLINE SEL
 gs_find_best_typed_sel (SEL sel)
 {
   if (!sel_get_type (sel))
     {
       const char *name = GSNameFromSelector(sel);
-      
+
       if (name)
 	{
 	  SEL tmp_sel = sel_get_any_typed_uid (name);
@@ -112,7 +112,7 @@ gs_find_best_typed_sel (SEL sel)
  *
  * In all other cases fallback
  * to gs_find_best_typed_sel ().
- */  
+ */
 static INLINE SEL
 gs_find_by_receiver_best_typed_sel (id receiver, SEL sel)
 {
@@ -154,7 +154,7 @@ static IMP gs_objc_msg_forward (SEL sel)
    */
   sel_type = sel_get_type (sel);
   sig = nil;
-  
+
   if (sel_type)
     {
       sig = [NSMethodSignature signatureWithObjCTypes: sel_type];
@@ -186,7 +186,7 @@ static IMP gs_objc_msg_forward (SEL sel)
     {
       [NSException raise: NSMallocException format: @"Allocating closure"];
     }
-  if (ffi_prep_closure(cclosure, &(cframe->cif), 
+  if (ffi_prep_closure(cclosure, &(cframe->cif),
 		       GSFFIInvocationCallback, cframe) != FFI_OK)
     {
       [NSException raise: NSGenericException format: @"Preping closure"];
@@ -229,7 +229,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 /* Initializer used when we get a callback. uses the data provided by
    the callback. The cifframe was allocated by the forwarding function,
    but we own it now so we can free it */
-- (id) initWithCallback: (ffi_cif *)cif 
+- (id) initWithCallback: (ffi_cif *)cif
 		returnp: (void *)retp
 		 values: (void **)vals
 		  frame: (cifframe_t *)frame
@@ -242,7 +242,7 @@ static IMP gs_objc_msg_forward (SEL sel)
   _cframe = frame;
   ((cifframe_t *)_cframe)->cif = *cif;
 
-#if MFRAME_STRUCT_BYREF 
+#if MFRAME_STRUCT_BYREF
   /* Fix up some of the values. Do this on all processors that pass
      structs by reference. Is there an automatic way to determine this? */
   for (i = 0; i < ((cifframe_t *)_cframe)->nargs; i++)
@@ -251,12 +251,12 @@ static IMP gs_objc_msg_forward (SEL sel)
 
       if (*t == _C_STRUCT_B || *t == _C_UNION_B || *t == _C_ARY_B)
 	{
-	  memcpy(((cifframe_t *)_cframe)->values[i], *(void **)vals[i], 
+	  memcpy(((cifframe_t *)_cframe)->values[i], *(void **)vals[i],
 		 ((cifframe_t *)_cframe)->arg_types[i]->size);
 	}
       else
 	{
-	  memcpy(((cifframe_t *)_cframe)->values[i], vals[i], 
+	  memcpy(((cifframe_t *)_cframe)->values[i], vals[i],
 		 ((cifframe_t *)_cframe)->arg_types[i]->size);
 	}
     }
@@ -277,7 +277,7 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
   NSInvocation_t	*inv = (NSInvocation_t*)_inv;
 
   /* Do it */
-  ffi_call(inv->_cframe, (f_fun)imp, (inv->_retval), 
+  ffi_call(inv->_cframe, (f_fun)imp, (inv->_retval),
 	   ((cifframe_t *)inv->_cframe)->values);
 
   /* Don't decode the return value here (?) */
@@ -298,7 +298,7 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
     {
       if (_retval)
         memset(_retval, '\0', _info[0].size);	/* Clear return value */
-      _validReturn = YES;  
+      _validReturn = YES;
       return;
     }
 
@@ -346,14 +346,14 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 
   [self setTarget: old_target];
   RELEASE(old_target);
-  
+
   GSFFIInvokeWithTargetAndImp(self, anObject, imp);
 
   /* Decode the return value */
   if (*_info[0].type != _C_VOID)
     cifframe_decode_arg(_info[0].type, _retval);
 
-  RETAIN_RETURN_VALUE;   
+  RETAIN_RETURN_VALUE;
   _validReturn = YES;
 }
 
@@ -405,7 +405,7 @@ gs_protocol_selector(const char *types)
   return NO;
 }
 
-void 
+void
 GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 {
   id			obj;
@@ -413,13 +413,13 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
   GSFFIInvocation	*invocation;
   NSMethodSignature	*sig;
   GSMethod              fwdInvMethod;
-  
+
   obj      = *(id *)args[0];
   selector = *(SEL *)args[1];
 
   fwdInvMethod = gs_method_for_receiver_and_selector
     (obj, @selector (forwardInvocation:));
-  
+
   if (!fwdInvMethod)
     {
       [NSException raise: NSInvalidArgumentException
@@ -429,7 +429,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 		   GSObjCIsInstance(obj) ? "instance" : "class",
 		   selector ? GSNameFromSelector(selector) : "(null)"];
     }
-       
+
   sig = nil;
   if (gs_protocol_selector(sel_get_type(selector)) == YES)
     {
@@ -474,7 +474,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 	    }
 	}
     }
-  
+
   if (sig == nil)
     {
       selector = gs_find_best_typed_sel (selector);
@@ -493,7 +493,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 	 GSClassNameFromObject(obj),
 	 selector ? GSNameFromSelector(selector) : "(null)"];
     }
-    
+
   invocation = [[GSFFIInvocation alloc] initWithCallback: cif
 					returnp: retp
 					values: args
@@ -547,7 +547,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
       int		flags = _info[i+1].qual;
       const char	*type = _info[i+1].type;
       void		*datum;
-      
+
       if (i == 0)
 	{
 	  datum = &_target;
@@ -571,7 +571,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 
       switch (*type)
 	{
-	  case _C_ID: 
+	  case _C_ID:
 	    if (flags & _F_BYCOPY)
 	      {
 		[coder encodeBycopyObject: *(id*)datum];
@@ -623,14 +623,14 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 	      {
 		out_parameters = YES;
 	      }
-	    if (passp) 
+	    if (passp)
 	      {
 		if ((flags & _F_IN) || !(flags & _F_OUT))
 		  {
 		    [coder encodeValueOfObjCType: type at: datum];
 		  }
 	      }
-	    else 
+	    else
 	      {
 		/*
 		 * Handle an argument that is a pointer to a non-char.  But

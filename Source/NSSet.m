@@ -1,21 +1,21 @@
 /** NSSet - Set object to store key/value pairs
    Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: Sep 1995
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -105,7 +105,7 @@ static Class NSMutableSet_concrete_class;
 /**
  *  New set containing (unique elements of) objects.
  */
-+ (id) setWithObjects: (id*)objects 
++ (id) setWithObjects: (id*)objects
 	        count: (unsigned)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -118,7 +118,7 @@ static Class NSMutableSet_concrete_class;
 + (id) setWithObjects: firstObject, ...
 {
   id	set;
-  
+
   GS_USEIDLIST(firstObject,
     set = [[self allocWithZone: NSDefaultMallocZone()]
       initWithObjects: __objects count: __count]);
@@ -224,7 +224,7 @@ static Class NSMutableSet_concrete_class;
     {
       id	array;
 
-      array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+      array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
 						@"NS.objects"];
       if (array == nil)
 	{
@@ -255,7 +255,7 @@ static Class NSMutableSet_concrete_class;
         {
 	  unsigned	i;
 	  GS_BEGINIDBUF(objs, count);
-	  
+	
 	  for (i = 0; i < count; i++)
 	    {
 	      [aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
@@ -322,7 +322,7 @@ static Class NSMutableSet_concrete_class;
 - (id) member: (id)anObject
 {
   return [self subclassResponsibility: _cmd];
-  return 0;  
+  return 0;
 }
 
 /**
@@ -412,7 +412,7 @@ static Class NSMutableSet_concrete_class;
 /**
  *  Initialize with same items as other (items not copied).
  */
-- (id) initWithSet: (NSSet*)other 
+- (id) initWithSet: (NSSet*)other
 {
   return [self initWithSet: other copyItems: NO];
 }

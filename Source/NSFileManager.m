@@ -1348,7 +1348,7 @@ static NSFileManager* defaultManager = nil;
 	  if ((statbuf.st_mode & S_IFMT) == S_IFDIR)
 	    {
 	      *isDirectory = YES;
-	    } 
+	    }
 	}
 
       return YES;

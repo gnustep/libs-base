@@ -10,7 +10,7 @@
 #include "SecondClass.h"
 #include <Foundation/NSString.h>
 
-@implementation SecondClass 
+@implementation SecondClass
 
 - init
 {

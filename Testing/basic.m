@@ -129,7 +129,7 @@ int main ()
   NSLog(@"%@", s);
   x = [s propertyList];
   NSLog(@"%d", [o isEqual: x]);
-  
+
 
     test1();
     test2();
@@ -153,7 +153,7 @@ int main (int argc, char **argv)
   id	pool = [NSAutoreleasePool new];
   NSProcessInfo	*info = [NSProcessInfo processInfo];
   NSUserDefaults	*defaults;
-  
+
   NSLog(@"Temporary directory - %@", NSTemporaryDirectory());
   [info setProcessName: @"TestProcess"];
   defaults = [NSUserDefaults standardUserDefaults];

@@ -1,22 +1,22 @@
-/** Concrete implementation of NSArray 
+/** Concrete implementation of NSArray
    Copyright (C) 1995, 1996, 1998, 1999 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: March 1995
    Rewrite by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -87,7 +87,7 @@ static Class	GSInlineArrayClass;
     [NSNumber numberWithUnsignedInt: index], @"Index",
     [NSNumber numberWithUnsignedInt: _count], @"Count",
     self, @"Array", nil, nil];
-                              
+
   reason = [NSString stringWithFormat: @"Index %d is out of range %d (in '%@')",
     index, _count, NSStringFromSelector(sel)];
 
@@ -276,7 +276,7 @@ static Class	GSInlineArrayClass;
 - (BOOL) isEqualToArray: (NSArray*)otherArray
 {
   unsigned i;
- 
+
   if (self == (id)otherArray)
     {
       return YES;
@@ -452,7 +452,7 @@ static Class	GSInlineArrayClass;
   return [copy initWithObjects: _contents_array count: _count];
 }
 
-- (void) exchangeObjectAtIndex: (unsigned int)i1 
+- (void) exchangeObjectAtIndex: (unsigned int)i1
              withObjectAtIndex: (unsigned int)i2
 {
   if (i1 >= _count)
@@ -493,7 +493,7 @@ static Class	GSInlineArrayClass;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
 						@"NS.objects"];
 
       [self initWithArray: array];
@@ -735,7 +735,7 @@ static Class	GSInlineArrayClass;
   RELEASE(obj);
 }
 
-- (void) sortUsingFunction: (NSComparisonResult(*)(id,id,void*))compare 
+- (void) sortUsingFunction: (NSComparisonResult(*)(id,id,void*))compare
 		   context: (void*)context
 {
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
@@ -754,7 +754,7 @@ static Class	GSInlineArrayClass;
     {
       stride = stride * STRIDE_FACTOR + 1;
     }
-    
+
   while (stride > (STRIDE_FACTOR - 1))
     {
       // loop to sort for each value of stride
@@ -1034,7 +1034,7 @@ static Class	GSInlineArrayClass;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+      NSArray *array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
 						@"NS.objects"];
 
       return array;

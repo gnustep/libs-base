@@ -37,7 +37,7 @@ testFullScan (const char *message, NSString *string, NSScanner *scanner)
 
     scanLocation = [scanner scanLocation];
     if (scanLocation != [string length])
-	printf ("%s of `%s' moves scan location to %u.\n", message, 
+	printf ("%s of `%s' moves scan location to %u.\n", message,
 						[string cString], scanLocation);
 }
 

@@ -260,7 +260,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
       regDefs = RETAIN([sharedDefaults->_tempDomains
 	objectForKey: NSRegistrationDomain]);
 
-      setSharedDefaults = NO; 
+      setSharedDefaults = NO;
       DESTROY(sharedDefaults);
       if (regDefs != nil)
 	{
@@ -1479,7 +1479,7 @@ static BOOL isPlistObject(id o)
 	   * If lockDate is nil, we should be able to lock again ... but we
 	   * wait a little anyway ... so that in the case of a locking
 	   * problem we do an idle wait rather than a busy one.
-	   */ 
+	   */
 	  if (lockDate != nil && [when timeIntervalSinceDate: lockDate] > 5.0)
 	    {
 	      [_fileLock breakLock];
@@ -1753,7 +1753,7 @@ static BOOL isPlistObject(id o)
 
       while ((obj = (*nImp)(enumerator, nextObjectSel)) != nil)
 	{
-	  if ( (dict = (*pImp)(_persDomains, objectForKeySel, obj)) != nil
+	  if ((dict = (*pImp)(_persDomains, objectForKeySel, obj)) != nil
 	    || (dict = (*tImp)(_tempDomains, objectForKeySel, obj)) != nil)
 	    (*addImp)(dictRep, addSel, dict);
 	}

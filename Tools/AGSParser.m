@@ -215,7 +215,7 @@
       fmt = [fmt stringByAppendingString: @"\n"];
     }
   msg = [fmt lossyCString];
-  fwrite(msg, strlen(msg), 1, stderr); 
+  fwrite(msg, strlen(msg), 1, stderr);
 }
 
 - (void) log: (NSString*)fmt, ...
@@ -806,7 +806,7 @@
 		{
 		  NSString	*s = [NSString stringWithFormat: @"<%@>", key];
 		  NSString	*e = [NSString stringWithFormat: @"</%@>", key];
-	      
+	
 		  /*
 		   * Read date information if available
 		   */
@@ -1262,7 +1262,7 @@
       [t appendString: @">"];
       [a removeAllObjects];
     }
-   
+
   [d setObject: t forKey: @"BaseType"];
   RELEASE(t);
   /*
@@ -1283,7 +1283,7 @@
   else
     {
       [d setObject: @"Variables" forKey: @"Kind"];
-    } 
+    }
 
   if (s == nil)
     {
@@ -2073,7 +2073,7 @@ try:
 	  RELEASE(tmp);
 	  if ([val length] > 0)
 	    {
-	      
+	
 	      if ([val isEqualToString: @"//"] == YES)
 		{
 		  [self skipToEndOfLine];
@@ -3613,7 +3613,7 @@ fail:
  * Special method to skip a statement and up to the end of the last
  * line it was on, discarding any comments so they don't get used by
  * the next construct that actually needs documenting.
- */ 
+ */
 - (unsigned) skipStatementLine
 {
   [self skipStatement];

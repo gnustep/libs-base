@@ -10,7 +10,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -19,7 +19,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-*/ 
+*/
 
 /* A Behavior can be seen as a "Protocol with an implementation" or a
    "Class without any instance variables".  A key feature of behaviors
@@ -28,7 +28,7 @@
    Behavior methods, when added to a class, override the class's
    superclass methods, but not the class's methods.
 
-   xxx not necessarily on the "no instance vars".  The behavior just has 
+   xxx not necessarily on the "no instance vars".  The behavior just has
    to have the same layout as the class.
 
    The following function is a sneaky hack way that provides Behaviors
@@ -38,7 +38,7 @@
 
    This function should be called in CLASS's +initialize method.
 
-   If you add several behaviors to a class, be aware that the order of 
+   If you add several behaviors to a class, be aware that the order of
    the additions is significant.
 
    McCallum talking to himself:
@@ -113,7 +113,7 @@ behavior_class_add_class (Class class, Class behavior)
      void *iterator = 0;
      struct objc_method_list *method_list;
 
-     while ( (method_list = class_nextMethodList(behavior, &iterator)) )
+     while ((method_list = class_nextMethodList(behavior, &iterator)))
        behavior_class_add_methods (class, method_list);
   }
 #else
@@ -131,12 +131,12 @@ behavior_class_add_class (Class class, Class behavior)
      void *iterator = 0;
      struct objc_method_list *method_list;
 
-     while ( (method_list = 
-	      class_nextMethodList(behavior->class_pointer, &iterator)) )
+     while ((method_list =
+	      class_nextMethodList(behavior->class_pointer, &iterator)))
        behavior_class_add_methods (class->class_pointer, method_list);
   }
 #else
-  behavior_class_add_methods (class->class_pointer, 
+  behavior_class_add_methods (class->class_pointer,
 			      behavior->class_pointer->methods);
 #endif
 
@@ -152,9 +152,9 @@ behavior_class_add_class (Class class, Class behavior)
 void
 behavior_class_add_category (Class class, struct objc_category *category)
 {
-  behavior_class_add_methods (class, 
+  behavior_class_add_methods (class,
 			      category->instance_methods);
-  behavior_class_add_methods (class->class_pointer, 
+  behavior_class_add_methods (class->class_pointer,
 			      category->class_methods);
   /* xxx Add the protocols (category->protocols) too. */
 }
@@ -163,7 +163,7 @@ behavior_class_add_category (Class class, struct objc_category *category)
 
 static struct objc_method *search_for_method_in_list (Class class, SEL op);
 
-void 
+void
 behavior_class_add_methods (Class class, struct objc_method_list *methods)
 {
   static SEL initialize_sel = 0;
@@ -180,7 +180,7 @@ behavior_class_add_methods (Class class, struct objc_method_list *methods)
 
       counter = mlist->method_count ? mlist->method_count - 1 : 1;
 
-      /* This is a little wasteful of memory, since not necessarily 
+      /* This is a little wasteful of memory, since not necessarily
 	 all methods will go in here. */
       new_list = (struct objc_method_list *)
 	objc_malloc (sizeof(struct objc_method_list) +
@@ -193,7 +193,7 @@ behavior_class_add_methods (Class class, struct objc_method_list *methods)
 
 	  if (behavior_debug)
 	    {
-	      fprintf(stderr, "   processing method [%s] ... ", 
+	      fprintf(stderr, "   processing method [%s] ... ",
 		sel_get_name(method->method_name));
 	    }
 
@@ -207,12 +207,12 @@ behavior_class_add_methods (Class class, struct objc_method_list *methods)
 	      (new_list->method_count)++;
 	      if (behavior_debug)
 		{
-		  fprintf(stderr, "added.\n"); 
+		  fprintf(stderr, "added.\n");
 		}
 	    }
 	  else if (behavior_debug)
 	    {
-	      fprintf(stderr, "ignored.\n"); 
+	      fprintf(stderr, "ignored.\n");
 	    }
           counter -= 1;
         }
@@ -239,7 +239,7 @@ search_for_method_in_list (Class class, SEL op)
     return NULL;
 
   /* If not found then we'll search the list.  */
-  while ( (method_list = class_nextMethodList(class, &iterator)) )
+  while ((method_list = class_nextMethodList(class, &iterator)))
     {
       int i;
 
@@ -269,7 +269,7 @@ extern Method_t search_for_method_in_list(MethodList_t list, SEL op);
 extern void class_add_method_list(Class, MethodList_t);
 
 void
-behavior_class_add_methods (Class class, 
+behavior_class_add_methods (Class class,
 			    struct objc_method_list *methods)
 {
   static SEL initialize_sel = 0;
@@ -286,7 +286,7 @@ behavior_class_add_methods (Class class,
 
       counter = mlist->method_count ? mlist->method_count - 1 : 1;
 
-      /* This is a little wasteful of memory, since not necessarily 
+      /* This is a little wasteful of memory, since not necessarily
 	 all methods will go in here. */
       new_list = (struct objc_method_list *)
 	objc_malloc (sizeof(struct objc_method_list) +
@@ -321,12 +321,12 @@ behavior_class_add_methods (Class class,
 	      (new_list->method_count)++;
 	      if (behavior_debug)
 		{
-		  fprintf(stderr, "added.\n"); 
+		  fprintf(stderr, "added.\n");
 		}
 	    }
 	  else if (behavior_debug)
 	    {
-	      fprintf(stderr, "ignored.\n"); 
+	      fprintf(stderr, "ignored.\n");
 	    }
           counter -= 1;
         }

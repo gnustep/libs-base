@@ -18,7 +18,7 @@
 }
 @end
 
-int main (void) 
+int main (void)
 {
   return ([Test testResult] + 1);
 }

@@ -18,28 +18,28 @@ id	myServer;
   NSAutoreleasePool	*pool;
   NSConnection		*serverConnection;
   Tester		*serverObject;
-      
+
   pool = [[NSAutoreleasePool alloc] init];
-      
+
   serverConnection = [NSConnection
 	  connectionWithReceivePort: [portArray objectAtIndex: 0]
 			   sendPort: [portArray objectAtIndex: 1]];
-      
+
   serverObject = [[self alloc] init];
   [(id)[serverConnection rootProxy] setServer: serverObject];
   [serverObject release];
-      
+
   [[NSRunLoop currentRunLoop] run];
   [pool release];
   [NSThread exit];
-      
+
   return;
 }
 
 + (void) setServer: (id)anObject
 {
   myServer = [anObject retain];
-  NSLog(@"Got %d", [myServer doIt]);  
+  NSLog(@"Got %d", [myServer doIt]);
   exit(0);
 }
 
@@ -52,7 +52,7 @@ id	myServer;
 
   port1 = [NSPort port];
   port2 = [NSPort port];
-            
+
   conn = [[NSConnection alloc] initWithReceivePort: port1 sendPort: port2];
   [conn setRootObject: self];
 

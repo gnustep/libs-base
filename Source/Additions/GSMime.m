@@ -4,14 +4,14 @@
 
    Written by: Richard frith-Macdonald <rfm@gnu.org>
    Date: October 2000
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -1173,7 +1173,7 @@ wordData(NSString *word)
  *   NSString.<br />
  *   If a document has no content type specified, it will be treated as
  *   <em>text</em>, unless it is identifiable as a <em>file</em>
- *   (eg. t has a content-disposition header containing a filename parameter). 
+ *   (eg. t has a content-disposition header containing a filename parameter).
  * </p>
  */
 - (BOOL) parse: (NSData*)d
@@ -1392,7 +1392,7 @@ wordData(NSString *word)
    */
   [info setName: name];
   name = [info name];
-  
+
   /*
    * Break header fields out into info dictionary.
    */
@@ -1715,7 +1715,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     {
       [info setValue: value];
     }
-  
+
   return YES;
 }
 
@@ -2045,7 +2045,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
 	  src += 2;
 	  tmp = src;
-	  src = (unsigned char*)strchr((char*)src, '?'); 
+	  src = (unsigned char*)strchr((char*)src, '?');
 	  if (src == 0)
 	    {
 	      NSLog(@"Bad encoded word - character set terminator missing");
@@ -2361,11 +2361,11 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  if (found == NO)
 	    {
 	      done = YES;	/* Needs more data.	*/
-	    } 
+	    }
 	  else if (child == nil)
 	    {
 	      NSString	*cset;
-	     
+	
 	      /*
 	       * Found boundary at the start of the first section.
 	       * Set sectionStart to point immediately after boundary.
@@ -3565,7 +3565,7 @@ static NSCharacterSet	*tokenSet = nil;
  * matches the specified key.  Recursively descend into other documents.<br />
  * Wraps the supplied key in angle brackets if they are not present.<br />
  * Return nil if no match is found, the matching GSMimeDocument otherwise.
- */ 
+ */
 - (id) contentByID: (NSString*)key
 {
   if ([key hasPrefix: @"<"] == NO)
@@ -3598,7 +3598,7 @@ static NSCharacterSet	*tokenSet = nil;
  * matches the specified key.  Recursively descend into other documents.<br />
  * Wraps the supplied key in angle brackets if they are not present.<br />
  * Return nil if no match is found, the matching GSMimeDocument otherwise.
- */ 
+ */
 - (id) contentByLocation: (NSString*)key
 {
   if ([content isKindOfClass: NSArrayClass] == YES)
@@ -3627,7 +3627,7 @@ static NSCharacterSet	*tokenSet = nil;
  * name or content-disposition name matches the specified key.
  * Recursively descend into other documents.<br />
  * Return nil if no match is found, the matching GSMimeDocument otherwise.
- */ 
+ */
 - (id) contentByName: (NSString*)key
 {
 
@@ -3779,7 +3779,7 @@ static NSCharacterSet	*tokenSet = nil;
  * Do <em>NOT</em> recurse into other documents.<br />
  * Return nil if no match is found, an array of matching GSMimeDocument
  * instances otherwise.
- */ 
+ */
 - (NSArray*) contentsByName: (NSString*)key
 {
   NSMutableArray	*a = nil;
@@ -4015,7 +4015,7 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  [array addObject: info];
 	}
-    } 
+    }
   return array;
 }
 
@@ -4199,7 +4199,7 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  GSMimeDocument	*part = [content objectAtIndex: i];
 
-	  [partData addObject: [part rawMimeData: NO]]; 
+	  [partData addObject: [part rawMimeData: NO]];
 
 	  /*
 	   * If any part of a multipart document is not 7bit then
@@ -4207,7 +4207,7 @@ static NSCharacterSet	*tokenSet = nil;
 	   * It is important to check this *after* the part has been
 	   * processed by -rawMimeData:, so we know that the encoding
 	   * set for the part is valid.
-	   */ 
+	   */
 	  if (contentIs7bit == YES)
 	    {
 	      NSString		*v;
@@ -4846,7 +4846,7 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  return index;
 	}
-    } 
+    }
   return NSNotFound;
 }
 

@@ -11,7 +11,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -69,7 +69,7 @@ typedef struct {
   GCInfo	*keyStruct;
   GCInfo	*valueStruct;
 
-  return NSNextMapEnumeratorPair(&enumerator, 
+  return NSNextMapEnumeratorPair(&enumerator,
     (void**)&keyStruct, (void**)&valueStruct) ? keyStruct->object : nil;
 }
 @end
@@ -80,7 +80,7 @@ typedef struct {
   GCInfo	*keyStruct;
   GCInfo	*valueStruct;
 
-  return NSNextMapEnumeratorPair(&enumerator, 
+  return NSNextMapEnumeratorPair(&enumerator,
     (void**)&keyStruct, (void**)&valueStruct) ? valueStruct->object : nil;
 }
 @end
@@ -139,13 +139,13 @@ static const NSMapTableKeyCallBacks GCInfoMapKeyCallBacks = {
   (void (*)(NSMapTable *, void *))_GCReleaseObjects,
   (NSString *(*)(NSMapTable *, const void *))_GCDescribeObjects,
   (const void *)NULL
-}; 
+};
 
 static const NSMapTableValueCallBacks GCInfoValueCallBacks = {
   (void (*)(NSMapTable *, const void *))_GCRetainObjects,
   (void (*)(NSMapTable *, void *))_GCReleaseObjects,
   (NSString *(*)(NSMapTable *, const void *))_GCDescribeObjects
-}; 
+};
 
 static Class	gcClass = 0;
 
@@ -257,12 +257,12 @@ static Class	gcClass = 0;
       valueStruct->isGCObject = [value isKindOfClass: gcClass];
       NSMapInsert(_map, keyStruct, valueStruct);
     }
-  
+
   return self;
 }
 
 - (id) initWithObjects: (id*)objects
-	       forKeys: (id*)keys 
+	       forKeys: (id*)keys
 		 count: (unsigned int)count
 {
   unsigned int	size = (count * 4) / 3;

@@ -1,4 +1,4 @@
-/** NSClassDescription 
+/** NSClassDescription
    Copyright (C) 2000 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
@@ -75,7 +75,7 @@ static NSMapTable	*classMap;
     }
   RETAIN(description);
   [mapLock unlock];
-  
+
   return AUTORELEASE(description);
 }
 
@@ -176,7 +176,7 @@ static Class	NSClassDescriptionClass = 0;
   if (NSClassDescriptionClass == 0)
     {
       NSClassDescriptionClass = [NSClassDescription class];
-    } 
+    }
   return [NSClassDescriptionClass classDescriptionForClass: [self class]];
 }
 

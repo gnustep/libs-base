@@ -1,26 +1,26 @@
 /** callframe.m - Wrapper/Objective-C interface for ffcall function interface
 
    Copyright (C) 2000, Free Software Foundation, Inc.
-   
+
    Written by:  Adam Fedor <fedor@gnu.org>
    Created: Nov 2000
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-   */ 
+   */
 
 #include "config.h"
 #include <stdlib.h>
@@ -158,7 +158,7 @@ typedef struct _NSInvocation_t {
 } NSInvocation_t;
 
 /*-------------------------------------------------------------------------*/
-/* Functions for handling sending and receiving messages accross a 
+/* Functions for handling sending and receiving messages accross a
    connection
 */
 
@@ -227,7 +227,7 @@ callframe_do_call (DOContext *ctxt,
 		void(*decoder)(DOContext*),
 		void(*encoder)(DOContext*))
 {
-  /* The method type string obtained from the target's OBJC_METHOD 
+  /* The method type string obtained from the target's OBJC_METHOD
      structure for the selector we're sending. */
   const char *type;
   /* A pointer into the local variable TYPE string. */
@@ -283,7 +283,7 @@ callframe_do_call (DOContext *ctxt,
   {
     Method m;
     m = class_getInstanceMethod(object->isa, selector);
-    if (!m) 
+    if (!m)
       abort();
     type = m->method_types;
   }
@@ -306,7 +306,7 @@ callframe_do_call (DOContext *ctxt,
 
   /* Build the cif frame */
   sig = [NSMethodSignature signatureWithObjCTypes: type];
-  cframe = callframe_from_info([sig methodInfo], [sig numberOfArguments], 
+  cframe = callframe_from_info([sig methodInfo], [sig numberOfArguments],
 			       &retval);
   ctxt->datToFree = cframe;
 
@@ -420,7 +420,7 @@ callframe_do_call (DOContext *ctxt,
 	  (*decoder) (ctxt);
 	}
     }
-  /* End of the for() loop that enumerates the method's arguments. */
+  /* End of the for () loop that enumerates the method's arguments. */
   ctxt->type = 0;
   ctxt->datum = 0;
   (*decoder) (ctxt);
@@ -433,7 +433,7 @@ callframe_do_call (DOContext *ctxt,
   NSCParameterAssert (method_implementation);
   /* Do it!  Send the message to the target, and get the return value
      in retval.  We need to encode any pass-by-reference info */
-  inv = (NSInvocation_t *)NSAllocateObject([NSInvocation class], 0, 
+  inv = (NSInvocation_t *)NSAllocateObject([NSInvocation class], 0,
 					   NSDefaultMallocZone());
   inv->_retval = retval;
   inv->_selector = selector;
@@ -441,7 +441,7 @@ callframe_do_call (DOContext *ctxt,
   inv->_info = [sig methodInfo];
   inv->_numArgs = [sig numberOfArguments];
   ctxt->objToFree = (id)inv;
-  GSFFCallInvokeWithTargetAndImp((NSInvocation *)inv, object, 
+  GSFFCallInvokeWithTargetAndImp((NSInvocation *)inv, object,
 				 method_implementation);
   ctxt->objToFree = nil;
   NSDeallocateObject((NSInvocation *)inv);
@@ -528,7 +528,7 @@ callframe_do_call (DOContext *ctxt,
 	      ctxt->flags = flags;
 	      ctxt->datum = callframe_arg_addr(cframe, argnum);
 
-	      if (*tmptype == _C_PTR) 
+	      if (*tmptype == _C_PTR)
 		{
 		  /* The argument is a pointer (to a non-char), and the
 		     pointer's value is qualified as an OUT parameter, or
@@ -558,9 +558,9 @@ callframe_do_call (DOContext *ctxt,
 
 /* callframe_build_return()
 
-   This function decodes the values returned from a method call, 
+   This function decodes the values returned from a method call,
    sets up the invocation with the return value, and updates the
-   pass-by-reference arguments.  
+   pass-by-reference arguments.
 
    The callback function is finally called with the 'type' set to a null pointer
    to tell it that the return value and all return parameters have been
@@ -568,7 +568,7 @@ callframe_do_call (DOContext *ctxt,
 
 void
 callframe_build_return (NSInvocation *inv,
-		     const char *type, 
+		     const char *type,
 		     BOOL out_parameters,
 		     void(*decoder)(DOContext *ctxt),
 		     DOContext *ctxt)
@@ -591,7 +591,7 @@ callframe_build_return (NSInvocation *inv,
 
   /* Build the call frame */
   sig = [NSMethodSignature signatureWithObjCTypes: type];
-  cframe = callframe_from_info([sig methodInfo], [sig numberOfArguments], 
+  cframe = callframe_from_info([sig methodInfo], [sig numberOfArguments],
 			       &retval);
   ctxt->datToFree = cframe;
 
@@ -613,7 +613,7 @@ callframe_build_return (NSInvocation *inv,
 
       /* If there is a return value, decode it, and put it in retval. */
       if (*tmptype != _C_VOID || (flags & _F_ONEWAY) == 0)
-	{	  
+	{	
 	  ctxt->type = tmptype;
 	  ctxt->datum = retval;
 	  ctxt->flags = flags;
@@ -629,7 +629,7 @@ callframe_build_return (NSInvocation *inv,
 		tmptype++;
 		retLength = objc_sizeof_type(tmptype);
 		/* Allocate memory to hold the value we're pointing to. */
-		*(void**)retval = 
+		*(void**)retval =
 		  NSZoneCalloc(NSDefaultMallocZone(), retLength, 1);
 		/* We are responsible for making sure this memory gets free'd
 		   eventually.  Ask NSData class to autorelease it. */
@@ -642,14 +642,14 @@ callframe_build_return (NSInvocation *inv,
 	      }
 	      break;
 
-	    case _C_STRUCT_B: 
+	    case _C_STRUCT_B:
 	    case _C_UNION_B:
 	    case _C_ARY_B:
 	      /* Decode the return value into the memory we allocated. */
 	      (*decoder) (ctxt);
 	      break;
 
-	    case _C_FLT: 
+	    case _C_FLT:
 	    case _C_DBL:
 	      (*decoder) (ctxt);
 	      break;

@@ -70,7 +70,7 @@ Class	NSPort_concrete_class;
 #ifndef __MINGW__
       /* Must be kept in sync with [NSPortNameServer
       +systemDefaultPortNameServer]. */
-      if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES 
+      if (GSUserDefaultsFlag(GSMacOSXCompatible) == YES
 	|| [[NSUserDefaults standardUserDefaults]
 	boolForKey: @"NSPortIsMessagePort"])
 	{

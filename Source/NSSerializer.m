@@ -148,7 +148,7 @@ initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
   Class	c;
 
   c = GSObjCClass(d);
-  info->data = d; 
+  info->data = d;
   info->appImp = (void (*)(NSData*,SEL,const void*,unsigned))get_imp(c, appSel);
   info->datImp = (void* (*)(NSMutableData*,SEL))get_imp(c, datSel);
   info->lenImp = (unsigned int (*)(NSData*,SEL))get_imp(c, lenSel);
@@ -247,7 +247,7 @@ serializeToInfo(id object, _NSSerializerInfo* info)
 	    {
 	      unichar buffer[slen];
 	      [object getCharacters: buffer];
-	      memcpy((*info->datImp)(info->data, datSel) + dlen, buffer, 
+	      memcpy((*info->datImp)(info->data, datSel) + dlen, buffer,
 		     slen*sizeof(unichar));
 	    }
 	  else
@@ -494,7 +494,7 @@ initDeserializerInfo(_NSDeserializerInfo* info, NSData *d, unsigned *c, BOOL m)
 
 	  if (*c + 11 < l && memcmp(&b[*c-1], "GNUstepSer", 10) == 0)
 	    {
-	      *c += 9; 
+	      *c += 9;
 	      (*info->debImp)(d, debSel, &u, 1, c);
 	      NSLog(@"Serialised data version %d not supported ..."
 		@" try another version of GNUstep");

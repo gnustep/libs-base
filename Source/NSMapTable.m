@@ -1,24 +1,24 @@
 /** NSMapTable implementation for GNUStep.
  * Copyright (C) 1994, 1995, 1996, 2002  Free Software Foundation, Inc.
- * 
+ *
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Mon Dec 12 23:59:57 EST 1994
  * Updated: Sun Mar 17 18:37:12 EST 1996
  * Serial: 96.03.17.31
  * Rewrite by: Richard Frith-Macdonald <rfm@gnu.org>
- * 
+ *
  * This file is part of the GNUstep Base Library.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -199,7 +199,7 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
   GSIMapTable	t;
   GSIMapNode	n;
   NSMapEnumerator enumerator;
-  
+
   if (table == 0)
     {
       NSWarnFLog(@"Nul table argument supplied");
@@ -239,7 +239,7 @@ NSCountMapTable(NSMapTable *table)
  * NSDefaultMallocZone().<br />
  * Returns a (pointer to) an NSMapTable space for which is allocated
  * in the default zone.  If capacity is small or 0, then the returned
- * table has a reasonable capacity. 
+ * table has a reasonable capacity.
  */
 NSMapTable *
 NSCreateMapTable(
@@ -400,7 +400,7 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
   n = GSIMapNodeForKey(t, (GSIMapKey)key);
   if (n == 0)
     {
-      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);  
+      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
     }
   else
     {
@@ -438,7 +438,7 @@ NSMapInsertIfAbsent(NSMapTable *table, const void *key, const void *value)
   n = GSIMapNodeForKey(t, (GSIMapKey)key);
   if (n == 0)
     {
-      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);  
+      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
       return 0;
     }
   else
@@ -472,7 +472,7 @@ NSMapInsertKnownAbsent(NSMapTable *table, const void *key, const void *value)
   n = GSIMapNodeForKey(t, (GSIMapKey)key);
   if (n == 0)
     {
-      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);  
+      GSIMapAddPair(t, (GSIMapKey)key, (GSIMapVal)value);
     }
   else
     {
@@ -546,7 +546,7 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 			void **key, void **value)
 {
   GSIMapNode	n;
-  
+
   if (enumerator == 0)
     {
       NSWarnFLog(@"Nul enumerator argument supplied");
@@ -646,7 +646,7 @@ typedef NSString *(*NSMT_describe_func_t)(NSMapTable *, const void *);
 
 
 /** For keys that are pointer-sized or smaller quantities. */
-const NSMapTableKeyCallBacks NSIntMapKeyCallBacks = 
+const NSMapTableKeyCallBacks NSIntMapKeyCallBacks =
 {
   (NSMT_hash_func_t) _NS_int_hash,
   (NSMT_is_equal_func_t) _NS_int_is_equal,
@@ -657,7 +657,7 @@ const NSMapTableKeyCallBacks NSIntMapKeyCallBacks =
 };
 
 /** For keys that are pointers not freed. */
-const NSMapTableKeyCallBacks NSNonOwnedPointerMapKeyCallBacks = 
+const NSMapTableKeyCallBacks NSNonOwnedPointerMapKeyCallBacks =
 {
   (NSMT_hash_func_t) _NS_non_owned_void_p_hash,
   (NSMT_is_equal_func_t) _NS_non_owned_void_p_is_equal,
@@ -668,7 +668,7 @@ const NSMapTableKeyCallBacks NSNonOwnedPointerMapKeyCallBacks =
 };
 
 /** For keys that are pointers not freed, or 0. */
-const NSMapTableKeyCallBacks NSNonOwnedPointerOrNullMapKeyCallBacks = 
+const NSMapTableKeyCallBacks NSNonOwnedPointerOrNullMapKeyCallBacks =
 {
   (NSMT_hash_func_t) _NS_non_owned_void_p_hash,
   (NSMT_is_equal_func_t) _NS_non_owned_void_p_is_equal,
@@ -679,7 +679,7 @@ const NSMapTableKeyCallBacks NSNonOwnedPointerOrNullMapKeyCallBacks =
 };
 
 /** For sets of objects without retaining and releasing. */
-const NSMapTableKeyCallBacks NSNonRetainedObjectMapKeyCallBacks = 
+const NSMapTableKeyCallBacks NSNonRetainedObjectMapKeyCallBacks =
 {
   (NSMT_hash_func_t) _NS_non_retained_id_hash,
   (NSMT_is_equal_func_t) _NS_non_retained_id_is_equal,
@@ -690,7 +690,7 @@ const NSMapTableKeyCallBacks NSNonRetainedObjectMapKeyCallBacks =
 };
 
 /** For keys that are objects. */
-const NSMapTableKeyCallBacks NSObjectMapKeyCallBacks = 
+const NSMapTableKeyCallBacks NSObjectMapKeyCallBacks =
 {
   (NSMT_hash_func_t) _NS_id_hash,
   (NSMT_is_equal_func_t) _NS_id_is_equal,
@@ -701,7 +701,7 @@ const NSMapTableKeyCallBacks NSObjectMapKeyCallBacks =
 };
 
 /** For keys that are pointers with transfer of ownership upon insertion. */
-const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks = 
+const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks =
 {
   (NSMT_hash_func_t) _NS_owned_void_p_hash,
   (NSMT_is_equal_func_t) _NS_owned_void_p_is_equal,
@@ -712,7 +712,7 @@ const NSMapTableKeyCallBacks NSOwnedPointerMapKeyCallBacks =
 };
 
 /** For values that are pointer-sized integer quantities. */
-const NSMapTableValueCallBacks NSIntMapValueCallBacks = 
+const NSMapTableValueCallBacks NSIntMapValueCallBacks =
 {
   (NSMT_retain_func_t) _NS_int_retain,
   (NSMT_release_func_t) _NS_int_release,
@@ -720,7 +720,7 @@ const NSMapTableValueCallBacks NSIntMapValueCallBacks =
 };
 
 /** For values that are pointers not freed. */
-const NSMapTableValueCallBacks NSNonOwnedPointerMapValueCallBacks = 
+const NSMapTableValueCallBacks NSNonOwnedPointerMapValueCallBacks =
 {
   (NSMT_retain_func_t) _NS_non_owned_void_p_retain,
   (NSMT_release_func_t) _NS_non_owned_void_p_release,
@@ -728,7 +728,7 @@ const NSMapTableValueCallBacks NSNonOwnedPointerMapValueCallBacks =
 };
 
 /** For sets of objects without retaining and releasing. */
-const NSMapTableValueCallBacks NSNonRetainedObjectMapValueCallBacks = 
+const NSMapTableValueCallBacks NSNonRetainedObjectMapValueCallBacks =
 {
   (NSMT_retain_func_t) _NS_non_retained_id_retain,
   (NSMT_release_func_t) _NS_non_retained_id_release,
@@ -736,7 +736,7 @@ const NSMapTableValueCallBacks NSNonRetainedObjectMapValueCallBacks =
 };
 
 /** For values that are objects. */
-const NSMapTableValueCallBacks NSObjectMapValueCallBacks = 
+const NSMapTableValueCallBacks NSObjectMapValueCallBacks =
 {
   (NSMT_retain_func_t) _NS_id_retain,
   (NSMT_release_func_t) _NS_id_release,
@@ -744,7 +744,7 @@ const NSMapTableValueCallBacks NSObjectMapValueCallBacks =
 };
 
 /** For values that are pointers with transfer of ownership upon insertion. */
-const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks = 
+const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 {
   (NSMT_retain_func_t) _NS_owned_void_p_retain,
   (NSMT_release_func_t) _NS_owned_void_p_release,

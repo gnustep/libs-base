@@ -16,19 +16,19 @@ main ()
 
   printf("Empty set count is 0 ...");
   printf(" %s\n", [s count] == 0 ? "passed" : "failed");
-  
+
   printf("Empty set does not contain index 0 ...");
   printf(" %s\n", [s containsIndex: 0] == NO ? "passed" : "failed");
-  
+
   printf("Empty set does not intersect indexes in range 0->NSNotFound-1 ...");
   printf(" %s\n", [s intersectsIndexesInRange: NSMakeRange(0,NSNotFound-1)] == NO ? "passed" : "failed");
-  
+
   printf("Empty set first index is NSNotFound...");
   printf(" %s\n", [s firstIndex] == NSNotFound ? "passed" : "failed");
-  
+
   printf("Empty set last index is NSNotFound...");
   printf(" %s\n", [s lastIndex] == NSNotFound ? "passed" : "failed");
-  
+
   printf("Empty set index less than 1 is NSNotFound...");
   printf(" %s\n", [s indexLessThanIndex: 1] == NSNotFound ? "passed" : "failed");
   printf("Empty set index less than or equal to 1 is NSNotFound...");
@@ -37,7 +37,7 @@ main ()
   printf(" %s\n", [s indexGreaterThanIndex: 1] == NSNotFound ? "passed" : "failed");
   printf("Empty set index greater than or equal to 1 is NSNotFound...");
   printf(" %s\n", [s indexGreaterThanOrEqualToIndex: 1] == NSNotFound ? "passed" : "failed");
-  
+
   printf("Empty set getIndexes gives 0...");
   r = NSMakeRange(0, NSNotFound-1);
   printf(" %s\n", [s getIndexes: buf maxCount:3 inIndexRange: &r] == 0 ? "passed" : "failed");
@@ -52,19 +52,19 @@ main ()
 
   printf("Set does not contain index 0 ...");
   printf(" %s\n", [s containsIndex: 0] == NO ? "passed" : "failed");
-  
+
   printf("Set contains index 2 ...");
   printf(" %s\n", [s containsIndex: 2] == YES ? "passed" : "failed");
-  
+
   printf("Set intersects indexes in range 0->NSNotFound-1 ...");
   printf(" %s\n", [s intersectsIndexesInRange: NSMakeRange(0,NSNotFound-1)] == YES ? "passed" : "failed");
-  
+
   printf("Set first index is 2...");
   printf(" %s\n", [s firstIndex] == 2 ? "passed" : "failed");
-  
+
   printf("Set last index is 2...");
   printf(" %s\n", [s lastIndex] == 2 ? "passed" : "failed");
-  
+
   printf("Set index less than 1 is NSNotFound...");
   printf(" %s\n", [s indexLessThanIndex: 1] == NSNotFound ? "passed" : "failed");
   printf("Set index less than or equal to 1 is NSNotFound...");
@@ -81,7 +81,7 @@ main ()
   printf(" %s\n", [s indexGreaterThanIndex: 2] == NSNotFound ? "passed" : "failed");
   printf("Set index greater than or equal to 2 is 2...");
   printf(" %s\n", [s indexGreaterThanOrEqualToIndex: 2] == 2 ? "passed" : "failed");
-  
+
   printf("Set getIndexes gives 1...");
   r = NSMakeRange(0, NSNotFound-1);
   printf(" %s\n", [s getIndexes: buf maxCount:3 inIndexRange: &r] == 1 ? "passed" : "failed");
@@ -96,22 +96,22 @@ main ()
 
   printf("Set does not contain index 0 ...");
   printf(" %s\n", [s containsIndex: 0] == NO ? "passed" : "failed");
-  
+
   printf("Set contains index 2 ...");
   printf(" %s\n", [s containsIndex: 2] == YES ? "passed" : "failed");
 
   printf("Set contains index 5 ...");
   printf(" %s\n", [s containsIndex: 5] == YES ? "passed" : "failed");
-  
+
   printf("Set intersects indexes in range 0->NSNotFound-1 ...");
   printf(" %s\n", [s intersectsIndexesInRange: NSMakeRange(0,NSNotFound-1)] == YES ? "passed" : "failed");
-  
+
   printf("Set first index is 2...");
   printf(" %s\n", [s firstIndex] == 2 ? "passed" : "failed");
-  
+
   printf("Set last index is 5...");
   printf(" %s\n", [s lastIndex] == 5 ? "passed" : "failed");
-  
+
   printf("Set index less than 1 is NSNotFound...");
   printf(" %s\n", [s indexLessThanIndex: 1] == NSNotFound ? "passed" : "failed");
   printf("Set index less than or equal to 1 is NSNotFound...");
@@ -128,7 +128,7 @@ main ()
   printf(" %s\n", [s indexGreaterThanIndex: 2] == 3 ? "passed" : "failed");
   printf("Set index greater than or equal to 2 is 2...");
   printf(" %s\n", [s indexGreaterThanOrEqualToIndex: 2] == 2 ? "passed" : "failed");
-  
+
   printf("Set getIndexes gives 3...");
   r = NSMakeRange(0, NSNotFound-1);
   printf(" %s\n", [s getIndexes: buf maxCount:3 inIndexRange: &r] == 3 ? "passed" : "failed");

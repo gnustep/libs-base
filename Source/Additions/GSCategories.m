@@ -10,7 +10,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -82,7 +82,7 @@
     {
       dayOfYear = [self dayOfYear];
     }
-  
+
   /*
    * Round up to a week boundary, so that when we divide by seven we
    * get a result in the range 1 to 53 as mandated by the ISO standard.
@@ -149,7 +149,7 @@
  * lower case hexadecimal digits (the -hexadecimalRepresentation method
  * produces a string using only uppercase digits with no white spaqce).<br />
  * If the string does not contain one or more pairs of hexadecimal digits
- * then an exception is raised. 
+ * then an exception is raised.
  */
 - (id) initWithHexadecimalRepresentation: (NSString*)string
 {
@@ -336,7 +336,7 @@ static void MD5Update (struct MD5Context *ctx, unsigned char const *buf,
 }
 
 /*
- * Final wrapup - pad to 64-byte boundary with the bit pattern 
+ * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
 static void MD5Final (unsigned char digest[16], struct MD5Context *ctx)
@@ -393,7 +393,7 @@ static void MD5Final (unsigned char digest[16], struct MD5Context *ctx)
 
 /* This is the central step in the MD5 algorithm. */
 #define MD5STEP(f, w, x, y, z, data, s) \
-  ( w += f(x, y, z) + data,  w = w<<s | w>>(32-s),  w += x )
+  (w += f(x, y, z) + data,  w = w<<s | w>>(32-s),  w += x)
 
 /*
  * The core of the MD5 algorithm, this alters an existing MD5 hash to
@@ -619,7 +619,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 	      if (end > off && bytes[end-1] == '\r')
 		{
 		  end--;
-		} 
+		}
 	      while (off < end && bytes[off] >= '0' && bytes[off] <= '7')
 		{
 		  mode *= 8;
@@ -769,7 +769,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   const char *str;
 
   str = [string cString];
-  if (strchr(str, '.') >= 0 || strchr(str, 'e') >= 0 
+  if (strchr(str, '.') >= 0 || strchr(str, 'e') >= 0
       || strchr(str, 'E') >= 0)
     return [NSNumber numberWithDouble: atof(str)];
   else if (strchr(str, '-') >= 0)
@@ -783,7 +783,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 
 
 
-/** 
+/**
  * Extension methods for the NSObject class
  */
 @implementation NSObject (GSCategories)
@@ -793,7 +793,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
   [NSException
     raise: NSGenericException
     format: @"method %s not implemented in %s(%s)",
-    aSel ? GSNameFromSelector(aSel) : "(null)", 
+    aSel ? GSNameFromSelector(aSel) : "(null)",
     GSClassNameFromObject(self),
     GSObjCIsInstance(self) ? "instance" : "class"];
   return nil;
@@ -803,8 +803,8 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 {
   [NSException
     raise: NSGenericException
-    format: @"%s(%s) should not implement %s", 
-    GSClassNameFromObject(self), 
+    format: @"%s(%s) should not implement %s",
+    GSClassNameFromObject(self),
     GSObjCIsInstance(self) ? "instance" : "class",
     aSel ? GSNameFromSelector(aSel) : "(null)"];
   return nil;
@@ -813,7 +813,7 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 - (id) subclassResponsibility: (SEL)aSel
 {
   [NSException raise: NSGenericException
-    format: @"subclass %s(%s) should override %s", 
+    format: @"subclass %s(%s) should override %s",
 	       GSClassNameFromObject(self),
 	       GSObjCIsInstance(self) ? "instance" : "class",
 	       aSel ? GSNameFromSelector(aSel) : "(null)"];
@@ -1180,8 +1180,8 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 
 static GSLazyRecursiveLock *local_lock = nil;
 
-/* 
-   This class only exists to provide 
+/*
+   This class only exists to provide
    a thread safe mechanism to initialize local_lock
    as +initialize is called under a lock in ObjC runtimes.
    User code should resort to GS_INITIALIZED_LOCK(),

@@ -1,4 +1,4 @@
-/* 
+/*
    test.m
 
    Test NSAttributedString and NSMutableAttributedString classes
@@ -7,14 +7,14 @@
 
    Written by: ANOQ of the sun <anoq@vip.cybercity.dk>
    Date: June 1997
-   
+
    This file is part of ...
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -22,7 +22,7 @@
 
    If you are interested in a warranty or support for this source code,
    contact Scott Christley <scottc@net-community.com> for more information.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -48,17 +48,17 @@ void printAttrString(NSAttributedString *attrStr)
   NSString *tmpStr;
   NSRange effectiveRange;
   unsigned int tmpLength;
-  
+
   effectiveRange = NSMakeRange(0,0);
   tmpLength = [attrStr length];
   puts("Attributed string looks like this:");
-  while(NSMaxRange(effectiveRange) < tmpLength)
+  while (NSMaxRange(effectiveRange) < tmpLength)
   {
     tmpAttrDict = [attrStr attributesAtIndex:NSMaxRange(effectiveRange)
       effectiveRange:&effectiveRange];
     printf("String: %s attributes: ",[[attrStr string] cString]);
     keyEnumerator = [tmpAttrDict keyEnumerator];
-    while((tmpStr = [keyEnumerator nextObject]))
+    while ((tmpStr = [keyEnumerator nextObject]))
       printf("%s ",[tmpStr cString]);
     printf("location: %ld length: %ld\n",
       (long)effectiveRange.location,
@@ -91,7 +91,7 @@ void testAttributedString(void)
   [twoAttributes addEntriesFromDictionary:attributes];
   [twoAttributes setObject:@"red NSColor"
     forKey:NSBackgroundColorAttributeName];
-  
+
   attrString = [[NSAttributedString alloc]
     initWithString:@"Attributed string test"
     attributes:twoAttributes];

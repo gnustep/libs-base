@@ -8,7 +8,7 @@ main(int argc, char *argv[])
 {
     id	 table;
     int  i, times;
-    
+
     if (argc < 2) {
  	fprintf(stderr, "Usage: table_test filename repeat\n");
  	fprintf(stderr, "       filename is a stringtable format file.\n");
@@ -17,9 +17,9 @@ main(int argc, char *argv[])
     }
     if (argc == 3)
 	times = atoi(argv[2]);
-    else 
+    else
 	times = 1;
-        
+
     table = [[NXStringTable alloc] init];
 
     for (i=0; i < times; i++) {

@@ -1,26 +1,26 @@
 /** NSArray - Array object to hold other objects.
    Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
    Created: March 1995
-   
+
    Rewrite by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   January 1998 - new methods and changes as documented for Rhapsody plus 
+   January 1998 - new methods and changes as documented for Rhapsody plus
    changes of array indices to type unsigned, plus major efficiency hacks.
 
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
@@ -242,7 +242,7 @@ static SEL	rlSel;
   id	a = [self allocWithZone: NSDefaultMallocZone()];
 
   GS_USEIDLIST(firstObject,
-    a = [a initWithObjects: __objects count: __count]); 
+    a = [a initWithObjects: __objects count: __count]);
   return AUTORELEASE(a);
 }
 
@@ -264,7 +264,7 @@ static SEL	rlSel;
 {
   id na;
   unsigned	c = [self count];
- 
+
   if (anObject == nil)
     [NSException raise: NSInvalidArgumentException
 		format: @"Attempt to add nil to an array"];
@@ -612,7 +612,7 @@ static SEL	rlSel;
     {
       id	array;
 
-      array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey: 
+      array = [(NSKeyedUnarchiver*)aCoder _decodeArrayOfObjectsForKey:
 						@"NS.objects"];
       if (array == nil)
 	{
@@ -677,7 +677,7 @@ static SEL	rlSel;
  * will be released, the method will return nil, and a warning may be logged.
  * </p>
  * <p>Works by invoking [NSString-initWithContentsOfFile:] and
- * [NSString-propertyList] then checking that the result is an array.  
+ * [NSString-propertyList] then checking that the result is an array.
  * </p>
  */
 - (id) initWithContentsOfFile: (NSString*)file
@@ -729,7 +729,7 @@ static SEL	rlSel;
  * will be released, the method will return nil, and a warning may be logged.
  * </p>
  * <p>Works by invoking [NSString-initWithContentsOfURL:] and
- * [NSString-propertyList] then checking that the result is an array.  
+ * [NSString-propertyList] then checking that the result is an array.
  * </p>
  */
 - (id) initWithContentsOfURL: (NSURL*)aURL
@@ -789,7 +789,7 @@ static SEL	rlSel;
 - (id) initWithObjects: firstObject, ...
 {
   GS_USEIDLIST(firstObject,
-    self = [self initWithObjects: __objects count: __count]); 
+    self = [self initWithObjects: __objects count: __count]);
   return self;
 }
 
@@ -832,7 +832,7 @@ static SEL	rlSel;
 - (BOOL) isEqualToArray: (NSArray*)otherArray
 {
   unsigned i, c;
- 
+
   if (self == (id)otherArray)
     return YES;
   c = [self count];
@@ -955,7 +955,7 @@ compare(id elem1, id elem2, void* context)
  * according to a sort with comparator.  This invokes
  * -sortedArrayUsingFunction:context:hint: with a nil hint.
  */
-- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator 
+- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator
    context: (void*)context
 {
   return [self sortedArrayUsingFunction: comparator context: context hint: nil];
@@ -976,7 +976,7 @@ compare(id elem1, id elem2, void* context)
  * is passed two objects to compare, and the context as the third
  * argument.  The hint argument is currently ignored, and may be nil.
  */
-- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator 
+- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult(*)(id,id,void*))comparator
    context: (void*)context
    hint: (NSData*)hint
 {
@@ -997,7 +997,7 @@ compare(id elem1, id elem2, void* context)
 {
   unsigned int		c = [self count];
   NSMutableString	*s = [[NSMutableString alloc] initWithCapacity: c];
-  
+
   if (c > 0)
     {
       unsigned	l = [separator length];
@@ -1091,9 +1091,9 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Returns an enumerator describing the array sequentially 
+ * Returns an enumerator describing the array sequentially
  * from the first to the last element.<br/>
- * If you use a mutable subclass of NSArray, 
+ * If you use a mutable subclass of NSArray,
  * you should not modify the array during enumeration.
  */
 - (NSEnumerator*) objectEnumerator
@@ -1106,9 +1106,9 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Returns an enumerator describing the array sequentially 
+ * Returns an enumerator describing the array sequentially
  * from the last to the first element.<br/>
- * If you use a mutable subclass of NSArray, 
+ * If you use a mutable subclass of NSArray,
  * you should not modify the array during enumeration.
  */
 - (NSEnumerator*) reverseObjectEnumerator
@@ -1229,8 +1229,8 @@ compare(id elem1, id elem2, void* context)
 
 /**
  * This overrides NSObjects implementation of this method.
- * This method returns an array of objects returned by 
- * invoking -valueForKey: for each item in the receiver, 
+ * This method returns an array of objects returned by
+ * invoking -valueForKey: for each item in the receiver,
  * substituting NSNull for nil.
  * A special case: the key "count" is not forwarded to each object
  * of the receiver but returns the number of objects of the receiver.<br/>
@@ -1250,13 +1250,13 @@ compare(id elem1, id elem2, void* context)
       unsigned		i;
       unsigned		count = [self count];
       volatile id	object = nil;
-      
+
       results = [NSMutableArray array];
-      
+
       for (i = 0; i < count; i++)
         {
           id	result;
-          
+
           object = [self objectAtIndex: i];
           result = [object valueForKey: key];
           if (result == nil)
@@ -1267,10 +1267,10 @@ compare(id elem1, id elem2, void* context)
 		}
               result = null;
             }
-          
+
           [results addObject: result];
         }
-      
+
       result = results;
     }
   return result;
@@ -1343,7 +1343,7 @@ compare(id elem1, id elem2, void* context)
  * Swaps the positions of two objects in the array.  Raises an exception
  * if either array index is out of bounds.
  */
-- (void) exchangeObjectAtIndex: (unsigned int)i1 
+- (void) exchangeObjectAtIndex: (unsigned int)i1
              withObjectAtIndex: (unsigned int)i2
 {
   id	tmp = [self objectAtIndex: i1];
@@ -1689,10 +1689,10 @@ compare(id elem1, id elem2, void* context)
 /**
  * Supplied with a C array of indices containing count values, this method
  * removes all corresponding objects from the receiver.  The objects are
- * removed in such a way that the removal is <em>safe</em> irrespective 
+ * removed in such a way that the removal is <em>safe</em> irrespective
  * of the order in which they are specified in the indices array.
  */
-- (void) removeObjectsFromIndices: (unsigned*)indices 
+- (void) removeObjectsFromIndices: (unsigned*)indices
 		       numIndices: (unsigned)count
 {
   if (count > 0)
@@ -1801,7 +1801,7 @@ compare(id elem1, id elem2, void* context)
  * Sorts the array according to the supplied compare function
  * with the context information.
  */
-- (void) sortUsingFunction: (NSComparisonResult (*)(id,id,void*))compare 
+- (void) sortUsingFunction: (NSComparisonResult (*)(id,id,void*))compare
 		   context: (void*)context
 {
   /* Shell sort algorithm taken from SortingInAction - a NeXT example */
@@ -1820,7 +1820,7 @@ compare(id elem1, id elem2, void* context)
     {
       stride = stride * STRIDE_FACTOR + 1;
     }
-    
+
   while (stride > (STRIDE_FACTOR - 1))
     {
       // loop to sort for each value of stride
@@ -1880,7 +1880,7 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Call setValue:forKey: on each of the receiver's items 
+ * Call setValue:forKey: on each of the receiver's items
  * with the value and key.
  */
 - (void) setValue: (id)value forKey: (NSString*)key
@@ -1888,7 +1888,7 @@ compare(id elem1, id elem2, void* context)
   unsigned	i;
   unsigned	count = [self count];
   volatile id	object = nil;
-      
+
   for (i = 0; i < count; i++)
     {
       object = [self objectAtIndex: i];

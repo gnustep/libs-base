@@ -16,7 +16,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -25,7 +25,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-*/ 
+*/
 
 #include "config.h"
 #ifndef NeXT_Foundation_LIBRARY
@@ -124,7 +124,7 @@ internal_unicode_enc(void)
   return unicode_enc;
 }
 
-#endif 
+#endif
 
 static GSLazyLock *local_lock = nil;
 
@@ -241,7 +241,7 @@ static void GSSetupEncodingTable(void)
 		{
 		  fprintf(stderr, "ERROR ... illegal NSStringEncoding "
 		    "value in str_encoding_table. Ignored\n");
-		} 
+		}
 	      else if (tmp > encTableSize)
 		{
 		  encTableSize = tmp;
@@ -457,7 +457,7 @@ GSEncodingForRegistry (NSString *registry, NSString *encoding)
       return NSKoreanEUCStringEncoding;
     }
   else if ([registry isEqualToString:@"utf8"]
-    || [registry isEqualToString:@"utf-8"] )
+    || [registry isEqualToString:@"utf-8"])
     {
       return NSUTF8StringEncoding;
     }
@@ -482,8 +482,8 @@ GSEncodingFromLocale(const char *clocale)
   NSStringEncoding	encoding = GSUndefinedEncoding;
   NSString		*encodstr;
 
-  if (clocale == NULL || strcmp(clocale, "C") == 0 
-    || strcmp(clocale, "POSIX") == 0) 
+  if (clocale == NULL || strcmp(clocale, "C") == 0
+    || strcmp(clocale, "POSIX") == 0)
     {
       /* Don't make any assumptions. Let caller handle that */
       return encoding;
@@ -509,7 +509,7 @@ GSEncodingFromLocale(const char *clocale)
 	{
 	  encodstr = @"0";
 	}
-      
+
       encoding = GSEncodingForRegistry(registry, encodstr);
     }
   else
@@ -521,14 +521,14 @@ GSEncodingFromLocale(const char *clocale)
       gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
       table = [gbundle pathForResource: @"Locale"
 		                ofType: @"encodings"
-		           inDirectory: @"Languages"];  
+		           inDirectory: @"Languages"];
       if (table != nil)
 	{
 	  unsigned	count;
 	  NSDictionary	*dict;
-	  
+	
 	  dict = [NSDictionary dictionaryWithContentsOfFile: table];
-	  encodstr = [dict objectForKey: 
+	  encodstr = [dict objectForKey:
 			     [NSString stringWithCString: clocale]];
 	  if (encodstr == nil)
 	    return GSUndefinedEncoding;
@@ -551,7 +551,7 @@ GSEncodingFromLocale(const char *clocale)
 	    }
 	}
     }
-      
+
   return encoding;
 }
 
@@ -593,7 +593,7 @@ GetDefEncoding(void)
 	    {
 	      fprintf(stderr,
 		      "WARNING: %s - encoding not supported.\n", encoding);
-	      fprintf(stderr, 
+	      fprintf(stderr,
 		      "  NSISOLatin1StringEncoding set as default.\n");
 	      defEnc = NSISOLatin1StringEncoding;
 	    }
@@ -873,7 +873,7 @@ uni_tolower(unichar ch)
 
   return result ? result : ch;
 }
- 
+
 /**
  * Uses direct access into a two-level table to map cases.<br />
  * The two-level table method is less space efficient (but still not bad) than
@@ -1001,7 +1001,7 @@ uni_is_decomp(unichar u)
  * <strong>deprecated</strong>
  * See GSToUnicode() and GSFromUnicode()
  */
-int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl, 
+int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
   NSStringEncoding enc, BOOL strict)
 {
   BOOL		result;
@@ -1021,7 +1021,7 @@ int encode_ustrtocstr(char *dst, int dl, const unichar *src, int sl,
  * <strong>deprecated</strong>
  * See GSToUnicode() and GSFromUnicode()
  */
-int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl, 
+int encode_cstrtoustr(unichar *dst, int dl, const char *src, int sl,
   NSStringEncoding enc)
 {
   BOOL		result;
@@ -1341,12 +1341,12 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
         base = Thai_conv_base;
 	table = Thai_char_to_uni_table;
 	goto tables;
-	    
+	
 #if 0
       case NSSymbolStringEncoding:
 	base = Symbol_conv_base;
 	table = Symbol_char_to_uni_table;
-	goto tables;    
+	goto tables;
 #endif
 
 tables:
@@ -1430,7 +1430,7 @@ tables:
 	  cd = iconv_open(UNICODE_ENC, estr);
 	  if (cd == (iconv_t)-1)
 	    {
-	      NSLog(@"No iconv for encoding %@ tried to use %s", 
+	      NSLog(@"No iconv for encoding %@ tried to use %s",
 		GetEncodingName(enc), estr);
 	      result = NO;
 	      break;
@@ -1473,9 +1473,9 @@ tables:
 	  // close the converter
 	  iconv_close(cd);
 	}
-#else 
+#else
 	result = NO;
-#endif 
+#endif
     }
 
   /*
@@ -2081,7 +2081,7 @@ tables:
 	  cd = iconv_open(estr, UNICODE_ENC);
 	  if (cd == (iconv_t)-1)
 	    {
-	      NSLog(@"No iconv for encoding %@ tried to use %s", 
+	      NSLog(@"No iconv for encoding %@ tried to use %s",
 		GetEncodingName(enc), estr);
 	      result = NO;
 	      break;
@@ -2159,7 +2159,7 @@ tables:
 #else
 	result = NO;
 	break;
-#endif 
+#endif
     }
 
   /*

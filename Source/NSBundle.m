@@ -80,7 +80,7 @@ static NSDictionary	*_emptyTable = nil;
 /* When we are linking in an object file, objc_load_modules calls our
    callback routine for every Class and Category loaded.  The following
    variable stores the bundle that is currently doing the loading so we know
-   where to store the class names. 
+   where to store the class names.
 */
 static NSBundle		*_loadingBundle = nil;
 static NSBundle		*_gnustep_bundle = nil;
@@ -91,25 +91,25 @@ static BOOL		_strip_after_loading = NO;
 static NSMutableArray	*_loadingFrameworks = nil;
 static NSString         *_currentFrameworkName = nil;
 
-static NSString	*gnustep_target_dir = 
+static NSString	*gnustep_target_dir =
 #ifdef GNUSTEP_TARGET_DIR
   @GNUSTEP_TARGET_DIR;
 #else
   nil;
 #endif
-static NSString	*gnustep_target_cpu = 
+static NSString	*gnustep_target_cpu =
 #ifdef GNUSTEP_TARGET_CPU
   @GNUSTEP_TARGET_CPU;
 #else
   nil;
 #endif
-static NSString	*gnustep_target_os = 
+static NSString	*gnustep_target_os =
 #ifdef GNUSTEP_TARGET_OS
   @GNUSTEP_TARGET_OS;
 #else
   nil;
 #endif
-static NSString	*library_combo = 
+static NSString	*library_combo =
 #ifdef LIBRARY_COMBO
   @LIBRARY_COMBO;
 #else
@@ -121,7 +121,7 @@ static NSString	*library_combo =
 const char *
 objc_executable_location (void)
 {
-  return [[_executable_path stringByDeletingLastPathComponent] 
+  return [[_executable_path stringByDeletingLastPathComponent]
 	     fileSystemRepresentation];
 }
 
@@ -187,13 +187,13 @@ bundle_object_name(NSString *path, NSString* executable)
 }
 
 /* Construct a path from components */
-static NSString * 
+static NSString *
 _bundle_resource_path(NSString *primary, NSString* bundlePath, NSString *lang)
 {
   if (bundlePath)
     primary = [primary stringByAppendingPathComponent: bundlePath];
   if (lang)
-    primary = [primary stringByAppendingPathComponent: 
+    primary = [primary stringByAppendingPathComponent:
       [NSString stringWithFormat: @"%@.lproj", lang]];
   return primary;
 }
@@ -209,7 +209,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
   NSString	*cleanname;
 
   /* name might have a directory in it also, so account for this */
-  path = [[directory stringByAppendingPathComponent: name] 
+  path = [[directory stringByAppendingPathComponent: name]
     stringByDeletingLastPathComponent];
   cleanname = [[name lastPathComponent] stringByDeletingPathExtension];
   filelist = [[mgr directoryContentsAtPath: path] objectEnumerator];
@@ -316,7 +316,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	   */
 	  bundlePath = nil;
 	}
-      
+
       if (bundlePath != nil)
 	{
 	  NSString *pathComponent;
@@ -365,8 +365,8 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	      pathComponent = [bundlePath lastPathComponent];
-	      
-	      if ([pathComponent isEqualToString: 
+	
+	      if ([pathComponent isEqualToString:
 				   [NSString stringWithFormat: @"%@%@",
 					     name, @".framework"]])
 		{
@@ -374,7 +374,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 		  bundle = [[self alloc] initWithPath: bundlePath];
 		}
 	    }
-	  
+	
 	  /* Failed - buu - try the fallback trick.  */
 	  if (bundle == nil)
 	    {
@@ -394,7 +394,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	   * ... :-)
 	  */
 	  NSString *varEnv, *path;
-	  
+	
 	  /* varEnv is something like GNUSTEP_LOCAL_ROOT.  */
 	  varEnv = [frameworkClass frameworkEnv];
 	  if (varEnv != nil  &&  [varEnv length] > 0)
@@ -404,14 +404,14 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	      bundlePath = [[[NSProcessInfo processInfo] environment]
 			     objectForKey: varEnv];
 	    }
-	  
+	
 	  /* FIXME - path is something like ?.  */
 	  path = [frameworkClass frameworkPath];
 	  if (path && [path length])
 	    {
 	      if (bundlePath)
 		{
-		  bundlePath = [bundlePath stringByAppendingPathComponent: 
+		  bundlePath = [bundlePath stringByAppendingPathComponent:
 					     path];
 		}
 	      else
@@ -421,19 +421,19 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	    }
 	  else
 	    {
-	      bundlePath = [bundlePath stringByAppendingPathComponent: 
+	      bundlePath = [bundlePath stringByAppendingPathComponent:
 					 @"Library/Frameworks"];
 	    }
-	  
+	
 	  bundlePath = [bundlePath stringByAppendingPathComponent:
-				     [NSString stringWithFormat: 
-						 @"%@.framework", 
+				     [NSString stringWithFormat:
+						 @"%@.framework",
 					       name]];
 
 	  /* Try creating the bundle.  */
 	  bundle = [[self alloc] initWithPath: bundlePath];
 	}
-      
+
       if (bundle == nil)
 	{
 	  /* TODO: We couldn't locate the framework in the expected
@@ -443,13 +443,13 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	  NSLog (@"Problem locating framework %@", name);
 	  return;
 	}
-      
+
       bundle->_bundleType = NSBUNDLE_FRAMEWORK;
       bundle->_codeLoaded = YES;
       /* frameworkVersion is something like 'A'.  */
       bundle->_frameworkVersion = RETAIN([frameworkClass frameworkVersion]);
       bundle->_bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
-      
+
       /* A NULL terminated list of class names - the classes contained
 	 in the framework.  */
       fmClasses = [frameworkClass frameworkClasses];
@@ -460,9 +460,9 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	  Class    class = NSClassFromString(*fmClasses);
 
 	  value = [NSValue valueWithNonretainedObject: class];
-	  
+	
 	  [(NSMutableArray *)[bundle _bundleClasses] addObject: value];
-	  
+	
 	  fmClasses++;
 	}
 
@@ -513,7 +513,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   /* Don't store the internal NSFramework_xxx class into the list of
      bundle classes, but store the linked frameworks in _loadingFrameworks  */
-  if (strlen (theClass->name) > 12   &&  !strncmp ("NSFramework_", 
+  if (strlen (theClass->name) > 12   &&  !strncmp ("NSFramework_",
 						   theClass->name, 12))
     {
       if (_currentFrameworkName)
@@ -528,7 +528,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       [_loadingFrameworks
 	addObject: [NSValue valueWithNonretainedObject: (id)theClass]];
-      return; 
+      return;
     }
 
   /* Store classes (but don't store categories) */
@@ -610,7 +610,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	      tmp = [_executable_path UTF8String];
 	      _executable_path = [[NSFileManager defaultManager]
 		stringWithFileSystemRepresentation: tmp length: strlen(tmp)];
-	      _executable_path = 
+	      _executable_path =
 		[self _absolutePathOfExecutable: _executable_path];
 	      NSAssert(_executable_path, NSInternalInconsistencyException);
 	    }
@@ -695,7 +695,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSMutableArray	*array = [NSMutableArray arrayWithCapacity: 2];
 
   [load_lock lock];
-  if (!_mainBundle) 
+  if (!_mainBundle)
     {
       [self mainBundle];
     }
@@ -752,20 +752,20 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
  * For an application, returns the main bundle of the application.<br />
  * For a tool, returns the main bundle associated with the tool.<br />
  * <br />
- * For an application, the structure is as follows - 
- * <p> 
+ * For an application, the structure is as follows -
+ * <p>
  * The executable is Gomoku.app/ix86/linux-gnu/gnu-gnu-gnu/Gomoku
  * and the main bundle directory is Gomoku.app/.
- * </p> 
- * For a tool, the structure is as follows - 
+ * </p>
+ * For a tool, the structure is as follows -
  * <p>
  * The executable is xxx/Tools/ix86/linux-gnu/gnu-gnu-gnu/Control
  * and the main bundle directory is xxx/Tools/Resources/Control.
- * </p> 
- * <p>(when the tool has not yet been installed, it's similar - 
+ * </p>
+ * <p>(when the tool has not yet been installed, it's similar -
  * xxx/shared_obj/ix86/linux-gnu/gnu-gnu-gnu/Control
  * and the main bundle directory is xxx/Resources/Control).
- * </p> 
+ * </p>
  * <p>(For a flattened structure, the structure is the same without the
  * ix86/linux-gnu/gnu-gnu-gnu directories).
  * </p>
@@ -773,7 +773,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 + (NSBundle *) mainBundle
 {
   [load_lock lock];
-  if (!_mainBundle) 
+  if (!_mainBundle)
     {
       /* We figure out the main bundle directory by examining the location
 	 of the executable on disk.  */
@@ -790,7 +790,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 #if defined(__WIN32__)
       toolName = [toolName stringByDeletingPathExtension];
 #endif
-      
+
       /* Strip off the name of the program */
       path = [_executable_path stringByDeletingLastPathComponent];
 
@@ -829,7 +829,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if (isApplication == YES)
 	{
 	  s = [path lastPathComponent];
-	      
+	
 	  if ((([s hasSuffix: @".app"]  == NO)
 	    && ([s hasSuffix: @".debug"] == NO)
 	    && ([s hasSuffix: @".profile"] == NO))
@@ -840,7 +840,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	      isApplication = NO;
 	    }
 	}
-      
+
       if (isApplication == NO)
 	{
 	  path = [path stringByAppendingPathComponent: @"Resources"];
@@ -856,7 +856,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       _mainBundle = [_mainBundle initWithPath: path];
       NSAssert(_mainBundle != nil, NSInternalInconsistencyException);
     }
-  
+
   [load_lock unlock];
   return _mainBundle;
 }
@@ -896,7 +896,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       bundle = nil;
     }
   [load_lock unlock];
-  if (!bundle) 
+  if (!bundle)
     {
       /* Is it in the main bundle? */
       if (class_is_class(aClass))
@@ -915,7 +915,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   self = [super init];
 
-  if (!path || [path length] == 0) 
+  if (!path || [path length] == 0)
     {
       NSLog(@"No path specified for bundle");
       [self dealloc];
@@ -1006,9 +1006,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   int     i, j;
   Class   theClass = Nil;
 
-  if (!_codeLoaded) 
+  if (!_codeLoaded)
     {
-      if (self != _mainBundle && ![self load]) 
+      if (self != _mainBundle && ![self load])
 	{
 	  NSLog(@"No classes in bundle");
 	  return Nil;
@@ -1020,8 +1020,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       theClass = NSClassFromString(className);
       if (theClass && [[self class] bundleForClass:theClass] != _mainBundle)
 	theClass = Nil;
-    } 
-  else 
+    }
+  else
     {
       BOOL found = NO;
 
@@ -1032,7 +1032,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	{
 	  Class c = [[_bundleClasses objectAtIndex: i] nonretainedObjectValue];
 
-	  if (c == theClass) 
+	  if (c == theClass)
 	    {
 	      found = YES;
 	    }
@@ -1043,7 +1043,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  theClass = Nil;
 	}
     }
-  
+
   return theClass;
 }
 
@@ -1057,8 +1057,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
 
   class_name = [[self infoDictionary] objectForKey: @"NSPrincipalClass"];
-  
-  if (self == _mainBundle || self == _gnustep_bundle) 
+
+  if (self == _mainBundle || self == _gnustep_bundle)
     {
       _codeLoaded = YES;
       if (class_name)
@@ -1125,7 +1125,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	 _codeLoaded before loading the bundle. */
       _codeLoaded = YES;
 
-      if (objc_load_module([object fileSystemRepresentation], 
+      if (objc_load_module([object fileSystemRepresentation],
 			   stderr, _bundle_load_callback, NULL, NULL))
 	{
 	  _codeLoaded = NO;
@@ -1154,7 +1154,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       DESTROY(_loadingFrameworks);
       DESTROY(_currentFrameworkName);
-      
+
       classNames = [NSMutableArray arrayWithCapacity: [_bundleClasses count]];
       classEnumerator = [_bundleClasses objectEnumerator];
       while ((class = [classEnumerator nextObject]) != nil)
@@ -1166,7 +1166,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       [load_lock unlock];
 
       [[NSNotificationCenter defaultCenter]
-        postNotificationName: NSBundleDidLoadNotification 
+        postNotificationName: NSBundleDidLoadNotification
         object: self
         userInfo: [NSDictionary dictionaryWithObject: classNames
 	  forKey: NSLoadedClasses]];
@@ -1203,7 +1203,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   enumerate = [languages objectEnumerator];
   while ((language = [enumerate nextObject]))
     [array addObject: _bundle_resource_path(primary, bundlePath, language)];
-     
+
   primary = rootPath;
   [array addObject: _bundle_resource_path(primary, bundlePath, nil)];
   enumerate = [languages objectEnumerator];
@@ -1221,8 +1221,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSString *path, *fullpath;
   NSEnumerator* pathlist;
-    
-  if (!name || [name length] == 0) 
+
+  if (!name || [name length] == 0)
     {
       [NSException raise: NSInvalidArgumentException
         format: @"No resource name specified."];
@@ -1247,7 +1247,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		{
 		  NSString* platpath;
 		  platpath = [path stringByAppendingPathComponent:
-		    [NSString stringWithFormat: @"%@-%@.%@", 
+		    [NSString stringWithFormat: @"%@-%@.%@",
 		    name, gnustep_target_os, ext]];
 		  if (bundle_file_readable(platpath))
 		    fullpath = platpath;
@@ -1263,8 +1263,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	    {
 	      NSString	*platpath;
 
-	      platpath = _bundle_name_first_match(path, 
-		[NSString stringWithFormat: @"%@-%@", 
+	      platpath = _bundle_name_first_match(path,
+		[NSString stringWithFormat: @"%@-%@",
 		name, gnustep_target_os]);
 	      if (platpath != nil)
 		fullpath = platpath;
@@ -1304,7 +1304,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 			ofType: (NSString *)ext
 {
   return [self pathForResource: name
-	       ofType: ext 
+	       ofType: ext
 	       inDirectory: nil];
 }
 
@@ -1342,15 +1342,15 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSMutableArray *resources;
   NSEnumerator *pathlist;
   NSFileManager	*mgr = [NSFileManager defaultManager];
-    
-  /* Not sure if this is correct since it will only search in 
+
+  /* Not sure if this is correct since it will only search in
      lprojs that are user preferences. FIXME. */
   pathlist = [[NSBundle _bundleResourcePathsWithRootPath: [self bundlePath]
 			subPath: bundlePath] objectEnumerator];
   resources = [NSMutableArray arrayWithCapacity: 2];
   allfiles = (extension == nil || [extension length] == 0);
 
-  while((path = [pathlist nextObject]))
+  while ((path = [pathlist nextObject]))
     {
       NSEnumerator *filelist;
       NSString *match;
@@ -1389,7 +1389,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	         forPreferences: [NSUserDefaults userLanguages]];
 }
 
-+ (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray 
++ (NSArray *) preferredLocalizationsFromArray: (NSArray *)localizationsArray
 			       forPreferences: (NSArray *)preferencesArray
 {
   NSString *locale;
@@ -1419,9 +1419,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   locales = [self preferredLocalizations];
   if ([locales count] > 0)
     locale = [locales objectAtIndex: 0];
-  path = [self pathForResource: @"Info-gnustep" 
+  path = [self pathForResource: @"Info-gnustep"
                         ofType: @"plist"
-                   inDirectory: nil 
+                   inDirectory: nil
                forLocalization: locale];
   if (path)
     {
@@ -1429,9 +1429,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     }
   else
     {
-      path = [self pathForResource: @"Info" 
+      path = [self pathForResource: @"Info"
                             ofType: @"plist"
-                       inDirectory: nil 
+                       inDirectory: nil
                    forLocalization: locale];
       if (path)
 	{
@@ -1507,7 +1507,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  tableContent = [NSString stringWithContentsOfFile: tablePath];
 	  NS_DURING
 	    {
-	      table = [tableContent propertyListFromStringsFileFormat]; 
+	      table = [tableContent propertyListFromStringsFileFormat];
 	    }
 	  NS_HANDLER
 	    {
@@ -1550,7 +1550,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if (newString == nil)
 	newString = @"";
     }
-  
+
   return newString;
 }
 
@@ -1563,7 +1563,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSString *object, *path;
 
-  if (!_mainBundle) 
+  if (!_mainBundle)
     {
       [NSBundle mainBundle];
     }
@@ -1579,7 +1579,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
       path = [_path stringByAppendingPathComponent:@"Versions/Current"];
-      
+
       _currentFrameworkName = RETAIN(([NSString stringWithFormat:
 						  @"NSFramework_%@",
 						object]));
@@ -1588,7 +1588,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       path = _path;
     }
-  
+
   object = bundle_object_name(path, object);
   return object;
 }
@@ -1603,7 +1603,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
       return [_path stringByAppendingPathComponent:
-		      [NSString stringWithFormat:@"Versions/%@/Resources", 
+		      [NSString stringWithFormat:@"Versions/%@/Resources",
 				version]];
     }
   else
@@ -1649,7 +1649,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
       return [_path stringByAppendingPathComponent:
-                      [NSString stringWithFormat:@"Versions/%@/PlugIns", 
+                      [NSString stringWithFormat:@"Versions/%@/PlugIns",
                       version]];
     }
   else
@@ -1677,7 +1677,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 @implementation NSBundle (GNUstep)
 
-/** Return a bundle which accesses the first existing directory from the list 
+/** Return a bundle which accesses the first existing directory from the list
    GNUSTEP_USER_ROOT/Libraries/Resources/libraryName/
    GNUSTEP_NETWORK_ROOT/Libraries/Resources/libraryName/
    GNUSTEP_LOCAL_ROOT/Libraries/Resources/libraryName/
@@ -1690,29 +1690,29 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   NSString *path;
   NSString *tail;
   NSFileManager *fm = [NSFileManager defaultManager];
-  
+
   if (libraryName == nil)
     {
       return nil;
     }
-  
+
   tail = [@"Resources" stringByAppendingPathComponent: libraryName];
 
   paths = NSSearchPathForDirectoriesInDomains (GSLibrariesDirectory,
 					       NSAllDomainsMask, YES);
-  
+
   enumerator = [paths objectEnumerator];
   while ((path = [enumerator nextObject]))
     {
       BOOL isDir;
       path = [path stringByAppendingPathComponent: tail];
-      
+
       if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
 	{
 	  return [self bundleWithPath: path];
 	}
     }
-  
+
   return nil;
 }
 
@@ -1816,7 +1816,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   NSLog(@"Warning: Deprecated method %@ called. Use +pathForLibraryResource:ofType:inDirectory: or +bundleForLibrary: instead",
 	NSStringFromSelector(_cmd));
-  return [self pathForLibraryResource: name ofType: ext 
+  return [self pathForLibraryResource: name ofType: ext
 	                  inDirectory: bundlePath];
 }
 

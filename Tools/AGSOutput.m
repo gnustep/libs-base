@@ -357,7 +357,7 @@ static BOOL snuggleStart(NSString *t)
 	  [self reformat: author withIndent: 4 to: str];
 	}
     }
-  
+
   /*
    * The version element is optional ... fill in if available.
    */
@@ -366,7 +366,7 @@ static BOOL snuggleStart(NSString *t)
     {
       [self reformat: tmp withIndent: 4 to: str];
     }
-  
+
   /*
    * The date element is optional ... fill in if available.
    */
@@ -375,7 +375,7 @@ static BOOL snuggleStart(NSString *t)
     {
       [self reformat: tmp withIndent: 4 to: str];
     }
-  
+
   /*
    * The abstract element is optional ... fill in if available.
    */
@@ -384,7 +384,7 @@ static BOOL snuggleStart(NSString *t)
     {
       [self reformat: tmp withIndent: 4 to: str];
     }
-  
+
   /*
    * The copy element is optional ... fill in if available.
    */
@@ -393,7 +393,7 @@ static BOOL snuggleStart(NSString *t)
     {
       [self reformat: tmp withIndent: 4 to: str];
     }
-  
+
   [str appendString: @"  </head>\n"];
   [str appendString: @"  <body>\n"];
 
@@ -492,7 +492,7 @@ static BOOL snuggleStart(NSString *t)
 	}
 
       [m appendString: @"    </chapter>\n"];
-      
+
       tmp = [self mergeMarkup: m ofKind: @"Typedefs"];
       if (tmp == nil)
 	{
@@ -773,7 +773,7 @@ static BOOL snuggleStart(NSString *t)
    * Check special markup which should be removed from the text
    * actually placed in the gsdoc method documentation ... the
    * special markup is included in the gsdoc markup differently.
-   */ 
+   */
   if (comment != nil)
     {
       NSMutableString	*m = nil;
@@ -999,7 +999,7 @@ static BOOL snuggleStart(NSString *t)
    * Check special markup which should be removed from the text
    * actually placed in the gsdoc method documentation ... the
    * special markup is included in the gsdoc markup differently.
-   */ 
+   */
   if (comment != nil)
     {
       NSMutableString	*m = nil;
@@ -1242,7 +1242,7 @@ static BOOL snuggleStart(NSString *t)
 	      NSLog(@"Unterminated <unit> in comment for %@", name);
 	      return;
 	    }
-	  
+	
 	  if (pos == 0)
 	    {
 	      if (NSMaxRange(r) == [comment length])
@@ -1358,7 +1358,7 @@ static BOOL snuggleStart(NSString *t)
   [self reformat: comment withIndent: ind + 2 to: str];
   for (j = 0; j < ind; j++) [str appendString: @" "];
   [str appendString: @"</desc>\n"];
-  
+
   names = [[ivars allKeys] sortedArrayUsingSelector: @selector(compare:)];
   for (i = 0; i < [names count]; i++)
     {
@@ -1934,7 +1934,7 @@ static BOOL snuggleStart(NSString *t)
 		}
 
 	      if (pos < ePos && (c == '+' || c == '-'))
-		{ 
+		{
 		  unsigned	mStart = pos;
 
 		  pos++;
@@ -2116,7 +2116,7 @@ static BOOL snuggleStart(NSString *t)
 	    }
 	  continue;
 	}
-      
+
       /*
        * Now handle bare method names for current class ... outside brackets.
        */

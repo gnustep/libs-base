@@ -38,7 +38,7 @@ FILE *file;
 {
   int i, n;
   CREATE_AUTORELEASE_POOL(pool);
-  
+
   NS_DURING
     n = 1+(int)((MAX_ITER*rand())/(RAND_MAX+1.0));
     fflush(stdout);
@@ -76,7 +76,7 @@ int main()
     for (i = 0; i < N; i++)
       [NSThread detachNewThreadSelector: @selector(runWith:)
 		toTarget: threads[i] withObject: nil];
-  
+
     // Hopefully this will end after all the other threads end.
     for (i = 0; i < N*MAX_ITER; i++)
       {

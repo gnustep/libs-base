@@ -100,9 +100,9 @@ bench_object()
     }
   END_TIMER;
   PRINT_TIMER("Class: 10 class method calls\t\t");
-  
+
   obj = [MyObject new];
-  
+
   START_TIMER;
   for (i = 0; i < MAX_COUNT * 10; i++)
     {
@@ -111,7 +111,7 @@ bench_object()
     }
   END_TIMER;
   PRINT_TIMER_NO_BASELINE("Category: 10 super calls\t\t");
-  
+
   START_TIMER;
   for (i = 0; i < MAX_COUNT; i++)
     {
@@ -257,7 +257,7 @@ bench_array()
   int i;
   id array;
   NSString	*strings[MAX_COUNT];
- 
+
   AUTO_START;
   for (i = 0; i < MAX_COUNT; i++)
     {
@@ -309,7 +309,7 @@ bench_dict()
   id obj2;
   NSString	*keys[MAX_COUNT/10];
   NSString	*vals[MAX_COUNT/10];
- 
+
   AUTO_START;
   for (i = 0; i < MAX_COUNT/10; i++)
     {
@@ -407,7 +407,7 @@ bench_str()
 	[NSData dataWithBytes: "hello" length: 5], @"Key8",
 	nil];
   plstr = [plist description];
- 
+
   printf("NSString\n");
 
   START_TIMER;
@@ -577,7 +577,7 @@ bench_date()
   printf("NSCalendarDate\n");
   START_TIMER;
   for (i = 0; i < MAX_COUNT/10; i++)
-    { 
+    {
       d = [[dateClass alloc] init];
       [d description];
       [d dayOfYear];
@@ -600,7 +600,7 @@ bench_data()
   printf("NSData\n");
   START_TIMER;
   for (i = 0; i < MAX_COUNT/10; i++)
-    { 
+    {
       d = [[dataClass alloc] initWithContentsOfFile:@"benchmark.m"];
       [d length];
       o = [d copy];
@@ -623,12 +623,12 @@ int main(int argc, char *argv[], char **env)
 #endif
 
   /*
-   *	Cache classes to remove overhead of objc runtime class lookup from 
+   *	Cache classes to remove overhead of objc runtime class lookup from
    *	the benchmark.
    */
   rootClass = [NSObject class];
   stringClass = [NSString class];
- 
+
   pool = [NSAutoreleasePool new];
   printf(" Test         	\t\t\t\t time (sec) \t index\n");
   bench_object();

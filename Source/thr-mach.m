@@ -41,21 +41,21 @@ int __objc_is_multi_threaded = 0;
 int __objc_runtime_threads_alive = 0;
 
 /* Thread create/exit mutex */
-struct objc_mutex* __objc_runtime_mutex = NULL; 
+struct objc_mutex* __objc_runtime_mutex = NULL;
 
 /* The hook function called when the runtime becomes multi threaded */
 objc_thread_callback _objc_became_multi_threaded = NULL;
 
 /*
-  Use this to set the hook function that will be called when the 
+  Use this to set the hook function that will be called when the
   runtime initially becomes multi threaded.
-  The hook function is only called once, meaning only when the 
+  The hook function is only called once, meaning only when the
   2nd thread is spawned, not for each and every thread.
 
   It returns the previous hook function or NULL if there is none.
 
   A program outside of the runtime could set this to some function so
-  it can be informed; for example, the GNUstep Base Library sets it 
+  it can be informed; for example, the GNUstep Base Library sets it
   so it can implement the NSBecomingMultiThreaded notification.
   */
 objc_thread_callback objc_set_thread_callback(objc_thread_callback func)
@@ -188,13 +188,13 @@ static int __mach_get_max_thread_priority(cthread_t t, int *base)
   kern_return_t error;
   struct thread_sched_info info;
   unsigned int info_count=THREAD_SCHED_INFO_COUNT;
-    
+
   if (t == NULL)
     return -1;
 
   threadP  = cthread_thread(t); 	/* get thread underlying */
 
-  error=thread_info(threadP, THREAD_SCHED_INFO, 
+  error=thread_info(threadP, THREAD_SCHED_INFO,
 		    (thread_info_t)&info, &info_count);
 
   if (error != KERN_SUCCESS)
@@ -234,15 +234,15 @@ __objc_thread_detach(void (*func)(void *arg), void *arg)
   /* create thread */
   new_thread_handle = cthread_fork((cthread_fn_t)func, arg);
 
-  if(new_thread_handle)
+  if (new_thread_handle)
     {
       /* this is not terribly portable */
-      thread_id = *(objc_thread_t *)&new_thread_handle; 
+      thread_id = *(objc_thread_t *)&new_thread_handle;
       cthread_detach(new_thread_handle);
     }
   else
     thread_id = NULL;
-  
+
   return thread_id;
 }
 
@@ -251,7 +251,7 @@ int
 objc_thread_set_priority(int priority)
 {
   objc_thread_t *t = objc_thread_id();
-  cthread_t cT = (cthread_t) t; 
+  cthread_t cT = (cthread_t) t;
   int maxPriority = __mach_get_max_thread_priority(cT, NULL);
   int sys_priority = 0;
 
@@ -297,13 +297,13 @@ objc_thread_get_priority(void)
 
   maxPriority = __mach_get_max_thread_priority(cT, &basePriority);
 
-  if(maxPriority == -1)
+  if (maxPriority == -1)
     return -1;
 
-  if (basePriority > ( (maxPriority * 2) / 3))
+  if (basePriority > ((maxPriority * 2) / 3))
     return OBJC_THREAD_INTERACTIVE_PRIORITY;
 
-  if (basePriority > ( maxPriority / 3))
+  if (basePriority > (maxPriority / 3))
     return OBJC_THREAD_BACKGROUND_PRIORITY;
 
   return OBJC_THREAD_LOW_PRIORITY;
@@ -444,11 +444,11 @@ objc_mutex_trylock(objc_mutex_t mutex)
   if (!mutex)
     return -1;
 
-  /* If we already own the lock then increment depth */ 
+  /* If we already own the lock then increment depth */
   thread_id = objc_thread_id();
   if (mutex->owner == thread_id)
     return ++mutex->depth;
-    
+
   if (mutex_try_lock((mutex_t)(mutex->backend)) == 0)
     status = -1;
   else
@@ -494,13 +494,13 @@ objc_mutex_unlock(objc_mutex_t mutex)
 /* Backend condition mutex functions */
 
 /* Allocate a condition. */
-objc_condition_t 
+objc_condition_t
 objc_condition_allocate(void)
 {
   objc_condition_t condition;
-    
+
   /* Allocate the condition mutex structure */
-  if (!(condition = 
+  if (!(condition =
 	(objc_condition_t)objc_malloc(sizeof(struct objc_condition))))
     return NULL;
 
@@ -591,13 +591,13 @@ objc_condition_signal(objc_condition_t condition)
    objc_thread_add() before an alien thread makes any calls to
    Objective-C.  Do not cause the _objc_became_multi_threaded hook to
    be executed. */
-void 
+void
 objc_thread_add(void)
 {
   objc_mutex_lock(__objc_runtime_mutex);
   __objc_is_multi_threaded = 1;
   __objc_runtime_threads_alive++;
-  objc_mutex_unlock(__objc_runtime_mutex);  
+  objc_mutex_unlock(__objc_runtime_mutex);
 }
 
 /* Make the objc thread system aware that a thread managed (started,
@@ -610,7 +610,7 @@ objc_thread_remove(void)
 {
   objc_mutex_lock(__objc_runtime_mutex);
   __objc_runtime_threads_alive--;
-  objc_mutex_unlock(__objc_runtime_mutex);  
+  objc_mutex_unlock(__objc_runtime_mutex);
 }
 
 /* End of File */

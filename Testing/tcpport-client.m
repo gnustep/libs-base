@@ -22,7 +22,7 @@ int main (int argc, char *argv[])
   int i;
 
   if (argc > 1)
-    out_port = [TcpOutPort newForSendingToRegisteredName: 
+    out_port = [TcpOutPort newForSendingToRegisteredName:
 			     [NSString stringWithCString: argv[1]]
 			   onHost: @"localhost"];
   else
@@ -38,7 +38,7 @@ int main (int argc, char *argv[])
 
   [[NSRunLoop currentRunLoop] addPort: in_port
 			      forMode: NSDefaultRunLoopMode];
-  
+
   for (i = 0; i < 10; i++)
     {
       packet = [[TcpOutPacket alloc] initForSendingWithCapacity: 100

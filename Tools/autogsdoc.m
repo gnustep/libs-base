@@ -49,7 +49,7 @@
       synopsis: <code>autogsdoc (options) (files)</code><br/>
         &#160;&#160;&#160;&#160;(options) described below<br/>
         &#160;&#160;&#160;&#160;(files) <code>.h</code>, <code>.m</code>, <code>.gsdoc</code>, and/or <code>.html</code> files, in any order.
-    </p>  
+    </p>
     <p>
       The most common usage this is to run the command with one or more
       header file names as arguments ... the tool will automatically
@@ -546,7 +546,7 @@
     </p>
 <example>
   &lt;?xml version="1.0"?&gt;
-  &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN" 
+  &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.1//EN"
   "http://www.gnustep.org/gsdoc-1_0_1.xml"&gt;
   &lt;gsdoc base="index"&gt;
     &lt;head&gt;
@@ -1438,7 +1438,7 @@ main(int argc, char **argv, char **env)
   /*
    * 6) Now move to "gsdoc files" (including both command-line given ones and
    *    just-generated ones).. and generate the index.
-   *    
+   *
    */
   count = [gFiles count];
   if (count > 0)
@@ -1566,7 +1566,7 @@ main(int argc, char **argv, char **env)
     }
 
   globalRefs = [AGSIndex new];
-  
+
   /*
    * 8) If we are either generating html output, or relocating existing
    *    html documents, we must build up the indexing information needed
@@ -1660,7 +1660,7 @@ main(int argc, char **argv, char **env)
 	      while ((file = [enumerator nextObject]) != nil)
 		{
 		  NSString	*ext = [file pathExtension];
-		  
+		
 
 		  if ([ext isEqualToString: @"igsdoc"] == YES
 		    && [[file lastPathComponent] isEqual: refsName] == NO)
@@ -1780,7 +1780,7 @@ main(int argc, char **argv, char **env)
 @"  </body>\n"
 @"</gsdoc>\n"];
       [tocSkel replaceString: @"[prjName]" withString: project];
-      
+
       // file for top-left frame (header only; rest appended below)
       idxIndexFile = [@"MainIndex" stringByAppendingPathExtension: @"html"];
       [idxIndex setString: @"<HTML>\n  <BODY>\n"
@@ -1805,7 +1805,7 @@ main(int argc, char **argv, char **env)
 @"  </FRAMESET>\n"
 @"</HTML>\n"];
       [frameset replaceString: @"[prjName]" withString: project];
-      
+
       // generate the table of contents gsdoc files
       for (i = 0; i < [idxTypes count]; i++)
         {
@@ -1894,7 +1894,7 @@ main(int argc, char **argv, char **env)
         }
     }
 
-  
+
   /*
    * 10) Next pass ... generate html output from gsdoc files if required.
    */

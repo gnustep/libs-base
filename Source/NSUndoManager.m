@@ -2,26 +2,26 @@
    Copyright (C) 1998 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
    <title>NSUndoManager class reference</title>
    $Date$ $Revision$
-*/ 
+*/
 
 #include "config.h"
 #include "Foundation/NSObject.h"
@@ -189,7 +189,7 @@
 @implementation NSUndoManager
 
 /**
- * Starts a new grouping of undo actions which can be 
+ * Starts a new grouping of undo actions which can be
  * atomically undone by an [-undo] invovation.
  * This method posts an NSUndoManagerCheckpointNotification
  * unless an undo is currently in progress.  It posts an
@@ -278,7 +278,7 @@
  * Disables the registration of operations with with either
  * [-registerUndoWithTarget:selector:object:] or
  * [-forwardInvocation:].  This method may be called multiple
- * times.  Each will need to be paired to a call of 
+ * times.  Each will need to be paired to a call of
  * [-enableUndoRegistration] before registration is actually
  * reenabled.
  */
@@ -288,8 +288,8 @@
 }
 
 /**
- * Matches previous calls of to [-disableUndoRegistration].  
- * Only call this method to that end.  Once all are matched, 
+ * Matches previous calls of to [-disableUndoRegistration].
+ * Only call this method to that end.  Once all are matched,
  * the registration of [-registerUndoWithTarget:selector:object:]
  * and [-forwardInvocation:] are reenabled.  If this method is
  * called without a matching -disableUndoRegistration,
@@ -309,10 +309,10 @@
 }
 
 /**
- * Matches previous calls of to [-beginUndoGrouping] and 
+ * Matches previous calls of to [-beginUndoGrouping] and
  * puts the group on the undo stack.  This method posts
  * an NSUndoManagerCheckpointNotification and
- * a NSUndoManagerWillCloseUndoGroupNotification.  
+ * a NSUndoManagerWillCloseUndoGroupNotification.
  * If there was no matching call to -beginUndoGrouping,
  * this method will raise an NSInternalInconsistencyException.
  */
@@ -345,9 +345,9 @@
 	      [_redoStack removeObjectAtIndex: 0];
 	    }
 
-	  if(g != nil) 
+	  if (g != nil)
 	    {
-	      if([[g actions] count] > 0)
+	      if ([[g actions] count] > 0)
 		[_redoStack addObject: g];
 	    }
 	}
@@ -358,10 +358,10 @@
 	      [_undoStack removeObjectAtIndex: 0];
 	    }
 
-	  if(g != nil)
+	  if (g != nil)
 	    {
-	      if([[g actions] count] > 0)
-		[_undoStack addObject: g];  
+	      if ([[g actions] count] > 0)
+		[_undoStack addObject: g];
 	    }
 	}
     }
@@ -383,7 +383,7 @@
  * This method is part of the NSInvocation-based undo registration
  * as opposed to the simpler [-registerUndoWithTarget:selector:object:]
  * technique.<br />
- * You generally never invoke this method directly.  
+ * You generally never invoke this method directly.
  * Instead invoke [-prepareWithInvocationTarget:] with the target of the
  * undo action and then invoke the targets method to undo the action
  * on the return value of -prepareWithInvocationTarget:
@@ -393,7 +393,7 @@
  * The invocation will added to the current grouping.<br />
  * If the registrations have been disabled through [-disableUndoRegistration],
  * this method does nothing.<br />
- * Unless the reciever implicitly 
+ * Unless the reciever implicitly
  * groups operations by event, the this method must have been preceeded
  * with a [-beginUndoGrouping] message.  Otherwise it will raise an
  * NSInternalInconsistencyException. <br />
@@ -486,10 +486,10 @@
 
 /**
  * Returns whether the receiver currently groups undo
- * operations by events.  When it does, so it implicitly 
+ * operations by events.  When it does, so it implicitly
  * invokes [-beginUndoGrouping] upon registration of undo
  * operations and registers an internal call to insure
- * the invocation of [-endUndoGrouping] at the end of the 
+ * the invocation of [-endUndoGrouping] at the end of the
  * run loop.
  */
 - (BOOL) groupsByEvent
@@ -572,7 +572,7 @@
 
 /**
  * Performs a redo of previous undo request by taking the top grouping
- * from the redo stack and invoking them.  This method posts an 
+ * from the redo stack and invoking them.  This method posts an
  * NSUndoManagerCheckpointNotification notification to allow the client
  * to process any pending changes before proceding.  If there are groupings
  * on the redo stack, the top object is popped off the stack and invoked
@@ -582,7 +582,7 @@
  */
 - (void) redo
 {
-  NSString *name = nil; 
+  NSString *name = nil;
 
   if (_isUndoing || _isRedoing)
     {
@@ -605,7 +605,7 @@
       [_redoStack removeLastObject];
 
       name = [NSString stringWithString: [groupToRedo actionName]];
- 
+
       oldGroup = _group;
       _group = nil;
       _isRedoing = YES;
@@ -644,7 +644,7 @@
 
 /**
  * Returns the full localized title of the actions to be displayed
- * as a menu item.  This method first invokes [-redoActionName] and 
+ * as a menu item.  This method first invokes [-redoActionName] and
  * passes it to [-redoMenuTitleForUndoActionName:] and returns the result.
  */
 - (NSString*) redoMenuItemTitle
@@ -659,7 +659,7 @@
  */
 - (NSString*) redoMenuTitleForUndoActionName: (NSString*)actionName
 {
-  /* 
+  /*
    * FIXME: The terms @"Redo" and @"Redo %@" should be localized.
    * Possibly with the introduction of GSBaseLocalizedString() private
    * the the library.
@@ -690,7 +690,7 @@
  * will be retained. The invocation will added to the current grouping.<br />
  * If the registrations have been disabled through [-disableUndoRegistration],
  * this method does nothing.<br />
- * Unless the reciever implicitly 
+ * Unless the reciever implicitly
  * groups operations by event, the this method must have been preceeded
  * with a [-beginUndoGrouping] message.  Otherwise it will raise an
  * NSInternalInconsistencyException. <br />
@@ -752,7 +752,7 @@
  * the undo and the redo stacks.  This method is if the sole client
  * of the undo manager will be unable to service any undo or redo events.
  * The client can call this method in its -dealloc method, unless the
- * undo manager has several clients, in which case 
+ * undo manager has several clients, in which case
  * [-removeAllActionsWithTarget:] is more apropriate.
  */
 - (void) removeAllActions
@@ -800,7 +800,7 @@
 }
 
 /**
- * Returns the run loop modes in which the receiver registers 
+ * Returns the run loop modes in which the receiver registers
  * the [-endUndoGrouping] processing when it [-groupsByEvent].
  */
 - (NSArray*) runLoopModes
@@ -812,7 +812,7 @@
  * Sets the name associated with the actions of the current group.
  * Typically you can call this method while registering the actions
  * for the current group.  This name will be used to determine the
- * name in the [-undoMenuTitleForUndoActionName:] and 
+ * name in the [-undoMenuTitleForUndoActionName:] and
  * [-redoMenuTitleForUndoActionName:] names typically displayed
  * in the menu.
  */
@@ -922,7 +922,7 @@
 
 /**
  * Returns the full localized title of the actions to be displayed
- * as a menu item.  This method first invokes [-undoActionName] and 
+ * as a menu item.  This method first invokes [-undoActionName] and
  * passes it to [-undoMenuTitleForUndoActionName:] and returns the result.
  */
 - (NSString*) undoMenuItemTitle
@@ -937,7 +937,7 @@
  */
 - (NSString*) undoMenuTitleForUndoActionName: (NSString*)actionName
 {
-  /* 
+  /*
    * FIXME: The terms @"Undo" and @"Undo %@" should be localized.
    * Possibly with the introduction of GSBaseLocalizedString() private
    * the the library.
@@ -958,7 +958,7 @@
 
 /**
  * Performs an undo by taking the top grouping
- * from the undo stack and invoking them.  This method posts an 
+ * from the undo stack and invoking them.  This method posts an
  * NSUndoManagerCheckpointNotification notification to allow the client
  * to process any pending changes before procedding.  If there are groupings
  * on the undo stack, the top object is popped off the stack and invoked
@@ -968,7 +968,7 @@
  */
 - (void) undoNestedGroup
 {
-  NSString *name = nil; 
+  NSString *name = nil;
   PrivateUndoGroup	*oldGroup;
   PrivateUndoGroup	*groupToUndo;
 

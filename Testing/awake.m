@@ -4,7 +4,7 @@
 
 
 /* Beginning of some parameters to vary. */
-/* 0 and 0 works.  
+/* 0 and 0 works.
    1 and 0 works for the first test, but has no way of getting the
      super_foo in second test right, because we haven't resolved the
      forward reference when -awakeAfterUsingCoder is called; this is
@@ -137,7 +137,7 @@ int SubFoo_awakeAfterUsingCoder_substitutes = 1;
 @end
 
 
-@implementation Foo 
+@implementation Foo
 
 - init
 {
@@ -211,7 +211,7 @@ int SubFoo_awakeAfterUsingCoder_substitutes = 1;
 
 @end
 
-/* Test the use of -encodeConditional to encode a forward reference 
+/* Test the use of -encodeConditional to encode a forward reference
    to an object. */
 void
 test_fref ()

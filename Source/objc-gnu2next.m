@@ -11,7 +11,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -20,7 +20,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-*/ 
+*/
 
 #include "config.h"
 #include <stdio.h>
@@ -46,7 +46,7 @@ id next_objc_msg_sendv(id object, SEL op, void* frame)
        stack on i386 machines. This happens with NeXT runtime and 2.7.2
        compiler. If the result value is floating point don't call
        __builtin_return anymore. */
-    if(*m->method_types == _C_FLT || *m->method_types == _C_DBL) {
+    if (*m->method_types == _C_FLT || *m->method_types == _C_DBL) {
         long double value = *(long double*)(((char*)result) + 8);
         asm("fld %0" : : "f" (value));
     }

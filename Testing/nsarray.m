@@ -54,7 +54,7 @@ main()
       printf("Error: count != 1\n");
 
     printf("Method: +arrayWithObjects:...\n");
-    c = [NSArray arrayWithObjects: 
+    c = [NSArray arrayWithObjects:
 		 [NSObject class],
 		 [NSArray class],
 		 [NSMutableArray class],
@@ -153,7 +153,7 @@ main()
     g = [f sortedArrayUsingSelector: @selector(compare:)];
     printf("Method: -sortedArrayUsingFunction:context:\n");
     h = [f sortedArrayUsingFunction: compare context: NULL];
-    
+
     enumerator = [g objectEnumerator];
     while ((i = [enumerator nextObject]))
       printf("%s ", [i cString]);

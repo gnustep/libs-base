@@ -3,24 +3,24 @@
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: January 2004
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 
-   */ 
+   */
 
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSData.h>
@@ -187,7 +187,7 @@ static NSMapTable	globalClassMap = 0;
 			NSInvalidUnarchiveOperationException
 			format: @"[%@ +%@]: no class for name '%@'",
 			NSStringFromClass([self class]),
-			NSStringFromSelector(_cmd), 
+			NSStringFromSelector(_cmd),
 			classname];
 		    }
 		}
@@ -268,7 +268,7 @@ static NSMapTable	globalClassMap = 0;
 {
   if (globalClassMap == 0)
     {
-      globalClassMap = 
+      globalClassMap =
 	NSCreateMapTable(NSObjectMapKeyCallBacks,
 			  NSNonOwnedPointerMapValueCallBacks, 0);
     }
@@ -403,7 +403,7 @@ static NSMapTable	globalClassMap = 0;
 	{
 	  [NSException raise: NSInvalidUnarchiveOperationException
 		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    oldKey, o];
 	}
     }
@@ -426,7 +426,7 @@ static NSMapTable	globalClassMap = 0;
 	{
 	  [NSException raise: NSInvalidUnarchiveOperationException
 		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    oldKey, o];
 	}
     }
@@ -448,7 +448,7 @@ static NSMapTable	globalClassMap = 0;
 	{
 	  [NSException raise: NSInvalidUnarchiveOperationException
 		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    oldKey, o];
 	}
     }
@@ -469,7 +469,7 @@ static NSMapTable	globalClassMap = 0;
 	{
 	  [NSException raise: NSInvalidUnarchiveOperationException
 		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    oldKey, o];
 	}
     }
@@ -492,7 +492,7 @@ static NSMapTable	globalClassMap = 0;
 	{
 	  [NSException raise: NSInvalidUnarchiveOperationException
 		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    oldKey, o];
 	}
     }
@@ -515,7 +515,7 @@ static NSMapTable	globalClassMap = 0;
 	{
 	  [NSException raise: NSInvalidUnarchiveOperationException
 		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    oldKey, o];
 	}
     }
@@ -538,7 +538,7 @@ static NSMapTable	globalClassMap = 0;
 	{
 	  [NSException raise: NSInvalidUnarchiveOperationException
 		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    oldKey, o];
 	}
     }
@@ -564,7 +564,7 @@ static NSMapTable	globalClassMap = 0;
 	{
 	  [NSException raise: NSInvalidUnarchiveOperationException
 		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    key, o];
 	}
     }
@@ -590,7 +590,7 @@ static NSMapTable	globalClassMap = 0;
 	{
 	  [NSException raise: NSInvalidUnarchiveOperationException
 		      format: @"[%@ +%@]: value for key(%@) is '%@'",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
+	    NSStringFromClass([self class]), NSStringFromSelector(_cmd),
 	    oldKey, o];
 	}
     }
@@ -795,7 +795,7 @@ static NSMapTable	globalClassMap = 0;
 
 @end
 
-@implementation NSObject (NSKeyedUnarchiverDelegate) 
+@implementation NSObject (NSKeyedUnarchiverDelegate)
 - (Class) unarchiver: (NSKeyedUnarchiver*)anUnarchiver
   cannotDecodeObjectOfClassName: (NSString*)aName
   originalClasses: (NSArray*)classNames
@@ -820,7 +820,7 @@ static NSMapTable	globalClassMap = 0;
 }
 @end
 
-@implementation NSObject (NSKeyedUnarchiverObjectSubstitution) 
+@implementation NSObject (NSKeyedUnarchiverObjectSubstitution)
 + (Class) classForKeyedUnarchiver
 {
   return self;

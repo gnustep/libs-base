@@ -11,7 +11,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -75,7 +75,7 @@ static Class	gcClass = 0;
     }
   result = [[GCArray allocWithZone: zone] initWithObjects: objects count: c];
   NSZoneFree(zone, objects);
-    
+
   return result;
 }
 
@@ -250,7 +250,7 @@ static Class	gcClass = 0;
   GCArray *result;
   id *objects;
   unsigned i, c = [self count];
-  
+
   objects = NSZoneMalloc(zone, c * sizeof(id));
   /* FIXME: Check if malloc return 0 */
   [self getObjects: objects];
@@ -260,7 +260,7 @@ static Class	gcClass = 0;
     }
   result = [[GCArray allocWithZone: zone] initWithObjects: objects count: c];
   NSZoneFree(zone, objects);
-  
+
   return result;
 }
 
@@ -360,7 +360,7 @@ static Class	gcClass = 0;
       _isGCObject = (BOOL*)&_contents[_maxCount];
       memmove(_isGCObject, optr, sizeof(BOOL)*old);
     }
-  for(i = _count; i > index; i--)
+  for (i = _count; i > index; i--)
     {
       _contents[i] = _contents[i - 1];
       _isGCObject[i] = _isGCObject[i - 1];

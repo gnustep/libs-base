@@ -1,4 +1,4 @@
-/** 
+/**
 
    <title>AGSIndex ... a class to create references for a gsdoc file</title>
    Copyright (C) 2001 Free Software Foundation, Inc.
@@ -465,7 +465,7 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
  * Merge a dictionary containing references into the current
  * index.   The flag may be used to specify that references
  * being merged in should override any pre-existing values.
- */ 
+ */
 - (void) mergeRefs: (NSDictionary*)more override: (BOOL)flag
 {
   mergeDictionaries(refs, more, flag);

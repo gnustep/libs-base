@@ -280,7 +280,7 @@ enum proxyLocation
 	  /*
 	   #	If there already exists a connection for talking to the
 	   *	out port, we use that one rather than creating a new one from
-	   *	our listening port. 
+	   *	our listening port.
 	   *
 	   *	First we try for a connection from our receive port,
 	   *	Then we try any connection to the send port

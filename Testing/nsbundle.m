@@ -1,11 +1,11 @@
 /* nsbundle - Program to test out dynamic linking via NSBundle.
    Copyright (C) 1993,1994,1995, 1996 Free Software Foundation, Inc.
-   
+
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: Jul 1995
-	 
+	
    This file is part of the GNUstep Base Library.
-	    
+	
 */
 #ifndef __MINGW32__
 #include <sys/param.h>
@@ -20,8 +20,8 @@
 #include "SecondClass.h"
 #include "MyCategory.h"
 
-int 
-main(int argc, char *argv[], char **env) 
+int
+main(int argc, char *argv[], char **env)
 {
     NSBundle *bundle;
     NSString *path;
@@ -32,7 +32,7 @@ main(int argc, char *argv[], char **env)
    [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
 #endif
     arp = [NSAutoreleasePool new];
-    
+
     setbuf(stdout, 0);
     /* Test bundle version and info files */
     bundle = [NSBundle bundleForLibrary: @"gnustep-base"];
@@ -95,7 +95,7 @@ main(int argc, char *argv[], char **env)
 	fprintf(stdout, "  or there is no dynamic loader on your system\n");
 	exit(1);
     NS_ENDHANDLER
-    if (!object) 
+    if (!object)
       {
 	printf("* ERROR: Can't find principal class\n");
       }

@@ -644,7 +644,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	  Protocol	*p = @protocol(GDNCProtocol);
 
 	  [_remote setProtocolForProxy: p];
-	  
+	
 	  /*
            * Ensure that this center can be used safely from different
 	   * threads.
@@ -707,7 +707,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	      recursion = NO;
 	    }
 	  else
-	    { 
+	    {
 	      recursion = NO;
 	      [NSException raise: NSInternalInconsistencyException
 			  format: @"unable to contact GDNC server -\n"

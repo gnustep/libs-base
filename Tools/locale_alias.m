@@ -62,11 +62,11 @@ loc_read_file(const char *dir, const char *file)
   if (strlen(country) > 0 && strcmp(country, language) != 0)
     {
       strcat(country, language);
-      [dict setObject: [NSString stringWithCString: country] 
+      [dict setObject: [NSString stringWithCString: country]
 	    forKey: [NSString stringWithCString: locale]];
     }
   locale[2] = '\0';
-  [dict setObject: [NSString stringWithCString: language] 
+  [dict setObject: [NSString stringWithCString: language]
 	forKey: [NSString stringWithCString: locale]];
   fclose(fp);
   return 0;

@@ -5,14 +5,14 @@
    Date: 1996
    Rewrite/optimisation by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 1998
-   
+
    This file is part of the GNUstep Objective-C Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -24,7 +24,7 @@
 
    <title>NSScanner class reference</title>
    $Date$ $Revision$
-*/ 
+*/
 
 /* We need to define _GNU_SOURCE on systems (SuSE) to get LONG_LONG_MAX.  */
 #ifndef _GNU_SOURCE
@@ -276,10 +276,10 @@ typedef struct {
     {
       switch (myCharacter(_scanLocation))
 	{
-	  case '+': 
+	  case '+':
 	    _scanLocation++;
 	    break;
-	  case '-': 
+	  case '-':
 	    negative = YES;
 	    _scanLocation++;
 	    break;
@@ -386,7 +386,7 @@ typedef struct {
 	  case 'D': digitValue = 0xD; break;
 	  case 'E': digitValue = 0xE; break;
 	  case 'F': digitValue = 0xF; break;
-	  default: 
+	  default:
 	    digitValue = radix;
 	    break;
 	}
@@ -457,8 +457,8 @@ typedef struct {
 	{
 	  switch (myCharacter(_scanLocation))
 	    {
-	      case 'x': 
-	      case 'X': 
+	      case 'x':
+	      case 'X':
 		_scanLocation++;
 		radix = 16;
 		gotDigits = NO;
@@ -466,7 +466,7 @@ typedef struct {
 	    }
 	}
     }
-  if ( [self scanUnsignedInt_: value radix: radix gotDigits: gotDigits])
+  if ([self scanUnsignedInt_: value radix: radix gotDigits: gotDigits])
     return YES;
   _scanLocation = saveScanLocation;
   return NO;
@@ -501,8 +501,8 @@ typedef struct {
 	{
 	  switch (myCharacter(_scanLocation))
 	    {
-	      case 'x': 
-	      case 'X': 
+	      case 'x':
+	      case 'X':
 		_scanLocation++;	// Scan beyond the 0x prefix
 		break;
 	      default:
@@ -555,10 +555,10 @@ typedef struct {
     {
       switch (myCharacter(_scanLocation))
 	{
-	  case '+': 
+	  case '+':
 	    _scanLocation++;
 	    break;
-	  case '-': 
+	  case '-':
 	    negative = YES;
 	    _scanLocation++;
 	    break;
@@ -659,10 +659,10 @@ typedef struct {
     {
       switch (myCharacter(_scanLocation))
 	{
-	  case '+': 
+	  case '+':
 	    _scanLocation++;
 	    break;
-	  case '-': 
+	  case '-':
 	    negative = YES;
 	    _scanLocation++;
 	    break;
@@ -765,7 +765,7 @@ typedef struct {
 - (BOOL) scanFloat: (float*)value
 {
   double num;
-  
+
   if (value == NULL)
     return [self scanDouble: NULL];
   if ([self scanDouble: &num])
@@ -775,7 +775,7 @@ typedef struct {
     }
   return NO;
 }
-    
+
 /**
  * After initial skipping (if any), this method scans any characters
  * from aSet, terminating when a character not in the set
@@ -784,7 +784,7 @@ typedef struct {
  * If value is not null, any character scanned are
  * stored in a string returned in this location.
  */
-- (BOOL) scanCharactersFromSet: (NSCharacterSet *)aSet 
+- (BOOL) scanCharactersFromSet: (NSCharacterSet *)aSet
 		    intoString: (NSString **)value
 {
   unsigned int	saveScanLocation = _scanLocation;
@@ -843,7 +843,7 @@ typedef struct {
  * <br/>
  * Returns YES if anything is scanned, NO otherwise.
  */
-- (BOOL) scanUpToCharactersFromSet: (NSCharacterSet *)aSet 
+- (BOOL) scanUpToCharactersFromSet: (NSCharacterSet *)aSet
 		        intoString: (NSString **)value
 {
   unsigned int	saveScanLocation = _scanLocation;
@@ -904,7 +904,7 @@ typedef struct {
 {
   NSRange	range;
   unsigned int	saveScanLocation = _scanLocation;
-    
+
   skipToNextField();
   range.location = _scanLocation;
   range.length = [string length];
@@ -940,25 +940,25 @@ typedef struct {
  * conjunction with the -scanString:intoString: method.
  * </p>
  * <example>
- * NSString *ch = @"["; 
- * unsigned total = 0; 
+ * NSString *ch = @"[";
+ * unsigned total = 0;
  *
- * [scanner scanUpToString: ch intoString: NULL]; 
+ * [scanner scanUpToString: ch intoString: NULL];
  * while ([scanner scanString: ch intoString: NULL] == YES)
- *  { 
+ *  {
  *    total++;
- *    [scanner scanUpToString: ch intoString: NULL]; 
- *  } 
- * NSLog(@"total %d", total); 
+ *    [scanner scanUpToString: ch intoString: NULL];
+ *  }
+ * NSLog(@"total %d", total);
  * </example>
  */
-- (BOOL) scanUpToString: (NSString *)string 
+- (BOOL) scanUpToString: (NSString *)string
 	     intoString: (NSString **)value
 {
   NSRange	range;
   NSRange	found;
   unsigned int	saveScanLocation = _scanLocation;
-    
+
   skipToNextField();
   range.location = _scanLocation;
   range.length = myLength() - _scanLocation;
@@ -1138,10 +1138,10 @@ GSScanInt(unichar *buf, unsigned length, int *result)
     {
       switch (buf[pos])
 	{
-	  case '+': 
+	  case '+':
 	    pos++;
 	    break;
-	  case '-': 
+	  case '-':
 	    negative = YES;
 	    pos++;
 	    break;
@@ -1212,10 +1212,10 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
     {
       switch (buf[pos])
 	{
-	  case '+': 
+	  case '+':
 	    pos++;
 	    break;
-	  case '-': 
+	  case '-':
 	    negative = YES;
 	    pos++;
 	    break;

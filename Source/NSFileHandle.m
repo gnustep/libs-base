@@ -87,7 +87,7 @@ static Class NSFileHandle_ssl_class = nil;
 }
 
 // Allocating and Initializing a FileHandle Object
-/** 
+/**
  * Returns an <code>NSFileHandle</code> object set up for reading from the
  * file listed at path. If the file does not exist or cannot
  * be opened for some other reason, nil is returned.
@@ -99,7 +99,7 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initForReadingAtPath: path]);
 }
 
-/** 
+/**
  * Returns an <code>NSFileHandle</code> object set up for writing to the
  * file listed at path. If the file does not exist or cannot
  * be opened for some other reason, nil is returned.
@@ -111,7 +111,7 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initForWritingAtPath: path]);
 }
 
-/** 
+/**
  * Returns an <code>NSFileHandle</code> object setup for updating (reading and
  * writing) from the file listed at path. If the file does not exist
  * or cannot be opened for some other reason, nil is returned.
@@ -123,7 +123,7 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initForUpdatingAtPath: path]);
 }
 
-/** 
+/**
  * Returns an <code>NSFileHandle</code> object for the standard error
  * descriptor.  The returned object is a shared instance as there can only be
  * one standard error per process.
@@ -135,7 +135,7 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithStandardError]);
 }
 
-/** 
+/**
  * Returns an <code>NSFileHandle</code> object for the standard input
  * descriptor.  The returned object is a shared instance as there can only be
  * one standard input per process.
@@ -147,7 +147,7 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithStandardInput]);
 }
 
-/** 
+/**
  * Returns an <code>NSFileHandle</code> object for the standard output
  * descriptor.  The returned object is a shared instance as there can only be
  * one standard output per process.
@@ -159,7 +159,7 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithStandardOutput]);
 }
 
-/** 
+/**
  * Returns a file handle object that is connected to the null device
  * (i.e. a device that does nothing.)  It is typically used in arrays
  * and other collections of file handle objects as a place holder

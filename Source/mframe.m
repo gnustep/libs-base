@@ -1,25 +1,25 @@
-/** Implementation of functions for dissecting/making method calls 
+/** Implementation of functions for dissecting/making method calls
    Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
-   
+
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: Oct 1994
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-   */ 
+   */
 
 /* These functions can be used for dissecting and making method calls
    for many different situations.  They are used for distributed
@@ -29,7 +29,7 @@
 */
 
 /* Remove `inline' nested functions if they crash your compiler */
-//#define inline 
+//#define inline
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -63,7 +63,7 @@
 /* For encoding and decoding the method arguments, we have to know where
    to find things in the "argframe" as returned by __builtin_apply_args.
 
-   For some situations this is obvious just from the selector type 
+   For some situations this is obvious just from the selector type
    encoding, but structures passed by value cause a problem because some
    architectures actually pass these by reference, i.e. use the
    structure-value-address mentioned in the gcc/config/_/_.h files.
@@ -105,7 +105,7 @@ mframe_build_signature(const char *typePtr, int *size, int *narg, char *buf)
    */
   types = objc_skip_typespec(typePtr);
   strncpy(buf, typePtr, types - typePtr);
-  buf[types-typePtr] = '\0'; 
+  buf[types-typePtr] = '\0';
 
   /*
    *	Point to the return type, initialise size of stack args, and skip
@@ -353,7 +353,7 @@ mframe_next_arg(const char *typePtr, NSArgumentInfo *info)
 	  info->align = local.align;
 	  typePtr++;	/* Skip end-of-array	*/
 	}
-	break; 
+	break;
 
       case _C_STRUCT_B:
 	{
@@ -761,7 +761,7 @@ mframe_dissect_call (arglist_t argframe, const char *type,
        values; the indices start at 0.
      DATA is a pointer to the memory where the value can be found.
      TYPE is a pointer to the type string of this value.
-     FLAGS is a copy of the type qualifier flags for this argument; 
+     FLAGS is a copy of the type qualifier flags for this argument;
        (see <objc/objc-api.h>).
 
      mframe_do_call() calls this function after the method has been
@@ -780,7 +780,7 @@ mframe_do_call (DOContext *ctxt,
 		void(*decoder)(DOContext*),
 		void(*encoder)(DOContext*))
 {
-  /* The method type string obtained from the target's OBJC_METHOD 
+  /* The method type string obtained from the target's OBJC_METHOD
      structure for the selector we're sending. */
   const char *type;
   /* A pointer into the local variable TYPE string. */
@@ -859,7 +859,7 @@ mframe_do_call (DOContext *ctxt,
   {
     Method m;
     m = class_getInstanceMethod(object->isa, selector);
-    if (!m) 
+    if (!m)
       abort();
     type = m->method_types;
   }
@@ -1044,7 +1044,7 @@ mframe_do_call (DOContext *ctxt,
 	  (*decoder) (ctxt);
 	}
     }
-  /* End of the for() loop that enumerates the method's arguments. */
+  /* End of the for () loop that enumerates the method's arguments. */
   ctxt->type = 0;
   ctxt->datum = 0;
   (*decoder) (ctxt);
@@ -1058,8 +1058,8 @@ mframe_do_call (DOContext *ctxt,
   /* Do it!  Send the message to the target, and get the return value
      in RETFRAME.  The arguments will still be in ARGFRAME, so we can
      get the pass-by-reference info from there. */
-  retframe = __builtin_apply((void(*)(void))method_implementation, 
-			     argframe, 
+  retframe = __builtin_apply((void(*)(void))method_implementation,
+			     argframe,
 			     stack_argsize);
 
 
@@ -1176,11 +1176,11 @@ mframe_do_call (DOContext *ctxt,
     {
       /* Step through all the arguments, finding the ones that were
 	 passed by reference. */
-      for (datum = method_types_get_next_argument (argframe, &tmptype), 
+      for (datum = method_types_get_next_argument (argframe, &tmptype),
 	     argnum = 1,
 	     etmptype = objc_skip_argspec (etmptype);
 	   datum;
-	   datum = method_types_get_next_argument (argframe, &tmptype), 
+	   datum = method_types_get_next_argument (argframe, &tmptype),
 	     argnum++,
 	     etmptype = objc_skip_argspec (etmptype))
 	{
@@ -1197,7 +1197,7 @@ mframe_do_call (DOContext *ctxt,
 	  /* Decide how, (or whether or not), to encode the argument
 	     depending on its FLAGS and TMPTYPE. */
 
-	  if ((*tmptype == _C_PTR) 
+	  if ((*tmptype == _C_PTR)
 	    && ((flags & _F_OUT) || !(flags & _F_IN)))
 	    {
 	      /* The argument is a pointer (to a non-char), and the
@@ -1304,9 +1304,9 @@ static  retval_t apply_short(short data)
    dealt with.  This permits the function to do any tidying up necessary.
 */
 
-retval_t 
-mframe_build_return (arglist_t argframe, 
-		     const char *type, 
+retval_t
+mframe_build_return (arglist_t argframe,
+		     const char *type,
 		     BOOL out_parameters,
 		     void(*decoder)(DOContext*),
 		     DOContext *ctxt)
@@ -1360,7 +1360,7 @@ mframe_build_return (arglist_t argframe,
 	     on non--structure-value-address machines, and potentially
 	     just always alloca(RETFRAME_SIZE == sizeof(void*)*4) */
 	  retframe = alloca (MAX(retsize, sizeof(void*)*4));
-	  
+	
 	  ctxt->type = tmptype;
 	  ctxt->datum = retframe;
 	  ctxt->flags = flags;
@@ -1376,7 +1376,7 @@ mframe_build_return (arglist_t argframe,
 		tmptype++;
 		retLength = (unsigned int)objc_sizeof_type(tmptype);
 		/* Allocate memory to hold the value we're pointing to. */
-		*(void**)retframe = 
+		*(void**)retframe =
 		  NSZoneMalloc(NSDefaultMallocZone(), retLength);
 		/* We are responsible for making sure this memory gets free'd
 		   eventually.  Ask NSData class to autorelease it. */
@@ -1389,7 +1389,7 @@ mframe_build_return (arglist_t argframe,
 	      }
 	      break;
 
-	    case _C_STRUCT_B: 
+	    case _C_STRUCT_B:
 	    case _C_UNION_B:
 	    case _C_ARY_B:
 	      /* The argument is a structure or array returned by value.
@@ -1400,7 +1400,7 @@ mframe_build_return (arglist_t argframe,
 	      (*decoder) (ctxt);
 	      break;
 
-	    case _C_FLT: 
+	    case _C_FLT:
 	    case _C_DBL:
 	      (*decoder) (ctxt);
 	      break;
@@ -1416,7 +1416,7 @@ mframe_build_return (arglist_t argframe,
 	      (*decoder) (ctxt);
 	    }
 	}
-      
+
       /* Decode the values returned by reference.  Note: this logic
 	 must match exactly the code in mframe_do_call(); that
 	 function should decode exactly what we encode here. */
@@ -1425,10 +1425,10 @@ mframe_build_return (arglist_t argframe,
 	{
 	  /* Step through all the arguments, finding the ones that were
 	     passed by reference. */
-	  for (datum = method_types_get_next_argument(argframe, &tmptype), 
+	  for (datum = method_types_get_next_argument(argframe, &tmptype),
 	       argnum=0;
 	       datum;
-	       (datum = method_types_get_next_argument(argframe, &tmptype)), 
+	       (datum = method_types_get_next_argument(argframe, &tmptype)),
 	       argnum++)
 	    {
 	      /* Get the type qualifiers, like IN, OUT, INOUT, ONEWAY. */

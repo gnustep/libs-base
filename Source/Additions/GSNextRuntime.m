@@ -11,7 +11,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -20,7 +20,7 @@
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-*/ 
+*/
 
 #include "config.h"
 #include <stdio.h>
@@ -32,7 +32,7 @@
 #endif
 
 /*
-  return the size of an object specified by type 
+  return the size of an object specified by type
 */
 
 int
@@ -54,7 +54,7 @@ objc_sizeof_type(const char* type)
   case _C_CHR:
     return sizeof(char);
     break;
-    
+
   case _C_UCHR:
     return sizeof(unsigned char);
     break;
@@ -103,7 +103,7 @@ objc_sizeof_type(const char* type)
       while (isdigit(*++type));
       return len*objc_aligned_size (type);
     }
-    break; 
+    break;
 
   case _C_STRUCT_B:
     {
@@ -141,7 +141,7 @@ objc_sizeof_type(const char* type)
 	}
       return max_size;
     }
-    
+
   default:
     abort();
   }
@@ -149,7 +149,7 @@ objc_sizeof_type(const char* type)
 
 
 /*
-  Return the alignment of an object specified by type 
+  Return the alignment of an object specified by type
 */
 
 int
@@ -163,7 +163,7 @@ objc_alignof_type(const char* type)
   case _C_CLASS:
     return __alignof__(Class);
     break;
-    
+
   case _C_SEL:
     return __alignof__(SEL);
     break;
@@ -171,7 +171,7 @@ objc_alignof_type(const char* type)
   case _C_CHR:
     return __alignof__(char);
     break;
-    
+
   case _C_UCHR:
     return __alignof__(unsigned char);
     break;
@@ -216,11 +216,11 @@ objc_alignof_type(const char* type)
   case _C_ARY_B:
     while (isdigit(*++type)) /* do nothing */;
     return objc_alignof_type (type);
-      
+
   case _C_STRUCT_B:
     {
       struct { int x; double y; } fooalign;
-      while(*type != _C_STRUCT_E && *type++ != '=') /* do nothing */;
+      while (*type != _C_STRUCT_E && *type++ != '=') /* do nothing */;
       if (*type != _C_STRUCT_E)
 	return MAX (objc_alignof_type (type), __alignof__ (fooalign));
       else
@@ -238,7 +238,7 @@ objc_alignof_type(const char* type)
 	}
       return maxalign;
     }
-    
+
   default:
     abort();
   }
@@ -269,7 +269,7 @@ objc_aligned_size (const char* type)
   to be the size of a void*.
 */
 
-int 
+int
 objc_promoted_size (const char* type)
 {
   int size = objc_sizeof_type (type);
@@ -295,9 +295,9 @@ const char*
 objc_skip_type_qualifiers (const char* type)
 {
   while (*type == _C_CONST
-	 || *type == _C_IN 
+	 || *type == _C_IN
 	 || *type == _C_INOUT
-	 || *type == _C_OUT 
+	 || *type == _C_OUT
 	 || *type == _C_BYCOPY
 #ifdef	_C_BYREF
 	 || *type == _C_BYREF
@@ -312,17 +312,17 @@ objc_skip_type_qualifiers (const char* type)
   return type;
 }
 
-  
+
 /*
   Skip one typespec element.  If the typespec is prepended by type
   qualifiers, these are skipped as well.
 */
 
-const char* 
+const char*
 objc_skip_typespec (const char* type)
 {
   type = objc_skip_type_qualifiers (type);
-  
+
   switch (*type) {
 
   case _C_ID:
@@ -358,8 +358,8 @@ objc_skip_typespec (const char* type)
 
   case _C_ARY_B:
     /* skip digits, typespec and closing ']' */
-    
-    while(isdigit(*++type));
+
+    while (isdigit(*++type));
     type = objc_skip_typespec(type);
     if (*type == _C_ARY_E)
       return ++type;
@@ -368,23 +368,23 @@ objc_skip_typespec (const char* type)
 
   case _C_STRUCT_B:
     /* skip name, and elements until closing '}'  */
-    
+
     while (*type != _C_STRUCT_E && *type++ != '=');
     while (*type != _C_STRUCT_E) { type = objc_skip_typespec (type); }
     return ++type;
 
   case _C_UNION_B:
     /* skip name, and elements until closing ')'  */
-    
+
     while (*type != _C_UNION_E && *type++ != '=');
     while (*type != _C_UNION_E) { type = objc_skip_typespec (type); }
     return ++type;
 
   case _C_PTR:
     /* Just skip the following typespec */
-    
+
     return objc_skip_typespec (++type);
-    
+
   default:
     abort();
   }
@@ -394,12 +394,12 @@ objc_skip_typespec (const char* type)
   Skip an offset as part of a method encoding.  This is prepended by a
   '+' if the argument is passed in registers.
 */
-inline const char* 
+inline const char*
 objc_skip_offset (const char* type)
 {
   if (*type == '+') type++;
   if (*type == '-') type++;
-  while(isdigit(*++type));
+  while (isdigit(*++type));
   return type;
 }
 
@@ -499,7 +499,7 @@ void *
 objc_malloc(size_t size)
 {
   void* res = (void*) (*_objc_malloc)(size);
-  if(!res)
+  if (!res)
     objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
   return res;
 }
@@ -508,7 +508,7 @@ void *
 objc_atomic_malloc(size_t size)
 {
   void* res = (void*) (*_objc_atomic_malloc)(size);
-  if(!res)
+  if (!res)
     objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
   return res;
 }
@@ -517,7 +517,7 @@ void *
 objc_valloc(size_t size)
 {
   void* res = (void*) (*_objc_valloc)(size);
-  if(!res)
+  if (!res)
     objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
   return res;
 }
@@ -526,7 +526,7 @@ void *
 objc_realloc(void *mem, size_t size)
 {
   void* res = (void*) (*_objc_realloc)(mem, size);
-  if(!res)
+  if (!res)
     objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
   return res;
 }
@@ -535,7 +535,7 @@ void *
 objc_calloc(size_t nelem, size_t size)
 {
   void* res = (void*) (*_objc_calloc)(nelem, size);
-  if(!res)
+  if (!res)
     objc_error(nil, OBJC_ERR_MEMORY, "Virtual memory exhausted\n");
   return res;
 }
@@ -632,20 +632,20 @@ int
 objc_mutex_lock(objc_mutex_t mutex)
 {
   pthread_mutex_t *p = (pthread_mutex_t *)mutex;
-  return pthread_mutex_lock(p);  
+  return pthread_mutex_lock(p);
 }
 
 int
 objc_mutex_unlock (objc_mutex_t mutex)
 {
   pthread_mutex_t *p = (pthread_mutex_t *)mutex;
-  return pthread_mutex_unlock(p);  
+  return pthread_mutex_unlock(p);
 }
 
 int
 objc_mutex_trylock (objc_mutex_t mutex)
 {
   pthread_mutex_t *p = (pthread_mutex_t *)mutex;
-  return pthread_mutex_trylock(p);  
+  return pthread_mutex_trylock(p);
 }
 

@@ -44,25 +44,25 @@ if ([(NSDate*) [NSCalendarDate date] compare:
     a = [NSDate date];
     printf("+[date] -- %s\n", [DESCRIP(a) cString]);
     b = [NSDate dateWithTimeIntervalSinceNow: 0];
-    printf("+[dateWithTimeIntervalSinceNow: 0] -- %s\n", 
+    printf("+[dateWithTimeIntervalSinceNow: 0] -- %s\n",
 	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSinceNow: 600];
-    printf("+[dateWithTimeIntervalSinceNow: 600] -- %s\n", 
+    printf("+[dateWithTimeIntervalSinceNow: 600] -- %s\n",
 	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSince1970: 0];
-    printf("+[dateWithTimeIntervalSince1970: 0] -- %s\n", 
+    printf("+[dateWithTimeIntervalSince1970: 0] -- %s\n",
 	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSince1970: -600];
-    printf("+[dateWithTimeIntervalSince1970: -600] -- %s\n", 
+    printf("+[dateWithTimeIntervalSince1970: -600] -- %s\n",
 	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSinceReferenceDate: 0];
-    printf("+[dateWithTimeIntervalSinceReferenceDate: 0] -- %s\n", 
+    printf("+[dateWithTimeIntervalSinceReferenceDate: 0] -- %s\n",
 	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSinceReferenceDate: 300];
-    printf("+[dateWithTimeIntervalSinceReferenceDate: 300] -- %s\n", 
+    printf("+[dateWithTimeIntervalSinceReferenceDate: 300] -- %s\n",
 	   [DESCRIP(b) cString]);
     b = [NSDate dateWithTimeIntervalSinceNow: 24*60*40];
-    printf("+[dateWithTimeIntervalSinceNow: 0] -- %s\n", 
+    printf("+[dateWithTimeIntervalSinceNow: 0] -- %s\n",
 	   [DESCRIP(b) cString]);
 
     // Comparisons
@@ -114,7 +114,7 @@ if ([(NSDate*) [NSCalendarDate date] compare:
     a = [c absoluteGregorianDay: 9 month: 10 year: 1996];
     printf("%d-%d-%d is Gregorian absolute %d\n", 9, 10, 1996, a);
     printf("-[dayOfCommonEra] %d\n", [c dayOfCommonEra]);
-    printf("-[timeIntervalSinceReferenceDate] %f\n", 
+    printf("-[timeIntervalSinceReferenceDate] %f\n",
 	   [c timeIntervalSinceReferenceDate]);
 
     a = [c absoluteGregorianDay: 1 month: 1 year: 2001];
@@ -134,12 +134,12 @@ if ([(NSDate*) [NSCalendarDate date] compare:
     printf("-[monthOfYear] %d\n", [c monthOfYear]);
     printf("-[secondOfMinute] %d\n", [c secondOfMinute]);
     printf("-[yearOfCommonEra] %d\n", [c yearOfCommonEra]);
-    printf("-[timeIntervalSinceReferenceDate] %f\n", 
+    printf("-[timeIntervalSinceReferenceDate] %f\n",
 	   [c timeIntervalSinceReferenceDate]);
     e = [NSCalendarDate dateWithString: @"1996-10-09 0:00:0"
 			calendarFormat: @"%Y-%m-%d %H:%M:%S"];
     printf("calendar date %s\n", [[e description] cString]);
-    printf("-[timeIntervalSinceReferenceDate] %f\n", 
+    printf("-[timeIntervalSinceReferenceDate] %f\n",
 	   [e timeIntervalSinceReferenceDate]);
     printf("NSCalendrical time tests\n");
     {

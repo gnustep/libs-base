@@ -464,7 +464,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	      /*
 	       * Connect command is ten bytes -
 	       *   socks version
-	       *   connect command 
+	       *   connect command
 	       *   reserved byte
 	       *   address type
 	       *   address 4 bytes (big endian)
@@ -577,7 +577,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    }
 	  else if (bytes[3] == 1)
 	    {
-	      len = 4;			// Fixed size (IPV4) address 
+	      len = 4;			// Fixed size (IPV4) address
 	    }
 	  else if (bytes[3] == 3)
 	    {
@@ -585,7 +585,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    }
 	  else if (bytes[3] == 4)
 	    {
-	      len = 16;			// Fixed size (IPV6) address 
+	      len = 16;			// Fixed size (IPV6) address
 	    }
 	  else
 	    {
@@ -2369,7 +2369,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   NSString	*str = nil;
   struct sockaddr_in sin;
   int		size = sizeof(sin);
-  
+
   if (getsockname(descriptor, (struct sockaddr*)&sin, &size) == SOCKET_ERROR)
     {
       NSLog(@"unable to get socket name - %s", GSLastErrorStr(errno));

@@ -67,7 +67,7 @@
 
 @end
 
-@implementation Foo 
+@implementation Foo
 
 - (void) dealloc
 {
@@ -122,7 +122,7 @@
 
 @end
 
-/* Test the use of -encodeConditional to encode a forward reference 
+/* Test the use of -encodeConditional to encode a forward reference
    to an object. */
 void
 test_fref ()

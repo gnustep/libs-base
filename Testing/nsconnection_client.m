@@ -85,7 +85,7 @@ int con_data (id prx)
   struct myarray ma = {{55,66,77}};
 
   printf("Testing data sending\n");
- 
+
   printf("Boolean:\n");
   b = YES;
   printf("  sending %d", b);
@@ -190,7 +190,7 @@ int con_data (id prx)
   [prx getString: &str];
   printf(" got (%s)\n", str);
   [pool release];
-  
+
   pool = [NSAutoreleasePool new];
   printf("Small Struct:\n");
   //printf("  sending %x", small.z);
@@ -336,7 +336,7 @@ con_benchmark (id prx)
   NSMutableData *sen = [NSMutableData data];
   id localObj;
   id rep;
-  
+
   printf("Benchmarking\n");
   [sen setLength: 100000];
   rep = [prx sendObject: sen];
@@ -355,7 +355,7 @@ con_benchmark (id prx)
 #endif
       [prx echoObject: localObj];
     }
-  
+
   printf("  Delay is %f\n", [d timeIntervalSinceNow]);
   printf("Done\n");
   return 0;
@@ -424,7 +424,7 @@ con_objects (id prx)
   for (j = 0; j < k; j++)
     {
       id remote_peer_obj = [prx objectAt:j];
-      printf("triangle %d object proxy's hash is 0x%x\n", 
+      printf("triangle %d object proxy's hash is 0x%x\n",
 	     j, (unsigned)[remote_peer_obj hash]);
 
 #if 0
@@ -433,7 +433,7 @@ con_objects (id prx)
 	[remote_peer_obj release];
 #endif
       remote_peer_obj = [prx objectAt:j];
-      printf("repeated triangle %d object proxy's hash is 0x%x\n", 
+      printf("repeated triangle %d object proxy's hash is 0x%x\n",
 	     j, (unsigned)[remote_peer_obj hash]);
     }
   return 0;
@@ -505,7 +505,7 @@ int main (int argc, char *argv[], char **env)
   type_test = 0;
   stats = 0;
   while ((c = getopt(argc, argv, "hdtbmslocr")) != EOF)
-    switch (c) 
+    switch (c)
       {
       case 'd':
 	debug++;
@@ -565,7 +565,7 @@ int main (int argc, char *argv[], char **env)
       if (optind < argc)
 	{
 	  if (optind+1 < argc)
-	    prx = [NSConnection rootProxyForConnectionWithRegisteredName: 
+	    prx = [NSConnection rootProxyForConnectionWithRegisteredName:
 				  [NSString stringWithCString: argv[optind+1]]
 			    host: [NSString stringWithCString:argv[optind]]];
 	  else

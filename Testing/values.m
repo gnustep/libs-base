@@ -49,17 +49,17 @@ printf("nc compare: ns is %d\n", [nc compare: ns]);
     if (strcmp([[n7 description] cString], "25") != 0)
       printf("*** TEST FAILED **** description for short number\n");
 
-    printf("Number(n1) as int %d, as float %f\n", 
+    printf("Number(n1) as int %d, as float %f\n",
 		[n1 intValue], [n1 floatValue]);
-    printf("n1 times n2=%f as int to get %d\n", 
+    printf("n1 times n2=%f as int to get %d\n",
 	[n2 floatValue], [n1 intValue]*[n2 intValue]);
     printf("n2 as string: %s\n", [[n2 stringValue] cString]);
     printf("n2 compare: n1 is %d\n", [n2 compare: n1]);
     printf("n1 compare: n2 is %d\n", [n1 compare: n2]);
     printf("n1 isEqual: n3 is %d\n", [n1 isEqual: n3]);
-    printf("n4 isEqual: n5 is %d\n", [n4 isEqual: n5]);    
+    printf("n4 isEqual: n5 is %d\n", [n4 isEqual: n5]);
 
-    a1 = [NSMutableArray arrayWithObjects: 
+    a1 = [NSMutableArray arrayWithObjects:
 		    [NSNumber numberWithChar: 111],
 		    [NSNumber numberWithUnsignedChar: 112],
 		    [NSNumber numberWithShort: 121],
@@ -71,7 +71,7 @@ printf("nc compare: ns is %d\n", [nc compare: ns]);
 		    [NSNumber numberWithFloat: 151],
 		    [NSNumber numberWithDouble: 152], nil];
 
-    a2 = [NSMutableArray arrayWithObjects: 
+    a2 = [NSMutableArray arrayWithObjects:
 		   [NSNumber numberWithChar: 111],
 		   [NSNumber numberWithUnsignedChar: 112],
 		   [NSNumber numberWithShort: 121],
@@ -83,7 +83,7 @@ printf("nc compare: ns is %d\n", [nc compare: ns]);
 		   [NSNumber numberWithFloat: 151],
 		   [NSNumber numberWithDouble: 152], nil];
 
-    printf("a1 isEqual: a2 is %d\n", [a1 isEqual: a2]);    
+    printf("a1 isEqual: a2 is %d\n", [a1 isEqual: a2]);
 
     // Test values, Geometry
     {
@@ -168,7 +168,7 @@ printf("nc compare: ns is %d\n", [nc compare: ns]);
     a2 = [NSUnarchiver unarchiveObjectWithData:
       [NSArchiver archivedDataWithRootObject: a1]];
 
-    printf("After archiving, a1 isEqual: a2 is %d\n", [a1 isEqual: a2]);    
+    printf("After archiving, a1 isEqual: a2 is %d\n", [a1 isEqual: a2]);
     if ([a1 isEqual: a2] == NO)
       {
 	printf("a1 - %s\n", [[a1 description] cString]);

@@ -1,25 +1,25 @@
 /** Implementation of network port object based on TCP sockets
    Copyright (C) 2000 Free Software Foundation, Inc.
-   
+
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Based on code by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
-   */ 
+   */
 
 #include "config.h"
 #include "GNUstepBase/preface.h"
@@ -123,7 +123,7 @@ static gsu32	maxDataLength = 10 * 1024 * 1024;
 /*
  * Theory of operation
  *
- * 
+ *
  */
 
 
@@ -276,7 +276,7 @@ decodePort(NSData *data, NSString *defaultAddress)
   gsu32			length;
   NSHost		*host;
   unichar		c;
-  
+
   pih = (GSPortItemHeader*)[data bytes];
   NSCAssert(GSSwapBigI32ToHost(pih->type) == GSP_PORT,
     NSInternalInconsistencyException);
@@ -286,7 +286,7 @@ decodePort(NSData *data, NSString *defaultAddress)
   if (strncmp(pi->addr, "VER", 3) == 0)
     {
       NSLog(@"Remote version of GNUstep at %s:%d is more recent than this one",
-	pi->addr, pnum); 
+	pi->addr, pnum);
       return nil;
     }
   addr = [NSString stringWithCString: pi->addr];
@@ -326,7 +326,7 @@ newDataWithEncodedPort(GSTcpPort *port)
   unsigned		plen;
   NSString		*addr;
   gsu16			pnum;
-  
+
   pnum = [port portNumber];
   addr = [port address];
   if (addr == nil)
@@ -661,7 +661,7 @@ static Class	runLoopClass;
     {
       M_LOCK(myLock);
       if (valid == YES)
-	{ 
+	{
 	  NSRunLoop	*l;
 
 	  valid = NO;
@@ -1480,7 +1480,7 @@ static unsigned	wordAlign;
 	       * we did the 'bind' call.
 	       */
 	      port->listener = desc;
-	      port->portNum = GSSwapBigI16ToHost(sockaddr.sin_port); 
+	      port->portNum = GSSwapBigI16ToHost(sockaddr.sin_port);
 	      /*
 	       * Make sure we have the map table for this port.
 	       */
@@ -1491,7 +1491,7 @@ static unsigned	wordAlign;
 		  /*
 		   * No known ports with this port number -
 		   * create the map table to add the new port to.
-		   */ 
+		   */
 		  thePorts = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		    NSNonOwnedPointerMapValueCallBacks, 0);
 		  NSMapInsert(tcpPortMap, (void*)(gsaddr)port->portNum,
@@ -1516,7 +1516,7 @@ static unsigned	wordAlign;
 	      /*
 	       * No known ports within this port number -
 	       * create the map table to add the new port to.
-	       */ 
+	       */
 	      thePorts = NSCreateMapTable(NSIntMapKeyCallBacks,
 			      NSNonOwnedPointerMapValueCallBacks, 0);
 	      NSMapInsert(tcpPortMap, (void*)(gsaddr)number, (void*)thePorts);
@@ -1991,7 +1991,7 @@ static unsigned	wordAlign;
 	  [header setLength: rl];
 	  [components insertObject: header atIndex: 0];
 	  RELEASE(header);
-	} 
+	}
 
       header = [components objectAtIndex: 0];
       /*

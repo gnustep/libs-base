@@ -24,10 +24,10 @@ main()
   [d setObject: [NSNumber numberWithInt: 4] forKey: @"four"];
   [d setObject: [NSNumber numberWithInt: 5] forKey: @"five"];
   [d setObject: [NSNumber numberWithInt: 6] forKey: @"six"];
-  
+
   NSLog(@"There are %u elements stored in the dictionary\n", [d count]);
 
-  NSLog(@"Element %d is stored at \"%s\"\n", 
+  NSLog(@"Element %d is stored at \"%s\"\n",
     [[d objectForKey: @"three"] intValue], "three");
 
   NSLog(@"Removing element stored at \"three\"\n");

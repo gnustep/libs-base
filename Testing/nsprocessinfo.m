@@ -5,7 +5,7 @@
 #include <Foundation/NSDate.h>
 #include    <Foundation/NSAutoreleasePool.h>
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   NSProcessInfo *pi = [NSProcessInfo processInfo];
@@ -24,12 +24,12 @@ int main(int argc, char *argv[])
   enumerator = [[pi arguments] objectEnumerator];
   while ((aString = [enumerator nextObject]))
     printf("-->%s\n",[aString cString]);
-        
+
   printf("\nProcess environment\n");
   printf("%d environment variables(s)\n", [[pi environment] count]);
   enumerator = [[pi environment] keyEnumerator];
   while ((aKey = [enumerator nextObject]))
-    printf("++>%s=%s\n",[aKey cString],[[[pi environment] 
+    printf("++>%s=%s\n",[aKey cString],[[[pi environment]
 				       objectForKey:aKey] cString]);
 
   [arp release];

@@ -10,7 +10,7 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -75,12 +75,12 @@ typeSize(const char* type)
     }
 }
 
-// Allocating and Initializing 
+// Allocating and Initializing
 
 - (id) initWithBytes: (const void *)value
 	    objCType: (const char *)type
 {
-  if (!value || !type) 
+  if (!value || !type)
     {
       NSLog(@"Tried to create NSValue with NULL value or NULL type");
       RELEASE(self);
@@ -91,8 +91,8 @@ typeSize(const char* type)
   if (self != nil)
     {
       int	size = typeSize(type);
-  
-      if (size < 0) 
+
+      if (size < 0)
 	{
 	  NSLog(@"Tried to create NSValue with invalid Objective-C type");
 	  RELEASE(self);
@@ -118,7 +118,7 @@ typeSize(const char* type)
   [super dealloc];
 }
 
-// Accessing Data 
+// Accessing Data
 - (void) getValue: (void *)value
 {
   unsigned	size;
@@ -170,7 +170,7 @@ typeSize(const char* type)
 {
   return objctype;
 }
- 
+
 - (id) nonretainedObjectValue
 {
   unsigned	size = (unsigned)typeSize(objctype);
@@ -182,7 +182,7 @@ typeSize(const char* type)
     }
   return *((id *)data);
 }
- 
+
 - (NSPoint) pointValue
 {
   unsigned	size = (unsigned)typeSize(objctype);
@@ -218,7 +218,7 @@ typeSize(const char* type)
     }
   return *((NSRect *)data);
 }
- 
+
 - (NSSize) sizeValue
 {
   unsigned	size = (unsigned)typeSize(objctype);
@@ -230,7 +230,7 @@ typeSize(const char* type)
     }
   return *((NSSize *)data);
 }
- 
+
 - (NSString *) description
 {
   unsigned	size;

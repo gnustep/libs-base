@@ -35,7 +35,7 @@ main(int argc, char** argv, char** envp)
   [d1 setObject:o1 forKey:o1];
   [d1 setObject:o2 forKey:o2];
   [d1 setObject:o3 forKey:o3];
-  
+
   d2 = [[NSMutableDictionary new] autorelease];
   [d2 setObject:o4 forKey:o4];
   [d2 setObject:o5 forKey:o5];
@@ -69,12 +69,12 @@ main(int argc, char** argv, char** envp)
 
   printf("NSDictionary has count %d\n", [a count]);
   key = @"fish";
-  printf("Object at key %s is %s\n", 
+  printf("Object at key %s is %s\n",
 	 [key cString],
 	 [[a objectForKey:key] cString]);
 
   assert([a count] == [[a allValues] count]);
-  
+
   enumerator = [a objectEnumerator];
   while ((b = [enumerator nextObject]))
     printf("%s ", [b cString]);
@@ -104,7 +104,7 @@ main(int argc, char** argv, char** envp)
     }
   printf("    10 creation: %f\n", [[NSDate date] timeIntervalSinceDate: when]);
 printf("%s\n", [[[dict allKeys] description] cString]);
-    
+
   when = [NSDate date];
   for (i = 0; i < 100000; i++) {
     for (j = 0; j < 10; j++) {
@@ -124,7 +124,7 @@ printf("%s\n", [[[dict allKeys] description] cString]);
       [dict setObject: strs[i] forKey: strs[i]];
     }
   printf("   100 creation: %f\n", [[NSDate date] timeIntervalSinceDate: when]);
-    
+
   when = [NSDate date];
   for (i = 0; i < 10000; i++) {
     for (j = 0; j < 100; j++) {
@@ -144,7 +144,7 @@ printf("%s\n", [[[dict allKeys] description] cString]);
       [dict setObject: strs[i] forKey: strs[i]];
     }
   printf("  1000 creation: %f\n", [[NSDate date] timeIntervalSinceDate: when]);
-    
+
   when = [NSDate date];
   for (i = 0; i < 1000; i++) {
     for (j = 0; j < 1000; j++) {
@@ -164,7 +164,7 @@ printf("%s\n", [[[dict allKeys] description] cString]);
       [dict setObject: strs[i] forKey: strs[i]];
     }
   printf(" 10000 creation: %f\n", [[NSDate date] timeIntervalSinceDate: when]);
-    
+
   when = [NSDate date];
   for (i = 0; i < 100; i++) {
     for (j = 0; j < 10000; j++) {
@@ -184,7 +184,7 @@ printf("%s\n", [[[dict allKeys] description] cString]);
       [dict setObject: strs[i] forKey: strs[i]];
     }
   printf("100000 creation: %f\n", [[NSDate date] timeIntervalSinceDate: when]);
-    
+
   when = [NSDate date];
   for (i = 0; i < 10; i++) {
     for (j = 0; j < 100000; j++) {

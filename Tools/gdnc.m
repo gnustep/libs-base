@@ -10,8 +10,8 @@
    modify it under the terms of the GNU General Public License
    as published by the Free Software Foundation; either version 2
    of the License, or (at your option) any later version.
-    
-   You should have received a copy of the GNU General Public  
+
+   You should have received a copy of the GNU General Public
    License along with this library; see the file COPYING.LIB.
    If not, write to the Free Software Foundation,
    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -528,7 +528,7 @@ ihandler(int sig)
 	}
       /*
        *	If possible use an existing string as the key.
-       */ 
+       */
       if ([objList count] > 0)
 	{
 	  GDNCObserver	*tmp = [objList objectAtIndex: 0];
@@ -552,7 +552,7 @@ ihandler(int sig)
 	}
       /*
        *	If possible use an existing string as the key.
-       */ 
+       */
       if ([namList count] > 0)
 	{
 	  GDNCObserver	*tmp = [namList objectAtIndex: 0];
@@ -632,7 +632,7 @@ ihandler(int sig)
 		  format: @"registration with unknown connection"];
     }
   if (NSMapGet(table, client) != 0)
-    { 
+    {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"registration with registered client"];
     }
@@ -873,7 +873,7 @@ ihandler(int sig)
 	      if ([byObject indexOfObjectIdenticalTo: obs] != NSNotFound)
 		{
 		  [self removeObserver: obs];
-		} 
+		}
 	    }
 	  for (pos = [byObject count]; pos > 0; pos--)
 	    {
@@ -883,7 +883,7 @@ ihandler(int sig)
 	      if ([byName indexOfObjectIdenticalTo: obs] != NSNotFound)
 		{
 		  [self removeObserver: obs];
-		} 
+		}
 	    }
 	}
     }
@@ -906,7 +906,7 @@ ihandler(int sig)
 	}
       info = (GDNCClient*)NSMapGet(table, client);
       if (info != nil)
-	{ 
+	{
 	  unsigned	pos = [info->observers count];
 
 	  while (pos > 0)
@@ -964,7 +964,7 @@ ihandler(int sig)
     }
   info = (GDNCClient*)NSMapGet(table, client);
   if (info == nil)
-    { 
+    {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"unregistration with unregistered client"];
     }

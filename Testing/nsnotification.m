@@ -1,7 +1,7 @@
 /* The simplest of tests for the NSNotification and NSNotificationCenter
-   classes.  These tests should be expanded. 
+   classes.  These tests should be expanded.
 
-   (The Tcp*Port classes, however, do test the notification mechanism 
+   (The Tcp*Port classes, however, do test the notification mechanism
     further.) */
 
 #include <Foundation/Foundation.h>
@@ -92,7 +92,7 @@ NSLog(@"Post to distributed centre");
     postNotificationName: foo
     object: nil];
 
-  
+
 NSLog(@"Remove observer from process centre");
   [[NSNotificationCenter defaultCenter]
     removeObserver: observer1

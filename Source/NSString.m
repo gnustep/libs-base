@@ -1739,7 +1739,7 @@ handle_printf_atsign (FILE *stream,
  * be at index 0, 1, and 2).<br />
  * If the supplied index is greater than or equal to the length of the
  * receiver an exception is raised.
- */ 
+ */
 - (NSString*) substringFromIndex: (unsigned int)index
 {
   return [self substringWithRange: ((NSRange){index, [self length]-index})];
@@ -1752,7 +1752,7 @@ handle_printf_atsign (FILE *stream,
  * the first three characters of the receiver.<br />
  * If the supplied index is greater than the length of the receiver
  * an exception is raised.
- */ 
+ */
 - (NSString*) substringToIndex: (unsigned int)index
 {
   return [self substringWithRange: ((NSRange){0,index})];;
@@ -2411,7 +2411,7 @@ handle_printf_atsign (FILE *stream,
     {
       BOOL found = NO;
       end = aRange.location;
-      if(aRange.length)
+      if (aRange.length)
         {
           end += (aRange.length - 1);
         }
@@ -3218,7 +3218,7 @@ static NSFileManager *fm = nil;
 /**
  * Converts this string, which is assumed to be a path in Unix notation ('/'
  * is file separator, '.' is extension separator) to a string path expressed
- * in the convention for the host operating system. 
+ * in the convention for the host operating system.
  */
 - (NSString*) localFromOpenStepPath
 {
@@ -3231,9 +3231,9 @@ static NSFileManager *fm = nil;
 }	
 
 /**
- * Converts this string, which is assumed to be a path in the convention 
+ * Converts this string, which is assumed to be a path in the convention
  * for the host operating system to a string path expressed
- * in Unix notation ('/' is file separator, '.' is extension separator). 
+ * in Unix notation ('/' is file separator, '.' is extension separator).
  */
 - (NSString*) openStepPathFromLocal
 {
@@ -3735,7 +3735,7 @@ static NSFileManager *fm = nil;
  */
 - (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e
 {
-  NSMutableData	*d; 
+  NSMutableData	*d;
   NSString	*s = nil;
 
   d = [[self dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
@@ -4500,7 +4500,7 @@ static NSFileManager *fm = nil;
 {
   if ([aCoder allowsKeyedCoding])
     {
-      NSString *string = (NSString*)[(NSKeyedUnarchiver*)aCoder 
+      NSString *string = (NSString*)[(NSKeyedUnarchiver*)aCoder
 			     _decodePropertyListForKey: @"NS.string"];
 
       self = [self initWithString: string];
@@ -4515,18 +4515,18 @@ static NSFileManager *fm = nil;
         {
 	  NSStringEncoding	enc;
 	  NSZone		*zone;
-	  
+	
 	  [aCoder decodeValueOfObjCType: @encode(NSStringEncoding) at: &enc];
 #if	GS_WITH_GC
 	  zone = GSAtomicMallocZone();
 #else
 	  zone = GSObjCZone(self);
 #endif
-	  
+	
 	  if (enc == NSUnicodeStringEncoding)
 	    {
 	      unichar	*chars;
-	      
+	
 	      chars = NSZoneMalloc(zone, count*sizeof(unichar));
 	      [aCoder decodeArrayOfObjCType: @encode(unichar)
 		                      count: count
@@ -4539,7 +4539,7 @@ static NSFileManager *fm = nil;
 	    || enc == _DefaultStringEncoding)
 	    {
 	      unsigned char	*chars;
-	      
+	
 	      chars = NSZoneMalloc(zone, count+1);
 	      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
 		                      count: count
@@ -4564,7 +4564,7 @@ static NSFileManager *fm = nil;
 	    {
 	      unsigned char	*chars;
 	      NSData	*data;
-	      
+	
 	      chars = NSZoneMalloc(zone, count);
 	      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
 			              count: count
@@ -4679,12 +4679,12 @@ static NSFileManager *fm = nil;
  * followed by a semicolon.  In this case, the value for that key is
  * assumed to be an empty string.
  * </p>
- * <example>  
+ * <example>
  *   // Strings file entries follow -
  *   key1 = " a string value";
  *   key2;	// This key has an empty string as a value.
  *   "Another key" = "a longer string value for th third key";
- * </example>  
+ * </example>
  */
 - (NSDictionary*) propertyListFromStringsFileFormat
 {
