@@ -125,7 +125,6 @@ stringDecrementCountAndFillHoleAt(MutableCStringStruct *self,
 
 - initWithCoder: aCoder
 {
-  MutableCString *n;
   unsigned cap;
   
   [aCoder decodeValueOfObjCType:@encode(unsigned) at:&cap withName:NULL];
@@ -135,7 +134,7 @@ stringDecrementCountAndFillHoleAt(MutableCStringStruct *self,
   _count = strlen(_contents_chars);
   _capacity = cap;
   _free_contents = YES;
-  return n;
+  return self;
 }
 
 /* Empty copy must empty an allocCopy'ed version of self */
