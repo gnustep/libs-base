@@ -1,3 +1,8 @@
+Wed Jul 14 16:58:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSAttributedString.m: Fixed ([allocWithZone:]) so that
+	subclasses should work correctly.
+
 Wed Jul 14 10:32:17 1999  Adam Fedor  <fedor@ultra.doc.com>
 
 	* Testing/Makefile.preamble: Fix include path the headers.

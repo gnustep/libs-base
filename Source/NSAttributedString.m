@@ -65,6 +65,7 @@
 
 @implementation NSAttributedString
 
+static Class NSAttributedString_abstract_class;
 static Class NSAttributedString_concrete_class;
 static Class NSMutableAttributedString_concrete_class;
 
@@ -93,8 +94,8 @@ static Class NSMutableAttributedString_concrete_class;
 {
   if (self == [NSAttributedString class])
     {
-      NSAttributedString_concrete_class
-	= [NSGAttributedString class];
+      NSAttributedString_abstract_class = self;
+      NSAttributedString_concrete_class = [NSGAttributedString class];
       NSMutableAttributedString_concrete_class
 	= [NSGMutableAttributedString class];
     }
@@ -102,7 +103,10 @@ static Class NSMutableAttributedString_concrete_class;
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject([self _concreteClass], 0, z);
+  if (self == NSAttributedString_abstract_class)
+    return NSAllocateObject([self _concreteClass], 0, z);
+  else
+    return NSAllocateObject(self, 0, z);
 }
 
 //NSCoding protocol
