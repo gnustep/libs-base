@@ -9,6 +9,7 @@
 #include "Foundation/NSPort.h"
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSValue.h"
+#include "Foundation/NSThread.h"
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -54,10 +55,11 @@ static NSMapTable portToNamesMap;
 
 static void clean_up_names(void)
 {
-  CREATE_AUTORELEASE_POOL(arp);
   NSMapEnumerator mEnum;
   NSMessagePort *port;
   NSString *name;
+  BOOL	unknownThread = GSRegisterCurrentThread();
+  CREATE_AUTORELEASE_POOL(arp);
 
   mEnum = NSEnumerateMapTable(portToNamesMap);
   while (NSNextMapEnumeratorPair(&mEnum, (void *)&port, (void *)&name))
@@ -66,6 +68,10 @@ static void clean_up_names(void)
     }
   NSEndMapTableEnumeration(&mEnum);
   DESTROY(arp);
+  if (unknownThread == YES)
+    {
+      GSUnregisterCurrentThread();
+    }
 }
 
 
