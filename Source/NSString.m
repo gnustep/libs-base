@@ -331,7 +331,7 @@ handle_printf_atsign (FILE *stream,
   const char *format_cp = [format cStringNoCopy];
   int format_len = strlen (format_cp);
   /* xxx horrible disgusting BUFFER_EXTRA arbitrary limit; fix this! */
-  #define BUFFER_EXTRA 1024
+  #define BUFFER_EXTRA 1024*500
   char buf[format_len + BUFFER_EXTRA];
   int printed_len = 0;
 
