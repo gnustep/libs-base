@@ -39,7 +39,7 @@ main(int argc, char** argv, char **env)
   NSString		*sourceName;
   NSString		*destName;
   NSMutableString	*fileContents;
-  NSDictionary	        *plist;
+  NSDictionary	        *plist = nil;
   NSArray		*list;
   NSString		*entry;
 
