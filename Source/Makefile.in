@@ -315,7 +315,8 @@ NSNUMBER_OFILES  = \
 GNUSTEP_CFILES = \
 NSZone.c \
 find_exec.c \
-objc-load.c
+objc-load.c \
+NSUser.c
 
 GNUSTEP_OTHER_SRCFILES = \
 NSConcreteNumber.m \
