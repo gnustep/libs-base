@@ -82,6 +82,7 @@ BOOL ENTERED_MULTI_THREADED_STATE;
 
   // Thread specific variables
   thread_dictionary = [NSMutableDictionary dictionary];
+  // xxx_current_autorelease_pool = nil;
   return self;
 }
 
