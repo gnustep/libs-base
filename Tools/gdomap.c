@@ -3971,8 +3971,8 @@ donames(const char *host)
   unsigned short	num = 0;
   int			rval;
   uptr			b;
-  char			*first_dot;
-  char *local_hostname=NULL;
+  char			*first_dot = 0;
+  char			*local_hostname = NULL;
 
 #if	GDOMAP_PORT_OVERRIDE
   p = htons(GDOMAP_PORT_OVERRIDE);
@@ -4007,9 +4007,14 @@ donames(const char *host)
 	}
       host = local_hostname;
     }
-  if ((hp = gethostbyname(host)) == 0)
+  if ((hp = gethostbyname(host)) == 0 && first_dot != 0)
     {
-      sprintf(ebuf, "gethostbyname() failed: %s", strerror(errno));
+      *first_dot = '.';
+      hp = gethostbyname(host);
+    }
+  if (hp == 0)
+    {
+      sprintf(ebuf, "gethostbyname('%s') failed: %s", host, strerror(errno));
       gdomap_log(LOG_ERR);
       return;
     }
