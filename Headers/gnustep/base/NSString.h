@@ -272,8 +272,8 @@ compiler warning.
 @end
 
 /* Because the compiler thinks that @".." strings are NXConstantString's. */
-#include <Foundation/NSCString.h>
-@interface NXConstantString : NSCString
+#include <Foundation/NSGCString.h>
+@interface NXConstantString : NSGCString
 @end
 
 #endif /* __NSString_h_OBJECTS_INCLUDE */

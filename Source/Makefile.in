@@ -280,7 +280,6 @@ NSCharacterSet.m \
 NSCoder.m \
 NSCopyObject.m \
 NSConcreteValue.m \
-NSCString.m \
 NSData.m \
 NSDate.m \
 NSDeallocateObject.m \
@@ -291,6 +290,7 @@ NSGeometry.m \
 NSGArchiver.m \
 NSGArray.m \
 NSGCoder.m \
+NSGCString.m \
 NSGData.m \
 NSGDictionary.m \
 NSGUnarchiver.m \
@@ -337,7 +337,6 @@ Foundation/NSAutoreleasePool.h \
 Foundation/NSBitmapCharSet.h \
 Foundation/NSBundle.h \
 Foundation/NSCharacterSet.h \
-Foundation/NSCString.h \
 Foundation/NSCoder.h \
 Foundation/NSConcreteNumber.h \
 Foundation/NSConcreteValue.h \
@@ -349,6 +348,7 @@ Foundation/NSGeometry.h \
 Foundation/NSGArchiver.h \
 Foundation/NSGArray.h \
 Foundation/NSGCoder.h \
+Foundation/NSGCString.h \
 Foundation/NSGData.h \
 Foundation/NSGDictionary.h \
 Foundation/NSGUnarchiver.h \
