@@ -410,6 +410,42 @@ static BOOL snuggleStart(NSString *t)
 }
 
 /**
+ * Output the gsdoc code for an instance variable.
+ */
+- (void) outputInstanceVariable: (NSDictionary*)d to: (NSMutableString*)str
+{
+  NSString	*type = [d objectForKey: @"Type"];
+  NSString	*validity = [d objectForKey: @"Validity"];
+  NSString	*name = [d objectForKey: @"Name"];
+  NSString	*comment = [d objectForKey: @"Comment"];
+  NSString	*standards = [d objectForKey: @"Standards"];
+
+  [str appendString: @"        <ivariable type=\""];
+  [str appendString: escapeType(type)];
+  [str appendString: @"\" name=\""];
+  [str appendString: name];
+  if (validity != nil)
+    {
+      [str appendString: @"\" validity=\""];
+      [str appendString: validity];
+    }
+  [str appendString: @"\">\n"];
+
+  [str appendString: @"          <desc>\n"];
+  if ([comment length] == 0)
+    {
+      comment = @"<em>Description forthcoming.</em>";
+    }
+  [self reformat: comment withIndent: 12 to: str];
+  [str appendString: @"          </desc>\n"];
+  if (standards != nil)
+    {
+      [self reformat: standards withIndent: 10 to: str];
+    }
+  [str appendString: @"        </ivariable>\n"];
+}
+
+/**
  * Uses -split: and -reformat:withIndent:to:.
  * Also has fun with YES, NO, and nil.
  */
@@ -583,6 +619,7 @@ static BOOL snuggleStart(NSString *t)
   NSString	*name = [d objectForKey: @"Name"];
   NSString	*type = [d objectForKey: @"Type"];
   NSDictionary	*methods = [d objectForKey: @"Methods"];
+  NSDictionary	*ivars = [d objectForKey: @"InstanceVariables"];
   NSString	*comment = [d objectForKey: @"Comment"];
   NSArray	*names;
   NSArray	*protocols;
@@ -757,6 +794,14 @@ static BOOL snuggleStart(NSString *t)
   for (j = 0; j < ind; j++) [str appendString: @" "];
   [str appendString: @"</desc>\n"];
   
+  names = [[ivars allKeys] sortedArrayUsingSelector: @selector(compare:)];
+  for (i = 0; i < [names count]; i++)
+    {
+      NSString	*vName = [names objectAtIndex: i];
+
+      [self outputInstanceVariable: [ivars objectForKey: vName] to: str];
+    }
+
   names = [[methods allKeys] sortedArrayUsingSelector: @selector(compare:)];
   for (i = 0; i < [names count]; i++)
     {

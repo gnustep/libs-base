@@ -1,3 +1,23 @@
+2002-01-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m:
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.h:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m:
+	* Tools/gsdoc-0_6_7.dtd:
+	Updated for several changes ...
+	Support documentation of instance variables
+	Index class and category method names identically
+	Extend index to have a listing of methods by unit
+	Extend index to have a listing of ivariablese by class
+	Use new extensions to double speed of generation of method
+	indexes for classes.
+
 2002-01-07  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.1.0

@@ -32,6 +32,8 @@
   NSMutableString	*indent;
   NSString		*base;	// Not retained
   NSString		*unit;	// Not retained
+  NSString		*category;	// Not retained
+  NSString		*classname;	// Not retained
   NSString		*heading;	// Not retained
   NSString		*nextFile;	// Not retained
   NSString		*prevFile;	// Not retained
