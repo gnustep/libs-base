@@ -21,10 +21,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 #include <stdio.h>
-#include "gnustep/base/ostream.h"
-#include "gnustep/base/MemoryStream.h"
-#include "gnustep/base/StdioStream.h"
-#include "gnustep/base/String.h"
+#include <gnustep/base/ostream.h>
+#include <gnustep/base/MemoryStream.h>
+#include <gnustep/base/StdioStream.h>
+#include <Foundation/NSString.h>
 
 #define OSTREAM_EOF EOF
 
@@ -151,11 +151,12 @@ ostream_printf (ostream *s, const char *format, ...)
 void 
 ostream_vprintf (ostream *s, const char *format, va_list argList)
 {
-  id str = [String stringWithCString: format];
+  id str = [[NSString alloc] initWithCString: format];
   if (s->flags & OSTREAM_WRITEFLAG)
     [(id <Streaming>)s->stream_obj writeFormat: str arguments: argList];
   else
     _ostream_error("Tried to write to non-writable stream");
+  [str release];
 }
 
 int 
@@ -172,11 +173,12 @@ ostream_scanf (ostream *s, const char *format, ...)
 int 
 ostream_vscanf (ostream *s, const char *format, va_list argList)
 {
-  id str = [String stringWithCString: format];
+  id str = [[NSString alloc] stringWithCString: format];
   if (s->flags & OSTREAM_READFLAG)
     return [(id <Streaming>)s->stream_obj readFormat: str 
 	     arguments: argList];
   _ostream_error("Tried to read from non-readable stream");
+  [str release];
   return OSTREAM_EOF;
 }
 
@@ -260,7 +262,7 @@ ostream *
 ostream_map_file (const char *name, int mode)
 {
   char* fmode;
-  String* str = [String stringWithCString: name];
+  NSString* str = [NSString stringWithCString: name];
   ostream* stream = _ostream_new_stream_struct(mode, &fmode);
   stream->stream_obj = [[StdioStream alloc] initWithFilename: str
 		         fmode: fmode];
@@ -286,8 +288,9 @@ ostream_save_to_file (ostream *s, const char *name)
       return -1;
     }
 
-  output = [[StdioStream alloc] initWithFilename: 
-	        [NSString stringWithCString: name] fmode: "w"];
+  output = [[StdioStream alloc] 
+	     initWithFilename: [NSString stringWithCString: name] 
+	     fmode: "w"];
   if (!output)
     {
       _ostream_error("Unable to open save file");
