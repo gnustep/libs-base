@@ -1506,11 +1506,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 @implementation NSRunLoop(GNUstepExtensions)
 
-/**
- * Adds a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the currentMode is used (if the
- * loop is running) or NSDefaultRunLoopMode is used.
- */
 - (void) addEvent: (void*)data
              type: (RunLoopEventType)type
           watcher: (id<RunLoopEvents>)watcher
@@ -1549,13 +1544,6 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
     }
 }
 
-/**
- * Removes a runloop watcher matching the specified data and type in this
- * runloop.  If the mode is nil, either the currentMode is used (if the
- * loop is running) or NSDefaultRunLoopMode is used.
- * The additional removeAll flag may be used to remove all instances of
- * the watcher rather than just a single one.
- */
 - (void) removeEvent: (void*)data
                 type: (RunLoopEventType)type
              forMode: (NSString*)mode

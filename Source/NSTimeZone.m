@@ -903,7 +903,7 @@ static NSMapTable	*absolutes = 0;
  *  2) the GNUSTEP_TZ environment variable<br/ >
  *  3) the file "localtime" in System/Library/Libraries/Resources/NSTimeZone<br/ >
  *  4) the TZ environment variable<br/ >
- *  5) tzset() and tznam on platforms which have it<br/ >
+ *  5) tzset and tznam on platforms which have it<br/ >
  *  6) Windows registry, on Win32 systems<br/ >
  *  7) or the fallback time zone (which is UTC)<br/ >
  * with the ones listed first having precedence.
@@ -1368,11 +1368,11 @@ static NSMapTable	*absolutes = 0;
  * Returns a timezone for aTimeZoneName, created from the supplied
  * time zone data. Data must be in TZ format as per the Olson database.
  */
-+ (NSTimeZone*) timeZoneWithName: (NSString*)aTimeZoneName data: (NSData*)data
++ (NSTimeZone*) timeZoneWithName: (NSString*)name data: (NSData*)data
 {
   NSTimeZone	*zone;
 
-  zone = [defaultPlaceholderTimeZone initWithName: aTimeZoneName data: data];
+  zone = [defaultPlaceholderTimeZone initWithName: name data: data];
   return AUTORELEASE(zone);
 }
 

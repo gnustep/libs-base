@@ -3949,7 +3949,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 
 /**
  * Performs an XSLT transformation on the current document using the
- * supplied stylesheet and paramaters (parameters may be nil).
+ * supplied stylesheet and paramaters (params may be nil).
  * See the libxslt documentation for details of the supported parameters.<br />
  *
  * Returns an autoreleased GSXMLDocument containing the transformed
@@ -4046,7 +4046,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 }
 			     
 - (GSXMLDocument*) xsltTransform: (GSXMLDocument*)xsltStylesheet
-                          params: (NSDictionary*)parameters
+                          params: (NSDictionary*)params
 {
   NSLog(@"libxslt is not available");
   return nil;
