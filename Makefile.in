@@ -109,7 +109,7 @@ dist: $(DIST_FILES)
 	rm -rf libobjects-$(OBJECTS_VERSION)
 
 rcs-list-locked: 
-	@echo "===."; \
+	@echo "===."
 	@rlog -L -R $(RCS_FILES)
 	@for i in $(SUBDIRS); do \
 	  echo "===$$i"; \
