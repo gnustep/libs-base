@@ -1,3 +1,61 @@
+Tue Sep 24 11:20:06 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* Version (SUBMINOR_VERSION): Version 0.2.10.
+
+	* Makefile.in (mostlyclean, clean, distclean, maintainer-clean):
+ 	Reverse order of subdir-cleaning and topdir-cleaning so that we
+	don't force the Makefile to automatically run ./configure for us,
+	(which sometimes happens in the wrong way).
+
+	* src/NSString.m ([NSString -copy]): New method.  Now -copy sent
+ 	to strings should work.  (Added temporarily until this problem is
+ 	fixed by me overhaul of the string classes to separate Core and
+ 	NonCore methods.)
+	* checks/string.m (main): Add tests for -copy and -mutableCopy.
+
+	* src/ostream.m (ostream_open_memory): Cast (const char*) to
+ 	(char*) when passing to MemoryStream -init... method.
+
+	* examples/second-client.m (main): Rename `exception' to
+ 	`localException'.  (Reported by Erich Stefan Boleyn
+	<erich@uruk.org>.)
+
+	* admin/HOWTO-patches: Update from libobjects terminology to
+ 	gstep-base terminology.
+
+	* doc/install.texi: Mention specification of the GNU runtime in
+ 	the GNUstep-specific instructions.
+
+	* configure.in: Warn the user that GNUstep doesn't work with the
+ 	NeXT Objective C runtime.
+
+	* src/BinaryCStream.m: Check HAVE_VALUES_H before trying to
+ 	include <values.h>; use <sys/types.h> if we don't.
+	* configure.in: Add check for <values.h> needed by
+ 	BinaryCStream.m.
+  	(Reported by Gregor Hoffleit <flight@mathi.uni-heidelberg.de>.)
+
+	* src/NSUserDefaults.m: Don't try to include NeXT's headers; just
+ 	include GNUstep headers.
+	* src/include/NSUserDefaults.h: Likewise.
+	(Reported by Gregor Hoffleit <flight@mathi.uni-heidelberg.de>.)
+
+	* src/ostream.m (ostream_close_memory): Send -setFreeWhenDone:NO to
+ 	the MemoryStream, not -release.
+	* src/MemoryStream.m ([MemoryStream -setFreeWhenDone:]): New
+ 	method.
+	* src/include/MemoryStream.h: Declare new method.
+	(Reported by Adam Fedor <fedor@wave.Colorado.edu>.)
+
+	* aclocal.m4: Do forgotten renames of ac_cv_sys_dld and
+	ac_cv_sys_autoload to objc_cv_sys_dld and objc_cv_sys_autoload.
+	(Reported by Nick Christopher <nwc@wsc.com>.)
+
+	* src/include/objc-gnu2next.h: Don't include
+ 	gnustep/base/objc-malloc.h.
+
+	* src/NSSet.m ([NSMutableSet -addObjectsFromArray:]): Implemented.
+
 Wed Sep 18 09:11:44 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.9.
