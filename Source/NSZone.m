@@ -1678,6 +1678,11 @@ NSDefaultMallocZone (void)
   return __nszone_private_hidden_default_zone;
 }
 
+NSZone* GSAtomicMallocZone (void)
+{
+  return NSDefaultMallocZone();
+}
+
 inline void*
 NSZoneMalloc (NSZone *zone, size_t size)
 {
@@ -1736,6 +1741,14 @@ NSZoneName (NSZone *zone)
   if (!zone)
     zone = NSDefaultMallocZone();
   return zone->name;
+}
+
+/* Not in OpenStep. */
+
+void*
+NSZoneMallocAtomic (NSZone *zone, size_t size)
+{
+  return NSZoneMalloc(GSAtomicMallocZone(), size);
 }
 
 /* Not in OpenStep. */
