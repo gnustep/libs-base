@@ -1,13 +1,13 @@
 /** Implementation for GSXMLDocument for GNUstep xmlparser
 
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000,2001,2002 Free Software Foundation, Inc.
 
    Written by: Michael Pakhantsov  <mishel@berest.dp.ua> on behalf of
    Brainstorm computer solutions.
    Date: Jule 2000
 
-   Integration by Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Date: September 2000
+   Integration/updates/rewrites by: Richard Frith-Macdonald <rfm@gnu.org>
+   Date: Sep2000,Dec2001/Jan2002
 
    This file is part of the GNUstep Base Library.
 
@@ -2045,6 +2045,12 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 @end
 
+/**
+ * The GSHTMLParser class is a simple subclass of GSXMLParser which should
+ * parse reasonably well formed HTML documents. If you wish to parse XHTML
+ * documents, you should use GSXMLParser ... the GSHTMLParser class is for
+ * older 'legacy' documents.
+ */
 @implementation GSHTMLParser
 
 - (BOOL) _initLibXML
