@@ -104,8 +104,12 @@ second-server: second-server.o ../src/libobjects.a
 second-client: second-client.o ../src/libobjects.a
 	$(LINK_CMD)
 
-first: first-server first-client
-second: second-server second-client
+first: FORCE
+	(cd ../src; $(MAKE))
+	$(MAKE) first-server first-client
+second: FORCE
+	(cd ../src; $(MAKE))
+	$(MAKE) second-server second-client
 port: port-server port-client
 
 install:
@@ -135,3 +139,5 @@ copy-dist: $(DIST_FILES)
 
 Makefile: $(srcdir)/Makefile.in
 	cd ..; $(SHELL) config.status
+
+FORCE:
