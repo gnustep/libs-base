@@ -46,7 +46,36 @@
 
 #include "GSPrivate.h"
 
-int _NSLogDescriptor = 2;	// Default descriptor for logging
+/**
+ * A variable holding the file descriptor to which NSLogv() messages are
+ * written by default.  GNUstep initialises this to stderr.<br />
+ * You may change this, but for thread safety should
+ * use the lock provided by GSLogLock() to protect the change.
+ */
+int _NSLogDescriptor = 2;
+
+static NSRecursiveLock	*myLock = nil;
+
+/**
+ * Returns the lock used to protect the GNUstep NSLogv() implementation.
+ * Use this to protect changes to
+ * <ref type="variable" id="_NSLogDescriptor">_NSLogDescriptor</ref> and
+ * <ref type="variable" id="_NSLog_printf_handler">_NSLog_printf_handler</ref>
+ */
+NSRecursiveLock *
+GSLogLock()
+{
+  if (myLock == nil)
+    {
+      [gnustep_global_lock lock];
+      if (myLock == nil)
+	{
+	  myLock = [NSRecursiveLock new];
+	}
+      [gnustep_global_lock unlock];
+    }
+  return myLock;
+}
 
 static void
 _NSLog_standard_printf_handler (NSString* message)
@@ -111,8 +140,50 @@ _NSLog_standard_printf_handler (NSString* message)
 #endif
 }
 
+/**
+ * A pointer to a function used to actually write the log data.
+ * <p>
+ *   GNUstep initialises this to a function implementing the standard
+ *   behavior for logging, but you may change this in your program
+ *   in order to implement any custom behavior you wish.  You should
+ *   use the lock returned by GSLogLock() to protect any change you make.
+ * </p>
+ * <p>
+ *   Calls from NSLogv() to the function pointed to by this variable
+ *   are protected by a lock, and should therefore be thread safe.
+ * </p>
+ * <p>
+ *   This function should accept a single NSString argument and return void.
+ * </p>
+ * The default implementation in GNUstep performs as follows -
+ * <list>
+ *   <item>
+ *     Converts the string to be logged to data in the default CString
+ *     encoding or, if that is not possible, to UTF8 data.
+ *   </item>
+ *   <item>
+ *     If the system supports writing to syslog and the user default to
+ *     say that logging should be done to syslog (GSLogSyslog) is set,
+ *     writes the data to the syslog.
+ *   </item>
+ *   <item>
+ *     Otherwise, writes the data to the file descriptor stored in the
+ *     variable
+ *     <ref type="variable" id="_NSLogDescriptor">_NSLogDescriptor</ref>,
+ *     which is set by default to stderr.<br />
+ *     Your program may change this descriptor ... but you should protect
+ *     changes using the lock provided by GSLogLock().<br />
+ *     NB. If the write to the descriptor fails, and the system supports
+ *     writing to syslog, then the log is written to syslog as if the
+ *     appropriate user default had been set.
+ *   </item>
+ * </list>
+ */
 NSLog_printf_handler *_NSLog_printf_handler = _NSLog_standard_printf_handler;
 
+/**
+ * Provides a standard logging facility via NSLogv().
+ */
 void 
 NSLog (NSString* format, ...)
 {
@@ -123,13 +194,32 @@ NSLog (NSString* format, ...)
   va_end (ap);
 }
 
+/**
+ * The core logging function ...
+ * <p>
+ *   The function generates a standard log entry by prepending
+ *   process ID and date/time information to your message, and
+ *   ensuring that a newline is present at the end of the message.
+ * </p>
+ * <p>
+ *   The resulting message is then passed to a handler function to
+ *   perform actual output.  Locking is performed around the call to
+ *   the function actually writing the message out, to ensure that
+ *   logging is thread-safe.  However, the actual creation of the
+ *   message written is only as safe as the -description methods of
+ *   the arguments you supply.
+ * </p>
+ * <p>
+ *   The function to write the data is pointed to by
+ *   <ref type="variable" id="_NSLog_printf_handler">_NSLog_printf_handler</ref>
+ * </p>
+ */
 void 
 NSLogv (NSString* format, va_list args)
 {
-  static NSRecursiveLock	*myLock = nil;
-  NSString			*prefix;
-  NSString			*message;
-  int				pid;
+  NSString	*prefix;
+  NSString	*message;
+  int		pid;
   CREATE_AUTORELEASE_POOL(arp);
 
   if (_NSLog_printf_handler == NULL)
@@ -162,13 +252,9 @@ NSLogv (NSString* format, va_list args)
 
   if (myLock == nil)
     {
-      [gnustep_global_lock lock];
-      if (myLock == nil)
-	{
-	  myLock = [NSRecursiveLock new];
-	}
-      [gnustep_global_lock unlock];
+      GSLogLock();
     }
+
   [myLock lock];
 
   _NSLog_printf_handler(prefix);

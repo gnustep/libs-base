@@ -2097,16 +2097,17 @@ static BOOL snuggleStart(NSString *t)
 	    && [str isEqual: @"main"] == NO)
 	    {
 	      ok = YES;
-	      if (len > r.location + 2)
+	      if (len > NSMaxRange(r))
 		{
 		  NSString	*end;
 
-		  end = [tmp substringFromIndex: r.location + 2];
+		  end = [tmp substringFromIndex: NSMaxRange(r)];
 		  c = [end characterAtIndex: 0];
 		  if (c == ',' || c == '.' || c == ';')
 		    {
 		      [a insertObject: end atIndex: l + 1];
-		      tmp = [tmp substringToIndex: r.location + 2];
+		      tmp = [tmp substringToIndex: NSMaxRange(r)];
+		      [a replaceObjectAtIndex: l withObject: tmp];
 		    }
 		  else
 		    {
