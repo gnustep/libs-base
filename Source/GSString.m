@@ -310,8 +310,6 @@ setup(void)
     }
 }
 
-
-
 /*
  * The GSPlaceholderString class is used by the abstract cluster root
  * class to provide temporary objects that will be replaced as soon
@@ -4201,6 +4199,18 @@ void GSStrAppendUnichar(GSStr s, unichar u)
   else
     {
       s->_contents.c[s->_count++] = u;
+    }
+}
+
+/*
+ * Make the content of this string into unicode if it is not in
+ * the external defaults C string encoding.
+ */
+void GSStrExternalize(GSStr s)
+{
+  if (s->_flags.wide == 0 && intEnc != defEnc)
+    {
+      GSStrWiden(s);
     }
 }
 

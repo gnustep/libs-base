@@ -1,6 +1,10 @@
 2004-06-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSDictionary.m: Make exceptions a little more informative.
+	* Source/NSString.m: initWithFormat... externalise result of GSFormat
+	so it works when the default character encoding is not the same as
+	the internal 8-bit encoding.
+	* Source/GSString.m: New function to externalize a string.
 
 2004-06-03  David Ayers  <d.ayers@inode.at>
 
