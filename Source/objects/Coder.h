@@ -30,7 +30,7 @@
 @class Stream;
 @class Dictionary;
 @class Stack;
-@class Set;
+@class Array;
 
 @interface Coder : NSObject <Encoding, Decoding>
 {
@@ -41,9 +41,9 @@
   BOOL doing_root_object;
   Dictionary *object_table;	     /* read/written objects */
   Dictionary *const_ptr_table;       /* read/written const *'s */
-  Stack *root_object_tables;         /* Stack of Dicts for interconnt'd objs */
-  Stack *forward_object_tables;      /* Stack of Dictionaries for frwd refs */
-  Set *in_progress_table;            /* objects started r/w, but !finished */
+  Dictionary *root_object_table;     /* table of interconnected objects */
+  Dictionary *forward_object_table;  /* table of forward references */
+  Array *in_progress_table;          /* objects started r/w, but !finished */
   int interconnected_stack_height;   /* number of nested root objects */
 
     /* Not all these ivars are really necessary.  I fixed a bug with
