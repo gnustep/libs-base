@@ -459,7 +459,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      [self initWithFileDescriptor: 2 closeOnDealloc: NO];
+      self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
       fh_stderr = self;
     }
   self = fh_stderr;
@@ -477,7 +477,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      [self initWithFileDescriptor: 0 closeOnDealloc: NO];
+      self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
       fh_stdin = self;
     }
   self = fh_stdin;
@@ -495,7 +495,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
     }
   else
     {
-      [self initWithFileDescriptor: 1 closeOnDealloc: NO];
+      self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
       fh_stdout = self;
     }
   self = fh_stdout;

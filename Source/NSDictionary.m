@@ -424,7 +424,7 @@ static SEL	appSel;
       RELEASE(myString);
       if ([result isKindOfClass: NSDictionaryClass])
 	{
-	  [self initWithDictionary: result];
+	  self = [self initWithDictionary: result];
 	  return self;
 	}
     }
@@ -975,13 +975,16 @@ static NSString	*indentStrings[] = {
 	       forKeys: (id*)keys
 		 count: (unsigned)count
 {
-  IMP	setObj;
-
-  [self initWithCapacity: count];
-  setObj = [self methodForSelector: setSel];
-  while (count--)
+  self = [self initWithCapacity: count];
+  if (self != nil)
     {
-      (*setObj)(self, setSel, objects[count], keys[count]);
+      IMP	setObj;
+
+      setObj = [self methodForSelector: setSel];
+      while (count--)
+	{
+	  (*setObj)(self, setSel, objects[count], keys[count]);
+	}
     }
   return self;
 }

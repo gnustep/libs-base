@@ -1,3 +1,10 @@
+2001-01-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m: Fix failure to assign result of init to self
+	(similar fixes in various other files).
+	* Tools/gsdoc.m: Fix error in parsing items containing mixed elements.
+	* Documentation/gsdoc/NSTimeZone.gsdoc: Fix erro in markup.
+
 2001-01-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.in: Add check for rexcent versions of gmp
