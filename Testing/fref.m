@@ -1,14 +1,11 @@
 /* Test NSArchiver on encoding of self-referential forward references. */
 
-#ifdef NX_CURRENT_COMPILER_RELEASE
-#include <foundation/NSArchiver.h>
-#include <foundation/NSArray.h>
-#include <foundation/NSAutoreleasePool.h>
-#else
-#include <Foundation/NSArchiver.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSAutoreleasePool.h>
-#endif
+/* This tests an obscure, but important feature of archiving.  GNUstep
+   implements it correctly; NeXT does not.  When running in
+   NeXT-compatibility mode, (i.e. setting TRY_GNU_ARCHIVING to 0, and
+   setting SELF_REF_DECODE_SUBSTITUTES to 1) libgnustep-base crashes
+   when trying to use this feature.  When the identical test is
+   compiled on a NeXTSTEP machine, it also crashes! */
 
 /* Beginning of some parameters to vary. */
 /* Both 1 works; both 0 works.  0 and 1 crash, as does NeXT's */
@@ -29,6 +26,17 @@
 #if GNU_ARCHIVING
 #include <gnustep/base/Archiver.h>
 #endif /* GNU_ARCHIVING */
+
+
+#ifdef NX_CURRENT_COMPILER_RELEASE
+#include <foundation/NSArchiver.h>
+#include <foundation/NSArray.h>
+#include <foundation/NSAutoreleasePool.h>
+#else
+#include <Foundation/NSArchiver.h>
+#include <Foundation/NSArray.h>
+#include <Foundation/NSAutoreleasePool.h>
+#endif
 
 /* Set to 1 to use text coding instead of binary coding */
 #define TEXTCSTREAM 1
