@@ -244,49 +244,58 @@ myEqual(id self, id other)
 - (id) initWithDictionary: (NSDictionary*)other
 		copyItems: (BOOL)shouldCopy
 {
-  NSEnumerator	*e = [other keyEnumerator];
   NSZone	*z = fastZone(self);
   unsigned	c = [other count];
-  unsigned	i;
 
   GSIMapInitWithZoneAndCapacity(&map, z, c);
-  for (i = 0; i < c; i++)
+
+  if (c > 0)
     {
-      GSIMapNode	node;
-      id		k = [e nextObject];
-      id		o = [other objectForKey: k];
+      static SEL	nxtSel = @selector(nextObject);
+      static SEL	objSel = @selector(objectForKey:);
+      NSEnumerator	*e = [other keyEnumerator];
+      IMP		nxtObj = [e methodForSelector: nxtSel];
+      IMP		otherObj = [other methodForSelector: objSel];
+      unsigned		i;
 
-      k = [k copyWithZone: z];
-      if (k == nil)
+      for (i = 0; i < c; i++)
 	{
-	  AUTORELEASE(self);
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Tried to init dictionary with nil key"];
-	}
-      if (shouldCopy)
-	{
-	  o = [o copyWithZone: z];
-	}
-      else
-	{
-	  o = RETAIN(o);
-	}
-      if (o == nil)
-	{
-	  AUTORELEASE(self);
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Tried to init dictionary with nil value"];
-	}
+	  GSIMapNode	node;
+	  id		k = (*nxtObj)(e, nxtSel);
+	  id		o = (*otherObj)(other, objSel, k);
 
-      node = GSIMapNodeForKey(&map, (GSIMapKey)k);
-      if (node)
-	{
-	  RELEASE(node->value.obj);
-	  node->value.obj = o;
-	}
-      else
-	{
-	  GSIMapAddPairNoRetain(&map, (GSIMapKey)k, (GSIMapVal)o);
+	  k = [k copyWithZone: z];
+	  if (k == nil)
+	    {
+	      AUTORELEASE(self);
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Tried to init dictionary with nil key"];
+	    }
+	  if (shouldCopy)
+	    {
+	      o = [o copyWithZone: z];
+	    }
+	  else
+	    {
+	      o = RETAIN(o);
+	    }
+	  if (o == nil)
+	    {
+	      AUTORELEASE(self);
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Tried to init dictionary with nil value"];
+	    }
+
+	  node = GSIMapNodeForKey(&map, (GSIMapKey)k);
+	  if (node)
+	    {
+	      RELEASE(node->value.obj);
+	      node->value.obj = o;
+	    }
+	  else
+	    {
+	      GSIMapAddPairNoRetain(&map, (GSIMapKey)k, (GSIMapVal)o);
+	    }
 	}
     }
   return self;

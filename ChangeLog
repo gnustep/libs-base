@@ -1,3 +1,9 @@
+Sun Sep 12 20:22:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSDictionary.m: optimise by avoiding objc method lookup
+	overheads wherever possible.
+	* Source/NSGDictionary.m: likewise.
+
 Fri Sep  3 11:57:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * Source/NSString.m: speed up path handling a bit by caching
