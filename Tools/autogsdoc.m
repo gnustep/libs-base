@@ -139,6 +139,13 @@
 #include "AGSParser.h"
 #include "AGSOutput.h"
 
+#include	<config.h>
+
+#if	HAVE_LIBXML
+#include        <Foundation/GSXML.h>
+
+static int      XML_ELEMENT_NODE;
+#endif
 
 int
 main(int argc, char **argv, char **env)
@@ -191,6 +198,7 @@ main(int argc, char **argv, char **env)
 	  NSString	*ddir;
 	  NSString	*sdir;
 	  NSString	*file;
+	  NSString	*generated;
 
 	  file = [[arg lastPathComponent] stringByDeletingPathExtension];
 
@@ -229,7 +237,39 @@ main(int argc, char **argv, char **env)
 	      [parser parseFile: sdir isSource: YES];
 	    }
 
-	  [output output: [parser info] file: ddir];
+	  generated = [output output: [parser info]];
+
+#if	HAVE_LIBXML
+	  {
+	    NSData	*data;
+	    GSXMLParser	*parser;
+
+	    /*
+	     * Cache XML node information.
+	     */
+	    XML_ELEMENT_NODE
+	      = [GSXMLNode typeFromDescription: @"XML_ELEMENT_NODE"];
+
+	    data = [generated dataUsingEncoding: NSUTF8StringEncoding]; 
+	    parser = [GSXMLParser parser];
+	    [parser substituteEntities: YES];
+	    [parser doValidityChecking: YES];
+	    if ([parser parse: data] == NO || [parser parse: nil] == NO)
+	      {
+		NSLog(@"WARNING %@ did not produce a valid document", arg);
+	      }
+	    if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
+	      {
+		NSLog(@"not a gsdoc document - because name node is %@",
+		  [[[parser doc] root] name]);
+		return 1;
+	      }
+	  }
+#endif
+	  if ([generated writeToFile: ddir atomically: YES] == NO)
+	    {
+	      NSLog(@"Sorry unable to write %@", ddir);
+	    }
 	}
       else if ([arg hasSuffix: @".m"])
 	{
