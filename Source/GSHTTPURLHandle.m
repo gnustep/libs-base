@@ -619,28 +619,6 @@ static NSLock			*urlLock = nil;
     {
       [request setObject: property forKey: propertyKey];
     }
-  else if ([propertyKey compare: @"GSHTTPBodyKey"] == NSOrderedSame)
-    {
-      NSData	*p;
-
-      /*
-       * writing using the GSHTTPBodyKey is equivalent to making sure
-       * the next load operation is a post.
-       */
-      p = [property dataUsingEncoding: NSASCIIStringEncoding];
-      if (wData == nil)
-	{
-	  wData = RETAIN(p);
-	}
-      else
-	{
-	  NSMutableData	*d = [wData mutableCopy];
-
-	  [d appendData: p];
-	  ASSIGNCOPY(wData, d);
-	  RELEASE(d);
-	}
-    }
   else
     {
       [wProperties setObject: property forKey: [propertyKey lowercaseString]];

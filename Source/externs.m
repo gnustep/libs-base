@@ -289,8 +289,6 @@ NSString *GSHTTPPropertyProxyHostKey;
 
 NSString *GSHTTPPropertyProxyPortKey;
  
-NSString *GSHTTPBodyKey;
-
 
 
 /*
@@ -516,8 +514,6 @@ GSBuildStrings()
 	= [[SClass alloc] initWithCString: "GSHTTPPropertyProxyHostKey"];
       GSHTTPPropertyProxyPortKey
 	= [[SClass alloc] initWithCString: "GSHTTPPropertyProxyPortKey"];
-      GSHTTPBodyKey
-	= [[SClass alloc] initWithCString: "GSHTTPBodyKey"];
     }
 }
 
