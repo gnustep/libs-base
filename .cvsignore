@@ -1,0 +1,8 @@
+=*
+
+COPYING COPYING.LIB INSTALL NEWS README TAGS TODO
+
+Makefile configure
+config.cache config.guess config.log config.status
+
+.date .name .patch* .snap*
