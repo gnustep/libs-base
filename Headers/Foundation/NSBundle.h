@@ -189,9 +189,9 @@ GS_EXPORT NSString* const NSLoadedClasses;
 
 /** Returns the principal class of the bundle. This is the class
     specified by the NSPrincipalClass key in the Info-gnustep property
-    list contained in the bundle. If this key is not found, the
-    class returned is arbitrary, although it is typically the first
-    class compiled into the archive.
+    list contained in the bundle. If this key or the specified class
+    is not found, the class returned is arbitrary, although it is 
+    typically the first class compiled into the archive.
  */
 - (Class) principalClass;
 

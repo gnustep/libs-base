@@ -1077,7 +1077,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     {
       _principalClass = NSClassFromString(class_name);
     }
-  else if ([_bundleClasses count])
+
+  if (!_principalClass && [_bundleClasses count])
     {
       _principalClass = [[_bundleClasses objectAtIndex: 0]
 			  nonretainedObjectValue];

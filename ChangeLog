@@ -1,3 +1,9 @@
+2004-11-30  Matt Rice  <ratmice@yahoo.com>
+	
+	* Source/NSBundle.m (-principalClass): If the class specified in
+	NSPrincipalClass key is not found return the first class found.
+	* Headers/Foundation/NSBundle.h (-principalClass): Document the above.
+
 2004-11-29  Adam Fedor  <fedor@gnu.org>
 
 	* configure.ac: Check for libffi or callback/avcall libs
