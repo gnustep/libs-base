@@ -22,6 +22,7 @@
 */ 
 
 #include <config.h>
+#include <mframe.h>
 #include <base/preface.h>
 #include <base/Invocation.h>
 #include <Foundation/DistributedObjects.h>
