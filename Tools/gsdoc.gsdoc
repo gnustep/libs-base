@@ -271,7 +271,7 @@
     &lt;chapter&gt;
       &lt;heading&gt;Afterword&lt;/heading&gt;
       &lt;p&gt;
-	Adn after the main part of the doucment we can have some other stuff.
+	And after the main part of the doucment we can have some other stuff.
       &lt;/p&gt;
     &lt;/chapter&gt;
     &lt;index type="class"/&gt;
@@ -282,7 +282,7 @@
 	  The above example shows all the elements possible in a document body -
 	</p>
 	<deflist>
-	<term><label id="title">front</label></term>
+	<term>front</term>
 	<desc>
 	  This is an optional part of the document that can come before the
 	  main text.  Typically, this could be used to contain an automatically
@@ -290,24 +290,275 @@
 	  When output is generated in book form, this part of the document
 	  would probably have a different page numbering scheme from the
 	  main part.
+	  <p>
+	    The <em>contents</em> element is used as a marker to specify
+	    that an automatically generated contents page (listing the
+	    chapters in the document) is to be inserted.
+	  </p>
 	</desc>
-	<term><label id="chapter">chapter</label></term>
+	<term><label id="main">main</label></term>
 	<desc>
 	  <p>
 	    After the <em>front</em> part of the document body comes a
 	    mandatory sequence of one or more chapters.  This is where
 	    the main part of the document resides.
+	    Each <ref id="chapter">chapter</ref> consists of a
+	    <ref id="heading">heading</ref>, any number
+	    of blocks of information, and any number of sections.
 	  </p>
 	</desc>
-	<term><label id="back">back</label></term>
+	<term>back</term>
 	<desc>
 	  After the chapters making up the main part of the body of the
 	  document is an optional <em>back</em> part which may contain
 	  chapters (such as appendices) possibly followed by an automatically
 	  generated index.
+	  <p>
+	    The <em>index</em> element is used as a marker to specify
+	    that an automatically generated index is to be inserted.
+	    The <em>type</em> attribute of the index specifies what sort
+	    of item is to be in the index - the default type of <em>label</em>
+	    causes an index of all <em>label</em> and <em>entry</em>
+	    elements to be generated.
+	  </p>
 	</desc>
 	</deflist>
       </section>
+    </chapter>
+
+    <chapter>
+      <heading>Element reference</heading>
+      <section id="block">
+	<heading>block</heading>
+	<p>
+	  Actually, there is no such thing as a <em>block</em> element, this
+	  is just shorthand for refering to a group of elements that can be
+	  used in similar ways.  The block elements are -
+	</p>
+	<deflist>
+	  <term><ref id="embed">embed</ref></term>
+	  <desc>embeded information from elsewhere</desc>
+	  <term><ref id="example">example</ref></term>
+	  <desc>the example</desc>
+	  <term><ref id="p">p</ref></term>
+	  <desc>the paragraph</desc>
+	  <term><label id="list">list</label></term>
+	  <desc>
+	    A variety of lists.
+	    <deflist>
+	      <term><ref id="list">list</ref></term>
+	      <desc>a simple list of items</desc>
+	      <term><ref id="enum">enum</ref></term>
+	      <desc>an enumerated list</desc>
+	      <term><ref id="deflist">deflist</ref></term>
+	      <desc>a list of terms and their definitions</desc>
+	      <term><ref id="qalist">qalist</ref></term>
+	      <desc>a list of questions and answers</desc>
+	    </deflist>
+	  </desc>
+	  <term>def</term>
+	  <desc>
+	    A variety of specialised elements for software documentation.
+	    <deflist>
+	      <term><ref id="class">class</ref></term>
+	      <desc>An Objective-C class definition</desc>
+	      <term><ref id="jclass">jclass</ref></term>
+	      <desc>A Java class definition</desc>
+	      <term><ref id="category">category</ref></term>
+	      <desc>An Objective-C category definition</desc>
+	      <term><ref id="protocol">protocol</ref></term>
+	      <desc>An Objective-C protocol or Java interface definition</desc>
+	      <term><ref id="function">function</ref></term>
+	      <desc>A function definition</desc>
+	      <term><ref id="macro">macro</ref></term>
+	      <desc>A macro definition</desc>
+	      <term><ref id="type">type</ref></term>
+	      <desc>A type definition</desc>
+	      <term><ref id="variable">variable</ref></term>
+	      <desc>A variable definition</desc>
+	    </deflist>
+	  </desc>
+	</deflist>
+      </section>
+
+      <section id="br">
+	<heading>br</heading>
+	<p>
+	  The <em>br</em> element is an empty element that always appears
+	  as &lt;br/&gt; in the document.  This element simply specifies
+	  that a line-break should appear in the output text at this point.
+	</p>
+      </section>
+
+      <section id="chapter">
+	<heading>chapter</heading>
+	<p>
+	  This is the basic unit of the document - the main part of
+	  a document <ref id="body">body</ref> will contain at least
+	  one chapter.
+	  Each chapter consists of a heading,
+	  zero or more <ref id="block">blocks</ref>,
+	  and zero or more <ref id="section">sections</ref>.
+	</p>
+	<p>
+	  Each chapter in the document is automatically listed in the
+	  documents contents page (if it has one).
+	</p>
+      </section>
+
+      <section id="class">
+	<heading>class</heading>
+	<p>
+	  This is the main element for Objective-C code documentation.
+	  The <em>name</em> attribute is required for this element - it is
+	  the name of the class.  The <em>super</em> attribute is normally
+	  necessary to provide the name of the superclass.
+	</p>
+	<p>
+	  The elements in a class are - an optional
+	  <ref id="declared">declared</ref> element,
+	  zero or more <ref id="conform">conform</ref> element,
+	  an optional <ref id="desc">description</ref>,
+	  zero or more <ref id="method">method</ref> elements,
+	  and an optional <ref id="standards">standards</ref> element.
+	</p>
+      </section>
+
+      <section id="conform">
+	<heading>conform</heading>
+	<p>
+	  This element contains simple text giving the name of a protocol
+	  or interface to which a class conforms.
+	</p>
+      </section>
+
+      <section id="declared">
+	<heading>declared</heading>
+	<p>
+	  This element contains simple text giving the name of the header
+	  file in which something is declared.
+	</p>
+      </section>
+
+      <section id="desc">
+	<heading>desc</heading>
+	<p>
+	  This element is used to contain descriptions of how software
+	  functions.  It may contain <ref id="text">text</ref>, but may
+	  also contain <ref id="list">lists</ref>,
+	  <ref id="p">paragraphs</ref>, 
+	  <ref id="example">examples</ref> and
+	  <ref id="mbed">embedded data</ref>.
+	</p>
+      </section>
+
+      <section id="heading">
+	<heading>heading</heading>
+	<p>
+	  Each <ref id="chapter">chapter</ref>,
+	  <ref id="section">section</ref>
+	  <ref id="subsect">sub-section</ref>,
+	  or <ref id="subsubsect">sub-sub-section</ref>
+	  has a heading as the first thing in it.
+	  These headings introduce the sections and are listed in the
+	  contents page.
+	</p>
+      </section>
+
+      <section id="p">
+	<heading>p</heading>
+	<p>
+	  The paragraph element simply contains <ref id="text">text</ref>.
+	  Most descriptive writing is inside paragraphs.
+	</p>
+      </section>
+
+      <section id="section">
+	<heading>section</heading>
+	<p>
+	  The <em>section</em> element is just like a
+	  <ref id="chapter">chapter</ref>, except that it contains
+	  <ref id="subsect">sub-sections</ref> where a chapter would
+	  contain sections.
+	</p>
+      </section>
+
+      <section id="standards">
+	<heading>standards</heading>
+	<p>
+	  The <em>standards</em> element contains any number of
+	  standard elements whioch specify what standards a particular
+	  piece of code does or does not conform to.
+	  <br/>
+	  The defined values are -
+	</p>
+	<list>
+	  <item>&lt;GNUstep/&gt;</item>
+	  <item>&lt;OpenStep/&gt;</item>
+	  <item>&lt;NotOpenStep/&gt;</item>
+	  <item>&lt;MacOS-X/&gt;</item>
+	  <item>&lt;NotMacOS-X/&gt;</item>
+	</list>
+      </section>
+
+      <section id="subsect">
+	<heading>subsect</heading>
+	<p>
+	  The <em>subsect</em> element is just like a
+	  <ref id="section">section</ref>, except that it contains
+	  <ref id="subsubsect">sub-sub-sections</ref> where a section would
+	  contain sub-sections.
+	</p>
+      </section>
+
+      <section id="subsubsect">
+	<heading>subsubsect</heading>
+	<p>
+	  The <em>subsubsect</em> element is just like a
+	  <ref id="subsect">sub-section</ref>, except that it contains
+	  only a <ref id="heading">heading</ref> and zero or more
+	  <ref id="block">blocks</ref>.
+	</p>
+      </section>
+
+      <section id="text">
+	<heading>text</heading>
+	<p>
+	  This is not really an element, we simply talk about text where
+	  we mean raw text and very simple markup such as -
+	</p>
+	<deflist>
+	  <term><ref id="br">br</ref></term>
+	  <desc>a forced line-break</desc>
+	  <term><ref id="footnote">footnote</ref></term>
+	  <desc>a reference to a footnote that appears in full elsewhere</desc>
+	  <term><ref id="label">label</ref></term>
+	  <desc>
+	    a piece of text marked so that it can be referred to from elsewhere.
+	  </desc>
+	  <term><ref id="entry">entry</ref></term>
+	  <desc>
+	    an invisible mark that can be referred to from elsewhere.
+	  </desc>
+	  <term><ref id="ref">ref</ref></term>
+	  <desc>
+	    text marked as a reference to elsewhere in the document.
+	  </desc>
+	  <term><ref id="uref">uref</ref></term>
+	  <desc>
+	    text marked as a reference to a hypertext URL.
+	  </desc>
+	  <term><ref id="url">url</ref></term>
+	  <desc>
+	    a hypertext URL.
+	  </desc>
+	  <term><ref id="email">email</ref></term>
+	  <desc>
+	    an email address.
+	  </desc>
+	</deflist>
+      </section>
+
     </chapter>
 
     <chapter>

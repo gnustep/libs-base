@@ -10,7 +10,8 @@
 	* Documentation/gsdoc/NSScanner.gsdoc: fleshed out
 	* Tools/Makefile.postamble: Added documentation target - build before
 	install
-	* Tools/gsdoc-0_6_6.dtd: New dtd under development - add java support
+	* Tools/gsdoc-0_6_6.dtd: New dtd under development - add java support,
+	permit multiple indices at end of document, permit <br/> element.
 	* Tools/gsdoc.m: Update to work with current dtd
 	* Tools/gsdoc.gsdoc: Add a little more text on document body structure.
 
