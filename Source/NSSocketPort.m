@@ -611,7 +611,7 @@ static Class	runLoopClass;
     desc, inet_ntoa(sockAddr.sin_addr), ntohs(sockAddr.sin_port)];
 }
 
-- (SOCKET) descriptor
+- (int) descriptor
 {
   return desc;
 }
@@ -1583,7 +1583,7 @@ static unsigned	wordAlign;
  * This is a callback method used by the NSRunLoop class to determine which
  * descriptors to watch for the port.
  */
-- (void) getFds: (SOCKET*)fds count: (int*)count
+- (void) getFds: (int*)fds count: (int*)count
 {
   NSMapEnumerator	me;
   SOCKET		sock;
@@ -1894,7 +1894,7 @@ static unsigned	wordAlign;
       handle->recvPort = nil;
     }
   NSMapRemove(handles, (void*)(gsaddr)[handle descriptor]);
-  if (listener < 0 && NSCountMapTable(handles) == 0)
+  if (((int) listener) < 0 && NSCountMapTable(handles) == 0)
     {
       [self invalidate];
     }

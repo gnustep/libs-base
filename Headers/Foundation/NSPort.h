@@ -124,7 +124,7 @@ typedef SOCKET NSSocketNativeHandle;
 
 - (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send;
 - (NSString*) address;
-- (void) getFds: (SOCKET*)fds count: (int*)count;
+- (void) getFds: (int*)fds count: (int*)count;
 - (GSTcpHandle*) handleForPort: (NSSocketPort*)recvPort
 		    beforeDate: (NSDate*)when;
 - (void) handlePortMessage: (NSPortMessage*)m;
