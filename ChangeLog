@@ -226,6 +226,12 @@
 	to avoid other NSDefaultRunLoopMode events being triggered while
 	executing a DO method.  **EXPERIMENTAL**
 
+2002-08-06  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSString.m (-getLineStart:end:contentsEnd:forRange:):
+	Change location of start of end char search (Patch from Pete
+	French).
+
 2002-07-27  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.4.0
