@@ -1,3 +1,7 @@
+2000-02-16  Adam Fedor  <fedor@gnu.org>
+
+	* gnustep-base.spec: Newfile
+
 Wed Feb 16 06:28:00 2000  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSAssertionHandler.m: Applied patch by David relson to change
