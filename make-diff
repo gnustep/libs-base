@@ -1,0 +1,44 @@
+#!/bin/sh
+
+dir=/com/share/ftp/roland
+diff_recipients=drepper
+
+module=libc
+yrptn='[0-9][0-9][0-9][0-9][0-9][0-9]'
+ptn="${module}-${yrptn}"
+dptn="${ptn}-${yrptn}.diff"
+
+date=`date +%y%m%d`
+
+lastsnap=`cd $dir; ls $ptn.tar.gz $dptn $dptn.gz 2>/dev/null |
+                   sed -e "s/^.*\\(${yrptn}\\)[.a-z]*$/\\1/" |
+                   sort -nr | head -1`
+
+lastdiff=`cd $dir; ls $dptn $dptn.gz 2>/dev/null |
+                    sed -e "s/^.*\\(${yrptn}\\)[.a-z]*$/\\1/" |
+                    sort -nr | head -1`
+
+notag=
+
+if [ $lastsnap = $date ]; then
+  if [ $lastdiff = $lastsnap ]; then
+    echo "$0: Snapshot ${module}-${date} already made, skipping."
+    exit 0
+  fi
+
+  # There is already a full snapshot for this date, but no diffs.
+  # Don't re-tag, just make diffs.
+  notag=yes
+  lastsnap=$lastdiff
+fi
+
+diff="${module}-${lastdiff}-${date}.diff"
+test -z "$notag" && cvs -q rtag -F libc-$date $module
+cvs -q rdiff -u -r $module-$lastdiff -r $module-$date $module > $diff || exit
+
+if [ -s $diff ]; then
+  mail -s $diff < $diff $diff_recipients
+  gzip -9 $diff && mv -f $diff.gz $dir
+else
+  rm -f $diff
+fi
