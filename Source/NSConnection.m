@@ -783,45 +783,45 @@ static BOOL	multi_threaded = NO;
 /** <init />
  * Initialises an NSConnection with the receive port r and the 
  * send port s.<br />
- *  Behavior varies with the port values as follows -
- *  <deflist>
- *    <term>r is <code>nil</code></term>
- *    <desc>
- *      The NSConnection is released and the method returns
- *      <code>nil</code>.
- *    </desc>
- *    <term>s is <code>nil</code></term>
- *    <desc>
- *      The NSConnection uses r as the send port as
- *      well as the receive port.
- *    </desc>
- *    <term>s is the same as r</term>
- *    <desc>
- *      The NSConnection is usable only for vending objects.
- *    </desc>
- *    <term>A connection with the same ports exists</term>
- *    <desc>
- *      The new connection is released and the old connection
- *      is retained and returned.
- *    </desc>
- *    <term>A connection with the same ports (swapped) exists</term>
- *    <desc>
- *      The new connection is initialised as normal, and will
- *      communicate with the old connection.
- *    </desc>
- *  </deflist>
- *  <p>
- *    If a connection exists whose send and receive ports are
- *    both the same as the new connections receive port, that
- *    existing connection is deemed to be the parent of the
- *    new connection.  The new connection inherits configuration
- *    information from the parent, and the delegate of the
- *    parent has a chance to adjust ythe configuration of the
- *    new connection or veto its creation.
- *    <br/>
- *    NSConnectionDidInitializeNotification is posted once a new
- *    connection is initialised.
- *  </p>
+ * Behavior varies with the port values as follows -
+ * <deflist>
+ *   <term>r is <code>nil</code></term>
+ *   <desc>
+ *     The NSConnection is released and the method returns
+ *     <code>nil</code>.
+ *   </desc>
+ *   <term>s is <code>nil</code></term>
+ *   <desc>
+ *     The NSConnection uses r as the send port as
+ *     well as the receive port.
+ *   </desc>
+ *   <term>s is the same as r</term>
+ *   <desc>
+ *     The NSConnection is usable only for vending objects.
+ *   </desc>
+ *   <term>A connection with the same ports exists</term>
+ *   <desc>
+ *     The new connection is released and the old connection
+ *     is retained and returned.
+ *   </desc>
+ *   <term>A connection with the same ports (swapped) exists</term>
+ *   <desc>
+ *     The new connection is initialised as normal, and will
+ *     communicate with the old connection.
+ *   </desc>
+ * </deflist>
+ * <p>
+ *   If a connection exists whose send and receive ports are
+ *   both the same as the new connections receive port, that
+ *   existing connection is deemed to be the parent of the
+ *   new connection.  The new connection inherits configuration
+ *   information from the parent, and the delegate of the
+ *   parent has a chance to adjust ythe configuration of the
+ *   new connection or veto its creation.
+ *   <br/>
+ *   NSConnectionDidInitializeNotification is posted once a new
+ *   connection is initialised.
+ * </p>
  */
 - (id) initWithReceivePort: (NSPort*)r
 		  sendPort: (NSPort*)s

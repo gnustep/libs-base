@@ -408,12 +408,17 @@
 	  *end++ = '\n';
 
 	  /*
-	   * If next line in the comment starts with whitespace followed
+	   * If second line in the comment starts with whitespace followed
 	   * by an asterisk, we assume all the lines in the comment start
 	   * in a similar way, and everything up to and including the
 	   * asterisk on each line should be stripped.
 	   * Otherwise we take the comment verbatim.
 	   */
+	  while (ptr < end && *ptr != '\n')
+	    {
+	      ptr++;
+	    }
+	  ptr++;	// Step past the end of the first line.
 	  while (ptr < end)
 	    {
 	      unichar	c = *ptr++;

@@ -393,11 +393,26 @@ static NSMutableSet	*textNodes = nil;
 			{
 			  NSString	*catName = [catNames objectAtIndex: i];
 			  NSDictionary	*catDict;
+			  NSString	*cName;
+			  NSEnumerator	*enumerator;
+			  NSString	*mname;
 
-			  catName = [classname stringByAppendingFormat: @"(%@)",
+			  cName = [classname stringByAppendingFormat: @"(%@)",
 			    catName];
-			  catDict = [unitDict objectForKey: catName];
-			  [m addEntriesFromDictionary: catDict];
+			  catDict = [unitDict objectForKey: cName];
+			  enumerator = [catDict keyEnumerator];
+			  /*
+			   * Add category references to the dictionary,
+			   * prefixing them with the category they belong to.
+			   */
+			  while ((mname = [enumerator nextObject]) != nil)
+			    {
+			      NSString	*file = [catDict objectForKey: mname];
+			      NSString	*ref = [NSString stringWithFormat:
+				@"(%@)%@", catName, mname];
+
+			      [m setObject: file forKey: ref];
+			    }
 			}
 		      dict = AUTORELEASE(m);
 		    }
@@ -420,6 +435,16 @@ static NSMutableSet	*textNodes = nil;
 	  NSString	*ref = [a objectAtIndex: i];
 	  NSString	*file = [dict objectForKey: ref];
 	  NSString	*text = ref;
+
+	  /*
+	   * If a reference to a method contains a leading catergory name,
+	   * we don't want it in the visiable method name.
+	   */
+	  if ([text hasPrefix: @"("] == YES)
+	    {
+	      NSRange	r = [text rangeOfString: @")"];
+	      text = [text substringFromIndex: NSMaxRange(r)];
+	    }
 
 	  [buf appendString: indent];
 	  [buf appendString: @"<li><a rel=\"gsdoc\" href="];
