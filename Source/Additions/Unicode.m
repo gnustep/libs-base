@@ -39,7 +39,7 @@
 #else
 #include <Foundation/Foundation.h>
 #endif
-#include "GSCompatibility.h"
+#include "GNUstepBase/GSCategories.h"
 #include "GNUstepBase/Unicode.h"
 #include <stdio.h>
 #include <stdlib.h>

@@ -48,7 +48,7 @@
 #endif
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GNUstep.h"
-#include "GSCompatibility.h"
+#include "GNUstepBase/GSCategories.h"
 #include <string.h>
 
 @class	NSNull;

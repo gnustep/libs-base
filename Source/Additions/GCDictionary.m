@@ -33,7 +33,7 @@
 
 #include "GNUstepBase/GSObjCRuntime.h"
 #include "GNUstepBase/GCObject.h"
-#include "GSCompatibility.h"
+#include "GNUstepBase/GSCategories.h"
 
 typedef struct {
   id	object;
