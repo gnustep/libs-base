@@ -2,7 +2,7 @@
 #include "second-client.h"
 #include <gnustep/base/Connection.h>
 #include <gnustep/base/TcpPort.h>
-#include <gnustep/base/String.h>
+#include <Foundation/NSString.h>
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/Invocation.h>
 
@@ -128,7 +128,8 @@ int main(int argc, char *argv[])
 
   if (argc > 1)
     {
-      c = [Connection newRegisteringAtName: [String stringWithCString: argv[1]]
+      c = [Connection newRegisteringAtName: 
+			[NSString stringWithCString: argv[1]]
 		      withRootObject:s];
       printf("Regsitered server object on localhost with "
 	     "name `%s'\n", argv[1]);

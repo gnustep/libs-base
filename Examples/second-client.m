@@ -1,5 +1,5 @@
 #include "second-client.h"
-#include <gnustep/base/String.h>
+#include <Foundation/NSString.h>
 #include <gnustep/base/Notification.h>
 #include <gnustep/base/Invocation.h>
 #include <gnustep/base/RunLoop.h>
@@ -25,7 +25,8 @@ int main(int argc, char *argv[])
 
   printf("Looking up server object on localhost with name `secondserver'\n");
   if (argc > 1)
-    server = [Connection rootProxyAtName: [String stringWithCString: argv[1]]];
+    server = [Connection rootProxyAtName: 
+			   [NSString stringWithCString: argv[1]]];
   else
     server = [Connection rootProxyAtName: @"secondserver"];
   printf("Found server.\n");
