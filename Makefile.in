@@ -102,6 +102,8 @@ FILE_AUTHORS = \
 "Adam Fedor" \
 "Mark Lakata"
 
+# GNU Class source files
+
 GNU_MFILES = \
 Array.m \
 Bag.m \
@@ -158,81 +160,17 @@ mframe.m \
 objc-gnu2next.m \
 eltfuncs.m
 
-NEXTSTEP_MFILES = \
-HashTable.m \
-List.m \
-NXStringTable.m \
-Storage.m
-
-GNUSTEP_MFILES = \
-NSAllocateObject.m \
-NSArray.m \
-NSArrayEnumerator.m \
-NSAutoreleasePool.m \
-NSBundle.m \
-NSCoder.m \
-NSCopyObject.m \
-NSConcreteArray.m \
-NSConcreteValue.m \
-NSCString.m \
-NSDeallocateObject.m \
-NSDictionary.m \
-NSEnumerator.m \
-NSException.m \
-NSGeometry.m \
-NSNumber.m \
-NSObject.m \
-NSRange.m \
-NSString.m \
-NSValue.m
-
-NSVALUE_CLUSTER = 0 1 2 3 4
-NSVALUE_OFILES  = NSValue0.o NSValue1.o NSValue2.o NSValue3.o NSValue4.o
-NSNUMBER_CLUSTER = 0 1 2 3 4 5 6 7 8 9 10 11 12
-NSNUMBER_OFILES  = NSNumber0.o NSNumber1.o NSNumber2.o NSNumber3.o \
-	NSNumber4.o NSNumber5.o NSNumber6.o NSNumber7.o NSNumber8.o \
-	NSNumber9.o NSNumber10.o NSNumber11.o NSNumber12.o
-
 GNU_CFILES = \
 behavior.c \
 collhash.c \
 objc-malloc.c \
 o_vscanf.c 
 
-NEXTSTEP_CFILES = 
-
-NEXTSTEP_DERIVED_CFILES = \
-NXStringTable_scan.c
-
-GNUSTEP_CFILES = \
-NSZone.c \
-find_exec.c \
-objc-load.c
-
 GNU_OTHER_SRCFILES = 
-
-NEXTSTEP_OTHER_SRCFILES = \
-NXStringTable_scan.l 
-
-GNUSTEP_OTHER_SRCFILES = \
-NSConcreteNumber.m \
-NSCTemplateValue.m \
-dld-load.h \
-hpux-load.h \
-null-load.h \
-simple-load.h 
 
 GNU_OBJS = \
 	$(GNU_MFILES:.m=.o) \
 	$(GNU_CFILES:.c=.o)
-NEXTSTEP_OBJS = \
-	$(NEXTSTEP_MFILES:.m=.o) \
-	$(NEXTSTEP_CFILES:.c=.o) \
-	$(NEXTSTEP_DERIVED_CFILES:.c=.o)
-GNUSTEP_OBJS = \
-	$(GNUSTEP_MFILES:.m=.o) \
-	$(GNUSTEP_CFILES:.c=.o) \
-	$(NSVALUE_OFILES) $(NSNUMBER_OFILES)
 
 GNU_HEADERS = \
 objects/Array.h \
@@ -310,12 +248,84 @@ objects/objc-malloc.h \
 objects/objects.h \
 objects/README 
 
+# NEXTSTEP source files
+
+NEXTSTEP_MFILES = \
+HashTable.m \
+List.m \
+NXStringTable.m \
+Storage.m
+
+NEXTSTEP_CFILES = 
+
+NEXTSTEP_DERIVED_CFILES = \
+NXStringTable_scan.c
+
+NEXTSTEP_OTHER_SRCFILES = \
+NXStringTable_scan.l 
+
+NEXTSTEP_OBJS = \
+	$(NEXTSTEP_MFILES:.m=.o) \
+	$(NEXTSTEP_CFILES:.c=.o) \
+	$(NEXTSTEP_DERIVED_CFILES:.c=.o)
+
 NEXTSTEP_HEADERS = \
 objc/HashTable.h \
 objc/List.h \
 objc/NXStringTable.h \
 objc/Storage.h \
 objc/zone.h
+
+# GNUStep source files
+
+GNUSTEP_MFILES = \
+NSAllocateObject.m \
+NSArray.m \
+NSArrayEnumerator.m \
+NSAutoreleasePool.m \
+NSBundle.m \
+NSCoder.m \
+NSCopyObject.m \
+NSConcreteArray.m \
+NSConcreteValue.m \
+NSCString.m \
+NSDeallocateObject.m \
+NSDictionary.m \
+NSEnumerator.m \
+NSException.m \
+NSGeometry.m \
+NSNumber.m \
+NSObject.m \
+NSRange.m \
+NSString.m \
+NSValue.m
+
+NSVALUE_CLUSTER = 0 1 2 3 4
+NSVALUE_OFILES  = NSValue0.o NSValue1.o NSValue2.o NSValue3.o NSValue4.o
+NSNUMBER_CLUSTER = 0 1 2 3 4 5 6 7 8 9 10 11 12
+NSNUMBER_OFILES  = NSNumber0.o NSNumber1.o NSNumber2.o NSNumber3.o \
+	NSNumber4.o NSNumber5.o NSNumber6.o NSNumber7.o NSNumber8.o \
+	NSNumber9.o NSNumber10.o NSNumber11.o NSNumber12.o
+
+GNUSTEP_CFILES = \
+NSZone.c \
+find_exec.c \
+objc-load.c
+
+GNUSTEP_OTHER_SRCFILES = \
+NSConcreteNumber.m \
+NSCTemplateValue.m \
+dld-load.h \
+hpux-load.h \
+null-load.h \
+simple-load.h \
+NSData.m \
+foundation/NSData.h
+
+GNUSTEP_OBJS = \
+	$(GNUSTEP_MFILES:.m=.o) \
+	$(GNUSTEP_CFILES:.c=.o) \
+	$(NSVALUE_OFILES) $(NSNUMBER_OFILES)
 
 GNUSTEP_HEADERS = \
 foundation/NSArray.h \
