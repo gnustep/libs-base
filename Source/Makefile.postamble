@@ -180,5 +180,7 @@ Info-gnustep.plist:
 	echo "  NSPrincipalClass = \"NSObject\";"; \
 	echo "  GSBundleShortVersionString = \"$(VERSION)\";"; \
 	echo "  GSBundleVersion = $(VERSION_NUMBER);"; \
+	echo "  CFBundleShortVersionString = \"$(VERSION)\";"; \
+	echo "  CFBundleVersion = $(VERSION_NUMBER);"; \
 	echo "}") > $@$(END_ECHO)
 

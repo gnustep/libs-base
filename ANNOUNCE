@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.10.0, is now available.
+The GNUstep Base Library, version 1.10.1, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -18,24 +18,25 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.10.0'
+Noteworthy changes in version `1.10.1'
 ======================================
 
-Note the interface version of the library has changed so that apps,
-tools and libraries the use the base library need to be recompiled to
-use it.
+This version mostly includes minor fixes and updates.
 
-   * A large majority of the library classes have been documented
-     thanks to the efforts of Andrew Ruder
+   * Runtime discovery of the library version is possible.
 
-   * URL classes support persistant connections
+   * NSXMLParser class added. Not completely implemented.
 
-   * Mac OSX XML compatibility fixes.
+   * NSArrays makeObjectsPerformSelector iterates in same order as
+     MacOS X.
+
+   * Designated initializers for NSArray, NSDictionary, NSSet, and
+     NSString have been changed for MacOS X compatibility.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-The gnustep-base-1.10.0.tar.gz distribution file has been placed on
+The gnustep-base-1.10.1.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page

@@ -19,6 +19,39 @@
 	migrate to using a newer version of the library.
       </p>
       <section>
+	<heading>Version 1.10.1</heading>
+	<p>
+	</p>
+	  <deflist>
+	    <term>Runtime version disconvery of library</term>
+	    <desc>
+	    A developer can discover the version of the base library that 
+	    is loaded using the NSBundle methods
+	    <code>[[NSBundle bundleForLibrary: @"gnustep-base"] infoDictionary]</code>
+	    and retrieving the <var>GSBundleVersion</var> key.
+	    </desc>
+	    <term>NSXMLParser class added</term>
+	    <desc>
+	      This is a Cocoa class that has been added for
+	      compatibility. The class is still alpha state.
+	    </desc>
+	    <term>NSArray makeObjectsPerformSelector:</term>
+	    <desc>
+	      The order of iteration through objects was changed to
+	      match Cocoa.
+	    </desc>
+	    <term>Designated initializer changes</term>
+	    <desc>
+	      The designated initializer for  NSArray, NSDictionary,
+	      NSSet, and NSString for MacOS X compatibility. Like
+	      MacOS X, you can call <code>[super init]</code> to initialize
+	      the class from a subclass, although it is prefered that you use
+	      the <em>designated initializer</em>, with it's richer
+	      set of initializers.
+	    </desc>
+	  </deflist>
+      </section>
+      <section>
 	<heading>Version 1.10.0</heading>
 	<p>
 	</p>
