@@ -99,11 +99,11 @@
 
 @end
 
-
+#if 0
 @implementation CurriedInvocation
 
 @end
-
+#endif
 
 static int
 types_get_size_of_stack_arguments(const char *types)
