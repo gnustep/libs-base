@@ -844,9 +844,15 @@ AC_MSG_RESULT($enable_fake_main)
 # Check for FFI interface libraries for invocations
 # We enable ffcall by default now.
 #--------------------------------------------------------------------
+do_enable_libffi=no
+# Enable libffi by default on the following machines
+case "$target_os" in
+    darwin*)	do_enable_libffi=yes;;
+esac
+
 AC_ARG_ENABLE(libffi,
   [  --enable-libffi  		Enable use of libffi library],,
-  enable_libffi=no)
+  enable_libffi=$do_enable_libffi)
 
 AC_ARG_ENABLE(ffcall,
   [  --enable-ffcall  		Enable use of ffcall library],,

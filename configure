@@ -11009,12 +11009,18 @@ echo "${ECHO_T}$enable_fake_main" >&6
 # Check for FFI interface libraries for invocations
 # We enable ffcall by default now.
 #--------------------------------------------------------------------
+do_enable_libffi=no
+# Enable libffi by default on the following machines
+case "$target_os" in
+    darwin*)	do_enable_libffi=yes;;
+esac
+
 # Check whether --enable-libffi or --disable-libffi was given.
 if test "${enable_libffi+set}" = set; then
   enableval="$enable_libffi"
 
 else
-  enable_libffi=no
+  enable_libffi=$do_enable_libffi
 fi;
 
 # Check whether --enable-ffcall or --disable-ffcall was given.
