@@ -3,6 +3,8 @@
 	* Source/NSGeometry.m: Add code to parse MacOS-X format strings.
 	Also produce MacOS-X format strings if the GSMacOSXCompatibleGeometry
 	or GSMacOSXCompatible default is YES (the former overrides the latter).
+	* Source/NSException.m: ([-name]) and ([-reason]) modifide to ensure
+	that a nil is never returned.
 
 2000-09-01  Fred Kiefer <FredKiefer@gmx.de>
 

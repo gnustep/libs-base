@@ -118,12 +118,26 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
 
 - (NSString*) name
 {
-  return _e_name;
+  if (_e_name != nil)
+    {
+      return _e_name;
+    }
+  else
+    {
+      return NSStringFromClass([self class]);
+    }
 }
 
 - (NSString*) reason
 {
-  return _e_reason;
+  if (_e_reason != nil)
+    {
+      return _e_reason;
+    }
+  else
+    {
+      return @"unspecified reason";
+    }
 }
 
 - (NSDictionary*) userInfo
