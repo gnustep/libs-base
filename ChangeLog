@@ -1,3 +1,7 @@
+Fri Sep 18 10:20:55 1998  Adam Fedor  <fedor@ultra.doc.com>
+
+	* src/include/preface.h.in (MIN, MAX): Rewrite macros.
+
 Thu Sep 10 06:05:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSFileHandle.m: Implemented [(-waitForDataInBackground])
