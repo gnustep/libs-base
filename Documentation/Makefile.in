@@ -129,7 +129,6 @@ copy-dist: $(DIST_FILES)
 	mkdir ../snap/doc
 	ln $(DIST_FILES) ../snap/doc
 	ln $(TOP_DOC_FILES) ../snap
-	ln TODO ../snap/admin/tasks
 
 Makefile: Makefile.in
 	cd ..; $(SHELL) config.status
