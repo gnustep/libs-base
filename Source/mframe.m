@@ -1,5 +1,5 @@
 /* Implementation of functions for dissecting/making method calls 
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: Oct 1994
@@ -394,6 +394,10 @@ make_method_call(const char *forward_type,
 	    }
 	  else if (*tmptype == _C_FLT || *tmptype == _C_DBL)
 	    {
+	      /* xxx For floats on MIPS, it seems I should add 4 more in
+		 addition to the FLT_AND_DBL_RETFRAME_OFFSET while working
+		 on guileobjc.
+		 Look into this for Distributed Objects. */
 	      (*fe)(-1, ((char*)retframe) + FLT_AND_DBL_RETFRAME_OFFSET,
 		    tmptype, flags);
 	    }
