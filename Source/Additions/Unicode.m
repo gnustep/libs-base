@@ -1330,6 +1330,7 @@ tables:
 	      NSZoneFree(zone, ptr);
 	    }
 	  ptr = r;
+	  *dst = ptr;
 	}
       else if (zone != 0 && (ptr == buf || bsize > dpos))
 	{
@@ -1354,13 +1355,17 @@ tables:
 	    {
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
 	    }
+	  *dst = ptr;
 	}
       else if (ptr == buf)
 	{
 	  ptr = NULL;
 	  result = NO;
 	}
-      *dst = ptr;
+      else
+	{
+	  *dst = ptr;
+	}
     }
   else if (ptr != buf && dst != 0 && ptr != *dst)
     {
@@ -1975,6 +1980,10 @@ tables:
 	{
 	  ptr = NULL;
 	  result = NO;
+	}
+      else
+	{
+	  *dst = ptr;
 	}
     }
   else if (ptr != buf && dst != 0 && ptr != *dst)
