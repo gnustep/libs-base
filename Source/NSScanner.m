@@ -27,6 +27,7 @@
 #include <Foundation/NSScanner.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSUserDefaults.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -126,7 +127,7 @@ typedef struct {
       aString = @"";
     }
 
-  c = fastClass(aString);
+  c = GSObjCClassOfObject(aString);
   if (c == GSUString_class)
     {
       _isUnicode = YES;

@@ -33,6 +33,7 @@
 #include <Foundation/NSLock.h>
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSThread.h>
+#include <Foundation/NSObjCRuntime.h>
 
 @class	NSSetNonCore;
 @class	NSMutableSetNonCore;
@@ -110,7 +111,7 @@ static Class NSCountedSet_concrete_class;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned	count;
-  Class		c = fastClass(self);
+  Class		c = GSObjCClassOfObject(self);
 
   if (c == NSCountedSet_abstract_class)
     {

@@ -245,6 +245,22 @@ $(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
         : $(HEADER_DIR)/fast.x
 
 #
+#	Files that include NSObjCRuntime.h will need a rebuild if it is changed.
+#
+$(GNUSTEP_OBJ_DIR)/GSString.o \
+$(GNUSTEP_OBJ_DIR)/NSArchiver.o \
+$(GNUSTEP_OBJ_DIR)/NSArray.o \
+$(GNUSTEP_OBJ_DIR)/NSData.o \
+$(GNUSTEP_OBJ_DIR)/NSGDictionary.o \
+$(GNUSTEP_OBJ_DIR)/NSInvocation.o \
+$(GNUSTEP_OBJ_DIR)/NSObjCRuntime.o \
+$(GNUSTEP_OBJ_DIR)/NSObject.o \
+$(GNUSTEP_OBJ_DIR)/NSSerializer.o \
+$(GNUSTEP_OBJ_DIR)/NSString.o \
+$(GNUSTEP_OBJ_DIR)/NSUnarchiver.o \
+        : $(HEADER_DIR)/NSObjCRuntime.h
+
+#
 #	Files that include GSeq.h will need a rebuild if it is changed.
 #
 $(GNUSTEP_OBJ_DIR)/NSString.o \

@@ -60,6 +60,9 @@ static SEL xRefSel;
 static SEL eObjSel;
 static SEL eValSel;
 
+@class NSMutableDataMalloc;
+static Class	NSMutableDataMallocClass;
+
 + (void) initialize
 {
   if (self == [NSArchiver class])
@@ -69,6 +72,7 @@ static SEL eValSel;
       xRefSel = @selector(serializeTypeTag:andCrossRef:);
       eObjSel = @selector(encodeObject:);
       eValSel = @selector(encodeValueOfObjCType:at:);
+      NSMutableDataMallocClass = [NSMutableDataMalloc class];
     }
 }
 
@@ -76,7 +80,7 @@ static SEL eValSel;
 {
   NSMutableData	*d;
 
-  d = [[_fastCls._NSMutableDataMalloc allocWithZone: fastZone(self)] init];
+  d = [[NSMutableDataMallocClass allocWithZone: fastZone(self)] init];
   self = [self initForWritingWithMutableData: d];
   RELEASE(d);
   return self;
@@ -162,7 +166,7 @@ static SEL eValSel;
   id		d;
   NSZone	*z = NSDefaultMallocZone();
 
-  d = [[_fastCls._NSMutableDataMalloc allocWithZone: z] initWithCapacity: 0];
+  d = [[NSMutableDataMallocClass allocWithZone: z] initWithCapacity: 0];
   if (d == nil)
     {
       return nil;

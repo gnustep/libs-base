@@ -43,6 +43,7 @@
 #include <Foundation/NSRange.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSValue.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <base/behavior.h>
 /* memcpy(), strlen(), strcmp() are gcc builtin's */
 
@@ -359,7 +360,7 @@ compare_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
   if (fastIsInstance(aString) == NO)
     return strCompCsNs((id)self, aString, mask, aRange);
 
-  c = fastClass(aString);
+  c = GSObjCClassOfObject(aString);
   if (fastClassIsKindOfClass(c, GSUStringClass) == YES
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompCsUs((id)self, aString, mask, aRange);
@@ -381,7 +382,7 @@ compare_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
   if (fastIsInstance(aString) == NO)
     return strCompUsNs((id)self, aString, mask, aRange);
 
-  c = fastClass(aString);
+  c = GSObjCClassOfObject(aString);
   if (fastClassIsKindOfClass(c, GSUStringClass)
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strCompUsUs((id)self, aString, mask, aRange);
@@ -1057,7 +1058,7 @@ rangeOfString_c(ivars self, NSString *aString, unsigned mask, NSRange aRange)
   if (fastIsInstance(aString) == NO)
     return strRangeCsNs((id)self, aString, mask, aRange);
 
-  c = fastClass(aString);
+  c = GSObjCClassOfObject(aString);
   if (fastClassIsKindOfClass(c, GSUStringClass) == YES
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeCsUs((id)self, aString, mask, aRange);
@@ -1079,7 +1080,7 @@ rangeOfString_u(ivars self, NSString *aString, unsigned mask, NSRange aRange)
   if (fastIsInstance(aString) == NO)
     return strRangeUsNs((id)self, aString, mask, aRange);
 
-  c = fastClass(aString);
+  c = GSObjCClassOfObject(aString);
   if (fastClassIsKindOfClass(c, GSUStringClass) == YES
     || (c == GSMStringClass && ((ivars)aString)->_flags.wide == 1))
     return strRangeUsUs((id)self, aString, mask, aRange);
@@ -1137,7 +1138,7 @@ transmute(ivars self, NSString *aString)
 {
   ivars	other;
   BOOL	transmute;
-  Class	c = fastClass(aString);
+  Class	c = GSObjCClassOfObject(aString);	// NB aString must not be nil
 
   other = (ivars)aString;
   transmute = YES;
@@ -2202,6 +2203,12 @@ transmute(ivars self, NSString *aString)
   unsigned	length;
 
   GS_RANGE_CHECK(aRange, _count);
+  if (aString == nil)
+    [NSException raise: NSInvalidArgumentException
+		format: @"replace characters with nil string"];
+  if (fastIsInstance(aString) == NO)
+    [NSException raise: NSInvalidArgumentException
+		format: @"replace characters with non-string"];
 
   length = (aString == nil) ? 0 : [aString length];
   offset = length - aRange.length;

@@ -34,6 +34,7 @@
 #include <Foundation/NSSet.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSNotificationQueue.h>
+#include <Foundation/NSObjCRuntime.h>
 
 #include <base/NSGArray.h>
 
@@ -133,8 +134,9 @@ static SEL	setSel;
 static void
 initSerializerInfo(_NSSerializerInfo* info, NSMutableData *d, BOOL u)
 {
-  Class	c = fastClass(d);
+  Class	c;
 
+  c = GSObjCClassOfObject(d);
   info->data = d; 
   info->appImp = (void (*)())get_imp(c, appSel);
   info->datImp = (void* (*)())get_imp(c, datSel);
@@ -160,8 +162,9 @@ endSerializerInfo(_NSSerializerInfo* info)
 static void
 serializeToInfo(id object, _NSSerializerInfo* info)
 {
-  Class	c = fastClass(object);
+  Class	c;
 
+  c = GSObjCClassOfObject(object);
   if (fastIsClass(c) == NO)
     {
       [NSException raise: NSInvalidArgumentException

@@ -40,13 +40,12 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/NSThread.h>
 #include <Foundation/NSNotification.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <limits.h>
 
 #include <base/fast.x>
 
 extern BOOL __objc_responds_to(id, SEL);
-
-fastCls	_fastCls;	/* Structure to cache classes.	*/
 
 @class	_FastMallocBuffer;
 static Class	fastMallocClass;
@@ -56,20 +55,6 @@ static Class	NXConstantStringClass;
 
 @class	NSDataMalloc;
 @class	NSMutableDataMalloc;
-
-void	_fastBuildCache()
-{
-  /*
-   *	Cache some classes for quick access later.
-   */
-
-  _fastCls._NSArray = [NSArray class];
-  _fastCls._NSMutableArray = [NSMutableArray class];
-  _fastCls._NSDictionary = [NSDictionary class];
-  _fastCls._NSMutableDictionary = [NSMutableDictionary class];
-  _fastCls._NSDataMalloc = [NSDataMalloc class];
-  _fastCls._NSMutableDataMalloc = [NSMutableDataMalloc class];
-}
 
 
 /*
@@ -424,7 +409,7 @@ NSDeallocateObject(NSObject *anObject)
 inline NSZone *
 fastZone(NSObject *object)
 {
-  if (fastClass(object) == NXConstantStringClass)
+  if (GSObjCClassOfObject(object) == NXConstantStringClass)
     return NSDefaultMallocZone();
   return ((obj)object)[-1].zone;
 }
@@ -434,7 +419,7 @@ fastZone(NSObject *object)
 inline NSZone *
 fastZone(NSObject *object)
 {
-  if (fastClass(object) == NXConstantStringClass)
+  if (GSObjCClassOfObject(object) == NXConstantStringClass)
     return NSDefaultMallocZone();
   return NSZoneFromPointer(&((obj)object)[-1]);
 }
@@ -495,7 +480,7 @@ NSDeallocateObject(NSObject *anObject)
 inline NSZone *
 fastZone(NSObject *object)
 {
-  if (fastClass(object) == NXConstantStringClass)
+  if (GSObjCClassOfObject(object) == NXConstantStringClass)
     return NSDefaultMallocZone();
   return NSZoneFromPointer(object);
 }
@@ -622,7 +607,6 @@ static BOOL double_release_check_enabled = NO;
       fastMallocOffset = 0;
 #endif
       NXConstantStringClass = [NXConstantString class];
-      _fastBuildCache();
       GSBuildStrings();
       [[NSNotificationCenter defaultCenter]
 	addObserver: self
@@ -754,12 +738,12 @@ static BOOL deallocNotifications = NO;
 - (IMP) methodForSelector: (SEL)aSelector
 {
   /*
-   *	If 'self' is an instance, fastClass() will get the class,
+   *	If 'self' is an instance, GSObjCClassOfObject() will get the class,
    *	and get_imp() will get the instance method.
-   *	If 'self' is a class, fastClass() will get the meta-class,
+   *	If 'self' is a class, GSObjCClassOfObject() will get the meta-class,
    *	and get_imp() will get the class method.
    */
-  return get_imp(fastClass(self), aSelector);
+  return get_imp(GSObjCClassOfObject(self), aSelector);
 }
 
 + (NSMethodSignature*) instanceMethodSignatureForSelector: (SEL)aSelector
@@ -843,7 +827,6 @@ static BOOL deallocNotifications = NO;
    *	We may have replaced a class in the cache, or may have replaced one
    *	which had cached methods, so we must rebuild the cache.
    */
-  _fastBuildCache();
 }
 
 - (void) doesNotRecognizeSelector: (SEL)aSelector
@@ -911,7 +894,7 @@ static BOOL deallocNotifications = NO;
        * use get_imp() because NSDistantObject doesn't implement
        * methodForSelector:
        */
-      proxyImp = get_imp(fastClass((id)proxyClass),
+      proxyImp = get_imp(GSObjCClassOfObject((id)proxyClass),
 	@selector(proxyWithLocal:connection:));
     }
 
@@ -1025,7 +1008,7 @@ static BOOL deallocNotifications = NO;
       return nil;
     }
     
-  msg = get_imp(fastClass(self), aSelector);
+  msg = get_imp(GSObjCClassOfObject(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -1046,7 +1029,7 @@ static BOOL deallocNotifications = NO;
       return nil;
     }
     
-  msg = get_imp(fastClass(self), aSelector);
+  msg = get_imp(GSObjCClassOfObject(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -1070,7 +1053,7 @@ static BOOL deallocNotifications = NO;
       return nil;
     }
   
-  msg = get_imp(fastClass(self), aSelector);
+  msg = get_imp(GSObjCClassOfObject(self), aSelector);
   if (!msg)
     {
       [NSException raise: NSGenericException
@@ -1113,9 +1096,9 @@ static BOOL deallocNotifications = NO;
 {
 #if 0
   if (fastIsInstance(self))
-    return (class_get_instance_method(fastClass(self), aSelector)!=METHOD_NULL);
+    return (class_get_instance_method(GSObjCClassOfObject(self), aSelector)!=METHOD_NULL);
   else
-    return (class_get_class_method(fastClass(self), aSelector)!=METHOD_NULL);
+    return (class_get_class_method(GSObjCClassOfObject(self), aSelector)!=METHOD_NULL);
 #else
   return __objc_responds_to(self, aSelector);
 #endif

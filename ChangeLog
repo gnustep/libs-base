@@ -3,7 +3,32 @@
 	* Headers/gnustep/base/NSGString.h:
 	* Headers/gnustep/base/NSGCString.h:
 	* Source/NSGString.m:
-	* Source/NSGCString.m: Removed classes - no loinger used.
+	* Source/NSGCString.m: Removed classes - no longer used.
+	* Headers/gnustep/base/NSObjCRuntime.h:
+	* Headers/gnustep/base/fast.x:
+	* Source/GSString.m:
+	* Source/Makefile.postamble:
+	* Source/NSArchiver.m:
+	* Source/NSCTemplateValue.m:
+	* Source/NSConcreteValue.m:
+	* Source/NSCountedSet.m:
+	* Source/NSDate.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistantObject.m:
+	* Source/NSGSet.m:
+	* Source/NSNumber.m:
+	* Source/NSObject.m:
+	* Source/NSScanner.m:
+	* Source/NSSerializer.m:
+	* Source/NSSet.m:
+	* Source/NSUnarchiver.m:
+	Changed calls to 'fastClass()' to use 'GSObjCClassOfObject()' and
+	added that to NSObjCRuntime.h.  Removed central class and
+	implementation caching from NSObject.m and fast.x since it was not
+	being effectively used.  New intention to do removal of fast.x and
+	add similar functionality to NSObjCRuntime.h - intention being to
+	combine functionality of fast access to the runtime, and hiding both
+	GNU and Apple runtime behind a single interface.
 
 2000-10-30  Richard Frith-Macdonald <rfm@gnu.org>
 

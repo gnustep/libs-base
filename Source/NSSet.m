@@ -31,6 +31,7 @@
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSObjCRuntime.h>
 
 @interface NSSetNonCore : NSSet
 @end
@@ -120,8 +121,9 @@ static Class NSMutableSet_concrete_class;
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   unsigned	count;
-  Class		c = fastClass(self);
+  Class		c;
 
+  c = GSObjCClassOfObject(self);
   if (c == NSSet_abstract_class)
     {
       RELEASE(self);

@@ -28,6 +28,7 @@
 #include <Foundation/NSException.h>
 #include <Foundation/NSCoder.h>
 #include <Foundation/NSZone.h>
+#include <Foundation/NSObjCRuntime.h>
 #include <base/preface.h>
 #include <base/fast.x>
 
@@ -104,7 +105,7 @@
 
 - (BOOL) isEqualToValue: (NSValue*)aValue
 {
-  if (fastClass(aValue) != fastClass(self))
+  if (GSObjCClassOfObject(aValue) != GSObjCClassOfObject(self))
     return NO;
   if (strcmp(objctype, ((NSConcreteValue*)aValue)->objctype) != 0)
     return NO;

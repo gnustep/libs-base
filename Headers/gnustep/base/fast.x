@@ -36,60 +36,14 @@
  *	This file is all to do with improving performance by avoiding the
  *	Objective-C messaging overhead in time-critical code.
  *
- *	The motiviation behind it is to keep all the information needed to
- *	do that in one place (using a single mechanism), so that optimization 
- *	attempts can be kept track of.
+ *	THIS STUFF IS GOING AWAY!
  *
- *	The optimisations are of three sorts -
- *
- *	1.  inline functions
- *	    There are many operations that can be speeded up by using inline
- *	    code to examine objects rather than sending messages to them to
- *	    ask them about themselves.  Often, the objc runtime provides
- *	    functions to do this, but these sometimes perform unnecessary
- *	    checks.  Here we attempt to provide some basics.
- *
- *	2.  class comparison
- *	    It is often necessary to check the class of objects - instead of
- *	    using [+class] method, we can cache certain classes in a global
- *	    structure (The [NSObject +initialize] method does the caching)
- *	    and refer to the structure elements directly.
- *
- *	3.  direct method despatch
- *	    A common techique is to obtain the method implementation for a
- *	    specific message sent to a particular class of object, and call
- *	    the implementation directly to avoid repeated lookup within the
- *	    objc runtime.
- *	    While there is no huge speed advantage to caching the method
- *	    implementations, it does make it easy to search the source for
- *	    code that is using this technique and referring to a cached
- *	    method implementation.
+ *	The intention is to provide similar functionality in NSObjCRuntime.h
+ *	There will be GNUstep specific (mostly inline) functions added to
+ *	the header to provide direct access to runtime functinality and the
+ *	internals of objects.  Hopefully a simple configuration option will
+ *	let us build for either the GNU or the Apple runtime.
  */
-
-/*
- *	Structure to cache class information.
- *	By convention, the name of the structure element is the name of the
- *	class with an underscore prepended.
- */
-typedef struct {
-    Class	_NSArray;
-    Class	_NSMutableArray;
-    Class	_NSDictionary;
-    Class	_NSMutableDictionary;
-    Class	_NSDataMalloc;
-    Class	_NSMutableDataMalloc;
-} fastCls;
-GS_EXPORT fastCls	_fastCls;	/* Populated by _fastBuildCache()	*/
-
-/*
- *	The '_fastBuildCache()' function is called to populate the cache
- *	structures.  This is (at present) called in [NSObject +initialize]
- *	but you may call it explicitly later to repopulate the cache after
- *	changes have been made to the runtime by loading of categories or
- *	by classes posing as other classes.
- */
-GS_EXPORT void	_fastBuildCache();
-
 
 /*
  *	The '_fastMallocBuffer()' function is called to get a chunk of
@@ -100,9 +54,6 @@ GS_EXPORT void	*_fastMallocBuffer(unsigned size);
 
 /*
  *	Fast access to class info - DON'T pass nil to these!
- *	These should really do different things conditional upon the objc
- *	runtime in use, but we will probably only ever want to support the
- *	latest GNU runtime, so I haven't bothered about that.
  */
 
 static INLINE BOOL
