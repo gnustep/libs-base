@@ -470,6 +470,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
   NSMapRemove(_bundles, _path);
   [_bundleClasses release];
   [_infoDict release];
+  [_localizations release];
   [_path release];
   [super dealloc];
 }
@@ -724,7 +725,7 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 }
 
 - (NSArray *) pathsForResourcesOfType: (NSString *)extension
-		inDirectory: (NSString *)bundlePath
+			  inDirectory: (NSString *)bundlePath
 {
   NSString *path;
   NSArray* paths;
@@ -766,42 +767,76 @@ _bundle_load_callback(Class theClass, Category *theCategory)
 }
 
 - (NSString *) localizedStringForKey: (NSString *)key	
-		value: (NSString *)value
-		table: (NSString *)tableName
+			       value: (NSString *)value
+			       table: (NSString *)tableName
 {
-  NSString* new_string;
+  NSDictionary	*table;
+  NSString	*newString;
 
-  if (!tableName)
-    tableName = [self pathForResource: @"Localizable" ofType: @"strings"];
-  if (!tableName)
+  if (tableName == nil || [tableName isEqualToString: @""] == YES)
     {
-      NSArray* resources = [self pathsForResourcesOfType: @"strings"
-			     inDirectory: nil];
-      if (resources && [resources count])
-	tableName = [resources objectAtIndex: 0];
+      tableName = @"Localizable";
+    }
+  else if ([@"strings" isEqual: [tableName pathExtension]] == YES)
+    {
+      tableName = [tableName stringByDeletingPathExtension];
     }
 
-  new_string = value;
-  if (tableName)
+  if (_localizations == nil)
+    _localizations = [[NSMutableDictionary alloc] initWithCapacity: 1];
+
+  table = [_localizations objectForKey: tableName];
+  if (table == nil)
     {
-      NSDictionary* dict;
-      dict = [[[NSDictionary alloc] initWithContentsOfFile: tableName] 
-		autorelease];
-      new_string = [dict objectForKey: key];
-      if (!new_string)
-	new_string = value;
+      NSString	*tablePath;
+
+      tablePath = [self pathForResource: tableName ofType: @"strings"];
+      if (tablePath)
+	{
+	  NSString	*tableContent;
+
+	  tableContent = [NSString stringWithContentsOfFile: tablePath];
+	  NS_DURING
+	    {
+	      table = [tableContent propertyListFromStringsFileFormat]; 
+	    }
+	  NS_HANDLER
+	    {
+	      NSLog(@"Failed to parse strings file %@ - %@",
+			tablePath, localException);
+	      table = nil;
+	    }
+	  NS_ENDHANDLER
+	}
+      else
+	NSLog(@"Failed to locate strings file %@", tablePath);
+	
+      /*
+       * If we couldn't find, or couldn't parse the strings table,
+       * we create an empty dictionary to avoid attempting to read it again..
+       */
+      if (table == nil)
+	table = [NSDictionary dictionary];
+      [_localizations setObject: table forKey: tableName];
     }
-  if (!new_string || [new_string length] == 0)
+
+  if (key == nil || (newString = [table objectForKey: key]) == nil)
     {
-      NSString* show = [[NSUserDefaults standardUserDefaults]
+      NSString	*show = [[NSUserDefaults standardUserDefaults]
 			 objectForKey: NSShowNonLocalizedStrings];
       if (!show || [show isEqual: @"YES"])
-	new_string = [key uppercaseString];
+	newString = [key uppercaseString];
       else
-	new_string = key;
+	{
+	  newString = value;
+	  if (newString == nil || [newString isEqualToString: @""] == YES)
+	    newString = key;
+	}
+      if (newString == nil)
+	newString = @"";
     }
   
-  return new_string;
+  return newString;
 }
 
 + (void) stripAfterLoading: (BOOL)flag
