@@ -111,6 +111,7 @@ Base_AGSDOC_FLAGS = \
 	-Standards YES \
 	-ConstantsTemplate TypesAndConstants \
 	-FunctionsTemplate Functions \
+	-MacrosTemplate Functions \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
