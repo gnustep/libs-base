@@ -4,7 +4,7 @@
 int main ()
 {
   char *buf;
-  if (vasprintf (&buf, "1234") == 4)
+  if (vasprintf (&buf, "1234", 0) == 4)
     exit (0);
   exit (-1);
 }
