@@ -1206,7 +1206,7 @@ parseCharacterSet(NSString *token)
 	}
       if (sscanf([value lossyCString], "%d.%d", &majv, &minv) != 2)
 	{
-	  NSLog(@"Bad value for mime-version header");
+	  NSLog(@"Bad value for mime-version header (%@)", value);
 	  return NO;
 	}
       [document deleteHeaderNamed: name];	// Should be unique
@@ -1524,6 +1524,14 @@ parseCharacterSet(NSString *token)
 		paramName);
 	    }
 	}
+    }
+  else
+    {
+      int	loc;
+
+      [self scanPastSpace: scanner];
+      loc = [scanner scanLocation];
+      value = [[scanner string] substringFromIndex: loc];
     }
 
   if (value != nil)
@@ -2725,7 +2733,7 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSString*) contentName
 {
-  GSMimeHeader	*hdr = [self headerNamed: @"content-name"];
+  GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
 
   return [hdr parameterForKey: @"name"];
 }
