@@ -113,6 +113,7 @@
 
 - (NSDictionary*) attributes;
 - (NSString*) content;
+- (NSString*) description;
 - (GSXMLDocument*) document;
 - (NSString*) escapedContent;
 - (GSXMLAttribute*) firstAttribute;
