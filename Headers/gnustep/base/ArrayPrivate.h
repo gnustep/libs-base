@@ -1,5 +1,5 @@
 /* Array definitions for the use of subclass implementations only
-   Copyright (C) 1993,1994 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: May 1993
@@ -69,7 +69,7 @@ incrementCount(Array *self)
   (self->_count)++;
   if (self->_count == self->_capacity)
     {
-      [self setCapacity:(self->_capacity) * self->_grow_factor];
+      [self setCapacity:(self->_capacity) * ABS(self->_grow_factor)];
     }
 }
 
@@ -78,7 +78,8 @@ static inline void
 decrementCount(Array *self)
 {
   (self->_count)--;
-  if (self->_count < (self->_capacity) / self->_grow_factor)
+  if (self->_grow_factor > 0
+      && self->_count < (self->_capacity / self->_grow_factor))
     {
       [self setCapacity:(self->_capacity) / self->_grow_factor];
     }
