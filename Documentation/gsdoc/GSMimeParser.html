@@ -35,15 +35,19 @@
 <ul>
 <li><a href ="GSMimeParser.html#method-0">+mimeParser</a>
 <li><a href ="GSMimeParser.html#method-1">-contextFor:</a>
-<li><a href ="GSMimeParser.html#method-2">-decodeData:fromRange:intoData:withContext:</a>
-<li><a href ="GSMimeParser.html#method-3">-document</a>
-<li><a href ="GSMimeParser.html#method-4">-parse:</a>
-<li><a href ="GSMimeParser.html#method-5">-parseHeader:</a>
-<li><a href ="GSMimeParser.html#method-6">-parsingHeaders</a>
-<li><a href ="GSMimeParser.html#method-7">-scanHeader:named:inTo:</a>
-<li><a href ="GSMimeParser.html#method-8">-scanSpace:</a>
-<li><a href ="GSMimeParser.html#method-9">-scanSpecial:</a>
-<li><a href ="GSMimeParser.html#method-10">-scanToken:</a>
+<li><a href ="GSMimeParser.html#method-2">-data</a>
+<li><a href ="GSMimeParser.html#method-3">-decodeData:fromRange:intoData:withContext:</a>
+<li><a href ="GSMimeParser.html#method-4">-document</a>
+<li><a href ="GSMimeParser.html#method-5">-isComplete</a>
+<li><a href ="GSMimeParser.html#method-6">-isInBody</a>
+<li><a href ="GSMimeParser.html#method-7">-isInHeaders</a>
+<li><a href ="GSMimeParser.html#method-8">-parse:</a>
+<li><a href ="GSMimeParser.html#method-9">-parseHeader:</a>
+<li><a href ="GSMimeParser.html#method-10">-parsingHeaders</a>
+<li><a href ="GSMimeParser.html#method-11">-scanHeader:named:inTo:</a>
+<li><a href ="GSMimeParser.html#method-12">-scanSpace:</a>
+<li><a href ="GSMimeParser.html#method-13">-scanSpecial:</a>
+<li><a href ="GSMimeParser.html#method-14">-scanToken:</a>
 </ul>
 <hr><h2>Class Methods </h2>
 <h3><a name ="method-0">mimeParser</a></h3>
@@ -76,7 +80,16 @@
 
 	  
  <hr>
-<h3><a name ="method-2">decodeData:fromRange:intoData:withContext:</a></h3>
+<h3><a name ="method-2">data</a></h3>
+- (NSData*) <b>data</b>;<br>
+
+	    Return the data accumulated in the parser.  If the parser is
+	    still parsing headers, this will be the header data read so far.
+	    If the parse has parsed the body of the message, this will be
+	    the data of the body, with any transfer encoding removed.
+	  
+ <hr>
+<h3><a name ="method-3">decodeData:fromRange:intoData:withContext:</a></h3>
 - (BOOL) <b>decodeData:</b> (NSData*)sourceData <b>fromRange:</b> (NSRange)aRange <b>intoData:</b> (NSMutableData*)destinationData <b>withContext:</b> (GSMimeCodingContext*)ctxt;<br>
 
 	    <p>
@@ -105,13 +118,33 @@
 
           
  <hr>
-<h3><a name ="method-3">document</a></h3>
+<h3><a name ="method-4">document</a></h3>
 - (GSMimeDocument*) <b>document</b>;<br>
 
 	    Returns the object into which raw mime data is being parsed.
           
  <hr>
-<h3><a name ="method-4">parse:</a></h3>
+<h3><a name ="method-5">isComplete</a></h3>
+- (BOOL) <b>isComplete</b>;<br>
+
+	    Returns YES if the document parsing is known to be completed.
+          
+ <hr>
+<h3><a name ="method-6">isInBody</a></h3>
+- (BOOL) <b>isInBody</b>;<br>
+
+	    Returns YES if all the document headers have been parsed but
+	    the document body parsing may not yet be complete.
+          
+ <hr>
+<h3><a name ="method-7">isInHeaders</a></h3>
+- (BOOL) <b>isInHeaders</b>;<br>
+
+	    Returns YES if parsing of the document headers has not yet
+	    been completed.
+          
+ <hr>
+<h3><a name ="method-8">parse:</a></h3>
 - (BOOL) <b>parse:</b> (NSData*)rawData;<br>
 
 	    This method is called repeatedly to pass raw mime data into
@@ -120,7 +153,7 @@
 	    all the available information.
           
  <hr>
-<h3><a name ="method-5">parseHeader:</a></h3>
+<h3><a name ="method-9">parseHeader:</a></h3>
 - (BOOL) <b>parseHeader:</b> (NSString*)aRawHeader;<br>
 
 	    <p>
@@ -154,21 +187,21 @@
 	    </p>
 
 	    <dl>
-<dt>HttpVersion
-<dd>The full HTTP protocol version number
 <dt>HttpMajorVersion
 <dd>The first part of the version number
 <dt>HttpMinorVersion
 <dd>The second part of the version number
-<dt>HttpStatus
+<dt>NSHTTPPropertyServerHTTPVersionKey
+<dd>The full HTTP protocol version number
+<dt>NSHTTPPropertyStatusCodeKey
 <dd>The HTTP status code
-<dt>Value
+<dt>NSHTTPPropertyStatusReasonKey
 <dd>The text message (if any) after the status code
 </dl>
 
 	  
  <hr>
-<h3><a name ="method-6">parsingHeaders</a></h3>
+<h3><a name ="method-10">parsingHeaders</a></h3>
 - (BOOL) <b>parsingHeaders</b>;<br>
 
 	    Returns YES if the parser is expecting to read mime headers,
@@ -177,7 +210,7 @@
             the mime message (or has been passed all data).
           
  <hr>
-<h3><a name ="method-7">scanHeader:named:inTo:</a></h3>
+<h3><a name ="method-11">scanHeader:named:inTo:</a></h3>
 - (BOOL) <b>scanHeader:</b> (NSScanner*)aScanner <b>named:</b> (NSString*)aName <b>inTo:</b> (NSMutableDictionary*)info;<br>
 
 	    <p>
@@ -284,7 +317,7 @@
 
 	  
  <hr>
-<h3><a name ="method-8">scanSpace:</a></h3>
+<h3><a name ="method-12">scanSpace:</a></h3>
 - (BOOL) <b>scanSpace:</b> (NSScanner*)aScanner;<br>
 
 	    A convenience method to scan past any whitespace in the scanner
@@ -292,7 +325,7 @@
 	    comes after it.  Returns YES if any space was read, NO otherwise.
 	  
  <hr>
-<h3><a name ="method-9">scanSpecial:</a></h3>
+<h3><a name ="method-13">scanSpecial:</a></h3>
 - (NSString*) <b>scanSpecial:</b> (NSScanner*)aScanner;<br>
 
 	    A convenience method to use a scanner (that is set up to scan a
@@ -302,7 +335,7 @@
 	    will contain a single space character.
 	  
  <hr>
-<h3><a name ="method-10">scanToken:</a></h3>
+<h3><a name ="method-14">scanToken:</a></h3>
 - (NSString*) <b>scanToken:</b> (NSScanner*)aScanner;<br>
 
 	    A convenience method to use a scanner (that is set up to scan a
