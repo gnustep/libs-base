@@ -1,3 +1,18 @@
+Mon Apr 19 14:40:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSThread.m: Fast thread access (GSCurrentThread()) etc.
+	* Source/NSAssertionHandler.m: Use fast thread access.
+	* Source/NSConnection.m: Use fast thread access.
+	* Source/NSException.m: Use fast thread access.
+	* Source/NSNotificationQueue.m: Use fast thread access.
+	* Source/NSRunLoop.m: Use fast thread access plus other optimisations.
+	* Source/NSAutoreleasePool.m: Speed up thread access.
+	* Source/NSDate.m: Rewrite as calss cluster - MacOS-X compatibility.
+	* Source/NSCalendarDate.m: Modifications to work with NSDate.
+	* Source/NSGDictionary.m: Minor tidyup.
+	* Source/NSGSequence.m: Minor optimisation - really needs a rewrite.
+	* Source/NSDebug.m: Added function to report all allocations.
+
 Fri Apr 16 20:16:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/NSGeometry.h: Don't pollute macro name space with
