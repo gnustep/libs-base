@@ -309,7 +309,7 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 #define	myHandler	((NSXMLSAXHandler*)_handler)
 
 - (void) abortParsing
-{	// FIXME
+{
   NSDictionary	*d;
   NSString	*e;
   NSError	*error;
@@ -323,14 +323,13 @@ NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
 			  userInfo: d];
   ASSIGN(myHandler->_lastError, error);
   [myHandler->_delegate parser: myHandler->_owner parseErrorOccurred: error];
-  [NSException raise: NSGenericException format: @"[%@-%@] not yet implemented",
-    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  [myParser abortParsing];
 }
 
 - (void) dealloc
 {
-  DESTROY((id)_parser);
-  DESTROY((id)_handler);
+  DESTROY(_parser);
+  DESTROY(_handler);
   [super dealloc];
 }
 

@@ -2,6 +2,8 @@
 
 	* Source/NSDistributedNotificationCenter.m: Changed to explicitly
 	use a socket port name server for network wide notifications.
+	* Source/Additions/GSXML.m: Added ([-abortParser])
+	* Source/NSXMLParser.m: Use new abort method.
 
 2004-10-21  Fred Kiefer <FredKiefer@gmx.de>
 

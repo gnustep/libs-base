@@ -1809,6 +1809,25 @@ static NSString	*endMarker = @"At end of incremental parse";
 }
 
 /**
+ * If called by a SAX callback routine, this method will terminate
+ * the parsiong process.
+ */
+- (void) abortParsing
+{
+  if (lib != NULL)
+    {
+      xmlParserCtxtPtr	ctxt = (xmlParserCtxtPtr)lib;
+
+      // Stop SAX callbacks
+      ctxt->disableSAX = 1;
+      // Stop incoming data being parsed.
+      ctxt->instate = XML_PARSER_EOF;
+      // Pretend we are at end of file (nul byte).
+      if (ctxt->input != NULL) ctxt->input->cur = "";
+    }
+}
+
+/**
  * If executed during a parse operation, returns the current column number.
  */
 - (int) columnNumber
@@ -2273,6 +2292,11 @@ static NSString	*endMarker = @"At end of incremental parse";
 {
   xmlExternalEntityLoader	oldLoader;
   int				oldWarnings;
+
+  if (lib == NULL || ((xmlParserCtxtPtr)lib)->disableSAX != 0)
+    {
+      return;	// Parsing impossible or disabled.
+    }
 
   oldLoader = xmlGetExternalEntityLoader();
   oldWarnings = xmlGetWarningsDefaultValue;
