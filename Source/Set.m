@@ -29,11 +29,10 @@
 
 @implementation Set 
 
-+ initialize
++ (void) initialize
 {
   if (self == [Set class])
     [self setVersion:0];	/* beta release */
-  return self;
 }
 
 // MANAGING CAPACITY;
@@ -145,22 +144,10 @@
   return [self initWithType:@encode(id) capacity:aCapacity];
 }
 
-- free
+- (void) dealloc
 {
   coll_hash_delete(_contents_hash);
-  return [super free];
-}
-
-- freeObjects
-{
-  if (CONTAINS_OBJECTS)
-    {
-      [self makeObjectsPerform:@selector(free)];
-      [self empty];
-    }
-  else
-    [self empty];
-  return self;
+  [super dealloc];
 }
 
 // SET OPERATIONS;

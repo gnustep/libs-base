@@ -158,7 +158,8 @@ static BOOL debug_connected_coder = NO;
 	       (unsigned)self, sequence_number, identifier, 
 	       buffer_len, sent_len, b);
     }
-  return [self free];
+  [self release];
+  return nil;
 }
 
 static elt 
@@ -259,10 +260,10 @@ exc_return_null(arglist_t f)
 
 #endif /* CONNECTION_WIDE_REFERENCES */
 
-- free
+- (void) dealloc
 {
   /* Anything else? */
-  return [super free];
+  [super dealloc];
 }
 
 - (int) identifier
