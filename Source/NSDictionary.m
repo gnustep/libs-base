@@ -529,7 +529,7 @@ compareIt(id o1, id o2, void* context)
     NSMutableString	*result;
     int			size;
     int			i;
-    NSAutoreleasePool	*arp = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
     NSArray		*keysArray = [self allKeys];
     int			numKeys = [keysArray count];
     NSString		*plists[numKeys];
@@ -610,7 +610,7 @@ compareIt(id o1, id o2, void* context)
     NSMutableString	*iBaseString;
     NSMutableString	*iSizeString;
     int			i;
-    NSAutoreleasePool	*arp = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
     NSArray		*keyArray = [self allKeys];
     NSMutableArray	*theKeys = [NSMutableArray arrayWithArray: keyArray];
     int			numKeys = [theKeys count];

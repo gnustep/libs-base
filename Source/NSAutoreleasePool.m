@@ -93,10 +93,16 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 
 @implementation NSAutoreleasePool
 
+static IMP	allocImp;
+static IMP	initImp;
+
 + (void) initialize
 {
   if (self == [NSAutoreleasePool class])
-    ;				// Anything to put here?
+    {
+      allocImp = [self methodForSelector: @selector(allocWithZone:)];
+      initImp = [self instanceMethodForSelector: @selector(init)];
+    }
 }
 
 + allocWithZone: (NSZone*)zone
@@ -108,6 +114,12 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
     return pop_pool_from_cache (tv);
 
   return NSAllocateObject (self, 0, zone);
+}
+
++ new
+{
+  id arp = (*allocImp)(self, @selector(allocWithZone:), NSDefaultMallocZone());
+  return (*initImp)(arp, @selector(init));
 }
 
 - init
