@@ -3334,6 +3334,12 @@ transmute(ivars self, NSString *aString)
     }
 }
 
+/*
+ * Access instance variables of NXConstnatString class consistently
+ * with other concrete NSString subclasses.
+ */
+#define _self	((ivars)self)
+
 - (id) initWithCharacters: (unichar*)byteString
 		   length: (unsigned int)length
 	     freeWhenDone: (BOOL)flag
@@ -3358,7 +3364,7 @@ transmute(ivars self, NSString *aString)
 
 - (const char*) cString
 {
-  return (const char*)nxcsptr;
+  return _self->_contents.c;
 }
 
 - (id) retain
@@ -3410,7 +3416,7 @@ transmute(ivars self, NSString *aString)
 {
   unsigned ret = 0;
 
-  int len = nxcslen;
+  int len = _self->_count;
 
   if (len > NSHashStringLength)
     len = NSHashStringLength;
@@ -3419,7 +3425,7 @@ transmute(ivars self, NSString *aString)
       const unsigned char	*p;
       unsigned			char_count = 0;
 
-      p = nxcsptr;
+      p = _self->_contents.c;
       while (*p != 0 && char_count++ < NSHashStringLength)
 	{
 	  unichar	c = *p++;
@@ -3471,17 +3477,20 @@ transmute(ivars self, NSString *aString)
     {
       ivars	other = (ivars)anObject;
 
-      if (nxcslen != other->_count)
+      if (_self->_count != other->_count)
 	return NO;
-      if (memcmp(nxcsptr, other->_contents.c, nxcslen) != 0)
+      if (memcmp(_self->_contents.c, other->_contents.c, _self->_count) != 0)
 	return NO;
       return YES;
     }
   else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
     || c == GSMutableStringClass)
     {
-      if (strCompCsUs(self, anObject, 0, (NSRange){0,nxcslen}) == NSOrderedSame)
-	return YES;
+      if (strCompCsUs(self, anObject, 0, (NSRange){0,_self->_count})
+	== NSOrderedSame)
+	{
+	  return YES;
+	}
       return NO;
     }
   else if (GSObjCIsKindOf(c, NSStringClass))
@@ -3518,17 +3527,20 @@ transmute(ivars self, NSString *aString)
     {
       ivars	other = (ivars)anObject;
 
-      if (nxcslen != other->_count)
+      if (_self->_count != other->_count)
 	return NO;
-      if (memcmp(nxcsptr, other->_contents.c, nxcslen) != 0)
+      if (memcmp(_self->_contents.c, other->_contents.c, _self->_count) != 0)
 	return NO;
       return YES;
     }
   else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
     || c == GSMutableStringClass)
     {
-      if (strCompCsUs(self, anObject, 0, (NSRange){0,nxcslen}) == NSOrderedSame)
-	return YES;
+      if (strCompCsUs(self, anObject, 0, (NSRange){0,_self->_count})
+	== NSOrderedSame)
+	{
+	  return YES;
+	}
       return NO;
     }
   else if (GSObjCIsKindOf(c, NSStringClass))

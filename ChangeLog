@@ -3,7 +3,8 @@
 	* Headers/gnustep/base/NSObjCRuntime.h: Remove bad markup in comments.
 	* Headers/gnustep/base/NSString.h: Remove private class declaration
 	and hide internals of NXConstantString behind dummy interface while
-	improving comments.
+	improving comments.  Fix long overdue declaraction of methods in
+	clsses rather than protocols.
 	* Source/GSUserDefaults.h: removed
 	* Source/GSPrivate.h: added
 	* Source/GSCompatibility.m: fix for hidden private info.
