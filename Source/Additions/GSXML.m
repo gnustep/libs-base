@@ -4308,3 +4308,915 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 }
 @end
 
+
+
+
+#include	<Foundation/NSArray.h>
+#include	<Foundation/NSCalendarDate.h>
+#include	<Foundation/NSCharacterSet.h>
+#include	<Foundation/NSData.h>
+#include	<Foundation/NSDate.h>
+#include	<Foundation/NSDictionary.h>
+#include	<Foundation/NSException.h>
+#include	<Foundation/NSRunLoop.h>
+#include	<Foundation/NSString.h>
+#include	<Foundation/NSTimeZone.h>
+#include	<Foundation/NSTimer.h>
+#include	<Foundation/NSURL.h>
+#include	<Foundation/NSURLHandle.h>
+#include	<Foundation/NSValue.h>
+
+#include	<GNUstepBase/GSMime.h>
+#include	<GNUstepBase/GSXML.h>
+
+
+/*
+ * Categories on other classes which are required for XMLRPC
+ */
+@interface	NSArray (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+@end
+
+@interface	NSData (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+@end
+
+@interface	NSDate (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+@end
+
+@interface	NSDictionary (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+@end
+
+@interface	NSObject (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+@end
+
+@interface	NSNumber (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+@end
+
+@interface	NSString (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent;
+@end
+
+
+
+
+/*
+ * A little code to handle indentation.
+ */
+static NSString	*indentations[] = {
+  @"  ",
+  @"    ",
+  @"      ",
+  @"\t",
+  @"\t  ",
+  @"\t    ",
+  @"\t      ",
+  @"\t\t",
+  @"\t\t  ",
+  @"\t\t    ",
+  @"\t\t      ",
+  @"\t\t\t",
+  @"\t\t\t  ",
+  @"\t\t\t    ",
+  @"\t\t\t      ",
+  @"\t\t\t\t"
+};
+static void indentation(unsigned level, NSMutableString *str)
+{
+  if (level > 0)
+    {
+      if (level >= sizeof(indentations)/sizeof(*indentations))
+	{
+	  level = sizeof(indentations)/sizeof(*indentations) - 1;
+	}
+      [str appendString: indentations[level]];
+    }
+}
+
+
+
+/*
+ * Implementation of categories to output objects for XMLRPC
+ */
+
+@implementation	NSArray (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+{
+  unsigned 		i;
+  unsigned		c = [self count];
+  
+  indentation(indent++, str);
+  [str appendString: @"<array>\n"];
+  indentation(indent++, str);
+  [str appendString: @"<data>\n"];
+  for (i = 0; i < c; i++)
+    {
+      id	value = [self objectAtIndex: i];
+
+      indentation(indent++, str);
+      [str appendString: @"<value>\n"];
+      [value appendToXMLRPC: str indent: indent];
+      [str appendString: @"\n"];
+      indentation(--indent, str);
+      [str appendString: @"</value>\n"];
+    }
+  indentation(--indent, str);
+  [str appendString: @"</data>\n"];
+  indentation(--indent, str);
+  [str appendString: @"</array>"];
+}
+@end
+
+@implementation	NSData (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+{
+  NSData	*d;
+  NSString	*s;
+
+  d = [GSMimeDocument encodeBase64: self];
+  s = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
+  [str appendString: @"<base64>"];
+  [str appendString: s];
+  [str appendString: @"</base64>"];
+  RELEASE(s);
+}
+@end
+
+@implementation	NSDate (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+{
+  static NSTimeZone	*z = nil;
+  NSString		*s;
+
+  if (z == nil)
+    {
+      s = RETAIN([NSTimeZone timeZoneForSecondsFromGMT: 0]);
+    }
+
+  s = [self descriptionWithCalendarFormat: @"%Y%m%dT%H:%M:%S"
+				 timeZone: z
+				   locale: nil];
+  [str appendString: @"<dateTime.iso8601>"];
+  [str appendString: s];
+  [str appendString: @"</dateTime.iso8601>"];
+}
+@end
+
+@implementation	NSDictionary (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+{
+  NSEnumerator	*kEnum = [self keyEnumerator];
+  NSString	*key;
+
+  indentation(indent++, str);
+  [str appendString: @"<struct>\n"];
+  while ((key = [kEnum nextObject]))
+    {
+      id	value = [self objectForKey: key];
+
+      indentation(indent++, str);
+      [str appendString: @"<member>\n"];
+      indentation(indent, str);
+      [str appendString: @"<name>"];
+      [str appendString: [[key description] stringByEscapingXML]];
+      [str appendString: @"</name>\n"];
+      indentation(indent++, str);
+      [str appendString: @"<value>\n"];
+      [value appendToXMLRPC: str indent: indent--];
+      [str appendString: @"\n"];
+      indentation(indent--, str);
+      [str appendString: @"</value>\n"];
+      indentation(indent, str);
+      [str appendString: @"</member>\n"];
+    }
+  indentation(--indent, str);
+  [str appendString: @"</struct>"];
+}
+@end
+
+@implementation	NSNumber (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+{
+  const char	*t = [self objCType];
+
+  indentation(indent, str);
+  if (strchr("cCsSiIlL", *t) != 0)
+    {
+      long	i = [self longValue];
+
+      if ((i == 0 || i == 1) && (*t == 'c' || *t == 'C'))
+        {
+	  if (i == 0)
+	    {
+	      [str appendString: @"<boolean>0</boolean>"];
+	    }
+	  else
+	    {
+	      [str appendString: @"<boolean>1</boolean>"];
+	    }
+	}
+      else
+	{
+	  [str appendFormat: @"<i4>%d</i4>", i];
+	}
+    }
+  else
+    {
+      [str appendFormat: @"<double>%f</double>", [self doubleValue]];
+    }
+}
+@end
+
+@implementation	NSObject (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+{
+  [[self description] appendToXMLRPC: str indent: indent];
+}
+@end
+
+@implementation	NSString (GSXMLRPC)
+- (void) appendToXMLRPC: (NSMutableString*)str indent: (unsigned)indent
+{
+  indentation(indent, str);
+  [str appendFormat: @"<string>%@</string>", [self stringByEscapingXML]];
+}
+@end
+
+
+
+/*
+ * Convert incoming XMLRPC value to a normal Objective-C object.
+ */
+@interface	GSXMLRPC (Private)
+- (id) _parseValue: (GSXMLNode*)node;
+@end
+
+@implementation	GSXMLRPC (Private)
+- (id) _parseValue: (GSXMLNode*)node
+{
+  NSString	*name = [node name];
+  NSString	*str;
+
+  if ([name isEqualToString: @"value"])
+    {
+      GSXMLNode	*type = [node firstChildElement];
+
+      /*
+       * A value with no type element is just a string.
+       */
+      if (type == nil)
+	{
+	  name = @"string";
+	}
+      else
+	{
+	  node = type;
+	  name = [node name];
+	}
+    }
+
+  if ([name length] == 0)
+    {
+      return nil;
+    }
+
+  if ([name isEqualToString: @"i4"] || [name isEqualToString: @"int"])
+    {
+      str = [node content];
+      if (str == nil)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"missing %@ value", name];
+	}
+      return [NSNumber numberWithInt: [str intValue]];
+    }
+
+  if ([name isEqualToString: @"string"])
+    {
+      str = [node content];
+      if (str == nil)
+	{
+	  str = @"";
+	}
+      return str;
+    }
+
+  if ([name isEqualToString: @"boolean"])
+    {
+      char	c;
+
+      str = [node content];
+      if (str == nil)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"missing %@ value", name];
+	}
+      c = [str intValue];
+      return [NSNumber numberWithBool: c == 0 ? NO : YES];
+    }
+
+  if ([name isEqualToString: @"double"])
+    {
+      str = [node content];
+      if (str == nil)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"missing %@ value", name];
+	}
+      return [NSNumber numberWithDouble: [str doubleValue]];
+    }
+
+  if ([name isEqualToString: @"data"])
+    {
+      NSData	*d;
+
+      str = [node content];
+      if (str == nil)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"missing %@ value", name];
+	}
+      d = [str dataUsingEncoding: NSASCIIStringEncoding];
+      return [GSMimeDocument decodeBase64: d];
+    }
+
+  if ([name isEqualToString: @"date"])
+    {
+      str = [node content];
+      if (str == nil)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"missing %@ value", name];
+	}
+      return [NSCalendarDate dateWithString: str
+			     calendarFormat: @"%Y%m%dT%H:%M:%S"
+				     locale: nil];
+    }
+
+  if ([name isEqualToString: @"array"])
+    {
+      NSMutableArray		*arr = [NSMutableArray array];
+
+      node = [node firstChildElement];
+      while (node != nil && [[node name] isEqualToString: @"data"] == NO)
+        {
+	  node = [node nextElement];
+	}
+      if ([[node name] isEqualToString: @"data"] == YES)
+        {
+	  node = [node firstChildElement];
+	  while (node != nil)
+	    {
+	      if ([[node name] isEqualToString: @"value"] == YES)
+	        {
+		  id	v;
+
+		  v = [self _parseValue: node];
+		  if (v != nil)
+		    {
+		      [arr addObject: v];
+		    }
+		}
+	      node = [node nextElement];
+	    }
+	}
+      return arr;
+    }
+
+  if ([name isEqualToString: @"struct"])
+    {
+      NSMutableDictionary	*dict = [NSMutableDictionary dictionary];
+
+      node = [node firstChildElement];
+      while (node != nil)
+        {
+	  if ([[node name] isEqualToString: @"member"] == YES)
+	    {
+	      GSXMLNode	*member = [node firstChildElement];
+	      NSString	*key = nil;
+	      id	val = nil;
+
+	      while (member != nil)
+	        {
+		  if ([[member name] isEqualToString: @"name"] == YES)
+		    {
+		      key = [member content];
+		    }
+		  else if ([[member name] isEqualToString: @"value"] == YES)
+		    {
+		      val = [self _parseValue: member];
+		    }
+		  if (key != nil && val != nil)
+		    {
+		      [dict setObject: val forKey: key];
+		      break;
+		    }
+		  member = [member nextElement];
+		}
+	    }
+	  node = [node nextElement];
+	}
+      return dict;
+    }
+
+  [NSException raise: NSInvalidArgumentException
+	      format: @"Unknown value type: %@", name];
+  return nil;
+}
+@end
+
+
+
+/*
+ * And now, the actual GSXMLRPC class.
+ */
+@implementation	GSXMLRPC
+
+- (NSString*) buildMethodCall: (NSString*)method 
+                       params: (NSArray*)params
+{
+  NSMutableString	*str = [NSMutableString stringWithCapacity: 1024];
+  unsigned		c = [params count];
+  unsigned		i;
+  
+  if ([method length] == 0)
+    {
+      return nil;
+    }
+  else
+    {
+      static NSCharacterSet	*illegal = nil;
+      NSRange			r;
+
+      if (illegal == nil)
+	{
+	  NSMutableCharacterSet	*tmp = [NSMutableCharacterSet new];
+
+	  [tmp addCharactersInRange: NSMakeRange('0', 10)];
+	  [tmp addCharactersInRange: NSMakeRange('a', 26)];
+	  [tmp addCharactersInRange: NSMakeRange('A', 26)];
+	  [tmp addCharactersInString: @"_.:/"];
+	  [tmp invert];
+	  illegal = [tmp copy];
+	  RELEASE(tmp);
+	}
+      r = [method rangeOfCharacterFromSet: illegal];
+      if (r.length > 0)
+	{
+	  return nil;	// Bad method name.
+	}
+    }
+  [str appendString: @"<?xml version=\"1.0\"?>\n"];
+  [str appendString: @"<methodCall>\n"];
+  [str appendFormat: @"  <methodName>%@</methodName>\n",
+    [method stringByEscapingXML]];
+  if (c > 0)
+    {
+      [str appendString: @"  <params>\n"];
+      for (i = 0; i < c; i++)
+      	{
+	  [str appendString: @"    <param>\n"];
+	  [str appendString: @"      <value>\n"];
+	  [[params objectAtIndex: i] appendToXMLRPC: str indent: 3];
+	  [str appendString: @"\n      </value>\n"];
+	  [str appendString: @"    </param>\n"];
+	}
+      [str appendString: @"  </params>\n"];
+    }
+  [str appendString: @"</methodCall>\n"];
+  return str;
+}
+
+- (NSString*) buildResponseWithFaultCode: (int)code andString: (NSString*)s
+{
+  NSMutableString	*str = [NSMutableString stringWithCapacity: 1024];
+  NSDictionary		*fault;
+
+  fault = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSNumber numberWithInt: code], @"faultCode",
+    [s stringByEscapingXML], @"faultString",
+    nil];
+
+  [str appendString: @"<?xml version=\"1.0\"?>\n"];
+  [str appendString: @"<methodResponse>\n"];
+  [str appendString: @"  <fault>\n"];
+  [str appendString: @"    <value>\n"];
+  [fault appendToXMLRPC: str indent: 3];
+  [str appendString: @"\n    </value>\n"];
+  [str appendString: @"  </fault>\n"];
+  [str appendString: @"</methodResponse>\n"];
+  return str;
+}
+
+- (NSString*) buildResponseWithParams: (NSArray*)params
+{
+  NSMutableString	*str = [NSMutableString stringWithCapacity: 1024];
+  unsigned		c = [params count];
+  unsigned		i;
+  
+  [str appendString: @"<?xml version=\"1.0\"?>\n"];
+  [str appendString: @"<methodResponse>\n"];
+  [str appendString: @"  <params>\n"];
+  for (i = 0; i < c; i++)
+    {
+      [str appendString: @"    <param>\n"];
+      [str appendString: @"      <value>\n"];
+      [[params objectAtIndex: i] appendToXMLRPC: str indent: 3];
+      [str appendString: @"\n      </value>\n"];
+      [str appendString: @"    </param>\n"];
+    }
+  [str appendString: @"  </params>\n"];
+  [str appendString: @"</methodResponse>\n"];
+  return str;
+}
+
+- (void) dealloc
+{
+  if (timer != nil)
+    {
+      [self timeout: nil];	// Treat as immediate timeout.
+    }
+  [handle removeClient: self];
+  DESTROY(result);
+  DESTROY(handle);
+  [super dealloc];
+}
+
+- (id) delegate
+{
+  return delegate;
+}
+
+- (id) initWithURL: (NSString*)url
+{
+  return [self initWithURL: url certificate: nil privateKey: nil password: nil];
+}
+
+- (id) initWithURL: (NSString*)url
+       certificate: (NSString*)cert
+        privateKey: (NSString*)pKey
+	  password: (NSString*)pwd
+{
+  if (url != nil)
+    {
+      NS_DURING
+	{
+	  NSURL	*u = [NSURL URLWithString: url];
+
+	  handle = RETAIN([u URLHandleUsingCache: NO]);
+	  if (cert != nil && pKey != nil && pwd != nil)
+	    {
+	      [handle writeProperty: cert 
+			     forKey: GSHTTPPropertyCertificateFileKey];
+	      [handle writeProperty: pKey forKey: GSHTTPPropertyKeyFileKey];
+	      [handle writeProperty: pwd forKey: GSHTTPPropertyPasswordKey];
+	    }
+	  [handle addClient: self];
+	}
+      NS_HANDLER
+	{
+	  DESTROY(self);
+	}
+      NS_ENDHANDLER
+    }
+  return self;
+}
+
+- (id) init
+{
+  return [self initWithURL: nil certificate: nil privateKey: nil password: nil];
+}
+
+- (id) makeMethodCall: (NSString*)method 
+	       params: (NSArray*)params
+	      timeout: (int)seconds
+{
+  NS_DURING
+    {
+      if ([self sendMethodCall: method params: params timeout: seconds] == YES)
+	{
+	  NSDate	*when = AUTORELEASE(RETAIN([timer fireDate]));
+
+	  while (timer != nil)
+	    {
+	      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
+				       beforeDate: when];
+	    }
+	}
+    }
+  NS_HANDLER
+    {
+      ASSIGN(result, [localException description]);
+    }
+  NS_ENDHANDLER
+
+  return result;  
+}
+
+- (NSString*) parseMethod: (NSData*)request
+		   params: (NSMutableArray*)params
+{
+  GSXPathContext	*ctx = nil;
+  GSXPathNodeSet	*ns = nil;
+  NSString		*method;
+  
+  [params removeAllObjects];
+
+  NS_DURING
+    {
+      GSXMLParser	*parser = [GSXMLParser parserWithData: request];
+      GSXMLDocument	*doc = nil;
+
+      [parser substituteEntities: YES];
+      [parser parse];
+      doc = [parser document];
+      ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+    }
+  NS_HANDLER
+    {
+      ctx = nil;
+    }
+  NS_ENDHANDLER
+  if (ctx == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Bad Request: parse failed"];
+    }
+  
+  ns = (GSXPathNodeSet*)[ctx evaluateExpression: @"//methodCall/methodName"];
+  if ([ns count] != 1)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Badly formatted methodCall"];
+    }
+  method = [[ns nodeAtIndex: 0] content];
+	 
+  ns = (GSXPathNodeSet*)[ctx evaluateExpression: 
+    @"//methodCall/params/param/value"];
+
+  NS_DURING
+    {
+      int	i;
+
+      for (i = 0; i < [ns count]; i++)
+	{
+	  GSXMLNode	*node = [ns nodeAtIndex: i];
+
+	  if ([[node name] isEqualToString: @"value"]
+	    && [node firstChildElement] != nil)
+	    {
+	      id	value = [self _parseValue: [node firstChildElement]];
+
+	      if (value != nil)
+		{
+		  [params addObject: value];
+		}
+	    }
+	}
+    }
+  NS_HANDLER
+    {
+      [params removeAllObjects];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+
+  return method;
+}
+
+- (NSDictionary*) parseResponse: (NSData*) response
+			 params: (NSMutableArray*)params
+{
+  GSXPathContext	*ctx = nil;
+  GSXPathNodeSet	*ns = nil;
+  id			fault = nil;
+
+  [params removeAllObjects];
+
+  NS_DURING
+    {
+      GSXMLParser	*parser = [GSXMLParser parserWithData: response];
+      GSXMLDocument	*doc = nil;
+
+      [parser substituteEntities: YES];
+      [parser parse];
+      doc = [parser document];
+      ctx = AUTORELEASE([[GSXPathContext alloc] initWithDocument: doc]);
+    }
+  NS_HANDLER
+    {
+      ctx = nil;
+    }
+  NS_ENDHANDLER
+  if (ctx == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Bad Response: parse failed"];
+    }
+
+  ns = (GSXPathNodeSet*)[ctx evaluateExpression: 
+    @"//methodResponse/params/param/value"];
+
+  NS_DURING
+    {
+      int		i;
+
+      if ([ns count] > 0)
+	{
+	  for (i = 0; i < [ns count]; i++)
+	    {
+	      GSXMLNode	*node = [ns nodeAtIndex: i];
+
+	      if ([[node name] isEqualToString: @"value"]
+		&& [node firstChildElement] != nil)
+		{
+		  id	value = [self _parseValue: [node firstChildElement]];
+
+		  if (value != nil)
+		    {
+		      [params addObject: value];
+		    }
+		}
+	    }
+	}
+      else
+	{
+	  ns = (GSXPathNodeSet*)[ctx evaluateExpression: 
+	    @"//methodResponse/fault/value/struct"];
+	  if ([ns count] > 0)
+	    {
+	      fault = [self _parseValue: [ns nodeAtIndex: 0]];
+	    }
+	}
+    }
+  NS_HANDLER
+    {
+      [params removeAllObjects];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+
+  return fault;
+}
+
+- (id) result
+{
+  if (timer == nil)
+    {
+      return result;
+    }
+  else
+    {
+      return nil;
+    }
+}
+
+- (BOOL) sendMethodCall: (NSString*)method 
+		 params: (NSArray*)params
+		timeout: (int)seconds
+{
+  NSString	*xml;
+  NSData	*data;
+
+  ASSIGN(result, @"unable to send");
+
+  if (handle == nil)
+    {
+      return NO;	// Not initialised to send.
+    }
+  if (timer != nil)
+    {
+      return NO;	// Send already in progress.
+    }
+  xml = [self buildMethodCall: method params: params];
+  if (xml == nil)
+    {
+      return NO;
+    }
+  data = [xml dataUsingEncoding: NSUTF8StringEncoding];
+
+  timer = [NSTimer scheduledTimerWithTimeInterval: seconds
+					   target: self
+					 selector: @selector(timeout:)
+					 userInfo: nil
+					  repeats: NO];
+
+  [handle writeProperty: @"POST" forKey: GSHTTPPropertyMethodKey];
+  [handle writeProperty: @"GSXMLRPC/1.0.0" forKey: @"User-Agent"];
+  [handle writeProperty: @"text/xml" forKey: @"Content-Type"];
+  [handle writeData: data];
+  [handle loadInBackground];
+  return YES;
+}
+
+- (void) setDebug: (BOOL)flag
+{
+  if ([handle respondsToSelector: _cmd] == YES)
+    {
+      [(id)handle setDebug: flag];
+    }
+}
+
+- (void) setDelegate: (id)aDelegate
+{
+  delegate = aDelegate;
+}
+
+- (void) timeout: (NSTimer*)t
+{
+  [timer invalidate];
+  timer = nil;
+  [handle cancelLoadInBackground];
+}
+
+
+- (void) URLHandle: (NSURLHandle*)sender
+  resourceDataDidBecomeAvailable: (NSData*)newData
+{
+  // Not interesting
+}
+
+- (void) URLHandle: (NSURLHandle*)sender
+  resourceDidFailLoadingWithReason: (NSString*)reason
+{
+  ASSIGN(result, reason);
+  [timer invalidate];
+  timer = nil;
+  if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
+    {
+      [delegate completedXMLRPC: self];
+    }
+}
+
+- (void) URLHandleResourceDidBeginLoading: (NSURLHandle*)sender
+{
+  // Not interesting
+}
+
+- (void) URLHandleResourceDidCancelLoading: (NSURLHandle*)sender
+{
+  ASSIGN(result, @"timeout");
+  [timer invalidate];
+  timer = nil;
+  if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
+    {
+      [delegate completedXMLRPC: self];
+    }
+}
+
+- (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender
+{
+  NSMutableArray	*params = [NSMutableArray array];
+  id			fault = nil;
+  int			code;
+
+  code = [[handle propertyForKey: NSHTTPPropertyStatusCodeKey] intValue];
+
+  if (code == 200)
+    {
+      NSData	*response = [handle availableResourceData];
+
+      NS_DURING
+	{
+	  fault = [self parseResponse: response params: params];
+	}
+      NS_HANDLER
+	{
+	  fault = [localException reason];
+	}
+      NS_ENDHANDLER
+    }
+  else
+    {
+      fault = [NSString stringWithFormat: @"HTTP status %03d", code];
+    }
+  if (fault == nil)
+    {
+      ASSIGN(result, params);
+    }
+  else
+    {
+      ASSIGN(result, fault);
+    }
+
+  [timer invalidate];
+  timer = nil;
+
+  if ([delegate respondsToSelector: @selector(completedXMLRPC:)])
+    {
+      [delegate completedXMLRPC: self];
+    }
+}
+
+@end
+
+@implementation	GSXMLRPC (Delegate)
+- (void) completedXMLRPC: (GSXMLRPC*)sender
+{
+}
+@end
+
