@@ -7,13 +7,13 @@
 
 #define MFRAME_GET_STRUCT_ADDR(ARGS, TYPES) \
     (((*(TYPES)==_C_STRUCT_B || *(TYPES)==_C_UNION_B || *(TYPES)==_C_ARY_B) && \
-	objc_type_size(TYPES) > MFRAME_SMALL_STRUCT) ? \
+	objc_sizeof_type(TYPES) > MFRAME_SMALL_STRUCT) ? \
 	  *(void**)((ARGS)->arg_ptr + sizeof(void*)) : (void*)0)
 
 #define MFRAME_SET_STRUCT_ADDR(ARGS, TYPES, ADDR) \
     ({if ((*(TYPES)==_C_STRUCT_B || *(TYPES)==_C_UNION_B || \
 	*(TYPES)==_C_ARY_B) && \
-	objc_type_size(TYPES) > MFRAME_SMALL_STRUCT) \
+	objc_sizeof_type(TYPES) > MFRAME_SMALL_STRUCT) \
 	  *(void**)((ARGS)->arg_ptr + sizeof(void*)) = (ADDR);})
 
 #define MFRAME_ARGS int
@@ -21,7 +21,7 @@
 #define MFRAME_INIT_ARGS(CUM, RTYPE)	\
     ((CUM) = ((*(RTYPE)==_C_STRUCT_B || *(RTYPE)==_C_UNION_B || \
 	*(RTYPE)==_C_ARY_B) && \
-	objc_type_size(RTYPE) > MFRAME_SMALL_STRUCT) \
+	objc_sizeof_type(RTYPE) > MFRAME_SMALL_STRUCT) \
 	? sizeof(void*) : 0)
 
 #define MFRAME_ARG_ENCODING(CUM, TYPE, STACK, DEST) \
