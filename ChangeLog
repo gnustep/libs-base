@@ -1,3 +1,8 @@
+Tue Jan 15 02:53:56 2002  Nicola Pero  <n.pero@mi.flashnet.it>
+
+	* Source/Makefile.postamble (after-distclean): Always remove
+	SSL.bundle, regardless of any flags.
+
 2002-01-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Mostly implemented parsing of C declarations
