@@ -170,8 +170,8 @@
     [self safeWithElementsInReverseCall:doIt];
   else
     {
-      /* Can I assume that all Collections will inherit from Object? */
-      if ([aCollection 
+      /* Can I assume that all Collections will inherit from NSObject? */
+      if ([(id)aCollection 
 	   respondsToSelector:@selector(withElementsInReverseCall:)])
 	[(id)aCollection withElementsInReverseCall:doIt];
       else
@@ -196,8 +196,8 @@
     [self safeWithElementsInReverseCall:doIt];
   else
     {
-      if ([aCollection respondsToSelector:
-		       @selector(withElemetnsInReverseCall:)])
+      if ([(id)aCollection respondsToSelector:
+	   @selector(withElemetnsInReverseCall:)])
 	[(id)aCollection withElementsInReverseCall:doIt];
       else
 	[aCollection withElementsCall:doIt];
