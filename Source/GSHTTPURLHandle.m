@@ -301,7 +301,7 @@ static void debugWrite(NSData *data)
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (debug == YES) debugRead(d);
 
-  if ([parser parse: d] == NO)
+  if ([parser parse: d] == NO || [parser isComplete] == YES)
     {
       if ([parser isComplete] == YES)
 	{
