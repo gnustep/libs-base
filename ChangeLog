@@ -1,3 +1,12 @@
+1999-02-19  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSHost.m ([NSHost +currentHost]): Check for host not found.
+	([NSHost +hostWithName:]): Check for nil arg.
+	([NSHost +hostWithAddress:]): Likewise.
+
+	* Testing/release.m: Make array mutable.
+	* Testing/fref.m: Switch to NSArchiver/NSUnarchiver
+
 Wed Feb 17   8:52:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/NSProcessInfo.m: Include process name in arguments list as

@@ -11,11 +11,11 @@
 /* Both 1 works; both 0 works.  0 and 1 crash, as does NeXT's */
 
 /* Use GNU Archiving features, if they are available. */
-#define TRY_GNU_ARCHIVING 1
+#define TRY_GNU_ARCHIVING 0
 
 /* In the forward self-reference test, -initWithCoder substitutes
    another object for self. */
-#define SELF_REF_DECODE_SUBSTITUTES 1
+#define SELF_REF_DECODE_SUBSTITUTES 0
 
 /* End of some parameters to vary. */
 
@@ -213,7 +213,11 @@ test_fref ()
   [sub_foo release];
   [array release];
 
+#if GNU_ARCHIVING
+  array = [Unarchiver unarchiveObjectWithFile: @"fref.dat"];
+#else
   array = [NSUnarchiver unarchiveObjectWithFile: @"fref.dat"];
+#endif
   foo = [array objectAtIndex: 1];
   sub_foo = [foo subFoo];
   printf ("Decoded:  ");
@@ -243,7 +247,11 @@ test_self_fref ()
   [foo release];
   [sub_foo release];
 
+#if GNU_ARCHIVING
+  foo = [Unarchiver unarchiveObjectWithFile: @"fref.dat"];
+#else
   foo = [NSUnarchiver unarchiveObjectWithFile: @"fref.dat"];
+#endif
   sub_foo = [foo subFoo];
   printf ("Decoded:  ");
   [sub_foo print];

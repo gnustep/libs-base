@@ -38,7 +38,7 @@ autorelease_test (int depth)
 {
   int n = 2;
   id os[n];
-  id a = [NSArray new];
+  id a = [NSMutableArray new];
   int i;
   id arp;
 

@@ -155,6 +155,12 @@ static NSMutableDictionary *_hostCache = nil;
     }
 		
   h = gethostbyname(name);
+  if (h == NULL)
+    {
+      NSLog(@"Unable to determine current host");
+      return nil;
+    }
+	
 	
   return [self _hostWithHostEntry:h name:[NSString  
 					   stringWithCString:name]];
@@ -163,6 +169,12 @@ static NSMutableDictionary *_hostCache = nil;
 + (NSHost *)hostWithName:(NSString *)name
 {
   struct hostent *h;
+
+  if (name == nil)
+    {
+      NSLog(@"Nil host name sent to +[NSHost hostWithName]");
+      return nil;
+    }
 	
   h = gethostbyname((char *)[name cString]);
 	
@@ -174,6 +186,12 @@ static NSMutableDictionary *_hostCache = nil;
 {
   struct hostent *h;
   struct in_addr hostaddr;
+	
+  if (address == nil)
+    {
+      NSLog(@"Nil address sent to +[NSHost hostWithAddress]");
+      return nil;
+    }
 	
   hostaddr.s_addr = inet_addr((char *)[address cString]);
   if (hostaddr.s_addr == -1)
