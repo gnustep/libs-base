@@ -1,3 +1,13 @@
+2000-07-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: Update to use GSIMap rather than NSMap in
+	order to regain performance lost by adding code to ensure that reply
+	packets cannot be leaked.  Fixed error in old connection code - due
+	to a typing error a line had got deleted that was removing the
+	connection from the global table on deallocation.
+	* Source/NSPortNameServer.m: Fix to avoid errors when given bad
+	nameserver IP address info.
+
 2000-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Makefile.preamble: define GS_NEW_DO to specify whether the

@@ -361,7 +361,7 @@ typedef enum {
 
   NS_DURING
     {
-      handle = [NSFileHandle  fileHandleAsClientInBackgroundAtAddress:
+      handle = [NSFileHandle fileHandleAsClientInBackgroundAtAddress:
 	hostname service: serverPort protocol: @"tcp" forModes: modes];
     }
   NS_HANDLER
@@ -383,25 +383,33 @@ typedef enum {
 
   if (handle == nil)
     {
-      NSLog(@"Failed to find gdomap port with name '%@',\nperhaps your "
-		@"/etc/services file is not correctly set up?\n"
-		@"Retrying with default (IANA allocated) port number 538",
-		serverPort);
-      NS_DURING
+      if (state == GSPC_LOPEN)
 	{
-	  handle = [NSFileHandle fileHandleAsClientInBackgroundAtAddress:
-	    hostname service: @"538" protocol: @"tcp" forModes: modes];
+	  NSLog(@"Failed to find gdomap port with name '%@',\nperhaps your "
+	    @"/etc/services file is not correctly set up?\n"
+	    @"Retrying with default (IANA allocated) port number 538",
+	    serverPort);
+	  NS_DURING
+	    {
+	      handle = [NSFileHandle fileHandleAsClientInBackgroundAtAddress:
+		hostname service: @"538" protocol: @"tcp" forModes: modes];
+	    }
+	  NS_HANDLER
+	    {
+	      NSLog(@"Exception creating handle for gdomap - %@",
+		localException);
+	      [self fail];
+	    }
+	  NS_ENDHANDLER
+	  if (handle)
+	    {
+	      RELEASE(serverPort);
+	      serverPort = @"538";
+	    }
 	}
-      NS_HANDLER
+      else
 	{
-	  NSLog(@"Exception creating handle for gdomap - %@", localException);
 	  [self fail];
-	}
-      NS_ENDHANDLER
-      if (handle)
-	{
-	  RELEASE(serverPort);
-	  serverPort = @"538";
 	}
     }
 
