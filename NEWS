@@ -1,7 +1,18 @@
 News
 ****
 
-The currently released version of the library is `1.7.1'.
+The currently released version of the library is `1.7.2'.
+
+Noteworthy changes in version `1.7.2'
+=====================================
+
+   * NSUndoManager improvements
+
+   * New NSMessagePort implementation.
+
+   * Private GSTcpPort becomre NSSocketPort.
+
+   * Improvements to handle selectors better over remote connections.
 
 Noteworthy changes in version `1.7.1'
 =====================================
