@@ -46,7 +46,10 @@ static Class	NSDate_class;
     }
 }
 
-/* This is the designated initializer. */
+/*
+ * <init />
+ * Initialise a newly allocated NSTimer object.
+ */
 - (id) initWithTimeInterval: (NSTimeInterval)seconds
 	 targetOrInvocation: (id)t
 		   selector: (SEL)sel
