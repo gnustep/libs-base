@@ -53,4 +53,9 @@ extern void NSLogv (NSString* format, va_list args);
 #define nil		0
 #endif nil
 
+#ifndef	NO_GNUSTEP
+extern BOOL GSGetInstanceVariable(id obj, NSString *name, void* data);
+extern BOOL GSSetInstanceVariable(id obj, NSString *name, void* data);
+#endif
+
 #endif /* __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */
