@@ -14,6 +14,12 @@
 	NSCharacterSet.
 	* Headers/Foundation/NSBitmapChar.h: Moved nonstandard header
 	to private source directory.
+	* Source/NSAutoreleasePool.m: Rewrite deallocation to cause the pool
+	to remain as the current pool during the deallocation process ...
+	Requires deallocation to be done in a loop to avoid possible leaks
+	etc if an object which is being deallocated decides to autorelease
+	something.
+	Also removed a few private methods for simplification.
 
 2005-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
