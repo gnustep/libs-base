@@ -264,12 +264,12 @@ objc_error_handler objc_set_error_handler(objc_error_handler func);
 #define class_getClassMethod(CLASS, SEL)	\
   class_get_class_method((CLASS)->class_pointer, (SEL))
  
-#define	class_nextMethodList(aClass,anIterator) ({\
+#define	class_nextMethodList(aClass,anIterator) (({\
   if (*(anIterator) == 0) \
     *((struct objc_method_list**)(anIterator)) = (aClass)->methods; \
   else \
     *(anIterator) = (*((struct objc_method_list**)(anIterator)))->method_next; \
-})
+}), *(anIterator))
 
 #endif /* NeXT_RUNTIME */
 
