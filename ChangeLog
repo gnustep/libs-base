@@ -1,3 +1,8 @@
+2001-06-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSTask.m: handleSignal() ... reset signal handler for
+	systems that don't have BSD signal semantics.
+
 2001-06-15  Adam Fedor  <fedor@gnu.org>
 
 	* Version: 1.0.2

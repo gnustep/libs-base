@@ -72,6 +72,9 @@ static BOOL	hadChildSignal = NO;
 static void handleSignal(int sig)
 {
   hadChildSignal = YES;
+#ifndef __MINGW__
+  signal(SIGCHLD, handleSignal);
+#endif
 }
 
 #ifdef __MINGW__
