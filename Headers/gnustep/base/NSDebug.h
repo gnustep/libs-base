@@ -113,9 +113,10 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 
 
 
-/* Debug logging which can be enabled/disabled by defining GSWARN (see
-   below) when compiling and also setting values in the mutable array
-   that is set up by NSProcessInfo.
+/* Debug logging which can be enabled/disabled by defining GSDIAGNOSE
+   when compiling and also setting values in the mutable array
+   that is set up by NSProcessInfo. GSDIAGNOSE is defined autmatically unless
+   diagnose=no is specified in the make arguments.
 
    NSProcess initialises a set of strings that are the names of active
    debug levels using the '--GNU-Debug=...' command line argument.
@@ -143,7 +144,7 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
    and either function or class/method in which the message was generated.
 
  */
-#ifdef GSWARN
+#ifdef GSDIAGNOSE
 #include	<Foundation/NSObjCRuntime.h>
 #include	<Foundation/NSProcessInfo.h>
 
