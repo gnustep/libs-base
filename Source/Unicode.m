@@ -379,10 +379,12 @@ iconv_cstrtoustr(unichar *u2, int size2, const char *s1, int size1,
   conv = iconv_open(UNICODE_ENC, iconv_stringforencoding(enc));
   if (conv == (iconv_t)-1)
     {
+      NSLog(@"No iconv for encoding %@ tried to use %s", 
+	    GetEncodingName(enc), iconv_stringforencoding(enc));
       return 0;
     }
 
-  ret_val = iconv(conv, &s1, &size1, &u1, &usize);
+  ret_val = iconv(conv, (char**)&s1, &size1, &u1, &usize);
   // close the converter
   iconv_close(conv);
   if (ret_val == -1)
@@ -406,10 +408,12 @@ iconv_ustrtocstr(char *s2, int size2, const unichar *u1, int size1,
   conv = iconv_open(iconv_stringforencoding(enc), UNICODE_ENC);
   if (conv == (iconv_t)-1)
     {
+      NSLog(@"No iconv for encoding %@ tried to use %s", 
+	    GetEncodingName(enc), iconv_stringforencoding(enc));
       return 0;
     }
 
-  ret_val = iconv(conv, &u2, &usize, &s2, &size2);
+  ret_val = iconv(conv, (char**)&u2, &usize, &s2, &size2);
   // close the converter
   iconv_close(conv);
   if (ret_val == -1)
