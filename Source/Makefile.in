@@ -282,6 +282,7 @@ NSCopyObject.m \
 NSConcreteValue.m \
 NSCString.m \
 NSData.m \
+NSDate.m \
 NSDeallocateObject.m \
 NSDictionary.m \
 NSEnumerator.m \
@@ -322,8 +323,6 @@ NSCTemplateValue.m \
 dld-load.h \
 hpux-load.h \
 null-load.h \
-Foundation/NSDate.h \
-NSDate.m \
 simple-load.h 
 
 GNUSTEP_OBJS = \
@@ -343,6 +342,7 @@ Foundation/NSCoder.h \
 Foundation/NSConcreteNumber.h \
 Foundation/NSConcreteValue.h \
 Foundation/NSData.h \
+Foundation/NSDate.h \
 Foundation/NSDictionary.h \
 Foundation/NSException.h \
 Foundation/NSGeometry.h \
