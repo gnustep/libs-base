@@ -64,7 +64,7 @@ typedef struct {
  * For internal use only.
  */
 #define	skipToNextField()	({\
-  while (_scanLocation < myLength()\
+  while (_scanLocation < myLength() && _charactersToBeSkipped != nil \
     && (*_skipImp)(_charactersToBeSkipped, memSel, myCharacter(_scanLocation)))\
     _scanLocation++;\
   (_scanLocation >= myLength()) ? NO : YES;\
