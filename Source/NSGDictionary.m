@@ -55,10 +55,11 @@ myHash(NSObject *obj)
 	    c == _fastCls._NSGString ||
 	    c == _fastCls._NSGMutableString) {
 
-	    if (((dictAccessToStringHack)obj)->_hash != 0) {
-		return ((dictAccessToStringHack)obj)->_hash;
+	    if (((dictAccessToStringHack)obj)->_hash == 0) {
+	        ((dictAccessToStringHack)obj)->_hash =
+	            _fastImp._NSString_hash(obj, @selector(hash));
 	    }
-	    return  _fastImp._NSGString_hash(obj, @selector(hash));
+	    return ((dictAccessToStringHack)obj)->_hash;
 	}
     }
     return [obj hash];

@@ -66,6 +66,9 @@
 #include <gnustep/base/NSGString.h>
 #include <gnustep/base/NSGCString.h>
 
+#include <gnustep/base/fast.x>
+
+
 // Uncomment when implemented
     static NSStringEncoding _availableEncodings[] = {
  NSASCIIStringEncoding,
@@ -1406,11 +1409,19 @@ else
 
 - (BOOL) isEqual: (id)anObject
 {
-  if (anObject == self)
-    return YES;
-  if ([anObject isKindOfClass:[NSString class]] == YES)
-    return [self isEqualToString:anObject];
-  return NO;
+    if (anObject == self) {
+	return YES;
+    }
+    if (anObject != nil) {
+	Class c = fastClassOfInstance(anObject);
+
+	if (c != nil) {
+	    if (fastClassIsKindOfClass(c, _fastCls._NSString)) {
+		return [self isEqualToString: anObject];
+	    }
+	}
+    }
+    return NO;
 }
 
 - (BOOL) isEqualToString: (NSString*)aString
@@ -1572,7 +1583,7 @@ else
 
   /*
    *	The hash caching in our concrete strin classes uses zero to denote
-   *	an empty cache value, so we must not return a hash of zero.
+   *	an empty cache value, so we MUST NOT return a hash of zero.
    */
   if (ret == 0)
     ret = 0xffffffff;
@@ -2640,12 +2651,13 @@ else
 
 - (void) encodeWithCoder: anEncoder
 {
-  [super encodeWithCoder:anEncoder];
+    [self subclassResponsibility:_cmd];
 }
 
 - initWithCoder: aDecoder
 {
-  return [super initWithCoder:aDecoder];
+    [self subclassResponsibility:_cmd];
+    return self;
 }
 
 @end
