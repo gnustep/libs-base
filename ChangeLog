@@ -1,7 +1,7 @@
 2004-02-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Integrate new parser to
-	NSPropertyListSerialisation
+	NSPropertyListSerialisation.  Assume 8bit strings are utf8.
 
 2004-02-04 01:10  Alexander Malmberg <alexander@malmberg.org>
 
