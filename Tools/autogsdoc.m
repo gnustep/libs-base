@@ -202,6 +202,14 @@
       the customary angle brackets, because gsdoc is an XML language, and
       XML treats angle brackets specially.
     </item>
+    <item>Function names (ending with '()') other than 'main()' are enclosed
+      in &lt;ref...&gt; ... &lt;/ref&gt; markup.<br />
+      eg. "NSLogv()" (without the quotes) would be wrapped in a gsdoc
+      reference element to point to the documentation of the NSLog function.
+      <br />Note the fact that the function name must be surrounded by
+      whitespace (though a comma, fullstop, or semicolon at the end
+      of the specifier will also act as a whitespace terminator).
+    </item>
   </list>
   <p>
     The tools accepts certain user defaults (which can of course be
