@@ -4,6 +4,8 @@
    Original Author:  Scott Christley <scottc@net-community.com>
    Rewritten by: Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: 1996
+   Rewritten by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   to add optimisations features for faster thread access.
    
    This file is part of the GNUstep Objective-C Library.
 
@@ -96,7 +98,7 @@ void gnustep_base_thread_callback()
 
 // Initialization
 
-- (void)dealloc
+- (void) dealloc
 {
   TEST_RELEASE(_thread_dictionary);
   [super dealloc];
@@ -123,9 +125,9 @@ void gnustep_base_thread_callback()
   return GSCurrentThread();
 }
 
-+ (void) detachNewThreadSelector:(SEL)aSelector
-		        toTarget:(id)aTarget
-                      withObject:(id)anArgument
++ (void) detachNewThreadSelector: (SEL)aSelector
+		        toTarget: (id)aTarget
+                      withObject: (id)anArgument
 {
   // Have the runtime detach the thread
   if (objc_thread_detach (aSelector, aTarget, anArgument) == NULL)
