@@ -1,6 +1,7 @@
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <base/Invocation.h>
 
 #define TYPE char
@@ -55,12 +56,14 @@ void test6();
 int
 main ()
 {
+  id pool = [NSAutoreleasePool new];
   test1();
   test2();
   test3();
   test4();
   test5();
   test6();
+  [pool release];
 }
 
 void
