@@ -1496,27 +1496,27 @@ static NSLock	*cached_proxies_gate = nil;
  * <deflist>
  *   <term>NSConnectionRepliesReceived</term>
  *   <desc>
- *     The number of messages replied to by the remote NSConnection
+ *     The number of messages replied to by the remote NSConnection.
  *   </desc>
  *   <term>NSConnectionRepliesSent</term>
  *   <desc>
- *     The number of replies sent to the remote NSConnection
+ *     The number of replies sent to the remote NSConnection.
  *   </desc>
  *   <term>NSConnectionRequestsReceived</term>
  *   <desc>
- *     The number of messages recieved from the remote NSConnection
+ *     The number of messages recieved from the remote NSConnection.
  *   </desc>
  *   <term>NSConnectionRequestsSent</term>
  *   <desc>
- *     The number of messages sent to the remote NSConnection
+ *     The number of messages sent to the remote NSConnection.
  *   </desc>
  *   <term>NSConnectionLocalCount</term>
  *   <desc>
- *     The number of local objects currently vended
+ *     The number of local objects currently vended.
  *   </desc>
  *   <term>NSConnectionProxyCount</term>
  *   <desc>
- *     The number of remote objects currently in use
+ *     The number of remote objects currently in use.
  *   </desc>
  * </deflist>
  */

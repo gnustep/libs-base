@@ -580,8 +580,8 @@ NSString *NSUndoManagerWillUndoChangeNotification =
  * Performs a redo of previous undo request by taking the top grouping
  * from the redo stack and invoking them.  This method posts an 
  * NSUndoManagerCheckpointNotification notification to allow the client
- * to porcess any pending changes before proceding.  If there are groupings
- * on the redo stack, the top object is poped of the stack and invoked
+ * to process any pending changes before proceding.  If there are groupings
+ * on the redo stack, the top object is popped off the stack and invoked
  * within a nested [-beginUndoGrouping]/[-endUndoGrouping].  During this
  * pocessing, the operations registered for undo are recorded on the undo
  * stack again.<br />
@@ -959,8 +959,8 @@ NSString *NSUndoManagerWillUndoChangeNotification =
  * Performs an undo by taking the top grouping
  * from the undo stack and invoking them.  This method posts an 
  * NSUndoManagerCheckpointNotification notification to allow the client
- * to porcess any pending changes before proceding.  If there are groupings
- * on the undo stack, the top object is poped of the stack and invoked
+ * to process any pending changes before procedding.  If there are groupings
+ * on the undo stack, the top object is popped off the stack and invoked
  * within a nested beginUndoGrouping/endUndoGrouping.  During this
  * pocessing, the undo operations registered for undo are recorded on the redo
  * stack.<br />

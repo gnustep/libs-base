@@ -47,6 +47,12 @@
 @class	NSPortMessage;
 @class	NSHost;
 
+/**
+ *  Exception raised by [NSPort], [NSConnection], and friends if sufficient
+ *  time elapses while waiting for a response, or if the receiving port is
+ *  invalidated before a request can be received.  See
+ *  [NSConnection-setReplyTimeout:].
+ */
 GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 
 /**
@@ -166,12 +172,19 @@ GS_EXPORT NSString * const NSPortTimeoutException; /* OPENSTEP */
 @end
 #endif
 
+/**
+ *  Notification posted when an instance of [NSPort] or a subclass becomes
+ *  invalid.
+ */
 GS_EXPORT	NSString*	NSPortDidBecomeInvalidNotification;
 
 #define	PortBecameInvalidNotification NSPortDidBecomeInvalidNotification
 
 #ifndef	STRICT_OPENSTEP
 
+/**
+ * Native socket type.
+ */
 typedef SOCKET NSSocketNativeHandle;
 
 @class GSTcpHandle;

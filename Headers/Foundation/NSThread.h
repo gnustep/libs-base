@@ -109,14 +109,28 @@ GS_EXPORT void GSUnregisterCurrentThread (void);
  * OpenStep compatibility, the actual notification names are the more
  * modern OPENSTEP/MacOS versions.
  */
+
+/**
+ *  Notification posted the first time a new [NSThread] is created or a
+ *  separate thread from another library is registered in an application.
+ *  Before such a notification has been posted you can assume the application
+ *  is in single-threaded mode and locks are not necessary.
+ */
 GS_EXPORT NSString	*NSWillBecomeMultiThreadedNotification;
 #define	NSBecomingMultiThreaded NSWillBecomeMultiThreadedNotification
 
+/**
+ *  Notification posted when an [NSThread] instance receives an exit message,
+ *  or an external thread has been deregistered.
+ */
 GS_EXPORT NSString	*NSThreadWillExitNotification;
 #define NSThreadExiting NSThreadWillExitNotification
 
 #ifndef	NO_GNUSTEP
 
+/**
+ *  Notification posted (only in GNUstep) whenever a new thread is started up.
+ */
 GS_EXPORT NSString	*NSThreadDidStartNotification;
 
 /*

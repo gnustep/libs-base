@@ -38,56 +38,143 @@
 @class NSDistributedLock;
 
 /* Standard domains */
+
+/**
+ *  User defaults domain for process arguments.  Command-line arguments
+ *  (attribute-value pairs, as in "-NSFoo bar") are placed into this domain.
+ */
 GS_EXPORT NSString* const NSArgumentDomain;
+
+/**
+ *  User defaults domain for system defaults.
+ */
 GS_EXPORT NSString* const NSGlobalDomain;
+
+/**
+ *  User defaults domain for application-registered "default defaults".
+ */
 GS_EXPORT NSString* const NSRegistrationDomain;
 
+
 /* Public notification */
+
+/**
+ *  Notification posted when a defaults synchronize has been performed (see
+ *  [NSUserDefaults-synchronize]) and changes have been loaded in from disk.
+ */
 GS_EXPORT NSString* const NSUserDefaultsDidChangeNotification;
+
 /* Backwards compatibility */
 #define	NSUserDefaultsChanged NSUserDefaultsDidChangeNotification
 
 /* Keys for language-dependent information */
+
+/** Key for locale dictionary: names of days of week. */
 GS_EXPORT NSString* const NSWeekDayNameArray;
+
+/** Key for locale dictionary: abbreviations of days of week. */
 GS_EXPORT NSString* const NSShortWeekDayNameArray;
+
+/** Key for locale dictionary: names of months of year. */
 GS_EXPORT NSString* const NSMonthNameArray;
+
+/** Key for locale dictionary: abbreviations of months of year. */
 GS_EXPORT NSString* const NSShortMonthNameArray;
+
+/** Key for locale dictionary: format string for feeding to [NSDateFormatter].*/
 GS_EXPORT NSString* const NSTimeFormatString;
+
+/** Key for locale dictionary: format string for feeding to [NSDateFormatter].*/
 GS_EXPORT NSString* const NSDateFormatString;
+
+/** Key for locale dictionary: format string for feeding to [NSDateFormatter].*/
 GS_EXPORT NSString* const NSShortDateFormatString;
+
+/** Key for locale dictionary: format string for feeding to [NSDateFormatter].*/
 GS_EXPORT NSString* const NSTimeDateFormatString;
+
+/** Key for locale dictionary: format string for feeding to [NSDateFormatter].*/
 GS_EXPORT NSString* const NSShortTimeDateFormatString;
+
+/** Key for locale dictionary: currency symbol. */
 GS_EXPORT NSString* const NSCurrencySymbol;
+
+/** Key for locale dictionary: decimal separator. */
 GS_EXPORT NSString* const NSDecimalSeparator;
+
+/** Key for locale dictionary: thousands separator. */
 GS_EXPORT NSString* const NSThousandsSeparator;
+
+/** Key for locale dictionary: three-letter ISO 4217 currency abbreviation. */
 GS_EXPORT NSString* const NSInternationalCurrencyString;
+
+/** Key for locale dictionary: text formatter string for monetary amounts. */
 GS_EXPORT NSString* const NSCurrencyString;
+
+/** Key for locale dictionary: array of strings for 0-9. */
 GS_EXPORT NSString* const NSDecimalDigits;
+
+/** Key for locale dictionary: array of strings for AM and PM. */
 GS_EXPORT NSString* const NSAMPMDesignation;
 
 #ifndef	STRICT_OPENSTEP
+
+/**
+ *  Array of arrays, first member of specifying a time, next members one or
+ *  more colloquial names for the time, as in "(0, midnight), (12, noon,
+ *  lunch)".
+ */
 GS_EXPORT NSString* const NSHourNameDesignations;
+
+/** Strings for "year", "month", "week". */
 GS_EXPORT NSString* const NSYearMonthWeekDesignations;
+
+/** Key for locale dictionary: adjectives that modify values in
+    NSYearMonthWeekDesignations, as in "last", "previous", etc.. */
 GS_EXPORT NSString* const NSEarlierTimeDesignations;
+
+/** Key for locale dictionary: adjectives that modify values in
+    NSYearMonthWeekDesignations, as in "next", "subsequent", etc.. */
 GS_EXPORT NSString* const NSLaterTimeDesignations;
+
+/** Key for locale dictionary: one or more strings designating the current
+    day, such as "today". */
 GS_EXPORT NSString* const NSThisDayDesignations;
+
+/** Key for locale dictionary: one or more strings designating the next
+    day, such as "tomorrow". */
 GS_EXPORT NSString* const NSNextDayDesignations;
+
+/** Key for locale dictionary: one or more strings designating the next
+    day, such as "day after tomorrow". */
 GS_EXPORT NSString* const NSNextNextDayDesignations;
+
+/** Key for locale dictionary: one or more strings designating the previous
+    day, such as "yesterday". */
 GS_EXPORT NSString* const NSPriorDayDesignations;
+
+/** Key for locale dictionary: string with 'Y', 'M', 'D', and 'H' designating
+    the default method of writing dates, as in "MDYH" for the U.S.. */
 GS_EXPORT NSString* const NSDateTimeOrdering;
 
+/** Key for locale dictionary: name of language. */
 GS_EXPORT NSString* const NSLanguageName;
+
+/** Key for locale dictionary: two-letter ISO code. */
 GS_EXPORT NSString* const NSLanguageCode;
+
+/** Key for locale dictionary: formal name of language. */
 GS_EXPORT NSString* const NSFormalName;
 #ifndef NO_GNUSTEP
+/** Key for locale dictionary: name of locale. */
 GS_EXPORT NSString* const NSLocale;
 #endif
 #endif
 
 /* General implementation notes: 
 
-   OpenStep spec currently is either complete nor consitent. Therefor
-   we had to take several implementation decisions which make vary in
+   OpenStep spec currently is either complete nor consistent. Therefore
+   we had to take several implementation decisions which may vary in
    different OpenStep implementations.
   
   - We add a new instance method initWithFile:  as a designated 

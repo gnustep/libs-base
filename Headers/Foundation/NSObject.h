@@ -301,9 +301,9 @@ enum {NSNotFound = 0x7fffffff};
    Removed because OpenStep has -(NSString*)name; */
 @end
 
-/* Global lock to be used by classes when operating on any global
-   data that invoke other methods which also access global; thus,
-   creating the potential for deadlock. */
+/** Global lock to be used by classes when operating on any global
+    data that invoke other methods which also access global; thus,
+    creating the potential for deadlock. */
 GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 @interface NSObject (GNUstep)

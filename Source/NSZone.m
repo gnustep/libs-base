@@ -95,7 +95,7 @@
 #include "Foundation/NSZone.h"
 #include "Foundation/NSLock.h"
 
-/*
+/**
  * Try to get more memory - the normal process has failed.
  * If we can't do anything, just return a null pointer.
  * Try to do some logging if possible.
@@ -412,6 +412,10 @@ NSZone* __nszone_private_hidden_default_zone = &default_zone;
  */
 static NSZone	*zone_list = 0;
 
+/**
+ * Searches and finds the zone ptr was allocated from.  The speed depends
+ * upon the number of zones and their size.
+ */
 GS_DECLARE NSZone*
 NSZoneFromPointer(void *ptr)
 {
@@ -1582,6 +1586,14 @@ rrealloc (NSZone *zone, void *ptr, size_t size)
 
 static void rnfree (NSZone *zone, void *ptr);
 
+/**
+ * Creates a new zone of start bytes, which will grow and shrink by
+ * granularity bytes.  If canFree is 0, memory in zone is allocated but
+ * never freed, meaning allocation will be very fast.  The whole zone can
+ * still be freed with NSRecycleZone(), and you should still call NSZoneFree
+ * on memory in the zone that is no longer needed, since a count of allocated
+ * pointers is kept and must reach zero before freeing the zone.
+ */
 NSZone*
 NSCreateZone (size_t start, size_t gran, BOOL canFree)
 {
@@ -1697,12 +1709,21 @@ NSCreateZone (size_t start, size_t gran, BOOL canFree)
     return newZone;
 }
 
+/**
+ *  Allocates and returns cleared memory for elems items of size bytes, in the
+ *  given zone.  Returns NULL if allocation of size 0 requested.  Raises
+ *  <code>NSMallocException</code> if not enough free memory in zone to
+ *  allocate and no more can be obtained from system.
+ */
 void*
 NSZoneCalloc (NSZone *zone, size_t elems, size_t bytes)
 {
   return memset(NSZoneMalloc(zone, elems*bytes), 0, elems*bytes);
 }
 
+/**
+ * Sets name of the given zone (useful for debugging and logging).
+ */
 void
 NSSetZoneName (NSZone *zone, NSString *name)
 {

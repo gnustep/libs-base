@@ -62,6 +62,7 @@ struct _NSPoint
 #ifndef STRICT_OPENSTEP
 /** Array of NSPoint structs. */
 typedef NSPoint *NSPointArray;
+/** Pointer to NSPoint struct. */
 typedef NSPoint *NSPointPointer;
 #endif
 
@@ -79,7 +80,9 @@ struct _NSSize
 };
 
 #ifndef STRICT_OPENSTEP
+/** Array of NSSize structs. */
 typedef NSSize *NSSizeArray;
+/** Pointer to NSSize struct. */
 typedef NSSize *NSSizePointer;
 #endif
 
@@ -98,12 +101,22 @@ struct _NSRect
 };
 
 #ifndef STRICT_OPENSTEP
-/** Array of NSPoint structs. */
+/** Array of NSRect structs. */
 typedef NSRect *NSRectArray;
+/** Pointer to NSRect struct. */
 typedef NSRect *NSRectPointer;
 #endif
 
-/* Sides of a rectangle. */
+/** Sides of a rectangle.
+<example>
+{
+  NSMinXEdge,
+  NSMinYEdge,
+  NSMaxXEdge,
+  NSMaxYEdge
+}
+</example>
+ */
 typedef enum _NSRectEdge NSRectEdge;
 enum _NSRectEdge
 {
@@ -139,10 +152,10 @@ static const NSSize NSZeroSize __attribute__((unused));    /* Zero size. */
 
 /** Create Basic Structures... **/
 
-/* Returns an NSPoint having x-coordinate X and y-coordinate Y. */
 GS_GEOM_SCOPE NSPoint
 NSMakePoint(float x, float y) GS_GEOM_ATTR;
 
+/** Returns an NSPoint having x-coordinate X and y-coordinate Y. */
 GS_GEOM_SCOPE NSPoint
 NSMakePoint(float x, float y)
 {
@@ -153,10 +166,10 @@ NSMakePoint(float x, float y)
   return point;
 }
 
-/* Returns an NSSize having width WIDTH and height HEIGHT. */
 GS_GEOM_SCOPE NSSize
 NSMakeSize(float w, float h) GS_GEOM_ATTR;
 
+/** Returns an NSSize having width w and height h. */
 GS_GEOM_SCOPE NSSize
 NSMakeSize(float w, float h)
 {
@@ -167,10 +180,10 @@ NSMakeSize(float w, float h)
   return size;
 }
 
-/* Returns an NSRect having point of origin (X, Y) and size {W, H}. */
 GS_GEOM_SCOPE NSRect
 NSMakeRect(float x, float y, float w, float h) GS_GEOM_ATTR;
 
+/** Returns an NSRect having point of origin (x, y) and size {w, h}. */
 GS_GEOM_SCOPE NSRect
 NSMakeRect(float x, float y, float w, float h)
 {
@@ -185,91 +198,91 @@ NSMakeRect(float x, float y, float w, float h)
 
 /** Get a Rectangle's Coordinates... **/
 
-/* Returns the greatest x-coordinate value still inside ARECT. */
 GS_GEOM_SCOPE float
 NSMaxX(NSRect aRect) GS_GEOM_ATTR;
 
+/** Returns the greatest x-coordinate value still inside aRect. */
 GS_GEOM_SCOPE float
 NSMaxX(NSRect aRect)
 {
   return aRect.origin.x + aRect.size.width;
 }
 
-/* Returns the greatest y-coordinate value still inside ARECT. */
 GS_GEOM_SCOPE float
 NSMaxY(NSRect aRect) GS_GEOM_ATTR;
 
+/** Returns the greatest y-coordinate value still inside aRect. */
 GS_GEOM_SCOPE float
 NSMaxY(NSRect aRect)
 {
   return aRect.origin.y + aRect.size.height;
 }
 
-/* Returns the x-coordinate of ARECT's middle point. */
 GS_GEOM_SCOPE float
 NSMidX(NSRect aRect) GS_GEOM_ATTR;
 
+/** Returns the x-coordinate of aRect's middle point. */
 GS_GEOM_SCOPE float
 NSMidX(NSRect aRect)
 {
   return aRect.origin.x + (aRect.size.width / 2.0);
 }
 
-/* Returns the y-coordinate of ARECT's middle point. */
 GS_GEOM_SCOPE float
 NSMidY(NSRect aRect) GS_GEOM_ATTR;
 
+/** Returns the y-coordinate of aRect's middle point. */
 GS_GEOM_SCOPE float
 NSMidY(NSRect aRect)
 {
   return aRect.origin.y + (aRect.size.height / 2.0);
 }
 
-/* Returns the least x-coordinate value still inside ARECT. */
 GS_GEOM_SCOPE float
 NSMinX(NSRect aRect) GS_GEOM_ATTR;
 
+/** Returns the least x-coordinate value still inside aRect. */
 GS_GEOM_SCOPE float
 NSMinX(NSRect aRect)
 {
   return aRect.origin.x;
 }
 
-/* Returns the least y-coordinate value still inside ARECT. */
 GS_GEOM_SCOPE float
 NSMinY(NSRect aRect) GS_GEOM_ATTR;
 
+/** Returns the least y-coordinate value still inside aRect. */
 GS_GEOM_SCOPE float
 NSMinY(NSRect aRect)
 {
   return aRect.origin.y;
 }
 
-/* Returns ARECT's width. */
 GS_GEOM_SCOPE float
 NSWidth(NSRect aRect) GS_GEOM_ATTR;
 
+/** Returns aRect's width. */
 GS_GEOM_SCOPE float
 NSWidth(NSRect aRect)
 {
   return aRect.size.width;
 }
 
-/* Returns ARECT's height. */
 GS_GEOM_SCOPE float
 NSHeight(NSRect aRect) GS_GEOM_ATTR;
 
+/** Returns aRect's height. */
 GS_GEOM_SCOPE float
 NSHeight(NSRect aRect)
 {
   return aRect.size.height;
 }
 
-/* Returns 'YES' iff the area of ARECT is zero (i.e., iff either
- * of ARECT's width or height is negative or zero). */
 GS_GEOM_SCOPE BOOL
 NSIsEmptyRect(NSRect aRect) GS_GEOM_ATTR;
 
+/** Returns 'YES' iff the area of aRect is zero (i.e., iff either
+ * of aRect's width or height is negative or zero). */
 GS_GEOM_SCOPE BOOL
 NSIsEmptyRect(NSRect aRect)
 {
@@ -278,11 +291,11 @@ NSIsEmptyRect(NSRect aRect)
 
 /** Modify a Copy of a Rectangle... **/
 
-/* Returns the rectangle obtained by translating ARECT
- * horizontally by DX and vertically by DY. */
 GS_GEOM_SCOPE NSRect
 NSOffsetRect(NSRect aRect, float dx, float dy) GS_GEOM_ATTR;
 
+/** Returns the rectangle obtained by translating aRect
+ * horizontally by dx and vertically by dy. */
 GS_GEOM_SCOPE NSRect
 NSOffsetRect(NSRect aRect, float dx, float dy)
 {
@@ -293,12 +306,12 @@ NSOffsetRect(NSRect aRect, float dx, float dy)
   return rect;
 }
 
-/* Returns the rectangle obtained by moving each of ARECT's
- * horizontal sides inward by DY and each of ARECT's vertical
- * sides inward by DX. */
 GS_GEOM_SCOPE NSRect
 NSInsetRect(NSRect aRect, float dX, float dY) GS_GEOM_ATTR;
 
+/** Returns the rectangle obtained by moving each of aRect's
+ * horizontal sides inward by dy and each of aRect's vertical
+ * sides inward by dx. */
 GS_GEOM_SCOPE NSRect
 NSInsetRect(NSRect aRect, float dX, float dY)
 {
@@ -310,10 +323,10 @@ NSInsetRect(NSRect aRect, float dX, float dY)
   return rect;
 }
 
-/* Divides ARECT into two rectangles (namely SLICE and REMAINDER) by
- * "cutting" ARECT---parallel to, and a distance AMOUNT from the edge
- * of ARECT determined by EDGE.  You may pass 0 in as either of SLICE or
- * REMAINDER to avoid obtaining either of the created rectangles. */
+/** Divides aRect into two rectangles (namely slice and remainder) by
+ * "cutting" aRect---parallel to, and a distance amount from the given edge
+ * of aRect.  You may pass 0 in as either of slice or
+ * remainder to avoid obtaining either of the created rectangles. */
 GS_EXPORT void
 NSDivideRect(NSRect aRect,
              NSRect *slice,
@@ -321,20 +334,20 @@ NSDivideRect(NSRect aRect,
              float amount,
              NSRectEdge edge);
 
-/* Returns a rectangle obtained by expanding ARECT minimally
+/** Returns a rectangle obtained by expanding aRect minimally
  * so that all four of its defining components are integers. */
 GS_EXPORT NSRect
 NSIntegralRect(NSRect aRect);
 
 /** Compute a Third Rectangle from Two Rectangles... **/
 
-/* Returns the smallest rectangle which contains both ARECT
- * and BRECT (modulo a set of measure zero).  If either of ARECT
- * or BRECT is an empty rectangle, then the other rectangle is
- * returned.  If both are empty, then the empty rectangle is returned. */
 GS_GEOM_SCOPE NSRect
 NSUnionRect(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
+/** Returns the smallest rectangle which contains both aRect
+ * and bRect (modulo a set of measure zero).  If either of aRect
+ * or bRect is an empty rectangle, then the other rectangle is
+ * returned.  If both are empty, then the empty rectangle is returned. */
 GS_GEOM_SCOPE NSRect
 NSUnionRect(NSRect aRect, NSRect bRect)
 {
@@ -358,14 +371,14 @@ NSUnionRect(NSRect aRect, NSRect bRect)
   return rect;
 }
 
-/* Returns the largest rectange which lies in both ARECT and
- * BRECT.  If ARECT and BRECT have empty intersection (or, rather,
- * intersection of measure zero, since this includes having their
- * intersection be only a point or a line), then the empty
- * rectangle is returned. */
 GS_GEOM_SCOPE NSRect
 NSIntersectionRect(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
+/** Returns the largest rectange which lies in both aRect and
+ * bRect.  If aRect and bRect have empty intersection (or, rather,
+ * intersection of measure zero, since this includes having their
+ * intersection be only a point or a line), then the empty
+ * rectangle is returned. */
 GS_GEOM_SCOPE NSRect
 NSIntersectionRect (NSRect aRect, NSRect bRect)
 {
@@ -404,10 +417,10 @@ NSIntersectionRect (NSRect aRect, NSRect bRect)
 
 /** Test geometric relationships... **/
 
-/* Returns 'YES' iff ARECT's and BRECT's origin and size are the same. */
 GS_GEOM_SCOPE BOOL
 NSEqualRects(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
+/** Returns 'YES' iff aRect's and bRect's origin and size are the same. */
 GS_GEOM_SCOPE BOOL
 NSEqualRects(NSRect aRect, NSRect bRect)
 {
@@ -417,10 +430,10 @@ NSEqualRects(NSRect aRect, NSRect bRect)
           && (NSHeight(aRect) == NSHeight(bRect))) ? YES : NO;
 }
 
-/* Returns 'YES' iff ASIZE's and BSIZE's width and height are the same. */
 GS_GEOM_SCOPE BOOL
 NSEqualSizes(NSSize aSize, NSSize bSize) GS_GEOM_ATTR;
 
+/** Returns 'YES' iff aSize's and bSize's width and height are the same. */
 GS_GEOM_SCOPE BOOL
 NSEqualSizes(NSSize aSize, NSSize bSize)
 {
@@ -428,11 +441,11 @@ NSEqualSizes(NSSize aSize, NSSize bSize)
           && (aSize.height == bSize.height)) ? YES : NO;
 }
 
-/* Returns 'YES' iff APOINT's and BPOINT's x- and y-coordinates
- * are the same. */
 GS_GEOM_SCOPE BOOL
 NSEqualPoints(NSPoint aPoint, NSPoint bPoint) GS_GEOM_ATTR;
 
+/** Returns 'YES' iff aPoint's and bPoint's x- and y-coordinates
+ * are the same. */
 GS_GEOM_SCOPE BOOL
 NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
 {
@@ -440,10 +453,10 @@ NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
           && (aPoint.y == bPoint.y)) ? YES : NO;
 }
 
-/* Returns 'YES' iff APOINT is inside ARECT. */ 
 GS_GEOM_SCOPE BOOL
 NSMouseInRect(NSPoint aPoint, NSRect aRect, BOOL flipped) GS_GEOM_ATTR;
 
+/** Returns 'YES' iff aPoint is inside aRect. */ 
 GS_GEOM_SCOPE BOOL
 NSMouseInRect(NSPoint aPoint, NSRect aRect, BOOL flipped)
 {
@@ -459,22 +472,22 @@ NSMouseInRect(NSPoint aPoint, NSRect aRect, BOOL flipped)
             && (aPoint.y <= NSMaxY(aRect))) ? YES : NO;
 }
 
-/* Just like 'NSMouseInRect(aPoint, aRect, YES)'. */
 GS_GEOM_SCOPE BOOL
 NSPointInRect(NSPoint aPoint, NSRect aRect) GS_GEOM_ATTR;
 
+/** Just like 'NSMouseInRect(aPoint, aRect, YES)'. */
 GS_GEOM_SCOPE BOOL
 NSPointInRect(NSPoint aPoint, NSRect aRect)
 {
   return NSMouseInRect(aPoint, aRect, YES);
 }
 
-/* Returns 'YES' iff ARECT totally encloses BRECT.  NOTE: For
- * this to be the case, ARECT cannot be empty, nor can any side
- * of BRECT coincide with any side of ARECT. */
 GS_GEOM_SCOPE BOOL
 NSContainsRect(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
+/** Returns 'YES' iff aRect totally encloses bRect.  NOTE: For
+ * this to be the case, aRect cannot be empty, nor can any side
+ * of bRect coincide with any side of aRect. */
 GS_GEOM_SCOPE BOOL
 NSContainsRect(NSRect aRect, NSRect bRect)
 {
@@ -489,6 +502,8 @@ NSContainsRect(NSRect aRect, NSRect bRect)
 GS_GEOM_SCOPE BOOL
 NSIntersectsRect(NSRect aRect, NSRect bRect) GS_GEOM_ATTR;
 
+/** Returns YES if aRect and bRect have non-zero intersection area
+    (intersecting at a line or a point doesn't count). */
 GS_GEOM_SCOPE BOOL
 NSIntersectsRect(NSRect aRect, NSRect bRect)
 {
@@ -503,24 +518,34 @@ NSIntersectsRect(NSRect aRect, NSRect bRect)
 /** Get a String Representation... **/
 
 #ifdef __OBJC__
-/* Returns an NSString of the form "{x=X; y=Y}", where
- * X and Y are the x- and y-coordinates of APOINT, respectively. */
+/** Returns an NSString of the form "{x=X; y=Y}", where
+ * X and Y are the x- and y-coordinates of aPoint, respectively. */
 GS_EXPORT NSString *
 NSStringFromPoint(NSPoint aPoint);
 
-/* Returns an NSString of the form "{x=X; y=Y; width=W; height=H}",
+/** Returns an NSString of the form "{x=X; y=Y; width=W; height=H}",
  * where X, Y, W, and H are the x-coordinate, y-coordinate,
- * width, and height of ARECT, respectively. */
+ * width, and height of aRect, respectively. */
 GS_EXPORT NSString *
 NSStringFromRect(NSRect aRect);
 
-/* Returns an NSString of the form "{width=W; height=H}", where
- * W and H are the width and height of ASIZE, respectively. */
+/** Returns an NSString of the form "{width=W; height=H}", where
+ * W and H are the width and height of aSize, respectively. */
 GS_EXPORT NSString *
 NSStringFromSize(NSSize aSize);
 
+/** Parses point from string of form "<code>{x=a; y=b}</code>". (0,0) returned
+    if parsing fails. */
 GS_EXPORT NSPoint	NSPointFromString(NSString* string);
+
+/** Parses size from string of form "<code>{width=a; height=b}</code>". Size of
+    0,0 returned if parsing fails. */
 GS_EXPORT NSSize	NSSizeFromString(NSString* string);
+
+/** Parses point from string of form "<code>{x=a; y=b; width=c;
+    height=d}</code>".  Rectangle of 0 size at origin returned if parsing
+    fails.
+*/
 GS_EXPORT NSRect	NSRectFromString(NSString* string);
 
 #endif /* __OBJC__ */

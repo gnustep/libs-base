@@ -42,12 +42,41 @@
  *	Keys for the NSDictionary returned by [NSConnection -statistics]
  */
 /* These in OPENSTEP 4.2 */
+/**
+ *  Key for dictionary returned by [NSConnection-statistics]: number of
+ *  messages replied to so far by the remote connection.
+ */
 GS_EXPORT NSString *NSConnectionRepliesReceived;
+
+/**
+ *  Key for dictionary returned by [NSConnection-statistics]: number of
+ *  messages sent so far to the remote connection.
+ */
 GS_EXPORT NSString *NSConnectionRepliesSent;
+
+/**
+ *  Key for dictionary returned by [NSConnection-statistics]: number of
+ *  messages received so far from the remote connection.
+ */
 GS_EXPORT NSString *NSConnectionRequestsReceived;
+
+/**
+ *  Key for dictionary returned by [NSConnection-statistics]: number of
+ *  messages sent so far to the remote connection.
+ */
 GS_EXPORT NSString *NSConnectionRequestsSent;
 /* These Are GNUstep extras */
+
+/**
+ *  GNUstep-specific key for dictionary returned by [NSConnection-statistics]:
+ *  number of local objects currently in use remotely.
+ */
 GS_EXPORT NSString *NSConnectionLocalCount;	/* Objects sent out	*/
+
+/**
+ *  GNUstep-specific key for dictionary returned by [NSConnection-statistics]:
+ *  number of remote objects currently in use.
+ */
 GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 
 
@@ -185,6 +214,8 @@ GS_EXPORT NSString *NSConnectionProxyCount;	/* Objects received	*/
 
 @end
 
+/* PENDING: This is not referenced elsewhere in Base.  Is it still needed? */
+/** Present for backwards compatibility.  Do not use. */
 GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 
 @interface Object (NSConnectionDelegate)
@@ -265,9 +296,30 @@ GS_EXPORT NSString *ConnectionBecameInvalidNotification;
 /*
  *	NSRunLoop mode, NSNotification name and NSException strings.
  */
+
+/**
+ * [NSRunLoop] mode for [NSConnection] objects waiting for replies.
+ * Mainly used internally by distributed objects system.
+ */
 GS_EXPORT NSString * const NSConnectionReplyMode;
+
+/**
+ * Posted when an [NSConnection] is deallocated or it is notified its port is
+ * deactivated.  (Note, connections to remote ports don't get such a
+ * notification.)  Receivers should deregister themselves for notifications
+ * from the given connection.
+ */
 GS_EXPORT NSString * const NSConnectionDidDieNotification;
+
+/**
+ * Posted when an [NSConnection] is initialized.
+ */
 GS_EXPORT NSString * const NSConnectionDidInitializeNotification; /* OPENSTEP */
+
+/**
+ * Raised by an [NSConnection] on receiving a message that it or its delegate
+ * cannot authenticate.
+ */
 GS_EXPORT NSString * const NSFailedAuthenticationException; /* MacOS-X  */
 
 #endif /* __NSConnection_h_GNUSTEP_BASE_INCLUDE */

@@ -867,6 +867,13 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
 #else
 
+/**
+ * Perform a poll for the specified runloop context.
+ * If the method has been called re-entrantly, the contexts stack
+ * will list all the contexts with polls in progress
+ * and this method must tell those outer contexts not to handle events
+ * which are handled by this context.
+ */
 - (BOOL) pollUntil: (int)milliseconds within: (NSArray*)contexts
 {
   struct timeval	timeout;

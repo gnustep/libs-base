@@ -99,6 +99,11 @@
 #endif
 @end
 
+/**
+ *  Notification posted when an [NSTask] terminates, either due to the
+ *  subprocess ending or the [NSTask-terminate] method explicitly being
+ *  called.
+ */
 GS_EXPORT NSString*	NSTaskDidTerminateNotification;
 
 #endif /* __NSTask_h_GNUSTEP_BASE_INCLUDE */

@@ -621,10 +621,10 @@ pty_slave(const char* name)
 /**
  * Sends a terminate signal to the receiver and any subtasks.<br />
  * If the task has not been launched, raises an
- * NSInvalidArgumentException.<br />
+ * <code>NSInvalidArgumentException</code>.<br />
  * Has no effect on a task that has already terminated.<br />
- * When a task temrinates, either due to this method being called,
- * or normal termination, an NSTaskDidTerminateNotification is
+ * When a task terminates, either due to this method being called,
+ * or normal termination, an <code>NSTaskDidTerminateNotification</code> is
  * posted.
  */
 - (void) terminate

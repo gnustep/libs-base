@@ -30,6 +30,9 @@
 
 @class NSNumber;
 
+/**
+ *  URL scheme constant for use with [NSURL-initWithScheme:host:path:].
+ */
 GS_EXPORT NSString* NSURLFileScheme;
 
 @interface NSURL: NSObject <NSCoding, NSCopying, NSURLHandleClient>

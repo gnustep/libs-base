@@ -87,19 +87,64 @@
 
 // Notification names.
 
+/**
+ * Posted when one of the [NSFileHandle] methods
+ * <code>acceptConnectionInBackground...</code> succeeds and has connected to a
+ * stream-type socket in another process.  The notification's
+ * <em>userInfo</em> dictionary will contain the [NSFileHandle] for the near
+ * end of the connection (associated to the key
+ * '<code>NSFileHandleNotificationFileHandleItem</code>').
+ */
 GS_EXPORT NSString * const NSFileHandleConnectionAcceptedNotification;
+
+/**
+ * Posted when one of the [NSFileHandle] methods
+ * <code>waitForDataInBackground...</code> has been informed that data is
+ * available.  The receiving [NSFileHandle] is passed in the notification.
+ */
 GS_EXPORT NSString * const NSFileHandleDataAvailableNotification;
+
+/**
+ * Posted when one of the [NSFileHandle] methods readDataInBackground... has
+ * consumed data.  The receiving [NSFileHandle] is passed in the
+ * notification's <em>userInfo</em> dictionary associated to the key
+ * '<code>NSFileHandleNotificationDataItem</code>'.
+ */
 GS_EXPORT NSString * const NSFileHandleReadCompletionNotification;
+
+/**
+ * Posted when one of the [NSFileHandle] methods
+ * <code>readToEndOfFileInBackground...</code> has finished.  The receiving
+ * [NSFileHandle] is passed in the notification's <em>userInfo</em> dictionary
+ * associated to the key '<code>NSFileHandleNotificationDataItem</code>'.
+ */
 GS_EXPORT NSString * const NSFileHandleReadToEndOfFileCompletionNotification;
 
 // Keys for accessing userInfo dictionary in notification handlers.
 
+/**
+ * Dictionary key for [NSFileHandle] notifications used to mark the
+ * [NSFileHandle] receiving data.
+ */
 GS_EXPORT NSString * const NSFileHandleNotificationDataItem;
+
+/**
+  * Dictionary key for [NSFileHandle] notifications used to mark the
+  * [NSFileHandle] that has established a stream-socket connection.
+ */
 GS_EXPORT NSString * const NSFileHandleNotificationFileHandleItem;
+
+/**
+ * Dictionary key for [NSFileHandle] notifications postable to certain run
+ * loop modes, associated to an NSArray containing the modes allowed.
+ */
 GS_EXPORT NSString * const NSFileHandleNotificationMonitorModes;
 
 // Exceptions
 
+/**
+ * Exception raised when attempts to read from an [NSFileHandle] channel fail.
+ */
 GS_EXPORT NSString * const NSFileHandleOperationException;
 
 @interface NSPipe : NSObject
@@ -170,10 +215,22 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
 
 // GNUstep Notification names.
 
+/**
+ * Notification posted when an asynchronous [NSFileHandle] connection
+ * attempt (to an FTP, HTTP, or other internet server) has succeeded.
+ */
 GS_EXPORT NSString * const GSFileHandleConnectCompletionNotification;
+
+/**
+ * Notification posted when an asynchronous [NSFileHandle] write
+ * operation (to an FTP, HTTP, or other internet server) has succeeded.
+ */
 GS_EXPORT NSString * const GSFileHandleWriteCompletionNotification;
 
-// Message describing error in async accept,read,write operation.
+/**
+ * Message describing error in asynchronous [NSFileHandle] accept,read,write
+ * operation.
+ */
 GS_EXPORT NSString * const GSFileHandleNotificationError;
 #endif
 

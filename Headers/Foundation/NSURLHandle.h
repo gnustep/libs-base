@@ -35,19 +35,74 @@
 @class NSURLHandle;
 @class NSURL;
 
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * obtain status code.
+ */
 GS_EXPORT NSString * const NSHTTPPropertyStatusCodeKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * obtain status reason.
+ */
 GS_EXPORT NSString * const NSHTTPPropertyStatusReasonKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * obtain HTTP version supported by server.
+ */
 GS_EXPORT NSString * const NSHTTPPropertyServerHTTPVersionKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * obtain redirection headers.
+ */
 GS_EXPORT NSString * const NSHTTPPropertyRedirectionHeadersKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * obtain error page data.
+ */
 GS_EXPORT NSString * const NSHTTPPropertyErrorPageDataKey;
 
 #ifndef	NO_GNUSTEP
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * obtain local host.
+ */
 GS_EXPORT NSString * const GSHTTPPropertyLocalHostKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * obtain method (GET, POST, etc.).
+ */
 GS_EXPORT NSString * const GSHTTPPropertyMethodKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * obtain proxy host.
+ */
 GS_EXPORT NSString * const GSHTTPPropertyProxyHostKey;
+
+/**
+ * Key for passing to [NSURLHandle]'s <code>propertyForKey..</code> methods to
+ * obtain proxy port.
+ */
 GS_EXPORT NSString * const GSHTTPPropertyProxyPortKey;
 #endif
 
+/**
+ * Enumerated type returned by [NSURLHandle-status]:
+<example>
+{
+  NSURLHandleNotLoaded
+  NSURLHandleLoadSucceeded,
+  NSURLHandleLoadInProgress,
+  NSURLHandleLoadFailed
+}
+</example>
+ */
 typedef enum
 {
   NSURLHandleNotLoaded = 0,
@@ -61,6 +116,7 @@ typedef enum
  * receive notification of events on the handle.
  */
 @protocol NSURLHandleClient
+
 /**
  * Sent by the NSURLHandle object when some data becomes available
  * from the handle.  Note that this does not mean that all data has become

@@ -35,6 +35,14 @@
 
 #include <Foundation/NSObject.h>
 
+/**
+ *  Enumerated type for specifying decimal rounding behavior.  Can be one of
+ *  <code>NSRoundDown</code> (always round down), <code>NSRoundUp</code>
+ *  (always round up), <code>NSRoundPlain</code> ("normal" rounding (up from
+ *  .5 or above, down otherwise), <code>NSRoundBankers</code> (as "Plain" but
+ *  .5 rounds to make last remaining digit even).  See the
+ *  [(NSDecimalNumberBehaviors)] protocol.
+ */
 typedef	enum {
   NSRoundDown,
   NSRoundUp,
@@ -42,6 +50,22 @@ typedef	enum {
   NSRoundBankers	/* Make last digit even	*/
 } NSRoundingMode;
 
+/**
+ *  Enumerated type for specifying a decimal calculation error.  Can be one of
+ *  the following:
+ *  <deflist>
+ *  <term><code>NSCalculationNoError</code></term>
+ *  <desc>No error occurred.</desc>
+ *  <term><code>NSCalculationLossOfPrecision</code></term>
+ *  <desc>The number can't be represented in 38 significant digits.</desc>
+ *  <term><code>NSCalculationOverflow</code></term>
+ *  <desc>The number is too large to represent.</desc>
+ *  <term><code>NSCalculationUnderflow</code></term>
+ *  <desc>The number is too small to represent.</desc>
+ *  <term><code>NSCalculationDivideByZero</code></term>
+ *  <desc>The caller tried to divide by 0.</desc>
+ *  </deflist>
+ */
 typedef enum {
   NSCalculationNoError = 0,
   NSCalculationUnderflow,	/* result became zero */
@@ -87,45 +111,103 @@ typedef struct {
 #endif
 } NSDecimal;
 
+/** Returns whether decimal represents an invalid number. */
 static inline BOOL
 NSDecimalIsNotANumber(const NSDecimal *decimal)
 {
   return (decimal->validNumber == NO);
 }
 
+/** Copies value of decimal number to preallocated destination. */
 GS_EXPORT void
 NSDecimalCopy(NSDecimal *destination, const NSDecimal *source);
 
+/** Tries to reduce memory used to store number internally. */
 GS_EXPORT void
 NSDecimalCompact(NSDecimal *number);
 
+/**
+ *  Returns <code>NSOrderedDescending</code>, <code>NSOrderedSame</code>, or
+ *  <code>NSOrderedAscending</code> depending on whether leftOperand is
+ *  greater than, equal to, or less than rightOperand.
+ */
 GS_EXPORT NSComparisonResult
 NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand);
 
+/**
+ *  Rounds number to result such that it has at most scale digits to the right
+ *  of its decimal point, according to mode (see the
+ *  [(NSDecimalNumberBehaviors)] protocol).  The result should be preallocated
+ *  but can be the same as number.
+ */
 GS_EXPORT void
 NSDecimalRound(NSDecimal *result, const NSDecimal *number, int scale, NSRoundingMode mode);
 
+/**
+ *  Sets the exponents of n1 and n2 to equal one another, adjusting mantissas
+ *  as necessary to preserve values.  This makes certain operations quicker.
+ */
 GS_EXPORT NSCalculationError
 NSDecimalNormalize(NSDecimal *n1, NSDecimal *n2, NSRoundingMode mode);
 
+/**
+ *  Adds two decimals and returns result to 38-digit precision.  See the
+ *  [(NSDecimalNumberBehaviors)] protocol for a description of mode and the
+ *  return value.  The result should be preallocated but can be the same as
+ *  left or right.
+ */
 GS_EXPORT NSCalculationError
 NSDecimalAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, NSRoundingMode mode);
 
+/**
+ *  Subtracts two decimals and returns result to 38-digit precision.  See the
+ *  [(NSDecimalNumberBehaviors)] protocol for a description of mode and the
+ *  return value.  The result should be preallocated but can be the same as
+ *  left or right.
+ */
 GS_EXPORT NSCalculationError
 NSDecimalSubtract(NSDecimal *result, const NSDecimal *left, const NSDecimal *right, NSRoundingMode mode);
 
+/**
+ *  Multiplies two decimals and returns result to 38-digit precision.  See the
+ *  [(NSDecimalNumberBehaviors)] protocol for a description of mode and the
+ *  return value.  The result should be preallocated but can be the same as
+ *  l or r.
+ */
 GS_EXPORT NSCalculationError
 NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r, NSRoundingMode mode);
 
+/**
+ *  Divides l by rr and returns result to 38-digit precision.  See the
+ *  [(NSDecimalNumberBehaviors)] protocol for a description of mode and the
+ *  return value.  The result should be preallocated but can be the same as
+ *  l or rr.
+ */
 GS_EXPORT NSCalculationError
 NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *rr, NSRoundingMode mode);
     
+/**
+ *  Raises n to power and returns result to 38-digit precision.  See the
+ *  [(NSDecimalNumberBehaviors)] protocol for a description of mode and the
+ *  return value.  The result should be preallocated but can be the same as
+ *  n or power.
+ */
 GS_EXPORT NSCalculationError
 NSDecimalPower(NSDecimal *result, const NSDecimal *n, unsigned power, NSRoundingMode mode);
 
+/**
+ *  Multiplies n by 10^power and returns result to 38-digit precision.  See the
+ *  [(NSDecimalNumberBehaviors)] protocol for a description of mode and the
+ *  return value.  The result should be preallocated but can be the same as
+ *  n or power.
+ */
 GS_EXPORT NSCalculationError
 NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power, NSRoundingMode mode);
 
+/**
+ *  Returns a string representing the full decimal value, formatted according
+ *  to locale (send nil here for default locale).
+ */
 GS_EXPORT NSString*
 NSDecimalString(const NSDecimal *decimal, NSDictionary *locale);
 
@@ -133,24 +215,30 @@ NSDecimalString(const NSDecimal *decimal, NSDictionary *locale);
 // GNUstep extensions to make the implementation of NSDecimalNumber totaly 
 // independent for NSDecimals internal representation
 
-// Give back the biggest NSDecimal
+/** Give back the biggest NSDecimal in (preallocated) result. */
 GS_EXPORT void
 NSDecimalMax(NSDecimal *result);
 
-// Give back the smallest NSDecimal
+/** Give back the smallest NSDecimal in (preallocated) result. */
 GS_EXPORT void
 NSDecimalMin(NSDecimal *result);
 
-// Give back the value of a NSDecimal as a double
+/** Give back the value of a NSDecimal as a double in (preallocated) result. */
 GS_EXPORT double
 NSDecimalDouble(NSDecimal *number);
 
-// Create a NSDecimal with a mantissa, exponent and a negative flag
+/**
+ *  Create a NSDecimal with a mantissa, exponent and a negative flag in
+ *  (preallocated) result.
+ */
 GS_EXPORT void
 NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa, 
 		      short exponent, BOOL negative);
 
-// Create a NSDecimal from a string using the local
+/**
+ *  Create a NSDecimal from a string using the locale, in (preallocated)
+ *  result.
+ */
 GS_EXPORT void
 NSDecimalFromString(NSDecimal *result, NSString *numberValue, 
 		    NSDictionary *locale);
