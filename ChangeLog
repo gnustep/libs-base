@@ -1,8 +1,13 @@
+Mon Feb  1  9:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* src/NSArray.m: ([-initWithContentsOfFile:]) Fixed memory leak.
+	* src/NSDictionary.m: ([-initWithContentsOfFile:]) Fixed memory leak.
+
 Sat Jan 30  5:55:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Tidying up brain-damaged changes I made while ill.
-	src/NSConnection.m: Tidied proxy handling a bit
-	src/NSDistantObject.m: Tidied  - made closer to OpenStep spec.
+	* src/NSConnection.m: Tidied proxy handling a bit
+	* src/NSDistantObject.m: Tidied  - made closer to OpenStep spec.
 
 Fri Jan 29 11:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
