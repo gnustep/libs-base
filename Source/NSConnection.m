@@ -1851,7 +1851,7 @@ static int messages_received_count;
     {
       c = [connection_array objectAtIndex:i];
       [c removeLocalObject: anObj];
-      [c removeProxy: anObj];
+//      [c removeProxy: anObj];
     }
 }
 
