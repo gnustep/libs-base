@@ -209,22 +209,6 @@ static BOOL snuggleStart(NSString *t)
       [str appendString: @"\""];
     }
 
-  tmp = [info objectForKey: @"next"];
-  if (tmp != nil)
-    {
-      [str appendString: @" next=\""];
-      [str appendString: tmp];
-      [str appendString: @"\""];
-    }
-
-  tmp = [info objectForKey: @"prev"];
-  if (tmp != nil)
-    {
-      [str appendString: @" prev=\""];
-      [str appendString: tmp];
-      [str appendString: @"\""];
-    }
-
   tmp = [info objectForKey: @"up"];
   if (tmp != nil)
     {
