@@ -1123,38 +1123,82 @@ static inline void
 getCString_u(ivars self, char *buffer, unsigned int maxLength,
   NSRange aRange, NSRange *leftoverRange)
 {
-  unsigned int	len;
+  /* The primitive we have for converting from unicode, GSFromUnicode,
+  can't deal with our leftoverRange case, so we need to use a bit of
+  complexity instead. */
+  unsigned int len;
 
-  if (maxLength > self->_count)
+  /* TODO: this is an extremely ugly hack to work around buggy iconvs
+  that return -1/E2BIG for buffers larger than 0x40000acf */
+  if (maxLength > 0x40000000)
+    maxLength = 0x40000000;
+
+  /* First, try converting the whole thing. */
+  len = maxLength;
+  if (GSFromUnicode((unsigned char **)&buffer, &len,
+		    self->_contents.u + aRange.location, aRange.length,
+		    defEnc, 0, GSUniTerminate | GSUniStrict) == YES)
     {
-      maxLength = self->_count;
-    }
-  if (maxLength < aRange.length)
-    {
-      len = maxLength;
-      if (leftoverRange != 0)
-	{
-	  leftoverRange->location = aRange.location + maxLength;
-	  leftoverRange->length = aRange.length - maxLength;
-	}
-    }
-  else
-    {
-      len = aRange.length;
-      if (leftoverRange != 0)
-	{
-	  leftoverRange->location = 0;
-	  leftoverRange->length = 0;
-	}
+      if (leftoverRange)
+	leftoverRange->location = leftoverRange->length = 0;
+      return;
     }
 
-  if (GSFromUnicode((unsigned char **)&buffer, &len, self->_contents.u, len,
-    defEnc, 0, GSUniTerminate | GSUniStrict) == NO)
+  /* The conversion failed. Either the buffer is too small for the whole
+  range, or there are characters in it we can't convert. Check for
+  unconvertable characters first. */
+  len = 0;
+  if (GSFromUnicode(NULL, &len,
+		    self->_contents.u + aRange.location, aRange.length,
+		    defEnc, 0, GSUniTerminate | GSUniStrict) == NO)
     {
       [NSException raise: NSCharacterConversionException
 		  format: @"Can't get cString from Unicode string."];
+      return;
     }
-  buffer[len] = '\0';
+
+  /* The string can be converted, but not all of it. Do a binary search
+  to find the longest subrange that fits in the buffer. */
+  {
+    unsigned int lo, hi, mid;
+
+    lo = 0;
+    hi = aRange.length;
+    while (lo < hi)
+      {
+	mid = (lo + hi + 1) / 2; /* round up to get edge case right */
+	len = maxLength;
+	if (GSFromUnicode((unsigned char **)&buffer, &len,
+			  self->_contents.u + aRange.location, mid,
+			  defEnc, 0, GSUniTerminate | GSUniStrict) == YES)
+	  {
+	    lo = mid;
+	  }
+	else
+	  {
+	    hi = mid - 1;
+	  }
+      }
+
+    /* lo==hi characters fit. Do the real conversion. */
+    len = maxLength;
+    if (lo == 0)
+      {
+        buffer[0] = 0;
+      }
+    else if (GSFromUnicode((unsigned char **)&buffer, &len,
+			   self->_contents.u + aRange.location, lo,
+			   defEnc, 0, GSUniTerminate | GSUniStrict) == NO)
+      {
+        NSCAssert(NO, @"binary search gave inconsistent results");
+      }
+
+    if (leftoverRange)
+      {
+	leftoverRange->location = aRange.location + lo;
+	leftoverRange->length = NSMaxRange(aRange) - leftoverRange->location;
+      }
+  }
 }
 
 static inline int
