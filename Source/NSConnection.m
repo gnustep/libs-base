@@ -1073,8 +1073,6 @@ static BOOL	multi_threaded = NO;
   _isValid = NO;
   M_LOCK(connection_table_gate);
   NSHashRemove(connection_table, self);
-  [timer invalidate];
-  timer = nil;
   M_UNLOCK(connection_table_gate);
 
   M_UNLOCK(_refGate);
