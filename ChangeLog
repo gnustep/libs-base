@@ -1,3 +1,18 @@
+2003-11-05 03:10  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/GSString.m: Reorganize class heirarchy. Remove unused
+	GSCEmptyString class. Add new concrete leaf classes GSCBufferString
+	and GSCUnicodeString. Make GSString, GSCString, and GSUnicodeString
+	abstract and move the real memory management code to the two new
+	classes. Update the other concrete leaf classes. Update callers.
+
+	* Source/GSPrivate.h: Update comment about the semantics of the free
+	flag in GSString.
+
+	* Source/NSSerializer.m: Clarify comments about the cached classes.
+	Use GSCBufferString and GSUnicodeBufferString instead of GSCString
+	and GSUnicodeString when creating string instances.
+
 Mon Nov 03 12:30:00 2003  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNotificationCenter.m: Use locking at all times until

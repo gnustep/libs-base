@@ -45,9 +45,11 @@
 @class	GSMutableDictionary;
 @class	NSDataMalloc;
 @class	GSInlineArray;
-@class  GSMutableArray;
+@class	GSMutableArray;
 @class	GSCString;
+@class	GSCBufferString;
 @class	GSUnicodeString;
+@class	GSUnicodeBufferString;
 @class	GSMutableString;
 
 /*
@@ -100,7 +102,8 @@ static char	st_number = (char)ST_NUMBER;
 
 
 /*
- *	Variables to cache class information.
+ * Variables to cache class information. These are used to check how
+ * an instance should be serialized.
  */
 static Class	ArrayClass = 0;
 static Class	MutableArrayClass = 0;
@@ -421,10 +424,12 @@ static BOOL	shouldBeCompact = NO;
 
 
 
-/*
- *	Variables to cache class information.
- */
 static BOOL	uniquing = NO;	/* Make incoming strings unique	*/
+
+/*
+ * Variables to cache class information. These are used to create instances
+ * when deserializing.
+ */
 static Class	MACls = 0;	/* Mutable Array	*/
 static Class	DCls = 0;	/* Data			*/
 static Class	MDCls = 0;	/* Mutable Dictionary	*/
@@ -818,8 +823,8 @@ deserializeFromInfo(_NSDeserializerInfo* info)
       MACls = [GSMutableArray class];
       DCls = [NSDataMalloc class];
       MDCls = [GSMutableDictionary class];
-      USCls = [GSUnicodeString class];
-      CSCls = [GSCString class];
+      USCls = [GSUnicodeBufferString class];
+      CSCls = [GSCBufferString class];
       csInitImp = [CSCls instanceMethodForSelector: csInitSel];
       usInitImp = [USCls instanceMethodForSelector: usInitSel];
       dInitImp = [DCls instanceMethodForSelector: dInitSel];
