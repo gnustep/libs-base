@@ -789,11 +789,51 @@ static NSPortNameServer	*defaultServer = nil;
       hostname = @"localhost";
     }
 
-  expecting = 1;
-  handle = [NSFileHandle  fileHandleAsClientInBackgroundAtAddress: host
+  NS_DURING
+    {
+      handle = [NSFileHandle  fileHandleAsClientInBackgroundAtAddress: host
 							  service: serverPort
 							 protocol: @"tcp"
 							 forModes: modes];
+    }
+  NS_HANDLER
+    {
+      if ([[localException name] isEqual: NSInvalidArgumentException])
+	{
+	  NSLog(@"Exception looking up port for gdomap - %@\n", localException);
+	  handle = nil;
+	}
+      else
+	{
+	  [localException raise];
+	}
+    }
+  NS_ENDHANDLER
+
+  if (handle == nil)
+    {
+      NSLog(@"Failed to find gdomap port with name '%@',\nperhaps your "
+		@"/etc/services file is not correctly set up?\n"
+		@"Retrying with default (IANA allocated) port number 538",
+		serverPort);
+      NS_DURING
+	{
+	  handle = [NSFileHandle  fileHandleAsClientInBackgroundAtAddress: host
+							  service: @"538"
+							 protocol: @"tcp"
+							 forModes: modes];
+	}
+      NS_HANDLER
+	{
+	  [localException raise];
+	}
+      NS_ENDHANDLER
+      if (handle)
+	{
+	  [serverPort release];
+	  serverPort = @"538";
+	}
+    }
 
   if (handle == nil)
     {
@@ -802,6 +842,7 @@ static NSPortNameServer	*defaultServer = nil;
 			hostname];
     }
 
+  expecting = 1;
   [handle retain];
   [NSNotificationCenter addObserver: self
 			   selector: @selector(_didConnect:)
