@@ -529,8 +529,8 @@ FastMapAddPair(FastMapTable map, FastMapItem key, FastMapItem value)
 {
   FastMapNode node;
 
-  FAST_MAP_RETAIN_KEY(key);
-  FAST_MAP_RETAIN_VAL(value);
+  key = FAST_MAP_RETAIN_KEY(key);
+  value = FAST_MAP_RETAIN_VAL(value);
   node = FastMapNewNode(map, key, value);
 
   if (node != 0)
@@ -561,7 +561,7 @@ FastMapAddKey(FastMapTable map, FastMapItem key)
 {
   FastMapNode node;
 
-  FAST_MAP_RETAIN_KEY(key);
+  key = FAST_MAP_RETAIN_KEY(key);
   node = FastMapNewNode(map, key);
 
   if (node != 0)
