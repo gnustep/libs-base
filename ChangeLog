@@ -2,6 +2,8 @@
 
 	* Headers/Foundation/GSMime.h: Tidy up and add convenience methods.
 	* Source/Additions/GSMime.m: Tidy up and add convenience methods.
+	* Source/NSBundle.m: ([+allBundles]) Don't enumeraste if map table
+	has not been created yet.
 
 2002-05-26  Fred Kiefer <FredKiefer@gmx.de>
 

@@ -504,21 +504,25 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 + (NSArray *) allBundles
 {
-  NSMapEnumerator	enumerate;
   NSMutableArray	*array = [NSMutableArray arrayWithCapacity: 2];
-  void			*key;
-  NSBundle		*bundle;
 
   [load_lock lock];
-  enumerate = NSEnumerateMapTable(_bundles);
-  while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
+  if (_bundles != 0)
     {
-      if (bundle->_bundleType == NSBUNDLE_FRAMEWORK)
-	continue;
+      NSMapEnumerator	enumerate;
+      void		*key;
+      NSBundle		*bundle;
 
-      if ([array indexOfObjectIdenticalTo: bundle] == NSNotFound)
+      enumerate = NSEnumerateMapTable(_bundles);
+      while (NSNextMapEnumeratorPair(&enumerate, &key, (void **)&bundle))
 	{
-	  [array addObject: bundle];
+	  if (bundle->_bundleType == NSBUNDLE_FRAMEWORK)
+	    continue;
+
+	  if ([array indexOfObjectIdenticalTo: bundle] == NSNotFound)
+	    {
+	      [array addObject: bundle];
+	    }
 	}
     }
   [load_lock unlock];
