@@ -68,11 +68,10 @@ static NSMapTable	globalClassMap = 0;
 
 
 @interface NSKeyedUnarchiver (Private)
-- (id) _decodeArrayOfObjectsForKey: (NSString*)aKey;
 - (id) _decodeObject: (unsigned)index;
 @end
 
-@implementation NSKeyedUnarchiver (Private)
+@implementation NSKeyedUnarchiver (Internal)
 /**
  * Internal method used to decode an array relatively efficiently.<br />
  * Some MacOS-X library classes seem to use this.
@@ -116,7 +115,9 @@ static NSMapTable	globalClassMap = 0;
     }
   return o;
 }
+@end
 
+@implementation NSKeyedUnarchiver (Private)
 - (id) _decodeObject: (unsigned)index
 {
   id	o;
