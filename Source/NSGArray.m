@@ -30,6 +30,8 @@
 #include <gnustep/base/ArrayPrivate.h>
 #include <Foundation/NSException.h>
 
+@class NSArrayNonCore;
+
 @implementation NSGArray
 
 + (void) initialize
@@ -75,6 +77,8 @@
 #endif
 
 @end
+
+@class NSMutableArrayNonCore;
 
 @implementation NSGMutableArray
 
