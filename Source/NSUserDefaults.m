@@ -87,7 +87,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
   setSharedDefaults = NO;
   sharedDefaults = nil;
-  [defs release];
+  RELEASE(defs);
 }
 
 + (NSUserDefaults *)standardUserDefaults
@@ -232,7 +232,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
       if (env_list)
 	{
 	  env = [NSString stringWithCString: env_list];
-	  currLang = [[env componentsSeparatedByString: @";"] retain];
+	  currLang = RETAIN([env componentsSeparatedByString: @";"]);
 	}
     }
   if (currLang)
@@ -282,7 +282,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   // Either userName is empty or it's wrong
   if (!userHome)
     {  
-      [self release];
+      RELEASE(self);
       return nil;
     }
   filename = [NSString stringWithFormat: @"%@/%@",
@@ -300,37 +300,40 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   if (!defaultsDatabase)
     {
       if (path != nil && [path isEqual: @""] == NO)
-        defaultsDatabase = [path copy];
+        defaultsDatabase = (NSMutableString*)[path mutableCopy];
       else
-        defaultsDatabase =
-	[[NSMutableString stringWithFormat: @"%@/%@",
+	{
+	  defaultsDatabase =
+	    (NSMutableString*)[NSMutableString stringWithFormat: @"%@/%@",
 			  NSHomeDirectoryForUser(NSUserName()),
-			  GNU_UserDefaultsDatabase] retain];
+			  GNU_UserDefaultsDatabase];
+	  RETAIN(defaultsDatabase);
+	}
 
       if ([[defaultsDatabase lastPathComponent] isEqual: 
-		[GNU_UserDefaultsDatabase lastPathComponent]] == YES)
-        defaultsDatabaseLockName =
-	  [[NSMutableString stringWithFormat: @"%@/%@",
+	[GNU_UserDefaultsDatabase lastPathComponent]] == YES)
+	defaultsDatabaseLockName =
+	  (NSMutableString*)[NSMutableString stringWithFormat: @"%@/%@",
 			  [defaultsDatabase stringByDeletingLastPathComponent],
-			  [GNU_UserDefaultsDatabaseLock lastPathComponent]]
-				retain];
+			  [GNU_UserDefaultsDatabaseLock lastPathComponent]];
       else
         defaultsDatabaseLockName =
-	  [[NSMutableString stringWithFormat: @"%@/%@",
+	  (NSMutableString*)[NSMutableString stringWithFormat: @"%@/%@",
 			  NSHomeDirectoryForUser(NSUserName()),
-			  GNU_UserDefaultsDatabaseLock] retain];
+			  GNU_UserDefaultsDatabaseLock];
+      RETAIN(defaultsDatabaseLockName);
       defaultsDatabaseLock =
-	[[NSDistributedLock lockWithPath: defaultsDatabaseLockName] retain];
+	RETAIN([NSDistributedLock lockWithPath: defaultsDatabaseLockName]);
   }
   if (processName == nil)
-    processName = [[[[NSProcessInfo processInfo] processName]
-	lastPathComponent] retain];
+    processName = RETAIN([[[NSProcessInfo processInfo] processName]
+	lastPathComponent]);
 	
   // Create an empty search list
-  searchList = [[NSMutableArray arrayWithCapacity: 10] retain];
+  searchList = [[NSMutableArray alloc] initWithCapacity: 10];
 	
   // Initialize persDomains from the archived user defaults (persistent)
-  persDomains = [[NSMutableDictionary dictionaryWithCapacity: 10] retain];
+  persDomains = [[NSMutableDictionary alloc] initWithCapacity: 10];
   if ([self synchronize] == NO)
     {
       NSRunLoop	*runLoop = [NSRunLoop currentRunLoop];
@@ -347,7 +350,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
         }
       if (done == NO)
 	{
-          [self release];
+          RELEASE(self);
           return self = nil;
         }
     }
@@ -369,7 +372,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
     }
 	
   // Create volatile defaults and add the Argument and the Registration domains
-  tempDomains = [[NSMutableDictionary dictionaryWithCapacity: 10] retain];
+  tempDomains = [[NSMutableDictionary alloc] initWithCapacity: 10];
   [tempDomains setObject: [self __createArgumentDictionary] 
 	       forKey: NSArgumentDomain];
   [tempDomains setObject: 
@@ -383,11 +386,12 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 {
   if (tickingTimer)
     [tickingTimer invalidate];
-  [searchList release];
-  [persDomains release];
-  [tempDomains release];
-  [changedDomains release];
-  [dictionaryRep release];
+  RELEASE(lastSync);
+  RELEASE(searchList);
+  RELEASE(persDomains);
+  RELEASE(tempDomains);
+  RELEASE(changedDomains);
+  RELEASE(dictionaryRep);
   [super dealloc];
 }
 
@@ -589,7 +593,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 - (void)setSearchList: (NSArray*)newList
 {
   DESTROY(dictionaryRep);
-  [searchList release];
+  RELEASE(searchList);
   searchList = [newList mutableCopy];
 }
 
@@ -635,18 +639,50 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 
 - (BOOL) synchronize
 {
-  NSMutableDictionary *newDict = nil;
-		
+  NSFileManager		*mgr = [NSFileManager defaultManager];
+  NSMutableDictionary	*newDict = nil;
+  NSDictionary		*attr;
+  NSDate		*mod;
+
   if (tickingTimer == nil)
     {
       tickingTimer = [NSTimer scheduledTimerWithTimeInterval: 30
 	       target: self
-	       selector: @selector(__timerTicked: )
+	       selector: @selector(__timerTicked:)
 	       userInfo: nil
 	       repeats: NO];
     }
 
-  // Get file lock - break any lock that is more than five minute old.
+  /*
+   *	If we haven't changed anything, we only need to synchronise if
+   *	the on-disk database has been changed by someone else.
+   */
+  if (changedDomains == NO)
+    {
+      BOOL		wantRead = NO;
+
+      if (lastSync == nil)
+	wantRead = YES;
+      else
+	{
+	  attr = [mgr fileAttributesAtPath: defaultsDatabase
+			      traverseLink: YES];
+	  if (attr == nil)
+	    wantRead = YES;
+	  else
+	    {
+	      mod = [attr objectForKey: NSFileModificationDate];
+	      if ([lastSync earlierDate: mod] != lastSync)
+		wantRead = YES;
+	    }
+	}
+      if (wantRead == NO)
+	return;
+    }
+
+  /*
+   * Get file lock - break any lock that is more than five minute old.
+   */
   if ([defaultsDatabaseLock tryLock] == NO)
     {
       if ([[defaultsDatabaseLock lockDate] timeIntervalSinceNow] < -300.0)
@@ -666,21 +702,19 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   DESTROY(dictionaryRep);
 
   // Read the persistent data from the stored database
-  if ([[NSFileManager defaultManager] fileExistsAtPath: defaultsDatabase])
+  if ([mgr fileExistsAtPath: defaultsDatabase])
     {
       newDict = [[NSMutableDictionary allocWithZone: [self zone]]
-		initWithContentsOfFile: defaultsDatabase];
+        initWithContentsOfFile: defaultsDatabase];
     }
   else
     {
-      NSDictionary	*attr;
-
       attr = [NSDictionary dictionaryWithObjectsAndKeys: 
 		NSUserName(), NSFileOwnerAccountName, nil];
       NSLog(@"Creating defaults database file %@", defaultsDatabase);
-      [[NSFileManager defaultManager] createFileAtPath: defaultsDatabase
-					      contents: nil
-					    attributes: attr];
+      [mgr createFileAtPath: defaultsDatabase
+		   contents: nil
+		 attributes: attr];
       [[NSDictionary dictionary] writeToFile: defaultsDatabase atomically: YES];
     }
 
@@ -707,7 +741,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	      [newDict removeObjectForKey: obj];
 	    }
 	}
-      [persDomains release];
+      RELEASE(persDomains);
       persDomains = newDict;
       // Save the changes
       if (![persDomains writeToFile: defaultsDatabase atomically: YES])
@@ -715,14 +749,22 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	  [defaultsDatabaseLock unlock];
 	  return NO;
 	}
+      attr = [mgr fileAttributesAtPath: defaultsDatabase
+			  traverseLink: YES];
+      mod = [attr objectForKey: NSFileModificationDate];
+      ASSIGN(lastSync, mod);
       [defaultsDatabaseLock unlock];	// release file lock
     }
   else
     {
+      attr = [mgr fileAttributesAtPath: defaultsDatabase
+			  traverseLink: YES];
+      mod = [attr objectForKey: NSFileModificationDate];
+      ASSIGN(lastSync, mod);
       [defaultsDatabaseLock unlock];	// release file lock
       if ([persDomains isEqual: newDict] == NO)
 	{
-	  [persDomains release];
+	  RELEASE(persDomains);
 	  persDomains = newDict;
 	  [[NSNotificationCenter defaultCenter] 
 	    postNotificationName: NSUserDefaultsDidChangeNotification
@@ -730,7 +772,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	}
       else
 	{
-	  [newDict release];
+	  RELEASE(newDict);
 	}
     }
 
@@ -796,7 +838,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
 	    [dictRep addEntriesFromDictionary: dict];
 	}
       dictionaryRep = [dictRep copy];
-      [dictRep release];
+      RELEASE(dictRep);
     }
   return dictionaryRep;
 }
@@ -900,7 +942,7 @@ static BOOL setSharedDefaults = NO;	/* Flag to prevent infinite recursion */
   DESTROY(dictionaryRep);
   if (!changedDomains)
     {
-      changedDomains = [[NSMutableArray arrayWithCapacity: 5] retain];
+      changedDomains = [[NSMutableArray alloc] initWithCapacity: 5];
       [[NSNotificationCenter defaultCenter] 
 	postNotificationName: NSUserDefaultsDidChangeNotification object: nil];
     }
