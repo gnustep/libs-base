@@ -934,6 +934,28 @@ failure:
   [self subclassResponsibility: _cmd];
 }
 
+- (unsigned char) deserializeTypeTagAtCursor: (unsigned*)cursor
+{
+    unsigned char	result;
+
+    [self deserializeDataAt: (void*)&result
+		 ofObjCType: @encode(unsigned char) 
+		   atCursor: cursor
+		    context: nil];
+    return result;
+}
+
+- (unsigned) deserializeCrossRefAtCursor: (unsigned*)cursor
+{
+    unsigned result;
+
+    [self deserializeDataAt: (void*)&result
+		 ofObjCType: @encode(unsigned) 
+		   atCursor: cursor
+		    context: nil];
+    return result;
+}
+
 - (void*) relinquishAllocatedBytes
 {
     return [self relinquishAllocatedBytesFromZone: 0];
@@ -1350,6 +1372,20 @@ failure:
 {
   return -1;
 }
+
+- (void) serializeTypeTag: (unsigned char)tag
+{
+    [self serializeDataAt: (void*)&tag
+	       ofObjCType: @encode(unsigned char)
+		  context: nil];
+}
+
+- (void) serializeCrossRef: (unsigned)xref
+{
+    [self serializeDataAt: (void*)&xref
+	       ofObjCType: @encode(unsigned)
+		  context: nil];
+}
 @end
 
 
@@ -1669,6 +1705,23 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    [NSException raise: NSGenericException
                 format: @"Unknown type to deserialize - '%s'", type];
     }
+}
+
+- (unsigned char) deserializeTypeTagAtCursor: (unsigned*)cursor
+{
+    if (*cursor >= length) {
+	[NSException raise: NSRangeException
+		    format: @"Range: (%u, 1) Size: %d", *cursor, length];
+    }
+    return ((unsigned char*)bytes)[(*cursor)++];
+}
+
+- (unsigned) deserializeCrossRefAtCursor: (unsigned*)cursor
+{
+    unsigned ni;
+
+    getBytes((void*)&ni, bytes, sizeof(ni), length, cursor);
+    return (unsigned)NSSwapBigIntToHost(ni);
 }
 
 @end
@@ -2404,6 +2457,24 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    [NSException raise: NSGenericException
                 format: @"Unknown type to serialize - '%s'", type];
     }
+}
+
+- (void) serializeTypeTag: (unsigned char)tag
+{
+    if (length == capacity) {
+	[self _grow: length + 1];
+    }
+    ((unsigned char*)bytes)[length++] = tag;
+}
+
+- (void) serializeCrossRef: (unsigned)xref
+{
+    if (length + sizeof(unsigned) >= capacity) {
+	[self _grow: length + sizeof(unsigned)];
+    }
+    xref = NSSwapHostIntToBig(xref);
+    memcpy(bytes+length, &xref, sizeof(unsigned));
+    length += sizeof(unsigned);
 }
 
 - (id) setCapacity: (unsigned)size
