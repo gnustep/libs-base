@@ -48,27 +48,50 @@
   int interconnected_stack_height;   /* number of nested root objects */
 }
 
-+ coderReadingFromStream: (id <Streaming>)stream;
-+ coderReadingFromFile: (id <String>) filename;
+/* Encoding */
 
-+ coderWritingToStream: (id <Streaming>)stream;
-+ coderWritingToFile: (id <String>)filename;
+- initForWritingToFile: (id <String>) filename;
+- initForWritingToFile: (id <String>) filename
+      withCStreamClass: (Class) cStreamClass;
+- initForWritingToFile: (id <String>) filename
+     withFormatVersion: (int) version
+          cStreamClass: (Class)scc
+  cStreamFormatVersion: (int) cStreamFormatVersion;
 
-+ decodeObjectFromStream: (id <Streaming>)stream;
-+ decodeObjectFromFile: (id <String>) filename;
-
-- initForReadingFromStream: (id <Streaming>) stream
-	     formatVersion: (int)version;
-- initForReadingFromStream: (id <Streaming>) stream;
-
-- initForWritingToStream: (id <Streaming>) s
-	   formatVersion: (int) version;
 - initForWritingToStream: (id <Streaming>) s;
+- initForWritingToStream: (id <Streaming>) s
+	withCStreamClass: (Class) cStreamClass;
+- initForWritingToStream: (id <Streaming>) s
+       withFormatVersion: (int) version
+            cStreamClass: (Class) cStreamClass
+    cStreamFormatVersion: (int) cStreamFormatVersion;
 
++ (BOOL) encodeRootObject: anObject 
+  	         withName: (id <String>) name
+                   toFile: (id <String>) filename;
++ (BOOL) encodeRootObject: anObject 
+  	         withName: (id <String>) name
+		 toStream: (id <Streaming>)stream;
+
+/* Decoding */
+/* These are class methods because the header of the file or stream
+   determines which (sub)class of Coder is created. */
+
++ coderReadingFromFile: (id <String>) filename;
++ coderReadingFromStream: (id <Streaming>)stream;
+
++ decodeObjectWithName: (id <String> *) name
+	      fromFile: (id <String>) filename;
++ decodeObjectWithName: (id <String> *) name
+	    fromStream: (id <Streaming>)stream;
+
+
+/* Querying */
 
 + (void) setDefaultStreamClass: sc;
 + defaultStreamClass;
 + (int) defaultFormatVersion;
+
 
 + setDebugging: (BOOL)f;
 
