@@ -187,8 +187,8 @@ $(GNUSTEP_OBJ_DIR)/NSObjCRuntime.o \
 	: $(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)/mframe.h
 
 #
-#	Files where optimisation breaks the code!
-#	These have to filter the optimisation flag out.
+#       Files where optimisation breaks the code!
+#       These have to filter the optimisation flag out.
 #
 $(GNUSTEP_OBJ_DIR)/mframe.o : mframe.m
 	$(CC) -c $(filter-out -O%, $(ALL_CPPFLAGS) $(ALL_OBJCFLAGS)) -o $@ $<

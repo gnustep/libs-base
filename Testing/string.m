@@ -21,6 +21,7 @@ int main()
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   id s = @"This is a test string";
   id s2, s3;
+  int a;
 
   print_string(s);
 
@@ -43,26 +44,15 @@ int main()
       withString:@"changed"];
   print_string(s2);
 
+#if 0
   /* Test the use of the `%@' format directive. */
   s2 = [NSString stringWithFormat: @"foo %@ bar",
 		 @"test"];
   print_string(s2);
 
-#if 0
-  /* An example of treating a string like a Collection:  
-     Increment each char. */
-  {
-    id s3;
-    void rot13(elt c)
-      {
-	[s3 appendElement:(char)(c.char_u + 1)];
-      }
-
-    s3 = [NSMutableString stringWithCapacity:[s2 length]];
-    [s2 withElementsCall:rot13];
-    print_string(s3);
-  }
-#endif  
+  for (a = 0; a < 10; a++)
+    NSLog(@"A string with precision %d is :%.*@:", a, a, @"String");
+#endif
 
   [arp release];
   exit(0);

@@ -18,10 +18,11 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.
 */ 
 
 #include <config.h>
+#include <errno.h>
 #include <base/preface.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSException.h>
@@ -301,11 +302,51 @@ NSString *NSRecursiveLockException = @"NSRecursiveLockException";
   return NO;
 }
 
-- (BOOL)lockWhenCondition:(int)condition
-               beforeDate:(NSDate *)limit
+
+- (BOOL)lockWhenCondition:(int)condition_to_meet
+               beforeDate:(NSDate *)limitDate
 {
+#ifndef HAVE_OBJC_CONDITION_TIMEDWAIT
   [self notImplemented: _cmd];
   return NO;
+#else
+  NSTimeInterval atimeinterval;
+  struct timespec endtime;
+  
+  CHECK_RECURSIVE_CONDITION_LOCK (mutex);
+  
+  if( -1 == objc_mutex_lock(mutex) )
+    [NSException raise:NSConditionLockException 
+		 format:@"lockWhenCondition: failed to lock mutex"];
+	
+  if( condition_value == condition_to_meet )
+    return YES;
+  
+  atimeinterval = [limitDate timeIntervalSince1970];
+  endtime.tv_sec =(unsigned int)atimeinterval; // 941883028;//
+  endtime.tv_nsec = (unsigned int)((atimeinterval - (float)endtime.tv_sec)
+				   * 1000000000.0);
+  
+  while( condition_value != condition_to_meet )
+    {
+      switch(objc_condition_timedwait(condition,mutex,&endtime))
+	{
+	case 0:
+	  break;
+	case EINTR:
+	  break;
+	case ETIMEDOUT :
+	  [self unlock];
+	  return NO;
+	default:
+	  [NSException raise:NSConditionLockException 
+		       format:@"objc_condition_timedwait failed"];
+	  [self unlock];
+	  return NO;
+	}
+    }
+  return YES;
+#endif HAVE__OBJC_CONDITION_TIMEDWAIT
 }
 
 // NSLocking protocol

@@ -100,8 +100,14 @@ typedef struct rs6000_args
         } \
       else \
         { \
-            (CUM).regs_position = ROUND((CUM).regs_position, align); \
-          sprintf(dest, "%.*s+%d", (TYPE)-type, type, (CUM).regs_position); \
+          (CUM).regs_position = ROUND((CUM).regs_position, align); \
+	  /* FIXME: This mostly accounts for the addition in mframe_arg_addr \
+	     due to WORDS_BIGENDIAN */ \
+	  if (*type == _C_STRUCT_B && objc_sizeof_type(type) < sizeof(int)) \
+	    (CUM).regs_position -= sizeof(int) - objc_sizeof_type(type); \
+          sprintf((DEST), "%.*s+%d", (TYPE)-type, type, (CUM).regs_position); \
+	  if (*type == _C_STRUCT_B && objc_sizeof_type(type) < sizeof(int)) \
+	    (CUM).regs_position += sizeof(int) - objc_sizeof_type(type); \
           (CUM).regs_position += ROUND (size, align); \
         } \
     } \

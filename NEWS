@@ -1,7 +1,22 @@
 News
 ****
 
-The currently released version of the library is `0.5.5'.
+The currently released version of the library is `0.6.0'.
+
+Noteworthy changes in version `0.6.0'
+=====================================
+
+   Most of the changes to the Base Library are bug fixes and updates to
+include MacOS-X specifications. Although the base library hasn't been
+extensively tested, it is currently used in several commercial products
+and installations, and is considered to be fairly stable.
+
+   * Some changes to eventually allow the use of automatic garbage
+     collection.
+
+   * Better localization support in NSBundle.
+
+   * Performance boosts in many classes.
 
 Noteworthy changes in version `0.5.5'
 =====================================

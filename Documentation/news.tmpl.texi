@@ -7,6 +7,24 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{0.6.0}
+
+Most of the changes to the Base Library are bug fixes and updates to
+include MacOS-X specifications. Although the base library hasn't been
+extensively tested, it is currently used in several commercial products
+and installations, and is considered to be fairly stable.
+
+@itemize @bullet
+
+@item Some changes to eventually allow the use of automatic garbage
+collection.
+
+@item Better localization support in NSBundle.
+
+@item Performance boosts in many classes.
+
+@end itemize
+
 @section Noteworthy changes in version @samp{0.5.5}
 
 Too many changes to mention in detail, but here is a list of a few:
