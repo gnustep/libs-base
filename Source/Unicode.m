@@ -1471,12 +1471,6 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
   unichar	*table = 0;
   BOOL		result = YES;
 
-  if (slen == 0)
-    {
-      *size = 0;
-      return YES;
-    }
-
   /*
    * Ensure we have an initial buffer set up to decode data into.
    */
@@ -1838,33 +1832,30 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
   
   if (options & GSUniBOM)
     {
-      unichar	c;
-
       if (slen == 0)
 	{
 	  *size = 0;
-	  return NO;	// Missing byte order marker.
+	  result = NO;	// Missing byte order marker.
 	}
-      c = *src++;
-      slen--;
-      if (c != 0xFEFF)
+      else
 	{
-	  if (c == 0xFFFE)
+	  unichar	c;
+
+	  c = *src++;
+	  slen--;
+	  if (c != 0xFEFF)
 	    {
-	      swapped = YES;
-	    }
-	  else
-	    {
-	      *size = 0;
-	      return NO;	// Illegal byte order marker.
+	      if (c == 0xFFFE)
+		{
+		  swapped = YES;
+		}
+	      else
+		{
+		  *size = 0;
+		  result = NO;	// Illegal byte order marker.
+		}
 	    }
 	}
-    }
-
-  if (slen == 0)
-    {
-      *size = 0;
-      return YES;
     }
 
   /*
