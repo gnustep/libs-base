@@ -2,7 +2,13 @@
 
 	* Source/Additions/GSMime.m: Mark ([setDefaultEncoding:]) as deprecated
 	rather than just removing it ... in case someone has started using it.
-	* Source/NSPathUtilities.m: Tidied a little.
+	* Source/NSPathUtilities.m: Tidied a little ... moved a function.
+	* Headers/Additions/GNUstepBase/GSFunctions.h: New header for functions
+	* Headers/Foundation/NSPathUtilities.h: Moved function
+	* Source/DocMakefile: Include GSFunctions.h
+	* Source/GNUmakefile: ditto
+	* Source/Additions/GNUmakefile: Build GSFunctions.m
+	* Source/Additions/GSFunctions.m: New file for extra functions.
 
 2005-03-14  Adam Fedor  <fedor@gnu.org>
 

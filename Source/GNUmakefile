@@ -126,6 +126,7 @@ GSIArray.h \
 GSIMap.h \
 GCObject.h \
 GSLock.h \
+GSFunctions.h \
 GSMime.h \
 GSXML.h \
 GSLocale.h \

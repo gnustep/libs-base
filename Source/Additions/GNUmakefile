@@ -38,6 +38,7 @@ Additions_OBJC_FILES =\
 	GSLock.m \
 	GSMime.m \
 	GSXML.m \
+	GSFunctions.m \
 	behavior.m
 
 ifneq ($(OBJC_RUNTIME_LIB), gnu)

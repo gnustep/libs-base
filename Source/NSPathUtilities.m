@@ -650,44 +650,6 @@ GSReadStepConfFile(NSString *fileName)
   return dict;
 }
 
-/*
-  GSFindNamedFile should be in Additions somewhere...
- */
-
-/* See NSPathUtilities.h for description. */
-NSString *
-GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension)
-{
-  NSFileManager *file_mgr = [NSFileManager defaultManager];
-  NSString *file_name, *file_path, *path;
-  NSEnumerator *enumerator;
-
-  NSCParameterAssert(aName != nil);
-  NSCParameterAssert(paths != nil);
-
-  /* make up the name with extension if given */
-  if (anExtension != nil)
-    {
-      file_name = [NSString stringWithFormat: @"%@.%@", aName, anExtension];
-    }
-  else
-    {
-      file_name = aName;
-    }
-
-  enumerator = [paths objectEnumerator];
-  while ((path = [enumerator nextObject]))
-    {
-      file_path = [path stringByAppendingPathComponent: file_name];
-
-      if ([file_mgr fileExistsAtPath: file_path] == YES)
-        {
-          return file_path; // Found it!
-        }
-    }
-  return nil;
-}
-
 /* See NSPathUtilities.h for description */
 void
 GSSetUserName(NSString *aName)
