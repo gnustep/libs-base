@@ -224,7 +224,7 @@ FastArrayInsertionPosition(FastArray array, FastArrayItem item, int (*sorter)())
    */
   for (index = upper/2; upper != lower; index = lower+(upper-lower)/2)
     {
-      int	comparison = (*sorter)(item, array->ptr[index]);
+      int	comparison = (*sorter)(item.obj, (array->ptr[index]).obj);
 
       if (comparison < 0)
 	{
@@ -243,7 +243,7 @@ FastArrayInsertionPosition(FastArray array, FastArrayItem item, int (*sorter)())
    *	Now skip past any equal items so the insertion point is AFTER any
    *	items that are equal to the new one.
    */
-  while (index < array->count && (*sorter)(item, array->ptr[index]) >= 0)
+  while (index < array->count && (*sorter)(item.obj, (array->ptr[index]).obj) >= 0)
     {
       index++;
     }
@@ -259,7 +259,7 @@ FastArrayCheckSort(FastArray array, int (*sorter)())
 
   for (i = 1; i < array->count; i++)
     {
-      NSCAssert(((*sorter)(array->ptr[i-1], array->ptr[i]) <= 0),
+      NSCAssert(((*sorter)((array->ptr[i-1]).obj, (array->ptr[i]).obj) <= 0),
 	NSInvalidArgumentException);
     }
 }
