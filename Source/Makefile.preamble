@@ -39,7 +39,7 @@
 #
 
 # Additional flags to pass to the preprocessor
-ADDITIONAL_CPPFLAGS = $(DEFS)
+ADDITIONAL_CPPFLAGS = $(DEFS) -Wall
 
 # Additional flags to pass to the Objective-C compiler
 ADDITIONAL_OBJCFLAGS = 
@@ -65,3 +65,6 @@ ADDITIONAL_LIB_DIRS =
 ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_HEADERS)/gnustep/base \
    $(GNUSTEP_HEADERS)/gnustep/Foundation \
    $(GNUSTEP_HEADERS)/gnustep/unicode \
+   $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_CPU)/$(GNUSTEP_TARGET_OS)
+
+
