@@ -1,3 +1,10 @@
+2003-02-17    <woudshoo@agilisys.com>
+
+	* GNUmakefile (GNUSTEP_TARGET_INSTALL_PREFIX)
+	(GNUSTEP_TARGET_LOCAL_ROOT, GNUSTEP_TARGET_NETWORK_ROOT): On
+	mingw32 replace / with \\057 to avoid the msys shell translating /
+	with \.
+
 2003-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/config.vasprintf.c:
