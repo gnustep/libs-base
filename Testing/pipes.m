@@ -4,7 +4,7 @@ int main()
 {  
   char b[100];
   int len;
-  id s = [[StdioStream alloc] initWithPipeFrom:"cat /etc/group | sort"];
+  id s = [[StdioStream alloc] initWithPipeFrom: @"cat /etc/group | sort"];
 
   while ((len = [s readBytes:b length:99]) > 0)
     {
