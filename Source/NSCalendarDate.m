@@ -819,8 +819,11 @@
 		  else
 		    months = [locale objectForKey: NSMonthNameArray];
 		  name = [months objectAtIndex: md-1];
-		  k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
+		  if (name)
+		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
 		      [name cString]));
+		  else
+		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", md));
 		}
 	      else
 		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", md));
@@ -875,8 +878,11 @@
 		    else
 		      days = [locale objectForKey: NSWeekDayNameArray];
 		    name = [days objectAtIndex: dow];
-		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
+		    if (name)
+		      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
 			[name cString]));
+		    else
+		      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dow));
 		  }
 		else
 		  k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dow));
@@ -917,9 +923,15 @@
 
 		++i;
 		if (hd >= 12)
-		  ampm = [a objectAtIndex: 1];
+		  if ([a count] > 1)
+		    ampm = [a objectAtIndex: 1];
+		  else
+		    ampm = @"pm";
 		else
-		  ampm = [a objectAtIndex: 0];
+		  if ([a count] > 0)
+		    ampm = [a objectAtIndex: 0];
+		  else
+		    ampm = @"am";
 		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), [ampm cString]));
 		j += k;
 	      }

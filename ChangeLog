@@ -1,3 +1,10 @@
+Thu Dec 17  9:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	NSCalendarDate.m: Try to cope gracefully when locale info is not
+	available and we want to display a date.  Use numeric month and
+	week designations and hard-code am/pm
+	NSUser.m: include NSProcessInfo.h
+
 Wed Dec 16 20:30:00 1998  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Various modifications suggested by <mguesdon@sbuilders.com> and
