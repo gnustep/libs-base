@@ -2746,7 +2746,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 			      maxLength: sizeof(thePath)-1] == NO)
     {
       NSWarnMLog(@"Open (%s) attempt failed - bad path", thePath);
-      return NO;
+      RELEASE(self);
+      return nil;
     }
   fd = open(thePath, O_RDONLY);
   if (fd < 0)
