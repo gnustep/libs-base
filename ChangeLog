@@ -1,3 +1,8 @@
+2003-02-07 19:21  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/GSAttributedString (-setAttributes:range:): Fix memory
+	leak.
+
 2003-02-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Sourcewin32-def.top: Remove recently added external functions.
