@@ -32,8 +32,8 @@
 
    The local time zone can be specified with the user defaults
    database, the TZ environment variable, the file LOCAL_TIME_FILE, or
-   the fallback local time zone, with the ones listed first having
-   precedence.
+   the fallback time zone (which is UTC), with the ones listed first
+   having precedence.
 
    Any time zone must be a file name in ZONES_DIR.
 
@@ -64,11 +64,6 @@
 
 /* Key for local time zone in user defaults. */
 #define LOCALDBKEY "Local Time Zone"
-
-/* Fallback local time zone. */
-#ifndef LOCAL_TIME_ZONE
-#define LOCAL_TIME_ZONE "Universal"
-#endif
 
 /* Directory that contains the time zone data. */
 #define TIME_ZONE_DIR @"gnustep/NSTimeZones"
@@ -195,13 +190,14 @@ decode (const void *ptr)
 
 @interface NSConcreteTimeZoneDetail : NSTimeZoneDetail
 {
+  NSTimeZone *timeZone; // Time zone which created this object.
   NSString *abbrev; // Abbreviation for time zone detail.
   int offset; // Offset from UTC in seconds.
   BOOL is_dst; // Is it daylight savings time?
 }
 
-- initWithAbbrev: (NSString*)anAbbrev withOffset: (int)anOffset
-	 withDST: (BOOL)isDST;
+- initWithTimeZone: (NSTimeZone*)aZone withAbbrev: (NSString*)anAbbrev
+       withOffset: (int)anOffset withDST: (BOOL)isDST;
 @end
   
   
@@ -253,8 +249,8 @@ decode (const void *ptr)
 - (NSString*)description
 {
   return [NSString
-	   stringWithFormat: @"(trans: %d, idx: %d)",
-	   trans_time, (int)detail_index];
+          stringWithFormat: @"%@(%d, %d)",
+          [self class], trans_time, (int)detail_index];
 }
 
 - initWithTime: (int)aTime withIndex: (char)anIndex
@@ -313,8 +309,9 @@ decode (const void *ptr)
   
 - (NSString*)description
 {
-  return [NSString stringWithFormat: @"(trans: %@, details: %@)",
-		   [transitions description], [details description]];
+  return [NSString
+          stringWithFormat: @"%@(%@, %@)",
+          [self class], transitions, details];
 }
   
 - (NSTimeZoneDetail*)timeZoneDetailForDate: (NSDate*)date
@@ -386,7 +383,8 @@ decode (const void *ptr)
   [super init];
   name = [aName retain];
   detail = [[NSConcreteTimeZoneDetail alloc]
-            initWithAbbrev: name withOffset: offset withDST: NO];
+            initWithTimeZone: self withAbbrev: name
+            withOffset: offset withDST: NO];
   offset = anOffset;
   return self;
 }
@@ -414,7 +412,7 @@ decode (const void *ptr)
   
 - (NSString*)description
 {
-  return [NSString stringWithFormat: @"(offset: %d)", offset];
+  return [NSString stringWithFormat: @"%@(%d)", [self class], offset];
 }
   
 - (NSTimeZoneDetail*)timeZoneDetailForDate: (NSDate*)date
@@ -437,10 +435,11 @@ decode (const void *ptr)
   
 @implementation NSConcreteTimeZoneDetail
   
-- initWithAbbrev: (NSString*)anAbbrev withOffset: (int)anOffset
-	 withDST: (BOOL)isDST
+- initWithTimeZone: (NSTimeZone*)aZone withAbbrev: (NSString*)anAbbrev
+       withOffset: (int)anOffset withDST: (BOOL)isDST
 {
   [super init];
+  timeZone = [aZone retain];
   abbrev = [anAbbrev retain];
   offset = anOffset;
   is_dst = isDST;
@@ -470,10 +469,27 @@ decode (const void *ptr)
   return self;
 }
   
+- (NSTimeZoneDetail*)timeZoneDetailForDate: (NSDate*)date
+{
+  return [timeZone timeZoneDetailForDate: date];
+}
+ 
+- (NSString*)timeZoneName
+{
+  return [timeZone timeZoneName];
+}
+ 
+- (NSArray*)timeZoneDetailArray
+{
+  return [timeZone timeZoneDetailArray];
+}
+
 - (NSString*)description
 {
-  return [NSString stringWithFormat: @"(abbrev: %@, offset: %d, is_dst: %d)",
-		   abbrev, offset, (int)is_dst];
+  return [NSString
+          stringWithFormat: @"%@(%@, %@, %d, %d)",
+          [self class], [timeZone timeZoneName],
+           abbrev, offset, (int)is_dst];
 }
   
 - (BOOL)isDaylightSavingTimeZone
@@ -522,8 +538,8 @@ decode (const void *ptr)
 	     fp = fopen([f cStringNoCopy], "r");
 	     if (fp != NULL)
 	       {
-		 fscanf(fp, "%79s", zone_name);
-		 localZoneString = [NSString stringWithCString: zone_name];
+                 if (fscanf(fp, "%79s", zone_name) == 1)
+                  localZoneString = [NSString stringWithCString: zone_name];
 		 fclose(fp);
 	       }
 	   }
@@ -533,13 +549,16 @@ decode (const void *ptr)
       if (localZoneString != nil)
 	localTimeZone = [NSTimeZone timeZoneWithName: localZoneString];
       else
-	localTimeZone = [NSTimeZone timeZoneWithName: @LOCAL_TIME_ZONE];
+        NSLog(@"No local time zone specified.");
 
       /* If local time zone fails to allocate, then allocate something
          that is sure to succeed (unless we run out of memory, of
          course). */
       if (localTimeZone == nil)
-	localTimeZone = [NSTimeZone timeZoneForSecondsFromGMT: 0];
+        {
+          NSLog(@"Local time zone either not specified or incorrect.");
+          localTimeZone = [NSTimeZone timeZoneForSecondsFromGMT: 0];
+        }
 
       fake_abbrev_dict = [[NSInternalAbbrevDict alloc] init];
       zoneDictionary = [[NSMutableDictionary alloc] init];
@@ -632,6 +651,8 @@ decode (const void *ptr)
     }
 
   NS_DURING
+    zone = [NSConcreteTimeZone alloc];
+
     /* Read header. */
     if (fread(&header, sizeof(struct tzhead), 1, file) != 1)
       [NSException raise: fileException format: nil];
@@ -687,15 +708,14 @@ decode (const void *ptr)
     for (i = 0; i < n_types; i++)
       [detailsArray
 	addObject: [[NSConcreteTimeZoneDetail alloc]
-		     initWithAbbrev: abbrevsArray[types[i].abbr_idx]
+                     initWithTimeZone: zone
+                     withAbbrev: abbrevsArray[types[i].abbr_idx]
 		     withOffset: types[i].offset
 		     withDST: (types[i].isdst > 0)]];
     NSZoneFree(NSDefaultMallocZone(), abbrevsArray);
     NSZoneFree(NSDefaultMallocZone(), types);
-    zone = [[NSConcreteTimeZone alloc]
-	     initWithName: [aTimeZoneName copy]
-	     withTransitions: transArray
-	     withDetails: detailsArray];
+    [zone initWithName: [aTimeZoneName copy] withTransitions: transArray
+         withDetails: detailsArray];
     [zoneDictionary setObject: zone forKey: aTimeZoneName];
     fclose(file);
   NS_HANDLER
@@ -812,11 +832,6 @@ decode (const void *ptr)
   
 
 @implementation NSTimeZoneDetail
-
-- (NSString*)timeZoneName
-{
-  return [self shouldNotImplement: _cmd];
-}
 
 - (BOOL)isDaylightSavingTimeZone
 {

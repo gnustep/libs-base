@@ -1,3 +1,23 @@
+Fri Oct 24 20:16:14 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+        * src/StdioStream.m ([StdioStream -dealloc]): Check fp before
+        closing.
+
+Wed Oct 22 19:54:07 1997  Yoo C. Chung  <wacko@laplace.snu.ac.kr>
+
+        * src/NSTimeZone.m ([NSTimeZone +initialize]): Fallback time zone
+        now only set to UTC.
+        (NSConcreteTimeZoneDetail): Changed method.
+        ([NSConcreteTimeZoneDetail -timeZoneDetailForDate:]): New method.
+        ([NSConcreteTimeZoneDetail -timeZoneName]): Likewise.
+        ([NSConcreteTimeZoneDetail -timeZoneDetailArray]): Likewise.
+        ([NSTimeZone +timeZoneWithName:]): Updated for changed methods in
+        NSTimeZoneDetail.
+        ([NSInternalTimeTransition -description]): Print class name.
+        ([NSConcreteTimeZone -description]): Likewise.
+        ([NSConcreteAbsoluteTimeZone -description]): Likewise.
+        ([NSConcreteTimeZoneDetail -description]): Likewise.
+
 Mon Oct 20 09:51:53 1997  Adam Fedor  <fedor@doc.com>
 
 	* Version: Update ftp sites.
