@@ -24,6 +24,7 @@
 #include <gnustep/base/preface.h>
 #include <Foundation/NSConcreteValue.h>
 #include <Foundation/NSCoder.h>
+#include <Foundation/NSDictionary.h>
 
 /* NSValueDecoder is a Class whose only purpose is to decode coded NSValue
    objects.  The only method(s) that should ever be called are +newWithCoder:
@@ -159,6 +160,40 @@
     return [[[NSSizeValue alloc] initValue:&size withObjCType:@encode(NSSize)]
     		autorelease];
 }
+
++ valueFromString: (NSString *)string
+{
+  NSDictionary *dict = [string propertyList];
+  if (!dict)
+    return nil;
+
+  if ([dict objectForKey: @"width"] && [dict objectForKey: @"x"])
+    {
+      NSRect rect;
+      rect = NSMakeRect([[dict objectForKey: @"x"] floatValue],
+		       [[dict objectForKey: @"y"] floatValue],
+		       [[dict objectForKey: @"width"] floatValue],
+		       [[dict objectForKey: @"height"] floatValue]);
+      return [NSValue valueWithRect: rect];
+    }
+  else if ([dict objectForKey: @"width"])
+    {
+      NSSize size;
+      size = NSMakeSize([[dict objectForKey: @"width"] floatValue],
+			[[dict objectForKey: @"height"] floatValue]);
+      return [NSValue valueWithSize: size];
+    }
+  else if ([dict objectForKey: @"x"])
+    {
+      NSPoint point;
+      point = NSMakePoint([[dict objectForKey: @"x"] floatValue],
+			[[dict objectForKey: @"y"] floatValue]);
+      return [NSValue valueWithPoint: point];
+    }
+  return nil;
+}
+
+
 
 // Accessing Data 
 /* All the rest of these methods must be implemented by a subclass */

@@ -1,3 +1,27 @@
+Tue Sep 16 15:50:39 1997  Adam Fedor  <fedor@doc.com>
+
+	* src/Dictionary.m ([Dictionary -descriptionWithIndent:]): Rewrite
+	to pretty-print description.
+	* src/NSDictionary.m ([NSDictionary -description]): Remove
+	redundant method implementation. 
+	([NSDictionary -descriptionWithIndent:]): Likewise. 
+	* src/NSArray.m ([NSArray -descriptionWithIndent:]): Implement.
+
+	* src/NSCTemplateValue ([NSCTemplateValue description]): Add
+	semicolon to last value.
+	* src/NSValue: ([NSValue valueFromString:]): New method.
+	* src/NSNumber: ([NSValue valueFromString:]): Likewise.
+	* src/include/NSValue.h: Define new method.
+
+	* src/NSCharacterSet.m ([NSCharacterSet -_bitmapForSet:]): Fix
+	test path name.
+
+	* src/NSString ([NSString initWithFormat:arguments:]): Take care
+	of formatted string case "%*s".
+	([NSString -stringByAppendingPathComponent:]): Exception only if
+	string starts with '/'.
+	([NSString -stringByAppendingPathExtension:]): Likewise.
+
 Mon Sep 15 21:27:00 1997  Richard Frith-Macdonald  <richard@brainstorm.co.uk>
 
 	* src/NSHData.m: Fixed a couple of bugs occurring when allocation of

@@ -244,28 +244,14 @@ static Class NSMutableDictionary_concrete_class;
 
 - (NSString*) description
 {
-  id desc;
-  id keyenum = [self keyEnumerator];
-  id key;
-
-  desc = [NSMutableString stringWithCapacity: 2];
-  [desc appendString: @"{"];
-  while ((key = [keyenum nextObject]))
-    {
-      /* I wish appendString: returned self*/
-      [desc appendString: [key description]];
-      [desc appendString: @" = "];
-      [desc appendString: [[self objectForKey: key] description]];
-      [desc appendString: @"; "];
-    }
-  [desc appendString: @"}"];
-  return desc;
+  /* This method is overridden by [Dictionary -description] */
+  return nil;
 }
 
 - (NSString*) descriptionWithIndent: (unsigned)level
 {
-  return [NSString stringWithFormat:@"%*s%s", 
-		   level, "", [[self description] cStringNoCopy]];
+  /* This method is overridden by [Dictionary -descriptionWithIndent:] */
+  return nil;
 }
 
 - (NSArray*) allKeys

@@ -165,6 +165,22 @@
 	autorelease];
 }
 
++ valueFromString: (NSString *)string
+{
+  /* FIXME: implement this better */
+  const char *str;
+
+  str = [string cString];
+  if (strchr(str, '.') >= 0 || strchr(str, 'e') >= 0 
+      || strchr(str, 'E') >= 0)
+    return [NSNumber numberWithDouble: atof(str)];
+  else if (strchr(str, '-') >= 0)
+    return [NSNumber numberWithInt: atoi(str)];
+  else
+    return [NSNumber numberWithUnsignedInt: atoi(str)];
+  return [NSNumber numberWithInt: 0];
+}
+
 /* All the rest of these methods must be implemented by a subclass */
 - (BOOL)boolValue
 {

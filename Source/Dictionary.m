@@ -23,6 +23,7 @@
 
 #include <gnustep/base/Dictionary.h>
 #include <gnustep/base/CollectionPrivate.h>
+#include <Foundation/NSCharacterSet.h>
 
 #define DEFAULT_DICTIONARY_CAPACITY 32
 
@@ -204,30 +205,57 @@
   OBJC_FREE (*enumState);
 }
 
-- (NSString*) description
+- (NSString*) descriptionWithIndent: (unsigned)level
 {
+  int dict_count;
   id desc;
   id keyenum = [self keyEnumerator];
   id key;
+  NSCharacterSet *quotables;
 
+  quotables = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+
+  dict_count = [self count];
   desc = [NSMutableString stringWithCapacity: 2];
   [desc appendString: @"{"];
+  if (dict_count > 0)
+    [desc appendString: @"\n"];
   while ((key = [keyenum nextObject]))
     {
-      /* I wish appendString: returned self*/
-      [desc appendString: [key description]];
-      [desc appendString: @" = "];
-      [desc appendString: [[self objectAtKey: key] description]];
-      [desc appendString: @"; "];
+      NSString *string;
+      id object;
+      string = [key description];
+      if ([string rangeOfCharacterFromSet: quotables].length > 0)
+      	[desc appendFormat: @"%*s  \"%@\" = ", level, "", string];
+      else
+	[desc appendFormat: @"%*s  %@ = ", level, "", string];
+      object = [self objectAtKey: key];
+      if ([object respondsToSelector: @selector(descriptionWithIndent:)])
+	{
+	  /* This a dictionary or array, so don't quote it */
+	  string = [object descriptionWithIndent: level+2];
+	  [desc appendFormat: @"%@;\n", string];
+	}
+      else
+	{
+	  /* This should be a string or number, so decide if we need to 
+	     quote it */
+	  string = [object description];
+	  if ([string rangeOfCharacterFromSet: quotables].length > 0)
+	    [desc appendFormat: @"\"%@\";\n", string];
+	  else
+	    [desc appendFormat: @"%@;\n", string];
+	}
     }
-  [desc appendString: @"}"];
+  if (dict_count == 0)
+    level = 0;
+  [desc appendFormat: @"%*s}", level, ""];
   return desc;
 }
 
-- (NSString*) descriptionWithIndent: (unsigned)level
+- (NSString*) description
 {
-  return [NSString stringWithFormat:@"%*s%s",
-		   level, "", [[self description] cStringNoCopy]];
+  return [self descriptionWithIndent: 0];
 }
 
 @end
