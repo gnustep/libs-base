@@ -1682,38 +1682,38 @@ bases:
 	break;
 
       case NSNEXTSTEPStringEncoding:
-	base = (unichar)Next_conv_base;
+	base = Next_conv_base;
 	table = Next_uni_to_char_table;
 	tsize = Next_uni_to_char_table_size;
 	goto tables;
 
       case NSISOCyrillicStringEncoding:
-	base = (unichar)Cyrillic_conv_base;
+	base = Cyrillic_conv_base;
 	table = Cyrillic_uni_to_char_table;
 	tsize = Cyrillic_uni_to_char_table_size;
 	goto tables;
 
       case NSISOLatin2StringEncoding:
-	base = (unichar)Latin2_conv_base;
+	base = Latin2_conv_base;
 	table = Latin2_uni_to_char_table;
 	tsize = Latin2_uni_to_char_table_size;
 	goto tables;
 
       case NSISOLatin9StringEncoding:
-	base = (unichar)Latin9_conv_base;
+	base = Latin9_conv_base;
 	table = Latin9_uni_to_char_table;
 	tsize = Latin9_uni_to_char_table_size;
 	goto tables;
 
       case NSISOThaiStringEncoding:
-        base = (unichar)Thai_conv_base;
+        base = Thai_conv_base;
 	table = Thai_uni_to_char_table;
 	tsize = Thai_uni_to_char_table_size;
 	goto tables;
 
 #if 0
       case NSSymbolStringEncoding:
-	base = (unichar)Symbol_conv_base;
+	base = Symbol_conv_base;
 	table = Symbol_uni_to_char_table;
 	tsize = Symbol_uni_to_char_table_size;
 	goto tables;
