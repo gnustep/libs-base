@@ -40,11 +40,11 @@ include $(srcdir)/../Makeconf
 include $(srcdir)/../Version
 
 TEXI_FILES = \
-NSZone.texi \
 announce.texi \
 base-desc.texi \
 install.texi \
 gnustep-base.texi \
+gnustep-zones.texi \
 news.texi \
 objective-c.texi \
 readme.texi \
