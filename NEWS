@@ -1,7 +1,29 @@
 News
 ****
 
-The currently released version of the library is `1.0.2'.
+The currently released version of the library is `1.1.0'.
+
+Noteworthy changes in version `1.1.0'
+=====================================
+
+   * Removed use of distributed lock to sync defaults file.
+
+   * Compiles on Darwin (but does not work yet).
+
+   * New tool autogsdoc for inline Objective-C documentation.
+
+   * Some NSBundle convienience methods for associating resources with
+     libraries and tools (like a lightweight framework).
+
+   * URL classes improved and more robust.
+
+   * SSL classes compiled as a separate bundle due to license problems.
+
+   * Better operation in MinGW environment.
+
+   * New localization files.
+
+   * XML property lists
 
 Noteworthy changes in version `1.0.2'
 =====================================
