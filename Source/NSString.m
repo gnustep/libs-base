@@ -1824,6 +1824,21 @@ else
   return 0;
 }
 
+/* Return a string for passing to OS calls to handle file system objects. */
+- (const char*)fileSystemRepresentation
+{
+  return [self cString];
+}
+
+- (BOOL)fileSystemRepresentation: (char*)buffer maxLength: (unsigned int)size
+{
+  const char* ptr = [self cStringNoCopy];
+  if (strlen(ptr) > size)
+    return NO;
+  strcpy(buffer, ptr);
+  return YES;
+}
+
 /* Returns a new string containing the last path component of the receiver. The
    path component is any substring after the last '/' character. If the last
    character is a '/', then the substring before the last '/', but after the

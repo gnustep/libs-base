@@ -184,6 +184,8 @@ typedef enum _NSStringEncoding
    caseSensitive: (BOOL)flag
    matchesIntoArray: (NSArray**)outputArray
    filterTypes: (NSArray*)filterTypes;
+- (const char*) fileSystemRepresentation;
+- (BOOL) getFileSystemRepresentation: (char*)buffer maxLength: (unsigned int)l;
 - (NSString*) lastPathComponent;
 - (NSString*) pathExtension;
 - (NSString*) stringByAbbreviatingWithTildeInPath;

@@ -13,6 +13,8 @@ The currently released version of the library is
 @item Use the new GNUstep Makefile Package to compile the library, tools
 checks, and everything else.
 
+@item An implementation of NSDistributedLock
+
 @item NSData implemented as a class cluster including a class to
 allocate shared VM memory.
 
