@@ -1,3 +1,5 @@
+#ifndef	_INCLUDED_AGSINDEX_H
+#define	_INCLUDED_AGSINDEX_H
 /** 
 
    <title>AGSIndex ... a class to create references for a gsdoc file</title>
@@ -35,4 +37,4 @@
 - (void) setGlobalRef: (NSString*)ref type: (NSString*)type;
 - (void) setUnitRef: (NSString*)ref type: (NSString*)type;
 @end
-
+#endif

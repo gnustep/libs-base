@@ -196,8 +196,8 @@ static BOOL snuggleStart(NSString *t)
 
   [str appendString: @"<?xml version=\"1.0\"?>\n"];
   [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];
-  [str appendString: @"\"-//GNUstep//DTD gsdoc 0.6.6//EN\" "];
-  [str appendString: @"\"http://www.gnustep.org/gsdoc-0_6_6.xml\">\n"];
+  [str appendString: @"\"-//GNUstep//DTD gsdoc 0.6.7//EN\" "];
+  [str appendString: @"\"http://www.gnustep.org/gsdoc-0_6_7.xml\">\n"];
   [str appendFormat: @"<gsdoc"];
 
   tmp = [info objectForKey: @"base"];

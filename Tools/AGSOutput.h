@@ -1,3 +1,5 @@
+#ifndef	_INCLUDED_AGSOUTPUT_H
+#define	_INCLUDED_AGSOUTPUT_H
 /**
 
    <title>AGSOutput ... a class to output gsdoc source</title>
@@ -45,5 +47,4 @@
 		   to: (NSMutableString*)buf;
 - (NSArray*) split: (NSString*)str;
 @end
-
-
+#endif

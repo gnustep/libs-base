@@ -33,7 +33,7 @@ include ../config.mak
 
 # DTDs to install
 dtddir = $(GNUSTEP_RESOURCES)/DTDs
-DTD_FILES = gsdoc-0_6_5.dtd gsdoc-0_6_6.dtd
+DTD_FILES = gsdoc-0_6_5.dtd gsdoc-0_6_6.dtd gsdoc-0_6_7.dtd
 
 # DocTemplates to install
 doctemplatesdir = $(GNUSTEP_RESOURCES)/DocTemplates
@@ -47,7 +47,7 @@ CTOOL_NAME = gdomap
 TEST_TOOL_NAME = locale_alias
 
 # The source files to be compiled
-autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m
+autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
 gdomap_C_FILES = gdomap.c
 gdnc_OBJC_FILES = gdnc.m
 gsdoc_OBJC_FILES = gsdoc.m

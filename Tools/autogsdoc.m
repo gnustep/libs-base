@@ -185,6 +185,7 @@
 #include "AGSParser.h"
 #include "AGSOutput.h"
 #include "AGSIndex.h"
+#include "AGSHtml.h"
 
 int
 main(int argc, char **argv, char **env)
@@ -330,6 +331,8 @@ main(int argc, char **argv, char **env)
 	    {
 	      CREATE_AUTORELEASE_POOL(pool);
 	      GSXMLParser	*parser;
+	      AGSIndex		*locRefs;
+	      AGSHtml		*html;
 
 	      parser = [GSXMLParser parserWithContentsOfFile: ddir];
 	      [parser substituteEntities: YES];
@@ -344,9 +347,41 @@ main(int argc, char **argv, char **env)
 		    [[[parser doc] root] name]);
 		  return 1;
 		}
-	      [indexer makeRefs: [[parser doc] root]];
+
+	      locRefs = AUTORELEASE([AGSIndex new]);
+	      [locRefs makeRefs: [[parser doc] root]];
+
+	      html = AUTORELEASE([AGSHtml new]);
+	      [html setLocalRefs: indexer];
+	      [html outputDocument: [[parser doc] root]];
+	      
+	      [indexer mergeRefs: [locRefs refs]];
+
 	      RELEASE(pool);
 	    }
+	}
+      else if ([arg hasSuffix: @".gsdoc"] == YES)
+	{
+	  CREATE_AUTORELEASE_POOL(pool);
+	  GSXMLParser	*parser;
+	  AGSHtml	*html;
+
+	  parser = [GSXMLParser parserWithContentsOfFile: arg];
+	  [parser substituteEntities: YES];
+	  [parser doValidityChecking: YES];
+	  if ([parser parse] == NO)
+	    {
+	      NSLog(@"WARNING %@ did not produce a valid document", arg);
+	    }
+	  if (![[[[parser doc] root] name] isEqualToString: @"gsdoc"])
+	    {
+	      NSLog(@"not a gsdoc document - because name node is %@",
+		[[[parser doc] root] name]);
+	      return 1;
+	    }
+	  html = AUTORELEASE([AGSHtml new]);
+	  NSLog(@"%@", [html outputDocument: [[parser doc] root]]);
+	  RELEASE(pool);
 	}
       else
 	{
