@@ -29,6 +29,7 @@
 #include <Foundation/NSFileHandle.h>
 #include <Foundation/UnixFileHandle.h>
 
+static Class NSFileHandle_abstract_class = nil;
 static Class NSFileHandle_concrete_class = nil;
 
 @implementation NSFileHandle
@@ -37,53 +38,72 @@ static Class NSFileHandle_concrete_class = nil;
 {
   if (self == [NSFileHandle class])
     {
+      NSFileHandle_abstract_class = self;
       NSFileHandle_concrete_class = [UnixFileHandle class];
     }
 }
 
 + (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject (NSFileHandle_concrete_class, 0, z);
+  if (self == NSFileHandle_abstract_class)
+    {
+      return NSAllocateObject (NSFileHandle_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject (self, 0, z);
+    }
 }
 
 // Allocating and Initializing a FileHandle Object
 
 + (id) fileHandleForReadingAtPath: (NSString*)path
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
-    initForReadingAtPath: path]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initForReadingAtPath: path]);
 }
 
 + (id) fileHandleForWritingAtPath: (NSString*)path
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
-    initForWritingAtPath: path]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initForWritingAtPath: path]);
 }
 
 + (id) fileHandleForUpdatingAtPath: (NSString*)path
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
-    initForUpdatingAtPath: path]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initForUpdatingAtPath: path]);
 }
 
 + (id) fileHandleWithStandardError
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc] initWithStandardError]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initWithStandardError]);
 }
 
 + (id) fileHandleWithStandardInput
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc] initWithStandardInput]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initWithStandardInput]);
 }
 
 + (id) fileHandleWithStandardOutput
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc] initWithStandardOutput]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initWithStandardOutput]);
 }
 
 + (id) fileHandleWithNullDevice
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc] initWithNullDevice]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initWithNullDevice]);
 }
 
 - (id) initWithFileDescriptor: (int)desc
@@ -267,21 +287,23 @@ NSString*	NSFileHandleOperationException =
 			   service: (NSString*)service
 			  protocol: (NSString*)protocol
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
-    initAsClientAtAddress: address
-		  service: service
-		 protocol: protocol]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initAsClientAtAddress: address
+				      service: service
+				     protocol: protocol]);
 }
 
 + (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
 				       service: (NSString*)service
 				      protocol: (NSString*)protocol
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
-    initAsClientInBackgroundAtAddress: address
-			      service: service
-			     protocol: protocol
-			     forModes: nil]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initAsClientInBackgroundAtAddress: address
+						  service: service
+						 protocol: protocol
+						 forModes: nil]);
 }
 
 + (id) fileHandleAsClientInBackgroundAtAddress: (NSString*)address
@@ -289,21 +311,23 @@ NSString*	NSFileHandleOperationException =
 				      protocol: (NSString*)protocol
 				      forModes: (NSArray*)modes
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
-    initAsClientInBackgroundAtAddress: address
-			      service: service
-			     protocol: protocol
-			     forModes: modes]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initAsClientInBackgroundAtAddress: address
+						  service: service
+						 protocol: protocol
+						 forModes: modes]);
 }
 
 + (id) fileHandleAsServerAtAddress: (NSString*)address
 			   service: (NSString*)service
 			  protocol: (NSString*)protocol
 {
-  return AUTORELEASE([[NSFileHandle_concrete_class alloc]
-    initAsServerAtAddress: address
-		  service: service
-		 protocol: protocol]);
+  id	o = [NSFileHandle_concrete_class allocWithZone: NSDefaultMallocZone()];
+
+  return AUTORELEASE([o initAsServerAtAddress: address
+				      service: service
+				     protocol: protocol]);
 }
 
 - (BOOL) readInProgress
