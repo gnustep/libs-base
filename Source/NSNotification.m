@@ -31,19 +31,25 @@
 
 @implementation NSNotification
 
+static Class	abstractClass = 0;
 static Class	concreteClass = 0;
 
 @class	GSNotification;
 
 + (NSNotification*) allocWithZone: (NSZone*)z
 {
-  return (id)NSAllocateObject(concreteClass, 0, z);
+  if (self == abstractClass)
+    {
+      return (id)NSAllocateObject(concreteClass, 0, z);
+    }
+  return (id)NSAllocateObject(self, 0, z);
 }
 
 + (void) initialize
 {
   if (concreteClass == 0)
     {
+      abstractClass = [NSNotification class];
       concreteClass = [GSNotification class];
     }
 }
@@ -95,7 +101,7 @@ static Class	concreteClass = 0;
 
 - (id) init
 {
-  if ([self class] == [NSNotification class])
+  if ([self class] == abstractClass)
     {
       NSZone	*z = [self zone];
 
