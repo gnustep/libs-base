@@ -1,3 +1,10 @@
+2003-10-31  David Ayers  <d.ayers@inode.at>
+
+	* Source/NSCharacterSet.m 
+	([NSCharacterSet _bitmapForSet:number:]): Insure only instances of
+	NSCharacterSet a stored in the cache but return instances of the
+	receivers class.
+
 2003-10-30  David Ayers  <d.ayers@inode.at>
 
 	* Headers/Additions/GNUstepBase/GSLock.h: Added missing forward
