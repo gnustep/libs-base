@@ -28,7 +28,7 @@
 
 @class NSArray, NSString, NSEnumerator, NSDictionary;
 
-@interface NSSet : NSObject <NSCopying>
+@interface NSSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 + allocWithZone: (NSZone*)zone;
 + set;
@@ -77,7 +77,7 @@
 
 @end
 
-@interface NSCountedSet : NSMutableSet <NSCoding, NSCopying>
+@interface NSCountedSet : NSMutableSet
 
 + allocWithZone: (NSZone*)zone;
 - initWithCapacity: (unsigned)numItems;

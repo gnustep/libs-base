@@ -28,7 +28,7 @@
 
 @class NSArray, NSString, NSEnumerator;
 
-@interface NSDictionary : NSObject
+@interface NSDictionary : NSObject <NSCoding, NSCopying, NSMutableCopying>
 - initWithObjects: (id*)objects
 	  forKeys: (NSObject**)keys
 	    count: (unsigned)count;
@@ -38,12 +38,13 @@
 - (NSEnumerator*) objectEnumerator;
 @end
 
-@interface NSDictionary (NonCore) <NSCopying, NSMutableCopying>
+@interface NSDictionary (NonCore)
 
 + allocWithZone: (NSZone*)zone;
 + dictionary;
 + dictionaryWithContentsOfFile:(NSString *)path;
 + dictionaryWithDictionary: (NSDictionary*)aDict;
++ dictionaryWithObject: (id)object forKey: (id)key;
 + dictionaryWithObjects: (NSArray*)objects forKeys: (NSArray*)keys;
 + dictionaryWithObjects: (id*)objects forKeys: (id*)keys
 		  count: (unsigned)count;

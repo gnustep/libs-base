@@ -314,14 +314,12 @@ static Class NSMutableSet_concrete_class;
 
 - (NSString*) description
 {
-  [self notImplemented:_cmd];
-  return 0;
+  return [self descriptionWithLocale: nil];
 }
 
-- (NSString*) descriptionWithLocale: (NSDictionary*)ld;
+- (NSString*) descriptionWithLocale: (NSDictionary*)locale
 {
-  [self notImplemented:_cmd];
-  return nil;
+  return [[self allObjects] descriptionWithLocale: locale];
 }
 
 - copyWithZone: (NSZone*)z
@@ -331,13 +329,28 @@ static Class NSMutableSet_concrete_class;
   id objects[count];
   id enumerator = [self objectEnumerator];
   id o;
+  NSSet *newSet;
   int i;
+  BOOL needCopy = [self isKindOfClass: [NSMutableSet class]];
+
+  if (NSShouldRetainWithZone(self, z) == NO)
+    needCopy = YES;
 
   for (i = 0; (o = [enumerator nextObject]); i++)
-    objects[i] = [o copyWithZone:z];
-  return [[[[self class] _concreteClass] alloc] 
+    {
+      objects[i] = [o copyWithZone:z];
+      if (objects[i] != o)
+        needCopy = YES;
+    }
+  if (needCopy)
+    newSet = [[[[self class] _concreteClass] alloc] 
 	  initWithObjects:objects
 	  count:count];
+  else
+    newSet = [self retain];
+  for (i = 0; i < count; i++) 
+    [objects[i] release];
+  return newSet;
 }
 
 - mutableCopyWithZone: (NSZone*)z
@@ -345,6 +358,17 @@ static Class NSMutableSet_concrete_class;
   /* a shallow copy */
   return [[[[[self class] _mutableConcreteClass] _mutableConcreteClass] alloc] 
 	  initWithSet:self];
+}
+
+- initWithCoder: aCoder
+{
+  [self subclassResponsibility:_cmd];
+  return nil;
+}
+
+- (void) encodeWithCoder: aCoder
+{
+  [self subclassResponsibility:_cmd];
 }
 
 @end
