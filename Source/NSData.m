@@ -1626,7 +1626,12 @@ readContentsOfFile(NSString* path, void** buf, unsigned* len)
 {
   if (size != capacity)
     {
-      void*	tmp = objc_realloc(bytes, size);
+      void*	tmp;
+
+      if (bytes)
+        tmp = realloc(bytes, size);
+      else
+        tmp = malloc(size);
 
       if (tmp == 0)
 	[NSException raise:NSMallocException

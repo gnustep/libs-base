@@ -612,9 +612,9 @@ static id long_month[12] = {@"January",
 	    case 'y':
 	      ++i;
 	      if (ycent)
-		k = sprintf(&(buf[j]), "%04d", yd);
+		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%04d", yd));
 	      else
-		k = sprintf(&(buf[j]), "%02d", (yd - 1900));
+		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", (yd - 1900)));
 	      j += k;
 	      break;
 
@@ -629,12 +629,12 @@ static id long_month[12] = {@"January",
 		{
 		  // +++ Translate to locale character string
 		  if (mname)
-		    k = sprintf(&(buf[j]), "%s", [short_month[md-1] cString]);
+		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s", [short_month[md-1] cString]));
 		  else
-		    k = sprintf(&(buf[j]), "%s", [long_month[md-1] cString]);
+		    k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s", [long_month[md-1] cString]));
 		}
 	      else
-		k = sprintf(&(buf[j]), "%02d", md);
+		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", md));
 	      j += k;
 	      break;
 
@@ -654,7 +654,7 @@ static id long_month[12] = {@"January",
 		  k = 0;
 		}
 	      else
-		k = sprintf(&(buf[j]), "%02d", dd);
+		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", dd));
 	      j += k;
 	      break;
 
@@ -665,21 +665,21 @@ static id long_month[12] = {@"January",
 		nhd = 12;     // 12pm not 0pm
 	    case 'H':
 	      ++i;
-	      k = sprintf(&(buf[j]), "%02d", nhd);
+	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", nhd));
 	      j += k;
 	      break;
 
 	      // is it the minute
 	    case 'M':
 	      ++i;
-	      k = sprintf(&(buf[j]), "%02d", mnd);
+	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", mnd));
 	      j += k;
 	      break;
 
 	      // is it the second
 	    case 'S':
 	      ++i;
-	      k = sprintf(&(buf[j]), "%02d", sd);
+	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%02d", sd));
 	      j += k;
 	      break;
 
@@ -687,17 +687,17 @@ static id long_month[12] = {@"January",
 	    case 'p':
 	      ++i;
 	      if (hd >= 12)
-		k = sprintf(&(buf[j]), "PM");
+		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "PM"));
 	      else
-		k = sprintf(&(buf[j]), "AM");
+		k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "AM"));
 	      j += k;
 	      break;
 
 	      // is it the zone name
 	    case 'Z':
 	      ++i;
-	      k = sprintf(&(buf[j]), "%s",
-			  [[time_zone timeZoneAbbreviation] cStringNoCopy]);
+	      k = VSPRINTF_LENGTH(sprintf(&(buf[j]), "%s",
+			  [[time_zone timeZoneAbbreviation] cStringNoCopy]));
 	      j += k;
 	      break;
 

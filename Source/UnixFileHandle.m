@@ -90,7 +90,7 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	name = [host address];
 
 #ifndef	HAVE_INET_ATON
-      sin->sin_addr.s_addr = htonl(inet_addr([name cStringNoCopy]));
+      sin->sin_addr.s_addr = inet_addr([name cStringNoCopy]);
 #else
       if (inet_aton([name cStringNoCopy], &sin->sin_addr.s_addr) == 0)
 	return NO;

@@ -76,3 +76,5 @@ copy-dist: $(DIST_FILES)
 	for f in $(DIST_FILES); do \
 	  cp $$f ../snap/checks ; \
 	done
+	mkdir ../snap/checks/English.lproj
+	cp English.lproj/NXStringTable.example ../snap/checks/English.lproj

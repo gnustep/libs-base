@@ -184,13 +184,14 @@ static BOOL debug_connected_coder = NO;
 
 - (void) _doEncodeBycopyObject: anObj
 {
-    BOOL	old = _is_by_copy;
-    id		obj;
+    BOOL        old = _is_by_copy;
+    id          obj;
+    Class       cls;
 
     _is_by_copy = YES;
-    obj = [anObj classForPortCoder];
-    [self encodeClass: obj];
     obj = [anObj replacementObjectForPortCoder: (NSPortCoder*)self];
+    cls = [obj classForPortCoder];
+    [self encodeClass: cls];
     [obj encodeWithCoder: (NSCoder*)self];
     _is_by_copy = old;
 }

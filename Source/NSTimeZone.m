@@ -6,17 +6,17 @@
   
      This file is part of the GNUstep Base Library.
   
-     This library is free software; you can redistribute it and/or
+   This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public License
    as published by the Free Software Foundation; either version 2 of
    the License, or (at your option) any later version.
   
    This library is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-     Library General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
   
-     You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
   
@@ -31,9 +31,9 @@
    time and such for every entry in the dictionary.
 
    The local time zone can be specified with the user defaults
-   database (when it's properly implemented, that is), the TZ
-   environment variable, or the fallback local time zone, with the
-   ones listed first having precedence.
+   database, the TZ environment variable, the file LOCAL_TIME_FILE, or
+   the fallback local time zone, with the ones listed first having
+   precedence.
 
    Any time zone must be a file name in ZONES_DIR.
 
@@ -46,13 +46,13 @@
 #include <string.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSCoder.h>
-  #include <Foundation/NSDate.h>
-  #include <Foundation/NSDictionary.h>
+#include <Foundation/NSDate.h>
+#include <Foundation/NSDictionary.h>
 #include <Foundation/NSException.h>
 #include <Foundation/NSLock.h>
 #include <Foundation/NSObject.h>
 #include <Foundation/NSProcessInfo.h>
-  #include <Foundation/NSString.h>
+#include <Foundation/NSString.h>
 #include <Foundation/NSUserDefaults.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSZone.h>
@@ -84,6 +84,9 @@
    name.  Neither the abbreviation not the name can contain
    whitespace, and each line must not be longer than 80 characters. */
 #define REGIONS_FILE TIME_ZONE_DIR "regions"
+
+/* Name of the file that contains the name of the local time zone. */
+#define LOCAL_TIME_FILE TIME_ZONE_DIR "localtime"
 
 /* Directory that contains the actual time zones. */
 #define ZONES_DIR TIME_ZONE_DIR "zones/"
@@ -144,10 +147,10 @@ decode (const void *ptr)
   
   
 @interface NSInternalTimeTransition : NSObject
-  {
+{
   int trans_time; // When the transition occurs
   char detail_index; // Index of time zone detail
-  }
+}
   
 - initWithTime: (int)aTime withIndex: (char)anIndex;
 - (int)transTime;
@@ -164,19 +167,20 @@ decode (const void *ptr)
   
 - initWithName: (NSString*)aName withTransitions: (NSArray*)trans
    withDetails: (NSArray*)zoneDetails;
-  @end
+@end
   
 
 @interface NSConcreteAbsoluteTimeZone : NSTimeZone
 {
   NSString *name;
+  id detail;
   int offset; // Offset from UTC in seconds.
 }
 
 + timeZoneWithOffset: (int)anOffset;
 
 - initWithOffset: (int)anOffset withName: (NSString*)aName;
-  @end
+@end
   
 
 @interface NSConcreteTimeZoneDetail : NSTimeZoneDetail
@@ -188,7 +192,7 @@ decode (const void *ptr)
 
 - initWithAbbrev: (NSString*)anAbbrev withOffset: (int)anOffset
 	 withDST: (BOOL)isDST;
-  @end
+@end
   
   
 @implementation NSInternalAbbrevDict
@@ -196,25 +200,25 @@ decode (const void *ptr)
 + allocWithZone: (NSZone*)zone
 {
   return NSAllocateObject(self, 0, zone);
-  }
+}
   
 - init
-  {
+{
   return self;
-  }
+}
   
 - (unsigned)count
-  {
+{
   return [[NSTimeZone abbreviationMap] count];
-  }
+}
 
 - (NSEnumerator*)keyEnumerator
-  {
+{
   return [[NSTimeZone abbreviationMap] keyEnumerator];
-  }
+}
   
 - (NSEnumerator*)objectEnumerator
-  {
+{
   /* FIXME: this is a memory hungry implementation */
   id e, name, a;
 
@@ -224,20 +228,20 @@ decode (const void *ptr)
     [a addObject: [[[NSTimeZone abbreviationMap] objectForKey: name]
 		    objectAtIndex: 0]];
   return [a objectEnumerator];
-  }
+}
   
 - objectForKey: key
-  {
+{
   return [[[NSTimeZone abbreviationMap] objectForKey: key] objectAtIndex: 0];
-  }
+}
   
-  @end
+@end
   
 
 @implementation NSInternalTimeTransition
 
 - (NSString*)description
-  {
+{
   return [NSString
 	   stringWithFormat: @"(trans: %d, idx: %d)",
 	   trans_time, (int)detail_index];
@@ -249,40 +253,40 @@ decode (const void *ptr)
   trans_time = aTime;
   detail_index = anIndex;
   return self;
-  }
+}
   
 - (int)transTime
-  {
+{
   return trans_time;
-  }
+}
   
 - (char)detailIndex
-  {
+{
   return detail_index;
-  }
+}
 
-  @end
+@end
   
   
 @implementation NSConcreteTimeZone
   
 - initWithName: (NSString*)aName withTransitions: (NSArray*)trans
    withDetails: (NSArray*)zoneDetails
-  {
+{
   [super init];
   name = [aName retain];
   transitions = [trans retain];
   details = [zoneDetails retain];
   return self;
-  }
+}
   
 - (void)dealloc
-  {
+{
   [name release];
   [transitions release];
   [details release];
   [super dealloc];
-  }
+}
   
 - (void)encodeWithCoder: aCoder
 {
@@ -291,14 +295,14 @@ decode (const void *ptr)
 }
 
 - initWithDecoder: aDecoder
-  {
+{
   /* FIXME?: is this right? */
   self = [super initWithCoder: aDecoder];
   return (self = (id)[NSTimeZone timeZoneWithName: [aDecoder decodeObject]]);
-  }
+}
   
 - (NSString*)description
-  {
+{
   return [NSString stringWithFormat: @"(trans: %@, details: %@)",
 		   [transitions description], [details description]];
 }
@@ -341,23 +345,21 @@ decode (const void *ptr)
 - (NSArray*)timeZoneDetailArray
 {
   return details;
-  }
+}
   
 - (NSString*)timeZoneName
-  {
+{
   return name;
-  }
+}
   
-  @end
+@end
   
   
 @implementation NSConcreteAbsoluteTimeZone
   
 + timeZoneWithOffset: (int)anOffset
-  {
+{
   id newName, zone;
-  
-  
   
   newName = [NSString stringWithFormat: @"%d", anOffset];
   zone = [zoneDictionary objectForKey: newName];
@@ -373,15 +375,18 @@ decode (const void *ptr)
 {
   [super init];
   name = [aName retain];
+  detail = [[NSConcreteTimeZoneDetail alloc]
+            initWithAbbrev: name withOffset: offset withDST: NO];
   offset = anOffset;
   return self;
-  }
+}
   
 - (void)dealloc
-  {
+{
   [name release];
+  [detail release];
   [super dealloc];
-  }
+}
   
 - (void)encodeWithCoder: aCoder
 {
@@ -390,7 +395,7 @@ decode (const void *ptr)
 }
   
 - initWithCoder: aDecoder
-  {
+{
   self = [super initWithCoder: aDecoder];
   name = [aDecoder decodeObject];
   offset = [name intValue];
@@ -400,23 +405,21 @@ decode (const void *ptr)
 - (NSString*)description
 {
   return [NSString stringWithFormat: @"(offset: %d)", offset];
-  }
+}
   
 - (NSTimeZoneDetail*)timeZoneDetailForDate: (NSDate*)date
-  {
-  return [[[NSConcreteTimeZoneDetail alloc]
-	    initWithAbbrev: name withOffset: offset withDST: NO]
-	   autorelease];
+{
+  return detail;
 }
   
 - (NSString*)timeZoneName
 {
   return name;
-  }
+}
   
 - (NSArray*)timeZoneDetailArray
-  {
-  return [NSArray arrayWithObject: [self timeZoneDetailForDate: nil]];
+{
+  return [NSArray arrayWithObject: detail];
 }
   
 @end
@@ -426,16 +429,16 @@ decode (const void *ptr)
   
 - initWithAbbrev: (NSString*)anAbbrev withOffset: (int)anOffset
 	 withDST: (BOOL)isDST
-  {
+{
   [super init];
   abbrev = [anAbbrev retain];
   offset = anOffset;
   is_dst = isDST;
   return self;
-  }
+}
   
 - (void)dealloc
-  {
+{
   [abbrev release];
   [super dealloc];
 }
@@ -455,16 +458,16 @@ decode (const void *ptr)
   [aDecoder decodeValueOfObjCType: @encode(int) at: &offset];
   [aDecoder decodeValueOfObjCType: @encode(BOOL) at: &is_dst];
   return self;
-  }
+}
   
 - (NSString*)description
-  {
+{
   return [NSString stringWithFormat: @"(abbrev: %@, offset: %d, is_dst: %d)",
 		   abbrev, offset, (int)is_dst];
-  }
+}
   
 - (BOOL)isDaylightSavingTimeZone
-  {
+{
   return is_dst;
 }
   
@@ -476,7 +479,7 @@ decode (const void *ptr)
 - (int)timeZoneSecondsFromGMT
 {
   return offset;
-  }
+}
   
 @end
 
@@ -484,21 +487,33 @@ decode (const void *ptr)
 @implementation NSTimeZone
 
 + (void)initialize
-  {
+{
   if (self == [NSTimeZone class])
     {
       id localZoneString = nil;
 
       zone_mutex = [NSLock new];
 
-      /* Don't use this for now. */
-#if 0
       localZoneString = [[NSUserDefaults standardUserDefaults]
 			  stringForKey: @LOCALDBKEY];
-#endif
       if (localZoneString == nil)
+        /* Try to get timezone from environment. */
 	localZoneString = [[[NSProcessInfo processInfo]
 			     environment] objectForKey: @"TZ"];
+      if (localZoneString == nil)
+       /* Try to get timezone from LOCAL_TIME_FILE. */
+       {
+         char zone_name[80];
+         FILE *fp;
+
+         fp = fopen(LOCAL_TIME_FILE, "r");
+         if (fp != NULL)
+           {
+             fscanf(fp, "%79s", zone_name);
+             localZoneString = [NSString stringWithCString: zone_name];
+             fclose(fp);
+           }
+       }
       if (localZoneString != nil)
 	localTimeZone = [NSTimeZone timeZoneWithName: localZoneString];
       else
@@ -510,10 +525,8 @@ decode (const void *ptr)
       if (localTimeZone == nil)
 	localTimeZone = [NSTimeZone timeZoneForSecondsFromGMT: 0];
 
-      [localTimeZone retain];
-
       fake_abbrev_dict = [[NSInternalAbbrevDict alloc] init];
-      zoneDictionary = [[NSMutableDictionary dictionary] retain];
+      zoneDictionary = [[NSMutableDictionary alloc] init];
       [zoneDictionary setObject: localTimeZone
 		      forKey: [localTimeZone timeZoneName]];
     }
@@ -653,7 +666,7 @@ decode (const void *ptr)
     NSZoneFree(NSDefaultMallocZone(), zone_abbrevs);
 
     /* Create time zone details. */
-    detailsArray = [NSMutableArray array];
+    detailsArray = [[NSMutableArray alloc] init];
     for (i = 0; i < n_types; i++)
       [detailsArray
 	addObject: [[NSConcreteTimeZoneDetail alloc]
@@ -663,7 +676,7 @@ decode (const void *ptr)
     NSZoneFree(NSDefaultMallocZone(), abbrevsArray);
     NSZoneFree(NSDefaultMallocZone(), types);
     zone = [[NSConcreteTimeZone alloc]
-	     initWithName: aTimeZoneName
+	     initWithName: [aTimeZoneName copy]
 	     withTransitions: transArray
 	     withDetails: detailsArray];
     [zoneDictionary setObject: zone forKey: aTimeZoneName];
@@ -713,12 +726,12 @@ decode (const void *ptr)
     return abbreviationDictionary;
 
   /* Read dictionary from file. */
-  abbreviationDictionary = [[NSMutableDictionary dictionary] retain];
+  abbreviationDictionary = [[NSMutableDictionary alloc] init];
   file = fopen(ABBREV_DICT, "r");
   if (file == NULL)
     [NSException raise: NSInternalInconsistencyException
 		 format: @"Failed to open time zone abbreviation dictionary"];
-  while (fscanf(file, "%s %s", abbrev, name) == 2)
+  while (fscanf(file, "%79s %79s", abbrev, name) == 2)
     {
       id a, the_name, the_abbrev;
 
@@ -727,7 +740,7 @@ decode (const void *ptr)
       a = [abbreviationDictionary objectForKey: the_abbrev];
       if (a == nil)
 	{
-	  a = [NSMutableArray array];
+	  a = [[NSMutableArray alloc] init];
 	  [abbreviationDictionary setObject: a forKey: the_abbrev];
 	}
       [a addObject: the_name];
@@ -735,15 +748,15 @@ decode (const void *ptr)
   fclose(file);
 
   return abbreviationDictionary;
-  }
+}
   
 - (NSString*)timeZoneName
-  {
+{
   return [self subclassResponsibility: _cmd];
-  }
+}
   
 + (NSArray*)timeZoneArray
-  {
+{
   /* We create the array only when we need it to reduce overhead. */
 
   static NSArray *regionsArray = nil;
@@ -756,25 +769,25 @@ decode (const void *ptr)
     return regionsArray;
 
   for (i = 0; i < 24; i++)
-    temp_array[i] = [NSMutableArray array];
+    temp_array[i] = [[NSMutableArray alloc] init];
 
   file = fopen(REGIONS_FILE, "r");
   if (file == NULL)
     [NSException raise: NSInternalInconsistencyException
 		 format: @"Failed to open regions array file"];
   while (fscanf(file, "%d %s", &index, name) == 2)
-    [temp_array[index] addObject: [NSString stringWithCString: name]];
+    [temp_array[index] addObject: [[NSString alloc] initWithCString: name]];
   fclose(file);
   regionsArray = [[NSArray alloc] initWithObjects: temp_array count: 24];
   return regionsArray;
-  }
+}
   
 - (NSArray*)timeZoneDetailArray
-  {
+{
   return [self subclassResponsibility: _cmd];
-  }
+}
   
-  @end
+@end
   
 
 @implementation NSTimeZoneDetail
@@ -785,18 +798,26 @@ decode (const void *ptr)
 }
 
 - (BOOL)isDaylightSavingTimeZone
-  {
+{
   [self subclassResponsibility: _cmd];
   return NO;
-  }
+}
   
 - (NSString*)timeZoneAbbreviation
-  {
+{
   return [self subclassResponsibility: _cmd];
-  }
+}
   
 - (int)timeZoneSecondsFromGMT
-  {
+{
   [self subclassResponsibility: _cmd];
   return 0;
-  }
+}
+
+@end
+
+
+
+
+
+
