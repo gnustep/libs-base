@@ -1736,12 +1736,28 @@ NSDictionary *locale)
 	    /* This is complicated.  We have to transform the multibyte
 	       string into a unicode string.  */
 	    const char		*str = (const char*)string;
-	    unsigned		slen = strlen(str);
+	    unsigned		slen;
 	    NSStringEncoding	enc = GetDefEncoding();
 
-	    len = prec != -1 ? (unsigned)prec : slen;
-	    if (len > slen)
-	      len = slen;
+	    if (prec != -1)
+	      {
+		len = (unsigned)prec;
+		/*
+		 * If the actual length is less than the precision,
+		 * we use the actual length.
+		 */
+		for (slen = 0; slen < len; slen++)
+		  {
+		    if (str[slen] == 0)
+		      {
+			len = slen;
+		      }
+		  }
+	      }
+	    else
+	      {
+		len = strlen(str);
+	      }
 
 	    /* Allocate dynamically an array which definitely is long
 	       enough for the wide character version.  */

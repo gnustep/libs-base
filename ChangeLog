@@ -1,3 +1,8 @@
+2004-02-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFormat.m: Fix buffer overrun by strlen() when printing
+	c-strings without nul terminators using '%*.*s' format.
+
 2004-02-23  Adam Fedor  <fedor@gnu.org>
 
 	* Source/NSUser.m (NSHomeDirectoryForUser): Allow whitespace
