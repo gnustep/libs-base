@@ -1,5 +1,10 @@
 2001-04-23  Nicola Pero  <nicola@brainstorm.co.uk>
 
+	* Source/GSValue.m ([-getValue:]): Fixed typo - was raising
+	exception on non-NULL buffer rather than NULL.
+
+2001-04-23  Nicola Pero  <nicola@brainstorm.co.uk>
+
 	* Source/NSBundle.m ([+initialize]): Fixed segmentation fault when
 	NSSearchPathForDirectoriesInDomains returns an empty array.  This
 	used to appear when GNUSTEP_SYSTEM_ROOT was unset.
