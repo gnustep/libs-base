@@ -47,7 +47,7 @@ enum {
 
 @interface Coder (Private)
 - _initWithCStream: (id <CStreaming>) cs formatVersion: (int) version;
-- (BOOL) _coderHasObjectReference: (unsigned)xref;
+- (BOOL) _coderReferenceForObject: anObject;
 @end
 
 #define SIGNATURE_FORMAT_STRING \
