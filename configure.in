@@ -348,11 +348,10 @@ AC_SUBST(_GSC_S_LNG_LNG)
 OBJC_SYS_DYNAMIC_LINKER()
 
 #---------------------------------------------------------------------
-# Guess if we are using a compiler which has the (GNU extension) +load 
-# method which is executed before main.  
-# Defines HAVE_LOAD_METHOD if +load methods are called before main.
-# Needed by NSProcessInfo.m
-#--------------------------------------------------------------------
+# Guess if we are using a compiler which allows us to change the class
+# to be used for constant strings by using the -fconstant-string-class
+# option.  If that is the case, we change it to NSConstantString.
+#---------------------------------------------------------------------
 saved_LIBS="$LIBS"
 saved_CPPFLAGS="$CPPFLAGS"
 LIBS="$LIBS $LIBOBJC"
@@ -361,6 +360,38 @@ if test x"$objc_threaded" != x""; then
   LIBS="$LIBS $objc_threaded"
 fi
 LIBS="$LIBS $extra_LIBS"
+CPPFLAGS="$CPPFLAGS -fconstant-string-class=NSConstantString"
+AC_MSG_CHECKING(if the compiler support -fconstant-string-class)
+AC_CACHE_VAL(objc_compiler_supports_constant_string_class,
+  AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
+  objc_compiler_supports_constant_string_class=yes,
+  objc_compiler_supports_constant_string_class=no,
+  objc_compiler_supports_constant_string_class=no)
+)
+if test $objc_compiler_supports_constant_string_class = yes; then
+  NX_CONST_STRING_CPPFLAGS="-fconstant-string-class=NSConstantString"
+  NX_CONST_STRING_CLASS=NSConstantString
+  AC_MSG_RESULT(yes)
+else
+  NX_CONST_STRING_CPPFLAGS=""
+  NX_CONST_STRING_CLASS=NXConstantString
+  AC_MSG_RESULT(no)
+fi
+
+AC_SUBST(NX_CONST_STRING_CPPFLAGS)
+AC_SUBST(NX_CONST_STRING_CLASS)
+
+CPPFLAGS="$saved_CPPFLAGS"
+# Don't revert LIBS, need it for the next test
+
+#---------------------------------------------------------------------
+# Guess if we are using a compiler which has the (GNU extension) +load 
+# method which is executed before main.  
+# Defines HAVE_LOAD_METHOD if +load methods are called before main.
+# Needed by NSProcessInfo.m
+#---------------------------------------------------------------------
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS -x objective-c"
 AC_MSG_CHECKING(if +load method is executed before main)
 AC_CACHE_VAL(objc_load_method_worked,
   AC_TRY_RUN([#include "$srcdir/config/config.loadtest.m"],
@@ -890,12 +921,6 @@ AC_SUBST(MAJOR_VERSION)
 AC_SUBST(MINOR_VERSION)
 AC_SUBST(SUBMINOR_VERSION)
 AC_SUBST(GCC_VERSION)
-
-#--------------------------------------------------------------------
-# Set the constant string class support.
-#--------------------------------------------------------------------
-NXCONST=NXConstantString
-AC_SUBST(NXCONST)
 
 #--------------------------------------------------------------------
 # Write the Makefiles
