@@ -1,3 +1,9 @@
+2000-08-23  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSDebug.m (NSFrameAddress): New function
+	(NSReturnAddress): Likewise.
+	(NSCountFrames): Likewise. (impementation from alex@orderfusion.com).
+
 2000-08-16  Manuel Guesdon <mguesdon@orange-concept.com>
 
 	* Tools/gsdoc-0_6_6.dtd: added conform for category
