@@ -1,3 +1,8 @@
+2004-10-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedNotificationCenter.m: Changed to explicitly
+	use a socket port name server for network wide notifications.
+
 2004-10-21  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSPropertyList.m (GSBinaryPLParser objectAtIndex:):
