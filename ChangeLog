@@ -1,3 +1,11 @@
+2001-12-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m: Output tidyups and general format improvements.
+	Add lins to other documents in project.
+	* Tools/autogsdoc.m: Clean up a little and handle gsdoc files
+	listed as source files better .... now looks for them in the
+	source directory.
+
 2001-12-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSMime.h: Updates for autogsdoc
