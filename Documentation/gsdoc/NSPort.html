@@ -16,12 +16,16 @@
 <h2><a name="cont-0">NSPort</a></h2>
 <h2><a name="NSPort">NSPort</a></h2>
 <p><b>Declared in:</b> Foundation/NSPort.h</p>
-<p><b>Inherits from:</b> NSObject</p>
+<p><b>Inherits from:</b> <A HREF="NSObject.html#NSObject">NSObject</A></p>
 <p><b>Conforms to:</b> NSCoding
 </p>
 <hr>
 
           
+<h2>Instance Variables</h2>
+<ul>
+</ul>
+<h2>Methods</h2>
 <ul>
 <li><a href="NSPort.html#method-0">+port</a>
 <li><a href="NSPort.html#method-1">+portWithMachPort:</a>
@@ -38,74 +42,75 @@
 <li><a href="NSPort.html#method-9">-reservedSpaceLength</a>
 <li><a href="NSPort.html#method-10">-setDelegate:</a>
 </ul>
-<hr>
-<h2><a name="method-0">port</a></h2>
-+ (NSPort*) <b>port</b>;<br>
+<hr><h2>Class Methods</h2>
+<h3><a name="method-0">port</a></h3>
++ (<A HREF="NSPort.html#NSPort">NSPort</A>*) <b>port</b>;<br>
 
           
 <hr>
-<h2><a name="method-1">portWithMachPort:</a></h2>
-+ (NSPort*) <b>portWithMachPort:</b> (int)machPort;<br>
+<h3><a name="method-1">portWithMachPort:</a></h3>
++ (<A HREF="NSPort.html#NSPort">NSPort</A>*) <b>portWithMachPort:</b> (int)machPort;<br>
 
           
 <hr>
-<h2><a name="method-2">addConnection:toRunLoop:forMode:</a></h2>
-- (void) <b>addConnection:</b> (NSConnection*)connection <b>toRunLoop:</b> (NSRunLoop*)runLoop <b>forMode:</b> (NSString*)mode;<br>
+<hr><h2>Instances Methods</h2>
+<h3><a name="method-2">addConnection:toRunLoop:forMode:</a></h3>
+- (void) <b>addConnection:</b> (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*)connection <b>toRunLoop:</b> (<A HREF="NSRunLoop.html#NSRunLoop">NSRunLoop</A>*)runLoop <b>forMode:</b> (<A HREF="NSString.html#NSString">NSString</A>*)mode;<br>
 
           
 <hr>
-<h2><a name="method-3">delegate</a></h2>
+<h3><a name="method-3">delegate</a></h3>
 - (id) <b>delegate</b>;<br>
 
           
 <hr>
-<h2><a name="method-4">initWithMachPort:</a></h2>
+<h3><a name="method-4">initWithMachPort:</a></h3>
 - (id) <b>initWithMachPort:</b> (int)machPort;<br>
 
           
 <hr>
-<h2><a name="method-5">invalidate</a></h2>
+<h3><a name="method-5">invalidate</a></h3>
 - (void) <b>invalidate</b>;<br>
 
           
 <hr>
-<h2><a name="method-6">isValid</a></h2>
+<h3><a name="method-6">isValid</a></h3>
 - (BOOL) <b>isValid</b>;<br>
 
           
 <hr>
-<h2><a name="method-7">machPort</a></h2>
+<h3><a name="method-7">machPort</a></h3>
 - (int) <b>machPort</b>;<br>
 
           
 <hr>
-<h2><a name="method-8">removeConnection:fromRunLoop:</a></h2>
-- (void) <b>removeConnection:</b> (NSConnection*)connection <b>fromRunLoop:</b> (NSRunLoop*)runLoop;<br>
+<h3><a name="method-8">removeConnection:fromRunLoop:</a></h3>
+- (void) <b>removeConnection:</b> (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*)connection <b>fromRunLoop:</b> (<A HREF="NSRunLoop.html#NSRunLoop">NSRunLoop</A>*)runLoop;<br>
 
           
 <hr>
-<h2><a name="method-9">reservedSpaceLength</a></h2>
+<h3><a name="method-9">reservedSpaceLength</a></h3>
 - (unsigned int) <b>reservedSpaceLength</b>;<br>
 
           
 <hr>
-<h2><a name="method-10">setDelegate:</a></h2>
+<h3><a name="method-10">setDelegate:</a></h3>
 - (void) <b>setDelegate:</b> (id)anObject;<br>
 
           
 <hr>
-<h2><a name="method-11">handleMachMessage:</a></h2>
+<h3><a name="method-11">handleMachMessage:</a></h3>
 - (void) <b>handleMachMessage:</b> (void*)machMessage;<br>
 
           
 <hr>
-<h2><a name="method-12">handlePortMessage:</a></h2>
-- (void) <b>handlePortMessage:</b> (NSPortMessage*)portMessage;<br>
+<h3><a name="method-12">handlePortMessage:</a></h3>
+- (void) <b>handlePortMessage:</b> (<A HREF="NSPortMessage.html#NSPortMessage">NSPortMessage</A>*)portMessage;<br>
 
           
 <hr>
-<h2><a name="method-13">limitDateForMode:</a></h2>
-- (NSDate*) <b>limitDateForMode:</b> (NSString*)mode;<br>
+<h3><a name="method-13">limitDateForMode:</a></h3>
+- (<A HREF="NSDate.html#NSDate">NSDate</A>*) <b>limitDateForMode:</b> (<A HREF="NSString.html#NSString">NSString</A>*)mode;<br>
 
           
 <hr>

@@ -1,0 +1,360 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="GSSAXHandler" prev="GSXMLParser" up="GSXML">
+  <head>
+    <title>GSSAXHandler</title>
+    <author name="Michael Pakhantsov">
+      <email address="mishel@berest.dp.ua"/>
+    </author>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+    </author>
+    <version>0.2</version>
+    <date>15 september, 2000</date>
+  </head>
+
+  <body>
+    <chapter>
+      <heading>GSSAXHandler</heading>
+      <class name="GSSAXHandler" super="NSObject">
+        <declared>GSXML.h</declared>
+          <desc>
+	   <p>XML SAX Handler.</p>
+	   <p>SAX is a callback-based interface to the XML parser.</p>
+	   <p>
+	      You can debug the SAX behaviour by using the GSDebugSAXHandler
+	      class.  Here is the sequence of callbacks that would be
+	      reported when parsing the example XML document shown earlier.
+	    </p>
+          </desc>
+
+        <method type="GSSAXHandler*" factory="yes">
+          <sel>handler</sel>
+          <desc>
+          <p>Create a new SAX handler.
+            </p>
+          </desc>
+        </method>
+
+        <method type="id">
+          <sel>init</sel>
+          <desc>
+          <p>Create a new SAX handler.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void*">
+          <sel>lib</sel>
+          <desc>
+          <p>Return pointer to xmlSAXHandler structure.
+            </p>
+          </desc>
+        </method>
+
+
+        <method type="void">
+          <sel>startDocument</sel>
+          <desc>
+          <p>Called when the document start being processed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>endDocument</sel>
+          <desc>
+          <p>Called when the document end has been detected.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>isStandalone</sel>
+          <desc>
+          <p>Called if the document is standalone.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>startElement:</sel>
+          <arg type="NSString*">elementName</arg>
+          <sel>attributes:</sel>
+          <arg type="NSMutableDictionary*">elementAttributes</arg>
+          <desc>
+          <p>Called when an opening tag has been processed.
+            </p>
+          </desc>
+        </method>
+
+
+        <method type="void">
+          <sel>endElement</sel>
+          <arg type="NSString*">elementName</arg>
+          <desc>
+          <p>Called when the end of an element has been detected.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>attribute:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>value:</sel>
+          <arg type="NSString*">value</arg>
+          <desc>
+          <p>Handle an attribute that has been read by the parser.
+            </p>
+         </desc>
+        </method>
+
+        <method type="void">
+          <sel>characters:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>length:</sel>
+          <arg type="int">len</arg>
+          <desc>
+          <p>Receiving some chars from the parser.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>ignoreWhitespace:</sel>
+          <arg type="NSString*">ch</arg>
+          <sel>length:</sel>
+          <arg type="int">length</arg>
+          <desc>
+          <p>Receiving some ignorable whitespaces from the parser.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>processInstruction:</sel>
+          <arg type="NSString*">targetName</arg>
+          <sel>value:</sel>
+          <arg type="NSString*">PIData</arg>
+          <desc>
+          <p>A processing instruction has been parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>comment:</sel>
+          <arg type="NSString*">value</arg>
+          <desc>
+          <p>A comment has been parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>cdataBlock:</sel>
+          <arg type="NSString*">value</arg>
+          <sel>length:</sel>
+          <arg type="int">length</arg>
+          <desc>
+          <p>Called when a pcdata block has been parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>globalNamespace:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>href:</sel>
+          <arg type="NSString*">href</arg>
+          <sel>prefix:</sel>
+          <arg type="NSString*">prefix</arg>
+          <desc>
+          <p>An old global namespace has been parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>error:</sel>
+          <arg type="NSString*">message</arg>
+          <desc>
+          <p>Called when found a error.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>fatalError:</sel>
+          <arg type="NSString*">message</arg>
+          <desc>
+          <p>Called when found a fatal error.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>warning:</sel>
+          <arg type="NSString*">message</arg>
+          <desc>
+          <p>Called when found a warning.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>hasInternalSubset:</sel>
+          <desc>
+          <p>Callback on internal subset declaration.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>hasExternalSubset:</sel>
+          <desc>
+          <p>Does this document have an external subset.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>internalSubset:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>externalID:</sel>
+          <arg type="NSString*">externalID</arg>
+          <sel>systemID:</sel>
+          <arg type="NSString*">systemID</arg>
+          <desc>
+          <p>Callback on internal subset declaration.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>resolveEntity:</sel>
+          <arg type="NSString*">publicID</arg>
+          <sel>systemID:</sel>
+          <arg type="NSString*">systemID</arg>
+          <desc>
+          <p>The entity loader, to control the loading of external entities,
+          the application can either.
+          </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>getEntity:</sel>
+          <arg type="NSString*">name</arg>
+          <desc>
+          <p>Get an entity by name.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>getParameterEntity:</sel>
+          <arg type="NSString*">name</arg>
+          <desc>
+          <p>Get a parameter entity by name.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>namespaceDecl:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>href:</sel>
+          <arg type="NSString*">href</arg>
+          <sel>prefix:</sel>
+          <arg type="NSString*">prefix</arg>
+          <desc>
+          <p>A namespace has been parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>notationDecl:</sel>
+          <arg type="NSString*">publicId</arg>
+          <sel>systemId:</sel>
+          <arg type="NSString*">systemId</arg>
+          <desc>
+          <p>What to do when a notation declaration has been parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>entityDecl:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>type:</sel>
+          <arg type="int">type</arg>
+          <sel>publicId:</sel>
+          <arg type="NSString*">publicId</arg>
+          <sel>systemId:</sel>
+          <arg type="NSString*">systemId</arg>
+          <sel>content:</sel>
+          <arg type="NSString*">content</arg>
+          <desc>
+          <p>An entity definition has been parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>attributeDecl:</sel>
+          <arg type="NSString*">nameElement</arg>
+          <sel>name:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>type:</sel>
+          <arg type="int">type</arg>
+          <sel>typeDefValue:</sel>
+          <arg type="int">defType</arg>
+          <sel>defaultValue:</sel>
+          <arg type="NSString*">value</arg>
+          <desc>
+          <p>An attribute definition has been parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>elementDecl:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>type:</sel>
+          <arg type="int">type</arg>
+          <desc>
+          <p>An element definition has been parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>unparsedEntityDecl:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>public:</sel>
+          <arg type="NSString*">publicId</arg>
+          <sel>system:</sel>
+          <arg type="NSString*">systemId</arg>
+          <sel>notationName:</sel>
+          <arg type="NSString*">notation</arg>
+          <desc>
+          <p>What to do when an unparsed entity declaration is parsed.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void">
+          <sel>reference:</sel>
+          <arg type="NSString*">name</arg>
+          <desc>
+          <p>Called when an entity reference is detected.
+            </p>
+          </desc>
+        </method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>
+

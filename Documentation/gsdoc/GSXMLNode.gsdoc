@@ -1,0 +1,354 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.6//EN" "http://www.gnustep.org/gsdoc-0_6_6.xml">
+<gsdoc base="GSXMLNode" next="GSXMLAttribute" up="GSXML" prev="GSXMLNamespace">
+  <head>
+    <title>GSXMLNode</title>
+    <author name="Michael Pakhantsov">
+      <email address="mishel@berest.dp.ua"/>
+    </author>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+    </author>
+    <version>0.2</version>
+    <date>15 September, 2000</date>
+  </head>
+  <body>
+    <chapter>
+      <heading>GSXMLNode</heading>
+      <class name="GSXMLNode" super="NSObject">
+        <declared>GSXML.h</declared>
+          <desc>
+          <p>
+            XML Node.
+          </p>
+          </desc>
+
+        <method type="GSXMLNode*" factory="yes">
+          <sel>nodeWithNamespace:</sel>
+          <arg type="GSXMLNamespace*">ns</arg>
+          <sel>name:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>prefix:</sel>
+          <arg type="NSString*">prefix</arg>
+          <desc>
+          <p>
+            Creation of a new Node. This function will refuse to create a Node
+          with a similar prefix than an existing one present on this node.
+          </p>
+
+          <example>
+
+             ...
+             GSXMLNamespace *ns1;
+             GSXMLNode *node1, *node2;
+             NSString *prefix = @"mac-os-property";
+             NSString *href   = @"http://www.gnustep.org/some/location";
+
+             ns = [GSXMLNamespace namespaceWithNode: nil
+                                               href: href
+                                             prefix: prefix];
+             node1 = [GSXMLNode nodeWithNamespace: ns name: @"node1"];
+             node2 = [GSXMLNode nodeWithNamespace: nil name: @"node2"];
+             ...
+
+          </example>
+          </desc>
+        </method>
+
+        <method type="id">
+          <sel>initWithNamespace:</sel>
+          <arg type="GSXMLNamespace*">ns</arg>
+          <sel>name:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>prefix:</sel>
+          <arg type="NSString*">prefix</arg>
+          <desc>
+          <p>
+            Creation of a new node elemen, ns is optional (nil).
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLNode*" factory="yes">
+          <sel>nodeFrom:</sel>
+          <arg type="void*">data</arg>
+          <desc>
+          <p>
+          Creation of a new Node from libxml data.
+          </p>
+          </desc>
+        </method>
+
+        <method type="id" init="yes">
+          <sel>initFrom:</sel>
+          <arg type="void*">data</arg>
+          <desc>
+          <p>
+            Creation of a new Node from libxml data.
+            </p>
+          </desc>
+        </method>
+
+        <method type="void*">
+          <sel>lib</sel>
+          <desc>
+          <p>
+            Return pointer to xmlNode structure.
+            </p>
+          </desc>
+        </method>
+
+        <method type="NSString*">
+          <sel>name</sel>
+          <desc>
+          <p>
+          Return Node name.
+          </p>
+          </desc>
+        </method>
+
+        <method type="NSString*">
+          <sel>content</sel>
+          <desc>
+          <p>
+            Return Node content.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLNamespace*">
+          <sel>ns</sel>
+          <desc>
+          <p>
+            Return Node namespace.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLNamespace*">
+          <sel>nsDef</sel>
+          <desc>
+          <p>
+            Return namespace definitions of this node.
+           </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLAttribute*">
+          <sel>properties</sel>
+          <desc>
+          <p>
+            Return pointer to the first attribute on this node.
+          </p>
+          <example>
+
+            GSXMLNode *n1;
+            GSXMLAttribute *a;
+
+            n1 = [GSXMLNode nodeWithNamespace: nil name: nodeName];
+            [n1 setProp: @"prop1" value: @"value1"];
+            [n1 setProp: @"prop2" value: @"value2"];
+            [n1 setProp: @"prop3" value: @"value3"];
+
+            a = [n1 properties];
+            NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+            while ((a = [a next]) != nil)
+              {
+                NSLog(@"n1 property name - %@ value - %@", [a name], [a value]);
+              }
+
+           </example>
+          </desc>
+        </method>
+
+        <method type="NSDictionary*">
+          <sel>propertiesAsDictionary</sel>
+          <desc>
+	    <p>
+	      Return attritubes and values as a dictionary.
+	    </p>
+	    <example>
+
+            GSXMLNode *n1;
+            NSMutableDictionary *prop;
+            NSEnumerator *e;
+            id key;
+
+            prop = [n1 propertiesAsDictionary];
+            e = [prop keyEnumerator];
+            while ((key = [e nextObject]) != nil)
+              {
+                NSLog(@"property name - %@ value - %@", key,
+		  [prop objectForKey: key]);
+              }
+	    </example>
+          </desc>
+        </method>
+
+        <method type="GSXMLNodeType">
+          <sel>type</sel>
+          <desc>
+          <p>
+            Return type of Node.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLDocument*">
+          <sel>doc</sel>
+          <desc>
+          <p>Return owner of this node.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLNode*">
+          <sel>children</sel>
+          <desc>
+          <p>Return children of this node.
+	  </p>
+          <example>
+              - (GSXMLNode*) nextElement: (GSXMLNode*)node
+              {
+                while (node != nil)
+                  {
+                    if ([node type] == XML_ELEMENT_NODE)
+                      {
+                        return node;
+                      }
+                    if ([node children] != nil)
+                      {
+                        node = [self nextElement: [node children]];
+                      }
+		    else
+		      node = [node next];
+                  }
+                return node;
+              }
+           </example>
+          </desc>
+        </method>
+
+        <method type="GSXMLNode*">
+          <sel>parent</sel>
+          <desc>
+          <p>Return parent of this node.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLNode*">
+          <sel>next</sel>
+          <desc>
+          <p>Return next node.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLNode*">
+          <sel>prev</sel>
+          <desc>
+          <p>Return previous node.
+            </p>
+          </desc>
+        </method>
+
+        <method type="GSXMLNode*">
+          <sel>makeChild:</sel>
+          <arg type="GSXMLNamespace*">ns</arg>
+          <sel>name:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>content:</sel>
+          <arg type="NSString*">content</arg>
+          <desc>
+	    <p>
+	      Creation of a new child element, added at the end of
+	      parent children list.
+	      ns and content parameters are optional (may be nil).
+	      If content is non nil, a child list containing the
+	      TEXTs and ENTITY_REFs node will be created.
+	      Return previous node.
+	    </p>
+	    <example>
+
+  GSXMLNode *n1, *n2;
+  GSXMLDocument *d, *d1;
+
+  d = [GSXMLDocument documentWithVersion: @"1.0"];
+  [d setRoot: [d makeNodeWithNamespace: nil
+				  name: @"plist"
+			       content: nil]];
+  [[d root] setProp: @"version" value: @"0.9"];
+  n1 = [[d root] makeChildWithNamespace: nil
+				   name: @"dict"
+				content: nil];
+  [n1 makeChildWithNamespace: nil name: @"key" content: @"Year Of Birth"];
+  [n1 makeChildWithNamespace: nil name: @"integer" content: @"65"];
+  [n1 makeChildWithNamespace: nil name: @"key" content: @"Pets Names"];
+  [n1 makeChildWithNamespace: nil name: @"array" content: nil];
+
+	    </example>
+          </desc>
+        </method>
+
+        <method type="GSXMLNode*">
+          <sel>makeComment:</sel>
+          <arg type="NSString*">content</arg>
+          <desc>
+	    <p>
+	      Creation of a new comment element, added at the end of
+	      parent children list.
+            </p>
+	    <example>
+  d = [GSXMLDocument documentWithVersion: @"1.0"];
+
+  [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
+  [[d root] setProp: @"version" value: @"0.9"];
+  n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
+  [n1 makeComment: @" this is a comment "];
+	    </example>
+          </desc>
+        </method>
+
+        <method type="GSXMLNode*">
+          <sel>makePI:</sel>
+          <arg type="NSString*">content</arg>
+          <desc>
+	    <p>
+	       Creation of a new process instruction element,
+	       added at the end of parent children list.
+	    </p>
+	    <example>
+  d = [GSXMLDocument documentWithVersion: @"1.0"];
+
+  [d setRoot: [d makeNodeWithNamespace: nil name: @"plist" content: nil]];
+  [[d root] setProp: @"version" value: @"0.9"];
+  n1 = [[d root] makeChildWithNamespace: nil name: @"dict" content: nil];
+  [n1 makeComment: @" this is a comment "];
+  [n1 makePI: @"pi1" content: @"this is a process instruction"];
+	    </example>
+          </desc>
+        </method>
+
+        <method type="GSXMLAttribute*">
+          <sel>setProp:</sel>
+          <arg type="NSString*">name</arg>
+          <sel>value:</sel>
+          <arg type="NSString*">value</arg>
+          <desc>
+	    <p>Set (or reset) an attribute carried by a node.
+            </p>
+	    <example>
+  id n1 = [GSXMLNode nodeWithNamespace: nil name: nodeName];
+  [n1 setProp: @"prop1" value: @"value1"];
+  [n1 setProp: @"prop2" value: @"value2"];
+  [n1 setProp: @"prop3" value: @"value3"];
+
+	    </example>
+          </desc>
+        </method>
+      </class>
+    </chapter>
+  </body>
+</gsdoc>
+

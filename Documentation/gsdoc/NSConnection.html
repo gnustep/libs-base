@@ -16,7 +16,7 @@
 <h2><a name="cont-0">NSConnection</a></h2>
 <h2><a name="NSConnection">NSConnection</a></h2>
 <p><b>Declared in:</b> Foundation/NSConnection.h</p>
-<p><b>Inherits from:</b> NSObject</p>
+<p><b>Inherits from:</b> <A HREF="NSObject.html#NSObject">NSObject</A></p>
 <p><b>Conforms to:</b> NSObject
 </p>
 <hr>
@@ -25,6 +25,10 @@
 	    objects in different processes, in different machines, or in
 	    different threads.
           
+<h2>Instance Variables</h2>
+<ul>
+</ul>
+<h2>Methods</h2>
 <ul>
 <li><a href="NSConnection.html#method-0">+allConnections</a>
 <li><a href="NSConnection.html#method-1">+connectionWithReceivePort:</a>
@@ -69,9 +73,9 @@
 <li><a href="NSConnection.html#method-34">-setRootObject:</a>
 <li><a href="NSConnection.html#method-35">-statistics</a>
 </ul>
-<hr>
-<h2><a name="method-0">allConnections</a></h2>
-+ (NSArray*) <b>allConnections</b>;<br>
+<hr><h2>Class Methods</h2>
+<h3><a name="method-0">allConnections</a></h3>
++ (<A HREF="NSArray.html#NSArray">NSArray</A>*) <b>allConnections</b>;<br>
 
 	    Returns an array containing all the NSConnection objects known to
 	    the system. These connections will be valid at the time that the
@@ -79,16 +83,16 @@
 	    before you get to examine the array.
           
 <hr>
-<h2><a name="method-1">connectionWithReceivePort:</a></h2>
-+ (NSConnection*) <b>connectionWithReceivePort:</b> (NSPort*)receivePort;<br>
+<h3><a name="method-1">connectionWithReceivePort:</a></h3>
++ (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*) <b>connectionWithReceivePort:</b> (<A HREF="NSPort.html#NSPort">NSPort</A>*)receivePort;<br>
 
 	    Returns a connection created using
 	    <a href="#initWithReceivePort:sendPort:">
 	    initWithReceivePort:sendPort:</a>
           
 <hr>
-<h2><a name="method-2">connectionWithRegisteredName:host:</a></h2>
-+ (NSConnection*) <b>connectionWithRegisteredName:</b> (NSString*)name <b>host:</b> (NSString*)hostName;<br>
+<h3><a name="method-2">connectionWithRegisteredName:host:</a></h3>
++ (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*) <b>connectionWithRegisteredName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>host:</b> (<A HREF="NSString.html#NSString">NSString</A>*)hostName;<br>
 
 	    <p>
 
@@ -107,8 +111,8 @@
 
           
 <hr>
-<h2><a name="connectionWithRegisteredName:host:usingNameServer:">connectionWithRegisteredName:host:usingNameServer:</a></h2>
-+ (NSConnection*) <b>connectionWithRegisteredName:</b> (NSString*)name <b>host:</b> (NSString*)host <b>usingNameServer:</b> (NSPortNameServer*)server;<br>
+<h3><a name="connectionWithRegisteredName:host:usingNameServer:">connectionWithRegisteredName:host:usingNameServer:</a></h3>
++ (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*) <b>connectionWithRegisteredName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>host:</b> (<A HREF="NSString.html#NSString">NSString</A>*)host <b>usingNameServer:</b> (<A HREF="NSPortNameServer.html#NSPortNameServer">NSPortNameServer</A>*)server;<br>
 
 	    <p>
 
@@ -148,14 +152,14 @@
 
           
 <hr>
-<h2><a name="method-3">currentConversation</a></h2>
+<h3><a name="method-3">currentConversation</a></h3>
 + (id) <b>currentConversation</b>;<br>
 
 	    Not implemented
           
 <hr>
-<h2><a name="method-4">defaultConnection</a></h2>
-+ (NSConnection*) <b>defaultConnection</b>;<br>
+<h3><a name="method-4">defaultConnection</a></h3>
++ (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*) <b>defaultConnection</b>;<br>
 
 	    Returns the default NSConnection for the current thread.
 	    <br>
@@ -166,8 +170,8 @@
 	    connect to a remote process, but can be used to vend objects.
           
 <hr>
-<h2><a name="method-5">newRegisteringAtName:withRootObject:</a></h2>
-+ (NSConnection*) <b>newRegisteringAtName:</b> (NSString*)name <b>withRootObject:</b> (id)anObject;<br>
+<h3><a name="method-5">newRegisteringAtName:withRootObject:</a></h3>
++ (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*) <b>newRegisteringAtName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>withRootObject:</b> (id)anObject;<br>
 Standards: GNUstep NotMacOS-X NotOpenStep<br>
 
 	    This used to be the preferred mechanism for creating a GNUstep
@@ -192,8 +196,8 @@ Standards: GNUstep NotMacOS-X NotOpenStep<br>
 
           
 <hr>
-<h2><a name="method-7">rootProxyForConnectionWithRegisteredName:host:</a></h2>
-+ (NSDistantObject*) <b>rootProxyForConnectionWithRegisteredName:</b> (NSString*)name <b>host:</b> (NSString*)host;<br>
+<h3><a name="method-7">rootProxyForConnectionWithRegisteredName:host:</a></h3>
++ (<A HREF="NSDistantObject.html#NSDistantObject">NSDistantObject</A>*) <b>rootProxyForConnectionWithRegisteredName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>host:</b> (<A HREF="NSString.html#NSString">NSString</A>*)host;<br>
 
 	    This method calls <a href="#rootProxyForConnectionWithRegisteredName:host:usingNameServer:">
 	    rootProxyForConnectionWithRegisteredName:host:usingNameServer:</a>
@@ -201,8 +205,8 @@ Standards: GNUstep NotMacOS-X NotOpenStep<br>
 	    the send port registered under <em>name</em> on <em>host</em>
           
 <hr>
-<h2><a name="rootProxyForConnectionWithRegisteredName:host:usingNameServer:">rootProxyForConnectionWithRegisteredName:host:usingNameServer:</a></h2>
-+ (NSDistantObject*) <b>rootProxyForConnectionWithRegisteredName:</b> (NSString*)name <b>host:</b> (NSString*)host <b>usingNameServer:</b> (NSPortNameServer*)server;<br>
+<h3><a name="rootProxyForConnectionWithRegisteredName:host:usingNameServer:">rootProxyForConnectionWithRegisteredName:host:usingNameServer:</a></h3>
++ (<A HREF="NSDistantObject.html#NSDistantObject">NSDistantObject</A>*) <b>rootProxyForConnectionWithRegisteredName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>host:</b> (<A HREF="NSString.html#NSString">NSString</A>*)host <b>usingNameServer:</b> (<A HREF="NSPortNameServer.html#NSPortNameServer">NSPortNameServer</A>*)server;<br>
 Standards: GNUstep MacOS-X NotOpenStep<br>
 
 	    This method calls
@@ -216,27 +220,28 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    not been set.
           
 <hr>
-<h2><a name="method-8">addRequestMode:</a></h2>
-- (void) <b>addRequestMode:</b> (NSString*)mode;<br>
+<hr><h2>Instances Methods</h2>
+<h3><a name="method-8">addRequestMode:</a></h3>
+- (void) <b>addRequestMode:</b> (<A HREF="NSString.html#NSString">NSString</A>*)mode;<br>
 
 	    Adds <em>mode</em> to the run loop modes that the NSConnection
 	    will listen to for incoming messages.
           
 <hr>
-<h2><a name="method-9">addRunLoop:</a></h2>
-- (void) <b>addRunLoop:</b> (NSRunLoop*)loop;<br>
+<h3><a name="method-9">addRunLoop:</a></h3>
+- (void) <b>addRunLoop:</b> (<A HREF="NSRunLoop.html#NSRunLoop">NSRunLoop</A>*)loop;<br>
 
 	    Adds <em>loop</em> to the set of run loops that the NSConnection
 	    will listen to for incoming messages.
           
 <hr>
-<h2><a name="method-10">delegate</a></h2>
+<h3><a name="method-10">delegate</a></h3>
 - (id) <b>delegate</b>;<br>
 
 	    Returns the delegate of the NSConnection.
           
 <hr>
-<h2><a name="method-11">enableMultipleThreads</a></h2>
+<h3><a name="method-11">enableMultipleThreads</a></h3>
 - (void) <b>enableMultipleThreads</b>;<br>
 
 	    Sets the NSConnection configuration so that multiple threads may
@@ -245,7 +250,7 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    This option is inherited by child connections.
           
 <hr>
-<h2><a name="method-12">independentConversationQueueing</a></h2>
+<h3><a name="method-12">independentConversationQueueing</a></h3>
 - (BOOL) <b>independentConversationQueueing</b>;<br>
 
 	    Returns <code>YES</code> if the NSConnection is configured to
@@ -254,9 +259,9 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    This option is inherited by child connections.
           
 <hr>
-<h2><a name="initWithReceivePort:sendPort:">initWithReceivePort:sendPort:</a></h2>
+<h3><a name="initWithReceivePort:sendPort:">initWithReceivePort:sendPort:</a></h3>
 <b>This is the designated initialiser</b><br>
-- (id) <b>initWithReceivePort:</b> (NSPort*)recv <b>sendPort:</b> (NSPort*)send;<br>
+- (id) <b>initWithReceivePort:</b> (<A HREF="NSPort.html#NSPort">NSPort</A>*)recv <b>sendPort:</b> (<A HREF="NSPort.html#NSPort">NSPort</A>*)send;<br>
 
 	    Initialises an NSConnection with <em>recv</em> and <em>send</em>.
 	    <br>
@@ -304,7 +309,7 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 
           
 <hr>
-<h2><a name="method-13">invalidate</a></h2>
+<h3><a name="method-13">invalidate</a></h3>
 - (void) <b>invalidate</b>;<br>
 
 	    Marks the receiving NSConnection as invalid.
@@ -316,21 +321,21 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    Invalidates all remote objects and local proxies.
           
 <hr>
-<h2><a name="method-14">isValid</a></h2>
+<h3><a name="method-14">isValid</a></h3>
 - (BOOL) <b>isValid</b>;<br>
 
 	    Returns <code>YES</code> if the connection is invalid,
 	    <code>NO</code> otherwise.
           
 <hr>
-<h2><a name="method-15">localObjects</a></h2>
-- (NSArray*) <b>localObjects</b>;<br>
+<h3><a name="method-15">localObjects</a></h3>
+- (<A HREF="NSArray.html#NSArray">NSArray</A>*) <b>localObjects</b>;<br>
 
 	    Returns an array of all the local proxies to objects that
 	    are retained by the remote connection.
           
 <hr>
-<h2><a name="method-16">multipleThreadsEnabled</a></h2>
+<h3><a name="method-16">multipleThreadsEnabled</a></h3>
 - (BOOL) <b>multipleThreadsEnabled</b>;<br>
 
 	    Returns <code>YES</code> if the connection permits
@@ -338,23 +343,23 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    <code>NO</code> otherwise.
           
 <hr>
-<h2><a name="method-17">receivePort</a></h2>
-- (NSPort*) <b>receivePort</b>;<br>
+<h3><a name="method-17">receivePort</a></h3>
+- (<A HREF="NSPort.html#NSPort">NSPort</A>*) <b>receivePort</b>;<br>
 
 	    Returns the NSPort object on which incoming messages are
 	    recieved.
           
 <hr>
-<h2><a name="method-18">registerName:</a></h2>
-- (BOOL) <b>registerName:</b> (NSString*)name;<br>
+<h3><a name="method-18">registerName:</a></h3>
+- (BOOL) <b>registerName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name;<br>
 
 	    Simply invokes <a href="#registerName:usingNameServer:">
 	    registerName:usingNameServer:</a> passing it the default
 	    system nameserver.
           
 <hr>
-<h2><a name="method-19">registerName:withNameServer:</a></h2>
-- (BOOL) <b>registerName:</b> (NSString*)name <b>withNameServer:</b> (NSPortNameServer*)server;<br>
+<h3><a name="method-19">registerName:withNameServer:</a></h3>
+- (BOOL) <b>registerName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)name <b>withNameServer:</b> (<A HREF="NSPortNameServer.html#NSPortNameServer">NSPortNameServer</A>*)server;<br>
 Standards: GNUstep MacOS-X NotOpenStep<br>
 
 	    Registers the recieve port of the NSConnection as <em>name</em> and
@@ -369,49 +374,49 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    NSConnection.
           
 <hr>
-<h2><a name="method-20">remoteObjects</a></h2>
-- (NSArray*) <b>remoteObjects</b>;<br>
+<h3><a name="method-20">remoteObjects</a></h3>
+- (<A HREF="NSArray.html#NSArray">NSArray</A>*) <b>remoteObjects</b>;<br>
 
 	    Returns an array of proxies to all the remote objects known to
 	    the NSConnection.
           
 <hr>
-<h2><a name="method-21">removeRequestMode:</a></h2>
-- (void) <b>removeRequestMode:</b> (NSString*)mode;<br>
+<h3><a name="method-21">removeRequestMode:</a></h3>
+- (void) <b>removeRequestMode:</b> (<A HREF="NSString.html#NSString">NSString</A>*)mode;<br>
 
 	    Removes <em>mode</em> from the run loop modes used to recieve
 	    incoming messages.
           
 <hr>
-<h2><a name="method-22">removeRunLoop:</a></h2>
-- (void) <b>removeRunLoop:</b> (NSRunLoop*)loop;<br>
+<h3><a name="method-22">removeRunLoop:</a></h3>
+- (void) <b>removeRunLoop:</b> (<A HREF="NSRunLoop.html#NSRunLoop">NSRunLoop</A>*)loop;<br>
 
 	    Removes <em>loop</em> from the run loops used to recieve
 	    incoming messages.
           
 <hr>
-<h2><a name="method-23">replyTimeout</a></h2>
+<h3><a name="method-23">replyTimeout</a></h3>
 - (NSTimeInterval) <b>replyTimeout</b>;<br>
 
 	    Returns the timeout interval used when waiting for a reply to
 	    a request sent on the NSConnection.
           
 <hr>
-<h2><a name="method-24">requestModes</a></h2>
-- (NSArray*) <b>requestModes</b>;<br>
+<h3><a name="method-24">requestModes</a></h3>
+- (<A HREF="NSArray.html#NSArray">NSArray</A>*) <b>requestModes</b>;<br>
 
 	    Returns an array of all the run loop modes that the NSConnection
 	    uses when waiting for an incoming request.
           
 <hr>
-<h2><a name="method-25">requestTimeout</a></h2>
+<h3><a name="method-25">requestTimeout</a></h3>
 - (NSTimeInterval) <b>requestTimeout</b>;<br>
 
 	    Returns the timeout interval used when waiting for a send
 	    operation to complete.
           
 <hr>
-<h2><a name="method-26">rootObject</a></h2>
+<h3><a name="method-26">rootObject</a></h3>
 - (id) <b>rootObject</b>;<br>
 
 	    Returns the object that is made available by this connection
@@ -421,13 +426,13 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    Returns <code>nil</code> if no root object has been set.
           
 <hr>
-<h2><a name="method-27">rootProxy</a></h2>
-- (NSDistantObject*) <b>rootProxy</b>;<br>
+<h3><a name="method-27">rootProxy</a></h3>
+- (<A HREF="NSDistantObject.html#NSDistantObject">NSDistantObject</A>*) <b>rootProxy</b>;<br>
 
 	    Returns the proxy for the root object of the remote NSConnection.
           
 <hr>
-<h2><a name="method-28">runInNewThread</a></h2>
+<h3><a name="method-28">runInNewThread</a></h3>
 - (void) <b>runInNewThread</b>;<br>
 
 	    Removes the NSConnection from the current threads default
@@ -435,13 +440,13 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    in it.
           
 <hr>
-<h2><a name="method-29">sendPort</a></h2>
-- (NSPort*) <b>sendPort</b>;<br>
+<h3><a name="method-29">sendPort</a></h3>
+- (<A HREF="NSPort.html#NSPort">NSPort</A>*) <b>sendPort</b>;<br>
 
 	    Returns the port on which the NSConnection sends messages.
           
 <hr>
-<h2><a name="method-30">setDelegate:</a></h2>
+<h3><a name="method-30">setDelegate:</a></h3>
 - (void) <b>setDelegate:</b> (id)delegate;<br>
 
 	    Sets the NSConnection's delegate (without retaining it).
@@ -450,7 +455,7 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    behavior by implementing methods in an informal protocol.
           
 <hr>
-<h2><a name="method-31">setIndependentConversationQueueing:</a></h2>
+<h3><a name="method-31">setIndependentConversationQueueing:</a></h3>
 - (void) <b>setIndependentConversationQueueing:</b> (BOOL)flag;<br>
 
 	    Sets whether or not the NSConnection should handle requests
@@ -463,7 +468,7 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    NB. careful - use of this option can cause deadlocks.
           
 <hr>
-<h2><a name="method-32">setReplyTimeout:</a></h2>
+<h3><a name="method-32">setReplyTimeout:</a></h3>
 - (void) <b>setReplyTimeout:</b> (NSTimeInterval)seconds;<br>
 
 	    Sets the time interval that the NSConnection will wait for a
@@ -471,21 +476,21 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 	    NSPortTimeoutException.
           
 <hr>
-<h2><a name="method-33">setRequestTimeout:</a></h2>
+<h3><a name="method-33">setRequestTimeout:</a></h3>
 - (void) <b>setRequestTimeout:</b> (NSTimeInterval)seconds;<br>
 
 	    Sets the time interval that the NSConnection will to send
 	    one of its requests before raising an NSPortTimeoutException.
           
 <hr>
-<h2><a name="method-34">setRootObject:</a></h2>
+<h3><a name="method-34">setRootObject:</a></h3>
 - (void) <b>setRootObject:</b> (id)anObject;<br>
 
 	    Sets the root object that is vended by the connection.
           
 <hr>
-<h2><a name="method-35">statistics</a></h2>
-- (NSDictionary*) <b>statistics</b>;<br>
+<h3><a name="method-35">statistics</a></h3>
+- (<A HREF="NSDictionary.html#NSDictionary">NSDictionary</A>*) <b>statistics</b>;<br>
 
 	    Returns an object containing various statistics for the
 	    NSConnection.
@@ -520,8 +525,8 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 
           
 <hr>
-<h2><a name="method-36">authenticateComponents:withData:</a></h2>
-- (BOOL) <b>authenticateComponents:</b> (NSMutableArray*)components <b>withData:</b> (NSData*)authentication;<br>
+<h3><a name="method-36">authenticateComponents:withData:</a></h3>
+- (BOOL) <b>authenticateComponents:</b> (<A HREF="NSMutableArray.html#NSMutableArray">NSMutableArray</A>*)components <b>withData:</b> (NSData*)authentication;<br>
 Standards: GNUstep MacOS-X NotOpenStep<br>
 
 	    <p>
@@ -555,8 +560,8 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 
           
 <hr>
-<h2><a name="method-37">authenticationDataForComponents:</a></h2>
-- (NSData*) <b>authenticationDataForComponents:</b> (NSMutableArray*)components;<br>
+<h3><a name="method-37">authenticationDataForComponents:</a></h3>
+- (NSData*) <b>authenticationDataForComponents:</b> (<A HREF="NSMutableArray.html#NSMutableArray">NSMutableArray</A>*)components;<br>
 Standards: GNUstep MacOS-X NotOpenStep<br>
 
 	    <p>
@@ -590,8 +595,8 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 
           
 <hr>
-<h2><a name="connection:shouldMakeNewConnection">connection:shouldMakeNewConnection:</a></h2>
-- (BOOL) <b>connection:</b> (NSConnection*)parentConnection <b>shouldMakeNewConnection:</b> (NSConnection*)newConnnection;<br>
+<h3><a name="connection:shouldMakeNewConnection">connection:shouldMakeNewConnection:</a></h3>
+- (BOOL) <b>connection:</b> (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*)parentConnection <b>shouldMakeNewConnection:</b> (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*)newConnnection;<br>
 Standards: GNUstep MacOS-X NotOpenStep<br>
 
 	    <p>
@@ -613,8 +618,8 @@ Standards: GNUstep MacOS-X NotOpenStep<br>
 
           
 <hr>
-<h2><a name="method-38">makeNewConnection:</a></h2>
-- (BOOL) <b>makeNewConnection:</b> (NSConnection*)newConnection;<br>
+<h3><a name="method-38">makeNewConnection:</a></h3>
+- (BOOL) <b>makeNewConnection:</b> (<A HREF="NSConnection.html#NSConnection">NSConnection</A>*)newConnection;<br>
 Standards: OpenStep<br>
 
 	    <p>

@@ -98,7 +98,14 @@ Base_GSDOC_FILES = Base.gsdoc \
 	NSUnarchiver.gsdoc \
 	NSUndoManager.gsdoc \
 	NSUserDefaults.gsdoc \
-	NSValue.gsdoc
+	NSValue.gsdoc \
+	GSXML.gsdoc \
+	GSSAXHandler.gsdoc \
+	GSXMLAttribute.gsdoc \
+	GSXMLDocument.gsdoc \
+	GSXMLNamespace.gsdoc \
+	GSXMLNode.gsdoc \
+	GSXMLParser.gsdoc
 
 -include Makefile.preamble
 

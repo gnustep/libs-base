@@ -82,7 +82,7 @@
 	</subsect>
       </section>
       <section>
-	<heading>The classes</heading>
+	<heading>The Foundation classes</heading>
 	<list>
 	  <item><uref url="NSArchiver.html">NSArchiver</uref></item>
 	  <item><uref url="NSArray.html">NSArray</uref></item>
@@ -152,6 +152,12 @@
 	  <item><uref url="NSUndoManager.html">NSUndoManager</uref></item>
 	  <item><uref url="NSUserDefaults.html">NSUserDefaults</uref></item>
 	  <item><uref url="NSValue.html">NSValue</uref></item>
+	</list>
+      </section>
+      <section>
+	<heading>The GNUstep extension classes</heading>
+	<list>
+	  <item><uref url="GSXML.html">GSXML</uref></item>
 	</list>
       </section>
     </chapter>

@@ -16,7 +16,7 @@
 <h2><a name="cont-0">NSCountedSet</a></h2>
 <h2><a name="NSCountedSet">NSCountedSet</a></h2>
 <p><b>Declared in:</b> Foundation/NSSet.h</p>
-<p><b>Inherits from:</b> NSMutableSet</p>
+<p><b>Inherits from:</b> <A HREF="NSMutableSet.html#NSMutableSet">NSMutableSet</A></p>
 <p><b>Conforms to:</b> NSCoding
 </p>
 <hr>
@@ -35,6 +35,10 @@
 	    </p>
 
           
+<h2>Instance Variables</h2>
+<ul>
+</ul>
+<h2>Methods</h2>
 <ul>
 <li><a href="NSCountedSet.html#method-0">-addObject:</a>
 <li><a href="NSCountedSet.html#method-1">-allObjects</a>
@@ -48,8 +52,8 @@
 <li><a href="NSCountedSet.html#method-9">-removeObject:</a>
 <li><a href="NSCountedSet.html#method-10">-unique:</a>
 </ul>
-<hr>
-<h2><a name="method-0">addObject:</a></h2>
+<hr><h2>Instances Methods</h2>
+<h3><a name="method-0">addObject:</a></h3>
 - (void) <b>addObject:</b> (id)anObject;<br>
 
 	    Adds an object to the set.  If the set already contains an object
@@ -58,19 +62,19 @@
 	    than the new object being added.
           
 <hr>
-<h2><a name="method-1">allObjects</a></h2>
-- (NSArray*) <b>allObjects</b>;<br>
+<h3><a name="method-1">allObjects</a></h3>
+- (<A HREF="NSArray.html#NSArray">NSArray</A>*) <b>allObjects</b>;<br>
 
 	    Returns an array containing all the objects stored in the set.
           
 <hr>
-<h2><a name="method-2">count</a></h2>
+<h3><a name="method-2">count</a></h3>
 - (unsigned int) <b>count</b>;<br>
 
 	    Returns the number of objects stored in the set.
           
 <hr>
-<h2><a name="method-3">countForObject:</a></h2>
+<h3><a name="method-3">countForObject:</a></h3>
 - (unsigned int) <b>countForObject:</b> (id)anObject;<br>
 
 	    Returns the number of times that an object that is equal to the
@@ -78,36 +82,36 @@
 	    been added to the set and not removed from it.
           
 <hr>
-<h2><a name="method-4">initWithArray:</a></h2>
-- (id) <b>initWithArray:</b> (NSArray*)anArray;<br>
+<h3><a name="method-4">initWithArray:</a></h3>
+- (id) <b>initWithArray:</b> (<A HREF="NSArray.html#NSArray">NSArray</A>*)anArray;<br>
 
 	    Initialises a newly allocated set by adding all the objects
 	    in the supplied array to the set.  Each object is added to
 	    the set as many times as it occurs in the array.
           
 <hr>
-<h2><a name="method-5">initWithCapacity:</a></h2>
+<h3><a name="method-5">initWithCapacity:</a></h3>
 - (id) <b>initWithCapacity:</b> (unsigned int)numItems;<br>
 
 	    Initialises a newly allocated set to contain no objects but
 	    to have space available to hold the specified number of items.
           
 <hr>
-<h2><a name="method-6">initWithSet:</a></h2>
-- (id) <b>initWithSet:</b> (NSSet*)aSet;<br>
+<h3><a name="method-6">initWithSet:</a></h3>
+- (id) <b>initWithSet:</b> (<A HREF="NSSet.html#NSSet">NSSet</A>*)aSet;<br>
 
 	    Initialises a newly allocated set by adding all the objects
 	    in the supplied set.
           
 <hr>
-<h2><a name="method-7">objectEnumerator</a></h2>
-- (NSEnumerator*) <b>objectEnumerator</b>;<br>
+<h3><a name="method-7">objectEnumerator</a></h3>
+- (<A HREF="NSEnumerator.html#NSEnumerator">NSEnumerator</A>*) <b>objectEnumerator</b>;<br>
 
 	    Returns an NSEnumerator object able to step through all the
 	    objects in the set.
           
 <hr>
-<h2><a name="method-8">purge:</a></h2>
+<h3><a name="method-8">purge:</a></h3>
 - (void) <b>purge:</b> (int)count;<br>
 Standards: NotOpenStep NotMacOS-X<br>
 
@@ -126,7 +130,7 @@ Standards: NotOpenStep NotMacOS-X<br>
 
           
 <hr>
-<h2><a name="method-9">removeObject:</a></h2>
+<h3><a name="method-9">removeObject:</a></h3>
 - (void) <b>removeObject:</b> (id)anObject;<br>
 
 	    Decrements the count of the number of times that the specified
@@ -135,7 +139,7 @@ Standards: NotOpenStep NotMacOS-X<br>
 	    becomes zero, the object is removed from the set.
           
 <hr>
-<h2><a name="method-10">unique:</a></h2>
+<h3><a name="method-10">unique:</a></h3>
 - (id) <b>unique:</b> (id)anObject;<br>
 Standards: NotOpenStep NotMacOS-X<br>
 

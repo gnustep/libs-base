@@ -16,12 +16,16 @@
 <h2><a name="cont-0">NSDistributedNotificationCenter</a></h2>
 <h2><a name="NSDistributedNotificationCenter">NSDistributedNotificationCenter</a></h2>
 <p><b>Declared in:</b> Foundation/NSDistributedNotificationCenter.h</p>
-<p><b>Inherits from:</b> NSNotificationCenter</p>
+<p><b>Inherits from:</b> <A HREF="NSNotificationCenter.html#NSNotificationCenter">NSNotificationCenter</A></p>
 <p><b>Conforms to:</b> NSObject
 </p>
 <hr>
 
           
+<h2>Instance Variables</h2>
+<ul>
+</ul>
+<h2>Methods</h2>
 <ul>
 <li><a href="NSDistributedNotificationCenter.html#method-0">+defaultCenter</a>
 <li><a href="NSDistributedNotificationCenter.html#method-1">+notificationCenterForType:</a>
@@ -35,58 +39,59 @@
 <li><a href="NSDistributedNotificationCenter.html#method-9">-setSuspended:</a>
 <li><a href="NSDistributedNotificationCenter.html#method-10">-suspended</a>
 </ul>
-<hr>
-<h2><a name="method-0">defaultCenter</a></h2>
-+ (NSNotificationCenter*) <b>defaultCenter</b>;<br>
+<hr><h2>Class Methods</h2>
+<h3><a name="method-0">defaultCenter</a></h3>
++ (<A HREF="NSNotificationCenter.html#NSNotificationCenter">NSNotificationCenter</A>*) <b>defaultCenter</b>;<br>
 
           
 <hr>
-<h2><a name="method-1">notificationCenterForType:</a></h2>
-+ (NSDistributedNotificationCenter*) <b>notificationCenterForType:</b> (NSString*)type;<br>
+<h3><a name="method-1">notificationCenterForType:</a></h3>
++ (<A HREF="NSDistributedNotificationCenter.html#NSDistributedNotificationCenter">NSDistributedNotificationCenter</A>*) <b>notificationCenterForType:</b> (<A HREF="NSString.html#NSString">NSString</A>*)type;<br>
 
           
 <hr>
-<h2><a name="method-2">addObserver:selector:name:</a></h2>
-- (void) <b>addObserver:</b> (id)anObserver <b>selector:</b> (SEL)aSelector <b>name:</b> (NSString*)notificationName;<br>
+<hr><h2>Instances Methods</h2>
+<h3><a name="method-2">addObserver:selector:name:</a></h3>
+- (void) <b>addObserver:</b> (id)anObserver <b>selector:</b> (SEL)aSelector <b>name:</b> (<A HREF="NSString.html#NSString">NSString</A>*)notificationName;<br>
 
           
 <hr>
-<h2><a name="method-3">addObserver:selector:name:object:suspensionBehavior:</a></h2>
-- (void) <b>addObserver:</b> (id)anObserver <b>selector:</b> (SEL)aSelector <b>name:</b> (NSString*)notificationName <b>object:</b> (NSString*)anObject <b>suspensionBehavior:</b> (NSNotificationSuspensionBehavior)suspensionBehavior;<br>
+<h3><a name="method-3">addObserver:selector:name:object:suspensionBehavior:</a></h3>
+- (void) <b>addObserver:</b> (id)anObserver <b>selector:</b> (SEL)aSelector <b>name:</b> (<A HREF="NSString.html#NSString">NSString</A>*)notificationName <b>object:</b> (<A HREF="NSString.html#NSString">NSString</A>*)anObject <b>suspensionBehavior:</b> (NSNotificationSuspensionBehavior)suspensionBehavior;<br>
 
           
 <hr>
-<h2><a name="method-4">postNotification:</a></h2>
-- (void) <b>postNotification:</b> (NSNotification*)notification;<br>
+<h3><a name="method-4">postNotification:</a></h3>
+- (void) <b>postNotification:</b> (<A HREF="NSNotification.html#NSNotification">NSNotification</A>*)notification;<br>
 
           
 <hr>
-<h2><a name="method-5">postNotificationName:</a></h2>
-- (void) <b>postNotificationName:</b> (NSString*)notificationName;<br>
+<h3><a name="method-5">postNotificationName:</a></h3>
+- (void) <b>postNotificationName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)notificationName;<br>
 
           
 <hr>
-<h2><a name="method-6">postNotificationName:object:userInfo:</a></h2>
-- (void) <b>postNotificationName:</b> (NSString*)notificationName <b>object:</b> (NSString*)anObject <b>userInfo:</b> (NSDictionary*)userInfo;<br>
+<h3><a name="method-6">postNotificationName:object:userInfo:</a></h3>
+- (void) <b>postNotificationName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)notificationName <b>object:</b> (<A HREF="NSString.html#NSString">NSString</A>*)anObject <b>userInfo:</b> (<A HREF="NSDictionary.html#NSDictionary">NSDictionary</A>*)userInfo;<br>
 
           
 <hr>
-<h2><a name="method-7">postNotificationName:object:userInfo:deliverImmediately:</a></h2>
-- (void) <b>postNotificationName:</b> (NSString*)notificationName <b>object:</b> (NSString*)anObject <b>userInfo:</b> (NSDictionary*)userInfo <b>deliverImmediately:</b> (BOOL)deliverImmediately;<br>
+<h3><a name="method-7">postNotificationName:object:userInfo:deliverImmediately:</a></h3>
+- (void) <b>postNotificationName:</b> (<A HREF="NSString.html#NSString">NSString</A>*)notificationName <b>object:</b> (<A HREF="NSString.html#NSString">NSString</A>*)anObject <b>userInfo:</b> (<A HREF="NSDictionary.html#NSDictionary">NSDictionary</A>*)userInfo <b>deliverImmediately:</b> (BOOL)deliverImmediately;<br>
 
           
 <hr>
-<h2><a name="method-8">removeObserver:name:object:</a></h2>
-- (void) <b>removeObserver:</b> (id)anObserver <b>name:</b> (NSString*)notificationName <b>object:</b> (NSString*)anObject;<br>
+<h3><a name="method-8">removeObserver:name:object:</a></h3>
+- (void) <b>removeObserver:</b> (id)anObserver <b>name:</b> (<A HREF="NSString.html#NSString">NSString</A>*)notificationName <b>object:</b> (<A HREF="NSString.html#NSString">NSString</A>*)anObject;<br>
 
           
 <hr>
-<h2><a name="method-9">setSuspended:</a></h2>
+<h3><a name="method-9">setSuspended:</a></h3>
 - (void) <b>setSuspended:</b> (BOOL)suspended;<br>
 
           
 <hr>
-<h2><a name="method-10">suspended</a></h2>
+<h3><a name="method-10">suspended</a></h3>
 - (BOOL) <b>suspended</b>;<br>
 
           
