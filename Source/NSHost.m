@@ -57,12 +57,28 @@ static NSString			*myHostName = nil;
 
 
 @interface NSHost (Private)
+- (void) _addName: (NSString*)name;
 + (struct hostent*) _entryForAddress: (NSString*)address;
 - (id) _initWithHostEntry: (struct hostent*)entry key: (NSString*)key;
 + (NSMutableSet*) _localAddresses;
 @end
 
 @implementation NSHost (Private)
+
+- (void) _addName: (NSString*)name
+{
+  NSMutableSet	*s = [_names mutableCopy];
+
+  name = [name copy];
+  [s addObject: name];
+  ASSIGNCOPY(_names, s);
+  RELEASE(s);
+  if (_hostCacheEnabled == YES)
+    {
+      [_hostCache setObject: self forKey: name];
+    }
+  RELEASE(name);
+}
 
 + (struct hostent*) _entryForAddress: (NSString*)address
 {
@@ -287,9 +303,22 @@ static NSString			*myHostName = nil;
 	  h = gethostbyname((char*)[name cString]);
 	  if (h == 0)
 	    {
-	      NSLog(@"Host '%@' not found using 'gethostbyname()' - perhaps "
-		@"the hostname is wrong or networking is not set up on your "
-		@"machine", name);
+	      if ([name isEqualToString: myHostName] == YES)
+		{
+		  NSLog(@"No network address appears to be available "
+		    @"for this machine (%@) - using loopback address "
+		    @"(127.0.0.1)", name);
+		  NSLog(@"You probably need a line like '"
+		    @"127.0.0.1 %@ localhost' in your /etc/hosts file");
+		  host = [self hostWithAddress: @"127.0.0.1"];
+		  [host _addName: name];
+		}
+	      else
+		{
+		  NSLog(@"Host '%@' not found using 'gethostbyname()' - "
+		    @"perhaps the hostname is wrong or networking is not "
+		    @"set up on your machine", name);
+		}
 	    }
 	  else
 	    {
