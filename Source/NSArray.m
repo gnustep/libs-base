@@ -25,6 +25,7 @@
 #include <foundation/NSArray.h>
 #include <foundation/NSString.h>
 #include <foundation/NSConcreteArray.h>
+#include <foundation/NSArrayEnumerator.h>
 #include <limits.h>
 
 @implementation NSArray
@@ -231,14 +232,12 @@
 
 - (NSEnumerator*) objectEnumerator
 {
-  [self notImplemented:_cmd];
-  return nil;
+  return [[NSArrayEnumerator alloc] initWithArray:self];
 }
 
 - (NSEnumerator*) reverseObjectEnumerator
 {
-  [self notImplemented:_cmd];
-  return nil;
+  return [[NSArrayEnumeratorReverse alloc] initWithArray:self];
 }
 
 - (NSString*) description
