@@ -1097,22 +1097,22 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
  *	archive and readi it back, the new copy will never be deallocated -
  *	causing a memory leak.  So we tell the system to use the super class.
  */
-- (Class)classForArchiver
+- (Class) classForArchiver
 {
   return [self superclass];
 }
 
-- (Class)classForCoder
+- (Class) classForCoder
 {
   return [self superclass];
 }
 
-- (Class)classForPortCoder
+- (Class) classForPortCoder
 {
   return [self superclass];
 }
 
-- (void)dealloc
+- (void) dealloc
 {
 }
 
@@ -1132,6 +1132,11 @@ stringDecrementCountAndFillHoleAt(NSGMutableCStringStruct *self,
 }
 
 - autorelease
+{
+  return self;
+}
+
+- copy
 {
   return self;
 }

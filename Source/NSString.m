@@ -697,7 +697,7 @@ handle_printf_atsign (FILE *stream,
 
   [self getCharacters: s];
   [aString getCharacters: s+len];
-  tmp = [[[self class] allocWithZone: z] initWithCharactersNoCopy: s
+  tmp = [[NSString_concrete_class allocWithZone: z] initWithCharactersNoCopy: s
 		    length: len+otherLength fromZone: z];
   return AUTORELEASE(tmp);
 }
@@ -763,7 +763,7 @@ handle_printf_atsign (FILE *stream,
   z = fastZone(self);
   buf = NSZoneMalloc(z, sizeof(unichar)*aRange.length);
   [self getCharacters: buf range: aRange];
-  ret = [[[self class] allocWithZone: NSDefaultMallocZone()]
+  ret = [[NSString_concrete_class allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: buf length: aRange.length fromZone: z];
   return AUTORELEASE(ret);
 }
@@ -1293,7 +1293,8 @@ handle_printf_atsign (FILE *stream,
   s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
   for (count = 0; count < len; count++)
     s[count] = uni_tolower([self characterAtIndex: count]);
-  return AUTORELEASE([[[self class] allocWithZone: NSDefaultMallocZone()]
+  return AUTORELEASE([[NSString_concrete_class
+    allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len fromZone: z]);
 }
 
@@ -1307,7 +1308,8 @@ handle_printf_atsign (FILE *stream,
   s = NSZoneMalloc(z, sizeof(unichar)*(len+1));
   for (count = 0; count < len; count++)
     s[count] = uni_toupper([self characterAtIndex: count]);
-  return AUTORELEASE([[[self class] allocWithZone: NSDefaultMallocZone()]
+  return AUTORELEASE([[NSString_concrete_class
+    allocWithZone: NSDefaultMallocZone()]
     initWithCharactersNoCopy: s length: len fromZone: z]);
 }
 
