@@ -551,11 +551,6 @@
   return newColl;
 }
 
-- copy
-{
-  return [self copyAs:[self species]];
-}
-
 - species
 {
   return [self class];
