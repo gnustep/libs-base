@@ -1,3 +1,124 @@
+Sun Jan  5 17:41:37 1997  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	Further changes for the NSString implementation.
+
+	* src/NSGCString.m ([NSGMutableCString -insertString:atIndex:]):
+ 	Use -cStringNoCopy instead of the removed method
+ 	-_cStringContents.
+
+	* src/include/Stream.h (StreamException): Change type to NSString
+ 	from id <String>.
+
+	* src/include/NSUserDefaults.h (NSUserName, NSHomeDirectory,
+ 	NSDirectoryForUser): Declare them unconditionally; before it was
+ 	conditioned on NEXT_FOUNDATION.
+
+	* src/include/NSUser.h (NSUserName, NSHomeDirectory,
+ 	NSDirectoryForUser): Change the return types from (char*) to
+ 	(NSString*).
+
+	* src/include/NSArray.h: Don't include <gnustep/base/String.h>
+	* src/include/Streaming.h: Likewise.
+	* src/include/Port.h: Likewise.
+	* src/include/Coder.h: Likewise.
+
+	Changes to send -awakeAfterUsingDecoder, and to do the proper
+	object substitution if necessary.
+
+	* src/Decoder.m ([Decoder
+ 	+readSignatureFromCStream:csgetClassname:
+ 	nameformatVersion:version]): Better commented.
+	([Decoder -_coderSubstituteObject:atReference:]): New method.
+	([Decoder -_coderPushRootObjectTable]): Better commented.
+	([Decoder -finishDecodingInterconnectedObjects]): Implement an
+	approach to root-object-based -awakeAfterUsingCoder.
+	([Decoder -decodeObjectAt:anObjPtr:name]): Send -awakeAfterUsingCoder:
+	here.  First see if the object actually responds to it, then send
+ 	it and make the object substitution if necessary.  Also make the
+ 	appropriate substitution in Decoder's internal tables matching
+ 	references numbers to objects.
+
+	* src/Encoder.m (DEFAULT_DEFAULT_FORMAT_VERSION): Renamed from
+ 	DEFAULT_FORMAT_VERSION, for clarity with variable by the same old
+ 	name.
+
+	* checks/fref.m: Add comment and move around headers for easier
+ 	reading.
+
+	* src/include/NSAutoreleasePool.h (init_autorelease_thread_vars):
+ 	Make it a macro instead of a static inline function.  This avoids
+ 	the warning with not optimizing.
+
+	* checks/Makefile.in (CFLAGS): Remove -O, for easier debugging.
+	(SRCS): Added awake.m.
+	* checks/awake.m: New file, testing -awakeAfterUsingCoder:.
+
+Sun Nov 24 09:20:47 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/NSString.m: Fixed `Caveats' comment.
+	([NSString -commonPrefixWithString:options:]): Method implemeneted.
+	([NSString -capitalizedString]): Method implemented.
+	([NSString -lowercaseString]): Method implemented.
+	([NSString -uppercaseString]): Method implemented.
+	([NSString -stringByExpandingTildeInPath]): Method implemented.
+	([NSString -stringByAbbreviatingWithTildeInPath]): Method implemented.
+	([NSString -stringByStandardizingPath]): Method implemented.
+	([NSString -_cStringContents]): Method removed.  All callers changed
+	to use -cStringNoCopy.
+	([NSString -objectAtIndex:]): Method removed.
+
+	* src/include/NSString.h: Moved non-OpenStep methods aside, put
+ 	some under STRICT_OPENSTEP, others under NO_GNUSTEP.  Reordered
+ 	declarations to match.
+	[NSString -_cStringContents]: Method removed.
+
+	* src/ostream.m: Don't use old String methods; use NSString
+ 	methods.
+
+	* src/include/NSString.h: Don't include <gnustep/base/String.h>
+ 	and <gnustep/base/IndexCollection.h>.
+	[!NO_GNUSTEP]: Declare -cStringNoCopy.
+
+	* src/UdpPort.m: Don't include <gnustep/base/String.h>
+
+	* src/TextCStream.m ([TextCStream -decodeName:name]): Don't use
+ 	the non-existant +stringWithCStringNoCopy:.
+	* src/Stream.m ([Stream -readLine]): Likewise.
+	* src/MemoryStream.m ([MemoryStream -readLine]): Likewise.
+
+	* src/NSString.m ([NSString -cStringNoCopy]): New method.
+
+	* src/NSGCString.m ([NSGCString -emptyCopy]): Method removed.  It
+ 	was part of the Collecting protocol.
+	([NSGMutableCString -emptyCopy:]): Likewise.
+
+	* src/*.m, src/include/*.h: Substitute (NSString*) for (id
+	<String>).
+
+	* src/Makefile.in (GNU_MFILES): Remove CString.m,
+ 	ConstantString.m, MutableString.m, MutableCString.m, String.m.
+	(GNU_HEADERS): Remove include/String.h.
+
+	* src/NSString.m: Don't include <gnustep/base/String.h>.
+	([NSString +initialize]): Don't use static variable to prevent getting
+	run twice.
+
+Mon Nov 18 11:30:39 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* STATUS: Removed classes NSBTreeBlock, NSBTreeCursor,
+ 	NSByteStore, and NSByteStoreFile since they are no longer part of
+ 	the OpenStep standard.
+
+Sat Nov  2 15:39:56 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
+
+	* src/Decoder.m ([Decoder
+ 	-_coderCreateReferenceForInterconnectedObject:]): Autorelease the
+ 	placeholder object to prevent memory leak.
+
+	* src/Connection.m ([Connection
+ 	-forwardForProxy:selector:argFrame:]): Add an assertion that we
+ 	processed all arguments and dismissed the ConnectedCoder.
+
 Thu Oct 31 11:54:42 1996  Andrew McCallum  <mccallum@cs.cmu.edu>
 
 	* Version (SUBMINOR_VERSION): Version 0.2.11.
