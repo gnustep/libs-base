@@ -88,7 +88,12 @@
    Due to this delayed release, the function that receives the object
    as a return value will have the opportunity to retain the object
    before the "release" instigated by the "autorelease" actually
-   takes place. */
+   takes place. 
+
+   For the object to be autoreleased, you must have previously created
+   a AutoreleasePool or an AutoreleaseStack.  If you don't, however,
+   your program won't crash, the release corresponding to the
+   autorelease will just never happen. */
 
 @end
 

@@ -1,4 +1,4 @@
-/* Support for general purpose definitions for the Collection Library.
+/* Support for general purpose definitions for libobjects.
    Copyright (C) 1993,1994 Free Software Foundation, Inc.
 
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
