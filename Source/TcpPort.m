@@ -53,7 +53,7 @@
    Just define it to use GCC's builtin memset(). */
 #define bzero(PTR, LEN) memset (PTR, 0, LEN)
 
-static int debug_tcp_port = 1;
+static int debug_tcp_port = 0;
 
 
 /* Private interfaces */
