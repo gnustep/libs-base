@@ -100,8 +100,10 @@ void	_fastBuildCache()
  *	correct zone to free memory very fast.
  */
 
+#if	GS_WITH_GC == 0
 #define	REFCNT_LOCAL	1
 #define	CACHE_ZONE	1
+#endif
 
 #if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
 
@@ -139,6 +141,22 @@ typedef	struct obj_layout *obj;
 
 #endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
 
+
+#if	GS_WITH_GC
+
+void
+NSIncrementExtraRefCount(id anObject)
+{
+}
+#define	NSIncrementExtraRefCount(X) 
+BOOL
+NSDecrementExtraRefCountWasZero(id anObject)
+{
+  return NO;
+}
+#define NSDecrementExtraRefCountWasZero(X)	NO
+
+#else	/* GS_WITH_GC	*/
 
 /*
  *	Now do conditional compilation of reference count functions
@@ -226,12 +244,72 @@ extraRefCount (id anObject)
 
 #endif	/* defined(REFCNT_LOCAL) */
 
+#endif	/* GS_WITH_GC */
+
 
 /*
  *	Now do conditional compilation of memory allocation functions
  *	depending on what information (if any) we are storing before
  *	the start of each object.
  */
+#if	GS_WITH_GC
+
+inline NSZone *
+fastZone(NSObject *object)
+{
+  return 0;
+}
+
+static void
+GSFinalize(void* object, void* data)
+{
+  [(id)object gcFinalize];
+
+  /* Set the class of anObject to FREED_OBJECT. The further messages to this
+     object will cause an error to occur. */
+  ((id)object)->class_pointer = __freedObjectClass;
+
+#ifndef	NDEBUG
+  GSDebugAllocationRemove(((id)object)->class_pointer);
+#endif
+  ((id)object)->class_pointer = (void*) 0xdeadface;
+}
+
+inline NSObject *
+NSAllocateObject (Class aClass, unsigned extraBytes, NSZone *zone)
+{
+  id new = nil;
+  int size = aClass->instance_size + extraBytes;
+  if (CLS_ISCLASS (aClass))
+    new = NSZoneMalloc (zone, size);
+  if (new != nil)
+    {
+      memset (new, 0, size);
+      new->class_pointer = aClass;
+    }
+  if ([new respondsToSelector: @selector(gcFinalize)])
+    {
+#ifndef	NDEBUG
+      /*
+       *	We only do allocation counting for objects that can be
+       *	finalised - for other objects we have no way of decrementing
+       *	the count when the object is collected.
+       */
+      GSDebugAllocationAdd(aClass);
+#endif
+      GC_REGISTER_FINALIZER (new, GSFinalize, NULL, NULL, NULL);
+    }
+
+  return new;
+}
+
+inline void
+NSDeallocateObject(NSObject *anObject)
+{
+}
+
+#else	/* GS_WITH_GC */
+
 #if	defined(REFCNT_LOCAL) || defined(CACHE_ZONE)
 
 #if defined(CACHE_ZONE)
@@ -239,9 +317,9 @@ extraRefCount (id anObject)
 inline NSZone *
 fastZone(NSObject *object)
 {
-    if (fastClass(object) == _fastCls._NXConstantString)
-	return NSDefaultMallocZone();
-    return ((obj)object)[-1].zone;
+  if (fastClass(object) == _fastCls._NXConstantString)
+    return NSDefaultMallocZone();
+  return ((obj)object)[-1].zone;
 }
 
 #else	/* defined(CACHE_ZONE)	*/
@@ -249,9 +327,9 @@ fastZone(NSObject *object)
 inline NSZone *
 fastZone(NSObject *object)
 {
-    if (fastClass(object) == _fastCls._NXConstantString)
-	return NSDefaultMallocZone();
-    return NSZoneFromPointer(&((obj)object)[-1]);
+  if (fastClass(object) == _fastCls._NXConstantString)
+    return NSDefaultMallocZone();
+  return NSZoneFromPointer(&((obj)object)[-1]);
 }
 
 #endif	/* defined(CACHE_ZONE)	*/
@@ -345,11 +423,17 @@ NSDeallocateObject(NSObject *anObject)
 
 #endif	/* defined(REFCNT_LOCAL) || defined(CACHE_ZONE) */
 
+#endif	/* GS_WITH_GC */
+
 BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 {
-    return (!requestedZone || requestedZone == NSDefaultMallocZone()
+#if	GS_WITH_GC
+  return YES;
+#else
+  return (!requestedZone || requestedZone == NSDefaultMallocZone()
 	  || fastZone(anObject) == requestedZone);
+#endif
 }
 
 
@@ -630,6 +714,7 @@ static BOOL double_release_check_enabled = NO;
 
 - autorelease
 {
+#if	GS_WITH_GC == 0
   if (double_release_check_enabled)
     {
       unsigned release_count;
@@ -643,6 +728,7 @@ static BOOL double_release_check_enabled = NO;
     }
 
   (*autorelease_imp)(autorelease_class, autorelease_sel, self);
+#endif
   return self;
 }
 
@@ -781,6 +867,7 @@ static BOOL double_release_check_enabled = NO;
 
 - (oneway void) release
 {
+#if	GS_WITH_GC == 0
   if (double_release_check_enabled)
     {
       unsigned release_count;
@@ -793,7 +880,7 @@ static BOOL double_release_check_enabled = NO;
 
   if (NSDecrementExtraRefCountWasZero(self))
     [self dealloc];
-  return;
+#endif
 }
 
 + (oneway void) release
@@ -815,7 +902,9 @@ static BOOL double_release_check_enabled = NO;
 
 - retain
 {
+#if	GS_WITH_GC == 0
   NSIncrementExtraRefCount(self);
+#endif
   return self;
 }
 
@@ -826,7 +915,11 @@ static BOOL double_release_check_enabled = NO;
 
 - (unsigned) retainCount
 {
+#if	GS_WITH_GC
+  return UINT_MAX;
+#else
   return extraRefCount(self) + 1;
+#endif
 }
 
 + (unsigned) retainCount

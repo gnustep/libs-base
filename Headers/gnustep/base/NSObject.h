@@ -192,6 +192,15 @@ extern NSRecursiveLock *gnustep_global_lock;
 - read: (TypedStream*)aStream;
 - write: (TypedStream*)aStream;
 @end
+
+/*
+ *	Protocol for garbage collection finalization - same as libFoundation
+ *	for compatibility.
+ */
+@protocol       GCFinalization
+- (void) gcFinalize;
+@end
+
 #endif
 
 #include <Foundation/NSDate.h>
@@ -210,8 +219,22 @@ extern NSRecursiveLock *gnustep_global_lock;
 
 /*
  *	RETAIN(), RELEASE(), and AUTORELEASE() are placeholders for the
- *	(possible)  future day when we have garbage collecting.
+ *	future day when we have garbage collecting.
  */
+#ifndef	GS_WITH_GC
+#define	GS_WITH_GC	0
+#endif
+#if	GS_WITH_GC
+
+#define	RETAIN(object)		((id)object)
+#define	RELEASE(object)		
+#define	AUTORELEASE(object)	((id)object)
+
+#define	ASSIGN(object,value)	(object = value)
+#define	DESTROY(object) 	(object = nil)
+
+#else
+
 #define	RETAIN(object)		[object retain]
 #define	RELEASE(object)		[object release]
 #define	AUTORELEASE(object)	[object autorelease]
@@ -241,5 +264,6 @@ if (value != object) \
  *	object later.
  */
 #define	DESTROY(object) 	([object release], object = nil)
+#endif
 
 #endif /* __NSObject_h_GNUSTEP_BASE_INCLUDE */
