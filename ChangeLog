@@ -1,3 +1,8 @@
+2002-12-31  Kelvin  <kelvin@xbar.org>
+
+	* Source/NSPage.m (NSRealMemoryAvailable): Add support for MINGW
+	and BeOS.
+
 2002-12-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	*  Source/GSEQ.h: Optimisations for normalising sequences, especially
