@@ -1,3 +1,16 @@
+2000-07-16  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Headers/gnustep/base/NSDecimal.h:
+	* Headers/gnustep/base/NSDecimalNumber.h:
+	Included missing functions and changed type definition.
+	* Source/NSDecimal.m:
+	Basic implementation of NSDecimal. An implementation using GMP
+	will follow.
+	* Source/NSDecimalNumber.m:
+	Use the NSDecimal functions for this class
+	* Source/GNUMakefile:
+	Add NSDecimal and NSDecimalNumber
+
 2000-07-07  Jonathan Gapen <jagapen@home.com>
 
 	* Source/NSString.m: (-initWithFormat:), (-initWithFormat:locale:),
