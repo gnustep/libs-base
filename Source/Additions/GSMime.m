@@ -3378,6 +3378,17 @@ static NSCharacterSet	*tokenSet = nil;
 	  charsets = NSCreateMapTable (NSObjectMapKeyCallBacks,
 	    NSIntMapValueCallBacks, 0);
 
+	  /*
+	   * These mappings were obtained from
+	   * http://www.iana.org/assignments/character-sets
+	   *
+	   * We should ideally have all the aliases for each
+	   * encoding we support, but I just did the aliases
+	   * for ascii and latin1 as these (and utf-8 which
+	   * has no aliases) account for most mime documents.
+	   * Feel free to add more.
+	   */
+
 	  // All the ascii mappings from IANA
 	  NSMapInsert(charsets, (void*)@"ansi_x3.4-1968",
 	    (void*)NSASCIIStringEncoding);
@@ -3473,6 +3484,16 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  encodings = NSCreateMapTable (NSIntMapKeyCallBacks,
 	    NSObjectMapValueCallBacks, 0);
+
+	  /* While the charset mappings above are many to one,
+	   * mapping a variety of names to one encoding,
+	   * the encodings map is a one to one mapping.
+	   *
+	   * The charset names used here should be the PREFERRED
+	   * charset names from the IANA registration if one is
+	   * specified.
+	   * We adopt the convention that all names are in lowercase.
+	   */
 	  NSMapInsert(encodings, (void*)NSASCIIStringEncoding,
 	    (void*)@"us-ascii");
 	  NSMapInsert(encodings, (void*)NSISOLatin1StringEncoding,
