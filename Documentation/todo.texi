@@ -12,9 +12,6 @@ help is greatly appreciated.  Send email to
 
 @itemize
 
-@item Make the GNU Objective C runtime thread-safe.  (Again, someone?
-We really need this.)  [This might be claimed.]
-
 @item Write a test-suite for the library.  Use dejagnu.
 
 @item Write a proper name server for SocketPort's.  Currently we're just
@@ -37,7 +34,7 @@ been created.
 argument to @@encode() and get a type string like the selector types.
 @end enumerate
 
-@item Notification registration classes, notification classes.  
+@item GNU Notification registration classes, notification classes.  
 
 @item Write more/better random number generators.  Make them conform to
 the protocol <RandomGenerating>.  See RNGAdditiveCongruential.
@@ -60,6 +57,8 @@ a list of the claimed and unclaimed GNUStep classes.
 @section My To Do's
 
 @itemize @bullet
+
+@item Make my NS... classes raise the NSExceptions they are supposed to.
 
 @item Resolve the method type conflicts between GNUStep and the
 Collection classes.
