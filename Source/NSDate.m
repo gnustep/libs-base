@@ -909,7 +909,7 @@ GSTimeNow()
   NSCalendarDate	*d = [calendarClass alloc];
 
   d = [d initWithString: description];
-  [self initWithTimeIntervalSinceReferenceDate: otherTime(d)];
+  self = [self initWithTimeIntervalSinceReferenceDate: otherTime(d)];
   RELEASE(d);
   return self;
 }

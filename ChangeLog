@@ -1,5 +1,10 @@
 2000-04-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSCalendarDate.m: Fix memory leak when initialising from
+	string.
+
+2000-04-20  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSTcpPort.m: define INADDR_NONE to be -1 on systems where
 	it is not defined.
 
