@@ -49,6 +49,7 @@
 #include "Foundation/NSFileManager.h"
 #include "Foundation/NSPathUtilities.h"
 #include "Foundation/NSValue.h"
+#include "GNUstepBase/GSFunctions.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -222,6 +223,18 @@ _bundle_name_first_match(NSString* directory, NSString* name)
   return nil;
 }
 
+/* Try to locate name framework in standard places
+   which are like /Library/Frameworks/(name).framework */
+static inline NSString *
+_find_framework(NSString *name)
+{                
+  NSArray  *paths;
+           
+  paths = NSSearchPathForDirectoriesInDomains(GSFrameworksDirectory,
+            NSAllDomainsMask,YES);
+  return GSFindNamedFile(paths, name, @"framework");  
+}        
+
 @interface NSBundle (Private)
 + (void) _addFrameworkFromClass: (Class)frameworkClass;
 - (NSArray *) _bundleClasses;
@@ -255,15 +268,10 @@ _bundle_name_first_match(NSString* directory, NSString* name)
    loaded.  If that doesn't work, because the dynamic linker can't
    provide this information on this platform (or maybe because the
    framework was statically linked into the application), we have a
-   fallback trick :-) we can ask to the NSFramework_xxx class the path
-   to were the framework bundle was supposed to be installed (this is
-   recorded the first time when the NSFramework_xxx class is generated
-   at compile time; it's not completely reliable - for example the
-   programmer might change it later on by specifying a different
-   GNUSTEP_INSTALLATION_DIR when installing ... (TODO - modify
-   gnustep-make so that it issues a warning if you do that, suggesting
-   you to recompile before installing!)), and search for the framework
-   there.
+   fallback trick :-) We look for the framework in the standard
+   locations and in the main bundle.  This might fail if the framework
+   is not in a standard location or there is more than one installed
+   framework of the same name (and different versions?).
 
    So at startup, we scan all classes which were compiled into the
    application.  For each NSFramework_ class, we call the following
@@ -374,7 +382,7 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 		  bundle = [[self alloc] initWithPath: bundlePath];
 		}
 	    }
-	
+
 	  /* Failed - buu - try the fallback trick.  */
 	  if (bundle == nil)
 	    {
@@ -389,58 +397,28 @@ _bundle_name_first_match(NSString* directory, NSString* name)
 	   * objc_get_symbol_path() is risky (some platforms don't
 	   * have it at all!), so this hack might be used a lot!  It
 	   * must be quite robust.  We try to look for the framework
-	   * in the standard GNUstep installation dirs.  This should
-	   * be reasonably safe if the user is not being too clever
-	   * ... :-)
+	   * in the standard GNUstep installation dirs and in the main
+	   * bundle.  This should be reasonably safe if the user is
+	   * not being too clever ... :-)
 	  */
-	  NSString *varEnv, *path;
-	
-	  /* varEnv is something like GNUSTEP_LOCAL_ROOT.  */
-	  varEnv = [frameworkClass frameworkEnv];
-	  if (varEnv != nil  &&  [varEnv length] > 0)
+          bundlePath = _find_framework(name);
+	  if (bundlePath == nil)
 	    {
-	      /* FIXME - I don't think we should be reading it from
-		 the environment directly!  */
-	      bundlePath = [[[NSProcessInfo processInfo] environment]
-			     objectForKey: varEnv];
+	      bundlePath = [[NSBundle mainBundle] pathForResource: name
+						  ofType: @"framework"
+						  inDirectory: @"Frameworks"];
 	    }
-	
-	  /* FIXME - path is something like ?.  */
-	  path = [frameworkClass frameworkPath];
-	  if (path && [path length])
-	    {
-	      if (bundlePath)
-		{
-		  bundlePath = [bundlePath stringByAppendingPathComponent:
-					     path];
-		}
-	      else
-		{
-		  bundlePath = path;
-		}
-	    }
-	  else
-	    {
-	      bundlePath = [bundlePath stringByAppendingPathComponent:
-					 @"Library/Frameworks"];
-	    }
-	
-	  bundlePath = [bundlePath stringByAppendingPathComponent:
-				     [NSString stringWithFormat:
-						 @"%@.framework",
-					       name]];
 
 	  /* Try creating the bundle.  */
-	  bundle = [[self alloc] initWithPath: bundlePath];
+	  if (bundlePath != nil)
+	    {
+	      bundle = [[self alloc] initWithPath: bundlePath];
+	    }
 	}
 
       if (bundle == nil)
 	{
-	  /* TODO: We couldn't locate the framework in the expected
-	     location.  NICOLA: We should be trying to locate it in
-	     some other obvious location, iterating over
-	     user/network/local/system dirs ...  TODO.  */
-	  NSLog (@"Problem locating framework %@", name);
+	  NSLog (@"Could not find framework %@ in any standard location", name);
 	  return;
 	}
 

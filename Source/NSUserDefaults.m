@@ -264,7 +264,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
  * user ID.  Needed by setuid processes which change the user they
  * are running as.<br />
  * In GNUstep you should call GSSetUserName() when changing your
- * effective user ID, and that class will call this function for you.
+ * effective user ID, and that function will call this function for you.
  */
 + (void) resetStandardUserDefaults
 {
@@ -686,6 +686,7 @@ static BOOL setSharedDefaults = NO;     /* Flag to prevent infinite recursion */
   return [self initWithUser: NSUserName()];
 }
 
+/* Returns the path to the user's ".GNUstepDefaults file" */
 static NSString	*pathForUser(NSString *user)
 {
   NSString	*database = @".GNUstepDefaults";
