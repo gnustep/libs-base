@@ -34,6 +34,7 @@
 #include <objc/objc-api.h>
 #ifndef NeXT_RUNTIME
 #include <objc/objc-list.h>
+#include <objc/objc-load.h>
 #endif
 #include <config.h>
 #include <Foundation/objc-load.h>
@@ -44,6 +45,7 @@
 #include "dynamic-load.h"
 
 /* From the objc runtime -- needed when invalidating the dtable */
+#ifndef NeXT_RUNTIME
 extern void __objc_install_premature_dtable(Class);
 extern void sarray_free(struct sarray*);
 #ifndef HAVE_OBJC_GET_UNINSTALLED_DTABLE
@@ -57,6 +59,7 @@ objc_get_uninstalled_dtable()
   return __objc_uninstalled_dtable;
 }
 #endif
+#endif /* ! NeXT */
 
 /* Declaration from NSBundle.m */
 const char *objc_executable_location( void );
@@ -98,6 +101,7 @@ objc_check_undefineds(FILE *errorStream)
 static void
 objc_invalidate_dtable(Class class)
 {
+#ifndef NeXT_RUNTIME
     Class s;
 
     if (class->dtable == objc_get_uninstalled_dtable()) 
@@ -107,6 +111,7 @@ objc_invalidate_dtable(Class class)
     __objc_install_premature_dtable(class);
     for (s=class->subclass_list; s; s=s->sibling_class) 
 	objc_invalidate_dtable(s);
+#endif
 }
 
 /* Initialize for dynamic loading */
@@ -154,6 +159,11 @@ objc_load_module(
 	char *debugFilename)
 
 {
+#ifdef NeXT_RUNTIME
+  int errcode;
+  dynamic_loaded = YES;
+  return objc_loadModule(filename, loadCallback, &errcode);
+#else
     typedef void (*void_fn)();
     dl_handle_t handle;
 #if !defined(__ELF__) && !defined(CON_AUTOLOAD)
@@ -177,9 +187,7 @@ objc_load_module(
 	    __objc_dynamic_error(errorStream, "Error (objc-load)");
 	return 1;
     }
-#ifndef NeXT_RUNTIME
     dynamic_handles = list_cons(handle, dynamic_handles);
-#endif
 
     /* If there are any undefined symbols, we can't load the bundle */
     if (objc_check_undefineds(errorStream)) {
@@ -208,6 +216,7 @@ objc_load_module(
     _objc_load_callback = 0;
     _objc_load_load_callback = 0;
     return 0;
+#endif
 }
 
 long 
@@ -251,7 +260,7 @@ objc_unload_modules(
 }
 
 NSString *
-objc_get_symbol_path(Class theClass, Category *theCategory)
+objc_get_symbol_path(Class theClass, struct objc_category *theCategory)
 {
   const char *ret;
   char        buf[125], *p = buf;

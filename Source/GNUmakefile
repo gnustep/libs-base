@@ -96,7 +96,12 @@ preface.m \
 mframe.m
 
 ifeq ($(OBJC_RUNTIME), NeXT)
-GNU_MFILES += thr-mach.m objc-gnu2next.m
+GNU_MFILES += objc-gnu2next.m
+ifeq ($(HAVE_PTHREAD_H), yes)
+GNU_MFILES += thr-pthread.m
+else
+GNU_MFILES += thr-mach.m
+endif
 endif
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)

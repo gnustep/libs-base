@@ -1,8 +1,7 @@
-/* GNU Objective C Runtime Thread Implementation
+/* GNU Objective C Runtime Thread Implementation for PCThreads under Darwin.
    Copyright (C) 1996, 1997 Free Software Foundation, Inc.
-   Contributed by Galen C. Hunt (gchunt@cs.rochester.edu)
-   Modified for Mach threads by Bill Bumgarner <bbum@friday.com>
-   Condition functions added by Mircea Oancea <mircea@first.elcom.pub.ro>
+   Contributed by Scott Christley <scottc@net-community.com>
+   Condition functions added by: Mircea Oancea <mircea@first.elcom.pub.ro>
 
 This file is part of GNU CC.
 
@@ -26,22 +25,24 @@ Boston, MA 02111-1307, USA.  */
    however invalidate any other reasons why the executable file might be
    covered by the GNU General Public License.  */
 
-#include <mach/mach.h>
-#include <mach/cthreads.h>
+#include <pthread.h>
 #include <base/objc-gnu2next.h>
 #include <base/thr-mach.h>
 
+/* Key structure for maintaining thread specific storage */
+static pthread_key_t _objc_thread_storage;
+
 /* Global exit status. */
 int __objc_thread_exit_status = 0;
-
-/* Flag which lets us know if we ever became multi threaded */
-int __objc_is_multi_threaded = 0;
 
 /* Number of threads alive  */
 int __objc_runtime_threads_alive = 0;
 
 /* Thread create/exit mutex */
 struct objc_mutex* __objc_runtime_mutex = NULL; 
+
+/* Flag which lets us know if we ever became multi threaded */
+int __objc_is_multi_threaded = 0;
 
 /* The hook function called when the runtime becomes multi threaded */
 objc_thread_callback _objc_became_multi_threaded = NULL;
@@ -176,49 +177,23 @@ objc_thread_detach(SEL selector, id object, id argument)
   return thread_id;
 }
 
-/*
-  Obtain the maximum thread priority that can set for t.  Under the
-  mach threading model, it is possible for the developer to adjust the
-  maximum priority downward only-- cannot be raised without superuser
-  privileges.  Once lowered, it cannot be raised.
-  */
-static int __mach_get_max_thread_priority(cthread_t t, int *base)
-{
-  thread_t threadP;
-  kern_return_t error;
-  struct thread_sched_info info;
-  unsigned int info_count=THREAD_SCHED_INFO_COUNT;
-    
-  if (t == NULL)
-    return -1;
-
-  threadP  = cthread_thread(t); 	/* get thread underlying */
-
-  error=thread_info(threadP, THREAD_SCHED_INFO, 
-		    (thread_info_t)&info, &info_count);
-
-  if (error != KERN_SUCCESS)
-    return -1;
-
-  if (base != NULL)
-    *base = info.base_priority;
-
-  return info.max_priority;
-}
-	
 /* Backend initialization functions */
 
 /* Initialize the threads subsystem. */
 int
 __objc_init_thread_system(void)
 {
-  return 0;
+  /* Initialize the thread storage key */
+  return pthread_key_create(&_objc_thread_storage, NULL);
 }
 
 /* Close the threads subsystem. */
 int
 __objc_close_thread_system(void)
 {
+  /* Destroy the thread storage key */
+  /* Not implemented yet */
+  /* return pthread_key_delete(&_objc_thread_storage); */
   return 0;
 }
 
@@ -229,17 +204,10 @@ objc_thread_t
 __objc_thread_detach(void (*func)(void *arg), void *arg)
 {
   objc_thread_t thread_id;
-  cthread_t new_thread_handle;
+  pthread_t new_thread_handle;
 
-  /* create thread */
-  new_thread_handle = cthread_fork((cthread_fn_t)func, arg);
-
-  if(new_thread_handle)
-    {
-      /* this is not terribly portable */
-      thread_id = *(objc_thread_t *)&new_thread_handle; 
-      cthread_detach(new_thread_handle);
-    }
+  if ( !(pthread_create(&new_thread_handle, NULL, (void *)func, arg)) )
+      thread_id = *(objc_thread_t *)&new_thread_handle;
   else
     thread_id = NULL;
   
@@ -250,70 +218,23 @@ __objc_thread_detach(void (*func)(void *arg), void *arg)
 int
 objc_thread_set_priority(int priority)
 {
-  objc_thread_t *t = objc_thread_id();
-  cthread_t cT = (cthread_t) t; 
-  int maxPriority = __mach_get_max_thread_priority(cT, NULL);
-  int sys_priority = 0;
-
-  if (maxPriority == -1)
-    return -1;
-
-  switch (priority)
-    {
-    case OBJC_THREAD_INTERACTIVE_PRIORITY:
-      sys_priority = maxPriority;
-      break;
-    case OBJC_THREAD_BACKGROUND_PRIORITY:
-      sys_priority = (maxPriority * 2) / 3;
-      break;
-    case OBJC_THREAD_LOW_PRIORITY:
-      sys_priority = maxPriority / 3;
-      break;
-    default:
-      return -1;
-    }
-
-  if (sys_priority == 0)
-    return -1;
-
-  /* Change the priority */
-  if (cthread_priority(cT, sys_priority, 0) == KERN_SUCCESS)
-    return 0;
-  else
-    return -1;
+  /* Not implemented yet */
+  return -1;
 }
 
 /* Return the current thread's priority. */
 int
 objc_thread_get_priority(void)
 {
-  objc_thread_t *t = objc_thread_id();
-  cthread_t cT = (cthread_t) t; /* see objc_thread_id() */
-  int basePriority;
-  int maxPriority;
-  int sys_priority = 0;
-
-  int interactiveT, backgroundT, lowT; /* thresholds */
-
-  maxPriority = __mach_get_max_thread_priority(cT, &basePriority);
-
-  if(maxPriority == -1)
-    return -1;
-
-  if (basePriority > ( (maxPriority * 2) / 3))
-    return OBJC_THREAD_INTERACTIVE_PRIORITY;
-
-  if (basePriority > ( maxPriority / 3))
-    return OBJC_THREAD_BACKGROUND_PRIORITY;
-
-  return OBJC_THREAD_LOW_PRIORITY;
+  /* Not implemented yet */
+  return OBJC_THREAD_INTERACTIVE_PRIORITY;
 }
 
 /* Yield our process time to another thread. */
 void
 objc_thread_yield(void)
 {
-  cthread_yield();
+  pthread_yield(NULL);
 }
 
 /* Terminate the current thread. */
@@ -326,7 +247,7 @@ objc_thread_exit(void)
   objc_mutex_unlock(__objc_runtime_mutex);
 
   /* exit the thread */
-  cthread_exit(&__objc_thread_exit_status);
+  pthread_exit(&__objc_thread_exit_status);
 
   /* Failed if we reached here */
   return -1;
@@ -336,7 +257,7 @@ objc_thread_exit(void)
 objc_thread_t
 objc_thread_id(void)
 {
-  cthread_t self = cthread_self();
+  pthread_t self = pthread_self();
 
   return *(objc_thread_t *)&self;
 }
@@ -345,37 +266,32 @@ objc_thread_id(void)
 int
 objc_thread_set_data(void *value)
 {
-  cthread_set_data(cthread_self(), (any_t) value);
-  return 0;
+  return pthread_setspecific(_objc_thread_storage, value);
 }
 
 /* Returns the thread's local storage pointer. */
 void *
 objc_thread_get_data(void)
 {
-  return (void *) cthread_data(cthread_self());
+  return pthread_getspecific(_objc_thread_storage);
 }
 
 /* Backend mutex functions */
 
 /* Allocate a mutex. */
 objc_mutex_t
-objc_mutex_allocate(objc_mutex_t mutex)
+objc_mutex_allocate(void)
 {
-  int err = 0;
   objc_mutex_t mutex;
 
   /* Allocate the mutex structure */
   if (!(mutex = (objc_mutex_t)objc_malloc(sizeof(struct objc_mutex))))
     return NULL;
 
-  mutex->backend = objc_malloc(sizeof(struct mutex));
-
-  err = mutex_init((mutex_t)(mutex->backend));
-
-  if (err != 0)
+  /* Call backend to create the mutex */
+  if (pthread_mutex_init((pthread_mutex_t *)(&(mutex->backend)), NULL))
     {
-      objc_free(mutex->backend);
+      /* failed! */
       objc_free(mutex);
       return NULL;
     }
@@ -399,10 +315,8 @@ objc_mutex_deallocate(objc_mutex_t mutex)
   /* Acquire lock on mutex */
   depth = objc_mutex_lock(mutex);
 
-  mutex_clear((mutex_t)(mutex->backend));
-
-  objc_free(mutex->backend);
-  mutex->backend = NULL;
+  if (pthread_mutex_destroy((pthread_mutex_t *)(&(mutex->backend))))
+    return -1;
 
   /* Free the mutex structure */
   objc_free(mutex);
@@ -416,6 +330,7 @@ int
 objc_mutex_lock(objc_mutex_t mutex)
 {
   objc_thread_t thread_id;
+  int status;
 
   /* Valid mutex? */
   if (!mutex)
@@ -426,7 +341,12 @@ objc_mutex_lock(objc_mutex_t mutex)
   if (mutex->owner == thread_id)
     return ++mutex->depth;
 
-  mutex_lock((mutex_t)(mutex->backend));
+  /* Call the backend to lock the mutex */
+  status = pthread_mutex_lock((pthread_mutex_t *)(&(mutex->backend)));
+
+  /* Failed? */
+  if (status)
+    return status;
 
   /* Successfully locked the thread */
   mutex->owner = thread_id;
@@ -449,10 +369,8 @@ objc_mutex_trylock(objc_mutex_t mutex)
   if (mutex->owner == thread_id)
     return ++mutex->depth;
     
-  if (mutex_try_lock((mutex_t)(mutex->backend)) == 0)
-    status = -1;
-  else
-    status = 0;
+  /* Call the backend to try to lock the mutex */
+  status = pthread_mutex_trylock((pthread_mutex_t *)(&(mutex->backend)));
 
   /* Failed? */
   if (status)
@@ -486,15 +404,14 @@ objc_mutex_unlock(objc_mutex_t mutex)
   mutex->depth = 0;
   mutex->owner = NULL;
 
-  mutex_unlock((mutex_t)(mutex->backend));
-
-  return 0;
+  /* Have the backend unlock the mutex */
+  return pthread_mutex_unlock((pthread_mutex_t *)(&(mutex->backend)));
 }
 
 /* Backend condition mutex functions */
 
 /* Allocate a condition. */
-objc_condition_t 
+objc_condition_t
 objc_condition_allocate(void)
 {
   objc_condition_t condition;
@@ -504,9 +421,15 @@ objc_condition_allocate(void)
 	(objc_condition_t)objc_malloc(sizeof(struct objc_condition))))
     return NULL;
 
-  condition->backend = objc_malloc(sizeof(struct condition));
-  condition_init((condition_t)(condition->backend));
+  /* Call the backend to create the condition mutex */
+  if (pthread_cond_init((pthread_cond_t *)(&(condition->backend)), NULL))
+    {
+      /* failed! */
+      objc_free(condition);
+      return NULL;
+    }
 
+  /* Success! */
   return condition;
 }
 
@@ -518,12 +441,13 @@ objc_condition_deallocate(objc_condition_t condition)
   if (objc_condition_broadcast(condition))
     return -1;
 
-  condition_clear((condition_t)(condition->backend));
-  objc_free(condition->backend);
-  condition->backend = NULL;
+  /* Call the backend to destroy */
+  if (pthread_cond_destroy((pthread_cond_t *)(&(condition->backend))))
+    return -1;
 
   /* Free the condition mutex structure */
   objc_free(condition);
+
   return 0;
 }
 
@@ -550,8 +474,9 @@ objc_condition_wait(objc_condition_t condition, objc_mutex_t mutex)
   mutex->depth = 0;
   mutex->owner = (objc_thread_t)NULL;
 
-  condition_wait((condition_t)(condition->backend),
-		 (mutex_t)(mutex->backend));
+  /* Call the backend to wait */
+  pthread_cond_wait((pthread_cond_t *)(&(condition->backend)),
+			   (pthread_mutex_t *)(&(mutex->backend)));
 
   /* Make ourselves owner of the mutex */
   mutex->owner = thread_id;
@@ -568,8 +493,7 @@ objc_condition_broadcast(objc_condition_t condition)
   if (!condition)
     return -1;
 
-  condition_broadcast((condition_t)(condition->backend));
-  return 0;
+  return pthread_cond_broadcast((pthread_cond_t *)(&(condition->backend)));
 }
 
 /* Wake up one thread waiting on this condition. */
@@ -580,8 +504,7 @@ objc_condition_signal(objc_condition_t condition)
   if (!condition)
     return -1;
 
-  condition_signal((condition_t)(condition->backend));
-  return 0;
+  return pthread_cond_signal((pthread_cond_t *)(&(condition->backend)));
 }
 
 /* Make the objc thread system aware that a thread which is managed
