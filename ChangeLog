@@ -1,3 +1,12 @@
+2003-12-23 18:38  Alexander Malmberg <alexander@malmberg.org>
+
+	* Source/NSThread.m: Don't use '\r\n' in printf strings (stdio/libc
+	is responsible for converting it to local convention).
+
+	(+detachNewThreadSelector:toTarget:withObject:): Don't set
+	entered_multi_threaded_state to NO if the objc_thread_detach call
+	fails.
+
 2003-12-23 18:15  Alexander Malmberg <alexander@malmberg.org>
 
 	* Documentation/news.texi, Headers/Foundation/NSDebug.h,
