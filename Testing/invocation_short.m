@@ -1,6 +1,7 @@
 #include <Foundation/NSMethodSignature.h>
 #include <Foundation/NSInvocation.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSAutoreleasePool.h>
 #include <base/Invocation.h>
 
 #define TYPE short

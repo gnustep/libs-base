@@ -1,3 +1,10 @@
+Tue Aug  3 12:36:54 1999  Adam Fedor  <fedor@ultra.doc.com>
+
+	* Source/NSInvocation.m (-initWithTarget:selector:): Hack for
+	sparc and ppc machines to align structs on word boundaries.
+	* mframe/sparc/solaris2.6: New file with fix for putting small
+	structures at correct offset.
+
 Mon Aug  2  8:10:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/propList.h: parseQuotedString() fix for parsing octal escape
