@@ -203,6 +203,25 @@
 	    toPath: (NSString*)destination
 	   handler: (id)handler;
 
+/* encapsulates the will Process check for existence of selector. */
+- (void) _sendToHandler: (id) handler
+        willProcessPath: (NSString*) path;
+
+/* methods to encapsulates setting up and calling the handler
+   in case of an error */
+- (BOOL) _proceedAccordingToHandler: (id) handler
+                           forError: (NSString*) error
+                             inPath: (NSString*) path;
+
+- (BOOL) _proceedAccordingToHandler: (id) handler
+                           forError: (NSString*) error
+                             inPath: (NSString*) path
+                           fromPath: (NSString*) frompath
+                             toPath: (NSString*) toPath;
+
+
+
+  
 @end /* NSFileManager (PrivateMethods) */
 
 /**
@@ -805,21 +824,15 @@ static NSFileManager* defaultManager = nil;
 	  return NO;
 	}
 
-      [handler fileManager: self willProcessPath: destination];
+      [self _sendToHandler: handler willProcessPath: destination]; 
+
       if ([self createDirectoryAtPath: destination attributes: attrs] == NO)
 	{
-	  if (handler)
-	    {
-	      NSDictionary* errorInfo
-		= [NSDictionary dictionaryWithObjectsAndKeys: 
-		  destination, @"Path", _lastError, @"Error", nil];
-	      return [handler fileManager: self
-		  shouldProceedAfterError: errorInfo];
-	    }
-	  else
-	    {
-	      return NO;
-	    }
+          return [self _proceedAccordingToHandler: handler
+					 forError: _lastError
+					   inPath: destination
+					 fromPath: source
+					   toPath: destination];
 	}
 
       if ([self _copyPath: source toPath: destination handler: handler] == NO)
@@ -832,21 +845,18 @@ static NSFileManager* defaultManager = nil;
       NSString	*path;
       BOOL	result;
 
-      [handler fileManager: self willProcessPath: source];
+      [self _sendToHandler: handler willProcessPath: source];
+      
       path = [self pathContentOfSymbolicLinkAtPath: source];
       result = [self createSymbolicLinkAtPath: destination pathContent: path];
       if (result == NO)
 	{
-	  if (handler != nil)
-	    {
-	      NSDictionary	*errorInfo
-		= [NSDictionary dictionaryWithObjectsAndKeys: 
-		  source, @"Path", destination, @"ToPath",
-			  @"cannot link to file", @"Error",
-			  nil];
-	      result = [handler fileManager: self
-		    shouldProceedAfterError: errorInfo];
-	    }
+          result = [self _proceedAccordingToHandler: handler
+					   forError: @"cannot link to file"
+					     inPath: source
+					   fromPath: source
+					     toPath: destination];
+          
 	  if (result == NO)
 	    {
 	      return NO;
@@ -855,7 +865,8 @@ static NSFileManager* defaultManager = nil;
     }
   else
     {
-      [handler fileManager: self willProcessPath: source];
+      [self _sendToHandler: handler willProcessPath: source];
+      
       if ([self _copyFile: source toFile: destination handler: handler] == NO)
 	{
 	  return NO;
@@ -923,22 +934,15 @@ static NSFileManager* defaultManager = nil;
     {
       /* source and destination are on the same device so we can simply
 	 invoke rename on source. */
-      [handler fileManager: self willProcessPath: source];
+      [self _sendToHandler: handler willProcessPath: source];
+      
       if (rename (sourcePath, destPath) == -1)
 	{
-	  if (handler)
-	    {
-	      NSDictionary* errorInfo
-		  = [NSDictionary dictionaryWithObjectsAndKeys: 
-		      source, @"Path",
-		      destination, @"ToPath",
-		      @"cannot move file", @"Error",
-		      nil];
-	      if ([handler fileManager: self
-		shouldProceedAfterError: errorInfo])
-		return YES;
-	    }
-	  return NO;
+          return [self _proceedAccordingToHandler: handler
+					 forError: @"cannot move file"
+					   inPath: source
+					 fromPath: source
+					   toPath: destination];
 	}
       return YES;
     }
@@ -979,10 +983,8 @@ static NSFileManager* defaultManager = nil;
 		  format: @"Attempt to remove illegal path"];
     }
 
-  if (handler != nil)
-    {
-      [handler fileManager: self willProcessPath: path];
-    }
+  [self _sendToHandler: handler willProcessPath: path];
+
   cpath = [self fileSystemRepresentationWithPath: path];
   if (cpath == 0 || *cpath == '\0')
     {
@@ -1025,26 +1027,9 @@ static NSFileManager* defaultManager = nil;
       if (unlink(cpath) < 0)
 #endif
 	{
-	  BOOL	result;
-
-	  if (handler)
-	    {
-	      NSMutableDictionary	*info;
-
-	      info = [[NSMutableDictionary alloc] initWithCapacity: 3];
-	      [info setObject: path forKey: @"Path"];
-	      [info setObject: [NSString stringWithCString:
-		GSLastErrorStr(errno)]
-		       forKey: @"Error"];
-	      result = [handler fileManager: self
-		    shouldProceedAfterError: info];
-	      RELEASE(info);
-	    }
-	  else
-	    {
-	      result = NO;
-	    }
-	  return result;
+          return [self _proceedAccordingToHandler: handler
+	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
+	    inPath: path];
 	}
       else
 	{
@@ -1076,26 +1061,9 @@ static NSFileManager* defaultManager = nil;
 
       if (rmdir([path fileSystemRepresentation]) < 0)
 	{
-	  BOOL	result;
-
-	  if (handler)
-	    {
-	      NSMutableDictionary	*info;
-
-	      info = [[NSMutableDictionary alloc] initWithCapacity: 3];
-	      [info setObject: path forKey: @"Path"];
-	      [info setObject: [NSString stringWithCString:
-		GSLastErrorStr(errno)]
-		       forKey: @"Error"];
-	      result = [handler fileManager: self
-		    shouldProceedAfterError: info];
-	      RELEASE(info);
-	    }
-	  else
-	    {
-	      result = NO;
-	    }
-	  return result;
+          return [self _proceedAccordingToHandler: handler
+	    forError: [NSString stringWithCString: GSLastErrorStr (errno)]
+	    inPath: path];
 	}
       else
 	{
@@ -2323,21 +2291,13 @@ static SEL swfsSel = 0;
     {
       return YES;
     }
-  if (handler != nil)
-    {
-      NSDictionary	*errorInfo
-	= [NSDictionary dictionaryWithObjectsAndKeys:
-                       source, @"Path",
-                       @"cannot copy file", @"Error",
-                       destination, @"ToPath",
-                       nil];
-      return [handler fileManager: self
-	  shouldProceedAfterError: errorInfo];
-    }
-  else
-    {
-      return NO;
-    }
+
+  return [self _proceedAccordingToHandler: handler
+				 forError: @"cannot copy file"
+				   inPath: source
+				 fromPath: source
+				   toPath: destination];
+
 #else
   NSDictionary	*attributes;
   int		i;
@@ -2366,20 +2326,11 @@ static SEL swfsSel = 0;
     GSBINIO|O_RDONLY);
   if (sourceFd < 0)
     {
-      if (handler != nil)
-	{
-	  NSDictionary	*errorInfo
-	    = [NSDictionary dictionaryWithObjectsAndKeys: 
-		      source, @"Path",
-		      @"cannot open file for reading", @"Error",
-		      nil];
-	  return [handler fileManager: self
-	      shouldProceedAfterError: errorInfo];
-	}
-      else
-	{
-	  return NO;
-	}
+      return [self _proceedAccordingToHandler: handler
+				     forError: @"cannot open file for reading"
+				       inPath: source
+				     fromPath: source
+				       toPath: destination];
     }
 
   /* Open the destination file. In case of error call the handler. */
@@ -2387,23 +2338,15 @@ static SEL swfsSel = 0;
     GSBINIO|O_WRONLY|O_CREAT|O_TRUNC, fileMode);
   if (destFd < 0)
     {
-      if (handler != nil)
-	{
-	  NSDictionary	*errorInfo
-	    = [NSDictionary dictionaryWithObjectsAndKeys: 
-		      destination, @"ToPath",
-		      @"cannot open file for writing", @"Error",
-		      nil];
-	  close (sourceFd);
-	  return [handler fileManager: self
-	      shouldProceedAfterError: errorInfo];
-	}
-      else
-	{
-	  return NO;
-	}
-    }
+      close (sourceFd); 
 
+      return [self _proceedAccordingToHandler: handler
+				     forError:  @"cannot open file for writing"
+				       inPath: destination
+				     fromPath: source
+				       toPath: destination];
+    }
+  
   /* Read bufsize bytes from source file and write them into the destination
      file. In case of errors call the handler and abort the operation. */
   for (i = 0; i < fileSize; i += rbytes)
@@ -2411,45 +2354,28 @@ static SEL swfsSel = 0;
       rbytes = read (sourceFd, buffer, bufsize);
       if (rbytes < 0)
 	{
-	  if (handler != nil)
-	    {
-	      NSDictionary	*errorInfo
-		= [NSDictionary dictionaryWithObjectsAndKeys: 
-			  source, @"Path",
-			  @"cannot read from file", @"Error",
-			  nil];
-	      close (sourceFd);
-	      close (destFd);
-	      return [handler fileManager: self
-		  shouldProceedAfterError: errorInfo];
-	    }
-	  else
-	    {
-	      return NO;
-	    }
-	}
+          close (sourceFd);
+          close (destFd);
 
+          return [self _proceedAccordingToHandler: handler
+					 forError: @"cannot read from file"
+					   inPath: source
+					 fromPath: source
+					   toPath: destination];
+	}
+      
       wbytes = write (destFd, buffer, rbytes);
       if (wbytes != rbytes)
 	{
-	  if (handler != nil)
-	    {
-	      NSDictionary	*errorInfo
-		= [NSDictionary dictionaryWithObjectsAndKeys: 
-			  source, @"Path",
-			  destination, @"ToPath",
-			  @"cannot write to file", @"Error",
-			  nil];
-	      close (sourceFd);
-	      close (destFd);
-	      return [handler fileManager: self
-		  shouldProceedAfterError: errorInfo];
-	    }
-	  else
-	    {
-	      return NO;
-	    }
-	}
+          close (sourceFd);
+          close (destFd);
+          
+          return [self _proceedAccordingToHandler: handler
+					 forError: @"cannot write to file"
+					   inPath: destination
+					 fromPath: source
+					   toPath: destination];
+        }
     }
   close (sourceFd);
   close (destFd);
@@ -2480,32 +2406,28 @@ static SEL swfsSel = 0;
       destinationFile
 	= [destination stringByAppendingPathComponent: dirEntry];
 
-      [handler fileManager: self willProcessPath: sourceFile];
+      [self _sendToHandler: handler willProcessPath: sourceFile];
+
       if ([fileType isEqual: NSFileTypeDirectory])
 	{
 	  if (![self createDirectoryAtPath: destinationFile
 				attributes: attributes])
 	    {
-	      if (handler)
-		{
-		  NSDictionary	*errorInfo;
-
-		  errorInfo = [NSDictionary dictionaryWithObjectsAndKeys: 
-		    destinationFile, @"Path",
-		    _lastError, @"Error", nil];
-		  if (![handler fileManager: self
-		    shouldProceedAfterError: errorInfo])
-		    return NO;
-		}
-	      else
-		return NO;
+              if (![self _proceedAccordingToHandler: handler
+					   forError: _lastError
+					     inPath: destinationFile
+					   fromPath: sourceFile
+					     toPath: destinationFile])
+                {
+                  return NO;
+                }
 	    }
 	  else
 	    {
 	      [enumerator skipDescendents];
 	      if (![self _copyPath: sourceFile
-			    toPath: destinationFile
-			   handler: handler])
+                         toPath: destinationFile
+                         handler: handler])
 		return NO;
 	    }
 	}
@@ -2524,24 +2446,14 @@ static SEL swfsSel = 0;
 	  if (![self createSymbolicLinkAtPath: destinationFile
 				  pathContent: path])
 	    {
-	      if (handler)
-		{
-		  NSDictionary	*errorInfo
-		    = [NSDictionary dictionaryWithObjectsAndKeys: 
-			      sourceFile, @"Path",
-			      destinationFile, @"ToPath",
-			      @"cannot create symbolic link", @"Error",
-			      nil];
-		  if (![handler fileManager: self
-		    shouldProceedAfterError: errorInfo])
-		    {
-		      return NO;
-		    }
-		}
-	      else
-		{
-		  return NO;
-		}
+              if (![self _proceedAccordingToHandler: handler
+		forError: @"cannot create symbolic link"
+		inPath: sourceFile
+		fromPath: sourceFile
+		toPath: destinationFile])
+                {
+                  return NO;
+                }
 	    }
 	}
       else
@@ -2559,6 +2471,51 @@ static SEL swfsSel = 0;
   RELEASE(pool);
 
   return YES;
+}
+
+- (void) _sendToHandler: (id) handler
+        willProcessPath: (NSString*) path
+{
+  if ([handler respondsToSelector: @selector (fileManager:willProcessPath:)])
+    {
+      [handler fileManager: self willProcessPath: path];
+    }
+}
+
+- (BOOL) _proceedAccordingToHandler: (id) handler
+                           forError: (NSString*) error
+                             inPath: (NSString*) path
+{
+  if ([handler respondsToSelector:
+    @selector (fileManager:shouldProceedAfterError:)])
+    {
+      NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                path, @"Path",
+                                              error, @"Error", nil];
+      return [handler fileManager: self
+	  shouldProceedAfterError: errorInfo];
+    }
+  return NO;
+}
+
+- (BOOL) _proceedAccordingToHandler: (id) handler
+                           forError: (NSString*) error
+                             inPath: (NSString*) path
+                           fromPath: (NSString*) fromPath
+                             toPath: (NSString*) toPath
+{
+  if ([handler respondsToSelector:
+    @selector (fileManager:shouldProceedAfterError:)])
+    {
+      NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                path, @"Path",
+                                              fromPath, @"FromPath",
+                                              toPath, @"ToPath",
+                                              error, @"Error", nil];
+      return [handler fileManager: self
+	  shouldProceedAfterError: errorInfo];
+    }
+  return NO;
 }
 
 @end /* NSFileManager (PrivateMethods) */

@@ -102,11 +102,41 @@
  */
 @interface NSObject (NSFileManagerHandler)
 /**
- * When an error occurs during a copy or move operation, the file manager
+ * <p>When an error occurs during a copy or move operation, the file manager
  * will send this message to the handler, and will use the return value to
  * determine whether the operation should proceed.  If the method returns
  * YES then the operation will proceed after the error, if it returns NO
  * then it will be aborted.
+ * </p>
+ * <p>If the handler does not implement this method it will be treated as
+ * if it returns NO.
+ * </p>
+ * The error dictionary contains the following
+ * <list>
+ *   <item><strong>"Error"</strong>
+ *     contains a description of the error.
+ *   </item>
+ *   <item><strong>"Path"</strong>
+ *     contains the path that is being processed when
+ *     an error occured.   If an error occurs during an
+ *     operation involving two files, like copying, and
+ *     it is not clear which file triggers the error it
+ *     will default to the source file.
+ *   </item>          
+ *   <item><strong>"FromPath"</strong>
+ *     (Optional)  contains the path involved in reading.
+ *   </item>
+ *   <item><strong>"ToPath"</strong>
+ *     (Optional)  contains the path involved in writing.
+ *   </item>
+ * </list>
+ *
+ * <p>Note that the <code>FromPath</code> is a GNUstep extension.
+ * </p>
+ * <p>Also the <code>FromPath</code> and <code>ToPath</code> are filled
+ * in when appropriate.  So when copying a file they will typically
+ * both have a value and when reading only <code>FromPath</code>.
+ * </p>
  */
 - (BOOL) fileManager: (NSFileManager*)fileManager
   shouldProceedAfterError: (NSDictionary*)errorDictionary;
@@ -115,7 +145,7 @@
  * The file manager sends this method to the handler immediately before
  * performing part of a directory move or copy operation.  This provides
  * the handler object with information it can use in the event of an
- * error, to decide whether p[rocessing should proceed after the error.
+ * error, to decide whether processing should proceed after the error.
  */
 - (void) fileManager: (NSFileManager*)fileManager
      willProcessPath: (NSString*)path;
