@@ -148,6 +148,11 @@ typedef	struct obj_layout *obj;
 
 #if	GS_WITH_GC
 
+unsigned
+NSExtraRefCount(id anObject)
+{
+  return 0;
+}
 void
 NSIncrementExtraRefCount(id anObject)
 {
@@ -167,6 +172,12 @@ NSDecrementExtraRefCountWasZero(id anObject)
  *	depending on whether we are using local or global counting.
  */
 #if	defined(REFCNT_LOCAL)
+unsigned
+NSExtraRefCount(id anObject)
+{
+  return ((obj)anObject)[-1].retained;
+}
+
 void
 NSIncrementExtraRefCount(id anObject)
 {
@@ -188,7 +199,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
 #define	NSDecrementExtraRefCountWasZero(X) \
 	(((obj)(X))[-1].retained-- == 0 ? YES : NO)
 
-#define	extraRefCount(X)	(((obj)(X))[-1].retained)
+#define	NSExtraRefCount(X)	(((obj)(X))[-1].retained)
 
 #else
 
@@ -233,8 +244,8 @@ NSDecrementExtraRefCountWasZero (id anObject)
   return NO;
 }
 
-static unsigned
-extraRefCount (id anObject)
+unsigned
+NSExtraRefCount (id anObject)
 {
   unsigned ret;
 
@@ -922,7 +933,7 @@ static BOOL double_release_check_enabled = NO;
 #if	GS_WITH_GC
   return UINT_MAX;
 #else
-  return extraRefCount(self) + 1;
+  return NSExtraRefCount(self) + 1;
 #endif
 }
 

@@ -141,6 +141,7 @@ void NSDeallocateObject(NSObject *anObject);
 NSObject *NSCopyObject(NSObject *anObject, unsigned extraBytes, NSZone *zone);
 
 BOOL NSShouldRetainWithZone(NSObject *anObject, NSZone *requestedZone);
+unsigned NSExtraRefCount(id anObject);
 void NSIncrementExtraRefCount(id anObject);
 BOOL NSDecrementExtraRefCountWasZero(id anObject);
 
