@@ -23,6 +23,7 @@
 */
 #include "config.h"
 #include	<Foundation/Foundation.h>
+#include "GSCompatibility.h"
 
 /**
  * Extension methods for the NSCalendarDate class
