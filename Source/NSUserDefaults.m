@@ -814,7 +814,10 @@ static NSString	*pathForUser(NSString *user)
  * and returns its boolean representation.<br />
  * Returns NO if it is not a boolean.<br />
  * The text 'yes' or 'true' or any non zero numeric value is considered
- * to be a boolean YES.  Other string values are NO.
+ * to be a boolean YES.  Other string values are NO.<br />
+ * NB. This differs slightly from the documented behavior for MacOS-X
+ * (August 2002) in that the GNUstep version accepts the string 'TRUE'
+ * as equivalent to 'YES'.
  */
 - (BOOL) boolForKey: (NSString*)defaultName
 {
@@ -949,8 +952,9 @@ static NSString	*pathForUser(NSString *user)
 }
 
 /**
- * Sets a boolean value for defaultName in the application domain.
- * <br />Calls -setObject:forKey: to make the change.
+ * Sets a boolean value for defaultName in the application domain.<br />
+ * The boolean value is stored as a string - either YES or NO.
+ * Calls -setObject:forKey: to make the change.
  */
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {

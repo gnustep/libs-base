@@ -1258,7 +1258,7 @@ static BOOL double_release_check_enabled = NO;
 }
 
 /**
- * Returns a flag to differnetiate between 'true' objects, and objects
+ * Returns a flag to differentiate between 'true' objects, and objects
  * which are proxies for other objects (ie they forward messages to the
  * other objects).<br />
  * The default implementation returns NO.

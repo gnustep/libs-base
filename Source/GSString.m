@@ -548,6 +548,14 @@ boolValue_c(ivars self)
 	{
 	  return YES;
 	}
+      else if (len == 4
+	&& (self->_contents.c[0] == 'T' || self->_contents.c[0] == 't')
+	&& (self->_contents.c[1] == 'R' || self->_contents.c[1] == 'r')
+	&& (self->_contents.c[2] == 'U' || self->_contents.c[2] == 'u')
+	&& (self->_contents.c[3] == 'E' || self->_contents.c[3] == 'e'))
+	{
+	  return YES;
+	}
       else
 	{
 	  unsigned char	buf[len+1];
@@ -577,6 +585,14 @@ boolValue_u(ivars self)
 	&& (buf[0] == 'Y' || buf[0] == 'y')
 	&& (buf[1] == 'E' || buf[1] == 'e')
 	&& (buf[2] == 'S' || buf[2] == 's'))
+	{
+	  return YES;
+	}
+      else if (l == 4
+	&& (buf[0] == 'T' || buf[0] == 't')
+	&& (buf[1] == 'R' || buf[1] == 'r')
+	&& (buf[2] == 'U' || buf[2] == 'u')
+	&& (buf[3] == 'E' || buf[3] == 'e'))
 	{
 	  return YES;
 	}

@@ -954,7 +954,7 @@ static NSNotificationCenter *default_center = nil;
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to post a notification with no name."];
     }
-  object = TEST_RETAIN([notification object]);
+  object = [notification object];
   if (object != nil)
     {
       object = CHEATGC(object);

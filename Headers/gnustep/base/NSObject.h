@@ -392,7 +392,7 @@ id __object = (id)(object); (__object != nil) ? [__object retain] : nil; })
 #endif
 #ifndef	TEST_RELEASE
 #define	TEST_RELEASE(object)	({\
-id __object = (id)(object); if (__object != nil) [__object retain]; })
+id __object = (id)(object); if (__object != nil) [__object release]; })
 #endif
 #ifndef	TEST_AUTORELEASE
 #define	TEST_AUTORELEASE(object)	({\
