@@ -33,7 +33,7 @@ include ../Version
 include ../config.mak
 
 srcdir = .
-PACKAGE_NAME = gstep-base
+PACKAGE_NAME = gnutep-base
 LIBRARY_VAR = GNUSTEP_BASE
 
 # The library to be compiled
