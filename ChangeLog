@@ -1,3 +1,7 @@
+Fri Jun 18  8:36:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSFileManager.m: Fix lookup of fileGroupOwnerAccountName
+
 Thu Jun 17 14:30:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/NSNotification.h: Update to MacOS-X specs.

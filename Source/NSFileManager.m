@@ -832,7 +832,7 @@ static NSFileManager* defaultManager = nil;
     setgrent();
     while ((gp = getgrent()) != 0)
       {
-	if (gp->gr_gid == statbuf.st_uid)
+	if (gp->gr_gid == statbuf.st_gid)
 	  {
 	    break;
 	  }
