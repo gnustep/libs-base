@@ -35,8 +35,8 @@
 #include <limits.h>
 
 extern void (*_objc_error)(id object, const char *format, va_list);
-extern int errno;
 
+
 /* Reference count management */
 
 /* Doesn't handle multi-threaded stuff.
