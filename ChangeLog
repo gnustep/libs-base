@@ -1,3 +1,8 @@
+Sun Sep 20  6:07:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* NSString.m: Fix bug in ([+stringByStandardizingPath]) with trailing
+	slash.
+
 Thu Sep 16 19:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	Change request from Helge
