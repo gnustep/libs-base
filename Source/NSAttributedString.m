@@ -248,7 +248,7 @@ static Class NSMutableAttributedString_concrete_class;
     (attrs = [self attributesAtIndex: index effectiveRange: &r]) != nil)
     {
       index = NSMaxRange(r);
-      [desc appendFormat: @"%@%@", [string substringFromRange: r], attrs];
+      [desc appendFormat: @"%@%@", [string substringWithRange: r], attrs];
     }
   return desc;
 }
@@ -487,7 +487,7 @@ static Class NSMutableAttributedString_concrete_class;
 
   GS_RANGE_CHECK(aRange, len);
   
-  newSubstring = [[self string] substringFromRange: aRange];
+  newSubstring = [[self string] substringWithRange: aRange];
 
   attrs = [self attributesAtIndex: aRange.location effectiveRange: &range];
   range = NSIntersectionRange(range, aRange);
@@ -520,6 +520,11 @@ static Class NSMutableAttributedString_concrete_class;
 
   IF_NO_GC(AUTORELEASE(newAttrString));
   return newAttrString;
+}
+
+- (NSAttributedString*) attributedSubstringWithRange: (NSRange)aRange
+{
+  return [self attributedSubstringFromRange: aRange];
 }
 
 @end //NSAttributedString

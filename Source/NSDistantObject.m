@@ -899,6 +899,42 @@ static inline BOOL class_is_kind_of (Class self, Class aClassObject)
   return object_get_class (self);
 }
 
+- (BOOL) conformsToProtocol: (Protocol*)aProtocol
+{
+  arglist_t	args;
+  void		*retframe;
+
+  BOOL retframe_bool (void *rframe)
+    {
+      __builtin_return (rframe);
+    }
+
+  /*
+   *	Try forwarding the message.
+   */
+  args = __builtin_apply_args();
+  retframe = [self forward: _cmd : args];
+  return retframe_bool(retframe);
+}
+
+- (BOOL) respondsToSelector: (SEL)aSelector
+{
+  arglist_t	args;
+  void		*retframe;
+
+  BOOL retframe_bool (void *rframe)
+    {
+      __builtin_return (rframe);
+    }
+
+  /*
+   *	Try forwarding the message.
+   */
+  args = __builtin_apply_args();
+  retframe = [self forward: _cmd : args];
+  return retframe_bool(retframe);
+}
+
 - (id) replacementObjectForCoder: (NSCoder*)aCoder
 {
   return self;

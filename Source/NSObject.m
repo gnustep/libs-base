@@ -856,8 +856,8 @@ static BOOL deallocNotifications = NO;
 {
   NSInvocation *inv;
 
-  inv = [[[NSInvocation alloc] initWithArgframe: argFrame
-				       selector: aSel] autorelease];
+  inv = AUTORELEASE([[NSInvocation alloc] initWithArgframe: argFrame
+				       selector: aSel]);
   [self forwardInvocation:inv];
   return [inv returnFrame: argFrame];
 }
@@ -1399,9 +1399,9 @@ static BOOL deallocNotifications = NO;
 
 - (id) subclassResponsibility: (SEL)aSel
 {
-  [NSException
-    raise: NSGenericException
-    format: @"subclass %s should override %s", object_get_class_name(self), sel_get_name(aSel)];
+  [NSException raise: NSGenericException
+    format: @"subclass %s should override %s", object_get_class_name(self),
+    sel_get_name(aSel)];
   return nil;
 }
 

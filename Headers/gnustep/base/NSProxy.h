@@ -47,10 +47,6 @@
 
 @end
 
-@interface NSProxy(GNUstepExtensions)
-- (id) forward: (SEL)aSel :(arglist_t)frame;
-@end
-
 @interface Object (IsProxy)
 - (BOOL) isProxy;
 @end
