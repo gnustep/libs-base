@@ -1,5 +1,9 @@
 2004-05-14 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/autogsdoc.m: Create output directories if necessary.
+
+2004-05-14 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSFormat.h:
 	* Source/GSFormat.m:
 	* Source/GSPrivate.h:
