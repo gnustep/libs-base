@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include <base/preface.h>
+#include <base/fast.x>
 #include <Foundation/NSException.h>
 #include <Foundation/NSString.h>
 #include <Foundation/NSConcreteNumber.h>
@@ -119,7 +120,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [boolNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(boolNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -128,7 +130,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [charNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(charNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -137,7 +140,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [doubleNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(doubleNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -146,7 +150,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [floatNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(floatNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -155,7 +160,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [intNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(intNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -164,7 +170,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [longNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(longNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -173,7 +180,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [longLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(longLongNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -182,7 +190,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [shortNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(shortNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -191,7 +200,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [uCharNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(uCharNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -200,7 +210,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [uIntNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(uIntNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -209,7 +220,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [uLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(uLongNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -218,7 +230,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [uLongLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(uLongLongNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -227,7 +240,8 @@ static Class	doubleNumberClass;
 {
   NSNumber	*theObj;
 
-  theObj = [uShortNumberClass allocWithZone: NSDefaultMallocZone()];
+  theObj = (NSNumber*)NSAllocateObject(uShortNumberClass, 0,
+    NSDefaultMallocZone());
   theObj = [theObj initWithBytes: &value objCType: NULL];
   return AUTORELEASE(theObj);
 }
@@ -250,104 +264,117 @@ static Class	doubleNumberClass;
 
 - (id)initWithBool: (BOOL)value
 {
-  RELEASE(self);
-  self = [boolNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(boolNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithChar: (char)value
 {
-  RELEASE(self);
-  self = [charNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(charNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithDouble: (double)value
 {
-  RELEASE(self);
-  self = [doubleNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(doubleNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithFloat: (float)value
 {
-  RELEASE(self);
-  self = [floatNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(floatNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithInt: (int)value
 {
-  RELEASE(self);
-  self = [intNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(intNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithLong: (long)value
 {
-  RELEASE(self);
-  self = [longNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(longNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithLongLong: (long long)value
 {
-  RELEASE(self);
-  self = [longLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(longLongNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithShort: (short)value
 {
-  RELEASE(self);
-  self = [shortNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(shortNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithUnsignedChar: (unsigned char)value
 {
-  RELEASE(self);
-  self = [uCharNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(uCharNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithUnsignedInt: (unsigned int)value
 {
-  RELEASE(self);
-  self = [uIntNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(uIntNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithUnsignedLong: (unsigned long)value
 {
-  RELEASE(self);
-  self = [uLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(uLongNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithUnsignedLongLong: (unsigned long long)value
 {
-  RELEASE(self);
-  self = [uLongLongNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(uLongLongNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
 
 - (id)initWithUnsignedShort: (unsigned short)value
 {
-  RELEASE(self);
-  self = [uShortNumberClass allocWithZone: NSDefaultMallocZone()];
+  NSDeallocateObject(self);
+  self = (NSNumber*)NSAllocateObject(uShortNumberClass, 0,
+    NSDefaultMallocZone());
   self = [self initWithBytes: &value objCType: NULL];
   return self;
 }
@@ -467,6 +494,15 @@ static Class	doubleNumberClass;
 {
   [self subclassResponsibility: _cmd];
   return 0;
+}
+
+- (BOOL) isEqual: o
+{
+  if (o != nil && fastIsInstance(o)
+    && fastInstanceIsKindOfClass(o, abstractClass))
+    return [self isEqualToNumber: (NSNumber*)o];
+  else
+    return [super isEqual: o];
 }
 
 - (BOOL)isEqualToNumber: (NSNumber *)otherNumber
