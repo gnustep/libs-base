@@ -2922,14 +2922,16 @@ transmute(ivars self, NSString *aString)
   if (_flags.wide == 1)
     {
       sub = (NSString*)NSAllocateObject(GSUnicodeInlineStringClass,
-	_count*sizeof(unichar), NSDefaultMallocZone());
+					(aRange.length)*sizeof(unichar),
+					NSDefaultMallocZone());
       sub = [sub initWithCharacters: self->_contents.u + aRange.location
 			     length: aRange.length];
     }
   else
     {
       sub = (NSString*)NSAllocateObject(GSCInlineStringClass,
-	_count, NSDefaultMallocZone());
+					aRange.length, 
+					NSDefaultMallocZone());
       sub = [sub initWithCString: self->_contents.c + aRange.location
 			  length: aRange.length];
     }
