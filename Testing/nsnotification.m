@@ -16,12 +16,12 @@
 
 - (void) gotNotificationFoo: (NSNotification*)not
 {
-  printf ("Got %s\n", [[not name] cStringNoCopy]);
+  printf ("Got %s\n", [[not name] cString]);
 }
 
 - (void) gotNotificationFooNoObject: (NSNotification*)not
 {
-  printf ("Got %s without object\n", [[not name] cStringNoCopy]);
+  printf ("Got %s without object\n", [[not name] cString]);
 }
 
 @end
