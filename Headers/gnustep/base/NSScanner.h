@@ -75,9 +75,7 @@
  * Scanning a string
  */
 - (BOOL) scanInt: (int*)value;
-- (BOOL) scanInt: (int*)value;
 - (BOOL) scanHexInt: (unsigned int*)value;
-- (BOOL) scanRadixUnsignedInt: (unsigned int*)value;
 - (BOOL) scanLongLong: (long long*)value;
 - (BOOL) scanFloat: (float*)value;
 - (BOOL) scanDouble: (double*)value;
@@ -89,6 +87,9 @@
 			intoString: (NSString**)value;
 - (BOOL) isAtEnd;
 
+#ifndef	NO_GNUSTEP
+- (BOOL) scanRadixUnsignedInt: (unsigned int*)value;
+#endif
 #ifndef	STRICT_OPENSTEP
 - (BOOL) scanDecimal: (NSDecimal*)value;
 #endif
