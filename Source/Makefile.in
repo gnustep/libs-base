@@ -298,6 +298,7 @@ NSGData.m \
 NSGDictionary.m \
 NSGUnarchiver.m \
 NSNumber.m \
+NSObjCRuntime.m \
 NSObject.m \
 NSProcessInfo.m \
 NSRange.m \
