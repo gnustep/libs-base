@@ -1440,8 +1440,15 @@ static BOOL isPlistObject(id o)
     }
   else
     {
-      newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
-        initWithContentsOfFile: _defaultsDatabase];
+      if ([mgr isReadableFileAtPath: _defaultsDatabase] == NO)
+	{
+	  newDict = nil;
+	}
+      else
+	{
+	  newDict = [[NSMutableDictionaryClass allocWithZone: [self zone]]
+	    initWithContentsOfFile: _defaultsDatabase];
+	}
       if (newDict == nil)
 	{
 	  if (_fileLock == nil)
