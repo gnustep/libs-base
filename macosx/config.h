@@ -52,6 +52,10 @@
 #define NeXT_Foundation_LIBRARY 1
 #endif
 
+#ifndef HAVE_WCHAR_H
+#define HAVE_WCHAR_H 1
+#endif
+
 #ifndef HAVE_STRERROR
 #define HAVE_STRERROR 1
 #endif

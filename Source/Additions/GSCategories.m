@@ -618,6 +618,16 @@ static void MD5Transform (unsigned long buf[4], unsigned long const in[16])
 @implementation NSString (GSCategories)
 
 /**
+ * Returns an autoreleased string initialized with -initWithFormat:arguments:.
+ */
++ (id) stringWithFormat: (NSString*)format
+	      arguments: (va_list)argList
+{
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithFormat: format arguments: argList]);
+}
+
+/**
  * Returns a string formed by removing the prefix string from the
  * receiver.  Raises an exception if the prefix is not present.
  */

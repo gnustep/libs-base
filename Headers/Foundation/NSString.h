@@ -251,8 +251,6 @@ enum {
 - (NSArray*) stringsByAppendingPaths: (NSArray*)paths;
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...;
 
-+ (id) stringWithFormat: (NSString*)format
-	      arguments: (va_list)argList;
 + (id) stringWithString: (NSString*) aString;
 + (id) stringWithContentsOfURL: (NSURL*)url;
 + (id) stringWithUTF8String: (const char*)bytes;
@@ -372,6 +370,8 @@ extern struct objc_class _NSConstantStringClassReference;
 @end
 
 @interface NSString (GSCategories)
++ (id) stringWithFormat: (NSString*)format
+	      arguments: (va_list)argList;
 - (NSString*) stringByDeletingPrefix: (NSString*)prefix;
 - (NSString*) stringByDeletingSuffix: (NSString*)suffix;
 - (NSString*) stringByTrimmingLeadSpaces;

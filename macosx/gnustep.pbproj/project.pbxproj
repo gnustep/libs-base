@@ -212,6 +212,7 @@
 				556FFDEE03EC36E500000001,
 				555FEDB803EC450500000001,
 				555112B403FEC81600000001,
+				EFEFAC3D055D9BC400B39730,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -239,6 +240,7 @@
 				555112B803FEC83800000001,
 				55AB58310408CDFC00000001,
 				55AB58320408CDFD00000001,
+				EFEFAC3F055D9BF400B39730,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -303,6 +305,7 @@
 				55CF466003E367A500000001,
 				55CF466103E367A500000001,
 				55CF466203E367A500000001,
+				EFEFAC3E055D9BF400B39730,
 				55CF466303E367A500000001,
 				55CF466503E367A500000001,
 				55CF466603E367A500000001,
@@ -741,6 +744,7 @@
 			children = (
 				556FFD3103EC36E500000001,
 				556FFD3603EC36E500000001,
+				EFEFAC3C055D9BC400B39730,
 				556FFD3703EC36E500000001,
 				556FFD3803EC36E500000001,
 				556FFD4003EC36E500000001,
@@ -1741,6 +1745,35 @@
 //EF2
 //EF3
 //EF4
+		EFEFAC3C055D9BC400B39730 = {
+			expectedFileType = sourcecode.c.h;
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			path = GSLock.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		EFEFAC3D055D9BC400B39730 = {
+			fileRef = EFEFAC3C055D9BC400B39730;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		EFEFAC3E055D9BF400B39730 = {
+			expectedFileType = sourcecode.c.objc;
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			name = GSLock.m;
+			path = Additions/GSLock.m;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		EFEFAC3F055D9BF400B39730 = {
+			fileRef = EFEFAC3E055D9BF400B39730;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		EFF06DE3054E5BDA002EC6F5 = {
 			containerPortal = 0867D690FE84028FC02AAC07;
 			isa = PBXContainerItemProxy;

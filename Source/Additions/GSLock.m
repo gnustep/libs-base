@@ -30,6 +30,7 @@
 #include <Foundation/NSNotification.h>
 #include <Foundation/NSThread.h>
 #include "GNUstepBase/GSLock.h"
+#include "GNUstepBase/GNUstep.h"
 
 /**
  * This implements a class which, when used in single-threaded mode,
