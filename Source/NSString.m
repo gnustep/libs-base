@@ -105,6 +105,11 @@ static Class NSMutableString_c_concrete_class;
     }
 }
 
++ allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject([self _concreteClass], 0, z);
+}
+
 // Creating Temporary Strings
 
 + (NSString*) localizedStringWithFormat: (NSString*) format, ...
@@ -115,14 +120,14 @@ static Class NSMutableString_c_concrete_class;
 
 + (NSString*) stringWithCString: (const char*) byteString
 {
-  return [[[[self _concreteCClass] alloc] initWithCString:byteString]
+  return [[[self alloc] initWithCString:byteString]
 	  autorelease];
 }
 
 + (NSString*) stringWithCString: (const char*)byteString
    length: (unsigned int)length
 {
-  return [[[[self _concreteCClass] alloc]
+  return [[[self alloc]
 	   initWithCString:byteString length:length]
 	  autorelease];
 }
@@ -140,7 +145,7 @@ static Class NSMutableString_c_concrete_class;
   id ret;
 
   va_start(ap, format);
-  ret = [[[[self _concreteClass] alloc] initWithFormat:format arguments:ap]
+  ret = [[[self alloc] initWithFormat:format arguments:ap]
 	 autorelease];
   va_end(ap);
   return ret;
@@ -149,7 +154,7 @@ static Class NSMutableString_c_concrete_class;
 + (NSString*) stringWithFormat: (NSString*)format
    arguments: (va_list)argList
 {
-  return [[[[self _concreteClass] alloc]
+  return [[[self alloc]
 	   initWithFormat:format arguments:argList]
 	  autorelease];
 }
@@ -929,6 +934,11 @@ static Class NSMutableString_c_concrete_class;
 
 @implementation NSMutableString
 
++ allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject([self _mutableConcreteClass], 0, z);
+}
+
 /* xxx This method may be removed in future. */
 - (void) setCString: (const char *)byteString length: (unsigned)length
 {
@@ -949,7 +959,7 @@ static Class NSMutableString_c_concrete_class;
 
 + (NSMutableString*) stringWithCapacity:(unsigned)capacity
 {
-  return [[[[self _mutableConcreteClass] alloc] initWithCapacity:capacity] 
+  return [[[self alloc] initWithCapacity:capacity] 
 	  autorelease];
 }
 
@@ -971,7 +981,7 @@ static Class NSMutableString_c_concrete_class;
 + (NSString*) stringWithCString: (const char*)bytes
    length:(unsigned)length
 {
-  id n = [[[self _mutableConcreteCClass] alloc] initWithCapacity:length];
+  id n = [[self alloc] initWithCapacity:length];
   [n setCString:bytes length:length];
   return n;
 }
