@@ -41,6 +41,10 @@ DTD_FILES = plist-0_9.dtd \
 doctemplatesdir = $(GNUSTEP_LIBRARY)/DocTemplates
 DOCTEMPLATES_FILES = indextemplate.gsdoc AutoDocTemplate.gsdoc
 
+# Manual pages to install
+MAN1_PAGES = 
+MAN8_PAGES = gdomap.8.gz
+
 # The application to be compiled
 ifeq ($(add),yes)
 TOOL_NAME = autogsdoc
