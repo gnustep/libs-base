@@ -68,7 +68,7 @@ case "$target_os" in
   freebsd* | openbsd* )	
 	        CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
-  netbsd*)	CPPFLAGS="-I/usr/pkg/include"
+  netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
 		LDFLAGS="$LDFLAGS -Wl,-R/usr/pkg/lib -L/usr/pkg/lib";;
 esac
 
