@@ -179,20 +179,43 @@ _gnu_process_args(int argc, char *argv[], char *env[])
       free(_gnu_arg_zero);
     }
 
-  if (argv)
-      {
+  if (argv != 0)
+    {
       _gnu_arg_zero = (char*)malloc(strlen(argv[0]) + 1);
       strcpy(_gnu_arg_zero, argv[0]);
-      }
+    }
   else
-      {
-      _gnu_arg_zero = (char*)malloc(1);
-      _gnu_arg_zero[0] = '\0';
-      }
+    {
+#ifdef __MINGW__
+      char	*buffer;
+      int	buffer_size = 0;
+      int	needed_size = 0;
+
+      while (needed_size == buffer_size)
+	{
+          buffer_size = buffer_size + 256;
+          buffer = (char*)malloc(buffer_size);
+          needed_size = GetModuleFileNameA(NULL, buffer, buffer_size);
+          if (needed_size < buffer_size)
+	    {
+              _gnu_arg_zero = buffer;
+	    }
+          else
+	    {
+              free(buffer);
+	    }
+	}
+#else      
+      fprintf(stderr, "Error: for some reason, argv == NULL " 
+	      "during GNUstep base initialization\n");
+      abort();
+#endif      
+    }
 
   /* Getting the process name */
   IF_NO_GC(RELEASE(_gnu_processName));
-  _gnu_processName = [[NSString stringWithCString: _gnu_arg_zero] lastPathComponent];
+  _gnu_processName
+    = [[NSString stringWithCString: _gnu_arg_zero] lastPathComponent];
   IF_NO_GC(RETAIN(_gnu_processName));
 
 

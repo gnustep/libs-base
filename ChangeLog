@@ -1,3 +1,13 @@
+2003-02-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSProcessInfo.m (_gnu_process_args): Tidied patch and add
+	code to print error and abort if argv is null under unixy systems.
+
+2003-02-24  Tom Koelman <tkoelman@xs4all.nl>
+
+	* Source/NSProcessInfo.m (_gnu_process_args): If argv is 0 (e.g.
+	on MingW) set executable name using module name info.
+
 2003-02-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUser.m: Don't prepend HOMEDRIVE to HOMEPATH if HOMEPATH
