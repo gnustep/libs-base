@@ -418,7 +418,7 @@
       [anInvocation setTarget: _nextTarget];
       _nextTarget = nil;
       [_group addInvocation: anInvocation];
-      if (_isUndoing == NO)
+      if (_isUndoing == NO && _isRedoing == NO)
 	{
 	  [_redoStack removeAllObjects];
 	}
@@ -714,7 +714,7 @@
       [inv setSelector: aSelector];
       [inv setArgument: &anObject atIndex: 2];
       [g addInvocation: inv];
-      if (_isUndoing == NO)
+      if (_isUndoing == NO && _isRedoing == NO)
 	{
 	  [_redoStack removeAllObjects];
 	}
