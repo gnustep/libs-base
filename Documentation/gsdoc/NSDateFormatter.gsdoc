@@ -21,15 +21,15 @@
         <method type="BOOL"><sel>allowsNaturalLanguage</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>dateFormat</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithDateFormat:</sel><arg type="NSString*">format</arg><sel>allowNaturalLanguage:</sel><arg type="BOOL">flag</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

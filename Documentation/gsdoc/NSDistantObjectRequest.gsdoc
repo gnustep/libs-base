@@ -20,19 +20,19 @@
         <method type="NSConnection*"><sel>connection</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>conversation</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSInvocation*"><sel>invocation</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>replyWithException:</sel><arg type="NSException*">exception</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

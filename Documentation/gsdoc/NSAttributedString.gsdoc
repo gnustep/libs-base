@@ -18,50 +18,50 @@
         <conform>NSCoding</conform>
         <desc>
         </desc>
-        <method type="id"><sel>attribute:</sel><arg type="NSString*">attributeName</arg><sel>atIndex:(unsigned int)index effectiveRange:</sel><arg type="NSRange*">aRange</arg>
+        <method type="id"><sel>attribute:</sel><arg type="NSString*">attributeName</arg><sel>atIndex:</sel><arg type="unsigned int">index</arg><sel>effectiveRange:</sel><arg type="NSRange*">aRange</arg>
         <desc>
         </desc>
-</method>
-        <method type="id"><sel>attribute:</sel><arg type="NSString*">attributeName</arg><sel>atIndex:(unsigned int)index longestEffectiveRange:</sel><arg type="NSRange*">aRange</arg><sel>inRange:</sel><arg type="NSRange">rangeLimit</arg>
+        </method>
+        <method type="id"><sel>attribute:</sel><arg type="NSString*">attributeName</arg><sel>atIndex:</sel><arg type="unsigned int">index</arg><sel>longestEffectiveRange:</sel><arg type="NSRange*">aRange</arg><sel>inRange:</sel><arg type="NSRange">rangeLimit</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSAttributedString*"><sel>attributedSubstringFromRange:</sel><arg type="NSRange">aRange</arg>
         <desc>
         </desc>
-</method>
-        <method type="NSDictionary*"><sel>attributesAtIndex:</sel><arg type="unsignedint">index</arg><sel>effectiveRange:</sel><arg type="NSRange*">aRange</arg>
+        </method>
+        <method type="NSDictionary*"><sel>attributesAtIndex:</sel><arg type="unsigned int">index</arg><sel>effectiveRange:</sel><arg type="NSRange*">aRange</arg>
         <desc>
         </desc>
-</method>
-        <method type="NSDictionary*"><sel>attributesAtIndex:</sel><arg type="unsignedint">index</arg><sel>longestEffectiveRange:</sel><arg type="NSRange*">aRange</arg><sel>inRange:</sel><arg type="NSRange">rangeLimit</arg>
+        </method>
+        <method type="NSDictionary*"><sel>attributesAtIndex:</sel><arg type="unsigned int">index</arg><sel>longestEffectiveRange:</sel><arg type="NSRange*">aRange</arg><sel>inRange:</sel><arg type="NSRange">rangeLimit</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithAttributedString:</sel><arg type="NSAttributedString*">attributedString</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithString:</sel><arg type="NSString*">aString</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithString:</sel><arg type="NSString*">aString</arg><sel>attributes:</sel><arg type="NSDictionary*">attributes</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>isEqualToAttributedString:</sel><arg type="NSAttributedString*">otherString</arg>
         <desc>
         </desc>
-</method>
-        <method type="unsignedint"><sel>length</sel>
+        </method>
+        <method type="unsigned int"><sel>length</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>string</sel>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

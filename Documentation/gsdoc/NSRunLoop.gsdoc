@@ -21,55 +21,55 @@
         <method type="NSRunLoop*" factory="yes"><sel>currentRunLoop</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>acceptInputForMode:</sel><arg type="NSString*">mode</arg><sel>beforeDate:</sel><arg type="NSDate*">limitDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>addPort:</sel><arg type="NSPort*">aPort</arg><sel>forMode:</sel><arg type="NSString*">mode</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>addTimer:</sel><arg type="NSTimer*">aTimer</arg><sel>forMode:</sel><arg type="NSString*">mode</arg>
         <desc>
         </desc>
-</method>
-        <method type="void"><sel>cancelPerformSelector:</sel><arg type="SEL">aSelector</arg><sel>target:(id)target argument:</sel><arg type="id">anArgument</arg>
+        </method>
+        <method type="void"><sel>cancelPerformSelector:</sel><arg type="SEL">aSelector</arg><sel>target:</sel><arg type="id">target</arg><sel>argument:</sel><arg type="id">anArgument</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>configureAsServer</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>currentMode</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDate*"><sel>limitDateForMode:</sel><arg type="NSString*">mode</arg>
         <desc>
         </desc>
-</method>
-        <method type="void"><sel>performSelector:</sel><arg type="SEL">aSelector</arg><sel>target:(id)target argument:</sel><arg type="id">anArgument</arg><sel>order:(unsigned int)order modes:</sel><arg type="NSArray*">modes</arg>
+        </method>
+        <method type="void"><sel>performSelector:</sel><arg type="SEL">aSelector</arg><sel>target:</sel><arg type="id">target</arg><sel>argument:</sel><arg type="id">anArgument</arg><sel>order:</sel><arg type="unsigned int">order</arg><sel>modes:</sel><arg type="NSArray*">modes</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>removePort:</sel><arg type="NSPort*">aPort</arg><sel>forMode:</sel><arg type="NSString*">mode</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>run</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>runMode:</sel><arg type="NSString*">mode</arg><sel>beforeDate:</sel><arg type="NSDate*">limitDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>runUntilDate:</sel><arg type="NSDate*">limitDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

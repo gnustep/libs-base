@@ -21,11 +21,11 @@
         <method type="void" factory="yes"><sel>addObject:</sel><arg type="id">anObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>addObject:</sel><arg type="id">anObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

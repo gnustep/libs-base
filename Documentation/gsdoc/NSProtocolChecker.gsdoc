@@ -20,27 +20,27 @@
         <method type="id" factory="yes"><sel>protocolCheckerWithTarget:</sel><arg type="NSObject*">anObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>forwardInvocation:</sel><arg type="NSInvocation*">anInvocation</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithTarget:</sel><arg type="NSObject*">anObject</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="structobjc_method_description*"><sel>methodDescriptionForSelector:</sel><arg type="SEL">aSelector</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="Protocol*"><sel>protocol</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSObject*"><sel>target</sel>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

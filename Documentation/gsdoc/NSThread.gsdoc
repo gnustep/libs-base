@@ -21,27 +21,27 @@
         <method type="NSThread*" factory="yes"><sel>currentThread</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void" factory="yes"><sel>detachNewThreadSelector:</sel><arg type="SEL">aSelector</arg><sel>toTarget:(id)aTarget  withObject:</sel><arg type="id">anArgument</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void" factory="yes"><sel>exit</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL" factory="yes"><sel>isMultiThreaded</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void" factory="yes"><sel>sleepUntilDate:</sel><arg type="NSDate*">aDate</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSMutableDictionary*"><sel>threadDictionary</sel>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

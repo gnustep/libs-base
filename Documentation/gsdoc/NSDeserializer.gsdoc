@@ -18,18 +18,18 @@
         <conform>NSObject</conform>
         <desc>
         </desc>
-        <method type="id" factory="yes"><sel>deserializePropertyListFromData:</sel><arg type="NSData*">data</arg><sel>atCursor:</sel><arg type="unsignedint*">cursor</arg><sel>mutableContainers:</sel><arg type="BOOL">mutable</arg>
+        <method type="id" factory="yes"><sel>deserializePropertyListFromData:</sel><arg type="NSData*">data</arg><sel>atCursor:</sel><arg type="unsigned int*">cursor</arg><sel>mutableContainers:</sel><arg type="BOOL">mutable</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id" factory="yes"><sel>deserializePropertyListFromData:</sel><arg type="NSData*">serialization</arg><sel>mutableContainers:</sel><arg type="BOOL">mutable</arg>
         <desc>
         </desc>
-</method>
-        <method type="id" factory="yes"><sel>deserializePropertyListLazilyFromData:</sel><arg type="NSData*">data</arg><sel>atCursor:</sel><arg type="unsignedint*">cursor</arg><sel>length:(unsigned int)length mutableContainers:</sel><arg type="BOOL">mutable</arg>
+        </method>
+        <method type="id" factory="yes"><sel>deserializePropertyListLazilyFromData:</sel><arg type="NSData*">data</arg><sel>atCursor:</sel><arg type="unsigned int*">cursor</arg><sel>length:(unsigned int)length mutableContainers:</sel><arg type="BOOL">mutable</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

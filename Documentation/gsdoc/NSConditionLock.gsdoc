@@ -21,35 +21,35 @@
         <method type="int"><sel>condition</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="id"><sel>initWithCondition:</sel><arg type="int">condition</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>lockBeforeDate:</sel><arg type="NSDate*">limit</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>lockWhenCondition:</sel><arg type="int">condition</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>lockWhenCondition:</sel><arg type="int">condition</arg><sel>beforeDate:</sel><arg type="NSDate*">limit</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>tryLock</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>tryLockWhenCondition:</sel><arg type="int">condition</arg>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>unlockWithCondition:</sel><arg type="int">condition</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

@@ -21,15 +21,15 @@
         <method type="id" factory="yes"><sel>defaultDecimalNumberHandler</sel>
         <desc>
         </desc>
-</method>
-        <method type="id" factory="yes"><sel>decimalNumberHandlerWithRoundingMode:</sel><arg type="NSRoundingMode">roundingMode</arg><sel>scale:(short)scale  raiseOnExactness:</sel><arg type="BOOL">raiseOnExactness</arg><sel>raiseOnOverflow:(BOOL)raiseOnOverflow  raiseOnUnderflow:</sel><arg type="BOOL">raiseOnUnderflow</arg><sel>raiseOnDivideByZero:</sel><arg type="BOOL">raiseOnDivideByZero</arg>
+        </method>
+        <method type="id" factory="yes"><sel>decimalNumberHandlerWithRoundingMode:</sel><arg type="NSRoundingMode">roundingMode</arg><sel>scale:</sel><arg type="short">scale</arg><sel>raiseOnExactness:</sel><arg type="BOOL">raiseOnExactness</arg><sel>raiseOnOverflow:</sel><arg type="BOOL">raiseOnOverflow</arg><sel>raiseOnUnderflow:</sel><arg type="BOOL">raiseOnUnderflow</arg><sel>raiseOnDivideByZero:</sel><arg type="BOOL">raiseOnDivideByZero</arg>
         <desc>
         </desc>
-</method>
-        <method type="id"><sel>initWithRoundingMode:</sel><arg type="NSRoundingMode">roundingMode</arg><sel>scale:(short)scale raiseOnExactness:</sel><arg type="BOOL">raiseOnExactness</arg><sel>raiseOnOverflow:(BOOL)raiseOnOverflow raiseOnUnderflow:</sel><arg type="BOOL">raiseOnUnderflow</arg><sel>raiseOnDivideByZero:</sel><arg type="BOOL">raiseOnDivideByZero</arg>
+        </method>
+        <method type="id"><sel>initWithRoundingMode:</sel><arg type="NSRoundingMode">roundingMode</arg><sel>scale:</sel><arg type="short">scale</arg><sel>raiseOnExactness:</sel><arg type="BOOL">raiseOnExactness</arg><sel>raiseOnOverflow:</sel><arg type="BOOL">raiseOnOverflow</arg><sel>raiseOnUnderflow:</sel><arg type="BOOL">raiseOnUnderflow</arg><sel>raiseOnDivideByZero:</sel><arg type="BOOL">raiseOnDivideByZero</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

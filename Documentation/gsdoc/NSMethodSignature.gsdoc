@@ -18,30 +18,30 @@
         <conform>NSObject</conform>
         <desc>
         </desc>
-        <method type="constchar*"><sel>getArgumentTypeAtIndex:</sel><arg type="unsignedint">index</arg>
+        <method type="const char*"><sel>getArgumentTypeAtIndex:</sel><arg type="unsigned int">index</arg>
         <desc>
         </desc>
-</method>
-        <method type="unsignedint"><sel>frameLength</sel>
+        </method>
+        <method type="unsigned int"><sel>frameLength</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="BOOL"><sel>isOneway</sel>
         <desc>
         </desc>
-</method>
-        <method type="unsignedint"><sel>methodReturnLength</sel>
+        </method>
+        <method type="unsigned int"><sel>methodReturnLength</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="char*"><sel>methodReturnType</sel>
         <desc>
         </desc>
-</method>
-        <method type="unsignedint"><sel>numberOfArguments</sel>
+        </method>
+        <method type="unsigned int"><sel>numberOfArguments</sel>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>

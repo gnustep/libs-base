@@ -21,39 +21,39 @@
         <method type="NSProcessInfo*" factory="yes"><sel>processInfo</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSArray*"><sel>arguments</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSDictionary*"><sel>environment</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>globallyUniqueString</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>hostName</sel>
         <desc>
         </desc>
-</method>
-        <method type="unsignedint"><sel>operatingSystem</sel>
+        </method>
+        <method type="unsigned int"><sel>operatingSystem</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>operatingSystemName</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="NSString*"><sel>processName</sel>
         <desc>
         </desc>
-</method>
+        </method>
         <method type="void"><sel>setProcessName:</sel><arg type="NSString*">newName</arg>
         <desc>
         </desc>
-</method>
+        </method>
       </class>
     </chapter>
   </body>
