@@ -183,8 +183,89 @@ _gnu_process_args(int argc, char *argv[], char *env[])
    environment pointers. FIXME: Would like to do something similar
    for other formats besides ELF. */
 #ifdef __ELF__
+#ifdef linux
+
+/* Under linux the functions in __libc_subinit are called before the
+ * global constructiors, therefore, we cannot send methods to any objects
+ */
+
+static int _gnu_noobjc_argc;
+static char **_gnu_noobjc_argv;
+static char **_gnu_noobjc_env;
+
+static void 
+_gnu_process_noobjc_args(int argc, char *argv[], char *env[]) {
+	int i;
+
+	/* We have to copy these in case the main() modifies their values
+	 * somehow before we get a change to use them
+	 */
+
+	_gnu_noobjc_argc = argc;
+	i=0;
+	while(argv[i])
+		i++;
+	_gnu_noobjc_argv = NSZoneMalloc(NS_NOZONE,sizeof(char *)*(i+1));
+	i=0;
+	while(*argv) {
+		_gnu_noobjc_argv[i] = NSZoneMalloc(NS_NOZONE,strlen(*argv)+1);
+		strcpy(_gnu_noobjc_argv[i],*argv);
+		argv++;
+		i++;
+	}
+	_gnu_noobjc_argv[i] = 0;
+	i=0;
+	while(env[i])
+		i++;
+	_gnu_noobjc_env = NSZoneMalloc(NS_NOZONE,sizeof(char *)*(i+1));
+	i=0;
+	while(*env) {
+		_gnu_noobjc_env[i] = NSZoneMalloc(NS_NOZONE,strlen(*env)+1);
+		strcpy(_gnu_noobjc_env[i],*env);
+		env++;
+		i++;
+	}
+	_gnu_noobjc_env[i] = 0;
+
+}
+
+static void _gnu_noobjc_free_vars(void)
+{
+	char **p;
+
+	p = _gnu_noobjc_argv;
+	while (*p) {
+		NSZoneFree(NS_NOZONE,*p);
+		p++;
+	}
+	NSZoneFree(NS_NOZONE,_gnu_noobjc_argv);
+	_gnu_noobjc_argv = 0;
+
+	p = _gnu_noobjc_env;
+	while (*p) {
+		NSZoneFree(NS_NOZONE,*p);
+		p++;
+	}
+	NSZoneFree(NS_NOZONE,_gnu_noobjc_env);
+	_gnu_noobjc_env = 0;
+}
+
+static void * __libobjects_subinit_args__
+__attribute__ ((section ("__libc_subinit"))) = &(_gnu_process_noobjc_args);
+
++ (void)initialize {
+	if (!_gnu_processName && !_gnu_arguments && !_gnu_environment) {
+		NSAssert(_gnu_noobjc_argv && _gnu_noobjc_env,
+			_GNU_MISSING_MAIN_FUNCTION_CALL);
+		_gnu_process_args(_gnu_noobjc_argc,_gnu_noobjc_argv,_gnu_noobjc_env);
+		_gnu_noobjc_free_vars();
+	}
+}
+
+#else
 static void * __libobjects_subinit_args__
 __attribute__ ((section ("_libc_subinit"))) = &(_gnu_process_args);
+#endif
 #else
 #undef main
 int main(int argc, char *argv[], char *env[])
@@ -202,10 +283,8 @@ int main(int argc, char *argv[], char *env[])
 + (NSProcessInfo *)processInfo
 {
   // Check if the main() function was successfully called
-#ifdef NeXT
-  NSAssert(_gnu_processName && _gnu_arguments _gnu_environment,
+  NSAssert(_gnu_processName && _gnu_arguments && _gnu_environment,
 	   _GNU_MISSING_MAIN_FUNCTION_CALL);
-#endif /* NeXT */
 
   if (!_gnu_sharedProcessInfoObject)
     _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
