@@ -84,6 +84,15 @@
 /* Define if you have the geteuid function.  */
 #undef HAVE_GETEUID
 
+/* Define if you have the getlogin function.  */
+#undef HAVE_GETLOGIN
+
+/* Define if you have the getpwnam function.  */
+#undef HAVE_GETPWNAM
+
+/* Define if you have the getpwuid function.  */
+#undef HAVE_GETPWUID
+
 /* Define if you have the iconv function.  */
 #undef HAVE_ICONV
 

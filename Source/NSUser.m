@@ -52,7 +52,9 @@ void
 GSSetUserName(NSString* name)
 {
   if (theUserName == nil)
-    theUserName = RETAIN(name);
+    {
+      theUserName = RETAIN(name);
+    }
   else if ([theUserName isEqualToString: name] == NO)
     {
       ASSIGN(theUserName, name);
@@ -82,18 +84,39 @@ NSUserName(void)
 	login_name = buf;
 #else
       login_name = getenv("LOGNAME");
-      if (login_name == 0 || getpwnam(login_name) == 0)
+#if	HAVE_GETPWNAM
+      /*
+       * Check that LOGNAME contained legal name.
+       */
+      if (login_name != 0 && getpwnam(login_name) == 0)
 	{
-#  if __SOLARIS__ || defined(BSD)
-	  int uid = geteuid(); // get the effective user id
+	  login_name = 0;
+	}
+#endif	/* HAVE_GETPWNAM */
+#if	HAVE_GETLOGIN
+      /*
+       * Try getlogin() if LOGNAME environmentm variable didn't work.
+       */
+      if (login_name == 0)
+	{
+	  login_name = getlogin();
+	}
+#endif	/* HAVE_GETLOGIN */
+#if HAVE_GETPWUID
+      /*
+       * Try getting the name of the effective user as a last resort.
+       */
+      if (login_name == 0)
+	{
+#if HAVE_GETEUID
+	  int uid = geteuid();
+#else
+	  int uid = getuid();
+#endif /* HAVE_GETEUID */
 	  struct passwd *pwent = getpwuid (uid);
 	  login_name = pwent->pw_name;
-#  else
-	  login_name = getlogin();
-	  if (!login_name)
-	    login_name = cuserid(NULL);
-#  endif
 	}
+#endif /* HAVE_GETPWUID */
 #endif
       if (login_name)
 	GSSetUserName([NSString stringWithCString: login_name]);
@@ -185,7 +208,7 @@ GSStandardPathPrefixes(void)
     
   env = [[NSProcessInfo processInfo] environment];
   prefixes = [env objectForKey: @"GNUSTEP_PATHPREFIX_LIST"];
-  if (prefixes)
+  if (prefixes != 0)
     {
 #if	defined(__WIN32__)
       prefixArray = [prefixes componentsSeparatedByString: @";"];
@@ -314,126 +337,180 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
     || directoryKey == NSAllApplicationsDirectory)
     {
       if (domainMask & NSUserDomainMask)
-        [paths addObject:
-             [gnustep_user_root stringByAppendingPathComponent: appsDir]];
+	{
+	  [paths addObject:
+	    [gnustep_user_root stringByAppendingPathComponent: appsDir]];
+	}
       if (domainMask & NSLocalDomainMask)
-        [paths addObject:
-             [gnustep_local_root stringByAppendingPathComponent: appsDir]];
+	{
+	  [paths addObject:
+            [gnustep_local_root stringByAppendingPathComponent: appsDir]];
+	}
       if (domainMask & NSNetworkDomainMask)
-        [paths addObject:
-             [gnustep_network_root stringByAppendingPathComponent: appsDir]];
+	{
+	  [paths addObject:
+            [gnustep_network_root stringByAppendingPathComponent: appsDir]];
+	}
       if (domainMask & NSSystemDomainMask)
-        [paths addObject:
-             [gnustep_system_root stringByAppendingPathComponent: appsDir]];
+	{
+	  [paths addObject:
+            [gnustep_system_root stringByAppendingPathComponent: appsDir]];
+	}
     }
   if (directoryKey == NSDemoApplicationDirectory
-    || directoryKey == NSAllApplicationsDirectory);
+    || directoryKey == NSAllApplicationsDirectory);	/* FIXME */
     {
       if (domainMask & NSSystemDomainMask)
-        [paths addObject: [NSString pathWithComponents:
+	{
+	  [paths addObject: [NSString pathWithComponents:
             [NSArray arrayWithObjects: gnustep_system_root,
-                devDir, demosDir, nil]]];
+	      devDir, demosDir, nil]]];
+	}
     }
   if (directoryKey == NSDeveloperApplicationDirectory
     || directoryKey == NSAllApplicationsDirectory)
     {
-      if (domainMask & NSUserDomainMask);
+      if (domainMask & NSUserDomainMask);	/* FIXME */
       if (domainMask & NSLocalDomainMask)
-        [paths addObject: [NSString pathWithComponents:
+	{
+	  [paths addObject: [NSString pathWithComponents:
             [NSArray arrayWithObjects: gnustep_local_root,
-                devDir, appsDir, nil]]];
+              devDir, appsDir, nil]]];
+	}
       if (domainMask & NSNetworkDomainMask)
-        [paths addObject: [NSString pathWithComponents:
+	{
+	  [paths addObject: [NSString pathWithComponents:
             [NSArray arrayWithObjects: gnustep_network_root,
-                devDir, appsDir, nil]]];
+	      devDir, appsDir, nil]]];
+	}
       if (domainMask & NSSystemDomainMask)
-        [paths addObject: [NSString pathWithComponents:
+	{
+	  [paths addObject: [NSString pathWithComponents:
             [NSArray arrayWithObjects: gnustep_system_root,
-                devDir, appsDir, nil]]];
+              devDir, appsDir, nil]]];
+	}
     }
   if (directoryKey == NSAdminApplicationDirectory
     || directoryKey == NSAllApplicationsDirectory)
     {
-      if (domainMask & NSUserDomainMask);
+      if (domainMask & NSUserDomainMask);	/* FIXME */
         /* users have no Administrator directory */
       if (domainMask & NSLocalDomainMask)
-        [paths addObject: [NSString pathWithComponents:
+	{
+	  [paths addObject: [NSString pathWithComponents:
             [NSArray arrayWithObjects: gnustep_local_root,
-                devDir, adminDir, nil]]];
+	      devDir, adminDir, nil]]];
+	}
       if (domainMask & NSNetworkDomainMask)
-        [paths addObject: [NSString pathWithComponents:
+	{
+	  [paths addObject: [NSString pathWithComponents:
             [NSArray arrayWithObjects: gnustep_network_root,
-                devDir, adminDir, nil]]];                    
+	      devDir, adminDir, nil]]];                    
+	}
       if (domainMask & NSSystemDomainMask) 
-        [paths addObject: [NSString pathWithComponents:
+	{
+	  [paths addObject: [NSString pathWithComponents:
             [NSArray arrayWithObjects: gnustep_system_root,
-                devDir, adminDir, nil]]];
+	      devDir, adminDir, nil]]];
+	}
     }                                   
   if (directoryKey == NSLibraryDirectory
     || directoryKey == NSAllLibrariesDirectory)
     {
       if (domainMask & NSUserDomainMask)
-        [paths addObject:
-             [gnustep_user_root stringByAppendingPathComponent: libraryDir]];
+	{
+	  [paths addObject:
+            [gnustep_user_root stringByAppendingPathComponent: libraryDir]];
+	}
       if (domainMask & NSLocalDomainMask)
-        [paths addObject:
-             [gnustep_local_root stringByAppendingPathComponent: libraryDir]];
+	{
+	  [paths addObject:
+            [gnustep_local_root stringByAppendingPathComponent: libraryDir]];
+	}
       if (domainMask & NSNetworkDomainMask)
-        [paths addObject:
-             [gnustep_network_root stringByAppendingPathComponent: libraryDir]];
+	{
+	  [paths addObject:
+            [gnustep_network_root stringByAppendingPathComponent: libraryDir]];
+	}
       if (domainMask & NSSystemDomainMask)
-        [paths addObject:
-             [gnustep_system_root stringByAppendingPathComponent: libraryDir]];
+	{
+	  [paths addObject:
+            [gnustep_system_root stringByAppendingPathComponent: libraryDir]];
+	}
     }
   if (directoryKey == NSDeveloperDirectory)
     {
-      if (domainMask & NSUserDomainMask);
+      if (domainMask & NSUserDomainMask);	/* FIXME */
         /* users have no Developer directory */
       if (domainMask & NSLocalDomainMask)
-        [paths addObject:
+	{
+	  [paths addObject:
             [gnustep_local_root stringByAppendingPathComponent: devDir]];
+	}
       if (domainMask & NSNetworkDomainMask)
-        [paths addObject:
+	{
+	  [paths addObject:
             [gnustep_network_root stringByAppendingPathComponent: devDir]];
+	}
       if (domainMask & NSSystemDomainMask)
-        [paths addObject:
+	{
+	  [paths addObject:
             [gnustep_system_root stringByAppendingPathComponent: devDir]];
+	}
     }
   if (directoryKey == NSUserDirectory)
     {
       if (domainMask & NSUserDomainMask)
-        [paths addObject: [NSHomeDirectory()
-                            stringByAppendingPathComponent: @"GNUstep"]];
+	{
+	  [paths addObject: [NSHomeDirectory()
+	    stringByAppendingPathComponent: @"GNUstep"]];
+	}
     }
   if (directoryKey == NSDocumentationDirectory)
     {
       if (domainMask & NSUserDomainMask)
-        [paths addObject:
-             [gnustep_user_root stringByAppendingPathComponent: docDir]];
+	{
+	  [paths addObject:
+            [gnustep_user_root stringByAppendingPathComponent: docDir]];
+	}
       if (domainMask & NSLocalDomainMask)
-        [paths addObject:
-             [gnustep_local_root stringByAppendingPathComponent: docDir]];
+	{
+	  [paths addObject:
+            [gnustep_local_root stringByAppendingPathComponent: docDir]];
+	}
       if (domainMask & NSNetworkDomainMask)
-        [paths addObject:
-             [gnustep_network_root stringByAppendingPathComponent: docDir]];
+	{
+	  [paths addObject:
+            [gnustep_network_root stringByAppendingPathComponent: docDir]];
+	}
       if (domainMask & NSSystemDomainMask)
-        [paths addObject:
-             [gnustep_system_root stringByAppendingPathComponent: docDir]];
+	{
+	  [paths addObject:
+            [gnustep_system_root stringByAppendingPathComponent: docDir]];
+	}
     }
   if (directoryKey == GSLibrariesDirectory)
     {
       if (domainMask & NSUserDomainMask)
-        [paths addObject:
-             [gnustep_user_root stringByAppendingPathComponent: libsDir]];
+	{
+	  [paths addObject:
+            [gnustep_user_root stringByAppendingPathComponent: libsDir]];
+	}
       if (domainMask & NSLocalDomainMask)
-        [paths addObject:
-             [gnustep_local_root stringByAppendingPathComponent: libsDir]];
+	{
+	  [paths addObject:
+            [gnustep_local_root stringByAppendingPathComponent: libsDir]];
+	}
       if (domainMask & NSNetworkDomainMask)
-        [paths addObject:
-             [gnustep_network_root stringByAppendingPathComponent: libsDir]];
+	{
+	  [paths addObject:
+            [gnustep_network_root stringByAppendingPathComponent: libsDir]];
+	}
       if (domainMask & NSSystemDomainMask)
-        [paths addObject:
-             [gnustep_system_root stringByAppendingPathComponent: libsDir]];
+	{
+	  [paths addObject:
+            [gnustep_system_root stringByAppendingPathComponent: libsDir]];
+	}
     }
 
   fm = [NSFileManager defaultManager];
@@ -441,19 +518,24 @@ NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
     {
       path = [paths objectAtIndex: i];
       // remove bad paths
-      if (![fm fileExistsAtPath: path])
+      if ([fm fileExistsAtPath: path] == NO)
         {
-          [paths removeObject: path];
-          i--;  // mutable arrays move objects up a slot when you remove one
+          [paths removeObjectAtIndex: i--];
         }
-      // this may look like a performance hit at first glance, but if these
-      // string methods don't alter the string, they return the receiver
-      else if (expandTilde)
-        [paths replaceObjectAtIndex: i
-                         withObject: [path stringByExpandingTildeInPath]];
+      /*
+       * this may look like a performance hit at first glance, but if these
+       * string methods don't alter the string, they return the receiver
+       */
+      else if (expandTilde == YES)
+	{
+	  [paths replaceObjectAtIndex: i
+			   withObject: [path stringByExpandingTildeInPath]];
+	}
       else
-        [paths replaceObjectAtIndex: i
-                      withObject: [path stringByAbbreviatingWithTildeInPath]];
+	{
+	  [paths replaceObjectAtIndex: i
+	    withObject: [path stringByAbbreviatingWithTildeInPath]];
+	}
     }
 
   return paths;
