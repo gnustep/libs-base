@@ -1,5 +1,5 @@
 /* Implementation of connection object for remote object messaging
-   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
    
    Written by:  R. Andrew McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -231,7 +231,7 @@ static int messagesReceivedCount;
 
   void encoder(int argnum, void *datum, const char *type, int flags)
     {
-#define ENCODED_ARGNAME "argument value"
+#define ENCODED_ARGNAME @"argument value"
       switch (*type)
 	{
 	case _C_ID:
@@ -325,7 +325,7 @@ static int messagesReceivedCount;
     }
   void encoder (int argnum, void *datum, const char *type, int flags)
     {
-#define ENCODED_RETNAME "return value"
+#define ENCODED_RETNAME @"return value"
       if (op == nil)
 	op = [self newSendingReplyRmcWithSequenceNumber:
 		   reply_sequence_number];
