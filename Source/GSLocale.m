@@ -196,7 +196,14 @@ GSDomainFromDefaultLocale(void)
     }
 
   [gnustep_global_lock lock];
-  saved = [dict mutableCopy];
+  /*
+   * Another thread might have been faster in setting the static variable.
+   * If so, we just drop our dict.
+   */
+  if (saved == nil)
+    {
+      saved = [dict mutableCopy];
+    }
   [gnustep_global_lock unlock];
   return saved;
 #else /* HAVE_LANGINFO_H */

@@ -1,3 +1,9 @@
+2002-09-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSLocale.m: Double locking check fix
+	* Source/NSFileManager.m: Double locking check fix
+	Fixes contributed by David Ayers <d.ayers@inode.at>
+
 2002-09-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/gnustep/base/GSIArray.h: Minor optimisation
