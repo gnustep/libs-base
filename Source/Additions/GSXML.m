@@ -132,7 +132,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr ctxt);
 @end
 
 
-@implementation GSXMLAttribute : GSXMLNode
+@implementation GSXMLAttribute
 
 static NSMapTable	*attrNames = 0;
 
@@ -249,7 +249,7 @@ static NSMapTable	*attrNames = 0;
  * A GSXML document wraps the document structure of the underlying
  * libxml library.
  */
-@implementation GSXMLDocument : NSObject
+@implementation GSXMLDocument
 
 /**
  * Create a new document with the specified version.
@@ -471,7 +471,7 @@ static NSMapTable	*attrNames = 0;
  * A GSXMLNamespace object wraps part of the document structure of
  * the underlying libxml library.
  */
-@implementation GSXMLNamespace : NSObject
+@implementation GSXMLNamespace
 
 static NSMapTable	*nsNames = 0;
 
@@ -648,7 +648,7 @@ static NSMapTable	*nsNames = 0;
  * A GSXMLNode object wraps part of the document structure of the
  * underlying libxml library.
  */
-@implementation GSXMLNode: NSObject
+@implementation GSXMLNode
 
 static NSMapTable	*nodeNames = 0;
 
@@ -1333,7 +1333,7 @@ static NSMapTable	*nodeNames = 0;
  *   NSData objects.
  * </p>
  */
-@implementation GSXMLParser : NSObject
+@implementation GSXMLParser
 
 static NSString	*endMarker = @"At end of incremental parse";
 
@@ -1975,7 +1975,7 @@ static NSString	*endMarker = @"At end of incremental parse";
  *    is intended that you subclass GSSAXHandler and override them.
  *  </p>
  */
-@implementation GSSAXHandler : NSObject
+@implementation GSSAXHandler
 
 + (void) initialize
 {
@@ -2857,6 +2857,8 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 @end
 @interface GSXMLParser : GSXMLDummy
 @end
+@interface GSXMLAttribute : GSXMLNode
+@end
 @implementation GSXMLDummy
 + (id) allocWithZone: (NSZone*)z
 {
@@ -2895,6 +2897,8 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 @implementation GSSAXHandler
 @end
 @implementation GSXMLParser
+@end
+@implementation GSXMLAttribute
 @end
 #endif
 
