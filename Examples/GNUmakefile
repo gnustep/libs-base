@@ -46,7 +46,7 @@ custom-zone.m
 
 include Makefile.preamble
 
-include GNUmakefile.local
+-include GNUmakefile.local
 
 include $(GNUSTEP_MAKEFILES)/test-tool.make
 
