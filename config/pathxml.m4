@@ -10,6 +10,9 @@ AC_ARG_ENABLE(xmltest,
 
   if test x$xml_config_prefix != x ; then
     xml_config_args="$xml_config_args --prefix=$xml_config_prefix"
+    if test x${XML2_CONFIG+set} != xset ; then
+      XML2_CONFIG=$xml_config_prefix/bin/xml2-config
+    fi
     if test x${XML_CONFIG+set} != xset ; then
       XML_CONFIG=$xml_config_prefix/bin/xml-config
     fi
