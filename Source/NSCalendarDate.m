@@ -670,8 +670,9 @@ static inline int getDigits(const char *from, char *to, int limit)
 		    {
 		      if (source[sourceIdx] != format[formatIdx])
 			{
-			  NSLog(@"Expected literal '%c' but got '%c'",
-			    format[formatIdx], source[sourceIdx]);
+			  NSLog(@"Expected literal '%c' but got '%c' parsing"
+			    @"'%@' using '%@'", format[formatIdx],
+			    source[sourceIdx], description, fmt);
 			}
 		      sourceIdx++;
 		    }
@@ -690,8 +691,9 @@ static inline int getDigits(const char *from, char *to, int limit)
 		      {
 			if (source[sourceIdx] != '%')
 			  {
-			    NSLog(@"Expected literal '%' but got '%c'",
-			      source[sourceIdx]);
+			    NSLog(@"Expected literal '%%' but got '%c' parsing"
+			      @"'%@' using '%@'", source[sourceIdx],
+			      description, fmt);
 			  }
 			sourceIdx++;
 		      }
