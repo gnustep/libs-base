@@ -675,21 +675,12 @@ static NSString	*pathForUser(NSString *user)
 {
   NSString	*database = @".GNUstepDefaults";
   NSFileManager	*mgr = [NSFileManager defaultManager];
-  NSString	*home;
   NSString	*path;
-  NSString	*old;
   unsigned	desired;
   NSDictionary	*attr;
   BOOL		isDir;
 
-  home = GSDefaultsRootForUser(user);
-  if (home == nil)
-    {
-      /* Probably on MINGW. Where to put it? */
-      NSLog(@"Could not get user root. Using NSOpenStepRootDirectory()");
-      home = NSOpenStepRootDirectory();
-    }
-  path = [home stringByAppendingPathComponent: @"Defaults"];
+  path = GSDefaultsRootForUser(user);
 
 #if	!(defined(S_IRUSR) && defined(S_IWUSR) && defined(S_IXUSR) \
   && defined(S_IRGRP) && defined(S_IXGRP) \
@@ -702,26 +693,6 @@ static NSString	*pathForUser(NSString *user)
     NSUserName(), NSFileOwnerAccountName,
     [NSNumberClass numberWithUnsignedLong: desired], NSFilePosixPermissions,
     nil];
-
-  if ([mgr fileExistsAtPath: home isDirectory: &isDir] == NO)
-    {
-      if ([mgr createDirectoryAtPath: home attributes: attr] == NO)
-	{
-	  NSLog(@"Defaults home '%@' does not exist - failed to create it.",
-	    home);
-	  return nil;
-	}
-      else
-	{
-	  NSLog(@"Defaults home '%@' did not exist - created it", home);
-	  isDir = YES;
-	}
-    }
-  if (isDir == NO)
-    {
-      NSLog(@"ERROR - defaults home '%@' is not a directory!", home);
-      return nil;
-    }
 
   if ([mgr fileExistsAtPath: path isDirectory: &isDir] == NO)
     {
@@ -744,39 +715,6 @@ static NSString	*pathForUser(NSString *user)
     }
 
   path = [path stringByAppendingPathComponent: database];
-  old = [home stringByAppendingPathComponent: database];
-  if ([mgr fileExistsAtPath: path] == NO)
-    {
-      if ([mgr fileExistsAtPath: old] == YES)
-	{
-	  if ([mgr movePath: old toPath: path handler: nil] == YES)
-	    {
-	      NSLog(@"Moved defaults database from old location (%@) to %@",
-		old, path);
-	    }
-	}
-    }
-  if ([mgr fileExistsAtPath: old] == YES)
-    {
-      NSLog(@"Warning - ignoring old defaults database in %@", old);
-    }
-
-  /*
-   * Try to create standard directory hierarchy if necessary
-   */
-  home = [NSSearchPathForDirectoriesInDomains(NSUserDirectory,
-    NSUserDomainMask, YES) lastObject];
-  if (home != nil)
-    {
-      NSString	*p;
-
-      p = [home stringByAppendingPathComponent: @"Library"];
-      if ([mgr fileExistsAtPath: p isDirectory: &isDir] == NO)
-	{
-	  [mgr createDirectoryAtPath: p attributes: attr];
-	}
-    }
-
   return path;
 }
 

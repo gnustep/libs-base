@@ -12,6 +12,9 @@
 /* Define if constructors are automatically loaded */
 #undef CON_AUTOLOAD
 
+/* Set to location of the GNUstep configuration file */
+#undef GNUSTEP_CONFIGURATION_FILE
+
 /* Define if this constant is defined */
 #undef HANDLE_LLONG_MAX
 
@@ -412,11 +415,9 @@
    first (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
 
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
+/* Define as `__inline' if that's what the C compiler calls it, or to nothing
+   if it is not supported. */
 #undef inline
-#endif
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t

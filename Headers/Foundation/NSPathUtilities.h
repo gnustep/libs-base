@@ -38,13 +38,13 @@
  * [NSUserDefaults +resetUserDefaults] extension to reset the defaults system
  * to use the defaults belonging to the new user.
  */
-GS_EXPORT void  GSSetUserName(NSString *name);
+GS_EXPORT void  GSSetUserName(NSString *aName);
 
 /** 
  * Try to locate file/directory (aName).(anExtension) in paths.
  * Will return the first found or nil if nothing is found.
  */
-//GS_EXPORT NSString *GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension);
+GS_EXPORT NSString *GSFindNamedFile(NSArray *paths, NSString *aName, NSString *anExtension);
 
 GS_EXPORT NSString *GSDefaultsRootForUser(NSString *userName);
 
@@ -103,8 +103,10 @@ typedef enum
   GSLibrariesDirectory,
   GSToolsDirectory,
   GSApplicationSupportDirectory,
-  GSPreferencesDirectory
+  GSPreferencesDirectory,
   
+  GSFontsDirectory,
+  GSFrameworksDirectory
  } NSSearchPathDirectory;
 
 /**

@@ -41,11 +41,11 @@
  * Returns a hive key or 0 if unable.
  */
 HKEY
-Win32OpenRegistry(DWORD hive, const char *key)
+Win32OpenRegistry(HKEY hive, const char *key)
 {
   HKEY regkey;
   
-  if (ERROR_SUCCESS == RegOpenKeyEx((HKEY)hive, key, 0, KEY_READ, &regkey))
+  if (ERROR_SUCCESS == RegOpenKeyEx(hive, key, 0, KEY_READ, &regkey))
     {
       return regkey;
     }
@@ -57,13 +57,13 @@ Win32OpenRegistry(DWORD hive, const char *key)
  * Returns an NSString as read from a registry STRING value.
  */
 NSString *
-Win32NSStringFromRegistry(HKEY regkey, const char *regValue)
+Win32NSStringFromRegistry(HKEY regkey, NSString *regValue)
 {
   char buf[MAX_PATH];
   DWORD bufsize=MAX_PATH;
   DWORD type;
 
-  if (ERROR_SUCCESS==RegQueryValueEx(regkey, regValue, 0, &type, buf, &bufsize))
+  if (ERROR_SUCCESS==RegQueryValueEx(regkey, [regValue cString], 0, &type, buf, &bufsize))
     {
       // FIXME: Check type is correct!
       
@@ -77,8 +77,8 @@ Win32NSStringFromRegistry(HKEY regkey, const char *regValue)
   return nil;
 }
 
-// NSNumber *Win32NSNumberFromRegistry(HKEY regkey, const char *regValue);
-// NSData   *Win32NSDataFromRegistry(HKEY regkey, const char *regValue);
+// NSNumber *Win32NSNumberFromRegistry(HKEY regkey, NSString *regValue);
+// NSData   *Win32NSDataFromRegistry(HKEY regkey, NSString *regValue);
 
 /* ------+---------+---------+---------+---------+---------+---------+---------+
 #pragma mark -
