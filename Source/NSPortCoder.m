@@ -117,6 +117,8 @@ static BOOL debug_connected_coder = NO;
       fprintf(stderr, "dismiss 0x%x: #=%d i=%d write failed - %s\n",
 	        (unsigned)self, sequence_number, identifier,
 		[[localException reason] cStringNoCopy]);
+    if ([[connection sendPort] isValid])
+      [[connection sendPort] invalidate];
   }
   NS_ENDHANDLER
   if (debug_connected_coder)
