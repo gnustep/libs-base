@@ -1,3 +1,10 @@
+2004-05-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSMime.m: When using non-ascii default characterset
+	ensure that the content type header has the appropriate
+	charset parameter added during parsing, so unparsing will
+	work correctly.
+
 2004-08-05 01:59  Alexander Malmberg <alexander@malmberg.org>
 
 	* Source/NSDistantObject.m (DO_FORWARD_INVOCATION): Warning if we

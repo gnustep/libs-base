@@ -2242,6 +2242,27 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		  if (typeInfo == nil)
 		    {
 		      stringEncoding = _defaultEncoding;
+		      if (stringEncoding != NSASCIIStringEncoding)
+			{
+			  NSString	*charset;
+
+			  if (typeInfo == nil)
+			    {
+			      typeInfo = [GSMimeHeader new];
+			      [typeInfo setName: @"content-type"];
+			      [typeInfo setValue: @"text/plain"];
+			      [typeInfo setObject: @"text"
+					   forKey: @"Type"];
+			      [typeInfo setObject: @"plain"
+					   forKey: @"Subtype"];
+			      [document setHeader: typeInfo];
+			      RELEASE(typeInfo);
+			    }
+			  charset = [GSMimeDocument charsetFromEncoding:
+			    stringEncoding];
+			  [typeInfo setParameter: charset
+					  forKey: @"charset"];
+			}
 		    }
 		  else
 		    {
