@@ -1,5 +1,5 @@
 /* LibobjectsMain.h for GNUStep
-   Copyright (C) 1995 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev, EMBL & Academia Naturalis, 
                 Heidelberg, Germany
@@ -45,8 +45,8 @@
 */
 
 #if !defined(__ELF__) && !defined(SYS_AUTOLOAD)
-#define main LibobjectsMain
-extern int LibobjectsMain(/* int argc, char *argv[] */);
+#define main gnustep_base_user_main
+extern int gnustep_base_user_main (/* int argc, char *argv[] */);
 #endif /* __ELF__ */
 
 /*
