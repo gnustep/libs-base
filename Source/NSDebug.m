@@ -28,6 +28,7 @@
 
 #include "config.h"
 #include <stdio.h>
+#include "Foundation/NSData.h"
 #include "Foundation/NSDebug.h"
 #include "Foundation/NSString.h"
 #include "Foundation/NSLock.h"
@@ -423,7 +424,9 @@ GSDebugAllocationClassList()
 const char*
 GSDebugAllocationList(BOOL changeFlag)
 {
-  const char *ans;
+  const char	*ans;
+  NSData	*d;
+
   if (debug_allocation == NO)
     {
       return "Debug allocation system is not active!\n";
@@ -431,9 +434,10 @@ GSDebugAllocationList(BOOL changeFlag)
   if (uniqueLock != nil)
     [uniqueLock lock];
   ans = _GSDebugAllocationList(changeFlag);
+  d = [NSData dataWithBytes: ans length: strlen(ans) + 1];
   if (uniqueLock != nil)
     [uniqueLock unlock];
-  return ans;
+  return (const char*)[d bytes];
 }
 
 static const char*
@@ -520,7 +524,9 @@ _GSDebugAllocationList(BOOL difference)
 const char*
 GSDebugAllocationListAll()
 {
-  const char *ans;
+  const char	*ans;
+  NSData	*d;
+
   if (debug_allocation == NO)
     {
       return "Debug allocation system is not active!\n";
@@ -528,9 +534,10 @@ GSDebugAllocationListAll()
   if (uniqueLock != nil)
     [uniqueLock lock];
   ans = _GSDebugAllocationListAll();
+  d = [NSData dataWithBytes: ans length: strlen(ans)+1];
   if (uniqueLock != nil)
     [uniqueLock unlock];
-  return ans;
+  return (const char*)[d bytes];
 }
 
 static const char*

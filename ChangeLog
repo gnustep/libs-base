@@ -3,6 +3,7 @@
 	* Source/NSDistributedNotificationCenter.m: Partially reverted last
 	change ... seemed to cause problems on some systems.
 	* Tools/gdnc.m: ditto.
+	* Source/NSDebug.m: Small thread safely fix.
 
 2003-07-23  Richard Frith-Macdonald <rfm@gnu.org>
 
