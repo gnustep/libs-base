@@ -45,6 +45,28 @@ extern NSString *NSHomeDirectory();
 extern NSString *NSHomeDirectoryForUser(NSString *userName);
 
 #ifndef STRICT_OPENSTEP
+typedef enum
+{
+  NSApplicationDirectory,
+  NSDemoApplicationDirectory,
+  NSDeveloperApplicationDirectory,
+  NSAdminApplicationDirectory,
+  NSLibraryDirectory,
+  NSDeveloperDirectory,
+  NSUserDirectory,
+  NSDocumentationDirectory,
+  NSAllApplicationsDirectory,
+  NSAllLibrariesDirectory
+} NSSearchPathDirectory;
+
+typedef unsigned int NSSearchPathDomainMask;
+#define NSUserDomainMask	0x00000001
+#define NSLocalDomainMask	0x00000002
+#define NSNetworkDomainMask	0x00000004
+#define NSSystemDomainMask	0x00000008
+#define NSAllDomainsMask	0xffffffff
+
+extern NSArray *NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directory, NSSearchPathDomainMask domainMask, BOOL expandTilde);
 extern NSString *NSFullUserName(void);
 extern NSArray *NSStandardApplicationPaths(void);
 extern NSArray *NSStandardLibraryPaths(void);
