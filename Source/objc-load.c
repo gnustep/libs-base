@@ -1,6 +1,6 @@
 /* objc-load - Dynamically load in Obj-C modules (Classes, Categories)
 
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    
    Written by:  Adam Fedor, Pedja Bogdanovich
    
@@ -33,6 +33,9 @@
 #include <stdlib.h>
 #include <objc/objc-api.h>
 #include <objc/objc-list.h>
+#ifdef HAVE_CONFIG_H
+#include <gnustep/base/config.h>
+#endif
 #include <Foundation/objc-load.h>
 
 /* include the interface to the dynamic linker */
