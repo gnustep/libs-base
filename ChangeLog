@@ -4,6 +4,8 @@
 	maintain byte order and word size compatibility.
 	* Source/GSValue.m: ditto
 	* Testing/values.m: added encoding/decoding tests.
+	* Source/GSMime.m: Tidied handling of continuations a little.
+	* Source/GSHTTPURLHandle.m: Added some debug logging.
 
 Sat Dec  1 10:11:18 2001  Nicola Pero  <n.pero@mi.flashnet.it>
 

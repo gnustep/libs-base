@@ -812,8 +812,6 @@ parseCharacterSet(NSString *token)
     }
   if ([d length] > 0)
     {
-      NSDictionary	*info;
-
       if (inBody == NO)
 	{
 	  [data appendBytes: [d bytes] length: [d length]];
@@ -848,28 +846,35 @@ parseCharacterSet(NSString *token)
 	   */
 	  d = AUTORELEASE([data copy]);
 	  [data setLength: 0];
-	}
 
-      /*
-       * We may have http continuation header(s)
-       */
-      info = [[document headersNamed: @"http"] lastObject];
-      if (info != nil)
-	{
-	  NSString	*val;
-
-	  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
-	  if (val != nil)
+	  /*
+	   * If we have finished parsing the headers, we may have http
+	   * continuation header(s), in which case, we must start parsing
+	   * headers again.
+	   */
+	  if (inBody == YES)
 	    {
-	      int	v = [val intValue];
+	      NSDictionary	*info;
 
-	      if (v >= 100 && v < 200)
+	      info = [[document headersNamed: @"http"] lastObject];
+	      if (info != nil)
 		{
-		  /*
-		   * This is an intermediary response ... so we have to
-		   * restart the parsing operation!
-		   */
-		  inBody = NO;
+		  NSString	*val;
+
+		  val = [info objectForKey: NSHTTPPropertyStatusCodeKey];
+		  if (val != nil)
+		    {
+		      int	v = [val intValue];
+
+		      if (v >= 100 && v < 200)
+			{
+			  /*
+			   * This is an intermediary response ... so we have
+			   * to restart the parsing operation!
+			   */
+			  inBody = NO;
+			}
+		    }
 		}
 	    }
 	}

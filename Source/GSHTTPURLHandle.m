@@ -37,8 +37,11 @@
 #include <Foundation/NSDebug.h>
 #include <Foundation/GSMime.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/file.h>
 
 static NSString	*httpVersion = @"1.1";
+static BOOL	debug = NO;
 
 char emp[64] = {
     'A','B','C','D','E','F','G','H','I','J','K','L','M',
@@ -77,6 +80,33 @@ char emp[64] = {
 static NSMutableDictionary	*urlCache = nil;
 static NSLock			*urlLock = nil;
 
+static void debugRead(NSData *data)
+{
+  NSString	*s = [NSString stringWithFormat: @"/tmp/GSHTTP.%d", getpid()];
+  int		d = open([s cString], O_WRONLY|O_CREAT|O_APPEND, 0644);
+
+  if (d >= 0)
+    {
+      s = [NSString stringWithFormat: @"\nRead %@ -\n", [NSDate date]];
+      write(d, [s cString], [s cStringLength]);
+      write(d, [data bytes], [data length]);
+      close(d);
+    }
+}
+static void debugWrite(NSData *data)
+{
+  NSString	*s = [NSString stringWithFormat: @"/tmp/GSHTTP.%d", getpid()];
+  int		d = open([s cString], O_WRONLY|O_CREAT|O_APPEND, 0644);
+
+  if (d >= 0)
+    {
+      s = [NSString stringWithFormat: @"\nWrite %@ -\n", [NSDate date]];
+      write(d, [s cString], [s cStringLength]);
+      write(d, [data bytes], [data length]);
+      close(d);
+    }
+}
+
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)newUrl
 {
   NSURLHandle	*obj = nil;
@@ -102,6 +132,11 @@ static NSLock			*urlLock = nil;
       urlCache = [NSMutableDictionary new];
       urlLock = [NSLock new];
     }
+}
+
++ (void) setDebug: (BOOL)flag
+{
+  debug = flag;
 }
 
 - (void) dealloc
@@ -160,6 +195,8 @@ static NSLock			*urlLock = nil;
   NSData		*d;
 
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
+  if (debug == YES) debugRead(d);
+
   [parser parse: d];
   if ([parser isComplete] == YES)
     {
@@ -204,6 +241,7 @@ static NSLock			*urlLock = nil;
   GSMimeParser		*p = [GSMimeParser new];
 
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
+  if (debug == YES) debugRead(d);
 
   if ([d length] > 0)
     {
@@ -387,6 +425,7 @@ static NSLock			*urlLock = nil;
       NSString		*cmd;
       NSTimeInterval	last = 0.0;
       NSTimeInterval	limit = 0.01;
+      NSData		*buf;
       NSDate		*when;
       NSString		*status;
 
@@ -415,8 +454,9 @@ static NSLock			*urlLock = nil;
                  name: GSFileHandleWriteCompletionNotification
                object: sock];
 
-      [sock writeInBackgroundAndNotify: 
-	[cmd dataUsingEncoding: NSASCIIStringEncoding]];
+      buf = [cmd dataUsingEncoding: NSASCIIStringEncoding];
+      [sock writeInBackgroundAndNotify: buf]; 
+      if (debug == YES) debugWrite(buf);
 
       when = [NSDate alloc];
       while (tunnel == YES)
@@ -544,6 +584,7 @@ static NSLock			*urlLock = nil;
    * Send request to server.
    */
   [sock writeInBackgroundAndNotify: buf];
+  if (debug == YES) debugWrite(buf);
   RELEASE(buf);
   RELEASE(s);
 
