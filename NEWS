@@ -1,7 +1,56 @@
 News
 ****
 
-The currently released version of the library is `0.6.6'.
+The currently released version of the library is `0.9.1'.
+
+Noteworthy changes in version `0.9.1'
+=====================================
+
+   * Fixes for building on FreeBSD
+
+   * Unicode support for -initWithFormat:
+
+   * NSDate pass dates over DO bycopy unless explicit byref.
+
+   * Updated for Makefile package changes.
+
+Noteworthy changes in version `0.9.0'
+=====================================
+
+   * Workaround when no host IP set.
+
+   * Standardized non-NS filenames
+
+   * Lots of code simplifications and standardization.
+
+   * Added key/value methods to NSObject.
+
+   * Updated DO and NSInvocation to use ffcall libraries.
+
+   * New GSHTTPURLHandle class for http and https support.
+
+   * New GSMime class for MIME parsing
+
+   * Made DO threadsafe.
+
+   * Added extension to NSThread to allow JIGS to map java threads to
+     gnustep threads.
+
+   * Modifications to make it easier to port to Apple runtime.
+
+   * Added framework support to NSBundle
+
+   * Added localization support
+
+   * Better unicode conversion.
+
+   * New NSNull class.
+
+   * Major rewrite of NSString
+
+   * Port to MinGW/Windows
+
+   * Removed obsolete classes.
 
 Noteworthy changes in version `0.6.6'
 =====================================

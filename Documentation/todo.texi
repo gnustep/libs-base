@@ -15,6 +15,4 @@ If you encounter a problem with NSZones, switch to using the
 default zone instead of creating one. Or better yet, fix the problem and
 submit a patch.
 
-@item Distributed Objects is now thread safe, but it hasn't been well tested.
-
 @end itemize

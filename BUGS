@@ -6,11 +6,4 @@ TODO
      zone instead of creating one. Or better yet, fix the problem and
      submit a patch.
 
-   * Invocations (and by extension, Distributed Objects) have been well
-     tested only on ix86 platforms. In particular, there are still
-     minor problems on PPC and Sparc platforms.
-
-   * Distributed Objects is now thread safe, but it hasn't been well
-     tested.
-
 

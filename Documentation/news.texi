@@ -7,6 +7,41 @@
 The currently released version of the library is
 @samp{@value{GNUSTEP-BASE-VERSION}}.
 
+@section Noteworthy changes in version @samp{0.9.1}
+
+@itemize @bullet
+@item Fixes for building on FreeBSD
+@item Unicode support for -initWithFormat:
+@item NSDate pass dates over DO bycopy unless explicit byref.
+@item Updated for Makefile package changes.
+@end itemize
+
+@c ====================================================================
+@c Keep the next line just below the list of changes in most recent version.
+@ifclear ANNOUNCE-ONLY
+
+@section Noteworthy changes in version @samp{0.9.0}
+
+@itemize @bullet
+@item Workaround when no host IP set.
+@item Standardized non-NS filenames
+@item Lots of code simplifications and standardization.
+@item Added key/value methods to NSObject.
+@item Updated DO and NSInvocation to use ffcall libraries.
+@item New GSHTTPURLHandle class for http and https support.
+@item New GSMime class for MIME parsing
+@item Made DO threadsafe.
+@item Added extension to NSThread to allow JIGS to map java threads to gnustep threads.
+@item Modifications to make it easier to port to Apple runtime.
+@item Added framework support to NSBundle
+@item Added localization support
+@item Better unicode conversion.
+@item New NSNull class.
+@item Major rewrite of NSString
+@item Port to MinGW/Windows
+@item Removed obsolete classes.
+@end itemize
+
 @section Noteworthy changes in version @samp{0.6.6}
 
 @itemize @bullet
@@ -18,10 +53,6 @@ the MacOS-X API (and incidentally, closer to the original OpenStep standard).
 @item New tools for handling property lists.
 @item More optimization of classes.
 @end itemize
-
-@c ====================================================================
-@c Keep the next line just below the list of changes in most recent version.
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{0.6.5}
 
