@@ -30,8 +30,7 @@ at @samp{http://www.gnustep.org}.
 
 @ifset GNUSTEP-BASE-FTP-MACHINE
 The gnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz distribution file has 
-been placed on @samp{@value{GNUSTEP-BASE-FTP-MACHINE}} in
-@samp{@value{GNUSTEP-BASE-FTP-DIRECTORY}}.
+been placed at @url{ftp://@value{GNUSTEP-BASE-FTP-MACHINE}/@value{GNUSTEP-BASE-FTP-DIRECTORY}}.
 @end ifset
 
 Please log bug reports on the GNUstep project page
