@@ -106,6 +106,7 @@ after-distclean::
 	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
 	rm -rf $(GNUSTEP_TARGET_DIR)/GSConfig.h
 	rm -rf $(GNUSTEP_TARGET_CPU)
+	rm -rf SSL.bundle
 
 # Things to do before checking
 # before-check::
