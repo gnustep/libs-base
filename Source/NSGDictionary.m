@@ -99,18 +99,6 @@ myEqual(NSObject *self, NSObject *other)
 
 @class	NSDictionaryNonCore;
 @class	NSMutableDictionaryNonCore;
-@class	NSGDictionary;
-@class	NSGMutableDictionary;
-
-@interface NSGDictionaryKeyEnumerator : NSEnumerator
-{
-    NSGDictionary	*dictionary;
-    FastMapNode		node;
-}
-@end
-
-@interface NSGDictionaryObjectEnumerator : NSGDictionaryKeyEnumerator
-@end
 
 @interface NSGDictionary : NSDictionary
 {
@@ -126,13 +114,22 @@ myEqual(NSObject *self, NSObject *other)
 }
 @end
 
+@interface NSGDictionaryKeyEnumerator : NSEnumerator
+{
+    NSGDictionary	*dictionary;
+    FastMapNode		node;
+}
+@end
+
+@interface NSGDictionaryObjectEnumerator : NSGDictionaryKeyEnumerator
+@end
+
 @implementation NSGDictionary
 
 + (void) initialize
 {
-  if (self == [NSGDictionary class])
-    {
-      behavior_class_add_class (self, [NSDictionaryNonCore class]);
+    if (self == [NSGDictionary class]) {
+        behavior_class_add_class(self, [NSDictionaryNonCore class]);
     }
 }
 
@@ -197,6 +194,7 @@ myEqual(NSObject *self, NSObject *other)
     return self;
 }
 
+/* Designated initialiser */
 - (id) initWithObjects: (id*)objs forKeys: (NSObject**)keys count: (unsigned)c
 {
     int	i;
@@ -243,20 +241,20 @@ myEqual(NSObject *self, NSObject *other)
 
 + (void) initialize
 {
-  if (self == [NSGMutableDictionary class])
-    {
-      behavior_class_add_class (self, [NSMutableDictionaryNonCore class]);
-      behavior_class_add_class (self, [NSGDictionary class]);
+    if (self == [NSGMutableDictionary class]) {
+        behavior_class_add_class(self, [NSMutableDictionaryNonCore class]);
+        behavior_class_add_class(self, [NSGDictionary class]);
     }
 }
 
+/* Designated initialiser */
 - (id) initWithCapacity: (unsigned)cap
 {
     FastMapInitWithZoneAndCapacity(&map, [self zone], cap);
     return self;
 }
 
-- (void) setObject:anObject forKey:(NSObject *)aKey
+- (void) setObject: (NSObject*)anObject forKey: (NSObject *)aKey
 {
     FastMapNode	node = FastMapNodeForKey(&map, (FastMapItem)aKey);
 
@@ -270,7 +268,12 @@ myEqual(NSObject *self, NSObject *other)
     }
 }
 
-- (void) removeObjectForKey:(NSObject *)aKey
+- (void) removeAllObjects
+{
+    FastMapCleanMap(&map);
+}
+
+- (void) removeObjectForKey: (NSObject *)aKey
 {
     FastMapRemoveKey(&map, (FastMapItem)aKey);
 }

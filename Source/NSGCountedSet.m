@@ -1,8 +1,8 @@
-/* Concrete implementation of NSCountedSet based on GNU Bag class
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+/* Concrete implementation of NSSet based on GNU Set class
+   Copyright (C) 1998 Free Software Foundation, Inc.
    
-   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   Created: Sep 1995
+   Written by:  Richard frith-Macdonald <richard@brainstorm.co.uk>
+   Created: October 1998
    
    This file is part of the GNUstep Base Library.
    
@@ -22,41 +22,62 @@
    */
 
 #include <config.h>
-#include <Foundation/NSGSet.h>
-#include <gnustep/base/NSSet.h>
+#include <Foundation/NSSet.h>
+//#include <Foundation/NSGSet.h>
 #include <gnustep/base/behavior.h>
-#include <gnustep/base/Set.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSPortCoder.h>
+#include <gnustep/base/Coding.h>
+
+
+#define	FAST_MAP_RETAIN_VAL(X)	X
+#define	FAST_MAP_RELEASE_VAL(X)	
+
+#include "FastMap.x"
+
+@class	NSSetNonCore;
+@class	NSMutableSetNonCore;
+
+@interface NSGCountedSet : NSCountedSet
+{
+@public
+    FastMapTable_t	map;
+}
+@end
 
 @interface NSGCountedSetEnumerator : NSEnumerator
 {
-  NSCountedSet *bag;
-  void *enum_state;
+    NSGCountedSet	*set;
+    FastMapNode		node;
 }
 @end
 
 @implementation NSGCountedSetEnumerator
 
-- initWithCountedSet: (NSCountedSet*)d
+- initWithSet: (NSSet*)d
 {
-  [super init];
-  bag = d;
-  [bag retain];
-  enum_state = [bag newEnumState];
-  return self;
+    [super init];
+    set = [(NSGCountedSet*)d retain];
+    node = set->map.firstNode;
+    return self;
 }
 
 - nextObject
 {
-  return [bag nextObjectWithEnumState: &enum_state];
+    FastMapNode old = node;
+
+    if (node == 0) {
+        return nil;
+    }
+    node = node->nextInMap;
+    return old->key.o;
 }
 
 - (void) dealloc
 {
-  [bag freeEnumState: &enum_state];
-  [bag release];
-  [super dealloc];
+    [set release];
+    [super dealloc];
 }
 
 @end
@@ -66,30 +87,162 @@
 
 + (void) initialize
 {
-  static int done = 0;
-
-  if (!done)
-    {
-      done = 1;
-      class_add_behavior([NSGCountedSet class], [Bag class]);
+    if (self == [NSGCountedSet class]) {
+	class_add_behavior(self, [NSSetNonCore class]);
+	class_add_behavior(self, [NSMutableSetNonCore class]);
     }
+}
+
+- (void) dealloc
+{
+    FastMapEmptyMap(&map);
+    [super dealloc];
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+    unsigned    count = map.nodeCount;
+    FastMapNode node = map.firstNode;
+
+    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
+                                          at: &count
+                                    withName: @"Set content count"];
+
+    if ([aCoder isKindOfClass: [NSPortCoder class]] &&
+        [(NSPortCoder*)aCoder isBycopy]) {
+        while (node != 0) {
+            [(id<Encoding>)aCoder encodeBycopyObject: node->key.o
+                                            withName: @"Set value"];
+	    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
+						  at: &node->value.u
+					    withName: @"Set value count"];
+            node = node->nextInMap;
+        }
+    }
+    else {
+        while (node != 0) {
+            [(id<Encoding>)aCoder encodeObject: node->key.o
+                                      withName: @"Set content"];
+	    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
+						  at: &node->value.u
+					    withName: @"Set value count"];
+            node = node->nextInMap;
+        }
+    }
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+    unsigned    count;
+    id          value;
+    unsigned	valcnt;
+
+    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
+                                          at: &count
+                                    withName: NULL];
+
+    FastMapInitWithZoneAndCapacity(&map, [self zone], count);
+    while (count-- > 0) {
+        [(id<Decoding>)aCoder decodeObjectAt: &value withName: NULL];
+	[(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
+					      at: &valcnt
+					withName: NULL];
+        FastMapAddPairNoRetain(&map, (FastMapItem)value, (FastMapItem)valcnt);
+    }
+
+    return self;
+}
+
+/* Designated initialiser */
+- (id) initWithCapacity: (unsigned)cap
+{
+    FastMapInitWithZoneAndCapacity(&map, [self zone], cap);
+    return self;
+}
+
+- (id) initWithObjects: (id*)objs count: (unsigned)c
+{
+    int i;
+
+    if ([self initWithCapacity: c] == nil) {
+	return nil;
+    }
+    for (i = 0; i < c; i++) {
+        FastMapNode     node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
+
+        if (node == 0) {
+            FastMapAddPair(&map,(FastMapItem)objs[i],(FastMapItem)(unsigned)1);
+        }
+	else {
+	    node->value.u++;
+	}
+    }
+    return self;
+}
+
+- (void) addObject: (NSObject*)anObject
+{
+    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+
+    if (node == 0) {
+        FastMapAddPair(&map,(FastMapItem)anObject,(FastMapItem)(unsigned)1);
+    }
+    else {
+	node->value.u++;
+    }
+}
+
+- (unsigned) count
+{
+    return map.nodeCount;
+}
+
+- (unsigned) countForObject: (id)anObject
+{
+    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+
+    if (node == 0) {
+	return 0;
+    }
+    return node->value.u;
+}
+
+- (id) member: (id)anObject
+{
+    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+
+    if (node == 0) {
+	return nil;
+    }
+    return node->key.o;
 }
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSGCountedSetEnumerator alloc] initWithCountedSet:self]
-	  autorelease];
+    return [[[NSGCountedSetEnumerator alloc] initWithSet: self] autorelease];
 }
 
-- (unsigned int) countForObject: anObject
+- (void) removeObject: (NSObject*)anObject
 {
-  return [self occurrencesOfObject: anObject];
+    FastMapBucket       bucket;
+
+    bucket = FastMapBucketForKey(&map, (FastMapItem)anObject);
+    if (bucket) {
+	FastMapNode     node;
+
+	node = FastMapNodeForKeyInBucket(bucket, (FastMapItem)anObject);
+	if (node) {
+	    if (--node->value.u == 0) {
+		FastMapRemoveNodeFromMap(&map, bucket, node);
+		FastMapFreeNode(&map, node);
+	    }
+	}
+    }
 }
 
-/* To deal with behavior over-enthusiasm.  Will be fixed later. */
-- (BOOL) isEqual: other
+- (void) removeAllObjects
 {
-  return [super isEqual:other];
+    FastMapCleanMap(&map);
 }
 
 @end

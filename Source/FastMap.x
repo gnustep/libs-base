@@ -95,6 +95,7 @@ typedef	union {
     NSObject	*o;
     long int	i;
     void	*p;
+    unsigned	u;
 } FastMapItem;
 
 typedef struct _FastMapTable FastMapTable_t;
@@ -316,7 +317,7 @@ FastMapNewNode(FastMapTable map, FastMapItem key)
 {
     FastMapNode	node = map->freeNodes;
 
-    if (node = 0) {
+    if (node == 0) {
 	FastMapMoreNodes(map);
 	node = map->freeNodes;
 	if (node == 0) {
@@ -524,7 +525,7 @@ FastMapAddKey(FastMapTable map, FastMapItem key)
     FastMapNode node;
 
     FAST_MAP_RETAIN_KEY(key);
-    node = FastMapNewNode(map, key, value);
+    node = FastMapNewNode(map, key);
 
     if (node != 0) {
 	FastMapRightSizeMap(map, map->nodeCount);
@@ -550,7 +551,7 @@ FastMapRemoveKey(FastMapTable map, FastMapItem key)
 }
 
 static INLINE void
-FastMapEmptyMap(FastMapTable map)
+FastMapCleanMap(FastMapTable map)
 {
     FastMapBucket	bucket = map->buckets;
     int			i;
@@ -564,6 +565,16 @@ FastMapEmptyMap(FastMapTable map)
 	}
 	bucket++;
     }
+    map->firstNode = 0;
+    map->nodeCount = 0;
+}
+
+static INLINE void
+FastMapEmptyMap(FastMapTable map)
+{
+    int			i;
+
+    FastMapCleanMap(map);
     if (map->buckets != 0) {
 	NSZoneFree(map->zone, map->buckets);
 	map->buckets = 0;
@@ -577,9 +588,6 @@ FastMapEmptyMap(FastMapTable map)
 	NSZoneFree(map->zone, map->nodeChunks);
 	map->nodeChunks = 0;
     }
-
-    map->firstNode = 0;
-    map->nodeCount = 0;
     map->freeNodes = 0;
     map->zone = 0;
 }

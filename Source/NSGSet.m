@@ -1,8 +1,9 @@
 /* Concrete implementation of NSSet based on GNU Set class
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: September 1995
+   Rewrite by:  Richard frith-Macdonald <richard@brainstorm.co.uk>
    
    This file is part of the GNUstep Base Library.
    
@@ -22,17 +23,39 @@
    */
 
 #include <config.h>
-#include <Foundation/NSGSet.h>
-#include <gnustep/base/NSSet.h>
+#include <Foundation/NSSet.h>
+//#include <Foundation/NSGSet.h>
 #include <gnustep/base/behavior.h>
-#include <gnustep/base/Set.h>
 #include <Foundation/NSUtilities.h>
 #include <Foundation/NSString.h>
+#include <Foundation/NSPortCoder.h>
+#include <gnustep/base/Coding.h>
+
+#define	FAST_MAP_HAS_VALUE	0
+
+#include "FastMap.x"
+
+@class	NSSetNonCore;
+@class	NSMutableSetNonCore;
+
+@interface NSGSet : NSSet
+{
+@public
+    FastMapTable_t	map;
+}
+@end
+
+@interface NSGMutableSet : NSMutableSet
+{
+@public
+    FastMapTable_t	map;
+}
+@end
 
 @interface NSGSetEnumerator : NSEnumerator
 {
-  NSSet *set;
-  void *enum_state;
+    NSGSet	*set;
+    FastMapNode	node;
 }
 @end
 
@@ -40,22 +63,27 @@
 
 - initWithSet: (NSSet*)d
 {
-  [super init];
-  set = d;
-  [set retain];
-  enum_state = [set newEnumState];
-  return self;
+    [super init];
+    set = [(NSGSet*)d retain];
+    node = set->map.firstNode;
+    return self;
 }
 
 - nextObject
 {
-  return [set nextObjectWithEnumState: &enum_state];
+    FastMapNode old = node;
+
+    if (node == 0) {
+        return nil;
+    }
+    node = node->nextInMap;
+    return old->key.o;
 }
 
 - (void) dealloc
 {
-  [set release];
-  [super dealloc];
+    [set release];
+    [super dealloc];
 }
 
 @end
@@ -65,74 +93,132 @@
 
 + (void) initialize
 {
-  static int done = 0;
-
-  if (!done)
-    {
-      done = 1;
-      class_add_behavior([NSGSet class], [Set class]);
+    if (self == [NSGSet class]) {
+	class_add_behavior(self, [NSSetNonCore class]);
     }
 }
 
+- (unsigned) count
+{
+    return map.nodeCount;
+}
 
-/* This is the designated initializer 
-   - initWithObjects: (id*)objects
-   count: (unsigned)count
-   Implemented by behavior. */
+- (void) dealloc
+{
+    FastMapEmptyMap(&map);
+    [super dealloc];
+}
+
+- (void) encodeWithCoder: (NSCoder*)aCoder
+{
+    unsigned    count = map.nodeCount;
+    FastMapNode node = map.firstNode;
+
+    [(id<Encoding>)aCoder encodeValueOfCType: @encode(unsigned)
+                                          at: &count
+                                    withName: @"Set content count"];
+
+    if ([aCoder isKindOfClass: [NSPortCoder class]] &&
+        [(NSPortCoder*)aCoder isBycopy]) {
+        while (node != 0) {
+            [(id<Encoding>)aCoder encodeBycopyObject: node->key.o
+                                            withName: @"Set content"];
+            node = node->nextInMap;
+        }
+    }
+    else {
+        while (node != 0) {
+            [(id<Encoding>)aCoder encodeObject: node->key.o
+                                      withName: @"Set content"];
+            node = node->nextInMap;
+        }
+    }
+}
+
+- (id) initWithCoder: (NSCoder*)aCoder
+{
+    unsigned    count;
+    id          value;
+
+    [(id<Decoding>)aCoder decodeValueOfCType: @encode(unsigned)
+                                          at: &count
+                                    withName: NULL];
+
+    FastMapInitWithZoneAndCapacity(&map, [self zone], count);
+    while (count-- > 0) {
+        [(id<Decoding>)aCoder decodeObjectAt: &value withName: NULL];
+        FastMapAddKeyNoRetain(&map, (FastMapItem)value);
+    }
+
+    return self;
+}
+
+/* Designated initialiser */
+- (id) initWithObjects: (id*)objs count: (unsigned)c
+{
+    int i;
+    FastMapInitWithZoneAndCapacity(&map, [self zone], c);
+    for (i = 0; i < c; i++) {
+        FastMapNode     node = FastMapNodeForKey(&map, (FastMapItem)objs[i]);
+
+        if (node == 0) {
+            FastMapAddKey(&map, (FastMapItem)objs[i]);
+        }
+    }
+    return self;
+}
+
+- (id) member: (id)anObject
+{
+    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+
+    if (node == 0) {
+	return nil;
+    }
+    return node->key.o;
+}
 
 - (NSEnumerator*) objectEnumerator
 {
-  return [[[NSGSetEnumerator alloc] initWithSet:self]
-	  autorelease];
+    return [[[NSGSetEnumerator alloc] initWithSet: self] autorelease];
 }
 
-/* To deal with behavior over-enthusiasm.  Will be fixed later. */
-- (BOOL) isEqual: other
-{
-#if 1
-  return [self isEqualToSet: other];
-#else
-  /* xxx What is the correct behavior here?
-     If we end up calling [NSSet -isEqualToSet:] we end up in
-     an infinite loop, since that method enumerates the set, and
-     the set enumerator asks if things are equal...
-     [Huh? What am I saying here?] */
-  return (self == other);
-#endif
-}
 @end
 
 @implementation NSGMutableSet
 
 + (void) initialize
 {
-  static int done = 0;
-
-  if (!done)
-    {
-      done = 1;
-      class_add_behavior([NSGMutableSet class], [NSGSet class]);
+    if (self == [NSGMutableSet class]) {
+	class_add_behavior(self, [NSMutableSetNonCore class]);
+	class_add_behavior(self, [NSGSet class]);
     }
 }
 
-/* This is the designated initializer
-   - initWithCapacity: (unsigned)numItems
-   implemented by behavior. */
+/* Designated initialiser */
+- (id) initWithCapacity: (unsigned)cap
+{
+    FastMapInitWithZoneAndCapacity(&map, [self zone], cap);
+    return self;
+}
 
-/* Implemented by behavior:
-   - (void) addObject: newObject;
-   - (void) removeObject: anObject
-   */
+- (void) addObject: (NSObject*)anObject
+{
+    FastMapNode node = FastMapNodeForKey(&map, (FastMapItem)anObject);
+
+    if (node == 0) {
+        FastMapAddKey(&map, (FastMapItem)anObject);
+    }
+}
+
+- (void) removeObject: (NSObject *)anObject
+{
+    FastMapRemoveKey(&map, (FastMapItem)anObject);
+}
 
 - (void) removeAllObjects
 {
-  [self empty];
-}
-
-/* To deal with behavior over-enthusiasm.  Will be fixed later. */
-- (BOOL) isEqual: other
-{
-  return [super isEqual:other];
+    FastMapCleanMap(&map);
 }
 
 @end

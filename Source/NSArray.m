@@ -1,5 +1,5 @@
 /* NSArray - Array object to hold other objects.
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
    
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -194,31 +194,31 @@ static Class NSMutableArray_concrete_class;
   id *objects;
  
   c = [self count];
-  OBJC_MALLOC (objects, id, c+1);
-  for (i = 0; i < c; i++)
-    objects[i] = [self objectAtIndex: i];
-  objects[c] = anObject;
-  na = [[NSArray alloc] initWithObjects: objects count: c+1];
-  OBJC_FREE (objects);
+  {
+    id	objects[c+1];
+
+    [self getObjects: objects];
+    objects[c] = anObject;
+    na = [[NSArray alloc] initWithObjects: objects count: c+1];
+  }
   return [na autorelease];
 }
 
 - (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray
 {
-  id na;
-  unsigned i, c, l;
-  id *objects;
+    id		na;
+    unsigned	c, l;
  
-  c = [self count];
-  l = [anotherArray count];
-  OBJC_MALLOC (objects, id, c+l);
-  for (i = 0; i < c; i++)
-    objects[i] = [self objectAtIndex: i];
-  for (i = c; i < c+l; i++)
-    objects[i] = [anotherArray objectAtIndex: i-c];
-  na = [[NSArray alloc] initWithObjects: objects count: c+l];
-  OBJC_FREE (objects);
-  return [na autorelease];
+    c = [self count];
+    l = [anotherArray count];
+    {
+	id	objects[c+l];
+
+	[self getObjects: objects];
+	[anotherArray getObjects: &objects[c]];
+	na = [NSArray arrayWithObjects: objects count: c+l];
+    }
+    return na;
 }
 
 - initWithObjects: firstObject rest: (va_list) ap
@@ -231,8 +231,8 @@ static Class NSMutableArray_concrete_class;
   auto		id			tmpId;
 
   /*	Do initial allocation.	*/
-  prevSize = 1;
-  curSize  = 2;
+  prevSize = 3;
+  curSize  = 5;
   OBJC_MALLOC(objsArray, id, curSize);
   tmpId = firstObject;
 
@@ -312,16 +312,16 @@ static Class NSMutableArray_concrete_class;
 
 - initWithArray: (NSArray*)array
 {
-  unsigned i, c;
-  id *objects;
+    unsigned c;
  
-  c = [array count];
-  OBJC_MALLOC(objects, id, c);
-  for (i = 0; i < c; i++)
-    objects[i] = [array objectAtIndex:i];
-  self = [self initWithObjects:objects count:c];
-  OBJC_FREE(objects);
-  return self;
+    c = [array count];
+    {
+	id	objects[c];
+
+	[array getObjects: objects];
+	self = [self initWithObjects: objects count: c];
+    }
+    return self;
 }
 
 - (void) getObjects: (id*)aBuffer
@@ -537,16 +537,13 @@ static Class NSMutableArray_concrete_class;
   else
     j = range.location + range.length - 1;
 
-  // Copy the ids from the range into a temporary array
-  OBJC_MALLOC(objects, id, j-i+1);
-  for (k = i; k <= j; k++)
-    objects[k-i] = [self objectAtIndex:k];
+  {
+    id	objects[j-i+1];
 
-  // Create the new array
-  na = [[NSArray alloc] initWithObjects:objects count:j-i+1];
-  OBJC_FREE(objects);
-  return [na autorelease];
-
+    [self getObjects: objects range: NSMakeRange(i, j-i+1)];
+    na = [NSArray arrayWithObjects: objects count: j-i+1];
+  }
+  return na;
 }
 
 - (NSEnumerator*) objectEnumerator
