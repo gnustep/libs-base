@@ -10,6 +10,14 @@ The currently released version of the library is
 
 @itemize
 
+@item Can be made as a shared library by passing `--enabled-shared' to
+`configure'.  Thanks to Jan Kybic <kybic@@earn.cvut.cz> and Bryan Headley
+<bwh@@mail.lnd.coretech.com> for suggestions.
+
+@item New classes NSSet, NSMutableSet, NSCountedSet.  New concrete
+classes NSGSet, NSGMutableSet, NSGCountedSet.  New test program nsset.m.
+New class NSMethodSignature.
+
 @item Dynamic loading fixes for Solaris, thanks to Adam Fedor.
 
 @item Fixes to Coder correct bugs with encoding/decoding wildly
@@ -25,7 +33,7 @@ tree; the LinkedList nodes also have pointers back to the tree nodes.)
 @item NSObjCRuntime functions implemented.  NSObject description methods
 implemented.
 
-@item Bug fixes in NSString.
+@item Bug fixes in NSString, NSDictionary and NSArray.
 
 @end itemize
 
