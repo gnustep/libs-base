@@ -1,4 +1,4 @@
-/* NSGeometry.c - geometry functions
+/* NSGeometry.m - geometry functions
  * Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
  * 
  * Written by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -22,6 +22,12 @@
 
 /**** Included Headers *******************************************************/
 
+/*
+ *	Define IN_NSGEOMETRY_M so that the Foundation/NSGeometry.h header can
+ *	provide non-inline versions of the function implementations for us.
+ */
+#define	IN_NSGEOMETRY_M
+
 #include <config.h>
 #include <math.h>
 #include <base/preface.h>
@@ -29,116 +35,8 @@
 #include <Foundation/NSGeometry.h>
 #include <Foundation/NSScanner.h>
 
-/**** Type, Constant, and Macro Definitions **********************************/
-
 /**** Function Implementations ***********************************************/
-
-/** Create Basic Structures... **/
-
-NSPoint	
-NSMakePoint(float x, float y)
-{
-  NSPoint point;
-
-  point.x = x;
-  point.y = y;
-  return point;
-}
-
-NSSize	
-NSMakeSize(float w, float h)
-{
-  NSSize size;
-
-  size.width = w;
-  size.height = h;
-  return size;
-}
-
-NSRect	
-NSMakeRect(float x, float y, float w, float h)
-{
-  NSRect rect;
-
-  rect.origin.x = x;
-  rect.origin.y = y;
-  rect.size.width = w;
-  rect.size.height = h;
-  return rect;
-}
-
-/** Get a Rectangle's Coordinates... **/
-
-float 
-NSMaxX(NSRect aRect)
-{
-  return aRect.origin.x + aRect.size.width;
-}
-
-float 
-NSMaxY(NSRect aRect)
-{
-  return aRect.origin.y + aRect.size.height;
-}
-
-float 
-NSMidX(NSRect aRect)
-{
-  return aRect.origin.x + (aRect.size.width / 2.0);
-}
-
-float 
-NSMidY(NSRect aRect)
-{
-  return aRect.origin.y + (aRect.size.height / 2.0);
-}
-
-float 
-NSMinX(NSRect aRect)
-{
-  return aRect.origin.x;
-}
-
-float 
-NSMinY(NSRect aRect)
-{
-  return aRect.origin.y;
-}
-
-float 
-NSWidth(NSRect aRect)
-{
-  return aRect.size.width;
-}
-
-float
-NSHeight(NSRect aRect)
-{
-  return aRect.size.height;
-}
-
-/** Modify a Copy of a Rectangle... **/
-
-NSRect 	
-NSOffsetRect(NSRect aRect, float dx, float dy)
-{
-  NSRect rect = aRect;
-
-  rect.origin.x += dx;
-  rect.origin.y += dy;
-  return rect;
-}
-
-NSRect 	
-NSInsetRect(NSRect aRect, float dX, float dY)
-{
-  NSRect rect;
-
-  rect = NSOffsetRect(aRect, dX, dY);
-  rect.size.width -= (2 * dX);
-  rect.size.height -= (2 * dY);
-  return rect;
-}
+/* Most of these are implemented in the header file as inline functkions */
 
 void 	
 NSDivideRect(NSRect aRect,
@@ -251,156 +149,6 @@ NSDivideRect(NSRect aRect,
   }
 
   return;
-}
-
-NSRect 	
-NSIntegralRect(NSRect aRect)
-{
-  NSRect rect;
-
-  if (NSIsEmptyRect(aRect))
-    return NSMakeRect(0, 0, 0, 0);
-	
-  rect.origin.x = floor(aRect.origin.x);
-  rect.origin.y = floor(aRect.origin.y);
-  rect.size.width = ceil(aRect.size.width);
-  rect.size.height = ceil(aRect.size.height);
-  return rect;
-}
-
-
-/** Compute a Third Rectangle from Two Rectangles... **/
-
-NSRect 	
-NSUnionRect(NSRect aRect, NSRect bRect)
-{
-  NSRect rect;
-
-  if (NSIsEmptyRect(aRect) && NSIsEmptyRect(bRect))
-    return NSMakeRect(0,0,0,0);
-  else if (NSIsEmptyRect(aRect)) 
-    return bRect;
-  else if (NSIsEmptyRect(bRect))
-    return aRect;
-
-  rect = NSMakeRect(MIN(NSMinX(aRect), NSMinX(bRect)), 
-                    MIN(NSMinY(aRect), NSMinY(bRect)), 0, 0);
-
-  rect = NSMakeRect(NSMinX(rect),
-                    NSMinY(rect),
-                    MAX(NSMaxX(aRect), NSMaxX(bRect)) - NSMinX(rect),
-                    MAX(NSMaxY(aRect), NSMaxY(bRect)) - NSMinY(rect));
-
-  return rect;
-}
-
-/* FIXME: This function isn't listed in the OpenStep Specification. */
-BOOL     
-NSIntersectsRect(NSRect aRect, NSRect bRect)
-{
-  /* Note that intersecting at a line or a point doesn't count */
-  return (NSMaxX(aRect) <= NSMinX(bRect)
-          || NSMaxX(bRect) <= NSMinX(aRect)
-	      || NSMaxY(aRect) <= NSMinY(bRect)
-	      || NSMaxY(bRect) <= NSMinY(aRect)) ? NO : YES;
-}
-
-NSRect   
-NSIntersectionRect (NSRect aRect, NSRect bRect)
-{
-  if (!NSIntersectsRect(aRect, bRect))
-    {
-      return NSMakeRect(0, 0, 0, 0);
-    }
-  else
-    {
-      NSRect	rect;
-
-      if (NSMinX(aRect) <= NSMinX(bRect))
-	rect.origin.x = bRect.origin.x;
-      else
-	rect.origin.x = aRect.origin.x;
-
-      if (NSMinY(aRect) <= NSMinY(bRect))
-	rect.origin.y = bRect.origin.y;
-      else
-	rect.origin.y = aRect.origin.y;
-
-      if (NSMaxX(aRect) >= NSMaxX(bRect))
-	rect.size.width = NSMaxX(bRect) - rect.origin.x;
-      else
-	rect.size.width = NSMaxX(aRect) - rect.origin.x;
-
-      if (NSMaxY(aRect) >= NSMaxY(bRect))
-	rect.size.height = NSMaxY(bRect) - rect.origin.y;
-      else
-	rect.size.height = NSMaxY(aRect) - rect.origin.y;
-
-      return rect;
-    }
-}
-
-/** Test geometric relationships... **/
-
-BOOL 	
-NSEqualRects(NSRect aRect, NSRect bRect)
-{
-  /* FIXME: Isn't it more efficient to do this by hand, rather than with
-   * all of these function calls?  Maybe this doesn't matter, though. */
-  return ((NSMinX(aRect) == NSMinX(bRect)) 
-          && (NSMinY(aRect) == NSMinY(bRect)) 
-          && (NSWidth(aRect) == NSWidth(bRect)) 
-          && (NSHeight(aRect) == NSHeight(bRect))) ? YES : NO;
-}
-
-BOOL 	
-NSEqualSizes(NSSize aSize, NSSize bSize)
-{
-  return ((aSize.width == bSize.width) 
-          && (aSize.height == bSize.height)) ? YES : NO;
-}
-
-BOOL 	
-NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
-{
-  return ((aPoint.x == bPoint.x)
-          && (aPoint.y == bPoint.y)) ? YES : NO;
-}
-
-BOOL 	
-NSIsEmptyRect(NSRect aRect)
-{
-  return ((NSWidth(aRect) > 0) && (NSHeight(aRect) > 0)) ? NO : YES;
-}
-
-BOOL 	
-NSMouseInRect(NSPoint aPoint, NSRect aRect, BOOL flipped)
-{
-  if (flipped)
-    return ((aPoint.x >= NSMinX(aRect))
-            && (aPoint.y >= NSMinY(aRect))
-            && (aPoint.x < NSMaxX(aRect))
-            && (aPoint.y < NSMaxY(aRect))) ? YES : NO;
-  else
-    return ((aPoint.x >= NSMinX(aRect))
-            && (aPoint.y > NSMinY(aRect))
-            && (aPoint.x < NSMaxX(aRect))
-            && (aPoint.y <= NSMaxY(aRect))) ? YES : NO;
-}
-
-BOOL 	
-NSPointInRect(NSPoint aPoint, NSRect aRect)
-{
-  return NSMouseInRect(aPoint, aRect, YES);
-}
-
-BOOL 	
-NSContainsRect(NSRect aRect, NSRect bRect)
-{
-  return ((NSMinX(aRect) < NSMinX(bRect))
-          && (NSMinY(aRect) < NSMinY(bRect))
-          && (NSMaxX(aRect) > NSMaxX(bRect))
-          && (NSMaxY(aRect) > NSMaxY(bRect))) ? YES : NO;
 }
 
 /** Get a String Representation... **/

@@ -1,3 +1,9 @@
+Fri Feb 12  16:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSGeometry.m: Removed most functions - into header
+	* Source/include/NSGeometry.h: Made most functions inline for speed.
+	* Makefile.postamble: NSGeometry.o depends on NSGeometry.h
+
 Thu Feb 11  19:25:00 1999  Manuel Guesdon <mguesdon@sbuilders.com>
 
 	* Source/NSObjCRuntime.m: Fixed error in GSGetInstanceVariable name:
