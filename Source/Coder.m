@@ -289,7 +289,7 @@ my_object_is_class(id object)
 {
   id c = [[Coder alloc] initForWritingToStream: stream];
   [c encodeRootObject: anObject withName: name];
-  [c closeCoder];
+  [c closeCoding];
   [c release];
   return YES;
 }
@@ -1247,7 +1247,7 @@ exc_return_null(arglist_t f)
 
 /* We must separate the idea of "closing" a coder and "deallocating"
    a coder because of delays in deallocation due to -autorelease. */
-- (void) closeCoder
+- (void) closeCoding
 {
   [[cstream stream] closeStream];
 }
