@@ -78,7 +78,9 @@ enum {
 #ifndef	NO_GNUSTEP
 
 @interface	NSProcessInfo (GNUstep)
+- (BOOL) debugLoggingEnabled;
 - (NSMutableSet*) debugSet;
+- (void) setDebugLoggingEnabled: (BOOL)flag;
 - (BOOL) setLogFile: (NSString*)path;
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
