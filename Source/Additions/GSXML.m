@@ -1027,7 +1027,7 @@ static NSMapTable	*nodeNames = 0;
 		}
 	    }
 	  NSZoneFree(NSDefaultMallocZone(), base);
-	  str = [[NSString alloc] initWithCharacters: map length: len];
+	  str = [[NSString_class alloc] initWithCharacters: map length: len];
 	  AUTORELEASE(str);
 	}
     }
@@ -1949,7 +1949,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
        withContentsOfFile: (NSString*)path
 {
-  if (path == nil || [path isKindOfClass: [NSString class]] == NO)
+  if (path == nil || [path isKindOfClass: NSString_class] == NO)
     {
       NSLog(@"Bad file path passed to initialize GSXMLParser");
       RELEASE(self);
@@ -2237,7 +2237,7 @@ static NSString	*endMarker = @"At end of incremental parse";
 {
   const unsigned char	*file;
 
-  if ([src isKindOfClass: [NSString class]])
+  if ([src isKindOfClass: NSString_class])
     {
       file = [src lossyCString];
     }
@@ -3546,7 +3546,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 }
 - (NSString *) description
 {
-  return [NSString stringWithFormat: @"%f", [self doubleValue]];
+  return [NSString_class stringWithFormat: @"%f", [self doubleValue]];
 }
 @end
 
@@ -3557,11 +3557,11 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 - (NSString *) stringValue
 {
   xmlChar *string = ((xmlXPathObject*)_lib)->stringval;
-  return [NSString stringWithUTF8String: string];
+  return [NSString_class stringWithUTF8String: string];
 }
 - (NSString *) description
 {
-  return [NSString stringWithFormat: @"%@", [self stringValue]];
+  return [NSString_class stringWithFormat: @"%@", [self stringValue]];
 }
 @end
 
@@ -3621,7 +3621,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 }
 - (NSString *) description
 {
-  return [NSString stringWithFormat: @"NodeSet (count %d)", [self count]];
+  return [NSString_class stringWithFormat: @"NodeSet (count %d)", [self count]];
 }
 @end
 
