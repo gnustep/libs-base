@@ -1,4 +1,9 @@
-2004-01-19 Richard Frith-Macdonald <rfm@gnu.org>
+2004-01-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSKeyedArchiver.h: Update ivars for unarchiver.
+	* Source/NSKeyedUnarchiver.m: Partial implementation.
+
+2004-01-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSPropertyList.h: serialisation/deserialisation.
 	* Source/NSPropertyList.m: serialisation/deserialisation code partly
