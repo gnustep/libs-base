@@ -3,7 +3,9 @@
 	* Headers/Foundation/GSMime.h: Tidy up and add convenience methods.
 	* Source/Additions/GSMime.m: Tidy up and add convenience methods.
 	Added methods to convert content between string and data for ease
-	of use from java.
+	of use from java.  Added support for most character sets handled
+	by GNUstep-base.  Improved ContentID generation to be both unlikely
+	to recur, and to be guaranteed unique within a process.
 	* Source/NSBundle.m: ([+allBundles]) Don't enumeraste if map table
 	has not been created yet.
 	* Source/NSLog.m: Allow output descriptor to be changed.
