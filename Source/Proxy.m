@@ -32,7 +32,7 @@
 #include <Foundation/NSException.h>
 #include <assert.h>
 
-static int debug_proxy = 1;
+static int debug_proxy = 0;
 
 #if NeXT_runtime
 static id tmp_kludge_protocol = nil;
