@@ -1,3 +1,7 @@
+Sat Jan  8  6:00:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+        * src/NSPortNameServer.m: Raise exception on failure to register name.
+
 Fri Jan  8  9:20:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
         * src/NSObject.m: Cache a few more classes.
