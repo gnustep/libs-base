@@ -1,7 +1,7 @@
 Announcement
 ************
 
-The GNUstep Base Library, version 1.9.2, is now available.
+The GNUstep Base Library, version 1.10.0, is now available.
 
 What is the GNUstep Base Library?
 =================================
@@ -18,28 +18,24 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-Noteworthy changes in version `1.9.2'
-=====================================
+Noteworthy changes in version `1.10.0'
+======================================
 
-   * GSMime parsing ignores extraneous data
+Note the interface version of the library has changed so that apps,
+tools and libraries the use the base library need to be recompiled to
+use it.
 
-   * New log functions GSOnceFlag and GSOnceMLog
+   * A large majority of the library classes have been documented
+     thanks to the efforts of Andrew Ruder
 
-   * New class NSError
+   * URL classes support persistant connections
 
-   * Multiple new function in GSObjCRuntime
-
-   * NSProtocolChecker rewritten
-
-   * autogsdoc support added for building frames
-
-   * Binary incompatibility:  NSUnarchiver, GSIMapTable have new ivars
-     added
+   * Mac OSX XML compatibility fixes.
 
 Where can you get it?  How can you compile it?
 ==============================================
 
-The gnustep-base-1.9.2.tar.gz distribution file has been placed on
+The gnustep-base-1.10.0.tar.gz distribution file has been placed on
 `ftp.gnustep.org' in `pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page
