@@ -88,7 +88,6 @@ GSSetLocale(int category, NSString *locale)
 NSDictionary *
 GSDomainFromDefaultLocale(void)
 {
-#ifdef HAVE_LANGINFO_H
   static NSDictionary	*saved = nil;
   int			i;
   struct lconv		*lconv;
@@ -102,6 +101,7 @@ GSDomainFromDefaultLocale(void)
 
   dict = [NSMutableDictionary dictionary];
 
+#ifdef HAVE_LANGINFO_H
   /* Time/Date Information */
   arr = [NSMutableArray arrayWithCapacity: 7];
   for (i = 0; i < 7; i++)
@@ -145,6 +145,7 @@ GSDomainFromDefaultLocale(void)
 	   forKey: NSShortDateFormatString];
   [dict setObject: GSLanginfo(T_FMT)
 	   forKey: NSTimeFormatString];
+#endif /* HAVE_LANGINFO_H */
 
   lconv = localeconv();
 
@@ -210,9 +211,6 @@ GSDomainFromDefaultLocale(void)
     }
   [gnustep_global_lock unlock];
   return saved;
-#else /* HAVE_LANGINFO_H */
-  return nil;
-#endif
 }
 
 #else /* HAVE_LOCALE_H */

@@ -1,3 +1,7 @@
+2004-07-15 Mateu Batle <mateu.batle@tragnarion.com>
+
+	* Source/GSLocale.m: Patch to use locale when no langinfo available
+
 2004-07-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: regenerated
