@@ -1,3 +1,10 @@
+2003-07-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate: ([-initWithString:calendarFormat:]) default
+	year to 0001 s the gregorian calendar does not go earlier.
+	([-initWithYear:month:day:hour:minute:second:timeZone:]) don't
+	override a previously set calendar format.
+
 2003-07-01  David Ayers  <d.ayers@inode.at>
 
 	* Headers/gnustep/base/GSObjCRuntime.h/m (GSPrintf),

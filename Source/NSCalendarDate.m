@@ -588,7 +588,11 @@ static inline int getDigits(const char *from, char *to, int limit)
   else
     {
       int		milliseconds = 0;
-      int		year = 0, month = 1, day = 1;
+      /* Default to gregorian year one ... there is no year zero and
+       * the algorithms we use look odd for earlier dates.
+       */
+      int		year = 1;
+      int		month = 1, day = 1;
       int		hour = 0, min = 0, sec = 0;
       NSTimeZone	*tz = nil;
       BOOL		ampm = NO;
@@ -1274,7 +1278,10 @@ static inline int getDigits(const char *from, char *to, int limit)
     {
       _time_zone = RETAIN(aTimeZone);
     }
-  _calendar_format = cformat;
+  if (_calendar_format == nil)
+    {
+      _calendar_format = cformat;
+    }
   _seconds_since_ref = s;
 
   /*
