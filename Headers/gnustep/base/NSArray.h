@@ -73,7 +73,7 @@
 @end
 
 
-@class NSMutableArray;
+@class NSMutableArrayNonCore;
 @interface NSMutableArray : NSArray
 - initWithCapacity: (unsigned)numItems;
 - (void) addObject: anObject;
