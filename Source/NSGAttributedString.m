@@ -611,10 +611,10 @@ SANITY();
 	  info->loc = afterRangeLoc;
 	  arrayIndex--;
 	}
-      else if (effectiveRange.location < beginRangeLoc)
+      else if (NSMaxRange(effectiveRange) > afterRangeLoc)
 	{
 	  /*
-	   * The located range starts before our range.
+	   * The located range ends after our range.
 	   * Create a subrange to go from our end to the end of the old range.
 	   */
 	  info = NEWINFO(z, cacheAttributes(attrs), afterRangeLoc);
