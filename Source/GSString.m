@@ -2581,13 +2581,19 @@ transmute(ivars self, NSString *aString)
 
   GS_RANGE_CHECK(aRange, _count);
   if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"replace characters with nil string"];
-  if (GSObjCIsInstance(aString) == NO)
-    [NSException raise: NSInvalidArgumentException
-		format: @"replace characters with non-string"];
+    {
+      length = 0;
+    }
+  else if (GSObjCIsInstance(aString) == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"replace characters with non-string"];
+    }
+  else
+    {
+      length = (aString == nil) ? 0 : [aString length];
+    }
 
-  length = (aString == nil) ? 0 : [aString length];
   offset = length - aRange.length;
 
   if (offset < 0)
