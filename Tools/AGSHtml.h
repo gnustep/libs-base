@@ -28,6 +28,7 @@
 {
   AGSIndex		*localRefs;
   AGSIndex		*globalRefs;
+  AGSIndex		*projectRefs;
   NSMutableString	*indent;
   NSString		*base;	// Not retained
   NSString		*unit;	// Not retained
@@ -64,6 +65,7 @@
 - (NSString*) protocolRef: (NSString*)t;
 - (void) setGlobalRefs: (AGSIndex*)r;
 - (void) setLocalRefs: (AGSIndex*)r;
+- (void) setProjectRefs: (AGSIndex*)r;
 - (NSString*) typeRef: (NSString*)t;
 @end
 #endif

@@ -276,6 +276,10 @@
     </p>
   </section>
 </chapter>
+<back>
+  <index type="class" scope="project" />
+  <index type="method" scope="project" />
+</back>
    */
 
 #include	<config.h>
@@ -842,6 +846,7 @@ main(int argc, char **argv, char **env)
 		   */
 		  html = AUTORELEASE([AGSHtml new]);
 		  [html setGlobalRefs: indexer];
+		  [html setProjectRefs: prjRefs];
 		  [html setLocalRefs: locRefs];
 		  generated = [html outputDocument: [[parser doc] root]];
 		  if ([generated writeToFile: htmlfile atomically: YES] == NO)

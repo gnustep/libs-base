@@ -1470,7 +1470,7 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctx)
   NSString			*file;
   xmlParserInputPtr		ret = 0;
   NSString			*entityId;
-  NSString			*location ;
+  NSString			*location;
   NSArray			*components;
   NSMutableString		*local;
   unsigned			count;
@@ -1600,6 +1600,10 @@ loadEntityFunction(const char *url, const char *eid, xmlParserCtxtPtr *ctx)
   if ([file length] > 0)
     {
       ret = xmlNewInputFromFile(ctx, [file fileSystemRepresentation]);
+    }
+  else
+    {
+      NSLog(@"don't know how to load entity '%s' id '%s'", url, eid);
     }
   return ret;
 }
