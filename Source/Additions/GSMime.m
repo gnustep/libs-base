@@ -2491,9 +2491,11 @@ static NSCharacterSet	*tokenSet = nil;
 }
 
 /**
- * Makes the value into a quoted string if necessary.
+ * Makes the value into a quoted string if necessary (ie if it contains
+ * any special / non-token characters).  If flag is YES then the value
+ * is made into a quoted string even if it does not contain special characters.
  */
-+ (NSString*) makeQuoted: (NSString*)v
++ (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag
 {
   NSRange	r;
   unsigned	pos = 0;
@@ -2502,7 +2504,7 @@ static NSCharacterSet	*tokenSet = nil;
   r = [v rangeOfCharacterFromSet: nonToken
 			 options: NSLiteralSearch
 			   range: NSMakeRange(pos, l - pos)];
-  if (r.length > 0)
+  if (flag == YES || r.length > 0)
     {
       NSMutableString	*m = [NSMutableString new];
 
@@ -2536,6 +2538,11 @@ static NSCharacterSet	*tokenSet = nil;
 	  r = [v rangeOfCharacterFromSet: nonToken
 				 options: NSLiteralSearch
 				   range: NSMakeRange(pos, l - pos)];
+	}
+      if (l > pos)
+	{
+	  [m appendString:
+	    [v substringFromRange: NSMakeRange(pos, l - pos)]];
 	}
       [m appendString: @"\""];
       v = AUTORELEASE(m);
@@ -2748,11 +2755,17 @@ static NSCharacterSet	*tokenSet = nil;
 
   while ((k = [e nextObject]) != nil)
     {
-      NSString	*v = [GSMimeHeader makeQuoted: [params objectForKey: k]];
-      NSData	*kd = wordData(k);
-      NSData	*vd = wordData(v);
-      unsigned	kl = [kd length];
-      unsigned	vl = [vd length];
+      NSString	*v;
+      NSData	*kd;
+      NSData	*vd;
+      unsigned	kl;
+      unsigned	vl;
+
+      v = [GSMimeHeader makeQuoted: [params objectForKey: k] always: NO];
+      kd = wordData(k);
+      vd = wordData(v);
+      kl = [kd length];
+      vl = [vd length];
 
       if ((l + kl + vl + 3) > LIM)
 	{
