@@ -44,7 +44,7 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).uint == (Y).uint)
 #undef	GSI_MAP_NOCLEAN
 
-#include <GNUstepBase/GSIMap.h>
+#include "GNUstepBase/GSIMap.h"
 
 
 #define	_IN_NSKEYEDARCHIVER_M	1

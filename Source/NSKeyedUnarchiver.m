@@ -39,7 +39,7 @@
 #define GSI_ARRAY_TYPES GSUNION_OBJ
 
 
-#include <GNUstepBase/GSIArray.h>
+#include "GNUstepBase/GSIArray.h"
 
 #define	_IN_NSKEYEDUNARCHIVER_M	1
 #include <Foundation/NSKeyedArchiver.h>
