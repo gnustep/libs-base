@@ -28,6 +28,7 @@
 #include <objects/TextCStream.h>
 #include <objects/MallocAddress.h>
 #include <Foundation/NSException.h>
+#include <math.h>
 
 #define DEFAULT_FORMAT_VERSION 0
 
@@ -35,7 +36,14 @@
   ({ typeof(V) __v=(V); typeof(A) __a=(A); \
      __a*((__v+__a-1)/__a); })
 
+/* The number of bytes used to encode the length of a _C_CHARPTR
+   string that is encoded. */
 #define NUM_BYTES_STRING_LENGTH 4
+
+/* The value by which we multiply a float or double in order to bring
+   mantissa digits to the left-hand-side of the decimal point, so that
+   we can extra them by assigning the float or double to an int. */
+#define FLOAT_FACTOR ((double)(1 << ((sizeof(int)*BITSPERBYTE)-2)))
 
 @implementation BinaryCStream
 
@@ -90,23 +98,23 @@ static BOOL debug_binary_coder;
 
   [stream writeByte: *type];
 
-#define WRITE_SIGNED_TYPE(_TYPE, CONV_FUNC)				 \
+#define WRITE_SIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)			 \
       {									 \
 	char buffer[1+sizeof(_TYPE)];					 \
 	buffer[0] = sizeof (_TYPE);					 \
-	if (*(_TYPE*)d < 0)						 \
+	if (*(_TYPE*)_PTR < 0)						 \
 	  {								 \
 	    buffer[0] |= 0x80;						 \
-	    *(_TYPE*)(buffer+1) = CONV_FUNC (- *(_TYPE*)d);		 \
+	    *(_TYPE*)(buffer+1) = _CONV_FUNC (- *(_TYPE*)_PTR);		 \
 	  }								 \
 	else								 \
 	  {								 \
-	    *(_TYPE*)(buffer+1) = CONV_FUNC (*(_TYPE*)d);		 \
+	    *(_TYPE*)(buffer+1) = _CONV_FUNC (*(_TYPE*)_PTR);		 \
 	  }								 \
 	[stream writeBytes: buffer length: 1+sizeof(_TYPE)];		 \
       }
 
-#define READ_SIGNED_TYPE(_TYPE, CONV_FUNC)			\
+#define READ_SIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
       {								\
 	char sign, size;					\
 	[stream readByte: &size];				\
@@ -118,24 +126,24 @@ static BOOL debug_binary_coder;
 	  read_size = [stream readBytes: buffer length: size];	\
 	  assert (read_size == size);				\
 	  assert (size == sizeof(_TYPE));		  	\
-	  *(unsigned _TYPE*)d =					\
-	    CONV_FUNC (*(unsigned _TYPE*)buffer);		\
+	  *(unsigned _TYPE*)_PTR =				\
+	    _CONV_FUNC (*(unsigned _TYPE*)buffer);		\
 	  if (sign)						\
-	    *(_TYPE*)d = - *(_TYPE*)d;				\
+	    *(_TYPE*)_PTR = - *(_TYPE*)_PTR;			\
 	}							\
       }
 
 /* Reading and writing unsigned scalar types. */
 
-#define WRITE_UNSIGNED_TYPE(_TYPE, CONV_FUNC)			\
+#define WRITE_UNSIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
       {								\
 	char buffer[1+sizeof(_TYPE)];				\
 	buffer[0] = sizeof (_TYPE);				\
-	*(_TYPE*)(buffer+1) = CONV_FUNC (*(_TYPE*)d);		\
+	*(_TYPE*)(buffer+1) = _CONV_FUNC (*(_TYPE*)_PTR);	\
 	[stream writeBytes: buffer length: (1+sizeof(_TYPE))];	\
       }
 
-#define READ_UNSIGNED_TYPE(_TYPE, CONV_FUNC)			\
+#define READ_UNSIGNED_TYPE(_PTR, _TYPE, _CONV_FUNC)		\
       {								\
 	char size;						\
 	[stream readByte: &size];				\
@@ -145,8 +153,8 @@ static BOOL debug_binary_coder;
 	  read_size = [stream readBytes: buffer length: size];	\
 	  assert (read_size == size);				\
 	  assert (size == sizeof(_TYPE));			\
-	  *(_TYPE*)d =						\
-	    CONV_FUNC (*(_TYPE*)buffer);			\
+	  *(_TYPE*)_PTR =					\
+	    _CONV_FUNC (*(_TYPE*)buffer);			\
 	}							\
       }
 
@@ -172,47 +180,67 @@ static BOOL debug_binary_coder;
 /* Reading and writing signed scalar types. */
 
     case _C_SHT:
-      WRITE_SIGNED_TYPE (short, htons);
+      WRITE_SIGNED_TYPE (d, short, htons);
       break;
     case _C_USHT:
-      WRITE_UNSIGNED_TYPE (unsigned short, htons);
+      WRITE_UNSIGNED_TYPE (d, unsigned short, htons);
       break;
 
     case _C_INT:
-      WRITE_SIGNED_TYPE (int, htonl);
+      WRITE_SIGNED_TYPE (d, int, htonl);
       break;
     case _C_UINT:
-      WRITE_UNSIGNED_TYPE (unsigned int, htonl);
+      WRITE_UNSIGNED_TYPE (d, unsigned int, htonl);
       break;
 
     case _C_LNG:
-      WRITE_SIGNED_TYPE (long, htonl);
+      WRITE_SIGNED_TYPE (d, long, htonl);
       break;
     case _C_ULNG:
-      WRITE_UNSIGNED_TYPE (unsigned long, htonl);
+      WRITE_UNSIGNED_TYPE (d, unsigned long, htonl);
       break;
 
-    /* Two quickie kludges to make archiving of floats and doubles work */
+    /* xxx The handling of floats and doubles could be improved.
+       e.g. I should account for varying sizeof(int) vs sizeof(double). */
+
     case _C_FLT:
       {
-	char buf[64];
-	char *s = buf;
-	sprintf(buf, "%f", *(float*)d);
-	[self encodeValueOfCType: @encode(char*)
-	      at: &s
-	      withName: @"BinaryCStream float"];
+	volatile double value;
+	int exp, mantissa;
+	value = *(float*)d;
+	/* Get the exponent */
+	value = frexp (value, &exp);
+	/* Get the mantissa. */
+	value *= FLOAT_FACTOR;
+	mantissa = value;
+	assert (value - mantissa == 0);
+	/* Encode the value as its two integer components. */
+	WRITE_SIGNED_TYPE (&exp, int, htonl);
+	WRITE_SIGNED_TYPE (&mantissa, int, htonl);
 	break;
       }
+
     case _C_DBL:
       {
-	char buf[64];
-	char *s = buf;
-	sprintf(buf, "%f", *(double*)d);
-	[self encodeValueOfCType: @encode(char*)
-	      at: &s
-	      withName: @"BinaryCStream double"];
+	volatile double value;
+	int exp, mantissa1, mantissa2;
+	value = *(double*)d;
+	/* Get the exponent */
+	value = frexp (value, &exp);
+	/* Get the first part of the mantissa. */
+	value *= FLOAT_FACTOR;
+	mantissa1 = value;
+	value -= mantissa1;
+	value *= FLOAT_FACTOR;
+	mantissa2 = value;
+	assert (value - mantissa2 == 0);
+	/* Encode the value as its three integer components. */
+	WRITE_SIGNED_TYPE (&exp, int, htonl);
+	WRITE_SIGNED_TYPE (&mantissa1, int, htonl);
+	WRITE_SIGNED_TYPE (&mantissa2, int, htonl);
 	break;
       }
+
     case _C_ARY_B:
       {
 	int len = atoi (type+1);	/* xxx why +1 ? */
@@ -307,47 +335,57 @@ static BOOL debug_binary_coder;
       break;
 
     case _C_SHT:
-      READ_SIGNED_TYPE (short, ntohs);
+      READ_SIGNED_TYPE (d, short, ntohs);
       break;
     case _C_USHT:
-      READ_UNSIGNED_TYPE (unsigned short, ntohs);
+      READ_UNSIGNED_TYPE (d, unsigned short, ntohs);
       break;
 
     case _C_INT:
-      READ_SIGNED_TYPE (int, ntohl);
+      READ_SIGNED_TYPE (d, int, ntohl);
       break;
     case _C_UINT:
-      READ_UNSIGNED_TYPE (unsigned int, ntohl);
+      READ_UNSIGNED_TYPE (d, unsigned int, ntohl);
       break;
 
     case _C_LNG:
-      READ_SIGNED_TYPE (long, ntohl);
+      READ_SIGNED_TYPE (d, long, ntohl);
       break;
     case _C_ULNG:
-      READ_UNSIGNED_TYPE (unsigned long, ntohl);
+      READ_UNSIGNED_TYPE (d, unsigned long, ntohl);
       break;
 
-  /* Two quickie kludges to make archiving of floats and doubles work */
     case _C_FLT:
       {
-	char *buf;
-	[self decodeValueOfCType:@encode(char*) at:&buf withName:NULL];
-	if (sscanf(buf, "%f", (float*)d) != 1)
-	  [NSException raise: NSGenericException
-		       format: @"expected float, got %s", buf];
-	(*objc_free)(buf);
+	int exp, mantissa;
+	double value;
+	/* Decode the exponent and mantissa. */
+	READ_SIGNED_TYPE (&exp, int, ntohl);
+	READ_SIGNED_TYPE (&mantissa, int, ntohl);
+	/* Assemble them into a double */
+	value = mantissa / FLOAT_FACTOR;
+	value = ldexp (value, exp);
+	/* Put the double into the requested memory location as a float */
+	*(float*)d = value;
 	break;
       }
+
     case _C_DBL:
       {
-	char *buf;
-	[self decodeValueOfCType:@encode(char*) at:&buf withName:NULL];
-	if (sscanf(buf, "%lf", (double*)d) != 1)
-	  [NSException raise: NSGenericException
-		       format: @"expected double, got %s", buf];
-	(*objc_free)(buf);
+	int exp, mantissa1, mantissa2;
+	double value;
+	/* Decode the exponent and the two pieces of the mantissa. */
+	READ_SIGNED_TYPE (&exp, int, ntohl);
+	READ_SIGNED_TYPE (&mantissa1, int, ntohl);
+	READ_SIGNED_TYPE (&mantissa2, int, ntohl);
+	/* Assemble them into a double */
+	value = ((mantissa2 / FLOAT_FACTOR) + mantissa2) / FLOAT_FACTOR;
+	value = ldexp (value, exp);
+	/* Put the double into the requested memory location. */
+	*(double*)d = value;
 	break;
       }
+
     case _C_ARY_B:
       {
 	/* xxx Do we need to allocate space, just like _C_CHARPTR ? */
