@@ -1,3 +1,8 @@
+2002-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLog.m: patch by Jeff Teunissen to avoid adding date/time
+	info when using syslog.
+
 Wed Jun  5 17:46:47 2002  Nicola Pero  <n.pero@mi.flashnet.it>
 
 	* Source/NSLog.m (_NSLog_standard_printf_handler): Fixed

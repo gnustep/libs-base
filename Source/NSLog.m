@@ -141,7 +141,12 @@ NSLogv (NSString* format, va_list args)
   pid = (int)getpid();
 #endif
 
-  prefix = [NSString
+#ifdef	HAVE_SYSLOG
+  if (GSUserDefaultsFlag(GSLogSyslog) == YES)
+    prefix = @"";
+  else
+#endif
+    prefix = [NSString
 	     stringWithFormat: @"%@ %@[%d] ",
 	     [[NSCalendarDate calendarDate] 
 	       descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
