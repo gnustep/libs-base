@@ -16,19 +16,38 @@
       <class name="NSAssertionHandler" super="NSObject">
         <declared>Foundation/NSException.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSAssertionHandler*" factory="yes"><sel>currentHandler</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSAssertionHandler*" factory="yes">
+          <sel>currentHandler</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>handleFailureInFunction:</sel><arg type="NSString*">functionName</arg><sel>file:</sel><arg type="NSString*">fileName</arg><sel>lineNumber:</sel><arg type="int">line</arg><sel>description:</sel><arg type="NSString*">format</arg><vararg/>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>handleFailureInFunction:</sel>
+          <arg type="NSString*">functionName</arg>
+          <sel>file:</sel>
+          <arg type="NSString*">fileName</arg>
+          <sel>lineNumber:</sel>
+          <arg type="int">line</arg>
+          <sel>description:</sel>
+          <arg type="NSString*">format</arg><vararg/>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>handleFailureInMethod:</sel><arg type="SEL">selector</arg><sel>object:</sel><arg type="id">object</arg><sel>file:</sel><arg type="NSString*">fileName</arg><sel>lineNumber:</sel><arg type="int">line</arg><sel>description:</sel><arg type="NSString*">format</arg><vararg/>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>handleFailureInMethod:</sel>
+          <arg type="SEL">selector</arg>
+          <sel>object:</sel>
+          <arg type="id">object</arg>
+          <sel>file:</sel>
+          <arg type="NSString*">fileName</arg>
+          <sel>lineNumber:</sel>
+          <arg type="int">line</arg>
+          <sel>description:</sel>
+          <arg type="NSString*">format</arg><vararg/>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

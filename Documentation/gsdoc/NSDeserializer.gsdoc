@@ -16,19 +16,35 @@
       <class name="NSDeserializer" super="NSObject">
         <declared>Foundation/NSSerialization.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="id" factory="yes"><sel>deserializePropertyListFromData:</sel><arg type="NSData*">data</arg><sel>atCursor:</sel><arg type="unsigned int*">cursor</arg><sel>mutableContainers:</sel><arg type="BOOL">mutable</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="id" factory="yes">
+          <sel>deserializePropertyListFromData:</sel>
+          <arg type="NSData*">data</arg>
+          <sel>atCursor:</sel>
+          <arg type="unsigned int*">cursor</arg>
+          <sel>mutableContainers:</sel>
+          <arg type="BOOL">mutable</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>deserializePropertyListFromData:</sel><arg type="NSData*">serialization</arg><sel>mutableContainers:</sel><arg type="BOOL">mutable</arg>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>deserializePropertyListFromData:</sel>
+          <arg type="NSData*">serialization</arg>
+          <sel>mutableContainers:</sel>
+          <arg type="BOOL">mutable</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id" factory="yes"><sel>deserializePropertyListLazilyFromData:</sel><arg type="NSData*">data</arg><sel>atCursor:</sel><arg type="unsigned int*">cursor</arg><sel>length:(unsigned int)length mutableContainers:</sel><arg type="BOOL">mutable</arg>
-        <desc>
-        </desc>
+        <method type="id" factory="yes">
+          <sel>deserializePropertyListLazilyFromData:</sel>
+          <arg type="NSData*">data</arg>
+          <sel>atCursor:</sel>
+          <arg type="unsigned int*">cursor</arg>
+          <sel>length:(unsigned int)length mutableContainers:</sel>
+          <arg type="BOOL">mutable</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

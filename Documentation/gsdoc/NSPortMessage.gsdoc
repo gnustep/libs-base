@@ -16,39 +16,53 @@
       <class name="NSPortMessage" super="NSObject">
         <declared>Foundation/NSPortMessage.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSArray*"><sel>components</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSArray*">
+          <sel>components</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithMachMessage:</sel><arg type="void*">buffer</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithMachMessage:</sel>
+          <arg type="void*">buffer</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithSendPort:</sel><arg type="NSPort*">sendPort</arg><sel>receivePort:</sel><arg type="NSPort*">receivePort</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithSendPort:</sel>
+          <arg type="NSPort*">sendPort</arg>
+          <sel>receivePort:</sel>
+          <arg type="NSPort*">receivePort</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="unsigned int"><sel>msgid</sel>
-        <desc>
-        </desc>
+        <method type="unsigned int">
+          <sel>msgid</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSPort*"><sel>receivePort</sel>
-        <desc>
-        </desc>
+        <method type="NSPort*">
+          <sel>receivePort</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>sendBeforeDate:</sel><arg type="NSDate*">aDate</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>sendBeforeDate:</sel>
+          <arg type="NSDate*">aDate</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSPort*"><sel>sendPort</sel>
-        <desc>
-        </desc>
+        <method type="NSPort*">
+          <sel>sendPort</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>setMsgid:</sel><arg type="unsigned int">msgid</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>setMsgid:</sel>
+          <arg type="unsigned int">msgid</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

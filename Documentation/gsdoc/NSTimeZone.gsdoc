@@ -16,99 +16,133 @@
       <class name="NSTimeZone" super="NSObject">
         <declared>Foundation/NSTimeZone.h</declared>
         <conform>NSCoding</conform>
-        <desc>
-        </desc>
-        <method type="NSDictionary*" factory="yes"><sel>abbreviationDictionary</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSDictionary*" factory="yes">
+          <sel>abbreviationDictionary</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeZone*" factory="yes"><sel>defaultTimeZone</sel>
-        <desc>
-        </desc>
+        <method type="NSTimeZone*" factory="yes">
+          <sel>defaultTimeZone</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeZone*" factory="yes"><sel>localTimeZone</sel>
-        <desc>
-        </desc>
+        <method type="NSTimeZone*" factory="yes">
+          <sel>localTimeZone</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*" factory="yes"><sel>knownTimeZoneNames</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*" factory="yes">
+          <sel>knownTimeZoneNames</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void" factory="yes"><sel>resetSystemTimeZone</sel>
-        <desc>
-        </desc>
+        <method type="void" factory="yes">
+          <sel>resetSystemTimeZone</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void" factory="yes"><sel>setDefaultTimeZone:</sel><arg type="NSTimeZone*">aTimeZone</arg>
-        <desc>
-        </desc>
+        <method type="void" factory="yes">
+          <sel>setDefaultTimeZone:</sel>
+          <arg type="NSTimeZone*">aTimeZone</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeZone*" factory="yes"><sel>systemTimeZone</sel>
-        <desc>
-        </desc>
+        <method type="NSTimeZone*" factory="yes">
+          <sel>systemTimeZone</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeZone*" factory="yes"><sel>timeZoneForSecondsFromGMT:</sel><arg type="int">seconds</arg>
-        <desc>
-        </desc>
+        <method type="NSTimeZone*" factory="yes">
+          <sel>timeZoneForSecondsFromGMT:</sel>
+          <arg type="int">seconds</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeZone*" factory="yes"><sel>timeZoneWithAbbreviation:</sel><arg type="NSString*">abbreviation</arg>
-        <desc>
-        </desc>
+        <method type="NSTimeZone*" factory="yes">
+          <sel>timeZoneWithAbbreviation:</sel>
+          <arg type="NSString*">abbreviation</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeZone*" factory="yes"><sel>timeZoneWithName:</sel><arg type="NSString*">aTimeZoneName</arg>
-        <desc>
-        </desc>
+        <method type="NSTimeZone*" factory="yes">
+          <sel>timeZoneWithName:</sel>
+          <arg type="NSString*">aTimeZoneName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeZone*" factory="yes"><sel>timeZoneWithName:</sel><arg type="NSString*">aTimeZoneName</arg>
-        <desc>
-        </desc>
+        <method type="NSTimeZone*" factory="yes">
+          <sel>timeZoneWithName:</sel>
+          <arg type="NSString*">aTimeZoneName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>abbreviation</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>abbreviation</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>abbreviationForDate:</sel><arg type="NSDate*">aDate</arg>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>abbreviationForDate:</sel>
+          <arg type="NSDate*">aDate</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSData*"><sel>data</sel>
-        <desc>
-        </desc>
+        <method type="NSData*">
+          <sel>data</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>description</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>description</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithName:</sel><arg type="NSString*">aName</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithName:</sel>
+          <arg type="NSString*">aName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithName:</sel><arg type="NSString*">aName</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithName:</sel>
+          <arg type="NSString*">aName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isDaylightSavingTime</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isDaylightSavingTime</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isDaylightSavingTimeForDate:</sel><arg type="NSDate*">aDate</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isDaylightSavingTimeForDate:</sel>
+          <arg type="NSDate*">aDate</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isEqualToTimeZone:</sel><arg type="NSTimeZone*">aTimeZone</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isEqualToTimeZone:</sel>
+          <arg type="NSTimeZone*">aTimeZone</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>name</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>name</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="int"><sel>secondsFromGMT</sel>
-        <desc>
-        </desc>
+        <method type="int">
+          <sel>secondsFromGMT</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="int"><sel>secondsFromGMTForDate:</sel><arg type="NSDate*">aDate</arg>
-        <desc>
-        </desc>
+        <method type="int">
+          <sel>secondsFromGMTForDate:</sel>
+          <arg type="NSDate*">aDate</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

@@ -16,27 +16,38 @@
       <class name="NSPortNameServer" super="NSObject">
         <declared>Foundation/NSPortNameServer.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="id" factory="yes"><sel>defaultPortNameServer</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="id" factory="yes">
+          <sel>defaultPortNameServer</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSPort*"><sel>portForName:</sel><arg type="NSString*">portName</arg>
-        <desc>
-        </desc>
+        <method type="NSPort*">
+          <sel>portForName:</sel>
+          <arg type="NSString*">portName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSPort*"><sel>portForName:</sel><arg type="NSString*">portName</arg>
-        <desc>
-        </desc>
+        <method type="NSPort*">
+          <sel>portForName:</sel>
+          <arg type="NSString*">portName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>registerPort:</sel><arg type="NSPort*">aPort</arg><sel>forName:</sel><arg type="NSString*">portName</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>registerPort:</sel>
+          <arg type="NSPort*">aPort</arg>
+          <sel>forName:</sel>
+          <arg type="NSString*">portName</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removePortForName:</sel><arg type="NSString*">portName</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removePortForName:</sel>
+          <arg type="NSString*">portName</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

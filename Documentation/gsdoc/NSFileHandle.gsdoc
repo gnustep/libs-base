@@ -16,91 +16,122 @@
       <class name="NSFileHandle" super="NSObject">
         <declared>Foundation/NSFileHandle.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="void"><sel>acceptConnectionInBackgroundAndNotify</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="void">
+          <sel>acceptConnectionInBackgroundAndNotify</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>acceptConnectionInBackgroundAndNotifyForModes:</sel><arg type="NSArray*">modes</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>acceptConnectionInBackgroundAndNotifyForModes:</sel>
+          <arg type="NSArray*">modes</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSData*"><sel>availableData</sel>
-        <desc>
-        </desc>
+        <method type="NSData*">
+          <sel>availableData</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>closeFile</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>closeFile</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="int"><sel>fileDescriptor</sel>
-        <desc>
-        </desc>
+        <method type="int">
+          <sel>fileDescriptor</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithFileDescriptor:</sel><arg type="int">fileDescriptor</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithFileDescriptor:</sel>
+          <arg type="int">fileDescriptor</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithFileDescriptor:</sel><arg type="int">fileDescriptor</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithFileDescriptor:</sel>
+          <arg type="int">fileDescriptor</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="unsignedlonglong"><sel>offsetInFile</sel>
-        <desc>
-        </desc>
+        <method type="unsignedlonglong">
+          <sel>offsetInFile</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSData*"><sel>readDataOfLength:</sel><arg type="unsigned int">length</arg>
-        <desc>
-        </desc>
+        <method type="NSData*">
+          <sel>readDataOfLength:</sel>
+          <arg type="unsigned int">length</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSData*"><sel>readDataToEndFile</sel>
-        <desc>
-        </desc>
+        <method type="NSData*">
+          <sel>readDataToEndFile</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>readInBackgroundAndNotify</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>readInBackgroundAndNotify</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>readInBackgroundAndNotifyForModes:</sel><arg type="NSArray*">modes</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>readInBackgroundAndNotifyForModes:</sel>
+          <arg type="NSArray*">modes</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>readToEndOfFileInBackgroundAndNotify</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>readToEndOfFileInBackgroundAndNotify</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>readToEndOfFileInBackgroundAndNotifyForModes:</sel><arg type="NSArray*">modes</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>readToEndOfFileInBackgroundAndNotifyForModes:</sel>
+          <arg type="NSArray*">modes</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="unsignedlonglong"><sel>seekToEndOfFile</sel>
-        <desc>
-        </desc>
+        <method type="unsignedlonglong">
+          <sel>seekToEndOfFile</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>seekToFileOffset:</sel><arg type="unsignedlonglong">offset</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>seekToFileOffset:</sel>
+          <arg type="unsignedlonglong">offset</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>synchronizeFile</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>synchronizeFile</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>truncateFileAtOffset:</sel><arg type="unsignedlonglong">offset</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>truncateFileAtOffset:</sel>
+          <arg type="unsignedlonglong">offset</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>waitForDataInBackgroundAndNotify</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>waitForDataInBackgroundAndNotify</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>waitForDataInBackgroundAndNotifyForModes:</sel><arg type="NSArray*">modes</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>waitForDataInBackgroundAndNotifyForModes:</sel>
+          <arg type="NSArray*">modes</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>writeData:</sel><arg type="NSData*">data</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>writeData:</sel>
+          <arg type="NSData*">data</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

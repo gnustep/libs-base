@@ -16,43 +16,58 @@
       <class name="NSCountedSet" super="NSMutableSet">
         <declared>Foundation/NSSet.h</declared>
         <conform>NSCoding</conform>
-        <desc>
-        </desc>
-        <method type="void"><sel>addObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="void">
+          <sel>addObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSArray*"><sel>allObjects</sel>
-        <desc>
-        </desc>
+        <method type="NSArray*">
+          <sel>allObjects</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="unsigned int"><sel>count</sel>
-        <desc>
-        </desc>
+        <method type="unsigned int">
+          <sel>count</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="unsigned int"><sel>countForObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="unsigned int">
+          <sel>countForObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithArray:</sel><arg type="NSArray*">anArray</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithArray:</sel>
+          <arg type="NSArray*">anArray</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithCapacity:</sel><arg type="unsigned">numItems</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithCapacity:</sel>
+          <arg type="unsigned">numItems</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithSet:</sel><arg type="NSSet*">aSet</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithSet:</sel>
+          <arg type="NSSet*">aSet</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSEnumerator*"><sel>objectEnumerator</sel>
-        <desc>
-        </desc>
+        <method type="NSEnumerator*">
+          <sel>objectEnumerator</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>removeObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>removeObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

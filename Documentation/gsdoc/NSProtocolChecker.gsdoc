@@ -15,31 +15,41 @@
       <heading>NSProtocolChecker</heading>
       <class name="NSProtocolChecker" super="NSObject">
         <declared>Foundation/NSProtocolChecker.h</declared>
-        <desc>
-        </desc>
-        <method type="id" factory="yes"><sel>protocolCheckerWithTarget:</sel><arg type="NSObject*">anObject</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="id" factory="yes">
+          <sel>protocolCheckerWithTarget:</sel>
+          <arg type="NSObject*">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>forwardInvocation:</sel><arg type="NSInvocation*">anInvocation</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>forwardInvocation:</sel>
+          <arg type="NSInvocation*">anInvocation</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithTarget:</sel><arg type="NSObject*">anObject</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithTarget:</sel>
+          <arg type="NSObject*">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="structobjc_method_description*"><sel>methodDescriptionForSelector:</sel><arg type="SEL">aSelector</arg>
-        <desc>
-        </desc>
+        <method type="structobjc_method_description*">
+          <sel>methodDescriptionForSelector:</sel>
+          <arg type="SEL">aSelector</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="Protocol*"><sel>protocol</sel>
-        <desc>
-        </desc>
+        <method type="Protocol*">
+          <sel>protocol</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSObject*"><sel>target</sel>
-        <desc>
-        </desc>
+        <method type="NSObject*">
+          <sel>target</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

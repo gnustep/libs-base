@@ -16,83 +16,107 @@
       <class name="NSCharacterSet" super="NSObject">
         <declared>Foundation/NSCharacterSet.h</declared>
         <conform>NSCoding</conform>
-        <desc>
-        </desc>
-        <method type="NSCharacterSet*" factory="yes"><sel>alphanumericCharacterSet</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>alphanumericCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>characterSetWithBitmapRepresentation:</sel><arg type="NSData*">data</arg>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>characterSetWithBitmapRepresentation:</sel>
+          <arg type="NSData*">data</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>characterSetWithCharactersInString:</sel><arg type="NSString*">aString</arg>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>characterSetWithCharactersInString:</sel>
+          <arg type="NSString*">aString</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>characterSetWithContentsOfFile:</sel><arg type="NSString*">path</arg>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>characterSetWithContentsOfFile:</sel>
+          <arg type="NSString*">path</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>characterSetWithRange:</sel><arg type="NSRange">aRange</arg>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>characterSetWithRange:</sel>
+          <arg type="NSRange">aRange</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>controlCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>controlCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>decimalDigitCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>decimalDigitCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>decomposableCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>decomposableCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>illegalCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>illegalCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>letterCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>letterCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>lowercaseLetterCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>lowercaseLetterCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>nonBaseCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>nonBaseCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>punctuationCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>punctuationCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>uppercaseLetterCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>uppercaseLetterCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>whitespaceAndNewlineCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>whitespaceAndNewlineCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*" factory="yes"><sel>whitespaceCharacterSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*" factory="yes">
+          <sel>whitespaceCharacterSet</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSData*"><sel>bitmapRepresentation</sel>
-        <desc>
-        </desc>
+        <method type="NSData*">
+          <sel>bitmapRepresentation</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>characterIsMember:</sel><arg type="unichar">aCharacter</arg>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>characterIsMember:</sel>
+          <arg type="unichar">aCharacter</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSCharacterSet*"><sel>invertedSet</sel>
-        <desc>
-        </desc>
+        <method type="NSCharacterSet*">
+          <sel>invertedSet</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

@@ -16,19 +16,25 @@
       <class name="NSDateFormatter" super="NSFormatter">
         <declared>Foundation/NSDateFormatter.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="BOOL"><sel>allowsNaturalLanguage</sel>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="BOOL">
+          <sel>allowsNaturalLanguage</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSString*"><sel>dateFormat</sel>
-        <desc>
-        </desc>
+        <method type="NSString*">
+          <sel>dateFormat</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>initWithDateFormat:</sel><arg type="NSString*">format</arg><sel>allowNaturalLanguage:</sel><arg type="BOOL">flag</arg>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>initWithDateFormat:</sel>
+          <arg type="NSString*">format</arg>
+          <sel>allowNaturalLanguage:</sel>
+          <arg type="BOOL">flag</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

@@ -16,15 +16,19 @@
       <class name="NSAutoreleasePool" super="NSObject">
         <declared>Foundation/NSAutoreleasePool.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="void" factory="yes"><sel>addObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="void" factory="yes">
+          <sel>addObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>addObject:</sel><arg type="id">anObject</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>addObject:</sel>
+          <arg type="id">anObject</arg>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

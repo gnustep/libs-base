@@ -16,47 +16,81 @@
       <class name="NSTimer" super="NSObject">
         <declared>Foundation/NSTimer.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="NSTimer*" factory="yes"><sel>scheduledTimerWithTimeInterval:</sel><arg type="NSTimeInterval">seconds</arg><sel>invocation:</sel><arg type="NSInvocation*">invocation</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="NSTimer*" factory="yes">
+          <sel>scheduledTimerWithTimeInterval:</sel>
+          <arg type="NSTimeInterval">seconds</arg>
+          <sel>invocation:</sel>
+          <arg type="NSInvocation*">invocation</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimer*" factory="yes"><sel>scheduledTimerWithTimeInterval:</sel><arg type="NSTimeInterval">seconds</arg><sel>target:</sel><arg type="id">target</arg><sel>selector:</sel><arg type="SEL">aSelector</arg><sel>userInfo:</sel><arg type="id">userInfo</arg><sel>repeats:</sel><arg type="BOOL">repeats</arg>
-        <desc>
-        </desc>
+        <method type="NSTimer*" factory="yes">
+          <sel>scheduledTimerWithTimeInterval:</sel>
+          <arg type="NSTimeInterval">seconds</arg>
+          <sel>target:</sel>
+          <arg type="id">target</arg>
+          <sel>selector:</sel>
+          <arg type="SEL">aSelector</arg>
+          <sel>userInfo:</sel>
+          <arg type="id">userInfo</arg>
+          <sel>repeats:</sel>
+          <arg type="BOOL">repeats</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimer*" factory="yes"><sel>timerWithTimeInterval:</sel><arg type="NSTimeInterval">seconds</arg><sel>invocation:</sel><arg type="NSInvocation*">invocation</arg>
-        <desc>
-        </desc>
+        <method type="NSTimer*" factory="yes">
+          <sel>timerWithTimeInterval:</sel>
+          <arg type="NSTimeInterval">seconds</arg>
+          <sel>invocation:</sel>
+          <arg type="NSInvocation*">invocation</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimer*" factory="yes"><sel>timerWithTimeInterval:</sel><arg type="NSTimeInterval">seconds</arg><sel>target:</sel><arg type="id">target</arg><sel>selector:</sel><arg type="SEL">aSelector</arg><sel>userInfo:</sel><arg type="id">userInfo</arg><sel>repeats:</sel><arg type="BOOL">repeats</arg>
-        <desc>
-        </desc>
+        <method type="NSTimer*" factory="yes">
+          <sel>timerWithTimeInterval:</sel>
+          <arg type="NSTimeInterval">seconds</arg>
+          <sel>target:</sel>
+          <arg type="id">target</arg>
+          <sel>selector:</sel>
+          <arg type="SEL">aSelector</arg>
+          <sel>userInfo:</sel>
+          <arg type="id">userInfo</arg>
+          <sel>repeats:</sel>
+          <arg type="BOOL">repeats</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>fire</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>fire</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSDate*"><sel>fireDate</sel>
-        <desc>
-        </desc>
+        <method type="NSDate*">
+          <sel>fireDate</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>invalidate</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>invalidate</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isValid</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isValid</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSTimeInterval"><sel>timeInterval</sel>
-        <desc>
-        </desc>
+        <method type="NSTimeInterval">
+          <sel>timeInterval</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="id"><sel>userInfo</sel>
-        <desc>
-        </desc>
+        <method type="id">
+          <sel>userInfo</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>

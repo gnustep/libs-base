@@ -16,35 +16,48 @@
       <class name="NSPortCoder" super="NSCoder">
         <declared>Foundation/NSPortCoder.h</declared>
         <conform>NSObject</conform>
-        <desc>
-        </desc>
-        <method type="id" factory="yes"><sel>portCoderWithReceivePort:</sel><arg type="NSPort*">receivePort</arg><sel>sendPort:</sel><arg type="NSPort*">sendPort</arg><sel>components:</sel><arg type="NSArray">components</arg>
-        <desc>
-        </desc>
+          <desc>
+          </desc>
+        <method type="id" factory="yes">
+          <sel>portCoderWithReceivePort:</sel>
+          <arg type="NSPort*">receivePort</arg>
+          <sel>sendPort:</sel>
+          <arg type="NSPort*">sendPort</arg>
+          <sel>components:</sel>
+          <arg type="NSArray">components</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="NSConnection*"><sel>connection</sel>
-        <desc>
-        </desc>
+        <method type="NSConnection*">
+          <sel>connection</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="NSPort*"><sel>decodePortObject</sel>
-        <desc>
-        </desc>
+        <method type="NSPort*">
+          <sel>decodePortObject</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>dispatch</sel>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>dispatch</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="void"><sel>encodePortObject:</sel><arg type="NSPort*">aPort</arg>
-        <desc>
-        </desc>
+        <method type="void">
+          <sel>encodePortObject:</sel>
+          <arg type="NSPort*">aPort</arg>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isBycopy</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isBycopy</sel>
+          <desc>
+          </desc>
         </method>
-        <method type="BOOL"><sel>isByref</sel>
-        <desc>
-        </desc>
+        <method type="BOOL">
+          <sel>isByref</sel>
+          <desc>
+          </desc>
         </method>
       </class>
     </chapter>
