@@ -59,7 +59,6 @@ static Class			hostClass;
 static NSLock			*_hostCacheLock = nil;
 static BOOL			_hostCacheEnabled = YES;
 static NSMutableDictionary	*_hostCache = nil;
-static NSString			*myHostName = nil;
 
 
 @interface NSHost (Private)
@@ -260,24 +259,39 @@ static NSString			*myHostName = nil;
  */
 #define	GSMAXHOSTNAMELEN	255
 
+/**
+ * Return the current host name ... may change if we are using dhcp etc
+ */
+static NSString*
+myHostName()
+{
+  static NSString	*name = nil;
+  static char		old[GSMAXHOSTNAMELEN+1];
+  char			buf[GSMAXHOSTNAMELEN+1];
+  int			res;
+
+  [_hostCacheLock lock];
+  res = gethostname(buf, GSMAXHOSTNAMELEN);
+  if (res < 0 || *buf == '\0')
+    {
+      NSLog(@"Unable to get name of current host - using 'localhost'");
+      ASSIGN(name, @"localhost");
+    }
+  else if (name == nil || strcmp(old, buf) != 0)
+    {
+      strcpy(old, buf);
+      RELEASE(name);
+      name = [[NSString alloc] initWithCString: buf];
+    }
+  [_hostCacheLock unlock];
+  return name;
+}
+
 + (void) initialize
 {
   if (self == [NSHost class])
     {
-      char	buf[GSMAXHOSTNAMELEN+1];
-      int	res;
-
       hostClass = self;
-      res = gethostname(buf, GSMAXHOSTNAMELEN);
-      if (res < 0 || *buf == '\0')
-	{
-	  NSLog(@"Unable to get name of current host - using 'localhost'");
-	  myHostName = @"localhost";
-	}
-      else
-	{
-	  myHostName = [[NSString alloc] initWithCString: buf];
-	}
       _hostCacheLock = [[NSRecursiveLock alloc] init];
       _hostCache = [NSMutableDictionary new];
     }
@@ -285,7 +299,7 @@ static NSString			*myHostName = nil;
 
 + (NSHost*) currentHost
 {
-  return [self hostWithName: myHostName];
+  return [self hostWithName: myHostName()];
 }
 
 + (NSHost*) hostWithName: (NSString*)name
@@ -326,7 +340,7 @@ static NSString			*myHostName = nil;
 	  h = gethostbyname((char*)[name cString]);
 	  if (h == 0)
 	    {
-	      if ([name isEqualToString: myHostName] == YES)
+	      if ([name isEqualToString: myHostName()] == YES)
 		{
 		  NSLog(@"No network address appears to be available "
 		    @"for this machine (%@) - using loopback address "

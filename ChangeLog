@@ -5,6 +5,8 @@
 	* Source/NSConnection.m: Experimental code to keep local objects
 	retained long enough to deal with most cases where the remote
 	process may want them again.
+	* Source/NSHost.m: Don't cache local host name ... it may change
+	due to use of DHCP etc.
 
 2002-12-08  Richard Frith-Macdonald <rfm@gnu.org>
 

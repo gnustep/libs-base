@@ -3125,27 +3125,29 @@ static void callEncoder (DOContext *ctxt)
       counter->ref--;
       if ((val = counter->ref) == 0)
 	{
-	  id	item;
-	  /*
-	   *	If this proxy has been vended onwards by another process, we
-	   *	need to keep a reference to the local object around for a
-	   *	while in case that other process needs it.
-	   */
-	  if (timer == nil)
+	  if (1)
 	    {
-	      timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
-				     target: connectionClass
-				     selector: @selector(_timeout:)
-				     userInfo: nil
-				      repeats: YES];
+	      id	item;
+	      /*
+	       * If this proxy has been vended onwards by another process, we
+	       * need to keep a reference to the local object around for a
+	       * while in case that other process needs it.
+	       */
+	      if (timer == nil)
+		{
+		  timer = [NSTimer scheduledTimerWithTimeInterval: 1.0
+					 target: connectionClass
+					 selector: @selector(_timeout:)
+					 userInfo: nil
+					  repeats: YES];
+		}
+	      item = [CachedLocalObject newWithObject: counter time: 30];
+	      NSMapInsert(targetToCached, (void*)target, item);
+	      RELEASE(item);
+	      if (debug_connection > 3)
+		NSLog(@"placed local object (0x%x) target (0x%x) in cache",
+			    (gsaddr)anObj, target);
 	    }
-	  item = [CachedLocalObject newWithObject: counter time: 30];
-	  NSMapInsert(targetToCached, (void*)target, item);
-	  RELEASE(item);
-	  if (debug_connection > 3)
-	    NSLog(@"placed local object (0x%x) target (0x%x) in cache",
-			(gsaddr)anObj, target);
-
 	  NSMapRemove(objectToCounter, (void*)anObj);
 	  NSMapRemove(targetToCounter, (void*)target);
 	}
@@ -3247,7 +3249,6 @@ static void callEncoder (DOContext *ctxt)
 	    }
 	}
       RETAIN(counter);
-      M_UNLOCK(global_proxies_gate);
       if (counter == nil)
 	{
 	  if(debug_connection > 3)
@@ -3263,6 +3264,7 @@ static void callEncoder (DOContext *ctxt)
 	  RELEASE(counter);
 	}
     }
+  M_UNLOCK(global_proxies_gate);
   return proxy;
 }
 
