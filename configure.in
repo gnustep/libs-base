@@ -505,24 +505,18 @@ AC_CHECK_FUNCS(statvfs)
 # These two headers (functions) needed by Time.m
 #--------------------------------------------------------------------
 dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
-AC_CHECK_HEADERS(sys/time.h)
-AC_CHECK_HEADERS(sys/resource.h)
-
-if test $ac_cv_header_sys_time_h = no -o $ac_cv_header_sys_resource_h = no ; then
-  AC_MSG_ERROR(Could not find headers needed by class Time)
-fi
 
 AC_CHECK_HEADERS(sys/rusage.h ucbinclude/sys/resource.h)
 
 #--------------------------------------------------------------------
-# These headers/functions needed by SocketPort.m
+# These headers/functions needed by TcpPort.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(netinet/in.h)
 dnl AC_REPLACE_FUNCS(recvfrom)
 
 if test $ac_cv_header_sys_socket_h = no -o $ac_cv_header_netinet_in_h = no ; then
-  AC_MSG_ERROR(Could not find headers needed by class SocketPort)
+  AC_MSG_ERROR(Could not find socket and networking headers)
 fi
 
 #--------------------------------------------------------------------
