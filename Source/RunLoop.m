@@ -291,7 +291,7 @@ static RunLoop *current_run_loop;
 	  return;
 	}
       timeout.tv_sec = ti;
-      timeout.tv_usec = ti * 1000000.0;
+      timeout.tv_usec = (ti - timeout.tv_sec) * 1000000.0;
       select_timeout = &timeout;
     }
   else if (ti <= 0.0)
