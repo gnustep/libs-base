@@ -1,3 +1,9 @@
+Tue Feb 16  15:35:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+	* Source/NSArray.m: ([-removeObjectsFromIndices:]) rewrite to
+	work according to spec.
+	* Testing/nsarray.m: Fixed check on joining strings.
+
 Mon Feb 15  06:14:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* Source/include/NSDebug.h: Declare strerror() if not known to system
