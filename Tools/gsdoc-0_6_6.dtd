@@ -57,7 +57,7 @@
 <!ENTITY % phrase "var | em | code | strong | file | site">
 
 <!-- Entity for cross references. -->
-<!ENTITY % xref "ref | uref | url | email">
+<!ENTITY % xref "ref | uref | url | email | prjref">
 
 <!-- Entity for anchors. -->
 <!ENTITY % anchor "label | entry">
@@ -172,6 +172,14 @@
   url CDATA #REQUIRED
 >
 
+<!-- A reference to a project.
+  The text contained appears in the output.
+-->
+<!ELEMENT prjref (%text;)*>
+<!ATTLIST prjref
+  prjname CDATA #IMPLIED
+  file CDATA #IMPLIED
+>
 
 <!--***** Anchors. *****-->
 

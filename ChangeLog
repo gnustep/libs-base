@@ -1,3 +1,11 @@
+2000-08-24  Manuel Guesdon <mguesdon@orange-concept.com>
+
+	* Tools/gsdoc-0_6_6.dtd: added prjref element which enable explicit 
+		links between projects
+	* Tools/gsdoc.m: 	handle prjref
+				remove extensions from files  in gsdocrefs 
+					(one day we'll generate other formats :-)
+
 2000-08-23  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Headers/gnustep/base/NSDecimal.h:
