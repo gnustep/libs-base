@@ -93,9 +93,8 @@ nsnotification.m \
 nstimer.m \
 coder.m \
 cstream.m \
-fref.m
-
-# nsarchiving.m
+fref.m \
+basic.m
 
 tcpport: FORCE
 	(cd ../src; $(MAKE))
