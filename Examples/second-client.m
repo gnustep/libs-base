@@ -1,11 +1,35 @@
 #include "second-client.h"
 
+#define IRIX_MALLOC_DEBUG 0
+#define GNU_MALLOC_DEBUG 1
+
+#if IRIX_MALLOC_DEBUG
+#include <sys/types.h>
+#include <malloc.h>
+#endif
+
+#if GNU_MALLOC_DEBUG
+#include "/scratch/mccallum/malloc/malloc.h"
+#endif
+
 int main(int argc, char *argv[])
 {
   id server;
   id a1;
   id remote_array;
   char namebuf[16];
+
+#if IRIX_MALLOC_DEBUG
+  mallopt(M_DEBUG, 1);
+#endif
+
+#if GNU_MALLOC_DEBUG
+  {
+    int r = mcheck(NULL);
+    printf("%d\n", r);
+    assert(r==0);
+  }
+#endif
 
   printf("Looking up server object on localhost with name `secondserver'\n");
   server = [Connection rootProxyAtName:"secondserver"];
@@ -27,13 +51,17 @@ int main(int argc, char *argv[])
   {
     int i, count;
     const char *s;
+    id a2;			/* appellation object from server's list */
     
     count = [remote_array count];
     for (i = 0; i < count; i++)
       {
-	s = [[remote_array objectAtIndex:i] appellation];
+	a2 = [remote_array objectAtIndex:i];
+	s = [a2 appellation];
+	//mprobe(s);
 	printf("Server knows about client with appellation %s\n", s);
-	(*objc_free)((void*)s);
+	if ([a2 isProxy])
+	  (*objc_free)((void*)s);
       }
   }
 
