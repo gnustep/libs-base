@@ -69,7 +69,6 @@ FILE_AUTHORS = \
 # The GNU source files
 
 GNU_MFILES = \
-GetDefEncoding.m \
 GSCompatibility.m \
 Unicode.m \
 behavior.m \
@@ -121,7 +120,6 @@ fast.x \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \
-GetDefEncoding.h \
 Unicode.h \
 UnixFileHandle.h \
 behavior.h \
