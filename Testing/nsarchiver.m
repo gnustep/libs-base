@@ -7,6 +7,7 @@
 #include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSSet.h>
 #include <Foundation/NSUtilities.h>
+#include <Foundation/NSValue.h>
 #include <Foundation/NSDate.h>
 
 int main()
@@ -24,14 +25,19 @@ int main()
 
   /* Create a Set of int's */
   set = [[NSSet alloc] initWithObjects:
-	  @"apple", @"banana", @"carrot", @"dal", @"escarole", @"fava", nil];
+    @"apple", @"banana", @"carrot", @"dal", @"escarole", @"fava",
+    [NSValue valueWithPoint: NSMakePoint(1,1)],
+    [NSValue valueWithSize: NSMakeSize(11,11)],
+    [NSValue valueWithRange: NSMakeRange(10,2)],
+    [NSValue valueWithRect: NSMakeRect(11,11,22,22)],
+    nil];
 
   /* Display the set */
   printf("Writing:\n");
   {
     id o, e = [set objectEnumerator];
     while ((o = [e nextObject]))
-      printf("%s\n", [o cString]);    
+      printf("%s\n", [[o description] cString]);    
   }
 
   apl = [[NSAutoreleasePool alloc] init];
@@ -73,7 +79,7 @@ printf("%u\n", [arc retainCount]);
   {
     id o, e = [set objectEnumerator];
     while ((o = [e nextObject]))
-      printf("%s\n", [o cString]);    
+      printf("%s\n", [[o description] cString]);    
   }
 
 #if 0
