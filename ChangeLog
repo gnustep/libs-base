@@ -1,3 +1,8 @@
+2001-12-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/gsdoc/NSDistantObjectRequest.gsdoc: note that the
+	class does not exist (and why).
+
 2001-12-08  Gregory Casamento <greg_casamento@yahoo.com>
 	* Source/GNUmakefile added SSL_LIB_DIRS += -L$(GNUSTEP_OBJ_DIR)
 	to prevent build from failing when building from scratch.
