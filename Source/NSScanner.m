@@ -211,42 +211,16 @@
 
 /*
  * Scan an unsigned int of the given radix into value.
+ * Internal version used by scanRadixUnsignedInt: and scanHexInt:.
  */
-- (BOOL)scanRadixUnsignedInt: (unsigned int *)value
+- (BOOL)scanUnsignedInt_: (unsigned int *)value radix:(int)radix gotDigits:(BOOL)gotDigits
 {
   unsigned int num = 0;
-  unsigned int numLimit, digitLimit, digitValue, radix;
+  unsigned int numLimit, digitLimit, digitValue;
   BOOL overflow = NO;
-  BOOL got_digits = NO;
   unsigned int saveScanLocation = scanLocation;
 
-  /* Skip whitespace */
-  if (![self _skipToNextField])
-    {
-      scanLocation = saveScanLocation;
-      return NO;
-    }
-
-  /* Check radix */
-  radix = 10;
-  if ((scanLocation < len) && ([string characterAtIndex:scanLocation] == '0'))
-    {
-    radix = 8;
-    scanLocation++;
-    got_digits = YES;
-    if (scanLocation < len)
-      {
-      switch ([string characterAtIndex:scanLocation])
-	{
-	case 'x':
-	case 'X':
-	  scanLocation++;
-	  radix = 16;
-	  got_digits = NO;
-	  break;
-	}
-      }
-    }
+  /* Set limits */
   numLimit = UINT_MAX / radix;
   digitLimit = UINT_MAX % radix;
 
@@ -292,11 +266,11 @@
 	  num = num * radix + digitValue;
         }
       scanLocation++;
-      got_digits = YES;
+      gotDigits = YES;
     }
 
   /* Save result */
-  if (!got_digits)
+  if (!gotDigits)
     {
       scanLocation = saveScanLocation;
       return NO;
@@ -309,6 +283,67 @@
 	*value = num;
     }
   return YES;
+}
+
+/*
+ * Scan an unsigned int of the given radix into value.
+ */
+- (BOOL)scanRadixUnsignedInt: (unsigned int *)value
+{
+  int radix;
+  BOOL gotDigits = NO;
+  unsigned int saveScanLocation = scanLocation;
+
+  /* Skip whitespace */
+  if (![self _skipToNextField])
+    {
+      scanLocation = saveScanLocation;
+      return NO;
+    }
+
+  /* Check radix */
+  radix = 10;
+  if ((scanLocation < len) && ([string characterAtIndex:scanLocation] == '0'))
+    {
+    radix = 8;
+    scanLocation++;
+    gotDigits = YES;
+    if (scanLocation < len)
+      {
+      switch ([string characterAtIndex:scanLocation])
+	{
+	case 'x':
+	case 'X':
+	  scanLocation++;
+	  radix = 16;
+	  gotDigits = NO;
+	  break;
+	}
+      }
+    }
+  if ( [self scanUnsignedInt_:value radix:radix gotDigits:gotDigits])
+    return YES;
+  scanLocation = saveScanLocation;
+  return NO;
+}
+
+/*
+ * Scan a hexadecimal unsigned integer into value.
+ */
+- (BOOL)scanHexInt: (unsigned int *)value
+{
+  unsigned int saveScanLocation = scanLocation;
+
+  /* Skip whitespace */
+  if (![self _skipToNextField])
+    {
+      scanLocation = saveScanLocation;
+      return NO;
+    }
+  if ([self scanUnsignedInt_:value radix:16 gotDigits:NO])
+    return YES;
+  scanLocation = saveScanLocation;
+  return NO;
 }
 
 /*
@@ -414,9 +449,9 @@
     }
 
   /*
-   * FIXME: Should get decimal point character from locale.  The problem
-   * is that I can't find anything in the OPENSTEP specification about
-   * the format of the locale dictionary.
+   * FIXME: Should get decimal point character from locale.
+   * The key is NSDecimalSeparator.
+   * The problem is that I can't find anything in GNUSTEP about locales.
    */
   decimal = '.';
 
@@ -471,27 +506,35 @@
         return NO;
       }
 
-    /* Check for trailing exponent
-       Numbers like 1.23eFOO are rejected. */
+    /* Check for trailing exponent */
     if ((scanLocation < len) && ((c == 'e') || (c == 'E')))
       {
-        int exp;
+        int expval;
+        int expScanLocation = scanLocation;
         scanLocation++;
-        if (![self _scanInt: &exp])
+        if ([self _scanInt: &expval])
 	  {
+	/* Check for exponent overflow */
+	  if (num)
+	    {
+	      if ((exponent > 0) && (expval > (LONG_MAX - exponent)))
+	        exponent = LONG_MAX;
+	      else if ((exponent < 0) && (expval < (LONG_MIN - exponent)))
+	        exponent = LONG_MIN;
+	      else
+	        exponent += expval;
+	    }
+	  }
+	else
+	  {
+#ifdef _ACCEPT_BAD_EXPONENTS_
+	    /* Numbers like 1.23eFOO are accepted (as 1.23). */
+	    scanLocation = expScanLocation;
+#else
+	    /* Numbers like 1.23eFOO are rejected. */
 	    scanLocation = saveScanLocation;
 	    return NO;
-	  }
-
-	/* Check for exponent overflow */
-	if (num)
-	  {
-	    if ((exponent > 0) && (exp > (LONG_MAX - exponent)))
-	      exponent = LONG_MAX;
-	    else if ((exponent < 0) && (exp < (LONG_MIN - exponent)))
-	      exponent = LONG_MIN;
-	    else
-	      exponent += exp;
+#endif
 	  }
       }
     if (value)

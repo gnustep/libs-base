@@ -11,6 +11,7 @@
  *
  */
 
+#include <Foundation/NSString.h>
 #include <Foundation/NSScanner.h>
 #include    <Foundation/NSAutoreleasePool.h>
 #include <limits.h>
@@ -61,8 +62,6 @@ testScanIntGood (int i)
     else if (value != i)
 	printf ("scanInt of `%s' returned value %d.\n", [string cString], value);
     testFullScan ("scanInt", string, scanner);
-    [string release];
-    [scanner release];
 }
 
 /*
@@ -82,8 +81,6 @@ testScanIntOverflow (double d)
     else if (value != ((d < 0) ? INT_MIN : INT_MAX))
 	printf ("scanInt of `%s' didn't overflow, returned %d.\n", [string cString], value);
     testFullScan ("scanInt", string, scanner);
-    [string release];
-    [scanner release];
 }
 
 /*
@@ -141,7 +138,6 @@ testScanInt (void)
     scanLocation = [scanner scanLocation];
     if (scanLocation != 4)
 	printf ("scanInt of `%s' moves scan location to %u.\n", [string cString], scanLocation);
-    [scanner release];
 
     /*
      * Check that non-digits don't move the scan location
@@ -153,7 +149,6 @@ testScanInt (void)
     scanLocation = [scanner scanLocation];
     if (scanLocation != 0)
 	printf ("scanInt of `%s' moves scan location to %u.\n", [string cString], scanLocation);
-    [scanner release];
 
     /*
      * Check that non-digits don't consume characters to be skipped
@@ -165,7 +160,6 @@ testScanInt (void)
     scanLocation = [scanner scanLocation];
     if (scanLocation != 0)
 	printf ("scanInt of `%s' moves scan location to %u.\n", [string cString], scanLocation);
-    [scanner release];
 }
 
 /*
@@ -195,8 +189,7 @@ testScanRadixUnsignedIntFinish (NSString *string, BOOL expectValue, unsigned int
 	    printf ("scanRadixUnsignedInt of `%s' failed.\n", [string cString]);
     }
     if (expectedScanLocation != [scanner scanLocation])
-	printf ("scanRadixUnsignedInt of `%s' moved scan location to %lu (expected %lu)\n", [scanner scanLocation], expectedScanLocation);
-    [scanner release];
+	printf ("scanRadixUnsignedInt of `%s' moved scan location to %u (expected %u)\n", [string cString], [scanner scanLocation], expectedScanLocation);
 }
 
 /*
@@ -216,7 +209,6 @@ testScanRadixUnsignedIntGood (NSString *format, unsigned int i)
     }
     string = [NSString stringWithFormat:format, i];
     testScanRadixUnsignedIntFinish (string, YES, i, [string length]);
-    [string release];
 }
 
 /*
@@ -236,8 +228,6 @@ testScanRadixUnsignedIntOverflow (double d)
     else if (value != UINT_MAX)
 	printf ("scanRadixUnsignedInt of `%s' didn't overflow, returned %u (%#x).\n", [string cString], value, value);
     testFullScan ("scanRadixUnsignedInt", string, scanner);
-    [string release];
-    [scanner release];
 }
 
 /*
@@ -298,6 +288,89 @@ testScanRadixUnsignedInt (void)
     testScanRadixUnsignedIntFinish (@"FOO", NO, 0, 0);
     testScanRadixUnsignedIntFinish (@"  FOO", NO, 0, 0);
     testScanRadixUnsignedIntFinish (@"  0x ", NO, 0, 0);
+#endif
+}
+
+/*
+ ************************************************************************
+ *                              scanHexInt:                             *
+ ************************************************************************
+ */
+
+/*
+ * Test a valid scanHexInt operation
+ */
+void
+testScanHexIntFinish (NSString *string, BOOL expectValue, unsigned int expectedValue, unsigned int expectedScanLocation)
+{
+    NSScanner *scanner;
+    unsigned int value;
+
+    scanner = [NSScanner scannerWithString:string];
+    if ([scanner scanHexInt:&value]) {
+	if (!expectValue)
+	    printf ("scanHexInt of `%s' succeeded.\n", [string cString]);
+	else if (value != expectedValue)
+	    printf ("scanHexInt of `%s' returned value %u (%#x).\n", [string cString], value, value);
+    }
+    else {
+	if (expectValue)
+	    printf ("scanHexInt of `%s' failed.\n", [string cString]);
+    }
+    if (expectedScanLocation != [scanner scanLocation])
+	printf ("scanHexInt of `%s' moved scan location to %u (expected %u)\n", [string cString], [scanner scanLocation], expectedScanLocation);
+}
+
+/*
+ * Test a valid scanHexInt operation
+ */
+void
+testScanHexIntGood (NSString *format, unsigned int i)
+{
+    NSString *string;
+
+    if (format == nil) {
+	testScanHexIntGood (@"%x", i);
+	testScanHexIntGood (@"%X", i);
+	return;
+    }
+    string = [NSString stringWithFormat:format, i];
+    testScanHexIntFinish (string, YES, i, [string length]);
+}
+
+/*
+ * Test scanHexInt operation
+ */
+void
+testScanHexInt (void)
+{
+    unsigned int i;
+
+    /*
+     * Check values within range
+     */
+    i = UINT_MAX-32;
+    for (;;) {
+	testScanHexIntGood (nil, i);
+	if (i == UINT_MAX)
+		break;
+	i++;
+    }
+    for (i = 0 ; i <= 32 ; i++)
+	testScanHexIntGood (nil, i);
+
+    /*
+     * Check that non-digits terminate the scan
+     */
+    testScanHexIntFinish (@"1234FOO", YES, 0x1234F, 5);
+    testScanHexIntFinish (@"01234FOO", YES, 0x1234F, 6);
+
+    /*
+     * Check that non-digits don't move the scan location
+     */
+    testScanHexIntFinish (@"GOO", NO, 0, 0);
+    testScanHexIntFinish (@"  GOO", NO, 0, 0);
+    testScanHexIntFinish (@"   x ", NO, 0, 0);
 }
 
 /*
@@ -357,8 +430,6 @@ testScanLongLongGood (long long i)
 	printf ("scanLongLong of `%s' returned value %s.\n", [string cString],
 						longlongToString (value));
     testFullScan ("scanLongLong", string, scanner);
-    [string release];
-    [scanner release];
 }
 
 /*
@@ -379,8 +450,6 @@ testScanLongLongOverflow (const char *sign, unsigned long long check, long long 
 	printf ("scanLongLong of `%s' didn't overflow, returned %s.\n", [string cString],
 						longlongToString (value));
     testFullScan ("scanLongLong", string, scanner);
-    [string release];
-    [scanner release];
 }
 
 /*
@@ -493,7 +562,6 @@ testScanDoubleGood (NSString *string, double expect)
 	printf ("scanDouble of `%s' returned value %.*e (%g LSB different).\n",
 				[string cString], DBL_DIG + 2, value, error);
     testFullScan ("scanDouble", string, scanner);
-    [scanner release];
 }
 
 static void
@@ -501,7 +569,6 @@ testScanDoubleOneDigit (NSString *format, int digit, double expect)
 {
     NSString *string = [NSString stringWithFormat:format, digit];
     testScanDoubleGood (string, expect);
-    [string release];
 }
 
 static void
@@ -520,7 +587,6 @@ testScanDoubleShort (NSString *string, double expect, unsigned int length)
     scanLocation = [scanner scanLocation];
     if (scanLocation != length)
 	printf ("scanDouble of `%s' moves scan location to %u.\n", [string cString], scanLocation);
-    [scanner release];
 }
 
 void
@@ -535,7 +601,6 @@ testScanDoubleBad (NSString *string)
     scanLocation = [scanner scanLocation];
     if (scanLocation != 0)
 		printf ("scanDouble of `%s' moves scan location to %u.\n", [string cString], scanLocation);
-    [scanner release];
 }
 
 /*
@@ -854,12 +919,19 @@ testScanUpToCharactersFromSet (void)
  *                              TEST DRIVER                             *
  ************************************************************************
  */
+void
+runtest (void (*test)(void))
+{
+    NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+	(*test)();
+    [arp release];
+}
+
 int
 main (int argc, char **argv)
 {
 	extern char *optarg;
 	int c;
-        NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
 	while ((c = getopt (argc, argv, "e:")) != EOF) {
 		switch (c) {
@@ -869,16 +941,16 @@ main (int argc, char **argv)
 		}
 	}
 
-    testScanInt ();
-    testScanRadixUnsignedInt ();
+    runtest (testScanInt);
+    runtest (testScanRadixUnsignedInt);
+    runtest (testScanHexInt);
 #if defined (LONG_LONG_MAX)
-    testScanLongLong ();
+    runtest (testScanLongLong);
 #endif
-    testScanDouble ();
-	testScanString ();
-	testScanUpToString ();
-	testScanCharactersFromSet ();
-	testScanUpToCharactersFromSet ();
-    [arp release];
+    runtest (testScanDouble);
+	runtest (testScanString);
+	runtest (testScanUpToString);
+	runtest (testScanCharactersFromSet);
+	runtest (testScanUpToCharactersFromSet);
     return 0;
 }

@@ -1,4 +1,17 @@
 Mon Feb  1 11:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+	Patch supplied by eric@skatter.usask.ca
+	* Testing/nsscanner.m: Explicitly include NSString.h.
+	Cleaned up autorelease pool handling.
+	Fixed some printf arguments that didn't match their formats.
+	Added tests for scanHexInt:.
+	* Source/include/NSScanner.h:
+	Add declarations for scanInt: and scanHexInt: methods.
+	* Source/NSScanner.m Added scanHexInt: method.
+	Cleaned up some comments.
+	Added conditional compile to let scanDouble: accept numbers
+	like 1.234eFoo (as 1.234).  For now, numbers like this are rejected.
+
+Mon Feb  1 11:25:00 1999  Richard Frith-Macdonald <richard@brainstorm.co.uk>
 
 	* src/NSArray.m: ([-initWithContentsOfFile:]) Fixed memory leak.
 	* src/NSDictionary.m: ([-initWithContentsOfFile:]) Fixed memory leak.
