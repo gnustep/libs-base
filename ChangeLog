@@ -1,3 +1,14 @@
+2002-01-07  Adam Fedor  <fedor@gnu.org>
+
+	* Source/NSObject.m (GSGetValue): Add case for void return
+	(suggestion from ml@sbuilders.com).
+
+	* Resources/Languages/Dutch: Change currency to Euro.
+	* Resources/Languages/French: Likewise.
+	* Resources/Languages/German: Likewise.
+	* Resources/Languages/Italian: Likewise.
+	* Old languages files renamed to *.Old
+
 2002-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m: Minor speedup.

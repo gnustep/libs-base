@@ -5,10 +5,10 @@
   NSFormalName = "Français";
   NSParentContext = "Default";
   
-  NSCurrencySymbol = "EUR";
-  NSPositiveCurrencyFormatString = "EUR9,999.00";
-  NSNegativeCurrencyFormatString = "EUR-9,999.00";
-  NSInternationalCurrencyString = "EUR";
+  NSCurrencySymbol = "F";
+  NSPositiveCurrencyFormatString = "9,999.00$";
+  NSNegativeCurrencyFormatString = "-9,999.00$";
+  NSInternationalCurrencyString = "FF";
   
   NSDecimalDigits = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
   NSDecimalSeparator = ",";

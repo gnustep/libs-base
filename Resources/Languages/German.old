@@ -5,14 +5,14 @@
 	NSLanguageCode = "DEU";
 	NSParentContext = "Default";
 
-	NSCurrencySymbol = "EUR";
+	NSCurrencySymbol = "DM";
 	NSDateFormatString = "%A, %B %d, %Y";
 	NSDateTimeOrdering = DMYH; /* resolve numbers in Day,Month,Year,Hour order */
 	NSDecimalDigits = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
 	NSDecimalSeparator = ",";
 	NSEarlierTimeDesignations = (vor, letzten, letzte, vorige, vorherige, davor);
 	NSHourNameDesignations = ((0, Mitternacht), (12, Mittag, mittags), (10, morgens), (14, nachmittags), (19, abends));
-	NSInternationalCurrencyString = EUR;
+	NSInternationalCurrencyString = DEM; /* ISO 4217 */
 	NSLaterTimeDesignations = ("später");
 	NSMonthNameArray = (Januar, Februar, "März", April, Mai, Juni, Juli, August, September, Oktober, November, Dezember);
 	NSNextDayDesignations = (morgen);
@@ -28,6 +28,6 @@
 	NSTimeFormatString = "%H:%M:%S";
 	NSWeekDayNameArray = (Sonntag, Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag);
 	NSYearMonthWeekDesignations = (Jahr, Monat, Woche);
-	NSPositiveCurrencyFormatString = "EUR9,999.00";
-	NSNegativeCurrencyFormatString = "EUR-9,999.00";
+	NSPositiveCurrencyFormatString = "9,999.00$";
+	NSNegativeCurrencyFormatString = "-9,999.00$";
 }
